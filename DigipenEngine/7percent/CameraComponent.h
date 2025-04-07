@@ -24,10 +24,10 @@ All rights reserved.
 */
 /******************************************************************************/
 
-class CameraComponent : public IRegisteredComponent<CameraComponent>, public ecs::IComponentCallbacks
-#ifdef IMGUI_ENABLED
-	, IEditorComponent<CameraComponent>
-#endif
+class CameraComponent
+	: public IRegisteredComponent<CameraComponent>
+	, public IEditorComponent<CameraComponent>
+	, public ecs::IComponentCallbacks
 {
 	friend class CameraSystem;
 public:
@@ -47,9 +47,9 @@ private:
 	int priority{ 0 };
 	float zoom{ 0.0f };
 	static int globalPriority;
-#ifdef IMGUI_ENABLED
-	static void EditorDraw(CameraComponent& comp);
-#endif
+
+	virtual void EditorDraw() override;
+
 	property_vtable()
 };
 property_begin(CameraComponent)
@@ -65,7 +65,8 @@ property_vend_h(CameraComponent)
 \brief
 	Anchors the attached entity to the camera's location.
 *//******************************************************************/
-class AnchorToCameraComponent : public IRegisteredComponent<AnchorToCameraComponent>
+class AnchorToCameraComponent
+	: public IRegisteredComponent<AnchorToCameraComponent>
 {
 	property_vtable()
 };
@@ -79,7 +80,9 @@ property_vend_h(AnchorToCameraComponent)
 \brief
 	Shakes the attached entity's position.
 *//******************************************************************/
-class ShakeComponent : public IRegisteredComponent<ShakeComponent>, public IEditorComponent<ShakeComponent>
+class ShakeComponent
+	: public IRegisteredComponent<ShakeComponent>
+	, public IEditorComponent<ShakeComponent>
 {
 public:
 	/*****************************************************************//*!
@@ -142,7 +145,7 @@ public:
 	float GetTrauma() const;
 
 private:
-	static void EditorDraw(ShakeComponent& comp);
+	virtual void EditorDraw() override;
 
 private:
 	//! The strength of the shaking. 0 - 1.

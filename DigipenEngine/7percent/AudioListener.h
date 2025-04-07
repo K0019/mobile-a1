@@ -29,10 +29,8 @@ All rights reserved.
 *//******************************************************************/
 class AudioListenerComponent
 	: public IRegisteredComponent<AudioListenerComponent>
+	, public IEditorComponent<AudioListenerComponent>
 	, public IGameComponentCallbacks<AudioListenerComponent>
-#ifdef IMGUI_ENABLED
-	, IEditorComponent<AudioListenerComponent>
-#endif
 {
 public:
 	/*****************************************************************//*!
@@ -53,16 +51,13 @@ public:
 	float distanceFactor;
 	float rolloffScale;
 
-#ifdef IMGUI_ENABLED
 	/*****************************************************************//*!
 	\brief
 		Editor draw function, draws the IMGui elements to allow the
 		component's values to be edited. Disabled when IMGui is disabled.
-	\param comp
-		The component instance.
 	*//******************************************************************/
-	static void EditorDraw(AudioListenerComponent& comp);
-#endif
+	virtual void EditorDraw() override;
+
 	property_vtable()
 };
 property_begin(AudioListenerComponent)

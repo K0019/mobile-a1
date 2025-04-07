@@ -1,68 +1,69 @@
 #include "ArmPivotIK.h"
 
-ArmPivotIKComponent::ArmPivotIKComponent() :
-#ifdef IMGUI_ENABLED
-    REGISTER_DRAW_FUNCTION_TO_EDITOR(EditorDraw),
-#endif
-    upperArmEntity{ nullptr }, lowerArmEntity{ nullptr }, handEntity{ nullptr }, shoulderOffset(0, 0),// About -160 degrees,        // Can't bend forward
-    maxExtensionAngle(180.0f), // 180 degrees
-    preferredElbowAngle(-1.57f), // -90 degrees
-    smoothingFactor(0.8f),
-    currentShoulderAngle(0.0f),
-    currentElbowAngle(-1.57f),
-    elbowPositionOffset(0, 0),
-    upperArmRotation(0.0f),
-    forearmRotation(0.0f) {
+ArmPivotIKComponent::ArmPivotIKComponent()
+    : upperArmEntity{ nullptr }
+    , lowerArmEntity{ nullptr }
+    , handEntity{ nullptr }
+    , shoulderOffset(0, 0)// About -160 degrees,        // Can't bend forward
+    , maxExtensionAngle(180.0f) // 180 degrees
+    , preferredElbowAngle(-1.57f) // -90 degrees
+    , smoothingFactor(0.8f)
+    , currentShoulderAngle(0.0f)
+    , currentElbowAngle(-1.57f)
+    , elbowPositionOffset(0, 0)
+    , upperArmRotation(0.0f)
+    , forearmRotation(0.0f)
+{
 }
 
-#ifdef IMGUI_ENABLED
-void ArmPivotIKComponent::EditorDraw(ArmPivotIKComponent& comp)
+void ArmPivotIKComponent::EditorDraw()
 {
+#ifdef IMGUI_ENABLED
     // Entity references
     if (ImGui::CollapsingHeader("Entity References", ImGuiTreeNodeFlags_DefaultOpen))
     {
-        comp.upperArmEntity.EditorDraw("Upper Arm Entity");
-        comp.lowerArmEntity.EditorDraw("Lower Arm Entity");
-        comp.handEntity.EditorDraw("Hand Entity");
+        upperArmEntity.EditorDraw("Upper Arm Entity");
+        lowerArmEntity.EditorDraw("Lower Arm Entity");
+        handEntity.EditorDraw("Hand Entity");
     }
     
     // Configuration
     if (ImGui::CollapsingHeader("Configuration", ImGuiTreeNodeFlags_DefaultOpen))
     {
-        ImGui::DragFloat2("Shoulder Offset", &comp.shoulderOffset.x, 0.1f);
+        ImGui::DragFloat2("Shoulder Offset", &shoulderOffset.x, 0.1f);
         
         // Convert radians to degrees for the interface
-        float extensionAngleDegrees = comp.maxExtensionAngle;
+        float extensionAngleDegrees = maxExtensionAngle;
         // Angle constraints in degrees (allow positive values)
         ImGui::Text("Angle Constraints (degrees)");
     
         if (ImGui::DragFloat("Max Extension Angle", &extensionAngleDegrees, 1.0f, 0.0f, 180.0f))
         {
-            comp.maxExtensionAngle = extensionAngleDegrees;
+            maxExtensionAngle = extensionAngleDegrees;
         }
     
         ImGui::Text("0° = No bend (rigid), 180° = Complete flexibility");
         
         // Motion control
-        ImGui::DragFloat("Smoothing Factor", &comp.smoothingFactor, 0.01f, 0.0f, 0.99f);
+        ImGui::DragFloat("Smoothing Factor", &smoothingFactor, 0.01f, 0.0f, 0.99f);
     }
     
     // Debug visualization
-    ImGui::Checkbox("Debug Draw", &comp.debugDraw);
+    ImGui::Checkbox("Debug Draw", &debugDraw);
     
     // Current state (read-only)
     if (ImGui::CollapsingHeader("Current State (Read-only)"))
     {
-        float shoulderDegrees = glm::degrees(comp.currentShoulderAngle);
-        float elbowDegrees = glm::degrees(comp.currentElbowAngle);
+        float shoulderDegrees = glm::degrees(currentShoulderAngle);
+        float elbowDegrees = glm::degrees(currentElbowAngle);
         
         ImGui::Text("Current Shoulder Angle: %.2f deg", shoulderDegrees);
         ImGui::Text("Current Elbow Angle: %.2f deg", elbowDegrees);
         ImGui::Text("Total Arm Angle: %.2f deg", shoulderDegrees + elbowDegrees);
         ImGui::Text("Elbow Position Offset: (%.2f, %.2f)", 
-                    comp.elbowPositionOffset.x, comp.elbowPositionOffset.y);
-        ImGui::Text("Upper Arm Rotation: %.2f deg", comp.upperArmRotation);
-        ImGui::Text("Forearm Rotation: %.2f deg", comp.forearmRotation);
+                    elbowPositionOffset.x, elbowPositionOffset.y);
+        ImGui::Text("Upper Arm Rotation: %.2f deg", upperArmRotation);
+        ImGui::Text("Forearm Rotation: %.2f deg", forearmRotation);
     }
     
     // Helpful instructions
@@ -81,8 +82,8 @@ void ArmPivotIKComponent::EditorDraw(ArmPivotIKComponent& comp)
         ImGui::Spacing();
         ImGui::TextWrapped("Higher smoothing values make movement more fluid but less responsive.");
     }
-}
 #endif
+}
 
 
 

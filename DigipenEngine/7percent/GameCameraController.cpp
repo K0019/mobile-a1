@@ -25,19 +25,16 @@ All rights reserved.
 #include "TweenManager.h"
 #include "Messaging.h"
 
-GameCameraControllerComponent::GameCameraControllerComponent() :
-#ifdef IMGUI_ENABLED
-	REGISTER_DRAW_FUNCTION_TO_EDITOR(EditorDraw),
-#endif
-	cameraEntity{ nullptr },
-	playerEntity{ nullptr },
-	minX{ 0.0f },
-	maxX{ 0.0f },
-	minY{ 0.0f },
-	maxY{ 0.0f },
-	offsetAmount{ 0.0f },
-	offsetDuration{ 1.0f },
-	offsetAmountCurrent{ 0.0f }
+GameCameraControllerComponent::GameCameraControllerComponent()
+	: cameraEntity{ nullptr }
+	, playerEntity{ nullptr }
+	, minX{ 0.0f }
+	, maxX{ 0.0f }
+	, minY{ 0.0f }
+	, maxY{ 0.0f }
+	, offsetAmount{ 0.0f }
+	, offsetDuration{ 1.0f }
+	, offsetAmountCurrent{ 0.0f }
 {
 }
 
@@ -50,19 +47,19 @@ void GameCameraControllerComponent::SetOffsetCurrent(float offset)
 	offsetAmountCurrent = offset;
 }
 
-#ifdef IMGUI_ENABLED
-void GameCameraControllerComponent::EditorDraw(GameCameraControllerComponent& comp)
+void GameCameraControllerComponent::EditorDraw()
 {
-	comp.cameraEntity.EditorDraw("Camera");
-	comp.playerEntity.EditorDraw("Player");
-	ImGui::InputFloat("Min X", &comp.minX);
-	ImGui::InputFloat("Max X", &comp.maxX);
-	ImGui::InputFloat("Min Y", &comp.minY);
-	ImGui::InputFloat("Max Y", &comp.maxY);
-	ImGui::InputFloat("Offset Amount", &comp.offsetAmount);
-	ImGui::InputFloat("Offset Duration", &comp.offsetDuration);
-}
+#ifdef IMGUI_ENABLED
+	cameraEntity.EditorDraw("Camera");
+	playerEntity.EditorDraw("Player");
+	ImGui::InputFloat("Min X", &minX);
+	ImGui::InputFloat("Max X", &maxX);
+	ImGui::InputFloat("Min Y", &minY);
+	ImGui::InputFloat("Max Y", &maxY);
+	ImGui::InputFloat("Offset Amount", &offsetAmount);
+	ImGui::InputFloat("Offset Duration", &offsetDuration);
 #endif
+}
 
 GameCameraControllerSystem::GameCameraControllerSystem()
 	: System_Internal{ &GameCameraControllerSystem::UpdateGameCameraController }
@@ -104,9 +101,7 @@ void GameCameraControllerSystem::UpdateGameCameraController(GameCameraController
 {
 	// If no player or camera reference, just return.
 	if (!comp.playerEntity || !comp.cameraEntity)
-	{
 		return;
-	}
 
 	// Find player position
 	Vector2 playerPosition = comp.playerEntity->GetTransform().GetWorldPosition();

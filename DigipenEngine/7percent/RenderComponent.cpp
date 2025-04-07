@@ -26,24 +26,20 @@ All rights reserved.
 RenderComponent::RenderComponent() : RenderComponent(0) {
 }
 
-RenderComponent::RenderComponent(size_t spriteID, bool flippedX, bool flippedY) :
-#ifdef IMGUI_ENABLED
-    REGISTER_DRAW_FUNCTION_TO_EDITOR(EditorDraw),
-#endif
-    spriteID(spriteID),
-    flippedX(flippedX),
-    flippedY(flippedY),
-    m_materialInstance("default") {
+RenderComponent::RenderComponent(size_t spriteID, bool flippedX, bool flippedY)
+    : spriteID(spriteID)
+    , flippedX(flippedX)
+    , flippedY(flippedY)
+    , m_materialInstance("default")
+{
 }
 
-RenderComponent::RenderComponent(const std::string& spriteName, bool flippedX, bool flippedY) :
-#ifdef IMGUI_ENABLED
-    REGISTER_DRAW_FUNCTION_TO_EDITOR(EditorDraw),
-#endif
-    spriteID(ResourceManager::GetSpriteID(spriteName)),
-    flippedX(flippedX),
-    flippedY(flippedY),
-    m_materialInstance("default") {
+RenderComponent::RenderComponent(const std::string& spriteName, bool flippedX, bool flippedY)
+    : spriteID(ResourceManager::GetSpriteID(spriteName))
+    , flippedX(flippedX)
+    , flippedY(flippedY)
+    , m_materialInstance("default")
+{
 }
 
 size_t RenderComponent::GetSpriteID() const {
@@ -137,26 +133,26 @@ std::string RenderComponent::GetMaterialName() const {
     return m_materialInstance.getBaseMaterialName();
 }
 
-#ifdef IMGUI_ENABLED
-void RenderComponent::EditorDraw(RenderComponent& comp)
+void RenderComponent::EditorDraw()
 {
-    if(!ResourceManager::SpriteExists(comp.spriteID))
+#ifdef IMGUI_ENABLED
+    if(!ResourceManager::SpriteExists(spriteID))
     {
         ImGui::Text("No Sprite Assigned, drag a sprite here to assign it");
         if(ImGui::BeginDragDropTarget())
         {
             if(const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("SPRITE_ID"))
             {
-                comp.spriteID = *static_cast<size_t*>(payload->Data);
+                spriteID = *static_cast<size_t*>(payload->Data);
             }
             ImGui::EndDragDropTarget();
         }
         return;
     }
 
-    auto& sprite = ResourceManager::GetSprite(comp.spriteID);
+    auto& sprite = ResourceManager::GetSprite(spriteID);
     ImGui::Text("Sprite Name: %s", sprite.name.c_str());
-    if(ecs::GetEntity(&comp)->GetComp<AnimatorComponent>())
+    if(ecs::GetEntity(this)->GetComp<AnimatorComponent>())
     {
         ImGui::Text("Modify Animator Component to change sprites");
     }
@@ -172,7 +168,7 @@ void RenderComponent::EditorDraw(RenderComponent& comp)
     if(ImGui::BeginDragDropTarget())
     {
         if(const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("SPRITE_ID"))
-            comp.spriteID = *static_cast<size_t*>(payload->Data);
+            spriteID = *static_cast<size_t*>(payload->Data);
         ImGui::EndDragDropTarget();
     }
     ImGui::Text("Width: %d px, Height: %d px", sprite.width, sprite.height);
@@ -182,18 +178,18 @@ void RenderComponent::EditorDraw(RenderComponent& comp)
 
     // Material Selection Combo Box
     {
-        const char* current_material = comp.GetMaterialInstance().getBaseMaterialName().c_str();
+        const char* current_material = GetMaterialInstance().getBaseMaterialName().c_str();
         if(ImGui::BeginCombo("Base Material", current_material)) {
             for(const auto& name : ST<MaterialSystem>::Get()->getMaterials() | std::views::keys) {
-                bool is_selected = (comp.GetMaterialInstance().getBaseMaterialName() == name);
+                bool is_selected = (GetMaterialInstance().getBaseMaterialName() == name);
                 if(ImGui::Selectable(name.c_str(), is_selected)) {
                     MaterialInstance newInstance(name);
-                    if(comp.GetMaterialInstance().hasParameterOverrides()) {
+                    if(GetMaterialInstance().hasParameterOverrides()) {
                         newInstance.setParameterOverrides(
-                            comp.GetMaterialInstance().getOverrideParameters()
+                            GetMaterialInstance().getOverrideParameters()
                         );
                     }
-                    comp.GetMaterialInstance() = std::move(newInstance);
+                    GetMaterialInstance() = std::move(newInstance);
                 }
                 if(is_selected) {
                     ImGui::SetItemDefaultFocus();
@@ -204,7 +200,7 @@ void RenderComponent::EditorDraw(RenderComponent& comp)
     }
 
     // Material Override Controls
-    bool hasOverrides = comp.GetMaterialInstance().hasParameterOverrides();
+    bool hasOverrides = GetMaterialInstance().hasParameterOverrides();
     if(hasOverrides) {
         if(ImGui::Button("Edit Material Properties")) {
             ImGui::OpenPopup("MaterialEditorModal");
@@ -213,28 +209,28 @@ void RenderComponent::EditorDraw(RenderComponent& comp)
         ImGui::SameLine();
         ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.7f, 0.3f, 0.3f, 1.0f));
         if(ImGui::Button("Reset to Base Material")) {
-            comp.GetMaterialInstance().clearParameterOverrides();
+            GetMaterialInstance().clearParameterOverrides();
         }
         ImGui::PopStyleColor();
     }
     else {
         if(ImGui::Button("Override Material Properties")) {
             MaterialParameters params = ST<MaterialSystem>::Get()->getEffectiveParameters(
-                comp.GetMaterialInstance()
+                GetMaterialInstance()
             );
-            comp.GetMaterialInstance().setParameterOverrides(params);
+            GetMaterialInstance().setParameterOverrides(params);
         }
     }
 
     // Flip controls
-    if(ImGui::Checkbox("Flip X", &comp.flippedX)) {
+    if(ImGui::Checkbox("Flip X", &flippedX)) {
     }
     if(ImGui::IsItemHovered())
         ImGui::SetTooltip("Toggle to flip the sprite horizontally");
 
     ImGui::SameLine();
 
-    if(ImGui::Checkbox("Flip Y", &comp.flippedY)) {
+    if(ImGui::Checkbox("Flip Y", &flippedY)) {
     }
     if(ImGui::IsItemHovered())
         ImGui::SetTooltip("Toggle to flip the sprite vertically");
@@ -246,7 +242,7 @@ void RenderComponent::EditorDraw(RenderComponent& comp)
     if (ImGui::BeginPopupModal("MaterialEditorModal", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
 {
     if(hasOverrides) {
-        MaterialParameters params = comp.GetMaterialInstance().getOverrideParameters();
+        MaterialParameters params = GetMaterialInstance().getOverrideParameters();
         bool paramsModified = false;
 
         // Base Properties
@@ -259,11 +255,11 @@ void RenderComponent::EditorDraw(RenderComponent& comp)
 
         // Light Properties
         if(ImGui::CollapsingHeader("Light Interaction", ImGuiTreeNodeFlags_DefaultOpen)) {
-            uint32_t flags = comp.GetMaterialInstance().getOverrideFlags();
+            uint32_t flags = GetMaterialInstance().getOverrideFlags();
 
             bool receivesLight = (flags & MaterialFlags::ReceivesLight) != 0;
             if(ImGui::Checkbox("Receives Light", &receivesLight)) {
-                comp.GetMaterialInstance().setOverrideFlag(MaterialFlags::ReceivesLight, receivesLight);
+                GetMaterialInstance().setOverrideFlag(MaterialFlags::ReceivesLight, receivesLight);
             }
             if(ImGui::IsItemHovered()) {
                 ImGui::SetTooltip("Enable for objects affected by scene lighting");
@@ -271,7 +267,7 @@ void RenderComponent::EditorDraw(RenderComponent& comp)
 
             bool occludesLight = (flags & MaterialFlags::OccludesLight) != 0;
             if(ImGui::Checkbox("Occludes Light", &occludesLight)) {
-                comp.GetMaterialInstance().setOverrideFlag(MaterialFlags::OccludesLight, occludesLight);
+                GetMaterialInstance().setOverrideFlag(MaterialFlags::OccludesLight, occludesLight);
             }
             if(ImGui::IsItemHovered()) {
                 ImGui::SetTooltip("Enable for objects that cast shadows");
@@ -280,11 +276,11 @@ void RenderComponent::EditorDraw(RenderComponent& comp)
 
         // Render Properties
         if(ImGui::CollapsingHeader("Render Properties", ImGuiTreeNodeFlags_DefaultOpen)) {
-            uint32_t flags = comp.GetMaterialInstance().getOverrideFlags();
+            uint32_t flags = GetMaterialInstance().getOverrideFlags();
 
             bool solidColor = (flags & MaterialFlags::SolidColor) != 0;
             if(ImGui::Checkbox("Solid Color", &solidColor)) {
-                comp.GetMaterialInstance().setOverrideFlag(MaterialFlags::SolidColor, solidColor);
+                GetMaterialInstance().setOverrideFlag(MaterialFlags::SolidColor, solidColor);
             }
             if(ImGui::IsItemHovered()) {
                 ImGui::SetTooltip("Uses base color instead of texture");
@@ -292,7 +288,7 @@ void RenderComponent::EditorDraw(RenderComponent& comp)
 
 			bool repeating = (flags & MaterialFlags::Repeating) != 0;
             if (ImGui::Checkbox("Repeating", &repeating)) {
-                comp.GetMaterialInstance().setOverrideFlag(MaterialFlags::Repeating, repeating);
+                GetMaterialInstance().setOverrideFlag(MaterialFlags::Repeating, repeating);
             }
 			if (ImGui::IsItemHovered()) {
 				ImGui::SetTooltip("Texture repeats instead of being to scale");
@@ -306,7 +302,7 @@ void RenderComponent::EditorDraw(RenderComponent& comp)
         }
 
         if(paramsModified) {
-            comp.GetMaterialInstance().setParameterOverrides(params);
+            GetMaterialInstance().setParameterOverrides(params);
         }
 
         ImGui::Separator();
@@ -348,15 +344,15 @@ void RenderComponent::EditorDraw(RenderComponent& comp)
         if(ImGui::Button("Save", ImVec2(120, 0)) && canSave) {
             ST<MaterialSystem>::Get()->createMaterial(
                 materialNameBuffer,
-                comp.GetMaterialInstance().getOverrideFlags()
+                GetMaterialInstance().getOverrideFlags()
             );
 
             ST<MaterialSystem>::Get()->updateMaterialParameters(
                 materialNameBuffer,
-                comp.GetMaterialInstance().getOverrideParameters()
+                GetMaterialInstance().getOverrideParameters()
             );
 
-            comp.GetMaterialInstance() = MaterialInstance(materialNameBuffer);
+            GetMaterialInstance() = MaterialInstance(materialNameBuffer);
             ImGui::CloseCurrentPopup();
         }
 
@@ -369,5 +365,5 @@ void RenderComponent::EditorDraw(RenderComponent& comp)
 
         ImGui::EndPopup();
     }
-}
 #endif
+}

@@ -1,9 +1,9 @@
 #pragma once
 
-class PostProcessingComponent : public IRegisteredComponent<PostProcessingComponent>,public ecs::IComponentCallbacks
-#ifdef IMGUI_ENABLED
-    , IEditorComponent<PostProcessingComponent>
-#endif
+class PostProcessingComponent
+    : public IRegisteredComponent<PostProcessingComponent>
+    , public IEditorComponent<PostProcessingComponent>
+    , public ecs::IComponentCallbacks
 {
     friend class PostProcessingSystem;
 public:
@@ -22,9 +22,8 @@ public:
     void OnDetached() override;
     private:
     // Editor integration
-#ifdef IMGUI_ENABLED
-    static void EditorDraw(PostProcessingComponent& comp);
-#endif
+    virtual void EditorDraw() override;
+
     property_vtable()
 };
 

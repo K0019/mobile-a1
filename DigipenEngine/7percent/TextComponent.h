@@ -21,10 +21,9 @@ All rights reserved.
 
 #pragma once
 
-class TextComponent : public IRegisteredComponent<TextComponent>
-#ifdef IMGUI_ENABLED
-    , IEditorComponent<TextComponent>
-#endif
+class TextComponent
+    : public IRegisteredComponent<TextComponent>
+    , public IEditorComponent<TextComponent>
 {
   friend class TextSystem;
 public:
@@ -130,9 +129,8 @@ public:
      * \brief Editor support function for drawing the TextComponent.
      * \param comp The TextComponent to be drawn.
      */
-#ifdef IMGUI_ENABLED
-    static void EditorDraw(TextComponent& comp);
-#endif
+    virtual void EditorDraw() override;
+
     property_vtable()
 };
 property_begin(TextComponent)
@@ -150,10 +148,9 @@ property_vend_h(TextComponent)
 \brief
     Identifies an entity as an entity displaying FPS with a text component.
 *//******************************************************************/
-class FPSTextComponent : public IRegisteredComponent<FPSTextComponent>
-#ifdef IMGUI_ENABLED
-    , IEditorComponent<FPSTextComponent>
-#endif
+class FPSTextComponent
+    : public IRegisteredComponent<FPSTextComponent>
+    , public IEditorComponent<FPSTextComponent>
 {
 public:
     /*****************************************************************//*!
@@ -182,13 +179,11 @@ private:
     //! Whether to display FPS text.
     bool doDisplay;
 
-#ifdef IMGUI_ENABLED
     /*****************************************************************//*!
     \brief
         Draws this component's properties to editor.
     *//******************************************************************/
-    static void EditorDraw(FPSTextComponent& comp);
-#endif
+    virtual void EditorDraw() override;
 
     property_vtable()
 };

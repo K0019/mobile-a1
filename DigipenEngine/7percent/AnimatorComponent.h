@@ -23,10 +23,9 @@ All rights reserved.
 #include "RenderComponent.h"
 #include "ResourceManager.h"
 
-class AnimatorComponent : public IRegisteredComponent<AnimatorComponent>
-#ifdef IMGUI_ENABLED
-    , IEditorComponent<AnimatorComponent>
-#endif
+class AnimatorComponent
+    : public IRegisteredComponent<AnimatorComponent>
+    , public IEditorComponent<AnimatorComponent>
 {
     friend class AnimatorSystem;
 public:
@@ -58,9 +57,7 @@ public:
 
 private:
     // Editor integration
-#ifdef IMGUI_ENABLED
-    static void EditorDraw(AnimatorComponent& comp);
-#endif
+    virtual void EditorDraw() override;
 
     size_t  currentAnimationHash{0};        // Hash of current animation name
     size_t  currentFrame{0};                // Current frame index

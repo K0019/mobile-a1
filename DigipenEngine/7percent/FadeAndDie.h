@@ -32,9 +32,7 @@ All rights reserved.
 *//******************************************************************/
 class FadeAndDieComponent
 	: public IRegisteredComponent<FadeAndDieComponent>
-#ifdef IMGUI_ENABLED
 	, public IEditorComponent<FadeAndDieComponent>
-#endif
 {
 public:
 	/*****************************************************************//*!
@@ -56,10 +54,8 @@ private:
 	/*****************************************************************//*!
 	\brief
 		Draws this component to the inspector.
-	\param comp
-		This component.
 	*//******************************************************************/
-	static void EditorDraw(FadeAndDieComponent& comp);
+	virtual void EditorDraw() override;
 
 private:
 	//! Base delay before starting to fade

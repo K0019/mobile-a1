@@ -1,9 +1,8 @@
 #pragma once
 
-class TrailRendererComponent : public IRegisteredComponent<TrailRendererComponent>
-#ifdef IMGUI_ENABLED
+class TrailRendererComponent
+    : public IRegisteredComponent<TrailRendererComponent>
     , public IEditorComponent<TrailRendererComponent>
-#endif
 {
 public:
     // Constants
@@ -95,9 +94,7 @@ private:
     int m_pointCount;
     int m_headIndex;
     
-#ifdef IMGUI_ENABLED
-    static void EditorDraw(TrailRendererComponent& component);
-#endif
+    virtual void EditorDraw() override;
     
     property_vtable()
 };

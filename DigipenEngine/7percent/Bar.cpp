@@ -24,11 +24,8 @@ All rights reserved.
 /******************************************************************************/
 #include "Bar.h"
 
-BarComponent::BarComponent():
-#ifdef IMGUI_ENABLED
-     REGISTER_DRAW_FUNCTION_TO_EDITOR(EditorDraw),
-#endif
-      maxValue{ 0.0f }
+BarComponent::BarComponent()
+    : maxValue{ 0.0f }
     , currValue{ 0.0f }
 {
 }
@@ -78,12 +75,12 @@ void BarComponent::SetColor(const Vector4& color)
     }
 }
 
-#ifdef IMGUI_ENABLED
-void BarComponent::EditorDraw(BarComponent& comp)
+void BarComponent::EditorDraw()
 {
-    ImGui::SliderFloat("Current", &comp.currValue, 0.0f, comp.maxValue);
-    ImGui::InputFloat("Maximum", &comp.maxValue);
+#ifdef IMGUI_ENABLED
+    ImGui::SliderFloat("Current", &currValue, 0.0f, maxValue);
+    ImGui::InputFloat("Maximum", &maxValue);
 
-    comp.UpdateTransforms();
-}
+    UpdateTransforms();
 #endif
+}

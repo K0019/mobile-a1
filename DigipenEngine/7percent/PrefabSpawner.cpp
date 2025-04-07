@@ -1,12 +1,9 @@
 #include "PrefabSpawner.h"
 #include "PrefabManager.h"
 
-PrefabSpawnComponent::PrefabSpawnComponent() :
-#ifdef IMGUI_ENABLED
-	REGISTER_DRAW_FUNCTION_TO_EDITOR(EditorDraw),
-#endif
-	inited{ false },
-	PrefabName{ "" }
+PrefabSpawnComponent::PrefabSpawnComponent()
+    : inited{ false }
+	, PrefabName{ "" }
 {
 }
 void PrefabSpawnComponent::OnStart()
@@ -26,15 +23,15 @@ void PrefabSpawnComponent::Init()
     inited = true;
 }
 
-#ifdef IMGUI_ENABLED
-void PrefabSpawnComponent::EditorDraw(PrefabSpawnComponent& comp)
+void PrefabSpawnComponent::EditorDraw()
 {
+#ifdef IMGUI_ENABLED
     // Label
     ImGui::Text("Prefab");
     ImGui::SameLine();
 
     // Display current prefab or placeholder
-    std::string displayName = comp.PrefabName.empty() ? "<None>" : comp.PrefabName;
+    std::string displayName = PrefabName.empty() ? "<None>" : PrefabName;
 
     // Truncate long names
     float maxWidth = 150.0f;
@@ -48,7 +45,7 @@ void PrefabSpawnComponent::EditorDraw(PrefabSpawnComponent& comp)
 
     // Simple text display with background to indicate it's a drop target
     ImGui::PushStyleColor(ImGuiCol_FrameBg, ImGui::GetStyleColorVec4(ImGuiCol_FrameBg));
-    ImGui::PushStyleColor(ImGuiCol_Text, comp.PrefabName.empty() ?
+    ImGui::PushStyleColor(ImGuiCol_Text, PrefabName.empty() ?
         ImVec4(0.6f, 0.6f, 0.6f, 1.0f) : // Gray text for empty state
         ImGui::GetStyleColorVec4(ImGuiCol_Text)); // Normal text otherwise
 
@@ -56,9 +53,9 @@ void PrefabSpawnComponent::EditorDraw(PrefabSpawnComponent& comp)
     ImGui::PopStyleColor(2);
 
     // Show tooltip with full name on hover if truncated
-    if (ImGui::IsItemHovered() && displayName != comp.PrefabName && !comp.PrefabName.empty()) {
+    if (ImGui::IsItemHovered() && displayName != PrefabName && !PrefabName.empty()) {
         ImGui::BeginTooltip();
-        ImGui::TextUnformatted(comp.PrefabName.c_str());
+        ImGui::TextUnformatted(PrefabName.c_str());
         ImGui::EndTooltip();
     }
 
@@ -69,21 +66,21 @@ void PrefabSpawnComponent::EditorDraw(PrefabSpawnComponent& comp)
         {
             if (payload->DataSize > 0 && ImGui::IsMouseReleased(0))
             {
-                comp.PrefabName = static_cast<const char*>(payload->Data);
+                PrefabName = static_cast<const char*>(payload->Data);
             }
         }
         ImGui::EndDragDropTarget();
     }
 
     // Add clear button if a prefab is selected
-    if (!comp.PrefabName.empty()) {
+    if (!PrefabName.empty()) {
         ImGui::SameLine();
         if (ImGui::Button("X", ImVec2(ImGui::GetFrameHeight(), ImGui::GetFrameHeight()))) {
-            comp.PrefabName.clear();
+            PrefabName.clear();
         }
     }
-}
 #endif
+}
 
 PrefabSpawnSystem::PrefabSpawnSystem()
     : System_Internal{ &PrefabSpawnSystem::UpdatePrefabSpawn }

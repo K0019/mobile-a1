@@ -20,20 +20,6 @@ All rights reserved.
 /******************************************************************************/
 #include "ArmPivot.h"
 
-ArmPivotComponent::ArmPivotComponent()
-#ifdef IMGUI_ENABLED
-	: REGISTER_DRAW_FUNCTION_TO_EDITOR(EditorDraw)
-#endif
-{
-}
-
-#ifdef IMGUI_ENABLED
-void ArmPivotComponent::EditorDraw(ArmPivotComponent& comp)
-{
-	UNREFERENCED_PARAMETER(comp);
-}
-#endif
-
 void ArmPivotComponent::RotateTowards(const Vector2& targetPosition)
 {
 	Transform& thisTransform = ecs::GetEntityTransform(this);

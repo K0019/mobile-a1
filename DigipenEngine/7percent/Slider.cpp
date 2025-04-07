@@ -21,11 +21,13 @@ All rights reserved.
 */
 /******************************************************************************/
 
-SliderComponent::SliderComponent() :
-#ifdef IMGUI_ENABLED
-    REGISTER_DRAW_FUNCTION_TO_EDITOR(EditorDraw),
-#endif
-    isPressed(false), spriteID_Pressed(0), spriteID_Unpressed(0), sliderValue(0.5f), setInitial(false), sound(static_cast<int>(VOLUME::SFX))
+SliderComponent::SliderComponent()
+    : isPressed(false)
+    , spriteID_Pressed(0)
+    , spriteID_Unpressed(0)
+    , sliderValue(0.5f)
+    , setInitial(false)
+    , sound(static_cast<int>(VOLUME::SFX))
 {
 
 }
@@ -54,11 +56,11 @@ void SliderComponent::OnDetached()
 }
 
 
-#ifdef IMGUI_ENABLED
-void SliderComponent::EditorDraw(SliderComponent& comp)
+void SliderComponent::EditorDraw()
 {
-    auto& spritePressed = ResourceManager::GetSprite(comp.GetSpriteIDPressed());
-    auto& spriteUnPressed = ResourceManager::GetSprite(comp.GetSpriteIDUnPressed());
+#ifdef IMGUI_ENABLED
+    auto& spritePressed = ResourceManager::GetSprite(GetSpriteIDPressed());
+    auto& spriteUnPressed = ResourceManager::GetSprite(GetSpriteIDUnPressed());
 
 
   
@@ -66,7 +68,7 @@ void SliderComponent::EditorDraw(SliderComponent& comp)
 #define X(enumName, strName) strName,
         static const char* soundTypes[] = { M_SOUND_TYPE };
 #undef X
-        gui::Combo roleCombo{ "Sound Type", soundTypes, std::size(soundTypes), &comp.sound };
+        gui::Combo roleCombo{ "Sound Type", soundTypes, std::size(soundTypes), &sound };
     }
 
     
@@ -81,9 +83,9 @@ void SliderComponent::EditorDraw(SliderComponent& comp)
     {
         if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("SPRITE_ID"))
         {
-            comp.SetSpriteIDUnPressed(*static_cast<size_t*>(payload->Data));
-            if (ecs::CompHandle<RenderComponent> renderComp{ ecs::GetEntity(&comp)->GetComp<RenderComponent>() })
-                renderComp->SetSpriteID(comp.GetSpriteIDUnPressed());
+            SetSpriteIDUnPressed(*static_cast<size_t*>(payload->Data));
+            if (ecs::CompHandle<RenderComponent> renderComp{ ecs::GetEntity(this)->GetComp<RenderComponent>() })
+                renderComp->SetSpriteID(GetSpriteIDUnPressed());
         }
         ImGui::EndDragDropTarget();
     }
@@ -95,13 +97,13 @@ void SliderComponent::EditorDraw(SliderComponent& comp)
     {
         if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("SPRITE_ID"))
         {
-            comp.SetSpriteIDPressed(*static_cast<size_t*>(payload->Data));
+            SetSpriteIDPressed(*static_cast<size_t*>(payload->Data));
         }
         ImGui::EndDragDropTarget();
     }
     ImGui::Text("Drag an Sprite from the browser to assign Pressed");
-}
 #endif
+}
 
 SliderSystem::SliderSystem()
     : System_Internal(&SliderSystem::UpdateSliderComp)

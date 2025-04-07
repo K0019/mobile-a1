@@ -545,7 +545,7 @@ void Editor::DrawEntityComps()
 		// Draw component contents
 		{
 			gui::Indent indent{ 16.0f };
-			editor::ComponentDrawMethods::Draw(compIter.GetCompHash(), compIter.GetComp<void>());
+			ST<editor::ComponentDrawMethods>::Get()->Draw(compIter.GetCompHash(), compIter.GetComp<void>());
 		}
 
 		// Draw delete button

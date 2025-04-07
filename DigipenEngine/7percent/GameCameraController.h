@@ -29,10 +29,9 @@ All rights reserved.
 \brief
 	ECS Component that serializes relevant parameters.
 *//******************************************************************/
-class GameCameraControllerComponent : public IRegisteredComponent<GameCameraControllerComponent>
-#ifdef IMGUI_ENABLED
-	, IEditorComponent<GameCameraControllerComponent>
-#endif
+class GameCameraControllerComponent
+	: public IRegisteredComponent<GameCameraControllerComponent>
+	, public IEditorComponent<GameCameraControllerComponent>
 {
 public:
 	EntityReference cameraEntity;
@@ -67,17 +66,13 @@ public:
 	void SetOffsetCurrent(float offset);
 
 private:
-
-#ifdef IMGUI_ENABLED
 	/*****************************************************************//*!
 	\brief
 		Editor draw function, draws the IMGui elements to allow the
 		component's values to be edited. Disabled when IMGui is disabled.
-	\param comp
-		The component instance.
 	*//******************************************************************/
-	static void EditorDraw(GameCameraControllerComponent& comp);
-#endif
+	virtual void EditorDraw();
+
 	property_vtable()
 };
 property_begin(GameCameraControllerComponent)

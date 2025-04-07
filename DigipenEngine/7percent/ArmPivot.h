@@ -25,29 +25,9 @@ All rights reserved.
 \brief
 	Identifies an entity as a Weapon.
 *//******************************************************************/
-class ArmPivotComponent : public IRegisteredComponent<ArmPivotComponent>
-#ifdef IMGUI_ENABLED
-	, IEditorComponent<ArmPivotComponent>
-#endif
+class ArmPivotComponent
+	: public IRegisteredComponent<ArmPivotComponent>
 {
-public:
-	/*****************************************************************//*!
-	\brief
-		Default constructor.
-	*//******************************************************************/
-	ArmPivotComponent();
-private:
-#ifdef IMGUI_ENABLED
-	/*****************************************************************//*!
-	\brief
-		Editor draw function, draws the IMGui elements to allow the
-		component's values to be edited. Disabled when IMGui is disabled.
-	\param comp
-		The component instance.
-	*//******************************************************************/
-	static void EditorDraw(ArmPivotComponent& comp);
-#endif
-
 public:
 	/*****************************************************************//*!
 	\brief

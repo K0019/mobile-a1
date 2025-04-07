@@ -81,19 +81,8 @@ struct DummyCollisionData
 	}
 };
 
-
-ScriptComponent::ScriptComponent()
-#ifdef IMGUI_ENABLED
-: REGISTER_DRAW_FUNCTION_TO_EDITOR(EditorDraw)
-#endif
-{
-}
-
-ScriptComponent::ScriptComponent(const ScriptComponent& other) :
-#ifdef IMGUI_ENABLED
-	REGISTER_DRAW_FUNCTION_TO_EDITOR(EditorDraw),
-#endif
-	scriptMap(other.scriptMap)
+ScriptComponent::ScriptComponent(const ScriptComponent& other)
+	: scriptMap(other.scriptMap)
 {
 	scriptsToAwaken = other.scriptsToAwaken;
 	scriptsToStart = other.scriptsToStart;
@@ -103,11 +92,8 @@ ScriptComponent::ScriptComponent(const ScriptComponent& other) :
 	//}
 }
 
-ScriptComponent::ScriptComponent(ScriptComponent&& other) noexcept :
-#ifdef IMGUI_ENABLED
-	REGISTER_DRAW_FUNCTION_TO_EDITOR(EditorDraw),
-#endif
-	scriptMap(std::move(other.scriptMap))
+ScriptComponent::ScriptComponent(ScriptComponent&& other) noexcept
+	: scriptMap(std::move(other.scriptMap))
 {
 	scriptsToAwaken = std::move(other.scriptsToAwaken);
 	scriptsToStart = std::move(other.scriptsToStart);
@@ -121,11 +107,11 @@ ScriptComponent::~ScriptComponent()
 	scriptsToStart.clear();
 }
 
-#ifdef IMGUI_ENABLED
-void ScriptComponent::EditorDraw(ScriptComponent& comp)
+void ScriptComponent::EditorDraw()
 {
-	std::unordered_map<std::string, CSharpScripts::ScriptInstance>& map = comp.scriptMap;
-	std::unordered_map<std::string, bool>& states = comp.openStates;
+#ifdef IMGUI_ENABLED
+	std::unordered_map<std::string, CSharpScripts::ScriptInstance>& map = scriptMap;
+	std::unordered_map<std::string, bool>& states = openStates;
 	ImGui::Text("List of Scripts:");
 	// for each script attached to entity do this
 	//ImGui::BeginChild("list", ImVec2(0, 50), true);
@@ -139,7 +125,7 @@ void ScriptComponent::EditorDraw(ScriptComponent& comp)
 		ImGui::PushID(pair.first.c_str());
 		if (ImGui::Button("Remove")) 
 		{
-			comp.RemoveScript(pair.first);
+			RemoveScript(pair.first);
 			ImGui::PopID();
 			break;
 		}
@@ -148,7 +134,7 @@ void ScriptComponent::EditorDraw(ScriptComponent& comp)
 		// Show the public variables inside the script here
 		if (states[pair.first])
 		{
-			auto pVars = comp.scriptMap[pair.first].GetPublicVars();
+			auto pVars = scriptMap[pair.first].GetPublicVars();
 
 			// Define the height of the child rect based on the number of items
 			const float itemHeight = ImGui::GetTextLineHeightWithSpacing(); // Height of each item
@@ -178,7 +164,7 @@ void ScriptComponent::EditorDraw(ScriptComponent& comp)
 						{
 							// If needed, additional logic for change notification can be added here
 
-							comp.scriptMap[pair.first].SetPublicVar(name, value);
+							scriptMap[pair.first].SetPublicVar(name, value);
 						}
 					}
 					else if constexpr (std::is_same_v<T, bool>)
@@ -187,7 +173,7 @@ void ScriptComponent::EditorDraw(ScriptComponent& comp)
 						if (ImGui::Checkbox("", &std::get<bool>(value)))
 						{
 							// If needed, additional logic for change notification can be added here
-							comp.scriptMap[pair.first].SetPublicVar(name, value);
+							scriptMap[pair.first].SetPublicVar(name, value);
 
 						}
 					}
@@ -197,7 +183,7 @@ void ScriptComponent::EditorDraw(ScriptComponent& comp)
 						if (ImGui::InputFloat("", &std::get<float>(value)))
 						{
 							// If needed, additional logic for change notification can be added here
-							comp.scriptMap[pair.first].SetPublicVar(name, value);
+							scriptMap[pair.first].SetPublicVar(name, value);
 
 						}
 					}
@@ -207,7 +193,7 @@ void ScriptComponent::EditorDraw(ScriptComponent& comp)
 						if (ImGui::InputDouble("", &std::get<double>(value)))
 						{
 							// If needed, additional logic for change notification can be added here
-							comp.scriptMap[pair.first].SetPublicVar(name, value);
+							scriptMap[pair.first].SetPublicVar(name, value);
 						}
 					}
 					else if constexpr (std::is_same_v<T, Vector3>)
@@ -218,15 +204,15 @@ void ScriptComponent::EditorDraw(ScriptComponent& comp)
 						ImGui::Text(name.c_str());
 						if (ImGui::InputFloat("X", &vectorValue.x))
 						{
-							comp.scriptMap[pair.first].SetPublicVar(name, value);
+							scriptMap[pair.first].SetPublicVar(name, value);
 						}
 						if (ImGui::InputFloat("Y", &vectorValue.y))
 						{
-							comp.scriptMap[pair.first].SetPublicVar(name, value);
+							scriptMap[pair.first].SetPublicVar(name, value);
 						}
 						if (ImGui::InputFloat("Z", &vectorValue.z))
 						{
-							comp.scriptMap[pair.first].SetPublicVar(name, value);
+							scriptMap[pair.first].SetPublicVar(name, value);
 						}
 					}
 					else if constexpr (std::is_same_v<T, size_t>)
@@ -272,7 +258,7 @@ void ScriptComponent::EditorDraw(ScriptComponent& comp)
 								std::get<size_t>(value) = droppedEntityId;
 
 								// Update the corresponding variable in the script
-								comp.scriptMap[pair.first].SetPublicVar(name, value);
+								scriptMap[pair.first].SetPublicVar(name, value);
 								
 								if (droppedHandle != nullptr)
 								{
@@ -296,7 +282,7 @@ void ScriptComponent::EditorDraw(ScriptComponent& comp)
 						{
 							// Update the original string if edited
 							pVars.at(name).GetValue() = std::string(buffer); // Set the updated value back to the map
-							comp.scriptMap[pair.first].SetPublicVar(name, value);
+							scriptMap[pair.first].SetPublicVar(name, value);
 						}
 						//if (ImGui::BeginDragDropTarget()) {
 						//	const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("PREFAB");
@@ -313,7 +299,7 @@ void ScriptComponent::EditorDraw(ScriptComponent& comp)
 						//		std::get<std::string>(value) = std::string(droppedPrefab);
 
 						//		// Optionally update the script or other variables
-						//		comp.scriptMap[pair.first].SetPublicVar(name, value);
+						//		scriptMap[pair.first].SetPublicVar(name, value);
 
 						//		// Update the map with the dropped value
 						//		pVars[name] = std::string(droppedPrefab);
@@ -339,18 +325,18 @@ void ScriptComponent::EditorDraw(ScriptComponent& comp)
 
 		for (const auto& pair : coreMap)
 		{
-			if (comp.scriptMap.find(pair.first) == comp.scriptMap.end())
+			if (scriptMap.find(pair.first) == scriptMap.end())
 			{
 				if (ImGui::Selectable(pair.first.c_str()))
 				{
-					comp.AddScript(pair.first);
+					AddScript(pair.first);
 				}
 			}
 		}
 		ImGui::EndCombo();
 	}
-}
 #endif
+}
 
 void ScriptComponent::AddScript(const std::string sName)
 {

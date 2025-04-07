@@ -22,16 +22,11 @@ All rights reserved.
 
 int CameraComponent::globalPriority = 0;
 
-CameraComponent::CameraComponent(bool active): 
-#ifdef IMGUI_ENABLED
-    REGISTER_DRAW_FUNCTION_TO_EDITOR(EditorDraw), 
-#endif
-    active(active)
+CameraComponent::CameraComponent(bool active)
+    : active{ active }
 {
-    if(active)
-    {
+    if (active)
         SetActive();
-    }
 }
 
 bool CameraComponent::isActive() const { return active; }
@@ -43,21 +38,20 @@ void CameraComponent::OnAttached()
     SetActive();
 }
 
-#ifdef IMGUI_ENABLED
-void CameraComponent::EditorDraw(CameraComponent& comp)
+void CameraComponent::EditorDraw()
 {
-    bool active = comp.isActive();
+#ifdef IMGUI_ENABLED
+    bool active = isActive();
     if(ImGui::Checkbox("Currently Active", &active))
     {
-        comp.SetActive();
+        SetActive();
     }
-    ImGui::Text("Zoom: %.2f", comp.zoom);
-}
+    ImGui::Text("Zoom: %.2f", zoom);
 #endif
+}
 
 ShakeComponent::ShakeComponent()
-    : REGISTER_DRAW_FUNCTION_TO_EDITOR(EditorDraw)
-    , trauma{}
+    : trauma{}
     , traumaExponent{ 2.0f }
     , recoverySpeed{ 1.5f }
     , frequency{ 25.0f }
@@ -111,18 +105,18 @@ float ShakeComponent::GetTrauma() const
     return trauma;
 }
 
-void ShakeComponent::EditorDraw(ShakeComponent& comp)
+void ShakeComponent::EditorDraw()
 {
-    gui::TextBoxReadOnly("Trauma", std::to_string(comp.trauma));
-    gui::VarDrag("Shake Speed", &comp.frequency, 1.0f, 0.0f, 100.0f, "%.1f");
-    gui::VarDrag("Recovery Speed", &comp.recoverySpeed, 0.05f, 0.1f, 10.0f, "%.1f");
-    gui::VarDrag("Falloff Exponent", &comp.traumaExponent, 0.2f, 1.0f, 10.0f, "%.1f");
+    gui::TextBoxReadOnly("Trauma", std::to_string(trauma));
+    gui::VarDrag("Shake Speed", &frequency, 1.0f, 0.0f, 100.0f, "%.1f");
+    gui::VarDrag("Recovery Speed", &recoverySpeed, 0.05f, 0.1f, 10.0f, "%.1f");
+    gui::VarDrag("Falloff Exponent", &traumaExponent, 0.2f, 1.0f, 10.0f, "%.1f");
 
     gui::Separator();
 
-    gui::VarDrag("Max Position Offset", &comp.maxPosOffset);
-    gui::VarDrag("Max Rotation Offset", &comp.maxRotOffset);
+    gui::VarDrag("Max Position Offset", &maxPosOffset);
+    gui::VarDrag("Max Rotation Offset", &maxRotOffset);
 
     if (gui::Button{ "Test Shake" })
-        comp.InduceStress(1.0f);
+        InduceStress(1.0f);
 }

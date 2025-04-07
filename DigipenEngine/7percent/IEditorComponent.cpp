@@ -22,23 +22,17 @@ All rights reserved.
 
 #include "IEditorComponent.h"
 
-std::unordered_map<size_t, void(*)(void*)> editor::ComponentDrawMethods::drawFuncs;
+void editor::ComponentDrawMethods::Register(size_t compHash, size_t offset)
+{
+	byteOffsets.try_emplace(compHash, offset);
+}
 
-namespace editor {
+bool editor::ComponentDrawMethods::Draw(size_t compHash, void* compHandle)
+{
+	auto byteOffsetIter{ byteOffsets.find(compHash) };
+	if (byteOffsetIter == byteOffsets.end())
+		return false;
 
-	void ComponentDrawMethods::Register(size_t compHash, void(*compDrawFunc)(void*))
-	{
-		drawFuncs.emplace(compHash, compDrawFunc);
-	}
-
-	bool ComponentDrawMethods::Draw(size_t compHash, void* compHandle)
-	{
-		auto drawFuncIter{ drawFuncs.find(compHash) };
-		if (drawFuncIter == drawFuncs.end())
-			return false;
-
-		drawFuncIter->second(compHandle);
-		return true;
-	}
-
+	reinterpret_cast<internal::IEditorComponentBase*>(reinterpret_cast<uint8_t*>(compHandle) + byteOffsetIter->second)->EditorDraw();
+	return true;
 }

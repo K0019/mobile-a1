@@ -27,34 +27,28 @@ TextComponent::TextComponent()
 {
 }
 
-TextComponent::TextComponent(const std::string& fontName, Vector4 color) :
-#ifdef IMGUI_ENABLED
-    REGISTER_DRAW_FUNCTION_TO_EDITOR(EditorDraw),
-#endif
-    fontNameHash{ util::GenHash(fontName) },
-    textString(""),
-    color{ color }
+TextComponent::TextComponent(const std::string& fontName, Vector4 color)
+    : fontNameHash{ util::GenHash(fontName) }
+    , textString("")
+    , color{ color }
 {
 }
-TextComponent::TextComponent(const std::string& fontName, const std::string& text, Vector4 color) :
-#ifdef IMGUI_ENABLED
-    REGISTER_DRAW_FUNCTION_TO_EDITOR(EditorDraw), 
-#endif
-    fontNameHash{ util::GenHash(fontName) }, textString{ text }, color{ color }
+TextComponent::TextComponent(const std::string& fontName, const std::string& text, Vector4 color)
+    : fontNameHash{ util::GenHash(fontName) }
+    , textString{ text }
+    , color{ color }
 {
 }
-TextComponent::TextComponent(size_t fontNameHash, Vector4 color) :
-#ifdef IMGUI_ENABLED
-    REGISTER_DRAW_FUNCTION_TO_EDITOR(EditorDraw),
-#endif
-    fontNameHash{ fontNameHash }, textString(""), color{ color }
+TextComponent::TextComponent(size_t fontNameHash, Vector4 color)
+    : fontNameHash{ fontNameHash }
+    , textString("")
+    , color{ color }
 {
 }
-TextComponent::TextComponent(size_t fontNameHash, const std::string& text, Vector4 color) :
-#ifdef IMGUI_ENABLED
-    REGISTER_DRAW_FUNCTION_TO_EDITOR(EditorDraw),
-#endif
-    fontNameHash{ fontNameHash }, textString{ text }, color{ color }
+TextComponent::TextComponent(size_t fontNameHash, const std::string& text, Vector4 color)
+    : fontNameHash{ fontNameHash }
+    , textString{ text }
+    , color{ color }
 {
 }
 size_t TextComponent::GetFontHash() const
@@ -176,12 +170,12 @@ void TextComponent::CalculateWorldTransform()
         worldTransform.SetWorldScale({totalWidth, totalHeight});
         worldTransform.SetZPos(transform.GetZPos());
     }
-#ifdef IMGUI_ENABLED
-void TextComponent::EditorDraw(TextComponent& comp)
+void TextComponent::EditorDraw()
 {
+#ifdef IMGUI_ENABLED
     ImGui::Text("Font");
     ImGui::SameLine();
-    auto& currentFontName = ResourceManager::GetResourceName(comp.fontNameHash);
+    auto& currentFontName = ResourceManager::GetResourceName(fontNameHash);
     if(ImGui::BeginCombo("Font", currentFontName.c_str()))
     {
         const auto& fontAtlases = VulkanManager::Get().VkTextureManager().getFontAtlases();
@@ -191,8 +185,8 @@ void TextComponent::EditorDraw(TextComponent& comp)
 
             if(ImGui::Selectable(fontName.c_str(), isSelected))
             {
-                comp.fontNameHash = util::GenHash(fontName);
-                comp.CalculateWorldTransform(); // Recalculate after font change
+                fontNameHash = util::GenHash(fontName);
+                CalculateWorldTransform(); // Recalculate after font change
             }
             // Set initial focus when opening the combo
             if(isSelected)
@@ -203,36 +197,29 @@ void TextComponent::EditorDraw(TextComponent& comp)
         ImGui::EndCombo();
     }
     const char* alignmentItems[] = { "Left", "Center", "Right" };
-    int currentAlignment = static_cast<int>(comp.GetAlignment());
+    int currentAlignment = static_cast<int>(GetAlignment());
     if(ImGui::Combo("Alignment", &currentAlignment, alignmentItems, IM_ARRAYSIZE(alignmentItems))) {
-        comp.SetAlignment(static_cast<TextAlignment>(currentAlignment));
+        SetAlignment(static_cast<TextAlignment>(currentAlignment));
     }
-    auto color = comp.GetColor();
+    auto color = GetColor();
     if(ImGui::ColorEdit4("Color", &color.x))
     {
-        comp.SetColor(color);
+        SetColor(color);
     }
-    auto UI = comp.UI;
-    if(ImGui::Checkbox("UI Element", &UI))
-    {
-        comp.UI = UI;
-    }
-    const auto& text = comp.GetText();
+    ImGui::Checkbox("UI Element", &UI);
+    const auto& text = GetText();
     char buffer[256]; // Adjust size accordingly if text can be longer
     strncpy_s(buffer, text.c_str(), sizeof(buffer));
     if(ImGui::InputText("Text", buffer, sizeof(buffer)))
     {
-        comp.SetText(buffer); // Update the component's text after editing
-        comp.CalculateWorldTransform();
+        SetText(buffer); // Update the component's text after editing
+        CalculateWorldTransform();
     }
+#endif
 }
-#endif
 
-FPSTextComponent::FPSTextComponent() :
-#ifdef IMGUI_ENABLED
-    REGISTER_DRAW_FUNCTION_TO_EDITOR(EditorDraw),
-#endif
-    doDisplay{ true }
+FPSTextComponent::FPSTextComponent()
+    : doDisplay{ true }
 {
 }
 
@@ -246,9 +233,7 @@ void FPSTextComponent::SetDoDisplay(bool newDoDisplay)
     doDisplay = newDoDisplay;
 }
 
-#ifdef IMGUI_ENABLED
-void FPSTextComponent::EditorDraw(FPSTextComponent& comp)
+void FPSTextComponent::EditorDraw()
 {
-    ImGui::Checkbox("Display", &comp.doDisplay);
+    gui::Checkbox("Display", &doDisplay);
 }
-#endif

@@ -1,5 +1,3 @@
-#pragma once
-
 /******************************************************************************/
 /*!
 \file   RenderComponent.h
@@ -21,13 +19,13 @@ All rights reserved.
 */
 /******************************************************************************/
 
+#pragma once
 #include "Materials.h"
 #include "ResourceManager.h"
 
-class RenderComponent : public IRegisteredComponent<RenderComponent>
-#ifdef IMGUI_ENABLED 
-                        ,IEditorComponent<RenderComponent> 
-#endif
+class RenderComponent
+    : public IRegisteredComponent<RenderComponent>
+    , public IEditorComponent<RenderComponent>
 {
 public:
     explicit RenderComponent();
@@ -66,9 +64,7 @@ public:
     bool flippedY;
     MaterialInstance m_materialInstance;
     
-#ifdef IMGUI_ENABLED
-    static void EditorDraw(RenderComponent& comp);
-#endif
+    virtual void EditorDraw() override;
     
     property_vtable()
 };

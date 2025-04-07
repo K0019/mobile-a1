@@ -36,14 +36,11 @@ namespace Physics
 
 #pragma region PhysicsComp
 
-	PhysicsComp::PhysicsComp(const PhysicsCompParams& params) :
-#ifdef IMGUI_ENABLED
-		REGISTER_DRAW_FUNCTION_TO_EDITOR(EditorDraw),
-#endif
-		flags{
+	PhysicsComp::PhysicsComp(const PhysicsCompParams& params)
+		: flags{
 			(static_cast<int>(params.isDynamic) << static_cast<int>(PHYSICS_COMP_FLAG::IS_DYNAMIC)) +
 			(1 << static_cast<int>(PHYSICS_COMP_FLAG::ENABLE_GRAVITY))
-	}
+		}
 		, mass{ params.mass }
 		, restitutionCoeff{ params.restitutionCoeff }
 		, frictionCoeff{ params.frictionCoeff }
@@ -154,18 +151,18 @@ namespace Physics
 			angVelocity = 0.0f;
 	}
 
-#ifdef IMGUI_ENABLED
-	void PhysicsComp::EditorDraw(PhysicsComp& comp)
+	void PhysicsComp::EditorDraw()
 	{
-		comp.flags.MaskEditorDraw(physicsFlagNames);
+#ifdef IMGUI_ENABLED
+		flags.MaskEditorDraw(physicsFlagNames);
 
-		gui::VarDrag("Velocity", &comp.velocity, 10.0f, { -500.0f, -500.0f }, { 500.0f, 500.0f }, "%.1f");
-		gui::VarDrag("Ang Velocity", &comp.angVelocity, 10.0f, -500.0f, 500.0f, "%.1f");
-		gui::VarDrag("Mass", &comp.mass, 0.02f, 0.01f, 50.0f);
-		gui::VarDrag("Restitution", &comp.restitutionCoeff, 0.002f, 0.0f, 1.0f);
-		gui::VarDrag("Friction", &comp.frictionCoeff, 0.002f, 0.0f, 1.0f, "%.2f");
-	}
+		gui::VarDrag("Velocity", &velocity, 10.0f, { -500.0f, -500.0f }, { 500.0f, 500.0f }, "%.1f");
+		gui::VarDrag("Ang Velocity", &angVelocity, 10.0f, -500.0f, 500.0f, "%.1f");
+		gui::VarDrag("Mass", &mass, 0.02f, 0.01f, 50.0f);
+		gui::VarDrag("Restitution", &restitutionCoeff, 0.002f, 0.0f, 1.0f);
+		gui::VarDrag("Friction", &frictionCoeff, 0.002f, 0.0f, 1.0f, "%.2f");
 #endif
+	}
 
 	void PhysicsComp::Serialize(Serializer& writer) const
 	{

@@ -1,11 +1,8 @@
 #include "PostProcessingComponent.h"
 #include "Engine.h"
 
-PostProcessingComponent::PostProcessingComponent(bool bloomEnabled):
-#ifdef IMGUI_ENABLED
-      REGISTER_DRAW_FUNCTION_TO_EDITOR(EditorDraw),
-#endif
-     bloomEnabled(bloomEnabled)
+PostProcessingComponent::PostProcessingComponent(bool bloomEnabled)
+    : bloomEnabled{ bloomEnabled }
 {
 
 }
@@ -13,63 +10,48 @@ void PostProcessingComponent::OnDetached()
 {
     ST<Engine>::Get()->_vulkan->_renderer->ResetPostProcessing();
 }
-#ifdef IMGUI_ENABLED
-void PostProcessingComponent::EditorDraw(PostProcessingComponent& comp)
+void PostProcessingComponent::EditorDraw()
 {
+#ifdef IMGUI_ENABLED
     
     // Bloom enabled toggle
-    bool bloomEnabled = comp.bloomEnabled;
-    if (ImGui::Checkbox("Bloom Enabled", &bloomEnabled)) {
-        comp.bloomEnabled = bloomEnabled;
-    }
+    ImGui::Checkbox("Bloom Enabled", &bloomEnabled);
     
     // Only show bloom settings if enabled
-    if (comp.bloomEnabled) {
+    if (bloomEnabled) {
         // Bloom intensity slider
-        ImGui::DragFloat("Bloom Intensity", &comp.bloomIntensity, 0.01f, 0.0f, 2.0f, "%.2f");
+        ImGui::DragFloat("Bloom Intensity", &bloomIntensity, 0.01f, 0.0f, 2.0f, "%.2f");
         
         // Bloom threshold slider
-        ImGui::DragFloat("Bloom Threshold", &comp.bloomThreshold, 0.01f, 0.0f, 1.0f, "%.2f");
+        ImGui::DragFloat("Bloom Threshold", &bloomThreshold, 0.01f, 0.0f, 1.0f, "%.2f");
         
         // Blur size slider
-        ImGui::DragFloat("Blur Size", &comp.blurSize, 0.1f, 0.0f, 20.0f, "%.2f");
+        ImGui::DragFloat("Blur Size", &blurSize, 0.1f, 0.0f, 20.0f, "%.2f");
     }
     
     ImGui::Separator();
     
     // Vignette Section
-    bool vignetteEnabled = comp.vignetteEnabled;
-    if (ImGui::Checkbox("Vignette Enabled", &vignetteEnabled)) {
-        comp.vignetteEnabled = vignetteEnabled;
-    }
+    ImGui::Checkbox("Vignette Enabled", &vignetteEnabled);
     
-    if (comp.vignetteEnabled) {
+    if (vignetteEnabled) {
         // Vignette color picker
-        float color[3] = { comp.vignetteColor.x, comp.vignetteColor.y, comp.vignetteColor.z };
+        float color[3] = { vignetteColor.x, vignetteColor.y, vignetteColor.z };
         if (ImGui::ColorEdit3("Vignette Color", color)) {
-            comp.vignetteColor = glm::vec4(color[0], color[1], color[2], 1.0f);
+            vignetteColor = glm::vec4(color[0], color[1], color[2], 1.0f);
         }
         
         // Vignette intensity slider
-        float vignetteIntensity = comp.vignetteIntensity;
-        if (ImGui::SliderFloat("Vignette Intensity", &vignetteIntensity, 0.1f, 5.0f, "%.2f")) {
-            comp.vignetteIntensity = vignetteIntensity;
-        }
+        ImGui::SliderFloat("Vignette Intensity", &vignetteIntensity, 0.1f, 5.0f, "%.2f");
         
         // Vignette radius slider
-        float vignetteRadius = comp.vignetteRadius;
-        if (ImGui::SliderFloat("Vignette Radius", &vignetteRadius, 0.0f, 1.0f, "%.2f")) {
-            comp.vignetteRadius = vignetteRadius;
-        }
+        ImGui::SliderFloat("Vignette Radius", &vignetteRadius, 0.0f, 1.0f, "%.2f");
         
         // Vignette smoothness slider
-        float vignetteSmoothness = comp.vignetteSmoothness;
-        if (ImGui::SliderFloat("Edge Smoothness", &vignetteSmoothness, 0.0f, 1.0f, "%.2f")) {
-            comp.vignetteSmoothness = vignetteSmoothness;
-        }
+        ImGui::SliderFloat("Edge Smoothness", &vignetteSmoothness, 0.0f, 1.0f, "%.2f");
     }
-}
 #endif
+}
 
 PostProcessingSystem::PostProcessingSystem() : System_Internal(&PostProcessingSystem::UpdatePostProcessingComp)
 {

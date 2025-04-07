@@ -23,15 +23,12 @@ All rights reserved.
 #include "AudioManager.h"
 #include "Physics.h"
 
-AudioListenerComponent::AudioListenerComponent() :
-#ifdef IMGUI_ENABLED
-	REGISTER_DRAW_FUNCTION_TO_EDITOR(EditorDraw),
-#endif
-	minDistance{ 10.0f },
-	maxDistance{ 1000.0f },
-	dopperScale{ 1.0f },
-	distanceFactor{ 0.01f },
-	rolloffScale{ 0.1f }
+AudioListenerComponent::AudioListenerComponent()
+	: minDistance{ 10.0f }
+	, maxDistance{ 1000.0f }
+	, dopperScale{ 1.0f }
+	, distanceFactor{ 0.01f }
+	, rolloffScale{ 0.1f }
 {
 }
 
@@ -40,16 +37,14 @@ void AudioListenerComponent::OnStart()
 	ST<AudioManager>::Get()->UpdateSpatialProperties(minDistance, maxDistance, dopperScale, distanceFactor, rolloffScale);
 }
 
-#ifdef IMGUI_ENABLED
-void AudioListenerComponent::EditorDraw(AudioListenerComponent& comp)
+void AudioListenerComponent::EditorDraw()
 {
-	ImGui::DragFloat("Minimum Distance", &comp.minDistance);
-	ImGui::DragFloat("Maximum Distance", &comp.maxDistance);
-	ImGui::DragFloat("Doppler Scale", &comp.dopperScale);
-	ImGui::DragFloat("Distance Factor", &comp.distanceFactor);
-	ImGui::DragFloat("Rolloff Scale", &comp.rolloffScale);
+	gui::VarDrag("Minimum Distance", &minDistance);
+	gui::VarDrag("Maximum Distance", &maxDistance);
+	gui::VarDrag("Doppler Scale", &dopperScale);
+	gui::VarDrag("Distance Factor", &distanceFactor);
+	gui::VarDrag("Rolloff Scale", &rolloffScale);
 }
-#endif
 
 AudioListenerSystem::AudioListenerSystem() :
 	System_Internal{ &AudioListenerSystem::UpdateAudioListenerComp }

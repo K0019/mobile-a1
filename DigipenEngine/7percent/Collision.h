@@ -645,10 +645,9 @@ X(IS_TRIGGER, "Is Trigger")
 	\brief
 		The collision component that contains the collider structure and interfaces for checking collisions with other collision components.
 	*//******************************************************************/
-	class ColliderComp : public IRegisteredComponent<ColliderComp>
-#ifdef IMGUI_ENABLED
-		, IEditorComponent<ColliderComp>
-#endif
+	class ColliderComp
+		: public IRegisteredComponent<ColliderComp>
+		, public IEditorComponent<ColliderComp>
 	{
 	public:
 		union ColliderData {
@@ -821,9 +820,7 @@ X(IS_TRIGGER, "Is Trigger")
 		Vector2 scale;
 
 	private:
-#ifdef IMGUI_ENABLED
-		static void EditorDraw(ColliderComp& comp);
-#endif
+		virtual void EditorDraw() override;
 
 	public:
 		// Custom serialization (to support the different possible colliders)

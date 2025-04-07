@@ -36,11 +36,10 @@ All rights reserved.
 #include "SceneManagement.h"
 #include "AudioManager.h"
 
-class ButtonComponent : public IRegisteredComponent<ButtonComponent>,
-	ecs::IComponentCallbacks
-#ifdef IMGUI_ENABLED
-	, IEditorComponent<ButtonComponent>
-#endif
+class ButtonComponent
+	: public IRegisteredComponent<ButtonComponent>
+	, public IEditorComponent<ButtonComponent>
+	, public ecs::IComponentCallbacks
 {
 public:
 	// Number of functions
@@ -125,12 +124,8 @@ private:
 	 \brief
 			draws the 2 boxes in the engine for user to drag and drop pngs
 			into one of the boxes to set pressed/unpressed png
-	 \return
-		   void
 	*//******************************************************************/
-#ifdef IMGUI_ENABLED
-	static void EditorDraw(ButtonComponent& comp);
-#endif
+	virtual void EditorDraw() override;
 
 	//! The previous state of the button, to facilitate audio playback
 	bool wasPressed;

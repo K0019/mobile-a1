@@ -22,71 +22,43 @@ All rights reserved.
 
 #pragma once
 
+namespace internal {
+	/*****************************************************************//*!
+	\class IEditorComponent
+	\brief
+		Provides an interface to invoke a function that draws the component
+		to the ImGui inspector window.
+	*//******************************************************************/
+	class IEditorComponentBase
+	{
+	public:
+		virtual void EditorDraw() = 0;
+	};
+}
+
 #pragma region Interface
-
-// This interface is for components that want to display variables and fields in editor.
-
-
-// Place this in the constructor initialization list
-// The draw function must have signature void (*)(CompType&)
-// 
-// e.g. AnimComp()
-//			: REGISTER_DRAW_FUNCTION_TO_EDITOR(EditorDraw)
-//			, ...
-//		{ }
-//
-
-#define REGISTER_DRAW_FUNCTION_TO_EDITOR(CompDrawFunc) IEditorComponent{ IEditorComponent::EditorDrawFunc<CompDrawFunc>{} }
 
 /*****************************************************************//*!
 \class IEditorComponent
 \brief
-	For each class type inheriting from this class, registers a provided function that draws
-	the component to the ImGui window for Editor.
+	Indicates that a component can be drawn to the ImGui inspector window.
 \tparam CompType
-	The type of the class inheriting this class.
-\code{.cpp}
-	class AnimComp : IEditorComponent<AnimComp>
-\endcode
+	The type of the component.
 *//******************************************************************/
 template <typename CompType>
-class IEditorComponent
+class IEditorComponent : public internal::IEditorComponentBase
 {
-public:
-	/*****************************************************************//*!
-	\struct EditorDrawFunc
-	\brief
-		Dummy struct to allow compiler to deduce template constructor via argument type deduction.
-	\tparam CompDrawFunc
-		The function to be called to draw a component to the ImGui window for Editor.
-	*//******************************************************************/
-	template <void (*CompDrawFunc)(CompType&)>
-	struct EditorDrawFunc { };
-
-public:
-	/*****************************************************************//*!
-	\brief
-		Constructs an instance of IEditorComponent, which registers the component type as a drawable to ImGui window for Editor.
-	\tparam CompDrawFunc
-		The function to be called to draw a component to the ImGui window for Editor.
-	\param func
-		The dummy struct used to work around the inability to specify template parameters for constructors of template classes.
-	*//******************************************************************/
-	template <void (*CompDrawFunc)(CompType&)>
-	IEditorComponent(const EditorDrawFunc<CompDrawFunc>& func);
-
 private:
 	/*****************************************************************//*!
 	\brief
-		Registers a component type to ComponentDrawMethods.
-	\tparam CompDrawFunc
-		The function to be called to draw a component to the ImGui window for Editor.
+		Registers this type to ComponentDrawMethods.
 	\return
-		A dummy value to indicate that a component type has been registered.
+		Dummy bool. True.
 	*//******************************************************************/
-	template <void (*CompDrawFunc)(CompType&)>
-	static bool RegisterComponent();
+	static bool RegisterType();
 
+	//! CRTP to register each component type.
+	static inline bool isRegistered{ RegisterType() };
 };
 
 namespace editor {
@@ -101,15 +73,14 @@ namespace editor {
 	public:
 		/*****************************************************************//*!
 		\brief
-			Registers a function that draws a component type to the ImGui window for editor.
+			Registers a component type as supporting drawing to ImGui window for editor.
 		\param compHash
 			The hash of the component type.
-		\param compDrawFunc
-			The function that draws a component type to the ImGui window for editor.
+		\param offset
+			The byte offset from a component's base address such that IEditorComponent* works.
 		*//******************************************************************/
-		static void Register(size_t compHash, void(*compDrawFunc)(void*));
+		void Register(size_t compHash, size_t offset);
 
-		// Attempt to draw the component to the current active Imgui draw call.
 		/*****************************************************************//*!
 		\brief
 			Calls the function to draw the requested component type to the ImGui window for editor.
@@ -118,11 +89,11 @@ namespace editor {
 		\param compHandle
 			A handle to the component to be drawn to the ImGui window for editor.
 		*//******************************************************************/
-		static bool Draw(size_t compHash, void* compHandle);
+		bool Draw(size_t compHash, void* compHandle);
 
 	private:
-		//! Maps CompHash to DrawFunc.
-		static std::unordered_map<size_t, void(*)(void*)> drawFuncs;
+		//! Maps CompHash to ByteOffsets.
+		std::unordered_map<size_t, size_t> byteOffsets;
 	};
 
 }
@@ -132,20 +103,13 @@ namespace editor {
 #pragma region Definition
 
 template<typename CompType>
-template <void (*CompDrawFunc)(CompType&)>
-IEditorComponent<CompType>::IEditorComponent(const EditorDrawFunc<CompDrawFunc>&)
+inline bool IEditorComponent<CompType>::RegisterType()
 {
-	// Register only once
-	static bool registered{ RegisterComponent<CompDrawFunc>() };
-}
-
-template<typename CompType>
-template <void (*CompDrawFunc)(CompType&)>
-bool IEditorComponent<CompType>::RegisterComponent()
-{
-	editor::ComponentDrawMethods::Register(
-		typeid(CompType).hash_code(),
-		[](void* compHandle) -> void { CompDrawFunc(*reinterpret_cast<CompType*>(compHandle)); }
+	ST<editor::ComponentDrawMethods>::Get()->Register(
+		ecs::GetCompHash<CompType>(),
+		// Multiple inheritance causes issues with the location of the vtable pointer for our specific base class.
+		// We need to resolve this location offset ourselves. This util function helps us do this.
+		util::ByteOffset<CompType, internal::IEditorComponentBase>()
 	);
 	return true;
 }

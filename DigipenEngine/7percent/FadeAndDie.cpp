@@ -24,11 +24,8 @@ All rights reserved.
 #include "FadeAndDie.h"
 #include "RenderComponent.h"
 
-FadeAndDieComponent::FadeAndDieComponent() :
-#ifdef IMGUI_ENABLED
-	REGISTER_DRAW_FUNCTION_TO_EDITOR(EditorDraw),
-#endif
-	delayTimer{ 1.0f }
+FadeAndDieComponent::FadeAndDieComponent()
+	: delayTimer{ 1.0f }
 	, delayRandomOffset{ 0.4f }
 	, fadeLength{ 1.0f }
 {
@@ -60,11 +57,11 @@ void FadeAndDieComponent::Update(float dt)
 		ecs::DeleteEntity(ecs::GetEntity(this));
 }
 
-void FadeAndDieComponent::EditorDraw(FadeAndDieComponent& comp)
+void FadeAndDieComponent::EditorDraw()
 {
-	gui::VarDrag("Delay", &comp.delayTimer);
-	gui::VarDrag("Delay Randomness", &comp.delayRandomOffset);
-	gui::VarDrag("Fade Length", &comp.fadeLength);
+	gui::VarDrag("Delay", &delayTimer);
+	gui::VarDrag("Delay Randomness", &delayRandomOffset);
+	gui::VarDrag("Fade Length", &fadeLength);
 }
 
 FadeAndDieSystem::FadeAndDieSystem()

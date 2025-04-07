@@ -31,9 +31,7 @@ All rights reserved.
 *//******************************************************************/
 class UIScreenManagerComponent
 	: public IRegisteredComponent<UIScreenManagerComponent>
-#ifdef IMGUI_ENABLED
 	, public IEditorComponent<UIScreenManagerComponent>
-#endif
 {
 public:
 	/*****************************************************************//*!
@@ -56,7 +54,6 @@ public:
 	*//******************************************************************/
 	void SwitchToPrevScreen();
 
-#ifdef IMGUI_ENABLED
 private:
 	/*****************************************************************//*!
 	\brief
@@ -64,8 +61,7 @@ private:
 	\param comp
 		The component.
 	*//******************************************************************/
-	static void EditorDraw(UIScreenManagerComponent& comp);
-#endif
+	virtual void EditorDraw() override;
 
 public:
 	/*****************************************************************//*!

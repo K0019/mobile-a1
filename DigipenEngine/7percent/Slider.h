@@ -38,10 +38,10 @@ enum class VOLUME : int
 
 
 
-class SliderComponent : public IRegisteredComponent<SliderComponent>, ecs::IComponentCallbacks
-#ifdef IMGUI_ENABLED
-	, IEditorComponent <SliderComponent>
-#endif
+class SliderComponent
+	: public IRegisteredComponent<SliderComponent>
+	, public IEditorComponent <SliderComponent>
+	, public ecs::IComponentCallbacks
 {
 public:
 	/*****************************************************************//*!
@@ -99,9 +99,7 @@ public:
 	int sound;
 
 private:
-#ifdef IMGUI_ENABLED
-	static void EditorDraw(SliderComponent& comp);
-#endif
+	virtual void EditorDraw() override;
 
 	bool isPressed;
 	size_t	spriteID_Pressed;

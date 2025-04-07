@@ -24,20 +24,15 @@ AnimatorComponent::AnimatorComponent()
     : AnimatorComponent(0) {
 }
 
-AnimatorComponent::AnimatorComponent(const std::string& animationName, bool autoPlay) : 
-#ifdef IMGUI_ENABLED
-    REGISTER_DRAW_FUNCTION_TO_EDITOR(EditorDraw), 
-#endif
-    isPlaying(autoPlay)
+AnimatorComponent::AnimatorComponent(const std::string& animationName, bool autoPlay)
+    : isPlaying(autoPlay)
 {
     SetAnimation(animationName);
 }
 
-AnimatorComponent::AnimatorComponent(size_t animationHash, bool autoPlay) : 
-#ifdef IMGUI_ENABLED
-    REGISTER_DRAW_FUNCTION_TO_EDITOR(EditorDraw), 
-#endif
-    isPlaying(autoPlay) {
+AnimatorComponent::AnimatorComponent(size_t animationHash, bool autoPlay)
+    : isPlaying(autoPlay)
+{
     SetAnimation(animationHash);
 }
 
@@ -132,9 +127,9 @@ void AnimatorComponent::SetFrame(size_t frameIndex) {
         currentFrameTime = 0.0f;
     }
 }
+void AnimatorComponent::EditorDraw() {
 #ifdef IMGUI_ENABLED
-void AnimatorComponent::EditorDraw(AnimatorComponent& comp) {
-    ecs::EntityHandle this_entity = ecs::GetEntity(&comp);
+    ecs::EntityHandle this_entity = ecs::GetEntity(this);
     if(!this_entity->GetComp<RenderComponent>())
     {
         ImGui::TextColored(ImVec4(1.0f, 0.65f, 0.0f, 1.0f), "No Render Component!");
@@ -142,52 +137,52 @@ void AnimatorComponent::EditorDraw(AnimatorComponent& comp) {
     }
 
 
-    if(!comp.currentAnimationHash) {
+    if(!currentAnimationHash) {
         ImGui::Text("No animation set");
         ImGui::Text("Drag an Animation from the browser to assign it");
         if(ImGui::BeginDragDropTarget())
         {
             if(const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ANIM_HASH"))
             {
-                comp.SetAnimation(*static_cast<size_t*>(payload->Data));
+                SetAnimation(*static_cast<size_t*>(payload->Data));
             }
             ImGui::EndDragDropTarget();
         }
         return;
     }
 
-    const std::string& animName = ResourceManager::GetResourceName(comp.currentAnimationHash);
-    const Animation& animation = ResourceManager::GetAnimation(comp.currentAnimationHash);
+    const std::string& animName = ResourceManager::GetResourceName(currentAnimationHash);
+    const Animation& animation = ResourceManager::GetAnimation(currentAnimationHash);
     ImGui::Text("Drag an Animation from the browser to assign it");
     if(ImGui::BeginDragDropTarget())
     {
         if(const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ANIM_HASH"))
         {
-            comp.SetAnimation(*static_cast<size_t*>(payload->Data));
+            SetAnimation(*static_cast<size_t*>(payload->Data));
         }
         ImGui::EndDragDropTarget();
     }
 
     ImGui::Text("Animation: %s", animName.c_str());
 
-    ImGui::Text("Frame: %zu / %zu", comp.currentFrame + 1, animation.totalFrames);
-    ImGui::Text("Frame Time: %.2f", comp.currentFrameTime);
+    ImGui::Text("Frame: %zu / %zu", currentFrame + 1, animation.totalFrames);
+    ImGui::Text("Frame Time: %.2f", currentFrameTime);
 
-    if(ImGui::Button(comp.isPlaying ? "Pause" : "Play")) {
-        comp.isPlaying ? comp.Pause() : comp.Play();
+    if(ImGui::Button(isPlaying ? "Pause" : "Play")) {
+        isPlaying ? Pause() : Play();
     }
     ImGui::SameLine();
     if(ImGui::Button("Reset")) {
-        comp.Reset();
+        Reset();
     }
 
-    ImGui::Checkbox("Looping", &comp.isLooping);
-    ImGui::DragFloat("Speed", &comp.playbackSpeed, 0.1f, 0.1f, 10.0f);
+    ImGui::Checkbox("Looping", &isLooping);
+    ImGui::DragFloat("Speed", &playbackSpeed, 0.1f, 0.1f, 10.0f);
 
     // Frame scrubber
-    int frame = static_cast<int>(comp.currentFrame);
+    int frame = static_cast<int>(currentFrame);
     if(ImGui::SliderInt("Frame", &frame, 0, static_cast<int>(animation.totalFrames) - 1)) {
-        comp.SetFrame(static_cast<size_t>(frame));
+        SetFrame(static_cast<size_t>(frame));
     }
-}
 #endif
+}

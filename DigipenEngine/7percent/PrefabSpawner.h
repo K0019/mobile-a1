@@ -7,9 +7,7 @@
 *//******************************************************************/
 class PrefabSpawnComponent
 	: public IRegisteredComponent<PrefabSpawnComponent>
-#ifdef IMGUI_ENABLED
 	, public IEditorComponent<PrefabSpawnComponent>
-#endif
 	, public IGameComponentCallbacks<PrefabSpawnComponent>
 {
 public:
@@ -36,7 +34,7 @@ private:
 	\brief
 		Draws this component to inspector.
 	*//******************************************************************/
-	static void EditorDraw(PrefabSpawnComponent& comp);
+	virtual void EditorDraw() override;
 
 private:
 	//! The prefab's name

@@ -31,10 +31,9 @@ All rights reserved.
 \brief
 	Identifies an entity as being a UI Bar.
 *//******************************************************************/
-class BarComponent : public IRegisteredComponent<BarComponent>
-#ifdef IMGUI_ENABLED
-	, IEditorComponent<BarComponent>
-#endif
+class BarComponent
+	: public IRegisteredComponent<BarComponent>
+	, public IEditorComponent<BarComponent>
 {
 public:
 	/*****************************************************************//*!
@@ -83,16 +82,12 @@ public:
 	void SetColor(const Vector4& value);
 
 private:
-#ifdef IMGUI_ENABLED
 	/*****************************************************************//*!
 	\brief
 		Editor draw function, draws the IMGui elements to allow the
 		component's values to be edited. Disabled when IMGui is disabled.
-	\param comp
-		The component instance.
 	*//******************************************************************/
-	static void EditorDraw(BarComponent& comp);
-#endif
+	virtual void EditorDraw() override;
 	
 	float maxValue;//! Bar maximum value
 	float currValue;//! Bar current value

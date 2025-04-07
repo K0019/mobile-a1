@@ -127,6 +127,9 @@ namespace util {
 		std::data(container);
 	};
 
+	template <typename DerivedType, typename BaseType>
+	constexpr ptrdiff_t ByteOffset();
+
 	/*****************************************************************//*!
 	\brief
 		Holds a static reference to a random engine.
@@ -403,31 +406,41 @@ namespace util {
                                   static_cast<CommonType>(maxExclusive));
 	}
 
-template<typename T>
-T RandomRange(T minInclusive, T maxExclusive) {
-    static_assert(std::is_arithmetic_v<T>, "RandomRange requires arithmetic type");
-    assert(minInclusive <= maxExclusive && "minInclusive must be less than or equal to maxExclusive");
-    if constexpr(std::is_integral_v<T>) {
-        // Handle the equal case specially
-        if (minInclusive == maxExclusive) {
-            return minInclusive;
-        }
-        std::uniform_int_distribution<T> dist(minInclusive, maxExclusive - 1);
-        return dist(GetEngine());
-    }
-    else if constexpr(std::is_floating_point_v<T>) {
-        // Handle the equal case specially
-        if (minInclusive == maxExclusive) {
-            return minInclusive;
-        }
-        std::uniform_real_distribution<T> dist(minInclusive, maxExclusive);
-        return dist(GetEngine());
-    }
-    else {
-        static_assert(std::is_arithmetic_v<T>, "RandomRange requires arithmetic type");
-        return T{}; // won't compile anyway
-    }
-}
+	template<typename DerivedType, typename BaseType>
+	constexpr ptrdiff_t ByteOffset()
+	{
+		// Use an address on the stack to calculate offsets of the base class and avoid potential underflow/overflow.
+		constexpr int dummy{};
+		const DerivedType* derivedDummy{ reinterpret_cast<const DerivedType*>(&dummy) };
+		const BaseType* baseDummy{ static_cast<const BaseType*>(derivedDummy) };
+		return reinterpret_cast<const uint8_t*>(baseDummy) - reinterpret_cast<const uint8_t*>(derivedDummy);
+	}
+
+	template<typename T>
+	T RandomRange(T minInclusive, T maxExclusive) {
+		static_assert(std::is_arithmetic_v<T>, "RandomRange requires arithmetic type");
+		assert(minInclusive <= maxExclusive && "minInclusive must be less than or equal to maxExclusive");
+		if constexpr(std::is_integral_v<T>) {
+			// Handle the equal case specially
+			if (minInclusive == maxExclusive) {
+				return minInclusive;
+			}
+			std::uniform_int_distribution<T> dist(minInclusive, maxExclusive - 1);
+			return dist(GetEngine());
+		}
+		else if constexpr(std::is_floating_point_v<T>) {
+			// Handle the equal case specially
+			if (minInclusive == maxExclusive) {
+				return minInclusive;
+			}
+			std::uniform_real_distribution<T> dist(minInclusive, maxExclusive);
+			return dist(GetEngine());
+		}
+		else {
+			static_assert(std::is_arithmetic_v<T>, "RandomRange requires arithmetic type");
+			return T{}; // won't compile anyway
+		}
+	}
 	template<typename T>
 	T LerpCubic(T from, T to, float ratio)
 	{

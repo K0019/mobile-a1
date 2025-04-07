@@ -33,73 +33,73 @@ LightComponent::LightComponent(
     float intensity,
     float radius,
     float falloffExponent
-) :
-#ifdef IMGUI_ENABLED
-    REGISTER_DRAW_FUNCTION_TO_EDITOR(EditorDraw),
-#endif
-    color(color),
-    intensity(intensity),
-    radius(radius),
-    falloffExponent(falloffExponent),
-    state{true, true, false} {}  // enabled, castShadows, isSpot
+)
+    : color{ color }
+    , intensity{ intensity }
+    , radius{ radius }
+    , falloffExponent{ falloffExponent }
+    , state{ true, true, false } // enabled, castShadows, isSpot
+{
+}
 
+void LightComponent::EditorDraw()
+{
 #ifdef IMGUI_ENABLED
-void LightComponent::EditorDraw(LightComponent& component) {
     // Core light state
-    bool enabled = component.state.enabled;
+    bool enabled = state.enabled;
     if(ImGui::Checkbox("Enabled", &enabled)) {
-        component.state.enabled = enabled;
+        state.enabled = enabled;
     }
 
     if(!enabled) return;
 
     // Shadow casting control
     ImGui::SameLine();
-    ImGui::Checkbox("Cast Shadows", &component.state.castShadows);
+    ImGui::Checkbox("Cast Shadows", &state.castShadows);
     
     ImGui::SeparatorText("Light Properties");
 
     // Color and intensity editor - maintained from original
     float colorWithIntensity[4] = {
-        component.color.x,
-        component.color.y,
-        component.color.z,
-        component.intensity
+        color.x,
+        color.y,
+        color.z,
+        intensity
     };
     if(ImGui::ColorEdit4("Color & Intensity", colorWithIntensity)) {
-        component.color = Vector3(
+        color = Vector3(
             colorWithIntensity[0],
             colorWithIntensity[1],
             colorWithIntensity[2]
         );
-        component.intensity = colorWithIntensity[3];
+        intensity = colorWithIntensity[3];
     }
 
     // Distance attenuation controls
-    ImGui::DragFloat("Radius", &component.radius, 1.0f, 1.0f,1000.0f, "%.0f units");
-    ImGui::SliderFloat("Falloff Exponent", &component.falloffExponent, 0.1f, 5.0f);
-    ImGui::SliderFloat("Inner Radius", &component.innerRadius, 0.0f, 
-                      component.radius, "%.1f units");
+    ImGui::DragFloat("Radius", &radius, 1.0f, 1.0f,1000.0f, "%.0f units");
+    ImGui::SliderFloat("Falloff Exponent", &falloffExponent, 0.1f, 5.0f);
+    ImGui::SliderFloat("Inner Radius", &innerRadius, 0.0f, 
+                      radius, "%.1f units");
 
     // Spot light controls
-    bool isSpot = component.state.isSpot;
+    bool isSpot = state.isSpot;
     if(ImGui::Checkbox("Spot Light", &isSpot)) {
-        component.state.isSpot = isSpot;
+        state.isSpot = isSpot;
     }
 
-    if(component.state.isSpot) {
+    if(state.isSpot) {
         ImGui::SeparatorText("Spotlight Properties");
         
         // Simplified angle control with single angle + falloff
-        ImGui::SliderFloat("Cone Angle", &component.coneAngle, 1.0f, 180.0f);
+        ImGui::SliderFloat("Cone Angle", &coneAngle, 1.0f, 180.0f);
         
         // Falloff control determines inner angle automatically
-        ImGui::SliderFloat("Edge Softness", &component.coneFalloff, 0.0f, 1.0f);
+        ImGui::SliderFloat("Edge Softness", &coneFalloff, 0.0f, 1.0f);
         
         // Display calculated angles for reference
         ImGui::BeginDisabled();
-        float innerAngle = component.getInnerConeAngle();
-        float outerAngle = component.getOuterConeAngle();
+        float innerAngle = getInnerConeAngle();
+        float outerAngle = getOuterConeAngle();
         ImGui::LabelText("Effective Angles", 
             "Inner: %.1f, Outer: %.1f", 
             innerAngle, outerAngle);
@@ -110,15 +110,15 @@ void LightComponent::EditorDraw(LightComponent& component) {
     if(ImGui::CollapsingHeader("Debug Info")) {
         ImGui::BeginDisabled();
         ImGui::LabelText("Inner Angle (rad)", "%.3f", 
-                        glm::radians(component.getInnerConeAngle()));
+                        glm::radians(getInnerConeAngle()));
         ImGui::LabelText("Outer Angle (rad)", "%.3f", 
-                        glm::radians(component.getOuterConeAngle()));
+                        glm::radians(getOuterConeAngle()));
         ImGui::LabelText("Effective Range", "%.1f units", 
-                        component.radius - component.innerRadius);
+                        radius - innerRadius);
         ImGui::EndDisabled();
     }
-}
 #endif
+}
 
 LightBlinkComponent::LightBlinkComponent()
     : minAlpha{ 0.0f }
@@ -127,9 +127,6 @@ LightBlinkComponent::LightBlinkComponent()
     , maxRadius{ 1.0f }
     , speed{ 1.0f }
     , accumulatedTime{ 0.0f }
-#ifdef IMGUI_ENABLED
-    , REGISTER_DRAW_FUNCTION_TO_EDITOR(EditorDraw)
-#endif
 {
 }
 
@@ -147,13 +144,11 @@ Vector2 LightBlinkComponent::AddTimeElapsed(float dt)
     };
 }
 
-#ifdef IMGUI_ENABLED
-void LightBlinkComponent::EditorDraw(LightBlinkComponent& comp)
+void LightBlinkComponent::EditorDraw()
 {
-    gui::Slider("Min Brightness", &comp.minAlpha, 0.0f, 1.0f);
-    gui::Slider("Max Brightness", &comp.maxAlpha, 0.0f, 1.0f);
-    gui::Slider("Min Radius", &comp.minRadius, 1.0f, 1000.0f);
-    gui::Slider("Max Radius", &comp.maxRadius, 1.0f, 1000.0f);
-    gui::Slider("Speed", &comp.speed, 0.1f, 100.0f);
+    gui::Slider("Min Brightness", &minAlpha, 0.0f, 1.0f);
+    gui::Slider("Max Brightness", &maxAlpha, 0.0f, 1.0f);
+    gui::Slider("Min Radius", &minRadius, 1.0f, 1000.0f);
+    gui::Slider("Max Radius", &maxRadius, 1.0f, 1000.0f);
+    gui::Slider("Speed", &speed, 0.1f, 100.0f);
 }
-#endif

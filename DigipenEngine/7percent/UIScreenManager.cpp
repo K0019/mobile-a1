@@ -25,11 +25,8 @@ All rights reserved.
 #include "NameComponent.h"
 #include "UIScreenManager.h"
 
-UIScreenManagerComponent::UIScreenManagerComponent() :
-#ifdef IMGUI_ENABLED
-	REGISTER_DRAW_FUNCTION_TO_EDITOR(UIScreenManagerComponent::EditorDraw),
-#endif
-	currScreen{}
+UIScreenManagerComponent::UIScreenManagerComponent()
+	: currScreen{}
 	, prevScreen{}
 {
 }
@@ -67,14 +64,12 @@ void UIScreenManagerComponent::SwitchToPrevScreen()
 	currScreen->SetActive(true);
 }
 
-#ifdef IMGUI_ENABLED
-void UIScreenManagerComponent::EditorDraw(UIScreenManagerComponent& comp)
+void UIScreenManagerComponent::EditorDraw()
 {
-	gui::VarContainer("Screens", &comp.screens, [](EntityReference& screenEntity) -> bool {
+	gui::VarContainer("Screens", &screens, [](EntityReference& screenEntity) -> bool {
 		return screenEntity.EditorDraw("");
 	});
 }
-#endif
 
 void UIScreenManagerComponent::Serialize(Serializer& writer) const
 {

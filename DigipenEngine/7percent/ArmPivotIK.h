@@ -1,10 +1,9 @@
 #pragma once
 #include "EntityUID.h"
 
-class ArmPivotIKComponent : public IRegisteredComponent<ArmPivotIKComponent>
-#ifdef IMGUI_ENABLED
-                            , IEditorComponent<ArmPivotIKComponent>
-#endif
+class ArmPivotIKComponent
+	: public IRegisteredComponent<ArmPivotIKComponent>
+	, public IEditorComponent<ArmPivotIKComponent>
 {
 	public:
 
@@ -24,10 +23,10 @@ class ArmPivotIKComponent : public IRegisteredComponent<ArmPivotIKComponent>
 	float upperArmRotation;
 	float forearmRotation;
 
-	#ifdef IMGUI_ENABLED
+#ifdef IMGUI_ENABLED
 	bool debugDraw = false;
-	static void EditorDraw(ArmPivotIKComponent& comp);
 #endif
+	virtual void EditorDraw() override;
 
 	property_vtable()
 };

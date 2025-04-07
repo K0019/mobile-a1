@@ -37,19 +37,13 @@ All rights reserved.
 \brief
 	Class to be used as part of the ECS system
 *//******************************************************************/
-class ScriptComponent : public IRegisteredComponent<ScriptComponent>, ecs::IComponentCallbacks
-#ifdef IMGUI_ENABLED
-	, IEditorComponent<ScriptComponent>
-#endif
+class ScriptComponent
+	: public IRegisteredComponent<ScriptComponent>
+	, public IEditorComponent<ScriptComponent>
+	, public ecs::IComponentCallbacks
 {
 public:
-	/*****************************************************************//*!
-	\brief
-		Default constructor of the class
-	\return
-		None
-	*//******************************************************************/
-	ScriptComponent();
+	ScriptComponent() = default;
 
 	/*****************************************************************//*!
 	\brief
@@ -84,14 +78,8 @@ public:
 		Draws in editor, the Script component. Will draw the scripts 
 		attached inside the component and the scripts variables that can
 		be adjusted/manipulated during runtime.
-	\param[in,out] comp
-		Script Component to draw in the editor
-	\return
-		None
 	*//******************************************************************/
-#ifdef IMGUI_ENABLED
-	static void EditorDraw(ScriptComponent& comp);
-#endif
+	virtual void EditorDraw();
 
 	/*****************************************************************//*!
 	\brief

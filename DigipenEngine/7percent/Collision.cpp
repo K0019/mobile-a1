@@ -590,11 +590,8 @@ namespace Physics {
 	{
 	}
 
-	ColliderComp::ColliderComp(COLLIDER_TYPE type, const Vector2& scale) :
-#ifdef IMGUI_ENABLED
-		REGISTER_DRAW_FUNCTION_TO_EDITOR(EditorDraw),
-#endif
-		flags{ 0 }
+	ColliderComp::ColliderComp(COLLIDER_TYPE type, const Vector2& scale)
+		: flags{ 0 }
 		, type{ type }
 		, collider{ AABB{ scale * 0.5f } }
 		, scale{ scale }
@@ -765,16 +762,14 @@ namespace Physics {
 		}
 	}
 
-#ifdef IMGUI_ENABLED
-	void ColliderComp::EditorDraw(ColliderComp& comp)
+	void ColliderComp::EditorDraw()
 	{
-		int currType{ +comp.type };
+		int currType{ +type };
 		if (gui::Combo typeCombo{ "Type", collisionColliderTypeNames, std::size(collisionColliderTypeNames), &currType })
-			comp.SetColliderType(static_cast<COLLIDER_TYPE>(currType));
-		comp.flags.MaskEditorDraw(collisionCompFlagNames);
-		gui::VarDrag("Scale", &comp.scale, 0.1f, Vector2{ -100.0f, -100.0f }, Vector2{ 100.0f, 100.0f }, "%.1f");
+			SetColliderType(static_cast<COLLIDER_TYPE>(currType));
+		flags.MaskEditorDraw(collisionCompFlagNames);
+		gui::VarDrag("Scale", &scale, 0.1f, Vector2{ -100.0f, -100.0f }, Vector2{ 100.0f, 100.0f }, "%.1f");
 	}
-#endif
 
 	void ColliderComp::Serialize(Serializer& writer) const
 	{

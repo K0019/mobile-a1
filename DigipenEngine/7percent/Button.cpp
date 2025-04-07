@@ -104,12 +104,9 @@ static std::unordered_map<std::string, std::function<void(std::string)>> functio
     }},
 };
 
-ButtonComponent::ButtonComponent() :
-#ifdef IMGUI_ENABLED
-    REGISTER_DRAW_FUNCTION_TO_EDITOR(EditorDraw),
-#endif
-    numFunctions    { 1 }
-    , vecFunctions  { static_cast<size_t>(numFunctions), { "", "" } }
+ButtonComponent::ButtonComponent()
+    : numFunctions{ 1 }
+    , vecFunctions{ static_cast<size_t>(numFunctions), { "", "" } }
     , wasPressed{ false }
     , isPressTarget{ false }
     , spriteID_Pressed{ 0 }
@@ -191,11 +188,11 @@ void ButtonComponent::OnDetached()
     }
 }
 
-#ifdef IMGUI_ENABLED
-void ButtonComponent::EditorDraw(ButtonComponent& comp)
+void ButtonComponent::EditorDraw()
 {
-    auto& spritePressed = ResourceManager::GetSprite(comp.GetSpriteIDPressed());
-    auto& spriteUnPressed = ResourceManager::GetSprite(comp.GetSpriteIDUnPressed());
+#ifdef IMGUI_ENABLED
+    auto& spritePressed = ResourceManager::GetSprite(GetSpriteIDPressed());
+    auto& spriteUnPressed = ResourceManager::GetSprite(GetSpriteIDUnPressed());
 
     ImGui::Text("Drag an Sprite from the browser to assign Unpressed");
 
@@ -207,9 +204,9 @@ void ButtonComponent::EditorDraw(ButtonComponent& comp)
     {
         if(const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("SPRITE_ID"))
         {
-            comp.SetSpriteIDUnPressed(*static_cast<size_t*>(payload->Data));
-            if(ecs::CompHandle<RenderComponent> renderComp{ ecs::GetEntity(&comp)->GetComp<RenderComponent>() })
-                renderComp->SetSpriteID(comp.GetSpriteIDUnPressed());
+            SetSpriteIDUnPressed(*static_cast<size_t*>(payload->Data));
+            if(ecs::CompHandle<RenderComponent> renderComp{ ecs::GetEntity(this)->GetComp<RenderComponent>() })
+                renderComp->SetSpriteID(GetSpriteIDUnPressed());
         }
         ImGui::EndDragDropTarget();
     }
@@ -221,7 +218,7 @@ void ButtonComponent::EditorDraw(ButtonComponent& comp)
     {
         if(const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("SPRITE_ID"))
         {
-            comp.SetSpriteIDPressed(*static_cast<size_t*>(payload->Data));
+            SetSpriteIDPressed(*static_cast<size_t*>(payload->Data));
         }
         ImGui::EndDragDropTarget();
     }
@@ -232,18 +229,18 @@ void ButtonComponent::EditorDraw(ButtonComponent& comp)
     ImGui::Text("Button Functions");
 
     // Input field to modify numFunctions
-    ImGui::InputInt("Number of Functions", &comp.numFunctions);
+    ImGui::InputInt("Number of Functions", &numFunctions);
 
     // Clamp to 1
-    if (comp.numFunctions < 1)
+    if (numFunctions < 1)
     {
-        comp.numFunctions = 1;
+        numFunctions = 1;
     }
 
     // Add button to apply changes
     if (ImGui::Button("Resize"))
     {
-        comp.vecFunctions.resize(static_cast<size_t>(comp.numFunctions));
+        vecFunctions.resize(static_cast<size_t>(numFunctions));
     }
 
     // Draw pairs as input fields
@@ -323,14 +320,14 @@ void ButtonComponent::EditorDraw(ButtonComponent& comp)
         }
         ImGui::PopID();
     };
-    for (auto& val : comp.vecFunctions)
+    for (auto& val : vecFunctions)
     {
         DrawFunctionInput(val);
     }
 
-    comp.clickSound.EditorDraw("Click Sound");
-}
+    clickSound.EditorDraw("Click Sound");
 #endif
+}
 
 void ButtonComponent::Serialize(Serializer& writer) const
 {

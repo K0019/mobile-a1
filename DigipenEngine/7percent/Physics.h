@@ -93,10 +93,9 @@ X(ROTATION_LOCKED, "Lock Rotation")
 	\brief
 		This component class contains physics data such as velocity, restitution coefficients and others.
 	*//******************************************************************/
-	class PhysicsComp : public IRegisteredComponent<PhysicsComp>
-#ifdef IMGUI_ENABLED
-		, IEditorComponent<PhysicsComp>
-#endif
+	class PhysicsComp
+		: public IRegisteredComponent<PhysicsComp>
+		, public IEditorComponent<PhysicsComp>
 	{
 	public:
 		/*****************************************************************//*!
@@ -279,15 +278,11 @@ X(ROTATION_LOCKED, "Lock Rotation")
 		float angVelocity;
 
 	private:
-#ifdef IMGUI_ENABLED
 		/*****************************************************************//*!
 		\brief
 			Draws a physics component to the ImGui editor window.
-		\param comp
-			A reference to the physics component to be drawn.
 		*//******************************************************************/
-		static void EditorDraw(PhysicsComp& comp);
-#endif
+		virtual void EditorDraw() override;
 
 	public:
 		// Custom serialization support (for the bitset)

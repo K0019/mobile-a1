@@ -29,10 +29,9 @@ All rights reserved.
 \brief
     Attaches a light to an entity.
 *//******************************************************************/
-class LightComponent : public IRegisteredComponent<LightComponent>
-#ifdef IMGUI_ENABLED
+class LightComponent
+    : public IRegisteredComponent<LightComponent>
     , public IEditorComponent<LightComponent>
-#endif 
 {
 public:
     // Flags stored as individual bools for clearer code and easier serialization
@@ -78,9 +77,7 @@ public:
 
     void SetRadius(float newRadius) { radius = newRadius; }
 
-#ifdef IMGUI_ENABLED
-    static void EditorDraw(LightComponent& component);
-#endif 
+    virtual void EditorDraw() override;
 
     property_vtable()
 };
@@ -106,10 +103,9 @@ property_vend_h(LightComponent)
 \brief
     Changes the alpha of a light to cause a "blink" effect.
 *//******************************************************************/
-class LightBlinkComponent : public IRegisteredComponent<LightBlinkComponent>
-#ifdef IMGUI_ENABLED
+class LightBlinkComponent
+    : public IRegisteredComponent<LightBlinkComponent>
     , public IEditorComponent<LightBlinkComponent>
-#endif
 {
 public:
     /*****************************************************************//*!
@@ -131,16 +127,12 @@ public:
     *//******************************************************************/
     Vector2 AddTimeElapsed(float dt);
 
-#ifdef IMGUI_ENABLED
 private:
     /*****************************************************************//*!
     \brief
         Draws this component to the inspector.
-    \param comp
-        The component.
     *//******************************************************************/
-    static void EditorDraw(LightBlinkComponent& comp);
-#endif
+    virtual void EditorDraw() override;
 
 private:
     //! The min/max brightness of the light.
