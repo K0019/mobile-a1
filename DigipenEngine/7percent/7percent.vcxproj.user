@@ -1,0 +1,34 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="Current" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <LocalDebuggerWorkingDirectory>$(SolutionDir)bin\$(Configuration)-$(Platform)\</LocalDebuggerWorkingDirectory>
+    <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
+    <LocalDebuggerEnvironment>VK_LAYER_PATH=$(SolutionDir)External\Bin</LocalDebuggerEnvironment>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug_NoImGui|x64'">
+    <LocalDebuggerWorkingDirectory>$(SolutionDir)bin\$(Configuration)-$(Platform)\</LocalDebuggerWorkingDirectory>
+    <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
+    <LocalDebuggerEnvironment>VK_LAYER_PATH=$(SolutionDir)External\Bin</LocalDebuggerEnvironment>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Installer|x64'">
+    <LocalDebuggerWorkingDirectory>$(SolutionDir)bin\$(Configuration)-$(Platform)\</LocalDebuggerWorkingDirectory>
+    <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
+    <LocalDebuggerEnvironment>
+    </LocalDebuggerEnvironment>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <LocalDebuggerWorkingDirectory>$(SolutionDir)bin\$(Configuration)-$(Platform)\</LocalDebuggerWorkingDirectory>
+    <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
+    <LocalDebuggerEnvironment>DISABLE_VK_LAYER_VALVE_steam_overlay_1=1
+VK_LAYER_PATH=$(SolutionDir)External\Bin</LocalDebuggerEnvironment>
+  </PropertyGroup>
+  <PropertyGroup>
+    <ShowAllFiles>false</ShowAllFiles>
+    </PropertyGroup>
+<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release_NoImGui|x64'">
+    <LocalDebuggerWorkingDirectory>$(SolutionDir)bin\$(Configuration)-$(Platform)\</LocalDebuggerWorkingDirectory>
+    <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
+    <LocalDebuggerEnvironment>DISABLE_VK_LAYER_VALVE_steam_overlay_1=1
+VK_LAYER_PATH=$(SolutionDir)External\Bin</LocalDebuggerEnvironment>
+  </PropertyGroup>
+</Project>

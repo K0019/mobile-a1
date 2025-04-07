@@ -30,3 +30,20 @@
 *.exe
 *.out
 *.app
+
+# ----- DIGIPEN ENGINE -----
+DigipenEngine/.vs/
+DigipenEngine/bin/
+DigipenEngine/.tmp/
+DigipenEngine/Shaders/*.spv
+
+# Digipen Engine C# Scripting
+DigipenEngine/EngineScripting/.vs
+DigipenEngine/EngineScripting/bin
+DigipenEngine/EngineScripting/obj/*
+DigipenEngine/Assets/obj/
+DigipenEngine/Assets/EngineScripting.dll
+DigipenEngine/Assets/EngineScripting.pdb
+DigipenEngine/Assets/UserAssembly.dll
+*.spv
+.vs/

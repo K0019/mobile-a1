@@ -1,0 +1,93 @@
+ImGui Usage
+-----------
+- All windows may be resized.
+- Windows may be docked by dragging its header to a dock position and releasing it.
+- Additional windows are available at the top menu bar, under Tools.
+
+- Left click an entity to select it. The box will turn green.
+  - The entity's properties and components can be modified under Tools > Inspector.
+  - Left click dragging the entity will move it around the scene.
+  - Double left click outside of the entity to deselect it.
+
+- Presets may be spawned under Tools > Browser > Presets and clicking it, or dragging it into the viewport.
+- Empty entities may be spawned under Tools > Inspector and clicking "New Entity".
+
+Viewport
+--------
+The viewport is the window named "Scene" and contains the game window.
+
+- Hold right click and drag the mouse to pan the camera. Scroll to zoom.
+- Click on the play button at the top to toggle between play mode and editor mode. Many more systems are activated (such as physics) while in play mode.
+- The opened scenes are saved automatically when entering play mode. Returning to editor mode will reset all scenes and entities to the state before entering play mode.
+- Only while in play mode, click on the pause button to pause systems from updating. Click it again to resume.
+
+File
+----
+Saving/Loading may be performed under File at the menu bar.
+
+- New
+   Currently unimplemented.
+- Save
+   Saves currently opened scenes to Assets/Scenes. This overrides any previous scenes of the same filenames within.
+- Settings
+   Opens editor settings.
+- Exit
+   Closes the program.
+
+Console Commands
+----------------
+The console can be opened via Tools > Console.
+
+List of commands available:
+- help
+    Displays available commands.
+- clear
+    Clears the console log.
+- resize <width> <height>
+    Resizes the internal render resolution to width x height.
+- maxfps <fps>
+    Sets the framerate limit to fps.
+- entityInfo [uid/addr] [number]
+    Debug command to get information about an entity. If no parameters specified, provides information about the selected entity.
+- currentlyPlayingSound
+    Outputs a list of all currently playing sounds.
+
+Hierarchy
+---------
+The Hierarchy window can be opened via Tools > Hierarchy.
+
+- Expand/Collapse the entity list by clicking the triangle in the dropdown menu. (Scene / An entity with children)
+- Single-click any entity to select it.
+- Double-click any entity to focus the viewport's camera to it.
+- You can drag entities and drop them on top of other entities to set parent.
+- You can drag entities and drop them on top of any scene to move it to that scene. This also makes it a top-level entity (No parent).
+- Certain components have fields that can accept entities dragged from the hierarchy window. They are marked by a 3D cube icon.
+- Right-clicking any empty space in the Hierarchy window shows a context menu which allows you to create a new entity or scene.
+- Right-clicking any scene shows a context menu which allows you to rename it, unload it or set it as the active scene.
+	> Unloading the DefaultScene without another scene loaded is not allowed.
+	> Unloading a scene (which is not the DefaultScene) when no other scenes are loaded will load the DefaultScene.
+- Scenes do not have a z order. This is determined by each entity's z position in their transforms. The active scene only determines where new entities are created by default.
+- Right-clicking any entity shows a context menu which allows renaming and deletion of the entity.
+
+Inspector
+---------
+The Inspector window can be opened via Tools > Inspector.
+
+- Buttons allow for creating entities, and if an entity is selected, to clone entity/save as prefab/delete entity.
+- Shows all components of the currently selected entity.
+- When an entity is selected, the gizmos can be accessed by simply clicking on one of the 3 buttons below the transform text,
+and disabled by clicking the same button again. 
+
+Asset Browser
+-------------
+The Browser window can be opened via Tools > Browser.
+
+- Click and drag Sprites, Animations and Prefabs, into the viewport to create an entity with the associated components.
+- Single-clicking a prefab will spawn it in the currently active scene.
+- Single-clicking a scene will load it, if it hasn't already been loaded.
+- Some elements may show a context menu on right-click.
+- Some imported assets such as Sprites and Sounds support deletion from the Asset Browser, through the right-click context menu.
+- Animations tab has a button which allows the creation of new animations by combining Sprites.
+- Clicking sounds in the sounds tab will play the sound files.
+- Certain components have fields that can accept sounds from the sounds tab. They are marked by a speaker icon.
+- Dragging .png/.wav into the editor window will import the files into the assets folder and show a dialog box confirming whether the import was successful. Note that .png files will still need to be imported by right-clicking it in the File Browser tab and importing it as a sprite before it can be used.

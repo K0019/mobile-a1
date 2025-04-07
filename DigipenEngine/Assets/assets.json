@@ -1,0 +1,18 @@
+{
+    "sprites": [
+        {
+            "id": 0,
+            "name": "white",
+            "texturePath": "/Assets\\Images\\white.png",
+            "width": 1,
+            "height": 1,
+            "texCoords": [
+                0.0,
+                0.0,
+                1.0,
+                1.0
+            ]
+        }
+    ],
+    "animations": []
+}

@@ -1,0 +1,7 @@
+7Percent Engine Guide
+---------------------
+There are no CMake/Premake commands required to run the project.
+.NET Framework 4.7.2 is required to build the C# project within the solution.
+Building configuration in Debug/x64 or Release/x64 will include the editor.
+Building configuration in Debug_NoImgui/x64, Release_NoImgui/x64 or Installer/x64 will include the game only.
+Programmers may need to update their graphics driver to the latest, due to Vulkan renderer API usage.

@@ -1,0 +1,148 @@
+{
+    "materials": [
+        {
+            "name": "Buildings_Back_Material",
+            "flags": 1,
+            "parameters": {
+                "baseColor": {
+                    "x": 1.0,
+                    "y": 1.0,
+                    "z": 1.0,
+                    "w": 0.47058823704719546
+                },
+                "tiling": {
+                    "x": 1.0,
+                    "y": 1.0
+                }
+            }
+        },
+        {
+            "name": "HitFlash",
+            "flags": 32,
+            "parameters": {
+                "baseColor": {
+                    "x": 1.0,
+                    "y": 1.0,
+                    "z": 1.0,
+                    "w": 1.0
+                },
+                "tiling": {
+                    "x": 1.0,
+                    "y": 1.0
+                }
+            }
+        },
+        {
+            "name": "UI",
+            "flags": 0,
+            "parameters": {
+                "baseColor": {
+                    "x": 1.0,
+                    "y": 1.0,
+                    "z": 1.0,
+                    "w": 1.0
+                },
+                "tiling": {
+                    "x": 1.0,
+                    "y": 1.0
+                }
+            }
+        },
+        {
+            "name": "UI_Black",
+            "flags": 0,
+            "parameters": {
+                "baseColor": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0,
+                    "w": 1.0
+                },
+                "tiling": {
+                    "x": 1.0,
+                    "y": 1.0
+                }
+            }
+        },
+        {
+            "name": "UI_Yellow",
+            "flags": 0,
+            "parameters": {
+                "baseColor": {
+                    "x": 1.0,
+                    "y": 0.9707724452018738,
+                    "z": 0.0,
+                    "w": 1.0
+                },
+                "tiling": {
+                    "x": 1.0,
+                    "y": 1.0
+                }
+            }
+        },
+        {
+            "name": "default",
+            "flags": 1,
+            "parameters": {
+                "baseColor": {
+                    "x": 1.0,
+                    "y": 1.0,
+                    "z": 1.0,
+                    "w": 1.0
+                },
+                "tiling": {
+                    "x": 1.0,
+                    "y": 1.0
+                }
+            }
+        },
+        {
+            "name": "occluder",
+            "flags": 19,
+            "parameters": {
+                "baseColor": {
+                    "x": 1.0,
+                    "y": 1.0,
+                    "z": 1.0,
+                    "w": 1.0
+                },
+                "tiling": {
+                    "x": 1.0,
+                    "y": 1.0
+                }
+            }
+        },
+        {
+            "name": "transparent",
+            "flags": 13,
+            "parameters": {
+                "baseColor": {
+                    "x": 1.0,
+                    "y": 1.0,
+                    "z": 1.0,
+                    "w": 0.5
+                },
+                "tiling": {
+                    "x": 1.0,
+                    "y": 1.0
+                }
+            }
+        },
+        {
+            "name": "unlit",
+            "flags": 8,
+            "parameters": {
+                "baseColor": {
+                    "x": 1.0,
+                    "y": 1.0,
+                    "z": 1.0,
+                    "w": 1.0
+                },
+                "tiling": {
+                    "x": 1.0,
+                    "y": 1.0
+                }
+            }
+        }
+    ]
+}
