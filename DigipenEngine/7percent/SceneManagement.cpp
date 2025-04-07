@@ -24,6 +24,7 @@ All rights reserved.
 #include "Editor.h"
 #include "History.h"
 #include "GameSettings.h"
+#include "EntityUID.h"
 
 #pragma region Helper
 
@@ -768,6 +769,7 @@ void SceneManager::SetEntitySceneIndex_Recursive(ecs::EntityHandle entity, ecs::
 {
 	GetSceneAtIndex(comp->GetSceneIndex())->RemoveEntity(entity);
 	scene->AddEntity(entity);
+	// TODO: Settle what to do with entity UID here. If the original scene isn't saved but the new scene is, we're gonna end up with 2 entities with the same UID. 
 
 	// Need to switch the scene index of all children as well
 	const std::set<Transform*>& children{ entity->GetTransform().GetChildren() };
