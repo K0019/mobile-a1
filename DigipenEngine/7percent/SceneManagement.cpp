@@ -769,7 +769,9 @@ void SceneManager::SetEntitySceneIndex_Recursive(ecs::EntityHandle entity, ecs::
 {
 	GetSceneAtIndex(comp->GetSceneIndex())->RemoveEntity(entity);
 	scene->AddEntity(entity);
-	// TODO: Settle what to do with entity UID here. If the original scene isn't saved but the new scene is, we're gonna end up with 2 entities with the same UID. 
+
+	// If the previous scene doesn't get saved but the new scene does, we're gonna end up with 2 entities with the same UID without this UID refresh.
+	entity->GetComp<EntityUIDComponent>()->RefreshUID();
 
 	// Need to switch the scene index of all children as well
 	const std::set<Transform*>& children{ entity->GetTransform().GetChildren() };

@@ -47,23 +47,34 @@ EntityUIDComponent::~EntityUIDComponent()
 	UnregisterUID();
 }
 
+void EntityUIDComponent::OnAttached()
+{
+	RegisterUID(uid, ecs::GetEntity(this));
+}
+
 EntityRefUID EntityUIDComponent::GetUID() const
 {
 	return uid;
 }
 
-EntityRefUID EntityUIDComponent::RegisterUID(EntityRefUID specifiedUid)
+void EntityUIDComponent::RefreshUID()
+{
+	UnregisterUID();
+	uid = RegisterUID(0, ecs::GetEntity(this));
+}
+
+EntityRefUID EntityUIDComponent::RegisterUID(EntityRefUID specifiedUid, ecs::EntityHandle thisEntity)
 {
 	if (ecs::GetCurrentPoolId() != ecs::POOL::DEFAULT)
 		return 0;
 
 	if (specifiedUid)
 	{
-		ST<EntityUIDLookup>::Get()->RegisterUID(specifiedUid);
+		ST<EntityUIDLookup>::Get()->RegisterUID(specifiedUid, thisEntity);
 		return specifiedUid;
 	}
 	else
-		return ST<EntityUIDLookup>::Get()->GenerateAndRegisterNewUID();
+		return ST<EntityUIDLookup>::Get()->GenerateAndRegisterNewUID(thisEntity);
 }
 
 void EntityUIDComponent::UnregisterUID()
@@ -82,28 +93,27 @@ void EntityUIDComponent::Deserialize(Deserializer& deserializer)
 		ST<EntityUIDLookup>::Get()->RegisterUID(uid, ecs::GetEntity(this));
 }
 
-EntityRefUID EntityUIDLookup::GenerateAndRegisterNewUID()
+EntityRefUID EntityUIDLookup::GenerateAndRegisterNewUID(ecs::EntityHandle entity)
 {
 	while (true)
 	{
 		EntityRefUID candidateUID{ util::Rand_UID() };
 		if (uidToEntity.find(candidateUID) != uidToEntity.end())
 			continue;
-		uidToEntity.try_emplace(candidateUID, nullptr); // We'll get the entity handle later
+		uidToEntity.try_emplace(candidateUID, entity);
 		return candidateUID;
 	}
 }
 
 void EntityUIDLookup::RegisterUID(EntityRefUID uid, ecs::EntityHandle entity)
 {
-	auto emplaceResult{ uidToEntity.try_emplace(uid, entity) };
-
-	// If the UID failed to emplace, the UID already exists. Try to replace the entity handle.
-	if (!emplaceResult.second && entity)
-	{
+	ecs::EntityHandle& valRef{ uidToEntity[uid] };
+	// If there's already an entity registered to this UID, there might be something wrong...
+	if (valRef)
 		CONSOLE_LOG(LEVEL_WARNING) << "UID CLASH DETECTED! \"" << uid << "\". If entity reference issues occur, please try manually modifying this UID in the scene file.";
-		emplaceResult.first->second = entity;
-	}
+
+	// Replace the entity in the map
+	valRef = entity;
 }
 
 void EntityUIDLookup::UnregisterUID(EntityRefUID uid)

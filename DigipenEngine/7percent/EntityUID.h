@@ -37,6 +37,7 @@ using EntityRefUID = uint64_t;
 class EntityUIDComponent
 	: public IRegisteredComponent<EntityUIDComponent>
 	, public IHiddenComponent<EntityUIDComponent>
+	, public ecs::IComponentCallbacks
 {
 public:
 	/*****************************************************************//*!
@@ -70,11 +71,25 @@ public:
 
 	/*****************************************************************//*!
 	\brief
+		Registers the attached entity to the UID registry.
+	*//******************************************************************/
+	void OnAttached() override;
+
+	/*****************************************************************//*!
+	\brief
 		Gets the UID of this component.
 	\return
 		The UID of this component.
 	*//******************************************************************/
 	EntityRefUID GetUID() const;
+
+	/*****************************************************************//*!
+	\brief
+		Rerolls a new UID. Use when the entity's UID must change (e.g.
+		changing scene index). Will break entity references (hopefully
+		will be fixed soon)
+	*//******************************************************************/
+	void RefreshUID();
 
 private:
 	/*****************************************************************//*!
@@ -82,10 +97,12 @@ private:
 		If currently the default pool, registers the provided UID or generates one.
 	\param specifiedUid
 		A custom UID. If 0, generates a random UID.
+	\param thisEntity
+		A handle to the entity that this UID component is attached to.
 	\return
 		Registered UID. 0 if not the default pool.
 	*//******************************************************************/
-	EntityRefUID RegisterUID(EntityRefUID specifiedUid = 0);
+	EntityRefUID RegisterUID(EntityRefUID specifiedUid = 0, ecs::EntityHandle thisEntity = nullptr);
 
 	/*****************************************************************//*!
 	\brief
@@ -127,10 +144,12 @@ public:
 	/*****************************************************************//*!
 	\brief
 		Generates a new UID and registers it to the lookup map.
+	\param entity
+		The handle to the entity requesting for this UID.
 	\return
 		A new UID.
 	*//******************************************************************/
-	EntityRefUID GenerateAndRegisterNewUID();
+	EntityRefUID GenerateAndRegisterNewUID(ecs::EntityHandle entity = nullptr);
 
 	/*****************************************************************//*!
 	\brief
