@@ -47,6 +47,8 @@ All rights reserved.
 #include "FadeAndDie.h"
 #include "PrefabSpawner.h"
 
+#include "Demo.h"
+
 void GameStateBase::OnExit()
 {
 	ecs::RemoveAllSystems();
@@ -112,8 +114,9 @@ void GameState_Game::OnEnter()
     ecs::AddSystem(ECS_LAYER::POST_PHYSICS_0, FadeAndDieSystem{});
     ecs::AddSystem(ECS_LAYER::POST_PHYSICS_0, PrefabSpawnSystem{});
 
-    
     ecs::AddSystem(ECS_LAYER::RENDER_1, Physics::QuadtreeRenderSystem{});
+
+    ecs::AddSystem(ECS_LAYER::PRE_PHYSICS_0, ExampleSystem{});
 }
 
 void GameState_Pause::OnEnter()

@@ -1,1 +1,66 @@
-{}
+{
+    "entity0": {
+        "position": {
+            "x": 200.0,
+            "y": 200.0
+        },
+        "zPosition": 0.10000000149011612,
+        "rotation": 0.0,
+        "scale": {
+            "x": 150.0,
+            "y": 150.0
+        },
+        "parent": "",
+        "components": {
+            "1048412265199846848": {
+                "_active": true,
+                "layer": 0
+            },
+            "1223095846833079106": {
+                "_active": true,
+                "uid": 12546529351823144
+            },
+            "2471509561333568296": {
+                "_active": true,
+                "name": "New Entity"
+            },
+            "3381165323192817782": {
+                "_active": true,
+                "spriteID": 0,
+                "color": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0,
+                    "w": 0.0
+                },
+                "flippedX": false,
+                "flippedY": false,
+                "materialInstance": {
+                    "baseMaterialName": "default",
+                    "overrideFlags": 0,
+                    "hasOverrides": false,
+                    "hasParameterOverrides": false,
+                    "overrideParameters": {
+                        "baseColor": {
+                            "x": 1.0,
+                            "y": 1.0,
+                            "z": 1.0,
+                            "w": 1.0
+                        },
+                        "tiling": {
+                            "x": 1.0,
+                            "y": 1.0
+                        }
+                    }
+                }
+            },
+            "3861619414520698437": {
+                "_active": true,
+                "x": {
+                    "x": 24.0,
+                    "y": -10.0
+                }
+            }
+        }
+    }
+}

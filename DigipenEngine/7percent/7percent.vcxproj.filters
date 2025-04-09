@@ -456,6 +456,9 @@
     <ClCompile Include="PrefabSpawner.cpp">
       <Filter>Source Files\Game</Filter>
     </ClCompile>
+    <ClCompile Include="Demo.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ECS.h">
@@ -776,9 +779,6 @@
     <ClInclude Include="EntitySpawnEvents.h">
       <Filter>Header Files\Engine</Filter>
     </ClInclude>
-    <ClInclude Include="MainObjective.h">
-      <Filter>Header Files\Game</Filter>
-    </ClInclude>
     <ClInclude Include="Bar.h">
       <Filter>Header Files\GameUI</Filter>
     </ClInclude>
@@ -868,6 +868,9 @@
     </ClInclude>
     <ClInclude Include="PrefabSpawner.h">
       <Filter>Header Files\Game</Filter>
+    </ClInclude>
+    <ClInclude Include="Demo.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
