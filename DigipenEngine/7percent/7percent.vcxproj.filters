@@ -791,9 +791,6 @@
     <ClInclude Include="IGameComponentCallbacks.h">
       <Filter>Header Files\Game</Filter>
     </ClInclude>
-    <ClInclude Include="FunctionQueue.h">
-      <Filter>Header Files\Engine</Filter>
-    </ClInclude>
     <ClInclude Include="resource.h">
       <Filter>Header Files</Filter>
     </ClInclude>

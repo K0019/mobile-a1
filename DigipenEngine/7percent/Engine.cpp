@@ -48,7 +48,6 @@ All rights reserved.
 
 #include "Import.h"
 #include "Filesystem.h"
-#include "FunctionQueue.h"
 
 namespace {
 
@@ -638,7 +637,6 @@ void Engine::run() {
 		CSharpScripts::CSScripting::CheckCompileUserAssemblyAsyncCompletion();
 #endif
 		ST<Game>::Get()->Update();
-		FunctionQueue::ExecuteQueuedOperations();
 		ST<Scheduler>::Get()->Update(GameTime::FixedDt() * static_cast<float>(GameTime::NumFixedFrames()));
 
 		// render

@@ -257,7 +257,7 @@ template <typename T>
 	requires std::regular_invocable<T>
 ScheduledTaskUserWrapper Scheduler::Add(T func)
 {
-	return ScheduledTaskUserWrapper{ Add(0.0f, func) };
+	return Add(0.0f, func);
 }
 
 template<typename T>

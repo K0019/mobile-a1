@@ -34,7 +34,6 @@ All rights reserved.
 #include "Button.h"
 #include "Engine.h"
 
-#include "FunctionQueue.h"
 #include "UIScreenManager.h"
 #include "ResourceManager.h"
 #include "TweenManager.h"
@@ -49,33 +48,24 @@ static std::unordered_map<std::string, std::function<void(std::string)>> functio
 {
     { "LoadScene", [](const std::string& sceneToLoad)
     {
-        std::string scenePath{ ST<Filepaths>::Get()->scenesSave + "/" + sceneToLoad + ".scene" };
-        FunctionQueue::QueueOperation([scenePath]
-        {
+        ST<Scheduler>::Get()->Add([scenePath = ST<Filepaths>::Get()->scenesSave + "/" + sceneToLoad + ".scene"]() -> void {
             ST<SceneManager>::Get()->LoadScene(scenePath);
         });
     }},
     { "UnloadScene", [](const std::string& sceneToUnload)
     {
         Scene* scene = ST<SceneManager>::Get()->GetSceneWithName(sceneToUnload);
-
         // If scene to unload doens't exist in the scene pool, return
         if (!scene)
-        {
             return;
-        }
 
-        int index = scene->GetIndex();
-
-        FunctionQueue::QueueOperation([index]
-        {
+        ST<Scheduler>::Get()->Add([index = scene->GetIndex()]() -> void {
             ST<SceneManager>::Get()->UnloadScene(index);
             ST<AudioManager>::Get()->ResumeAllSounds();
         });
     }},
-    { "CloseGame", [](const std::string& none)
+    { "CloseGame", [](const std::string&)
     {
-        UNREFERENCED_PARAMETER(none);
         ST<Engine>::Get()->MarkToShutdown();
     }},
     { "BroadcastMessage", [](const std::string& message)
@@ -95,9 +85,7 @@ static std::unordered_map<std::string, std::function<void(std::string)>> functio
     }},
     { "UnloadAllScenes", [](const std::string& replacement)
     {
-        std::string scenePath{ ST<Filepaths>::Get()->scenesSave + "/" + replacement + ".scene" };
-        FunctionQueue::QueueOperation([scenePath]
-        {
+        ST<Scheduler>::Get()->Add([scenePath = ST<Filepaths>::Get()->scenesSave + "/" + replacement + ".scene"]() -> void {
             ST<SceneManager>::Get()->UnloadAllScenes(scenePath);
             ST<AudioManager>::Get()->ResumeAllSounds();
         });

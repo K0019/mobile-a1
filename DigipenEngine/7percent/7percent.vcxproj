@@ -559,7 +559,6 @@ if not exist "$(TargetDir)imgui.json" (
     <ClInclude Include="EntityLayers.h" />
     <ClInclude Include="EntitySpawnEvents.h" />
     <ClInclude Include="EntityUID.h" />
-    <ClInclude Include="FunctionQueue.h" />
     <ClInclude Include="GameCameraController.h" />
     <ClInclude Include="GUICollection.h" />
     <ClInclude Include="History.h" />

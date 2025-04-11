@@ -30,7 +30,6 @@ All rights reserved.
 #include "game.h"
 #include "SceneManagement.h"
 #include "Editor.h"
-#include "FunctionQueue.h" // For button's scene loading
 #include "GameSettings.h"
 
 #include "ECSSysLayers.h"
@@ -133,8 +132,6 @@ void Game::Update()
         UpdateSystemsGroup("Script-Late-Update", []() -> void {
             ecs::RunSystemsInLayers(ECS_LAYER::CUTOFF_POST_PHYSICS, ECS_LAYER::CUTOFF_POST_PHYSICS_SCRIPTS);
         });
-
-        FunctionQueue::ExecuteQueuedOperations(); // For button's scene queuing
 
         Input::NewIteration();
     }
