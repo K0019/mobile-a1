@@ -46,10 +46,10 @@ void Popup::Close()
 	isOpen = false;
 }
 
-void Popup::DrawContainer()
+void Popup::DrawContainer(int id)
 {
 	gui::SetStyleColor styleColor{ gui::FLAG_STYLE_COLOR::WINDOW_BG, gui::Vec4{ 0.0f, 0.0f, 0.0f, 0.5f } };
-	gui::PopupWindow::DrawContainer();
+	gui::PopupWindow::DrawContainer(id);
 }
 
 void Popup::DrawContents()

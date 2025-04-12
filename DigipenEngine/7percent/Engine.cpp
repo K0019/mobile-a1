@@ -426,8 +426,8 @@ namespace
 		serializer.Serialize("show_demo_window", show_demo_window);
 		serializer.Serialize("show_console", ST<Console>::Get()->GetIsOpen());
 		serializer.Serialize("show_performance", ST<PerformanceProfiler>::Get()->GetIsOpen());
-		serializer.Serialize("show_editor", ST<Editor>::Get()->GetIsOpen());
-		serializer.Serialize("show_settings", ST<SettingsWindow>::Get()->GetIsOpen());
+		serializer.Serialize("show_editor", ST<Inspector>::Get()->GetIsOpen());
+		//serializer.Serialize("show_settings", ST<SettingsWindow>::Get()->GetIsOpen());
 		serializer.Serialize("show_browser", show_browser);
 		serializer.Serialize("show_hierarchy", ST<Hierarchy>::Get()->isOpen);
 	}
@@ -440,8 +440,8 @@ namespace
 		deserializer.DeserializeVar("show_demo_window", &show_demo_window);
 		deserializer.DeserializeVar("show_console", &b), ST<Console>::Get()->SetIsOpen(b);
 		deserializer.DeserializeVar("show_performance", &b), ST<PerformanceProfiler>::Get()->SetIsOpen(b);
-		deserializer.DeserializeVar("show_editor", &b), ST<Editor>::Get()->SetIsOpen(b);
-		deserializer.DeserializeVar("show_settings", &b), ST<SettingsWindow>::Get()->SetIsOpen(b);
+		deserializer.DeserializeVar("show_editor", &b), ST<Inspector>::Get()->SetIsOpen(b);
+		//deserializer.DeserializeVar("show_settings", &b), ST<SettingsWindow>::Get()->SetIsOpen(b);
 		deserializer.DeserializeVar("show_browser", &show_browser);
 		deserializer.DeserializeVar("show_hierarchy", &ST<Hierarchy>::Get()->isOpen);
 	}
@@ -507,6 +507,7 @@ void Engine::run() {
 		if(show_demo_window)
 			ImGui::ShowDemoWindow(&show_demo_window);
 
+		// TODO: Convert all of these window singletons into the ecs versions so we can support multiple instances of a single window.
 		if(ST<Console>::Get()->GetIsOpen())
 		{
 			ST<PerformanceProfiler>::Get()->StartProfile("Console");
@@ -517,9 +518,9 @@ void Engine::run() {
 		{
 			ST<PerformanceProfiler>::Get()->Draw();
 		}
-		if(ST<Editor>::Get()->GetIsOpen())
+		if(ST<Inspector>::Get()->GetIsOpen())
 		{
-			ST<Editor>::Get()->Draw();
+			ST<Inspector>::Get()->Draw();
 		}
 		if(show_browser)
 		{
@@ -534,10 +535,15 @@ void Engine::run() {
 			ST<Hierarchy>::Get()->Draw();
 		}
 		ST<Popup>::Get()->Draw();
-		ST<SettingsWindow>::Get()->Draw();
 		ST<LayersMatrix>::Get()->Draw();
-		ST<Editor>::Get()->RenderGrid();
-		ecs::FlushChanges(); // For if any of the above systems deleted an entity.
+		ST<Inspector>::Get()->RenderGrid();
+
+		// Draw editor windows
+		ecs::SwitchToPool(ecs::POOL::EDITOR_GUI);
+		ecs::RunSystems(ECS_LAYER::PRE_PHYSICS_0); // Editor window systems are placed in this layer.
+		ecs::FlushChanges(); // This deletes entities whose windows were closed (see WindowBase::OnOpenStateChanged())
+		ecs::SwitchToPool(ecs::POOL::DEFAULT);
+		ecs::FlushChanges(); // For if any of the editor windows deleted an entity.
 
 		if(ImGui::BeginMainMenuBar())
 		{
@@ -553,9 +559,9 @@ void Engine::run() {
 					ST<SceneManager>::Get()->SaveAllScenes();
 					ST<SceneManager>::Get()->SaveWhichScenesOpened();
 				}
-				if(ImGui::MenuItem("Settings"))
+				if (ImGui::MenuItem("Settings"))
 				{
-					ST<SettingsWindow>::Get()->SetIsOpen(true);
+					editor::CreateWindow<editor::SettingsWindow>();
 				}
 				if(ImGui::MenuItem("Exit"))
 				{
@@ -578,7 +584,7 @@ void Engine::run() {
 				}
 				if(ImGui::MenuItem("Inspector"))
 				{
-					ST<Editor>::Get()->SetIsOpen(true);
+					ST<Inspector>::Get()->SetIsOpen(true);
 					ImGui::SetWindowFocus(ICON_FA_MAGNIFYING_GLASS" Inspector");
 				}
 				if(ImGui::MenuItem("Browser"))
@@ -598,7 +604,6 @@ void Engine::run() {
 			ImGui::EndMainMenuBar();  // End the main menu bar
 		}
 
-		static bool startup = true;
 		ST<CustomViewport>::Get()->DrawImGuiWindow();
 #endif
 
@@ -609,7 +614,7 @@ void Engine::run() {
 		if(GameTime::RealNumFixedFrames())
 		{
 #ifdef IMGUI_ENABLED
-			ST<Editor>::Get()->ProcessInput();
+			ST<Inspector>::Get()->ProcessInput();
 			if(Input::GetKeyPressed(KEY::GRAVE))
 				ST<Console>::Get()->SetIsOpen(!ST<Console>::Get()->GetIsOpen());
 			if(Input::GetKeyPressed(KEY::F1))
@@ -665,7 +670,7 @@ void Engine::run() {
 			ST<Game>::Get()->Render();
 
 #ifdef IMGUI_ENABLED
-			ST<Editor>::Get()->DrawSelectedEntityBorder();
+			ST<Inspector>::Get()->DrawSelectedEntityBorder();
 #endif
 
 			_vulkan->_renderer->drawFrame();
@@ -711,7 +716,7 @@ void Engine::shutdown() {
 	ST<PerformanceProfiler>::Destroy();
 	ST<AssetBrowser>::Destroy();
 #ifdef IMGUI_ENABLED
-	ST<Editor>::Destroy();
+	ST<Inspector>::Destroy();
 #endif
 	ST<HiddenComponentsStore>::Destroy();
 	ST<RegisteredComponents>::Destroy();

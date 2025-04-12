@@ -93,7 +93,7 @@ Console::Console()
 						}
 			}
 			else
-				entity = ST<Editor>::Get()->GetSelectedEntity();
+				entity = ST<Inspector>::Get()->GetSelectedEntity();
 			if (!entity)
 			{
 				console.AddLog("No entity selected.");

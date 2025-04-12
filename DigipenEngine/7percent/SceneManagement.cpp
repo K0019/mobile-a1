@@ -449,9 +449,9 @@ bool ScenePool::UnloadScene(int index, bool doCheckOrCreateDefault)
 	// Need to unselect entity if it is under the scene that we're unloading
 #ifdef IMGUI_ENABLED
 
-	if (ecs::EntityHandle selectedEntity{ ST<Editor>::Get()->GetSelectedEntity() })
+	if (ecs::EntityHandle selectedEntity{ ST<Inspector>::Get()->GetSelectedEntity() })
 		if (selectedEntity->GetComp<SceneIndexComponent>()->GetSceneIndex() == index)
-			ST<Editor>::Get()->ForceUnselectEntity();
+			ST<Inspector>::Get()->ForceUnselectEntity();
 #endif
 	bool isActiveSceneBeingUnloaded{ activeScene->GetIndex() == index };
 
@@ -645,7 +645,7 @@ void ScenePool::UnloadAllScenes_NoDefaultScene()
 
 	// Need to unselect entity if there is one selected since it will be deleted.
 #ifdef IMGUI_ENABLED
-	ST<Editor>::Get()->ForceUnselectEntity();
+	ST<Inspector>::Get()->ForceUnselectEntity();
 #endif
 	activeScene = nullptr;
 	sceneNameToIndex.clear();

@@ -377,6 +377,7 @@ if not exist "$(TargetDir)imgui.json" (
     <ClCompile Include="Demo.cpp" />
     <ClCompile Include="FadeAndDie.cpp" />
     <ClCompile Include="GamepadInputAdapter.cpp" />
+    <ClCompile Include="GUIAsECS.cpp" />
     <ClCompile Include="KillAnimationWhenFinish.cpp" />
     <ClCompile Include="PostProcessingComponent.cpp" />
     <ClCompile Include="PrefabSpawner.cpp" />
@@ -537,6 +538,7 @@ if not exist "$(TargetDir)imgui.json" (
     <ClInclude Include="Demo.h" />
     <ClInclude Include="FadeAndDie.h" />
     <ClInclude Include="GamepadInputAdapter.h" />
+    <ClInclude Include="GUIAsECS.h" />
     <ClInclude Include="GUICollection.ipp" />
     <ClInclude Include="KillAnimationWhenFinish.h" />
     <ClInclude Include="MagicMath.h" />

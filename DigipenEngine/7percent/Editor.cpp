@@ -33,17 +33,17 @@ All rights reserved.
 
 #ifdef IMGUI_ENABLED
 
-Editor::Editor()
+Inspector::Inspector()
 	: Window{ ICON_FA_MAGNIFYING_GLASS" Inspector", gui::Vec2{ 300, 400 }, gui::FLAG_WINDOW::ALWAYS_VERTICAL_SCROLL_BAR }
 {
 }
 
-Editor::~Editor()
+Inspector::~Inspector()
 {
 	ST<History>::Destroy();
 }
 
-void Editor::ProcessInput()
+void Inspector::ProcessInput()
 {
 	static bool isDragging = false;
 	static bool isCameraDragging = false;
@@ -249,14 +249,14 @@ void Editor::ProcessInput()
 	}
 }
 
-void Editor::DrawContainer()
+void Inspector::DrawContainer(int id)
 {
 	// Window setup with proper sizing/scaling
 	gui::SetNextWindowSizeConstraints(gui::Vec2{ 300, 400 }, gui::Vec2{ FLT_MAX, FLT_MAX });
-	Window::DrawContainer();
+	Window::DrawContainer(id);
 }
 
-void Editor::DrawContents()
+void Inspector::DrawContents()
 {
 	// If the selected entity doesn't exist anymore, deselect it
 	CheckIsSelectedEntityValid();
@@ -363,7 +363,7 @@ void Editor::DrawContents()
 	DrawEntityActionsButton();
 }
 
-void Editor::CreateEntityAndSelect()
+void Inspector::CreateEntityAndSelect()
 {
 	SetSelectedEntity(ecs::CreateEntity());
 	ST<History>::Get()->OneEvent(HistoryEvent_EntityCreate{ selectedEntity });
@@ -371,12 +371,12 @@ void Editor::CreateEntityAndSelect()
 	selectedEntity->AddCompNow(RenderComponent{});
 }
 
-void Editor::ForceUnselectEntity()
+void Inspector::ForceUnselectEntity()
 {
 	SetSelectedEntity(nullptr);
 }
 
-void Editor::DrawSceneView()
+void Inspector::DrawSceneView()
 {
 	ImGui::Separator();
 	ImGui::Text("Physics Settings");
@@ -396,10 +396,10 @@ void Editor::DrawSceneView()
 	}
 }
 
-ecs::EntityHandle Editor::GetSelectedEntity() {
+ecs::EntityHandle Inspector::GetSelectedEntity() {
 	return selectedEntity;
 }
-void Editor::SetSelectedEntity(ecs::EntityHandle entity)
+void Inspector::SetSelectedEntity(ecs::EntityHandle entity)
 {
 	selectedEntity = entity;
 	if(selectedEntity) {
@@ -412,7 +412,7 @@ void Editor::SetSelectedEntity(ecs::EntityHandle entity)
 	}
 }
 
-void Editor::DrawSelectedEntityBorder()
+void Inspector::DrawSelectedEntityBorder()
 {
 	if(CheckIsSelectedEntityValid() && drawBoxes)
 	{
@@ -431,7 +431,7 @@ void Editor::DrawSelectedEntityBorder()
 	}
 }
 
-void Editor::DrawGizmoInViewport(ImDrawList* drawList)
+void Inspector::DrawGizmoInViewport(ImDrawList* drawList)
 {
 	if(CheckIsSelectedEntityValid() && m_currentGizmoType != GizmoType::None)
 	{
@@ -439,7 +439,7 @@ void Editor::DrawGizmoInViewport(ImDrawList* drawList)
 	}
 }
 
-void Editor::DeleteSelectedEntity()
+void Inspector::DeleteSelectedEntity()
 {
 	if(!selectedEntity)
 		return;
@@ -449,14 +449,14 @@ void Editor::DeleteSelectedEntity()
 	SetSelectedEntity(nullptr);
 }
 
-bool Editor::CheckIsSelectedEntityValid()
+bool Inspector::CheckIsSelectedEntityValid()
 {
 	if(selectedEntity && !ecs::IsEntityHandleValid(selectedEntity))
 		selectedEntity = nullptr;
 	return selectedEntity;
 }
 
-void Editor::DrawEntityHeader()
+void Inspector::DrawEntityHeader()
 {
 	ecs::CompHandle<NameComponent> nameComp = selectedEntity->GetComp<NameComponent>();
 	if(!nameComp)
@@ -509,7 +509,7 @@ void Editor::DrawEntityHeader()
 				layerComp->SetLayer(i);
 }
 
-void Editor::DrawEntityComps()
+void Inspector::DrawEntityComps()
 {
 	gui::CollapsingHeader outerHeader{ "Components", gui::FLAG_TREE_NODE::DEFAULT_OPEN };
 	if(!outerHeader)
@@ -575,7 +575,7 @@ void Editor::DrawEntityComps()
 	}
 }
 
-void Editor::DrawAddComp()
+void Inspector::DrawAddComp()
 {
 	gui::Spacing();
 	gui::SetStyleColor styleColFrameBg{ gui::FLAG_STYLE_COLOR::FRAME_BG, gui::Vec4{ 0.2f, 0.2f, 0.2f, 1.0f } };
@@ -708,7 +708,7 @@ void Editor::DrawAddComp()
 
 	gui::Spacing();
 }
-void Editor::DrawEntityActionsButton()
+void Inspector::DrawEntityActionsButton()
 {
 	// Clone button
 	{
@@ -748,13 +748,13 @@ void Editor::DrawEntityActionsButton()
 	}
 }
 
-Vector2 Editor::SnapToGrid(const Vector2& worldPos) const {
+Vector2 Inspector::SnapToGrid(const Vector2& worldPos) const {
 	return {
 		std::round((worldPos.x - m_gridOffset.x) / m_gridSize) * m_gridSize + m_gridOffset.x,
 		std::round((worldPos.y - m_gridOffset.y) / m_gridSize) * m_gridSize + m_gridOffset.y
 	};
 }
-void Editor::RenderGrid()
+void Inspector::RenderGrid()
 {
     if(!m_showGrid || (ST<Game>::Get()->GetState() == GAMESTATE::IN_GAME || ST<Game>::Get()->GetState() == GAMESTATE::PAUSE)) return;
     

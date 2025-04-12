@@ -453,6 +453,9 @@
     <ClCompile Include="Demo.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="GUIAsECS.cpp">
+      <Filter>Source Files\EditorUI\Containers</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ECS.h">
@@ -859,6 +862,9 @@
     </ClInclude>
     <ClInclude Include="MagicMath.ipp">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="GUIAsECS.h">
+      <Filter>Header Files\EditorUI\Containers</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

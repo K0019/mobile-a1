@@ -501,6 +501,27 @@ namespace ecs {
 
 				/*****************************************************************//*!
 				\brief
+					Counts the difference between 2 iterators.
+				\tparam CompHandleType_T
+					The iterator's CompHandleType template parameter type.
+				\tparam MapIterType_T
+					The iterator's MapIterType template parameter type.
+				\tparam ValueType_T
+					The iterator's ValueType template parameter type.
+				\param a
+					Left-hand side iterator.
+				\param b
+					Right-hand side iterator.
+				\return
+					The difference between the iterators.
+				*//******************************************************************/
+				template <template<typename> typename CompHandleType_T, typename MapIterType_T, typename ValueType_T>
+				friend difference_type operator-(
+					const EntityComps_IteratorBlueprint<CompHandleType_T, MapIterType_T, ValueType_T>& a,
+					const EntityComps_IteratorBlueprint<CompHandleType_T, MapIterType_T, ValueType_T>& b);
+
+				/*****************************************************************//*!
+				\brief
 					Tests if 2 iterators point to the same component index within this entity.
 				\tparam CompHandleType_T
 					The iterator's CompHandleType template parameter type.
@@ -1312,6 +1333,27 @@ namespace ecs {
 				template <typename CompType_T, typename EntityHandleType_T, typename ValueType_T>
 				friend iterator_blueprint<CompType_T, EntityHandleType_T, ValueType_T> operator+(
 					const iterator_blueprint<CompType_T, EntityHandleType_T, ValueType_T>& iter, int offset);
+
+				/*****************************************************************//*!
+				\brief
+					Counts the difference between 2 iterators.
+				\tparam CompHandleType_T
+					The iterator's CompHandleType template parameter type.
+				\tparam MapIterType_T
+					The iterator's MapIterType template parameter type.
+				\tparam ValueType_T
+					The iterator's ValueType template parameter type.
+				\param a
+					Left-hand side iterator.
+				\param b
+					Right-hand side iterator.
+				\return
+					The difference between the iterators.
+				*//******************************************************************/
+				template <typename CompType_T, typename EntityHandleType_T, typename ValueType_T>
+				friend difference_type operator-(
+					const iterator_blueprint<CompType_T, EntityHandleType_T, ValueType_T>& a,
+					const iterator_blueprint<CompType_T, EntityHandleType_T, ValueType_T>& b);
 
 				/*****************************************************************//*!
 				\brief

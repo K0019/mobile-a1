@@ -342,7 +342,7 @@ namespace Physics
 	{
 		// We don't want to draw at all if IMGUI is disabled
 #ifdef IMGUI_ENABLED
-		if (!ST<Editor>::Get()->m_drawVelocity)
+		if (!ST<Inspector>::Get()->m_drawVelocity)
 			return;
 
 		// Don't draw a line for velocities too short to do so
