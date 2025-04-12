@@ -126,6 +126,14 @@ namespace ecs {
 		}
 
 		template<template<typename> typename CompHandleType_T, typename MapIterType_T, typename ValueType_T>
+		Entity_Internal::EntityComps_IteratorBlueprint<CompHandleType_T, MapIterType_T, ValueType_T>::difference_type operator-(
+			const Entity_Internal::EntityComps_IteratorBlueprint<CompHandleType_T, MapIterType_T, ValueType_T>& a,
+			const Entity_Internal::EntityComps_IteratorBlueprint<CompHandleType_T, MapIterType_T, ValueType_T>& b)
+		{
+			return a.iter - b.iter;
+		}
+
+		template<template<typename> typename CompHandleType_T, typename MapIterType_T, typename ValueType_T>
 		bool operator==(const Entity_Internal::EntityComps_IteratorBlueprint<CompHandleType_T, MapIterType_T, ValueType_T>& a,
 			const Entity_Internal::EntityComps_IteratorBlueprint<CompHandleType_T, MapIterType_T, ValueType_T>& b)
 		{
@@ -270,6 +278,14 @@ namespace ecs {
 			const CompArr::iterator_blueprint<CompType, EntityHandleType, ValueType>& iter, int offset)
 		{
 			return CompArr::iterator_blueprint<CompType, EntityHandleType, ValueType>{ iter.compStepSize, iter.ptr + offset * iter.compStepSize };
+		}
+
+		template<typename CompType, typename EntityHandleType, typename ValueType>
+		CompArr::iterator_blueprint<CompType, EntityHandleType, ValueType>::difference_type operator-(
+			const CompArr::iterator_blueprint<CompType, EntityHandleType, ValueType>& a,
+			const CompArr::iterator_blueprint<CompType, EntityHandleType, ValueType>& b)
+		{
+			return (a.ptr - b.ptr) / a.compStepSize;
 		}
 
 		template <typename CompType, typename EntityHandleType, typename ValueType>

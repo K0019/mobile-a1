@@ -38,10 +38,16 @@ namespace editor {
 		The base class of all ImGui windows.
 	\tparam FinalType
 		The type of the window.
+	\tparam DuplicatesAllowed
+		Whether multiple windows can exist at the same time.
 	*//******************************************************************/
-	template <typename FinalType>
+	template <typename FinalType, bool DuplicatesAllowed = true>
 	class WindowBase : public gui::Window
 	{
+	public:
+		//! Compile time constant that specifies whether a window type is allowed to be duplicated.
+		inline static constexpr bool DUPLICATES_ALLOWED{ DuplicatesAllowed };
+
 	protected:
 		/*****************************************************************//*!
 		\brief
@@ -96,7 +102,6 @@ namespace editor {
 		The type of the window.
 	*//******************************************************************/
 	template <typename WindowType>
-		requires std::is_base_of_v<WindowBase<WindowType>, WindowType>
 	class WindowSystem : public ecs::System<WindowSystem<WindowType>, WindowType>
 	{
 	public:
@@ -141,16 +146,16 @@ namespace editor {
 
 namespace editor {
 
-	template<typename FinalType>
-	WindowBase<FinalType>::WindowBase(const std::string& title, const gui::Vec2& initDimensions, gui::FLAG_WINDOW windowFlags)
+	template<typename FinalType, bool DuplicatesAllowed>
+	WindowBase<FinalType, DuplicatesAllowed>::WindowBase(const std::string& title, const gui::Vec2& initDimensions, gui::FLAG_WINDOW windowFlags)
 		: Window{ title, initDimensions, windowFlags }
 	{
 		// gui::Window sets the window to unopen initially. We want it to be open whenever a ecs window is created.
 		SetIsOpen(true);
 	}
 
-	template<typename FinalType>
-	void WindowBase<FinalType>::DrawContents()
+	template<typename FinalType, bool DuplicatesAllowed>
+	void WindowBase<FinalType, DuplicatesAllowed>::DrawContents()
 	{
 		// User windows expect the current pool to be DEFAULT, so we'll need to switch over.
 		// Be careful not to do anything that references EDITOR_GUI while we're on the DEFAULT pool.
@@ -160,15 +165,15 @@ namespace editor {
 		ecs::SwitchToPool(originalPool);
 	}
 
-	template<typename FinalType>
-	void WindowBase<FinalType>::OnOpenStateChanged()
+	template<typename FinalType, bool DuplicatesAllowed>
+	void WindowBase<FinalType, DuplicatesAllowed>::OnOpenStateChanged()
 	{
 		if (!GetIsOpen())
 			ecs::DeleteEntity(ecs::GetEntity(this));
 	}
 
-	template<typename FinalType>
-	bool WindowBase<FinalType>::RegisterWindowType()
+	template<typename FinalType, bool DuplicatesAllowed>
+	bool WindowBase<FinalType, DuplicatesAllowed>::RegisterWindowType()
 	{
 		// Schedule, because ECS needs to be initialized first.
 		ST<Scheduler>::Get()->Add([]() -> void {
@@ -182,7 +187,6 @@ namespace editor {
 	}
 
 	template<typename WindowType>
-		requires std::is_base_of_v<WindowBase<WindowType>, WindowType>
 	WindowSystem<WindowType>::WindowSystem()
 		// Not really sure why the explicit scope is required, why just System_Internal doesn't work...
 		: ecs::internal::System_Internal<WindowSystem<WindowType>, WindowType>{ &WindowSystem<WindowType>::DrawWindow }
@@ -191,7 +195,6 @@ namespace editor {
 	}
 
 	template<typename WindowType>
-		requires std::is_base_of_v<WindowBase<WindowType>, WindowType>
 	bool WindowSystem<WindowType>::PreRun()
 	{
 		idCounter = 0;
@@ -199,7 +202,6 @@ namespace editor {
 	}
 
 	template<typename WindowType>
-		requires std::is_base_of_v<WindowBase<WindowType>, WindowType>
 	void WindowSystem<WindowType>::DrawWindow(WindowType& window)
 	{
 		window.Draw(++idCounter);
@@ -211,6 +213,15 @@ namespace editor {
 		// Create an entity in EDITOR_GUI with the window attached as a component.
 		ecs::POOL originalPool{ ecs::GetCurrentPoolId() };
 		ecs::SwitchToPool(ecs::POOL::EDITOR_GUI);
+
+		// If duplicates are not allowed, don't do anything if there already exists a window of the requested type.
+		if constexpr (!WindowType::DUPLICATES_ALLOWED)
+			if (ecs::GetCompsEnd<WindowType>() - ecs::GetCompsBegin<WindowType>() >= 1)
+			{
+				ecs::SwitchToPool(originalPool);
+				return;
+			}
+
 		ecs::CreateEntity()->AddCompNow(WindowType{});
 		ecs::SwitchToPool(originalPool);
 	}
