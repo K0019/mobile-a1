@@ -62,14 +62,14 @@ namespace gui {
 		{
 		}
 
-		void ContainerBase::Draw()
+		void ContainerBase::Draw([[maybe_unused]] int id)
 		{
 #ifdef IMGUI_ENABLED
 			if (!isOpen)
 				return;
 
 			ImGui::SetNextWindowSize(initialDimensions, +windowSizeCondFlags);
-			DrawContainer();
+			DrawContainer(id);
 #endif
 		}
 
@@ -81,11 +81,17 @@ namespace gui {
 	{
 	}
 
-	void Window::DrawContainer()
+	void Window::DrawContainer(int id)
 	{
 #ifdef IMGUI_ENABLED
-		if (ImGui::Begin(title.c_str(), &isOpen, +windowFlags))
+		if (ImGui::Begin((id <= 0 ? title.c_str() : (title + "##" + std::to_string(id)).c_str()), &isOpen, +windowFlags))
+		{
 			DrawContents();
+
+			// Check the user closed the window this frame.
+			if (!isOpen)
+				OnOpenStateChanged();
+		}
 		ImGui::End();
 #endif
 	}
@@ -151,13 +157,24 @@ namespace gui {
 	{
 	}
 
-	void PopupWindow::DrawContainer()
+	void PopupWindow::DrawContainer([[maybe_unused]] int id)
 	{
 #ifdef IMGUI_ENABLED
-		ImGui::OpenPopup(title.c_str());
+		// Ternary operator with lvalue and rvalue will return rvalue, cancelling our optimization, so use if statement instead.
+		if (id <= 0)
+			DrawContainer_Popup(title);
+		else
+			DrawContainer_Popup(title + "##" + std::to_string(id));
+#endif
+	}
+
+	void PopupWindow::DrawContainer_Popup([[maybe_unused]] const std::string& effectiveTitle)
+	{
+#ifdef IMGUI_ENABLED
+		ImGui::OpenPopup(effectiveTitle.c_str());
 
 		bool* isOpenPtr{ +(flags & FLAG::NO_CLOSE_BUTTON) ? nullptr : &isOpen };
-		if (ImGui::BeginPopupModal(title.c_str(), isOpenPtr))
+		if (ImGui::BeginPopupModal(effectiveTitle.c_str(), isOpenPtr))
 		{
 			DrawContents();
 			ImGui::EndPopup();

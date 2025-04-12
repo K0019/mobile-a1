@@ -244,7 +244,7 @@ void CustomViewport::DrawImGuiWindow() {
 					const auto& sprite = ResourceManager::GetSprite(ID);
 					entity->GetTransform().SetLocal(0.5f, Input::GetMousePosWorld(), { static_cast<float>(sprite.width), static_cast<float>(sprite.height) }, 0.0f);
 					entity->AddCompNow(RenderComponent{ ID });
-					ST<Editor>::Get()->SetSelectedEntity(entity);
+					ST<Inspector>::Get()->SetSelectedEntity(entity);
 				}
 			}
 			else if (ImGuiPayload const* payload_entity = ImGui::AcceptDragDropPayload("PREFAB"))
@@ -255,7 +255,7 @@ void CustomViewport::DrawImGuiWindow() {
 					ecs::EntityHandle entity = PrefabManager::LoadPrefab(prefabName);
 					ST<History>::Get()->OneEvent(HistoryEvent_EntityCreate{ entity });
 					entity->GetTransform().SetWorldPosition(Input::GetMousePosWorld());
-					ST<Editor>::Get()->SetSelectedEntity(entity);
+					ST<Inspector>::Get()->SetSelectedEntity(entity);
 				}
 			}
 			else if (ImGuiPayload const* payload_anim = ImGui::AcceptDragDropPayload("ANIM_HASH"))
@@ -269,7 +269,7 @@ void CustomViewport::DrawImGuiWindow() {
 					entity->AddCompNow(RenderComponent{});
 					entity->AddCompNow(AnimatorComponent{ animHash });
 					entity->GetTransform().SetLocal(0.5f, Input::GetMousePosWorld(), { static_cast<float>(anim.Width), static_cast<float>(anim.Height) }, 0.0f);
-					ST<Editor>::Get()->SetSelectedEntity(entity);
+					ST<Inspector>::Get()->SetSelectedEntity(entity);
 				}
 			}
 			ImGui::EndDragDropTarget();
@@ -289,7 +289,7 @@ void CustomViewport::DrawImGuiWindow() {
 		if (childBegin)
 		{
 			ImDrawList* drawList = ImGui::GetWindowDrawList();
-			ST<Editor>::Get()->DrawGizmoInViewport(drawList);
+			ST<Inspector>::Get()->DrawGizmoInViewport(drawList);
 			ImGui::EndChild();
 		}
 		ImGui::PopID();

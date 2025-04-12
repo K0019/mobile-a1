@@ -192,7 +192,7 @@ void Hierarchy::Draw()
             {
                 // Set active scene first
                 ST<SceneManager>::Get()->SetActiveScene(sceneIndex);
-                ST<Editor>::Get()->CreateEntityAndSelect();
+                ST<Inspector>::Get()->CreateEntityAndSelect();
             }
             ImGui::PopStyleColor(2);
             ImGui::PopStyleVar();
@@ -304,7 +304,7 @@ bool Hierarchy::ShowEntity(ecs::EntityHandle entity, int targetSceneIndex, const
     
     // Get the selected entity
     ecs::EntityHandle selectedEntity = nullptr;
-    selectedEntity = ST<Editor>::Get()->GetSelectedEntity();
+    selectedEntity = ST<Inspector>::Get()->GetSelectedEntity();
     bool isSelected = (entity == selectedEntity);
     // Check if this entity is an ancestor of the selected entity
     // Only do this check if we're not the selected entity itself and there is a selected entity
@@ -556,7 +556,7 @@ void Hierarchy::HandleSceneDropTarget(int targetSceneIndex)
                 SwitchEntityScene(draggedEntity, targetSceneIndex);
 
                 // Update editor's selected entity
-                ST<Editor>::Get()->SetSelectedEntity(draggedEntity);
+                ST<Inspector>::Get()->SetSelectedEntity(draggedEntity);
             }
         }
         ImGui::EndDragDropTarget();
@@ -712,7 +712,7 @@ void Hierarchy::HandleDragAndDrop(ecs::EntityHandle entity, std::string const& n
                 }
 
                 // Update selected entity
-                ST<Editor>::Get()->SetSelectedEntity(draggedEntity);
+                ST<Inspector>::Get()->SetSelectedEntity(draggedEntity);
 
                 // Provide visual feedback on successful drop with a quick flash effect
                 drawlist->AddRectFilled(
@@ -844,7 +844,7 @@ void Hierarchy::CheckSelection(ecs::EntityHandle entity)
 	{
 		// Set selected entity on single click
 #ifdef IMGUI_ENABLED
-		ST<Editor>::Get()->SetSelectedEntity(entity);
+		ST<Inspector>::Get()->SetSelectedEntity(entity);
 #endif
 
     // Trigger message on double click
@@ -869,7 +869,7 @@ void Hierarchy::CheckBackgroundWindowContextMenu()
 
 
 		if(ImGui::MenuItem("Create Entity"))
-			ST<Editor>::Get()->CreateEntityAndSelect();
+			ST<Inspector>::Get()->CreateEntityAndSelect();
 
 		ImGui::EndPopup();
 	}
@@ -913,7 +913,7 @@ void Hierarchy::CheckEntityContextMenu(ecs::EntityHandle entity)
 {
 	if(ImGui::BeginPopupContextItem("EntityContextMenu"))
 	{
-		ST<Editor>::Get()->SetSelectedEntity(entity);
+		ST<Inspector>::Get()->SetSelectedEntity(entity);
 
 		if(ImGui::MenuItem("Rename"))
 		{
@@ -924,7 +924,7 @@ void Hierarchy::CheckEntityContextMenu(ecs::EntityHandle entity)
 		}
 
 		if(ImGui::MenuItem("Delete Entity"))
-			ST<Editor>::Get()->DeleteSelectedEntity();
+			ST<Inspector>::Get()->DeleteSelectedEntity();
 
 		ImGui::EndPopup();
 	}

@@ -930,7 +930,7 @@ namespace Physics {
 	bool ColliderBorderSystem::PreRun()
 	{
 #ifdef IMGUI_ENABLED
-		return ST<Editor>::Get()->m_drawPhysicsBoxes;
+		return ST<Inspector>::Get()->m_drawPhysicsBoxes;
 #else
 		return false;
 #endif
@@ -945,7 +945,7 @@ namespace Physics {
 	bool QuadtreeRenderSystem::PreRun()
 	{
 #ifdef IMGUI_ENABLED
-		if (ST<Editor>::Get()->m_drawPhysicsBoxes)
+		if (ST<Inspector>::Get()->m_drawPhysicsBoxes)
 		{
 			if (ecs::SysHandle<CollisionSystem> collisionSystem{ ecs::GetSystem<CollisionSystem>() })
 			{

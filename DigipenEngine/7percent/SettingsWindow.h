@@ -25,46 +25,50 @@ All rights reserved.
 /******************************************************************************/
 
 #pragma once
-#include "GUICollection.h"
+#include "GUIAsECS.h"
 
-/*****************************************************************//*!
-\class SettingsWindow
-\brief
-	Draws the ImGui settings window.
-*//******************************************************************/
-class SettingsWindow : public gui::Window
-{
-public:
+namespace editor {
+
 	/*****************************************************************//*!
+	\class SettingsWindow
 	\brief
-		Constructor.
+		Draws the ImGui settings window.
 	*//******************************************************************/
-	SettingsWindow();
+	class SettingsWindow : public WindowBase<SettingsWindow>
+	{
+	public:
+		/*****************************************************************//*!
+		\brief
+			Constructor.
+		*//******************************************************************/
+		SettingsWindow();
 
-private:
-	/*****************************************************************//*!
-	\brief
-		Draws the contents of the settings window.
-	*//******************************************************************/
-	void DrawContents() override;
+	private:
+		/*****************************************************************//*!
+		\brief
+			Draws the contents of the settings window.
+		*//******************************************************************/
+		void DrawWindow() override;
 
-	//! The available window resolutions.
-	static const std::pair<int, int> availableResolutions[];
-	//! The available FPS targets.
-	static const int availableFPSValues[];
-	//! The text of the equivalent FPS targets.
-	static const char* const FPSValuesText[];
-	//! The available log levels.
-	static const char* const logLevelsText[];
+		//! The available window resolutions.
+		static const std::pair<int, int> availableResolutions[];
+		//! The available FPS targets.
+		static const int availableFPSValues[];
+		//! The text of the equivalent FPS targets.
+		static const char* const FPSValuesText[];
+		//! The available log levels.
+		static const char* const logLevelsText[];
 
-	//! Whether the user has selected fullscreen.
-	bool selectedFullscreen;
-	//! Which resolution has the user selected.
-	int selectedResolutionIndex;
-	//! Which FPS has the user selected.
-	int selectedFPSValueIndex;
-	//! Whether any settings have been modified since the last save.
-	bool modificationsMade;
+		//! Whether the user has selected fullscreen.
+		bool selectedFullscreen;
+		//! Which resolution has the user selected.
+		int selectedResolutionIndex;
+		//! Which FPS has the user selected.
+		int selectedFPSValueIndex;
+		//! Whether any settings have been modified since the last save.
+		bool modificationsMade;
 
-};
+	};
+
+}
 

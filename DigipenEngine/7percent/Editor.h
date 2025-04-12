@@ -27,19 +27,19 @@ All rights reserved.
 #include "EditorTweenModule.h"
 #include "Gizmo.h"
 
-class Editor : public gui::Window
+class Inspector : public gui::Window
 {
 #ifdef IMGUI_ENABLED
 public:
-	Editor();
-	~Editor();
+	Inspector();
+	~Inspector();
 
 	/**
 	* \brief Processes the user input for the editor.
 	*/
 	void ProcessInput();
 
-	void DrawContainer() override;
+	void DrawContainer(int id) override;
 
 	/**
 	* \brief Draws the user interface for the editor.

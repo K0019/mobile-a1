@@ -28,7 +28,7 @@ PrefabWindow::PrefabWindow()
 #ifdef IMGUI_ENABLED
 void PrefabWindow::DrawSaveLoadPrompt(bool* p_open)
 {
-	if (!isLoading && ST<Editor>::Get()->GetSelectedEntity() != nullptr)
+	if (!isLoading && ST<Inspector>::Get()->GetSelectedEntity() != nullptr)
 	{
 		ImGui::Begin("Save Prefab", p_open);
 		ImGui::SetWindowSize(ImVec2(500, 100));
@@ -37,7 +37,7 @@ void PrefabWindow::DrawSaveLoadPrompt(bool* p_open)
 		if (ImGui::Button("Save"))
 		{
 			*p_open = false;
-			PrefabManager::SavePrefab(ST<Editor>::Get()->GetSelectedEntity(), prefabName);
+			PrefabManager::SavePrefab(ST<Inspector>::Get()->GetSelectedEntity(), prefabName);
 		}
 		ImGui::End();
 	}

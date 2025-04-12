@@ -658,16 +658,20 @@ namespace gui {
 			/*****************************************************************//*!
 			\brief
 				Draws the container depending on whether the container is shown.
+			\param id
+				To help ImGui tell identical windows apart. Does nothing if 0 or negative.
 			*//******************************************************************/
-			void Draw();
+			void Draw(int id = 0);
 
 		protected:
 			/*****************************************************************//*!
 			\brief
 				Called when the container is drawn. This function should call ImGui functions
 				that set up and tear down the window.
+			\param id
+				To help ImGui tell identical windows apart. Does nothing if 0 or negative.
 			*//******************************************************************/
-			virtual void DrawContainer() = 0;
+			virtual void DrawContainer(int id) = 0;
 
 			/*****************************************************************//*!
 			\brief
@@ -724,8 +728,10 @@ namespace gui {
 		\brief
 			Draws this window. If overriding to modify some window style etc,
 			remember to call base as otherwise nothing will draw!
+		\param id
+			To help ImGui tell identical windows apart. Does nothing if 0 or negative.
 		*//******************************************************************/
-		virtual void DrawContainer() override;
+		virtual void DrawContainer(int id) override;
 
 	public:
 		/*****************************************************************//*!
@@ -832,9 +838,22 @@ namespace gui {
 		\brief
 			Draws this popup window. If overriding to modify some window style etc,
 			remember to call base as otherwise nothing will draw!
+		\param id
+			To help ImGui tell identical windows apart. Does nothing if 0 or negative.
 		*//******************************************************************/
-		virtual void DrawContainer() override;
+		virtual void DrawContainer(int id) override;
 
+	private:
+		/*****************************************************************//*!
+		\brief
+			Helper function to DrawContainer(), so we don't make a local string
+			if we don't have to.
+		\param effectiveTitle
+			The title of the popup.
+		*//******************************************************************/
+		void DrawContainer_Popup(const std::string& effectiveTitle);
+
+	protected:
 		//! The flags of the popup.
 		FLAG flags;
 	};

@@ -70,7 +70,7 @@ private:
 	\brief
 		Sets this popup window's style.
 	*//******************************************************************/
-	void DrawContainer() final;
+	void DrawContainer(int id) final;
 
 	/*****************************************************************//*!
 	\brief
