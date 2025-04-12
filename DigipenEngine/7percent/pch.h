@@ -102,7 +102,7 @@ All rights reserved.
 /* END LIBRARIES */
 
 #include "Singleton.h"
-#include "percentmath.h"
+#include "MagicMath.h"
 #include "Transform.h"
 #include "ECS.h"
 #include "IRegisteredComponent.h"

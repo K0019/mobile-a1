@@ -33,8 +33,8 @@ All rights reserved.
 #include <algorithm>
 
 // Forward declares
-struct Vector2;
-struct Vector3;
+struct Vec2;
+struct Vec3;
 class Transform;
 
 #pragma region Internal

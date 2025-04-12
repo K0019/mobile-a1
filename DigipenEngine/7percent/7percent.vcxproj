@@ -543,6 +543,8 @@ if not exist "$(TargetDir)imgui.json" (
     <ClInclude Include="GamepadInputAdapter.h" />
     <ClInclude Include="GUICollection.ipp" />
     <ClInclude Include="KillAnimationWhenFinish.h" />
+    <ClInclude Include="MagicMath.h" />
+    <ClInclude Include="MagicMath.ipp" />
     <ClInclude Include="PostProcessingComponent.h" />
     <ClInclude Include="PrefabSpawner.h" />
     <ClInclude Include="Scheduler.h" />
@@ -592,7 +594,6 @@ if not exist "$(TargetDir)imgui.json" (
     <ClInclude Include="Messaging.ipp" />
     <ClInclude Include="NameComponent.h" />
     <ClInclude Include="pch.h" />
-    <ClInclude Include="PercentMath.h" />
     <ClInclude Include="Performance.h" />
     <ClInclude Include="Physics.h" />
     <ClInclude Include="Popup.h" />

@@ -21,7 +21,7 @@ All rights reserved.
 /******************************************************************************/
 
 #pragma once
-#include "PercentMath.h"
+#include "MagicMath.h"
 #include <glm/glm.hpp>
 #include <set>
 
@@ -42,8 +42,8 @@ class Transform
 {
 private:
 	// In case we want to switch dimensions in the future
-	using Vec = Vector2;
-	using Mat = Matrix3x3;
+	using Vec = Vec3;
+	using Mat = Mat4;
 
 public:
 	/*****************************************************************//*!
@@ -112,27 +112,11 @@ public:
 
 	/*****************************************************************//*!
 	\brief
-		Sets the z layer of this Transform.
-	\param z
-		The new z layer of the Transform.
-	*//******************************************************************/
-	void SetZPos(float z);
-
-	/*****************************************************************//*!
-	\brief
-		Adds an amount to the z layer of this Transform.
-	\param addZ
-		The amount to be added to the z layer of the Transform.
-	*//******************************************************************/
-	void AddZPos(float addZ);
-
-	/*****************************************************************//*!
-	\brief
 		Sets the local rotation of this Transform.
 	\param newDegrees
 		The new local rotation of the Transform.
 	*//******************************************************************/
-	void SetLocalRotation(float newDegrees);
+	void SetLocalRotation(const Vec& newDegrees);
 
 	/*****************************************************************//*!
 	\brief
@@ -140,7 +124,7 @@ public:
 	\param addDegrees
 		The amount to be added to the local rotation of the Transform.
 	*//******************************************************************/
-	void AddLocalRotation(float addDegrees);
+	void AddLocalRotation(const Vec& addDegrees);
 
 	/*****************************************************************//*!
 	\brief
@@ -148,7 +132,7 @@ public:
 	\param newDegrees
 		The new world rotation of the Transform.
 	*//******************************************************************/
-	void SetWorldRotation(float newDegrees);
+	void SetWorldRotation(const Vec& newDegrees);
 
 	/*****************************************************************//*!
 	\brief
@@ -156,7 +140,7 @@ public:
 	\param addDegrees
 		The amount to be added to the world rotation of the Transform.
 	*//******************************************************************/
-	void AddWorldRotation(float addDegrees);
+	void AddWorldRotation(const Vec& addDegrees);
 
 	/*****************************************************************//*!
 	\brief
@@ -198,24 +182,10 @@ public:
 		The new local position.
 	\param newScale
 		The new local scale.
-	\param newDegrees
+	\param newRotation
 		The new local rotation.
 	*//******************************************************************/
-	void SetLocal(const Vec& newPos = {}, const Vec& newScale = { 1.0f, 1.0f }, float newDegrees = 0.0f);
-
-	/*****************************************************************//*!
-	\brief
-		Sets the local position, rotation, scale and z position of this Transform.
-	\param z
-		The new z position.
-	\param newPos
-		The new local position.
-	\param newScale
-		The new local scale.
-	\param newDegrees
-		The new local rotation.
-	*//******************************************************************/
-	void SetLocal(float z, const Vec& newPos = {}, const Vec& newScale = { 1.0f, 1.0f }, float newDegrees = 0.0f);
+	void SetLocal(const Vec& newPos = {}, const Vec& newScale = { 1.0f, 1.0f, 1.0f }, const Vec& newRotation = { 1.0f, 1.0f, 1.0f });
 
 	/*****************************************************************//*!
 	\brief
@@ -233,24 +203,10 @@ public:
 		The new world position.
 	\param newScale
 		The new world scale.
-	\param newDegrees
+	\param newRotation
 		The new world rotation.
 	*//******************************************************************/
-	void SetWorld(const Vec& newPos = {}, const Vec& newScale = { 1.0f, 1.0f }, float newDegrees = 0.0f);
-
-	/*****************************************************************//*!
-	\brief
-		Sets the world position, rotation, scale and z position of this Transform.
-	\param z
-		The new z position.
-	\param newPos
-		The new world position.
-	\param newScale
-		The new world scale.
-	\param newDegrees
-		The new world rotation.
-	*//******************************************************************/
-	void SetWorld(float z, const Vec& newPos = {}, const Vec& newScale = { 1.0f, 1.0f }, float newDegrees = 0.0f);
+	void SetWorld(const Vec& newPos = {}, const Vec& newScale = { 1.0f, 1.0f, 1.0f }, const Vec& newRotation = { 1.0f, 1.0f, 1.0f });
 
 	/*****************************************************************//*!
 	\brief
@@ -275,7 +231,7 @@ public:
 	\return
 		The local rotation of the Transform.
 	*//******************************************************************/
-	float GetLocalRotation() const;
+	const Vec& GetLocalRotation() const;
 
 	/*****************************************************************//*!
 	\brief
@@ -300,7 +256,7 @@ public:
 	\return
 		The world rotation of the Transform.
 	*//******************************************************************/
-	float GetWorldRotation() const;
+	Vec GetWorldRotation() const;
 
 	/*****************************************************************//*!
 	\brief
@@ -309,14 +265,6 @@ public:
 		The world scale of the Transform.
 	*//******************************************************************/
 	Vec GetWorldScale() const;
-
-	/*****************************************************************//*!
-	\brief
-		Gets the z position of this Transform.
-	\return
-		The z position of the Transform.
-	*//******************************************************************/
-	float GetZPos() const;
 
 
 	/*****************************************************************//*!
@@ -433,10 +381,8 @@ private:
 private:
 	//! The position of this Transform.
 	Vec position;
-	//! The z position of this Transform.
-	float posZ; // For layering
 	//! The rotation of this Transform.
-	float rotation;
+	Vec rotation;
 	//! The scale of this Transform.
 	Vec scale;
 

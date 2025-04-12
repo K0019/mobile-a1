@@ -25,9 +25,8 @@ All rights reserved.
 
 Transform::Transform()
 	: position{}
-	, posZ{ 0.1f }
-	, rotation{ 0.0f }
-	, scale{ 1.0f, 1.0f }
+	, rotation{}
+	, scale{ 1.0f, 1.0f, 1.0f }
 	, isTransformDirty{ false }
 	, mat{}
 	, parent{ nullptr }
@@ -37,7 +36,6 @@ Transform::Transform()
 
 Transform::Transform(const Transform& copy)
 	: position{ copy.position }
-	, posZ{ copy.posZ }
 	, rotation{ copy.rotation }
 	, scale{ copy.scale }
 	, isTransformDirty{ true }
@@ -64,7 +62,6 @@ Transform& Transform::operator=(const Transform& copy)
 	// Any children we have will be carried over.
 
 	SetLocal(copy.GetLocalPosition(), copy.GetLocalScale(), copy.GetLocalRotation());
-	posZ = copy.posZ;
 	return *this;
 }
 
@@ -82,8 +79,8 @@ void Transform::AddLocalPosition(const Vec& addPos)
 
 void Transform::SetWorldPosition(const Vec& newPos)
 {
-  	if (parent)
-		position = parent->GetWorldMat().Inverse().MultVec(newPos, 1.0f);
+	if (parent)
+		position = parent->GetWorldMat().Inverse() * newPos;
 	else
 		 position = newPos;
 	SetDirty();
@@ -92,45 +89,31 @@ void Transform::SetWorldPosition(const Vec& newPos)
 void Transform::AddWorldPosition(const Vec& addPos)
 {
 	if (parent)
-		position += parent->GetWorldMat().Inverse().MultVec(addPos, 0.0f);
+		position += parent->GetWorldMat().Inverse() * Vec4{ addPos, 0.0f };
 	else
 		position += addPos;
 	SetDirty();
 }
 
-void Transform::SetZPos(float z)
-{
-	posZ = z;
-	// Mat is a 3x3 so it doesn't need to be recalculated.
-	// isTransformDirty = true;
-}
-
-void Transform::AddZPos(float addZ)
-{
-	posZ += addZ;
-	// Mat is a 3x3 so it doesn't need to be recalculated.
-	// isTransformDirty = true;
-}
-
-void Transform::SetLocalRotation(float newDegrees)
+void Transform::SetLocalRotation(const Vec& newDegrees)
 {
 	rotation = newDegrees;
 	SetDirty();
 }
 
-void Transform::AddLocalRotation(float addDegrees)
+void Transform::AddLocalRotation(const Vec& addDegrees)
 {
 	rotation += addDegrees;
 	SetDirty();
 }
 
-void Transform::SetWorldRotation(float newDegrees)
+void Transform::SetWorldRotation(const Vec& newDegrees)
 {
 	rotation = (parent ? newDegrees - parent->GetWorldRotation() : newDegrees);
 	SetDirty();
 }
 
-void Transform::AddWorldRotation(float addDegrees)
+void Transform::AddWorldRotation(const Vec& addDegrees)
 {
 	// The algorithm is the same as local rotation.
 	rotation += addDegrees;
@@ -161,7 +144,7 @@ void Transform::AddWorldScale(const Vec& addScale)
 	SetDirty();
 }
 
-void Transform::SetLocal(const Vec& newPos, const Vec& newScale, float newDegrees)
+void Transform::SetLocal(const Vec& newPos, const Vec& newScale, const Vec& newDegrees)
 {
 	position = newPos;
 	rotation = newDegrees;
@@ -169,33 +152,21 @@ void Transform::SetLocal(const Vec& newPos, const Vec& newScale, float newDegree
 	SetDirty();
 }
 
-void Transform::SetLocal(float z, const Vec& newPos, const Vec& newScale, float newDegrees)
-{
-	posZ = z;
-	SetLocal(newPos, newScale, newDegrees);
-}
-
 void Transform::SetLocal(const Transform& transform)
 {
-	SetLocal(transform.posZ, transform.position, transform.scale, transform.rotation);
+	SetLocal(transform.position, transform.scale, transform.rotation);
 }
 
-void Transform::SetWorld(const Vec& newPos, const Vec& newScale, float newDegrees)
+void Transform::SetWorld(const Vec& newPos, const Vec& newScale, const Vec& newDegrees)
 {
 	SetWorldPosition(newPos);
 	SetWorldRotation(newDegrees);
 	SetWorldScale(newScale);
 }
 
-void Transform::SetWorld(float z, const Vec& newPos, const Vec& newScale, float newDegrees)
-{
-	posZ = z;
-	SetWorld(newPos, newScale, newDegrees);
-}
-
 void Transform::SetWorld(const Transform& transform)
 {
-	SetWorld(transform.posZ, transform.GetWorldPosition(), transform.GetWorldScale(), transform.GetWorldRotation());
+	SetWorld(transform.GetWorldPosition(), transform.GetWorldScale(), transform.GetWorldRotation());
 }
 
 const Transform::Vec& Transform::GetLocalPosition() const
@@ -203,12 +174,7 @@ const Transform::Vec& Transform::GetLocalPosition() const
 	return position;
 }
 
-float Transform::GetZPos() const
-{
-	return posZ;
-}
-
-float Transform::GetLocalRotation() const
+const Transform::Vec& Transform::GetLocalRotation() const
 {
 	return rotation;
 }
@@ -223,7 +189,7 @@ Transform::Vec Transform::GetWorldPosition() const
 	return (parent ? parent->GetWorldMat() * position : position);
 }
 
-float Transform::GetWorldRotation() const
+Transform::Vec Transform::GetWorldRotation() const
 {
 	return (parent ? parent->GetWorldRotation() + rotation : rotation);
 }
@@ -266,49 +232,51 @@ ecs::ConstEntityHandle Transform::GetEntity() const
 
 void Transform::SetMat4ToWorld(glm::mat4* outMat4) const
 {
-	// This updates the world matrix if dirty
-	if (isTransformDirty)
-		GetWorldMat();
+	*outMat4 = GetWorldMat();
 
-	glm::mat4& mat4{ *outMat4 };
+	//// This updates the world matrix if dirty
+	//if (isTransformDirty)
+	//	GetWorldMat();
 
-	// Transfer x
-	// x x n n
-	// x x n n
-	// n n n n
-	// n n n n
-	mat4[0][0] = mat[0][0];
-	mat4[0][1] = mat[1][0];
-	mat4[1][0] = mat[0][1];
-	mat4[1][1] = mat[1][1];
+	//glm::mat4& mat4{ *outMat4 };
 
-	// Transfer y
-	// x x n y
-	// x x n y
-	// n n n n
-	// y y n n
-	mat4[3][0] = mat[0][2];
-	mat4[3][1] = mat[1][2];
-	mat4[0][3] = mat[2][0];
-	mat4[1][3] = mat[2][1];
+	//// Transfer x
+	//// x x n n
+	//// x x n n
+	//// n n n n
+	//// n n n n
+	//mat4[0][0] = mat[0][0];
+	//mat4[0][1] = mat[1][0];
+	//mat4[1][0] = mat[0][1];
+	//mat4[1][1] = mat[1][1];
 
-	// Fill z
-	// x x z y
-	// x x z y
-	// z z n n
-	// y y z n
-	mat4[2][0] = mat4[2][1] = mat4[2][3] =
-		mat4[0][2] = mat4[1][2] = 0.0f;
+	//// Transfer y
+	//// x x n y
+	//// x x n y
+	//// n n n n
+	//// y y n n
+	//mat4[3][0] = mat[0][2];
+	//mat4[3][1] = mat[1][2];
+	//mat4[0][3] = mat[2][0];
+	//mat4[1][3] = mat[2][1];
 
-	// Fill w with z position
-	// x x z y
-	// x x z y
-	// z z n w
-	// y y z n
-	// Fill remaining n
-	mat4[3][2] = posZ;
-	mat4[2][2] = 1.0f;
-	mat4[3][3] = mat[2][2];
+	//// Fill z
+	//// x x z y
+	//// x x z y
+	//// z z n n
+	//// y y z n
+	//mat4[2][0] = mat4[2][1] = mat4[2][3] =
+	//	mat4[0][2] = mat4[1][2] = 0.0f;
+
+	//// Fill w with z position
+	//// x x z y
+	//// x x z y
+	//// z z n w
+	//// y y z n
+	//// Fill remaining n
+	//mat4[3][2] = posZ;
+	//mat4[2][2] = 1.0f;
+	//mat4[3][3] = mat[2][2];
 }
 
 void Transform::EditorDraw()
@@ -318,9 +286,9 @@ void Transform::EditorDraw()
 	gui::Indent indent{ 4.0f };
 
 	// Helper function for drawing the controls
-	const auto DrawVec2Control = [](const char* label, Vector2* values, float columnWidth, float speed, const char* format) -> bool {
+	const auto DrawVec3Control = [](const char* label, Vec3* values, float columnWidth, float speed, const char* format) -> bool {
 		bool modified = false;
-		if (gui::Table table{ label, 3, true, gui::FLAG_TABLE::HIDE_HEADER })
+		if (gui::Table table{ label, 5, true, gui::FLAG_TABLE::HIDE_HEADER })
 		{
 			table.AddColumnHeader("##", gui::FLAG_TABLE_COLUMN::WIDTH_FIXED, columnWidth); // Set first column as fixed width. The rest will be stretch columns.
 			table.SubmitColumnHeaders();
@@ -341,6 +309,8 @@ void Transform::EditorDraw()
 			DrawFloatComponent("X", "##X", &values->x, gui::Vec4{ 1.0f, 0.4f, 0.4f, 1.0f });
 			table.NextColumn();
 			DrawFloatComponent("Y", "##Y", &values->y, gui::Vec4{ 0.4f, 1.0f, 0.4f, 1.0f });
+			table.NextColumn();
+			DrawFloatComponent("Z", "##Z", &values->z, gui::Vec4{ 0.4f, 0.4f, 1.0f, 1.0f });
 		}
 		return modified;
 	};
@@ -359,36 +329,28 @@ void Transform::EditorDraw()
 		return false;
 	};
 
-	Vector2 tempVec{ position };
-	float tempFloat{ rotation };
+	Vec3 tempVec{ position };
 
 	// Position Control
-	if (DrawVec2Control("Position", &tempVec, 60.0f, 10.0f, "%.1f"))
+	if (DrawVec3Control("Position", &tempVec, 60.0f, 10.0f, "%.1f"))
 	{
 		ST<History>::Get()->IntermediateEvent(HistoryEvent_Translation{ GetEntity(), position });
 		SetLocalPosition(tempVec);
 	}
 
 	// Rotation Control
-	if (DrawFloatControl("Rotation", &tempFloat, 60.0f, 1.0f, 0.0f, 360.0f, "%.1f"))
+	if (DrawVec3Control("Rotation", &tempVec, 60.0f, 1.0f, "%.1f"))
 	{
 		ST<History>::Get()->IntermediateEvent(HistoryEvent_Rotation{ GetEntity(), rotation });
-		SetLocalRotation(tempFloat);
+		SetLocalRotation(tempVec);
 	}
 
 	// Scale Control
 	tempVec = scale;
-	if (DrawVec2Control("Scale", &tempVec, 60.0f, 10.0f, "%.2f"))
+	if (DrawVec3Control("Scale", &tempVec, 60.0f, 10.0f, "%.1f"))
 	{
 		ST<History>::Get()->IntermediateEvent(HistoryEvent_Scale{ GetEntity(), scale });
 		SetLocalScale(tempVec);
-	}
-	// Z Position Control
-	tempFloat = posZ;
-	if (DrawFloatControl("Z Position", &tempFloat, 60.0f, 0.01f, 0.0f, 1.0f, "%.2f"))
-	{
-		ST<History>::Get()->IntermediateEvent(HistoryEvent_ZPos{ GetEntity(), posZ });
-		SetZPos(tempFloat);
 	}
 }
 
@@ -403,7 +365,7 @@ const Transform::Mat& Transform::GetWorldMat() const
 {
 	if (isTransformDirty)
 	{
-		mat.SetToTransform(position, scale, rotation);
+		mat.Set(position, scale, rotation);
 		if (parent)
 			mat = parent->GetWorldMat() * mat;
 		isTransformDirty = false;
@@ -418,7 +380,7 @@ void Transform::SetParent(Transform* parentTransform, bool informOldParent)
 
 	// Save current world values to modify local values later so our world values don't move after parenting
 	Vec worldPos{ GetWorldPosition() };
-	float worldRot{ GetWorldRotation() };
+	Vec worldRot{ GetWorldRotation() };
 	Vec worldScale{ GetWorldScale() };
 
 	if (parent && informOldParent)
