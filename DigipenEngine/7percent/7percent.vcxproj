@@ -363,8 +363,6 @@ if not exist "$(TargetDir)imgui.json" (
     <ClCompile Include="Animation.cpp" />
     <ClCompile Include="AnimatorComponent.cpp" />
     <ClCompile Include="AnimatorSystem.cpp" />
-    <ClCompile Include="ArmPivot.cpp" />
-    <ClCompile Include="ArmPivotIK.cpp" />
     <ClCompile Include="AssetBrowser.cpp" />
     <ClCompile Include="AudioListener.cpp" />
     <ClCompile Include="AudioSystem.cpp" />
@@ -525,8 +523,6 @@ if not exist "$(TargetDir)imgui.json" (
     <ClInclude Include="Animation.h" />
     <ClInclude Include="AnimatorComponent.h" />
     <ClInclude Include="AnimatorSystem.h" />
-    <ClInclude Include="ArmPivot.h" />
-    <ClInclude Include="ArmPivotIK.h" />
     <ClInclude Include="AssetBrowser.h" />
     <ClInclude Include="AudioListener.h" />
     <ClInclude Include="AudioSystem.h" />
