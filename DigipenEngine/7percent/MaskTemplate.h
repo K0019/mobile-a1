@@ -202,7 +202,7 @@ private:
 	static std::bitset<BitSize> ProcessMatrix(const std::bitset<BitSize>& input) requires EnableMatrix
 		// This is driving me insane, why doesn't this signature work when defined outside??
 		// template<typename ENUM_TYPE, bool EnableMatrix>
-		// std::bitset<MaskTemplate<ENUM_TYPE, EnableMatrix>::BitSize> MaskTemplate<ENUM_TYPE, EnableMatrix>::ProcessMatrix(const std::bitset<BitSize>& input)
+		// std::bitset<MaskTemplate<ENUM_TYPE, EnableMatrix>::BitSize> MaskTemplate<ENUM_TYPE, EnableMatrix>::ProcessMatrix(const std::bitset<BitSize>& input) requires EnableMatrix
 	{
 		std::bitset<MaskTemplate<ENUM_TYPE, EnableMatrix>::BitSize> result{};
 		auto integer{ input.to_ulong() };
@@ -213,6 +213,14 @@ private:
 		}
 		return result;
 	}
+
+	/*****************************************************************//*!
+	\brief
+		Gets whether a majority of the entries in the matrix are true.
+	\return
+		True if the majority of entries in the matrix are true. False otherwise.
+	*//******************************************************************/
+	static bool GetMatrixIsMajorityTrue() requires EnableMatrix;
 
 public:
 	/*****************************************************************//*!
@@ -290,6 +298,15 @@ public:
 		the underlying int value of the enum instead.
 	*//******************************************************************/
 	void MaskDeserialize(Deserializer& deserializer, const std::string& key, const char* const* namesArr = nullptr);
+
+private:
+	/*****************************************************************//*!
+	\brief
+		Gets whether a majority of the bits in the mask are true.
+	\return
+		True if the majority of bits in the mask are true. False otherwise.
+	*//******************************************************************/
+	bool GetMaskMajorityIsTrue() const;
 
 private:
 	//! The mask bits.
@@ -416,6 +433,17 @@ MaskTemplate<ENUM_TYPE, EnableMatrix>::MatrixType MaskTemplate<ENUM_TYPE, Enable
 };
 
 template<typename ENUM_TYPE, bool EnableMatrix>
+bool MaskTemplate<ENUM_TYPE, EnableMatrix>::GetMatrixIsMajorityTrue() requires EnableMatrix
+{
+	// Keep a count of the imbalance. If positive, majority are true. If negative, majority are false.
+	int count{};
+	for (ENUM_TYPE i{ static_cast<ENUM_TYPE>(0) }; i < ENUM_TYPE::TOTAL; ++i)
+		for (ENUM_TYPE j{ i }; j < ENUM_TYPE::TOTAL; ++j)
+			(TestMatrix(i, j) ? ++count : --count);
+	return count >= 0;
+}
+
+template<typename ENUM_TYPE, bool EnableMatrix>
 bool MaskTemplate<ENUM_TYPE, EnableMatrix>::TestMatrix(ENUM_TYPE a, ENUM_TYPE b) requires EnableMatrix
 {
 	return matrix[+a].test(+b);
@@ -432,12 +460,7 @@ template<typename ENUM_TYPE, bool EnableMatrix>
 void MaskTemplate<ENUM_TYPE, EnableMatrix>::SerializeMatrix(Serializer& writer, const std::string& key, const char* const* enumNamesArr) requires EnableMatrix
 {
 	// Optimize storage space by only storing the minority setting (if most bits are true, store only false. vice versa)
-	// Keep a count of the imbalance. If positive, majority are true. If negative, majority are false.
-	int count{};
-	for (ENUM_TYPE i{ static_cast<ENUM_TYPE>(0) }; i < ENUM_TYPE::TOTAL; ++i)
-		for (ENUM_TYPE j{ i }; j < ENUM_TYPE::TOTAL; ++j)
-			(TestMatrix(i, j) ? ++count : --count);
-	const bool majorityTrue{ count >= 0 };
+	const bool majorityTrue{ GetMatrixIsMajorityTrue() };
 
 	// Write whether we've written false or true only
 	writer.StartObject(key);
@@ -498,10 +521,18 @@ void MaskTemplate<ENUM_TYPE, EnableMatrix>::MaskEditorDraw(const char* const* na
 template<typename ENUM_TYPE, bool EnableMatrix>
 void MaskTemplate<ENUM_TYPE, EnableMatrix>::MaskSerialize(Serializer& serializer, const std::string& identifier, const char* const* namesArr) const
 {
-	// TODO: Could consider writing an array instead.
+	// Optimize storage space by only storing the minority setting (if most bits are true, store only false. vice versa)
+	const bool majorityTrue{ GetMaskMajorityIsTrue() };
 	serializer.StartObject(identifier);
+	serializer.Serialize("_majorityTrue", majorityTrue);
+
+	// Write all bits
+	serializer.StartArray("_except");
 	for (int i{}; i < static_cast<int>(ENUM_TYPE::TOTAL); ++i)
-		serializer.Serialize(namesArr ? namesArr[i] : std::to_string(i), TestMask(static_cast<ENUM_TYPE>(i)));
+		if (TestMask(static_cast<ENUM_TYPE>(i)) != majorityTrue)
+			serializer.Serialize("", namesArr ? namesArr[i] : std::to_string(i));
+	serializer.EndArray();
+
 	serializer.EndObject();
 }
 
@@ -510,18 +541,53 @@ void MaskTemplate<ENUM_TYPE, EnableMatrix>::MaskDeserialize(Deserializer& deseri
 {
 	if (!deserializer.PushAccess(key))
 		return;
-	bool b{};
-	for (int i{}; i < static_cast<int>(ENUM_TYPE::TOTAL); ++i)
+
+	// Set all the bits according to the majority first
+	bool majorityTrue{};
+	deserializer.DeserializeVar("_majorityTrue", &majorityTrue);
+	(majorityTrue ? masks.set() : masks.reset());
+
+	// Access the except array
+	if (!deserializer.PushAccess("_except"))
 	{
-		std::string bitKey{ namesArr ? namesArr[i] : std::to_string(i) };
-		if (!deserializer.DeserializeVar(bitKey, &b))
-		{
-			CONSOLE_LOG(LEVEL_ERROR) << "Failed to deserialize mask " << key << "'s bit " << bitKey << "! Aborting further deserialization of mask.";
-			break;
-		}
-		SetMask(static_cast<ENUM_TYPE>(i), b);
+		deserializer.PopAccess();
+		return;
 	}
-	deserializer.PopAccess();
+
+	// For each entry, flip the bit
+	for (size_t i{}; deserializer.PushArrayElementAccess(i); ++i)
+	{
+		std::string name{};
+		deserializer.DeserializeVar("", &name);
+
+		if (namesArr)
+		{
+			// Search the array for the index of the name.
+			size_t maskIndex{ util::FindIndexOfElement(namesArr, namesArr + +ENUM_TYPE::TOTAL, name) };
+			if (maskIndex < static_cast<size_t>(ENUM_TYPE::TOTAL))
+				SetMask(static_cast<ENUM_TYPE>(maskIndex), !majorityTrue);
+			else
+				CONSOLE_LOG(LEVEL_ERROR) << "Deserializing " << key << ": Mask with name " << name << " doesn't exist!";
+		}
+		else
+			// Convert number to the mask
+			SetMask(static_cast<ENUM_TYPE>(std::stoul(name)), !majorityTrue);
+
+		deserializer.PopAccess();
+	}
+
+	deserializer.PopAccess(); // array access
+	deserializer.PopAccess(); // object access
+}
+
+template<typename ENUM_TYPE, bool EnableMatrix>
+bool MaskTemplate<ENUM_TYPE, EnableMatrix>::GetMaskMajorityIsTrue() const
+{
+	// Keep a count of the imbalance. If positive, majority are true. If negative, majority are false.
+	int count{};
+	for (int i{}; i < static_cast<int>(ENUM_TYPE::TOTAL); ++i)
+		(TestMask(static_cast<ENUM_TYPE>(i)) ? ++count : --count);
+	return count >= 0;
 }
 
 #pragma endregion // Definition

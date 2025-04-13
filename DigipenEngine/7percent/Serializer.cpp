@@ -473,7 +473,7 @@ bool Deserializer::PushArrayElementAccess(size_t index)
     }
     else if (index >= reader.Size())
     {
-        CONSOLE_LOG(LEVEL_ERROR) << "Deserializer attempted to access an out-of-bounds array element!";
+        //CONSOLE_LOG(LEVEL_ERROR) << "Deserializer attempted to access an out-of-bounds array element!";
         return false;
     }
 

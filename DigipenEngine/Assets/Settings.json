@@ -61,46 +61,16 @@
     },
     "systemLayers": {
         "3489183544230080325": {
-            "Default": true,
-            "Environment": true,
-            "Player": true,
-            "Enemy": true,
-            "Weapon": true,
-            "Player Bullet": true,
-            "Enemy Bullet": true,
-            "Objective": true,
-            "Drop Pod": true,
-            "Mask Entity": true,
-            "Player Detector": true,
-            "Weapon Detector": true
+            "_majorityTrue": true,
+            "_except": []
         },
         "4150694102471321737": {
-            "Default": true,
-            "Environment": true,
-            "Player": true,
-            "Enemy": true,
-            "Weapon": true,
-            "Player Bullet": true,
-            "Enemy Bullet": true,
-            "Objective": true,
-            "Drop Pod": true,
-            "Mask Entity": true,
-            "Player Detector": true,
-            "Weapon Detector": true
+            "_majorityTrue": true,
+            "_except": []
         },
         "12363950644241722034": {
-            "Default": true,
-            "Environment": true,
-            "Player": true,
-            "Enemy": true,
-            "Weapon": true,
-            "Player Bullet": true,
-            "Enemy Bullet": true,
-            "Objective": true,
-            "Drop Pod": true,
-            "Mask Entity": true,
-            "Player Detector": true,
-            "Weapon Detector": true
+            "_majorityTrue": true,
+            "_except": []
         }
     }
 }
