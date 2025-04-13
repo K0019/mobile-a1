@@ -20,20 +20,8 @@
     "scriptsTargetLocation": "/Assets",
     "materialSaveLocation": "/Assets/Materials",
     "collisionLayers": {
-        "Default": {
-            "Default": false,
-            "Environment": false,
-            "Player": false,
-            "Enemy": false,
-            "Weapon": false,
-            "Player Bullet": false,
-            "Enemy Bullet": false,
-            "Objective": false,
-            "Drop Pod": false,
-            "Mask Entity": false,
-            "Player Detector": false,
-            "Weapon Detector": false
-        },
+        "_majorityTrue": false,
+        "Default": {},
         "Environment": {
             "Environment": true,
             "Player": true,
@@ -41,84 +29,32 @@
             "Weapon": true,
             "Player Bullet": true,
             "Enemy Bullet": true,
-            "Objective": false,
             "Drop Pod": true,
-            "Mask Entity": true,
-            "Player Detector": false,
-            "Weapon Detector": false
+            "Mask Entity": true
         },
         "Player": {
-            "Player": false,
-            "Enemy": false,
-            "Weapon": false,
-            "Player Bullet": false,
             "Enemy Bullet": true,
-            "Objective": false,
-            "Drop Pod": false,
             "Mask Entity": true,
-            "Player Detector": true,
-            "Weapon Detector": false
+            "Player Detector": true
         },
         "Enemy": {
-            "Enemy": false,
-            "Weapon": false,
             "Player Bullet": true,
-            "Enemy Bullet": false,
-            "Objective": false,
-            "Drop Pod": false,
-            "Mask Entity": true,
-            "Player Detector": false,
-            "Weapon Detector": false
+            "Mask Entity": true
         },
         "Weapon": {
-            "Weapon": false,
-            "Player Bullet": false,
-            "Enemy Bullet": false,
-            "Objective": false,
-            "Drop Pod": false,
             "Mask Entity": true,
-            "Player Detector": false,
             "Weapon Detector": true
         },
-        "Player Bullet": {
-            "Player Bullet": false,
-            "Enemy Bullet": false,
-            "Objective": false,
-            "Drop Pod": false,
-            "Mask Entity": false,
-            "Player Detector": false,
-            "Weapon Detector": false
-        },
+        "Player Bullet": {},
         "Enemy Bullet": {
-            "Enemy Bullet": false,
-            "Objective": true,
-            "Drop Pod": false,
-            "Mask Entity": false,
-            "Player Detector": false,
-            "Weapon Detector": false
+            "Objective": true
         },
-        "Objective": {
-            "Objective": false,
-            "Drop Pod": false,
-            "Mask Entity": false,
-            "Player Detector": false,
-            "Weapon Detector": false
-        },
-        "Drop Pod": {
-            "Drop Pod": false,
-            "Mask Entity": false,
-            "Player Detector": false,
-            "Weapon Detector": false
-        },
+        "Objective": {},
+        "Drop Pod": {},
         "Mask Entity": {
-            "Mask Entity": true,
-            "Player Detector": false,
-            "Weapon Detector": false
+            "Mask Entity": true
         },
-        "Player Detector": {
-            "Player Detector": false,
-            "Weapon Detector": false
-        },
+        "Player Detector": {},
         "Weapon Detector": {
             "Weapon Detector": true
         }

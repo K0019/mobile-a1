@@ -431,12 +431,25 @@ void MaskTemplate<ENUM_TYPE, EnableMatrix>::SetMatrix(ENUM_TYPE a, ENUM_TYPE b, 
 template<typename ENUM_TYPE, bool EnableMatrix>
 void MaskTemplate<ENUM_TYPE, EnableMatrix>::SerializeMatrix(Serializer& writer, const std::string& key, const char* const* enumNamesArr) requires EnableMatrix
 {
+	// Optimize storage space by only storing the minority setting (if most bits are true, store only false. vice versa)
+	// Keep a count of the imbalance. If positive, majority are true. If negative, majority are false.
+	int count{};
+	for (ENUM_TYPE i{ static_cast<ENUM_TYPE>(0) }; i < ENUM_TYPE::TOTAL; ++i)
+		for (ENUM_TYPE j{ i }; j < ENUM_TYPE::TOTAL; ++j)
+			(TestMatrix(i, j) ? ++count : --count);
+	const bool majorityTrue{ count >= 0 };
+
+	// Write whether we've written false or true only
 	writer.StartObject(key);
+	writer.Serialize("_majorityTrue", majorityTrue);
+
+	// Serialize all combinations
 	for (ENUM_TYPE i{ static_cast<ENUM_TYPE>(0) }; i < ENUM_TYPE::TOTAL; ++i)
 	{
 		writer.StartObject(enumNamesArr ? enumNamesArr[+i] : std::to_string(+i));
 		for (ENUM_TYPE j{ i }; j < ENUM_TYPE::TOTAL; ++j)
-			writer.Serialize(enumNamesArr ? enumNamesArr[+j] : std::to_string(+j), TestMatrix(i, j));
+			if (TestMatrix(i, j) != majorityTrue)
+				writer.Serialize(enumNamesArr ? enumNamesArr[+j] : std::to_string(+j), !majorityTrue);
 		writer.EndObject();
 	}
 	writer.EndObject();
@@ -447,6 +460,11 @@ void MaskTemplate<ENUM_TYPE, EnableMatrix>::DeserializeMatrix(Deserializer& read
 {
 	if (!reader.PushAccess(key))
 		return;
+
+	bool majorityTrue{};
+	reader.DeserializeVar("_majorityTrue", &majorityTrue);
+
+	// Deserialize all combinations
 	bool val{};
 	for (ENUM_TYPE i{ static_cast<ENUM_TYPE>(0) }; i < ENUM_TYPE::TOTAL; ++i)
 	{
@@ -455,6 +473,8 @@ void MaskTemplate<ENUM_TYPE, EnableMatrix>::DeserializeMatrix(Deserializer& read
 		for (ENUM_TYPE j{ i }; j < ENUM_TYPE::TOTAL; ++j)
 			if (reader.DeserializeVar(enumNamesArr ? enumNamesArr[+j] : std::to_string(+j), &val))
 				SetMatrix(i, j, val);
+			else // This entry does not exist, meaning it's the majority
+				SetMatrix(i, j, majorityTrue);
 		reader.PopAccess();
 	}
 	reader.PopAccess();
