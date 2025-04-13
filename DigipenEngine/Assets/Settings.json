@@ -21,43 +21,43 @@
     "materialSaveLocation": "/Assets/Materials",
     "collisionLayers": {
         "_majorityTrue": false,
-        "Default": {},
-        "Environment": {
-            "Environment": true,
-            "Player": true,
-            "Enemy": true,
-            "Weapon": true,
-            "Player Bullet": true,
-            "Enemy Bullet": true,
-            "Drop Pod": true,
-            "Mask Entity": true
-        },
-        "Player": {
-            "Enemy Bullet": true,
-            "Mask Entity": true,
-            "Player Detector": true
-        },
-        "Enemy": {
-            "Player Bullet": true,
-            "Mask Entity": true
-        },
-        "Weapon": {
-            "Mask Entity": true,
-            "Weapon Detector": true
-        },
-        "Player Bullet": {},
-        "Enemy Bullet": {
-            "Objective": true
-        },
-        "Objective": {},
-        "Drop Pod": {},
-        "Mask Entity": {
-            "Mask Entity": true
-        },
-        "Player Detector": {},
-        "Weapon Detector": {
-            "Weapon Detector": true
-        }
+        "Default": [],
+        "Environment": [
+            "Environment",
+            "Player",
+            "Enemy",
+            "Weapon",
+            "Player Bullet",
+            "Enemy Bullet",
+            "Drop Pod",
+            "Mask Entity"
+        ],
+        "Player": [
+            "Enemy Bullet",
+            "Mask Entity",
+            "Player Detector"
+        ],
+        "Enemy": [
+            "Player Bullet",
+            "Mask Entity"
+        ],
+        "Weapon": [
+            "Mask Entity",
+            "Weapon Detector"
+        ],
+        "Player Bullet": [],
+        "Enemy Bullet": [
+            "Objective"
+        ],
+        "Objective": [],
+        "Drop Pod": [],
+        "Mask Entity": [
+            "Mask Entity"
+        ],
+        "Player Detector": [],
+        "Weapon Detector": [
+            "Weapon Detector"
+        ]
     },
     "systemLayers": {
         "3489183544230080325": {

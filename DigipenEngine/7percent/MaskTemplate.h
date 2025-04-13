@@ -308,6 +308,19 @@ private:
 	*//******************************************************************/
 	bool GetMaskMajorityIsTrue() const;
 
+	/*****************************************************************//*!
+	\brief
+		Helper function for deserialization to get the mask of the current
+		array element.
+	\param deserializer
+		The deserializer. Its state should be at the array element.
+	\param namesArr
+		The array of the enum's names.
+	\return
+		The array element converted into a mask type. TOTAL if invalid.
+	*//******************************************************************/
+	static ENUM_TYPE GetMaskOfCurrentElement(Deserializer& deserializer, const char* const* namesArr);
+
 private:
 	//! The mask bits.
 	std::bitset<BitSize> masks;
@@ -469,11 +482,11 @@ void MaskTemplate<ENUM_TYPE, EnableMatrix>::SerializeMatrix(Serializer& writer, 
 	// Serialize all combinations
 	for (ENUM_TYPE i{ static_cast<ENUM_TYPE>(0) }; i < ENUM_TYPE::TOTAL; ++i)
 	{
-		writer.StartObject(enumNamesArr ? enumNamesArr[+i] : std::to_string(+i));
+		writer.StartArray(enumNamesArr ? enumNamesArr[+i] : std::to_string(+i));
 		for (ENUM_TYPE j{ i }; j < ENUM_TYPE::TOTAL; ++j)
 			if (TestMatrix(i, j) != majorityTrue)
-				writer.Serialize(enumNamesArr ? enumNamesArr[+j] : std::to_string(+j), !majorityTrue);
-		writer.EndObject();
+				writer.Serialize("", enumNamesArr ? enumNamesArr[+j] : std::to_string(+j));
+		writer.EndArray();
 	}
 	writer.EndObject();
 }
@@ -491,13 +504,19 @@ void MaskTemplate<ENUM_TYPE, EnableMatrix>::DeserializeMatrix(Deserializer& read
 	bool val{};
 	for (ENUM_TYPE i{ static_cast<ENUM_TYPE>(0) }; i < ENUM_TYPE::TOTAL; ++i)
 	{
+		// Set all fresh combinations involving this bit to the majority first
+		for (ENUM_TYPE j{ static_cast<ENUM_TYPE>(i) }; j < ENUM_TYPE::TOTAL; ++j)
+			SetMatrix(i, j, majorityTrue);
+
+		// Flip the bits that were specified as exceptions.
 		if (!reader.PushAccess(enumNamesArr ? enumNamesArr[+i] : std::to_string(+i)))
 			continue;
-		for (ENUM_TYPE j{ i }; j < ENUM_TYPE::TOTAL; ++j)
-			if (reader.DeserializeVar(enumNamesArr ? enumNamesArr[+j] : std::to_string(+j), &val))
-				SetMatrix(i, j, val);
-			else // This entry does not exist, meaning it's the majority
-				SetMatrix(i, j, majorityTrue);
+		for (size_t index{}; reader.PushArrayElementAccess(index); ++index)
+		{
+			ENUM_TYPE mask{ GetMaskOfCurrentElement(reader, enumNamesArr) };
+			SetMatrix(i, mask, (mask == ENUM_TYPE::TOTAL ? majorityTrue : !majorityTrue));
+			reader.PopAccess();
+		}
 		reader.PopAccess();
 	}
 	reader.PopAccess();
@@ -526,7 +545,7 @@ void MaskTemplate<ENUM_TYPE, EnableMatrix>::MaskSerialize(Serializer& serializer
 	serializer.StartObject(identifier);
 	serializer.Serialize("_majorityTrue", majorityTrue);
 
-	// Write all bits
+	// Write the bits that are in the minority
 	serializer.StartArray("_except");
 	for (int i{}; i < static_cast<int>(ENUM_TYPE::TOTAL); ++i)
 		if (TestMask(static_cast<ENUM_TYPE>(i)) != majorityTrue)
@@ -557,22 +576,15 @@ void MaskTemplate<ENUM_TYPE, EnableMatrix>::MaskDeserialize(Deserializer& deseri
 	// For each entry, flip the bit
 	for (size_t i{}; deserializer.PushArrayElementAccess(i); ++i)
 	{
-		std::string name{};
-		deserializer.DeserializeVar("", &name);
-
-		if (namesArr)
+		ENUM_TYPE mask{ GetMaskOfCurrentElement(deserializer, namesArr) };
+		if (mask == ENUM_TYPE::TOTAL)
 		{
-			// Search the array for the index of the name.
-			size_t maskIndex{ util::FindIndexOfElement(namesArr, namesArr + +ENUM_TYPE::TOTAL, name) };
-			if (maskIndex < static_cast<size_t>(ENUM_TYPE::TOTAL))
-				SetMask(static_cast<ENUM_TYPE>(maskIndex), !majorityTrue);
-			else
-				CONSOLE_LOG(LEVEL_ERROR) << "Deserializing " << key << ": Mask with name " << name << " doesn't exist!";
+			CONSOLE_LOG(LEVEL_ERROR) << "Deserializing mask " << key << ": Invalid mask encountered!";
+			deserializer.PopAccess();
+			break;
 		}
-		else
-			// Convert number to the mask
-			SetMask(static_cast<ENUM_TYPE>(std::stoul(name)), !majorityTrue);
 
+		SetMask(mask, !majorityTrue);
 		deserializer.PopAccess();
 	}
 
@@ -588,6 +600,28 @@ bool MaskTemplate<ENUM_TYPE, EnableMatrix>::GetMaskMajorityIsTrue() const
 	for (int i{}; i < static_cast<int>(ENUM_TYPE::TOTAL); ++i)
 		(TestMask(static_cast<ENUM_TYPE>(i)) ? ++count : --count);
 	return count >= 0;
+}
+
+template<typename ENUM_TYPE, bool EnableMatrix>
+ENUM_TYPE MaskTemplate<ENUM_TYPE, EnableMatrix>::GetMaskOfCurrentElement(Deserializer& deserializer, const char* const* namesArr)
+{
+	std::string name{};
+	if (!deserializer.DeserializeVar("", &name))
+		return ENUM_TYPE::TOTAL;
+
+	// If an array was not specified, treat the name as a number of the index.
+	if (!namesArr)
+		try {
+			return static_cast<ENUM_TYPE>(std::min(std::stoul(name), static_cast<unsigned long>(ENUM_TYPE::TOTAL)));
+		} catch (const std::logic_error&) {
+			return ENUM_TYPE::TOTAL;
+		}
+
+	// Search the array for the index of the name.
+	return static_cast<ENUM_TYPE>(std::min(
+		util::FindIndexOfElement(namesArr, namesArr + +ENUM_TYPE::TOTAL, name),
+		static_cast<size_t>(ENUM_TYPE::TOTAL)
+	));
 }
 
 #pragma endregion // Definition
