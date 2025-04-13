@@ -535,7 +535,6 @@ void Engine::run() {
 			ST<Hierarchy>::Get()->Draw();
 		}
 		ST<Popup>::Get()->Draw();
-		ST<LayersMatrix>::Get()->Draw();
 		ST<Inspector>::Get()->RenderGrid();
 
 		// Draw editor windows

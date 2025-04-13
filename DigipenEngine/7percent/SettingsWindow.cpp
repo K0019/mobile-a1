@@ -139,7 +139,7 @@ namespace editor {
 
 		// Layers
 		if (gui::Button{ "Layers", gui::Vec2{ -0.1f, 30.0f } })
-			ST<LayersMatrix>::Get()->SetIsOpen(true);
+			CreateWindow<LayersMatrix>();
 
 #ifdef IMGUI_ENABLED
 		ST<Inspector>::Get()->DrawSceneView();
