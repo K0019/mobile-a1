@@ -127,6 +127,19 @@ namespace util {
 		std::data(container);
 	};
 
+	/*****************************************************************//*!
+	\brief
+		Calculates the byte offset between 2 classes related by inheritance.
+		Multiple inheritance causes issues with the location of the vtable
+		pointer for some base classes, and this function helps resolve this.
+	\tparam DerivedType
+		The derived class type.
+	\tparam BaseType
+		The base class type.
+	\return
+		The number of bytes between the DerivedType's base pointer and the
+		BaseType's base pointer.
+	*//******************************************************************/
 	template <typename DerivedType, typename BaseType>
 	constexpr ptrdiff_t ByteOffset();
 
@@ -309,6 +322,25 @@ namespace util {
 
 	/*****************************************************************//*!
 	\brief
+		Finds an element within a container and returns its index.
+	\tparam IteratorType
+		The type of the iterator of the container.
+	\tparam T
+		The type of the element.
+	\param begin
+		The beginning of the container.
+	\parma end
+		The end of the container.
+	\param value
+		The element to find.
+	\return
+		The index of the element. If not found, returns the size of the container.
+	*//******************************************************************/
+	template <typename IteratorType, typename T>
+	size_t FindIndexOfElement(const IteratorType& begin, const IteratorType& end, const T& value);
+
+	/*****************************************************************//*!
+	\brief
 		Tests if a point is inside an entity's square transform.
 	\param point
 		The point.
@@ -481,6 +513,12 @@ namespace util {
 				vec.emplace_back(std::ref(begin->first), std::ref(begin->second));
 		std::sort(vec.begin(), vec.end(), sortPred);
 		return vec;
+	}
+
+	template<typename IteratorType, typename T>
+	size_t FindIndexOfElement(const IteratorType& begin, const IteratorType& end, const T& value)
+	{
+		return std::distance(begin, std::find(begin, end, value));
 	}
 
 }

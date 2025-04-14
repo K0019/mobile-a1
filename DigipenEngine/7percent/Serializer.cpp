@@ -446,7 +446,7 @@ bool Deserializer::PushAccess(const std::string& key)
     }
     else
     {
-        CONSOLE_LOG(LEVEL_ERROR) << "Deserializer failed to access object/array with key " << key << '!';
+        //CONSOLE_LOG(LEVEL_ERROR) << "Deserializer failed to access object/array with key " << key << '!';
         return false;
     }
 }
@@ -473,7 +473,7 @@ bool Deserializer::PushArrayElementAccess(size_t index)
     }
     else if (index >= reader.Size())
     {
-        CONSOLE_LOG(LEVEL_ERROR) << "Deserializer attempted to access an out-of-bounds array element!";
+        //CONSOLE_LOG(LEVEL_ERROR) << "Deserializer attempted to access an out-of-bounds array element!";
         return false;
     }
 

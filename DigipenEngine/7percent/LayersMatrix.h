@@ -21,57 +21,61 @@ All rights reserved.
 /******************************************************************************/
 
 #pragma once
-#include "GUICollection.h"
+#include "GUIAsECS.h"
 
-/*****************************************************************//*!
-\class LayersMatrix
-\brief
-	Entity layers collision matrix window.
-*//******************************************************************/
-class LayersMatrix : public gui::Window
-{
-private:
+namespace editor {
+
 	/*****************************************************************//*!
-	\enum class CONTENT_TYPE
+	\class LayersMatrix
 	\brief
-		Identifies the tabs that the user can view.
+		Entity layers collision matrix window.
 	*//******************************************************************/
-	enum class CONTENT_TYPE
+	class LayersMatrix : public WindowBase<LayersMatrix, false>
 	{
-		COLLISION_MATRIX,
-		SYSTEMS_LAYERS,
+	private:
+		/*****************************************************************//*!
+		\enum class CONTENT_TYPE
+		\brief
+			Identifies the tabs that the user can view.
+		*//******************************************************************/
+		enum class CONTENT_TYPE
+		{
+			COLLISION_MATRIX,
+			SYSTEMS_LAYERS,
+		};
+
+	public:
+		/*****************************************************************//*!
+		\brief
+			Constructor.
+		*//******************************************************************/
+		LayersMatrix();
+
+	protected:
+		/*****************************************************************//*!
+		\brief
+			Draws the layer matrix.
+		*//******************************************************************/
+		void DrawWindow() override;
+
+	private:
+		/*****************************************************************//*!
+		\brief
+			Draws the collision layer matrix.
+		*//******************************************************************/
+		void DrawCollisionLayerMatrix();
+
+		/*****************************************************************//*!
+		\brief
+			Draws the systems layers matrix.
+		*//******************************************************************/
+		void DrawSystemsLayersMatrix();
+
+	private:
+		//! Which tab has the user selected.
+		CONTENT_TYPE currentContent;
+
 	};
 
-public:
-	/*****************************************************************//*!
-	\brief
-		Constructor.
-	*//******************************************************************/
-	LayersMatrix();
-
-protected:
-	/*****************************************************************//*!
-	\brief
-		Draws the layer matrix.
-	*//******************************************************************/
-	void DrawContents() override;
-
-private:
-	/*****************************************************************//*!
-	\brief
-		Draws the collision layer matrix.
-	*//******************************************************************/
-	void DrawCollisionLayerMatrix();
-
-	/*****************************************************************//*!
-	\brief
-		Draws the systems layers matrix.
-	*//******************************************************************/
-	void DrawSystemsLayersMatrix();
-
-private:
-	//! Which tab has the user selected.
-	CONTENT_TYPE currentContent;
-
-};
+}
 
