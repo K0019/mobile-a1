@@ -33,8 +33,8 @@ namespace MaterialFlags {
 }
 
 struct MaterialParameters : public ISerializeable {
-    Vector4 baseColor{ 1.0f, 1.0f, 1.0f, 1.0f }; // RGB + Alpha for transparency
-	Vector2 tiling{ 1.0f, 1.0f }; // UV tiling for texture
+    Vec4 baseColor{ 1.0f, 1.0f, 1.0f, 1.0f }; // RGB + Alpha for transparency
+	Vec2 tiling{ 1.0f, 1.0f }; // UV tiling for texture
     property_vtable()
 };
 

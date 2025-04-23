@@ -48,27 +48,83 @@ namespace math {
 
 }
 
-#pragma region Vec3
+#pragma region Vec2
 
-inline Vec3::Vec3()
+inline constexpr Vec2::Vec2(float x, float y)
+	: glm::vec2{ x, y }
 {
 }
 
-inline Vec3::Vec3(float x, float y, float z)
+inline constexpr Vec2::Vec2(const glm::vec2& other)
+	: glm::vec2{ other }
+{
+}
+
+inline constexpr Vec2::Vec2(glm::vec2&& other)
+	: glm::vec2{ std::move(other) }
+{
+}
+
+inline Vec2& Vec2::operator=(const glm::vec2& other)
+{
+	static_cast<glm::vec2&>(*this) = other;
+	return *this;
+}
+
+inline Vec2& Vec2::operator=(glm::vec2&& other)
+{
+	static_cast<glm::vec2&>(*this) = std::move(other);
+	return *this;
+}
+
+inline constexpr float Vec2::Dot(const Vec2& other) const
+{
+	return glm::dot(static_cast<const glm::vec2&>(*this), static_cast<const glm::vec2&>(other));
+}
+
+inline constexpr float Vec2::LengthSqr() const
+{
+	return x * x + y * y;
+}
+
+inline constexpr Vec2 Vec2::Normalized() const
+{
+	return glm::normalize(static_cast<const glm::vec2&>(*this));
+}
+
+#pragma endregion // Vec2
+
+#pragma region Vec3
+
+inline constexpr Vec3::Vec3(float x, float y, float z)
 	: glm::vec3{ x, y, z }
 {
 }
 
+inline constexpr Vec3 Vec3::Normalized() const
+{
+	return glm::normalize(static_cast<const glm::vec3&>(*this));
+}
+
+GENERATE_OPERATOR_ADAPTER_IPP(Vec3, glm::vec3, operator+=)
+GENERATE_OPERATOR_ADAPTER_IPP(Vec3, glm::vec3, operator-=)
+GENERATE_OPERATOR_ADAPTER_IPP(Vec3, glm::vec3, operator*=)
+GENERATE_OPERATOR_ADAPTER_IPP(Vec3, glm::vec3, operator/=)
+
 #pragma endregion // Vec3
+
+#pragma region Vec4
+
+#pragma endregion // Vec4
 
 #pragma region Mat4
 
-inline Mat4::Mat4(const glm::mat4& other)
+inline constexpr Mat4::Mat4(const glm::mat4& other)
 	: glm::mat4{ other }
 {
 }
 
-inline Mat4::Mat4(glm::mat4&& other)
+inline constexpr Mat4::Mat4(glm::mat4&& other)
 	: glm::mat4{ std::move(other) }
 {
 }

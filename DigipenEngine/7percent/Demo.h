@@ -17,7 +17,7 @@ public:
 
 private:
 	// Your data goes here
-	Vector2 x;
+	Vec2 x;
 
 public:
 	// OnAttached() is called when the component is attached to an entity. Note that this is called even within the editor!

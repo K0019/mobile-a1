@@ -79,14 +79,14 @@ void MaterialSystem::createDefaultMaterials() {
         
         // Set conservative default parameters
         auto& defaultMaterial = m_materials["default"];
-        defaultMaterial.parameters.baseColor = Vector4(1.0f, 1.0f, 1.0f, 1.0f);
+        defaultMaterial.parameters.baseColor = Vec4(1.0f, 1.0f, 1.0f, 1.0f);
 
     {
         // Solid occluder material (e.g., walls, solid objects)
         MaterialData& occluderMaterial = m_materials["occluder"];
         occluderMaterial.flags = MaterialFlags::OccludesLight;
         occluderMaterial.name = "occluder";
-        occluderMaterial.parameters.baseColor = Vector4(1.0f, 1.0f, 1.0f, 1.0f);
+        occluderMaterial.parameters.baseColor = Vec4(1.0f, 1.0f, 1.0f, 1.0f);
     }
 
     {
@@ -94,7 +94,7 @@ void MaterialSystem::createDefaultMaterials() {
         MaterialData& unlitMaterial = m_materials["unlit"];
         unlitMaterial.flags = 0;  // No lighting calculations
         unlitMaterial.name = "unlit";
-        unlitMaterial.parameters.baseColor = Vector4(1.0f, 1.0f, 1.0f, 1.0f);
+        unlitMaterial.parameters.baseColor = Vec4(1.0f, 1.0f, 1.0f, 1.0f);
     }
 }
 
@@ -176,7 +176,7 @@ bool MaterialSystem::loadMaterials() {
         
         // Set conservative default parameters
         auto& defaultMaterial = m_materials["default"];
-        defaultMaterial.parameters.baseColor = Vector4(1.0f, 1.0f, 1.0f, 1.0f);
+        defaultMaterial.parameters.baseColor = Vec4(1.0f, 1.0f, 1.0f, 1.0f);
 
         }
 

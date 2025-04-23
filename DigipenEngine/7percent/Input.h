@@ -27,7 +27,7 @@ All rights reserved.
 #include <GLFW/glfw3.h>
 #include <bitset>
 
-#include "PercentMath.h"
+#include "MagicMath.h"
 #include "MacroTemplates.h"
 
 /*****************************************************************//*!
@@ -225,16 +225,16 @@ public:
 	\return
 		The mouse's current window position.
 	*//******************************************************************/
-	static const Vector2& GetMousePosRaw();
+	static const Vec2& GetMousePosRaw();
 
 	/*****************************************************************//*!
 	\brief
 		Gets the mouse's current position in the world.
-
+		TODO 3D: Determine whether mouse world position should be Vec2, Vec3 or not exist at all.
 	\return
 		The mouse's current window in the world.
 	*//******************************************************************/
-	static Vector2 GetMousePosWorld();
+	static Vec2 GetMousePosWorld();
 
 	static void OnScroll(float offset);
 
@@ -250,7 +250,7 @@ private:
 	static std::bitset<GLFW_KEY_LAST + 1> releasedKeystate;
 
 	//! The current mouse window position.
-	static Vector2 mousePos;
+	static Vec2 mousePos;
 	static float scrollOffset;
 
 	//! Tracks which iteration we're at.

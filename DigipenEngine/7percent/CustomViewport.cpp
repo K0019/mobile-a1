@@ -242,7 +242,8 @@ void CustomViewport::DrawImGuiWindow() {
 					ST<History>::Get()->OneEvent(HistoryEvent_EntityCreate{ entity });
 					size_t ID = *static_cast<size_t*>(payload->Data);
 					const auto& sprite = ResourceManager::GetSprite(ID);
-					entity->GetTransform().SetLocal(0.5f, Input::GetMousePosWorld(), { static_cast<float>(sprite.width), static_cast<float>(sprite.height) }, 0.0f);
+					CONSOLE_LOG_UNIMPLEMENTED() << "Spawn entity from sprite drop into viewport";
+					//entity->GetTransform().SetLocal(0.5f, Input::GetMousePosWorld(), { static_cast<float>(sprite.width), static_cast<float>(sprite.height) }, 0.0f);
 					entity->AddCompNow(RenderComponent{ ID });
 					ST<Inspector>::Get()->SetSelectedEntity(entity);
 				}
@@ -254,7 +255,8 @@ void CustomViewport::DrawImGuiWindow() {
 					std::string prefabName{ static_cast<char*>(payload_entity->Data) };
 					ecs::EntityHandle entity = PrefabManager::LoadPrefab(prefabName);
 					ST<History>::Get()->OneEvent(HistoryEvent_EntityCreate{ entity });
-					entity->GetTransform().SetWorldPosition(Input::GetMousePosWorld());
+					CONSOLE_LOG_UNIMPLEMENTED() << "Spawn entity from prefab drop into viewport";
+					//entity->GetTransform().SetWorldPosition(Input::GetMousePosWorld());
 					ST<Inspector>::Get()->SetSelectedEntity(entity);
 				}
 			}
@@ -268,7 +270,8 @@ void CustomViewport::DrawImGuiWindow() {
 					const auto& anim = ResourceManager::GetAnimation(animHash);
 					entity->AddCompNow(RenderComponent{});
 					entity->AddCompNow(AnimatorComponent{ animHash });
-					entity->GetTransform().SetLocal(0.5f, Input::GetMousePosWorld(), { static_cast<float>(anim.Width), static_cast<float>(anim.Height) }, 0.0f);
+					CONSOLE_LOG_UNIMPLEMENTED() << "Spawn entity from animation drop into viewport";
+					//entity->GetTransform().SetLocal(0.5f, Input::GetMousePosWorld(), { static_cast<float>(anim.Width), static_cast<float>(anim.Height) }, 0.0f);
 					ST<Inspector>::Get()->SetSelectedEntity(entity);
 				}
 			}
@@ -328,52 +331,55 @@ Transform CustomViewport::WorldToWindowTransform(const Transform& worldTransform
 	auto WORLD = ST<Engine>::Get()->_worldExtent;
 	auto WINDOW = ST<Engine>::Get()->_windowExtent;
 #endif
-	Vector2 cameraPos = ST<CameraController>::Get()->GetPosition();
-	float zoom = ST<CameraController>::Get()->GetZoom();
-	Vector2 worldPos = worldTransform.GetWorldPosition();
-	Vector2 cameraRelativePos = (worldPos - cameraPos) * zoom;
 
-#ifdef IMGUI_ENABLED
-	// Original viewport-based transformation
-	double viewportX = (cameraRelativePos.x + WORLD.width / 2.0f) / WORLD.width;
-	double viewportY = (cameraRelativePos.y + WORLD.height / 2.0f) / WORLD.height;
-	Vector2 viewPos = {
-		static_cast<float>(windowPosAbsolute.x + contentMin.x + viewportX * viewportRenderSize.x),
-		static_cast<float>(windowPosAbsolute.y + contentMin.y + (1.0 - viewportY) * viewportRenderSize.y)
-	};
-#else
-	// Full screen rendering with correct scaling
-	float scaleX = static_cast<float>(WINDOW.width) / WORLD.width;
-	float scaleY = static_cast<float>(WINDOW.height) / WORLD.height;
-	Vector2 viewPos = {
-		static_cast<float>((cameraRelativePos.x + WORLD.width / 2.0f) * scaleX),
-		static_cast<float>((WORLD.height / 2.0f - cameraRelativePos.y) * scaleY)
-	};
-#endif
+	CONSOLE_LOG_UNIMPLEMENTED() << "Viewport, world to window position conversion";
 
-	viewTransform.SetLocalPosition(viewPos);
-	Vector2 worldScale = worldTransform.GetWorldScale();
-
-#ifdef IMGUI_ENABLED
-	// Original viewport scaling
-	Vector2 viewScale = {
-		worldScale.x * (viewportRenderSize.x / WORLD.width) * zoom,
-		worldScale.y * (viewportRenderSize.y / WORLD.height) * zoom
-	};
-#else
-	// Full screen scaling with window-to-world ratio
-	Vector2 viewScale = {
-		worldScale.x * zoom * (static_cast<float>(WINDOW.width) / WORLD.width),
-		worldScale.y * zoom * (static_cast<float>(WINDOW.height) / WORLD.height)
-	};
-#endif
-
-	viewTransform.SetLocalRotation(worldTransform.GetWorldRotation());
-	viewTransform.SetLocalScale(viewScale);
+//	Vec3 cameraPos = ST<CameraController>::Get()->GetPosition();
+//	float zoom = ST<CameraController>::Get()->GetZoom();
+//	Vec3 worldPos = worldTransform.GetWorldPosition();
+//	Vec3 cameraRelativePos = (worldPos - cameraPos) * zoom;
+//
+//#ifdef IMGUI_ENABLED
+//	// Original viewport-based transformation
+//	double viewportX = (cameraRelativePos.x + WORLD.width / 2.0f) / WORLD.width;
+//	double viewportY = (cameraRelativePos.y + WORLD.height / 2.0f) / WORLD.height;
+//	Vec2 viewPos = {
+//		static_cast<float>(windowPosAbsolute.x + contentMin.x + viewportX * viewportRenderSize.x),
+//		static_cast<float>(windowPosAbsolute.y + contentMin.y + (1.0 - viewportY) * viewportRenderSize.y)
+//	};
+//#else
+//	// Full screen rendering with correct scaling
+//	float scaleX = static_cast<float>(WINDOW.width) / WORLD.width;
+//	float scaleY = static_cast<float>(WINDOW.height) / WORLD.height;
+//	Vec2 viewPos = {
+//		static_cast<float>((cameraRelativePos.x + WORLD.width / 2.0f) * scaleX),
+//		static_cast<float>((WORLD.height / 2.0f - cameraRelativePos.y) * scaleY)
+//	};
+//#endif
+//
+//	viewTransform.SetLocalPosition(viewPos);
+//	Vec2 worldScale = worldTransform.GetWorldScale();
+//
+//#ifdef IMGUI_ENABLED
+//	// Original viewport scaling
+//	Vec2 viewScale = {
+//		worldScale.x * (viewportRenderSize.x / WORLD.width) * zoom,
+//		worldScale.y * (viewportRenderSize.y / WORLD.height) * zoom
+//	};
+//#else
+//	// Full screen scaling with window-to-world ratio
+//	Vec2 viewScale = {
+//		worldScale.x * zoom * (static_cast<float>(WINDOW.width) / WORLD.width),
+//		worldScale.y * zoom * (static_cast<float>(WINDOW.height) / WORLD.height)
+//	};
+//#endif
+//
+//	viewTransform.SetLocalRotation(worldTransform.GetWorldRotation());
+//	viewTransform.SetLocalScale(viewScale);
 	return viewTransform;
 }
 
-Vector2 CustomViewport::WindowToWorldPosition(const Vector2& inWindowPos) const {
+Vec3 CustomViewport::WindowToWorldPosition(const Vec2& inWindowPos) const {
 
 #ifdef IMGUI_ENABLED
 	auto WORLD = ST<Engine>::Get()->_viewportExtent;
@@ -381,23 +387,25 @@ Vector2 CustomViewport::WindowToWorldPosition(const Vector2& inWindowPos) const 
 	auto WORLD = ST<Engine>::Get()->_worldExtent;
 	auto WINDOW = ST<Engine>::Get()->_windowExtent;
 #endif
-	Vector2 cameraPos = ST<CameraController>::Get()->GetPosition();
+	Vec3 cameraPos = ST<CameraController>::Get()->GetPosition();
 	float zoom = ST<CameraController>::Get()->GetZoom();
 
 #ifdef IMGUI_ENABLED
 	// Original viewport-based transformation
 	double viewportX = (inWindowPos.x - (windowPosAbsolute.x + contentMin.x)) / viewportRenderSize.x;
 	double viewportY = 1.0 - (inWindowPos.y - (windowPosAbsolute.y + contentMin.y)) / viewportRenderSize.y;
-	Vector2 worldPos = {
+	// TODO 3D: MOST CERTAINLY WRONG! This math needs fixing.
+	Vec3 worldPos = {
 		static_cast<float>((viewportX - 0.5) * WORLD.width / zoom + cameraPos.x),
-		static_cast<float>((viewportY - 0.5) * WORLD.height / zoom + cameraPos.y)
+		static_cast<float>((viewportY - 0.5) * WORLD.height / zoom + cameraPos.y),
+		cameraPos.z
 	};
 #else
 	// Full screen transformation
 	float scaleX = WORLD.width / static_cast<float>(WINDOW.width);
 	float scaleY = WORLD.height / static_cast<float>(WINDOW.height);
 
-	Vector2 worldPos = {
+	Vec3 worldPos = {
 		static_cast<float>((inWindowPos.x * scaleX - WORLD.width / 2.0f) / zoom + cameraPos.x),
 		static_cast<float>((WORLD.height / 2.0f - inWindowPos.y * scaleY) / zoom + cameraPos.y)
 	};
@@ -407,7 +415,7 @@ Vector2 CustomViewport::WindowToWorldPosition(const Vector2& inWindowPos) const 
 }
 
 
-bool CustomViewport::IsMouseInViewport(const Vector2& mousePos) const
+bool CustomViewport::IsMouseInViewport(const Vec2& mousePos) const
 {
 #ifdef IMGUI_ENABLED
 	bool within_viewport = mousePos.x >= windowPosAbsolute.x + contentMin.x &&
@@ -448,7 +456,7 @@ bool CustomViewport::IsMouseInViewport(const Vector2& mousePos) const
 void CustomViewport::SetDisableMoving(bool disable) {
 	disableMoving = disable;
 }
-Vector2 CustomViewport::GetViewportRenderSize() const
+Vec2 CustomViewport::GetViewportRenderSize() const
 {
 	return { viewportRenderSize.x, viewportRenderSize.y };
 }

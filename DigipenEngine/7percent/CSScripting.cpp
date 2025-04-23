@@ -59,7 +59,7 @@ namespace CSharpScripts
 			// Get the type of the field (spawnLocation1 in the script)
 			MonoType* fieldType = mono_field_get_type(field);
 
-			// Get the MonoClass for the Vector3 type (this is already specialized, so we can assume it's Vector3)
+			// Get the MonoClass for the Vec3 type (this is already specialized, so we can assume it's Vec3)
 			MonoClass* vectorClass = mono_type_get_class(fieldType);
 
 			const char* className = mono_class_get_name(vectorClass);
@@ -67,9 +67,9 @@ namespace CSharpScripts
 			// CONSOLE_LOG_EXPLICIT("Class Name: " + std::string(className), LogLevel::LEVEL_DEBUG);
 
 
-			if (std::strcmp(className, "Vector3") == 0)
+			if (std::strcmp(className, "Vec3") == 0)
 			{
-				// CONSOLE_LOG_EXPLICIT(std::string(fieldName) + " is a Vector3!", LogLevel::LEVEL_DEBUG);
+				// CONSOLE_LOG_EXPLICIT(std::string(fieldName) + " is a Vec3!", LogLevel::LEVEL_DEBUG);
 
 				MonoClassField* xField = mono_class_get_field_from_name(vectorClass, "x");
 				MonoClassField* yField = mono_class_get_field_from_name(vectorClass, "y");
@@ -90,10 +90,10 @@ namespace CSharpScripts
 					//CONSOLE_LOG_EXPLICIT(" Z: " + std::to_string(zVal), LogLevel::LEVEL_DEBUG);
 
 					// Make sure we are updating the value correctly
-					*value = Vector3{ xVal, yVal, zVal };
+					*value = Vec3{ xVal, yVal, zVal };
 				}
 				else {
-					CONSOLE_LOG_EXPLICIT("Failed to find fields x, y, z in Vector3 struct!", LogLevel::LEVEL_ERROR);
+					CONSOLE_LOG_EXPLICIT("Failed to find fields x, y, z in Vec3 struct!", LogLevel::LEVEL_ERROR);
 				}
 			}
 
@@ -107,25 +107,25 @@ namespace CSharpScripts
 			// Get the type of the field (spawnLocation1 in the script)
 			MonoType* fieldType = mono_field_get_type(field);
 
-			// Get the MonoClass for the Vector3 type (this is already specialized, so we can assume it's Vector3)
+			// Get the MonoClass for the Vec3 type (this is already specialized, so we can assume it's Vec3)
 			MonoClass* vectorClass = mono_type_get_class(fieldType);
 
 			const char* className = mono_class_get_name(vectorClass);
 
 			// CONSOLE_LOG_EXPLICIT("Class Name: " + std::string(className), LogLevel::LEVEL_DEBUG);
 
-			// Check if it's a Vector3 struct
-			if (std::strcmp(className, "Vector3") == 0)
+			// Check if it's a Vec3 struct
+			if (std::strcmp(className, "Vec3") == 0)
 			{
-				// CONSOLE_LOG_EXPLICIT(std::string(fieldName) + " is a Vector3!", LogLevel::LEVEL_DEBUG);
+				// CONSOLE_LOG_EXPLICIT(std::string(fieldName) + " is a Vec3!", LogLevel::LEVEL_DEBUG);
 
-				// Retrieve the individual components "x", "y", "z" of the Vector3 struct
+				// Retrieve the individual components "x", "y", "z" of the Vec3 struct
 				MonoClassField* xField = mono_class_get_field_from_name(vectorClass, "x");
 				MonoClassField* yField = mono_class_get_field_from_name(vectorClass, "y");
 				MonoClassField* zField = mono_class_get_field_from_name(vectorClass, "z");
 
-				// Assuming value is a Vector3 (which should be a tuple or a struct with x, y, z)
-				const auto& vector = std::get<Vector3>(value);
+				// Assuming value is a Vec3 (which should be a tuple or a struct with x, y, z)
+				const auto& vector = std::get<Vec3>(value);
 
 				// Set the values of each component (x, y, z)
 				float xVal = vector.x;
@@ -144,7 +144,7 @@ namespace CSharpScripts
 					//CONSOLE_LOG_EXPLICIT(" Z: " + std::to_string(zVal), LogLevel::LEVEL_DEBUG);
 				}
 				else {
-					CONSOLE_LOG_EXPLICIT("Failed to find fields x, y, z in Vector3 struct!", LogLevel::LEVEL_ERROR);
+					CONSOLE_LOG_EXPLICIT("Failed to find fields x, y, z in Vec3 struct!", LogLevel::LEVEL_ERROR);
 				}
 			}
 			};

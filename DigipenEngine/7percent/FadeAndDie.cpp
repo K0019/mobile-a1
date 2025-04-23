@@ -48,7 +48,7 @@ void FadeAndDieComponent::Update(float dt)
 		if (remainingLengths[i] > fadeLength)
 			continue;
 
-		Vector4 color{ renderComps[i]->GetColor()};
+		Vec4 color{ renderComps[i]->GetColor()};
 		color.w = remainingLengths[i] / fadeLength;
 		renderComps[i]->SetColor(color);
 	}

@@ -39,10 +39,10 @@ namespace util {
 
 	float PerlinNoise(float x, float y)
 	{
-		const Vector2 point{ x, y };
+		const Vec2 point{ x, y };
 
 		// Some insane math to generate consistent gradient values at integer grid coordinates.
-		constexpr auto RandGradient{ [](int x, int y) -> Vector2 {
+		constexpr auto RandGradient{ [](int x, int y) -> Vec2 {
 			constexpr unsigned int w{ sizeof(unsigned int) * 8 };
 			constexpr unsigned int s{ w / 2 };
 			unsigned int a{ static_cast<unsigned int>(x) }, b{ static_cast<unsigned int>(y) };
@@ -60,8 +60,8 @@ namespace util {
 		} };
 
 		// Helper func to compute dot of vector from point to corner with gradient vector.
-		constexpr auto GridDotGradient{ [](const Vector2& point, int x, int y) -> float {
-			return Vector2{ point.x - static_cast<float>(x), point.y - static_cast<float>(y) }.Dot(RandGradient(x, y));
+		constexpr auto GridDotGradient{ [](const Vec2& point, int x, int y) -> float {
+			return Vec2{ point.x - static_cast<float>(x), point.y - static_cast<float>(y) }.Dot(RandGradient(x, y));
 		} };
 
 		// Get the coordinates of the 4 corners of the grid square containing this point.
@@ -83,79 +83,79 @@ namespace util {
 		return static_cast<char>(std::tolower(c));
 	}
 
-	bool IsPointInside(const Vector2& point, const Transform& transform)
-	{
-		// Get transform properties
-		Vector2 position = transform.GetWorldPosition();
-		Vector2 scale = transform.GetWorldScale();
-		float rotation = transform.GetWorldRotation();
+	//bool IsPointInside(const Vec2& point, const Transform& transform)
+	//{
+	//	// Get transform properties
+	//	Vec2 position = transform.GetWorldPosition();
+	//	Vec2 scale = transform.GetWorldScale();
+	//	float rotation = transform.GetWorldRotation();
 
-		// Translate point to origin
-		Vector2 translatedPoint = point - position;
+	//	// Translate point to origin
+	//	Vec2 translatedPoint = point - position;
 
-		// Rotate point in the opposite direction
-		float cosTheta = std::cos(-rotation);
-		float sinTheta = std::sin(-rotation);
-		Vector2 rotatedPoint;
-		rotatedPoint.x = translatedPoint.x * cosTheta - translatedPoint.y * sinTheta;
-		rotatedPoint.y = translatedPoint.x * sinTheta + translatedPoint.y * cosTheta;
+	//	// Rotate point in the opposite direction
+	//	float cosTheta = std::cos(-rotation);
+	//	float sinTheta = std::sin(-rotation);
+	//	Vec2 rotatedPoint;
+	//	rotatedPoint.x = translatedPoint.x * cosTheta - translatedPoint.y * sinTheta;
+	//	rotatedPoint.y = translatedPoint.x * sinTheta + translatedPoint.y * cosTheta;
 
-		// Check if the rotated point is inside the non-rotated rectangle
-		float halfWidth = scale.x / 2.0f;
-		float halfHeight = scale.y / 2.0f;
+	//	// Check if the rotated point is inside the non-rotated rectangle
+	//	float halfWidth = scale.x / 2.0f;
+	//	float halfHeight = scale.y / 2.0f;
 
-		return (rotatedPoint.x >= -halfWidth && rotatedPoint.x <= halfWidth &&
-			rotatedPoint.y >= -halfHeight && rotatedPoint.y <= halfHeight);
-	}
+	//	return (rotatedPoint.x >= -halfWidth && rotatedPoint.x <= halfWidth &&
+	//		rotatedPoint.y >= -halfHeight && rotatedPoint.y <= halfHeight);
+	//}
 
-	Vector2 RotatePoint(const Vector2& point, const Vector2& center, float angle)
+	Vec2 RotatePoint(const Vec2& point, const Vec2& center, float angle)
 	{
 		angle = glm::radians(angle);
 		float cosTheta = std::cos(angle);
 		float sinTheta = std::sin(angle);
 
-		Vector2 translatedPoint = point - center;
-		Vector2 rotatedPoint;
+		Vec2 translatedPoint = point - center;
+		Vec2 rotatedPoint;
 		rotatedPoint.x = translatedPoint.x * cosTheta - translatedPoint.y * sinTheta;
 		rotatedPoint.y = translatedPoint.x * sinTheta + translatedPoint.y * cosTheta;
 
 		return rotatedPoint + center;
 	}
 
-	void DrawBoundingBox(const Transform& transform, const Vector3& color, float alpha)
+	//void DrawBoundingBox(const Transform& transform, const Vec3& color, float alpha)
+	//{
+	//	DrawBoundingBox(transform.GetWorldPosition(), transform.GetWorldScale(), color, transform.GetWorldRotation(), alpha);
+	//}
+
+	//void DrawBoundingBox(const Vec2& pos, const Vec2& scale, const Vec3& color, float rotation, float alpha)
+	//{
+	//	Vec2 halfscale = scale * 0.5f;
+	//	Vec2 corners[4] = {
+	//		Vec2(-halfscale.x, -halfscale.y),
+	//		Vec2(halfscale.x, -halfscale.y),
+	//		Vec2(halfscale.x, halfscale.y),
+	//		Vec2(-halfscale.x, halfscale.y)
+	//	};
+
+	//	// Rotate and translate all corners
+	//	for (int i = 0; i < 4; ++i)
+	//	{
+	//		corners[i] = RotatePoint(corners[i], Vec2{}, rotation) + pos;
+	//	}
+
+	//	Vec4 lineColor(color, alpha);
+
+	//	// Draw all four sides of the bounding box
+	//	for (int i = 0; i < 4; ++i)
+	//	{
+	//		int next = (i + 1) % 4;
+	//		ST<Engine>::Get()->_vulkan->_renderer->AddLineInstance(corners[i], corners[next], lineColor);
+	//	}
+	//}
+
+	void DrawLine(const Vec2& start, const Vec2& end, const Vec3& color, float alpha)
 	{
-		DrawBoundingBox(transform.GetWorldPosition(), transform.GetWorldScale(), color, transform.GetWorldRotation(), alpha);
-	}
-
-	void DrawBoundingBox(const Vector2& pos, const Vector2& scale, const Vector3& color, float rotation, float alpha)
-	{
-		Vector2 halfscale = scale * 0.5f;
-		Vector2 corners[4] = {
-			Vector2(-halfscale.x, -halfscale.y),
-			Vector2(halfscale.x, -halfscale.y),
-			Vector2(halfscale.x, halfscale.y),
-			Vector2(-halfscale.x, halfscale.y)
-		};
-
-		// Rotate and translate all corners
-		for (int i = 0; i < 4; ++i)
-		{
-			corners[i] = RotatePoint(corners[i], Vector2(0, 0), rotation) + pos;
-		}
-
-		Vector4 lineColor(color, alpha);
-
-		// Draw all four sides of the bounding box
-		for (int i = 0; i < 4; ++i)
-		{
-			int next = (i + 1) % 4;
-			ST<Engine>::Get()->_vulkan->_renderer->AddLineInstance(corners[i], corners[next], lineColor);
-		}
-	}
-
-	void DrawLine(const Vector2& start, const Vector2& end, const Vector3& color, float alpha)
-	{
-		Vector4 lineColor(color, alpha);
+		Vec4 lineColor(color, alpha);
 		ST<Engine>::Get()->_vulkan->_renderer->AddLineInstance(start, end, lineColor);
 	}
 }

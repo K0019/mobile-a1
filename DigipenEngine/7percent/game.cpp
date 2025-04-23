@@ -72,7 +72,7 @@ void Game::Init(unsigned int width, unsigned int height, GAMESTATE firstState)
     ST<CustomViewport>::Get()->Init(Width, Height);
 #endif
     ST<CameraController>::Get()->SetCameraData(CameraData{
-        .position = Vector2{static_cast<float>(Width / 2), static_cast<float>(Height) / 2 },
+        .position = Vec2{static_cast<float>(Width / 2), static_cast<float>(Height) / 2 },
         .zoom = 1.0f
     });
 

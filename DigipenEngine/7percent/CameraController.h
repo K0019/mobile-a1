@@ -21,8 +21,9 @@ All rights reserved.
 /******************************************************************************/
 
 struct CameraData {
-    Vector2 position{ 0.0f, 0.0f };
-    float rotation{ 0.0f };
+    Vec3 position{};
+    Vec3 view{};
+    Vec3 up{};
     float zoom{ 1.0f };
     float targetZoom{ zoom }; // The zoom amount to lerp to
 };
@@ -37,17 +38,17 @@ class CameraController
     const CameraData& GetCameraData() const;
     void SetCameraData(const CameraData& data);
 
-    const Vector2& GetPosition() const;
-    void SetPosition(const Vector2& position);
-    void AddPosition(const Vector2& position);
+    const Vec3& GetPosition() const;
+    void SetPosition(const Vec3& position);
+    void AddPosition(const Vec3& position);
 
     float GetZoom() const;
     void SetZoom(float zoom);
     void AddZoom(float zoom);
 
-    float GetRotation() const;
+    /*float GetRotation() const;
     void SetRotation(float rotation);
-    void AddRotation(float rotation);
+    void AddRotation(float rotation);*/
 
     void SetTargetZoom(float zoom);
     void AddTargetZoom(float zoom);

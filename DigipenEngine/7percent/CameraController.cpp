@@ -34,15 +34,15 @@ void CameraController::SetCameraData(const CameraData& data)
     m_cameraData = data;
 }
 
-const Vector2& CameraController::GetPosition() const
+const Vec3& CameraController::GetPosition() const
 {
     return m_cameraData.position;
 }
-void CameraController::SetPosition(const Vector2& position)
+void CameraController::SetPosition(const Vec3& position)
 {
     m_cameraData.position = position;
 }
-void CameraController::AddPosition(const Vector2& position)
+void CameraController::AddPosition(const Vec3& position)
 {
     m_cameraData.position += position;
 }
@@ -63,20 +63,20 @@ void CameraController::AddZoom(float zoom)
     m_cameraData.targetZoom = std::clamp(m_cameraData.targetZoom + zoom, MIN_ZOOM, MAX_ZOOM);
 }
 
-float CameraController::GetRotation() const
-{
-    return m_cameraData.rotation;
-}
-
-void CameraController::SetRotation(float rotation) 
-{
-    m_cameraData.rotation = rotation;
-}
-
-void CameraController::AddRotation(float rotation)
-{
-    m_cameraData.rotation += rotation;
-}
+//float CameraController::GetRotation() const
+//{
+//    return m_cameraData.rotation;
+//}
+//
+//void CameraController::SetRotation(float rotation) 
+//{
+//    m_cameraData.rotation = rotation;
+//}
+//
+//void CameraController::AddRotation(float rotation)
+//{
+//    m_cameraData.rotation += rotation;
+//}
 
 void CameraController::SetTargetZoom(float zoom)
 {

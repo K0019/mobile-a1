@@ -36,6 +36,7 @@ All rights reserved.
 #define CONSOLE_LOG_DIRECT(msg) ST<Console>::Get()->Log(msg)
 // Shortform for ST<Console>::Get()->Log(msg, logLevel)
 #define CONSOLE_LOG_EXPLICIT(msg, logLevel) ST<Console>::Get()->Log(msg, logLevel)
+#define CONSOLE_LOG_UNIMPLEMENTED() ST<Console>::Get()->Log(LogLevel::LEVEL_FATAL).SetUnimplementedFlag()
 
 enum LogLevel
 {
@@ -69,7 +70,7 @@ public:
         \param level The log level for this Logger instance.
         \param console Reference to the Console instance for logging messages.
         */
-        Logger(LogLevel level, Console* console) : logLevel(level), console(console) {}
+        Logger(LogLevel level, Console* console) : logLevel(level), console(console), unimplementedLogFlag{} {}
 
         /*!
         \brief Overloaded operator for chaining log messages.
@@ -84,6 +85,8 @@ public:
         */
         ~Logger();
 
+        Logger& SetUnimplementedFlag();
+
     private:
         /*!
         \brief Flushes the accumulated log message to the console.
@@ -93,6 +96,8 @@ public:
         LogLevel logLevel;         ///< The log level associated with this Logger instance.
         Console* console;          ///< Reference to the Console instance for logging. If null, logging does nothing.
         std::ostringstream messageBuffer; ///< Buffer to accumulate log message content.
+        //! Whether this log should throw NotImplementedException when destroyed.
+        bool unimplementedLogFlag;
     };
     /*!
     \brief Logs a message at the specified log level.

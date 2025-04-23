@@ -40,7 +40,7 @@ AudioManager::AudioManager()
 	, singleSoundNames	{}
 	, groupedSoundNames	{}
 	, listening			{ true }
-	, listenerPosition	{ 0.0f, 0.0f }
+	, listenerPosition	{}
 {
 	result = FMOD::System_Create(&system);
 	ErrorCheck(result);
@@ -84,7 +84,7 @@ void AudioManager::Initialise()
 	// Nothing required as singleton instance will take care of constructor call...
 }
 
-void AudioManager::StartSound(std::string const& name, bool loop, std::optional<Vector2> const& position, float volume)
+void AudioManager::StartSound(std::string const& name, bool loop, std::optional<Vec3> const& position, float volume)
 {
 	if (!listening) { return; }
 
@@ -100,7 +100,7 @@ void AudioManager::StartSound(std::string const& name, bool loop, std::optional<
 	}
 }
 
-void AudioManager::StartSingleSound(std::string const& name, bool loop, std::optional<Vector2> const& position, float volume)
+void AudioManager::StartSingleSound(std::string const& name, bool loop, std::optional<Vec3> const& position, float volume)
 {
 	if (!listening) { return; }
 
@@ -114,7 +114,7 @@ void AudioManager::StartSingleSound(std::string const& name, bool loop, std::opt
 	channels[name].push_back(StartSound(sound, channelGroup, loop, position, volume));
 }
 
-void AudioManager::StartGroupedSound(std::string const& baseName, bool loop, std::optional<Vector2> const& position, float volume)
+void AudioManager::StartGroupedSound(std::string const& baseName, bool loop, std::optional<Vec3> const& position, float volume)
 {
 	if (!listening) { return; }
 
@@ -135,7 +135,7 @@ void AudioManager::StartGroupedSound(std::string const& baseName, bool loop, std
 	channels[it->first].push_back(StartSound(sound, channelGroup, loop, position, volume));
 }
 
-void AudioManager::StartSpecificGroupedSound(std::string const& name, bool loop, std::optional<Vector2> const& position, float volume)
+void AudioManager::StartSpecificGroupedSound(std::string const& name, bool loop, std::optional<Vec3> const& position, float volume)
 {
 	if (!listening) { return; }
 
@@ -371,7 +371,7 @@ std::string AudioManager::RemoveExtension(std::string const& filename)
 	return filename;
 }
 
-FMOD::Channel* AudioManager::StartSound(FMOD::Sound* sound, FMOD::ChannelGroup* channelGroup, bool loop, std::optional<Vector2> const& position, float volume)
+FMOD::Channel* AudioManager::StartSound(FMOD::Sound* sound, FMOD::ChannelGroup* channelGroup, bool loop, std::optional<Vec3> const& position, float volume)
 {
 	FMOD::Channel* channel{};
 
@@ -389,7 +389,7 @@ FMOD::Channel* AudioManager::StartSound(FMOD::Sound* sound, FMOD::ChannelGroup* 
 	if (position)
 	{
 		channel->setMode(FMOD_3D);
-		FMOD_VECTOR pos{ position->x - listenerPosition.x, 0.0f, position->y - listenerPosition.y };
+		FMOD_VECTOR pos{ position->x - listenerPosition.x, position->y - listenerPosition.y, position->z - listenerPosition.z };
 		FMOD_VECTOR vel{ 0.0f, 0.0f, 0.0f };
 		result = channel->set3DAttributes(&pos, &vel);
 		ErrorCheck(result);
@@ -590,7 +590,7 @@ void AudioManager::SetIsListening(bool isListening)
 	listening = isListening;
 }
 
-void AudioManager::UpdateListenerAttributes(Vector2 const& position)
+void AudioManager::UpdateListenerAttributes(Vec3 const& position)
 {
 	listenerPosition = position;
 }

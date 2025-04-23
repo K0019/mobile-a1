@@ -30,7 +30,7 @@ void CameraSystem::UpdateCameraComp(CameraComponent& cameraComp)
     const auto entity = ecs::GetEntity(&cameraComp);
     const auto& transform = entity->GetTransform();
     ST<CameraController>::Get()->SetPosition(transform.GetWorldPosition());
-    ST<CameraController>::Get()->SetRotation(transform.GetWorldRotation());
+    //ST<CameraController>::Get()->SetRotation(transform.GetWorldRotation());
     if (cameraComp.priority > CameraComponent::globalPriority)
     {
       CameraComponent::globalPriority = cameraComp.priority;

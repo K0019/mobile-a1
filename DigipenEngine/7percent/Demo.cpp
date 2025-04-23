@@ -95,7 +95,7 @@ void ExampleSystem::UpdateComp(ExampleComponent& comp)
 		CONSOLE_LOG(LEVEL_INFO) << "This entity has a parent!";
 
 	// Let's move the entity to the right by 10 units each time this system runs, to demonstrate that this system works.
-	transform.AddLocalPosition(Vector2{ 10.0f, 0.0f });
+	transform.AddLocalPosition(Vec3{ 10.0f, 0.0f, 0.0f });
 }
 
 bool ExampleSystem::PreRun()

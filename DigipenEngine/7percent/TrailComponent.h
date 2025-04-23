@@ -9,14 +9,14 @@ public:
     static constexpr size_t MAX_TRAIL_POINTS = 128;
 
     struct TrailPoint {
-        Vector2 position;    // World position when recorded
+        Vec2 position;    // World position when recorded
         float age;           // Current age of this point (in seconds)
     };
 
         // Glow configuration structure
     struct GlowSettings {
         bool enabled = false;             // Whether the glow effect is enabled
-        Vector4 color = Vector4(1.0f, 1.0f, 1.0f, 1.0f);  // Glow color (separate from trail color)
+        Vec4 color = Vec4(1.0f, 1.0f, 1.0f, 1.0f);  // Glow color (separate from trail color)
         float radius = 2.0f;              // How much wider the glow is than the trail (multiplier)
         float intensity = 1.0f;           // Brightness of the glow
         float decay = 0.5f;               // How quickly glow fades along trail (0-1, higher = faster decay)
@@ -29,8 +29,8 @@ public:
         float lifetime,
         float startWidth,
         float endWidth,
-        const Vector4& startColor,
-        const Vector4& endColor
+        const Vec4& startColor,
+        const Vec4& endColor
     );
 
     // Core properties
@@ -41,8 +41,8 @@ public:
     int maxPoints = 100;         // Maximum number of points to store (clamped to MAX_TRAIL_POINTS)
     float startWidth = 1.0f;     // Width at start
     float endWidth = 0.1f;       // Width at end
-    Vector4 startColor = Vector4(1.0f, 1.0f, 1.0f, 1.0f); // Start color (RGBA)
-    Vector4 endColor = Vector4(1.0f, 1.0f, 1.0f, 0.0f);   // End color (RGBA)
+    Vec4 startColor = Vec4(1.0f, 1.0f, 1.0f, 1.0f); // Start color (RGBA)
+    Vec4 endColor = Vec4(1.0f, 1.0f, 1.0f, 0.0f);   // End color (RGBA)
     float smoothing = 0.01f;     // Edge smoothing factor
 
     GlowSettings glow;
@@ -57,9 +57,9 @@ public:
 
     void SetEnabled(bool value);
 
-    void SetStartColor(const Vector4& color);
+    void SetStartColor(const Vec4& color);
 
-    void SetEndColor(const Vector4& color);
+    void SetEndColor(const Vec4& color);
 
     void SetStartWidth(float width);
 
@@ -69,7 +69,7 @@ public:
     const TrailPoint& GetPoint(int index) const;
 
     // Add a new point to the trail
-    void AddPoint(const Vector2& position);
+    void AddPoint(const Vec2& position);
 
     // Remove points older than lifetime
     void RemoveExpiredPoints();
@@ -80,13 +80,13 @@ public:
     // Calculate properties based on lifetime percentage (optimization: using direct formula)
     float CalculateWidth(float agePercent) const;
 
-    Vector4 CalculateColor(float agePercent) const;
+    Vec4 CalculateColor(float agePercent) const;
 
     // Get point count
     int GetPointCount() const;
 
     // Runtime data
-    Vector2 m_lastPosition;
+    Vec2 m_lastPosition;
     
 private:
     // Fixed-size circular buffer of points

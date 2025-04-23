@@ -59,6 +59,18 @@ namespace util {
 
 #pragma region Interface
 
+/*****************************************************************//*!
+\class NotImplementedException
+\brief
+	Indicates that code execution has reached a part of our codebase that
+	has not been implemented yet. Time to get to work on that!
+*//******************************************************************/
+class NotImplementedException : public std::logic_error
+{
+public:
+	NotImplementedException() : logic_error{ "Function not implemented!" } {}
+};
+
 namespace util {
 
 	/*****************************************************************//*!
@@ -342,6 +354,8 @@ namespace util {
 	/*****************************************************************//*!
 	\brief
 		Tests if a point is inside an entity's square transform.
+		DEPRECATED 3D: This only makes sense in the 2D world. We'll need to redefine
+			this concept now that we're in 3D.
 	\param point
 		The point.
 	\param transform
@@ -349,7 +363,7 @@ namespace util {
 	\return
 		True if the point lies within the specified transform. False otherwise.
 	*//******************************************************************/
-	bool IsPointInside(const Vector2& point, const Transform& transform);
+	//bool IsPointInside(const Vec2& point, const Transform& transform);
 
 	/*****************************************************************//*!
 	\brief
@@ -363,7 +377,7 @@ namespace util {
 	\return
 		The new point's position.
 	*//******************************************************************/
-	Vector2 RotatePoint(const Vector2& point, const Vector2& center, float angle);
+	Vec2 RotatePoint(const Vec2& point, const Vec2& center, float angle);
 
 	/*****************************************************************//*!
 	\brief
@@ -375,11 +389,12 @@ namespace util {
 	\param alpha
 		The opacity of the box.
 	*//******************************************************************/
-	void DrawBoundingBox(const Transform& transform, const Vector3& color, float alpha = 1.0f);
+	//void DrawBoundingBox(const Transform& transform, const Vec3& color, float alpha = 1.0f);
 
 	/*****************************************************************//*!
 	\brief
 		Draws a box with the specified parameters.
+		TODO 3D: Write how to draw a 3D bounding box.
 	\param pos
 		The center position.
 	\param scale
@@ -391,7 +406,7 @@ namespace util {
 	\param alpha
 		The opacity of the box.
 	*//******************************************************************/
-	void DrawBoundingBox(const Vector2& pos, const Vector2& scale, const Vector3& color, float rotation = 0.0f, float alpha = 1.0f);
+	//void DrawBoundingBox(const Vec2& pos, const Vec2& scale, const Vec3& color, float rotation = 0.0f, float alpha = 1.0f);
 
 	/*****************************************************************//*!
 	\brief
@@ -405,7 +420,7 @@ namespace util {
 	\param alpha
 		The opacity of the line.
 	*//******************************************************************/
-	void DrawLine(const Vector2& start, const Vector2& end, const Vector3& color, float alpha);
+	void DrawLine(const Vec2& start, const Vec2& end, const Vec3& color, float alpha);
 }
 
 /*****************************************************************//*!

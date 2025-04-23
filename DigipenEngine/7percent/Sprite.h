@@ -32,6 +32,6 @@ public:
 
   uint32_t width;
   uint32_t height;
-  Vector4 texCoords{ 0.0f, 0.0f, 1.0f, 1.0f };
+  Vec4 texCoords{ 0.0f, 0.0f, 1.0f, 1.0f };
 };
 

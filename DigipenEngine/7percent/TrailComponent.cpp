@@ -13,8 +13,8 @@ TrailRendererComponent::TrailRendererComponent(
     float lifetime,
     float startWidth,
     float endWidth,
-    const Vector4& startColor,
-    const Vector4& endColor
+    const Vec4& startColor,
+    const Vec4& endColor
 )
     : minVertexDistance(minVertexDistance)
     , lifetime(lifetime)
@@ -50,11 +50,11 @@ void TrailRendererComponent::SetEnabled(bool value) {
     enabled = value;
 }
 
-void TrailRendererComponent::SetStartColor(const Vector4& color) {
+void TrailRendererComponent::SetStartColor(const Vec4& color) {
     startColor = color;
 }
 
-void TrailRendererComponent::SetEndColor(const Vector4& color) {
+void TrailRendererComponent::SetEndColor(const Vec4& color) {
     endColor = color;
 }
 
@@ -71,7 +71,7 @@ const TrailRendererComponent::TrailPoint& TrailRendererComponent::GetPoint(int i
     return m_points[actualIndex];
 }
 
-void TrailRendererComponent::AddPoint(const Vector2& position) {
+void TrailRendererComponent::AddPoint(const Vec2& position) {
     // Check if we've reached the configured max points
     int effectiveMaxPoints = glm::min(maxPoints, (int)MAX_TRAIL_POINTS);
 
@@ -122,8 +122,8 @@ float TrailRendererComponent::CalculateWidth(float agePercent) const {
 }
 
 
-Vector4 TrailRendererComponent::CalculateColor(float agePercent) const {
-    return Vector4(
+Vec4 TrailRendererComponent::CalculateColor(float agePercent) const {
+    return Vec4(
         endColor.x + agePercent * (startColor.x - endColor.x),
         endColor.y + agePercent * (startColor.y - endColor.y),
         endColor.z + agePercent * (startColor.z - endColor.z),

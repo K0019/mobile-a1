@@ -33,7 +33,7 @@ BarComponent::BarComponent()
 void BarComponent::SetCurr(float value)
 {
     currValue = value;
-    currValue = math::Clamp(currValue, 0.0f, maxValue);
+    currValue = std::clamp(currValue, 0.0f, maxValue);
     UpdateTransforms();
 }
 
@@ -57,11 +57,11 @@ void BarComponent::UpdateTransforms()
     Transform* thisTransform = &entity->GetTransform();
 
     // Set transform scale and position
-    thisTransform->SetLocalScale({ currValue / maxValue, 1.0f });
-    thisTransform->SetLocalPosition({ -(maxValue - currValue) / maxValue / 2.0f, 0.0f });
+    thisTransform->SetLocalScale({ currValue / maxValue, 1.0f, 1.0f });
+    thisTransform->SetLocalPosition({ -(maxValue - currValue) / maxValue / 2.0f, 0.0f, 0.0f });
 }
 
-void BarComponent::SetColor(const Vector4& color)
+void BarComponent::SetColor(const Vec4& color)
 {
     // Guard clause if renderComponent is null
     if (ecs::CompHandle<RenderComponent> renderComponent = ecs::GetEntity(this)->GetComp<RenderComponent>())

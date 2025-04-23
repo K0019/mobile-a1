@@ -22,7 +22,7 @@ All rights reserved.
 #include "pch.h"
 #include "GamepadInputAdapter.h"
 #include "Engine.h"
-#include "percentmath.h"
+#include "MagicMath.h"
 
 GamepadAimAdapterSystem::GamepadAimAdapterSystem()
 	: System_Internal{ &GamepadAimAdapterSystem::UpdateComp }
@@ -39,21 +39,23 @@ void GamepadAimAdapterSystem::UpdateComp(GamepadAimAdapterComponent& comp)
 
 	GLFWgamepadstate gamepadState{};
 	glfwGetGamepadState(GLFW_JOYSTICK_1, &gamepadState);
-	Vector2 aimVector{ gamepadState.axes[GLFW_GAMEPAD_AXIS_RIGHT_X], gamepadState.axes[GLFW_GAMEPAD_AXIS_RIGHT_Y] };
+	Vec2 aimVector{ gamepadState.axes[GLFW_GAMEPAD_AXIS_RIGHT_X], gamepadState.axes[GLFW_GAMEPAD_AXIS_RIGHT_Y] };
 	// Deadzone check
-	if (aimVector.LengthSquared() <= 0.15f * 0.15f)
+	if (aimVector.LengthSqr() <= 0.15f * 0.15f)
 		return;
 
-	// Calculate the position of the mouse in window coordinates
-	Transform windowTransform{ ST<CustomViewport>::Get()->WorldToWindowTransform(ecs::GetEntityTransform(&comp)) };
-	windowTransform.AddLocalPosition(aimVector.Normalize() * 300.0f);
-	Vector2 mousePos{ windowTransform.GetLocalPosition() };
+	CONSOLE_LOG_UNIMPLEMENTED() << "Gamepad aim adapter";
 
-	// Clamp mouse position to window bounds
-	mousePos.x = math::Clamp(mousePos.x, 0.0f, static_cast<float>(ST<Engine>::Get()->_windowExtent.width));
-	mousePos.y = math::Clamp(mousePos.y, 0.0f, static_cast<float>(ST<Engine>::Get()->_windowExtent.height));
-	glfwSetCursorPos(ST<Engine>::Get()->_window, mousePos.x, mousePos.y);
-	Input::OnMouseMove(mousePos.x, mousePos.y);
+	// Calculate the position of the mouse in window coordinates
+	//Transform windowTransform{ ST<CustomViewport>::Get()->WorldToWindowTransform(ecs::GetEntityTransform(&comp)) };
+	//windowTransform.AddLocalPosition(aimVector.Normalized() * 300.0f);
+	//Vec2 mousePos{ windowTransform.GetLocalPosition() };
+
+	//// Clamp mouse position to window bounds
+	//mousePos.x = math::Clamp(mousePos.x, 0.0f, static_cast<float>(ST<Engine>::Get()->_windowExtent.width));
+	//mousePos.y = math::Clamp(mousePos.y, 0.0f, static_cast<float>(ST<Engine>::Get()->_windowExtent.height));
+	//glfwSetCursorPos(ST<Engine>::Get()->_window, mousePos.x, mousePos.y);
+	//Input::OnMouseMove(mousePos.x, mousePos.y);
 }
 
 GamepadMouseControlSystem::GamepadMouseControlSystem()
@@ -66,20 +68,22 @@ void GamepadMouseControlSystem::UpdateComp(GamepadMouseControlComponent&)
 	if (!glfwJoystickIsGamepad(GLFW_JOYSTICK_1))
 		return;
 
-	GLFWgamepadstate gamepadState{};
-	glfwGetGamepadState(GLFW_JOYSTICK_1, &gamepadState);
-	Vector2 aimVector{ gamepadState.axes[GLFW_GAMEPAD_AXIS_RIGHT_X], gamepadState.axes[GLFW_GAMEPAD_AXIS_RIGHT_Y] };
-	// Deadzone check
-	if (aimVector.LengthSquared() <= 0.15f * 0.15f)
-		return;
+	CONSOLE_LOG_UNIMPLEMENTED() << "Gamepad mouse adapter";
 
-	double x{}, y{};
-	glfwGetCursorPos(ST<Engine>::Get()->_window, &x, &y);
-	Vector2 mousePos{ static_cast<float>(x), static_cast<float>(y) };
-	mousePos += aimVector.Normalize() * 7.0f;
-	// Clamp mouse position to window bounds
-	mousePos.x = math::Clamp(mousePos.x, 0.0f, static_cast<float>(ST<Engine>::Get()->_windowExtent.width));
-	mousePos.y = math::Clamp(mousePos.y, 0.0f, static_cast<float>(ST<Engine>::Get()->_windowExtent.height));
-	glfwSetCursorPos(ST<Engine>::Get()->_window, mousePos.x, mousePos.y);
-	Input::OnMouseMove(mousePos.x, mousePos.y);
+	//GLFWgamepadstate gamepadState{};
+	//glfwGetGamepadState(GLFW_JOYSTICK_1, &gamepadState);
+	//Vec2 aimVector{ gamepadState.axes[GLFW_GAMEPAD_AXIS_RIGHT_X], gamepadState.axes[GLFW_GAMEPAD_AXIS_RIGHT_Y] };
+	//// Deadzone check
+	//if (aimVector.LengthSquared() <= 0.15f * 0.15f)
+	//	return;
+
+	//double x{}, y{};
+	//glfwGetCursorPos(ST<Engine>::Get()->_window, &x, &y);
+	//Vec2 mousePos{ static_cast<float>(x), static_cast<float>(y) };
+	//mousePos += aimVector.Normalize() * 7.0f;
+	//// Clamp mouse position to window bounds
+	//mousePos.x = math::Clamp(mousePos.x, 0.0f, static_cast<float>(ST<Engine>::Get()->_windowExtent.width));
+	//mousePos.y = math::Clamp(mousePos.y, 0.0f, static_cast<float>(ST<Engine>::Get()->_windowExtent.height));
+	//glfwSetCursorPos(ST<Engine>::Get()->_window, mousePos.x, mousePos.y);
+	//Input::OnMouseMove(mousePos.x, mousePos.y);
 }

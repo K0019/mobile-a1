@@ -28,58 +28,10 @@ All rights reserved.
 */
 /******************************************************************************/
 #include "ScriptComponent.h"
-#include "Physics.h"
-#include "Collision.h"
 
 #include "ResourceManager.h"
 #include "EntityUID.h"
 #include "NameComponent.h"
-
-/*****************************************************************//*!
-\brief
-	Struct to hold the necessary information to transfer over to C# side.
-\return
-	None
-*//******************************************************************/
-struct DummyCollisionData
-{
-	Vector2 normal;
-	Vector2 point;
-	float depth;
-
-	uint64_t eid;
-	uint64_t other;
-
-	/*****************************************************************//*!
-	\brief
-		Non-default constructor for the struct
-	\param[in] m
-		Mass of the entity to transfer over
-	\param[in] fc
-		Friction Coefficient of the entity to transfer over
-	\param[in] vel
-		Velocity of the entity to transfer over
-	\param[in] aVel
-		Angular velocity to transfer over
-	\param[in] id
-		Entitle handle of the entity the component is attached to
-		to transfer over
-	\return
-		None
-	*//******************************************************************/
-	DummyCollisionData(const Physics::CollisionEventData& collisionData)
-	{
-		normal = collisionData.collisionData->collisionNormal;
-		point = collisionData.collisionData->collisionPoint;
-		depth = collisionData.collisionData->penetrationDepth;
-
-		ecs::EntityHandle thisEntity = ecs::GetEntity(collisionData.refComp);
-		ecs::EntityHandle otherEntity = ecs::GetEntity(collisionData.otherComp);
-		// DummyEntity maybe?
-		eid = reinterpret_cast<uint64_t>(thisEntity);
-		other = reinterpret_cast<uint64_t>(otherEntity);
-	}
-};
 
 ScriptComponent::ScriptComponent(const ScriptComponent& other)
 	: scriptMap(other.scriptMap)
@@ -196,10 +148,10 @@ void ScriptComponent::EditorDraw()
 							scriptMap[pair.first].SetPublicVar(name, value);
 						}
 					}
-					else if constexpr (std::is_same_v<T, Vector3>)
+					else if constexpr (std::is_same_v<T, Vec3>)
 					{
-						// For Vector3, create individual input fields for each component (x, y, z)
-						Vector3& vectorValue = std::get<Vector3>(value);
+						// For Vec3, create individual input fields for each component (x, y, z)
+						Vec3& vectorValue = std::get<Vec3>(value);
 
 						ImGui::Text(name.c_str());
 						if (ImGui::InputFloat("X", &vectorValue.x))
@@ -549,28 +501,28 @@ void ScriptComponent::LoadVariables()
 
 void ScriptComponent::OnAttached()
 {
-	ecs::GetEntity(this)->GetComp<EntityEventsComponent>()->Subscribe("OnCollision", this, &ScriptComponent::OnCollision);
+	//ecs::GetEntity(this)->GetComp<EntityEventsComponent>()->Subscribe("OnCollision", this, &ScriptComponent::OnCollision);
 }
 
 void ScriptComponent::OnDetached()
 {
-	if (auto eventsComp{ ecs::GetEntity(this)->GetComp<EntityEventsComponent>() })
-		eventsComp->Unsubscribe("OnCollision", this, &ScriptComponent::OnCollision);
+	/*if (auto eventsComp{ ecs::GetEntity(this)->GetComp<EntityEventsComponent>() })
+		eventsComp->Unsubscribe("OnCollision", this, &ScriptComponent::OnCollision);*/
 }
 
-void ScriptComponent::OnCollision(const Physics::CollisionEventData& collisionData)
-{
-	// Iterate through all scripts and call function "OnCoillisionEnter(Collision collision)"
-	// We probably want OnTriggerEnter as well
-	// TEST FIRST FFS
-
-	for (auto &scriptPair : scriptMap)
-	{
-		CSharpScripts::ScriptInstance& scriptInstance = scriptPair.second;
-		DummyCollisionData d(collisionData);
-		scriptInstance.OnCollisionInvoke((Physics::CollisionEventData &)collisionData);
-	}
-}
+//void ScriptComponent::OnCollision(const Physics::CollisionEventData& collisionData)
+//{
+//	// Iterate through all scripts and call function "OnCoillisionEnter(Collision collision)"
+//	// We probably want OnTriggerEnter as well
+//	// TEST FIRST FFS
+//
+//	for (auto &scriptPair : scriptMap)
+//	{
+//		CSharpScripts::ScriptInstance& scriptInstance = scriptPair.second;
+//		DummyCollisionData d(collisionData);
+//		scriptInstance.OnCollisionInvoke((Physics::CollisionEventData &)collisionData);
+//	}
+//}
 
 
 ScriptSystem::ScriptSystem()

@@ -31,8 +31,8 @@ struct pair_hash {
 };
 
 struct Glyph {
-    std::array<Vector2, 2> planeBounds;  // Top-left and bottom-right UV coordinates
-    std::array<Vector2, 2> atlasBounds;  // Top-left and bottom-right pixel coordinates in the atlas
+    std::array<Vec2, 2> planeBounds;  // Top-left and bottom-right UV coordinates
+    std::array<Vec2, 2> atlasBounds;  // Top-left and bottom-right pixel coordinates in the atlas
     float advance;                          // Horizontal advance for the glyph
 };
 

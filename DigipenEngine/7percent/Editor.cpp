@@ -47,11 +47,11 @@ void Inspector::ProcessInput()
 {
 	static bool isDragging = false;
 	static bool isCameraDragging = false;
-	static Vector2 lastMousePos;
-	static Vector2 lastCameraMousePos;
+	static Vec2 lastMousePos;
+	static Vec2 lastCameraMousePos;
 
-	const Vector2 mousePos = { ImGui::GetMousePos().x, ImGui::GetMousePos().y };
-	const Vector2 worldMousePos = ST<CustomViewport>::Get()->WindowToWorldPosition(mousePos);
+	const Vec2 mousePos = { ImGui::GetMousePos().x, ImGui::GetMousePos().y };
+	const Vec3 worldMousePos = ST<CustomViewport>::Get()->WindowToWorldPosition(mousePos);
 
 	if(Input::GetKeyCurr(KEY::LCTRL))
 		if(Input::GetKeyPressed(KEY::Z))
@@ -64,7 +64,7 @@ void Inspector::ProcessInput()
 
 	bool isMouseInViewport = ST<CustomViewport>::Get()->IsMouseInViewport(mousePos);
 	float dt{ GameTime::FixedDt() };
-	if(Input::GetKeyCurr(KEY::UP))
+	/*if(Input::GetKeyCurr(KEY::UP))
 	{
 		ST<CameraController>::Get()->AddPosition({ 0, 1000.0f * dt });
 	}
@@ -79,7 +79,7 @@ void Inspector::ProcessInput()
 	else if(Input::GetKeyCurr(KEY::RIGHT))
 	{
 		ST<CameraController>::Get()->AddPosition({ 1000.0f * dt, 0 });
-	}
+	}*/
 
 	if(isMouseInViewport && ST<Game>::Get()->GetState() == GAMESTATE::EDITOR) // Only able to scroll camera while in editor mode
 	{
@@ -97,17 +97,18 @@ void Inspector::ProcessInput()
 
 		if(isCameraDragging && ImGui::IsMouseDown(ImGuiMouseButton_Right))
 		{
-			Vector2 mouseDelta = mousePos - lastCameraMousePos;
+			CONSOLE_LOG_UNIMPLEMENTED() << "Viewport camera view drag";
+			//Vec2 mouseDelta = mousePos - lastCameraMousePos;
 
-			// Convert screen space delta to world space delta
-			float zoomFactor = ST<CameraController>::Get()->GetZoom();
-			Vector2 worldDelta = mouseDelta / zoomFactor;
-			worldDelta.x *= -1;  // Invert x axis
-			// Apply camera movement
-			ST<CameraController>::Get()->AddPosition(worldDelta);
+			//// Convert screen space delta to world space delta
+			//float zoomFactor = ST<CameraController>::Get()->GetZoom();
+			//Vec2 worldDelta = mouseDelta / zoomFactor;
+			//worldDelta.x *= -1;  // Invert x axis
+			//// Apply camera movement
+			//ST<CameraController>::Get()->AddPosition(worldDelta);
 
-			// Update last mouse position
-			lastCameraMousePos = mousePos;////
+			//// Update last mouse position
+			//lastCameraMousePos = mousePos;////
 		}
 	}
 	else
@@ -153,19 +154,19 @@ void Inspector::ProcessInput()
 			}
 			//DrawBoundingBox(transform);
 			/*if(drawBoxes)*/
-				//DrawBoundingBox(*transform, Vector3(1.0f, 0.0f, 0.0f));
+				//DrawBoundingBox(*transform, Vec3(1.0f, 0.0f, 0.0f));
 
-			if(ImGui::IsMouseClicked(ImGuiMouseButton_Left) &&
-				 util::IsPointInside(mousePos, ST<CustomViewport>::Get()->WorldToWindowTransform(*transform)) &&
-				 ST<Game>::Get()->GetState() == GAMESTATE::EDITOR) // Only able to select through clicking while in editor mode
-			{
-				if(transform->GetZPos() > zpos)
-				{
-					zpos = transform->GetZPos();
-					SetSelectedEntity(entity);
-					ST<CustomViewport>::Get()->SetDisableMoving(true);
-				}
-			}
+			//if(ImGui::IsMouseClicked(ImGuiMouseButton_Left) &&
+			//	 util::IsPointInside(mousePos, ST<CustomViewport>::Get()->WorldToWindowTransform(*transform)) &&
+			//	 ST<Game>::Get()->GetState() == GAMESTATE::EDITOR) // Only able to select through clicking while in editor mode
+			//{
+			//	if(transform->GetZPos() > zpos)
+			//	{
+			//		zpos = transform->GetZPos();
+			//		SetSelectedEntity(entity);
+			//		ST<CustomViewport>::Get()->SetDisableMoving(true);
+			//	}
+			//}
 		}
 	}
 	else
@@ -191,35 +192,35 @@ void Inspector::ProcessInput()
 
 		m_gizmo.processInput();
 		// Handle deselection with double click
-		static float lastClickTime = 0.0f;
-		static const float doubleClickTime = 0.3f; // Adjust this value to change double click sensitivity
+		//static float lastClickTime = 0.0f;
+		//static const float doubleClickTime = 0.3f; // Adjust this value to change double click sensitivity
 
-		if(ImGui::IsMouseClicked(ImGuiMouseButton_Left))
-		{
-			float currentTime = static_cast<float>(ImGui::GetTime());
-			if(currentTime - lastClickTime < doubleClickTime)
-			{
-				// Double click detected
-				if(!util::IsPointInside(worldMousePos, *transform))
-				{
-					SetSelectedEntity(nullptr);
-					isDragging = false;
-					ST<CustomViewport>::Get()->SetDisableMoving(false);
-					lastClickTime = 0.0f;
-					return;
-				}
-			}
-			lastClickTime = currentTime;
-		}
+		//if(ImGui::IsMouseClicked(ImGuiMouseButton_Left))
+		//{
+		//	float currentTime = static_cast<float>(ImGui::GetTime());
+		//	if(currentTime - lastClickTime < doubleClickTime)
+		//	{
+		//		// Double click detected
+		//		if(!util::IsPointInside(worldMousePos, *transform))
+		//		{
+		//			SetSelectedEntity(nullptr);
+		//			isDragging = false;
+		//			ST<CustomViewport>::Get()->SetDisableMoving(false);
+		//			lastClickTime = 0.0f;
+		//			return;
+		//		}
+		//	}
+		//	lastClickTime = currentTime;
+		//}
 
 		// Only handle dragging if gizmo is not active
-		if(m_currentGizmoType == GizmoType::None)
+		/*if(m_currentGizmoType == GizmoType::None)
 		{
 			if(isDragging) {
 				if(ImGui::IsMouseDown(ImGuiMouseButton_Left)) {
-					Vector2 newPosition = worldMousePos;
+					Vec2 newPosition = worldMousePos;
 					if(!m_snapToGrid) {
-						const Vector2 delta = worldMousePos - lastMousePos;
+						const Vec2 delta = worldMousePos - lastMousePos;
 						newPosition = transform->GetWorldPosition() + delta;
 					}
 					else
@@ -245,7 +246,7 @@ void Inspector::ProcessInput()
 					}
 				}
 			}
-		}
+		}*/
 	}
 }
 
@@ -367,7 +368,7 @@ void Inspector::CreateEntityAndSelect()
 {
 	SetSelectedEntity(ecs::CreateEntity());
 	ST<History>::Get()->OneEvent(HistoryEvent_EntityCreate{ selectedEntity });
-	selectedEntity->GetTransform().SetLocal(Vector2{ 200.0f, 200.0f }, Vector2{ 150.0f, 150.0f }, 0.0f);
+	selectedEntity->GetTransform().SetLocal(Vec3{ 200.0f, 200.0f, 0.0f }, Vec3{ 150.0f, 150.0f, 150.0f }, Vec3{});
 	selectedEntity->AddCompNow(RenderComponent{});
 }
 
@@ -387,8 +388,8 @@ void Inspector::DrawSceneView()
 	ImGui::Checkbox("Show Grid", &m_showGrid);
 	ImGui::Checkbox("Snap to Grid", &m_snapToGrid);
 	ImGui::DragFloat("Grid Size", &m_gridSize, 10.0f, 10.0f, 1000.0f);
-	ImGui::DragFloat2("Grid Offset", &m_gridOffset.x, 10.0f);
-	ImGui::ColorEdit3("Grid Color", &m_gridColor.x);
+	//ImGui::DragFloat2("Grid Offset", &m_gridOffset.x, 10.0f);
+	//ImGui::ColorEdit3("Grid Color", &m_gridColor.x);
 	VkClearValue clearColor = ST<Engine>::Get()->_vulkan->_renderer->getClearColor();
 	if(ImGui::ColorEdit3("Background Color", clearColor.color.float32))
 	{
@@ -427,7 +428,8 @@ void Inspector::DrawSelectedEntityBorder()
 		{
 			transform = &selectedEntity->GetTransform();
 		}
-		util::DrawBoundingBox(*transform, { 0.0f, 1.0f, 0.0f });
+		// TODO 3D: Editor, draw entity bounding box
+		//util::DrawBoundingBox(*transform, { 0.0f, 1.0f, 0.0f });
 	}
 }
 
@@ -748,48 +750,48 @@ void Inspector::DrawEntityActionsButton()
 	}
 }
 
-Vector2 Inspector::SnapToGrid(const Vector2& worldPos) const {
-	return {
-		std::round((worldPos.x - m_gridOffset.x) / m_gridSize) * m_gridSize + m_gridOffset.x,
-		std::round((worldPos.y - m_gridOffset.y) / m_gridSize) * m_gridSize + m_gridOffset.y
-	};
-}
-void Inspector::RenderGrid()
-{
-    if(!m_showGrid || (ST<Game>::Get()->GetState() == GAMESTATE::IN_GAME || ST<Game>::Get()->GetState() == GAMESTATE::PAUSE)) return;
-    
-    // Get necessary information from the renderer
-    const auto& cameraData = ST<CameraController>::Get()->GetCameraData();
-    Vector2 cameraPosition = cameraData.position;
-    float zoom = cameraData.zoom;
-    VkExtent2D viewport = ST<Engine>::Get()->_worldExtent;
-    float halfWidth = viewport.width / (2.0f * zoom);
-    float halfHeight = viewport.height / (2.0f * zoom);
-    Vector2 topLeft = cameraPosition - Vector2(halfWidth, halfHeight);
-    Vector2 bottomRight = cameraPosition + Vector2(halfWidth, halfHeight);
-    topLeft -= m_gridOffset;
-    bottomRight -= m_gridOffset;
-    int startX = static_cast<int>(std::floor(topLeft.x / m_gridSize));
-    int endX = static_cast<int>(std::ceil(bottomRight.x / m_gridSize));
-    int startY = static_cast<int>(std::floor(topLeft.y / m_gridSize));
-    int endY = static_cast<int>(std::ceil(bottomRight.y / m_gridSize));
-    
-    // Extract color components from Vector4
-    Vector3 gridColorRGB(m_gridColor.x, m_gridColor.y, m_gridColor.z);
-    float gridAlpha = m_gridColor.w;
-    
-    // Vertical lines
-    for(int x = startX; x <= endX; ++x) {
-        Vector2 start(x * m_gridSize + m_gridOffset.x, startY * m_gridSize + m_gridOffset.y);
-        Vector2 end(x * m_gridSize + m_gridOffset.x, endY * m_gridSize + m_gridOffset.y);
-        util::DrawLine(start, end, gridColorRGB, gridAlpha);
-    }
-    
-    // Horizontal lines
-    for(int y = startY; y <= endY; ++y) {
-        Vector2 start(startX * m_gridSize + m_gridOffset.x, y * m_gridSize + m_gridOffset.y);
-        Vector2 end(endX * m_gridSize + m_gridOffset.x, y * m_gridSize + m_gridOffset.y);
-        util::DrawLine(start, end, gridColorRGB, gridAlpha);
-    }
-}
+//Vec2 Inspector::SnapToGrid(const Vec2& worldPos) const {
+//	return {
+//		std::round((worldPos.x - m_gridOffset.x) / m_gridSize) * m_gridSize + m_gridOffset.x,
+//		std::round((worldPos.y - m_gridOffset.y) / m_gridSize) * m_gridSize + m_gridOffset.y
+//	};
+//}
+//void Inspector::RenderGrid()
+//{
+//    if(!m_showGrid || (ST<Game>::Get()->GetState() == GAMESTATE::IN_GAME || ST<Game>::Get()->GetState() == GAMESTATE::PAUSE)) return;
+//    
+//    // Get necessary information from the renderer
+//    const auto& cameraData = ST<CameraController>::Get()->GetCameraData();
+//    Vec2 cameraPosition = cameraData.position;
+//    float zoom = cameraData.zoom;
+//    VkExtent2D viewport = ST<Engine>::Get()->_worldExtent;
+//    float halfWidth = viewport.width / (2.0f * zoom);
+//    float halfHeight = viewport.height / (2.0f * zoom);
+//    Vec2 topLeft = cameraPosition - Vec2(halfWidth, halfHeight);
+//    Vec2 bottomRight = cameraPosition + Vec2(halfWidth, halfHeight);
+//    topLeft -= m_gridOffset;
+//    bottomRight -= m_gridOffset;
+//    int startX = static_cast<int>(std::floor(topLeft.x / m_gridSize));
+//    int endX = static_cast<int>(std::ceil(bottomRight.x / m_gridSize));
+//    int startY = static_cast<int>(std::floor(topLeft.y / m_gridSize));
+//    int endY = static_cast<int>(std::ceil(bottomRight.y / m_gridSize));
+//    
+//    // Extract color components from Vec4
+//    Vec3 gridColorRGB(m_gridColor.x, m_gridColor.y, m_gridColor.z);
+//    float gridAlpha = m_gridColor.w;
+//    
+//    // Vertical lines
+//    for(int x = startX; x <= endX; ++x) {
+//        Vec2 start(x * m_gridSize + m_gridOffset.x, startY * m_gridSize + m_gridOffset.y);
+//        Vec2 end(x * m_gridSize + m_gridOffset.x, endY * m_gridSize + m_gridOffset.y);
+//        util::DrawLine(start, end, gridColorRGB, gridAlpha);
+//    }
+//    
+//    // Horizontal lines
+//    for(int y = startY; y <= endY; ++y) {
+//        Vec2 start(startX * m_gridSize + m_gridOffset.x, y * m_gridSize + m_gridOffset.y);
+//        Vec2 end(endX * m_gridSize + m_gridOffset.x, y * m_gridSize + m_gridOffset.y);
+//        util::DrawLine(start, end, gridColorRGB, gridAlpha);
+//    }
+//}
 #endif

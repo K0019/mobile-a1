@@ -478,7 +478,7 @@ namespace gui {
 		return false;
 #endif
 	}
-	bool VarDrag([[maybe_unused]] const char* label, [[maybe_unused]] Vector2* v, [[maybe_unused]] float speed, [[maybe_unused]] Vector2 min, [[maybe_unused]] Vector2 max, [[maybe_unused]] const char* format)
+	bool VarDrag([[maybe_unused]] const char* label, [[maybe_unused]] ::Vec2* v, [[maybe_unused]] float speed, [[maybe_unused]] ::Vec2 min, [[maybe_unused]] ::Vec2 max, [[maybe_unused]] const char* format)
 	{
 #ifdef IMGUI_ENABLED
 		bool modified = false;
@@ -504,6 +504,12 @@ namespace gui {
 #else
 		return false;
 #endif
+	}
+
+	bool VarDrag([[maybe_unused]] const char* label, [[maybe_unused]] ::Vec3* v, [[maybe_unused]] float speed, [[maybe_unused]] ::Vec3 min, [[maybe_unused]] ::Vec3 max, [[maybe_unused]] const char* format)
+	{
+		CONSOLE_LOG_UNIMPLEMENTED() << "VarDrag Vec3";
+		return false;
 	}
 
 	bool VarInput([[maybe_unused]] const char* label, [[maybe_unused]] int* v, [[maybe_unused]] int step)

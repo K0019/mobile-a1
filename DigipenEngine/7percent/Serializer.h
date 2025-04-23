@@ -38,7 +38,7 @@ All rights reserved.
 
 #include "Singleton.h"
 #include "Utilities.h"
-#include "PercentMath.h"
+#include "MagicMath.h"
 
 #include <fstream>
 #include <stack>

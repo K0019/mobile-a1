@@ -99,18 +99,18 @@ bool Deserializer::DeserializeVar(const std::string& key, T* out)
         *out = static_cast<T>(reader.GetDouble());
     else if constexpr (std::is_same_v<T, bool>)
         *out = reader.GetBool();
-    else if constexpr (std::is_same_v<T, Vector2>)
+    else if constexpr (std::is_same_v<T, Vec2>)
     {
         out->x = reader["x"].GetFloat();
         out->y = reader["y"].GetFloat();
     }
-    else if constexpr (std::is_same_v<T, Vector3>)
+    else if constexpr (std::is_same_v<T, Vec3>)
     {
         out->x = reader["x"].GetFloat();
         out->y = reader["y"].GetFloat();
         out->z = reader["z"].GetFloat();
     }
-    else if constexpr (std::is_same_v<T, Vector4>)
+    else if constexpr (std::is_same_v<T, Vec4>)
     {
         out->x = reader["x"].GetFloat();
         out->y = reader["y"].GetFloat();

@@ -1542,9 +1542,9 @@ void Renderer::renderDebugBounds(const Transform& transform)
 	};
 	for(auto& corner : corners)
 	{
-		corner = util::RotatePoint(corner, Vector2(0, 0), rotation) + position;
+		corner = util::RotatePoint(corner, Vec2(0, 0), rotation) + position;
 	}
-	Vector4 lineColor{ 1.0, 0.0,0.0,1.0f };
+	Vec4 lineColor{ 1.0, 0.0,0.0,1.0f };
 	// Draw all four sides of the bounding box
 	for(int i = 0; i < 4; ++i)
 	{
@@ -1574,7 +1574,7 @@ void Renderer::AddRenderInstance(const RenderComponent& render_component) {
 	}
 
 	// Extract color for base rendering
-	Vector4 color = params->baseColor;
+	Vec4 color = params->baseColor;
 
 	// Early viewport culling optimization
 	glm::vec2 position = transform.GetWorldPosition();
@@ -1738,12 +1738,12 @@ void Renderer::AddTrailInstance(const TrailRendererComponent& trailComp)
 	}
 
 	// Pre-calculate segment directions for all points for joint handling
-	std::vector<Vector2> directions;
+	std::vector<Vec2> directions;
 	for(int i = 0; i < trailComp.GetPointCount() - 1; i++) {
 		const auto& p0 = trailComp.GetPoint(i);
 		const auto& p1 = trailComp.GetPoint(i + 1);
 
-		Vector2 dir = p1.position - p0.position;
+		Vec2 dir = p1.position - p0.position;
 		float length = dir.Length();
 
 		if(length > 0.0001f) {
@@ -1751,7 +1751,7 @@ void Renderer::AddTrailInstance(const TrailRendererComponent& trailComp)
 		}
 		else {
 			// Use default or previous direction if segment is too short
-			directions.push_back(directions.empty() ? Vector2(1.0f, 0.0f) : directions.back());
+			directions.push_back(directions.empty() ? Vec2(1.0f, 0.0f) : directions.back());
 		}
 	}
 
@@ -1771,37 +1771,37 @@ void Renderer::AddTrailInstance(const TrailRendererComponent& trailComp)
 		// Calculate widths and colors
 		float p0Width = trailComp.CalculateWidth(p0AgePercent);
 		float p1Width = trailComp.CalculateWidth(p1AgePercent);
-		Vector4 p0Color = trailComp.CalculateColor(p0AgePercent);
-		Vector4 p1Color = trailComp.CalculateColor(p1AgePercent);
+		Vec4 p0Color = trailComp.CalculateColor(p0AgePercent);
+		Vec4 p1Color = trailComp.CalculateColor(p1AgePercent);
 
 		// Get current segment direction
-		Vector2 currentDir = directions[i];
+		Vec2 currentDir = directions[i];
 
 		// Get neighboring segment directions for joint handling
-		Vector2 prevDir = (i > 0) ? directions[i - 1] : currentDir;
-		Vector2 nextDir = (i < directions.size() - 1) ? directions[i + 1] : currentDir;
+		Vec2 prevDir = (i > 0) ? directions[i - 1] : currentDir;
+		Vec2 nextDir = (i < directions.size() - 1) ? directions[i + 1] : currentDir;
 
 		// Calculate average directions at the joints for smooth connections
 		// This is key to fixing the gap issue!
-		Vector2 startJointDir = (prevDir + currentDir).Normalize();
-		Vector2 endJointDir = (currentDir + nextDir).Normalize();
+		Vec2 startJointDir = (prevDir + currentDir).Normalize();
+		Vec2 endJointDir = (currentDir + nextDir).Normalize();
 
 		// Calculate perpendicular directions
-		Vector2 startPerp = Vector2(-startJointDir.y, startJointDir.x);
-		Vector2 endPerp = Vector2(-endJointDir.y, endJointDir.x);
+		Vec2 startPerp = Vec2(-startJointDir.y, startJointDir.x);
+		Vec2 endPerp = Vec2(-endJointDir.y, endJointDir.x);
 
 		// Calculate expanded bounding box
 		float maxWidth = glm::max(p0Width, p1Width) * 1.2f; // Extra margin for miter joints
 
-		Vector2 boundMin = Vector2(
+		Vec2 boundMin = Vec2(
 			std::min(p0.position.x, p1.position.x) - maxWidth,
 			std::min(p0.position.y, p1.position.y) - maxWidth
 		);
-		Vector2 boundMax = Vector2(
+		Vec2 boundMax = Vec2(
 			std::max(p0.position.x, p1.position.x) + maxWidth,
 			std::max(p0.position.y, p1.position.y) + maxWidth
 		);
-		Vector2 quadSize = boundMax - boundMin;
+		Vec2 quadSize = boundMax - boundMin;
 
 		// Create instance data
 		SpriteInstanceData data{};
@@ -1861,7 +1861,7 @@ void Renderer::AddTrailInstance(const TrailRendererComponent& trailComp)
 			glowData.widthsAges = glm::vec4(p0GlowWidth, p1GlowWidth, p0NormalizedAgeFromLifetime, p1NormalizedAgeFromLifetime);
 
 			// Set glow color (either direct or modified by the trail color)
-			Vector4 glowColor = trailComp.glow.color;
+			Vec4 glowColor = trailComp.glow.color;
 			glowColor.w *= p0Color.w; // Multiply glow alpha by trail alpha
 			// This makes the glow fade out with the trail
 			glowData.glowColor = glowColor;

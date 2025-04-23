@@ -15,7 +15,7 @@ public:
 
     bool vignetteEnabled;
     float vignetteIntensity;
-    Vector4 vignetteColor;
+    Vec4 vignetteColor;
     float vignetteRadius;
     float vignetteSmoothness;
 

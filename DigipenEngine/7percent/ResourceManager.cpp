@@ -452,7 +452,7 @@ Sprite ResourceManager::CreateInvalidSprite()
     invalidSprite.textureID = INVALID_TEXTURE_ID;
     invalidSprite.width = 0;
     invalidSprite.height = 0;
-    invalidSprite.texCoords = Vector4(0, 0, 1, 1);
+    invalidSprite.texCoords = Vec4(0, 0, 1, 1);
     invalidSprite.name = "INVALID_SPRITE";
     return invalidSprite;
 
@@ -473,7 +473,7 @@ void ResourceManager::SpriteSlot::Serialize(Serializer& writer) const
     writer.Serialize("width", sprite.width);
     writer.Serialize("height", sprite.height);
 
-    // I(Kendrick) am dumb and this doesn't work because the format of default Vector4 serialization is different... and Ryan's way is better...
+    // I(Kendrick) am dumb and this doesn't work because the format of default Vec4 serialization is different... and Ryan's way is better...
     //writer.Serialize("texCoords", sprite.texCoords);
     writer.StartArray("texCoords");
     writer.Serialize("", sprite.texCoords.x);

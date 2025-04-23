@@ -27,25 +27,25 @@ TextComponent::TextComponent()
 {
 }
 
-TextComponent::TextComponent(const std::string& fontName, Vector4 color)
+TextComponent::TextComponent(const std::string& fontName, Vec4 color)
     : fontNameHash{ util::GenHash(fontName) }
     , textString("")
     , color{ color }
 {
 }
-TextComponent::TextComponent(const std::string& fontName, const std::string& text, Vector4 color)
+TextComponent::TextComponent(const std::string& fontName, const std::string& text, Vec4 color)
     : fontNameHash{ util::GenHash(fontName) }
     , textString{ text }
     , color{ color }
 {
 }
-TextComponent::TextComponent(size_t fontNameHash, Vector4 color)
+TextComponent::TextComponent(size_t fontNameHash, Vec4 color)
     : fontNameHash{ fontNameHash }
     , textString("")
     , color{ color }
 {
 }
-TextComponent::TextComponent(size_t fontNameHash, const std::string& text, Vector4 color)
+TextComponent::TextComponent(size_t fontNameHash, const std::string& text, Vec4 color)
     : fontNameHash{ fontNameHash }
     , textString{ text }
     , color{ color }
@@ -66,12 +66,12 @@ void TextComponent::SetText(const std::string& text)
     this->textString = text;
     //dirtyTransform = true;
 }
-const Vector4& TextComponent::GetColor() const
+const Vec4& TextComponent::GetColor() const
 {
     return this->color;
 }
 
-void TextComponent::SetColor(const Vector4& newColor)
+void TextComponent::SetColor(const Vec4& newColor)
 {
     this->color = newColor;
 }
@@ -81,7 +81,7 @@ Transform TextComponent::GetWorldTextTransform() const
     return worldTransform;
 }
 
-Vector2 TextComponent::GetTextStart() const {
+Vec2 TextComponent::GetTextStart() const {
     return textStart;
 }
 
@@ -102,8 +102,8 @@ void TextComponent::CalculateWorldTransform()
         const auto& atlas = ResourceManager::GetFont(GetFontHash());
         const auto& transform = ecs::GetEntityTransform(this);
         uint32_t previousChar = 0;
-        Vector2 position{transform.GetWorldPosition()};
-        Vector2 scale{transform.GetWorldScale()};
+        Vec2 position{transform.GetWorldPosition()};
+        Vec2 scale{transform.GetWorldScale()};
         float minDescent = atlas.descender * scale.y;
 
         // Calculate total width of the text including offsets
@@ -152,7 +152,7 @@ void TextComponent::CalculateWorldTransform()
         }
         textStart.y -= totalHeight / 2.0f; // Center vertically
 
-        Vector2 boundingBoxPos = position;
+        Vec2 boundingBoxPos = position;
         switch(GetAlignment()) {
             case TextAlignment::Left:
                 // Move bounding box right by half width to center it over the text
@@ -166,9 +166,10 @@ void TextComponent::CalculateWorldTransform()
                 boundingBoxPos.x -= totalWidth / 2.0f;
                 break;
         }
-        worldTransform.SetWorldPosition(boundingBoxPos);
+        CONSOLE_LOG_UNIMPLEMENTED() << "Text world transform";
+        /*worldTransform.SetWorldPosition(boundingBoxPos);
         worldTransform.SetWorldScale({totalWidth, totalHeight});
-        worldTransform.SetZPos(transform.GetZPos());
+        worldTransform.SetZPos(transform.GetZPos());*/
     }
 void TextComponent::EditorDraw()
 {

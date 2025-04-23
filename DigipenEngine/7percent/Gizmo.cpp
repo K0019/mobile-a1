@@ -51,10 +51,10 @@ void Gizmo::draw(ImDrawList* viewport) {
 
     // Get screen space transform using your viewport system
     Transform screenTransform = ST<CustomViewport>::Get()->WorldToWindowTransform(*m_attachedTransform);
-    Vector2 screenPos = screenTransform.GetLocalPosition();
+    Vec2 screenPos = screenTransform.GetLocalPosition();
 
     if(!m_isDragging) {
-        Vector2 mousePos = { ImGui::GetMousePos().x, ImGui::GetMousePos().y };
+        Vec2 mousePos = { ImGui::GetMousePos().x, ImGui::GetMousePos().y };
         switch(m_activeType) {
             case GizmoType::Translate:
                 checkTranslationHandles(mousePos, screenPos);
@@ -136,9 +136,9 @@ float Gizmo::getScaledGizmoSize() const {
 void Gizmo::handleInput() {
     if(!m_attachedTransform) return;
 
-    Vector2 mousePos = { ImGui::GetMousePos().x, ImGui::GetMousePos().y };
+    Vec2 mousePos = { ImGui::GetMousePos().x, ImGui::GetMousePos().y };
     Transform screenTransform = ST<CustomViewport>::Get()->WorldToWindowTransform(*m_attachedTransform);
-    Vector2 screenPos = screenTransform.GetWorldPosition();
+    Vec2 screenPos = screenTransform.GetWorldPosition();
     bool isMouseDown = ImGui::IsMouseDown(ImGuiMouseButton_Left);
 
     if(!m_isDragging) {
@@ -169,7 +169,7 @@ void Gizmo::handleInput() {
                 case GizmoType::Translate: {
                     // Get current position before modification
                     m_initialPosition = m_attachedTransform->GetWorldPosition();
-                    Vector2 screenDelta = mousePos - m_dragStart;
+                    Vec2 screenDelta = mousePos - m_dragStart;
                     screenDelta.y *= -1;  // Invert Y because screen space is Y-down
 
                     // Constrain movement to selected axis
@@ -185,7 +185,7 @@ void Gizmo::handleInput() {
                 case GizmoType::Rotate: {
                     // Calculate vector from center to mouse
                     m_initialRotation = m_attachedTransform->GetWorldRotation();
-                    Vector2 toMouse = mousePos - screenPos;
+                    Vec2 toMouse = mousePos - screenPos;
                     
                     // Get angle in degrees from vector components
                     // atan2 gives angle in radians from [-pi, pi]
@@ -213,9 +213,9 @@ void Gizmo::handleInput() {
                 }
 
                 case GizmoType::Scale: {
-                    Vector2 screenDelta = mousePos - m_dragStart;
-                    Vector2 rotatedDelta;
-                    Vector2 newScale{ m_initialScale };
+                    Vec2 screenDelta = mousePos - m_dragStart;
+                    Vec2 rotatedDelta;
+                    Vec2 newScale{ m_initialScale };
                     // Convert rotation to radians for trigonometric functions
                     float rotRad = m_attachedTransform->GetWorldRotation() * PI / 180.0f;
                     if(m_selectedAxis == 0) { // X axis scaling
@@ -233,15 +233,15 @@ void Gizmo::handleInput() {
                     }
                     else if(m_selectedAxis == 2) { // Uniform scaling
                         // Use combined X and Y movement for uniform scaling
-                        Vector2 centerPos = ST<CustomViewport>::Get()->WorldToWindowTransform(*m_attachedTransform).GetWorldPosition();
-                        Vector2 toInitialMouse = m_dragStart - centerPos;
-                        Vector2 toCurrentMouse = mousePos - centerPos;
+                        Vec2 centerPos = ST<CustomViewport>::Get()->WorldToWindowTransform(*m_attachedTransform).GetWorldPosition();
+                        Vec2 toInitialMouse = m_dragStart - centerPos;
+                        Vec2 toCurrentMouse = mousePos - centerPos;
 
                         float initialDist = toInitialMouse.Length();
 
                         if(initialDist > 1.0f) {
                             // Normalize the initial direction vector
-                            Vector2 initialDir = toInitialMouse.Normalize();
+                            Vec2 initialDir = toInitialMouse.Normalize();
 
                             // Project current mouse position onto the initial direction vector
                             float projectedDist = toCurrentMouse.Dot(initialDir);
@@ -276,12 +276,12 @@ void Gizmo::handleInput() {
     }
 }
 
-void Gizmo::drawTranslationGizmo(ImDrawList* drawList, const Vector2& center) {
+void Gizmo::drawTranslationGizmo(ImDrawList* drawList, const Vec2& center) {
     float axisLength = getScaledGizmoSize();
     float handleSize = getScaledHandleSize();
 
     // X axis (red)
-    Vector2 xAxisEnd = center + Vector2(axisLength, 0);
+    Vec2 xAxisEnd = center + Vec2(axisLength, 0);
     ImU32 xAxisColor = getAxisColor(0, X_axis);
 
     drawList->AddLine(
@@ -298,7 +298,7 @@ void Gizmo::drawTranslationGizmo(ImDrawList* drawList, const Vector2& center) {
     );
 
     // Y axis (green)
-    Vector2 yAxisEnd = center + Vector2(0, -axisLength);
+    Vec2 yAxisEnd = center + Vec2(0, -axisLength);
     ImU32 yAxisColor = getAxisColor(1, Y_axis);
 
     drawList->AddLine(
@@ -322,7 +322,7 @@ void Gizmo::drawTranslationGizmo(ImDrawList* drawList, const Vector2& center) {
         centerColor
     );
 }
-void Gizmo::drawRotationGizmo(ImDrawList* drawList, const Vector2& center, float rotation) {
+void Gizmo::drawRotationGizmo(ImDrawList* drawList, const Vec2& center, float rotation) {
     float radius = getScaledRotationRadius();
     float handleSize = getScaledHandleSize();
     ImU32 rotationColor = getAxisColor(0, Uniform_axis);
@@ -336,7 +336,7 @@ void Gizmo::drawRotationGizmo(ImDrawList* drawList, const Vector2& center, float
         2.0f
     );
 
-    Vector2 rotationHandle = center + Vector2(
+    Vec2 rotationHandle = center + Vec2(
         radius * cosf(rotation),
         radius * sinf(rotation)
     );
@@ -347,7 +347,7 @@ void Gizmo::drawRotationGizmo(ImDrawList* drawList, const Vector2& center, float
         rotationColor
     );
 }
-void Gizmo::drawScaleGizmo(ImDrawList* drawList, const Vector2& center, float rotation) {
+void Gizmo::drawScaleGizmo(ImDrawList* drawList, const Vec2& center, float rotation) {
     float axisLength = getScaledGizmoSize();
     float handleSize = getScaledHandleSize();
     // Convert rotation from degrees to radians and negate for correct direction
@@ -356,8 +356,8 @@ void Gizmo::drawScaleGizmo(ImDrawList* drawList, const Vector2& center, float ro
 
     // Calculate X axis direction vector using rotation
     // [cos(rad), sin(rad)] gives a unit vector rotated by rad radians
-    Vector2 xDirection(cosf(rotRad), sinf(rotRad));
-    Vector2 xAxisEnd = center + xDirection * axisLength;
+    Vec2 xDirection(cosf(rotRad), sinf(rotRad));
+    Vec2 xAxisEnd = center + xDirection * axisLength;
     ImU32 xScaleColor = getAxisColor(0, X_axis);
 
     drawList->AddLine(
@@ -375,8 +375,8 @@ void Gizmo::drawScaleGizmo(ImDrawList* drawList, const Vector2& center, float ro
 
     // Y axis direction is perpendicular to X axis
     // [sin(rad), -cos(rad)] gives a unit vector rotated by 90 degrees counterclockwise 
-    Vector2 yDirection(sinf(rotRad), -cosf(rotRad)); // Perpendicular to xDirection
-    Vector2 yAxisEnd = center + yDirection * axisLength;
+    Vec2 yDirection(sinf(rotRad), -cosf(rotRad)); // Perpendicular to xDirection
+    Vec2 yAxisEnd = center + yDirection * axisLength;
     ImU32 yScaleColor = getAxisColor(1, Y_axis);
 
     drawList->AddLine(
@@ -394,11 +394,11 @@ void Gizmo::drawScaleGizmo(ImDrawList* drawList, const Vector2& center, float ro
 
     // Uniform scale handle at rotated corner
     Transform screenTransform = ST<CustomViewport>::Get()->WorldToWindowTransform(*m_attachedTransform);
-    Vector2 scale = screenTransform.GetWorldScale();
+    Vec2 scale = screenTransform.GetWorldScale();
 
     // Place handle at corner by adding half scale in both axis directions
-    Vector2 cornerOffset = (xDirection * scale.x + yDirection * scale.y) * 0.5f;
-    Vector2 uHandlePos = center + cornerOffset;
+    Vec2 cornerOffset = (xDirection * scale.x + yDirection * scale.y) * 0.5f;
+    Vec2 uHandlePos = center + cornerOffset;
 
     ImU32 uScaleColor = getAxisColor(2, Uniform_axis);
     drawList->AddRectFilled(
@@ -409,9 +409,9 @@ void Gizmo::drawScaleGizmo(ImDrawList* drawList, const Vector2& center, float ro
 }
 
 // Helper function for line hit detection
-bool Gizmo::isPointNearLine(Vector2 point, Vector2 line_start, Vector2 line_end, float threshold) {
-    Vector2 toMouse = point - line_start;      // Vector from line start to mouse
-    Vector2 toEnd = line_end - line_start;     // Vector representing the line
+bool Gizmo::isPointNearLine(Vec2 point, Vec2 line_start, Vec2 line_end, float threshold) {
+    Vec2 toMouse = point - line_start;      // Vector from line start to mouse
+    Vec2 toEnd = line_end - line_start;     // Vector representing the line
     float lineLength = toEnd.Length();         // Length of the line
     float dot = toMouse.Dot(toEnd) / lineLength;  // Projected distance along line
 
@@ -419,21 +419,21 @@ bool Gizmo::isPointNearLine(Vector2 point, Vector2 line_start, Vector2 line_end,
     if(dot < 0 || dot > lineLength) return false;
 
     // Calculate closest point on line to mouse
-    Vector2 projection = line_start + toEnd * (dot / lineLength);
-    Vector2 toProjection = point - projection;
+    Vec2 projection = line_start + toEnd * (dot / lineLength);
+    Vec2 toProjection = point - projection;
 
     // Check if distance to line is within threshold
     return toProjection.Length() < threshold;
 }
 
 // Helper function for square hit detection around a point
-bool Gizmo::isPointInRect(const Vector2& point, const Vector2& rectCenter, float size) {
+bool Gizmo::isPointInRect(const Vec2& point, const Vec2& rectCenter, float size) {
     // Simple AABB check with square region around center point
     return point.x >= rectCenter.x - size && point.x <= rectCenter.x + size &&
         point.y >= rectCenter.y - size && point.y <= rectCenter.y + size;
 }
 
-void Gizmo::checkTranslationHandles(const Vector2& mousePos, const Vector2& center) {
+void Gizmo::checkTranslationHandles(const Vec2& mousePos, const Vec2& center) {
     float axisLength = getScaledGizmoSize();
     float handleSize = getScaledHandleSize();
     m_hoveredAxis = -1;  // Reset hover state
@@ -447,7 +447,7 @@ void Gizmo::checkTranslationHandles(const Vector2& mousePos, const Vector2& cent
     }
 
     // Check X axis line
-    Vector2 xAxisEnd = center + Vector2(axisLength, 0);
+    Vec2 xAxisEnd = center + Vec2(axisLength, 0);
     if(isPointNearLine(mousePos, center, xAxisEnd, handleSize)) {
         m_hoveredAxis = 0;
         m_selectedAxis = m_isDragging ? m_selectedAxis : -1;
@@ -455,19 +455,19 @@ void Gizmo::checkTranslationHandles(const Vector2& mousePos, const Vector2& cent
     }
 
     // Check Y axis line
-    Vector2 yAxisEnd = center + Vector2(0, -axisLength);
+    Vec2 yAxisEnd = center + Vec2(0, -axisLength);
     if(isPointNearLine(mousePos, center, yAxisEnd, handleSize)) {
         m_hoveredAxis = 1;
         m_selectedAxis = m_isDragging ? m_selectedAxis : -1;
     }
 }
-void Gizmo::checkRotationHandle(const Vector2& mousePos, const Vector2& center) {
+void Gizmo::checkRotationHandle(const Vec2& mousePos, const Vec2& center) {
     float radius = getScaledRotationRadius();
     float handleSize = getScaledHandleSize();
     m_hoveredAxis = -1;
 
     // Check if mouse is near the rotation circle
-    Vector2 toMouse = mousePos - center;
+    Vec2 toMouse = mousePos - center;
     float dist = toMouse.Length();  // Distance from center to mouse
     float radiusDiff = fabsf(dist - radius);  // How far mouse is from circle
 
@@ -478,15 +478,15 @@ void Gizmo::checkRotationHandle(const Vector2& mousePos, const Vector2& center) 
     }
 }
 
-void Gizmo::checkScaleHandles(const Vector2& mousePos, const Vector2& center, float rotation) {
+void Gizmo::checkScaleHandles(const Vec2& mousePos, const Vec2& center, float rotation) {
     float axisLength = getScaledGizmoSize();
     float handleSize = getScaledHandleSize();
     float rotRad = rotation * -PI / 180.0f;  // Convert degrees to radians
     m_hoveredAxis = -1;
 
     // X axis handle - follows rotation
-    Vector2 xDirection(cosf(rotRad), sinf(rotRad));
-    Vector2 xAxisEnd = center + xDirection * axisLength;
+    Vec2 xDirection(cosf(rotRad), sinf(rotRad));
+    Vec2 xAxisEnd = center + xDirection * axisLength;
     if(isPointInRect(mousePos, xAxisEnd, handleSize)) {
         m_hoveredAxis = 0;
         m_selectedAxis = m_isDragging ? m_selectedAxis : -1;
@@ -494,8 +494,8 @@ void Gizmo::checkScaleHandles(const Vector2& mousePos, const Vector2& center, fl
     }
 
     // Y axis handle - perpendicular to X
-    Vector2 yDirection(sinf(rotRad), -cosf(rotRad));
-    Vector2 yAxisEnd = center + yDirection * axisLength;
+    Vec2 yDirection(sinf(rotRad), -cosf(rotRad));
+    Vec2 yAxisEnd = center + yDirection * axisLength;
     if(isPointInRect(mousePos, yAxisEnd, handleSize)) {
         m_hoveredAxis = 1;
         m_selectedAxis = m_isDragging ? m_selectedAxis : -1;
@@ -504,9 +504,9 @@ void Gizmo::checkScaleHandles(const Vector2& mousePos, const Vector2& center, fl
 
     // Uniform scale handle at rotated corner
     Transform screenTransform = ST<CustomViewport>::Get()->WorldToWindowTransform(*m_attachedTransform);
-    Vector2 scale = screenTransform.GetWorldScale();
-    Vector2 cornerOffset = (xDirection * scale.x + yDirection * scale.y) * 0.5f;
-    Vector2 uHandlePos = center + cornerOffset;
+    Vec2 scale = screenTransform.GetWorldScale();
+    Vec2 cornerOffset = (xDirection * scale.x + yDirection * scale.y) * 0.5f;
+    Vec2 uHandlePos = center + cornerOffset;
 
     if(isPointInRect(mousePos, uHandlePos, handleSize)) {
         m_hoveredAxis = 2;

@@ -74,7 +74,7 @@ public:
 	\param volume
 		Volume. 0.0f is muted, 1.0f is full.
 	*//******************************************************************/
-	void StartSound(std::string const& name, bool loop = false, std::optional<Vector2> const& position = std::nullopt, float volume = 1.0f);
+	void StartSound(std::string const& name, bool loop = false, std::optional<Vec3> const& position = std::nullopt, float volume = 1.0f);
 
 	/*****************************************************************//*!
 	\brief
@@ -88,7 +88,7 @@ public:
 	\param volume
 		Volume. 0.0f is muted, 1.0f is full.
 	*//******************************************************************/
-	void StartSingleSound(std::string const& name, bool loop = false, std::optional<Vector2> const& position = std::nullopt, float volume = 1.0f);
+	void StartSingleSound(std::string const& name, bool loop = false, std::optional<Vec3> const& position = std::nullopt, float volume = 1.0f);
 
 	/*****************************************************************//*!
 	\brief
@@ -102,7 +102,7 @@ public:
 	\param volume
 		Volume. 0.0f is muted, 1.0f is full.
 	*//******************************************************************/
-	void StartGroupedSound(std::string const& baseName, bool loop = false, std::optional<Vector2> const& position = std::nullopt, float volume = 1.0f);
+	void StartGroupedSound(std::string const& baseName, bool loop = false, std::optional<Vec3> const& position = std::nullopt, float volume = 1.0f);
 
 	/*****************************************************************//*!
 	\brief
@@ -117,7 +117,7 @@ public:
 	\param volume
 		Volume. 0.0f is muted, 1.0f is full. 
 	*//******************************************************************/
-	void StartSpecificGroupedSound(std::string const& name, bool loop = false, std::optional<Vector2> const& position = std::nullopt, float volume = 1.0f);
+	void StartSpecificGroupedSound(std::string const& name, bool loop = false, std::optional<Vec3> const& position = std::nullopt, float volume = 1.0f);
 
 	/*****************************************************************//*!
 	\brief
@@ -323,10 +323,8 @@ public:
 		Set the attributes of the audio listener.
 	\param position
 		Value to set.
-	\param velocity
-		Value to set.
 	*//******************************************************************/
-	void UpdateListenerAttributes(Vector2 const& velocity);
+	void UpdateListenerAttributes(Vec3 const& position);
 
 	/*****************************************************************//*!
 	\brief
@@ -391,7 +389,7 @@ private:
 	static constexpr std::string_view defaultGroup			{ "SFX" };
 	bool listening;
 
-	Vector2 listenerPosition;
+	Vec3 listenerPosition;
 
 
 	// INTERNAL HELPER FUNCTIONS - DO NOT ACCESS
@@ -440,7 +438,7 @@ private:
 	\return
 		Returns the FMOD::Channel* used to play the sound.
 	*//******************************************************************/
-	FMOD::Channel* StartSound(FMOD::Sound* sound, FMOD::ChannelGroup* channelGroup, bool loop, std::optional<Vector2> const& position, float volume = 1.0f);
+	FMOD::Channel* StartSound(FMOD::Sound* sound, FMOD::ChannelGroup* channelGroup, bool loop, std::optional<Vec3> const& position, float volume = 1.0f);
 
 	/*****************************************************************//*!
 	\brief

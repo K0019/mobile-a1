@@ -45,14 +45,14 @@ public:
     explicit LightComponent();
     
     LightComponent(
-        const Vector3& color,
+        const Vec3& color,
         float intensity,
         float radius,
         float falloffExponent = 1.0f
     );
 
     // Core light properties
-    Vector3 color{1.0f};
+    Vec3 color{ 1.0f, 1.0f, 1.0f };
     float intensity{1.0f};
     
     // Distance attenuation
@@ -125,7 +125,7 @@ public:
             x - The intensity of the light.
             y - The radius of the light.
     *//******************************************************************/
-    Vector2 AddTimeElapsed(float dt);
+    Vec2 AddTimeElapsed(float dt);
 
 private:
     /*****************************************************************//*!

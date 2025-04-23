@@ -92,8 +92,8 @@ public:
 	*//******************************************************************/
 	struct Offsets
 	{
-		Vector2 pos;
-		float rot;
+		Vec3 pos;
+		Vec3 rot;
 	};
 
 	/*****************************************************************//*!
@@ -160,9 +160,9 @@ private:
 	float time;
 
 	//! The maximum positional offset of the shake
-	Vector2 maxPosOffset;
+	Vec3 maxPosOffset;
 	//! The maximum rotational offset of the shake
-	float maxRotOffset;
+	Vec3 maxRotOffset;
 
 	//! The offsets applied to the entity.
 	Offsets appliedOffsets;

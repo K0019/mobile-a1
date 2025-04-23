@@ -128,7 +128,7 @@ public:
 	\param originalPos
 		The original position of the entity.
 	*//******************************************************************/
-	HistoryEvent_Translation(ecs::EntityHandle entity, const Vector2& originalPos);
+	HistoryEvent_Translation(ecs::EntityHandle entity, const Vec3& originalPos);
 
 	/*****************************************************************//*!
 	\brief
@@ -149,47 +149,7 @@ protected:
 
 protected:
 	//! The original position of the entity.
-	Vector2 prevPos;
-};
-
-/*****************************************************************//*!
-\class HistoryEvent_ZPos
-\brief
-	The history event storing a z position change event.
-*//******************************************************************/
-class HistoryEvent_ZPos : public HistoryEventECSBase<HistoryEvent_ZPos>
-{
-public:
-	/*****************************************************************//*!
-	\brief
-		Constructor.
-	\param entity
-		The entity that had its z position changed.
-	\param originalZ
-		The original z position of the entity.
-	*//******************************************************************/
-	HistoryEvent_ZPos(ecs::EntityHandle entity, float originalZ);
-
-	/*****************************************************************//*!
-	\brief
-		Checks if this history event does nothing if undone.
-	\return
-		True if the history event does nothing. False otherwise.
-	*//******************************************************************/
-	virtual bool IsNonAction() const override;
-
-protected:
-	/*****************************************************************//*!
-	\brief
-		Undoes the z position change.
-	\return HistoryEventBase*
-		This.
-	*//******************************************************************/
-	virtual HistoryEventBase* DoUndoAction() override;
-
-protected:
-	//! The previous z position of the entity.
-	float prevZ;
+	Vec3 prevPos;
 };
 
 /*****************************************************************//*!
@@ -208,7 +168,7 @@ public:
 	\param originalRotation
 		The original rotation of the entity.
 	*//******************************************************************/
-	HistoryEvent_Rotation(ecs::EntityHandle entity, float originalRotation);
+	HistoryEvent_Rotation(ecs::EntityHandle entity, Vec3 originalRotation);
 
 	/*****************************************************************//*!
 	\brief
@@ -229,7 +189,7 @@ protected:
 
 protected:
 	//! The previous rotation.
-	float prevRotation;
+	Vec3 prevRotation;
 
 };
 
@@ -249,7 +209,7 @@ public:
 	\param originalScale
 		The original rotation of the entity.
 	*//******************************************************************/
-	HistoryEvent_Scale(ecs::EntityHandle entity, const Vector2& originalScale);
+	HistoryEvent_Scale(ecs::EntityHandle entity, const Vec3& originalScale);
 
 	/*****************************************************************//*!
 	\brief
@@ -270,7 +230,7 @@ protected:
 
 protected:
 	//! The previous scale.
-	Vector2 prevScale;
+	Vec3 prevScale;
 };
 
 /*****************************************************************//*!

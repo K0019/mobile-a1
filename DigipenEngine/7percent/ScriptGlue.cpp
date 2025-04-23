@@ -25,8 +25,6 @@ All rights reserved.
 /******************************************************************************/
 #include "ScriptGlue.h"
 #include "TextComponent.h"
-#include "Physics.h"
-#include "Collision.h"
 #include "AudioManager.h"
 #include "ScriptComponent.h"
 #include "NameComponent.h"
@@ -45,10 +43,10 @@ All rights reserved.
 *//******************************************************************/
 struct DummyTransform
 {
-	Vector2 position;
-	Vector2 localPosition;
-	Vector2 scale;
-	Vector2 localScale;
+	Vec2 position;
+	Vec2 localPosition;
+	Vec2 scale;
+	Vec2 localScale;
 	float rotation;
 	float localRotation;
 	float zPosition;
@@ -72,7 +70,7 @@ struct DummyTransform
 	\return
 		None
 	*//******************************************************************/
-	DummyTransform(Vector2 p, Vector2 lp,Vector2 s, Vector2 ls, float r, float lr, float z, uint64_t id)
+	DummyTransform(Vec2 p, Vec2 lp,Vec2 s, Vec2 ls, float r, float lr, float z, uint64_t id)
 	{
 		position = p;
 		localPosition = lp;
@@ -93,7 +91,7 @@ struct DummyTransform
 *//******************************************************************/
 struct DummyText
 {
-	Vector4 color;
+	Vec4 color;
 	MonoString* text;
 	uint64_t eid;
 
@@ -108,7 +106,7 @@ struct DummyText
 	\return
 		None
 	*//******************************************************************/
-	DummyText(Vector4 c, MonoString* t, uint64_t id)
+	DummyText(Vec4 c, MonoString* t, uint64_t id)
 	{
 		color = c;
 		text = t;
@@ -127,7 +125,7 @@ struct DummyPhysics
 	float mass;
 	//float restitutionCoeff;
 	float frictionCoeff;
-	Vector2 velocity;
+	Vec2 velocity;
 	float angVelocity;
 
 	uint64_t eid;
@@ -149,7 +147,7 @@ struct DummyPhysics
 	\return
 		None
 	*//******************************************************************/
-	DummyPhysics(float m,/* float rc,*/ float fc, Vector2 vel, float aVel, uint64_t id)
+	DummyPhysics(float m,/* float rc,*/ float fc, Vec2 vel, float aVel, uint64_t id)
 	{
 		mass = m;
 		//restitutionCoeff = rc;
@@ -164,33 +162,6 @@ struct DummyPhysics
 struct DummyEntity 
 {
 	///Addcomp, removecomp, GetComponent
-};
-
-/*****************************************************************//*!
-\brief
-	Struct to hold the necessary information to transfer over to C# side.
-\return
-	None
-*//******************************************************************/
-struct DummyRaycastHit
-{
-	DummyRaycastHit(Physics::RaycastResult raycastResult)
-	{
-		distance = raycastResult.distance;
-		point = raycastResult.collisionPoint;
-		//Collider Component
-		if(raycastResult.hitComp !=nullptr)
-		{
-			entity = reinterpret_cast<uint64_t>(ecs::GetEntity(raycastResult.hitComp));
-		}
-		else
-		{
-			entity = 0;
-		}
-	}
-	float distance;
-	Vector2 point;
-	uint64_t entity;
 };
 
 /*****************************************************************//*!
@@ -247,52 +218,6 @@ struct DummyAnimator
 	DummyAnimator(uint64_t id)
 	{
 		eid = id;
-	}
-};
-
-/*****************************************************************//*!
-\brief
-	Struct to hold the necessary information to transfer over to C# side.
-\return
-	None
-*//******************************************************************/
-struct DummyCollisionData
-{
-	Vector2 normal;
-	Vector2 point;
-	float depth;
-
-	uint64_t eid;
-	uint64_t other;
-
-	/*****************************************************************//*!
-	\brief
-		Non-default constructor for the struct
-	\param[in] m
-		Mass of the entity to transfer over
-	\param[in] fc
-		Friction Coefficient of the entity to transfer over
-	\param[in] vel
-		Velocity of the entity to transfer over
-	\param[in] aVel
-		Angular velocity to transfer over
-	\param[in] id
-		Entitle handle of the entity the component is attached to
-		to transfer over
-	\return
-		None
-	*//******************************************************************/
-	DummyCollisionData(Physics::CollisionEventData& collisionData)
-	{
-		normal = collisionData.collisionData->collisionNormal;
-		point = collisionData.collisionData->collisionPoint;
-		depth = collisionData.collisionData->penetrationDepth;
-		
-		ecs::EntityHandle thisEntity = ecs::GetEntity(collisionData.refComp);
-		ecs::EntityHandle otherEntity = ecs::GetEntity(collisionData.otherComp);
-		// DummyEntity maybe?
-		eid = reinterpret_cast<uint64_t>(thisEntity);
-		other = reinterpret_cast<uint64_t>(otherEntity);
 	}
 };
 
@@ -374,14 +299,14 @@ namespace CSharpScripts
 	\brief
 		Function to test transfer of structs over from c# to c++
 	\param[in] param
-		Vector3 originating from c# side to test transfer of 
+		Vec3 originating from c# side to test transfer of 
 		struct data.
 	\param[in, out] outResult
-		Vector3 originating from c# side to manipulate in this function
+		Vec3 originating from c# side to manipulate in this function
 	\return
 		None
 	*//******************************************************************/
-	static void CppNativeLog_Vector(Vector3* param, Vector3* outResult)
+	static void CppNativeLog_Vector(Vec3* param, Vec3* outResult)
 	{
 
 		std::string str = "Logging glm::vec3 param with values(" + std::to_string(param->x)
@@ -391,7 +316,7 @@ namespace CSharpScripts
 		CONSOLE_LOG_EXPLICIT(str, LogLevel::LEVEL_DEBUG);
 
 		*outResult = *param;
-		*outResult = outResult->Normalize();
+		*outResult = outResult->Normalized();
 
 	}
 
@@ -399,14 +324,14 @@ namespace CSharpScripts
 	\brief
 		Function to test return values when called from c# side.
 	\param[in] param
-		Vector3 originating from c# side to test transfer of
+		Vec3 originating from c# side to test transfer of
 		struct data.
 	\return
 		returns a float derived from c++ side to transfer to c#
 	*//******************************************************************/
-	static float CppNativeLog_VectorDot(Vector3* param)
+	static float CppNativeLog_VectorDot(Vec3* param)
 	{
-		std::string str = "Execute Dot product of Vector3 param with values(" + std::to_string(param->x)
+		std::string str = "Execute Dot product of Vec3 param with values(" + std::to_string(param->x)
 			+ ", " + std::to_string(param->y)
 			+ ", " + std::to_string(param->z)
 			+ ")";
@@ -428,7 +353,7 @@ namespace CSharpScripts
 	static void MoveRight(uint64_t entityHandle, float unitsMoved)
 	{
 		CONSOLE_LOG_EXPLICIT("Handle passed: " + std::to_string(entityHandle), LogLevel::LEVEL_DEBUG);
-		reinterpret_cast<ecs::EntityHandle>(entityHandle)->GetTransform().AddLocalPosition(Vector2(unitsMoved, 0));
+		reinterpret_cast<ecs::EntityHandle>(entityHandle)->GetTransform().AddLocalPosition(Vec2(unitsMoved, 0));
 	}
 
 	/*****************************************************************//*!
@@ -449,7 +374,7 @@ namespace CSharpScripts
 		{
 			return;
 		}
-		Vector4 c = t->GetColor();
+		Vec4 c = t->GetColor();
 		c.x = c.x + dt > 1.f ? 0.f : c.x + dt;
 		c.y = c.y - dt < 0.f ? 1.f : c.y - dt;
 		c.z = c.z + dt * 2 > 1.f ? 0.f : c.z + dt * 2;
@@ -539,11 +464,11 @@ namespace CSharpScripts
 	\brief
 		Returns the world position of the mouse.
 	\param[in] pos
-		Pointer of a Vector2 to contain the mouse position.
+		Pointer of a Vec2 to contain the mouse position.
 	\return
 		None.
 	*//******************************************************************/
-	static void GetMouseWorldPos(Vector2* pos)
+	static void GetMouseWorldPos(Vec2* pos)
 	{
 		*pos = Input::GetMousePosWorld();
 	}
@@ -620,7 +545,7 @@ namespace CSharpScripts
 	\return
 		None.
 	*//******************************************************************/
-	static void SetTransformLocalPos(uint64_t entityHandle, Vector2* value)
+	static void SetTransformLocalPos(uint64_t entityHandle, Vec2* value)
 	{
 		reinterpret_cast<ecs::EntityHandle>(entityHandle)->GetTransform().SetLocalPosition(*value);
 	}
@@ -635,7 +560,7 @@ namespace CSharpScripts
 	\return
 		None.
 	*//******************************************************************/
-	static void GetTransformLocalPos(uint64_t entityHandle, Vector2* targetVec2)
+	static void GetTransformLocalPos(uint64_t entityHandle, Vec2* targetVec2)
 	{
 		*targetVec2 = reinterpret_cast<ecs::EntityHandle>(entityHandle)->GetTransform().GetLocalPosition();
 	}
@@ -650,7 +575,7 @@ namespace CSharpScripts
 	\return
 		None.
 	*//******************************************************************/
-	static void SetTransformWorldPos(uint64_t entityHandle, Vector2* value)
+	static void SetTransformWorldPos(uint64_t entityHandle, Vec2* value)
 	{
 		reinterpret_cast<ecs::EntityHandle>(entityHandle)->GetTransform().SetWorldPosition(*value);
 	}
@@ -665,7 +590,7 @@ namespace CSharpScripts
 	\return
 		None.
 	*//******************************************************************/
-	static void GetTransformWorldPos(uint64_t entityHandle, Vector2* targetVec2)
+	static void GetTransformWorldPos(uint64_t entityHandle, Vec2* targetVec2)
 	{
 		*targetVec2 = reinterpret_cast<ecs::EntityHandle>(entityHandle)->GetTransform().GetWorldPosition();
 	}
@@ -680,7 +605,7 @@ namespace CSharpScripts
 	\return
 		None.
 	*//******************************************************************/
-	static void SetTransformLocalScale(uint64_t entityHandle, Vector2* value)
+	static void SetTransformLocalScale(uint64_t entityHandle, Vec2* value)
 	{
 		reinterpret_cast<ecs::EntityHandle>(entityHandle)->GetTransform().SetLocalScale(*value);
 	}
@@ -695,7 +620,7 @@ namespace CSharpScripts
 	\return
 		None.
 	*//******************************************************************/
-	static void GetTransformLocalScale(uint64_t entityHandle, Vector2* targetVec2)
+	static void GetTransformLocalScale(uint64_t entityHandle, Vec2* targetVec2)
 	{
 		*targetVec2 = reinterpret_cast<ecs::EntityHandle>(entityHandle)->GetTransform().GetLocalScale();
 	}
@@ -710,7 +635,7 @@ namespace CSharpScripts
 	\return
 		None.
 	*//******************************************************************/
-	static void SetTransformWorldScale(uint64_t entityHandle, Vector2* value)
+	static void SetTransformWorldScale(uint64_t entityHandle, Vec2* value)
 	{
 		reinterpret_cast<ecs::EntityHandle>(entityHandle)->GetTransform().SetWorldScale(*value);
 	}
@@ -725,7 +650,7 @@ namespace CSharpScripts
 	\return
 		None.
 	*//******************************************************************/
-	static void GetTransformWorldScale(uint64_t entityHandle, Vector2* targetVec2)
+	static void GetTransformWorldScale(uint64_t entityHandle, Vec2* targetVec2)
 	{
 		*targetVec2 = reinterpret_cast<ecs::EntityHandle>(entityHandle)->GetTransform().GetWorldScale();
 	}
@@ -904,7 +829,7 @@ namespace CSharpScripts
 	\return
 		None.
 	*//******************************************************************/
-	static void SetPhysicsVelocity(uint64_t entityHandle, Vector2* vel)
+	static void SetPhysicsVelocity(uint64_t entityHandle, Vec2* vel)
 	{
 		ecs::CompHandle<Physics::PhysicsComp> t = reinterpret_cast<ecs::EntityHandle>(entityHandle)->GetComp<Physics::PhysicsComp>();
 		if (t == nullptr)
@@ -926,7 +851,7 @@ namespace CSharpScripts
 	\return
 		None.
 	*//******************************************************************/
-	static void GetPhysicsVelocity(uint64_t entityHandle, Vector2* targetVel)
+	static void GetPhysicsVelocity(uint64_t entityHandle, Vec2* targetVel)
 	{
 		if (entityHandle == 0)
 		{
@@ -1015,7 +940,7 @@ namespace CSharpScripts
 	\return
 		None
 	*//******************************************************************/
-	static void Raycast(Vector2 origin, Vector2 direction, int layerMask, DummyRaycastHit* hit)
+	static void Raycast(Vec2 origin, Vec2 direction, int layerMask, DummyRaycastHit* hit)
 	{
 		EntityLayersMask mask(layerMask);
 		Physics::RaycastResult raycastResult;
@@ -1065,7 +990,7 @@ namespace CSharpScripts
 	\return
 		None.
 	*//******************************************************************/
-	static void SetTextColor(uint64_t entityHandle, Vector4* color)
+	static void SetTextColor(uint64_t entityHandle, Vec4* color)
 	{
 		if (entityHandle == 0)
 		{
@@ -1092,7 +1017,7 @@ namespace CSharpScripts
 	\return
 		None.
 	*//******************************************************************/
-	static void GetTextColor(uint64_t entityHandle, Vector4* color)
+	static void GetTextColor(uint64_t entityHandle, Vec4* color)
 	{
 		if (entityHandle == 0)
 		{
@@ -1368,7 +1293,7 @@ namespace CSharpScripts
 	}
 
 	// Spatial audio
-	static void StartSingleSoundWithPosition(float volume, MonoString* name, bool loop, Vector2 position)
+	static void StartSingleSoundWithPosition(float volume, MonoString* name, bool loop, Vec2 position)
 	{
 		ST<AudioManager>::Get()->StartSingleSound(MonoStringToString(name), loop, position, volume);
 	}
@@ -1383,7 +1308,7 @@ namespace CSharpScripts
 	}
 
 	// Spatial audio
-	static void StartGroupedSoundWithPosition(float volume, MonoString* baseName, bool loop, Vector2 position)
+	static void StartGroupedSoundWithPosition(float volume, MonoString* baseName, bool loop, Vec2 position)
 	{
 		ST<AudioManager>::Get()->StartGroupedSound(MonoStringToString(baseName), loop, position, volume);
 	}

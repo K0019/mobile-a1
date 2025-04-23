@@ -64,7 +64,7 @@ private:
     void UpdateComp(AnchorToCameraComponent& comp);
 
     //! The target location to move entities to.
-    Vector2 targetPosition;
+    Vec3 targetPosition;
 
 };
 

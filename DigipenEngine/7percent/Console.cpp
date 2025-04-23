@@ -124,6 +124,15 @@ Console::Console()
 
 Console::Logger::~Logger() {
 	Flush();
+	if (unimplementedLogFlag)
+		throw NotImplementedException{};
+}
+
+Console::Logger& Console::Logger::SetUnimplementedFlag()
+{
+	unimplementedLogFlag = true;
+	messageBuffer << "Code execution reached an unimplemented function! Throwing NotImplementedException -- ";
+	return *this;
 }
 
 namespace

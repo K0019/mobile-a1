@@ -56,9 +56,9 @@ ShakeComponent::ShakeComponent()
     , recoverySpeed{ 1.5f }
     , frequency{ 25.0f }
     , time{ util::RandomRangeFloat(0.0f, 100.0f) * frequency }
-    , maxPosOffset{ 50.0f, 50.0f }
-    , maxRotOffset{ 20.0f }
-    , appliedOffsets{ {}, 0.0f }
+    , maxPosOffset{ 50.0f, 50.0f, 50.0f }
+    , maxRotOffset{}
+    , appliedOffsets{ {}, {} }
 {
 }
 
@@ -66,7 +66,7 @@ void ShakeComponent::InduceStress(float strength, float cap)
 {
     if (trauma >= cap)
         return;
-    trauma = math::Clamp(trauma + strength, 0.0f, cap);
+    trauma = std::clamp(trauma + strength, 0.0f, cap);
 }
 
 void ShakeComponent::UpdateTime(float dt)
@@ -82,7 +82,8 @@ const ShakeComponent::Offsets& ShakeComponent::CalcOffsets()
 {
     if (trauma <= std::numeric_limits<float>::epsilon())
     {
-        appliedOffsets.pos.x = appliedOffsets.pos.y = appliedOffsets.rot = 0.0f;
+        appliedOffsets.pos.x = appliedOffsets.pos.y = appliedOffsets.pos.z =
+            appliedOffsets.rot.x = appliedOffsets.rot.y = appliedOffsets.rot.z = 0.0f;
         return appliedOffsets;
     }
 
@@ -90,7 +91,10 @@ const ShakeComponent::Offsets& ShakeComponent::CalcOffsets()
 
     appliedOffsets.pos.x = maxPosOffset.x * (util::PerlinNoise(0.5f, time) * 2.0f) * shake;
     appliedOffsets.pos.y = maxPosOffset.y * (util::PerlinNoise(1.5f, time) * 2.0f) * shake;
-    appliedOffsets.rot = maxRotOffset * (util::PerlinNoise(2.5f, time) * 2.0f) * shake;
+    appliedOffsets.pos.z = maxPosOffset.z * (util::PerlinNoise(2.5f, time) * 2.0f) * shake;
+    appliedOffsets.rot.x = maxRotOffset.x * (util::PerlinNoise(3.5f, time) * 2.0f) * shake;
+    appliedOffsets.rot.y = maxRotOffset.y * (util::PerlinNoise(4.5f, time) * 2.0f) * shake;
+    appliedOffsets.rot.z = maxRotOffset.z * (util::PerlinNoise(5.5f, time) * 2.0f) * shake;
 
     return appliedOffsets;
 }

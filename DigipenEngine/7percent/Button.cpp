@@ -382,7 +382,7 @@ void ButtonSystem::UpdateButtonComp(ButtonComponent& comp)
     {
         float intensity{ isCursorOnButton && !isCurrPressed ? 1.3f : 1.0f };
         auto materialParams{ renderComp->m_materialInstance.getOverrideParameters() };
-        materialParams.baseColor = Vector4{ intensity, intensity, intensity, 1.0f };
+        materialParams.baseColor = Vec4{ intensity, intensity, intensity, 1.0f };
         renderComp->m_materialInstance.setParameterOverrides(materialParams);
     }
     

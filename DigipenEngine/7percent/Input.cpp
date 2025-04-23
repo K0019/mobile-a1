@@ -26,7 +26,7 @@ All rights reserved.
 
 // static variables
 std::bitset<GLFW_KEY_LAST + 1> Input::keystate, Input::pressedKeystate, Input::releasedKeystate;
-Vector2 Input::mousePos = { 0.0f, 0.0f };
+Vec2 Input::mousePos = { 0.0f, 0.0f };
 float Input::scrollOffset = 0.0f;
 int Input::currIteration{};
 
@@ -93,15 +93,15 @@ bool Input::GetKeyReleased(KEY key)
 	return releasedKeystate[+key];
 }
 
-const Vector2& Input::GetMousePosRaw()
+const Vec2& Input::GetMousePosRaw()
 {
 	return mousePos;
 }
 
-Vector2 Input::GetMousePosWorld()
+Vec2 Input::GetMousePosWorld()
 {
 #ifdef IMGUI_ENABLED
-	return ST<CustomViewport>::Get()->WindowToWorldPosition(Vector2{ ImGui::GetMousePos().x, ImGui::GetMousePos().y });
+	return ST<CustomViewport>::Get()->WindowToWorldPosition(Vec2{ ImGui::GetMousePos().x, ImGui::GetMousePos().y });
 #else
 	return ST<CustomViewport>::Get()->WindowToWorldPosition(Input::mousePos);
 #endif

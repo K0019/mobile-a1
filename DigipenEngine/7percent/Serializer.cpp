@@ -186,7 +186,6 @@ void Serializer::FlushEntities()
 
             const Transform& transform{ entity->GetTransform() };
             Serialize("position", transform.GetWorldPosition());
-            Serialize("zPosition", transform.GetZPos());
             Serialize("rotation", transform.GetWorldRotation());
             Serialize("scale", transform.GetWorldScale());
 
@@ -364,14 +363,14 @@ void Serializer::Serialize(const std::string& key, const property::data& data)
             writer.Double(arg);
         else if constexpr (std::is_same_v<T, bool>)
             writer.Bool(arg);
-        else if constexpr (std::is_same_v<T, Vector2>)
+        else if constexpr (std::is_same_v<T, Vec2>)
         {
             StartObject();
             Serialize("x", arg.x);
             Serialize("y", arg.y);
             EndObject();
         }
-        else if constexpr (std::is_same_v<T, Vector3>)
+        else if constexpr (std::is_same_v<T, Vec3>)
         {
             StartObject();
             Serialize("x", arg.x);
@@ -379,7 +378,7 @@ void Serializer::Serialize(const std::string& key, const property::data& data)
             Serialize("z", arg.z);
             EndObject();
         }
-        else if constexpr (std::is_same_v<T, Vector4>)
+        else if constexpr (std::is_same_v<T, Vec4>)
         {
             StartObject();
             Serialize("x", arg.x);
@@ -493,12 +492,10 @@ bool Deserializer::Deserialize(ecs::EntityHandle entity)
         return false;
 
     Transform& transform{ entity->GetTransform() };
-    Vector2 vec2{};
-    float f{};
-    DeserializeVar("position", &vec2), transform.SetWorldPosition(vec2);
-    DeserializeVar("zPosition", &f), transform.SetZPos(f);
-    DeserializeVar("rotation", &f), transform.SetWorldRotation(f);
-    DeserializeVar("scale", &vec2), transform.SetWorldScale(vec2);
+    Vec3 vec3{};
+    DeserializeVar("position", &vec3), transform.SetWorldPosition(vec3);
+    DeserializeVar("rotation", &vec3), transform.SetWorldRotation(vec3);
+    DeserializeVar("scale", &vec3), transform.SetWorldScale(vec3);
 
     entityIndexMap.emplace(index, entity->GetHash());
 

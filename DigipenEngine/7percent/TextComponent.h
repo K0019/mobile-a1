@@ -45,7 +45,7 @@ public:
      * \param fontName The name of the font.
      * \param color The color of the text.
      */
-    TextComponent(const std::string& fontName, Vector4 color = glm::vec4{0.0f,0.0f,0.0f,1.0f});
+    TextComponent(const std::string& fontName, Vec4 color = Vec4{ 0.0f, 0.0f, 0.0f, 1.0f });
 
     /**
      * \brief Constructor for TextComponent with font name, text, and color.
@@ -53,14 +53,14 @@ public:
      * \param text The text to be rendered.
      * \param color The color of the text.
      */
-    TextComponent(const std::string& fontName, const std::string& text, Vector4 color = glm::vec4{0.0f,0.0f,0.0f,1.0f});
+    TextComponent(const std::string& fontName, const std::string& text, Vec4 color = Vec4{ 0.0f, 0.0f, 0.0f, 1.0f });
 
     /**
      * \brief Constructor for TextComponent with font name hash and color.
      * \param fontNameHash The hash value of the font name.
      * \param color The color of the text.
      */
-    TextComponent(size_t fontNameHash, Vector4 color = glm::vec4{0.0f,0.0f,0.0f,1.0f});
+    TextComponent(size_t fontNameHash, Vec4 color = Vec4{ 0.0f, 0.0f, 0.0f, 1.0f });
 
     /**
      * \brief Constructor for TextComponent with font name hash, text, and color.
@@ -68,7 +68,7 @@ public:
      * \param text The text to be rendered.
      * \param color The color of the text.
      */
-    TextComponent(size_t fontNameHash, const std::string& text, Vector4 color = glm::vec4{0.0f,0.0f,0.0f,1.0f});
+    TextComponent(size_t fontNameHash, const std::string& text, Vec4 color = Vec4{ 0.0f, 0.0f, 0.0f, 1.0f });
 
     /**
      * \brief Get the hash value of the font name.
@@ -92,13 +92,13 @@ public:
      * \brief Get the color of the text.
      * \return The color of the text.
      */
-    const Vector4& GetColor() const;
+    const Vec4& GetColor() const;
 
     /**
      * \brief Set the color of the text.
      * \param color The color of the text.
      */
-    void SetColor(const Vector4& color);
+    void SetColor(const Vec4& color);
 
     /**
      * \brief Get the world transform of the text.
@@ -106,7 +106,7 @@ public:
      */
     Transform GetWorldTextTransform() const;
 
-    Vector2 GetTextStart() const;
+    Vec2 GetTextStart() const;
 
     TextAlignment GetAlignment() const;
 
@@ -117,10 +117,10 @@ public:
    private:
     size_t fontNameHash; ///< The hash value of the font name.
     std::string textString; ///< The text to be rendered.
-    Vector4 color; ///< The color of the text.
+    Vec4 color; ///< The color of the text.
     Transform worldTransform; ///< The world transform of the text.
     int alignment{1}; ///< The alignment of the text.
-    Vector2 textStart; ///< The starting position of the text.
+    Vec2 textStart; ///< The starting position of the text.
     bool UI = false; ///< Whether the text is UI text.
 
     void CalculateWorldTransform();

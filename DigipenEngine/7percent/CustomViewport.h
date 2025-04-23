@@ -33,7 +33,7 @@ class CustomViewport
 #ifdef IMGUI_ENABLED
     using Vec = ImVec2;
 #else
-    using Vec = Vector2;
+    using Vec = Vec2;
 #endif
 
 public:
@@ -75,9 +75,9 @@ public:
      * @param inWindowPos The window position to convert.
      * @return The converted world position.
      */
-    Vector2 WindowToWorldPosition(const Vector2& inWindowPos) const;
+    Vec3 WindowToWorldPosition(const Vec2& inWindowPos) const;
 
-    bool IsMouseInViewport(const Vector2& mousePos) const;
+    bool IsMouseInViewport(const Vec2& mousePos) const;
 
     /**
      * @brief SetDisableMoving sets whether moving the viewport is disabled.
@@ -89,7 +89,7 @@ public:
      * @brief GetViewportRenderSize returns the render size of the viewport.
      * @return The render size of the viewport.
      */
-    Vector2 GetViewportRenderSize() const;
+    Vec2 GetViewportRenderSize() const;
 
      ~CustomViewport() = default;
 

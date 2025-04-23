@@ -46,9 +46,9 @@ public:
 
     void SetFlippedY(bool new_flippedY);
 
-    Vector4 GetColor() const;
+    Vec4 GetColor() const;
 
-    void SetColor(Vector4 new_color);
+    void SetColor(Vec4 new_color);
 
     const MaterialInstance& GetMaterialInstance() const;
 
@@ -59,7 +59,7 @@ public:
     std::string GetMaterialName() const;
 
     size_t spriteID;
-    Vector4 color; // REMOVE THIS LINE ONCE SCENE CHANGES ARE STABALIZED
+    Vec4 color; // REMOVE THIS LINE ONCE SCENE CHANGES ARE STABALIZED
     bool flippedX;
     bool flippedY;
     MaterialInstance m_materialInstance;

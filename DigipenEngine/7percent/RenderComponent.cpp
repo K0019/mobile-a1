@@ -66,11 +66,11 @@ void RenderComponent::SetFlippedY(bool new_flippedY) {
     flippedY = new_flippedY;
 }
 
-Vector4 RenderComponent::GetColor() const {
+Vec4 RenderComponent::GetColor() const {
     return ST<MaterialSystem>::Get()->getEffectiveParameters(m_materialInstance).baseColor;
 }
 
-void RenderComponent::SetColor(Vector4 new_color) {
+void RenderComponent::SetColor(Vec4 new_color) {
     // Store the current flags state before making any changes
     uint32_t currentFlags = ST<MaterialSystem>::Get()->getEffectiveFlags(m_materialInstance);
     

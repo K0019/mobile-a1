@@ -26,10 +26,10 @@ All rights reserved.
 #include "LightComponent.h"
 
 LightComponent::LightComponent() : 
-    LightComponent(Vector3(1.0f), 1.0f, 10.0f, 1.0f) {}
+    LightComponent(Vec3{ 1.0f, 1.0f, 1.0f }, 1.0f, 10.0f, 1.0f) {}
 
 LightComponent::LightComponent(
-    const Vector3& color,
+    const Vec3& color,
     float intensity,
     float radius,
     float falloffExponent
@@ -67,7 +67,7 @@ void LightComponent::EditorDraw()
         intensity
     };
     if(ImGui::ColorEdit4("Color & Intensity", colorWithIntensity)) {
-        color = Vector3(
+        color = Vec3(
             colorWithIntensity[0],
             colorWithIntensity[1],
             colorWithIntensity[2]
@@ -130,7 +130,7 @@ LightBlinkComponent::LightBlinkComponent()
 {
 }
 
-Vector2 LightBlinkComponent::AddTimeElapsed(float dt)
+Vec2 LightBlinkComponent::AddTimeElapsed(float dt)
 {
     constexpr float period{ 2 * math::PI_f };
 
@@ -138,7 +138,7 @@ Vector2 LightBlinkComponent::AddTimeElapsed(float dt)
     accumulatedTime -= static_cast<float>(static_cast<int>(accumulatedTime / period)) * period;
 
     float t{ sinf(accumulatedTime) * 0.5f + 0.5f };
-    return Vector2{
+    return Vec2{
         util::Lerp(minAlpha, maxAlpha, t),
         util::Lerp(minRadius, maxRadius, t)
     };

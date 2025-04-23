@@ -1,6 +1,6 @@
 #include <string>
 #include <variant>
-#include "PercentMath.h"
+#include "MagicMath.h"
 using string_t = std::string;
 
 
@@ -12,21 +12,7 @@ namespace property
 //--------------------------------------------------------------------------------------------
 // Some structure to show that you can add your own atomic structures
 //--------------------------------------------------------------------------------------------
-//struct Vector2
-//{
-//    float x{}, y{};
-//};
-//struct Vector3
-//{
-//    float x{}, y{}, z{};
-//};
-//struct V4
-//{
-//    float x{}, y{}, z{}, w{};
-//    V4 operator=(Vector4 const& rhs) { x = rhs.x; y = rhs.y; z = rhs.z; w = rhs.w; }
-//    //Vector4(::Vector4& const rhs) :x{ rhs.x }, y{ rhs.y }, z{ rhs.z }, w{ rhs.w }
-//    //{}
-//};
+
     //--------------------------------------------------------------------------------------------
     // These section provides a basic frame work to for an editor
     //--------------------------------------------------------------------------------------------
@@ -150,9 +136,9 @@ namespace property
             , unsigned int
             , size_t
             , string_t
-            , Vector2
-            , Vector3
-            , Vector4
+            , Vec2
+            , Vec3
+            , Vec4
         >;
     
         //--------------------------------------------------------------------------------------------

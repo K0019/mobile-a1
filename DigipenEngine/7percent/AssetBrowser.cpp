@@ -1042,7 +1042,7 @@ void AssetBrowser::ImportAsSprite(const fs::path& path, const std::string& name)
     sprite.textureID = tex.index;
     sprite.width = tex.extent.width;
     sprite.height = tex.extent.height;
-    sprite.texCoords = Vector4(0.0f, 0.0f, 1.0f, 1.0f);
+    sprite.texCoords = Vec4(0.0f, 0.0f, 1.0f, 1.0f);
 
     ResourceManager::AddSprite(sprite);
 }
@@ -1068,7 +1068,7 @@ void AssetBrowser::ImportAsSpriteSheet(const fs::path& path, int spriteCount, co
         // Calculate UV coordinates for horizontal layout
         float u1 = i * spriteWidth;
         float u2 = (i + 1) * spriteWidth;
-        sprite.texCoords = Vector4(u1, 0.0f, u2, 1.0f);
+        sprite.texCoords = Vec4(u1, 0.0f, u2, 1.0f);
 
         // Calculate actual pixel dimensions
         sprite.width = tex.extent.width / spriteCount;

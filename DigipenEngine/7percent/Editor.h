@@ -117,13 +117,13 @@ private:
 
 	
 private:
-	Vector2 SnapToGrid(const Vector2& worldPos) const;
+	//Vec2 SnapToGrid(const Vec2& worldPos) const;
 
 	float m_gridSize{ 128.0f };
-	Vector2 m_gridOffset{ 0.0f,0.0f };
+	//Vec2 m_gridOffset{ 0.0f,0.0f };
 	bool m_showGrid{ false };
 	bool m_snapToGrid{ false };
-	Vector4 m_gridColor{ 1.0f,1.0f,1.0f,1.0f };
+	//Vec4 m_gridColor{ 1.0f,1.0f,1.0f,1.0f };
 	ecs::EntityHandle selectedEntity{ nullptr };
 	bool drawBoxes{ true };
 

@@ -21,7 +21,7 @@ All rights reserved.
 
 #include "EditorHistory.h"
 
-HistoryEvent_Translation::HistoryEvent_Translation(ecs::EntityHandle entity, const Vector2& originalPos)
+HistoryEvent_Translation::HistoryEvent_Translation(ecs::EntityHandle entity, const Vec3& originalPos)
 	: HistoryEventECSBase{ entity }
 	, prevPos{ originalPos }
 {
@@ -34,32 +34,13 @@ bool HistoryEvent_Translation::IsNonAction() const
 
 HistoryEventBase* HistoryEvent_Translation::DoUndoAction()
 {
-	Vector2 redoPos{ targetEntity->GetTransform().GetLocalPosition() };
+	Vec3 redoPos{ targetEntity->GetTransform().GetLocalPosition() };
 	targetEntity->GetTransform().SetLocalPosition(prevPos);
 	prevPos = redoPos;
 	return this;
 }
 
-HistoryEvent_ZPos::HistoryEvent_ZPos(ecs::EntityHandle entity, float originalZ)
-	: HistoryEventECSBase{ entity }
-	, prevZ{ originalZ }
-{
-}
-
-bool HistoryEvent_ZPos::IsNonAction() const
-{
-	return std::fabs(prevZ - targetEntity->GetTransform().GetZPos()) <= std::numeric_limits<float>::epsilon();
-}
-
-HistoryEventBase* HistoryEvent_ZPos::DoUndoAction()
-{
-	float redoZ{ targetEntity->GetTransform().GetZPos() };
-	targetEntity->GetTransform().SetZPos(prevZ);
-	prevZ = redoZ;
-	return this;
-}
-
-HistoryEvent_Rotation::HistoryEvent_Rotation(ecs::EntityHandle entity, float originalRotation)
+HistoryEvent_Rotation::HistoryEvent_Rotation(ecs::EntityHandle entity, Vec3 originalRotation)
 	: HistoryEventECSBase{ entity }
 	, prevRotation{ originalRotation }
 {
@@ -72,13 +53,13 @@ bool HistoryEvent_Rotation::IsNonAction() const
 
 HistoryEventBase* HistoryEvent_Rotation::DoUndoAction()
 {
-	float redoRotation{ targetEntity->GetTransform().GetLocalRotation() };
+	Vec3 redoRotation{ targetEntity->GetTransform().GetLocalRotation() };
 	targetEntity->GetTransform().SetLocalRotation(prevRotation);
 	prevRotation = redoRotation;
 	return this;
 }
 
-HistoryEvent_Scale::HistoryEvent_Scale(ecs::EntityHandle entity, const Vector2& originalScale)
+HistoryEvent_Scale::HistoryEvent_Scale(ecs::EntityHandle entity, const Vec3& originalScale)
 	: HistoryEventECSBase{ entity }
 	, prevScale{ originalScale }
 {
@@ -91,7 +72,7 @@ bool HistoryEvent_Scale::IsNonAction() const
 
 HistoryEventBase* HistoryEvent_Scale::DoUndoAction()
 {
-	Vector2 redoScale{ targetEntity->GetTransform().GetLocalScale() };
+	Vec3 redoScale{ targetEntity->GetTransform().GetLocalScale() };
 	targetEntity->GetTransform().SetLocalScale(prevScale);
 	prevScale = redoScale;
 	return this;

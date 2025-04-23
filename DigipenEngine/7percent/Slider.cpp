@@ -183,7 +183,7 @@ void SliderSystem::onSliderHold(SliderComponent& comp)
     float barEntityMax = barEntity->GetTransform().GetWorldPosition().x + (barEntity->GetTransform().GetWorldScale().x / 2);
     float sliderButtonY = sliderButtonEntity->GetTransform().GetWorldPosition().y;
     float sliderButtonX = 0;
-    Vector2 mou = Input::GetMousePosWorld();
+    Vec2 mou = Input::GetMousePosWorld();
   
 
     //If mous pos is more than the end of the bar or less than start of the bar

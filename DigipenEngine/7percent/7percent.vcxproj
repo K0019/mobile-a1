@@ -373,12 +373,12 @@ if not exist "$(TargetDir)imgui.json" (
     <ClCompile Include="CameraSystem.cpp" />
     <ClCompile Include="CheatCodes.cpp" />
     <ClCompile Include="Console.cpp" />
-    <ClCompile Include="Collision.cpp" />
     <ClCompile Include="Demo.cpp" />
     <ClCompile Include="FadeAndDie.cpp" />
     <ClCompile Include="GamepadInputAdapter.cpp" />
     <ClCompile Include="GUIAsECS.cpp" />
     <ClCompile Include="KillAnimationWhenFinish.cpp" />
+    <ClCompile Include="MagicMath.cpp" />
     <ClCompile Include="PostProcessingComponent.cpp" />
     <ClCompile Include="PrefabSpawner.cpp" />
     <ClCompile Include="Scheduler.cpp" />
@@ -430,7 +430,6 @@ if not exist "$(TargetDir)imgui.json" (
     <ClCompile Include="Game.cpp" />
     <ClCompile Include="Input.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="Physics.cpp" />
     <ClCompile Include="Popup.cpp" />
     <ClCompile Include="PrefabWindow.cpp" />
     <ClCompile Include="RandUID.cpp" />
@@ -534,7 +533,6 @@ if not exist "$(TargetDir)imgui.json" (
     <ClInclude Include="CameraSystem.h" />
     <ClInclude Include="CheatCodes.h" />
     <ClInclude Include="Console.h" />
-    <ClInclude Include="Collision.h" />
     <ClInclude Include="Demo.h" />
     <ClInclude Include="FadeAndDie.h" />
     <ClInclude Include="GamepadInputAdapter.h" />
@@ -593,7 +591,6 @@ if not exist "$(TargetDir)imgui.json" (
     <ClInclude Include="NameComponent.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="Performance.h" />
-    <ClInclude Include="Physics.h" />
     <ClInclude Include="Popup.h" />
     <ClInclude Include="PrefabManager.h" />
     <ClInclude Include="PrefabWindow.h" />

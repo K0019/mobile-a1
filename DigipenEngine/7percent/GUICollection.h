@@ -41,8 +41,8 @@ namespace gui {
 	using Vec2 = ImVec2;
 	using Vec4 = ImVec4;
 #else
-	using Vec2 = Vector2;
-	using Vec4 = Vector4;
+	using Vec2 = ::Vec2;
+	using Vec4 = ::Vec4;
 #endif
 
 	namespace types
@@ -1102,7 +1102,8 @@ namespace gui {
 	//! ImGui::DragInt, etc.
 	bool VarDrag(const char* label, int* v, float speed = 1.0f, int min = 0, int max = 0);
 	bool VarDrag(const char* label, float* v, float speed = 1.0f, float min = 0.0f, float max = 0.0f, const char* format = "%.2f");
-	bool VarDrag(const char* label, Vector2* v, float speed = 1.0f, Vector2 min = {}, Vector2 max = {}, const char* format = "%.2f");
+	bool VarDrag(const char* label, ::Vec2* v, float speed = 1.0f, ::Vec2 min = {}, ::Vec2 max = {}, const char* format = "%.2f");
+	bool VarDrag(const char* label, ::Vec3* v, float speed = 1.0f, ::Vec3 min = {}, ::Vec3 max = {}, const char* format = "%.2f");
 
 	//! ImGui::InputInt, etc.
 	bool VarInput(const char* label, int* v, int step = 1);

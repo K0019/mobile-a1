@@ -28,7 +28,6 @@ All rights reserved.
 */
 /******************************************************************************/
 #pragma once
-#include "Physics.h"
 #include "CSScripting.h"
 
 
@@ -227,7 +226,7 @@ private:
 	\param collisionData
 		The data of the collision.
 	*//******************************************************************/
-	void OnCollision(const Physics::CollisionEventData& collisionData);
+	//void OnCollision(const Physics::CollisionEventData& collisionData);
 
 	std::unordered_map<std::string, CSharpScripts::ScriptInstance> scriptMap;
 	std::vector<std::string> scriptsToAwaken;

@@ -42,7 +42,7 @@ LightBlinkSystem::LightBlinkSystem()
 
 void LightBlinkSystem::UpdateComp(LightBlinkComponent& blinkComp, LightComponent& lightComp)
 {
-	Vector2 newLightProperties{ blinkComp.AddTimeElapsed(GameTime::FixedDt()) };
+	Vec2 newLightProperties{ blinkComp.AddTimeElapsed(GameTime::FixedDt()) };
 	lightComp.intensity = newLightProperties.x;
 	lightComp.radius = newLightProperties.y;
 }

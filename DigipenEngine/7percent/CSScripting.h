@@ -23,7 +23,6 @@ All rights reserved.
 */
 /******************************************************************************/
 #pragma once
-#include "Physics.h"
 
 // Forward Declare
 class ScriptComponent;
@@ -453,7 +452,7 @@ namespace CSharpScripts {
 		\return
 			None
 		*//******************************************************************/
-		void OnCollisionInvoke(Physics::CollisionEventData& collisionData);
+		//void OnCollisionInvoke(Physics::CollisionEventData& collisionData);
 
 		/*****************************************************************//*!
 		\brief

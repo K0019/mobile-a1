@@ -79,7 +79,7 @@ public:
 	\param color
 		The new color of the bar.
 	*//******************************************************************/
-	void SetColor(const Vector4& value);
+	void SetColor(const Vec4& value);
 
 private:
 	/*****************************************************************//*!
