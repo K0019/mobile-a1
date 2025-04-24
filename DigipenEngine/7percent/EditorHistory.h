@@ -168,7 +168,7 @@ public:
 	\param originalRotation
 		The original rotation of the entity.
 	*//******************************************************************/
-	HistoryEvent_Rotation(ecs::EntityHandle entity, Vec3 originalRotation);
+	HistoryEvent_Rotation(ecs::EntityHandle entity, const Vec3& originalRotation);
 
 	/*****************************************************************//*!
 	\brief

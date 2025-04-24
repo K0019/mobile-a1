@@ -339,6 +339,7 @@ void Transform::EditorDraw()
 	}
 
 	// Rotation Control
+	tempVec = rotation;
 	if (DrawVec3Control("Rotation", &tempVec, 60.0f, 1.0f, "%.1f"))
 	{
 		ST<History>::Get()->IntermediateEvent(HistoryEvent_Rotation{ GetEntity(), rotation });

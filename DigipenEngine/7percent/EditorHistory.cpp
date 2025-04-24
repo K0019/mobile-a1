@@ -40,7 +40,7 @@ HistoryEventBase* HistoryEvent_Translation::DoUndoAction()
 	return this;
 }
 
-HistoryEvent_Rotation::HistoryEvent_Rotation(ecs::EntityHandle entity, Vec3 originalRotation)
+HistoryEvent_Rotation::HistoryEvent_Rotation(ecs::EntityHandle entity, const Vec3& originalRotation)
 	: HistoryEventECSBase{ entity }
 	, prevRotation{ originalRotation }
 {
