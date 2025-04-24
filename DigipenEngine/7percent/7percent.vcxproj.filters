@@ -297,15 +297,6 @@
     <ClCompile Include="Hierarchy.cpp">
       <Filter>Source Files\EditorUI</Filter>
     </ClCompile>
-    <ClCompile Include="CSScripting.cpp">
-      <Filter>Source Files\Scripting</Filter>
-    </ClCompile>
-    <ClCompile Include="ScriptComponent.cpp">
-      <Filter>Source Files\Scripting</Filter>
-    </ClCompile>
-    <ClCompile Include="ScriptGlue.cpp">
-      <Filter>Source Files\Scripting</Filter>
-    </ClCompile>
     <ClCompile Include="EditorTweenModule.cpp">
       <Filter>Source Files\EditorUI</Filter>
     </ClCompile>
@@ -344,12 +335,6 @@
     </ClCompile>
     <ClCompile Include="CameraSystem.cpp">
       <Filter>Source Files\Graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="ScriptManagement.cpp">
-      <Filter>Source Files\Scripting</Filter>
-    </ClCompile>
-    <ClCompile Include="HotReloader.cpp">
-      <Filter>Source Files\Scripting</Filter>
     </ClCompile>
     <ClCompile Include="History.cpp">
       <Filter>Source Files\EditorUI</Filter>
@@ -449,9 +434,6 @@
     </ClCompile>
     <ClCompile Include="GUIAsECS.cpp">
       <Filter>Source Files\EditorUI\Containers</Filter>
-    </ClCompile>
-    <ClCompile Include="MagicMath.cpp">
-      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -686,15 +668,6 @@
     <ClInclude Include="Hierarchy.h">
       <Filter>Header Files\EditorUI</Filter>
     </ClInclude>
-    <ClInclude Include="CSScripting.h">
-      <Filter>Header Files\Scripting</Filter>
-    </ClInclude>
-    <ClInclude Include="ScriptComponent.h">
-      <Filter>Header Files\Scripting</Filter>
-    </ClInclude>
-    <ClInclude Include="ScriptGlue.h">
-      <Filter>Header Files\Scripting</Filter>
-    </ClInclude>
     <ClInclude Include="EditorTweenModule.h">
       <Filter>Header Files\EditorUI</Filter>
     </ClInclude>
@@ -742,9 +715,6 @@
     </ClInclude>
     <ClInclude Include="ScriptManagement.h">
       <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="HotReloader.h">
-      <Filter>Header Files\Scripting</Filter>
     </ClInclude>
     <ClInclude Include="History.h">
       <Filter>Header Files\EditorUI</Filter>

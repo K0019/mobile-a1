@@ -378,11 +378,9 @@ if not exist "$(TargetDir)imgui.json" (
     <ClCompile Include="GamepadInputAdapter.cpp" />
     <ClCompile Include="GUIAsECS.cpp" />
     <ClCompile Include="KillAnimationWhenFinish.cpp" />
-    <ClCompile Include="MagicMath.cpp" />
     <ClCompile Include="PostProcessingComponent.cpp" />
     <ClCompile Include="PrefabSpawner.cpp" />
     <ClCompile Include="Scheduler.cpp" />
-    <ClCompile Include="CSScripting.cpp" />
     <ClCompile Include="CustomViewport.cpp" />
     <ClCompile Include="Import.cpp" />
     <ClCompile Include="ECS.cpp" />
@@ -407,7 +405,6 @@ if not exist "$(TargetDir)imgui.json" (
     <ClCompile Include="GameTime.cpp" />
     <ClCompile Include="Gizmo.cpp" />
     <ClCompile Include="Hierarchy.cpp" />
-    <ClCompile Include="HotReloader.cpp" />
     <ClCompile Include="IEditorComponent.cpp" />
     <ClCompile Include="IGameComponentCallbacks.cpp" />
     <ClCompile Include="IHiddenComponent.cpp" />
@@ -458,9 +455,6 @@ if not exist "$(TargetDir)imgui.json" (
     <ClCompile Include="ryan-c\VulkanHelper.cpp" />
     <ClCompile Include="ryan-c\VulkanManager.cpp" />
     <ClCompile Include="SceneManagement.cpp" />
-    <ClCompile Include="ScriptComponent.cpp" />
-    <ClCompile Include="ScriptGlue.cpp" />
-    <ClCompile Include="ScriptManagement.cpp" />
     <ClCompile Include="Serializer.cpp" />
     <ClCompile Include="SettingsWindow.cpp" />
     <ClCompile Include="TrailComponent.cpp" />
@@ -544,7 +538,6 @@ if not exist "$(TargetDir)imgui.json" (
     <ClInclude Include="PostProcessingComponent.h" />
     <ClInclude Include="PrefabSpawner.h" />
     <ClInclude Include="Scheduler.h" />
-    <ClInclude Include="CSScripting.h" />
     <ClInclude Include="CustomViewport.h" />
     <ClInclude Include="Import.h" />
     <ClInclude Include="ECS.h" />
@@ -573,7 +566,6 @@ if not exist "$(TargetDir)imgui.json" (
     <ClInclude Include="GameTime.h" />
     <ClInclude Include="Gizmo.h" />
     <ClInclude Include="Hierarchy.h" />
-    <ClInclude Include="HotReloader.h" />
     <ClInclude Include="IconsFontAwesome6.h" />
     <ClInclude Include="IEditorComponent.h" />
     <ClInclude Include="IGameComponentCallbacks.h" />
@@ -622,8 +614,6 @@ if not exist "$(TargetDir)imgui.json" (
     <ClInclude Include="ryan-c\VulkanHelper.h" />
     <ClInclude Include="ryan-c\VulkanManager.h" />
     <ClInclude Include="SceneManagement.h" />
-    <ClInclude Include="ScriptComponent.h" />
-    <ClInclude Include="ScriptGlue.h" />
     <ClInclude Include="ScriptManagement.h" />
     <ClInclude Include="Serializer.h" />
     <ClInclude Include="Serializer.ipp" />

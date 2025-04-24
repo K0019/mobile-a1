@@ -280,14 +280,14 @@ FontAtlas TextureManager::loadJsonData(const std::string& jsonPath) {
 
 				if(glyphObj.HasMember("planeBounds") && glyphObj["planeBounds"].IsObject()) {
 					const auto& planeBounds = glyphObj["planeBounds"];
-					glyph.planeBounds[0] = { planeBounds["left"].GetFloat(), planeBounds["bottom"].GetFloat() };
-					glyph.planeBounds[1] = { planeBounds["right"].GetFloat(), planeBounds["top"].GetFloat() };
+					glyph.planeBounds[0] = Vec2{ planeBounds["left"].GetFloat(), planeBounds["bottom"].GetFloat() };
+					glyph.planeBounds[1] = Vec2{ planeBounds["right"].GetFloat(), planeBounds["top"].GetFloat() };
 				}
 
 				if(glyphObj.HasMember("atlasBounds") && glyphObj["atlasBounds"].IsObject()) {
 					const auto& atlasBounds = glyphObj["atlasBounds"];
-					glyph.atlasBounds[0] = { atlasBounds["left"].GetFloat(), atlasBounds["bottom"].GetFloat() };
-					glyph.atlasBounds[1] = { atlasBounds["right"].GetFloat(), atlasBounds["top"].GetFloat() };
+					glyph.atlasBounds[0] = Vec2{ atlasBounds["left"].GetFloat(), atlasBounds["bottom"].GetFloat() };
+					glyph.atlasBounds[1] = Vec2{ atlasBounds["right"].GetFloat(), atlasBounds["top"].GetFloat() };
 				}
 			}
 		}

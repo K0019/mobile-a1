@@ -234,7 +234,7 @@ public:
 	\return
 		The mouse's current window in the world.
 	*//******************************************************************/
-	static Vec2 GetMousePosWorld();
+	static Vec3 GetMousePosWorld();
 
 	static void OnScroll(float offset);
 

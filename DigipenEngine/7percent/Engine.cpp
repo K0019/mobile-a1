@@ -39,8 +39,6 @@ All rights reserved.
 
 #include "ryan-c/Renderer.h"
 #include "ryan-c/VulkanHelper.h"
-#include "CSScripting.h"
-#include "HotReloader.h"
 
 #include "fa.h"
 
@@ -195,11 +193,6 @@ void Engine::OnFocusChanged([[maybe_unused]] GLFWwindow* window, int isFocused)
 {
 	CONSOLE_LOG(LEVEL_DEBUG) << "Focused changed: " << isFocused;
 
-#ifdef IMGUI_ENABLED
-	// TODO: Clean this call up
-	HotReloader::FocusCallBackReload(window, isFocused);
-#endif
-
 	Messaging::BroadcastAll("OnWindowFocus", static_cast<bool>(isFocused));
 }
 void Engine::onFullscreen()
@@ -288,9 +281,6 @@ void Engine::init()
 	ST<GameSettings>::Get()->Load(); // Only load settings from file first so we have the correct filepaths.
 
 	ST<Console>::Get()->SetupCrashHandler(); // DO NOT REMOVE THIS LINE EVER
-
-	// Scripting Engine Initialisation
-	CSharpScripts::CSScripting::Init();
 
 	// FMOD Initialisation
 	ST<AudioManager>::Get()->Initialise();
@@ -535,7 +525,7 @@ void Engine::run() {
 			ST<Hierarchy>::Get()->Draw();
 		}
 		ST<Popup>::Get()->Draw();
-		ST<Inspector>::Get()->RenderGrid();
+		//ST<Inspector>::Get()->RenderGrid();
 
 		// Draw editor windows
 		ecs::SwitchToPool(ecs::POOL::EDITOR_GUI);
@@ -637,9 +627,6 @@ void Engine::run() {
 
 		// update game state
 		// -----------------
-#ifdef IMGUI_ENABLED
-		CSharpScripts::CSScripting::CheckCompileUserAssemblyAsyncCompletion();
-#endif
 		ST<Game>::Get()->Update();
 		ST<Scheduler>::Get()->Update(GameTime::FixedDt() * static_cast<float>(GameTime::NumFixedFrames()));
 
@@ -724,7 +711,6 @@ void Engine::shutdown() {
 #ifdef IMGUI_ENABLED
 	ST<Hierarchy>::Destroy();
 #endif
-	CSharpScripts::CSScripting::Exit();
 
 	ecs::Shutdown();
 

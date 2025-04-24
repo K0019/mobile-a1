@@ -284,7 +284,7 @@ class Renderer {
 
     void updateTextureBuffer(std::vector<SpriteInstanceData>& sprites, AllocatedBuffer& buffer, VkDeviceSize& size) const;
     void updateLineBuffer();
-    bool isInViewport(const glm::vec2& position, const glm::vec2& size, float rotation) const;
+    bool isInViewport(const glm::vec3& position, const glm::vec3& size, const glm::vec3& rotation) const;
 
 };
 

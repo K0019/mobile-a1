@@ -77,9 +77,19 @@ inline Vec2& Vec2::operator=(glm::vec2&& other)
 	return *this;
 }
 
+inline constexpr Vec2::operator glm::vec2() const
+{
+	return glm::vec2{ x, y };
+}
+
 inline constexpr float Vec2::Dot(const Vec2& other) const
 {
 	return glm::dot(static_cast<const glm::vec2&>(*this), static_cast<const glm::vec2&>(other));
+}
+
+inline float Vec2::Length() const
+{
+	return glm::length(static_cast<const glm::vec2&>(*this));
 }
 
 inline constexpr float Vec2::LengthSqr() const
@@ -92,6 +102,11 @@ inline constexpr Vec2 Vec2::Normalized() const
 	return glm::normalize(static_cast<const glm::vec2&>(*this));
 }
 
+GENERATE_GLOBAL_OPERATOR_ADAPTER_IPP(Vec2, glm::vec2, +)
+GENERATE_GLOBAL_OPERATOR_ADAPTER_IPP(Vec2, glm::vec2, -)
+GENERATE_GLOBAL_OPERATOR_ADAPTER_IPP(Vec2, glm::vec2, *)
+GENERATE_GLOBAL_OPERATOR_ADAPTER_IPP(Vec2, glm::vec2, / )
+
 #pragma endregion // Vec2
 
 #pragma region Vec3
@@ -101,19 +116,59 @@ inline constexpr Vec3::Vec3(float x, float y, float z)
 {
 }
 
+constexpr Vec3::Vec3(const glm::vec3& other)
+	: glm::vec3{ other }
+{
+}
+
+constexpr Vec3::Vec3(glm::vec3&& other)
+	: glm::vec3{ std::move(other) }
+{
+}
+
+inline constexpr Vec3::operator glm::vec3() const
+{
+	return glm::vec3{ x, y, z };
+}
+
+inline float Vec3::Length() const
+{
+	return glm::length(static_cast<const glm::vec3&>(*this));
+}
+
+inline constexpr float Vec3::LengthSqr() const
+{
+	return x * x + y * y + z * z;
+}
+
 inline constexpr Vec3 Vec3::Normalized() const
 {
 	return glm::normalize(static_cast<const glm::vec3&>(*this));
 }
 
-GENERATE_OPERATOR_ADAPTER_IPP(Vec3, glm::vec3, operator+=)
-GENERATE_OPERATOR_ADAPTER_IPP(Vec3, glm::vec3, operator-=)
-GENERATE_OPERATOR_ADAPTER_IPP(Vec3, glm::vec3, operator*=)
-GENERATE_OPERATOR_ADAPTER_IPP(Vec3, glm::vec3, operator/=)
+GENERATE_MEMBER_OPERATOR_ADAPTER_IPP(Vec3, glm::vec3, +=)
+GENERATE_MEMBER_OPERATOR_ADAPTER_IPP(Vec3, glm::vec3, -=)
+GENERATE_MEMBER_OPERATOR_ADAPTER_IPP(Vec3, glm::vec3, *=)
+GENERATE_MEMBER_OPERATOR_ADAPTER_IPP(Vec3, glm::vec3, /=)
+
+GENERATE_GLOBAL_OPERATOR_ADAPTER_IPP(Vec3, glm::vec3, +)
+GENERATE_GLOBAL_OPERATOR_ADAPTER_IPP(Vec3, glm::vec3, -)
+GENERATE_GLOBAL_OPERATOR_ADAPTER_IPP(Vec3, glm::vec3, *)
+GENERATE_GLOBAL_OPERATOR_ADAPTER_IPP(Vec3, glm::vec3, /)
 
 #pragma endregion // Vec3
 
 #pragma region Vec4
+
+inline constexpr Vec4::Vec4(float x, float y, float z, float w)
+	: glm::vec4{ x, y, z, w }
+{
+}
+
+inline constexpr Vec4::Vec4(const Vec3& vec, float w)
+	: glm::vec4{ static_cast<const glm::vec3&>(vec), w }
+{
+}
 
 #pragma endregion // Vec4
 

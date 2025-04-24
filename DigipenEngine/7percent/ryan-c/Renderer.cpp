@@ -363,7 +363,8 @@ void Renderer::updateCameraData(const CameraData& camera_data)
 {
 	updateCameraPosition(camera_data.position);
 	updateCameraZoom(camera_data.zoom);
-	updateCameraRotation(camera_data.rotation);
+	// TODO 3D: Do 3D rotation calculations based on cam view and up
+	//updateCameraRotation(camera_data.rotation);
 }
 
 void Renderer::renderSprites(std::vector<SpriteInstanceData>& sprites, AllocatedBuffer& buffer, VkDeviceSize& size) const
@@ -1530,29 +1531,30 @@ void Renderer::ResetPostProcessing()
 
 void Renderer::renderDebugBounds(const Transform& transform)
 {
-	glm::vec2 position = transform.GetWorldPosition();
-	glm::vec2 scale = transform.GetWorldScale();
-	float rotation = transform.GetWorldRotation();
-	glm::vec2 halfScale = scale * 0.5f;
-	glm::vec2 corners[] = {
-		position + glm::vec2(-halfScale.x, -halfScale.y),
-		position + glm::vec2(halfScale.x, -halfScale.y),
-		position + glm::vec2(halfScale.x, halfScale.y),
-		position + glm::vec2(-halfScale.x, halfScale.y)
-	};
-	for(auto& corner : corners)
-	{
-		corner = util::RotatePoint(corner, Vec2(0, 0), rotation) + position;
-	}
-	Vec4 lineColor{ 1.0, 0.0,0.0,1.0f };
-	// Draw all four sides of the bounding box
-	for(int i = 0; i < 4; ++i)
-	{
-		int next = (i + 1) % 4;
-		AddLineInstance(corners[i], corners[next], lineColor);
-	}
-	AddLineInstance(corners[3], corners[1], lineColor);
-	AddLineInstance(corners[2], corners[0], lineColor);
+	CONSOLE_LOG_UNIMPLEMENTED() << "Renderer debug bounds";
+	//glm::vec2 position = transform.GetWorldPosition();
+	//glm::vec2 scale = transform.GetWorldScale();
+	//float rotation = transform.GetWorldRotation();
+	//glm::vec2 halfScale = scale * 0.5f;
+	//glm::vec2 corners[] = {
+	//	position + glm::vec2(-halfScale.x, -halfScale.y),
+	//	position + glm::vec2(halfScale.x, -halfScale.y),
+	//	position + glm::vec2(halfScale.x, halfScale.y),
+	//	position + glm::vec2(-halfScale.x, halfScale.y)
+	//};
+	//for(auto& corner : corners)
+	//{
+	//	corner = util::RotatePoint(corner, Vec2(0, 0), rotation) + position;
+	//}
+	//Vec4 lineColor{ 1.0, 0.0,0.0,1.0f };
+	//// Draw all four sides of the bounding box
+	//for(int i = 0; i < 4; ++i)
+	//{
+	//	int next = (i + 1) % 4;
+	//	AddLineInstance(corners[i], corners[next], lineColor);
+	//}
+	//AddLineInstance(corners[3], corners[1], lineColor);
+	//AddLineInstance(corners[2], corners[0], lineColor);
 }
 
 void Renderer::AddRenderInstance(const RenderComponent& render_component) {
@@ -1577,8 +1579,8 @@ void Renderer::AddRenderInstance(const RenderComponent& render_component) {
 	Vec4 color = params->baseColor;
 
 	// Early viewport culling optimization
-	glm::vec2 position = transform.GetWorldPosition();
-	glm::vec2 scale = transform.GetWorldScale();
+	glm::vec3 position = transform.GetWorldPosition();
+	glm::vec3 scale = transform.GetWorldScale();
 	if(materialFlags & MaterialFlags::OccludesLight) {
 		uint32_t frameIndex = m_context->getCurrentFrameNumber();
 		m_lightingSystem.addBlocker(transform, frameIndex);
@@ -1652,12 +1654,13 @@ void Renderer::AddTextInstance(const TextComponent& text_component) {
 
 	bool UI = text_component.isUI();
 
-	glm::vec2 scale = transform.GetWorldScale();
-	glm::vec2 baselineOffset = glm::vec2(0, atlas.ascender * scale.y);
-	glm::vec2 TextScale{ text_component.GetWorldTextTransform().GetWorldScale() };
+	glm::vec3 scale = transform.GetWorldScale();
+	glm::vec3 baselineOffset = glm::vec3(0, atlas.ascender * scale.y, 0);
+	glm::vec3 TextScale{ text_component.GetWorldTextTransform().GetWorldScale() };
 
 	// Get the pre-calculated starting position
-	glm::vec2 currentPos{ text_component.GetTextStart() };
+	// TODO 3D: This 0 is probably wrong...
+	glm::vec3 currentPos{ text_component.GetTextStart(), 0.0f };
 
 	if(!isInViewport(currentPos, TextScale, transform.GetWorldRotation())) {
 		return;
@@ -1676,7 +1679,7 @@ void Renderer::AddTextInstance(const TextComponent& text_component) {
 			currentPos.x += kerning * scale.x;
 		}
 
-		glm::vec2 pos = currentPos + baselineOffset;
+		glm::vec3 pos = currentPos + baselineOffset;
 		float glyphCenterOffsetX = (glyph.planeBounds[0].x + glyph.planeBounds[1].x) * scale.x * 0.5f;
 		float glyphCenterOffsetY = (glyph.planeBounds[0].y + glyph.planeBounds[1].y) * scale.y * 0.5f;
 
@@ -1689,7 +1692,7 @@ void Renderer::AddTextInstance(const TextComponent& text_component) {
 		};
 
 		glm::mat4 model = glm::mat4(1.0f);
-		model = translate(model, glm::vec3(pos, transform.GetZPos()));
+		model = translate(model, pos);
 		model = glm::scale(model, glm::vec3(quadSize.x, quadSize.y, 1.0f));
 
 		glm::vec4 texCoords;
@@ -1729,7 +1732,7 @@ void Renderer::AddTrailInstance(const TrailRendererComponent& trailComp)
 	}
 
 	const auto& transform = ecs::GetEntityTransform(&trailComp);
-	float zPos = transform.GetZPos() - 0.0001f;
+	float zPos = transform.GetWorldPosition().z;
 
 	// Calculate the total age span for proper interpolation
 	float oldestAge = 0.0f;
@@ -1738,12 +1741,12 @@ void Renderer::AddTrailInstance(const TrailRendererComponent& trailComp)
 	}
 
 	// Pre-calculate segment directions for all points for joint handling
-	std::vector<Vec2> directions;
+	std::vector<Vec3> directions;
 	for(int i = 0; i < trailComp.GetPointCount() - 1; i++) {
 		const auto& p0 = trailComp.GetPoint(i);
 		const auto& p1 = trailComp.GetPoint(i + 1);
 
-		Vec2 dir = p1.position - p0.position;
+		Vec3 dir = p1.position - p0.position;
 		float length = dir.Length();
 
 		if(length > 0.0001f) {
@@ -1751,133 +1754,135 @@ void Renderer::AddTrailInstance(const TrailRendererComponent& trailComp)
 		}
 		else {
 			// Use default or previous direction if segment is too short
-			directions.push_back(directions.empty() ? Vec2(1.0f, 0.0f) : directions.back());
+			directions.push_back(directions.empty() ? Vec3(1.0f, 0.0f, 0.0f) : directions.back());
 		}
 	}
 
-	// Now render each segment
-	for(int i = 0; i < trailComp.GetPointCount() - 1; i++) {
-		const auto& p0 = trailComp.GetPoint(i);
-		const auto& p1 = trailComp.GetPoint(i + 1);
+	CONSOLE_LOG_UNIMPLEMENTED() << "Renderer trail";
 
-		// Calculate normalized ages
-		float p0NormalizedAge = p0.age / trailComp.lifetime;
-		float p1NormalizedAge = p1.age / trailComp.lifetime;
+	//// Now render each segment
+	//for(int i = 0; i < trailComp.GetPointCount() - 1; i++) {
+	//	const auto& p0 = trailComp.GetPoint(i);
+	//	const auto& p1 = trailComp.GetPoint(i + 1);
 
-		// Calculate lifetime percentages (1.0 = newest, 0.0 = oldest)
-		float p0AgePercent = 1.0f - p0NormalizedAge;
-		float p1AgePercent = 1.0f - p1NormalizedAge;
+	//	// Calculate normalized ages
+	//	float p0NormalizedAge = p0.age / trailComp.lifetime;
+	//	float p1NormalizedAge = p1.age / trailComp.lifetime;
 
-		// Calculate widths and colors
-		float p0Width = trailComp.CalculateWidth(p0AgePercent);
-		float p1Width = trailComp.CalculateWidth(p1AgePercent);
-		Vec4 p0Color = trailComp.CalculateColor(p0AgePercent);
-		Vec4 p1Color = trailComp.CalculateColor(p1AgePercent);
+	//	// Calculate lifetime percentages (1.0 = newest, 0.0 = oldest)
+	//	float p0AgePercent = 1.0f - p0NormalizedAge;
+	//	float p1AgePercent = 1.0f - p1NormalizedAge;
 
-		// Get current segment direction
-		Vec2 currentDir = directions[i];
+	//	// Calculate widths and colors
+	//	float p0Width = trailComp.CalculateWidth(p0AgePercent);
+	//	float p1Width = trailComp.CalculateWidth(p1AgePercent);
+	//	Vec4 p0Color = trailComp.CalculateColor(p0AgePercent);
+	//	Vec4 p1Color = trailComp.CalculateColor(p1AgePercent);
 
-		// Get neighboring segment directions for joint handling
-		Vec2 prevDir = (i > 0) ? directions[i - 1] : currentDir;
-		Vec2 nextDir = (i < directions.size() - 1) ? directions[i + 1] : currentDir;
+	//	// Get current segment direction
+	//	Vec2 currentDir = directions[i];
 
-		// Calculate average directions at the joints for smooth connections
-		// This is key to fixing the gap issue!
-		Vec2 startJointDir = (prevDir + currentDir).Normalize();
-		Vec2 endJointDir = (currentDir + nextDir).Normalize();
+	//	// Get neighboring segment directions for joint handling
+	//	Vec2 prevDir = (i > 0) ? directions[i - 1] : currentDir;
+	//	Vec2 nextDir = (i < directions.size() - 1) ? directions[i + 1] : currentDir;
 
-		// Calculate perpendicular directions
-		Vec2 startPerp = Vec2(-startJointDir.y, startJointDir.x);
-		Vec2 endPerp = Vec2(-endJointDir.y, endJointDir.x);
+	//	// Calculate average directions at the joints for smooth connections
+	//	// This is key to fixing the gap issue!
+	//	Vec2 startJointDir = (prevDir + currentDir).Normalized();
+	//	Vec2 endJointDir = (currentDir + nextDir).Normalized();
 
-		// Calculate expanded bounding box
-		float maxWidth = glm::max(p0Width, p1Width) * 1.2f; // Extra margin for miter joints
+	//	// Calculate perpendicular directions
+	//	Vec2 startPerp = Vec2(-startJointDir.y, startJointDir.x);
+	//	Vec2 endPerp = Vec2(-endJointDir.y, endJointDir.x);
 
-		Vec2 boundMin = Vec2(
-			std::min(p0.position.x, p1.position.x) - maxWidth,
-			std::min(p0.position.y, p1.position.y) - maxWidth
-		);
-		Vec2 boundMax = Vec2(
-			std::max(p0.position.x, p1.position.x) + maxWidth,
-			std::max(p0.position.y, p1.position.y) + maxWidth
-		);
-		Vec2 quadSize = boundMax - boundMin;
+	//	// Calculate expanded bounding box
+	//	float maxWidth = glm::max(p0Width, p1Width) * 1.2f; // Extra margin for miter joints
 
-		// Create instance data
-		SpriteInstanceData data{};
-		data.model = glm::mat4(1.0f);
+	//	Vec2 boundMin = Vec2(
+	//		std::min(p0.position.x, p1.position.x) - maxWidth,
+	//		std::min(p0.position.y, p1.position.y) - maxWidth
+	//	);
+	//	Vec2 boundMax = Vec2(
+	//		std::max(p0.position.x, p1.position.x) + maxWidth,
+	//		std::max(p0.position.y, p1.position.y) + maxWidth
+	//	);
+	//	Vec2 quadSize = boundMax - boundMin;
 
-		// Set scale and translation for the quad
-		data.model[0][0] = quadSize.x;
-		data.model[1][1] = quadSize.y;
-		data.model[3][0] = boundMin.x;
-		data.model[3][1] = boundMin.y;
-		data.model[3][2] = zPos;
+	//	// Create instance data
+	//	SpriteInstanceData data{};
+	//	data.model = glm::mat4(1.0f);
 
-		// Store points and widths
-		data.model[0][3] = p0.position.x;
-		data.model[1][3] = p0.position.y;
-		data.model[2][3] = p1.position.x;
-		data.model[2][0] = p1.position.y;
-		data.model[2][1] = p0Width;
-		data.model[2][2] = p1Width;
+	//	// Set scale and translation for the quad
+	//	data.model[0][0] = quadSize.x;
+	//	data.model[1][1] = quadSize.y;
+	//	data.model[3][0] = boundMin.x;
+	//	data.model[3][1] = boundMin.y;
+	//	data.model[3][2] = zPos;
 
-		// Use the unused parts of the matrix to store joint information
-		// We can use these spots which are usually set to 0 or 1 in a standard matrix:
-		data.model[0][1] = startPerp.x;  // Usually 0
-		data.model[0][2] = startPerp.y;  // Usually 0
-		data.model[1][0] = endPerp.x;    // Usually 0
-		data.model[1][2] = endPerp.y;    // Usually 0
+	//	// Store points and widths
+	//	data.model[0][3] = p0.position.x;
+	//	data.model[1][3] = p0.position.y;
+	//	data.model[2][3] = p1.position.x;
+	//	data.model[2][0] = p1.position.y;
+	//	data.model[2][1] = p0Width;
+	//	data.model[2][2] = p1Width;
 
-		// Store colors
-		data.color = p0Color;
-		data.texCoords = p1Color;
+	//	// Use the unused parts of the matrix to store joint information
+	//	// We can use these spots which are usually set to 0 or 1 in a standard matrix:
+	//	data.model[0][1] = startPerp.x;  // Usually 0
+	//	data.model[0][2] = startPerp.y;  // Usually 0
+	//	data.model[1][0] = endPerp.x;    // Usually 0
+	//	data.model[1][2] = endPerp.y;    // Usually 0
 
-		// Pack just the smoothing into textureIndex (much safer)
-		data.textureIndex = static_cast<uint32_t>(65535.0f * trailComp.smoothing);
+	//	// Store colors
+	//	data.color = p0Color;
+	//	data.texCoords = p1Color;
 
-		// Set trail flag
-		data.flags = RENDER_FLAG_TRAIL;
+	//	// Pack just the smoothing into textureIndex (much safer)
+	//	data.textureIndex = static_cast<uint32_t>(65535.0f * trailComp.smoothing);
 
-		// Add to appropriate batch
-		m_spriteBatches.lit.push_back(data);
+	//	// Set trail flag
+	//	data.flags = RENDER_FLAG_TRAIL;
 
-		if(trailComp.glow.enabled)
-		{
-			// Create glow trail instance data
-			GlowTrailInstanceData glowData;
+	//	// Add to appropriate batch
+	//	m_spriteBatches.lit.push_back(data);
 
-			// Pack points and perpendicular vectors (same as trail)
-			glowData.points = glm::vec4(p0.position.x, p0.position.y, p1.position.x, p1.position.y);
-			glowData.perps = glm::vec4(startPerp.x, startPerp.y, endPerp.x, endPerp.y);
+	//	if(trailComp.glow.enabled)
+	//	{
+	//		// Create glow trail instance data
+	//		GlowTrailInstanceData glowData;
 
-			// Apply radius multiplier to the widths specifically for glow
-			float p0GlowWidth = p0Width * trailComp.glow.radius;
-			float p1GlowWidth = p1Width * trailComp.glow.radius;
+	//		// Pack points and perpendicular vectors (same as trail)
+	//		glowData.points = glm::vec4(p0.position.x, p0.position.y, p1.position.x, p1.position.y);
+	//		glowData.perps = glm::vec4(startPerp.x, startPerp.y, endPerp.x, endPerp.y);
 
-			// Pack widths and normalized ages
-			float p0NormalizedAgeFromLifetime = p0.age / trailComp.lifetime; // Use lifetime instead of oldestAge
-			float p1NormalizedAgeFromLifetime = p1.age / trailComp.lifetime;
-			glowData.widthsAges = glm::vec4(p0GlowWidth, p1GlowWidth, p0NormalizedAgeFromLifetime, p1NormalizedAgeFromLifetime);
+	//		// Apply radius multiplier to the widths specifically for glow
+	//		float p0GlowWidth = p0Width * trailComp.glow.radius;
+	//		float p1GlowWidth = p1Width * trailComp.glow.radius;
 
-			// Set glow color (either direct or modified by the trail color)
-			Vec4 glowColor = trailComp.glow.color;
-			glowColor.w *= p0Color.w; // Multiply glow alpha by trail alpha
-			// This makes the glow fade out with the trail
-			glowData.glowColor = glowColor;
+	//		// Pack widths and normalized ages
+	//		float p0NormalizedAgeFromLifetime = p0.age / trailComp.lifetime; // Use lifetime instead of oldestAge
+	//		float p1NormalizedAgeFromLifetime = p1.age / trailComp.lifetime;
+	//		glowData.widthsAges = glm::vec4(p0GlowWidth, p1GlowWidth, p0NormalizedAgeFromLifetime, p1NormalizedAgeFromLifetime);
 
-			// Pack glow parameters
-			glowData.glowParams = glm::vec4(
-				trailComp.glow.intensity,
-				trailComp.glow.decay,
-				trailComp.smoothing,
-				0.0f // Unused
-			);
+	//		// Set glow color (either direct or modified by the trail color)
+	//		Vec4 glowColor = trailComp.glow.color;
+	//		glowColor.w *= p0Color.w; // Multiply glow alpha by trail alpha
+	//		// This makes the glow fade out with the trail
+	//		glowData.glowColor = glowColor;
 
-			// Add to the glow batch
-			m_spriteBatches.glow.push_back(glowData);
-		}
-	}
+	//		// Pack glow parameters
+	//		glowData.glowParams = glm::vec4(
+	//			trailComp.glow.intensity,
+	//			trailComp.glow.decay,
+	//			trailComp.smoothing,
+	//			0.0f // Unused
+	//		);
+
+	//		// Add to the glow batch
+	//		m_spriteBatches.glow.push_back(glowData);
+	//	}
+	//}
 }
 void Renderer::AddLineInstance(const glm::vec2& start, const glm::vec2& end, const glm::vec4& color)
 {
@@ -2000,125 +2005,129 @@ void Renderer::LightingManager::addLight(const LightComponent& light, uint32_t f
 	}
 
 	const auto& transform = ecs::GetEntityTransform(&light);
-	const float worldRotation = transform.GetWorldRotation();
-	const glm::vec2 worldPosition = transform.GetWorldPosition();
+	const glm::vec3 worldRotation = transform.GetWorldRotation();
+	const glm::vec3 worldPosition = transform.GetWorldPosition();
 
-	// ----- STAGE 1: Quick coarse culling -----
-	// Get camera parameters
-	glm::vec2 cameraPosition = ST<CameraController>::Get()->GetPosition();
-	float zoom = ST<CameraController>::Get()->GetZoom();
+	CONSOLE_LOG_UNIMPLEMENTED() << "Renderer add light";
 
-	// Calculate conservative viewport bounds in world space with large buffer zone
-	float worldViewWidth = m_renderer->m_viewport.width / zoom;
-	float worldViewHeight = std::abs(m_renderer->m_viewport.height) / zoom;
-	float halfWidth = worldViewWidth * 0.6f;  // 50% buffer + 10% original buffer
-	float halfHeight = worldViewHeight * 0.6f;
+	//// ----- STAGE 1: Quick coarse culling -----
+	//// Get camera parameters
+	//glm::vec3 cameraPosition = ST<CameraController>::Get()->GetPosition();
+	//float zoom = ST<CameraController>::Get()->GetZoom();
 
-	// Effective world-space bounds
-	float minX = cameraPosition.x - halfWidth;
-	float maxX = cameraPosition.x + halfWidth;
-	float minY = cameraPosition.y - halfHeight;
-	float maxY = cameraPosition.y + halfHeight;
+	//// Calculate conservative viewport bounds in world space with large buffer zone
+	//float worldViewWidth = m_renderer->m_viewport.width / zoom;
+	//float worldViewHeight = std::abs(m_renderer->m_viewport.height) / zoom;
+	//float halfWidth = worldViewWidth * 0.6f;  // 50% buffer + 10% original buffer
+	//float halfHeight = worldViewHeight * 0.6f;
 
-	// Calculate effective light radius based on light type
-	float effectiveRadius = light.radius;
-	if(light.state.castShadows) {
-		effectiveRadius *= 3.0f;
+	//// Effective world-space bounds
+	//float minX = cameraPosition.x - halfWidth;
+	//float maxX = cameraPosition.x + halfWidth;
+	//float minY = cameraPosition.y - halfHeight;
+	//float maxY = cameraPosition.y + halfHeight;
 
-		// For spot lights with shadows, check along cast direction
-		if(light.state.isSpot) {
-			float angle = glm::radians(worldRotation);
-			glm::vec2 direction(cos(angle), sin(angle));
-			glm::vec2 extendedPos = worldPosition + direction * effectiveRadius;
+	//// Calculate effective light radius based on light type
+	//float effectiveRadius = light.radius;
+	//if(light.state.castShadows) {
+	//	effectiveRadius *= 3.0f;
 
-			// Check both light position and extended position
-			bool lightVisible = (worldPosition.x + effectiveRadius >= minX &&
-													 worldPosition.x - effectiveRadius <= maxX &&
-													 worldPosition.y + effectiveRadius >= minY &&
-													 worldPosition.y - effectiveRadius <= maxY);
+	//	// For spot lights with shadows, check along cast direction
+	//	if(light.state.isSpot) {
+	//		float angle = glm::radians(worldRotation);
+	//		glm::vec2 direction(cos(angle), sin(angle));
+	//		glm::vec2 extendedPos = worldPosition + direction * effectiveRadius;
 
-			bool extendedVisible = (extendedPos.x + effectiveRadius >= minX &&
-															extendedPos.x - effectiveRadius <= maxX &&
-															extendedPos.y + effectiveRadius >= minY &&
-															extendedPos.y - effectiveRadius <= maxY);
+	//		// Check both light position and extended position
+	//		bool lightVisible = (worldPosition.x + effectiveRadius >= minX &&
+	//												 worldPosition.x - effectiveRadius <= maxX &&
+	//												 worldPosition.y + effectiveRadius >= minY &&
+	//												 worldPosition.y - effectiveRadius <= maxY);
 
-			if(!lightVisible && !extendedVisible) {
-				return; // Reject if neither is visible
-			}
-		}
-		else {
-			// Point light with shadows
-			if(worldPosition.x + effectiveRadius < minX ||
-				 worldPosition.x - effectiveRadius > maxX ||
-				 worldPosition.y + effectiveRadius < minY ||
-				 worldPosition.y - effectiveRadius > maxY) {
-				return;
-			}
-		}
-	}
-	else {
-		// Regular light without shadows
-		if(worldPosition.x + effectiveRadius < minX ||
-			 worldPosition.x - effectiveRadius > maxX ||
-			 worldPosition.y + effectiveRadius < minY ||
-			 worldPosition.y - effectiveRadius > maxY) {
-			return;
-		}
-	}
+	//		bool extendedVisible = (extendedPos.x + effectiveRadius >= minX &&
+	//														extendedPos.x - effectiveRadius <= maxX &&
+	//														extendedPos.y + effectiveRadius >= minY &&
+	//														extendedPos.y - effectiveRadius <= maxY);
 
-	// Rest of the original function remains the same
-	uint32_t flags = 0;
-	flags |= light.state.enabled ? 1u : 0u;
-	flags |= light.state.castShadows ? 1u << 1 : 0u;
-	flags |= light.state.isSpot ? 1u << 2 : 0u;
+	//		if(!lightVisible && !extendedVisible) {
+	//			return; // Reject if neither is visible
+	//		}
+	//	}
+	//	else {
+	//		// Point light with shadows
+	//		if(worldPosition.x + effectiveRadius < minX ||
+	//			 worldPosition.x - effectiveRadius > maxX ||
+	//			 worldPosition.y + effectiveRadius < minY ||
+	//			 worldPosition.y - effectiveRadius > maxY) {
+	//			return;
+	//		}
+	//	}
+	//}
+	//else {
+	//	// Regular light without shadows
+	//	if(worldPosition.x + effectiveRadius < minX ||
+	//		 worldPosition.x - effectiveRadius > maxX ||
+	//		 worldPosition.y + effectiveRadius < minY ||
+	//		 worldPosition.y - effectiveRadius > maxY) {
+	//		return;
+	//	}
+	//}
 
-	LightData shadowData{
-			.position = worldPosition,
-			.lightAngle = glm::radians(worldRotation),
-			.lightConeAngle = light.state.isSpot ?
-					light.getConeAngleRadians() * 0.5f :
-					glm::pi<float>()
-	};
+	//// Rest of the original function remains the same
+	//uint32_t flags = 0;
+	//flags |= light.state.enabled ? 1u : 0u;
+	//flags |= light.state.castShadows ? 1u << 1 : 0u;
+	//flags |= light.state.isSpot ? 1u << 2 : 0u;
 
-	GPULightProperties renderData{
-			.color = light.color,
-			.intensity = light.intensity,
-			.radius = light.radius,
-			.innerRadius = light.innerRadius,
-			.distanceFalloff = light.falloffExponent,
-			.coneFalloff = light.coneFalloff,
-			.flags = flags
-	};
+	//LightData shadowData{
+	//		.position = worldPosition,
+	//		.lightAngle = glm::radians(worldRotation),
+	//		.lightConeAngle = light.state.isSpot ?
+	//				light.getConeAngleRadians() * 0.5f :
+	//				glm::pi<float>()
+	//};
 
-	frameStates[frameIndex].lights.emplace_back(renderData);
-	frameStates[frameIndex].lightData.emplace_back(shadowData);
+	//GPULightProperties renderData{
+	//		.color = light.color,
+	//		.intensity = light.intensity,
+	//		.radius = light.radius,
+	//		.innerRadius = light.innerRadius,
+	//		.distanceFalloff = light.falloffExponent,
+	//		.coneFalloff = light.coneFalloff,
+	//		.flags = flags
+	//};
+
+	//frameStates[frameIndex].lights.emplace_back(renderData);
+	//frameStates[frameIndex].lightData.emplace_back(shadowData);
 }
 
 void Renderer::LightingManager::addBlocker(const Transform& transform, uint32_t frameIndex) {
-	glm::vec2 position = transform.GetWorldPosition();
-	glm::vec2 scale = transform.GetWorldScale();
-	float rad = -glm::radians(transform.GetWorldRotation());
-	glm::vec2 halfScale = scale * 0.5f;
+	// TODO 3D: Lighting blocker
 
-	// Generate corners in counter-clockwise order
-	std::array<glm::vec2, 4> corners;
-	glm::mat2 rotMat(
-		std::cos(rad), -std::sin(rad),
-		std::sin(rad), std::cos(rad)
-	);
+	//glm::vec2 position = transform.GetWorldPosition();
+	//glm::vec2 scale = transform.GetWorldScale();
+	//float rad = -glm::radians(transform.GetWorldRotation());
+	//glm::vec2 halfScale = scale * 0.5f;
 
-	// Generate corners in deterministic order
-	corners[0] = position + rotMat * glm::vec2(-halfScale.x, -halfScale.y); // Bottom-left
-	corners[1] = position + rotMat * glm::vec2(halfScale.x, -halfScale.y);  // Bottom-right
-	corners[2] = position + rotMat * glm::vec2(halfScale.x, halfScale.y);   // Top-right
-	corners[3] = position + rotMat * glm::vec2(-halfScale.x, halfScale.y);  // Top-left
+	//// Generate corners in counter-clockwise order
+	//std::array<glm::vec2, 4> corners;
+	//glm::mat2 rotMat(
+	//	std::cos(rad), -std::sin(rad),
+	//	std::sin(rad), std::cos(rad)
+	//);
 
-	auto& blockers = frameStates[frameIndex].blockers;
-	// Ensure deterministic vertex order for each line segment
-	blockers.emplace_back(ShadowCaster{ corners[0], corners[1] }); // Bottom
-	blockers.emplace_back(ShadowCaster{ corners[1], corners[2] }); // Right
-	blockers.emplace_back(ShadowCaster{ corners[2], corners[3] }); // Top
-	blockers.emplace_back(ShadowCaster{ corners[3], corners[0] }); // Left
+	//// Generate corners in deterministic order
+	//corners[0] = position + rotMat * glm::vec2(-halfScale.x, -halfScale.y); // Bottom-left
+	//corners[1] = position + rotMat * glm::vec2(halfScale.x, -halfScale.y);  // Bottom-right
+	//corners[2] = position + rotMat * glm::vec2(halfScale.x, halfScale.y);   // Top-right
+	//corners[3] = position + rotMat * glm::vec2(-halfScale.x, halfScale.y);  // Top-left
+
+	//auto& blockers = frameStates[frameIndex].blockers;
+	//// Ensure deterministic vertex order for each line segment
+	//blockers.emplace_back(ShadowCaster{ corners[0], corners[1] }); // Bottom
+	//blockers.emplace_back(ShadowCaster{ corners[1], corners[2] }); // Right
+	//blockers.emplace_back(ShadowCaster{ corners[2], corners[3] }); // Top
+	//blockers.emplace_back(ShadowCaster{ corners[3], corners[0] }); // Left
 }
 
 
@@ -3225,48 +3234,50 @@ void Renderer::updateLineBuffer()
 		memcpy(mapped_alloc_info.pMappedData, _lines.data(), bufferSize);//
 	}
 }
-bool Renderer::isInViewport(const glm::vec2& position, const glm::vec2& size, float rotation = 0.0f) const {
-    // Calculate buffer size
-    float bufferX = m_viewport.width * 0.1f;
-    float bufferY = std::abs(m_viewport.height) * 0.1f;
+bool Renderer::isInViewport(const glm::vec3& position, const glm::vec3& size, const glm::vec3& rotation) const {
+	CONSOLE_LOG_UNIMPLEMENTED() << "Renderer is in viewport";
+  //  // Calculate buffer size
+  //  float bufferX = m_viewport.width * 0.1f;
+  //  float bufferY = std::abs(m_viewport.height) * 0.1f;
 
-		rotation = glm::radians(rotation);
-		// Check if the object is within the viewport, including the buffer zone
-    // For non-rotated entities, use the original faster AABB method
-    if (rotation == 0.0f || fmod(rotation, glm::two_pi<float>()) == 0.0f) {
-        // Convert world coordinates to screen coordinates
-        glm::vec2 screenPos = (position - m_cameraPosition) * m_zoom + glm::vec2(m_viewport.width / 2, std::abs(m_viewport.height) / 2);
-        glm::vec2 screenSize = size * m_zoom;
-        // Check if the object is within the viewport, including the buffer zone
-        return (screenPos.x + screenSize.x / 2 >= -bufferX &&
-                screenPos.x - screenSize.x / 2 <= m_viewport.width + bufferX &&
-                screenPos.y + screenSize.y / 2 >= -bufferY &&
-                screenPos.y - screenSize.y / 2 <= std::abs(m_viewport.height) + bufferY);
-    }
-    
-    // For rotated entities, calculate a bounding box that encompasses the rotated entity
-    
-    // Calculate half-size
-    float halfWidth = size.x / 2.0f;
-    float halfHeight = size.y / 2.0f;
-    
-    // Calculate the absolute values of sine and cosine of rotation angle
-    float cosA = std::abs(std::cos(rotation));
-    float sinA = std::abs(std::sin(rotation));
-    
-    // Calculate the maximum extent of the rotated box (projected onto x and y axes)
-    // This creates an AABB that fully contains the rotated box
-    float maxExtentX = halfWidth * cosA + halfHeight * sinA;
-    float maxExtentY = halfWidth * sinA + halfHeight * cosA;
-    
-    // Convert world coordinates to screen coordinates
-    glm::vec2 screenPos = (position - m_cameraPosition) * m_zoom + glm::vec2(m_viewport.width / 2, std::abs(m_viewport.height) / 2);
-    float screenExtentX = maxExtentX * m_zoom;
-    float screenExtentY = maxExtentY * m_zoom;
-    
-    // Check if the enlarged AABB overlaps with the viewport including buffer
-    return (screenPos.x + screenExtentX >= -bufferX &&
-            screenPos.x - screenExtentX <= m_viewport.width + bufferX &&
-            screenPos.y + screenExtentY >= -bufferY &&
-            screenPos.y - screenExtentY <= std::abs(m_viewport.height) + bufferY);
+		//rotation = glm::radians(rotation);
+		//// Check if the object is within the viewport, including the buffer zone
+  //  // For non-rotated entities, use the original faster AABB method
+  //  if (rotation == 0.0f || fmod(rotation, glm::two_pi<float>()) == 0.0f) {
+  //      // Convert world coordinates to screen coordinates
+  //      glm::vec2 screenPos = (position - m_cameraPosition) * m_zoom + glm::vec2(m_viewport.width / 2, std::abs(m_viewport.height) / 2);
+  //      glm::vec2 screenSize = size * m_zoom;
+  //      // Check if the object is within the viewport, including the buffer zone
+  //      return (screenPos.x + screenSize.x / 2 >= -bufferX &&
+  //              screenPos.x - screenSize.x / 2 <= m_viewport.width + bufferX &&
+  //              screenPos.y + screenSize.y / 2 >= -bufferY &&
+  //              screenPos.y - screenSize.y / 2 <= std::abs(m_viewport.height) + bufferY);
+  //  }
+  //  
+  //  // For rotated entities, calculate a bounding box that encompasses the rotated entity
+  //  
+  //  // Calculate half-size
+  //  float halfWidth = size.x / 2.0f;
+  //  float halfHeight = size.y / 2.0f;
+  //  
+  //  // Calculate the absolute values of sine and cosine of rotation angle
+  //  float cosA = std::abs(std::cos(rotation));
+  //  float sinA = std::abs(std::sin(rotation));
+  //  
+  //  // Calculate the maximum extent of the rotated box (projected onto x and y axes)
+  //  // This creates an AABB that fully contains the rotated box
+  //  float maxExtentX = halfWidth * cosA + halfHeight * sinA;
+  //  float maxExtentY = halfWidth * sinA + halfHeight * cosA;
+  //  
+  //  // Convert world coordinates to screen coordinates
+  //  glm::vec2 screenPos = (position - m_cameraPosition) * m_zoom + glm::vec2(m_viewport.width / 2, std::abs(m_viewport.height) / 2);
+  //  float screenExtentX = maxExtentX * m_zoom;
+  //  float screenExtentY = maxExtentY * m_zoom;
+  //  
+  //  // Check if the enlarged AABB overlaps with the viewport including buffer
+  //  return (screenPos.x + screenExtentX >= -bufferX &&
+  //          screenPos.x - screenExtentX <= m_viewport.width + bufferX &&
+  //          screenPos.y + screenExtentY >= -bufferY &&
+  //          screenPos.y - screenExtentY <= std::abs(m_viewport.height) + bufferY);
+	return false;
 }

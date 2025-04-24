@@ -32,9 +32,6 @@ All rights reserved.
 #include "Filesystem.h"
 #include "Import.h"
 
-#include "CSScripting.h"
-#include "ScriptManagement.h"
-#include "HotReloader.h"
 namespace fs = std::filesystem;
 
 AssetBrowser::AssetBrowser() {
@@ -459,7 +456,6 @@ void AssetBrowser::RenderMainView() {
     case CATEGORY::SOUNDS:      RenderSoundTable();     break;
     case CATEGORY::PREFABS:     RenderPrefabWindow();   break;
     case CATEGORY::SCENES:      RenderSceneWindow();    break;
-    case CATEGORY::SCRIPTS:     RenderScriptWindow();   break;
     case CATEGORY::SHADERS:     RenderShadersWindow();  break;
     }
 
@@ -487,7 +483,6 @@ void AssetBrowser::RenderToolbar() {
         case CATEGORY::SOUNDS:      location += "Sounds";       break;
         case CATEGORY::PREFABS:     location += "Prefabs";      break;
         case CATEGORY::SCENES:      location += "Scenes";       break;
-        case CATEGORY::SCRIPTS:     location += "Scripts";      break;
         case CATEGORY::SHADERS:     location += "Shaders";      break;
         default: break;
     }
@@ -1438,148 +1433,6 @@ void AssetBrowser::RenderSceneWindow()
     }
 
     ImGui::PopStyleVar();
-}
-
-void AssetBrowser::RenderScriptWindow()
-{
-    static char buffer[1024] = "NewScript";
-    ImGui::InputText(" ", buffer, sizeof(buffer));
-    if (ImGui::Button("Create Script") && ST<ScriptManager>::Get()->EnsureScriptsFoldedrExists())
-    {
-        std::string name = buffer;
-        name += ".cs";
-        CONSOLE_LOG_EXPLICIT("Name of Script: " + name, LogLevel::LEVEL_DEBUG);
-
-        if (!ST<ScriptManager>::Get()->CreateScript(name))
-        {
-            CONSOLE_LOG_EXPLICIT("Failed to create script:" + name, LogLevel::LEVEL_ERROR);
-
-        }
-    }
-    ImGui::SameLine();
-    if (ImGui::Button("Reload"))
-    {
-        CSharpScripts::CSScripting::ReloadAssembly();
-    }
-    ImGui::Separator();
-
-    std::string path = ST<Filepaths>::Get()->scriptsSave;
-    std::vector<std::string> scriptFiles;
-
-    if (ST<ScriptManager>::Get()->EnsureScriptsFoldedrExists())
-    {
-        for (const auto& entry : std::filesystem::directory_iterator(path))
-        {
-            if (entry.is_regular_file() && entry.path().extension() == ".cs")
-            {
-                scriptFiles.push_back(entry.path().filename().string());
-            }
-        }
-    }
-    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(5, 5));
-
-    // Define the number of columns you want
-    float thumbnailSize = THUMBNAIL_SIZE * 2;
-    float availableWidth = ImGui::GetContentRegionAvail().x;
-    int columnsCount = static_cast<int>(availableWidth / thumbnailSize);  // Calculate number of columns
-
-    for (size_t i = 0; i < scriptFiles.size(); ++i)
-    {
-        const std::string& scriptname = scriptFiles[i];
-        if (!MatchesFilter(scriptname))
-        {
-            continue;
-        }
-
-        ImGui::PushID(static_cast<int>(i));
-
-        ImGui::BeginGroup(); // Group to keep each button and label together
-
-        // Create the thumbnail (button)
-        if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceAllowNullID))
-        {
-            // Set the drag-and-drop payload (here, the file name)
-            std::string sent_script = scriptname;
-            ImGui::SetDragDropPayload("SCRIPT", sent_script.c_str(), (sent_script.size() + 1) * sizeof(char));
-            ImGui::Text(ICON_FA_CODE);  // Display the icon during dragging
-            ImGui::EndDragDropSource();
-        }
-
-        // Draw the icon button (thumbnail)
-        if (ImGui::Button(ICON_FA_CODE, ImVec2(thumbnailSize, thumbnailSize)))
-        {
-            // Single button click if needed
-        }
-
-        // Check for double-click on the item (icon)
-        if (ImGui::IsItemClicked(ImGuiMouseButton_Left) && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
-        {
-            // When double-clicked, load the script
-            ST<ScriptManager>::Get()->OpenScript(scriptname);
-        }
-
-        // Script Name Label (showing truncated if it's too long)
-        std::string displayName = scriptname;
-        float maxWidth = thumbnailSize;
-        ImVec2 textSize = ImGui::CalcTextSize(displayName.c_str());
-        if (textSize.x > maxWidth)
-        {
-            // Truncate text if it's too wide
-            while (textSize.x > maxWidth && displayName.length() > 3)
-            {
-                displayName = displayName.substr(0, displayName.length() - 4) + "...";
-                textSize = ImGui::CalcTextSize(displayName.c_str());
-            }
-        }
-
-        // Center the text label below the thumbnail
-        float textX = (thumbnailSize - textSize.x) * 0.5f;
-        ImGui::SetCursorPosX(ImGui::GetCursorPosX() + textX);
-        ImGui::TextUnformatted(displayName.c_str());
-
-        ImGui::EndGroup();
-
-        ImGui::PopID();
-
-        // Arrange items in columns
-        if ((static_cast<int>(i) + 1) % columnsCount != 0)
-        {
-            ImGui::SameLine(0.0f, ImGui::GetStyle().ItemSpacing.x);
-        }
-        else
-        {
-            ImGui::NewLine();
-        }
-    }
-
-    ImGui::PopStyleVar();
-  
-    //ImGui::PushID(count++);
-
-    //ImGui::BeginGroup();
-
-    //if (ImGui::Button("##scene", ImVec2(THUMBNAIL_SIZE, THUMBNAIL_SIZE)))
-    //{
-    //    ST<SceneManager>::Get()->LoadScene(entry.path());
-    //}
-
-    //// Name label
-    //std::string displayName = entry.path().stem().string();
-    //float maxWidth = THUMBNAIL_SIZE;
-    //ImVec2 textSize = ImGui::CalcTextSize(displayName.c_str());
-    //if (textSize.x > maxWidth) {
-    //    while (textSize.x > maxWidth && displayName.length() > 3) {
-    //        displayName = displayName.substr(0, displayName.length() - 4) + "...";
-    //        textSize = ImGui::CalcTextSize(displayName.c_str());
-    //    }
-    //}
-    //float textX = (THUMBNAIL_SIZE - textSize.x) * 0.5f;
-    //ImGui::SetCursorPosX(ImGui::GetCursorPosX() + textX);
-    //ImGui::TextUnformatted(displayName.c_str());
-    //ImGui::EndGroup();
-
-    //ImGui::PopID();
-    
 }
 
 void AssetBrowser::RenderShadersWindow()

@@ -22,11 +22,11 @@ void TrailRendererSystem::UpdateTrailComp(TrailRendererComponent& trailComp)
     // Add new point if emitting
     if(trailComp.emitting) {
         // Get current position from transform
-        Vec2 currentPosition = transform.GetWorldPosition();
+        Vec3 currentPosition = transform.GetWorldPosition();
 
         // Check if enough distance has been traveled
         if(trailComp.GetPointCount() == 0 ||
-           (currentPosition - trailComp.m_lastPosition).LengthSquared() >=
+           (currentPosition - trailComp.m_lastPosition).LengthSqr() >=
            trailComp.minVertexDistance * trailComp.minVertexDistance) {
             trailComp.AddPoint(currentPosition);
         }

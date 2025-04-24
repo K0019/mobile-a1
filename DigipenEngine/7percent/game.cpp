@@ -33,12 +33,10 @@ All rights reserved.
 #include "GameSettings.h"
 
 #include "ECSSysLayers.h"
-#include "Collision.h"
 #include "NameComponent.h"
 #include "AnimatorComponent.h"
 #include "RenderComponent.h"
 #include "CameraController.h"
-#include "ScriptComponent.h"
 #include "NameComponent.h"
 #include "Button.h"
 
@@ -72,7 +70,7 @@ void Game::Init(unsigned int width, unsigned int height, GAMESTATE firstState)
     ST<CustomViewport>::Get()->Init(Width, Height);
 #endif
     ST<CameraController>::Get()->SetCameraData(CameraData{
-        .position = Vec2{static_cast<float>(Width / 2), static_cast<float>(Height) / 2 },
+        .position = Vec3{static_cast<float>(Width / 2), static_cast<float>(Height) / 2, 0.0f },
         .zoom = 1.0f
     });
 

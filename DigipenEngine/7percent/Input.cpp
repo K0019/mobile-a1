@@ -98,7 +98,7 @@ const Vec2& Input::GetMousePosRaw()
 	return mousePos;
 }
 
-Vec2 Input::GetMousePosWorld()
+Vec3 Input::GetMousePosWorld()
 {
 #ifdef IMGUI_ENABLED
 	return ST<CustomViewport>::Get()->WindowToWorldPosition(Vec2{ ImGui::GetMousePos().x, ImGui::GetMousePos().y });

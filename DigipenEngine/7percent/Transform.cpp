@@ -89,7 +89,7 @@ void Transform::SetWorldPosition(const Vec& newPos)
 void Transform::AddWorldPosition(const Vec& addPos)
 {
 	if (parent)
-		position += parent->GetWorldMat().Inverse() * Vec4{ addPos, 0.0f };
+		position += Vec3{ parent->GetWorldMat().Inverse() * Vec4{ addPos, 0.0f } };
 	else
 		position += addPos;
 	SetDirty();

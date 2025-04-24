@@ -125,13 +125,13 @@ Console::Console()
 Console::Logger::~Logger() {
 	Flush();
 	if (unimplementedLogFlag)
-		throw NotImplementedException{};
+		assert(false); // Code execution reached an unimplemented function! Please proceed to bug the person responsible for that code.
 }
 
 Console::Logger& Console::Logger::SetUnimplementedFlag()
 {
 	unimplementedLogFlag = true;
-	messageBuffer << "Code execution reached an unimplemented function! Throwing NotImplementedException -- ";
+	messageBuffer << "Code execution reached an unimplemented function! -- ";
 	return *this;
 }
 

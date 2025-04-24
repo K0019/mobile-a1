@@ -1,4 +1,6 @@
 #pragma once
+#include <type_traits>
+#include <concepts>
 #include <glm/glm.hpp>
 
 namespace math {
@@ -86,21 +88,45 @@ namespace math {
 
 // glm template functions will treat our classes as a scalars when used as a function parameter without explicit instantiation of
 // those functions. These helper macros help to reduce A LOT of boilerplate code to work around this problem.
-#define GENERATE_OPERATOR_ADAPTER_H(OurClass, OperatorIdentifier) \
+#define GENERATE_MEMBER_OPERATOR_ADAPTER_H(OurClass, GLMClass, OperatorIdentifier) \
 template <typename T> \
-OurClass& OperatorIdentifier(const T& other);
-#define GENERATE_OPERATOR_ADAPTER_IPP(OurClass, GLMClass, OperatorIdentifier) \
-template<typename T> \
-inline OurClass& OurClass::OperatorIdentifier(const T& other) \
+	requires std::derived_from<T, GLMClass> \
+constexpr OurClass& operator##OperatorIdentifier(const T& other); \
+constexpr OurClass& operator##OperatorIdentifier(std::floating_point auto other);
+#define GENERATE_MEMBER_OPERATOR_ADAPTER_IPP(OurClass, GLMClass, OperatorIdentifier) \
+template <typename T> \
+	requires std::derived_from<T, GLMClass> \
+inline constexpr OurClass& OurClass::operator##OperatorIdentifier(const T& other) \
 { \
-	static_cast<GLMClass&>(*this) += other; \
+	static_cast<GLMClass&>(*this) OperatorIdentifier static_cast<const GLMClass&>(other); \
 	return *this; \
 } \
-template<> \
-inline OurClass& OurClass::OperatorIdentifier(const OurClass& other) \
+inline constexpr OurClass& OurClass::operator##OperatorIdentifier(std::floating_point auto other) \
 { \
-	static_cast<GLMClass&>(*this) += static_cast<const GLMClass&>(other); \
+	static_cast<GLMClass&>(*this) OperatorIdentifier other; \
 	return *this; \
+}
+
+#define GENERATE_GLOBAL_OPERATOR_ADAPTER_H(OurClass, GLMClass, OperatorIdentifier) \
+template <typename T, typename U> \
+	requires std::derived_from<T, GLMClass> && std::derived_from<U, GLMClass> \
+constexpr OurClass operator##OperatorIdentifier(const T& left, const U& right); \
+constexpr OurClass operator##OperatorIdentifier(const OurClass& left, std::floating_point auto right); \
+constexpr OurClass operator##OperatorIdentifier(std::floating_point auto left, const OurClass& right);
+#define GENERATE_GLOBAL_OPERATOR_ADAPTER_IPP(OurClass, GLMClass, OperatorIdentifier) \
+template <typename T, typename U> \
+	requires std::derived_from<T, GLMClass> && std::derived_from<U, GLMClass> \
+inline constexpr OurClass operator##OperatorIdentifier(const T& left, const U& right) \
+{ \
+	return OurClass{ static_cast<const GLMClass&>(left) OperatorIdentifier static_cast<const GLMClass&>(right) }; \
+} \
+inline constexpr OurClass operator##OperatorIdentifier(const OurClass& left, std::floating_point auto right) \
+{ \
+	return OurClass{ static_cast<const GLMClass&>(left) OperatorIdentifier right }; \
+} \
+inline constexpr OurClass operator##OperatorIdentifier(std::floating_point auto left, const OurClass& right) \
+{ \
+	return OurClass{ left OperatorIdentifier static_cast<const GLMClass&>(right) }; \
 }
 
 #pragma region Vec2
@@ -113,14 +139,20 @@ struct Vec2 : public glm::vec2
 	constexpr Vec2(glm::vec2&& other);
 	Vec2& operator=(const glm::vec2& other);
 	Vec2& operator=(glm::vec2&& other);
+	constexpr operator glm::vec2() const;
 
 	constexpr float Dot(const Vec2& other) const;
+	float Length() const;
 	constexpr float LengthSqr() const;
 	constexpr Vec2 Normalized() const;
 
 private: // Hide stuff we don't want the users to see
 	using glm::vec2::length;
 };
+GENERATE_GLOBAL_OPERATOR_ADAPTER_H(Vec2, glm::vec2, +)
+GENERATE_GLOBAL_OPERATOR_ADAPTER_H(Vec2, glm::vec2, -)
+GENERATE_GLOBAL_OPERATOR_ADAPTER_H(Vec2, glm::vec2, *)
+GENERATE_GLOBAL_OPERATOR_ADAPTER_H(Vec2, glm::vec2, /)
 
 #pragma endregion // Vec2
 
@@ -134,18 +166,25 @@ struct Vec3 : public glm::vec3
 	constexpr Vec3(glm::vec3&& other);
 	Vec3& operator=(const glm::vec3& other);
 	Vec3& operator=(glm::vec3&& other);
+	constexpr operator glm::vec3() const;
 
-	GENERATE_OPERATOR_ADAPTER_H(Vec3, operator+=)
-	GENERATE_OPERATOR_ADAPTER_H(Vec3, operator-=)
-	GENERATE_OPERATOR_ADAPTER_H(Vec3, operator*=)
-	GENERATE_OPERATOR_ADAPTER_H(Vec3, operator/=)
+	GENERATE_MEMBER_OPERATOR_ADAPTER_H(Vec3, glm::vec3, +=)
+	GENERATE_MEMBER_OPERATOR_ADAPTER_H(Vec3, glm::vec3, -=)
+	GENERATE_MEMBER_OPERATOR_ADAPTER_H(Vec3, glm::vec3, *=)
+	GENERATE_MEMBER_OPERATOR_ADAPTER_H(Vec3, glm::vec3, /=)
 
 	constexpr float Dot(const Vec3& other) const;
+	float Length() const;
+	constexpr float LengthSqr() const;
 	constexpr Vec3 Normalized() const;
 
 private: // Hide stuff we don't want the users to see
 	using glm::vec3::length;
 };
+GENERATE_GLOBAL_OPERATOR_ADAPTER_H(Vec3, glm::vec3, +)
+GENERATE_GLOBAL_OPERATOR_ADAPTER_H(Vec3, glm::vec3, -)
+GENERATE_GLOBAL_OPERATOR_ADAPTER_H(Vec3, glm::vec3, *)
+GENERATE_GLOBAL_OPERATOR_ADAPTER_H(Vec3, glm::vec3, /)
 
 #pragma endregion // Vec3
 
@@ -182,5 +221,7 @@ Vec3 operator*(const Mat4& mat, const Vec3& vec);
 
 #include "MagicMath.ipp"
 
-#undef GENERATE_OPERATOR_ADAPTER_H
-#undef GENERATE_OPERATOR_ADAPTER_IPP
+#undef GENERATE_MEMBER_OPERATOR_ADAPTER_H
+#undef GENERATE_MEMBER_OPERATOR_ADAPTER_IPP
+#undef GENERATE_GLOBAL_OPERATOR_ADAPTER_H
+#undef GENERATE_GLOBAL_OPERATOR_ADAPTER_IPP

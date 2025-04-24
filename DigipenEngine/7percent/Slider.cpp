@@ -141,7 +141,8 @@ void SliderSystem::UpdateSliderComp(SliderComponent& comp)
             }
 
             float sliderButtonX = (percentage * (barEntityMax - barEntityMin)) + barEntityMin;
-            sliderButtonEntity->GetTransform().SetWorldPosition({ sliderButtonX, sliderButtonY });
+            CONSOLE_LOG_UNIMPLEMENTED() << "Slider initialization";
+            //sliderButtonEntity->GetTransform().SetWorldPosition({ sliderButtonX, sliderButtonY });
         }
         comp.SetInitialSpriteSet(true);
     }
@@ -157,8 +158,10 @@ void SliderSystem::UpdateSliderComp(SliderComponent& comp)
     if (!onClicked && !comp.GetIsPressed())
         return;
 
+    CONSOLE_LOG_UNIMPLEMENTED() << "Slider cursor on slider";
+
     // Get whether the cursor is on the button. We'll need this later.
-    bool isCursorOnButton{ util::IsPointInside(Input::GetMousePosWorld(), ecs::GetEntityTransform(&comp)) };
+    /*bool isCursorOnButton{ util::IsPointInside(Input::GetMousePosWorld(), ecs::GetEntityTransform(&comp)) };
 
     if (isCursorOnButton)
     {
@@ -168,7 +171,7 @@ void SliderSystem::UpdateSliderComp(SliderComponent& comp)
     if (comp.GetIsPressed())
     {
         onSliderHold(comp);
-    }
+    }*/
 
 }
 
@@ -177,48 +180,50 @@ void SliderSystem::onSliderHold(SliderComponent& comp)
     if (ecs::CompHandle<RenderComponent> renderComp{ ecs::GetEntity(&comp)->GetComp<RenderComponent>() })
         renderComp->SetSpriteID(comp.GetSpriteIDPressed());
 
-    ecs::EntityHandle sliderButtonEntity{ ecs::GetEntity(&comp) };
-    ecs::EntityHandle barEntity{ ecs::GetEntity(sliderButtonEntity->GetCompInParents<SliderBar>()) };
-    float barEntityMin = barEntity->GetTransform().GetWorldPosition().x - (barEntity->GetTransform().GetWorldScale().x / 2);
-    float barEntityMax = barEntity->GetTransform().GetWorldPosition().x + (barEntity->GetTransform().GetWorldScale().x / 2);
-    float sliderButtonY = sliderButtonEntity->GetTransform().GetWorldPosition().y;
-    float sliderButtonX = 0;
-    Vec2 mou = Input::GetMousePosWorld();
+    CONSOLE_LOG_UNIMPLEMENTED() << "Slider hold";
+
+    //ecs::EntityHandle sliderButtonEntity{ ecs::GetEntity(&comp) };
+    //ecs::EntityHandle barEntity{ ecs::GetEntity(sliderButtonEntity->GetCompInParents<SliderBar>()) };
+    //float barEntityMin = barEntity->GetTransform().GetWorldPosition().x - (barEntity->GetTransform().GetWorldScale().x / 2);
+    //float barEntityMax = barEntity->GetTransform().GetWorldPosition().x + (barEntity->GetTransform().GetWorldScale().x / 2);
+    //float sliderButtonY = sliderButtonEntity->GetTransform().GetWorldPosition().y;
+    //float sliderButtonX = 0;
+    //Vec2 mou = Input::GetMousePosWorld();
   
 
-    //If mous pos is more than the end of the bar or less than start of the bar
-    if (mou.x > barEntityMax || mou.x < barEntityMin)
-    {
-        if (mou.x > barEntityMax) 
-            sliderButtonEntity->GetTransform().SetWorldPosition({ barEntityMax, sliderButtonY });
-        else 
-            sliderButtonEntity->GetTransform().SetWorldPosition({ barEntityMin, sliderButtonY });
+    ////If mous pos is more than the end of the bar or less than start of the bar
+    //if (mou.x > barEntityMax || mou.x < barEntityMin)
+    //{
+    //    if (mou.x > barEntityMax) 
+    //        sliderButtonEntity->GetTransform().SetWorldPosition({ barEntityMax, sliderButtonY });
+    //    else 
+    //        sliderButtonEntity->GetTransform().SetWorldPosition({ barEntityMin, sliderButtonY });
 
-        sliderButtonX = (mou.x > barEntityMax) ? barEntityMax : barEntityMin;
-    }
-    else
-    {
-        sliderButtonEntity->GetTransform().SetWorldPosition({ mou.x, sliderButtonY });
-        sliderButtonX = mou.x;
-    }
+    //    sliderButtonX = (mou.x > barEntityMax) ? barEntityMax : barEntityMin;
+    //}
+    //else
+    //{
+    //    sliderButtonEntity->GetTransform().SetWorldPosition({ mou.x, sliderButtonY });
+    //    sliderButtonX = mou.x;
+    //}
 
-    float sliderPercentage = (std::fabs(sliderButtonX - barEntityMin) / std::fabs(barEntityMax - barEntityMin));
+    //float sliderPercentage = (std::fabs(sliderButtonX - barEntityMin) / std::fabs(barEntityMax - barEntityMin));
 
-    switch (static_cast<VOLUME>(comp.sound))
-    {
-        case VOLUME::SFX :
-            ST<GameSettings>::Get()->m_volumeSFX = sliderPercentage;
-            break;
-        case VOLUME::BGM:
-            ST<GameSettings>::Get()->m_volumeBGM = sliderPercentage;
-            break;
+    //switch (static_cast<VOLUME>(comp.sound))
+    //{
+    //    case VOLUME::SFX :
+    //        ST<GameSettings>::Get()->m_volumeSFX = sliderPercentage;
+    //        break;
+    //    case VOLUME::BGM:
+    //        ST<GameSettings>::Get()->m_volumeBGM = sliderPercentage;
+    //        break;
 
-        default:
-            break;
-    }
-    
-    ST<GameSettings>::Get()->ApplyVolumes();
-    ST<GameSettings>::Get()->Save();
+    //    default:
+    //        break;
+    //}
+    //
+    //ST<GameSettings>::Get()->ApplyVolumes();
+    //ST<GameSettings>::Get()->Save();
 
     
 }

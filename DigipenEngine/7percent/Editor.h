@@ -77,7 +77,7 @@ public:
 
 	void DrawGizmoInViewport(ImDrawList* drawList);
 
-	void RenderGrid();
+	//void RenderGrid();
 
 	bool m_drawPhysicsBoxes;
 	bool m_drawVelocity;

@@ -104,8 +104,8 @@ void GameCameraControllerSystem::UpdateGameCameraController(GameCameraController
 		return;
 
 	// Find player position
-	Vec2 playerPosition = comp.playerEntity->GetTransform().GetWorldPosition();
-	float x = math::Clamp(playerPosition.x, comp.minX, comp.maxX);
-	float y = math::Clamp(playerPosition.y + comp.offsetAmountCurrent, comp.minY, comp.maxY);
-	comp.cameraEntity->GetTransform().SetWorldPosition(Vec2(x, y));
+	Vec3 playerPosition = comp.playerEntity->GetTransform().GetWorldPosition();
+	float x = std::clamp(playerPosition.x, comp.minX, comp.maxX);
+	float y = std::clamp(playerPosition.y + comp.offsetAmountCurrent, comp.minY, comp.maxY);
+	comp.cameraEntity->GetTransform().SetWorldPosition(Vec3(x, y, playerPosition.z));
 }

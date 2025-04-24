@@ -38,7 +38,7 @@ void PostProcessingComponent::EditorDraw()
         // Vignette color picker
         float color[3] = { vignetteColor.x, vignetteColor.y, vignetteColor.z };
         if (ImGui::ColorEdit3("Vignette Color", color)) {
-            vignetteColor = glm::vec4(color[0], color[1], color[2], 1.0f);
+            vignetteColor = Vec4(color[0], color[1], color[2], 1.0f);
         }
         
         // Vignette intensity slider

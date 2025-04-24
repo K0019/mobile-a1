@@ -1,7 +1,7 @@
 #include "TrailComponent.h"
 
 TrailRendererComponent::TrailRendererComponent()
-    : m_lastPosition(0.0f)
+    : m_lastPosition()
     , m_points{}
     , m_pointCount(0)
     , m_headIndex(0)
@@ -22,7 +22,7 @@ TrailRendererComponent::TrailRendererComponent(
     , endWidth(endWidth)
     , startColor(startColor)
     , endColor(endColor)
-    , m_lastPosition(0.0f)
+    , m_lastPosition()
     , m_points{}
     , m_pointCount(0)
     , m_headIndex(0)
@@ -71,7 +71,7 @@ const TrailRendererComponent::TrailPoint& TrailRendererComponent::GetPoint(int i
     return m_points[actualIndex];
 }
 
-void TrailRendererComponent::AddPoint(const Vec2& position) {
+void TrailRendererComponent::AddPoint(const Vec3& position) {
     // Check if we've reached the configured max points
     int effectiveMaxPoints = glm::min(maxPoints, (int)MAX_TRAIL_POINTS);
 

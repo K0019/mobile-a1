@@ -59,18 +59,6 @@ namespace util {
 
 #pragma region Interface
 
-/*****************************************************************//*!
-\class NotImplementedException
-\brief
-	Indicates that code execution has reached a part of our codebase that
-	has not been implemented yet. Time to get to work on that!
-*//******************************************************************/
-class NotImplementedException : public std::logic_error
-{
-public:
-	NotImplementedException() : logic_error{ "Function not implemented!" } {}
-};
-
 namespace util {
 
 	/*****************************************************************//*!

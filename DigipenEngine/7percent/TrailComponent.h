@@ -9,7 +9,7 @@ public:
     static constexpr size_t MAX_TRAIL_POINTS = 128;
 
     struct TrailPoint {
-        Vec2 position;    // World position when recorded
+        Vec3 position;    // World position when recorded
         float age;           // Current age of this point (in seconds)
     };
 
@@ -69,7 +69,7 @@ public:
     const TrailPoint& GetPoint(int index) const;
 
     // Add a new point to the trail
-    void AddPoint(const Vec2& position);
+    void AddPoint(const Vec3& position);
 
     // Remove points older than lifetime
     void RemoveExpiredPoints();
@@ -86,7 +86,7 @@ public:
     int GetPointCount() const;
 
     // Runtime data
-    Vec2 m_lastPosition;
+    Vec3 m_lastPosition;
     
 private:
     // Fixed-size circular buffer of points

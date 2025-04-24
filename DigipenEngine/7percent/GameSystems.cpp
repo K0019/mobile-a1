@@ -24,18 +24,14 @@ All rights reserved.
 #include "ECSSysLayers.h"
 
 #include "AnimatorSystem.h"
-#include "ArmPivotIK.h"
 #include "RenderSystem.h"
 #include "PostProcessingComponent.h"
 #include "TextSystem.h"
-#include "ScriptComponent.h"
 #include "Slider.h"
 
 #include "Button.h"
 #include "CheatCodes.h"
 #include "CameraSystem.h"
-#include "Physics.h"
-#include "Collision.h"
 #include "TweenECS.h"
 #include "AudioListener.h"
 #include "LightingSystem.h"
@@ -60,8 +56,6 @@ void GameState_Common::OnEnter()
     ecs::AddSystem(ECS_LAYER::RENDER_0, TrailRendererDrawingSystem{});
     ecs::AddSystem(ECS_LAYER::RENDER_0, LightingSystem{});
     ecs::AddSystem(ECS_LAYER::RENDER_0, PostProcessingSystem{});
-    ecs::AddSystem(ECS_LAYER::RENDER_1, Physics::ColliderBorderSystem{});
-    ecs::AddSystem(ECS_LAYER::RENDER_1, Physics::PhysicsVelocityDebugSystem{});
     ecs::AddSystem(ECS_LAYER::RENDER_UI_0, TextSystem{});
     ecs::AddSystem(ECS_LAYER::PRE_PHYSICS_0, FPSTextSystem{});
 }
@@ -92,15 +86,8 @@ void GameState_Game::OnEnter()
     ecs::AddSystem(ECS_LAYER::PRE_PHYSICS_0, AnimatorSystem{});
     ecs::AddSystem(ECS_LAYER::PRE_PHYSICS_0, TrailRendererSystem{});
     ecs::AddSystem(ECS_LAYER::PRE_PHYSICS_0, LightBlinkSystem{});
-    ecs::AddSystem(ECS_LAYER::SCRIPT_PREAWAKE, ScriptPreAwakeSystem{});
-    ecs::AddSystem(ECS_LAYER::SCRIPT_AWAKE, ScriptAwakeSystem{});
-    ecs::AddSystem(ECS_LAYER::SCRIPT_START, ScriptStartSystem{});
-    ecs::AddSystem(ECS_LAYER::SCRIPT_UPDATE, ScriptSystem{});
     ecs::AddSystem(ECS_LAYER::INPUT_0, CheatCodes{});
-    ecs::AddSystem(ECS_LAYER::PHYSICS, Physics::PhysicsSystem{});
-    ecs::AddSystem(ECS_LAYER::COLLISION, Physics::CollisionSystem{});
     ecs::AddSystem(ECS_LAYER::POST_PHYSICS_0, GameCameraControllerSystem{});
-    ecs::AddSystem(ECS_LAYER::POST_PHYSICS_0, ArmPivotIKSystem{});
     ecs::AddSystem(ECS_LAYER::TWEENING, TweenSystem{});
     ecs::AddSystem(ECS_LAYER::AUDIO, AudioListenerSystem{});
     ecs::AddSystem(ECS_LAYER::AUDIO, AudioSystem{});
@@ -109,12 +96,9 @@ void GameState_Game::OnEnter()
     ecs::AddSystem(ECS_LAYER::POST_PHYSICS_0, AnchorToCameraSystem{});
     ecs::AddSystem(ECS_LAYER::POST_PHYSICS_0, AnimationFinishSystem{});
     ecs::AddSystem(ECS_LAYER::POST_PHYSICS_1, ShakeSystem{});
-    ecs::AddSystem(ECS_LAYER::SCRIPT_LATE_UPDATE, ScriptLateUpdateSystem{});
 
     ecs::AddSystem(ECS_LAYER::POST_PHYSICS_0, FadeAndDieSystem{});
     ecs::AddSystem(ECS_LAYER::POST_PHYSICS_0, PrefabSpawnSystem{});
-
-    ecs::AddSystem(ECS_LAYER::RENDER_1, Physics::QuadtreeRenderSystem{});
 
     ecs::AddSystem(ECS_LAYER::PRE_PHYSICS_0, ExampleSystem{});
 }

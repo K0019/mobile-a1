@@ -374,8 +374,11 @@ void ButtonSystem::UpdateButtonComp(ButtonComponent& comp)
     if (!comp.GetIsPressable())
         return;
 
+
     // Get whether the cursor is on the button. We'll need this later.
-    bool isCursorOnButton{ util::IsPointInside(Input::GetMousePosWorld(), ecs::GetEntityTransform(&comp)) };
+    CONSOLE_LOG_UNIMPLEMENTED() << "Button system";
+    //bool isCursorOnButton{ util::IsPointInside(Input::GetMousePosWorld(), ecs::GetEntityTransform(&comp)) };
+    bool isCursorOnButton{};
 
     // Update the color override of buttons based on hover state
     if (ecs::CompHandle<RenderComponent> renderComp{ ecs::GetEntity(&comp)->GetComp<RenderComponent>() })

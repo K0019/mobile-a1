@@ -47,38 +47,40 @@ void Gizmo::detach() {
 void Gizmo::draw(ImDrawList* viewport) {
     if(m_activeType == GizmoType::None || !m_attachedTransform) return;
 
-    ImDrawList* drawList = viewport;
+    CONSOLE_LOG_UNIMPLEMENTED() << "Gizmo draw";
 
-    // Get screen space transform using your viewport system
-    Transform screenTransform = ST<CustomViewport>::Get()->WorldToWindowTransform(*m_attachedTransform);
-    Vec2 screenPos = screenTransform.GetLocalPosition();
+    //ImDrawList* drawList = viewport;
 
-    if(!m_isDragging) {
-        Vec2 mousePos = { ImGui::GetMousePos().x, ImGui::GetMousePos().y };
-        switch(m_activeType) {
-            case GizmoType::Translate:
-                checkTranslationHandles(mousePos, screenPos);
-                break;
-            case GizmoType::Rotate:
-                checkRotationHandle(mousePos, screenPos);
-                break;
-            case GizmoType::Scale:
-                checkScaleHandles(mousePos, screenPos, screenTransform.GetLocalRotation());
-                break;
-        }
-    }
+    //// Get screen space transform using your viewport system
+    //Transform screenTransform = ST<CustomViewport>::Get()->WorldToWindowTransform(*m_attachedTransform);
+    //Vec2 screenPos = screenTransform.GetLocalPosition();
 
-    switch(m_activeType) {
-        case GizmoType::Translate:
-            drawTranslationGizmo(drawList, screenPos);
-            break;
-        case GizmoType::Rotate:
-            drawRotationGizmo(drawList, screenPos, screenTransform.GetLocalRotation());
-            break;
-        case GizmoType::Scale:
-            drawScaleGizmo(drawList, screenPos, screenTransform.GetLocalRotation());
-            break;
-    }
+    //if(!m_isDragging) {
+    //    Vec2 mousePos = { ImGui::GetMousePos().x, ImGui::GetMousePos().y };
+    //    switch(m_activeType) {
+    //        case GizmoType::Translate:
+    //            checkTranslationHandles(mousePos, screenPos);
+    //            break;
+    //        case GizmoType::Rotate:
+    //            checkRotationHandle(mousePos, screenPos);
+    //            break;
+    //        case GizmoType::Scale:
+    //            checkScaleHandles(mousePos, screenPos, screenTransform.GetLocalRotation());
+    //            break;
+    //    }
+    //}
+
+    //switch(m_activeType) {
+    //    case GizmoType::Translate:
+    //        drawTranslationGizmo(drawList, screenPos);
+    //        break;
+    //    case GizmoType::Rotate:
+    //        drawRotationGizmo(drawList, screenPos, screenTransform.GetLocalRotation());
+    //        break;
+    //    case GizmoType::Scale:
+    //        drawScaleGizmo(drawList, screenPos, screenTransform.GetLocalRotation());
+    //        break;
+    //}
 }
 
 void Gizmo::processInput()
@@ -136,144 +138,146 @@ float Gizmo::getScaledGizmoSize() const {
 void Gizmo::handleInput() {
     if(!m_attachedTransform) return;
 
-    Vec2 mousePos = { ImGui::GetMousePos().x, ImGui::GetMousePos().y };
-    Transform screenTransform = ST<CustomViewport>::Get()->WorldToWindowTransform(*m_attachedTransform);
-    Vec2 screenPos = screenTransform.GetWorldPosition();
-    bool isMouseDown = ImGui::IsMouseDown(ImGuiMouseButton_Left);
+    CONSOLE_LOG_UNIMPLEMENTED() << "Gizmo handle input";
 
-    if(!m_isDragging) {
-        // Update hover state
-        switch(m_activeType) {
-            case GizmoType::Translate:
-                checkTranslationHandles(mousePos, screenPos);
-                break;
-            case GizmoType::Rotate:
-                checkRotationHandle(mousePos, screenPos);
-                break;
-            case GizmoType::Scale:
-                checkScaleHandles(mousePos, screenPos, screenTransform.GetWorldRotation());
-                break;
-        }
+    //Vec2 mousePos = { ImGui::GetMousePos().x, ImGui::GetMousePos().y };
+    //Transform screenTransform = ST<CustomViewport>::Get()->WorldToWindowTransform(*m_attachedTransform);
+    //Vec2 screenPos = screenTransform.GetWorldPosition();
+    //bool isMouseDown = ImGui::IsMouseDown(ImGuiMouseButton_Left);
 
-        if(isMouseDown && m_hoveredAxis != -1) {
-            m_isDragging = true;
-            m_selectedAxis = m_hoveredAxis;
-            m_dragStart = mousePos;  // Store screen space position for translation/rotation
-            m_initialScale = m_attachedTransform->GetWorldScale();
-            ST<CustomViewport>::Get()->SetDisableMoving(true);
-        }
-    }
-    else if(m_isDragging) {
-        if(isMouseDown) {
-            switch(m_activeType) {
-                case GizmoType::Translate: {
-                    // Get current position before modification
-                    m_initialPosition = m_attachedTransform->GetWorldPosition();
-                    Vec2 screenDelta = mousePos - m_dragStart;
-                    screenDelta.y *= -1;  // Invert Y because screen space is Y-down
+    //if(!m_isDragging) {
+    //    // Update hover state
+    //    switch(m_activeType) {
+    //        case GizmoType::Translate:
+    //            checkTranslationHandles(mousePos, screenPos);
+    //            break;
+    //        case GizmoType::Rotate:
+    //            checkRotationHandle(mousePos, screenPos);
+    //            break;
+    //        case GizmoType::Scale:
+    //            checkScaleHandles(mousePos, screenPos, screenTransform.GetWorldRotation());
+    //            break;
+    //    }
 
-                    // Constrain movement to selected axis
-                    if(m_selectedAxis == 0) screenDelta.y = 0;  // X axis only
-                    if(m_selectedAxis == 1) screenDelta.x = 0;  // Y axis only
+    //    if(isMouseDown && m_hoveredAxis != -1) {
+    //        m_isDragging = true;
+    //        m_selectedAxis = m_hoveredAxis;
+    //        m_dragStart = mousePos;  // Store screen space position for translation/rotation
+    //        m_initialScale = m_attachedTransform->GetWorldScale();
+    //        ST<CustomViewport>::Get()->SetDisableMoving(true);
+    //    }
+    //}
+    //else if(m_isDragging) {
+    //    if(isMouseDown) {
+    //        switch(m_activeType) {
+    //            case GizmoType::Translate: {
+    //                // Get current position before modification
+    //                m_initialPosition = m_attachedTransform->GetWorldPosition();
+    //                Vec2 screenDelta = mousePos - m_dragStart;
+    //                screenDelta.y *= -1;  // Invert Y because screen space is Y-down
 
-                    // Apply translation in screen space
-                    ST<History>::Get()->IntermediateEvent(HistoryEvent_Translation{ m_attachedTransform->GetEntity(), m_attachedTransform->GetLocalPosition() });
-                    m_attachedTransform->SetWorldPosition(m_initialPosition + screenDelta);
-                    m_dragStart = mousePos;  // Update drag start for next frame
-                    break;
-                }
-                case GizmoType::Rotate: {
-                    // Calculate vector from center to mouse
-                    m_initialRotation = m_attachedTransform->GetWorldRotation();
-                    Vec2 toMouse = mousePos - screenPos;
-                    
-                    // Get angle in degrees from vector components
-                    // atan2 gives angle in radians from [-pi, pi]
-                    float rotation = atan2f(toMouse.y, toMouse.x) * -180.0f / PI;
-                    
-                    // Convert from [-180, 180] to [0, 360] range
-                    if(rotation < 0) {
-                        rotation += 360.0f;
-                    }
+    //                // Constrain movement to selected axis
+    //                if(m_selectedAxis == 0) screenDelta.y = 0;  // X axis only
+    //                if(m_selectedAxis == 1) screenDelta.x = 0;  // Y axis only
 
-                    // Check for snapping
-                    const float SNAP_THRESHOLD = 5.0f;  // Degrees within which to snap
-                    const float SNAP_ANGLE = 90.0f;     // Snap to multiples of this angle
-                    
-                    // Find nearest multiple of 90 degrees
-                    float nearestSnap = roundf(rotation / SNAP_ANGLE) * SNAP_ANGLE;
-                    float distToSnap = fabsf(rotation - nearestSnap);
-                    if(distToSnap <= SNAP_THRESHOLD) {
-                        rotation = nearestSnap;
-                    }
+    //                // Apply translation in screen space
+    //                ST<History>::Get()->IntermediateEvent(HistoryEvent_Translation{ m_attachedTransform->GetEntity(), m_attachedTransform->GetLocalPosition() });
+    //                m_attachedTransform->SetWorldPosition(m_initialPosition + screenDelta);
+    //                m_dragStart = mousePos;  // Update drag start for next frame
+    //                break;
+    //            }
+    //            case GizmoType::Rotate: {
+    //                // Calculate vector from center to mouse
+    //                m_initialRotation = m_attachedTransform->GetWorldRotation();
+    //                Vec2 toMouse = mousePos - screenPos;
+    //                
+    //                // Get angle in degrees from vector components
+    //                // atan2 gives angle in radians from [-pi, pi]
+    //                float rotation = atan2f(toMouse.y, toMouse.x) * -180.0f / PI;
+    //                
+    //                // Convert from [-180, 180] to [0, 360] range
+    //                if(rotation < 0) {
+    //                    rotation += 360.0f;
+    //                }
 
-                    ST<History>::Get()->IntermediateEvent(HistoryEvent_Rotation{ m_attachedTransform->GetEntity(), m_attachedTransform->GetLocalRotation() });
-                    m_attachedTransform->SetWorldRotation(rotation);
-                    break;
-                }
+    //                // Check for snapping
+    //                const float SNAP_THRESHOLD = 5.0f;  // Degrees within which to snap
+    //                const float SNAP_ANGLE = 90.0f;     // Snap to multiples of this angle
+    //                
+    //                // Find nearest multiple of 90 degrees
+    //                float nearestSnap = roundf(rotation / SNAP_ANGLE) * SNAP_ANGLE;
+    //                float distToSnap = fabsf(rotation - nearestSnap);
+    //                if(distToSnap <= SNAP_THRESHOLD) {
+    //                    rotation = nearestSnap;
+    //                }
 
-                case GizmoType::Scale: {
-                    Vec2 screenDelta = mousePos - m_dragStart;
-                    Vec2 rotatedDelta;
-                    Vec2 newScale{ m_initialScale };
-                    // Convert rotation to radians for trigonometric functions
-                    float rotRad = m_attachedTransform->GetWorldRotation() * PI / 180.0f;
-                    if(m_selectedAxis == 0) { // X axis scaling
-                        // Project screen delta onto rotated X axis
-                        rotatedDelta.x = screenDelta.x * cosf(rotRad) + screenDelta.y * sinf(rotRad);
-                        // Calculate scale multiplier based on drag distance
-                        float scaleMultiplier = 1.0f + rotatedDelta.x / (GIZMO_SIZE * 2.0f);
-                        newScale.x *= scaleMultiplier;
-                    }
-                    else if(m_selectedAxis == 1) { // Y axis scaling
-                        // Project screen delta onto rotated Y axis
-                        rotatedDelta.y = -screenDelta.x * sinf(rotRad) + screenDelta.y * -cosf(rotRad);
-                        float scaleMultiplier = 1.0f + rotatedDelta.y / (GIZMO_SIZE * 2.0f);
-                        newScale.y *= scaleMultiplier;
-                    }
-                    else if(m_selectedAxis == 2) { // Uniform scaling
-                        // Use combined X and Y movement for uniform scaling
-                        Vec2 centerPos = ST<CustomViewport>::Get()->WorldToWindowTransform(*m_attachedTransform).GetWorldPosition();
-                        Vec2 toInitialMouse = m_dragStart - centerPos;
-                        Vec2 toCurrentMouse = mousePos - centerPos;
+    //                ST<History>::Get()->IntermediateEvent(HistoryEvent_Rotation{ m_attachedTransform->GetEntity(), m_attachedTransform->GetLocalRotation() });
+    //                m_attachedTransform->SetWorldRotation(rotation);
+    //                break;
+    //            }
 
-                        float initialDist = toInitialMouse.Length();
+    //            case GizmoType::Scale: {
+    //                Vec2 screenDelta = mousePos - m_dragStart;
+    //                Vec2 rotatedDelta;
+    //                Vec2 newScale{ m_initialScale };
+    //                // Convert rotation to radians for trigonometric functions
+    //                float rotRad = m_attachedTransform->GetWorldRotation() * PI / 180.0f;
+    //                if(m_selectedAxis == 0) { // X axis scaling
+    //                    // Project screen delta onto rotated X axis
+    //                    rotatedDelta.x = screenDelta.x * cosf(rotRad) + screenDelta.y * sinf(rotRad);
+    //                    // Calculate scale multiplier based on drag distance
+    //                    float scaleMultiplier = 1.0f + rotatedDelta.x / (GIZMO_SIZE * 2.0f);
+    //                    newScale.x *= scaleMultiplier;
+    //                }
+    //                else if(m_selectedAxis == 1) { // Y axis scaling
+    //                    // Project screen delta onto rotated Y axis
+    //                    rotatedDelta.y = -screenDelta.x * sinf(rotRad) + screenDelta.y * -cosf(rotRad);
+    //                    float scaleMultiplier = 1.0f + rotatedDelta.y / (GIZMO_SIZE * 2.0f);
+    //                    newScale.y *= scaleMultiplier;
+    //                }
+    //                else if(m_selectedAxis == 2) { // Uniform scaling
+    //                    // Use combined X and Y movement for uniform scaling
+    //                    Vec2 centerPos = ST<CustomViewport>::Get()->WorldToWindowTransform(*m_attachedTransform).GetWorldPosition();
+    //                    Vec2 toInitialMouse = m_dragStart - centerPos;
+    //                    Vec2 toCurrentMouse = mousePos - centerPos;
 
-                        if(initialDist > 1.0f) {
-                            // Normalize the initial direction vector
-                            Vec2 initialDir = toInitialMouse.Normalize();
+    //                    float initialDist = toInitialMouse.Length();
 
-                            // Project current mouse position onto the initial direction vector
-                            float projectedDist = toCurrentMouse.Dot(initialDir);
+    //                    if(initialDist > 1.0f) {
+    //                        // Normalize the initial direction vector
+    //                        Vec2 initialDir = toInitialMouse.Normalize();
 
-                            // Clamp the projected distance to prevent scaling when moving past center
-                            projectedDist = std::max(0.0f, projectedDist);
+    //                        // Project current mouse position onto the initial direction vector
+    //                        float projectedDist = toCurrentMouse.Dot(initialDir);
 
-                            // Calculate scale multiplier based on projected distance
-                            float scaleMultiplier = projectedDist / initialDist;
+    //                        // Clamp the projected distance to prevent scaling when moving past center
+    //                        projectedDist = std::max(0.0f, projectedDist);
 
-                            // Add a minimum scale to prevent collapse
-                            const float MIN_SCALE = 0.01f;
-                            float minMultiplier = MIN_SCALE / m_initialScale.x;
-                            scaleMultiplier = std::max(scaleMultiplier, minMultiplier);
+    //                        // Calculate scale multiplier based on projected distance
+    //                        float scaleMultiplier = projectedDist / initialDist;
 
-                            newScale *= scaleMultiplier;
-                        }
-                    }
-                    ST<History>::Get()->IntermediateEvent(HistoryEvent_Scale{ m_attachedTransform->GetEntity(), m_attachedTransform->GetLocalScale() });
-                    m_attachedTransform->SetWorldScale(newScale);
-                    break;
-                }
-                default: break;
-            }
-        }
-        else {
-            m_isDragging = false;
-            m_selectedAxis = -1;
-            m_hoveredAxis = -1;
-            ST<CustomViewport>::Get()->SetDisableMoving(false);
-        }
-    }
+    //                        // Add a minimum scale to prevent collapse
+    //                        const float MIN_SCALE = 0.01f;
+    //                        float minMultiplier = MIN_SCALE / m_initialScale.x;
+    //                        scaleMultiplier = std::max(scaleMultiplier, minMultiplier);
+
+    //                        newScale *= scaleMultiplier;
+    //                    }
+    //                }
+    //                ST<History>::Get()->IntermediateEvent(HistoryEvent_Scale{ m_attachedTransform->GetEntity(), m_attachedTransform->GetLocalScale() });
+    //                m_attachedTransform->SetWorldScale(newScale);
+    //                break;
+    //            }
+    //            default: break;
+    //        }
+    //    }
+    //    else {
+    //        m_isDragging = false;
+    //        m_selectedAxis = -1;
+    //        m_hoveredAxis = -1;
+    //        ST<CustomViewport>::Get()->SetDisableMoving(false);
+    //    }
+    //}
 }
 
 void Gizmo::drawTranslationGizmo(ImDrawList* drawList, const Vec2& center) {
@@ -392,20 +396,22 @@ void Gizmo::drawScaleGizmo(ImDrawList* drawList, const Vec2& center, float rotat
         yScaleColor
     );
 
-    // Uniform scale handle at rotated corner
-    Transform screenTransform = ST<CustomViewport>::Get()->WorldToWindowTransform(*m_attachedTransform);
-    Vec2 scale = screenTransform.GetWorldScale();
+    CONSOLE_LOG_UNIMPLEMENTED() << "Gizmo draw scale";
 
-    // Place handle at corner by adding half scale in both axis directions
-    Vec2 cornerOffset = (xDirection * scale.x + yDirection * scale.y) * 0.5f;
-    Vec2 uHandlePos = center + cornerOffset;
+    //// Uniform scale handle at rotated corner
+    //Transform screenTransform = ST<CustomViewport>::Get()->WorldToWindowTransform(*m_attachedTransform);
+    //Vec2 scale = screenTransform.GetWorldScale();
 
-    ImU32 uScaleColor = getAxisColor(2, Uniform_axis);
-    drawList->AddRectFilled(
-        { uHandlePos.x - handleSize, uHandlePos.y - handleSize },
-        { uHandlePos.x + handleSize, uHandlePos.y + handleSize },
-        uScaleColor
-    );
+    //// Place handle at corner by adding half scale in both axis directions
+    //Vec2 cornerOffset = (xDirection * scale.x + yDirection * scale.y) * 0.5f;
+    //Vec2 uHandlePos = center + cornerOffset;
+
+    //ImU32 uScaleColor = getAxisColor(2, Uniform_axis);
+    //drawList->AddRectFilled(
+    //    { uHandlePos.x - handleSize, uHandlePos.y - handleSize },
+    //    { uHandlePos.x + handleSize, uHandlePos.y + handleSize },
+    //    uScaleColor
+    //);
 }
 
 // Helper function for line hit detection
@@ -502,15 +508,17 @@ void Gizmo::checkScaleHandles(const Vec2& mousePos, const Vec2& center, float ro
         return;
     }
 
-    // Uniform scale handle at rotated corner
-    Transform screenTransform = ST<CustomViewport>::Get()->WorldToWindowTransform(*m_attachedTransform);
-    Vec2 scale = screenTransform.GetWorldScale();
-    Vec2 cornerOffset = (xDirection * scale.x + yDirection * scale.y) * 0.5f;
-    Vec2 uHandlePos = center + cornerOffset;
+    CONSOLE_LOG_UNIMPLEMENTED() << "Gizmo check scale handles";
 
-    if(isPointInRect(mousePos, uHandlePos, handleSize)) {
-        m_hoveredAxis = 2;
-        m_selectedAxis = m_isDragging ? m_selectedAxis : -1;
-    }
+    //// Uniform scale handle at rotated corner
+    //Transform screenTransform = ST<CustomViewport>::Get()->WorldToWindowTransform(*m_attachedTransform);
+    //Vec2 scale = screenTransform.GetWorldScale();
+    //Vec2 cornerOffset = (xDirection * scale.x + yDirection * scale.y) * 0.5f;
+    //Vec2 uHandlePos = center + cornerOffset;
+
+    //if(isPointInRect(mousePos, uHandlePos, handleSize)) {
+    //    m_hoveredAxis = 2;
+    //    m_selectedAxis = m_isDragging ? m_selectedAxis : -1;
+    //}
 }
 #endif
