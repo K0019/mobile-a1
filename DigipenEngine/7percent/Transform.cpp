@@ -80,7 +80,7 @@ void Transform::AddLocalPosition(const Vec& addPos)
 void Transform::SetWorldPosition(const Vec& newPos)
 {
 	if (parent)
-		position = parent->GetWorldMat().Inverse() * newPos;
+		position = Vec3{ parent->GetWorldMat().Inverse() * Vec4{ newPos, 1.0f } };
 	else
 		 position = newPos;
 	SetDirty();
@@ -186,7 +186,7 @@ const Transform::Vec& Transform::GetLocalScale() const
 
 Transform::Vec Transform::GetWorldPosition() const
 {
-	return (parent ? parent->GetWorldMat() * position : position);
+	return (parent ? Vec3{ parent->GetWorldMat() * Vec4{ position, 1.0f } } : position);
 }
 
 Transform::Vec Transform::GetWorldRotation() const

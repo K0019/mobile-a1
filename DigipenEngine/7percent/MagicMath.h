@@ -3,6 +3,10 @@
 #include <concepts>
 #include <glm/glm.hpp>
 
+struct Vec2;
+struct Vec3;
+struct Vec4;
+
 namespace math {
 
 	static constexpr float PI_f{ 3.141592653589793f };
@@ -139,7 +143,12 @@ struct Vec2 : public glm::vec2
 	constexpr Vec2(glm::vec2&& other);
 	Vec2& operator=(const glm::vec2& other);
 	Vec2& operator=(glm::vec2&& other);
-	constexpr operator glm::vec2() const;
+
+	constexpr Vec2 operator-() const;
+	GENERATE_MEMBER_OPERATOR_ADAPTER_H(Vec2, glm::vec2, +=)
+	GENERATE_MEMBER_OPERATOR_ADAPTER_H(Vec2, glm::vec2, -=)
+	GENERATE_MEMBER_OPERATOR_ADAPTER_H(Vec2, glm::vec2, *=)
+	GENERATE_MEMBER_OPERATOR_ADAPTER_H(Vec2, glm::vec2, /=)
 
 	constexpr float Dot(const Vec2& other) const;
 	float Length() const;
@@ -162,12 +171,17 @@ struct Vec3 : public glm::vec3
 {
 	Vec3() = default;
 	constexpr Vec3(float x, float y, float z);
+	constexpr Vec3(const Vec2& vec, float z);
+	explicit constexpr Vec3(const Vec4& vec);
 	constexpr Vec3(const glm::vec3& other);
 	constexpr Vec3(glm::vec3&& other);
 	Vec3& operator=(const glm::vec3& other);
 	Vec3& operator=(glm::vec3&& other);
-	constexpr operator glm::vec3() const;
+	// Disallow implicit truncation to smaller vectors.
+	operator Vec2() = delete;
+	operator glm::vec2() = delete;
 
+	constexpr Vec3 operator-() const;
 	GENERATE_MEMBER_OPERATOR_ADAPTER_H(Vec3, glm::vec3, +=)
 	GENERATE_MEMBER_OPERATOR_ADAPTER_H(Vec3, glm::vec3, -=)
 	GENERATE_MEMBER_OPERATOR_ADAPTER_H(Vec3, glm::vec3, *=)
@@ -195,10 +209,34 @@ struct Vec4 : public glm::vec4
 	Vec4() = default;
 	constexpr Vec4(float x, float y, float z, float w);
 	constexpr Vec4(const Vec3& vec, float w);
+	constexpr Vec4(const glm::vec4& other);
+	constexpr Vec4(glm::vec4&& other);
+	Vec4& operator=(const glm::vec4& other);
+	Vec4& operator=(glm::vec4&& other);
+	// Disallow implicit truncation to smaller vectors.
+	operator Vec2() = delete;
+	operator glm::vec2() = delete;
+	operator Vec3() = delete;
+	operator glm::vec3() = delete;
+
+	constexpr Vec4 operator-() const;
+	GENERATE_MEMBER_OPERATOR_ADAPTER_H(Vec4, glm::vec4, +=)
+	GENERATE_MEMBER_OPERATOR_ADAPTER_H(Vec4, glm::vec4, -=)
+	GENERATE_MEMBER_OPERATOR_ADAPTER_H(Vec4, glm::vec4, *=)
+	GENERATE_MEMBER_OPERATOR_ADAPTER_H(Vec4, glm::vec4, /=)
+
+	constexpr float Dot(const Vec4& other) const;
+	float Length() const;
+	constexpr float LengthSqr() const;
+	constexpr Vec4 Normalized() const;
 
 private: // Hide stuff we don't want the users to see
 	using glm::vec4::length;
 };
+GENERATE_GLOBAL_OPERATOR_ADAPTER_H(Vec4, glm::vec4, +)
+GENERATE_GLOBAL_OPERATOR_ADAPTER_H(Vec4, glm::vec4, -)
+GENERATE_GLOBAL_OPERATOR_ADAPTER_H(Vec4, glm::vec4, *)
+GENERATE_GLOBAL_OPERATOR_ADAPTER_H(Vec4, glm::vec4, /)
 
 #pragma endregion // Vec4
 
@@ -215,7 +253,7 @@ struct Mat4 : public glm::mat4
 	constexpr Mat4 Inverse() const;
 };
 
-Vec3 operator*(const Mat4& mat, const Vec3& vec);
+Vec4 operator*(const Mat4& mat, const Vec4& vec);
 
 #pragma endregion // Mat4
 

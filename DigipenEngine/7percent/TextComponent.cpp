@@ -99,78 +99,80 @@ bool TextComponent::isUI() const
 
 void TextComponent::CalculateWorldTransform()
 {
-        const auto& atlas = ResourceManager::GetFont(GetFontHash());
-        const auto& transform = ecs::GetEntityTransform(this);
-        uint32_t previousChar = 0;
-        Vec2 position{transform.GetWorldPosition()};
-        Vec2 scale{transform.GetWorldScale()};
-        float minDescent = atlas.descender * scale.y;
+    CONSOLE_LOG_UNIMPLEMENTED() << "Text calculate world transform";
 
-        // Calculate total width of the text including offsets
-        float totalWidth = 0.0f;
-        float maxAscent = 0.0f;
-        float maxDescent = 0.0f;
+        //const auto& atlas = ResourceManager::GetFont(GetFontHash());
+        //const auto& transform = ecs::GetEntityTransform(this);
+        //uint32_t previousChar = 0;
+        //Vec2 position{transform.GetWorldPosition()};
+        //Vec2 scale{transform.GetWorldScale()};
+        //float minDescent = atlas.descender * scale.y;
 
-        // First pass: calculate total dimensions
-        for(const char& c : textString) {
-            uint32_t currentChar = static_cast<uint32_t>(c);
-            if(currentChar < FontAtlas::FIRST_CHAR || currentChar > FontAtlas::LAST_CHAR) continue;
+        //// Calculate total width of the text including offsets
+        //float totalWidth = 0.0f;
+        //float maxAscent = 0.0f;
+        //float maxDescent = 0.0f;
 
-            size_t glyphIndex = currentChar - FontAtlas::FIRST_CHAR;
-            const Glyph& glyph = atlas.glyphs[glyphIndex];
+        //// First pass: calculate total dimensions
+        //for(const char& c : textString) {
+        //    uint32_t currentChar = static_cast<uint32_t>(c);
+        //    if(currentChar < FontAtlas::FIRST_CHAR || currentChar > FontAtlas::LAST_CHAR) continue;
 
-            if(previousChar != 0) {
-                float kerning = atlas.getKerning(previousChar, currentChar);
-                totalWidth += kerning * scale.x;
-            }
+        //    size_t glyphIndex = currentChar - FontAtlas::FIRST_CHAR;
+        //    const Glyph& glyph = atlas.glyphs[glyphIndex];
 
-            totalWidth += (glyph.advance * scale.x);
-            maxAscent = std::max(maxAscent, (glyph.planeBounds[1].y) * scale.y);
-            if(c != ' ') {
-                maxDescent = std::max(maxDescent, std::max(-glyph.planeBounds[0].y * scale.y, minDescent));
-            }
+        //    if(previousChar != 0) {
+        //        float kerning = atlas.getKerning(previousChar, currentChar);
+        //        totalWidth += kerning * scale.x;
+        //    }
 
-            previousChar = currentChar;
-        }
-        maxDescent = std::max(maxDescent, minDescent);
-        float totalHeight = maxAscent + maxDescent;
+        //    totalWidth += (glyph.advance * scale.x);
+        //    maxAscent = std::max(maxAscent, (glyph.planeBounds[1].y) * scale.y);
+        //    if(c != ' ') {
+        //        maxDescent = std::max(maxDescent, std::max(-glyph.planeBounds[0].y * scale.y, minDescent));
+        //    }
 
-        // Calculate text starting position based on alignment
-        textStart = position;
-        switch(GetAlignment()) {
-            case TextAlignment::Left:
-                // For left alignment, start at the entity's center
-                break;
-            case TextAlignment::Center:
-                // For center alignment, move left by half the width
-                textStart.x -= totalWidth / 2.0f;
-                break;
-            case TextAlignment::Right:
-                // For right alignment, move left by full width
-                textStart.x -= totalWidth;
-                break;
-        }
-        textStart.y -= totalHeight / 2.0f; // Center vertically
+        //    previousChar = currentChar;
+        //}
+        //maxDescent = std::max(maxDescent, minDescent);
+        //float totalHeight = maxAscent + maxDescent;
 
-        Vec2 boundingBoxPos = position;
-        switch(GetAlignment()) {
-            case TextAlignment::Left:
-                // Move bounding box right by half width to center it over the text
-                boundingBoxPos.x += totalWidth / 2.0f;
-                break;
-            case TextAlignment::Center:
-                // Center alignment - bounding box stays at entity position
-                break;
-            case TextAlignment::Right:
-                // Move bounding box left by half width to center it over the text
-                boundingBoxPos.x -= totalWidth / 2.0f;
-                break;
-        }
-        CONSOLE_LOG_UNIMPLEMENTED() << "Text world transform";
-        /*worldTransform.SetWorldPosition(boundingBoxPos);
-        worldTransform.SetWorldScale({totalWidth, totalHeight});
-        worldTransform.SetZPos(transform.GetZPos());*/
-    }
+        //// Calculate text starting position based on alignment
+        //textStart = position;
+        //switch(GetAlignment()) {
+        //    case TextAlignment::Left:
+        //        // For left alignment, start at the entity's center
+        //        break;
+        //    case TextAlignment::Center:
+        //        // For center alignment, move left by half the width
+        //        textStart.x -= totalWidth / 2.0f;
+        //        break;
+        //    case TextAlignment::Right:
+        //        // For right alignment, move left by full width
+        //        textStart.x -= totalWidth;
+        //        break;
+        //}
+        //textStart.y -= totalHeight / 2.0f; // Center vertically
+
+        //Vec2 boundingBoxPos = position;
+        //switch(GetAlignment()) {
+        //    case TextAlignment::Left:
+        //        // Move bounding box right by half width to center it over the text
+        //        boundingBoxPos.x += totalWidth / 2.0f;
+        //        break;
+        //    case TextAlignment::Center:
+        //        // Center alignment - bounding box stays at entity position
+        //        break;
+        //    case TextAlignment::Right:
+        //        // Move bounding box left by half width to center it over the text
+        //        boundingBoxPos.x -= totalWidth / 2.0f;
+        //        break;
+        //}
+        //CONSOLE_LOG_UNIMPLEMENTED() << "Text world transform";
+        ///*worldTransform.SetWorldPosition(boundingBoxPos);
+        //worldTransform.SetWorldScale({totalWidth, totalHeight});
+        //worldTransform.SetZPos(transform.GetZPos());*/
+}
 void TextComponent::EditorDraw()
 {
 #ifdef IMGUI_ENABLED

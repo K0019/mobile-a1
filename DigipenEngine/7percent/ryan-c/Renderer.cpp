@@ -1603,7 +1603,8 @@ void Renderer::AddRenderInstance(const RenderComponent& render_component) {
 	data.texCoords = sprite->texCoords;
 
 	if(materialFlags & MaterialFlags::Repeating) {
-		glm::vec2 worldScale = transform.GetWorldScale();
+		// TODO 3D: Confirm wrong, we're not using the z coordinate.
+		glm::vec3 worldScale = transform.GetWorldScale();
 
 		// Calculate how much to scale UVs for tiling
 		// This expands the UV range beyond [0,1] to create repetition

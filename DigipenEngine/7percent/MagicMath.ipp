@@ -77,9 +77,9 @@ inline Vec2& Vec2::operator=(glm::vec2&& other)
 	return *this;
 }
 
-inline constexpr Vec2::operator glm::vec2() const
+inline constexpr Vec2 Vec2::operator-() const
 {
-	return glm::vec2{ x, y };
+	return Vec2{ -x, -y };
 }
 
 inline constexpr float Vec2::Dot(const Vec2& other) const
@@ -105,7 +105,7 @@ inline constexpr Vec2 Vec2::Normalized() const
 GENERATE_GLOBAL_OPERATOR_ADAPTER_IPP(Vec2, glm::vec2, +)
 GENERATE_GLOBAL_OPERATOR_ADAPTER_IPP(Vec2, glm::vec2, -)
 GENERATE_GLOBAL_OPERATOR_ADAPTER_IPP(Vec2, glm::vec2, *)
-GENERATE_GLOBAL_OPERATOR_ADAPTER_IPP(Vec2, glm::vec2, / )
+GENERATE_GLOBAL_OPERATOR_ADAPTER_IPP(Vec2, glm::vec2, /)
 
 #pragma endregion // Vec2
 
@@ -116,19 +116,46 @@ inline constexpr Vec3::Vec3(float x, float y, float z)
 {
 }
 
-constexpr Vec3::Vec3(const glm::vec3& other)
+inline constexpr Vec3::Vec3(const Vec2& vec, float z)
+	: glm::vec3{ vec.x, vec.y, z }
+{
+}
+
+inline constexpr Vec3::Vec3(const Vec4& vec)
+	: glm::vec3{ vec.x, vec.y, vec.z }
+{
+}
+
+inline constexpr Vec3::Vec3(const glm::vec3& other)
 	: glm::vec3{ other }
 {
 }
 
-constexpr Vec3::Vec3(glm::vec3&& other)
+inline constexpr Vec3::Vec3(glm::vec3&& other)
 	: glm::vec3{ std::move(other) }
 {
 }
 
-inline constexpr Vec3::operator glm::vec3() const
+inline Vec3& Vec3::operator=(const glm::vec3& other)
 {
-	return glm::vec3{ x, y, z };
+	static_cast<glm::vec3&>(*this) = other;
+	return *this;
+}
+
+inline Vec3& Vec3::operator=(glm::vec3&& other)
+{
+	static_cast<glm::vec3&>(*this) = std::move(other);
+	return *this;
+}
+
+inline constexpr Vec3 Vec3::operator-() const
+{
+	return Vec3{ -x, -y, -z };
+}
+
+inline constexpr float Vec3::Dot(const Vec3& other) const
+{
+	return glm::dot(static_cast<const glm::vec3&>(*this), static_cast<const glm::vec3&>(other));
 }
 
 inline float Vec3::Length() const
@@ -166,9 +193,66 @@ inline constexpr Vec4::Vec4(float x, float y, float z, float w)
 }
 
 inline constexpr Vec4::Vec4(const Vec3& vec, float w)
-	: glm::vec4{ static_cast<const glm::vec3&>(vec), w }
+	: glm::vec4{ vec.x, vec.y, vec.z, w }
 {
 }
+
+inline constexpr Vec4::Vec4(const glm::vec4& other)
+	: glm::vec4{ other }
+{
+}
+
+inline constexpr Vec4::Vec4(glm::vec4&& other)
+	: glm::vec4{ std::move(other) }
+{
+}
+
+inline Vec4& Vec4::operator=(const glm::vec4& other)
+{
+	static_cast<glm::vec4&>(*this) = other;
+	return *this;
+}
+
+inline Vec4& Vec4::operator=(glm::vec4&& other)
+{
+	static_cast<glm::vec4&>(*this) = std::move(other);
+	return *this;
+}
+
+inline constexpr Vec4 Vec4::operator-() const
+{
+	return Vec4{ -x, -y, -z, -w };
+}
+
+inline constexpr float Vec4::Dot(const Vec4& other) const
+{
+	return glm::dot(static_cast<const glm::vec4&>(*this), static_cast<const glm::vec4&>(other));
+}
+
+inline float Vec4::Length() const
+{
+	return glm::length(static_cast<const glm::vec4&>(*this));
+}
+
+inline constexpr float Vec4::LengthSqr() const
+{
+	return x * x + y * y + z * z + w * w;
+}
+
+inline constexpr Vec4 Vec4::Normalized() const
+{
+	return glm::normalize(static_cast<const glm::vec4&>(*this));
+}
+
+GENERATE_MEMBER_OPERATOR_ADAPTER_IPP(Vec4, glm::vec4, +=)
+GENERATE_MEMBER_OPERATOR_ADAPTER_IPP(Vec4, glm::vec4, -=)
+GENERATE_MEMBER_OPERATOR_ADAPTER_IPP(Vec4, glm::vec4, *=)
+GENERATE_MEMBER_OPERATOR_ADAPTER_IPP(Vec4, glm::vec4, /=)
+
+GENERATE_GLOBAL_OPERATOR_ADAPTER_IPP(Vec4, glm::vec4, +)
+GENERATE_GLOBAL_OPERATOR_ADAPTER_IPP(Vec4, glm::vec4, -)
+GENERATE_GLOBAL_OPERATOR_ADAPTER_IPP(Vec4, glm::vec4, *)
+GENERATE_GLOBAL_OPERATOR_ADAPTER_IPP(Vec4, glm::vec4, /)
 
 #pragma endregion // Vec4
 
@@ -207,12 +291,13 @@ inline constexpr Mat4 Mat4::Inverse() const
 	return glm::inverse(*this);
 }
 
-inline Vec3 operator*(const Mat4& mat, const Vec3& vec)
+inline Vec4 operator*(const Mat4& mat, const Vec4& vec)
 {
 	return {
-		mat[0][0] * vec.x + mat[1][0] * vec.y + mat[2][0] * vec.z + mat[3][0],
-		mat[0][1] * vec.x + mat[1][1] * vec.y + mat[2][1] * vec.z + mat[3][1],
-		mat[0][2] * vec.x + mat[1][2] * vec.y + mat[2][2] * vec.z + mat[3][2]
+		mat[0][0] * vec.x + mat[1][0] * vec.y + mat[2][0] * vec.z + mat[3][0] * vec.w,
+		mat[0][1] * vec.x + mat[1][1] * vec.y + mat[2][1] * vec.z + mat[3][1] * vec.w,
+		mat[0][2] * vec.x + mat[1][2] * vec.y + mat[2][2] * vec.z + mat[3][2] * vec.w,
+		mat[0][3] * vec.x + mat[1][3] * vec.y + mat[2][3] * vec.z + mat[3][3] * vec.w
 	};
 }
 
