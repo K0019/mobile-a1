@@ -314,20 +314,6 @@ void Transform::EditorDraw()
 		}
 		return modified;
 	};
-	const auto DrawFloatControl = [](const char* label, float* value, float columnWidth, float speed, float min, float max, const char* format) -> bool {
-		if (gui::Table table{ label, 2, true, gui::FLAG_TABLE::HIDE_HEADER })
-		{
-			table.AddColumnHeader("##", gui::FLAG_TABLE_COLUMN::WIDTH_FIXED, columnWidth);
-			table.SubmitColumnHeaders();
-
-			gui::TextUnformatted(label);
-			table.NextColumn();
-
-			gui::SetNextItemWidth(gui::GetAvailableContentRegion().x);
-			return gui::VarDrag("##Value", value, speed, min, max, format);
-		}
-		return false;
-	};
 
 	Vec3 tempVec{ position };
 
