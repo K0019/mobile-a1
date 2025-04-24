@@ -288,7 +288,7 @@ void Transform::EditorDraw()
 	// Helper function for drawing the controls
 	const auto DrawVec3Control = [](const char* label, Vec3* values, float columnWidth, float speed, const char* format) -> bool {
 		bool modified = false;
-		if (gui::Table table{ label, 5, true, gui::FLAG_TABLE::HIDE_HEADER })
+		if (gui::Table table{ label, 4, true, gui::FLAG_TABLE::HIDE_HEADER })
 		{
 			table.AddColumnHeader("##", gui::FLAG_TABLE_COLUMN::WIDTH_FIXED, columnWidth); // Set first column as fixed width. The rest will be stretch columns.
 			table.SubmitColumnHeaders();
