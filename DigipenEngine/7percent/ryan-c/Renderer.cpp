@@ -3236,7 +3236,7 @@ void Renderer::updateLineBuffer()
 	}
 }
 bool Renderer::isInViewport(const glm::vec3& position, const glm::vec3& size, const glm::vec3& rotation) const {
-	CONSOLE_LOG_UNIMPLEMENTED() << "Renderer is in viewport";
+	// TODO 3D: Rewrite checking isInViewport().
   //  // Calculate buffer size
   //  float bufferX = m_viewport.width * 0.1f;
   //  float bufferY = std::abs(m_viewport.height) * 0.1f;
