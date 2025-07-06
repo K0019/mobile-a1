@@ -124,7 +124,7 @@ void ButtonComponent::SetIsPressed(bool isPressed)
     // When the key is released, play click sound
     if (isPressed && !wasPressed)
     {
-        ST<AudioManager>::Get()->StartGroupedSound(clickSound);
+        //ST<AudioManager>::Get()->StartGroupedSound(clickSound);
     }
     wasPressed = isPressed;
 }

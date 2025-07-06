@@ -1656,45 +1656,45 @@ void AssetBrowser::RenderSoundTable()
         RenderSoundContextMenu(name, false);
     }
 
-    // Right column for grouped sounds
-    ImGui::NextColumn();
-    ImGui::Text("Grouped Sounds");
-    ImGui::Separator();
+    //// Right column for grouped sounds
+    //ImGui::NextColumn();
+    //ImGui::Text("Grouped Sounds");
+    //ImGui::Separator();
 
-    // Iterate all grouped sound names
-    for (std::pair<std::string, std::set<std::string>> const& group : groupedSoundNames)
-    {
-        if (ImGui::TreeNode(group.first.c_str()))
-        {
-            ImGui::Indent(55.0f);
-            for (std::string const& name : group.second)
-            {
-                // Create Button
-                if (ImGui::Selectable(name.c_str()))
-                {
-                    if (ST<AudioManager>::Get()->IsSoundPlaying(name))
-                    {
-                        ST<AudioManager>::Get()->StopSound(name);
-                    }
-                    else
-                    {
-                        ST<AudioManager>::Get()->StartSpecificGroupedSound(name, false);
-                    }
-                }
+    //// Iterate all grouped sound names
+    //for (std::pair<std::string, std::set<std::string>> const& group : groupedSoundNames)
+    //{
+    //    if (ImGui::TreeNode(group.first.c_str()))
+    //    {
+    //        ImGui::Indent(55.0f);
+    //        for (std::string const& name : group.second)
+    //        {
+    //            // Create Button
+    //            if (ImGui::Selectable(name.c_str()))
+    //            {
+    //                if (ST<AudioManager>::Get()->IsSoundPlaying(name))
+    //                {
+    //                    ST<AudioManager>::Get()->StopSound(name);
+    //                }
+    //                else
+    //                {
+    //                    //ST<AudioManager>::Get()->StartSpecificGroupedSound(name, false);
+    //                }
+    //            }
 
-                // Single sound drag-drop source
-                gui::PayloadSource("SOUND", name, name.c_str());
+    //            // Single sound drag-drop source
+    //            gui::PayloadSource("SOUND", name, name.c_str());
 
-                // Context menu
-                RenderSoundContextMenu(name, true);
-            }
-            ImGui::Unindent(55.0f);
-            ImGui::TreePop();
-        }
+    //            // Context menu
+    //            RenderSoundContextMenu(name, true);
+    //        }
+    //        ImGui::Unindent(55.0f);
+    //        ImGui::TreePop();
+    //    }
 
-        // Grouped sound drag-drop source
-        gui::PayloadSource("SOUND", group.first, group.first.c_str());
-    }
+    //    // Grouped sound drag-drop source
+    //    gui::PayloadSource("SOUND", group.first, group.first.c_str());
+    //}
 
     ImGui::Columns(1);
     ImGui::EndChild();

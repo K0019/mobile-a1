@@ -79,7 +79,7 @@ namespace import
         else if (extension == ".wav")
         {
             AudioManager& audioManager{ *ST<AudioManager>::Get() };
-            isGrouped = audioManager.CheckIsGrouped(file.filename().string());
+            //isGrouped = audioManager.CheckIsGrouped(file.filename().string());
             dest = (isGrouped ? filepaths.soundSingleFolder : filepaths.soundGroupedFolder);
         }
         else
