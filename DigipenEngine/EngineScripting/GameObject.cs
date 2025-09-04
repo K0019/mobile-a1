@@ -20,9 +20,11 @@ All content © 2024 DigiPen Institute of Technology Singapore.
 All rights reserved.
 */
 /******************************************************************************/
+using GlmSharp;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 namespace EngineScripting
@@ -42,18 +44,121 @@ namespace EngineScripting
         public bool IsNull => entityID == 0;
     }
 
-    public class GameObject
+    /*****************************************************************//*!
+    \brief
+        C# counterpart to the c++ Transform struct
+    \return
+        None
+    *//******************************************************************/
+    [StructLayout(LayoutKind.Sequential)]
+    public struct Transform : Component
     {
-        private readonly EntityHandle entityID;
-        private Transform transComp;
-        public ref Transform transform
+        private vec3 _position;
+        private vec3 _localPosition;
+        private vec3 _scale;
+        private vec3 _localScale;
+        private vec3 _rotation;
+        private vec3 _localRotation;
+
+        public EntityHandle EntityHandle { get; private set; }
+
+        public Transform(EntityHandle eid)
         {
-            get
+            _position = _localPosition = _scale = _localScale = _rotation = _localRotation = default;
+            EntityHandle = eid;
+            RefreshValues();
+        }
+
+        /*****************************************************************//*!
+        \brief
+            Re-fetches and synchronizes transform values from C++ side.
+        *//******************************************************************/
+        [DllImport("__Internal", EntryPoint = "CS_SetTransform")]
+        private static extern void RefreshValues(ref Transform transform);
+        public void RefreshValues() => RefreshValues(ref this);
+
+        /*****************************************************************//*!
+        \brief
+            Updates C++ side with C# side values.
+        *//******************************************************************/
+        [DllImport("__Internal", EntryPoint = "CS_SetLocalPosition")]
+        private static extern void SetLocalPosition(EntityHandle entity, vec3 position);
+        [DllImport("__Internal", EntryPoint = "CS_SetWorldPosition")]
+        private static extern void SetWorldPosition(EntityHandle entity, vec3 position);
+        [DllImport("__Internal", EntryPoint = "CS_SetLocalRotation")]
+        private static extern void SetLocalRotation(EntityHandle entity, vec3 rotation);
+        [DllImport("__Internal", EntryPoint = "CS_SetWorldRotation")]
+        private static extern void SetWorldRotation(EntityHandle entity, vec3 rotation);
+        [DllImport("__Internal", EntryPoint = "CS_SetLocalScale")]
+        private static extern void SetLocalScale(EntityHandle entity, vec3 scale);
+        [DllImport("__Internal", EntryPoint = "CS_SetWorldScale")]
+        private static extern void SetWorldScale(EntityHandle entity, vec3 scale);
+
+
+        public vec3 position
+        {
+            get => _position;
+            set
             {
-                InternalCalls.GetTransform(entityID, out transComp);
-                return ref transComp;
+                _position = value; // Update the internal position
+                SetWorldPosition(EntityHandle, _position); // Update C++ data
             }
         }
+        public vec3 localPosition
+        {
+            get => _localPosition;
+            set
+            {
+                _localPosition = value;
+                SetLocalPosition(EntityHandle, _localPosition);
+            }
+        }
+
+        public vec3 scale
+        {
+            get => _scale;
+            set
+            {
+                _scale = value;
+                SetWorldScale(EntityHandle, _scale);
+            }
+        }
+
+        public vec3 localScale
+        {
+            get => _localScale;
+            set
+            {
+                _localScale = value;
+                SetLocalScale(EntityHandle, _localScale);
+            }
+        }
+
+        public vec3 rotation
+        {
+            get => _rotation;
+            set
+            {
+                _rotation = value;
+                SetWorldScale(EntityHandle, _rotation);
+            }
+        }
+
+        public vec3 localRotation
+        {
+            get => _localRotation;
+            set
+            {
+                _localRotation = value;
+                SetLocalRotation(EntityHandle, _localRotation);
+            }
+        }
+
+    }
+
+    public class GameObject
+    {
+        public Transform transform;
 
         /*****************************************************************//*!
         \brief
@@ -65,20 +170,8 @@ namespace EngineScripting
         *//******************************************************************/
         public GameObject(EntityHandle entityID)
         {
-            this.entityID = entityID;
+            transform = new Transform(entityID);
         }
-		/*****************************************************************//*!
-        \brief
-	        Sets the entity's tranform from c# side
-        \param[in] t
-            new transform of the entity
-        \return
-	        None
-        *//******************************************************************/
-		public void SetTransform(Transform t)
-		{
-			transComp = t;
-		}
 
 		/*****************************************************************//*!
         \brief
@@ -111,7 +204,7 @@ namespace EngineScripting
             {
                 return;
             }
-            InternalCalls.DestroyEntity(obj.entityID);
+            InternalCalls.DestroyEntity(obj.transform.EntityHandle);
         }
 
 		/*****************************************************************//*!
@@ -195,7 +288,7 @@ namespace EngineScripting
             if (componentGetters.TryGetValue(typeof(T), out var getter))
             {
 
-                getter(entityID, component =>
+                getter(transform.EntityHandle, component =>
                 {
                     result = (T)(object)component;
                 });
@@ -219,7 +312,7 @@ namespace EngineScripting
             if (childComponentGetters.TryGetValue(typeof(T), out var getter))
             {
 
-                getter(entityID, component =>
+                getter(transform.EntityHandle, component =>
                 {
                     result = (T)(object)component;
                 });
@@ -239,7 +332,7 @@ namespace EngineScripting
 		{
 			string name = typeof(T).Name;
 
-			object obj = InternalCalls.GetScriptInstance(entityID, name);
+			object obj = InternalCalls.GetScriptInstance(transform.EntityHandle, name);
 
 			return (T)obj;
 		}
@@ -254,7 +347,7 @@ namespace EngineScripting
         {
             string name = typeof(T).Name;
 
-            object obj = InternalCalls.GetChildScriptInstance(entityID, name);
+            object obj = InternalCalls.GetChildScriptInstance(transform.EntityHandle, name);
 
             return (T)obj;
         }
@@ -274,9 +367,9 @@ namespace EngineScripting
             EntityHandle parentID = 0;
             if (parent.HasValue)
             {
-                parentID = parent.Value.GetID();
+                parentID = parent.Value.EntityHandle;
             }
-            GameObject obj = new GameObject(InternalCalls.InstanstiateGameObject(original.entityID, parentID));
+            GameObject obj = new GameObject(InternalCalls.InstanstiateGameObject(original.transform.EntityHandle, parentID));
             return obj;
         }
 
@@ -285,7 +378,7 @@ namespace EngineScripting
             EntityHandle parentID = 0;
             if (parent.HasValue)
             {
-                parentID = parent.Value.GetID();
+                parentID = parent.Value.EntityHandle;
             }
             GameObject obj = new GameObject(InternalCalls.InstantiatePrefab(prefabName, parentID));
             return obj;
