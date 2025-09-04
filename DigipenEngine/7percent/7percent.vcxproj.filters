@@ -856,6 +856,7 @@
       <Filter>Resource Files</Filter>
     </None>
     <None Include="cpp.hint" />
+    <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Icon.rc">

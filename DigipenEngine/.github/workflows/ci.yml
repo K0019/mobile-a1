@@ -1,0 +1,23 @@
+name: CI Tests
+
+on:
+  pull_request:
+    branches: '**'
+
+jobs:
+  build-and-test:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup MSBuild path
+        uses: microsoft/setup-msbuild@v1.3
+
+      - name: Build solution
+        run: msbuild 7percent.sln /p:Configuration=Debug-x64
+
+      - name: Run tests
+        run: |
+          vstest.console.exe "..\bin\Debug-x64\7Percent.exe"    

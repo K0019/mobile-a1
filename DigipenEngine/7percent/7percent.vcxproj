@@ -644,6 +644,7 @@ if not exist "$(TargetDir)imgui.json" (
     <None Include="..\Shaders\shader.frag" />
     <None Include="..\Shaders\shader.vert" />
     <None Include="cpp.hint" />
+    <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Icon.rc" />
@@ -652,6 +653,5 @@ if not exist "$(TargetDir)imgui.json" (
     <Image Include="Icon.ico" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
-  <ImportGroup Label="ExtensionTargets">
-  </ImportGroup>
+  <ImportGroup Label="ExtensionTargets" />
 </Project>
