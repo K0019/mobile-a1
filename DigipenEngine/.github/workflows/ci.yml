@@ -1,4 +1,4 @@
-name: CI Tests
+name: CI Tests for all configs
 
 on:
   pull_request:
@@ -20,4 +20,4 @@ jobs:
 
       - name: Run tests
         run: |
-          vstest.console.exe "..\bin\Debug-x64\7Percent.exe"    
+          vstest.console.exe "/x64/Debug/CITest.exe"    
