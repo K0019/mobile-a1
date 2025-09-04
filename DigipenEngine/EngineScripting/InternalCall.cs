@@ -39,10 +39,10 @@ namespace EngineScripting
         internal extern static void CppNativeLog(string message, int value);
 
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        internal extern static void CppNativeLog_Vector(ref Vector3 param, out Vector3 res);
+        internal extern static void CppNativeLog_Vector(ref Vec3 param, out Vec3 res);
 
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        internal extern static float CppNativeLog_VectorDot(ref Vector3 param);
+        internal extern static float CppNativeLog_VectorDot(ref Vec3 param);
 
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         internal extern static void MoveRight(UInt64 entityHandle, float unitsMoved);
@@ -67,7 +67,7 @@ namespace EngineScripting
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         internal extern static bool GetKeyReleased(int keyCode);
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        internal extern static void GetMouseWorldPos(out Vector2 pos);
+        internal extern static void GetMouseWorldPos(out Vec2 pos);
         #endregion
 
         #region Transform
@@ -79,22 +79,22 @@ namespace EngineScripting
         //internal extern static void GetChildTransform(UInt64 entityHandle, out Transform t);
 
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        internal extern static void SetTransformLocalPos(UInt64 entityHandle, ref Vector2 pos);
+        internal extern static void SetTransformLocalPos(UInt64 entityHandle, ref Vec2 pos);
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        internal extern static void GetTransformLocalPos(UInt64 entityHandle, out Vector2 pos);
+        internal extern static void GetTransformLocalPos(UInt64 entityHandle, out Vec2 pos);
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        internal extern static void SetTransformWorldPos(UInt64 entityHandle, ref Vector2 pos);
+        internal extern static void SetTransformWorldPos(UInt64 entityHandle, ref Vec2 pos);
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        internal extern static void GetTransformWorldPos(UInt64 entityHandle, out Vector2 pos);
+        internal extern static void GetTransformWorldPos(UInt64 entityHandle, out Vec2 pos);
 
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        internal extern static void SetTransformLocalScale(UInt64 entityHandle, ref Vector2 scale);
+        internal extern static void SetTransformLocalScale(UInt64 entityHandle, ref Vec2 scale);
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        internal extern static void GetTransformLocalScale(UInt64 entityHandle, out Vector2 scale);
+        internal extern static void GetTransformLocalScale(UInt64 entityHandle, out Vec2 scale);
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        internal extern static void SetTransformWorldScale(UInt64 entityHandle, ref Vector2 scale);
+        internal extern static void SetTransformWorldScale(UInt64 entityHandle, ref Vec2 scale);
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        internal extern static void GetTransformWorldScale(UInt64 entityHandle, out Vector2 scale);
+        internal extern static void GetTransformWorldScale(UInt64 entityHandle, out Vec2 scale);
 
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         internal extern static void SetTransformLocalRotate(UInt64 entityHandle, float rot);
@@ -122,9 +122,9 @@ namespace EngineScripting
         internal extern static void GetPhysicsFriction(UInt64 entityHandle, out float friction);
 
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        internal extern static void SetPhysicsVelocity(UInt64 entityHandle, ref Vector2 velocity);
+        internal extern static void SetPhysicsVelocity(UInt64 entityHandle, ref Vec2 velocity);
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        internal extern static void GetPhysicsVelocity(UInt64 entityHandle, out Vector2 velocity);
+        internal extern static void GetPhysicsVelocity(UInt64 entityHandle, out Vec2 velocity);
 
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         internal extern static void SetPhysicsAngularVelocity(UInt64 entityHandle, float angularVelocity);
@@ -137,10 +137,10 @@ namespace EngineScripting
         internal extern static void GetText(UInt64 entityHandle, out Text t);
 
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        internal extern static void SetTextColor(UInt64 entityHandle, ref Vector4 c);
+        internal extern static void SetTextColor(UInt64 entityHandle, ref Vec4 c);
 
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        internal extern static void GetTextColor(UInt64 entityHandle, out Vector4 c);
+        internal extern static void GetTextColor(UInt64 entityHandle, out Vec4 c);
 
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         internal extern static void SetTextString(UInt64 entityHandle, string text);
@@ -158,13 +158,13 @@ namespace EngineScripting
 		internal extern static void StartSingleSound(float volume, string name, bool loop);
 
 		[MethodImplAttribute(MethodImplOptions.InternalCall)]
-        internal extern static void StartSingleSoundWithPosition(float volume, string name, bool loop, Vector2 position);
+        internal extern static void StartSingleSoundWithPosition(float volume, string name, bool loop, Vec2 position);
 
 		[MethodImplAttribute(MethodImplOptions.InternalCall)]
 		internal extern static void StartGroupedSound(float volume, string name, bool loop);
 
 		[MethodImplAttribute(MethodImplOptions.InternalCall)]
-		internal extern static void StartGroupedSoundWithPosition(float volume, string name, bool loop, Vector2 position);
+		internal extern static void StartGroupedSoundWithPosition(float volume, string name, bool loop, Vec2 position);
 
 		[MethodImplAttribute(MethodImplOptions.InternalCall)]
 		internal extern static void StopSound(string name);
@@ -181,9 +181,9 @@ namespace EngineScripting
 
 		#region RayCast
 		[MethodImplAttribute(MethodImplOptions.InternalCall)]
-        internal extern static void Raycast(Vector2 origin, Vector2 direction, out RaycastHit hit);
+        internal extern static void Raycast(Vec2 origin, Vec2 direction, out RaycastHit hit);
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        internal extern static void Raycast(Vector2 origin, Vector2 direction, int layerMask, out RaycastHit hit);
+        internal extern static void Raycast(Vec2 origin, Vec2 direction, int layerMask, out RaycastHit hit);
         #endregion
 
         #region Entity

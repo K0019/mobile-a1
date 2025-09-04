@@ -143,9 +143,9 @@ namespace EngineScripting
 		\return
 			Vector 2 of the Mouse world position.
 		*//******************************************************************/
-		public static Vector2 GetMousePos()
+		public static Vec2 GetMousePos()
 		{
-			InternalCalls.GetMouseWorldPos(out Vector2 Result);
+			InternalCalls.GetMouseWorldPos(out Vec2 Result);
 			return Result;
 		}
     }

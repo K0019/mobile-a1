@@ -82,7 +82,6 @@ namespace EngineScripting
         // This is empty and is just a marker to contain all components
     }
 
-
     /*****************************************************************//*!
     \brief
         C# counterpart to the c++ vector2 struct
@@ -90,20 +89,7 @@ namespace EngineScripting
         None
     *//******************************************************************/
     [StructLayout(LayoutKind.Sequential)]
-    public struct RaycastHit
-    {
-        public float distance;
-        public Vector2 point;
-        public UInt64 entity;
-	}
-    /*****************************************************************//*!
-    \brief
-        C# counterpart to the c++ vector2 struct
-    \return
-        None
-    *//******************************************************************/
-    [StructLayout(LayoutKind.Sequential)]
-    public struct Vector2
+    public struct Vec2
     {
         public float x;
         public float y;
@@ -118,7 +104,7 @@ namespace EngineScripting
         \return
             None
         *//******************************************************************/
-        public Vector2(float _x = 0.0f, float _y = 0.0f)
+        public Vec2(float _x = 0.0f, float _y = 0.0f)
         {
             x = _x;
             y = _y;
@@ -134,9 +120,9 @@ namespace EngineScripting
         \return
             Vector2 containing added values
         *//******************************************************************/
-        public static Vector2 operator +(Vector2 a, Vector2 b)
+        public static Vec2 operator +(Vec2 a, Vec2 b)
         {
-            return new Vector2(a.x + b.x, a.y + b.y);
+            return new Vec2(a.x + b.x, a.y + b.y);
         }
 
         /*****************************************************************//*!
@@ -149,9 +135,9 @@ namespace EngineScripting
         \return
             Vector2 containing subtracted values
         *//******************************************************************/
-        public static Vector2 operator -(Vector2 a, Vector2 b)
+        public static Vec2 operator -(Vec2 a, Vec2 b)
         {
-            return new Vector2(a.x - b.x, a.y - b.y);
+            return new Vec2(a.x - b.x, a.y - b.y);
         }
 
         /// <summary>
@@ -159,14 +145,14 @@ namespace EngineScripting
         /// </summary>
         
         //Unity mimicry
-        public static readonly Vector2 zero = new Vector2(0.0f, 0.0f);
-        public static readonly Vector2 one = new Vector2(1.0f, 1.0f);
-        public static readonly Vector2 up = new Vector2(0.0f, 1.0f);
-        public static readonly Vector2 down = new Vector2(0.0f, -1.0f);
-        public static readonly Vector2 left = new Vector2(-1.0f, 0.0f);
-        public static readonly Vector2 right = new Vector2(1.0f, 0.0f);
-        public Vector2 normalized { get { return Normalize(this); } }
-        public Vector2 perpendicular { get { return Perpendicular(this); } }
+        public static readonly Vec2 zero = new Vec2(0.0f, 0.0f);
+        public static readonly Vec2 one = new Vec2(1.0f, 1.0f);
+        public static readonly Vec2 up = new Vec2(0.0f, 1.0f);
+        public static readonly Vec2 down = new Vec2(0.0f, -1.0f);
+        public static readonly Vec2 left = new Vec2(-1.0f, 0.0f);
+        public static readonly Vec2 right = new Vec2(1.0f, 0.0f);
+        public Vec2 normalized { get { return Normalize(this); } }
+        public Vec2 perpendicular { get { return Perpendicular(this); } }
         public float magnitude { get { return Magnitude(this); } }
         public float sqrMagnitude { get { return MagnitudeSqr(this); } }
 
@@ -180,9 +166,9 @@ namespace EngineScripting
         \return
 	       Vector2 with x and y coordinates multiplied by b
         *//******************************************************************/
-		public static Vector2 operator *(Vector2 a, float b)
+		public static Vec2 operator *(Vec2 a, float b)
         {
-            return new Vector2(a.x * b, a.y * b);
+            return new Vec2(a.x * b, a.y * b);
         }
 		/*****************************************************************//*!
         \brief
@@ -194,7 +180,7 @@ namespace EngineScripting
         \return
 	       Vector2 with x and y coordinates multiplied by b
         *//******************************************************************/
-		public static Vector2 operator *(float b, Vector2 a)
+		public static Vec2 operator *(float b, Vec2 a)
         {
             return a * b;
         }
@@ -208,9 +194,9 @@ namespace EngineScripting
         \return
 	       Vector2 with x and y coordinates divided by b
         *//******************************************************************/
-		public static Vector2 operator /(Vector2 a, float b)
+		public static Vec2 operator /(Vec2 a, float b)
         {
-            return new Vector2(a.x / b, a.y / b);
+            return new Vec2(a.x / b, a.y / b);
         }
 
 		/*****************************************************************//*!
@@ -219,14 +205,10 @@ namespace EngineScripting
         \return
             Calculated magnitude
         *//******************************************************************/
-		public static float Magnitude(Vector2 value)
+		public static float Magnitude(Vec2 value)
         {
             // Cast to float
             return (float)Math.Sqrt(MagnitudeSqr(value));
-
-            // We don't appear to have access to MathF at the moment, so @Marc I'll leave this up to you. The next line should work on .NET 2.0 
-            // https://learn.microsoft.com/en-us/dotnet/api/system.mathf.sqrt?view=net-9.0
-            //return MathF.Sqrt(MagnitudeSqr(value));
         }
 
         /*****************************************************************//*!
@@ -237,12 +219,9 @@ namespace EngineScripting
         \return
             Square magnitude of value
         *//******************************************************************/
-        public static float MagnitudeSqr(Vector2 value)
+        public static float MagnitudeSqr(Vec2 value)
         {
             return (value.x * value.x) + (value.y * value.y);
-
-            // Functionally the same but I can't add this in good conscience
-            //return value.Dot(value);
         }
 
         /*****************************************************************//*!
@@ -253,7 +232,7 @@ namespace EngineScripting
         \return
             Vector2 after normalizing values or zero Vector2 if the length is 0
         *//******************************************************************/
-        public static Vector2 Normalize(Vector2 value)
+        public static Vec2 Normalize(Vec2 value)
         {
 			// Get Length
 			float len = Magnitude(value);
@@ -261,7 +240,7 @@ namespace EngineScripting
             //Return normalized vector if length is more than 0
             if (len > 0.0f)
             {
-                return new Vector2(value.x / len, value.y / len);
+                return new Vec2(value.x / len, value.y / len);
             }
 
             // Return zero vector
@@ -273,7 +252,7 @@ namespace EngineScripting
         \return
             Vector2 after normalizing values
         *//******************************************************************/
-        public Vector2 Normalize()
+        public Vec2 Normalize()
         {
             // Get Length
             float len = magnitude;
@@ -297,7 +276,7 @@ namespace EngineScripting
 	    \return
 		    a . b
 	    *//******************************************************************/
-        public static float Dot(Vector2 a, Vector2 b)
+        public static float Dot(Vec2 a, Vec2 b)
         {
             return a.x * b.x + a.y * b.y;
         }
@@ -309,9 +288,9 @@ namespace EngineScripting
 	    \return
 		    Vwctor2 with equivalent value of (-y, x).
 	    *//******************************************************************/
-        public static Vector2 Perpendicular(Vector2 value)
+        public static Vec2 Perpendicular(Vec2 value)
         {
-            return new Vector2(-value.y, value.x);
+            return new Vec2(-value.y, value.x);
         }
 
         /*****************************************************************//*!
@@ -322,7 +301,7 @@ namespace EngineScripting
 	    \return
 		    this . b
 	    *//******************************************************************/
-        public float Dot(Vector2 b)
+        public float Dot(Vec2 b)
         {
             return x * b.x + y * b.y;
         }
@@ -342,10 +321,10 @@ namespace EngineScripting
 	    \return
 		    start translated towards end by distance
 	    *//******************************************************************/
-        public static Vector2 MoveTowards(Vector2 start, Vector2 end, float distance)
+        public static Vec2 MoveTowards(Vec2 start, Vec2 end, float distance)
         {
             // Get distance in x and y
-            Vector2 distanceVector = end - start;
+            Vec2 distanceVector = end - start;
             // Lengthsquared first, so if the later conditions fail we won't have to do
             // the Sqrt
             float lengthsquared = distanceVector.sqrMagnitude;
@@ -361,7 +340,7 @@ namespace EngineScripting
             float length = (float)Math.Sqrt(lengthsquared);
 
             // Return a Vector2 which is the equivalent of start translated towards end by distance/length
-            return new Vector2(start.x + distanceVector.x * distance / length, start.y + distanceVector.y * distance / length);
+            return new Vec2(start.x + distanceVector.x * distance / length, start.y + distanceVector.y * distance / length);
         }
 
 		/*****************************************************************//*!
@@ -377,7 +356,7 @@ namespace EngineScripting
 	    \return
 		    start interpolated towards end by amount.
 	    *//******************************************************************/
-		public static Vector2 LerpUnclamped(Vector2 start, Vector2 end, float amount)
+		public static Vec2 LerpUnclamped(Vec2 start, Vec2 end, float amount)
         {
             return start + (end - start) * amount;
         }
@@ -396,7 +375,7 @@ namespace EngineScripting
 	    \return
 		    start interpolated towards end by amount.
 	    *//******************************************************************/
-		public static Vector2 Lerp(Vector2 start, Vector2 end, float amount)
+		public static Vec2 Lerp(Vec2 start, Vec2 end, float amount)
         {
             // Clamp amount
             amount = Mathf.Clamp(amount,0.0f,1.0f);
@@ -459,7 +438,7 @@ namespace EngineScripting
         None
     *//******************************************************************/
     [StructLayout(LayoutKind.Sequential)]
-    public struct Vector3
+    public struct Vec3
     {
         public float x, y, z;
 
@@ -476,7 +455,7 @@ namespace EngineScripting
         \return
             None
         *//******************************************************************/
-        public Vector3(float _x, float _y, float _z)
+        public Vec3(float _x, float _y, float _z)
         {
             this.x = _x;
             this.y = _y;
@@ -491,7 +470,7 @@ namespace EngineScripting
         None
     *//******************************************************************/
     [StructLayout(LayoutKind.Sequential)]
-    public struct Vector4
+    public struct Vec4
     {
         public float x, y, z, w;
 
@@ -510,7 +489,7 @@ namespace EngineScripting
         \return
             None
         *//******************************************************************/
-        public Vector4(float _x, float _y, float _z, float _w)
+        public Vec4(float _x, float _y, float _z, float _w)
         {
             this.x = _x;
             this.y = _y;
@@ -554,10 +533,10 @@ namespace EngineScripting
     [StructLayout(LayoutKind.Sequential)]
     public struct Transform : Component
     {
-        private Vector2 _position;
-        private Vector2 _localPosition;
-        private Vector2 _scale;
-        private Vector2 _localScale;
+        private Vec2 _position;
+        private Vec2 _localPosition;
+        private Vec2 _scale;
+        private Vec2 _localScale;
         private float _rotation;
         private float _localRotation;
         private float _zPosition;
@@ -567,7 +546,7 @@ namespace EngineScripting
         public UInt64 GetID() => eid;
 
 
-        public Vector2 position
+        public Vec2 position
 		{
             get
             {
@@ -580,7 +559,7 @@ namespace EngineScripting
 				InternalCalls.SetTransformWorldPos(eid, ref _position); // Update C++ data
 			}
 		}
-		public Vector2 localPosition
+		public Vec2 localPosition
 		{
             get
             {
@@ -594,7 +573,7 @@ namespace EngineScripting
 			}
 		}
 
-        public Vector2 scale
+        public Vec2 scale
         {
             get
             {
@@ -608,7 +587,7 @@ namespace EngineScripting
             }
         }
 
-        public Vector2 localScale
+        public Vec2 localScale
         {
             get
             {
@@ -675,12 +654,12 @@ namespace EngineScripting
     [StructLayout(LayoutKind.Sequential)]
     public struct Text : Component
     {
-        private Vector4 c;
+        private Vec4 c;
         private string str;
 
         private UInt64 eid;
 
-        public Vector4 color
+        public Vec4 color
         {
             get => c;
             set
@@ -712,7 +691,7 @@ namespace EngineScripting
 		private float Mass;
 		//private float RestitutionCoeff;
 		private float FrictionCoeff;
-		private Vector2 Velocity;
+		private Vec2 Velocity;
 		private float AngVelocity;
 
         private UInt64 eid;
@@ -737,7 +716,7 @@ namespace EngineScripting
             return FrictionCoeff;
         }
 
-        public Vector2 velocity
+        public Vec2 velocity
         {
             get
             {

@@ -39,7 +39,7 @@ namespace EngineScripting
 		\param position
 			World position. If provided, spatial audio will be applied.
 		*//******************************************************************/
-		public static void StartSingleSound(float volume, string name, bool loop = false, Vector2? position = null)
+		public static void StartSingleSound(float volume, string name, bool loop = false, Vec2? position = null)
         {
 			if (position.HasValue)
 			{
@@ -61,7 +61,7 @@ namespace EngineScripting
 		\param position
 			World position. If provided, spatial audio will be applied.
 		*//******************************************************************/
-		public static void StartGroupedSound(float volume, string name, bool loop = false, Vector2? position = null)
+		public static void StartGroupedSound(float volume, string name, bool loop = false, Vec2? position = null)
 		{
 			if (position.HasValue)
 			{

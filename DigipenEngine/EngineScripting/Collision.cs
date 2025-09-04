@@ -8,8 +8,8 @@ namespace EngineScripting
 {
     public class Collision
     {
-        public Vector2 normal;
-        public Vector2 point;
+        public Vec2 normal;
+        public Vec2 point;
         public float depth;
 
         public UInt64 eid;
@@ -18,11 +18,11 @@ namespace EngineScripting
 
     public class Raycasting
     {
-        public static void TestRaycast(Vector2 origin, Vector2 direction, out RaycastHit hit)
+        public static void TestRaycast(Vec2 origin, Vec2 direction, out RaycastHit hit)
         {
             InternalCalls.Raycast(origin, direction, out hit);
         }
-        public static void TestRaycast(Vector2 origin, Vector2 direction,int layerMask, out RaycastHit hit)
+        public static void TestRaycast(Vec2 origin, Vec2 direction,int layerMask, out RaycastHit hit)
         {
             InternalCalls.Raycast(origin, direction, layerMask, out hit);
         }
