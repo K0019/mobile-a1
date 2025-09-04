@@ -31,96 +31,31 @@ namespace EngineScripting
     /*****************************************************************//*!
     \brief
 	    Parent class to all scripts that are attachable to Entities.
+        Note: Unused for now since current marshalling implementation requires structs instead of classes.
+        Unsure if this can be fixed/workaround.
     \return
 	    None
     *//******************************************************************/
-    public class EID // <- May need to expand this class
-    {
-        protected EntityHandle e_ID { get; set; }
-        private Transform transComp;
-        /*****************************************************************//*!
-        \brief
-            Sets the e_ID handle to be stored in this class instance. e_ID
-            being the unique id of the entity the script is attached to.
-        \return
-            None
-        *//******************************************************************/
-        public void SetHandle(EntityHandle handle)
-        {
-            e_ID = handle;
-            InternalCalls.GetTransform(e_ID, out transComp);
-        }
-        public ref Transform transform
-        {
-            get
-            {
-                InternalCalls.GetTransform(e_ID, out transComp);
-                return ref transComp;
-            }
-        }
-
-        protected void SetTransform(Transform t)
-        {
-            transComp = t; 
-        }
-
-        protected GameObject gameObject
-        {
-            get
-            {
-                return new GameObject(e_ID);
-            }
-        }
-
-    }
-
-    public interface Component
-    {
-        // This is empty and is just a marker to contain all components
-    }
-
-    /*****************************************************************//*!
-    \brief
-        C# counterpart to the c++ TextComponent
-    \return
-        None
-    *//******************************************************************/
     [StructLayout(LayoutKind.Sequential)]
-    public struct Text : Component
+    public class ComponentBase : IComponent // <- May need to expand this class
     {
-        private vec4 c;
-        private string str;
+        protected EntityHandle e_ID { get; private set; }
 
-        private UInt64 eid;
 
-        public vec4 color
-        {
-            get => c;
-            set
-            {
-                c = value;
-                InternalCalls.SetTextColor(eid, ref c);
-            }
-        }
+        [DllImport("__Internal", EntryPoint = "CS_GetTransform")]
+        private static extern Transform GetTransform(EntityHandle entity);
+        public Transform transform => GetTransform(e_ID);
 
-        public string text
-        {
-            get 
-            {
-                InternalCalls.GetTextString(eid);
-                return str;
-            }
-            set
-            {
-                str = value;
-                InternalCalls.SetTextString(eid, str);
-            }
-        }
+        public GameObject gameObject => new GameObject(e_ID);
 
+    }
+
+    public interface IComponent
+    {
     }
 
 	[StructLayout(LayoutKind.Sequential)]
-    public struct Physics : Component
+    public struct Physics : IComponent
     {
 		private float Mass;
 		//private float RestitutionCoeff;

@@ -28,7 +28,7 @@ using System.Text;
 using System.Threading.Tasks;
 using EngineScripting;
 
-public class CSharpTesting : EID
+public class CSharpTesting : ComponentBase
 {
     public float MyPublicFloatVar = 5.0f;
     public int MyPublicIntVar = 10;

@@ -93,6 +93,7 @@
     <Compile Include="MoveTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Rendering.cs" />
+    <Compile Include="Text.cs" />
     <Compile Include="Time.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

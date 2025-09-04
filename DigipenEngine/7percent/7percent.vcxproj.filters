@@ -450,6 +450,9 @@
     <ClCompile Include="HotReloader.cpp">
       <Filter>Source Files\Scripting</Filter>
     </ClCompile>
+    <ClCompile Include="ScriptingUtil.cpp">
+      <Filter>Source Files\Scripting</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ECS.h">
@@ -852,6 +855,9 @@
       <Filter>Header Files\Scripting</Filter>
     </ClInclude>
     <ClInclude Include="HotReloader.h">
+      <Filter>Header Files\Scripting</Filter>
+    </ClInclude>
+    <ClInclude Include="ScriptingUtil.h">
       <Filter>Header Files\Scripting</Filter>
     </ClInclude>
   </ItemGroup>

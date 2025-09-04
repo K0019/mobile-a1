@@ -27,6 +27,12 @@ All rights reserved.
 
 #define SCRIPT_CALLABLE extern "C" __declspec(dllexport)
 
+#define SCRIPT_CALLABLE_COMP_SETTER(CompType, CallableFuncName, ArgType, SetterFuncName) \
+SCRIPT_CALLABLE void CallableFuncName(ecs::EntityHandle entity, ArgType arg) \
+{ \
+	util::AssertCompExistsOnValidEntityAndGet<CompType>(entity)->SetterFuncName(arg); \
+}
+
 #pragma endregion // SCRIPTING
 
 #pragma region ENUM

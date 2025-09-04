@@ -409,7 +409,7 @@ std::set<Transform*> Transform::GetChildrenRecursive()
 \brief
 	Copy of the equivalent Transform structure in the C# project.
 *//******************************************************************/
-struct DummyTransform
+struct CS_Transform
 {
 	Transform::Vec position;
 	Transform::Vec localPosition;
@@ -421,12 +421,19 @@ struct DummyTransform
 	ecs::EntityHandle entity;
 };
 
-void CS_Util_AssertEntityHandleValid(ecs::EntityHandle entity)
+SCRIPT_CALLABLE CS_Transform CS_GetTransform(ecs::EntityHandle entity)
 {
-	// Some transform object on C# side is attempting to update itself based on an
-	// entity that doesn't exist! The entity has probably been deleted but C# is
-	// still keeping a reference to that entity.
-	assert(ecs::IsEntityHandleValid(entity));
+	util::AssertEntityHandleValid(entity);
+
+	Transform& t = entity->GetTransform();
+	return CS_Transform{
+		t.GetWorldPosition(),
+		t.GetLocalPosition(),
+		t.GetWorldScale(),
+		t.GetLocalScale(),
+		t.GetWorldRotation(),
+		t.GetLocalRotation()
+	};
 }
 
 /*****************************************************************//*!
@@ -436,9 +443,9 @@ void CS_Util_AssertEntityHandleValid(ecs::EntityHandle entity)
 	Pointer to the transform structure on C# side.
 	Member var entity will be used to search the appropriate entity.
 *//******************************************************************/
-SCRIPT_CALLABLE void CS_SetTransform(DummyTransform* inOutTransform)
+SCRIPT_CALLABLE void CS_SetTransform(CS_Transform* inOutTransform)
 {
-	CS_Util_AssertEntityHandleValid(inOutTransform->entity);
+	util::AssertEntityHandleValid(inOutTransform->entity);
 
 	Transform& t = inOutTransform->entity->GetTransform();
 	inOutTransform->position = t.GetWorldPosition();
@@ -451,37 +458,37 @@ SCRIPT_CALLABLE void CS_SetTransform(DummyTransform* inOutTransform)
 
 SCRIPT_CALLABLE void CS_SetLocalPosition(ecs::EntityHandle entity, Vec3 position)
 {
-	CS_Util_AssertEntityHandleValid(entity);
+	util::AssertEntityHandleValid(entity);
 	entity->GetTransform().SetLocalPosition(position);
 }
 
 SCRIPT_CALLABLE void CS_SetWorldPosition(ecs::EntityHandle entity, Vec3 position)
 {
-	CS_Util_AssertEntityHandleValid(entity);
+	util::AssertEntityHandleValid(entity);
 	entity->GetTransform().SetWorldPosition(position);
 }
 
 SCRIPT_CALLABLE void CS_SetLocalRotation(ecs::EntityHandle entity, Vec3 rotation)
 {
-	CS_Util_AssertEntityHandleValid(entity);
+	util::AssertEntityHandleValid(entity);
 	entity->GetTransform().SetLocalRotation(rotation);
 }
 
 SCRIPT_CALLABLE void CS_SetWorldRotation(ecs::EntityHandle entity, Vec3 rotation)
 {
-	CS_Util_AssertEntityHandleValid(entity);
+	util::AssertEntityHandleValid(entity);
 	entity->GetTransform().SetWorldRotation(rotation);
 }
 
 SCRIPT_CALLABLE void CS_SetLocalScale(ecs::EntityHandle entity, Vec3 scale)
 {
-	CS_Util_AssertEntityHandleValid(entity);
+	util::AssertEntityHandleValid(entity);
 	entity->GetTransform().SetLocalScale(scale);
 }
 
 SCRIPT_CALLABLE void CS_SetWorldScale(ecs::EntityHandle entity, Vec3 scale)
 {
-	CS_Util_AssertEntityHandleValid(entity);
+	util::AssertEntityHandleValid(entity);
 	entity->GetTransform().SetWorldScale(scale);
 }
 

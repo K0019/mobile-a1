@@ -51,7 +51,7 @@ namespace EngineScripting
         None
     *//******************************************************************/
     [StructLayout(LayoutKind.Sequential)]
-    public struct Transform : Component
+    public struct Transform
     {
         private vec3 _position;
         private vec3 _localPosition;
@@ -207,43 +207,31 @@ namespace EngineScripting
             InternalCalls.DestroyEntity(obj.transform.EntityHandle);
         }
 
-		/*****************************************************************//*!
+        /*****************************************************************//*!
         \brief
 	        Dictionaries for the GetComponent<T>() to use
         *//******************************************************************/
-		#region Dictionaries
-		private readonly Dictionary<Type, Action<EntityHandle, Action<Component>>> componentGetters = new Dictionary<Type, Action<EntityHandle, Action<Component>>>()
+        #region Dictionaries
+        private readonly Dictionary<Type, Func<EntityHandle, IComponent>> componentGetters = new Dictionary<Type, Func<EntityHandle, IComponent>>()
         {
-            { typeof(Transform), (eID, callback) =>
-                {
-                    InternalCalls.GetTransform(eID, out var component);
-                    callback(component);
-                }
-            },
+            { typeof(Text), (EntityHandle entity) => Text.RetrieveComp(entity) },
 
-            { typeof(Physics), (eID, callback) =>
-                {
-                    InternalCalls.GetPhysicsComp(eID, out var component);
-                    callback(component);
-                }
-            },
+            //{ typeof(Text), (eID, callback) =>
+            //    {
+            //        InternalCalls.GetText(eID, out var component);
+            //        callback(component);
+            //    }
+            //},
 
-            { typeof(Text), (eID, callback) =>
-                {
-                    InternalCalls.GetText(eID, out var component);
-                    callback(component);
-                }
-            },
-
-            { typeof(Animator), (eID, callback) =>
-                {
-                    InternalCalls.GetAnimatorComp(eID, out var component);
-                    callback(component);
-                }
-            }
+            //{ typeof(Animator), (eID, callback) =>
+            //    {
+            //        InternalCalls.GetAnimatorComp(eID, out var component);
+            //        callback(component);
+            //    }
+            //}
         };
 
-        private readonly Dictionary<Type, Action<EntityHandle, Action<Component>>> childComponentGetters = new Dictionary<Type, Action<EntityHandle, Action<Component>>>()
+        private readonly Dictionary<Type, Action<EntityHandle, Action<IComponent>>> childComponentGetters = new Dictionary<Type, Action<EntityHandle, Action<IComponent>>>()
         {
             //{ typeof(Transform), (eID, callback) =>
             //    {
@@ -280,21 +268,12 @@ namespace EngineScripting
         \return
 	        Specified component to get
         *//******************************************************************/
-		public T GetComponent<T>() where T : struct, Component
+		public T GetComponent<T>() where T : struct, IComponent
         {
-            T result = default;
-
-
             if (componentGetters.TryGetValue(typeof(T), out var getter))
-            {
+                return (T)getter(transform.EntityHandle);
 
-                getter(transform.EntityHandle, component =>
-                {
-                    result = (T)(object)component;
-                });
-            }
-
-            return result;
+            return default;
         }
 
 		/*****************************************************************//*!
@@ -304,7 +283,7 @@ namespace EngineScripting
         \return
 	        Specified component to get
         *//******************************************************************/
-		public T GetComponentInChildren<T>() where T : struct, Component
+		public T GetComponentInChildren<T>() where T : struct, IComponent
         {
             T result = default;
 

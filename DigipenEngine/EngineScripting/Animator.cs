@@ -26,7 +26,7 @@ using System.Threading.Tasks;
 
 namespace EngineScripting
 {
-    public struct Animator : Component
+    public struct Animator : IComponent
     {
         UInt64 eid;
 
