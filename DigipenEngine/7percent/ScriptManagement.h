@@ -32,7 +32,7 @@ public:
 	\return
 		bool of if it exists
 	*//******************************************************************/
-	bool EnsureScriptsFoldedrExists();
+	bool EnsureScriptsFolderExists();
 
 	/*****************************************************************//*!
 	\brief
@@ -40,9 +40,9 @@ public:
 	\param[in] scriptName
 		Name of the script file to create.
 	\return
-		int to check the success of the script's creation.
+		Whether the script was successfully created.
 	*//******************************************************************/
-	static const int CreateScript(const std::string& scriptName);
+	static bool CreateScript(const std::string& scriptName);
 
 	/*****************************************************************//*!
 	\brief

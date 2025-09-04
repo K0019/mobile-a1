@@ -1445,17 +1445,12 @@ void AssetBrowser::RenderScriptWindow()
 {
     static char buffer[1024] = "NewScript";
     ImGui::InputText(" ", buffer, sizeof(buffer));
-    if (ImGui::Button("Create Script") && ST<ScriptManager>::Get()->EnsureScriptsFoldedrExists())
+    if (ImGui::Button("Create Script") && ST<ScriptManager>::Get()->EnsureScriptsFolderExists())
     {
-        std::string name = buffer;
-        name += ".cs";
-        CONSOLE_LOG_EXPLICIT("Name of Script: " + name, LogLevel::LEVEL_DEBUG);
+        CONSOLE_LOG(LEVEL_DEBUG) << "Name of Script: " << buffer << ".cs";
 
-        if (!ST<ScriptManager>::Get()->CreateScript(name))
-        {
-            CONSOLE_LOG_EXPLICIT("Failed to create script:" + name, LogLevel::LEVEL_ERROR);
-
-        }
+        if (!ST<ScriptManager>::Get()->CreateScript(buffer))
+            CONSOLE_LOG(LEVEL_ERROR) << "Failed to create script: " << buffer;
     }
     ImGui::SameLine();
     if (ImGui::Button("Reload"))
@@ -1467,7 +1462,7 @@ void AssetBrowser::RenderScriptWindow()
     std::string path = ST<Filepaths>::Get()->scriptsSave;
     std::vector<std::string> scriptFiles;
 
-    if (ST<ScriptManager>::Get()->EnsureScriptsFoldedrExists())
+    if (ST<ScriptManager>::Get()->EnsureScriptsFolderExists())
     {
         for (const auto& entry : std::filesystem::directory_iterator(path))
         {

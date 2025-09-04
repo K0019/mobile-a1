@@ -32,7 +32,7 @@ bool ScriptManager::CreateScriptsFolder()
 	return std::filesystem::create_directory(GetScriptsFolder());
 }
 
-bool ScriptManager::EnsureScriptsFoldedrExists()
+bool ScriptManager::EnsureScriptsFolderExists()
 {
 	if (!IsScriptsFolderExists() && !CreateScriptsFolder())
 	{
@@ -50,47 +50,38 @@ const std::string& ScriptManager::GetScriptsFolder()
 bool ScriptManager::OpenScript(const std::string& scriptName)
 {
 	std::string filePath = ST<Filepaths>::Get()->scriptsSave + "/" + scriptName;
-	// add to the thing
-	// Now, open the script in Visual Studio (Windows-specific)
 	std::string command = "start devenv \"" + GetAbsolutePath(ST<Filepaths>::Get()->csproj) + "\" \"" + GetAbsolutePath(filePath) + "\"";
 
 	// Use std::system to execute the command
 	int result = std::system(command.c_str());
-
-	if (result == 0)
+	if (result != 0)
 	{
-		std::cout << "Successfully opened " << scriptName << " in Visual Studio." << std::endl;
-		return true;
-	}
-	else
-	{
-		std::cerr << "Failed to open " << scriptName << " in Visual Studio." << std::endl;
+		CONSOLE_LOG(LEVEL_WARNING) << "Script " << scriptName << " was created but is unable to be opened in Visual Studio";
 		return false;
 	}
-	return false;
+	
+	return true;
 }
 
 std::string ScriptManager::GetAbsolutePath(const std::string& relativePath)
 {
-	std::filesystem::path p(relativePath);
-	return std::filesystem::absolute(p).string();
+	return std::filesystem::absolute(relativePath).string();
 }
 
-const int ScriptManager::CreateScript(const std::string& scriptName)
+bool ScriptManager::CreateScript(const std::string& scriptName)
 {
-
 	std::string filePath = ST<Filepaths>::Get()->scriptsSave + "/" + scriptName;
 	std::ofstream s(filePath);
 	/*std::ofstream("./Assets/Scripts/" + name);*/
 	if (!s.is_open())
 	{
 		CONSOLE_LOG(LEVEL_ERROR) << "Failed to create " << scriptName << "!";
-
 		return 0;
 	}
 
-	std::string defaultContent = 
-		R"(using System;
+	s <<
+R"(using GlmSharp;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
@@ -118,27 +109,11 @@ public class )" + scriptName.substr(0, scriptName.find_last_of('.')) + R"( : EID
     }
 }
 )";
-
-	s << defaultContent;
 	s.close();
 
 	CSharpScripts::CSScripting::ReloadAssembly();
 
-	// add to the thing
-	// Now, open the script in Visual Studio (Windows-specific)
-	std::string command = "start devenv \"" + GetAbsolutePath(ST<Filepaths>::Get()->csproj) + "\" \"" + GetAbsolutePath(filePath) + "\"";
+	OpenScript(scriptName);
 
-
-	// Use std::system to execute the command
-	int result = std::system(command.c_str());
-
-	if (result == 0)
-	{
-		std::cout << "Successfully opened " << scriptName << " in Visual Studio." << std::endl;
-	}
-	else
-	{
-		std::cerr << "Failed to open " << scriptName << " in Visual Studio." << std::endl;
-	}
-	return 1;
+	return true;
 }
