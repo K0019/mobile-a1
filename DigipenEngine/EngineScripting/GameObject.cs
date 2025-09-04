@@ -28,10 +28,34 @@ using System.Threading.Tasks;
 namespace EngineScripting
 {
     using Prefab = System.String;
+
+    public struct EntityHandle
+    {
+        private UInt64 entityID;
+
+        public EntityHandle(UInt64 entityID)
+        {
+            this.entityID = entityID;
+        }
+        public static implicit operator EntityHandle(UInt64 entityID) => new EntityHandle(entityID);
+
+        public bool IsNull => entityID == 0;
+    }
+
     public class GameObject
     {
-        UInt64 entityID;
-		/*****************************************************************//*!
+        private readonly EntityHandle entityID;
+        private Transform transComp;
+        public ref Transform transform
+        {
+            get
+            {
+                InternalCalls.GetTransform(entityID, out transComp);
+                return ref transComp;
+            }
+        }
+
+        /*****************************************************************//*!
         \brief
 	        Constructor for the class
         \param[in] entityID
@@ -39,19 +63,10 @@ namespace EngineScripting
         \return
 	        None
         *//******************************************************************/
-		public GameObject(UInt64 entityID)
+        public GameObject(EntityHandle entityID)
         {
             this.entityID = entityID;
         }
-        private Transform transComp;
-		public ref Transform transform
-		{
-			get
-			{
-				InternalCalls.GetTransform(entityID, out transComp);
-				return ref transComp;
-			}
-		}
 		/*****************************************************************//*!
         \brief
 	        Sets the entity's tranform from c# side
@@ -76,11 +91,10 @@ namespace EngineScripting
 		public static GameObject Find(string name)
         {
             //internal call here
-            UInt64 handle = InternalCalls.FindEntity(name);
-            if (handle == 0)
+            EntityHandle handle = InternalCalls.FindEntity(name);
+            if (handle.IsNull)
                 return null;
-            GameObject obj = new GameObject(handle);
-            return obj;
+            return new GameObject(handle);
         }
 
 		/*****************************************************************//*!
@@ -105,7 +119,7 @@ namespace EngineScripting
 	        Dictionaries for the GetComponent<T>() to use
         *//******************************************************************/
 		#region Dictionaries
-		private readonly Dictionary<Type, Action<UInt64, Action<Component>>> componentGetters = new Dictionary<Type, Action<UInt64, Action<Component>>>()
+		private readonly Dictionary<Type, Action<EntityHandle, Action<Component>>> componentGetters = new Dictionary<Type, Action<EntityHandle, Action<Component>>>()
         {
             { typeof(Transform), (eID, callback) =>
                 {
@@ -136,7 +150,7 @@ namespace EngineScripting
             }
         };
 
-        private readonly Dictionary<Type, Action<UInt64, Action<Component>>> childComponentGetters = new Dictionary<Type, Action<UInt64, Action<Component>>>()
+        private readonly Dictionary<Type, Action<EntityHandle, Action<Component>>> childComponentGetters = new Dictionary<Type, Action<EntityHandle, Action<Component>>>()
         {
             //{ typeof(Transform), (eID, callback) =>
             //    {
@@ -257,7 +271,7 @@ namespace EngineScripting
         *//******************************************************************/
 		public static GameObject Instanstiate(GameObject original, Transform? parent = null)
         {
-            UInt64 parentID = 0;
+            EntityHandle parentID = 0;
             if (parent.HasValue)
             {
                 parentID = parent.Value.GetID();
@@ -268,7 +282,7 @@ namespace EngineScripting
 
         public static GameObject InstantiatePrefab(Prefab prefabName, Transform? parent = null)
         {
-            UInt64 parentID = 0;
+            EntityHandle parentID = 0;
             if (parent.HasValue)
             {
                 parentID = parent.Value.GetID();

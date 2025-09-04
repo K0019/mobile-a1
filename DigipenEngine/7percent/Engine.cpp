@@ -725,9 +725,9 @@ void Engine::shutdown() {
 	ST<Hierarchy>::Destroy();
 #endif
 
-	CSharpScripts::CSScripting::Exit();
-
 	ecs::Shutdown();
+
+	CSharpScripts::CSScripting::Exit();
 
 	ST<GameSettings>::Destroy();
 	//ST<Filepaths>::Destroy(); // Filepaths kinda needs to live for other threads to reference filepaths... smart pointers will free this later. sry about this

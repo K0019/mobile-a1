@@ -1,3 +1,4 @@
+using GlmSharp;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -22,6 +23,6 @@ public class TestScript : EID
     // This method is called once per frame
     void OnUpdate(float dt)
     {
-        Debug.Log("Hello");
+        transform.localPosition = transform.localPosition + new vec3(1, 0, 0);
     }
 }

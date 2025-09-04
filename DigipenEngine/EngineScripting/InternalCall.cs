@@ -22,6 +22,7 @@ All content © 2024 DigiPen Institute of Technology Singapore.
 All rights reserved.
 */
 /******************************************************************************/
+using GlmSharp;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -39,16 +40,16 @@ namespace EngineScripting
         internal extern static void CppNativeLog(string message, int value);
 
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        internal extern static void CppNativeLog_Vector(ref Vec3 param, out Vec3 res);
+        internal extern static void CppNativeLog_Vector(ref vec3 param, out vec3 res);
 
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        internal extern static float CppNativeLog_VectorDot(ref Vec3 param);
+        internal extern static float CppNativeLog_VectorDot(ref vec3 param);
 
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        internal extern static void MoveRight(UInt64 entityHandle, float unitsMoved);
+        internal extern static void MoveRight(EntityHandle entityHandle, float unitsMoved);
 
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        internal extern static void ChangeColour(UInt64 entityHandle, float dt);
+        internal extern static void ChangeColour(EntityHandle entityHandle, float dt);
         #endregion
 
         #region Time
@@ -66,86 +67,79 @@ namespace EngineScripting
         internal extern static bool GetKeyPressed(int keyCode);
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         internal extern static bool GetKeyReleased(int keyCode);
-        [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        internal extern static void GetMouseWorldPos(out Vec2 pos);
         #endregion
 
         #region Transform
 
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        internal extern static void GetTransform(UInt64 entityHandle, out Transform t);
+        internal extern static void GetTransform(EntityHandle entityHandle, out Transform t);
 
         //[MethodImplAttribute(MethodImplOptions.InternalCall)]
         //internal extern static void GetChildTransform(UInt64 entityHandle, out Transform t);
 
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        internal extern static void SetTransformLocalPos(UInt64 entityHandle, ref Vec2 pos);
+        internal extern static void SetTransformLocalPos(EntityHandle entityHandle, ref vec3 pos);
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        internal extern static void GetTransformLocalPos(UInt64 entityHandle, out Vec2 pos);
+        internal extern static void GetTransformLocalPos(EntityHandle entityHandle, out vec3 pos);
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        internal extern static void SetTransformWorldPos(UInt64 entityHandle, ref Vec2 pos);
+        internal extern static void SetTransformWorldPos(EntityHandle entityHandle, ref vec3 pos);
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        internal extern static void GetTransformWorldPos(UInt64 entityHandle, out Vec2 pos);
+        internal extern static void GetTransformWorldPos(EntityHandle entityHandle, out vec3 pos);
 
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        internal extern static void SetTransformLocalScale(UInt64 entityHandle, ref Vec2 scale);
+        internal extern static void SetTransformLocalScale(EntityHandle entityHandle, ref vec3 scale);
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        internal extern static void GetTransformLocalScale(UInt64 entityHandle, out Vec2 scale);
+        internal extern static void GetTransformLocalScale(EntityHandle entityHandle, out vec3 scale);
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        internal extern static void SetTransformWorldScale(UInt64 entityHandle, ref Vec2 scale);
+        internal extern static void SetTransformWorldScale(EntityHandle entityHandle, ref vec3 scale);
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        internal extern static void GetTransformWorldScale(UInt64 entityHandle, out Vec2 scale);
+        internal extern static void GetTransformWorldScale(EntityHandle entityHandle, out vec3 scale);
 
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        internal extern static void SetTransformLocalRotate(UInt64 entityHandle, float rot);
+        internal extern static void SetTransformLocalRotate(EntityHandle entityHandle, vec3 rot);
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        internal extern static void GetTransformLocalRotate(UInt64 entityHandle, out float rot);
+        internal extern static void GetTransformLocalRotate(EntityHandle entityHandle, out vec3 rot);
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        internal extern static void SetTransformWorldRotate(UInt64 entityHandle, float rot);
+        internal extern static void SetTransformWorldRotate(EntityHandle entityHandle, vec3 rot);
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        internal extern static void GetTransformWorldRotate(UInt64 entityHandle, out float rot);
-
-        [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        internal extern static void SetTransformZPos(UInt64 entityHandle, float zPos);
-        [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        internal extern static void GetTransformZPos(UInt64 entityHandle, out float zPos);
+        internal extern static void GetTransformWorldRotate(EntityHandle entityHandle, out vec3 rot);
         #endregion
 
         #region Physics
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        internal extern static void GetPhysicsComp(UInt64 entityHandle, out Physics p);
+        internal extern static void GetPhysicsComp(EntityHandle entityHandle, out Physics p);
 
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        internal extern static void GetPhysicsMass(UInt64 entityHandle, out float mass);
+        internal extern static void GetPhysicsMass(EntityHandle entityHandle, out float mass);
 
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        internal extern static void GetPhysicsFriction(UInt64 entityHandle, out float friction);
+        internal extern static void GetPhysicsFriction(EntityHandle entityHandle, out float friction);
 
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        internal extern static void SetPhysicsVelocity(UInt64 entityHandle, ref Vec2 velocity);
+        internal extern static void SetPhysicsVelocity(EntityHandle entityHandle, ref vec3 velocity);
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        internal extern static void GetPhysicsVelocity(UInt64 entityHandle, out Vec2 velocity);
+        internal extern static void GetPhysicsVelocity(EntityHandle entityHandle, out vec3 velocity);
 
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        internal extern static void SetPhysicsAngularVelocity(UInt64 entityHandle, float angularVelocity);
+        internal extern static void SetPhysicsAngularVelocity(EntityHandle entityHandle, float angularVelocity);
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        internal extern static void GetPhysicsAngularVelocity(UInt64 entityHandle, out float angularVelocity);
+        internal extern static void GetPhysicsAngularVelocity(EntityHandle entityHandle, out float angularVelocity);
         #endregion
 
         #region Text
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        internal extern static void GetText(UInt64 entityHandle, out Text t);
+        internal extern static void GetText(EntityHandle entityHandle, out Text t);
 
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        internal extern static void SetTextColor(UInt64 entityHandle, ref Vec4 c);
+        internal extern static void SetTextColor(EntityHandle entityHandle, ref vec4 c);
 
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        internal extern static void GetTextColor(UInt64 entityHandle, out Vec4 c);
+        internal extern static void GetTextColor(EntityHandle entityHandle, out vec4 c);
 
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        internal extern static void SetTextString(UInt64 entityHandle, string text);
+        internal extern static void SetTextString(EntityHandle entityHandle, string text);
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        internal extern static string GetTextString(UInt64 entHandle);
+        internal extern static string GetTextString(EntityHandle entHandle);
         #endregion
 
         #region Logging
@@ -154,55 +148,48 @@ namespace EngineScripting
 		#endregion
 
 		#region Audio
-		[MethodImplAttribute(MethodImplOptions.InternalCall)]
-		internal extern static void StartSingleSound(float volume, string name, bool loop);
+		//[MethodImplAttribute(MethodImplOptions.InternalCall)]
+		//internal extern static void StartSingleSound(float volume, string name, bool loop);
 
-		[MethodImplAttribute(MethodImplOptions.InternalCall)]
-        internal extern static void StartSingleSoundWithPosition(float volume, string name, bool loop, Vec2 position);
+		//[MethodImplAttribute(MethodImplOptions.InternalCall)]
+  //      internal extern static void StartSingleSoundWithPosition(float volume, string name, bool loop, vec2 position);
 
-		[MethodImplAttribute(MethodImplOptions.InternalCall)]
-		internal extern static void StartGroupedSound(float volume, string name, bool loop);
+		//[MethodImplAttribute(MethodImplOptions.InternalCall)]
+		//internal extern static void StartGroupedSound(float volume, string name, bool loop);
 
-		[MethodImplAttribute(MethodImplOptions.InternalCall)]
-		internal extern static void StartGroupedSoundWithPosition(float volume, string name, bool loop, Vec2 position);
+		//[MethodImplAttribute(MethodImplOptions.InternalCall)]
+		//internal extern static void StartGroupedSoundWithPosition(float volume, string name, bool loop, vec2 position);
 
-		[MethodImplAttribute(MethodImplOptions.InternalCall)]
-		internal extern static void StopSound(string name);
+		//[MethodImplAttribute(MethodImplOptions.InternalCall)]
+		//internal extern static void StopSound(string name);
 
-		[MethodImplAttribute(MethodImplOptions.InternalCall)]
-		internal extern static void StopAllSounds();
+		//[MethodImplAttribute(MethodImplOptions.InternalCall)]
+		//internal extern static void StopAllSounds();
 
-		[MethodImplAttribute(MethodImplOptions.InternalCall)]
-		internal extern static void SetChannelGroup(string soundName, string channelName);
+		//[MethodImplAttribute(MethodImplOptions.InternalCall)]
+		//internal extern static void SetChannelGroup(string soundName, string channelName);
 
-		[MethodImplAttribute(MethodImplOptions.InternalCall)]
-		internal extern static void SetGroupVolume(float volume, string group);
+		//[MethodImplAttribute(MethodImplOptions.InternalCall)]
+		//internal extern static void SetGroupVolume(float volume, string group);
 		#endregion
-
-		#region RayCast
-		[MethodImplAttribute(MethodImplOptions.InternalCall)]
-        internal extern static void Raycast(Vec2 origin, Vec2 direction, out RaycastHit hit);
-        [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        internal extern static void Raycast(Vec2 origin, Vec2 direction, int layerMask, out RaycastHit hit);
-        #endregion
 
         #region Entity
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        internal static extern object GetScriptInstance(UInt64 entityHandle, string scriptName);
+        internal static extern object GetScriptInstance(EntityHandle entityHandle, string scriptName);
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        internal static extern object GetChildScriptInstance(UInt64 entityHandle, string scriptName);
+        internal static extern object GetChildScriptInstance(EntityHandle entityHandle, string scriptName);
 
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        internal static extern UInt64 FindEntity(string name);
+        internal static extern EntityHandle FindEntity(string name);
 
 		[MethodImplAttribute(MethodImplOptions.InternalCall)]
-        internal static extern void DestroyEntity(UInt64 entityHandle);
+        internal static extern void DestroyEntity(EntityHandle entityHandle);
 
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        internal static extern UInt64 InstanstiateGameObject(UInt64 originalEntityHandle, UInt64 parentToAttach);
+        internal static extern EntityHandle InstanstiateGameObject(EntityHandle originalEntityHandle, EntityHandle parentToAttach);
 
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        internal static extern UInt64 InstantiatePrefab(string prefabName, UInt64 parentToAttach);
+        internal static extern EntityHandle InstantiatePrefab(string prefabName, EntityHandle parentToAttach);
 
         #endregion
 
@@ -216,19 +203,19 @@ namespace EngineScripting
 
         #region Animator
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        internal static extern void GetAnimatorComp(UInt64 entityHandle, out Animator a);
+        internal static extern void GetAnimatorComp(EntityHandle entityHandle, out Animator a);
 
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        internal static extern void GetChildAnimatorComp(UInt64 entityHandle, out Animator a);
+        internal static extern void GetChildAnimatorComp(EntityHandle entityHandle, out Animator a);
 
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        internal static extern void SetAnimation(UInt64 entityHandle, string name);
+        internal static extern void SetAnimation(EntityHandle entityHandle, string name);
 
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        internal static extern void SetAnimationSpeed(UInt64 entityHandle, float speed);
+        internal static extern void SetAnimationSpeed(EntityHandle entityHandle, float speed);
 
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        internal static extern void SetAnimationLooping(UInt64 entityHandle, bool looping);
+        internal static extern void SetAnimationLooping(EntityHandle entityHandle, bool looping);
         #endregion
 
         #region GameManager

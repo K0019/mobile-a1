@@ -667,44 +667,49 @@ namespace CSharpScripts
 
 	void CSScripting::CreateUserProject()
 	{
-		std::string csprojString = R"(<Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup>
-    <OutputType>Library</OutputType>
-    <TargetFramework>net472</TargetFramework>
-    <Platforms>x64</Platforms>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <OutputPath>Temp\bin\Debug\</OutputPath>
-    <PlatformTarget>x64</PlatformTarget>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <OutputPath>Temp\bin\Release\</OutputPath>
-    <PlatformTarget>x64</PlatformTarget>
-  </PropertyGroup>)";
-
-		csprojString += R"(<ItemGroup>
-            <Reference Include="EngineScripting">
-                <HintPath>)";
+		std::ofstream csprojFile(ST<Filepaths>::Get()->csproj);
+		if (!csprojFile.is_open())
+		{
+			CONSOLE_LOG(LEVEL_WARNING) << "Failed to create/overwrite scripting .csproj file";
+			return;
+		}
 
 		auto engineDll{ std::filesystem::absolute(ST<Filepaths>::Get()->engineScriptingDll) };
 		auto csproj{ std::filesystem::absolute(ST<Filepaths>::Get()->csproj) };
-		// On this line we call parent_path(), otherwise relative() will think the .csproj is a directory and not a file, thus adding an extra ../
-		csprojString += std::filesystem::relative(engineDll, csproj.parent_path()).string();
+		auto glmSharpDll{ std::filesystem::absolute(ST<Filepaths>::Get()->glmSharpDll) };
 
-		csprojString += R"(</HintPath>
-            </Reference>
-        </ItemGroup>
-    </Project>
-)";
-		std::string projectPath;
-		// Write csproject
-		std::ofstream csprojFile(ST<Filepaths>::Get()->csproj);
-		if (csprojFile.is_open())
-		{ 
-			csprojFile << csprojString;
-			csprojFile.close();
-		}
+		csprojFile <<
+R"(<Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<OutputType>Library</OutputType>
+		<TargetFramework>net472</TargetFramework>
+		<Platforms>x64</Platforms>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+		<OutputPath>Temp\bin\Debug\</OutputPath>
+		<PlatformTarget>x64</PlatformTarget>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+		<OutputPath>Temp\bin\Release\</OutputPath>
+		<PlatformTarget>x64</PlatformTarget>
+	</PropertyGroup>
+	<ItemGroup>
+		<Reference Include="EngineScripting">
+			<HintPath>)"
+			// On this line we call parent_path(), otherwise relative() will think the .csproj is a directory and not a file, thus adding an extra ../
+			<< std::filesystem::relative(engineDll, csproj.parent_path()).string() <<
+			R"(</HintPath>
+		</Reference>
+		<Reference Include="GlmSharp">
+			<HintPath>)"
+			// Same as above
+			<< std::filesystem::relative(glmSharpDll, csproj.parent_path()).string() <<
+			R"(</HintPath>
+		</Reference>
+	</ItemGroup>
+</Project>)";
 
+		csprojFile.close();
 	}
 
 	void CSScripting::CompileUserAssembly()

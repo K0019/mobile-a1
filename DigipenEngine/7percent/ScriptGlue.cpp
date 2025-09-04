@@ -458,19 +458,6 @@ namespace CSharpScripts
 		return Input::GetKeyReleased(KEY(keycode));
 	}
 
-	/*****************************************************************//*!
-	\brief
-		Returns the world position of the mouse.
-	\param[in] pos
-		Pointer of a Vec2 to contain the mouse position.
-	\return
-		None.
-	*//******************************************************************/
-	static void GetMouseWorldPos(Vec3* pos)
-	{
-		*pos = Input::GetMousePosWorld();
-	}
-
 #pragma endregion
 
 #pragma region TransformComponent
@@ -1573,7 +1560,6 @@ namespace CSharpScripts
 		ADD_INTERNAL_CALL(GetCurrKey);
 		ADD_INTERNAL_CALL(GetKeyPressed);
 		ADD_INTERNAL_CALL(GetKeyReleased);
-		ADD_INTERNAL_CALL(GetMouseWorldPos);
 #pragma endregion
 
 #pragma region Log Calls

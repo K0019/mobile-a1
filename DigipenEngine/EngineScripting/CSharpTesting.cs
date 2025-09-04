@@ -18,6 +18,7 @@ All content © 2024 DigiPen Institute of Technology Singapore.
 All rights reserved.
 */
 /******************************************************************************/
+using GlmSharp;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -43,8 +44,8 @@ public class CSharpTesting : EID
         Console.WriteLine(GetType().Name + " instance has been created!");
         InternalCalls.CppNativeLog("Testing Testing", 5003);
 
-        EngineScripting.Vec3 pos = new Vec3(10.1f, 5.3f, 3.6f);
-        EngineScripting.Vec3 res = Log(pos);
+        vec3 pos = new vec3(10.1f, 5.3f, 3.6f);
+        vec3 res = Log(pos);
         Console.WriteLine(res.x);
 
         Console.WriteLine("Dot of pos = " + InternalCalls.CppNativeLog_VectorDot(ref pos).ToString());
@@ -192,9 +193,9 @@ public class CSharpTesting : EID
     \return
         C# Vector3 with manipulated values from C++ code
     *//******************************************************************/
-    private Vec3 Log(Vec3 p)
+    private vec3 Log(vec3 p)
     {
-        InternalCalls.CppNativeLog_Vector(ref p, out Vec3 result);
+        InternalCalls.CppNativeLog_Vector(ref p, out vec3 result);
         return result;
         //return new Vector3(0, 0, 0);
     }

@@ -140,13 +140,14 @@ namespace EngineScripting
 		/*****************************************************************//*!
 		\brief
 			Gets the world position of the mouse.
+			TODO: Convert to direction in world
 		\return
 			Vector 2 of the Mouse world position.
 		*//******************************************************************/
-		public static Vec2 GetMousePos()
-		{
-			InternalCalls.GetMouseWorldPos(out Vec2 Result);
-			return Result;
-		}
+		//public static Vec2 GetMousePos()
+		//{
+		//	InternalCalls.GetMouseWorldPos(out Vec2 Result);
+		//	return Result;
+		//}
     }
 }
