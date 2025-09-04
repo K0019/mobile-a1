@@ -24,5 +24,7 @@ public class TestScript : EID
     void OnUpdate(float dt)
     {
         transform.localPosition = transform.localPosition + new vec3(1, 0, 0);
+        Debug.Log("Hello");
+
     }
 }

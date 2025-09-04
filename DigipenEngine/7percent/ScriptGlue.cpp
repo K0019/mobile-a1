@@ -221,7 +221,6 @@ struct DummyAnimator
 
 #pragma endregion
 
-
 namespace CSharpScripts
 {
 	// Should be same name as in both c++ and c#

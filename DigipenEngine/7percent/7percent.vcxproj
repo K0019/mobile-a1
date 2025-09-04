@@ -139,9 +139,7 @@
       <AdditionalDependencies>glfw3-debug.lib;FMOD/fmodL_vc.lib;FMOD/fmodstudioL_vc.lib;mono-2.0-sgen.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy "$(SolutionDir)EngineScripting\bin\$(Configuration)-$(Platform)\EngineScripting.dll" "$(OutDir)" /y /d
-del "$(SolutionDir)EngineScripting\bin\$(Configuration)-$(Platform)\EngineScripting.dll"
-xcopy "$(SolutionDir)External\Libraries\FMOD\*.dll" "$(OutDir)" /y /d
+      <Command>xcopy "$(SolutionDir)External\Libraries\FMOD\*.dll" "$(OutDir)" /y /d
 xcopy "$(SolutionDir)External\Libraries\*.dll" "$(OutDir)" /y /d
 cd $(SolutionDir)Shaders
 call compile.bat
