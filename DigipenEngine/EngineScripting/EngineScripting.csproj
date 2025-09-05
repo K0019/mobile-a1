@@ -94,6 +94,9 @@
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>rmdir /s /q "$(SolutionDir)Assets\Temp"
+if not exist "$(SolutionDir)bin\$(Configuration)-$(Platform)" (
+    mkdir "$(SolutionDir)bin\$(Configuration)-$(Platform)"
+)
 xcopy "$(TargetPath)" "$(SolutionDir)bin\$(Configuration)-$(Platform)" /y /d</PostBuildEvent>
   </PropertyGroup>
 </Project>
