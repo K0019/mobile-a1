@@ -41,13 +41,36 @@ namespace CSharpScripts {
 		class Field : public ISerializeableWithoutJsonObj
 		{
 		public:
+			/*****************************************************************//*!
+			\brief
+				Describes functions that set and retrieve a C# variable in a script.
+				See valueTypeToOperationsMap for how these are used.
+			*//******************************************************************/
 			struct ValueOperations
 			{
 				void(*RetrieveValueFromScript)(VariantType* valuePtr, MonoClassField* field, MonoObject* instance);
 				void(*SetValueOfScript)(const VariantType& value, MonoClassField* field, MonoObject* instance);
 			};
 
+			/*****************************************************************//*!
+			\brief
+				Retrieves the appropriate function set for setting/retrieving a C# variable
+				for a given variable type.
+			\param typeEnum
+				The type of the variable, which should be from a mono_type_get_type() call.
+			\return
+				The set/retrieve functions that are compatible with the given variable type.
+			*//******************************************************************/
 			static const ValueOperations* GetValueOperation(int typeEnum);
+
+			/*****************************************************************//*!
+			\brief
+				Checks if a C# variable type is compatible with our scripting framework.
+			\param field
+				The variable filed in the C# object, which can be from mono_class_get_fields().
+			\return
+				Whether the variable type is compatible.
+			*//******************************************************************/
 			static bool IsValidField(MonoClassField* field);
 
 		public:
@@ -55,9 +78,7 @@ namespace CSharpScripts {
 
 			void SetValue(MonoObject* instance, const VariantType& newValue);
 			void SyncValueToScript(MonoObject* instance);
-
-			// TEMPORARY
-			VariantType& GetValue();
+			const VariantType& GetValue() const;
 
 			void EditorDraw(const std::string& name, MonoObject* instance);
 
@@ -72,9 +93,13 @@ namespace CSharpScripts {
 			static const std::unordered_map<int, ValueOperations> valueTypeToOperationsMap;
 
 		private:
+			//! Handle to the variable field in the C# object
 			MonoClassField* field;
+			//! Handle to the type of the variable.
 			MonoType* type;
+			//! Identifies the type of the variable stored in this Field.
 			int typeEnum;
+			//! The value of the variable.
 			VariantType value;
 
 			property_vtable()
@@ -205,6 +230,7 @@ X(ON_AWAKE, Awake, 0)
 
 	private:
 		MonoClass* m_MonoClass = nullptr;
+		//! Pointers to C# methods that are invoked via InvokeMethod().
 		std::array<MonoMethod*, +METHOD::NUM_METHODS> m_Methods;
 
 		std::string m_ClassNameSpace;

@@ -414,7 +414,7 @@ namespace CSharpScripts
 			GetValueOperation(typeEnum)->SetValueOfScript(value, field, instance);
 		}
 
-		VariantType& Field::GetValue()
+		const VariantType& Field::GetValue() const
 		{
 			return value;
 		}
