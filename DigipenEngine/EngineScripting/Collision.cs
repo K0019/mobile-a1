@@ -1,4 +1,5 @@
-﻿using System;
+﻿using GlmSharp;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,23 +9,23 @@ namespace EngineScripting
 {
     public class Collision
     {
-        public Vector2 normal;
-        public Vector2 point;
+        public vec3 normal;
+        public vec3 point;
         public float depth;
 
         public UInt64 eid;
         public UInt64 other;
     }
 
-    public class Raycasting
-    {
-        public static void TestRaycast(Vector2 origin, Vector2 direction, out RaycastHit hit)
-        {
-            InternalCalls.Raycast(origin, direction, out hit);
-        }
-        public static void TestRaycast(Vector2 origin, Vector2 direction,int layerMask, out RaycastHit hit)
-        {
-            InternalCalls.Raycast(origin, direction, layerMask, out hit);
-        }
-    }
+    //public class Raycasting
+    //{
+    //    public static void TestRaycast(Vec2 origin, Vec2 direction, out RaycastHit hit)
+    //    {
+    //        InternalCalls.Raycast(origin, direction, out hit);
+    //    }
+    //    public static void TestRaycast(Vec2 origin, Vec2 direction,int layerMask, out RaycastHit hit)
+    //    {
+    //        InternalCalls.Raycast(origin, direction, layerMask, out hit);
+    //    }
+    //}
 }
