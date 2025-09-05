@@ -4,6 +4,7 @@
     <LocalDebuggerWorkingDirectory>$(SolutionDir)bin\$(Configuration)-$(Platform)\</LocalDebuggerWorkingDirectory>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
     <LocalDebuggerEnvironment>VK_LAYER_PATH=$(SolutionDir)External\Bin</LocalDebuggerEnvironment>
+    <LocalDebuggerDebuggerType>Mixed</LocalDebuggerDebuggerType>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug_NoImGui|x64'">
     <LocalDebuggerWorkingDirectory>$(SolutionDir)bin\$(Configuration)-$(Platform)\</LocalDebuggerWorkingDirectory>
@@ -24,8 +25,8 @@ VK_LAYER_PATH=$(SolutionDir)External\Bin</LocalDebuggerEnvironment>
   </PropertyGroup>
   <PropertyGroup>
     <ShowAllFiles>false</ShowAllFiles>
-    </PropertyGroup>
-<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release_NoImGui|x64'">
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release_NoImGui|x64'">
     <LocalDebuggerWorkingDirectory>$(SolutionDir)bin\$(Configuration)-$(Platform)\</LocalDebuggerWorkingDirectory>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
     <LocalDebuggerEnvironment>DISABLE_VK_LAYER_VALVE_steam_overlay_1=1
