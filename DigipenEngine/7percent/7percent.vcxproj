@@ -456,7 +456,6 @@ if not exist "$(TargetDir)imgui.json" (
     <ClCompile Include="ryan-c\VulkanManager.cpp" />
     <ClCompile Include="SceneManagement.cpp" />
     <ClCompile Include="ScriptComponent.cpp" />
-    <ClCompile Include="ScriptGlue.cpp" />
     <ClCompile Include="ScriptingUtil.cpp" />
     <ClCompile Include="ScriptManagement.cpp" />
     <ClCompile Include="Serializer.cpp" />
@@ -621,7 +620,6 @@ if not exist "$(TargetDir)imgui.json" (
     <ClInclude Include="ryan-c\VulkanManager.h" />
     <ClInclude Include="SceneManagement.h" />
     <ClInclude Include="ScriptComponent.h" />
-    <ClInclude Include="ScriptGlue.h" />
     <ClInclude Include="ScriptingUtil.h" />
     <ClInclude Include="ScriptManagement.h" />
     <ClInclude Include="Serializer.h" />

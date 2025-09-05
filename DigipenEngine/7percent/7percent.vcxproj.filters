@@ -438,9 +438,6 @@
     <ClCompile Include="ScriptComponent.cpp">
       <Filter>Source Files\Scripting</Filter>
     </ClCompile>
-    <ClCompile Include="ScriptGlue.cpp">
-      <Filter>Source Files\Scripting</Filter>
-    </ClCompile>
     <ClCompile Include="ScriptManagement.cpp">
       <Filter>Source Files\Scripting</Filter>
     </ClCompile>
@@ -843,9 +840,6 @@
       <Filter>Header Files\EditorUI\Containers</Filter>
     </ClInclude>
     <ClInclude Include="ScriptComponent.h">
-      <Filter>Header Files\Scripting</Filter>
-    </ClInclude>
-    <ClInclude Include="ScriptGlue.h">
       <Filter>Header Files\Scripting</Filter>
     </ClInclude>
     <ClInclude Include="ScriptManagement.h">

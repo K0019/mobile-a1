@@ -79,14 +79,11 @@
     <Compile Include="Animator.cs" />
     <Compile Include="AudioManager.cs" />
     <Compile Include="Camera.cs" />
-    <Compile Include="CheatEngine.cs" />
     <Compile Include="Collision.cs" />
     <Compile Include="Component.cs" />
-    <Compile Include="CSharpTesting.cs" />
     <Compile Include="Debug.cs" />
     <Compile Include="GameObject.cs" />
     <Compile Include="Input.cs" />
-    <Compile Include="InternalCall.cs" />
     <Compile Include="GameManager.cs" />
     <Compile Include="Mathf.cs" />
     <Compile Include="MonoInterop.cs" />

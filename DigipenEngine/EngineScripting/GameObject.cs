@@ -220,8 +220,8 @@ namespace EngineScripting
         [DllImport("__Internal", EntryPoint = "CS_GetScriptInstance")]
         private static extern IntPtr GetScriptObject(EntityHandle entity, string type);
 
-        private readonly Dictionary<Type, Action<EntityHandle, Action<IComponent>>> childComponentGetters = new Dictionary<Type, Action<EntityHandle, Action<IComponent>>>()
-        {
+        //private readonly Dictionary<Type, Action<EntityHandle, Action<IComponent>>> childComponentGetters = new Dictionary<Type, Action<EntityHandle, Action<IComponent>>>()
+        //{
             //{ typeof(Transform), (eID, callback) =>
             //    {
             //        InternalCalls.GetChildTransform(eID, out var component);
@@ -243,13 +243,13 @@ namespace EngineScripting
             //    }
             //},
             //
-            { typeof(Animator), (eID, callback) =>
-                {
-                    InternalCalls.GetChildAnimatorComp(eID, out var component);
-                    callback(component);
-                }
-            }
-        };
+        //    { typeof(Animator), (eID, callback) =>
+        //        {
+        //            InternalCalls.GetChildAnimatorComp(eID, out var component);
+        //            callback(component);
+        //        }
+        //    }
+        //};
 		#endregion
 		/*****************************************************************//*!
         \brief
@@ -284,22 +284,22 @@ namespace EngineScripting
         \return
 	        Specified component to get
         *//******************************************************************/
-		public T GetComponentInChildren<T>() where T : struct, IComponent
-        {
-            T result = default;
+		//public T GetComponentInChildren<T>() where T : struct, IComponent
+  //      {
+  //          T result = default;
 
 
-            if (childComponentGetters.TryGetValue(typeof(T), out var getter))
-            {
+  //          if (childComponentGetters.TryGetValue(typeof(T), out var getter))
+  //          {
 
-                getter(transform.EntityHandle, component =>
-                {
-                    result = (T)(object)component;
-                });
-            }
+  //              getter(transform.EntityHandle, component =>
+  //              {
+  //                  result = (T)(object)component;
+  //              });
+  //          }
 
-            return result;
-        }
+  //          return result;
+  //      }
 
         /*****************************************************************//*!
         \brief

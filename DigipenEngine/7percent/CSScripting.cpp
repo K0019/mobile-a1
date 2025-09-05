@@ -27,7 +27,6 @@ All rights reserved.
 #include "GameSettings.h"
 #include "Popup.h"
 #include "Engine.h"
-#include "ScriptGlue.h"
 #include "ScriptComponent.h"
 #include "EntityUID.h"
 
@@ -479,7 +478,6 @@ namespace CSharpScripts
 
 		LoadUserAssembly(ST<Filepaths>::Get()->userAssemblyDll);
 		Utils::LoadUserAssemblyClasses(ScriptEngineData->s_UserAssembly);
-		ScriptGlue::RegisterFunctions();
 		for (auto& pair : ScriptEngineData->s_CoreClasses)
 		{
 			CONSOLE_LOG_EXPLICIT(pair.second.GetFullName(), LogLevel::LEVEL_DEBUG);
@@ -510,7 +508,6 @@ namespace CSharpScripts
 		CompileUserAssemblyAsync([]() -> void {
 			LoadUserAssembly(ST<Filepaths>::Get()->userAssemblyDll);
 			Utils::LoadUserAssemblyClasses(ScriptEngineData->s_UserAssembly);
-			ScriptGlue::RegisterFunctions();
 
 			// reload the ecs scripts
 			// 
