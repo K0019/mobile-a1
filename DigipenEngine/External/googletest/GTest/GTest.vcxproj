@@ -72,12 +72,12 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <OutDir>$(SolutionDir)\bin\$(Configuration)-$(Platform)\CI\</OutDir>
-    <IntDir>$(SolutionDir)\.tmp\$(Configuration)-$(Platform)\CI\</IntDir>
+    <OutDir>$(SolutionDir)\bin\gtest-$(Configuration)-$(Platform)\</OutDir>
+    <IntDir>$(SolutionDir)\.tmp\gtest-$(Configuration)-$(Platform)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <OutDir>$(SolutionDir)\bin\$(Configuration)-$(Platform)\CI\</OutDir>
-    <IntDir>$(SolutionDir)\.tmp\$(Configuration)-$(Platform)\CI\</IntDir>
+    <OutDir>$(SolutionDir)\bin\gtest-$(Configuration)-$(Platform)\</OutDir>
+    <IntDir>$(SolutionDir)\.tmp\gtest-$(Configuration)-$(Platform)\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -153,16 +153,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\src\gtest-all.cc" />
-    <ClCompile Include="..\src\gtest-assertion-result.cc" />
-    <ClCompile Include="..\src\gtest-death-test.cc" />
-    <ClCompile Include="..\src\gtest-filepath.cc" />
-    <ClCompile Include="..\src\gtest-matchers.cc" />
-    <ClCompile Include="..\src\gtest-port.cc" />
-    <ClCompile Include="..\src\gtest-printers.cc" />
-    <ClCompile Include="..\src\gtest-test-part.cc" />
-    <ClCompile Include="..\src\gtest-typed-test.cc" />
-    <ClCompile Include="..\src\gtest.cc" />
-    <ClCompile Include="..\src\gtest_main.cc" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\gtest-internal-inl.h" />
