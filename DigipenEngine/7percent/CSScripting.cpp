@@ -323,7 +323,7 @@ namespace CSharpScripts
 				const char* nameSpace = mono_metadata_string_heap(image, cols[MONO_TYPEDEF_NAMESPACE]);
 				const char* name = mono_metadata_string_heap(image, cols[MONO_TYPEDEF_NAME]);
 
-				MonoClass* mClass = mono_class_from_name(ScriptEngineData->s_UserAssemblyImage, nameSpace, name);
+				MonoClass* mClass = mono_class_from_name(image, nameSpace, name);
 				bool isScript = mono_class_is_subclass_of(mClass, scriptBaseClass, false);
 
 				if (!isScript || mClass == scriptBaseClass)
