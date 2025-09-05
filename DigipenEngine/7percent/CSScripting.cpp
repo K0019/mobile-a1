@@ -743,6 +743,7 @@ R"(<Project Sdk="Microsoft.NET.Sdk">
 
 		CleanUserAssemblyTempFiles();
 		CONSOLE_LOG(LEVEL_INFO) << "User Assembly Compilation: Successful";
+		return true;
 	}
 
 	void CSScripting::CompileUserAssemblyAsync(void(*callback)())
@@ -832,8 +833,11 @@ R"(<Project Sdk="Microsoft.NET.Sdk">
 
 		// Check parent classes recursively for the method
 		for (MonoClass* parent{ mono_class_get_parent(m_MonoClass) }; parent; parent = mono_class_get_parent(parent))
-			if (method = mono_class_get_method_from_name(parent, name.c_str(), paramCount))
+		{
+			method = mono_class_get_method_from_name(parent, name.c_str(), paramCount);
+			if (method)
 				return method;
+		}
 
 		// The method doesn't exist
 		return nullptr;
