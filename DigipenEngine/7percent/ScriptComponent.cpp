@@ -350,12 +350,44 @@ void ScriptPreAwakeSystem::PreAwakeScriptComp(ScriptComponent& comp)
 
 #pragma region Scripting
 
+/*****************************************************************//*!
+\brief
+	Gets a GCHandle to a C# script object that's attached to an entity.
+	Freeing the handle doesn't delete the script object, but do still
+	remember to free the handle on C# side, otherwise there will be a
+	memory leak!
+\param entity
+	The entity to search for the script object on.
+\param typeName
+	The name of the class of the C# script object. If the class is defined
+	inside a namespace, it must be included in the name and delimited by '.'
+\return
+	A C# IntPtr object which can be converted into a GCHandle via GCHandle.FromIntPtr().
+	If the script object doesn't exist on the entity, returns 0. On C#,
+	this can be checked for by a comparison against IntPtr.Zero.
+*//******************************************************************/
 SCRIPT_CALLABLE intptr_t CS_GetScriptInstance(ecs::EntityHandle entity, const char* typeName)
 {
-	auto scriptComp{ util::AssertCompExistsOnValidEntityAndGet<ScriptComponent>(entity) };
-	return mono_gchandle_new(scriptComp->FindScriptInstance(typeName), false);
+	util::AssertEntityHandleValid(entity);
+	auto scriptComp{ entity->GetComp<ScriptComponent>() };
+	if (!scriptComp)
+		return 0;
+
+	if (MonoObject* scriptInstance{ scriptComp->FindScriptInstance(typeName) })
+		return mono_gchandle_new(scriptInstance, false);
+	else
+		return 0;
 }
 
+/*****************************************************************//*!
+\brief
+	Searches the world for an entity of the specified name.
+	THIS IS VERY EXPENSIVE!
+\param name
+	The name of the entity.
+\return
+	The entity. If not found, 0.
+*//******************************************************************/
 SCRIPT_CALLABLE ecs::EntityHandle CS_FindEntityByName(const char* name)
 {
 	for (auto iter = ecs::GetCompsBegin<NameComponent>(); iter != ecs::GetCompsEnd<NameComponent>(); ++iter)
@@ -364,12 +396,29 @@ SCRIPT_CALLABLE ecs::EntityHandle CS_FindEntityByName(const char* name)
 	return nullptr;
 }
 
+/*****************************************************************//*!
+\brief
+	Deletes an entity.
+\param entity
+	The entity.
+*//******************************************************************/
 SCRIPT_CALLABLE void CS_DeleteEntity(ecs::EntityHandle entity)
 {
 	util::AssertEntityHandleValid(entity);
 	ecs::DeleteEntity(entity);
 }
 
+/*****************************************************************//*!
+\brief
+	Deferred clones an entity.
+\param entity
+	The entity.
+\param parent
+	The entity to parent the cloned entity to. If null, the new entity
+	does not have a parent.
+\return
+	The cloned entity.
+*//******************************************************************/
 SCRIPT_CALLABLE ecs::EntityHandle CS_CloneEntity(ecs::EntityHandle entity, ecs::EntityHandle parent)
 {
 	util::AssertEntityHandleValid(entity);
@@ -382,6 +431,17 @@ SCRIPT_CALLABLE ecs::EntityHandle CS_CloneEntity(ecs::EntityHandle entity, ecs::
 	return clonedEntity;
 }
 
+/*****************************************************************//*!
+\brief
+	Spawns a prefab as a new entity.
+\param prefabName
+	The name of the prefab.
+\param parent
+	The entity to parent the cloned entity to. If null, the new entity
+	does not have a parent.
+\return
+	The spawned prefab entity.
+*//******************************************************************/
 SCRIPT_CALLABLE ecs::EntityHandle CS_SpawnPrefab(const char* prefabName, ecs::EntityHandle parent)
 {
 	ecs::EntityHandle prefabEntity{ ST<PrefabManager>::Get()->LoadPrefab(prefabName) };
