@@ -477,4 +477,4 @@ gtest-all.obj : warning LNK4006: "private: static class testing::internal::Mutex
 gtest-all.obj : warning LNK4006: "private: static class testing::internal::Mutex testing::internal::ThreadLocalRegistryImpl::thread_map_mutex_" (?thread_map_mutex_@ThreadLocalRegistryImpl@internal@testing@@0VMutex@23@A) already defined in gtest-port.obj; second definition ignored
 gtest-all.obj : warning LNK4006: "bool testing::FLAGS_gtest_fail_if_no_test_linked" (?FLAGS_gtest_fail_if_no_test_linked@testing@@3_NA) already defined in gtest.obj; second definition ignored
 gtest-all.obj : warning LNK4006: "bool testing::FLAGS_gtest_fail_if_no_test_selected" (?FLAGS_gtest_fail_if_no_test_selected@testing@@3_NA) already defined in gtest.obj; second definition ignored
-  GTest.vcxproj -> C:\Users\admin\OneDrive\Documents\Uni\gam300-magic\DigipenEngine\x64\Debug\gtest.lib
+  GTest.vcxproj -> C:\Users\matth\Documents\GitHub\gam300-magic\DigipenEngine\x64\Debug\gtest.lib
