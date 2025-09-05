@@ -16,11 +16,11 @@ jobs:
         uses: microsoft/setup-msbuild@v1.3
 
       - name: Build solution
-        run: msbuild DigipenEngine/7percent.sln /p:Configuration=Debug
+        run: msbuild DigipenEngine/7percent.sln /p:Configuration=Debug-x64
 
       - name: Run tests
         run: |
-          ./DigipenEngine/x64/Debug/CITest.exe --gtest_output=xml:results.xml
+          ./DigipenEngine/bin/CI-Debug-x64/CITest.exe --gtest_output=xml:results.xml
 
       - name: Upload test results
         uses: actions/upload-artifact@v4
