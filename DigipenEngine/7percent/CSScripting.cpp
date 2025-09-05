@@ -926,8 +926,8 @@ R"(<Project Sdk="Microsoft.NET.Sdk">
 			field;
 			field = mono_class_get_fields(m_ScriptClass->GetClass(), &iter))
 		{
-			// Only process public flags (1 == private, 6 == public)
-			if (mono_field_get_flags(field) == 1)
+			// Only process public flags (1 == private, 4 == protected, 6 == public)
+			if (mono_field_get_flags(field) != 6)
 				continue;
 			
 			// If this variable is compatible with our framework, save it

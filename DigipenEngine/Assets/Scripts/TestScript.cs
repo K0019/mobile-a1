@@ -10,7 +10,7 @@ using EngineScripting;
 
 public class TestScript : ComponentBase
 {
-    private int value = 5;
+    protected int value = 5;
 
 	TestScript()
 	{
