@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites tests="1" failures="0" disabled="0" errors="0" time="0.001" timestamp="2025-09-05T13:36:24.621" name="AllTests">
+  <testsuite name="GtestTest" tests="1" failures="0" disabled="0" skipped="0" errors="0" time="0." timestamp="2025-09-05T13:36:24.622">
+    <testcase name="OtherVariable" file="C:\Users\admin\OneDrive\Documents\Uni\gam300-magic\DigipenEngine\CITest\CITest.h" line="8" status="run" result="completed" time="0." timestamp="2025-09-05T13:36:24.622" classname="GtestTest" />
+  </testsuite>
+</testsuites>
