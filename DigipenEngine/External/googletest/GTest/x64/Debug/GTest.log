@@ -1,0 +1,7 @@
+﻿  pch.cpp
+  gtest.cc
+  gtest_main.cc
+  GTest.cpp
+  Generating Code...
+x64\Debug\GTest.obj : warning LNK4042: object specified more than once; extras ignored
+  GTest.vcxproj -> C:\Users\admin\OneDrive\Documents\Uni\gam300-magic\DigipenEngine\x64\Debug\GTest.lib
