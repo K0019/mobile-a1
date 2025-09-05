@@ -18,7 +18,7 @@ namespace EngineScripting
     [StructLayout(LayoutKind.Sequential)]
     public struct Text : IComponent
     {
-        private EntityHandle eid;
+        private EntityHandle entity;
         private vec4 c;
         [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 256)]
         private string str;
@@ -37,7 +37,7 @@ namespace EngineScripting
             set
             {
                 c = value;
-                SetColor(eid, value);
+                SetColor(entity, value);
             }
         }
 
@@ -47,7 +47,7 @@ namespace EngineScripting
             set
             {
                 str = value;
-                SetText(eid, value);
+                SetText(entity, value);
             }
         }
 

@@ -128,6 +128,12 @@ float GameTime::GetTimeScale()
 
 #pragma region Scripting
 
+/*****************************************************************//*!
+\brief
+	Gets delta time.
+\return
+	The delta time of the current frame.
+*//******************************************************************/
 SCRIPT_CALLABLE float CS_GetDt()
 {
 	return GameTime::Dt();
