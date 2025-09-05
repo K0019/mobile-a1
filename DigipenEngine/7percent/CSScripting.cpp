@@ -422,10 +422,15 @@ namespace CSharpScripts
 		{
 			gui::TextFormatted("%s:", name.c_str());
 			gui::SameLine();
+
+			// Get the current value in the script
+			RetrieveValueFromScript(instance);
+			// Draw the value
 			std::visit([&](auto&& arg) {
 				using T = std::decay_t<decltype(arg)>;
 				gui::SetID varID{ name.c_str() };
 				if (gui::VarDefault("", &arg))
+					// User has modified the value. Sync back to the script.
 					SyncValueToScript(instance);
 			}, value);
 		}

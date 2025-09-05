@@ -28,6 +28,7 @@ public class TestScript : ComponentBase
         Transform transform = this.transform;
         transform.localPosition = transform.localPosition + new vec3(1, 0, 0);
 
+        value += 1;
         Debug.Log(value.ToString());
 
         //Text textComp = gameObject.GetComponent<Text>();
