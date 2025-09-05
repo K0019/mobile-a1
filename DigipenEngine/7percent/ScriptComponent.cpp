@@ -32,6 +32,7 @@ All rights reserved.
 #include "ResourceManager.h"
 #include "EntityUID.h"
 #include "NameComponent.h"
+#include "PrefabManager.h"
 
 using namespace CSharpScripts;
 
@@ -362,6 +363,43 @@ SCRIPT_CALLABLE intptr_t CS_GetScriptInstance(ecs::EntityHandle entity, const ch
 {
 	auto scriptComp{ util::AssertCompExistsOnValidEntityAndGet<ScriptComponent>(entity) };
 	return mono_gchandle_new(scriptComp->FindScriptInstance(typeName), false);
+}
+
+SCRIPT_CALLABLE ecs::EntityHandle CS_FindEntityByName(const char* name)
+{
+	for (auto iter = ecs::GetCompsBegin<NameComponent>(); iter != ecs::GetCompsEnd<NameComponent>(); ++iter)
+		if (iter->GetName() == name)
+			return iter.GetEntity();
+	return nullptr;
+}
+
+SCRIPT_CALLABLE void CS_DeleteEntity(ecs::EntityHandle entity)
+{
+	util::AssertEntityHandleValid(entity);
+	ecs::DeleteEntity(entity);
+}
+
+SCRIPT_CALLABLE ecs::EntityHandle CS_CloneEntity(ecs::EntityHandle entity, ecs::EntityHandle parent)
+{
+	util::AssertEntityHandleValid(entity);
+	ecs::EntityHandle clonedEntity{ ecs::CloneEntity(entity) };
+	if (parent)
+	{
+		util::AssertEntityHandleValid(parent);
+		clonedEntity->GetTransform().SetParent(parent->GetTransform());
+	}
+	return clonedEntity;
+}
+
+SCRIPT_CALLABLE ecs::EntityHandle CS_SpawnPrefab(const char* prefabName, ecs::EntityHandle parent)
+{
+	ecs::EntityHandle prefabEntity{ ST<PrefabManager>::Get()->LoadPrefab(prefabName) };
+	if (parent)
+	{
+		util::AssertEntityHandleValid(parent);
+		prefabEntity->GetTransform().SetParent(parent->GetTransform());
+	}
+	return prefabEntity;
 }
 
 #pragma endregion // Scripting

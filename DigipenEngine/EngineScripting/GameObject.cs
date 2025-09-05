@@ -173,7 +173,7 @@ namespace EngineScripting
             transform = new Transform(entityID);
         }
 
-		/*****************************************************************//*!
+        /*****************************************************************//*!
         \brief
 	        Finds an entity through the use of their name component
         \param[in] name
@@ -181,16 +181,17 @@ namespace EngineScripting
         \return
 	        GameObject to be found
         *//******************************************************************/
+        [DllImport("__Internal", EntryPoint = "CS_FindEntityByName")]
+        private static extern EntityHandle FindEntity(string name);
 		public static GameObject Find(string name)
         {
-            //internal call here
-            EntityHandle handle = InternalCalls.FindEntity(name);
+            EntityHandle handle = FindEntity(name);
             if (handle.IsNull)
                 return null;
             return new GameObject(handle);
         }
 
-		/*****************************************************************//*!
+        /*****************************************************************//*!
         \brief
 	        Destroys a gameobject
         \param[in] obj
@@ -198,13 +199,12 @@ namespace EngineScripting
         \return
 	        None
         *//******************************************************************/
-		public void Destroy(GameObject obj)
+        [DllImport("__Internal", EntryPoint = "CS_FindEntityByName")]
+        private static extern void DeleteEntity(EntityHandle entity);
+        public void Destroy(GameObject obj)
         {
-            if (obj == null)
-            {
-                return;
-            }
-            InternalCalls.DestroyEntity(obj.transform.EntityHandle);
+            if (obj != null)
+                DeleteEntity(obj.transform.EntityHandle);
         }
 
         /*****************************************************************//*!
@@ -301,7 +301,7 @@ namespace EngineScripting
             return result;
         }
 
-		/*****************************************************************//*!
+        /*****************************************************************//*!
         \brief
 	        Creates a copy of a GameObject.
         \param[in] original
@@ -311,6 +311,8 @@ namespace EngineScripting
         \return
 	        The copied GameObject
         *//******************************************************************/
+        [DllImport("__Internal", EntryPoint = "CS_CloneEntity")]
+        private static extern EntityHandle CloneEntity(EntityHandle entity, EntityHandle parent);
 		public static GameObject Instanstiate(GameObject original, Transform? parent = null)
         {
             EntityHandle parentID = 0;
@@ -318,10 +320,12 @@ namespace EngineScripting
             {
                 parentID = parent.Value.EntityHandle;
             }
-            GameObject obj = new GameObject(InternalCalls.InstanstiateGameObject(original.transform.EntityHandle, parentID));
+            GameObject obj = new GameObject(CloneEntity(original.transform.EntityHandle, parentID));
             return obj;
         }
 
+        [DllImport("__Internal", EntryPoint = "CS_SpawnPrefab")]
+        private static extern EntityHandle SpawnPrefab(string name, EntityHandle parent);
         public static GameObject InstantiatePrefab(Prefab prefabName, Transform? parent = null)
         {
             EntityHandle parentID = 0;
@@ -329,7 +333,7 @@ namespace EngineScripting
             {
                 parentID = parent.Value.EntityHandle;
             }
-            GameObject obj = new GameObject(InternalCalls.InstantiatePrefab(prefabName, parentID));
+            GameObject obj = new GameObject(SpawnPrefab(prefabName, parentID));
             return obj;
         }
 	}
