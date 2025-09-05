@@ -1,4 +1,4 @@
-name: CI Tests for all configs
+name: CI Testing for all configs
 
 on:
   pull_request:
