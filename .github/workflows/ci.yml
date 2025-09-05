@@ -16,7 +16,7 @@ jobs:
         uses: microsoft/setup-msbuild@v1.3
 
       - name: Build solution
-        run: msbuild 7percent.sln /p:Configuration=Debug-x64
+        run: msbuild DigipenEngine/7percent.sln /p:Configuration=Debug-x64
 
       - name: Run tests
         run: |
