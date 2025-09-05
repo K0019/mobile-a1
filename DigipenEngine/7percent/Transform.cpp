@@ -432,7 +432,8 @@ SCRIPT_CALLABLE CS_Transform CS_GetTransform(ecs::EntityHandle entity)
 		t.GetWorldScale(),
 		t.GetLocalScale(),
 		t.GetWorldRotation(),
-		t.GetLocalRotation()
+		t.GetLocalRotation(),
+		entity
 	};
 }
 

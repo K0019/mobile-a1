@@ -93,6 +93,28 @@ namespace CSharpScripts {
 	}
 
 	/*****************************************************************//*!
+	\enum class METHOD
+	\brief
+		Identifies the method of a script class.
+	*//******************************************************************/
+// Enum name, C# method name, Num parameters
+#define SCRIPTING_METHOD \
+X(SET_HANDLE, SetHandle, 1) \
+X(ON_CREATE, OnCreate, 0) \
+X(ON_UPDATE, OnUpdate, 1) \
+X(ON_LATE_UPDATE, LateUpdate, 1) \
+X(ON_START, OnStart, 0) \
+X(ON_AWAKE, Awake, 0)
+
+#define X(enumVal, csName, numParams) enumVal,
+	enum class METHOD : uint8_t
+	{
+		SCRIPTING_METHOD
+		NUM_METHODS
+	};
+#undef X
+
+	/*****************************************************************//*!
 	\brief
 		Class used to store a mono class object
 	*//******************************************************************/
@@ -162,13 +184,14 @@ namespace CSharpScripts {
 		\param[in] instance
 			Instance of the c# class object to call the method from
 		\param[in] method
-			The method object to call from the c# side
+			The method to call from the c# side
 		\param[in] params
 			The params the method requires to be called
 		\return
-			The same instance that was given to the function.
+			True if the method was successfully called. False otherwise, perhaps
+			due to the function not existing in the class.
 		*//******************************************************************/
-		MonoObject* InvokeMethod(MonoObject* instance, MonoMethod* method, void** params = nullptr);
+		bool InvokeMethod(MonoObject* instance, METHOD method, void** params = nullptr);
 
 		/*****************************************************************//*!
 		\brief
@@ -178,139 +201,12 @@ namespace CSharpScripts {
 		*//******************************************************************/
 		MonoClass* GetClass() const;
 
-		/*****************************************************************//*!
-		\brief
-			Invokes the SetHandle method of the class instance.
-		\param[in]
-			params to pass into the method.
-		\return
-			Updated MonoObject* of the class instance.
-		*//******************************************************************/
-		MonoObject* InvokeSetHandle(MonoObject* instance, void** params = nullptr);
-
-		/*****************************************************************//*!
-		\brief
-			Invokes the OnCreate method of the class instance.
-		\return
-			Updated MonoObject* of the class instance.
-		*//******************************************************************/
-		MonoObject* InvokeOnCreate(MonoObject* instance);
-
-		/*****************************************************************//*!
-		\brief
-			Invokes the Awake method of the class instance.
-		\return
-			Updated MonoObject* of the class instance.
-		*//******************************************************************/
-		MonoObject* InvokeAwake(MonoObject* instance);
-
-		/*****************************************************************//*!
-		\brief
-			Invokes the OnStart method of the class instance.
-		\return
-			Updated MonoObject* of the class instance.
-		*//******************************************************************/
-		MonoObject* InvokeOnStart(MonoObject* instance);
-
-		/*****************************************************************//*!
-		\brief
-			Invokes the OnUpdate method of the class instance.
-		\param[in]
-			params to pass into the method.
-		\return
-			Updated MonoObject* of the class instance.
-		*//******************************************************************/
-		MonoObject* InvokeOnUpdate(MonoObject* instance, void** params = nullptr);
-
-		/*****************************************************************//*!
-		\brief
-			Invokes the OnCollision method of the class instance.
-		\param[in]
-			params to pass into the method.
-		\return
-			Updated MonoObject* of the class instance.
-		*//******************************************************************/
-		MonoObject* InvokeOnCollision(MonoObject* instance, void** params = nullptr);
-
-		/*****************************************************************//*!
-		\brief
-			Invokes the LateUpdate method of the class instance.
-		\param[in]
-			params to pass into the method.
-		\return
-			Updated MonoObject* of the class instance.
-		*//******************************************************************/
-		MonoObject* InvokeLateUpdate(MonoObject* instance, void** params = nullptr);
-
-		/*****************************************************************//*!
-		\brief
-			Checks to see if the class contains the SetHandle method.
-		\return
-			Bool if the method exists.
-		*//******************************************************************/
-		bool SetHandleExists() const;
-
-		/*****************************************************************//*!
-		\brief
-			Checks to see if the class contains the OnCreate method.
-		\return
-			Bool if the method exists.
-		*//******************************************************************/
-		bool OnCreateExists() const;
-
-		/*****************************************************************//*!
-		\brief
-			Checks to see if the class contains the OnUpdate method.
-		\return
-			Bool if the method exists.
-		*//******************************************************************/
-		bool OnUpdateExists() const;
-
-		/*****************************************************************//*!
-		\brief
-			Checks to see if the class contains the OnCollision method.
-		\return
-			Bool if the method exists.
-		*//******************************************************************/
-		bool OnCollisionExists() const;
-
-		/*****************************************************************//*!
-		\brief
-			Checks to see if the class contains the OnStart method.
-		\return
-			Bool if the method exists.
-		*//******************************************************************/
-		bool OnStartExists() const;
-
-		/*****************************************************************//*!
-		\brief
-			Checks to see if the class contains the Awake method.
-		\return
-			Bool if the method exists.
-		*//******************************************************************/
-		bool AwakeExists() const;
-
-		/*****************************************************************//*!
-		\brief
-			Checks to see if the class contains the LateHandle method.
-		\return
-			Bool if the method exists.
-		*//******************************************************************/
-		bool LateUpdateExists() const;
 	private:
+		MonoClass* m_MonoClass = nullptr;
+		std::array<MonoMethod*, +METHOD::NUM_METHODS> m_Methods;
+
 		std::string m_ClassNameSpace;
 		std::string m_ClassName;
-
-		MonoMethod* m_SetHandleMethod = nullptr;
-		MonoMethod* m_OnCreateMethod = nullptr;
-		MonoMethod* m_OnUpdateMethod = nullptr;
-		MonoMethod* m_OnCollisionMethod = nullptr;
-
-		MonoMethod* m_OnStartMethod = nullptr;
-		MonoMethod* m_AwakeMethod = nullptr;
-		MonoMethod* m_LateUpdateMethod = nullptr;
-
-		MonoClass* m_MonoClass = nullptr;
 	};
 
 	/*****************************************************************//*!
@@ -399,73 +295,6 @@ namespace CSharpScripts {
 
 		/*****************************************************************//*!
 		\brief
-			Invokes the SetHandle method in the c# side of the class instance
-			Sets the Entity Handle ID, acquired by using the Script Component 
-			this instance is attached to to get the Entity ID,
-			of the class to enable functionality with ECS.
-		\param[in] comp
-			The script component this object is attached to.
-		\return
-			None
-		*//******************************************************************/
-		void SetHandleInvoke(const ScriptComponent& comp);
-
-		/*****************************************************************//*!
-		\brief
-			Invokes the Awake method of the class found in the c# side.
-		\return
-			None
-		*//******************************************************************/
-		void AwakeInvoke();
-
-		/*****************************************************************//*!
-		\brief
-			Invokes the OnStart method of the class found in the c# side.
-		\return
-			None
-		*//******************************************************************/
-		void OnStartInvoke();
-
-		/*****************************************************************//*!
-		\brief
-			Invokes the OnCreate method of the class found in the c# side.
-		\return
-			None
-		*//******************************************************************/
-		void OnCreateInvoke();
-
-		/*****************************************************************//*!
-		\brief
-			Invokes the OnUpdate method of the class found in the c# side.
-		\param[in] ts
-			delta time
-		\return
-			None
-		*//******************************************************************/
-		void OnUpdateInvoke(float ts);
-
-		/*****************************************************************//*!
-		\brief
-			Invokes the OnCollision method of the class found in the c# side.
-		\param[in] coll
-			collision data
-		\return
-			None
-		*//******************************************************************/
-		//void OnCollisionInvoke(Physics::CollisionEventData& collisionData);
-
-		/*****************************************************************//*!
-		\brief
-			Invokes the LateUpdate method of the class found in the c# side.
-		\param[in] ts
-			delta time
-		\return
-			None
-		*//******************************************************************/
-		void LateUpdateInvoke(float ts);
-
-		/*****************************************************************//*!
-		\brief
 			Retrieves the public variables that can be found inside the c# class
 			and stores them in an unordered map
 		\return
@@ -522,6 +351,30 @@ namespace CSharpScripts {
 			None
 		*//******************************************************************/
 		void SetPublicVar(const std::string& varName,const VariantType& newValue);
+
+		/*****************************************************************//*!
+		\brief
+			Invokes a C# method on this instance.
+		\param method
+			The method to invoke.
+		\param params
+			A pointer to the array of parameters to be passed to the function.
+		\return
+			Whether the method invocation was successful.
+		*//******************************************************************/
+		bool InvokeMethod(METHOD method, void** params = nullptr);
+
+		/*****************************************************************//*!
+		\brief
+			Invokes a C# method on this instance. (single parameter)
+		\param method
+			The method to invoke.
+		\param param
+			A pointer to parameter to be passed to the function.
+		\return
+			Whether the method invocation was successful.
+		*//******************************************************************/
+		bool InvokeMethod(METHOD method, void* param);
 
 	public:
 		void Serialize(Serializer& writer) const override;
@@ -620,15 +473,6 @@ namespace CSharpScripts {
 			None
 		*//******************************************************************/
 		static void LoadUserAssembly(const std::filesystem::path& filepath);
-
-		/*****************************************************************//*!
-		\brief
-			Just a function that tests if Mono is running properly.
-			Contains c++ and c# calls to test functionality.
-		\return
-			None
-		*//******************************************************************/
-		static void MonoTest();
 
 		/*****************************************************************//*!
 		\brief

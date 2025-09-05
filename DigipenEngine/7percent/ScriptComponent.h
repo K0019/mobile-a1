@@ -87,9 +87,9 @@ public:
 	\param[in] sName
 		Name of the Script to add
 	\return
-		None
+		Whether the add operation was successful.
 	*//******************************************************************/
-	void AddScript(const std::string& sName);
+	bool AddScript(const std::string& sName);
 	/*****************************************************************//*!
 	\brief
 		Removes from the unordered map of scripts attached to the entity containing
@@ -220,14 +220,9 @@ public:
 	void OnDetached() override;
 
 private:
-	/*****************************************************************//*!
-	\brief
-		Sets the entity for deletion.
-	\param collisionData
-		The data of the collision.
-	*//******************************************************************/
-	//void OnCollision(const Physics::CollisionEventData& collisionData);
+	void InitializeScriptInstance(CSharpScripts::ScriptInstance& instance, const std::string& scriptName);
 
+private:
 	std::unordered_map<std::string, CSharpScripts::ScriptInstance> scriptMap;
 	std::vector<std::string> scriptsToAwaken;
 	std::vector<std::string> scriptsToStart;

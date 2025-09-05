@@ -460,68 +460,6 @@ namespace CSharpScripts
 		{
 			CONSOLE_LOG_EXPLICIT(pair.second.GetFullName(), LogLevel::LEVEL_DEBUG);
 		}
-		//MonoTest();
-	}
-
-	// Test the internal calls and other stuff here
-	void CSScripting::MonoTest()
-	{
-		CONSOLE_LOG_EXPLICIT("~~~~~~~~~~~~ MONO TEST START ~~~~~~~~~~~~", LogLevel::LEVEL_DEBUG);
-		CONSOLE_LOG_EXPLICIT("Calling C# functions inside C++", LogLevel::LEVEL_DEBUG);
-
-		// Get assembly and class 
-		//MonoImage* assemblyImage = mono_assembly_get_image(ScriptEngineData->s_AppAssembly);
-		//ScriptEngineData->EntityClass = ScriptClass("", "CSharpTesting");
-
-		ScriptInstance in(Utils::RetriveClassByName(".CSharpTesting"));
-		in.OnCreateInvoke();
-		// Create instance of class object and init
-		CONSOLE_LOG_EXPLICIT("Creating Instance of a class object", LogLevel::LEVEL_DEBUG);
-		//MonoObject* instance = ScriptEngineData->EntityClass.Instanstiate();
-		MonoObject* instance = Utils::RetriveClassByName(".CSharpTesting").Instanstiate();
-		ScriptEngineData->EntityClass = Utils::RetriveClassByName(".CSharpTesting");
-
-
-		CONSOLE_LOG_EXPLICIT("Function with NO params Test", LogLevel::LEVEL_DEBUG);
-		MonoMethod* printMsgFunc = ScriptEngineData->EntityClass.GetMethod("NoParamFunc", 0);
-		ScriptEngineData->EntityClass.InvokeMethod(instance, printMsgFunc, nullptr);
-		//MonoObject* exception = nullptr;
-		//mono_runtime_invoke(printMsgFunc, instance, nullptr, &exception);
-
-		CONSOLE_LOG_EXPLICIT("Function with ONE params Test", LogLevel::LEVEL_DEBUG);
-		MonoMethod* printValFunc = ScriptEngineData->EntityClass.GetMethod("OneValueParamFunc", 1);
-
-		int value = 5;
-		void* param = &value;
-
-		ScriptEngineData->EntityClass.InvokeMethod(instance, printValFunc, &param);
-
-		//mono_runtime_invoke(printValFunc, instance, &param, &exception);
-
-		CONSOLE_LOG_EXPLICIT("Function with TWO params Test", LogLevel::LEVEL_DEBUG);
-		MonoMethod* printTwoValFunc = ScriptEngineData->EntityClass.GetMethod("TwoValueParamFunc", 2);
-
-		int value2 = 400;
-		void* params[2] = {
-			&value,
-			&value2
-		};
-
-		ScriptEngineData->EntityClass.InvokeMethod(instance, printTwoValFunc, params);
-
-		//mono_runtime_invoke(printTwoValFunc, instance, params, &exception);
-
-		CONSOLE_LOG_EXPLICIT("Function with String Param Test", LogLevel::LEVEL_DEBUG);
-		// Need to use MonoString for any string related stuff
-		MonoString* monoStr = mono_string_new(ScriptEngineData->s_AppDomain, "Hello World from C++!");
-		MonoMethod* printCustomMessageFunc = ScriptEngineData->EntityClass.GetMethod("PrintStringMessageFunc", 1);
-
-		void* strParam = monoStr;
-		//mono_runtime_invoke(printCustomMessageFunc, instance, &strParam, nullptr);
-		ScriptEngineData->EntityClass.InvokeMethod(instance, printCustomMessageFunc, &strParam);
-
-
-		CONSOLE_LOG_EXPLICIT("~~~~~~~~~~~~  MONO TEST END  ~~~~~~~~~~~~", LogLevel::LEVEL_DEBUG);
 	}
 
 	ScriptClass& CSScripting::GetClassFromData(std::string cName)
@@ -836,34 +774,20 @@ R"(<Project Sdk="Microsoft.NET.Sdk">
 	}
 
 	ScriptClass::ScriptClass(const std::string& classNameSpace, const std::string& className)
-		: m_ClassNameSpace(classNameSpace)
-		, m_ClassName(className)
+		: m_ClassNameSpace{ classNameSpace }
+		, m_ClassName{ className }
 	{
 		m_MonoClass = mono_class_from_name(ScriptEngineData->s_CoreAssemblyImage, classNameSpace.c_str(), className.c_str());
-		if (m_MonoClass == nullptr)
-		{
+		if (!m_MonoClass)
 			m_MonoClass = mono_class_from_name(ScriptEngineData->s_UserAssemblyImage, classNameSpace.c_str(), className.c_str());
-		}
-		m_SetHandleMethod = GetMethod("SetHandle", 1);
-		m_OnCreateMethod = GetMethod("OnCreate", 0);
-		m_OnUpdateMethod = GetMethod("OnUpdate", 1);
-		m_OnCollisionMethod = GetMethod("OnCollision", 1);
-		
-		m_OnStartMethod = GetMethod("OnStart", 0);
-		m_AwakeMethod = GetMethod("Awake", 0);
-		m_LateUpdateMethod = GetMethod("LateUpdate", 1);
+
+#define X(enumVal, csName, numParams) GetMethod(#csName, numParams),
+		m_Methods = { SCRIPTING_METHOD };
+#undef X
 	}
 
 	ScriptClass::~ScriptClass()
 	{
-		m_SetHandleMethod = nullptr;
-		m_OnCreateMethod  = nullptr;
-		m_OnUpdateMethod  = nullptr;
-		m_OnCollisionMethod  = nullptr;
-		m_OnStartMethod = nullptr;
-		m_AwakeMethod = nullptr;
-		m_MonoClass = nullptr;
-		m_LateUpdateMethod = nullptr;
 	}
 
 	std::string ScriptClass::GetFullName() const
@@ -880,103 +804,33 @@ R"(<Project Sdk="Microsoft.NET.Sdk">
 
 	MonoMethod* ScriptClass::GetMethod(const std::string& name, int paramCount)
 	{
-		MonoMethod* method = mono_class_get_method_from_name(m_MonoClass, name.c_str(), paramCount);
+		// Check if the class itself has the method
+		MonoMethod* method{ mono_class_get_method_from_name(m_MonoClass, name.c_str(), paramCount) };
+		if (method)
+			return method;
 
-		if (!method)
-		{
-			MonoClass* parent = mono_class_get_parent(m_MonoClass);
-			while (parent)
-			{
-				method = mono_class_get_method_from_name(parent, name.c_str(), paramCount);
-				if (method)
-				{
-					break;
-				}
-				parent = mono_class_get_parent(parent);
-			}
-		}
+		// Check parent classes recursively for the method
+		for (MonoClass* parent{ mono_class_get_parent(m_MonoClass) }; parent; parent = mono_class_get_parent(parent))
+			if (method = mono_class_get_method_from_name(parent, name.c_str(), paramCount))
+				return method;
 
-		return method;
+		// The method doesn't exist
+		return nullptr;
 	}
 
-	MonoObject* ScriptClass::InvokeMethod(MonoObject* instance, MonoMethod* method, void** params)
+	bool ScriptClass::InvokeMethod(MonoObject* instance, METHOD method, void** params)
 	{
-		return mono_runtime_invoke(method, instance, params, nullptr);
+		if (!m_Methods[+method])
+			return false;
+
+		// Ignore return value since we don't need it.
+		mono_runtime_invoke(m_Methods[+method], instance, params, nullptr);
+		return true;
 	}
 
 	MonoClass* ScriptClass::GetClass() const
 	{
 		return m_MonoClass;
-	}
-
-	MonoObject* ScriptClass::InvokeSetHandle(MonoObject* instance, void** params)
-	{
-		return mono_runtime_invoke(m_SetHandleMethod, instance, params, nullptr);
-	};
-
-	MonoObject* ScriptClass::InvokeOnCreate(MonoObject* instance)
-	{
-		return mono_runtime_invoke(m_OnCreateMethod, instance, nullptr, nullptr);
-	}
-
-	MonoObject* ScriptClass::InvokeOnUpdate(MonoObject* instance, void** params)
-	{
-		return mono_runtime_invoke(m_OnUpdateMethod, instance, params, nullptr);
-	}
-
-	MonoObject* ScriptClass::InvokeOnCollision(MonoObject* instance, void** params)
-	{
-		return mono_runtime_invoke(m_OnCollisionMethod, instance, params, nullptr);
-	}
-
-	MonoObject* ScriptClass::InvokeLateUpdate(MonoObject* instance, void** params)
-	{
-		return mono_runtime_invoke(m_LateUpdateMethod , instance, params, nullptr);
-	}
-
-	MonoObject* ScriptClass::InvokeOnStart(MonoObject* instance)
-	{
-		return mono_runtime_invoke(m_OnStartMethod, instance, nullptr, nullptr);
-	}
-
-	MonoObject* ScriptClass::InvokeAwake(MonoObject* instance)
-	{
-		return mono_runtime_invoke(m_AwakeMethod, instance, nullptr, nullptr);
-	}
-
-	bool ScriptClass::SetHandleExists() const
-	{
-		return m_SetHandleMethod != nullptr;
-	}
-
-	bool ScriptClass::OnCreateExists() const
-	{
-		return m_OnCreateMethod != nullptr;
-	}
-
-	bool ScriptClass::OnUpdateExists() const
-	{
-		return m_OnUpdateMethod != nullptr;
-	}
-
-	bool ScriptClass::OnCollisionExists() const
-	{
-		return m_OnCollisionMethod != nullptr;
-	}
-
-	bool ScriptClass::OnStartExists() const
-	{
-		return m_OnStartMethod != nullptr;
-	}
-
-	bool ScriptClass::AwakeExists() const
-	{
-		return m_AwakeMethod != nullptr;
-	}
-
-	bool ScriptClass::LateUpdateExists() const
-	{
-		return m_LateUpdateMethod != nullptr;
 	}
 
 	ScriptInstance::ScriptInstance(const ScriptClass& sclass)
@@ -1057,67 +911,6 @@ R"(<Project Sdk="Microsoft.NET.Sdk">
 		return *m_ScriptClass;
 	}
 
-	void ScriptInstance::SetHandleInvoke(const ScriptComponent& comp)
-	{
-		if (!m_ScriptClass->SetHandleExists())
-		{
-			return;
-		}
-		uint64_t handle = reinterpret_cast<uint64_t>(ecs::GetEntity(&comp));
-
-		void* param = &handle;
-		m_ScriptClass->InvokeSetHandle(m_Instance, &param);
-	}
-
-	void ScriptInstance::AwakeInvoke()
-	{
-		if (!m_ScriptClass->AwakeExists())
-		{
-			return;
-		}
-		m_ScriptClass->InvokeAwake(m_Instance);
-	}
-
-	void ScriptInstance::OnStartInvoke()
-	{
-		if (!m_ScriptClass->OnStartExists())
-		{
-			return;
-		}
-		m_ScriptClass->InvokeOnStart(m_Instance);
-	}
-
-	void ScriptInstance::OnCreateInvoke()
-	{
-		if (!m_ScriptClass->OnCreateExists())
-		{
-			return;
-		}
-
-		m_ScriptClass->InvokeOnCreate(m_Instance);
-	}
-
-	void ScriptInstance::OnUpdateInvoke(float ts)
-	{
-		if (!m_ScriptClass->OnUpdateExists())
-		{
-			return;
-		}
-		void* param = &ts;
-		m_ScriptClass->InvokeOnUpdate(m_Instance, &param);
-
-	}
-
-	void ScriptInstance::LateUpdateInvoke(float ts)
-	{
-		if (!m_ScriptClass->LateUpdateExists())
-		{
-			return;
-		}
-		void* param = &ts;
-		m_ScriptClass->InvokeLateUpdate(m_Instance, &param);
-	}
-
 	void ScriptInstance::RetrievePublicVariables()
 	{
 		// For saving the value of public variables
@@ -1186,6 +979,16 @@ R"(<Project Sdk="Microsoft.NET.Sdk">
 		}
 
 		fieldIter->second.SetValue(m_Instance, newValue);
+	}
+
+	bool ScriptInstance::InvokeMethod(METHOD method, void** params)
+	{
+		return m_ScriptClass->InvokeMethod(m_Instance, method, params);
+	}
+
+	bool ScriptInstance::InvokeMethod(METHOD method, void* param)
+	{
+		return m_ScriptClass->InvokeMethod(m_Instance, method, &param);
 	}
 
 	void ScriptInstance::Serialize(Serializer& writer) const

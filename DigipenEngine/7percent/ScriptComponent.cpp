@@ -33,6 +33,8 @@ All rights reserved.
 #include "EntityUID.h"
 #include "NameComponent.h"
 
+using namespace CSharpScripts;
+
 ScriptComponent::ScriptComponent(const ScriptComponent& other)
 	: scriptMap(other.scriptMap)
 {
@@ -273,7 +275,7 @@ void ScriptComponent::EditorDraw()
 
 	if (ImGui::BeginCombo("", "Select Script"))
 	{
-		std::unordered_map<std::string, CSharpScripts::ScriptClass>& coreMap = CSharpScripts::CSScripting::GetCoreClassMap();
+		std::unordered_map<std::string, ScriptClass>& coreMap = CSScripting::GetCoreClassMap();
 
 		for (const auto& pair : coreMap)
 		{
@@ -290,21 +292,18 @@ void ScriptComponent::EditorDraw()
 #endif
 }
 
-void ScriptComponent::AddScript(const std::string& sName)
+bool ScriptComponent::AddScript(const std::string& sName)
 {
-	auto it = scriptMap.find(sName);
-	if (it == scriptMap.end())
-	{
-		scriptMap[sName] = std::move(CSharpScripts::ScriptInstance(CSharpScripts::CSScripting::GetClassFromData(sName)));
-		openStates[sName] = false;
-		// set the e_id of the script here
-		scriptMap[sName].SetHandleInvoke(*this);
-		std::string msg = std::to_string(reinterpret_cast<unsigned long long>(this));
-		CONSOLE_LOG_EXPLICIT(msg, LogLevel::LEVEL_DEBUG);
-		scriptMap[sName].OnCreateInvoke();
-		scriptMap[sName].RetrievePublicVariables();
-		scriptsToAwaken.push_back(sName);
-	}
+	// We can't add a duplicate of a script
+	if (scriptMap.find(sName) != scriptMap.end())
+		return false;
+
+	ScriptInstance& scriptInstance{ scriptMap.try_emplace(sName, CSScripting::GetClassFromData(sName)).first->second };
+	openStates[sName] = true;
+
+	InitializeScriptInstance(scriptInstance, sName);
+
+	return true;
 }
 
 void ScriptComponent::RemoveScript(const std::string& sName)
@@ -330,71 +329,40 @@ void ScriptComponent::RemoveScript(const std::string& sName)
 
 void ScriptComponent::InvokeOnUpdate()
 {
+	float dt{ GameTime::FixedDt() };
 	for (auto& pair : scriptMap)
-	{
-		std::string name = pair.first;
-		pair.second.OnUpdateInvoke(GameTime::FixedDt());
-
-	}
+		pair.second.InvokeMethod(METHOD::ON_UPDATE, &dt);
 }
 
 void ScriptComponent::InvokeAwake()
 {
 	if (scriptsToAwaken.empty())
-	{
 		return;
-	}
 
-	std::vector<std::string> namesToRemove;
-	// Awaken each script then add it to remove
-	for (std::string name : scriptsToAwaken)
-	{
-		scriptMap[name].AwakeInvoke();
-		namesToRemove.push_back(name);
-	}
+	for (const std::string& name : scriptsToAwaken)
+		scriptMap[name].InvokeMethod(METHOD::ON_AWAKE);
 
-	if (!namesToRemove.empty())
-	{
-		// for each script to remove add it to scripts to start
-		for (const std::string& name : namesToRemove)
-		{
-			scriptsToAwaken.erase(std::remove(scriptsToAwaken.begin(), scriptsToAwaken.end(), name), scriptsToAwaken.end());
-			scriptsToStart.push_back(name);
-		}
-	}
+	// Move awaken scripts to the list of scripts to start
+	scriptsToStart.insert(scriptsToStart.end(), std::make_move_iterator(scriptsToAwaken.begin()), std::make_move_iterator(scriptsToAwaken.end()));
+	scriptsToAwaken.clear();
 }
 
 void ScriptComponent::InvokeOnStart()
 {
 	if (scriptsToStart.empty())
-	{
 		return;
-	}
 
-	std::vector<std::string> namesToRemove;
-	// Awaken each script then add it to remove
-	for (std::string name : scriptsToStart)
-	{
-		scriptMap[name].OnStartInvoke();
-		namesToRemove.push_back(name);
-	}
+	for (const std::string& name : scriptsToStart)
+		scriptMap[name].InvokeMethod(METHOD::ON_START);
 
-	if (!namesToRemove.empty())
-	{
-		// for each script to remove add it to scripts to start
-		for (const std::string& name : namesToRemove)
-		{
-			scriptsToStart.erase(std::remove(scriptsToStart.begin(), scriptsToStart.end(), name), scriptsToStart.end());
-		}
-	}
+	scriptsToStart.clear();
 }
 
 void ScriptComponent::InvokeLateUpdate()
 {
-	for (const auto& pair : scriptMap)
-	{
-		scriptMap[pair.first].LateUpdateInvoke(GameTime::FixedDt());
-	}
+	float dt{ GameTime::FixedDt() };
+	for (auto& pair : scriptMap)
+		pair.second.InvokeMethod(METHOD::ON_LATE_UPDATE, &dt);
 }
 
 void ScriptComponent::SaveVariables()
@@ -416,10 +384,9 @@ void ScriptComponent::SaveVariables()
 
 void ScriptComponent::InvokeSetHandle()
 {
+	ecs::EntityHandle entity{ ecs::GetEntity(this) };
 	for (auto& pair : scriptMap)
-	{
-		pair.second.SetHandleInvoke(*this);
-	}
+		pair.second.InvokeMethod(METHOD::SET_HANDLE, &entity);
 }
 
 MonoObject* ScriptComponent::FindScriptInstance(std::string name)
@@ -451,16 +418,7 @@ void ScriptComponent::Deserialize(Deserializer& entry)
 	entry.DeserializeVar("openStates",&openStates);
 
 	for (auto& script : scriptMap)
-	{
-		script.second.SetHandleInvoke(*this);
-		script.second.OnCreateInvoke();
-		auto pVars = script.second.GetPublicVars();
-		for (auto var : pVars)
-		{
-			script.second.SetPublicVar(var.first, var.second.GetValue());
-		}
-		scriptsToAwaken.push_back(script.first);
-	}
+		InitializeScriptInstance(script.second, script.first);
 }
 
 void ScriptComponent::RemoveAllScripts()
@@ -510,19 +468,15 @@ void ScriptComponent::OnDetached()
 		eventsComp->Unsubscribe("OnCollision", this, &ScriptComponent::OnCollision);*/
 }
 
-//void ScriptComponent::OnCollision(const Physics::CollisionEventData& collisionData)
-//{
-//	// Iterate through all scripts and call function "OnCoillisionEnter(Collision collision)"
-//	// We probably want OnTriggerEnter as well
-//	// TEST FIRST FFS
-//
-//	for (auto &scriptPair : scriptMap)
-//	{
-//		CSharpScripts::ScriptInstance& scriptInstance = scriptPair.second;
-//		DummyCollisionData d(collisionData);
-//		scriptInstance.OnCollisionInvoke((Physics::CollisionEventData &)collisionData);
-//	}
-//}
+void ScriptComponent::InitializeScriptInstance(CSharpScripts::ScriptInstance& instance, const std::string& scriptName)
+{
+	ecs::EntityHandle entity{ ecs::GetEntity(this) };
+	instance.InvokeMethod(METHOD::SET_HANDLE, &entity);
+	instance.InvokeMethod(METHOD::ON_CREATE);
+
+	instance.RetrievePublicVariables();
+	scriptsToAwaken.push_back(scriptName);
+}
 
 
 ScriptSystem::ScriptSystem()

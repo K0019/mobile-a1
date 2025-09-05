@@ -41,6 +41,9 @@ namespace EngineScripting
     {
         protected EntityHandle e_ID { get; private set; }
 
+        // For Scripting framework to set this component's entity when the component's class gets duplicated
+        private void SetHandle(EntityHandle entityHandle) => e_ID = entityHandle;
+
 
         [DllImport("__Internal", EntryPoint = "CS_GetTransform")]
         private static extern Transform GetTransform(EntityHandle entity);

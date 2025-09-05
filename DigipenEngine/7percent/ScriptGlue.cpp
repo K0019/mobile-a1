@@ -1039,6 +1039,7 @@ namespace CSharpScripts
 	}
 #pragma endregion
 
+	// TODO: To be superceded by DllImport/DllExport tagged functions
 	void ScriptGlue::RegisterFunctions()
 	{
 #pragma region Tests
