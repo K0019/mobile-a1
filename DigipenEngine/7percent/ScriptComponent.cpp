@@ -283,7 +283,7 @@ void ScriptComponent::InitializeScriptInstance(CSharpScripts::ScriptInstance& in
 {
 	ecs::EntityHandle entity{ ecs::GetEntity(this) };
 	instance.InvokeMethod(METHOD::SET_HANDLE, &entity);
-	instance.InvokeMethod(METHOD::ON_CREATE);
+	instance.InvokeMethod(METHOD::ON_AWAKE);
 
 	instance.RetrievePublicVariables();
 	scriptsToAwaken.push_back(scriptName);

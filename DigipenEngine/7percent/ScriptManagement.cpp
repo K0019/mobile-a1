@@ -96,14 +96,14 @@ public class )" + scriptName.substr(0, scriptName.find_last_of('.')) + R"( : Com
 	{
 	}
 
-    // This method is called once when the script is first initialized
-    public void OnCreate()
+    // This method is called once on the frame when the script is initialized
+    void Start()
     {
        
     }
 
     // This method is called once per frame
-    void OnUpdate(float dt)
+    void Update(float dt)
     {
         // Update logic here
     }

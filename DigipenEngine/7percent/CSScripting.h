@@ -103,10 +103,9 @@ namespace CSharpScripts {
 // Enum name, C# method name, Num parameters
 #define SCRIPTING_METHOD \
 X(SET_HANDLE, SetHandle, 1) \
-X(ON_CREATE, OnCreate, 0) \
-X(ON_UPDATE, OnUpdate, 1) \
+X(ON_UPDATE, Update, 1) \
 X(ON_LATE_UPDATE, LateUpdate, 1) \
-X(ON_START, OnStart, 0) \
+X(ON_START, Start, 0) \
 X(ON_AWAKE, Awake, 0)
 
 #define X(enumVal, csName, numParams) enumVal,

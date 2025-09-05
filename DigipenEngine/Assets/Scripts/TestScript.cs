@@ -16,14 +16,14 @@ public class TestScript : ComponentBase
 	{
 	}
 
-    // This method is called once when the script is first initialized
-    public void OnCreate()
+    // This method is called once on the frame when the script is initialized
+    void Start()
     {
-       
+        value = 10;
     }
 
     // This method is called once per frame
-    void OnUpdate(float dt)
+    void Update(float dt)
     {
         Transform transform = this.transform;
         transform.localPosition = transform.localPosition + new vec3(1, 0, 0);

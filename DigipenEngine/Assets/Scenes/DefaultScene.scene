@@ -28,7 +28,12 @@
                         "key": ".TestScript",
                         "value": {
                             "name": ".TestScript",
-                            "vars": []
+                            "vars": [
+                                {
+                                    "key": "value",
+                                    "value": 5
+                                }
+                            ]
                         }
                     }
                 ],
