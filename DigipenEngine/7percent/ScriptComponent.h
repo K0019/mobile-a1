@@ -186,7 +186,7 @@ public:
 	\return
 		MonoObject* of the class
 	*//******************************************************************/
-	MonoObject* FindScriptInstance(std::string name);
+	MonoObject* FindScriptInstance(const std::string& name);
 
 	/*****************************************************************//*!
 	\brief

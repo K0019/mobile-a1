@@ -82,11 +82,11 @@ public class CSharpTesting : ComponentBase
     {
         //Console.WriteLine(GetType().Name + ": OnUpdate Invoked");
         //Console.WriteLine("Updated: " + ts.ToString());
-        if (Input.GetKeyReleased(KeyCode.P))
-        {
-            Debug.Log("P has been pressed");
-            PrintPublicVars();
-        }
+        //if (Input.GetKeyReleased(KeyCode.P))
+        //{
+        //    Debug.Log("P has been pressed");
+        //    PrintPublicVars();
+        //}
     }
 
     #region C# methods to call from C++

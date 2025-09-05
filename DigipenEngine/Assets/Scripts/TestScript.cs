@@ -7,7 +7,9 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using EngineScripting;
+using System.Runtime.InteropServices;
 
+[StructLayout(LayoutKind.Sequential)]
 public class TestScript : ComponentBase
 {
     public int value = 5;
@@ -25,6 +27,8 @@ public class TestScript : ComponentBase
     // This method is called once per frame
     void Update(float dt)
     {
-        Debug.Log(Time.DeltaTime.ToString());
+        value += 1;
+        Debug.Log(gameObject.GetComponent<TestScript>().value.ToString());
+        
     }
 }

@@ -464,6 +464,14 @@ X(ON_AWAKE, Awake, 0)
 
 		/*****************************************************************//*!
 		\brief
+			Gets whether the user assembly is being compiled.
+		\return
+			True if the compilation is ongoing. False otherwise.
+		*//******************************************************************/
+		static bool IsCurrentlyCompilingUserAssembly();
+
+		/*****************************************************************//*!
+		\brief
 			Removes temporary files generated in the process of compiling the user assembly.
 		*//******************************************************************/
 		static void CleanUserAssemblyTempFiles();

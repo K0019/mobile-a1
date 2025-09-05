@@ -25,9 +25,9 @@
                 "_active": true,
                 "scriptMap": [
                     {
-                        "key": ".TestScript",
+                        "key": "TestScript",
                         "value": {
-                            "name": ".TestScript",
+                            "name": "TestScript",
                             "vars": [
                                 {
                                     "key": "value",
@@ -39,7 +39,7 @@
                 ],
                 "openStates": [
                     {
-                        "key": ".TestScript",
+                        "key": "TestScript",
                         "value": true
                     }
                 ]

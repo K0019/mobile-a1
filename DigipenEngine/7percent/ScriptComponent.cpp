@@ -63,6 +63,10 @@ ScriptComponent::~ScriptComponent()
 
 void ScriptComponent::EditorDraw()
 {
+	// Don't draw anything if the compilation is ongoing. We can't be sure if anything exists in that case.
+	if (CSScripting::IsCurrentlyCompilingUserAssembly())
+		return;
+
 	gui::TextUnformatted("Attached Scripts:");
 
 	for (auto& [scriptName, scriptInstance] : scriptMap)
@@ -200,18 +204,11 @@ void ScriptComponent::InvokeSetHandle()
 		pair.second.InvokeMethod(METHOD::SET_HANDLE, &entity);
 }
 
-MonoObject* ScriptComponent::FindScriptInstance(std::string name)
+MonoObject* ScriptComponent::FindScriptInstance(const std::string& name)
 {
-	std::string s = ".";
-	s += name;
-
-	std::unordered_map<std::string, CSharpScripts::ScriptInstance>::iterator it = scriptMap.find(s);
-
+	auto it = scriptMap.find(name);
 	if (it != scriptMap.end())
-	{
-		//std::cout << "found the instance";
-		return 	it->second.GetInstance();
-	}
+		return it->second.GetInstance();
 	return nullptr;
 }
 
@@ -357,3 +354,14 @@ void ScriptPreAwakeSystem::PreAwakeScriptComp(ScriptComponent& comp)
 {
 	comp.InvokeSetHandle();
 }
+
+
+#pragma region Scripting
+
+SCRIPT_CALLABLE intptr_t CS_GetScriptInstance(ecs::EntityHandle entity, const char* typeName)
+{
+	auto scriptComp{ util::AssertCompExistsOnValidEntityAndGet<ScriptComponent>(entity) };
+	return mono_gchandle_new(scriptComp->FindScriptInstance(typeName), false);
+}
+
+#pragma endregion // Scripting

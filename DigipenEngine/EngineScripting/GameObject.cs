@@ -215,21 +215,10 @@ namespace EngineScripting
         private readonly Dictionary<Type, Func<EntityHandle, IComponent>> componentGetters = new Dictionary<Type, Func<EntityHandle, IComponent>>()
         {
             { typeof(Text), (EntityHandle entity) => Text.RetrieveComp(entity) },
-
-            //{ typeof(Text), (eID, callback) =>
-            //    {
-            //        InternalCalls.GetText(eID, out var component);
-            //        callback(component);
-            //    }
-            //},
-
-            //{ typeof(Animator), (eID, callback) =>
-            //    {
-            //        InternalCalls.GetAnimatorComp(eID, out var component);
-            //        callback(component);
-            //    }
-            //}
         };
+
+        [DllImport("__Internal", EntryPoint = "CS_GetScriptInstance")]
+        private static extern IntPtr GetScriptObject(EntityHandle entity, string type);
 
         private readonly Dictionary<Type, Action<EntityHandle, Action<IComponent>>> childComponentGetters = new Dictionary<Type, Action<EntityHandle, Action<IComponent>>>()
         {
@@ -268,11 +257,23 @@ namespace EngineScripting
         \return
 	        Specified component to get
         *//******************************************************************/
-		public T GetComponent<T>() where T : struct, IComponent
+		public T GetComponent<T>() where T : IComponent
         {
+            // For C++ components
             if (componentGetters.TryGetValue(typeof(T), out var getter))
                 return (T)getter(transform.EntityHandle);
 
+            // For custom C# components
+            IntPtr scriptObjPtr = GetScriptObject(transform.EntityHandle, typeof(T).FullName);
+            if (scriptObjPtr != IntPtr.Zero)
+            {
+                GCHandle gcHandle = GCHandle.FromIntPtr(scriptObjPtr);
+                T scriptObj = (T)gcHandle.Target;
+                gcHandle.Free();
+                return scriptObj;
+            }
+
+            // Unable to find
             return default;
         }
 
@@ -298,37 +299,6 @@ namespace EngineScripting
             }
 
             return result;
-        }
-		// FOR FINDING SCRIPTS
-		/*****************************************************************//*!
-        \brief
-	        Template function to get access to a specified script attached to
-            the entity.
-        \return
-	        The specified script class instance in memory
-        *//******************************************************************/
-		public T GetScript<T>() where T : class
-		{
-			string name = typeof(T).Name;
-
-			object obj = InternalCalls.GetScriptInstance(transform.EntityHandle, name);
-
-			return (T)obj;
-		}
-		/*****************************************************************//*!
-        \brief
-	        Template function to get access to a specified script attached to
-            the entity's children.
-        \return
-	        The specified script class instance in memory
-        *//******************************************************************/
-		public T GetScriptInChildren<T>() where T : class
-        {
-            string name = typeof(T).Name;
-
-            object obj = InternalCalls.GetChildScriptInstance(transform.EntityHandle, name);
-
-            return (T)obj;
         }
 
 		/*****************************************************************//*!

@@ -89,7 +89,9 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using EngineScripting;
+using System.Runtime.InteropServices;
 
+[StructLayout(LayoutKind.Sequential)]
 public class )" + scriptName.substr(0, scriptName.find_last_of('.')) + R"( : ComponentBase
 {
 	)" + scriptName.substr(0, scriptName.find_last_of('.')) + R"(()

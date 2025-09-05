@@ -291,7 +291,8 @@ namespace CSharpScripts
 
 				// Example: Engine.InternalCalls
 				std::string msg = nameSpace;
-				msg += ".";
+				if (*nameSpace)
+					msg += ".";
 				msg += name;
 				CONSOLE_LOG_EXPLICIT(msg, LEVEL_DEBUG);
 			}
@@ -331,7 +332,8 @@ namespace CSharpScripts
 
 				// This is a custom script class. Register it.
 				std::string fullName = nameSpace;
-				fullName += ".";
+				if (*nameSpace)
+					fullName += ".";
 				fullName += name;
 				ScriptEngineData->s_CoreClasses[fullName] = ScriptClass{ nameSpace, name };
 
@@ -782,6 +784,11 @@ R"(<Project Sdk="Microsoft.NET.Sdk">
 			compileUserAssemblyCallback();
 	}
 
+	bool CSScripting::IsCurrentlyCompilingUserAssembly()
+	{
+		return isCompilingUserAssemblyAsync;
+	}
+
 	void CSScripting::CleanUserAssemblyTempFiles()
 	{
 		Filepaths& filepaths{ *ST<Filepaths>::Get() };
@@ -814,7 +821,10 @@ R"(<Project Sdk="Microsoft.NET.Sdk">
 
 	std::string ScriptClass::GetFullName() const
 	{
-		return std::string(m_ClassNameSpace + "." + m_ClassName);
+		if (m_ClassNameSpace.empty())
+			return m_ClassName;
+		else
+			return m_ClassNameSpace + "." + m_ClassName;
 	}
 
 	MonoObject* ScriptClass::Instanstiate() const
