@@ -19,21 +19,12 @@ public class TestScript : ComponentBase
     // This method is called once on the frame when the script is initialized
     void Start()
     {
-        value = 10;
+
     }
 
     // This method is called once per frame
     void Update(float dt)
     {
-        Transform transform = this.transform;
-        transform.localPosition = transform.localPosition + new vec3(1, 0, 0);
-
-        value += 1;
-        Debug.Log(value.ToString());
-
-        //Text textComp = gameObject.GetComponent<Text>();
-
-        //Debug.Log(textComp.text);
-        //textComp.text = "Hello";
+        Debug.Log(Time.DeltaTime.ToString());
     }
 }

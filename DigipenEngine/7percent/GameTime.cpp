@@ -124,3 +124,13 @@ float GameTime::GetTimeScale()
 {
 	return timeScale;
 }
+
+
+#pragma region Scripting
+
+SCRIPT_CALLABLE float CS_GetDt()
+{
+	return GameTime::Dt();
+}
+
+#pragma endregion // Scripting

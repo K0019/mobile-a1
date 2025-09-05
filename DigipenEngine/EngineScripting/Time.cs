@@ -20,10 +20,14 @@ All rights reserved.
 */
 /******************************************************************************/
 
+using System.Runtime.InteropServices;
+
 namespace EngineScripting
 {
     public class Time
     {
-        public static float DeltaTime => InternalCalls.GetDeltaTime();
+        [DllImport("__Internal", EntryPoint = "CS_GetDt")]
+        private static extern float GetDeltaTime();
+        public static float DeltaTime => GetDeltaTime();
     }
 }
