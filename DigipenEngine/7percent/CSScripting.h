@@ -54,9 +54,12 @@ namespace CSharpScripts {
 			Field(MonoObject* instance, MonoClassField* field);
 
 			void SetValue(MonoObject* instance, const VariantType& newValue);
+			void SyncValueToScript(MonoObject* instance);
 
 			// TEMPORARY
 			VariantType& GetValue();
+
+			void EditorDraw(const std::string& name, MonoObject* instance);
 
 		private:
 			void RetrieveValueFromScript(MonoObject* instance);

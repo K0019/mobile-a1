@@ -242,7 +242,7 @@ namespace CSharpScripts
 		*//******************************************************************/
 		static MonoAssembly* LoadMonoAssembly(const std::filesystem::path& assemblyPath)
 		{
-			CONSOLE_LOG_EXPLICIT("Loading CSharp Assembly!", LogLevel::LEVEL_INFO);
+			CONSOLE_LOG_EXPLICIT("Loading CSharp Assembly!", LogLevel::LEVEL_DEBUG);
 			uint32_t fileSize = 0;
 			char* fileData = ReadBytes(assemblyPath, &fileSize);
 
@@ -263,7 +263,7 @@ namespace CSharpScripts
 			// Don't forget to free the file data
 			delete[] fileData;
 
-			CONSOLE_LOG_EXPLICIT("CSharp Assembly loaded successfully!", LogLevel::LEVEL_INFO);
+			CONSOLE_LOG_EXPLICIT("CSharp Assembly loaded successfully!", LogLevel::LEVEL_DEBUG);
 			return assembly;
 		}
 
@@ -403,7 +403,12 @@ namespace CSharpScripts
 				return;
 			}
 			value = newValue;
-			
+
+			SyncValueToScript(instance);
+		}
+
+		void Field::SyncValueToScript(MonoObject* instance)
+		{
 			// Set the value in the C# script. Value operation should always exist if the variant type exists (in theory I think).
 			GetValueOperation(typeEnum)->SetValueOfScript(value, field, instance);
 		}
@@ -411,6 +416,18 @@ namespace CSharpScripts
 		VariantType& Field::GetValue()
 		{
 			return value;
+		}
+
+		void Field::EditorDraw(const std::string& name, MonoObject* instance)
+		{
+			gui::TextFormatted("%s:", name.c_str());
+			gui::SameLine();
+			std::visit([&](auto&& arg) {
+				using T = std::decay_t<decltype(arg)>;
+				gui::SetID varID{ name.c_str() };
+				if (gui::VarDefault("", &arg))
+					SyncValueToScript(instance);
+			}, value);
 		}
 
 		void Field::RetrieveValueFromScript(MonoObject* instance)
@@ -764,7 +781,6 @@ R"(<Project Sdk="Microsoft.NET.Sdk">
 		Filepaths& filepaths{ *ST<Filepaths>::Get() };
 		std::filesystem::remove_all(filepaths.scriptsWorkingDir + "/bin");
 		std::filesystem::remove_all(filepaths.scriptsWorkingDir + "/obj");
-		//std::filesystem::remove(filepaths.csproj);
 	}
 
 	void CSScripting::LoadUserAssembly(const std::filesystem::path& filepath)
@@ -901,7 +917,6 @@ R"(<Project Sdk="Microsoft.NET.Sdk">
 			mono_gchandle_free_v2(m_InstanceHandle); // This frees the GC handle
 			m_InstanceHandle = 0; // Ensure that we don't accidentally use it later
 		}
-		CONSOLE_LOG_EXPLICIT("ScriptInstance destructor!", LogLevel::LEVEL_DEBUG);
 		m_PublicVars.clear();
 		delete m_ScriptClass;
 	}
@@ -993,21 +1008,23 @@ R"(<Project Sdk="Microsoft.NET.Sdk">
 		RetrievePublicVariables();
 		
 		// Deserialize the public variables. Using custom operation to avoid default construction of Field class in the default implementation.
-		reader.DeserializeVar("vars", &m_PublicVars, [](Deserializer& reader, decltype(m_PublicVars)* publicVarsMapPtr) -> void {
+		reader.DeserializeVar("vars", &m_PublicVars, [m_Instance = m_Instance](Deserializer& reader, decltype(m_PublicVars)* publicVarsMapPtr) -> void {
 			PublicVarsMapType::key_type key{};
 			reader.DeserializeVar("key", &key);
 			
 			// Find the corresponding field and tell it to deserialize the value according to its type.
 			auto fieldIter{ publicVarsMapPtr->find(key) };
 			if (fieldIter == publicVarsMapPtr->end())
-				CONSOLE_LOG(LEVEL_WARNING) << "ScriptInstance deserialization failed to find public variable with key \"" << key << "\"! Skipping.";
-			else
 			{
-				if (!reader.PushAccess("value"))
-					return;
-				fieldIter->second.Deserialize(reader);
-				reader.PopAccess();
+				CONSOLE_LOG(LEVEL_WARNING) << "ScriptInstance deserialization failed to find public variable with key \"" << key << "\"! Skipping.";
+				return;
 			}
+
+			if (!reader.PushAccess("value"))
+				return;
+			fieldIter->second.Deserialize(reader);
+			fieldIter->second.SyncValueToScript(m_Instance);
+			reader.PopAccess();
 		});
 	}
 }

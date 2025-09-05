@@ -10,7 +10,7 @@ using EngineScripting;
 
 public class TestScript : ComponentBase
 {
-    protected int value = 5;
+    public int value = 5;
 
 	TestScript()
 	{
@@ -27,6 +27,8 @@ public class TestScript : ComponentBase
     {
         Transform transform = this.transform;
         transform.localPosition = transform.localPosition + new vec3(1, 0, 0);
+
+        Debug.Log(value.ToString());
 
         //Text textComp = gameObject.GetComponent<Text>();
 

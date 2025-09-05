@@ -63,233 +63,47 @@ ScriptComponent::~ScriptComponent()
 
 void ScriptComponent::EditorDraw()
 {
-#ifdef IMGUI_ENABLED
-	std::unordered_map<std::string, CSharpScripts::ScriptInstance>& map = scriptMap;
-	std::unordered_map<std::string, bool>& states = openStates;
-	ImGui::Text("List of Scripts:");
-	// for each script attached to entity do this
-	//ImGui::BeginChild("list", ImVec2(0, 50), true);
-	for (const auto& pair : map)
+	gui::TextUnformatted("Attached Scripts:");
+
+	for (auto& [scriptName, scriptInstance] : scriptMap)
 	{
-		if (ImGui::Button(pair.first.c_str()))
-		{
-			states[pair.first] = !states[pair.first];
-		}
-		ImGui::SameLine();
-		ImGui::PushID(pair.first.c_str());
-		if (ImGui::Button("Remove")) 
-		{
-			RemoveScript(pair.first);
-			ImGui::PopID();
-			break;
-		}
-		ImGui::PopID();
-
-		// Show the public variables inside the script here
-		if (states[pair.first])
-		{
-			auto pVars = scriptMap[pair.first].GetPublicVars();
-
-			// Define the height of the child rect based on the number of items
-			const float itemHeight = ImGui::GetTextLineHeightWithSpacing(); // Height of each item
-			const float padding = 45.0f; // Extra padding for aesthetics
-			float totalHeight = (pVars.size() * itemHeight) + padding;
-
-			// Begin the child rectangle with dynamic height
-			ImGui::BeginChild(("Child Rect" + pair.first).c_str(), ImVec2(0, totalHeight), true);
-
-			ImGui::Text("Details for %s", pair.first.c_str());
-
-			for(auto& [name, field] : pVars)
+		{ // Draw scripts as buttons
+			if (gui::Button scriptButton{ scriptName.c_str() })
+				openStates[scriptName] = !openStates[scriptName];
+			gui::SameLine();
+			gui::SetID buttonID{ scriptName.c_str() };
+			if (gui::Button removeButton{ "Remove" })
 			{
-				auto& value = field.GetValue();
-				ImGui::Text("%s:", name.c_str()); // Display the variable name
-
-				ImGui::SameLine();
-				// Determine the type of variable and create the appropriate input field
-				std::visit([&](auto&& arg) 
-				{
-					using T = std::decay_t<decltype(arg)>;
-					ImGui::PushID(name.c_str());
-					if constexpr (std::is_same_v<T, int>) 
-					{
-						// Use a reference to update the original value directly
-						if (ImGui::InputInt("", &std::get<int>(value))) 
-						{
-							// If needed, additional logic for change notification can be added here
-
-							scriptMap[pair.first].SetPublicVar(name, value);
-						}
-					}
-					else if constexpr (std::is_same_v<T, bool>)
-					{
-						// Use a reference to update the original value directly
-						if (ImGui::Checkbox("", &std::get<bool>(value)))
-						{
-							// If needed, additional logic for change notification can be added here
-							scriptMap[pair.first].SetPublicVar(name, value);
-
-						}
-					}
-					else if constexpr (std::is_same_v<T, float>) 
-					{
-						// Use a reference to update the original value directly
-						if (ImGui::InputFloat("", &std::get<float>(value)))
-						{
-							// If needed, additional logic for change notification can be added here
-							scriptMap[pair.first].SetPublicVar(name, value);
-
-						}
-					}
-					else if constexpr (std::is_same_v<T, double>) 
-					{
-						// Use a reference to update the original value directly
-						if (ImGui::InputDouble("", &std::get<double>(value)))
-						{
-							// If needed, additional logic for change notification can be added here
-							scriptMap[pair.first].SetPublicVar(name, value);
-						}
-					}
-					else if constexpr (std::is_same_v<T, Vec3>)
-					{
-						// For Vec3, create individual input fields for each component (x, y, z)
-						Vec3& vectorValue = std::get<Vec3>(value);
-
-						ImGui::Text(name.c_str());
-						if (ImGui::InputFloat("X", &vectorValue.x))
-						{
-							scriptMap[pair.first].SetPublicVar(name, value);
-						}
-						if (ImGui::InputFloat("Y", &vectorValue.y))
-						{
-							scriptMap[pair.first].SetPublicVar(name, value);
-						}
-						if (ImGui::InputFloat("Z", &vectorValue.z))
-						{
-							scriptMap[pair.first].SetPublicVar(name, value);
-						}
-					}
-					else if constexpr (std::is_same_v<T, size_t>)
-					{
-						ImGui::PushID(name.c_str());
-
-						std::string entityName = "-";
-						ecs::EntityHandle ent = EntityUIDLookup::GetEntity(std::get<size_t>(value));
-
-						if (ent != nullptr)
-						{
-							entityName = ent->GetComp<NameComponent>()->GetName();
-						}
-
-						// Display the name in a text input field, but don't allow editing
-						bool isHovered = ImGui::IsItemHovered(); // Check if the input field is being hovered
-
-						// Make the field read-only, so no manual editing is allowed
-						if (ImGui::InputText("", &entityName[0], entityName.size() + 1, ImGuiInputTextFlags_ReadOnly))
-						{
-						}
-
-						// Add a visual cue to show that it's a drag-and-drop field
-						if (isHovered)
-						{
-							ImGui::SetTooltip("Drop an entity here to assign its ID");
-						}
-
-						// Now, accept drag-and-drop on this InputText
-						if (ImGui::BeginDragDropTarget())
-						{
-							// Check if the dropped payload is the correct one (ENTITY)
-							const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ENTITY");
-
-							// If the payload is valid
-							if (payload != nullptr)
-							{
-								// Extract the dropped entity's UID (assumed to be a uint64_t)
-								ecs::EntityHandle droppedHandle = *reinterpret_cast<ecs::EntityHandle*>(payload->Data);
-								uint64_t droppedEntityId = droppedHandle->GetComp<EntityUIDComponent>()->GetUID();
-
-								// Update the uint64_t field with the dropped entity's ID
-								std::get<size_t>(value) = droppedEntityId;
-
-								// Update the corresponding variable in the script
-								scriptMap[pair.first].SetPublicVar(name, value);
-								
-								if (droppedHandle != nullptr)
-								{
-									entityName = droppedHandle->GetComp<NameComponent>()->GetName();
-								}
-
-								CONSOLE_LOG_EXPLICIT("paylod dropped", LogLevel::LEVEL_DEBUG);
-								CONSOLE_LOG_EXPLICIT("value is " + std::to_string(std::get<size_t>(value)), LogLevel::LEVEL_DEBUG);
-								CONSOLE_LOG_EXPLICIT("name of value is: " + entityName, LogLevel::LEVEL_DEBUG);
-							}
-
-							ImGui::EndDragDropTarget();
-						}
-
-						ImGui::PopID();
-					}
-					else if constexpr (std::is_same_v<T, std::string>) {
-						char buffer[256]; // Buffer for string input
-						strncpy_s(buffer, std::get<std::string>(value).c_str(), sizeof(buffer));
-						if (ImGui::InputText("", buffer, sizeof(buffer)))
-						{
-							// Update the original string if edited
-							pVars.at(name).GetValue() = std::string(buffer); // Set the updated value back to the map
-							scriptMap[pair.first].SetPublicVar(name, value);
-						}
-						//if (ImGui::BeginDragDropTarget()) {
-						//	const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("PREFAB");
-
-						//	// If the payload is valid (e.g., an entity or prefab string)
-						//	if (payload != nullptr && payload->DataSize > 0) {
-						//		const char* droppedPrefab = (const char*)payload->Data;
-
-						//		// Update the buffer with the dropped string
-						//		strncpy(buffer, droppedPrefab, sizeof(buffer) - 1);
-						//		buffer[sizeof(buffer) - 1] = '\0';  // Null-terminate buffer
-
-						//		// Update the value (underlying data) with the dropped prefab name
-						//		std::get<std::string>(value) = std::string(droppedPrefab);
-
-						//		// Optionally update the script or other variables
-						//		scriptMap[pair.first].SetPublicVar(name, value);
-
-						//		// Update the map with the dropped value
-						//		pVars[name] = std::string(droppedPrefab);
-						//	}
-						//	ImGui::EndDragDropTarget();
-						//}
-					}
-					ImGui::PopID();
-				}, value);
-			}
-
-			// Add more details or controls related to obj here
-			ImGui::EndChild();
-		}
-	}
-	//ImGui::EndChild();
-
-	ImGui::Text("Add New Script:");
-
-	if (ImGui::BeginCombo("", "Select Script"))
-	{
-		std::unordered_map<std::string, ScriptClass>& coreMap = CSScripting::GetCoreClassMap();
-
-		for (const auto& pair : coreMap)
-		{
-			if (scriptMap.find(pair.first) == scriptMap.end())
-			{
-				if (ImGui::Selectable(pair.first.c_str()))
-				{
-					AddScript(pair.first);
-				}
+				RemoveScript(scriptName);
+				break;
 			}
 		}
-		ImGui::EndCombo();
+
+		if (!openStates[scriptName])
+			continue;
+
+		// Define the height of the child rect based on the number of public variables
+		auto& publicVars{ scriptInstance.GetPublicVars() };
+		const float itemHeight = ImGui::GetTextLineHeightWithSpacing(); // Height of each item
+		const float padding = 45.0f; // Extra padding for aesthetics
+		float totalHeight = (publicVars.size() * itemHeight) + padding;
+
+		// Draw each public variable
+		if (gui::Child rectChild{ ("Child Rect" + scriptName).c_str(), gui::Vec2{ 0, totalHeight }, gui::FLAG_CHILD::NONE, gui::FLAG_WINDOW::NO_TITLE_BAR })
+		{
+			gui::TextFormatted("Details for %s", scriptName.c_str());
+			for (auto& [varName, varField] : publicVars)
+				varField.EditorDraw(varName, scriptInstance.GetInstance());
+		}
 	}
-#endif
+
+	// Draw add script dropdown
+	gui::TextUnformatted("Add New Script:");
+	if (gui::Combo addScriptCombo{ "", "Select Script" })
+		for (const auto& [scriptName, _] : CSScripting::GetCoreClassMap())
+			if (scriptMap.find(scriptName) == scriptMap.end())
+				if (gui::Selectable(scriptName.c_str()))
+					AddScript(scriptName);
 }
 
 bool ScriptComponent::AddScript(const std::string& sName)
@@ -308,23 +122,20 @@ bool ScriptComponent::AddScript(const std::string& sName)
 
 void ScriptComponent::RemoveScript(const std::string& sName)
 {
-	auto it = scriptMap.find(sName);
-	if (it != scriptMap.end())
-	{
-		scriptMap.erase(sName);
-		openStates.erase(sName);
-		auto ite = std::find(scriptsToAwaken.begin(), scriptsToAwaken.end(), sName);
-		if (ite != scriptsToAwaken.end())
-		{
-			scriptsToAwaken.erase(ite);
-		}
+	auto it{ scriptMap.find(sName) };
+	if (it == scriptMap.end())
+		return;
 
-		ite = std::find(scriptsToStart.begin(), scriptsToStart.end(), sName);
-		if (ite != scriptsToStart.end())
-		{
-			scriptsToStart.erase(ite);
-		}
-	}
+	auto ite{ std::find(scriptsToAwaken.begin(), scriptsToAwaken.end(), sName) };
+	if (ite != scriptsToAwaken.end())
+		scriptsToAwaken.erase(ite);
+
+	ite = std::find(scriptsToStart.begin(), scriptsToStart.end(), sName);
+	if (ite != scriptsToStart.end())
+		scriptsToStart.erase(ite);
+
+	openStates.erase(sName);
+	scriptMap.erase(it);
 }
 
 void ScriptComponent::InvokeOnUpdate()
