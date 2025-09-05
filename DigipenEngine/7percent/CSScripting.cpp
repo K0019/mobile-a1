@@ -293,7 +293,7 @@ namespace CSharpScripts
 				std::string msg = nameSpace;
 				msg += ".";
 				msg += name;
-				CONSOLE_LOG_EXPLICIT(msg, LogLevel::LEVEL_INFO);
+				CONSOLE_LOG_EXPLICIT(msg, LEVEL_DEBUG);
 			}
 		}		
 
@@ -674,8 +674,24 @@ R"(<Project Sdk="Microsoft.NET.Sdk">
 		csprojFile.close();
 	}
 
-	void CSScripting::CompileUserAssembly()
+	bool CSScripting::CompileUserAssembly()
 	{
+		// Helper function to detect if the main thread is still alive (so if we're multithreaded, we avoid any operation that requires the main thread)
+		auto IsMainThreadAlive{ []() -> bool { return ST<Engine>::IsInitialized() && !ST<Engine>::Get()->IsShuttingDown(); } };
+
+
+		// Create a read/write pipe for the compilation to output to
+		HANDLE hReadPipe, hWritePipe;
+		SECURITY_ATTRIBUTES saAttr;
+		saAttr.nLength = sizeof(SECURITY_ATTRIBUTES);
+		saAttr.bInheritHandle = TRUE; // Allow the handle to be inherited
+		saAttr.lpSecurityDescriptor = NULL;
+		if (!CreatePipe(&hReadPipe, &hWritePipe, &saAttr, 0)) {
+			CONSOLE_LOG(LEVEL_ERROR) << "User Assembly Compilation: Failed to create pipe! Aborting.";
+			return false;
+		}
+
+		// Setup the cmd command
 		std::string csprojPathAsStr{ "\"" + ST<Filepaths>::Get()->csproj + "\"" };
 		std::wstring csprojPath{ csprojPathAsStr.begin(), csprojPathAsStr.end() }; // Note that this only works with non-multibyte chars
 		std::wstring buildCmd;
@@ -684,40 +700,19 @@ R"(<Project Sdk="Microsoft.NET.Sdk">
 #else
 		buildCmd = L"dotnet build -c Release " + csprojPath;
 #endif
-		//STARTUPINFOW si{};
-		//PROCESS_INFORMATION pi{};
-		//if (!CreateProcessW(NULL, buildCmd.data(), NULL, NULL, FALSE, CREATE_NO_WINDOW, NULL, NULL, &si, &pi))
-		//{
-		//	CONSOLE_LOG(LEVEL_ERROR) << "Failed to compile user script assembly!";
-		//	return;
-		//}
-		//WaitForSingleObject(pi.hProcess, INFINITE);
-		//CloseHandle(pi.hProcess);
-		//CloseHandle(pi.hThread);
-		HANDLE hReadPipe, hWritePipe;
-		SECURITY_ATTRIBUTES saAttr;
-		saAttr.nLength = sizeof(SECURITY_ATTRIBUTES);
-		saAttr.bInheritHandle = TRUE; // Allow the handle to be inherited
-		saAttr.lpSecurityDescriptor = NULL;
 
-		if (!CreatePipe(&hReadPipe, &hWritePipe, &saAttr, 0)) {
-			std::wcerr << L"Failed to create pipe!" << std::endl;
-			return;
-		}
-
-		// Set up the STARTUPINFO structure for the new process
+		// Execute command on a child process
 		STARTUPINFOW si{};
 		si.cb = sizeof(STARTUPINFOW);
 		si.hStdOutput = hWritePipe;  // Redirect child process's stdout to pipe
 		si.hStdError = hWritePipe;   // Optionally redirect stderr as well
 		si.dwFlags = STARTF_USESTDHANDLES;
-
 		PROCESS_INFORMATION pi{};
 		if (!CreateProcessW(NULL, const_cast<LPWSTR>(buildCmd.c_str()), NULL, NULL, TRUE, CREATE_NO_WINDOW, NULL, NULL, &si, &pi)) {
-			std::wcerr << L"Failed to compile user script assembly!" << std::endl;
+			CONSOLE_LOG(LEVEL_ERROR) << "User Assembly Compilation: Failed to execute build command! Aborting.";
 			CloseHandle(hReadPipe);
 			CloseHandle(hWritePipe);
-			return;
+			return false;
 		}
 
 		// Close the write end of the pipe, as the process is writing to it
@@ -728,29 +723,40 @@ R"(<Project Sdk="Microsoft.NET.Sdk">
 		DWORD dwRead;
 		while (true) {
 			BOOL bSuccess = ReadFile(hReadPipe, buffer, sizeof(buffer) - 1, &dwRead, NULL);
-			if (!bSuccess || dwRead == 0) break;  // No more data to read
+			if (!bSuccess || dwRead == 0)
+				break;
+			// Null-terminate the string. -1 is to remove the \n
+			buffer[dwRead - 1] = '\0';
 
-			buffer[dwRead] = '\0';  // Null-terminate the string
-			std::cout << buffer;     // Output the child process's stdout to the main process's stdout
+			// If the main program is shutting down, there's no need to continue processing the compilation output
+			if (!IsMainThreadAlive())
+				break;
+			CONSOLE_LOG(LEVEL_DEBUG) << buffer;
 		}
 
 		// Wait for the child process to finish
 		WaitForSingleObject(pi.hProcess, INFINITE);
 
+		// Check if the compilation succeeded
+		DWORD exitCode{};
+		GetExitCodeProcess(pi.hProcess, &exitCode);
+		bool compilationSucceeded{ exitCode == 0 };
+		if (!compilationSucceeded && IsMainThreadAlive())
+			CONSOLE_LOG(LEVEL_ERROR) << "User Assembly Compilation: Compilation failed! Please check debug output for the compilation log.";
+
 		// Close handles
 		CloseHandle(hReadPipe);
 		CloseHandle(pi.hProcess);
 		CloseHandle(pi.hThread);
-		//int result = _wsystem(buildCmd.c_str());
-		// If we're on the async thread, the main thread might've already cleaned up when we finish compiling.
-		// In this case, just stop doing any further work.
-		if (!ST<Engine>::IsInitialized() || ST<Engine>::Get()->IsShuttingDown())
+
+		// If compilation failed, there's no new assembly to overwrite.
+		// Otherwise, if we're on the async thread, the user might've closed the program while we were compiling.
+		// In either case, just stop doing any further work.
+		if (!(compilationSucceeded && IsMainThreadAlive()))
 		{
 			CleanUserAssemblyTempFiles();
-			return;
+			return false;
 		}
-
-		CONSOLE_LOG(LEVEL_DEBUG) << "User Assembly compiled successfully!";
 
 		try
 		{
@@ -766,17 +772,17 @@ R"(<Project Sdk="Microsoft.NET.Sdk">
 				std::filesystem::create_directories(destinationPath.parent_path());
 				std::filesystem::copy_file(sourcePath, destinationPath,
 					std::filesystem::copy_options::overwrite_existing);
-				CONSOLE_LOG(LEVEL_DEBUG) << "Successfully copied the script assembly!";
 			}
 			else
-				CONSOLE_LOG(LEVEL_ERROR) << "Source file does not exist: " << sourcePath.string() << " | Current Path: " << std::filesystem::current_path().string();
+				CONSOLE_LOG(LEVEL_ERROR) << "User Assembly Compilation: Assembly file does not exist: " << sourcePath.string() << " | Current Path: " << std::filesystem::current_path().string();
 		}
 		catch (const std::filesystem::filesystem_error& e)
 		{
-			CONSOLE_LOG(LEVEL_ERROR) << "FileSystem error: " << e.what();
+			CONSOLE_LOG(LEVEL_ERROR) << "User Assembly Compilation: FileSystem error: " << e.what();
 		}
 
 		CleanUserAssemblyTempFiles();
+		CONSOLE_LOG(LEVEL_INFO) << "User Assembly Compilation: Successful";
 	}
 
 	void CSScripting::CompileUserAssemblyAsync(void(*callback)())

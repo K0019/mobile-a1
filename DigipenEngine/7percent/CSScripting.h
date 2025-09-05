@@ -587,9 +587,9 @@ namespace CSharpScripts {
 		\brief
 			Compiles the .csproj file into the UserAssembly.dll
 		\return
-			None
+			True if compilation succeeded. False otherwise.
 		*//******************************************************************/
-		static void CompileUserAssembly();
+		static bool CompileUserAssembly();
 
 		/*****************************************************************//*!
 		\brief
