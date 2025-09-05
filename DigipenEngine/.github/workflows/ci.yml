@@ -20,4 +20,10 @@ jobs:
 
       - name: Run tests
         run: |
-          vstest.console.exe "/x64/Debug/CITest.exe"    
+          vstest.console.exe "/x64/Debug/CITest.exe" --gtest_output=xml:results.xml
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: results.xml
