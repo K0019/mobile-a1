@@ -36,12 +36,6 @@
                             ]
                         }
                     }
-                ],
-                "openStates": [
-                    {
-                        "key": "TestScript",
-                        "value": true
-                    }
                 ]
             },
             "1223095846833079106": {

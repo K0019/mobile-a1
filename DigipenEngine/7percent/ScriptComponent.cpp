@@ -218,13 +218,11 @@ void ScriptComponent::Serialize(Serializer& writer) const
 	//Serialize scriptMap
 	//Maybe serailize openStates as well? Could be convenient
 	writer.Serialize("scriptMap", scriptMap);
-	writer.Serialize("openStates", openStates);
 }
 
 void ScriptComponent::Deserialize(Deserializer& entry)
 {
 	entry.DeserializeVar("scriptMap",&scriptMap);
-	entry.DeserializeVar("openStates",&openStates);
 
 	for (auto& script : scriptMap)
 		InitializeScriptInstance(script.second, script.first);
@@ -250,18 +248,11 @@ void ScriptComponent::ReattachAllScripts()
 
 void ScriptComponent::LoadVariables()
 {
-	// Set the public vars
-	// for each script inside the map
-	// set the public vars from inside pvs
+	// Load variables saved previous before reload back into the scripts
 	for (size_t i = 0; i < names.size(); ++i)
-	{
-		// CONSOLE_LOG_EXPLICIT("Script: " + names[i], LogLevel::LEVEL_DEBUG);
 		for (auto& pair : pvs[i])
-		{
 			scriptMap[names[i]].SetPublicVar(pair.first, pair.second.GetValue());
-			//CONSOLE_LOG_EXPLICIT("Var"+ std::to_string(x++) +": " + pair.first, LogLevel::LEVEL_DEBUG);
-		}
-	}
+
 	pvs.clear();
 	names.clear();
 }
