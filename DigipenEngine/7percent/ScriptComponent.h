@@ -78,7 +78,7 @@ public:
 		attached inside the component and the scripts variables that can
 		be adjusted/manipulated during runtime.
 	*//******************************************************************/
-	virtual void EditorDraw();
+	virtual void EditorDraw() override;
 
 	/*****************************************************************//*!
 	\brief
@@ -89,7 +89,7 @@ public:
 	\return
 		None
 	*//******************************************************************/
-	void AddScript(const std::string sName);
+	void AddScript(const std::string& sName);
 	/*****************************************************************//*!
 	\brief
 		Removes from the unordered map of scripts attached to the entity containing
@@ -99,7 +99,7 @@ public:
 	\return
 		None
 	*//******************************************************************/
-	void RemoveScript(const std::string sName);
+	void RemoveScript(const std::string& sName);
 
 	/*****************************************************************//*!
 	\brief

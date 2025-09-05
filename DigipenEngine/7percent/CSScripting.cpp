@@ -306,77 +306,39 @@ namespace CSharpScripts
 		\return
 			None
 		*//******************************************************************/
-		//static void LoadAssemblyClasses(MonoAssembly* assembly)
-		//{
-		//	CONSOLE_LOG_EXPLICIT("Loading All Core Classes found in Assembly...", LogLevel::LEVEL_INFO);
-
-		//	MonoImage* image = mono_assembly_get_image(assembly);
-		//	const MonoTableInfo* typeDefinitionsTable = mono_image_get_table_info(image, MONO_TABLE_TYPEDEF);
-		//	int32_t numTypes = mono_table_info_get_rows(typeDefinitionsTable);
-
-		//	MonoClass* m_EID_class = mono_class_from_name(ScriptEngineData->s_CoreAssemblyImage, "EngineScripting", "EID");
-
-		//	for (int32_t i = 0; i < numTypes; i++)
-		//	{
-		//		uint32_t cols[MONO_TYPEDEF_SIZE];
-		//		mono_metadata_decode_row(typeDefinitionsTable, i, cols, MONO_TYPEDEF_SIZE);
-
-		//		const char* nameSpace = mono_metadata_string_heap(image, cols[MONO_TYPEDEF_NAMESPACE]);
-		//		const char* name = mono_metadata_string_heap(image, cols[MONO_TYPEDEF_NAME]);
-
-		//		// Example: Engine.InternalCalls
-		//		std::string fullName = nameSpace;
-		//		fullName += ".";
-		//		fullName += name;
-		//		MonoClass* mClass = mono_class_from_name(ScriptEngineData->s_CoreAssemblyImage, nameSpace, name);
-		//		bool isEID = mono_class_is_subclass_of(mClass, m_EID_class, false);
-
-		//		if (isEID && fullName != "EngineScripting.EID")
-		//		{
-		//			ScriptEngineData->s_CoreClasses[fullName] = ScriptClass(nameSpace, name);
-
-		//			CONSOLE_LOG_EXPLICIT( "Class: " + fullName + " Loaded!", LogLevel::LEVEL_INFO);
-		//		}
-		//		
-		//	}
-
-		//	CONSOLE_LOG_EXPLICIT("All Classes Loaded!", LogLevel::LEVEL_INFO);
-
-		//}
-
 		static void LoadUserAssemblyClasses(MonoAssembly* assembly)
 		{
-			CONSOLE_LOG_EXPLICIT("Loading All Core Classes found in Assembly...", LogLevel::LEVEL_INFO);
+			CONSOLE_LOG(LEVEL_DEBUG) << "Loading custom script classes...";
 
 			MonoImage* image = mono_assembly_get_image(assembly);
 			const MonoTableInfo* typeDefinitionsTable = mono_image_get_table_info(image, MONO_TABLE_TYPEDEF);
 			int32_t numTypes = mono_table_info_get_rows(typeDefinitionsTable);
 
-			MonoClass* m_EID_class = mono_class_from_name(ScriptEngineData->s_CoreAssemblyImage, "EngineScripting", "EID");
+			MonoClass* scriptBaseClass = mono_class_from_name(ScriptEngineData->s_CoreAssemblyImage, "EngineScripting", "ComponentBase");
 
-			for (int32_t i = 0; i < numTypes; i++)
+			for (int32_t i = 0; i < numTypes; ++i)
 			{
 				uint32_t cols[MONO_TYPEDEF_SIZE];
 				mono_metadata_decode_row(typeDefinitionsTable, i, cols, MONO_TYPEDEF_SIZE);
-
 				const char* nameSpace = mono_metadata_string_heap(image, cols[MONO_TYPEDEF_NAMESPACE]);
 				const char* name = mono_metadata_string_heap(image, cols[MONO_TYPEDEF_NAME]);
 
-				// Example: Engine.InternalCalls
+				MonoClass* mClass = mono_class_from_name(ScriptEngineData->s_UserAssemblyImage, nameSpace, name);
+				bool isScript = mono_class_is_subclass_of(mClass, scriptBaseClass, false);
+
+				if (!isScript || mClass == scriptBaseClass)
+					continue;
+
+				// This is a custom script class. Register it.
 				std::string fullName = nameSpace;
 				fullName += ".";
 				fullName += name;
-				MonoClass* mClass = mono_class_from_name(ScriptEngineData->s_UserAssemblyImage, nameSpace, name);
-				bool isEID = mono_class_is_subclass_of(mClass, m_EID_class, false);
-				if (isEID && fullName != "EngineScripting.EID")
-				{
-					ScriptEngineData->s_CoreClasses[fullName] = ScriptClass(nameSpace, name);
-					CONSOLE_LOG_EXPLICIT("Class: " + fullName + " Loaded!", LogLevel::LEVEL_INFO);
-				}
+				ScriptEngineData->s_CoreClasses[fullName] = ScriptClass{ nameSpace, name };
 
+				CONSOLE_LOG(LEVEL_DEBUG) << "Custom script: " << fullName;
 			}
 
-			CONSOLE_LOG_EXPLICIT("All Classes Loaded!", LogLevel::LEVEL_INFO);
+			CONSOLE_LOG(LEVEL_DEBUG) << "Load custom script classes done";
 		}
 
 		/*****************************************************************//*!

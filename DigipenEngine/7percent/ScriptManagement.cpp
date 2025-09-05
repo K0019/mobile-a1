@@ -90,7 +90,7 @@ using System.Text;
 using System.Threading.Tasks;
 using EngineScripting;
 
-public class )" + scriptName.substr(0, scriptName.find_last_of('.')) + R"( : EID
+public class )" + scriptName.substr(0, scriptName.find_last_of('.')) + R"( : ComponentBase
 {
 	)" + scriptName.substr(0, scriptName.find_last_of('.')) + R"(()
 	{

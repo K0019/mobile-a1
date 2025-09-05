@@ -290,7 +290,7 @@ void ScriptComponent::EditorDraw()
 #endif
 }
 
-void ScriptComponent::AddScript(const std::string sName)
+void ScriptComponent::AddScript(const std::string& sName)
 {
 	auto it = scriptMap.find(sName);
 	if (it == scriptMap.end())
@@ -307,7 +307,7 @@ void ScriptComponent::AddScript(const std::string sName)
 	}
 }
 
-void ScriptComponent::RemoveScript(const std::string sName)
+void ScriptComponent::RemoveScript(const std::string& sName)
 {
 	auto it = scriptMap.find(sName);
 	if (it != scriptMap.end())
