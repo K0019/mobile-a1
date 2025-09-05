@@ -401,3 +401,153 @@ std::set<Transform*> Transform::GetChildrenRecursive()
 
 	return allChildren;
 }
+
+
+#pragma region Scripting
+
+/*****************************************************************//*!
+\brief
+	Copy of the equivalent Transform structure in the C# project.
+*//******************************************************************/
+struct CS_Transform
+{
+	Transform::Vec position;
+	Transform::Vec localPosition;
+	Transform::Vec scale;
+	Transform::Vec localScale;
+	Transform::Vec rotation;
+	Transform::Vec localRotation;
+
+	ecs::EntityHandle entity;
+};
+
+/*****************************************************************//*!
+\brief
+	Returns the transform of an entity to C# side.
+\param entity
+	The entity.
+\return
+	The transform of the entity, in a format compatible with C#'s
+	definition of a Transform.
+*//******************************************************************/
+SCRIPT_CALLABLE CS_Transform CS_GetTransform(ecs::EntityHandle entity)
+{
+	util::AssertEntityHandleValid(entity);
+
+	Transform& t = entity->GetTransform();
+	return CS_Transform{
+		t.GetWorldPosition(),
+		t.GetLocalPosition(),
+		t.GetWorldScale(),
+		t.GetLocalScale(),
+		t.GetWorldRotation(),
+		t.GetLocalRotation(),
+		entity
+	};
+}
+
+/*****************************************************************//*!
+\brief
+	Updates the transform structure on C# side.
+\param inOutTransform
+	Pointer to the transform structure on C# side.
+	Member var entity will be used to search the appropriate entity.
+*//******************************************************************/
+SCRIPT_CALLABLE void CS_SetTransform(CS_Transform* inOutTransform)
+{
+	util::AssertEntityHandleValid(inOutTransform->entity);
+
+	Transform& t = inOutTransform->entity->GetTransform();
+	inOutTransform->position = t.GetWorldPosition();
+	inOutTransform->localPosition = t.GetLocalPosition();
+	inOutTransform->scale = t.GetWorldScale();
+	inOutTransform->localScale = t.GetLocalScale();
+	inOutTransform->rotation = t.GetWorldRotation();
+	inOutTransform->localRotation = t.GetLocalRotation();
+}
+
+/*****************************************************************//*!
+\brief
+	Sets the local position of an entity.
+\param entity
+	The entity.
+\param position
+	The local position.
+*//******************************************************************/
+SCRIPT_CALLABLE void CS_SetLocalPosition(ecs::EntityHandle entity, Vec3 position)
+{
+	util::AssertEntityHandleValid(entity);
+	entity->GetTransform().SetLocalPosition(position);
+}
+
+/*****************************************************************//*!
+\brief
+	Sets the world position of an entity.
+\param entity
+	The entity.
+\param position
+	The world position.
+*//******************************************************************/
+SCRIPT_CALLABLE void CS_SetWorldPosition(ecs::EntityHandle entity, Vec3 position)
+{
+	util::AssertEntityHandleValid(entity);
+	entity->GetTransform().SetWorldPosition(position);
+}
+
+/*****************************************************************//*!
+\brief
+	Sets the local rotation of an entity.
+\param entity
+	The entity.
+\param rotation
+	The local rotation.
+*//******************************************************************/
+SCRIPT_CALLABLE void CS_SetLocalRotation(ecs::EntityHandle entity, Vec3 rotation)
+{
+	util::AssertEntityHandleValid(entity);
+	entity->GetTransform().SetLocalRotation(rotation);
+}
+
+/*****************************************************************//*!
+\brief
+	Sets the world rotation of an entity.
+\param entity
+	The entity.
+\param rotation
+	The world rotation.
+*//******************************************************************/
+SCRIPT_CALLABLE void CS_SetWorldRotation(ecs::EntityHandle entity, Vec3 rotation)
+{
+	util::AssertEntityHandleValid(entity);
+	entity->GetTransform().SetWorldRotation(rotation);
+}
+
+/*****************************************************************//*!
+\brief
+	Sets the local scale of an entity.
+\param entity
+	The entity.
+\param scale
+	The local scale.
+*//******************************************************************/
+SCRIPT_CALLABLE void CS_SetLocalScale(ecs::EntityHandle entity, Vec3 scale)
+{
+	util::AssertEntityHandleValid(entity);
+	entity->GetTransform().SetLocalScale(scale);
+}
+
+/*****************************************************************//*!
+\brief
+	Sets the world scale of an entity.
+\param entity
+	The entity.
+\param scale
+	The world scale.
+*//******************************************************************/
+SCRIPT_CALLABLE void CS_SetWorldScale(ecs::EntityHandle entity, Vec3 scale)
+{
+	util::AssertEntityHandleValid(entity);
+	entity->GetTransform().SetWorldScale(scale);
+}
+
+#pragma endregion // Scripting
