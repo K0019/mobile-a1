@@ -384,13 +384,8 @@ X(ON_AWAKE, Awake, 0)
 
 	private:
 		ScriptClass* m_ScriptClass;
-
 		MonoObject* m_Instance = nullptr;
-
 		MonoGCHandle m_InstanceHandle;
-
-		bool StartCall = false;
-
 		PublicVarsMapType m_PublicVars;
 
 		property_vtable()
