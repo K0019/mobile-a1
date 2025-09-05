@@ -28,46 +28,49 @@ namespace EngineScripting
 {
     public struct Animator : IComponent
     {
-        UInt64 eid;
+		// Disabled while waiting for new expected C++ Animator component.
 
-		/*****************************************************************//*!
-		\brief
-			Sets the current animation of the entity.
-		\param[in] name
-			Name of the animation.
-        \return
-            None.
-		*//******************************************************************/
-		public void SetAnimation(string name)
-        {
-            InternalCalls.SetAnimation(eid, name);
-        }
 
-		/*****************************************************************//*!
-		\brief
-			Sets the speed of the animation of the entity.
-		\param[in] speed
-			Speed of the animation
-        \return
-            None.
-		*//******************************************************************/
-		public void SetSpeed(float speed) 
-        {
-            InternalCalls.SetAnimationSpeed(eid, speed);
-        }
+  //      UInt64 eid;
 
-		/*****************************************************************//*!
-		\brief
-			Sets the the looping flag of the animation
-		\param[in] looping
-			bool of if its looping or not.
-		\return
-			None.
-		*//******************************************************************/
-		public void SetLooping(bool looping) 
-        {
-           InternalCalls.SetAnimationLooping(eid, looping);
-        }
+		///*****************************************************************//*!
+		//\brief
+		//	Sets the current animation of the entity.
+		//\param[in] name
+		//	Name of the animation.
+  //      \return
+  //          None.
+		//*//******************************************************************/
+		//public void SetAnimation(string name)
+  //      {
+  //          InternalCalls.SetAnimation(eid, name);
+  //      }
+
+		///*****************************************************************//*!
+		//\brief
+		//	Sets the speed of the animation of the entity.
+		//\param[in] speed
+		//	Speed of the animation
+  //      \return
+  //          None.
+		//*//******************************************************************/
+		//public void SetSpeed(float speed) 
+  //      {
+  //          InternalCalls.SetAnimationSpeed(eid, speed);
+  //      }
+
+		///*****************************************************************//*!
+		//\brief
+		//	Sets the the looping flag of the animation
+		//\param[in] looping
+		//	bool of if its looping or not.
+		//\return
+		//	None.
+		//*//******************************************************************/
+		//public void SetLooping(bool looping) 
+  //      {
+  //         InternalCalls.SetAnimationLooping(eid, looping);
+  //      }
 
 
     }
