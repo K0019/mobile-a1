@@ -310,7 +310,7 @@ X(ON_AWAKE, Awake, 0)
 		\return
 			The unordered map of variables
 		*//******************************************************************/
-		PublicVarsMapType& GetPublicVars(); // TODO: Fix all conflicts here
+		PublicVarsMapType& GetPublicVars();
 
 		/*****************************************************************//*!
 		\brief

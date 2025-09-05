@@ -926,24 +926,12 @@ R"(<Project Sdk="Microsoft.NET.Sdk">
 			field;
 			field = mono_class_get_fields(m_ScriptClass->GetClass(), &iter))
 		{
-			const char* fieldName = mono_field_get_name(field);
-
-			// TODO: Fix this in a future project!
-			//   Because the scene files currently include public variables, we're forced to deserialize public variables, which means we're forced to
-			//   retrieve and save them. In a future project, we should uncomment the lines below to not save public variables.
 			// Only process public flags (1 == private, 6 == public)
-			/*if (mono_field_get_flags(field) == 1)
-				continue;*/
-
-			// Get the field type
-			MonoType* fieldType = mono_field_get_type(field);
-			int fieldtag = mono_type_get_type(fieldType);
-			if (fieldtag == MONO_TYPE_CLASS)
-			{
-				// auto classType{ mono_type_get_class(fieldType) };
-				//CONSOLE_LOG(LEVEL_DEBUG) << "Scripting found class \"" << mono_class_get_name(classType) << "\" as a public local variable.";
-			}
+			if (mono_field_get_flags(field) == 1)
+				continue;
 			
+			// If this variable is compatible with our framework, save it
+			const char* fieldName = mono_field_get_name(field);
 			if (internal::Field::IsValidField(field))
 				m_PublicVars.try_emplace(fieldName, m_Instance, field);
 		}
@@ -974,7 +962,7 @@ R"(<Project Sdk="Microsoft.NET.Sdk">
 		auto fieldIter{ m_PublicVars.find(varName) };
 		if (fieldIter == m_PublicVars.end())
 		{
-			CONSOLE_LOG(LEVEL_WARNING) << "ScriptInstance::SetPublicVar() - Field \"" << varName << "\" not found!";
+			CONSOLE_LOG(LEVEL_WARNING) << "Public variable " << m_ScriptClass->GetFullName() << '.' << varName << " doesn't exist (anymore)";
 			return;
 		}
 
@@ -1012,7 +1000,7 @@ R"(<Project Sdk="Microsoft.NET.Sdk">
 			// Find the corresponding field and tell it to deserialize the value according to its type.
 			auto fieldIter{ publicVarsMapPtr->find(key) };
 			if (fieldIter == publicVarsMapPtr->end())
-				CONSOLE_LOG(LEVEL_WARNING) << "ScriptInstance deserialization failed to find public variable with key \"" << key << "\"!";
+				CONSOLE_LOG(LEVEL_WARNING) << "ScriptInstance deserialization failed to find public variable with key \"" << key << "\"! Skipping.";
 			else
 			{
 				if (!reader.PushAccess("value"))
