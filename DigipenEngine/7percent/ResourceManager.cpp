@@ -340,6 +340,15 @@ bool ResourceManager::SaveAssetsToFile(const std::string& filename)
     }
     file.EndArray();
 
+	file.StartArray("sounds");
+    for (const auto& [nameHash, sound] : Sounds)
+    {
+        file.StartObject();
+        file.Serialize("name", ResourceNames[nameHash]);
+        file.EndObject();
+    }
+    file.EndArray();
+
     return true;
 }
 
@@ -441,6 +450,22 @@ bool ResourceManager::LoadAssetsFromFile(const std::string& filename) {
         }
 
         file.PopAccess();
+    }
+
+	// Deserialize sounds
+	file.GetArraySize("sounds", &elemsCount);
+    if (file.PushAccess("sounds"))
+    {
+        for (size_t index{}; index < elemsCount; ++index)
+        {
+            file.PushArrayElementAccess(index);
+            std::string name;
+            file.DeserializeVar("name", &name);
+            uint64_t nameHash{ util::GenHash(name) };
+            ResourceNames[nameHash] = name;
+			ST<AudioManager>::Get()->CreateSound(name); 
+            file.PopAccess();
+        }
     }
 
     return true;

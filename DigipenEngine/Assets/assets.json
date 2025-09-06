@@ -14,5 +14,10 @@
             ]
         }
     ],
-    "animations": []
+    "animations": [],
+    "sounds": [
+        {
+            "name": "Gylia Shanty (Cinfras County).mp3"
+        }
+    ]
 }

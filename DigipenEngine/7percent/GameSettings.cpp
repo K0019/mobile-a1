@@ -98,10 +98,10 @@ void GameSettings::ApplyFullscreen()
 void GameSettings::ApplyVolumes()
 {
 	// Set volume for background music
-	ST<AudioManager>::Get()->SetBaseVolume("BGM", m_volumeBGM);
+	ST<AudioManager>::Get()->SetBaseVolume(AudioType::BGM, m_volumeBGM);
 
 	// Set volume for sound effects
-	ST<AudioManager>::Get()->SetBaseVolume("SFX", m_volumeSFX);
+	ST<AudioManager>::Get()->SetBaseVolume(AudioType::SFX, m_volumeSFX);
 }
 
 Filepaths::Filepaths()
@@ -136,8 +136,7 @@ void Filepaths::UpdateFilepaths()
 	scriptsSave += settings.m_scriptsSaveLocation;
 	materialsSave += settings.m_materialSaveLocation;
 
-	soundSingleFolder = assets + "/Sounds/SingleSounds/";
-	soundGroupedFolder = assets + "/Sounds/GroupedSounds/";
+	soundFolder = assets + "/Sounds/";
 
 	scriptsWorkingDir += settings.m_scriptsTargetLocation;
 	csproj = scriptsWorkingDir + "/UserAssembly.csproj";

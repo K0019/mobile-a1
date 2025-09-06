@@ -25,6 +25,6 @@ All rights reserved.
 
 bool AudioSystem::PreRun()
 {
-	ST<AudioManager>::Get()->UpdateSystem();
+	ST<AudioManager>::Get()->Update();
 	return true;
 }

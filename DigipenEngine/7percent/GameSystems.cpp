@@ -29,7 +29,6 @@ All rights reserved.
 #include "TextSystem.h"
 #include "Slider.h"
 
-#include "Button.h"
 #include "CheatCodes.h"
 #include "CameraSystem.h"
 #include "TweenECS.h"
@@ -78,7 +77,6 @@ void GameState_Game::OnEnter()
 
     ecs::AddSystem(ECS_LAYER::PRE_UPDATE_0, UndoShakeSystem{});
 
-    ecs::AddSystem(ECS_LAYER::REALTIME_INPUT_0, ButtonSystem{});
     ecs::AddSystem(ECS_LAYER::REALTIME_INPUT_0, SliderSystem{});
     ecs::AddSystem(ECS_LAYER::REALTIME_INPUT_0, GamepadAimAdapterSystem{});
     ecs::AddSystem(ECS_LAYER::REALTIME_INPUT_0, GamepadMouseControlSystem{});

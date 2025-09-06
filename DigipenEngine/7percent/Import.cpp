@@ -30,6 +30,7 @@ All rights reserved.
 
 namespace import
 {
+    // tied to glfw callback
     void DropCallback(GLFWwindow*, int count, const char** paths)
     {
         std::ostringstream ss           {}; // To use with Popup
@@ -67,7 +68,6 @@ namespace import
         Filepaths& filepaths{ *ST<Filepaths>::Get() };
         std::filesystem::path dest{ filepaths.assets };
         std::string extension{ file.extension().string() };
-        bool isGrouped{};
 
         // Ensure extension is in lower case
         std::transform(extension.begin(), extension.end(), extension.begin(), [](char c) -> char { return static_cast<char>(std::tolower(c)); });
@@ -76,18 +76,14 @@ namespace import
         // Determine destination
         if (extension == ".png" || extension == ".jpg")
             dest /= "Images";
-        else if (extension == ".wav")
-        {
-            AudioManager& audioManager{ *ST<AudioManager>::Get() };
-            //isGrouped = audioManager.CheckIsGrouped(file.filename().string());
-            dest = (isGrouped ? filepaths.soundSingleFolder : filepaths.soundGroupedFolder);
-        }
+        else if (extension == ".wav" || extension == ".mp3")
+            dest = filepaths.soundFolder;
         else
             return IMPORT_RESULT::UNSUPPORTED_EXTENSION;
         dest /= file.filename();
 
         // Skip if same destination
-        if (file == dest)
+		if (file == dest)                                                   // yc: fix this as on debug this directory comparison will never work as intended due to using ../..dir paths to compare with absolute paths
             return IMPORT_RESULT::ALREADY_IMPORTED;
 
         // Copy the file
@@ -96,8 +92,8 @@ namespace import
             *resultantPath = dest;
 
         // Update AudioManager if applicable (this must be done after the copy operation)
-        if (extension == ".wav")
-            ST<AudioManager>::Get()->CreateUpdateSound(file.filename().string(), isGrouped);
+        if (extension == ".wav" || extension == ".mp3")
+            ST<AudioManager>::Get()->CreateSound(file.filename().string());
 
         return IMPORT_RESULT::SUCCESS;
     }

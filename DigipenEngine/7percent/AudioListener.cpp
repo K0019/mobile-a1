@@ -20,7 +20,7 @@ All rights reserved.
 */
 /******************************************************************************/
 #include "AudioListener.h"
-#include "AudioManager.h"
+//#include "AudioManager.h"
 
 AudioListenerComponent::AudioListenerComponent()
 	: minDistance{ 10.0f }
@@ -33,7 +33,7 @@ AudioListenerComponent::AudioListenerComponent()
 
 void AudioListenerComponent::OnStart()
 {
-	ST<AudioManager>::Get()->UpdateSpatialProperties(minDistance, maxDistance, dopperScale, distanceFactor, rolloffScale);
+	//ST<AudioManager>::Get()->UpdateSpatialProperties(minDistance, maxDistance, dopperScale, distanceFactor, rolloffScale);
 }
 
 void AudioListenerComponent::EditorDraw()
@@ -52,5 +52,5 @@ AudioListenerSystem::AudioListenerSystem() :
 
 void AudioListenerSystem::UpdateAudioListenerComp(AudioListenerComponent& comp)
 {
-	ST<AudioManager>::Get()->UpdateListenerAttributes(ecs::GetEntity(&comp)->GetTransform().GetWorldPosition());
+	//ST<AudioManager>::Get()->UpdateListenerAttributes(ecs::GetEntity(&comp)->GetTransform().GetWorldPosition());
 }
