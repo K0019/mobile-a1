@@ -269,6 +269,8 @@ class AssetBrowser {
      */
     void RenderSceneWindow();
 
+    void RenderScriptWindow();
+
     void RenderShadersWindow();
 
     void RenderFontWindow();

@@ -28,6 +28,7 @@ All rights reserved.
 #include "PostProcessingComponent.h"
 #include "TextSystem.h"
 #include "Slider.h"
+#include "ScriptComponent.h"
 
 #include "CheatCodes.h"
 #include "CameraSystem.h"
@@ -89,6 +90,12 @@ void GameState_Game::OnEnter()
     ecs::AddSystem(ECS_LAYER::TWEENING, TweenSystem{});
     ecs::AddSystem(ECS_LAYER::AUDIO, AudioListenerSystem{});
     ecs::AddSystem(ECS_LAYER::AUDIO, AudioSystem{});
+
+    ecs::AddSystem(ECS_LAYER::SCRIPT_PREAWAKE, ScriptPreAwakeSystem{});
+    ecs::AddSystem(ECS_LAYER::SCRIPT_AWAKE, ScriptAwakeSystem{});
+    ecs::AddSystem(ECS_LAYER::SCRIPT_START, ScriptStartSystem{});
+    ecs::AddSystem(ECS_LAYER::SCRIPT_UPDATE, ScriptSystem{});
+    ecs::AddSystem(ECS_LAYER::SCRIPT_LATE_UPDATE, ScriptLateUpdateSystem{});
 
     ecs::AddSystem(ECS_LAYER::POST_PHYSICS_2, CameraSystem{});
     ecs::AddSystem(ECS_LAYER::POST_PHYSICS_0, AnchorToCameraSystem{});

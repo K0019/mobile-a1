@@ -533,3 +533,12 @@ void Console::DumpStackTrace(std::ofstream& file)
 	}
 }
 
+
+#pragma region Scripting
+
+SCRIPT_CALLABLE void CS_Log(const char* message, int level)
+{
+	CONSOLE_LOG(static_cast<LogLevel>(level)) << message;
+}
+
+#pragma endregion Scripting

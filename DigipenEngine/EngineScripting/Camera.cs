@@ -29,6 +29,7 @@ namespace EngineScripting
 {
 	public class Camera
 	{
+		// This should be converted into a C++ component reflection.
 
 		/*****************************************************************//*!
 		\brief
@@ -38,20 +39,20 @@ namespace EngineScripting
 		\return
 			None.
 		*//******************************************************************/
-		public static void SetZoom(float newZoom)
-		{
-			InternalCalls.SetCameraZoom(newZoom);
-		}
+		//public static void SetZoom(float newZoom)
+		//{
+		//	InternalCalls.SetCameraZoom(newZoom);
+		//}
 
-		/*****************************************************************//*!
-		\brief
-			Gets the zoom of the main camera
-		\return
-			Float value of the zoom.
-		*//******************************************************************/
-		public static float GetZoom()
-		{
-			return InternalCalls.GetCameraZoom();
-		}
+		///*****************************************************************//*!
+		//\brief
+		//	Gets the zoom of the main camera
+		//\return
+		//	Float value of the zoom.
+		//*//******************************************************************/
+		//public static float GetZoom()
+		//{
+		//	return InternalCalls.GetCameraZoom();
+		//}
 	}
 }

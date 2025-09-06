@@ -247,4 +247,3 @@ Console::Logger& Console::Logger::operator<<(const T& value) {
         messageBuffer << value;
     return *this;
 }
-

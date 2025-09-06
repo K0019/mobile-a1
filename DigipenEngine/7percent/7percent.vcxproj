@@ -139,9 +139,7 @@
       <AdditionalDependencies>glfw3-debug.lib;FMOD/fmodL_vc.lib;FMOD/fmodstudioL_vc.lib;mono-2.0-sgen.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy "$(SolutionDir)EngineScripting\bin\$(Configuration)-$(Platform)\EngineScripting.dll" "$(OutDir)" /y /d
-del "$(SolutionDir)EngineScripting\bin\$(Configuration)-$(Platform)\EngineScripting.dll"
-xcopy "$(SolutionDir)External\Libraries\FMOD\*.dll" "$(OutDir)" /y /d
+      <Command>xcopy "$(SolutionDir)External\Libraries\FMOD\*.dll" "$(OutDir)" /y /d
 xcopy "$(SolutionDir)External\Libraries\*.dll" "$(OutDir)" /y /d
 cd $(SolutionDir)Shaders
 call compile.bat
@@ -373,10 +371,12 @@ if not exist "$(TargetDir)imgui.json" (
     <ClCompile Include="CameraSystem.cpp" />
     <ClCompile Include="CheatCodes.cpp" />
     <ClCompile Include="Console.cpp" />
+    <ClCompile Include="CSScripting.cpp" />
     <ClCompile Include="Demo.cpp" />
     <ClCompile Include="FadeAndDie.cpp" />
     <ClCompile Include="GamepadInputAdapter.cpp" />
     <ClCompile Include="GUIAsECS.cpp" />
+    <ClCompile Include="HotReloader.cpp" />
     <ClCompile Include="KillAnimationWhenFinish.cpp" />
     <ClCompile Include="PostProcessingComponent.cpp" />
     <ClCompile Include="PrefabSpawner.cpp" />
@@ -454,6 +454,9 @@ if not exist "$(TargetDir)imgui.json" (
     <ClCompile Include="ryan-c\VulkanHelper.cpp" />
     <ClCompile Include="ryan-c\VulkanManager.cpp" />
     <ClCompile Include="SceneManagement.cpp" />
+    <ClCompile Include="ScriptComponent.cpp" />
+    <ClCompile Include="ScriptingUtil.cpp" />
+    <ClCompile Include="ScriptManagement.cpp" />
     <ClCompile Include="Serializer.cpp" />
     <ClCompile Include="SettingsWindow.cpp" />
     <ClCompile Include="TrailComponent.cpp" />
@@ -526,11 +529,13 @@ if not exist "$(TargetDir)imgui.json" (
     <ClInclude Include="CameraSystem.h" />
     <ClInclude Include="CheatCodes.h" />
     <ClInclude Include="Console.h" />
+    <ClInclude Include="CSScripting.h" />
     <ClInclude Include="Demo.h" />
     <ClInclude Include="FadeAndDie.h" />
     <ClInclude Include="GamepadInputAdapter.h" />
     <ClInclude Include="GUIAsECS.h" />
     <ClInclude Include="GUICollection.ipp" />
+    <ClInclude Include="HotReloader.h" />
     <ClInclude Include="KillAnimationWhenFinish.h" />
     <ClInclude Include="MagicMath.h" />
     <ClInclude Include="MagicMath.ipp" />
@@ -612,6 +617,8 @@ if not exist "$(TargetDir)imgui.json" (
     <ClInclude Include="ryan-c\VulkanHelper.h" />
     <ClInclude Include="ryan-c\VulkanManager.h" />
     <ClInclude Include="SceneManagement.h" />
+    <ClInclude Include="ScriptComponent.h" />
+    <ClInclude Include="ScriptingUtil.h" />
     <ClInclude Include="ScriptManagement.h" />
     <ClInclude Include="Serializer.h" />
     <ClInclude Include="Serializer.ipp" />
@@ -642,6 +649,7 @@ if not exist "$(TargetDir)imgui.json" (
     <None Include="..\Shaders\shader.frag" />
     <None Include="..\Shaders\shader.vert" />
     <None Include="cpp.hint" />
+    <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Icon.rc" />
@@ -650,6 +658,5 @@ if not exist "$(TargetDir)imgui.json" (
     <Image Include="Icon.ico" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
-  <ImportGroup Label="ExtensionTargets">
-  </ImportGroup>
+  <ImportGroup Label="ExtensionTargets" />
 </Project>

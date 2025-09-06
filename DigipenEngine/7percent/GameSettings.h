@@ -175,6 +175,7 @@ public:
 	std::string csproj;
 	std::string userAssemblyDll;
 	std::string engineScriptingDll;
+	std::string glmSharpDll;
 
 	/*****************************************************************//*!
 	\brief
