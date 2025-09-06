@@ -1766,6 +1766,8 @@ void AssetBrowser::RenderAnimationGrid() {
 
 void AssetBrowser::RenderSoundTable()
 {
+	static FMOD::Channel* currentPreviewSound = nullptr;
+
     ImGui::BeginChild("SoundTable", ImVec2(0.0f, 0.0f), true);
 
     std::vector<std::string> soundNames = ST<AudioManager>::Get()->GetSoundNames();
@@ -1781,15 +1783,25 @@ void AssetBrowser::RenderSoundTable()
         // Create Button
         if (ImGui::Selectable(name.c_str()))
         {
-			ST<AudioManager>::Get()->PlaySound(name, false, AudioType::BGM);
-           /* if (ST<AudioManager>::Get()->IsSoundPlaying(name))
+            if (currentPreviewSound)
             {
-                ST<AudioManager>::Get()->StopSound(name);
+                bool isPlaying;
+                currentPreviewSound->isPlaying(&isPlaying);
+                if (isPlaying)
+                {
+                    currentPreviewSound->stop();
+                    currentPreviewSound = nullptr;
+
+                    FMOD_VECTOR pos = { 0.0f, 0.0f, 0.0f };
+	                FMOD_VECTOR vel = { 0.0f, 10.0f, 0.0f };
+                    currentPreviewSound->set3DAttributes(&pos, &vel);
+                }
             }
             else
             {
-                ST<AudioManager>::Get()->StartSingleSound(name, false);
-            }*/
+                //currentPreviewSound = ST<AudioManager>::Get()->PlaySound(name, false, AudioType::BGM);
+                currentPreviewSound = ST<AudioManager>::Get()->PlaySound3D(name, false, Vec3{},AudioType::BGM);
+            }
         }
 
         // Drag-drop source
@@ -1809,7 +1821,8 @@ void AssetBrowser::RenderSoundContextMenu(std::string const& name, bool isGroupe
     {
         if (ImGui::MenuItem("Delete"))
         {
-            ST<AudioManager>::Get()->DeleteSound(name);
+            ST<AudioManager>::Get()->FreeSound(ResourceManager::GetSound(name));
+			ResourceManager::DeleteSound(name);
         }
         ImGui::EndPopup();
     }

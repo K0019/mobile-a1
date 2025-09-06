@@ -21,6 +21,33 @@ All rights reserved.
 */
 /******************************************************************************/
 #pragma once
+#include "IGameComponentCallbacks.h"
+
+// Rename it as audio.h when done
+
+class AudioSourceComponent
+	: public IRegisteredComponent<AudioSourceComponent>
+#ifdef IMGUI_ENABLED
+	, public IEditorComponent<AudioSourceComponent>
+#endif
+	, public IGameComponentCallbacks<AudioSourceComponent>
+{
+public:
+	AudioSourceComponent();
+	void OnStart() override;
+	float volume = 1.f;
+
+private:
+	FMOD::Channel* channel = nullptr;
+	virtual void EditorDraw() override;
+
+	property_vtable()
+};
+property_begin(AudioSourceComponent)
+{
+	property_var(volume)
+}
+property_vend_h(AudioSourceComponent)
 
 /*****************************************************************//*!
 \class AudioSystem
@@ -35,6 +62,7 @@ public:
 		Update function that is called continuously.
 	*//******************************************************************/
 	bool PreRun() override;
+	void UpdateComp(AudioSourceComponent& comp);
 
 private:
 

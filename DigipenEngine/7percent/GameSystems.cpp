@@ -58,6 +58,8 @@ void GameState_Common::OnEnter()
     ecs::AddSystem(ECS_LAYER::RENDER_0, PostProcessingSystem{});
     ecs::AddSystem(ECS_LAYER::RENDER_UI_0, TextSystem{});
     ecs::AddSystem(ECS_LAYER::PRE_PHYSICS_0, FPSTextSystem{});
+    ecs::AddSystem(ECS_LAYER::AUDIO, AudioSystem{});
+    ecs::AddSystem(ECS_LAYER::AUDIO, AudioListenerSystem{});
 }
 
 void GameState_Editor::OnEnter()
@@ -88,8 +90,6 @@ void GameState_Game::OnEnter()
     ecs::AddSystem(ECS_LAYER::INPUT_0, CheatCodes{});
     ecs::AddSystem(ECS_LAYER::POST_PHYSICS_0, GameCameraControllerSystem{});
     ecs::AddSystem(ECS_LAYER::TWEENING, TweenSystem{});
-    ecs::AddSystem(ECS_LAYER::AUDIO, AudioListenerSystem{});
-    ecs::AddSystem(ECS_LAYER::AUDIO, AudioSystem{});
 
     ecs::AddSystem(ECS_LAYER::SCRIPT_PREAWAKE, ScriptPreAwakeSystem{});
     ecs::AddSystem(ECS_LAYER::SCRIPT_AWAKE, ScriptAwakeSystem{});
