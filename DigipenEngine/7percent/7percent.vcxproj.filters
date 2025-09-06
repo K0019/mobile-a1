@@ -435,6 +435,12 @@
     <ClCompile Include="GUIAsECS.cpp">
       <Filter>Source Files\EditorUI\Containers</Filter>
     </ClCompile>
+    <ClCompile Include="JoltPhysics.cpp">
+      <Filter>Source Files\Physics</Filter>
+    </ClCompile>
+    <ClCompile Include="Collision.cpp">
+      <Filter>Source Files\Physics</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ECS.h">
@@ -826,6 +832,12 @@
     </ClInclude>
     <ClInclude Include="GUIAsECS.h">
       <Filter>Header Files\EditorUI\Containers</Filter>
+    </ClInclude>
+    <ClInclude Include="JoltPhysics.h">
+      <Filter>Header Files\Physics</Filter>
+    </ClInclude>
+    <ClInclude Include="Collision.h">
+      <Filter>Header Files\Physics</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
