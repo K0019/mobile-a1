@@ -1,3 +1,23 @@
+/******************************************************************************/
+/*!
+\file   JoltPhysics.cpp
+\par    Project: 7percent
+\par    Course: CSD3401
+\par    Software Engineering Project 5
+\date   06/09/2025
+
+\author Takumi Shibamoto (100%)
+\par    email: t.shibamoto\@digipen.edu
+\par    DigiPen login: t.shibamoto
+
+\brief
+	Contains definitions for the JoltPhysics class.
+
+All content © 2025 DigiPen Institute of Technology Singapore.
+All rights reserved.
+*/
+/******************************************************************************/
+
 #include "JoltPhysics.h"
 
 namespace physics {
@@ -13,7 +33,22 @@ namespace physics {
 		, objectVsObjectLayerFilter{}
 		, physicsSystem{}
 	{
+	}
+
+	void JoltPhysics::Initialize()
+	{
+		//Create the physics system.
 		physicsSystem.Init(cMaxBodies, cNumBodyMutexes, cMaxBodyPairs, cMaxContactConstraints, broadPhaseLayerInterface, objectVsBroadphaseLayerFilter, objectVsObjectLayerFilter);
+	}
+
+	JoltPhysics::~JoltPhysics()
+	{
+		// Unregisters all types with the factory and cleans up the default material
+		JPH::UnregisterTypes();
+
+		// Destroy the factory
+		delete JPH::Factory::sInstance;
+		JPH::Factory::sInstance = nullptr;
 	}
 
 	void JoltRegister()
@@ -34,15 +69,5 @@ namespace physics {
 		// If you have your own custom shape types you probably need to register their handlers with the CollisionDispatch before calling this function.
 		// If you implement your own default material (PhysicsMaterial::sDefault) make sure to initialize it before this function or else this function will create one for you.
 		JPH::RegisterTypes();
-	}
-
-	void JoltUnRegister()
-	{
-		// Unregisters all types with the factory and cleans up the default material
-		JPH::UnregisterTypes();
-
-		// Destroy the factory
-		delete JPH::Factory::sInstance;
-		JPH::Factory::sInstance = nullptr;
 	}
 }

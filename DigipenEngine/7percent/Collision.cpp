@@ -1,3 +1,24 @@
+/******************************************************************************/
+/*!
+\file   Collision.cpp
+\par    Project: 7percent
+\par    Course: CSD3401
+\par    Software Engineering Project 5
+\date   06/09/2025
+
+\author Takumi Shibamoto (100%)
+\par    email: t.shibamoto\@digipen.edu
+\par    DigiPen login: t.shibamoto
+
+\brief
+	Contains definition of member functions for collision layers and broad phase
+	collision layers.
+
+All content © 2025 DigiPen Institute of Technology Singapore.
+All rights reserved.
+*/
+/******************************************************************************/
+
 #include "Collision.h"
 
 namespace physics {
@@ -5,9 +26,9 @@ namespace physics {
 	{
 		switch (inObject1)
 		{
-		case Layers::NON_MOVING:
-			return inObject2 == Layers::MOVING; // Non moving only collides with moving
-		case Layers::MOVING:
+		case static_cast<JPH::uint16>(Layers::NON_MOVING):
+			return static_cast<JPH::uint16>(inObject2) == static_cast<JPH::uint16>(Layers::MOVING); // Non moving only collides with moving
+		case static_cast<JPH::uint16>(Layers::MOVING):
 			return true; // Moving collides with everything
 		default:
 			JPH_ASSERT(false);
@@ -17,9 +38,8 @@ namespace physics {
 
 	BPLayerInterfaceImpl::BPLayerInterfaceImpl()
 	{
-		// Create a mapping table from object to broad phase layer
-		mObjectToBroadPhase[Layers::NON_MOVING] = BroadPhaseLayers::NON_MOVING;
-		mObjectToBroadPhase[Layers::MOVING] = BroadPhaseLayers::MOVING;
+		mObjectToBroadPhase[static_cast<JPH::uint16>(Layers::NON_MOVING)] = BroadPhaseLayers::NON_MOVING;
+		mObjectToBroadPhase[static_cast<JPH::uint16>(Layers::MOVING)] = BroadPhaseLayers::MOVING;
 	}
 
 	JPH::uint BPLayerInterfaceImpl::GetNumBroadPhaseLayers() const
@@ -29,17 +49,21 @@ namespace physics {
 
 	JPH::BroadPhaseLayer BPLayerInterfaceImpl::GetBroadPhaseLayer(JPH::ObjectLayer inLayer) const
 	{
-		JPH_ASSERT(inLayer < Layers::NUM_LAYERS);
+		JPH_ASSERT(static_cast<JPH::uint16>(inLayer) < static_cast<JPH::uint16>(Layers::NUM_LAYERS));
 		return mObjectToBroadPhase[inLayer];
 	}
 
 	const char* BPLayerInterfaceImpl::GetBroadPhaseLayerName(JPH::BroadPhaseLayer inLayer) const
 	{
-		switch ((JPH::BroadPhaseLayer::Type)inLayer)
+		switch (static_cast<JPH::BroadPhaseLayer::Type>(inLayer))
 		{
-		case (JPH::BroadPhaseLayer::Type)BroadPhaseLayers::NON_MOVING: return "NON_MOVING";
-		case (JPH::BroadPhaseLayer::Type)BroadPhaseLayers::MOVING: return "MOVING";
-		default: JPH_ASSERT(false); return "INVALID";
+		case static_cast<JPH::BroadPhaseLayer::Type>(BroadPhaseLayers::NON_MOVING):
+			return "NON_MOVING";
+		case static_cast<JPH::BroadPhaseLayer::Type>(BroadPhaseLayers::MOVING):
+			return "MOVING";
+		default:
+			JPH_ASSERT(false);
+			return "INVALID";
 		}
 	}
 
@@ -47,9 +71,9 @@ namespace physics {
 	{
 		switch (inLayer1)
 		{
-		case Layers::NON_MOVING:
+		case static_cast<JPH::uint16>(Layers::NON_MOVING):
 			return inLayer2 == BroadPhaseLayers::MOVING;
-		case Layers::MOVING:
+		case static_cast<JPH::uint16>(Layers::MOVING):
 			return true;
 		default:
 			JPH_ASSERT(false);

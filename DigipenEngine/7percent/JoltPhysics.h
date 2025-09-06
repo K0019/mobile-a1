@@ -1,3 +1,23 @@
+/******************************************************************************/
+/*!
+\file   JoltPhysics.h
+\par    Project: 7percent
+\par    Course: CSD3401
+\par    Software Engineering Project 5
+\date   06/09/2025
+
+\author Takumi Shibamoto (100%)
+\par    email: t.shibamoto\@digipen.edu
+\par    DigiPen login: t.shibamoto
+
+\brief
+	JoltPhysics contains the Joly Physics System that updates all the bodies. 
+
+All content © 2025 DigiPen Institute of Technology Singapore.
+All rights reserved.
+*/
+/******************************************************************************/
+
 #pragma once
 //Need to include this before including any other Jolt file
 #include <Jolt/Jolt.h>
@@ -21,7 +41,23 @@ namespace physics {
 	class JoltPhysics
 	{
 	public:
+		/*****************************************************************//*!
+		\brief
+			Constructor.
+		*//******************************************************************/
 		JoltPhysics();
+
+		/*****************************************************************//*!
+		\brief
+			Initializes the Jolt Physics System.
+		*//******************************************************************/
+		void Initialize();
+
+		/*****************************************************************//*!
+		\brief
+			Destructor.
+		*//******************************************************************/
+		~JoltPhysics();
 	private:
 		// We need a temp allocator for temporary allocations during the physics update. We're
 		// pre-allocating 10 MB to avoid having to do allocations during the physics update.
@@ -69,9 +105,12 @@ namespace physics {
 		JPH::PhysicsSystem physicsSystem;
 	};
 
+	/*****************************************************************//*!
+	\brief
+		Register the Jolt Default Allocator, Factory, and Types needed
+		to use any of the Jolt Types.
+	*//******************************************************************/
 	void JoltRegister();
-
-	void JoltUnRegister();
 }
 
 // Callback for traces, connect this to your own trace function if you have one
@@ -85,7 +124,7 @@ static void TraceImpl(const char* inFMT, ...)
 	va_end(list);
 
 	// Print to the TTY
-	std::cout << buffer << std::endl;
+	CONSOLE_LOG(LEVEL_ERROR) << buffer;
 }
 
 #ifdef JPH_ENABLE_ASSERTS
@@ -94,7 +133,7 @@ static void TraceImpl(const char* inFMT, ...)
 static bool AssertFailedImpl(const char* inExpression, const char* inMessage, const char* inFile, JPH::uint inLine)
 {
 	// Print to the TTY
-	std::cout << inFile << ":" << inLine << ": (" << inExpression << ") " << (inMessage != nullptr ? inMessage : "") << std::endl;
+	CONSOLE_LOG(LEVEL_ERROR) << inFile << ":" << inLine << ": (" << inExpression << ") " << (inMessage != nullptr ? inMessage : "");
 
 	// Breakpoint
 	return true;

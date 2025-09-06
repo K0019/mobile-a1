@@ -288,7 +288,7 @@ void Engine::init()
 
 	// Jolt Physics Initialisation
 	physics::JoltRegister();
-	ST<physics::JoltPhysics>::Get();
+	ST<physics::JoltPhysics>::Get()->Initialize();
 
 	constexpr unsigned int SCREEN_WIDTH = 1600;
 	// The height of the screen
@@ -706,7 +706,6 @@ void Engine::shutdown() {
 	ST<TweenManager>::Destroy();
 	ST<PerformanceProfiler>::Destroy();
 	ST<AssetBrowser>::Destroy();
-	physics::JoltUnRegister();
 	ST<physics::JoltPhysics>::Destroy();
 #ifdef IMGUI_ENABLED
 	ST<Inspector>::Destroy();
