@@ -144,6 +144,7 @@ void Filepaths::UpdateFilepaths()
 	// Force the dlls to be located at the exe location
 	userAssemblyDll = "./UserAssembly.dll";
 	engineScriptingDll = "./EngineScripting.dll";
+	glmSharpDll = "./GlmSharp.dll";
 }
 
 void Filepaths::AddWorkingDirectoryTo(std::string* targetString)

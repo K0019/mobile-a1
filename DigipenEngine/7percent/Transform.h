@@ -40,7 +40,7 @@ namespace ecs {
 *//******************************************************************/
 class Transform
 {
-private:
+public:
 	// In case we want to switch dimensions in the future
 	using Vec = Vec3;
 	using Mat = Mat4;

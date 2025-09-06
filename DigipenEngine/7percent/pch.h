@@ -118,6 +118,7 @@ All rights reserved.
 #include "Utilities.h"
 #include "MaskTemplate.h"
 #include "MacroTemplates.h"
+#include "ScriptingUtil.h"
 #include "RandUID.h"
 
 #include "GUICollection.h"
