@@ -376,6 +376,7 @@ if not exist "$(TargetDir)imgui.json" (
     <ClCompile Include="CheatCodes.cpp" />
     <ClCompile Include="Console.cpp" />
     <ClCompile Include="Demo.cpp" />
+    <ClCompile Include="EditorGuiUtils.cpp" />
     <ClCompile Include="FadeAndDie.cpp" />
     <ClCompile Include="FileBrowserTab.cpp" />
     <ClCompile Include="GamepadInputAdapter.cpp" />
@@ -534,6 +535,7 @@ if not exist "$(TargetDir)imgui.json" (
     <ClInclude Include="CheatCodes.h" />
     <ClInclude Include="Console.h" />
     <ClInclude Include="Demo.h" />
+    <ClInclude Include="EditorGuiUtils.h" />
     <ClInclude Include="FadeAndDie.h" />
     <ClInclude Include="FileBrowserTab.h" />
     <ClInclude Include="GamepadInputAdapter.h" />

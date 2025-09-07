@@ -450,6 +450,9 @@
     <ClCompile Include="MiscAssetTabs.cpp">
       <Filter>Header Files\EditorUI\AssetBrowser</Filter>
     </ClCompile>
+    <ClCompile Include="EditorGuiUtils.cpp">
+      <Filter>Header Files\EditorUI</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ECS.h">
@@ -853,6 +856,9 @@
     </ClInclude>
     <ClInclude Include="MiscAssetTabs.h">
       <Filter>Header Files\EditorUI\AssetBrowser</Filter>
+    </ClInclude>
+    <ClInclude Include="EditorGuiUtils.h">
+      <Filter>Header Files\EditorUI</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
