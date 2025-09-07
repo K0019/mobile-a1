@@ -185,9 +185,7 @@ void Serializer::FlushEntities()
             StartObject("entity" + std::to_string(entityindex));
 
             const Transform& transform{ entity->GetTransform() };
-            Serialize("position", transform.GetWorldPosition());
-            Serialize("rotation", transform.GetWorldRotation());
-            Serialize("scale", transform.GetWorldScale());
+
 
             // Serialize parent if child (but only if we've also serialized the parent)
             std::string parentStr{};
@@ -198,7 +196,9 @@ void Serializer::FlushEntities()
                     parentStr = "entity" + std::to_string(indexIter->second);
             }
             Serialize("parent", parentStr);
-
+            Serialize("position", transform.GetLocalPosition());
+            Serialize("rotation", transform.GetLocalRotation());
+            Serialize("scale", transform.GetLocalScale());
             StartObject("components");
 
             // Sort components by hash
@@ -492,12 +492,6 @@ bool Deserializer::Deserialize(ecs::EntityHandle entity)
         return false;
 
     Transform& transform{ entity->GetTransform() };
-    Vec3 vec3{};
-    DeserializeVar("position", &vec3), transform.SetWorldPosition(vec3);
-    DeserializeVar("rotation", &vec3), transform.SetWorldRotation(vec3);
-    DeserializeVar("scale", &vec3), transform.SetWorldScale(vec3);
-
-    entityIndexMap.emplace(index, entity->GetHash());
 
     std::string parentName{};
     DeserializeVar("parent", &parentName);
@@ -507,6 +501,14 @@ bool Deserializer::Deserialize(ecs::EntityHandle entity)
         ecs::EntityHash parentEntityHash{ entityIndexMap.at(entityIndex) }; // This should not fail if we've serialized properly
         transform.SetParent(ecs::GetEntity(parentEntityHash)->GetTransform());
     }
+
+    Vec3 vec3{};
+    DeserializeVar("position", &vec3), transform.SetLocalPosition(vec3);
+    DeserializeVar("rotation", &vec3), transform.SetLocalRotation(vec3);
+    DeserializeVar("scale", &vec3), transform.SetLocalScale(vec3);
+
+    entityIndexMap.emplace(index, entity->GetHash());
+
 
 
     if (!PushAccess("components"))
