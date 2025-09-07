@@ -440,6 +440,7 @@
     </ClCompile>
     <ClCompile Include="Collision.cpp">
       <Filter>Source Files\Physics</Filter>
+    </ClCompile>
     <ClCompile Include="ScriptComponent.cpp">
       <Filter>Source Files\Scripting</Filter>
     </ClCompile>
@@ -849,6 +850,7 @@
     </ClInclude>
     <ClInclude Include="Collision.h">
       <Filter>Header Files\Physics</Filter>
+    </ClInclude>
     <ClInclude Include="ScriptComponent.h">
       <Filter>Header Files\Scripting</Filter>
     </ClInclude>

@@ -93,7 +93,7 @@ namespace physics {
 #endif // JPH_EXTERNAL_PROFILE || JPH_PROFILE_ENABLED
 
 	private:
-		JPH::BroadPhaseLayer mObjectToBroadPhase[static_cast<JPH::uint16>(Layers::NUM_LAYERS)];
+		JPH::BroadPhaseLayer mObjectToBroadPhase[+Layers::NUM_LAYERS];
 	};
 
 	/*****************************************************************//*!
