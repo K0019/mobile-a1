@@ -26,9 +26,9 @@ namespace physics {
 	{
 		switch (inObject1)
 		{
-		case static_cast<JPH::uint16>(Layers::NON_MOVING):
-			return static_cast<JPH::uint16>(inObject2) == static_cast<JPH::uint16>(Layers::MOVING); // Non moving only collides with moving
-		case static_cast<JPH::uint16>(Layers::MOVING):
+		case +Layers::NON_MOVING:
+			return +inObject2 == +Layers::MOVING; // Non moving only collides with moving
+		case +Layers::MOVING:
 			return true; // Moving collides with everything
 		default:
 			JPH_ASSERT(false);
@@ -38,8 +38,8 @@ namespace physics {
 
 	BPLayerInterfaceImpl::BPLayerInterfaceImpl()
 	{
-		mObjectToBroadPhase[static_cast<JPH::uint16>(Layers::NON_MOVING)] = BroadPhaseLayers::NON_MOVING;
-		mObjectToBroadPhase[static_cast<JPH::uint16>(Layers::MOVING)] = BroadPhaseLayers::MOVING;
+		mObjectToBroadPhase[+Layers::NON_MOVING] = BroadPhaseLayers::NON_MOVING;
+		mObjectToBroadPhase[+Layers::MOVING] = BroadPhaseLayers::MOVING;
 	}
 
 	JPH::uint BPLayerInterfaceImpl::GetNumBroadPhaseLayers() const
@@ -49,7 +49,7 @@ namespace physics {
 
 	JPH::BroadPhaseLayer BPLayerInterfaceImpl::GetBroadPhaseLayer(JPH::ObjectLayer inLayer) const
 	{
-		JPH_ASSERT(static_cast<JPH::uint16>(inLayer) < static_cast<JPH::uint16>(Layers::NUM_LAYERS));
+		JPH_ASSERT(+inLayer < +Layers::NUM_LAYERS);
 		return mObjectToBroadPhase[inLayer];
 	}
 
@@ -71,9 +71,9 @@ namespace physics {
 	{
 		switch (inLayer1)
 		{
-		case static_cast<JPH::uint16>(Layers::NON_MOVING):
+		case +Layers::NON_MOVING:
 			return inLayer2 == BroadPhaseLayers::MOVING;
-		case static_cast<JPH::uint16>(Layers::MOVING):
+		case +Layers::MOVING:
 			return true;
 		default:
 			JPH_ASSERT(false);
