@@ -388,6 +388,13 @@ namespace gui {
 		TextBoxReadOnly(label, text.data(), text.size() + 1);
 	}
 
+	void TextBox([[maybe_unused]] const char* label, [[maybe_unused]] const char* text, [[maybe_unused]] size_t size)
+	{
+#ifdef IMGUI_ENABLED
+		ImGui::InputText(label, const_cast<char*>(text), size);
+#endif
+	}
+
 	SetTextWrapPos::SetTextWrapPos([[maybe_unused]] float wrap_local_pos_x)
 #ifdef IMGUI_ENABLED
 		: internal::BeginEndBound_TextWrapPos{ wrap_local_pos_x }
@@ -520,6 +527,64 @@ namespace gui {
 		return false;
 #endif
 	}
+	bool VarInput([[maybe_unused]] const char* label, [[maybe_unused]] unsigned int* v, [[maybe_unused]] unsigned int step)
+	{
+#ifdef IMGUI_ENABLED
+		unsigned int fastStep{ step * 10 };
+		return ImGui::InputScalar(label, ImGuiDataType_U32, v, &step, &fastStep);
+#else
+		return false;
+#endif
+	}
+	bool VarInput([[maybe_unused]] const char* label, [[maybe_unused]] size_t* v, [[maybe_unused]] size_t step)
+	{
+#ifdef IMGUI_ENABLED
+		size_t fastStep{ step * 10 };
+		return ImGui::InputScalar(label, ImGuiDataType_U64, v, &step, &fastStep);
+#else
+		return false;
+#endif
+	}
+	bool VarInput([[maybe_unused]] const char* label, [[maybe_unused]] float* v, [[maybe_unused]] float step)
+	{
+#ifdef IMGUI_ENABLED
+		return ImGui::InputFloat(label, v, step, step * 10.0f);
+#else
+		return false;
+#endif
+	}
+	bool VarInput([[maybe_unused]] const char* label, [[maybe_unused]] double* v, [[maybe_unused]] double step)
+	{
+#ifdef IMGUI_ENABLED
+		return ImGui::InputDouble(label, v, step, step * 10.0);
+#else
+		return false;
+#endif
+	}
+	bool VarInput([[maybe_unused]] const char* label, [[maybe_unused]] ::Vec2* v)
+	{
+#ifdef IMGUI_ENABLED
+		return ImGui::InputFloat2(label, &v->x);
+#else
+		return false;
+#endif
+	}
+	bool VarInput([[maybe_unused]] const char* label, [[maybe_unused]] ::Vec3* v)
+	{
+#ifdef IMGUI_ENABLED
+		return ImGui::InputFloat3(label, &v->x);
+#else
+		return false;
+#endif
+	}
+	bool VarInput([[maybe_unused]] const char* label, [[maybe_unused]] ::Vec4* v)
+	{
+#ifdef IMGUI_ENABLED
+		return ImGui::InputFloat4(label, &v->x);
+#else
+		return false;
+#endif
+	}
 
 	bool& GetVar([[maybe_unused]] const char* label, [[maybe_unused]] bool defaultVal)
 	{
@@ -549,6 +614,57 @@ namespace gui {
 #else
 		return false;
 #endif
+	}
+
+	bool VarDefault(const char* label, bool* v)
+	{
+		return Checkbox(label, v);
+	}
+	bool VarDefault(const char* label, char* v)
+	{
+		char prevVal{ *v };
+		TextBox(label, v, 1);
+		return *v != prevVal;
+	}
+	bool VarDefault(const char* label, int* v)
+	{
+		return VarInput(label, v);
+	}
+	bool VarDefault(const char* label, unsigned int* v)
+	{
+		return VarInput(label, v);
+	}
+	bool VarDefault(const char* label, size_t* v)
+	{
+		return VarInput(label, v);
+	}
+	bool VarDefault(const char* label, float* v)
+	{
+		return VarInput(label, v);
+	}
+	bool VarDefault(const char* label, double* v)
+	{
+		return VarInput(label, v);
+	}
+	bool VarDefault(const char* label, ::Vec2* v)
+	{
+		return VarInput(label, v);
+	}
+	bool VarDefault(const char* label, ::Vec3* v)
+	{
+		return VarInput(label, v);
+	}
+	bool VarDefault(const char* label, ::Vec4* v)
+	{
+		return VarInput(label, v);
+	}
+	bool VarDefault(const char* label, string_t* v)
+	{
+		TextBoxWithBuffer<256> textBox{ label };
+		textBox.SetBuffer(*v);
+		bool modified{ textBox.Draw() };
+		*v = textBox.GetBufferPtr();
+		return modified;
 	}
 
 	template <>

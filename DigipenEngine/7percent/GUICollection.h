@@ -966,6 +966,9 @@ namespace gui {
 	void TextBoxReadOnly(const char* label, const char* text, size_t size);
 	void TextBoxReadOnly(const char* label, const std::string& text);
 
+	//! ImGui::InputText()
+	void TextBox(const char* label, const char* text, size_t size);
+
 	/*****************************************************************//*!
 	\class TextBoxWithBuffer
 	\brief
@@ -1107,10 +1110,37 @@ namespace gui {
 
 	//! ImGui::InputInt, etc.
 	bool VarInput(const char* label, int* v, int step = 1);
+	bool VarInput(const char* label, unsigned int* v, unsigned int step = 1);
+	bool VarInput(const char* label, size_t* v, size_t step = 1);
+	bool VarInput(const char* label, float* v, float step = 1.0f);
+	bool VarInput(const char* label, double* v, double step = 1.0);
+	bool VarInput(const char* label, ::Vec2* v);
+	bool VarInput(const char* label, ::Vec3* v);
+	bool VarInput(const char* label, ::Vec4* v);
 
 	//! ImGui::SliderInt, etc.
 	template <typename T>
 	bool Slider(const char* label, T* v, const T& min, const T& max);
+
+	/*****************************************************************//*!
+	\brief
+		Delegates which of the above functions to call based on default behavior.
+	\param label
+		The field label.
+	\param v
+		A pointer to the value.
+	*//******************************************************************/
+	bool VarDefault(const char* label, bool* v);
+	bool VarDefault(const char* label, char* v);
+	bool VarDefault(const char* label, int* v);
+	bool VarDefault(const char* label, unsigned int* v);
+	bool VarDefault(const char* label, size_t* v);
+	bool VarDefault(const char* label, float* v);
+	bool VarDefault(const char* label, double* v);
+	bool VarDefault(const char* label, ::Vec2* v);
+	bool VarDefault(const char* label, ::Vec3* v);
+	bool VarDefault(const char* label, ::Vec4* v);
+	bool VarDefault(const char* label, string_t* v);
 
 	/*****************************************************************//*!
 	\brief

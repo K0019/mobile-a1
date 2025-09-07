@@ -98,55 +98,46 @@ namespace EngineScripting
 	}
 	public class Input
 	{
-		/*****************************************************************//*!
-		\brief
-			Checks if a specific key has been pressed.
-		\param[in] key
-			Enum of the key press being checked
-        \return
-            If the specified key was pressed.
-		*//******************************************************************/
-		public static bool GetKeyPressed(KeyCode key)
-		{
-			return InternalCalls.GetKeyPressed((int)key);
-		}
+		// Awaiting the new Input system implementation on C++ side...
 
-		/*****************************************************************//*!
-		\brief
-			Checks if a specific key has been released.
-		\param[in] key
-			Enum of the key release being checked
-        \return
-            If the specified key was released.
-		*//******************************************************************/
-		public static bool GetKeyReleased(KeyCode key)
-		{
-			return InternalCalls.GetKeyReleased((int)key);
-		}
+		///*****************************************************************//*!
+		//\brief
+		//	Checks if a specific key has been pressed.
+		//\param[in] key
+		//	Enum of the key press being checked
+  //      \return
+  //          If the specified key was pressed.
+		//*//******************************************************************/
+		//public static bool GetKeyPressed(KeyCode key)
+		//{
+		//	return InternalCalls.GetKeyPressed((int)key);
+		//}
 
-		/*****************************************************************//*!
-		\brief
-			Checks if a specific key is being pressed.
-		\param[in] key
-			Enum of the key press being checked
-        \return
-            If the specified key is being pressed.
-		*//******************************************************************/
-		public static bool GetCurrKey(KeyCode key)
-		{
-			return InternalCalls.GetCurrKey((int)key);
-		}
+		///*****************************************************************//*!
+		//\brief
+		//	Checks if a specific key has been released.
+		//\param[in] key
+		//	Enum of the key release being checked
+  //      \return
+  //          If the specified key was released.
+		//*//******************************************************************/
+		//public static bool GetKeyReleased(KeyCode key)
+		//{
+		//	return InternalCalls.GetKeyReleased((int)key);
+		//}
 
-		/*****************************************************************//*!
-		\brief
-			Gets the world position of the mouse.
-		\return
-			Vector 2 of the Mouse world position.
-		*//******************************************************************/
-		public static Vector2 GetMousePos()
-		{
-			InternalCalls.GetMouseWorldPos(out Vector2 Result);
-			return Result;
-		}
+		///*****************************************************************//*!
+		//\brief
+		//	Checks if a specific key is being pressed.
+		//\param[in] key
+		//	Enum of the key press being checked
+  //      \return
+  //          If the specified key is being pressed.
+		//*//******************************************************************/
+		//public static bool GetCurrKey(KeyCode key)
+		//{
+		//	return InternalCalls.GetCurrKey((int)key);
+		//}
+
     }
 }

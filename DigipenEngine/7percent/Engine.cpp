@@ -32,6 +32,7 @@ All rights reserved.
 #include "TweenManager.h"
 #include "PrefabManager.h"
 #include "GameSettings.h"
+#include "JoltPhysics.h"
 
 #include "SettingsWindow.h"
 #include "LayersMatrix.h"
@@ -39,6 +40,8 @@ All rights reserved.
 
 #include "ryan-c/Renderer.h"
 #include "ryan-c/VulkanHelper.h"
+#include "CSScripting.h"
+#include "HotReloader.h"
 
 #include "fa.h"
 
@@ -193,6 +196,11 @@ void Engine::OnFocusChanged([[maybe_unused]] GLFWwindow* window, int isFocused)
 {
 	CONSOLE_LOG(LEVEL_DEBUG) << "Focused changed: " << isFocused;
 
+#ifdef IMGUI_ENABLED
+	// TODO: Clean this call up
+	HotReloader::FocusCallBackReload(window, isFocused);
+#endif
+
 	Messaging::BroadcastAll("OnWindowFocus", static_cast<bool>(isFocused));
 }
 void Engine::onFullscreen()
@@ -282,8 +290,15 @@ void Engine::init()
 
 	ST<Console>::Get()->SetupCrashHandler(); // DO NOT REMOVE THIS LINE EVER
 
+	// Scripting Engine Initialisation
+	CSharpScripts::CSScripting::Init();
+
 	// FMOD Initialisation
 	ST<AudioManager>::Get()->Initialise();
+
+	// Jolt Physics Initialisation
+	physics::JoltRegister();
+	ST<physics::JoltPhysics>::Get()->Initialize();
 
 	constexpr unsigned int SCREEN_WIDTH = 1600;
 	// The height of the screen
@@ -627,6 +642,9 @@ void Engine::run() {
 
 		// update game state
 		// -----------------
+#ifdef IMGUI_ENABLED
+		CSharpScripts::CSScripting::CheckCompileUserAssemblyAsyncCompletion();
+#endif
 		ST<Game>::Get()->Update();
 		ST<Scheduler>::Get()->Update(GameTime::FixedDt() * static_cast<float>(GameTime::NumFixedFrames()));
 
@@ -701,6 +719,7 @@ void Engine::shutdown() {
 	ST<TweenManager>::Destroy();
 	ST<PerformanceProfiler>::Destroy();
 	ST<AssetBrowser>::Destroy();
+	ST<physics::JoltPhysics>::Destroy();
 #ifdef IMGUI_ENABLED
 	ST<Inspector>::Destroy();
 #endif
@@ -713,6 +732,8 @@ void Engine::shutdown() {
 #endif
 
 	ecs::Shutdown();
+
+	CSharpScripts::CSScripting::Exit();
 
 	ST<GameSettings>::Destroy();
 	//ST<Filepaths>::Destroy(); // Filepaths kinda needs to live for other threads to reference filepaths... smart pointers will free this later. sry about this
