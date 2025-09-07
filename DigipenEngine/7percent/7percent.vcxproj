@@ -361,9 +361,11 @@ if not exist "$(TargetDir)imgui.json" (
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Installer|x64'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="Animation.cpp" />
+    <ClCompile Include="AnimationTab.cpp" />
     <ClCompile Include="AnimatorComponent.cpp" />
     <ClCompile Include="AnimatorSystem.cpp" />
     <ClCompile Include="AssetBrowser.cpp" />
+    <ClCompile Include="AssetBrowserCategories.cpp" />
     <ClCompile Include="AudioListener.cpp" />
     <ClCompile Include="AudioSystem.cpp" />
     <ClCompile Include="Bar.cpp" />
@@ -375,9 +377,11 @@ if not exist "$(TargetDir)imgui.json" (
     <ClCompile Include="Console.cpp" />
     <ClCompile Include="Demo.cpp" />
     <ClCompile Include="FadeAndDie.cpp" />
+    <ClCompile Include="FileBrowserTab.cpp" />
     <ClCompile Include="GamepadInputAdapter.cpp" />
     <ClCompile Include="GUIAsECS.cpp" />
     <ClCompile Include="KillAnimationWhenFinish.cpp" />
+    <ClCompile Include="MiscAssetTabs.cpp" />
     <ClCompile Include="PostProcessingComponent.cpp" />
     <ClCompile Include="PrefabSpawner.cpp" />
     <ClCompile Include="Scheduler.cpp" />
@@ -515,9 +519,11 @@ if not exist "$(TargetDir)imgui.json" (
     </ClInclude>
     <ClInclude Include="..\External\Include\Vulkan\Volk\volk.h" />
     <ClInclude Include="Animation.h" />
+    <ClInclude Include="AnimationTab.h" />
     <ClInclude Include="AnimatorComponent.h" />
     <ClInclude Include="AnimatorSystem.h" />
     <ClInclude Include="AssetBrowser.h" />
+    <ClInclude Include="AssetBrowserCategories.h" />
     <ClInclude Include="AudioListener.h" />
     <ClInclude Include="AudioSystem.h" />
     <ClInclude Include="Bar.h" />
@@ -529,12 +535,14 @@ if not exist "$(TargetDir)imgui.json" (
     <ClInclude Include="Console.h" />
     <ClInclude Include="Demo.h" />
     <ClInclude Include="FadeAndDie.h" />
+    <ClInclude Include="FileBrowserTab.h" />
     <ClInclude Include="GamepadInputAdapter.h" />
     <ClInclude Include="GUIAsECS.h" />
     <ClInclude Include="GUICollection.ipp" />
     <ClInclude Include="KillAnimationWhenFinish.h" />
     <ClInclude Include="MagicMath.h" />
     <ClInclude Include="MagicMath.ipp" />
+    <ClInclude Include="MiscAssetTabs.h" />
     <ClInclude Include="PostProcessingComponent.h" />
     <ClInclude Include="PrefabSpawner.h" />
     <ClInclude Include="Scheduler.h" />

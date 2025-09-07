@@ -91,6 +91,9 @@
     <Filter Include="Source Files\EditorUI\Containers">
       <UniqueIdentifier>{1a2546d1-6dfb-4205-98fd-d5f79f899dd3}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\EditorUI\AssetBrowser">
+      <UniqueIdentifier>{8b9b8619-853a-43d8-abc5-019567783abc}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ECSInternal.cpp">
@@ -435,6 +438,18 @@
     <ClCompile Include="GUIAsECS.cpp">
       <Filter>Source Files\EditorUI\Containers</Filter>
     </ClCompile>
+    <ClCompile Include="AssetBrowserCategories.cpp">
+      <Filter>Header Files\EditorUI\AssetBrowser</Filter>
+    </ClCompile>
+    <ClCompile Include="AnimationTab.cpp">
+      <Filter>Header Files\EditorUI\AssetBrowser</Filter>
+    </ClCompile>
+    <ClCompile Include="FileBrowserTab.cpp">
+      <Filter>Header Files\EditorUI\AssetBrowser</Filter>
+    </ClCompile>
+    <ClCompile Include="MiscAssetTabs.cpp">
+      <Filter>Header Files\EditorUI\AssetBrowser</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ECS.h">
@@ -547,9 +562,6 @@
     </ClInclude>
     <ClInclude Include="Serializer.h">
       <Filter>Header Files\Engine</Filter>
-    </ClInclude>
-    <ClInclude Include="AssetBrowser.h">
-      <Filter>Header Files\EditorUI</Filter>
     </ClInclude>
     <ClInclude Include="GameSettings.h">
       <Filter>Header Files\Game</Filter>
@@ -826,6 +838,21 @@
     </ClInclude>
     <ClInclude Include="GUIAsECS.h">
       <Filter>Header Files\EditorUI\Containers</Filter>
+    </ClInclude>
+    <ClInclude Include="AssetBrowser.h">
+      <Filter>Header Files\EditorUI\AssetBrowser</Filter>
+    </ClInclude>
+    <ClInclude Include="AssetBrowserCategories.h">
+      <Filter>Header Files\EditorUI\AssetBrowser</Filter>
+    </ClInclude>
+    <ClInclude Include="AnimationTab.h">
+      <Filter>Header Files\EditorUI\AssetBrowser</Filter>
+    </ClInclude>
+    <ClInclude Include="FileBrowserTab.h">
+      <Filter>Header Files\EditorUI\AssetBrowser</Filter>
+    </ClInclude>
+    <ClInclude Include="MiscAssetTabs.h">
+      <Filter>Header Files\EditorUI\AssetBrowser</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -32,11 +32,28 @@ All rights reserved.
 #include "Filesystem.h"
 #include "Import.h"
 
+#include "AssetBrowserCategories.h"
+#include "AnimationTab.h"
+#include "FileBrowserTab.h"
+#include "MiscAssetTabs.h"
+
 namespace fs = std::filesystem;
 
 AssetBrowser::AssetBrowser() {
     // Initialize with default state
+    assetCategories.push_back(std::make_unique<SpriteTab>());
+    assetCategories.push_back(std::make_unique<AnimationTab>());
+    assetCategories.push_back(std::make_unique<SoundTab>());
+    assetCategories.push_back(std::make_unique<PrefabTab>());
+    assetCategories.push_back(std::make_unique<FontTab>());
+    assetCategories.push_back(std::make_unique<SceneTab>());
+    assetCategories.push_back(std::make_unique<ShaderTab>());
+
+    auto browser = std::make_unique<FileBrowserTab>(); browser->Initialize(ST<Filepaths>::Get()->workingDir);
+    assetCategories.push_back(std::move(browser));
 }
+
+AssetBrowser::~AssetBrowser() = default;
 
 #ifdef IMGUI_ENABLED
 void AssetBrowser::Draw(bool* p_open) {
@@ -61,7 +78,7 @@ void AssetBrowser::Draw(bool* p_open) {
             ecs::EntityHandle draggedEntity = *(ecs::EntityHandle*)acceptedPayload->Data;
 
             // Drop handling 
-            currentCategory = CATEGORY::PREFABS;
+            //currentCategory = CATEGORY::PREFABS;
             if(ImGui::IsMouseReleased(0))
             {
                 PrefabManager::SavePrefab(draggedEntity, draggedEntity->GetComp<NameComponent>()->GetName());
@@ -69,334 +86,30 @@ void AssetBrowser::Draw(bool* p_open) {
         }
         ImGui::EndDragDropTarget();
     }
-    ShowSpriteSheetDialog();
-    ShowCreateAnimationDialog();
+    //ShowSpriteSheetDialog();
+    //ShowCreateAnimationDialog();
 
     ImGui::End();
 }
-/**
- * @brief Renders the frame list with drag-drop reordering and frame controls
- *
- * Features:
- * - Drag and drop reordering of frames
- * - Per-frame duration control
- * - Frame deletion
- * - Frame movement controls (up/down)
- *
- * ImGui Patterns:
- * - BeginGroup/EndGroup for frame entries
- * - Drag and drop source/target
- * - Context menus
- * - Frame highlighting for current frame
- */
-void AssetBrowser::RenderFrameList() {
-    // Track deletions separately to avoid modifying collection while iterating
-    bool frameDeleted = false;
-    size_t frameToDelete = 0;
 
-    for(size_t i = 0; i < animConfig.frames.size(); i++) {
-        // Push unique ID for this frame to avoid ID conflicts
-        ImGui::PushID(static_cast<int>(i));
-        const Sprite& sprite = ResourceManager::GetSprite(animConfig.frames[i].spriteID);
-        const Texture& tex = ResourceManager::GetTexture(sprite.textureName);
-        // Frame Container
-         // Begin a group for the entire frame entry
-        ImGui::BeginGroup();
-        {
-            // Drag handle implementation
-           // Button acts as both visual handle and drag source
-            ImGui::Button("##draghandle", ImVec2(16, 40));
-
-            // Setup drag source
-            if(ImGui::BeginDragDropSource(ImGuiDragDropFlags_None)) {
-
-                // Payload is the frame index
-                size_t frameIdx = i;
-                ImGui::SetDragDropPayload("FRAME_REORDER", &frameIdx, sizeof(size_t));
-                ImGui::Text("Moving frame %zu", i + 1);
-                // Show preview while dragging
-                ImGui::Image(tex.ImGui_handle,
-                             ImVec2(20, 20),
-                             ImVec2(sprite.texCoords.x, sprite.texCoords.y),
-                             ImVec2(sprite.texCoords.z, sprite.texCoords.w));
-                ImGui::EndDragDropSource();
-            }
-
-            // Handle dropping frames for reordering
-            if(ImGui::BeginDragDropTarget()) {
-                if(const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("FRAME_REORDER")) {
-                    size_t srcIdx = *(const size_t*)payload->Data;
-                    if(srcIdx < animConfig.frames.size()) {
-                        // ... frame reordering code ...
-                        FrameData temp = animConfig.frames[srcIdx];
-                        if(srcIdx < i) {
-                            std::rotate(animConfig.frames.begin() + srcIdx,
-                                        animConfig.frames.begin() + srcIdx + 1,
-                                        animConfig.frames.begin() + i + 1);
-                        }
-                        else {
-                            std::rotate(animConfig.frames.begin() + i,
-                                        animConfig.frames.begin() + srcIdx,
-                                        animConfig.frames.begin() + srcIdx + 1);
-                        }
-                        animConfig.frames[i] = temp;
-                    }
-                }
-                ImGui::EndDragDropTarget();
-            }
-            ImGui::SameLine();
-
-            // Frame number
-            ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 12);
-            ImGui::Text("%zu.", i + 1);
-            ImGui::SameLine();
-
-            // Frame preview
-            ImGui::Image(tex.ImGui_handle,
-                         ImVec2(40, 40),
-                         ImVec2(sprite.texCoords.x, sprite.texCoords.y),
-                         ImVec2(sprite.texCoords.z, sprite.texCoords.w));
-            ImGui::SameLine();
-
-            // Frame info and controls
-            ImGui::BeginGroup();
-            {
-                ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 2);
-                ImGui::Text("%s", sprite.name.c_str());
-
-                ImGui::SetNextItemWidth(100);
-                float duration = animConfig.frames[i].duration;
-                if(ImGui::DragFloat("##duration", &duration, 0.01f, 0.01f, 5.0f, "%.2fs")) {
-                    animConfig.frames[i].duration = duration;
-                }
-            }
-            ImGui::EndGroup();
-
-            // Right-side controls
-            float remainingWidth = ImGui::GetContentRegionAvail().x;
-            ImGui::SameLine(ImGui::GetCursorPosX() + remainingWidth - 90);
-            ImGui::BeginGroup();
-            {
-                ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 10);
-
-                if(i > 0) {
-                    if(ImGui::ArrowButton("##up", ImGuiDir_Up)) {
-                        std::swap(animConfig.frames[i], animConfig.frames[i - 1]);
-                    }
-                }
-                else {
-                    ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 0.3f);
-                    ImGui::ArrowButton("##up", ImGuiDir_Up);
-                    ImGui::PopStyleVar();
-                }
-                ImGui::SameLine();
-
-                if(i < animConfig.frames.size() - 1) {
-                    if(ImGui::ArrowButton("##down", ImGuiDir_Down)) {
-                        std::swap(animConfig.frames[i], animConfig.frames[i + 1]);
-                    }
-                }
-                else {
-                    ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 0.3f);
-                    ImGui::ArrowButton("##down", ImGuiDir_Down);
-                    ImGui::PopStyleVar();
-                }
-                ImGui::SameLine();
-
-                // Delete button - just mark for deletion instead of immediate removal
-                if(ImGui::Button(ICON_FA_TRASH"##delete")) {
-                    frameDeleted = true;
-                    frameToDelete = i;
-                }
-            }
-            ImGui::EndGroup();
-        }
-        ImGui::EndGroup();
-
-        // Frame context menu
-        if(ImGui::BeginPopupContextItem(("frame_context_" + std::to_string(i)).c_str(),
-                                        ImGuiPopupFlags_MouseButtonRight))
-        {
-            if(ImGui::MenuItem("Remove Frame")) {
-                frameDeleted = true;
-                frameToDelete = i;
-            }
-            if(i > 0 && ImGui::MenuItem("Move Up")) {
-                std::swap(animConfig.frames[i], animConfig.frames[i - 1]);
-            }
-            if(i < animConfig.frames.size() - 1 && ImGui::MenuItem("Move Down")) {
-                std::swap(animConfig.frames[i], animConfig.frames[i + 1]);
-            }
-            ImGui::EndPopup();
-        }
-
-        // Highlight current frame
-        if(i == animConfig.currentFrame && animConfig.isPlaying) {
-            ImGui::GetWindowDrawList()->AddRect(
-                ImGui::GetItemRectMin(),
-                ImGui::GetItemRectMax(),
-                ImGui::GetColorU32(ImVec4(1, 1, 0, 1)),
-                2.0f,
-                ImDrawFlags_None,
-                2.0f
-            );
-        }
-
-        ImGui::PopID();
-
-        // Add separator between frames
-        if(i < animConfig.frames.size() - 1) {
-            ImGui::Separator();
-        }
-    }
-
-    // Handle frame deletion after the loop
-    if(frameDeleted) {
-        animConfig.frames.erase(animConfig.frames.begin() + frameToDelete);
-        // Adjust current frame if needed
-        if(animConfig.currentFrame >= animConfig.frames.size()) {
-            animConfig.currentFrame = animConfig.frames.empty() ? 0 : animConfig.frames.size() - 1;
-        }
-    }
-}
-/**
- * @brief Renders the animation preview window with playback controls
- *
- * Layout:
- * - Centered preview image
- * - Bottom control bar with play/pause, stop, and progress
- * - Progress bar showing current position in animation
- *
- * State Management:
- * - Tracks playing state (isPlaying)
- * - Maintains accumulated time for frame timing
- * - Updates current frame based on frame durations
- */
-
-void AssetBrowser::RenderAnimationPreview() {
-    if(animConfig.frames.empty()) {
-        // Show helper text when no frames exist
-        ImGui::TextColored(ImVec4(0.7f, 0.7f, 0.7f, 1.0f),
-                           "Add sprites to preview animation");
-        return;
-    }
-
-    // Update animation if playing
-    if(animConfig.isPlaying) {
-        float currentTime = static_cast<float>(ImGui::GetTime());
-        // Calculate delta time, handling first frame case
-        float deltaTime = (lastFrameTime > 0.0f) ? (currentTime - lastFrameTime) : 0.0f;
-        lastFrameTime = currentTime;
-
-        if(deltaTime > 0.0f) {
-            accumulatedTime += deltaTime;
-
-            // Get total duration
-            float totalDuration = 0.0f;
-            for(const auto& frame : animConfig.frames) {
-                totalDuration += frame.duration;
-            }
-
-            // Handle loop
-            while(accumulatedTime >= totalDuration) {
-                accumulatedTime -= totalDuration;
-            }
-
-            // Find current frame
-            float timeSum = 0.0f;
-            for(size_t i = 0; i < animConfig.frames.size(); ++i) {
-                timeSum += animConfig.frames[i].duration;
-                if(accumulatedTime < timeSum) {
-                    animConfig.currentFrame = i;
-                    break;
-                }
-            }
-        }
-    }
-
-    // Ensure current frame is valid
-    animConfig.currentFrame = std::min(animConfig.currentFrame, animConfig.frames.size() - 1);
-    const FrameData& currentFrame = animConfig.frames[animConfig.currentFrame];
-    const Sprite& sprite = ResourceManager::GetSprite(currentFrame.spriteID);
-    const Texture& tex = ResourceManager::GetTexture(sprite.textureName);
-
-    // Center the preview
-    ImVec2 availSize = ImGui::GetContentRegionAvail();
-    availSize.y -= 40;  // Reserve space for controls
-
-    // Calculate scale maintaining aspect ratio
-    float scale = std::min(
-        availSize.y / sprite.height,
-        availSize.x / sprite.width
-    ) * 0.8f;
-
-    ImVec2 size(sprite.width * scale, sprite.height * scale);
-    ImVec2 pos(
-        (availSize.x - size.x) * 0.5f,
-        (availSize.y - size.y) * 0.5f
-    );
-
-    // Draw centered preview
-    ImGui::SetCursorPos(ImGui::GetCursorPos() + pos);
-    ImGui::Image(tex.ImGui_handle,
-                 size,
-                 ImVec2(sprite.texCoords.x, sprite.texCoords.y),
-                 ImVec2(sprite.texCoords.z, sprite.texCoords.w));
-
-    // Playback controls
-    ImGui::SetCursorPosY(ImGui::GetWindowHeight() - 35);
-    float controlsWidth = 250;
-    ImGui::SetCursorPosX((ImGui::GetWindowWidth() - controlsWidth) * 0.5f);
-
-    // Play/Pause button
-    if(ImGui::Button(animConfig.isPlaying ? ICON_FA_PAUSE : ICON_FA_PLAY)) {
-        animConfig.isPlaying = !animConfig.isPlaying;
-        if(animConfig.isPlaying) {
-            lastFrameTime = static_cast<float>(ImGui::GetTime());  // Reset time when starting
-        }
-    }
-    ImGui::SameLine();
-
-    // Stop button
-    if(ImGui::Button(ICON_FA_STOP)) {
-        animConfig.isPlaying = false;
-        animConfig.currentFrame = 0;
-        accumulatedTime = 0.0f;
-        lastFrameTime = 0.0f;
-    }
-    ImGui::SameLine();
-
-    // Frame counter and duration
-    ImGui::Text("Frame %zu/%zu (%.2fs)",
-                animConfig.currentFrame + 1,
-                animConfig.frames.size(),
-                animConfig.frames[animConfig.currentFrame].duration);
-
-    // Progress bar
-    float totalDuration = 0.0f;
-    for(const auto& frame : animConfig.frames) {
-        totalDuration += frame.duration;
-    }
-
-    float progress = totalDuration > 0.0f ? accumulatedTime / totalDuration : 0.0f;
-    ImGui::SetNextItemWidth(availSize.x * 0.8f);
-    if(ImGui::SliderFloat("##progress", &progress, 0.0f, 1.0f, "")) {
-        // Update animation state based on slider
-        accumulatedTime = progress * totalDuration;
-        float timeSum = 0.0f;
-        for(size_t i = 0; i < animConfig.frames.size(); ++i) {
-            timeSum += animConfig.frames[i].duration;
-            if(accumulatedTime < timeSum) {
-                animConfig.currentFrame = i;
-                break;
-            }
-        }
-    }
-}
 
 void AssetBrowser::RenderSidebar() {
     ImGui::BeginChild("Sidebar", ImVec2(SIDEBAR_WIDTH, 0), true);
 
+    if (ImGui::TreeNodeEx("Imported", ImGuiTreeNodeFlags_DefaultOpen))
+    {
+        for (size_t i = 0; i < assetCategories.size(); i++)
+        {
+            auto& category = assetCategories[i];
+            if (ImGui::Selectable(category->GetIdentifier(), currentCategoryIndex == i))
+            {
+                currentCategoryIndex = i;
+            }
+        }
+        ImGui::TreePop();
+    }
+
+#if 0
     // Imported section
     if(ImGui::TreeNodeEx("Imported", ImGuiTreeNodeFlags_DefaultOpen)) {
         if(ImGui::Selectable(ICON_FA_IMAGE" Sprites", currentCategory == CATEGORY::SPRITES)) {
@@ -425,17 +138,14 @@ void AssetBrowser::RenderSidebar() {
         }
         ImGui::TreePop();
     }
+#endif
 
     // All Assets section with refresh button
-    ImGui::BeginGroup();
-    if(ImGui::Selectable("File Browser", currentCategory == CATEGORY::FILESYSTEM)) {
-        currentCategory = CATEGORY::FILESYSTEM;
-    }
-    /*ImGui::SameLine();
-    if(ImGui::Button(ICON_FA_ROTATE_RIGHT" ##refresh")) { // depreciated
-        ResourceManager::ClearDirectoryCache();
-    }*/
-    ImGui::EndGroup();
+    //ImGui::BeginGroup();
+    //if(ImGui::Selectable("File Browser", currentCategory == CATEGORY::FILESYSTEM)) {
+    //    currentCategory = CATEGORY::FILESYSTEM;
+    //}
+    //ImGui::EndGroup();
 
     ImGui::EndChild();
 }
@@ -446,6 +156,10 @@ void AssetBrowser::RenderMainView() {
     // Toolbar with filter and breadcrumb
     RenderToolbar();
 
+
+    assetCategories[currentCategoryIndex]->Render();
+
+#if 0
     // Content area
     switch (currentCategory)
     {
@@ -458,23 +172,30 @@ void AssetBrowser::RenderMainView() {
     case CATEGORY::SCENES:      RenderSceneWindow();    break;
     case CATEGORY::SHADERS:     RenderShadersWindow();  break;
     }
+#endif
 
     ImGui::EndChild();
 }
 
-void AssetBrowser::RenderToolbar() {
+void AssetBrowser::RenderToolbar()
+{
     ImGui::BeginGroup();
     float windowWidth = ImGui::GetContentRegionAvail().x;
     float searchWidth = 300;
     float spacing = ImGui::GetStyle().ItemSpacing.x;
 
-    if(currentCategory == CATEGORY::FILESYSTEM) {
-        RenderNavigationBar();
-        ImGui::SameLine();
-    }
+    assetCategories[currentCategoryIndex]->RenderBreadcrumb();
+
+    //if (currentCategory == CATEGORY::FILESYSTEM)
+    //{
+    //    RenderNavigationBar();
+    //    ImGui::SameLine();
+    //}
     // Get total available width
     // Location indicator with auto-truncation if needed
-    std::string location = "Imported > ";
+    //std::string location = "Imported > " + std::string{ assetCategories[currentCategoryIndex]->GetName() };
+
+#if 0
     switch(currentCategory) {
         case CATEGORY::FILESYSTEM:  location = "";  break;
         case CATEGORY::SPRITES:     location += "Sprites";      break;
@@ -486,24 +207,24 @@ void AssetBrowser::RenderToolbar() {
         case CATEGORY::SHADERS:     location += "Shaders";      break;
         default: break;
     }
+#endif
 
+    //if(location != "")
+    //{
+    //    // Calculate maximum width for location text
+    //    float maxLocationWidth = windowWidth - searchWidth - spacing * 2;
+    //    ImVec2 textSize = ImGui::CalcTextSize(location.c_str());
 
-    if(location != "")
-    {
-        // Calculate maximum width for location text
-        float maxLocationWidth = windowWidth - searchWidth - spacing * 2;
-        ImVec2 textSize = ImGui::CalcTextSize(location.c_str());
+    //    if(textSize.x > maxLocationWidth) {
+    //        // Truncate text if needed
+    //        while(textSize.x > maxLocationWidth && location.length() > 3) {
+    //            location = location.substr(0, location.length() - 4) + "...";
+    //            textSize = ImGui::CalcTextSize(location.c_str());
+    //        }
+    //    }
 
-        if(textSize.x > maxLocationWidth) {
-            // Truncate text if needed
-            while(textSize.x > maxLocationWidth && location.length() > 3) {
-                location = location.substr(0, location.length() - 4) + "...";
-                textSize = ImGui::CalcTextSize(location.c_str());
-            }
-        }
-
-        ImGui::Text("%s", location.c_str());
-    }
+    //    ImGui::Text("%s", location.c_str());
+    //}
 
     // Right-aligned search bar
     ImGui::SameLine(windowWidth - searchWidth);
@@ -511,88 +232,39 @@ void AssetBrowser::RenderToolbar() {
     ImGui::InputTextWithHint("##filter", ICON_FA_MAGNIFYING_GLASS" Search", searchBuffer, std::size(searchBuffer));
 
     ImGui::EndGroup();
-
 }
 
-void AssetBrowser::RenderFileSystem() {
-    // Main file view
-    ImGui::BeginChild("FileView", ImVec2(0, 0), true);
-    {
-        float panelWidth = ImGui::GetContentRegionAvail().x;
-        int columnsCount = static_cast<int>(panelWidth / (THUMBNAIL_SIZE + 10));
-        if(columnsCount < 1) columnsCount = 1;
-
-        ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(5, 5));
-        ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
-
-        auto entries = file_system.ScanDirectory(file_system.GetCurrentPath());
-
-        size_t itemCount = 0;
-        for(const auto& entry : entries) {
-            if(searchBuffer[0] != '\0' && !MatchesFilter(entry.filename)) {
-                continue;
-            }
-
-            ImGui::BeginGroup();
-            ImGui::PushID(entry.fullPath.string().c_str());
-
-            bool clicked = false;
-
-            // Render the item and check for right-click menu
-            if(entry.isDirectory) {
-                clicked = RenderDirectoryItem(entry);
-                RenderItemLabel(entry.filename);
-            }
-            else {
-                clicked = RenderFileItem(entry);
-                if(ImGui::BeginPopupContextItem(entry.filename.c_str())) {
-                    RenderItemContextMenu(entry);
-                    ImGui::EndPopup();
-                }
-                if(ImGui::IsItemHovered()) {
-                    ImGui::BeginTooltip();
-                    ImGui::Text("Name: %s", entry.filename.c_str());
-                    ImGui::Text("Type: %s", entry.fileType.c_str());
-                    ImGui::Text("Path: %s", entry.fullPath.string().c_str());
-                    ImGui::EndTooltip();
-                }
-
-                RenderItemLabel(entry.filename);
-            }
-
-            if(clicked && entry.isDirectory) {
-                file_system.NavigateTo(entry.fullPath);
-            }
-
-            ImGui::PopID();
-            ImGui::EndGroup();
-
-            if((itemCount + 1) % columnsCount != 0 && itemCount < entries.size() - 1) {
-                ImGui::SameLine();
-            }
-            itemCount++;
-        }
-
-        ImGui::PopStyleVar(2);
-    }
-    ImGui::EndChild();
+void AssetBrowser::DrawConfig()
+{
+    ImGui::Separator();
+    ImGui::Text("Browser Settings");
+    ImGui::DragFloat("Thumbnail Size", &THUMBNAIL_SIZE, 10.0f, 50.0f, 200.0f);
+    ImGui::DragFloat("Sidebar Width", &SIDEBAR_WIDTH, 10.0f, 150.0f, 250.0f);
 }
 
-void AssetBrowser::RenderNavigationBar() {
+
+
+#if 0
+
+void AssetBrowser::RenderNavigationBar()
+{
     // Back button
-    if(ImGui::Button(ICON_FA_ARROW_LEFT) && file_system.CanNavigateBack()) {
+    if (ImGui::Button(ICON_FA_ARROW_LEFT) && file_system.CanNavigateBack())
+    {
         file_system.NavigateBack();
     }
     ImGui::SameLine();
 
     // Forward button
-    if(ImGui::Button(ICON_FA_ARROW_RIGHT) && file_system.CanNavigateForward()) {
+    if (ImGui::Button(ICON_FA_ARROW_RIGHT) && file_system.CanNavigateForward())
+    {
         file_system.NavigateForward();
     }
     ImGui::SameLine();
 
     // Up button
-    if(ImGui::Button(ICON_FA_ARROW_UP)) {
+    if (ImGui::Button(ICON_FA_ARROW_UP))
+    {
         file_system.NavigateUp();
     }
     ImGui::SameLine();
@@ -639,14 +311,17 @@ void AssetBrowser::RenderNavigationBar() {
 
         gui::UnsetStyleColor popTextStyle{ isCurrentDir };
 
-        if(ImGui::BeginPopupContextItem("path_context_menu")) {
-            if(ImGui::MenuItem("Copy Path")) {
+        if (ImGui::BeginPopupContextItem("path_context_menu"))
+        {
+            if (ImGui::MenuItem("Copy Path"))
+            {
                 ImGui::SetClipboardText(pathIter->string().c_str());
             }
             ImGui::EndPopup();
         }
 
-        if(ImGui::IsItemHovered()) {
+        if (ImGui::IsItemHovered())
+        {
             ImGui::BeginTooltip();
             ImGui::Text("%s", pathIter->string().c_str());
             ImGui::EndTooltip();
@@ -654,6 +329,80 @@ void AssetBrowser::RenderNavigationBar() {
     }
 
     ImGui::EndGroup();
+}
+
+
+void AssetBrowser::RenderFileSystem()
+{
+    // Main file view
+    ImGui::BeginChild("FileView", ImVec2(0, 0), true);
+    {
+        float panelWidth = ImGui::GetContentRegionAvail().x;
+        int columnsCount = static_cast<int>(panelWidth / (THUMBNAIL_SIZE + 10));
+        if (columnsCount < 1) columnsCount = 1;
+
+        ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(5, 5));
+        ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
+
+        auto entries = file_system.ScanDirectory(file_system.GetCurrentPath());
+
+        size_t itemCount = 0;
+        for (const auto& entry : entries)
+        {
+            if (searchBuffer[0] != '\0' && !MatchesFilter(entry.filename))
+            {
+                continue;
+            }
+
+            ImGui::BeginGroup();
+            ImGui::PushID(entry.fullPath.string().c_str());
+
+            bool clicked = false;
+
+            // Render the item and check for right-click menu
+            if (entry.isDirectory)
+            {
+                clicked = RenderDirectoryItem(entry);
+                RenderItemLabel(entry.filename);
+            }
+            else
+            {
+                clicked = RenderFileItem(entry);
+                if (ImGui::BeginPopupContextItem(entry.filename.c_str()))
+                {
+                    RenderItemContextMenu(entry);
+                    ImGui::EndPopup();
+                }
+                if (ImGui::IsItemHovered())
+                {
+                    ImGui::BeginTooltip();
+                    ImGui::Text("Name: %s", entry.filename.c_str());
+                    ImGui::Text("Type: %s", entry.fileType.c_str());
+                    ImGui::Text("Path: %s", entry.fullPath.string().c_str());
+                    ImGui::EndTooltip();
+                }
+
+                RenderItemLabel(entry.filename);
+            }
+
+            if (clicked && entry.isDirectory)
+            {
+                file_system.NavigateTo(entry.fullPath);
+            }
+
+            ImGui::PopID();
+            ImGui::EndGroup();
+
+            if ((itemCount + 1) % columnsCount != 0 && itemCount < entries.size() - 1)
+            {
+                ImGui::SameLine();
+            }
+            itemCount++;
+        }
+
+        ImGui::PopStyleVar(2);
+    }
+    ImGui::EndChild();
 }
 
 void AssetBrowser::AnimationCreateConfig::Reset() {
@@ -926,6 +675,367 @@ void AssetBrowser::RenderSpriteSelectionGrid() {
         ImGui::EndDragDropTarget();
     }
 }
+#endif
+
+
+#if 0
+/**
+ * @brief Renders the frame list with drag-drop reordering and frame controls
+ *
+ * Features:
+ * - Drag and drop reordering of frames
+ * - Per-frame duration control
+ * - Frame deletion
+ * - Frame movement controls (up/down)
+ *
+ * ImGui Patterns:
+ * - BeginGroup/EndGroup for frame entries
+ * - Drag and drop source/target
+ * - Context menus
+ * - Frame highlighting for current frame
+ */
+void AssetBrowser::RenderFrameList()
+{
+    // Track deletions separately to avoid modifying collection while iterating
+    bool frameDeleted = false;
+    size_t frameToDelete = 0;
+
+    for (size_t i = 0; i < animConfig.frames.size(); i++)
+    {
+        // Push unique ID for this frame to avoid ID conflicts
+        ImGui::PushID(static_cast<int>(i));
+        const Sprite& sprite = ResourceManager::GetSprite(animConfig.frames[i].spriteID);
+        const Texture& tex = ResourceManager::GetTexture(sprite.textureName);
+        // Frame Container
+         // Begin a group for the entire frame entry
+        ImGui::BeginGroup();
+        {
+            // Drag handle implementation
+           // Button acts as both visual handle and drag source
+            ImGui::Button("##draghandle", ImVec2(16, 40));
+
+            // Setup drag source
+            if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_None))
+            {
+
+                // Payload is the frame index
+                size_t frameIdx = i;
+                ImGui::SetDragDropPayload("FRAME_REORDER", &frameIdx, sizeof(size_t));
+                ImGui::Text("Moving frame %zu", i + 1);
+                // Show preview while dragging
+                ImGui::Image(tex.ImGui_handle,
+                    ImVec2(20, 20),
+                    ImVec2(sprite.texCoords.x, sprite.texCoords.y),
+                    ImVec2(sprite.texCoords.z, sprite.texCoords.w));
+                ImGui::EndDragDropSource();
+            }
+
+            // Handle dropping frames for reordering
+            if (ImGui::BeginDragDropTarget())
+            {
+                if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("FRAME_REORDER"))
+                {
+                    size_t srcIdx = *(const size_t*)payload->Data;
+                    if (srcIdx < animConfig.frames.size())
+                    {
+                        // ... frame reordering code ...
+                        FrameData temp = animConfig.frames[srcIdx];
+                        if (srcIdx < i)
+                        {
+                            std::rotate(animConfig.frames.begin() + srcIdx,
+                                animConfig.frames.begin() + srcIdx + 1,
+                                animConfig.frames.begin() + i + 1);
+                        }
+                        else
+                        {
+                            std::rotate(animConfig.frames.begin() + i,
+                                animConfig.frames.begin() + srcIdx,
+                                animConfig.frames.begin() + srcIdx + 1);
+                        }
+                        animConfig.frames[i] = temp;
+                    }
+                }
+                ImGui::EndDragDropTarget();
+            }
+            ImGui::SameLine();
+
+            // Frame number
+            ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 12);
+            ImGui::Text("%zu.", i + 1);
+            ImGui::SameLine();
+
+            // Frame preview
+            ImGui::Image(tex.ImGui_handle,
+                ImVec2(40, 40),
+                ImVec2(sprite.texCoords.x, sprite.texCoords.y),
+                ImVec2(sprite.texCoords.z, sprite.texCoords.w));
+            ImGui::SameLine();
+
+            // Frame info and controls
+            ImGui::BeginGroup();
+            {
+                ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 2);
+                ImGui::Text("%s", sprite.name.c_str());
+
+                ImGui::SetNextItemWidth(100);
+                float duration = animConfig.frames[i].duration;
+                if (ImGui::DragFloat("##duration", &duration, 0.01f, 0.01f, 5.0f, "%.2fs"))
+                {
+                    animConfig.frames[i].duration = duration;
+                }
+            }
+            ImGui::EndGroup();
+
+            // Right-side controls
+            float remainingWidth = ImGui::GetContentRegionAvail().x;
+            ImGui::SameLine(ImGui::GetCursorPosX() + remainingWidth - 90);
+            ImGui::BeginGroup();
+            {
+                ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 10);
+
+                if (i > 0)
+                {
+                    if (ImGui::ArrowButton("##up", ImGuiDir_Up))
+                    {
+                        std::swap(animConfig.frames[i], animConfig.frames[i - 1]);
+                    }
+                }
+                else
+                {
+                    ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 0.3f);
+                    ImGui::ArrowButton("##up", ImGuiDir_Up);
+                    ImGui::PopStyleVar();
+                }
+                ImGui::SameLine();
+
+                if (i < animConfig.frames.size() - 1)
+                {
+                    if (ImGui::ArrowButton("##down", ImGuiDir_Down))
+                    {
+                        std::swap(animConfig.frames[i], animConfig.frames[i + 1]);
+                    }
+                }
+                else
+                {
+                    ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 0.3f);
+                    ImGui::ArrowButton("##down", ImGuiDir_Down);
+                    ImGui::PopStyleVar();
+                }
+                ImGui::SameLine();
+
+                // Delete button - just mark for deletion instead of immediate removal
+                if (ImGui::Button(ICON_FA_TRASH"##delete"))
+                {
+                    frameDeleted = true;
+                    frameToDelete = i;
+                }
+            }
+            ImGui::EndGroup();
+        }
+        ImGui::EndGroup();
+
+        // Frame context menu
+        if (ImGui::BeginPopupContextItem(("frame_context_" + std::to_string(i)).c_str(),
+            ImGuiPopupFlags_MouseButtonRight))
+        {
+            if (ImGui::MenuItem("Remove Frame"))
+            {
+                frameDeleted = true;
+                frameToDelete = i;
+            }
+            if (i > 0 && ImGui::MenuItem("Move Up"))
+            {
+                std::swap(animConfig.frames[i], animConfig.frames[i - 1]);
+            }
+            if (i < animConfig.frames.size() - 1 && ImGui::MenuItem("Move Down"))
+            {
+                std::swap(animConfig.frames[i], animConfig.frames[i + 1]);
+            }
+            ImGui::EndPopup();
+        }
+
+        // Highlight current frame
+        if (i == animConfig.currentFrame && animConfig.isPlaying)
+        {
+            ImGui::GetWindowDrawList()->AddRect(
+                ImGui::GetItemRectMin(),
+                ImGui::GetItemRectMax(),
+                ImGui::GetColorU32(ImVec4(1, 1, 0, 1)),
+                2.0f,
+                ImDrawFlags_None,
+                2.0f
+            );
+        }
+
+        ImGui::PopID();
+
+        // Add separator between frames
+        if (i < animConfig.frames.size() - 1)
+        {
+            ImGui::Separator();
+        }
+    }
+
+    // Handle frame deletion after the loop
+    if (frameDeleted)
+    {
+        animConfig.frames.erase(animConfig.frames.begin() + frameToDelete);
+        // Adjust current frame if needed
+        if (animConfig.currentFrame >= animConfig.frames.size())
+        {
+            animConfig.currentFrame = animConfig.frames.empty() ? 0 : animConfig.frames.size() - 1;
+        }
+    }
+}
+/**
+ * @brief Renders the animation preview window with playback controls
+ *
+ * Layout:
+ * - Centered preview image
+ * - Bottom control bar with play/pause, stop, and progress
+ * - Progress bar showing current position in animation
+ *
+ * State Management:
+ * - Tracks playing state (isPlaying)
+ * - Maintains accumulated time for frame timing
+ * - Updates current frame based on frame durations
+ */
+
+void AssetBrowser::RenderAnimationPreview()
+{
+    if (animConfig.frames.empty())
+    {
+        // Show helper text when no frames exist
+        ImGui::TextColored(ImVec4(0.7f, 0.7f, 0.7f, 1.0f),
+            "Add sprites to preview animation");
+        return;
+    }
+
+    // Update animation if playing
+    if (animConfig.isPlaying)
+    {
+        float currentTime = static_cast<float>(ImGui::GetTime());
+        // Calculate delta time, handling first frame case
+        float deltaTime = (lastFrameTime > 0.0f) ? (currentTime - lastFrameTime) : 0.0f;
+        lastFrameTime = currentTime;
+
+        if (deltaTime > 0.0f)
+        {
+            accumulatedTime += deltaTime;
+
+            // Get total duration
+            float totalDuration = 0.0f;
+            for (const auto& frame : animConfig.frames)
+            {
+                totalDuration += frame.duration;
+            }
+
+            // Handle loop
+            while (accumulatedTime >= totalDuration)
+            {
+                accumulatedTime -= totalDuration;
+            }
+
+            // Find current frame
+            float timeSum = 0.0f;
+            for (size_t i = 0; i < animConfig.frames.size(); ++i)
+            {
+                timeSum += animConfig.frames[i].duration;
+                if (accumulatedTime < timeSum)
+                {
+                    animConfig.currentFrame = i;
+                    break;
+                }
+            }
+        }
+    }
+
+    // Ensure current frame is valid
+    animConfig.currentFrame = std::min(animConfig.currentFrame, animConfig.frames.size() - 1);
+    const FrameData& currentFrame = animConfig.frames[animConfig.currentFrame];
+    const Sprite& sprite = ResourceManager::GetSprite(currentFrame.spriteID);
+    const Texture& tex = ResourceManager::GetTexture(sprite.textureName);
+
+    // Center the preview
+    ImVec2 availSize = ImGui::GetContentRegionAvail();
+    availSize.y -= 40;  // Reserve space for controls
+
+    // Calculate scale maintaining aspect ratio
+    float scale = std::min(
+        availSize.y / sprite.height,
+        availSize.x / sprite.width
+    ) * 0.8f;
+
+    ImVec2 size(sprite.width * scale, sprite.height * scale);
+    ImVec2 pos(
+        (availSize.x - size.x) * 0.5f,
+        (availSize.y - size.y) * 0.5f
+    );
+
+    // Draw centered preview
+    ImGui::SetCursorPos(ImGui::GetCursorPos() + pos);
+    ImGui::Image(tex.ImGui_handle,
+        size,
+        ImVec2(sprite.texCoords.x, sprite.texCoords.y),
+        ImVec2(sprite.texCoords.z, sprite.texCoords.w));
+
+    // Playback controls
+    ImGui::SetCursorPosY(ImGui::GetWindowHeight() - 35);
+    float controlsWidth = 250;
+    ImGui::SetCursorPosX((ImGui::GetWindowWidth() - controlsWidth) * 0.5f);
+
+    // Play/Pause button
+    if (ImGui::Button(animConfig.isPlaying ? ICON_FA_PAUSE : ICON_FA_PLAY))
+    {
+        animConfig.isPlaying = !animConfig.isPlaying;
+        if (animConfig.isPlaying)
+        {
+            lastFrameTime = static_cast<float>(ImGui::GetTime());  // Reset time when starting
+        }
+    }
+    ImGui::SameLine();
+
+    // Stop button
+    if (ImGui::Button(ICON_FA_STOP))
+    {
+        animConfig.isPlaying = false;
+        animConfig.currentFrame = 0;
+        accumulatedTime = 0.0f;
+        lastFrameTime = 0.0f;
+    }
+    ImGui::SameLine();
+
+    // Frame counter and duration
+    ImGui::Text("Frame %zu/%zu (%.2fs)",
+        animConfig.currentFrame + 1,
+        animConfig.frames.size(),
+        animConfig.frames[animConfig.currentFrame].duration);
+
+    // Progress bar
+    float totalDuration = 0.0f;
+    for (const auto& frame : animConfig.frames)
+    {
+        totalDuration += frame.duration;
+    }
+
+    float progress = totalDuration > 0.0f ? accumulatedTime / totalDuration : 0.0f;
+    ImGui::SetNextItemWidth(availSize.x * 0.8f);
+    if (ImGui::SliderFloat("##progress", &progress, 0.0f, 1.0f, ""))
+    {
+        // Update animation state based on slider
+        accumulatedTime = progress * totalDuration;
+        float timeSum = 0.0f;
+        for (size_t i = 0; i < animConfig.frames.size(); ++i)
+        {
+            timeSum += animConfig.frames[i].duration;
+            if (accumulatedTime < timeSum)
+            {
+                animConfig.currentFrame = i;
+                break;
+            }
+        }
+    }
+}
 
 void AssetBrowser::ShowSpriteSheetDialog() {
     if(!spriteConfig.showDialog) return;
@@ -1090,6 +1200,10 @@ std::filesystem::path AssetBrowser::CopyIntoWorkingDir(const std::filesystem::pa
     }
 }
 
+#endif
+
+
+#if 0
 // Also update the LoadThumbnail function:
 void AssetBrowser::LoadThumbnail(const fs::path& path) {
     std::string relativePath{ ST<Filepaths>::Get()->MakeRelativeToWorkingDir(path) };
@@ -1132,14 +1246,11 @@ VkDescriptorSet AssetBrowser::GetThumbnailDescriptor(const fs::path& path) {
     }
     return nullptr;
 }
-void AssetBrowser::DrawConfig()
-{
-    ImGui::Separator();
-    ImGui::Text("Browser Settings");
-    ImGui::DragFloat("Thumbnail Size", &THUMBNAIL_SIZE, 10.0f, 50.0f, 200.0f);
-    ImGui::DragFloat("Sidebar Width", &SIDEBAR_WIDTH, 10.0f, 150.0f, 250.0f);
-}
 
+#endif
+
+
+#if 0
 void AssetBrowser::RenderSpriteGrid() {
     float panelWidth = ImGui::GetContentRegionAvail().x * 0.65f; // random offset
     int columnsCount = static_cast<int>(panelWidth / (THUMBNAIL_SIZE + 10));
@@ -1499,7 +1610,9 @@ void AssetBrowser::RenderFontWindow()
 
     ImGui::EndChild();
 }
+#endif
 
+#if 0
 void AssetBrowser::RenderAnimationGrid() {
     // Top control bar
     if(ImGui::Button(ICON_FA_PLUS" Create Animation")) {
@@ -1752,6 +1865,10 @@ void AssetBrowser::RenderCreateAnimationBottom() {
 
     ImGui::EndChild();
 }
+#endif
+
+
+#if 0
 
 bool AssetBrowser::RenderDirectoryItem(const FileSystem::FileEntry& entry) {
     ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
@@ -1842,4 +1959,8 @@ bool AssetBrowser::MatchesFilter(const std::string& name) const {
     std::ranges::transform(lowerFilter, lowerFilter.begin(), util::ToLower);
     return lowerName.find(lowerFilter) != std::string::npos;
 }
+
+#endif
+
+
 #endif
