@@ -31,27 +31,30 @@ namespace EngineScripting
 {
     public static class GameManager
     {
+		// TODO: Reimplement required functions for examining the game state.
+
+
 		/*****************************************************************//*!
 		\brief
 			Get whether the game is paused.
 		\return
 			True for paused, false for unpaused.
 		*//******************************************************************/
-		public static bool GetPaused()
-        {
-            return InternalCalls.GetStatusPause();
-        }
+		//public static bool GetPaused()
+  //      {
+  //          return InternalCalls.GetStatusPause();
+  //      }
 
-		/*****************************************************************//*!
-	    \brief
-		    Get whether the player's jump is enhanced.
-	    \return
-		    True for enhanced, false for not.
-	    *//******************************************************************/
-		public static bool GetPlayerJumpEnhanced()
-        {
-            return InternalCalls.GetPlayerJumpEnhanced();
-        }
+		///*****************************************************************//*!
+	 //   \brief
+		//    Get whether the player's jump is enhanced.
+	 //   \return
+		//    True for enhanced, false for not.
+	 //   *//******************************************************************/
+		//public static bool GetPlayerJumpEnhanced()
+  //      {
+  //          return InternalCalls.GetPlayerJumpEnhanced();
+  //      }
     }
 
 }

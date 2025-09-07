@@ -240,3 +240,46 @@ void FPSTextComponent::EditorDraw()
 {
     gui::Checkbox("Display", &doDisplay);
 }
+
+
+#pragma region Scripting
+
+/*****************************************************************//*!
+\brief
+    Copy of the equivalent Text structure in the C# project.
+*//******************************************************************/
+struct CS_Text
+{
+    ecs::EntityHandle entity;
+    Vec4 color;
+    char text[256];
+};
+
+/*****************************************************************//*!
+\brief
+    Returns the TextComponent of an entity to C# side.
+\param entity
+    The entity.
+\return
+    The text component of the entity. If it doesn't exist, returns
+    a Text structure with no entity registered.
+*//******************************************************************/
+SCRIPT_CALLABLE CS_Text CS_GetComp_Text(ecs::EntityHandle entity)
+{
+    util::AssertEntityHandleValid(entity);
+
+    if (auto textComp{ entity->GetComp<TextComponent>() })
+    {
+        CS_Text ret{ entity, textComp->GetColor() };
+        textComp->GetText().copy(ret.text, 256);
+        return ret;
+    }
+
+    return CS_Text{ nullptr };
+}
+
+//! Setters for setting variables within TextComponent.
+SCRIPT_CALLABLE_COMP_SETTER(TextComponent, CS_Text_SetText, const char*, SetText)
+SCRIPT_CALLABLE_COMP_SETTER(TextComponent, CS_Text_SetColor, Vec4, SetColor)
+
+#pragma endregion // Scripting
