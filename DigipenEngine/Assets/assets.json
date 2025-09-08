@@ -12,32 +12,6 @@
                 1.0,
                 1.0
             ]
-        },
-        {
-            "id": 1,
-            "name": "mickey",
-            "texturePath": "/Assets\\Images\\mickey.jpg",
-            "width": 1277,
-            "height": 1241,
-            "texCoords": [
-                0.0,
-                0.0,
-                1.0,
-                1.0
-            ]
-        },
-        {
-            "id": 2,
-            "name": "RockHand",
-            "texturePath": "/Assets\\Images\\Rock Hand.jpeg",
-            "width": 583,
-            "height": 536,
-            "texCoords": [
-                0.0,
-                0.0,
-                1.0,
-                1.0
-            ]
         }
     ],
     "animations": []

@@ -94,6 +94,9 @@
     <Filter Include="Header Files\EditorUI\AssetBrowser">
       <UniqueIdentifier>{8b9b8619-853a-43d8-abc5-019567783abc}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\EditorUI\AssetBrowser">
+      <UniqueIdentifier>{4464dfa3-bdb1-4145-bd32-0923f89ad0b2}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ECSInternal.cpp">
@@ -188,9 +191,6 @@
     </ClCompile>
     <ClCompile Include="Serializer.cpp">
       <Filter>Source Files\Engine</Filter>
-    </ClCompile>
-    <ClCompile Include="AssetBrowser.cpp">
-      <Filter>Source Files\EditorUI</Filter>
     </ClCompile>
     <ClCompile Include="GameSettings.cpp">
       <Filter>Source Files\Game</Filter>
@@ -438,18 +438,6 @@
     <ClCompile Include="GUIAsECS.cpp">
       <Filter>Source Files\EditorUI\Containers</Filter>
     </ClCompile>
-    <ClCompile Include="AssetBrowserCategories.cpp">
-      <Filter>Header Files\EditorUI\AssetBrowser</Filter>
-    </ClCompile>
-    <ClCompile Include="AnimationTab.cpp">
-      <Filter>Header Files\EditorUI\AssetBrowser</Filter>
-    </ClCompile>
-    <ClCompile Include="FileBrowserTab.cpp">
-      <Filter>Header Files\EditorUI\AssetBrowser</Filter>
-    </ClCompile>
-    <ClCompile Include="MiscAssetTabs.cpp">
-      <Filter>Header Files\EditorUI\AssetBrowser</Filter>
-    </ClCompile>
     <ClCompile Include="EditorGuiUtils.cpp">
       <Filter>Header Files\EditorUI</Filter>
     </ClCompile>
@@ -474,14 +462,29 @@
     <ClCompile Include="ScriptingUtil.cpp">
       <Filter>Source Files\Scripting</Filter>
     </ClCompile>
-    <ClCompile Include="SpriteTab.cpp">
-      <Filter>Header Files\EditorUI\AssetBrowser</Filter>
+    <ClCompile Include="AnimationTab.cpp">
+      <Filter>Source Files\EditorUI\AssetBrowser</Filter>
+    </ClCompile>
+    <ClCompile Include="AssetBrowserCategories.cpp">
+      <Filter>Source Files\EditorUI\AssetBrowser</Filter>
+    </ClCompile>
+    <ClCompile Include="FileBrowserTab.cpp">
+      <Filter>Source Files\EditorUI\AssetBrowser</Filter>
+    </ClCompile>
+    <ClCompile Include="MiscAssetTabs.cpp">
+      <Filter>Source Files\EditorUI\AssetBrowser</Filter>
     </ClCompile>
     <ClCompile Include="SceneTab.cpp">
-      <Filter>Header Files\EditorUI\AssetBrowser</Filter>
+      <Filter>Source Files\EditorUI\AssetBrowser</Filter>
     </ClCompile>
     <ClCompile Include="SoundTab.cpp">
-      <Filter>Header Files\EditorUI\AssetBrowser</Filter>
+      <Filter>Source Files\EditorUI\AssetBrowser</Filter>
+    </ClCompile>
+    <ClCompile Include="SpriteTab.cpp">
+      <Filter>Source Files\EditorUI\AssetBrowser</Filter>
+    </ClCompile>
+    <ClCompile Include="AssetBrowser.cpp">
+      <Filter>Source Files\EditorUI\AssetBrowser</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
