@@ -86,28 +86,25 @@ class AssetBrowser {
     void DrawConfig();
 
     private:
-    // Core state
     //CATEGORY currentCategory = CATEGORY::NONE; /**< Current category of assets being viewed */
     std::vector<std::unique_ptr<BaseAssetCategory>> assetCategories;
     int currentCategoryIndex = 0;
 
+    //struct AssetSelection
+    //{
+    //    CATEGORY type;
+    //    std::string id; // or whatever we want to use to identify the selected asset
+    //};
+    //AssetSelection currentSelection;
 
 public:
     // Constants
     char searchBuffer[256] = ""; /**< Buffer for search input */
     float THUMBNAIL_SIZE = 50.0f; /**< Size of thumbnails */
     float SIDEBAR_WIDTH = 150.0f; /**< Width of the sidebar */
-    float lastFrameTime = 0.0f; /**< Time of the last frame */
-    float accumulatedTime = 0.0f; /**< Accumulated time for animation preview */
 
 #endif // IMGUI_ENABLED
 
-
-    //struct ThumbnailCache {
-    //    std::unordered_map<std::string, VkDescriptorSet> textureDescriptors; /**< Cache of texture descriptors */
-    //    std::unordered_map<std::string, bool> loadingStatus; /**< Cache of loading statuses */
-    //};
-    //ThumbnailCache thumbnailCache;
 };
 
 

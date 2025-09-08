@@ -40,26 +40,5 @@
             ]
         }
     ],
-    "animations": [
-        {
-            "name": "mickeytransform",
-            "width": 1277,
-            "height": 1241,
-            "totalFrames": 3,
-            "frames": [
-                {
-                    "spriteID": 1,
-                    "duration": 0.5
-                },
-                {
-                    "spriteID": 0,
-                    "duration": 0.5
-                },
-                {
-                    "spriteID": 2,
-                    "duration": 0.5
-                }
-            ]
-        }
-    ]
+    "animations": []
 }

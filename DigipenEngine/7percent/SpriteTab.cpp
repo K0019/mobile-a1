@@ -48,8 +48,6 @@ void SpriteTab::Render()
             //gui::PayloadSource<size_t>("SPRITE_ID", i, sprite.name.c_str());
             gui::PayloadSourceWithImageTooltip<size_t>("SPRITE_ID", i, tex.ImGui_handle, ImVec2(THUMBNAIL_SIZE / 2, THUMBNAIL_SIZE / 2));
 
-            gui::ThumbnailLabel(sprite.name, THUMBNAIL_SIZE);
-
             // Hover tooltip
             if (ImGui::IsItemHovered())
             {
@@ -168,6 +166,8 @@ void SpriteTab::Render()
                 }
                 ImGui::EndPopup();
             }
+
+            gui::ThumbnailLabel(sprite.name, THUMBNAIL_SIZE);
         }
 
         grid.NextItem();

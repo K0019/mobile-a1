@@ -47,18 +47,21 @@ All rights reserved.
 namespace fs = std::filesystem;
 
 AssetBrowser::AssetBrowser() {
+#ifdef IMGUI_ENABLED
     // Initialize with default state
     assetCategories.push_back(std::make_unique<SpriteTab>());
     assetCategories.push_back(std::make_unique<AnimationTab>());
-    assetCategories.push_back(std::make_unique<SoundTab>());
     assetCategories.push_back(std::make_unique<PrefabTab>());
-    assetCategories.push_back(std::make_unique<FontTab>());
     assetCategories.push_back(std::make_unique<SceneTab>());
+    assetCategories.push_back(std::make_unique<SoundTab>());
+    assetCategories.push_back(std::make_unique<FontTab>());
+    assetCategories.push_back(std::make_unique<ScriptTab>());
     assetCategories.push_back(std::make_unique<ShaderTab>());
 
     //FileSystem inside AssetBrowser or its own tab?
     auto browser = std::make_unique<FileBrowserTab>(); browser->Initialize(ST<Filepaths>::Get()->workingDir);
     assetCategories.push_back(std::move(browser));
+#endif
 }
 
 AssetBrowser::~AssetBrowser() = default;
@@ -103,56 +106,14 @@ void AssetBrowser::Draw(bool* p_open) {
 void AssetBrowser::RenderSidebar() {
     ImGui::BeginChild("Sidebar", ImVec2(SIDEBAR_WIDTH, 0), true);
 
-    if (ImGui::TreeNodeEx("Imported", ImGuiTreeNodeFlags_DefaultOpen))
+    for (size_t i = 0; i < assetCategories.size(); i++)
     {
-        for (size_t i = 0; i < assetCategories.size(); i++)
+        auto& category = assetCategories[i];
+        if (ImGui::Selectable(category->GetIdentifier(), currentCategoryIndex == i))
         {
-            auto& category = assetCategories[i];
-            if (ImGui::Selectable(category->GetIdentifier(), currentCategoryIndex == i))
-            {
-                currentCategoryIndex = i;
-            }
+            currentCategoryIndex = i;
         }
-        ImGui::TreePop();
     }
-
-#if 0
-    // Imported section
-    if(ImGui::TreeNodeEx("Imported", ImGuiTreeNodeFlags_DefaultOpen)) {
-        if(ImGui::Selectable(ICON_FA_IMAGE" Sprites", currentCategory == CATEGORY::SPRITES)) {
-            currentCategory = CATEGORY::SPRITES;
-        }
-        if(ImGui::Selectable(ICON_FA_FILM" Animations", currentCategory == CATEGORY::ANIMATIONS)) {
-            currentCategory = CATEGORY::ANIMATIONS;
-        }
-        if(ImGui::Selectable(ICON_FA_FONT" Fonts", currentCategory == CATEGORY::FONTS)) {
-            currentCategory = CATEGORY::FONTS;
-        }
-        if(ImGui::Selectable(ICON_FA_MICROPHONE" Sounds", currentCategory == CATEGORY::SOUNDS)) {
-            currentCategory = CATEGORY::SOUNDS;
-        }
-        if(ImGui::Selectable(ICON_FA_CUBE" Prefabs", currentCategory == CATEGORY::PREFABS)) {
-            currentCategory = CATEGORY::PREFABS;
-        }
-        if (ImGui::Selectable(ICON_FA_DIAMOND" Scenes", currentCategory == CATEGORY::SCENES)) {
-            currentCategory = CATEGORY::SCENES;
-        }
-        if(ImGui::Selectable(ICON_FA_CODE" Scripts", currentCategory == CATEGORY::SCRIPTS)) {
-            currentCategory = CATEGORY::SCRIPTS;
-        }
-        if (ImGui::Selectable(ICON_FA_FILE_CODE" Shaders", currentCategory == CATEGORY::SHADERS)) {
-            currentCategory = CATEGORY::SHADERS;
-        }
-        ImGui::TreePop();
-    }
-#endif
-
-    // All Assets section with refresh button
-    //ImGui::BeginGroup();
-    //if(ImGui::Selectable("File Browser", currentCategory == CATEGORY::FILESYSTEM)) {
-    //    currentCategory = CATEGORY::FILESYSTEM;
-    //}
-    //ImGui::EndGroup();
 
     ImGui::EndChild();
 }
@@ -196,6 +157,7 @@ void AssetBrowser::DrawConfig()
 
 
 
+//Save the old code in case i mess up
 #if 0
 
 void AssetBrowser::RenderNavigationBar()
@@ -627,10 +589,7 @@ void AssetBrowser::RenderSpriteSelectionGrid() {
         ImGui::EndDragDropTarget();
     }
 }
-#endif
 
-
-#if 0
 /**
  * @brief Renders the frame list with drag-drop reordering and frame controls
  *
@@ -1152,10 +1111,8 @@ std::filesystem::path AssetBrowser::CopyIntoWorkingDir(const std::filesystem::pa
     }
 }
 
-#endif
 
 
-#if 0
 // Also update the LoadThumbnail function:
 void AssetBrowser::LoadThumbnail(const fs::path& path) {
     std::string relativePath{ ST<Filepaths>::Get()->MakeRelativeToWorkingDir(path) };
@@ -1199,10 +1156,6 @@ VkDescriptorSet AssetBrowser::GetThumbnailDescriptor(const fs::path& path) {
     return nullptr;
 }
 
-#endif
-
-
-#if 0
 void AssetBrowser::RenderSpriteGrid() {
     float panelWidth = ImGui::GetContentRegionAvail().x * 0.65f; // random offset
     int columnsCount = static_cast<int>(panelWidth / (THUMBNAIL_SIZE + 10));
@@ -1699,9 +1652,7 @@ void AssetBrowser::RenderFontWindow()
 
     ImGui::EndChild();
 }
-#endif
 
-#if 0
 void AssetBrowser::RenderAnimationGrid() {
     // Top control bar
     if(ImGui::Button(ICON_FA_PLUS" Create Animation")) {
@@ -1954,9 +1905,6 @@ void AssetBrowser::RenderCreateAnimationBottom() {
 
     ImGui::EndChild();
 }
-#endif
-
-#if 0
 
 bool AssetBrowser::RenderDirectoryItem(const FileSystem::FileEntry& entry) {
     ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
@@ -2049,6 +1997,5 @@ bool AssetBrowser::MatchesFilter(const std::string& name) const {
 }
 
 #endif
-
 
 #endif

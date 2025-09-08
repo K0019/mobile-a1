@@ -35,19 +35,19 @@ void SceneTab::Render()
             continue;
 
         ImGui::PushID(count++);
-
-        ImGui::BeginGroup();
-
-        if (ImGui::Button("##scene", ImVec2(THUMBNAIL_SIZE, THUMBNAIL_SIZE)))
         {
-            ST<SceneManager>::Get()->LoadScene(entry.path());
+            gui::Group group;
+
+            if (ImGui::Button("##scene", ImVec2(THUMBNAIL_SIZE, THUMBNAIL_SIZE)))
+            {
+                ST<SceneManager>::Get()->LoadScene(entry.path());
+            }
+
+            // Name label
+            std::string displayName = entry.path().stem().string();
+            gui::ThumbnailLabel(displayName, THUMBNAIL_SIZE);
+
         }
-
-        // Name label
-        std::string displayName = entry.path().stem().string();
-        gui::ThumbnailLabel(displayName, THUMBNAIL_SIZE);
-        ImGui::EndGroup();
-
         ImGui::PopID();
 
         grid.NextItem();
