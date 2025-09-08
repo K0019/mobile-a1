@@ -33,7 +33,10 @@ All rights reserved.
 #include "Import.h"
 
 #include "AssetBrowserCategories.h"
+#include "SpriteTab.h"
 #include "AnimationTab.h"
+#include "SoundTab.h"
+#include "SceneTab.h"
 #include "FileBrowserTab.h"
 #include "MiscAssetTabs.h"
 
@@ -53,6 +56,7 @@ AssetBrowser::AssetBrowser() {
     assetCategories.push_back(std::make_unique<SceneTab>());
     assetCategories.push_back(std::make_unique<ShaderTab>());
 
+    //FileSystem inside AssetBrowser or its own tab?
     auto browser = std::make_unique<FileBrowserTab>(); browser->Initialize(ST<Filepaths>::Get()->workingDir);
     assetCategories.push_back(std::move(browser));
 }
@@ -95,7 +99,6 @@ void AssetBrowser::Draw(bool* p_open) {
 
     ImGui::End();
 }
-
 
 void AssetBrowser::RenderSidebar() {
     ImGui::BeginChild("Sidebar", ImVec2(SIDEBAR_WIDTH, 0), true);
@@ -160,24 +163,7 @@ void AssetBrowser::RenderMainView() {
     // Toolbar with filter and breadcrumb
     RenderToolbar();
 
-
     assetCategories[currentCategoryIndex]->Render();
-
-#if 0
-    // Content area
-    switch (currentCategory)
-    {
-    case CATEGORY::FILESYSTEM:  RenderFileSystem();     break;
-    case CATEGORY::SPRITES:     RenderSpriteGrid();     break;
-    case CATEGORY::ANIMATIONS:  RenderAnimationGrid();  break;
-    case CATEGORY::FONTS:       RenderFontWindow();     break;
-    case CATEGORY::SOUNDS:      RenderSoundTable();     break;
-    case CATEGORY::PREFABS:     RenderPrefabWindow();   break;
-    case CATEGORY::SCENES:      RenderSceneWindow();    break;
-    case CATEGORY::SCRIPTS:     RenderScriptWindow();   break;
-    case CATEGORY::SHADERS:     RenderShadersWindow();  break;
-    }
-#endif
 
     ImGui::EndChild();
 }
@@ -191,46 +177,6 @@ void AssetBrowser::RenderToolbar()
 
     assetCategories[currentCategoryIndex]->RenderBreadcrumb();
 
-    //if (currentCategory == CATEGORY::FILESYSTEM)
-    //{
-    //    RenderNavigationBar();
-    //    ImGui::SameLine();
-    //}
-    // Get total available width
-    // Location indicator with auto-truncation if needed
-    //std::string location = "Imported > " + std::string{ assetCategories[currentCategoryIndex]->GetName() };
-
-#if 0
-    switch(currentCategory) {
-        case CATEGORY::FILESYSTEM:  location = "";  break;
-        case CATEGORY::SPRITES:     location += "Sprites";      break;
-        case CATEGORY::ANIMATIONS:  location += "Animations";   break;
-        case CATEGORY::FONTS:       location += "Fonts";        break;
-        case CATEGORY::SOUNDS:      location += "Sounds";       break;
-        case CATEGORY::PREFABS:     location += "Prefabs";      break;
-        case CATEGORY::SCENES:      location += "Scenes";       break;
-        case CATEGORY::SCRIPTS:     location += "Scripts";      break;
-        case CATEGORY::SHADERS:     location += "Shaders";      break;
-        default: break;
-    }
-#endif
-
-    //if(location != "")
-    //{
-    //    // Calculate maximum width for location text
-    //    float maxLocationWidth = windowWidth - searchWidth - spacing * 2;
-    //    ImVec2 textSize = ImGui::CalcTextSize(location.c_str());
-
-    //    if(textSize.x > maxLocationWidth) {
-    //        // Truncate text if needed
-    //        while(textSize.x > maxLocationWidth && location.length() > 3) {
-    //            location = location.substr(0, location.length() - 4) + "...";
-    //            textSize = ImGui::CalcTextSize(location.c_str());
-    //        }
-    //    }
-
-    //    ImGui::Text("%s", location.c_str());
-    //}
 
     // Right-aligned search bar
     ImGui::SameLine(windowWidth - searchWidth);
@@ -2009,7 +1955,6 @@ void AssetBrowser::RenderCreateAnimationBottom() {
     ImGui::EndChild();
 }
 #endif
-
 
 #if 0
 

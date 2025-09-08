@@ -388,6 +388,7 @@ if not exist "$(TargetDir)imgui.json" (
     <ClCompile Include="MiscAssetTabs.cpp" />
     <ClCompile Include="PostProcessingComponent.cpp" />
     <ClCompile Include="PrefabSpawner.cpp" />
+    <ClCompile Include="SceneTab.cpp" />
     <ClCompile Include="Scheduler.cpp" />
     <ClCompile Include="CustomViewport.cpp" />
     <ClCompile Include="Import.cpp" />
@@ -468,6 +469,8 @@ if not exist "$(TargetDir)imgui.json" (
     <ClCompile Include="ScriptManagement.cpp" />
     <ClCompile Include="Serializer.cpp" />
     <ClCompile Include="SettingsWindow.cpp" />
+    <ClCompile Include="SoundTab.cpp" />
+    <ClCompile Include="SpriteTab.cpp" />
     <ClCompile Include="TrailComponent.cpp" />
     <ClCompile Include="TrailSystem.cpp" />
     <ClCompile Include="Slider.cpp" />
@@ -640,6 +643,9 @@ if not exist "$(TargetDir)imgui.json" (
     <ClInclude Include="Serializer.h" />
     <ClInclude Include="Serializer.ipp" />
     <ClInclude Include="SettingsWindow.h" />
+    <ClInclude Include="SceneTab.h" />
+    <ClInclude Include="SoundTab.h" />
+    <ClInclude Include="SpriteTab.h" />
     <ClInclude Include="TrailComponent.h" />
     <ClInclude Include="TrailSystem.h" />
     <ClInclude Include="Singleton.h" />

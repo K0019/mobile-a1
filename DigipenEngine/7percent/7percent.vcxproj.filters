@@ -474,6 +474,15 @@
     <ClCompile Include="ScriptingUtil.cpp">
       <Filter>Source Files\Scripting</Filter>
     </ClCompile>
+    <ClCompile Include="SpriteTab.cpp">
+      <Filter>Header Files\EditorUI\AssetBrowser</Filter>
+    </ClCompile>
+    <ClCompile Include="SceneTab.cpp">
+      <Filter>Header Files\EditorUI\AssetBrowser</Filter>
+    </ClCompile>
+    <ClCompile Include="SoundTab.cpp">
+      <Filter>Header Files\EditorUI\AssetBrowser</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ECS.h">
@@ -898,6 +907,15 @@
     </ClInclude>
     <ClInclude Include="ScriptingUtil.h">
       <Filter>Header Files\Scripting</Filter>
+    </ClInclude>
+    <ClInclude Include="SpriteTab.h">
+      <Filter>Header Files\EditorUI\AssetBrowser</Filter>
+    </ClInclude>
+    <ClInclude Include="SceneTab.h">
+      <Filter>Header Files\EditorUI\AssetBrowser</Filter>
+    </ClInclude>
+    <ClInclude Include="SoundTab.h">
+      <Filter>Header Files\EditorUI\AssetBrowser</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
