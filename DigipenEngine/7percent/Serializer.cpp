@@ -169,6 +169,8 @@ void Serializer::FlushEntities()
     std::map<ecs::EntityHash, int> entityIndexMap{};
     std::vector<const RegisteredComponentData*> entityRegisteredCompData{}; // For ordering components
 
+    //remove this back for objects
+    StartArray("entities");
     for (auto& [_, entities] : entityChildLevelMap)
     {
         // Sort entities by UID to ensure consistency
@@ -181,21 +183,29 @@ void Serializer::FlushEntities()
         {
             int entityindex = numEntities++;
             entityIndexMap.emplace(entity->GetHash(), entityindex);
-
-            StartObject("entity" + std::to_string(entityindex));
+            //"entity" + std::to_string(entityindex)
+            StartObject();
 
             const Transform& transform{ entity->GetTransform() };
 
-
+            //add this back for objects
             // Serialize parent if child (but only if we've also serialized the parent)
-            std::string parentStr{};
-            if (const Transform* parent{ transform.GetParent() })
+            //std::string parentStr{};
+            //if (const Transform* parent{ transform.GetParent() })
+            //{
+            //    auto indexIter{ entityIndexMap.find(parent->GetEntity()->GetHash()) };
+            //    if (indexIter != entityIndexMap.end())
+            //        parentStr = "entity" + std::to_string(indexIter->second);
+            //}
+            int parentIndex = -1; // Use -1 to indicate no parent
+            if (const Transform * parent{ transform.GetParent() })
             {
                 auto indexIter{ entityIndexMap.find(parent->GetEntity()->GetHash()) };
                 if (indexIter != entityIndexMap.end())
-                    parentStr = "entity" + std::to_string(indexIter->second);
+                    parentIndex = indexIter->second;
             }
-            Serialize("parent", parentStr);
+            //Serialize("parent", parentStr);
+            Serialize("parentIndex", parentIndex);
             Serialize("position", transform.GetLocalPosition());
             Serialize("rotation", transform.GetLocalRotation());
             Serialize("scale", transform.GetLocalScale());
@@ -227,6 +237,8 @@ void Serializer::FlushEntities()
             EndObject(); // entity
         }
     }
+    //remove this for objects
+    EndArray();
 }
 
 bool Serializer::IsTopLayerEqualTo(LAYER layer)
@@ -403,6 +415,8 @@ Deserializer::Deserializer(const std::string& filepath)
     , document{}
     , valueStack{}
     , currentEntityIndex{}
+    , entitiesArray{ nullptr }
+    , totalEntities{ 0 }
 {
     std::ifstream ifs{ filepath };
     if (!ifs.is_open())
@@ -417,6 +431,18 @@ Deserializer::Deserializer(const std::string& filepath)
     {
         CONSOLE_LOG(LEVEL_ERROR) << "File Error when deserializing " << filepath;
         return;
+    }
+
+    if (document.HasMember("entities") && document["entities"].IsArray())
+    {
+        entitiesArray = &document["entities"];
+        totalEntities = entitiesArray->Size();
+    }
+    else
+    {
+        CONSOLE_LOG(LEVEL_WARNING) << "No entities array found in JSON file";
+        entitiesArray = nullptr;
+        totalEntities = 0;
     }
 }
 
@@ -480,6 +506,25 @@ bool Deserializer::PushArrayElementAccess(size_t index)
     return true;
 }
 
+// Helper method to access entities array (add to public section of Deserializer class):
+bool Deserializer::PushEntitiesArrayAccess()
+{
+    if (!entitiesArray)
+    {
+        CONSOLE_LOG(LEVEL_ERROR) << "No entities array available!";
+        return false;
+    }
+
+    valueStack.push(entitiesArray);
+    return true;
+}
+
+// Add method to get total entity count (add to public section):
+size_t Deserializer::GetEntityCount() const
+{
+    return totalEntities;
+}
+
 bool Deserializer::Deserialize(ecs::EntityHandle entity)
 {
     if (!HasEntity())
@@ -488,19 +533,41 @@ bool Deserializer::Deserialize(ecs::EntityHandle entity)
         return false;
     }
     int index = currentEntityIndex++;
-    if (!PushAccess("entity" + std::to_string(index)))
+    //if (!PushAccess("entity" + std::to_string(index)))
+    //    return false;
+    
+    // Access entity from array instead of by key
+    if (!entitiesArray)
+    {
+        CONSOLE_LOG(LEVEL_ERROR) << "Entity index out of bounds!";
         return false;
+    }
+    valueStack.push(entitiesArray);
+    // Push access to the specific entity in the array
+    if (!PushArrayElementAccess(index)) return false;
 
     Transform& transform{ entity->GetTransform() };
 
-    std::string parentName{};
-    DeserializeVar("parent", &parentName);
-    if (!parentName.empty())
+    int parentIndex = -1;
+    DeserializeVar("parentIndex", &parentIndex);
+    if (parentIndex != -1 && parentIndex < index) // Parent must be serialized before child
     {
-        int entityIndex{ std::stoi(parentName.substr(parentName.find_first_of("1234567890"))) };
-        ecs::EntityHash parentEntityHash{ entityIndexMap.at(entityIndex) }; // This should not fail if we've serialized properly
-        transform.SetParent(ecs::GetEntity(parentEntityHash)->GetTransform());
+        auto parentIter = entityIndexMap.find(parentIndex);
+        if (parentIter != entityIndexMap.end())
+        {
+            ecs::EntityHash parentEntityHash{ parentIter->second };
+            transform.SetParent(ecs::GetEntity(parentEntityHash)->GetTransform());
+        }
     }
+    //add this back for objects
+    //std::string parentName{};
+    //DeserializeVar("parent", &parentName);
+    //if (!parentName.empty())
+    //{
+    //    int entityIndex{ std::stoi(parentName.substr(parentName.find_first_of("1234567890"))) };
+    //    ecs::EntityHash parentEntityHash{ entityIndexMap.at(entityIndex) }; // This should not fail if we've serialized properly
+    //    transform.SetParent(ecs::GetEntity(parentEntityHash)->GetTransform());
+    //}
 
     Vec3 vec3{};
     DeserializeVar("position", &vec3), transform.SetLocalPosition(vec3);
@@ -545,7 +612,7 @@ bool Deserializer::Deserialize(ecs::EntityHandle entity)
     }
 
     PopAccess(); // components
-
+    PopAccess();
     PopAccess(); // entity
 
     return true;
@@ -695,7 +762,7 @@ bool Deserializer::GetArraySize(const std::string& key, size_t* size)
 
 bool Deserializer::HasEntity() const
 {
-    return GetCurrValue().HasMember("entity" + std::to_string(currentEntityIndex));
+    return entitiesArray != nullptr && currentEntityIndex < static_cast<int>(totalEntities);//add this back for objects GetCurrValue().HasMember("entity" + std::to_string(currentEntityIndex));
 }
 
 const rj::Value& Deserializer::GetCurrValue() const

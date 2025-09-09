@@ -374,6 +374,14 @@ public:
 
     /*****************************************************************//*!
     \brief
+        Enters the entities array for reading.
+    \return
+        True if the entities array exists and was accessed successfully. False otherwise.
+    *//******************************************************************/
+    bool PushEntitiesArrayAccess();
+
+    /*****************************************************************//*!
+    \brief
         Deserializes an entity.
     \param entity
         The entity to deserialize the data to.
@@ -503,6 +511,14 @@ public:
     *//******************************************************************/
     bool HasEntity() const;
 
+    /*****************************************************************//*!
+    \brief
+        Gets the total number of entities in the JSON file.
+    \return
+        The number of entities in the entities array.
+    *//******************************************************************/
+    size_t GetEntityCount() const;
+
 private:
     /*****************************************************************//*!
     \brief
@@ -524,6 +540,12 @@ private:
 
     //! Tracks entities' indexes for the purpose of parenting.
     std::map<int, ecs::EntityHash> entityIndexMap;
+
+    //! Cache of entities array for efficient access
+    const rj::Value* entitiesArray;
+
+    //! Total number of entities in the array
+    size_t totalEntities;
 };
 
 #include "Serializer.ipp"
