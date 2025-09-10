@@ -31,20 +31,18 @@ enum class AudioType : char { BGM,
 struct AudioData
 {
 	std::string name = "";
-	float defaultVol = 1.f;
 	bool clip_is_3d = false;
-	AudioType type = AudioType::END; // Undetermined
+	AudioType type = AudioType::END; // Undetermined is not an error state, just means the audio is not categorized
 };
 
 // Representation of a loaded sound asset - holds both the handle to fmod sound and the metadata
 struct AudioAsset
 {
-	AudioAsset(){}; // I would never allow this but this is due to default constructor being required in the current resource manager implementation
+	AudioAsset(){}; // suspicious, but has to be like this due to default constructor being required in the current resource manager implementation
 	AudioAsset(FMOD::Sound* s, const std::string& n, float vol = 1.f, bool is3D = false, AudioType t = AudioType::END) : sound(s)
 	{
 		// Initializes the inner audio data
 		data.name = n;
-		data.defaultVol = vol;
 		data.clip_is_3d = is3D;
 		data.type = t;
 	}
@@ -71,14 +69,15 @@ public:
 	void PlaySound(FMOD::Channel*& channel, const std::string& name, bool loop, AudioType category = AudioType::END); // Universal bypass call to FMOD
 	void StopSound(FMOD::Channel*& channel);
 	bool IsPlaying(FMOD::Channel*& channel);
-	void PlaySound3D(FMOD::Channel*& channel, const std::string& name, bool loop, Vec3 position, AudioType category = AudioType::END);
+	void PlaySound3D(FMOD::Channel*& channel, const std::string& name, bool loop, Vec3 position, AudioType category = AudioType::END, std::pair<float, float> rolloff_minmax = { 2.f, 50.f });
 
 	// FMOD Studio Call
 	// void CreateEvent(const std::string& name); // tbc: fmod studio
 	// void PlaySoundAt(); // tbc: spatial audio impl
 
 	// Master controls
-	void UpdateListener(const FMOD_VECTOR& pos, const FMOD_VECTOR& vel);
+	void UpdateListener(const Vec3& pos, const Vec3& vel = Vec3());
+	void ConfigureListener(float dopplerScale, float distanceFactor, float rolloffScale);
 	void StopAllSounds();
 	void SetBaseVolume(AudioType type, float vol);
 

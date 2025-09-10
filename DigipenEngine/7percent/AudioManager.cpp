@@ -107,7 +107,7 @@ void AudioManager::PlaySound(FMOD::Channel*& channel, const std::string& name, b
 		FMOD_ASSERT(channel->setMode(FMOD_LOOP_NORMAL));
 }
 
-void AudioManager::PlaySound3D(FMOD::Channel*& channel, const std::string& name, bool loop, Vec3 position, AudioType category)
+void AudioManager::PlaySound3D(FMOD::Channel*& channel, const std::string& name, bool loop, Vec3 position, AudioType category, std::pair<float, float> rolloff)
 {
 	FMOD::Sound* sound = ResourceManager::GetSound(name).sound;
 	switch (category)
@@ -123,11 +123,13 @@ void AudioManager::PlaySound3D(FMOD::Channel*& channel, const std::string& name,
 		break; // Bypass to universal play
 	}
 
-	FMOD_ASSERT(channel->setMode(FMOD_3D));
+	// Linear rolloff assumes complete silence at max distance - can potentially look at custom curves later/allowing user to define their own curves
+	FMOD_ASSERT(channel->setMode(FMOD_3D | FMOD_3D_LINEARROLLOFF));
+
 	if (loop) 
 		FMOD_ASSERT(channel->setMode(FMOD_LOOP_NORMAL));
 
-	FMOD_ASSERT(channel->set3DMinMaxDistance(2.0f, 200.0f));
+	FMOD_ASSERT(channel->set3DMinMaxDistance(rolloff.first, rolloff.second));
 
 	FMOD_VECTOR initialVel = { 0.0f, 0.0f, 0.0f };
 	FMOD_VECTOR fmodVecPos = { position.x, position.y, position.z };
@@ -163,14 +165,19 @@ bool AudioManager::IsPlaying(FMOD::Channel*& channel)
 	return isPlaying;
 }
 
-void AudioManager::UpdateListener(const FMOD_VECTOR& pos, const FMOD_VECTOR& vel)
+void AudioManager::UpdateListener(const Vec3& pos, const Vec3& vel)
 {
-    // 'forward' and 'up' vectors define the listener's orientation.
-    FMOD_VECTOR forward = { 0.0f, 0.0f, 1.0f };
+	FMOD_VECTOR fmodPos = { pos.x, pos.y, pos.z };
+	FMOD_VECTOR fmodVel = { vel.x, vel.y, vel.z };
+    FMOD_VECTOR forward = { 0.0f, 0.0f, -1.0f };		// Seems we are using Z backwards. This ensures that positive x value = sound comes from right ear
     FMOD_VECTOR up      = { 0.0f, 1.0f, 0.0f };
 
-    // Set the listener's attributes.
-    FMOD_ASSERT(system->set3DListenerAttributes(0, &pos, &vel, &forward, &up));
+    FMOD_ASSERT(system->set3DListenerAttributes(0, &fmodPos, &fmodVel, &forward, &up));
+}
+
+void AudioManager::ConfigureListener(float dopplerScale, float distanceFactor, float rolloffScale)
+{
+	FMOD_ASSERT(system->set3DSettings(dopplerScale, distanceFactor, rolloffScale));
 }
 
 const std::vector<std::string>& AudioManager::GetSoundNames() const

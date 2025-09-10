@@ -292,5 +292,6 @@ class AssetBrowser {
     float accumulatedTime = 0.0f; /**< Accumulated time for animation preview */
 	FMOD::Channel* currentPreviewSound = nullptr; /**< Current preview sound channel */
 	AudioAsset lastPreviewAudio; /**< Current preview audio information */
+    bool use3DMode = false;
 #endif
 };

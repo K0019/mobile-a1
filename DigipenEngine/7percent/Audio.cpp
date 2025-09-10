@@ -2,12 +2,16 @@
 #include "AudioManager.h"
 
 AudioSourceComponent::AudioSourceComponent() 
+	: minDistance{ 20.0f }
+	, maxDistance{ 50.0f }
+	, dopperScale{ 1.0f }
+	, distanceFactor{ 0.01f }
+	, rolloffScale{ 0.1f }
 {
 }
 
 void AudioSourceComponent::OnStart()
 {
-	//ST<AudioManager>::Get()->UpdateSpatialProperties(minDistance, maxDistance, dopperScale, distanceFactor, rolloffScale);
 }
 
 void AudioSourceComponent::Play(AudioType a, std::string name)
@@ -17,12 +21,11 @@ void AudioSourceComponent::Play(AudioType a, std::string name)
 
 void AudioSourceComponent::EditorDraw()
 {
-	//gui::VarDrag("Volume", &volume, 0.f, 1.f);
-	//gui::VarDrag("Minimum Distance", &minDistance);
-	//gui::VarDrag("Maximum Distance", &maxDistance);
-	//gui::VarDrag("Doppler Scale", &dopperScale);
-	//gui::VarDrag("Distance Factor", &distanceFactor);
-	//gui::VarDrag("Rolloff Scale", &rolloffScale);
+	gui::VarDrag("Minimum Distance", &minDistance);
+	gui::VarDrag("Maximum Distance", &maxDistance);
+	gui::VarDrag("Doppler Scale", &dopperScale);
+	gui::VarDrag("Distance Factor", &distanceFactor);
+	gui::VarDrag("Rolloff Scale", &rolloffScale);
 }
 
 bool AudioSystem::PreRun()
@@ -33,5 +36,5 @@ bool AudioSystem::PreRun()
 
 void AudioSystem::UpdateComp(AudioSourceComponent& comp)
 {
-	//ST<AudioManager>::Get()->UpdateListenerAttributes(ecs::GetEntity(&comp)->GetTransform().GetWorldPosition());
+
 }

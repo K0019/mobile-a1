@@ -1766,7 +1766,7 @@ void AssetBrowser::RenderAnimationGrid() {
 
 void AssetBrowser::RenderSoundTable()
 {
-    ImGui::BeginChild("SoundTable", ImVec2(0.0f, 0.0f), true);
+	ImGui::BeginChild("SoundTable", ImVec2(0.f, -FLT_MIN), true); // Fill available space
 
     std::vector<std::string> soundNames = ST<AudioManager>::Get()->GetSoundNames();
 
@@ -1775,7 +1775,6 @@ void AssetBrowser::RenderSoundTable()
     // Left column for single sounds
     ImGui::Text("Sounds");
 
-    // Iterate all single sound names
     for (std::string const& name : soundNames)
     {
         // Create Button
@@ -1793,7 +1792,11 @@ void AssetBrowser::RenderSoundTable()
             }
             else
             {
-                ST<AudioManager>::Get()->PlaySound3D(currentPreviewSound, name, false, Vec3{}, AudioType::BGM);
+                if (use3DMode)
+                    ST<AudioManager>::Get()->PlaySound3D(currentPreviewSound, name, false, Vec3{}, AudioType::END);
+                else 
+					ST<AudioManager>::Get()->PlaySound(currentPreviewSound, name, false, AudioType::END);
+
                 lastPreviewAudio = currentAsset;
             }
         }
@@ -1805,7 +1808,122 @@ void AssetBrowser::RenderSoundTable()
         RenderSoundContextMenu(name);
     }
 
-    ImGui::Columns(1);
+    ImGui::NextColumn();
+
+	// Right column for audio controls
+    static float previewVolume = 1.f;
+	static Vec3 pos = Vec3{ 0.f, 0.f, 0.f };
+	static Vec3 vel = Vec3{ 0.f, 0.f, 0.f };
+
+    ImGui::Text("Audio Controls");
+    ImGui::Separator();
+
+    // Now Playing section
+    float progress = 0.0f;
+    std::string playingName = "None";
+    static float animationTimer = 0.0f;
+    static int tildeCount = 0;
+    const float ANIMATION_INTERVAL = 0.5f; // Add a tilde every half-second
+
+    if (ST<AudioManager>::Get()->IsPlaying(currentPreviewSound))
+    {
+        playingName = lastPreviewAudio.data.name; 
+        FMOD::Sound* currentSound = nullptr;
+        currentPreviewSound->getCurrentSound(&currentSound);
+
+        if (currentSound)
+        {
+            unsigned int currentPos = 0;
+            unsigned int totalLength = 0;
+
+            // Get current position and total length in milliseconds
+            currentPreviewSound->getPosition(&currentPos, FMOD_TIMEUNIT_MS);
+            currentSound->getLength(&totalLength, FMOD_TIMEUNIT_MS);
+
+            // Calculate progress as a fraction (0.0 to 1.0)
+            if (totalLength > 0)
+            {
+                progress = static_cast<float>(currentPos) / static_cast<float>(totalLength);
+            }
+        }
+    }
+
+    std::string displayText = playingName;
+
+    if (playingName != "None")
+    {
+        animationTimer += ImGui::GetIO().DeltaTime;
+        if (animationTimer >= ANIMATION_INTERVAL)
+        {
+            animationTimer = 0.0f; 
+            tildeCount++;
+            if (tildeCount > 3)
+                tildeCount = 0;
+        }
+    
+        for (int i = 0; i < tildeCount; ++i)
+            displayText += "~";
+    }
+
+    ImGui::Text("Now Playing:");
+    ImGui::SameLine();
+    ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "%s", displayText.c_str());
+
+    // Track play %
+    // The ImVec2(-1, 0) makes the progress bar fill the available width.
+    ImGui::ProgressBar(progress, ImVec2(-1.0f, 0.0f));
+
+    // 3D Mode checkbox
+    if (ImGui::Checkbox("3D Sound Mode", &use3DMode)) 
+    {
+        if (use3DMode)
+        {
+			FMOD_VECTOR f_pos = { pos.x, pos.y, pos.z };
+			FMOD_VECTOR f_vel = { vel.x, vel.y, vel.z };
+            currentPreviewSound->set3DAttributes(&f_pos, &f_vel);
+            currentPreviewSound->setMode(FMOD_3D);
+        }
+        else
+        {
+			currentPreviewSound->setMode(FMOD_2D);
+        }
+    }
+
+    ImGui::Text("Sound Position (Assumes listener is at origin)");
+    if (ImGui::DragFloat3("Position", (float*)&pos, 0.1f))
+    {
+        FMOD_VECTOR f_pos = { pos.x, pos.y, pos.z };
+		FMOD_VECTOR f_vel = { vel.x, vel.y, vel.z };
+        currentPreviewSound->set3DAttributes(&f_pos, &f_vel);
+    }
+    if (ImGui::DragFloat3("Velocity", (float*)&vel, 0.1f))
+    {
+        FMOD_VECTOR f_pos = { pos.x, pos.y, pos.z };
+		FMOD_VECTOR f_vel = { vel.x, vel.y, vel.z };
+        currentPreviewSound->set3DAttributes(&f_pos, &f_vel);
+    }
+
+    // Volume control
+    ImGui::Text("Volume");
+    if (ImGui::DragFloat("##Volume", &previewVolume, 0.01f, 0.0f, 1.0f, "%.2f")) 
+    {
+        if (ST<AudioManager>::Get()->IsPlaying(currentPreviewSound)) 
+        {
+            currentPreviewSound->setVolume(previewVolume);
+        }
+    }
+
+    // Stop button
+    ImGui::Separator();
+    if (ImGui::Button("Stop Preview", ImVec2(-1, 0))) 
+    {
+        if (ST<AudioManager>::Get()->IsPlaying(currentPreviewSound)) 
+        {
+            currentPreviewSound->stop();
+            lastPreviewAudio = {};
+        }
+    }
+
     ImGui::EndChild();
 }
 

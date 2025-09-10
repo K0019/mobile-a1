@@ -15,14 +15,14 @@
 	Otherwise, the components do not have to be updated every frame. Instead it is most likely to be invoked by scripting calling this component's play function,
 	leaving the component more like a data container for audio playback.
 
+	It also controls the 3D listener attributes, as they are unique to each channel
+
 All content © 2025 DigiPen Institute of Technology Singapore.
 All rights reserved.
 */
 /******************************************************************************/
 #pragma once
 #include "IGameComponentCallbacks.h"
-
-// Rename it as audio.h when done
 
 class AudioSourceComponent
 	: public IRegisteredComponent<AudioSourceComponent>
@@ -36,6 +36,12 @@ public:
 	void OnStart() override;
 	void Play(AudioType a, std::string name);
 
+	float minDistance;
+	float maxDistance;
+	float dopperScale;
+	float distanceFactor;
+	float rolloffScale;
+
 private:
 	FMOD::Channel* channel = nullptr;
 	virtual void EditorDraw() override;
@@ -44,6 +50,11 @@ private:
 };
 property_begin(AudioSourceComponent)
 {
+	property_var(minDistance),
+	property_var(maxDistance),
+	property_var(dopperScale),
+	property_var(distanceFactor),
+	property_var(rolloffScale),
 }
 property_vend_h(AudioSourceComponent)
 
@@ -61,7 +72,4 @@ public:
 	*//******************************************************************/
 	bool PreRun() override;
 	void UpdateComp(AudioSourceComponent& comp);
-
-private:
-
 };
