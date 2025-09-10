@@ -1,0 +1,42 @@
+{
+  "name": "magicengine",
+  "version-string": "0.1.0",
+  "dependencies": [
+    "assimp",
+    "entt",
+	"enkits",
+    "freeimage",
+    "freetype",
+    "glfw3",
+    "glm",
+    {
+      "name": "ktx",
+      "features": [
+        "vulkan"
+      ]
+    },
+    {
+      "name": "glslang",
+      "features": [
+        "tools",
+        "opt"
+      ]
+    },
+    "meshoptimizer",
+    {
+      "name": "mimalloc",
+      "features": [
+        "override"
+      ]
+    },
+	"quill",
+    "readerwriterqueue",
+	"mikktspace",
+    "tracy",
+    "spirv-reflect",
+    "spirv-cross",
+	"vulkan-sdk-components",
+    "vulkan-memory-allocator",
+    "volk"
+  ]
+}

@@ -158,8 +158,8 @@ set_source_groups(Engine)
 
 # ----- Global Build Settings -----
 # Set startup project for Visual Studio
-set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT Editor)
-set_property(TARGET Editor PROPERTY VS_DEBUGGER_WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT Engine)
+set_property(TARGET Engine PROPERTY VS_DEBUGGER_WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
 
 add_compile_definitions(-DQUILL_DISABLE_NON_PREFIXED_MACROS)
 add_definitions("-DVK_NO_PROTOTYPES=1")
