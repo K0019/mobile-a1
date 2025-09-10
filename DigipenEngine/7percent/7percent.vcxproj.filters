@@ -432,6 +432,12 @@
     <ClCompile Include="AudioManager.cpp">
       <Filter>Source Files\Managers</Filter>
     </ClCompile>
+    <ClCompile Include="JoltPhysics.cpp">
+      <Filter>Source Files\Physics</Filter>
+    </ClCompile>
+    <ClCompile Include="Collision.cpp">
+      <Filter>Source Files\Physics</Filter>
+    </ClCompile>
     <ClCompile Include="ScriptComponent.cpp">
       <Filter>Source Files\Scripting</Filter>
     </ClCompile>
@@ -832,6 +838,12 @@
     </ClInclude>
     <ClInclude Include="AudioManager.h">
       <Filter>Header Files\Managers</Filter>
+    </ClInclude>
+    <ClInclude Include="JoltPhysics.h">
+      <Filter>Header Files\Physics</Filter>
+    </ClInclude>
+    <ClInclude Include="Collision.h">
+      <Filter>Header Files\Physics</Filter>
     </ClInclude>
     <ClInclude Include="ScriptComponent.h">
       <Filter>Header Files\Scripting</Filter>

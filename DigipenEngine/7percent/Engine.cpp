@@ -32,6 +32,7 @@ All rights reserved.
 #include "TweenManager.h"
 #include "PrefabManager.h"
 #include "GameSettings.h"
+#include "JoltPhysics.h"
 
 #include "SettingsWindow.h"
 #include "LayersMatrix.h"
@@ -294,6 +295,10 @@ void Engine::init()
 
 	// FMOD Initialisation
 	ST<AudioManager>::Get()->Initialise();
+
+	// Jolt Physics Initialisation
+	physics::JoltRegister();
+	ST<physics::JoltPhysics>::Get()->Initialize();
 
 	constexpr unsigned int SCREEN_WIDTH = 1600;
 	// The height of the screen
@@ -714,6 +719,7 @@ void Engine::shutdown() {
 	ST<TweenManager>::Destroy();
 	ST<PerformanceProfiler>::Destroy();
 	ST<AssetBrowser>::Destroy();
+	ST<physics::JoltPhysics>::Destroy();
 #ifdef IMGUI_ENABLED
 	ST<Inspector>::Destroy();
 #endif
