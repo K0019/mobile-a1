@@ -12,7 +12,7 @@ else()
 endif()
 
 # Check if vcpkg has been bootstrapped. If not, run the bootstrap script automatically.
-if(EXISTS "${VCPKG_ROOT}" AND NOT EXISTS "${VCPKG_ROOT}/vcpkg")
+if(EXISTS "${VCPKG_ROOT}" AND NOT EXISTS "${VCPKG_ROOT}/vcpkg.exe")
     message(STATUS "vcpkg not bootstrapped yet. Running bootstrap script...")
     if(WIN32)
         execute_process(COMMAND "${VCPKG_ROOT}/bootstrap-vcpkg.bat" "-disableMetrics" RESULT_VARIABLE VCPKG_BOOTSTRAP_RESULT)
@@ -114,6 +114,8 @@ target_sources(Engine PRIVATE
     ${SHADER_FILES}
 )
 
+target_precompile_headers(Engine PRIVATE engine/pch.h)
+
 target_include_directories(Engine PUBLIC
     ${CMAKE_SOURCE_DIR}/engine
     ${CMAKE_SOURCE_DIR}/engine/editor/imgui/src #
@@ -151,6 +153,8 @@ target_link_libraries(Engine PUBLIC
     $<$<TARGET_EXISTS:mimalloc-static>:mimalloc-static;mimalloc>
 )
 
+target_compile_options(Engine PRIVATE /W4 /MP /bigobj)
+
 target_compile_definitions(Engine PUBLIC TRACY_ENABLE)
 
 # Apply source groups for Engine
@@ -176,11 +180,14 @@ if(MSVC)
     add_compile_options(
         /W4 # Warning level 4
         /MP # Enable parallel builds
-        $<$<CONFIG:Release>:/O2> # Optimization level for Release
+        $<$<CONFIG:Release>:/O2 /GL> # Optimization level for Release
         $<$<CONFIG:Debug>:/Zi> # Or /Zi for debug info format
     )
 	string(APPEND CMAKE_EXE_LINKER_FLAGS_DEBUG " /ignore:4099 /ignore:4098")
     string(APPEND CMAKE_SHARED_LINKER_FLAGS_DEBUG " /ignore:4099 /ignore:4098")
     # add_compile_options(/wd4201) # Example: nonstandard extension used : nameless struct/union
 	add_compile_definitions(WIN32_LEAN_AND_MEAN)
+    add_link_options(
+         $<$<CONFIG:Release>:/LTCG /OPT:REF /OPT:ICF>
+    )
 endif()
