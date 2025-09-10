@@ -3,7 +3,8 @@
 
 // Listener is more of a tag component than anything. It just indicates this entity is the listener
 class AudioListenerComponent
-	: public IEditorComponent<AudioListenerComponent>
+	: public IRegisteredComponent<AudioListenerComponent>
+	, public IEditorComponent<AudioListenerComponent>
 	, public IGameComponentCallbacks<AudioListenerComponent>
 {
 public:
@@ -25,7 +26,13 @@ public:
 		component's values to be edited. Disabled when IMGui is disabled.
 	*//******************************************************************/
 	virtual void EditorDraw() override;
+
+	property_vtable()
 };
+property_begin(AudioListenerComponent)
+{
+}
+property_vend_h(AudioListenerComponent)
 
 /*****************************************************************//*!
 \class AudioListenerSystem
