@@ -36,7 +36,7 @@ All rights reserved.
 #include "AudioListener.h"
 #include "LightingSystem.h"
 #include "GameCameraController.h"
-#include "AudioSystem.h"
+#include "Audio.h"
 #include "TrailSystem.h"
 #include "KillAnimationWhenFinish.h"
 #include "GamepadInputAdapter.h"

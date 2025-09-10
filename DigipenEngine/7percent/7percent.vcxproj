@@ -364,7 +364,7 @@ if not exist "$(TargetDir)imgui.json" (
     <ClCompile Include="AssetBrowser.cpp" />
     <ClCompile Include="AudioListener.cpp" />
     <ClCompile Include="AudioManager.cpp" />
-    <ClCompile Include="AudioSystem.cpp" />
+    <ClCompile Include="Audio.cpp" />
     <ClCompile Include="Bar.cpp" />
     <ClCompile Include="CameraComponent.cpp" />
     <ClCompile Include="CameraController.cpp" />
@@ -522,7 +522,7 @@ if not exist "$(TargetDir)imgui.json" (
     <ClInclude Include="AssetBrowser.h" />
     <ClInclude Include="AudioListener.h" />
     <ClInclude Include="AudioManager.h" />
-    <ClInclude Include="AudioSystem.h" />
+    <ClInclude Include="Audio.h" />
     <ClInclude Include="Bar.h" />
     <ClInclude Include="CameraComponent.h" />
     <ClInclude Include="CameraController.h" />

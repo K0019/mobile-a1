@@ -1766,8 +1766,6 @@ void AssetBrowser::RenderAnimationGrid() {
 
 void AssetBrowser::RenderSoundTable()
 {
-	static FMOD::Channel* currentPreviewSound = nullptr;
-
     ImGui::BeginChild("SoundTable", ImVec2(0.0f, 0.0f), true);
 
     std::vector<std::string> soundNames = ST<AudioManager>::Get()->GetSoundNames();
@@ -1783,24 +1781,20 @@ void AssetBrowser::RenderSoundTable()
         // Create Button
         if (ImGui::Selectable(name.c_str()))
         {
-            if (currentPreviewSound)
+            if (ST<AudioManager>::Get()->IsPlaying(currentPreviewSound))
             {
-                bool isPlaying;
-                currentPreviewSound->isPlaying(&isPlaying);
-                if (isPlaying)
-                {
-                    currentPreviewSound->stop();
-                    currentPreviewSound = nullptr;
-
-                    FMOD_VECTOR pos = { 0.0f, 0.0f, 0.0f };
-	                FMOD_VECTOR vel = { 0.0f, 10.0f, 0.0f };
-                    currentPreviewSound->set3DAttributes(&pos, &vel);
-                }
+                currentPreviewSound->stop();
+            }
+        
+            AudioAsset currentAsset = ResourceManager::GetSound(name);
+            if (currentAsset.sound == lastPreviewAudio.sound)
+            {
+                lastPreviewAudio = {};
             }
             else
             {
-                //currentPreviewSound = ST<AudioManager>::Get()->PlaySound(name, false, AudioType::BGM);
-                currentPreviewSound = ST<AudioManager>::Get()->PlaySound3D(name, false, Vec3{},AudioType::BGM);
+                ST<AudioManager>::Get()->PlaySound3D(currentPreviewSound, name, false, Vec3{}, AudioType::BGM);
+                lastPreviewAudio = currentAsset;
             }
         }
 
@@ -1808,20 +1802,20 @@ void AssetBrowser::RenderSoundTable()
         gui::PayloadSource("SOUND", name, name.c_str());
 
         // Context menu
-        RenderSoundContextMenu(name, false);
+        RenderSoundContextMenu(name);
     }
 
     ImGui::Columns(1);
     ImGui::EndChild();
 }
 
-void AssetBrowser::RenderSoundContextMenu(std::string const& name, bool isGrouped)
+void AssetBrowser::RenderSoundContextMenu(std::string const& name)
 {
     if (ImGui::BeginPopupContextItem(("Delete##" + name).c_str()))
     {
         if (ImGui::MenuItem("Delete"))
         {
-            ST<AudioManager>::Get()->FreeSound(ResourceManager::GetSound(name));
+            ST<AudioManager>::Get()->FreeSound(ResourceManager::GetSound(name).sound);
 			ResourceManager::DeleteSound(name);
         }
         ImGui::EndPopup();

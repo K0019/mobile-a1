@@ -1,22 +1,21 @@
 /******************************************************************************/
 /*!
-\file   AudioSystem.h
-\par    Project: 7percent
-\par    Course: CSD2401
+\file   Audio.h
+\par    Project: Kuro Mahou
+\par    Course: CSD3401
 \par    Section B
-\par    Software Engineering Project 3
-\date   04/02/2025
+\date   10/09/2025
 
-\author Chan Kuan Fu Ryan (100%)
-\par    email: c.kuanfuryan\@digipen.edu
-\par    DigiPen login: c.kuanfuryan
+\author Kuan Yew Chong (100%)
+\par    email: yewchong.k\@digipen.edu
+\par    DigiPen login: yewchong.k
 
 \brief
-	AudioSystem is an ECS system which exists solely to do continuous update on 
-	FMOD::System within AudioManager. Whether or not this helps audio playback
-	quality is yet to be rigorously tested, although it is said to be good practice.
+	The audio system is responsible for ensuring FMOD gets a update call every frame.
+	Otherwise, the components do not have to be updated every frame. Instead it is most likely to be invoked by scripting calling this component's play function,
+	leaving the component more like a data container for audio playback.
 
-All content � 2024 DigiPen Institute of Technology Singapore.
+All content © 2025 DigiPen Institute of Technology Singapore.
 All rights reserved.
 */
 /******************************************************************************/
@@ -35,7 +34,7 @@ class AudioSourceComponent
 public:
 	AudioSourceComponent();
 	void OnStart() override;
-	float volume = 1.f;
+	void Play(AudioType a, std::string name);
 
 private:
 	FMOD::Channel* channel = nullptr;
@@ -45,7 +44,6 @@ private:
 };
 property_begin(AudioSourceComponent)
 {
-	property_var(volume)
 }
 property_vend_h(AudioSourceComponent)
 

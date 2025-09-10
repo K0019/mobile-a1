@@ -1,9 +1,3 @@
-// 
-// AudioManager manages the channelgroup and sound playing requests
-// Management of the actual channel is done by the component and is the responsibility of the component to stop/start sounds
-// AudioManager controls through channelgroups
-//
-
 #include "AudioManager.h"
 #include <FMOD/fmod_errors.h>
 #include "ResourceManager.h"
@@ -12,7 +6,7 @@
 #define FMOD_ASSERT(FUNCTION) \
 				result = FUNCTION;  \
 				if (result != FMOD_OK) { \
-						CONSOLE_LOG(LEVEL_ERROR) << "FMOD: (" << result << ") " << FMOD_ErrorString(result) << "at line " << __LINE__;}
+						CONSOLE_LOG(LEVEL_ERROR) << "FMOD: (" << result << ") " << FMOD_ErrorString(result) << " at line " << __LINE__ << " in file " << __FILE__;}
 
 // Creates and loads sounds on launch
 AudioManager::AudioManager()
@@ -78,7 +72,11 @@ void AudioManager::CreateSound(const std::string& name)
 	// yc: this should be delegated to ResourceManager, when we have a proper asset management system
 	FMOD::Sound* sound = nullptr;
 	FMOD_ASSERT(system->createSound((ST<Filepaths>::Get()->soundFolder + name).c_str(), FMOD_DEFAULT, 0, &sound));
-	ResourceManager::LoadSound(name, sound);
+
+	AudioAsset soundAsset(sound, name);
+	sound->setUserData((void*)&soundAsset.data); // Setup using fmod's own internal user data system for easy retrieval
+	
+	ResourceManager::LoadSound(name, soundAsset);
 	soundNames.push_back(name);
 }
 
@@ -89,41 +87,39 @@ void AudioManager::FreeSound(FMOD::Sound* sound)
 		FMOD_ASSERT(sound->release());
 }
 
-FMOD::Channel* AudioManager::PlaySound(const std::string& name, bool loop, AudioType category)
+void AudioManager::PlaySound(FMOD::Channel*& channel, const std::string& name, bool loop, AudioType category)
 {
-	FMOD::Channel* channel = nullptr;
+	FMOD::Sound* sound = ResourceManager::GetSound(name).sound;
 	switch(category)
 	{
 		case AudioType::BGM:
-			FMOD_ASSERT(system->playSound(ResourceManager::GetSound(name), channelGroups[0], false, &channel));
+			FMOD_ASSERT(system->playSound(sound, channelGroups[0], false, &channel));
 			break;
 		case AudioType::SFX:
-			FMOD_ASSERT(system->playSound(ResourceManager::GetSound(name), channelGroups[1], false, &channel));
+			FMOD_ASSERT(system->playSound(sound, channelGroups[1], false, &channel));
 			break;
 		case AudioType::END:
-			FMOD_ASSERT(system->playSound(ResourceManager::GetSound(name), masterChannelGroup, false, &channel));
+			FMOD_ASSERT(system->playSound(sound, masterChannelGroup, false, &channel));
 			break; // Bypass to universal play
 	}
 
 	if (loop && channel) 
 		FMOD_ASSERT(channel->setMode(FMOD_LOOP_NORMAL));
-
-	return channel;
 }
 
-FMOD::Channel* AudioManager::PlaySound3D(const std::string& name, bool loop, Vec3 position, AudioType category)
+void AudioManager::PlaySound3D(FMOD::Channel*& channel, const std::string& name, bool loop, Vec3 position, AudioType category)
 {
-	FMOD::Channel* channel = nullptr;
+	FMOD::Sound* sound = ResourceManager::GetSound(name).sound;
 	switch (category)
 	{
 	case AudioType::BGM:
-		FMOD_ASSERT(system->playSound(ResourceManager::GetSound(name), channelGroups[0], true, &channel));
+		FMOD_ASSERT(system->playSound(sound, channelGroups[0], true, &channel));
 		break;
 	case AudioType::SFX:
-		FMOD_ASSERT(system->playSound(ResourceManager::GetSound(name), channelGroups[1], true, &channel));
+		FMOD_ASSERT(system->playSound(sound, channelGroups[1], true, &channel));
 		break;
 	case AudioType::END:
-		FMOD_ASSERT(system->playSound(ResourceManager::GetSound(name), masterChannelGroup, true, &channel));
+		FMOD_ASSERT(system->playSound(sound, masterChannelGroup, true, &channel));
 		break; // Bypass to universal play
 	}
 
@@ -138,8 +134,33 @@ FMOD::Channel* AudioManager::PlaySound3D(const std::string& name, bool loop, Vec
     FMOD_ASSERT(channel->set3DAttributes(&fmodVecPos, &initialVel));
 
 	FMOD_ASSERT(channel->setPaused(false));
+}
 
-	return channel;
+void AudioManager::StopSound(FMOD::Channel*& channel)
+{
+	if (channel)
+		FMOD_ASSERT(channel->stop());
+}
+
+bool AudioManager::IsPlaying(FMOD::Channel*& channel)
+{
+	if (!channel) return false;
+
+	bool isPlaying;
+
+	// FMOD automatically clears channels, but it does not auto clear our own handle, so an invalid error will occur due to the auto cleanup, need to check for this. 
+	FMOD_RESULT channel_status = channel->isPlaying(&isPlaying);
+	if (channel_status == FMOD_ERR_INVALID_HANDLE)
+	{
+		return false;
+	}
+	else if (channel_status != FMOD_OK)
+	{
+		CONSOLE_LOG(LEVEL_ERROR) << "FMOD: (" << channel_status << ") " << FMOD_ErrorString(channel_status) << " at line " << __LINE__ << " in file " << __FILE__;
+		return false;
+	}
+
+	return isPlaying;
 }
 
 void AudioManager::UpdateListener(const FMOD_VECTOR& pos, const FMOD_VECTOR& vel)

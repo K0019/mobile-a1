@@ -22,7 +22,7 @@ All rights reserved.
 /******************************************************************************/
 
 #include "ResourceManager.h"
-
+#include "AudioManager.h"
 namespace fs = std::filesystem;
 
 #ifdef max
@@ -30,7 +30,7 @@ namespace fs = std::filesystem;
 #endif
 // Instantiate static variables
 std::unordered_map<size_t, Animation>     ResourceManager::Animations;
-std::unordered_map<size_t, FMOD::Sound*>  ResourceManager::Sounds;
+std::unordered_map<size_t, AudioAsset>  ResourceManager::Sounds;
 std::unordered_map<size_t, std::string>   ResourceManager::ResourceNames;
 std::unordered_map<size_t, ResourceManager::SpriteSlot> ResourceManager::Sprites;
 size_t ResourceManager::NextSpriteID = 0;
@@ -261,18 +261,18 @@ size_t ResourceManager::GetSpriteCount()
     return NextSpriteID;
 }
 
-FMOD::Sound* ResourceManager::LoadSound(const std::string& name, FMOD::Sound* sound)
+const AudioAsset& ResourceManager::LoadSound(const std::string& name, AudioAsset& sound)
 {
     ResourceNames[util::GenHash(name)] = name;
     return Sounds[util::GenHash(name)] = sound;
 }
 
-FMOD::Sound* ResourceManager::GetSound(const std::string& name)
+const AudioAsset& ResourceManager::GetSound(const std::string& name)
 {
     return Sounds[util::GenHash(name)];
 }
 
-FMOD::Sound* ResourceManager::GetSound(size_t nameHash)
+const AudioAsset& ResourceManager::GetSound(size_t nameHash)
 {
     return Sounds[nameHash];
 }
@@ -291,9 +291,9 @@ void ResourceManager::Clear()
 {
     // delete all shaders	
 
-    for(auto& [_, sound] : Sounds)
+    for(auto& [_, soundAsset] : Sounds)
     {
-        sound->release();
+        soundAsset.sound->release();
     }
     Sounds.clear();
 
