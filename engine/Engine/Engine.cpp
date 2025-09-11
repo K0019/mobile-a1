@@ -44,7 +44,7 @@ All rights reserved.
 
 #include "fa.h"
 
-#include <stb/stb_image.h>
+#include <stb_image.h>
 
 #include "Import.h"
 #include "Filesystem.h"
@@ -827,7 +827,8 @@ void Engine::imgui_styling()
 	style.TabRounding = 4.0f;
 	style.TabBorderSize = 0.0f;
 	style.TouchExtraPadding = ImVec2(0.00f, 0.00f);
-	style.TabMinWidthForCloseButton = 0.0f;
+	style.TabCloseButtonMinWidthUnselected = 0.0f;
+	style.TabCloseButtonMinWidthSelected = 0.0f;
 	style.ColorButtonPosition = ImGuiDir_Right;
 	style.ButtonTextAlign = ImVec2(0.5f, 0.5f);
 	style.SelectableTextAlign = ImVec2(0.0f, 0.0f);

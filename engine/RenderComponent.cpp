@@ -161,7 +161,7 @@ void RenderComponent::EditorDraw()
         ImGui::Text("Drag an Sprite from the browser to assign it");
     }
     ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
-    ImGui::ImageButton("Preview", VulkanManager::Get().VkTextureManager().getTexture(sprite.textureID).ImGui_handle, ImVec2(100, 100),
+    ImGui::ImageButton("Preview", reinterpret_cast<intptr_t>(VulkanManager::Get().VkTextureManager().getTexture(sprite.textureID).ImGui_handle), ImVec2(100, 100),
                        ImVec2(sprite.texCoords.x, sprite.texCoords.y),
                        ImVec2(sprite.texCoords.z, sprite.texCoords.w));
     ImGui::PopItemFlag();

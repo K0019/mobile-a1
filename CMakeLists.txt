@@ -76,28 +76,28 @@ set(ASSIMP_WARNINGS_AS_ERRORS OFF CACHE BOOL "Do not treat warnings as errors fo
 set(ASSIMP_BUILD_DRACO OFF CACHE BOOL "Optional: Disable Draco if not using compressed glTF")
 
 find_package(assimp CONFIG REQUIRED)
+find_package(enkiTS CONFIG REQUIRED)
 find_package(entt CONFIG REQUIRED)
 find_package(FreeImage CONFIG REQUIRED)
 find_package(Freetype CONFIG REQUIRED)
 find_package(glfw3 CONFIG REQUIRED)
 find_package(glm CONFIG REQUIRED)
-find_package(glslang CONFIG REQUIRED) 
+find_package(glslang CONFIG REQUIRED)
+find_package(imgui CONFIG REQUIRED)
 find_package(KTX CONFIG REQUIRED)
 find_package(meshoptimizer CONFIG REQUIRED)
+find_package(mikktspace CONFIG REQUIRED)
 find_package(mimalloc CONFIG REQUIRED)
 find_package(quill CONFIG REQUIRED)
+find_package(spirv_cross_core CONFIG REQUIRED)
+find_package(spirv_cross_glsl CONFIG REQUIRED)
+find_package(Stb REQUIRED)
 find_package(tracy CONFIG REQUIRED)
+find_package(unofficial-spirv-reflect CONFIG REQUIRED)
 find_package(Vulkan REQUIRED)
 find_package(Volk CONFIG REQUIRED)
 find_package(VulkanMemoryAllocator CONFIG REQUIRED)
-find_package(glslang CONFIG REQUIRED)
-find_package(spirv_cross_core CONFIG REQUIRED)
-find_package(spirv_cross_glsl CONFIG REQUIRED)
-find_package(unofficial-spirv-reflect CONFIG REQUIRED)
-find_package(mikktspace CONFIG REQUIRED)
-find_package(enkiTS CONFIG REQUIRED)
 #add_subdirectory(extern/offset_allocator)
-find_path(READERWRITERQUEUE_INCLUDE_DIRS "readerwriterqueue/atomicops.h")
 
 # ----- Engine Target -----
 add_executable(Engine WIN32) #
@@ -105,20 +105,13 @@ add_executable(Engine WIN32) #
 # Add engine's own source/header files
 file(GLOB_RECURSE ENGINE_IMPLEMENTATION_FILES CONFIGURE_DEPENDS "engine/*.cpp")
 file(GLOB_RECURSE ENGINE_HEADER_FILES CONFIGURE_DEPENDS "engine/*.h" "engine/*.hpp" "engine/*.ipp")
-file(GLOB_RECURSE IMGUI_HEADER_FILES CONFIGURE_DEPENDS
-    "${CMAKE_SOURCE_DIR}/engine/editor/imgui/src/*.h" #
-    "${CMAKE_SOURCE_DIR}/engine/editor/imgui/impl/*.h" # [cite: 382]
-    "${CMAKE_SOURCE_DIR}/engine/editor/imgui/src/ImGuizmo/*.h" #
-	"${CMAKE_SOURCE_DIR}/engine/editor/imgui/src/ImPlot/*.h" #
-)
 file(GLOB TRACY_MANUAL_SOURCES CONFIGURE_DEPENDS "extern/tracy/TracyClient.cpp") # Tracy vcpkg port is header-only
 file(GLOB_RECURSE SHADER_FILES "${CMAKE_SOURCE_DIR}/shaders/*")
+file(GLOB_RECURSE ENGINE_SOURCE_FILES_DIRECTORIES LIST_DIRECTORIES true "${CMAKE_SOURCE_DIR}/engine/*")
 
 target_sources(Engine PRIVATE
     ${ENGINE_IMPLEMENTATION_FILES}
     ${ENGINE_HEADER_FILES}
-    ${IMGUI_IMPLEMENTATION_FILES}
-    ${IMGUI_HEADER_FILES} # Add ImGui headers
     ${TRACY_MANUAL_SOURCES} # Tracy needs its client cpp file compiled in
     ${SHADER_FILES}
 )
@@ -127,11 +120,13 @@ target_precompile_headers(Engine PRIVATE engine/pch.h)
 
 target_include_directories(Engine PUBLIC
     ${CMAKE_SOURCE_DIR}/engine
-    ${CMAKE_SOURCE_DIR}/engine/editor/imgui/src #
-    ${CMAKE_SOURCE_DIR}/engine/editor/imgui/impl #
-    ${READERWRITERQUEUE_INCLUDE_DIRS} # Add include dir for header-only lib
     ${EXTERNAL_INCLUDES}
 )
+foreach(item ${ENGINE_SOURCE_FILES_DIRECTORIES})
+	if(IS_DIRECTORY ${item})
+		target_include_directories(Engine PUBLIC ${item})
+	endif()
+endforeach()
 
 target_link_libraries(Engine PUBLIC
     # --- Core Dependencies (from vcpkg) ---
@@ -144,13 +139,14 @@ target_link_libraries(Engine PUBLIC
     Freetype::Freetype
     glfw
     glm::glm-header-only
+    GPUOpen::VulkanMemoryAllocator
+    imgui::imgui
     KTX::ktx
     meshoptimizer::meshoptimizer
+	mikktspace::mikktspace
     quill::quill
     Tracy::TracyClient
     volk::volk_headers  # This provides the Vulkan headers
-    GPUOpen::VulkanMemoryAllocator
-	mikktspace::mikktspace
 
     # Shader compilation
     glslang::glslang
@@ -160,7 +156,7 @@ target_link_libraries(Engine PUBLIC
     spirv-cross-core
     spirv-cross-glsl
     unofficial::spirv-reflect
-	offsetAllocator
+	#offsetAllocator
     $<$<TARGET_EXISTS:mimalloc-static>:mimalloc-static;mimalloc>
 
     # External libraries
@@ -181,6 +177,7 @@ target_compile_options(Engine PRIVATE /W4 /MP /bigobj)
 target_compile_definitions(Engine PUBLIC
     TRACY_ENABLE
     -DQUILL_DISABLE_NON_PREFIXED_MACROS
+    $<$<CONFIG:Debug>:IMGUI_ENABLED>
 )
 if(MSVC)
     target_compile_definitions(Engine PUBLIC

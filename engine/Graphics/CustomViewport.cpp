@@ -227,7 +227,7 @@ void CustomViewport::DrawImGuiWindow() {
 		// Set position and render viewport image
 		ImGui::SetCursorPos(ImVec2(padding.x, padding.y + titleBarHeight + playControlsHeight));
 		ImGui::Image(
-			ST<Engine>::Get()->_vulkan->getViewportDescriptorSet(),
+			reinterpret_cast<intptr_t>(ST<Engine>::Get()->_vulkan->getViewportDescriptorSet()),
 			renderSize,
 			ImVec2(0, 0), ImVec2(1, 1)
 		);

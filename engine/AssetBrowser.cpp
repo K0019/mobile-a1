@@ -119,7 +119,7 @@ void AssetBrowser::RenderFrameList() {
                 ImGui::SetDragDropPayload("FRAME_REORDER", &frameIdx, sizeof(size_t));
                 ImGui::Text("Moving frame %zu", i + 1);
                 // Show preview while dragging
-                ImGui::Image(tex.ImGui_handle,
+                ImGui::Image(reinterpret_cast<intptr_t>(tex.ImGui_handle),
                              ImVec2(20, 20),
                              ImVec2(sprite.texCoords.x, sprite.texCoords.y),
                              ImVec2(sprite.texCoords.z, sprite.texCoords.w));
@@ -156,7 +156,7 @@ void AssetBrowser::RenderFrameList() {
             ImGui::SameLine();
 
             // Frame preview
-            ImGui::Image(tex.ImGui_handle,
+            ImGui::Image(reinterpret_cast<intptr_t>(tex.ImGui_handle),
                          ImVec2(40, 40),
                          ImVec2(sprite.texCoords.x, sprite.texCoords.y),
                          ImVec2(sprite.texCoords.z, sprite.texCoords.w));
@@ -342,7 +342,7 @@ void AssetBrowser::RenderAnimationPreview() {
 
     // Draw centered preview
     ImGui::SetCursorPos(ImGui::GetCursorPos() + pos);
-    ImGui::Image(tex.ImGui_handle,
+    ImGui::Image(reinterpret_cast<intptr_t>(tex.ImGui_handle),
                  size,
                  ImVec2(sprite.texCoords.x, sprite.texCoords.y),
                  ImVec2(sprite.texCoords.z, sprite.texCoords.w));
@@ -838,7 +838,7 @@ void AssetBrowser::RenderSpriteSelectionGrid() {
 
         // Handle click
         if(ImGui::ImageButton(("sprite_" + std::to_string(i)).c_str(),  // Unique ID for each sprite button
-                              tex.ImGui_handle,
+                              reinterpret_cast<intptr_t>(tex.ImGui_handle),
                               ImVec2(THUMBNAIL_SIZE, THUMBNAIL_SIZE),
                               ImVec2(sprite.texCoords.x, sprite.texCoords.y),
                               ImVec2(sprite.texCoords.z, sprite.texCoords.w),
@@ -903,7 +903,7 @@ void AssetBrowser::RenderSpriteSelectionGrid() {
             ImGui::SetDragDropPayload("SPRITE_ID", &spriteId, sizeof(size_t));
 
             // Preview
-            ImGui::Image(tex.ImGui_handle,
+            ImGui::Image(reinterpret_cast<intptr_t>(tex.ImGui_handle),
                          ImVec2(THUMBNAIL_SIZE / 2, THUMBNAIL_SIZE / 2),
                          ImVec2(sprite.texCoords.x, sprite.texCoords.y),
                          ImVec2(sprite.texCoords.z, sprite.texCoords.w));
@@ -1170,7 +1170,7 @@ void AssetBrowser::RenderSpriteGrid() {
         ImGui::BeginGroup();
         const Texture& tex = ResourceManager::GetTexture(sprite.textureName);
         ImGui::ImageButton("##sprite",
-                            tex.ImGui_handle,
+                            reinterpret_cast<intptr_t>(tex.ImGui_handle),
                             ImVec2(THUMBNAIL_SIZE, THUMBNAIL_SIZE),
                             ImVec2(sprite.texCoords.x, sprite.texCoords.y),
                             ImVec2(sprite.texCoords.z, sprite.texCoords.w));
@@ -1297,7 +1297,7 @@ void AssetBrowser::RenderSpriteGrid() {
 
             // Preview
             const Texture& texture = ResourceManager::GetTexture(sprite.textureName);
-            ImGui::Image(texture.ImGui_handle,
+            ImGui::Image(reinterpret_cast<intptr_t>(texture.ImGui_handle),
                             ImVec2(THUMBNAIL_SIZE / 2, THUMBNAIL_SIZE / 2),
                             ImVec2(sprite.texCoords.x, sprite.texCoords.y),
                             ImVec2(sprite.texCoords.z, sprite.texCoords.w));
@@ -1678,7 +1678,7 @@ void AssetBrowser::RenderAnimationGrid() {
         const Texture& tex = ResourceManager::GetTexture(sprite.textureName);
         if(!anim.frames.empty()) {
             ImGui::ImageButton("##anim",
-                               tex.ImGui_handle,
+                               reinterpret_cast<intptr_t>(tex.ImGui_handle),
                                ImVec2(THUMBNAIL_SIZE, THUMBNAIL_SIZE),
                                ImVec2(sprite.texCoords.x, sprite.texCoords.y),
                                ImVec2(sprite.texCoords.z, sprite.texCoords.w));
@@ -1741,7 +1741,7 @@ void AssetBrowser::RenderAnimationGrid() {
 
             // Preview
             ImGui::Image(
-                tex.ImGui_handle,
+                reinterpret_cast<intptr_t>(tex.ImGui_handle),
                 ImVec2(THUMBNAIL_SIZE, THUMBNAIL_SIZE),
                 ImVec2(sprite.texCoords.x, sprite.texCoords.y),
                 ImVec2(sprite.texCoords.z, sprite.texCoords.w));
@@ -1911,7 +1911,7 @@ bool AssetBrowser::RenderFileItem(const FileSystem::FileEntry& entry) {
         VkDescriptorSet descriptor = GetThumbnailDescriptor(entry.fullPath);
         if(descriptor) {
             clicked = ImGui::ImageButton(("##" + entry.filename).c_str(),
-                                         descriptor,
+                                         reinterpret_cast<intptr_t>(descriptor),
                                          ImVec2(THUMBNAIL_SIZE, THUMBNAIL_SIZE));
         }
         else {

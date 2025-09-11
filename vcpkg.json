@@ -4,11 +4,19 @@
   "dependencies": [
     "assimp",
     "entt",
-	"enkits",
+	  "enkits",
     "freeimage",
     "freetype",
     "glfw3",
     "glm",
+    {
+      "name": "imgui",
+      "features": [
+        "docking-experimental",
+        "glfw-binding",
+        "vulkan-binding"
+      ]
+    },
     {
       "name": "ktx",
       "features": [
@@ -29,13 +37,14 @@
         "override"
       ]
     },
-	"quill",
+	  "quill",
     "readerwriterqueue",
-	"mikktspace",
+	  "mikktspace",
     "tracy",
     "spirv-reflect",
     "spirv-cross",
-	"vulkan-sdk-components",
+    "stb",
+	  "vulkan-sdk-components",
     "vulkan-memory-allocator",
     "volk"
   ]

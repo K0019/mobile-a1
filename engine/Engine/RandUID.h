@@ -27,8 +27,8 @@ All rights reserved.
 #pragma once
 #include <cstdint>
 #include <string>
-#include <vulkan/glm/glm.hpp>
-#include <vulkan/glm/gtc/matrix_transform.hpp>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 
 namespace util {
 

@@ -76,7 +76,7 @@ void SliderComponent::EditorDraw()
     ImGui::Text("Drag an Sprite from the browser to assign Unpressed");
 
     // Existing sprite handling code...
-    ImGui::ImageButton("Preview_UnPressed", VulkanManager::Get().VkTextureManager().getTexture(spriteUnPressed.textureID).ImGui_handle, ImVec2(100, 100),
+    ImGui::ImageButton("Preview_UnPressed", reinterpret_cast<intptr_t>(VulkanManager::Get().VkTextureManager().getTexture(spriteUnPressed.textureID).ImGui_handle), ImVec2(100, 100),
         ImVec2(spriteUnPressed.texCoords.x, spriteUnPressed.texCoords.y),
         ImVec2(spriteUnPressed.texCoords.z, spriteUnPressed.texCoords.w));
     if (ImGui::BeginDragDropTarget())
@@ -90,7 +90,7 @@ void SliderComponent::EditorDraw()
         ImGui::EndDragDropTarget();
     }
 
-    ImGui::ImageButton("Preview_Pressed", VulkanManager::Get().VkTextureManager().getTexture(spritePressed.textureID).ImGui_handle, ImVec2(100, 100),
+    ImGui::ImageButton("Preview_Pressed", reinterpret_cast<intptr_t>(VulkanManager::Get().VkTextureManager().getTexture(spritePressed.textureID).ImGui_handle), ImVec2(100, 100),
         ImVec2(spritePressed.texCoords.x, spritePressed.texCoords.y),
         ImVec2(spritePressed.texCoords.z, spritePressed.texCoords.w));
     if (ImGui::BeginDragDropTarget())

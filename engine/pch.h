@@ -85,9 +85,10 @@ All rights reserved.
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
-#ifndef IMGUI_ENABLED
+// By Kendrick (2025/09/11): Before cmake volk.h seemed to be included no matter what. Idk what was including it lol.
+//#ifndef IMGUI_ENABLED
 	#include "volk.h"
-#endif
+//#endif
 
 #pragma warning(push, 0)
 #define VMA_STATIC_VULKAN_FUNCTIONS 0

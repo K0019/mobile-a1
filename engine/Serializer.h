@@ -24,7 +24,7 @@ All rights reserved.
 */
 /******************************************************************************/
 #pragma once
-#include "Properties.h"
+#include "properties/Properties.h"
 
 #undef RAPIDJSON_HAS_STDSTRING
 #define RAPIDJSON_HAS_STDSTRING 1
