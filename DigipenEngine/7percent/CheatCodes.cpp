@@ -37,10 +37,6 @@ void CheatCodes::ClearCheats()
 	{
 		slowMotion = false;
 		GameTime::SetTimeScale(1.0f);
-		ST<AudioManager>::Get()->SetGroupPitch(1.0f, "BGM");
-		ST<AudioManager>::Get()->SetGroupVolume(1.0f, "BGM");
-		ST<AudioManager>::Get()->SetGroupPitch(1.0f, "SFX");
-		ST<AudioManager>::Get()->SetGroupVolume(1.0f, "SFX");
 	}
 	
 }
@@ -122,10 +118,6 @@ bool CheatCodes::PreRun()
 		{
 			slowMotion = !slowMotion;
 			GameTime::SetTimeScale(slowMotion ? 0.1f : 1.0f);
-			ST<AudioManager>::Get()->SetGroupPitch(slowMotion ? 0.1f : 1.0f, "BGM");
-			ST<AudioManager>::Get()->SetGroupVolume(slowMotion ? 10.0f : 1.0f, "BGM");
-			ST<AudioManager>::Get()->SetGroupPitch(slowMotion ? 0.1f : 1.0f, "SFX");
-			ST<AudioManager>::Get()->SetGroupVolume(slowMotion ? 10.0f : 1.0f, "SFX");
 
 			inputCmds.reset();
 			bitPos = 0;

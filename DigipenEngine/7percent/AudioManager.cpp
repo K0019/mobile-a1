@@ -1,758 +1,315 @@
-/******************************************************************************/
-/*!
-\file   AudioManager.cpp
-\par    Project: 7percent
-\par    Course: CSD2401
-\par    Section B
-\par    Software Engineering Project 3
-\date   04/02/2025
-
-\author Chan Kuan Fu Ryan (99%)
-\par    email: c.kuanfuryan\@digipen.edu
-\par    DigiPen login: c.kuanfuryan
-
-\author Kendrick Sim Hean Guan (1%)
-\par    email: kendrickheanguan.s\@digipen.edu
-\par    DigiPen login: kendrickheanguan.s
-
-\brief
-  AudioManager is a singleton class initialised when it is first accessed and dies at
-  the end of the program. It can be used to play sounds, modify pitch and modify
-  volume.
-
-All content © 2024 DigiPen Institute of Technology Singapore.
-All rights reserved.
-*/
-/******************************************************************************/
-
 #include "AudioManager.h"
 #include <FMOD/fmod_errors.h>
 #include "ResourceManager.h"
 
-AudioManager::AudioManager()
-	: result			{}
-	, system			{ nullptr }
-	, channels			{}
-	, channelGroups		{}
-	, baseChannelGroups	{}
-	, singleSounds		{}
-	, groupedSounds		{}
-	, singleSoundNames	{}
-	, groupedSoundNames	{}
-	, listening			{ true }
-	, listenerPosition	{}
+// Macro sprinkler for FMOD error, we don't need a function call stack for this
+// If condition tests against FMOD_OK (which is 0)
+#ifdef _DEBUG
+#define FMOD_ASSERT(FUNCTION) \
+	if (FMOD_RESULT result{ FUNCTION }) \
+			CONSOLE_LOG(LEVEL_ERROR) << "FMOD: (" << result << ") " << FMOD_ErrorString(result) << " at line " << __LINE__ << " in file " << __FILE__; 
+#else
+#define FMOD_ASSERT(FUNCTION) \
+	FUNCTION
+#endif
+
+AudioAsset::AudioAsset(FMOD::Sound* sound, const std::string& name, bool is3D, AudioType type)
+	: sound{ sound }
+	, data{ name, is3D, type }
 {
-	result = FMOD::System_Create(&system);
-	ErrorCheck(result);
-	result = system->init(MAX_CHANNELS, FMOD_INIT_NORMAL, 0);
-	ErrorCheck(result);
+}
 
-	// Create a default channel group
-	CreateChannelGroup(std::string{ defaultGroup });
-	
-	std::vector<std::string> filenames{};
+// Creates and loads sounds on launch
+AudioManager::AudioManager()
+	: system{}
+	, fmod_studio{}
+	, masterChannelGroup{}
+	, channelGroups{}
+	, channelManager{ static_cast<uint16_t>(MAX_CHANNELS) }
+{
+	FMOD_ASSERT(FMOD::Studio::System::create(&fmod_studio));
+	FMOD_ASSERT(fmod_studio->getCoreSystem(&system));
+	FMOD_ASSERT(fmod_studio->initialize(MAX_CHANNELS, FMOD_STUDIO_INIT_NORMAL, FMOD_INIT_NORMAL, 0));
 
-	// Load Single Sounds
-	filenames = GetFilenames(SingleSoundFolder());
-	for (std::string const& filename : filenames)
-	{
-		CreateUpdateSound(filename, false);
-	}
+	FMOD_ASSERT(system->getMasterChannelGroup(&masterChannelGroup));
+	FMOD_ASSERT(system->createChannelGroup("BGM", &channelGroups[0]));
+	FMOD_ASSERT(system->createChannelGroup("SFX", &channelGroups[1]));
+	FMOD_ASSERT(masterChannelGroup->addGroup(channelGroups[0]));
+	FMOD_ASSERT(masterChannelGroup->addGroup(channelGroups[1]));
 
-	// Load Grouped Sounds
-	filenames = GetFilenames(GroupedSoundFolder());
-	for (std::string const& filename : filenames)
-	{
-		CreateUpdateSound(filename, true);
-	}
-
-	// Subscribe to OnWindowFocus
-	Messaging::Subscribe("OnWindowFocus", AudioManager::WindowFocusPauseResume);
+	FMOD_ASSERT(system->set3DSettings(1.0, 1.0f, 1.0f));
 }
 
 AudioManager::~AudioManager()
 {
-	ReleaseChannelGroups();
-	result = system->close();
-	ErrorCheck(result);
-	result = system->release();
-	ErrorCheck(result);
+	FMOD_ASSERT(fmod_studio->release());
 }
 
 void AudioManager::Initialise()
 {
-	// Nothing required as singleton instance will take care of constructor call...
+	// Empty for now
 }
 
-void AudioManager::StartSound(std::string const& name, bool loop, std::optional<Vec3> const& position, float volume)
+void AudioManager::Update()
 {
-	if (!listening) { return; }
-
-	// Try to find in singleSounds
-	if (singleSounds.find(name) != singleSounds.end())
-	{
-		StartSingleSound(name, loop, position);
-	}
-	// Try to find in groupedSounds
-	else if (groupedSounds.find(name) != groupedSounds.end())
-	{
-		StartGroupedSound(name, loop, position, volume);
-	}
-}
-
-void AudioManager::StartSingleSound(std::string const& name, bool loop, std::optional<Vec3> const& position, float volume)
-{
-	if (!listening) { return; }
-
-	if (singleSounds.find(name) == singleSounds.end())
-	{
-		CONSOLE_LOG(LEVEL_WARNING) << "Tried to start invalid sound: " << name;
-		return;
-	}
-	FMOD::Sound* sound					{ singleSounds[name].first };
-	FMOD::ChannelGroup* channelGroup	{ singleSounds[name].second };
-	channels[name].push_back(StartSound(sound, channelGroup, loop, position, volume));
-}
-
-void AudioManager::StartGroupedSound(std::string const& baseName, bool loop, std::optional<Vec3> const& position, float volume)
-{
-	if (!listening) { return; }
-
-	if (groupedSounds.find(baseName) == groupedSounds.end())
-	{
-		CONSOLE_LOG(LEVEL_WARNING) << "Tried to start invalid sound: " << baseName;
-		return;
-	}
-	FMOD::Sound* sound{};
-	FMOD::ChannelGroup* channelGroup{ groupedSounds[baseName].second };
-
-	// Get random sound from the group
-	std::unordered_map<std::string, FMOD::Sound*> group { groupedSounds[baseName].first };
-	size_t pos{ util::RandomRange(0, group.size()) };
-	auto it = group.begin();
-	std::advance(it, pos);
-	sound = it->second;
-	channels[it->first].push_back(StartSound(sound, channelGroup, loop, position, volume));
-}
-
-void AudioManager::StartSpecificGroupedSound(std::string const& name, bool loop, std::optional<Vec3> const& position, float volume)
-{
-	if (!listening) { return; }
-
-	// If it is a grouped sound, we can also generate a base name
-	std::string baseName{ RemoveTrailingNumbers(name) };
-
-	if (groupedSounds.find(baseName) == groupedSounds.end())
-	{
-		CONSOLE_LOG(LEVEL_WARNING) << "Tried to start invalid sound: " << baseName;
-		return;
-	}
-	FMOD::Sound* sound					{ groupedSounds[baseName].first[name] };
-	FMOD::ChannelGroup* channelGroup	{ groupedSounds[baseName].second };
-	channels[name].push_back(StartSound(sound, channelGroup, loop, position, volume));
-}
-
-void AudioManager::SetChannelGroup(std::string const& soundName, std::string const& group)
-{
-	if (channelGroups.find(group) == channelGroups.end())
-	{
-		CreateChannelGroup(group);
-	}
-
-	if (singleSounds.find(soundName) != singleSounds.end())
-	{
-		singleSounds[soundName].second = channelGroups[group];
-	}
-	else if (groupedSounds.find(soundName) != groupedSounds.end())
-	{
-		groupedSounds[soundName].second = channelGroups[group];
-	}
-	else
-	{
-		CONSOLE_LOG(LEVEL_WARNING) << "Tried to modify invalid sound: " << soundName;
-	}
-}
-
-void AudioManager::CreateUpdateSound(std::string const& filename, bool isGrouped)
-{
-	// Create a name without file extension
-	std::string name{ RemoveExtension(filename) };
-
-	// If it is a grouped sound, we can also generate a base name
-	std::string baseName{ RemoveTrailingNumbers(name) };
-
-	// If ResourceManager already has the sound, destroy it first
-	FMOD::Sound* soundResource{ ResourceManager::GetSound(name) };
-
-	// ResourceManager does not discern single from grouped sounds, so this is ok
-	if (soundResource) { ResourceManager::DeleteSound(name); }
-
-	// If the sound was previously assigned to a channel group, we should keep track of it
-	FMOD::ChannelGroup* channelGroup{ isGrouped ? groupedSounds[baseName].second : singleSounds[name].second };
-
-	// If no group was assigned, we give it the default channel group
-	if (!channelGroup) { channelGroup = channelGroups[std::string{ defaultGroup }]; }
-
-	// Get either folder name depending on input boolean
-	std::string folderName{ isGrouped ? GroupedSoundFolder() : SingleSoundFolder()};
-
-	// Use FMOD system to create a new sound
-	result = system->createSound((folderName + filename).c_str(), FMOD_2D, nullptr, &soundResource);
-	if (result != FMOD_OK)
-	{
-		CONSOLE_LOG(LEVEL_ERROR) << "Failed to load file: " << folderName + filename << " : " << FMOD_ErrorString(result);
-		return;
-	}
-
-	if (isGrouped)
-	{
-		// Store in groupedSounds
-		groupedSounds[baseName].first[name] = soundResource;
-		groupedSounds[baseName].second = channelGroup;
-		groupedSoundNames[baseName].erase(name); // Erase first to clear if it already exists
-		groupedSoundNames[baseName].insert(name);
-		CONSOLE_LOG(LEVEL_DEBUG) << "GroupedSound Create/Update: " << baseName << " | " << name;
-	}
-	else
-	{
-		// Store in singleSounds
-		singleSounds[name].first = soundResource;
-		singleSounds[name].second = channelGroup;
-		singleSoundNames.erase(name); // Erase first to clear if it already exists
-		singleSoundNames.insert(name);
-		CONSOLE_LOG(LEVEL_DEBUG) << "SingleSound Create/Update: " << name;
-	}
-	
-	// Store in ResourceManager
-	ResourceManager::LoadSound(name, soundResource);
-}
-
-bool AudioManager::CheckIsGrouped(std::string const& filename)
-{
-	std::string file = RemoveExtension(filename);
-	if (std::isdigit(file[file.size() - 1]))
-	{
-		return true;
-	}
-	return false;
-}
-
-void AudioManager::DeleteSound(std::string const& filename, bool isGrouped)
-{
-	// Create a name without file extension
-	std::string name{ RemoveExtension(filename) };
-
-	if (isGrouped) // Grouped Sounds
-	{
-		// If it is a grouped sound, we can also generate a base name
-		std::string baseName{ RemoveTrailingNumbers(name) };
-
-		// Error checking
-		if (groupedSounds.find(baseName) == groupedSounds.end())
-		{
-			CONSOLE_LOG(LEVEL_ERROR) << "Tried to delete sound that doesn't exist: " << baseName;
-			return;
-		}
-		if (groupedSounds[baseName].first.find(name) == groupedSounds[baseName].first.end())
-		{
-			CONSOLE_LOG(LEVEL_ERROR) << "Tried to delete sound that doesn't exist: " << name;
-			return;
-		}
-		
-		// Now we can finally erase it
-		groupedSounds[baseName].first.erase(name);
-		groupedSoundNames[baseName].erase(name);
-
-		// If it's empty, we erase the parent container
-		if (groupedSounds[baseName].first.empty())
-		{
-			groupedSounds.erase(baseName);
-			groupedSoundNames.erase(baseName);
-		}
-	}
-	else // Single Sounds
-	{
-		// Error checking
-		if (singleSounds.find(name) == singleSounds.end())
-		{
-			CONSOLE_LOG(LEVEL_ERROR) << "Tried to delete sound that doesn't exist: " << name;
-			return;
-		}
-
-		// Erase
-		singleSounds.erase(name);
-		singleSoundNames.erase(name);
-	}
-
-	// If ResourceManager has the sound, destroy it
-	FMOD::Sound* soundResource{ ResourceManager::GetSound(name) };
-
-	// ResourceManager does not discern single from grouped sounds, so this is ok
-	if (soundResource) { ResourceManager::DeleteSound(name); }
-
-	// Delete from the directory too
-	DeleteSoundFromDirectory(filename, isGrouped);
-}
-
-void AudioManager::CleanChannels()
-{
-	// Iterate through the unordered map of vectors
-	for (auto i = channels.begin(); i != channels.end(); ++i)
-	{
-		// Reference the vector
-		std::vector<FMOD::Channel*>& v = i->second;
-
-		// Iterate all FMOD::Channel* in the vector
-		for (auto j = v.begin(); j != v.end();)
-		{
-			FMOD::Channel* channel = *j;
-
-			// If nullptr, just erase and continue
-			if (!channel)
-			{
-				j = v.erase(j);
-				continue;
-			}
-			bool isPlaying{ false };
-			channel->isPlaying(&isPlaying);
-
-			// If not playing, stop and erase
-			if (!isPlaying)
-			{
-				channel->stop();
-				j = v.erase(j);
-			}
-			else // We only have to increment the iterator if nothing was erased
-			{
-				++j;
-			}
-		}
-	}
-}
-
-void AudioManager::ErrorCheck(FMOD_RESULT inResult)
-{
-	if (inResult != FMOD_OK)
-	{
-		CONSOLE_LOG(LEVEL_ERROR) << "FMOD: (" << inResult << ") " << FMOD_ErrorString(inResult);
-	}
-}
-
-void AudioManager::WindowFocusPauseResume(bool isFocused)
-{
-	ST<AudioManager>::Get()->SetIsListening(isFocused);
-	if (isFocused)
-	{
-		ST<AudioManager>::Get()->ResumeAllSounds();
-	}
-	else
-	{
-		ST<AudioManager>::Get()->PauseAllSounds();
-	}
-}
-
-std::string AudioManager::RemoveTrailingNumbers(std::string const& name)
-{
-	size_t pos = name.size();
-
-	while (pos > 0 && std::isdigit(name[pos - 1])) { --pos; }
-
-	return name.substr(0, pos);
-}
-
-std::string AudioManager::RemoveExtension(std::string const& filename)
-{
-	size_t pos = filename.find_last_of('.');
-
-	if (pos != std::string::npos && pos != 0)
-	{
-		return filename.substr(0, pos);
-	}
-	return filename;
-}
-
-FMOD::Channel* AudioManager::StartSound(FMOD::Sound* sound, FMOD::ChannelGroup* channelGroup, bool loop, std::optional<Vec3> const& position, float volume)
-{
-	FMOD::Channel* channel{};
-
-	// Potentially free up some FMOD resources
-	CleanChannels();
-
-	// Use FMOD system to play sound at paused state
-	result = system->playSound(sound, channelGroup, true, &channel);
-	ErrorCheck(result);
-
-	// Set loop if required
-	if (loop) { channel->setMode(FMOD_LOOP_NORMAL); }
-
-	// Apply spatial audio effects if position is provided
-	if (position)
-	{
-		channel->setMode(FMOD_3D);
-		FMOD_VECTOR pos{ position->x - listenerPosition.x, position->y - listenerPosition.y, position->z - listenerPosition.z };
-		FMOD_VECTOR vel{ 0.0f, 0.0f, 0.0f };
-		result = channel->set3DAttributes(&pos, &vel);
-		ErrorCheck(result);
-	}
-
-	// Set volume
-	channel->setVolume(volume);
-
-	// Unpause
-	channel->setPaused(false);
-
-	// Return the channel used to play this sound
-	return channel;
-}
-
-void AudioManager::StopSound(std::string const& name)
-{
-	std::vector<FMOD::Channel*>& v = channels[name];
-	for (FMOD::Channel* channel : v)
-	{
-		channel->stop();
-	}
+	FMOD_ASSERT(fmod_studio->update());
 }
 
 void AudioManager::StopAllSounds()
 {
-	for (auto& pair : channels)
+	channelManager.ClearAllChannels();
+	masterChannelGroup->stop();
+}
+
+void AudioManager::SetGroupVolume(AudioType type, float vol)
+{
+	switch (type)
 	{
-		for (FMOD::Channel* channel : pair.second)
-		{
-			channel->stop();
-		}
+		case AudioType::BGM:
+			channelGroups[0]->setVolume(vol);
+			break;
+		case AudioType::SFX:
+			channelGroups[1]->setVolume(vol);
+			break;
+	}
+
+	// Ensure master volume is never lower than any category volume, because that makes no sense
+	float masterVol;
+	masterChannelGroup->getVolume(&masterVol);
+	if (masterVol < vol)
+	{
+		masterChannelGroup->setVolume(vol);
 	}
 }
 
-void AudioManager::PauseAllSounds()
+void AudioManager::CreateSound(const std::string& name)
 {
-	for (auto& pair : channels)
+	// yc: this should be delegated to ResourceManager, when we have a proper asset management system
+	FMOD::Sound* sound = nullptr;
+	FMOD_ASSERT(system->createSound((ST<Filepaths>::Get()->soundFolder + name).c_str(), FMOD_DEFAULT, 0, &sound));
+
+	AudioAsset soundAsset(sound, name);
+	sound->setUserData((void*)&soundAsset.data); // Setup using fmod's own internal user data system for easy retrieval
+	
+	ResourceManager::LoadSound(name, soundAsset);
+	soundNames.push_back(name);
+}
+
+void AudioManager::FreeSound(FMOD::Sound* sound)
+{
+	StopAllSounds(); // Ensure no sounds are playing before we free, as a channel might still be referencing it
+	if (sound)
+		FMOD_ASSERT(sound->release());
+}
+
+uint32_t AudioManager::PlaySound(const std::string& name, bool loop, AudioType category)
+{
+	FMOD::Sound* sound = ResourceManager::GetSound(name).sound;
+	FMOD::Channel* channel = nullptr;
+
+	switch(category)
 	{
-		for (FMOD::Channel* channel : pair.second)
-		{
-			channel->setPaused(true);
-		}
+		case AudioType::BGM:
+			FMOD_ASSERT(system->playSound(sound, channelGroups[0], false, &channel));
+			break;
+		case AudioType::SFX:
+			FMOD_ASSERT(system->playSound(sound, channelGroups[1], false, &channel));
+			break;
+		case AudioType::END:
+			FMOD_ASSERT(system->playSound(sound, masterChannelGroup, false, &channel));
+			break; // Bypass to universal play
+	}
+
+	if (loop) 
+		FMOD_ASSERT(channel->setMode(FMOD_LOOP_NORMAL));
+
+	return channelManager.RegisterChannel(channel);
+}
+
+uint32_t AudioManager::PlaySound3D(const std::string& name, bool loop, Vec3 position, AudioType category, std::pair<float, float> rolloff)
+{
+	FMOD::Sound* sound = ResourceManager::GetSound(name).sound;
+	FMOD::Channel* channel = nullptr;
+
+	switch (category)
+	{
+	case AudioType::BGM:
+		FMOD_ASSERT(system->playSound(sound, channelGroups[0], true, &channel));
+		break;
+	case AudioType::SFX:
+		FMOD_ASSERT(system->playSound(sound, channelGroups[1], true, &channel));
+		break;
+	case AudioType::END:
+		FMOD_ASSERT(system->playSound(sound, masterChannelGroup, true, &channel));
+		break; // Bypass to universal play
+	}
+
+	// Linear rolloff assumes complete silence at max distance - can potentially look at custom curves later/allowing user to define their own curves
+	FMOD_ASSERT(channel->setMode(FMOD_3D | FMOD_3D_LINEARROLLOFF));
+
+	if (loop) 
+		FMOD_ASSERT(channel->setMode(FMOD_LOOP_NORMAL));
+
+	FMOD_ASSERT(channel->set3DMinMaxDistance(rolloff.first, rolloff.second));
+
+	FMOD_VECTOR initialVel = { 0.0f, 0.0f, 0.0f };
+	FMOD_VECTOR fmodVecPos = { position.x, position.y, position.z };
+    FMOD_ASSERT(channel->set3DAttributes(&fmodVecPos, &initialVel));
+
+	FMOD_ASSERT(channel->setPaused(false));
+
+	return channelManager.RegisterChannel(channel);
+}
+
+void AudioManager::StopSound(uint32_t handle)
+{
+	if (auto channel{ channelManager.GetChannel(handle) })
+	{
+		channel->stop();
+		channelManager.DeleteChannel(handle);
 	}
 }
 
-void AudioManager::ResumeAllSounds()
+bool AudioManager::IsPlaying(uint32_t handle)
 {
-	for (auto& pair : channels)
+	auto channel{ channelManager.GetChannel(handle) };
+	if (!channel)
+		return false;
+
+	bool isPlaying = true;
+
+	// FMOD automatically clears channels, but it does not auto clear our own handle, so an invalid error will occur due to the auto cleanup, need to check for this. 
+	FMOD_RESULT channel_status = channel->isPlaying(&isPlaying);
+	if (channel_status == FMOD_ERR_INVALID_HANDLE)
 	{
-		for (FMOD::Channel* channel : pair.second)
-		{
-			channel->setPaused(false);
-		}
+		channelManager.DeleteChannel(handle);
+		return false;
 	}
-}
-
-void AudioManager::SetSoundVolume(std::string const& name, float volume)
-{
-	std::vector<FMOD::Channel*>& v = channels[name];
-	for (FMOD::Channel* channel : v)
+	else if (channel_status != FMOD_OK)
 	{
-		channel->setVolumeRamp(true);
-		channel->setVolume(volume);
-	}
-}
-
-float AudioManager::GetGroupVolume(std::string const& group)
-{
-	if (channelGroups.find(group) == channelGroups.end())
-	{
-		CONSOLE_LOG(LEVEL_WARNING) << "Tried to read invalid group: " << group;
-		return -1.0f;
-	}
-	FMOD::ChannelGroup* channelGroup = channelGroups[group];
-	float ret{};
-	channelGroup->getVolume(&ret);
-	return ret;
-}
-
-float AudioManager::GetGroupPitch(std::string const& group)
-{
-	if (channelGroups.find(group) == channelGroups.end())
-	{
-		CONSOLE_LOG(LEVEL_WARNING) << "Tried to read invalid group: " << group;
-		return -1.0f;
-	}
-	FMOD::ChannelGroup* channelGroup = channelGroups[group];
-	float ret{};
-	channelGroup->getPitch(&ret);
-	return ret;
-}
-
-void AudioManager::SetGroupVolume(float volume, std::string const& group)
-{
-	// If unable to find group, create it first
-	if (channelGroups.find(group) == channelGroups.end())
-	{
-		CreateChannelGroup(group);
-	}
-	FMOD::ChannelGroup* channelGroup = channelGroups[group];
-	channelGroup->setVolume(volume);
-}
-
-void AudioManager::SetGroupPitch(float pitch, std::string const& group)
-{
-	if (channelGroups.find(group) == channelGroups.end())
-	{
-		CreateChannelGroup(group);
-	}
-	FMOD::ChannelGroup* channelGroup = channelGroups[group];
-	channelGroup->setPitch(pitch);
-}
-
-void AudioManager::InterpolateGroupVolume(float targetVolume, float duration, std::string const& group)
-{
-	if (channelGroups.find(group) == channelGroups.end())
-	{
-		CreateChannelGroup(group);
-	}
-	FMOD::ChannelGroup* channelGroup = channelGroups[group];
-
-	// Get sample rate
-	int sampleRate = 0;
-	system->getSoftwareFormat(&sampleRate, nullptr, nullptr);
-
-	// Get current DSP clock
-	unsigned long long clock = 0;
-	channelGroup->getDSPClock(nullptr, &clock);
-
-	// Calculate fade points
-	unsigned long long start = clock;
-	unsigned long long end = start + static_cast<unsigned long long>(duration * sampleRate);
-
-	// Apply
-	channelGroup->addFadePoint(start, GetGroupVolume(group));
-	channelGroup->addFadePoint(end, targetVolume);
-}
-
-void AudioManager::DebugPrint()
-{
-	int i{};
-	system->getChannelsPlaying(&i);
-	CONSOLE_LOG(LEVEL_DEBUG) << "Sound Channels: " << i;
-}
-
-const std::string& AudioManager::SingleSoundFolder()
-{
-	return ST<Filepaths>::Get()->soundSingleFolder;
-}
-
-const std::string& AudioManager::GroupedSoundFolder()
-{
-	return ST<Filepaths>::Get()->soundGroupedFolder;
-}
-
-std::set<std::string> AudioManager::GetSingleSoundNames()
-{
-	return singleSoundNames;
-}
-
-std::map<std::string, std::set<std::string>> AudioManager::GetGroupedSoundNames()
-{
-	return groupedSoundNames;
-}
-
-bool AudioManager::IsSoundPlaying(std::string const& name)
-{
-	if (channels.find(name) == channels.end())
-	{
+		CONSOLE_LOG(LEVEL_ERROR) << "FMOD: (" << channel_status << ") " << FMOD_ErrorString(channel_status) << " at line " << __LINE__ << " in file " << __FILE__;
 		return false;
 	}
 
-	// Iterate all channels under this name
-	for (FMOD::Channel* channel : channels[name])
+	return isPlaying;
+}
+
+void AudioManager::UpdateListener(const Vec3& pos, const Vec3& vel)
+{
+	FMOD_VECTOR fmodPos = { pos.x, pos.y, pos.z };
+	FMOD_VECTOR fmodVel = { vel.x, vel.y, vel.z };
+    FMOD_VECTOR forward = { 0.0f, 0.0f, -1.0f };		// Seems we are using Z backwards. This ensures that positive x value = sound comes from right ear
+    FMOD_VECTOR up      = { 0.0f, 1.0f, 0.0f };
+
+    FMOD_ASSERT(system->set3DListenerAttributes(0, &fmodPos, &fmodVel, &forward, &up));
+}
+
+void AudioManager::ConfigureListener(float dopplerScale, float distanceFactor, float rolloffScale)
+{
+	FMOD_ASSERT(system->set3DSettings(dopplerScale, distanceFactor, rolloffScale));
+}
+
+const std::vector<std::string>& AudioManager::GetSoundNames() const
+{
+	return soundNames;
+}
+
+void AudioManager::SetChannelPosition(uint32_t handle, const Vec3& pos, const Vec3& vel)
+{
+	if (auto channel{ channelManager.GetChannel(handle) })
 	{
-		bool isPlaying{ false };
-		channel->isPlaying(&isPlaying);
-		if (isPlaying) { return true; } // Return true if it's still playing
+		FMOD_VECTOR f_pos = { pos.x, pos.y, pos.z };
+		FMOD_VECTOR f_vel = { vel.x, vel.y, vel.z };
+		FMOD_ASSERT(channel->set3DAttributes(&f_pos, &f_vel));
+	}
+}
+
+const unsigned int AudioManager::GetChannelPosition(uint32_t handle) const
+{
+	unsigned int currentPos = 0;
+	if (auto channel{ channelManager.GetChannel(handle) })
+		channel->getPosition(&currentPos, FMOD_TIMEUNIT_MS);
+	return currentPos;
+}
+
+FMOD::Sound* AudioManager::GetSound(uint32_t handle) const
+{
+	FMOD::Sound* sound{};
+	if (auto channel{ channelManager.GetChannel(handle) })
+		FMOD_ASSERT(channel->getCurrentSound(&sound));
+
+	return sound;
+}
+
+void AudioManager::SetChannel3D(uint32_t handle, bool is3D)
+{
+	if (auto channel{ channelManager.GetChannel(handle) })
+		FMOD_ASSERT(channel->setMode(is3D ? FMOD_3D : FMOD_2D));
+}
+
+bool AudioManager::IsChannel3D(uint32_t handle) const
+{
+	if (auto channel{ channelManager.GetChannel(handle) })
+	{
+		FMOD_MODE mode;
+		FMOD_ASSERT(channel->getMode(&mode));
+		return (mode & FMOD_3D) != 0;
 	}
 	return false;
 }
 
-void AudioManager::ReleaseChannelGroups()
+void AudioManager::SetChannel3DAttributes(uint32_t handle, const Vec3& pos, const Vec3& vel)
 {
-	// Iterate through all soundResource groups 
-	for (auto it = channelGroups.begin(); it != channelGroups.end(); ++it)
+	if (!IsChannel3D(handle))
+		return;
+
+	if (auto channel{ channelManager.GetChannel(handle) })
 	{
-		// Release resources
-		it->second->release();
-		it->second = nullptr;
-	}
-	channelGroups.clear();
-}
-
-void AudioManager::SetIsListening(bool isListening)
-{
-	listening = isListening;
-}
-
-void AudioManager::UpdateListenerAttributes(Vec3 const& position)
-{
-	listenerPosition = position;
-}
-
-void AudioManager::UpdateSpatialProperties(float minDistance, float maxDistance, float dopplerScale, float distanceFactor, float rolloffScale)
-{
-	for (auto& elem : singleSounds)
-	{
-		elem.second.first->set3DMinMaxDistance(minDistance, maxDistance);
-	}
-
-	for (auto& cont : groupedSounds)
-	{
-		for (auto& elem : cont.second.first)
-		{
-			elem.second->set3DMinMaxDistance(minDistance, maxDistance);
-		}
-	}
-	system->set3DSettings(dopplerScale, distanceFactor, rolloffScale);
-}
-
-void AudioManager::UpdateSystem()
-{
-	system->update();
-}
-
-void AudioManager::SetBaseVolume(std::string channelGroupName, float volume)
-{
-	// If unable to find group, create it first
-	if (channelGroups.find(channelGroupName) == channelGroups.end())
-	{
-		CreateChannelGroup(channelGroupName);
-	}
-	baseChannelGroups[channelGroupName]->setVolume(volume);
-}
-
-float AudioManager::GetBaseVolume(std::string channelGroupName)
-{
-	float volume;
-	baseChannelGroups[channelGroupName]->getVolume(&volume);
-	return volume;
-}
-
-std::unordered_map<std::string, std::vector<FMOD::Channel*>> const& AudioManager::GetChannels()
-{
-	return channels;
-}
-
-FMOD::ChannelGroup* AudioManager::CreateChannelGroup(std::string const& name)
-{
-	// If it already exists, return
-	if (channelGroups[name])
-	{
-		CONSOLE_LOG(LEVEL_DEBUG) << "No new Channel Group created as it already exists: " << name;
-		return channelGroups[name];
-	}
-
-	// Else create a new channel group
-	FMOD::ChannelGroup* group{ nullptr };
-	result = system->createChannelGroup(name.c_str(), &group);
-	ErrorCheck(result);
-	group->setVolume(1.0f);
-	group->setPitch(1.0f);
-
-	// Create a compressor (because why not)
-	FMOD::DSP* compressor = nullptr;
-	result = system->createDSPByType(FMOD_DSP_TYPE_COMPRESSOR, &compressor);
-	ErrorCheck(result);
-
-	// Set DSP params
-	compressor->setParameterFloat(FMOD_DSP_COMPRESSOR_ATTACK, 20.0f);
-	compressor->setParameterFloat(FMOD_DSP_COMPRESSOR_GAINMAKEUP, 0.0f);
-	compressor->setParameterFloat(FMOD_DSP_COMPRESSOR_RATIO, 4.0f);
-	compressor->setParameterFloat(FMOD_DSP_COMPRESSOR_RELEASE, 20.0f);
-	compressor->setParameterFloat(FMOD_DSP_COMPRESSOR_THRESHOLD, -20.0f);
-
-	// Apply DSP
-	result = group->addDSP(0, compressor);
-	ErrorCheck(result);
-	compressor->setActive(true);
-
-	// Whenever a new channel group is created, also create a base channel group and nest within it
-	FMOD::ChannelGroup* baseGroup{ nullptr };
-	result = system->createChannelGroup(name.c_str(), &baseGroup);
-	ErrorCheck(result);
-	baseGroup->setVolume(1.0f);
-	baseGroup->setPitch(1.0f);
-	baseGroup->addGroup(group, false);
-	baseChannelGroups[name] = baseGroup;
-
-	return channelGroups[name] = group;
-}
-
-std::vector<std::string> AudioManager::GetFilenames(const std::string& folderName)
-{
-	std::vector<std::string> filenames{};
-
-	// For each name, push into vector
-	for (std::filesystem::directory_entry const& dir : std::filesystem::directory_iterator(folderName))
-	{
-		filenames.push_back(dir.path().filename().string());
-	}
-
-	// Debug
-	CONSOLE_LOG(LEVEL_DEBUG) << "Filenames: ";
-	for (std::string const& name : filenames)
-	{
-		CONSOLE_LOG(LEVEL_DEBUG) << name;
-	}
-	return filenames;
-}
-
-void AudioManager::DeleteSoundFromDirectory(std::string const& filename, bool isGrouped)
-{
-	std::filesystem::path current = std::filesystem::current_path();
-	std::filesystem::path folder = isGrouped ? GroupedSoundFolder() : SingleSoundFolder();
-	std::filesystem::path name = filename + ".wav";
-	std::filesystem::path dst = current / folder / name;
-
-	try
-	{
-		if (std::filesystem::exists(dst))
-		{
-			if (std::filesystem::remove(dst))
-			{
-				CONSOLE_LOG(LEVEL_DEBUG) << "File deleted successfully: " << name;
-			}
-			else
-			{
-				CONSOLE_LOG(LEVEL_WARNING) << "File delete failed: " << name;
-			}
-		}
-		else
-		{
-			CONSOLE_LOG(LEVEL_WARNING) << "Tried to delete a file that does not exist: " << dst;
-		}
-	}
-	catch (std::filesystem::filesystem_error const& error)
-	{
-		CONSOLE_LOG(LEVEL_WARNING) << "Filesystem error: " << error.what();
-	}
-	catch (std::exception const& error)
-	{
-		CONSOLE_LOG(LEVEL_WARNING) << "Exception caught: " << error.what();
+		FMOD_VECTOR f_pos = { pos.x, pos.y, pos.z };
+		FMOD_VECTOR f_vel = { vel.x, vel.y, vel.z };
+		FMOD_ASSERT(channel->set3DAttributes(&f_pos, &f_vel));
 	}
 }
 
-AudioReference::AudioReference(const char* defaultName)
-	: name{ defaultName }
+void AudioManager::SetVolume(uint32_t handle, float vol)
+{
+	if (auto channel{ channelManager.GetChannel(handle) })
+		FMOD_ASSERT(channel->setVolume(vol));
+}
+
+AudioManager::ChannelManager::ChannelManager(uint16_t maxChannels)
+	: maxChannels{ maxChannels }
 {
 }
 
-AudioReference::operator const std::string&() const
+uint32_t AudioManager::ChannelManager::RegisterChannel(FMOD::Channel* channel)
 {
-	return name;
+	if (channelMap.size() >= maxChannels)
+	{
+		CONSOLE_LOG(LEVEL_ERROR) << "AudioManager: Exceeded maximum number of concurrent channels!";
+		return INVALID_HANDLE;
+	}
+
+	uint32_t handle = util::Rand_UID_32();
+	while (channelMap.find(handle) != channelMap.end())
+		handle = util::Rand_UID_32();
+
+	channelMap[handle] = channel;
+	return handle;
 }
 
-void AudioReference::EditorDraw(const char* label)
+FMOD::Channel* AudioManager::ChannelManager::GetChannel(uint32_t handle) const
 {
-	gui::TextBoxReadOnly(label, ICON_FA_VOLUME_HIGH + name);
+	auto channelIter{ channelMap.find(handle) };
+	return (channelIter != channelMap.end() ? channelIter->second : nullptr);
+}
 
-	gui::PayloadTarget<std::string>("SOUND", [&name = name](const std::string& soundName) -> void {
-		name = soundName;
-	});
+void AudioManager::ChannelManager::DeleteChannel(uint32_t handle)
+{
+	channelMap.erase(handle);
+}
+
+void AudioManager::ChannelManager::ClearAllChannels()
+{
+	channelMap.clear();
 }
