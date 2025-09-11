@@ -175,13 +175,16 @@ target_link_libraries(Engine PUBLIC
 )
 
 target_compile_options(Engine PRIVATE /W4 /MP /bigobj)
-
 target_compile_definitions(Engine PUBLIC
     TRACY_ENABLE
     -DQUILL_DISABLE_NON_PREFIXED_MACROS
     $<$<CONFIG:Debug>:IMGUI_ENABLED>
 )
+
 if(MSVC)
+    target_compile_options(Engine PUBLIC
+        /wd4819 # Unicode characters in non-unicode formatted source files
+    )
     target_compile_definitions(Engine PUBLIC
         WIN32_LEAN_AND_MEAN
     )
@@ -243,7 +246,6 @@ if(MSVC)
     )
 	string(APPEND CMAKE_EXE_LINKER_FLAGS_DEBUG " /ignore:4099 /ignore:4098")
     string(APPEND CMAKE_SHARED_LINKER_FLAGS_DEBUG " /ignore:4099 /ignore:4098")
-    # add_compile_options(/wd4201) # Example: nonstandard extension used : nameless struct/union
     add_link_options(
          $<$<CONFIG:Release>:/LTCG /OPT:REF /OPT:ICF>
     )
