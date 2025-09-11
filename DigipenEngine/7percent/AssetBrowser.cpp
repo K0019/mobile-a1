@@ -1782,7 +1782,8 @@ void AssetBrowser::RenderSoundTable()
         {
             if (ST<AudioManager>::Get()->IsPlaying(currentPreviewSound))
             {
-                currentPreviewSound->stop();
+				ST<AudioManager>::Get()->StopSound(currentPreviewSound);
+                currentPreviewSound = 0;
             }
         
             AudioAsset currentAsset = ResourceManager::GetSound(name);
@@ -1793,9 +1794,9 @@ void AssetBrowser::RenderSoundTable()
             else
             {
                 if (use3DMode)
-                    ST<AudioManager>::Get()->PlaySound3D(currentPreviewSound, name, false, Vec3{}, AudioType::END);
+                    currentPreviewSound = ST<AudioManager>::Get()->PlaySound3D(name, false, Vec3{}, AudioType::END);
                 else 
-					ST<AudioManager>::Get()->PlaySound(currentPreviewSound, name, false, AudioType::END);
+					currentPreviewSound = ST<AudioManager>::Get()->PlaySound(name, false, AudioType::END);
 
                 lastPreviewAudio = currentAsset;
             }
@@ -1828,16 +1829,14 @@ void AssetBrowser::RenderSoundTable()
     if (ST<AudioManager>::Get()->IsPlaying(currentPreviewSound))
     {
         playingName = lastPreviewAudio.data.name; 
-        FMOD::Sound* currentSound = nullptr;
-        currentPreviewSound->getCurrentSound(&currentSound);
+		FMOD::Sound* currentSound = ST<AudioManager>::Get()->GetSound(currentPreviewSound);
 
         if (currentSound)
         {
-            unsigned int currentPos = 0;
-            unsigned int totalLength = 0;
-
             // Get current position and total length in milliseconds
-            currentPreviewSound->getPosition(&currentPos, FMOD_TIMEUNIT_MS);
+            unsigned int currentPos = ST<AudioManager>::Get()->GetChannelPosition(currentPreviewSound);
+            
+            unsigned int totalLength = 0;
             currentSound->getLength(&totalLength, FMOD_TIMEUNIT_MS);
 
             // Calculate progress as a fraction (0.0 to 1.0)
@@ -1878,29 +1877,23 @@ void AssetBrowser::RenderSoundTable()
     {
         if (use3DMode)
         {
-			FMOD_VECTOR f_pos = { pos.x, pos.y, pos.z };
-			FMOD_VECTOR f_vel = { vel.x, vel.y, vel.z };
-            currentPreviewSound->set3DAttributes(&f_pos, &f_vel);
-            currentPreviewSound->setMode(FMOD_3D);
+			ST<AudioManager>::Get()->SetChannel3DAttributes(currentPreviewSound, pos, vel);
+			ST<AudioManager>::Get()->SetChannel3D(currentPreviewSound, true);
         }
         else
         {
-			currentPreviewSound->setMode(FMOD_2D);
+			ST<AudioManager>::Get()->SetChannel3D(currentPreviewSound, false);
         }
     }
 
     ImGui::Text("Sound Position (Assumes listener is at origin)");
     if (ImGui::DragFloat3("Position", (float*)&pos, 0.1f))
     {
-        FMOD_VECTOR f_pos = { pos.x, pos.y, pos.z };
-		FMOD_VECTOR f_vel = { vel.x, vel.y, vel.z };
-        currentPreviewSound->set3DAttributes(&f_pos, &f_vel);
+        ST<AudioManager>::Get()->SetChannel3DAttributes(currentPreviewSound, pos, vel);
     }
     if (ImGui::DragFloat3("Velocity", (float*)&vel, 0.1f))
     {
-        FMOD_VECTOR f_pos = { pos.x, pos.y, pos.z };
-		FMOD_VECTOR f_vel = { vel.x, vel.y, vel.z };
-        currentPreviewSound->set3DAttributes(&f_pos, &f_vel);
+        ST<AudioManager>::Get()->SetChannel3DAttributes(currentPreviewSound, pos, vel);
     }
 
     // Volume control
@@ -1909,7 +1902,7 @@ void AssetBrowser::RenderSoundTable()
     {
         if (ST<AudioManager>::Get()->IsPlaying(currentPreviewSound)) 
         {
-            currentPreviewSound->setVolume(previewVolume);
+			ST<AudioManager>::Get()->SetVolume(currentPreviewSound, previewVolume);
         }
     }
 
@@ -1919,7 +1912,8 @@ void AssetBrowser::RenderSoundTable()
     {
         if (ST<AudioManager>::Get()->IsPlaying(currentPreviewSound)) 
         {
-            currentPreviewSound->stop();
+			ST<AudioManager>::Get()->StopSound(currentPreviewSound);
+            currentPreviewSound = 0;
             lastPreviewAudio = {};
         }
     }

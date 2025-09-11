@@ -290,7 +290,7 @@ class AssetBrowser {
     float SIDEBAR_WIDTH = 150.0f; /**< Width of the sidebar */
     float lastFrameTime = 0.0f; /**< Time of the last frame */
     float accumulatedTime = 0.0f; /**< Accumulated time for animation preview */
-	FMOD::Channel* currentPreviewSound = nullptr; /**< Current preview sound channel */
+	uint32_t currentPreviewSound = 0; /**< Current preview sound channel */
 	AudioAsset lastPreviewAudio; /**< Current preview audio information */
     bool use3DMode = false;
 #endif

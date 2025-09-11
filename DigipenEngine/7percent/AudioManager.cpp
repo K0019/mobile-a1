@@ -43,10 +43,11 @@ void AudioManager::Update()
 
 void AudioManager::StopAllSounds()
 {
+	channelManager.channelMap.clear(); 
 	masterChannelGroup->stop();
 }
 
-void AudioManager::SetBaseVolume(AudioType type, float vol)
+void AudioManager::SetGroupVolume(AudioType type, float vol)
 {
 	switch (type)
 	{
@@ -87,9 +88,11 @@ void AudioManager::FreeSound(FMOD::Sound* sound)
 		FMOD_ASSERT(sound->release());
 }
 
-void AudioManager::PlaySound(FMOD::Channel*& channel, const std::string& name, bool loop, AudioType category)
+uint32_t AudioManager::PlaySound(const std::string& name, bool loop, AudioType category)
 {
 	FMOD::Sound* sound = ResourceManager::GetSound(name).sound;
+	FMOD::Channel* channel = nullptr;
+
 	switch(category)
 	{
 		case AudioType::BGM:
@@ -103,13 +106,17 @@ void AudioManager::PlaySound(FMOD::Channel*& channel, const std::string& name, b
 			break; // Bypass to universal play
 	}
 
-	if (loop && channel) 
+	if (loop) 
 		FMOD_ASSERT(channel->setMode(FMOD_LOOP_NORMAL));
+
+	return channelManager.RegisterChannel(channel);
 }
 
-void AudioManager::PlaySound3D(FMOD::Channel*& channel, const std::string& name, bool loop, Vec3 position, AudioType category, std::pair<float, float> rolloff)
+uint32_t AudioManager::PlaySound3D(const std::string& name, bool loop, Vec3 position, AudioType category, std::pair<float, float> rolloff)
 {
 	FMOD::Sound* sound = ResourceManager::GetSound(name).sound;
+	FMOD::Channel* channel = nullptr;
+
 	switch (category)
 	{
 	case AudioType::BGM:
@@ -136,24 +143,36 @@ void AudioManager::PlaySound3D(FMOD::Channel*& channel, const std::string& name,
     FMOD_ASSERT(channel->set3DAttributes(&fmodVecPos, &initialVel));
 
 	FMOD_ASSERT(channel->setPaused(false));
+
+	return channelManager.RegisterChannel(channel);
 }
 
-void AudioManager::StopSound(FMOD::Channel*& channel)
+void AudioManager::StopSound(uint32_t id)
 {
-	if (channel)
-		FMOD_ASSERT(channel->stop());
+	if (channelManager.channelMap.find(id) != channelManager.channelMap.end())
+	{
+		if (channelManager.channelMap[id].channel)
+		{
+			FMOD_ASSERT(channelManager.channelMap[id].channel->stop());
+			channelManager.channelMap.erase(id);
+		}
+	}
 }
 
-bool AudioManager::IsPlaying(FMOD::Channel*& channel)
+bool AudioManager::IsPlaying(uint32_t id)
 {
-	if (!channel) return false;
+	if (channelManager.channelMap.find(id) == channelManager.channelMap.end())
+	{
+		return false;
+	}
 
-	bool isPlaying;
+	bool isPlaying = true;
 
 	// FMOD automatically clears channels, but it does not auto clear our own handle, so an invalid error will occur due to the auto cleanup, need to check for this. 
-	FMOD_RESULT channel_status = channel->isPlaying(&isPlaying);
+	FMOD_RESULT channel_status = channelManager.channelMap[id].channel->isPlaying(&isPlaying);
 	if (channel_status == FMOD_ERR_INVALID_HANDLE)
 	{
+		channelManager.channelMap.erase(id);
 		return false;
 	}
 	else if (channel_status != FMOD_OK)
@@ -183,4 +202,119 @@ void AudioManager::ConfigureListener(float dopplerScale, float distanceFactor, f
 const std::vector<std::string>& AudioManager::GetSoundNames() const
 {
 	return soundNames;
+}
+
+FMOD::Channel* AudioManager::CreateChannel(FMOD::Sound* sound, AudioType type)
+{
+	FMOD::Channel* channel = nullptr;
+	switch(type)
+	{
+		case AudioType::BGM:
+			FMOD_ASSERT(system->playSound(sound, channelGroups[0], true, &channel));
+			break;
+		case AudioType::SFX:
+			FMOD_ASSERT(system->playSound(sound, channelGroups[1], true, &channel));
+			break;
+		case AudioType::END:
+			FMOD_ASSERT(system->playSound(sound, masterChannelGroup, true, &channel));
+			break; // Bypass to universal play
+	}
+
+	return channel;
+}
+
+void AudioManager::SetChannelPosition(uint32_t channel, const Vec3& pos, const Vec3& vel)
+{
+	if (channelManager.channelMap.find(channel) != channelManager.channelMap.end())
+	{
+		FMOD_VECTOR f_pos = { pos.x, pos.y, pos.z };
+		FMOD_VECTOR f_vel = { vel.x, vel.y, vel.z };
+		FMOD_ASSERT(channelManager.channelMap[channel].channel->set3DAttributes(&f_pos, &f_vel));
+	}
+}
+
+const unsigned int AudioManager::GetChannelPosition(uint32_t channel)
+{
+	unsigned int currentPos;
+	if (channelManager.channelMap.find(channel) != channelManager.channelMap.end())
+	{
+		channelManager.channelMap[channel].channel->getPosition(&currentPos, FMOD_TIMEUNIT_MS);
+	}
+	return currentPos;
+}
+
+FMOD::Sound* AudioManager::GetSound(uint32_t channel) const
+{
+	FMOD::Sound* sound = nullptr;
+	if (channelManager.channelMap.find(channel) != channelManager.channelMap.end())
+	{
+		channelManager.channelMap.at(channel).channel->getCurrentSound(&sound);
+	}
+	return sound;
+}
+
+void AudioManager::SetChannel3D(uint32_t channel, bool is3D)
+{
+	if (channelManager.channelMap.find(channel) != channelManager.channelMap.end())
+	{
+		if (is3D)
+		{
+			FMOD_ASSERT(channelManager.channelMap[channel].channel->setMode(FMOD_3D));
+		}
+		else
+		{
+			FMOD_ASSERT(channelManager.channelMap[channel].channel->setMode(FMOD_2D));
+		}
+	}
+}
+
+void AudioManager::SetChannel3DAttributes(uint32_t channel, const Vec3& pos, const Vec3& vel)
+{
+	if (!IsChannel3D(channel))
+		return;
+
+	if (channelManager.channelMap.find(channel) != channelManager.channelMap.end())
+	{
+		FMOD_VECTOR f_pos = { pos.x, pos.y, pos.z };
+		FMOD_VECTOR f_vel = { vel.x, vel.y, vel.z };
+		FMOD_ASSERT(channelManager.channelMap[channel].channel->set3DAttributes(&f_pos, &f_vel));
+	}
+}
+
+void AudioManager::SetVolume(uint32_t channel, float vol)
+{
+	if (channelManager.channelMap.find(channel) != channelManager.channelMap.end())
+	{
+		FMOD_ASSERT(channelManager.channelMap[channel].channel->setVolume(vol));
+	}
+}
+
+uint32_t AudioManager::ChannelManager::GetNextHandle()
+{
+	uint32_t handle = currentChannelIndex;
+	currentChannelIndex++;
+	while (currentChannelIndex == INVALID_HANDLE || channelMap.find(currentChannelIndex) != channelMap.end()) 
+	{
+		currentChannelIndex++;
+	}
+	return handle;
+}
+
+uint32_t AudioManager::ChannelManager::RegisterChannel(FMOD::Channel* channel, float minDist, float maxDist, float doppler, float distFactor, float rolloff)
+{
+	uint32_t handle = GetNextHandle();
+	channelMap[handle] = { channel, minDist, maxDist, doppler, distFactor, rolloff };
+
+	return handle;
+}
+
+bool AudioManager::IsChannel3D(uint32_t handle)
+{
+	if (channelManager.channelMap.find(handle) != channelManager.channelMap.end())
+	{
+		FMOD_MODE mode;
+		FMOD_ASSERT(channelManager.channelMap[handle].channel->getMode(&mode));
+		return (mode & FMOD_3D) != 0;
+	}
+	return false;
 }

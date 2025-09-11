@@ -16,7 +16,7 @@ void AudioSourceComponent::OnStart()
 
 void AudioSourceComponent::Play(AudioType a, std::string name)
 {
-	ST<AudioManager>::Get()->PlaySound(channel, name, false, a);
+	channel_handle = ST<AudioManager>::Get()->PlaySound(name, false, a);
 }
 
 void AudioSourceComponent::EditorDraw()

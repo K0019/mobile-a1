@@ -43,7 +43,7 @@ public:
 	float rolloffScale;
 
 private:
-	FMOD::Channel* channel = nullptr;
+	uint32_t channel_handle = 0;
 	virtual void EditorDraw() override;
 
 	property_vtable()

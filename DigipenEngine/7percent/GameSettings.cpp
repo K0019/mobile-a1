@@ -98,10 +98,10 @@ void GameSettings::ApplyFullscreen()
 void GameSettings::ApplyVolumes()
 {
 	// Set volume for background music
-	ST<AudioManager>::Get()->SetBaseVolume(AudioType::BGM, m_volumeBGM);
+	ST<AudioManager>::Get()->SetGroupVolume(AudioType::BGM, m_volumeBGM);
 
 	// Set volume for sound effects
-	ST<AudioManager>::Get()->SetBaseVolume(AudioType::SFX, m_volumeSFX);
+	ST<AudioManager>::Get()->SetGroupVolume(AudioType::SFX, m_volumeSFX);
 }
 
 Filepaths::Filepaths()

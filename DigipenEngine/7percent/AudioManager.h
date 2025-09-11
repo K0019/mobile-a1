@@ -54,6 +54,28 @@ struct AudioAsset
 class AudioManager
 {
 public:
+	class ChannelManager
+	{
+		struct ChannelInstance
+		{
+			FMOD::Channel* channel = nullptr;
+			float minDistance;
+			float maxDistance;
+			float dopperScale;
+			float distanceFactor;
+			float rolloffScale;
+		};
+
+		static constexpr uint32_t INVALID_HANDLE = 0;
+		uint32_t GetNextHandle();
+
+	public:
+		uint32_t RegisterChannel(FMOD::Channel* channel, float minDist = 20.f, float maxDist = 50.f, float doppler = 1.f, float distFactor = 0.01f, float rolloff = 0.1f);
+
+		uint32_t currentChannelIndex = 1;
+		std::unordered_map<uint32_t, ChannelInstance> channelMap;
+	};
+
 	// Allow ST to access private members.
 	friend class ST<AudioManager>;
 	AudioManager();
@@ -66,10 +88,18 @@ public:
 	void FreeSound(FMOD::Sound* sound);
 
 	// Default FMOD System call
-	void PlaySound(FMOD::Channel*& channel, const std::string& name, bool loop, AudioType category = AudioType::END); // Universal bypass call to FMOD
-	void StopSound(FMOD::Channel*& channel);
-	bool IsPlaying(FMOD::Channel*& channel);
-	void PlaySound3D(FMOD::Channel*& channel, const std::string& name, bool loop, Vec3 position, AudioType category = AudioType::END, std::pair<float, float> rolloff_minmax = { 2.f, 50.f });
+	uint32_t PlaySound(const std::string& name, bool loop, AudioType category = AudioType::END); // Universal bypass call to FMOD
+	void StopSound(uint32_t channel);
+	bool IsPlaying(uint32_t channel);
+	const unsigned int GetChannelPosition(uint32_t channel);
+	FMOD::Sound* GetSound(uint32_t channel) const;
+	void SetChannelPosition(uint32_t channel, const Vec3& pos, const Vec3& vel = Vec3());
+	void SetVolume(uint32_t channel, float vol);
+
+	uint32_t PlaySound3D(const std::string& name, bool loop, Vec3 position, AudioType category = AudioType::END, std::pair<float, float> rolloff_minmax = { 2.f, 50.f });
+	void SetChannel3D(uint32_t channel, bool is3D);
+	bool IsChannel3D(uint32_t channel);
+	void SetChannel3DAttributes(uint32_t channel, const Vec3& pos, const Vec3& vel = Vec3());
 
 	// FMOD Studio Call
 	// void CreateEvent(const std::string& name); // tbc: fmod studio
@@ -79,9 +109,10 @@ public:
 	void UpdateListener(const Vec3& pos, const Vec3& vel = Vec3());
 	void ConfigureListener(float dopplerScale, float distanceFactor, float rolloffScale);
 	void StopAllSounds();
-	void SetBaseVolume(AudioType type, float vol);
+	void SetGroupVolume(AudioType type, float vol);
 
 	const std::vector<std::string>& GetSoundNames() const;
+	FMOD::Channel* CreateChannel(FMOD::Sound* sound, AudioType type = AudioType::END);
 
 private:
 	FMOD_RESULT result; // For error checking - bound to the class and used by FMOD_ASSERT macro
@@ -91,6 +122,8 @@ private:
 	FMOD::ChannelGroup* masterChannelGroup = nullptr;
 	FMOD::ChannelGroup* channelGroups[+AudioType::END] = { nullptr }; // BGM, SFX
 	std::vector<std::string> soundNames;
+
+	ChannelManager channelManager;
 
 	const int MAX_CHANNELS = 512;
 };
