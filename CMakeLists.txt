@@ -1,5 +1,26 @@
 cmake_minimum_required(VERSION 3.21)
 
+# ----- Function to organize source files into logical folders in IDEs -----
+function(set_source_groups target_name)
+    get_target_property(target_sources ${target_name} SOURCES)
+    foreach(source ${target_sources})
+        get_filename_component(source_path "${source}" PATH)
+        # Ensure the path is relative to the source directory for cleaner filter names
+        file(RELATIVE_PATH rel_source_path ${CMAKE_SOURCE_DIR} ${source_path})
+        if(rel_source_path)
+            # Use forward slashes for CMake source_group
+            string(REPLACE "\\" "/" source_group_path "${rel_source_path}")
+            source_group("${source_group_path}" FILES "${source}")
+        else()
+             # Handle files directly in CMAKE_SOURCE_DIR if any (less common for targets)
+             # source_group("Source Files" FILES "${source}") # Example: Source files directly in root
+        endif()
+    endforeach()
+endfunction()
+
+
+# ----- VCPKG Configuration -----
+
 set(VCPKG_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/extern/vcpkg")
 # If the user hasn't specified a toolchain file, set it to our bundled vcpkg.
 # This makes configuration "just work" without extra command-line flags.
@@ -26,7 +47,9 @@ if(EXISTS "${VCPKG_ROOT}" AND NOT EXISTS "${VCPKG_ROOT}/vcpkg.exe")
     message(STATUS "vcpkg bootstrapped successfully.")
 endif()
 
-project(MagicEngine VERSION 0.1.0 LANGUAGES C CXX)
+# ----- Solution -----
+
+project(MagicEngine VERSION 0.1.0 LANGUAGES C CXX CSharp)
 set(CMAKE_INCLUDE_DIRECTORIES_BEFORE ON)
 # Set C++ standard
 set(CMAKE_CXX_STANDARD 20)
@@ -37,24 +60,6 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
-
-# ----- Organize source files into logical folders in IDEs -----
-function(set_source_groups target_name)
-    get_target_property(target_sources ${target_name} SOURCES)
-    foreach(source ${target_sources})
-        get_filename_component(source_path "${source}" PATH)
-        # Ensure the path is relative to the source directory for cleaner filter names
-        file(RELATIVE_PATH rel_source_path ${CMAKE_SOURCE_DIR} ${source_path})
-        if(rel_source_path)
-            # Use forward slashes for CMake source_group
-            string(REPLACE "\\" "/" source_group_path "${rel_source_path}")
-            source_group("${source_group_path}" FILES "${source}")
-        else()
-             # Handle files directly in CMAKE_SOURCE_DIR if any (less common for targets)
-             # source_group("Source Files" FILES "${source}") # Example: Source files directly in root
-        endif()
-    endforeach()
-endfunction()
 
 set(BUILD_SHARED_LIBS OFF CACHE BOOL "Build dependencies as static libraries")
 set(ASSIMP_BUILD_TESTS OFF CACHE BOOL "Disable Assimp tests")
@@ -92,7 +97,6 @@ find_path(READERWRITERQUEUE_INCLUDE_DIRS "readerwriterqueue/atomicops.h")
 # ----- Engine Target -----
 add_executable(Engine WIN32) #
 
-# --- Engine Source Files ---
 # Add engine's own source/header files
 file(GLOB_RECURSE ENGINE_IMPLEMENTATION_FILES CONFIGURE_DEPENDS "engine/*.cpp")
 file(GLOB_RECURSE ENGINE_HEADER_FILES CONFIGURE_DEPENDS "engine/*.h" "engine/*.hpp" "engine/*.ipp")
@@ -155,17 +159,50 @@ target_link_libraries(Engine PUBLIC
 
 target_compile_options(Engine PRIVATE /W4 /MP /bigobj)
 
-target_compile_definitions(Engine PUBLIC TRACY_ENABLE)
+target_compile_definitions(Engine PUBLIC
+    TRACY_ENABLE
+    -DQUILL_DISABLE_NON_PREFIXED_MACROS
+)
+if(MSVC)
+    target_compile_definitions(Engine PUBLIC
+        WIN32_LEAN_AND_MEAN
+    )
+endif()
 
 # Apply source groups for Engine
 set_source_groups(Engine)
+
+
+# ----- C# Target -----
+
+add_library(EngineScripting SHARED)
+
+file(GLOB_RECURSE CSHARP_IMPLEMENTATION_FILES CONFIGURE_DEPENDS "EngineScripting/*.cs")
+
+target_sources(EngineScripting PRIVATE
+    ${CSHARP_IMPLEMENTATION_FILES}
+)
+
+set_source_groups(EngineScripting)
+
+set_property(TARGET EngineScripting PROPERTY VS_DOTNET_TARGET_FRAMEWORK_VERSION "v4.7.2")
+set_property(TARGET EngineScripting PROPERTY VS_DOTNET_REFERENCES
+    "Microsoft.CSharp"
+    "System"
+    "System.Core"
+    "System.Xml.Linq"
+    "System.Data.DataSetExtensions"
+    "System.Data"
+    "System.Net.Http"
+    "System.Xml"
+)
+set_property(TARGET EngineScripting PROPERTY VS_PACKAGE_REFERENCES "GlmSharp_0.9.8")
 
 # ----- Global Build Settings -----
 # Set startup project for Visual Studio
 set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT Engine)
 set_property(TARGET Engine PROPERTY VS_DEBUGGER_WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
 
-add_compile_definitions(-DQUILL_DISABLE_NON_PREFIXED_MACROS)
 add_definitions("-DVK_NO_PROTOTYPES=1")
 if(WIN32)
   add_definitions("-DVK_USE_PLATFORM_WIN32_KHR=1")
@@ -186,7 +223,6 @@ if(MSVC)
 	string(APPEND CMAKE_EXE_LINKER_FLAGS_DEBUG " /ignore:4099 /ignore:4098")
     string(APPEND CMAKE_SHARED_LINKER_FLAGS_DEBUG " /ignore:4099 /ignore:4098")
     # add_compile_options(/wd4201) # Example: nonstandard extension used : nameless struct/union
-	add_compile_definitions(WIN32_LEAN_AND_MEAN)
     add_link_options(
          $<$<CONFIG:Release>:/LTCG /OPT:REF /OPT:ICF>
     )
