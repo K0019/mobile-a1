@@ -151,10 +151,11 @@ void AudioManager::StopSound(uint32_t id)
 {
 	if (channelManager.channelMap.find(id) != channelManager.channelMap.end())
 	{
-		if (channelManager.channelMap[id].channel)
+		if (channelManager.channelMap[id])
 		{
-			FMOD_ASSERT(channelManager.channelMap[id].channel->stop());
+			FMOD_ASSERT(channelManager.channelMap[id]->stop());
 			channelManager.channelMap.erase(id);
+			channelManager.uidGen.free(id);
 		}
 	}
 }
@@ -169,10 +170,11 @@ bool AudioManager::IsPlaying(uint32_t id)
 	bool isPlaying = true;
 
 	// FMOD automatically clears channels, but it does not auto clear our own handle, so an invalid error will occur due to the auto cleanup, need to check for this. 
-	FMOD_RESULT channel_status = channelManager.channelMap[id].channel->isPlaying(&isPlaying);
+	FMOD_RESULT channel_status = channelManager.channelMap[id]->isPlaying(&isPlaying);
 	if (channel_status == FMOD_ERR_INVALID_HANDLE)
 	{
 		channelManager.channelMap.erase(id);
+		channelManager.uidGen.free(id);
 		return false;
 	}
 	else if (channel_status != FMOD_OK)
@@ -204,42 +206,24 @@ const std::vector<std::string>& AudioManager::GetSoundNames() const
 	return soundNames;
 }
 
-FMOD::Channel* AudioManager::CreateChannel(FMOD::Sound* sound, AudioType type)
-{
-	FMOD::Channel* channel = nullptr;
-	switch(type)
-	{
-		case AudioType::BGM:
-			FMOD_ASSERT(system->playSound(sound, channelGroups[0], true, &channel));
-			break;
-		case AudioType::SFX:
-			FMOD_ASSERT(system->playSound(sound, channelGroups[1], true, &channel));
-			break;
-		case AudioType::END:
-			FMOD_ASSERT(system->playSound(sound, masterChannelGroup, true, &channel));
-			break; // Bypass to universal play
-	}
-
-	return channel;
-}
-
 void AudioManager::SetChannelPosition(uint32_t channel, const Vec3& pos, const Vec3& vel)
 {
 	if (channelManager.channelMap.find(channel) != channelManager.channelMap.end())
 	{
 		FMOD_VECTOR f_pos = { pos.x, pos.y, pos.z };
 		FMOD_VECTOR f_vel = { vel.x, vel.y, vel.z };
-		FMOD_ASSERT(channelManager.channelMap[channel].channel->set3DAttributes(&f_pos, &f_vel));
+		FMOD_ASSERT(channelManager.channelMap[channel]->set3DAttributes(&f_pos, &f_vel));
 	}
 }
 
 const unsigned int AudioManager::GetChannelPosition(uint32_t channel)
 {
-	unsigned int currentPos;
+	unsigned int currentPos = 0;
 	if (channelManager.channelMap.find(channel) != channelManager.channelMap.end())
 	{
-		channelManager.channelMap[channel].channel->getPosition(&currentPos, FMOD_TIMEUNIT_MS);
+		channelManager.channelMap[channel]->getPosition(&currentPos, FMOD_TIMEUNIT_MS);
 	}
+
 	return currentPos;
 }
 
@@ -248,7 +232,7 @@ FMOD::Sound* AudioManager::GetSound(uint32_t channel) const
 	FMOD::Sound* sound = nullptr;
 	if (channelManager.channelMap.find(channel) != channelManager.channelMap.end())
 	{
-		channelManager.channelMap.at(channel).channel->getCurrentSound(&sound);
+		channelManager.channelMap.at(channel)->getCurrentSound(&sound);
 	}
 	return sound;
 }
@@ -259,11 +243,11 @@ void AudioManager::SetChannel3D(uint32_t channel, bool is3D)
 	{
 		if (is3D)
 		{
-			FMOD_ASSERT(channelManager.channelMap[channel].channel->setMode(FMOD_3D));
+			FMOD_ASSERT(channelManager.channelMap[channel]->setMode(FMOD_3D));
 		}
 		else
 		{
-			FMOD_ASSERT(channelManager.channelMap[channel].channel->setMode(FMOD_2D));
+			FMOD_ASSERT(channelManager.channelMap[channel]->setMode(FMOD_2D));
 		}
 	}
 }
@@ -277,7 +261,7 @@ void AudioManager::SetChannel3DAttributes(uint32_t channel, const Vec3& pos, con
 	{
 		FMOD_VECTOR f_pos = { pos.x, pos.y, pos.z };
 		FMOD_VECTOR f_vel = { vel.x, vel.y, vel.z };
-		FMOD_ASSERT(channelManager.channelMap[channel].channel->set3DAttributes(&f_pos, &f_vel));
+		FMOD_ASSERT(channelManager.channelMap[channel]->set3DAttributes(&f_pos, &f_vel));
 	}
 }
 
@@ -285,25 +269,19 @@ void AudioManager::SetVolume(uint32_t channel, float vol)
 {
 	if (channelManager.channelMap.find(channel) != channelManager.channelMap.end())
 	{
-		FMOD_ASSERT(channelManager.channelMap[channel].channel->setVolume(vol));
+		FMOD_ASSERT(channelManager.channelMap[channel]->setVolume(vol));
 	}
 }
 
-uint32_t AudioManager::ChannelManager::GetNextHandle()
+uint32_t AudioManager::ChannelManager::RegisterChannel(FMOD::Channel* channel)
 {
-	uint32_t handle = currentChannelIndex;
-	currentChannelIndex++;
-	while (currentChannelIndex == INVALID_HANDLE || channelMap.find(currentChannelIndex) != channelMap.end()) 
+	uint32_t handle = uidGen.generate();
+	if (handle == INVALID_HANDLE)
 	{
-		currentChannelIndex++;
+		CONSOLE_LOG(LEVEL_ERROR) << "AudioManager: Exceeded maximum number of concurrent channels!";
+		return INVALID_HANDLE;
 	}
-	return handle;
-}
-
-uint32_t AudioManager::ChannelManager::RegisterChannel(FMOD::Channel* channel, float minDist, float maxDist, float doppler, float distFactor, float rolloff)
-{
-	uint32_t handle = GetNextHandle();
-	channelMap[handle] = { channel, minDist, maxDist, doppler, distFactor, rolloff };
+	channelMap[handle] = channel;
 
 	return handle;
 }
@@ -313,8 +291,45 @@ bool AudioManager::IsChannel3D(uint32_t handle)
 	if (channelManager.channelMap.find(handle) != channelManager.channelMap.end())
 	{
 		FMOD_MODE mode;
-		FMOD_ASSERT(channelManager.channelMap[handle].channel->getMode(&mode));
+		FMOD_ASSERT(channelManager.channelMap[handle]->getMode(&mode));
 		return (mode & FMOD_3D) != 0;
 	}
 	return false;
+}
+
+AudioManager::ChannelManager::UID32Generator::UID32Generator(uint16_t max_concurrent_uids) 
+{
+	generations.resize(max_concurrent_uids);
+	for (uint16_t i = 0; i < max_concurrent_uids; ++i) 
+	{
+		generations[i] = 1;
+		free_indices.push(i);
+	}
+}
+
+uint32_t AudioManager::ChannelManager::UID32Generator::generate() 
+{
+	// No available slots
+	if (free_indices.empty()) {
+		return 0;  
+	}
+
+	uint16_t index = free_indices.front();
+	free_indices.pop();
+
+	// Combine the current generation and the index to create the UID
+	uint32_t uid = (static_cast<uint32_t>(generations[index]) << 16) | index;
+	return uid;
+}
+
+void AudioManager::ChannelManager::UID32Generator::free(uint32_t uid) 
+{
+	if (uid == 0) return;
+
+	uint16_t index = uid & 0xFFFF; // Get the lower 16 bits (index)
+
+	// Increment the generation for this slot to invalidate old handles
+	generations[index]++;
+        
+	free_indices.push(index);
 }
