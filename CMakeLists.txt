@@ -94,8 +94,8 @@ find_package(spirv_cross_glsl CONFIG REQUIRED)
 find_package(Stb REQUIRED)
 find_package(tracy CONFIG REQUIRED)
 find_package(unofficial-spirv-reflect CONFIG REQUIRED)
-find_package(Vulkan REQUIRED)
 find_package(Volk CONFIG REQUIRED)
+find_package(Vulkan REQUIRED)
 find_package(VulkanMemoryAllocator CONFIG REQUIRED)
 #add_subdirectory(extern/offset_allocator)
 
@@ -146,7 +146,9 @@ target_link_libraries(Engine PUBLIC
 	mikktspace::mikktspace
     quill::quill
     Tracy::TracyClient
+    volk::volk
     volk::volk_headers  # This provides the Vulkan headers
+    Vulkan::Vulkan
 
     # Shader compilation
     glslang::glslang
@@ -182,6 +184,9 @@ target_compile_definitions(Engine PUBLIC
 if(MSVC)
     target_compile_definitions(Engine PUBLIC
         WIN32_LEAN_AND_MEAN
+    )
+    target_link_options(Engine PUBLIC
+        /SUBSYSTEM:CONSOLE
     )
 endif()
 
