@@ -82,8 +82,8 @@ All rights reserved.
 #define VK_NO_PROTOTYPES
 #include <GLFW/glfw3.h>
 #define GLM_ZERO_TO_ONE_RANGE
-#include <vulkan/glm/glm.hpp>
-#include <vulkan/glm/gtc/matrix_transform.hpp>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 
 #ifndef IMGUI_ENABLED
 	#include "volk.h"

@@ -47,6 +47,11 @@ if(EXISTS "${VCPKG_ROOT}" AND NOT EXISTS "${VCPKG_ROOT}/vcpkg.exe")
     message(STATUS "vcpkg bootstrapped successfully.")
 endif()
 
+# ----- External Libraries Configuration ------
+
+set(EXTERNAL_INCLUDES "${CMAKE_CURRENT_SOURCE_DIR}/extern/include")
+set(EXTERNAL_LIBRARIES "${CMAKE_CURRENT_SOURCE_DIR}/extern/lib")
+
 # ----- Solution -----
 
 project(MagicEngine VERSION 0.1.0 LANGUAGES C CXX CSharp)
@@ -125,6 +130,7 @@ target_include_directories(Engine PUBLIC
     ${CMAKE_SOURCE_DIR}/engine/editor/imgui/src #
     ${CMAKE_SOURCE_DIR}/engine/editor/imgui/impl #
     ${READERWRITERQUEUE_INCLUDE_DIRS} # Add include dir for header-only lib
+    ${EXTERNAL_INCLUDES}
 )
 
 target_link_libraries(Engine PUBLIC
@@ -145,6 +151,7 @@ target_link_libraries(Engine PUBLIC
     volk::volk_headers  # This provides the Vulkan headers
     GPUOpen::VulkanMemoryAllocator
 	mikktspace::mikktspace
+
     # Shader compilation
     glslang::glslang
     glslang::glslang-default-resource-limits
@@ -155,6 +162,18 @@ target_link_libraries(Engine PUBLIC
     unofficial::spirv-reflect
 	offsetAllocator
     $<$<TARGET_EXISTS:mimalloc-static>:mimalloc-static;mimalloc>
+
+    # External libraries
+    $<$<CONFIG:Debug>:
+        ${EXTERNAL_LIBRARIES}/FMOD/fmodL_vc.lib;
+        ${EXTERNAL_LIBRARIES}/FMOD/fmodstudioL_vc.lib;
+        ${EXTERNAL_LIBRARIES}/mono/mono-2.0-sgenD.lib
+    >
+    $<$<CONFIG:Release>:
+        ${EXTERNAL_LIBRARIES}/FMOD/fmod_vc.lib;
+        ${EXTERNAL_LIBRARIES}/FMOD/fmodstudio_vc.lib;
+        ${EXTERNAL_LIBRARIES}/mono/mono-2.0-sgen.lib
+    >
 )
 
 target_compile_options(Engine PRIVATE /W4 /MP /bigobj)
