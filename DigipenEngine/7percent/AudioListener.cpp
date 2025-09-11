@@ -25,15 +25,6 @@ AudioListenerComponent::AudioListenerComponent()
 {
 }
 
-void AudioListenerComponent::OnStart()
-{
-}
-
-void AudioListenerComponent::EditorDraw()
-{
-
-}
-
 AudioListenerSystem::AudioListenerSystem() :
 	System_Internal{ &AudioListenerSystem::UpdateAudioListenerComp }
 {

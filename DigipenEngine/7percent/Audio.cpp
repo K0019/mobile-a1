@@ -7,16 +7,13 @@ AudioSourceComponent::AudioSourceComponent()
 	, dopperScale{ 1.0f }
 	, distanceFactor{ 0.01f }
 	, rolloffScale{ 0.1f }
+	, channelHandle{}
 {
 }
 
-void AudioSourceComponent::OnStart()
+void AudioSourceComponent::Play(AudioType a, const std::string& name)
 {
-}
-
-void AudioSourceComponent::Play(AudioType a, std::string name)
-{
-	channel_handle = ST<AudioManager>::Get()->PlaySound(name, false, a);
+	channelHandle = ST<AudioManager>::Get()->PlaySound(name, false, a);
 }
 
 void AudioSourceComponent::EditorDraw()
@@ -32,9 +29,4 @@ bool AudioSystem::PreRun()
 {
 	ST<AudioManager>::Get()->Update();
 	return true;
-}
-
-void AudioSystem::UpdateComp(AudioSourceComponent& comp)
-{
-
 }

@@ -3,15 +3,29 @@
 #include "ResourceManager.h"
 
 // Macro sprinkler for FMOD error, we don't need a function call stack for this
+// If condition tests against FMOD_OK (which is 0)
+#ifdef _DEBUG
 #define FMOD_ASSERT(FUNCTION) \
-				result = FUNCTION;  \
-				if (result != FMOD_OK) { \
-						CONSOLE_LOG(LEVEL_ERROR) << "FMOD: (" << result << ") " << FMOD_ErrorString(result) << " at line " << __LINE__ << " in file " << __FILE__;}
+	if (FMOD_RESULT result{ FUNCTION }) \
+			CONSOLE_LOG(LEVEL_ERROR) << "FMOD: (" << result << ") " << FMOD_ErrorString(result) << " at line " << __LINE__ << " in file " << __FILE__; 
+#else
+#define FMOD_ASSERT(FUNCTION) \
+	FUNCTION
+#endif
+
+AudioAsset::AudioAsset(FMOD::Sound* sound, const std::string& name, bool is3D, AudioType type)
+	: sound{ sound }
+	, data{ name, is3D, type }
+{
+}
 
 // Creates and loads sounds on launch
 AudioManager::AudioManager()
-	: result			{}
-	, system			{ nullptr }
+	: system{}
+	, fmod_studio{}
+	, masterChannelGroup{}
+	, channelGroups{}
+	, channelManager{ static_cast<uint16_t>(MAX_CHANNELS) }
 {
 	FMOD_ASSERT(FMOD::Studio::System::create(&fmod_studio));
 	FMOD_ASSERT(fmod_studio->getCoreSystem(&system));
@@ -43,7 +57,7 @@ void AudioManager::Update()
 
 void AudioManager::StopAllSounds()
 {
-	channelManager.channelMap.clear(); 
+	channelManager.ClearAllChannels();
 	masterChannelGroup->stop();
 }
 
@@ -147,34 +161,28 @@ uint32_t AudioManager::PlaySound3D(const std::string& name, bool loop, Vec3 posi
 	return channelManager.RegisterChannel(channel);
 }
 
-void AudioManager::StopSound(uint32_t id)
+void AudioManager::StopSound(uint32_t handle)
 {
-	if (channelManager.channelMap.find(id) != channelManager.channelMap.end())
+	if (auto channel{ channelManager.GetChannel(handle) })
 	{
-		if (channelManager.channelMap[id])
-		{
-			FMOD_ASSERT(channelManager.channelMap[id]->stop());
-			channelManager.channelMap.erase(id);
-			channelManager.uidGen.free(id);
-		}
+		channel->stop();
+		channelManager.DeleteChannel(handle);
 	}
 }
 
-bool AudioManager::IsPlaying(uint32_t id)
+bool AudioManager::IsPlaying(uint32_t handle)
 {
-	if (channelManager.channelMap.find(id) == channelManager.channelMap.end())
-	{
+	auto channel{ channelManager.GetChannel(handle) };
+	if (!channel)
 		return false;
-	}
 
 	bool isPlaying = true;
 
 	// FMOD automatically clears channels, but it does not auto clear our own handle, so an invalid error will occur due to the auto cleanup, need to check for this. 
-	FMOD_RESULT channel_status = channelManager.channelMap[id]->isPlaying(&isPlaying);
+	FMOD_RESULT channel_status = channel->isPlaying(&isPlaying);
 	if (channel_status == FMOD_ERR_INVALID_HANDLE)
 	{
-		channelManager.channelMap.erase(id);
-		channelManager.uidGen.free(id);
+		channelManager.DeleteChannel(handle);
 		return false;
 	}
 	else if (channel_status != FMOD_OK)
@@ -206,130 +214,102 @@ const std::vector<std::string>& AudioManager::GetSoundNames() const
 	return soundNames;
 }
 
-void AudioManager::SetChannelPosition(uint32_t channel, const Vec3& pos, const Vec3& vel)
+void AudioManager::SetChannelPosition(uint32_t handle, const Vec3& pos, const Vec3& vel)
 {
-	if (channelManager.channelMap.find(channel) != channelManager.channelMap.end())
+	if (auto channel{ channelManager.GetChannel(handle) })
 	{
 		FMOD_VECTOR f_pos = { pos.x, pos.y, pos.z };
 		FMOD_VECTOR f_vel = { vel.x, vel.y, vel.z };
-		FMOD_ASSERT(channelManager.channelMap[channel]->set3DAttributes(&f_pos, &f_vel));
+		FMOD_ASSERT(channel->set3DAttributes(&f_pos, &f_vel));
 	}
 }
 
-const unsigned int AudioManager::GetChannelPosition(uint32_t channel)
+const unsigned int AudioManager::GetChannelPosition(uint32_t handle) const
 {
 	unsigned int currentPos = 0;
-	if (channelManager.channelMap.find(channel) != channelManager.channelMap.end())
-	{
-		channelManager.channelMap[channel]->getPosition(&currentPos, FMOD_TIMEUNIT_MS);
-	}
-
+	if (auto channel{ channelManager.GetChannel(handle) })
+		channel->getPosition(&currentPos, FMOD_TIMEUNIT_MS);
 	return currentPos;
 }
 
-FMOD::Sound* AudioManager::GetSound(uint32_t channel) const
+FMOD::Sound* AudioManager::GetSound(uint32_t handle) const
 {
-	FMOD::Sound* sound = nullptr;
-	if (channelManager.channelMap.find(channel) != channelManager.channelMap.end())
-	{
-		channelManager.channelMap.at(channel)->getCurrentSound(&sound);
-	}
+	FMOD::Sound* sound{};
+	if (auto channel{ channelManager.GetChannel(handle) })
+		FMOD_ASSERT(channel->getCurrentSound(&sound));
+
 	return sound;
 }
 
-void AudioManager::SetChannel3D(uint32_t channel, bool is3D)
+void AudioManager::SetChannel3D(uint32_t handle, bool is3D)
 {
-	if (channelManager.channelMap.find(channel) != channelManager.channelMap.end())
-	{
-		if (is3D)
-		{
-			FMOD_ASSERT(channelManager.channelMap[channel]->setMode(FMOD_3D));
-		}
-		else
-		{
-			FMOD_ASSERT(channelManager.channelMap[channel]->setMode(FMOD_2D));
-		}
-	}
+	if (auto channel{ channelManager.GetChannel(handle) })
+		FMOD_ASSERT(channel->setMode(is3D ? FMOD_3D : FMOD_2D));
 }
 
-void AudioManager::SetChannel3DAttributes(uint32_t channel, const Vec3& pos, const Vec3& vel)
+bool AudioManager::IsChannel3D(uint32_t handle) const
 {
-	if (!IsChannel3D(channel))
-		return;
-
-	if (channelManager.channelMap.find(channel) != channelManager.channelMap.end())
-	{
-		FMOD_VECTOR f_pos = { pos.x, pos.y, pos.z };
-		FMOD_VECTOR f_vel = { vel.x, vel.y, vel.z };
-		FMOD_ASSERT(channelManager.channelMap[channel]->set3DAttributes(&f_pos, &f_vel));
-	}
-}
-
-void AudioManager::SetVolume(uint32_t channel, float vol)
-{
-	if (channelManager.channelMap.find(channel) != channelManager.channelMap.end())
-	{
-		FMOD_ASSERT(channelManager.channelMap[channel]->setVolume(vol));
-	}
-}
-
-uint32_t AudioManager::ChannelManager::RegisterChannel(FMOD::Channel* channel)
-{
-	uint32_t handle = uidGen.generate();
-	if (handle == INVALID_HANDLE)
-	{
-		CONSOLE_LOG(LEVEL_ERROR) << "AudioManager: Exceeded maximum number of concurrent channels!";
-		return INVALID_HANDLE;
-	}
-	channelMap[handle] = channel;
-
-	return handle;
-}
-
-bool AudioManager::IsChannel3D(uint32_t handle)
-{
-	if (channelManager.channelMap.find(handle) != channelManager.channelMap.end())
+	if (auto channel{ channelManager.GetChannel(handle) })
 	{
 		FMOD_MODE mode;
-		FMOD_ASSERT(channelManager.channelMap[handle]->getMode(&mode));
+		FMOD_ASSERT(channel->getMode(&mode));
 		return (mode & FMOD_3D) != 0;
 	}
 	return false;
 }
 
-AudioManager::ChannelManager::UID32Generator::UID32Generator(uint16_t max_concurrent_uids) 
+void AudioManager::SetChannel3DAttributes(uint32_t handle, const Vec3& pos, const Vec3& vel)
 {
-	generations.resize(max_concurrent_uids);
-	for (uint16_t i = 0; i < max_concurrent_uids; ++i) 
+	if (!IsChannel3D(handle))
+		return;
+
+	if (auto channel{ channelManager.GetChannel(handle) })
 	{
-		generations[i] = 1;
-		free_indices.push(i);
+		FMOD_VECTOR f_pos = { pos.x, pos.y, pos.z };
+		FMOD_VECTOR f_vel = { vel.x, vel.y, vel.z };
+		FMOD_ASSERT(channel->set3DAttributes(&f_pos, &f_vel));
 	}
 }
 
-uint32_t AudioManager::ChannelManager::UID32Generator::generate() 
+void AudioManager::SetVolume(uint32_t handle, float vol)
 {
-	// No available slots
-	if (free_indices.empty()) {
-		return 0;  
-	}
-
-	uint16_t index = free_indices.front();
-	free_indices.pop();
-
-	// Combine the current generation and the index to create the UID
-	uint32_t uid = (static_cast<uint32_t>(generations[index]) << 16) | index;
-	return uid;
+	if (auto channel{ channelManager.GetChannel(handle) })
+		FMOD_ASSERT(channel->setVolume(vol));
 }
 
-void AudioManager::ChannelManager::UID32Generator::free(uint32_t uid) 
+AudioManager::ChannelManager::ChannelManager(uint16_t maxChannels)
+	: maxChannels{ maxChannels }
 {
-	if (uid == 0) return;
+}
 
-	uint16_t index = uid & 0xFFFF; // Get the lower 16 bits (index)
+uint32_t AudioManager::ChannelManager::RegisterChannel(FMOD::Channel* channel)
+{
+	if (channelMap.size() >= maxChannels)
+	{
+		CONSOLE_LOG(LEVEL_ERROR) << "AudioManager: Exceeded maximum number of concurrent channels!";
+		return INVALID_HANDLE;
+	}
 
-	// Increment the generation for this slot to invalidate old handles
-	generations[index]++;
-        
-	free_indices.push(index);
+	uint32_t handle = util::Rand_UID_32();
+	while (channelMap.find(handle) != channelMap.end())
+		handle = util::Rand_UID_32();
+
+	channelMap[handle] = channel;
+	return handle;
+}
+
+FMOD::Channel* AudioManager::ChannelManager::GetChannel(uint32_t handle) const
+{
+	auto channelIter{ channelMap.find(handle) };
+	return (channelIter != channelMap.end() ? channelIter->second : nullptr);
+}
+
+void AudioManager::ChannelManager::DeleteChannel(uint32_t handle)
+{
+	channelMap.erase(handle);
+}
+
+void AudioManager::ChannelManager::ClearAllChannels()
+{
+	channelMap.clear();
 }

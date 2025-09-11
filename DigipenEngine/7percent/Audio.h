@@ -29,22 +29,23 @@ class AudioSourceComponent
 #ifdef IMGUI_ENABLED
 	, public IEditorComponent<AudioSourceComponent>
 #endif
-	, public IGameComponentCallbacks<AudioSourceComponent>
 {
 public:
 	AudioSourceComponent();
-	void OnStart() override;
-	void Play(AudioType a, std::string name);
 
+	void Play(AudioType a, const std::string& name);
+
+private:
+	virtual void EditorDraw() override;
+
+private:
 	float minDistance;
 	float maxDistance;
 	float dopperScale;
 	float distanceFactor;
 	float rolloffScale;
 
-private:
-	uint32_t channel_handle = 0;
-	virtual void EditorDraw() override;
+	uint32_t channelHandle;
 
 	property_vtable()
 };
@@ -71,5 +72,5 @@ public:
 		Update function that is called continuously.
 	*//******************************************************************/
 	bool PreRun() override;
-	void UpdateComp(AudioSourceComponent& comp);
+
 };
