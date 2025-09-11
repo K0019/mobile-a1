@@ -222,6 +222,11 @@ set_property(TARGET EngineScripting PROPERTY VS_DOTNET_REFERENCES
 )
 set_property(TARGET EngineScripting PROPERTY VS_PACKAGE_REFERENCES "GlmSharp_0.9.8")
 
+
+# ----- Target Dependencies -----
+
+add_dependencies(Engine EngineScripting)
+
 # ----- Global Build Settings -----
 # Set startup project for Visual Studio
 set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT Engine)
