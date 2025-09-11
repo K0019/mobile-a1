@@ -227,3 +227,8 @@ if(MSVC)
          $<$<CONFIG:Release>:/LTCG /OPT:REF /OPT:ICF>
     )
 endif()
+
+# Default CMake configuration sets the intermediate output directory of all projects to the same location.
+# This causes issues with the C++ project trying to reference C# Nuget stuff when it doesn't need to.
+# This file overrides the intermediate output directory location to avoid this issue.
+file(COPY "${CMAKE_SOURCE_DIR}/Directory.Build.props" DESTINATION "${CMAKE_BINARY_DIR}")
