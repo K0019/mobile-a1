@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.21)
+cmake_minimum_required(VERSION 3.26)
 
 # ----- Function to organize source files into logical folders in IDEs -----
 function(set_source_groups target_name)
@@ -102,12 +102,20 @@ find_package(VulkanMemoryAllocator CONFIG REQUIRED)
 # ----- Engine Target -----
 add_executable(Engine WIN32) #
 
-# Add engine's own source/header files
+# Search for files needed
 file(GLOB_RECURSE ENGINE_IMPLEMENTATION_FILES CONFIGURE_DEPENDS "engine/*.cpp")
 file(GLOB_RECURSE ENGINE_HEADER_FILES CONFIGURE_DEPENDS "engine/*.h" "engine/*.hpp" "engine/*.ipp")
 file(GLOB TRACY_MANUAL_SOURCES CONFIGURE_DEPENDS "extern/tracy/TracyClient.cpp") # Tracy vcpkg port is header-only
 file(GLOB_RECURSE SHADER_FILES "${CMAKE_SOURCE_DIR}/shaders/*")
 file(GLOB_RECURSE ENGINE_SOURCE_FILES_DIRECTORIES LIST_DIRECTORIES true "${CMAKE_SOURCE_DIR}/engine/*")
+file(GLOB_RECURSE EXTERNAL_LIBRARIES_STATIC_DEBUG "${EXTERNAL_LIBRARIES}/debug/*.lib")
+file(GLOB_RECURSE EXTERNAL_LIBRARIES_STATIC_RELEASE "${EXTERNAL_LIBRARIES}/release/*.lib")
+file(GLOB_RECURSE EXTERNAL_LIBRARIES_DYNAMIC_DEBUG "${EXTERNAL_LIBRARIES}/debug/*.dll")
+file(GLOB_RECURSE EXTERNAL_LIBRARIES_DYNAMIC_RELEASE "${EXTERNAL_LIBRARIES}/release/*.dll")
+set(EXTERNAL_LIBRARIES_WHOLE_DIRECTORIES "${EXTERNAL_LIBRARIES}/directory_copy")
+# To reformat into a style that copy_if_different can accept
+string(REPLACE ";" "\" \"" EXTERNAL_LIBRARIES_DYNAMIC_DEBUG "${EXTERNAL_LIBRARIES_DYNAMIC_DEBUG}")
+string(REPLACE ";" "\" \"" EXTERNAL_LIBRARIES_DYNAMIC_RELEASE "${EXTERNAL_LIBRARIES_DYNAMIC_RELEASE}")
 
 target_sources(Engine PRIVATE
     ${ENGINE_IMPLEMENTATION_FILES}
@@ -162,23 +170,32 @@ target_link_libraries(Engine PUBLIC
     $<$<TARGET_EXISTS:mimalloc-static>:mimalloc-static;mimalloc>
 
     # External libraries
-    $<$<CONFIG:Debug>:
-        ${EXTERNAL_LIBRARIES}/FMOD/fmodL_vc.lib;
-        ${EXTERNAL_LIBRARIES}/FMOD/fmodstudioL_vc.lib;
-        ${EXTERNAL_LIBRARIES}/mono/mono-2.0-sgenD.lib
-    >
-    $<$<CONFIG:Release>:
-        ${EXTERNAL_LIBRARIES}/FMOD/fmod_vc.lib;
-        ${EXTERNAL_LIBRARIES}/FMOD/fmodstudio_vc.lib;
-        ${EXTERNAL_LIBRARIES}/mono/mono-2.0-sgen.lib
-    >
+    $<$<CONFIG:Debug>:${EXTERNAL_LIBRARIES_STATIC_DEBUG}>
+    $<$<CONFIG:Release>:${EXTERNAL_LIBRARIES_STATIC_RELEASE}>
 )
+
+set_source_groups(Engine)
 
 target_compile_options(Engine PRIVATE /W4 /MP /bigobj)
 target_compile_definitions(Engine PUBLIC
     TRACY_ENABLE
     -DQUILL_DISABLE_NON_PREFIXED_MACROS
     $<$<CONFIG:Debug>:IMGUI_ENABLED>
+)
+set_target_properties(Engine PROPERTIES
+    VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:Engine>"
+    VS_DEBUGGER_ENVIRONMENT "VK_LAYER_PATH=$<TARGET_FILE_DIR:Engine>/vulkan"
+)
+
+add_custom_command(TARGET Engine POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        "\"$<$<CONFIG:Debug>:${EXTERNAL_LIBRARIES_DYNAMIC_DEBUG}>$<$<CONFIG:Release>:${EXTERNAL_LIBRARIES_DYNAMIC_RELEASE}>\""
+        "\"$<TARGET_FILE_DIR:Engine>\""
+)
+add_custom_command(TARGET Engine POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory_if_different
+        "\"${EXTERNAL_LIBRARIES_WHOLE_DIRECTORIES}\""
+        "\"$<TARGET_FILE_DIR:Engine>\""
 )
 
 if(MSVC)
@@ -192,9 +209,6 @@ if(MSVC)
         /SUBSYSTEM:CONSOLE
     )
 endif()
-
-# Apply source groups for Engine
-set_source_groups(Engine)
 
 
 # ----- C# Target -----
@@ -230,7 +244,6 @@ add_dependencies(Engine EngineScripting)
 # ----- Global Build Settings -----
 # Set startup project for Visual Studio
 set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT Engine)
-set_property(TARGET Engine PROPERTY VS_DEBUGGER_WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
 
 add_definitions("-DVK_NO_PROTOTYPES=1")
 if(WIN32)

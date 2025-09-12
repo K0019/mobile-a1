@@ -13,7 +13,7 @@ if not exist "%BUILD_DIR%" (
 
 :: Navigate into the build directory and run CMake
 cd "%BUILD_DIR%"
-cmake ..
+cmake -G "Visual Studio 17 2022" ..
 
 if %errorlevel% neq 0 (
     echo.

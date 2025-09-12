@@ -14,10 +14,10 @@
 	</PropertyGroup>
 	<ItemGroup>
 		<Reference Include="EngineScripting">
-			<HintPath>..\bin\Debug-x64\EngineScripting.dll</HintPath>
+			<HintPath>..\build\bin\Debug\EngineScripting.dll</HintPath>
 		</Reference>
 		<Reference Include="GlmSharp">
-			<HintPath>..\bin\Debug-x64\GlmSharp.dll</HintPath>
+			<HintPath>..\build\bin\Debug\GlmSharp.dll</HintPath>
 		</Reference>
 	</ItemGroup>
 </Project>

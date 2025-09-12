@@ -281,11 +281,6 @@ void VulkanContext::initImGui()
 
 void VulkanContext::init()
 {
-#ifdef _DEBUG
-	const char* layerPath = "bin";
-	SetEnvironmentVariableA("VK_LAYER_PATH", layerPath);
-#endif
-
 	if(Constant::enableValidationLayers) {
 		if(!VulkanHelper::checkValidationLayerSupport())
 			throw std::runtime_error("validation layers requested, but not available!");

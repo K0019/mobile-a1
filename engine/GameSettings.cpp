@@ -114,8 +114,8 @@ void Filepaths::UpdateFilepaths()
 	workingDir = ".";
 #ifdef _DEBUG
 	// Use the project's actual assets folder so changes in editor do not have to be manually copied out to the project root so changes reflect on git
-	if (std::filesystem::is_directory("../../Assets/"))
-		workingDir = "../..";
+	if (std::filesystem::is_directory("../../../Assets/"))
+		workingDir = "../../..";
 #endif
 
 	// Reset all filepaths to the root first. NOTE: FILEPATH CLASS MUST NOT HAVE ANY OTHER VARIABLE OTHER THAN STRINGS! This is technically undefined behavior but works for our purposes here.

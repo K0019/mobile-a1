@@ -1,7 +1,12 @@
 7Percent Engine Guide
 ---------------------
-There are no CMake/Premake commands required to run the project.
+CMake 3.26 or above is required to build the project.
+Simply run setup.bat to set the solution up. The solution will be placed in the build folder.
+IF FAILURE: Newer versions of CMake may fail at the vcpkg extraction step on international versions of Windows. Try CMake 3.30.5 if this occurs.
+
+The solution is configured for Visual Studio 17 2022. Please use a version of Visual Studio equal or newer when opening the solution.
+
 .NET Framework 4.7.2 is required to build the C# project within the solution.
-Building configuration in Debug/x64 or Release/x64 will include the editor.
-Building configuration in Debug_NoImgui/x64, Release_NoImgui/x64 or Installer/x64 will include the game only.
+Building configuration in Debug/x64 will include the editor.
+Building configuration in Release/x64 or Installer/x64 will include the game only.
 Programmers may need to update their graphics driver to the latest, due to Vulkan renderer API usage.
