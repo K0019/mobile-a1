@@ -106,7 +106,7 @@ add_executable(Engine WIN32) #
 file(GLOB_RECURSE ENGINE_IMPLEMENTATION_FILES CONFIGURE_DEPENDS "engine/*.cpp")
 file(GLOB_RECURSE ENGINE_HEADER_FILES CONFIGURE_DEPENDS "engine/*.h" "engine/*.hpp" "engine/*.ipp")
 file(GLOB TRACY_MANUAL_SOURCES CONFIGURE_DEPENDS "extern/tracy/TracyClient.cpp") # Tracy vcpkg port is header-only
-file(GLOB_RECURSE SHADER_FILES "${CMAKE_SOURCE_DIR}/shaders/*")
+file(GLOB_RECURSE SHADER_FILES "${CMAKE_SOURCE_DIR}/shaders/*.vert" "${CMAKE_SOURCE_DIR}/shaders/*.frag")
 file(GLOB_RECURSE ENGINE_SOURCE_FILES_DIRECTORIES LIST_DIRECTORIES true "${CMAKE_SOURCE_DIR}/engine/*")
 file(GLOB_RECURSE EXTERNAL_LIBRARIES_STATIC_DEBUG "${EXTERNAL_LIBRARIES}/debug/*.lib")
 file(GLOB_RECURSE EXTERNAL_LIBRARIES_STATIC_RELEASE "${EXTERNAL_LIBRARIES}/release/*.lib")
@@ -116,6 +116,9 @@ set(EXTERNAL_LIBRARIES_WHOLE_DIRECTORIES "${EXTERNAL_LIBRARIES}/directory_copy")
 # To reformat into a style that copy_if_different can accept
 string(REPLACE ";" "\" \"" EXTERNAL_LIBRARIES_DYNAMIC_DEBUG "${EXTERNAL_LIBRARIES_DYNAMIC_DEBUG}")
 string(REPLACE ";" "\" \"" EXTERNAL_LIBRARIES_DYNAMIC_RELEASE "${EXTERNAL_LIBRARIES_DYNAMIC_RELEASE}")
+# To reformat for xcopy
+string(REPLACE "/" "\\" COMPILED_SHADER_FILES "${CMAKE_SOURCE_DIR}/Shaders/*.spv")
+string(REPLACE "/" "\\" OUTPUT_COMPILED_SHADER_FILES "$<$<CONFIG:Debug>:${CMAKE_SOURCE_DIR}/Assets/Shaders>$<$<CONFIG:Release>:$<TARGET_FILE_DIR:Engine>/Assets/Shaders>")
 
 target_sources(Engine PRIVATE
     ${ENGINE_IMPLEMENTATION_FILES}
@@ -182,20 +185,20 @@ target_compile_definitions(Engine PUBLIC
     -DQUILL_DISABLE_NON_PREFIXED_MACROS
     $<$<CONFIG:Debug>:IMGUI_ENABLED>
 )
-set_target_properties(Engine PROPERTIES
-    VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:Engine>"
-    VS_DEBUGGER_ENVIRONMENT "VK_LAYER_PATH=$<TARGET_FILE_DIR:Engine>/vulkan"
-)
 
 add_custom_command(TARGET Engine POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
         "\"$<$<CONFIG:Debug>:${EXTERNAL_LIBRARIES_DYNAMIC_DEBUG}>$<$<CONFIG:Release>:${EXTERNAL_LIBRARIES_DYNAMIC_RELEASE}>\""
         "\"$<TARGET_FILE_DIR:Engine>\""
-)
-add_custom_command(TARGET Engine POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_directory_if_different
         "\"${EXTERNAL_LIBRARIES_WHOLE_DIRECTORIES}\""
+        "$<$<CONFIG:Release>:\"${CMAKE_SOURCE_DIR}/Assets\">"
         "\"$<TARGET_FILE_DIR:Engine>\""
+    COMMAND cd "${CMAKE_SOURCE_DIR}/Shaders" &&
+        .\\compile.bat &&
+        xcopy /s /r /y /q /i
+            "\"${COMPILED_SHADER_FILES}\""
+            "\"${OUTPUT_COMPILED_SHADER_FILES}\""
 )
 
 if(MSVC)
@@ -207,6 +210,10 @@ if(MSVC)
     )
     target_link_options(Engine PUBLIC
         /SUBSYSTEM:CONSOLE
+    )
+    set_target_properties(Engine PROPERTIES
+        VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:Engine>"
+        VS_DEBUGGER_ENVIRONMENT "VK_LAYER_PATH=$<TARGET_FILE_DIR:Engine>/vulkan"
     )
 endif()
 
