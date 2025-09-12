@@ -456,6 +456,9 @@
     <ClCompile Include="ScriptingUtil.cpp">
       <Filter>Source Files\Scripting</Filter>
     </ClCompile>
+    <ClCompile Include="Physics.cpp">
+      <Filter>Source Files\Physics</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ECS.h">
@@ -865,6 +868,9 @@
     </ClInclude>
     <ClInclude Include="ScriptingUtil.h">
       <Filter>Header Files\Scripting</Filter>
+    </ClInclude>
+    <ClInclude Include="Physics.h">
+      <Filter>Header Files\Physics</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

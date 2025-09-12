@@ -381,6 +381,7 @@ if not exist "$(TargetDir)imgui.json" (
     <ClCompile Include="JoltPhysics.cpp" />
     <ClCompile Include="HotReloader.cpp" />
     <ClCompile Include="KillAnimationWhenFinish.cpp" />
+    <ClCompile Include="Physics.cpp" />
     <ClCompile Include="PostProcessingComponent.cpp" />
     <ClCompile Include="PrefabSpawner.cpp" />
     <ClCompile Include="Scheduler.cpp" />
@@ -545,6 +546,7 @@ if not exist "$(TargetDir)imgui.json" (
     <ClInclude Include="KillAnimationWhenFinish.h" />
     <ClInclude Include="MagicMath.h" />
     <ClInclude Include="MagicMath.ipp" />
+    <ClInclude Include="Physics.h" />
     <ClInclude Include="PostProcessingComponent.h" />
     <ClInclude Include="PrefabSpawner.h" />
     <ClInclude Include="Scheduler.h" />

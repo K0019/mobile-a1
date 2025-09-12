@@ -4,7 +4,7 @@
 \par    Project: 7percent
 \par    Course: CSD3401
 \par    Software Engineering Project 5
-\date   06/09/2025
+\date   09/09/2025
 
 \author Takumi Shibamoto (100%)
 \par    email: t.shibamoto\@digipen.edu
@@ -19,6 +19,7 @@ All rights reserved.
 /******************************************************************************/
 
 #include "JoltPhysics.h"
+#include "GameTime.h"
 
 namespace physics {
 	JoltPhysics::JoltPhysics()
@@ -32,6 +33,7 @@ namespace physics {
 		, objectVsBroadphaseLayerFilter{}
 		, objectVsObjectLayerFilter{}
 		, physicsSystem{}
+		, bodyInterface{physicsSystem.GetBodyInterface()}
 	{
 	}
 
@@ -39,6 +41,35 @@ namespace physics {
 	{
 		//Create the physics system.
 		physicsSystem.Init(cMaxBodies, cNumBodyMutexes, cMaxBodyPairs, cMaxContactConstraints, broadPhaseLayerInterface, objectVsBroadphaseLayerFilter, objectVsObjectLayerFilter);
+	}
+
+	JPH::BodyID const& JoltPhysics::CreateAndAddEmptyBody(Transform const& transform, JPH::EMotionType motionType, JPH::ObjectLayer collisionLayer, bool activate)
+	{
+		//Settings of the empty shape.
+		JPH::EmptyShapeSettings emptyShapeSetting{};
+
+		// A ref counted object on the stack (base class RefTarget) should be marked as such to prevent it from being freed when its reference count goes to 0.
+		emptyShapeSetting.SetEmbedded();
+
+		//Create the shape.
+		JPH::ShapeSettings::ShapeResult emptyShapeResult{ emptyShapeSetting.Create() };
+		JPH::ShapeRefC emptyShape{ emptyShapeResult.Get() };
+
+		JPH::RVec3Arg position{ transform.GetWorldPosition().x, transform.GetWorldPosition().y, transform.GetWorldPosition().z };
+		JPH::QuatArg rotation{ JPH::Quat::sEulerAngles(JPH::Vec3{math::ToRadians(transform.GetWorldRotation().x), math::ToRadians(transform.GetWorldRotation().x), math::ToRadians(transform.GetWorldRotation().x)}) };
+
+		return bodyInterface.CreateAndAddBody(JPH::BodyCreationSettings(emptyShape, position, rotation, motionType, collisionLayer), (activate ? JPH::EActivation::Activate : JPH::EActivation::DontActivate));
+	}
+
+	void JoltPhysics::RemoveAndDestroyBody(JPH::BodyID bodyID)
+	{
+		bodyInterface.RemoveBody(bodyID);
+		bodyInterface.DestroyBody(bodyID);
+	}
+
+	void JoltPhysics::UpdatePhysicsSystem()
+	{
+		physicsSystem.Update((GameTime::IsFixedDtMode() ? GameTime::FixedDt() : GameTime::RealDt()), 1, &tempAllocator, &jobSystem);
 	}
 
 	JoltPhysics::~JoltPhysics()
@@ -49,6 +80,18 @@ namespace physics {
 		// Destroy the factory
 		delete JPH::Factory::sInstance;
 		JPH::Factory::sInstance = nullptr;
+	}
+
+	Vec3 const& JoltPhysics::GetBodyPosition(JPH::BodyID bodyID)
+	{
+		JPH::RVec3Arg pos{ bodyInterface.GetPosition(bodyID) };
+		return Vec3{ pos.GetX(), pos.GetY(), pos.GetZ() };
+	}
+
+	void JoltPhysics::SetBodyPosition(JPH::BodyID bodyID, Vec3 const& pos)
+	{
+		JPH::RVec3Arg position{ pos.x, pos.y, pos.z };
+		bodyInterface.SetPosition(bodyID, position, JPH::EActivation::Activate);
 	}
 
 	void JoltRegister()

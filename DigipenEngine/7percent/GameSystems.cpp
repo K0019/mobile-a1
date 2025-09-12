@@ -43,6 +43,7 @@ All rights reserved.
 #include "GamepadInputAdapter.h"
 #include "FadeAndDie.h"
 #include "PrefabSpawner.h"
+#include "Physics.h"
 
 #include "Demo.h"
 
@@ -108,6 +109,8 @@ void GameState_Game::OnEnter()
     ecs::AddSystem(ECS_LAYER::POST_PHYSICS_0, PrefabSpawnSystem{});
 
     ecs::AddSystem(ECS_LAYER::PRE_PHYSICS_0, ExampleSystem{});
+
+    ecs::AddSystem(ECS_LAYER::PHYSICS, physics::PhysicsSystem{});
 }
 
 void GameState_Pause::OnEnter()
