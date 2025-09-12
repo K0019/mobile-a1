@@ -162,7 +162,7 @@ class AssetBrowser {
     /**
      * @brief Render context menu when a sound is right-clicked.
      */
-    void RenderSoundContextMenu(std::string const& name, bool isGrouped);
+    void RenderSoundContextMenu(std::string const& name);
 
     /**
      * @brief Render the bottom part of the create animation UI.
@@ -290,5 +290,8 @@ class AssetBrowser {
     float SIDEBAR_WIDTH = 150.0f; /**< Width of the sidebar */
     float lastFrameTime = 0.0f; /**< Time of the last frame */
     float accumulatedTime = 0.0f; /**< Accumulated time for animation preview */
+	uint32_t currentPreviewSound = 0; /**< Current preview sound channel */
+	AudioAsset lastPreviewAudio; /**< Current preview audio information */
+    bool use3DMode = false;
 #endif
 };

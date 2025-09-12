@@ -168,8 +168,7 @@ public:
 	std::string materialsSave;
 
 	// Sound
-	std::string soundSingleFolder;
-	std::string soundGroupedFolder;
+	std::string soundFolder;
 
 	// Scripting
 	std::string scriptsWorkingDir;

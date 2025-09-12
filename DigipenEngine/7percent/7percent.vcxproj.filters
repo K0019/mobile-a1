@@ -147,9 +147,6 @@
     <ClCompile Include="CustomViewport.cpp">
       <Filter>Source Files\Graphics</Filter>
     </ClCompile>
-    <ClCompile Include="AudioManager.cpp">
-      <Filter>Source Files\Managers</Filter>
-    </ClCompile>
     <ClCompile Include="TweenBase.cpp">
       <Filter>Source Files\Tween</Filter>
     </ClCompile>
@@ -315,9 +312,6 @@
     <ClCompile Include="Gizmo.cpp">
       <Filter>Source Files\EditorUI</Filter>
     </ClCompile>
-    <ClCompile Include="Button.cpp">
-      <Filter>Source Files\GameUI</Filter>
-    </ClCompile>
     <ClCompile Include="Filesystem.cpp">
       <Filter>Source Files\Managers</Filter>
     </ClCompile>
@@ -393,7 +387,7 @@
     <ClCompile Include="GameCameraController.cpp">
       <Filter>Source Files\Game</Filter>
     </ClCompile>
-    <ClCompile Include="AudioSystem.cpp">
+    <ClCompile Include="Audio.cpp">
       <Filter>Source Files\Game</Filter>
     </ClCompile>
     <ClCompile Include="pch.cpp">
@@ -434,6 +428,9 @@
     </ClCompile>
     <ClCompile Include="GUIAsECS.cpp">
       <Filter>Source Files\EditorUI\Containers</Filter>
+    </ClCompile>
+    <ClCompile Include="AudioManager.cpp">
+      <Filter>Source Files\Managers</Filter>
     </ClCompile>
     <ClCompile Include="JoltPhysics.cpp">
       <Filter>Source Files\Physics</Filter>
@@ -514,9 +511,6 @@
     </ClInclude>
     <ClInclude Include="CustomViewport.h">
       <Filter>Header Files\Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="AudioManager.h">
-      <Filter>Header Files\Managers</Filter>
     </ClInclude>
     <ClInclude Include="ECSSysLayers.h">
       <Filter>Header Files\Engine</Filter>
@@ -719,9 +713,6 @@
     <ClInclude Include="Gizmo.h">
       <Filter>Header Files\EditorUI</Filter>
     </ClInclude>
-    <ClInclude Include="Button.h">
-      <Filter>Header Files\GameUI</Filter>
-    </ClInclude>
     <ClInclude Include="Filesystem.h">
       <Filter>Header Files\Managers</Filter>
     </ClInclude>
@@ -797,7 +788,7 @@
     <ClInclude Include="GameCameraController.h">
       <Filter>Header Files\Game</Filter>
     </ClInclude>
-    <ClInclude Include="AudioSystem.h">
+    <ClInclude Include="Audio.h">
       <Filter>Header Files\Game</Filter>
     </ClInclude>
     <ClInclude Include="pch.h">
@@ -847,6 +838,9 @@
     </ClInclude>
     <ClInclude Include="GUIAsECS.h">
       <Filter>Header Files\EditorUI\Containers</Filter>
+    </ClInclude>
+    <ClInclude Include="AudioManager.h">
+      <Filter>Header Files\Managers</Filter>
     </ClInclude>
     <ClInclude Include="JoltPhysics.h">
       <Filter>Header Files\Physics</Filter>

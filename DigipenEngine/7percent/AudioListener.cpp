@@ -20,29 +20,9 @@ All rights reserved.
 */
 /******************************************************************************/
 #include "AudioListener.h"
-#include "AudioManager.h"
 
 AudioListenerComponent::AudioListenerComponent()
-	: minDistance{ 10.0f }
-	, maxDistance{ 1000.0f }
-	, dopperScale{ 1.0f }
-	, distanceFactor{ 0.01f }
-	, rolloffScale{ 0.1f }
 {
-}
-
-void AudioListenerComponent::OnStart()
-{
-	ST<AudioManager>::Get()->UpdateSpatialProperties(minDistance, maxDistance, dopperScale, distanceFactor, rolloffScale);
-}
-
-void AudioListenerComponent::EditorDraw()
-{
-	gui::VarDrag("Minimum Distance", &minDistance);
-	gui::VarDrag("Maximum Distance", &maxDistance);
-	gui::VarDrag("Doppler Scale", &dopperScale);
-	gui::VarDrag("Distance Factor", &distanceFactor);
-	gui::VarDrag("Rolloff Scale", &rolloffScale);
 }
 
 AudioListenerSystem::AudioListenerSystem() :
@@ -52,5 +32,5 @@ AudioListenerSystem::AudioListenerSystem() :
 
 void AudioListenerSystem::UpdateAudioListenerComp(AudioListenerComponent& comp)
 {
-	ST<AudioManager>::Get()->UpdateListenerAttributes(ecs::GetEntity(&comp)->GetTransform().GetWorldPosition());
+	ST<AudioManager>::Get()->UpdateListener(ecs::GetEntity(&comp)->GetTransform().GetWorldPosition());
 }
