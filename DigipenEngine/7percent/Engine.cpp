@@ -35,6 +35,7 @@ All rights reserved.
 #include "JoltPhysics.h"
 
 #include "SettingsWindow.h"
+#include "BehaviourTreeWindow.h"
 #include "LayersMatrix.h"
 #include "EntityLayers.h"
 
@@ -604,6 +605,14 @@ void Engine::run() {
 
 				ImGui::EndMenu();
 			}
+
+			if (ImGui::BeginMenu("Behaviour Tree"))
+			{
+				editor::CreateWindow<editor::BehaviourTreeWindow>();
+				ImGui::EndMenu();
+
+			}
+
 
 			ImGui::EndMainMenuBar();  // End the main menu bar
 		}
