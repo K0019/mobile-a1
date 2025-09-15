@@ -204,7 +204,7 @@ bool Input::IsFinalIterationThisFrame() const
 
 bool Input::CreateInputSet(const std::string& name)
 {
-	return inputSets.try_emplace(name).second;
+	return inputSets.try_emplace(name, std::make_shared<internal::InputSet>()).second;
 }
 
 bool Input::SwitchInputSet(const std::string& inputSetIdentifier)
@@ -220,6 +220,11 @@ bool Input::SwitchInputSet(const std::string& inputSetIdentifier)
 SPtr<const internal::InputSet> Input::GetCurrentInputSet() const
 {
 	return currentInputSet.lock();
+}
+
+decltype(util::ToSortedVectorOfRefs(Input::inputSets)) Input::Editor_GetInputSets()
+{
+	return util::ToSortedVectorOfRefs(inputSets);
 }
 
 

@@ -314,12 +314,6 @@ public:
 
 	SPtr<const internal::InputSet> GetCurrentInputSet() const;
 
-public:
-	// For InputConfig to get and modify input sets
-	template <typename FuncType>
-		requires std::invocable<FuncType, std::string, internal::InputSet>
-	void Editor_ForEachInputSet(FuncType func);
-
 public: // Frame management
 	/*****************************************************************//*!
 	 \brief
@@ -349,6 +343,10 @@ private:
 
 	//! Tracks which iteration we're at.
 	int currIteration;
+
+public:
+	// For InputConfig to get and modify input sets
+	decltype(util::ToSortedVectorOfRefs(inputSets)) Editor_GetInputSets();
 };
 
 #pragma endregion // New Interface
@@ -378,3 +376,5 @@ private:
 //};
 
 #pragma endregion // Old Interface
+
+#include "Input.ipp"
