@@ -52,24 +52,6 @@ All rights reserved.
 
 namespace {
 
-	void key_cb(GLFWwindow* window, int key, int scancode, int action, int mode)
-	{
-		UNREFERENCED_PARAMETER(mode);
-		UNREFERENCED_PARAMETER(scancode);
-		UNREFERENCED_PARAMETER(window);
-
-		switch(action)
-		{
-			case GLFW_PRESS:
-				//CONSOLE_LOG(LEVEL_DEBUG) << "Key: " << key << " Pressed";
-				Input::OnKeyDown(static_cast<short>(key));
-				break;
-			case GLFW_RELEASE:
-				Input::OnKeyUp(static_cast<short>(key));
-				break;
-		}
-	}
-
 	void fbsize_cb(GLFWwindow* window, int width, int height)
 	{
 		auto app = reinterpret_cast<Engine*>(glfwGetWindowUserPointer(window));
@@ -98,49 +80,6 @@ namespace {
 
 	}
 
-	void mousebutton_cb(GLFWwindow* window, int button, int action, int mode)
-	{
-		UNREFERENCED_PARAMETER(window);
-		UNREFERENCED_PARAMETER(mode);
-		switch(action)
-		{
-			case GLFW_PRESS:
-				//CONSOLE_LOG(LEVEL_DEBUG) << "MB: " << button << " Pressed";
-				Input::OnKeyDown(static_cast<short>(button));
-				break;
-			case GLFW_RELEASE:
-				Input::OnKeyUp(static_cast<short>(button));
-				break;
-		}
-	}
-
-	void mousepos_cb(GLFWwindow* window, double xpos, double ypos)
-	{
-		UNREFERENCED_PARAMETER(window);
-#ifdef IMGUI_ENABLED
-		UNREFERENCED_PARAMETER(xpos);
-		UNREFERENCED_PARAMETER(ypos);
-		auto pos = ImGui::GetMousePos();
-		Input::OnMouseMove(pos.x, pos.y);
-#else
-		// Clamp mouse position to window bounds
-		double clampedXpos = math::Clamp(xpos, 0.0, static_cast<double>(ST<Engine>::Get()->_windowExtent.width));
-		double clampedYpos = math::Clamp(ypos, 0.0, static_cast<double>(ST<Engine>::Get()->_windowExtent.height));
-		if (clampedXpos != xpos || clampedYpos != ypos)
-			glfwSetCursorPos(window, clampedXpos, clampedYpos);
-
-		Input::OnMouseMove(clampedXpos, clampedYpos);
-#endif
-	}
-
-	void mousescroll_cb(GLFWwindow* window, double xoffset, double yoffset)
-	{
-		UNREFERENCED_PARAMETER(window);
-		UNREFERENCED_PARAMETER(xoffset);
-		Input::OnScroll(static_cast<float>(yoffset));
-
-	}
-
 	void joystick_cb([[maybe_unused]] int id, [[maybe_unused]] int event)
 	{
 	}
@@ -148,10 +87,10 @@ namespace {
 	void setup_event_callbacks(GLFWwindow* window)
 	{
 		glfwSetFramebufferSizeCallback(window, fbsize_cb);
-		glfwSetKeyCallback(window, key_cb);
-		glfwSetMouseButtonCallback(window, mousebutton_cb);
-		glfwSetCursorPosCallback(window, mousepos_cb);
-		glfwSetScrollCallback(window, mousescroll_cb);
+		glfwSetKeyCallback(window, KeyboardMouseInput::GLFW_Callback_OnKeyboardClick);
+		glfwSetMouseButtonCallback(window, KeyboardMouseInput::GLFW_Callback_OnMouseClick);
+		glfwSetCursorPosCallback(window, KeyboardMouseInput::GLFW_Callback_OnMouseMove);
+		glfwSetScrollCallback(window, KeyboardMouseInput::GLFW_Callback_OnMouseScroll);
 		glfwSetJoystickCallback(joystick_cb);
 		glfwSetWindowFocusCallback(window, Engine::OnFocusChanged);
 		glfwSetCursorEnterCallback(window, cursor_enter_cb);

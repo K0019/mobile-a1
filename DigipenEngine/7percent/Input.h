@@ -30,6 +30,28 @@ All rights reserved.
 #include "MagicMath.h"
 #include "MacroTemplates.h"
 
+namespace internal {
+
+	class InputTrigger
+	{
+	public:
+
+	private:
+
+	};
+
+	class InputDeviceBase
+	{
+	public:
+
+	private:
+
+	};
+
+}
+
+#pragma region Keyboard/Mouse
+
 /*****************************************************************//*!
 \enum KEY
 \brief
@@ -111,6 +133,39 @@ enum class KEY : int
 };
 GENERATE_ENUM_CLASS_ARITHMETIC_OPERATORS(KEY)
 
+class KeyboardMouseInput : public internal::InputDeviceBase
+{
+public:
+
+public:
+	static void GLFW_Callback_OnKeyboardClick(GLFWwindow* window, int key, int scancode, int action, int mode);
+	static void GLFW_Callback_OnMouseClick(GLFWwindow* window, int button, int action, int mode);
+	static void GLFW_Callback_OnMouseMove(GLFWwindow* window, double xpos, double ypos);
+	static void GLFW_Callback_OnMouseScroll(GLFWwindow* window, double xoffset, double yoffset);
+
+private:
+	void Callback_OnKeyDown(short key);
+	void Callback_OnKeyUp(short key);
+	void Callback_OnMouseMove(double x, double y);
+	void Callback_OnMouseScroll(float offset);
+
+private:
+	// Mouse state is combined into key states (as their indexes don't clash)
+	//! The current state of keys.
+	std::bitset<GLFW_KEY_LAST + 1> keystate;
+	//! Whether keys were pressed since the last update.
+	std::bitset<GLFW_KEY_LAST + 1> pressedKeystate;
+	//! Whether keys were released since the last update.
+	std::bitset<GLFW_KEY_LAST + 1> releasedKeystate;
+
+	//! The current mouse window position.
+	Vec2 mousePos;
+	float scrollOffset;
+};
+
+
+#pragma endregion // Keyboard/Mouse
+
 class Input
 {
 public:
@@ -120,9 +175,6 @@ public:
 	/*****************************************************************//*!
 	 \brief
 		  Reset the previous state to the current state
-
-	 \return
-		   void
     *//******************************************************************/
 	static void NewFrame();
 
@@ -132,96 +184,70 @@ public:
 		updates the state of key press/release only on iterations where it makes sense.
 		> Press is only true on the first iteration.
 		> Release is only true on the last iteration.
-	 \return
-		   void
 	*//******************************************************************/
 	static void NewIteration();
 
 	/*****************************************************************//*!
 	   \brief
-		   Checks key being pressed.
-		   Certain special keys such as function key send a -1 keycode. 
-		   Need to guard against those to avoid crashing the std::bitset container.
-
+		   Sets a key to pressed state.
 	   \param key
-		   the key being presssed
-
-	   \return
-		   void
+		   The GLFW key code.
    *//******************************************************************/
 	static void OnKeyDown(short key);
 
 	/*****************************************************************//*!
 		\brief
-		   Checks key being released.
-		   Certain special keys such as function key send a -1 keycode. 
-		   Need to guard against those to avoid crashing the std::bitset container.
-
+		   Sets a key to unpressed state.
 		\param key
-			the key being released
-
-		\return
-		   void
+			The GLFW key code.
 	*//******************************************************************/
 	static void OnKeyUp(short key);
 
 
 	/*****************************************************************//*!
 		\brief
-			Stores the mouse pos
-
+			Sets the mouse position.
 		\param mouseX
 			Mouuse X pos
-
 		\param mouseY
-			Mouuse Y pos
-
-		\return
-		   void
+			Mouse Y pos
 	*//******************************************************************/
 	static void OnMouseMove(double mouseX, double mouseY);
 	
 
 	/*****************************************************************//*!
 		\brief
-			Gets true or false based on the the key being pressed
-
+			Gets whether a key is currently pressed.
 		\param key
-			Key being pressed
-
+			Key identifier.
 		\return
-		   bool
+			True if the key is currently pressed. False otherwise.
 	*//******************************************************************/
 	static bool GetKeyCurr(KEY key);
 
 	/*****************************************************************//*!
 		\brief
-			Returns true on false based on the press status of the key
-
+			Gets whether a key was pressed this frame.
 		\param key
-			Key being pressed
-
+			Key identifier
 		\return
-		   bool
+			True if the key was pressed this frame. False otherwise.
 	*//******************************************************************/
 	static bool GetKeyPressed(KEY key);
 
 	/*****************************************************************//*!
 		\brief
-			Returns true on false based on the press status of the key
-
+			Gets whether a key was released this frame.
 		\param key
-			Key being released
-
+			Key identifier
 		\return
-			bool
+			True if the key was released this frame. False otherwise.
 	*//******************************************************************/
 	static bool GetKeyReleased(KEY key);
 
 	/*****************************************************************//*!
 	\brief
 		Gets the mouse's current window position.
-
 	\return
 		The mouse's current window position.
 	*//******************************************************************/

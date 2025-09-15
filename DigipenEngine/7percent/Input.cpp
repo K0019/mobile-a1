@@ -23,6 +23,84 @@ All rights reserved.
 #include "Input.h"
 #include "CustomViewport.h"
 
+namespace internal {
+
+}
+
+void KeyboardMouseInput::GLFW_Callback_OnKeyboardClick([[maybe_unused]] GLFWwindow* window, int key, [[maybe_unused]] int scancode, int action, [[maybe_unused]] int mode)
+{
+	switch (action)
+	{
+	case GLFW_PRESS:
+		ST<KeyboardMouseInput>::Get()->Callback_OnKeyDown(static_cast<short>(key));
+		break;
+	case GLFW_RELEASE:
+		ST<KeyboardMouseInput>::Get()->Callback_OnKeyUp(static_cast<short>(key));
+		break;
+	}
+}
+
+void KeyboardMouseInput::GLFW_Callback_OnMouseClick([[maybe_unused]] GLFWwindow* window, int button, int action, [[maybe_unused]] int mode)
+{
+	switch (action)
+	{
+	case GLFW_PRESS:
+		ST<KeyboardMouseInput>::Get()->Callback_OnKeyDown(static_cast<short>(button));
+		break;
+	case GLFW_RELEASE:
+		ST<KeyboardMouseInput>::Get()->Callback_OnKeyUp(static_cast<short>(button));
+		break;
+	}
+}
+
+void KeyboardMouseInput::GLFW_Callback_OnMouseMove([[maybe_unused]] GLFWwindow* window, [[maybe_unused]] double xpos, [[maybe_unused]] double ypos)
+{
+#ifdef IMGUI_ENABLED
+	auto pos = ImGui::GetMousePos();
+	ST<KeyboardMouseInput>::Get()->Callback_OnMouseMove(pos.x, pos.y);
+#else
+	// Clamp mouse position to window bounds
+	double clampedXpos = math::Clamp(xpos, 0.0, static_cast<double>(ST<Engine>::Get()->_windowExtent.width));
+	double clampedYpos = math::Clamp(ypos, 0.0, static_cast<double>(ST<Engine>::Get()->_windowExtent.height));
+	if (clampedXpos != xpos || clampedYpos != ypos)
+		glfwSetCursorPos(window, clampedXpos, clampedYpos);
+
+	ST<KeyboardMouseInput>::Get()->Callback_OnMouseMove(clampedXpos, clampedYpos);
+#endif
+}
+
+void KeyboardMouseInput::GLFW_Callback_OnMouseScroll([[maybe_unused]] GLFWwindow* window, [[maybe_unused]] double xoffset, double yoffset)
+{
+	ST<KeyboardMouseInput>::Get()->Callback_OnMouseScroll(static_cast<float>(yoffset));
+}
+
+void KeyboardMouseInput::Callback_OnKeyDown(short key)
+{
+	// Certain special keys such as function key send a -1 keycode. Need to guard against those to avoid crashing
+	if (key >= 0)
+	{
+		pressedKeystate[key] = true;
+		keystate[key] = true;
+	}
+}
+void KeyboardMouseInput::Callback_OnKeyUp(short key)
+{
+	// Certain special keys such as function key send a -1 keycode. Need to guard against those to avoid crashing
+	if (key >= 0)
+		releasedKeystate[key] = true;
+}
+
+void KeyboardMouseInput::Callback_OnMouseMove(double x, double y)
+{
+	mousePos.x = static_cast<float>(x);
+	mousePos.y = static_cast<float>(y);
+}
+
+void KeyboardMouseInput::Callback_OnMouseScroll(float offset)
+{
+	scrollOffset = offset;
+}
+
 
 // static variables
 std::bitset<GLFW_KEY_LAST + 1> Input::keystate, Input::pressedKeystate, Input::releasedKeystate;
