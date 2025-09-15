@@ -54,7 +54,7 @@ bool CheatCodes::PreRun()
 	auto elapsed = std::chrono::duration_cast<std::chrono::seconds>(end - start);
 
 	//Press C to clear cheats
-	if (Input::GetKeyCurr(KEY::C))
+	if (InputOld::GetKeyCurr(KEY::C))
 	{
 		ClearCheats();
 	}
@@ -66,8 +66,8 @@ bool CheatCodes::PreRun()
 		bitPos = 0;
 	}
 		
-	if (Input::GetKeyPressed(KEY::UP) || Input::GetKeyPressed(KEY::DOWN) ||
-		Input::GetKeyPressed(KEY::LEFT) || Input::GetKeyPressed(KEY::RIGHT))
+	if (InputOld::GetKeyPressed(KEY::UP) || InputOld::GetKeyPressed(KEY::DOWN) ||
+		InputOld::GetKeyPressed(KEY::LEFT) || InputOld::GetKeyPressed(KEY::RIGHT))
 	{
 		start = std::chrono::steady_clock::now();
 
@@ -80,22 +80,22 @@ bool CheatCodes::PreRun()
 
 		mask.reset();
 		//Inputs here
-		if (Input::GetKeyPressed(KEY::UP))
+		if (InputOld::GetKeyPressed(KEY::UP))
 		{
 			mask.set(0 + bitPos);
 			bitPos += 4;
 		}
-		else if (Input::GetKeyPressed(KEY::DOWN))
+		else if (InputOld::GetKeyPressed(KEY::DOWN))
 		{
 			mask.set(1 + bitPos);
 			bitPos += 4;
 		}
-		else if (Input::GetKeyPressed(KEY::LEFT))
+		else if (InputOld::GetKeyPressed(KEY::LEFT))
 		{
 			mask.set(2 + bitPos);
 			bitPos += 4;
 		}
-		else if (Input::GetKeyPressed(KEY::RIGHT))
+		else if (InputOld::GetKeyPressed(KEY::RIGHT))
 		{
 			mask.set(3 + bitPos);
 			bitPos += 4;

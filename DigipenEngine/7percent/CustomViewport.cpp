@@ -104,7 +104,7 @@ void CustomViewport::DrawPlayControls() {
 		ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.8f, 0.8f, 0.8f, 1.0f));
 	}
 	static CameraData camera_data;
-	if (ImGui::Button(isPlayMode ? ICON_FA_STOP : ICON_FA_PLAY, ImVec2(BUTTON_WIDTH, BUTTON_HEIGHT)) || Input::GetKeyPressed(KEY::F5))
+	if (ImGui::Button(isPlayMode ? ICON_FA_STOP : ICON_FA_PLAY, ImVec2(BUTTON_WIDTH, BUTTON_HEIGHT)) || InputOld::GetKeyPressed(KEY::F5))
 	{
 		if (!isPlayMode) // About to enter play mode
 		{
@@ -243,7 +243,7 @@ void CustomViewport::DrawImGuiWindow() {
 					size_t ID = *static_cast<size_t*>(payload->Data);
 					const auto& sprite = ResourceManager::GetSprite(ID);
 					CONSOLE_LOG_UNIMPLEMENTED() << "Spawn entity from sprite drop into viewport";
-					//entity->GetTransform().SetLocal(0.5f, Input::GetMousePosWorld(), { static_cast<float>(sprite.width), static_cast<float>(sprite.height) }, 0.0f);
+					//entity->GetTransform().SetLocal(0.5f, InputOld::GetMousePosWorld(), { static_cast<float>(sprite.width), static_cast<float>(sprite.height) }, 0.0f);
 					entity->AddCompNow(RenderComponent{ ID });
 					ST<Inspector>::Get()->SetSelectedEntity(entity);
 				}
@@ -256,7 +256,7 @@ void CustomViewport::DrawImGuiWindow() {
 					ecs::EntityHandle entity = PrefabManager::LoadPrefab(prefabName);
 					ST<History>::Get()->OneEvent(HistoryEvent_EntityCreate{ entity });
 					CONSOLE_LOG_UNIMPLEMENTED() << "Spawn entity from prefab drop into viewport";
-					//entity->GetTransform().SetWorldPosition(Input::GetMousePosWorld());
+					//entity->GetTransform().SetWorldPosition(InputOld::GetMousePosWorld());
 					ST<Inspector>::Get()->SetSelectedEntity(entity);
 				}
 			}
@@ -271,7 +271,7 @@ void CustomViewport::DrawImGuiWindow() {
 					entity->AddCompNow(RenderComponent{});
 					entity->AddCompNow(AnimatorComponent{ animHash });
 					CONSOLE_LOG_UNIMPLEMENTED() << "Spawn entity from animation drop into viewport";
-					//entity->GetTransform().SetLocal(0.5f, Input::GetMousePosWorld(), { static_cast<float>(anim.Width), static_cast<float>(anim.Height) }, 0.0f);
+					//entity->GetTransform().SetLocal(0.5f, InputOld::GetMousePosWorld(), { static_cast<float>(anim.Width), static_cast<float>(anim.Height) }, 0.0f);
 					ST<Inspector>::Get()->SetSelectedEntity(entity);
 				}
 			}

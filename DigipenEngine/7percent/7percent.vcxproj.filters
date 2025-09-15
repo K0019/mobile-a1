@@ -860,6 +860,9 @@
     <ClInclude Include="ScriptingUtil.h">
       <Filter>Header Files\Scripting</Filter>
     </ClInclude>
+    <ClInclude Include="Input.ipp">
+      <Filter>Header Files\Engine</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ECSInternal.h">

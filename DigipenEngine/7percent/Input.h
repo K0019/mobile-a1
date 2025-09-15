@@ -32,13 +32,7 @@ All rights reserved.
 
 namespace internal {
 
-	class InputTrigger
-	{
-	public:
-
-	private:
-
-	};
+	static constexpr float DEADZONE = 0.15f;
 
 	class InputDeviceBase
 	{
@@ -48,7 +42,138 @@ namespace internal {
 
 	};
 
+	enum class INPUT_DEVICE_TYPE : char
+	{
+		KEYBOARD_MOUSE,
+		GAMEPAD,
+		NUM_DEVICES,
+		INVALID_DEVICE = -1
+	};
+
 }
+
+#pragma region Bindings
+
+enum class INPUT_READ_TYPE : char
+{
+	// Pressed/Released THIS FRAME
+	PRESSED,
+	RELEASED,
+	// CURRENTLY up/down
+	CURRENT
+};
+
+namespace internal {
+
+#pragma region Hardware Link
+
+	using InputHardwareValue = std::variant<bool, float>;
+	class InputHardwareValueLink
+	{
+	public:
+		InputHardwareValueLink();
+		InputHardwareValueLink(INPUT_DEVICE_TYPE deviceType, int keyIdentifier, INPUT_READ_TYPE readType);
+
+		// Gets the value of the key linked at creation time
+		InputHardwareValue ReadValue() const;
+
+	protected:
+		//! Which input device to read from
+		INPUT_DEVICE_TYPE deviceType;
+		//! Whether to check if the key was pressed/released this frame only, or just get the current value
+		INPUT_READ_TYPE readType;
+		//! The identifier for the input key on the device
+		int keyIdentifier;
+
+	private:
+		// To avoid virtualization based on device type, we're storing virtualized behaviors in these function pointer arrays.
+
+		//! Set of functions that query a particular input device for a key value
+		using FuncType_GetValue = std::variant<bool, float>(*)(int keyIdentifier, INPUT_READ_TYPE readType);
+		static const std::array<FuncType_GetValue, +INPUT_DEVICE_TYPE::NUM_DEVICES> GetValueFromDevice;
+	};
+
+#pragma endregion // Hardware Link
+
+#pragma region Input Binding
+
+	enum class INPUT_COMPOSITE_TYPE
+	{
+		BUTTON,	 // Bool for either key is up or down
+		AXIS_1D, // Float value from -1 to 1, supports 2 hardware values for positive/negative
+		AXIS_2D  // Vec2 value from -1 to 1 on each axis
+	};
+
+	template <INPUT_COMPOSITE_TYPE CompositeType>
+	class InputBinding
+	{
+	public:
+		// Get the input value of this binding. Return type depends on the composite type.
+		template <INPUT_COMPOSITE_TYPE T = CompositeType>
+		std::enable_if_t<T == INPUT_COMPOSITE_TYPE::BUTTON, bool> GetValue() const;
+		template <INPUT_COMPOSITE_TYPE T = CompositeType>
+		std::enable_if_t<T == INPUT_COMPOSITE_TYPE::AXIS_1D, float> GetValue() const;
+		template <INPUT_COMPOSITE_TYPE T = CompositeType>
+		std::enable_if_t<T == INPUT_COMPOSITE_TYPE::AXIS_2D, Vec2> GetValue() const;
+
+	private:
+		// Gets and converts an InputHardwareValueLink's value to the desired value type.
+		template <typename ValueType>
+		static ValueType Get(const InputHardwareValueLink& hardwareValueLink);
+
+	private:
+		//! The values of this binding will be read from these hardware values.
+		//! Store 1, 2 or 4 InputHardwareValueLink depending on the composite type.
+		[[no_unique_address]] util::OptionalVar<CompositeType == INPUT_COMPOSITE_TYPE::BUTTON, InputHardwareValueLink> hardwareValues_Button;
+		[[no_unique_address]] util::OptionalVar<CompositeType == INPUT_COMPOSITE_TYPE::AXIS_1D, std::array<InputHardwareValueLink, 2>> hardwareValues_1D;
+		[[no_unique_address]] util::OptionalVar<CompositeType == INPUT_COMPOSITE_TYPE::AXIS_2D, std::array<InputHardwareValueLink, 4>> hardwareValues_2D;
+	};
+
+#pragma endregion // Input Binding
+
+#pragma region Input Action
+
+	class InputActionBase
+	{
+
+	};
+
+	template <INPUT_COMPOSITE_TYPE CompositeType>
+	class InputAction : InputActionBase
+	{
+	public:
+		// Get the input value of this action. Return type depends on the composite type.
+		template <INPUT_COMPOSITE_TYPE T = CompositeType>
+		std::enable_if_t<T == INPUT_COMPOSITE_TYPE::BUTTON, bool> GetValue() const;
+		template <INPUT_COMPOSITE_TYPE T = CompositeType>
+		std::enable_if_t<T == INPUT_COMPOSITE_TYPE::AXIS_1D, float> GetValue() const;
+		template <INPUT_COMPOSITE_TYPE T = CompositeType>
+		std::enable_if_t<T == INPUT_COMPOSITE_TYPE::AXIS_2D, Vec2> GetValue() const;
+
+	private:
+		//! The input bindings that "activate" this action.
+		std::vector<InputBinding<CompositeType>> bindings;
+
+	};
+
+#pragma endregion // Input Action
+
+#pragma region Input Set
+
+	class InputSet
+	{
+	public:
+
+	private:
+		std::unordered_map<std::string, SPtr<InputActionBase>> actions;
+
+	};
+
+#pragma endregion Input Set
+
+}
+
+#pragma endregion // Bindings
 
 #pragma region Keyboard/Mouse
 
@@ -136,6 +261,10 @@ GENERATE_ENUM_CLASS_ARITHMETIC_OPERATORS(KEY)
 class KeyboardMouseInput : public internal::InputDeviceBase
 {
 public:
+	bool GetIsPressed(KEY key);
+	bool GetIsReleased(KEY key);
+	bool GetIsDown(KEY key);
+	bool GetValue(INPUT_READ_TYPE readType, KEY key);
 
 public:
 	static void GLFW_Callback_OnKeyboardClick(GLFWwindow* window, int key, int scancode, int action, int mode);
@@ -163,14 +292,32 @@ private:
 	float scrollOffset;
 };
 
-
 #pragma endregion // Keyboard/Mouse
+
+#pragma region New Interface
 
 class Input
 {
 public:
+	bool CreateInputSet(const std::string& name);
+	bool SwitchInputSet(const std::string& inputSetIdentifier);
+
+	SPtr<const internal::InputSet> GetCurrentInputSet() const;
+
+private:
+	std::unordered_map<std::string, SPtr<internal::InputSet>> inputSets;
+	WPtr<internal::InputSet> currentInputSet;
+};
+
+#pragma endregion
+
+#pragma region Interface
+
+class InputOld
+{
+public:
 	// Disable instancing of this class
-	Input() = delete;
+	InputOld() = delete;
 
 	/*****************************************************************//*!
 	 \brief
@@ -282,6 +429,8 @@ private:
 	//! Tracks which iteration we're at.
 	static int currIteration;
 };
+
+#pragma endregion // Interface
 
 /*****************************************************************//*!
 \class GamepadInput

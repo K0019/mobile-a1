@@ -25,6 +25,69 @@ All rights reserved.
 
 namespace internal {
 
+	const std::array<InputHardwareValueLink::FuncType_GetValue, +INPUT_DEVICE_TYPE::NUM_DEVICES> InputHardwareValueLink::GetValueFromDevice{
+		[](int keyIdentifier, INPUT_READ_TYPE readType) -> InputHardwareValue {
+			return ST<KeyboardMouseInput>::Get()->GetValue(readType, static_cast<KEY>(keyIdentifier));
+		}
+	};
+
+
+	InputHardwareValueLink::InputHardwareValueLink()
+		: deviceType{ INPUT_DEVICE_TYPE::INVALID_DEVICE }
+		, readType{ INPUT_READ_TYPE::CURRENT }
+		, keyIdentifier{ -1 }
+	{
+	}
+
+	InputHardwareValueLink::InputHardwareValueLink(INPUT_DEVICE_TYPE deviceType, int keyIdentifier, INPUT_READ_TYPE readType)
+		: deviceType{ deviceType }
+		, readType{ readType }
+		, keyIdentifier{ keyIdentifier }
+	{
+	}
+
+	InputHardwareValue InputHardwareValueLink::ReadValue() const
+	{
+		if (deviceType == INPUT_DEVICE_TYPE::INVALID_DEVICE)
+			return false;
+		return GetValueFromDevice[+deviceType](keyIdentifier, readType);
+	}
+
+}
+
+bool KeyboardMouseInput::GetIsPressed(KEY key)
+{
+	return pressedKeystate[+key];
+}
+
+bool KeyboardMouseInput::GetIsReleased(KEY key)
+{
+	// TODO: Only return true if we're at the last iteration.
+	//if (currIteration != 1)
+	//	return false;
+	return releasedKeystate[+key];
+}
+
+bool KeyboardMouseInput::GetIsDown(KEY key)
+{
+	return keystate[+key];
+}
+
+bool KeyboardMouseInput::GetValue(INPUT_READ_TYPE readType, KEY key)
+{
+	switch (readType)
+	{
+	case INPUT_READ_TYPE::PRESSED:
+		return ST<KeyboardMouseInput>::Get()->GetIsPressed(key);
+	case INPUT_READ_TYPE::RELEASED:
+		return ST<KeyboardMouseInput>::Get()->GetIsReleased(key);
+	case INPUT_READ_TYPE::CURRENT:
+		return ST<KeyboardMouseInput>::Get()->GetIsDown(key);
+	default:
+		// Unimplemented INPUT_READ_TYPE
+		assert(false);
+		return false;
+	}
 }
 
 void KeyboardMouseInput::GLFW_Callback_OnKeyboardClick([[maybe_unused]] GLFWwindow* window, int key, [[maybe_unused]] int scancode, int action, [[maybe_unused]] int mode)
@@ -103,16 +166,16 @@ void KeyboardMouseInput::Callback_OnMouseScroll(float offset)
 
 
 // static variables
-std::bitset<GLFW_KEY_LAST + 1> Input::keystate, Input::pressedKeystate, Input::releasedKeystate;
-Vec2 Input::mousePos = { 0.0f, 0.0f };
-float Input::scrollOffset = 0.0f;
-int Input::currIteration{};
+std::bitset<GLFW_KEY_LAST + 1> InputOld::keystate, InputOld::pressedKeystate, InputOld::releasedKeystate;
+Vec2 InputOld::mousePos = { 0.0f, 0.0f };
+float InputOld::scrollOffset = 0.0f;
+int InputOld::currIteration{};
 
 GLFWgamepadstate GamepadInput::prevState{};
 bool GamepadInput::gamepadActive{};
 
 
-void Input::NewFrame()
+void InputOld::NewFrame()
 {
 	keystate &= ~releasedKeystate;
 
@@ -124,13 +187,13 @@ void Input::NewFrame()
 	currIteration = GameTime::RealNumFixedFrames();
 }
 
-void Input::NewIteration()
+void InputOld::NewIteration()
 {
 	pressedKeystate.reset();
 	--currIteration;
 }
 
-void Input::OnKeyDown(short key)
+void InputOld::OnKeyDown(short key)
 {
 	// Certain special keys such as function key send a -1 keycode. Need to guard against those to avoid crashing
 	if (key >= 0)
@@ -140,30 +203,30 @@ void Input::OnKeyDown(short key)
 	}
 }
 
-void Input::OnKeyUp(short key)
+void InputOld::OnKeyUp(short key)
 {
 	// Certain special keys such as function key send a -1 keycode. Need to guard against those to avoid crashing
 	if (key >= 0)
 		releasedKeystate[key] = true;
 }
 
-void Input::OnMouseMove(double mouseX, double mouseY)
+void InputOld::OnMouseMove(double mouseX, double mouseY)
 {
 	mousePos.x = static_cast<float>(mouseX);
 	mousePos.y = static_cast<float>(mouseY);
 }
 
-bool Input::GetKeyCurr(KEY key)
+bool InputOld::GetKeyCurr(KEY key)
 {
 	return keystate[+key];
 }
 
-bool Input::GetKeyPressed(KEY key)
+bool InputOld::GetKeyPressed(KEY key)
 {
 	return pressedKeystate[+key];
 }
 
-bool Input::GetKeyReleased(KEY key)
+bool InputOld::GetKeyReleased(KEY key)
 {
 	// Only return true if we're at the last iteration.
 	if (currIteration != 1)
@@ -171,27 +234,27 @@ bool Input::GetKeyReleased(KEY key)
 	return releasedKeystate[+key];
 }
 
-const Vec2& Input::GetMousePosRaw()
+const Vec2& InputOld::GetMousePosRaw()
 {
 	return mousePos;
 }
 
-Vec3 Input::GetMousePosWorld()
+Vec3 InputOld::GetMousePosWorld()
 {
 #ifdef IMGUI_ENABLED
 	return ST<CustomViewport>::Get()->WindowToWorldPosition(Vec2{ ImGui::GetMousePos().x, ImGui::GetMousePos().y });
 #else
-	return ST<CustomViewport>::Get()->WindowToWorldPosition(Input::mousePos);
+	return ST<CustomViewport>::Get()->WindowToWorldPosition(InputOld::mousePos);
 #endif
 
 }
 
-void Input::OnScroll(float offset)
+void InputOld::OnScroll(float offset)
 {
 	scrollOffset = offset;
 }
 
-float Input::GetScroll()
+float InputOld::GetScroll()
 {
 	return scrollOffset;
 }
@@ -213,10 +276,10 @@ void GamepadInput::PollInput()
 		if (state.buttons[gamepadKeyId] == GLFW_PRESS)
 		{
 			gamepadActive = true;
-			Input::OnKeyDown(keyboardKeyId);
+			InputOld::OnKeyDown(keyboardKeyId);
 		}
 		else
-			Input::OnKeyUp(keyboardKeyId);
+			InputOld::OnKeyUp(keyboardKeyId);
 	} };
 	auto ProcessButtonAsScroll{ [&state](int gamepadKeyId, float scrollAmt) -> void {
 		if (state.buttons[gamepadKeyId] == prevState.buttons[gamepadKeyId])
@@ -224,44 +287,44 @@ void GamepadInput::PollInput()
 		if (state.buttons[gamepadKeyId] == GLFW_PRESS)
 		{
 			gamepadActive = true;
-			Input::OnScroll(scrollAmt);
+			InputOld::OnScroll(scrollAmt);
 		}
 	} };
 	auto ProcessAxis{ [&state](int gamepadAxisId, KEY keyboardKeyLeft, KEY keyboardKeyRight) -> void {
 		if (state.axes[gamepadAxisId] < -0.15f)
 		{
 			gamepadActive = true;
-			if (Input::GetKeyCurr(keyboardKeyRight))
-				Input::OnKeyUp(static_cast<short>(keyboardKeyRight));
-			if (!Input::GetKeyCurr(keyboardKeyLeft))
-				Input::OnKeyDown(static_cast<short>(keyboardKeyLeft));
+			if (InputOld::GetKeyCurr(keyboardKeyRight))
+				InputOld::OnKeyUp(static_cast<short>(keyboardKeyRight));
+			if (!InputOld::GetKeyCurr(keyboardKeyLeft))
+				InputOld::OnKeyDown(static_cast<short>(keyboardKeyLeft));
 		}
 		else if (state.axes[gamepadAxisId] > 0.15f)
 		{
 			gamepadActive = true;
-			if (Input::GetKeyCurr(keyboardKeyLeft))
-				Input::OnKeyUp(static_cast<short>(keyboardKeyLeft));
-			if (!Input::GetKeyCurr(keyboardKeyRight))
-				Input::OnKeyDown(static_cast<short>(keyboardKeyRight));
+			if (InputOld::GetKeyCurr(keyboardKeyLeft))
+				InputOld::OnKeyUp(static_cast<short>(keyboardKeyLeft));
+			if (!InputOld::GetKeyCurr(keyboardKeyRight))
+				InputOld::OnKeyDown(static_cast<short>(keyboardKeyRight));
 		}
 		else if (gamepadActive)
 		{
-			if (Input::GetKeyCurr(keyboardKeyLeft))
-				Input::OnKeyUp(static_cast<short>(keyboardKeyLeft));
-			if (Input::GetKeyCurr(keyboardKeyRight))
-				Input::OnKeyUp(static_cast<short>(keyboardKeyRight));
+			if (InputOld::GetKeyCurr(keyboardKeyLeft))
+				InputOld::OnKeyUp(static_cast<short>(keyboardKeyLeft));
+			if (InputOld::GetKeyCurr(keyboardKeyRight))
+				InputOld::OnKeyUp(static_cast<short>(keyboardKeyRight));
 		}
 	} };
 	auto ProcessTriggerAxis{ [&state](int gamepadAxisId, KEY keyboardKey) -> void {
 		if (state.axes[gamepadAxisId] > 0.0f)
 		{
-			if (!Input::GetKeyCurr(keyboardKey))
-				Input::OnKeyDown(static_cast<short>(keyboardKey));
+			if (!InputOld::GetKeyCurr(keyboardKey))
+				InputOld::OnKeyDown(static_cast<short>(keyboardKey));
 		}
 		else if (gamepadActive)
 		{
-			if (Input::GetKeyCurr(keyboardKey))
-				Input::OnKeyUp(static_cast<short>(keyboardKey));
+			if (InputOld::GetKeyCurr(keyboardKey))
+				InputOld::OnKeyUp(static_cast<short>(keyboardKey));
 		}
 	} };
 
@@ -278,4 +341,24 @@ void GamepadInput::PollInput()
 	ProcessTriggerAxis(GLFW_GAMEPAD_AXIS_RIGHT_TRIGGER, KEY::M_LEFT);
 
 	prevState = state;
+}
+
+bool Input::CreateInputSet(const std::string& name)
+{
+	return inputSets.try_emplace(name).second;
+}
+
+bool Input::SwitchInputSet(const std::string& inputSetIdentifier)
+{
+	auto inputSetIter{ inputSets.find(inputSetIdentifier) };
+	if (inputSetIter == inputSets.end())
+		return false;
+
+	currentInputSet = inputSetIter->second;
+	return true;
+}
+
+SPtr<const internal::InputSet> Input::GetCurrentInputSet() const
+{
+	return currentInputSet.lock();
 }

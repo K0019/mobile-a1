@@ -113,8 +113,8 @@ SliderSystem::SliderSystem()
 
 void SliderSystem::UpdateSliderComp(SliderComponent& comp)
 {
-    bool onClicked{ Input::GetKeyPressed(KEY::M_LEFT) };
-    bool isReleased{ Input::GetKeyReleased(KEY::M_LEFT) };
+    bool onClicked{ InputOld::GetKeyPressed(KEY::M_LEFT) };
+    bool isReleased{ InputOld::GetKeyReleased(KEY::M_LEFT) };
     ecs::EntityHandle sliderButtonEntity{ ecs::GetEntity(&comp) };
     ecs::EntityHandle barEntity{ ecs::GetEntity(sliderButtonEntity->GetCompInParents<SliderBar>()) };
     float barEntityMin = barEntity->GetTransform().GetWorldPosition().x - (barEntity->GetTransform().GetWorldScale().x / 2);
@@ -161,7 +161,7 @@ void SliderSystem::UpdateSliderComp(SliderComponent& comp)
     CONSOLE_LOG_UNIMPLEMENTED() << "Slider cursor on slider";
 
     // Get whether the cursor is on the button. We'll need this later.
-    /*bool isCursorOnButton{ util::IsPointInside(Input::GetMousePosWorld(), ecs::GetEntityTransform(&comp)) };
+    /*bool isCursorOnButton{ util::IsPointInside(InputOld::GetMousePosWorld(), ecs::GetEntityTransform(&comp)) };
 
     if (isCursorOnButton)
     {
@@ -188,7 +188,7 @@ void SliderSystem::onSliderHold(SliderComponent& comp)
     //float barEntityMax = barEntity->GetTransform().GetWorldPosition().x + (barEntity->GetTransform().GetWorldScale().x / 2);
     //float sliderButtonY = sliderButtonEntity->GetTransform().GetWorldPosition().y;
     //float sliderButtonX = 0;
-    //Vec2 mou = Input::GetMousePosWorld();
+    //Vec2 mou = InputOld::GetMousePosWorld();
   
 
     ////If mous pos is more than the end of the bar or less than start of the bar

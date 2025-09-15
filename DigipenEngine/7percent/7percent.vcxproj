@@ -539,6 +539,7 @@ if not exist "$(TargetDir)imgui.json" (
     <ClInclude Include="GamepadInputAdapter.h" />
     <ClInclude Include="GUIAsECS.h" />
     <ClInclude Include="GUICollection.ipp" />
+    <ClInclude Include="Input.ipp" />
     <ClInclude Include="JoltPhysics.h" />
     <ClInclude Include="HotReloader.h" />
     <ClInclude Include="KillAnimationWhenFinish.h" />

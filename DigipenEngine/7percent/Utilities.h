@@ -37,6 +37,14 @@ struct Vec2;
 struct Vec3;
 class Transform;
 
+// Convenience
+template <typename T>
+using UPtr = std::unique_ptr<T>;
+template <typename T>
+using SPtr = std::shared_ptr<T>;
+template <typename T>
+using WPtr = std::weak_ptr<T>;
+
 #pragma region Internal
 
 namespace util {
@@ -52,6 +60,9 @@ namespace util {
 		template <typename T, typename U>
 		constexpr auto DefaultMonoPairSelectPred = [](const std::pair<T, U>&) -> bool { return true; };
 
+		// An empty struct for enabling/disabling variables
+		struct EmptyStruct {};
+
 	}
 }
 
@@ -60,6 +71,33 @@ namespace util {
 #pragma region Interface
 
 namespace util {
+
+	/*****************************************************************//*!
+	\brief
+		Enables a variable depending on a compile time bool.
+	\code{.cpp}
+		template <typename T>
+		struct Example
+		{
+			// x exists as a float if T is int. Otherwise, x doesn't exist.
+			[[no_unique_address]] util::OptionalVar<std::is_same_v<T, int>, float> x;
+		};
+	\endcode
+	*//******************************************************************/
+	template <bool Enable, typename RealType>
+	using OptionalVar = std::conditional_t<Enable, RealType, internal::EmptyStruct>;
+
+	/*****************************************************************//*!
+	\brief
+		Wraps multiple functions into a struct that can be used with std::visit
+		to decide the function to execute.
+		See https://en.cppreference.com/w/cpp/utility/variant/visit2.html example #4 "overloaded" for usage.
+	*//******************************************************************/
+	template <typename ...Ts>
+	struct VisitFunctions : Ts...
+	{
+		using Ts::operator()...;
+	};
 
 	/*****************************************************************//*!
 	\brief
