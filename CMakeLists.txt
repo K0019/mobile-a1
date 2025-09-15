@@ -66,18 +66,7 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
-set(BUILD_SHARED_LIBS OFF CACHE BOOL "Build dependencies as static libraries")
-set(ASSIMP_BUILD_TESTS OFF CACHE BOOL "Disable Assimp tests")
-set(ASSIMP_BUILD_ASSIMP_TOOLS OFF CACHE BOOL "Disable Assimp command-line tools")
-set(ASSIMP_BUILD_SAMPLES OFF CACHE BOOL "Disable Assimp samples")
-set(ASSIMP_NO_EXPORT ON CACHE BOOL "Disable model exporting to reduce library size")
-set(ASSIMP_INSTALL OFF CACHE BOOL "Disable install targets for Assimp")
-set(ASSIMP_WARNINGS_AS_ERRORS OFF CACHE BOOL "Do not treat warnings as errors for third-party libs")
-set(ASSIMP_BUILD_DRACO OFF CACHE BOOL "Optional: Disable Draco if not using compressed glTF")
-
 find_package(assimp CONFIG REQUIRED)
-find_package(enkiTS CONFIG REQUIRED)
-find_package(entt CONFIG REQUIRED)
 find_package(FreeImage CONFIG REQUIRED)
 find_package(Freetype CONFIG REQUIRED)
 find_package(glfw3 CONFIG REQUIRED)
@@ -87,16 +76,19 @@ find_package(imgui CONFIG REQUIRED)
 find_package(KTX CONFIG REQUIRED)
 find_package(meshoptimizer CONFIG REQUIRED)
 find_package(mikktspace CONFIG REQUIRED)
-find_package(mimalloc CONFIG REQUIRED)
 find_package(quill CONFIG REQUIRED)
 find_package(spirv_cross_core CONFIG REQUIRED)
 find_package(spirv_cross_glsl CONFIG REQUIRED)
+find_package(Jolt CONFIG REQUIRED)
 find_package(Stb REQUIRED)
 find_package(tracy CONFIG REQUIRED)
 find_package(unofficial-spirv-reflect CONFIG REQUIRED)
 find_package(Volk CONFIG REQUIRED)
 find_package(Vulkan REQUIRED)
 find_package(VulkanMemoryAllocator CONFIG REQUIRED)
+find_package(imgui CONFIG REQUIRED)
+find_package(imguizmo CONFIG REQUIRED)
+find_package(implot CONFIG REQUIRED)
 #add_subdirectory(extern/offset_allocator)
 
 # ----- Engine Target -----
@@ -105,7 +97,6 @@ add_executable(Engine WIN32) #
 # Search for files needed
 file(GLOB_RECURSE ENGINE_IMPLEMENTATION_FILES CONFIGURE_DEPENDS "engine/*.cpp")
 file(GLOB_RECURSE ENGINE_HEADER_FILES CONFIGURE_DEPENDS "engine/*.h" "engine/*.hpp" "engine/*.ipp")
-file(GLOB TRACY_MANUAL_SOURCES CONFIGURE_DEPENDS "extern/tracy/TracyClient.cpp") # Tracy vcpkg port is header-only
 file(GLOB_RECURSE SHADER_FILES "${CMAKE_SOURCE_DIR}/shaders/*.vert" "${CMAKE_SOURCE_DIR}/shaders/*.frag")
 file(GLOB_RECURSE ENGINE_SOURCE_FILES_DIRECTORIES LIST_DIRECTORIES true "${CMAKE_SOURCE_DIR}/engine/*")
 file(GLOB_RECURSE EXTERNAL_LIBRARIES_STATIC_DEBUG "${EXTERNAL_LIBRARIES}/debug/*.lib")
@@ -123,7 +114,6 @@ string(REPLACE "/" "\\" OUTPUT_COMPILED_SHADER_FILES "$<$<CONFIG:Debug>:${CMAKE_
 target_sources(Engine PRIVATE
     ${ENGINE_IMPLEMENTATION_FILES}
     ${ENGINE_HEADER_FILES}
-    ${TRACY_MANUAL_SOURCES} # Tracy needs its client cpp file compiled in
     ${SHADER_FILES}
 )
 
@@ -143,8 +133,6 @@ target_link_libraries(Engine PUBLIC
     # --- Core Dependencies (from vcpkg) ---
     # Correct namespaced targets are used as per vcpkg output.
     assimp::assimp
-    EnTT::EnTT
-	enkiTS::enkiTS
     freeimage::FreeImage 
 	freeimage::FreeImagePlus # FreeImage::FreeImagePlus is also available if needed
     Freetype::Freetype
@@ -157,10 +145,9 @@ target_link_libraries(Engine PUBLIC
 	mikktspace::mikktspace
     quill::quill
     Tracy::TracyClient
-    volk::volk
     volk::volk_headers  # This provides the Vulkan headers
     Vulkan::Vulkan
-
+	Jolt::Jolt
     # Shader compilation
     glslang::glslang
     glslang::glslang-default-resource-limits
@@ -169,9 +156,6 @@ target_link_libraries(Engine PUBLIC
     spirv-cross-core
     spirv-cross-glsl
     unofficial::spirv-reflect
-	#offsetAllocator
-    $<$<TARGET_EXISTS:mimalloc-static>:mimalloc-static;mimalloc>
-
     # External libraries
     $<$<CONFIG:Debug>:${EXTERNAL_LIBRARIES_STATIC_DEBUG}>
     $<$<CONFIG:Release>:${EXTERNAL_LIBRARIES_STATIC_RELEASE}>
@@ -213,8 +197,20 @@ if(MSVC)
     )
     set_target_properties(Engine PROPERTIES
         VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:Engine>"
-        VS_DEBUGGER_ENVIRONMENT "VK_LAYER_PATH=$<TARGET_FILE_DIR:Engine>/vulkan"
     )
+	set(PORTABLE_LAYERS_PATH "${CMAKE_SOURCE_DIR}/External/Bin")
+	if(EXISTS "${PORTABLE_LAYERS_PATH}/VkLayer_khronos_validation.json")
+		file(TO_NATIVE_PATH "${PORTABLE_LAYERS_PATH}" NATIVE_PORTABLE_LAYERS_PATH)
+		message(STATUS "Configuring portable Vulkan layers for MSVC debugging at: ${NATIVE_PORTABLE_LAYERS_PATH}")
+
+		set_property(TARGET Engine PROPERTY
+			VS_DEBUGGER_ENVIRONMENT
+				"VK_LAYER_PATH=${NATIVE_PORTABLE_LAYERS_PATH}
+				 VK_LOADER_DEBUG=all"
+		)
+	else()
+		message(WARNING "Portable Vulkan layer manifest not found at ${PORTABLE_LAYERS_PATH}")
+	endif()
 endif()
 
 
@@ -252,15 +248,15 @@ add_dependencies(Engine EngineScripting)
 # Set startup project for Visual Studio
 set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT Engine)
 
+add_definitions("-DQUILL_DISABLE_NON_PREFIXED_MACROS")
 add_definitions("-DVK_NO_PROTOTYPES=1")
-if(WIN32)
-  add_definitions("-DVK_USE_PLATFORM_WIN32_KHR=1")
-  add_definitions("-DNOMINMAX")
+if(ANDROID)
+    add_definitions("-DVK_USE_PLATFORM_ANDROID_KHR=1")
+elseif(WIN32)
+    add_definitions("-DVK_USE_PLATFORM_WIN32_KHR=1")
+    add_definitions("-DNOMINMAX")
 endif()
 
-if(DEFINED ENV{VULKAN_SDK})
-    set(VK_LAYER_PATH "$ENV{VULKAN_SDK}/Bin")
-endif()
 
 if(MSVC)
     add_compile_options(

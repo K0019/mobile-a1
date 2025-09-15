@@ -13,16 +13,18 @@ if not exist "%BUILD_DIR%" (
 
 :: Navigate into the build directory and run CMake
 cd "%BUILD_DIR%"
-cmake -G "Visual Studio 17 2022" ..
+cmake ..
 
 if %errorlevel% neq 0 (
     echo.
-    echo ERROR: CMake configuration failed. Something went horribly wrong. Please seek help.
-    exit /b 1
+    echo ERROR: CMake configuration failed.
+    pause
+    exit /b %errorlevel%
 )
 
 echo.
 echo CMake configuration complete.
 echo You can now open the .sln file in the '%BUILD_DIR%' directory.
+pause
 
 endlocal

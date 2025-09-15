@@ -3,20 +3,20 @@
   "version-string": "0.1.0",
   "dependencies": [
     "assimp",
-    "entt",
-	  "enkits",
     "freeimage",
     "freetype",
     "glfw3",
     "glm",
+	"joltphysics",
     {
       "name": "imgui",
       "features": [
         "docking-experimental",
-        "glfw-binding",
-        "vulkan-binding"
+        "glfw-binding"
       ]
     },
+	"imguizmo",
+    "implot",
     {
       "name": "ktx",
       "features": [
@@ -31,21 +31,14 @@
       ]
     },
     "meshoptimizer",
-    {
-      "name": "mimalloc",
-      "features": [
-        "override"
-      ]
-    },
-	  "quill",
-    "readerwriterqueue",
-	  "mikktspace",
+	"quill",
+	"mikktspace",
     "tracy",
     "spirv-reflect",
     "spirv-cross",
     "stb",
-	  "vulkan-sdk-components",
     "vulkan-memory-allocator",
+	"vulkan-utility-libraries",
     "volk"
   ]
 }

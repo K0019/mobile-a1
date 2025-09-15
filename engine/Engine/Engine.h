@@ -22,20 +22,19 @@ All rights reserved.
 /******************************************************************************/
 
 #pragma once
-#include "ryan-c/Vk_Incl.h"
 #include "game.h"
 #include "ResourceManager.h"
 #include "Console.h"
 #include "Performance.h"
 #include "CustomViewport.h"
-#include "ryan-c\VulkanContext.h"
 #include "AudioManager.h"
 #include "AssetBrowser.h"
 #include "PrefabWindow.h"
 #include "Hierarchy.h"
 #include "Popup.h"
 #include "Editor.h"
-
+#include "ryan-c/graphics/renderer.h"
+#include "ryan-c/assets/core/asset_system.h"
 
 /*****************************************************************//*!
 \class Engine
@@ -83,7 +82,9 @@ public:
 
     GLFWwindow* _window{ nullptr };
     GLFWmonitor* _monitor{nullptr };
-    std::unique_ptr<VulkanContext> _vulkan;
+    std::unique_ptr<Renderer> m_renderer;
+
+    std::unique_ptr<AssetLoading::AssetSystem> m_assetSystem;
 
     VkExtent2D _windowExtent{};
     VkExtent2D _viewportExtent {};

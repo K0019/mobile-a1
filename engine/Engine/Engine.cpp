@@ -37,8 +37,6 @@ All rights reserved.
 #include "LayersMatrix.h"
 #include "EntityLayers.h"
 
-#include "ryan-c/Renderer.h"
-#include "ryan-c/VulkanHelper.h"
 #include "CSScripting.h"
 #include "HotReloader.h"
 
@@ -179,8 +177,7 @@ void Engine::onWindowResized(int width, int height)
 #else
 	_viewportExtent = _windowExtent;
 #endif
-	if(_vulkan)
-		_vulkan->resized = true;
+	m_renderer->onWindowResized(width, height);
 }
 void Engine::onResolutionChanged(int width, int height)
 {
@@ -321,7 +318,7 @@ void Engine::init()
 	uint32_t glfwExtCount = 0;
 	glfwGetRequiredInstanceExtensions(&glfwExtCount);
 
-	_window = glfwCreateWindow(_windowExtent.width, _windowExtent.height, Constant::name, nullptr, nullptr);
+	_window = glfwCreateWindow(_windowExtent.width, _windowExtent.height, "Mahou Engine", nullptr, nullptr); // MAGICCCCCCCCCCCCC
 	auto windowCreate = std::chrono::high_resolution_clock::now();
 	glfwSetDropCallback(_window, import::DropCallback); //To catch files 
 
@@ -355,12 +352,7 @@ void Engine::init()
 		throw std::runtime_error("failed to initialize Volk!");
 	}
 
-	_vulkan = std::make_unique<VulkanContext>();
-	auto startTime = std::chrono::high_resolution_clock::now();
-	_vulkan->init();
-	auto currentTime = std::chrono::high_resolution_clock::now();
-	CONSOLE_LOG(LEVEL_INFO) << "Vulkan context initialization: " << std::chrono::duration_cast<std::chrono::milliseconds>(currentTime - startTime).count() << "ms";
-
+	m_renderer = std::make_unique<Renderer>(_window, _windowExtent.width, _windowExtent.height);
 	// NOTE THAT IMGUI IS SETUP IN VULKAN DUE TO THE CALLBACKS NEEDED FOR IT TO WORK
 
 #ifdef _DEBUG
@@ -406,7 +398,6 @@ void Engine::init()
 	//io.Fonts->AddFontFromMemoryCompressedTTF(FA_compressed_data, FA_compressed_size, 20.0f, &icons_config, icons_ranges);
 
 	io.Fonts->Build();
-	ImGui_ImplVulkan_CreateFontsTexture();
 #else
 	ST<Game>::Get()->Init(WORLD_WIDTH, WORLD_HEIGHT, GAMESTATE::IN_GAME);
 #endif
