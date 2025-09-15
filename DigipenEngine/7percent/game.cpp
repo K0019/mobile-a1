@@ -130,7 +130,7 @@ void Game::Update()
             ecs::RunSystemsInLayers(ECS_LAYER::CUTOFF_POST_PHYSICS, ECS_LAYER::CUTOFF_POST_PHYSICS_SCRIPTS);
         });
 
-        InputOld::NewIteration();
+        ST<Input>::Get()->NewIteration();
     }
 }
 

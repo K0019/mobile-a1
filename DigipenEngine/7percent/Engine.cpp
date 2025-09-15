@@ -414,9 +414,9 @@ void Engine::run() {
 		// Only reset key states when systems are updating so we don't skip inputs.
 		if(GameTime::RealNumFixedFrames())
 		{
-			InputOld::NewFrame();
+			ST<Input>::Get()->NewFrame();
 			glfwPollEvents();
-			GamepadInput::PollInput();
+			//GamepadInput::PollInput();
 		}
 
 		if(glfwWindowShouldClose(_window)) {
@@ -558,13 +558,13 @@ void Engine::run() {
 		{
 #ifdef IMGUI_ENABLED
 			ST<Inspector>::Get()->ProcessInput();
-			if(InputOld::GetKeyPressed(KEY::GRAVE))
+			if(ST<KeyboardMouseInput>::Get()->GetIsPressed(KEY::GRAVE))
 				ST<Console>::Get()->SetIsOpen(!ST<Console>::Get()->GetIsOpen());
-			if(InputOld::GetKeyPressed(KEY::F1))
+			if(ST<KeyboardMouseInput>::Get()->GetIsPressed(KEY::F1))
 				show_demo_window = true;
 #endif
 
-			if(InputOld::GetKeyPressed(KEY::F11))
+			if(ST<KeyboardMouseInput>::Get()->GetIsPressed(KEY::F11))
 			{
 				if(ST<GameSettings>::Get()->m_fullscreenMode == 0)
 				{

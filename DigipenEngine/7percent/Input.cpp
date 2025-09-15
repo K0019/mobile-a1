@@ -55,25 +55,24 @@ namespace internal {
 
 }
 
-bool KeyboardMouseInput::GetIsPressed(KEY key)
+bool KeyboardMouseInput::GetIsPressed(KEY key) const
 {
 	return pressedKeystate[+key];
 }
 
-bool KeyboardMouseInput::GetIsReleased(KEY key)
+bool KeyboardMouseInput::GetIsReleased(KEY key) const
 {
-	// TODO: Only return true if we're at the last iteration.
-	//if (currIteration != 1)
-	//	return false;
+	if (ST<Input>::Get()->IsFinalIterationThisFrame())
+		return false;
 	return releasedKeystate[+key];
 }
 
-bool KeyboardMouseInput::GetIsDown(KEY key)
+bool KeyboardMouseInput::GetIsDown(KEY key) const
 {
 	return keystate[+key];
 }
 
-bool KeyboardMouseInput::GetValue(INPUT_READ_TYPE readType, KEY key)
+bool KeyboardMouseInput::GetValue(INPUT_READ_TYPE readType, KEY key) const
 {
 	switch (readType)
 	{
@@ -88,6 +87,26 @@ bool KeyboardMouseInput::GetValue(INPUT_READ_TYPE readType, KEY key)
 		assert(false);
 		return false;
 	}
+}
+
+float KeyboardMouseInput::GetScroll() const
+{
+	return scrollOffset;
+}
+
+void KeyboardMouseInput::NewFrame()
+{
+	keystate &= ~releasedKeystate;
+
+	pressedKeystate.reset();
+	releasedKeystate.reset();
+
+	scrollOffset = 0.0f;
+}
+
+void KeyboardMouseInput::NewIteration()
+{
+	pressedKeystate.reset();
 }
 
 void KeyboardMouseInput::GLFW_Callback_OnKeyboardClick([[maybe_unused]] GLFWwindow* window, int key, [[maybe_unused]] int scancode, int action, [[maybe_unused]] int mode)
@@ -164,183 +183,23 @@ void KeyboardMouseInput::Callback_OnMouseScroll(float offset)
 	scrollOffset = offset;
 }
 
-
-// static variables
-std::bitset<GLFW_KEY_LAST + 1> InputOld::keystate, InputOld::pressedKeystate, InputOld::releasedKeystate;
-Vec2 InputOld::mousePos = { 0.0f, 0.0f };
-float InputOld::scrollOffset = 0.0f;
-int InputOld::currIteration{};
-
-GLFWgamepadstate GamepadInput::prevState{};
-bool GamepadInput::gamepadActive{};
-
-
-void InputOld::NewFrame()
+void Input::NewFrame()
 {
-	keystate &= ~releasedKeystate;
-
-	pressedKeystate.reset();
-	releasedKeystate.reset();
-
-	scrollOffset = 0.0f;
+	ST<KeyboardMouseInput>::Get()->NewFrame();
 
 	currIteration = GameTime::RealNumFixedFrames();
 }
 
-void InputOld::NewIteration()
+void Input::NewIteration()
 {
-	pressedKeystate.reset();
+	ST<KeyboardMouseInput>::Get()->NewIteration();
+
 	--currIteration;
 }
 
-void InputOld::OnKeyDown(short key)
+bool Input::IsFinalIterationThisFrame() const
 {
-	// Certain special keys such as function key send a -1 keycode. Need to guard against those to avoid crashing
-	if (key >= 0)
-	{
-		pressedKeystate[key] = true;
-		keystate[key] = true;
-	}
-}
-
-void InputOld::OnKeyUp(short key)
-{
-	// Certain special keys such as function key send a -1 keycode. Need to guard against those to avoid crashing
-	if (key >= 0)
-		releasedKeystate[key] = true;
-}
-
-void InputOld::OnMouseMove(double mouseX, double mouseY)
-{
-	mousePos.x = static_cast<float>(mouseX);
-	mousePos.y = static_cast<float>(mouseY);
-}
-
-bool InputOld::GetKeyCurr(KEY key)
-{
-	return keystate[+key];
-}
-
-bool InputOld::GetKeyPressed(KEY key)
-{
-	return pressedKeystate[+key];
-}
-
-bool InputOld::GetKeyReleased(KEY key)
-{
-	// Only return true if we're at the last iteration.
-	if (currIteration != 1)
-		return false;
-	return releasedKeystate[+key];
-}
-
-const Vec2& InputOld::GetMousePosRaw()
-{
-	return mousePos;
-}
-
-Vec3 InputOld::GetMousePosWorld()
-{
-#ifdef IMGUI_ENABLED
-	return ST<CustomViewport>::Get()->WindowToWorldPosition(Vec2{ ImGui::GetMousePos().x, ImGui::GetMousePos().y });
-#else
-	return ST<CustomViewport>::Get()->WindowToWorldPosition(InputOld::mousePos);
-#endif
-
-}
-
-void InputOld::OnScroll(float offset)
-{
-	scrollOffset = offset;
-}
-
-float InputOld::GetScroll()
-{
-	return scrollOffset;
-}
-
-void GamepadInput::PollInput()
-{
-	if (!glfwJoystickIsGamepad(GLFW_JOYSTICK_1))
-	{
-		gamepadActive = false;
-		return;
-	}
-
-	GLFWgamepadstate state{};
-	glfwGetGamepadState(GLFW_JOYSTICK_1, &state);
-
-	auto ProcessButton{ [&state](int gamepadKeyId, short keyboardKeyId) -> void {
-		if (state.buttons[gamepadKeyId] == prevState.buttons[gamepadKeyId])
-			return;
-		if (state.buttons[gamepadKeyId] == GLFW_PRESS)
-		{
-			gamepadActive = true;
-			InputOld::OnKeyDown(keyboardKeyId);
-		}
-		else
-			InputOld::OnKeyUp(keyboardKeyId);
-	} };
-	auto ProcessButtonAsScroll{ [&state](int gamepadKeyId, float scrollAmt) -> void {
-		if (state.buttons[gamepadKeyId] == prevState.buttons[gamepadKeyId])
-			return;
-		if (state.buttons[gamepadKeyId] == GLFW_PRESS)
-		{
-			gamepadActive = true;
-			InputOld::OnScroll(scrollAmt);
-		}
-	} };
-	auto ProcessAxis{ [&state](int gamepadAxisId, KEY keyboardKeyLeft, KEY keyboardKeyRight) -> void {
-		if (state.axes[gamepadAxisId] < -0.15f)
-		{
-			gamepadActive = true;
-			if (InputOld::GetKeyCurr(keyboardKeyRight))
-				InputOld::OnKeyUp(static_cast<short>(keyboardKeyRight));
-			if (!InputOld::GetKeyCurr(keyboardKeyLeft))
-				InputOld::OnKeyDown(static_cast<short>(keyboardKeyLeft));
-		}
-		else if (state.axes[gamepadAxisId] > 0.15f)
-		{
-			gamepadActive = true;
-			if (InputOld::GetKeyCurr(keyboardKeyLeft))
-				InputOld::OnKeyUp(static_cast<short>(keyboardKeyLeft));
-			if (!InputOld::GetKeyCurr(keyboardKeyRight))
-				InputOld::OnKeyDown(static_cast<short>(keyboardKeyRight));
-		}
-		else if (gamepadActive)
-		{
-			if (InputOld::GetKeyCurr(keyboardKeyLeft))
-				InputOld::OnKeyUp(static_cast<short>(keyboardKeyLeft));
-			if (InputOld::GetKeyCurr(keyboardKeyRight))
-				InputOld::OnKeyUp(static_cast<short>(keyboardKeyRight));
-		}
-	} };
-	auto ProcessTriggerAxis{ [&state](int gamepadAxisId, KEY keyboardKey) -> void {
-		if (state.axes[gamepadAxisId] > 0.0f)
-		{
-			if (!InputOld::GetKeyCurr(keyboardKey))
-				InputOld::OnKeyDown(static_cast<short>(keyboardKey));
-		}
-		else if (gamepadActive)
-		{
-			if (InputOld::GetKeyCurr(keyboardKey))
-				InputOld::OnKeyUp(static_cast<short>(keyboardKey));
-		}
-	} };
-
-	ProcessButton(GLFW_GAMEPAD_BUTTON_A, GLFW_KEY_SPACE);
-	ProcessButton(GLFW_GAMEPAD_BUTTON_B, GLFW_KEY_R);
-	ProcessButton(GLFW_GAMEPAD_BUTTON_X, GLFW_MOUSE_BUTTON_LEFT);
-	ProcessButton(GLFW_GAMEPAD_BUTTON_Y, GLFW_KEY_F);
-	ProcessButtonAsScroll(GLFW_GAMEPAD_BUTTON_LEFT_BUMPER, 1.0f);
-	ProcessButtonAsScroll(GLFW_GAMEPAD_BUTTON_RIGHT_BUMPER, -1.0f);
-	ProcessButton(GLFW_GAMEPAD_BUTTON_START, GLFW_KEY_ESCAPE);
-
-	ProcessAxis(GLFW_GAMEPAD_AXIS_LEFT_X, KEY::A, KEY::D);
-	ProcessTriggerAxis(GLFW_GAMEPAD_AXIS_LEFT_TRIGGER, KEY::M_RIGHT);
-	ProcessTriggerAxis(GLFW_GAMEPAD_AXIS_RIGHT_TRIGGER, KEY::M_LEFT);
-
-	prevState = state;
+	return currIteration <= 1;
 }
 
 bool Input::CreateInputSet(const std::string& name)
@@ -362,3 +221,93 @@ SPtr<const internal::InputSet> Input::GetCurrentInputSet() const
 {
 	return currentInputSet.lock();
 }
+
+
+// static variables
+//GLFWgamepadstate GamepadInput::prevState{};
+//bool GamepadInput::gamepadActive{};
+//
+//
+//void GamepadInput::PollInput()
+//{
+//	if (!glfwJoystickIsGamepad(GLFW_JOYSTICK_1))
+//	{
+//		gamepadActive = false;
+//		return;
+//	}
+//
+//	GLFWgamepadstate state{};
+//	glfwGetGamepadState(GLFW_JOYSTICK_1, &state);
+//
+//	auto ProcessButton{ [&state](int gamepadKeyId, short keyboardKeyId) -> void {
+//		if (state.buttons[gamepadKeyId] == prevState.buttons[gamepadKeyId])
+//			return;
+//		if (state.buttons[gamepadKeyId] == GLFW_PRESS)
+//		{
+//			gamepadActive = true;
+//			InputOld::OnKeyDown(keyboardKeyId);
+//		}
+//		else
+//			InputOld::OnKeyUp(keyboardKeyId);
+//	} };
+//	auto ProcessButtonAsScroll{ [&state](int gamepadKeyId, float scrollAmt) -> void {
+//		if (state.buttons[gamepadKeyId] == prevState.buttons[gamepadKeyId])
+//			return;
+//		if (state.buttons[gamepadKeyId] == GLFW_PRESS)
+//		{
+//			gamepadActive = true;
+//			InputOld::OnScroll(scrollAmt);
+//		}
+//	} };
+//	auto ProcessAxis{ [&state](int gamepadAxisId, KEY keyboardKeyLeft, KEY keyboardKeyRight) -> void {
+//		if (state.axes[gamepadAxisId] < -0.15f)
+//		{
+//			gamepadActive = true;
+//			if (InputOld::GetKeyCurr(keyboardKeyRight))
+//				InputOld::OnKeyUp(static_cast<short>(keyboardKeyRight));
+//			if (!InputOld::GetKeyCurr(keyboardKeyLeft))
+//				InputOld::OnKeyDown(static_cast<short>(keyboardKeyLeft));
+//		}
+//		else if (state.axes[gamepadAxisId] > 0.15f)
+//		{
+//			gamepadActive = true;
+//			if (InputOld::GetKeyCurr(keyboardKeyLeft))
+//				InputOld::OnKeyUp(static_cast<short>(keyboardKeyLeft));
+//			if (!InputOld::GetKeyCurr(keyboardKeyRight))
+//				InputOld::OnKeyDown(static_cast<short>(keyboardKeyRight));
+//		}
+//		else if (gamepadActive)
+//		{
+//			if (InputOld::GetKeyCurr(keyboardKeyLeft))
+//				InputOld::OnKeyUp(static_cast<short>(keyboardKeyLeft));
+//			if (InputOld::GetKeyCurr(keyboardKeyRight))
+//				InputOld::OnKeyUp(static_cast<short>(keyboardKeyRight));
+//		}
+//	} };
+//	auto ProcessTriggerAxis{ [&state](int gamepadAxisId, KEY keyboardKey) -> void {
+//		if (state.axes[gamepadAxisId] > 0.0f)
+//		{
+//			if (!InputOld::GetKeyCurr(keyboardKey))
+//				InputOld::OnKeyDown(static_cast<short>(keyboardKey));
+//		}
+//		else if (gamepadActive)
+//		{
+//			if (InputOld::GetKeyCurr(keyboardKey))
+//				InputOld::OnKeyUp(static_cast<short>(keyboardKey));
+//		}
+//	} };
+//
+//	ProcessButton(GLFW_GAMEPAD_BUTTON_A, GLFW_KEY_SPACE);
+//	ProcessButton(GLFW_GAMEPAD_BUTTON_B, GLFW_KEY_R);
+//	ProcessButton(GLFW_GAMEPAD_BUTTON_X, GLFW_MOUSE_BUTTON_LEFT);
+//	ProcessButton(GLFW_GAMEPAD_BUTTON_Y, GLFW_KEY_F);
+//	ProcessButtonAsScroll(GLFW_GAMEPAD_BUTTON_LEFT_BUMPER, 1.0f);
+//	ProcessButtonAsScroll(GLFW_GAMEPAD_BUTTON_RIGHT_BUMPER, -1.0f);
+//	ProcessButton(GLFW_GAMEPAD_BUTTON_START, GLFW_KEY_ESCAPE);
+//
+//	ProcessAxis(GLFW_GAMEPAD_AXIS_LEFT_X, KEY::A, KEY::D);
+//	ProcessTriggerAxis(GLFW_GAMEPAD_AXIS_LEFT_TRIGGER, KEY::M_RIGHT);
+//	ProcessTriggerAxis(GLFW_GAMEPAD_AXIS_RIGHT_TRIGGER, KEY::M_LEFT);
+//
+//	prevState = state;
+//}

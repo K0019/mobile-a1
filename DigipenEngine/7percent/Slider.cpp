@@ -113,8 +113,8 @@ SliderSystem::SliderSystem()
 
 void SliderSystem::UpdateSliderComp(SliderComponent& comp)
 {
-    bool onClicked{ InputOld::GetKeyPressed(KEY::M_LEFT) };
-    bool isReleased{ InputOld::GetKeyReleased(KEY::M_LEFT) };
+    bool onClicked{ ST<KeyboardMouseInput>::Get()->GetIsPressed(KEY::M_LEFT) };
+    bool isReleased{ ST<KeyboardMouseInput>::Get()->GetIsReleased(KEY::M_LEFT) };
     ecs::EntityHandle sliderButtonEntity{ ecs::GetEntity(&comp) };
     ecs::EntityHandle barEntity{ ecs::GetEntity(sliderButtonEntity->GetCompInParents<SliderBar>()) };
     float barEntityMin = barEntity->GetTransform().GetWorldPosition().x - (barEntity->GetTransform().GetWorldScale().x / 2);

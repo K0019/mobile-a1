@@ -104,7 +104,7 @@ void CustomViewport::DrawPlayControls() {
 		ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.8f, 0.8f, 0.8f, 1.0f));
 	}
 	static CameraData camera_data;
-	if (ImGui::Button(isPlayMode ? ICON_FA_STOP : ICON_FA_PLAY, ImVec2(BUTTON_WIDTH, BUTTON_HEIGHT)) || InputOld::GetKeyPressed(KEY::F5))
+	if (ImGui::Button(isPlayMode ? ICON_FA_STOP : ICON_FA_PLAY, ImVec2(BUTTON_WIDTH, BUTTON_HEIGHT)) || ST<KeyboardMouseInput>::Get()->GetIsPressed(KEY::F5))
 	{
 		if (!isPlayMode) // About to enter play mode
 		{

@@ -53,10 +53,10 @@ void Inspector::ProcessInput()
 	const Vec2 mousePos = { ImGui::GetMousePos().x, ImGui::GetMousePos().y };
 	const Vec3 worldMousePos = ST<CustomViewport>::Get()->WindowToWorldPosition(mousePos);
 
-	if(InputOld::GetKeyCurr(KEY::LCTRL))
-		if(InputOld::GetKeyPressed(KEY::Z))
+	if(ST<KeyboardMouseInput>::Get()->GetIsDown(KEY::LCTRL))
+		if(ST<KeyboardMouseInput>::Get()->GetIsPressed(KEY::Z))
 			ST<History>::Get()->UndoOne();
-		else if(InputOld::GetKeyPressed(KEY::Y))
+		else if(ST<KeyboardMouseInput>::Get()->GetIsPressed(KEY::Y))
 			ST<History>::Get()->RedoOne();
 
 	// Undoing or somewhere outside may have deleted the selected entity. Check if it still exists. If not, deselect it.
@@ -83,7 +83,7 @@ void Inspector::ProcessInput()
 
 	if(isMouseInViewport && ST<Game>::Get()->GetState() == GAMESTATE::EDITOR) // Only able to scroll camera while in editor mode
 	{
-		ST<CameraController>::Get()->MultTargetZoom(CameraController::GetZoomMultiplierFromInput(InputOld::GetScroll(), ST<GameSettings>::Get()->m_editorZoomSensitivity));
+		ST<CameraController>::Get()->MultTargetZoom(CameraController::GetZoomMultiplierFromInput(ST<KeyboardMouseInput>::Get()->GetScroll(), ST<GameSettings>::Get()->m_editorZoomSensitivity));
 
 		if(ImGui::IsMouseClicked(ImGuiMouseButton_Right))
 		{
@@ -117,7 +117,7 @@ void Inspector::ProcessInput()
 	}
 	ST<CameraController>::Get()->LerpZoom(dt);
 
-	if(InputOld::GetKeyPressed(KEY::DEL))
+	if(ST<KeyboardMouseInput>::Get()->GetIsPressed(KEY::DEL))
 		DeleteSelectedEntity();
 
 	if(!selectedEntity)

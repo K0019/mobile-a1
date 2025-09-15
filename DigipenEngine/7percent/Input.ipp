@@ -51,3 +51,11 @@ namespace internal {
 		}
 	}
 }
+
+template<typename FuncType>
+	requires std::invocable<FuncType, std::string, internal::InputSet>
+void Input::Editor_ForEachInputSet(FuncType func)
+{
+	for (auto& inputSetPair : inputSets)
+		func(inputSetPair.first, inputSetPair.second);
+}

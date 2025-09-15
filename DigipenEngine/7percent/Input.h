@@ -30,6 +30,10 @@ All rights reserved.
 #include "MagicMath.h"
 #include "MacroTemplates.h"
 
+// Forward declaration
+class InputConfig;
+
+
 namespace internal {
 
 	static constexpr float DEADZONE = 0.15f;
@@ -261,10 +265,16 @@ GENERATE_ENUM_CLASS_ARITHMETIC_OPERATORS(KEY)
 class KeyboardMouseInput : public internal::InputDeviceBase
 {
 public:
-	bool GetIsPressed(KEY key);
-	bool GetIsReleased(KEY key);
-	bool GetIsDown(KEY key);
-	bool GetValue(INPUT_READ_TYPE readType, KEY key);
+	bool GetIsPressed(KEY key) const;
+	bool GetIsReleased(KEY key) const;
+	bool GetIsDown(KEY key) const;
+	bool GetValue(INPUT_READ_TYPE readType, KEY key) const;
+	float GetScroll() const;
+
+public:
+	// Frame management
+	void NewFrame();
+	void NewIteration();
 
 public:
 	static void GLFW_Callback_OnKeyboardClick(GLFWwindow* window, int key, int scancode, int action, int mode);
@@ -304,26 +314,18 @@ public:
 
 	SPtr<const internal::InputSet> GetCurrentInputSet() const;
 
-private:
-	std::unordered_map<std::string, SPtr<internal::InputSet>> inputSets;
-	WPtr<internal::InputSet> currentInputSet;
-};
-
-#pragma endregion
-
-#pragma region Interface
-
-class InputOld
-{
 public:
-	// Disable instancing of this class
-	InputOld() = delete;
+	// For InputConfig to get and modify input sets
+	template <typename FuncType>
+		requires std::invocable<FuncType, std::string, internal::InputSet>
+	void Editor_ForEachInputSet(FuncType func);
 
+public: // Frame management
 	/*****************************************************************//*!
 	 \brief
 		  Reset the previous state to the current state
-    *//******************************************************************/
-	static void NewFrame();
+	*//******************************************************************/
+	void NewFrame();
 
 	/*****************************************************************//*!
 	\brief
@@ -332,124 +334,47 @@ public:
 		> Press is only true on the first iteration.
 		> Release is only true on the last iteration.
 	*//******************************************************************/
-	static void NewIteration();
+	void NewIteration();
 
 	/*****************************************************************//*!
-	   \brief
-		   Sets a key to pressed state.
-	   \param key
-		   The GLFW key code.
-   *//******************************************************************/
-	static void OnKeyDown(short key);
-
-	/*****************************************************************//*!
-		\brief
-		   Sets a key to unpressed state.
-		\param key
-			The GLFW key code.
+	 \brief
+		Checks whether the current iteration of the game systems is the
+		final iteration for this current frame.
 	*//******************************************************************/
-	static void OnKeyUp(short key);
-
-
-	/*****************************************************************//*!
-		\brief
-			Sets the mouse position.
-		\param mouseX
-			Mouuse X pos
-		\param mouseY
-			Mouse Y pos
-	*//******************************************************************/
-	static void OnMouseMove(double mouseX, double mouseY);
-	
-
-	/*****************************************************************//*!
-		\brief
-			Gets whether a key is currently pressed.
-		\param key
-			Key identifier.
-		\return
-			True if the key is currently pressed. False otherwise.
-	*//******************************************************************/
-	static bool GetKeyCurr(KEY key);
-
-	/*****************************************************************//*!
-		\brief
-			Gets whether a key was pressed this frame.
-		\param key
-			Key identifier
-		\return
-			True if the key was pressed this frame. False otherwise.
-	*//******************************************************************/
-	static bool GetKeyPressed(KEY key);
-
-	/*****************************************************************//*!
-		\brief
-			Gets whether a key was released this frame.
-		\param key
-			Key identifier
-		\return
-			True if the key was released this frame. False otherwise.
-	*//******************************************************************/
-	static bool GetKeyReleased(KEY key);
-
-	/*****************************************************************//*!
-	\brief
-		Gets the mouse's current window position.
-	\return
-		The mouse's current window position.
-	*//******************************************************************/
-	static const Vec2& GetMousePosRaw();
-
-	/*****************************************************************//*!
-	\brief
-		Gets the mouse's current position in the world.
-		TODO 3D: Determine whether mouse world position should be Vec2, Vec3 or not exist at all.
-	\return
-		The mouse's current window in the world.
-	*//******************************************************************/
-	static Vec3 GetMousePosWorld();
-
-	static void OnScroll(float offset);
-
-	static float GetScroll();
+	bool IsFinalIterationThisFrame() const;
 
 private:
-	// Mouse state is combined into key states (as their indexes don't clash)
-	//! The current state of keys.
-	static std::bitset<GLFW_KEY_LAST + 1> keystate;
-	//! Whether keys were pressed since the last update.
-	static std::bitset<GLFW_KEY_LAST + 1> pressedKeystate;
-	//! Whether keys were released since the last update.
-	static std::bitset<GLFW_KEY_LAST + 1> releasedKeystate;
-
-	//! The current mouse window position.
-	static Vec2 mousePos;
-	static float scrollOffset;
+	std::unordered_map<std::string, SPtr<internal::InputSet>> inputSets;
+	WPtr<internal::InputSet> currentInputSet;
 
 	//! Tracks which iteration we're at.
-	static int currIteration;
+	int currIteration;
 };
 
-#pragma endregion // Interface
+#pragma endregion // New Interface
+
+#pragma region Old Interface
 
 /*****************************************************************//*!
 \class GamepadInput
 \brief
 	Processes gamepad input from GLFW and updates the input system accordingly.
 *//******************************************************************/
-class GamepadInput
-{
-public:
-	/*****************************************************************//*!
-	\brief
-		Polls gamepad input.
-	*//******************************************************************/
-	static void PollInput();
+//class GamepadInput
+//{
+//public:
+//	/*****************************************************************//*!
+//	\brief
+//		Polls gamepad input.
+//	*//******************************************************************/
+//	static void PollInput();
+//
+//private:
+//	//! The previous state of the gamepad.
+//	static GLFWgamepadstate prevState;
+//	//! Whether the gamepad is active. (incomplete)
+//	static bool gamepadActive;
+//
+//};
 
-private:
-	//! The previous state of the gamepad.
-	static GLFWgamepadstate prevState;
-	//! Whether the gamepad is active. (incomplete)
-	static bool gamepadActive;
-
-};
+#pragma endregion // Old Interface
