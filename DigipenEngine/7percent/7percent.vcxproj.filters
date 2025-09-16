@@ -91,6 +91,12 @@
     <Filter Include="Source Files\EditorUI\Containers">
       <UniqueIdentifier>{1a2546d1-6dfb-4205-98fd-d5f79f899dd3}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\EditorUI\AssetBrowser">
+      <UniqueIdentifier>{8b9b8619-853a-43d8-abc5-019567783abc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\EditorUI\AssetBrowser">
+      <UniqueIdentifier>{4464dfa3-bdb1-4145-bd32-0923f89ad0b2}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ECSInternal.cpp">
@@ -147,9 +153,6 @@
     <ClCompile Include="CustomViewport.cpp">
       <Filter>Source Files\Graphics</Filter>
     </ClCompile>
-    <ClCompile Include="AudioManager.cpp">
-      <Filter>Source Files\Managers</Filter>
-    </ClCompile>
     <ClCompile Include="TweenBase.cpp">
       <Filter>Source Files\Tween</Filter>
     </ClCompile>
@@ -185,9 +188,6 @@
     </ClCompile>
     <ClCompile Include="Serializer.cpp">
       <Filter>Source Files\Engine</Filter>
-    </ClCompile>
-    <ClCompile Include="AssetBrowser.cpp">
-      <Filter>Source Files\EditorUI</Filter>
     </ClCompile>
     <ClCompile Include="GameSettings.cpp">
       <Filter>Source Files\Game</Filter>
@@ -315,9 +315,6 @@
     <ClCompile Include="Gizmo.cpp">
       <Filter>Source Files\EditorUI</Filter>
     </ClCompile>
-    <ClCompile Include="Button.cpp">
-      <Filter>Source Files\GameUI</Filter>
-    </ClCompile>
     <ClCompile Include="Filesystem.cpp">
       <Filter>Source Files\Managers</Filter>
     </ClCompile>
@@ -393,7 +390,7 @@
     <ClCompile Include="GameCameraController.cpp">
       <Filter>Source Files\Game</Filter>
     </ClCompile>
-    <ClCompile Include="AudioSystem.cpp">
+    <ClCompile Include="Audio.cpp">
       <Filter>Source Files\Game</Filter>
     </ClCompile>
     <ClCompile Include="pch.cpp">
@@ -435,6 +432,12 @@
     <ClCompile Include="GUIAsECS.cpp">
       <Filter>Source Files\EditorUI\Containers</Filter>
     </ClCompile>
+    <ClCompile Include="EditorGuiUtils.cpp">
+      <Filter>Header Files\EditorUI</Filter>
+    </ClCompile>
+    <ClCompile Include="AudioManager.cpp">
+      <Filter>Source Files\Managers</Filter>
+    </ClCompile>
     <ClCompile Include="JoltPhysics.cpp">
       <Filter>Source Files\Physics</Filter>
     </ClCompile>
@@ -455,6 +458,30 @@
     </ClCompile>
     <ClCompile Include="ScriptingUtil.cpp">
       <Filter>Source Files\Scripting</Filter>
+    </ClCompile>
+    <ClCompile Include="AnimationTab.cpp">
+      <Filter>Source Files\EditorUI\AssetBrowser</Filter>
+    </ClCompile>
+    <ClCompile Include="AssetBrowserCategories.cpp">
+      <Filter>Source Files\EditorUI\AssetBrowser</Filter>
+    </ClCompile>
+    <ClCompile Include="FileBrowserTab.cpp">
+      <Filter>Source Files\EditorUI\AssetBrowser</Filter>
+    </ClCompile>
+    <ClCompile Include="MiscAssetTabs.cpp">
+      <Filter>Source Files\EditorUI\AssetBrowser</Filter>
+    </ClCompile>
+    <ClCompile Include="SceneTab.cpp">
+      <Filter>Source Files\EditorUI\AssetBrowser</Filter>
+    </ClCompile>
+    <ClCompile Include="SoundTab.cpp">
+      <Filter>Source Files\EditorUI\AssetBrowser</Filter>
+    </ClCompile>
+    <ClCompile Include="SpriteTab.cpp">
+      <Filter>Source Files\EditorUI\AssetBrowser</Filter>
+    </ClCompile>
+    <ClCompile Include="AssetBrowser.cpp">
+      <Filter>Source Files\EditorUI\AssetBrowser</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -512,9 +539,6 @@
     <ClInclude Include="CustomViewport.h">
       <Filter>Header Files\Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="AudioManager.h">
-      <Filter>Header Files\Managers</Filter>
-    </ClInclude>
     <ClInclude Include="ECSSysLayers.h">
       <Filter>Header Files\Engine</Filter>
     </ClInclude>
@@ -568,9 +592,6 @@
     </ClInclude>
     <ClInclude Include="Serializer.h">
       <Filter>Header Files\Engine</Filter>
-    </ClInclude>
-    <ClInclude Include="AssetBrowser.h">
-      <Filter>Header Files\EditorUI</Filter>
     </ClInclude>
     <ClInclude Include="GameSettings.h">
       <Filter>Header Files\Game</Filter>
@@ -716,9 +737,6 @@
     <ClInclude Include="Gizmo.h">
       <Filter>Header Files\EditorUI</Filter>
     </ClInclude>
-    <ClInclude Include="Button.h">
-      <Filter>Header Files\GameUI</Filter>
-    </ClInclude>
     <ClInclude Include="Filesystem.h">
       <Filter>Header Files\Managers</Filter>
     </ClInclude>
@@ -794,7 +812,7 @@
     <ClInclude Include="GameCameraController.h">
       <Filter>Header Files\Game</Filter>
     </ClInclude>
-    <ClInclude Include="AudioSystem.h">
+    <ClInclude Include="Audio.h">
       <Filter>Header Files\Game</Filter>
     </ClInclude>
     <ClInclude Include="pch.h">
@@ -845,6 +863,27 @@
     <ClInclude Include="GUIAsECS.h">
       <Filter>Header Files\EditorUI\Containers</Filter>
     </ClInclude>
+    <ClInclude Include="AssetBrowser.h">
+      <Filter>Header Files\EditorUI\AssetBrowser</Filter>
+    </ClInclude>
+    <ClInclude Include="AssetBrowserCategories.h">
+      <Filter>Header Files\EditorUI\AssetBrowser</Filter>
+    </ClInclude>
+    <ClInclude Include="AnimationTab.h">
+      <Filter>Header Files\EditorUI\AssetBrowser</Filter>
+    </ClInclude>
+    <ClInclude Include="FileBrowserTab.h">
+      <Filter>Header Files\EditorUI\AssetBrowser</Filter>
+    </ClInclude>
+    <ClInclude Include="MiscAssetTabs.h">
+      <Filter>Header Files\EditorUI\AssetBrowser</Filter>
+    </ClInclude>
+    <ClInclude Include="EditorGuiUtils.h">
+      <Filter>Header Files\EditorUI</Filter>
+    </ClInclude>
+    <ClInclude Include="AudioManager.h">
+      <Filter>Header Files\Managers</Filter>
+    </ClInclude>
     <ClInclude Include="JoltPhysics.h">
       <Filter>Header Files\Physics</Filter>
     </ClInclude>
@@ -865,6 +904,15 @@
     </ClInclude>
     <ClInclude Include="ScriptingUtil.h">
       <Filter>Header Files\Scripting</Filter>
+    </ClInclude>
+    <ClInclude Include="SpriteTab.h">
+      <Filter>Header Files\EditorUI\AssetBrowser</Filter>
+    </ClInclude>
+    <ClInclude Include="SceneTab.h">
+      <Filter>Header Files\EditorUI\AssetBrowser</Filter>
+    </ClInclude>
+    <ClInclude Include="SoundTab.h">
+      <Filter>Header Files\EditorUI\AssetBrowser</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

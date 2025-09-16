@@ -27,7 +27,7 @@ All rights reserved.
 #include "CustomViewport.h"
 #include "Engine.h"
 #include "ryan-c/Renderer.h"
-#include "AudioManager.h"
+//#include "AudioManager.h"
 
 Console::Console()
 	: gui::Window{ ICON_FA_TERMINAL"Console", gui::Vec2{ 500, 400 }, gui::FLAG_WINDOW::HAS_MENU_BAR }
@@ -110,12 +110,12 @@ Console::Console()
 		// For getting information about the currently playing soudnds
 		{ "currentlyPlayingSound", [](Console&, const std::vector<std::string>&) -> void {
 			
-			auto channels = ST<AudioManager>::Get()->GetChannels();
+			//auto channels = ST<AudioManager>::Get()->GetChannels();
 
-			for (auto i = channels.begin(); i != channels.end(); ++i)
+			/*for (auto i = channels.begin(); i != channels.end(); ++i)
 			{
 				CONSOLE_LOG(LEVEL_INFO) << i->first;
-			}
+			}*/
 		}},
 #endif
 	}
