@@ -166,6 +166,9 @@ void Serializer::EndArray()
 
 void Serializer::FlushEntities()
 {
+    if (numEntities < 1) {
+        return;
+    }
     std::map<ecs::EntityHash, int> entityIndexMap{};
     std::vector<const RegisteredComponentData*> entityRegisteredCompData{}; // For ordering components
 
