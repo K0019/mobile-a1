@@ -172,8 +172,8 @@ void Serializer::FlushEntities()
     std::map<ecs::EntityHash, int> entityIndexMap{};
     std::vector<const RegisteredComponentData*> entityRegisteredCompData{}; // For ordering components
 
-    //remove this back for objects
     StartArray("entities");
+
     for (auto& [_, entities] : entityChildLevelMap)
     {
         // Sort entities by UID to ensure consistency
@@ -197,7 +197,6 @@ void Serializer::FlushEntities()
                 if (indexIter != entityIndexMap.end())
                     parentIndex = indexIter->second;
             }
-            //Serialize("parent", parentStr);
             Serialize("parentIndex", parentIndex);
             Serialize("position", transform.GetLocalPosition());
             Serialize("rotation", transform.GetLocalRotation());
@@ -230,7 +229,7 @@ void Serializer::FlushEntities()
             EndObject(); // entity
         }
     }
-    //remove this for objects
+
     EndArray();
 }
 
@@ -553,7 +552,7 @@ bool Deserializer::Deserialize(ecs::EntityHandle entity)
         PopAccess();
     }
 
-    PopAccess(); // entity
+    PopAccess(); // components
 
     return true;
 }
