@@ -465,6 +465,18 @@
     <ClCompile Include="BehaviourTreeWindow.cpp">
       <Filter>Source Files\EditorUI</Filter>
     </ClCompile>
+    <ClCompile Include="BehaviourNode.cpp">
+      <Filter>Source Files\BehaviourTree</Filter>
+    </ClCompile>
+    <ClCompile Include="ComSelector.cpp">
+      <Filter>Source Files\BehaviourTree</Filter>
+    </ClCompile>
+    <ClCompile Include="LeafKeyPressed.cpp">
+      <Filter>Source Files\BehaviourTree</Filter>
+    </ClCompile>
+    <ClCompile Include="LeafFailTest.cpp">
+      <Filter>Source Files\BehaviourTree</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ECS.h">
@@ -877,6 +889,18 @@
     </ClInclude>
     <ClInclude Include="BehaviourTreeWindow.h">
       <Filter>Header Files\EditorUI</Filter>
+    </ClInclude>
+    <ClInclude Include="BehaviourNode.h">
+      <Filter>Header Files\BehaviourTree</Filter>
+    </ClInclude>
+    <ClInclude Include="ComSelector.h">
+      <Filter>Header Files\BehaviourTree</Filter>
+    </ClInclude>
+    <ClInclude Include="LeafKeyPressed.h">
+      <Filter>Header Files\BehaviourTree</Filter>
+    </ClInclude>
+    <ClInclude Include="LeafFailTest.h">
+      <Filter>Header Files\BehaviourTree</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

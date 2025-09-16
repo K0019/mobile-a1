@@ -36,6 +36,8 @@ All rights reserved.
 #include "Popup.h"
 #include "Editor.h"
 
+#include "BehaviourTree.h"
+
 
 /*****************************************************************//*!
 \class Engine
@@ -49,6 +51,7 @@ public:
     using time_point = std::chrono::time_point<clock>;
 
     Engine() = default;
+    BehaviorTree bt;
 
     // Prevent copying
     Engine(const Engine&) = delete;

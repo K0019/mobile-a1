@@ -29,80 +29,29 @@ Check if tree is valid (least priority)
 #include <unordered_map>
 #include <variant>
 #include <iostream>
-//class BehaviourTree;
-//
-//enum class NodeStatus
-//{
-//    N_READY, // node is enterable
-//    N_RUNNING, // node is currently running
-//    N_EXITING, // node has succeeded or failed
-//    N_SUSPENDED // node won't exceute anything
-//};
-//
-//enum class NodeResult
-//{
-//    N_IN_PROGRESS, // still being run 
-//    N_SUCCESS, // node succeeded
-//    N_FAILURE // node failed
-//};
-//
-//struct TickContext {
-//    float dt;                   // seconds since last tick
-//    uint64_t frame;             // engine frame count
-//    void* agent = nullptr;      // optional: pointer to your ECS entity or wrapper
-//};
+#include "BehaviourNode.h"
 
-
-class BehaviourNode {
-
+#include "LeafFailTest.h"
+#include "LeafKeyPressed.h"
+#include "ComSelector.h"
+class BehaviorTree {
 public:
-	enum class Status { //    N_READY, // node is enterable
-		N_RUNNING, // node is currently running
-		N_SUCCESS, // node has succeeded or failed
-		N_ERROR // node won't exceute anything
-	};
+    BehaviorTree() = default;
+    ~BehaviorTree() {
+        delete rootNode;
+    };
 
-	// A simple "context" type; customize as needed.
-	using Context = std::unordered_map<std::string,
-		std::variant<bool, int, float, double, std::string>>; // for blackboard
+    void update(float dt);
 
-    explicit BehaviourNode(std::string name = "BehaviourNode")
-        : name_(std::move(name)) {
-    }
-
-    virtual ~BehaviourNode() = default;
-
-    // Default mirrors the GDScript: complain and return ERROR.
-    virtual Status evaluate(const Context& ctx) {
-        (void)ctx; // unused
-        std::cerr << "Not implemented evaluate in BT, " << name_ << "\n";
-        return Status::N_ERROR;
-    }
-
-    const std::string& name() const { return name_; }
-    void set_name(std::string n) { name_ = std::move(n); }
+    // Hardcoded init (no file/prototype)
+    void initHardcoded();
 
 private:
-    std::string name_;
 
+    BehaviorNode* rootNode = nullptr;
+    std::string treeName = "Unnamed";
+
+    // simple ownership bucket (matches raw child pointers on composites)
+    std::vector<std::unique_ptr<BehaviorNode>> owned;
 };
 
-
-class RepeaterNode : public BehaviourNode {
-public:
-    explicit RepeaterNode(std::unique_ptr<BehaviourNode> child,
-        std::string name = "RepeaterNode")
-        : BehaviourNode(std::move(name)), child_(std::move(child)) {
-    }
-
-    Status evaluate(const Context& ctx) override {
-        if (child_) {
-            child_->evaluate(ctx);
-        }
-        // Always keep running, no matter what the child returned
-        return Status::N_RUNNING;
-    }
-
-private:
-    std::unique_ptr<BehaviourNode> child_;
-};
