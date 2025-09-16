@@ -1,5 +1,5 @@
 #include "SoundTab.h"
-
+#include "ResourceManager.h"
 
 const char* SoundTab::GetName() const
 {
@@ -13,29 +13,39 @@ const char* SoundTab::GetIdentifier() const
 
 void SoundTab::Render()
 {
-    ImGui::BeginChild("SoundTable", ImVec2(0.0f, 0.0f), true);
+    ImGui::BeginChild("SoundTable", ImVec2(0.f, -FLT_MIN), true); // Fill available space
 
-    std::set<std::string> singleSoundNames = ST<AudioManager>::Get()->GetSingleSoundNames();
-    std::map<std::string, std::set<std::string>> groupedSoundNames = ST<AudioManager>::Get()->GetGroupedSoundNames();
+    std::vector<std::string> soundNames = ST<AudioManager>::Get()->GetSoundNames();
 
     ImGui::Columns(2, nullptr, true);
 
     // Left column for single sounds
-    ImGui::Text("Single Sounds");
+    ImGui::Text("Sounds");
 
-    // Iterate all single sound names
-    for (std::string const& name : singleSoundNames)
+    for (std::string const& name : soundNames)
     {
         // Create Button
         if (ImGui::Selectable(name.c_str()))
         {
-            if (ST<AudioManager>::Get()->IsSoundPlaying(name))
+            if (ST<AudioManager>::Get()->IsPlaying(currentPreviewSound))
             {
-                ST<AudioManager>::Get()->StopSound(name);
+                ST<AudioManager>::Get()->StopSound(currentPreviewSound);
+                currentPreviewSound = 0;
+            }
+
+            AudioAsset currentAsset = ResourceManager::GetSound(name);
+            if (currentAsset.sound == lastPreviewAudio.sound)
+            {
+                lastPreviewAudio = {};
             }
             else
             {
-                ST<AudioManager>::Get()->StartSingleSound(name, false);
+                if (use3DMode)
+                    currentPreviewSound = ST<AudioManager>::Get()->PlaySound3D(name, false, Vec3{}, AudioType::END);
+                else
+                    currentPreviewSound = ST<AudioManager>::Get()->PlaySound(name, false, AudioType::END);
+
+                lastPreviewAudio = currentAsset;
             }
         }
 
@@ -43,60 +53,129 @@ void SoundTab::Render()
         gui::PayloadSource("SOUND", name, name.c_str());
 
         // Context menu
-        RenderSoundContextMenu(name, false);
+        RenderSoundContextMenu(name);
     }
 
-    // Right column for grouped sounds
     ImGui::NextColumn();
-    ImGui::Text("Grouped Sounds");
+
+    // Right column for audio controls
+    static float previewVolume = 1.f;
+    static Vec3 pos = Vec3{ 0.f, 0.f, 0.f };
+    static Vec3 vel = Vec3{ 0.f, 0.f, 0.f };
+
+    ImGui::Text("Audio Controls");
     ImGui::Separator();
 
-    // Iterate all grouped sound names
-    for (std::pair<std::string, std::set<std::string>> const& group : groupedSoundNames)
+    // Now Playing section
+    float progress = 0.0f;
+    std::string playingName = "None";
+    static float animationTimer = 0.0f;
+    static int tildeCount = 0;
+    const float ANIMATION_INTERVAL = 0.5f; // Add a tilde every half-second
+
+    if (ST<AudioManager>::Get()->IsPlaying(currentPreviewSound))
     {
-        if (ImGui::TreeNode(group.first.c_str()))
+        playingName = lastPreviewAudio.data.name;
+        FMOD::Sound* currentSound = ST<AudioManager>::Get()->GetSound(currentPreviewSound);
+
+        if (currentSound)
         {
-            ImGui::Indent(55.0f);
-            for (std::string const& name : group.second)
+            // Get current position and total length in milliseconds
+            unsigned int currentPos = ST<AudioManager>::Get()->GetChannelPosition(currentPreviewSound);
+
+            unsigned int totalLength = 0;
+            currentSound->getLength(&totalLength, FMOD_TIMEUNIT_MS);
+
+            // Calculate progress as a fraction (0.0 to 1.0)
+            if (totalLength > 0)
             {
-                // Create Button
-                if (ImGui::Selectable(name.c_str()))
-                {
-                    if (ST<AudioManager>::Get()->IsSoundPlaying(name))
-                    {
-                        ST<AudioManager>::Get()->StopSound(name);
-                    }
-                    else
-                    {
-                        ST<AudioManager>::Get()->StartSpecificGroupedSound(name, false);
-                    }
-                }
-
-                // Single sound drag-drop source
-                gui::PayloadSource("SOUND", name, name.c_str());
-
-                // Context menu
-                RenderSoundContextMenu(name, true);
+                progress = static_cast<float>(currentPos) / static_cast<float>(totalLength);
             }
-            ImGui::Unindent(55.0f);
-            ImGui::TreePop();
         }
-
-        // Grouped sound drag-drop source
-        gui::PayloadSource("SOUND", group.first, group.first.c_str());
     }
 
-    ImGui::Columns(1);
+    std::string displayText = playingName;
+
+    if (playingName != "None")
+    {
+        animationTimer += ImGui::GetIO().DeltaTime;
+        if (animationTimer >= ANIMATION_INTERVAL)
+        {
+            animationTimer = 0.0f;
+            tildeCount++;
+            if (tildeCount > 3)
+                tildeCount = 0;
+        }
+
+        for (int i = 0; i < tildeCount; ++i)
+            displayText += "~";
+    }
+
+    ImGui::Text("Now Playing:");
+    ImGui::SameLine();
+    ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "%s", displayText.c_str());
+
+    // Track play %
+    // The ImVec2(-1, 0) makes the progress bar fill the available width.
+    ImGui::ProgressBar(progress, ImVec2(-1.0f, 0.0f));
+
+    // 3D Mode checkbox
+    if (ImGui::Checkbox("3D Sound Mode", &use3DMode))
+    {
+        if (use3DMode)
+        {
+            ST<AudioManager>::Get()->SetChannel3DAttributes(currentPreviewSound, pos, vel);
+            ST<AudioManager>::Get()->SetChannel3D(currentPreviewSound, true);
+        }
+        else
+        {
+            ST<AudioManager>::Get()->SetChannel3D(currentPreviewSound, false);
+        }
+    }
+
+    ImGui::Text("Sound Position (Assumes listener is at origin)");
+    if (ImGui::DragFloat3("Position", (float*)&pos, 0.1f))
+    {
+        ST<AudioManager>::Get()->SetChannel3DAttributes(currentPreviewSound, pos, vel);
+    }
+    if (ImGui::DragFloat3("Velocity", (float*)&vel, 0.1f))
+    {
+        ST<AudioManager>::Get()->SetChannel3DAttributes(currentPreviewSound, pos, vel);
+    }
+
+    // Volume control
+    ImGui::Text("Volume");
+    if (ImGui::DragFloat("##Volume", &previewVolume, 0.01f, 0.0f, 1.0f, "%.2f"))
+    {
+        if (ST<AudioManager>::Get()->IsPlaying(currentPreviewSound))
+        {
+            ST<AudioManager>::Get()->SetVolume(currentPreviewSound, previewVolume);
+        }
+    }
+
+    // Stop button
+    ImGui::Separator();
+    if (ImGui::Button("Stop Preview", ImVec2(-1, 0)))
+    {
+        if (ST<AudioManager>::Get()->IsPlaying(currentPreviewSound))
+        {
+            ST<AudioManager>::Get()->StopSound(currentPreviewSound);
+            currentPreviewSound = 0;
+            lastPreviewAudio = {};
+        }
+    }
+
     ImGui::EndChild();
 }
 
-void SoundTab::RenderSoundContextMenu(std::string const& name, bool isGrouped)
+void SoundTab::RenderSoundContextMenu(std::string const& name)
 {
     if (ImGui::BeginPopupContextItem(("Delete##" + name).c_str()))
     {
         if (ImGui::MenuItem("Delete"))
         {
-            ST<AudioManager>::Get()->DeleteSound(name, isGrouped);
+            ST<AudioManager>::Get()->FreeSound(ResourceManager::GetSound(name).sound);
+            ResourceManager::DeleteSound(name);
         }
         ImGui::EndPopup();
     }

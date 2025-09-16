@@ -1,5 +1,6 @@
 #pragma once
 #include "AssetBrowserCategories.h"
+#include "Audio.h"
 
 struct SoundTab
 	: BaseAssetCategory
@@ -9,5 +10,10 @@ struct SoundTab
 	void Render() override;
 
 private:
-	void RenderSoundContextMenu(std::string const& name, bool isGrouped);
+	void RenderSoundContextMenu(std::string const& name);
+
+private:
+	uint32_t currentPreviewSound = 0; /**< Current preview sound channel */
+	AudioAsset lastPreviewAudio; /**< Current preview audio information */
+	bool use3DMode = false;
 };
