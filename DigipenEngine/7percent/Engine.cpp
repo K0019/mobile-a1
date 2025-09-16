@@ -378,7 +378,7 @@ void Engine::init()
 #endif
 
 	// load resources
-	ST<AssetBrowser>::Get()->file_system.Initialize(ST<Filepaths>::Get()->workingDir);
+	//ST<AssetBrowser>::Get()->file_system.Initialize(ST<Filepaths>::Get()->workingDir);
 	ResourceManager::LoadAssetsFromFile(ST<Filepaths>::Get()->workingDir + "/Assets/assets.json");
 	// Load fonts manually for now
 	const std::array<std::string, 3> fontsToLoad{

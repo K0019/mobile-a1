@@ -96,6 +96,11 @@
     </Filter>
     <Filter Include="Source Files\BehaviourTree">
       <UniqueIdentifier>{5fed79ac-ade7-42c6-b0e0-db70ce0aa3d2}</UniqueIdentifier>
+    <Filter Include="Header Files\EditorUI\AssetBrowser">
+      <UniqueIdentifier>{8b9b8619-853a-43d8-abc5-019567783abc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\EditorUI\AssetBrowser">
+      <UniqueIdentifier>{4464dfa3-bdb1-4145-bd32-0923f89ad0b2}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -188,9 +193,6 @@
     </ClCompile>
     <ClCompile Include="Serializer.cpp">
       <Filter>Source Files\Engine</Filter>
-    </ClCompile>
-    <ClCompile Include="AssetBrowser.cpp">
-      <Filter>Source Files\EditorUI</Filter>
     </ClCompile>
     <ClCompile Include="GameSettings.cpp">
       <Filter>Source Files\Game</Filter>
@@ -435,6 +437,9 @@
     <ClCompile Include="GUIAsECS.cpp">
       <Filter>Source Files\EditorUI\Containers</Filter>
     </ClCompile>
+    <ClCompile Include="EditorGuiUtils.cpp">
+      <Filter>Header Files\EditorUI</Filter>
+    </ClCompile>
     <ClCompile Include="AudioManager.cpp">
       <Filter>Source Files\Managers</Filter>
     </ClCompile>
@@ -476,6 +481,29 @@
     </ClCompile>
     <ClCompile Include="LeafFailTest.cpp">
       <Filter>Source Files\BehaviourTree</Filter>
+    <ClCompile Include="AnimationTab.cpp">
+      <Filter>Source Files\EditorUI\AssetBrowser</Filter>
+    </ClCompile>
+    <ClCompile Include="AssetBrowserCategories.cpp">
+      <Filter>Source Files\EditorUI\AssetBrowser</Filter>
+    </ClCompile>
+    <ClCompile Include="FileBrowserTab.cpp">
+      <Filter>Source Files\EditorUI\AssetBrowser</Filter>
+    </ClCompile>
+    <ClCompile Include="MiscAssetTabs.cpp">
+      <Filter>Source Files\EditorUI\AssetBrowser</Filter>
+    </ClCompile>
+    <ClCompile Include="SceneTab.cpp">
+      <Filter>Source Files\EditorUI\AssetBrowser</Filter>
+    </ClCompile>
+    <ClCompile Include="SoundTab.cpp">
+      <Filter>Source Files\EditorUI\AssetBrowser</Filter>
+    </ClCompile>
+    <ClCompile Include="SpriteTab.cpp">
+      <Filter>Source Files\EditorUI\AssetBrowser</Filter>
+    </ClCompile>
+    <ClCompile Include="AssetBrowser.cpp">
+      <Filter>Source Files\EditorUI\AssetBrowser</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -586,9 +614,6 @@
     </ClInclude>
     <ClInclude Include="Serializer.h">
       <Filter>Header Files\Engine</Filter>
-    </ClInclude>
-    <ClInclude Include="AssetBrowser.h">
-      <Filter>Header Files\EditorUI</Filter>
     </ClInclude>
     <ClInclude Include="GameSettings.h">
       <Filter>Header Files\Game</Filter>
@@ -860,6 +885,24 @@
     <ClInclude Include="GUIAsECS.h">
       <Filter>Header Files\EditorUI\Containers</Filter>
     </ClInclude>
+    <ClInclude Include="AssetBrowser.h">
+      <Filter>Header Files\EditorUI\AssetBrowser</Filter>
+    </ClInclude>
+    <ClInclude Include="AssetBrowserCategories.h">
+      <Filter>Header Files\EditorUI\AssetBrowser</Filter>
+    </ClInclude>
+    <ClInclude Include="AnimationTab.h">
+      <Filter>Header Files\EditorUI\AssetBrowser</Filter>
+    </ClInclude>
+    <ClInclude Include="FileBrowserTab.h">
+      <Filter>Header Files\EditorUI\AssetBrowser</Filter>
+    </ClInclude>
+    <ClInclude Include="MiscAssetTabs.h">
+      <Filter>Header Files\EditorUI\AssetBrowser</Filter>
+    </ClInclude>
+    <ClInclude Include="EditorGuiUtils.h">
+      <Filter>Header Files\EditorUI</Filter>
+    </ClInclude>
     <ClInclude Include="AudioManager.h">
       <Filter>Header Files\Managers</Filter>
     </ClInclude>
@@ -901,6 +944,14 @@
     </ClInclude>
     <ClInclude Include="LeafFailTest.h">
       <Filter>Header Files\BehaviourTree</Filter>
+    <ClInclude Include="SpriteTab.h">
+      <Filter>Header Files\EditorUI\AssetBrowser</Filter>
+    </ClInclude>
+    <ClInclude Include="SceneTab.h">
+      <Filter>Header Files\EditorUI\AssetBrowser</Filter>
+    </ClInclude>
+    <ClInclude Include="SoundTab.h">
+      <Filter>Header Files\EditorUI\AssetBrowser</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
