@@ -495,13 +495,6 @@ public:
         requires util::IsMap_v<MapType> && std::regular_invocable<Operation, Deserializer&, MapType*>
     bool DeserializeVar(const std::string& key, MapType* out, Operation operationFunc);
 
-    /*****************************************************************//*!
-    \brief
-        Checks whether there are still entities available for reading.
-    \return
-        True if there is still an entity available for reading. False otherwise.
-    *//******************************************************************/
-    bool HasEntity() const;
 
 private:
     /*****************************************************************//*!
