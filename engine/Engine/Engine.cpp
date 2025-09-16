@@ -32,6 +32,7 @@ All rights reserved.
 #include "TweenManager.h"
 #include "PrefabManager.h"
 #include "GameSettings.h"
+#include "JoltPhysics.h"
 
 #include "SettingsWindow.h"
 #include "LayersMatrix.h"
@@ -292,6 +293,10 @@ void Engine::init()
 	// FMOD Initialisation
 	ST<AudioManager>::Get()->Initialise();
 
+	// Jolt Physics Initialisation
+	physics::JoltRegister();
+	ST<physics::JoltPhysics>::Get()->Initialize();
+
 	constexpr unsigned int SCREEN_WIDTH = 1600;
 	// The height of the screen
 	constexpr unsigned int SCREEN_HEIGHT = 900;
@@ -361,7 +366,7 @@ void Engine::init()
 #endif
 
 	// load resources
-	ST<AssetBrowser>::Get()->file_system.Initialize(ST<Filepaths>::Get()->workingDir);
+	//ST<AssetBrowser>::Get()->file_system.Initialize(ST<Filepaths>::Get()->workingDir);
 	ResourceManager::LoadAssetsFromFile(ST<Filepaths>::Get()->workingDir + "/Assets/assets.json");
 	// Load fonts manually for now
 	const std::array<std::string, 3> fontsToLoad{
@@ -705,6 +710,7 @@ void Engine::shutdown() {
 	ST<TweenManager>::Destroy();
 	ST<PerformanceProfiler>::Destroy();
 	ST<AssetBrowser>::Destroy();
+	ST<physics::JoltPhysics>::Destroy();
 #ifdef IMGUI_ENABLED
 	ST<Inspector>::Destroy();
 #endif
