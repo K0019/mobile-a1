@@ -1,27 +1,33 @@
 #include "ComSelector.h"
 
-ComSelector::ComSelector() : currentIndex(0)
+ComSelector::ComSelector()
+    : currentIndex(0)
 {
 }
 
-void ComSelector::onEnter()
+void ComSelector::AddChild(BehaviorNode* child)
+{
+    BaseNode::AddChild(child);
+}
+
+void ComSelector::OnEnter()
 {
     currentIndex = 0;
-    BehaviorNode::onEnter();
+    BehaviorNode::OnEnter();
 }
 
-void ComSelector::onUpdate(float dt)
+void ComSelector::OnUpdate(float dt)
 {
     // if any child succeeds, node succeeds
     BehaviorNode* currentNode = children[currentIndex];
-    currentNode->tick(dt);
+    currentNode->Tick(dt);
 
-    if (currentNode->succeeded() == true)
+    if (currentNode->Succeeded() == true)
     {
         CONSOLE_LOG(LEVEL_FATAL) << "This selector is success";
-        onSuccess();
+        OnSuccess();
     }
-    else if (currentNode->failed() == true)
+    else if (currentNode->Failed() == true)
     {
         
         // move to the next node
@@ -33,7 +39,7 @@ void ComSelector::onUpdate(float dt)
         {
             CONSOLE_LOG(LEVEL_FATAL) << "This selector failed";
 
-            onFailure();
+            OnFailure();
         }
     }
 }

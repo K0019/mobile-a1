@@ -1,6 +1,6 @@
 #pragma once
 
-enum class NodeStatus
+enum class NODE_STATUS
 {
     READY, // node is enterable
     RUNNING, // node is currently running
@@ -8,7 +8,7 @@ enum class NodeStatus
     SUSPENDED // node won't exceute anything
 };
 
-enum class NodeResult
+enum class NODE_RESULT
 {
     IN_PROGRESS, // still being run 
     SUCCESS, // node succeeded
@@ -21,50 +21,50 @@ public:
     ~BehaviorNode();
 
     //getters setters etc
-    bool isReady() const;
-    bool succeeded() const;
-    bool failed() const;
-    bool isRunning() const;
-    bool isSuspended() const;
+    bool IsReady() const;
+    bool Succeeded() const;
+    bool Failed() const;
+    bool IsRunning() const;
+    bool IsSuspended() const;
 
-    void setStatus(NodeStatus newStatus);
+    void SetStatus(NODE_STATUS newStatus);
 
-    void setStatusAll(NodeStatus newStatus); // set this node and all childrens' status, recursively
+    void SetStatusAll(NODE_STATUS newStatus); // set this node and all childrens' status, recursively
 
-    void setStatusForChildren(NodeStatus newStatus);     // set only the direct children's status
+    void SetStatusForChildren(NODE_STATUS newStatus);     // set only the direct children's status
 
-    void setResult(NodeResult result);
+    void SetResult(NODE_RESULT result);
 
-    void setResultChildren(NodeResult result);
+    void SetResultChildren(NODE_RESULT result);
 
-    NodeStatus getStatus() const;
+    NODE_STATUS GetStatus() const;
 
-    NodeResult getResult() const;
+    NODE_RESULT GetResult() const;
 
-    void tick(float dt);
+    void Tick(float dt);
 
-    std::string getName() const;
-    std::string getSummary() const;
+    const std::string& GetName() const;
+    const std::string& GetSummary() const;
 
     //virtual BehaviorNode* clone() = 0;
 protected:
    // BehaviorAgent* agent;
-    NodeStatus status;
-    NodeResult result;
+    NODE_STATUS status;
+    NODE_RESULT result;
     BehaviorNode* parent;
     std::vector<BehaviorNode*> children;
 
-    void onLeafEnter();
+    void OnLeafEnter();
 
     // override for any non-generic logic
-    virtual void onEnter();
-    virtual void onUpdate(float dt);
-    virtual void onExit();
+    virtual void OnEnter();
+    virtual void OnUpdate(float dt);
+    virtual void OnExit();
 
     // convenience functions for setting status and result
-    void onSuccess();
-    void onFailure();
-    void addChild(BehaviorNode* child);
+    void OnSuccess();
+    void OnFailure();
+    void AddChild(BehaviorNode* child);
 
     //void displayLeafText(); //may remove later
 
@@ -80,9 +80,16 @@ template <typename T>
 class BaseNode : public BehaviorNode
 {
 public:
-    virtual BehaviorNode* clone()
-    {
-        T& self = *static_cast<T*>(this);
-        return new T(self);
-    }
+    virtual BehaviorNode* Clone();
 };
+
+#pragma region Definition
+
+template<typename T>
+inline BehaviorNode* BaseNode<T>::Clone()
+{
+    T& self = *static_cast<T*>(this);
+    return new T(self);
+}
+
+#pragma endregion // Definition

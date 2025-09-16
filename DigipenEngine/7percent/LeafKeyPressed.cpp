@@ -1,7 +1,7 @@
 #include "LeafKeyPressed.h"
 #include "Input.h"
 
-void L_CheckMouseClick::onUpdate(float dt)
+void L_CheckMouseClick::OnUpdate(float dt)
 {
     const auto testKeyPressed = Input::GetKeyPressed(KEY::F2);
 
@@ -10,11 +10,11 @@ void L_CheckMouseClick::onUpdate(float dt)
 
         CONSOLE_LOG(LEVEL_INFO) << "Running leaf node for key press sorta";
 
-        onSuccess();
+        OnSuccess();
     }
     else
     {
-        onFailure();
+        OnFailure();
     }
 
 }

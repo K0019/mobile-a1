@@ -1,7 +1,10 @@
 #include "BehaviourNode.h"
 
 //agent(nullptr) deleted for now
-BehaviorNode::BehaviorNode() :  status(NodeStatus::READY), result(NodeResult::IN_PROGRESS), parent(nullptr)
+BehaviorNode::BehaviorNode()
+    : status{ NODE_STATUS::READY }
+    , result{ NODE_RESULT::IN_PROGRESS }
+    , parent{}
 {
 }
 
@@ -14,148 +17,148 @@ BehaviorNode::~BehaviorNode()
 }
 
 
-bool BehaviorNode::isReady() const
+bool BehaviorNode::IsReady() const
 {
-    return status == NodeStatus::READY;
+    return status == NODE_STATUS::READY;
 }
 
-bool BehaviorNode::succeeded() const
+bool BehaviorNode::Succeeded() const
 {
-    return result == NodeResult::SUCCESS;
+    return result == NODE_RESULT::SUCCESS;
 }
 
-bool BehaviorNode::failed() const
+bool BehaviorNode::Failed() const
 {
-    return result == NodeResult::FAILURE;
+    return result == NODE_RESULT::FAILURE;
 }
 
-bool BehaviorNode::isRunning() const
+bool BehaviorNode::IsRunning() const
 {
-    return status == NodeStatus::RUNNING;
+    return status == NODE_STATUS::RUNNING;
 }
 
-bool BehaviorNode::isSuspended() const
+bool BehaviorNode::IsSuspended() const
 {
-    return status == NodeStatus::SUSPENDED;
+    return status == NODE_STATUS::SUSPENDED;
 }
 
-void BehaviorNode::setStatus(NodeStatus newStatus)
+void BehaviorNode::SetStatus(NODE_STATUS newStatus)
 {
     status = newStatus;
 }
 
-void BehaviorNode::setStatusAll(NodeStatus newStatus)
+void BehaviorNode::SetStatusAll(NODE_STATUS newStatus)
 {
     status = newStatus;
 
     for (auto&& child : children)
     {
-        child->setStatusAll(newStatus);
+        child->SetStatusAll(newStatus);
     }
 }
 
-void BehaviorNode::setStatusForChildren(NodeStatus newStatus)
+void BehaviorNode::SetStatusForChildren(NODE_STATUS newStatus)
 {
     for (auto&& child : children)
     {
-        child->setStatus(newStatus);
+        child->SetStatus(newStatus);
     }
 }
 
-void BehaviorNode::setResult(NodeResult r)
+void BehaviorNode::SetResult(NODE_RESULT r)
 {
     result = r;
 }
 
-void BehaviorNode::setResultChildren(NodeResult result)
+void BehaviorNode::SetResultChildren(NODE_RESULT result)
 {
     for (auto&& child : children)
     {
-        child->setResult(result);
+        child->SetResult(result);
     }
 }
 
-NodeStatus BehaviorNode::getStatus() const
+NODE_STATUS BehaviorNode::GetStatus() const
 {
     return status;
 }
 
-NodeResult BehaviorNode::getResult() const
+NODE_RESULT BehaviorNode::GetResult() const
 {
     return result;
 }
 
-void BehaviorNode::tick(float dt)
+void BehaviorNode::Tick(float dt)
 {
     // explicitly check the statuses in order, so a node can transition fully through its states in one frame if needed
 
-    if (status == NodeStatus::READY)
+    if (status == NODE_STATUS::READY)
     {
-        onEnter();
+        OnEnter();
     }
 
-    if (status == NodeStatus::RUNNING)
+    if (status == NODE_STATUS::RUNNING)
     {
-        onUpdate(dt);
+        OnUpdate(dt);
     }
 
-    if (status == NodeStatus::EXITING)
+    if (status == NODE_STATUS::EXITING)
     {
-        onExit();
+        OnExit();
     }
 }
 
-std::string BehaviorNode::getName() const
+const std::string& BehaviorNode::GetName() const
 {
     return name;
 }
 
 
-std::string BehaviorNode::getSummary() const
+const std::string& BehaviorNode::GetSummary() const
 {
     return summary;
 }
 
-void BehaviorNode::onEnter()
+void BehaviorNode::OnEnter()
 {
     // base logic is to mark as running
-    setStatus(NodeStatus::RUNNING);
-    setResult(NodeResult::IN_PROGRESS);
+    SetStatus(NODE_STATUS::RUNNING);
+    SetResult(NODE_RESULT::IN_PROGRESS);
 
     // and this node's children as ready to run
-    setStatusForChildren(NodeStatus::READY);
-    setResultChildren(NodeResult::IN_PROGRESS);
+    SetStatusForChildren(NODE_STATUS::READY);
+    SetResultChildren(NODE_RESULT::IN_PROGRESS);
 }
 
-void BehaviorNode::onLeafEnter()
+void BehaviorNode::OnLeafEnter()
 {
-    setStatus(NodeStatus::RUNNING);
-    setResult(NodeResult::IN_PROGRESS);
+    SetStatus(NODE_STATUS::RUNNING);
+    SetResult(NODE_RESULT::IN_PROGRESS);
 }
 
-void BehaviorNode::onUpdate(float)
+void BehaviorNode::OnUpdate(float)
 { // will be created by each node when needed
 }
 
-void BehaviorNode::onExit()
+void BehaviorNode::OnExit()
 {
     // base logic is to mark the node as done executing
-    setStatus(NodeStatus::SUSPENDED);
+    SetStatus(NODE_STATUS::SUSPENDED);
 }
 
-void BehaviorNode::onSuccess()
+void BehaviorNode::OnSuccess()
 {
-    setStatus(NodeStatus::EXITING);
-    setResult(NodeResult::SUCCESS);
+    SetStatus(NODE_STATUS::EXITING);
+    SetResult(NODE_RESULT::SUCCESS);
 }
 
-void BehaviorNode::onFailure()
+void BehaviorNode::OnFailure()
 {
-    setStatus(NodeStatus::EXITING);
-    setResult(NodeResult::FAILURE);
+    SetStatus(NODE_STATUS::EXITING);
+    SetResult(NODE_RESULT::FAILURE);
 }
 
-void BehaviorNode::addChild(BehaviorNode* child)
+void BehaviorNode::AddChild(BehaviorNode* child)
 {
     children.emplace_back(child);
     child->parent = this;

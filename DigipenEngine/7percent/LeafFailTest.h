@@ -4,5 +4,5 @@
 class LeafFailTest : public BaseNode<LeafFailTest>
 {
 protected:
-    virtual void onUpdate(float dt);
+    virtual void OnUpdate(float dt);
 };

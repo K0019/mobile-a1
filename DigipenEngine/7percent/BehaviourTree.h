@@ -36,20 +36,18 @@ Check if tree is valid (least priority)
 #include "ComSelector.h"
 class BehaviorTree {
 public:
-    BehaviorTree() = default;
-    ~BehaviorTree() {
-        delete rootNode;
-    };
+    BehaviorTree();
+    ~BehaviorTree();
 
-    void update(float dt);
+    void Update(float dt);
 
     // Hardcoded init (no file/prototype)
-    void initHardcoded();
+    void InitHardcoded();
 
 private:
 
-    BehaviorNode* rootNode = nullptr;
-    std::string treeName = "Unnamed";
+    BehaviorNode* rootNode;
+    std::string treeName;
 
     // simple ownership bucket (matches raw child pointers on composites)
     std::vector<std::unique_ptr<BehaviorNode>> owned;

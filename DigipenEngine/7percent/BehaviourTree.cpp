@@ -1,13 +1,25 @@
 #include "BehaviourTree.h"
 
-void BehaviorTree::initHardcoded() {
+BehaviorTree::BehaviorTree()
+    : rootNode{}
+    , treeName{ "Unnamed" }
+{
+}
+
+BehaviorTree::~BehaviorTree()
+{
+    delete rootNode;
+}
+
+void BehaviorTree::InitHardcoded()
+{
     auto* selector = new ComSelector();
 
     auto* failNode = new LeafFailTest();
     auto* mouseNode = new L_CheckMouseClick();
     auto* failNode2 = new LeafFailTest();
     auto* selector2 = new ComSelector();
-    selector->isReady();
+    selector->IsReady();
     selector->AddChild(failNode);
     selector->AddChild(failNode2);
     selector->AddChild(selector2);
@@ -17,15 +29,14 @@ void BehaviorTree::initHardcoded() {
     treeName = "Testing Tree";
 }
 
-void BehaviorTree::update(float dt) {
-    if (!rootNode) {
+void BehaviorTree::Update(float dt)
+{
+    if (!rootNode)
         return;
-    }
-    rootNode->tick(dt); // your nodes’ on_update/on_success/on_failure handle the logic
+    
+    rootNode->Tick(dt); // your nodes’ on_update/on_success/on_failure handle the logic
 
-    if (rootNode->isRunning() == false)
-    {
-        rootNode->setStatus(NodeStatus::READY);
-    }
+    if (rootNode->IsRunning() == false)
+        rootNode->SetStatus(NODE_STATUS::READY);
 }
 
