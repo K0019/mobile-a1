@@ -53,6 +53,36 @@ namespace internal {
 		return GetValueFromDevice[+deviceType](keyIdentifier, readType);
 	}
 
+	InputActionBase::InputActionBase(INPUT_COMPOSITE_TYPE compositeType)
+		: compositeType{ compositeType }
+	{
+	}
+
+	bool InputSet::CreateNewAction(const std::string& name)
+	{
+		return actions.try_emplace(name, std::make_shared<InputAction<INPUT_COMPOSITE_TYPE::BUTTON>>()).second;
+	}
+
+	SPtr<const InputActionBase> InputSet::GetAction(const std::string& name) const
+	{
+		auto actionIter{ actions.find(name) };
+		if (actionIter == actions.end())
+			return nullptr;
+		return actionIter->second;
+	}
+	SPtr<InputActionBase> InputSet::GetAction(const std::string& name)
+	{
+		auto actionIter{ actions.find(name) };
+		if (actionIter == actions.end())
+			return nullptr;
+		return actionIter->second;
+	}
+
+	decltype(util::ToSortedVectorOfRefs(InputSet::actions)) InputSet::Editor_GetActions()
+	{
+		return util::ToSortedVectorOfRefs(actions);
+	}
+
 }
 
 bool KeyboardMouseInput::GetIsPressed(KEY key) const
@@ -221,10 +251,19 @@ SPtr<const internal::InputSet> Input::GetCurrentInputSet() const
 {
 	return currentInputSet.lock();
 }
+SPtr<internal::InputSet> Input::GetCurrentInputSet()
+{
+	return currentInputSet.lock();
+}
 
 decltype(util::ToSortedVectorOfRefs(Input::inputSets)) Input::Editor_GetInputSets()
 {
 	return util::ToSortedVectorOfRefs(inputSets);
+}
+
+WPtr<internal::InputSet> Input::Editor_GetCurrentInputSet()
+{
+	return currentInputSet;
 }
 
 

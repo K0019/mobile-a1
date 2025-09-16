@@ -12,6 +12,9 @@ namespace editor {
 	{
 		if (gui::Button newInputSetButton{ "New Input Set" })
 			CreateNewInputSet();
+		gui::SameLine();
+		if (gui::Button newActionButton{ "New Action" })
+			CreateNewAction();
 
 		if (gui::Table table{ "", 3, true })
 		{
@@ -21,10 +24,12 @@ namespace editor {
 			table.SubmitColumnHeaders();
 
 			VecOfInputSets inputSets{ ST<Input>::Get()->Editor_GetInputSets() };
-			SPtr<internal::InputSet> selectedInputSet{ selectedInputSetPtr.lock() };
+			auto selectedInputSet{ selectedInputSetPtr.lock() };
+			auto selectedAction{ selectedActionPtr.lock() };
 
 			DrawInputSetsColumn(inputSets, selectedInputSet);
-
+			table.NextColumn();
+			DrawActionsColumn(selectedInputSet, selectedAction);
 		}
 	}
 
@@ -42,6 +47,23 @@ namespace editor {
 
 		// Switch to it
 		ST<Input>::Get()->SwitchInputSet(newInputSetName);
+		selectedInputSetPtr = ST<Input>::Get()->Editor_GetCurrentInputSet();
+	}
+
+	void InputConfig::CreateNewAction()
+	{
+		auto currentInputSet{ selectedInputSetPtr.lock() };
+		if (!currentInputSet)
+			return;
+
+		std::string newActionName{ "New Action" };
+		if (!currentInputSet->CreateNewAction(newActionName))
+		{
+			int i{};
+			while (!currentInputSet->CreateNewAction(newActionName + std::to_string(i)))
+				++i;
+			newActionName += std::to_string(i);
+		}
 	}
 
 	void InputConfig::DrawInputSetsColumn(VecOfInputSets& inputSets, SPtr<internal::InputSet>& selectedInputSet)
@@ -50,7 +72,20 @@ namespace editor {
 		{
 			gui::SetID id{ name.get().c_str() };
 			if (gui::Selectable(name.get().c_str(), inputSet.get() == selectedInputSet))
-				selectedInputSetPtr = inputSet.get();
+				selectedInputSetPtr = selectedInputSet = inputSet.get();
+		}
+	}
+
+	void InputConfig::DrawActionsColumn(SPtr<internal::InputSet>& selectedInputSet, SPtr<internal::InputActionBase>& selectedAction)
+	{
+		if (!selectedInputSet)
+			return;
+
+		for (auto& [name, action] : selectedInputSet->Editor_GetActions())
+		{
+			gui::SetID id{ name.get().c_str() };
+			if (gui::Selectable(name.get().c_str(), action.get() == selectedAction))
+				selectedActionPtr = selectedAction = action.get();
 		}
 	}
 

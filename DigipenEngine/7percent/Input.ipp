@@ -50,4 +50,10 @@ namespace internal {
 			return ValueType{};
 		}
 	}
+
+	template<INPUT_COMPOSITE_TYPE CompositeType>
+	InputAction<CompositeType>::InputAction()
+		: InputActionBase{ CompositeType }
+	{
+	}
 }

@@ -139,13 +139,20 @@ namespace internal {
 
 	class InputActionBase
 	{
+	public:
+		InputActionBase(INPUT_COMPOSITE_TYPE compositeType);
+
+	private:
+		INPUT_COMPOSITE_TYPE compositeType;
 
 	};
 
 	template <INPUT_COMPOSITE_TYPE CompositeType>
-	class InputAction : InputActionBase
+	class InputAction : public InputActionBase
 	{
 	public:
+		InputAction();
+
 		// Get the input value of this action. Return type depends on the composite type.
 		template <INPUT_COMPOSITE_TYPE T = CompositeType>
 		std::enable_if_t<T == INPUT_COMPOSITE_TYPE::BUTTON, bool> GetValue() const;
@@ -167,9 +174,17 @@ namespace internal {
 	class InputSet
 	{
 	public:
+		// Creates a button action
+		bool CreateNewAction(const std::string& name);
+
+		SPtr<const InputActionBase> GetAction(const std::string& name) const;
+		SPtr<InputActionBase> GetAction(const std::string& name);
 
 	private:
 		std::unordered_map<std::string, SPtr<InputActionBase>> actions;
+
+	public:
+		decltype(util::ToSortedVectorOfRefs(actions)) Editor_GetActions();
 
 	};
 
@@ -313,6 +328,7 @@ public:
 	bool SwitchInputSet(const std::string& inputSetIdentifier);
 
 	SPtr<const internal::InputSet> GetCurrentInputSet() const;
+	SPtr<internal::InputSet> GetCurrentInputSet();
 
 public: // Frame management
 	/*****************************************************************//*!
@@ -347,6 +363,7 @@ private:
 public:
 	// For InputConfig to get and modify input sets
 	decltype(util::ToSortedVectorOfRefs(inputSets)) Editor_GetInputSets();
+	WPtr<internal::InputSet> Editor_GetCurrentInputSet();
 };
 
 #pragma endregion // New Interface
