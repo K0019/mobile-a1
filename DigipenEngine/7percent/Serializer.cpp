@@ -166,9 +166,9 @@ void Serializer::EndArray()
 
 void Serializer::FlushEntities()
 {
-    if (numEntities < 1) {
+    if (entityChildLevelMap.empty())
         return;
-    }
+
     std::map<ecs::EntityHash, int> entityIndexMap{};
     std::vector<const RegisteredComponentData*> entityRegisteredCompData{}; // For ordering components
 
@@ -186,20 +186,10 @@ void Serializer::FlushEntities()
         {
             int entityindex = numEntities++;
             entityIndexMap.emplace(entity->GetHash(), entityindex);
-            //"entity" + std::to_string(entityindex)
             StartObject();
 
             const Transform& transform{ entity->GetTransform() };
 
-            //add this back for objects
-            // Serialize parent if child (but only if we've also serialized the parent)
-            //std::string parentStr{};
-            //if (const Transform* parent{ transform.GetParent() })
-            //{
-            //    auto indexIter{ entityIndexMap.find(parent->GetEntity()->GetHash()) };
-            //    if (indexIter != entityIndexMap.end())
-            //        parentStr = "entity" + std::to_string(indexIter->second);
-            //}
             int parentIndex = -1; // Use -1 to indicate no parent
             if (const Transform * parent{ transform.GetParent() })
             {
@@ -523,15 +513,6 @@ bool Deserializer::Deserialize(ecs::EntityHandle entity)
             }
         }
     }
-    //add this back for objects
-    //std::string parentName{};
-    //DeserializeVar("parent", &parentName);
-    //if (!parentName.empty())
-    //{
-    //    int entityIndex{ std::stoi(parentName.substr(parentName.find_first_of("1234567890"))) };
-    //    ecs::EntityHash parentEntityHash{ entityIndexMap.at(entityIndex) }; // This should not fail if we've serialized properly
-    //    transform.SetParent(ecs::GetEntity(parentEntityHash)->GetTransform());
-    //}
 
     Vec3 vec3{};
     DeserializeVar("position", &vec3), transform.SetLocalPosition(vec3);
