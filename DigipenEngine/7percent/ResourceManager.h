@@ -62,9 +62,9 @@ public:
     static bool FontExists(const std::string& name);
     
     // Sound management
-    static FMOD::Sound* LoadSound(const std::string& name, FMOD::Sound* sound);
-    static FMOD::Sound* GetSound(const std::string& name);
-    static FMOD::Sound* GetSound(size_t nameHash);
+    static const AudioAsset& LoadSound(const std::string& name, AudioAsset& sound);
+    static const AudioAsset& GetSound(const std::string& name);
+    static const AudioAsset& GetSound(size_t nameHash);
     static void DeleteSound(const std::string& name);
     static bool SoundExists(const std::string& name);
     
@@ -96,7 +96,7 @@ public:
 
 private:
     static std::unordered_map<size_t, Animation> Animations;
-    static std::unordered_map<size_t, FMOD::Sound*> Sounds;
+    static std::unordered_map<size_t, AudioAsset> Sounds;
     static std::unordered_map<size_t, std::string> ResourceNames;
     static Sprite CreateInvalidSprite();
 

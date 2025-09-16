@@ -50,6 +50,25 @@ namespace util {
 			   (timestamp & MASK40BITS);
 	}
 
+	uint32_t Rand_UID_32()
+	{
+		constexpr uint8_t MASK8BITS{ 0xFF };
+		constexpr uint32_t MASK16BITS{ 0xFFFF };
+		// We'll generate UIDs with 8bits serial number, 8bits random, 16bits timestamp
+		static std::uniform_int_distribution<uint16_t> dis{ 0, MASK8BITS };
+		static uint8_t callCount{ 0 };
+		// Get timestamp, counter and random numbers
+		int64_t timestamp{ std::chrono::duration_cast<std::chrono::milliseconds>(
+			std::chrono::high_resolution_clock::now().time_since_epoch()).count() };
+		++callCount;
+		uint16_t randNum{ dis(GetEngine()) };
+
+		// Pack into 32 bits
+		return (static_cast<uint32_t>(callCount & MASK8BITS) << 24) +
+			(static_cast<uint32_t>(randNum & MASK8BITS) << 16) +
+			static_cast<uint32_t>(timestamp & MASK16BITS);
+	}
+
 	uint64_t GenHash(const std::string& s)
 	{
 		return strHasher(s);

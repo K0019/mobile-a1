@@ -366,9 +366,9 @@ if not exist "$(TargetDir)imgui.json" (
     <ClCompile Include="AssetBrowser.cpp" />
     <ClCompile Include="AssetBrowserCategories.cpp" />
     <ClCompile Include="AudioListener.cpp" />
-    <ClCompile Include="AudioSystem.cpp" />
+    <ClCompile Include="AudioManager.cpp" />
+    <ClCompile Include="Audio.cpp" />
     <ClCompile Include="Bar.cpp" />
-    <ClCompile Include="Button.cpp" />
     <ClCompile Include="CameraComponent.cpp" />
     <ClCompile Include="CameraController.cpp" />
     <ClCompile Include="CameraSystem.cpp" />
@@ -432,7 +432,6 @@ if not exist "$(TargetDir)imgui.json" (
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Installer|x64'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="Performance.cpp" />
-    <ClCompile Include="AudioManager.cpp" />
     <ClCompile Include="Game.cpp" />
     <ClCompile Include="Input.cpp" />
     <ClCompile Include="main.cpp" />
@@ -535,9 +534,9 @@ if not exist "$(TargetDir)imgui.json" (
     <ClInclude Include="AssetBrowser.h" />
     <ClInclude Include="AssetBrowserCategories.h" />
     <ClInclude Include="AudioListener.h" />
-    <ClInclude Include="AudioSystem.h" />
+    <ClInclude Include="AudioManager.h" />
+    <ClInclude Include="Audio.h" />
     <ClInclude Include="Bar.h" />
-    <ClInclude Include="Button.h" />
     <ClInclude Include="CameraComponent.h" />
     <ClInclude Include="CameraController.h" />
     <ClInclude Include="CameraSystem.h" />
@@ -579,7 +578,6 @@ if not exist "$(TargetDir)imgui.json" (
     <ClInclude Include="Editor.h" />
     <ClInclude Include="EditorTweenModule.h" />
     <ClInclude Include="Engine.h" />
-    <ClInclude Include="AudioManager.h" />
     <ClInclude Include="EntityStateMachine.h" />
     <ClInclude Include="Filesystem.h" />
     <ClInclude Include="Game.h" />

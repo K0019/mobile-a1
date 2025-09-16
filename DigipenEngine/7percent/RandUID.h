@@ -42,6 +42,14 @@ namespace util {
 
 	/*****************************************************************//*!
 	\brief
+		Generates a random 32bit number.
+	\return
+		The generated UID.
+	*//******************************************************************/
+	uint32_t Rand_UID_32();
+
+	/*****************************************************************//*!
+	\brief
 		Generates a hash from a string. Identical strings will have the same hash.
 	\param s
 		The string.
