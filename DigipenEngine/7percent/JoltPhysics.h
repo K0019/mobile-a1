@@ -70,9 +70,9 @@ namespace physics {
 		\param collisionLayer
 			collision layer of the body (currently NON_MOVING and MOVING)
 		\param activate
-			activate the body or not. Default set to true.
+			shared pointer of the body created.
 		*//******************************************************************/
-		JPH::BodyID const& CreateAndAddEmptyBody(Transform const& transform, JPH::EMotionType motionType, JPH::ObjectLayer collisionLayer, bool activate = true);
+		JPH::BodyID CreateAndAddEmptyBody(Transform const& transform, JPH::EMotionType motionType, JPH::ObjectLayer collisionLayer, bool activate = true);
 
 		/*****************************************************************//*!
 		\brief
@@ -84,19 +84,17 @@ namespace physics {
 
 		/*****************************************************************//*!
 		\brief
-			Update the Jolt Physics System.
+			Get a reference of the body interface.
+		\return
+			Reference of the body interface.
 		*//******************************************************************/
-		void UpdatePhysicsSystem();
+		JPH::BodyInterface& GetBodyInterface();
 
 		/*****************************************************************//*!
 		\brief
-			Get the position of the body in the body interface.
-		\param bodyID
-			The ID of the body to get the position.
-		\return
-			Vec3 value that represents the position of the body.
+			Update the Jolt Physics System.
 		*//******************************************************************/
-		Vec3 const& GetBodyPosition(JPH::BodyID bodyID);
+		void UpdatePhysicsSystem();
 
 		/*****************************************************************//*!
 		\brief
@@ -164,31 +162,3 @@ namespace physics {
 	*//******************************************************************/
 	void JoltRegister();
 }
-
-// Callback for traces, connect this to your own trace function if you have one
-static void TraceImpl(const char* inFMT, ...)
-{
-	// Format the message
-	va_list list;
-	va_start(list, inFMT);
-	char buffer[1024];
-	vsnprintf(buffer, sizeof(buffer), inFMT, list);
-	va_end(list);
-
-	// Print to the TTY
-	CONSOLE_LOG(LEVEL_ERROR) << buffer;
-}
-
-#ifdef JPH_ENABLE_ASSERTS
-
-// Callback for asserts, connect this to your own assert handler if you have one
-static bool AssertFailedImpl(const char* inExpression, const char* inMessage, const char* inFile, JPH::uint inLine)
-{
-	// Print to the TTY
-	CONSOLE_LOG(LEVEL_ERROR) << inFile << ":" << inLine << ": (" << inExpression << ") " << (inMessage != nullptr ? inMessage : "");
-
-	// Breakpoint
-	return true;
-};
-
-#endif // JPH_ENABLE_ASSERTS

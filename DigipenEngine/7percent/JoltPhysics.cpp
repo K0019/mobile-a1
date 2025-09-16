@@ -43,7 +43,7 @@ namespace physics {
 		physicsSystem.Init(cMaxBodies, cNumBodyMutexes, cMaxBodyPairs, cMaxContactConstraints, broadPhaseLayerInterface, objectVsBroadphaseLayerFilter, objectVsObjectLayerFilter);
 	}
 
-	JPH::BodyID const& JoltPhysics::CreateAndAddEmptyBody(Transform const& transform, JPH::EMotionType motionType, JPH::ObjectLayer collisionLayer, bool activate)
+	JPH::BodyID JoltPhysics::CreateAndAddEmptyBody(Transform const& transform, JPH::EMotionType motionType, JPH::ObjectLayer collisionLayer, bool activate)
 	{
 		//Settings of the empty shape.
 		JPH::EmptyShapeSettings emptyShapeSetting{};
@@ -67,6 +67,11 @@ namespace physics {
 		bodyInterface.DestroyBody(bodyID);
 	}
 
+	JPH::BodyInterface& JoltPhysics::GetBodyInterface()
+	{
+		return bodyInterface;
+	}
+
 	void JoltPhysics::UpdatePhysicsSystem()
 	{
 		physicsSystem.Update((GameTime::IsFixedDtMode() ? GameTime::FixedDt() : GameTime::RealDt()), 1, &tempAllocator, &jobSystem);
@@ -82,17 +87,39 @@ namespace physics {
 		JPH::Factory::sInstance = nullptr;
 	}
 
-	Vec3 const& JoltPhysics::GetBodyPosition(JPH::BodyID bodyID)
-	{
-		JPH::RVec3Arg pos{ bodyInterface.GetPosition(bodyID) };
-		return Vec3{ pos.GetX(), pos.GetY(), pos.GetZ() };
-	}
-
 	void JoltPhysics::SetBodyPosition(JPH::BodyID bodyID, Vec3 const& pos)
 	{
 		JPH::RVec3Arg position{ pos.x, pos.y, pos.z };
 		bodyInterface.SetPosition(bodyID, position, JPH::EActivation::Activate);
 	}
+
+	// Callback for traces, connect this to your own trace function if you have one
+	static void TraceImpl(const char* inFMT, ...)
+	{
+		// Format the message
+		va_list list;
+		va_start(list, inFMT);
+		char buffer[1024];
+		vsnprintf(buffer, sizeof(buffer), inFMT, list);
+		va_end(list);
+
+		// Print to the TTY
+		CONSOLE_LOG(LEVEL_ERROR) << buffer;
+	}
+
+#ifdef JPH_ENABLE_ASSERTS
+
+	// Callback for asserts, connect this to your own assert handler if you have one
+	static bool AssertFailedImpl(const char* inExpression, const char* inMessage, const char* inFile, JPH::uint inLine)
+	{
+		// Print to the TTY
+		CONSOLE_LOG(LEVEL_ERROR) << inFile << ":" << inLine << ": (" << inExpression << ") " << (inMessage != nullptr ? inMessage : "");
+
+		// Breakpoint
+		return true;
+	};
+
+#endif // JPH_ENABLE_ASSERTS
 
 	void JoltRegister()
 	{

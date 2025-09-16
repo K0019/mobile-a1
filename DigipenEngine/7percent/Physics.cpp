@@ -25,36 +25,37 @@ All rights reserved.
 
 namespace physics {
 	PhysicsComp::PhysicsComp()
-		: bodyID{}
+		: bodyID {}
 	{
 	}
 
 	void PhysicsComp::OnAttached()
 	{
-		// Logging to console is like std::cout syntax.
-		// You can get the entity this component is attached to via ecs::GetEntity() and passing in the component's address.
-		CONSOLE_LOG(LEVEL_INFO) << "Physics component attached to entity " << ecs::GetEntity(this)
-			// There are some components that are guaranteed to exist on all entities (see class EntitySpawnEvents)
-			<< " of name " << ecs::GetEntity(this)->GetComp<NameComponent>()->GetName();
+		if (ecs::GetEntity(this)->HasComp<BoxColliderComp>())
+			bodyID = ecs::GetEntity(this)->GetComp<BoxColliderComp>()->GetBodyID();
+		else
+			bodyID = ST<JoltPhysics>::Get()->CreateAndAddEmptyBody(ecs::GetEntityTransform(this), JPH::EMotionType::Dynamic, +Layers::MOVING);
 
-		bodyID = ST<JoltPhysics>::Get()->CreateAndAddEmptyBody(ecs::GetEntityTransform(this), JPH::EMotionType::Dynamic, +Layers::MOVING);
 		if (bodyID.IsInvalid())
 			CONSOLE_LOG(LEVEL_ERROR) << "Invalid Body ID generated while creating the Physics component";
 	}
 
 	void PhysicsComp::OnDetached()
 	{
-		// Be careful in OnDetached(), guaranteed-to-exist components may not exist anymore if the entity is being deleted outright
-		ecs::CompHandle<NameComponent> nameComp{ ecs::GetEntity(this)->GetComp<NameComponent>() };
-		CONSOLE_LOG(LEVEL_INFO) << "Physics component detached(removed) from entity " << ecs::GetEntity(this)
-			<< " of name " << (nameComp ? nameComp->GetName() : "[unknown]");
-
-		ST<JoltPhysics>::Get()->RemoveAndDestroyBody(bodyID);
+		//If the entity doens't have a collider component, destroy the body from the body interface.
+		if (!ecs::GetEntity(this)->HasComp<BoxColliderComp>())
+			ST<JoltPhysics>::Get()->RemoveAndDestroyBody(bodyID);
 	}
 
 	JPH::BodyID PhysicsComp::GetBodyID()
 	{
 		return bodyID;
+	}
+
+	Vec3 const& PhysicsComp::GetBodyPosition()
+	{
+		JPH::RVec3Arg pos{ ST<JoltPhysics>::Get()->GetBodyInterface().GetPosition(bodyID) };
+		return Vec3{ pos.GetX(), pos.GetY(), pos.GetZ() };
 	}
 
 	void PhysicsComp::EditorDraw()
@@ -68,7 +69,7 @@ namespace physics {
 
 		for (auto compIter{ ecs::GetCompsActiveBegin<PhysicsComp>() }, endIter{ ecs::GetCompsEnd<PhysicsComp>() }; compIter != endIter; ++compIter)
 		{
-			Vec3 pos{ ST<JoltPhysics>::Get()->GetBodyPosition(compIter->GetBodyID()) };
+			Vec3 pos{ compIter->GetBodyPosition() };
 			compIter.GetEntity()->GetTransform().SetWorldPosition(pos);
 		}
 

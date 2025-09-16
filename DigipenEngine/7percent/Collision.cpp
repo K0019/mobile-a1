@@ -20,6 +20,7 @@ All rights reserved.
 /******************************************************************************/
 
 #include "Collision.h"
+#include "Physics.h"
 
 namespace physics {
 	bool ObjectLayerPairFilterImpl::ShouldCollide(JPH::ObjectLayer inObject1, JPH::ObjectLayer inObject2) const
@@ -79,5 +80,45 @@ namespace physics {
 			JPH_ASSERT(false);
 			return false;
 		}
+	}
+
+	BoxColliderComp::BoxColliderComp()
+		: bodyID{}
+	{
+	}
+
+	void BoxColliderComp::OnAttached()
+	{
+		//If the entity has the physics component, get the body pointer of the physics component.
+		//If not, create a body.
+		if (ecs::GetEntity(this)->HasComp<PhysicsComp>())
+			bodyID = ecs::GetEntity(this)->GetComp<PhysicsComp>()->GetBodyID();
+		else
+			bodyID = ST<JoltPhysics>::Get()->CreateAndAddEmptyBody(ecs::GetEntityTransform(this), JPH::EMotionType::Dynamic, +Layers::MOVING);
+
+		if (bodyID.IsInvalid())
+			CONSOLE_LOG(LEVEL_ERROR) << "Invalid Body ID generated while creating the Physics component";
+
+		//Set the body's shape.
+		Vec3 scale{ ecs::GetEntity(this)->GetTransform().GetWorldScale() };
+		ST<JoltPhysics>::Get()->GetBodyInterface().SetShape(bodyID, new JPH::BoxShape(JPH::Vec3{scale.x, scale.y, scale.z}), true, JPH::EActivation::Activate);
+	}
+
+	void BoxColliderComp::OnDetached()
+	{
+		if (!ecs::GetEntity(this)->HasComp<PhysicsComp>())
+			ST<JoltPhysics>::Get()->RemoveAndDestroyBody(bodyID);
+		else
+			ST<JoltPhysics>::Get()->GetBodyInterface().SetShape(bodyID, new JPH::EmptyShape(), true, JPH::EActivation::Activate);
+	}
+
+	JPH::BodyID BoxColliderComp::GetBodyID()
+	{
+		return bodyID;
+	}
+
+	void BoxColliderComp::EditorDraw()
+	{
+
 	}
 }

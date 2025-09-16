@@ -106,4 +106,34 @@ namespace physics {
 		virtual bool ShouldCollide(JPH::ObjectLayer inLayer1, JPH::BroadPhaseLayer inLayer2) const override;
 	};
 
+	class BoxColliderComp
+		: public IRegisteredComponent<BoxColliderComp>
+#ifdef IMGUI_ENABLED
+		, public IEditorComponent<BoxColliderComp>
+#endif
+		, public ecs::IComponentCallbacks
+	{
+	public:
+		BoxColliderComp();
+
+	private:
+		JPH::BodyID bodyID;
+
+	public:
+		void OnAttached() override;
+		void OnDetached() override;
+
+		JPH::BodyID GetBodyID();
+
+	private:
+		virtual void EditorDraw() override;
+
+	public:
+		property_vtable()
+	};
 }
+property_begin(physics::BoxColliderComp)
+{
+
+}
+property_vend_h(physics::BoxColliderComp)

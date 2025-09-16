@@ -22,6 +22,8 @@ All rights reserved.
 #include "IGameComponentCallbacks.h"
 
 namespace physics {
+	class ColliderComp;
+
 	class PhysicsComp
 		: public IRegisteredComponent<PhysicsComp>
 #ifdef IMGUI_ENABLED
@@ -45,6 +47,14 @@ namespace physics {
 		void OnDetached() override;
 
 		JPH::BodyID GetBodyID();
+
+		/*****************************************************************//*!
+		\brief
+			Get the position of the body in the body interface.
+		\return
+			Vec3 value that represents the position of the body.
+		*//******************************************************************/
+		Vec3 const& GetBodyPosition();
 
 	private:
 		virtual void EditorDraw() override;
