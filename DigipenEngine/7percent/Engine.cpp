@@ -302,7 +302,7 @@ void Engine::init()
 	ST<physics::JoltPhysics>::Get()->Initialize();
 
 	//Testing for BehaviorTree
-	bt.initHardcoded();
+	bt.InitHardcoded();
 
 	constexpr unsigned int SCREEN_WIDTH = 1600;
 	// The height of the screen
@@ -553,7 +553,7 @@ void Engine::run() {
 		ecs::SwitchToPool(ecs::POOL::DEFAULT);
 		ecs::FlushChanges(); // For if any of the editor windows deleted an entity.
 
-		bt.update(static_cast<float>(GameTime::Dt()));
+		bt.Update(static_cast<float>(GameTime::Dt()));
 
 		if(ImGui::BeginMainMenuBar())
 		{
