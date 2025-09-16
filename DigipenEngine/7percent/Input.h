@@ -142,6 +142,8 @@ namespace internal {
 	public:
 		InputActionBase(INPUT_COMPOSITE_TYPE compositeType);
 
+		INPUT_COMPOSITE_TYPE GetCompositeType() const;
+
 	private:
 		INPUT_COMPOSITE_TYPE compositeType;
 
@@ -164,6 +166,9 @@ namespace internal {
 	private:
 		//! The input bindings that "activate" this action.
 		std::vector<InputBinding<CompositeType>> bindings;
+
+	private:
+		decltype(bindings) Editor_GetBindings();
 
 	};
 

@@ -30,6 +30,8 @@ namespace editor {
 			DrawInputSetsColumn(inputSets, selectedInputSet);
 			table.NextColumn();
 			DrawActionsColumn(selectedInputSet, selectedAction);
+			table.NextColumn();
+			DrawInspector(selectedAction);
 		}
 	}
 
@@ -86,6 +88,18 @@ namespace editor {
 			gui::SetID id{ name.get().c_str() };
 			if (gui::Selectable(name.get().c_str(), action.get() == selectedAction))
 				selectedActionPtr = selectedAction = action.get();
+		}
+	}
+
+	void InputConfig::DrawInspector(SPtr<internal::InputActionBase>& action)
+	{
+		if (!action)
+			return;
+
+		switch (action->GetCompositeType())
+		{
+		case internal::INPUT_COMPOSITE_TYPE::BUTTON:
+			DrawInspector_Action(static_cast<SPtr<internal::INPUT_COMPOSITE_TYPE::BUTTON>>(action));
 		}
 	}
 

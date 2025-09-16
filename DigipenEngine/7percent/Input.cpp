@@ -58,6 +58,11 @@ namespace internal {
 	{
 	}
 
+	INPUT_COMPOSITE_TYPE InputActionBase::GetCompositeType() const
+	{
+		return compositeType;
+	}
+
 	bool InputSet::CreateNewAction(const std::string& name)
 	{
 		return actions.try_emplace(name, std::make_shared<InputAction<INPUT_COMPOSITE_TYPE::BUTTON>>()).second;

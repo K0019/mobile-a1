@@ -56,4 +56,10 @@ namespace internal {
 		: InputActionBase{ CompositeType }
 	{
 	}
+
+	template<INPUT_COMPOSITE_TYPE CompositeType>
+	decltype(InputAction<CompositeType>::bindings) InputAction<CompositeType>::Editor_GetBindings()
+	{
+		return bindings;
+	}
 }

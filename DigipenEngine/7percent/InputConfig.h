@@ -18,12 +18,21 @@ namespace editor {
 
 		void DrawInputSetsColumn(VecOfInputSets& inputSets, SPtr<internal::InputSet>& selectedInputSet);
 		void DrawActionsColumn(SPtr<internal::InputSet>& inputSet, SPtr<internal::InputActionBase>& action);
+		void DrawInspector(SPtr<internal::InputActionBase>& action);
+		
+		template <internal::INPUT_COMPOSITE_TYPE CompositeType>
+		void DrawInspector_Action(SPtr<internal::InputAction<CompositeType>>& action);
 
 	private:
 		WPtr<internal::InputSet> selectedInputSetPtr;
 		WPtr<internal::InputActionBase> selectedActionPtr;
 
 	};
+
+	template<internal::INPUT_COMPOSITE_TYPE CompositeType>
+	void InputConfig::DrawInspector_Action(SPtr<internal::InputAction<CompositeType>>& action)
+	{
+	}
 
 }
 
