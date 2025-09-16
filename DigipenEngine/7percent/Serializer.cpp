@@ -415,8 +415,6 @@ Deserializer::Deserializer(const std::string& filepath)
     , document{}
     , valueStack{}
     , currentEntityIndex{}
-    , entitiesArray{ nullptr }
-    , totalEntities{ 0 }
 {
     std::ifstream ifs{ filepath };
     if (!ifs.is_open())
@@ -433,17 +431,6 @@ Deserializer::Deserializer(const std::string& filepath)
         return;
     }
 
-    if (document.HasMember("entities") && document["entities"].IsArray())
-    {
-        entitiesArray = &document["entities"];
-        totalEntities = entitiesArray->Size();
-    }
-    else
-    {
-        CONSOLE_LOG(LEVEL_WARNING) << "No entities array found in JSON file";
-        entitiesArray = nullptr;
-        totalEntities = 0;
-    }
 }
 
 bool Deserializer::IsValid() const
@@ -506,57 +493,31 @@ bool Deserializer::PushArrayElementAccess(size_t index)
     return true;
 }
 
-// Helper method to access entities array (add to public section of Deserializer class):
-bool Deserializer::PushEntitiesArrayAccess()
-{
-    if (!entitiesArray)
-    {
-        CONSOLE_LOG(LEVEL_ERROR) << "No entities array available!";
-        return false;
-    }
-
-    valueStack.push(entitiesArray);
-    return true;
-}
-
-// Add method to get total entity count (add to public section):
-size_t Deserializer::GetEntityCount() const
-{
-    return totalEntities;
-}
 
 bool Deserializer::Deserialize(ecs::EntityHandle entity)
 {
-    if (!HasEntity())
-    {
-        CONSOLE_LOG(LEVEL_ERROR) << "Deserializer has no entity available for reading!";
-        return false;
-    }
-    int index = currentEntityIndex++;
-    //if (!PushAccess("entity" + std::to_string(index)))
-    //    return false;
-    
-    // Access entity from array instead of by key
-    if (!entitiesArray)
-    {
-        CONSOLE_LOG(LEVEL_ERROR) << "Entity index out of bounds!";
-        return false;
-    }
-    valueStack.push(entitiesArray);
-    // Push access to the specific entity in the array
-    if (!PushArrayElementAccess(index)) return false;
-
     Transform& transform{ entity->GetTransform() };
 
+    // Deserialize parent index
     int parentIndex = -1;
     DeserializeVar("parentIndex", &parentIndex);
-    if (parentIndex != -1 && parentIndex < index) // Parent must be serialized before child
+    // Store the current entity in our tracking map
+    int currentEntityIndex = static_cast<int>(entityIndexMap.size());
+    entityIndexMap[currentEntityIndex] = entity->GetHash();
+
+    // For now, we'll need to defer parent-child relationships until after all entities are loaded
+    // This is a limitation of the current approach - you might need to implement a two-pass system
+    // or store parent indices for post-processing
+    if (parentIndex != -1 && parentIndex < currentEntityIndex)
     {
         auto parentIter = entityIndexMap.find(parentIndex);
         if (parentIter != entityIndexMap.end())
         {
-            ecs::EntityHash parentEntityHash{ parentIter->second };
-            transform.SetParent(ecs::GetEntity(parentEntityHash)->GetTransform());
+            ecs::EntityHandle parentEntity = ecs::GetEntity(parentIter->second);
+            if (parentEntity) // Ensure parent entity is still valid
+            {
+                transform.SetParent(&parentEntity->GetTransform());
+            }
         }
     }
     //add this back for objects
@@ -574,13 +535,10 @@ bool Deserializer::Deserialize(ecs::EntityHandle entity)
     DeserializeVar("rotation", &vec3), transform.SetLocalRotation(vec3);
     DeserializeVar("scale", &vec3), transform.SetLocalScale(vec3);
 
-    entityIndexMap.emplace(index, entity->GetHash());
-
-
-
     if (!PushAccess("components"))
     {
         PopAccess(); // entity
+        CONSOLE_LOG(LEVEL_ERROR) << "Failed to access components object for entity!";
         return false;
     }
 
@@ -611,8 +569,6 @@ bool Deserializer::Deserialize(ecs::EntityHandle entity)
         PopAccess();
     }
 
-    PopAccess(); // components
-    PopAccess();
     PopAccess(); // entity
 
     return true;
@@ -758,11 +714,6 @@ bool Deserializer::GetArraySize(const std::string& key, size_t* size)
         succeeded = false;
 
     return succeeded;
-}
-
-bool Deserializer::HasEntity() const
-{
-    return entitiesArray != nullptr && currentEntityIndex < static_cast<int>(totalEntities);//add this back for objects GetCurrValue().HasMember("entity" + std::to_string(currentEntityIndex));
 }
 
 const rj::Value& Deserializer::GetCurrValue() const

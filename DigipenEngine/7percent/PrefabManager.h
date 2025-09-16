@@ -199,14 +199,23 @@ private:
 		if (!deserializer.IsValid())
 			return nullptr;
 
+		int entityCounter = 0;
 		ecs::EntityHandle parent{};
-		while (deserializer.HasEntity())
+		deserializer.PushAccess("entities");
+		while (deserializer.PushArrayElementAccess(entityCounter))
 		{
-			ecs::EntityHandle e = ecs::CreateEntity();
-			if (!parent)
-				parent = e;
-			deserializer.Deserialize(e);
+			ecs::EntityHandle entity{ ecs::CreateEntity() };
+			if (!parent) {
+				parent = entity;
+			}
+			deserializer.Deserialize(entity);
+
+			deserializer.PopAccess();
+			++entityCounter;
 		}
+
+
+		deserializer.PopAccess(); // Pop the entities array access
 		return parent;
 	}
 };
