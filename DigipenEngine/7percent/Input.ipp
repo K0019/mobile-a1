@@ -63,6 +63,20 @@ namespace internal {
 	}
 
 	template<INPUT_COMPOSITE_TYPE CompositeType>
+	template<typename FuncType>
+	void InputBinding<CompositeType>::Editor_ForEachHardwareValueLink(FuncType func)
+	{
+		if constexpr (CompositeType == INPUT_COMPOSITE_TYPE::BUTTON)
+			func(hardwareValues_Button);
+		else if constexpr (CompositeType == INPUT_COMPOSITE_TYPE::AXIS_1D)
+			std::for_each(hardwareValues_1D.begin(), hardwareValues_1D.end(), func);
+		else if constexpr (CompositeType == INPUT_COMPOSITE_TYPE::AXIS_2D)
+			std::for_each(hardwareValues_2D.begin(), hardwareValues_2D.end(), func);
+		else
+			assert(false); // Unimplemented composite type
+	}
+
+	template<INPUT_COMPOSITE_TYPE CompositeType>
 	InputAction<CompositeType>::InputAction()
 		: InputActionBase{ CompositeType }
 	{

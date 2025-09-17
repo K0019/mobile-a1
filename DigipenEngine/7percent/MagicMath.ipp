@@ -17,6 +17,21 @@ namespace math {
 		return x * x;
 	}
 
+	template<unsigned int p>
+	constexpr int PowInt(int x)
+	{
+		if constexpr (p == 0)
+			return 1;
+		if constexpr (p == 1)
+			return x;
+
+		int tmp = PowInt<p / 2>(x);
+		if constexpr (p % 2)
+			return x * tmp * tmp;
+		else
+			return tmp * tmp;
+	}
+
 	template <typename T>
 	constexpr T Wrap(T x, const T& min, const T& max)
 	{

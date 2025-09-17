@@ -7,6 +7,25 @@ namespace editor {
 	const std::array<const char*, +internal::INPUT_COMPOSITE_TYPE::NUM_TYPES> InputConfig::compositeNames{
 		ENUM_INPUT_COMPOSITE_TYPE
 	};
+	const std::array<const char*, (+internal::INPUT_COMPOSITE_TYPE::NUM_TYPES - 1) * 2> InputConfig::hardwareValueLinkNames{
+		"X Positive",
+		"X Negative",
+		"Y Positive",
+		"Y Negative",
+	};
+	const std::array<const char*, +internal::INPUT_DEVICE_TYPE::NUM_DEVICES> InputConfig::hardwareDeviceNames{
+		ENUM_INPUT_DEVICE_TYPE
+	};
+#undef X
+#define X(name, glfw, str) std::make_pair(KEY::name, str),
+	const std::unordered_map<KEY, const char*> InputConfig::keyIdentifierNames{
+		ENUM_KEY
+	};
+#undef X
+#define X(name, glfw, str) KEY::name,
+	const std::array keyEnums{
+		ENUM_KEY
+	};
 #undef X
 
 	InputConfig::InputConfig()
@@ -184,6 +203,22 @@ namespace editor {
 		ENUM_INPUT_COMPOSITE_TYPE
 #undef X
 		}
+	}
+
+	void InputConfig::DrawInspector_HardwareValueLink(internal::InputHardwareValueLink& hardwareValueLink, int index)
+	{
+		int deviceType{ +hardwareValueLink.GetDeviceType() };
+		// TODO: Give a nicer hardware value link name to the user (button should not be called X Positive)
+		if (gui::Combo deviceCombo{ hardwareValueLinkNames[index], hardwareDeviceNames, &deviceType})
+			hardwareValueLink.SetDeviceType(static_cast<internal::INPUT_DEVICE_TYPE>(deviceType));
+
+		// TODO: Different keys depending on device type
+		auto keyIdentifierNameIter{ keyIdentifierNames.find(static_cast<KEY>(hardwareValueLink.GetKeyIdentifier())) };
+		const char* selectedKeyIdentifierName{ (keyIdentifierNameIter == keyIdentifierNames.end() ? nullptr : keyIdentifierNameIter->second) };
+		if (gui::Combo keyCombo{ "Key", selectedKeyIdentifierName })
+			for (KEY key : keyEnums)
+				if (keyCombo.Selectable(keyIdentifierNames.at(key), +key == hardwareValueLink.GetKeyIdentifier()))
+					hardwareValueLink.SetKeyIdentifier(+key);
 	}
 
 }

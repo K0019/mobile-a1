@@ -53,6 +53,24 @@ namespace internal {
 		return GetValueFromDevice[+deviceType](keyIdentifier, readType);
 	}
 
+	INPUT_DEVICE_TYPE InputHardwareValueLink::GetDeviceType() const
+	{
+		return deviceType;
+	}
+	void InputHardwareValueLink::SetDeviceType(INPUT_DEVICE_TYPE newDeviceType)
+	{
+		deviceType = newDeviceType;
+	}
+
+	int InputHardwareValueLink::GetKeyIdentifier() const
+	{
+		return keyIdentifier;
+	}
+	void InputHardwareValueLink::SetKeyIdentifier(int newKeyIdentifier)
+	{
+		keyIdentifier = newKeyIdentifier;
+	}
+
 	InputActionBase::InputActionBase(INPUT_COMPOSITE_TYPE compositeType)
 		: compositeType{ compositeType }
 	{

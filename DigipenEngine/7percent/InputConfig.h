@@ -26,6 +26,7 @@ namespace editor {
 
 		template <internal::INPUT_COMPOSITE_TYPE CompositeType>
 		void DrawInspector_Binding(internal::InputBinding<CompositeType>& binding);
+		void DrawInspector_HardwareValueLink(internal::InputHardwareValueLink& hardwareValueLink, int index);
 
 	private:
 		WPtr<internal::InputSet> selectedInputSetPtr;
@@ -34,6 +35,9 @@ namespace editor {
 
 	private:
 		static const std::array<const char*, +internal::INPUT_COMPOSITE_TYPE::NUM_TYPES> compositeNames;
+		static const std::array<const char*, (+internal::INPUT_COMPOSITE_TYPE::NUM_TYPES - 1) * 2> hardwareValueLinkNames;
+		static const std::array<const char*, +internal::INPUT_DEVICE_TYPE::NUM_DEVICES> hardwareDeviceNames;
+		static const std::unordered_map<KEY, const char*> keyIdentifierNames;
 
 	};
 
@@ -63,7 +67,11 @@ namespace editor {
 	template<internal::INPUT_COMPOSITE_TYPE CompositeType>
 	void InputConfig::DrawInspector_Binding(internal::InputBinding<CompositeType>& binding)
 	{
-
+		int index{};
+		binding.Editor_ForEachHardwareValueLink([this, &index](internal::InputHardwareValueLink& hardwareValueLink) -> void {
+			gui::Separator();
+			DrawInspector_HardwareValueLink(hardwareValueLink, index++);
+		});
 	}
 
 }
