@@ -56,6 +56,32 @@ DesiredValueType InputBinding<ValueType>::Get(const InputHardwareValueLink& hard
 }
 
 template<InputSupportedValueTypes ValueType>
+void InputBinding<ValueType>::Serialize(Serializer& writer) const
+{
+	if constexpr (std::is_same_v<ValueType, bool>)
+		writer.Serialize("hardwareLink", hardwareValues_Button);
+	else if constexpr (std::is_same_v<ValueType, float>)
+		writer.Serialize("hardwareLink", hardwareValues_1D);
+	else if constexpr (std::is_same_v<ValueType, Vec2>)
+		writer.Serialize("hardwareLink", hardwareValues_2D);
+	else
+		assert(false); // Unimplemented value type
+}
+
+template<InputSupportedValueTypes ValueType>
+void InputBinding<ValueType>::Deserialize(Deserializer& reader)
+{
+	if constexpr (std::is_same_v<ValueType, bool>)
+		reader.Deserialize("hardwareLink", &hardwareValues_Button);
+	else if constexpr (std::is_same_v<ValueType, float>)
+		reader.DeserializeVar("hardwareLink", &hardwareValues_1D);
+	else if constexpr (std::is_same_v<ValueType, Vec2>)
+		reader.DeserializeVar("hardwareLink", &hardwareValues_2D);
+	else
+		assert(false); // Unimplemented value type
+}
+
+template<InputSupportedValueTypes ValueType>
 template<typename FuncType>
 void InputBinding<ValueType>::Editor_ForEachHardwareValueLink(FuncType func)
 {
@@ -66,7 +92,7 @@ void InputBinding<ValueType>::Editor_ForEachHardwareValueLink(FuncType func)
 	else if constexpr (std::is_same_v<ValueType, Vec2>)
 		std::for_each(hardwareValues_2D.begin(), hardwareValues_2D.end(), func);
 	else
-		assert(false); // Unimplemented composite type
+		assert(false); // Unimplemented value type
 }
 
 template<InputSupportedValueTypes ValueType>
@@ -155,6 +181,20 @@ void InputAction<ValueType>::INTERNAL_ConvertAndSetBindings(const std::vector<In
 	std::transform(originalBindings.begin(), originalBindings.end(), std::back_inserter(bindings), [](const auto& binding) -> auto {
 		return binding.ConvertToValueType<ValueType>();
 	});
+}
+
+template<InputSupportedValueTypes ValueType>
+void InputAction<ValueType>::Serialize(Serializer& writer) const
+{
+	// For above InputSet to identify what type of InputAction to create
+	writer.Serialize("compositeType", +GetCompositeType());
+	writer.Serialize("bindings", bindings);
+}
+
+template<InputSupportedValueTypes ValueType>
+void InputAction<ValueType>::Deserialize(Deserializer& reader)
+{
+	reader.DeserializeVar("bindings", &bindings);
 }
 
 template<InputSupportedValueTypes ValueType>

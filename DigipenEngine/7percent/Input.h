@@ -29,6 +29,7 @@ All rights reserved.
 
 #include "MagicMath.h"
 #include "MacroTemplates.h"
+#include "Serializer.h"
 
 // Forward declaration
 class InputConfig;
@@ -91,6 +92,10 @@ public:
 	int GetKeyIdentifier() const;
 	void SetKeyIdentifier(int newKeyIdentifier);
 
+public:
+	void Serialize(Serializer& writer) const;
+	void Deserialize(Deserializer& reader);
+
 protected:
 	//! Which input device to read from
 	INPUT_DEVICE_TYPE deviceType;
@@ -144,6 +149,10 @@ private:
 	template <typename DesiredValueType>
 	static DesiredValueType Get(const InputHardwareValueLink& hardwareValueLink);
 
+public:
+	void Serialize(Serializer& writer) const;
+	void Deserialize(Deserializer& reader);
+
 private:
 	//! The values of this binding will be read from these hardware values.
 	//! Store 1, 2 or 4 InputHardwareValueLink depending on the composite type.
@@ -160,7 +169,7 @@ public:
 
 #pragma region Input Action
 
-class InputActionBase
+class InputActionBase : public ISerializeable
 {
 public:
 	InputActionBase(INPUT_COMPOSITE_TYPE compositeType);
@@ -172,7 +181,13 @@ public:
 private:
 	INPUT_COMPOSITE_TYPE compositeType;
 
+public:
+	property_vtable()
 };
+property_begin(InputActionBase)
+{
+}
+property_vend_h(InputActionBase)
 
 template <InputSupportedValueTypes ValueType>
 class InputAction : public InputActionBase
@@ -192,6 +207,10 @@ public:
 	template <InputSupportedValueTypes OriginalValueType>
 	void INTERNAL_ConvertAndSetBindings(const std::vector<InputBinding<OriginalValueType>>& originalBindings);
 
+public:
+	void Serialize(Serializer& writer) const final;
+	void Deserialize(Deserializer& reader) final;
+
 private:
 	//! The input bindings that "activate" this action.
 	std::vector<InputBinding<ValueType>> bindings;
@@ -205,7 +224,7 @@ public:
 
 #pragma region Input Set
 
-class InputSet
+class InputSet : public ISerializeable
 {
 public:
 	// Creates a button action
@@ -215,13 +234,23 @@ public:
 	SPtr<InputActionBase> GetAction(const std::string& name);
 	void SetAction(const std::string& name, SPtr<InputActionBase>&& action);
 
+public:
+	void Serialize(Serializer& writer) const final;
+	void Deserialize(Deserializer& reader) final;
+
 private:
 	std::unordered_map<std::string, SPtr<InputActionBase>> actions;
 
 public:
 	decltype(util::ToSortedVectorOfRefs(actions)) Editor_GetActions();
 
+public:
+	property_vtable();
 };
+property_begin(InputSet)
+{
+}
+property_vend_h(InputSet)
 
 #pragma endregion Input Set
 
@@ -354,7 +383,7 @@ private:
 
 #pragma region New Interface
 
-class Input
+class Input : public ISerializeable
 {
 public:
 	bool CreateInputSet(const std::string& name);
@@ -389,6 +418,10 @@ public: // Frame management
 	*//******************************************************************/
 	bool IsFinalIterationThisFrame() const;
 
+public:
+	void Serialize(Serializer& writer) const final;
+	void Deserialize(Deserializer& reader) final;
+
 private:
 	std::unordered_map<std::string, SPtr<InputSet>> inputSets;
 	WPtr<InputSet> currentInputSet;
@@ -400,7 +433,14 @@ public:
 	// For InputConfig to get and modify input sets
 	decltype(util::ToSortedVectorOfRefs(inputSets)) Editor_GetInputSets();
 	WPtr<InputSet> Editor_GetCurrentInputSet();
+
+public:
+	property_vtable()
 };
+property_begin(Input)
+{
+}
+property_vend_h(Input)
 
 #pragma endregion // New Interface
 

@@ -70,6 +70,17 @@ void InputHardwareValueLink::SetKeyIdentifier(int newKeyIdentifier)
 	keyIdentifier = newKeyIdentifier;
 }
 
+void InputHardwareValueLink::Serialize(Serializer& writer) const
+{
+	writer.Serialize("deviceType", +deviceType);
+	writer.Serialize("keyIdentifier", +keyIdentifier);
+}
+void InputHardwareValueLink::Deserialize(Deserializer& reader)
+{
+	reader.DeserializeVar("deviceType", &deviceType);
+	reader.DeserializeVar("keyIdentifier", &keyIdentifier);
+}
+
 InputActionBase::InputActionBase(INPUT_COMPOSITE_TYPE compositeType)
 	: compositeType{ compositeType }
 {
@@ -103,6 +114,42 @@ SPtr<InputActionBase> InputSet::GetAction(const std::string& name)
 void InputSet::SetAction(const std::string& name, SPtr<InputActionBase>&& action)
 {
 	actions[name] = std::forward<SPtr<InputActionBase>>(action);
+}
+
+void InputSet::Serialize(Serializer& writer) const
+{
+	writer.Serialize("actions", actions);
+}
+
+void InputSet::Deserialize(Deserializer& reader)
+{
+	reader.DeserializeVar("actions", &actions, [](Deserializer& inReader, decltype(actions)* map) -> void {
+		std::pair<std::string, SPtr<InputActionBase>> pair{};
+		inReader.DeserializeVar("key", &pair.first);
+
+		// Need to push accesses downwards to find what type of action to initialize
+		int actionType{};
+		inReader.PushAccess("value");
+		inReader.DeserializeVar("compositeType", &actionType);
+
+		switch (static_cast<INPUT_COMPOSITE_TYPE>(actionType))
+		{
+#define X(name, str, type) \
+		case INPUT_COMPOSITE_TYPE::name: \
+			pair.second = std::make_shared<InputAction<type>>(); \
+			inReader.DeserializeVar("", pair.second.get()); \
+			break;
+		ENUM_INPUT_COMPOSITE_TYPE
+#undef X
+		default:
+			// Composite type doesn't exist. Ignore this entry.
+			inReader.PopAccess();
+			return;
+		}
+
+		map->emplace(std::move(pair));
+		inReader.PopAccess();
+	});
 }
 
 decltype(util::ToSortedVectorOfRefs(InputSet::actions)) InputSet::Editor_GetActions()
@@ -279,6 +326,21 @@ SPtr<const InputSet> Input::GetCurrentInputSet() const
 SPtr<InputSet> Input::GetCurrentInputSet()
 {
 	return currentInputSet.lock();
+}
+
+void Input::Serialize(Serializer& writer) const
+{
+	writer.Serialize("inputSets", inputSets);
+}
+
+void Input::Deserialize(Deserializer& reader)
+{
+	reader.DeserializeVar("inputSets", &inputSets, [](Deserializer& inReader, decltype(inputSets)* map) -> void {
+		std::pair<std::string, SPtr<InputSet>> pair{ "", std::make_shared<InputSet>() };
+		inReader.DeserializeVar("key", &pair.first);
+		inReader.Deserialize("value", pair.second.get());
+		map->emplace(std::move(pair));
+	});
 }
 
 decltype(util::ToSortedVectorOfRefs(Input::inputSets)) Input::Editor_GetInputSets()

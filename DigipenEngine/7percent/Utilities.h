@@ -166,6 +166,16 @@ namespace util {
 	};
 
 	/*****************************************************************//*!
+	\concept Dereferenceable
+	\brief
+		Indicates that a type can be dereferenced using the * operator.
+	*//******************************************************************/
+	template <typename T>
+	concept Dereferenceable = requires(T a) {
+		{ *a };
+	};
+
+	/*****************************************************************//*!
 	\brief
 		Calculates the byte offset between 2 classes related by inheritance.
 		Multiple inheritance causes issues with the location of the vtable
