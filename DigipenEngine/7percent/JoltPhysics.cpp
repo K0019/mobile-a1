@@ -4,7 +4,7 @@
 \par    Project: 7percent
 \par    Course: CSD3401
 \par    Software Engineering Project 5
-\date   09/09/2025
+\date   17/09/2025
 
 \author Takumi Shibamoto (100%)
 \par    email: t.shibamoto\@digipen.edu
@@ -34,6 +34,8 @@ namespace physics {
 		, objectVsObjectLayerFilter{}
 		, physicsSystem{}
 		, bodyInterface{physicsSystem.GetBodyInterface()}
+		, contactListener{}
+		, bodyManager{}
 	{
 	}
 
@@ -41,6 +43,12 @@ namespace physics {
 	{
 		//Create the physics system.
 		physicsSystem.Init(cMaxBodies, cNumBodyMutexes, cMaxBodyPairs, cMaxContactConstraints, broadPhaseLayerInterface, objectVsBroadphaseLayerFilter, objectVsObjectLayerFilter);
+
+		//Set contact listener.
+		physicsSystem.SetContactListener(&contactListener);
+
+		//Initialize the body manager.
+		bodyManager.Init(cMaxBodies, cNumBodyMutexes, broadPhaseLayerInterface);
 	}
 
 	JPH::BodyID JoltPhysics::CreateAndAddEmptyBody(Transform const& transform, JPH::EMotionType motionType, JPH::ObjectLayer collisionLayer, bool activate)
@@ -55,10 +63,16 @@ namespace physics {
 		JPH::ShapeSettings::ShapeResult emptyShapeResult{ emptyShapeSetting.Create() };
 		JPH::ShapeRefC emptyShape{ emptyShapeResult.Get() };
 
-		JPH::RVec3Arg position{ transform.GetWorldPosition().x, transform.GetWorldPosition().y, transform.GetWorldPosition().z };
-		JPH::QuatArg rotation{ JPH::Quat::sEulerAngles(JPH::Vec3{math::ToRadians(transform.GetWorldRotation().x), math::ToRadians(transform.GetWorldRotation().x), math::ToRadians(transform.GetWorldRotation().x)}) };
+		Vec3 pos{ transform.GetWorldPosition() };
+		JPH::RVec3Arg position{pos.x, pos.y, pos.z };
+		Vec3 scale{ transform.GetWorldScale() };
+		JPH::Vec3 scaleJolt{ scale.x * 0.5f, scale.y * 0.5f, scale.z * 0.5f };
+		Vec3 rot{ transform.GetWorldRotation() };
+		JPH::QuatArg rotation{ JPH::Quat::sEulerAngles(JPH::Vec3{math::ToRadians(rot.x), math::ToRadians(rot.y), math::ToRadians(rot.z)}) };
 
-		return bodyInterface.CreateAndAddBody(JPH::BodyCreationSettings(emptyShape, position, rotation, motionType, collisionLayer), (activate ? JPH::EActivation::Activate : JPH::EActivation::DontActivate));
+		JPH::BodyCreationSettings settings{ new JPH::ScaledShape(new JPH::EmptyShape(), scaleJolt), position, rotation, motionType, collisionLayer};
+		settings.mAllowDynamicOrKinematic = true;
+		return bodyInterface.CreateAndAddBody(settings, (activate ? JPH::EActivation::Activate : JPH::EActivation::DontActivate));
 	}
 
 	void JoltPhysics::RemoveAndDestroyBody(JPH::BodyID bodyID)
@@ -77,6 +91,11 @@ namespace physics {
 		physicsSystem.Update((GameTime::IsFixedDtMode() ? GameTime::FixedDt() : GameTime::RealDt()), 1, &tempAllocator, &jobSystem);
 	}
 
+	void JoltPhysics::OptimizeBroadPhase()
+	{
+		physicsSystem.OptimizeBroadPhase();
+	}
+
 	JoltPhysics::~JoltPhysics()
 	{
 		// Unregisters all types with the factory and cleans up the default material
@@ -91,6 +110,33 @@ namespace physics {
 	{
 		JPH::RVec3Arg position{ pos.x, pos.y, pos.z };
 		bodyInterface.SetPosition(bodyID, position, JPH::EActivation::Activate);
+	}
+
+	void JoltPhysics::ScaleShape(JPH::BodyID bodyID, Vec3 const& scale)
+	{
+		if (scale.x == 0.f || scale.y == 0.f || scale.z == 0.f)
+		{
+			bodyInterface.SetIsSensor(bodyID, true);
+			return;
+		}
+		if (bodyInterface.IsSensor(bodyID))
+			bodyInterface.SetIsSensor(bodyID, false);
+
+		JPH::BodyLockWrite lock(physicsSystem.GetBodyLockInterface(), bodyID);
+		if (lock.Succeeded())
+		{
+			JPH::Body& body = lock.GetBody();
+			JPH_ASSERT(body.GetShape()->GetSubType() == JPH::EShapeSubType::Scaled);
+			const JPH::ScaledShape* scaledShape = static_cast<const JPH::ScaledShape*>(body.GetShape());
+			const JPH::Shape* nonScaledShape = scaledShape->GetInnerShape();
+
+			JPH::Shape::ShapeResult newShape = nonScaledShape->ScaleShape(JPH::Vec3{scale.x * 0.5f, scale.y * 0.5f, scale.z * 0.5f});
+			JPH_ASSERT(newShape.IsValid());
+
+			physicsSystem.GetBodyInterfaceNoLock().SetShape(bodyID, newShape.Get(), true, JPH::EActivation::Activate);
+		}
+		else
+			CONSOLE_LOG(LEVEL_ERROR) << "Body could not be properly scaled!";
 	}
 
 	// Callback for traces, connect this to your own trace function if you have one

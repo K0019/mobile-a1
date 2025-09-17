@@ -4,7 +4,7 @@
 \par    Project: 7percent
 \par    Course: CSD3401
 \par    Software Engineering Project 5
-\date   09/09/2025
+\date   17/09/2025
 
 \author Takumi Shibamoto (100%)
 \par    email: t.shibamoto\@digipen.edu
@@ -30,6 +30,7 @@ All rights reserved.
 #include <Jolt/Physics/PhysicsSystem.h>
 #include <Jolt/Physics/Collision/Shape/EmptyShape.h>
 #include <Jolt/Physics/Collision/Shape/BoxShape.h>
+#include <Jolt/Physics/Collision/Shape/ScaledShape.h>
 #include <Jolt/Physics/Collision/Shape/SphereShape.h>
 #include <Jolt/Physics/Body/BodyCreationSettings.h>
 #include <Jolt/Physics/Body/BodyActivationListener.h>
@@ -98,6 +99,22 @@ namespace physics {
 
 		/*****************************************************************//*!
 		\brief
+			Optimize the broad face collision to increase efficiency.
+		*//******************************************************************/
+		void OptimizeBroadPhase();
+
+		/*****************************************************************//*!
+		\brief
+			Scale a body in certain size.
+		\param bodyID
+			ID of the body to scale.
+		\param scaleFactor
+			scale value to scale the body.
+		*//******************************************************************/
+		void ScaleShape(JPH::BodyID bodyID, Vec3 const& scale);
+
+		/*****************************************************************//*!
+		\brief
 			Set the position of the body in the body interface.
 		\param bodyID
 			The ID of the body to get the position.
@@ -153,6 +170,12 @@ namespace physics {
 
 		// This interface allows to to create / remove bodies and to change their properties.
 		JPH::BodyInterface& bodyInterface;
+
+		// This contact listener prints to the console when a collision occurs.
+		MyContactListener contactListener;	
+
+		// Body manager that allows certain bodies to change the scale.
+		JPH::BodyManager bodyManager;
 	};
 
 	/*****************************************************************//*!
