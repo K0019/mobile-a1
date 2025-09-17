@@ -658,7 +658,6 @@ void Engine::shutdown() {
 	ST<TweenManager>::Destroy();
 	ST<PerformanceProfiler>::Destroy();
 	ST<AssetBrowser>::Destroy();
-	ST<physics::JoltPhysics>::Destroy();
 #ifdef IMGUI_ENABLED
 	ST<Inspector>::Destroy();
 #endif
@@ -672,6 +671,7 @@ void Engine::shutdown() {
 
 	ecs::Shutdown();
 
+	ST<physics::JoltPhysics>::Destroy();
 	CSharpScripts::CSScripting::Exit();
 
 	ST<GameSettings>::Destroy();

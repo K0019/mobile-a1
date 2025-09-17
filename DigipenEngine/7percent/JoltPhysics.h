@@ -4,7 +4,7 @@
 \par    Project: 7percent
 \par    Course: CSD3401
 \par    Software Engineering Project 5
-\date   06/09/2025
+\date   17/09/2025
 
 \author Takumi Shibamoto (100%)
 \par    email: t.shibamoto\@digipen.edu
@@ -28,7 +28,9 @@ All rights reserved.
 #include <Jolt/Core/JobSystemThreadPool.h>
 #include <Jolt/Physics/PhysicsSettings.h>
 #include <Jolt/Physics/PhysicsSystem.h>
+#include <Jolt/Physics/Collision/Shape/EmptyShape.h>
 #include <Jolt/Physics/Collision/Shape/BoxShape.h>
+#include <Jolt/Physics/Collision/Shape/ScaledShape.h>
 #include <Jolt/Physics/Collision/Shape/SphereShape.h>
 #include <Jolt/Physics/Body/BodyCreationSettings.h>
 #include <Jolt/Physics/Body/BodyActivationListener.h>
@@ -49,15 +51,77 @@ namespace physics {
 
 		/*****************************************************************//*!
 		\brief
+			Destructor.
+		*//******************************************************************/
+		~JoltPhysics();
+
+		/*****************************************************************//*!
+		\brief
 			Initializes the Jolt Physics System.
 		*//******************************************************************/
 		void Initialize();
 
 		/*****************************************************************//*!
 		\brief
-			Destructor.
+			Create and add a body to the bodyInterface.
+		\param transform
+			Transform component of the entity.
+		\param motionType
+			Motion type of the body (DYNAMIC, STATIC, KINEMATIC)
+		\param collisionLayer
+			collision layer of the body (currently NON_MOVING and MOVING)
+		\param activate
+			shared pointer of the body created.
 		*//******************************************************************/
-		~JoltPhysics();
+		JPH::BodyID CreateAndAddEmptyBody(const Transform& transform, JPH::EMotionType motionType, JPH::ObjectLayer collisionLayer, bool activate = true);
+
+		/*****************************************************************//*!
+		\brief
+			Remove and destroy the body from the Jolt Physics System.
+		\param bodyID
+			bodyID of the body to remove.
+		*//******************************************************************/
+		void RemoveAndDestroyBody(JPH::BodyID bodyID);
+
+		/*****************************************************************//*!
+		\brief
+			Get a reference of the body interface.
+		\return
+			Reference of the body interface.
+		*//******************************************************************/
+		JPH::BodyInterface& GetBodyInterface();
+
+		/*****************************************************************//*!
+		\brief
+			Update the Jolt Physics System.
+		*//******************************************************************/
+		void UpdatePhysicsSystem();
+
+		/*****************************************************************//*!
+		\brief
+			Optimize the broad face collision to increase efficiency.
+		*//******************************************************************/
+		void OptimizeBroadPhase();
+
+		/*****************************************************************//*!
+		\brief
+			Scale a body in certain size.
+		\param bodyID
+			ID of the body to scale.
+		\param scaleFactor
+			scale value to scale the body.
+		*//******************************************************************/
+		void ScaleShape(JPH::BodyID bodyID, const Vec3& scale);
+
+		/*****************************************************************//*!
+		\brief
+			Set the position of the body in the body interface.
+		\param bodyID
+			The ID of the body to get the position.
+		\param pos
+			Position to set the body.
+		*//******************************************************************/
+		void SetBodyPosition(JPH::BodyID bodyID, const Vec3& pos);
 	private:
 		// We need a temp allocator for temporary allocations during the physics update. We're
 		// pre-allocating 10 MB to avoid having to do allocations during the physics update.
@@ -101,8 +165,17 @@ namespace physics {
 		// Also have a look at ObjectLayerPairFilterTable or ObjectLayerPairFilterMask for a simpler interface.
 		ObjectLayerPairFilterImpl objectVsObjectLayerFilter;
 
-		// Now we can create the actual physics system.
+		// Jolt's physics system.
 		JPH::PhysicsSystem physicsSystem;
+
+		// This interface allows to to create / remove bodies and to change their properties.
+		JPH::BodyInterface& bodyInterface;
+
+		// This contact listener prints to the console when a collision occurs.
+		MyContactListener contactListener;	
+
+		// Body manager that allows certain bodies to change the scale.
+		JPH::BodyManager bodyManager;
 	};
 
 	/*****************************************************************//*!
@@ -112,31 +185,3 @@ namespace physics {
 	*//******************************************************************/
 	void JoltRegister();
 }
-
-// Callback for traces, connect this to your own trace function if you have one
-static void TraceImpl(const char* inFMT, ...)
-{
-	// Format the message
-	va_list list;
-	va_start(list, inFMT);
-	char buffer[1024];
-	vsnprintf(buffer, sizeof(buffer), inFMT, list);
-	va_end(list);
-
-	// Print to the TTY
-	CONSOLE_LOG(LEVEL_ERROR) << buffer;
-}
-
-#ifdef JPH_ENABLE_ASSERTS
-
-// Callback for asserts, connect this to your own assert handler if you have one
-static bool AssertFailedImpl(const char* inExpression, const char* inMessage, const char* inFile, JPH::uint inLine)
-{
-	// Print to the TTY
-	CONSOLE_LOG(LEVEL_ERROR) << inFile << ":" << inLine << ": (" << inExpression << ") " << (inMessage != nullptr ? inMessage : "");
-
-	// Breakpoint
-	return true;
-};
-
-#endif // JPH_ENABLE_ASSERTS
