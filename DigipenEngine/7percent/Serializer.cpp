@@ -166,8 +166,13 @@ void Serializer::EndArray()
 
 void Serializer::FlushEntities()
 {
+    if (entityChildLevelMap.empty())
+        return;
+
     std::map<ecs::EntityHash, int> entityIndexMap{};
     std::vector<const RegisteredComponentData*> entityRegisteredCompData{}; // For ordering components
+
+    StartArray("entities");
 
     for (auto& [_, entities] : entityChildLevelMap)
     {
@@ -181,21 +186,18 @@ void Serializer::FlushEntities()
         {
             int entityindex = numEntities++;
             entityIndexMap.emplace(entity->GetHash(), entityindex);
-
-            StartObject("entity" + std::to_string(entityindex));
+            StartObject();
 
             const Transform& transform{ entity->GetTransform() };
 
-
-            // Serialize parent if child (but only if we've also serialized the parent)
-            std::string parentStr{};
-            if (const Transform* parent{ transform.GetParent() })
+            int parentIndex = -1; // Use -1 to indicate no parent
+            if (const Transform * parent{ transform.GetParent() })
             {
                 auto indexIter{ entityIndexMap.find(parent->GetEntity()->GetHash()) };
                 if (indexIter != entityIndexMap.end())
-                    parentStr = "entity" + std::to_string(indexIter->second);
+                    parentIndex = indexIter->second;
             }
-            Serialize("parent", parentStr);
+            Serialize("parentIndex", parentIndex);
             Serialize("position", transform.GetLocalPosition());
             Serialize("rotation", transform.GetLocalRotation());
             Serialize("scale", transform.GetLocalScale());
@@ -227,6 +229,8 @@ void Serializer::FlushEntities()
             EndObject(); // entity
         }
     }
+
+    EndArray();
 }
 
 bool Serializer::IsTopLayerEqualTo(LAYER layer)
@@ -418,6 +422,7 @@ Deserializer::Deserializer(const std::string& filepath)
         CONSOLE_LOG(LEVEL_ERROR) << "File Error when deserializing " << filepath;
         return;
     }
+
 }
 
 bool Deserializer::IsValid() const
@@ -480,26 +485,32 @@ bool Deserializer::PushArrayElementAccess(size_t index)
     return true;
 }
 
+
 bool Deserializer::Deserialize(ecs::EntityHandle entity)
 {
-    if (!HasEntity())
-    {
-        CONSOLE_LOG(LEVEL_ERROR) << "Deserializer has no entity available for reading!";
-        return false;
-    }
-    int index = currentEntityIndex++;
-    if (!PushAccess("entity" + std::to_string(index)))
-        return false;
-
     Transform& transform{ entity->GetTransform() };
 
-    std::string parentName{};
-    DeserializeVar("parent", &parentName);
-    if (!parentName.empty())
+    // Deserialize parent index
+    int parentIndex = -1;
+    DeserializeVar("parentIndex", &parentIndex);
+    // Store the current entity in our tracking map
+    int currentEntityIndex = static_cast<int>(entityIndexMap.size());
+    entityIndexMap[currentEntityIndex] = entity->GetHash();
+
+    // For now, we'll need to defer parent-child relationships until after all entities are loaded
+    // This is a limitation of the current approach - you might need to implement a two-pass system
+    // or store parent indices for post-processing
+    if (parentIndex != -1 && parentIndex < currentEntityIndex)
     {
-        int entityIndex{ std::stoi(parentName.substr(parentName.find_first_of("1234567890"))) };
-        ecs::EntityHash parentEntityHash{ entityIndexMap.at(entityIndex) }; // This should not fail if we've serialized properly
-        transform.SetParent(ecs::GetEntity(parentEntityHash)->GetTransform());
+        auto parentIter = entityIndexMap.find(parentIndex);
+        if (parentIter != entityIndexMap.end())
+        {
+            ecs::EntityHandle parentEntity = ecs::GetEntity(parentIter->second);
+            if (parentEntity) // Ensure parent entity is still valid
+            {
+                transform.SetParent(&parentEntity->GetTransform());
+            }
+        }
     }
 
     Vec3 vec3{};
@@ -507,13 +518,10 @@ bool Deserializer::Deserialize(ecs::EntityHandle entity)
     DeserializeVar("rotation", &vec3), transform.SetLocalRotation(vec3);
     DeserializeVar("scale", &vec3), transform.SetLocalScale(vec3);
 
-    entityIndexMap.emplace(index, entity->GetHash());
-
-
-
     if (!PushAccess("components"))
     {
         PopAccess(); // entity
+        CONSOLE_LOG(LEVEL_ERROR) << "Failed to access components object for entity!";
         return false;
     }
 
@@ -545,8 +553,6 @@ bool Deserializer::Deserialize(ecs::EntityHandle entity)
     }
 
     PopAccess(); // components
-
-    PopAccess(); // entity
 
     return true;
 }
@@ -691,11 +697,6 @@ bool Deserializer::GetArraySize(const std::string& key, size_t* size)
         succeeded = false;
 
     return succeeded;
-}
-
-bool Deserializer::HasEntity() const
-{
-    return GetCurrValue().HasMember("entity" + std::to_string(currentEntityIndex));
 }
 
 const rj::Value& Deserializer::GetCurrValue() const
