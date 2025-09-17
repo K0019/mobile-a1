@@ -101,12 +101,18 @@ namespace internal {
 
 #pragma region Input Binding
 
+#define ENUM_INPUT_COMPOSITE_TYPE \
+X(BUTTON, "Button") /* Bool for either key is up or down */ \
+X(AXIS_1D, "1D Axis") /* Float value from -1 to 1, supports 2 hardware values for positive/negative */ \
+X(AXIS_2D, "2D Axis") /* Vec2 value from -1 to 1 on each axis */
+
+#define X(name, str) name,
 	enum class INPUT_COMPOSITE_TYPE
 	{
-		BUTTON,	 // Bool for either key is up or down
-		AXIS_1D, // Float value from -1 to 1, supports 2 hardware values for positive/negative
-		AXIS_2D  // Vec2 value from -1 to 1 on each axis
+		ENUM_INPUT_COMPOSITE_TYPE
+		NUM_TYPES
 	};
+#undef X
 
 	template <INPUT_COMPOSITE_TYPE CompositeType>
 	class InputBinding
@@ -120,6 +126,9 @@ namespace internal {
 		template <INPUT_COMPOSITE_TYPE T = CompositeType>
 		std::enable_if_t<T == INPUT_COMPOSITE_TYPE::AXIS_2D, Vec2> GetValue() const;
 
+		template <INPUT_COMPOSITE_TYPE NewCompositeType>
+		InputBinding<NewCompositeType> ConvertToCompositeType() const;
+
 	private:
 		// Gets and converts an InputHardwareValueLink's value to the desired value type.
 		template <typename ValueType>
@@ -128,9 +137,9 @@ namespace internal {
 	private:
 		//! The values of this binding will be read from these hardware values.
 		//! Store 1, 2 or 4 InputHardwareValueLink depending on the composite type.
-		[[no_unique_address]] util::OptionalVar<CompositeType == INPUT_COMPOSITE_TYPE::BUTTON, InputHardwareValueLink> hardwareValues_Button;
-		[[no_unique_address]] util::OptionalVar<CompositeType == INPUT_COMPOSITE_TYPE::AXIS_1D, std::array<InputHardwareValueLink, 2>> hardwareValues_1D;
-		[[no_unique_address]] util::OptionalVar<CompositeType == INPUT_COMPOSITE_TYPE::AXIS_2D, std::array<InputHardwareValueLink, 4>> hardwareValues_2D;
+		[[msvc::no_unique_address]] util::OptionalVar<CompositeType == INPUT_COMPOSITE_TYPE::BUTTON, InputHardwareValueLink> hardwareValues_Button;
+		[[msvc::no_unique_address]] util::OptionalVar<CompositeType == INPUT_COMPOSITE_TYPE::AXIS_1D, std::array<InputHardwareValueLink, 2>> hardwareValues_1D;
+		[[msvc::no_unique_address]] util::OptionalVar<CompositeType == INPUT_COMPOSITE_TYPE::AXIS_2D, std::array<InputHardwareValueLink, 4>> hardwareValues_2D;
 	};
 
 #pragma endregion // Input Binding
@@ -163,12 +172,17 @@ namespace internal {
 		template <INPUT_COMPOSITE_TYPE T = CompositeType>
 		std::enable_if_t<T == INPUT_COMPOSITE_TYPE::AXIS_2D, Vec2> GetValue() const;
 
+		template <INPUT_COMPOSITE_TYPE NewCompositeType>
+		InputAction<NewCompositeType> ConvertToCompositeType() const;
+		template <INPUT_COMPOSITE_TYPE OriginalCompositeType>
+		void INTERNAL_ConvertAndSetBindings(const std::vector<InputBinding<OriginalCompositeType>>& originalBindings);
+
 	private:
 		//! The input bindings that "activate" this action.
 		std::vector<InputBinding<CompositeType>> bindings;
 
 	private:
-		decltype(bindings) Editor_GetBindings();
+		std::vector<InputBinding<CompositeType>>& Editor_GetBindings();
 
 	};
 
@@ -184,6 +198,7 @@ namespace internal {
 
 		SPtr<const InputActionBase> GetAction(const std::string& name) const;
 		SPtr<InputActionBase> GetAction(const std::string& name);
+		void SetAction(const std::string& name, SPtr<InputActionBase>&& action);
 
 	private:
 		std::unordered_map<std::string, SPtr<InputActionBase>> actions;

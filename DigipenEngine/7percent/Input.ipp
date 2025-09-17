@@ -28,6 +28,17 @@ namespace internal {
 	}
 
 	template<INPUT_COMPOSITE_TYPE CompositeType>
+	template<INPUT_COMPOSITE_TYPE NewCompositeType>
+	InputBinding<NewCompositeType> InputBinding<CompositeType>::ConvertToCompositeType() const
+	{
+		InputBinding<NewCompositeType> newBinding{};
+		// The bindings' members are all trivial and 8 bytes aligned.
+		// We can directly copy the memory as is to the new destination.
+		std::memcpy(&newBinding, this, std::min(sizeof(*this), sizeof(newBinding)));
+		return newBinding;
+	}
+
+	template<INPUT_COMPOSITE_TYPE CompositeType>
 	template<typename ValueType>
 	ValueType InputBinding<CompositeType>::Get(const InputHardwareValueLink& hardwareValueLink)
 	{
@@ -58,7 +69,25 @@ namespace internal {
 	}
 
 	template<INPUT_COMPOSITE_TYPE CompositeType>
-	decltype(InputAction<CompositeType>::bindings) InputAction<CompositeType>::Editor_GetBindings()
+	template <INPUT_COMPOSITE_TYPE NewCompositeType>
+	InputAction<NewCompositeType> InputAction<CompositeType>::ConvertToCompositeType() const
+	{
+		InputAction<NewCompositeType> newAction{};
+		newAction.INTERNAL_ConvertAndSetBindings(bindings);
+		return newAction;
+	}
+
+	template<INPUT_COMPOSITE_TYPE CompositeType>
+	template<INPUT_COMPOSITE_TYPE OriginalCompositeType>
+	void InputAction<CompositeType>::INTERNAL_ConvertAndSetBindings(const std::vector<InputBinding<OriginalCompositeType>>& originalBindings)
+	{
+		std::transform(originalBindings.begin(), originalBindings.end(), std::back_inserter(bindings), [](const auto& binding) -> auto {
+			return binding.ConvertToCompositeType<CompositeType>();
+		});
+	}
+
+	template<INPUT_COMPOSITE_TYPE CompositeType>
+	std::vector<InputBinding<CompositeType>>& InputAction<CompositeType>::Editor_GetBindings()
 	{
 		return bindings;
 	}

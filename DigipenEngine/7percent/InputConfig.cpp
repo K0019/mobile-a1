@@ -3,6 +3,12 @@
 
 namespace editor {
 
+#define X(name, str) str,
+	const std::array<const char*, +internal::INPUT_COMPOSITE_TYPE::NUM_TYPES> InputConfig::compositeNames{
+		ENUM_INPUT_COMPOSITE_TYPE
+	};
+#undef X
+
 	InputConfig::InputConfig()
 		: WindowBase{ "Input Configuration", gui::Vec2{ 600, 600 } }
 	{
@@ -29,9 +35,9 @@ namespace editor {
 
 			DrawInputSetsColumn(inputSets, selectedInputSet);
 			table.NextColumn();
-			DrawActionsColumn(selectedInputSet, selectedAction);
+			const std::string* actionName{ DrawActionsColumn(selectedInputSet, selectedAction) };
 			table.NextColumn();
-			DrawInspector(selectedAction);
+			DrawInspector(selectedAction, actionName);
 		}
 	}
 
@@ -78,28 +84,42 @@ namespace editor {
 		}
 	}
 
-	void InputConfig::DrawActionsColumn(SPtr<internal::InputSet>& selectedInputSet, SPtr<internal::InputActionBase>& selectedAction)
+	const std::string* InputConfig::DrawActionsColumn(SPtr<internal::InputSet>& selectedInputSet, SPtr<internal::InputActionBase>& selectedAction)
 	{
 		if (!selectedInputSet)
-			return;
+			return nullptr;
 
+		const std::string* selectedActionNamePtr{};
 		for (auto& [name, action] : selectedInputSet->Editor_GetActions())
 		{
 			gui::SetID id{ name.get().c_str() };
-			if (gui::Selectable(name.get().c_str(), action.get() == selectedAction))
+			bool isSelected{ action.get() == selectedAction };
+			if (gui::Selectable(name.get().c_str(), isSelected))
+			{
 				selectedActionPtr = selectedAction = action.get();
+				isSelected = true;
+			}
+
+			if (isSelected)
+				selectedActionNamePtr = &name.get();
 		}
+
+		return selectedActionNamePtr;
 	}
 
-	void InputConfig::DrawInspector(SPtr<internal::InputActionBase>& action)
+	void InputConfig::DrawInspector(SPtr<internal::InputActionBase>& action, const std::string* actionName)
 	{
 		if (!action)
 			return;
 
 		switch (action->GetCompositeType())
 		{
-		case internal::INPUT_COMPOSITE_TYPE::BUTTON:
-			DrawInspector_Action(static_cast<SPtr<internal::INPUT_COMPOSITE_TYPE::BUTTON>>(action));
+#define X(name, str) \
+		case internal::INPUT_COMPOSITE_TYPE::name: \
+			DrawInspector_Action(std::static_pointer_cast<internal::InputAction<internal::INPUT_COMPOSITE_TYPE::name>>(action), actionName); \
+			break;
+		ENUM_INPUT_COMPOSITE_TYPE
+#undef X
 		}
 	}
 

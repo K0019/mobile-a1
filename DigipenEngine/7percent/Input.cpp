@@ -83,6 +83,11 @@ namespace internal {
 		return actionIter->second;
 	}
 
+	void InputSet::SetAction(const std::string& name, SPtr<InputActionBase>&& action)
+	{
+		actions[name] = std::forward<SPtr<InputActionBase>>(action);
+	}
+
 	decltype(util::ToSortedVectorOfRefs(InputSet::actions)) InputSet::Editor_GetActions()
 	{
 		return util::ToSortedVectorOfRefs(actions);
