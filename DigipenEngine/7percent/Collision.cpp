@@ -104,8 +104,8 @@ namespace physics {
 	{
 		//If the entity has the physics component, get the body pointer of the physics component.
 		//If not, create a body.
-		if (ecs::GetEntity(this)->HasComp<PhysicsComp>())
-			bodyID = ecs::GetEntity(this)->GetComp<PhysicsComp>()->GetBodyID();
+		if (auto physComp{ ecs::GetEntity(this)->GetComp<PhysicsComp>() })
+			bodyID = physComp->GetBodyID();
 		else
 			bodyID = ST<JoltPhysics>::Get()->CreateAndAddEmptyBody(ecs::GetEntityTransform(this), JPH::EMotionType::Static, +Layers::NON_MOVING);
 
@@ -140,7 +140,7 @@ namespace physics {
 		return center;
 	}
 
-	void BoxColliderComp::SetCenter(Vec3 const& val)
+	void BoxColliderComp::SetCenter(const Vec3& val)
 	{
 		center = val;
 	}
@@ -150,7 +150,7 @@ namespace physics {
 		return size;
 	}
 
-	void BoxColliderComp::SetSize(Vec3 const& val)
+	void BoxColliderComp::SetSize(const Vec3& val)
 	{
 		size = val;
 	}
@@ -160,7 +160,7 @@ namespace physics {
 		return prevTransform;
 	}
 
-	void BoxColliderComp::SetPrevTransform(Transform const& transform)
+	void BoxColliderComp::SetPrevTransform(const Transform& transform)
 	{
 		prevTransform = transform;
 	}
@@ -200,6 +200,7 @@ namespace physics {
 		gui::SetStyleVar styleItemSpacing{ gui::FLAG_STYLE_VAR::ITEM_SPACING, gui::Vec2{ 4.0f, 2.0f } };
 		gui::Indent indent{ 4.0f };
 
+		// TODO: This is copied from Transform.cpp. Should unify both implementations in GUICollection in the future.
 		// Helper function for drawing the controls
 		const auto DrawVec3Control = [](const char* label, Vec3* values, float columnWidth, float speed, const char* format) -> bool {
 			bool modified = false;
@@ -245,15 +246,4 @@ namespace physics {
 		}
 	}
 
-	void BoxColliderComp::Serialize(Serializer& writer) const
-	{
-		writer.Serialize("center", center);
-		writer.Serialize("size", size);
-	}
-
-	void BoxColliderComp::Deserialize(Deserializer& reader)
-	{
-		reader.DeserializeVar("center", &center);
-		reader.DeserializeVar("size", &size);
-	}
 }

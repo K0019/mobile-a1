@@ -73,7 +73,7 @@ namespace physics {
 		\param activate
 			shared pointer of the body created.
 		*//******************************************************************/
-		JPH::BodyID CreateAndAddEmptyBody(Transform const& transform, JPH::EMotionType motionType, JPH::ObjectLayer collisionLayer, bool activate = true);
+		JPH::BodyID CreateAndAddEmptyBody(const Transform& transform, JPH::EMotionType motionType, JPH::ObjectLayer collisionLayer, bool activate = true);
 
 		/*****************************************************************//*!
 		\brief
@@ -111,7 +111,7 @@ namespace physics {
 		\param scaleFactor
 			scale value to scale the body.
 		*//******************************************************************/
-		void ScaleShape(JPH::BodyID bodyID, Vec3 const& scale);
+		void ScaleShape(JPH::BodyID bodyID, const Vec3& scale);
 
 		/*****************************************************************//*!
 		\brief
@@ -121,7 +121,7 @@ namespace physics {
 		\param pos
 			Position to set the body.
 		*//******************************************************************/
-		void SetBodyPosition(JPH::BodyID bodyID, Vec3 const& pos);
+		void SetBodyPosition(JPH::BodyID bodyID, const Vec3& pos);
 	private:
 		// We need a temp allocator for temporary allocations during the physics update. We're
 		// pre-allocating 10 MB to avoid having to do allocations during the physics update.

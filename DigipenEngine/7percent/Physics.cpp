@@ -32,7 +32,7 @@ static const char* physicsFlagNames[]{
 
 namespace physics {
 	PhysicsComp::PhysicsComp()
-		: flags{ (0 << +(PHYSICS_COMP_FLAG::IS_KINEMATIC)) +
+		: flags{ (1 << +(PHYSICS_COMP_FLAG::IS_KINEMATIC)) +
 				 (1 << +(PHYSICS_COMP_FLAG::USE_GRAVITY)) }
 		, bodyID {}
 	{
@@ -40,9 +40,9 @@ namespace physics {
 
 	void PhysicsComp::OnAttached()
 	{
-		if (ecs::GetEntity(this)->HasComp<BoxColliderComp>())
+		if (auto boxColliderComp{ ecs::GetEntity(this)->GetComp<BoxColliderComp>() })
 		{
-			bodyID = ecs::GetEntity(this)->GetComp<BoxColliderComp>()->GetBodyID();
+			bodyID = boxColliderComp->GetBodyID();
 			JPH::EMotionType motionType{ GetFlag(PHYSICS_COMP_FLAG::IS_KINEMATIC) ? JPH::EMotionType::Kinematic : JPH::EMotionType::Dynamic };
 			ST<JoltPhysics>::Get()->GetBodyInterface().SetMotionType(bodyID, motionType, JPH::EActivation::Activate);
 			ST<JoltPhysics>::Get()->GetBodyInterface().SetObjectLayer(bodyID, +Layers::MOVING);
@@ -96,8 +96,8 @@ namespace physics {
 		Vec3 pos{ ecs::GetEntity(this)->GetTransform().GetWorldPosition() };
 		if (pos != prevTransform.GetWorldPosition())
 		{
-			if (ecs::GetEntity(this)->HasComp<BoxColliderComp>())
-				pos += ecs::GetEntity(this)->GetComp<BoxColliderComp>()->GetCenter();
+			if (auto boxColliderComp{ ecs::GetEntity(this)->GetComp<BoxColliderComp>() })
+				pos += boxColliderComp->GetCenter();
 			bodyInterface.SetPosition(bodyID, JPH::Vec3{ pos.x, pos.y, pos.z }, JPH::EActivation::Activate);
 		}
 
@@ -105,8 +105,8 @@ namespace physics {
 		Vec3 scale{ ecs::GetEntity(this)->GetTransform().GetWorldScale() };
 		if (scale != prevTransform.GetWorldScale())
 		{
-			if (ecs::GetEntity(this)->HasComp<BoxColliderComp>())
-				scale *= ecs::GetEntity(this)->GetComp<BoxColliderComp>()->GetSize();
+			if (auto boxColliderComp{ ecs::GetEntity(this)->GetComp<BoxColliderComp>() })
+				scale *= boxColliderComp->GetSize();
 			ST<JoltPhysics>::Get()->ScaleShape(bodyID, scale);
 		}
 		
@@ -126,8 +126,8 @@ namespace physics {
 		//Position
 		JPH::Vec3 pos{ bodyInterface.GetPosition(bodyID) };
 		Vec3 center{};
-		if (ecs::GetEntity(this)->HasComp<BoxColliderComp>())
-			center = ecs::GetEntity(this)->GetComp<BoxColliderComp>()->GetCenter();
+		if (auto boxColliderComp{ ecs::GetEntity(this)->GetComp<BoxColliderComp>() })
+			center = boxColliderComp->GetCenter();
 		ecs::GetEntity(this)->GetTransform().SetWorldPosition(Transform::Vec{ pos.GetX() - center.x, pos.GetY() - center.y, pos.GetZ() - center.z });
 
 		//Rotation
@@ -139,7 +139,7 @@ namespace physics {
 	void PhysicsComp::EditorDraw()
 	{
 		bool kinematic = GetFlag(PHYSICS_COMP_FLAG::IS_KINEMATIC);
-		if (ImGui::Checkbox("Is Kinematic", &kinematic))
+		if (gui::Checkbox("Is Kinematic", &kinematic))
 		{
 			SetFlag(PHYSICS_COMP_FLAG::IS_KINEMATIC, kinematic);
 
@@ -148,7 +148,7 @@ namespace physics {
 		}
 
 		bool gravity = GetFlag(PHYSICS_COMP_FLAG::USE_GRAVITY);
-		if (ImGui::Checkbox("Use Gravity", &gravity))
+		if (gui::Checkbox("Use Gravity", &gravity))
 		{
 			SetFlag(PHYSICS_COMP_FLAG::USE_GRAVITY, gravity);
 
@@ -176,6 +176,8 @@ namespace physics {
 
 	bool PhysicsSystem::PreRun()
 	{
+		// TODO: This is kinda inefficient, if 500 boxes are physics enabled, we're gonna be doing 1000 iterations and 500 lookups just to update 500 times
+		
 		// In case the body's transform was changed during the stimulation using the inspector menu.
 		for (auto compIter{ ecs::GetCompsActiveBegin<PhysicsComp>() }, endIter{ ecs::GetCompsEnd<PhysicsComp>() }; compIter != endIter; ++compIter)
 			compIter->UpdateJoltBody();

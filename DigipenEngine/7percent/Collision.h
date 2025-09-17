@@ -174,7 +174,7 @@ namespace physics {
 		\return
 			The value of center.
 		*//******************************************************************/
-		Vec3 const& GetCenter() const;
+		const Vec3& GetCenter() const;
 
 		/*****************************************************************//*!
 		\brief
@@ -182,7 +182,7 @@ namespace physics {
 		\param val
 			The value of center to set.
 		*//******************************************************************/
-		void SetCenter(Vec3 const& val);
+		void SetCenter(const Vec3& val);
 
 		/*****************************************************************//*!
 		\brief
@@ -190,7 +190,7 @@ namespace physics {
 		\return
 			The value of size.
 		*//******************************************************************/
-		Vec3 const& GetSize() const;
+		const Vec3& GetSize() const;
 
 		/*****************************************************************//*!
 		\brief
@@ -198,7 +198,7 @@ namespace physics {
 		\param val
 			The value of size to set.
 		*//******************************************************************/
-		void SetSize(Vec3 const& val);
+		void SetSize(const Vec3& val);
 
 		/*****************************************************************//*!
 		\brief
@@ -206,7 +206,7 @@ namespace physics {
 		\return
 			Transform value that represent the previous transform of the entity.
 		*//******************************************************************/
-		Transform const& GetPrevTransform() const;
+		const Transform& GetPrevTransform() const;
 
 		/*****************************************************************//*!
 		\brief
@@ -214,7 +214,7 @@ namespace physics {
 		\param transform
 			The value to set the previous transform.
 		*//******************************************************************/
-		void SetPrevTransform(Transform const& transform);
+		void SetPrevTransform(const Transform& transform);
 
 		/*****************************************************************//*!
 		\brief
@@ -230,15 +230,12 @@ namespace physics {
 		virtual void EditorDraw() override;
 
 	public:
-		void Serialize(Serializer& writer) const override;
-		void Deserialize(Deserializer& reader) override;
-
-	public:
 		property_vtable()
 	};
 }
 property_begin(physics::BoxColliderComp)
 {
-
+	property_var(center),
+	property_var(size)
 }
 property_vend_h(physics::BoxColliderComp)

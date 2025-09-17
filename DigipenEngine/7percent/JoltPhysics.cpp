@@ -51,7 +51,7 @@ namespace physics {
 		bodyManager.Init(cMaxBodies, cNumBodyMutexes, broadPhaseLayerInterface);
 	}
 
-	JPH::BodyID JoltPhysics::CreateAndAddEmptyBody(Transform const& transform, JPH::EMotionType motionType, JPH::ObjectLayer collisionLayer, bool activate)
+	JPH::BodyID JoltPhysics::CreateAndAddEmptyBody(const Transform& transform, JPH::EMotionType motionType, JPH::ObjectLayer collisionLayer, bool activate)
 	{
 		//Settings of the empty shape.
 		JPH::EmptyShapeSettings emptyShapeSetting{};
@@ -106,13 +106,13 @@ namespace physics {
 		JPH::Factory::sInstance = nullptr;
 	}
 
-	void JoltPhysics::SetBodyPosition(JPH::BodyID bodyID, Vec3 const& pos)
+	void JoltPhysics::SetBodyPosition(JPH::BodyID bodyID, const Vec3& pos)
 	{
 		JPH::RVec3Arg position{ pos.x, pos.y, pos.z };
 		bodyInterface.SetPosition(bodyID, position, JPH::EActivation::Activate);
 	}
 
-	void JoltPhysics::ScaleShape(JPH::BodyID bodyID, Vec3 const& scale)
+	void JoltPhysics::ScaleShape(JPH::BodyID bodyID, const Vec3& scale)
 	{
 		if (scale.x == 0.f || scale.y == 0.f || scale.z == 0.f)
 		{

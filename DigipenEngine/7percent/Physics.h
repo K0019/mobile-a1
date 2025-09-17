@@ -119,7 +119,7 @@ X(USE_GRAVITY, "Use Gravity")
 		\return
 			Transform value that represent the previous transform of the entity.
 		*//******************************************************************/
-		Transform const& GetPrevTransform() const;
+		const Transform& GetPrevTransform() const;
 
 		/*****************************************************************//*!
 		\brief
@@ -127,7 +127,7 @@ X(USE_GRAVITY, "Use Gravity")
 		\param transform
 			The value to set the previous transform.
 		*//******************************************************************/
-		void SetPrevTransform(Transform const& transform);
+		void SetPrevTransform(const Transform& transform);
 
 		/*****************************************************************//*!
 		\brief
@@ -166,7 +166,6 @@ X(USE_GRAVITY, "Use Gravity")
 }
 property_begin(physics::PhysicsComp)
 {
-
 }
 property_vend_h(physics::PhysicsComp)
 
