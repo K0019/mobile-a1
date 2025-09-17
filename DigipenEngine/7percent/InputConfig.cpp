@@ -3,16 +3,18 @@
 
 namespace editor {
 
-#define X(name, str) str,
+#define X(name, str, type) str,
 	const std::array<const char*, +INPUT_COMPOSITE_TYPE::NUM_TYPES> InputConfig::compositeNames{
 		ENUM_INPUT_COMPOSITE_TYPE
 	};
+#undef X
 	const std::array<const char*, (+INPUT_COMPOSITE_TYPE::NUM_TYPES - 1) * 2> InputConfig::hardwareValueLinkNames{
 		"X Positive",
 		"X Negative",
 		"Y Positive",
 		"Y Negative",
 	};
+#define X(name, str) str,
 	const std::array<const char*, +INPUT_DEVICE_TYPE::NUM_DEVICES> InputConfig::hardwareDeviceNames{
 		ENUM_INPUT_DEVICE_TYPE
 	};
@@ -151,10 +153,10 @@ namespace editor {
 
 		switch (action->GetCompositeType())
 		{
-#define X(name, str) \
+#define X(name, str, type) \
 		case INPUT_COMPOSITE_TYPE::name: \
 			{ \
-			auto& bindings{ std::static_pointer_cast<InputAction<INPUT_COMPOSITE_TYPE::name>>(action)->Editor_GetBindings() }; \
+			auto& bindings{ std::static_pointer_cast<InputAction<type>>(action)->Editor_GetBindings() }; \
 			for (size_t index{}; index < bindings.size(); ++index) \
 				if (gui::Selectable(std::to_string(index).c_str(), index == selectedBindingIndex)) \
 					selectedBindingIndex = index; \
@@ -172,9 +174,9 @@ namespace editor {
 			// Draw the binding inspector if action exists and a binding exists at our selected index
 			switch (action->GetCompositeType())
 			{
-#define X(name, str) \
+#define X(name, str, type) \
 			case INPUT_COMPOSITE_TYPE::name: \
-				if (auto binding{ std::static_pointer_cast<InputAction<INPUT_COMPOSITE_TYPE::name>>(action)->GetBinding(selectedBindingIndex) }) \
+				if (auto binding{ std::static_pointer_cast<InputAction<type>>(action)->GetBinding(selectedBindingIndex) }) \
 				{ \
 					DrawInspector_Binding(*binding); \
 					return; \
@@ -196,9 +198,9 @@ namespace editor {
 
 		switch (action->GetCompositeType())
 		{
-#define X(name, str) \
+#define X(name, str, type) \
 		case INPUT_COMPOSITE_TYPE::name: \
-			DrawInspector_Action(std::static_pointer_cast<InputAction<INPUT_COMPOSITE_TYPE::name>>(action), actionName); \
+			DrawInspector_Action(std::static_pointer_cast<InputAction<type>>(action), actionName); \
 			break;
 		ENUM_INPUT_COMPOSITE_TYPE
 #undef X

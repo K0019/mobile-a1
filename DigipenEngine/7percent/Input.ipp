@@ -1,53 +1,48 @@
 #pragma once
 #include "Input.h"
 
-template <INPUT_COMPOSITE_TYPE CompositeType>
-template <INPUT_COMPOSITE_TYPE T>
-std::enable_if_t<T == INPUT_COMPOSITE_TYPE::BUTTON, bool> InputBinding<CompositeType>::GetValue() const
+template <InputSupportedValueTypes ValueType>
+ValueType InputBinding<ValueType>::GetValue() const
 {
-	return Get<bool>(hardwareValues_Button);
+	if constexpr (std::is_same_v<ValueType, bool>)
+		return Get<bool>(hardwareValues_Button);
+	else if constexpr (std::is_same_v<ValueType, float>)
+		return Get<float>(hardwareValues_1D[0]) - Get<float>(hardwareValues_1D[1]);
+	else if constexpr (std::is_same_v<ValueType, Vec2>)
+		return Vec2{
+			Get<float>(hardwareValues_2D[0]) - Get<float>(hardwareValues_2D[1]),
+			Get<float>(hardwareValues_2D[2]) - Get<float>(hardwareValues_2D[3]),
+		};
+	else
+	{
+		assert(false); // Unimplemented value type
+		return ValueType{};
+	}
 }
 
-template <INPUT_COMPOSITE_TYPE CompositeType>
-template <INPUT_COMPOSITE_TYPE T>
-std::enable_if_t<T == INPUT_COMPOSITE_TYPE::AXIS_1D, float> InputBinding<CompositeType>::GetValue() const
+template<InputSupportedValueTypes ValueType>
+template<InputSupportedValueTypes NewValueType>
+InputBinding<NewValueType> InputBinding<ValueType>::ConvertToValueType() const
 {
-	return Get<float>(hardwareValues_1D[0]) - Get<float>(hardwareValues_1D[1]);
-}
-
-template <INPUT_COMPOSITE_TYPE CompositeType>
-template <INPUT_COMPOSITE_TYPE T>
-std::enable_if_t<T == INPUT_COMPOSITE_TYPE::AXIS_2D, Vec2> InputBinding<CompositeType>::GetValue() const
-{
-	return Vec2{
-		Get<float>(hardwareValues_2D[0]) - Get<float>(hardwareValues_2D[1]),
-		Get<float>(hardwareValues_2D[2]) - Get<float>(hardwareValues_2D[3]),
-	};
-}
-
-template<INPUT_COMPOSITE_TYPE CompositeType>
-template<INPUT_COMPOSITE_TYPE NewCompositeType>
-InputBinding<NewCompositeType> InputBinding<CompositeType>::ConvertToCompositeType() const
-{
-	InputBinding<NewCompositeType> newBinding{};
+	InputBinding<NewValueType> newBinding{};
 	// The bindings' members are all trivial and 8 bytes aligned.
 	// We can directly copy the memory as is to the new destination.
 	std::memcpy(&newBinding, this, std::min(sizeof(*this), sizeof(newBinding)));
 	return newBinding;
 }
 
-template<INPUT_COMPOSITE_TYPE CompositeType>
-template<typename ValueType>
-ValueType InputBinding<CompositeType>::Get(const InputHardwareValueLink& hardwareValueLink)
+template<InputSupportedValueTypes ValueType>
+template <typename DesiredValueType>
+DesiredValueType InputBinding<ValueType>::Get(const InputHardwareValueLink& hardwareValueLink)
 {
 	auto variantValue{ hardwareValueLink.ReadValue() };
 
-	if constexpr (std::is_same_v<ValueType, bool>)
+	if constexpr (std::is_same_v<DesiredValueType, bool>)
 		return std::visit(util::VisitFunctions{
 			[](bool value) -> bool { return value; },
 			[](float value) -> bool { return value >= internal::DEADZONE; }
 		}, variantValue);
-	else if constexpr (std::is_same_v<ValueType, float>)
+	else if constexpr (std::is_same_v<DesiredValueType, float>)
 		return std::visit(util::VisitFunctions{
 			[](bool value) -> float { return (value ? 1.0f : 0.0f); },
 			[](float value) -> float { return value; }
@@ -56,117 +51,124 @@ ValueType InputBinding<CompositeType>::Get(const InputHardwareValueLink& hardwar
 	{
 		// Unimplemented value type for the variant InputHardwareValue
 		assert(false);
-		return ValueType{};
+		return DesiredValueType{};
 	}
 }
 
-template<INPUT_COMPOSITE_TYPE CompositeType>
+template<InputSupportedValueTypes ValueType>
 template<typename FuncType>
-void InputBinding<CompositeType>::Editor_ForEachHardwareValueLink(FuncType func)
+void InputBinding<ValueType>::Editor_ForEachHardwareValueLink(FuncType func)
 {
-	if constexpr (CompositeType == INPUT_COMPOSITE_TYPE::BUTTON)
+	if constexpr (std::is_same_v<ValueType, bool>)
 		func(hardwareValues_Button);
-	else if constexpr (CompositeType == INPUT_COMPOSITE_TYPE::AXIS_1D)
+	else if constexpr (std::is_same_v<ValueType, float>)
 		std::for_each(hardwareValues_1D.begin(), hardwareValues_1D.end(), func);
-	else if constexpr (CompositeType == INPUT_COMPOSITE_TYPE::AXIS_2D)
+	else if constexpr (std::is_same_v<ValueType, Vec2>)
 		std::for_each(hardwareValues_2D.begin(), hardwareValues_2D.end(), func);
 	else
 		assert(false); // Unimplemented composite type
 }
 
-template<INPUT_COMPOSITE_TYPE CompositeType>
-InputAction<CompositeType>::InputAction()
-	: InputActionBase{ CompositeType }
-{
-}
-
-template <INPUT_COMPOSITE_TYPE CompositeType>
-template <INPUT_COMPOSITE_TYPE T>
-std::enable_if_t<T == INPUT_COMPOSITE_TYPE::BUTTON, bool> InputAction<CompositeType>::GetValue() const
-{
-	for (const auto& binding : bindings)
-		if (binding.GetValue())
-			return true;
-	return false;
-}
-
-template <INPUT_COMPOSITE_TYPE CompositeType>
-template <INPUT_COMPOSITE_TYPE T>
-std::enable_if_t<T == INPUT_COMPOSITE_TYPE::AXIS_1D, float> InputAction<CompositeType>::GetValue() const
-{
-	float finalReading{};
-	for (const auto& binding : bindings)
-	{
-		float bindingReading{ binding.GetValue() };
-		if (std::fabsf(bindingReading) > finalReading)
-			finalReading = bindingReading;
+template<InputSupportedValueTypes ValueType>
+InputAction<ValueType>::InputAction()
+	: InputActionBase{
+		std::is_same_v<ValueType, bool> ? INPUT_COMPOSITE_TYPE::BUTTON :
+		std::is_same_v<ValueType, float> ? INPUT_COMPOSITE_TYPE::AXIS_1D :
+		std::is_same_v<ValueType, Vec2> ? INPUT_COMPOSITE_TYPE::AXIS_2D :
+		INPUT_COMPOSITE_TYPE::NUM_TYPES
 	}
-	return finalReading;
-}
-
-template <INPUT_COMPOSITE_TYPE CompositeType>
-template <INPUT_COMPOSITE_TYPE T>
-std::enable_if_t<T == INPUT_COMPOSITE_TYPE::AXIS_2D, Vec2> InputAction<CompositeType>::GetValue() const
 {
-	Vec2 finalReading{};
-	for (const auto& binding : bindings)
-	{
-		Vec2 bindingReading{ binding.GetValue() };
-		if (std::fabsf(bindingReading.x) > finalReading.x)
-			finalReading.x = bindingReading.x;
-		if (std::fabsf(bindingReading.y) > finalReading.y)
-			finalReading.y = bindingReading.y;
-	}
-	return finalReading;
+	assert(GetCompositeType() != INPUT_COMPOSITE_TYPE::NUM_TYPES); // Unimplemented value type (see above constructor initializer)
 }
 
-template<INPUT_COMPOSITE_TYPE CompositeType>
-void InputAction<CompositeType>::AddBinding()
+template <InputSupportedValueTypes ValueType>
+ValueType InputAction<ValueType>::GetValue() const
+{
+	if constexpr (std::is_same_v<ValueType, bool>)
+	{
+		for (const auto& binding : bindings)
+			if (binding.GetValue())
+				return true;
+		return false;
+	}
+	else if constexpr (std::is_same_v<ValueType, float>)
+	{
+		float finalReading{};
+		for (const auto& binding : bindings)
+		{
+			float bindingReading{ binding.GetValue() };
+			if (std::fabsf(bindingReading) > finalReading)
+				finalReading = bindingReading;
+		}
+		return finalReading;
+	}
+	else if constexpr (std::is_same_v<ValueType, Vec2>)
+	{
+		Vec2 finalReading{};
+		for (const auto& binding : bindings)
+		{
+			Vec2 bindingReading{ binding.GetValue() };
+			if (std::fabsf(bindingReading.x) > finalReading.x)
+				finalReading.x = bindingReading.x;
+			if (std::fabsf(bindingReading.y) > finalReading.y)
+				finalReading.y = bindingReading.y;
+		}
+		return finalReading;
+	}
+	else
+	{
+		assert(false); // Unimplemented value type
+		return ValueType{};
+	}
+}
+
+template<InputSupportedValueTypes ValueType>
+void InputAction<ValueType>::AddBinding()
 {
 	bindings.emplace_back();
 }
 
-template<INPUT_COMPOSITE_TYPE CompositeType>
-const InputBinding<CompositeType>* InputAction<CompositeType>::GetBinding(size_t index) const
+template<InputSupportedValueTypes ValueType>
+const InputBinding<ValueType>* InputAction<ValueType>::GetBinding(size_t index) const
 {
 	return (0 <= index && index < bindings.size()) ? &bindings[index] : nullptr;
 }
-template<INPUT_COMPOSITE_TYPE CompositeType>
-InputBinding<CompositeType>* InputAction<CompositeType>::GetBinding(size_t index)
+template<InputSupportedValueTypes ValueType>
+InputBinding<ValueType>* InputAction<ValueType>::GetBinding(size_t index)
 {
 	return (0 <= index && index < bindings.size()) ? &bindings[index] : nullptr;
 }
 
-template<INPUT_COMPOSITE_TYPE CompositeType>
-template <INPUT_COMPOSITE_TYPE NewCompositeType>
-InputAction<NewCompositeType> InputAction<CompositeType>::ConvertToCompositeType() const
+template<InputSupportedValueTypes ValueType>
+template <InputSupportedValueTypes NewValueType>
+InputAction<NewValueType> InputAction<ValueType>::ConvertToValueType() const
 {
-	InputAction<NewCompositeType> newAction{};
+	InputAction<NewValueType> newAction{};
 	newAction.INTERNAL_ConvertAndSetBindings(bindings);
 	return newAction;
 }
 
-template<INPUT_COMPOSITE_TYPE CompositeType>
-template<INPUT_COMPOSITE_TYPE OriginalCompositeType>
-void InputAction<CompositeType>::INTERNAL_ConvertAndSetBindings(const std::vector<InputBinding<OriginalCompositeType>>& originalBindings)
+template<InputSupportedValueTypes ValueType>
+template <InputSupportedValueTypes OriginalValueType>
+void InputAction<ValueType>::INTERNAL_ConvertAndSetBindings(const std::vector<InputBinding<OriginalValueType>>& originalBindings)
 {
 	std::transform(originalBindings.begin(), originalBindings.end(), std::back_inserter(bindings), [](const auto& binding) -> auto {
-		return binding.ConvertToCompositeType<CompositeType>();
+		return binding.ConvertToValueType<ValueType>();
 	});
 }
 
-template<INPUT_COMPOSITE_TYPE CompositeType>
-std::vector<InputBinding<CompositeType>>& InputAction<CompositeType>::Editor_GetBindings()
+template<InputSupportedValueTypes ValueType>
+std::vector<InputBinding<ValueType>>& InputAction<ValueType>::Editor_GetBindings()
 {
 	return bindings;
 }
 
-template <INPUT_COMPOSITE_TYPE CompositeType>
-SPtr<const InputAction<CompositeType>> Input::GetAction(const std::string& actionName) const
+template <InputSupportedValueTypes ValueType>
+SPtr<const InputAction<ValueType>> Input::GetAction(const std::string& actionName) const
 {
 	for (const auto& inputSet : inputSets)
 		if (auto actionBasePtr{ inputSet.second->GetAction(actionName) })
-			if (auto actionPtr{ std::dynamic_pointer_cast<const InputAction<CompositeType>>(actionBasePtr) })
+			if (auto actionPtr{ std::dynamic_pointer_cast<const InputAction<ValueType>>(actionBasePtr) })
 				return actionPtr;
 	return nullptr;
 }

@@ -82,7 +82,7 @@ INPUT_COMPOSITE_TYPE InputActionBase::GetCompositeType() const
 
 bool InputSet::CreateNewAction(const std::string& name)
 {
-	return actions.try_emplace(name, std::make_shared<InputAction<INPUT_COMPOSITE_TYPE::BUTTON>>()).second;
+	return actions.try_emplace(name, std::make_shared<InputAction<bool>>()).second;
 }
 
 SPtr<const InputActionBase> InputSet::GetAction(const std::string& name) const

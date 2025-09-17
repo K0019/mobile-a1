@@ -21,11 +21,11 @@ namespace editor {
 		void DrawInspector(const std::string* actionName);
 		
 		void DrawInspector_Action(SPtr<InputActionBase>& action, const std::string* actionName);
-		template <INPUT_COMPOSITE_TYPE CompositeType>
-		void DrawInspector_Action(SPtr<InputAction<CompositeType>> action, const std::string* actionName);
+		template <InputSupportedValueTypes ValueType>
+		void DrawInspector_Action(SPtr<InputAction<ValueType>> action, const std::string* actionName);
 
-		template <INPUT_COMPOSITE_TYPE CompositeType>
-		void DrawInspector_Binding(InputBinding<CompositeType>& binding);
+		template <InputSupportedValueTypes ValueType>
+		void DrawInspector_Binding(InputBinding<ValueType>& binding);
 		void DrawInspector_HardwareValueLink(InputHardwareValueLink& hardwareValueLink, int index);
 
 	private:
@@ -41,8 +41,8 @@ namespace editor {
 
 	};
 
-	template<INPUT_COMPOSITE_TYPE CompositeType>
-	void InputConfig::DrawInspector_Action(SPtr<InputAction<CompositeType>> action, const std::string* actionName)
+	template <InputSupportedValueTypes ValueType>
+	void InputConfig::DrawInspector_Action(SPtr<InputAction<ValueType>> action, const std::string* actionName)
 	{
 		INPUT_COMPOSITE_TYPE selectedCompositeType{};
 		if (gui::Combo compositeTypeDropdown{ "Composite Type", compositeNames, compositeNames[+action->GetCompositeType()], reinterpret_cast<int*>(&selectedCompositeType) })
@@ -50,10 +50,10 @@ namespace editor {
 			auto inputSet{ selectedInputSetPtr.lock() };
 			switch (selectedCompositeType)
 			{
-#define X(name, str) \
+#define X(name, str, type) \
 			case INPUT_COMPOSITE_TYPE::name: \
 			{ \
-				auto newAction{ std::make_shared<InputAction<INPUT_COMPOSITE_TYPE::name>>(action->ConvertToCompositeType<INPUT_COMPOSITE_TYPE::name>()) }; \
+				auto newAction{ std::make_shared<InputAction<type>>(action->ConvertToValueType<type>()) }; \
 				selectedActionPtr = newAction; \
 				inputSet->SetAction(*actionName, std::move(newAction)); \
 				return; \
@@ -64,8 +64,8 @@ namespace editor {
 		}
 	}
 
-	template<INPUT_COMPOSITE_TYPE CompositeType>
-	void InputConfig::DrawInspector_Binding(InputBinding<CompositeType>& binding)
+	template <InputSupportedValueTypes ValueType>
+	void InputConfig::DrawInspector_Binding(InputBinding<ValueType>& binding)
 	{
 		int index{};
 		binding.Editor_ForEachHardwareValueLink([this, &index](InputHardwareValueLink& hardwareValueLink) -> void {

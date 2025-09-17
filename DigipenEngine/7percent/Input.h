@@ -112,11 +112,11 @@ private:
 #pragma region Input Binding
 
 #define ENUM_INPUT_COMPOSITE_TYPE \
-X(BUTTON, "Button") /* Bool for either key is up or down */ \
-X(AXIS_1D, "1D Axis") /* Float value from -1 to 1, supports 2 hardware values for positive/negative */ \
-X(AXIS_2D, "2D Axis") /* Vec2 value from -1 to 1 on each axis */
+X(BUTTON, "Button", bool) /* Bool for either key is up or down */ \
+X(AXIS_1D, "1D Axis", float) /* Float value from -1 to 1, supports 2 hardware values for positive/negative */ \
+X(AXIS_2D, "2D Axis", Vec2) /* Vec2 value from -1 to 1 on each axis */
 
-#define X(name, str) name,
+#define X(name, str, type) name,
 enum class INPUT_COMPOSITE_TYPE
 {
 	ENUM_INPUT_COMPOSITE_TYPE
@@ -124,32 +124,32 @@ enum class INPUT_COMPOSITE_TYPE
 };
 #undef X
 
-template <INPUT_COMPOSITE_TYPE CompositeType>
+#define X(name, str, type) || std::is_same_v<T, type>
+template <typename T>
+concept InputSupportedValueTypes = false ENUM_INPUT_COMPOSITE_TYPE;
+#undef X
+
+template <InputSupportedValueTypes ValueType>
 class InputBinding
 {
 public:
 	// Get the input value of this binding. Return type depends on the composite type.
-	template <INPUT_COMPOSITE_TYPE T = CompositeType>
-	std::enable_if_t<T == INPUT_COMPOSITE_TYPE::BUTTON, bool> GetValue() const;
-	template <INPUT_COMPOSITE_TYPE T = CompositeType>
-	std::enable_if_t<T == INPUT_COMPOSITE_TYPE::AXIS_1D, float> GetValue() const;
-	template <INPUT_COMPOSITE_TYPE T = CompositeType>
-	std::enable_if_t<T == INPUT_COMPOSITE_TYPE::AXIS_2D, Vec2> GetValue() const;
+	ValueType GetValue() const;
 
-	template <INPUT_COMPOSITE_TYPE NewCompositeType>
-	InputBinding<NewCompositeType> ConvertToCompositeType() const;
+	template <InputSupportedValueTypes NewValueType>
+	InputBinding<NewValueType> ConvertToValueType() const;
 
 private:
 	// Gets and converts an InputHardwareValueLink's value to the desired value type.
-	template <typename ValueType>
-	static ValueType Get(const InputHardwareValueLink& hardwareValueLink);
+	template <typename DesiredValueType>
+	static DesiredValueType Get(const InputHardwareValueLink& hardwareValueLink);
 
 private:
 	//! The values of this binding will be read from these hardware values.
 	//! Store 1, 2 or 4 InputHardwareValueLink depending on the composite type.
-	[[msvc::no_unique_address]] util::OptionalVar<CompositeType == INPUT_COMPOSITE_TYPE::BUTTON, InputHardwareValueLink> hardwareValues_Button;
-	[[msvc::no_unique_address]] util::OptionalVar<CompositeType == INPUT_COMPOSITE_TYPE::AXIS_1D, std::array<InputHardwareValueLink, 2>> hardwareValues_1D;
-	[[msvc::no_unique_address]] util::OptionalVar<CompositeType == INPUT_COMPOSITE_TYPE::AXIS_2D, std::array<InputHardwareValueLink, 4>> hardwareValues_2D;
+	[[msvc::no_unique_address]] util::OptionalVar<std::is_same_v<ValueType, bool>, InputHardwareValueLink> hardwareValues_Button;
+	[[msvc::no_unique_address]] util::OptionalVar<std::is_same_v<ValueType, float>, std::array<InputHardwareValueLink, 2>> hardwareValues_1D;
+	[[msvc::no_unique_address]] util::OptionalVar<std::is_same_v<ValueType, Vec2>, std::array<InputHardwareValueLink, 4>> hardwareValues_2D;
 
 public:
 	template <typename FuncType>
@@ -174,35 +174,30 @@ private:
 
 };
 
-template <INPUT_COMPOSITE_TYPE CompositeType>
+template <InputSupportedValueTypes ValueType>
 class InputAction : public InputActionBase
 {
 public:
 	InputAction();
 
-	// Get the input value of this action. Return type depends on the composite type.
-	template <INPUT_COMPOSITE_TYPE T = CompositeType>
-	std::enable_if_t<T == INPUT_COMPOSITE_TYPE::BUTTON, bool> GetValue() const;
-	template <INPUT_COMPOSITE_TYPE T = CompositeType>
-	std::enable_if_t<T == INPUT_COMPOSITE_TYPE::AXIS_1D, float> GetValue() const;
-	template <INPUT_COMPOSITE_TYPE T = CompositeType>
-	std::enable_if_t<T == INPUT_COMPOSITE_TYPE::AXIS_2D, Vec2> GetValue() const;
+	// Get the input value of this action.
+	ValueType GetValue() const;
 
 	virtual void AddBinding() final;
-	const InputBinding<CompositeType>* GetBinding(size_t index) const;
-	InputBinding<CompositeType>* GetBinding(size_t index);
+	const InputBinding<ValueType>* GetBinding(size_t index) const;
+	InputBinding<ValueType>* GetBinding(size_t index);
 
-	template <INPUT_COMPOSITE_TYPE NewCompositeType>
-	InputAction<NewCompositeType> ConvertToCompositeType() const;
-	template <INPUT_COMPOSITE_TYPE OriginalCompositeType>
-	void INTERNAL_ConvertAndSetBindings(const std::vector<InputBinding<OriginalCompositeType>>& originalBindings);
+	template <InputSupportedValueTypes NewValueType>
+	InputAction<NewValueType> ConvertToValueType() const;
+	template <InputSupportedValueTypes OriginalValueType>
+	void INTERNAL_ConvertAndSetBindings(const std::vector<InputBinding<OriginalValueType>>& originalBindings);
 
 private:
 	//! The input bindings that "activate" this action.
-	std::vector<InputBinding<CompositeType>> bindings;
+	std::vector<InputBinding<ValueType>> bindings;
 
 public:
-	std::vector<InputBinding<CompositeType>>& Editor_GetBindings();
+	std::vector<InputBinding<ValueType>>& Editor_GetBindings();
 
 };
 
@@ -368,8 +363,8 @@ public:
 	SPtr<const InputSet> GetCurrentInputSet() const;
 	SPtr<InputSet> GetCurrentInputSet();
 
-	template <INPUT_COMPOSITE_TYPE CompositeType>
-	SPtr<const InputAction<CompositeType>> GetAction(const std::string& actionName) const;
+	template <InputSupportedValueTypes ValueType>
+	SPtr<const InputAction<ValueType>> GetAction(const std::string& actionName) const;
 
 public: // Frame management
 	/*****************************************************************//*!
