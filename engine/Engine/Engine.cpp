@@ -466,6 +466,8 @@ void Engine::run() {
 #endif
 	bool bQuit = false;
 
+
+	// HEY SORRY ABOUT THIS, BUT THERE IS NO ISSUE WITH THE ASSET BEING LOADED, THE CAMERA JUST SPAWNS INSIDE THE BOX SO YOU NEED TO MOVE BACK TO SEE IT
 	static uint64_t gridFeature = m_renderer->CreateFeature<GridFeature>();
 	static uint64_t sceneFeatureHandle_ = m_renderer->CreateFeature<SceneRenderFeature>();
 	const std::unique_ptr<AssetLoading::SceneLoader> sceneLoader_ = std::make_unique<AssetLoading::SceneLoader>(*m_assetSystem);
@@ -481,6 +483,9 @@ void Engine::run() {
 			loadedScene_ = std::move(loadResult.scene);
 		}
 	}
+
+
+
 	while(!bQuit)
 	{
 		wait();
