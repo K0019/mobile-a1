@@ -70,6 +70,7 @@ namespace editor {
 		int index{};
 		binding.Editor_ForEachHardwareValueLink([this, &index](internal::InputHardwareValueLink& hardwareValueLink) -> void {
 			gui::Separator();
+			gui::SetID id{ index };
 			DrawInspector_HardwareValueLink(hardwareValueLink, index++);
 		});
 	}
