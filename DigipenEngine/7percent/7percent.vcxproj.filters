@@ -459,6 +459,9 @@
     <ClCompile Include="ScriptingUtil.cpp">
       <Filter>Source Files\Scripting</Filter>
     </ClCompile>
+    <ClCompile Include="Physics.cpp">
+      <Filter>Source Files\Physics</Filter>
+    </ClCompile>
     <ClCompile Include="AnimationTab.cpp">
       <Filter>Source Files\EditorUI\AssetBrowser</Filter>
     </ClCompile>
@@ -904,6 +907,9 @@
     </ClInclude>
     <ClInclude Include="ScriptingUtil.h">
       <Filter>Header Files\Scripting</Filter>
+    </ClInclude>
+    <ClInclude Include="Physics.h">
+      <Filter>Header Files\Physics</Filter>
     </ClInclude>
     <ClInclude Include="SpriteTab.h">
       <Filter>Header Files\EditorUI\AssetBrowser</Filter>
