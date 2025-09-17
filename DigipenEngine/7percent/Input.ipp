@@ -69,6 +69,23 @@ namespace internal {
 	}
 
 	template<INPUT_COMPOSITE_TYPE CompositeType>
+	void InputAction<CompositeType>::AddBinding()
+	{
+		bindings.emplace_back();
+	}
+
+	template<INPUT_COMPOSITE_TYPE CompositeType>
+	const InputBinding<CompositeType>* InputAction<CompositeType>::GetBinding(size_t index) const
+	{
+		return (0 <= index && index < bindings.size()) ? &bindings[index] : nullptr;
+	}
+	template<INPUT_COMPOSITE_TYPE CompositeType>
+	InputBinding<CompositeType>* InputAction<CompositeType>::GetBinding(size_t index)
+	{
+		return (0 <= index && index < bindings.size()) ? &bindings[index] : nullptr;
+	}
+
+	template<INPUT_COMPOSITE_TYPE CompositeType>
 	template <INPUT_COMPOSITE_TYPE NewCompositeType>
 	InputAction<NewCompositeType> InputAction<CompositeType>::ConvertToCompositeType() const
 	{

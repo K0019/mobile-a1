@@ -21,23 +21,25 @@ namespace editor {
 		gui::SameLine();
 		if (gui::Button newActionButton{ "New Action" })
 			CreateNewAction();
+		gui::SameLine();
+		if (gui::Button newActionButton{ "New Binding" })
+			CreateNewBinding();
 
-		if (gui::Table table{ "", 3, true })
+		if (gui::Table table{ "", 4, true })
 		{
-			table.AddColumnHeader("Input Set");
+			table.AddColumnHeader("Input Sets");
 			table.AddColumnHeader("Actions");
+			table.AddColumnHeader("Bindings");
 			table.AddColumnHeader("Settings");
 			table.SubmitColumnHeaders();
 
-			VecOfInputSets inputSets{ ST<Input>::Get()->Editor_GetInputSets() };
-			auto selectedInputSet{ selectedInputSetPtr.lock() };
-			auto selectedAction{ selectedActionPtr.lock() };
-
-			DrawInputSetsColumn(inputSets, selectedInputSet);
+			DrawInputSetsColumn();
 			table.NextColumn();
-			const std::string* actionName{ DrawActionsColumn(selectedInputSet, selectedAction) };
+			const std::string* actionName{ DrawActionsColumn() };
 			table.NextColumn();
-			DrawInspector(selectedAction, actionName);
+			DrawBindingsColumn();
+			table.NextColumn();
+			DrawInspector(actionName);
 		}
 	}
 
@@ -74,29 +76,44 @@ namespace editor {
 		}
 	}
 
-	void InputConfig::DrawInputSetsColumn(VecOfInputSets& inputSets, SPtr<internal::InputSet>& selectedInputSet)
+	void InputConfig::CreateNewBinding()
 	{
-		for (auto& [name, inputSet] : inputSets)
+		auto currentAction{ selectedActionPtr.lock() };
+		if (!currentAction)
+			return;
+
+		currentAction->AddBinding();
+	}
+
+	void InputConfig::DrawInputSetsColumn()
+	{
+		auto selectedInputSet{ selectedInputSetPtr.lock() };
+		for (auto& [name, inputSet] : ST<Input>::Get()->Editor_GetInputSets())
 		{
 			gui::SetID id{ name.get().c_str() };
 			if (gui::Selectable(name.get().c_str(), inputSet.get() == selectedInputSet))
-				selectedInputSetPtr = selectedInputSet = inputSet.get();
+				selectedInputSetPtr = inputSet.get();
 		}
 	}
 
-	const std::string* InputConfig::DrawActionsColumn(SPtr<internal::InputSet>& selectedInputSet, SPtr<internal::InputActionBase>& selectedAction)
+	const std::string* InputConfig::DrawActionsColumn()
 	{
+		auto selectedInputSet{ selectedInputSetPtr.lock() };
 		if (!selectedInputSet)
 			return nullptr;
 
+		auto selectedAction{ selectedActionPtr.lock() };
 		const std::string* selectedActionNamePtr{};
+
 		for (auto& [name, action] : selectedInputSet->Editor_GetActions())
 		{
 			gui::SetID id{ name.get().c_str() };
 			bool isSelected{ action.get() == selectedAction };
 			if (gui::Selectable(name.get().c_str(), isSelected))
 			{
+				// Select the action and deselect previous binding
 				selectedActionPtr = selectedAction = action.get();
+				selectedBindingIndex = -1;
 				isSelected = true;
 			}
 
@@ -107,7 +124,53 @@ namespace editor {
 		return selectedActionNamePtr;
 	}
 
-	void InputConfig::DrawInspector(SPtr<internal::InputActionBase>& action, const std::string* actionName)
+	void InputConfig::DrawBindingsColumn()
+	{
+		auto action{ selectedActionPtr.lock() };
+		if (!action)
+			return;
+
+		switch (action->GetCompositeType())
+		{
+#define X(name, str) \
+		case internal::INPUT_COMPOSITE_TYPE::name: \
+			{ \
+			auto& bindings{ std::static_pointer_cast<internal::InputAction<internal::INPUT_COMPOSITE_TYPE::name>>(action)->Editor_GetBindings() }; \
+			for (size_t index{}; index < bindings.size(); ++index) \
+				if (gui::Selectable(std::to_string(index).c_str(), index == selectedBindingIndex)) \
+					selectedBindingIndex = index; \
+			} \
+			break;
+			ENUM_INPUT_COMPOSITE_TYPE
+#undef X
+		}
+	}
+
+	void InputConfig::DrawInspector(const std::string* actionName)
+	{
+		if (auto action{ selectedActionPtr.lock() })
+		{
+			// Draw the binding inspector if action exists and a binding exists at our selected index
+			switch (action->GetCompositeType())
+			{
+#define X(name, str) \
+			case internal::INPUT_COMPOSITE_TYPE::name: \
+				if (auto binding{ std::static_pointer_cast<internal::InputAction<internal::INPUT_COMPOSITE_TYPE::name>>(action)->GetBinding(selectedBindingIndex) }) \
+				{ \
+					DrawInspector_Binding(*binding); \
+					return; \
+				} \
+				break;
+			ENUM_INPUT_COMPOSITE_TYPE
+#undef X
+			}
+
+			// Otherwise draw the action inspector
+			DrawInspector_Action(action, actionName);
+		}
+	}
+
+	void InputConfig::DrawInspector_Action(SPtr<internal::InputActionBase>& action, const std::string* actionName)
 	{
 		if (!action)
 			return;

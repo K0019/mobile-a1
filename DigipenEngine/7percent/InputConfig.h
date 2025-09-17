@@ -11,21 +11,26 @@ namespace editor {
 		virtual void DrawWindow() override;
 
 	private:
-		using VecOfInputSets = decltype(std::declval<Input>().Editor_GetInputSets());
-
 		void CreateNewInputSet();
 		void CreateNewAction();
+		void CreateNewBinding();
 
-		void DrawInputSetsColumn(VecOfInputSets& inputSets, SPtr<internal::InputSet>& selectedInputSet);
-		const std::string* DrawActionsColumn(SPtr<internal::InputSet>& inputSet, SPtr<internal::InputActionBase>& action);
-		void DrawInspector(SPtr<internal::InputActionBase>& action, const std::string* actionName);
+		void DrawInputSetsColumn();
+		const std::string* DrawActionsColumn();
+		void DrawBindingsColumn();
+		void DrawInspector(const std::string* actionName);
 		
+		void DrawInspector_Action(SPtr<internal::InputActionBase>& action, const std::string* actionName);
 		template <internal::INPUT_COMPOSITE_TYPE CompositeType>
 		void DrawInspector_Action(SPtr<internal::InputAction<CompositeType>> action, const std::string* actionName);
+
+		template <internal::INPUT_COMPOSITE_TYPE CompositeType>
+		void DrawInspector_Binding(internal::InputBinding<CompositeType>& binding);
 
 	private:
 		WPtr<internal::InputSet> selectedInputSetPtr;
 		WPtr<internal::InputActionBase> selectedActionPtr;
+		size_t selectedBindingIndex{};
 
 	private:
 		static const std::array<const char*, +internal::INPUT_COMPOSITE_TYPE::NUM_TYPES> compositeNames;
@@ -53,6 +58,12 @@ namespace editor {
 #undef X
 			}
 		}
+	}
+
+	template<internal::INPUT_COMPOSITE_TYPE CompositeType>
+	void InputConfig::DrawInspector_Binding(internal::InputBinding<CompositeType>& binding)
+	{
+
 	}
 
 }

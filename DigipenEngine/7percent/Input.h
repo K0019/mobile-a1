@@ -153,6 +153,8 @@ X(AXIS_2D, "2D Axis") /* Vec2 value from -1 to 1 on each axis */
 
 		INPUT_COMPOSITE_TYPE GetCompositeType() const;
 
+		virtual void AddBinding() = 0;
+
 	private:
 		INPUT_COMPOSITE_TYPE compositeType;
 
@@ -172,6 +174,10 @@ X(AXIS_2D, "2D Axis") /* Vec2 value from -1 to 1 on each axis */
 		template <INPUT_COMPOSITE_TYPE T = CompositeType>
 		std::enable_if_t<T == INPUT_COMPOSITE_TYPE::AXIS_2D, Vec2> GetValue() const;
 
+		virtual void AddBinding() final;
+		const InputBinding<CompositeType>* GetBinding(size_t index) const;
+		InputBinding<CompositeType>* GetBinding(size_t index);
+
 		template <INPUT_COMPOSITE_TYPE NewCompositeType>
 		InputAction<NewCompositeType> ConvertToCompositeType() const;
 		template <INPUT_COMPOSITE_TYPE OriginalCompositeType>
@@ -181,7 +187,7 @@ X(AXIS_2D, "2D Axis") /* Vec2 value from -1 to 1 on each axis */
 		//! The input bindings that "activate" this action.
 		std::vector<InputBinding<CompositeType>> bindings;
 
-	private:
+	public:
 		std::vector<InputBinding<CompositeType>>& Editor_GetBindings();
 
 	};
