@@ -53,7 +53,9 @@ namespace physics {
 		return mObjectToBroadPhase[inLayer];
 	}
 
-	const char* BPLayerInterfaceImpl::GetBroadPhaseLayerName(JPH::BroadPhaseLayer inLayer) const
+
+	// TODO could not get this to compile. need to revisit later.
+	/*const char* BPLayerInterfaceImpl::GetBroadPhaseLayerName(JPH::BroadPhaseLayer inLayer) const
 	{
 		switch (static_cast<JPH::BroadPhaseLayer::Type>(inLayer))
 		{
@@ -65,7 +67,7 @@ namespace physics {
 			JPH_ASSERT(false);
 			return "INVALID";
 		}
-	}
+	}*/
 
 	bool ObjectVsBroadPhaseLayerFilterImpl::ShouldCollide(JPH::ObjectLayer inLayer1, JPH::BroadPhaseLayer inLayer2) const
 	{

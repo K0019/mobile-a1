@@ -86,21 +86,21 @@ void RenderComponent::SetColor(Vec4 new_color) {
     }
     // Restore the flags after changing parameters
     // Check if flag was set in original effective flags
-    if (currentFlags & MaterialFlags::ReceivesLight) {
-        m_materialInstance.setOverrideFlag(MaterialFlags::ReceivesLight, true);
+    if (currentFlags & MaterialFlagsDEAD::ReceivesLight) {
+        m_materialInstance.setOverrideFlag(MaterialFlagsDEAD::ReceivesLight, true);
     }
     
     // Do the same for other important flags
-    if (currentFlags & MaterialFlags::OccludesLight) {
-        m_materialInstance.setOverrideFlag(MaterialFlags::OccludesLight, true);
+    if (currentFlags & MaterialFlagsDEAD::OccludesLight) {
+        m_materialInstance.setOverrideFlag(MaterialFlagsDEAD::OccludesLight, true);
     }
     
-    if (currentFlags & MaterialFlags::SolidColor) {
-        m_materialInstance.setOverrideFlag(MaterialFlags::SolidColor, true);
+    if (currentFlags & MaterialFlagsDEAD::SolidColor) {
+        m_materialInstance.setOverrideFlag(MaterialFlagsDEAD::SolidColor, true);
     }
     
-    if (currentFlags & MaterialFlags::Repeating) {
-        m_materialInstance.setOverrideFlag(MaterialFlags::Repeating, true);
+    if (currentFlags & MaterialFlagsDEAD::Repeating) {
+        m_materialInstance.setOverrideFlag(MaterialFlagsDEAD::Repeating, true);
     }
 }
 
@@ -161,7 +161,7 @@ void RenderComponent::EditorDraw()
         ImGui::Text("Drag an Sprite from the browser to assign it");
     }
     ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
-    ImGui::ImageButton("Preview", reinterpret_cast<intptr_t>(VulkanManager::Get().VkTextureManager().getTexture(sprite.textureID).ImGui_handle), ImVec2(100, 100),
+    ImGui::ImageButton("Preview", 0, ImVec2(100, 100),
                        ImVec2(sprite.texCoords.x, sprite.texCoords.y),
                        ImVec2(sprite.texCoords.z, sprite.texCoords.w));
     ImGui::PopItemFlag();
@@ -257,17 +257,17 @@ void RenderComponent::EditorDraw()
         if(ImGui::CollapsingHeader("Light Interaction", ImGuiTreeNodeFlags_DefaultOpen)) {
             uint32_t flags = GetMaterialInstance().getOverrideFlags();
 
-            bool receivesLight = (flags & MaterialFlags::ReceivesLight) != 0;
+            bool receivesLight = (flags & MaterialFlagsDEAD::ReceivesLight) != 0;
             if(ImGui::Checkbox("Receives Light", &receivesLight)) {
-                GetMaterialInstance().setOverrideFlag(MaterialFlags::ReceivesLight, receivesLight);
+                GetMaterialInstance().setOverrideFlag(MaterialFlagsDEAD::ReceivesLight, receivesLight);
             }
             if(ImGui::IsItemHovered()) {
                 ImGui::SetTooltip("Enable for objects affected by scene lighting");
             }
 
-            bool occludesLight = (flags & MaterialFlags::OccludesLight) != 0;
+            bool occludesLight = (flags & MaterialFlagsDEAD::OccludesLight) != 0;
             if(ImGui::Checkbox("Occludes Light", &occludesLight)) {
-                GetMaterialInstance().setOverrideFlag(MaterialFlags::OccludesLight, occludesLight);
+                GetMaterialInstance().setOverrideFlag(MaterialFlagsDEAD::OccludesLight, occludesLight);
             }
             if(ImGui::IsItemHovered()) {
                 ImGui::SetTooltip("Enable for objects that cast shadows");
@@ -278,17 +278,17 @@ void RenderComponent::EditorDraw()
         if(ImGui::CollapsingHeader("Render Properties", ImGuiTreeNodeFlags_DefaultOpen)) {
             uint32_t flags = GetMaterialInstance().getOverrideFlags();
 
-            bool solidColor = (flags & MaterialFlags::SolidColor) != 0;
+            bool solidColor = (flags & MaterialFlagsDEAD::SolidColor) != 0;
             if(ImGui::Checkbox("Solid Color", &solidColor)) {
-                GetMaterialInstance().setOverrideFlag(MaterialFlags::SolidColor, solidColor);
+                GetMaterialInstance().setOverrideFlag(MaterialFlagsDEAD::SolidColor, solidColor);
             }
             if(ImGui::IsItemHovered()) {
                 ImGui::SetTooltip("Uses base color instead of texture");
             }
 
-			bool repeating = (flags & MaterialFlags::Repeating) != 0;
+			bool repeating = (flags & MaterialFlagsDEAD::Repeating) != 0;
             if (ImGui::Checkbox("Repeating", &repeating)) {
-                GetMaterialInstance().setOverrideFlag(MaterialFlags::Repeating, repeating);
+                GetMaterialInstance().setOverrideFlag(MaterialFlagsDEAD::Repeating, repeating);
             }
 			if (ImGui::IsItemHovered()) {
 				ImGui::SetTooltip("Texture repeats instead of being to scale");

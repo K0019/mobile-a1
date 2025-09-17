@@ -89,7 +89,7 @@ find_package(VulkanMemoryAllocator CONFIG REQUIRED)
 find_package(imgui CONFIG REQUIRED)
 find_package(imguizmo CONFIG REQUIRED)
 find_package(implot CONFIG REQUIRED)
-#add_subdirectory(extern/offset_allocator)
+add_subdirectory(extern/offset_allocator)
 
 # ----- Engine Target -----
 add_executable(Engine WIN32) #
@@ -156,6 +156,7 @@ target_link_libraries(Engine PUBLIC
     spirv-cross-core
     spirv-cross-glsl
     unofficial::spirv-reflect
+	offsetAllocator
     # External libraries
     $<$<CONFIG:Debug>:${EXTERNAL_LIBRARIES_STATIC_DEBUG}>
     $<$<CONFIG:Release>:${EXTERNAL_LIBRARIES_STATIC_RELEASE}>
@@ -166,6 +167,7 @@ set_source_groups(Engine)
 target_compile_options(Engine PRIVATE /W4 /MP /bigobj)
 target_compile_definitions(Engine PUBLIC
     TRACY_ENABLE
+	GLFW
     -DQUILL_DISABLE_NON_PREFIXED_MACROS
     $<$<CONFIG:Debug>:IMGUI_ENABLED>
 )
@@ -178,11 +180,13 @@ add_custom_command(TARGET Engine POST_BUILD
         "\"${EXTERNAL_LIBRARIES_WHOLE_DIRECTORIES}\""
         "$<$<CONFIG:Release>:\"${CMAKE_SOURCE_DIR}/Assets\">"
         "\"$<TARGET_FILE_DIR:Engine>\""
+		#[[
     COMMAND cd "${CMAKE_SOURCE_DIR}/Shaders" &&
         .\\compile.bat &&
         xcopy /s /r /y /q /i
             "\"${COMPILED_SHADER_FILES}\""
             "\"${OUTPUT_COMPILED_SHADER_FILES}\""
+			]]
 )
 
 if(MSVC)
@@ -198,7 +202,7 @@ if(MSVC)
     set_target_properties(Engine PROPERTIES
         VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:Engine>"
     )
-	set(PORTABLE_LAYERS_PATH "${CMAKE_SOURCE_DIR}/External/Bin")
+	set(PORTABLE_LAYERS_PATH "${CMAKE_SOURCE_DIR}/extern/vulkan-debug-layer")
 	if(EXISTS "${PORTABLE_LAYERS_PATH}/VkLayer_khronos_validation.json")
 		file(TO_NATIVE_PATH "${PORTABLE_LAYERS_PATH}" NATIVE_PORTABLE_LAYERS_PATH)
 		message(STATUS "Configuring portable Vulkan layers for MSVC debugging at: ${NATIVE_PORTABLE_LAYERS_PATH}")

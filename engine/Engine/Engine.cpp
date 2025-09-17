@@ -43,10 +43,18 @@ All rights reserved.
 
 #include "fa.h"
 
-#include <stb_image.h>
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
 
+#include "asset_system.h"
+#include "camera.h"
 #include "Import.h"
 #include "Filesystem.h"
+#include "grid_feature.h"
+#include "imgui_context.h"
+#include "renderer.h"
+#include "scene_feature.h"
+#include "scene_loader.h"
 
 namespace {
 
@@ -124,7 +132,7 @@ namespace {
 		// Clamp mouse position to window bounds
 		double clampedXpos = math::Clamp(xpos, 0.0, static_cast<double>(ST<Engine>::Get()->_windowExtent.width));
 		double clampedYpos = math::Clamp(ypos, 0.0, static_cast<double>(ST<Engine>::Get()->_windowExtent.height));
-		if (clampedXpos != xpos || clampedYpos != ypos)
+		if(clampedXpos != xpos || clampedYpos != ypos)
 			glfwSetCursorPos(window, clampedXpos, clampedYpos);
 
 		Input::OnMouseMove(clampedXpos, clampedYpos);
@@ -170,6 +178,10 @@ namespace {
 	}
 }
 
+Engine::Engine() = default;
+
+Engine::~Engine() = default;
+
 void Engine::onWindowResized(int width, int height)
 {
 	_windowExtent.width = width;
@@ -178,7 +190,8 @@ void Engine::onWindowResized(int width, int height)
 #else
 	_viewportExtent = _windowExtent;
 #endif
-	m_renderer->onWindowResized(width, height);
+	if(m_renderer)
+		m_renderer->onWindowResized(width, height);
 }
 void Engine::onResolutionChanged(int width, int height)
 {
@@ -352,16 +365,12 @@ void Engine::init()
 	// Vulkan configuration
 	// --------------------
 
-	if(volkInitialize() != VK_SUCCESS)
-	{
-		throw std::runtime_error("failed to initialize Volk!");
-	}
-
 	m_renderer = std::make_unique<Renderer>(_window, _windowExtent.width, _windowExtent.height);
-	// NOTE THAT IMGUI IS SETUP IN VULKAN DUE TO THE CALLBACKS NEEDED FOR IT TO WORK
-
+	context.renderer = m_renderer.get();
 #ifdef _DEBUG
 	CONSOLE_LOG(LEVEL_INFO) << "Current working directory: " << std::filesystem::canonical(ST<Filepaths>::Get()->workingDir);
+
+	CONSOLE_LOG(LEVEL_INFO) << "Actual working directory: " << std::filesystem::current_path();
 	// identify file path for loading asset files
 #endif
 
@@ -374,8 +383,10 @@ void Engine::init()
 		ST<Filepaths>::Get()->fontsSave + "/Lato-Regular.ttf",
 		ST<Filepaths>::Get()->fontsSave + "/slkscre.ttf"
 	};
-	std::for_each(fontsToLoad.begin(), fontsToLoad.end(), ResourceManager::LoadFont);
-
+	//std::for_each(fontsToLoad.begin(), fontsToLoad.end(), ResourceManager::LoadFont);
+	m_assetSystem = std::make_unique<AssetLoading::AssetSystem>(&context);
+	context.assetSystem = m_assetSystem.get();
+	m_renderer->startup();
 	// initialize game
 	// ---------------
 	ecs::Initialize();
@@ -384,11 +395,13 @@ void Engine::init()
 	ST<EntitySpawnEvents>::Get(); // Initialize systems that listen for entity created events
 
 #ifdef IMGUI_ENABLED
+	m_imguiContext = std::make_unique<editor::ImGuiContext>(context, *_window);
 	ST<Game>::Get()->Init(WORLD_WIDTH, WORLD_HEIGHT, GAMESTATE::EDITOR);
 	imgui_styling();
 	ImGuiIO& io = ImGui::GetIO(); (void)io;
 	//io.Fonts->AddFontDefault();
-	float baseFontSize = 15.0f; // 13.0f is the size of the default font. Change to the font size you use.
+	io.Fonts->Clear(); // Clear existing fonts
+	float baseFontSize = 13.0f; // 13.0f is the size of the default font. Change to the font size you use.
 	float iconFontSize = baseFontSize * 2.5f / 3.0f; // FontAwesome fonts need to have their sizes reduced by 2.0f/3.0f in order to align correctly
 	static const ImWchar icons_ranges[] = { ICON_MIN_FA, ICON_MAX_FA, 0 };
 	ImFontConfig icons_config;
@@ -398,11 +411,12 @@ void Engine::init()
 	io.Fonts->AddFontFromFileTTF(fontsToLoad[1].c_str(), baseFontSize);
 	io.Fonts->AddFontFromMemoryCompressedTTF(FA_compressed_data, FA_compressed_size, iconFontSize, &icons_config, icons_ranges);
 
+	m_imguiContext->rebuildFontAtlas();
 	//If you want change between icons size you will need to create a new font
 	//io.Fonts->AddFontFromMemoryCompressedTTF(FA_compressed_data, FA_compressed_size, 12.0f, &icons_config, icons_ranges);
 	//io.Fonts->AddFontFromMemoryCompressedTTF(FA_compressed_data, FA_compressed_size, 20.0f, &icons_config, icons_ranges);
 
-	io.Fonts->Build();
+
 #else
 	ST<Game>::Get()->Init(WORLD_WIDTH, WORLD_HEIGHT, GAMESTATE::IN_GAME);
 #endif
@@ -451,6 +465,22 @@ void Engine::run() {
 	loadState("imgui.json");
 #endif
 	bool bQuit = false;
+
+	static uint64_t gridFeature = m_renderer->CreateFeature<GridFeature>();
+	static uint64_t sceneFeatureHandle_ = m_renderer->CreateFeature<SceneRenderFeature>();
+	const std::unique_ptr<AssetLoading::SceneLoader> sceneLoader_ = std::make_unique<AssetLoading::SceneLoader>(*m_assetSystem);
+	AssetLoading::Scene loadedScene_;
+	std::filesystem::path workingDir = std::filesystem::canonical(ST<Filepaths>::Get()->workingDir);
+	std::filesystem::path asset = workingDir / "Assets" / "fbxcars" / "box.fbx";
+	const std::filesystem::path testScenePath = asset.string().c_str();
+	if(exists(testScenePath))
+	{
+		auto loadResult = sceneLoader_->loadScene(testScenePath);
+		if(loadResult.success)
+		{
+			loadedScene_ = std::move(loadResult.scene);
+		}
+	}
 	while(!bQuit)
 	{
 		wait();
@@ -475,9 +505,8 @@ void Engine::run() {
 			bQuit = true;
 		}
 
-		// Start the Dear ImGui frame
-		_vulkan->beginFrame();
-
+		m_renderer->beginFrame();
+		m_imguiContext->beginFrame();
 		// Enable docking
 #ifdef IMGUI_ENABLED
 		if(io.ConfigFlags & ImGuiConfigFlags_DockingEnable)
@@ -554,7 +583,7 @@ void Engine::run() {
 					ST<SceneManager>::Get()->SaveAllScenes();
 					ST<SceneManager>::Get()->SaveWhichScenesOpened();
 				}
-				if (ImGui::MenuItem("Settings"))
+				if(ImGui::MenuItem("Settings"))
 				{
 					editor::CreateWindow<editor::SettingsWindow>();
 				}
@@ -646,17 +675,14 @@ void Engine::run() {
 		{
 			ImGui::End();
 		}
-		ImGui::Render();
-		ImDrawData* main_draw_data = ImGui::GetDrawData();
-		const bool main_is_minimized = (main_draw_data->DisplaySize.x <= 0.0f || main_draw_data->DisplaySize.y <= 0.0f);
-#else
-
+		m_imguiContext->endFrame();
+#endif
 		bool main_is_minimized = false;
 		// Handle window events
 		if(glfwGetWindowAttrib(_window, GLFW_ICONIFIED)) {
 			main_is_minimized = true;
 		}
-#endif
+
 
 		// Game window draw
 		if(!main_is_minimized)
@@ -668,27 +694,49 @@ void Engine::run() {
 			ST<Inspector>::Get()->DrawSelectedEntityBorder();
 #endif
 
-			_vulkan->_renderer->drawFrame();
+
+
+			//TODO PLEASE PUT A REAL CAMERA IN HERE OR ELSE!!!!!!!!!!
+			static CameraPositioner_FirstPerson positioner_ = { vec3(0.0f, 1.0f, -1.5f), vec3(0.0f, 0.5f, 0.0f), vec3(0.0f, 1.0f, 0.0f) };
+			static Camera camera = Camera(positioner_);
+			positioner_.movement_.forward_ = Input::GetKeyCurr(KEY::W);
+			positioner_.movement_.backward_ = Input::GetKeyCurr(KEY::S);
+			positioner_.movement_.left_ = Input::GetKeyCurr(KEY::A);
+			positioner_.movement_.right_ = Input::GetKeyCurr(KEY::D);
+			positioner_.movement_.up_ = Input::GetKeyCurr(KEY::NUM_1);
+			positioner_.movement_.down_ = Input::GetKeyCurr(KEY::NUM_2);
+			if(Input::GetKeyCurr(KEY::SPACE))
+			{
+				positioner_.lookAt(vec3(0.0f, 1.0f, -1.5f), vec3(0.0f, 0.5f, 0.0f), vec3(0.0f, 1.0f, 0.0f));
+				positioner_.setSpeed(vec3(0.0f));
+			}
+			static Vec2 lastMousePos;
+			vec2 mouse_delta = Input::GetMousePosRaw() - lastMousePos;
+			lastMousePos = Input::GetMousePosRaw();
+			positioner_.update(ST<PerformanceProfiler>::Get()->GetDeltaTime(), mouse_delta, Input::GetKeyCurr(KEY::M_RIGHT));
+
+			Render::FrameData currentFrameData{};
+			currentFrameData.cameraPos = camera.getPosition();
+			currentFrameData.viewMatrix = camera.getViewMatrix();
+			currentFrameData.projMatrix = perspective(45.0f, (float)_windowExtent.width / (float)_windowExtent.height, 0.1f, 100.0f);
+			SceneRenderFeature::UpdateScene(sceneFeatureHandle_, loadedScene_, *m_assetSystem, *m_renderer);
+			m_renderer->render(currentFrameData);
 			ST<PerformanceProfiler>::Get()->EndProfile("Render");
 		}
-
-		// Update and Render additional Platform Windows
-#ifdef IMGUI_ENABLED
-		if(io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
-		{
-			ImGui::UpdatePlatformWindows();
-			ImGui::RenderPlatformWindowsDefault();
-		}
-#endif
-
-		//
 		// Present Main Platform Window
-		if(!main_is_minimized)
-		{
-			_vulkan->endFrame();
-		}
+		m_renderer->endFrame();
 		ST<PerformanceProfiler>::Get()->EndFrame();
 	}
+
+
+
+
+	m_renderer->DestroyFeature(gridFeature);
+
+
+
+
+
 #ifdef IMGUI_ENABLED
 	saveState("imgui.json");
 #endif
@@ -698,6 +746,7 @@ void Engine::run() {
 }
 
 void Engine::shutdown() {
+
 	// Clean up your subsystems
 	ST<Game>::Get()->Shutdown();
 	ST<Game>::Destroy();
@@ -729,11 +778,10 @@ void Engine::shutdown() {
 	ST<GameSettings>::Destroy();
 	//ST<Filepaths>::Destroy(); // Filepaths kinda needs to live for other threads to reference filepaths... smart pointers will free this later. sry about this
 	ST<ecs::RegisteredSystemsOperatingByLayer>::Destroy();
-
+	m_renderer->shutdown();
 	// In case any systems send logs to the console while destructing.
 	ST<Console>::Destroy();
 
-	_vulkan->shutdown();
 	glfwDestroyWindow(_window);
 	glfwTerminate();
 }

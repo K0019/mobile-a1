@@ -124,15 +124,15 @@ ImU32 Gizmo::getAxisColor(int axis, ImU32 baseColor) const {
 }
 
 float Gizmo::getScaledHandleSize() const {
-    return HANDLE_SIZE * ST<CameraController>::Get()->GetZoom();
+    return 0;
 }
 
 float Gizmo::getScaledRotationRadius() const {
-    return ROTATION_RADIUS * ST<CameraController>::Get()->GetZoom();
+    return 0;
 }
 
 float Gizmo::getScaledGizmoSize() const {
-    return GIZMO_SIZE * ST<CameraController>::Get()->GetZoom();
+    return 0;
 }
 
 void Gizmo::handleInput() {

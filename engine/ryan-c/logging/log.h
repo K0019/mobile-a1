@@ -1,5 +1,4 @@
 #pragma once
-#include "log_backend.h"
 
 /*
  * ==========================================
@@ -113,402 +112,159 @@
  * Example: LOG_RUNTIME_METADATA(EngineLogLevel::Error, "src/old_module.c", "1234", "legacy_func", "Error in legacy code: {}", err_val);
  */
 
-#define TAGS(...) QUILL_TAGS(__VA_ARGS__)
+#define COMPILE_OUT_LOG_MACRO(...) (void)0
 
 #pragma region LOG
-
-#define LOG_TRACE_L3(fmt, ...) \
-    do { QUILL_LOG_TRACE_L3(::LogBackend::getLogger(), fmt, ##__VA_ARGS__); } while(false)
-
-#define LOG_TRACE_L2(fmt, ...) \
-    do { QUILL_LOG_TRACE_L2(::LogBackend::getLogger(), fmt, ##__VA_ARGS__); } while(false)
-
-#define LOG_TRACE_L1(fmt, ...) \
-    do { QUILL_LOG_TRACE_L1(::LogBackend::getLogger(), fmt, ##__VA_ARGS__); } while(false)
-
-#define LOG_DEBUG(fmt, ...) \
-    do { QUILL_LOG_DEBUG(::LogBackend::getLogger(), fmt, ##__VA_ARGS__); } while(false)
-
-#define LOG_INFO(fmt, ...) \
-    do { QUILL_LOG_INFO(::LogBackend::getLogger(), fmt, ##__VA_ARGS__); } while(false)
-
-#define LOG_NOTICE(fmt, ...) \
-    do { QUILL_LOG_NOTICE(::LogBackend::getLogger(), fmt, ##__VA_ARGS__); } while(false)
-
-#define LOG_WARNING(fmt, ...) \
-    do { QUILL_LOG_WARNING(::LogBackend::getLogger(), fmt, ##__VA_ARGS__); } while(false)
-
-#define LOG_ERROR(fmt, ...) \
-    do { QUILL_LOG_ERROR(::LogBackend::getLogger(), fmt, ##__VA_ARGS__); } while(false)
-
-#define LOG_CRITICAL(fmt, ...) \
-    do { QUILL_LOG_CRITICAL(::LogBackend::getLogger(), fmt, ##__VA_ARGS__); } while(false)
-
-#define LOG_BACKTRACE(fmt, ...) \
-    do { QUILL_LOG_BACKTRACE(::LogBackend::getLogger(), fmt, ##__VA_ARGS__); } while(false)
-
-#define LOG_DYNAMIC(log_level, fmt, ...) \
-    do { QUILL_LOG_DYNAMIC(::LogBackend::getLogger(), MapEngineLogLevelToQuill(log_level), fmt, ##__VA_ARGS__); } while(false)
-
-#pragma endregion //LOG
+#define LOG_TRACE_L3(...) COMPILE_OUT_LOG_MACRO(__VA_ARGS__)
+#define LOG_TRACE_L2(...) COMPILE_OUT_LOG_MACRO(__VA_ARGS__)
+#define LOG_TRACE_L1(...) COMPILE_OUT_LOG_MACRO(__VA_ARGS__)
+#define LOG_DEBUG(...)    COMPILE_OUT_LOG_MACRO(__VA_ARGS__)
+#define LOG_INFO(...)     COMPILE_OUT_LOG_MACRO(__VA_ARGS__)
+#define LOG_NOTICE(...)   COMPILE_OUT_LOG_MACRO(__VA_ARGS__)
+#define LOG_WARNING(...)  COMPILE_OUT_LOG_MACRO(__VA_ARGS__)
+#define LOG_ERROR(...)    COMPILE_OUT_LOG_MACRO(__VA_ARGS__)
+#define LOG_CRITICAL(...) COMPILE_OUT_LOG_MACRO(__VA_ARGS__)
+#define LOG_BACKTRACE(...) COMPILE_OUT_LOG_MACRO(__VA_ARGS__)
+#define LOG_DYNAMIC(...)  COMPILE_OUT_LOG_MACRO(__VA_ARGS__)
+#pragma endregion
 
 #pragma region LOG_LIMIT
-
-#define LOG_TRACE_L3_LIMIT(min_interval, fmt, ...) \
-    do { QUILL_LOG_TRACE_L3_LIMIT(min_interval, ::LogBackend::getLogger(), fmt, ##__VA_ARGS__); } while(false)
-
-#define LOG_TRACE_L2_LIMIT(min_interval, fmt, ...) \
-    do { QUILL_LOG_TRACE_L2_LIMIT(min_interval, ::LogBackend::getLogger(), fmt, ##__VA_ARGS__); } while(false)
-
-#define LOG_TRACE_L1_LIMIT(min_interval, fmt, ...) \
-    do { QUILL_LOG_TRACE_L1_LIMIT(min_interval, ::LogBackend::getLogger(), fmt, ##__VA_ARGS__); } while(false)
-
-#define LOG_DEBUG_LIMIT(min_interval, fmt, ...) \
-    do { QUILL_LOG_DEBUG_LIMIT(min_interval, ::LogBackend::getLogger(), fmt, ##__VA_ARGS__); } while(false)
-
-#define LOG_INFO_LIMIT(min_interval, fmt, ...) \
-    do { QUILL_LOG_INFO_LIMIT(min_interval, ::LogBackend::getLogger(), fmt, ##__VA_ARGS__); } while(false)
-
-#define LOG_NOTICE_LIMIT(min_interval, fmt, ...) \
-    do { QUILL_LOG_NOTICE_LIMIT(min_interval, ::LogBackend::getLogger(), fmt, ##__VA_ARGS__); } while(false)
-
-#define LOG_WARNING_LIMIT(min_interval, fmt, ...) \
-    do { QUILL_LOG_WARNING_LIMIT(min_interval, ::LogBackend::getLogger(), fmt, ##__VA_ARGS__); } while(false)
-
-#define LOG_ERROR_LIMIT(min_interval, fmt, ...) \
-    do { QUILL_LOG_ERROR_LIMIT(min_interval, ::LogBackend::getLogger(), fmt, ##__VA_ARGS__); } while(false)
-
-#define LOG_CRITICAL_LIMIT(min_interval, fmt, ...) \
-    do { QUILL_LOG_CRITICAL_LIMIT(min_interval, ::LogBackend::getLogger(), fmt, ##__VA_ARGS__); } while(false)
-
-#pragma endregion //LOG_LIMIT
+#define LOG_TRACE_L3_LIMIT(...) COMPILE_OUT_LOG_MACRO(__VA_ARGS__)
+#define LOG_TRACE_L2_LIMIT(...) COMPILE_OUT_LOG_MACRO(__VA_ARGS__)
+#define LOG_TRACE_L1_LIMIT(...) COMPILE_OUT_LOG_MACRO(__VA_ARGS__)
+#define LOG_DEBUG_LIMIT(...)    COMPILE_OUT_LOG_MACRO(__VA_ARGS__)
+#define LOG_INFO_LIMIT(...)     COMPILE_OUT_LOG_MACRO(__VA_ARGS__)
+#define LOG_NOTICE_LIMIT(...)   COMPILE_OUT_LOG_MACRO(__VA_ARGS__)
+#define LOG_WARNING_LIMIT(...)  COMPILE_OUT_LOG_MACRO(__VA_ARGS__)
+#define LOG_ERROR_LIMIT(...)    COMPILE_OUT_LOG_MACRO(__VA_ARGS__)
+#define LOG_CRITICAL_LIMIT(...) COMPILE_OUT_LOG_MACRO(__VA_ARGS__)
+#pragma endregion
 
 #pragma region LOG_LIMIT_EVERY_N
-#define LOG_TRACE_L3_LIMIT_EVERY_N(n_occurrences, fmt, ...) \
-    do { QUILL_LOG_TRACE_L3_LIMIT_EVERY_N(n_occurrences, ::LogBackend::getLogger(), fmt, ##__VA_ARGS__); } while(false)
-
-#define LOG_TRACE_L2_LIMIT_EVERY_N(n_occurrences, fmt, ...) \
-    do { QUILL_LOG_TRACE_L2_LIMIT_EVERY_N(n_occurrences, ::LogBackend::getLogger(), fmt, ##__VA_ARGS__); } while(false)
-
-#define LOG_TRACE_L1_LIMIT_EVERY_N(n_occurrences, fmt, ...) \
-    do { QUILL_LOG_TRACE_L1_LIMIT_EVERY_N(n_occurrences, ::LogBackend::getLogger(), fmt, ##__VA_ARGS__); } while(false)
-
-#define LOG_DEBUG_LIMIT_EVERY_N(n_occurrences, fmt, ...) \
-    do { QUILL_LOG_DEBUG_LIMIT_EVERY_N(n_occurrences, ::LogBackend::getLogger(), fmt, ##__VA_ARGS__); } while(false)
-
-#define LOG_INFO_LIMIT_EVERY_N(n_occurrences, fmt, ...) \
-    do { QUILL_LOG_INFO_LIMIT_EVERY_N(n_occurrences, ::LogBackend::getLogger(), fmt, ##__VA_ARGS__); } while(false)
-
-#define LOG_NOTICE_LIMIT_EVERY_N(n_occurrences, fmt, ...) \
-    do { QUILL_LOG_NOTICE_LIMIT_EVERY_N(n_occurrences, ::LogBackend::getLogger(), fmt, ##__VA_ARGS__); } while(false)
-
-#define LOG_WARNING_LIMIT_EVERY_N(n_occurrences, fmt, ...) \
-    do { QUILL_LOG_WARNING_LIMIT_EVERY_N(n_occurrences, ::LogBackend::getLogger(), fmt, ##__VA_ARGS__); } while(false)
-
-#define LOG_ERROR_LIMIT_EVERY_N(n_occurrences, fmt, ...) \
-    do { QUILL_LOG_ERROR_LIMIT_EVERY_N(n_occurrences, ::LogBackend::getLogger(), fmt, ##__VA_ARGS__); } while(false)
-
-#define LOG_CRITICAL_LIMIT_EVERY_N(n_occurrences, fmt, ...) \
-    do { QUILL_LOG_CRITICAL_LIMIT_EVERY_N(n_occurrences, ::LogBackend::getLogger(), fmt, ##__VA_ARGS__); } while(false)
-
-#pragma endregion //LOG_LIMIT_EVERY_N
+#define LOG_TRACE_L3_LIMIT_EVERY_N(...) COMPILE_OUT_LOG_MACRO(__VA_ARGS__)
+#define LOG_TRACE_L2_LIMIT_EVERY_N(...) COMPILE_OUT_LOG_MACRO(__VA_ARGS__)
+#define LOG_TRACE_L1_LIMIT_EVERY_N(...) COMPILE_OUT_LOG_MACRO(__VA_ARGS__)
+#define LOG_DEBUG_LIMIT_EVERY_N(...)    COMPILE_OUT_LOG_MACRO(__VA_ARGS__)
+#define LOG_INFO_LIMIT_EVERY_N(...)     COMPILE_OUT_LOG_MACRO(__VA_ARGS__)
+#define LOG_NOTICE_LIMIT_EVERY_N(...)   COMPILE_OUT_LOG_MACRO(__VA_ARGS__)
+#define LOG_WARNING_LIMIT_EVERY_N(...)  COMPILE_OUT_LOG_MACRO(__VA_ARGS__)
+#define LOG_ERROR_LIMIT_EVERY_N(...)    COMPILE_OUT_LOG_MACRO(__VA_ARGS__)
+#define LOG_CRITICAL_LIMIT_EVERY_N(...) COMPILE_OUT_LOG_MACRO(__VA_ARGS__)
+#pragma endregion
 
 #pragma region LOG_TAGS
-
-#define LOG_TRACE_L3_TAGS(tags, fmt, ...) \
-    do { QUILL_LOG_TRACE_L3_TAGS(::LogBackend::getLogger(), tags, fmt, ##__VA_ARGS__); } while(false)
-
-#define LOG_TRACE_L2_TAGS(tags, fmt, ...) \
-    do { QUILL_LOG_TRACE_L2_TAGS(::LogBackend::getLogger(), tags, fmt, ##__VA_ARGS__); } while(false)
-
-#define LOG_TRACE_L1_TAGS(tags, fmt, ...) \
-    do { QUILL_LOG_TRACE_L1_TAGS(::LogBackend::getLogger(), tags, fmt, ##__VA_ARGS__); } while(false)
-
-#define LOG_DEBUG_TAGS(tags, fmt, ...) \
-    do { QUILL_LOG_DEBUG_TAGS(::LogBackend::getLogger(), tags, fmt, ##__VA_ARGS__); } while(false)
-
-#define LOG_INFO_TAGS(tags, fmt, ...) \
-    do { QUILL_LOG_INFO_TAGS(::LogBackend::getLogger(), tags, fmt, ##__VA_ARGS__); } while(false)
-
-#define LOG_NOTICE_TAGS(tags, fmt, ...) \
-    do { QUILL_LOG_NOTICE_TAGS(::LogBackend::getLogger(), tags, fmt, ##__VA_ARGS__); } while(false)
-
-#define LOG_WARNING_TAGS(tags, fmt, ...) \
-    do { QUILL_LOG_WARNING_TAGS(::LogBackend::getLogger(), tags, fmt, ##__VA_ARGS__); } while(false)
-
-#define LOG_ERROR_TAGS(tags, fmt, ...) \
-    do { QUILL_LOG_ERROR_TAGS(::LogBackend::getLogger(), tags, fmt, ##__VA_ARGS__); } while(false)
-
-#define LOG_CRITICAL_TAGS(tags, fmt, ...) \
-    do { QUILL_LOG_CRITICAL_TAGS(::LogBackend::getLogger(), tags, fmt, ##__VA_ARGS__); } while(false)
-
-#define LOG_BACKTRACE_TAGS(tags, fmt, ...) \
-    do { QUILL_LOG_BACKTRACE_TAGS(::LogBackend::getLogger(), tags, fmt, ##__VA_ARGS__); } while(false)
-
-#define LOG_DYNAMIC_TAGS(log_level, tags, fmt, ...) \
-    do { QUILL_LOG_DYNAMIC_TAGS(::LogBackend::getLogger(), MapEngineLogLevelToQuill(log_level), tags, fmt, ##__VA_ARGS__); } while(false)
-
-#pragma endregion //LOG_TAGS
+#define TAGS(...)
+#define LOG_TRACE_L3_TAGS(...) COMPILE_OUT_LOG_MACRO(__VA_ARGS__)
+#define LOG_TRACE_L2_TAGS(...) COMPILE_OUT_LOG_MACRO(__VA_ARGS__)
+#define LOG_TRACE_L1_TAGS(...) COMPILE_OUT_LOG_MACRO(__VA_ARGS__)
+#define LOG_DEBUG_TAGS(...)    COMPILE_OUT_LOG_MACRO(__VA_ARGS__)
+#define LOG_INFO_TAGS(...)     COMPILE_OUT_LOG_MACRO(__VA_ARGS__)
+#define LOG_NOTICE_TAGS(...)   COMPILE_OUT_LOG_MACRO(__VA_ARGS__)
+#define LOG_WARNING_TAGS(...)  COMPILE_OUT_LOG_MACRO(__VA_ARGS__)
+#define LOG_ERROR_TAGS(...)    COMPILE_OUT_log_macro(__VA_ARGS__)
+#define LOG_CRITICAL_TAGS(...) COMPILE_OUT_LOG_MACRO(__VA_ARGS__)
+#define LOG_BACKTRACE_TAGS(...) COMPILE_OUT_LOG_MACRO(__VA_ARGS__)
+#define LOG_DYNAMIC_TAGS(...)  COMPILE_OUT_LOG_MACRO(__VA_ARGS__)
+#pragma endregion
 
 #pragma region LOGV
-
-#define LOGV_TRACE_L3(fmt, ...) \
-    do { QUILL_LOGV_TRACE_L3(::LogBackend::getLogger(), fmt, ##__VA_ARGS__); } while(false)
-
-#define LOGV_TRACE_L2(fmt, ...) \
-    do { QUILL_LOGV_TRACE_L2(::LogBackend::getLogger(), fmt, ##__VA_ARGS__); } while(false)
-
-#define LOGV_TRACE_L1(fmt, ...) \
-    do { QUILL_LOGV_TRACE_L1(::LogBackend::getLogger(), fmt, ##__VA_ARGS__); } while(false)
-
-#define LOGV_DEBUG(fmt, ...) \
-    do { QUILL_LOGV_DEBUG(::LogBackend::getLogger(), fmt, ##__VA_ARGS__); } while(false)
-
-#define LOGV_INFO(fmt, ...) \
-    do { QUILL_LOGV_INFO(::LogBackend::getLogger(), fmt, ##__VA_ARGS__); } while(false)
-
-#define LOGV_NOTICE(fmt, ...) \
-    do { QUILL_LOGV_NOTICE(::LogBackend::getLogger(), fmt, ##__VA_ARGS__); } while(false)
-
-#define LOGV_WARNING(fmt, ...) \
-    do { QUILL_LOGV_WARNING(::LogBackend::getLogger(), fmt, ##__VA_ARGS__); } while(false)
-
-#define LOGV_ERROR(fmt, ...) \
-    do { QUILL_LOGV_ERROR(::LogBackend::getLogger(), fmt, ##__VA_ARGS__); } while(false)
-
-#define LOGV_CRITICAL(fmt, ...) \
-    do { QUILL_LOGV_CRITICAL(::LogBackend::getLogger(), fmt, ##__VA_ARGS__); } while(false)
-
-#define LOGV_BACKTRACE(fmt, ...) \
-    do { QUILL_LOGV_BACKTRACE(::LogBackend::getLogger(), fmt, ##__VA_ARGS__); } while(false)
-
-#define LOGV_DYNAMIC(log_level, fmt, ...) \
-    do {QUILL_LOGV_DYNAMIC(::LogBackend::getLogger(), MapEngineLogLevelToQuill(log_level), fmt, ##__VA_ARGS__); } while(false)
-
-#pragma endregion //LOGV
+#define LOGV_TRACE_L3(...) COMPILE_OUT_LOG_MACRO(__VA_ARGS__)
+#define LOGV_TRACE_L2(...) COMPILE_OUT_LOG_MACRO(__VA_ARGS__)
+#define LOGV_TRACE_L1(...) COMPILE_OUT_LOG_MACRO(__VA_ARGS__)
+#define LOGV_DEBUG(...)    COMPILE_OUT_LOG_MACRO(__VA_ARGS__)
+#define LOGV_INFO(...)     COMPILE_OUT_LOG_MACRO(__VA_ARGS__)
+#define LOGV_NOTICE(...)   COMPILE_OUT_LOG_MACRO(__VA_ARGS__)
+#define LOGV_WARNING(...)  COMPILE_OUT_LOG_MACRO(__VA_ARGS__)
+#define LOGV_ERROR(...)    COMPILE_OUT_LOG_MACRO(__VA_ARGS__)
+#define LOGV_CRITICAL(...) COMPILE_OUT_LOG_MACRO(__VA_ARGS__)
+#define LOGV_BACKTRACE(...) COMPILE_OUT_LOG_MACRO(__VA_ARGS__)
+#define LOGV_DYNAMIC(...)  COMPILE_OUT_LOG_MACRO(__VA_ARGS__)
+#pragma endregion
 
 #pragma region LOGV_LIMIT
-
-#define LOGV_TRACE_L3_LIMIT(min_interval, fmt, ...) \
-    do { QUILL_LOGV_TRACE_L3_LIMIT(min_interval, ::LogBackend::getLogger(), fmt, ##__VA_ARGS__); } while(false)
-
-#define LOGV_TRACE_L2_LIMIT(min_interval, fmt, ...) \
-    do { QUILL_LOGV_TRACE_L2_LIMIT(min_interval, ::LogBackend::getLogger(), fmt, ##__VA_ARGS__); } while(false)
-
-#define LOGV_TRACE_L1_LIMIT(min_interval, fmt, ...) \
-    do { QUILL_LOGV_TRACE_L1_LIMIT(min_interval, ::LogBackend::getLogger(), fmt, ##__VA_ARGS__); } while(false)
-
-#define LOGV_DEBUG_LIMIT(min_interval, fmt, ...) \
-    do { QUILL_LOGV_DEBUG_LIMIT(min_interval, ::LogBackend::getLogger(), fmt, ##__VA_ARGS__); } while(false)
-
-#define LOGV_INFO_LIMIT(min_interval, fmt, ...) \
-    do { QUILL_LOGV_INFO_LIMIT(min_interval, ::LogBackend::getLogger(), fmt, ##__VA_ARGS__); } while(false)
-
-#define LOGV_NOTICE_LIMIT(min_interval, fmt, ...) \
-    do { QUILL_LOGV_NOTICE_LIMIT(min_interval, ::LogBackend::getLogger(), fmt, ##__VA_ARGS__); } while(false)
-
-#define LOGV_WARNING_LIMIT(min_interval, fmt, ...) \
-    do { QUILL_LOGV_WARNING_LIMIT(min_interval, ::LogBackend::getLogger(), fmt, ##__VA_ARGS__); } while(false)
-
-#define LOGV_ERROR_LIMIT(min_interval, fmt, ...) \
-    do { QUILL_LOGV_ERROR_LIMIT(min_interval, ::LogBackend::getLogger(), fmt, ##__VA_ARGS__); } while(false)
-
-#define LOGV_CRITICAL_LIMIT(min_interval, fmt, ...) \
-    do { QUILL_LOGV_CRITICAL_LIMIT(min_interval, ::LogBackend::getLogger(), fmt, ##__VA_ARGS__); } while(false)
-
-#pragma endregion //LOGV_LIMIT
+#define LOGV_TRACE_L3_LIMIT(...) COMPILE_OUT_LOG_MACRO(__VA_ARGS__)
+#define LOGV_TRACE_L2_LIMIT(...) COMPILE_OUT_LOG_MACRO(__VA_ARGS__)
+#define LOGV_TRACE_L1_LIMIT(...) COMPILE_OUT_LOG_MACRO(__VA_ARGS__)
+#define LOGV_DEBUG_LIMIT(...)    COMPILE_OUT_LOG_MACRO(__VA_ARGS__)
+#define LOGV_INFO_LIMIT(...)     COMPILE_OUT_LOG_MACRO(__VA_ARGS__)
+#define LOGV_NOTICE_LIMIT(...)   COMPILE_OUT_LOG_MACRO(__VA_ARGS__)
+#define LOGV_WARNING_LIMIT(...)  COMPILE_OUT_LOG_MACRO(__VA_ARGS__)
+#define LOGV_ERROR_LIMIT(...)    COMPILE_OUT_LOG_MACRO(__VA_ARGS__)
+#define LOGV_CRITICAL_LIMIT(...) COMPILE_OUT_LOG_MACRO(__VA_ARGS__)
+#pragma endregion
 
 #pragma region LOGV_LIMIT_EVERY_N
-
-#define LOGV_TRACE_L3_LIMIT_EVERY_N(n_occurrences, fmt, ...) \
-    do { QUILL_LOGV_TRACE_L3_LIMIT_EVERY_N(n_occurrences, ::LogBackend::getLogger(), fmt, ##__VA_ARGS__); } while(false)
-
-#define LOGV_TRACE_L2_LIMIT_EVERY_N(n_occurrences, fmt, ...) \
-    do { QUILL_LOGV_TRACE_L2_LIMIT_EVERY_N(n_occurrences, ::LogBackend::getLogger(), fmt, ##__VA_ARGS__); } while(false)
-
-#define LOGV_TRACE_L1_LIMIT_EVERY_N(n_occurrences, fmt, ...) \
-    do { QUILL_LOGV_TRACE_L1_LIMIT_EVERY_N(n_occurrences, ::LogBackend::getLogger(), fmt, ##__VA_ARGS__); } while(false)
-
-#define LOGV_DEBUG_LIMIT_EVERY_N(n_occurrences, fmt, ...) \
-    do { QUILL_LOGV_DEBUG_LIMIT_EVERY_N(n_occurrences, ::LogBackend::getLogger(), fmt, ##__VA_ARGS__); } while(false)
-
-#define LOGV_INFO_LIMIT_EVERY_N(n_occurrences, fmt, ...) \
-    do { QUILL_LOGV_INFO_LIMIT_EVERY_N(n_occurrences, ::LogBackend::getLogger(), fmt, ##__VA_ARGS__); } while(false)
-
-#define LOGV_NOTICE_LIMIT_EVERY_N(n_occurrences, fmt, ...) \
-    do { QUILL_LOGV_NOTICE_LIMIT_EVERY_N(n_occurrences, ::LogBackend::getLogger(), fmt, ##__VA_ARGS__); } while(false)
-
-#define LOGV_WARNING_LIMIT_EVERY_N(n_occurrences, fmt, ...) \
-    do { QUILL_LOGV_WARNING_LIMIT_EVERY_N(n_occurrences, ::LogBackend::getLogger(), fmt, ##__VA_ARGS__); } while(false)
-
-#define LOGV_ERROR_LIMIT_EVERY_N(n_occurrences, fmt, ...) \
-    do { QUILL_LOGV_ERROR_LIMIT_EVERY_N(n_occurrences, ::LogBackend::getLogger(), fmt, ##__VA_ARGS__); } while(false)
-
-#define LOGV_CRITICAL_LIMIT_EVERY_N(n_occurrences, fmt, ...) \
-    do { QUILL_LOGV_CRITICAL_LIMIT_EVERY_N(n_occurrences, ::LogBackend::getLogger(), fmt, ##__VA_ARGS__); } while(false)
-
-#pragma endregion //LOGV_LIMIT_EVERY_N
+#define LOGV_TRACE_L3_LIMIT_EVERY_N(...) COMPILE_OUT_LOG_MACRO(__VA_ARGS__)
+#define LOGV_TRACE_L2_LIMIT_EVERY_N(...) COMPILE_OUT_LOG_MACRO(__VA_ARGS__)
+#define LOGV_TRACE_L1_LIMIT_EVERY_N(...) COMPILE_OUT_LOG_MACRO(__VA_ARGS__)
+#define LOGV_DEBUG_LIMIT_EVERY_N(...)    COMPILE_OUT_LOG_MACRO(__VA_ARGS__)
+#define LOGV_INFO_LIMIT_EVERY_N(...)     COMPILE_OUT_LOG_MACRO(__VA_ARGS__)
+#define LOGV_NOTICE_LIMIT_EVERY_N(...)   COMPILE_OUT_LOG_MACRO(__VA_ARGS__)
+#define LOGV_WARNING_LIMIT_EVERY_N(...)  COMPILE_OUT_LOG_MACRO(__VA_ARGS__)
+#define LOGV_ERROR_LIMIT_EVERY_N(...)    COMPILE_OUT_LOG_MACRO(__VA_ARGS__)
+#define LOGV_CRITICAL_LIMIT_EVERY_N(...) COMPILE_OUT_LOG_MACRO(__VA_ARGS__)
+#pragma endregion
 
 #pragma region LOGV_TAGS
-
-#define LOGV_TRACE_L3_TAGS(tags, fmt, ...) \
-    do { QUILL_LOGV_TRACE_L3_TAGS(::LogBackend::getLogger(), tags, fmt, ##__VA_ARGS__); } while(false)
-
-#define LOGV_TRACE_L2_TAGS(tags, fmt, ...) \
-    do { QUILL_LOGV_TRACE_L2_TAGS(::LogBackend::getLogger(), tags, fmt, ##__VA_ARGS__); } while(false)
-
-#define LOGV_TRACE_L1_TAGS(tags, fmt, ...) \
-    do { QUILL_LOGV_TRACE_L1_TAGS(::LogBackend::getLogger(), tags, fmt, ##__VA_ARGS__); } while(false)
-
-#define LOGV_DEBUG_TAGS(tags, fmt, ...) \
-    do { QUILL_LOGV_DEBUG_TAGS(::LogBackend::getLogger(), tags, fmt, ##__VA_ARGS__); } while(false)
-
-#define LOGV_INFO_TAGS(tags, fmt, ...) \
-    do { QUILL_LOGV_INFO_TAGS(::LogBackend::getLogger(), tags, fmt, ##__VA_ARGS__); } while(false)
-
-#define LOGV_NOTICE_TAGS(tags, fmt, ...) \
-    do { QUILL_LOGV_NOTICE_TAGS(::LogBackend::getLogger(), tags, fmt, ##__VA_ARGS__); } while(false)
-
-#define LOGV_WARNING_TAGS(tags, fmt, ...) \
-    do { QUILL_LOGV_WARNING_TAGS(::LogBackend::getLogger(), tags, fmt, ##__VA_ARGS__); } while(false)
-
-#define LOGV_ERROR_TAGS(tags, fmt, ...) \
-    do { QUILL_LOGV_ERROR_TAGS(::LogBackend::getLogger(), tags, fmt, ##__VA_ARGS__); } while(false)
-
-#define LOGV_CRITICAL_TAGS(tags, fmt, ...) \
-    do { QUILL_LOGV_CRITICAL_TAGS(::LogBackend::getLogger(), tags, fmt, ##__VA_ARGS__); } while(false)
-
-#pragma endregion //LOGV_TAGS
+#define LOGV_TRACE_L3_TAGS(...) COMPILE_OUT_LOG_MACRO(__VA_ARGS__)
+#define LOGV_TRACE_L2_TAGS(...) COMPILE_OUT_LOG_MACRO(__VA_ARGS__)
+#define LOGV_TRACE_L1_TAGS(...) COMPILE_OUT_LOG_MACRO(__VA_ARGS__)
+#define LOGV_DEBUG_TAGS(...)    COMPILE_OUT_LOG_MACRO(__VA_ARGS__)
+#define LOGV_INFO_TAGS(...)     COMPILE_OUT_LOG_MACRO(__VA_ARGS__)
+#define LOGV_NOTICE_TAGS(...)   COMPILE_OUT_LOG_MACRO(__VA_ARGS__)
+#define LOGV_WARNING_TAGS(...)  COMPILE_OUT_LOG_MACRO(__VA_ARGS__)
+#define LOGV_ERROR_TAGS(...)    COMPILE_OUT_LOG_MACRO(__VA_ARGS__)
+#define LOGV_CRITICAL_TAGS(...) COMPILE_OUT_LOG_MACRO(__VA_ARGS__)
+#pragma endregion
 
 #pragma region LOGJ
-
-#define LOGJ_TRACE_L3(fmt, ...) \
-    do { QUILL_LOGJ_TRACE_L3(::LogBackend::getLogger(), fmt, ##__VA_ARGS__); } while(false)
-
-#define LOGJ_TRACE_L2(fmt, ...) \
-    do { QUILL_LOGJ_TRACE_L2(::LogBackend::getLogger(), fmt, ##__VA_ARGS__); } while(false)
-
-#define LOGJ_TRACE_L1(fmt, ...) \
-    do { QUILL_LOGJ_TRACE_L1(::LogBackend::getLogger(), fmt, ##__VA_ARGS__); } while(false)
-
-#define LOGJ_DEBUG(fmt, ...) \
-    do { QUILL_LOGJ_DEBUG(::LogBackend::getLogger(), fmt, ##__VA_ARGS__); } while(false)
-
-#define LOGJ_INFO(fmt, ...) \
-    do { QUILL_LOGJ_INFO(::LogBackend::getLogger(), fmt, ##__VA_ARGS__); } while(false)
-
-#define LOGJ_NOTICE(fmt, ...) \
-    do { QUILL_LOGJ_NOTICE(::LogBackend::getLogger(), fmt, ##__VA_ARGS__); } while(false)
-
-#define LOGJ_WARNING(fmt, ...) \
-    do { QUILL_LOGJ_WARNING(::LogBackend::getLogger(), fmt, ##__VA_ARGS__); } while(false)
-
-#define LOGJ_ERROR(fmt, ...) \
-    do { QUILL_LOGJ_ERROR(::LogBackend::getLogger(), fmt, ##__VA_ARGS__); } while(false)
-
-#define LOGJ_CRITICAL(fmt, ...) \
-    do { QUILL_LOGJ_CRITICAL(::LogBackend::getLogger(), fmt, ##__VA_ARGS__); } while(false)
-
-#define LOGJ_BACKTRACE(fmt, ...) \
-    do { QUILL_LOGJ_BACKTRACE(::LogBackend::getLogger(), fmt, ##__VA_ARGS__); } while(false)
-
-#define LOGJ_DYNAMIC(log_level, fmt, ...) \
-    do { QUILL_LOGJ_DYNAMIC(::LogBackend::getLogger(), MapEngineLogLevelToQuill(log_level), fmt, ##__VA_ARGS__); } while(false)
-
-#pragma endregion //LOGJ
+#define LOGJ_TRACE_L3(...) COMPILE_OUT_LOG_MACRO(__VA_ARGS__)
+#define LOGJ_TRACE_L2(...) COMPILE_OUT_LOG_MACRO(__VA_ARGS__)
+#define LOGJ_TRACE_L1(...) COMPILE_OUT_LOG_MACRO(__VA_ARGS__)
+#define LOGJ_DEBUG(...)    COMPILE_OUT_LOG_MACRO(__VA_ARGS__)
+#define LOGJ_INFO(...)     COMPILE_OUT_LOG_MACRO(__VA_ARGS__)
+#define LOGJ_NOTICE(...)   COMPILE_OUT_LOG_MACRO(__VA_ARGS__)
+#define LOGJ_WARNING(...)  COMPILE_OUT_LOG_MACRO(__VA_ARGS__)
+#define LOGJ_ERROR(...)    COMPILE_OUT_LOG_MACRO(__VA_ARGS__)
+#define LOGJ_CRITICAL(...) COMPILE_OUT_LOG_MACRO(__VA_ARGS__)
+#define LOGJ_BACKTRACE(...) COMPILE_OUT_LOG_MACRO(__VA_ARGS__)
+#define LOGJ_DYNAMIC(...)  COMPILE_OUT_LOG_MACRO(__VA_ARGS__)
+#pragma endregion
 
 #pragma region LOGJ_LIMIT
-
-#define LOGJ_TRACE_L3_LIMIT(min_interval, fmt, ...) \
-    do { QUILL_LOGJ_TRACE_L3_LIMIT(min_interval, ::LogBackend::getLogger(), fmt, ##__VA_ARGS__); } while(false)
-
-#define LOGJ_TRACE_L2_LIMIT(min_interval, fmt, ...) \
-    do { QUILL_LOGJ_TRACE_L2_LIMIT(min_interval, ::LogBackend::getLogger(), fmt, ##__VA_ARGS__); } while(false)
-
-#define LOGJ_TRACE_L1_LIMIT(min_interval, fmt, ...) \
-    do { QUILL_LOGJ_TRACE_L1_LIMIT(min_interval, ::LogBackend::getLogger(), fmt, ##__VA_ARGS__); } while(false)
-
-#define LOGJ_DEBUG_LIMIT(min_interval, fmt, ...) \
-    do { QUILL_LOGJ_DEBUG_LIMIT(min_interval, ::LogBackend::getLogger(), fmt, ##__VA_ARGS__); } while(false)
-
-#define LOGJ_INFO_LIMIT(min_interval, fmt, ...) \
-    do { QUILL_LOGJ_INFO_LIMIT(min_interval, ::LogBackend::getLogger(), fmt, ##__VA_ARGS__); } while(false)
-
-#define LOGJ_NOTICE_LIMIT(min_interval, fmt, ...) \
-    do { QUILL_LOGJ_NOTICE_LIMIT(min_interval, ::LogBackend::getLogger(), fmt, ##__VA_ARGS__); } while(false)
-
-#define LOGJ_WARNING_LIMIT(min_interval, fmt, ...) \
-    do { QUILL_LOGJ_WARNING_LIMIT(min_interval, ::LogBackend::getLogger(), fmt, ##__VA_ARGS__); } while(false)
-
-#define LOGJ_ERROR_LIMIT(min_interval, fmt, ...) \
-    do { QUILL_LOGJ_ERROR_LIMIT(min_interval, ::LogBackend::getLogger(), fmt, ##__VA_ARGS__); } while(false)
-
-#define LOGJ_CRITICAL_LIMIT(min_interval, fmt, ...) \
-    do { QUILL_LOGJ_CRITICAL_LIMIT(min_interval, ::LogBackend::getLogger(), fmt, ##__VA_ARGS__); } while(false)
-
-#pragma endregion //LOGJ_LIMIT
+#define LOGJ_TRACE_L3_LIMIT(...) COMPILE_OUT_LOG_MACRO(__VA_ARGS__)
+#define LOGJ_TRACE_L2_LIMIT(...) COMPILE_OUT_LOG_MACRO(__VA_ARGS__)
+#define LOGJ_TRACE_L1_LIMIT(...) COMPILE_OUT_LOG_MACRO(__VA_ARGS__)
+#define LOGJ_DEBUG_LIMIT(...)    COMPILE_OUT_LOG_MACRO(__VA_ARGS__)
+#define LOGJ_INFO_LIMIT(...)     COMPILE_OUT_LOG_MACRO(__VA_ARGS__)
+#define LOGJ_NOTICE_LIMIT(...)   COMPILE_OUT_LOG_MACRO(__VA_ARGS__)
+#define LOGJ_WARNING_LIMIT(...)  COMPILE_OUT_LOG_MACRO(__VA_ARGS__)
+#define LOGJ_ERROR_LIMIT(...)    COMPILE_OUT_LOG_MACRO(__VA_ARGS__)
+#define LOGJ_CRITICAL_LIMIT(...) COMPILE_OUT_LOG_MACRO(__VA_ARGS__)
+#pragma endregion
 
 #pragma region LOGJ_LIMIT_EVERY_N
-
-#define LOGJ_TRACE_L3_LIMIT_EVERY_N(n_occurrences, fmt, ...) \
-    do { QUILL_LOGJ_TRACE_L3_LIMIT_EVERY_N(n_occurrences, ::LogBackend::getLogger(), fmt, ##__VA_ARGS__); } while(false)
-
-#define LOGJ_TRACE_L2_LIMIT_EVERY_N(n_occurrences, fmt, ...) \
-    do { QUILL_LOGJ_TRACE_L2_LIMIT_EVERY_N(n_occurrences, ::LogBackend::getLogger(), fmt, ##__VA_ARGS__); } while(false)
-
-#define LOGJ_TRACE_L1_LIMIT_EVERY_N(n_occurrences, fmt, ...) \
-    do { QUILL_LOGJ_TRACE_L1_LIMIT_EVERY_N(n_occurrences, ::LogBackend::getLogger(), fmt, ##__VA_ARGS__); } while(false)
-
-#define LOGJ_DEBUG_LIMIT_EVERY_N(n_occurrences, fmt, ...) \
-    do { QUILL_LOGJ_DEBUG_LIMIT_EVERY_N(n_occurrences, ::LogBackend::getLogger(), fmt, ##__VA_ARGS__); } while(false)
-
-#define LOGJ_INFO_LIMIT_EVERY_N(n_occurrences, fmt, ...) \
-    do { QUILL_LOGJ_INFO_LIMIT_EVERY_N(n_occurrences, ::LogBackend::getLogger(), fmt, ##__VA_ARGS__); } while(false)
-
-#define LOGJ_NOTICE_LIMIT_EVERY_N(n_occurrences, fmt, ...) \
-    do { QUILL_LOGJ_NOTICE_LIMIT_EVERY_N(n_occurrences, ::LogBackend::getLogger(), fmt, ##__VA_ARGS__); } while(false)
-
-#define LOGJ_WARNING_LIMIT_EVERY_N(n_occurrences, fmt, ...) \
-    do { QUILL_LOGJ_WARNING_LIMIT_EVERY_N(n_occurrences, ::LogBackend::getLogger(), fmt, ##__VA_ARGS__); } while(false)
-
-#define LOGJ_ERROR_LIMIT_EVERY_N(n_occurrences, fmt, ...) \
-    do { QUILL_LOGJ_ERROR_LIMIT_EVERY_N(n_occurrences, ::LogBackend::getLogger(), fmt, ##__VA_ARGS__); } while(false)
-
-#define LOGJ_CRITICAL_LIMIT_EVERY_N(n_occurrences, fmt, ...) \
-    do { QUILL_LOGJ_CRITICAL_LIMIT_EVERY_N(n_occurrences, ::LogBackend::getLogger(), fmt, ##__VA_ARGS__); } while(false)
-
-#pragma endregion //LOGJ_LIMIT_EVERY_N
+#define LOGJ_TRACE_L3_LIMIT_EVERY_N(...) COMPILE_OUT_LOG_MACRO(__VA_ARGS__)
+#define LOGJ_TRACE_L2_LIMIT_EVERY_N(...) COMPILE_OUT_LOG_MACRO(__VA_ARGS__)
+#define LOGJ_TRACE_L1_LIMIT_EVERY_N(...) COMPILE_OUT_LOG_MACRO(__VA_ARGS__)
+#define LOGJ_DEBUG_LIMIT_EVERY_N(...)    COMPILE_OUT_LOG_MACRO(__VA_ARGS__)
+#define LOGJ_INFO_LIMIT_EVERY_N(...)     COMPILE_OUT_LOG_MACRO(__VA_ARGS__)
+#define LOGJ_NOTICE_LIMIT_EVERY_N(...)   COMPILE_OUT_LOG_MACRO(__VA_ARGS__)
+#define LOGJ_WARNING_LIMIT_EVERY_N(...)  COMPILE_OUT_LOG_MACRO(__VA_ARGS__)
+#define LOGJ_ERROR_LIMIT_EVERY_N(...)    COMPILE_OUT_LOG_MACRO(__VA_ARGS__)
+#define LOGJ_CRITICAL_LIMIT_EVERY_N(...) COMPILE_OUT_LOG_MACRO(__VA_ARGS__)
+#pragma endregion
 
 #pragma region LOGJ_TAGS
+#define LOGJ_TRACE_L3_TAGS(...) COMPILE_OUT_LOG_MACRO(__VA_ARGS__)
+#define LOGJ_TRACE_L2_TAGS(...) COMPILE_OUT_LOG_MACRO(__VA_ARGS__)
+#define LOGJ_TRACE_L1_TAGS(...) COMPILE_OUT_LOG_MACRO(__VA_ARGS__)
+#define LOGJ_DEBUG_TAGS(...)    COMPILE_OUT_LOG_MACRO(__VA_ARGS__)
+#define LOGJ_INFO_TAGS(...)     COMPILE_OUT_LOG_MACRO(__VA_ARGS__)
+#define LOGJ_NOTICE_TAGS(...)   COMPILE_OUT_LOG_MACRO(__VA_ARGS__)
+#define LOGJ_WARNING_TAGS(...)  COMPILE_OUT_LOG_MACRO(__VA_ARGS__)
+#define LOGJ_ERROR_TAGS(...)    COMPILE_OUT_LOG_MACRO(__VA_ARGS__)
+#define LOGJ_CRITICAL_TAGS(...) COMPILE_OUT_LOG_MACRO(__VA_ARGS__)
+#pragma endregion
 
-#define LOGJ_TRACE_L3_TAGS(tags, fmt, ...) \
-    do { QUILL_LOGJ_TRACE_L3_TAGS(::LogBackend::getLogger(), tags, fmt, ##__VA_ARGS__); } while(false)
-
-#define LOGJ_TRACE_L2_TAGS(tags, fmt, ...) \
-    do { QUILL_LOGJ_TRACE_L2_TAGS(::LogBackend::getLogger(), tags, fmt, ##__VA_ARGS__); } while(false)
-
-#define LOGJ_TRACE_L1_TAGS(tags, fmt, ...) \
-    do { QUILL_LOGJ_TRACE_L1_TAGS(::LogBackend::getLogger(), tags, fmt, ##__VA_ARGS__); } while(false)
-
-#define LOGJ_DEBUG_TAGS(tags, fmt, ...) \
-    do { QUILL_LOGJ_DEBUG_TAGS(::LogBackend::getLogger(), tags, fmt, ##__VA_ARGS__); } while(false)
-
-#define LOGJ_INFO_TAGS(tags, fmt, ...) \
-    do { QUILL_LOGJ_INFO_TAGS(::LogBackend::getLogger(), tags, fmt, ##__VA_ARGS__); } while(false)
-
-#define LOGJ_NOTICE_TAGS(tags, fmt, ...) \
-    do { QUILL_LOGJ_NOTICE_TAGS(::LogBackend::getLogger(), tags, fmt, ##__VA_ARGS__); } while(false)
-
-#define LOGJ_WARNING_TAGS(tags, fmt, ...) \
-    do { QUILL_LOGJ_WARNING_TAGS(::LogBackend::getLogger(), tags, fmt, ##__VA_ARGS__); } while(false)
-
-#define LOGJ_ERROR_TAGS(tags, fmt, ...) \
-    do { QUILL_LOGJ_ERROR_TAGS(::LogBackend::getLogger(), tags, fmt, ##__VA_ARGS__); } while(false)
-
-#define LOGJ_CRITICAL_TAGS(tags, fmt, ...) \
-    do { QUILL_LOGJ_CRITICAL_TAGS(::LogBackend::getLogger(), tags, fmt, ##__VA_ARGS__); } while(false)
-
-#pragma endregion //LOGJ_TAGS
-
-#define LOG_RUNTIME_METADATA(log_level, file, line_number, function, fmt, ...) \
-    do { QUILL_LOG_RUNTIME_METADATA(::LogBackend::getLogger(), MapEngineLogLevelToQuill(log_level), file, line_number, function, fmt, ##__VA_ARGS__); } while(false)
+#define LOG_RUNTIME_METADATA(...) COMPILE_OUT_LOG_MACRO(__VA_ARGS__)

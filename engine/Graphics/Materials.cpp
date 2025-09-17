@@ -74,7 +74,7 @@ void MaterialSystem::createDefaultMaterials() {
     // Uses deferred rendering path and participates in lighting
     createMaterial(
             "default",
-            MaterialFlags::ReceivesLight
+            MaterialFlagsDEAD::ReceivesLight
         );
         
         // Set conservative default parameters
@@ -84,7 +84,7 @@ void MaterialSystem::createDefaultMaterials() {
     {
         // Solid occluder material (e.g., walls, solid objects)
         MaterialData& occluderMaterial = m_materials["occluder"];
-        occluderMaterial.flags = MaterialFlags::OccludesLight;
+        occluderMaterial.flags = MaterialFlagsDEAD::OccludesLight;
         occluderMaterial.name = "occluder";
         occluderMaterial.parameters.baseColor = Vec4(1.0f, 1.0f, 1.0f, 1.0f);
     }
@@ -171,7 +171,7 @@ bool MaterialSystem::loadMaterials() {
             CONSOLE_LOG(LEVEL_WARNING) << "Default material not found in loaded materials, creating...";
             createMaterial(
             "default",
-            MaterialFlags::ReceivesLight    // Affected by scene lighting// Participates in shadow casting
+            MaterialFlagsDEAD::ReceivesLight    // Affected by scene lighting// Participates in shadow casting
         );
         
         // Set conservative default parameters

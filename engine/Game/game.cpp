@@ -65,7 +65,7 @@ void Game::Init(unsigned int width, unsigned int height, GAMESTATE firstState)
 
     // load shaders
 #ifdef IMGUI_ENABLED
-    ST<Engine>::Get()->_vulkan->_renderer->resize(Width, Height);
+    //ST<Engine>::Get()->_vulkan->_renderer->resize(Width, Height);
     ST<CustomViewport>::Get()->Init(Width, Height);
 #endif
     ST<CameraController>::Get()->SetCameraData(CameraData{

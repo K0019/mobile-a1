@@ -26,7 +26,7 @@ namespace gui
 		{
 			ImGui::SetDragDropPayload(identifier, &data, sizeof(DataType));
 
-			ImGui::Image(textureHandle, size);
+			ImGui::Image(0, size);
 
 			ImGui::EndDragDropSource();
 		}

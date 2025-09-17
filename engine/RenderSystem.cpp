@@ -23,10 +23,10 @@ All rights reserved.
 #include "Engine.h"
 RenderSystem::RenderSystem() : SystemOperatingByLayer(&RenderSystem::DrawRenderComp)
 {
-	renderer = ST<Engine>::Get()->_vulkan->_renderer.get();
+	//renderer = ST<Engine>::Get()->_vulkan->_renderer.get();
 }
 void RenderSystem::DrawRenderComp(RenderComponent& renderComp)
 {
 
-	renderer->AddRenderInstance(renderComp);
+	//renderer->AddRenderInstance(renderComp);
 }

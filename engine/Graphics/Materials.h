@@ -22,7 +22,7 @@ All rights reserved.
 #pragma once
 class MaterialSystem;
 
-namespace MaterialFlags {
+namespace MaterialFlagsDEAD {
     static constexpr uint32_t None = 0;
 
     // Light interaction properties

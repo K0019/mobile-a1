@@ -27,12 +27,12 @@ All rights reserved.
 #include "Engine.h"
 
 LightingSystem::LightingSystem() : System_Internal(&LightingSystem::UpdateLightComp) {
-renderer = ST<Engine>::Get()->_vulkan->_renderer.get();
+//renderer = ST<Engine>::Get()->_vulkan->_renderer.get();
 }
 
 
 void LightingSystem::UpdateLightComp(LightComponent& lightComp) {
-  renderer->AddLightInstance(lightComp);
+  //renderer->AddLightInstance(lightComp);
 }
 
 LightBlinkSystem::LightBlinkSystem()

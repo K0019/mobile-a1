@@ -26,7 +26,7 @@ All rights reserved.
 #include "RenderComponent.h"
 #include "CustomViewport.h"
 #include "Engine.h"
-#include "ryan-c/Renderer.h"
+//#include "ryan-c/Renderer.h"
 //#include "AudioManager.h"
 
 Console::Console()

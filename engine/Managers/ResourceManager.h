@@ -29,7 +29,6 @@ All rights reserved.
 
 #pragma once
 #include "Animation.h"
-#include "ryan-c/TextureManager.h"
 
 #include "AssetBrowser.h"
 #include "Sprite.h"
@@ -49,17 +48,17 @@ public:
     // Resource management functions
     static bool ResourceExists(size_t nameHash);
     static const std::string& GetResourceName(size_t nameHash);
-    static size_t LoadTexture(const std::string& file, const std::string& name);
+    /*static size_t LoadTexture(const std::string& file, const std::string& name);
     static size_t LoadTexture(const unsigned char* data, int width, int height, const std::string& name);
-    static const Texture& GetTexture(const std::string& name);
-    static const Texture& GetTexture(size_t nameHash);
+    /*static const Texture& GetTexture(const std::string& name);
+    static const Texture& GetTexture(size_t nameHash);#1#
     static bool TextureExists(const std::string& name);
     
     // Font management
     static size_t LoadFont(const std::string& fontFile);
-    static const FontAtlas& GetFont(const std::string& name);
-    static const FontAtlas& GetFont(size_t nameHash);
-    static bool FontExists(const std::string& name);
+    /*static const FontAtlas& GetFont(const std::string& name);
+    static const FontAtlas& GetFont(size_t nameHash);#1#
+    static bool FontExists(const std::string& name);*/
     
     // Sound management
     static const AudioAsset& LoadSound(const std::string& name, AudioAsset& sound);

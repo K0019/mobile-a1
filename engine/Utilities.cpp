@@ -156,6 +156,6 @@ namespace util {
 	void DrawLine(const Vec2& start, const Vec2& end, const Vec3& color, float alpha)
 	{
 		Vec4 lineColor(color, alpha);
-		ST<Engine>::Get()->_vulkan->_renderer->AddLineInstance(start, end, lineColor);
+		//ST<Engine>::Get()->_vulkan->_renderer->AddLineInstance(start, end, lineColor);
 	}
 }

@@ -38,15 +38,15 @@ void SpriteTab::Render()
         {
             gui::Group group;
 
-            const Texture& tex = ResourceManager::GetTexture(sprite.textureName);
+            //const Texture& tex = ResourceManager::GetTexture(sprite.textureName);
             ImGui::ImageButton("##sprite",
-                tex.ImGui_handle,
+                0,
                 ImVec2(THUMBNAIL_SIZE, THUMBNAIL_SIZE),
                 ImVec2(sprite.texCoords.x, sprite.texCoords.y),
                 ImVec2(sprite.texCoords.z, sprite.texCoords.w));
 
             //gui::PayloadSource<size_t>("SPRITE_ID", i, sprite.name.c_str());
-            gui::PayloadSourceWithImageTooltip<size_t>("SPRITE_ID", i, tex.ImGui_handle, ImVec2(THUMBNAIL_SIZE / 2, THUMBNAIL_SIZE / 2));
+            gui::PayloadSourceWithImageTooltip<size_t>("SPRITE_ID", i,0, ImVec2(THUMBNAIL_SIZE / 2, THUMBNAIL_SIZE / 2));
 
             // Hover tooltip
             if (ImGui::IsItemHovered())

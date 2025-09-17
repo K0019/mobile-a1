@@ -188,7 +188,7 @@ class CameraPositioner_MoveTo final : public CameraPositionerInterface
   public:
     CameraPositioner_MoveTo(const vec3& pos, const vec3& angles) : positionCurrent_(pos), positionDesired_(pos), anglesCurrent_(angles), anglesDesired_(angles) {}
 
-    void update(float deltaSeconds, const vec2& mousePos = {}, bool mousePressed = {})
+    void update(float deltaSeconds, [[maybe_unused]] const vec2& mousePos = {}, [[maybe_unused]] bool mousePressed = {})
     {
       positionCurrent_ += dampingLinear_ * deltaSeconds * (positionDesired_ - positionCurrent_);
 

@@ -23,7 +23,7 @@ All rights reserved.
 #include "AnimatorComponent.h"
 #include "SceneManagement.h"
 #include "EditorHistory.h"
-
+#include "imgui_context.h"
 
 void CustomViewport::Init(unsigned newWidth, unsigned newHeight)
 {
@@ -103,10 +103,10 @@ void CustomViewport::DrawPlayControls() {
 	else {
 		ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.8f, 0.8f, 0.8f, 1.0f));
 	}
-	static CameraData camera_data;
+	//static CameraData camera_data;
 	if (ImGui::Button(isPlayMode ? ICON_FA_STOP : ICON_FA_PLAY, ImVec2(BUTTON_WIDTH, BUTTON_HEIGHT)) || Input::GetKeyPressed(KEY::F5))
 	{
-		if (!isPlayMode) // About to enter play mode
+		/*if (!isPlayMode) // About to enter play mode
 		{
 			camera_data.position = ST<CameraController>::Get()->GetPosition();
 			camera_data.zoom = ST<CameraController>::Get()->GetZoom();
@@ -115,7 +115,7 @@ void CustomViewport::DrawPlayControls() {
 		else // About to exit play mode
 		{
 			ST<CameraController>::Get()->SetCameraData(camera_data);
-		}
+		}*/
 		ST<Game>::Get()->TogglePlayMode();
 	}
 	ImGui::PopStyleColor(5); // Text + Button colors + Border
@@ -226,12 +226,13 @@ void CustomViewport::DrawImGuiWindow() {
 
 		// Set position and render viewport image
 		ImGui::SetCursorPos(ImVec2(padding.x, padding.y + titleBarHeight + playControlsHeight));
-		ImGui::Image(
-			reinterpret_cast<intptr_t>(ST<Engine>::Get()->_vulkan->getViewportDescriptorSet()),
-			renderSize,
-			ImVec2(0, 0), ImVec2(1, 1)
-		);
-
+		if (auto sceneColorID = ST<Engine>::Get()->m_imguiContext->GetTransientRegistry().QueryBindlessID("ImGuiSceneView"))
+    {
+			ImGui::Image(*sceneColorID,
+				renderSize,
+				ImVec2(0, 0), ImVec2(1, 1)
+			);
+		}
 		if (ImGui::BeginDragDropTarget())
 		{
 			if (ImGuiPayload const* payload = ImGui::AcceptDragDropPayload("SPRITE_ID"))
@@ -381,6 +382,7 @@ Transform CustomViewport::WorldToWindowTransform(const Transform& worldTransform
 
 Vec3 CustomViewport::WindowToWorldPosition(const Vec2& inWindowPos) const {
 
+/*
 #ifdef IMGUI_ENABLED
 	auto WORLD = ST<Engine>::Get()->_viewportExtent;
 #else
@@ -410,8 +412,9 @@ Vec3 CustomViewport::WindowToWorldPosition(const Vec2& inWindowPos) const {
 		static_cast<float>((WORLD.height / 2.0f - inWindowPos.y * scaleY) / zoom + cameraPos.y)
 	};
 #endif
+*/
 
-	return worldPos;
+	return {};
 }
 
 

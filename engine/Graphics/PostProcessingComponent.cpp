@@ -8,7 +8,7 @@ PostProcessingComponent::PostProcessingComponent(bool bloomEnabled)
 }
 void PostProcessingComponent::OnDetached()
 {
-    ST<Engine>::Get()->_vulkan->_renderer->ResetPostProcessing();
+   // ST<Engine>::Get()->_vulkan->_renderer->ResetPostProcessing();
 }
 void PostProcessingComponent::EditorDraw()
 {
@@ -55,10 +55,10 @@ void PostProcessingComponent::EditorDraw()
 
 PostProcessingSystem::PostProcessingSystem() : System_Internal(&PostProcessingSystem::UpdatePostProcessingComp)
 {
-    renderer = ST<Engine>::Get()->_vulkan->_renderer.get();
+    //renderer = ST<Engine>::Get()->_vulkan->_renderer.get();
 }
 
 void PostProcessingSystem::UpdatePostProcessingComp(PostProcessingComponent& ppComp)
 {
-    renderer->updatePostProcessing(ppComp);
+    //renderer->updatePostProcessing(ppComp);
 }

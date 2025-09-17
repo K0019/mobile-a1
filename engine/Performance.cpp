@@ -24,8 +24,6 @@ All rights reserved.
 
 #include "Performance.h"
 
-#include "ryan-c/VulkanManager.h"
-
 #ifdef max
 #undef max
 #endif
@@ -213,12 +211,12 @@ void PerformanceProfiler::DrawContents() {
     }
     if(ImGui::CollapsingHeader("GPU Frame Time", ImGuiTreeNodeFlags_DefaultOpen))
     {
-        auto frameStats = VulkanManager::Get().VkQueryManager().GetFrameStats();
-        UpdateGPU(frameStats.frameTime);
+        //auto frameStats = VulkanManager::Get().VkQueryManager().GetFrameStats();
+        //UpdateGPU(frameStats.frameTime);
         if(!gpuFrameTimeGraph.empty()) {
-            ImGui::Text("Frame Time: %.3f ms", frameStats.frameTime);
+            /*ImGui::Text("Frame Time: %.3f ms", frameStats.frameTime);
             ImGui::Text("Vertices: %llu", frameStats.vertexCount);
-            ImGui::Text("Primitives: %llu", frameStats.primitiveCount);
+            ImGui::Text("Primitives: %llu", frameStats.primitiveCount);*/
             ImGui::Separator();
 
             ImGui::Text("GPU Frame Time History");

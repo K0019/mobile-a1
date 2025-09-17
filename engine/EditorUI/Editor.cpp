@@ -26,7 +26,7 @@ All rights reserved.
 
 #include "Engine.h"
 #include "TextComponent.h"
-#include "ryan-c/Renderer.h"
+
 #include "NameComponent.h"
 #include "EntityLayers.h"
 #include "Game.h"
@@ -83,7 +83,7 @@ void Inspector::ProcessInput()
 
 	if(isMouseInViewport && ST<Game>::Get()->GetState() == GAMESTATE::EDITOR) // Only able to scroll camera while in editor mode
 	{
-		ST<CameraController>::Get()->MultTargetZoom(CameraController::GetZoomMultiplierFromInput(Input::GetScroll(), ST<GameSettings>::Get()->m_editorZoomSensitivity));
+		//ST<CameraController>::Get()->MultTargetZoom(CameraController::GetZoomMultiplierFromInput(Input::GetScroll(), ST<GameSettings>::Get()->m_editorZoomSensitivity));
 
 		if(ImGui::IsMouseClicked(ImGuiMouseButton_Right))
 		{
@@ -95,7 +95,7 @@ void Inspector::ProcessInput()
 			isCameraDragging = false;
 		}
 
-		if(isCameraDragging && ImGui::IsMouseDown(ImGuiMouseButton_Right))
+		/*if(isCameraDragging && ImGui::IsMouseDown(ImGuiMouseButton_Right))
 		{
 			CONSOLE_LOG_UNIMPLEMENTED() << "Viewport camera view drag";
 			//Vec2 mouseDelta = mousePos - lastCameraMousePos;
@@ -109,13 +109,13 @@ void Inspector::ProcessInput()
 
 			//// Update last mouse position
 			//lastCameraMousePos = mousePos;////
-		}
+		}*/
 	}
 	else
 	{
 		isCameraDragging = false;
 	}
-	ST<CameraController>::Get()->LerpZoom(dt);
+	//ST<CameraController>::Get()->LerpZoom(dt);
 
 	if(Input::GetKeyPressed(KEY::DEL))
 		DeleteSelectedEntity();
@@ -369,7 +369,7 @@ void Inspector::CreateEntityAndSelect()
 	SetSelectedEntity(ecs::CreateEntity());
 	ST<History>::Get()->OneEvent(HistoryEvent_EntityCreate{ selectedEntity });
 	selectedEntity->GetTransform().SetLocal(Vec3{ 200.0f, 200.0f, 0.0f }, Vec3{ 150.0f, 150.0f, 150.0f }, Vec3{});
-	selectedEntity->AddCompNow(RenderComponent{});
+	//selectedEntity->AddCompNow(RenderComponent{});
 }
 
 void Inspector::ForceUnselectEntity()
@@ -390,11 +390,11 @@ void Inspector::DrawSceneView()
 	ImGui::DragFloat("Grid Size", &m_gridSize, 10.0f, 10.0f, 1000.0f);
 	//ImGui::DragFloat2("Grid Offset", &m_gridOffset.x, 10.0f);
 	//ImGui::ColorEdit3("Grid Color", &m_gridColor.x);
-	VkClearValue clearColor = ST<Engine>::Get()->_vulkan->_renderer->getClearColor();
-	if(ImGui::ColorEdit3("Background Color", clearColor.color.float32))
+	//VkClearValue clearColor = ST<Engine>::Get()->_vulkan->_renderer->getClearColor();
+	/*if(ImGui::ColorEdit3("Background Color", clearColor.color.float32))
 	{
 		ST<Engine>::Get()->_vulkan->_renderer->setClearColor(clearColor);
-	}
+	}*/
 }
 
 ecs::EntityHandle Inspector::GetSelectedEntity() {

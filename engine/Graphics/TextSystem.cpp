@@ -21,18 +21,18 @@ All rights reserved.
 #include "TextSystem.h"
 
 #include "Engine.h"
-#include "ryan-c/Renderer.h"
+//#include "ryan-c/Renderer.h"
 
 TextSystem::TextSystem()
     : System_Internal{ &TextSystem::DrawTextComp }
 {
-    renderer = ST<Engine>::Get()->_vulkan->_renderer.get();
+    //renderer = ST<Engine>::Get()->_vulkan->_renderer.get();
 }
 
 void TextSystem::DrawTextComp(TextComponent& textComp)
 {
     textComp.CalculateWorldTransform();
-    renderer->AddTextInstance(textComp);
+    //renderer->AddTextInstance(textComp);
 }
 
 FPSTextSystem::FPSTextSystem()

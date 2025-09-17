@@ -1,6 +1,7 @@
 ﻿#include "math/utils_math.h"
 #include "utils_cubemap.h"
 
+#include <corecrt_math_defines.h>
 #include <cstdio>
 #include <glm/glm.hpp>
 #include <glm/ext.hpp>
@@ -27,7 +28,7 @@ float radicalInverse_VdC(uint32_t bits)
 
 vec2 hammersley2d(uint32_t i, uint32_t N) { return vec2(float(i) / float(N), radicalInverse_VdC(i)); }
 
-void convolveLambertian(const vec3* data, int srcW, int srcH, int dstW, int dstH, vec3* output, int numMonteCarloSamples)
+void convolveLambertian([[maybe_unused]] const vec3* data, int srcW, int srcH, int dstW, int dstH, vec3* output, int numMonteCarloSamples)
 {
   // only equirectangular maps are supported
   assert(srcW == 2 * srcH);
@@ -75,7 +76,7 @@ void convolveLambertian(const vec3* data, int srcW, int srcH, int dstW, int dstH
   }
 }
 
-void convolveGGX(const vec3* data, int srcW, int srcH, int dstW, int dstH, vec3* output, int numMonteCarloSamples)
+void convolveGGX([[maybe_unused]] const vec3* data, int srcW, int srcH, int dstW, int dstH, vec3* output, int numMonteCarloSamples)
 {
   // only equirectangular maps are supported
   assert(srcW == 2 * srcH);

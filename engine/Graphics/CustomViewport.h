@@ -21,7 +21,6 @@ All rights reserved.
 #pragma once
 #include "Engine.h"
 #include "imgui_internal.h"
-#include "ryan-c/Renderer.h"
 
 /**
  * @brief The CustomViewport class represents a custom viewport for rendering graphics.

@@ -45,7 +45,7 @@ const std::string& ResourceManager::GetResourceName(size_t nameHash)
     return ResourceNames[nameHash];
 }
 
-size_t ResourceManager::LoadTexture(const std::string& file, const std::string& name)
+/*size_t ResourceManager::LoadTexture(const std::string& file, const std::string& name)
 {
     size_t nameHash = util::GenHash(name);
     ResourceNames[nameHash] = name;
@@ -74,9 +74,9 @@ const Texture& ResourceManager::GetTexture(size_t nameHash)
 bool ResourceManager::TextureExists(const std::string& name)
 {
     return VulkanManager::Get().VkTextureManager().TextureExists(name);
-}
+}*/
 
-size_t ResourceManager::LoadFont(const std::string& fontFile)
+/*size_t ResourceManager::LoadFont(const std::string& fontFile)
 {
     auto name = VulkanManager::Get().VkTextureManager().loadFontAtlasFromFile(fontFile);
     size_t nameHash = util::GenHash(name);
@@ -97,7 +97,7 @@ const FontAtlas& ResourceManager::GetFont(size_t nameHash)
 bool ResourceManager::FontExists(const std::string& name)
 {
     return VulkanManager::Get().VkTextureManager().FontAtlasExists(name);
-}
+}*/
 
 size_t ResourceManager::CreateAnimationFromSprites(const std::string& name,
                                                    const std::vector<FrameData>& frameData) {
@@ -212,12 +212,12 @@ const Sprite& ResourceManager::GetSprite(size_t spriteID) {
     if(!it->second.hasValidTexture) {
         try {
             if(std::filesystem::exists(it->second.originalPath)) {
-                if(!TextureExists(it->second.originalPath)) {
+                /*if(!TextureExists(it->second.originalPath)) {
                     LoadTexture(it->second.originalPath, it->second.originalPath);
-                }
-                const Texture& tex = GetTexture(it->second.originalPath);
-                it->second.sprite.textureID = tex.index;
-                it->second.hasValidTexture = true;
+                }*/
+                //const Texture& tex = GetTexture(it->second.originalPath);
+                //it->second.sprite.textureID = tex.index;
+                //it->second.hasValidTexture = true;
             }
             else {
                 it->second.sprite.textureID = INVALID_TEXTURE_ID;
@@ -387,9 +387,9 @@ bool ResourceManager::LoadAssetsFromFile(const std::string& filename) {
             {
                 try
                 {
-                    if (!TextureExists(slot.originalPath))
-                        LoadTexture(slot.originalPath, slot.originalPath);
-                    slot.sprite.textureID = GetTexture(slot.originalPath).index;
+                    /*if (!TextureExists(slot.originalPath))
+                        LoadTexture(slot.originalPath, slot.originalPath);*/
+                    //slot.sprite.textureID = GetTexture(slot.originalPath).index;
                     slot.hasValidTexture = true;
                 }
                 catch (const std::exception& e)

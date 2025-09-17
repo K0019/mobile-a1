@@ -62,11 +62,11 @@ void AnimationTab::Render()
         // Animation preview with button behavior
         ImGui::BeginGroup();
         const Sprite& sprite = ResourceManager::GetSprite(anim.frames[0].spriteID);
-        const Texture& tex = ResourceManager::GetTexture(sprite.textureName);
+        //const Texture& tex = ResourceManager::GetTexture(sprite.textureName);
         if (!anim.frames.empty())
         {
             ImGui::ImageButton("##anim",
-                tex.ImGui_handle,
+                0,
                 ImVec2(THUMBNAIL_SIZE, THUMBNAIL_SIZE),
                 ImVec2(sprite.texCoords.x, sprite.texCoords.y),
                 ImVec2(sprite.texCoords.z, sprite.texCoords.w));
@@ -138,7 +138,7 @@ void AnimationTab::Render()
 
             // Preview
             ImGui::Image(
-                tex.ImGui_handle,
+                0,
                 ImVec2(THUMBNAIL_SIZE, THUMBNAIL_SIZE),
                 ImVec2(sprite.texCoords.x, sprite.texCoords.y),
                 ImVec2(sprite.texCoords.z, sprite.texCoords.w));
@@ -303,7 +303,7 @@ void AnimationTab::RenderSpriteSelectionGrid()
         }
 
         // Get sprite texture
-        const Texture& tex = ResourceManager::GetTexture(sprite.textureName);
+        //const Texture& tex = ResourceManager::GetTexture(sprite.textureName);
 
         // Pop selection colors if needed
         if (isSelected)
@@ -313,7 +313,7 @@ void AnimationTab::RenderSpriteSelectionGrid()
 
         // Handle click
         if (ImGui::ImageButton(("sprite_" + std::to_string(i)).c_str(),  // Unique ID for each sprite button
-            tex.ImGui_handle,
+            0,
             ImVec2(THUMBNAIL_SIZE, THUMBNAIL_SIZE),
             ImVec2(sprite.texCoords.x, sprite.texCoords.y),
             ImVec2(sprite.texCoords.z, sprite.texCoords.w),
@@ -385,7 +385,7 @@ void AnimationTab::RenderSpriteSelectionGrid()
             ImGui::SetDragDropPayload("SPRITE_ID", &spriteId, sizeof(size_t));
 
             // Preview
-            ImGui::Image(tex.ImGui_handle,
+            ImGui::Image(0,
                 ImVec2(THUMBNAIL_SIZE / 2, THUMBNAIL_SIZE / 2),
                 ImVec2(sprite.texCoords.x, sprite.texCoords.y),
                 ImVec2(sprite.texCoords.z, sprite.texCoords.w));
@@ -430,7 +430,7 @@ void AnimationTab::RenderFrameList()
         // Push unique ID for this frame to avoid ID conflicts
         ImGui::PushID(static_cast<int>(i));
         const Sprite& sprite = ResourceManager::GetSprite(animConfig.frames[i].spriteID);
-        const Texture& tex = ResourceManager::GetTexture(sprite.textureName);
+        //const Texture& tex = ResourceManager::GetTexture(sprite.textureName);
         // Frame Container
          // Begin a group for the entire frame entry
         ImGui::BeginGroup();
@@ -448,7 +448,7 @@ void AnimationTab::RenderFrameList()
                 ImGui::SetDragDropPayload("FRAME_REORDER", &frameIdx, sizeof(size_t));
                 ImGui::Text("Moving frame %zu", i + 1);
                 // Show preview while dragging
-                ImGui::Image(tex.ImGui_handle,
+                ImGui::Image(0,
                     ImVec2(20, 20),
                     ImVec2(sprite.texCoords.x, sprite.texCoords.y),
                     ImVec2(sprite.texCoords.z, sprite.texCoords.w));
@@ -490,7 +490,7 @@ void AnimationTab::RenderFrameList()
             ImGui::SameLine();
 
             // Frame preview
-            ImGui::Image(tex.ImGui_handle,
+            ImGui::Image(0,
                 ImVec2(40, 40),
                 ImVec2(sprite.texCoords.x, sprite.texCoords.y),
                 ImVec2(sprite.texCoords.z, sprite.texCoords.w));
@@ -666,7 +666,7 @@ void AnimationTab::RenderAnimationPreview()
     animConfig.currentFrame = std::min(animConfig.currentFrame, animConfig.frames.size() - 1);
     const FrameData& currentFrame = animConfig.frames[animConfig.currentFrame];
     const Sprite& sprite = ResourceManager::GetSprite(currentFrame.spriteID);
-    const Texture& tex = ResourceManager::GetTexture(sprite.textureName);
+    //const Texture& tex = ResourceManager::GetTexture(sprite.textureName);
 
     // Center the preview
     ImVec2 availSize = ImGui::GetContentRegionAvail();
@@ -686,7 +686,7 @@ void AnimationTab::RenderAnimationPreview()
 
     // Draw centered preview
     ImGui::SetCursorPos(ImGui::GetCursorPos() + pos);
-    ImGui::Image(tex.ImGui_handle,
+    ImGui::Image(0,
         size,
         ImVec2(sprite.texCoords.x, sprite.texCoords.y),
         ImVec2(sprite.texCoords.z, sprite.texCoords.w));

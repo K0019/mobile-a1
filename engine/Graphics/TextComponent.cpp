@@ -181,8 +181,8 @@ void TextComponent::EditorDraw()
     auto& currentFontName = ResourceManager::GetResourceName(fontNameHash);
     if(ImGui::BeginCombo("Font", currentFontName.c_str()))
     {
-        const auto& fontAtlases = VulkanManager::Get().VkTextureManager().getFontAtlases();
-        for(const auto& fontName : fontAtlases | std::views::keys)
+        //const auto& fontAtlases = VulkanManager::Get().VkTextureManager().getFontAtlases();
+        /*for(const auto& fontName : fontAtlases | std::views::keys)
         {
             bool isSelected = (fontName == currentFontName);
 
@@ -196,7 +196,7 @@ void TextComponent::EditorDraw()
             {
                 ImGui::SetItemDefaultFocus();
             }
-        }
+        }*/
         ImGui::EndCombo();
     }
     const char* alignmentItems[] = { "Left", "Center", "Right" };

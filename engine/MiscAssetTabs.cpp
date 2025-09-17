@@ -90,7 +90,7 @@ const char* FontTab::GetIdentifier() const
 
 void FontTab::Render()
 {
-    const auto& fontAtlases = VulkanManager::Get().VkTextureManager().getFontAtlases();
+    /*const auto& fontAtlases = VulkanManager::Get().VkTextureManager().getFontAtlases();
 
     gui::Child child("FontTable", ImVec2(0.0f, 0.0f));
     gui::TextFormatted("Loaded Fonts");
@@ -99,7 +99,7 @@ void FontTab::Render()
     for (const auto& [atlasName, atlas] : fontAtlases)
     {
         gui::TextFormatted("%s", atlasName.c_str());
-    }
+    }*/
 }
 
 ///////////////
@@ -176,7 +176,7 @@ void ScriptTab::Render()
     ImGui::SameLine();
     if (ImGui::Button("Reload"))
     {
-        CSharpScripts::CSScripting::ReloadAssembly();
+        //CSharpScripts::CSScripting::ReloadAssembly();
     }
     ImGui::Separator();
 

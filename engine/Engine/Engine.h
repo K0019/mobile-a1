@@ -33,8 +33,18 @@ All rights reserved.
 #include "Hierarchy.h"
 #include "Popup.h"
 #include "Editor.h"
-#include "ryan-c/graphics/renderer.h"
-#include "ryan-c/assets/core/asset_system.h"
+
+namespace editor
+{
+    class ImGuiContext;
+}
+
+class Renderer;
+
+namespace AssetLoading
+{
+    class AssetSystem;
+}
 
 /*****************************************************************//*!
 \class Engine
@@ -47,8 +57,8 @@ public:
     using duration = std::chrono::nanoseconds; // Higher precision
     using time_point = std::chrono::time_point<clock>;
 
-    Engine() = default;
-
+    Engine();
+    ~Engine();
     // Prevent copying
     Engine(const Engine&) = delete;
     Engine& operator=(const Engine&) = delete;
@@ -82,10 +92,18 @@ public:
 
     GLFWwindow* _window{ nullptr };
     GLFWmonitor* _monitor{nullptr };
+
+    // ryan was here
     std::unique_ptr<Renderer> m_renderer;
-
     std::unique_ptr<AssetLoading::AssetSystem> m_assetSystem;
+    std::unique_ptr<editor::ImGuiContext> m_imguiContext;
 
+    struct Context
+    {
+      Renderer* renderer = nullptr;
+      AssetLoading::AssetSystem* assetSystem = nullptr;
+    } context;
+    // remove these at some point, kind of atrocious.
     VkExtent2D _windowExtent{};
     VkExtent2D _viewportExtent {};
     VkExtent2D _worldExtent {};

@@ -220,14 +220,14 @@ bool FileBrowserTab::RenderFileItem(const FileSystem::FileEntry& entry)
     bool clicked;
     if (entry.fileType == "texture")
     {
-        VkDescriptorSet descriptor = GetThumbnailDescriptor(entry.fullPath);
+        /*VkDescriptorSet descriptor = GetThumbnailDescriptor(entry.fullPath);
         if (descriptor)
         {
             clicked = ImGui::ImageButton(("##" + entry.filename).c_str(),
-                descriptor,
+                0,
                 ImVec2(THUMBNAIL_SIZE, THUMBNAIL_SIZE));
-        }
-        else
+        }*/
+
         {
             clicked = ImGui::Button((ICON_FA_IMAGE"##" + entry.filename).c_str(),
                 ImVec2(THUMBNAIL_SIZE, THUMBNAIL_SIZE));
@@ -302,7 +302,7 @@ VkDescriptorSet FileBrowserTab::GetThumbnailDescriptor(std::filesystem::path::it
 
         // Attempt to load the thumbnail
         std::string relativePath = ST<Filepaths>::Get()->MakeRelativeToWorkingDir(path);
-        if (!ResourceManager::TextureExists(relativePath))
+        /*if (!ResourceManager::TextureExists(relativePath))
         {
             ResourceManager::LoadTexture(path.string(), relativePath);
         }
@@ -310,10 +310,10 @@ VkDescriptorSet FileBrowserTab::GetThumbnailDescriptor(std::filesystem::path::it
         // If texture was loaded successfully, cache its descriptor
         if (ResourceManager::TextureExists(relativePath))
         {
-            const Texture& tex = ResourceManager::GetTexture(relativePath);
+            /*const Texture& tex = ResourceManager::GetTexture(relativePath);
             thumbnailCache.textureDescriptors[pathStr] = tex.ImGui_handle;
-            return tex.ImGui_handle;
-        }
+            return tex.ImGui_handle;#1#
+        }*/
     }
     return nullptr;
 }
@@ -366,9 +366,9 @@ void FileBrowserTab::ShowSpriteSheetDialog()
 
         std::string relativePath = ST<Filepaths>::Get()->MakeRelativeToWorkingDir(spriteConfig.targetPath);
         // Show dimensions info
-        if (ResourceManager::TextureExists(relativePath))
+        /*if (ResourceManager::TextureExists(relativePath))
         {
-            const Texture& tex = ResourceManager::GetTexture(relativePath);
+            /*const Texture& tex = ResourceManager::GetTexture(relativePath);
             if (spriteConfig.isSpriteSheet)
             {
                 int spriteWidth = tex.extent.width / spriteConfig.spriteCount;
@@ -387,8 +387,8 @@ void FileBrowserTab::ShowSpriteSheetDialog()
                 ImGui::TextColored(ImVec4(0.7f, 0.7f, 0.7f, 1.0f),
                     "Image dimensions: %dx%d pixels",
                     tex.extent.width, tex.extent.height);
-            }
-        }
+            }#1#
+        }*/
 
         ImGui::Separator();
 
@@ -426,12 +426,12 @@ void FileBrowserTab::ImportAsSpriteSheet(const std::filesystem::path& path, int 
     std::string relativePath{ CopyIntoWorkingDir(path).string() };
 
     // Load texture if not already loaded
-    if (!ResourceManager::TextureExists(relativePath))
+    /*if (!ResourceManager::TextureExists(relativePath))
     {
         ResourceManager::LoadTexture(path.string(), relativePath);
-    }
+    }*/
 
-    const Texture& tex = ResourceManager::GetTexture(relativePath);
+    /*const Texture& tex = ResourceManager::GetTexture(relativePath);
     float spriteWidth = 1.0f / spriteCount;
 
     for (int i = 0; i < spriteCount; ++i)
@@ -451,7 +451,7 @@ void FileBrowserTab::ImportAsSpriteSheet(const std::filesystem::path& path, int 
         sprite.height = tex.extent.height;
 
         ResourceManager::AddSprite(sprite);
-    }
+    }*/
 }
 
 void FileBrowserTab::ImportAsSprite(const std::filesystem::path& path, const std::string& name)
@@ -460,12 +460,12 @@ void FileBrowserTab::ImportAsSprite(const std::filesystem::path& path, const std
     std::string relativePath{ CopyIntoWorkingDir(path).string() };
 
     // Load texture if not already loaded
-    if (!ResourceManager::TextureExists(relativePath))
+    /*if (!ResourceManager::TextureExists(relativePath))
     {
         ResourceManager::LoadTexture(path.string(), relativePath);
-    }
+    }*/
 
-    const Texture& tex = ResourceManager::GetTexture(relativePath);
+    /*const Texture& tex = ResourceManager::GetTexture(relativePath);
 
     Sprite sprite;
     sprite.name = name;
@@ -475,7 +475,7 @@ void FileBrowserTab::ImportAsSprite(const std::filesystem::path& path, const std
     sprite.height = tex.extent.height;
     sprite.texCoords = Vec4(0.0f, 0.0f, 1.0f, 1.0f);
 
-    ResourceManager::AddSprite(sprite);
+    ResourceManager::AddSprite(sprite);*/
 }
 
 std::filesystem::path FileBrowserTab::CopyIntoWorkingDir(const std::filesystem::path& file)
