@@ -109,11 +109,19 @@ namespace editor {
 	void InputConfig::DrawInputSetsColumn()
 	{
 		auto selectedInputSet{ selectedInputSetPtr.lock() };
+
 		for (auto& [name, inputSet] : ST<Input>::Get()->Editor_GetInputSets())
 		{
 			gui::SetID id{ name.get().c_str() };
-			if (gui::Selectable(name.get().c_str(), inputSet.get() == selectedInputSet))
-				selectedInputSetPtr = inputSet.get();
+			gui::Renamable::Wrap(name.get().c_str(),
+				[this, &name, &inputSet, &selectedInputSet]() -> void { // Normal
+					if (gui::Selectable(name.get().c_str(), inputSet.get() == selectedInputSet))
+						selectedInputSetPtr = inputSet.get();
+				}, [&name](const char* newName) -> void { // Rename
+					// Should be safe to make changes because the vector we're iterating is an rvalue
+					ST<Input>::Get()->RenameInputSet(name, newName);
+				}
+			);
 		}
 	}
 
@@ -129,17 +137,25 @@ namespace editor {
 		for (auto& [name, action] : selectedInputSet->Editor_GetActions())
 		{
 			gui::SetID id{ name.get().c_str() };
-			bool isSelected{ action.get() == selectedAction };
-			if (gui::Selectable(name.get().c_str(), isSelected))
-			{
-				// Select the action and deselect previous binding
-				selectedActionPtr = selectedAction = action.get();
-				selectedBindingIndex = -1;
-				isSelected = true;
-			}
 
-			if (isSelected)
-				selectedActionNamePtr = &name.get();
+			gui::Renamable::Wrap(name.get().c_str(),
+				[this, &name, &action, &selectedAction, &selectedActionNamePtr]() -> void { // Normal
+					bool isSelected{ action.get() == selectedAction };
+					if (gui::Selectable(name.get().c_str(), isSelected))
+					{
+						// Select the action and deselect previous binding
+						selectedActionPtr = selectedAction = action.get();
+						selectedBindingIndex = -1;
+						isSelected = true;
+					}
+
+					if (isSelected)
+						selectedActionNamePtr = &name.get();
+				}, [&selectedInputSet, &name](const char* newName) -> void { // Renamed
+					// Should be safe to make changes because the vector we're iterating is an rvalue
+					selectedInputSet->RenameAction(name, newName);
+				}
+			);
 		}
 
 		return selectedActionNamePtr;

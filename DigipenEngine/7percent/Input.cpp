@@ -116,6 +116,15 @@ void InputSet::SetAction(const std::string& name, SPtr<InputActionBase>&& action
 	actions[name] = std::forward<SPtr<InputActionBase>>(action);
 }
 
+bool InputSet::RenameAction(const std::string& oldName, const std::string& newName)
+{
+	if (actions.find(newName) != actions.end() || actions.find(oldName) == actions.end())
+		return false;
+
+	actions.try_emplace(newName, actions.at(oldName));
+	actions.erase(oldName);
+}
+
 void InputSet::Serialize(Serializer& writer) const
 {
 	writer.Serialize("actions", actions);
@@ -316,6 +325,16 @@ bool Input::SwitchInputSet(const std::string& inputSetIdentifier)
 		return false;
 
 	currentInputSet = inputSetIter->second;
+	return true;
+}
+
+bool Input::RenameInputSet(const std::string& oldName, const std::string& newName)
+{
+	if (inputSets.find(newName) != inputSets.end() || inputSets.find(oldName) == inputSets.end())
+		return false;
+
+	inputSets.try_emplace(newName, inputSets.at(oldName));
+	inputSets.erase(oldName);
 	return true;
 }
 

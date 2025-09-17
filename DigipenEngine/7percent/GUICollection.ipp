@@ -137,6 +137,42 @@ namespace gui {
 #endif
 	}
 
+	template<typename NormalFuncType, typename RenameCallbackFuncType>
+	void Renamable::Wrap([[maybe_unused]] const char* currText, [[maybe_unused]] NormalFuncType normalRoute, [[maybe_unused]] RenameCallbackFuncType onRenameRoute)
+	{
+#ifdef IMGUI_ENABLED
+		int currId{ GetCurrID() };
+		if (idOfItemBeingRenamed != currId)
+		{
+			// Draw the user's normal draw routine
+			normalRoute();
+
+			// Add on a right click context menu
+			if (ItemContextMenu contextMenu{ "GenericRenameContextMenu" })
+				if (MenuItem("Rename"))
+				{
+					idOfItemBeingRenamed = currId;
+					std::strncpy(buffer, currText, 256);
+				}
+		}
+		else
+		{
+			// Draw an input text box for renaming
+			SetNextItemWidth(-1.0f);
+			SetID id{ "GenericRename" };
+			if (ImGui::InputText("", buffer, 256, +FLAG_INPUT_TEXT::ENTER_RETURNS_TRUE))
+			{
+				onRenameRoute(buffer);
+				idOfItemBeingRenamed = -1;
+			}
+			// Check for escape key pressed
+			if (IsItemFocused() && IsKeyPressed(KEY::ESC))
+				idOfItemBeingRenamed = -1;
+		}
+#endif
+	}
+
+
 	template<typename T, typename ElemDrawFuncType>
 	bool VarContainer([[maybe_unused]] const char* label, [[maybe_unused]] std::vector<T>* v, [[maybe_unused]] ElemDrawFuncType elemDrawFunc)
 	{

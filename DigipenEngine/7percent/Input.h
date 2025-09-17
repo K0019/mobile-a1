@@ -233,6 +233,7 @@ public:
 	SPtr<const InputActionBase> GetAction(const std::string& name) const;
 	SPtr<InputActionBase> GetAction(const std::string& name);
 	void SetAction(const std::string& name, SPtr<InputActionBase>&& action);
+	bool RenameAction(const std::string& oldName, const std::string& newName);
 
 public:
 	void Serialize(Serializer& writer) const final;
@@ -388,6 +389,7 @@ class Input : public ISerializeable
 public:
 	bool CreateInputSet(const std::string& name);
 	bool SwitchInputSet(const std::string& inputSetIdentifier);
+	bool RenameInputSet(const std::string& oldName, const std::string& newName);
 
 	SPtr<const InputSet> GetCurrentInputSet() const;
 	SPtr<InputSet> GetCurrentInputSet();

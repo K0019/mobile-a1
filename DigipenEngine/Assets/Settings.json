@@ -19,6 +19,57 @@
     "scriptsSaveLocation": "/Assets/Scripts",
     "scriptsTargetLocation": "/Assets",
     "materialSaveLocation": "/Assets/Materials",
+    "inputSets": [
+        {
+            "key": "Default",
+            "value": {
+                "actions": [
+                    {
+                        "key": "Jump",
+                        "value": {
+                            "compositeType": 0,
+                            "bindings": [
+                                {
+                                    "hardwareLink": {
+                                        "deviceType": 0,
+                                        "keyIdentifier": 32
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "key": "Walk",
+                        "value": {
+                            "compositeType": 2,
+                            "bindings": [
+                                {
+                                    "hardwareLink": [
+                                        {
+                                            "deviceType": 0,
+                                            "keyIdentifier": 65
+                                        },
+                                        {
+                                            "deviceType": 0,
+                                            "keyIdentifier": 68
+                                        },
+                                        {
+                                            "deviceType": 0,
+                                            "keyIdentifier": 87
+                                        },
+                                        {
+                                            "deviceType": 0,
+                                            "keyIdentifier": 83
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    }
+                ]
+            }
+        }
+    ],
     "collisionLayers": {
         "_majorityTrue": false,
         "Default": [],

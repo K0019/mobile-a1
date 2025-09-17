@@ -25,6 +25,10 @@ All rights reserved.
 
 namespace gui {
 
+	char Renamable::buffer[256]{};
+	int Renamable::idOfItemBeingRenamed{ -1 };
+
+
 	namespace internal {
 
 #ifdef IMGUI_ENABLED
@@ -250,6 +254,15 @@ namespace gui {
 	{
 #ifdef IMGUI_ENABLED
 		ImGui::PopID();
+#endif
+	}
+
+	int GetCurrID()
+	{
+#ifdef IMGUI_ENABLED
+		return GImGui->CurrentWindow->IDStack.back();
+#else
+		return 0;
 #endif
 	}
 
@@ -684,6 +697,15 @@ namespace gui {
 	{
 #ifdef IMGUI_ENABLED
 		return ImGui::MenuItem(label, nullptr, p_selected);
+#else
+		return false;
+#endif
+	}
+
+	bool IsItemFocused()
+	{
+#ifdef IMGUI_ENABLED
+		return ImGui::IsItemFocused();
 #else
 		return false;
 #endif
