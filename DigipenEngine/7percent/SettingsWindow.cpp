@@ -27,6 +27,7 @@ All rights reserved.
 #include "SettingsWindow.h"
 #include "GameSettings.h"
 #include "LayersMatrix.h"
+#include "InputConfig.h"
 #include "Editor.h"
 #include "AssetBrowser.h"
 
@@ -137,9 +138,11 @@ namespace editor {
 		gui::Combo consoleLogLevelCombo{ "Console Log Level", logLevelsText, std::size(logLevelsText), &settings->m_logLevel };
 		gui::Separator();
 
-		// Layers
+		// Other windows
 		if (gui::Button{ "Layers", gui::Vec2{ -0.1f, 30.0f } })
 			CreateWindow<LayersMatrix>();
+		if (gui::Button{ "Input", gui::Vec2{ -0.1f, 30.0f } })
+			CreateWindow<InputConfig>();
 
 #ifdef IMGUI_ENABLED
 		ST<Inspector>::Get()->DrawSceneView();

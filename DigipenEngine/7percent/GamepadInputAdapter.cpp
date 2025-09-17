@@ -55,7 +55,7 @@ void GamepadAimAdapterSystem::UpdateComp(GamepadAimAdapterComponent& comp)
 	//mousePos.x = math::Clamp(mousePos.x, 0.0f, static_cast<float>(ST<Engine>::Get()->_windowExtent.width));
 	//mousePos.y = math::Clamp(mousePos.y, 0.0f, static_cast<float>(ST<Engine>::Get()->_windowExtent.height));
 	//glfwSetCursorPos(ST<Engine>::Get()->_window, mousePos.x, mousePos.y);
-	//Input::OnMouseMove(mousePos.x, mousePos.y);
+	//InputOld::OnMouseMove(mousePos.x, mousePos.y);
 }
 
 GamepadMouseControlSystem::GamepadMouseControlSystem()
@@ -85,5 +85,5 @@ void GamepadMouseControlSystem::UpdateComp(GamepadMouseControlComponent&)
 	//mousePos.x = math::Clamp(mousePos.x, 0.0f, static_cast<float>(ST<Engine>::Get()->_windowExtent.width));
 	//mousePos.y = math::Clamp(mousePos.y, 0.0f, static_cast<float>(ST<Engine>::Get()->_windowExtent.height));
 	//glfwSetCursorPos(ST<Engine>::Get()->_window, mousePos.x, mousePos.y);
-	//Input::OnMouseMove(mousePos.x, mousePos.y);
+	//InputOld::OnMouseMove(mousePos.x, mousePos.y);
 }

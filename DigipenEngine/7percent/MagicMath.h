@@ -43,6 +43,20 @@ namespace math {
 
 	/*!***********************************************************************
 	\brief
+		Raises an integer to the power of another integer.
+		Reference: https://stackoverflow.com/questions/1505675/power-of-an-integer-in-c
+	\tparam p
+		The power.
+	\param x
+		The number to be raised.
+	\return
+		The power of the number.
+	*************************************************************************/
+	template <unsigned int p>
+	constexpr int PowInt(int x);
+
+	/*!***********************************************************************
+	\brief
 		Wraps a value around a range.
 	\tparam T
 		The type of the value.

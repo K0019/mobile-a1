@@ -48,7 +48,7 @@ bool FPSTextSystem::PreRun()
     ss << "FPS: " << GameTime::Fps();
 
     // Whether to flip the doDisplay bool
-    doToggle = Input::GetKeyPressed(KEY::F10);
+    doToggle = ST<KeyboardMouseInput>::Get()->GetIsPressed(KEY::F10);
 
     return true;
 }

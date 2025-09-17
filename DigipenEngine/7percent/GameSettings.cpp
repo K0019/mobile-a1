@@ -69,7 +69,9 @@ void GameSettings::Serialize(Serializer& writer) const
 {
 	ISerializeable::Serialize(writer);
 
-	// In addition to the reflected vars, serialize the layers here.
+	// In addition to the reflected vars, serialize other systems that are constant across all game builds
+	ST<Input>::Get()->Serialize(writer);
+
 	EntityLayerComponent::SerializeLayersMatrix(writer, "collisionLayers");
 	ST<ecs::RegisteredSystemsOperatingByLayer>::Get()->SerializeLayerSettings(writer, "systemLayers");
 }
@@ -77,6 +79,8 @@ void GameSettings::Serialize(Serializer& writer) const
 void GameSettings::Deserialize(Deserializer& reader)
 {
 	ISerializeable::Deserialize(reader);
+
+	ST<Input>::Get()->Deserialize(reader);
 
 	EntityLayerComponent::DeserializeLayersMatrix(reader, "collisionLayers");
 	ST<ecs::RegisteredSystemsOperatingByLayer>::Get()->DeserializeLayerSettings(reader, "systemLayers");
