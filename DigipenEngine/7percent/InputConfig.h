@@ -20,40 +20,40 @@ namespace editor {
 		void DrawBindingsColumn();
 		void DrawInspector(const std::string* actionName);
 		
-		void DrawInspector_Action(SPtr<internal::InputActionBase>& action, const std::string* actionName);
-		template <internal::INPUT_COMPOSITE_TYPE CompositeType>
-		void DrawInspector_Action(SPtr<internal::InputAction<CompositeType>> action, const std::string* actionName);
+		void DrawInspector_Action(SPtr<InputActionBase>& action, const std::string* actionName);
+		template <INPUT_COMPOSITE_TYPE CompositeType>
+		void DrawInspector_Action(SPtr<InputAction<CompositeType>> action, const std::string* actionName);
 
-		template <internal::INPUT_COMPOSITE_TYPE CompositeType>
-		void DrawInspector_Binding(internal::InputBinding<CompositeType>& binding);
-		void DrawInspector_HardwareValueLink(internal::InputHardwareValueLink& hardwareValueLink, int index);
+		template <INPUT_COMPOSITE_TYPE CompositeType>
+		void DrawInspector_Binding(InputBinding<CompositeType>& binding);
+		void DrawInspector_HardwareValueLink(InputHardwareValueLink& hardwareValueLink, int index);
 
 	private:
-		WPtr<internal::InputSet> selectedInputSetPtr;
-		WPtr<internal::InputActionBase> selectedActionPtr;
+		WPtr<InputSet> selectedInputSetPtr;
+		WPtr<InputActionBase> selectedActionPtr;
 		size_t selectedBindingIndex{};
 
 	private:
-		static const std::array<const char*, +internal::INPUT_COMPOSITE_TYPE::NUM_TYPES> compositeNames;
-		static const std::array<const char*, (+internal::INPUT_COMPOSITE_TYPE::NUM_TYPES - 1) * 2> hardwareValueLinkNames;
-		static const std::array<const char*, +internal::INPUT_DEVICE_TYPE::NUM_DEVICES> hardwareDeviceNames;
+		static const std::array<const char*, +INPUT_COMPOSITE_TYPE::NUM_TYPES> compositeNames;
+		static const std::array<const char*, (+INPUT_COMPOSITE_TYPE::NUM_TYPES - 1) * 2> hardwareValueLinkNames;
+		static const std::array<const char*, +INPUT_DEVICE_TYPE::NUM_DEVICES> hardwareDeviceNames;
 		static const std::unordered_map<KEY, const char*> keyIdentifierNames;
 
 	};
 
-	template<internal::INPUT_COMPOSITE_TYPE CompositeType>
-	void InputConfig::DrawInspector_Action(SPtr<internal::InputAction<CompositeType>> action, const std::string* actionName)
+	template<INPUT_COMPOSITE_TYPE CompositeType>
+	void InputConfig::DrawInspector_Action(SPtr<InputAction<CompositeType>> action, const std::string* actionName)
 	{
-		internal::INPUT_COMPOSITE_TYPE selectedCompositeType{};
+		INPUT_COMPOSITE_TYPE selectedCompositeType{};
 		if (gui::Combo compositeTypeDropdown{ "Composite Type", compositeNames, compositeNames[+action->GetCompositeType()], reinterpret_cast<int*>(&selectedCompositeType) })
 		{
 			auto inputSet{ selectedInputSetPtr.lock() };
 			switch (selectedCompositeType)
 			{
 #define X(name, str) \
-			case internal::INPUT_COMPOSITE_TYPE::name: \
+			case INPUT_COMPOSITE_TYPE::name: \
 			{ \
-				auto newAction{ std::make_shared<internal::InputAction<internal::INPUT_COMPOSITE_TYPE::name>>(action->ConvertToCompositeType<internal::INPUT_COMPOSITE_TYPE::name>()) }; \
+				auto newAction{ std::make_shared<InputAction<INPUT_COMPOSITE_TYPE::name>>(action->ConvertToCompositeType<INPUT_COMPOSITE_TYPE::name>()) }; \
 				selectedActionPtr = newAction; \
 				inputSet->SetAction(*actionName, std::move(newAction)); \
 				return; \
@@ -64,11 +64,11 @@ namespace editor {
 		}
 	}
 
-	template<internal::INPUT_COMPOSITE_TYPE CompositeType>
-	void InputConfig::DrawInspector_Binding(internal::InputBinding<CompositeType>& binding)
+	template<INPUT_COMPOSITE_TYPE CompositeType>
+	void InputConfig::DrawInspector_Binding(InputBinding<CompositeType>& binding)
 	{
 		int index{};
-		binding.Editor_ForEachHardwareValueLink([this, &index](internal::InputHardwareValueLink& hardwareValueLink) -> void {
+		binding.Editor_ForEachHardwareValueLink([this, &index](InputHardwareValueLink& hardwareValueLink) -> void {
 			gui::Separator();
 			gui::SetID id{ index };
 			DrawInspector_HardwareValueLink(hardwareValueLink, index++);

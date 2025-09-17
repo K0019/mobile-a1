@@ -23,94 +23,91 @@ All rights reserved.
 #include "Input.h"
 #include "CustomViewport.h"
 
-namespace internal {
-
-	const std::array<InputHardwareValueLink::FuncType_GetValue, +INPUT_DEVICE_TYPE::NUM_DEVICES> InputHardwareValueLink::GetValueFromDevice{
-		[](int keyIdentifier, INPUT_READ_TYPE readType) -> InputHardwareValue {
-			return ST<KeyboardMouseInput>::Get()->GetValue(readType, static_cast<KEY>(keyIdentifier));
-		}
-	};
+const std::array<InputHardwareValueLink::FuncType_GetValue, +INPUT_DEVICE_TYPE::NUM_DEVICES> InputHardwareValueLink::GetValueFromDevice{
+	[](int keyIdentifier, INPUT_READ_TYPE readType) -> InputHardwareValue {
+		return ST<KeyboardMouseInput>::Get()->GetValue(readType, static_cast<KEY>(keyIdentifier));
+	}
+};
 
 
-	InputHardwareValueLink::InputHardwareValueLink()
-		: deviceType{ INPUT_DEVICE_TYPE::INVALID_DEVICE }
-		, readType{ INPUT_READ_TYPE::CURRENT }
-		, keyIdentifier{ -1 }
-	{
-	}
+InputHardwareValueLink::InputHardwareValueLink()
+	: deviceType{ INPUT_DEVICE_TYPE::INVALID_DEVICE }
+	, readType{ INPUT_READ_TYPE::CURRENT }
+	, keyIdentifier{ -1 }
+{
+}
 
-	InputHardwareValueLink::InputHardwareValueLink(INPUT_DEVICE_TYPE deviceType, int keyIdentifier, INPUT_READ_TYPE readType)
-		: deviceType{ deviceType }
-		, readType{ readType }
-		, keyIdentifier{ keyIdentifier }
-	{
-	}
+InputHardwareValueLink::InputHardwareValueLink(INPUT_DEVICE_TYPE deviceType, int keyIdentifier, INPUT_READ_TYPE readType)
+	: deviceType{ deviceType }
+	, readType{ readType }
+	, keyIdentifier{ keyIdentifier }
+{
+}
 
-	InputHardwareValue InputHardwareValueLink::ReadValue() const
-	{
-		if (deviceType == INPUT_DEVICE_TYPE::INVALID_DEVICE)
-			return false;
-		return GetValueFromDevice[+deviceType](keyIdentifier, readType);
-	}
+InputHardwareValue InputHardwareValueLink::ReadValue() const
+{
+	if (deviceType == INPUT_DEVICE_TYPE::INVALID_DEVICE || keyIdentifier < 0)
+		return false;
+	return GetValueFromDevice[+deviceType](keyIdentifier, readType);
+}
 
-	INPUT_DEVICE_TYPE InputHardwareValueLink::GetDeviceType() const
-	{
-		return deviceType;
-	}
-	void InputHardwareValueLink::SetDeviceType(INPUT_DEVICE_TYPE newDeviceType)
-	{
-		deviceType = newDeviceType;
-	}
+INPUT_DEVICE_TYPE InputHardwareValueLink::GetDeviceType() const
+{
+	return deviceType;
+}
+void InputHardwareValueLink::SetDeviceType(INPUT_DEVICE_TYPE newDeviceType)
+{
+	keyIdentifier = -1;
+	deviceType = newDeviceType;
+}
 
-	int InputHardwareValueLink::GetKeyIdentifier() const
-	{
-		return keyIdentifier;
-	}
-	void InputHardwareValueLink::SetKeyIdentifier(int newKeyIdentifier)
-	{
-		keyIdentifier = newKeyIdentifier;
-	}
+int InputHardwareValueLink::GetKeyIdentifier() const
+{
+	return keyIdentifier;
+}
+void InputHardwareValueLink::SetKeyIdentifier(int newKeyIdentifier)
+{
+	keyIdentifier = newKeyIdentifier;
+}
 
-	InputActionBase::InputActionBase(INPUT_COMPOSITE_TYPE compositeType)
-		: compositeType{ compositeType }
-	{
-	}
+InputActionBase::InputActionBase(INPUT_COMPOSITE_TYPE compositeType)
+	: compositeType{ compositeType }
+{
+}
 
-	INPUT_COMPOSITE_TYPE InputActionBase::GetCompositeType() const
-	{
-		return compositeType;
-	}
+INPUT_COMPOSITE_TYPE InputActionBase::GetCompositeType() const
+{
+	return compositeType;
+}
 
-	bool InputSet::CreateNewAction(const std::string& name)
-	{
-		return actions.try_emplace(name, std::make_shared<InputAction<INPUT_COMPOSITE_TYPE::BUTTON>>()).second;
-	}
+bool InputSet::CreateNewAction(const std::string& name)
+{
+	return actions.try_emplace(name, std::make_shared<InputAction<INPUT_COMPOSITE_TYPE::BUTTON>>()).second;
+}
 
-	SPtr<const InputActionBase> InputSet::GetAction(const std::string& name) const
-	{
-		auto actionIter{ actions.find(name) };
-		if (actionIter == actions.end())
-			return nullptr;
-		return actionIter->second;
-	}
-	SPtr<InputActionBase> InputSet::GetAction(const std::string& name)
-	{
-		auto actionIter{ actions.find(name) };
-		if (actionIter == actions.end())
-			return nullptr;
-		return actionIter->second;
-	}
+SPtr<const InputActionBase> InputSet::GetAction(const std::string& name) const
+{
+	auto actionIter{ actions.find(name) };
+	if (actionIter == actions.end())
+		return nullptr;
+	return actionIter->second;
+}
+SPtr<InputActionBase> InputSet::GetAction(const std::string& name)
+{
+	auto actionIter{ actions.find(name) };
+	if (actionIter == actions.end())
+		return nullptr;
+	return actionIter->second;
+}
 
-	void InputSet::SetAction(const std::string& name, SPtr<InputActionBase>&& action)
-	{
-		actions[name] = std::forward<SPtr<InputActionBase>>(action);
-	}
+void InputSet::SetAction(const std::string& name, SPtr<InputActionBase>&& action)
+{
+	actions[name] = std::forward<SPtr<InputActionBase>>(action);
+}
 
-	decltype(util::ToSortedVectorOfRefs(InputSet::actions)) InputSet::Editor_GetActions()
-	{
-		return util::ToSortedVectorOfRefs(actions);
-	}
-
+decltype(util::ToSortedVectorOfRefs(InputSet::actions)) InputSet::Editor_GetActions()
+{
+	return util::ToSortedVectorOfRefs(actions);
 }
 
 bool KeyboardMouseInput::GetIsPressed(KEY key) const
@@ -262,7 +259,7 @@ bool Input::IsFinalIterationThisFrame() const
 
 bool Input::CreateInputSet(const std::string& name)
 {
-	return inputSets.try_emplace(name, std::make_shared<internal::InputSet>()).second;
+	return inputSets.try_emplace(name, std::make_shared<InputSet>()).second;
 }
 
 bool Input::SwitchInputSet(const std::string& inputSetIdentifier)
@@ -275,11 +272,11 @@ bool Input::SwitchInputSet(const std::string& inputSetIdentifier)
 	return true;
 }
 
-SPtr<const internal::InputSet> Input::GetCurrentInputSet() const
+SPtr<const InputSet> Input::GetCurrentInputSet() const
 {
 	return currentInputSet.lock();
 }
-SPtr<internal::InputSet> Input::GetCurrentInputSet()
+SPtr<InputSet> Input::GetCurrentInputSet()
 {
 	return currentInputSet.lock();
 }
@@ -289,7 +286,7 @@ decltype(util::ToSortedVectorOfRefs(Input::inputSets)) Input::Editor_GetInputSet
 	return util::ToSortedVectorOfRefs(inputSets);
 }
 
-WPtr<internal::InputSet> Input::Editor_GetCurrentInputSet()
+WPtr<InputSet> Input::Editor_GetCurrentInputSet()
 {
 	return currentInputSet;
 }
