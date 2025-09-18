@@ -1,0 +1,42 @@
+#version 450
+layout(local_size_x = 32, local_size_y = 1) in;
+
+layout(binding = 0) uniform sampler2D shadowMap;
+layout(binding = 1, r32f) uniform image2D finalShadowMap;
+
+const float PI = 3.14159265359;
+const float TWO_PI = 6.28318530718;
+const float THREE_PI = 9.42477796077;
+const uint SHADOW_MAP_WIDTH = 1024u;
+const uint MAX_LIGHTS = 64u;
+
+void main() {
+    uvec2 pixel = gl_GlobalInvocationID.xy;
+    if(pixel.x >= SHADOW_MAP_WIDTH || pixel.y >= MAX_LIGHTS) {
+        return;
+    }
+
+    // Map output pixel to angle in [0, 2π] range (final 360° shadow map)
+    float outputAngle = (float(pixel.x) / float(SHADOW_MAP_WIDTH)) * TWO_PI;
+    
+    // Map to source shadow map coordinate in [0, 3π] range
+    float textureU = outputAngle / THREE_PI;
+    float v = (float(pixel.y) + 0.5) / float(MAX_LIGHTS);
+    
+    // Sample primary region
+    float minDistance = textureLod(shadowMap, vec2(textureU, v), 0).r;
+    
+    // Apply wraparound handling for angles in first third
+    if(outputAngle < TWO_PI/3.0) {
+        // Calculate wraparound coordinate in last third
+        float wrapAngle = outputAngle + TWO_PI;
+        float wrapU = wrapAngle / THREE_PI;
+        
+        // Sample wraparound region and take minimum
+        float wrapDistance = textureLod(shadowMap, vec2(wrapU, v), 0).r;
+        minDistance = min(minDistance, wrapDistance);
+    }
+    
+    // Store optimized result
+    imageStore(finalShadowMap, ivec2(pixel), vec4(minDistance));
+}
