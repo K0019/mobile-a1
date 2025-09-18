@@ -159,7 +159,7 @@ const char* ScriptTab::GetName() const
 
 const char* ScriptTab::GetIdentifier() const
 {
-    return ICON_FA_CODE" Shaders";
+    return ICON_FA_CODE" Scripts";
 }
 
 void ScriptTab::Render()
