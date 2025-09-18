@@ -1,7 +1,6 @@
 #include "GameSettings.h"
 #include "ResourceManager.h"
 #include "RenderSystem.h"
-#include "ComponentLookupWorkaround.h"
 
 /******************************************************************************/
 /*!
@@ -120,6 +119,20 @@ property_begin(SliderComponent)
 }
 property_vend_h(SliderComponent)
 
+/*****************************************************************//*!
+\class Sliderbar
+\brief
+	Exists to exist
+*//******************************************************************/
+class SliderBar : public IRegisteredComponent<SliderBar>
+{
+private:
+	property_vtable()
+};
+property_begin(SliderBar)
+{
+}
+property_vend_h(SliderBar)
 
 /*****************************************************************//*!
 	\brief
