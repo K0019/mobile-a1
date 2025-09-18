@@ -114,29 +114,30 @@ namespace physics {
 
 	void JoltPhysics::ScaleShape(JPH::BodyID bodyID, const Vec3& scale)
 	{
-		if (scale.x == 0.f || scale.y == 0.f || scale.z == 0.f)
+		JPH::BodyLockWrite lock(physicsSystem.GetBodyLockInterface(), bodyID);
+		if (!lock.Succeeded())
 		{
-			bodyInterface.SetIsSensor(bodyID, true);
+			CONSOLE_LOG(LEVEL_ERROR) << "Body could not be properly scaled!";
 			return;
 		}
-		if (bodyInterface.IsSensor(bodyID))
-			bodyInterface.SetIsSensor(bodyID, false);
+		JPH::Body& body = lock.GetBody();
 
-		JPH::BodyLockWrite lock(physicsSystem.GetBodyLockInterface(), bodyID);
-		if (lock.Succeeded())
+		if (scale.x == 0.f || scale.y == 0.f || scale.z == 0.f)
 		{
-			JPH::Body& body = lock.GetBody();
-			JPH_ASSERT(body.GetShape()->GetSubType() == JPH::EShapeSubType::Scaled);
-			const JPH::ScaledShape* scaledShape = static_cast<const JPH::ScaledShape*>(body.GetShape());
-			const JPH::Shape* nonScaledShape = scaledShape->GetInnerShape();
-
-			JPH::Shape::ShapeResult newShape = nonScaledShape->ScaleShape(JPH::Vec3{scale.x * 0.5f, scale.y * 0.5f, scale.z * 0.5f});
-			JPH_ASSERT(newShape.IsValid());
-
-			physicsSystem.GetBodyInterfaceNoLock().SetShape(bodyID, newShape.Get(), true, JPH::EActivation::Activate);
+			body.SetIsSensor(true);
+			return;
 		}
-		else
-			CONSOLE_LOG(LEVEL_ERROR) << "Body could not be properly scaled!";
+		if (body.IsSensor())
+			body.SetIsSensor(false);
+
+		JPH_ASSERT(body.GetShape()->GetSubType() == JPH::EShapeSubType::Scaled);
+		const JPH::ScaledShape* scaledShape = static_cast<const JPH::ScaledShape*>(body.GetShape());
+		const JPH::Shape* nonScaledShape = scaledShape->GetInnerShape();
+
+		JPH::Shape::ShapeResult newShape = nonScaledShape->ScaleShape(JPH::Vec3{scale.x * 0.5f, scale.y * 0.5f, scale.z * 0.5f});
+		JPH_ASSERT(newShape.IsValid());
+
+		physicsSystem.GetBodyInterfaceNoLock().SetShape(bodyID, newShape.Get(), true, JPH::EActivation::Activate);
 	}
 
 	// Callback for traces, connect this to your own trace function if you have one

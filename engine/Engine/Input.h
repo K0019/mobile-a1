@@ -349,6 +349,8 @@ public:
 	bool GetValue(INPUT_READ_TYPE readType, KEY key) const;
 	float GetScroll() const;
 
+	Vec2 GetMousePos() const;
+
 public:
 	// Frame management
 	void NewFrame();

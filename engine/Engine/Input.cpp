@@ -205,6 +205,11 @@ float KeyboardMouseInput::GetScroll() const
 	return scrollOffset;
 }
 
+Vec2 KeyboardMouseInput::GetMousePos() const
+{
+	return mousePos;
+}
+
 void KeyboardMouseInput::NewFrame()
 {
 	keystate &= ~releasedKeystate;
