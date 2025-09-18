@@ -28,14 +28,37 @@ All rights reserved.
 #include "Serializer.h"
 #include <type_traits>
 
+template<util::Dereferenceable T>
+    requires(!std::derived_from<T, ISerializeable>)
+void Serializer::Serialize(const std::string& key, const T& ptr)
+{
+    Serialize(key, *ptr);
+}
+
+template <DirectSerializeable T>
+    requires(!std::derived_from<T, ISerializeable>)
+void Serializer::Serialize(const std::string& key, const T& obj)
+{
+    StartObject(key);
+    obj.Serialize(*this);
+    EndObject();
+}
+
+template<typename T, size_t N>
+void Serializer::Serialize(const std::string& key, const std::array<T, N>& data)
+{
+    StartArray(key);
+    for (const T& elem : data)
+        Serialize("", elem);
+    EndArray();
+}
+
 template<typename T>
 void Serializer::Serialize(const std::string& key, const std::vector<T>& data)
 {
     StartArray(key);
-
     for (const T& elem : data)
         Serialize("", elem);
-
     EndArray();
 }
 
@@ -47,8 +70,8 @@ void Serializer::Serialize(const std::string& key, const std::map<KeyType, Value
     for (const auto& elem : data)
     {
         StartObject();
-        Serialize("key", elem.first);
-        Serialize("value", elem.second);
+        Serialize("key", elem.first.get());
+        Serialize("value", elem.second.get());
         EndObject();
     }
     EndArray();
@@ -73,12 +96,22 @@ void Serializer::Serialize(const std::string& key, const std::unordered_map<KeyT
     for (const auto& elem : sortedElements)
     {
         StartObject();
-        Serialize("key", elem.first);
-        Serialize("value", elem.second);
+        Serialize("key", elem.first.get());
+        Serialize("value", elem.second.get());
         EndObject();
     }
 
     EndArray();
+}
+
+template<DirectSerializeable T>
+bool Deserializer::Deserialize(const std::string& key, T* obj)
+{
+    if (!PushAccess(key))
+        return false;
+    obj->Deserialize(*this);
+    PopAccess();
+    return true;
 }
 
 template<typename T>
@@ -119,11 +152,34 @@ bool Deserializer::DeserializeVar(const std::string& key, T* out)
     }
     else if constexpr (std::is_same_v<T, std::string>)
         *out = reader.GetString();
-    else if constexpr (std::is_same_v<T, property::data> || std::derived_from<T, ISerializeable>)
+    else if constexpr (std::is_enum_v<T>)
+        DeserializeVar("", reinterpret_cast<std::underlying_type_t<T>*>(out));
+    else if constexpr (std::is_same_v<T, property::data> || std::derived_from<T, ISerializeable> || DirectSerializeable<T>)
         Deserialize("", out);
     else
         //static_assert(false, "Unimplemented type");//Some devices may need to change this to assert to compile the project.
         assert(false); // Unimplemented type
+    PopAccess();
+    return true;
+}
+
+template<typename T, size_t N>
+bool Deserializer::DeserializeVar(const std::string& key, std::array<T, N>* out)
+{
+    if (!PushAccess(key))
+        return false;
+
+    for (size_t i{}; i < N; ++i)
+    {
+        if (!PushArrayElementAccess(i))
+        {
+            PopAccess();
+            return false;
+        }
+        DeserializeVar("", &out->at(i));
+        PopAccess();
+    }
+
     PopAccess();
     return true;
 }

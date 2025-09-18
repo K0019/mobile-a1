@@ -102,6 +102,20 @@ class ISerializeableWithoutJsonObj : public ISerializeable
 };
 
 /*****************************************************************//*!
+\concept DirectSerializeable
+\brief
+    Identifies that a type has member functions Serialize() and
+    Deserialize(). For types that don't want the virtualization that
+    ISerializeable forces.
+*//******************************************************************/
+template <typename T>
+concept DirectSerializeable = requires(T a, Serializer& serializer, Deserializer& deserializer)
+{
+    { a.Serialize(serializer) };
+    { a.Deserialize(deserializer) };
+};
+
+/*****************************************************************//*!
 \class Serializer
 \brief
     Simplified interface for serializing data in json format.
@@ -238,6 +252,43 @@ public:
         The variable.
     *//******************************************************************/
     void Serialize(const std::string& key, const property::data& data);
+
+    /*****************************************************************//*!
+    \brief
+        Serializes the value pointed to by a pointer.
+        Note: Will need custom user support for deserializing. We can't assume
+        the object will always be heap allocated.
+    \param key
+        The key to associate the variable with.
+    \param ptr
+        The pointer.
+    *//******************************************************************/
+    template <util::Dereferenceable T>
+        requires(!std::derived_from<T, ISerializeable>)
+    void Serialize(const std::string& key, const T& ptr);
+
+    /*****************************************************************//*!
+    \brief
+        Serializes the object by calling Serialize() on it.
+    \param key
+        The key to associate the variable with.
+    \param obj
+        The object.
+    *//******************************************************************/
+    template <DirectSerializeable T>
+        requires(!std::derived_from<T, ISerializeable>)
+    void Serialize(const std::string& key, const T& obj);
+
+    /*****************************************************************//*!
+    \brief
+        Serializes an array container.
+    \param key
+        The key to associate this container with.
+    \param data
+        The array container.
+    *//******************************************************************/
+    template <typename T, size_t N>
+    void Serialize(const std::string& key, const std::array<T, N>& data);
 
     /*****************************************************************//*!
     \brief
@@ -432,6 +483,18 @@ public:
 
     /*****************************************************************//*!
     \brief
+        Deserializes an object by calling Deserialize() on it.
+        A json object with the provided key will be created in this version.
+    \param key
+        The key of the object.
+    \param obj
+        The data to be serialized.
+    *//******************************************************************/
+    template <DirectSerializeable T>
+    bool Deserialize(const std::string& key, T* obj);
+
+    /*****************************************************************//*!
+    \brief
         Gets the number of elements in a json array.
     \param key
         The key associated with the array.
@@ -450,6 +513,17 @@ public:
     *//******************************************************************/
     template <typename T>
     bool DeserializeVar(const std::string& key, T* out);
+
+    /*****************************************************************//*!
+    \brief
+        Deserializes a json array into an array.
+    \param key
+        The key associated with the variable.
+    \param out
+        The array to deserialize the data to.
+    *//******************************************************************/
+    template <typename T, size_t N>
+    bool DeserializeVar(const std::string& key, std::array<T, N>* out);
 
     /*****************************************************************//*!
     \brief
@@ -495,13 +569,6 @@ public:
         requires util::IsMap_v<MapType> && std::regular_invocable<Operation, Deserializer&, MapType*>
     bool DeserializeVar(const std::string& key, MapType* out, Operation operationFunc);
 
-    /*****************************************************************//*!
-    \brief
-        Checks whether there are still entities available for reading.
-    \return
-        True if there is still an entity available for reading. False otherwise.
-    *//******************************************************************/
-    bool HasEntity() const;
 
 private:
     /*****************************************************************//*!

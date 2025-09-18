@@ -53,10 +53,10 @@ void Inspector::ProcessInput()
 	const Vec2 mousePos = { ImGui::GetMousePos().x, ImGui::GetMousePos().y };
 	const Vec3 worldMousePos = ST<CustomViewport>::Get()->WindowToWorldPosition(mousePos);
 
-	if(Input::GetKeyCurr(KEY::LCTRL))
-		if(Input::GetKeyPressed(KEY::Z))
+	if(ST<KeyboardMouseInput>::Get()->GetIsDown(KEY::LCTRL))
+		if(ST<KeyboardMouseInput>::Get()->GetIsPressed(KEY::Z))
 			ST<History>::Get()->UndoOne();
-		else if(Input::GetKeyPressed(KEY::Y))
+		else if(ST<KeyboardMouseInput>::Get()->GetIsPressed(KEY::Y))
 			ST<History>::Get()->RedoOne();
 
 	// Undoing or somewhere outside may have deleted the selected entity. Check if it still exists. If not, deselect it.
@@ -64,19 +64,19 @@ void Inspector::ProcessInput()
 
 	bool isMouseInViewport = ST<CustomViewport>::Get()->IsMouseInViewport(mousePos);
 	float dt{ GameTime::FixedDt() };
-	/*if(Input::GetKeyCurr(KEY::UP))
+	/*if(InputOld::GetKeyCurr(KEY::UP))
 	{
 		ST<CameraController>::Get()->AddPosition({ 0, 1000.0f * dt });
 	}
-	else if(Input::GetKeyCurr(KEY::DOWN))
+	else if(InputOld::GetKeyCurr(KEY::DOWN))
 	{
 		ST<CameraController>::Get()->AddPosition({ 0, -1000.0f * dt });
 	}
-	if(Input::GetKeyCurr(KEY::LEFT))
+	if(InputOld::GetKeyCurr(KEY::LEFT))
 	{
 		ST<CameraController>::Get()->AddPosition({ -1000.0f * dt, 0 });
 	}
-	else if(Input::GetKeyCurr(KEY::RIGHT))
+	else if(InputOld::GetKeyCurr(KEY::RIGHT))
 	{
 		ST<CameraController>::Get()->AddPosition({ 1000.0f * dt, 0 });
 	}*/
@@ -117,7 +117,7 @@ void Inspector::ProcessInput()
 	}
 	//ST<CameraController>::Get()->LerpZoom(dt);
 
-	if(Input::GetKeyPressed(KEY::DEL))
+	if(ST<KeyboardMouseInput>::Get()->GetIsPressed(KEY::DEL))
 		DeleteSelectedEntity();
 
 	if(!selectedEntity)

@@ -382,9 +382,11 @@ if not exist "$(TargetDir)imgui.json" (
     <ClCompile Include="FileBrowserTab.cpp" />
     <ClCompile Include="GamepadInputAdapter.cpp" />
     <ClCompile Include="GUIAsECS.cpp" />
+    <ClCompile Include="InputConfig.cpp" />
     <ClCompile Include="JoltPhysics.cpp" />
     <ClCompile Include="HotReloader.cpp" />
     <ClCompile Include="KillAnimationWhenFinish.cpp" />
+    <ClCompile Include="Physics.cpp" />
     <ClCompile Include="MiscAssetTabs.cpp" />
     <ClCompile Include="PostProcessingComponent.cpp" />
     <ClCompile Include="PrefabSpawner.cpp" />
@@ -551,11 +553,14 @@ if not exist "$(TargetDir)imgui.json" (
     <ClInclude Include="GamepadInputAdapter.h" />
     <ClInclude Include="GUIAsECS.h" />
     <ClInclude Include="GUICollection.ipp" />
+    <ClInclude Include="Input.ipp" />
+    <ClInclude Include="InputConfig.h" />
     <ClInclude Include="JoltPhysics.h" />
     <ClInclude Include="HotReloader.h" />
     <ClInclude Include="KillAnimationWhenFinish.h" />
     <ClInclude Include="MagicMath.h" />
     <ClInclude Include="MagicMath.ipp" />
+    <ClInclude Include="Physics.h" />
     <ClInclude Include="MiscAssetTabs.h" />
     <ClInclude Include="PostProcessingComponent.h" />
     <ClInclude Include="PrefabSpawner.h" />

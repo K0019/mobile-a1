@@ -66,6 +66,7 @@ namespace gui {
 	X(UP, ImGuiKey::ImGuiKey_UpArrow) \
 	X(DOWN, ImGuiKey::ImGuiKey_DownArrow) \
 	X(ENTER, ImGuiKey::ImGuiKey_Enter) \
+	X(ESC, ImGuiKey::ImGuiKey_Escape)
 
 	//! ImGuiWindowFlags
 #define GUICOLLECTION_FLAG_WINDOW \
@@ -897,6 +898,8 @@ namespace gui {
 
 	//! ImGui::SetItemDefaultFocus()
 	void SetItemDefaultFocus();
+	//! ImGui::IsItemFocused()
+	bool IsItemFocused();
 	//! ImGui::IsItemHovered()
 	bool IsItemHovered();
 
@@ -920,6 +923,9 @@ namespace gui {
 		//! ImGui::PopID()
 		~SetID();
 	};
+
+	//! Gets the current ID on the ID stack.
+	int GetCurrID();
 
 #pragma endregion // ID Management
 
@@ -1091,6 +1097,25 @@ namespace gui {
 		bool matchStarting;
 	};
 
+	/*****************************************************************//*!
+	\class Renamable
+	\brief
+		Wraps a gui element with a context menu that allows for renaming
+		the contents of that gui element.
+	*//******************************************************************/
+	class Renamable
+	{
+	public:
+		template <typename NormalFuncType, typename RenameCallbackFuncType>
+		static void Wrap(const char* currText, NormalFuncType normalRoute, RenameCallbackFuncType onRenameRoute);
+
+	private:
+		Renamable() = delete;
+
+	private:
+		static char buffer[256];
+		static int idOfItemBeingRenamed;
+	};
 
 #pragma endregion // Text
 
@@ -1618,7 +1643,6 @@ namespace gui {
 	void SetScrollHereY(float center_y_ratio = 0.5f);
 
 #pragma endregion // Misc
-
 }
 
 #include "GUICollection.ipp"

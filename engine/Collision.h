@@ -4,7 +4,7 @@
 \par    Project: 7percent
 \par    Course: CSD3401
 \par    Software Engineering Project 5
-\date   06/09/2025
+\date   17/09/2025
 
 \author Takumi Shibamoto (100%)
 \par    email: t.shibamoto\@digipen.edu
@@ -106,4 +106,136 @@ namespace physics {
 		virtual bool ShouldCollide(JPH::ObjectLayer inLayer1, JPH::BroadPhaseLayer inLayer2) const override;
 	};
 
+	/*****************************************************************//*!
+	\brief
+		Contact Listener for the Jolt Physics.
+		Writes to the console when certain collision occures and disoccurs
+	*//******************************************************************/
+	class MyContactListener : public JPH::ContactListener
+	{
+	public:
+		virtual void OnContactAdded(const JPH::Body& inBody1, const JPH::Body& inBody2, const JPH::ContactManifold& inManifold, JPH::ContactSettings& ioSettings) override;
+
+		virtual void OnContactRemoved(const JPH::SubShapeIDPair& inSubShapePair) override;
+	};
+
+	class BoxColliderComp
+		: public IRegisteredComponent<BoxColliderComp>
+#ifdef IMGUI_ENABLED
+		, public IEditorComponent<BoxColliderComp>
+#endif
+		, public ecs::IComponentCallbacks
+	{
+	public:
+		/*****************************************************************//*!
+		\brief
+			Constructor.
+		*//******************************************************************/
+		BoxColliderComp();
+
+	private:
+		// Jolt Physics Body ID of the collider.
+		JPH::BodyID bodyID;
+		// position difference from the center of the object.
+		Vec3 center;
+		// size difference from the object's scale.
+		Vec3 size;
+		// transform of the previous update.
+		Transform prevTransform;
+
+	public:
+		/*****************************************************************//*!
+		\brief
+			Called when the component is attached. It creates a body if the
+			entity doesn't have a physics compoenent and set the shape to
+			be a box.
+		*//******************************************************************/
+		void OnAttached() override;
+
+		/*****************************************************************//*!
+		\brief
+			Called when the component is detached. It destroys the body if the 
+			entity doesn't have a physics component. If not, set the shape of 
+			the body to be empty.
+		*//******************************************************************/
+		void OnDetached() override;
+
+		/*****************************************************************//*!
+		\brief
+			Get the body id of the collider.
+		\return 
+			integer that represent the body id.
+		*//******************************************************************/
+		JPH::BodyID GetBodyID();
+
+		/*****************************************************************//*!
+		\brief
+			Get the position difference of the collider.
+		\return
+			The value of center.
+		*//******************************************************************/
+		const Vec3& GetCenter() const;
+
+		/*****************************************************************//*!
+		\brief
+			Set the position difference of the collider.
+		\param val
+			The value of center to set.
+		*//******************************************************************/
+		void SetCenter(const Vec3& val);
+
+		/*****************************************************************//*!
+		\brief
+			Get the scale factor of the collider.
+		\return
+			The value of size.
+		*//******************************************************************/
+		const Vec3& GetSize() const;
+
+		/*****************************************************************//*!
+		\brief
+			Set the scale factor of the collider.
+		\param val
+			The value of size to set.
+		*//******************************************************************/
+		void SetSize(const Vec3& val);
+
+		/*****************************************************************//*!
+		\brief
+			Get the previous transform values.
+		\return
+			Transform value that represent the previous transform of the entity.
+		*//******************************************************************/
+		const Transform& GetPrevTransform() const;
+
+		/*****************************************************************//*!
+		\brief
+			Set a value to the previous transform.
+		\param transform
+			The value to set the previous transform.
+		*//******************************************************************/
+		void SetPrevTransform(const Transform& transform);
+
+		/*****************************************************************//*!
+		\brief
+			Updates the Jolt Body based on the entity.
+		*//******************************************************************/
+		void UpdateJoltBody();
+
+	private:
+		/*****************************************************************//*!
+		\brief
+			Draws a box collider component to the ImGui editor window.
+		*//******************************************************************/
+		virtual void EditorDraw() override;
+
+	public:
+		property_vtable()
+	};
 }
+property_begin(physics::BoxColliderComp)
+{
+	property_var(center),
+	property_var(size)
+}
+property_vend_h(physics::BoxColliderComp)

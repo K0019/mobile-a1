@@ -58,24 +58,6 @@ All rights reserved.
 
 namespace {
 
-	void key_cb(GLFWwindow* window, int key, int scancode, int action, int mode)
-	{
-		UNREFERENCED_PARAMETER(mode);
-		UNREFERENCED_PARAMETER(scancode);
-		UNREFERENCED_PARAMETER(window);
-
-		switch(action)
-		{
-			case GLFW_PRESS:
-				//CONSOLE_LOG(LEVEL_DEBUG) << "Key: " << key << " Pressed";
-				Input::OnKeyDown(static_cast<short>(key));
-				break;
-			case GLFW_RELEASE:
-				Input::OnKeyUp(static_cast<short>(key));
-				break;
-		}
-	}
-
 	void fbsize_cb(GLFWwindow* window, int width, int height)
 	{
 		auto app = reinterpret_cast<Engine*>(glfwGetWindowUserPointer(window));
@@ -104,49 +86,6 @@ namespace {
 
 	}
 
-	void mousebutton_cb(GLFWwindow* window, int button, int action, int mode)
-	{
-		UNREFERENCED_PARAMETER(window);
-		UNREFERENCED_PARAMETER(mode);
-		switch(action)
-		{
-			case GLFW_PRESS:
-				//CONSOLE_LOG(LEVEL_DEBUG) << "MB: " << button << " Pressed";
-				Input::OnKeyDown(static_cast<short>(button));
-				break;
-			case GLFW_RELEASE:
-				Input::OnKeyUp(static_cast<short>(button));
-				break;
-		}
-	}
-
-	void mousepos_cb(GLFWwindow* window, double xpos, double ypos)
-	{
-		UNREFERENCED_PARAMETER(window);
-#ifdef IMGUI_ENABLED
-		UNREFERENCED_PARAMETER(xpos);
-		UNREFERENCED_PARAMETER(ypos);
-		auto pos = ImGui::GetMousePos();
-		Input::OnMouseMove(pos.x, pos.y);
-#else
-		// Clamp mouse position to window bounds
-		double clampedXpos = math::Clamp(xpos, 0.0, static_cast<double>(ST<Engine>::Get()->_windowExtent.width));
-		double clampedYpos = math::Clamp(ypos, 0.0, static_cast<double>(ST<Engine>::Get()->_windowExtent.height));
-		if(clampedXpos != xpos || clampedYpos != ypos)
-			glfwSetCursorPos(window, clampedXpos, clampedYpos);
-
-		Input::OnMouseMove(clampedXpos, clampedYpos);
-#endif
-	}
-
-	void mousescroll_cb(GLFWwindow* window, double xoffset, double yoffset)
-	{
-		UNREFERENCED_PARAMETER(window);
-		UNREFERENCED_PARAMETER(xoffset);
-		Input::OnScroll(static_cast<float>(yoffset));
-
-	}
-
 	void joystick_cb([[maybe_unused]] int id, [[maybe_unused]] int event)
 	{
 	}
@@ -154,10 +93,10 @@ namespace {
 	void setup_event_callbacks(GLFWwindow* window)
 	{
 		glfwSetFramebufferSizeCallback(window, fbsize_cb);
-		glfwSetKeyCallback(window, key_cb);
-		glfwSetMouseButtonCallback(window, mousebutton_cb);
-		glfwSetCursorPosCallback(window, mousepos_cb);
-		glfwSetScrollCallback(window, mousescroll_cb);
+		glfwSetKeyCallback(window, KeyboardMouseInput::GLFW_Callback_OnKeyboardClick);
+		glfwSetMouseButtonCallback(window, KeyboardMouseInput::GLFW_Callback_OnMouseClick);
+		glfwSetCursorPosCallback(window, KeyboardMouseInput::GLFW_Callback_OnMouseMove);
+		glfwSetScrollCallback(window, KeyboardMouseInput::GLFW_Callback_OnMouseScroll);
 		glfwSetJoystickCallback(joystick_cb);
 		glfwSetWindowFocusCallback(window, Engine::OnFocusChanged);
 		glfwSetCursorEnterCallback(window, cursor_enter_cb);
@@ -501,9 +440,9 @@ void Engine::run() {
 		// Only reset key states when systems are updating so we don't skip inputs.
 		if(GameTime::RealNumFixedFrames())
 		{
-			Input::NewFrame();
+			ST<Input>::Get()->NewFrame();
 			glfwPollEvents();
-			GamepadInput::PollInput();
+			//GamepadInput::PollInput();
 		}
 
 		if(glfwWindowShouldClose(_window)) {
@@ -644,13 +583,13 @@ void Engine::run() {
 		{
 #ifdef IMGUI_ENABLED
 			ST<Inspector>::Get()->ProcessInput();
-			if(Input::GetKeyPressed(KEY::GRAVE))
+			if(ST<KeyboardMouseInput>::Get()->GetIsPressed(KEY::GRAVE))
 				ST<Console>::Get()->SetIsOpen(!ST<Console>::Get()->GetIsOpen());
-			if(Input::GetKeyPressed(KEY::F1))
+			if(ST<KeyboardMouseInput>::Get()->GetIsPressed(KEY::F1))
 				show_demo_window = true;
 #endif
 
-			if(Input::GetKeyPressed(KEY::F11))
+			if(ST<KeyboardMouseInput>::Get()->GetIsPressed(KEY::F11))
 			{
 				if(ST<GameSettings>::Get()->m_fullscreenMode == 0)
 				{
@@ -704,21 +643,21 @@ void Engine::run() {
 			//TODO PLEASE PUT A REAL CAMERA IN HERE OR ELSE!!!!!!!!!!
 			static CameraPositioner_FirstPerson positioner_ = { vec3(0.0f, 1.0f, -1.5f), vec3(0.0f, 0.5f, 0.0f), vec3(0.0f, 1.0f, 0.0f) };
 			static Camera camera = Camera(positioner_);
-			positioner_.movement_.forward_ = Input::GetKeyCurr(KEY::W);
-			positioner_.movement_.backward_ = Input::GetKeyCurr(KEY::S);
-			positioner_.movement_.left_ = Input::GetKeyCurr(KEY::A);
-			positioner_.movement_.right_ = Input::GetKeyCurr(KEY::D);
-			positioner_.movement_.up_ = Input::GetKeyCurr(KEY::NUM_1);
-			positioner_.movement_.down_ = Input::GetKeyCurr(KEY::NUM_2);
-			if(Input::GetKeyCurr(KEY::SPACE))
+			positioner_.movement_.forward_ = ST<KeyboardMouseInput>::Get()->GetIsDown(KEY::W);
+			positioner_.movement_.backward_ = ST<KeyboardMouseInput>::Get()->GetIsDown(KEY::S);
+			positioner_.movement_.left_ = ST<KeyboardMouseInput>::Get()->GetIsDown(KEY::A);
+			positioner_.movement_.right_ = ST<KeyboardMouseInput>::Get()->GetIsDown(KEY::D);
+			positioner_.movement_.up_ = ST<KeyboardMouseInput>::Get()->GetIsDown(KEY::NUM_1);
+			positioner_.movement_.down_ = ST<KeyboardMouseInput>::Get()->GetIsDown(KEY::NUM_2);
+			if(ST<KeyboardMouseInput>::Get()->GetIsDown(KEY::SPACE))
 			{
 				positioner_.lookAt(vec3(0.0f, 1.0f, -1.5f), vec3(0.0f, 0.5f, 0.0f), vec3(0.0f, 1.0f, 0.0f));
 				positioner_.setSpeed(vec3(0.0f));
 			}
 			static Vec2 lastMousePos;
-			vec2 mouse_delta = Input::GetMousePosRaw() - lastMousePos;
-			lastMousePos = Input::GetMousePosRaw();
-			positioner_.update(ST<PerformanceProfiler>::Get()->GetDeltaTime(), mouse_delta, Input::GetKeyCurr(KEY::M_RIGHT));
+			vec2 mouse_delta = ST<KeyboardMouseInput>::Get()->GetMousePos() - lastMousePos;
+			lastMousePos = ST<KeyboardMouseInput>::Get()->GetMousePos();
+			positioner_.update(ST<PerformanceProfiler>::Get()->GetDeltaTime(), mouse_delta, ST<KeyboardMouseInput>::Get()->GetIsDown(KEY::M_RIGHT));
 
 			Render::FrameData currentFrameData{};
 			currentFrameData.cameraPos = camera.getPosition();
@@ -764,7 +703,6 @@ void Engine::shutdown() {
 	ST<TweenManager>::Destroy();
 	ST<PerformanceProfiler>::Destroy();
 	ST<AssetBrowser>::Destroy();
-	ST<physics::JoltPhysics>::Destroy();
 #ifdef IMGUI_ENABLED
 	ST<Inspector>::Destroy();
 #endif
@@ -778,6 +716,7 @@ void Engine::shutdown() {
 
 	ecs::Shutdown();
 
+	ST<physics::JoltPhysics>::Destroy();
 	CSharpScripts::CSScripting::Exit();
 
 	ST<GameSettings>::Destroy();

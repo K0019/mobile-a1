@@ -251,16 +251,35 @@ void Scene::LoadFromFile()
 		ecs::FlushChanges();
 	}
 
-	// Load the entities from file.
-	while (deserializer.HasEntity())
+	// Load the entities from file.	
+	if (!deserializer.PushAccess("entities"))
 	{
-		// Create entity and load serialized components
-		ecs::EntityHandle entity{ ecs::CreateEntity() };
-		deserializer.Deserialize(entity);
-
-		// Register entity to this scene
-		ST<SceneManager>::Get()->SetEntitySceneIndex_NoUnparent(entity, index);
+		CONSOLE_LOG(LEVEL_WARNING) << "No entities array found in scene file " << filepath;
+		return;
 	}
+	// Load all entities - the Deserialize function will handle parent relationships
+	int entityCounter = 0;
+	while (deserializer.PushArrayElementAccess(entityCounter))
+	{
+		ecs::EntityHandle entity{ ecs::CreateEntity() };
+
+		if (deserializer.Deserialize(entity))
+		{
+			// Register entity to this scene
+			ST<SceneManager>::Get()->SetEntitySceneIndex_NoUnparent(entity, index);
+		}
+		else
+		{
+			CONSOLE_LOG(LEVEL_ERROR) << "Failed to deserialize entity " << entityCounter << " in scene " << name;
+			ecs::DeleteEntity(entity);
+		}
+
+		deserializer.PopAccess();
+		++entityCounter;
+	}
+
+
+	deserializer.PopAccess(); // Pop the entities array access
 }
 
 #pragma endregion // Scene
