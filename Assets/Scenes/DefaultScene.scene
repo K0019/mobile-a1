@@ -1,0 +1,53 @@
+{
+    "entities": [
+        {
+            "parentIndex": -1,
+            "position": {
+                "x": 200.0,
+                "y": 200.0,
+                "z": 0.0
+            },
+            "rotation": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "scale": {
+                "x": 150.0,
+                "y": 150.0,
+                "z": 150.0
+            },
+            "components": {
+                "1048412265199846848": {
+                    "_active": true,
+                    "layer": 0
+                },
+                "1095350204565343168": {
+                    "_active": true,
+                    "scriptMap": [
+                        {
+                            "key": "TestScript",
+                            "value": {
+                                "name": "TestScript",
+                                "vars": [
+                                    {
+                                        "key": "value",
+                                        "value": 5
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                },
+                "1223095846833079106": {
+                    "_active": true,
+                    "uid": 9696593391128637
+                },
+                "2471509561333568296": {
+                    "_active": true,
+                    "name": "New Entity"
+                }
+            }
+        }
+    ]
+}

@@ -1,0 +1,45 @@
+{
+  "name": "magicengine",
+  "version-string": "0.1.0",
+  "dependencies": [
+    "assimp",
+    "freeimage",
+    "freetype",
+    "glfw3",
+    "glm",
+	"joltphysics",
+    {
+      "name": "imgui",
+      "features": [
+        "docking-experimental",
+        "glfw-binding"
+      ]
+    },
+	"imguizmo",
+    "implot",
+    {
+      "name": "ktx",
+      "features": [
+        "vulkan"
+      ]
+    },
+    {
+      "name": "glslang",
+      "features": [
+        "tools",
+        "opt"
+      ]
+    },
+    "meshoptimizer",
+	"quill",
+	"mikktspace",
+    "tracy",
+    "spirv-reflect",
+    "spirv-cross",
+    "stb",
+    "vulkan-sdk-components",
+    "vulkan-memory-allocator",
+	"vulkan-utility-libraries",
+    "volk"
+  ]
+}
