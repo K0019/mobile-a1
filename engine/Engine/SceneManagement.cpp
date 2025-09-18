@@ -226,7 +226,7 @@ void Scene::SaveToFile()
 	// TODO: Copy swap files
 	
 	// Create file
-	Serializer serializer{ ST<Filepaths>::Get()->scenesSave + "/" + filepath };
+	Serializer serializer{ filepath };
 	if (!serializer.IsOpen())
 		return;
 
