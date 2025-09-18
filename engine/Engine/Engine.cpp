@@ -337,7 +337,8 @@ void Engine::init()
 	m_imguiContext = std::make_unique<editor::ImGuiContext>(context, *_window);
 	ST<Game>::Get()->Init(WORLD_WIDTH, WORLD_HEIGHT, GAMESTATE::EDITOR);
 	imgui_styling();
-	ImGuiIO& io = ImGui::GetIO(); (void)io;
+	ImGuiIO& io = ImGui::GetIO();
+	io.IniFilename = "imgui.ini";
 	//io.Fonts->AddFontDefault();
 	io.Fonts->Clear(); // Clear existing fonts
 	float baseFontSize = 13.0f; // 13.0f is the size of the default font. Change to the font size you use.
