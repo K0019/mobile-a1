@@ -9,7 +9,7 @@
 
 namespace AssetLoading
 {
-  AssetSystem::AssetSystem(Engine::Context* context) : m_context(context), m_vertexAllocator(ResourceLimits::VERTEX_BUFFER_SIZE), m_indexAllocator(ResourceLimits::INDEX_BUFFER_SIZE), m_materialAllocator(ResourceLimits::MATERIAL_BUFFER_SIZE)
+  AssetSystem::AssetSystem(Context* context) : m_context(context), m_vertexAllocator(ResourceLimits::VERTEX_BUFFER_SIZE), m_indexAllocator(ResourceLimits::INDEX_BUFFER_SIZE), m_materialAllocator(ResourceLimits::MATERIAL_BUFFER_SIZE)
   {
     LOG_INFO("AssetSystem initialized - {}M vertices, {}M indices, {}K materials", ResourceLimits::MAX_VERTICES / 1'000'000, ResourceLimits::MAX_INDICES / 1'000'000, ResourceLimits::MAX_MATERIALS / 1000);
   }

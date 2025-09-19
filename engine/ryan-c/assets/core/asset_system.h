@@ -6,7 +6,7 @@
 #include <unordered_map>
 #include <span>
 #include "asset_pool.h"
-#include "Engine.h"
+#include "context.h"
 #include "import_config.h"
 #include "offsetAllocator.hpp"
 
@@ -18,7 +18,7 @@ namespace AssetLoading
   class AssetSystem
   {
     public:
-      explicit AssetSystem(Engine::Context* context);
+      explicit AssetSystem(Context* context);
 
       ~AssetSystem();
 
@@ -63,7 +63,7 @@ namespace AssetLoading
 
     private:
       // Core systems
-      Engine::Context* m_context;
+      Context* m_context;
 
       // Asset storage
       AssetPool<MeshAsset> m_meshPool;

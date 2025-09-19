@@ -167,6 +167,9 @@ public:
 	std::string scriptsSave;
 	std::string materialsSave;
 
+	// Graphics
+	std::string graphicsWindowIcon;
+
 	// Sound
 	std::string soundFolder;
 

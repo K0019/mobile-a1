@@ -25,6 +25,9 @@ struct GLFWwindow;
 class HotReloader
 {
 public:
+	void Init();
+	~HotReloader();
+
 	/*****************************************************************//*!
 	\brief
 		Callback function for GLFW to use when the engine regains focus.
@@ -33,10 +36,15 @@ public:
 		Pointer of the window to check the focus of.
 	\param[in] focused
 		To check if the window is currently in focus.
-
 	*//******************************************************************/
 	static void FocusCallBackReload(GLFWwindow* window, int focused);
+
 private:
+	static void OnFocusChanged(bool isFocused);
+
+private:
+	friend ST<HotReloader>;
+	HotReloader() = default;
 
 };
 

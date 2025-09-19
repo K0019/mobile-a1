@@ -33,6 +33,7 @@ All rights reserved.
 #include "Hierarchy.h"
 #include "Popup.h"
 #include "Editor.h"
+#include "context.h"
 
 namespace editor
 {
@@ -67,10 +68,6 @@ public:
     Engine(Engine&&) = default;
     Engine& operator=(Engine&&) = default;
 
-    void onWindowResized(int width, int height);
-    void onResolutionChanged(int width, int height);
-    static void OnFocusChanged(GLFWwindow*, int isFocused);
-    void onFullscreen();
     void setFPS(double _fps);
     void wait();
 
@@ -90,29 +87,7 @@ public:
     void shutdown();
     void run();
 
-    GLFWwindow* _window{ nullptr };
-    GLFWmonitor* _monitor{nullptr };
-
-    // ryan was here
-    std::unique_ptr<Renderer> m_renderer;
-    std::unique_ptr<AssetLoading::AssetSystem> m_assetSystem;
-    std::unique_ptr<editor::ImGuiContext> m_imguiContext;
-
-    struct Context
-    {
-      Renderer* renderer = nullptr;
-      AssetLoading::AssetSystem* assetSystem = nullptr;
-    } context;
-    // remove these at some point, kind of atrocious.
-    VkExtent2D _windowExtent{};
-    VkExtent2D _viewportExtent {};
-    VkExtent2D _worldExtent {};
-
 private:
-#ifdef IMGUI_ENABLED
-    void imgui_styling(); // put here just to make it easier to change LOL
-#endif 
-    bool stop_rendering{ false };
     double fps {};
     duration m_targetFrameTime{};
     time_point m_lastFrameTime{};
