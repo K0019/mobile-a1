@@ -50,7 +50,7 @@ void SoundTab::Render()
         }
 
         // Drag-drop source
-        gui::PayloadSource("SOUND", name, name.c_str());
+        gui::PayloadSource{ "SOUND", name, name.c_str() };
 
         // Context menu
         RenderSoundContextMenu(name);

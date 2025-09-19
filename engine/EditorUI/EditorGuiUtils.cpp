@@ -55,16 +55,4 @@ namespace gui
 		}
 	}
 
-	template<>
-	void PayloadSourceWithImageTooltip<std::string>(const char* identifier, const std::string& data, VkDescriptorSet textureHandle, ImVec2 size)
-	{
-		if (ImGui::BeginDragDropSource())
-		{
-			ImGui::SetDragDropPayload(identifier, data.c_str(), data.size() + 1);
-
-			ImGui::Image(0, size);
-
-			ImGui::EndDragDropSource();
-		}
-	}
 }

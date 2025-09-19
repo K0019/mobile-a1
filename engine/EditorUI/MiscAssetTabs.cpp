@@ -45,7 +45,7 @@ void PrefabTab::Render()
                 ImVec2(THUMBNAIL_SIZE, THUMBNAIL_SIZE + 10));
 
             gui::ShowSimpleHoverTooltip(prefabName);
-            gui::PayloadSource<std::string>("PREFAB", prefabName.c_str(), std::string{ ICON_FA_CUBE + prefabName}.c_str());
+            gui::PayloadSource<std::string>{ "PREFAB", prefabName.c_str(), std::string{ ICON_FA_CUBE + prefabName }.c_str() };
 
             if (clicked)
             {
