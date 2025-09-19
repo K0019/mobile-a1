@@ -534,6 +534,9 @@ namespace gui {
 			*//******************************************************************/
 			operator bool() const;
 
+		protected:
+			bool GetIsOpen();
+
 		private:
 			/*****************************************************************//*!
 			\brief
@@ -595,6 +598,8 @@ namespace gui {
 
 		using BeginEndBound_TextWrapPos = BeginEndBound<ImGui::PushTextWrapPos, ImGui::PopTextWrapPos>;
 
+		using BeginEndBound_PayloadSource = BeginEndBound<ImGui::BeginDragDropSource, ImGui::EndDragDropSource>;
+
 		using BeginEndBound_Button = BeginEndBound<ImGui::Button>;
 
 		using BeginEndBound_MenuBar = BeginEndBound<ImGui::BeginMenuBar, ImGui::EndMenuBar>;
@@ -617,6 +622,8 @@ namespace gui {
 		using BeginEndBound_Tooltip = std::false_type;
 
 		using BeginEndBound_TextWrapPos = std::false_type;
+
+		using BeginEndBound_PayloadSource = std::false_type;
 
 		using BeginEndBound_Button = std::false_type;
 
@@ -1196,6 +1203,8 @@ namespace gui {
 	/*****************************************************************//*!
 	\brief
 		Wraps ImGui::BeginDragDropSource(), ImGui::SetDragDropPayload() and ImGui::EndDragDropSource().
+		You can draw gui elements to the tooltip box that appears while the user
+		drags an item as long as the PayloadSource object is still alive.
 	\tparam DataType
 		The type of the payload data.
 	\param identifier
@@ -1203,12 +1212,20 @@ namespace gui {
 	\param data
 		The payload data.
 	\param dragLabel
-		The name of the object being dragged.
+		The name of the object being dragged. If empty, the tooltip while
+		dragging will be empty without any additional GUI calls to draw to it.
 	*//******************************************************************/
 	template <typename DataType>
-	void PayloadSource(const char* identifier, const DataType& data, const char* dragLabel = identifier);
-	template <>
-	void PayloadSource<std::string>(const char* identifier, const std::string& data, const char* dragLabel);
+	class PayloadSource : public internal::BeginEndBound_PayloadSource
+	{
+	public:
+		PayloadSource(const char* identifier, const DataType& data, const char* dragLabel = nullptr);
+
+	private:
+		void SetPayloadTarget(const char* identifier, const DataType& data);
+	};
+	template<>
+	void PayloadSource<std::string>::SetPayloadTarget(const char* identifier, const std::string& data);
 
 	/*****************************************************************//*!
 	\brief
@@ -1643,6 +1660,7 @@ namespace gui {
 	void SetScrollHereY(float center_y_ratio = 0.5f);
 
 #pragma endregion // Misc
+
 }
 
 #include "GUICollection.ipp"

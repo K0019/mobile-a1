@@ -20,17 +20,10 @@ namespace gui
 
 
 	template<typename DataType>
-	void PayloadSourceWithImageTooltip(const char* identifier, const DataType& data, VkDescriptorSet textureHandle, ImVec2 size)
+	void PayloadSourceWithImageTooltip(const char* identifier, const DataType& data, [[maybe_unused]] VkDescriptorSet textureHandle, ImVec2 size)
 	{
-		if (ImGui::BeginDragDropSource())
-		{
-			ImGui::SetDragDropPayload(identifier, &data, sizeof(DataType));
-
+		if (gui::PayloadSource payload{ identifier, data })
+			// TODO: Add image
 			ImGui::Image(0, size);
-
-			ImGui::EndDragDropSource();
-		}
 	}
-	template<>
-	void PayloadSourceWithImageTooltip<std::string>(const char* identifier, const std::string& data, VkDescriptorSet textureHandle, ImVec2 size);
 }
