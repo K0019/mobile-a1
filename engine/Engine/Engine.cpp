@@ -51,12 +51,10 @@ namespace
 {
 	// ImGui windows
 	// dumb way to do it but sure i guess.
-	bool show_demo_window = false;
 	bool show_browser = false;
 
 	void saveState(const char* filename) {
 		Serializer serializer{ filename };
-		serializer.Serialize("show_demo_window", show_demo_window);
 		serializer.Serialize("show_console", ST<Console>::Get()->GetIsOpen());
 		serializer.Serialize("show_performance", ST<PerformanceProfiler>::Get()->GetIsOpen());
 		serializer.Serialize("show_editor", ST<Inspector>::Get()->GetIsOpen());
@@ -70,7 +68,6 @@ namespace
 			return;
 
 		bool b{};
-		deserializer.DeserializeVar("show_demo_window", &show_demo_window);
 		deserializer.DeserializeVar("show_console", &b), ST<Console>::Get()->SetIsOpen(b);
 		deserializer.DeserializeVar("show_performance", &b), ST<PerformanceProfiler>::Get()->SetIsOpen(b);
 		deserializer.DeserializeVar("show_editor", &b), ST<Inspector>::Get()->SetIsOpen(b);
@@ -254,9 +251,6 @@ void Engine::run()
 #ifdef IMGUI_ENABLED
 		ST<GraphicsMain>::Get()->BeginImGuiFrame();
 
-		if(show_demo_window)
-			ImGui::ShowDemoWindow(&show_demo_window);
-
 		// TODO: Convert all of these window singletons into the ecs versions so we can support multiple instances of a single window.
 		if(ST<Console>::Get()->GetIsOpen())
 		{
@@ -368,8 +362,6 @@ void Engine::run()
 			ST<Inspector>::Get()->ProcessInput();
 			if(ST<KeyboardMouseInput>::Get()->GetIsPressed(KEY::GRAVE))
 				ST<Console>::Get()->SetIsOpen(!ST<Console>::Get()->GetIsOpen());
-			if(ST<KeyboardMouseInput>::Get()->GetIsPressed(KEY::F1))
-				show_demo_window = true;
 #endif
 
 			if(ST<KeyboardMouseInput>::Get()->GetIsPressed(KEY::F11))
