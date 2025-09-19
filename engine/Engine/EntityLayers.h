@@ -34,15 +34,7 @@ All rights reserved.
 X(DEFAULT, "Default") \
 X(ENVIRONMENT, "Environment") \
 X(PLAYER, "Player") \
-X(ENEMY, "Enemy") \
-X(WEAPON, "Weapon") \
-X(PLAYERBULLET, "Player Bullet") \
-X(ENEMYBULLET, "Enemy Bullet") \
-X(OBJECTIVE, "Objective") \
-X(DROPPOD, "Drop Pod") \
-X(MASKENTITY, "Mask Entity") \
-X(PLAYERDETECTOR, "Player Detector") \
-X(WEAPONDETECTOR, "Weapon Detector") 
+X(ENEMY, "Enemy")
 
 #define X(name, str) name,
 enum class ENTITY_LAYER : uint32_t
