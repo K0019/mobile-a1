@@ -41,123 +41,46 @@ All rights reserved.
 #include "CSScripting.h"
 #include "HotReloader.h"
 
-#include "fa.h"
-
-#define STB_IMAGE_IMPLEMENTATION
-#include "stb_image.h"
-
-#include "asset_system.h"
+#include "GraphicsAPI.h"
 #include "camera.h"
 #include "Import.h"
 #include "Filesystem.h"
-#include "grid_feature.h"
-#include "imgui_context.h"
-#include "renderer.h"
-#include "scene_feature.h"
-#include "scene_loader.h"
 
-namespace {
-
-	void fbsize_cb(GLFWwindow* window, int width, int height)
-	{
-		auto app = reinterpret_cast<Engine*>(glfwGetWindowUserPointer(window));
-		app->onWindowResized(width, height);
-	}
-
-	void cursor_enter_cb(GLFWwindow* window, int entered)
-	{
 #ifdef IMGUI_ENABLED
-		ImGuiIO& io = ImGui::GetIO();
-		if(entered) {
-			// Only hide cursor if ImGui isn't using it
-			if(!io.WantCaptureMouse) {
-				glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
-			}
-		}
-		else {
-			glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-		}
-#else
-		if(entered)
-			glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-		else
-			glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-#endif
+namespace
+{
+	// ImGui windows
+	// dumb way to do it but sure i guess.
+	bool show_browser = false;
 
+	void saveState(const char* filename) {
+		Serializer serializer{ filename };
+		serializer.Serialize("show_console", ST<Console>::Get()->GetIsOpen());
+		serializer.Serialize("show_performance", ST<PerformanceProfiler>::Get()->GetIsOpen());
+		serializer.Serialize("show_editor", ST<Inspector>::Get()->GetIsOpen());
+		//serializer.Serialize("show_settings", ST<SettingsWindow>::Get()->GetIsOpen());
+		serializer.Serialize("show_browser", show_browser);
+		serializer.Serialize("show_hierarchy", ST<Hierarchy>::Get()->isOpen);
 	}
+	void loadState(const char* filename) {
+		Deserializer deserializer{ filename };
+		if (!deserializer.IsValid())
+			return;
 
-	void joystick_cb([[maybe_unused]] int id, [[maybe_unused]] int event)
-	{
-	}
-
-	void setup_event_callbacks(GLFWwindow* window)
-	{
-		glfwSetFramebufferSizeCallback(window, fbsize_cb);
-		glfwSetKeyCallback(window, KeyboardMouseInput::GLFW_Callback_OnKeyboardClick);
-		glfwSetMouseButtonCallback(window, KeyboardMouseInput::GLFW_Callback_OnMouseClick);
-		glfwSetCursorPosCallback(window, KeyboardMouseInput::GLFW_Callback_OnMouseMove);
-		glfwSetScrollCallback(window, KeyboardMouseInput::GLFW_Callback_OnMouseScroll);
-		glfwSetJoystickCallback(joystick_cb);
-		glfwSetWindowFocusCallback(window, Engine::OnFocusChanged);
-		glfwSetCursorEnterCallback(window, cursor_enter_cb);
-		glfwSetWindowIconifyCallback(window, [](GLFWwindow* window, int iconified)
-		{
-			Engine::OnFocusChanged(window, !iconified);
-		});
-	}
-
-	void setWindowIcon(GLFWwindow* window) {
-		GLFWimage images[1];
-		int channels;
-		images[0].pixels = stbi_load("Assets/Icon_game.png", &images[0].width, &images[0].height, &channels, 4);
-		if(images[0].pixels) {
-			glfwSetWindowIcon(window, 1, images);
-			stbi_image_free(images[0].pixels);
-		}
+		bool b{};
+		deserializer.DeserializeVar("show_console", &b), ST<Console>::Get()->SetIsOpen(b);
+		deserializer.DeserializeVar("show_performance", &b), ST<PerformanceProfiler>::Get()->SetIsOpen(b);
+		deserializer.DeserializeVar("show_editor", &b), ST<Inspector>::Get()->SetIsOpen(b);
+		//deserializer.DeserializeVar("show_settings", &b), ST<SettingsWindow>::Get()->SetIsOpen(b);
+		deserializer.DeserializeVar("show_browser", &show_browser);
+		deserializer.DeserializeVar("show_hierarchy", &ST<Hierarchy>::Get()->isOpen);
 	}
 }
+#endif
 
 Engine::Engine() = default;
 
 Engine::~Engine() = default;
-
-void Engine::onWindowResized(int width, int height)
-{
-	_windowExtent.width = width;
-	_windowExtent.height = height;
-#ifdef IMGUI_ENABLED
-#else
-	_viewportExtent = _windowExtent;
-#endif
-	if(m_renderer)
-		m_renderer->onWindowResized(width, height);
-}
-void Engine::onResolutionChanged(int width, int height)
-{
-	if(_window)
-	{
-		glfwSetWindowMonitor(_window, nullptr, 100, 100, width, height, 0);
-		setWindowIcon(_window);
-		onWindowResized(width, height);
-	}
-}
-void Engine::OnFocusChanged([[maybe_unused]] GLFWwindow* window, int isFocused)
-{
-	CONSOLE_LOG(LEVEL_DEBUG) << "Focused changed: " << isFocused;
-
-#ifdef IMGUI_ENABLED
-	// TODO: Clean this call up
-	HotReloader::FocusCallBackReload(window, isFocused);
-#endif
-
-	Messaging::BroadcastAll("OnWindowFocus", static_cast<bool>(isFocused));
-}
-void Engine::onFullscreen()
-{
-	const GLFWvidmode* mode = glfwGetVideoMode(_monitor);
-	glfwSetWindowMonitor(_window, _monitor, 0, 0, mode->width, mode->height, mode->refreshRate);
-	onWindowResized(mode->width, mode->height);
-}
 
 void Engine::setFPS(double _fps)
 {
@@ -224,13 +147,12 @@ void Engine::wait()
 
 void Engine::MarkToShutdown()
 {
-	glfwSetWindowShouldClose(_window, true);
+	ST<GraphicsMain>::Get()->SetPendingShutdown();
 }
 
 bool Engine::IsShuttingDown() const
 {
-	// If _window isn't initialized, this means we're still initializing the program.
-	return _window && glfwWindowShouldClose(_window);
+	return ST<GraphicsMain>::Get()->GetIsPendingShutdown();
 }
 
 void Engine::init()
@@ -249,68 +171,19 @@ void Engine::init()
 	physics::JoltRegister();
 	ST<physics::JoltPhysics>::Get()->Initialize();
 
-	constexpr unsigned int SCREEN_WIDTH = 1600;
-	// The height of the screen
-	constexpr unsigned int SCREEN_HEIGHT = 900;
-
-	constexpr unsigned int VIEWPORT_WIDTH = 1920;
-
-	constexpr unsigned int VIEWPORT_HEIGHT = 1080;
-	// the width of the visible world
-	constexpr unsigned int WORLD_WIDTH = 1920;
-	// the height of the visible world
-	constexpr unsigned int WORLD_HEIGHT = 1080;
-	// TO BE READ IN DATA LATER
-
-	_windowExtent = { SCREEN_WIDTH, SCREEN_HEIGHT };
-	_viewportExtent = { VIEWPORT_WIDTH, VIEWPORT_HEIGHT };
-	_worldExtent = { WORLD_WIDTH, WORLD_HEIGHT };
-
-	if(!glfwInit()) {
-		throw std::runtime_error("GLFW failed to initialise");
-	}
-	glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-	glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
-	glfwWindowHint(GLFW_ICONIFIED, GLFW_TRUE);
-	uint32_t glfwExtCount = 0;
-	glfwGetRequiredInstanceExtensions(&glfwExtCount);
-
-	_window = glfwCreateWindow(_windowExtent.width, _windowExtent.height, "Mahou Engine", nullptr, nullptr); // MAGICCCCCCCCCCCCC
 	auto windowCreate = std::chrono::high_resolution_clock::now();
-	glfwSetDropCallback(_window, import::DropCallback); //To catch files 
 
-
-	if(!_window) {
-		glfwTerminate();
-		throw std::runtime_error("Window failed to create.");
-	}
-	glfwSetWindowUserPointer(_window, this);
-
-
-	CONSOLE_LOG(LEVEL_DEBUG) << "This is a Demo for Debugging";
-	CONSOLE_LOG(LEVEL_INFO) << "This is a Demo for Information";
-	CONSOLE_LOG(LEVEL_WARNING) << "This is a Demo for Warnings";
-	CONSOLE_LOG(LEVEL_ERROR) << "This is a Demo for Errors";
-	CONSOLE_LOG(LEVEL_FATAL) << "This is a Demo for Fatal issues";
-
-	setup_event_callbacks(_window);
-
-	glfwSetInputMode(_window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-	_monitor = glfwGetPrimaryMonitor();
+	// Graphics initialization
+	auto graphicsMain{ ST<GraphicsMain>::Get() };
+	graphicsMain->Init();
+	graphicsMain->SetCallback_DragDrop(import::DropCallback);
 
 	ST<GameSettings>::Get()->Apply(); // Apply the loaded settings here
 
-	setWindowIcon(_window);
-	// Vulkan configuration
-	// --------------------
-
-	m_renderer = std::make_unique<Renderer>(_window, _windowExtent.width, _windowExtent.height);
-	context.renderer = m_renderer.get();
 #ifdef _DEBUG
-	CONSOLE_LOG(LEVEL_INFO) << "Current working directory: " << std::filesystem::canonical(ST<Filepaths>::Get()->workingDir);
-
-	CONSOLE_LOG(LEVEL_INFO) << "Actual working directory: " << std::filesystem::current_path();
 	// identify file path for loading asset files
+	CONSOLE_LOG(LEVEL_INFO) << "Current working directory: " << std::filesystem::canonical(ST<Filepaths>::Get()->workingDir);
+	CONSOLE_LOG(LEVEL_INFO) << "Actual working directory: " << std::filesystem::current_path();
 #endif
 
 	// load resources
@@ -323,114 +196,42 @@ void Engine::init()
 		ST<Filepaths>::Get()->fontsSave + "/slkscre.ttf"
 	};
 	//std::for_each(fontsToLoad.begin(), fontsToLoad.end(), ResourceManager::LoadFont);
-	m_assetSystem = std::make_unique<AssetLoading::AssetSystem>(&context);
-	context.assetSystem = m_assetSystem.get();
-	m_renderer->startup();
+	
 	// initialize game
 	// ---------------
 	ecs::Initialize();
 	ST<SceneManager>::Get(); // Initialize scene manager
-
 	ST<EntitySpawnEvents>::Get(); // Initialize systems that listen for entity created events
 
+	auto worldExtents{ graphicsMain->GetWorldExtent() };
 #ifdef IMGUI_ENABLED
-	m_imguiContext = std::make_unique<editor::ImGuiContext>(context, *_window);
-	ST<Game>::Get()->Init(WORLD_WIDTH, WORLD_HEIGHT, GAMESTATE::EDITOR);
-	imgui_styling();
-	ImGuiIO& io = ImGui::GetIO();
-	io.IniFilename = "imgui.ini";
-	//io.Fonts->AddFontDefault();
-	io.Fonts->Clear(); // Clear existing fonts
-	float baseFontSize = 13.0f; // 13.0f is the size of the default font. Change to the font size you use.
-	float iconFontSize = baseFontSize * 2.5f / 3.0f; // FontAwesome fonts need to have their sizes reduced by 2.0f/3.0f in order to align correctly
-	static const ImWchar icons_ranges[] = { ICON_MIN_FA, ICON_MAX_FA, 0 };
-	ImFontConfig icons_config;
-	icons_config.MergeMode = true; // Merge icon font to the previous font if you want to have both icons and text
-	icons_config.PixelSnapH = true;
-	icons_config.GlyphMinAdvanceX = iconFontSize;
-	io.Fonts->AddFontFromFileTTF(fontsToLoad[1].c_str(), baseFontSize);
-	io.Fonts->AddFontFromMemoryCompressedTTF(FA_compressed_data, FA_compressed_size, iconFontSize, &icons_config, icons_ranges);
-
-	m_imguiContext->rebuildFontAtlas();
-	//If you want change between icons size you will need to create a new font
-	//io.Fonts->AddFontFromMemoryCompressedTTF(FA_compressed_data, FA_compressed_size, 12.0f, &icons_config, icons_ranges);
-	//io.Fonts->AddFontFromMemoryCompressedTTF(FA_compressed_data, FA_compressed_size, 20.0f, &icons_config, icons_ranges);
-
-
+	ST<Game>::Get()->Init(worldExtents.width, worldExtents.height, GAMESTATE::EDITOR);
 #else
-	ST<Game>::Get()->Init(WORLD_WIDTH, WORLD_HEIGHT, GAMESTATE::IN_GAME);
+	ST<Game>::Get()->Init(worldExtents.width, worldExtents.height, GAMESTATE::IN_GAME);
 #endif
+
 	auto timeafterwindow = std::chrono::high_resolution_clock::now();
 	CONSOLE_LOG(LEVEL_INFO) << "Initialization: " << std::chrono::duration_cast<std::chrono::milliseconds>(timeafterwindow - windowCreate).count() << "ms";
-}
-#ifdef IMGUI_ENABLED
-namespace
-{
-	// ImGui windows
-	// dumb way to do it but sure i guess.
-	bool show_demo_window = false;
-	bool show_browser = false;
 
-	void saveState(const char* filename) {
-		Serializer serializer{ filename };
-		serializer.Serialize("show_demo_window", show_demo_window);
-		serializer.Serialize("show_console", ST<Console>::Get()->GetIsOpen());
-		serializer.Serialize("show_performance", ST<PerformanceProfiler>::Get()->GetIsOpen());
-		serializer.Serialize("show_editor", ST<Inspector>::Get()->GetIsOpen());
-		//serializer.Serialize("show_settings", ST<SettingsWindow>::Get()->GetIsOpen());
-		serializer.Serialize("show_browser", show_browser);
-		serializer.Serialize("show_hierarchy", ST<Hierarchy>::Get()->isOpen);
-	}
-	void loadState(const char* filename) {
-		Deserializer deserializer{ filename };
-		if(!deserializer.IsValid())
-			return;
-
-		bool b{};
-		deserializer.DeserializeVar("show_demo_window", &show_demo_window);
-		deserializer.DeserializeVar("show_console", &b), ST<Console>::Get()->SetIsOpen(b);
-		deserializer.DeserializeVar("show_performance", &b), ST<PerformanceProfiler>::Get()->SetIsOpen(b);
-		deserializer.DeserializeVar("show_editor", &b), ST<Inspector>::Get()->SetIsOpen(b);
-		//deserializer.DeserializeVar("show_settings", &b), ST<SettingsWindow>::Get()->SetIsOpen(b);
-		deserializer.DeserializeVar("show_browser", &show_browser);
-		deserializer.DeserializeVar("show_hierarchy", &ST<Hierarchy>::Get()->isOpen);
-	}
-}
-#endif
-
-void Engine::run() {
-	glfwRestoreWindow(_window);
-#ifdef IMGUI_ENABLED
-	ImGuiIO& io = ImGui::GetIO();
+	// get ready for running
+	// ---------------------
+	graphicsMain->BringWindowToFront();
 	loadState("imgui.json");
-#endif
-	bool bQuit = false;
 
+	// TODO: Use a proper scene
+	graphicsMain->LoadSampleScene();
+}
 
-	// HEY SORRY ABOUT THIS, BUT THERE IS NO ISSUE WITH THE ASSET BEING LOADED, THE CAMERA JUST SPAWNS INSIDE THE BOX SO YOU NEED TO MOVE BACK TO SEE IT
-	static uint64_t gridFeature = m_renderer->CreateFeature<GridFeature>();
-	static uint64_t sceneFeatureHandle_ = m_renderer->CreateFeature<SceneRenderFeature>();
-	const std::unique_ptr<AssetLoading::SceneLoader> sceneLoader_ = std::make_unique<AssetLoading::SceneLoader>(*m_assetSystem);
-	AssetLoading::Scene loadedScene_;
-	std::filesystem::path workingDir = std::filesystem::canonical(ST<Filepaths>::Get()->workingDir);
-	std::filesystem::path asset = workingDir / "Assets" / "fbxcars" / "box.fbx";
-	const std::filesystem::path testScenePath = asset.string().c_str();
-	if(exists(testScenePath))
+void Engine::run()
+{
+	while (!ST<GraphicsMain>::Get()->GetIsPendingShutdown())
 	{
-		auto loadResult = sceneLoader_->loadScene(testScenePath);
-		if(loadResult.success)
-		{
-			loadedScene_ = std::move(loadResult.scene);
-		}
-	}
-
-
-
-	while(!bQuit)
-	{
+		// Wait till the start of this frame
 		wait();
 
+		// Update tracking of framerate and frametime
 #ifdef IMGUI_ENABLED
+		ImGuiIO& io = ImGui::GetIO();
 		GameTime::SetFps(io.Framerate);
 #else
 		GameTime::SetFps(ST<PerformanceProfiler>::Get()->GetFPS());
@@ -446,36 +247,9 @@ void Engine::run() {
 			//GamepadInput::PollInput();
 		}
 
-		if(glfwWindowShouldClose(_window)) {
-			bQuit = true;
-		}
-
-		m_renderer->beginFrame();
-		m_imguiContext->beginFrame();
-		// Enable docking
+		ST<GraphicsMain>::Get()->BeginFrame();
 #ifdef IMGUI_ENABLED
-		if(io.ConfigFlags & ImGuiConfigFlags_DockingEnable)
-		{
-			ImGuiViewport* viewport = ImGui::GetMainViewport();
-			ImGui::SetNextWindowPos(viewport->Pos);
-			ImGui::SetNextWindowSize(viewport->Size);
-			ImGui::SetNextWindowViewport(viewport->ID);
-			ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
-			ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
-			ImGuiWindowFlags window_flags = ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoDocking;
-			window_flags |= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
-			window_flags |= ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
-
-			ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
-			ImGui::Begin("##DockSpace ", nullptr, window_flags);
-			ImGui::PopStyleVar(3);
-
-			ImGuiID dockspace_id = ImGui::GetID("MyDockSpace");
-			ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), ImGuiDockNodeFlags_None);
-		}
-
-		if(show_demo_window)
-			ImGui::ShowDemoWindow(&show_demo_window);
+		ST<GraphicsMain>::Get()->BeginImGuiFrame();
 
 		// TODO: Convert all of these window singletons into the ecs versions so we can support multiple instances of a single window.
 		if(ST<Console>::Get()->GetIsOpen())
@@ -574,6 +348,8 @@ void Engine::run() {
 		}
 
 		ST<CustomViewport>::Get()->DrawImGuiWindow();
+
+		ST<GraphicsMain>::Get()->EndImGuiFrame();
 #endif
 
 
@@ -586,8 +362,6 @@ void Engine::run() {
 			ST<Inspector>::Get()->ProcessInput();
 			if(ST<KeyboardMouseInput>::Get()->GetIsPressed(KEY::GRAVE))
 				ST<Console>::Get()->SetIsOpen(!ST<Console>::Get()->GetIsOpen());
-			if(ST<KeyboardMouseInput>::Get()->GetIsPressed(KEY::F1))
-				show_demo_window = true;
 #endif
 
 			if(ST<KeyboardMouseInput>::Get()->GetIsPressed(KEY::F11))
@@ -615,72 +389,21 @@ void Engine::run() {
 
 		// render
 		// ------
-#ifdef IMGUI_ENABLED
-		if(io.ConfigFlags & ImGuiConfigFlags_DockingEnable)
-		{
-			ImGui::End();
-		}
-		m_imguiContext->endFrame();
-#endif
-		bool main_is_minimized = false;
-		// Handle window events
-		if(glfwGetWindowAttrib(_window, GLFW_ICONIFIED)) {
-			main_is_minimized = true;
-		}
-
 
 		// Game window draw
-		if(!main_is_minimized)
+		ST<PerformanceProfiler>::Get()->StartProfile("Render");
+		if (!ST<GraphicsMain>::Get()->GetIsWindowMinimized())
 		{
-			ST<PerformanceProfiler>::Get()->StartProfile("Render");
 			ST<Game>::Get()->Render();
-
-#ifdef IMGUI_ENABLED
 			ST<Inspector>::Get()->DrawSelectedEntityBorder();
-#endif
-
-
-
-			//TODO PLEASE PUT A REAL CAMERA IN HERE OR ELSE!!!!!!!!!!
-			static CameraPositioner_FirstPerson positioner_ = { vec3(0.0f, 1.0f, -1.5f), vec3(0.0f, 0.5f, 0.0f), vec3(0.0f, 1.0f, 0.0f) };
-			static Camera camera = Camera(positioner_);
-			positioner_.movement_.forward_ = ST<KeyboardMouseInput>::Get()->GetIsDown(KEY::W);
-			positioner_.movement_.backward_ = ST<KeyboardMouseInput>::Get()->GetIsDown(KEY::S);
-			positioner_.movement_.left_ = ST<KeyboardMouseInput>::Get()->GetIsDown(KEY::A);
-			positioner_.movement_.right_ = ST<KeyboardMouseInput>::Get()->GetIsDown(KEY::D);
-			positioner_.movement_.up_ = ST<KeyboardMouseInput>::Get()->GetIsDown(KEY::NUM_1);
-			positioner_.movement_.down_ = ST<KeyboardMouseInput>::Get()->GetIsDown(KEY::NUM_2);
-			if(ST<KeyboardMouseInput>::Get()->GetIsDown(KEY::SPACE))
-			{
-				positioner_.lookAt(vec3(0.0f, 1.0f, -1.5f), vec3(0.0f, 0.5f, 0.0f), vec3(0.0f, 1.0f, 0.0f));
-				positioner_.setSpeed(vec3(0.0f));
-			}
-			static Vec2 lastMousePos;
-			vec2 mouse_delta = ST<KeyboardMouseInput>::Get()->GetMousePos() - lastMousePos;
-			lastMousePos = ST<KeyboardMouseInput>::Get()->GetMousePos();
-			positioner_.update(ST<PerformanceProfiler>::Get()->GetDeltaTime(), mouse_delta, ST<KeyboardMouseInput>::Get()->GetIsDown(KEY::M_RIGHT));
-
-			Render::FrameData currentFrameData{};
-			currentFrameData.cameraPos = camera.getPosition();
-			currentFrameData.viewMatrix = camera.getViewMatrix();
-			currentFrameData.projMatrix = perspective(45.0f, (float)_windowExtent.width / (float)_windowExtent.height, 0.1f, 100.0f);
-			SceneRenderFeature::UpdateScene(sceneFeatureHandle_, loadedScene_, *m_assetSystem, *m_renderer);
-			m_renderer->render(currentFrameData);
-			ST<PerformanceProfiler>::Get()->EndProfile("Render");
+			ST<GraphicsMain>::Get()->RenderSampleScene();
 		}
-		// Present Main Platform Window
-		m_renderer->endFrame();
+		ST<GraphicsMain>::Get()->EndFrame();
+		ST<PerformanceProfiler>::Get()->EndProfile("Render");
+
+
 		ST<PerformanceProfiler>::Get()->EndFrame();
 	}
-
-
-
-
-	m_renderer->DestroyFeature(gridFeature);
-
-
-
-
 
 #ifdef IMGUI_ENABLED
 	saveState("imgui.json");
@@ -723,104 +446,8 @@ void Engine::shutdown() {
 	ST<GameSettings>::Destroy();
 	//ST<Filepaths>::Destroy(); // Filepaths kinda needs to live for other threads to reference filepaths... smart pointers will free this later. sry about this
 	ST<ecs::RegisteredSystemsOperatingByLayer>::Destroy();
-	m_renderer->shutdown();
+
+	ST<GraphicsMain>::Destroy();
 	// In case any systems send logs to the console while destructing.
 	ST<Console>::Destroy();
-
-	glfwDestroyWindow(_window);
-	glfwTerminate();
 }
-#ifdef IMGUI_ENABLED
-void Engine::imgui_styling()
-{
-	ImGuiStyle& style = ImGui::GetStyle();
-	ImVec4* colors = ImGui::GetStyle().Colors;
-	colors[ImGuiCol_Text] = ImVec4(1.00f, 1.00f, 1.00f, 1.00f);
-	colors[ImGuiCol_TextDisabled] = ImVec4(0.50f, 0.50f, 0.50f, 1.00f);
-	colors[ImGuiCol_WindowBg] = ImVec4(0.10f, 0.10f, 0.10f, 1.00f);
-	colors[ImGuiCol_ChildBg] = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
-	colors[ImGuiCol_PopupBg] = ImVec4(0.19f, 0.19f, 0.19f, 0.92f);
-	colors[ImGuiCol_Border] = ImVec4(0.19f, 0.19f, 0.19f, 0.29f);
-	colors[ImGuiCol_BorderShadow] = ImVec4(0.00f, 0.00f, 0.00f, 0.24f);
-	colors[ImGuiCol_FrameBg] = ImVec4(0.05f, 0.05f, 0.05f, 0.54f);
-	colors[ImGuiCol_FrameBgHovered] = ImVec4(0.19f, 0.19f, 0.19f, 0.54f);
-	colors[ImGuiCol_FrameBgActive] = ImVec4(0.20f, 0.22f, 0.23f, 1.00f);
-	colors[ImGuiCol_TitleBg] = ImVec4(0.00f, 0.00f, 0.00f, 1.00f);
-	colors[ImGuiCol_TitleBgActive] = ImVec4(0.06f, 0.06f, 0.06f, 1.00f);
-	colors[ImGuiCol_TitleBgCollapsed] = ImVec4(0.00f, 0.00f, 0.00f, 1.00f);
-	colors[ImGuiCol_MenuBarBg] = ImVec4(0.14f, 0.14f, 0.14f, 1.00f);
-	colors[ImGuiCol_ScrollbarBg] = ImVec4(0.05f, 0.05f, 0.05f, 0.54f);
-	colors[ImGuiCol_ScrollbarGrab] = ImVec4(0.34f, 0.34f, 0.34f, 0.54f);
-	colors[ImGuiCol_ScrollbarGrabHovered] = ImVec4(0.40f, 0.40f, 0.40f, 0.54f);
-	colors[ImGuiCol_ScrollbarGrabActive] = ImVec4(0.56f, 0.56f, 0.56f, 0.54f);
-	colors[ImGuiCol_CheckMark] = ImVec4(0.33f, 0.67f, 0.86f, 1.00f);
-	colors[ImGuiCol_SliderGrab] = ImVec4(0.34f, 0.34f, 0.34f, 0.54f);
-	colors[ImGuiCol_SliderGrabActive] = ImVec4(0.56f, 0.56f, 0.56f, 0.54f);
-	colors[ImGuiCol_Button] = ImVec4(0.05f, 0.05f, 0.05f, 0.54f);
-	colors[ImGuiCol_ButtonHovered] = ImVec4(0.19f, 0.19f, 0.19f, 0.54f);
-	colors[ImGuiCol_ButtonActive] = ImVec4(0.20f, 0.22f, 0.23f, 1.00f);
-	colors[ImGuiCol_Header] = ImVec4(0.00f, 0.00f, 0.00f, 0.52f);
-	colors[ImGuiCol_HeaderHovered] = ImVec4(0.00f, 0.00f, 0.00f, 0.36f);
-	colors[ImGuiCol_HeaderActive] = ImVec4(0.20f, 0.22f, 0.23f, 0.33f);
-	colors[ImGuiCol_Separator] = ImVec4(0.28f, 0.28f, 0.28f, 0.29f);
-	colors[ImGuiCol_SeparatorHovered] = ImVec4(0.44f, 0.44f, 0.44f, 0.29f);
-	colors[ImGuiCol_SeparatorActive] = ImVec4(0.40f, 0.44f, 0.47f, 1.00f);
-	colors[ImGuiCol_ResizeGrip] = ImVec4(0.28f, 0.28f, 0.28f, 0.29f);
-	colors[ImGuiCol_ResizeGripHovered] = ImVec4(0.44f, 0.44f, 0.44f, 0.29f);
-	colors[ImGuiCol_ResizeGripActive] = ImVec4(0.40f, 0.44f, 0.47f, 1.00f);
-	colors[ImGuiCol_Tab] = ImVec4(0.00f, 0.00f, 0.00f, 0.52f);
-	colors[ImGuiCol_TabHovered] = ImVec4(0.14f, 0.14f, 0.14f, 1.00f);
-	colors[ImGuiCol_TabActive] = ImVec4(0.20f, 0.20f, 0.20f, 0.36f);
-	colors[ImGuiCol_TabUnfocused] = ImVec4(0.00f, 0.00f, 0.00f, 0.52f);
-	colors[ImGuiCol_TabUnfocusedActive] = ImVec4(0.14f, 0.14f, 0.14f, 1.00f);
-	colors[ImGuiCol_DockingPreview] = ImVec4(0.33f, 0.67f, 0.86f, 1.00f);
-	colors[ImGuiCol_DockingEmptyBg] = ImVec4(0.10f, 0.10f, 0.10f, 1.00f);
-	colors[ImGuiCol_PlotLines] = ImVec4(1.00f, 0.00f, 0.00f, 1.00f);
-	colors[ImGuiCol_PlotLinesHovered] = ImVec4(1.00f, 0.00f, 0.00f, 1.00f);
-	colors[ImGuiCol_PlotHistogram] = ImVec4(1.00f, 0.00f, 0.00f, 1.00f);
-	colors[ImGuiCol_PlotHistogramHovered] = ImVec4(1.00f, 0.00f, 0.00f, 1.00f);
-	colors[ImGuiCol_TableHeaderBg] = ImVec4(0.00f, 0.00f, 0.00f, 0.52f);
-	colors[ImGuiCol_TableBorderStrong] = ImVec4(0.00f, 0.00f, 0.00f, 0.52f);
-	colors[ImGuiCol_TableBorderLight] = ImVec4(0.28f, 0.28f, 0.28f, 0.29f);
-	colors[ImGuiCol_TableRowBg] = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
-	colors[ImGuiCol_TableRowBgAlt] = ImVec4(1.00f, 1.00f, 1.00f, 0.06f);
-	colors[ImGuiCol_TextSelectedBg] = ImVec4(0.20f, 0.22f, 0.23f, 1.00f);
-	colors[ImGuiCol_DragDropTarget] = ImVec4(0.33f, 0.67f, 0.86f, 1.00f);
-	colors[ImGuiCol_NavHighlight] = ImVec4(1.00f, 0.00f, 0.00f, 1.00f);
-	colors[ImGuiCol_NavWindowingHighlight] = ImVec4(1.00f, 0.00f, 0.00f, 0.70f);
-	colors[ImGuiCol_NavWindowingDimBg] = ImVec4(1.00f, 0.00f, 0.00f, 0.20f);
-	colors[ImGuiCol_ModalWindowDimBg] = ImVec4(1.00f, 0.00f, 0.00f, 0.35f);
-
-	style.Alpha = 1.0f;
-	style.DisabledAlpha = 0.300000011920929f;
-	style.WindowPadding = ImVec2(10.10000038146973f, 10.10000038146973f);
-	style.WindowRounding = 10.30000019073486f;
-	style.WindowBorderSize = 1.0f;
-	style.WindowMinSize = ImVec2(20.0f, 32.0f);
-	style.WindowTitleAlign = ImVec2(0.5f, 0.5f);
-	style.ChildRounding = 8.199999809265137f;
-	style.ChildBorderSize = 1.0f;
-	style.PopupRounding = 10.69999980926514f;
-	style.PopupBorderSize = 1.0f;
-	style.FramePadding = ImVec2(20.0f, 1.5f);
-	style.FrameRounding = 4.800000190734863f;
-	style.FrameBorderSize = 0.0f;
-	style.ItemSpacing = ImVec2(9.699999809265137f, 5.300000190734863f);
-	style.ItemInnerSpacing = ImVec2(5.400000095367432f, 9.300000190734863f);
-	style.CellPadding = ImVec2(7.900000095367432f, 2.0f);
-	style.IndentSpacing = 10.69999980926514f;
-	style.ColumnsMinSpacing = 6.0f;
-	style.ScrollbarSize = 12.10000038146973f;
-	style.ScrollbarRounding = 20.0f;
-	style.GrabMinSize = 10.0f;
-	style.GrabRounding = 4.599999904632568f;
-	style.TabRounding = 4.0f;
-	style.TabBorderSize = 0.0f;
-	style.TouchExtraPadding = ImVec2(0.00f, 0.00f);
-	style.TabCloseButtonMinWidthUnselected = 0.0f;
-	style.TabCloseButtonMinWidthSelected = 0.0f;
-	style.ColorButtonPosition = ImGuiDir_Right;
-	style.ButtonTextAlign = ImVec2(0.5f, 0.5f);
-	style.SelectableTextAlign = ImVec2(0.0f, 0.0f);
-}
-#endif
