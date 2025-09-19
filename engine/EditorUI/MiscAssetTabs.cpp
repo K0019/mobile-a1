@@ -126,8 +126,10 @@ void ShaderTab::Render()
 
     if (shaderNames.empty())
     {
+        const std::unordered_set<std::string> allowedExtensions{ ".vert", ".frag", ".comp" };
         for (const auto& entry : std::filesystem::directory_iterator{ ST<Filepaths>::Get()->shadersSave })
-            shaderNames.push_back(entry.path().filename().string());
+            if (allowedExtensions.find(entry.path().extension().string()) != allowedExtensions.end())
+                shaderNames.push_back(entry.path().filename().string());
     }
 
     int count{};
