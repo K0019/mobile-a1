@@ -10,10 +10,10 @@ BehaviorNode::BehaviorNode()
 
 BehaviorNode::~BehaviorNode()
 {
-    for (auto&& child : children)
-    {
-        delete child;
-    }
+    //for (auto* c : children) {
+    //    delete c;
+    //}
+    //children.clear();
 }
 
 

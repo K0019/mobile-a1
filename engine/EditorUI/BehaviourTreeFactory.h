@@ -10,12 +10,14 @@ public:
 
     static BTFactory& Instance();
 
-    bool Register(const std::string& type, Maker fn);   // for both C++ + C#
+    bool Register(const std::string& type, Maker fn);   // for both C++ + C# in the future
     BehaviorNode* Create(const std::string& type) const;
     std::vector<std::string> RegisteredTypes() const;
 
+    void Clear();   
 private:
     BTFactory();
+    ~BTFactory();
     struct Impl;
     Impl* impl;
 };

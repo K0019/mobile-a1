@@ -9,26 +9,59 @@ BehaviorTree::BehaviorTree()
 
 BehaviorTree::~BehaviorTree()
 {
-    delete rootNode;
+    //delete rootNode;
+    //rootNode = nullptr;
+    rootNode = nullptr;
+    owned.clear();  // destroys all nodes safely
+
 }
+
+//void BehaviorTree::InitHardcoded()
+//{
+//    auto* selector = new ComSelector();
+//
+//    auto* failNode = new LeafFailTest();
+//    auto* mouseNode = new L_CheckMouseClick();
+//    auto* failNode2 = new LeafFailTest();
+//    auto* selector2 = new ComSelector();
+//    selector->IsReady();
+//    selector->AddChild(failNode);
+//    selector->AddChild(failNode2);
+//    selector->AddChild(selector2);
+//    selector2->AddChild(mouseNode);
+//
+//    rootNode = selector;
+//    treeName = "Testing Tree";
+//}
 
 void BehaviorTree::InitHardcoded()
 {
-    auto* selector = new ComSelector();
+    owned.clear();
+    rootNode = nullptr;
+    treeName = "Testing Tree";
 
+    auto* selector = new ComSelector();
     auto* failNode = new LeafFailTest();
     auto* mouseNode = new L_CheckMouseClick();
     auto* failNode2 = new LeafFailTest();
     auto* selector2 = new ComSelector();
-    selector->IsReady();
+
+    // take ownership first
+    owned.emplace_back(selector);
+    owned.emplace_back(failNode);
+    owned.emplace_back(mouseNode);
+    owned.emplace_back(failNode2);
+    owned.emplace_back(selector2);
+
+    // then wire
     selector->AddChild(failNode);
     selector->AddChild(failNode2);
     selector->AddChild(selector2);
     selector2->AddChild(mouseNode);
 
     rootNode = selector;
-    treeName = "Testing Tree";
 }
+
 
 void BehaviorTree::Update(float dt)
 {
@@ -40,6 +73,46 @@ void BehaviorTree::Update(float dt)
     if (rootNode->IsRunning() == false)
         rootNode->SetStatus(NODE_STATUS::READY);
 }
+//void BehaviorTree::InitFromAsset(const BehaviorTreeAsset& asset)
+//{
+//    delete rootNode;          // clear previous
+//    rootNode = nullptr;
+//
+//    std::unordered_map<std::string, BehaviorNode*> created;
+//    created.reserve(asset.nodes.size());
+//
+//    // 1) create
+//    for (const auto& nd : asset.nodes) {
+//        BehaviorNode* n = BTFactory::Instance().Create(nd.nodeType);
+//        if (!n) { std::cerr << "..."; continue; }
+//        created.emplace(nd.nodeID, n);
+//    }
+//
+//    // 2) wire
+//    for (const auto& nd : asset.nodes) {
+//        auto itP = created.find(nd.nodeID);
+//        if (itP == created.end()) continue;
+//        auto* parent = itP->second;
+//
+//        // only composites accept children
+//        if (auto* comp = dynamic_cast<IComposite*>(parent)) {
+//            for (const auto& cid : nd.children) {
+//                auto itC = created.find(cid);
+//                if (itC != created.end()) comp->AddChild(itC->second);
+//                else std::cerr << "[BT] Missing child '" << cid << "' for '" << nd.nodeID << "'\n";
+//            }
+//        }
+//        else if (!nd.children.empty()) {
+//            std::cerr << "[BT] Node '" << nd.nodeID << "' of type '" << nd.nodeType
+//                << "' cannot have children\n";
+//        }
+//    }
+//
+//    // 3) set root
+//    auto itR = created.find(asset.rootID);
+//    if (itR != created.end()) rootNode = itR->second;
+//    else std::cerr << "[BT] rootID not found: " << asset.rootID << "\n";
+//}
 
 void BehaviorTree::InitFromAsset(const BehaviorTreeAsset& asset)
 {
@@ -49,68 +122,43 @@ void BehaviorTree::InitFromAsset(const BehaviorTreeAsset& asset)
 
     std::unordered_map<std::string, BehaviorNode*> created;
     created.reserve(asset.nodes.size());
-    owned.reserve(asset.nodes.size());
 
-    // 1) Create every node by type
-    for (const auto& nd : asset.nodes)
-    {
-        if (created.count(nd.nodeID)) {
-            std::cerr << "[BT] Duplicate nodeID: " << nd.nodeID << "\n";
-            continue;
+    // 1) create and take ownership
+    for (const auto& nd : asset.nodes) {
+        if (BehaviorNode* n = BTFactory::Instance().Create(nd.nodeType)) {
+            owned.emplace_back(n);         // takes ownership
+            created.emplace(nd.nodeID, n); // raw alias
         }
-
-        BehaviorNode* n = BTFactory::Instance().Create(nd.nodeType);
-        if (!n) {
-            std::cerr << "[BT] Unknown nodeType: " << nd.nodeType
-                << " (missing BT_REGISTER_NODE in that node’s .cpp?)\n";
-            continue;
+        else {
+            std::cerr << "[BT] Unknown nodeType: " << nd.nodeType << "\n";
         }
-
-        owned.emplace_back(n);              // take ownership
-        created.emplace(nd.nodeID, n);      // map id -> instance
-
-        // (optional) apply params (keys/values) to the node here
-        // for (size_t i = 0; i < nd.keys.size() && i < nd.values.size(); ++i) {
-        //     applyParamToNode(n, nd.keys[i], nd.values[i]);
-        // }
     }
 
-    // 2) Wire up children (only composites can accept children)
-    for (const auto& nd : asset.nodes)
-    {
+    // 2) wire children (only composites)
+    for (const auto& nd : asset.nodes) {
         auto itP = created.find(nd.nodeID);
-        if (itP == created.end()) continue;      // was unknown/duplicate
-
+        if (itP == created.end()) continue;
         BehaviorNode* parent = itP->second;
 
-        // can this node have children?
         if (auto* comp = dynamic_cast<IComposite*>(parent)) {
             for (const auto& cid : nd.children) {
                 auto itC = created.find(cid);
-                if (itC != created.end()) {
-                    comp->AddChild(itC->second); // public composite API
-                }
-                else {
-                    std::cerr << "[BT] Missing child '" << cid
-                        << "' for parent '" << nd.nodeID << "'\n";
-                }
+                if (itC != created.end()) comp->AddChild(itC->second);
+                else std::cerr << "[BT] Missing child '" << cid
+                    << "' for parent '" << nd.nodeID << "'\n";
             }
         }
-        else {
-            if (!nd.children.empty()) {
-                std::cerr << "[BT] Node '" << nd.nodeID << "' (" << nd.nodeType
-                    << ") is not composite but has children in asset\n";
-            }
+        else if (!nd.children.empty()) {
+            std::cerr << "[BT] Node '" << nd.nodeID << "' (" << nd.nodeType
+                << ") cannot have children\n";
         }
     }
 
-    // 3) Set root
-    if (auto itR = created.find(asset.rootID); itR != created.end()) {
+    // 3) root
+    if (auto itR = created.find(asset.rootID); itR != created.end())
         rootNode = itR->second;
-    }
-    else {
+    else
         std::cerr << "[BT] rootID not found: " << asset.rootID << "\n";
-    }
 }
 
 void BehaviorTree::TestInitFromAsset(){
@@ -150,8 +198,7 @@ void BehaviorTree::TestInitFromAsset(){
     // Collect them into asset
     asset.nodes = { root, fail1, fail2, sel2, mouse };
 
-    // Build runtime tree
-    BehaviorTree tree;
-    tree.InitFromAsset(asset);
+    // Build runtime tree ON THIS INSTANCE
+    InitFromAsset(asset);
 
 }

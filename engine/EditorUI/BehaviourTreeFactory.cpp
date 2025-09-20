@@ -10,6 +10,7 @@ BTFactory& BTFactory::Instance() {
 }
 
 BTFactory::BTFactory() : impl(new Impl) {}
+BTFactory::~BTFactory() { delete impl; }
 
 bool BTFactory::Register(const std::string& type, Maker fn) {
     return impl->makers.emplace(type, fn).second;
@@ -27,3 +28,6 @@ std::vector<std::string> BTFactory::RegisteredTypes() const {
     return out;
 }
 
+void BTFactory::Clear() {
+    impl->makers.clear();
+}

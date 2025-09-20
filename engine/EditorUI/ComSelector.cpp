@@ -1,7 +1,7 @@
 #include "ComSelector.h"
 #include "BehaviourTreeFactory.h"
 
-BT_REGISTER_NODE(ComSelector, "Selector")
+BT_REGISTER_NODE(ComSelector, "ComSelector")
 
 ComSelector::ComSelector()
     : currentIndex(0)

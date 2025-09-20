@@ -18,7 +18,7 @@ enum class NODE_RESULT
 class BehaviorNode {
 public:
     BehaviorNode();
-    ~BehaviorNode();
+    virtual ~BehaviorNode();
 
     //getters setters etc
     bool IsReady() const;
@@ -90,12 +90,11 @@ public:
     virtual void AddChild(BehaviorNode* child) = 0;
 };
 
-
 template <typename T>
 class CompositeNode : public BaseNode<T>, public IComposite {
 public:
     void AddChild(BehaviorNode* child) override {
-        BehaviorNode::AddChild(child);  
+        BehaviorNode::AddChild(child);   
     }
 };
 #pragma region Definition
