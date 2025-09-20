@@ -66,13 +66,11 @@ protected:
     void OnFailure();
     void AddChild(BehaviorNode* child);
 
-    //void displayLeafText(); //may remove later
 
 private:
     std::string name;
     std::string summary;
 
-   // void setDebugInfo(std::string name, std::string summary);
 
 };
 
@@ -83,13 +81,14 @@ public:
     virtual BehaviorNode* Clone();
 };
 
-// A small interface so the builder can acknowledge this type of nodes can have children
+// A  interface so the builder can acknowledge this type of nodes can have children
 class IComposite {
 public:
     virtual ~IComposite() = default;
     virtual void AddChild(BehaviorNode* child) = 0;
 };
 
+//Inherit to create a compositeNode with a wrapper addchild function for access
 template <typename T>
 class CompositeNode : public BaseNode<T>, public IComposite {
 public:

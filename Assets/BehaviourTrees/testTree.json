@@ -5,7 +5,7 @@
   "nodes": [
     {
       "nodeID": "root",
-      "nodeType": "Selector",
+      "nodeType": "ComSelector",
       "children": ["fail1", "mouse"],
       "params": {
         "keys": [],

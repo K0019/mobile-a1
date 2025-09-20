@@ -33,6 +33,7 @@ All rights reserved.
 #include "PrefabManager.h"
 #include "GameSettings.h"
 #include "JoltPhysics.h"
+#include "BehaviourTreeSystem.h"
 
 #include "SettingsWindow.h"
 #include "BehaviourTreeWindow.h"
@@ -174,7 +175,8 @@ void Engine::init()
 
 	//Testing for BehaviorTree
 	//bt.InitHardcoded();
-	bt.TestInitFromAsset();
+	//bt.TestInitFromAsset();
+	ST<BehaviorTreeSystem>::Get()->Initialize();
 
 	auto windowCreate = std::chrono::high_resolution_clock::now();
 
@@ -293,7 +295,8 @@ void Engine::run()
 		ecs::SwitchToPool(ecs::POOL::DEFAULT);
 		ecs::FlushChanges(); // For if any of the editor windows deleted an entity.
 
-		bt.Update(static_cast<float>(GameTime::Dt()));
+		//bt.Update(static_cast<float>(GameTime::Dt()));
+		ST<BehaviorTreeSystem>::Get()->UpdateAll(static_cast<float>(GameTime::Dt()));
 
 		if(ImGui::BeginMainMenuBar())
 		{
@@ -443,6 +446,7 @@ void Engine::shutdown() {
 	ST<PerformanceProfiler>::Destroy();
 	ST<AssetBrowser>::Destroy();
 
+	ST<BehaviorTreeSystem>::Get()->Shutdown();
 	BTFactory::Instance().Clear();
 
 #ifdef IMGUI_ENABLED
