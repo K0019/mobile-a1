@@ -34,6 +34,7 @@ Check if tree is valid (least priority)
 #include "LeafFailTest.h"
 #include "LeafKeyPressed.h"
 #include "ComSelector.h"
+
 class BehaviorTree {
 public:
     BehaviorTree();
@@ -50,6 +51,45 @@ private:
     std::string treeName;
 
     // simple ownership bucket (matches raw child pointers on composites)
-    std::vector<std::unique_ptr<BehaviorNode>> owned;
+    //std::vector<std::unique_ptr<BehaviorNode>> owned;
 };
 
+class BehaviorTreeComp
+    : public IRegisteredComponent<BehaviorTreeComp>
+#ifdef IMGUI_ENABLED
+    , public IEditorComponent<BehaviorTreeComp>
+#endif
+    , public ecs::IComponentCallbacks
+{
+public:
+    BehaviorTreeComp();
+
+private:
+    BehaviorTree behaviorTree;
+
+public:
+    void OnAttached() override;
+    void OnDetached() override;
+    void Update();
+
+private:
+    virtual void EditorDraw() override;
+
+public:
+    property_vtable()
+};
+property_begin(BehaviorTreeComp)
+{
+
+}
+property_vend_h(BehaviorTreeComp)
+
+class BehaviorTreeSystem
+    : public ecs::System<BehaviorTreeSystem, BehaviorTreeComp>
+{
+public:
+    BehaviorTreeSystem();
+
+private:
+    void UpdateComp(BehaviorTreeComp& comp);
+};

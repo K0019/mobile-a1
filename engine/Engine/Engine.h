@@ -60,7 +60,7 @@ public:
     using time_point = std::chrono::time_point<clock>;
 
     Engine();
-        BehaviorTree bt;
+        //BehaviorTree bt;
 
     ~Engine();
     // Prevent copying

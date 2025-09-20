@@ -3,7 +3,7 @@
 
 void L_CheckMouseClick::OnUpdate(float dt)
 {
-    const auto testKeyPressed = Input::GetKeyPressed(KEY::F2);
+    //const auto testKeyPressed = Input::GetKeyPressed(KEY::F2);
 
     if (true)
     {

@@ -40,3 +40,37 @@ void BehaviorTree::Update(float dt)
         rootNode->SetStatus(NODE_STATUS::READY);
 }
 
+BehaviorTreeComp::BehaviorTreeComp()
+    : behaviorTree{}
+{
+}
+
+void BehaviorTreeComp::OnAttached()
+{
+    behaviorTree.InitHardcoded();
+}
+
+void BehaviorTreeComp::OnDetached()
+{
+
+}
+
+void BehaviorTreeComp::Update()
+{
+    behaviorTree.Update((GameTime::IsFixedDtMode() ? GameTime::FixedDt() : GameTime::RealDt()));
+}
+
+void BehaviorTreeComp::EditorDraw()
+{
+
+}
+
+BehaviorTreeSystem::BehaviorTreeSystem()
+    : System_Internal{&BehaviorTreeSystem::UpdateComp}
+{
+}
+
+void BehaviorTreeSystem::UpdateComp(BehaviorTreeComp& comp)
+{
+    comp.Update();
+}
