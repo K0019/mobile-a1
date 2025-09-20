@@ -99,14 +99,7 @@ private:
 
 };
 
-class ResourceContainerMeshes : public ResourceContainerBase<ResourceMesh>
-{
-public:
-
-private:
-
-public:
-};
+using ResourceContainerMeshes = ResourceContainerBase<ResourceMesh>;
 
 class ResourceFilepaths
 {
