@@ -6,7 +6,7 @@
 class GraphicsScene
 {
 public:
-	GraphicsScene();
+	~GraphicsScene();
 
 	bool Init(Context inContext);
 	bool NewFrame();
@@ -14,6 +14,9 @@ public:
 	void AddObject(const ResourceMesh* resource, const Mat4& transform);
 
 private:
+	friend ST<GraphicsScene>;
+	GraphicsScene();
+
 	void INTERNAL_AddSceneObject(const SceneObject& object, const Mat4& transform);
 
 private:
@@ -22,5 +25,7 @@ private:
 	SceneRenderParams* params;
 
 	size_t objIndex;
+
+	uint64_t gridHandle;
 };
 

@@ -31,6 +31,7 @@ GraphicsMain::GraphicsMain()
 
 GraphicsMain::~GraphicsMain()
 {
+	ST<GraphicsScene>::Destroy();
 	ST<GraphicsAssets>::Destroy();
 
 	renderer->shutdown();

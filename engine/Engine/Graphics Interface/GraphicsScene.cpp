@@ -1,5 +1,6 @@
 #include "GraphicsScene.h"
 #include "renderer.h"
+#include "grid_feature.h"
 #include "asset_system.h"
 
 GraphicsScene::GraphicsScene()
@@ -7,13 +8,24 @@ GraphicsScene::GraphicsScene()
     , sceneFeatureHandle{}
     , params{}
     , objIndex{}
+    , gridHandle{}
 {
+}
+
+GraphicsScene::~GraphicsScene()
+{
+    if (!context.renderer)
+        return;
+
+    context.renderer->DestroyFeature(gridHandle);
+    context.renderer->DestroyFeature(sceneFeatureHandle);
 }
 
 bool GraphicsScene::Init(Context inContext)
 {
     context = inContext;
     sceneFeatureHandle = context.renderer->CreateFeature<SceneRenderFeature>();
+    gridHandle = context.renderer->CreateFeature<GridFeature>();
     return true;
 }
 
