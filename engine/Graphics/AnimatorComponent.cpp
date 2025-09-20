@@ -51,7 +51,7 @@ void AnimatorComponent::Reset() {
     // Fix: Force reset of the current frame
     if (ecs::CompHandle<RenderComponent> renderComp{ ecs::GetEntity(this)->GetComp<RenderComponent>() })
     {
-        const Animation& anim = ResourceManager::GetAnimation(GetCurrentAnimationName());
+        const Animation& anim = ResourceManagerOld::GetAnimation(GetCurrentAnimationName());
         const FrameData& new_frameData = anim.frames[currentFrame];
         renderComp->SetSpriteID(new_frameData.spriteID);
     }
@@ -74,16 +74,16 @@ size_t AnimatorComponent::GetCurrentFrame() const {
 }
 
 const std::string& AnimatorComponent::GetCurrentAnimationName() const {
-    return ResourceManager::GetResourceName(currentAnimationHash);
+    return ResourceManagerOld::GetResourceName(currentAnimationHash);
 }
 
 float AnimatorComponent::GetAnimationLength() const
 {
-    if (!ResourceManager::AnimationExists(ResourceManager::GetResourceName(currentAnimationHash)))
+    if (!ResourceManagerOld::AnimationExists(ResourceManagerOld::GetResourceName(currentAnimationHash)))
         return 0.0f;
 
     float totalTime{};
-    for (const FrameData& frame : ResourceManager::GetAnimation(currentAnimationHash).frames)
+    for (const FrameData& frame : ResourceManagerOld::GetAnimation(currentAnimationHash).frames)
         totalTime += frame.duration;
     return totalTime;
 }
@@ -93,7 +93,7 @@ void AnimatorComponent::SetAnimation(const std::string& animationName) {
 }
 
 void AnimatorComponent::SetAnimation(size_t animationHash) {
-    if(!ResourceManager::AnimationExists(ResourceManager::GetResourceName(animationHash))) {
+    if(!ResourceManagerOld::AnimationExists(ResourceManagerOld::GetResourceName(animationHash))) {
         return;
     }
 
@@ -121,7 +121,7 @@ void AnimatorComponent::SetFrame(size_t frameIndex) {
         return;
     }
 
-    const Animation& animation = ResourceManager::GetAnimation(currentAnimationHash);
+    const Animation& animation = ResourceManagerOld::GetAnimation(currentAnimationHash);
     if(frameIndex < animation.totalFrames) {
         currentFrame = frameIndex;
         currentFrameTime = 0.0f;
@@ -151,8 +151,8 @@ void AnimatorComponent::EditorDraw() {
         return;
     }
 
-    const std::string& animName = ResourceManager::GetResourceName(currentAnimationHash);
-    const Animation& animation = ResourceManager::GetAnimation(currentAnimationHash);
+    const std::string& animName = ResourceManagerOld::GetResourceName(currentAnimationHash);
+    const Animation& animation = ResourceManagerOld::GetAnimation(currentAnimationHash);
     ImGui::Text("Drag an Animation from the browser to assign it");
     if(ImGui::BeginDragDropTarget())
     {

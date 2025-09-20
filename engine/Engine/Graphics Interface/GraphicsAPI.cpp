@@ -4,6 +4,19 @@
 #include "stb_image.h"
 #include "fa.h"
 
+bool GraphicsAssets::Init(Context* context)
+{
+	assetSystem = std::make_unique<AssetLoading::AssetSystem>(context);
+	context->assetSystem = assetSystem.get();
+
+	return true;
+}
+
+AssetLoading::AssetSystem* GraphicsAssets::INTERNAL_GetAssetSystem()
+{
+	return assetSystem.get();
+}
+
 GraphicsMain::GraphicsMain()
 	: window{}
 	, monitor{}
@@ -16,6 +29,8 @@ GraphicsMain::GraphicsMain()
 
 GraphicsMain::~GraphicsMain()
 {
+	ST<GraphicsAssets>::Destroy();
+
 	renderer->shutdown();
 	glfwDestroyWindow(window);
 	glfwTerminate();
@@ -37,8 +52,7 @@ bool GraphicsMain::Init()
 
 	renderer = std::make_unique<Renderer>(window, windowExtent.width, windowExtent.height);
 	context.renderer = renderer.get();
-	assetSystem = std::make_unique<AssetLoading::AssetSystem>(&context);
-	context.assetSystem = assetSystem.get();
+	ST<GraphicsAssets>::Get()->Init(&context);
 	renderer->startup();
 
 #ifdef IMGUI_ENABLED
@@ -384,7 +398,7 @@ void GraphicsMain::LoadSampleScene()
 	// HEY SORRY ABOUT THIS, BUT THERE IS NO ISSUE WITH THE ASSET BEING LOADED, THE CAMERA JUST SPAWNS INSIDE THE BOX SO YOU NEED TO MOVE BACK TO SEE IT
 	gridFeature = renderer->CreateFeature<GridFeature>();
 	sceneFeatureHandle_ = renderer->CreateFeature<SceneRenderFeature>();
-	const std::unique_ptr<AssetLoading::SceneLoader> sceneLoader_ = std::make_unique<AssetLoading::SceneLoader>(*assetSystem);
+	const std::unique_ptr<AssetLoading::SceneLoader> sceneLoader_ = std::make_unique<AssetLoading::SceneLoader>(*context.assetSystem);
 	std::filesystem::path workingDir = std::filesystem::canonical(ST<Filepaths>::Get()->workingDir);
 	std::filesystem::path asset = workingDir / "Assets" / "fbxcars" / "box.fbx";
 	const std::filesystem::path testScenePath = asset.string().c_str();
@@ -423,6 +437,6 @@ void GraphicsMain::RenderSampleScene()
 	currentFrameData.cameraPos = camera.getPosition();
 	currentFrameData.viewMatrix = camera.getViewMatrix();
 	currentFrameData.projMatrix = perspective(45.0f, (float)windowExtent.width / (float)windowExtent.height, 0.1f, 100.0f);
-	SceneRenderFeature::UpdateScene(sceneFeatureHandle_, loadedScene_, *assetSystem, *renderer);
+	SceneRenderFeature::UpdateScene(sceneFeatureHandle_, loadedScene_, *context.assetSystem, *renderer);
 	renderer->render(currentFrameData);
 }

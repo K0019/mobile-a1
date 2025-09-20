@@ -28,19 +28,124 @@ All rights reserved.
 /******************************************************************************/
 
 #pragma once
+#include "scene.h"
+
 #include "Animation.h"
 
 #include "AssetBrowser.h"
 #include "Sprite.h"
 #include "GameSettings.h"
 
+enum class RESOURCE_TYPE
+{
+    MESH
+};
 
-// A static singleton ResourceManager class that hosts several
+struct ResourceBase : public ISerializeable
+{
+    size_t hash;
+    std::string name;
+
+    virtual bool Load() = 0;
+    virtual void Unload() = 0;
+
+    void Serialize(Serializer& writer) const override;
+    void Deserialize(Deserializer& reader) override;
+    property_vtable()
+};
+property_begin(ResourceBase)
+{
+    property_var(hash),
+    property_var(name)
+}
+property_vend_h(ResourceBase)
+
+struct ResourceMesh : public ResourceBase
+{
+    std::vector<SceneObject> objects;
+
+    virtual bool Load() final;
+    virtual void Unload() final;
+};
+
+template <std::derived_from<ResourceBase> ResourceType>
+class ResourceContainerBase : public ISerializeableWithoutJsonObj
+{
+public:
+    const ResourceType* GetResource(size_t hash);
+    ResourceType* CreateResource(const std::string& name, const std::string& filepath);
+
+public:
+    void Serialize(Serializer& writer) const override;
+    void Deserialize(Deserializer& reader) override;
+
+private:
+    std::unordered_map<size_t, ResourceType> resources;
+};
+template <std::derived_from<ResourceBase> ResourceType>
+class UserResourceGetter
+{
+public:
+    UserResourceGetter(ResourceContainerBase<ResourceType>* container);
+
+    const ResourceType* GetResource(size_t hash) const;
+
+private:
+    ResourceContainerBase<ResourceType>* container;
+
+};
+
+class ResourceContainerMeshes : public ResourceContainerBase<ResourceMesh>
+{
+public:
+
+private:
+
+public:
+};
+
+class ResourceFilepaths
+{
+public:
+    bool AddFilepath(size_t hash, const std::filesystem::path& filepath);
+
+    const std::filesystem::path* GetAssetsRelativeFilepath(size_t hash) const;
+    std::optional<std::filesystem::path> GetExeRelativeFilepath(size_t hash) const;
+
+private:
+    std::unordered_map<size_t, std::filesystem::path> filepaths;
+
+};
+
+class ResourceManager : public ISerializeable
+{
+public:
+    static const ResourceContainerMeshes& Meshes();
+    
+    static bool Import(RESOURCE_TYPE type, const std::string& name, const std::filesystem::path& filepath);
+
+    void SaveToFile() const;
+    void LoadFromFile();
+
+private:
+    ResourceContainerMeshes meshes;
+
+public:
+    property_vtable()
+};
+property_begin(ResourceManager)
+{
+    property_var(meshes)
+}
+property_vend_h(ResourceManager)
+
+
+// A static singleton ResourceManagerOld class that hosts several
 // functions to load Textures and Shaders. Each loaded texture
 // and/or shader is also stored for future reference by string
 // handles. All functions and resources are static and no 
 // public constructor is defined.
-class ResourceManager {
+class ResourceManagerOld {
 public:
     struct SpriteSlot;
 
@@ -102,7 +207,7 @@ private:
     static std::unordered_map<size_t, SpriteSlot> Sprites;
     static size_t NextSpriteID;
 
-    ResourceManager() = default;
+    ResourceManagerOld() = default;
 
 public:
     struct SpriteSlot : public ISerializeable
@@ -122,7 +227,9 @@ public:
     };
 };
 
-property_begin(ResourceManager::SpriteSlot)
+property_begin(ResourceManagerOld::SpriteSlot)
 {
 }
-property_vend_h(ResourceManager::SpriteSlot)
+property_vend_h(ResourceManagerOld::SpriteSlot)
+
+#include "ResourceManager.ipp"

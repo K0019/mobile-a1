@@ -22,30 +22,159 @@ All rights reserved.
 /******************************************************************************/
 
 #include "ResourceManager.h"
+#include "GraphicsAPI.h"
+#include "scene_loader.h"
+
 #include "AudioManager.h"
+
+void ResourceBase::Serialize(Serializer& writer) const
+{
+    writer.Serialize("filepath", ST<ResourceFilepaths>::Get()->GetAssetsRelativeFilepath(hash)->string());
+    ISerializeable::Serialize(writer);
+}
+void ResourceBase::Deserialize(Deserializer& reader)
+{
+    std::string filepath{};
+    reader.DeserializeVar("filepath", &filepath);
+    ISerializeable::Deserialize(reader);
+
+    ST<ResourceFilepaths>::Get()->AddFilepath(hash, filepath);
+}
+
+bool ResourceMesh::Load()
+{
+    // Don't load if already loaded
+    if (!objects.empty())
+        return true;
+
+    // Get filepath
+    auto filepath{ ST<ResourceFilepaths>::Get()->GetExeRelativeFilepath(hash) };
+    if (!filepath)
+    {
+        CONSOLE_LOG(LEVEL_ERROR) << "Failed to load Mesh: filepath hash does not exist: " << hash;
+        return false;
+    }
+
+    // Check file exists
+    if (!std::filesystem::exists(*filepath))
+    {
+        CONSOLE_LOG(LEVEL_ERROR) << "Failed to load Mesh: file does not exist: " << *filepath;
+        return false;
+    }
+
+    // Load the file
+    AssetLoading::SceneLoader sceneLoader{ *ST<GraphicsAssets>::Get()->INTERNAL_GetAssetSystem() };
+    auto loadResult{ sceneLoader.loadScene(*filepath) };
+    if (!loadResult.success)
+    {
+        CONSOLE_LOG(LEVEL_ERROR) << "Mesh failed to load: " << *filepath;
+        return false;
+    }
+
+    objects = std::move(loadResult.scene.objects);
+    return true;
+}
+void ResourceMesh::Unload()
+{
+    objects.clear();
+}
+
+bool ResourceFilepaths::AddFilepath(size_t hash, const std::filesystem::path& filepath)
+{
+    if (filepaths.find(hash) != filepaths.end())
+        return false;
+    filepaths.try_emplace(hash, filepath);
+    return true;
+}
+
+const std::filesystem::path* ResourceFilepaths::GetAssetsRelativeFilepath(size_t hash) const
+{
+    auto filepathIter{ filepaths.find(hash) };
+    return (filepathIter != filepaths.end() ? &filepathIter->second : nullptr);
+}
+
+std::optional<std::filesystem::path> ResourceFilepaths::GetExeRelativeFilepath(size_t hash) const
+{
+    auto filepathIter{ filepaths.find(hash) };
+    if (filepathIter != filepaths.end())
+        return ST<Filepaths>::Get()->assets / filepathIter->second;
+    else
+        return std::nullopt;
+}
+
+const ResourceContainerMeshes& ResourceManager::Meshes()
+{
+    return ST<ResourceManager>::Get()->meshes;
+}
+
+bool ResourceManager::Import(RESOURCE_TYPE type, const std::string& name, const std::filesystem::path& filepath)
+{
+    // Check file exists
+    if (!std::filesystem::exists(filepath))
+    {
+        CONSOLE_LOG(LEVEL_ERROR) << "File does not exist: " << filepath;
+        return false;
+    }
+
+    auto relativeFilepath{ std::filesystem::relative(filepath, ST<Filepaths>::Get()->assets) };
+
+    switch (type)
+    {
+    case RESOURCE_TYPE::MESH:
+        ST<ResourceManager>::Get()->meshes.CreateResource(name, relativeFilepath.string());
+        return true;
+    default:
+        return false;
+    }
+}
+
+void ResourceManager::SaveToFile() const
+{
+    Serializer writer{ ST<Filepaths>::Get()->assetsJson };
+    if (!writer.IsOpen())
+    {
+        CONSOLE_LOG(LEVEL_ERROR) << "Failed to save resources: " << ST<Filepaths>::Get()->assetsJson;
+        return;
+    }
+
+    ISerializeable::Serialize(writer);
+}
+void ResourceManager::LoadFromFile()
+{
+    Deserializer reader{ ST<Filepaths>::Get()->assetsJson };
+    if (!reader.IsValid())
+    {
+        CONSOLE_LOG(LEVEL_ERROR) << "Failed to open resources: " << ST<Filepaths>::Get()->assetsJson;
+        return;
+    }
+
+    ISerializeable::Deserialize(reader);
+}
+
+
 namespace fs = std::filesystem;
 
 #ifdef max
 #undef max
 #endif
 // Instantiate static variables
-std::unordered_map<size_t, Animation>     ResourceManager::Animations;
-std::unordered_map<size_t, AudioAsset>  ResourceManager::Sounds;
-std::unordered_map<size_t, std::string>   ResourceManager::ResourceNames;
-std::unordered_map<size_t, ResourceManager::SpriteSlot> ResourceManager::Sprites;
-size_t ResourceManager::NextSpriteID = 0;
+std::unordered_map<size_t, Animation>     ResourceManagerOld::Animations;
+std::unordered_map<size_t, AudioAsset>  ResourceManagerOld::Sounds;
+std::unordered_map<size_t, std::string>   ResourceManagerOld::ResourceNames;
+std::unordered_map<size_t, ResourceManagerOld::SpriteSlot> ResourceManagerOld::Sprites;
+size_t ResourceManagerOld::NextSpriteID = 0;
 
-bool ResourceManager::ResourceExists(size_t nameHash)
+bool ResourceManagerOld::ResourceExists(size_t nameHash)
 {
     return ResourceNames.contains(nameHash);
 }
 
-const std::string& ResourceManager::GetResourceName(size_t nameHash)
+const std::string& ResourceManagerOld::GetResourceName(size_t nameHash)
 {
     return ResourceNames[nameHash];
 }
 
-/*size_t ResourceManager::LoadTexture(const std::string& file, const std::string& name)
+/*size_t ResourceManagerOld::LoadTexture(const std::string& file, const std::string& name)
 {
     size_t nameHash = util::GenHash(name);
     ResourceNames[nameHash] = name;
@@ -53,7 +182,7 @@ const std::string& ResourceManager::GetResourceName(size_t nameHash)
     return nameHash;
 }
 
-size_t ResourceManager::LoadTexture(const unsigned char* data, int width, int height, const std::string& name)
+size_t ResourceManagerOld::LoadTexture(const unsigned char* data, int width, int height, const std::string& name)
 {
     size_t nameHash = util::GenHash(name);
     ResourceNames[nameHash] = name;
@@ -61,22 +190,22 @@ size_t ResourceManager::LoadTexture(const unsigned char* data, int width, int he
     return nameHash;
 }
 
-const Texture& ResourceManager::GetTexture(const std::string& name)
+const Texture& ResourceManagerOld::GetTexture(const std::string& name)
 {
     return VulkanManager::Get().VkTextureManager().getTexture(name);
 }
 
-const Texture& ResourceManager::GetTexture(size_t nameHash)
+const Texture& ResourceManagerOld::GetTexture(size_t nameHash)
 {
     return VulkanManager::Get().VkTextureManager().getTexture(ResourceNames[nameHash]);
 }
 
-bool ResourceManager::TextureExists(const std::string& name)
+bool ResourceManagerOld::TextureExists(const std::string& name)
 {
     return VulkanManager::Get().VkTextureManager().TextureExists(name);
 }*/
 
-/*size_t ResourceManager::LoadFont(const std::string& fontFile)
+/*size_t ResourceManagerOld::LoadFont(const std::string& fontFile)
 {
     auto name = VulkanManager::Get().VkTextureManager().loadFontAtlasFromFile(fontFile);
     size_t nameHash = util::GenHash(name);
@@ -84,22 +213,22 @@ bool ResourceManager::TextureExists(const std::string& name)
     return nameHash;
 }
 
-const FontAtlas& ResourceManager::GetFont(const std::string& name)
+const FontAtlas& ResourceManagerOld::GetFont(const std::string& name)
 {
     return VulkanManager::Get().VkTextureManager().getFontAtlas(name);
 }
 
-const FontAtlas& ResourceManager::GetFont(size_t nameHash)
+const FontAtlas& ResourceManagerOld::GetFont(size_t nameHash)
 {
     return VulkanManager::Get().VkTextureManager().getFontAtlas(ResourceNames[nameHash]);
 }
 
-bool ResourceManager::FontExists(const std::string& name)
+bool ResourceManagerOld::FontExists(const std::string& name)
 {
     return VulkanManager::Get().VkTextureManager().FontAtlasExists(name);
 }*/
 
-size_t ResourceManager::CreateAnimationFromSprites(const std::string& name,
+size_t ResourceManagerOld::CreateAnimationFromSprites(const std::string& name,
                                                    const std::vector<FrameData>& frameData) {
     if(frameData.empty()) {
         CONSOLE_LOG(LEVEL_ERROR) << "Cannot create animation with no frames";
@@ -142,7 +271,7 @@ size_t ResourceManager::CreateAnimationFromSprites(const std::string& name,
     Animations[nameHash] = std::move(animation);
     return nameHash;
 }
-FrameData ResourceManager::CreateFrameData(size_t spriteID, float duration) {
+FrameData ResourceManagerOld::CreateFrameData(size_t spriteID, float duration) {
     FrameData frame;
     frame.spriteID = spriteID;
     frame.duration = duration;
@@ -150,17 +279,17 @@ FrameData ResourceManager::CreateFrameData(size_t spriteID, float duration) {
 }
 
 
-Animation& ResourceManager::GetAnimation(const std::string& name)
+Animation& ResourceManagerOld::GetAnimation(const std::string& name)
 {
     return Animations.at(util::GenHash(name));
 }
 
-Animation& ResourceManager::GetAnimation(size_t nameHash)
+Animation& ResourceManagerOld::GetAnimation(size_t nameHash)
 {
     return Animations.at(nameHash);
 }
 
-void ResourceManager::DeleteAnimation(size_t nameHash)
+void ResourceManagerOld::DeleteAnimation(size_t nameHash)
 {
     if (Animations.contains(nameHash)) {
         Animations.erase(nameHash);
@@ -168,12 +297,12 @@ void ResourceManager::DeleteAnimation(size_t nameHash)
     }
 }
 
-bool ResourceManager::AnimationExists(const std::string& name)
+bool ResourceManagerOld::AnimationExists(const std::string& name)
 {
     return Animations.contains(util::GenHash(name));
 }
 
-size_t ResourceManager::AddSprite(const Sprite& sprite) {
+size_t ResourceManagerOld::AddSprite(const Sprite& sprite) {
     // Validate texture ID
     if(sprite.textureID == INVALID_TEXTURE_ID && !std::filesystem::exists(sprite.textureName)) {
         CONSOLE_LOG(LEVEL_WARNING) << "Adding sprite with invalid texture: " << sprite.textureName;
@@ -190,7 +319,7 @@ size_t ResourceManager::AddSprite(const Sprite& sprite) {
 }
 
 
-size_t ResourceManager::GetSpriteID(const std::string& name) {
+size_t ResourceManagerOld::GetSpriteID(const std::string& name) {
     for(const auto& [id, slot] : Sprites) {
         if(slot.active && slot.sprite.name == name) {
             return id;
@@ -199,7 +328,7 @@ size_t ResourceManager::GetSpriteID(const std::string& name) {
     return INVALID_SPRITE_ID;
 }
 
-const Sprite& ResourceManager::GetSprite(size_t spriteID) {
+const Sprite& ResourceManagerOld::GetSprite(size_t spriteID) {
     static const Sprite invalidSprite = CreateInvalidSprite();
 
     auto it = Sprites.find(spriteID);
@@ -233,7 +362,7 @@ const Sprite& ResourceManager::GetSprite(size_t spriteID) {
     return it->second.sprite;
 }
 
-void ResourceManager::RenameSprite(size_t spriteID, const std::string& newName)
+void ResourceManagerOld::RenameSprite(size_t spriteID, const std::string& newName)
 {
     auto it = Sprites.find(spriteID);
     if(it != Sprites.end() && it->second.active) {
@@ -242,7 +371,7 @@ void ResourceManager::RenameSprite(size_t spriteID, const std::string& newName)
 }
 
 
-void ResourceManager::DeleteSprite(size_t spriteID)
+void ResourceManagerOld::DeleteSprite(size_t spriteID)
 {
     auto it = Sprites.find(spriteID);
     if(it != Sprites.end()) {
@@ -250,44 +379,44 @@ void ResourceManager::DeleteSprite(size_t spriteID)
     }
 }
 
-bool ResourceManager::SpriteExists(size_t spriteID)
+bool ResourceManagerOld::SpriteExists(size_t spriteID)
 {
     auto it = Sprites.find(spriteID);
     return it != Sprites.end() && it->second.active;
 }
 
-size_t ResourceManager::GetSpriteCount()
+size_t ResourceManagerOld::GetSpriteCount()
 {
     return NextSpriteID;
 }
 
-const AudioAsset& ResourceManager::LoadSound(const std::string& name, AudioAsset& sound)
+const AudioAsset& ResourceManagerOld::LoadSound(const std::string& name, AudioAsset& sound)
 {
     ResourceNames[util::GenHash(name)] = name;
     return Sounds[util::GenHash(name)] = sound;
 }
 
-const AudioAsset& ResourceManager::GetSound(const std::string& name)
+const AudioAsset& ResourceManagerOld::GetSound(const std::string& name)
 {
     return Sounds[util::GenHash(name)];
 }
 
-const AudioAsset& ResourceManager::GetSound(size_t nameHash)
+const AudioAsset& ResourceManagerOld::GetSound(size_t nameHash)
 {
     return Sounds[nameHash];
 }
 
-void ResourceManager::DeleteSound(const std::string& name)
+void ResourceManagerOld::DeleteSound(const std::string& name)
 {
     Sounds.erase(util::GenHash(name));
 }
 
-bool ResourceManager::SoundExists(const std::string& name)
+bool ResourceManagerOld::SoundExists(const std::string& name)
 {
     return Sounds.contains(util::GenHash(name));
 }
 
-void ResourceManager::Clear()
+void ResourceManagerOld::Clear()
 {
     // delete all shaders	
 
@@ -303,7 +432,7 @@ void ResourceManager::Clear()
 }
 
 
-bool ResourceManager::SaveAssetsToFile(const std::string& filename)
+bool ResourceManagerOld::SaveAssetsToFile(const std::string& filename)
 {
     Serializer file{ filename };
     if (!file.IsOpen())
@@ -355,7 +484,7 @@ bool ResourceManager::SaveAssetsToFile(const std::string& filename)
 }
 
 
-bool ResourceManager::LoadAssetsFromFile(const std::string& filename) {
+bool ResourceManagerOld::LoadAssetsFromFile(const std::string& filename) {
     Sprites.clear();
     NextSpriteID = 0;
     Animations.clear();
@@ -473,7 +602,7 @@ bool ResourceManager::LoadAssetsFromFile(const std::string& filename) {
     return true;
 }
 
-Sprite ResourceManager::CreateInvalidSprite()
+Sprite ResourceManagerOld::CreateInvalidSprite()
 {
     Sprite invalidSprite;
     invalidSprite.textureID = INVALID_TEXTURE_ID;
@@ -485,7 +614,7 @@ Sprite ResourceManager::CreateInvalidSprite()
 
 }
 
-ResourceManager::SpriteSlot::SpriteSlot(const Sprite& inSprite, bool inActive, const std::string& inOriginalPath, bool inHasValidTexture)
+ResourceManagerOld::SpriteSlot::SpriteSlot(const Sprite& inSprite, bool inActive, const std::string& inOriginalPath, bool inHasValidTexture)
     : sprite{ inSprite }
     , active{ inActive }
     , originalPath{ inOriginalPath }
@@ -493,7 +622,7 @@ ResourceManager::SpriteSlot::SpriteSlot(const Sprite& inSprite, bool inActive, c
 {
 }
 
-void ResourceManager::SpriteSlot::Serialize(Serializer& writer) const
+void ResourceManagerOld::SpriteSlot::Serialize(Serializer& writer) const
 {
     writer.Serialize("name", sprite.name);
     writer.Serialize("texturePath", ST<Filepaths>::Get()->TrimWorkingDirectoryFrom(originalPath));
@@ -510,7 +639,7 @@ void ResourceManager::SpriteSlot::Serialize(Serializer& writer) const
     writer.EndArray();
 }
 
-void ResourceManager::SpriteSlot::Deserialize(Deserializer& reader)
+void ResourceManagerOld::SpriteSlot::Deserialize(Deserializer& reader)
 {
     reader.DeserializeVar("name", &sprite.name);
     reader.DeserializeVar("texturePath", &originalPath), ST<Filepaths>::Get()->AddWorkingDirectoryTo(&originalPath);

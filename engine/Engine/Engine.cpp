@@ -185,17 +185,17 @@ void Engine::init()
 	CONSOLE_LOG(LEVEL_INFO) << "Current working directory: " << std::filesystem::canonical(ST<Filepaths>::Get()->workingDir);
 	CONSOLE_LOG(LEVEL_INFO) << "Actual working directory: " << std::filesystem::current_path();
 #endif
-
 	// load resources
+	ST<ResourceManager>::Get()->LoadFromFile();
+	ResourceManagerOld::LoadAssetsFromFile(ST<Filepaths>::Get()->workingDir + "/Assets/assetsOld.json");
 	//ST<AssetBrowser>::Get()->file_system.Initialize(ST<Filepaths>::Get()->workingDir);
-	ResourceManager::LoadAssetsFromFile(ST<Filepaths>::Get()->workingDir + "/Assets/assets.json");
 	// Load fonts manually for now
 	const std::array<std::string, 3> fontsToLoad{
 		ST<Filepaths>::Get()->fontsSave + "/Arial.ttf",
 		ST<Filepaths>::Get()->fontsSave + "/Lato-Regular.ttf",
 		ST<Filepaths>::Get()->fontsSave + "/slkscre.ttf"
 	};
-	//std::for_each(fontsToLoad.begin(), fontsToLoad.end(), ResourceManager::LoadFont);
+	//std::for_each(fontsToLoad.begin(), fontsToLoad.end(), ResourceManagerOld::LoadFont);
 	
 	// initialize game
 	// ---------------
@@ -410,7 +410,8 @@ void Engine::run()
 #endif
 
 	ST<GameSettings>::Get()->Save();
-	ResourceManager::SaveAssetsToFile(ST<Filepaths>::Get()->assetsJson);
+	ResourceManagerOld::SaveAssetsToFile(ST<Filepaths>::Get()->workingDir + "/Assets/assetsOld.json");
+	ST<ResourceManager>::Get()->SaveToFile();
 }
 
 void Engine::shutdown() {
@@ -421,7 +422,8 @@ void Engine::shutdown() {
 	ST<GameComponentCallbacksHandler>::Destroy();
 	ST<EntitySpawnEvents>::Destroy();
 	ST<SceneManager>::Destroy();
-	ResourceManager::Clear();
+	ST<ResourceManager>::Destroy();
+	//ResourceManagerOld::Clear();
 	// Singletons
 	ST<AudioManager>::Destroy();
 	ST<TweenManager>::Destroy();

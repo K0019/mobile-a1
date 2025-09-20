@@ -59,8 +59,8 @@ void SliderComponent::OnDetached()
 void SliderComponent::EditorDraw()
 {
 #ifdef IMGUI_ENABLED
-    auto& spritePressed = ResourceManager::GetSprite(GetSpriteIDPressed());
-    auto& spriteUnPressed = ResourceManager::GetSprite(GetSpriteIDUnPressed());
+    auto& spritePressed = ResourceManagerOld::GetSprite(GetSpriteIDPressed());
+    auto& spriteUnPressed = ResourceManagerOld::GetSprite(GetSpriteIDUnPressed());
 
 
   

@@ -33,7 +33,7 @@ void SoundTab::Render()
                 currentPreviewSound = 0;
             }
 
-            AudioAsset currentAsset = ResourceManager::GetSound(name);
+            AudioAsset currentAsset = ResourceManagerOld::GetSound(name);
             if (currentAsset.sound == lastPreviewAudio.sound)
             {
                 lastPreviewAudio = {};
@@ -174,8 +174,8 @@ void SoundTab::RenderSoundContextMenu(std::string const& name)
     {
         if (ImGui::MenuItem("Delete"))
         {
-            ST<AudioManager>::Get()->FreeSound(ResourceManager::GetSound(name).sound);
-            ResourceManager::DeleteSound(name);
+            ST<AudioManager>::Get()->FreeSound(ResourceManagerOld::GetSound(name).sound);
+            ResourceManagerOld::DeleteSound(name);
         }
         ImGui::EndPopup();
     }

@@ -24,14 +24,14 @@ AnimatorSystem::AnimatorSystem() : System_Internal(&AnimatorSystem::UpdateAnimat
 
 void AnimatorSystem::UpdateAnimatorComp(AnimatorComponent& animatorComp)
 {
-    if(animatorComp.GetCurrentAnimationName().empty() || !ResourceManager::AnimationExists(animatorComp.GetCurrentAnimationName()) || !animatorComp.IsPlaying()) return;
+    if(animatorComp.GetCurrentAnimationName().empty() || !ResourceManagerOld::AnimationExists(animatorComp.GetCurrentAnimationName()) || !animatorComp.IsPlaying()) return;
     auto entity = ecs::GetEntity(&animatorComp);
     if(!entity->GetComp<RenderComponent>())
     {
         return;
     }
     float dt{ GameTime::FixedDt() };
-    const Animation& anim = ResourceManager::GetAnimation(animatorComp.GetCurrentAnimationName());
+    const Animation& anim = ResourceManagerOld::GetAnimation(animatorComp.GetCurrentAnimationName());
     const FrameData& frameData = anim.frames[animatorComp.GetCurrentFrame()];
 
     animatorComp.currentFrameTime += dt * animatorComp.playbackSpeed;

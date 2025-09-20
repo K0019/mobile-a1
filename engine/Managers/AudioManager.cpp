@@ -84,14 +84,14 @@ void AudioManager::SetGroupVolume(AudioType type, float vol)
 
 void AudioManager::CreateSound(const std::string& name)
 {
-	// yc: this should be delegated to ResourceManager, when we have a proper asset management system
+	// yc: this should be delegated to ResourceManagerOld, when we have a proper asset management system
 	FMOD::Sound* sound = nullptr;
 	FMOD_ASSERT(system->createSound((ST<Filepaths>::Get()->soundFolder + name).c_str(), FMOD_DEFAULT, 0, &sound));
 
 	AudioAsset soundAsset(sound, name);
 	sound->setUserData((void*)&soundAsset.data); // Setup using fmod's own internal user data system for easy retrieval
 	
-	ResourceManager::LoadSound(name, soundAsset);
+	ResourceManagerOld::LoadSound(name, soundAsset);
 	soundNames.push_back(name);
 }
 
@@ -104,7 +104,7 @@ void AudioManager::FreeSound(FMOD::Sound* sound)
 
 uint32_t AudioManager::PlaySound(const std::string& name, bool loop, AudioType category)
 {
-	FMOD::Sound* sound = ResourceManager::GetSound(name).sound;
+	FMOD::Sound* sound = ResourceManagerOld::GetSound(name).sound;
 	FMOD::Channel* channel = nullptr;
 
 	switch(category)
@@ -128,7 +128,7 @@ uint32_t AudioManager::PlaySound(const std::string& name, bool loop, AudioType c
 
 uint32_t AudioManager::PlaySound3D(const std::string& name, bool loop, Vec3 position, AudioType category, std::pair<float, float> rolloff)
 {
-	FMOD::Sound* sound = ResourceManager::GetSound(name).sound;
+	FMOD::Sound* sound = ResourceManagerOld::GetSound(name).sound;
 	FMOD::Channel* channel = nullptr;
 
 	switch (category)

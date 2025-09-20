@@ -78,6 +78,7 @@ private:
         {".jpg", "texture"},
         {".jpeg", "texture"},
         {".bmp", "texture"},
+        {".fbx", "fbx"},
         {".wav", "audio"},
         {".mp3", "audio"},
         {".ogg", "audio"},

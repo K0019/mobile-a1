@@ -35,7 +35,7 @@ RenderComponent::RenderComponent(size_t spriteID, bool flippedX, bool flippedY)
 }
 
 RenderComponent::RenderComponent(const std::string& spriteName, bool flippedX, bool flippedY)
-    : spriteID(ResourceManager::GetSpriteID(spriteName))
+    : spriteID(ResourceManagerOld::GetSpriteID(spriteName))
     , flippedX(flippedX)
     , flippedY(flippedY)
     , m_materialInstance("default")
@@ -136,7 +136,7 @@ std::string RenderComponent::GetMaterialName() const {
 void RenderComponent::EditorDraw()
 {
 #ifdef IMGUI_ENABLED
-    if(!ResourceManager::SpriteExists(spriteID))
+    if(!ResourceManagerOld::SpriteExists(spriteID))
     {
         ImGui::Text("No Sprite Assigned, drag a sprite here to assign it");
         if(ImGui::BeginDragDropTarget())
@@ -150,7 +150,7 @@ void RenderComponent::EditorDraw()
         return;
     }
 
-    auto& sprite = ResourceManager::GetSprite(spriteID);
+    auto& sprite = ResourceManagerOld::GetSprite(spriteID);
     ImGui::Text("Sprite Name: %s", sprite.name.c_str());
     if(ecs::GetEntity(this)->GetComp<AnimatorComponent>())
     {

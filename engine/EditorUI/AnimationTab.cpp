@@ -47,13 +47,13 @@ void AnimationTab::Render()
 
     std::vector<size_t> animationsToDelete;
     size_t itemCount = 0;
-    for (const auto& [nameHash, anim] : ResourceManager::GetAnimations())
+    for (const auto& [nameHash, anim] : ResourceManagerOld::GetAnimations())
     {
-        if (!ResourceManager::ResourceExists(nameHash))
+        if (!ResourceManagerOld::ResourceExists(nameHash))
         {
             continue;
         }
-        const std::string& animName = ResourceManager::GetResourceName(nameHash);
+        const std::string& animName = ResourceManagerOld::GetResourceName(nameHash);
 
         if (!MatchesFilter(animName)) continue;
 
@@ -61,8 +61,8 @@ void AnimationTab::Render()
 
         // Animation preview with button behavior
         ImGui::BeginGroup();
-        const Sprite& sprite = ResourceManager::GetSprite(anim.frames[0].spriteID);
-        //const Texture& tex = ResourceManager::GetTexture(sprite.textureName);
+        const Sprite& sprite = ResourceManagerOld::GetSprite(anim.frames[0].spriteID);
+        //const Texture& tex = ResourceManagerOld::GetTexture(sprite.textureName);
         if (!anim.frames.empty())
         {
             ImGui::ImageButton("##anim",
@@ -121,7 +121,7 @@ void AnimationTab::Render()
             if (ImGui::MenuItem(ICON_FA_CLONE" Duplicate"))
             {
                 std::string newName = animName + "_copy";
-                ResourceManager::CreateAnimationFromSprites(newName, anim.frames);
+                ResourceManagerOld::CreateAnimationFromSprites(newName, anim.frames);
             }
             if (ImGui::MenuItem(ICON_FA_TRASH" Delete"))
             {
@@ -148,7 +148,7 @@ void AnimationTab::Render()
 
         ImGui::PopID();
 
-        if (++itemCount % columnsCount != 0 && itemCount < ResourceManager::GetAnimations().size())
+        if (++itemCount % columnsCount != 0 && itemCount < ResourceManagerOld::GetAnimations().size())
         {
             ImGui::SameLine(0.0f, ImGui::GetStyle().ItemSpacing.x);
         }
@@ -156,7 +156,7 @@ void AnimationTab::Render()
 
     for (size_t nameHash : animationsToDelete)
     {
-        ResourceManager::DeleteAnimation(nameHash);  // Use proper deletion method
+        ResourceManagerOld::DeleteAnimation(nameHash);  // Use proper deletion method
     }
 
 
@@ -257,10 +257,10 @@ void AnimationTab::RenderSpriteSelectionGrid()
     ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
 
     size_t itemCount = 0;
-    for (size_t i = 0; i < ResourceManager::GetSpriteCount(); i++)
+    for (size_t i = 0; i < ResourceManagerOld::GetSpriteCount(); i++)
     {
-        const Sprite& sprite = ResourceManager::GetSprite(i);
-        bool isValid = sprite.textureID != ResourceManager::INVALID_TEXTURE_ID;
+        const Sprite& sprite = ResourceManagerOld::GetSprite(i);
+        bool isValid = sprite.textureID != ResourceManagerOld::INVALID_TEXTURE_ID;
         if (!isValid)
             continue;
         // Apply search filter (case-insensitive)
@@ -303,7 +303,7 @@ void AnimationTab::RenderSpriteSelectionGrid()
         }
 
         // Get sprite texture
-        //const Texture& tex = ResourceManager::GetTexture(sprite.textureName);
+        //const Texture& tex = ResourceManagerOld::GetTexture(sprite.textureName);
 
         // Pop selection colors if needed
         if (isSelected)
@@ -429,8 +429,8 @@ void AnimationTab::RenderFrameList()
     {
         // Push unique ID for this frame to avoid ID conflicts
         ImGui::PushID(static_cast<int>(i));
-        const Sprite& sprite = ResourceManager::GetSprite(animConfig.frames[i].spriteID);
-        //const Texture& tex = ResourceManager::GetTexture(sprite.textureName);
+        const Sprite& sprite = ResourceManagerOld::GetSprite(animConfig.frames[i].spriteID);
+        //const Texture& tex = ResourceManagerOld::GetTexture(sprite.textureName);
         // Frame Container
          // Begin a group for the entire frame entry
         ImGui::BeginGroup();
@@ -665,8 +665,8 @@ void AnimationTab::RenderAnimationPreview()
     // Ensure current frame is valid
     animConfig.currentFrame = std::min(animConfig.currentFrame, animConfig.frames.size() - 1);
     const FrameData& currentFrame = animConfig.frames[animConfig.currentFrame];
-    const Sprite& sprite = ResourceManager::GetSprite(currentFrame.spriteID);
-    //const Texture& tex = ResourceManager::GetTexture(sprite.textureName);
+    const Sprite& sprite = ResourceManagerOld::GetSprite(currentFrame.spriteID);
+    //const Texture& tex = ResourceManagerOld::GetTexture(sprite.textureName);
 
     // Center the preview
     ImVec2 availSize = ImGui::GetContentRegionAvail();
@@ -782,7 +782,7 @@ void AnimationTab::RenderCreateAnimationBottom()
 
     if (ImGui::Button("Create", ImVec2(120, 0)) && canCreate)
     {
-        ResourceManager::CreateAnimationFromSprites(
+        ResourceManagerOld::CreateAnimationFromSprites(
             animConfig.animationName,
             animConfig.frames
         );
