@@ -59,3 +59,9 @@ void ResourceContainerBase<ResourceType>::Deserialize(Deserializer& reader)
 
 	reader.PopAccess();
 }
+
+template<std::derived_from<ResourceBase> ResourceType>
+auto ResourceContainerBase<ResourceType>::Editor_GetAllResources() const
+{
+	return util::ToSortedVectorOfRefs(resources);
+}

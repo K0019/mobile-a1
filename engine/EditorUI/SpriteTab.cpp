@@ -28,7 +28,7 @@ void SpriteTab::Render()
         if (!isValid)
             continue;
 
-        if (!MatchesFilter(sprite.name))
+        if (!editor::MatchesFilter(sprite.name))
         {
             continue;
         }

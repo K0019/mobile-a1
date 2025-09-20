@@ -2,7 +2,7 @@
 #include "AssetBrowserCategories.h"
 
 struct PrefabTab
-	: BaseAssetCategory
+	: editor::BaseAssetCategory
 {
 	const char* GetName() const override;
 	const char* GetIdentifier() const override;
@@ -10,7 +10,7 @@ struct PrefabTab
 };
 
 struct ShaderTab
-	: BaseAssetCategory
+	: editor::BaseAssetCategory
 {
 	const char* GetName() const override;
 	const char* GetIdentifier() const override;
@@ -21,7 +21,7 @@ private:
 };
 
 struct FontTab
-	: BaseAssetCategory
+	: editor::BaseAssetCategory
 {
 	const char* GetName() const override;
 	const char* GetIdentifier() const override;
@@ -29,7 +29,7 @@ struct FontTab
 };
 
 struct ScriptTab
-	: BaseAssetCategory
+	: editor::BaseAssetCategory
 {
 	const char* GetName() const override;
 	const char* GetIdentifier() const override;

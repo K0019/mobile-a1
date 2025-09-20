@@ -32,7 +32,7 @@ void PrefabTab::Render()
     for (size_t i = 0; i < PrefabManager::AllPrefabs().size(); ++i)
     {
         prefabName = PrefabManager::AllPrefabs()[i];
-        if (!MatchesFilter(prefabName))
+        if (!editor::MatchesFilter(prefabName))
         {
             continue;
         }
@@ -205,7 +205,7 @@ void ScriptTab::Render()
     for (size_t i = 0; i < scriptFiles.size(); ++i)
     {
         const std::string& scriptname = scriptFiles[i];
-        if (!MatchesFilter(scriptname))
+        if (!editor::MatchesFilter(scriptname))
         {
             continue;
         }

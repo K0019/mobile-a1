@@ -123,7 +123,7 @@ void FileBrowserTab::Render()
         size_t itemCount = 0;
         for (const auto& entry : entries)
         {
-            if (!MatchesFilter(entry.filename))
+            if (!editor::MatchesFilter(entry.filename))
             {
                 continue;
             }

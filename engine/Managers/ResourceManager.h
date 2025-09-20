@@ -75,12 +75,16 @@ public:
     const ResourceType* GetResource(size_t hash);
     ResourceType* CreateResource(const std::string& name, const std::string& filepath);
 
+
 public:
     void Serialize(Serializer& writer) const override;
     void Deserialize(Deserializer& reader) override;
 
 private:
     std::unordered_map<size_t, ResourceType> resources;
+
+public:
+    auto Editor_GetAllResources() const;
 };
 template <std::derived_from<ResourceBase> ResourceType>
 class UserResourceGetter

@@ -55,7 +55,7 @@ void AnimationTab::Render()
         }
         const std::string& animName = ResourceManagerOld::GetResourceName(nameHash);
 
-        if (!MatchesFilter(animName)) continue;
+        if (!editor::MatchesFilter(animName)) continue;
 
         ImGui::PushID(static_cast<int>(nameHash));
 

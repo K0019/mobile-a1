@@ -3,7 +3,7 @@
 #include "Audio.h"
 
 struct SoundTab
-	: BaseAssetCategory
+	: editor::BaseAssetCategory
 {
 	const char* GetName() const override;
 	const char* GetIdentifier() const override;

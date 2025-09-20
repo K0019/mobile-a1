@@ -893,7 +893,7 @@ namespace gui {
 	//! ImGui::SetNextWindowPos()
 	void SetNextWindowPos(const Vec2& pos);
 	//! ImGui::SetNextWindowSize()
-	void SetNextWindowSize(const Vec2& size);
+	void SetNextWindowSize(const Vec2& size, gui::FLAG_COND flags = gui::FLAG_COND::NONE);
 	//! ImGui::SetNextWindowSizeConstraints
 	void SetNextWindowSizeConstraints(const Vec2& min, const Vec2& max);
 
