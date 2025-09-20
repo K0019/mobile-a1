@@ -64,7 +64,7 @@ void BarComponent::UpdateTransforms()
 void BarComponent::SetColor(const Vec4& color)
 {
     // Guard clause if renderComponent is null
-    if (ecs::CompHandle<RenderComponent> renderComponent = ecs::GetEntity(this)->GetComp<RenderComponent>())
+    if (ecs::CompHandle<SpriteComponent> renderComponent = ecs::GetEntity(this)->GetComp<SpriteComponent>())
     {
         // Set color
         renderComponent->SetColor(color);

@@ -26,7 +26,7 @@ void AnimatorSystem::UpdateAnimatorComp(AnimatorComponent& animatorComp)
 {
     if(animatorComp.GetCurrentAnimationName().empty() || !ResourceManagerOld::AnimationExists(animatorComp.GetCurrentAnimationName()) || !animatorComp.IsPlaying()) return;
     auto entity = ecs::GetEntity(&animatorComp);
-    if(!entity->GetComp<RenderComponent>())
+    if(!entity->GetComp<SpriteComponent>())
     {
         return;
     }
@@ -53,5 +53,5 @@ void AnimatorSystem::UpdateAnimatorComp(AnimatorComponent& animatorComp)
 
     }
     const FrameData& new_frameData = anim.frames[animatorComp.currentFrame];
-    entity->GetComp<RenderComponent>()->SetSpriteID(new_frameData.spriteID);
+    entity->GetComp<SpriteComponent>()->SetSpriteID(new_frameData.spriteID);
 }

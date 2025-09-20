@@ -102,9 +102,9 @@ std::optional<std::filesystem::path> ResourceFilepaths::GetExeRelativeFilepath(s
         return std::nullopt;
 }
 
-const ResourceContainerMeshes& ResourceManager::Meshes()
+UserResourceGetter<ResourceMesh> ResourceManager::Meshes()
 {
-    return ST<ResourceManager>::Get()->meshes;
+    return UserResourceGetter<ResourceMesh>{ &ST<ResourceManager>::Get()->meshes };
 }
 
 bool ResourceManager::Import(RESOURCE_TYPE type, const std::string& name, const std::filesystem::path& filepath)
@@ -149,6 +149,11 @@ void ResourceManager::LoadFromFile()
     }
 
     ISerializeable::Deserialize(reader);
+}
+
+const ResourceContainerMeshes& ResourceManager::Editor_GetMeshes()
+{
+    return meshes;
 }
 
 

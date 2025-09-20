@@ -1,6 +1,6 @@
 #include "GameSettings.h"
 #include "ResourceManager.h"
-#include "RenderSystem.h"
+#include "GraphicsECSSprite.h"
 
 /******************************************************************************/
 /*!

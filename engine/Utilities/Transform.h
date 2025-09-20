@@ -341,6 +341,14 @@ public:
 
 	/*****************************************************************//*!
 	\brief
+		Gets this transform's world matrix.
+	\return
+		The transform's world matrix.
+	*//******************************************************************/
+	const Mat& GetWorldMat() const;
+
+	/*****************************************************************//*!
+	\brief
 		Sets a glm::mat4 to this transform's world matrix.
 	\param outMat4
 		The glm::mat4 that will be set.
@@ -359,14 +367,6 @@ private:
 		Sets the state of this Transform and all children Transforms' internal matrix as dirty, so they need to be recalculated the next time they are accessed.
 	*//******************************************************************/
 	void SetDirty();
-
-	/*****************************************************************//*!
-	\brief
-		Gets this transform's world matrix.
-	\return
-		The transform's world matrix.
-	*//******************************************************************/
-	const Mat& GetWorldMat() const;
 
 	/*****************************************************************//*!
 	\brief

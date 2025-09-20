@@ -22,7 +22,7 @@ All rights reserved.
 
 #include "pch.h"
 #include "FadeAndDie.h"
-#include "RenderComponent.h"
+#include "GraphicsECSSprite.h"
 
 FadeAndDieComponent::FadeAndDieComponent()
 	: delayTimer{ 1.0f }
@@ -34,8 +34,8 @@ FadeAndDieComponent::FadeAndDieComponent()
 void FadeAndDieComponent::Update(float dt)
 {
 	bool stillAlive{ false };
-	auto renderComps{ ecs::GetEntity(this)->GetCompInChildrenVec<RenderComponent>() };
-	if (auto render = ecs::GetEntity(this)->GetComp<RenderComponent>())
+	auto renderComps{ ecs::GetEntity(this)->GetCompInChildrenVec<SpriteComponent>() };
+	if (auto render = ecs::GetEntity(this)->GetComp<SpriteComponent>())
 		renderComps.push_back(render);
 	for (size_t i{}, end{ renderComps.size() }; i < end; ++i)
 	{

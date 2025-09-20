@@ -4,6 +4,8 @@
 #include "stb_image.h"
 #include "fa.h"
 
+#include "GraphicsScene.h"
+
 bool GraphicsAssets::Init(Context* context)
 {
 	assetSystem = std::make_unique<AssetLoading::AssetSystem>(context);
@@ -55,6 +57,8 @@ bool GraphicsMain::Init()
 	ST<GraphicsAssets>::Get()->Init(&context);
 	renderer->startup();
 
+	ST<GraphicsScene>::Get()->Init(context);
+
 #ifdef IMGUI_ENABLED
 	InitImGui(ST<Filepaths>::Get()->fontsSave + "/Lato-Regular.ttf");
 #endif
@@ -63,6 +67,7 @@ bool GraphicsMain::Init()
 void GraphicsMain::BeginFrame()
 {
 	renderer->beginFrame();
+	ST<GraphicsScene>::Get()->NewFrame();
 }
 
 #ifdef IMGUI_ENABLED
@@ -437,6 +442,6 @@ void GraphicsMain::RenderSampleScene()
 	currentFrameData.cameraPos = camera.getPosition();
 	currentFrameData.viewMatrix = camera.getViewMatrix();
 	currentFrameData.projMatrix = perspective(45.0f, (float)windowExtent.width / (float)windowExtent.height, 0.1f, 100.0f);
-	SceneRenderFeature::UpdateScene(sceneFeatureHandle_, loadedScene_, *context.assetSystem, *renderer);
+	//SceneRenderFeature::UpdateScene(sceneFeatureHandle_, loadedScene_, *context.assetSystem, *renderer);
 	renderer->render(currentFrameData);
 }

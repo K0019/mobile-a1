@@ -20,7 +20,7 @@ All rights reserved.
 */
 /******************************************************************************/
 
-#include "RenderComponent.h"
+#include "GraphicsECSSprite.h"
 #include "ResourceManager.h"
 
 class AnimatorComponent

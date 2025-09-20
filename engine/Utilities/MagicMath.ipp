@@ -126,6 +126,11 @@ GENERATE_GLOBAL_OPERATOR_ADAPTER_IPP(Vec2, glm::vec2, /)
 
 #pragma region Vec3
 
+inline constexpr Vec3::Vec3(float scalar)
+	: glm::vec3{ scalar }
+{
+}
+
 inline constexpr Vec3::Vec3(float x, float y, float z)
 	: glm::vec3{ x, y, z }
 {
@@ -285,15 +290,14 @@ inline constexpr Mat4::Mat4(glm::mat4&& other)
 
 inline void Mat4::Set(const Vec3& position, const Vec3& scale, const Vec3& rotation)
 {
-	*this = Identity();
-	glm::translate(*this, position);
+	*this = glm::translate(Mat4::Identity(), position);
 	if (rotation.y) // yaw
-		glm::rotate(*this, rotation.y, { 0.0f, 1.0f, 0.0f });
+		*this = glm::rotate(*this, rotation.y, { 0.0f, 1.0f, 0.0f });
 	if (rotation.x) // pitch
-		glm::rotate(*this, rotation.x, { 1.0f, 0.0f, 0.0f });
+		*this = glm::rotate(*this, rotation.x, { 1.0f, 0.0f, 0.0f });
 	if (rotation.z) // roll
-		glm::rotate(*this, rotation.z, { 0.0f, 0.0f, 1.0f });
-	glm::scale(*this, scale);
+		*this = glm::rotate(*this, rotation.z, { 0.0f, 0.0f, 1.0f });
+	*this = glm::scale(*this, scale);
 }
 
 inline constexpr Mat4 Mat4::Identity()

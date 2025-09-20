@@ -65,3 +65,16 @@ auto ResourceContainerBase<ResourceType>::Editor_GetAllResources() const
 {
 	return util::ToSortedVectorOfRefs(resources);
 }
+
+
+template<std::derived_from<ResourceBase> ResourceType>
+UserResourceGetter<ResourceType>::UserResourceGetter(ResourceContainerBase<ResourceType>* container)
+	: container{ container }
+{
+}
+
+template<std::derived_from<ResourceBase> ResourceType>
+const ResourceType* UserResourceGetter<ResourceType>::GetResource(size_t hash) const
+{
+	return container->GetResource(hash);
+}

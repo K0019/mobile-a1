@@ -23,7 +23,7 @@ void MeshTab::Render()
     gui::SetStyleVar framePadding(gui::FLAG_STYLE_VAR::FRAME_PADDING, ImVec2(2, 2));
 
     int count{};
-    for (const auto& [hash, mesh] : ResourceManager::Meshes().Editor_GetAllResources())
+    for (const auto& [hash, mesh] : ST<ResourceManager>::Get()->Editor_GetMeshes().Editor_GetAllResources())
     {
         if (!editor::MatchesFilter(mesh.get().name))
             continue;

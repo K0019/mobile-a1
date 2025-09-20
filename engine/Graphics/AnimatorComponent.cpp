@@ -19,7 +19,7 @@ All rights reserved.
 */
 /******************************************************************************/
 #include "AnimatorComponent.h"
-#include "RenderComponent.h"
+#include "GraphicsECSSprite.h"
 AnimatorComponent::AnimatorComponent()
     : AnimatorComponent(0) {
 }
@@ -49,7 +49,7 @@ void AnimatorComponent::Reset() {
     currentFrameTime = 0.0f;
 
     // Fix: Force reset of the current frame
-    if (ecs::CompHandle<RenderComponent> renderComp{ ecs::GetEntity(this)->GetComp<RenderComponent>() })
+    if (ecs::CompHandle<SpriteComponent> renderComp{ ecs::GetEntity(this)->GetComp<SpriteComponent>() })
     {
         const Animation& anim = ResourceManagerOld::GetAnimation(GetCurrentAnimationName());
         const FrameData& new_frameData = anim.frames[currentFrame];
@@ -130,7 +130,7 @@ void AnimatorComponent::SetFrame(size_t frameIndex) {
 void AnimatorComponent::EditorDraw() {
 #ifdef IMGUI_ENABLED
     ecs::EntityHandle this_entity = ecs::GetEntity(this);
-    if(!this_entity->GetComp<RenderComponent>())
+    if(!this_entity->GetComp<SpriteComponent>())
     {
         ImGui::TextColored(ImVec4(1.0f, 0.65f, 0.0f, 1.0f), "No Render Component!");
         return;

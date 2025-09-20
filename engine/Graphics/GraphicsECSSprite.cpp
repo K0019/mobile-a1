@@ -1,6 +1,6 @@
 /******************************************************************************/
 /*!
-\file   RenderComponent.cpp
+\file   GraphicsECSSprite.cpp
 \par    Project: 7percent
 \par    Course: CSD2401
 \par    Section B
@@ -12,21 +12,22 @@
 \par    DigiPen login: ngaihangryan.cheong
 
 \brief
-Definition of RenderComponent.
+Definition of SpriteComponent.
 
 All content � 2024 DigiPen Institute of Technology Singapore.
 All rights reserved.
 */
 /******************************************************************************/
-#include "RenderComponent.h"
+#include "GraphicsECSSprite.h"
 
 #include "AnimatorComponent.h"
 #include "ResourceManager.h"
+#include "GraphicsECSMesh.h"
 
-RenderComponent::RenderComponent() : RenderComponent(0) {
+SpriteComponent::SpriteComponent() : SpriteComponent(0) {
 }
 
-RenderComponent::RenderComponent(size_t spriteID, bool flippedX, bool flippedY)
+SpriteComponent::SpriteComponent(size_t spriteID, bool flippedX, bool flippedY)
     : spriteID(spriteID)
     , flippedX(flippedX)
     , flippedY(flippedY)
@@ -34,7 +35,7 @@ RenderComponent::RenderComponent(size_t spriteID, bool flippedX, bool flippedY)
 {
 }
 
-RenderComponent::RenderComponent(const std::string& spriteName, bool flippedX, bool flippedY)
+SpriteComponent::SpriteComponent(const std::string& spriteName, bool flippedX, bool flippedY)
     : spriteID(ResourceManagerOld::GetSpriteID(spriteName))
     , flippedX(flippedX)
     , flippedY(flippedY)
@@ -42,35 +43,35 @@ RenderComponent::RenderComponent(const std::string& spriteName, bool flippedX, b
 {
 }
 
-size_t RenderComponent::GetSpriteID() const {
+size_t SpriteComponent::GetSpriteID() const {
     return spriteID;
 }
 
-bool RenderComponent::GetFlippedX() const {
+bool SpriteComponent::GetFlippedX() const {
     return flippedX;
 }
 
-bool RenderComponent::GetFlippedY() const {
+bool SpriteComponent::GetFlippedY() const {
     return flippedY;
 }
 
-void RenderComponent::SetSpriteID(size_t new_spriteID) {
+void SpriteComponent::SetSpriteID(size_t new_spriteID) {
     spriteID = new_spriteID;
 }
 
-void RenderComponent::SetFlippedX(bool new_flippedX) {
+void SpriteComponent::SetFlippedX(bool new_flippedX) {
     flippedX = new_flippedX;
 }
 
-void RenderComponent::SetFlippedY(bool new_flippedY) {
+void SpriteComponent::SetFlippedY(bool new_flippedY) {
     flippedY = new_flippedY;
 }
 
-Vec4 RenderComponent::GetColor() const {
+Vec4 SpriteComponent::GetColor() const {
     return ST<MaterialSystem>::Get()->getEffectiveParameters(m_materialInstance).baseColor;
 }
 
-void RenderComponent::SetColor(Vec4 new_color) {
+void SpriteComponent::SetColor(Vec4 new_color) {
     // Store the current flags state before making any changes
     uint32_t currentFlags = ST<MaterialSystem>::Get()->getEffectiveFlags(m_materialInstance);
     
@@ -104,15 +105,15 @@ void RenderComponent::SetColor(Vec4 new_color) {
     }
 }
 
-const MaterialInstance& RenderComponent::GetMaterialInstance() const {
+const MaterialInstance& SpriteComponent::GetMaterialInstance() const {
     return m_materialInstance;
 }
 
-MaterialInstance& RenderComponent::GetMaterialInstance() {
+MaterialInstance& SpriteComponent::GetMaterialInstance() {
     return m_materialInstance;
 }
 
-void RenderComponent::SetMaterial(const std::string& name)
+void SpriteComponent::SetMaterial(const std::string& name)
 {
     // Check if the material exists in the material system
     if (ST<MaterialSystem>::Get()->materialExists(name)) {
@@ -129,11 +130,11 @@ void RenderComponent::SetMaterial(const std::string& name)
     }
 }
 
-std::string RenderComponent::GetMaterialName() const {
+std::string SpriteComponent::GetMaterialName() const {
     return m_materialInstance.getBaseMaterialName();
 }
 
-void RenderComponent::EditorDraw()
+void SpriteComponent::EditorDraw()
 {
 #ifdef IMGUI_ENABLED
     if(!ResourceManagerOld::SpriteExists(spriteID))
@@ -366,4 +367,14 @@ void RenderComponent::EditorDraw()
         ImGui::EndPopup();
     }
 #endif
+}
+
+SpriteRenderSystem::SpriteRenderSystem()
+    : SystemOperatingByLayer{ &SpriteRenderSystem::DrawRenderComp }
+{
+}
+
+void SpriteRenderSystem::DrawRenderComp(SpriteComponent& comp)
+{
+
 }

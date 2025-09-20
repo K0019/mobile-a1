@@ -124,12 +124,15 @@ private:
 class ResourceManager : public ISerializeable
 {
 public:
-    static const ResourceContainerMeshes& Meshes();
+    static UserResourceGetter<ResourceMesh> Meshes();
     
     static bool Import(RESOURCE_TYPE type, const std::string& name, const std::filesystem::path& filepath);
 
     void SaveToFile() const;
     void LoadFromFile();
+
+public:
+    const ResourceContainerMeshes& Editor_GetMeshes();
 
 private:
     ResourceContainerMeshes meshes;

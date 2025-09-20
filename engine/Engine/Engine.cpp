@@ -217,9 +217,6 @@ void Engine::init()
 	// ---------------------
 	graphicsMain->BringWindowToFront();
 	loadState("imgui.json");
-
-	// TODO: Use a proper scene
-	graphicsMain->LoadSampleScene();
 }
 
 void Engine::run()
