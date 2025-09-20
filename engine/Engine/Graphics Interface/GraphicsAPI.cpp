@@ -1,10 +1,6 @@
 #include "GraphicsAPI.h"
 
-#define STB_IMAGE_IMPLEMENTATION
-#include "stb_image.h"
 #include "fa.h"
-
-#include "GraphicsScene.h"
 
 bool GraphicsAssets::Init(Context* context)
 {
@@ -19,41 +15,21 @@ AssetLoading::AssetSystem* GraphicsAssets::INTERNAL_GetAssetSystem()
 	return assetSystem.get();
 }
 
-GraphicsMain::GraphicsMain()
-	: window{}
-	, monitor{}
-	// TODO: Serialize these
-	, windowExtent{ 1600, 900 }
-	, viewportExtent{ 1920, 1080 }
-	, worldExtent{ 1920, 1080 }
-{
-}
-
 GraphicsMain::~GraphicsMain()
 {
 	ST<GraphicsScene>::Destroy();
 	ST<GraphicsAssets>::Destroy();
 
 	renderer->shutdown();
-	glfwDestroyWindow(window);
-	glfwTerminate();
+	ST<GraphicsWindow>::Destroy();
 }
 
-bool GraphicsMain::Init()
+void GraphicsMain::Init()
 {
-	InitGLFW();
+	ST<GraphicsWindow>::Get()->Init();
 
-	window = glfwCreateWindow(windowExtent.width, windowExtent.height, "Mahou Engine", nullptr, nullptr); // MAGICCCCCCCCCCCCC
-	if (!window)
-	{
-		glfwTerminate();
-		throw std::runtime_error("Window failed to create.");
-	}
-	SetupGLFWSettings();
-	SetupGLFWCallbacks();
-	monitor = glfwGetPrimaryMonitor();
-
-	renderer = std::make_unique<Renderer>(window, windowExtent.width, windowExtent.height);
+	auto windowExtent{ ST<GraphicsWindow>::Get()->GetWindowExtent() };
+	renderer = std::make_unique<Renderer>(ST<GraphicsWindow>::Get()->INTERNAL_GetWindow(), windowExtent.width, windowExtent.height);
 	context.renderer = renderer.get();
 	ST<GraphicsAssets>::Get()->Init(&context);
 	renderer->startup();
@@ -114,102 +90,23 @@ void GraphicsMain::EndFrame()
 
 void GraphicsMain::SetPendingShutdown()
 {
-	assert(window);
-	glfwSetWindowShouldClose(window, true);
+	ST<GraphicsWindow>::Get()->SetPendingShutdown();
 }
 bool GraphicsMain::GetIsPendingShutdown() const
 {
-	// If _window isn't initialized, this means we're still initializing the program.
-	return window && glfwWindowShouldClose(window);
+	return ST<GraphicsWindow>::Get()->GetIsPendingShutdown();
 }
 
-bool GraphicsMain::GetIsWindowMinimized() const
+void GraphicsMain::INTERNAL_OnWindowResized(int width, int height)
 {
-	return glfwGetWindowAttrib(window, GLFW_ICONIFIED) ? true : false;
-}
-
-bool GraphicsMain::SetWindowIcon(const std::string& filepath)
-{
-	GLFWimage images[1];
-	int channels;
-	images[0].pixels = stbi_load(filepath.c_str(), &images[0].width, &images[0].height, &channels, 4);
-	if (!images[0].pixels)
-	{
-		CONSOLE_LOG(LEVEL_ERROR) << "Failed to load window icon file: " << filepath;
-		return false;
-	}
-
-	glfwSetWindowIcon(window, 1, images);
-	stbi_image_free(images[0].pixels);
-	return true;
-}
-
-void GraphicsMain::SetWindowResolution(int width, int height)
-{
-	assert(window);
-
-	glfwSetWindowMonitor(window, nullptr, 100, 100, width, height, 0);
-	SetWindowIcon(ST<Filepaths>::Get()->graphicsWindowIcon);
-	Callback_FramebufferResize(width, height);
-}
-
-void GraphicsMain::SetFullscreen(bool isFullscreen)
-{
-	if (isFullscreen)
-	{
-		const GLFWvidmode* mode{ glfwGetVideoMode(monitor) };
-		glfwSetWindowMonitor(window, monitor, 0, 0, mode->width, mode->height, mode->refreshRate);
-		Callback_FramebufferResize(mode->width, mode->height);
-	}
-	else
-		SetWindowResolution(windowExtent.width, windowExtent.height);
-}
-
-void GraphicsMain::BringWindowToFront()
-{
-	glfwRestoreWindow(window);
-}
-
-void GraphicsMain::SetCallback_DragDrop(GLFWdropfun func)
-{
-	glfwSetDropCallback(window, func);
-}
-
-void GraphicsMain::InitGLFW()
-{
-	if (!glfwInit()) {
-		throw std::runtime_error("GLFW failed to initialise");
-	}
-	glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-	glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
-	glfwWindowHint(GLFW_ICONIFIED, GLFW_TRUE);
-	//uint32_t glfwExtCount = 0;
-	//glfwGetRequiredInstanceExtensions(&glfwExtCount);
-}
-
-void GraphicsMain::SetupGLFWSettings()
-{
-	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-	SetWindowIcon(ST<Filepaths>::Get()->graphicsWindowIcon);
-}
-
-void GraphicsMain::SetupGLFWCallbacks()
-{
-	glfwSetFramebufferSizeCallback(window, GLFW_Callback_FramebufferResize);
-	glfwSetKeyCallback(window, KeyboardMouseInput::GLFW_Callback_OnKeyboardClick);
-	glfwSetMouseButtonCallback(window, KeyboardMouseInput::GLFW_Callback_OnMouseClick);
-	glfwSetCursorPosCallback(window, KeyboardMouseInput::GLFW_Callback_OnMouseMove);
-	glfwSetScrollCallback(window, KeyboardMouseInput::GLFW_Callback_OnMouseScroll);
-	//glfwSetJoystickCallback(joystick_cb);
-	glfwSetWindowFocusCallback(window, GLFW_Callback_WindowFocusChanged);
-	glfwSetCursorEnterCallback(window, GLFW_Callback_CursorEnteredWindow);
-	glfwSetWindowIconifyCallback(window, GLFW_Callback_IconifyStateChanged);
+	if (renderer)
+		renderer->onWindowResized(width, height);
 }
 
 #ifdef IMGUI_ENABLED
 void GraphicsMain::InitImGui(const std::string& fontfile)
 {
-	imguiContext = std::make_unique<editor::ImGuiContext>(context, *window);
+	imguiContext = std::make_unique<editor::ImGuiContext>(context, *ST<GraphicsWindow>::Get()->INTERNAL_GetWindow());
 	SetImGuiStyle();
 
 	ImGuiIO& io = ImGui::GetIO();
@@ -326,64 +223,6 @@ void GraphicsMain::SetImGuiStyle()
 }
 #endif
 
-void GraphicsMain::GLFW_Callback_FramebufferResize(GLFWwindow* window, int width, int height)
-{
-	ST<GraphicsMain>::Get()->Callback_FramebufferResize(width, height);
-}
-void GraphicsMain::Callback_FramebufferResize(int width, int height)
-{
-	windowExtent.width = width;
-	windowExtent.height = height;
-#ifndef IMGUI_ENABLED
-	viewportExtent = windowExtent;
-#endif
-	if (renderer)
-		renderer->onWindowResized(width, height);
-}
-
-void GraphicsMain::GLFW_Callback_WindowFocusChanged(GLFWwindow* window, int isFocused)
-{
-	Messaging::BroadcastAll("OnWindowFocus", static_cast<bool>(isFocused));
-}
-
-void GraphicsMain::GLFW_Callback_IconifyStateChanged(GLFWwindow* window, int isIconified)
-{
-	GLFW_Callback_WindowFocusChanged(window, isIconified == 0);
-}
-
-void GraphicsMain::GLFW_Callback_CursorEnteredWindow(GLFWwindow* window, int isEntered)
-{
-#ifdef IMGUI_ENABLED
-	ImGuiIO& io = ImGui::GetIO();
-	if (isEntered)
-	{
-		// Only hide cursor if ImGui isn't using it
-		if (!io.WantCaptureMouse)
-			glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
-	}
-	else 
-		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-#else
-	if (isEntered)
-		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-	else
-		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-#endif
-}
-
-VkExtent2D GraphicsMain::GetWindowExtent() const
-{
-	return windowExtent;
-}
-VkExtent2D GraphicsMain::GetViewportExtent() const
-{
-	return viewportExtent;
-}
-VkExtent2D GraphicsMain::GetWorldExtent() const
-{
-	return worldExtent;
-}
-
 editor::ImGuiContext& GraphicsMain::GetImGuiContext()
 {
 	return *imguiContext.get();
@@ -439,6 +278,7 @@ void GraphicsMain::RenderSampleScene()
 	lastMousePos = ST<KeyboardMouseInput>::Get()->GetMousePos();
 	positioner_.update(GameTime::Dt(), mouse_delta, ST<KeyboardMouseInput>::Get()->GetIsDown(KEY::M_RIGHT));
 
+	auto windowExtent{ ST<GraphicsWindow>::Get()->GetWindowExtent() };
 	Render::FrameData currentFrameData{};
 	currentFrameData.cameraPos = camera.getPosition();
 	currentFrameData.viewMatrix = camera.getViewMatrix();

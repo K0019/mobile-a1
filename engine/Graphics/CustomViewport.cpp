@@ -328,10 +328,10 @@ void CustomViewport::MaintainAspectRatio(ImGuiSizeCallbackData* data) {
 Transform CustomViewport::WorldToWindowTransform(const Transform& worldTransform) const {
 	Transform viewTransform;
 #ifdef IMGUI_ENABLED
-	auto WORLD = ST<GraphicsMain>::Get()->GetViewportExtent();
+	auto WORLD = ST<GraphicsWindow>::Get()->GetViewportExtent();
 #else
-	auto WORLD = ST<GraphicsMain>::Get()->GetWorldExtent();
-	auto WINDOW = ST<GraphicsMain>::Get()->GetWindowExtent();
+	auto WORLD = ST<GraphicsWindow>::Get()->GetWorldExtent();
+	auto WINDOW = ST<GraphicsWindow>::Get()->GetWindowExtent();
 #endif
 
 	CONSOLE_LOG_UNIMPLEMENTED() << "Viewport, world to window position conversion";

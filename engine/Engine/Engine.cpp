@@ -174,9 +174,8 @@ void Engine::init()
 	auto windowCreate = std::chrono::high_resolution_clock::now();
 
 	// Graphics initialization
-	auto graphicsMain{ ST<GraphicsMain>::Get() };
-	graphicsMain->Init();
-	graphicsMain->SetCallback_DragDrop(import::DropCallback);
+	ST<GraphicsMain>::Get()->Init();
+	//graphicsMain->SetCallback_DragDrop(import::DropCallback);
 
 	ST<GameSettings>::Get()->Apply(); // Apply the loaded settings here
 
@@ -203,7 +202,7 @@ void Engine::init()
 	ST<SceneManager>::Get(); // Initialize scene manager
 	ST<EntitySpawnEvents>::Get(); // Initialize systems that listen for entity created events
 
-	auto worldExtents{ graphicsMain->GetWorldExtent() };
+	auto worldExtents{ ST<GraphicsWindow>::Get()->GetWorldExtent()};
 #ifdef IMGUI_ENABLED
 	ST<Game>::Get()->Init(worldExtents.width, worldExtents.height, GAMESTATE::EDITOR);
 #else
@@ -215,7 +214,7 @@ void Engine::init()
 
 	// get ready for running
 	// ---------------------
-	graphicsMain->BringWindowToFront();
+	ST<GraphicsWindow>::Get()->BringWindowToFront();
 	loadState("imgui.json");
 }
 
@@ -389,7 +388,7 @@ void Engine::run()
 
 		// Game window draw
 		ST<PerformanceProfiler>::Get()->StartProfile("Render");
-		if (!ST<GraphicsMain>::Get()->GetIsWindowMinimized())
+		if (!ST<GraphicsWindow>::Get()->GetIsWindowMinimized())
 		{
 			ST<Game>::Get()->Render();
 			ST<Inspector>::Get()->DrawSelectedEntityBorder();

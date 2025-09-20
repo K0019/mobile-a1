@@ -92,10 +92,10 @@ void GameSettings::ApplyFullscreen()
 	switch (m_fullscreenMode)
 	{
 	case 0:
-		ST<GraphicsMain>::Get()->SetWindowResolution(m_resolutionX, m_resolutionY);
+		ST<GraphicsWindow>::Get()->SetWindowResolution(m_resolutionX, m_resolutionY);
 		break;
 	case 1:
-		ST<GraphicsMain>::Get()->SetFullscreen(true);
+		ST<GraphicsWindow>::Get()->SetFullscreen(true);
 		break;
 	}
 }
