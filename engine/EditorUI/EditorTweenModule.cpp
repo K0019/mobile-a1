@@ -46,7 +46,7 @@ void EditorTweenModule::TweenCameraToEntity(ecs::EntityHandle entity)
 	float y = entity->GetTransform().GetWorldScale().y;
 	float a = x > y ? x : y; // Get the biggest length
 
-	auto worldExtents{ ST<GraphicsMain>::Get()->GetWorldExtent() };
+	auto worldExtents{ ST<GraphicsWindow>::Get()->GetWorldExtent() };
 	float b{ static_cast<float>(std::min(worldExtents.width, worldExtents.height)) };
 
 	float currentZoom = ST<CameraController>::Get()->GetZoom();
