@@ -4,7 +4,7 @@
 struct FrameData; //Forward declaration
 
 struct AnimationTab
-	: BaseAssetCategory
+	: editor::BaseAssetCategory
 {
 	struct AnimationCreateConfig
 	{

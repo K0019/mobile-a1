@@ -24,7 +24,7 @@ All rights reserved.
 */
 /******************************************************************************/
 #pragma once
-#include "RenderSystem.h"
+#include "GraphicsECSSprite.h"
 
 /*****************************************************************//*!
 \class BarComponent

@@ -23,10 +23,9 @@ All rights reserved.
 */
 /******************************************************************************/
 #pragma once
+#include "AssetBrowserCategories.h"
 #include "ResourceManager.h"
 #include "Filesystem.h"
-
-struct BaseAssetCategory; //forward declaration
 
 class AssetBrowser {
     friend class ST<AssetBrowser>;
@@ -86,7 +85,7 @@ class AssetBrowser {
     void DrawConfig();
 
 private:
-    std::vector<std::unique_ptr<BaseAssetCategory>> assetCategories;
+    std::vector<std::unique_ptr<editor::BaseAssetCategory>> assetCategories;
     int currentCategoryIndex = 0;
 
 public:

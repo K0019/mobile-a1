@@ -848,10 +848,10 @@ namespace gui {
 		ImGui::SetNextWindowPos(pos);
 #endif
 	}
-	void SetNextWindowSize([[maybe_unused]] const Vec2& size)
+	void SetNextWindowSize([[maybe_unused]] const Vec2& size, [[maybe_unused]] gui::FLAG_COND flags)
 	{
 #ifdef IMGUI_ENABLED
-		ImGui::SetNextWindowSize(size);
+		ImGui::SetNextWindowSize(size, +flags);
 #endif
 	}
 

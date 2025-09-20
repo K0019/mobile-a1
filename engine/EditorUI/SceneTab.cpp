@@ -29,7 +29,7 @@ void SceneTab::Render()
     int count{};
     for (const auto& entry : std::filesystem::directory_iterator{ ST<Filepaths>::Get()->scenesSave })
     {
-        if (!MatchesFilter(entry.path().string()))
+        if (!editor::MatchesFilter(entry.path().string()))
             continue;
         if (entry.path().extension() != ".scene")
             continue;

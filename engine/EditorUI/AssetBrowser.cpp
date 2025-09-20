@@ -33,6 +33,7 @@ All rights reserved.
 #include "Import.h"
 
 #include "AssetBrowserCategories.h"
+#include "MeshTab.h"
 #include "SpriteTab.h"
 #include "AnimationTab.h"
 #include "SoundTab.h"
@@ -49,6 +50,7 @@ namespace fs = std::filesystem;
 AssetBrowser::AssetBrowser() {
 #ifdef IMGUI_ENABLED
     // Initialize with default state
+    assetCategories.push_back(std::make_unique<MeshTab>());
     assetCategories.push_back(std::make_unique<SpriteTab>());
     assetCategories.push_back(std::make_unique<AnimationTab>());
     assetCategories.push_back(std::make_unique<PrefabTab>());

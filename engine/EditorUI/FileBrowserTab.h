@@ -2,7 +2,7 @@
 #include "AssetBrowserCategories.h"
 
 struct FileBrowserTab
-	: BaseAssetCategory
+	: editor::BaseAssetCategory
 {
 	const char* GetName() const override;
 	const char* GetIdentifier() const override;

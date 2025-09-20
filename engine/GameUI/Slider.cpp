@@ -59,8 +59,8 @@ void SliderComponent::OnDetached()
 void SliderComponent::EditorDraw()
 {
 #ifdef IMGUI_ENABLED
-    auto& spritePressed = ResourceManager::GetSprite(GetSpriteIDPressed());
-    auto& spriteUnPressed = ResourceManager::GetSprite(GetSpriteIDUnPressed());
+    auto& spritePressed = ResourceManagerOld::GetSprite(GetSpriteIDPressed());
+    auto& spriteUnPressed = ResourceManagerOld::GetSprite(GetSpriteIDUnPressed());
 
 
   
@@ -84,7 +84,7 @@ void SliderComponent::EditorDraw()
         if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("SPRITE_ID"))
         {
             SetSpriteIDUnPressed(*static_cast<size_t*>(payload->Data));
-            if (ecs::CompHandle<RenderComponent> renderComp{ ecs::GetEntity(this)->GetComp<RenderComponent>() })
+            if (ecs::CompHandle<SpriteComponent> renderComp{ ecs::GetEntity(this)->GetComp<SpriteComponent>() })
                 renderComp->SetSpriteID(GetSpriteIDUnPressed());
         }
         ImGui::EndDragDropTarget();
@@ -124,7 +124,7 @@ void SliderSystem::UpdateSliderComp(SliderComponent& comp)
 
     if (!comp.GetInitialSpriteSet())
     {
-        if (ecs::CompHandle<RenderComponent> renderComp{ ecs::GetEntity(&comp)->GetComp<RenderComponent>() })
+        if (ecs::CompHandle<SpriteComponent> renderComp{ ecs::GetEntity(&comp)->GetComp<SpriteComponent>() })
         {
 
             switch (static_cast<VOLUME>(comp.sound))
@@ -150,7 +150,7 @@ void SliderSystem::UpdateSliderComp(SliderComponent& comp)
     if (isReleased)
     {
         comp.SetIsPressed(false);
-        if (ecs::CompHandle<RenderComponent> renderComp{ ecs::GetEntity(&comp)->GetComp<RenderComponent>() })
+        if (ecs::CompHandle<SpriteComponent> renderComp{ ecs::GetEntity(&comp)->GetComp<SpriteComponent>() })
             renderComp->SetSpriteID(comp.GetSpriteIDUnPressed());
     }
         
@@ -177,7 +177,7 @@ void SliderSystem::UpdateSliderComp(SliderComponent& comp)
 
 void SliderSystem::onSliderHold(SliderComponent& comp)
 {
-    if (ecs::CompHandle<RenderComponent> renderComp{ ecs::GetEntity(&comp)->GetComp<RenderComponent>() })
+    if (ecs::CompHandle<SpriteComponent> renderComp{ ecs::GetEntity(&comp)->GetComp<SpriteComponent>() })
         renderComp->SetSpriteID(comp.GetSpriteIDPressed());
 
     CONSOLE_LOG_UNIMPLEMENTED() << "Slider hold";

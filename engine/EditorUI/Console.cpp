@@ -23,7 +23,7 @@ All rights reserved.
 #include "AnimatorComponent.h"
 #include "NameComponent.h"
 #include "EntityUID.h"
-#include "RenderComponent.h"
+#include "GraphicsECSSprite.h"
 #include "CustomViewport.h"
 #include "Engine.h"
 //#include "ryan-c/Renderer.h"

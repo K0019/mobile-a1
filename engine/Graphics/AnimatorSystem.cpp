@@ -24,14 +24,14 @@ AnimatorSystem::AnimatorSystem() : System_Internal(&AnimatorSystem::UpdateAnimat
 
 void AnimatorSystem::UpdateAnimatorComp(AnimatorComponent& animatorComp)
 {
-    if(animatorComp.GetCurrentAnimationName().empty() || !ResourceManager::AnimationExists(animatorComp.GetCurrentAnimationName()) || !animatorComp.IsPlaying()) return;
+    if(animatorComp.GetCurrentAnimationName().empty() || !ResourceManagerOld::AnimationExists(animatorComp.GetCurrentAnimationName()) || !animatorComp.IsPlaying()) return;
     auto entity = ecs::GetEntity(&animatorComp);
-    if(!entity->GetComp<RenderComponent>())
+    if(!entity->GetComp<SpriteComponent>())
     {
         return;
     }
     float dt{ GameTime::FixedDt() };
-    const Animation& anim = ResourceManager::GetAnimation(animatorComp.GetCurrentAnimationName());
+    const Animation& anim = ResourceManagerOld::GetAnimation(animatorComp.GetCurrentAnimationName());
     const FrameData& frameData = anim.frames[animatorComp.GetCurrentFrame()];
 
     animatorComp.currentFrameTime += dt * animatorComp.playbackSpeed;
@@ -53,5 +53,5 @@ void AnimatorSystem::UpdateAnimatorComp(AnimatorComponent& animatorComp)
 
     }
     const FrameData& new_frameData = anim.frames[animatorComp.currentFrame];
-    entity->GetComp<RenderComponent>()->SetSpriteID(new_frameData.spriteID);
+    entity->GetComp<SpriteComponent>()->SetSpriteID(new_frameData.spriteID);
 }

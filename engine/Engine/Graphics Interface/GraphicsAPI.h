@@ -3,6 +3,19 @@
 #include "asset_system.h"
 #include "imgui_context.h"
 
+class GraphicsAssets
+{
+public:
+    bool Init(Context* context);
+
+public:
+    AssetLoading::AssetSystem* INTERNAL_GetAssetSystem();
+
+private:
+    UPtr<AssetLoading::AssetSystem> assetSystem;
+
+};
+
 class GraphicsMain
 {
 public:
@@ -63,7 +76,6 @@ private:
     GLFWmonitor* monitor;
 
     UPtr<Renderer> renderer;
-    UPtr<AssetLoading::AssetSystem> assetSystem;
 #ifdef IMGUI_ENABLED
     UPtr<editor::ImGuiContext> imguiContext;
 #endif

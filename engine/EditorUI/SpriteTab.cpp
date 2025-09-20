@@ -21,14 +21,14 @@ void SpriteTab::Render()
     gui::SetStyleVar itemSpacing(gui::FLAG_STYLE_VAR::ITEM_SPACING, ImVec2(5, 5));
     gui::SetStyleVar framePadding(gui::FLAG_STYLE_VAR::FRAME_PADDING, ImVec2(2, 2));
 
-    for (size_t i = 0; i < ResourceManager::GetSpriteCount(); ++i)
+    for (size_t i = 0; i < ResourceManagerOld::GetSpriteCount(); ++i)
     {
-        const Sprite& sprite = ResourceManager::GetSprite(i);
-        bool isValid = sprite.textureID != ResourceManager::INVALID_TEXTURE_ID;
+        const Sprite& sprite = ResourceManagerOld::GetSprite(i);
+        bool isValid = sprite.textureID != ResourceManagerOld::INVALID_TEXTURE_ID;
         if (!isValid)
             continue;
 
-        if (!MatchesFilter(sprite.name))
+        if (!editor::MatchesFilter(sprite.name))
         {
             continue;
         }
@@ -38,7 +38,7 @@ void SpriteTab::Render()
         {
             gui::Group group;
 
-            //const Texture& tex = ResourceManager::GetTexture(sprite.textureName);
+            //const Texture& tex = ResourceManagerOld::GetTexture(sprite.textureName);
             ImGui::ImageButton("##sprite",
                 0,
                 ImVec2(THUMBNAIL_SIZE, THUMBNAIL_SIZE),
@@ -59,7 +59,7 @@ void SpriteTab::Render()
                 // Add animation usage info to tooltip
                 bool isUsed = false;
                 int useCount = 0;
-                for (const auto& [_, anim] : ResourceManager::GetAnimations())
+                for (const auto& [_, anim] : ResourceManagerOld::GetAnimations())
                 {
                     for (const auto& frame : anim.frames)
                     {
@@ -88,7 +88,7 @@ void SpriteTab::Render()
 
                 // Check if sprite is used in any animations
                 bool isSpriteUsed = false;
-                for (const auto& [_, anim] : ResourceManager::GetAnimations())
+                for (const auto& [_, anim] : ResourceManagerOld::GetAnimations())
                 {
                     if (std::any_of(anim.frames.begin(), anim.frames.end(),
                         [i](const FrameData& frame) { return frame.spriteID == i; }))
@@ -103,13 +103,13 @@ void SpriteTab::Render()
                     if (ImGui::InputText("##rename", renameBuffer, sizeof(renameBuffer),
                         ImGuiInputTextFlags_EnterReturnsTrue))
                     {
-                        ResourceManager::RenameSprite(i, renameBuffer);
+                        ResourceManagerOld::RenameSprite(i, renameBuffer);
                         isRenaming = false;
                     }
                     ImGui::SameLine();
                     if (ImGui::Button("OK"))
                     {
-                        ResourceManager::RenameSprite(i, renameBuffer);
+                        ResourceManagerOld::RenameSprite(i, renameBuffer);
                         isRenaming = false;
                         ImGui::CloseCurrentPopup();
                     }
@@ -143,7 +143,7 @@ void SpriteTab::Render()
                     {
                         if (ImGui::MenuItem(ICON_FA_TRASH" Delete"))
                         {
-                            ResourceManager::DeleteSprite(i);
+                            ResourceManagerOld::DeleteSprite(i);
                             ImGui::CloseCurrentPopup();
                         }
                     }
@@ -153,13 +153,13 @@ void SpriteTab::Render()
                     {
                         ImGui::Separator();
                         ImGui::TextColored(ImVec4(0.7f, 0.7f, 0.7f, 1.0f), "Used in Animations:");
-                        for (const auto& [nameHash, anim] : ResourceManager::GetAnimations())
+                        for (const auto& [nameHash, anim] : ResourceManagerOld::GetAnimations())
                         {
                             bool usedInThisAnim = std::any_of(anim.frames.begin(), anim.frames.end(),
                                 [i](const FrameData& frame) { return frame.spriteID == i; });
                             if (usedInThisAnim)
                             {
-                                ImGui::BulletText("%s", ResourceManager::GetResourceName(nameHash).c_str());
+                                ImGui::BulletText("%s", ResourceManagerOld::GetResourceName(nameHash).c_str());
                             }
                         }
                     }

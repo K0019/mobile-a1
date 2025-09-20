@@ -184,6 +184,7 @@ GENERATE_GLOBAL_OPERATOR_ADAPTER_H(Vec2, glm::vec2, /)
 struct Vec3 : public glm::vec3
 {
 	Vec3() = default;
+	constexpr Vec3(float scalar);
 	constexpr Vec3(float x, float y, float z);
 	constexpr Vec3(const Vec2& vec, float z);
 	explicit constexpr Vec3(const Vec4& vec);

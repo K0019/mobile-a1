@@ -1,26 +1,11 @@
 {
-    "sprites": [
-        {
-            "id": 0,
-            "name": "white",
-            "texturePath": "/Assets\\Images\\white.png",
-            "width": 1,
-            "height": 1,
-            "texCoords": [
-                0.0,
-                0.0,
-                1.0,
-                1.0
-            ]
-        }
-    ],
-    "animations": [],
-    "sounds": [
-        {
-            "name": "Gylia Shanty (Cinfras County).mp3"
-        },
-        {
-            "name": "Kalimba.mp3"
-        }
-    ]
+    "meshes": {
+        "resources": [
+            {
+                "filepath": "fbxcars\\box.fbx",
+                "hash": 4459298185974400567,
+                "name": "box.fbx"
+            }
+        ]
+    }
 }

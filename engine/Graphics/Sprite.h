@@ -13,7 +13,7 @@
 \par    DigiPen login: ngaihangryan.cheong
 
 \brief
-Sprite data structure that holds information about the sprite. Used for serialisation and deserialisation in the ResourceManager.
+Sprite data structure that holds information about the sprite. Used for serialisation and deserialisation in the ResourceManagerOld.
 
 All content � 2024 DigiPen Institute of Technology Singapore.
 All rights reserved.
