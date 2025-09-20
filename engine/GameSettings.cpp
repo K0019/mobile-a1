@@ -140,7 +140,7 @@ void Filepaths::UpdateFilepaths()
 	scenesSave += settings.m_scenesSaveLocation;
 	scriptsSave += settings.m_scriptsSaveLocation;
 	materialsSave += settings.m_materialSaveLocation;
-
+	behaviourTreeSave += settings.m_behaviourTreeSaveLocation;
 	graphicsWindowIcon = assets + "/Icon_game.png";
 
 	soundFolder = assets + "/Sounds/";

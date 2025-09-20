@@ -1,14 +1,17 @@
 #include "ComSelector.h"
+#include "BehaviourTreeFactory.h"
+
+BT_REGISTER_NODE(ComSelector, "Selector")
 
 ComSelector::ComSelector()
     : currentIndex(0)
 {
 }
 
-void ComSelector::AddChild(BehaviorNode* child)
-{
-    BaseNode::AddChild(child);
-}
+//void ComSelector::AddChild(BehaviorNode* child)
+//{
+//    BaseNode::AddChild(child);
+//}
 
 void ComSelector::OnEnter()
 {
@@ -24,7 +27,7 @@ void ComSelector::OnUpdate(float dt)
 
     if (currentNode->Succeeded() == true)
     {
-        CONSOLE_LOG(LEVEL_FATAL) << "This selector is success";
+       // CONSOLE_LOG(LEVEL_FATAL) << "This selector is success";
         OnSuccess();
     }
     else if (currentNode->Failed() == true)
@@ -37,7 +40,7 @@ void ComSelector::OnUpdate(float dt)
 
         if (currentIndex >= children.size())
         {
-            CONSOLE_LOG(LEVEL_FATAL) << "This selector failed";
+           // CONSOLE_LOG(LEVEL_FATAL) << "This selector failed";
 
             OnFailure();
         }

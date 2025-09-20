@@ -34,6 +34,8 @@ Check if tree is valid (least priority)
 #include "LeafFailTest.h"
 #include "LeafKeyPressed.h"
 #include "ComSelector.h"
+#include "BehaviourTreeFactory.h"
+
 class BehaviorTree {
 public:
     BehaviorTree();
@@ -44,12 +46,55 @@ public:
     // Hardcoded init (no file/prototype)
     void InitHardcoded();
 
+    void InitFromAsset(const struct BehaviorTreeAsset& asset); // build runtime
+
+    void TestInitFromAsset();
+
 private:
 
-    BehaviorNode* rootNode;
+    BehaviorNode* rootNode = nullptr;
     std::string treeName;
 
     // simple ownership bucket (matches raw child pointers on composites)
     std::vector<std::unique_ptr<BehaviorNode>> owned;
 };
+
+//For Properties storing of data =======================================
+struct BTNodeDesc : public ISerializeable {
+    std::string nodeID;
+    std::string nodeType;
+    std::vector<std::string> children; // references to children IDs
+    std::vector<std::string> keys;
+    std::vector<std::string> values;
+
+    property_vtable()
+};
+
+property_begin(BTNodeDesc)
+{
+    property_var(nodeID),
+    property_var(nodeType),
+    property_var(children),
+    property_var(keys),
+    property_var(values),
+
+}
+property_vend_h(BTNodeDesc)
+
+struct BehaviorTreeAsset : public ISerializeable {
+    std::string name;
+    std::string rootID;
+    std::vector<BTNodeDesc> nodes;
+    property_vtable()
+};
+property_begin(BehaviorTreeAsset)
+{
+        property_var(name),
+        property_var(rootID),
+        property_var(nodes)
+}
+property_vend_h(BehaviorTreeAsset)
+//=======================================================================
+
+//FOR TESTING
 

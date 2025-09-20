@@ -1,11 +1,10 @@
 #pragma once
 #include "BehaviourNode.h"
 
-class ComSelector : public BaseNode<ComSelector>
+class ComSelector : public CompositeNode<ComSelector>  
 {
 public:
     ComSelector();
-    void AddChild(BehaviorNode* child);
 
 
 protected:

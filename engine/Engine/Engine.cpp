@@ -174,34 +174,35 @@ void Engine::init()
 
 	//Testing for BehaviorTree
 	bt.InitHardcoded();
+	//bt.TestInitFromAsset();
 
-	constexpr unsigned int SCREEN_WIDTH = 1600;
-	// The height of the screen
-	constexpr unsigned int SCREEN_HEIGHT = 900;
+	//constexpr unsigned int SCREEN_WIDTH = 1600;
+	//// The height of the screen
+	//constexpr unsigned int SCREEN_HEIGHT = 900;
 
-	constexpr unsigned int VIEWPORT_WIDTH = 1920;
+	//constexpr unsigned int VIEWPORT_WIDTH = 1920;
 
-	constexpr unsigned int VIEWPORT_HEIGHT = 1080;
-	// the width of the visible world
-	constexpr unsigned int WORLD_WIDTH = 1920;
-	// the height of the visible world
-	constexpr unsigned int WORLD_HEIGHT = 1080;
-	// TO BE READ IN DATA LATER
+	//constexpr unsigned int VIEWPORT_HEIGHT = 1080;
+	//// the width of the visible world
+	//constexpr unsigned int WORLD_WIDTH = 1920;
+	//// the height of the visible world
+	//constexpr unsigned int WORLD_HEIGHT = 1080;
+	//// TO BE READ IN DATA LATER
 
-	_windowExtent = { SCREEN_WIDTH, SCREEN_HEIGHT };
-	_viewportExtent = { VIEWPORT_WIDTH, VIEWPORT_HEIGHT };
-	_worldExtent = { WORLD_WIDTH, WORLD_HEIGHT };
+	//_windowExtent = { SCREEN_WIDTH, SCREEN_HEIGHT };
+	//_viewportExtent = { VIEWPORT_WIDTH, VIEWPORT_HEIGHT };
+	//_worldExtent = { WORLD_WIDTH, WORLD_HEIGHT };
 
-	if(!glfwInit()) {
-		throw std::runtime_error("GLFW failed to initialise");
-	}
-	glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-	glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
-	glfwWindowHint(GLFW_ICONIFIED, GLFW_TRUE);
-	uint32_t glfwExtCount = 0;
-	glfwGetRequiredInstanceExtensions(&glfwExtCount);
+	//if(!glfwInit()) {
+	//	throw std::runtime_error("GLFW failed to initialise");
+	//}
+	//glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
+	//glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
+	//glfwWindowHint(GLFW_ICONIFIED, GLFW_TRUE);
+	//uint32_t glfwExtCount = 0;
+	//glfwGetRequiredInstanceExtensions(&glfwExtCount);
 
-	_window = glfwCreateWindow(_windowExtent.width, _windowExtent.height, "Mahou Engine", nullptr, nullptr); // MAGICCCCCCCCCCCCC
+	//_window = glfwCreateWindow(_windowExtent.width, _windowExtent.height, "Mahou Engine", nullptr, nullptr); // MAGICCCCCCCCCCCCC
 	auto windowCreate = std::chrono::high_resolution_clock::now();
 
 	// Graphics initialization
