@@ -1,0 +1,34 @@
+{
+  "name": "SampleTree",
+  "rootID": "root",
+
+  "nodes": [
+    {
+      "nodeID": "root",
+      "nodeType": "Selector",
+      "children": ["fail1", "mouse"],
+      "params": {
+        "keys": [],
+        "values": []
+      }
+    },
+    {
+      "nodeID": "fail1",
+      "nodeType": "LeafFailTest",
+      "children": [],
+      "params": {
+        "keys": [],
+        "values": []
+      }
+    },
+    {
+      "nodeID": "mouse",
+      "nodeType": "L_CheckMouseClick",
+      "children": [],
+      "params": {
+        "keys": ["button"],
+        "values": ["1"]
+      }
+    }
+  ]
+}

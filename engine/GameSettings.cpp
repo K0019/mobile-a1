@@ -24,6 +24,7 @@ All rights reserved.
 /******************************************************************************/
 #include "GameSettings.h"
 #include "EntityLayers.h"
+#include "GraphicsAPI.h"
 #include "Engine.h"
 
 GameSettings::GameSettings()
@@ -91,10 +92,10 @@ void GameSettings::ApplyFullscreen()
 	switch (m_fullscreenMode)
 	{
 	case 0:
-		ST<Engine>::Get()->onResolutionChanged(m_resolutionX, m_resolutionY);
+		ST<GraphicsMain>::Get()->SetWindowResolution(m_resolutionX, m_resolutionY);
 		break;
 	case 1:
-		ST<Engine>::Get()->onFullscreen();
+		ST<GraphicsMain>::Get()->SetFullscreen(true);
 		break;
 	}
 }
@@ -139,6 +140,8 @@ void Filepaths::UpdateFilepaths()
 	scenesSave += settings.m_scenesSaveLocation;
 	scriptsSave += settings.m_scriptsSaveLocation;
 	materialsSave += settings.m_materialSaveLocation;
+	behaviourTreeSave += settings.m_behaviourTreeSaveLocation;
+	graphicsWindowIcon = assets + "/Icon_game.png";
 
 	soundFolder = assets + "/Sounds/";
 

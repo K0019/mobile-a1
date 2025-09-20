@@ -23,12 +23,22 @@ All rights reserved.
 #include "CSScripting.h"
 #include "game.h"
 
-void HotReloader::FocusCallBackReload(GLFWwindow*, int focused)
+void HotReloader::Init()
 {
-	if (focused && ST<Game>::Get()->GetState() == GAMESTATE::EDITOR)
-	{
+	Messaging::Subscribe("OnWindowFocus", OnFocusChanged);
+}
+
+HotReloader::~HotReloader()
+{
+	Messaging::Unsubscribe("OnWindowFocus", OnFocusChanged);
+}
+
+void HotReloader::OnFocusChanged([[maybe_unused]] bool isFocused)
+{
 #ifdef IMGUI_ENABLED
+	if (isFocused && ST<Game>::Get()->GetState() == GAMESTATE::EDITOR)
+	{
 		CSharpScripts::CSScripting::ReloadAssembly();
-#endif
 	}
+#endif
 }

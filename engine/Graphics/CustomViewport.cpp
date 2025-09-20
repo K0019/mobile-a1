@@ -24,6 +24,7 @@ All rights reserved.
 #include "SceneManagement.h"
 #include "EditorHistory.h"
 #include "imgui_context.h"
+#include "GraphicsAPI.h"
 
 void CustomViewport::Init(unsigned newWidth, unsigned newHeight)
 {
@@ -226,7 +227,7 @@ void CustomViewport::DrawImGuiWindow() {
 
 		// Set position and render viewport image
 		ImGui::SetCursorPos(ImVec2(padding.x, padding.y + titleBarHeight + playControlsHeight));
-		if (auto sceneColorID = ST<Engine>::Get()->m_imguiContext->GetTransientRegistry().QueryBindlessID("ImGuiSceneView"))
+		if (auto sceneColorID = ST<GraphicsMain>::Get()->GetImGuiContext().GetTransientRegistry().QueryBindlessID("ImGuiSceneView"))
     {
 			ImGui::Image(*sceneColorID,
 				renderSize,
@@ -327,10 +328,10 @@ void CustomViewport::MaintainAspectRatio(ImGuiSizeCallbackData* data) {
 Transform CustomViewport::WorldToWindowTransform(const Transform& worldTransform) const {
 	Transform viewTransform;
 #ifdef IMGUI_ENABLED
-	auto WORLD = ST<Engine>::Get()->_viewportExtent;
+	auto WORLD = ST<GraphicsMain>::Get()->GetViewportExtent();
 #else
-	auto WORLD = ST<Engine>::Get()->_worldExtent;
-	auto WINDOW = ST<Engine>::Get()->_windowExtent;
+	auto WORLD = ST<GraphicsMain>::Get()->GetWorldExtent();
+	auto WINDOW = ST<GraphicsMain>::Get()->GetWindowExtent();
 #endif
 
 	CONSOLE_LOG_UNIMPLEMENTED() << "Viewport, world to window position conversion";

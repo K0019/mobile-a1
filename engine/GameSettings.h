@@ -101,13 +101,14 @@ public:
 
 	std::string m_assetsRelativeFilepath = "/Assets"; // Relative filepath to the assets folder
 	std::string m_assetsJsonRelativeFilepath = "/Assets/assets.json"; // Relative filepath to assets.json
-	std::string m_shadersSaveLocation = "/Assets/Shaders"; // Relative filepath of shaders
+	std::string m_shadersSaveLocation = "/Shaders"; // Relative filepath of shaders
 	std::string m_fontsSaveLocation = "/Assets/Fonts"; // Relative filepath of fonts
 	std::string m_prefabsSaveLocation = "/Assets/Prefab"; // Relative filepath of prefabs
 	std::string m_scenesSaveLocation = "/Assets/Scenes"; // Relative filepath of scene saves
 	std::string m_scriptsSaveLocation = "/Assets/Scripts"; // Relative filepath of scripts
 	std::string m_scriptsTargetLocation = "/Assets"; // Relative filepath of the location where scripts will be scanned for compilation
 	std::string m_materialSaveLocation = "/Assets/Materials"; // Relative filepath of materials
+	std::string m_behaviourTreeSaveLocation = "/Assets/BehaviourTrees"; // Relative filepath of Behaviour Trees
 
 	property_vtable()
 };
@@ -138,7 +139,9 @@ property_begin(GameSettings)
 		property_var(m_scenesSaveLocation),
 		property_var(m_scriptsSaveLocation),
 		property_var(m_scriptsTargetLocation),
-		property_var(m_materialSaveLocation)
+		property_var(m_materialSaveLocation),
+		property_var(m_behaviourTreeSaveLocation)
+
 }
 property_vend_h(GameSettings)
 
@@ -166,6 +169,10 @@ public:
 	std::string scenesSave;
 	std::string scriptsSave;
 	std::string materialsSave;
+	std::string behaviourTreeSave;
+
+	// Graphics
+	std::string graphicsWindowIcon;
 
 	// Sound
 	std::string soundFolder;

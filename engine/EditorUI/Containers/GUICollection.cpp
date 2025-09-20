@@ -681,15 +681,10 @@ namespace gui {
 	}
 
 	template <>
-	void PayloadSource<std::string>([[maybe_unused]] const char* identifier, [[maybe_unused]] const std::string& data, [[maybe_unused]] const char* dragLabel)
+	void PayloadSource<std::string>::SetPayloadTarget([[maybe_unused]] const char* identifier, [[maybe_unused]] const std::string& data)
 	{
 #ifdef IMGUI_ENABLED
-		if (ImGui::BeginDragDropSource())
-		{
-			ImGui::SetDragDropPayload(identifier, data.c_str(), data.size() + 1);
-			ImGui::Text("Dragging %s", dragLabel);
-			ImGui::EndDragDropSource();
-		}
+		ImGui::SetDragDropPayload(identifier, data.c_str(), data.size() + 1);
 #endif
 	}
 

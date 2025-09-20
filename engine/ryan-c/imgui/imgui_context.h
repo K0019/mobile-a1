@@ -15,7 +15,7 @@ namespace editor {
     
     class ImGuiContext {
     public:
-        ImGuiContext(Engine::Context& context, GLFWwindow& window, const ImGuiConfig& config = {});
+        ImGuiContext(Context& context, GLFWwindow& window, const ImGuiConfig& config = {});
         ~ImGuiContext();
 
         // Font management - can be called anytime after construction
@@ -45,7 +45,7 @@ namespace editor {
 
         static void applyRendererDefaults(ImFontConfig& config);
 
-        Engine::Context& context_;
+        Context& context_;
         GLFWwindow& window_;
         ImGuiConfig config_;
         

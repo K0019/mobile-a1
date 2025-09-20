@@ -83,6 +83,21 @@ public:
     virtual BehaviorNode* Clone();
 };
 
+// A small interface so the builder can acknowledge this type of nodes can have children
+class IComposite {
+public:
+    virtual ~IComposite() = default;
+    virtual void AddChild(BehaviorNode* child) = 0;
+};
+
+
+template <typename T>
+class CompositeNode : public BaseNode<T>, public IComposite {
+public:
+    void AddChild(BehaviorNode* child) override {
+        BehaviorNode::AddChild(child);  
+    }
+};
 #pragma region Definition
 
 template<typename T>

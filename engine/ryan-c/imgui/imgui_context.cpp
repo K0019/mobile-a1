@@ -9,7 +9,7 @@
 #include "assets/io/texture_loader.h"
 
 namespace editor {
-    ImGuiContext::ImGuiContext(Engine::Context& context, GLFWwindow& window, const ImGuiConfig& config)
+    ImGuiContext::ImGuiContext(Context& context, GLFWwindow& window, const ImGuiConfig& config)
         : context_(context), window_(window), config_(config),
         m_transientRegistry(std::make_unique<TransientRegistry>()),
         renderFeatureHandle_(0), initialized_(false)

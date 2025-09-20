@@ -24,6 +24,7 @@ All rights reserved.
 */
 /******************************************************************************/
 #include "CSScripting.h"
+#include "HotReloader.h"
 #include "GameSettings.h"
 #include "Popup.h"
 #include "Engine.h"
@@ -482,6 +483,10 @@ namespace CSharpScripts
 		{
 			CONSOLE_LOG_EXPLICIT(pair.second.GetFullName(), LogLevel::LEVEL_DEBUG);
 		}
+
+#ifdef IMGUI_ENABLED
+		ST<HotReloader>::Get()->Init();
+#endif
 	}
 
 	ScriptClass& CSScripting::GetClassFromData(std::string cName)
@@ -528,6 +533,8 @@ namespace CSharpScripts
 
 	void CSScripting::Exit()
 	{
+		ST<HotReloader>::Destroy();
+
 		// unload root domain
 		mono_domain_set(mono_get_root_domain(), false);
 

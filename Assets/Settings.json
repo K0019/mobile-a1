@@ -19,6 +19,7 @@
     "scriptsSaveLocation": "/Assets/Scripts",
     "scriptsTargetLocation": "/Assets",
     "materialSaveLocation": "/Assets/Materials",
+    "behaviourTreeSaveLocation": "/Assets/BehaviourTrees",
     "inputSets": [
         {
             "key": "Default",
@@ -71,44 +72,11 @@
         }
     ],
     "collisionLayers": {
-        "_majorityTrue": false,
+        "_majorityTrue": true,
         "Default": [],
-        "Environment": [
-            "Environment",
-            "Player",
-            "Enemy",
-            "Weapon",
-            "Player Bullet",
-            "Enemy Bullet",
-            "Drop Pod",
-            "Mask Entity"
-        ],
-        "Player": [
-            "Enemy Bullet",
-            "Mask Entity",
-            "Player Detector"
-        ],
-        "Enemy": [
-            "Player Bullet",
-            "Mask Entity"
-        ],
-        "Weapon": [
-            "Mask Entity",
-            "Weapon Detector"
-        ],
-        "Player Bullet": [],
-        "Enemy Bullet": [
-            "Objective"
-        ],
-        "Objective": [],
-        "Drop Pod": [],
-        "Mask Entity": [
-            "Mask Entity"
-        ],
-        "Player Detector": [],
-        "Weapon Detector": [
-            "Weapon Detector"
-        ]
+        "Environment": [],
+        "Player": [],
+        "Enemy": []
     },
     "systemLayers": {
         "12363950644241722034": {

@@ -514,7 +514,8 @@ void MaskTemplate<ENUM_TYPE, EnableMatrix>::DeserializeMatrix(Deserializer& read
 		for (size_t index{}; reader.PushArrayElementAccess(index); ++index)
 		{
 			ENUM_TYPE mask{ GetMaskOfCurrentElement(reader, enumNamesArr) };
-			SetMatrix(i, mask, (mask == ENUM_TYPE::TOTAL ? majorityTrue : !majorityTrue));
+			if (mask != ENUM_TYPE::TOTAL) // If the mask type exists
+				SetMatrix(i, mask, !majorityTrue);
 			reader.PopAccess();
 		}
 		reader.PopAccess();
