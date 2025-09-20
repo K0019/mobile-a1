@@ -101,7 +101,7 @@ public:
 
 	std::string m_assetsRelativeFilepath = "/Assets"; // Relative filepath to the assets folder
 	std::string m_assetsJsonRelativeFilepath = "/Assets/assets.json"; // Relative filepath to assets.json
-	std::string m_shadersSaveLocation = "/Assets/Shaders"; // Relative filepath of shaders
+	std::string m_shadersSaveLocation = "/Shaders"; // Relative filepath of shaders
 	std::string m_fontsSaveLocation = "/Assets/Fonts"; // Relative filepath of fonts
 	std::string m_prefabsSaveLocation = "/Assets/Prefab"; // Relative filepath of prefabs
 	std::string m_scenesSaveLocation = "/Assets/Scenes"; // Relative filepath of scene saves
@@ -166,6 +166,9 @@ public:
 	std::string scenesSave;
 	std::string scriptsSave;
 	std::string materialsSave;
+
+	// Graphics
+	std::string graphicsWindowIcon;
 
 	// Sound
 	std::string soundFolder;

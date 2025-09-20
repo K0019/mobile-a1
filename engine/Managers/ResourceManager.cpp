@@ -327,7 +327,7 @@ bool ResourceManager::SaveAssetsToFile(const std::string& filename)
     file.EndArray();
 
     // Sort animations by name for consistency
-    auto sortedAnimations{ util::ToSortedVectorOfRefs(Animations, [](const auto& a, const auto& b) -> bool { return ResourceNames[a.first] < ResourceNames[b.first]; }) };
+    auto sortedAnimations{ util::ToSortedVectorOfRefs(Animations) };
 
     // Serialize animations
     file.StartArray("animations");
@@ -340,8 +340,10 @@ bool ResourceManager::SaveAssetsToFile(const std::string& filename)
     }
     file.EndArray();
 
+    auto sortedSounds{ util::ToSortedVectorOfRefs(Sounds) };
+
 	file.StartArray("sounds");
-    for (const auto& [nameHash, sound] : Sounds)
+    for (const auto& [nameHash, sound] : sortedSounds)
     {
         file.StartObject();
         file.Serialize("name", ResourceNames[nameHash]);

@@ -22,7 +22,7 @@ All rights reserved.
 #include "TweenManager.h"
 #include "CameraController.h"
 #include "Editor.h"
-#include "Engine.h"
+#include "GraphicsAPI.h"
 
 EditorTweenModule::EditorTweenModule()
 {
@@ -46,10 +46,8 @@ void EditorTweenModule::TweenCameraToEntity(ecs::EntityHandle entity)
 	float y = entity->GetTransform().GetWorldScale().y;
 	float a = x > y ? x : y; // Get the biggest length
 
-	float width = static_cast<float>(ST<Engine>::Get()->_worldExtent.width);
-	float height = static_cast<float>(ST<Engine>::Get()->_worldExtent.height);
-	float b = width < height ? width : height; // Get the smallest length
-
+	auto worldExtents{ ST<GraphicsMain>::Get()->GetWorldExtent() };
+	float b{ static_cast<float>(std::min(worldExtents.width, worldExtents.height)) };
 
 	float currentZoom = ST<CameraController>::Get()->GetZoom();
 	float targetZoom = (b / a) * zoomAmount;

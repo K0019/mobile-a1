@@ -1,0 +1,428 @@
+#include "GraphicsAPI.h"
+
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
+#include "fa.h"
+
+GraphicsMain::GraphicsMain()
+	: window{}
+	, monitor{}
+	// TODO: Serialize these
+	, windowExtent{ 1600, 900 }
+	, viewportExtent{ 1920, 1080 }
+	, worldExtent{ 1920, 1080 }
+{
+}
+
+GraphicsMain::~GraphicsMain()
+{
+	renderer->shutdown();
+	glfwDestroyWindow(window);
+	glfwTerminate();
+}
+
+bool GraphicsMain::Init()
+{
+	InitGLFW();
+
+	window = glfwCreateWindow(windowExtent.width, windowExtent.height, "Mahou Engine", nullptr, nullptr); // MAGICCCCCCCCCCCCC
+	if (!window)
+	{
+		glfwTerminate();
+		throw std::runtime_error("Window failed to create.");
+	}
+	SetupGLFWSettings();
+	SetupGLFWCallbacks();
+	monitor = glfwGetPrimaryMonitor();
+
+	renderer = std::make_unique<Renderer>(window, windowExtent.width, windowExtent.height);
+	context.renderer = renderer.get();
+	assetSystem = std::make_unique<AssetLoading::AssetSystem>(&context);
+	context.assetSystem = assetSystem.get();
+	renderer->startup();
+
+#ifdef IMGUI_ENABLED
+	InitImGui(ST<Filepaths>::Get()->fontsSave + "/Lato-Regular.ttf");
+#endif
+}
+
+void GraphicsMain::BeginFrame()
+{
+	renderer->beginFrame();
+}
+
+#ifdef IMGUI_ENABLED
+void GraphicsMain::BeginImGuiFrame()
+{
+	imguiContext->beginFrame();
+
+	ImGuiIO& io = ImGui::GetIO();
+	if (!(io.ConfigFlags & ImGuiConfigFlags_DockingEnable))
+		return;
+
+	ImGuiViewport* viewport = ImGui::GetMainViewport();
+	ImGui::SetNextWindowPos(viewport->Pos);
+	ImGui::SetNextWindowSize(viewport->Size);
+	ImGui::SetNextWindowViewport(viewport->ID);
+	ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+	ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+	ImGuiWindowFlags window_flags = ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoDocking;
+	window_flags |= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
+	window_flags |= ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
+
+	ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
+	ImGui::Begin("##DockSpace ", nullptr, window_flags);
+	ImGui::PopStyleVar(3);
+
+	ImGuiID dockspace_id = ImGui::GetID("MyDockSpace");
+	ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), ImGuiDockNodeFlags_None);
+}
+
+void GraphicsMain::EndImGuiFrame()
+{
+	ImGuiIO& io = ImGui::GetIO();
+	if (io.ConfigFlags & ImGuiConfigFlags_DockingEnable)
+		ImGui::End();
+	imguiContext->endFrame();
+}
+#endif
+
+void GraphicsMain::EndFrame()
+{
+	renderer->endFrame();
+}
+
+void GraphicsMain::SetPendingShutdown()
+{
+	assert(window);
+	glfwSetWindowShouldClose(window, true);
+}
+bool GraphicsMain::GetIsPendingShutdown() const
+{
+	// If _window isn't initialized, this means we're still initializing the program.
+	return window && glfwWindowShouldClose(window);
+}
+
+bool GraphicsMain::GetIsWindowMinimized() const
+{
+	return glfwGetWindowAttrib(window, GLFW_ICONIFIED) ? true : false;
+}
+
+bool GraphicsMain::SetWindowIcon(const std::string& filepath)
+{
+	GLFWimage images[1];
+	int channels;
+	images[0].pixels = stbi_load(filepath.c_str(), &images[0].width, &images[0].height, &channels, 4);
+	if (!images[0].pixels)
+	{
+		CONSOLE_LOG(LEVEL_ERROR) << "Failed to load window icon file: " << filepath;
+		return false;
+	}
+
+	glfwSetWindowIcon(window, 1, images);
+	stbi_image_free(images[0].pixels);
+	return true;
+}
+
+void GraphicsMain::SetWindowResolution(int width, int height)
+{
+	assert(window);
+
+	glfwSetWindowMonitor(window, nullptr, 100, 100, width, height, 0);
+	SetWindowIcon(ST<Filepaths>::Get()->graphicsWindowIcon);
+	Callback_FramebufferResize(width, height);
+}
+
+void GraphicsMain::SetFullscreen(bool isFullscreen)
+{
+	if (isFullscreen)
+	{
+		const GLFWvidmode* mode{ glfwGetVideoMode(monitor) };
+		glfwSetWindowMonitor(window, monitor, 0, 0, mode->width, mode->height, mode->refreshRate);
+		Callback_FramebufferResize(mode->width, mode->height);
+	}
+	else
+		SetWindowResolution(windowExtent.width, windowExtent.height);
+}
+
+void GraphicsMain::BringWindowToFront()
+{
+	glfwRestoreWindow(window);
+}
+
+void GraphicsMain::SetCallback_DragDrop(GLFWdropfun func)
+{
+	glfwSetDropCallback(window, func);
+}
+
+void GraphicsMain::InitGLFW()
+{
+	if (!glfwInit()) {
+		throw std::runtime_error("GLFW failed to initialise");
+	}
+	glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
+	glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
+	glfwWindowHint(GLFW_ICONIFIED, GLFW_TRUE);
+	//uint32_t glfwExtCount = 0;
+	//glfwGetRequiredInstanceExtensions(&glfwExtCount);
+}
+
+void GraphicsMain::SetupGLFWSettings()
+{
+	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+	SetWindowIcon(ST<Filepaths>::Get()->graphicsWindowIcon);
+}
+
+void GraphicsMain::SetupGLFWCallbacks()
+{
+	glfwSetFramebufferSizeCallback(window, GLFW_Callback_FramebufferResize);
+	glfwSetKeyCallback(window, KeyboardMouseInput::GLFW_Callback_OnKeyboardClick);
+	glfwSetMouseButtonCallback(window, KeyboardMouseInput::GLFW_Callback_OnMouseClick);
+	glfwSetCursorPosCallback(window, KeyboardMouseInput::GLFW_Callback_OnMouseMove);
+	glfwSetScrollCallback(window, KeyboardMouseInput::GLFW_Callback_OnMouseScroll);
+	//glfwSetJoystickCallback(joystick_cb);
+	glfwSetWindowFocusCallback(window, GLFW_Callback_WindowFocusChanged);
+	glfwSetCursorEnterCallback(window, GLFW_Callback_CursorEnteredWindow);
+	glfwSetWindowIconifyCallback(window, GLFW_Callback_IconifyStateChanged);
+}
+
+#ifdef IMGUI_ENABLED
+void GraphicsMain::InitImGui(const std::string& fontfile)
+{
+	imguiContext = std::make_unique<editor::ImGuiContext>(context, *window);
+	SetImGuiStyle();
+
+	ImGuiIO& io = ImGui::GetIO();
+	io.IniFilename = "imgui.ini";
+	//io.Fonts->AddFontDefault();
+	io.Fonts->Clear(); // Clear existing fonts
+	constexpr float baseFontSize = 13.0f; // 13.0f is the size of the default font. Change to the font size you use.
+	constexpr float iconFontSize = baseFontSize * 2.5f / 3.0f; // FontAwesome fonts need to have their sizes reduced by 2.0f/3.0f in order to align correctly
+	const ImWchar icons_ranges[] = { ICON_MIN_FA, ICON_MAX_FA, 0 };
+	ImFontConfig icons_config;
+	icons_config.MergeMode = true; // Merge icon font to the previous font if you want to have both icons and text
+	icons_config.PixelSnapH = true;
+	icons_config.GlyphMinAdvanceX = iconFontSize;
+	io.Fonts->AddFontFromFileTTF(fontfile.c_str(), baseFontSize);
+	io.Fonts->AddFontFromMemoryCompressedTTF(FA_compressed_data, FA_compressed_size, iconFontSize, &icons_config, icons_ranges);
+
+	imguiContext->rebuildFontAtlas();
+	//If you want change between icons size you will need to create a new font
+	//io.Fonts->AddFontFromMemoryCompressedTTF(FA_compressed_data, FA_compressed_size, 12.0f, &icons_config, icons_ranges);
+	//io.Fonts->AddFontFromMemoryCompressedTTF(FA_compressed_data, FA_compressed_size, 20.0f, &icons_config, icons_ranges);
+}
+
+void GraphicsMain::SetImGuiStyle()
+{
+	ImGuiStyle& style = ImGui::GetStyle();
+	ImVec4* colors = ImGui::GetStyle().Colors;
+	colors[ImGuiCol_Text] = ImVec4(1.00f, 1.00f, 1.00f, 1.00f);
+	colors[ImGuiCol_TextDisabled] = ImVec4(0.50f, 0.50f, 0.50f, 1.00f);
+	colors[ImGuiCol_WindowBg] = ImVec4(0.10f, 0.10f, 0.10f, 1.00f);
+	colors[ImGuiCol_ChildBg] = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
+	colors[ImGuiCol_PopupBg] = ImVec4(0.19f, 0.19f, 0.19f, 0.92f);
+	colors[ImGuiCol_Border] = ImVec4(0.19f, 0.19f, 0.19f, 0.29f);
+	colors[ImGuiCol_BorderShadow] = ImVec4(0.00f, 0.00f, 0.00f, 0.24f);
+	colors[ImGuiCol_FrameBg] = ImVec4(0.05f, 0.05f, 0.05f, 0.54f);
+	colors[ImGuiCol_FrameBgHovered] = ImVec4(0.19f, 0.19f, 0.19f, 0.54f);
+	colors[ImGuiCol_FrameBgActive] = ImVec4(0.20f, 0.22f, 0.23f, 1.00f);
+	colors[ImGuiCol_TitleBg] = ImVec4(0.00f, 0.00f, 0.00f, 1.00f);
+	colors[ImGuiCol_TitleBgActive] = ImVec4(0.06f, 0.06f, 0.06f, 1.00f);
+	colors[ImGuiCol_TitleBgCollapsed] = ImVec4(0.00f, 0.00f, 0.00f, 1.00f);
+	colors[ImGuiCol_MenuBarBg] = ImVec4(0.14f, 0.14f, 0.14f, 1.00f);
+	colors[ImGuiCol_ScrollbarBg] = ImVec4(0.05f, 0.05f, 0.05f, 0.54f);
+	colors[ImGuiCol_ScrollbarGrab] = ImVec4(0.34f, 0.34f, 0.34f, 0.54f);
+	colors[ImGuiCol_ScrollbarGrabHovered] = ImVec4(0.40f, 0.40f, 0.40f, 0.54f);
+	colors[ImGuiCol_ScrollbarGrabActive] = ImVec4(0.56f, 0.56f, 0.56f, 0.54f);
+	colors[ImGuiCol_CheckMark] = ImVec4(0.33f, 0.67f, 0.86f, 1.00f);
+	colors[ImGuiCol_SliderGrab] = ImVec4(0.34f, 0.34f, 0.34f, 0.54f);
+	colors[ImGuiCol_SliderGrabActive] = ImVec4(0.56f, 0.56f, 0.56f, 0.54f);
+	colors[ImGuiCol_Button] = ImVec4(0.05f, 0.05f, 0.05f, 0.54f);
+	colors[ImGuiCol_ButtonHovered] = ImVec4(0.19f, 0.19f, 0.19f, 0.54f);
+	colors[ImGuiCol_ButtonActive] = ImVec4(0.20f, 0.22f, 0.23f, 1.00f);
+	colors[ImGuiCol_Header] = ImVec4(0.00f, 0.00f, 0.00f, 0.52f);
+	colors[ImGuiCol_HeaderHovered] = ImVec4(0.00f, 0.00f, 0.00f, 0.36f);
+	colors[ImGuiCol_HeaderActive] = ImVec4(0.20f, 0.22f, 0.23f, 0.33f);
+	colors[ImGuiCol_Separator] = ImVec4(0.28f, 0.28f, 0.28f, 0.29f);
+	colors[ImGuiCol_SeparatorHovered] = ImVec4(0.44f, 0.44f, 0.44f, 0.29f);
+	colors[ImGuiCol_SeparatorActive] = ImVec4(0.40f, 0.44f, 0.47f, 1.00f);
+	colors[ImGuiCol_ResizeGrip] = ImVec4(0.28f, 0.28f, 0.28f, 0.29f);
+	colors[ImGuiCol_ResizeGripHovered] = ImVec4(0.44f, 0.44f, 0.44f, 0.29f);
+	colors[ImGuiCol_ResizeGripActive] = ImVec4(0.40f, 0.44f, 0.47f, 1.00f);
+	colors[ImGuiCol_Tab] = ImVec4(0.00f, 0.00f, 0.00f, 0.52f);
+	colors[ImGuiCol_TabHovered] = ImVec4(0.14f, 0.14f, 0.14f, 1.00f);
+	colors[ImGuiCol_TabActive] = ImVec4(0.20f, 0.20f, 0.20f, 0.36f);
+	colors[ImGuiCol_TabUnfocused] = ImVec4(0.00f, 0.00f, 0.00f, 0.52f);
+	colors[ImGuiCol_TabUnfocusedActive] = ImVec4(0.14f, 0.14f, 0.14f, 1.00f);
+	colors[ImGuiCol_DockingPreview] = ImVec4(0.33f, 0.67f, 0.86f, 1.00f);
+	colors[ImGuiCol_DockingEmptyBg] = ImVec4(0.10f, 0.10f, 0.10f, 1.00f);
+	colors[ImGuiCol_PlotLines] = ImVec4(1.00f, 0.00f, 0.00f, 1.00f);
+	colors[ImGuiCol_PlotLinesHovered] = ImVec4(1.00f, 0.00f, 0.00f, 1.00f);
+	colors[ImGuiCol_PlotHistogram] = ImVec4(1.00f, 0.00f, 0.00f, 1.00f);
+	colors[ImGuiCol_PlotHistogramHovered] = ImVec4(1.00f, 0.00f, 0.00f, 1.00f);
+	colors[ImGuiCol_TableHeaderBg] = ImVec4(0.00f, 0.00f, 0.00f, 0.52f);
+	colors[ImGuiCol_TableBorderStrong] = ImVec4(0.00f, 0.00f, 0.00f, 0.52f);
+	colors[ImGuiCol_TableBorderLight] = ImVec4(0.28f, 0.28f, 0.28f, 0.29f);
+	colors[ImGuiCol_TableRowBg] = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
+	colors[ImGuiCol_TableRowBgAlt] = ImVec4(1.00f, 1.00f, 1.00f, 0.06f);
+	colors[ImGuiCol_TextSelectedBg] = ImVec4(0.20f, 0.22f, 0.23f, 1.00f);
+	colors[ImGuiCol_DragDropTarget] = ImVec4(0.33f, 0.67f, 0.86f, 1.00f);
+	colors[ImGuiCol_NavHighlight] = ImVec4(1.00f, 0.00f, 0.00f, 1.00f);
+	colors[ImGuiCol_NavWindowingHighlight] = ImVec4(1.00f, 0.00f, 0.00f, 0.70f);
+	colors[ImGuiCol_NavWindowingDimBg] = ImVec4(1.00f, 0.00f, 0.00f, 0.20f);
+	colors[ImGuiCol_ModalWindowDimBg] = ImVec4(1.00f, 0.00f, 0.00f, 0.35f);
+
+	style.Alpha = 1.0f;
+	style.DisabledAlpha = 0.300000011920929f;
+	style.WindowPadding = ImVec2(10.10000038146973f, 10.10000038146973f);
+	style.WindowRounding = 10.30000019073486f;
+	style.WindowBorderSize = 1.0f;
+	style.WindowMinSize = ImVec2(20.0f, 32.0f);
+	style.WindowTitleAlign = ImVec2(0.5f, 0.5f);
+	style.ChildRounding = 8.199999809265137f;
+	style.ChildBorderSize = 1.0f;
+	style.PopupRounding = 10.69999980926514f;
+	style.PopupBorderSize = 1.0f;
+	style.FramePadding = ImVec2(20.0f, 1.5f);
+	style.FrameRounding = 4.800000190734863f;
+	style.FrameBorderSize = 0.0f;
+	style.ItemSpacing = ImVec2(9.699999809265137f, 5.300000190734863f);
+	style.ItemInnerSpacing = ImVec2(5.400000095367432f, 9.300000190734863f);
+	style.CellPadding = ImVec2(7.900000095367432f, 2.0f);
+	style.IndentSpacing = 10.69999980926514f;
+	style.ColumnsMinSpacing = 6.0f;
+	style.ScrollbarSize = 12.10000038146973f;
+	style.ScrollbarRounding = 20.0f;
+	style.GrabMinSize = 10.0f;
+	style.GrabRounding = 4.599999904632568f;
+	style.TabRounding = 4.0f;
+	style.TabBorderSize = 0.0f;
+	style.TouchExtraPadding = ImVec2(0.00f, 0.00f);
+	style.TabCloseButtonMinWidthUnselected = 0.0f;
+	style.TabCloseButtonMinWidthSelected = 0.0f;
+	style.ColorButtonPosition = ImGuiDir_Right;
+	style.ButtonTextAlign = ImVec2(0.5f, 0.5f);
+	style.SelectableTextAlign = ImVec2(0.0f, 0.0f);
+}
+#endif
+
+void GraphicsMain::GLFW_Callback_FramebufferResize(GLFWwindow* window, int width, int height)
+{
+	ST<GraphicsMain>::Get()->Callback_FramebufferResize(width, height);
+}
+void GraphicsMain::Callback_FramebufferResize(int width, int height)
+{
+	windowExtent.width = width;
+	windowExtent.height = height;
+#ifndef IMGUI_ENABLED
+	viewportExtent = windowExtent;
+#endif
+	if (renderer)
+		renderer->onWindowResized(width, height);
+}
+
+void GraphicsMain::GLFW_Callback_WindowFocusChanged(GLFWwindow* window, int isFocused)
+{
+	Messaging::BroadcastAll("OnWindowFocus", static_cast<bool>(isFocused));
+}
+
+void GraphicsMain::GLFW_Callback_IconifyStateChanged(GLFWwindow* window, int isIconified)
+{
+	GLFW_Callback_WindowFocusChanged(window, isIconified == 0);
+}
+
+void GraphicsMain::GLFW_Callback_CursorEnteredWindow(GLFWwindow* window, int isEntered)
+{
+#ifdef IMGUI_ENABLED
+	ImGuiIO& io = ImGui::GetIO();
+	if (isEntered)
+	{
+		// Only hide cursor if ImGui isn't using it
+		if (!io.WantCaptureMouse)
+			glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
+	}
+	else 
+		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+#else
+	if (isEntered)
+		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+	else
+		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+#endif
+}
+
+VkExtent2D GraphicsMain::GetWindowExtent() const
+{
+	return windowExtent;
+}
+VkExtent2D GraphicsMain::GetViewportExtent() const
+{
+	return viewportExtent;
+}
+VkExtent2D GraphicsMain::GetWorldExtent() const
+{
+	return worldExtent;
+}
+
+editor::ImGuiContext& GraphicsMain::GetImGuiContext()
+{
+	return *imguiContext.get();
+}
+
+#include "grid_feature.h"
+#include "scene_feature.h"
+#include "scene_loader.h"
+#include "camera.h"
+
+// NOTE: These handles aren't being cleaned up because this is just temp code.
+static uint64_t gridFeature{};
+static uint64_t sceneFeatureHandle_{};
+static AssetLoading::Scene loadedScene_{};
+
+void GraphicsMain::LoadSampleScene()
+{
+	// HEY SORRY ABOUT THIS, BUT THERE IS NO ISSUE WITH THE ASSET BEING LOADED, THE CAMERA JUST SPAWNS INSIDE THE BOX SO YOU NEED TO MOVE BACK TO SEE IT
+	gridFeature = renderer->CreateFeature<GridFeature>();
+	sceneFeatureHandle_ = renderer->CreateFeature<SceneRenderFeature>();
+	const std::unique_ptr<AssetLoading::SceneLoader> sceneLoader_ = std::make_unique<AssetLoading::SceneLoader>(*assetSystem);
+	std::filesystem::path workingDir = std::filesystem::canonical(ST<Filepaths>::Get()->workingDir);
+	std::filesystem::path asset = workingDir / "Assets" / "fbxcars" / "box.fbx";
+	const std::filesystem::path testScenePath = asset.string().c_str();
+	if (exists(testScenePath))
+	{
+		auto loadResult = sceneLoader_->loadScene(testScenePath);
+		if (loadResult.success)
+		{
+			loadedScene_ = std::move(loadResult.scene);
+		}
+	}
+}
+
+void GraphicsMain::RenderSampleScene()
+{
+	//TODO PLEASE PUT A REAL CAMERA IN HERE OR ELSE!!!!!!!!!!
+	static CameraPositioner_FirstPerson positioner_ = { vec3(0.0f, 1.0f, -1.5f), vec3(0.0f, 0.5f, 0.0f), vec3(0.0f, 1.0f, 0.0f) };
+	static Camera camera = Camera(positioner_);
+	positioner_.movement_.forward_ = ST<KeyboardMouseInput>::Get()->GetIsDown(KEY::W);
+	positioner_.movement_.backward_ = ST<KeyboardMouseInput>::Get()->GetIsDown(KEY::S);
+	positioner_.movement_.left_ = ST<KeyboardMouseInput>::Get()->GetIsDown(KEY::A);
+	positioner_.movement_.right_ = ST<KeyboardMouseInput>::Get()->GetIsDown(KEY::D);
+	positioner_.movement_.up_ = ST<KeyboardMouseInput>::Get()->GetIsDown(KEY::NUM_1);
+	positioner_.movement_.down_ = ST<KeyboardMouseInput>::Get()->GetIsDown(KEY::NUM_2);
+	if (ST<KeyboardMouseInput>::Get()->GetIsDown(KEY::SPACE))
+	{
+		positioner_.lookAt(vec3(0.0f, 1.0f, -1.5f), vec3(0.0f, 0.5f, 0.0f), vec3(0.0f, 1.0f, 0.0f));
+		positioner_.setSpeed(vec3(0.0f));
+	}
+	static Vec2 lastMousePos;
+	vec2 mouse_delta = ST<KeyboardMouseInput>::Get()->GetMousePos() - lastMousePos;
+	lastMousePos = ST<KeyboardMouseInput>::Get()->GetMousePos();
+	positioner_.update(GameTime::Dt(), mouse_delta, ST<KeyboardMouseInput>::Get()->GetIsDown(KEY::M_RIGHT));
+
+	Render::FrameData currentFrameData{};
+	currentFrameData.cameraPos = camera.getPosition();
+	currentFrameData.viewMatrix = camera.getViewMatrix();
+	currentFrameData.projMatrix = perspective(45.0f, (float)windowExtent.width / (float)windowExtent.height, 0.1f, 100.0f);
+	SceneRenderFeature::UpdateScene(sceneFeatureHandle_, loadedScene_, *assetSystem, *renderer);
+	renderer->render(currentFrameData);
+}

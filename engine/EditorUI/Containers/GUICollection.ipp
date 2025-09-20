@@ -52,6 +52,12 @@ namespace gui {
 			return isOpen;
 		}
 
+		template<auto StartFunc, void(*EndFunc)(), bool AlwaysCallEnd, bool StartIsOptional>
+		bool BeginEndBound<StartFunc, EndFunc, AlwaysCallEnd, StartIsOptional>::GetIsOpen()
+		{
+			return isOpen;
+		}
+
 	}
 
 	template<typename ...Args>
@@ -205,15 +211,27 @@ namespace gui {
 	}
 
 	template<typename DataType>
-	void PayloadSource([[maybe_unused]] const char* identifier, [[maybe_unused]] const DataType& data, [[maybe_unused]] const char* dragLabel)
+	PayloadSource<DataType>::PayloadSource([[maybe_unused]] const char* identifier, [[maybe_unused]] const DataType& data, [[maybe_unused]] const char* dragLabel)
+#ifdef IMGUI_ENABLED
+		: internal::BeginEndBound_PayloadSource{ 0 } // No flags
+#endif
 	{
 #ifdef IMGUI_ENABLED
-		if (ImGui::BeginDragDropSource())
+		if (GetIsOpen())
 		{
-			ImGui::SetDragDropPayload(identifier, &data, sizeof(DataType));
-			ImGui::Text("Dragging %s", dragLabel);
-			ImGui::EndDragDropSource();
+			SetPayloadTarget(identifier, data);
+
+			if (dragLabel)
+				ImGui::Text("Dragging %s", dragLabel);
 		}
+#endif
+	}
+
+	template<typename DataType>
+	void PayloadSource<DataType>::SetPayloadTarget([[maybe_unused]] const char* identifier, [[maybe_unused]] const DataType& data)
+	{
+#ifdef IMGUI_ENABLED
+		ImGui::SetDragDropPayload(identifier, &data, sizeof(DataType));
 #endif
 	}
 
