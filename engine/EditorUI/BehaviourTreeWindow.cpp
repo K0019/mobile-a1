@@ -569,6 +569,89 @@ namespace editor {
         DrawSelectableTreeRecursive(asset.rootID, byId, selectedId);
     }
 
+    void DrawBTRenameUI(const std::string& dir,
+        std::vector<std::string>& files,
+        int& currentIndex,
+        std::string& lastErrorOut)
+    {
+        namespace fs = std::filesystem;
+
+        if (currentIndex < 0 || currentIndex >= (int)files.size()) {
+            ImGui::TextDisabled("<no file selected>");
+            return;
+        }
+
+        // Keep an editable buffer per selected item
+        static int  bufForIndex = -1;
+        static char nameBuf[256] = { 0 };
+
+        if (bufForIndex != currentIndex) {
+            std::snprintf(nameBuf, sizeof(nameBuf), "%s", files[currentIndex].c_str());
+            bufForIndex = currentIndex;
+        }
+
+        ImGui::TextDisabled("Rename:");
+        ImGui::SameLine();
+        if (ImGui::InputTextWithHint("##bt_rename", "new_name.json", nameBuf, IM_ARRAYSIZE(nameBuf))) {
+            // typing only; we don't apply here
+        }
+        ImGui::SameLine();
+        if (ImGui::Button("Apply")) {
+            std::string proposed = SanitizeFilename(std::string(nameBuf));
+
+            // default to .json if user removed extension
+            proposed = EnsureAllowedExt(proposed, std::string(".json"));
+
+            // Avoid no-op
+            if (proposed == files[currentIndex]) {
+                // nothing to do
+            }
+            else {
+                const fs::path oldPath = fs::path(dir) / files[currentIndex];
+                const fs::path newPath = fs::path(dir) / proposed;
+
+                //check for clash
+                if (fs::exists(newPath)) {
+                    lastErrorOut = "A file with that name already exists.";
+                    ImGui::OpenPopup("BT Rename Error");
+                }
+                else {
+                    //======================================== ADD IN ECS LOGIC HERE ======================
+
+                    //when file name change ADD IN THE CODE TO UPDATE ALL CURRENT COMPONENT THAT USES THIS FILE NAME
+
+                    //======================================== endADD IN ECS LOGIC HERE ======================
+
+                    std::error_code ec;
+                    fs::rename(oldPath, newPath, ec);
+                    if (ec) {
+                        lastErrorOut = ec.message();
+                        ImGui::OpenPopup("BT Rename Error");
+                    }
+                    else {
+                        // Update in-memory list and buffer
+                        files[currentIndex] = proposed;
+                        std::snprintf(nameBuf, sizeof(nameBuf), "%s", files[currentIndex].c_str());
+                        bufForIndex = currentIndex;
+                    }
+                }
+            }
+        }
+        ImGui::SameLine();
+        if (ImGui::Button("Reset")) {
+            std::snprintf(nameBuf, sizeof(nameBuf), "%s", files[currentIndex].c_str());
+            bufForIndex = currentIndex;
+        }
+
+        // Error popup (optional; remove if you show it elsewhere)
+        if (ImGui::BeginPopupModal("BT Rename Error", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
+            ImGui::TextWrapped("%s", lastErrorOut.c_str());
+            ImGui::Spacing();
+            if (ImGui::Button("OK", ImVec2(120, 0))) ImGui::CloseCurrentPopup();
+            ImGui::EndPopup();
+        }
+    }
+
     void BehaviourTreeWindow::DrawWindow()
     {
 
@@ -767,6 +850,11 @@ namespace editor {
         }
 
         ImGui::Separator();
+
+
+        //FILE RENAMING
+        DrawBTRenameUI(dir, files, currentIndex, lastLoadedPath);
+
 
         // ===== editor split: left outline, right palette/inspector =====
         ImGui::BeginChild("##bt_editor_root", ImVec2(0, 0), true);

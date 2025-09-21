@@ -48,10 +48,16 @@
 
 bool LoadBTAssetFromFile(const std::string& path, BehaviorTreeAsset& out);
 
-static int FindNodeIndexById(const BehaviorTreeAsset& a, const std::string& id);
+ int FindNodeIndexById(const BehaviorTreeAsset& a, const std::string& id);
 
-static std::unordered_set<std::string> CollectAllIds(const BehaviorTreeAsset& a);
+ std::unordered_set<std::string> CollectAllIds(const BehaviorTreeAsset& a);
 
-static std::string MakeUniqueId(const BehaviorTreeAsset& a, const std::string& base);
+ std::string MakeUniqueId(const BehaviorTreeAsset& a, const std::string& base);
 
-static bool IsCompositeType(const std::string& typeName);
+ bool IsCompositeType(const std::string& typeName);
+
+ bool HasAllowedExt(const std::string& s);
+
+ std::string EnsureAllowedExt(const std::string& s, const std::string& fallbackExt);
+// Windows filename scrub 
+ std::string SanitizeFilename(std::string s);

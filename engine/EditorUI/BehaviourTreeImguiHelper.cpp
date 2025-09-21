@@ -183,19 +183,19 @@ bool LoadBTAssetFromFile(const std::string& path, BehaviorTreeAsset& out)
     return r.Deserialize(&out);
 }
 
-static int FindNodeIndexById(const BehaviorTreeAsset& a, const std::string& id) {
+ int FindNodeIndexById(const BehaviorTreeAsset& a, const std::string& id) {
     for (int i = 0; i < (int)a.nodes.size(); ++i)
         if (a.nodes[i].nodeID == id) return i;
     return -1;
 }
 
-static std::unordered_set<std::string> CollectAllIds(const BehaviorTreeAsset& a) {
+ std::unordered_set<std::string> CollectAllIds(const BehaviorTreeAsset& a) {
     std::unordered_set<std::string> s;
     for (auto& n : a.nodes) s.insert(n.nodeID);
     return s;
 }
 
-static std::string MakeUniqueId(const BehaviorTreeAsset& a, const std::string& base) {
+ std::string MakeUniqueId(const BehaviorTreeAsset& a, const std::string& base) {
     auto used = CollectAllIds(a);
     std::string id = base;
     int i = 1;
@@ -204,11 +204,33 @@ static std::string MakeUniqueId(const BehaviorTreeAsset& a, const std::string& b
 }
 
 // ---- “is composite?” (uses your factory & IComposite) ----
-static bool IsCompositeType(const std::string& typeName) {
+ bool IsCompositeType(const std::string& typeName) {
     if (auto* n = BTFactory::Instance().Create(typeName)) {
         bool result = (dynamic_cast<IComposite*>(n) != nullptr);
         delete n;
         return result;
     }
     return false;
+}
+
+ bool HasAllowedExt(const std::string& s) {
+    auto ext = std::filesystem::path(s).extension().string();
+    return (ext == ".json" || ext == ".bht");
+}
+
+ std::string EnsureAllowedExt(const std::string& s, const std::string& fallbackExt){
+    if (HasAllowedExt(s)) return s;
+    return s + fallbackExt;
+}
+
+// Windows-safe-ish filename scrub (keeps it simple)
+ std::string SanitizeFilename(std::string s) {
+    static const char* bad = "\\/:*?\"<>|";
+    for (char& c : s) {
+        if (std::strchr(bad, c) || (unsigned char)c < 32) c = '_';
+    }
+    // trim spaces
+    while (!s.empty() && std::isspace((unsigned char)s.back())) s.pop_back();
+    while (!s.empty() && std::isspace((unsigned char)s.front())) s.erase(s.begin());
+    return s;
 }
