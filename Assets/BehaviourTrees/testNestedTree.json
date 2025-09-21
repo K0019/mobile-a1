@@ -5,13 +5,13 @@
   "nodes": [
     {
       "nodeID": "sel_main",
-      "nodeType": "Selector",
+      "nodeType": "ComSelector",
       "children": ["sel_child", "fail2"],
       "params": { "keys": [], "values": [] }
     },
     {
       "nodeID": "sel_child",
-      "nodeType": "Selector",
+      "nodeType": "ComSelector",
       "children": ["fail1", "mouse"],
       "params": { "keys": [], "values": [] }
     },

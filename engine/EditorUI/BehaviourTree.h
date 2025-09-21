@@ -11,7 +11,6 @@ Figure out how to register nodes DYNAMICALLY (thinking of making a unique filety
 
 Decide if i want fixed decorator and composite nodes so user can only create leaf nodes
 
-
 imgui:
 create interface ( roughly up but all just static and fake)
 add others for node and allow to choose which c# file to use
@@ -43,11 +42,10 @@ public:
 
     void Update(float dt);
 
-    // Hardcoded init (no file/prototype)
-    void InitHardcoded();
-
     void InitFromAsset(const struct BehaviorTreeAsset& asset); // build runtime
 
+    //FOR TESTING
+    void InitHardcoded();
     void TestInitFromAsset();
 
 private:
@@ -55,8 +53,8 @@ private:
     BehaviorNode* rootNode = nullptr;
     std::string treeName;
 
-    // simple ownership bucket (matches raw child pointers on composites)
-    //std::vector<std::unique_ptr<BehaviorNode>> owned;
+    // simple ownership of the nodes via unique pointer
+    std::vector<std::unique_ptr<BehaviorNode>> owned;
 };
 
 //For Properties storing of data =======================================
@@ -137,3 +135,4 @@ public:
 private:
     void UpdateComp(BehaviorTreeComp& comp);
 };
+//=======================================================================
