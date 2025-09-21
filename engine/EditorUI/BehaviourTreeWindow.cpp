@@ -11,165 +11,165 @@ namespace editor {
 
 	}
 
-    static BehaviourTreeEditorModel  gModel;
-    static NodesRegistered           gPalette;
-    static std::string               gDir = ST<Filepaths>::Get() ? ST<Filepaths>::Get()->behaviourTreeSave : "Assets/BehaviorTrees";
-    static std::string               gFileSelected = "";
-    static std::string               gNewFileName = "NewTree.bht";
-    static std::vector<std::string>  gFiles;
+    //static BehaviourTreeEditorModel  gModel;
+    //static NodesRegistered           gPalette;
+    //static std::string               gDir = ST<Filepaths>::Get() ? ST<Filepaths>::Get()->behaviourTreeSave : "Assets/BehaviorTrees";
+    //static std::string               gFileSelected = "";
+    //static std::string               gNewFileName = "NewTree.bht";
+    //static std::vector<std::string>  gFiles;
 
-    // helper to rebuild listing
-    static void RefreshFileList() {
-        gFiles = ScanDirForTrees(gDir);
-        std::sort(gFiles.begin(), gFiles.end());
-        if (!gFiles.empty() && gFileSelected.empty())
-            gFileSelected = gFiles.front();
-    }
+    //// helper to rebuild listing
+    //static void RefreshFileList() {
+    //    gFiles = ScanDirForTrees(gDir);
+    //    std::sort(gFiles.begin(), gFiles.end());
+    //    if (!gFiles.empty() && gFileSelected.empty())
+    //        gFileSelected = gFiles.front();
+    //}
 
 
-    void BehaviourTreeWindow::DrawWindow() {
-        // one-time refreshes
-        static bool first = true;
-        if (first) {
-            first = false;
-            gPalette.Refresh();
-            RefreshFileList();
-        }
+    //void BehaviourTreeWindow::DrawWindow() {
+    //    // one-time refreshes
+    //    static bool first = true;
+    //    if (first) {
+    //        first = false;
+    //        gPalette.Refresh();
+    //        RefreshFileList();
+    //    }
 
-        // --- FILE THINGS ---------------------------------------------------------
+    //    // --- FILE THINGS ---------------------------------------------------------
 
-        //LOADING
-        ImGui::TextDisabled("Folder: %s", gDir.c_str());
-        if (ImGui::BeginCombo("Open", gFileSelected.empty() ? "<choose file>" : gFileSelected.c_str())) {
-            for (auto& f : gFiles) {
-                bool sel = (f == gFileSelected);
-                if (ImGui::Selectable(f.c_str(), sel)) gFileSelected = f;
-                if (sel) ImGui::SetItemDefaultFocus();
-            }
-            ImGui::EndCombo();
-        }
-        ImGui::SameLine();
-        if (ImGui::Button("Reload List")) RefreshFileList();
+    //    //LOADING
+    //    ImGui::TextDisabled("Folder: %s", gDir.c_str());
+    //    if (ImGui::BeginCombo("Open", gFileSelected.empty() ? "<choose file>" : gFileSelected.c_str())) {
+    //        for (auto& f : gFiles) {
+    //            bool sel = (f == gFileSelected);
+    //            if (ImGui::Selectable(f.c_str(), sel)) gFileSelected = f;
+    //            if (sel) ImGui::SetItemDefaultFocus();
+    //        }
+    //        ImGui::EndCombo();
+    //    }
+    //    ImGui::SameLine();
+    //    if (ImGui::Button("Reload List")) RefreshFileList();
 
-        ImGui::SameLine();
-        if (ImGui::Button("Load")) {
-            if (!gFileSelected.empty()) {
-                BehaviorTreeAsset asset;
-                std::string full = gDir + "/" + gFileSelected;
-                if (LoadAssetFromFile(full, asset)) {
-                    FillEditorFromAsset(gModel, asset);
-                }
-                else {
-                    ImGui::OpenPopup("BT Load Error");
-                }
-            }
-        }
-        if (ImGui::BeginPopupModal("BT Load Error", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
-            ImGui::Text("Failed to load selected file.");
-            if (ImGui::Button("OK")) ImGui::CloseCurrentPopup();
-            ImGui::EndPopup();
-        }
+    //    ImGui::SameLine();
+    //    if (ImGui::Button("Load")) {
+    //        if (!gFileSelected.empty()) {
+    //            BehaviorTreeAsset asset;
+    //            std::string full = gDir + "/" + gFileSelected;
+    //            if (LoadAssetFromFile(full, asset)) {
+    //                FillEditorFromAsset(gModel, asset);
+    //            }
+    //            else {
+    //                ImGui::OpenPopup("BT Load Error");
+    //            }
+    //        }
+    //    }
+    //    if (ImGui::BeginPopupModal("BT Load Error", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
+    //        ImGui::Text("Failed to load selected file.");
+    //        if (ImGui::Button("OK")) ImGui::CloseCurrentPopup();
+    //        ImGui::EndPopup();
+    //    }
 
-        ImGui::Separator();
+    //    ImGui::Separator();
 
-        //SAVING AND CREATING
-        ImGui::InputText("New file name", gNewFileName.data(), gNewFileName.size() + 1);
-        ImGui::SameLine();
-        if (ImGui::Button("New/Reset")) {
-            gModel = {};
-            gModel.rootId = gModel.addNode("ComSelector", "Root");
-            gModel.selectedId = gModel.rootId;
-        }
-        ImGui::SameLine();
-        if (ImGui::Button("Save")) {
-            std::string file = gFileSelected.empty() ? gNewFileName : gFileSelected;
-            if (file.empty()) file = "Untitled.json";
-            auto asset = MakeAssetFromEditor(gModel, /*assetName*/ file);
-            std::string full = gDir + "/" + file;
-            if (SaveAssetToFile(full, asset)) {
-                gFileSelected = file;
-                RefreshFileList();
-            }
-            else {
-                ImGui::OpenPopup("BT Save Error");
-            }
-        }
-        if (ImGui::BeginPopupModal("BT Save Error", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
-            ImGui::Text("Failed to save file.");
-            if (ImGui::Button("OK")) ImGui::CloseCurrentPopup();
-            ImGui::EndPopup();
-        }
+    //    //SAVING AND CREATING
+    //    ImGui::InputText("New file name", gNewFileName.data(), gNewFileName.size() + 1);
+    //    ImGui::SameLine();
+    //    if (ImGui::Button("New/Reset")) {
+    //        gModel = {};
+    //        gModel.rootId = gModel.addNode("ComSelector", "Root");
+    //        gModel.selectedId = gModel.rootId;
+    //    }
+    //    ImGui::SameLine();
+    //    if (ImGui::Button("Save")) {
+    //        std::string file = gFileSelected.empty() ? gNewFileName : gFileSelected;
+    //        if (file.empty()) file = "Untitled.json";
+    //        auto asset = MakeAssetFromEditor(gModel, /*assetName*/ file);
+    //        std::string full = gDir + "/" + file;
+    //        if (SaveAssetToFile(full, asset)) {
+    //            gFileSelected = file;
+    //            RefreshFileList();
+    //        }
+    //        else {
+    //            ImGui::OpenPopup("BT Save Error");
+    //        }
+    //    }
+    //    if (ImGui::BeginPopupModal("BT Save Error", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
+    //        ImGui::Text("Failed to save file.");
+    //        if (ImGui::Button("OK")) ImGui::CloseCurrentPopup();
+    //        ImGui::EndPopup();
+    //    }
 
-        ImGui::SameLine();
-        if (ImGui::Button("Save As")) {
-            if (!gNewFileName.empty()) {
-                auto asset = MakeAssetFromEditor(gModel, gNewFileName);
-                std::string full = gDir + "/" + gNewFileName;
-                if (SaveAssetToFile(full, asset)) {
-                    gFileSelected = gNewFileName;
-                    RefreshFileList();
-                }
-                else {
-                    ImGui::OpenPopup("BT Save Error");
-                }
-            }
-        }
+    //    ImGui::SameLine();
+    //    if (ImGui::Button("Save As")) {
+    //        if (!gNewFileName.empty()) {
+    //            auto asset = MakeAssetFromEditor(gModel, gNewFileName);
+    //            std::string full = gDir + "/" + gNewFileName;
+    //            if (SaveAssetToFile(full, asset)) {
+    //                gFileSelected = gNewFileName;
+    //                RefreshFileList();
+    //            }
+    //            else {
+    //                ImGui::OpenPopup("BT Save Error");
+    //            }
+    //        }
+    //    }
 
-        ImGui::Separator();
-        // ---END  FILE THINGS ---------------------------------------------------------
+    //    ImGui::Separator();
+    //    // ---END  FILE THINGS ---------------------------------------------------------
 
-        // ---NODE STUFF ---------------------------------------------------------
-        ImGui::TextDisabled("Node Things");
-        ImGui::SameLine();
-        if (ImGui::SmallButton("Refresh Types")) {
-            gPalette.Refresh();
-        }
+    //    // ---NODE STUFF ---------------------------------------------------------
+    //    ImGui::TextDisabled("Node Things");
+    //    ImGui::SameLine();
+    //    if (ImGui::SmallButton("Refresh Types")) {
+    //        gPalette.Refresh();
+    //    }
 
-        static int paletteIdx = 0;
-        if (!gPalette.types.empty()) {
-            if (paletteIdx >= (int)gPalette.types.size()) paletteIdx = 0;
-            ImGui::SetNextItemWidth(250);
-            ImGui::Combo("Type", &paletteIdx, [](void* data, int idx, const char** out_text) {
-                auto* v = (std::vector<std::string>*)data;
-                *out_text = (*v)[idx].c_str(); return true;
-                }, (void*)&gPalette.types, (int)gPalette.types.size());
+    //    static int paletteIdx = 0;
+    //    if (!gPalette.types.empty()) {
+    //        if (paletteIdx >= (int)gPalette.types.size()) paletteIdx = 0;
+    //        ImGui::SetNextItemWidth(250);
+    //        ImGui::Combo("Type", &paletteIdx, [](void* data, int idx, const char** out_text) {
+    //            auto* v = (std::vector<std::string>*)data;
+    //            *out_text = (*v)[idx].c_str(); return true;
+    //            }, (void*)&gPalette.types, (int)gPalette.types.size());
 
-            ImGui::SameLine();
-            if (ImGui::Button("Add Node")) {
-                std::string type = gPalette.types[paletteIdx];
-                int id = gModel.addNode(type, type);
-                if (gModel.rootId < 0) gModel.rootId = id;
-                gModel.selectedId = id;
-            }
-        }
-        else {
-            ImGui::TextDisabled("<no registered types>");
-        }
+    //        ImGui::SameLine();
+    //        if (ImGui::Button("Add Node")) {
+    //            std::string type = gPalette.types[paletteIdx];
+    //            int id = gModel.addNode(type, type);
+    //            if (gModel.rootId < 0) gModel.rootId = id;
+    //            gModel.selectedId = id;
+    //        }
+    //    }
+    //    else {
+    //        ImGui::TextDisabled("<no registered types>");
+    //    }
 
-        ImGui::Separator();
-        // ---END NODE STUFF ---------------------------------------------------------
+    //    ImGui::Separator();
+    //    // ---END NODE STUFF ---------------------------------------------------------
 
-        // --- OUTLINE & INSPECTOR (adapt your existing UI) ---------------------
-        // Reuse your existing tree outline + inspector, swapping
-        // ids/kinds/names/childIds -> gModel.nodes[i].id/type/displayName/children
-        // On “Add Child” for a parent P: create node with palette type and push child id to P.children
-        // On reparent drag-drop: use gModel.canAdopt and then move child id between parent lists
-        // On delete: gModel.eraseSubtree(doomed)
-        // Display type as `nodes[i].type`, editable display as `nodes[i].displayName`
-        // (Omitted here to keep this message focused.)
-        // ----------------------------------------------------------------------
-        ImGui::Separator();
-        // --- BUILD & RUN PREVIEW ----------------------------------------------
-        if (ImGui::Button("Build & Push To BTSystem")) {
-            auto asset = MakeAssetFromEditor(gModel, gFileSelected.empty() ? "EditorPreview" : gFileSelected);
-            // Option A: temporary tree
-            // BehaviorTree temp; temp.InitFromAsset(asset); // tick it somewhere
+    //    // --- OUTLINE & INSPECTOR (adapt your existing UI) ---------------------
+    //    // Reuse your existing tree outline + inspector, swapping
+    //    // ids/kinds/names/childIds -> gModel.nodes[i].id/type/displayName/children
+    //    // On “Add Child” for a parent P: create node with palette type and push child id to P.children
+    //    // On reparent drag-drop: use gModel.canAdopt and then move child id between parent lists
+    //    // On delete: gModel.eraseSubtree(doomed)
+    //    // Display type as `nodes[i].type`, editable display as `nodes[i].displayName`
+    //    // (Omitted here to keep this message focused.)
+    //    // ----------------------------------------------------------------------
+    //    ImGui::Separator();
+    //    // --- BUILD & RUN PREVIEW ----------------------------------------------
+    //    if (ImGui::Button("Build & Push To BTSystem")) {
+    //        auto asset = MakeAssetFromEditor(gModel, gFileSelected.empty() ? "EditorPreview" : gFileSelected);
+    //        // Option A: temporary tree
+    //        // BehaviorTree temp; temp.InitFromAsset(asset); // tick it somewhere
 
-            // Option B: push into your system so Engine updates it:
-            ST<BehaviorTreeSystem>::Get()->CreateFromAsset(asset);
-        }
+    //        // Option B: push into your system so Engine updates it:
+    //        ST<BehaviorTreeSystem>::Get()->CreateFromAsset(asset);
+    //    }
 
-    }
+    //}
 
     //void BehaviourTreeWindow::DrawWindow() {
 
@@ -442,6 +442,436 @@ namespace editor {
     //}
 
 
+    static void drawNodeRecursive(
+        const std::string& nodeID,
+        const std::unordered_map<std::string, BTNodeDesc*>& byId)
+    {
+        auto it = byId.find(nodeID);
+        if (it == byId.end()) {
+            ImGui::BulletText("[missing] %s", nodeID.c_str());
+            return;
+        }
+
+        const BTNodeDesc* nd = it->second;
+        ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnArrow |
+            ImGuiTreeNodeFlags_SpanAvailWidth;
+        const bool leaf = nd->children.empty();
+        if (leaf) flags |= ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen;
+
+        bool open = ImGui::TreeNodeEx(
+            (void*)nd, flags, "%s  (%s)", nd->nodeID.c_str(), nd->nodeType.c_str());
+
+        if (!leaf && open) {
+            for (const auto& cid : nd->children)
+                drawNodeRecursive(cid, byId);
+            ImGui::TreePop();
+        }
+    }
+
+    void DrawBTAssetOutline(const BehaviorTreeAsset& asset)
+    {
+        // build quick index
+        std::unordered_map<std::string, BTNodeDesc*> byId;
+        byId.reserve(asset.nodes.size());
+        for (const auto& n : asset.nodes)
+            byId[n.nodeID] = const_cast<BTNodeDesc*>(&n);
+
+        ImGui::SeparatorText(asset.name.c_str());
+        if (asset.rootID.empty()) {
+            ImGui::TextDisabled("<no rootID>");
+            return;
+        }
+        drawNodeRecursive(asset.rootID, byId);
+    }
+
+    namespace fs = std::filesystem;
+    static void RefreshBTList(std::string& dir,
+        std::vector<std::string>& files,
+        int& currentIndex,
+        BehaviorTreeAsset& loadedAsset,
+        bool& hasAsset,
+        std::string& lastLoadedPath)
+    {
+        namespace fs = std::filesystem;
+        files.clear();
+
+        std::error_code ec;
+        if (dir.empty()) return;
+        if (!fs::exists(dir, ec)) return;
+
+        for (auto& e : fs::directory_iterator(dir, ec)) {
+            if (!e.is_regular_file(ec)) continue;
+            const auto ext = e.path().extension().string();
+            if (ext == ".json" || ext == ".bht")
+                files.emplace_back(e.path().filename().string());
+        }
+        std::sort(files.begin(), files.end());
+
+        // keep selection valid
+        if (currentIndex < 0 || currentIndex >= (int)files.size()) {
+            currentIndex = files.empty() ? -1 : 0;
+        }
+
+        // auto-load first if valid
+        if (currentIndex >= 0 && currentIndex < (int)files.size()) {
+            const std::string full = dir + "/" + files[currentIndex];
+            if (LoadBTAssetFromFile(full, loadedAsset)) {
+                hasAsset = true;
+                lastLoadedPath = full;
+            }
+            else {
+                hasAsset = false;
+            }
+        }
+        else {
+            hasAsset = false;
+        }
+    }
+
+    // ---- draw tree where you can select a node ----
+    static bool DrawSelectableTreeRecursive(const std::string& nodeID,
+        const std::unordered_map<std::string, BTNodeDesc*>& byId,
+        std::string& selectedId)
+    {
+        auto it = byId.find(nodeID);
+        if (it == byId.end()) {
+            ImGui::BulletText("[missing] %s", nodeID.c_str());
+            return false;
+        }
+        const BTNodeDesc* nd = it->second;
+
+        ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_SpanAvailWidth;
+        const bool leaf = nd->children.empty();
+        if (leaf) flags |= ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen;
+        if (selectedId == nd->nodeID) flags |= ImGuiTreeNodeFlags_Selected;
+
+        bool opened = ImGui::TreeNodeEx((void*)nd, flags, "%s  (%s)", nd->nodeID.c_str(), nd->nodeType.c_str());
+        if (ImGui::IsItemClicked()) selectedId = nd->nodeID;
+
+        if (!leaf && opened) {
+            for (const auto& cid : nd->children)
+                DrawSelectableTreeRecursive(cid, byId, selectedId);
+            ImGui::TreePop();
+        }
+        return opened;
+    }
+
+    // ---- outline wrapper that supports selection ----
+    static void DrawBTAssetOutlineSelectable(const BehaviorTreeAsset& asset, std::string& selectedId)
+    {
+        std::unordered_map<std::string, BTNodeDesc*> byId;
+        byId.reserve(asset.nodes.size());
+        for (const auto& n : asset.nodes) byId[n.nodeID] = const_cast<BTNodeDesc*>(&n);
+
+        ImGui::SeparatorText(asset.name.c_str());
+        if (asset.rootID.empty()) { ImGui::TextDisabled("<no rootID>"); return; }
+
+        DrawSelectableTreeRecursive(asset.rootID, byId, selectedId);
+    }
+
+    void BehaviourTreeWindow::DrawWindow()
+    {
+
+        // ===== persistent UI state =====
+        static std::string dir;                        // BT folder
+        static std::vector<std::string> files;              // file names (no path)
+        static int currentIndex = -1;             // index into files
+        static BehaviorTreeAsset loadedAsset;     // currently loaded asset
+        static bool hasAsset = false;
+        static std::string lastLoadedPath;             // for error popup
+        static std::string selectedNodeId;             // selection inside loadedAsset
+        static int nodeTypeComboIdx = 0;          // "Add Child" combo index
+
+        // ===== small helpers kept local to this function =====
+        auto loadAssetFromSelected = [&]() -> bool {
+            if (currentIndex < 0 || currentIndex >= (int)files.size()) return false;
+            const std::string full = dir + "/" + files[currentIndex];
+            if (LoadBTAssetFromFile(full, loadedAsset)) {
+                hasAsset = true;
+                lastLoadedPath = full;
+                // keep selection reasonable
+                selectedNodeId = loadedAsset.rootID;
+                return true;
+            }
+            hasAsset = false;
+            lastLoadedPath = full;
+            return false;
+            };
+
+        auto refreshList = [&]() {
+            files.clear();
+            std::error_code ec;
+            if (dir.empty()) return;
+            if (!std::filesystem::exists(dir, ec)) return;
+            for (auto& e : std::filesystem::directory_iterator(dir, ec)) {
+                if (!e.is_regular_file(ec)) continue;
+                const auto ext = e.path().extension().string();
+                if (ext == ".json" || ext == ".bht")
+                    files.emplace_back(e.path().filename().string());
+            }
+            std::sort(files.begin(), files.end());
+            // fix selection
+            if (currentIndex < 0 || currentIndex >= (int)files.size())
+                currentIndex = files.empty() ? -1 : 0;
+            };
+
+        auto findNodeIndexById = [&](const std::string& id) -> int {
+            for (int i = 0; i < (int)loadedAsset.nodes.size(); ++i)
+                if (loadedAsset.nodes[i].nodeID == id) return i;
+            return -1;
+            };
+
+        auto makeUniqueId = [&](const std::string& base) -> std::string {
+            std::unordered_set<std::string> used;
+            for (auto& n : loadedAsset.nodes) used.insert(n.nodeID);
+            std::string id = base;
+            int i = 1;
+            while (used.count(id)) id = base + "_" + std::to_string(i++);
+            return id;
+            };
+
+        auto isCompositeType = [&](const std::string& typeName) -> bool {
+            if (BehaviorNode* n = BTFactory::Instance().Create(typeName)) {
+                bool comp = (dynamic_cast<IComposite*>(n) != nullptr);
+                delete n;
+                return comp;
+            }
+            return false;
+            };
+
+        // selectable tree outline (left)
+        std::function<void(const std::string&)> drawTreeRecursive =
+            [&](const std::string& nodeID)
+            {
+                // build quick index map once for speed
+                static std::unordered_map<std::string, BTNodeDesc*> byId;
+                byId.clear();
+                byId.reserve(loadedAsset.nodes.size());
+                for (auto& n : loadedAsset.nodes)
+                    byId[n.nodeID] = &n;
+
+                auto it = byId.find(nodeID);
+                if (it == byId.end()) { ImGui::BulletText("[missing] %s", nodeID.c_str()); return; }
+                BTNodeDesc* nd = it->second;
+
+                ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_SpanAvailWidth;
+                const bool leaf = nd->children.empty();
+                if (leaf) flags |= ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen;
+                if (selectedNodeId == nd->nodeID) flags |= ImGuiTreeNodeFlags_Selected;
+
+                bool open = ImGui::TreeNodeEx((void*)nd, flags, "%s  (%s)",
+                    nd->nodeID.c_str(), nd->nodeType.c_str());
+                if (ImGui::IsItemClicked()) selectedNodeId = nd->nodeID;
+
+                if (!leaf && open) {
+                    // draw children
+                    for (const auto& cid : nd->children) {
+                        // recurse via direct call to preserve byId scope
+                        auto itC = byId.find(cid);
+                        if (itC == byId.end()) { ImGui::BulletText("[missing] %s", cid.c_str()); continue; }
+                        BTNodeDesc* child = itC->second;
+
+                        ImGuiTreeNodeFlags cflags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_SpanAvailWidth;
+                        const bool cleaf = child->children.empty();
+                        if (cleaf) cflags |= ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen;
+                        if (selectedNodeId == child->nodeID) cflags |= ImGuiTreeNodeFlags_Selected;
+
+                        bool copen = ImGui::TreeNodeEx((void*)child, cflags, "%s  (%s)",
+                            child->nodeID.c_str(), child->nodeType.c_str());
+                        if (ImGui::IsItemClicked()) selectedNodeId = child->nodeID;
+
+                        if (!cleaf && copen) {
+                            // second level recursion
+                            for (const auto& gcid : child->children) {
+                                auto itG = byId.find(gcid);
+                                if (itG == byId.end()) { ImGui::BulletText("[missing] %s", gcid.c_str()); continue; }
+                                BTNodeDesc* g = itG->second;
+
+                                ImGuiTreeNodeFlags gflags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_SpanAvailWidth;
+                                const bool gleaf = g->children.empty();
+                                if (gleaf) gflags |= ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen;
+                                if (selectedNodeId == g->nodeID) gflags |= ImGuiTreeNodeFlags_Selected;
+
+                                bool gopen = ImGui::TreeNodeEx((void*)g, gflags, "%s  (%s)",
+                                    g->nodeID.c_str(), g->nodeType.c_str());
+                                if (ImGui::IsItemClicked()) selectedNodeId = g->nodeID;
+                                if (gopen && !gleaf) {
+                                    for (const auto& hc : g->children) {
+                                        auto itH = byId.find(hc);
+                                        if (itH == byId.end()) { ImGui::BulletText("[missing] %s", hc.c_str()); continue; }
+                                        BTNodeDesc* h = itH->second;
+
+                                        ImGuiTreeNodeFlags hflags = ImGuiTreeNodeFlags_Leaf |
+                                            ImGuiTreeNodeFlags_NoTreePushOnOpen |
+                                            ImGuiTreeNodeFlags_SpanAvailWidth;
+                                        if (selectedNodeId == h->nodeID) hflags |= ImGuiTreeNodeFlags_Selected;
+                                        ImGui::TreeNodeEx((void*)h, hflags, "%s  (%s)",
+                                            h->nodeID.c_str(), h->nodeType.c_str());
+                                        if (ImGui::IsItemClicked()) selectedNodeId = h->nodeID;
+                                        // leaf: no push/pop
+                                    }
+                                    ImGui::TreePop();
+                                }
+                            }
+                            ImGui::TreePop();
+                        }
+                    }
+                    ImGui::TreePop();
+                }
+            };
+
+        // ===== initialize dir once =====
+        if (dir.empty()) {
+            if (auto* fp = ST<Filepaths>::Get()) dir = fp->behaviourTreeSave;
+            else                                 dir = "Assets/BehaviourTrees";
+            refreshList();
+            (void)loadAssetFromSelected(); // auto-load first if any
+        }
+
+        // ===== top bar =====
+        ImGui::Text("Folder: %s", dir.c_str());
+        ImGui::SameLine();
+        if (ImGui::Button("Reload List")) {
+            refreshList();
+            if (!loadAssetFromSelected()) ImGui::OpenPopup("BT Load Error");
+        }
+
+        // file combo (auto-load on change)
+        ImGui::SameLine();
+        ImGui::TextDisabled("  File:");
+        ImGui::SameLine();
+        if (files.empty()) {
+            ImGui::TextDisabled("<no .json/.bht files>");
+        }
+        else {
+            const char* preview = files[currentIndex].c_str();
+            if (ImGui::BeginCombo("##bt_file_combo", preview, ImGuiComboFlags_WidthFitPreview)) {
+                for (int i = 0; i < (int)files.size(); ++i) {
+                    bool sel = (i == currentIndex);
+                    if (ImGui::Selectable(files[i].c_str(), sel)) {
+                        currentIndex = i;
+                        if (!loadAssetFromSelected()) ImGui::OpenPopup("BT Load Error");
+                    }
+                    if (sel) ImGui::SetItemDefaultFocus();
+                }
+                ImGui::EndCombo();
+            }
+        }
+
+        // error popup
+        if (ImGui::BeginPopupModal("BT Load Error", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
+            ImGui::Text("Failed to load:\n%s", lastLoadedPath.c_str());
+            ImGui::Spacing();
+            if (ImGui::Button("OK", ImVec2(120, 0))) ImGui::CloseCurrentPopup();
+            ImGui::EndPopup();
+        }
+
+        ImGui::Separator();
+
+        // ===== editor split: left outline, right palette/inspector =====
+        ImGui::BeginChild("##bt_editor_root", ImVec2(0, 0), true);
+        ImGui::Columns(2, nullptr, true);
+
+        // LEFT: hierarchy
+        ImGui::TextDisabled("Hierarchy");
+        ImGui::BeginChild("##bt_hierarchy", ImVec2(0, 0), true);
+        if (!hasAsset || loadedAsset.rootID.empty()) {
+            ImGui::TextDisabled("<nothing loaded>");
+        }
+        else {
+            drawTreeRecursive(loadedAsset.rootID);
+        }
+        ImGui::EndChild();
+
+        ImGui::NextColumn();
+
+        // RIGHT: node palette + inspector
+        ImGui::TextDisabled("Nodes Palette");
+        ImGui::BeginChild("##bt_palette", ImVec2(0, 160), true);
+        auto regTypes = BTFactory::Instance().RegisteredTypes();
+        std::sort(regTypes.begin(), regTypes.end());
+        if (regTypes.empty()) {
+            ImGui::TextDisabled("<no registered node types>");
+        }
+        else {
+            for (const auto& t : regTypes) {
+                bool comp = isCompositeType(t);
+                ImGui::BulletText("%s %s", t.c_str(), comp ? "(Composite)" : "(Leaf)");
+            }
+        }
+        ImGui::EndChild();
+
+        ImGui::Separator();
+        ImGui::TextDisabled("Inspector");
+
+        if (!hasAsset || selectedNodeId.empty()) {
+            ImGui::TextDisabled("<select a node>");
+        }
+        else {
+            const int pi = findNodeIndexById(selectedNodeId);
+            if (pi < 0) {
+                ImGui::TextDisabled("<dangling selection>");
+            }
+            else {
+                BTNodeDesc& parent = loadedAsset.nodes[pi];
+                const bool parentIsComposite = isCompositeType(parent.nodeType);
+
+                ImGui::Text("ID: %s", parent.nodeID.c_str());
+                ImGui::Text("Type: %s %s", parent.nodeType.c_str(), parentIsComposite ? "(Composite)" : "");
+
+                ImGui::SeparatorText("Children");
+                if (parent.children.empty()) {
+                    ImGui::TextDisabled("<no children>");
+                }
+                else {
+                    for (int i = 0; i < (int)parent.children.size(); ++i) {
+                        const std::string& cid = parent.children[i];
+                        const int ci = findNodeIndexById(cid);
+                        const char* ctype = (ci >= 0) ? loadedAsset.nodes[ci].nodeType.c_str() : "<missing>";
+                        ImGui::BulletText("%d. %s (%s)", i + 1, cid.c_str(), ctype);
+                        ImGui::SameLine();
+                        ImGui::PushID(i);
+                        if (ImGui::SmallButton("Up") && i > 0) std::swap(parent.children[i - 1], parent.children[i]);
+                        ImGui::SameLine();
+                        if (ImGui::SmallButton("Down") && i + 1 < (int)parent.children.size()) std::swap(parent.children[i], parent.children[i + 1]);
+                        ImGui::SameLine();
+                        if (ImGui::SmallButton("Detach")) { parent.children.erase(parent.children.begin() + i); ImGui::PopID(); break; }
+                        ImGui::PopID();
+                    }
+                }
+
+                ImGui::SeparatorText("Add Child");
+                if (regTypes.empty()) {
+                    ImGui::TextDisabled("<no types>");
+                }
+                else {
+                    if (nodeTypeComboIdx >= (int)regTypes.size()) nodeTypeComboIdx = 0;
+                    if (ImGui::BeginCombo("Type", regTypes[nodeTypeComboIdx].c_str())) {
+                        for (int i = 0; i < (int)regTypes.size(); ++i) {
+                            bool sel = (i == nodeTypeComboIdx);
+                            if (ImGui::Selectable(regTypes[i].c_str(), sel)) nodeTypeComboIdx = i;
+                            if (sel) ImGui::SetItemDefaultFocus();
+                        }
+                        ImGui::EndCombo();
+                    }
+
+                    const bool canAdd = parentIsComposite;
+                    if (!canAdd) ImGui::BeginDisabled();
+                    if (ImGui::Button("Add Child")) {
+                        BTNodeDesc newNd;
+                        newNd.nodeType = regTypes[nodeTypeComboIdx];
+                        newNd.nodeID = makeUniqueId(newNd.nodeType);
+                        loadedAsset.nodes.push_back(newNd);
+                        parent.children.push_back(newNd.nodeID);
+                    }
+                    if (!canAdd) ImGui::EndDisabled();
+                }
+            }
+        }
+
+        ImGui::Columns(1);
+        ImGui::EndChild();
+    }
 
 
 }
