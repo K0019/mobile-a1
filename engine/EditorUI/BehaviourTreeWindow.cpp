@@ -813,38 +813,48 @@ namespace editor {
                 ImGui::TextDisabled("<dangling selection>");
             }
             else {
-                BTNodeDesc& parent = loadedAsset.nodes[pi];
-                const bool parentIsComposite = isCompositeType(parent.nodeType);
+                const std::string parentId = loadedAsset.nodes[pi].nodeID;   // stable key
 
-                ImGui::Text("ID: %s", parent.nodeID.c_str());
-                ImGui::Text("Type: %s %s", parent.nodeType.c_str(), parentIsComposite ? "(Composite)" : "");
+                bool parentIsComposite = isCompositeType(loadedAsset.nodes[pi].nodeType);
 
+                ImGui::Text("ID: %s", parentId.c_str());
+                ImGui::Text("Type: %s %s",
+                    loadedAsset.nodes[pi].nodeType.c_str(),
+                    parentIsComposite ? "(Composite)" : "");
+
+                // --- children UI uses index each time (no long-lived ref) ---
                 ImGui::SeparatorText("Children");
-                if (parent.children.empty()) {
-                    ImGui::TextDisabled("<no children>");
-                }
-                else {
-                    for (int i = 0; i < (int)parent.children.size(); ++i) {
-                        const std::string& cid = parent.children[i];
-                        const int ci = findNodeIndexById(cid);
-                        const char* ctype = (ci >= 0) ? loadedAsset.nodes[ci].nodeType.c_str() : "<missing>";
-                        ImGui::BulletText("%d. %s (%s)", i + 1, cid.c_str(), ctype);
-                        ImGui::SameLine();
-                        ImGui::PushID(i);
-                        if (ImGui::SmallButton("Up") && i > 0) std::swap(parent.children[i - 1], parent.children[i]);
-                        ImGui::SameLine();
-                        if (ImGui::SmallButton("Down") && i + 1 < (int)parent.children.size()) std::swap(parent.children[i], parent.children[i + 1]);
-                        ImGui::SameLine();
-                        if (ImGui::SmallButton("Detach")) { parent.children.erase(parent.children.begin() + i); ImGui::PopID(); break; }
-                        ImGui::PopID();
+                {
+                    int pidx = findNodeIndexById(parentId);
+                    if (pidx >= 0) {
+                        auto& children = loadedAsset.nodes[pidx].children;
+
+                        if (children.empty()) {
+                            ImGui::TextDisabled("<no children>");
+                        }
+                        else {
+                            for (int i = 0; i < (int)children.size(); ++i) {
+                                const std::string& cid = children[i];
+                                int ci = findNodeIndexById(cid);
+                                const char* ctype = (ci >= 0) ? loadedAsset.nodes[ci].nodeType.c_str() : "<missing>";
+
+                                ImGui::BulletText("%d. %s (%s)", i + 1, cid.c_str(), ctype);
+                                ImGui::SameLine();
+                                ImGui::PushID(i);
+                                if (ImGui::SmallButton("Up") && i > 0)                        std::swap(children[i - 1], children[i]);
+                                ImGui::SameLine();
+                                if (ImGui::SmallButton("Down") && i + 1 < (int)children.size()) std::swap(children[i], children[i + 1]);
+                                ImGui::SameLine();
+                                if (ImGui::SmallButton("Detach")) { children.erase(children.begin() + i); ImGui::PopID(); break; }
+                                ImGui::PopID();
+                            }
+                        }
                     }
                 }
 
+                // --- Add Child (reacquire parent index after push_back) ---
                 ImGui::SeparatorText("Add Child");
-                if (regTypes.empty()) {
-                    ImGui::TextDisabled("<no types>");
-                }
-                else {
+                if (!regTypes.empty()) {
                     if (nodeTypeComboIdx >= (int)regTypes.size()) nodeTypeComboIdx = 0;
                     if (ImGui::BeginCombo("Type", regTypes[nodeTypeComboIdx].c_str())) {
                         for (int i = 0; i < (int)regTypes.size(); ++i) {
@@ -855,17 +865,22 @@ namespace editor {
                         ImGui::EndCombo();
                     }
 
-                    const bool canAdd = parentIsComposite;
-                    if (!canAdd) ImGui::BeginDisabled();
+                    if (!parentIsComposite) ImGui::BeginDisabled();
                     if (ImGui::Button("Add Child")) {
+                        const std::string type = regTypes[nodeTypeComboIdx];
                         BTNodeDesc newNd;
-                        newNd.nodeType = regTypes[nodeTypeComboIdx];
-                        newNd.nodeID = makeUniqueId(newNd.nodeType);
-                        loadedAsset.nodes.push_back(newNd);
-                        parent.children.push_back(newNd.nodeID);
+                        newNd.nodeType = type;
+                        newNd.nodeID = makeUniqueId(type);
+
+                        loadedAsset.nodes.push_back(newNd);    // vector may reallocate here
+
+                        // Reacquire parent safely and then push child id
+                        int pidx = findNodeIndexById(parentId);
+                        if (pidx >= 0) loadedAsset.nodes[pidx].children.push_back(newNd.nodeID);
                     }
-                    if (!canAdd) ImGui::EndDisabled();
+                    if (!parentIsComposite) ImGui::EndDisabled();
                 }
+
             }
         }
 
