@@ -234,3 +234,29 @@ bool LoadBTAssetFromFile(const std::string& path, BehaviorTreeAsset& out)
     while (!s.empty() && std::isspace((unsigned char)s.front())) s.erase(s.begin());
     return s;
 }
+
+
+ // ---- SAVE ----
+ bool SaveBTAssetToFile(const std::string& fullPath, const BehaviorTreeAsset& asset)
+ {
+     try {
+         Serializer writer(fullPath.c_str());
+         if (!writer.IsOpen()) {
+             CONSOLE_LOG(LEVEL_ERROR) << "[BT Save] cannot open: " << fullPath;
+             return false;
+         }
+
+         // Let the property system write everything (including arrays) correctly
+         asset.Serialize(writer);
+
+         if (!writer.SaveAndClose()) {
+             CONSOLE_LOG(LEVEL_ERROR) << "[BT Save] SaveAndClose failed: " << fullPath;
+             return false;
+         }
+         return true;
+     }
+     catch (const std::exception& e) {
+         CONSOLE_LOG(LEVEL_ERROR) << "[BT Save] exception: " << e.what();
+         return false;
+     }
+ }

@@ -12,6 +12,7 @@ public:
    void UpdateAll(float dt);
    
    bool LoadAll(const std::string& dir);
+   bool ReloadAll();
 //   bool SaveAll(const std::string& dir);
 
    BehaviorTree* Get(const std::string& name) const; // get the tree itself NOT IN USE 

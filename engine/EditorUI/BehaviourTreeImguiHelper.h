@@ -61,3 +61,5 @@ bool LoadBTAssetFromFile(const std::string& path, BehaviorTreeAsset& out);
  std::string EnsureAllowedExt(const std::string& s, const std::string& fallbackExt);
 // Windows filename scrub 
  std::string SanitizeFilename(std::string s);
+
+ bool SaveBTAssetToFile(const std::string& path, const BehaviorTreeAsset& asset);

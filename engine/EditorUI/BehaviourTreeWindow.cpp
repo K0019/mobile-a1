@@ -652,6 +652,76 @@ namespace editor {
         }
     }
 
+    void DrawBTSaveUI(const std::string& dir,
+        const std::vector<std::string>& files,
+        int currentIndex,
+        BehaviorTreeAsset& loadedAsset,
+        std::string& lastLoadedPath,
+        bool& hasAsset)
+    {
+        if (!hasAsset) return;
+
+        // Disable button when selection is invalid
+        const bool badSel = (currentIndex < 0 || currentIndex >= (int)files.size());
+        if (badSel) ImGui::BeginDisabled();
+
+        if (ImGui::Button("Save")) {
+            try {
+                const std::string filename = files.at(currentIndex);     // throws if badSel
+                if (filename.empty()) {
+                    ImGui::OpenPopup("BT Save Error");
+                }
+                else {
+                    const std::filesystem::path p = std::filesystem::path(dir) / filename;
+                    lastLoadedPath = p.string();
+
+                    // Keep asset.name == filename (stem), as requested
+                    loadedAsset.name = p.stem().string();
+
+                    // Minimal validation: must have rootID and that root must exist
+                    auto findNodeIndexById = [](const BehaviorTreeAsset& a, const std::string& id) -> int {
+                        for (int i = 0; i < (int)a.nodes.size(); ++i)
+                            if (a.nodes[i].nodeID == id) return i;
+                        return -1;
+                        };
+
+                    if (loadedAsset.rootID.empty() || findNodeIndexById(loadedAsset, loadedAsset.rootID) < 0) {
+                        ImGui::OpenPopup("BT Save Error");
+                    }
+                    else {
+                        CONSOLE_LOG(LEVEL_INFO) << "Everything till here is ok";
+                        if (SaveBTAssetToFile(lastLoadedPath, loadedAsset)) {
+                            ImGui::OpenPopup("BT Save Success");
+                        }
+                        else {
+                            ImGui::OpenPopup("BT Save Error");
+                        }
+                    }
+                }
+            }
+            catch (const std::exception&) {
+                ImGui::OpenPopup("BT Save Error");
+            }
+        }
+
+        if (badSel) ImGui::EndDisabled();
+
+        // Success popup
+        if (ImGui::BeginPopupModal("BT Save Success", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
+            ImGui::Text("Saved:\n%s", lastLoadedPath.c_str());
+            if (ImGui::Button("OK", ImVec2(120, 0)))
+                ImGui::CloseCurrentPopup();
+            ImGui::EndPopup();
+        }
+        // Error popup
+        if (ImGui::BeginPopupModal("BT Save Error", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
+            ImGui::Text("Failed to save:\n%s", lastLoadedPath.c_str());
+            if (ImGui::Button("OK", ImVec2(120, 0)))
+                ImGui::CloseCurrentPopup();
+            ImGui::EndPopup();
+        }
+    }
+
     void BehaviourTreeWindow::DrawWindow()
     {
 
@@ -855,7 +925,10 @@ namespace editor {
         //FILE RENAMING
         DrawBTRenameUI(dir, files, currentIndex, lastLoadedPath);
 
+        //SAVE BUTTON
+        DrawBTSaveUI(dir, files, currentIndex, loadedAsset, lastLoadedPath, hasAsset);
 
+        
         // ===== editor split: left outline, right palette/inspector =====
         ImGui::BeginChild("##bt_editor_root", ImVec2(0, 0), true);
         ImGui::Columns(2, nullptr, true);
