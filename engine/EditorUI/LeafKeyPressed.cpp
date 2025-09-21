@@ -10,7 +10,7 @@ void L_CheckMouseClick::OnUpdate(float dt)
     if (true)
     {
 
-       CONSOLE_LOG(LEVEL_INFO) << "Running leaf node for key press sorta";
+     //  CONSOLE_LOG(LEVEL_INFO) << "Running leaf node for key press sorta";
 
         OnSuccess();
     }
