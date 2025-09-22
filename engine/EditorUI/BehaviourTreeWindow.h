@@ -1,7 +1,9 @@
 #pragma once
+#include "pch.h"
 #include "GUIAsECS.h"   // <-- Required so WindowBase is known
-#include <unordered_map>
-
+#include "BehaviourTree.h"
+#include "BehaviourTreeImguiHelper.h"
+#include "BehaviourTreeSystem.h"
 namespace editor {
 
 	/*****************************************************************//*!
@@ -25,6 +27,10 @@ namespace editor {
 		*//******************************************************************/
 		void DrawWindow() override;
 		bool modificationsMade;
+
+
+
+
 	};
 
 }
