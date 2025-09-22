@@ -1,8 +1,9 @@
 #pragma once
 #include "BehaviourNode.h"
 
-class LeafFailTest : public BaseNode<LeafFailTest>
+class LeafFailTest 
+    : public BehaviorNode
 {
 protected:
-    virtual void OnUpdate(float dt);
+    NODE_STATUS OnUpdate() override;
 };

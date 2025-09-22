@@ -28,6 +28,7 @@ Check if tree is valid (least priority)
 #include <unordered_map>
 #include <variant>
 #include <iostream>
+#include "ECS.h"
 #include "BehaviourNode.h"
 
 #include "LeafFailTest.h"
@@ -40,56 +41,48 @@ public:
     BehaviorTree();
     ~BehaviorTree();
 
-    void Update(float dt);
+    void Update();
+    void SetEntity(ecs::EntityHandle handle);
+    ecs::EntityHandle GetEntity();
 
-    void InitFromAsset(const struct BehaviorTreeAsset& asset); // build runtime
+    //void InitFromAsset(const struct BehaviorTreeAsset& asset); // build runtime
 
     //FOR TESTING
     void InitHardcoded();
     void TestInitFromAsset();
 
 private:
-
-    BehaviorNode* rootNode = nullptr;
-    std::string treeName;
+    ecs::EntityHandle entity;
+    BehaviorNode* rootNode;
 
     // simple ownership of the nodes via unique pointer
-    std::vector<std::unique_ptr<BehaviorNode>> owned;
+    //std::vector<std::unique_ptr<BehaviorNode>> owned;
 };
 
 //For Properties storing of data =======================================
 struct BTNodeDesc : public ISerializeable {
-    std::string nodeID;
     std::string nodeType;
-    std::vector<std::string> children; // references to children IDs
-    std::vector<std::string> keys;
-    std::vector<std::string> values;
+    unsigned int nodeLevel;
 
     property_vtable()
 };
 
 property_begin(BTNodeDesc)
 {
-    property_var(nodeID),
     property_var(nodeType),
-    property_var(children),
-    property_var(keys),
-    property_var(values),
-
+    property_var(nodeLevel),
 }
 property_vend_h(BTNodeDesc)
 
 struct BehaviorTreeAsset : public ISerializeable {
     std::string name;
-    std::string rootID;
     std::vector<BTNodeDesc> nodes;
     property_vtable()
 };
 property_begin(BehaviorTreeAsset)
 {
-        property_var(name),
-        property_var(rootID),
-        property_var(nodes)
+    property_var(name),
+    property_var(nodes)
 }
 property_vend_h(BehaviorTreeAsset)
 //=======================================================================

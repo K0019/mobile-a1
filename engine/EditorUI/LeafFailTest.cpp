@@ -3,14 +3,8 @@
 
 BT_REGISTER_NODE(LeafFailTest, "LeafFailTest")
 
-void LeafFailTest::OnUpdate(float dt)
+NODE_STATUS LeafFailTest::OnUpdate()
 {
-
-    //std::this_thread::sleep_for(std::chrono::seconds(1));
-
-   // CONSOLE_LOG(LEVEL_INFO) << "Running leaf node for failure";
-
-    OnFailure();
-    
-
+	CONSOLE_LOG(LEVEL_INFO) << "Running leaf node for failure";
+	return NODE_STATUS::SUCCESS;
 }

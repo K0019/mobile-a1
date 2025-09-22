@@ -176,7 +176,6 @@ void Engine::init()
 	//Testing for BehaviorTree
 	//bt.InitHardcoded();
 	//bt.TestInitFromAsset();
-	ST<BehaviorTreeSystem>::Get()->Initialize();
 
 	auto windowCreate = std::chrono::high_resolution_clock::now();
 
@@ -296,7 +295,7 @@ void Engine::run()
 		ecs::FlushChanges(); // For if any of the editor windows deleted an entity.
 
 		//bt.Update(static_cast<float>(GameTime::Dt()));
-		ST<BehaviorTreeSystem>::Get()->UpdateAll(static_cast<float>(GameTime::Dt()));
+		//ST<BehaviorTreeSystem>::Get()->UpdateAll(static_cast<float>(GameTime::Dt()));
 
 		if(ImGui::BeginMainMenuBar())
 		{
@@ -446,8 +445,8 @@ void Engine::shutdown() {
 	ST<PerformanceProfiler>::Destroy();
 	ST<AssetBrowser>::Destroy();
 
-	ST<BehaviorTreeSystem>::Get()->Shutdown();
-	BTFactory::Instance().Clear();
+	//ST<BehaviorTreeSystem>::Get()->Shutdown();
+	ST<BTFactory>::Destroy();
 
 #ifdef IMGUI_ENABLED
 	ST<Inspector>::Destroy();

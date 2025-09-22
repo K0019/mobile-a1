@@ -1,19 +1,16 @@
 #include "BehaviourTree.h"
+#include "BehaviourTreeFactory.h"
 
 
 BehaviorTree::BehaviorTree()
     : rootNode{}
-    , treeName{ "Unnamed" }
+    , entity{nullptr}
 {
 }
 
 BehaviorTree::~BehaviorTree()
 {
-    //delete rootNode;
-    //rootNode = nullptr;
     rootNode = nullptr;
-    owned.clear();  // destroys all nodes safely
-
 }
 
 
@@ -46,72 +43,68 @@ void BehaviorTree::InitHardcoded()
 }
 
 
-void BehaviorTree::Update(float dt)
+void BehaviorTree::Update()
 {
     if (!rootNode)
         return;
     
-    rootNode->Tick(dt); // the nodes will handle the logic within
-
-    if (rootNode->IsRunning() == false) {
-        rootNode->SetStatus(NODE_STATUS::READY);
-    }
+    rootNode->Tick(); // the nodes will handle the logic within
 }
 
-void BehaviorTree::InitFromAsset(const BehaviorTreeAsset& asset)
-{
-    //Reset data
-    owned.clear();
-    rootNode = nullptr;
-    treeName = asset.name;
-
-    // Temp table to wire nodes by ID
-    std::unordered_map<std::string, BehaviorNode*> created;
-    created.reserve(asset.nodes.size());
-
-    // 1) create and take ownership
-    for (const auto& nd : asset.nodes) {
-        if (BehaviorNode* n = BTFactory::Instance().Create(nd.nodeType)) {
-            owned.emplace_back(n);         // takes ownership
-            created.emplace(nd.nodeID, n); // map ID to raw pointer for wiring
-        }
-        else {
-            CONSOLE_LOG(LEVEL_ERROR) << "[BT] Unknown nodeType: " << nd.nodeType << "\n";
-        }
-    }
-
-    // Wire Children ( only for composite nodes)
-    for (const auto& nd : asset.nodes) {
-        auto itP = created.find(nd.nodeID);
-        if (itP == created.end()) {
-            continue;
-        }
-        BehaviorNode* parent = itP->second;
-
-        //ensure is a composite node
-        if (auto* comp = dynamic_cast<IComposite*>(parent)) {
-            for (const auto& cid : nd.children) {
-                //connect each child to the parent
-                auto itC = created.find(cid);
-                if (itC != created.end()) comp->AddChild(itC->second);
-                else CONSOLE_LOG(LEVEL_ERROR) << "[BT] Missing child '" << cid
-                    << "' for parent '" << nd.nodeID << "'\n";
-            }
-        }
-        else if (!nd.children.empty()) {
-            // Leaf nand Decorator should not declare children
-            CONSOLE_LOG(LEVEL_ERROR) << "[BT] Node '" << nd.nodeID << "' (" << nd.nodeType << ") cannot have children\n";
-        }
-    }
-
-    // Pick the root node for entry
-    if (auto itR = created.find(asset.rootID); itR != created.end()) {
-        rootNode = itR->second;
-    }
-    else {
-        std::cerr << "[BT] rootID not found: " << asset.rootID << "\n";
-    }
-}
+//void BehaviorTree::InitFromAsset(const BehaviorTreeAsset& asset)
+//{
+//    //Reset data
+//    owned.clear();
+//    rootNode = nullptr;
+//    treeName = asset.name;
+//
+//    // Temp table to wire nodes by ID
+//    std::unordered_map<std::string, BehaviorNode*> created;
+//    created.reserve(asset.nodes.size());
+//
+//    // 1) create and take ownership
+//    for (const auto& nd : asset.nodes) {
+//        if (BehaviorNode* n = BTFactory::Instance().Create(nd.nodeType)) {
+//            owned.emplace_back(n);         // takes ownership
+//            created.emplace(nd.nodeID, n); // map ID to raw pointer for wiring
+//        }
+//        else {
+//            CONSOLE_LOG(LEVEL_ERROR) << "[BT] Unknown nodeType: " << nd.nodeType << "\n";
+//        }
+//    }
+//
+//    // Wire Children ( only for composite nodes)
+//    for (const auto& nd : asset.nodes) {
+//        auto itP = created.find(nd.nodeID);
+//        if (itP == created.end()) {
+//            continue;
+//        }
+//        BehaviorNode* parent = itP->second;
+//
+//        //ensure is a composite node
+//        if (auto* comp = dynamic_cast<IComposite*>(parent)) {
+//            for (const auto& cid : nd.children) {
+//                //connect each child to the parent
+//                auto itC = created.find(cid);
+//                if (itC != created.end()) comp->AddChild(itC->second);
+//                else CONSOLE_LOG(LEVEL_ERROR) << "[BT] Missing child '" << cid
+//                    << "' for parent '" << nd.nodeID << "'\n";
+//            }
+//        }
+//        else if (!nd.children.empty()) {
+//            // Leaf nand Decorator should not declare children
+//            CONSOLE_LOG(LEVEL_ERROR) << "[BT] Node '" << nd.nodeID << "' (" << nd.nodeType << ") cannot have children\n";
+//        }
+//    }
+//
+//    // Pick the root node for entry
+//    if (auto itR = created.find(asset.rootID); itR != created.end()) {
+//        rootNode = itR->second;
+//    }
+//    else {
+//        std::cerr << "[BT] rootID not found: " << asset.rootID << "\n";
+//    }
+//}
 
 void BehaviorTree::TestInitFromAsset(){
     // Build an asset representing:
@@ -162,7 +155,7 @@ BehaviorTreeComp::BehaviorTreeComp()
 
 void BehaviorTreeComp::OnAttached()
 {
-    behaviorTree.InitHardcoded();
+
 }
 
 void BehaviorTreeComp::OnDetached()
@@ -172,7 +165,7 @@ void BehaviorTreeComp::OnDetached()
 
 void BehaviorTreeComp::Update()
 {
-    behaviorTree.Update((GameTime::IsFixedDtMode() ? GameTime::FixedDt() : GameTime::RealDt()));
+    behaviorTree.Update();
 }
 
 void BehaviorTreeComp::EditorDraw()

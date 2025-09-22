@@ -1,8 +1,9 @@
 #pragma once
 #include "BehaviourNode.h"
 
-class L_CheckMouseClick : public BaseNode<L_CheckMouseClick>
+class L_CheckMouseClick 
+    : public BehaviorNode
 {
 protected:
-    virtual void OnUpdate(float dt);
+    NODE_STATUS OnUpdate() override;
 };
