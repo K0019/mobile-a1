@@ -54,12 +54,37 @@
 //
 // std::string MakeUniqueId(const BehaviorTreeAsset& a, const std::string& base);
 //
-// bool IsCompositeType(const std::string& typeName);
-//
-// bool HasAllowedExt(const std::string& s);
-//
-// std::string EnsureAllowedExt(const std::string& s, const std::string& fallbackExt);
-//// Windows filename scrub 
-// std::string SanitizeFilename(std::string s);
-//
-// bool SaveBTAssetToFile(const std::string& path, const BehaviorTreeAsset& asset);
+//// Node list to see registered nodes
+//struct NodesRegistered {
+//    std::vector<std::string> types; // e.g. "ComSelector", "LeafFailTest", ...
+//    void Refresh();
+//};
+
+
+bool LoadBTAssetFromFile(const std::string& path, BehaviorTreeAsset& out);
+
+ //int FindNodeIndexById(const BehaviorTreeAsset& a, const std::string& id);
+
+ //std::unordered_set<std::string> CollectAllIds(const BehaviorTreeAsset& a);
+
+ //std::string MakeUniqueId(const BehaviorTreeAsset& a, const std::string& base);
+
+// Find indices of nodes at a specific level (since asset is level-based now)
+std::vector<int> FindNodesAtLevel(const BehaviorTreeAsset& a, unsigned int level);
+
+// Make a readable label for UI since nodeID is gone (type + index)
+std::string MakeNodeLabel(const BehaviorTreeAsset& a, int index);
+
+ bool IsCompositeType(const std::string& typeName);
+
+ bool IsDecoratorType(const std::string& typeName);
+
+ bool HasAllowedExt(const std::string& s);
+
+ std::string EnsureAllowedExt(const std::string& s, const std::string& fallbackExt);
+// Windows filename scrub 
+ std::string SanitizeFilename(std::string s);
+
+ bool SaveBTAssetToFile(const std::string& path, const BehaviorTreeAsset& asset);
+
+ bool ValidateLevelOrder(const BehaviorTreeAsset& a, std::string& check);

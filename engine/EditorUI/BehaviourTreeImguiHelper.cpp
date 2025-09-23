@@ -203,7 +203,7 @@
 //    return id;
 //}
 //
-//// ---- “is composite?” (uses your factory & IComposite) ----
+//// ---- ï¿½is composite?ï¿½ (uses your factory & IComposite) ----
 // bool IsCompositeType(const std::string& typeName) {
 //    if (auto* n = BTFactory::Instance().Create(typeName)) {
 //        bool result = (dynamic_cast<IComposite*>(n) != nullptr);
@@ -217,46 +217,142 @@
 //    auto ext = std::filesystem::path(s).extension().string();
 //    return (ext == ".json" || ext == ".bht");
 //}
-//
-// std::string EnsureAllowedExt(const std::string& s, const std::string& fallbackExt){
-//    if (HasAllowedExt(s)) return s;
-//    return s + fallbackExt;
+
+bool LoadBTAssetFromFile(const std::string& path, BehaviorTreeAsset& out)
+{
+    Deserializer r(path.c_str());
+    if (!r.IsValid()) return false;
+    return r.Deserialize(&out);
+}
+
+// int FindNodeIndexById(const BehaviorTreeAsset& a, const std::string& id) {
+//    for (int i = 0; i < (int)a.nodes.size(); ++i)
+//        if (a.nodes[i].nodeID == id) return i;
+//    return -1;
 //}
 //
-//// Windows-safe-ish filename scrub (keeps it simple)
-// std::string SanitizeFilename(std::string s) {
-//    static const char* bad = "\\/:*?\"<>|";
-//    for (char& c : s) {
-//        if (std::strchr(bad, c) || (unsigned char)c < 32) c = '_';
-//    }
-//    // trim spaces
-//    while (!s.empty() && std::isspace((unsigned char)s.back())) s.pop_back();
-//    while (!s.empty() && std::isspace((unsigned char)s.front())) s.erase(s.begin());
+// std::unordered_set<std::string> CollectAllIds(const BehaviorTreeAsset& a) {
+//    std::unordered_set<std::string> s;
+//    for (auto& n : a.nodes) s.insert(n.nodeID);
 //    return s;
 //}
 //
-//
-// // ---- SAVE ----
-// bool SaveBTAssetToFile(const std::string& fullPath, const BehaviorTreeAsset& asset)
-// {
-//     try {
-//         Serializer writer(fullPath.c_str());
-//         if (!writer.IsOpen()) {
-//             CONSOLE_LOG(LEVEL_ERROR) << "[BT Save] cannot open: " << fullPath;
-//             return false;
-//         }
-//
-//         // Let the property system write everything (including arrays) correctly
-//         asset.Serialize(writer);
-//
-//         if (!writer.SaveAndClose()) {
-//             CONSOLE_LOG(LEVEL_ERROR) << "[BT Save] SaveAndClose failed: " << fullPath;
-//             return false;
-//         }
-//         return true;
-//     }
-//     catch (const std::exception& e) {
-//         CONSOLE_LOG(LEVEL_ERROR) << "[BT Save] exception: " << e.what();
-//         return false;
-//     }
-// }
+// std::string MakeUniqueId(const BehaviorTreeAsset& a, const std::string& base) {
+//    auto used = CollectAllIds(a);
+//    std::string id = base;
+//    int i = 1;
+//    while (used.count(id)) id = base + "_" + std::to_string(i++);
+//    return id;
+//}
+
+//// ---- ï¿½is composite?ï¿½ (uses your factory & IComposite) ----
+// bool IsCompositeType(const std::string& typeName) {
+//    if (auto* n = BTFactory::Instance().Create(typeName)) {
+//        bool result = (dynamic_cast<IComposite*>(n) != nullptr);
+//        delete n;
+//        return result;
+//    }
+//    return false;
+//}
+
+bool IsCompositeType(const std::string& typeName)
+{
+    auto* n = ST<BTFactory>::Get()->Create(typeName);
+    if (!n) return false;
+    bool isComp = (dynamic_cast<CompositeNode*>(n) != nullptr);
+    delete n;
+    return isComp;
+}
+
+bool IsDecoratorType(const std::string& typeName)
+{
+    auto* n = ST<BTFactory>::Get()->Create(typeName);
+    if (!n) return false;
+    bool isDeco = (dynamic_cast<Decorator*>(n) != nullptr);
+    delete n;
+    return isDeco;
+}
+
+std::vector<int> FindNodesAtLevel(const BehaviorTreeAsset& a, unsigned int level)
+{
+    std::vector<int> out;
+    out.reserve(a.nodes.size());
+    for (int i = 0; i < static_cast<int>(a.nodes.size()); ++i)
+        if (a.nodes[i].nodeLevel == level)
+            out.push_back(i);
+    return out;
+}
+
+std::string MakeNodeLabel(const BehaviorTreeAsset& a, int index)
+{
+    if (index < 0 || index >= static_cast<int>(a.nodes.size()))
+        return "<invalid>";
+    return a.nodes[index].nodeType + "_" + std::to_string(index);
+}
+
+
+ bool HasAllowedExt(const std::string& s) {
+    auto ext = std::filesystem::path(s).extension().string();
+    return (ext == ".json" || ext == ".bht");
+}
+
+ std::string EnsureAllowedExt(const std::string& s, const std::string& fallbackExt){
+    if (HasAllowedExt(s)) return s;
+    return s + fallbackExt;
+}
+
+// Windows-safe-ish filename scrub (keeps it simple)
+ std::string SanitizeFilename(std::string s) {
+    static const char* bad = "\\/:*?\"<>|";
+    for (char& c : s) {
+        if (std::strchr(bad, c) || (unsigned char)c < 32) c = '_';
+    }
+    // trim spaces
+    while (!s.empty() && std::isspace((unsigned char)s.back())) s.pop_back();
+    while (!s.empty() && std::isspace((unsigned char)s.front())) s.erase(s.begin());
+    return s;
+}
+
+
+ // ---- SAVE ----
+ bool SaveBTAssetToFile(const std::string& fullPath, const BehaviorTreeAsset& asset)
+ {
+     try {
+         Serializer writer(fullPath.c_str());
+         if (!writer.IsOpen()) {
+             CONSOLE_LOG(LEVEL_ERROR) << "[BT Save] cannot open: " << fullPath;
+             return false;
+         }
+
+         // Let the property system write everything (including arrays) correctly
+         asset.Serialize(writer);
+
+         if (!writer.SaveAndClose()) {
+             CONSOLE_LOG(LEVEL_ERROR) << "[BT Save] SaveAndClose failed: " << fullPath;
+             return false;
+         }
+         return true;
+     }
+     catch (const std::exception& e) {
+         CONSOLE_LOG(LEVEL_ERROR) << "[BT Save] exception: " << e.what();
+         return false;
+     }
+ }
+
+  bool ValidateLevelOrder(const BehaviorTreeAsset& a, std::string& check)
+ {
+     if (a.nodes.empty()) { check = "No nodes."; return false; }
+     if (a.nodes.front().nodeLevel != 0) { check = "First node must have level 0."; return false; }
+
+     unsigned prev = 0;
+     for (size_t i = 1; i < a.nodes.size(); ++i) {
+         unsigned lvl = a.nodes[i].nodeLevel;
+         if (lvl > prev + 1) {
+             check = "Invalid level jump at index " + std::to_string(i) +
+                 " (prev=" + std::to_string(prev) + ", cur=" + std::to_string(lvl) + ")";
+             return false;
+         }
+         prev = lvl;
+     }
+     return true;
+ }
