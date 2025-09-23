@@ -1,64 +1,25 @@
 {
     "name": "testNestedTree",
-    "rootID": "sel_main",
     "nodes": [
         {
-            "nodeID": "sel_main",
-            "nodeType": "ComSelector",
-            "children": [
-                "sel_child",
-                "fail2"
-            ],
-            "keys": [],
-            "values": []
+            "nodeType": "Sequence",
+            "nodeLevel": 0
         },
         {
-            "nodeID": "sel_child",
-            "nodeType": "ComSelector",
-            "children": [
-                "fail1",
-                "mouse",
-                "ComSelector"
-            ],
-            "keys": [],
-            "values": []
+            "nodeType": "Sequence",
+            "nodeLevel": 1
         },
         {
-            "nodeID": "fail1",
             "nodeType": "LeafFailTest",
-            "children": [],
-            "keys": [],
-            "values": []
+            "nodeLevel": 2
         },
         {
-            "nodeID": "mouse",
             "nodeType": "L_CheckMouseClick",
-            "children": [],
-            "keys": [],
-            "values": []
+            "nodeLevel": 2
         },
         {
-            "nodeID": "fail2",
-            "nodeType": "LeafFailTest",
-            "children": [],
-            "keys": [],
-            "values": []
-        },
-        {
-            "nodeID": "ComSelector",
-            "nodeType": "ComSelector",
-            "children": [
-                "L_CheckMouseClick"
-            ],
-            "keys": [],
-            "values": []
-        },
-        {
-            "nodeID": "L_CheckMouseClick",
-            "nodeType": "L_CheckMouseClick",
-            "children": [],
-            "keys": [],
-            "values": []
+            "nodeType": "",
+            "nodeLevel": 1
         }
     ]
 }

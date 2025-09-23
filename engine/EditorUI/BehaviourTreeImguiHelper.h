@@ -48,13 +48,21 @@
 
 bool LoadBTAssetFromFile(const std::string& path, BehaviorTreeAsset& out);
 
- int FindNodeIndexById(const BehaviorTreeAsset& a, const std::string& id);
+ //int FindNodeIndexById(const BehaviorTreeAsset& a, const std::string& id);
 
- std::unordered_set<std::string> CollectAllIds(const BehaviorTreeAsset& a);
+ //std::unordered_set<std::string> CollectAllIds(const BehaviorTreeAsset& a);
 
- std::string MakeUniqueId(const BehaviorTreeAsset& a, const std::string& base);
+ //std::string MakeUniqueId(const BehaviorTreeAsset& a, const std::string& base);
+
+// Find indices of nodes at a specific level (since asset is level-based now)
+std::vector<int> FindNodesAtLevel(const BehaviorTreeAsset& a, unsigned int level);
+
+// Make a readable label for UI since nodeID is gone (type + index)
+std::string MakeNodeLabel(const BehaviorTreeAsset& a, int index);
 
  bool IsCompositeType(const std::string& typeName);
+
+ bool IsDecoratorType(const std::string& typeName);
 
  bool HasAllowedExt(const std::string& s);
 
@@ -63,3 +71,5 @@ bool LoadBTAssetFromFile(const std::string& path, BehaviorTreeAsset& out);
  std::string SanitizeFilename(std::string s);
 
  bool SaveBTAssetToFile(const std::string& path, const BehaviorTreeAsset& asset);
+
+ bool ValidateLevelOrder(const BehaviorTreeAsset& a, std::string& check);
