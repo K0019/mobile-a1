@@ -58,13 +58,16 @@ namespace
 	bool show_browser = false;
 
 	void saveState(const char* filename) {
+		// TODO: Do proper state saving
+		ecs::SwitchToPool(ecs::POOL::EDITOR_GUI);
 		Serializer serializer{ filename };
-		//serializer.Serialize("show_console", ST<Console>::Get()->GetIsOpen());
+		serializer.Serialize("show_console", ecs::GetCompsBegin<editor::Console>() != ecs::GetCompsEnd<editor::Console>());
 		serializer.Serialize("show_performance", ST<PerformanceProfiler>::Get()->GetIsOpen());
 		serializer.Serialize("show_editor", ST<Inspector>::Get()->GetIsOpen());
 		//serializer.Serialize("show_settings", ST<SettingsWindow>::Get()->GetIsOpen());
 		serializer.Serialize("show_browser", show_browser);
 		serializer.Serialize("show_hierarchy", ST<Hierarchy>::Get()->isOpen);
+		ecs::SwitchToPool(ecs::POOL::DEFAULT);
 	}
 	void loadState(const char* filename) {
 		Deserializer deserializer{ filename };
@@ -72,7 +75,10 @@ namespace
 			return;
 
 		bool b{};
-		//deserializer.DeserializeVar("show_console", &b), ST<Console>::Get()->SetIsOpen(b);
+		deserializer.DeserializeVar("show_console", &b);
+		if (b)
+			editor::CreateGuiWindow<editor::Console>();
+
 		deserializer.DeserializeVar("show_performance", &b), ST<PerformanceProfiler>::Get()->SetIsOpen(b);
 		deserializer.DeserializeVar("show_editor", &b), ST<Inspector>::Get()->SetIsOpen(b);
 		//deserializer.DeserializeVar("show_settings", &b), ST<SettingsWindow>::Get()->SetIsOpen(b);
