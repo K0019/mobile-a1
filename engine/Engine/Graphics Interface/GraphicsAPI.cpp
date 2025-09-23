@@ -232,6 +232,7 @@ editor::ImGuiContext& GraphicsMain::GetImGuiContext()
 #include "scene_feature.h"
 #include "scene_loader.h"
 #include "camera.h"
+#include "Input.h"
 
 // NOTE: These handles aren't being cleaned up because this is just temp code.
 static uint64_t gridFeature{};

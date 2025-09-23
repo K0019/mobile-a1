@@ -25,8 +25,15 @@ All rights reserved.
 /******************************************************************************/
 
 #include "Import.h"
+#include <Windows.h>
+#include <shellapi.h> // For DragQueryFile
 #include "AudioManager.h"
 #include "Popup.h"
+
+// Thanks Microsoft
+#ifdef CopyFile
+#undef CopyFile
+#endif
 
 namespace import
 {

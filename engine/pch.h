@@ -63,13 +63,7 @@ All rights reserved.
 #include <cctype>
 #include <math.h>
 
-#ifdef IMGUI_ENABLED
-	#define IMGUI_DEFINE_MATH_OPERATORS
-	#include <imgui.h>
-	#include "imgui_internal.h"
-	#include "imgui_impl_glfw.h"
-#endif
-#include "IconsFontAwesome6.h"
+#include "ImguiHeader.h"
 
 #define GLM_ZERO_TO_ONE_RANGE
 #include <glm/glm.hpp>
@@ -93,7 +87,6 @@ All rights reserved.
 #include "Messaging.h"
 #include "Scheduler.h"
 #include "EntityEvents.h"
-#include "Input.h"
 #include "GameTime.h"
 #include "Serializer.h"
 #include "TypeID.h"

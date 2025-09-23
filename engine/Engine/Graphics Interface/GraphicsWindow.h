@@ -1,4 +1,7 @@
 #pragma once
+#ifdef GLFW
+#include <GLFW/glfw3.h>
+#endif
 
 class IGraphicsWindow
 {
@@ -34,6 +37,7 @@ protected:
 	IntVec2 worldExtent;
 };
 
+#ifdef GLFW
 class GraphicsWindowGLFW : public IGraphicsWindow
 {
 public:
@@ -71,5 +75,9 @@ private:
 
 };
 
-
 using GraphicsWindow = GraphicsWindowGLFW;
+#else
+// TODO: A graphics window for something not using GLFW
+using GraphicsWindow = std::nullptr_t;
+#endif
+

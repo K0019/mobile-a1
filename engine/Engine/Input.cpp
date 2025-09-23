@@ -225,6 +225,7 @@ void KeyboardMouseInput::NewIteration()
 	pressedKeystate.reset();
 }
 
+#ifdef GLFW
 void KeyboardMouseInput::GLFW_Callback_OnKeyboardClick([[maybe_unused]] GLFWwindow* window, int key, [[maybe_unused]] int scancode, int action, [[maybe_unused]] int mode)
 {
 	switch (action)
@@ -271,6 +272,7 @@ void KeyboardMouseInput::GLFW_Callback_OnMouseScroll([[maybe_unused]] GLFWwindow
 {
 	ST<KeyboardMouseInput>::Get()->Callback_OnMouseScroll(static_cast<float>(yoffset));
 }
+#endif
 
 void KeyboardMouseInput::Callback_OnKeyDown(short key)
 {

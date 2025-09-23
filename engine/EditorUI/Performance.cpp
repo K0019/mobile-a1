@@ -23,6 +23,9 @@ All rights reserved.
 /******************************************************************************/
 
 #include "Performance.h"
+#include <GLFW/glfw3.h>
+#include <Windows.h>
+#include <Psapi.h>
 
 #ifdef max
 #undef max

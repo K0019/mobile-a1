@@ -27,6 +27,8 @@ All rights reserved.
 #include "Engine.h"
 #include "CrashHandler.h"
 
+#include "Input.h"
+
 #include "SceneManagement.h"
 #include "EntitySpawnEvents.h"
 #include "IGameComponentCallbacks.h"

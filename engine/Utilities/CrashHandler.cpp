@@ -1,4 +1,5 @@
 #include "CrashHandler.h"
+#include <Windows.h>
 #pragma comment(lib, "dbghelp.lib")
 #include <DbgHelp.h>
 

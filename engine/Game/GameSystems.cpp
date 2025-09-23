@@ -39,7 +39,6 @@ All rights reserved.
 #include "Audio.h"
 #include "TrailSystem.h"
 #include "KillAnimationWhenFinish.h"
-#include "GamepadInputAdapter.h"
 #include "FadeAndDie.h"
 #include "PrefabSpawner.h"
 #include "Physics.h"
@@ -82,8 +81,6 @@ void GameState_Game::OnEnter()
     ecs::AddSystem(ECS_LAYER::PRE_UPDATE_0, UndoShakeSystem{});
 
     ecs::AddSystem(ECS_LAYER::REALTIME_INPUT_0, SliderSystem{});
-    ecs::AddSystem(ECS_LAYER::REALTIME_INPUT_0, GamepadAimAdapterSystem{});
-    ecs::AddSystem(ECS_LAYER::REALTIME_INPUT_0, GamepadMouseControlSystem{});
     
     ecs::AddSystem(ECS_LAYER::PRE_PHYSICS_0, AnimatorSystem{});
     ecs::AddSystem(ECS_LAYER::PRE_PHYSICS_0, TrailRendererSystem{});

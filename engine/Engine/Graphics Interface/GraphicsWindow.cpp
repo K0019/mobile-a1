@@ -1,5 +1,6 @@
 #include "GraphicsWindow.h"
 #include "GraphicsAPI.h"
+#include "Input.h"
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"

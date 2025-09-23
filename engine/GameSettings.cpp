@@ -23,6 +23,7 @@ All rights reserved.
 */
 /******************************************************************************/
 #include "GameSettings.h"
+#include "Input.h"
 #include "EntityLayers.h"
 #include "GraphicsAPI.h"
 #include "Engine.h"
