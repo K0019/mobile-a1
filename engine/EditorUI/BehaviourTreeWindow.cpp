@@ -1167,40 +1167,49 @@ static void WalkBTAssetFlat(const BehaviorTreeAsset& asset, F&& fn)
 
             // ---------- Add Child ----------
             ImGui::SeparatorText("Add Child");
-            static int nodeTypeComboIdx = 0;
+
+            // Get the registered node types once per frame
+            std::vector<std::string> regTypes = ST<BTFactory>::Get()->RegisteredTypes();
+            std::sort(regTypes.begin(), regTypes.end());
+
             if (regTypes.empty()) {
-                ImGui::TextDisabled("<no registered types>");
+                ImGui::TextDisabled("<no registered node types>");
             }
             else {
-                if (nodeTypeComboIdx >= (int)regTypes.size()) nodeTypeComboIdx = 0;
-                if (ImGui::BeginCombo("Type", regTypes[nodeTypeComboIdx].c_str())) {
-                    for (int i = 0; i < (int)regTypes.size(); ++i) {
-                        bool sel = (i == nodeTypeComboIdx);
-                        if (ImGui::Selectable(regTypes[i].c_str(), sel)) nodeTypeComboIdx = i;
-                        if (sel) ImGui::SetItemDefaultFocus();
-                    }
-                    ImGui::EndCombo();
-                }
+                // A compact list: [TypeName]  [Add]
+                for (int i = 0; i < (int)regTypes.size(); ++i) {
+                    ImGui::PushID(i); // ensure unique IDs per row
 
-                if (ImGui::Button("Add Child")) {
-                    BTNodeDesc newNd;
-                    newNd.nodeType = regTypes[nodeTypeComboIdx];
-                    newNd.nodeLevel = pLevel + 1;
+                    ImGui::TextUnformatted(regTypes[i].c_str());
+                    ImGui::SameLine();
 
-                    // Insert after the last direct child subtree 
-                    int insertPos = parentIdx + 1; // default: right after parent
-                    {
-                        std::vector<int> tmp;
-                        listDirectChildren(parentIdx, tmp);
-                        if (!tmp.empty()) {
-                            const int lastChildStart = tmp.back();
-                            insertPos = subtreeEnd(lastChildStart); // after last child's subtree
+                    if (ImGui::SmallButton("Add")) {
+                        // Build the new node right under this parent
+                        BTNodeDesc newNd;
+                        newNd.nodeType = regTypes[i];
+                        newNd.nodeLevel = pLevel + 1;
+
+                        // Insert after the last direct child subtree (or right after the parent if no children)
+                        int insertPos = parentIdx + 1;
+                        {
+                            std::vector<int> directChildren;
+                            listDirectChildren(parentIdx, directChildren);     // fills indices of direct children (same level+1)
+                            if (!directChildren.empty()) {
+                                const int lastChildStart = directChildren.back();
+                                insertPos = subtreeEnd(lastChildStart);         // position *after* last child's subtree
+                            }
                         }
+
+                        nodes.insert(nodes.begin() + insertPos, newNd);
+
+                        // pick the newly inserted node in the UI
+                        selectedNodeIndex = insertPos;
                     }
 
-                    nodes.insert(nodes.begin() + insertPos, newNd);
+                    ImGui::PopID();
                 }
             }
+
         }
 
         ImGui::Columns(1);

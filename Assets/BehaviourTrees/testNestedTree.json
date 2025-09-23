@@ -10,6 +10,10 @@
             "nodeLevel": 1
         },
         {
+            "nodeType": "L_CheckMouseClick",
+            "nodeLevel": 2
+        },
+        {
             "nodeType": "LeafFailTest",
             "nodeLevel": 2
         },
