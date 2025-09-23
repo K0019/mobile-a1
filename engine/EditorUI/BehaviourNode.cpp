@@ -77,8 +77,8 @@ void CompositeNode::ClearChildren()
     childrenPtr.clear();
 }
 
-Decorator::Decorator(BehaviorNode* child)
-    : childPtr{ child }
+Decorator::Decorator()
+    : childPtr{ nullptr }
 {
 }
 

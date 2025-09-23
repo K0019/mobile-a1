@@ -63,7 +63,7 @@ class Decorator
 protected:
     BehaviorNode* childPtr;
 public:
-    Decorator(BehaviorNode* child);
+    Decorator();
 };
 
 class Sequence
