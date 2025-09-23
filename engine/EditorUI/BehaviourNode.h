@@ -63,7 +63,7 @@ class Decorator
     : public BehaviorNode
 {
 public:
-    Decorator(BehaviorNode* child);
+    Decorator();
     bool AddChild(BehaviorNode* child) override;
     void RemoveChildren() override;
 

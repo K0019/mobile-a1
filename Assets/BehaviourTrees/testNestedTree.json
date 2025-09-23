@@ -19,10 +19,6 @@
         },
         {
             "nodeType": "L_CheckMouseClick",
-            "nodeLevel": 2
-        },
-        {
-            "nodeType": "",
             "nodeLevel": 1
         }
     ]

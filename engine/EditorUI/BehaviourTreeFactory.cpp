@@ -23,7 +23,7 @@ BehaviorNode* BTFactory::Create(const std::string& type) const
 
 std::vector<std::string> BTFactory::RegisteredTypes() const 
 {
-    std::vector<std::string> out(nodeTypes.size());
+    std::vector<std::string> out;
     for (auto& kv : nodeTypes) 
         out.push_back(kv.first);
     return out;
