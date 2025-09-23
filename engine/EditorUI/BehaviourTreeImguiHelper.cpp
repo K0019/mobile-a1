@@ -1,4 +1,4 @@
-//#include "BehaviourTreeImguiHelper.h"
+#include "BehaviourTreeImguiHelper.h"
 //
 ////int BehaviourTreeEditorModel::indexOf(int id) const {
 ////    for (int i = 0; i < (int)nodes.size(); ++i)

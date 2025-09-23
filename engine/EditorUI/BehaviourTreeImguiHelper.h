@@ -1,7 +1,7 @@
-//#pragma once
-//#include "pch.h"
-//#include "GUIAsECS.h"   // <-- Required so WindowBase is known
-//#include "BehaviourTree.h"
+#pragma once
+#include "pch.h"
+#include "GUIAsECS.h"   // <-- Required so WindowBase is known
+#include "BehaviourTree.h"
 ////
 ////struct BTEditorNode {
 ////    int id;                           // editor ID

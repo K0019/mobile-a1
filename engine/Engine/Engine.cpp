@@ -353,12 +353,12 @@ void Engine::run()
 				ImGui::EndMenu();
 			}
 
-			//if (ImGui::BeginMenu("Behaviour Tree"))
-			//{
-			//	editor::CreateWindow<editor::BehaviourTreeWindow>();
-			//	ImGui::EndMenu();
+			if (ImGui::BeginMenu("Behaviour Tree"))
+			{
+				editor::CreateWindow<editor::BehaviourTreeWindow>();
+				ImGui::EndMenu();
 
-			//}
+			}
 
 
 			ImGui::EndMainMenuBar();  // End the main menu bar
