@@ -41,22 +41,13 @@ public:
     BehaviorTree();
     ~BehaviorTree();
 
+    void Set(std::string treeName, ecs::EntityHandle entityHandle);
     void Update();
-    void SetEntity(ecs::EntityHandle handle);
-    ecs::EntityHandle GetEntity();
-
-    //void InitFromAsset(const struct BehaviorTreeAsset& asset); // build runtime
-
-    //FOR TESTING
-    void InitHardcoded();
-    void TestInitFromAsset();
+    void Destroy();
 
 private:
     ecs::EntityHandle entity;
     BehaviorNode* rootNode;
-
-    // simple ownership of the nodes via unique pointer
-    //std::vector<std::unique_ptr<BehaviorNode>> owned;
 };
 
 //For Properties storing of data =======================================

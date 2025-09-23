@@ -35,11 +35,10 @@ public:
     NODE_STATUS GetStatus() const;
     void SetStatus(NODE_STATUS newStatus);
 
-    virtual BehaviorNode* Clone();
-
     NODE_STATUS Tick();
 
-    //virtual BehaviorNode* clone() = 0;
+    virtual bool AddChild(BehaviorNode* childPtr) { return false; }
+    virtual void RemoveChildren() {}
 private:
     NODE_STATUS status;
 };
@@ -49,9 +48,12 @@ class CompositeNode
     : public BehaviorNode
 {
 public:
-    void AddChild(BehaviorNode* childPtr);
+    CompositeNode();
+    ~CompositeNode();
+
+    bool AddChild(BehaviorNode* childPtr) override;
     void RemoveChild(BehaviorNode* childPtr);
-    void ClearChildren();
+    void RemoveChildren() override;
 protected:
     typedef std::vector<BehaviorNode*> BehaviorNodes;
     BehaviorNodes childrenPtr;
@@ -60,10 +62,13 @@ protected:
 class Decorator
     : public BehaviorNode
 {
-protected:
-    BehaviorNode* childPtr;
 public:
     Decorator(BehaviorNode* child);
+    bool AddChild(BehaviorNode* child) override;
+    void RemoveChildren() override;
+
+protected:
+    BehaviorNode* childPtr;
 };
 
 class Sequence

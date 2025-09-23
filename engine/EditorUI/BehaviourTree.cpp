@@ -13,35 +13,81 @@ BehaviorTree::~BehaviorTree()
     rootNode = nullptr;
 }
 
-
-void BehaviorTree::InitHardcoded()
+BehaviorTreeAsset CreateAsset()
 {
-    //owned.clear();
-    //rootNode = nullptr;
-    //treeName = "Testing Tree";
+    BehaviorTreeAsset result{};
+    BTNodeDesc node{};
+    node.nodeLevel = 0;
+    node.nodeType = "Sequence";
+    result.nodes.push_back(node);
+    node.nodeLevel = 1;
+    node.nodeType = "Sequence";
+    result.nodes.push_back(node);
+    node.nodeLevel = 2;
+    node.nodeType = "Sequence";
+    result.nodes.push_back(node);
+    node.nodeLevel = 3;
+    node.nodeType = "L_CheckMouseClick";
+    result.nodes.push_back(node);
+    node.nodeLevel = 3;
+    node.nodeType = "L_CheckMouseClick";
+    result.nodes.push_back(node);
+    node.nodeLevel = 2;
+    node.nodeType = "L_CheckMouseClick";
+    result.nodes.push_back(node);
+    node.nodeLevel = 1;
+    node.nodeType = "L_CheckMouseClick";
+    result.nodes.push_back(node);
 
-    //auto* selector = new ComSelector();
-    //auto* failNode = new LeafFailTest();
-    //auto* mouseNode = new L_CheckMouseClick();
-    //auto* failNode2 = new LeafFailTest();
-    //auto* selector2 = new ComSelector();
-
-    //// take ownership first
-    //owned.emplace_back(selector);
-    //owned.emplace_back(failNode);
-    //owned.emplace_back(mouseNode);
-    //owned.emplace_back(failNode2);
-    //owned.emplace_back(selector2);
-
-    //// then wire
-    //selector->AddChild(failNode);
-    //selector->AddChild(failNode2);
-    //selector->AddChild(selector2);
-    //selector2->AddChild(mouseNode);
-
-    //rootNode = selector;
+    return result;
 }
 
+void BehaviorTree::Set(std::string treeName, ecs::EntityHandle entityHandle)
+{
+    //Set the entity handle
+    entity = entityHandle;
+
+    //List of parent nodes.
+    std::vector<std::unique_ptr<BehaviorNode*>> parents{};
+
+    //All the data of the tree.
+    BehaviorTreeAsset btAsset{CreateAsset()};
+
+    //Create and Set the root node.
+    BehaviorNode* root{ ST<BTFactory>::Get()->Create(btAsset.nodes[0].nodeType) };
+    parents.push_back(std::make_unique<BehaviorNode*>(root));
+    rootNode = root;
+
+    //Iterate through all the node in the tree.
+    for (std::size_t index{1}; index < btAsset.nodes.size(); ++index)
+    {
+        //Create the node.
+        std::string nodeType{ btAsset.nodes[index].nodeType };
+        unsigned int nodeLevel{ btAsset.nodes[index].nodeLevel };
+        BehaviorNode* node{ ST<BTFactory>::Get()->Create(nodeType) };
+
+        //If the level is invalid, print an error message.
+        if (parents.size() < nodeLevel)
+        {
+            CONSOLE_LOG(LEVEL_ERROR) << "The Level of " << nodeType << " in the behavior tree " << treeName << " is Invalid.";
+            return;
+        }
+
+        //Set the node as a child.
+        //If the child couldn't be added, print an error message.
+        if ((*(parents[nodeLevel - 1]))->AddChild(node) == false)
+        {
+            CONSOLE_LOG(LEVEL_ERROR) << "Unable to add a child " << nodeType;
+            return;
+        }
+
+        //Set the node as a parent.
+        if (parents.size() == nodeLevel)
+            parents.push_back(std::make_unique<BehaviorNode*>(node));
+        else
+            parents[nodeLevel] = std::make_unique<BehaviorNode*>(node);
+    }
+}
 
 void BehaviorTree::Update()
 {
@@ -51,101 +97,11 @@ void BehaviorTree::Update()
     rootNode->Tick(); // the nodes will handle the logic within
 }
 
-//void BehaviorTree::InitFromAsset(const BehaviorTreeAsset& asset)
-//{
-//    //Reset data
-//    owned.clear();
-//    rootNode = nullptr;
-//    treeName = asset.name;
-//
-//    // Temp table to wire nodes by ID
-//    std::unordered_map<std::string, BehaviorNode*> created;
-//    created.reserve(asset.nodes.size());
-//
-//    // 1) create and take ownership
-//    for (const auto& nd : asset.nodes) {
-//        if (BehaviorNode* n = BTFactory::Instance().Create(nd.nodeType)) {
-//            owned.emplace_back(n);         // takes ownership
-//            created.emplace(nd.nodeID, n); // map ID to raw pointer for wiring
-//        }
-//        else {
-//            CONSOLE_LOG(LEVEL_ERROR) << "[BT] Unknown nodeType: " << nd.nodeType << "\n";
-//        }
-//    }
-//
-//    // Wire Children ( only for composite nodes)
-//    for (const auto& nd : asset.nodes) {
-//        auto itP = created.find(nd.nodeID);
-//        if (itP == created.end()) {
-//            continue;
-//        }
-//        BehaviorNode* parent = itP->second;
-//
-//        //ensure is a composite node
-//        if (auto* comp = dynamic_cast<IComposite*>(parent)) {
-//            for (const auto& cid : nd.children) {
-//                //connect each child to the parent
-//                auto itC = created.find(cid);
-//                if (itC != created.end()) comp->AddChild(itC->second);
-//                else CONSOLE_LOG(LEVEL_ERROR) << "[BT] Missing child '" << cid
-//                    << "' for parent '" << nd.nodeID << "'\n";
-//            }
-//        }
-//        else if (!nd.children.empty()) {
-//            // Leaf nand Decorator should not declare children
-//            CONSOLE_LOG(LEVEL_ERROR) << "[BT] Node '" << nd.nodeID << "' (" << nd.nodeType << ") cannot have children\n";
-//        }
-//    }
-//
-//    // Pick the root node for entry
-//    if (auto itR = created.find(asset.rootID); itR != created.end()) {
-//        rootNode = itR->second;
-//    }
-//    else {
-//        std::cerr << "[BT] rootID not found: " << asset.rootID << "\n";
-//    }
-//}
-
-void BehaviorTree::TestInitFromAsset(){
-    // Build an asset representing:
-// root: Selector -> [LeafFailTest, LeafFailTest, Selector2]
-// Selector2 -> [L_CheckMouseClick]
-
-    //BehaviorTreeAsset asset;
-    //asset.name = "TestingTree";
-    //asset.rootID = "root";
-
-    //// Root selector
-    //BTNodeDesc root;
-    //root.nodeID = "root";
-    //root.nodeType = "ComSelector";
-    //root.children = { "fail1", "fail2", "sel2" };
-
-    //// Two fail leaves
-    //BTNodeDesc fail1;
-    //fail1.nodeID = "fail1";
-    //fail1.nodeType = "LeafFailTest";
-
-    //BTNodeDesc fail2;
-    //fail2.nodeID = "fail2";
-    //fail2.nodeType = "LeafFailTest";
-
-    //// Second selector with mouse node
-    //BTNodeDesc sel2;
-    //sel2.nodeID = "sel2";
-    //sel2.nodeType = "ComSelector";
-    //sel2.children = { "mouse" };
-
-    //BTNodeDesc mouse;
-    //mouse.nodeID = "mouse";
-    //mouse.nodeType = "L_CheckMouseClick";
-
-    //// Collect them into asset
-    //asset.nodes = { root, fail1, fail2, sel2, mouse };
-
-    //// Build runtime tree ON THIS INSTANCE
-    //InitFromAsset(asset);
-
+void BehaviorTree::Destroy()
+{
+    rootNode->RemoveChildren();
+    delete rootNode;
+    rootNode = nullptr;
 }
 
 BehaviorTreeComp::BehaviorTreeComp()
@@ -155,12 +111,12 @@ BehaviorTreeComp::BehaviorTreeComp()
 
 void BehaviorTreeComp::OnAttached()
 {
-
+    behaviorTree.Set("tree", ecs::GetEntity(this));
 }
 
 void BehaviorTreeComp::OnDetached()
 {
-
+    behaviorTree.Destroy();
 }
 
 void BehaviorTreeComp::Update()

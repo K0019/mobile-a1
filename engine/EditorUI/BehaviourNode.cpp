@@ -44,14 +44,9 @@ NODE_STATUS BehaviorNode::GetStatus() const
     return status;
 }
 
-BehaviorNode* BehaviorNode::Clone()
-{
-    return nullptr;
-}
-
 NODE_STATUS BehaviorNode::Tick()
 {
-    if (status == NODE_STATUS::RUNNING)
+    if (status != NODE_STATUS::RUNNING)
         OnInitialize();
 
     status = OnUpdate();
@@ -62,24 +57,61 @@ NODE_STATUS BehaviorNode::Tick()
     return status;
 }
 
-void CompositeNode::AddChild(BehaviorNode* childPtr)
+CompositeNode::CompositeNode()
+    : BehaviorNode{}
+    , childrenPtr{}
+{
+}
+
+CompositeNode::~CompositeNode()
+{
+    RemoveChildren();
+}
+
+bool CompositeNode::AddChild(BehaviorNode* childPtr)
 {
     childrenPtr.push_back(childPtr);
+    return true;
 }
 
 void CompositeNode::RemoveChild(BehaviorNode* childPtr)
 {
     childrenPtr.erase(std::remove(childrenPtr.begin(), childrenPtr.end(), childPtr), childrenPtr.end());
+    delete childPtr;
 }
 
-void CompositeNode::ClearChildren()
+void CompositeNode::RemoveChildren()
 {
+    for (BehaviorNode* child : childrenPtr)
+    {
+        child->RemoveChildren();
+        delete child;
+    }
     childrenPtr.clear();
 }
 
 Decorator::Decorator(BehaviorNode* child)
-    : childPtr{ child }
+    : BehaviorNode{}
+    , childPtr{ child }
 {
+}
+
+bool Decorator::AddChild(BehaviorNode* child)
+{
+    if (!childPtr)
+        childPtr = child;
+    else
+    {
+        delete childPtr;
+        childPtr = child;
+    }
+    return true;
+}
+
+void Decorator::RemoveChildren()
+{
+    delete childPtr;
+    childPtr = nullptr;
 }
 
 void Sequence::OnInitialize()
