@@ -50,7 +50,6 @@ All rights reserved.
 #include <typeinfo>
 #include <exception>
 #include <stdexcept>
-#include <iterator>
 #include <memory>
 #include <thread>
 #include <mutex>
@@ -64,10 +63,6 @@ All rights reserved.
 #include <cctype>
 #include <math.h>
 
-/* LIBRARIES */
-#include <windows.h>
-#include <dbghelp.h>
-
 #ifdef IMGUI_ENABLED
 	#define IMGUI_DEFINE_MATH_OPERATORS
 	#include <imgui.h>
@@ -76,18 +71,9 @@ All rights reserved.
 #endif
 #include "IconsFontAwesome6.h"
 
-#define GLFW_INCLUDE_NONE
-#define GLFW_INCLUDE_VULKAN
-#define VK_NO_PROTOTYPES
-#include <GLFW/glfw3.h>
 #define GLM_ZERO_TO_ONE_RANGE
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-
-// By Kendrick (2025/09/11): Before cmake volk.h seemed to be included no matter what. Idk what was including it lol.
-//#ifndef IMGUI_ENABLED
-	#include "volk.h"
-//#endif
 
 #pragma warning(push, 0)
 #define VMA_STATIC_VULKAN_FUNCTIONS 0

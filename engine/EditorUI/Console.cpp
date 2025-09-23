@@ -29,6 +29,8 @@ All rights reserved.
 //#include "ryan-c/Renderer.h"
 //#include "AudioManager.h"
 
+#include <DbgHelp.h>
+
 Console::Console()
 	: gui::Window{ ICON_FA_TERMINAL"Console", gui::Vec2{ 500, 400 }, gui::FLAG_WINDOW::HAS_MENU_BAR }
 	, inputTextBox{ "##" }
