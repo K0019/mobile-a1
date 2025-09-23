@@ -29,7 +29,7 @@ void GraphicsMain::Init()
 	ST<GraphicsWindow>::Get()->Init();
 
 	auto windowExtent{ ST<GraphicsWindow>::Get()->GetWindowExtent() };
-	renderer = std::make_unique<Renderer>(ST<GraphicsWindow>::Get()->INTERNAL_GetWindow(), windowExtent.width, windowExtent.height);
+	renderer = std::make_unique<Renderer>(ST<GraphicsWindow>::Get()->INTERNAL_GetWindow(), windowExtent.x, windowExtent.y);
 	context.renderer = renderer.get();
 	ST<GraphicsAssets>::Get()->Init(&context);
 	renderer->startup();
@@ -282,7 +282,7 @@ void GraphicsMain::RenderSampleScene()
 	Render::FrameData currentFrameData{};
 	currentFrameData.cameraPos = camera.getPosition();
 	currentFrameData.viewMatrix = camera.getViewMatrix();
-	currentFrameData.projMatrix = perspective(45.0f, (float)windowExtent.width / (float)windowExtent.height, 0.1f, 100.0f);
+	currentFrameData.projMatrix = perspective(45.0f, (float)windowExtent.x / (float)windowExtent.y, 0.1f, 100.0f);
 	//SceneRenderFeature::UpdateScene(sceneFeatureHandle_, loadedScene_, *context.assetSystem, *renderer);
 	renderer->render(currentFrameData);
 }

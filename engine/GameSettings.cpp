@@ -52,7 +52,7 @@ void GameSettings::Apply()
 {
 	ST<Engine>::Get()->setFPS(m_maxFPS);
 	GameTime::SetTargetFixedDt(m_targetFixedDt);
-	ST<Console>::Get()->SetLogLevel(static_cast<LogLevel>(m_logLevel));
+	ST<internal::LoggedMessagesBuffer>::Get()->SetLogLevel(static_cast<LogLevel>(m_logLevel));
 
 	ApplyVolumes();
 	ApplyFullscreen();

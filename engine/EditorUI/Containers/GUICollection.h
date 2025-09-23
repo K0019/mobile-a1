@@ -66,7 +66,8 @@ namespace gui {
 	X(UP, ImGuiKey::ImGuiKey_UpArrow) \
 	X(DOWN, ImGuiKey::ImGuiKey_DownArrow) \
 	X(ENTER, ImGuiKey::ImGuiKey_Enter) \
-	X(ESC, ImGuiKey::ImGuiKey_Escape)
+	X(ESC, ImGuiKey::ImGuiKey_Escape) \
+	X(GRAVE, ImGuiKey::ImGuiKey_GraveAccent)
 
 	//! ImGuiWindowFlags
 #define GUICOLLECTION_FLAG_WINDOW \

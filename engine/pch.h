@@ -75,12 +75,6 @@ All rights reserved.
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
-#pragma warning(push, 0)
-#define VMA_STATIC_VULKAN_FUNCTIONS 0
-#define VMA_DYNAMIC_VULKAN_FUNCTIONS 1
-#include "vma/vk_mem_alloc.h"
-#pragma warning(pop)
-
 #include <FMOD/fmod.hpp>
 #include <FMOD/fmod_studio.hpp>
 
@@ -88,6 +82,7 @@ All rights reserved.
 #include "mono/metadata/assembly.h"
 /* END LIBRARIES */
 
+#include "Logging.h"
 #include "Singleton.h"
 #include "MagicMath.h"
 #include "Transform.h"
@@ -109,6 +104,5 @@ All rights reserved.
 #include "RandUID.h"
 
 #include "GUICollection.h"
-#include "Console.h"
 
 #include "StateMachine.h"

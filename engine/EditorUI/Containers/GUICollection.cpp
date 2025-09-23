@@ -792,29 +792,6 @@ namespace gui {
 #endif
 	}
 
-	bool IsKeyPressed([[maybe_unused]] KEY key, [[maybe_unused]] bool repeating)
-	{
-#ifdef IMGUI_ENABLED
-		return ImGui::IsKeyPressed(static_cast<ImGuiKey>(key), repeating);
-#else
-		return false;
-#endif
-	}
-
-	void SetKeyboardFocusHere([[maybe_unused]] int offset)
-	{
-#ifdef IMGUI_ENABLED
-		ImGui::SetKeyboardFocusHere(offset);
-#endif
-	}
-
-	void SetScrollHereY([[maybe_unused]] float center_y_ratio)
-	{
-#ifdef IMGUI_ENABLED
-		ImGui::SetScrollHereY(center_y_ratio);
-#endif
-	}
-
 	float GetWindowWidth()
 	{
 #ifdef IMGUI_ENABLED
@@ -954,4 +931,26 @@ namespace gui {
 	{
 	}
 
+	bool IsKeyPressed([[maybe_unused]] KEY key, [[maybe_unused]] bool repeating)
+	{
+#ifdef IMGUI_ENABLED
+		return ImGui::IsKeyPressed(static_cast<ImGuiKey>(key), repeating);
+#else
+		return false;
+#endif
+	}
+
+	void SetKeyboardFocusHere([[maybe_unused]] int offset)
+	{
+#ifdef IMGUI_ENABLED
+		ImGui::SetKeyboardFocusHere(offset);
+#endif
+	}
+
+	void SetScrollHereY([[maybe_unused]] float center_y_ratio)
+	{
+#ifdef IMGUI_ENABLED
+		ImGui::SetScrollHereY(center_y_ratio);
+#endif
+	}
 }

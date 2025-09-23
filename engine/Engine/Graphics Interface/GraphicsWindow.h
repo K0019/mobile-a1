@@ -21,17 +21,17 @@ public:
 public:
 	// For compatibility with whatever old graphics interfaces are still here
 	// Remove if possible once everything settles
-	VkExtent2D GetWindowExtent() const;
-	VkExtent2D GetViewportExtent() const;
-	VkExtent2D GetWorldExtent() const;
+	IntVec2 GetWindowExtent() const;
+	IntVec2 GetViewportExtent() const;
+	IntVec2 GetWorldExtent() const;
 
 protected:
 	IGraphicsWindow();
 
 	// remove these at some point, kind of atrocious.
-	VkExtent2D windowExtent;
-	VkExtent2D viewportExtent;
-	VkExtent2D worldExtent;
+	IntVec2 windowExtent;
+	IntVec2 viewportExtent;
+	IntVec2 worldExtent;
 };
 
 class GraphicsWindowGLFW : public IGraphicsWindow

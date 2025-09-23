@@ -272,6 +272,16 @@ Vec4 operator*(const Mat4& mat, const Vec4& vec);
 
 #pragma endregion // Mat4
 
+
+#pragma region 2D Integer
+
+struct IntVec2
+{
+	int x, y;
+};
+
+#pragma endregion // 2D Integer
+
 #include "MagicMath.ipp"
 
 #undef GENERATE_MEMBER_OPERATOR_ADAPTER_H
