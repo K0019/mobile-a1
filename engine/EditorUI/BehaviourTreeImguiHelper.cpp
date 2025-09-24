@@ -164,6 +164,20 @@ std::string MakeNodeLabel(const BehaviorTreeAsset& a, int index)
      return true;
  }
 
+  bool DeleteBTFile(const std::string& dir, const std::vector<std::string>& files,int currentIndex, std::string& deletedPath)
+  {
+      if (currentIndex < 0 || currentIndex >= (int)files.size())
+          return false;
+
+      const std::filesystem::path full = std::filesystem::path(dir) / files[currentIndex];
+      std::error_code ec;
+      if (std::filesystem::remove(full, ec)) {
+          deletedPath = full.string();
+          return true;
+      }
+      return false;
+  }
+
 
   void RefreshBTList(const std::string& dir,
       std::vector<std::string>& files,

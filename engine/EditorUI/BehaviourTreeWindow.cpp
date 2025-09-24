@@ -311,6 +311,51 @@ static void WalkBTAssetFlat(const BehaviorTreeAsset& asset, F&& fn)
         }
     }
 
+    void DrawDeleteBTFileUI(const std::string& dir,
+        std::vector<std::string>& files,
+        int& currentIndex,
+        BehaviorTreeAsset& loadedAsset,
+        bool& hasAsset,
+        std::string& lastLoadedPath)
+    {
+        if (currentIndex < 0 || currentIndex >= (int)files.size()) {
+            ImGui::BeginDisabled();
+            ImGui::Button("Delete");
+            ImGui::EndDisabled();
+            return;
+        }
+
+        if (ImGui::Button("Delete")) {
+            ImGui::OpenPopup("Confirm Delete BT File");
+        }
+
+        if (ImGui::BeginPopupModal("Confirm Delete BT File", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
+            const std::string target = files[currentIndex];
+            ImGui::Text("Are you sure you want to delete:\n%s ?", target.c_str());
+
+            ImGui::Spacing();
+
+            if (ImGui::Button("Yes", ImVec2(120, 0))) {
+                std::string deletedPath;
+                if (DeleteBTFile(dir, files, currentIndex, deletedPath)) {
+                    // Refresh file list after deletion
+                    RefreshBTList(dir, files, currentIndex, loadedAsset, hasAsset, lastLoadedPath);
+
+                    hasAsset = false;
+                    lastLoadedPath.clear();
+                    loadedAsset = BehaviorTreeAsset{};
+                }
+                ImGui::CloseCurrentPopup();
+            }
+            ImGui::SameLine();
+            if (ImGui::Button("No", ImVec2(120, 0))) {
+                ImGui::CloseCurrentPopup();
+            }
+
+            ImGui::EndPopup();
+        }
+    }
+
     void BehaviourTreeWindow::DrawWindow()
     {
 
@@ -422,8 +467,11 @@ static void WalkBTAssetFlat(const BehaviorTreeAsset& asset, F&& fn)
             ImGui::EndPopup();
         }
 
+        //FILE SAVE AND DELETE
         ImGui::SameLine();
         DrawCreateBTFileUI(dir, files, currentIndex, loadedAsset, hasAsset, lastLoadedPath);
+        ImGui::SameLine();
+        DrawDeleteBTFileUI(dir, files, currentIndex, loadedAsset, hasAsset, lastLoadedPath);
 
         ImGui::Separator();
 
@@ -431,7 +479,7 @@ static void WalkBTAssetFlat(const BehaviorTreeAsset& asset, F&& fn)
         //FILE RENAMING
         DrawBTRenameUI(dir, files, currentIndex, lastLoadedPath);
 
-        //SAVE BUTTON
+        //SAVE CURR FILE BUTTON
         DrawBTSaveUI(dir, files, currentIndex, loadedAsset, lastLoadedPath, hasAsset);
 
         

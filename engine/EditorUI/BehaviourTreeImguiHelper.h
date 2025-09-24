@@ -34,3 +34,6 @@ std::string MakeNodeLabel(const BehaviorTreeAsset& a, int index);
 
  void RefreshBTList(const std::string& dir,std::vector<std::string>& files,int& currentIndex,
 	 BehaviorTreeAsset& loadedAsset,bool& hasAsset,std::string& lastLoadedPath);
+
+ bool DeleteBTFile(const std::string& dir, const std::vector<std::string>& files,
+     int currentIndex,std::string& deletedPath);
