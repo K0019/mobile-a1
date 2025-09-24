@@ -1,0 +1,17 @@
+{
+    "name": "newTest",
+    "nodes": [
+        {
+            "nodeType": "Sequence",
+            "nodeLevel": 0
+        },
+        {
+            "nodeType": "L_CheckMouseClick",
+            "nodeLevel": 1
+        },
+        {
+            "nodeType": "LeafFailTest",
+            "nodeLevel": 1
+        }
+    ]
+}

@@ -233,3 +233,41 @@ std::string MakeNodeLabel(const BehaviorTreeAsset& a, int index)
           hasAsset = false;                  // caller can show an error popup if desired
       }
   }
+
+
+  bool LoadSelectedBT(const std::string& dir, const std::vector<std::string>& files, int currentIndex,
+      BehaviorTreeAsset& out, bool& hasAsset, std::string& lastLoadedPath, int& selectedNodeIndex)
+  {
+      if (currentIndex < 0 || currentIndex >= (int)files.size()) {
+          hasAsset = false;
+          selectedNodeIndex = -1;
+          return false;
+      }
+
+      const std::string full = (std::filesystem::path(dir) / files[currentIndex]).string();
+
+      BehaviorTreeAsset tmp;
+      if (!LoadBTAssetFromFile(full, tmp)) {
+          hasAsset = false;
+          lastLoadedPath = full;
+          selectedNodeIndex = -1;
+          return false;
+      }
+
+      out = std::move(tmp);
+      hasAsset = true;
+      lastLoadedPath = full;
+
+      // default selection: first level-0 node if any
+      if (!out.nodes.empty()) {
+          int idx = 0;
+          for (int i = 0; i < (int)out.nodes.size(); ++i) {
+              if (out.nodes[i].nodeLevel == 0) { idx = i; break; }
+          }
+          selectedNodeIndex = idx;
+      }
+      else {
+          selectedNodeIndex = -1;
+      }
+      return true;
+  }

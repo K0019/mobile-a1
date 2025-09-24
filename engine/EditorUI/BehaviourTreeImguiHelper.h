@@ -37,3 +37,6 @@ std::string MakeNodeLabel(const BehaviorTreeAsset& a, int index);
 
  bool DeleteBTFile(const std::string& dir, const std::vector<std::string>& files,
      int currentIndex,std::string& deletedPath);
+
+ bool LoadSelectedBT(const std::string& dir, const std::vector<std::string>& files, int currentIndex,
+     BehaviorTreeAsset& out, bool& hasAsset, std::string& lastLoadedPath, int& selectedNodeIndex);

@@ -356,91 +356,357 @@ static void WalkBTAssetFlat(const BehaviorTreeAsset& asset, F&& fn)
         }
     }
 
-    void BehaviourTreeWindow::DrawWindow()
+    //void BehaviourTreeWindow::DrawWindow()
+    //{
+
+    //    // ===== persistent UI state =====
+    //    static std::string dir;                        // BT folder
+    //    static std::vector<std::string> files;              // file names (no path)
+    //    static int currentIndex = -1;             // index into files
+    //    static BehaviorTreeAsset loadedAsset;     // currently loaded asset
+    //    static bool hasAsset = false;
+    //    static std::string lastLoadedPath;             // for error popup
+    //    static int selectedNodeIndex;             // selection inside loadedAsset
+    //    static int nodeTypeComboIdx = 0;          // "Add Child" combo index
+    //    
+    //    // ===== small helpers kept local to this function =====
+    //    auto loadAssetFromSelected = [&]() -> bool {
+    //        if (currentIndex < 0 || currentIndex >= (int)files.size())
+    //            return false;
+
+    //        const std::string full = dir + "/" + files[currentIndex];
+
+    //        BehaviorTreeAsset tmp;
+    //        if (!LoadBTAssetFromFile(full, tmp)) {
+    //            hasAsset = false;
+    //            lastLoadedPath = full;
+    //            selectedNodeIndex = -1;
+    //            return false;
+    //        }
+
+    //        loadedAsset =tmp;
+    //        hasAsset = true;
+    //        lastLoadedPath = full;
+
+    //        // pick a reasonable default selection:
+    //        // prefer the first node at level 0, else just index 0, else none
+    //        if (!loadedAsset.nodes.empty()) {
+    //            int idx = 0;
+    //            for (int i = 0; i < (int)loadedAsset.nodes.size(); ++i) {
+    //                if (loadedAsset.nodes[i].nodeLevel == 0) { idx = i; break; }
+    //            }
+    //            selectedNodeIndex = idx;
+    //        }
+    //        else {
+    //            selectedNodeIndex = -1;
+    //        }
+
+    //        return true;
+    //        };
+
+    //    auto refreshList = [&]() {
+    //        files.clear();
+    //        std::error_code ec;
+    //        if (dir.empty()) return;
+    //        if (!std::filesystem::exists(dir, ec)) return;
+    //        for (auto& e : std::filesystem::directory_iterator(dir, ec)) {
+    //            if (!e.is_regular_file(ec)) continue;
+    //            const auto ext = e.path().extension().string();
+    //            if (ext == ".json" || ext == ".bht")
+    //                files.emplace_back(e.path().filename().string());
+    //        }
+    //        std::sort(files.begin(), files.end());
+    //        // fix selection
+    //        if (currentIndex < 0 || currentIndex >= (int)files.size())
+    //            currentIndex = files.empty() ? -1 : 0;
+    //        };
+
+    //    // ===== initialize dir once =====
+    //    if (dir.empty()) {
+    //        if (auto* fp = ST<Filepaths>::Get()) dir = fp->behaviourTreeSave;
+    //        else                                 dir = "Assets/BehaviourTrees";
+    //        refreshList();
+    //        (void)loadAssetFromSelected(); // auto-load first if any
+    //    }
+
+    //    // ===== top bar =====
+    //    ImGui::Text("Folder: %s", dir.c_str());
+    //    ImGui::SameLine();
+    //    if (ImGui::Button("Reload List")) {
+    //        refreshList();
+    //        if (!loadAssetFromSelected()) ImGui::OpenPopup("BT Load Error");
+    //    }
+
+    //    // file combo (auto-load on change)
+    //    ImGui::SameLine();
+    //    ImGui::TextDisabled("  File:");
+    //    ImGui::SameLine();
+    //    if (files.empty()) {
+    //        ImGui::TextDisabled("<no .json/.bht files>");
+    //    }
+    //    else {
+    //        const char* preview = files[currentIndex].c_str();
+    //        if (ImGui::BeginCombo("##bt_file_combo", preview, ImGuiComboFlags_WidthFitPreview)) {
+    //            for (int i = 0; i < (int)files.size(); ++i) {
+    //                bool sel = (i == currentIndex);
+    //                if (ImGui::Selectable(files[i].c_str(), sel)) {
+    //                    currentIndex = i;
+    //                    if (!loadAssetFromSelected()) ImGui::OpenPopup("BT Load Error");
+    //                }
+    //                if (sel) ImGui::SetItemDefaultFocus();
+    //            }
+    //            ImGui::EndCombo();
+    //        }
+    //    }
+
+    //    // error popup
+    //    if (ImGui::BeginPopupModal("BT Load Error", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
+    //        ImGui::Text("Failed to load:\n%s", lastLoadedPath.c_str());
+    //        ImGui::Spacing();
+    //        if (ImGui::Button("OK", ImVec2(120, 0))) ImGui::CloseCurrentPopup();
+    //        ImGui::EndPopup();
+    //    }
+
+    //    //FILE SAVE AND DELETE
+    //    ImGui::SameLine();
+    //    DrawCreateBTFileUI(dir, files, currentIndex, loadedAsset, hasAsset, lastLoadedPath);
+    //    ImGui::SameLine();
+    //    DrawDeleteBTFileUI(dir, files, currentIndex, loadedAsset, hasAsset, lastLoadedPath);
+
+    //    ImGui::Separator();
+
+
+    //    //FILE RENAMING
+    //    DrawBTRenameUI(dir, files, currentIndex, lastLoadedPath);
+
+    //    //SAVE CURR FILE BUTTON
+    //    DrawBTSaveUI(dir, files, currentIndex, loadedAsset, lastLoadedPath, hasAsset);
+
+    //    
+    //    // ===== editor split: left outline, right palette/inspector =====
+    //    ImGui::BeginChild("##bt_editor_root", ImVec2(0, 0), true);
+    //    ImGui::Columns(2, nullptr, true);
+
+    //    // LEFT: hierarchy
+    //    ImGui::TextDisabled("Hierarchy");
+    //    ImGui::BeginChild("##bt_hierarchy", ImVec2(0, 0), true);
+    //    if (!hasAsset || loadedAsset.nodes.empty()) {
+    //        ImGui::TextDisabled("<nothing loaded>");
+    //    }
+    //    else {
+    //        for (int i = 0; i < (int)loadedAsset.nodes.size(); ++i) {
+    //            const auto& nd = loadedAsset.nodes[i];
+
+    //            // indent by level
+    //            ImGui::Indent(nd.nodeLevel * 20.0f);
+
+    //            ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_Leaf
+    //                | ImGuiTreeNodeFlags_NoTreePushOnOpen
+    //                | ImGuiTreeNodeFlags_SpanAvailWidth;
+    //            if (i == selectedNodeIndex) flags |= ImGuiTreeNodeFlags_Selected;
+
+    //            ImGui::TreeNodeEx((void*)(intptr_t)i, flags, "%s (level %u)", nd.nodeType.c_str(), nd.nodeLevel);
+    //            if (ImGui::IsItemClicked()) selectedNodeIndex = i;
+
+    //            // unindent back
+    //            ImGui::Unindent(nd.nodeLevel * 20.0f);
+    //        }
+    //    }
+    //    ImGui::EndChild();
+
+    //    ImGui::NextColumn();
+
+    //    // ------------------------------------
+    //    // RIGHT: node palette + inspector
+    //    // ------------------------------------
+    //    ImGui::TextDisabled("Nodes Palette");
+    //    ImGui::BeginChild("##bt_palette", ImVec2(0, 160), true);
+    //    auto regTypes = ST<BTFactory>::Get()->RegisteredTypes();
+    //    std::sort(regTypes.begin(), regTypes.end());
+    //    if (regTypes.empty()) {
+    //        ImGui::TextDisabled("<no registered node types>");
+    //    }
+    //    else {
+    //        for (const auto& t : regTypes) {
+    //            ImGui::BulletText("%s", t.c_str());
+    //        }
+    //    }
+    //    ImGui::EndChild();
+
+    //    ImGui::Separator();
+    //    ImGui::TextDisabled("Inspector");
+
+    //    // Guard selection
+    //    if (!hasAsset || selectedNodeIndex < 0 || selectedNodeIndex >= (int)loadedAsset.nodes.size()) {
+    //        ImGui::TextDisabled("<select a node>");
+    //    }
+    //    else {
+    //        auto& nodes = loadedAsset.nodes;
+    //        const int parentIdx = selectedNodeIndex;
+    //        const unsigned pLevel = nodes[parentIdx].nodeLevel;
+
+    //        ImGui::Text("Type:  %s", nodes[parentIdx].nodeType.c_str());
+    //        ImGui::Text("Level: %u", nodes[parentIdx].nodeLevel);
+
+    //        // ---------- level-based helpers ----------
+    //        auto subtreeEnd = [&](int startIdx) -> int {
+    //            const unsigned base = nodes[startIdx].nodeLevel;
+    //            int i = startIdx + 1;
+    //            while (i < (int)nodes.size() && nodes[i].nodeLevel > base) ++i;
+    //            return i; // one past end of subtree
+    //            };
+
+    //        auto childrenRange = [&](int pIdx) -> std::pair<int, int> {
+    //            // direct children are in [first, end), but only those with level = pLevel+1 are *direct*
+    //            int first = pIdx + 1;
+    //            int end = subtreeEnd(pIdx);
+    //            return { first, end };
+    //            };
+
+    //        auto listDirectChildren = [&](int pIdx, std::vector<int>& out) {
+    //            out.clear();
+    //            auto [first, end] = childrenRange(pIdx);
+    //            const unsigned want = nodes[pIdx].nodeLevel + 1;
+    //            for (int i = first; i < end; ++i) {
+    //                if (nodes[i].nodeLevel == want) out.push_back(i);
+    //            }
+    //            };
+
+    //        auto adjustSubtreeLevel = [&](int startIdx, int delta) {
+    //            int end = subtreeEnd(startIdx);
+    //            for (int i = startIdx; i < end; ++i) {
+    //                int nl = (int)nodes[i].nodeLevel + delta;
+    //                if (nl < 0) nl = 0;
+    //                nodes[i].nodeLevel = (unsigned)nl;
+    //            }
+    //            };
+
+    //        auto moveSubtreeBlock = [&](int startA, int startB) {
+    //            // Move subtree block A to just before subtree block B by rotating ranges.
+    //            // Precondition: startA < startB.
+    //            const int endA = subtreeEnd(startA);
+    //            const int endB = subtreeEnd(startB);
+    //            std::rotate(nodes.begin() + startA, nodes.begin() + startB, nodes.begin() + endB);
+    //            };
+
+    //        // ---------- Children UI ----------
+    //        ImGui::SeparatorText("Children");
+
+    //        std::vector<int> childIdxs;
+    //        listDirectChildren(parentIdx, childIdxs);
+
+    //        if (childIdxs.empty()) {
+    //            ImGui::TextDisabled("<no children>");
+    //        }
+    //        else {
+    //            for (int c = 0; c < (int)childIdxs.size(); ++c) {
+    //                const int ci = childIdxs[c];
+    //                ImGui::BulletText("%d. %s (level %u)", c + 1, nodes[ci].nodeType.c_str(), nodes[ci].nodeLevel);
+    //                ImGui::SameLine();
+
+    //                ImGui::PushID(ci);
+
+    //                // Up: swap this child subtree with previous sibling subtree
+    //                if (ImGui::SmallButton("Up") && c > 0) {
+    //                    int prevStart = childIdxs[c - 1];
+    //                    int thisStart = childIdxs[c];
+    //                    if (prevStart > thisStart) std::swap(prevStart, thisStart);
+    //                    moveSubtreeBlock(prevStart, thisStart);
+    //                }
+    //                ImGui::SameLine();
+
+    //                // Down: swap with next sibling subtree
+    //                if (ImGui::SmallButton("Down") && c + 1 < (int)childIdxs.size()) {
+    //                    int thisStart = childIdxs[c];
+    //                    int nextStart = childIdxs[c + 1];
+    //                    if (thisStart > nextStart) std::swap(thisStart, nextStart);
+    //                    moveSubtreeBlock(thisStart, nextStart);
+    //                }
+    //                ImGui::SameLine();
+
+    //                // Detach: promote whole subtree by one level (becomes sibling of parent)
+    //                if (ImGui::SmallButton("Detach")) {
+    //                    if (nodes[ci].nodeLevel > 0) {
+    //                        adjustSubtreeLevel(ci, -1);
+    //                    }
+    //                }
+
+    //                ImGui::PopID();
+    //            }
+    //        }
+
+    //        // ---------- Add Child ----------
+    //        ImGui::SeparatorText("Add Child");
+
+    //        // Get the registered node types once per frame
+    //        std::vector<std::string> regTypes = ST<BTFactory>::Get()->RegisteredTypes();
+    //        std::sort(regTypes.begin(), regTypes.end());
+
+    //        if (regTypes.empty()) {
+    //            ImGui::TextDisabled("<no registered node types>");
+    //        }
+    //        else {
+    //            // A compact list: [TypeName]  [Add]
+    //            for (int i = 0; i < (int)regTypes.size(); ++i) {
+    //                ImGui::PushID(i); // ensure unique IDs per row
+
+    //                ImGui::TextUnformatted(regTypes[i].c_str());
+    //                ImGui::SameLine();
+
+    //                if (ImGui::SmallButton("Add")) {
+    //                    // Build the new node right under this parent
+    //                    BTNodeDesc newNd;
+    //                    newNd.nodeType = regTypes[i];
+    //                    newNd.nodeLevel = pLevel + 1;
+
+    //                    // Insert after the last direct child subtree (or right after the parent if no children)
+    //                    int insertPos = parentIdx + 1;
+    //                    {
+    //                        std::vector<int> directChildren;
+    //                        listDirectChildren(parentIdx, directChildren);     // fills indices of direct children (same level+1)
+    //                        if (!directChildren.empty()) {
+    //                            const int lastChildStart = directChildren.back();
+    //                            insertPos = subtreeEnd(lastChildStart);         // position *after* last child's subtree
+    //                        }
+    //                    }
+
+    //                    nodes.insert(nodes.begin() + insertPos, newNd);
+
+    //                    // pick the newly inserted node in the UI
+    //                    selectedNodeIndex = insertPos;
+    //                }
+
+    //                ImGui::PopID();
+    //            }
+    //        }
+
+    //    }
+
+    //    ImGui::Columns(1);
+    //    ImGui::EndChild();
+    //}
+
+    void DrawTopBar(std::string& dir,
+        std::vector<std::string>& files,
+        int& currentIndex,
+        BehaviorTreeAsset& loadedAsset,
+        bool& hasAsset,
+        std::string& lastLoadedPath,
+        int& selectedNodeIndex)
     {
-
-        // ===== persistent UI state =====
-        static std::string dir;                        // BT folder
-        static std::vector<std::string> files;              // file names (no path)
-        static int currentIndex = -1;             // index into files
-        static BehaviorTreeAsset loadedAsset;     // currently loaded asset
-        static bool hasAsset = false;
-        static std::string lastLoadedPath;             // for error popup
-        static int selectedNodeIndex;             // selection inside loadedAsset
-        static int nodeTypeComboIdx = 0;          // "Add Child" combo index
-        
-        // ===== small helpers kept local to this function =====
-        auto loadAssetFromSelected = [&]() -> bool {
-            if (currentIndex < 0 || currentIndex >= (int)files.size())
-                return false;
-
-            const std::string full = dir + "/" + files[currentIndex];
-
-            BehaviorTreeAsset tmp;
-            if (!LoadBTAssetFromFile(full, tmp)) {
-                hasAsset = false;
-                lastLoadedPath = full;
-                selectedNodeIndex = -1;
-                return false;
-            }
-
-            loadedAsset =tmp;
-            hasAsset = true;
-            lastLoadedPath = full;
-
-            // pick a reasonable default selection:
-            // prefer the first node at level 0, else just index 0, else none
-            if (!loadedAsset.nodes.empty()) {
-                int idx = 0;
-                for (int i = 0; i < (int)loadedAsset.nodes.size(); ++i) {
-                    if (loadedAsset.nodes[i].nodeLevel == 0) { idx = i; break; }
-                }
-                selectedNodeIndex = idx;
-            }
-            else {
-                selectedNodeIndex = -1;
-            }
-
-            return true;
-            };
-
-        auto refreshList = [&]() {
-            files.clear();
-            std::error_code ec;
-            if (dir.empty()) return;
-            if (!std::filesystem::exists(dir, ec)) return;
-            for (auto& e : std::filesystem::directory_iterator(dir, ec)) {
-                if (!e.is_regular_file(ec)) continue;
-                const auto ext = e.path().extension().string();
-                if (ext == ".json" || ext == ".bht")
-                    files.emplace_back(e.path().filename().string());
-            }
-            std::sort(files.begin(), files.end());
-            // fix selection
-            if (currentIndex < 0 || currentIndex >= (int)files.size())
-                currentIndex = files.empty() ? -1 : 0;
-            };
-
-        // ===== initialize dir once =====
-        if (dir.empty()) {
-            if (auto* fp = ST<Filepaths>::Get()) dir = fp->behaviourTreeSave;
-            else                                 dir = "Assets/BehaviourTrees";
-            refreshList();
-            (void)loadAssetFromSelected(); // auto-load first if any
-        }
-
-        // ===== top bar =====
         ImGui::Text("Folder: %s", dir.c_str());
         ImGui::SameLine();
         if (ImGui::Button("Reload List")) {
-            refreshList();
-            if (!loadAssetFromSelected()) ImGui::OpenPopup("BT Load Error");
+            RefreshBTList(dir, files, currentIndex, loadedAsset, hasAsset, lastLoadedPath);
+            if (!LoadSelectedBT(dir, files, currentIndex, loadedAsset, hasAsset, lastLoadedPath, selectedNodeIndex))
+                ImGui::OpenPopup("BT Load Error");
         }
 
-        // file combo (auto-load on change)
+        // File combo (auto-load)
         ImGui::SameLine();
         ImGui::TextDisabled("  File:");
         ImGui::SameLine();
+
         if (files.empty()) {
             ImGui::TextDisabled("<no .json/.bht files>");
         }
@@ -451,7 +717,8 @@ static void WalkBTAssetFlat(const BehaviorTreeAsset& asset, F&& fn)
                     bool sel = (i == currentIndex);
                     if (ImGui::Selectable(files[i].c_str(), sel)) {
                         currentIndex = i;
-                        if (!loadAssetFromSelected()) ImGui::OpenPopup("BT Load Error");
+                        if (!LoadSelectedBT(dir, files, currentIndex, loadedAsset, hasAsset, lastLoadedPath, selectedNodeIndex))
+                            ImGui::OpenPopup("BT Load Error");
                     }
                     if (sel) ImGui::SetItemDefaultFocus();
                 }
@@ -459,7 +726,7 @@ static void WalkBTAssetFlat(const BehaviorTreeAsset& asset, F&& fn)
             }
         }
 
-        // error popup
+        // Load error popup
         if (ImGui::BeginPopupModal("BT Load Error", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
             ImGui::Text("Failed to load:\n%s", lastLoadedPath.c_str());
             ImGui::Spacing();
@@ -467,7 +734,7 @@ static void WalkBTAssetFlat(const BehaviorTreeAsset& asset, F&& fn)
             ImGui::EndPopup();
         }
 
-        //FILE SAVE AND DELETE
+        // File ops
         ImGui::SameLine();
         DrawCreateBTFileUI(dir, files, currentIndex, loadedAsset, hasAsset, lastLoadedPath);
         ImGui::SameLine();
@@ -475,21 +742,18 @@ static void WalkBTAssetFlat(const BehaviorTreeAsset& asset, F&& fn)
 
         ImGui::Separator();
 
-
-        //FILE RENAMING
+        // Rename + Save
         DrawBTRenameUI(dir, files, currentIndex, lastLoadedPath);
-
-        //SAVE CURR FILE BUTTON
         DrawBTSaveUI(dir, files, currentIndex, loadedAsset, lastLoadedPath, hasAsset);
+    }
 
-        
-        // ===== editor split: left outline, right palette/inspector =====
-        ImGui::BeginChild("##bt_editor_root", ImVec2(0, 0), true);
-        ImGui::Columns(2, nullptr, true);
-
-        // LEFT: hierarchy
+    void DrawHierarchyPanel(const BehaviorTreeAsset& loadedAsset,
+        bool hasAsset,
+        int& selectedNodeIndex)
+    {
         ImGui::TextDisabled("Hierarchy");
         ImGui::BeginChild("##bt_hierarchy", ImVec2(0, 0), true);
+
         if (!hasAsset || loadedAsset.nodes.empty()) {
             ImGui::TextDisabled("<nothing loaded>");
         }
@@ -497,7 +761,6 @@ static void WalkBTAssetFlat(const BehaviorTreeAsset& asset, F&& fn)
             for (int i = 0; i < (int)loadedAsset.nodes.size(); ++i) {
                 const auto& nd = loadedAsset.nodes[i];
 
-                // indent by level
                 ImGui::Indent(nd.nodeLevel * 20.0f);
 
                 ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_Leaf
@@ -508,19 +771,18 @@ static void WalkBTAssetFlat(const BehaviorTreeAsset& asset, F&& fn)
                 ImGui::TreeNodeEx((void*)(intptr_t)i, flags, "%s (level %u)", nd.nodeType.c_str(), nd.nodeLevel);
                 if (ImGui::IsItemClicked()) selectedNodeIndex = i;
 
-                // unindent back
                 ImGui::Unindent(nd.nodeLevel * 20.0f);
             }
         }
+
         ImGui::EndChild();
+    }
 
-        ImGui::NextColumn();
-
-        // ------------------------------------
-        // RIGHT: node palette + inspector
-        // ------------------------------------
+    void DrawNodesPalettePanel()
+    {
         ImGui::TextDisabled("Nodes Palette");
         ImGui::BeginChild("##bt_palette", ImVec2(0, 160), true);
+
         auto regTypes = ST<BTFactory>::Get()->RegisteredTypes();
         std::sort(regTypes.begin(), regTypes.end());
         if (regTypes.empty()) {
@@ -532,155 +794,172 @@ static void WalkBTAssetFlat(const BehaviorTreeAsset& asset, F&& fn)
             }
         }
         ImGui::EndChild();
+    }
 
+    void DrawInspectorPanel(BehaviorTreeAsset& loadedAsset,
+        bool hasAsset,
+        int& selectedNodeIndex)
+    {
         ImGui::Separator();
         ImGui::TextDisabled("Inspector");
 
-        // Guard selection
         if (!hasAsset || selectedNodeIndex < 0 || selectedNodeIndex >= (int)loadedAsset.nodes.size()) {
             ImGui::TextDisabled("<select a node>");
+            return;
+        }
+
+        auto& nodes = loadedAsset.nodes;
+        const int parentIdx = selectedNodeIndex;
+        const unsigned pLevel = nodes[parentIdx].nodeLevel;
+
+        ImGui::Text("Type:  %s", nodes[parentIdx].nodeType.c_str());
+        ImGui::Text("Level: %u", nodes[parentIdx].nodeLevel);
+
+        // helpers
+        auto subtreeEnd = [&](int startIdx) -> int {
+            const unsigned base = nodes[startIdx].nodeLevel;
+            int i = startIdx + 1;
+            while (i < (int)nodes.size() && nodes[i].nodeLevel > base) ++i;
+            return i;
+            };
+        auto childrenRange = [&](int pIdx) -> std::pair<int, int> {
+            int first = pIdx + 1;
+            int end = subtreeEnd(pIdx);
+            return { first, end };
+            };
+        auto listDirectChildren = [&](int pIdx, std::vector<int>& out) {
+            out.clear();
+            auto [first, end] = childrenRange(pIdx);
+            const unsigned want = nodes[pIdx].nodeLevel + 1;
+            for (int i = first; i < end; ++i)
+                if (nodes[i].nodeLevel == want) out.push_back(i);
+            };
+        auto adjustSubtreeLevel = [&](int startIdx, int delta) {
+            int end = subtreeEnd(startIdx);
+            for (int i = startIdx; i < end; ++i) {
+                int nl = (int)nodes[i].nodeLevel + delta;
+                if (nl < 0) nl = 0;
+                nodes[i].nodeLevel = (unsigned)nl;
+            }
+            };
+        auto moveSubtreeBlock = [&](int startA, int startB) {
+            // pre: startA < startB
+            const int endA = subtreeEnd(startA);
+            const int endB = subtreeEnd(startB);
+            std::rotate(nodes.begin() + startA, nodes.begin() + startB, nodes.begin() + endB);
+            };
+
+        // Children list
+        ImGui::SeparatorText("Children");
+        std::vector<int> childIdxs;
+        listDirectChildren(parentIdx, childIdxs);
+
+        if (childIdxs.empty()) {
+            ImGui::TextDisabled("<no children>");
         }
         else {
-            auto& nodes = loadedAsset.nodes;
-            const int parentIdx = selectedNodeIndex;
-            const unsigned pLevel = nodes[parentIdx].nodeLevel;
+            for (int c = 0; c < (int)childIdxs.size(); ++c) {
+                const int ci = childIdxs[c];
+                ImGui::BulletText("%d. %s (level %u)", c + 1, nodes[ci].nodeType.c_str(), nodes[ci].nodeLevel);
+                ImGui::SameLine();
 
-            ImGui::Text("Type:  %s", nodes[parentIdx].nodeType.c_str());
-            ImGui::Text("Level: %u", nodes[parentIdx].nodeLevel);
+                ImGui::PushID(ci);
 
-            // ---------- level-based helpers ----------
-            auto subtreeEnd = [&](int startIdx) -> int {
-                const unsigned base = nodes[startIdx].nodeLevel;
-                int i = startIdx + 1;
-                while (i < (int)nodes.size() && nodes[i].nodeLevel > base) ++i;
-                return i; // one past end of subtree
-                };
-
-            auto childrenRange = [&](int pIdx) -> std::pair<int, int> {
-                // direct children are in [first, end), but only those with level = pLevel+1 are *direct*
-                int first = pIdx + 1;
-                int end = subtreeEnd(pIdx);
-                return { first, end };
-                };
-
-            auto listDirectChildren = [&](int pIdx, std::vector<int>& out) {
-                out.clear();
-                auto [first, end] = childrenRange(pIdx);
-                const unsigned want = nodes[pIdx].nodeLevel + 1;
-                for (int i = first; i < end; ++i) {
-                    if (nodes[i].nodeLevel == want) out.push_back(i);
+                if (ImGui::SmallButton("Up") && c > 0) {
+                    int prevStart = childIdxs[c - 1], thisStart = childIdxs[c];
+                    if (prevStart > thisStart) std::swap(prevStart, thisStart);
+                    moveSubtreeBlock(prevStart, thisStart);
                 }
-                };
+                ImGui::SameLine();
 
-            auto adjustSubtreeLevel = [&](int startIdx, int delta) {
-                int end = subtreeEnd(startIdx);
-                for (int i = startIdx; i < end; ++i) {
-                    int nl = (int)nodes[i].nodeLevel + delta;
-                    if (nl < 0) nl = 0;
-                    nodes[i].nodeLevel = (unsigned)nl;
+                if (ImGui::SmallButton("Down") && c + 1 < (int)childIdxs.size()) {
+                    int thisStart = childIdxs[c], nextStart = childIdxs[c + 1];
+                    if (thisStart > nextStart) std::swap(thisStart, nextStart);
+                    moveSubtreeBlock(thisStart, nextStart);
                 }
-                };
+                ImGui::SameLine();
 
-            auto moveSubtreeBlock = [&](int startA, int startB) {
-                // Move subtree block A to just before subtree block B by rotating ranges.
-                // Precondition: startA < startB.
-                const int endA = subtreeEnd(startA);
-                const int endB = subtreeEnd(startB);
-                std::rotate(nodes.begin() + startA, nodes.begin() + startB, nodes.begin() + endB);
-                };
-
-            // ---------- Children UI ----------
-            ImGui::SeparatorText("Children");
-
-            std::vector<int> childIdxs;
-            listDirectChildren(parentIdx, childIdxs);
-
-            if (childIdxs.empty()) {
-                ImGui::TextDisabled("<no children>");
-            }
-            else {
-                for (int c = 0; c < (int)childIdxs.size(); ++c) {
-                    const int ci = childIdxs[c];
-                    ImGui::BulletText("%d. %s (level %u)", c + 1, nodes[ci].nodeType.c_str(), nodes[ci].nodeLevel);
-                    ImGui::SameLine();
-
-                    ImGui::PushID(ci);
-
-                    // Up: swap this child subtree with previous sibling subtree
-                    if (ImGui::SmallButton("Up") && c > 0) {
-                        int prevStart = childIdxs[c - 1];
-                        int thisStart = childIdxs[c];
-                        if (prevStart > thisStart) std::swap(prevStart, thisStart);
-                        moveSubtreeBlock(prevStart, thisStart);
-                    }
-                    ImGui::SameLine();
-
-                    // Down: swap with next sibling subtree
-                    if (ImGui::SmallButton("Down") && c + 1 < (int)childIdxs.size()) {
-                        int thisStart = childIdxs[c];
-                        int nextStart = childIdxs[c + 1];
-                        if (thisStart > nextStart) std::swap(thisStart, nextStart);
-                        moveSubtreeBlock(thisStart, nextStart);
-                    }
-                    ImGui::SameLine();
-
-                    // Detach: promote whole subtree by one level (becomes sibling of parent)
-                    if (ImGui::SmallButton("Detach")) {
-                        if (nodes[ci].nodeLevel > 0) {
-                            adjustSubtreeLevel(ci, -1);
-                        }
-                    }
-
-                    ImGui::PopID();
+                if (ImGui::SmallButton("Detach")) {
+                    if (nodes[ci].nodeLevel > 0) adjustSubtreeLevel(ci, -1);
                 }
+
+                ImGui::PopID();
             }
-
-            // ---------- Add Child ----------
-            ImGui::SeparatorText("Add Child");
-
-            // Get the registered node types once per frame
-            std::vector<std::string> regTypes = ST<BTFactory>::Get()->RegisteredTypes();
-            std::sort(regTypes.begin(), regTypes.end());
-
-            if (regTypes.empty()) {
-                ImGui::TextDisabled("<no registered node types>");
-            }
-            else {
-                // A compact list: [TypeName]  [Add]
-                for (int i = 0; i < (int)regTypes.size(); ++i) {
-                    ImGui::PushID(i); // ensure unique IDs per row
-
-                    ImGui::TextUnformatted(regTypes[i].c_str());
-                    ImGui::SameLine();
-
-                    if (ImGui::SmallButton("Add")) {
-                        // Build the new node right under this parent
-                        BTNodeDesc newNd;
-                        newNd.nodeType = regTypes[i];
-                        newNd.nodeLevel = pLevel + 1;
-
-                        // Insert after the last direct child subtree (or right after the parent if no children)
-                        int insertPos = parentIdx + 1;
-                        {
-                            std::vector<int> directChildren;
-                            listDirectChildren(parentIdx, directChildren);     // fills indices of direct children (same level+1)
-                            if (!directChildren.empty()) {
-                                const int lastChildStart = directChildren.back();
-                                insertPos = subtreeEnd(lastChildStart);         // position *after* last child's subtree
-                            }
-                        }
-
-                        nodes.insert(nodes.begin() + insertPos, newNd);
-
-                        // pick the newly inserted node in the UI
-                        selectedNodeIndex = insertPos;
-                    }
-
-                    ImGui::PopID();
-                }
-            }
-
         }
+
+        // Add Child (dropdown)
+        ImGui::SeparatorText("Add Child");
+
+        std::vector<std::string> regTypes = ST<BTFactory>::Get()->RegisteredTypes();
+        std::sort(regTypes.begin(), regTypes.end());
+
+        static int addTypeIdx = 0;
+        if (regTypes.empty()) {
+            ImGui::TextDisabled("<no registered node types>");
+        }
+        else {
+            if (addTypeIdx >= (int)regTypes.size()) addTypeIdx = 0;
+            if (ImGui::BeginCombo("Type", regTypes[addTypeIdx].c_str())) {
+                for (int i = 0; i < (int)regTypes.size(); ++i) {
+                    bool sel = (i == addTypeIdx);
+                    if (ImGui::Selectable(regTypes[i].c_str(), sel)) addTypeIdx = i;
+                    if (sel) ImGui::SetItemDefaultFocus();
+                }
+                ImGui::EndCombo();
+            }
+
+            if (ImGui::SmallButton("Add")) {
+                BTNodeDesc nd;
+                nd.nodeType = regTypes[addTypeIdx];
+                nd.nodeLevel = pLevel + 1;
+
+                // insert after last direct child's subtree (or right after parent if none)
+                int insertPos = parentIdx + 1;
+                std::vector<int> directChildren;
+                listDirectChildren(parentIdx, directChildren);
+                if (!directChildren.empty()) {
+                    const int lastChildStart = directChildren.back();
+                    insertPos = subtreeEnd(lastChildStart);
+                }
+                nodes.insert(nodes.begin() + insertPos, nd);
+                selectedNodeIndex = insertPos;
+            }
+        }
+    }
+
+
+    void BehaviourTreeWindow::DrawWindow()
+    {
+        // Persistent UI state
+        static std::string dir;
+        static std::vector<std::string> files;
+        static int currentIndex = -1;
+        static BehaviorTreeAsset loadedAsset;
+        static bool hasAsset = false;
+        static std::string lastLoadedPath;
+        static int selectedNodeIndex = -1;
+
+        // Init dir + list + first load
+        if (dir.empty()) {
+            if (auto* fp = ST<Filepaths>::Get()) dir = fp->behaviourTreeSave;
+            else                                 dir = "Assets/BehaviourTrees";
+
+            RefreshBTList(dir, files, currentIndex, loadedAsset, hasAsset, lastLoadedPath);
+            LoadSelectedBT(dir, files, currentIndex, loadedAsset, hasAsset, lastLoadedPath, selectedNodeIndex);
+        }
+
+        // Top bar
+        DrawTopBar(dir, files, currentIndex, loadedAsset, hasAsset, lastLoadedPath, selectedNodeIndex);
+
+        // Split: left hierarchy / right palette + inspector
+        ImGui::BeginChild("##bt_editor_root", ImVec2(0, 0), true);
+        ImGui::Columns(2, nullptr, true);
+
+        DrawHierarchyPanel(loadedAsset, hasAsset, selectedNodeIndex);
+
+        ImGui::NextColumn();
+        DrawNodesPalettePanel();
+        DrawInspectorPanel(loadedAsset, hasAsset, selectedNodeIndex);
 
         ImGui::Columns(1);
         ImGui::EndChild();
