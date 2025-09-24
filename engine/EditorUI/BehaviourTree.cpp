@@ -1,4 +1,5 @@
 #include "BehaviourTree.h"
+#include "BehaviourTreeImguiHelper.h"
 #include "BehaviourTreeFactory.h"
 
 
@@ -13,35 +14,6 @@ BehaviorTree::~BehaviorTree()
     rootNode = nullptr;
 }
 
-BehaviorTreeAsset CreateAsset()
-{
-    BehaviorTreeAsset result{};
-    BTNodeDesc node{};
-    node.nodeLevel = 0;
-    node.nodeType = "Sequence";
-    result.nodes.push_back(node);
-    node.nodeLevel = 1;
-    node.nodeType = "Sequence";
-    result.nodes.push_back(node);
-    node.nodeLevel = 2;
-    node.nodeType = "Sequence";
-    result.nodes.push_back(node);
-    node.nodeLevel = 3;
-    node.nodeType = "L_CheckMouseClick";
-    result.nodes.push_back(node);
-    node.nodeLevel = 3;
-    node.nodeType = "L_CheckMouseClick";
-    result.nodes.push_back(node);
-    node.nodeLevel = 2;
-    node.nodeType = "L_CheckMouseClick";
-    result.nodes.push_back(node);
-    node.nodeLevel = 1;
-    node.nodeType = "L_CheckMouseClick";
-    result.nodes.push_back(node);
-
-    return result;
-}
-
 void BehaviorTree::Set(std::string treeName, ecs::EntityHandle entityHandle)
 {
     //Set the entity handle
@@ -51,7 +23,13 @@ void BehaviorTree::Set(std::string treeName, ecs::EntityHandle entityHandle)
     std::vector<std::unique_ptr<BehaviorNode*>> parents{};
 
     //All the data of the tree.
-    BehaviorTreeAsset btAsset{CreateAsset()};
+    std::string fileName{ ST<Filepaths>::Get()->behaviourTreeSave + "/" + treeName + ".json"};
+    BehaviorTreeAsset btAsset{};
+    if (!LoadBTAssetFromFile(fileName, btAsset))
+    {
+        CONSOLE_LOG(LEVEL_ERROR) << "behavior tree file could not be loaded.";
+        return;
+    }
 
     //Create and Set the root node.
     BehaviorNode* root{ ST<BTFactory>::Get()->Create(btAsset.nodes[0].nodeType) };
@@ -111,7 +89,7 @@ BehaviorTreeComp::BehaviorTreeComp()
 
 void BehaviorTreeComp::OnAttached()
 {
-    behaviorTree.Set("tree", ecs::GetEntity(this));
+    behaviorTree.Set("testNestedTree", ecs::GetEntity(this));
 }
 
 void BehaviorTreeComp::OnDetached()

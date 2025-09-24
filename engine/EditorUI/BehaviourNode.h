@@ -37,7 +37,7 @@ public:
 
     NODE_STATUS Tick();
 
-    virtual bool AddChild(BehaviorNode* childPtr) { return false; }
+    virtual bool AddChild([[maybe_unused]] BehaviorNode* childPtr) { return false; }
     virtual void RemoveChildren() {}
 private:
     NODE_STATUS status;

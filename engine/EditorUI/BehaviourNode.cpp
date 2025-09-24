@@ -123,11 +123,11 @@ NODE_STATUS Sequence::OnUpdate()
     while (currentChildItr != childrenPtr.end())
     {
         //Run the child node.
-        NODE_STATUS status{ (*currentChildItr)->Tick() };
+        NODE_STATUS stat{ (*currentChildItr)->Tick() };
         
         //If the child returns failure or running, return the same thing.
-        if (status != NODE_STATUS::SUCCESS)
-            return status;
+        if (stat != NODE_STATUS::SUCCESS)
+            return stat;
 
         //If the child succeeded, go to the next node.
         ++currentChildItr;
