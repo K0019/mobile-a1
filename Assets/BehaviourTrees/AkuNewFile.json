@@ -1,0 +1,13 @@
+{
+    "name": "AkuNewFile",
+    "nodes": [
+        {
+            "nodeType": "Sequence",
+            "nodeLevel": 0
+        },
+        {
+            "nodeType": "LeafFailTest",
+            "nodeLevel": 1
+        }
+    ]
+}
