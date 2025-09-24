@@ -12,6 +12,30 @@
         {
             "nodeType": "LeafFailTest",
             "nodeLevel": 1
+        },
+        {
+            "nodeType": "L_CheckMouseClick",
+            "nodeLevel": 1
+        },
+        {
+            "nodeType": "Sequence",
+            "nodeLevel": 1
+        },
+        {
+            "nodeType": "Sequence",
+            "nodeLevel": 2
+        },
+        {
+            "nodeType": "L_CheckMouseClick",
+            "nodeLevel": 3
+        },
+        {
+            "nodeType": "Sequence",
+            "nodeLevel": 3
+        },
+        {
+            "nodeType": "LeafFailTest",
+            "nodeLevel": 4
         }
     ]
 }

@@ -890,41 +890,72 @@ static void WalkBTAssetFlat(const BehaviorTreeAsset& asset, F&& fn)
         // Add Child (dropdown)
         ImGui::SeparatorText("Add Child");
 
+        // Get the available node types once per frame
         std::vector<std::string> regTypes = ST<BTFactory>::Get()->RegisteredTypes();
         std::sort(regTypes.begin(), regTypes.end());
 
-        static int addTypeIdx = 0;
-        if (regTypes.empty()) {
+        if (regTypes.empty())
+        {
             ImGui::TextDisabled("<no registered node types>");
         }
-        else {
-            if (addTypeIdx >= (int)regTypes.size()) addTypeIdx = 0;
-            if (ImGui::BeginCombo("Type", regTypes[addTypeIdx].c_str())) {
-                for (int i = 0; i < (int)regTypes.size(); ++i) {
-                    bool sel = (i == addTypeIdx);
-                    if (ImGui::Selectable(regTypes[i].c_str(), sel)) addTypeIdx = i;
+        else
+        {
+            // Decide if we even allow adding for this parent
+            const NodeKind parentKind = ClassifyNodeType(nodes[parentIdx].nodeType);
+            const bool canAddNow = CanParentAddChild(nodes, parentIdx);
+
+            if (parentKind == NodeKind::Leaf)
+            {
+                ImGui::TextDisabled("This is a Leaf node. It cannot have children.");
+            }
+            else if (parentKind == NodeKind::Decorator && !canAddNow)
+            {
+                ImGui::TextDisabled("Decorator already has 1 child.");
+            }
+
+            // Node type dropdown (works for Composite and Decorator when allowed)
+            static int nodeTypeComboIdx = 0;
+            if (nodeTypeComboIdx >= (int)regTypes.size()) nodeTypeComboIdx = 0;
+
+            if (ImGui::BeginCombo("Type", regTypes[nodeTypeComboIdx].c_str()))
+            {
+                for (int i = 0; i < (int)regTypes.size(); ++i)
+                {
+                    const bool sel = (i == nodeTypeComboIdx);
+                    if (ImGui::Selectable(regTypes[i].c_str(), sel)) nodeTypeComboIdx = i;
                     if (sel) ImGui::SetItemDefaultFocus();
                 }
                 ImGui::EndCombo();
             }
 
-            if (ImGui::SmallButton("Add")) {
-                BTNodeDesc nd;
-                nd.nodeType = regTypes[addTypeIdx];
-                nd.nodeLevel = pLevel + 1;
+            // Disable the button if parent can't accept a child (leaf or full decorator)
+            if (!canAddNow) ImGui::BeginDisabled();
 
-                // insert after last direct child's subtree (or right after parent if none)
+            if (ImGui::Button("Add Child"))
+            {
+                BTNodeDesc newNd;
+                newNd.nodeType = regTypes[nodeTypeComboIdx];
+                newNd.nodeLevel = pLevel + 1;
+
+                // Insert after the last existing direct child subtree (or right after parent if none)
                 int insertPos = parentIdx + 1;
-                std::vector<int> directChildren;
-                listDirectChildren(parentIdx, directChildren);
-                if (!directChildren.empty()) {
-                    const int lastChildStart = directChildren.back();
-                    insertPos = subtreeEnd(lastChildStart);
+                {
+                    std::vector<int> directChildren;
+                    ListDirectChildren(nodes, parentIdx, directChildren);
+                    if (!directChildren.empty())
+                    {
+                        const int lastChildStart = directChildren.back();
+                        insertPos = SubtreeEnd(nodes, lastChildStart);
+                    }
                 }
-                nodes.insert(nodes.begin() + insertPos, nd);
-                selectedNodeIndex = insertPos;
+
+                nodes.insert(nodes.begin() + insertPos, newNd);
+                selectedNodeIndex = insertPos; // select the newly added node
             }
+
+            if (!canAddNow) ImGui::EndDisabled();
         }
+        
     }
 
 

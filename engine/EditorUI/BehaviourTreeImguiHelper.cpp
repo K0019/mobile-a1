@@ -271,3 +271,53 @@ std::string MakeNodeLabel(const BehaviorTreeAsset& a, int index)
       }
       return true;
   }
+
+  NodeKind ClassifyNodeType(const std::string& typeName)
+  {
+      std::unique_ptr<BehaviorNode> n(ST<BTFactory>::Get()->Create(typeName));
+      if (!n) return NodeKind::Leaf; // safest fallback
+
+      if (dynamic_cast<CompositeNode*>(n.get())) return NodeKind::Composite;
+      if (dynamic_cast<Decorator*>(n.get()))    return NodeKind::Decorator;
+      return NodeKind::Leaf;
+  }
+
+  void ListDirectChildren(const std::vector<BTNodeDesc>& nodes,
+      int parentIdx,
+      std::vector<int>& out)
+  {
+      out.clear();
+      if (parentIdx < 0 || parentIdx >= (int)nodes.size()) return;
+
+      const unsigned base = nodes[parentIdx].nodeLevel;
+      const unsigned want = base + 1;
+      int i = parentIdx + 1;
+      while (i < (int)nodes.size() && nodes[i].nodeLevel > base)
+      {
+          if (nodes[i].nodeLevel == want) out.push_back(i);
+          ++i;
+      }
+  }
+
+  int SubtreeEnd(const std::vector<BTNodeDesc>& nodes, int startIdx)
+  {
+      const unsigned base = nodes[startIdx].nodeLevel;
+      int i = startIdx + 1;
+      while (i < (int)nodes.size() && nodes[i].nodeLevel > base) ++i;
+      return i;
+  }
+
+  // Check if parent can add a child
+  bool CanParentAddChild(const std::vector<BTNodeDesc>& nodes, int parentIdx)
+  {
+      if (parentIdx < 0 || parentIdx >= (int)nodes.size()) return false;
+
+      const auto kind = ClassifyNodeType(nodes[parentIdx].nodeType);
+      if (kind == NodeKind::Leaf) return false;
+      if (kind == NodeKind::Composite) return true;
+
+      // Decorator: allow only one direct child
+      std::vector<int> kids;
+      ListDirectChildren(nodes, parentIdx, kids);
+      return kids.empty(); // can add if none yet
+  }

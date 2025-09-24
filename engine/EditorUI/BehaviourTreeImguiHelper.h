@@ -3,6 +3,7 @@
 #include "GUIAsECS.h"   // <-- Required so WindowBase is known
 #include "BehaviourTree.h"
 
+enum class NodeKind { Leaf, Decorator, Composite };
 
 
 bool LoadBTAssetFromFile(const std::string& path, BehaviorTreeAsset& out);
@@ -40,3 +41,10 @@ std::string MakeNodeLabel(const BehaviorTreeAsset& a, int index);
 
  bool LoadSelectedBT(const std::string& dir, const std::vector<std::string>& files, int currentIndex,
      BehaviorTreeAsset& out, bool& hasAsset, std::string& lastLoadedPath, int& selectedNodeIndex);
+
+ NodeKind ClassifyNodeType(const std::string& typeName);
+ void ListDirectChildren(const std::vector<BTNodeDesc>& nodes, int parentIdx, std::vector<int>& out);
+ 
+ int SubtreeEnd(const std::vector<BTNodeDesc>& nodes, int startIdx);
+
+ bool CanParentAddChild(const std::vector<BTNodeDesc>& nodes, int parentIdx);
