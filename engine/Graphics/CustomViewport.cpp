@@ -243,10 +243,10 @@ void CustomViewport::DrawImGuiWindow() {
 					ecs::EntityHandle entity{ ecs::CreateEntity() };
 					ST<History>::Get()->OneEvent(HistoryEvent_EntityCreate{ entity });
 					size_t ID = *static_cast<size_t*>(payload->Data);
-					const auto& sprite = ResourceManager::GetSprite(ID);
+					const auto& sprite = ResourceManagerOld::GetSprite(ID);
 					CONSOLE_LOG_UNIMPLEMENTED() << "Spawn entity from sprite drop into viewport";
 					//entity->GetTransform().SetLocal(0.5f, InputOld::GetMousePosWorld(), { static_cast<float>(sprite.width), static_cast<float>(sprite.height) }, 0.0f);
-					entity->AddCompNow(RenderComponent{ ID });
+					entity->AddCompNow(SpriteComponent{ ID });
 					ST<Inspector>::Get()->SetSelectedEntity(entity);
 				}
 			}
@@ -269,8 +269,8 @@ void CustomViewport::DrawImGuiWindow() {
 					size_t animHash = *static_cast<size_t*>(payload_anim->Data);
 					ecs::EntityHandle entity = ecs::CreateEntity();
 					ST<History>::Get()->OneEvent(HistoryEvent_EntityCreate{ entity });
-					const auto& anim = ResourceManager::GetAnimation(animHash);
-					entity->AddCompNow(RenderComponent{});
+					const auto& anim = ResourceManagerOld::GetAnimation(animHash);
+					entity->AddCompNow(SpriteComponent{});
 					entity->AddCompNow(AnimatorComponent{ animHash });
 					CONSOLE_LOG_UNIMPLEMENTED() << "Spawn entity from animation drop into viewport";
 					//entity->GetTransform().SetLocal(0.5f, InputOld::GetMousePosWorld(), { static_cast<float>(anim.Width), static_cast<float>(anim.Height) }, 0.0f);
@@ -328,10 +328,10 @@ void CustomViewport::MaintainAspectRatio(ImGuiSizeCallbackData* data) {
 Transform CustomViewport::WorldToWindowTransform(const Transform& worldTransform) const {
 	Transform viewTransform;
 #ifdef IMGUI_ENABLED
-	auto WORLD = ST<GraphicsMain>::Get()->GetViewportExtent();
+	auto WORLD = ST<GraphicsWindow>::Get()->GetViewportExtent();
 #else
-	auto WORLD = ST<GraphicsMain>::Get()->GetWorldExtent();
-	auto WINDOW = ST<GraphicsMain>::Get()->GetWindowExtent();
+	auto WORLD = ST<GraphicsWindow>::Get()->GetWorldExtent();
+	auto WINDOW = ST<GraphicsWindow>::Get()->GetWindowExtent();
 #endif
 
 	CONSOLE_LOG_UNIMPLEMENTED() << "Viewport, world to window position conversion";

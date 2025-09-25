@@ -1,6 +1,6 @@
 /******************************************************************************/
 /*!
-\file   RenderComponent.h
+\file   GraphicsECSSprite.h
 \par    Project: 7percent
 \par    Course: CSD2401
 \par    Section B
@@ -21,18 +21,20 @@ All rights reserved.
 
 #pragma once
 #include "Materials.h"
-#include "ResourceManager.h"
+#include "EntityLayers.h"
 
-class RenderComponent
-    : public IRegisteredComponent<RenderComponent>
-    , public IEditorComponent<RenderComponent>
+class Renderer;
+
+class SpriteComponent
+    : public IRegisteredComponent<SpriteComponent>
+    , public IEditorComponent<SpriteComponent>
 {
 public:
-    explicit RenderComponent();
+    explicit SpriteComponent();
 
-    explicit RenderComponent(size_t spriteID, bool flippedX = false, bool flippedY = false);
+    explicit SpriteComponent(size_t spriteID, bool flippedX = false, bool flippedY = false);
 
-    explicit RenderComponent(const std::string& spriteName, bool flippedX = false, bool flippedY = false);
+    explicit SpriteComponent(const std::string& spriteName, bool flippedX = false, bool flippedY = false);
 
     size_t GetSpriteID() const;
 
@@ -70,7 +72,7 @@ public:
 };
 
 // Updated property registration to include material instance
-property_begin(RenderComponent)
+property_begin(SpriteComponent)
 {
     property_var(spriteID),
     property_var(color), // REMOVE THIS LINE ONCE SCENE CHANGES ARE STABALIZED
@@ -78,4 +80,13 @@ property_begin(RenderComponent)
     property_var(flippedY),
     property_var(m_materialInstance)
 }
-property_vend_h(RenderComponent)
+property_vend_h(SpriteComponent)
+
+class SpriteRenderSystem : public ecs::SystemOperatingByLayer<SpriteRenderSystem, SpriteComponent>
+{
+public:
+    explicit SpriteRenderSystem();
+private:
+    Renderer* renderer;
+    void DrawRenderComp(SpriteComponent& renderComp);
+};

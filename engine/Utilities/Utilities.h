@@ -243,9 +243,19 @@ namespace util {
 	\param c
 		The character.
 	\return
-		The character in uppercase.
+		The character in lowercase.
 	*//******************************************************************/
 	char ToLower(int c);
+
+	/*****************************************************************//*!
+	\brief
+		Converts a string to lower case.
+	\param str
+		The string.
+	\return
+		The string in lowercase.
+	*//******************************************************************/
+	std::string ToLowerStr(std::string str);
 
 	/*****************************************************************//*!
 	\brief

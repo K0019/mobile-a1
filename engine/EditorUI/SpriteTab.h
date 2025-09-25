@@ -3,7 +3,7 @@
 
 
 struct SpriteTab
-	: BaseAssetCategory
+	: editor::BaseAssetCategory
 {
 	const char* GetName() const override;
 	const char* GetIdentifier() const override;

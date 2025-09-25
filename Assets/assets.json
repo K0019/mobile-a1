@@ -1,26 +1,50 @@
 {
-    "sprites": [
+    "files": [
         {
-            "id": 0,
-            "name": "white",
-            "texturePath": "/Assets\\Images\\white.png",
-            "width": 1,
-            "height": 1,
-            "texCoords": [
-                0.0,
-                0.0,
-                1.0,
-                1.0
+            "filepath": "fbxcars\\box.fbx",
+            "resources": [
+                {
+                    "resourceType": 7953536019925557911,
+                    "resourceEntries": [
+                        {
+                            "hash": 47811164601792193,
+                            "name": "box0"
+                        }
+                    ]
+                },
+                {
+                    "resourceType": 9642906986363137133,
+                    "resourceEntries": [
+                        {
+                            "hash": 53909056089437889,
+                            "name": "box0"
+                        }
+                    ]
+                }
             ]
-        }
-    ],
-    "animations": [],
-    "sounds": [
-        {
-            "name": "Gylia Shanty (Cinfras County).mp3"
         },
         {
-            "name": "Kalimba.mp3"
+            "filepath": "fbxcars\\ambulance.fbx",
+            "resources": [
+                {
+                    "resourceType": 7953536019925557911,
+                    "resourceEntries": [
+                        {
+                            "hash": 58130081228471139,
+                            "name": "ambulance0"
+                        }
+                    ]
+                },
+                {
+                    "resourceType": 9642906986363137133,
+                    "resourceEntries": [
+                        {
+                            "hash": 60236745507289955,
+                            "name": "ambulance0"
+                        }
+                    ]
+                }
+            ]
         }
     ]
 }

@@ -28,19 +28,63 @@ All rights reserved.
 /******************************************************************************/
 
 #pragma once
+#include "ResourceTypesGraphics.h"
+#include "ResourceFilepaths.h"
+#include "ResourceNames.h"
+
+#include "scene.h"
+
 #include "Animation.h"
 
 #include "AssetBrowser.h"
 #include "Sprite.h"
 #include "GameSettings.h"
 
+class ResourceManager
+{
+public:
+    void Init();
+    void Shutdown();
 
-// A static singleton ResourceManager class that hosts several
+    static UserResourceGetter<ResourceMesh> Meshes();
+    static UserResourceGetter<ResourceMaterial> Materials();
+
+    void SaveToFile() const;
+    void LoadFromFile();
+
+private:
+    static void OnResourceRequestedLoad(size_t hash);
+
+public:
+    const ResourceContainerMeshes& Editor_GetMeshes();
+    const ResourceContainerMaterials& Editor_GetMaterials();
+    const std::string& Editor_GetName(size_t hash);
+
+public:
+    ResourceFilepaths& INTERNAL_GetFilepathsManager();
+    ResourceNames& INTERNAL_GetNamesManager();
+
+    ResourceContainerMeshes& INTERNAL_GetMeshes();
+    ResourceContainerMaterials& INTERNAL_GetMaterials();
+
+    void INTERNAL_CreateEmptyResource(size_t resourceTypeHash, size_t resourceHash);
+
+private:
+    ResourceFilepaths filepathsManager;
+    ResourceNames namesManager;
+
+    ResourceContainerMeshes meshes;
+    ResourceContainerMaterials materials;
+
+};
+
+
+// A static singleton ResourceManagerOld class that hosts several
 // functions to load Textures and Shaders. Each loaded texture
 // and/or shader is also stored for future reference by string
 // handles. All functions and resources are static and no 
 // public constructor is defined.
-class ResourceManager {
+class ResourceManagerOld {
 public:
     struct SpriteSlot;
 
@@ -102,7 +146,7 @@ private:
     static std::unordered_map<size_t, SpriteSlot> Sprites;
     static size_t NextSpriteID;
 
-    ResourceManager() = default;
+    ResourceManagerOld() = default;
 
 public:
     struct SpriteSlot : public ISerializeable
@@ -122,7 +166,7 @@ public:
     };
 };
 
-property_begin(ResourceManager::SpriteSlot)
+property_begin(ResourceManagerOld::SpriteSlot)
 {
 }
-property_vend_h(ResourceManager::SpriteSlot)
+property_vend_h(ResourceManagerOld::SpriteSlot)

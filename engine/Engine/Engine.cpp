@@ -26,6 +26,7 @@ All rights reserved.
 /******************************************************************************/
 #include "Engine.h"
 
+#include "ResourceManager.h"
 #include "SceneManagement.h"
 #include "EntitySpawnEvents.h"
 #include "IGameComponentCallbacks.h"
@@ -180,9 +181,8 @@ void Engine::init()
 	auto windowCreate = std::chrono::high_resolution_clock::now();
 
 	// Graphics initialization
-	auto graphicsMain{ ST<GraphicsMain>::Get() };
-	graphicsMain->Init();
-	graphicsMain->SetCallback_DragDrop(import::DropCallback);
+	ST<GraphicsMain>::Get()->Init();
+	//graphicsMain->SetCallback_DragDrop(import::DropCallback);
 
 	ST<GameSettings>::Get()->Apply(); // Apply the loaded settings here
 
@@ -191,17 +191,18 @@ void Engine::init()
 	CONSOLE_LOG(LEVEL_INFO) << "Current working directory: " << std::filesystem::canonical(ST<Filepaths>::Get()->workingDir);
 	CONSOLE_LOG(LEVEL_INFO) << "Actual working directory: " << std::filesystem::current_path();
 #endif
-
 	// load resources
+	ST<ResourceManager>::Get()->Init();
+	ST<ResourceManager>::Get()->LoadFromFile();
+	ResourceManagerOld::LoadAssetsFromFile(ST<Filepaths>::Get()->workingDir + "/Assets/assetsOld.json");
 	//ST<AssetBrowser>::Get()->file_system.Initialize(ST<Filepaths>::Get()->workingDir);
-	ResourceManager::LoadAssetsFromFile(ST<Filepaths>::Get()->workingDir + "/Assets/assets.json");
 	// Load fonts manually for now
 	const std::array<std::string, 3> fontsToLoad{
 		ST<Filepaths>::Get()->fontsSave + "/Arial.ttf",
 		ST<Filepaths>::Get()->fontsSave + "/Lato-Regular.ttf",
 		ST<Filepaths>::Get()->fontsSave + "/slkscre.ttf"
 	};
-	//std::for_each(fontsToLoad.begin(), fontsToLoad.end(), ResourceManager::LoadFont);
+	//std::for_each(fontsToLoad.begin(), fontsToLoad.end(), ResourceManagerOld::LoadFont);
 	
 	// initialize game
 	// ---------------
@@ -209,7 +210,7 @@ void Engine::init()
 	ST<SceneManager>::Get(); // Initialize scene manager
 	ST<EntitySpawnEvents>::Get(); // Initialize systems that listen for entity created events
 
-	auto worldExtents{ graphicsMain->GetWorldExtent() };
+	auto worldExtents{ ST<GraphicsWindow>::Get()->GetWorldExtent()};
 #ifdef IMGUI_ENABLED
 	ST<Game>::Get()->Init(worldExtents.width, worldExtents.height, GAMESTATE::EDITOR);
 #else
@@ -221,11 +222,8 @@ void Engine::init()
 
 	// get ready for running
 	// ---------------------
-	graphicsMain->BringWindowToFront();
+	ST<GraphicsWindow>::Get()->BringWindowToFront();
 	loadState("imgui.json");
-
-	// TODO: Use a proper scene
-	graphicsMain->LoadSampleScene();
 }
 
 void Engine::run()
@@ -409,7 +407,7 @@ void Engine::run()
 
 		// Game window draw
 		ST<PerformanceProfiler>::Get()->StartProfile("Render");
-		if (!ST<GraphicsMain>::Get()->GetIsWindowMinimized())
+		if (!ST<GraphicsWindow>::Get()->GetIsWindowMinimized())
 		{
 			ST<Game>::Get()->Render();
 			ST<Inspector>::Get()->DrawSelectedEntityBorder();
@@ -427,7 +425,8 @@ void Engine::run()
 #endif
 
 	ST<GameSettings>::Get()->Save();
-	ResourceManager::SaveAssetsToFile(ST<Filepaths>::Get()->assetsJson);
+	ResourceManagerOld::SaveAssetsToFile(ST<Filepaths>::Get()->workingDir + "/Assets/assetsOld.json");
+	ST<ResourceManager>::Get()->SaveToFile();
 }
 
 void Engine::shutdown() {
@@ -438,7 +437,8 @@ void Engine::shutdown() {
 	ST<GameComponentCallbacksHandler>::Destroy();
 	ST<EntitySpawnEvents>::Destroy();
 	ST<SceneManager>::Destroy();
-	ResourceManager::Clear();
+	ST<ResourceManager>::Destroy();
+	//ResourceManagerOld::Clear();
 	// Singletons
 	ST<AudioManager>::Destroy();
 	ST<TweenManager>::Destroy();
@@ -467,6 +467,9 @@ void Engine::shutdown() {
 	ST<GameSettings>::Destroy();
 	//ST<Filepaths>::Destroy(); // Filepaths kinda needs to live for other threads to reference filepaths... smart pointers will free this later. sry about this
 	ST<ecs::RegisteredSystemsOperatingByLayer>::Destroy();
+
+	ST<ResourceManager>::Get()->Shutdown();
+	ST<ResourceManager>::Destroy();
 
 	ST<GraphicsMain>::Destroy();
 	// In case any systems send logs to the console while destructing.

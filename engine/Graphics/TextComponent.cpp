@@ -101,7 +101,7 @@ void TextComponent::CalculateWorldTransform()
 {
     CONSOLE_LOG_UNIMPLEMENTED() << "Text calculate world transform";
 
-        //const auto& atlas = ResourceManager::GetFont(GetFontHash());
+        //const auto& atlas = ResourceManagerOld::GetFont(GetFontHash());
         //const auto& transform = ecs::GetEntityTransform(this);
         //uint32_t previousChar = 0;
         //Vec2 position{transform.GetWorldPosition()};
@@ -178,7 +178,7 @@ void TextComponent::EditorDraw()
 #ifdef IMGUI_ENABLED
     ImGui::Text("Font");
     ImGui::SameLine();
-    auto& currentFontName = ResourceManager::GetResourceName(fontNameHash);
+    auto& currentFontName = ResourceManagerOld::GetResourceName(fontNameHash);
     if(ImGui::BeginCombo("Font", currentFontName.c_str()))
     {
         //const auto& fontAtlases = VulkanManager::Get().VkTextureManager().getFontAtlases();

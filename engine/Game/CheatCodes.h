@@ -24,7 +24,7 @@ All rights reserved.
 */
 /******************************************************************************/
 #pragma once
-#include "RenderSystem.h"
+#include "GraphicsECSSprite.h"
 #include "TextSystem.h"
 
 using Time = std::chrono::time_point<std::chrono::steady_clock>;

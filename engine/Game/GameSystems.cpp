@@ -24,7 +24,7 @@ All rights reserved.
 #include "ECSSysLayers.h"
 
 #include "AnimatorSystem.h"
-#include "RenderSystem.h"
+#include "GraphicsECSMesh.h"
 #include "PostProcessingComponent.h"
 #include "TextSystem.h"
 #include "Slider.h"

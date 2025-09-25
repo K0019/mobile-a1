@@ -89,7 +89,13 @@ public:
         The reader object to read data from.
     *//******************************************************************/
     virtual void Deserialize(Deserializer& reader);
+
+    property_vtable()
 };
+property_begin(ISerializeable)
+{
+}
+property_vend_h(ISerializeable)
 
 /*****************************************************************//*!
 \class ISerializeableWithoutJsonObj

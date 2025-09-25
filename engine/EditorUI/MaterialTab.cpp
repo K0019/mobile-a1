@@ -1,0 +1,44 @@
+#include "MaterialTab.h"
+#include "AssetBrowser.h"
+#include "EditorGuiUtils.h"
+
+const char* MaterialTab::GetName() const
+{
+	return "Materials";
+}
+
+const char* MaterialTab::GetIdentifier() const
+{
+	return ICON_FA_IMAGE" Materials";
+}
+
+void MaterialTab::Render()
+{
+    float THUMBNAIL_SIZE = ST<AssetBrowser>::Get()->THUMBNAIL_SIZE;
+    gui::Vec2 thumbnailSizeVec2{ THUMBNAIL_SIZE, THUMBNAIL_SIZE };
+    float panelWidth = ImGui::GetContentRegionAvail().x; // random offset
+    gui::GridHelper grid(panelWidth, THUMBNAIL_SIZE + 10);
+
+    gui::SetStyleVar itemSpacing(gui::FLAG_STYLE_VAR::ITEM_SPACING, ImVec2(5, 5));
+    gui::SetStyleVar framePadding(gui::FLAG_STYLE_VAR::FRAME_PADDING, ImVec2(2, 2));
+
+    int count{};
+    for (const auto& [hash, material] : ST<ResourceManager>::Get()->Editor_GetMaterials().Editor_GetAllResources())
+    {
+        const std::string& materialName{ ST<ResourceManager>::Get()->Editor_GetName(hash) };
+        if (!editor::MatchesFilter(materialName))
+            continue;
+
+        {
+            gui::SetID id{ count++ };
+            gui::Group group;
+
+            gui::Button{ "Material", thumbnailSizeVec2 };
+            gui::PayloadSource{ "MATERIAL_HASH", hash.get() };
+
+            gui::ThumbnailLabel(materialName, THUMBNAIL_SIZE);
+        }
+
+        grid.NextItem();
+    }
+}
