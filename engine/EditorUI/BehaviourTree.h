@@ -36,28 +36,41 @@ Check if tree is valid (least priority)
 #include "ComSelector.h"
 #include "BehaviourTreeFactory.h"
 
-class BehaviorTree {
+class BehaviorTree
+    : public ISerializeable
+{
 public:
     BehaviorTree();
     ~BehaviorTree();
 
-    void Set(std::string treeName, ecs::EntityHandle entityHandle);
+    void Set(ecs::EntityHandle entityHandle);
     void Update();
     void Destroy();
 
+    void EditorDraw();
 private:
     ecs::EntityHandle entity;
     BehaviorNode* rootNode;
+    std::string btName;
+
+public:
+    property_vtable()
 };
+property_begin(BehaviorTree)
+{
+    property_var(btName)
+}
+property_vend_h(BehaviorTree)
 
 //For Properties storing of data =======================================
-struct BTNodeDesc : public ISerializeable {
+struct BTNodeDesc 
+    : public ISerializeable 
+{
     std::string nodeType;
     unsigned int nodeLevel;
 
     property_vtable()
 };
-
 property_begin(BTNodeDesc)
 {
     property_var(nodeType),
@@ -65,7 +78,9 @@ property_begin(BTNodeDesc)
 }
 property_vend_h(BTNodeDesc)
 
-struct BehaviorTreeAsset : public ISerializeable {
+struct BehaviorTreeAsset 
+    : public ISerializeable 
+{
     std::string name;
     std::vector<BTNodeDesc> nodes;
     property_vtable()
@@ -106,7 +121,7 @@ public:
 };
 property_begin(BehaviorTreeComp)
 {
-
+    property_var(behaviorTree)
 }
 property_vend_h(BehaviorTreeComp)
 

@@ -44,6 +44,30 @@ public:
 
     /*****************************************************************//*!
     \brief
+        Set a behavior tree name and corresponding file name.
+    *//******************************************************************/
+    void SetAllFilePath();
+
+    /*****************************************************************//*!
+    \brief
+        Get the file name of the tree name.
+    \param btName
+        name of the behavior tree.
+    \return
+        file name of the behavior tree if it exist and empty string if not.
+    *//******************************************************************/
+    const std::string& GetFilePath(const std::string& btName) const;
+
+    /*****************************************************************//*!
+    \brief
+        Get a list of behavior tree names.
+    \param out
+        vector to put all the names.
+    *//******************************************************************/
+    void GetAllBTNames(std::vector<std::string>& out) const;
+
+    /*****************************************************************//*!
+    \brief
         Clear all registered types (empties the registry)
         After this, no nodes can be created until they are registered again
     *//******************************************************************/
@@ -51,6 +75,7 @@ public:
 private:
     using NodeTypes = std::unordered_map<std::string, Maker>;
     NodeTypes nodeTypes;
+    std::unordered_map<std::string, std::string> filePaths;
 };
 
  //Registration macro (put this in each node’s .cpp)

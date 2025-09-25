@@ -4,8 +4,9 @@
 
 
 BehaviorTree::BehaviorTree()
-    : rootNode{}
-    , entity{nullptr}
+    : entity{ nullptr }
+    , rootNode{ nullptr }
+    , btName{}
 {
 }
 
@@ -14,7 +15,7 @@ BehaviorTree::~BehaviorTree()
     rootNode = nullptr;
 }
 
-void BehaviorTree::Set(std::string treeName, ecs::EntityHandle entityHandle)
+void BehaviorTree::Set(ecs::EntityHandle entityHandle)
 {
     //Set the entity handle
     entity = entityHandle;
@@ -23,7 +24,7 @@ void BehaviorTree::Set(std::string treeName, ecs::EntityHandle entityHandle)
     std::vector<std::unique_ptr<BehaviorNode*>> parents{};
 
     //All the data of the tree.
-    std::string fileName{ ST<Filepaths>::Get()->behaviourTreeSave + "/" + treeName + ".json"};
+    std::string fileName{ ST<Filepaths>::Get()->behaviourTreeSave + "/" + btName + ".json"};
     BehaviorTreeAsset btAsset{};
     if (!LoadBTAssetFromFile(fileName, btAsset))
     {
@@ -47,7 +48,7 @@ void BehaviorTree::Set(std::string treeName, ecs::EntityHandle entityHandle)
         //If the level is invalid, print an error message.
         if (parents.size() < nodeLevel)
         {
-            CONSOLE_LOG(LEVEL_ERROR) << "The Level of " << nodeType << " in the behavior tree " << treeName << " is Invalid.";
+            CONSOLE_LOG(LEVEL_ERROR) << "The Level of " << nodeType << " in the behavior tree " << btName << " is Invalid.";
             return;
         }
 
@@ -85,6 +86,28 @@ void BehaviorTree::Destroy()
     }
 }
 
+void BehaviorTree::EditorDraw()
+{
+    std::vector<std::string> btNames{};
+    ST<BTFactory>::Get()->GetAllBTNames(btNames);
+    std::string currStr{ std::find(btNames.begin(), btNames.end(), btName) == btNames.end() ? "Invalid" : btName };
+    if (ImGui::BeginCombo("##bt_file_combo", currStr.c_str(), ImGuiComboFlags_WidthFitPreview))
+    {
+        for (std::size_t index{}; index < btNames.size(); ++index) 
+        {
+            bool sel = (btNames[index] == currStr);
+            if (ImGui::Selectable(btNames[index].c_str(), sel))
+            {
+                btName = btNames[index];
+                Set(entity);
+            }
+            if (sel) 
+                ImGui::SetItemDefaultFocus();
+        }
+        ImGui::EndCombo();
+    }
+}
+
 BehaviorTreeComp::BehaviorTreeComp()
     : behaviorTree{}
 {
@@ -92,7 +115,7 @@ BehaviorTreeComp::BehaviorTreeComp()
 
 void BehaviorTreeComp::OnAttached()
 {
-    behaviorTree.Set("testNestedTree", ecs::GetEntity(this));
+    behaviorTree.Set(ecs::GetEntity(this));
 }
 
 void BehaviorTreeComp::OnDetached()
@@ -107,7 +130,7 @@ void BehaviorTreeComp::Update()
 
 void BehaviorTreeComp::EditorDraw()
 {
-
+    behaviorTree.EditorDraw();
 }
 
 BehaviorTreeSystem::BehaviorTreeSystem()

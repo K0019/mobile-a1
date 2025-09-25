@@ -3,6 +3,7 @@
 BTFactory::BTFactory()
     : nodeTypes{}
 {
+    SetAllFilePath();
 }
 
 BTFactory::~BTFactory()
@@ -27,6 +28,26 @@ std::vector<std::string> BTFactory::RegisteredTypes() const
     for (auto& kv : nodeTypes) 
         out.push_back(kv.first);
     return out;
+}
+
+void BTFactory::SetAllFilePath()
+{
+    for (const auto& entry : std::filesystem::directory_iterator(ST<Filepaths>::Get()->behaviourTreeSave))
+        if (std::filesystem::is_regular_file(entry.status()))
+            filePaths[entry.path().stem().string()] = entry.path().filename().string();
+    
+}
+
+std::string const& BTFactory::GetFilePath(const std::string& btName) const
+{
+    return filePaths.contains(btName) ? filePaths.at(btName) : "";
+}
+
+void BTFactory::GetAllBTNames(std::vector<std::string>& out) const
+{
+    for (auto const& pair : filePaths)
+        out.push_back(pair.first);
+    std::sort(out.begin(), out.end());
 }
 
 void BTFactory::Clear() 

@@ -700,6 +700,8 @@ static void WalkBTAssetFlat(const BehaviorTreeAsset& asset, F&& fn)
             RefreshBTList(dir, files, currentIndex, loadedAsset, hasAsset, lastLoadedPath);
             if (!LoadSelectedBT(dir, files, currentIndex, loadedAsset, hasAsset, lastLoadedPath, selectedNodeIndex))
                 ImGui::OpenPopup("BT Load Error");
+
+            ST<BTFactory>::Get()->SetAllFilePath();
         }
 
         // File combo (auto-load)
