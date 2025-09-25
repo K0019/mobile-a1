@@ -1,11 +1,27 @@
 {
-    "meshes": {
-        "resources": [
-            {
-                "filepath": "fbxcars\\box.fbx",
-                "hash": 4459298185974400567,
-                "name": "box.fbx"
-            }
-        ]
-    }
+    "files": [
+        {
+            "filepath": "fbxcars\\box.fbx",
+            "resources": [
+                {
+                    "resourceType": 7953536019925557911,
+                    "resourceEntries": [
+                        {
+                            "hash": 47988185968232518,
+                            "name": "box0"
+                        }
+                    ]
+                },
+                {
+                    "resourceType": 9642906986363137133,
+                    "resourceEntries": [
+                        {
+                            "hash": 52216907688659014,
+                            "name": "box0"
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
 }

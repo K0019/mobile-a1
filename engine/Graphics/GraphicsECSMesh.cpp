@@ -22,16 +22,25 @@ All rights reserved.
 #include "GraphicsScene.h"
 #include "ResourceManager.h"
 
-size_t RenderComponent::GetHash() const
+size_t RenderComponent::GetMeshHash() const
 {
-    return resourceHash;
+    return meshHash;
+}
+size_t RenderComponent::GetMaterialHash() const
+{
+    return materialHash;
 }
 
 void RenderComponent::EditorDraw()
 {
-    gui::TextBoxReadOnly("Mesh", std::to_string(resourceHash));
-    gui::PayloadTarget<size_t>("RESOURCE_HASH", [this](size_t hash) -> void {
-        resourceHash = hash;
+    gui::TextBoxReadOnly("Mesh", std::to_string(meshHash));
+    gui::PayloadTarget<size_t>("MESH_HASH", [this](size_t hash) -> void {
+        meshHash = hash;
+    });
+
+    gui::TextBoxReadOnly("Material", std::to_string(materialHash));
+    gui::PayloadTarget<size_t>("MATERIAL_HASH", [this](size_t hash) -> void {
+        materialHash = hash;
     });
 }
 
@@ -42,9 +51,10 @@ RenderSystem::RenderSystem()
 
 void RenderSystem::ProcessComp(RenderComponent& comp)
 {
-    auto mesh{ ResourceManager::Meshes().GetResource(comp.GetHash()) };
-    if (!mesh)
+    auto mesh{ ResourceManager::Meshes().GetResource(comp.GetMeshHash()) };
+    auto material{ ResourceManager::Materials().GetResource(comp.GetMaterialHash()) };
+    if (!(mesh && material))
         return;
 
-    ST<GraphicsScene>::Get()->AddObject(mesh, ecs::GetEntityTransform(&comp).GetWorldMat());
+    ST<GraphicsScene>::Get()->AddObject(mesh->handle, material->handle, mesh->transform * ecs::GetEntityTransform(&comp).GetWorldMat());
 }

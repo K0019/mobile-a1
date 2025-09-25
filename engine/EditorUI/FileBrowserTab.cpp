@@ -1,5 +1,5 @@
 #include "FileBrowserTab.h"
-#include "ResourceManager.h"
+#include "ResourceImporter.h"
 #include "Import.h"
 
 
@@ -274,8 +274,8 @@ void FileBrowserTab::RenderItemContextMenu(const FileSystem::FileEntry& entry)
     }
     else if (entry.fileType == "fbx")
     {
-        if (gui::MenuItem(ICON_FA_FILE_IMPORT" Import as Mesh"))
-            ResourceManager::Import(RESOURCE_TYPE::MESH, entry.filename, entry.fullPath.string());
+        if (gui::MenuItem(ICON_FA_FILE_IMPORT" Import"))
+            ResourceImporter::Import(entry.fullPath.string());
     }
 
     if (ImGui::MenuItem(ICON_FA_COPY" Copy Path"))
