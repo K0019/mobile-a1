@@ -5,5 +5,5 @@ class LeafFailTest
     : public BehaviorNode
 {
 protected:
-    NODE_STATUS OnUpdate() override;
+    NODE_STATUS OnUpdate(ecs::EntityHandle entity) override;
 };

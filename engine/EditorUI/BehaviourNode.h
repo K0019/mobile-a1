@@ -23,7 +23,7 @@ public:
     virtual ~BehaviorNode();
 
     virtual void OnInitialize() {}
-    virtual NODE_STATUS OnUpdate() = 0;
+    virtual NODE_STATUS OnUpdate(ecs::EntityHandle entity) = 0;
     virtual void OnTerminate(NODE_STATUS) {}
 
     //getters setters etc
@@ -35,7 +35,7 @@ public:
     NODE_STATUS GetStatus() const;
     void SetStatus(NODE_STATUS newStatus);
 
-    NODE_STATUS Tick();
+    NODE_STATUS Tick(ecs::EntityHandle entity);
 
     virtual bool AddChild([[maybe_unused]] BehaviorNode* childPtr) { return false; }
     virtual void RemoveChildren() {}
@@ -76,7 +76,57 @@ class Sequence
 {
 protected:
     void OnInitialize() override;
-    NODE_STATUS OnUpdate() override;
+    NODE_STATUS OnUpdate(ecs::EntityHandle entity) override;
 private:
     BehaviorNodes::iterator currentChildItr;
+};
+
+class Selector
+    : public CompositeNode
+{
+protected:
+    void OnInitialize() override;
+    NODE_STATUS OnUpdate(ecs::EntityHandle entity) override;
+private:
+    BehaviorNodes::iterator currentChildItr;
+};
+
+class MoveLeft
+    : public BehaviorNode
+{
+public:
+    void OnInitialize() override;
+    NODE_STATUS OnUpdate(ecs::EntityHandle entity) override;
+private:
+    unsigned int count;
+};
+
+class MoveDown
+    : public BehaviorNode
+{
+public:
+    void OnInitialize() override;
+    NODE_STATUS OnUpdate(ecs::EntityHandle entity) override;
+private:
+    unsigned int count;
+};
+
+class MoveRight
+    : public BehaviorNode
+{
+public:
+    void OnInitialize() override;
+    NODE_STATUS OnUpdate(ecs::EntityHandle entity) override;
+private:
+    unsigned int count;
+};
+
+class MoveUp
+    : public BehaviorNode
+{
+public:
+    void OnInitialize() override;
+    NODE_STATUS OnUpdate(ecs::EntityHandle entity) override;
+private:
+    unsigned int count;
 };

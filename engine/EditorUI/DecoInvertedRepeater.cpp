@@ -2,7 +2,7 @@
 BT_REGISTER_NODE(DecoratorInverter, "DecoratorInverter")
 
 
-NODE_STATUS DecoratorInverter::OnUpdate()
+NODE_STATUS DecoratorInverter::OnUpdate(ecs::EntityHandle entity)
 {
  //   CONSOLE_LOG(LEVEL_INFO) << "Running leaf node for key press sorta";
     return NODE_STATUS::SUCCESS;

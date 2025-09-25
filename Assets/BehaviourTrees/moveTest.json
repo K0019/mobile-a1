@@ -1,0 +1,25 @@
+{
+    "name": "moveTest",
+    "nodes": [
+        {
+            "nodeType": "Sequence",
+            "nodeLevel": 0
+        },
+        {
+            "nodeType": "MoveLeft",
+            "nodeLevel": 1
+        },
+        {
+            "nodeType": "MoveUp",
+            "nodeLevel": 1
+        },
+        {
+            "nodeType": "MoveRight",
+            "nodeLevel": 1
+        },
+        {
+            "nodeType": "MoveDown",
+            "nodeLevel": 1
+        }
+    ]
+}

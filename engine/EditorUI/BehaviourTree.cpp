@@ -73,7 +73,7 @@ void BehaviorTree::Update()
     if (!rootNode)
         return;
     
-    rootNode->Tick(); // the nodes will handle the logic within
+    rootNode->Tick(entity); // the nodes will handle the logic within
 }
 
 void BehaviorTree::Destroy()

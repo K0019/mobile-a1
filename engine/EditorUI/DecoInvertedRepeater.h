@@ -6,6 +6,6 @@ class DecoratorInverter
     : public Decorator
 {
 protected:
-    NODE_STATUS OnUpdate() override;
+    NODE_STATUS OnUpdate(ecs::EntityHandle entity) override;
 };
 
