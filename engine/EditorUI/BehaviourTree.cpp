@@ -69,15 +69,20 @@ void BehaviorTree::Set(std::string treeName, ecs::EntityHandle entityHandle)
 
 void BehaviorTree::Update()
 {
-    if (!rootNode)
+    if (!rootNode) {
         return;
-    
+    }
+
     rootNode->Tick(); // the nodes will handle the logic within
 }
 
 void BehaviorTree::Destroy()
 {
-    rootNode->RemoveChildren();
+    if (!rootNode)               // guard against null or double-destroy
+        return;
+
+    // If node own children, clear it before deleting root
+    rootNode->RemoveChildren();  // must be null-safe inside child code
     delete rootNode;
     rootNode = nullptr;
 }

@@ -321,3 +321,35 @@ std::string MakeNodeLabel(const BehaviorTreeAsset& a, int index)
       ListDirectChildren(nodes, parentIdx, kids);
       return kids.empty(); // can add if none yet
   }
+
+  bool DeleteNodeAndSubtree(std::vector<BTNodeDesc>& nodes, int startIdx, int& selectedIndex)
+  {
+      if (startIdx < 0 || startIdx >= (int)nodes.size()) return false;
+
+      const int end = SubtreeEnd(nodes, startIdx);
+      const int count = end - startIdx;
+
+      //check current selection inside the removed block
+      const bool selectionInside = (selectedIndex >= startIdx && selectedIndex < end);
+
+      nodes.erase(nodes.begin() + startIdx, nodes.begin() + end);
+
+      // Fix selection
+      if (nodes.empty()) {
+          selectedIndex = -1; return true;
+      }
+
+      if (selectionInside)
+      {
+          // Prefer to select the prev sibling (startIdx-1), otherwise clamp to last
+          selectedIndex = startIdx - 1;
+          if (selectedIndex < 0) selectedIndex = 0;
+          if (selectedIndex >= (int)nodes.size()) selectedIndex = (int)nodes.size() - 1;
+      }
+      else if (selectedIndex > (int)nodes.size() - 1)
+      {
+          selectedIndex = (int)nodes.size() - 1;
+      }
+
+      return true;
+  }
