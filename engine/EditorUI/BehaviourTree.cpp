@@ -77,9 +77,12 @@ void BehaviorTree::Update()
 
 void BehaviorTree::Destroy()
 {
-    rootNode->RemoveChildren();
-    delete rootNode;
-    rootNode = nullptr;
+    if (rootNode)
+    {
+        rootNode->RemoveChildren();
+        delete rootNode;
+        rootNode = nullptr;
+    }
 }
 
 BehaviorTreeComp::BehaviorTreeComp()
