@@ -468,17 +468,6 @@ static void WalkBTAssetFlat(const BehaviorTreeAsset& asset, F&& fn)
         ImGui::EndChild();
     }
 
-    void DrawDeleteNodeButton(std::vector<BTNodeDesc>& nodes,
-        int childStartIdx,
-        int& selectedNodeIndex)
-    {
-        if (ImGui::SmallButton("Delete"))
-        {
-            // delete immediately when clicked
-            DeleteNodeAndSubtree(nodes, childStartIdx, selectedNodeIndex);
-        }
-    }
-
     void DrawInspectorPanel(BehaviorTreeAsset& loadedAsset,
         bool hasAsset,
         int& selectedNodeIndex)
@@ -535,6 +524,7 @@ static void WalkBTAssetFlat(const BehaviorTreeAsset& asset, F&& fn)
         // Children list
         ImGui::SeparatorText("Children");
         std::vector<int> childIdxs;
+        std::pair<bool, int> deletedCi{std::make_pair<bool, int>(false, 0)};
         listDirectChildren(parentIdx, childIdxs);
 
         if (childIdxs.empty()) {
@@ -567,10 +557,17 @@ static void WalkBTAssetFlat(const BehaviorTreeAsset& asset, F&& fn)
                 }
 
                 ImGui::SameLine();
-                DrawDeleteNodeButton(nodes, ci, selectedNodeIndex);
+                if (ImGui::SmallButton("Delete"))
+                {
+                    //Store the ci when clicked.
+                    deletedCi.first = true;
+                    deletedCi.second = ci;
+                }
 
                 ImGui::PopID();
             }
+            if (deletedCi.first)
+                DeleteNodeAndSubtree(nodes, deletedCi.second, selectedNodeIndex);
         }
 
         // Add Child (dropdown)
