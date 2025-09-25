@@ -146,16 +146,11 @@ namespace internal {
         const auto& meshHashes{ resourceHashes[0].hashes };
         const auto& materialHashes{ resourceHashes[1].hashes };
 
-        std::vector<ResourceMesh*> meshesCache;
-        for (size_t i{}; i < meshHashes.size(); ++i)
-        {
-            ResourceMesh* mesh{ meshes.INTERNAL_GetResource(meshHashes[i], true) };
-            mesh->handle = meshHandles[i];
-            meshesCache.push_back(mesh);
-        }
-
+        ResourceMesh* mesh{ meshes.INTERNAL_GetResource(meshHashes[0], true) };
+        mesh->handles = meshHandles;
+        mesh->transforms.resize(meshTransforms.size());
         for (const auto& [index, mat] : meshTransforms)
-            meshesCache[index]->transform = mat;
+            mesh->transforms[index] = mat;
 
         for (size_t i{}; i < materialHashes.size(); ++i)
             materials.INTERNAL_GetResource(materialHashes[i], true)->handle = materialHandles[i];
@@ -175,13 +170,9 @@ bool ResourceFiletypeImporterFBX::Import(const std::filesystem::path& relativeFi
 
     // Check if the resources are already registered
     const auto* existingFileEntry{ ST<ResourceManager>::Get()->INTERNAL_GetFilepathsManager().GetFileEntry(relativeFilepath) };
-    // If it exists, ensure there are the correct number of resources loaded from this file
-    if (existingFileEntry && !CheckNumMeshesAndMaterialsAreConsistent(existingFileEntry, meshHandles.size(), materialHandles.size()))
-        // Num meshes and materials don't line up, maybe the fbx file changed. Replace the existing FileEntry and invalidate all resources currently associated with it.
-        existingFileEntry = nullptr;
     // If it doesn't exist, create new resources
     if (!existingFileEntry)
-        existingFileEntry = CreateNewFileEntry(relativeFilepath, meshHandles.size(), materialHandles.size());
+        existingFileEntry = CreateNewFileEntry(relativeFilepath, materialHandles.size());
 
     // Set the resources to the loaded indexes
     internal::SetResourceHandlesFBX(existingFileEntry->associatedResources, meshHandles, meshTransforms, materialHandles);
@@ -189,19 +180,10 @@ bool ResourceFiletypeImporterFBX::Import(const std::filesystem::path& relativeFi
     return true;
 }
 
-bool ResourceFiletypeImporterFBX::CheckNumMeshesAndMaterialsAreConsistent(const ResourceFilepaths::FileEntry* fileEntry, size_t numMeshes, size_t numMaterials)
-{
-    // We assume [0] are meshes and [1] are materials
-    if (fileEntry->associatedResources.size() != 2)
-        return false;
-    return fileEntry->associatedResources[0].hashes.size() == numMeshes &&
-           fileEntry->associatedResources[1].hashes.size() == numMaterials;
-}
-
-const ResourceFilepaths::FileEntry* ResourceFiletypeImporterFBX::CreateNewFileEntry(const std::filesystem::path& relativeFilepath, size_t numMeshes, size_t numMaterials)
+const ResourceFilepaths::FileEntry* ResourceFiletypeImporterFBX::CreateNewFileEntry(const std::filesystem::path& relativeFilepath, size_t numMaterials)
 {
     std::vector<AssociatedResourceHashes> resourceHashes{ 2 };
-    GenerateHashesForResourceType<ResourceMesh>(&resourceHashes[0], numMeshes);
+    GenerateHashesForResourceType<ResourceMesh>(&resourceHashes[0], 1);
     GenerateHashesForResourceType<ResourceMaterial>(&resourceHashes[1], numMaterials);
 
     GenerateNamesForResources(resourceHashes, relativeFilepath);

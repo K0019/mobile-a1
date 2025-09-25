@@ -7,7 +7,7 @@
                     "resourceType": 7953536019925557911,
                     "resourceEntries": [
                         {
-                            "hash": 45277889810122760,
+                            "hash": 47811164601792193,
                             "name": "box0"
                         }
                     ]
@@ -16,7 +16,7 @@
                     "resourceType": 9642906986363137133,
                     "resourceEntries": [
                         {
-                            "hash": 49613264158443528,
+                            "hash": 53909056089437889,
                             "name": "box0"
                         }
                     ]
@@ -30,32 +30,8 @@
                     "resourceType": 7953536019925557911,
                     "resourceEntries": [
                         {
-                            "hash": 45260297624121689,
+                            "hash": 58130081228471139,
                             "name": "ambulance0"
-                        },
-                        {
-                            "hash": 50528057832796505,
-                            "name": "ambulance1"
-                        },
-                        {
-                            "hash": 54565464529989977,
-                            "name": "ambulance2"
-                        },
-                        {
-                            "hash": 58818375506227545,
-                            "name": "ambulance3"
-                        },
-                        {
-                            "hash": 65912424528638297,
-                            "name": "ambulance4"
-                        },
-                        {
-                            "hash": 70961381923385689,
-                            "name": "ambulance5"
-                        },
-                        {
-                            "hash": 75329741620539737,
-                            "name": "ambulance6"
                         }
                     ]
                 },
@@ -63,7 +39,7 @@
                     "resourceType": 9642906986363137133,
                     "resourceEntries": [
                         {
-                            "hash": 76782196480831833,
+                            "hash": 60236745507289955,
                             "name": "ambulance0"
                         }
                     ]

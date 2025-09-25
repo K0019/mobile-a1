@@ -4,8 +4,8 @@
 
 struct ResourceMesh : public ResourceBase
 {
-    MeshHandle handle;
-    Mat4 transform;
+    std::vector<MeshHandle> handles;
+    std::vector<Mat4> transforms;
 
     virtual bool IsLoaded() final;
 };

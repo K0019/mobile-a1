@@ -2,7 +2,7 @@
 
 bool ResourceMesh::IsLoaded()
 {
-    return handle.isValid();
+    return !handles.empty() && handles[0].isValid();
 }
 
 bool ResourceMaterial::IsLoaded()
