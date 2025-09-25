@@ -6,21 +6,18 @@ const ResourceFilepaths::FileEntry* ResourceFilepaths::SetFilepath(const std::fi
 
     // If the file is already registered, overwrite the previous entry.
     size_t filepathHash{ util::GenHash(filepath.string()) };
-    const auto existingFileEntryIter{ filepathToFileEntry.find(filepathHash) };
-    if (existingFileEntryIter != filepathToFileEntry.end())
+    const auto existingFileEntryIter{ fileEntries.find(filepathHash) };
+    if (existingFileEntryIter != fileEntries.end())
     {
-        fileEntry = existingFileEntryIter->second;
+        fileEntry = &existingFileEntryIter->second;
         for (const auto& associatedResource : fileEntry->associatedResources)
             for (size_t hash : associatedResource.hashes)
                 hashToFileEntry.erase(hash);
         fileEntry->associatedResources = std::move(associatedHashes);
     }
     else
-    {
         // Otherwise, create a new FileEntry
-        fileEntry = &fileEntries.emplace_back(filepath, std::move(associatedHashes));
-        filepathToFileEntry.try_emplace(filepathHash, fileEntry);
-    }
+        fileEntry = &fileEntries.try_emplace(filepathHash, filepath, std::move(associatedHashes)).first->second;
 
     // Set resource hashes to point to this FileEntry
     for (const auto& associatedResource : fileEntry->associatedResources)
@@ -38,11 +35,17 @@ const ResourceFilepaths::FileEntry* ResourceFilepaths::GetFileEntry(size_t hash)
 
 const ResourceFilepaths::FileEntry* ResourceFilepaths::GetFileEntry(const std::filesystem::path& filepath) const
 {
-    auto fileEntryLookupIter{ filepathToFileEntry.find(util::GenHash(filepath.string())) };
-    return (fileEntryLookupIter != filepathToFileEntry.end() ? fileEntryLookupIter->second : nullptr);
+    auto fileEntryLookupIter{ fileEntries.find(util::GenHash(filepath.string())) };
+    return (fileEntryLookupIter != fileEntries.end() ? &fileEntryLookupIter->second : nullptr);
 }
 
-const std::vector<ResourceFilepaths::FileEntry>& ResourceFilepaths::GetFileEntries() const
+std::vector<const ResourceFilepaths::FileEntry*> ResourceFilepaths::GetFileEntries() const
 {
-    return fileEntries;
+    // This is only called when saving so it's ok to be a bit slow here
+    auto sortedFileEntries{ util::ToSortedVectorOfRefs(fileEntries) };
+    std::vector<const FileEntry*> toReturn;
+    std::transform(sortedFileEntries.begin(), sortedFileEntries.end(), std::back_inserter(toReturn), [](const auto& pair) -> const FileEntry* {
+        return &pair.second.get();
+    });
+    return toReturn;
 }

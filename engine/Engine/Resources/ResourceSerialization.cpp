@@ -3,14 +3,14 @@
 void ResourceSerialization::Serialize(Serializer& writer, const ResourceFilepaths& filepaths, const ResourceNames& names)
 {
 	writer.StartArray("files");
-	for (const auto& fileEntry : filepaths.GetFileEntries())
+	for (const auto fileEntry : filepaths.GetFileEntries())
 	{
 		writer.StartObject();
 
-		writer.Serialize("filepath", fileEntry.path.string());
+		writer.Serialize("filepath", fileEntry->path.string());
 		writer.StartArray("resources");
 
-		for (const auto& resource : fileEntry.associatedResources)
+		for (const auto& resource : fileEntry->associatedResources)
 		{
 			writer.StartObject();
 			writer.Serialize("resourceType", resource.resourceTypeHash);

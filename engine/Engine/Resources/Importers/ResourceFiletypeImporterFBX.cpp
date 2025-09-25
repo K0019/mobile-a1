@@ -157,7 +157,7 @@ namespace internal {
         for (const auto& [index, mat] : meshTransforms)
             meshesCache[index]->transform = mat;
 
-        for (size_t i{}; i < meshHashes.size(); ++i)
+        for (size_t i{}; i < materialHashes.size(); ++i)
             materials.INTERNAL_GetResource(materialHashes[i], true)->handle = materialHandles[i];
     }
 

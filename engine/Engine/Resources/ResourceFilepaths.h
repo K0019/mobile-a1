@@ -23,14 +23,12 @@ public:
     // Gets the FileEntry associated with a resource hash
     const FileEntry* GetFileEntry(size_t hash);
     const FileEntry* GetFileEntry(const std::filesystem::path& filepath) const;
-    const std::vector<FileEntry>& GetFileEntries() const;
+    std::vector<const FileEntry*> GetFileEntries() const;
 
 private:
 
     //! Stores the filepath and its associated resource hashes
-    std::vector<FileEntry> fileEntries;
-    //! Maps filepaths' strings' hashes to their FileEntry
-    std::unordered_map<size_t, FileEntry*> filepathToFileEntry;
+    std::unordered_map<size_t, FileEntry> fileEntries;
     //! Maps resource hashes to their FileEntry
     std::unordered_map<size_t, FileEntry*> hashToFileEntry;
 
