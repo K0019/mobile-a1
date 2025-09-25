@@ -26,6 +26,7 @@ All rights reserved.
 /******************************************************************************/
 #include "Engine.h"
 
+#include "ResourceManager.h"
 #include "SceneManagement.h"
 #include "EntitySpawnEvents.h"
 #include "IGameComponentCallbacks.h"
@@ -185,6 +186,7 @@ void Engine::init()
 	CONSOLE_LOG(LEVEL_INFO) << "Actual working directory: " << std::filesystem::current_path();
 #endif
 	// load resources
+	ST<ResourceManager>::Get()->Init();
 	ST<ResourceManager>::Get()->LoadFromFile();
 	ResourceManagerOld::LoadAssetsFromFile(ST<Filepaths>::Get()->workingDir + "/Assets/assetsOld.json");
 	//ST<AssetBrowser>::Get()->file_system.Initialize(ST<Filepaths>::Get()->workingDir);
@@ -444,6 +446,9 @@ void Engine::shutdown() {
 	ST<GameSettings>::Destroy();
 	//ST<Filepaths>::Destroy(); // Filepaths kinda needs to live for other threads to reference filepaths... smart pointers will free this later. sry about this
 	ST<ecs::RegisteredSystemsOperatingByLayer>::Destroy();
+
+	ST<ResourceManager>::Get()->Shutdown();
+	ST<ResourceManager>::Destroy();
 
 	ST<GraphicsMain>::Destroy();
 	// In case any systems send logs to the console while destructing.

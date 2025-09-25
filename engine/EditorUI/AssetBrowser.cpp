@@ -34,6 +34,7 @@ All rights reserved.
 
 #include "AssetBrowserCategories.h"
 #include "MeshTab.h"
+#include "MaterialTab.h"
 #include "SpriteTab.h"
 #include "AnimationTab.h"
 #include "SoundTab.h"
@@ -51,6 +52,7 @@ AssetBrowser::AssetBrowser() {
 #ifdef IMGUI_ENABLED
     // Initialize with default state
     assetCategories.push_back(std::make_unique<MeshTab>());
+    assetCategories.push_back(std::make_unique<MaterialTab>());
     assetCategories.push_back(std::make_unique<SpriteTab>());
     assetCategories.push_back(std::make_unique<AnimationTab>());
     assetCategories.push_back(std::make_unique<PrefabTab>());

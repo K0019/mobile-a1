@@ -1,7 +1,7 @@
 #pragma once
-#include "ResourceManager.h"
 #include "context.h"
 #include "scene_feature.h"
+#include "asset_types.h"
 
 class GraphicsScene
 {
@@ -11,13 +11,11 @@ public:
 	bool Init(Context inContext);
 	bool NewFrame();
 
-	void AddObject(const ResourceMesh* resource, const Mat4& transform);
+	void AddObject(const MeshHandle& meshHandle, const MaterialHandle& materialHandle, const Mat4& transform);
 
 private:
 	friend ST<GraphicsScene>;
 	GraphicsScene();
-
-	void INTERNAL_AddSceneObject(const SceneObject& object, const Mat4& transform);
 
 private:
 	Context context;

@@ -1,11 +1,50 @@
 {
-    "meshes": {
-        "resources": [
-            {
-                "filepath": "fbxcars\\box.fbx",
-                "hash": 4459298185974400567,
-                "name": "box.fbx"
-            }
-        ]
-    }
+    "files": [
+        {
+            "filepath": "fbxcars\\box.fbx",
+            "resources": [
+                {
+                    "resourceType": 7953536019925557911,
+                    "resourceEntries": [
+                        {
+                            "hash": 47811164601792193,
+                            "name": "box0"
+                        }
+                    ]
+                },
+                {
+                    "resourceType": 9642906986363137133,
+                    "resourceEntries": [
+                        {
+                            "hash": 53909056089437889,
+                            "name": "box0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "fbxcars\\ambulance.fbx",
+            "resources": [
+                {
+                    "resourceType": 7953536019925557911,
+                    "resourceEntries": [
+                        {
+                            "hash": 58130081228471139,
+                            "name": "ambulance0"
+                        }
+                    ]
+                },
+                {
+                    "resourceType": 9642906986363137133,
+                    "resourceEntries": [
+                        {
+                            "hash": 60236745507289955,
+                            "name": "ambulance0"
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
 }

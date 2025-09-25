@@ -1,18 +1,18 @@
-#include "MeshTab.h"
+#include "MaterialTab.h"
 #include "AssetBrowser.h"
 #include "EditorGuiUtils.h"
 
-const char* MeshTab::GetName() const
+const char* MaterialTab::GetName() const
 {
-	return "Meshes";
+	return "Materials";
 }
 
-const char* MeshTab::GetIdentifier() const
+const char* MaterialTab::GetIdentifier() const
 {
-	return ICON_FA_IMAGE" Meshes";
+	return ICON_FA_IMAGE" Materials";
 }
 
-void MeshTab::Render()
+void MaterialTab::Render()
 {
     float THUMBNAIL_SIZE = ST<AssetBrowser>::Get()->THUMBNAIL_SIZE;
     gui::Vec2 thumbnailSizeVec2{ THUMBNAIL_SIZE, THUMBNAIL_SIZE };
@@ -23,20 +23,20 @@ void MeshTab::Render()
     gui::SetStyleVar framePadding(gui::FLAG_STYLE_VAR::FRAME_PADDING, ImVec2(2, 2));
 
     int count{};
-    for (const auto& [hash, mesh] : ST<ResourceManager>::Get()->Editor_GetMeshes().Editor_GetAllResources())
+    for (const auto& [hash, material] : ST<ResourceManager>::Get()->Editor_GetMaterials().Editor_GetAllResources())
     {
-        const std::string& meshName{ ST<ResourceManager>::Get()->Editor_GetName(hash) };
-        if (!editor::MatchesFilter(meshName))
+        const std::string& materialName{ ST<ResourceManager>::Get()->Editor_GetName(hash) };
+        if (!editor::MatchesFilter(materialName))
             continue;
 
         {
             gui::SetID id{ count++ };
             gui::Group group;
 
-            gui::Button{ "Mesh", thumbnailSizeVec2 };
-            gui::PayloadSource{ "MESH_HASH", hash.get() };
+            gui::Button{ "Material", thumbnailSizeVec2 };
+            gui::PayloadSource{ "MATERIAL_HASH", hash.get() };
 
-            gui::ThumbnailLabel(meshName, THUMBNAIL_SIZE);
+            gui::ThumbnailLabel(materialName, THUMBNAIL_SIZE);
         }
 
         grid.NextItem();

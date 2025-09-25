@@ -82,6 +82,11 @@ namespace util {
 	{
 		return static_cast<char>(std::tolower(c));
 	}
+	std::string ToLowerStr(std::string str)
+	{
+		std::transform(str.begin(), str.end(), str.begin(), [](unsigned char c) { return std::tolower(c); });
+		return str;
+	}
 
 	//bool IsPointInside(const Vec2& point, const Transform& transform)
 	//{
