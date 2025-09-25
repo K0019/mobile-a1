@@ -70,7 +70,7 @@ void BehaviorTree::Set(ecs::EntityHandle entityHandle)
 
 void BehaviorTree::Update()
 {
-    if (!rootNode)
+    if (!rootNode) {
         return;
     
     rootNode->Tick(entity); // the nodes will handle the logic within

@@ -47,4 +47,7 @@ std::string MakeNodeLabel(const BehaviorTreeAsset& a, int index);
  
  int SubtreeEnd(const std::vector<BTNodeDesc>& nodes, int startIdx);
 
+
  bool CanParentAddChild(const std::vector<BTNodeDesc>& nodes, int parentIdx);
+
+ bool DeleteNodeAndSubtree(std::vector<BTNodeDesc>& nodes, int startIdx, int& selectedIndex); 

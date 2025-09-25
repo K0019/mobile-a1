@@ -28,14 +28,6 @@
         {
             "nodeType": "L_CheckMouseClick",
             "nodeLevel": 3
-        },
-        {
-            "nodeType": "Sequence",
-            "nodeLevel": 3
-        },
-        {
-            "nodeType": "LeafFailTest",
-            "nodeLevel": 4
         }
     ]
 }
