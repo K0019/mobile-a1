@@ -45,6 +45,9 @@ BehaviorNode::~BehaviorNode()
 {
 }
 
+void BehaviorNode::OnTerminate(NODE_STATUS)
+{
+}
 
 bool BehaviorNode::IsReady() const
 {
@@ -87,6 +90,15 @@ NODE_STATUS BehaviorNode::Tick(ecs::EntityHandle entity)
         OnTerminate(status);
 
     return status;
+}
+
+bool BehaviorNode::AddChild([[maybe_unused]] BehaviorNode* childPtr)
+{
+    return false;
+}
+
+void BehaviorNode::RemoveChildren()
+{
 }
 
 CompositeNode::CompositeNode()

@@ -51,7 +51,7 @@ void BehaviorTree::Set(ecs::EntityHandle entityHandle)
     //All the data of the tree.
     std::string fileName{ ST<Filepaths>::Get()->behaviourTreeSave + "/" + btName + ".json"};
     BehaviorTreeAsset btAsset{};
-    if (!LoadBTAssetFromFile(fileName, btAsset))
+    if (!LoadBTAssetFromFile(fileName, &btAsset))
     {
         CONSOLE_LOG(LEVEL_ERROR) << "behavior tree file could not be loaded.";
         return;
@@ -114,7 +114,7 @@ void BehaviorTree::Destroy()
 void BehaviorTree::EditorDraw()
 {
     std::vector<std::string> btNames{};
-    ST<BTFactory>::Get()->GetAllBTNames(btNames);
+    ST<BTFactory>::Get()->GetAllBTNames(&btNames);
     std::string currStr{ std::find(btNames.begin(), btNames.end(), btName) == btNames.end() ? "Invalid" : btName };
     if (ImGui::BeginCombo("##bt_file_combo", currStr.c_str(), ImGuiComboFlags_WidthFitPreview))
     {

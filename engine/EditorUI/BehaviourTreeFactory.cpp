@@ -59,19 +59,18 @@ void BTFactory::SetAllFilePath()
     for (const auto& entry : std::filesystem::directory_iterator(ST<Filepaths>::Get()->behaviourTreeSave))
         if (std::filesystem::is_regular_file(entry.status()))
             filePaths[entry.path().stem().string()] = entry.path().filename().string();
-    
 }
 
-std::string const& BTFactory::GetFilePath(const std::string& btName) const
+const std::string& BTFactory::GetFilePath(const std::string& btName) const
 {
     return filePaths.contains(btName) ? filePaths.at(btName) : "";
 }
 
-void BTFactory::GetAllBTNames(std::vector<std::string>& out) const
+void BTFactory::GetAllBTNames(std::vector<std::string>* out) const
 {
-    for (auto const& pair : filePaths)
-        out.push_back(pair.first);
-    std::sort(out.begin(), out.end());
+    for (const auto& pair : filePaths)
+        out->push_back(pair.first);
+    std::sort(out->begin(), out->end());
 }
 
 void BTFactory::Clear() 

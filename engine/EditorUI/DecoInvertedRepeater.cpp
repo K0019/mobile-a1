@@ -1,4 +1,5 @@
 #include "DecoInvertedRepeater.h"
+#include "BehaviourTreeFactory.h"
 BT_REGISTER_NODE(DecoratorInverter, "DecoratorInverter")
 
 

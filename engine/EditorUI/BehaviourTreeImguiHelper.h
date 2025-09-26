@@ -26,7 +26,12 @@ All rights reserved.
 \brief
 	Basic types of nodes.
 *//******************************************************************/
-enum class NodeKind { Leaf, Decorator, Composite };
+enum class NODE_KIND
+{
+	LEAF,
+	DECORATOR,
+	COMPOSITE
+};
 
 /*****************************************************************//*!
 \brief
@@ -38,7 +43,7 @@ enum class NodeKind { Leaf, Decorator, Composite };
 \return
 	true if the information was successfuly recieved, else false.
 *//******************************************************************/
-bool LoadBTAssetFromFile(const std::string& path, BehaviorTreeAsset& out);
+bool LoadBTAssetFromFile(const std::string& path, BehaviorTreeAsset* out);
 
 /*****************************************************************//*!
 \brief
@@ -164,7 +169,7 @@ std::string EnsureJsonExt(const std::string& s);            // add ".json" if mi
 \return
 	true if it has the correct extention, else false.
 *//******************************************************************/
-bool        HasJsonExt(const std::string& s);               // ".json" (case-insensitive)
+bool HasJsonExt(const std::string& s);               // ".json" (case-insensitive)
 
 /*****************************************************************//*!
 \brief
@@ -235,7 +240,7 @@ bool LoadSelectedBT(const std::string& dir, const std::vector<std::string>& file
 \return
 	Basic node type of the specific node.
 *//******************************************************************/
-NodeKind ClassifyNodeType(const std::string& typeName);
+NODE_KIND ClassifyNodeType(const std::string& typeName);
 
 /*****************************************************************//*!
 \brief

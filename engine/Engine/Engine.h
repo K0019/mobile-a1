@@ -35,8 +35,6 @@ All rights reserved.
 #include "Editor.h"
 #include "context.h"
 
-#include "BehaviourTree.h"
-
 namespace editor
 {
     class ImGuiContext;
@@ -61,8 +59,6 @@ public:
     using time_point = std::chrono::time_point<clock>;
 
     Engine();
-      //  BehaviorTree bt;
-
     ~Engine();
     // Prevent copying
     Engine(const Engine&) = delete;

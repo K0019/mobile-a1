@@ -23,16 +23,7 @@ All rights reserved.
 */
 /******************************************************************************/
 #pragma once
-#include <string>
-#include <unordered_map>
-#include <variant>
-#include <iostream>
-#include "ECS.h"
 #include "BehaviourNode.h"
-
-#include "LeafFailTest.h"
-#include "LeafKeyPressed.h"
-#include "BehaviourTreeFactory.h"
 #include "IGameComponentCallbacks.h"
 
  /*****************************************************************//*!

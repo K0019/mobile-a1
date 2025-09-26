@@ -20,10 +20,8 @@ All rights reserved.
 /******************************************************************************/
 
 #pragma once
-#include "pch.h"
 #include "GUIAsECS.h"   // <-- Required so WindowBase is known
-#include "BehaviourTree.h"
-#include "BehaviourTreeImguiHelper.h"
+
 namespace editor {
 
 	/*****************************************************************//*!

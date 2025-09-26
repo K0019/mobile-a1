@@ -36,6 +36,7 @@ All rights reserved.
 #include "JoltPhysics.h"
 
 #include "SettingsWindow.h"
+#include "BehaviourTreeFactory.h"
 #include "BehaviourTreeWindow.h"
 #include "LayersMatrix.h"
 #include "EntityLayers.h"
@@ -173,10 +174,6 @@ void Engine::init()
 	physics::JoltRegister();
 	ST<physics::JoltPhysics>::Get()->Initialize();
 
-	//Testing for BehaviorTree
-	//bt.InitHardcoded();
-	//bt.TestInitFromAsset();
-
 	auto windowCreate = std::chrono::high_resolution_clock::now();
 
 	// Graphics initialization
@@ -291,9 +288,6 @@ void Engine::run()
 		ecs::SwitchToPool(ecs::POOL::DEFAULT);
 		ecs::FlushChanges(); // For if any of the editor windows deleted an entity.
 
-		//bt.Update(static_cast<float>(GameTime::Dt()));
-		//ST<BehaviorTreeSystem>::Get()->UpdateAll(static_cast<float>(GameTime::Dt()));
-
 		if(ImGui::BeginMainMenuBar())
 		{
 			// Add a "File" menu
@@ -354,9 +348,7 @@ void Engine::run()
 			{
 				editor::CreateWindow<editor::BehaviourTreeWindow>();
 				ImGui::EndMenu();
-
 			}
-
 
 			ImGui::EndMainMenuBar();  // End the main menu bar
 		}
@@ -443,8 +435,7 @@ void Engine::shutdown() {
 	ST<TweenManager>::Destroy();
 	ST<PerformanceProfiler>::Destroy();
 	ST<AssetBrowser>::Destroy();
-
-	//ST<BehaviorTreeSystem>::Get()->Shutdown();
+	
 	ST<BTFactory>::Destroy();
 
 #ifdef IMGUI_ENABLED

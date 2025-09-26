@@ -83,7 +83,7 @@ public:
     \param stat
         the status the OnUpdate returned
     *//******************************************************************/
-    virtual void OnTerminate(NODE_STATUS) {}
+    virtual void OnTerminate(NODE_STATUS);
 
     /*****************************************************************//*!
     \brief
@@ -151,13 +151,13 @@ public:
      \return
          true if the child was added, else false.
      *//******************************************************************/
-    virtual bool AddChild([[maybe_unused]] BehaviorNode* childPtr) { return false; }
+    virtual bool AddChild(BehaviorNode* childPtr);
 
     /*****************************************************************//*!
      \brief
          Remove all the child node.
      *//******************************************************************/
-    virtual void RemoveChildren() {}
+    virtual void RemoveChildren();
 };
 
 /*****************************************************************//*!

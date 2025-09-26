@@ -20,8 +20,9 @@ All rights reserved.
 /******************************************************************************/
 
 #include "BehaviourTreeWindow.h"
-#include "Editor.h"
-#include "AssetBrowser.h"
+#include "BehaviourTree.h"
+#include "BehaviourTreeFactory.h"
+#include "BehaviourTreeImguiHelper.h"
 
 namespace editor {
 
@@ -333,7 +334,7 @@ static void WalkBTAssetFlat(const BehaviorTreeAsset& asset, F&& fn)
 
                         const std::string full{ (std::filesystem::path(dir) / files[currentIndex]).string() };
                         BehaviorTreeAsset tmp;
-                        if (LoadBTAssetFromFile(full, tmp)) 
+                        if (LoadBTAssetFromFile(full, &tmp)) 
                         {
                             loadedAsset = std::move(tmp);
                             hasAsset = true;
@@ -673,8 +674,8 @@ static void WalkBTAssetFlat(const BehaviorTreeAsset& asset, F&& fn)
                 // ----- Detach (prevent non-composite becoming level 0) -----
                 {
                     const bool wouldBecomeRoot{ (nodes[ci].nodeLevel == 1) };
-                    const NodeKind childKind{ ClassifyNodeType(nodes[ci].nodeType) };
-                    const bool detachAllowed{ !wouldBecomeRoot || (childKind == NodeKind::Composite) };
+                    const NODE_KIND childKind{ ClassifyNodeType(nodes[ci].nodeType) };
+                    const bool detachAllowed{ !wouldBecomeRoot || (childKind == NODE_KIND::COMPOSITE) };
 
                     if (!detachAllowed) ImGui::BeginDisabled();
                     if (ImGui::SmallButton("Detach")) 
@@ -736,14 +737,14 @@ static void WalkBTAssetFlat(const BehaviorTreeAsset& asset, F&& fn)
         else
         {
             // Decide if we even allow adding for this parent
-            const NodeKind parentKind{ ClassifyNodeType(nodes[parentIdx].nodeType) };
+            const NODE_KIND parentKind{ ClassifyNodeType(nodes[parentIdx].nodeType) };
             const bool canAddNow{ CanParentAddChild(nodes, parentIdx) };
 
-            if (parentKind == NodeKind::Leaf)
+            if (parentKind == NODE_KIND::LEAF)
             {
                 ImGui::TextDisabled("This is a Leaf node. It cannot have children.");
             }
-            else if (parentKind == NodeKind::Decorator && !canAddNow)
+            else if (parentKind == NODE_KIND::DECORATOR && !canAddNow)
             {
                 ImGui::TextDisabled("Decorator already has 1 child.");
             }

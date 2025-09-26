@@ -22,12 +22,8 @@ All content © 2025 DigiPen Institute of Technology Singapore.
 All rights reserved.
 */
 /******************************************************************************/
-
-
 #pragma once
-#include <string>
-#include <vector>
-#include <unordered_map>
+
 class BehaviorNode;
 
 
@@ -37,7 +33,7 @@ class BehaviorNode;
 *//******************************************************************/
 class BTFactory {
 public:
-    using Maker = BehaviorNode * (*)();
+    using Maker = BehaviorNode*(*)();
 
     /*****************************************************************//*!
     \brief
@@ -99,7 +95,7 @@ public:
     \param out
         vector to put all the names.
     *//******************************************************************/
-    void GetAllBTNames(std::vector<std::string>& out) const;
+    void GetAllBTNames(std::vector<std::string>* out) const;
 
     /*****************************************************************//*!
     \brief
@@ -121,7 +117,6 @@ private:
     NodeType        C++ class type of the node.
 \param
     TypeNameString  String identifier to refer to the node type.
-
 *//******************************************************************/
 #define BT_REGISTER_NODE(NodeType, TypeNameString) \
     namespace { \

@@ -19,13 +19,13 @@ All rights reserved.
 /******************************************************************************/
 
 #include "BehaviourTreeImguiHelper.h"
+#include "BehaviourTreeFactory.h"
 
-
-bool LoadBTAssetFromFile(const std::string& path, BehaviorTreeAsset& out)
+bool LoadBTAssetFromFile(const std::string& path, BehaviorTreeAsset* out)
 {
     Deserializer r(path.c_str());
     if (!r.IsValid()) return false;
-    return r.Deserialize(&out);
+    return r.Deserialize(out);
 }
 
 
@@ -259,16 +259,7 @@ std::string SanitizeFilename(std::string s)
       const fs::path full{ fs::path(dir) / files[currentIndex] };
       lastLoadedPath = full.string();
 
-      BehaviorTreeAsset tmp;
-      if (LoadBTAssetFromFile(lastLoadedPath, tmp)) 
-      {
-          loadedAsset = std::move(tmp);      // copy or move, both fine here
-          hasAsset = true;
-      }
-      else 
-      {
-          hasAsset = false;                  // caller can show an error popup if desired
-      }
+      hasAsset = LoadBTAssetFromFile(lastLoadedPath, &loadedAsset);
   }
 
 
@@ -283,8 +274,7 @@ std::string SanitizeFilename(std::string s)
 
       const std::string full{ (std::filesystem::path(dir) / files[currentIndex]).string() };
 
-      BehaviorTreeAsset tmp;
-      if (!LoadBTAssetFromFile(full, tmp)) 
+      if (!LoadBTAssetFromFile(full, &out))
       {
           hasAsset = false;
           lastLoadedPath = full;
@@ -292,7 +282,6 @@ std::string SanitizeFilename(std::string s)
           return false;
       }
 
-      out = std::move(tmp);
       hasAsset = true;
       lastLoadedPath = full;
 
@@ -313,14 +302,14 @@ std::string SanitizeFilename(std::string s)
       return true;
   }
 
-  NodeKind ClassifyNodeType(const std::string& typeName)
+  NODE_KIND ClassifyNodeType(const std::string& typeName)
   {
       std::unique_ptr<BehaviorNode> n(ST<BTFactory>::Get()->Create(typeName));
-      if (!n) return NodeKind::Leaf; // safest fallback
+      if (!n) return NODE_KIND::LEAF; // safest fallback
 
-      if (dynamic_cast<CompositeNode*>(n.get())) return NodeKind::Composite;
-      if (dynamic_cast<Decorator*>(n.get()))    return NodeKind::Decorator;
-      return NodeKind::Leaf;
+      if (dynamic_cast<CompositeNode*>(n.get())) return NODE_KIND::COMPOSITE;
+      if (dynamic_cast<Decorator*>(n.get()))    return NODE_KIND::DECORATOR;
+      return NODE_KIND::LEAF;
   }
 
   void ListDirectChildren(const std::vector<BTNodeDesc>& nodes,
@@ -354,8 +343,8 @@ std::string SanitizeFilename(std::string s)
       if (parentIdx < 0 || parentIdx >= (int)nodes.size()) return false;
 
       const auto kind{ ClassifyNodeType(nodes[parentIdx].nodeType) };
-      if (kind == NodeKind::Leaf) return false;
-      if (kind == NodeKind::Composite) return true;
+      if (kind == NODE_KIND::LEAF) return false;
+      if (kind == NODE_KIND::COMPOSITE) return true;
 
       // Decorator: allow only one direct child
       std::vector<int> kids;
