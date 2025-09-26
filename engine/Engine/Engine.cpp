@@ -34,7 +34,6 @@ All rights reserved.
 #include "PrefabManager.h"
 #include "GameSettings.h"
 #include "JoltPhysics.h"
-#include "BehaviourTreeSystem.h"
 
 #include "SettingsWindow.h"
 #include "BehaviourTreeWindow.h"

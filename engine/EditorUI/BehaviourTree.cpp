@@ -1,3 +1,24 @@
+/******************************************************************************/
+/*!
+\file   Physics.cpp
+\par    Project: 7percent
+\par    Course: CSD3401
+\par    Software Engineering Project 5
+\date   26/09/2025
+
+\author Takumi Shibamoto (100%)
+\par    email: t.shibamoto\@digipen.edu
+\par    DigiPen login: t.shibamoto
+
+\brief
+      This is the source file that contains the definition of the BehaviorTree
+      class.
+
+All content © 2025 DigiPen Institute of Technology Singapore.
+All rights reserved.
+*/
+/******************************************************************************/
+
 #include "BehaviourTree.h"
 #include "BehaviourTreeImguiHelper.h"
 #include "BehaviourTreeFactory.h"
@@ -70,7 +91,7 @@ void BehaviorTree::Set(ecs::EntityHandle entityHandle)
 
 void BehaviorTree::Update()
 {
-    if (!rootNode) {
+    if (!rootNode)
         return;
     
     rootNode->Tick(entity); // the nodes will handle the logic within

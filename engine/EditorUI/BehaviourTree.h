@@ -33,7 +33,6 @@ Check if tree is valid (least priority)
 
 #include "LeafFailTest.h"
 #include "LeafKeyPressed.h"
-#include "ComSelector.h"
 #include "BehaviourTreeFactory.h"
 
 class BehaviorTree

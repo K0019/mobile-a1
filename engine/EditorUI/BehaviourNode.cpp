@@ -3,12 +3,13 @@
 
 BT_REGISTER_NODE(Sequence, "Sequence")
 BT_REGISTER_NODE(Selector, "Selector")
+
+// For testing
 BT_REGISTER_NODE(MoveLeft, "MoveLeft")
 BT_REGISTER_NODE(MoveRight, "MoveRight")
 BT_REGISTER_NODE(MoveUp, "MoveUp")
 BT_REGISTER_NODE(MoveDown, "MoveDown")
 
-//agent(nullptr) deleted for now
 BehaviorNode::BehaviorNode()
     : status{ NODE_STATUS::READY }
 {

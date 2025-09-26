@@ -1,24 +1,18 @@
+
+
 #pragma once
 
 enum class NODE_STATUS
 {
     READY, // node is enterable
     RUNNING, // node is currently running
-    SUCCESS,
-    FAILURE
-    //EXITING, // node has succeeded or failed
-    //SUSPENDED // node won't exceute anything
+    SUCCESS, // return state success
+    FAILURE // return state success
 };
-
-//enum class NODE_RESULT
-//{
-//    IN_PROGRESS, // still being run 
-//    SUCCESS, // node succeeded
-//    FAILURE // node failed
-//};
 
 class BehaviorNode {
 public:
+
     BehaviorNode();
     virtual ~BehaviorNode();
 
@@ -90,6 +84,9 @@ protected:
 private:
     BehaviorNodes::iterator currentChildItr;
 };
+
+
+//For testing
 
 class MoveLeft
     : public BehaviorNode
