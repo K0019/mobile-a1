@@ -304,11 +304,20 @@ std::string SanitizeFilename(std::string s)
 
   NODE_KIND ClassifyNodeType(const std::string& typeName)
   {
-      std::unique_ptr<BehaviorNode> n(ST<BTFactory>::Get()->Create(typeName));
+      BehaviorNode* n(ST<BTFactory>::Get()->Create(typeName));
       if (!n) return NODE_KIND::LEAF; // safest fallback
 
-      if (dynamic_cast<CompositeNode*>(n.get())) return NODE_KIND::COMPOSITE;
-      if (dynamic_cast<Decorator*>(n.get()))    return NODE_KIND::DECORATOR;
+      if (dynamic_cast<CompositeNode*>(n))
+      {
+          delete n;
+          return NODE_KIND::COMPOSITE;
+      }
+      if (dynamic_cast<Decorator*>(n))
+      {
+          delete n;
+          return NODE_KIND::DECORATOR;
+      }
+      delete n;
       return NODE_KIND::LEAF;
   }
 

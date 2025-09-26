@@ -42,6 +42,8 @@ BehaviorTree::~BehaviorTree()
 
 void BehaviorTree::Set(ecs::EntityHandle entityHandle)
 {
+    Destroy();
+
     //Set the entity handle
     entity = entityHandle;
 
