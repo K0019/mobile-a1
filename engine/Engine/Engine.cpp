@@ -36,6 +36,8 @@ All rights reserved.
 #include "JoltPhysics.h"
 
 #include "SettingsWindow.h"
+#include "BehaviourTreeFactory.h"
+#include "BehaviourTreeWindow.h"
 #include "LayersMatrix.h"
 #include "EntityLayers.h"
 
@@ -342,6 +344,12 @@ void Engine::run()
 				ImGui::EndMenu();
 			}
 
+			if (ImGui::BeginMenu("Behaviour Tree"))
+			{
+				editor::CreateWindow<editor::BehaviourTreeWindow>();
+				ImGui::EndMenu();
+			}
+
 			ImGui::EndMainMenuBar();  // End the main menu bar
 		}
 
@@ -427,6 +435,9 @@ void Engine::shutdown() {
 	ST<TweenManager>::Destroy();
 	ST<PerformanceProfiler>::Destroy();
 	ST<AssetBrowser>::Destroy();
+	
+	ST<BTFactory>::Destroy();
+
 #ifdef IMGUI_ENABLED
 	ST<Inspector>::Destroy();
 #endif
