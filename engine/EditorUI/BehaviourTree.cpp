@@ -53,7 +53,7 @@ void BehaviorTree::Set(ecs::EntityHandle entityHandle)
     //All the data of the tree.
     std::string fileName{ ST<Filepaths>::Get()->behaviourTreeSave + "/" + btName + ".json"};
     BehaviorTreeAsset btAsset{};
-    if (!LoadBTAssetFromFile(fileName, &btAsset))
+    if (!bt::LoadBTAssetFromFile(fileName, &btAsset))
     {
         CONSOLE_LOG(LEVEL_ERROR) << "behavior tree file could not be loaded.";
         return;

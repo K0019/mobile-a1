@@ -155,10 +155,10 @@ static void WalkBTAssetFlat(const BehaviorTreeAsset& asset, F&& fn)
         ImGui::SameLine();
         if (ImGui::Button("Apply")) 
         {
-            std::string proposed{ SanitizeFilename(std::string(nameBuf)) };
+            std::string proposed{ bt::SanitizeFilename(std::string(nameBuf)) };
 
             // default to .json if user removed extension
-            proposed = EnsureAllowedExt(proposed, std::string(".json"));
+            proposed = bt::EnsureAllowedExt(proposed, std::string(".json"));
 
             // Avoid no-op
             if (proposed == files[currentIndex]) 
@@ -250,12 +250,12 @@ static void WalkBTAssetFlat(const BehaviorTreeAsset& asset, F&& fn)
 
                     // optional: validate before saving
                     std::string why;
-                    if (!ValidateLevelOrder(loadedAsset, why)) 
+                    if (!bt::ValidateLevelOrder(loadedAsset, why)) 
                     {
                         CONSOLE_LOG(LEVEL_ERROR) << "[BT Save] invalid: " << why;
                         ImGui::OpenPopup("BT Save Error");
                     }
-                    else if (SaveBTAssetToFile(lastPath, loadedAsset)) 
+                    else if (bt::SaveBTAssetToFile(lastPath, loadedAsset)) 
                     {
                         ImGui::OpenPopup("BT Save Success");
                     }
@@ -320,10 +320,10 @@ static void WalkBTAssetFlat(const BehaviorTreeAsset& asset, F&& fn)
                 std::string stem = newNameBuf;                    // user input, e.g. "MyTree"
 
                 // Create file on disk (your helper should add .json, sanitize, and write a minimal asset)
-                if (CreateNewBTFile(dir, stem, createdPath)) 
+                if (bt::CreateNewBTFile(dir, stem, createdPath)) 
                 {
                     // Refresh the list (also maintains/auto-loads selection per your helper)
-                    RefreshBTList(dir, files, currentIndex, loadedAsset, hasAsset, lastLoadedPath);
+                    bt::RefreshBTList(dir, files, currentIndex, loadedAsset, hasAsset, lastLoadedPath);
 
                     // Select the newly created file & load it explicitly
                     const std::string target{ std::filesystem::path(createdPath).filename().string() };
@@ -334,7 +334,7 @@ static void WalkBTAssetFlat(const BehaviorTreeAsset& asset, F&& fn)
 
                         const std::string full{ (std::filesystem::path(dir) / files[currentIndex]).string() };
                         BehaviorTreeAsset tmp;
-                        if (LoadBTAssetFromFile(full, &tmp)) 
+                        if (bt::LoadBTAssetFromFile(full, &tmp)) 
                         {
                             loadedAsset = std::move(tmp);
                             hasAsset = true;
@@ -405,10 +405,10 @@ static void WalkBTAssetFlat(const BehaviorTreeAsset& asset, F&& fn)
             if (ImGui::Button("Yes", ImVec2(120, 0))) 
             {
                 std::string deletedPath;
-                if (DeleteBTFile(dir, files, currentIndex, deletedPath)) 
+                if (bt::DeleteBTFile(dir, files, currentIndex, deletedPath)) 
                 {
                     // Refresh file list after deletion
-                    RefreshBTList(dir, files, currentIndex, loadedAsset, hasAsset, lastLoadedPath);
+                    bt::RefreshBTList(dir, files, currentIndex, loadedAsset, hasAsset, lastLoadedPath);
 
                     hasAsset = false;
                     lastLoadedPath.clear();
@@ -438,8 +438,8 @@ static void WalkBTAssetFlat(const BehaviorTreeAsset& asset, F&& fn)
         ImGui::SameLine();
         if (ImGui::Button("Reload List")) 
         {
-            RefreshBTList(dir, files, currentIndex, loadedAsset, hasAsset, lastLoadedPath);
-            if (!LoadSelectedBT(dir, files, currentIndex, loadedAsset, hasAsset, lastLoadedPath, selectedNodeIndex))
+            bt::RefreshBTList(dir, files, currentIndex, loadedAsset, hasAsset, lastLoadedPath);
+            if (!bt::LoadSelectedBT(dir, files, currentIndex, loadedAsset, hasAsset, lastLoadedPath, selectedNodeIndex))
                 ImGui::OpenPopup("BT Load Error");
 
             ST<BTFactory>::Get()->SetAllFilePath();
@@ -465,7 +465,7 @@ static void WalkBTAssetFlat(const BehaviorTreeAsset& asset, F&& fn)
                     if (ImGui::Selectable(files[i].c_str(), sel)) 
                     {
                         currentIndex = i;
-                        if (!LoadSelectedBT(dir, files, currentIndex, loadedAsset, hasAsset, lastLoadedPath, selectedNodeIndex))
+                        if (!bt::LoadSelectedBT(dir, files, currentIndex, loadedAsset, hasAsset, lastLoadedPath, selectedNodeIndex))
                             ImGui::OpenPopup("BT Load Error");
                     }
                     if (sel) ImGui::SetItemDefaultFocus();
@@ -559,7 +559,7 @@ static void WalkBTAssetFlat(const BehaviorTreeAsset& asset, F&& fn)
         // Only allow this for root-level nodes
         if (nodes[selectedIndex].nodeLevel != 0) return;
 
-        const bool lastRoot = (CountRootNodes(nodes) <= 1);
+        const bool lastRoot = (bt::CountRootNodes(nodes) <= 1);
 
         if (lastRoot) ImGui::BeginDisabled();
         const bool clicked = ImGui::SmallButton("Delete This Root Node");
@@ -572,7 +572,7 @@ static void WalkBTAssetFlat(const BehaviorTreeAsset& asset, F&& fn)
 
         if (clicked) 
         {
-            DeleteNodeAndSubtree(nodes, selectedIndex, selectedIndex);
+            bt::DeleteNodeAndSubtree(nodes, selectedIndex, selectedIndex);
         }
     }
 
@@ -674,8 +674,8 @@ static void WalkBTAssetFlat(const BehaviorTreeAsset& asset, F&& fn)
                 // ----- Detach (prevent non-composite becoming level 0) -----
                 {
                     const bool wouldBecomeRoot{ (nodes[ci].nodeLevel == 1) };
-                    const NODE_KIND childKind{ ClassifyNodeType(nodes[ci].nodeType) };
-                    const bool detachAllowed{ !wouldBecomeRoot || (childKind == NODE_KIND::COMPOSITE) };
+                    const bt::NODE_KIND childKind{ bt::ClassifyNodeType(nodes[ci].nodeType) };
+                    const bool detachAllowed{ !wouldBecomeRoot || (childKind == bt::NODE_KIND::COMPOSITE) };
 
                     if (!detachAllowed) ImGui::BeginDisabled();
                     if (ImGui::SmallButton("Detach")) 
@@ -696,7 +696,7 @@ static void WalkBTAssetFlat(const BehaviorTreeAsset& asset, F&& fn)
                 // ----- Delete (disallow deleting the last root) -----
                 {
                     const bool isRoot{ (nodes[ci].nodeLevel == 0) };
-                    const bool isLastRoot{ isRoot && (CountRootNodes(nodes) <= 1) };
+                    const bool isLastRoot{ isRoot && (bt::CountRootNodes(nodes) <= 1) };
 
                     if (isLastRoot) ImGui::BeginDisabled();
                     const bool wantDelete{ ImGui::SmallButton("Delete") };
@@ -718,7 +718,7 @@ static void WalkBTAssetFlat(const BehaviorTreeAsset& asset, F&& fn)
             // Perform the actual deletion after the UI loop (safe for indices)
             if (deletedCi.first) 
             {
-                DeleteNodeAndSubtree(nodes, deletedCi.second, selectedNodeIndex);
+                bt::DeleteNodeAndSubtree(nodes, deletedCi.second, selectedNodeIndex);
             }
 
         }
@@ -737,14 +737,14 @@ static void WalkBTAssetFlat(const BehaviorTreeAsset& asset, F&& fn)
         else
         {
             // Decide if we even allow adding for this parent
-            const NODE_KIND parentKind{ ClassifyNodeType(nodes[parentIdx].nodeType) };
-            const bool canAddNow{ CanParentAddChild(nodes, parentIdx) };
+            const bt::NODE_KIND parentKind{ bt::ClassifyNodeType(nodes[parentIdx].nodeType) };
+            const bool canAddNow{ bt::CanParentAddChild(nodes, parentIdx) };
 
-            if (parentKind == NODE_KIND::LEAF)
+            if (parentKind == bt::NODE_KIND::LEAF)
             {
                 ImGui::TextDisabled("This is a Leaf node. It cannot have children.");
             }
-            else if (parentKind == NODE_KIND::DECORATOR && !canAddNow)
+            else if (parentKind == bt::NODE_KIND::DECORATOR && !canAddNow)
             {
                 ImGui::TextDisabled("Decorator already has 1 child.");
             }
@@ -777,11 +777,11 @@ static void WalkBTAssetFlat(const BehaviorTreeAsset& asset, F&& fn)
                 int insertPos{ parentIdx + 1 };
                 {
                     std::vector<int> directChildren;
-                    ListDirectChildren(nodes, parentIdx, directChildren);
+                    bt::ListDirectChildren(nodes, parentIdx, directChildren);
                     if (!directChildren.empty())
                     {
                         const int lastChildStart{ directChildren.back() };
-                        insertPos = SubtreeEnd(nodes, lastChildStart);
+                        insertPos = bt::SubtreeEnd(nodes, lastChildStart);
                     }
                 }
 
@@ -812,8 +812,8 @@ static void WalkBTAssetFlat(const BehaviorTreeAsset& asset, F&& fn)
             if (auto* fp = ST<Filepaths>::Get()) dir = fp->behaviourTreeSave;
             else                                 dir = "Assets/BehaviourTrees";
 
-            RefreshBTList(dir, files, currentIndex, loadedAsset, hasAsset, lastLoadedPath);
-            LoadSelectedBT(dir, files, currentIndex, loadedAsset, hasAsset, lastLoadedPath, selectedNodeIndex);
+            bt::RefreshBTList(dir, files, currentIndex, loadedAsset, hasAsset, lastLoadedPath);
+            bt::LoadSelectedBT(dir, files, currentIndex, loadedAsset, hasAsset, lastLoadedPath, selectedNodeIndex);
         }
 
         // Top bar
