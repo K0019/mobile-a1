@@ -1,3 +1,0 @@
-NODE(ComSelector,        "Selector")
-NODE(LeafFailTest,       "LeafFailTest")
-NODE(L_CheckMouseClick,  "L_CheckMouseClick")
