@@ -1,0 +1,33 @@
+{
+    "name": "testNestedNewTree",
+    "nodes": [
+        {
+            "nodeType": "Sequence",
+            "nodeLevel": 0
+        },
+        {
+            "nodeType": "Sequence",
+            "nodeLevel": 1
+        },
+        {
+            "nodeType": "L_CheckMouseClick",
+            "nodeLevel": 2
+        },
+        {
+            "nodeType": "LeafFailTest",
+            "nodeLevel": 2
+        },
+        {
+            "nodeType": "Sequence",
+            "nodeLevel": 2
+        },
+        {
+            "nodeType": "L_CheckMouseClick",
+            "nodeLevel": 3
+        },
+        {
+            "nodeType": "L_CheckMouseClick",
+            "nodeLevel": 1
+        }
+    ]
+}

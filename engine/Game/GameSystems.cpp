@@ -42,6 +42,7 @@ All rights reserved.
 #include "FadeAndDie.h"
 #include "PrefabSpawner.h"
 #include "Physics.h"
+#include "BehaviourTree.h"
 
 #include "Demo.h"
 
@@ -94,6 +95,8 @@ void GameState_Game::OnEnter()
     ecs::AddSystem(ECS_LAYER::SCRIPT_START, ScriptStartSystem{});
     ecs::AddSystem(ECS_LAYER::SCRIPT_UPDATE, ScriptSystem{});
     ecs::AddSystem(ECS_LAYER::SCRIPT_LATE_UPDATE, ScriptLateUpdateSystem{});
+
+    ecs::AddSystem(ECS_LAYER::SCRIPT_UPDATE, BehaviorTreeSystem{});
 
     ecs::AddSystem(ECS_LAYER::POST_PHYSICS_2, CameraSystem{});
     ecs::AddSystem(ECS_LAYER::POST_PHYSICS_0, AnchorToCameraSystem{});

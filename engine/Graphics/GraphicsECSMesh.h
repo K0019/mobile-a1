@@ -26,19 +26,22 @@ class RenderComponent
     , public IEditorComponent<RenderComponent>
 {
 public:
-    size_t GetHash() const;
+    size_t GetMeshHash() const;
+    size_t GetMaterialHash() const;
 
     void EditorDraw() override;
 
 private:
-    size_t resourceHash;
+    size_t meshHash;
+    size_t materialHash;
 
 public:
     property_vtable()
 };
 property_begin(RenderComponent)
 {
-    property_var(resourceHash)
+    property_var(meshHash),
+    property_var(materialHash)
 }
 property_vend_h(RenderComponent)
 

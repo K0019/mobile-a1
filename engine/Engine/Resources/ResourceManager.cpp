@@ -22,110 +22,49 @@ All rights reserved.
 /******************************************************************************/
 
 #include "ResourceManager.h"
-#include "GraphicsAPI.h"
-#include "scene_loader.h"
+#include "ResourceImporter.h"
+#include "ResourceSerialization.h"
 
 #include "AudioManager.h"
 
-void ResourceBase::Serialize(Serializer& writer) const
+const std::string* ResourceNames::GetName(size_t hash) const
 {
-    writer.Serialize("filepath", ST<ResourceFilepaths>::Get()->GetAssetsRelativeFilepath(hash)->string());
-    ISerializeable::Serialize(writer);
-}
-void ResourceBase::Deserialize(Deserializer& reader)
-{
-    std::string filepath{};
-    reader.DeserializeVar("filepath", &filepath);
-    ISerializeable::Deserialize(reader);
-
-    ST<ResourceFilepaths>::Get()->AddFilepath(hash, filepath);
+    auto nameIter{ names.find(hash) };
+    return (nameIter != names.end() ? &nameIter->second : nullptr);
 }
 
-bool ResourceMesh::Load()
+void ResourceNames::SetName(size_t hash, const std::string& name)
 {
-    // Don't load if already loaded
-    if (!objects.empty())
-        return true;
-
-    // Get filepath
-    auto filepath{ ST<ResourceFilepaths>::Get()->GetExeRelativeFilepath(hash) };
-    if (!filepath)
-    {
-        CONSOLE_LOG(LEVEL_ERROR) << "Failed to load Mesh: filepath hash does not exist: " << hash;
-        return false;
-    }
-
-    // Check file exists
-    if (!std::filesystem::exists(*filepath))
-    {
-        CONSOLE_LOG(LEVEL_ERROR) << "Failed to load Mesh: file does not exist: " << *filepath;
-        return false;
-    }
-
-    // Load the file
-    AssetLoading::SceneLoader sceneLoader{ *ST<GraphicsAssets>::Get()->INTERNAL_GetAssetSystem() };
-    auto loadResult{ sceneLoader.loadScene(*filepath) };
-    if (!loadResult.success)
-    {
-        CONSOLE_LOG(LEVEL_ERROR) << "Mesh failed to load: " << *filepath;
-        return false;
-    }
-
-    objects = std::move(loadResult.scene.objects);
-    return true;
-}
-void ResourceMesh::Unload()
-{
-    objects.clear();
+    names[hash] = name;
 }
 
-bool ResourceFilepaths::AddFilepath(size_t hash, const std::filesystem::path& filepath)
+void ResourceNames::RemoveName(size_t hash)
 {
-    if (filepaths.find(hash) != filepaths.end())
-        return false;
-    filepaths.try_emplace(hash, filepath);
-    return true;
+    names.erase(hash);
 }
 
-const std::filesystem::path* ResourceFilepaths::GetAssetsRelativeFilepath(size_t hash) const
+void ResourceManager::Init()
 {
-    auto filepathIter{ filepaths.find(hash) };
-    return (filepathIter != filepaths.end() ? &filepathIter->second : nullptr);
+    Messaging::Subscribe("NeedResourceLoaded", OnResourceRequestedLoad);
+}
+void ResourceManager::Shutdown()
+{
+    Messaging::Unsubscribe("NeedResourceLoaded", OnResourceRequestedLoad);
 }
 
-std::optional<std::filesystem::path> ResourceFilepaths::GetExeRelativeFilepath(size_t hash) const
+void ResourceManager::OnResourceRequestedLoad(size_t resourceHash)
 {
-    auto filepathIter{ filepaths.find(hash) };
-    if (filepathIter != filepaths.end())
-        return ST<Filepaths>::Get()->assets / filepathIter->second;
-    else
-        return std::nullopt;
+    if (const auto* fileEntry{ ST<ResourceManager>::Get()->filepathsManager.GetFileEntry(resourceHash) })
+        ResourceImporter::Import(ST<Filepaths>::Get()->assets / fileEntry->path);
 }
 
 UserResourceGetter<ResourceMesh> ResourceManager::Meshes()
 {
     return UserResourceGetter<ResourceMesh>{ &ST<ResourceManager>::Get()->meshes };
 }
-
-bool ResourceManager::Import(RESOURCE_TYPE type, const std::string& name, const std::filesystem::path& filepath)
+UserResourceGetter<ResourceMaterial> ResourceManager::Materials()
 {
-    // Check file exists
-    if (!std::filesystem::exists(filepath))
-    {
-        CONSOLE_LOG(LEVEL_ERROR) << "File does not exist: " << filepath;
-        return false;
-    }
-
-    auto relativeFilepath{ std::filesystem::relative(filepath, ST<Filepaths>::Get()->assets) };
-
-    switch (type)
-    {
-    case RESOURCE_TYPE::MESH:
-        ST<ResourceManager>::Get()->meshes.CreateResource(name, relativeFilepath.string());
-        return true;
-    default:
-        return false;
-    }
+    return UserResourceGetter<ResourceMaterial>{ &ST<ResourceManager>::Get()->materials };
 }
 
 void ResourceManager::SaveToFile() const
@@ -137,7 +76,7 @@ void ResourceManager::SaveToFile() const
         return;
     }
 
-    ISerializeable::Serialize(writer);
+    ResourceSerialization::Serialize(writer, filepathsManager, namesManager);
 }
 void ResourceManager::LoadFromFile()
 {
@@ -148,12 +87,51 @@ void ResourceManager::LoadFromFile()
         return;
     }
 
-    ISerializeable::Deserialize(reader);
+    ResourceSerialization::Deserialize(reader, &filepathsManager, &namesManager, [](size_t resourceTypeHash, size_t resourceHash) -> void {
+        ST<ResourceManager>::Get()->INTERNAL_CreateEmptyResource(resourceTypeHash, resourceHash);
+    });
 }
 
 const ResourceContainerMeshes& ResourceManager::Editor_GetMeshes()
 {
     return meshes;
+}
+const ResourceContainerMaterials& ResourceManager::Editor_GetMaterials()
+{
+    return materials;
+}
+
+const std::string& ResourceManager::Editor_GetName(size_t hash)
+{
+    const std::string* name{ namesManager.GetName(hash) };
+    assert(name);
+    return *name;
+}
+
+ResourceFilepaths& ResourceManager::INTERNAL_GetFilepathsManager()
+{
+    return filepathsManager;
+}
+ResourceNames& ResourceManager::INTERNAL_GetNamesManager()
+{
+    return namesManager;
+}
+ResourceContainerMeshes& ResourceManager::INTERNAL_GetMeshes()
+{
+    return meshes;
+}
+ResourceContainerMaterials& ResourceManager::INTERNAL_GetMaterials()
+{
+    return materials;
+}
+
+void ResourceManager::INTERNAL_CreateEmptyResource(size_t resourceTypeHash, size_t resourceHash)
+{
+    // Sorry for this if spam kinda running out of time, this function existing's also kinda ugly anyway
+    if (resourceTypeHash == typeid(ResourceMesh).hash_code())
+        meshes.INTERNAL_CreateResource(resourceHash);
+    else if (resourceTypeHash == typeid(ResourceMaterial).hash_code())
+        materials.INTERNAL_CreateResource(resourceHash);
 }
 
 

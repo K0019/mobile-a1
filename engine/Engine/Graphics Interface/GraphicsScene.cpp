@@ -39,34 +39,24 @@ bool GraphicsScene::NewFrame()
     objIndex = 0;
 }
 
-void GraphicsScene::AddObject(const ResourceMesh* resource, const Mat4& transform)
-{
-    for (const auto& obj : resource->objects)
-    {
-        INTERNAL_AddSceneObject(obj, transform);
-        ++objIndex;
-    }
-}
-
-void GraphicsScene::INTERNAL_AddSceneObject(const SceneObject& object, const Mat4& transform)
+void GraphicsScene::AddObject(const MeshHandle& meshHandle, const MaterialHandle& materialHandle, const Mat4& transform)
 {
     // Validate handles
-    if (!object.mesh.isValid() || !object.material.isValid())
+    if (!meshHandle.isValid() || !materialHandle.isValid())
         return;
 
-    const auto* meshData{ context.assetSystem->getMesh(object.mesh) };
+    const auto* meshData{ context.assetSystem->getMesh(meshHandle) };
     if (!meshData)
         return;
 
     // Store object data
-    Mat4 finalTransform{ transform * object.transform };
-    params->objectTransforms.push_back(finalTransform);
-    params->materialIndices.push_back(context.assetSystem->getMaterialIndex(object.material));
+    params->objectTransforms.push_back(transform);
+    params->materialIndices.push_back(context.assetSystem->getMaterialIndex(materialHandle));
 
     // Transform mesh bounds to world space
     Vec3 center{ meshData->bounds };
     Vec3 radius{ meshData->bounds.w };
-    Vec3 worldCenter = Vec3(finalTransform * Vec4{ center, 1.0f });
+    Vec3 worldCenter = Vec3(transform * Vec4{ center, 1.0f });
     params->objectBounds.emplace_back(worldCenter - radius, worldCenter + radius);
 
     // Build draw command
@@ -80,7 +70,7 @@ void GraphicsScene::INTERNAL_AddSceneObject(const SceneObject& object, const Mat
 
     DrawData drawData{
         .transformId = static_cast<uint32_t>(objIndex),
-        .materialId = context.assetSystem->getMaterialIndex(object.material)
+        .materialId = context.assetSystem->getMaterialIndex(materialHandle)
     };
 
     uint32_t drawCommandIndex = static_cast<uint32_t>(params->drawCommands.size());
@@ -88,8 +78,11 @@ void GraphicsScene::INTERNAL_AddSceneObject(const SceneObject& object, const Mat
     params->drawData.push_back(drawData);
 
     // Determine transparency and add to render queues
-    if (context.assetSystem->isMaterialTransparent(object.material))
+    if (context.assetSystem->isMaterialTransparent(materialHandle))
         params->transparentIndices.push_back(drawCommandIndex);
     else
         params->opaqueIndices.push_back(drawCommandIndex);
+
+    // Track next object's index
+    ++objIndex;
 }

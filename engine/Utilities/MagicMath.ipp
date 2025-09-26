@@ -278,6 +278,21 @@ GENERATE_GLOBAL_OPERATOR_ADAPTER_IPP(Vec4, glm::vec4, /)
 
 #pragma region Mat4
 
+inline constexpr Mat4::Mat4(
+	float x0, float y0, float z0, float w0,
+	float x1, float y1, float z1, float w1,
+	float x2, float y2, float z2, float w2,
+	float x3, float y3, float z3, float w3
+)
+	: glm::mat4{
+		x0, y0, z0, w0,
+		x1, y1, z1, w1,
+		x2, y2, z2, w2,
+		x3, y3, z3, w3
+	}
+{
+}
+
 inline constexpr Mat4::Mat4(const glm::mat4& other)
 	: glm::mat4{ other }
 {
