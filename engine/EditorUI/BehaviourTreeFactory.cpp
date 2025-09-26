@@ -1,3 +1,27 @@
+/******************************************************************************/
+/*!
+\file   BehaviourTreeFactory.cpp
+\par    Project: KuroMahou
+\par    Course: CSD3401
+\par    Software Engineering Project 5
+\date   26/09/2025
+
+\author Takumi Shibamoto (30%)
+\par    email: t.shibamoto\@digipen.edu
+\par    DigiPen login: t.shibamoto
+
+\author Hong Tze Keat (70%)
+\par    email: h.tzekeat\@digipen.edu
+\par    DigiPen login: h.tzekeat
+
+\brief
+      This file defines the runtime behavior of the BTFactory
+
+All content © 2025 DigiPen Institute of Technology Singapore.
+All rights reserved.
+*/
+/******************************************************************************/
+
 #include "BehaviourTreeFactory.h"
 
 BTFactory::BTFactory()

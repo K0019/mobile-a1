@@ -1,25 +1,27 @@
-/*
-NOTE:
+/******************************************************************************/
+/*!
+\file   BehaviourTree.h
+\par    Project: KuroMahou
+\par    Course: CSD3401
+\par    Software Engineering Project 5
+\date   26/09/2025
 
-To do:
-Serialisation (Read,Write) of the files
-Figure out how to activate the AI (was thinking more of calling AI >typical major System like physics >etc...
-really not sure how to begin coding or testing without c# tho need ask bossman
-Blackboard
-Integrate with ECS?
-Figure out how to register nodes DYNAMICALLY (thinking of making a unique filetype for this but inside is just c#)
+\author Takumi Shibamoto (60%)
+\par    email: t.shibamoto\@digipen.edu
+\par    DigiPen login: t.shibamoto
 
-Decide if i want fixed decorator and composite nodes so user can only create leaf nodes
+\author Hong Tze Keat (40%)
+\par    email: h.tzekeat\@digipen.edu
+\par    DigiPen login: h.tzekeat
 
-imgui:
-create interface ( roughly up but all just static and fake)
-add others for node and allow to choose which c# file to use
-allow load and save of behavior tree files
-Check if tree is valid (least priority)
+\brief
+      This is the header file that contains the declaration of the BehaviorTree
+      class.
 
-
-
+All content © 2025 DigiPen Institute of Technology Singapore.
+All rights reserved.
 */
+/******************************************************************************/
 
 
 
@@ -35,38 +37,73 @@ Check if tree is valid (least priority)
 #include "LeafKeyPressed.h"
 #include "BehaviourTreeFactory.h"
 
+ /*****************************************************************//*!
+     \brief
+         Represents a behavior tree instance bound to an entity.
+         Provides lifecycle functions for setup, update, and destruct.
+ *//******************************************************************/
 class BehaviorTree
     : public ISerializeable
 {
 public:
+
+    /*****************************************************************//*!
+    \brief
+        Constructor and Destructor of trees
+    *//******************************************************************/
     BehaviorTree();
     ~BehaviorTree();
 
+    /*****************************************************************//*!
+    \brief
+        Assigns the behavior tree to a given entity.
+    \param
+        entityHandle The entity handle to bind the tree to
+    *//******************************************************************/
     void Set(ecs::EntityHandle entityHandle);
+
+    /*****************************************************************//*!
+    \brief
+        Executes an update tick on the behavior tree.
+    *//******************************************************************/
     void Update();
+
+    /*****************************************************************//*!
+    \brief
+        Cleans up and destroys the behavior tree’s resources.
+    *//******************************************************************/
     void Destroy();
 
+    /*****************************************************************//*!
+    \brief
+        Renders the behavior tree in the editor UI
+    *//******************************************************************/
     void EditorDraw();
+
 private:
-    ecs::EntityHandle entity;
-    BehaviorNode* rootNode;
-    std::string btName;
+    ecs::EntityHandle entity;   //entity the tree is bound to
+    BehaviorNode* rootNode;     //starting node
+    std::string btName;         //tree name
 
 public:
     property_vtable()
 };
+
+//=======================================================================
+// For Properties storing of data
+//=======================================================================
+
 property_begin(BehaviorTree)
 {
     property_var(btName)
 }
 property_vend_h(BehaviorTree)
 
-//For Properties storing of data =======================================
 struct BTNodeDesc 
     : public ISerializeable 
 {
     std::string nodeType;
-    unsigned int nodeLevel;
+    unsigned int nodeLevel; //depth lvl starting from 0
 
     property_vtable()
 };
@@ -77,6 +114,11 @@ property_begin(BTNodeDesc)
 }
 property_vend_h(BTNodeDesc)
 
+/*****************************************************************//*!
+    \brief
+        Serializable asset representing a behavior tree 
+        definition with its nodes.
+*//******************************************************************/
 struct BehaviorTreeAsset 
     : public ISerializeable 
 {
@@ -92,8 +134,14 @@ property_begin(BehaviorTreeAsset)
 property_vend_h(BehaviorTreeAsset)
 //=======================================================================
 
-//FOR TESTING
 
+
+//FOR TESTING
+/*****************************************************************//*!
+    \brief
+        ECS component wrapper for a BehaviorTree instance
+        Provides lifecycle callbacks and editor drawing integration
+*//******************************************************************/
 class BehaviorTreeComp
     : public IRegisteredComponent<BehaviorTreeComp>
 #ifdef IMGUI_ENABLED
@@ -102,14 +150,30 @@ class BehaviorTreeComp
     , public ecs::IComponentCallbacks
 {
 public:
+    /*****************************************************************//*!
+    \brief
+        Constructor
+    *//******************************************************************/
     BehaviorTreeComp();
 
 private:
     BehaviorTree behaviorTree;
 
 public:
+    /*****************************************************************//*!
+    \brief
+        Called when the component is attached to an entity.
+    *//******************************************************************/
     void OnAttached() override;
+    /*****************************************************************//*!
+    \brief
+        Called when the component is detached from an entity.
+    *//******************************************************************/
     void OnDetached() override;
+    /*****************************************************************//*!
+    \brief
+         Updates the behavior tree each tick.
+    *//******************************************************************/
     void Update();
 
 private:
@@ -124,13 +188,28 @@ property_begin(BehaviorTreeComp)
 }
 property_vend_h(BehaviorTreeComp)
 
+
+/*****************************************************************//*!
+\brief
+      ECS system responsible for updating all BehaviorTreeComp
+*//******************************************************************/
 class BehaviorTreeSystem
     : public ecs::System<BehaviorTreeSystem, BehaviorTreeComp>
 {
 public:
+    /*****************************************************************//*!
+    \brief
+        Constructor
+    *//******************************************************************/
     BehaviorTreeSystem();
 
 private:
+    /*****************************************************************//*!
+    \brief
+        Updates a single BehaviorTreeComp instance.
+    \param
+        The component to update
+    *//******************************************************************/
     void UpdateComp(BehaviorTreeComp& comp);
 };
 //=======================================================================

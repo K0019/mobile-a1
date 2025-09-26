@@ -1,14 +1,18 @@
 /******************************************************************************/
 /*!
-\file   Physics.cpp
-\par    Project: 7percent
+\file   BehaviourTree.cpp
+\par    Project: KuroMahou
 \par    Course: CSD3401
 \par    Software Engineering Project 5
 \date   26/09/2025
 
-\author Takumi Shibamoto (100%)
+\author Takumi Shibamoto (60%)
 \par    email: t.shibamoto\@digipen.edu
 \par    DigiPen login: t.shibamoto
+
+\author Hong Tze Keat (40%)
+\par    email: h.tzekeat\@digipen.edu
+\par    DigiPen login: h.tzekeat
 
 \brief
       This is the source file that contains the definition of the BehaviorTree
