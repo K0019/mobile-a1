@@ -1,3 +1,29 @@
+/******************************************************************************/
+/*!
+\file   BehaviorNode.cpp
+\par    Project: KuroMahou
+\par    Course: CSD3401
+\par    Software Engineering Project 5
+\date   26/09/2025
+
+\author Takumi Shibamoto (60%)
+\par    email: t.shibamoto\@digipen.edu
+\par    DigiPen login: t.shibamoto
+
+\author Hong Tze Keat (40%)
+\par    email: h.tzekeat\@digipen.edu
+\par    DigiPen login: h.tzekeat
+
+\brief
+      This header file defines the BehaviorNode base class for all the nodes
+      in the behavior tree. It also contains the definition of the Decorator 
+      base class, and definition of sequence and selector nodes.
+
+All content © 2025 DigiPen Institute of Technology Singapore.
+All rights reserved.
+*/
+/******************************************************************************/
+
 #include "BehaviourNode.h"
 #include "BehaviourTreeFactory.h"
 
