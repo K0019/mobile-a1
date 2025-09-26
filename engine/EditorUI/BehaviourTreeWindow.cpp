@@ -468,6 +468,29 @@ static void WalkBTAssetFlat(const BehaviorTreeAsset& asset, F&& fn)
         ImGui::EndChild();
     }
 
+    void DrawDeleteCurrentNodeButton(BehaviorTreeAsset& asset, int& selectedIndex)
+    {
+        auto& nodes = asset.nodes;
+        if (selectedIndex < 0 || selectedIndex >= (int)nodes.size()) return;
+
+        // Only allow this for root-level nodes
+        if (nodes[selectedIndex].nodeLevel != 0) return;
+
+        const bool lastRoot = (CountRootNodes(nodes) <= 1);
+
+        if (lastRoot) ImGui::BeginDisabled();
+        const bool clicked = ImGui::SmallButton("Delete This Root Node");
+        if (lastRoot) {
+            ImGui::EndDisabled();
+            if (ImGui::IsItemHovered())
+                ImGui::SetTooltip("Cannot delete the only root node. Add another root first.");
+        }
+
+        if (clicked) {
+            DeleteNodeAndSubtree(nodes, selectedIndex, selectedIndex);
+        }
+    }
+
     void DrawInspectorPanel(BehaviorTreeAsset& loadedAsset,
         bool hasAsset,
         int& selectedNodeIndex)
@@ -486,6 +509,9 @@ static void WalkBTAssetFlat(const BehaviorTreeAsset& asset, F&& fn)
 
         ImGui::Text("Type:  %s", nodes[parentIdx].nodeType.c_str());
         ImGui::Text("Level: %u", nodes[parentIdx].nodeLevel);
+
+        DrawDeleteCurrentNodeButton(loadedAsset, selectedNodeIndex);
+
 
         // helpers
         auto subtreeEnd = [&](int startIdx) -> int {
@@ -524,7 +550,7 @@ static void WalkBTAssetFlat(const BehaviorTreeAsset& asset, F&& fn)
         // Children list
         ImGui::SeparatorText("Children");
         std::vector<int> childIdxs;
-        std::pair<bool, int> deletedCi{std::make_pair<bool, int>(false, 0)};
+        std::pair<bool, int> deletedCi{std::make_pair<bool, int>(false, -1)};
         listDirectChildren(parentIdx, childIdxs);
 
         if (childIdxs.empty()) {
@@ -538,6 +564,7 @@ static void WalkBTAssetFlat(const BehaviorTreeAsset& asset, F&& fn)
 
                 ImGui::PushID(ci);
 
+                // ----- Up -----
                 if (ImGui::SmallButton("Up") && c > 0) {
                     int prevStart = childIdxs[c - 1], thisStart = childIdxs[c];
                     if (prevStart > thisStart) std::swap(prevStart, thisStart);
@@ -545,6 +572,7 @@ static void WalkBTAssetFlat(const BehaviorTreeAsset& asset, F&& fn)
                 }
                 ImGui::SameLine();
 
+                // ----- Down -----
                 if (ImGui::SmallButton("Down") && c + 1 < (int)childIdxs.size()) {
                     int thisStart = childIdxs[c], nextStart = childIdxs[c + 1];
                     if (thisStart > nextStart) std::swap(thisStart, nextStart);
@@ -552,22 +580,52 @@ static void WalkBTAssetFlat(const BehaviorTreeAsset& asset, F&& fn)
                 }
                 ImGui::SameLine();
 
-                if (ImGui::SmallButton("Detach")) {
-                    if (nodes[ci].nodeLevel > 0) adjustSubtreeLevel(ci, -1);
+                // ----- Detach (prevent non-composite becoming level 0) -----
+                {
+                    const bool wouldBecomeRoot = (nodes[ci].nodeLevel == 1);
+                    const NodeKind childKind = ClassifyNodeType(nodes[ci].nodeType);
+                    const bool detachAllowed = !wouldBecomeRoot || (childKind == NodeKind::Composite);
+
+                    if (!detachAllowed) ImGui::BeginDisabled();
+                    if (ImGui::SmallButton("Detach")) {
+                        // Promote entire subtree by one level
+                        if (nodes[ci].nodeLevel > 0) adjustSubtreeLevel(ci, -1);
+                    }
+                    if (!detachAllowed) {
+                        ImGui::EndDisabled();
+                        if (ImGui::IsItemHovered())
+                            ImGui::SetTooltip("Only Composite nodes can be at level 0.");
+                    }
                 }
 
                 ImGui::SameLine();
-                if (ImGui::SmallButton("Delete"))
+
+                // ----- Delete (disallow deleting the last root) -----
                 {
-                    //Store the ci when clicked.
-                    deletedCi.first = true;
-                    deletedCi.second = ci;
+                    const bool isRoot = (nodes[ci].nodeLevel == 0);
+                    const bool isLastRoot = isRoot && (CountRootNodes(nodes) <= 1);
+
+                    if (isLastRoot) ImGui::BeginDisabled();
+                    const bool wantDelete = ImGui::SmallButton("Delete");
+                    if (isLastRoot) {
+                        ImGui::EndDisabled();
+                        if (ImGui::IsItemHovered())
+                            ImGui::SetTooltip("Cannot delete the only root node.");
+                    }
+
+                    if (wantDelete) {
+                        deletedCi = { true, ci };   // defer actual erase until after the loop
+                    }
                 }
 
                 ImGui::PopID();
             }
-            if (deletedCi.first)
+
+            // Perform the actual deletion after the UI loop (safe for indices)
+            if (deletedCi.first) {
                 DeleteNodeAndSubtree(nodes, deletedCi.second, selectedNodeIndex);
+            }
+
         }
 
         // Add Child (dropdown)

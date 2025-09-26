@@ -353,3 +353,9 @@ std::string MakeNodeLabel(const BehaviorTreeAsset& a, int index)
 
       return true;
   }
+
+  int CountRootNodes(const std::vector<BTNodeDesc>& nodes) {
+      int c = 0;
+      for (const auto& n : nodes) if (n.nodeLevel == 0) ++c;
+      return c;
+  }
