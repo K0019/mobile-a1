@@ -13,9 +13,9 @@
                 "z": 0.0
             },
             "scale": {
-                "x": 0.009999999776482582,
-                "y": 0.009999999776482582,
-                "z": 0.009999999776482582
+                "x": 0.20000000298023224,
+                "y": 0.0,
+                "z": 0.20000000298023224
             },
             "components": {
                 "1048412265199846848": {
@@ -43,15 +43,9 @@
                     "_active": true,
                     "uid": 9696593391128637
                 },
-                "2130793284427054791": {
-                    "_active": true,
-                    "behaviorTree": {
-                        "btName": ""
-                    }
-                },
                 "2471509561333568296": {
                     "_active": true,
-                    "name": "New Entity"
+                    "name": "Magic Carpet (Script)"
                 },
                 "3381165323192817782": {
                     "_active": true,
@@ -64,7 +58,7 @@
             "parentIndex": -1,
             "position": {
                 "x": 2.0,
-                "y": 0.0,
+                "y": 5.0,
                 "z": 0.0
             },
             "rotation": {
@@ -82,35 +76,38 @@
                     "_active": true,
                     "layer": 0
                 },
-                "1095350204565343168": {
-                    "_active": true,
-                    "scriptMap": [
-                        {
-                            "key": "TestScript",
-                            "value": {
-                                "name": "TestScript",
-                                "vars": [
-                                    {
-                                        "key": "value",
-                                        "value": 5
-                                    }
-                                ]
-                            }
-                        }
-                    ]
-                },
                 "1223095846833079106": {
                     "_active": true,
                     "uid": 25340445026398146
                 },
+                "1944538217630733064": {
+                    "_active": true,
+                    "flags": {
+                        "_majorityTrue": true,
+                        "_except": []
+                    }
+                },
                 "2471509561333568296": {
                     "_active": true,
-                    "name": "New Entity"
+                    "name": "Ambulance"
                 },
                 "3381165323192817782": {
                     "_active": true,
                     "meshHash": 58130081228471139,
                     "materialHash": 60236745507289955
+                },
+                "17211506741407007748": {
+                    "_active": true,
+                    "center": {
+                        "x": 0.0,
+                        "y": 0.0,
+                        "z": 0.0
+                    },
+                    "size": {
+                        "x": 1.0,
+                        "y": 1.0,
+                        "z": 1.0
+                    }
                 }
             }
         },
@@ -138,33 +135,76 @@
                 },
                 "1095350204565343168": {
                     "_active": true,
-                    "scriptMap": [
-                        {
-                            "key": "TestScript",
-                            "value": {
-                                "name": "TestScript",
-                                "vars": [
-                                    {
-                                        "key": "value",
-                                        "value": 5
-                                    }
-                                ]
-                            }
-                        }
-                    ]
+                    "scriptMap": []
                 },
                 "1223095846833079106": {
                     "_active": true,
                     "uid": 34112348792800441
                 },
+                "2130793284427054791": {
+                    "_active": true,
+                    "behaviorTree": {
+                        "btName": "moveTest"
+                    }
+                },
                 "2471509561333568296": {
                     "_active": true,
-                    "name": "New Entity"
+                    "name": "BehaviourTreeObj"
                 },
                 "3381165323192817782": {
                     "_active": true,
                     "meshHash": 47811164601792193,
                     "materialHash": 53909056089437889
+                }
+            }
+        },
+        {
+            "parentIndex": -1,
+            "position": {
+                "x": 2.0,
+                "y": 3.0,
+                "z": 0.0
+            },
+            "rotation": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "scale": {
+                "x": 0.009999999776482582,
+                "y": 0.009999999776482582,
+                "z": 0.009999999776482582
+            },
+            "components": {
+                "1048412265199846848": {
+                    "_active": true,
+                    "layer": 0
+                },
+                "1223095846833079106": {
+                    "_active": true,
+                    "uid": 53821094282451955
+                },
+                "2471509561333568296": {
+                    "_active": true,
+                    "name": "NewFloor"
+                },
+                "3381165323192817782": {
+                    "_active": true,
+                    "meshHash": 47811164601792193,
+                    "materialHash": 53909056089437889
+                },
+                "17211506741407007748": {
+                    "_active": true,
+                    "center": {
+                        "x": 0.0,
+                        "y": 0.0,
+                        "z": 0.0
+                    },
+                    "size": {
+                        "x": 1.0,
+                        "y": 1.0,
+                        "z": 1.0
+                    }
                 }
             }
         }

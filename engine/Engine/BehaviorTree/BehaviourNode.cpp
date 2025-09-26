@@ -204,7 +204,7 @@ void MoveLeft::OnInitialize()
 
 NODE_STATUS MoveLeft::OnUpdate(ecs::EntityHandle entity)
 {
-    entity->GetTransform().SetWorldPosition(entity->GetTransform().GetWorldPosition() + Vec3{ -0.5f, 0.f, 0.f });
+    entity->GetTransform().SetWorldPosition(entity->GetTransform().GetWorldPosition() + Vec3{ -0.2f, 0.f, 0.f });
     return (++count) == 100 ? NODE_STATUS::SUCCESS : NODE_STATUS::RUNNING;
 }
 
@@ -215,7 +215,7 @@ void MoveRight::OnInitialize()
 
 NODE_STATUS MoveRight::OnUpdate(ecs::EntityHandle entity)
 {
-    entity->GetTransform().SetWorldPosition(entity->GetTransform().GetWorldPosition() + Vec3{ 0.5f, 0.f, 0.f });
+    entity->GetTransform().SetWorldPosition(entity->GetTransform().GetWorldPosition() + Vec3{ 0.2f, 0.f, 0.f });
     return (++count) == 100 ? NODE_STATUS::SUCCESS : NODE_STATUS::RUNNING;
 }
 
@@ -226,7 +226,7 @@ void MoveUp::OnInitialize()
 
 NODE_STATUS MoveUp::OnUpdate(ecs::EntityHandle entity)
 {
-    entity->GetTransform().SetWorldPosition(entity->GetTransform().GetWorldPosition() + Vec3{ 0.f, 0.5f, 0.f });
+    entity->GetTransform().SetWorldPosition(entity->GetTransform().GetWorldPosition() + Vec3{ 0.f, 0.15f, 0.f });
     return (++count) == 100 ? NODE_STATUS::SUCCESS : NODE_STATUS::RUNNING;
 }
 
@@ -237,6 +237,6 @@ void MoveDown::OnInitialize()
 
 NODE_STATUS MoveDown::OnUpdate(ecs::EntityHandle entity)
 {
-    entity->GetTransform().SetWorldPosition(entity->GetTransform().GetWorldPosition() + Vec3{ 0.f, -0.5f, 0.f });
+    entity->GetTransform().SetWorldPosition(entity->GetTransform().GetWorldPosition() + Vec3{ 0.f, -0.15f, 0.f });
     return (++count) == 100 ? NODE_STATUS::SUCCESS : NODE_STATUS::RUNNING;
 }

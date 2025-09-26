@@ -294,8 +294,7 @@ private:
 };
 
 
-//For testing
-
+//================================== FOR TESTING =====================================================
 class MoveLeft
     : public BehaviorNode
 {
