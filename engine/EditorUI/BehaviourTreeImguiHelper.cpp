@@ -1,3 +1,23 @@
+/******************************************************************************/
+/*!
+\file   BehaviorTreeImguiHelper.cpp
+\par    Project: KuroMahou
+\par    Course: CSD3401
+\par    Software Engineering Project 5
+\date   26/09/2025
+
+\author Hong Tze Keat (100%)
+\par    email: h.tzekeat\@digipen.edu
+\par    DigiPen login: h.tzekeat
+
+\brief
+    This source file defines helper functions for the behavior tree imgui.
+
+All content © 2025 DigiPen Institute of Technology Singapore.
+All rights reserved.
+*/
+/******************************************************************************/
+
 #include "BehaviourTreeImguiHelper.h"
 
 
@@ -11,9 +31,9 @@ bool LoadBTAssetFromFile(const std::string& path, BehaviorTreeAsset& out)
 
 bool IsCompositeType(const std::string& typeName)
 {
-    auto* n = ST<BTFactory>::Get()->Create(typeName);
+    auto* n{ ST<BTFactory>::Get()->Create(typeName) };
     if (!n) return false;
-    bool isComp = (dynamic_cast<CompositeNode*>(n) != nullptr);
+    bool isComp{ dynamic_cast<CompositeNode*>(n) != nullptr };
     delete n;
     return isComp;
 }
@@ -22,7 +42,7 @@ bool IsDecoratorType(const std::string& typeName)
 {
     auto* n = ST<BTFactory>::Get()->Create(typeName);
     if (!n) return false;
-    bool isDeco = (dynamic_cast<Decorator*>(n) != nullptr);
+    bool isDeco{ dynamic_cast<Decorator*>(n) != nullptr };
     delete n;
     return isDeco;
 }
@@ -31,7 +51,7 @@ std::vector<int> FindNodesAtLevel(const BehaviorTreeAsset& a, unsigned int level
 {
     std::vector<int> out;
     out.reserve(a.nodes.size());
-    for (int i = 0; i < static_cast<int>(a.nodes.size()); ++i)
+    for (int i{ 0 }; i < static_cast<int>(a.nodes.size()); ++i)
         if (a.nodes[i].nodeLevel == level)
             out.push_back(i);
     return out;
@@ -45,22 +65,24 @@ std::string MakeNodeLabel(const BehaviorTreeAsset& a, int index)
 }
 
 
- bool HasAllowedExt(const std::string& s) {
-    auto ext = std::filesystem::path(s).extension().string();
+bool HasAllowedExt(const std::string& s) {
+    auto ext{ std::filesystem::path(s).extension().string() };
     return (ext == ".json" || ext == ".bht");
 }
 
- std::string EnsureAllowedExt(const std::string& s, const std::string& fallbackExt){
+std::string EnsureAllowedExt(const std::string& s, const std::string& fallbackExt)
+{
     if (HasAllowedExt(s)) return s;
     return s + fallbackExt;
 }
 
 // Windows-safe-ish filename scrub (keeps it simple)
- std::string SanitizeFilename(std::string s) {
-    static const char* bad = "\\/:*?\"<>|";
-    for (char& c : s) {
+std::string SanitizeFilename(std::string s) 
+{
+    static const char* bad{ "\\/:*?\"<>|" };
+    for (char& c : s) 
         if (std::strchr(bad, c) || (unsigned char)c < 32) c = '_';
-    }
+ 
     // trim spaces
     while (!s.empty() && std::isspace((unsigned char)s.back())) s.pop_back();
     while (!s.empty() && std::isspace((unsigned char)s.front())) s.erase(s.begin());
@@ -71,9 +93,11 @@ std::string MakeNodeLabel(const BehaviorTreeAsset& a, int index)
  // ---- SAVE ----
  bool SaveBTAssetToFile(const std::string& fullPath, const BehaviorTreeAsset& asset)
  {
-     try {
+     try 
+     {
          Serializer writer(fullPath.c_str());
-         if (!writer.IsOpen()) {
+         if (!writer.IsOpen()) 
+         {
              CONSOLE_LOG(LEVEL_ERROR) << "[BT Save] cannot open: " << fullPath;
              return false;
          }
@@ -81,21 +105,24 @@ std::string MakeNodeLabel(const BehaviorTreeAsset& a, int index)
          // Let the property system write everything (including arrays) correctly
          asset.Serialize(writer);
 
-         if (!writer.SaveAndClose()) {
+         if (!writer.SaveAndClose()) 
+         {
              CONSOLE_LOG(LEVEL_ERROR) << "[BT Save] SaveAndClose failed: " << fullPath;
              return false;
          }
          return true;
      }
-     catch (const std::exception& e) {
+     catch (const std::exception& e) 
+     {
          CONSOLE_LOG(LEVEL_ERROR) << "[BT Save] exception: " << e.what();
          return false;
      }
  }
 
- bool HasJsonExt(const std::string& s) {
+ bool HasJsonExt(const std::string& s) 
+ {
      std::filesystem::path p(s);
-     auto ext = p.extension().string();
+     auto ext{ p.extension().string() };
      // case-insensitive compare to ".json"
      if (ext.size() != 5) return false;
      return (ext[0] == '.' &&
@@ -105,7 +132,8 @@ std::string MakeNodeLabel(const BehaviorTreeAsset& a, int index)
          (ext[4] == 'n' || ext[4] == 'N'));
  }
 
- std::string EnsureJsonExt(const std::string& s) {
+ std::string EnsureJsonExt(const std::string& s) 
+ {
      return HasJsonExt(s) ? s : (s + ".json");
  }
  bool CreateNewBTFile(const std::string& dir,
@@ -115,11 +143,11 @@ std::string MakeNodeLabel(const BehaviorTreeAsset& a, int index)
      try {
          if (dir.empty() || fileStem.empty()) return false;
 
-         const std::string stem = SanitizeFilename(fileStem);
+         const std::string stem{ SanitizeFilename(fileStem) };
          if (stem.empty()) return false;
 
          std::filesystem::path folder(dir);
-         std::filesystem::path full = folder / EnsureJsonExt(stem);
+         std::filesystem::path full{ folder / EnsureJsonExt(stem) };
 
          // Build a minimal tree: name is the file *stem*, one root at level 0.
          BehaviorTreeAsset asset;
@@ -138,7 +166,8 @@ std::string MakeNodeLabel(const BehaviorTreeAsset& a, int index)
          outFullPath = full.string();
          return true;
      }
-     catch (...) {
+     catch (...) 
+     {
          return false;
      }
  }
@@ -146,14 +175,14 @@ std::string MakeNodeLabel(const BehaviorTreeAsset& a, int index)
 
 
 
-  bool ValidateLevelOrder(const BehaviorTreeAsset& a, std::string& check)
+ bool ValidateLevelOrder(const BehaviorTreeAsset& a, std::string& check)
  {
      if (a.nodes.empty()) { check = "No nodes."; return false; }
      if (a.nodes.front().nodeLevel != 0) { check = "First node must have level 0."; return false; }
 
-     unsigned prev = 0;
-     for (size_t i = 1; i < a.nodes.size(); ++i) {
-         unsigned lvl = a.nodes[i].nodeLevel;
+     unsigned prev{ 0 };
+     for (size_t i{ 1 }; i < a.nodes.size(); ++i) {
+         unsigned lvl{ a.nodes[i].nodeLevel };
          if (lvl > prev + 1) {
              check = "Invalid level jump at index " + std::to_string(i) +
                  " (prev=" + std::to_string(prev) + ", cur=" + std::to_string(lvl) + ")";
@@ -169,9 +198,10 @@ std::string MakeNodeLabel(const BehaviorTreeAsset& a, int index)
       if (currentIndex < 0 || currentIndex >= (int)files.size())
           return false;
 
-      const std::filesystem::path full = std::filesystem::path(dir) / files[currentIndex];
+      const std::filesystem::path full{ std::filesystem::path(dir) / files[currentIndex] };
       std::error_code ec;
-      if (std::filesystem::remove(full, ec)) {
+      if (std::filesystem::remove(full, ec)) 
+      {
           deletedPath = full.string();
           return true;
       }
@@ -193,17 +223,20 @@ std::string MakeNodeLabel(const BehaviorTreeAsset& a, int index)
 
       // Validate folder
       std::error_code ec;
-      if (dir.empty() || !fs::exists(dir, ec) || !fs::is_directory(dir, ec)) {
+      if (dir.empty() || !fs::exists(dir, ec) || !fs::is_directory(dir, ec)) 
+      {
           currentIndex = -1;
           return;
       }
 
       // Gather .json / .bht files
-      for (const auto& e : fs::directory_iterator(dir, ec)) {
+      for (const auto& e : fs::directory_iterator(dir, ec)) 
+      {
           if (ec) break;
           if (!e.is_regular_file(ec)) continue;
-          const std::string ext = e.path().extension().string();
-          if (ext == ".json" || ext == ".bht") {
+          const std::string ext{ e.path().extension().string() };
+          if (ext == ".json" || ext == ".bht") 
+          {
               files.emplace_back(e.path().filename().string());
           }
       }
@@ -212,24 +245,28 @@ std::string MakeNodeLabel(const BehaviorTreeAsset& a, int index)
       std::sort(files.begin(), files.end());
 
       // Fix selection
-      if (files.empty()) {
+      if (files.empty()) 
+      {
           currentIndex = -1;
           return;
       }
-      if (currentIndex < 0 || currentIndex >= static_cast<int>(files.size())) {
+      if (currentIndex < 0 || currentIndex >= static_cast<int>(files.size())) 
+      {
           currentIndex = 0;
       }
 
       // Auto-load the selected file
-      const fs::path full = fs::path(dir) / files[currentIndex];
+      const fs::path full{ fs::path(dir) / files[currentIndex] };
       lastLoadedPath = full.string();
 
       BehaviorTreeAsset tmp;
-      if (LoadBTAssetFromFile(lastLoadedPath, tmp)) {
+      if (LoadBTAssetFromFile(lastLoadedPath, tmp)) 
+      {
           loadedAsset = std::move(tmp);      // copy or move, both fine here
           hasAsset = true;
       }
-      else {
+      else 
+      {
           hasAsset = false;                  // caller can show an error popup if desired
       }
   }
@@ -244,10 +281,11 @@ std::string MakeNodeLabel(const BehaviorTreeAsset& a, int index)
           return false;
       }
 
-      const std::string full = (std::filesystem::path(dir) / files[currentIndex]).string();
+      const std::string full{ (std::filesystem::path(dir) / files[currentIndex]).string() };
 
       BehaviorTreeAsset tmp;
-      if (!LoadBTAssetFromFile(full, tmp)) {
+      if (!LoadBTAssetFromFile(full, tmp)) 
+      {
           hasAsset = false;
           lastLoadedPath = full;
           selectedNodeIndex = -1;
@@ -259,14 +297,17 @@ std::string MakeNodeLabel(const BehaviorTreeAsset& a, int index)
       lastLoadedPath = full;
 
       // default selection: first level-0 node if any
-      if (!out.nodes.empty()) {
+      if (!out.nodes.empty()) 
+      {
           int idx = 0;
-          for (int i = 0; i < (int)out.nodes.size(); ++i) {
+          for (int i = 0; i < (int)out.nodes.size(); ++i) 
+          {
               if (out.nodes[i].nodeLevel == 0) { idx = i; break; }
           }
           selectedNodeIndex = idx;
       }
-      else {
+      else 
+      {
           selectedNodeIndex = -1;
       }
       return true;
@@ -289,9 +330,9 @@ std::string MakeNodeLabel(const BehaviorTreeAsset& a, int index)
       out.clear();
       if (parentIdx < 0 || parentIdx >= (int)nodes.size()) return;
 
-      const unsigned base = nodes[parentIdx].nodeLevel;
-      const unsigned want = base + 1;
-      int i = parentIdx + 1;
+      const unsigned base{ nodes[parentIdx].nodeLevel };
+      const unsigned want{ base + 1 };
+      int i{ parentIdx + 1 };
       while (i < (int)nodes.size() && nodes[i].nodeLevel > base)
       {
           if (nodes[i].nodeLevel == want) out.push_back(i);
@@ -301,8 +342,8 @@ std::string MakeNodeLabel(const BehaviorTreeAsset& a, int index)
 
   int SubtreeEnd(const std::vector<BTNodeDesc>& nodes, int startIdx)
   {
-      const unsigned base = nodes[startIdx].nodeLevel;
-      int i = startIdx + 1;
+      const unsigned base{ nodes[startIdx].nodeLevel };
+      int i{ startIdx + 1 };
       while (i < (int)nodes.size() && nodes[i].nodeLevel > base) ++i;
       return i;
   }
@@ -312,7 +353,7 @@ std::string MakeNodeLabel(const BehaviorTreeAsset& a, int index)
   {
       if (parentIdx < 0 || parentIdx >= (int)nodes.size()) return false;
 
-      const auto kind = ClassifyNodeType(nodes[parentIdx].nodeType);
+      const auto kind{ ClassifyNodeType(nodes[parentIdx].nodeType) };
       if (kind == NodeKind::Leaf) return false;
       if (kind == NodeKind::Composite) return true;
 
@@ -326,16 +367,17 @@ std::string MakeNodeLabel(const BehaviorTreeAsset& a, int index)
   {
       if (startIdx < 0 || startIdx >= (int)nodes.size()) return false;
 
-      const int end = SubtreeEnd(nodes, startIdx);
-      const int count = end - startIdx;
+      const int end{ SubtreeEnd(nodes, startIdx) };
+      const int count{ end - startIdx };
 
       //check current selection inside the removed block
-      const bool selectionInside = (selectedIndex >= startIdx && selectedIndex < end);
+      const bool selectionInside{ (selectedIndex >= startIdx && selectedIndex < end) };
 
       nodes.erase(nodes.begin() + startIdx, nodes.begin() + end);
 
       // Fix selection
-      if (nodes.empty()) {
+      if (nodes.empty()) 
+      {
           selectedIndex = -1; return true;
       }
 
@@ -354,8 +396,9 @@ std::string MakeNodeLabel(const BehaviorTreeAsset& a, int index)
       return true;
   }
 
-  int CountRootNodes(const std::vector<BTNodeDesc>& nodes) {
-      int c = 0;
+  int CountRootNodes(const std::vector<BTNodeDesc>& nodes) 
+  {
+      int c{ 0 };
       for (const auto& n : nodes) if (n.nodeLevel == 0) ++c;
       return c;
   }
