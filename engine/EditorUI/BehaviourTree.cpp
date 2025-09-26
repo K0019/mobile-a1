@@ -140,6 +140,11 @@ BehaviorTreeComp::BehaviorTreeComp()
 
 void BehaviorTreeComp::OnAttached()
 {
+    IGameComponentCallbacks::OnAttached();
+}
+
+void BehaviorTreeComp::OnStart()
+{
     behaviorTree.Set(ecs::GetEntity(this));
 }
 

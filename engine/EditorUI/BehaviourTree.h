@@ -36,6 +36,7 @@ All rights reserved.
 #include "LeafFailTest.h"
 #include "LeafKeyPressed.h"
 #include "BehaviourTreeFactory.h"
+#include "IGameComponentCallbacks.h"
 
  /*****************************************************************//*!
      \brief
@@ -147,7 +148,7 @@ class BehaviorTreeComp
 #ifdef IMGUI_ENABLED
     , public IEditorComponent<BehaviorTreeComp>
 #endif
-    , public ecs::IComponentCallbacks
+    , public IGameComponentCallbacks<BehaviorTreeComp>
 {
 public:
     /*****************************************************************//*!
@@ -165,6 +166,9 @@ public:
         Called when the component is attached to an entity.
     *//******************************************************************/
     void OnAttached() override;
+
+    void OnStart() override;
+
     /*****************************************************************//*!
     \brief
         Called when the component is detached from an entity.
