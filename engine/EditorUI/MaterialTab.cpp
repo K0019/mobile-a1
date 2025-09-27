@@ -2,18 +2,25 @@
 #include "AssetBrowser.h"
 #include "EditorGuiUtils.h"
 
+#include "MaterialCreation.h"
+
 const char* MaterialTab::GetName() const
 {
-	return "Materials";
+    return "Materials";
 }
 
 const char* MaterialTab::GetIdentifier() const
 {
-	return ICON_FA_IMAGE" Materials";
+    return ICON_FA_IMAGE" Materials";
 }
 
 void MaterialTab::Render()
 {
+    if (gui::Button{ "Create Material" })
+        editor::CreateWindow<editor::MaterialCreationWindow>();
+    gui::Separator();
+
+    
     float THUMBNAIL_SIZE = ST<AssetBrowser>::Get()->THUMBNAIL_SIZE;
     gui::Vec2 thumbnailSizeVec2{ THUMBNAIL_SIZE, THUMBNAIL_SIZE };
     float panelWidth = ImGui::GetContentRegionAvail().x; // random offset
