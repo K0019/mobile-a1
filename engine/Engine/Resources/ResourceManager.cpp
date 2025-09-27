@@ -66,6 +66,10 @@ UserResourceGetter<ResourceMaterial> ResourceManager::Materials()
 {
     return UserResourceGetter<ResourceMaterial>{ &ST<ResourceManager>::Get()->materials };
 }
+UserResourceGetter<ResourceTexture> ResourceManager::Textures()
+{
+    return UserResourceGetter<ResourceTexture>{ &ST<ResourceManager>::Get()->textures };
+}
 
 void ResourceManager::SaveToFile() const
 {
@@ -100,6 +104,10 @@ const ResourceContainerMaterials& ResourceManager::Editor_GetMaterials()
 {
     return materials;
 }
+const ResourceContainerTextures& ResourceManager::Editor_GetTextures()
+{
+    return textures;
+}
 
 const std::string& ResourceManager::Editor_GetName(size_t hash)
 {
@@ -123,6 +131,10 @@ ResourceContainerMeshes& ResourceManager::INTERNAL_GetMeshes()
 ResourceContainerMaterials& ResourceManager::INTERNAL_GetMaterials()
 {
     return materials;
+}
+ResourceContainerTextures& ResourceManager::INTERNAL_GetTextures()
+{
+    return textures;
 }
 
 void ResourceManager::INTERNAL_CreateEmptyResource(size_t resourceTypeHash, size_t resourceHash)

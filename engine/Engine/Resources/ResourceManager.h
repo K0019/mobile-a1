@@ -48,6 +48,7 @@ public:
 
     static UserResourceGetter<ResourceMesh> Meshes();
     static UserResourceGetter<ResourceMaterial> Materials();
+    static UserResourceGetter<ResourceTexture> Textures();
 
     void SaveToFile() const;
     void LoadFromFile();
@@ -58,6 +59,7 @@ private:
 public:
     const ResourceContainerMeshes& Editor_GetMeshes();
     const ResourceContainerMaterials& Editor_GetMaterials();
+    const ResourceContainerTextures& Editor_GetTextures();
     const std::string& Editor_GetName(size_t hash);
 
 public:
@@ -66,6 +68,7 @@ public:
 
     ResourceContainerMeshes& INTERNAL_GetMeshes();
     ResourceContainerMaterials& INTERNAL_GetMaterials();
+    ResourceContainerTextures& INTERNAL_GetTextures();
 
     void INTERNAL_CreateEmptyResource(size_t resourceTypeHash, size_t resourceHash);
 
@@ -75,6 +78,7 @@ private:
 
     ResourceContainerMeshes meshes;
     ResourceContainerMaterials materials;
+    ResourceContainerTextures textures;
 
 };
 

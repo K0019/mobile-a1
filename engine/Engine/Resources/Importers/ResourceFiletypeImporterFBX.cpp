@@ -13,6 +13,14 @@
 
 namespace internal {
 
+    struct RawResourcesFBX
+    {
+        std::vector<MeshHandle> meshHandles;
+        std::vector<std::pair<uint32_t, Mat4>> meshTransforms;
+        std::vector<MaterialHandle> materialHandles;
+        std::vector<TextureHandle> textureHandles;
+    };
+
     std::unique_ptr<const aiScene, void(*)(const aiScene*)> ImportScene(const std::filesystem::path& path)
     {
         if (!exists(path))
@@ -70,7 +78,7 @@ namespace internal {
     }
 
 
-    bool ImportFileFBX(const std::filesystem::path& filepath, std::vector<MeshHandle>* outMeshHandles, std::vector<std::pair<uint32_t, Mat4>>* outMeshTransforms, std::vector<MaterialHandle>* outMaterialHandles)
+    bool ImportFileFBX(const std::filesystem::path& filepath, RawResourcesFBX* outRawResources)
     {
         try
         {
@@ -112,21 +120,20 @@ namespace internal {
 
             // Step 6: Upload assets to the GPU
             auto graphicsAssetSystem{ ST<GraphicsAssets>::Get()->INTERNAL_GetAssetSystem() };
-            std::vector<TextureHandle> textureHandles;
-            textureHandles.reserve(processedTextures.size());
+            outRawResources->textureHandles.reserve(processedTextures.size());
             for (const auto& texture : processedTextures)
-                textureHandles.push_back(graphicsAssetSystem->createTexture(texture));
+                outRawResources->textureHandles.push_back(graphicsAssetSystem->createTexture(texture));
 
-            outMaterialHandles->reserve(processedMaterials.size());
+            outRawResources->materialHandles.reserve(processedMaterials.size());
             for (const auto& material : processedMaterials)
-                outMaterialHandles->push_back(graphicsAssetSystem->createMaterial(material));
+                outRawResources->materialHandles.push_back(graphicsAssetSystem->createMaterial(material));
 
-            outMeshHandles->reserve(processedMeshes.size());
+            outRawResources->meshHandles.reserve(processedMeshes.size());
             for (const auto& mesh : processedMeshes)
-                outMeshHandles->push_back(graphicsAssetSystem->createMesh(mesh));
+                outRawResources->meshHandles.push_back(graphicsAssetSystem->createMesh(mesh));
 
             // Step 7: Finalize scene
-            ExtractMeshTransformsFromNode(scene->mRootNode, mat4(1.0f), scene, outMeshTransforms);
+            ExtractMeshTransformsFromNode(scene->mRootNode, mat4(1.0f), scene, &outRawResources->meshTransforms);
 
             graphicsAssetSystem->FlushUploads();
         }
@@ -139,21 +146,26 @@ namespace internal {
         return true;
     }
 
-    void SetResourceHandlesFBX(const std::vector<AssociatedResourceHashes>& resourceHashes, const std::vector<MeshHandle>& meshHandles, const std::vector<std::pair<uint32_t, Mat4>> meshTransforms, const std::vector<MaterialHandle>& materialHandles)
+    void SetResourceHandlesFBX(const std::vector<AssociatedResourceHashes>& resourceHashes, RawResourcesFBX&& rawResources)
     {
         auto& meshes{ ST<ResourceManager>::Get()->INTERNAL_GetMeshes() };
         auto& materials{ ST<ResourceManager>::Get()->INTERNAL_GetMaterials() };
+        auto& textures{ ST<ResourceManager>::Get()->INTERNAL_GetTextures() };
         const auto& meshHashes{ resourceHashes[0].hashes };
         const auto& materialHashes{ resourceHashes[1].hashes };
+        const auto& textureHashes{ resourceHashes[2].hashes };
 
         ResourceMesh* mesh{ meshes.INTERNAL_GetResource(meshHashes[0], true) };
-        mesh->handles = meshHandles;
-        mesh->transforms.resize(meshTransforms.size());
-        for (const auto& [index, mat] : meshTransforms)
-            mesh->transforms[index] = mat;
+        mesh->handles = std::move(rawResources.meshHandles);
+        mesh->transforms.resize(rawResources.meshTransforms.size());
+        for (auto&& [index, mat] : rawResources.meshTransforms)
+            mesh->transforms[index] = std::move(mat);
 
         for (size_t i{}; i < materialHashes.size(); ++i)
-            materials.INTERNAL_GetResource(materialHashes[i], true)->handle = materialHandles[i];
+            materials.INTERNAL_GetResource(materialHashes[i], true)->handle = std::move(rawResources.materialHandles[i]);
+
+        for (size_t i{}; i < textureHashes.size(); ++i)
+            textures.INTERNAL_GetResource(textureHashes[i], true)->handle = std::move(rawResources.textureHandles[i]);
     }
 
 }
@@ -162,29 +174,28 @@ namespace internal {
 bool ResourceFiletypeImporterFBX::Import(const std::filesystem::path& relativeFilepath)
 {
     // Load the meshes and materials within the file
-    std::vector<MeshHandle> meshHandles;
-    std::vector<MaterialHandle> materialHandles;
-    std::vector<std::pair<uint32_t, Mat4>> meshTransforms;
-    if (!internal::ImportFileFBX(ST<Filepaths>::Get()->assets + "/" + relativeFilepath.string(), &meshHandles, &meshTransforms, &materialHandles))
+    internal::RawResourcesFBX rawResources;
+    if (!internal::ImportFileFBX(ST<Filepaths>::Get()->assets + "/" + relativeFilepath.string(), &rawResources))
         return false;
 
     // Check if the resources are already registered
     const auto* existingFileEntry{ ST<ResourceManager>::Get()->INTERNAL_GetFilepathsManager().GetFileEntry(relativeFilepath) };
     // If it doesn't exist, create new resources
     if (!existingFileEntry)
-        existingFileEntry = CreateNewFileEntry(relativeFilepath, materialHandles.size());
+        existingFileEntry = CreateNewFileEntry(relativeFilepath, rawResources.materialHandles.size(), rawResources.textureHandles.size());
 
     // Set the resources to the loaded indexes
-    internal::SetResourceHandlesFBX(existingFileEntry->associatedResources, meshHandles, meshTransforms, materialHandles);
+    internal::SetResourceHandlesFBX(existingFileEntry->associatedResources, std::move(rawResources));
 
     return true;
 }
 
-const ResourceFilepaths::FileEntry* ResourceFiletypeImporterFBX::CreateNewFileEntry(const std::filesystem::path& relativeFilepath, size_t numMaterials)
+const ResourceFilepaths::FileEntry* ResourceFiletypeImporterFBX::CreateNewFileEntry(const std::filesystem::path& relativeFilepath, size_t numMaterials, size_t numTextures)
 {
-    std::vector<AssociatedResourceHashes> resourceHashes{ 2 };
+    std::vector<AssociatedResourceHashes> resourceHashes{ 3 };
     GenerateHashesForResourceType<ResourceMesh>(&resourceHashes[0], 1);
     GenerateHashesForResourceType<ResourceMaterial>(&resourceHashes[1], numMaterials);
+    GenerateHashesForResourceType<ResourceTexture>(&resourceHashes[2], numTextures);
 
     GenerateNamesForResources(resourceHashes, relativeFilepath);
     return ST<ResourceManager>::Get()->INTERNAL_GetFilepathsManager().SetFilepath(relativeFilepath, std::move(resourceHashes));
