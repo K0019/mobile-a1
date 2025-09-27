@@ -116,7 +116,10 @@ namespace physics {
 
 		//Set the body's shape.
 		Vec3 scale{ ecs::GetEntityTransform(this).GetWorldScale() };
-		ST<JoltPhysics>::Get()->GetBodyInterface().SetShape(bodyID, new JPH::ScaledShape(new JPH::BoxShape(JPH::Vec3::sOne()), JPH::Vec3{ scale.x * size.x * 0.5f, scale.y * size.y * 0.5f, scale.z * size.z * 0.5f }), true, JPH::EActivation::Activate);
+		JPH::Vec3 scaleJolt{ scale.x * 0.5f, scale.y * 0.5f, scale.z * 0.5f };
+		if (JPH::ScaleHelpers::IsZeroScale(scaleJolt))
+			scaleJolt = JPH::Vec3{ 100.f, 100.f, 100.f };
+		ST<JoltPhysics>::Get()->GetBodyInterface().SetShape(bodyID, new JPH::ScaledShape(new JPH::BoxShape(JPH::Vec3::sOne()), scaleJolt), true, JPH::EActivation::Activate);
 		ST<JoltPhysics>::Get()->SetBodyPosition(bodyID, ecs::GetEntityTransform(this).GetWorldPosition() + center);
 	}
 

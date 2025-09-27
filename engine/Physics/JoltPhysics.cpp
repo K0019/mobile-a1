@@ -63,15 +63,22 @@ namespace physics {
 		JPH::ShapeSettings::ShapeResult emptyShapeResult{ emptyShapeSetting.Create() };
 		JPH::ShapeRefC emptyShape{ emptyShapeResult.Get() };
 
+		//Convert Vec3 to JPH::RVec3Arg
 		Vec3 pos{ transform.GetWorldPosition() };
 		JPH::RVec3Arg position{pos.x, pos.y, pos.z };
+
 		Vec3 scale{ transform.GetWorldScale() };
 		JPH::Vec3 scaleJolt{ scale.x * 0.5f, scale.y * 0.5f, scale.z * 0.5f };
+		if (JPH::ScaleHelpers::IsZeroScale(scaleJolt))
+			scaleJolt = JPH::Vec3{ 100.f, 100.f, 100.f };
+
 		Vec3 rot{ transform.GetWorldRotation() };
 		JPH::QuatArg rotation{ JPH::Quat::sEulerAngles(JPH::Vec3{math::ToRadians(rot.x), math::ToRadians(rot.y), math::ToRadians(rot.z)}) };
 
 		JPH::BodyCreationSettings settings{ new JPH::ScaledShape(new JPH::EmptyShape(), scaleJolt), position, rotation, motionType, collisionLayer};
 		settings.mAllowDynamicOrKinematic = true;
+		if (JPH::ScaleHelpers::IsZeroScale(scaleJolt))
+			settings.mIsSensor = true;
 		return bodyInterface.CreateAndAddBody(settings, (activate ? JPH::EActivation::Activate : JPH::EActivation::DontActivate));
 	}
 
