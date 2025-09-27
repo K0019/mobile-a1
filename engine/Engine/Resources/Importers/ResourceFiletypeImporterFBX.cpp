@@ -1,6 +1,5 @@
 #include "ResourceFiletypeImporterFBX.h"
 #include "ResourceTypesGraphics.h"
-#include "ResourceManager.h"
 
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
@@ -171,32 +170,18 @@ namespace internal {
 }
 
 
-bool ResourceFiletypeImporterFBX::Import(const std::filesystem::path& relativeFilepath)
+bool ResourceFiletypeImporterFBX::Import(const std::filesystem::path& assetRelativeFilepath)
 {
     // Load the meshes and materials within the file
     internal::RawResourcesFBX rawResources;
-    if (!internal::ImportFileFBX(ST<Filepaths>::Get()->assets + "/" + relativeFilepath.string(), &rawResources))
+    if (!internal::ImportFileFBX(GetExeRelativeFilepath(assetRelativeFilepath), &rawResources))
         return false;
 
-    // Check if the resources are already registered
-    const auto* existingFileEntry{ ST<ResourceManager>::Get()->INTERNAL_GetFilepathsManager().GetFileEntry(relativeFilepath) };
-    // If it doesn't exist, create new resources
-    if (!existingFileEntry)
-        existingFileEntry = CreateNewFileEntry(relativeFilepath, rawResources.materialHandles.size(), rawResources.textureHandles.size());
+    // Create FileEntry
+    const auto* fileEntry{ GenerateFileEntryForResources<ResourceMesh, ResourceMaterial, ResourceTexture>(assetRelativeFilepath, 1, rawResources.materialHandles.size(), rawResources.textureHandles.size()) };
 
     // Set the resources to the loaded indexes
-    internal::SetResourceHandlesFBX(existingFileEntry->associatedResources, std::move(rawResources));
+    internal::SetResourceHandlesFBX(fileEntry->associatedResources, std::move(rawResources));
 
     return true;
-}
-
-const ResourceFilepaths::FileEntry* ResourceFiletypeImporterFBX::CreateNewFileEntry(const std::filesystem::path& relativeFilepath, size_t numMaterials, size_t numTextures)
-{
-    std::vector<AssociatedResourceHashes> resourceHashes{ 3 };
-    GenerateHashesForResourceType<ResourceMesh>(&resourceHashes[0], 1);
-    GenerateHashesForResourceType<ResourceMaterial>(&resourceHashes[1], numMaterials);
-    GenerateHashesForResourceType<ResourceTexture>(&resourceHashes[2], numTextures);
-
-    GenerateNamesForResources(resourceHashes, relativeFilepath);
-    return ST<ResourceManager>::Get()->INTERNAL_GetFilepathsManager().SetFilepath(relativeFilepath, std::move(resourceHashes));
 }
