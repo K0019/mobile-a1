@@ -1,7 +1,9 @@
 #pragma once
 #include <type_traits>
 #include <concepts>
+#define GLM_ZERO_TO_ONE_RANGE
 #include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 
 struct Vec2;
 struct Vec3;

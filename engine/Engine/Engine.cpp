@@ -350,7 +350,7 @@ void Engine::run()
 
 			if (ImGui::BeginMenu("Behaviour Tree"))
 			{
-				editor::CreateWindow<editor::BehaviourTreeWindow>();
+				editor::CreateGuiWindow<editor::BehaviourTreeWindow>();
 				ImGui::EndMenu();
 			}
 

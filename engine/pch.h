@@ -65,10 +65,6 @@ All rights reserved.
 
 #include "ImguiHeader.h"
 
-#define GLM_ZERO_TO_ONE_RANGE
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-
 #include <FMOD/fmod.hpp>
 #include <FMOD/fmod_studio.hpp>
 
