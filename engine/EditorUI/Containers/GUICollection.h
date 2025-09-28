@@ -24,13 +24,10 @@ All rights reserved.
 #pragma once
 #include "Utilities.h"
 #include "MacroTemplates.h"
-#include <string>
+#include "ImguiHeader.h"
 #ifdef IMGUI_ENABLED
 #include "imgui_internal.h"
 #include "imgui.h"
-#else
-#include "percentmath.h"
-#include <type_traits>
 #endif
 
 namespace gui {

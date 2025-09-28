@@ -63,14 +63,12 @@ All rights reserved.
 #include <cctype>
 #include <math.h>
 
-#include "ImguiHeader.h"
-
 #include "mono/jit/jit.h"
 #include "mono/metadata/assembly.h"
 /* END LIBRARIES */
 
-#include "Logging.h"
 #include "Singleton.h"
+#include "Logging.h"
 #include "MagicMath.h"
 #include "Transform.h"
 #include "ECS.h"
@@ -84,11 +82,8 @@ All rights reserved.
 #include "Serializer.h"
 #include "TypeID.h"
 #include "Utilities.h"
-#include "MaskTemplate.h"
 #include "MacroTemplates.h"
 #include "ScriptingUtil.h"
 #include "RandUID.h"
-
-#include "GUICollection.h"
 
 #include "StateMachine.h"

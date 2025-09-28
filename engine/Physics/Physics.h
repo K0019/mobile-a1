@@ -19,6 +19,7 @@ All rights reserved.
 /******************************************************************************/
 
 #include "JoltPhysics.h"
+#include "MaskTemplate.h"
 #include "IGameComponentCallbacks.h"
 
 namespace physics {
