@@ -1,0 +1,60 @@
+#pragma once
+#include "DataStructs.h"
+#include <cstdint>
+
+namespace compiler
+{
+    constexpr uint32_t MESH_FILE_MAGIC = { 'MESH' };
+
+    #pragma pack(push, 1)
+    // Header at the very start of the file
+    struct MeshFileHeader
+    {
+        uint32_t magic = MESH_FILE_MAGIC;
+        uint32_t version;
+
+        uint32_t numNodes;
+        uint32_t numMeshes;
+        uint32_t totalIndices;
+        uint32_t totalVertices;
+        uint32_t materialNameBufferSize; // Total size of the material name block
+
+        // Bounds
+        vec3 sceneBoundsCenter;
+        float sceneBoundsRadius;
+        vec3 sceneBoundsMin;
+        vec3 sceneBoundsMax;
+
+        // Offsets to the start of each data block from the beginning of the file
+        uint64_t nodeDataOffset;
+        uint64_t meshInfoDataOffset;
+        uint64_t materialNamesOffset;
+        uint64_t indexDataOffset;
+        uint64_t vertexDataOffset;
+    };
+
+    // Information for each node inside fbx
+    struct MeshNode
+    {
+        mat4 transform;
+        //mat4 localTransform;
+        //mat4 worldTransform;
+        int32_t parentIndex; // Index into the node array, -1 for root
+        int32_t meshIndex;   // Index into the mesh info array, -1 if no mesh
+        char name[64];       // Fixed-size name for simplicity
+    };
+
+    // Describes how to get mesh data from the buffers
+    struct MeshInfo
+    {
+        uint32_t indexCount;
+        uint32_t firstIndex;        // Offset into the index buffer
+        uint32_t firstVertex;       // Offset into the vertex buffer
+        uint32_t materialNameIndex; // Index into the material name offset table
+
+        // Bounding volume for this individual mesh part
+        vec4 meshBounds; // (x,y,z, radius)
+    };
+    #pragma pack(pop)
+
+}

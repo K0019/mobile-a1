@@ -1,0 +1,208 @@
+#include "ResourceFiletypeImporterMeshAsset.h"
+#include "ResourceTypesGraphics.h"
+#include "ResourceManager.h"
+
+#include <assimp/Importer.hpp>
+#include <assimp/scene.h>
+#include <assimp/postprocess.h>
+#include "import_config.h"
+#include "material_loader.h"
+#include "texture_loader.h"
+#include "mesh_loader.h"
+#include "GraphicsAPI.h"
+#include "AssetCompiler.h"
+
+namespace internal
+{
+    bool ImportMeshAsset(
+        const std::filesystem::path& filepath, 
+        std::vector<MeshHandle>* outMeshHandles, std::vector<std::pair<uint32_t, Mat4>>* outMeshTransforms/*, std::vector<MaterialHandle>* outMaterialHandles*/)
+    {
+
+        std::ifstream file(filepath, std::ios::binary);
+        if (!file.is_open())
+        {
+            CONSOLE_LOG(LEVEL_ERROR) << "Failed to import scene file: " << filepath.string();
+            return false;
+        }
+
+        //Validate Header
+        compiler::MeshFileHeader header;
+        file.read(reinterpret_cast<char*>(&header), sizeof(compiler::MeshFileHeader));
+
+        if (header.magic != compiler::MESH_FILE_MAGIC) // 'MESH' backwards
+        {
+            CONSOLE_LOG(LEVEL_ERROR) << "Invalid mesh asset file format: " << filepath.string();
+            file.close();
+            return false;
+        }
+        
+        // Read file data
+        std::vector<compiler::MeshNode> nodes(header.numNodes);
+        std::vector<compiler::MeshInfo> meshInfos(header.numMeshes);
+        std::vector<char> materialNamesBuffer(header.materialNameBufferSize);
+        std::vector<uint32_t> allIndices(header.totalIndices);
+        std::vector<Vertex> allVertices(header.totalVertices); // Assuming Vertex struct
+
+        file.seekg(header.nodeDataOffset);
+        file.read(reinterpret_cast<char*>(nodes.data()), nodes.size() * sizeof(compiler::MeshNode));
+
+        file.seekg(header.meshInfoDataOffset);
+        file.read(reinterpret_cast<char*>(meshInfos.data()), meshInfos.size() * sizeof(compiler::MeshInfo));
+
+        file.seekg(header.materialNamesOffset);
+        file.read(materialNamesBuffer.data(), materialNamesBuffer.size());
+
+        file.seekg(header.indexDataOffset);
+        file.read(reinterpret_cast<char*>(allIndices.data()), allIndices.size() * sizeof(uint32_t));
+
+        file.seekg(header.vertexDataOffset);
+        file.read(reinterpret_cast<char*>(allVertices.data()), allVertices.size() * sizeof(Vertex));
+
+        file.close();
+
+        // Retrieve material names for meshes
+        std::map<uint32_t, uint32_t> nameOffsetToMaterialIndex; // Map offset to final index
+
+        const char* p = materialNamesBuffer.data();
+        while (p < materialNamesBuffer.data() + materialNamesBuffer.size())
+        {
+            uint32_t offset = p - materialNamesBuffer.data();
+            std::string name(p);
+            if (name.empty()) break;
+
+            //AssetLoading::ProcessedMaterial mat;
+            //mat.name = name;
+            //processedMaterials.push_back(mat);
+
+            nameOffsetToMaterialIndex[offset] = nameOffsetToMaterialIndex.size() - 1;
+            p += name.length() + 1; // material names separated by null terminator
+        }
+
+        // Construct meshes from loaded vertices
+        std::vector<AssetLoading::ProcessedMesh> processedMeshes;
+        processedMeshes.reserve(meshInfos.size());
+
+        for (const auto& meshInfo : meshInfos)
+        {
+            AssetLoading::ProcessedMesh mesh;
+
+            // Find the material index for this mesh
+            mesh.materialIndex = nameOffsetToMaterialIndex[meshInfo.materialNameIndex];
+
+            uint32_t vertexCount = 0;
+            if (&meshInfo != &meshInfos.back())
+            {
+                vertexCount = (&meshInfo + 1)->firstVertex - meshInfo.firstVertex;
+            }
+            else
+            {
+                vertexCount = allVertices.size() - meshInfo.firstVertex;
+            }
+            mesh.vertices.assign(allVertices.begin() + meshInfo.firstVertex, allVertices.begin() + meshInfo.firstVertex + vertexCount);
+
+            mesh.indices.reserve(meshInfo.indexCount);
+            for (uint32_t i = 0; i < meshInfo.indexCount; ++i)
+            {
+                uint32_t originalIndex = allIndices[meshInfo.firstIndex + i] - meshInfo.firstVertex; // need to minus offset from global buffer to get actual indices to use
+                mesh.indices.push_back(originalIndex);
+            }
+
+            processedMeshes.push_back(mesh);
+        }
+
+        //Skip texture loading
+
+
+        // Step 4: Upload to GPU 
+        auto graphicsAssetSystem{ ST<GraphicsAssets>::Get()->INTERNAL_GetAssetSystem() };
+
+        //outMaterialHandles->reserve(processedMaterials.size());
+        //for (const auto& material : processedMaterials)
+        //    outMaterialHandles->push_back(graphicsAssetSystem->createMaterial(material));
+
+        outMeshHandles->reserve(processedMeshes.size());
+        for (const auto& mesh : processedMeshes)
+            outMeshHandles->push_back(graphicsAssetSystem->createMesh(mesh));
+
+        // We could precomute this...
+        std::vector<Mat4> worldTransforms(nodes.size());
+        for (size_t i = 0; i < nodes.size(); ++i)
+        {
+            if (nodes[i].parentIndex == -1)
+            {
+                worldTransforms[i] = nodes[i].transform; // It's a root node
+            }
+            else
+            {
+                worldTransforms[i] = worldTransforms[nodes[i].parentIndex] * nodes[i].transform;
+            }
+        }
+
+        outMeshTransforms->reserve(nodes.size());
+        for (size_t i = 0; i < nodes.size(); ++i)
+        {
+            if (nodes[i].meshIndex != -1)
+            {
+                outMeshTransforms->push_back({ (uint32_t)nodes[i].meshIndex, worldTransforms[i] });
+            }
+        }
+
+        graphicsAssetSystem->FlushUploads();
+        return true;
+    }
+
+    void SetResourceHandlesMesh(const std::vector<AssociatedResourceHashes>& resourceHashes, 
+        const std::vector<MeshHandle>& meshHandles, const std::vector<std::pair<uint32_t, Mat4>> meshTransforms /*, const std::vector<MaterialHandle>& materialHandles*/)
+    {
+        auto& meshes{ ST<ResourceManager>::Get()->INTERNAL_GetMeshes() };
+        //auto& materials{ ST<ResourceManager>::Get()->INTERNAL_GetMaterials() };
+        const auto& meshHashes{ resourceHashes[0].hashes };
+        //const auto& materialHashes{ resourceHashes[1].hashes };
+
+        ResourceMesh* mesh{ meshes.INTERNAL_GetResource(meshHashes[0], true) };
+        mesh->handles = meshHandles;
+        mesh->transforms.resize(meshTransforms.size());
+        for (const auto& [index, mat] : meshTransforms)
+            mesh->transforms[index] = mat;
+
+        //for (size_t i{}; i < materialHashes.size(); ++i)
+        //    materials.INTERNAL_GetResource(materialHashes[i], true)->handle = materialHandles[i];
+    }
+}
+
+
+bool ResourceFiletypeImporterMeshAsset::Import(const std::filesystem::path& relativeFilepath)
+{
+    // Load the meshes and materials within the file
+    std::vector<MeshHandle> meshHandles;
+    //std::vector<MaterialHandle> materialHandles;
+    std::vector<std::pair<uint32_t, Mat4>> meshTransforms;
+
+    if (!internal::ImportMeshAsset(ST<Filepaths>::Get()->assets + "/" + relativeFilepath.string(), &meshHandles, &meshTransforms/*, &materialHandles*/))
+        return false;
+
+
+
+    // Check if the resources are already registered
+    const auto* existingFileEntry{ ST<ResourceManager>::Get()->INTERNAL_GetFilepathsManager().GetFileEntry(relativeFilepath) };
+    // If it doesn't exist, create new resources
+    if (!existingFileEntry)
+        existingFileEntry = CreateNewFileEntry(relativeFilepath/*, materialHandles.size()*/);
+
+    // Set the resources to the loaded indexes
+    internal::SetResourceHandlesMesh(existingFileEntry->associatedResources, meshHandles, meshTransforms /*, materialHandles*/);
+
+    return true;
+}
+
+const ResourceFilepaths::FileEntry* ResourceFiletypeImporterMeshAsset::CreateNewFileEntry(const std::filesystem::path& relativeFilepath/*, size_t numMaterials*/)
+{
+    //std::vector<AssociatedResourceHashes> resourceHashes{ 2 };
+    std::vector<AssociatedResourceHashes> resourceHashes{ 1 };
+    GenerateHashesForResourceType<ResourceMesh>(&resourceHashes[0], 1);
+    //GenerateHashesForResourceType<ResourceMaterial>(&resourceHashes[1], numMaterials);
+
+    GenerateNamesForResources(resourceHashes, relativeFilepath);
+    return ST<ResourceManager>::Get()->INTERNAL_GetFilepathsManager().SetFilepath(relativeFilepath, std::move(resourceHashes));
+}

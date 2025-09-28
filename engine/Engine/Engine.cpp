@@ -47,6 +47,9 @@ All rights reserved.
 #include "Import.h"
 #include "Filesystem.h"
 
+#include "AssetCompiler.h"
+#include "ResourceImporter.h"
+
 #ifdef IMGUI_ENABLED
 namespace
 {
@@ -189,6 +192,20 @@ void Engine::init()
 	ST<ResourceManager>::Get()->Init();
 	ST<ResourceManager>::Get()->LoadFromFile();
 	ResourceManagerOld::LoadAssetsFromFile(ST<Filepaths>::Get()->workingDir + "/Assets/assetsOld.json");
+
+
+
+	//Just fuck my shit up
+	//compiler::MeshCompiler meshcompiler;
+	//compiler::MeshCompilerOptions options;
+	//options.commonOptions.inputPath = ST<Filepaths>::Get()->workingDir + "/Assets/fbxcars/cone.fbx";
+	//options.commonOptions.outputPath = ST<Filepaths>::Get()->workingDir + "/CompiledAssets/";
+	//meshcompiler.Compile(options);
+	//ResourceImporter::Import(ST<Filepaths>::Get()->workingDir + "/CompiledAssets/cone.mesh");
+
+
+
+
 	//ST<AssetBrowser>::Get()->file_system.Initialize(ST<Filepaths>::Get()->workingDir);
 	// Load fonts manually for now
 	const std::array<std::string, 3> fontsToLoad{
