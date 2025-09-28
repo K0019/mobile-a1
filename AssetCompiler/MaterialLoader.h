@@ -1,6 +1,6 @@
 #pragma once
 #include <vector>
-#include "DataStructs.h"
+#include <string>
 
 struct aiScene;
 struct aiMaterial;
@@ -18,7 +18,7 @@ namespace compiler
     ProcessedMaterialSlot extractMaterialSlot(const aiMaterial* aiMat, uint32_t materialIndex);
 
     // Collection utilities
-    std::vector<const aiMaterial*> collectMaterialPointers(const aiScene* scene, const LoadingConfig& config);
+    std::vector<const aiMaterial*> collectMaterialPointers(const aiScene* scene);
 }
 
 

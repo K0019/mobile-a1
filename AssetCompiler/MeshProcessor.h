@@ -1,7 +1,7 @@
 #pragma once
 #include <mikktspace.h>
 #include <vector>
-#include "DataStructs.h"
+#include "MeshCompilerData.h"
 
 namespace compiler
 {

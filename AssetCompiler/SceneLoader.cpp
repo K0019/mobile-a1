@@ -42,7 +42,7 @@ namespace compiler
             }
             // Step 3: Process materials from Assimp data
             reportProgress(onProgress, 0.30f, "Processing materials...");
-            auto materialPtrs = collectMaterialPointers(scene, config);
+            auto materialPtrs = collectMaterialPointers(scene);
             result.scene.materials.reserve(materialPtrs.size());
             for (uint32_t i = 0; i < materialPtrs.size(); ++i)
             {
@@ -122,14 +122,14 @@ namespace compiler
         const aiNode* node,
         const int32_t parentIdx,
         const aiScene* scene,
-        std::vector<CompilerNode>& outNodes) const
+        std::vector<SceneNode>& outNodes) const
     {
         if (!node)
         {
             return;
         }
 
-        CompilerNode primaryNode;
+        SceneNode primaryNode;
         primaryNode.parentIndex = parentIdx;
 
         // Convert Assimp matrix to GLM matrix
@@ -154,7 +154,7 @@ namespace compiler
             // If there are more meshes, create sibling nodes for them.
             for (uint32_t i = 1; i < node->mNumMeshes; ++i)
             {
-                CompilerNode siblingNode = primaryNode; // Copy parent, transform, and name
+                SceneNode siblingNode = primaryNode; // Copy parent, transform, and name
                 siblingNode.meshIndex = node->mMeshes[i];
                 outNodes.push_back(siblingNode);
             }

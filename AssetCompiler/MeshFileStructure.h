@@ -1,5 +1,5 @@
 #pragma once
-#include "DataStructs.h"
+#include "MeshCompilerData.h"
 #include <cstdint>
 
 namespace compiler

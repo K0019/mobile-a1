@@ -1,5 +1,5 @@
 #pragma once
-#include "CompilerBase.h"
+#include "CompileOptions.h"
 #include <Compressonator/compressonator.h>
 #include <vulkan/vulkan.h>
 #include <ktx.h>

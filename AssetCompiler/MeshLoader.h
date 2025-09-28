@@ -2,7 +2,7 @@
 #include <cstdint>
 #include <vector>
 #include <span>
-#include "DataStructs.h"
+#include "MeshCompilerData.h"
 
 struct aiScene;
 struct aiMesh;

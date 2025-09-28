@@ -25,7 +25,7 @@ namespace compiler
 
         return slot;
     }
-    std::vector<const aiMaterial*> collectMaterialPointers(const aiScene* scene, const LoadingConfig& config)
+    std::vector<const aiMaterial*> collectMaterialPointers(const aiScene* scene)
     {
         if (!scene || scene->mNumMaterials == 0)
         {
@@ -33,9 +33,9 @@ namespace compiler
         }
 
         std::vector<const aiMaterial*> materialPtrs;
-        materialPtrs.reserve(std::min(scene->mNumMaterials, config.maxMaterials));
+        materialPtrs.reserve(scene->mNumMaterials);
 
-        for (uint32_t i = 0; i < scene->mNumMaterials && i < config.maxMaterials; ++i)
+        for (uint32_t i = 0; i < scene->mNumMaterials; ++i)
         {
             if (scene->mMaterials[i])
             {

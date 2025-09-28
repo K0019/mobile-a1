@@ -4,7 +4,7 @@
 #include <thread>
 
 #include "MeshLoader.h"
-#include "DataStructs.h"
+#include "MeshCompilerData.h"
 #include "MaterialLoader.h"
 
 struct aiScene;
@@ -14,7 +14,13 @@ struct aiCamera;
 
 namespace compiler
 {
-
+    struct SceneNode
+    {
+        std::string name;
+        mat4 localTransform;
+        int32_t meshIndex = -1;
+        int32_t parentIndex = -1;
+    };
 
     struct Scene
     {
@@ -23,7 +29,7 @@ namespace compiler
         //std::vector<SceneLight> lights;
         //std::vector<SceneCamera> cameras;
 
-        std::vector<CompilerNode> nodes;
+        std::vector<SceneNode> nodes;
         std::vector<ProcessedMesh> meshes; // Objects contain direct handles
         std::vector<ProcessedMaterialSlot> materials; // Objects contain direct handles
         // Scene bounds
@@ -71,12 +77,10 @@ namespace compiler
             const aiNode* node,
             const int32_t parentIdx,
             const aiScene* scene,
-            std::vector<CompilerNode>& outNodes) const;
+            std::vector<SceneNode>& outNodes) const;
 
         //void resolveSceneObjectHandles(std::vector<SceneObject>& objects, const std::vector<MeshHandle>& meshHandles, const std::vector<MaterialHandle>& materialHandles) const;
 
-        void calculateBounds(Scene& scene, std::vector<ProcessedMesh>& meshes);
-
-        bool isValidScene(const aiScene* scene) const;
+        //void calculateBounds(Scene& scene, std::vector<ProcessedMesh>& meshes);
     };
 }

@@ -1,5 +1,5 @@
 #pragma once
-#include "CompilerBase.h"
+#include "CompileOptions.h"
 #include "MeshCompiler.h"
 #include "TextureCompiler.h"
 
