@@ -30,7 +30,7 @@ namespace internal
         compiler::MeshFileHeader header;
         file.read(reinterpret_cast<char*>(&header), sizeof(compiler::MeshFileHeader));
 
-        if (header.magic != compiler::MESH_FILE_MAGIC) // 'MESH' backwards
+        if (header.magic != compiler::MESH_FILE_MAGIC)
         {
             CONSOLE_LOG(LEVEL_ERROR) << "Invalid mesh asset file format: " << filepath.string();
             file.close();
@@ -67,7 +67,7 @@ namespace internal
         const char* p = materialNamesBuffer.data();
         while (p < materialNamesBuffer.data() + materialNamesBuffer.size())
         {
-            uint32_t offset = p - materialNamesBuffer.data();
+            uint32_t offset = static_cast<uint32_t>(p - materialNamesBuffer.data());
             std::string name(p);
             if (name.empty()) break;
 
@@ -75,7 +75,7 @@ namespace internal
             //mat.name = name;
             //processedMaterials.push_back(mat);
 
-            nameOffsetToMaterialIndex[offset] = nameOffsetToMaterialIndex.size() - 1;
+            nameOffsetToMaterialIndex[offset] = static_cast<uint32_t>(nameOffsetToMaterialIndex.size() - 1);
             p += name.length() + 1; // material names separated by null terminator
         }
 
@@ -97,7 +97,7 @@ namespace internal
             }
             else
             {
-                vertexCount = allVertices.size() - meshInfo.firstVertex;
+                vertexCount = static_cast<uint32_t>(allVertices.size()) - meshInfo.firstVertex;
             }
             mesh.vertices.assign(allVertices.begin() + meshInfo.firstVertex, allVertices.begin() + meshInfo.firstVertex + vertexCount);
 
