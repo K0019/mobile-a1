@@ -17,7 +17,7 @@ const char* MaterialTab::GetIdentifier() const
 void MaterialTab::Render()
 {
     if (gui::Button{ "Create Material" })
-        editor::CreateWindow<editor::MaterialCreationWindow>();
+        editor::CreateGuiWindow<editor::MaterialCreationWindow>();
     gui::Separator();
 
     
