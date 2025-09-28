@@ -11,7 +11,7 @@ namespace compiler
     struct MeshFileHeader
     {
         uint32_t magic = MESH_FILE_MAGIC;
-        uint32_t version;
+        //uint32_t version;
 
         uint32_t numNodes;
         uint32_t numMeshes;

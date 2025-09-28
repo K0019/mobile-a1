@@ -1,6 +1,7 @@
 #include "FileBrowserTab.h"
 #include "ResourceImporter.h"
 #include "Import.h"
+#include "MeshCompiler.h"
 
 
 
@@ -276,6 +277,17 @@ void FileBrowserTab::RenderItemContextMenu(const FileSystem::FileEntry& entry)
     {
         if (gui::MenuItem(ICON_FA_FILE_IMPORT" Import"))
             ResourceImporter::Import(entry.fullPath.string());
+
+        if (gui::MenuItem(ICON_FA_FILE_IMPORT" Compile and Import"))
+        {
+            std::filesystem::path path { entry.fullPath };
+            compiler::MeshCompiler meshcompiler;
+            compiler::MeshCompilerOptions options;
+            options.commonOptions.inputPath = path;
+            options.commonOptions.outputPath = ST<Filepaths>::Get()->workingDir + "/CompiledAssets/";
+            meshcompiler.Compile(options);
+            ResourceImporter::Import(options.commonOptions.outputPath / (options.commonOptions.inputPath.stem().string() + ".mesh"));
+        }
     }
 
     if (ImGui::MenuItem(ICON_FA_COPY" Copy Path"))

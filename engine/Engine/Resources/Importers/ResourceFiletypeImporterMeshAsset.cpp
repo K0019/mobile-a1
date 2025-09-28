@@ -198,10 +198,8 @@ bool ResourceFiletypeImporterMeshAsset::Import(const std::filesystem::path& rela
 
 const ResourceFilepaths::FileEntry* ResourceFiletypeImporterMeshAsset::CreateNewFileEntry(const std::filesystem::path& relativeFilepath/*, size_t numMaterials*/)
 {
-    //std::vector<AssociatedResourceHashes> resourceHashes{ 2 };
     std::vector<AssociatedResourceHashes> resourceHashes{ 1 };
     GenerateHashesForResourceType<ResourceMesh>(&resourceHashes[0], 1);
-    //GenerateHashesForResourceType<ResourceMaterial>(&resourceHashes[1], numMaterials);
 
     GenerateNamesForResources(resourceHashes, relativeFilepath);
     return ST<ResourceManager>::Get()->INTERNAL_GetFilepathsManager().SetFilepath(relativeFilepath, std::move(resourceHashes));

@@ -196,14 +196,6 @@ void Engine::init()
 	ResourceManagerOld::LoadAssetsFromFile(ST<Filepaths>::Get()->workingDir + "/Assets/assetsOld.json");
 
 
-	//compiler::MeshCompiler meshcompiler;
-	//compiler::MeshCompilerOptions options;
-	//options.commonOptions.inputPath = ST<Filepaths>::Get()->workingDir + "/Assets/fbxcars/cone.fbx";
-	//options.commonOptions.outputPath = ST<Filepaths>::Get()->workingDir + "/CompiledAssets/";
-	//meshcompiler.Compile(options);
-	//ResourceImporter::Import(ST<Filepaths>::Get()->workingDir + "/CompiledAssets/cone.mesh");
-
-
 	//ST<AssetBrowser>::Get()->file_system.Initialize(ST<Filepaths>::Get()->workingDir);
 	// Load fonts manually for now
 	const std::array<std::string, 3> fontsToLoad{

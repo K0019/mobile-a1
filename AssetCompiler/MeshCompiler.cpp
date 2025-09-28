@@ -85,7 +85,7 @@ namespace compiler
 		// Populate file header
 		MeshFileHeader header;
 		header.magic = MESH_FILE_MAGIC;
-		header.version = 1;
+		//header.version = 1;
 		header.numNodes = finalNodes.size();
 		header.numMeshes = finalMeshInfos.size();
 		header.totalIndices = finalIndices.size();
