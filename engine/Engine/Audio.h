@@ -28,9 +28,7 @@ All rights reserved.
 
 class AudioSourceComponent
 	: public IRegisteredComponent<AudioSourceComponent>
-#ifdef IMGUI_ENABLED
 	, public IEditorComponent<AudioSourceComponent>
-#endif
 {
 public:
 	AudioSourceComponent();

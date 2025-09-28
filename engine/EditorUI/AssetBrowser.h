@@ -91,9 +91,8 @@ private:
 public:
     // Constants
     char searchBuffer[256] = ""; /**< Buffer for search input */
-    float THUMBNAIL_SIZE = 50.0f; /**< Size of thumbnails */
-    float SIDEBAR_WIDTH = 150.0f; /**< Width of the sidebar */
-
 #endif // IMGUI_ENABLED
+    static constexpr float THUMBNAIL_SIZE = 50.0f; /**< Size of thumbnails */
+    static constexpr float SIDEBAR_WIDTH = 150.0f; /**< Width of the sidebar */
 
 };

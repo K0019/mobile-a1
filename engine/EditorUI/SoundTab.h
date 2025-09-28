@@ -10,7 +10,9 @@ struct SoundTab
 	void Render() override;
 
 private:
+#ifdef IMGUI_ENABLED
 	void RenderSoundContextMenu(std::string const& name);
+#endif
 
 private:
 	uint32_t currentPreviewSound = 0; /**< Current preview sound channel */

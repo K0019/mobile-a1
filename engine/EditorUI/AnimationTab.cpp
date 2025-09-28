@@ -27,7 +27,8 @@ void AnimationTab::AnimationCreateConfig::Reset()
 
 void AnimationTab::Render()
 {
-    float THUMBNAIL_SIZE = ST<AssetBrowser>::Get()->THUMBNAIL_SIZE;
+#ifdef IMGUI_ENABLED
+    float THUMBNAIL_SIZE = AssetBrowser::THUMBNAIL_SIZE;
 
     // Top control bar
     if (ImGui::Button(ICON_FA_PLUS" Create Animation"))
@@ -164,9 +165,10 @@ void AnimationTab::Render()
     ImGui::PopStyleVar();
 
     ShowCreateAnimationDialog();
-
+#endif
 }
 
+#ifdef IMGUI_ENABLED
 void AnimationTab::ShowCreateAnimationDialog()
 {
     if (!animConfig.showDialog) return;
@@ -797,3 +799,4 @@ void AnimationTab::RenderCreateAnimationBottom()
 
     ImGui::EndChild();
 }
+#endif

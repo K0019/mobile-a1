@@ -37,9 +37,11 @@ namespace gui {
 #ifdef IMGUI_ENABLED
 	using Vec2 = ImVec2;
 	using Vec4 = ImVec4;
+	using TextureID = ImTextureID;
 #else
 	using Vec2 = ::Vec2;
 	using Vec4 = ::Vec4;
+	using TextureID = std::uintptr_t;
 #endif
 
 	namespace types
@@ -1523,6 +1525,9 @@ namespace gui {
 	//! ImGui::SetNextItemWidth()
 	void SetNextItemWidth(float width);
 
+	//! ImGui::GetTextLineHeightWithSpacing()
+	float GetTextLineHeightWithSpacing();
+
 #pragma endregion // Alignment & Spacing
 
 #pragma region Styling
@@ -1632,6 +1637,13 @@ namespace gui {
 	Vec4 GetStyleColor(FLAG_STYLE_COLOR style);
 
 #pragma endregion // Styling
+
+#pragma region Images
+
+	// ImGui::Image()
+	void Image(TextureID textureID, Vec2 size);
+
+#pragma endregion // Images
 
 #pragma region Custom Drawables
 
