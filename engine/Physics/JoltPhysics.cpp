@@ -13,7 +13,7 @@
 \brief
 	Contains definitions for the JoltPhysics class.
 
-All content © 2025 DigiPen Institute of Technology Singapore.
+All content ï¿½ 2025 DigiPen Institute of Technology Singapore.
 All rights reserved.
 */
 /******************************************************************************/
@@ -70,7 +70,10 @@ namespace physics {
 		Vec3 scale{ transform.GetWorldScale() };
 		JPH::Vec3 scaleJolt{ scale.x * 0.5f, scale.y * 0.5f, scale.z * 0.5f };
 		if (JPH::ScaleHelpers::IsZeroScale(scaleJolt))
-			scaleJolt = JPH::Vec3{ 100.f, 100.f, 100.f };
+		{
+			//Set the scale to minimum so that it doesn't crash.
+			scaleJolt = JPH::ScaleHelpers::MakeNonZeroScale(scaleJolt);
+		}
 
 		Vec3 rot{ transform.GetWorldRotation() };
 		JPH::QuatArg rotation{ JPH::Quat::sEulerAngles(JPH::Vec3{math::ToRadians(rot.x), math::ToRadians(rot.y), math::ToRadians(rot.z)}) };
@@ -121,28 +124,53 @@ namespace physics {
 
 	void JoltPhysics::ScaleShape(JPH::BodyID bodyID, const Vec3& scale)
 	{
-		JPH::BodyLockWrite lock(physicsSystem.GetBodyLockInterface(), bodyID);
-		if (!lock.Succeeded())
+		// convert and halve once
+		JPH::Vec3 scaleJolt{ scale.x * 0.5f, scale.y * 0.5f, scale.z * 0.5f };
+
+		// normalize/check the scale
+		if (JPH::ScaleHelpers::IsZeroScale(scaleJolt))
 		{
-			CONSOLE_LOG(LEVEL_ERROR) << "Body could not be properly scaled!";
+			scaleJolt = JPH::ScaleHelpers::MakeNonZeroScale(scaleJolt);
+			physicsSystem.GetBodyInterfaceNoLock().SetObjectLayer(bodyID, +Layers::NON_COLLIDABLE);
+		}
+		else
+		{
+			// read object layer / motion type via no-lock interface
+			auto objLayer = physicsSystem.GetBodyInterfaceNoLock().GetObjectLayer(bodyID);
+			if (objLayer == +Layers::NON_COLLIDABLE)
+			{
+				auto motion = physicsSystem.GetBodyInterfaceNoLock().GetMotionType(bodyID);
+				if (motion == JPH::EMotionType::Static)
+					physicsSystem.GetBodyInterfaceNoLock().SetObjectLayer(bodyID, +Layers::NON_MOVING);
+				else
+					physicsSystem.GetBodyInterfaceNoLock().SetObjectLayer(bodyID, +Layers::MOVING);
+			}
+		}
+
+		// get the shape via no-lock
+		JPH::RefConst<JPH::Shape> shapeRef = physicsSystem.GetBodyInterfaceNoLock().GetShape(bodyID);
+		if (!shapeRef)
+		{
+			CONSOLE_LOG(LEVEL_ERROR) << "Could not get shape for body";
 			return;
 		}
-		JPH::Body& body = lock.GetBody();
 
-		if (scale.x == 0.f || scale.y == 0.f || scale.z == 0.f)
+		if (shapeRef->GetSubType() != JPH::EShapeSubType::Scaled)
 		{
-			body.SetIsSensor(true);
+			CONSOLE_LOG(LEVEL_ERROR) << "The shape cannot be scaled";
 			return;
 		}
-		if (body.IsSensor())
-			body.SetIsSensor(false);
 
-		JPH_ASSERT(body.GetShape()->GetSubType() == JPH::EShapeSubType::Scaled);
-		const JPH::ScaledShape* scaledShape = static_cast<const JPH::ScaledShape*>(body.GetShape());
+		const JPH::ScaledShape* scaledShape = static_cast<const JPH::ScaledShape*>(shapeRef.GetPtr());
 		const JPH::Shape* nonScaledShape = scaledShape->GetInnerShape();
 
-		JPH::Shape::ShapeResult newShape = nonScaledShape->ScaleShape(JPH::Vec3{scale.x * 0.5f, scale.y * 0.5f, scale.z * 0.5f});
-		JPH_ASSERT(newShape.IsValid());
+		// IMPORTANT: use the clamped 'scaleJolt' here
+		JPH::Shape::ShapeResult newShape = nonScaledShape->ScaleShape(scaleJolt);
+		if (!newShape.IsValid())
+		{
+			CONSOLE_LOG(LEVEL_ERROR) << "Scaled Shape is not valid";
+			return;
+		}
 
 		physicsSystem.GetBodyInterfaceNoLock().SetShape(bodyID, newShape.Get(), true, JPH::EActivation::Activate);
 	}
