@@ -180,6 +180,7 @@ add_custom_command(TARGET Engine POST_BUILD
         "\"${EXTERNAL_LIBRARIES_WHOLE_DIRECTORIES}\""
         "\"$<TARGET_FILE_DIR:Engine>\""
     COMMAND cmd.exe /c if "$(Configuration)" == "Release" "${CMAKE_COMMAND}" -E copy_directory_if_different "${CMAKE_SOURCE_DIR}/Assets" "$<TARGET_FILE_DIR:Engine>/Assets"
+    COMMAND cmd.exe /c if "$(Configuration)" == "Release" "${CMAKE_COMMAND}" -E copy_directory_if_different "${CMAKE_SOURCE_DIR}/Shaders" "$<TARGET_FILE_DIR:Engine>/Shaders"
     #[[
     COMMAND cd "${CMAKE_SOURCE_DIR}/Shaders" &&
         .\\compile.bat &&
