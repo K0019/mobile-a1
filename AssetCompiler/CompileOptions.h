@@ -4,7 +4,6 @@
 #include <array>
 #include <chrono>
 #include <filesystem>
-#include "CmdlineParser.h"
 
 namespace compiler
 {
@@ -48,51 +47,4 @@ namespace compiler
         platform_list targets{};
     };
 
-    /*
-    class CompilerBase
-    {
-    public:
-        enum MESSAGE
-        {
-            WARNING,
-            ERROR,
-            INFO,
-            OK
-        };
-
-
-        virtual                 ~CompilerBase(void) = default;
-
-        //MESSAGE                 Parse(int argc, const char* argv[]);
-        //virtual MESSAGE         Compile(const CompileOptions& options) = 0;
-        //virtual void            SetupCommandLine();
-
-    protected:
-        //virtual MESSAGE         OnCompile() = 0;
-
-        void                    StartTimer();
-        void                    EndTimer();
-        void                    LogMessage(MESSAGE err, std::string message);
-
-
-
-        //Parser parser;
-        //
-        ////Parsed Options
-        //using platform_list = std::array<Platform, static_cast<int>(BUILD_PLATFORM::COUNT)>;
-        //DEBUG_TYPE                                              debugType{ DEBUG_TYPE::D0 };
-        //OPTIMIZATION_TYPE                                       optimizationType{ OPTIMIZATION_TYPE::O1 };
-        //std::chrono::steady_clock::time_point                   timer{};
-        //std::wstring                                            descriptorPath{}; // Path to of the descriptor that we have been asked to compile
-        //std::wstring                                            outputPath{};
-        //platform_list                                           targets{};
-
-        //FILE*                                                   pLogFile{};
-
-        ////???????
-        //std::wstring                                            resourceType{};
-        //std::wstring                                            resourcePartialPath{};
-        //std::wstring                                            resourceLogPath{};
-    };
-    */
 }

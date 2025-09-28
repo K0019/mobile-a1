@@ -4,7 +4,6 @@
 #include <cassert>
 #include <thread>
 #include <iostream>
-#include "FormatMapper.h"
 
 
 namespace
