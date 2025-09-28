@@ -21,7 +21,6 @@ All rights reserved.
 
 #pragma once
 #include "History.h"
-#include "Console.h"
 
 /*****************************************************************//*!
 \class IHistoryEvent_HoldsEntity

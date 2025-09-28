@@ -1,4 +1,6 @@
 #pragma once
+#include "IRegisteredComponent.h"
+#include "IEditorComponent.h"
 
 class TrailRendererComponent
     : public IRegisteredComponent<TrailRendererComponent>

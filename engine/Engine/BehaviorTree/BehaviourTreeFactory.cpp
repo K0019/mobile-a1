@@ -23,6 +23,7 @@ All rights reserved.
 /******************************************************************************/
 
 #include "BehaviourTreeFactory.h"
+#include "GameSettings.h"
 
 BTFactory::BTFactory()
     : nodeTypes{}

@@ -1,5 +1,5 @@
 #pragma once
-#include "IGameComponentCallbacks.h"
+#include "IRegisteredComponent.h"
 
 // Listener is more of a tag component than anything. It just indicates this entity is the listener
 class AudioListenerComponent

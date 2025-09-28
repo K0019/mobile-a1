@@ -19,6 +19,7 @@ All rights reserved.
 */
 /******************************************************************************/
 #include "GraphicsECSSprite.h"
+#include "GUICollection.h"
 
 #include "AnimatorComponent.h"
 #include "ResourceManager.h"

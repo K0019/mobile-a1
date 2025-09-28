@@ -32,21 +32,14 @@ All rights reserved.
 	The entry point of the program. The exact parameters differ depending on the project configuration, but they are all currently unused.
 *//******************************************************************/
 #if defined(DEBUG) || defined(_DEBUG)
-int main(int argc, char* argv[])
+int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
 {
-	UNREFERENCED_PARAMETER(argc);
-	UNREFERENCED_PARAMETER(argv);
-
 	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
 
 #else // Release build
 #include <Windows.h>
-int APIENTRY WinMain(HINSTANCE hInst, HINSTANCE hInstPrev, PSTR cmdline, int cmdshow)
+int APIENTRY WinMain([[maybe_unused]] HINSTANCE hInst, [[maybe_unused]] HINSTANCE hInstPrev, [[maybe_unused]] PSTR cmdline, [[maybe_unused]] int cmdshow)
 {
-	UNREFERENCED_PARAMETER(hInst);
-	UNREFERENCED_PARAMETER(hInstPrev);
-	UNREFERENCED_PARAMETER(cmdline);
-	UNREFERENCED_PARAMETER(cmdshow);
 #endif
 
 	int returnVal{ EXIT_SUCCESS };

@@ -23,6 +23,8 @@ All content © 2024 DigiPen Institute of Technology Singapore.
 All rights reserved.
 */
 /******************************************************************************/
+#include "IRegisteredComponent.h"
+#include "IEditorComponent.h"
 
 class CameraComponent
 	: public IRegisteredComponent<CameraComponent>

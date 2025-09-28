@@ -4,6 +4,7 @@
 #include "CSScripting.h"
 #include "PrefabWindow.h"
 #include "Import.h"
+#include "EditorHistory.h"
 #include "EditorGuiUtils.h"
 
 ///////////////

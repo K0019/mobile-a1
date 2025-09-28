@@ -1,7 +1,9 @@
 #pragma once
 #include <type_traits>
 #include <concepts>
+#define GLM_ZERO_TO_ONE_RANGE
 #include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 
 struct Vec2;
 struct Vec3;
@@ -277,6 +279,16 @@ struct Mat4 : public glm::mat4
 Vec4 operator*(const Mat4& mat, const Vec4& vec);
 
 #pragma endregion // Mat4
+
+
+#pragma region 2D Integer
+
+struct IntVec2
+{
+	int x, y;
+};
+
+#pragma endregion // 2D Integer
 
 #include "MagicMath.ipp"
 

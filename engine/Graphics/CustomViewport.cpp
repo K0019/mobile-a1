@@ -19,6 +19,7 @@ All rights reserved.
 */
 /******************************************************************************/
 #include "CustomViewport.h"
+#include "Input.h"
 
 #include "AnimatorComponent.h"
 #include "SceneManagement.h"

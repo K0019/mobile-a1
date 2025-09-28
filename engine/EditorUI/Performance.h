@@ -23,9 +23,8 @@ All rights reserved.
 /******************************************************************************/
 
 #pragma once
-#include <psapi.h>
+#include <chrono>
 #include "GUICollection.h"
-#include "Console.h"
 
 class PerformanceProfiler : public gui::Window {
     public:

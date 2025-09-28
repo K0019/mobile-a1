@@ -19,6 +19,7 @@ All rights reserved.
 */
 /******************************************************************************/
 #include "TextSystem.h"
+#include "Input.h"
 
 #include "Engine.h"
 //#include "ryan-c/Renderer.h"

@@ -20,7 +20,7 @@ namespace gui
 
 
 	template<typename DataType>
-	void PayloadSourceWithImageTooltip(const char* identifier, const DataType& data, [[maybe_unused]] VkDescriptorSet textureHandle, ImVec2 size)
+	void PayloadSourceWithImageTooltip(const char* identifier, const DataType& data, [[maybe_unused]] ImTextureID textureHandle, ImVec2 size)
 	{
 		if (gui::PayloadSource payload{ identifier, data })
 			// TODO: Add image

@@ -23,8 +23,10 @@ All rights reserved.
 */
 /******************************************************************************/
 
-#include <windows.h>
+#ifdef GLFW
 #include <GLFW/glfw3.h>
+#endif
+
 #include <bitset>
 
 #include "MagicMath.h"
@@ -329,7 +331,11 @@ X(M1, GLFW_MOUSE_BUTTON_LEFT, "Left Mouse Button") \
 X(M2, GLFW_MOUSE_BUTTON_RIGHT, "Right Mouse Button") \
 X(M3, GLFW_MOUSE_BUTTON_MIDDLE, "Middle Mouse Button")
 
+#ifdef GLFW
 #define X(name, glfw, str) name = glfw,
+#else
+#define X(name, glfw, str) name,
+#endif
 enum class KEY : int
 {
 	ENUM_KEY
@@ -357,10 +363,12 @@ public:
 	void NewIteration();
 
 public:
+#ifdef GLFW
 	static void GLFW_Callback_OnKeyboardClick(GLFWwindow* window, int key, int scancode, int action, int mode);
 	static void GLFW_Callback_OnMouseClick(GLFWwindow* window, int button, int action, int mode);
 	static void GLFW_Callback_OnMouseMove(GLFWwindow* window, double xpos, double ypos);
 	static void GLFW_Callback_OnMouseScroll(GLFWwindow* window, double xoffset, double yoffset);
+#endif
 
 private:
 	void Callback_OnKeyDown(short key);
@@ -369,6 +377,10 @@ private:
 	void Callback_OnMouseScroll(float offset);
 
 private:
+#ifndef GLFW
+// Max key value defined in glfw
+#define GLFW_KEY_LAST 348
+#endif
 	// Mouse state is combined into key states (as their indexes don't clash)
 	//! The current state of keys.
 	std::bitset<GLFW_KEY_LAST + 1> keystate;
@@ -376,6 +388,9 @@ private:
 	std::bitset<GLFW_KEY_LAST + 1> pressedKeystate;
 	//! Whether keys were released since the last update.
 	std::bitset<GLFW_KEY_LAST + 1> releasedKeystate;
+#ifndef GLFW
+#undef GLFW_KEY_LAST
+#endif
 
 	//! The current mouse window position.
 	Vec2 mousePos;

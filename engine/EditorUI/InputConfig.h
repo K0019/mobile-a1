@@ -1,5 +1,6 @@
 #pragma once
 #include "GUIAsECS.h"
+#include "Input.h"
 
 namespace editor {
 
