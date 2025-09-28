@@ -16,6 +16,7 @@ const char* FileBrowserTab::GetIdentifier() const
 
 void FileBrowserTab::RenderBreadcrumb()
 {
+#ifdef IMGUI_ENABLED
     // Back button
     if (ImGui::Button(ICON_FA_ARROW_LEFT) && fileSystem.CanNavigateBack())
     {
@@ -97,6 +98,7 @@ void FileBrowserTab::RenderBreadcrumb()
     }
 
     ImGui::EndGroup();
+#endif
 }
 
 void FileBrowserTab::Initialize(const std::filesystem::path& initialPath)
@@ -106,6 +108,7 @@ void FileBrowserTab::Initialize(const std::filesystem::path& initialPath)
 
 void FileBrowserTab::Render()
 {
+#ifdef IMGUI_ENABLED
     float THUMBNAIL_SIZE = ST<AssetBrowser>::Get()->THUMBNAIL_SIZE;
 
     // Main file view
@@ -179,8 +182,10 @@ void FileBrowserTab::Render()
     ImGui::EndChild();
 
     ShowSpriteSheetDialog();
+#endif
 }
 
+#ifdef IMGUI_ENABLED
 bool FileBrowserTab::RenderDirectoryItem(const FileSystem::FileEntry& entry)
 {
     float THUMBNAIL_SIZE = ST<AssetBrowser>::Get()->THUMBNAIL_SIZE;
@@ -424,6 +429,7 @@ void FileBrowserTab::ShowSpriteSheetDialog()
     }
     ImGui::End();
 }
+#endif
 
 void FileBrowserTab::ImportAsSpriteSheet(const std::filesystem::path& path, int spriteCount, const std::string& baseName)
 {

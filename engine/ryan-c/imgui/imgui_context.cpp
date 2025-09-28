@@ -1,4 +1,7 @@
 #include "imgui_context.h"
+
+#ifdef IMGUI_ENABLED
+
 #include <GLFW/glfw3.h>
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
@@ -233,3 +236,5 @@ namespace editor {
         return *m_transientRegistry;
     }
 }
+
+#endif

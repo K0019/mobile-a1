@@ -136,9 +136,7 @@ property_vend_h(BehaviorTreeAsset)
 *//******************************************************************/
 class BehaviorTreeComp
     : public IRegisteredComponent<BehaviorTreeComp>
-#ifdef IMGUI_ENABLED
     , public IEditorComponent<BehaviorTreeComp>
-#endif
     , public IGameComponentCallbacks<BehaviorTreeComp>
 {
 public:

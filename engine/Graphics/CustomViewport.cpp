@@ -420,7 +420,7 @@ Vec3 CustomViewport::WindowToWorldPosition(const Vec2& inWindowPos) const {
 }
 
 
-bool CustomViewport::IsMouseInViewport(const Vec2& mousePos) const
+bool CustomViewport::IsMouseInViewport([[maybe_unused]] const Vec2& mousePos) const
 {
 #ifdef IMGUI_ENABLED
 	bool within_viewport = mousePos.x >= windowPosAbsolute.x + contentMin.x &&
@@ -445,9 +445,6 @@ bool CustomViewport::IsMouseInViewport(const Vec2& mousePos) const
 			return false;
 		}
 	}
-
-#else
-	UNREFERENCED_PARAMETER(mousePos);
 #endif
 
 	// Check for any popups or modal windows that might be blocking

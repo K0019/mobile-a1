@@ -223,12 +223,13 @@ void GraphicsMain::SetImGuiStyle()
 	style.ButtonTextAlign = ImVec2(0.5f, 0.5f);
 	style.SelectableTextAlign = ImVec2(0.0f, 0.0f);
 }
-#endif
 
 editor::ImGuiContext& GraphicsMain::GetImGuiContext()
 {
 	return *imguiContext.get();
 }
+
+#endif
 
 #include "grid_feature.h"
 #include "scene_feature.h"

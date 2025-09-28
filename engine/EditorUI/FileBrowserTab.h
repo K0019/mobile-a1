@@ -31,12 +31,14 @@ private:
 	};
 	ThumbnailCache thumbnailCache;
 
+#ifdef IMGUI_ENABLED
 	bool RenderDirectoryItem(const FileSystem::FileEntry& entry);
 	void RenderItemLabel(const std::string& filename);
 	bool RenderFileItem(const FileSystem::FileEntry& entry);
 	void RenderItemContextMenu(const FileSystem::FileEntry& entry);
 
 	void ShowSpriteSheetDialog();
+#endif
 	void ImportAsSpriteSheet(const std::filesystem::path& path, int spriteCount, const std::string& baseName);
 	void ImportAsSprite(const std::filesystem::path& path, const std::string& name);
 	std::filesystem::path CopyIntoWorkingDir(const std::filesystem::path& file);

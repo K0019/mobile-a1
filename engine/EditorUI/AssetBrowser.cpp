@@ -156,10 +156,11 @@ void AssetBrowser::RenderToolbar()
 
 void AssetBrowser::DrawConfig()
 {
+    float thumbnailSize{ THUMBNAIL_SIZE }, sidebarWidth{ SIDEBAR_WIDTH };
     ImGui::Separator();
     ImGui::Text("Browser Settings");
-    ImGui::DragFloat("Thumbnail Size", &THUMBNAIL_SIZE, 10.0f, 50.0f, 200.0f);
-    ImGui::DragFloat("Sidebar Width", &SIDEBAR_WIDTH, 10.0f, 150.0f, 250.0f);
+    ImGui::DragFloat("Thumbnail Size", &thumbnailSize, 10.0f, 50.0f, 200.0f);
+    ImGui::DragFloat("Sidebar Width", &sidebarWidth, 10.0f, 150.0f, 250.0f);
 }
 
 #endif

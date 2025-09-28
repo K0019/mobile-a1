@@ -14,6 +14,7 @@ const char* SpriteTab::GetIdentifier() const
 
 void SpriteTab::Render()
 {
+#ifdef IMGUI_ENABLED
     float THUMBNAIL_SIZE = ST<AssetBrowser>::Get()->THUMBNAIL_SIZE;
     float panelWidth = ImGui::GetContentRegionAvail().x;
     gui::GridHelper grid(panelWidth, THUMBNAIL_SIZE + 10);
@@ -172,5 +173,6 @@ void SpriteTab::Render()
 
         grid.NextItem();
     }
+#endif
 
 }

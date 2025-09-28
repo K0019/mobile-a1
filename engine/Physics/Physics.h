@@ -50,9 +50,7 @@ X(USE_GRAVITY, "Use Gravity")
 
 	class PhysicsComp
 		: public IRegisteredComponent<PhysicsComp>
-#ifdef IMGUI_ENABLED
-		, public IEditorComponent<PhysicsComp> 
-#endif
+		, public IEditorComponent<PhysicsComp>
 		, public ecs::IComponentCallbacks
 	{
 	public:

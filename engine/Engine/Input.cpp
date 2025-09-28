@@ -23,6 +23,10 @@ All rights reserved.
 #include "Input.h"
 #include "CustomViewport.h"
 
+#ifndef IMGUI_ENABLED
+#include "GraphicsWindow.h"
+#endif
+
 const std::array<InputHardwareValueLink::FuncType_GetValue, +INPUT_DEVICE_TYPE::NUM_DEVICES> InputHardwareValueLink::GetValueFromDevice{
 	[](int keyIdentifier, INPUT_READ_TYPE readType) -> InputHardwareValue {
 		return ST<KeyboardMouseInput>::Get()->GetValue(readType, static_cast<KEY>(keyIdentifier));
@@ -259,8 +263,9 @@ void KeyboardMouseInput::GLFW_Callback_OnMouseMove([[maybe_unused]] GLFWwindow* 
 	ST<KeyboardMouseInput>::Get()->Callback_OnMouseMove(pos.x, pos.y);
 #else
 	// Clamp mouse position to window bounds
-	double clampedXpos = math::Clamp(xpos, 0.0, static_cast<double>(ST<Engine>::Get()->_windowExtent.width));
-	double clampedYpos = math::Clamp(ypos, 0.0, static_cast<double>(ST<Engine>::Get()->_windowExtent.height));
+	auto windowExtent{ ST<GraphicsWindow>::Get()->GetWindowExtent() };
+	double clampedXpos = std::clamp(xpos, 0.0, static_cast<double>(windowExtent.x));
+	double clampedYpos = std::clamp(ypos, 0.0, static_cast<double>(windowExtent.y));
 	if (clampedXpos != xpos || clampedYpos != ypos)
 		glfwSetCursorPos(window, clampedXpos, clampedYpos);
 

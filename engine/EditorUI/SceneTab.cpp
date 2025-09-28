@@ -19,6 +19,7 @@ const char* SceneTab::GetIdentifier() const
 
 void SceneTab::Render()
 {
+#ifdef IMGUI_ENABLED
     float THUMBNAIL_SIZE = ST<AssetBrowser>::Get()->THUMBNAIL_SIZE;
     float panelWidth = ImGui::GetContentRegionAvail().x; // random offset
     gui::GridHelper grid(panelWidth, THUMBNAIL_SIZE + 10);
@@ -52,4 +53,5 @@ void SceneTab::Render()
 
         grid.NextItem();
     }
+#endif
 }
