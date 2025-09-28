@@ -20,6 +20,7 @@ All rights reserved.
 */
 /******************************************************************************/
 #include "AudioListener.h"
+#include "AudioManager.h"
 
 AudioListenerComponent::AudioListenerComponent()
 {

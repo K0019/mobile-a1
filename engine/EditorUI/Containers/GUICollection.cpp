@@ -671,7 +671,7 @@ namespace gui {
 	{
 		return VarInput(label, v);
 	}
-	bool VarDefault(const char* label, string_t* v)
+	bool VarDefault(const char* label, std::string* v)
 	{
 		TextBoxWithBuffer<256> textBox{ label };
 		textBox.SetBuffer(*v);
@@ -789,29 +789,6 @@ namespace gui {
 	{
 #ifdef IMGUI_ENABLED
 		ImGui::SetNextItemWidth(width);
-#endif
-	}
-
-	bool IsKeyPressed([[maybe_unused]] KEY key, [[maybe_unused]] bool repeating)
-	{
-#ifdef IMGUI_ENABLED
-		return ImGui::IsKeyPressed(static_cast<ImGuiKey>(key), repeating);
-#else
-		return false;
-#endif
-	}
-
-	void SetKeyboardFocusHere([[maybe_unused]] int offset)
-	{
-#ifdef IMGUI_ENABLED
-		ImGui::SetKeyboardFocusHere(offset);
-#endif
-	}
-
-	void SetScrollHereY([[maybe_unused]] float center_y_ratio)
-	{
-#ifdef IMGUI_ENABLED
-		ImGui::SetScrollHereY(center_y_ratio);
 #endif
 	}
 
@@ -954,4 +931,26 @@ namespace gui {
 	{
 	}
 
+	bool IsKeyPressed([[maybe_unused]] KEY key, [[maybe_unused]] bool repeating)
+	{
+#ifdef IMGUI_ENABLED
+		return ImGui::IsKeyPressed(static_cast<ImGuiKey>(key), repeating);
+#else
+		return false;
+#endif
+	}
+
+	void SetKeyboardFocusHere([[maybe_unused]] int offset)
+	{
+#ifdef IMGUI_ENABLED
+		ImGui::SetKeyboardFocusHere(offset);
+#endif
+	}
+
+	void SetScrollHereY([[maybe_unused]] float center_y_ratio)
+	{
+#ifdef IMGUI_ENABLED
+		ImGui::SetScrollHereY(center_y_ratio);
+#endif
+	}
 }

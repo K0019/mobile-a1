@@ -21,6 +21,7 @@ All rights reserved.
 /******************************************************************************/
 
 #pragma once
+#include "StateMachine.h"
 
 #pragma region Interface
 

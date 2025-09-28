@@ -24,6 +24,7 @@ All rights reserved.
 #include "GameCameraController.h"
 #include "TweenManager.h"
 #include "Messaging.h"
+#include "GUICollection.h"
 
 GameCameraControllerComponent::GameCameraControllerComponent()
 	: cameraEntity{ nullptr }

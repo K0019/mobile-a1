@@ -24,13 +24,10 @@ All rights reserved.
 #pragma once
 #include "Utilities.h"
 #include "MacroTemplates.h"
-#include <string>
+#include "ImguiHeader.h"
 #ifdef IMGUI_ENABLED
 #include "imgui_internal.h"
 #include "imgui.h"
-#else
-#include "percentmath.h"
-#include <type_traits>
 #endif
 
 namespace gui {
@@ -66,7 +63,8 @@ namespace gui {
 	X(UP, ImGuiKey::ImGuiKey_UpArrow) \
 	X(DOWN, ImGuiKey::ImGuiKey_DownArrow) \
 	X(ENTER, ImGuiKey::ImGuiKey_Enter) \
-	X(ESC, ImGuiKey::ImGuiKey_Escape)
+	X(ESC, ImGuiKey::ImGuiKey_Escape) \
+	X(GRAVE, ImGuiKey::ImGuiKey_GraveAccent)
 
 	//! ImGuiWindowFlags
 #define GUICOLLECTION_FLAG_WINDOW \
@@ -1172,7 +1170,7 @@ namespace gui {
 	bool VarDefault(const char* label, ::Vec2* v);
 	bool VarDefault(const char* label, ::Vec3* v);
 	bool VarDefault(const char* label, ::Vec4* v);
-	bool VarDefault(const char* label, string_t* v);
+	bool VarDefault(const char* label, std::string* v);
 
 	/*****************************************************************//*!
 	\brief

@@ -20,10 +20,9 @@ All rights reserved.
 */
 /******************************************************************************/
 
-
-#include "pch.h"
 #include "NameComponent.h"
 #include "UIScreenManager.h"
+#include "GUICollection.h"
 
 UIScreenManagerComponent::UIScreenManagerComponent()
 	: currScreen{}

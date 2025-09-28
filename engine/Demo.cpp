@@ -1,5 +1,5 @@
-#include "pch.h"
 #include "Demo.h"
+#include "GUICollection.h"
 #include "NameComponent.h"
 
 ExampleComponent::ExampleComponent()

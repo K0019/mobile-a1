@@ -20,6 +20,7 @@ All rights reserved.
 */
 /******************************************************************************/
 #ifdef IMGUI_ENABLED
+#include "ImguiHeader.h"
 
 enum class GizmoType {
     None,

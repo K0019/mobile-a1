@@ -140,9 +140,9 @@ namespace editor {
 
 		// Other windows
 		if (gui::Button{ "Layers", gui::Vec2{ -0.1f, 30.0f } })
-			CreateWindow<LayersMatrix>();
+			CreateGuiWindow<LayersMatrix>();
 		if (gui::Button{ "Input", gui::Vec2{ -0.1f, 30.0f } })
-			CreateWindow<InputConfig>();
+			CreateGuiWindow<InputConfig>();
 
 #ifdef IMGUI_ENABLED
 		ST<Inspector>::Get()->DrawSceneView();

@@ -21,15 +21,8 @@ All rights reserved.
 /******************************************************************************/
 
 #pragma once
-#include <shellapi.h> // For DragQueryFile
-
-#include "ResourceManager.h"
-#include "AssetBrowser.h"
-#include "Engine.h"
-
-// Thanks Microsoft
-#ifdef CopyFile
-#undef CopyFile
+#ifdef GLFW
+#include <GLFW/glfw3.h>
 #endif
 
 namespace import
@@ -47,6 +40,7 @@ namespace import
 		ALREADY_IMPORTED
 	};
 
+#ifdef GLFW
 	/*****************************************************************//*!
 	 \brief
 		   Function will check the amount of files being dragged and dropped 
@@ -58,6 +52,7 @@ namespace import
 		   void
 	*//******************************************************************/
 	void DropCallback(GLFWwindow* window, int count, const char** paths);
+#endif
 
 	/*****************************************************************//*!
 	\brief

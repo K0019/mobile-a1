@@ -20,6 +20,7 @@ All rights reserved.
 /******************************************************************************/
 
 #pragma once
+#include "Serializer.h"
 
 /**
  * @struct FrameData

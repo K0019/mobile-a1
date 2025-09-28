@@ -13,7 +13,7 @@ struct FileBrowserTab
 private:
 	FileSystem fileSystem;
 
-	VkDescriptorSet GetThumbnailDescriptor(std::filesystem::path::iterator::reference path);
+	//VkDescriptorSet GetThumbnailDescriptor(std::filesystem::path::iterator::reference path);
 	struct SpriteImportConfig
 	{
 		int spriteCount = 1; /**< Number of sprites in the sheet */
@@ -26,7 +26,7 @@ private:
 
 	struct ThumbnailCache
 	{
-		std::unordered_map<std::string, VkDescriptorSet> textureDescriptors; /**< Cache of texture descriptors */
+		//std::unordered_map<std::string, VkDescriptorSet> textureDescriptors; /**< Cache of texture descriptors */
 		std::unordered_map<std::string, bool> loadingStatus; /**< Cache of loading statuses */
 	};
 	ThumbnailCache thumbnailCache;
