@@ -64,10 +64,6 @@ All rights reserved.
 #include <cstdarg>
 #include <math.h>
 
-#include "mono/jit/jit.h"
-#include "mono/metadata/assembly.h"
-/* END LIBRARIES */
-
 #include "Singleton.h"
 #include "Logging.h"
 #include "MagicMath.h"
