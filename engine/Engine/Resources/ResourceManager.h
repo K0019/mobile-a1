@@ -34,6 +34,7 @@ All rights reserved.
 
 #include "scene.h"
 
+#include "AudioManager.h"
 #include "Animation.h"
 
 #include "AssetBrowser.h"

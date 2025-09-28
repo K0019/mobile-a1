@@ -1,5 +1,9 @@
 #pragma once
+
+#ifdef IMGUI_ENABLED
+
 #include <memory>
+#include "ImguiHeader.h"
 #include "imgui_render_feature.h"
 #include "bindless_registry.h"
 
@@ -55,3 +59,5 @@ namespace editor {
         bool initialized_;
     };
 }
+
+#endif

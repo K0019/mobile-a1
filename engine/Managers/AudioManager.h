@@ -22,6 +22,8 @@ All rights reserved.
 */
 /******************************************************************************/
 #pragma once
+#include <FMOD/fmod.hpp>
+#include <FMOD/fmod_studio.hpp>
 
 enum class AudioType : char
 {

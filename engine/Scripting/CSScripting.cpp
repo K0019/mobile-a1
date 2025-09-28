@@ -31,6 +31,8 @@ All rights reserved.
 #include "ScriptComponent.h"
 #include "EntityUID.h"
 
+#include <Windows.h>
+
 namespace CSharpScripts
 {
 	// Static declares

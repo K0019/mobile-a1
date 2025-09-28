@@ -24,6 +24,9 @@ All rights reserved.
 /******************************************************************************/
 #pragma once
 #include "BehaviourNode.h"
+#include "Serializer.h"
+#include "IRegisteredComponent.h"
+#include "IEditorComponent.h"
 #include "IGameComponentCallbacks.h"
 
  /*****************************************************************//*!
@@ -133,9 +136,7 @@ property_vend_h(BehaviorTreeAsset)
 *//******************************************************************/
 class BehaviorTreeComp
     : public IRegisteredComponent<BehaviorTreeComp>
-#ifdef IMGUI_ENABLED
     , public IEditorComponent<BehaviorTreeComp>
-#endif
     , public IGameComponentCallbacks<BehaviorTreeComp>
 {
 public:

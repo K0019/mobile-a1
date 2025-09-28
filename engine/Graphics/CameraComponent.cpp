@@ -19,6 +19,7 @@ All rights reserved.
 */
 /******************************************************************************/
 #include "CameraComponent.h"
+#include "GUICollection.h"
 
 int CameraComponent::globalPriority = 0;
 

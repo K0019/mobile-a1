@@ -1,5 +1,6 @@
 #include "SoundTab.h"
 #include "ResourceManager.h"
+#include "GUICollection.h"
 
 const char* SoundTab::GetName() const
 {
@@ -13,6 +14,7 @@ const char* SoundTab::GetIdentifier() const
 
 void SoundTab::Render()
 {
+#ifdef IMGUI_ENABLED
     ImGui::BeginChild("SoundTable", ImVec2(0.f, -FLT_MIN), true); // Fill available space
 
     std::vector<std::string> soundNames = ST<AudioManager>::Get()->GetSoundNames();
@@ -166,8 +168,10 @@ void SoundTab::Render()
     }
 
     ImGui::EndChild();
+#endif
 }
 
+#ifdef IMGUI_ENABLED
 void SoundTab::RenderSoundContextMenu(std::string const& name)
 {
     if (ImGui::BeginPopupContextItem(("Delete##" + name).c_str()))
@@ -180,3 +184,4 @@ void SoundTab::RenderSoundContextMenu(std::string const& name)
         ImGui::EndPopup();
     }
 }
+#endif

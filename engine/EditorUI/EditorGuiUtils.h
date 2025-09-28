@@ -1,7 +1,6 @@
 #pragma once
 #include "GUICollection.h"
 
-
 namespace gui
 {
 	struct GridHelper
@@ -20,10 +19,9 @@ namespace gui
 
 
 	template<typename DataType>
-	void PayloadSourceWithImageTooltip(const char* identifier, const DataType& data, [[maybe_unused]] VkDescriptorSet textureHandle, ImVec2 size)
+	void PayloadSourceWithImageTooltip(const char* identifier, const DataType& data, gui::TextureID textureHandle, gui::Vec2 size)
 	{
 		if (gui::PayloadSource payload{ identifier, data })
-			// TODO: Add image
-			ImGui::Image(0, size);
+			gui::Image(textureHandle, size);
 	}
 }

@@ -24,6 +24,7 @@ All rights reserved.
 
 #include "NameComponent.h"
 #include "EntityUID.h"
+#include "EntityEvents.h"
 #include "EntityLayers.h"
 
 EntitySpawnEvents::EntitySpawnEvents()

@@ -50,7 +50,6 @@ All rights reserved.
 #include <typeinfo>
 #include <exception>
 #include <stdexcept>
-#include <iterator>
 #include <memory>
 #include <thread>
 #include <mutex>
@@ -62,67 +61,18 @@ All rights reserved.
 #include <ctime>
 #include <cassert>
 #include <cctype>
+#include <cstdarg>
 #include <math.h>
 
-/* LIBRARIES */
-#include <windows.h>
-#include <dbghelp.h>
-
-#ifdef IMGUI_ENABLED
-	#define IMGUI_DEFINE_MATH_OPERATORS
-	#include <imgui.h>
-	#include "imgui_internal.h"
-	#include "imgui_impl_glfw.h"
-#endif
-#include "IconsFontAwesome6.h"
-
-#define GLFW_INCLUDE_NONE
-#define GLFW_INCLUDE_VULKAN
-#define VK_NO_PROTOTYPES
-#include <GLFW/glfw3.h>
-#define GLM_ZERO_TO_ONE_RANGE
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-
-// By Kendrick (2025/09/11): Before cmake volk.h seemed to be included no matter what. Idk what was including it lol.
-//#ifndef IMGUI_ENABLED
-	#include "volk.h"
-//#endif
-
-#pragma warning(push, 0)
-#define VMA_STATIC_VULKAN_FUNCTIONS 0
-#define VMA_DYNAMIC_VULKAN_FUNCTIONS 1
-#include "vma/vk_mem_alloc.h"
-#pragma warning(pop)
-
-#include <FMOD/fmod.hpp>
-#include <FMOD/fmod_studio.hpp>
-
-#include "mono/jit/jit.h"
-#include "mono/metadata/assembly.h"
-/* END LIBRARIES */
-
 #include "Singleton.h"
+#include "Logging.h"
 #include "MagicMath.h"
 #include "Transform.h"
 #include "ECS.h"
-#include "IRegisteredComponent.h"
-#include "IEditorComponent.h"
-#include "IHiddenComponent.h"
 #include "Messaging.h"
-#include "Scheduler.h"
-#include "EntityEvents.h"
-#include "Input.h"
+#include "Scheduler.h" 
 #include "GameTime.h"
-#include "Serializer.h"
 #include "TypeID.h"
 #include "Utilities.h"
-#include "MaskTemplate.h"
 #include "MacroTemplates.h"
-#include "ScriptingUtil.h"
 #include "RandUID.h"
-
-#include "GUICollection.h"
-#include "Console.h"
-
-#include "StateMachine.h"

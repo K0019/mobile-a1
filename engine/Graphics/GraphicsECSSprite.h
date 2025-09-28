@@ -22,6 +22,7 @@ All rights reserved.
 #pragma once
 #include "Materials.h"
 #include "EntityLayers.h"
+#include "IEditorComponent.h"
 
 class Renderer;
 

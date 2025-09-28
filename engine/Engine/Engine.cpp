@@ -25,6 +25,9 @@ All rights reserved.
 */
 /******************************************************************************/
 #include "Engine.h"
+#include "CrashHandler.h"
+
+#include "Input.h"
 
 #include "ResourceManager.h"
 #include "SceneManagement.h"
@@ -35,6 +38,7 @@ All rights reserved.
 #include "GameSettings.h"
 #include "JoltPhysics.h"
 
+#include "GUIAsECS.h"
 #include "SettingsWindow.h"
 #include "BehaviourTreeFactory.h"
 #include "BehaviourTreeWindow.h"
@@ -57,13 +61,16 @@ namespace
 	bool show_browser = false;
 
 	void saveState(const char* filename) {
+		// TODO: Do proper state saving
+		ecs::SwitchToPool(ecs::POOL::EDITOR_GUI);
 		Serializer serializer{ filename };
-		serializer.Serialize("show_console", ST<Console>::Get()->GetIsOpen());
+		serializer.Serialize("show_console", ecs::GetCompsBegin<editor::Console>() != ecs::GetCompsEnd<editor::Console>());
 		serializer.Serialize("show_performance", ST<PerformanceProfiler>::Get()->GetIsOpen());
 		serializer.Serialize("show_editor", ST<Inspector>::Get()->GetIsOpen());
 		//serializer.Serialize("show_settings", ST<SettingsWindow>::Get()->GetIsOpen());
 		serializer.Serialize("show_browser", show_browser);
 		serializer.Serialize("show_hierarchy", ST<Hierarchy>::Get()->isOpen);
+		ecs::SwitchToPool(ecs::POOL::DEFAULT);
 	}
 	void loadState(const char* filename) {
 		Deserializer deserializer{ filename };
@@ -71,7 +78,10 @@ namespace
 			return;
 
 		bool b{};
-		deserializer.DeserializeVar("show_console", &b), ST<Console>::Get()->SetIsOpen(b);
+		deserializer.DeserializeVar("show_console", &b);
+		if (b)
+			editor::CreateGuiWindow<editor::Console>();
+
 		deserializer.DeserializeVar("show_performance", &b), ST<PerformanceProfiler>::Get()->SetIsOpen(b);
 		deserializer.DeserializeVar("show_editor", &b), ST<Inspector>::Get()->SetIsOpen(b);
 		//deserializer.DeserializeVar("show_settings", &b), ST<SettingsWindow>::Get()->SetIsOpen(b);
@@ -162,7 +172,7 @@ void Engine::init()
 {
 	ST<GameSettings>::Get()->Load(); // Only load settings from file first so we have the correct filepaths.
 
-	ST<Console>::Get()->SetupCrashHandler(); // DO NOT REMOVE THIS LINE EVER
+	CrashHandler::SetupCrashHandler(); // DO NOT REMOVE THIS LINE EVER
 
 	// Scripting Engine Initialisation
 	CSharpScripts::CSScripting::Init();
@@ -208,9 +218,9 @@ void Engine::init()
 
 	auto worldExtents{ ST<GraphicsWindow>::Get()->GetWorldExtent()};
 #ifdef IMGUI_ENABLED
-	ST<Game>::Get()->Init(worldExtents.width, worldExtents.height, GAMESTATE::EDITOR);
+	ST<Game>::Get()->Init(worldExtents.x, worldExtents.y, GAMESTATE::EDITOR);
 #else
-	ST<Game>::Get()->Init(worldExtents.width, worldExtents.height, GAMESTATE::IN_GAME);
+	ST<Game>::Get()->Init(worldExtents.x, worldExtents.y, GAMESTATE::IN_GAME);
 #endif
 
 	auto timeafterwindow = std::chrono::high_resolution_clock::now();
@@ -219,7 +229,9 @@ void Engine::init()
 	// get ready for running
 	// ---------------------
 	ST<GraphicsWindow>::Get()->BringWindowToFront();
+#ifdef IMGUI_ENABLED
 	loadState("imgui.json");
+#endif
 }
 
 void Engine::run()
@@ -252,12 +264,6 @@ void Engine::run()
 		ST<GraphicsMain>::Get()->BeginImGuiFrame();
 
 		// TODO: Convert all of these window singletons into the ecs versions so we can support multiple instances of a single window.
-		if(ST<Console>::Get()->GetIsOpen())
-		{
-			ST<PerformanceProfiler>::Get()->StartProfile("Console");
-			ST<Console>::Get()->Draw();
-			ST<PerformanceProfiler>::Get()->EndProfile("Console");
-		}
 		if(ST<PerformanceProfiler>::Get()->GetIsOpen())
 		{
 			ST<PerformanceProfiler>::Get()->Draw();
@@ -304,7 +310,7 @@ void Engine::run()
 				}
 				if(ImGui::MenuItem("Settings"))
 				{
-					editor::CreateWindow<editor::SettingsWindow>();
+					editor::CreateGuiWindow<editor::SettingsWindow>();
 				}
 				if(ImGui::MenuItem("Exit"))
 				{
@@ -317,7 +323,7 @@ void Engine::run()
 			{
 				if(ImGui::MenuItem("Console"))
 				{
-					ST<Console>::Get()->SetIsOpen(true);
+					editor::CreateGuiWindow<editor::Console>();
 					ImGui::SetWindowFocus(ICON_FA_TERMINAL"Console"); // Save the name of the windows somewhere else so i dont have to copy paste = ryan cheong
 				}
 				if(ImGui::MenuItem("Performance"))
@@ -346,7 +352,7 @@ void Engine::run()
 
 			if (ImGui::BeginMenu("Behaviour Tree"))
 			{
-				editor::CreateWindow<editor::BehaviourTreeWindow>();
+				editor::CreateGuiWindow<editor::BehaviourTreeWindow>();
 				ImGui::EndMenu();
 			}
 
@@ -366,8 +372,9 @@ void Engine::run()
 		{
 #ifdef IMGUI_ENABLED
 			ST<Inspector>::Get()->ProcessInput();
-			if(ST<KeyboardMouseInput>::Get()->GetIsPressed(KEY::GRAVE))
-				ST<Console>::Get()->SetIsOpen(!ST<Console>::Get()->GetIsOpen());
+			// TODO: Put this in some editor windows manager class. In fact, all of this imgui stuff needs to be put in that class or subclasses.
+			/*if (ST<KeyboardMouseInput>::Get()->GetIsPressed(KEY::GRAVE))
+				ST<Console>::Get()->SetIsOpen(!ST<Console>::Get()->GetIsOpen());*/
 #endif
 
 			if(ST<KeyboardMouseInput>::Get()->GetIsPressed(KEY::F11))
@@ -401,7 +408,9 @@ void Engine::run()
 		if (!ST<GraphicsWindow>::Get()->GetIsWindowMinimized())
 		{
 			ST<Game>::Get()->Render();
+#ifdef IMGUI_ENABLED
 			ST<Inspector>::Get()->DrawSelectedEntityBorder();
+#endif
 			ST<GraphicsMain>::Get()->RenderSampleScene();
 		}
 		ST<GraphicsMain>::Get()->EndFrame();
@@ -463,5 +472,5 @@ void Engine::shutdown() {
 
 	ST<GraphicsMain>::Destroy();
 	// In case any systems send logs to the console while destructing.
-	ST<Console>::Destroy();
+	ST<internal::LoggedMessagesBuffer>::Destroy();
 }

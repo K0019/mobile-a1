@@ -21,6 +21,7 @@ All rights reserved.
 #include "GraphicsECSMesh.h"
 #include "GraphicsScene.h"
 #include "ResourceManager.h"
+#include "GUICollection.h"
 
 size_t RenderComponent::GetMeshHash() const
 {

@@ -20,6 +20,8 @@ All rights reserved.
 /******************************************************************************/
 #include "AnimatorComponent.h"
 #include "GraphicsECSSprite.h"
+#include "GUICollection.h"
+
 AnimatorComponent::AnimatorComponent()
     : AnimatorComponent(0) {
 }

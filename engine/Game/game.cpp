@@ -28,6 +28,9 @@ All rights reserved.
 /******************************************************************************/
 
 #include "game.h"
+
+#include "Input.h"
+
 #include "SceneManagement.h"
 #include "Editor.h"
 #include "GameSettings.h"
@@ -37,7 +40,6 @@ All rights reserved.
 #include "AnimatorComponent.h"
 #include "GraphicsECSSprite.h"
 #include "CameraController.h"
-#include "NameComponent.h"
 
 #include "ResourceManager.h"
 #include "Performance.h"
@@ -258,8 +260,7 @@ void Game::UpdateSystemsGroup(const std::string& profileName, void(*executeSyste
     ST<PerformanceProfiler>::Get()->EndProfile(profileName);
 }
 
-void Game::OnFocusCallback(bool isFocused)
+void Game::OnFocusCallback([[maybe_unused]] bool isFocused)
 {
-    UNREFERENCED_PARAMETER(isFocused);
     // To use for future purposes...
 }

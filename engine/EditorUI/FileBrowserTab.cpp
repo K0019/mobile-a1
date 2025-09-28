@@ -1,8 +1,8 @@
 #include "FileBrowserTab.h"
+#include "AssetBrowser.h"
 #include "ResourceImporter.h"
 #include "Import.h"
-
-
+#include "GUICollection.h"
 
 const char* FileBrowserTab::GetName() const
 {
@@ -16,6 +16,7 @@ const char* FileBrowserTab::GetIdentifier() const
 
 void FileBrowserTab::RenderBreadcrumb()
 {
+#ifdef IMGUI_ENABLED
     // Back button
     if (ImGui::Button(ICON_FA_ARROW_LEFT) && fileSystem.CanNavigateBack())
     {
@@ -97,6 +98,7 @@ void FileBrowserTab::RenderBreadcrumb()
     }
 
     ImGui::EndGroup();
+#endif
 }
 
 void FileBrowserTab::Initialize(const std::filesystem::path& initialPath)
@@ -106,6 +108,7 @@ void FileBrowserTab::Initialize(const std::filesystem::path& initialPath)
 
 void FileBrowserTab::Render()
 {
+#ifdef IMGUI_ENABLED
     float THUMBNAIL_SIZE = ST<AssetBrowser>::Get()->THUMBNAIL_SIZE;
 
     // Main file view
@@ -179,8 +182,10 @@ void FileBrowserTab::Render()
     ImGui::EndChild();
 
     ShowSpriteSheetDialog();
+#endif
 }
 
+#ifdef IMGUI_ENABLED
 bool FileBrowserTab::RenderDirectoryItem(const FileSystem::FileEntry& entry)
 {
     float THUMBNAIL_SIZE = ST<AssetBrowser>::Get()->THUMBNAIL_SIZE;
@@ -289,39 +294,39 @@ void FileBrowserTab::RenderItemContextMenu(const FileSystem::FileEntry& entry)
     }
 }
 
-VkDescriptorSet FileBrowserTab::GetThumbnailDescriptor(std::filesystem::path::iterator::reference path)
-{
-    std::string pathStr = path.string();
-
-    // Check if we already have the descriptor
-    auto it = thumbnailCache.textureDescriptors.find(pathStr);
-    if (it != thumbnailCache.textureDescriptors.end())
-    {
-        return it->second;
-    }
-
-    // If we haven't tried loading it yet, try now
-    if (!thumbnailCache.loadingStatus[pathStr])
-    {
-        thumbnailCache.loadingStatus[pathStr] = true;
-
-        // Attempt to load the thumbnail
-        std::string relativePath = ST<Filepaths>::Get()->MakeRelativeToWorkingDir(path);
-        /*if (!ResourceManagerOld::TextureExists(relativePath))
-        {
-            ResourceManagerOld::LoadTexture(path.string(), relativePath);
-        }
-
-        // If texture was loaded successfully, cache its descriptor
-        if (ResourceManagerOld::TextureExists(relativePath))
-        {
-            /*const Texture& tex = ResourceManagerOld::GetTexture(relativePath);
-            thumbnailCache.textureDescriptors[pathStr] = tex.ImGui_handle;
-            return tex.ImGui_handle;#1#
-        }*/
-    }
-    return nullptr;
-}
+//VkDescriptorSet FileBrowserTab::GetThumbnailDescriptor(std::filesystem::path::iterator::reference path)
+//{
+//    std::string pathStr = path.string();
+//
+//    // Check if we already have the descriptor
+//    auto it = thumbnailCache.textureDescriptors.find(pathStr);
+//    if (it != thumbnailCache.textureDescriptors.end())
+//    {
+//        return it->second;
+//    }
+//
+//    // If we haven't tried loading it yet, try now
+//    if (!thumbnailCache.loadingStatus[pathStr])
+//    {
+//        thumbnailCache.loadingStatus[pathStr] = true;
+//
+//        // Attempt to load the thumbnail
+//        std::string relativePath = ST<Filepaths>::Get()->MakeRelativeToWorkingDir(path);
+//        /*if (!ResourceManagerOld::TextureExists(relativePath))
+//        {
+//            ResourceManagerOld::LoadTexture(path.string(), relativePath);
+//        }
+//
+//        // If texture was loaded successfully, cache its descriptor
+//        if (ResourceManagerOld::TextureExists(relativePath))
+//        {
+//            /*const Texture& tex = ResourceManagerOld::GetTexture(relativePath);
+//            thumbnailCache.textureDescriptors[pathStr] = tex.ImGui_handle;
+//            return tex.ImGui_handle;#1#
+//        }*/
+//    }
+//    return nullptr;
+//}
 
 void FileBrowserTab::ShowSpriteSheetDialog()
 {
@@ -424,6 +429,7 @@ void FileBrowserTab::ShowSpriteSheetDialog()
     }
     ImGui::End();
 }
+#endif
 
 void FileBrowserTab::ImportAsSpriteSheet(const std::filesystem::path& path, int spriteCount, const std::string& baseName)
 {
