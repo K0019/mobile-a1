@@ -22,6 +22,7 @@ const char* PrefabTab::GetIdentifier() const
 
 void PrefabTab::Render()
 {
+#ifdef IMGUI_ENABLED
     float THUMBNAIL_SIZE = ST<AssetBrowser>::Get()->THUMBNAIL_SIZE;
     float panelWidth = ImGui::GetContentRegionAvail().x; // random offset
     gui::GridHelper grid(panelWidth, THUMBNAIL_SIZE + 10);
@@ -74,6 +75,7 @@ void PrefabTab::Render()
 
         grid.NextItem();
     }
+#endif
 }
 
 ///////////////
@@ -118,6 +120,7 @@ const char* ShaderTab::GetIdentifier() const
 
 void ShaderTab::Render()
 {
+#ifdef IMGUI_ENABLED
     float THUMBNAIL_SIZE = ST<AssetBrowser>::Get()->THUMBNAIL_SIZE;
     float panelWidth = ImGui::GetContentRegionAvail().x;
     gui::GridHelper grid(panelWidth, THUMBNAIL_SIZE + 10);
@@ -148,7 +151,7 @@ void ShaderTab::Render()
 
         grid.NextItem();
     }
-
+#endif
 }
 
 
@@ -167,6 +170,7 @@ const char* ScriptTab::GetIdentifier() const
 
 void ScriptTab::Render()
 {
+#ifdef IMGUI_ENABLED
     float THUMBNAIL_SIZE = ST<AssetBrowser>::Get()->THUMBNAIL_SIZE;
     ImGui::InputText(" ", buffer, sizeof(buffer));
     if (ImGui::Button("Create Script") && ST<ScriptManager>::Get()->EnsureScriptsFolderExists())
@@ -273,4 +277,5 @@ void ScriptTab::Render()
     }
 
     ImGui::PopStyleVar();
+#endif
 }

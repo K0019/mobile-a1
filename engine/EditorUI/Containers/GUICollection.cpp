@@ -792,6 +792,15 @@ namespace gui {
 #endif
 	}
 
+	float GetTextLineHeightWithSpacing()
+	{
+#ifdef IMGUI_ENABLED
+		return ImGui::GetTextLineHeightWithSpacing();
+#else
+		return 0.0f;
+#endif
+	}
+
 	float GetWindowWidth()
 	{
 #ifdef IMGUI_ENABLED
@@ -907,6 +916,13 @@ namespace gui {
 		return ImGui::GetStyleColorVec4(+style);
 #else
 		return Vec4{};
+#endif
+	}
+
+	void Image([[maybe_unused]] TextureID textureID, [[maybe_unused]] Vec2 size)
+	{
+#ifdef IMGUI_ENABLED
+		ImGui::Image(textureID, size);
 #endif
 	}
 

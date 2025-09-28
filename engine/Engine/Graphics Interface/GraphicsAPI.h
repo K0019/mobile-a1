@@ -47,7 +47,9 @@ private:
 public:
     // For compatibility with whatever old graphics interfaces are still here
     // Remove if possible once everything settles
+#ifdef IMGUI_ENABLED
     editor::ImGuiContext& GetImGuiContext();
+#endif
     void LoadSampleScene();
     void RenderSampleScene();
 

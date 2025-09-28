@@ -229,7 +229,9 @@ void Engine::init()
 	// get ready for running
 	// ---------------------
 	ST<GraphicsWindow>::Get()->BringWindowToFront();
+#ifdef IMGUI_ENABLED
 	loadState("imgui.json");
+#endif
 }
 
 void Engine::run()
@@ -406,7 +408,9 @@ void Engine::run()
 		if (!ST<GraphicsWindow>::Get()->GetIsWindowMinimized())
 		{
 			ST<Game>::Get()->Render();
+#ifdef IMGUI_ENABLED
 			ST<Inspector>::Get()->DrawSelectedEntityBorder();
+#endif
 			ST<GraphicsMain>::Get()->RenderSampleScene();
 		}
 		ST<GraphicsMain>::Get()->EndFrame();

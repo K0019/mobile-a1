@@ -262,7 +262,6 @@ public:
 	*//******************************************************************/
 	static void DeserializeMatrix(Deserializer& reader, const std::string& key, const char* const* enumNamesArr = nullptr) requires EnableMatrix;
 
-#ifdef IMGUI_ENABLED
 	/*****************************************************************//*!
 	\brief
 		Draws the bits of this mask to the current ImGui context.
@@ -270,7 +269,6 @@ public:
 		The array of string names corresponding to each bit.
 	*//******************************************************************/
 	void MaskEditorDraw(const char* const* namesArr);
-#endif
 
 	/*****************************************************************//*!
 	\brief

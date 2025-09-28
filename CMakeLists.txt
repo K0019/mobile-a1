@@ -197,7 +197,8 @@ if(MSVC)
         WIN32_LEAN_AND_MEAN
     )
     target_link_options(Engine PUBLIC
-        /SUBSYSTEM:CONSOLE
+        $<$<CONFIG:Debug>:/SUBSYSTEM:CONSOLE>
+        $<$<CONFIG:Release>:/SUBSYSTEM:WINDOWS>
     )
     set_target_properties(Engine PROPERTIES
         VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:Engine>"
