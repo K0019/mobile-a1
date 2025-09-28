@@ -75,7 +75,5 @@ All rights reserved.
 #include "TypeID.h"
 #include "Utilities.h"
 #include "MacroTemplates.h"
-#include "ScriptingUtil.h"
 #include "RandUID.h"
-
-#include "StateMachine.h"
+#include "ScriptingUtil.h"
