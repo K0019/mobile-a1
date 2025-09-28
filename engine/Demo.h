@@ -1,6 +1,7 @@
 #pragma once
 #include "IRegisteredComponent.h"
 #include "IGameComponentCallbacks.h"
+#include "IEditorComponent.h"
 
 // This is an example component.
 class ExampleComponent

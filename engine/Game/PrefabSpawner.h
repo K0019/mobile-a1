@@ -1,5 +1,6 @@
 #pragma once
 #include "IRegisteredComponent.h"
+#include "IEditorComponent.h"
 #include "IGameComponentCallbacks.h"
 
 /*****************************************************************//*!

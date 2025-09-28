@@ -24,7 +24,7 @@ All rights reserved.
 #pragma once
 #include "AudioManager.h"
 #include "IRegisteredComponent.h"
-#include "IGameComponentCallbacks.h"
+#include "IEditorComponent.h"
 
 class AudioSourceComponent
 	: public IRegisteredComponent<AudioSourceComponent>

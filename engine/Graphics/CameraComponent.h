@@ -24,6 +24,7 @@ All rights reserved.
 */
 /******************************************************************************/
 #include "IRegisteredComponent.h"
+#include "IEditorComponent.h"
 
 class CameraComponent
 	: public IRegisteredComponent<CameraComponent>

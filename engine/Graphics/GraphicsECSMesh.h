@@ -21,6 +21,7 @@ All rights reserved.
 
 #pragma once
 #include "IRegisteredComponent.h"
+#include "IEditorComponent.h"
 
 class RenderComponent
     : public IRegisteredComponent<RenderComponent>

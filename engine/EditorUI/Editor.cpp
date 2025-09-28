@@ -24,6 +24,7 @@ All rights reserved.
 #include "Editor.h"
 #include "EditorHistory.h"
 #include "Input.h"
+#include "IEditorComponent.h"
 
 #include "Engine.h"
 #include "TextComponent.h"

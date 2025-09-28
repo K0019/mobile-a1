@@ -30,7 +30,7 @@ All rights reserved.
 #pragma once
 #include "CSScripting.h"
 #include "IRegisteredComponent.h"
-
+#include "IEditorComponent.h"
 
 /*****************************************************************//*!
 \brief
