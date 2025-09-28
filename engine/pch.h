@@ -61,6 +61,7 @@ All rights reserved.
 #include <ctime>
 #include <cassert>
 #include <cctype>
+#include <cstdarg>
 #include <math.h>
 
 #include "mono/jit/jit.h"
@@ -72,14 +73,12 @@ All rights reserved.
 #include "MagicMath.h"
 #include "Transform.h"
 #include "ECS.h"
-#include "IRegisteredComponent.h"
 #include "IEditorComponent.h"
 #include "IHiddenComponent.h"
 #include "Messaging.h"
 #include "Scheduler.h"
 #include "EntityEvents.h"
 #include "GameTime.h"
-#include "Serializer.h"
 #include "TypeID.h"
 #include "Utilities.h"
 #include "MacroTemplates.h"

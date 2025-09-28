@@ -23,7 +23,7 @@ All rights reserved.
 */
 /******************************************************************************/
 #pragma once
-#include "AudioManager.h"
+#include "Serializer.h"
 
 /*****************************************************************//*!
 \class GameSettings

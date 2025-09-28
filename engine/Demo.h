@@ -1,4 +1,5 @@
 #pragma once
+#include "IRegisteredComponent.h"
 #include "IGameComponentCallbacks.h"
 
 // This is an example component.

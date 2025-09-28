@@ -24,6 +24,8 @@ All rights reserved.
 /******************************************************************************/
 #pragma once
 #include "BehaviourNode.h"
+#include "Serializer.h"
+#include "IRegisteredComponent.h"
 #include "IGameComponentCallbacks.h"
 
  /*****************************************************************//*!

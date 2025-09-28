@@ -1,4 +1,6 @@
 #include "GraphicsAPI.h"
+#include "GameSettings.h"
+#include "GUICollection.h"
 
 #include "fa.h"
 

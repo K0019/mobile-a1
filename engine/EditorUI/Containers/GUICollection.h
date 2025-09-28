@@ -1170,7 +1170,7 @@ namespace gui {
 	bool VarDefault(const char* label, ::Vec2* v);
 	bool VarDefault(const char* label, ::Vec3* v);
 	bool VarDefault(const char* label, ::Vec4* v);
-	bool VarDefault(const char* label, string_t* v);
+	bool VarDefault(const char* label, std::string* v);
 
 	/*****************************************************************//*!
 	\brief

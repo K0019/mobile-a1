@@ -1,5 +1,6 @@
 #include "PrefabSpawner.h"
 #include "PrefabManager.h"
+#include "GUICollection.h"
 
 PrefabSpawnComponent::PrefabSpawnComponent()
     : inited{ false }

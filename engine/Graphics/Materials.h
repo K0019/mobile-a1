@@ -20,6 +20,8 @@ All rights reserved.
 */
 /******************************************************************************/
 #pragma once
+#include "Serializer.h"
+
 class MaterialSystem;
 
 namespace MaterialFlagsDEAD {

@@ -23,6 +23,7 @@ All rights reserved.
 */
 /******************************************************************************/
 #pragma once
+#include "Serializer.h"
 
 // Forward Declare
 class ScriptComponent;

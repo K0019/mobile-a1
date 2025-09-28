@@ -1,5 +1,7 @@
 #pragma once
+#include "IRegisteredComponent.h"
 #include "IGameComponentCallbacks.h"
+
 /*****************************************************************//*!
 \class PrefabSpawnComponent
 \brief

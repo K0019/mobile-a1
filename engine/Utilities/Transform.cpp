@@ -22,6 +22,7 @@ All rights reserved.
 
 #include "Transform.h"
 #include "EditorHistory.h"
+#include "GUICollection.h"
 
 Transform::Transform()
 	: position{}

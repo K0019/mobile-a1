@@ -671,7 +671,7 @@ namespace gui {
 	{
 		return VarInput(label, v);
 	}
-	bool VarDefault(const char* label, string_t* v)
+	bool VarDefault(const char* label, std::string* v)
 	{
 		TextBoxWithBuffer<256> textBox{ label };
 		textBox.SetBuffer(*v);

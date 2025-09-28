@@ -20,6 +20,7 @@ All rights reserved.
 /******************************************************************************/
 
 #pragma once
+#include "IRegisteredComponent.h"
 
 class TextComponent
     : public IRegisteredComponent<TextComponent>

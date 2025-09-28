@@ -28,6 +28,7 @@ All rights reserved.
 #include "EditorHistory.h"
 #include "NameComponent.h"
 #include "AudioManager.h"
+#include "GUICollection.h"
 
 #include "Filesystem.h"
 #include "Import.h"

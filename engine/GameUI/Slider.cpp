@@ -1,5 +1,6 @@
 #include "Slider.h"
 #include "Input.h"
+#include "GUICollection.h"
 
 /******************************************************************************/
 /*!

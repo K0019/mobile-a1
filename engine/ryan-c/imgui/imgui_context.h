@@ -1,5 +1,6 @@
 #pragma once
 #include <memory>
+#include "ImguiHeader.h"
 #include "imgui_render_feature.h"
 #include "bindless_registry.h"
 

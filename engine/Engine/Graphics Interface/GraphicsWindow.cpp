@@ -1,6 +1,8 @@
 #include "GraphicsWindow.h"
 #include "GraphicsAPI.h"
 #include "Input.h"
+#include "GameSettings.h"
+#include "GUICollection.h"
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"

@@ -21,7 +21,7 @@ All rights reserved.
 /******************************************************************************/
 
 #pragma once
-#include "IGameComponentCallbacks.h"
+#include "IRegisteredComponent.h"
 
 /*****************************************************************//*!
 \class FadeAndDieComponent

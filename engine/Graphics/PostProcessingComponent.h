@@ -1,4 +1,5 @@
 #pragma once
+#include "IRegisteredComponent.h"
 
 class PostProcessingComponent
     : public IRegisteredComponent<PostProcessingComponent>

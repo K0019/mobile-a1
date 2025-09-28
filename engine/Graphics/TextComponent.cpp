@@ -19,6 +19,7 @@ All rights reserved.
 */
 /******************************************************************************/
 #include "TextComponent.h"
+#include "GUICollection.h"
 
 #include "ResourceManager.h"
 

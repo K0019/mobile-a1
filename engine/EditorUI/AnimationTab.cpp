@@ -1,5 +1,6 @@
 #include "AnimationTab.h"
 #include "ResourceManager.h"
+#include "GUICollection.h"
 
 const char* AnimationTab::GetName() const
 {

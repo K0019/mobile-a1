@@ -2,7 +2,7 @@
 #include "AssetBrowser.h"
 #include "ResourceImporter.h"
 #include "Import.h"
-
+#include "GUICollection.h"
 
 const char* FileBrowserTab::GetName() const
 {

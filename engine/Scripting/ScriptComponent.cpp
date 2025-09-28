@@ -28,6 +28,7 @@ All rights reserved.
 */
 /******************************************************************************/
 #include "ScriptComponent.h"
+#include "GUICollection.h"
 
 #include "ResourceManager.h"
 #include "EntityUID.h"

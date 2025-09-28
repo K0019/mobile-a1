@@ -24,6 +24,8 @@ All rights reserved.
 /******************************************************************************/
 
 #pragma once
+#include "IRegisteredComponent.h"
+
 /*****************************************************************//*!
 \class LightComponent
 \brief

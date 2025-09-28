@@ -22,6 +22,7 @@ All rights reserved.
 /******************************************************************************/
 
 #pragma once
+#include "IRegisteredComponent.h"
 
 //! The type of the UID
 using EntityRefUID = uint64_t;
