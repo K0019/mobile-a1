@@ -65,9 +65,6 @@ All rights reserved.
 
 #include "ImguiHeader.h"
 
-#include <FMOD/fmod.hpp>
-#include <FMOD/fmod_studio.hpp>
-
 #include "mono/jit/jit.h"
 #include "mono/metadata/assembly.h"
 /* END LIBRARIES */
