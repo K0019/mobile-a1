@@ -19,6 +19,7 @@
     "scriptsSaveLocation": "/Assets/Scripts",
     "scriptsTargetLocation": "/Assets",
     "materialSaveLocation": "/Assets/Materials",
+    "behaviourTreeSaveLocation": "/Assets/BehaviourTrees",
     "inputSets": [
         {
             "key": "Default",

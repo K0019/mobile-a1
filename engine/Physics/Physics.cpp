@@ -1,6 +1,6 @@
 /******************************************************************************/
 /*!
-\file   Physics.h
+\file   Physics.cpp
 \par    Project: 7percent
 \par    Course: CSD3401
 \par    Software Engineering Project 5

@@ -43,6 +43,12 @@
                     "_active": true,
                     "uid": 9696593391128637
                 },
+                "2130793284427054791": {
+                    "_active": true,
+                    "behaviorTree": {
+                        "btName": ""
+                    }
+                },
                 "2471509561333568296": {
                     "_active": true,
                     "name": "New Entity"
