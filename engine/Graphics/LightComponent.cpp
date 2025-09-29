@@ -123,6 +123,34 @@ void LightComponent::EditorDraw()
 #endif
 }
 
+void LightComponent::Serialize(Serializer& writer) const
+{
+    writer.Serialize("type", static_cast<uint8_t>(light.type));
+    writer.Serialize("position", light.position);
+    writer.Serialize("direction", light.direction);
+    writer.Serialize("color", light.color);
+    writer.Serialize("attenuation", light.attenuation);
+    writer.Serialize("intensity", light.intensity);
+    writer.Serialize("innerConeAngle", light.innerConeAngle);
+    writer.Serialize("outerConeAngle", light.outerConeAngle);
+    writer.Serialize("areaSize", light.areaSize);
+}
+
+void LightComponent::Deserialize(Deserializer& reader)
+{
+    Vec3 v3;
+    Vec2 v2;
+    reader.DeserializeVar("type", reinterpret_cast<uint8_t*>(&light.type));
+    reader.DeserializeVar("position", &v3), light.position = v3;
+    reader.DeserializeVar("direction", &v3), light.direction = v3;
+    reader.DeserializeVar("color", &v3), light.color = v3;
+    reader.DeserializeVar("attenuation", &v3), light.attenuation = v3;
+    reader.DeserializeVar("intensity", &light.intensity);
+    reader.DeserializeVar("innerConeAngle", &light.innerConeAngle);
+    reader.DeserializeVar("outerConeAngle", &light.outerConeAngle);
+    reader.DeserializeVar("areaSize", &v2), light.areaSize = v2;
+}
+
 LightBlinkComponent::LightBlinkComponent()
     : minAlpha{ 0.0f }
     , maxAlpha{ 1.0f }
