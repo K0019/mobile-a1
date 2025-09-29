@@ -193,6 +193,7 @@ add_custom_command(TARGET Engine POST_BUILD
 if(MSVC)
     target_compile_options(Engine PUBLIC
         /wd4819 # Unicode characters in non-unicode formatted source files
+        /wd4324 # Structure padding added due to explicit alignas() specifier
     )
     target_compile_definitions(Engine PUBLIC
         WIN32_LEAN_AND_MEAN

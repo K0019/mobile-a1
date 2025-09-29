@@ -37,6 +37,7 @@ bool GraphicsScene::NewFrame()
 
     params->clear();
     objIndex = 0;
+    return true;
 }
 
 void GraphicsScene::AddObject(const MeshHandle& meshHandle, const MaterialHandle& materialHandle, const Mat4& transform)

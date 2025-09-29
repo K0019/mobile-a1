@@ -116,7 +116,7 @@ void AssetBrowser::RenderSidebar() {
         auto& category = assetCategories[i];
         if (ImGui::Selectable(category->GetIdentifier(), currentCategoryIndex == i))
         {
-            currentCategoryIndex = i;
+            currentCategoryIndex = static_cast<int>(i);
         }
     }
 
@@ -139,7 +139,6 @@ void AssetBrowser::RenderToolbar()
     ImGui::BeginGroup();
     float windowWidth = ImGui::GetContentRegionAvail().x;
     float searchWidth = 300;
-    float spacing = ImGui::GetStyle().ItemSpacing.x;
 
     assetCategories[currentCategoryIndex]->RenderBreadcrumb();
 

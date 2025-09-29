@@ -375,7 +375,7 @@ SpriteRenderSystem::SpriteRenderSystem()
 {
 }
 
-void SpriteRenderSystem::DrawRenderComp(SpriteComponent& comp)
+void SpriteRenderSystem::DrawRenderComp(SpriteComponent&)
 {
 
 }

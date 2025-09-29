@@ -592,8 +592,6 @@ private:
 
     //! The current value that we're reading from
     std::stack<const rj::Value*> valueStack;
-    //! The current entity index to read from
-    int currentEntityIndex;
 
     //! Tracks entities' indexes for the purpose of parenting.
     std::map<int, ecs::EntityHash> entityIndexMap;

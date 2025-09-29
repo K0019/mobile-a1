@@ -406,7 +406,6 @@ Deserializer::Deserializer(const std::string& filepath)
     : isValid{ false }
     , document{}
     , valueStack{}
-    , currentEntityIndex{}
 {
     std::ifstream ifs{ filepath };
     if (!ifs.is_open())

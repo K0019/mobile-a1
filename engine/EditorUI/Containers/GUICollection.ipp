@@ -158,7 +158,7 @@ namespace gui {
 				if (MenuItem("Rename"))
 				{
 					idOfItemBeingRenamed = currId;
-					std::strncpy(buffer, currText, 256);
+					strncpy_s(buffer, currText, 256);
 				}
 		}
 		else

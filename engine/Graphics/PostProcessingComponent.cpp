@@ -58,7 +58,7 @@ PostProcessingSystem::PostProcessingSystem() : System_Internal(&PostProcessingSy
     //renderer = ST<Engine>::Get()->_vulkan->_renderer.get();
 }
 
-void PostProcessingSystem::UpdatePostProcessingComp(PostProcessingComponent& ppComp)
+void PostProcessingSystem::UpdatePostProcessingComp(PostProcessingComponent&)
 {
     //renderer->updatePostProcessing(ppComp);
 }

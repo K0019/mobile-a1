@@ -39,7 +39,7 @@ namespace editor {
 				{ "clear", [](Console&, const std::vector<std::string>&) -> void {
 					ST<internal::LoggedMessagesBuffer>::Get()->ClearLog();
 				}},
-				{ "resize", [](Console& console, const std::vector<std::string>& tokens) -> void {
+				{ "resize", [](Console&, const std::vector<std::string>& tokens) -> void {
 					if (tokens.size() < 3)
 					{
 						CONSOLE_LOG(LEVEL_INFO) << "Usage: resize <width> <height>";
@@ -56,7 +56,7 @@ namespace editor {
 						CONSOLE_LOG(LEVEL_INFO) << "Invalid arguments for resize command";
 					}
 				}},
-				{ "maxfps", [](Console& console, const std::vector<std::string>& tokens) -> void {
+				{ "maxfps", [](Console&, const std::vector<std::string>& tokens) -> void {
 					if (tokens.size() < 2)
 					{
 						CONSOLE_LOG(LEVEL_INFO) << "Usage: maxfps <fps>";
@@ -74,7 +74,7 @@ namespace editor {
 					}
 				}},
 		// For getting information about the currently selected entity or an entity with the provided UID
-		{ "entityInfo", [](Console& console, const std::vector<std::string>& tokens) -> void {
+		{ "entityInfo", [](Console&, const std::vector<std::string>& tokens) -> void {
 			ecs::EntityHandle entity{};
 			if (tokens.size() > 2)
 			{
