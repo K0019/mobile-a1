@@ -307,11 +307,11 @@ inline void Mat4::Set(const Vec3& position, const Vec3& scale, const Vec3& rotat
 {
 	*this = glm::translate(Mat4::Identity(), position);
 	if (rotation.y) // yaw
-		*this = glm::rotate(*this, rotation.y, { 0.0f, 1.0f, 0.0f });
+		*this = glm::rotate(*this, glm::radians(rotation.y), { 0.0f, 1.0f, 0.0f });
 	if (rotation.x) // pitch
-		*this = glm::rotate(*this, rotation.x, { 1.0f, 0.0f, 0.0f });
+		*this = glm::rotate(*this, glm::radians(rotation.x), { 1.0f, 0.0f, 0.0f });
 	if (rotation.z) // roll
-		*this = glm::rotate(*this, rotation.z, { 0.0f, 0.0f, 1.0f });
+		*this = glm::rotate(*this, glm::radians(rotation.z), { 0.0f, 0.0f, 1.0f });
 	*this = glm::scale(*this, scale);
 }
 
