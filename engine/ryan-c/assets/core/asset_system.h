@@ -47,10 +47,6 @@ namespace AssetLoading
 
       bool isMaterialTransparent(MaterialHandle handle) const;
 
-      bool isMaterialAlphaTested(MaterialHandle handle) const;
-
-      bool isMaterialDoubleSided(MaterialHandle handle) const;
-
       // Asset management
       void freeMesh(MeshHandle handle);
 

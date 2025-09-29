@@ -1,7 +1,6 @@
 #pragma once
 #include <graphics/interface.h>
 #include <graphics/render_graph.h>
-#include <assets/core/asset_system.h>
 // Forward declaration
 struct ImDrawData;
 
@@ -30,11 +29,11 @@ namespace editor
         return "ImGuiRenderFeature";
       }
 
-      void SetupPasses(Render::internal::RenderPassBuilder& passBuilder) override;
+      void SetupPasses(::internal::RenderPassBuilder& passBuilder) override;
     private:
-      void RenderImGui(const Render::internal::ExecutionContext& context);
-      void CopySceneForImGuiView(const Render::internal::ExecutionContext& context);
-      void EnsurePipelineCreated(const Render::internal::ExecutionContext& context);
+      void RenderImGui(const ::internal::ExecutionContext& context);
+      void CopySceneForImGuiView(const ::internal::ExecutionContext& context);
+      void EnsurePipelineCreated(const ::internal::ExecutionContext& context);
 
       vk::Holder<vk::ShaderModuleHandle> vertShader_;
       vk::Holder<vk::ShaderModuleHandle> fragShader_;

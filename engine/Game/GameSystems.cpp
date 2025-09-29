@@ -23,7 +23,6 @@ All rights reserved.
 #include "GameSystems.h"
 #include "ECSSysLayers.h"
 
-#include "AnimatorSystem.h"
 #include "GraphicsECSMesh.h"
 #include "PostProcessingComponent.h"
 #include "TextSystem.h"
@@ -38,7 +37,6 @@ All rights reserved.
 #include "GameCameraController.h"
 #include "Audio.h"
 #include "TrailSystem.h"
-#include "KillAnimationWhenFinish.h"
 #include "FadeAndDie.h"
 #include "PrefabSpawner.h"
 #include "Physics.h"
@@ -67,7 +65,6 @@ void GameState_Editor::OnEnter()
 {
     GameState_Common::OnEnter();
 
-    ecs::AddSystem(ECS_LAYER::PRE_PHYSICS_0, AnimatorSystem{});
     ecs::AddSystem(ECS_LAYER::PRE_PHYSICS_0, TrailRendererSystem{});
     ecs::AddSystem(ECS_LAYER::PRE_UPDATE_0, UndoShakeSystem{});
     ecs::AddSystem(ECS_LAYER::POST_PHYSICS_1, ShakeSystem{});
@@ -82,10 +79,8 @@ void GameState_Game::OnEnter()
     ecs::AddSystem(ECS_LAYER::PRE_UPDATE_0, UndoShakeSystem{});
 
     ecs::AddSystem(ECS_LAYER::REALTIME_INPUT_0, SliderSystem{});
-    
-    ecs::AddSystem(ECS_LAYER::PRE_PHYSICS_0, AnimatorSystem{});
+
     ecs::AddSystem(ECS_LAYER::PRE_PHYSICS_0, TrailRendererSystem{});
-    ecs::AddSystem(ECS_LAYER::PRE_PHYSICS_0, LightBlinkSystem{});
     ecs::AddSystem(ECS_LAYER::INPUT_0, CheatCodes{});
     ecs::AddSystem(ECS_LAYER::POST_PHYSICS_0, GameCameraControllerSystem{});
     ecs::AddSystem(ECS_LAYER::TWEENING, TweenSystem{});
@@ -100,7 +95,6 @@ void GameState_Game::OnEnter()
 
     ecs::AddSystem(ECS_LAYER::POST_PHYSICS_2, CameraSystem{});
     ecs::AddSystem(ECS_LAYER::POST_PHYSICS_0, AnchorToCameraSystem{});
-    ecs::AddSystem(ECS_LAYER::POST_PHYSICS_0, AnimationFinishSystem{});
     ecs::AddSystem(ECS_LAYER::POST_PHYSICS_1, ShakeSystem{});
 
     ecs::AddSystem(ECS_LAYER::POST_PHYSICS_0, FadeAndDieSystem{});

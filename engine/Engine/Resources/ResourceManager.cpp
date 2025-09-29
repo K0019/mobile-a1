@@ -141,7 +141,6 @@ namespace fs = std::filesystem;
 #undef max
 #endif
 // Instantiate static variables
-std::unordered_map<size_t, Animation>     ResourceManagerOld::Animations;
 std::unordered_map<size_t, AudioAsset>  ResourceManagerOld::Sounds;
 std::unordered_map<size_t, std::string>   ResourceManagerOld::ResourceNames;
 std::unordered_map<size_t, ResourceManagerOld::SpriteSlot> ResourceManagerOld::Sprites;
@@ -210,80 +209,6 @@ bool ResourceManagerOld::FontExists(const std::string& name)
 {
     return VulkanManager::Get().VkTextureManager().FontAtlasExists(name);
 }*/
-
-size_t ResourceManagerOld::CreateAnimationFromSprites(const std::string& name,
-                                                   const std::vector<FrameData>& frameData) {
-    if(frameData.empty()) {
-        CONSOLE_LOG(LEVEL_ERROR) << "Cannot create animation with no frames";
-        return INVALID_SPRITE_ID;
-    }
-
-    // Validate all sprite IDs
-    for(const auto& frame : frameData) {
-        if(frame.spriteID == INVALID_SPRITE_ID || !SpriteExists(frame.spriteID)) {
-            CONSOLE_LOG(LEVEL_ERROR) << "Invalid sprite ID in animation: " << frame.spriteID;
-            return INVALID_SPRITE_ID;
-        }
-    }
-
-    size_t nameHash = util::GenHash(name);
-    ResourceNames[nameHash] = name;
-
-    Animation animation(frameData.size());
-
-    // Use first valid sprite for dimensions
-    bool foundValidSprite = false;
-    for(const auto& frame : frameData) {
-        const Sprite& sprite = GetSprite(frame.spriteID);
-        if(sprite.textureID != INVALID_TEXTURE_ID) {
-            animation.Width = sprite.width;
-            animation.Height = sprite.height;
-            foundValidSprite = true;
-            break;
-        }
-    }
-
-    if(!foundValidSprite) {
-        CONSOLE_LOG(LEVEL_WARNING) << "Creating animation with no valid sprites";
-        animation.Width = 0;
-        animation.Height = 0;
-    }
-
-    animation.frames = frameData;
-    animation.totalFrames = frameData.size();
-    Animations[nameHash] = std::move(animation);
-    return nameHash;
-}
-FrameData ResourceManagerOld::CreateFrameData(size_t spriteID, float duration) {
-    FrameData frame;
-    frame.spriteID = spriteID;
-    frame.duration = duration;
-    return frame;
-}
-
-
-Animation& ResourceManagerOld::GetAnimation(const std::string& name)
-{
-    return Animations.at(util::GenHash(name));
-}
-
-Animation& ResourceManagerOld::GetAnimation(size_t nameHash)
-{
-    return Animations.at(nameHash);
-}
-
-void ResourceManagerOld::DeleteAnimation(size_t nameHash)
-{
-    if (Animations.contains(nameHash)) {
-        Animations.erase(nameHash);
-        ResourceNames.erase(nameHash);
-    }
-}
-
-bool ResourceManagerOld::AnimationExists(const std::string& name)
-{
-    return Animations.contains(util::GenHash(name));
-}
 
 size_t ResourceManagerOld::AddSprite(const Sprite& sprite) {
     // Validate texture ID
@@ -409,7 +334,6 @@ void ResourceManagerOld::Clear()
     }
     Sounds.clear();
 
-    Animations.clear();
 
     ResourceNames.clear();
 }
@@ -438,19 +362,8 @@ bool ResourceManagerOld::SaveAssetsToFile(const std::string& filename)
     }
     file.EndArray();
 
-    // Sort animations by name for consistency
-    auto sortedAnimations{ util::ToSortedVectorOfRefs(Animations) };
 
     // Serialize animations
-    file.StartArray("animations");
-    for (const auto& [nameHash, anim] : sortedAnimations)
-    {
-        file.StartObject();
-        file.Serialize("name", ResourceNames[nameHash]);
-        file.Serialize(anim);
-        file.EndObject();
-    }
-    file.EndArray();
 
     auto sortedSounds{ util::ToSortedVectorOfRefs(Sounds) };
 
@@ -470,7 +383,6 @@ bool ResourceManagerOld::SaveAssetsToFile(const std::string& filename)
 bool ResourceManagerOld::LoadAssetsFromFile(const std::string& filename) {
     Sprites.clear();
     NextSpriteID = 0;
-    Animations.clear();
     ResourceNames.clear();
 
     Deserializer file{ filename };
@@ -516,53 +428,6 @@ bool ResourceManagerOld::LoadAssetsFromFile(const std::string& filename) {
 
             file.PopAccess();
         }
-        file.PopAccess();
-    }
-
-    // Deserialize animations
-    file.GetArraySize("animations", &elemsCount);
-    if (file.PushAccess("animations"))
-    {
-        for (size_t index{}; index < elemsCount; ++index)
-        {
-            file.PushArrayElementAccess(index);
-
-            std::string name;
-            file.DeserializeVar("name", &name);
-            uint64_t nameHash{ util::GenHash(name) };
-
-            ResourceNames[nameHash] = name;
-            Animation& anim{ Animations[nameHash] };
-            file.Deserialize(&anim);
-
-            // Verify all sprite references exist and collect valid sprites
-            bool hasValidSprites = false;
-            for (const auto& frame : anim.frames)
-            {
-                if (frame.spriteID == INVALID_SPRITE_ID)
-                {
-                    CONSOLE_LOG(LEVEL_WARNING) << "Animation frame references invalid sprite ID";
-                    continue;
-                }
-                auto it = Sprites.find(frame.spriteID);
-                if (it == Sprites.end())
-                {
-                    CONSOLE_LOG(LEVEL_WARNING) << "Animation frame references non-existent sprite: " << frame.spriteID;
-                    continue;
-                }
-                if (it->second.sprite.textureID != INVALID_TEXTURE_ID)
-                    hasValidSprites = true;
-            }
-            if (!hasValidSprites)
-            {
-                CONSOLE_LOG(LEVEL_WARNING) << "Skipping animation '" << name << "' - no valid sprites found";
-                ResourceNames.erase(nameHash);
-                Animations.erase(nameHash);
-            }
-
-            file.PopAccess();
-        }
-
         file.PopAccess();
     }
 

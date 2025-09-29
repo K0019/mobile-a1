@@ -35,7 +35,6 @@ All rights reserved.
 #include "scene.h"
 
 #include "AudioManager.h"
-#include "Animation.h"
 
 #include "AssetBrowser.h"
 #include "Sprite.h"
@@ -113,12 +112,6 @@ public:
     static bool SoundExists(const std::string& name);
     
     // Animation management
-    static size_t CreateAnimationFromSprites(const std::string& name, const std::vector<FrameData>& frameData);
-    static FrameData CreateFrameData(size_t spriteID, float duration = 0.5f);
-    static Animation& GetAnimation(const std::string& name);
-    static Animation& GetAnimation(size_t nameHash);
-    static void DeleteAnimation(size_t nameHash);
-    static bool AnimationExists(const std::string& name);
 
     static size_t AddSprite(const Sprite& sprite);
     static size_t GetSpriteID(const std::string& name);
@@ -129,8 +122,7 @@ public:
     static size_t GetSpriteCount();
     // Resource cleanup
     static void Clear();
-    
-    static auto& GetAnimations() { return Animations; }
+
 
     static bool SaveAssetsToFile(const std::string& filename);
     static bool LoadAssetsFromFile(const std::string& filename);
@@ -139,7 +131,6 @@ public:
     static constexpr size_t INVALID_SPRITE_ID = std::numeric_limits<size_t>::max();
 
 private:
-    static std::unordered_map<size_t, Animation> Animations;
     static std::unordered_map<size_t, AudioAsset> Sounds;
     static std::unordered_map<size_t, std::string> ResourceNames;
     static Sprite CreateInvalidSprite();

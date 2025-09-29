@@ -45,10 +45,10 @@ class GridFeature final : public RenderFeatureBase<
 
     [[nodiscard]] const char* GetName() const override;
 
-    void SetupPasses(Render::internal::RenderPassBuilder& passBuilder) override;
+    void SetupPasses(internal::RenderPassBuilder& passBuilder) override;
 
   private:
-    void EnsurePipelineCreated(const Render::internal::ExecutionContext& context);;
+    void EnsurePipelineCreated(const internal::ExecutionContext& context);;
 
     uint32_t cachedSamples_ = 1;
     vk::Holder<vk::ShaderModuleHandle> vert_;

@@ -685,7 +685,7 @@ VkCompareOp vk::compareOpToVkCompareOp(CompareOp func)
       return VK_COMPARE_OP_NOT_EQUAL;
     case CompareOp::GreaterEqual:
       return VK_COMPARE_OP_GREATER_OR_EQUAL;
-    case CompareOp::AlwaysPass:
+    case CompareOp::Always:
       return VK_COMPARE_OP_ALWAYS;
   }
   ASSERT_MSG(false, "CompareFunction value not handled: %d", (int)func);

@@ -37,13 +37,13 @@ struct MaterialData
   vec4 emissiveFactorAlphaCutoff;        // emissive.rgb, alphaCutoff
 
   uint32_t baseColorTexture;
-  uint32_t metallicRoughnessTexture;
   uint32_t normalTexture;
+  uint32_t metallicRoughnessTexture;
   uint32_t emissiveTexture;
   uint32_t occlusionTexture;
 
   uint32_t materialTypeFlags;
-  uint32_t alphaMode;
   uint32_t flags;
-  uint32_t padding;
+  uint32_t padding[1];  
 };
+

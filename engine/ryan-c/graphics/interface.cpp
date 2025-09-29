@@ -13,7 +13,9 @@
 
 #include "interface.h"
 #include <cassert>
-#if defined(GLFW) 
+
+// Only include GLFW headers on desktop platforms
+#if !defined(__ANDROID__)
 #define GLFW_INCLUDE_NONE
 #ifdef _WIN32
 #  define GLFW_EXPOSE_NATIVE_WIN32
@@ -35,7 +37,7 @@
 #elif defined(__linux__)
    // to fix later
 #endif
-#endif //GLFW
+#endif // !defined(__ANDROID__)
 
 #include "graphics/vulkan/vk_classes.h"
 
@@ -55,8 +57,15 @@ namespace
     const uint8_t numPlanes : 2 = 1;
   };
 
+#ifdef _MSC_VER
+  // MSVC version without __VA_OPT__
 #define PROPS(fmt, bpb, ...) \
-  TextureFormatProperties { .format = vk::Format::##fmt, .bytesPerBlock = bpb, ##__VA_ARGS__ }
+  TextureFormatProperties{ .format = vk::Format::fmt, .bytesPerBlock = bpb, __VA_ARGS__ }
+#else
+  // Clang (and others) version with __VA_OPT__
+#define PROPS(fmt, bpb, ...) \
+  TextureFormatProperties{ .format = vk::Format::fmt, .bytesPerBlock = bpb __VA_OPT__(,) __VA_ARGS__ }
+#endif
 
   static constexpr TextureFormatProperties properties[] = {PROPS(Invalid, 1),
     PROPS(R_UN8, 1),
@@ -252,7 +261,6 @@ uint32_t vk::VertexInput::getVertexSize() const
   return vertexSize;
 }
 
-#if GLFW || defined(__ANDROID__)
 std::unique_ptr<vk::IContext> vk::createVulkanContextWithSwapchain(window* window, uint32_t width, uint32_t height, const ContextConfig& cfg, HWDeviceType preferredDeviceType)
 {
   std::unique_ptr<VulkanContext> ctx;
@@ -313,4 +321,3 @@ std::unique_ptr<vk::IContext> vk::createVulkanContextWithSwapchain(window* windo
   }
   return std::move(ctx);
 }
-#endif

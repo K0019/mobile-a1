@@ -29,9 +29,9 @@ namespace editor
     std::vector<std::string> resources;
     resources.reserve(m_resolvedTransients.size());
 
-    std::ranges::transform(m_resolvedTransients, std::back_inserter(resources), [](const auto& pair) { return pair.first; });
+    std::transform(m_resolvedTransients.begin(), m_resolvedTransients.end(), std::back_inserter(resources), [](const auto& pair) { return pair.first; });
 
-    std::ranges::sort(resources);
+    std::sort(resources.begin(), resources.end());
 
     return resources;
   }
