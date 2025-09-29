@@ -44,9 +44,7 @@ public:
 
     explicit LightComponent();
 
-#ifdef IMGUI_ENABLED
     virtual void EditorDraw() override;
-#endif
 };
 
 

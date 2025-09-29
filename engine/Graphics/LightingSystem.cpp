@@ -35,13 +35,3 @@ LightingSystem::LightingSystem() : System_Internal(&LightingSystem::UpdateLightC
 void LightingSystem::UpdateLightComp(LightComponent& lightComp) {
 	ST<GraphicsScene>::Get()->AddLight(lightComp.light);
 }
-
-LightBlinkSystem::LightBlinkSystem()
-	: System_Internal{ &LightBlinkSystem::UpdateComp }
-{
-}
-
-void LightBlinkSystem::UpdateComp(LightBlinkComponent& blinkComp, LightComponent& lightComp)
-{
-
-}

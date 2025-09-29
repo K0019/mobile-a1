@@ -28,9 +28,9 @@ All rights reserved.
 
 LightComponent::LightComponent() = default;
 
-#ifdef IMGUI_ENABLED
 void LightComponent::EditorDraw()
 {
+#ifdef IMGUI_ENABLED
     ImGui::Text("Light Properties");
 
     // Light Type Combo
@@ -120,8 +120,8 @@ void LightComponent::EditorDraw()
             // Area size updated directly
         }
     }
-}
 #endif
+}
 
 LightBlinkComponent::LightBlinkComponent()
     : minAlpha{ 0.0f }

@@ -81,7 +81,6 @@ void GameState_Game::OnEnter()
     ecs::AddSystem(ECS_LAYER::REALTIME_INPUT_0, SliderSystem{});
 
     ecs::AddSystem(ECS_LAYER::PRE_PHYSICS_0, TrailRendererSystem{});
-    ecs::AddSystem(ECS_LAYER::PRE_PHYSICS_0, LightBlinkSystem{});
     ecs::AddSystem(ECS_LAYER::INPUT_0, CheatCodes{});
     ecs::AddSystem(ECS_LAYER::POST_PHYSICS_0, GameCameraControllerSystem{});
     ecs::AddSystem(ECS_LAYER::TWEENING, TweenSystem{});
