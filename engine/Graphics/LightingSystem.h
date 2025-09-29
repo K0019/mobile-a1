@@ -37,32 +37,5 @@ class LightingSystem :public ecs::System<LightingSystem, LightComponent>
 public:
     LightingSystem();
 private:
-    Renderer* renderer;
     void UpdateLightComp(LightComponent& lightComp);
-};
-
-/*****************************************************************//*!
-\class LightBlinkSystem
-\brief
-    Updates the intensity and radius of light objects based on blink components.
-*//******************************************************************/
-class LightBlinkSystem : public ecs::System<LightBlinkSystem, LightBlinkComponent, LightComponent>
-{
-public:
-    /*****************************************************************//*!
-    \brief
-        Constructor.
-    *//******************************************************************/
-    LightBlinkSystem();
-
-private:
-    /*****************************************************************//*!
-    \brief
-        Updates a light and blink component.
-    \param blinkComp
-        The blink component.
-    \param lightComp
-        The light component.
-    *//******************************************************************/
-    void UpdateComp(LightBlinkComponent& blinkComp, LightComponent& lightComp);
 };

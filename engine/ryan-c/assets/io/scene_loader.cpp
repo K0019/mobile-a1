@@ -1,5 +1,5 @@
+#define NOMINMAX 
 #include "scene_loader.h"
-#include "assets/core/asset_system.h"
 #include "assets/io/material_loader.h"
 #include "assets/io/mesh_loader.h"
 #include "assets/io/texture_loader.h"
@@ -9,6 +9,8 @@
 #include <assimp/postprocess.h>
 #include <numeric>
 #include <chrono>
+
+#include "asset_system.h"
 
 namespace AssetLoading
 {
@@ -397,64 +399,6 @@ void SceneLoader::calculateBounds(Scene& scene, AssetSystem& assetSystem) const
     LOG_INFO("Global bounds before transform: min=({:.3f}, {:.3f}, {:.3f}), max=({:.3f}, {:.3f}, {:.3f})", 
              globalMinBounds.x, globalMinBounds.y, globalMinBounds.z, 
              globalMaxBounds.x, globalMaxBounds.y, globalMaxBounds.z);
-
-    // Calculate original scene properties
-    const vec3 originalCenter = (globalMinBounds + globalMaxBounds) * 0.5f;
-    const vec3 originalSize = globalMaxBounds - globalMinBounds;
-    const float originalRadius = glm::length(originalSize) * 0.5f;
-    
-    LOG_INFO("Original center: ({:.3f}, {:.3f}, {:.3f})", originalCenter.x, originalCenter.y, originalCenter.z);
-    LOG_INFO("Original size: ({:.3f}, {:.3f}, {:.3f})", originalSize.x, originalSize.y, originalSize.z);
-    LOG_INFO("Original radius: {:.3f}", originalRadius);
-    
-    // Calculate scaling to fit within camera view range
-    // Camera is at z = -1.5f looking towards origin, with near=0.1f, far=100.0f
-    const float maxAllowedRadius = 5.0f; // Keep scene at reasonable size for initial viewing
-    const float scaleFactor = originalRadius > 0.0f ? (maxAllowedRadius / originalRadius) : 1.0f;
-    
-    LOG_INFO("Max allowed radius: {:.3f}", maxAllowedRadius);
-    LOG_INFO("Scale factor: {:.6f}", scaleFactor);
-    
-    // Calculate transforms: first center, then scale
-    const vec3 centeringOffset = -originalCenter;
-    const mat4 centeringTransform = glm::translate(mat4(1.0f), centeringOffset);
-    const mat4 scalingTransform = glm::scale(mat4(1.0f), vec3(scaleFactor));
-    const mat4 combinedTransform = scalingTransform * centeringTransform;
-
-    LOG_INFO("Centering offset: ({:.3f}, {:.3f}, {:.3f})", centeringOffset.x, centeringOffset.y, centeringOffset.z);
-
-    // Apply transformation to all mesh objects
-    for (auto& obj : scene.objects)
-    {
-        if (obj.type == SceneObjectType::Mesh)
-        {
-            const vec3 oldPos = vec3(obj.transform[3]);
-            obj.transform = combinedTransform * obj.transform;
-            const vec3 newPos = vec3(obj.transform[3]);
-            
-            LOG_INFO("  Object '{}': ({:.3f}, {:.3f}, {:.3f}) -> ({:.3f}, {:.3f}, {:.3f})", 
-                     obj.name, oldPos.x, oldPos.y, oldPos.z, newPos.x, newPos.y, newPos.z);
-        }
-    }
-
-    // Update scene bounds after transformation
-    const vec3 finalSize = originalSize * scaleFactor;
-    scene.boundingMin = -finalSize * 0.5f;
-    scene.boundingMax = finalSize * 0.5f;
-    scene.center = vec3(0.0f); // Centered at origin
-    scene.radius = originalRadius * scaleFactor;
-    
-    LOG_INFO("Final bounds: min=({:.3f}, {:.3f}, {:.3f}), max=({:.3f}, {:.3f}, {:.3f})", 
-             scene.boundingMin.x, scene.boundingMin.y, scene.boundingMin.z, 
-             scene.boundingMax.x, scene.boundingMax.y, scene.boundingMax.z);
-    LOG_INFO("Final center: ({:.3f}, {:.3f}, {:.3f})", scene.center.x, scene.center.y, scene.center.z);
-    LOG_INFO("Final radius: {:.3f}", scene.radius);
-    
-    if (scaleFactor != 1.0f)
-    {
-        LOG_INFO("Scene '{}' scaled by factor {:.3f} to fit view range (original radius: {:.2f}, new radius: {:.2f})", 
-                 scene.name, scaleFactor, originalRadius, scene.radius);
-    }
     
     LOG_INFO("=== End Scene Bounds Debug ===");
 }

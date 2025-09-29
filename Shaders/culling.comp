@@ -28,7 +28,7 @@ layout(std430, buffer_reference) readonly buffer DrawDataBuffer {
 };
 
 layout(std430, buffer_reference) buffer DrawCommands {
-    uint dummy; // Alignment/padding
+    uint numCommands; // Alignment/padding
     DrawIndexedIndirectCommand dc[];
 };
 

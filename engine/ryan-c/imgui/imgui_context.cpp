@@ -1,16 +1,21 @@
-#include "imgui_context.h"
-
 #ifdef IMGUI_ENABLED
-
-#include <GLFW/glfw3.h>
+#include "imgui_context.h"
 #include <imgui.h>
+#include "imgui_internal.h"
+#if defined(__ANDROID__)
+#include <imgui_impl_android.h>
+#else
 #include <imgui_impl_glfw.h>
+#endif
 #include <stdexcept>
 #include <cassert>
+#include <GLFW/glfw3.h>
 #include <graphics/renderer.h>
+
+#include "asset_system.h"
+#include "Engine.h"
 #include "imgui_render_feature.h"
-#include "assets/core/asset_system.h"
-#include "assets/io/texture_loader.h"
+#include "processed_assets.h"
 
 namespace editor {
     ImGuiContext::ImGuiContext(Context& context, GLFWwindow& window, const ImGuiConfig& config)
@@ -19,7 +24,7 @@ namespace editor {
         renderFeatureHandle_(0), initialized_(false)
     {
         setupImGuiContext(config);
-        setupGLFWBackend();
+        setupPlatformBackend();
 
         // Start with default font
         ImGuiIO& io = ImGui::GetIO();
@@ -40,7 +45,11 @@ namespace editor {
                 renderFeatureHandle_ = 0;
             }
 
+#if defined(__ANDROID__)
+            ImGui_ImplAndroid_Shutdown();
+#else
             ImGui_ImplGlfw_Shutdown();
+#endif
             ImGui::DestroyContext();
             initialized_ = false;
         }
@@ -54,9 +63,16 @@ namespace editor {
         applyRendererDefaults(cfg);
         cfg.SizePixels = ceilf(fontSize);
 
+        void* data;
+        SCOPE_EXIT {if(data) delete data;};
         ImFont* font = nullptr;
         if(fontPath) {
-            font = io.Fonts->AddFontFromFileTTF(fontPath, cfg.SizePixels, &cfg);
+            size_t data_size = 0;
+            data = ImFileLoadToMemory(fontPath, "rb", &data_size, 0);
+            io.Fonts->AddFontFromMemoryTTF(data, static_cast<int>(data_size), cfg.SizePixels, &cfg);
+
+            // save memory by taking ownership of the font data and deleting it the moment this function returns.
+            //font = io.Fonts->AddFontFromFileTTF(fontPath, cfg.SizePixels, &cfg);
         }
 
         // Fallback to default if loading failed
@@ -81,14 +97,30 @@ namespace editor {
         if(config.enableGamepad)
             io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
         if(config.enableDocking)
+#if defined(__ANDROID__)
+#else
             io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+#endif
 
         io.FontGlobalScale = config.displayScale;
         io.IniFilename = nullptr;
         initialized_ = true;
     }
 
-    void ImGuiContext::setupGLFWBackend() const {
+    void ImGuiContext::setupPlatformBackend() const {
+#if defined(__ANDROID__)
+        // Android backend initialization
+        // Note: ANativeWindow should be obtained from your Android activity/surface
+        ANativeWindow* nativeWindow = window_.GetNativeWindowHandle();
+        if(!nativeWindow) {
+            throw std::runtime_error("ImGuiContext: Invalid Android native window handle");
+        }
+
+        if(!ImGui_ImplAndroid_Init(nativeWindow)) {
+            throw std::runtime_error("ImGuiContext: Failed to initialize Android backend");
+        }
+#else
+        // GLFW backend initialization
         GLFWwindow* nativeWindow = &window_;
         if(!nativeWindow) {
             throw std::runtime_error("ImGuiContext: Invalid GLFW window handle");
@@ -97,6 +129,7 @@ namespace editor {
         if(!ImGui_ImplGlfw_InitForOther(nativeWindow, true)) {
             throw std::runtime_error("ImGuiContext: Failed to initialize GLFW backend");
         }
+#endif
     }
 
     void ImGuiContext::rebuildFontAtlas() {
@@ -165,12 +198,20 @@ namespace editor {
         assert(initialized_ && "ImGuiContext not initialized");
 
         ImGuiIO& io = ImGui::GetIO();
+
+#if defined(__ANDROID__)
+        // Android doesn't need manual display size setup in the same way
+        // The android backend handles display metrics internally
+        ImGui_ImplAndroid_NewFrame();
+#else
+        // GLFW backend requires manual display size setup
         int width, height;
         glfwGetFramebufferSize(&window_, &width, &height);
         io.DisplaySize = ImVec2(width / config_.displayScale, height / config_.displayScale);
         io.DisplayFramebufferScale = ImVec2(config_.displayScale, config_.displayScale);
 
         ImGui_ImplGlfw_NewFrame();
+#endif
         ImGui::NewFrame();
     }
 
@@ -188,6 +229,13 @@ namespace editor {
             }
         }
     }
+
+#if defined(__ANDROID__)
+    int32_t ImGuiContext::handleAndroidInput(const AInputEvent* inputEvent) {
+        assert(initialized_ && "ImGuiContext not initialized");
+        return ImGui_ImplAndroid_HandleInputEvent(inputEvent);
+    }
+#endif
 
     void ImGuiContext::updateRenderFeatureParams() {
         if(renderFeatureHandle_ == 0)
@@ -236,5 +284,4 @@ namespace editor {
         return *m_transientRegistry;
     }
 }
-
 #endif

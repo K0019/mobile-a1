@@ -26,6 +26,7 @@ All rights reserved.
 #pragma once
 #include "IRegisteredComponent.h"
 #include "IEditorComponent.h"
+#include "scene.h"
 
 /*****************************************************************//*!
 \class LightComponent
@@ -39,67 +40,13 @@ class LightComponent
 public:
     // Flags stored as individual bools for clearer code and easier serialization
     // Will be packed during GPU upload
-    struct LightState {
-        bool enabled = true;
-        bool castShadows = true;  // New: Control shadow casting
-        bool isSpot = false;      // Determines if angular falloff is applied
-    };
+    SceneLight light;
 
     explicit LightComponent();
-    
-    LightComponent(
-        const Vec3& color,
-        float intensity,
-        float radius,
-        float falloffExponent = 1.0f
-    );
-
-    // Core light properties
-    Vec3 color{ 1.0f, 1.0f, 1.0f };
-    float intensity{1.0f};
-    
-    // Distance attenuation
-    float radius{10.0f};          // Maximum light influence radius
-    float falloffExponent{1.0f};  // Controls distance falloff curve
-    float innerRadius{0.0f};      // Distance before falloff begins (optional optimization)
-    
-    // Spot light properties (only relevant when isSpot = true)
-    // Stored in degrees for editor friendliness, converted to radians during GPU upload
-    float coneAngle{45.0f};       // Full cone angle (replaces inner/outer - simplifies usage)
-    float coneFalloff{0.5f};      // [0,1] Controls softness of cone edge
-    
-    LightState state;
-
-    // Helper functions for common operations
-    float getRadiusSquared() const { return radius * radius; }
-    float getConeAngleRadians() const { return glm::radians(coneAngle); }
-    
-    // Calculate derived properties
-    float getInnerConeAngle() const { return coneAngle * (1.0f - coneFalloff); }
-    float getOuterConeAngle() const { return coneAngle; }
-
-    void SetRadius(float newRadius) { radius = newRadius; }
 
     virtual void EditorDraw() override;
-
-    property_vtable()
 };
 
-// Property reflection
-property_begin(LightComponent)
-{
-    property_var(color),
-    property_var(intensity),
-    property_var(radius),
-    property_var(falloffExponent),
-    property_var(innerRadius),
-    property_var(coneAngle),
-    property_var(coneFalloff),
-    property_var(state.enabled),
-    property_var(state.castShadows),
-    property_var(state.isSpot),
-}
-property_vend_h(LightComponent)
 
 /*****************************************************************//*!
 \class LightBlinkComponent

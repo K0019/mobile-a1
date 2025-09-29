@@ -74,8 +74,6 @@ layout (location=2) in vec2 in_uv_world;
 
 layout (location=0) out vec4 out_FragColor;
 
-layout (constant_id = 0) const bool kOutputNeedsGammaCorrection = false;
-
 layout(push_constant) uniform PushConstants {
     mat4 mvp;
     vec4 cameraPos;
@@ -168,13 +166,8 @@ void main() {
     vec4 finalColor = mix(baseColor, minorLineColor, minorGrid * minorLineColor.a);
     finalColor = mix(finalColor, majorLineColor, majorGrid * majorLineColor.a);
     finalColor = mix(finalColor, axisLines, axisLines.a);
-    if (kOutputNeedsGammaCorrection) {
-        finalColor.rgb = pow(finalColor.rgb, vec3(1.0 / 2.2));
-    }
     out_FragColor = finalColor;
 })";
-
-using namespace Render;
 
 GridFeature::~GridFeature() = default;
 
@@ -183,7 +176,7 @@ const char* GridFeature::GetName() const
   return "GridFeature";
 }
 
-void GridFeature::SetupPasses(Render::internal::RenderPassBuilder& passBuilder)
+void GridFeature::SetupPasses(internal::RenderPassBuilder& passBuilder)
 {
   PassDeclarationInfo gPassInfo;
   gPassInfo.framebufferDebugName = "GridDraw";
@@ -202,11 +195,11 @@ void GridFeature::SetupPasses(Render::internal::RenderPassBuilder& passBuilder)
              .UseResource(RenderResources::SCENE_DEPTH,AccessType::ReadWrite)
              // Declare as write since it's a depth target
              .SetPriority(
-               Render::internal::RenderPassBuilder::PassPriority::Transparent)
+               internal::RenderPassBuilder::PassPriority::Transparent)
              // Optional: set priority
              .AddGraphicsPass("GridDraw",
                gPassInfo,
-               [this](const Render::internal::ExecutionContext& context)
+               [this](const internal::ExecutionContext& context)
                {
                  // Get target properties for pipeline creation
                  auto& cmd = context.GetvkCommandBuffer();
@@ -249,7 +242,7 @@ void GridFeature::SetupPasses(Render::internal::RenderPassBuilder& passBuilder)
 }
 
 void GridFeature::EnsurePipelineCreated(
-  const Render::internal::ExecutionContext& context)
+  const internal::ExecutionContext& context)
 {
   const Parameters& params_ = *(const Parameters*)GetParameterBlock_RT();
   auto& ctx = context.GetvkContext();
@@ -258,8 +251,6 @@ void GridFeature::EnsurePipelineCreated(
   if (pipeline_.empty() || cachedSamples_ != params_.pipelineSamples)
   {
     pipeline_.reset();
-    const uint32_t linearColorSpace = ctx.getSwapchainColorSpace() ==
-                                      vk::ColorSpace::SRGB_LINEAR ? 1u : 0u;
     vert_ = ctx.createShaderModule({codeVS,
       vk::ShaderStage::Vert,
       "Shader Module: Grid (vert)"});
@@ -268,10 +259,6 @@ void GridFeature::EnsurePipelineCreated(
       "Shader Module: Grid (frag)"});
     pipeline_ = ctx.createRenderPipeline({.smVert = vert_,
         .smFrag = frag_,
-        .specInfo =
-        {.entries = {{.constantId = 0, .size = sizeof(linearColorSpace)}},
-          .data = &linearColorSpace,
-          .dataSize = sizeof(linearColorSpace)},
         .color = {{.format = ctx.getFormat(handle),
           .blendEnabled = true,
           .alphaBlendOp = vk::BlendOp::Add,

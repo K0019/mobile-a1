@@ -1,7 +1,9 @@
 #pragma once
 #include <vector>
 #include <span>
-#include "assets/core/import_config.h"
+
+#include "import_config.h"
+#include "processed_assets.h"
 #include "graphics/gpu_data.h"
 
 struct aiScene;
@@ -9,15 +11,6 @@ struct aiMesh;
 
 namespace AssetLoading
 {
-  struct ProcessedMesh
-  {
-    std::vector<Vertex> vertices;
-    std::vector<uint32_t> indices;
-    std::string name;
-    uint32_t materialIndex = UINT32_MAX;
-    vec4 bounds{0, 0, 0, 1}; // x,y,z = center, w = radius
-  };
-
   namespace MeshLoading
   {
     ProcessedMesh extractMesh(const aiMesh* aiMesh, uint32_t meshIndex, const LoadingConfig& config);

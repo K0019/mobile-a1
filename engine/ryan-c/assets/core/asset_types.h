@@ -1,7 +1,6 @@
 #pragma once
 #include <filesystem>
 #include <array>
-#include <functional>
 #include <offsetAllocator.hpp>
 #include <variant>
 
@@ -40,9 +39,13 @@ struct FilePathSource
 {
   std::filesystem::path path;
 
-  bool operator<(const FilePathSource& other) const { return path < other.path; }
+  bool operator<(const FilePathSource& other) const {
+    return path < other.path;
+  }
 
-  bool operator==(const FilePathSource& other) const { return path == other.path; }
+  bool operator==(const FilePathSource& other) const {
+    return path == other.path;
+  }
 };
 
 struct EmbeddedMemorySource
@@ -53,14 +56,14 @@ struct EmbeddedMemorySource
 
   bool operator<(const EmbeddedMemorySource& other) const
   {
-    if (scenePath != other.scenePath)
+    if(scenePath != other.scenePath)
       return scenePath < other.scenePath;
     return identifier < other.identifier;
   }
 
   bool operator==(const EmbeddedMemorySource& other) const
   {
-    if (!scene || !other.scene)
+    if(!scene || !other.scene)
       return false;
     return scene == other.scene && identifier == other.identifier && scenePath == other.scenePath;
   }
@@ -72,7 +75,8 @@ template <typename Tag>
 struct AssetTraits;
 
 struct MeshAsset
-{};
+{
+};
 
 template <>
 struct AssetTraits<MeshAsset>
@@ -87,7 +91,8 @@ struct AssetTraits<MeshAsset>
 
     HotData() = default;
 
-    HotData(uint32_t vOffset, uint32_t iOffset, uint32_t vCount, uint32_t iCount, const vec4& b) : vertexByteOffset(vOffset), indexByteOffset(iOffset), vertexCount(vCount), indexCount(iCount), bounds(b) {}
+    HotData(uint32_t vOffset, uint32_t iOffset, uint32_t vCount, uint32_t iCount, const vec4& b) : vertexByteOffset(vOffset), indexByteOffset(iOffset), vertexCount(vCount), indexCount(iCount), bounds(b) {
+    }
   };
 
   struct ColdData
@@ -99,34 +104,37 @@ struct AssetTraits<MeshAsset>
     std::string meshName; // Name from file (e.g., "Cube.001")
 
     // Optimization results
-    float vertexCacheOptimization{0.0f}; // ACMR improvement ratio
-    float overdrawOptimization{0.0f};    // Overdraw reduction ratio
-    bool wasOptimized{false};
+    float vertexCacheOptimization{ 0.0f }; // ACMR improvement ratio
+    float overdrawOptimization{ 0.0f };    // Overdraw reduction ratio
+    bool wasOptimized{ false };
 
     ColdData() = default;
 
-    explicit ColdData(std::string file, std::string name = "") : sourceFile(std::move(file)), meshName(std::move(name)) {}
+    explicit ColdData(std::string file, std::string name = "") : sourceFile(std::move(file)), meshName(std::move(name)) {
+    }
   };
 
-  static constexpr std::string_view supported_extensions[] = {".gltf", ".glb", ".obj", ".fbx"};
+  static constexpr std::string_view supported_extensions[] = { ".gltf", ".glb", ".obj", ".fbx" };
 };
 
 using MeshHandle = Handle<MeshAsset>;
 using MeshGPUData = AssetTraits<MeshAsset>::HotData;
 
 struct TextureAsset
-{};
+{
+};
 
 template <>
 struct AssetTraits<TextureAsset>
 {
   struct HotData
   {
-    uint32_t bindlessIndex{0}; // GPU bindless texture index
+    uint32_t bindlessIndex{ 0 }; // GPU bindless texture index
 
     HotData() = default;
 
-    explicit HotData(uint32_t index) : bindlessIndex(index) {}
+    explicit HotData(uint32_t index) : bindlessIndex(index) {
+    }
   };
 
   struct ColdData
@@ -136,55 +144,70 @@ struct AssetTraits<TextureAsset>
     // File properties
     std::string sourceFile;     // Original file path or embedded identifier
     std::string cacheKey;       // Unique key for caching
-    bool isSRGB{true};          // Color space
-    bool isCompressed{false};   // KTX vs standard image
-    size_t originalFileSize{0}; // File size in bytes
-    size_t uncompressedSize{0}; // Raw texture data size
+    bool isSRGB{ true };          // Color space
+    bool isCompressed{ false };   // KTX vs standard image
+    size_t originalFileSize{ 0 }; // File size in bytes
+    size_t uncompressedSize{ 0 }; // Raw texture data size
 
     ColdData() = default;
 
-    explicit ColdData(std::string file, bool srgb = true) : sourceFile(std::move(file)), isSRGB(srgb) {}
+    explicit ColdData(std::string file, bool srgb = true) : sourceFile(std::move(file)), isSRGB(srgb) {
+    }
   };
 
-  static constexpr std::string_view supported_extensions[] = {".png", ".jpg", ".jpeg", ".tga", ".bmp", ".dds", ".ktx", ".ktx2", ".hdr", ".exr"};
+  static constexpr std::string_view supported_extensions[] = { ".png", ".jpg", ".jpeg", ".tga", ".bmp", ".dds", ".ktx", ".ktx2", ".hdr", ".exr" };
 };
 
 using TextureHandle = Handle<TextureAsset>;
 
 enum MaterialFlags : uint32_t
 {
-  sMaterialFlags_CastShadow    = 0x1,
-  sMaterialFlags_ReceiveShadow = 0x2,
-  sMaterialFlags_Transparent   = 0x4,
-  sMaterialFlags_DoubleSided   = 0x8,
-  sMaterialFlags_Unlit         = 0x10,
-  sMaterialFlags_AlphaTested   = 0x20,
-  // Uses alpha cutoff
+  // Alpha mode (lower 2 bits)
+  ALPHA_MODE_MASK = 0x3,   // 2 bits for masking
+  ALPHA_MODE_OPAQUE = 0x0,   // 00
+  ALPHA_MODE_MASK_TEST = 0x1,  // 01 (renamed to avoid conflict)
+  ALPHA_MODE_BLEND = 0x2,   // 10
+
+  // Material properties
+  DOUBLE_SIDED = 0x4,   // Bit 2
+  UNLIT = 0x8,   // Bit 3
+  CAST_SHADOW = 0x10,  // Bit 4  
+  RECEIVE_SHADOW = 0x20,  // Bit 5
+
+  // Default flags
+  DEFAULT_FLAGS = CAST_SHADOW | RECEIVE_SHADOW
 };
 
+// Simplified material type - remove redundancy with flags
 enum MaterialType : uint32_t
 {
-  MaterialType_Invalid            = 0,
-  MaterialType_MetallicRoughness  = 0x1,
-  MaterialType_SpecularGlossiness = 0x2,
-  // For legacy FBX/OBJ support
-  MaterialType_Unlit = 0x80,
+  INVALID = 0,
+  METALLIC_ROUGHNESS = 0x1,
+  SPECULAR_GLOSSINESS = 0x2,
 };
 
+// Keep AlphaMode enum for clarity in material struct
 enum class AlphaMode : uint32_t
 {
   Opaque = 0,
-  Mask   = 1,
-  Blend  = 2,
+  Mask = 1,
+  Blend = 2
 };
 
 enum class TextureDependencyType : uint8_t
 {
-  BaseColor         = 0,
-  Normal            = 1,
+  BaseColor = 0,
+  Normal = 1,
   MetallicRoughness = 2,
-  Emissive          = 3,
-  Occlusion         = 4
+  Emissive = 3,
+  Occlusion = 4
+};
+
+
+enum class RenderQueue : uint8_t
+{
+  Opaque = 0,
+  Transparent = 1
 };
 
 struct MaterialTexture
@@ -222,23 +245,13 @@ struct Material
 
   // Material properties
   AlphaMode alphaMode = AlphaMode::Opaque;
-  uint32_t materialTypeFlags = MaterialType_MetallicRoughness;
-  uint32_t flags = sMaterialFlags_CastShadow | sMaterialFlags_ReceiveShadow;
-  bool doubleSided = false;
-
-  bool isTransparent() const
-  {
-    return alphaMode == AlphaMode::Blend || baseColorFactor.a < 1.0f;
-  }
-
-  bool isAlphaTested() const
-  {
-    return alphaMode == AlphaMode::Mask;
-  }
+  uint32_t materialTypeFlags = 0;
+  uint32_t flags = 0;
 };
 
 struct MaterialAsset
-{};
+{
+};
 
 template <>
 struct AssetTraits<MaterialAsset>
@@ -246,13 +259,12 @@ struct AssetTraits<MaterialAsset>
   struct HotData
   {
     uint32_t materialOffset;
-    bool isTransparent = false;
-    bool isAlphaTested = false;
-    bool isDoubleSided = false;
+    RenderQueue renderQueue = RenderQueue::Opaque;
 
     HotData() = default;
 
-    explicit HotData(uint32_t offset, bool transparent = false, bool alphaTested = false, bool doubleSided = false) : materialOffset(offset), isTransparent(transparent), isAlphaTested(alphaTested), isDoubleSided(doubleSided) {}
+    explicit HotData(uint32_t offset, RenderQueue queue = RenderQueue::Opaque) : materialOffset(offset) , renderQueue(queue){
+    }
   };
 
   struct ColdData
@@ -265,12 +277,14 @@ struct AssetTraits<MaterialAsset>
 
     ColdData() = default;
 
-    explicit ColdData(Material mat) : material(std::move(mat)) {}
+    explicit ColdData(Material mat) : material(std::move(mat)) {
+    }
 
-    ColdData(Material mat, std::string file, size_t idx) : material(std::move(mat)), sourceFile(std::move(file)), materialIndex(idx), wasLoadedFromFile(true) {}
+    ColdData(Material mat, std::string file, size_t idx) : material(std::move(mat)), sourceFile(std::move(file)), materialIndex(idx), wasLoadedFromFile(true) {
+    }
   };
 
-  static constexpr std::array supported_extensions = {".mtl", ".mat", ".json"};
+  static constexpr std::array supported_extensions = { ".mtl", ".mat", ".json" };
 };
 
 using MaterialHandle = Handle<MaterialAsset>;
@@ -286,26 +300,22 @@ struct TextureDependency
   }
 };
 
-template <typename T>concept IsValidAssetTrait = requires
+template <typename T>
+concept IsValidAssetTrait = requires
 {
-  typename AssetTraits<T>; typename T::HotData; typename T::ColdData;
+  typename AssetTraits<T>;
+  typename T::HotData;
+  typename T::ColdData;
   // Check for the existence of the static supported_extensions member
-  // and ensure it's a range (e.g., an array).
+  // and ensure it's iterable using std::begin and std::end.
   {
-    T::supported_extensions
-  } -> std::ranges::range;
+    std::begin(T::supported_extensions)
+  };
+  {
+    std::end(T::supported_extensions)
+  };
 };
 
-template <typename T>concept IsAsset = IsValidAssetTrait<AssetTraits<T>>;
+template <typename T>
+concept IsAsset = IsValidAssetTrait<AssetTraits<T>>;
 
-struct LoadedScene
-{
-  std::vector<MeshHandle> meshes;
-  std::vector<MaterialHandle> materials;
-  std::vector<TextureHandle> textures;
-  std::unordered_map<size_t, size_t> meshToMaterial; // mesh index -> material index
-  std::vector<std::string> meshNames;
-  std::vector<std::string> materialNames;
-  std::vector<std::string> textureNames;
-  std::string sceneName;
-};

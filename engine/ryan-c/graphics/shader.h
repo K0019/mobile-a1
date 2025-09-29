@@ -65,7 +65,6 @@ inline vk::ShaderStage vkShaderStageFromFileName(const char* fileName)
 
 inline vk::Holder<vk::ShaderModuleHandle> loadShaderModule(vk::IContext& ctx, const char* fileName)
 {
-
   const std::string code = readShaderFile(fileName);
   const vk::ShaderStage stage = vkShaderStageFromFileName(fileName);
 

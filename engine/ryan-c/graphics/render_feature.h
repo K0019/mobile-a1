@@ -2,7 +2,7 @@
 
 constexpr uint32_t MAX_FRAMES_IN_FLIGHT = 3;
 
-namespace Render::internal
+namespace internal
 {
   class RenderPassBuilder;
 }
@@ -16,7 +16,7 @@ class IRenderFeature
     //DEFINE THESE
     virtual const char* GetName() const = 0;
 
-    virtual void SetupPasses(Render::internal::RenderPassBuilder& passBuilder) = 0;
+    virtual void SetupPasses(internal::RenderPassBuilder& passBuilder) = 0;
 
     // DO NOT DEFINE THESE
     // the pointer for the parameters for the game thread (STILL CALLED ON RENDER THREAD)
@@ -32,7 +32,7 @@ class IRenderFeature
 };
 
 template <typename Params, int BufferCount = MAX_FRAMES_IN_FLIGHT>
-class RenderFeatureBase : public IRenderFeature
+class RenderFeatureBase : public IRenderFeature 
 {
   public:
     using ParameterType = Params;
