@@ -24,13 +24,10 @@ All rights reserved.
 #pragma once
 #include "Utilities.h"
 #include "MacroTemplates.h"
-#include <string>
+#include "ImguiHeader.h"
 #ifdef IMGUI_ENABLED
 #include "imgui_internal.h"
 #include "imgui.h"
-#else
-#include "percentmath.h"
-#include <type_traits>
 #endif
 
 namespace gui {
@@ -40,9 +37,11 @@ namespace gui {
 #ifdef IMGUI_ENABLED
 	using Vec2 = ImVec2;
 	using Vec4 = ImVec4;
+	using TextureID = ImTextureID;
 #else
 	using Vec2 = ::Vec2;
 	using Vec4 = ::Vec4;
+	using TextureID = std::uintptr_t;
 #endif
 
 	namespace types
@@ -66,7 +65,8 @@ namespace gui {
 	X(UP, ImGuiKey::ImGuiKey_UpArrow) \
 	X(DOWN, ImGuiKey::ImGuiKey_DownArrow) \
 	X(ENTER, ImGuiKey::ImGuiKey_Enter) \
-	X(ESC, ImGuiKey::ImGuiKey_Escape)
+	X(ESC, ImGuiKey::ImGuiKey_Escape) \
+	X(GRAVE, ImGuiKey::ImGuiKey_GraveAccent)
 
 	//! ImGuiWindowFlags
 #define GUICOLLECTION_FLAG_WINDOW \
@@ -1172,7 +1172,7 @@ namespace gui {
 	bool VarDefault(const char* label, ::Vec2* v);
 	bool VarDefault(const char* label, ::Vec3* v);
 	bool VarDefault(const char* label, ::Vec4* v);
-	bool VarDefault(const char* label, string_t* v);
+	bool VarDefault(const char* label, std::string* v);
 
 	/*****************************************************************//*!
 	\brief
@@ -1525,6 +1525,9 @@ namespace gui {
 	//! ImGui::SetNextItemWidth()
 	void SetNextItemWidth(float width);
 
+	//! ImGui::GetTextLineHeightWithSpacing()
+	float GetTextLineHeightWithSpacing();
+
 #pragma endregion // Alignment & Spacing
 
 #pragma region Styling
@@ -1634,6 +1637,13 @@ namespace gui {
 	Vec4 GetStyleColor(FLAG_STYLE_COLOR style);
 
 #pragma endregion // Styling
+
+#pragma region Images
+
+	// ImGui::Image()
+	void Image(TextureID textureID, Vec2 size);
+
+#pragma endregion // Images
 
 #pragma region Custom Drawables
 

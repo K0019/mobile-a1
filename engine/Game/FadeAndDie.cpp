@@ -23,6 +23,7 @@ All rights reserved.
 #include "pch.h"
 #include "FadeAndDie.h"
 #include "GraphicsECSSprite.h"
+#include "GUICollection.h"
 
 FadeAndDieComponent::FadeAndDieComponent()
 	: delayTimer{ 1.0f }

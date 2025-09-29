@@ -33,6 +33,7 @@ namespace editor {
 
 	}
 
+#ifdef IMGUI_ENABLED
 
 // Generic walker for a flat BehaviorTreeAsset
 template<typename F>
@@ -40,7 +41,7 @@ static void WalkBTAssetFlat(const BehaviorTreeAsset& asset, F&& fn)
 {
     if (asset.nodes.empty()) 
     {
-        ImGui::TextDisabled("<no nodes>");
+        gui::TextDisabled("<no nodes>");
         return;
     }
 
@@ -605,19 +606,19 @@ static void WalkBTAssetFlat(const BehaviorTreeAsset& asset, F&& fn)
             int i{ startIdx + 1 };
             while (i < (int)nodes.size() && nodes[i].nodeLevel > base) ++i;
             return i;
-            };
+        };
         auto childrenRange = [&](int pIdx) -> std::pair<int, int> {
             int first{ pIdx + 1 };
             int end{ subtreeEnd(pIdx) };
             return { first, end };
-            };
+        };
         auto listDirectChildren = [&](int pIdx, std::vector<int>& out) {
             out.clear();
             auto [first, end]{ childrenRange(pIdx) };
             const unsigned want{ nodes[pIdx].nodeLevel + 1 };
             for (int i{ first }; i < end; ++i)
                 if (nodes[i].nodeLevel == want) out.push_back(i);
-            };
+        };
         auto adjustSubtreeLevel = [&](int startIdx, int delta) {
             int end{ subtreeEnd(startIdx) };
             for (int i{ startIdx }; i < end; ++i) {
@@ -625,13 +626,12 @@ static void WalkBTAssetFlat(const BehaviorTreeAsset& asset, F&& fn)
                 if (nl < 0) nl = 0;
                 nodes[i].nodeLevel = static_cast<unsigned>(nl);
             }
-            };
+        };
         auto moveSubtreeBlock = [&](int startA, int startB) {
             // pre: startA < startB
-            const int endA{ subtreeEnd(startA) };
             const int endB{ subtreeEnd(startB) };
             std::rotate(nodes.begin() + startA, nodes.begin() + startB, nodes.begin() + endB);
-            };
+        };
 
         // Children list
         ImGui::SeparatorText("Children");
@@ -794,9 +794,11 @@ static void WalkBTAssetFlat(const BehaviorTreeAsset& asset, F&& fn)
         
     }
 
+#endif
 
     void BehaviourTreeWindow::DrawWindow()
     {
+#ifdef IMGUI_ENABLED
         // Persistent UI state
         static std::string dir;
         static std::vector<std::string> files;
@@ -831,6 +833,7 @@ static void WalkBTAssetFlat(const BehaviorTreeAsset& asset, F&& fn)
 
         ImGui::Columns(1);
         ImGui::EndChild();
+#endif
     }
 
 

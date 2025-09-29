@@ -24,6 +24,7 @@ All rights reserved.
 /******************************************************************************/
 
 #include "LightComponent.h"
+#include "GUICollection.h"
 
 LightComponent::LightComponent() : 
     LightComponent(Vec3{ 1.0f, 1.0f, 1.0f }, 1.0f, 10.0f, 1.0f) {}

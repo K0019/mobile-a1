@@ -1,18 +1,21 @@
 #include "GraphicsWindow.h"
 #include "GraphicsAPI.h"
+#include "Input.h"
+#include "GameSettings.h"
+#include "GUICollection.h"
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
-VkExtent2D IGraphicsWindow::GetWindowExtent() const
+IntVec2 IGraphicsWindow::GetWindowExtent() const
 {
 	return windowExtent;
 }
-VkExtent2D IGraphicsWindow::GetViewportExtent() const
+IntVec2 IGraphicsWindow::GetViewportExtent() const
 {
 	return viewportExtent;
 }
-VkExtent2D IGraphicsWindow::GetWorldExtent() const
+IntVec2 IGraphicsWindow::GetWorldExtent() const
 {
 	return worldExtent;
 }
@@ -38,7 +41,7 @@ void GraphicsWindowGLFW::Init()
 {
 	InitGLFW();
 
-	window = glfwCreateWindow(windowExtent.width, windowExtent.height, "Mahou Engine", nullptr, nullptr); // MAGICCCCCCCCCCCCC
+	window = glfwCreateWindow(windowExtent.x, windowExtent.y, "Mahou Engine", nullptr, nullptr); // MAGICCCCCCCCCCCCC
 	if (!window)
 	{
 		glfwTerminate();
@@ -100,7 +103,7 @@ void GraphicsWindowGLFW::SetFullscreen(bool isFullscreen)
 		Callback_FramebufferResize(mode->width, mode->height);
 	}
 	else
-		SetWindowResolution(windowExtent.width, windowExtent.height);
+		SetWindowResolution(windowExtent.x, windowExtent.y);
 }
 
 void GraphicsWindowGLFW::BringWindowToFront()
@@ -139,14 +142,14 @@ void GraphicsWindowGLFW::SetupGLFWCallbacks()
 	glfwSetWindowIconifyCallback(window, GLFW_Callback_IconifyStateChanged);
 }
 
-void GraphicsWindowGLFW::GLFW_Callback_FramebufferResize(GLFWwindow* window, int width, int height)
+void GraphicsWindowGLFW::GLFW_Callback_FramebufferResize(GLFWwindow*, int width, int height)
 {
 	ST<GraphicsWindow>::Get()->Callback_FramebufferResize(width, height);
 }
 void GraphicsWindowGLFW::Callback_FramebufferResize(int width, int height)
 {
-	windowExtent.width = width;
-	windowExtent.height = height;
+	windowExtent.x = width;
+	windowExtent.y = height;
 #ifndef IMGUI_ENABLED
 	viewportExtent = windowExtent;
 #endif
@@ -154,7 +157,7 @@ void GraphicsWindowGLFW::Callback_FramebufferResize(int width, int height)
 	ST<GraphicsMain>::Get()->INTERNAL_OnWindowResized(width, height);
 }
 
-void GraphicsWindowGLFW::GLFW_Callback_WindowFocusChanged(GLFWwindow* window, int isFocused)
+void GraphicsWindowGLFW::GLFW_Callback_WindowFocusChanged(GLFWwindow*, int isFocused)
 {
 	Messaging::BroadcastAll("OnWindowFocus", static_cast<bool>(isFocused));
 }

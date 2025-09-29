@@ -23,6 +23,8 @@ All rights reserved.
 
 #include "Editor.h"
 #include "EditorHistory.h"
+#include "Input.h"
+#include "IEditorComponent.h"
 
 #include "Engine.h"
 #include "TextComponent.h"
@@ -63,7 +65,7 @@ void Inspector::ProcessInput()
 	CheckIsSelectedEntityValid();
 
 	bool isMouseInViewport = ST<CustomViewport>::Get()->IsMouseInViewport(mousePos);
-	float dt{ GameTime::FixedDt() };
+	//float dt{ GameTime::FixedDt() };
 	/*if(InputOld::GetKeyCurr(KEY::UP))
 	{
 		ST<CameraController>::Get()->AddPosition({ 0, 1000.0f * dt });
@@ -127,7 +129,7 @@ void Inspector::ProcessInput()
 			return;
 		}
 		Transform textTransform; // For storing the transform of the text.
-		float zpos = -1;
+		//float zpos = -1;
 		for(auto iter = ecs::GetEntitiesBegin(), endIter = ecs::GetEntitiesEnd(); iter != endIter; ++iter)
 		{
 			const auto entity = *iter;

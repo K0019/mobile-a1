@@ -19,6 +19,7 @@ All rights reserved.
 */
 /******************************************************************************/
 #include "GraphicsECSSprite.h"
+#include "GUICollection.h"
 
 #include "AnimatorComponent.h"
 #include "ResourceManager.h"
@@ -374,7 +375,7 @@ SpriteRenderSystem::SpriteRenderSystem()
 {
 }
 
-void SpriteRenderSystem::DrawRenderComp(SpriteComponent& comp)
+void SpriteRenderSystem::DrawRenderComp(SpriteComponent&)
 {
 
 }

@@ -19,6 +19,7 @@ All rights reserved.
 */
 /******************************************************************************/
 #include "CustomViewport.h"
+#include "Input.h"
 
 #include "AnimatorComponent.h"
 #include "SceneManagement.h"
@@ -243,7 +244,7 @@ void CustomViewport::DrawImGuiWindow() {
 					ecs::EntityHandle entity{ ecs::CreateEntity() };
 					ST<History>::Get()->OneEvent(HistoryEvent_EntityCreate{ entity });
 					size_t ID = *static_cast<size_t*>(payload->Data);
-					const auto& sprite = ResourceManagerOld::GetSprite(ID);
+					//const auto& sprite = ResourceManagerOld::GetSprite(ID);
 					CONSOLE_LOG_UNIMPLEMENTED() << "Spawn entity from sprite drop into viewport";
 					//entity->GetTransform().SetLocal(0.5f, InputOld::GetMousePosWorld(), { static_cast<float>(sprite.width), static_cast<float>(sprite.height) }, 0.0f);
 					entity->AddCompNow(SpriteComponent{ ID });
@@ -269,7 +270,7 @@ void CustomViewport::DrawImGuiWindow() {
 					size_t animHash = *static_cast<size_t*>(payload_anim->Data);
 					ecs::EntityHandle entity = ecs::CreateEntity();
 					ST<History>::Get()->OneEvent(HistoryEvent_EntityCreate{ entity });
-					const auto& anim = ResourceManagerOld::GetAnimation(animHash);
+					//const auto& anim = ResourceManagerOld::GetAnimation(animHash);
 					entity->AddCompNow(SpriteComponent{});
 					entity->AddCompNow(AnimatorComponent{ animHash });
 					CONSOLE_LOG_UNIMPLEMENTED() << "Spawn entity from animation drop into viewport";
@@ -325,7 +326,7 @@ void CustomViewport::MaintainAspectRatio(ImGuiSizeCallbackData* data) {
 
 #endif
 
-Transform CustomViewport::WorldToWindowTransform(const Transform& worldTransform) const {
+Transform CustomViewport::WorldToWindowTransform([[maybe_unused]] const Transform& worldTransform) const {
 	Transform viewTransform;
 #ifdef IMGUI_ENABLED
 	auto WORLD = ST<GraphicsWindow>::Get()->GetViewportExtent();
@@ -381,7 +382,7 @@ Transform CustomViewport::WorldToWindowTransform(const Transform& worldTransform
 	return viewTransform;
 }
 
-Vec3 CustomViewport::WindowToWorldPosition(const Vec2& inWindowPos) const {
+Vec3 CustomViewport::WindowToWorldPosition([[maybe_unused]] const Vec2& inWindowPos) const {
 
 /*
 #ifdef IMGUI_ENABLED
@@ -419,7 +420,7 @@ Vec3 CustomViewport::WindowToWorldPosition(const Vec2& inWindowPos) const {
 }
 
 
-bool CustomViewport::IsMouseInViewport(const Vec2& mousePos) const
+bool CustomViewport::IsMouseInViewport([[maybe_unused]] const Vec2& mousePos) const
 {
 #ifdef IMGUI_ENABLED
 	bool within_viewport = mousePos.x >= windowPosAbsolute.x + contentMin.x &&
@@ -444,9 +445,6 @@ bool CustomViewport::IsMouseInViewport(const Vec2& mousePos) const
 			return false;
 		}
 	}
-
-#else
-	UNREFERENCED_PARAMETER(mousePos);
 #endif
 
 	// Check for any popups or modal windows that might be blocking

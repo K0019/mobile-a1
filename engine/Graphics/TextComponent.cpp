@@ -19,6 +19,8 @@ All rights reserved.
 */
 /******************************************************************************/
 #include "TextComponent.h"
+#include "GUICollection.h"
+#include "ScriptingUtil.h"
 
 #include "ResourceManager.h"
 
@@ -204,10 +206,10 @@ void TextComponent::EditorDraw()
     if(ImGui::Combo("Alignment", &currentAlignment, alignmentItems, IM_ARRAYSIZE(alignmentItems))) {
         SetAlignment(static_cast<TextAlignment>(currentAlignment));
     }
-    auto color = GetColor();
-    if(ImGui::ColorEdit4("Color", &color.x))
+    auto textColor = GetColor();
+    if(ImGui::ColorEdit4("Color", &textColor.x))
     {
-        SetColor(color);
+        SetColor(textColor);
     }
     ImGui::Checkbox("UI Element", &UI);
     const auto& text = GetText();

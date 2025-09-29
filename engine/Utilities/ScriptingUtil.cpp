@@ -1,9 +1,11 @@
 #include "pch.h"
 #include "ScriptingUtil.h"
+#include "mono/jit/jit.h"
+#include "mono/metadata/assembly.h"
 
 namespace util {
 
-	void AssertEntityHandleValid(ecs::EntityHandle entity)
+	void AssertEntityHandleValid([[maybe_unused]] ecs::EntityHandle entity)
 	{
 		// Some transform object on C# side is attempting to update itself based on an
 		// entity that doesn't exist! The entity has probably been deleted but C# is

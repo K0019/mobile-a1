@@ -115,6 +115,7 @@ void BehaviorTree::Destroy()
 
 void BehaviorTree::EditorDraw()
 {
+#ifdef IMGUI_ENABLED
     std::vector<std::string> btNames{};
     ST<BTFactory>::Get()->GetAllBTNames(&btNames);
     std::string currStr{ std::find(btNames.begin(), btNames.end(), btName) == btNames.end() ? "Invalid" : btName };
@@ -133,6 +134,7 @@ void BehaviorTree::EditorDraw()
         }
         ImGui::EndCombo();
     }
+#endif
 }
 
 BehaviorTreeComp::BehaviorTreeComp()

@@ -20,6 +20,8 @@ All rights reserved.
 /******************************************************************************/
 
 #pragma once
+#include "IRegisteredComponent.h"
+#include "IEditorComponent.h"
 
 #include <Jolt/Jolt.h>
 
@@ -42,6 +44,7 @@ namespace physics {
 	{
 		NON_MOVING = 0,
 		MOVING,
+		NON_COLLIDABLE,
 		NUM_LAYERS
 	};
 
@@ -61,7 +64,8 @@ namespace physics {
 	{
 		static constexpr JPH::BroadPhaseLayer NON_MOVING(0);
 		static constexpr JPH::BroadPhaseLayer MOVING(1);
-		static constexpr JPH::uint NUM_LAYERS(2);
+		static constexpr JPH::BroadPhaseLayer NON_COLLIDABLE(2);
+		static constexpr JPH::uint NUM_LAYERS(3);
 	};
 
 	/*****************************************************************//*!
@@ -121,9 +125,7 @@ namespace physics {
 
 	class BoxColliderComp
 		: public IRegisteredComponent<BoxColliderComp>
-#ifdef IMGUI_ENABLED
 		, public IEditorComponent<BoxColliderComp>
-#endif
 		, public ecs::IComponentCallbacks
 	{
 	public:

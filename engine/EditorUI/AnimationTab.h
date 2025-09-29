@@ -31,11 +31,13 @@ struct AnimationTab
 	void Render() override;
 
 private:
+#ifdef IMGUI_ENABLED
 	void ShowCreateAnimationDialog();
 	void RenderSpriteSelectionGrid();
 	void RenderFrameList();
 	void RenderAnimationPreview();
 	void RenderCreateAnimationBottom();
+#endif
 
 	float lastFrameTime = 0.0f; /**< Time of the last frame */
 	float accumulatedTime = 0.0f; /**< Accumulated time for animation preview */

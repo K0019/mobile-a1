@@ -23,6 +23,7 @@ All rights reserved.
 */
 /******************************************************************************/
 #include "Bar.h"
+#include "GUICollection.h"
 
 BarComponent::BarComponent()
     : maxValue{ 0.0f }

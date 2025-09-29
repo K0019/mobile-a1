@@ -199,6 +199,13 @@ namespace util {
 
 	/*****************************************************************//*!
 	\brief
+		Returns an empty string. For use when you want to return "" in
+		a function that returns a string reference.
+	*//******************************************************************/
+	const std::string& EmptyStr();
+
+	/*****************************************************************//*!
+	\brief
 		Generates a random number within a range. (works with implicit conversion)
 	\tparam T
 		The type of value to generate.

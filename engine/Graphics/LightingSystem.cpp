@@ -31,7 +31,7 @@ LightingSystem::LightingSystem() : System_Internal(&LightingSystem::UpdateLightC
 }
 
 
-void LightingSystem::UpdateLightComp(LightComponent& lightComp) {
+void LightingSystem::UpdateLightComp(LightComponent&) {
   //renderer->AddLightInstance(lightComp);
 }
 

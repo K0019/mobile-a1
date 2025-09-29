@@ -19,9 +19,10 @@ namespace gui
 	}
 
 
-	std::string TruncateText(const std::string& text, float maxWidth)
+	std::string TruncateText(const std::string& text, [[maybe_unused]] float maxWidth)
 	{
 		std::string displayName = text;
+#ifdef IMGUI_ENABLED
 		ImVec2 textSize = ImGui::CalcTextSize(displayName.c_str());
 		if (textSize.x > maxWidth)
 		{
@@ -31,17 +32,19 @@ namespace gui
 				textSize = ImGui::CalcTextSize(displayName.c_str());
 			}
 		}
-
+#endif
 		return displayName;
 	}
 
-	void ThumbnailLabel(const std::string& text, float thumbnailWidth)
+	void ThumbnailLabel([[maybe_unused]] const std::string& text, [[maybe_unused]] float thumbnailWidth)
 	{
+#ifdef IMGUI_ENABLED
 		std::string displayName = TruncateText(text, thumbnailWidth);
 		ImVec2 textSize = ImGui::CalcTextSize(displayName.c_str());
 		float textX = (thumbnailWidth - textSize.x) * 0.5f;
 		ImGui::SetCursorPosX(ImGui::GetCursorPosX() + textX);
 		ImGui::TextUnformatted(displayName.c_str());
+#endif
 	}
 
 	void ShowSimpleHoverTooltip(const std::string& text)

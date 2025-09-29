@@ -1,5 +1,8 @@
 #pragma once
 
+// Forward declaration
+struct _MonoString;
+
 namespace util {
 
 	void AssertEntityHandleValid(ecs::EntityHandle entity);
@@ -7,7 +10,7 @@ namespace util {
 	template <typename CompType>
 	CompType* AssertCompExistsOnValidEntityAndGet(ecs::EntityHandle entity);
 
-	MonoString* StrToMonoStr(const std::string& str);
+	_MonoString* StrToMonoStr(const std::string& str);
 
 }
 

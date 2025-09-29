@@ -21,12 +21,9 @@ All rights reserved.
 /******************************************************************************/
 
 #pragma once
+#include "GUICollection.h"
 #include "ECSSysLayers.h"
-
-// Thanks microsoft
-#ifdef CreateWindow
-#undef CreateWindow
-#endif
+#include "Scheduler.h"
 
 #pragma region Interface
 
@@ -82,6 +79,13 @@ namespace editor {
 		*//******************************************************************/
 		virtual void OnOpenStateChanged() final;
 
+		/*****************************************************************//*!
+		\brief
+			Called then the window is closed. User definitions may override
+			this for behaviors upon closing the window.
+		*//******************************************************************/
+		virtual void UserOnOpenStateChanged();
+
 	private:
 		/*****************************************************************//*!
 		\brief
@@ -136,7 +140,7 @@ namespace editor {
 		The type of the window.
 	*//******************************************************************/
 	template <typename WindowType>
-	void CreateWindow();
+	void CreateGuiWindow();
 
 }
 
@@ -169,7 +173,15 @@ namespace editor {
 	void WindowBase<FinalType, DuplicatesAllowed>::OnOpenStateChanged()
 	{
 		if (!GetIsOpen())
+		{
+			UserOnOpenStateChanged();
 			ecs::DeleteEntity(ecs::GetEntity(this));
+		}
+	}
+
+	template<typename FinalType, bool DuplicatesAllowed>
+	void WindowBase<FinalType, DuplicatesAllowed>::UserOnOpenStateChanged()
+	{
 	}
 
 	template<typename FinalType, bool DuplicatesAllowed>
@@ -208,7 +220,7 @@ namespace editor {
 	}
 
 	template<typename WindowType>
-	void CreateWindow()
+	void CreateGuiWindow()
 	{
 		// Create an entity in EDITOR_GUI with the window attached as a component.
 		ecs::POOL originalPool{ ecs::GetCurrentPoolId() };

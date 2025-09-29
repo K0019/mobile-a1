@@ -1,13 +1,13 @@
 #pragma once
+#include "IRegisteredComponent.h"
 #include "IGameComponentCallbacks.h"
+#include "IEditorComponent.h"
 
 // This is an example component.
 class ExampleComponent
 	// Note that all of these below base classes are optional, and adding this component to ecs will still work without them.
 	: public IRegisteredComponent<ExampleComponent> // For serialization and ability to add this comp via the inspector ImGui window
-#ifdef IMGUI_ENABLED
 	, public IEditorComponent<ExampleComponent> // For drawing this component to the inspector ImGui window
-#endif
 	, public IGameComponentCallbacks<ExampleComponent> // For OnAttached() / OnDetached() / OnStart() callbacks (for more info, see overrides below, or their function documentation)
 	// , public ecs::IComponentCallbacks // Use this instead of IGameComponentCallbacks if you only need OnAttached() / OnDetached()
 	// , public IHiddenComponent<DemoComponent> // For hiding this component from the inspector ImGui window (exists so you can still have serialization but not show this component to the user)

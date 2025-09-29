@@ -85,7 +85,7 @@ namespace gui {
 	{
 	}
 
-	void Window::DrawContainer(int id)
+	void Window::DrawContainer([[maybe_unused]] int id)
 	{
 #ifdef IMGUI_ENABLED
 		if (ImGui::Begin((id <= 0 ? title.c_str() : (title + "##" + std::to_string(id)).c_str()), &isOpen, +windowFlags))
@@ -671,7 +671,7 @@ namespace gui {
 	{
 		return VarInput(label, v);
 	}
-	bool VarDefault(const char* label, string_t* v)
+	bool VarDefault(const char* label, std::string* v)
 	{
 		TextBoxWithBuffer<256> textBox{ label };
 		textBox.SetBuffer(*v);
@@ -792,26 +792,12 @@ namespace gui {
 #endif
 	}
 
-	bool IsKeyPressed([[maybe_unused]] KEY key, [[maybe_unused]] bool repeating)
+	float GetTextLineHeightWithSpacing()
 	{
 #ifdef IMGUI_ENABLED
-		return ImGui::IsKeyPressed(static_cast<ImGuiKey>(key), repeating);
+		return ImGui::GetTextLineHeightWithSpacing();
 #else
-		return false;
-#endif
-	}
-
-	void SetKeyboardFocusHere([[maybe_unused]] int offset)
-	{
-#ifdef IMGUI_ENABLED
-		ImGui::SetKeyboardFocusHere(offset);
-#endif
-	}
-
-	void SetScrollHereY([[maybe_unused]] float center_y_ratio)
-	{
-#ifdef IMGUI_ENABLED
-		ImGui::SetScrollHereY(center_y_ratio);
+		return 0.0f;
 #endif
 	}
 
@@ -933,6 +919,13 @@ namespace gui {
 #endif
 	}
 
+	void Image([[maybe_unused]] TextureID textureID, [[maybe_unused]] Vec2 size)
+	{
+#ifdef IMGUI_ENABLED
+		ImGui::Image(textureID, size);
+#endif
+	}
+
 	void DrawTriangle([[maybe_unused]] Vec2 p0, [[maybe_unused]] Vec2 p1, [[maybe_unused]] Vec2 p2, [[maybe_unused]] const Vec4& color)
 	{
 #ifdef IMGUI_ENABLED
@@ -954,4 +947,26 @@ namespace gui {
 	{
 	}
 
+	bool IsKeyPressed([[maybe_unused]] KEY key, [[maybe_unused]] bool repeating)
+	{
+#ifdef IMGUI_ENABLED
+		return ImGui::IsKeyPressed(static_cast<ImGuiKey>(key), repeating);
+#else
+		return false;
+#endif
+	}
+
+	void SetKeyboardFocusHere([[maybe_unused]] int offset)
+	{
+#ifdef IMGUI_ENABLED
+		ImGui::SetKeyboardFocusHere(offset);
+#endif
+	}
+
+	void SetScrollHereY([[maybe_unused]] float center_y_ratio)
+	{
+#ifdef IMGUI_ENABLED
+		ImGui::SetScrollHereY(center_y_ratio);
+#endif
+	}
 }

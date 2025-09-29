@@ -1,4 +1,5 @@
 #include "scene_feature.h"
+#include "GameSettings.h"
 #include "graphics/renderer.h"
 #include "graphics/shader.h"
 #include "assets/core/asset_system.h"
