@@ -26,6 +26,7 @@ All rights reserved.
 
 #include "BehaviourNode.h"
 #include "BehaviourTreeFactory.h"
+#include "Input.h"
 
 BT_REGISTER_NODE(Sequence, "Sequence")
 BT_REGISTER_NODE(Selector, "Selector")
