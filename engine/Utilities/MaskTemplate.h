@@ -21,13 +21,12 @@ All rights reserved.
 /******************************************************************************/
 
 #pragma once
-#include <bit>
-#include <bitset>
 #include "Serializer.h"
-#include "Console.h"
-#ifdef IMGUI_ENABLED
-#include "imgui.h"
-#endif
+
+// Forward declaration
+namespace gui {
+	bool Checkbox(const char* label, bool* v);
+}
 
 // TODO: Provide a way to customize which masks collide with which masks
 
@@ -263,7 +262,6 @@ public:
 	*//******************************************************************/
 	static void DeserializeMatrix(Deserializer& reader, const std::string& key, const char* const* enumNamesArr = nullptr) requires EnableMatrix;
 
-#ifdef IMGUI_ENABLED
 	/*****************************************************************//*!
 	\brief
 		Draws the bits of this mask to the current ImGui context.
@@ -271,7 +269,6 @@ public:
 		The array of string names corresponding to each bit.
 	*//******************************************************************/
 	void MaskEditorDraw(const char* const* namesArr);
-#endif
 
 	/*****************************************************************//*!
 	\brief
@@ -523,8 +520,6 @@ void MaskTemplate<ENUM_TYPE, EnableMatrix>::DeserializeMatrix(Deserializer& read
 	reader.PopAccess();
 }
 
-#ifdef IMGUI_ENABLED
-
 template<typename ENUM_TYPE, bool EnableMatrix>
 void MaskTemplate<ENUM_TYPE, EnableMatrix>::MaskEditorDraw(const char* const* namesArr)
 {
@@ -532,11 +527,10 @@ void MaskTemplate<ENUM_TYPE, EnableMatrix>::MaskEditorDraw(const char* const* na
 	for (int i{}; i < static_cast<int>(ENUM_TYPE::TOTAL); ++i)
 	{
 		b = TestMask(static_cast<ENUM_TYPE>(i));
-		if (ImGui::Checkbox(namesArr[i], &b))
+		if (gui::Checkbox(namesArr[i], &b))
 			SetMask(static_cast<ENUM_TYPE>(i), b);
 	}
 }
-#endif
 
 template<typename ENUM_TYPE, bool EnableMatrix>
 void MaskTemplate<ENUM_TYPE, EnableMatrix>::MaskSerialize(Serializer& serializer, const std::string& identifier, const char* const* namesArr) const

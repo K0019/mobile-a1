@@ -21,6 +21,8 @@ All rights reserved.
 */
 /******************************************************************************/
 #pragma once
+#include "IRegisteredComponent.h"
+
 class KillWhenAnimationFinishComponent : public IRegisteredComponent<KillWhenAnimationFinishComponent>
 {
 public:

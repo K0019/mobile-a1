@@ -19,6 +19,8 @@ All rights reserved.
 /******************************************************************************/
 
 #include "JoltPhysics.h"
+#include "MaskTemplate.h"
+#include "IRegisteredComponent.h"
 #include "IGameComponentCallbacks.h"
 
 namespace physics {
@@ -48,9 +50,7 @@ X(USE_GRAVITY, "Use Gravity")
 
 	class PhysicsComp
 		: public IRegisteredComponent<PhysicsComp>
-#ifdef IMGUI_ENABLED
-		, public IEditorComponent<PhysicsComp> 
-#endif
+		, public IEditorComponent<PhysicsComp>
 		, public ecs::IComponentCallbacks
 	{
 	public:

@@ -1,5 +1,6 @@
 #include "Audio.h"
 #include "AudioManager.h"
+#include "GUICollection.h"
 
 AudioSourceComponent::AudioSourceComponent() 
 	: minDistance{ 20.0f }

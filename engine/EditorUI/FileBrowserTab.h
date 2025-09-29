@@ -13,7 +13,7 @@ struct FileBrowserTab
 private:
 	FileSystem fileSystem;
 
-	VkDescriptorSet GetThumbnailDescriptor(std::filesystem::path::iterator::reference path);
+	//VkDescriptorSet GetThumbnailDescriptor(std::filesystem::path::iterator::reference path);
 	struct SpriteImportConfig
 	{
 		int spriteCount = 1; /**< Number of sprites in the sheet */
@@ -26,17 +26,19 @@ private:
 
 	struct ThumbnailCache
 	{
-		std::unordered_map<std::string, VkDescriptorSet> textureDescriptors; /**< Cache of texture descriptors */
+		//std::unordered_map<std::string, VkDescriptorSet> textureDescriptors; /**< Cache of texture descriptors */
 		std::unordered_map<std::string, bool> loadingStatus; /**< Cache of loading statuses */
 	};
 	ThumbnailCache thumbnailCache;
 
+#ifdef IMGUI_ENABLED
 	bool RenderDirectoryItem(const FileSystem::FileEntry& entry);
 	void RenderItemLabel(const std::string& filename);
 	bool RenderFileItem(const FileSystem::FileEntry& entry);
 	void RenderItemContextMenu(const FileSystem::FileEntry& entry);
 
 	void ShowSpriteSheetDialog();
+#endif
 	void ImportAsSpriteSheet(const std::filesystem::path& path, int spriteCount, const std::string& baseName);
 	void ImportAsSprite(const std::filesystem::path& path, const std::string& name);
 	std::filesystem::path CopyIntoWorkingDir(const std::filesystem::path& file);

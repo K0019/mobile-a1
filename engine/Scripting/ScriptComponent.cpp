@@ -28,6 +28,8 @@ All rights reserved.
 */
 /******************************************************************************/
 #include "ScriptComponent.h"
+#include "GUICollection.h"
+#include "ScriptingUtil.h"
 
 #include "ResourceManager.h"
 #include "EntityUID.h"
@@ -89,7 +91,7 @@ void ScriptComponent::EditorDraw()
 
 		// Define the height of the child rect based on the number of public variables
 		auto& publicVars{ scriptInstance.GetPublicVars() };
-		const float itemHeight = ImGui::GetTextLineHeightWithSpacing(); // Height of each item
+		const float itemHeight = gui::GetTextLineHeightWithSpacing(); // Height of each item
 		const float padding = 45.0f; // Extra padding for aesthetics
 		float totalHeight = (publicVars.size() * itemHeight) + padding;
 

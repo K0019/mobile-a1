@@ -23,6 +23,7 @@ All rights reserved.
 
 #include "EntityUID.h"
 #include "NameComponent.h"
+#include "GUICollection.h"
 
 EntityUIDComponent::EntityUIDComponent()
 	: uid{ RegisterUID() }

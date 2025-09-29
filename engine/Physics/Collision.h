@@ -20,6 +20,8 @@ All rights reserved.
 /******************************************************************************/
 
 #pragma once
+#include "IRegisteredComponent.h"
+#include "IEditorComponent.h"
 
 #include <Jolt/Jolt.h>
 
@@ -121,9 +123,7 @@ namespace physics {
 
 	class BoxColliderComp
 		: public IRegisteredComponent<BoxColliderComp>
-#ifdef IMGUI_ENABLED
 		, public IEditorComponent<BoxColliderComp>
-#endif
 		, public ecs::IComponentCallbacks
 	{
 	public:

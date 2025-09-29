@@ -1,4 +1,6 @@
 #include "GraphicsAPI.h"
+#include "GameSettings.h"
+#include "GUICollection.h"
 
 #include "fa.h"
 
@@ -29,7 +31,7 @@ void GraphicsMain::Init()
 	ST<GraphicsWindow>::Get()->Init();
 
 	auto windowExtent{ ST<GraphicsWindow>::Get()->GetWindowExtent() };
-	renderer = std::make_unique<Renderer>(ST<GraphicsWindow>::Get()->INTERNAL_GetWindow(), windowExtent.width, windowExtent.height);
+	renderer = std::make_unique<Renderer>(ST<GraphicsWindow>::Get()->INTERNAL_GetWindow(), windowExtent.x, windowExtent.y);
 	context.renderer = renderer.get();
 	ST<GraphicsAssets>::Get()->Init(&context);
 	renderer->startup();
@@ -221,17 +223,19 @@ void GraphicsMain::SetImGuiStyle()
 	style.ButtonTextAlign = ImVec2(0.5f, 0.5f);
 	style.SelectableTextAlign = ImVec2(0.0f, 0.0f);
 }
-#endif
 
 editor::ImGuiContext& GraphicsMain::GetImGuiContext()
 {
 	return *imguiContext.get();
 }
 
+#endif
+
 #include "grid_feature.h"
 #include "scene_feature.h"
 #include "scene_loader.h"
 #include "camera.h"
+#include "Input.h"
 
 // NOTE: These handles aren't being cleaned up because this is just temp code.
 static uint64_t gridFeature{};
@@ -282,7 +286,7 @@ void GraphicsMain::RenderSampleScene()
 	Render::FrameData currentFrameData{};
 	currentFrameData.cameraPos = camera.getPosition();
 	currentFrameData.viewMatrix = camera.getViewMatrix();
-	currentFrameData.projMatrix = perspective(45.0f, (float)windowExtent.width / (float)windowExtent.height, 0.1f, 100.0f);
+	currentFrameData.projMatrix = perspective(45.0f, (float)windowExtent.x / (float)windowExtent.y, 0.1f, 100.0f);
 	//SceneRenderFeature::UpdateScene(sceneFeatureHandle_, loadedScene_, *context.assetSystem, *renderer);
 	renderer->render(currentFrameData);
 }

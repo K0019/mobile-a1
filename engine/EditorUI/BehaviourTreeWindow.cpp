@@ -33,6 +33,7 @@ namespace editor {
 
 	}
 
+#ifdef IMGUI_ENABLED
 
 // Generic walker for a flat BehaviorTreeAsset
 template<typename F>
@@ -40,7 +41,7 @@ static void WalkBTAssetFlat(const BehaviorTreeAsset& asset, F&& fn)
 {
     if (asset.nodes.empty()) 
     {
-        ImGui::TextDisabled("<no nodes>");
+        gui::TextDisabled("<no nodes>");
         return;
     }
 
@@ -794,9 +795,11 @@ static void WalkBTAssetFlat(const BehaviorTreeAsset& asset, F&& fn)
         
     }
 
+#endif
 
     void BehaviourTreeWindow::DrawWindow()
     {
+#ifdef IMGUI_ENABLED
         // Persistent UI state
         static std::string dir;
         static std::vector<std::string> files;
@@ -831,6 +834,7 @@ static void WalkBTAssetFlat(const BehaviorTreeAsset& asset, F&& fn)
 
         ImGui::Columns(1);
         ImGui::EndChild();
+#endif
     }
 
 

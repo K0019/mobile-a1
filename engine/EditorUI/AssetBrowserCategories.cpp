@@ -1,19 +1,25 @@
 #include "AssetBrowserCategories.h"
 #include "AssetBrowser.h"
+#include "GUICollection.h"
 
 namespace editor {
 
     bool MatchesFilter(const std::string& name)
     {
+#ifdef IMGUI_ENABLED
         std::string lowerName = name;
         std::string lowerFilter = ST<AssetBrowser>::Get()->searchBuffer;
         std::ranges::transform(lowerName, lowerName.begin(), util::ToLower);
         std::ranges::transform(lowerFilter, lowerFilter.begin(), util::ToLower);
         return lowerName.find(lowerFilter) != std::string::npos;
+#else
+        return false;
+#endif
     }
 
     void BaseAssetCategory::RenderBreadcrumb()
     {
+#ifdef IMGUI_ENABLED
         float windowWidth = ImGui::GetContentRegionAvail().x;
         float searchWidth = 300;
         float spacing = ImGui::GetStyle().ItemSpacing.x;
@@ -35,6 +41,7 @@ namespace editor {
         }
 
         ImGui::Text("%s", location.c_str());
+#endif
     }
 
 }
