@@ -45,6 +45,11 @@ public:
     explicit LightComponent();
 
     virtual void EditorDraw() override;
+
+public:
+    void Serialize(Serializer& writer) const override;
+    void Deserialize(Deserializer& reader) override;
+
 };
 
 
