@@ -4,33 +4,21 @@
 #include <vector>
 #include <functional>
 #include <variant>
-#include <unordered_map>
-#include <unordered_set>
 #include <bitset>
 #include <array>
-#include <span>
-#include <memory_resource>
 #include <string_view>
 
 #include "interface.h"
 #include "i_graph_observer.h"
+#include "linear_color.h"
+#include "OIT.h"
 #include "renderer_resources.h"
 #include "render_feature.h"
 #include "math/utils_math.h"
 
-template <typename ObjectType>
-struct std::hash<vk::Handle<ObjectType>>
-{
-  size_t operator()(const vk::Handle<ObjectType>& h) const
-  {
-    return std::hash<uint64_t>()((uint64_t(h.index()) << 32) | h.gen());
-  }
-};
-
-namespace Render
-{
+/*
 // Compile-time string hashing
-constexpr uint32_t fnv1a_32(const char* str)
+consteval uint32_t fnv1a_32(const char* str)
 {
   uint32_t hash = 2166136261u;
   while (*str)
@@ -40,6 +28,7 @@ constexpr uint32_t fnv1a_32(const char* str)
   }
   return hash;
 }
+*/
 
 namespace RenderResources
 {
@@ -50,13 +39,13 @@ namespace RenderResources
   constexpr const char* VERTEX_BUFFER = "VertexBuffer";
   constexpr const char* INDEX_BUFFER = "IndexBuffer";
 
-  // Pre-computed hashes using compile-time function
-  constexpr uint32_t SWAPCHAIN_HASH = fnv1a_32(SWAPCHAIN_IMAGE);
-  constexpr uint32_t SCENE_COLOR_HASH = fnv1a_32(SCENE_COLOR);
-  constexpr uint32_t SCENE_DEPTH_HASH = fnv1a_32(SCENE_DEPTH);
-  constexpr uint32_t MATERIAL_HASH = fnv1a_32(MATERIAL_BUFFER);
-  constexpr uint32_t VERTEX_HASH = fnv1a_32(VERTEX_BUFFER);
-  constexpr uint32_t INDEX_HASH = fnv1a_32(INDEX_BUFFER);
+  /*// Pre-computed hashes using compile-time function
+  consteval uint32_t SWAPCHAIN_HASH = fnv1a_32(SWAPCHAIN_IMAGE);
+  consteval uint32_t SCENE_COLOR_HASH = fnv1a_32(SCENE_COLOR);
+  consteval uint32_t SCENE_DEPTH_HASH = fnv1a_32(SCENE_DEPTH);
+  consteval uint32_t MATERIAL_HASH = fnv1a_32(MATERIAL_BUFFER);
+  consteval uint32_t VERTEX_HASH = fnv1a_32(VERTEX_BUFFER);
+  consteval uint32_t INDEX_HASH = fnv1a_32(INDEX_BUFFER);*/
 }
 
 namespace internal
@@ -70,6 +59,16 @@ namespace internal
   class ExecutionContext;
 }
 
+// Hash specialization for vk::Handle
+template <typename ObjectType>
+struct std::hash<vk::Handle<ObjectType>>
+{
+  size_t operator()(const vk::Handle<ObjectType>& h) const
+  {
+    return std::hash<uint64_t>()((uint64_t(h.index()) << 32) | h.gen());
+  }
+};
+
 class RenderGraph;
 using ExecuteLambda = std::function<void(internal::ExecutionContext& context)>;
 using LogicalResourceName = const char*;
@@ -82,6 +81,10 @@ struct FrameData
   vec3 cameraPos;
   float deltaTime = 0.0f;
   vk::Dimensions framebufferSize = {1920, 1080};
+
+  float zNear = 0.1f;
+  float zFar = 1000.0f;
+  float fovY = 45.0f;
 };
 
 enum class AccessType : uint8_t
@@ -212,14 +215,16 @@ namespace internal
     public:
       enum class PassPriority : int
       {
-        EarlySetup  = 0,
-        ShadowMap   = 100,
-        ZPrepass    = 200,
-        Opaque      = 300,
-        Transparent = 400,
-        PostProcess = 500,
-        UI          = 600,
-        Present     = 700
+        EarlySetup    = 0,   // Resource initialization, clearing
+        ShadowMap     = 100, // Shadow map generation
+        ZPrepass      = 200, // Depth pre-pass for early-z
+        LightCulling  = 250, // Light culling / clustering
+        Opaque        = 300, // Opaque geometry rendering
+        Transparent   = 400, // Transparent geometry collection
+        OITResolve    = 450, // Order-independent transparency resolve
+        PostProcess   = 500, // Post-processing effects (SSAO, bloom, etc.)
+        UI            = 600, // User interface elements
+        Present       = 700  // Final output (tone mapping, gamma correction)
       };
 
       struct DeclaredResourceUsage
@@ -259,7 +264,7 @@ namespace internal
       PassBuilder CreatePass();
 
     private:
-      friend class Render::RenderGraph;
+      friend class ::RenderGraph;
       friend class PassBuilder;
 
       RenderPassBuilder(RenderGraph* graph, IRenderFeature* feature);
@@ -274,13 +279,12 @@ namespace internal
 }
 
 // Hot execution data - cache-line aligned
-struct alignas(64) PassExecutionData
+struct alignas(16) PassExecutionData
 {
   internal::NameID passID;
   uint8_t passType; // 0=Graphics, 1=Generic
   uint8_t handleCount;
   uint16_t handleOffset; // Offset into handle storage
-  uint32_t padding;
   ExecuteLambda* executeLambda; // Heap-allocated to avoid inline storage
 };
 
@@ -432,10 +436,15 @@ class RenderGraph
 
     void RemoveTransientObserver(internal::ITransientResourceObserver* observer);
 
+    LinearColorSystem& GetLinearColorSystem()
+    {
+      return linearColorSystem;
+    }
+
   private:
     friend class internal::RenderPassBuilder;
     friend class internal::ExecutionContext;
-
+    friend class LinearColorSystem;
     // Batched execution step
     struct BatchedGraphicsPassExecution
     {
@@ -482,6 +491,8 @@ class RenderGraph
     // Core state
     vk::IContext& m_vkContext;
     GPUBuffers& m_gpu_buffers;
+    OITSystem oit;
+    LinearColorSystem linearColorSystem;
     bool m_isCompiled = false;
     uint32_t m_currentFrameIndex = 0;
     vk::Dimensions m_lastCompileDimensions = {0, 0};
@@ -553,5 +564,3 @@ class RenderGraph
 
     void EnsureBufferCapacity(internal::FrameBufferManager::Entry& resource, uint64_t requiredSize);
 };
-
-  }

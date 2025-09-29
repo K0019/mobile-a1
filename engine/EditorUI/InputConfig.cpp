@@ -145,7 +145,7 @@ namespace editor {
 					{
 						// Select the action and deselect previous binding
 						selectedActionPtr = selectedAction = action.get();
-						selectedBindingIndex = -1;
+						selectedBindingIndex = std::numeric_limits<size_t>::max();
 						isSelected = true;
 					}
 

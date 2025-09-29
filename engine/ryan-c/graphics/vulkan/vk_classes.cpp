@@ -95,15 +95,15 @@ namespace
     void* handle = nullptr;
     void* messageID = nullptr;
 
-
+    //EngineLogLevel level = Info;
     if (isError)
     {
-      const vk::VulkanContext* ctx = static_cast<vk::VulkanContext*>(userData);
+      //const vk::VulkanContext* ctx = static_cast<vk::VulkanContext*>(userData);
       //level = ctx->config_.terminateOnValidationError ? Critical : Warning;
     }
     else if (msgSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT)
     {
-     // level = Warning;
+      //level = Warning;
     }
 
     //if (!isError && !isWarning && cbData->pMessageIdName) {
@@ -112,9 +112,9 @@ namespace
     //	}
     //}
 
-    if (char typeName[128] = {}; sscanf(cbData->pMessage, "Validation Error: [ %[^]] ] Object %i: handle = %p, type = %127s | MessageID = %p", errorName, &object, &handle, typeName, &messageID) >= 2)
+    if (char typeName[128] = {}; sscanf_s(cbData->pMessage, "Validation Error: [ %[^]] ] Object %i: handle = %p, type = %127s | MessageID = %p", errorName, static_cast<unsigned int>(len+1), &object, &handle, typeName, 128, &messageID) >= 2)
     {
-      const char* message = strrchr(cbData->pMessage, '|') + 1;
+      //const char* message = strrchr(cbData->pMessage, '|') + 1;
 
       LOG_DYNAMIC(level, "{}Validation layer:\n Validation Error: {} \n Object {}: handle = {:#x}, type = {}\n " "MessageID = {:#x} \n{} \n", isError ? "\nERROR:\n" : "", errorName, object, reinterpret_cast<uintptr_t>(handle), typeName, reinterpret_cast<uintptr_t>(messageID), message);
     }
@@ -133,14 +133,14 @@ namespace
         int line = 0;
         int col = 0;
         const char* substr1 = strstr(cbData->pMessage, "Shader validation error occurred at line ");
-        if (substr1 && sscanf(substr1, "Shader validation error occurred at line %d, column %d.", &line, &col) >= 1)
+        if (substr1 && sscanf_s(substr1, "Shader validation error occurred at line %d, column %d.", &line, &col) >= 1)
         {
           const char* substr2 = strstr(cbData->pMessage, "Shader Module (Shader Module: ");
           std::vector<char> shaderModuleDebugBuffer(len + 1);
           char* shaderModuleDebugName = shaderModuleDebugBuffer.data();
           VkShaderModule shaderModule = VK_NULL_HANDLE;
 #if VK_USE_64_BIT_PTR_DEFINES
-          if (substr2 && sscanf(substr2, "Shader Module (Shader Module: %[^)])(%p)", shaderModuleDebugName, &shaderModule) == 2)
+          if (substr2 && sscanf_s(substr2, "Shader Module (Shader Module: %[^)])(%p)", shaderModuleDebugName, static_cast<unsigned int>(len+1), &shaderModule) == 2)
           {
 #else
 					if(substr2 && sscanf(substr2, "Shader Module (Shader Module: %[^)])(%llu)", shaderModuleDebugName, &shaderModule) == 2) {
@@ -2364,7 +2364,7 @@ void vk::CommandBuffer::cmdDispatchThreadGroups(const Dimensions& threadgroupCou
   }
   for (uint32_t i = 0; i != Dependencies::MAX_SUBMIT_DEPENDENCIES && deps.buffers[i]; i++)
   {
-    const VulkanBuffer* buf = ctx_->buffersPool_.get(deps.buffers[i]);
+    [[maybe_unused]] const VulkanBuffer* buf = ctx_->buffersPool_.get(deps.buffers[i]);
     ASSERT_MSG(buf->vkUsageFlags_ & VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, "Did you forget to specify BufferUsageBits_Storage on your buffer?");
     bufferBarrier(deps.buffers[i], VK_PIPELINE_STAGE_2_VERTEX_SHADER_BIT | VK_PIPELINE_STAGE_2_FRAGMENT_SHADER_BIT, VK_PIPELINE_STAGE_2_COMPUTE_SHADER_BIT);
   }
@@ -2491,7 +2491,7 @@ void vk::CommandBuffer::cmdBeginRendering(const RenderPass& renderPass, const Fr
   }
 
   const uint32_t numFbColorAttachments = fb.getNumColorAttachments();
-  const uint32_t numPassColorAttachments = renderPass.getNumColorAttachments();
+  [[maybe_unused]] const uint32_t numPassColorAttachments = renderPass.getNumColorAttachments();
 
   ASSERT(numPassColorAttachments == numFbColorAttachments);
 
@@ -3197,7 +3197,7 @@ void vk::VulkanStagingDevice::bufferSubData(VulkanBuffer& buffer, size_t dstOffs
   }
 }
 
-void vk::VulkanStagingDevice::imageData2D(VulkanImage& image, const VkRect2D& imageRegion, uint32_t baseMipLevel, uint32_t numMipLevels, uint32_t layer, uint32_t numLayers, VkFormat format, const void* data)
+void vk::VulkanStagingDevice::imageData2D(VulkanImage& image, const VkRect2D& imageRegion, uint32_t baseMipLevel, uint32_t numMipLevels, [[maybe_unused]] uint32_t layer, uint32_t numLayers, VkFormat format, const void* data)
 {
   PROFILER_FUNCTION();
 
@@ -3925,7 +3925,7 @@ vk::Holder<vk::TextureHandle> vk::VulkanContext::createTexture(const TextureDesc
     // check if any of the format in compatible list is supported
     for (VkFormat format : compatibleDepthStencilFormatList)
     {
-      if (std::ranges::find(std::as_const(deviceDepthFormats_), format) != deviceDepthFormats_.cend())
+      if (std::find(deviceDepthFormats_.cbegin(), deviceDepthFormats_.cend(), format) != deviceDepthFormats_.cend())
       {
         return format;
       }
@@ -5414,7 +5414,7 @@ vk::ShaderModuleState vk::VulkanContext::createShaderModuleFromSPIRV(const void*
   ASSERT(vkShaderModule != VK_NULL_HANDLE);
 
   SpvReflectShaderModule mdl;
-  SpvReflectResult result = spvReflectCreateShaderModule(numBytes, spirv, &mdl);
+  [[maybe_unused]] SpvReflectResult result = spvReflectCreateShaderModule(numBytes, spirv, &mdl);
   ASSERT(result == SPV_REFLECT_RESULT_SUCCESS);
   SCOPE_EXIT { spvReflectDestroyShaderModule(&mdl); };
 
@@ -5879,7 +5879,7 @@ void vk::VulkanContext::createInstance()
   // log available instance extensions
   LOG_INFO("Vulkan instance extensions:");
 
-  for (const VkExtensionProperties& extension : allInstanceExtensions)
+  for ([[maybe_unused]] const VkExtensionProperties& extension : allInstanceExtensions)
   {
     LOG_INFO("{}", extension.extensionName);
   }
@@ -5974,7 +5974,7 @@ uint32_t vk::VulkanContext::queryDevices(HWDeviceType deviceType, HWDeviceDesc* 
     if (outDevices && numCompatibleDevices < maxOutDevices)
     {
       outDevices[numCompatibleDevices] = {.guid = (uintptr_t)vkDevices[i], .type = hw_device};
-      strncpy(outDevices[numCompatibleDevices].name, deviceProperties.deviceName, strlen(deviceProperties.deviceName));
+      strncpy_s(outDevices[numCompatibleDevices].name, deviceProperties.deviceName, strlen(deviceProperties.deviceName));
       numCompatibleDevices++;
     }
   }
@@ -6109,7 +6109,7 @@ vk::Result vk::VulkanContext::initContext(const HWDeviceDesc& desc)
 
   LOG_INFO("Vulkan physical device extensions:\n");
   // log available physical device extensions
-  for (const VkExtensionProperties& ext : allDeviceExtensions)
+  for ([[maybe_unused]] const VkExtensionProperties& ext : allDeviceExtensions)
   {
     LOG_INFO("{}", ext.extensionName);
   }

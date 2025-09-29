@@ -1,53 +1,15 @@
 #pragma once
 #include <vector>
+
+#include "import_config.h"
+#include "processed_assets.h"
 #include "assets/core/asset_types.h"
-#include "assets/core/import_config.h"
 
 struct aiScene;
 struct aiMaterial;
 
 namespace AssetLoading
 {
-  struct ProcessedMaterial
-  {
-    std::string name;
-
-    // Core PBR properties
-    vec4 baseColorFactor = vec4(1.0f);
-    float metallicFactor = 1.0f;
-    float roughnessFactor = 1.0f;
-    vec3 emissiveFactor = vec3(0.0f);
-    float normalScale = 1.0f;
-    float occlusionStrength = 1.0f;
-    float alphaCutoff = 0.5f;
-
-    // Texture properties with transforms
-    MaterialTexture baseColorTexture;
-    MaterialTexture metallicRoughnessTexture;
-    MaterialTexture normalTexture;
-    MaterialTexture emissiveTexture;
-    MaterialTexture occlusionTexture;
-
-    // Material properties
-    AlphaMode alphaMode = AlphaMode::Opaque;
-    uint32_t materialTypeFlags = MaterialType_MetallicRoughness;
-    uint32_t flags = sMaterialFlags_CastShadow | sMaterialFlags_ReceiveShadow;
-    bool doubleSided = false;
-
-    // For texture loader compatibility
-    std::vector<TextureDataSource> textures;
-
-    bool isTransparent() const
-    {
-      return alphaMode == AlphaMode::Blend || baseColorFactor.a < 1.0f;
-    }
-
-    bool isAlphaTested() const
-    {
-      return alphaMode == AlphaMode::Mask;
-    }
-  };
-
   namespace MaterialLoading
   {
     // Single material extraction - fully parallelizable
@@ -55,9 +17,6 @@ namespace AssetLoading
 
     // Collection utilities
     std::vector<const aiMaterial*> collectMaterialPointers(const aiScene* scene, const LoadingConfig& config);
-
-    // Conversion and utility functions
-    Material convertToStoredMaterial(const ProcessedMaterial& processed);
 
     bool isValidMaterial(const ProcessedMaterial& material);
 

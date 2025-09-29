@@ -1,0 +1,114 @@
+layout(local_size_x = 4, local_size_y = 4, local_size_z = 4) in;
+
+struct GPULight {
+    vec3 position;
+    float range;
+    vec3 color;
+    uint type;
+    vec3 direction;
+    float spotAngle;
+};
+
+struct ClusterBounds {
+    vec3 minBounds;
+    float pad0;
+    vec3 maxBounds;
+    float pad1;
+};
+
+struct LightList {
+    uint offset;
+    uint count;
+};
+
+layout(buffer_reference, std430) readonly buffer LightBuffer {
+    GPULight lights[];
+};
+
+layout(buffer_reference, std430) readonly buffer ClusterBoundsBuffer {
+    ClusterBounds bounds[];
+};
+
+layout(buffer_reference, std430) buffer LightIndicesBuffer {
+    uint counter;
+    uint indices[];
+};
+
+layout(buffer_reference, std430) writeonly buffer LightListsBuffer {
+    LightList lists[];
+};
+
+layout(push_constant) uniform LightCullingData {
+    LightBuffer lights;
+    ClusterBoundsBuffer clusterBounds;
+    LightIndicesBuffer lightIndices;
+    LightListsBuffer lightLists;
+    mat4 viewMatrix;
+    uint totalLightCount;
+    uint totalClusters;
+    uint clusterDimX, clusterDimY, clusterDimZ;
+} pc;
+
+// Constants
+const uint MAX_LIGHTS_PER_CLUSTER = 32;
+
+// Simple sphere-AABB intersection test
+bool sphereIntersectsAABB(vec3 center, float radius, vec3 aabbMin, vec3 aabbMax) {
+    vec3 closest = clamp(center, aabbMin, aabbMax);
+    return distance(center, closest) <= radius;
+}
+
+void main() {
+    uvec3 clusterID = gl_GlobalInvocationID;
+    
+    // Early exit for out-of-bounds
+    if (any(greaterThanEqual(clusterID, uvec3(pc.clusterDimX, pc.clusterDimY, pc.clusterDimZ)))) {
+        return;
+    }
+    
+    uint clusterIndex = clusterID.z * (pc.clusterDimX * pc.clusterDimY) + 
+                       clusterID.y * pc.clusterDimX + clusterID.x;
+    
+    ClusterBounds cluster = pc.clusterBounds.bounds[clusterIndex];
+    uint lightCount = 0;
+    uint lightIndices[MAX_LIGHTS_PER_CLUSTER];
+    
+    // Test each light against this cluster
+    for (uint lightIndex = 0; lightIndex < pc.totalLightCount; ++lightIndex) {
+        GPULight light = pc.lights.lights[lightIndex];
+        
+        // Transform light to view space
+        vec4 lightPosView = pc.viewMatrix * vec4(light.position, 1.0);
+        
+        // Test intersection using simple sphere-AABB test
+        if (sphereIntersectsAABB(lightPosView.xyz, light.range, 
+                                cluster.minBounds, cluster.maxBounds)) {
+            
+            if (lightCount < MAX_LIGHTS_PER_CLUSTER) {
+                lightIndices[lightCount] = lightIndex;
+                lightCount++;
+            } else {
+                // Cluster is full, stop adding lights
+                break;
+            }
+        }
+    }
+    
+    // Allocate space in global light indices buffer
+    if (lightCount > 0) {
+        uint globalOffset = atomicAdd(pc.lightIndices.counter, lightCount);
+        
+        // Store light list metadata
+        pc.lightLists.lists[clusterIndex].offset = globalOffset + 1; // +1 to skip counter
+        pc.lightLists.lists[clusterIndex].count = lightCount;
+        
+        // Copy light indices to global buffer
+        for (uint i = 0; i < lightCount; ++i) {
+            pc.lightIndices.indices[globalOffset + 1 + i] = lightIndices[i];
+        }
+    } else {
+        // No lights in this cluster
+        pc.lightLists.lists[clusterIndex].offset = 0;
+        pc.lightLists.lists[clusterIndex].count = 0;
+    }
+}

@@ -10,7 +10,7 @@
 
 namespace editor
 {
-  class TransientRegistry : public Render::internal::ITransientResourceObserver
+  class TransientRegistry : public internal::ITransientResourceObserver
   {
     public:
       TransientRegistry() = default;

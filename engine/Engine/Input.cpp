@@ -127,6 +127,7 @@ bool InputSet::RenameAction(const std::string& oldName, const std::string& newNa
 
 	actions.try_emplace(newName, actions.at(oldName));
 	actions.erase(oldName);
+	return true;
 }
 
 void InputSet::Serialize(Serializer& writer) const

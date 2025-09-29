@@ -26,7 +26,7 @@ class Renderer : public IRenderer
     // Frame processing - all on main thread
     void beginFrame();
 
-    void render(Render::FrameData& frameData);
+    void render(FrameData& frameData);
 
     void endFrame();
 
@@ -37,16 +37,19 @@ class Renderer : public IRenderer
 
     void* GetFeatureParameterBlockPtr(uint64_t feature_handle) override;
 
-    // Direct access to subsystems for asset uploads
     GPUBuffers& getGPUBuffers() { return *m_gpuBuffers; }
 
     const GPUBuffers& getGPUBuffers() const { return *m_gpuBuffers; }
 
+    const ToneMappingSettings& GetToneMappingSettings() const;
+
+    void UpdateToneMappingSettings(const ToneMappingSettings& newSettings) const;
+
     bool isWindowReadyForShow() const { return m_windowReadyForShow; }
 
-    void AddTransientResourceObserver(Render::internal::ITransientResourceObserver* observer) const;
+    void AddTransientResourceObserver(internal::ITransientResourceObserver* observer) const;
 
-    void RemoveTransientResourceObserver(Render::internal::ITransientResourceObserver* observer) const;
+    void RemoveTransientResourceObserver(internal::ITransientResourceObserver* observer) const;
 
   private:
     uint64_t DoCreateFeature(std::function<std::unique_ptr<IRenderFeature>()> factory) override;
@@ -56,7 +59,7 @@ class Renderer : public IRenderer
 
     struct PerFrameResources
     {
-      Render::FrameData frameData;
+      ::FrameData frameData;
       // Each feature manages its own per-frame data via double-buffering
     };
 
@@ -77,7 +80,7 @@ class Renderer : public IRenderer
 
     // Core systems
     std::unique_ptr<vk::IContext> m_vkContext;
-    std::unique_ptr<Render::RenderGraph> m_renderGraph;
+    std::unique_ptr<::RenderGraph> m_renderGraph;
     std::unique_ptr<GPUBuffers> m_gpuBuffers;
 
     GLFWwindow* m_window;

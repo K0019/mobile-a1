@@ -124,7 +124,7 @@ bool Deserializer::DeserializeVar(const std::string& key, T* out)
 
     if constexpr (std::is_same_v<T, int> || std::is_same_v<T, char>)
         *out = static_cast<T>(reader.GetInt());
-    else if constexpr (std::is_same_v<T, unsigned int>)
+    else if constexpr (std::is_same_v<T, unsigned int> || std::is_same_v<T, unsigned char>)
         *out = static_cast<T>(reader.GetUint());
     else if constexpr (std::is_same_v<T, size_t>)
         *out = reader.GetUint64();

@@ -72,9 +72,8 @@ void main() {
 }
 )";
 
-  using namespace Render;
 
-  void ImGuiRenderFeature::SetupPasses(Render::internal::RenderPassBuilder& passBuilder)
+  void ImGuiRenderFeature::SetupPasses(::internal::RenderPassBuilder& passBuilder)
   {
     vk::BufferDesc vertexDesc{ .usage = vk::BufferUsageBits_Storage,
       .storage = vk::StorageType::HostVisible,
@@ -98,8 +97,8 @@ void main() {
           .usage = vk::TextureUsageBits_Sampled })
           .UseResource(RenderResources::SCENE_COLOR, AccessType::Read)
       .UseResource("ImGuiSceneView", AccessType::Write)
-      .SetPriority(Render::internal::RenderPassBuilder::PassPriority::UI)
-      .AddGenericPass("CopySceneForImGui", [this](const Render::internal::ExecutionContext& context) {
+      .SetPriority(::internal::RenderPassBuilder::PassPriority::UI)
+      .AddGenericPass("CopySceneForImGui", [this](const ::internal::ExecutionContext& context) {
       CopySceneForImGuiView(context);
     });
     passBuilder.CreatePass().
@@ -108,17 +107,17 @@ void main() {
       UseResource(RenderResources::SCENE_COLOR, AccessType::ReadWrite).
       UseResource("ImGuiVertexBuffer", AccessType::ReadWrite).
       UseResource("ImGuiIndexBuffer", AccessType::ReadWrite).
-      SetPriority(Render::internal::RenderPassBuilder::PassPriority::UI).
+      SetPriority(::internal::RenderPassBuilder::PassPriority::UI).
       ExecuteAfter("CopySceneForImGui").
       AddGraphicsPass("ImGuiRender",
                       passInfo,
-                      [this](const Render::internal::ExecutionContext& context)
+                      [this](const ::internal::ExecutionContext& context)
     {
       RenderImGui(context);
     });
   }
 
-  void ImGuiRenderFeature::EnsurePipelineCreated(const Render::internal::ExecutionContext& context)
+  void ImGuiRenderFeature::EnsurePipelineCreated(const ::internal::ExecutionContext& context)
   {
     if(resourcesCreated_)
       return;
@@ -138,7 +137,7 @@ void main() {
     resourcesCreated_ = true;
   }
 
-  void ImGuiRenderFeature::RenderImGui(const Render::internal::ExecutionContext& context)
+  void ImGuiRenderFeature::RenderImGui(const ::internal::ExecutionContext& context)
   {
     const Parameters& params = *static_cast<const Parameters*>(GetParameterBlock_RT());
 
@@ -273,7 +272,7 @@ void main() {
   }
 
   void ImGuiRenderFeature::CopySceneForImGuiView(
-    const Render::internal::ExecutionContext& context)
+    const ::internal::ExecutionContext& context)
   {
     vk::TextureHandle sceneColor = context.GetTexture(RenderResources::SCENE_COLOR);
     vk::TextureHandle sceneView = context.GetTexture("ImGuiSceneView");

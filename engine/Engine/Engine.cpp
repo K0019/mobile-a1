@@ -174,7 +174,11 @@ bool Engine::IsShuttingDown() const
 void Engine::init()
 {
 	ST<GameSettings>::Get()->Load(); // Only load settings from file first so we have the correct filepaths.
-
+#ifdef _DEBUG
+	// identify file path for loading asset files
+	CONSOLE_LOG(LEVEL_INFO) << "Current working directory: " << std::filesystem::canonical(ST<Filepaths>::Get()->workingDir);
+	CONSOLE_LOG(LEVEL_INFO) << "Actual working directory: " << std::filesystem::current_path();
+#endif
 	CrashHandler::SetupCrashHandler(); // DO NOT REMOVE THIS LINE EVER
 
 	// Scripting Engine Initialisation
@@ -195,11 +199,7 @@ void Engine::init()
 
 	ST<GameSettings>::Get()->Apply(); // Apply the loaded settings here
 
-#ifdef _DEBUG
-	// identify file path for loading asset files
-	CONSOLE_LOG(LEVEL_INFO) << "Current working directory: " << std::filesystem::canonical(ST<Filepaths>::Get()->workingDir);
-	CONSOLE_LOG(LEVEL_INFO) << "Actual working directory: " << std::filesystem::current_path();
-#endif
+
 	// load resources
 	ST<ResourceManager>::Get()->Init();
 	ST<ResourceManager>::Get()->LoadFromFile();

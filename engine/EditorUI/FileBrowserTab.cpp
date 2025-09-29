@@ -444,7 +444,7 @@ void FileBrowserTab::ShowSpriteSheetDialog()
 }
 #endif
 
-void FileBrowserTab::ImportAsSpriteSheet(const std::filesystem::path& path, int spriteCount, const std::string& baseName)
+void FileBrowserTab::ImportAsSpriteSheet([[maybe_unused]] const std::filesystem::path& path, [[maybe_unused]] int spriteCount, [[maybe_unused]] const std::string& baseName)
 {
     // Get path relative to root directory
     std::string relativePath{ CopyIntoWorkingDir(path).string() };
@@ -478,7 +478,7 @@ void FileBrowserTab::ImportAsSpriteSheet(const std::filesystem::path& path, int 
     }*/
 }
 
-void FileBrowserTab::ImportAsSprite(const std::filesystem::path& path, const std::string& name)
+void FileBrowserTab::ImportAsSprite(const std::filesystem::path& path, [[maybe_unused]] const std::string& name)
 {
     // Get path relative to root directory
     std::string relativePath{ CopyIntoWorkingDir(path).string() };

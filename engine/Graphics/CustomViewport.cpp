@@ -21,7 +21,6 @@ All rights reserved.
 #include "CustomViewport.h"
 #include "Input.h"
 
-#include "AnimatorComponent.h"
 #include "SceneManagement.h"
 #include "EditorHistory.h"
 #include "imgui_context.h"
@@ -237,21 +236,7 @@ void CustomViewport::DrawImGuiWindow() {
 		}
 		if (ImGui::BeginDragDropTarget())
 		{
-			if (ImGuiPayload const* payload = ImGui::AcceptDragDropPayload("SPRITE_ID"))
-			{
-				if (ImGui::IsMouseReleased(0))
-				{
-					ecs::EntityHandle entity{ ecs::CreateEntity() };
-					ST<History>::Get()->OneEvent(HistoryEvent_EntityCreate{ entity });
-					size_t ID = *static_cast<size_t*>(payload->Data);
-					const auto& sprite = ResourceManagerOld::GetSprite(ID);
-					CONSOLE_LOG_UNIMPLEMENTED() << "Spawn entity from sprite drop into viewport";
-					//entity->GetTransform().SetLocal(0.5f, InputOld::GetMousePosWorld(), { static_cast<float>(sprite.width), static_cast<float>(sprite.height) }, 0.0f);
-					entity->AddCompNow(SpriteComponent{ ID });
-					ST<Inspector>::Get()->SetSelectedEntity(entity);
-				}
-			}
-			else if (ImGuiPayload const* payload_entity = ImGui::AcceptDragDropPayload("PREFAB"))
+			if (ImGuiPayload const* payload_entity = ImGui::AcceptDragDropPayload("PREFAB"))
 			{
 				if (ImGui::IsMouseReleased(0))
 				{
@@ -260,21 +245,6 @@ void CustomViewport::DrawImGuiWindow() {
 					ST<History>::Get()->OneEvent(HistoryEvent_EntityCreate{ entity });
 					CONSOLE_LOG_UNIMPLEMENTED() << "Spawn entity from prefab drop into viewport";
 					//entity->GetTransform().SetWorldPosition(InputOld::GetMousePosWorld());
-					ST<Inspector>::Get()->SetSelectedEntity(entity);
-				}
-			}
-			else if (ImGuiPayload const* payload_anim = ImGui::AcceptDragDropPayload("ANIM_HASH"))
-			{
-				if (ImGui::IsMouseReleased(0))
-				{
-					size_t animHash = *static_cast<size_t*>(payload_anim->Data);
-					ecs::EntityHandle entity = ecs::CreateEntity();
-					ST<History>::Get()->OneEvent(HistoryEvent_EntityCreate{ entity });
-					const auto& anim = ResourceManagerOld::GetAnimation(animHash);
-					entity->AddCompNow(SpriteComponent{});
-					entity->AddCompNow(AnimatorComponent{ animHash });
-					CONSOLE_LOG_UNIMPLEMENTED() << "Spawn entity from animation drop into viewport";
-					//entity->GetTransform().SetLocal(0.5f, InputOld::GetMousePosWorld(), { static_cast<float>(anim.Width), static_cast<float>(anim.Height) }, 0.0f);
 					ST<Inspector>::Get()->SetSelectedEntity(entity);
 				}
 			}
@@ -326,7 +296,7 @@ void CustomViewport::MaintainAspectRatio(ImGuiSizeCallbackData* data) {
 
 #endif
 
-Transform CustomViewport::WorldToWindowTransform(const Transform& worldTransform) const {
+Transform CustomViewport::WorldToWindowTransform([[maybe_unused]] const Transform& worldTransform) const {
 	Transform viewTransform;
 #ifdef IMGUI_ENABLED
 	auto WORLD = ST<GraphicsWindow>::Get()->GetViewportExtent();
@@ -382,7 +352,7 @@ Transform CustomViewport::WorldToWindowTransform(const Transform& worldTransform
 	return viewTransform;
 }
 
-Vec3 CustomViewport::WindowToWorldPosition(const Vec2& inWindowPos) const {
+Vec3 CustomViewport::WindowToWorldPosition([[maybe_unused]] const Vec2& inWindowPos) const {
 
 /*
 #ifdef IMGUI_ENABLED

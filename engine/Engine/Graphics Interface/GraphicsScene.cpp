@@ -37,6 +37,7 @@ bool GraphicsScene::NewFrame()
 
     params->clear();
     objIndex = 0;
+    return true;
 }
 
 void GraphicsScene::AddObject(const MeshHandle& meshHandle, const MaterialHandle& materialHandle, const Mat4& transform)
@@ -54,7 +55,7 @@ void GraphicsScene::AddObject(const MeshHandle& meshHandle, const MaterialHandle
     params->materialIndices.push_back(context.assetSystem->getMaterialIndex(materialHandle));
 
     // Transform mesh bounds to world space
-    Vec3 center{ meshData->bounds };
+    Vec3 center{ meshData->bounds.x,  meshData->bounds.y,  meshData->bounds.z };
     Vec3 radius{ meshData->bounds.w };
     Vec3 worldCenter = Vec3(transform * Vec4{ center, 1.0f });
     params->objectBounds.emplace_back(worldCenter - radius, worldCenter + radius);
@@ -86,3 +87,21 @@ void GraphicsScene::AddObject(const MeshHandle& meshHandle, const MaterialHandle
     // Track next object's index
     ++objIndex;
 }
+
+void GraphicsScene::AddLight(const SceneLight& sceneLight)
+{
+    // Skip disabled lights
+    if (sceneLight.intensity <= 0.0f)
+        return;
+
+    // Skip lights with zero/invalid color
+    if (length(sceneLight.color) <= 0.0f)
+        return;
+
+    Lighting::GPULight gpuLight;
+    SceneRenderFeature::convertSceneLight(sceneLight, gpuLight);
+    params->lights.push_back(gpuLight);
+    params->activeLightCount = static_cast<uint32_t>(params->lights.size());
+}
+
+

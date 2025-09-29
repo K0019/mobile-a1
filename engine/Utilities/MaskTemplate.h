@@ -498,7 +498,6 @@ void MaskTemplate<ENUM_TYPE, EnableMatrix>::DeserializeMatrix(Deserializer& read
 	reader.DeserializeVar("_majorityTrue", &majorityTrue);
 
 	// Deserialize all combinations
-	bool val{};
 	for (ENUM_TYPE i{ static_cast<ENUM_TYPE>(0) }; i < ENUM_TYPE::TOTAL; ++i)
 	{
 		// Set all fresh combinations involving this bit to the majority first

@@ -36,8 +36,6 @@ All rights reserved.
 #include "AssetBrowserCategories.h"
 #include "MeshTab.h"
 #include "MaterialTab.h"
-#include "SpriteTab.h"
-#include "AnimationTab.h"
 #include "SoundTab.h"
 #include "SceneTab.h"
 #include "FileBrowserTab.h"
@@ -54,8 +52,6 @@ AssetBrowser::AssetBrowser() {
     // Initialize with default state
     assetCategories.push_back(std::make_unique<MeshTab>());
     assetCategories.push_back(std::make_unique<MaterialTab>());
-    assetCategories.push_back(std::make_unique<SpriteTab>());
-    assetCategories.push_back(std::make_unique<AnimationTab>());
     assetCategories.push_back(std::make_unique<PrefabTab>());
     assetCategories.push_back(std::make_unique<SceneTab>());
     assetCategories.push_back(std::make_unique<SoundTab>());
@@ -116,7 +112,7 @@ void AssetBrowser::RenderSidebar() {
         auto& category = assetCategories[i];
         if (ImGui::Selectable(category->GetIdentifier(), currentCategoryIndex == i))
         {
-            currentCategoryIndex = i;
+            currentCategoryIndex = static_cast<int>(i);
         }
     }
 
@@ -139,7 +135,6 @@ void AssetBrowser::RenderToolbar()
     ImGui::BeginGroup();
     float windowWidth = ImGui::GetContentRegionAvail().x;
     float searchWidth = 300;
-    float spacing = ImGui::GetStyle().ItemSpacing.x;
 
     assetCategories[currentCategoryIndex]->RenderBreadcrumb();
 

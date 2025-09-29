@@ -68,7 +68,7 @@ void BTFactory::SetAllFilePath()
 
 const std::string& BTFactory::GetFilePath(const std::string& btName) const
 {
-    return filePaths.contains(btName) ? filePaths.at(btName) : "";
+    return filePaths.contains(btName) ? filePaths.at(btName) : util::EmptyStr();
 }
 
 void BTFactory::GetAllBTNames(std::vector<std::string>* out) const

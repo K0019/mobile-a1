@@ -26,99 +26,129 @@ All rights reserved.
 #include "LightComponent.h"
 #include "GUICollection.h"
 
-LightComponent::LightComponent() : 
-    LightComponent(Vec3{ 1.0f, 1.0f, 1.0f }, 1.0f, 10.0f, 1.0f) {}
-
-LightComponent::LightComponent(
-    const Vec3& color,
-    float intensity,
-    float radius,
-    float falloffExponent
-)
-    : color{ color }
-    , intensity{ intensity }
-    , radius{ radius }
-    , falloffExponent{ falloffExponent }
-    , state{ true, true, false } // enabled, castShadows, isSpot
-{
-}
+LightComponent::LightComponent() = default;
 
 void LightComponent::EditorDraw()
 {
 #ifdef IMGUI_ENABLED
-    // Core light state
-    bool enabled = state.enabled;
-    if(ImGui::Checkbox("Enabled", &enabled)) {
-        state.enabled = enabled;
+    ImGui::Text("Light Properties");
+
+    // Light Type Combo
+    const char* lightTypeItems[] = { "Directional", "Point", "Spot", "Area" };
+    int currentLightType = static_cast<int>(light.type);
+    if (ImGui::Combo("Type", &currentLightType, lightTypeItems, IM_ARRAYSIZE(lightTypeItems)))
+    {
+        light.type = static_cast<LightType>(currentLightType);
     }
 
-    if(!enabled) return;
-
-    // Shadow casting control
-    ImGui::SameLine();
-    ImGui::Checkbox("Cast Shadows", &state.castShadows);
-    
-    ImGui::SeparatorText("Light Properties");
-
-    // Color and intensity editor - maintained from original
-    float colorWithIntensity[4] = {
-        color.x,
-        color.y,
-        color.z,
-        intensity
-    };
-    if(ImGui::ColorEdit4("Color & Intensity", colorWithIntensity)) {
-        color = Vec3(
-            colorWithIntensity[0],
-            colorWithIntensity[1],
-            colorWithIntensity[2]
-        );
-        intensity = colorWithIntensity[3];
+    // Name Input
+    char nameBuffer[128];
+    strncpy_s(nameBuffer, light.name.c_str(), sizeof(nameBuffer));
+    if (ImGui::InputText("Name", nameBuffer, sizeof(nameBuffer)))
+    {
+        light.name = nameBuffer;
     }
 
-    // Distance attenuation controls
-    ImGui::DragFloat("Radius", &radius, 1.0f, 1.0f,1000.0f, "%.0f units");
-    ImGui::SliderFloat("Falloff Exponent", &falloffExponent, 0.1f, 5.0f);
-    ImGui::SliderFloat("Inner Radius", &innerRadius, 0.0f, 
-                      radius, "%.1f units");
-
-    // Spot light controls
-    bool isSpot = state.isSpot;
-    if(ImGui::Checkbox("Spot Light", &isSpot)) {
-        state.isSpot = isSpot;
+    // Position
+    if (light.type == LightType::Point || light.type == LightType::Spot || light.type == LightType::Area)
+    {
+        if (ImGui::DragFloat3("Position", &light.position.x, 0.1f))
+        {
+            // Position updated directly
+        }
     }
 
-    if(state.isSpot) {
-        ImGui::SeparatorText("Spotlight Properties");
-        
-        // Simplified angle control with single angle + falloff
-        ImGui::SliderFloat("Cone Angle", &coneAngle, 1.0f, 180.0f);
-        
-        // Falloff control determines inner angle automatically
-        ImGui::SliderFloat("Edge Softness", &coneFalloff, 0.0f, 1.0f);
-        
-        // Display calculated angles for reference
-        ImGui::BeginDisabled();
-        float innerAngle = getInnerConeAngle();
-        float outerAngle = getOuterConeAngle();
-        ImGui::LabelText("Effective Angles", 
-            "Inner: %.1f, Outer: %.1f", 
-            innerAngle, outerAngle);
-        ImGui::EndDisabled();
+    // Direction
+    if (light.type == LightType::Directional || light.type == LightType::Spot)
+    {
+        if (ImGui::DragFloat3("Direction", &light.direction.x, 0.01f))
+        {
+            // Normalize direction to maintain valid direction vector
+            light.direction = normalize(light.direction);
+        }
     }
 
-    // Advanced debug visualization
-    if(ImGui::CollapsingHeader("Debug Info")) {
-        ImGui::BeginDisabled();
-        ImGui::LabelText("Inner Angle (rad)", "%.3f", 
-                        glm::radians(getInnerConeAngle()));
-        ImGui::LabelText("Outer Angle (rad)", "%.3f", 
-                        glm::radians(getOuterConeAngle()));
-        ImGui::LabelText("Effective Range", "%.1f units", 
-                        radius - innerRadius);
-        ImGui::EndDisabled();
+    // Color
+    if (ImGui::ColorEdit3("Color", &light.color.x))
+    {
+        // Color updated directly
+    }
+
+    // Intensity
+    if (ImGui::DragFloat("Intensity", &light.intensity, 0.1f, 0.0f, 100.0f))
+    {
+        // Intensity updated directly
+    }
+
+    // Attenuation (for Point and Spot lights)
+    if (light.type == LightType::Point || light.type == LightType::Spot)
+    {
+        if (ImGui::DragFloat3("Attenuation (Const, Lin, Quad)", &light.attenuation.x, 0.01f, 0.0f, 10.0f))
+        {
+            // Attenuation updated directly
+        }
+    }
+
+    // Cone angles (for Spot lights)
+    if (light.type == LightType::Spot)
+    {
+        float innerDeg = glm::degrees(light.innerConeAngle);
+        float outerDeg = glm::degrees(light.outerConeAngle);
+        bool anglesChanged = false;
+
+        if (ImGui::DragFloat("Inner Cone Angle (deg)", &innerDeg, 0.1f, 0.0f, outerDeg))
+        {
+            anglesChanged = true;
+        }
+        if (ImGui::DragFloat("Outer Cone Angle (deg)", &outerDeg, 0.1f, innerDeg, 90.0f))
+        {
+            anglesChanged = true;
+        }
+
+        if (anglesChanged)
+        {
+            light.innerConeAngle = glm::radians(innerDeg);
+            light.outerConeAngle = glm::radians(outerDeg);
+        }
+    }
+
+    // Area size (for Area lights)
+    if (light.type == LightType::Area)
+    {
+        if (ImGui::DragFloat2("Area Size", &light.areaSize.x, 0.1f, 0.0f, 100.0f))
+        {
+            // Area size updated directly
+        }
     }
 #endif
+}
+
+void LightComponent::Serialize(Serializer& writer) const
+{
+    writer.Serialize("type", static_cast<uint8_t>(light.type));
+    writer.Serialize("position", light.position);
+    writer.Serialize("direction", light.direction);
+    writer.Serialize("color", light.color);
+    writer.Serialize("attenuation", light.attenuation);
+    writer.Serialize("intensity", light.intensity);
+    writer.Serialize("innerConeAngle", light.innerConeAngle);
+    writer.Serialize("outerConeAngle", light.outerConeAngle);
+    writer.Serialize("areaSize", light.areaSize);
+}
+
+void LightComponent::Deserialize(Deserializer& reader)
+{
+    Vec3 v3;
+    Vec2 v2;
+    reader.DeserializeVar("type", reinterpret_cast<uint8_t*>(&light.type));
+    reader.DeserializeVar("position", &v3), light.position = v3;
+    reader.DeserializeVar("direction", &v3), light.direction = v3;
+    reader.DeserializeVar("color", &v3), light.color = v3;
+    reader.DeserializeVar("attenuation", &v3), light.attenuation = v3;
+    reader.DeserializeVar("intensity", &light.intensity);
+    reader.DeserializeVar("innerConeAngle", &light.innerConeAngle);
+    reader.DeserializeVar("outerConeAngle", &light.outerConeAngle);
+    reader.DeserializeVar("areaSize", &v2), light.areaSize = v2;
 }
 
 LightBlinkComponent::LightBlinkComponent()

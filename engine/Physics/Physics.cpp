@@ -100,15 +100,6 @@ namespace physics {
 				pos += boxColliderComp->GetCenter();
 			bodyInterface.SetPosition(bodyID, JPH::Vec3{ pos.x, pos.y, pos.z }, JPH::EActivation::Activate);
 		}
-
-		//Scale
-		Vec3 scale{ ecs::GetEntity(this)->GetTransform().GetWorldScale() };
-		if (scale != prevTransform.GetWorldScale())
-		{
-			if (auto boxColliderComp{ ecs::GetEntity(this)->GetComp<BoxColliderComp>() })
-				scale *= boxColliderComp->GetSize();
-			ST<JoltPhysics>::Get()->ScaleShape(bodyID, scale);
-		}
 		
 		//Rotation
 		Vec3 rot{ ecs::GetEntity(this)->GetTransform().GetWorldRotation() };

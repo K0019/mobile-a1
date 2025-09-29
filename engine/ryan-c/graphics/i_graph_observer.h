@@ -5,7 +5,7 @@
 #include <string_view>
 #include <cstdint>
 
-namespace Render::internal
+namespace internal
 {
   /**
    * Pure observer interface for transient resource updates.

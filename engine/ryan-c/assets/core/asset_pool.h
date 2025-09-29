@@ -31,7 +31,7 @@ class AssetPool
   void grow()
   {
     const size_t oldSize = m_metadata.size();
-    const size_t newSize = std::max(oldSize + oldSize / 2, oldSize + 16);
+    const size_t newSize = (std::max)(oldSize + oldSize / 2, oldSize + 16);
 
     m_metadata.resize(newSize);
     m_hotData.resize(newSize);

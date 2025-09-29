@@ -1,7 +1,6 @@
 #pragma once
 #include "gpu_data.h"
 #include "interface.h"
-
 class GPUBuffers
 {
   private:

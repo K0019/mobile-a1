@@ -1,13 +1,12 @@
 #pragma once
 #include <filesystem>
 #include <functional>
-#include <thread>
+#pragma once
 
 #include "material_loader.h"
 #include "mesh_loader.h"
 #include "texture_loader.h"
 
-#include "assets/core/import_config.h"
 #include "graphics/scene.h"
 
 struct aiScene;
@@ -17,39 +16,6 @@ struct aiCamera;
 
 namespace AssetLoading
 {
-  struct Scene
-  {
-    std::string name;
-    // Scene elements with resolved handles
-    std::vector<SceneLight> lights;
-    std::vector<SceneCamera> cameras;
-    std::vector<SceneObject> objects; // Objects contain direct handles
-    // Scene bounds
-    vec3 center{0};
-    float radius = 0;
-    vec3 boundingMin{FLT_MAX};
-    vec3 boundingMax{-FLT_MAX};
-    // Statistics
-    uint32_t totalMeshes = 0;
-    uint32_t totalMaterials = 0;
-    uint32_t totalTextures = 0;
-  };
-
-  struct SceneLoadResult
-  {
-    Scene scene;
-    bool success = true;
-    std::vector<std::string> warnings;
-
-    struct Stats
-    {
-      float totalTimeMs = 0.0f;
-      size_t meshesLoaded = 0;
-      size_t materialsLoaded = 0;
-      size_t texturesLoaded = 0;
-    } stats;
-  };
-
   class SceneLoader
   {
     public:
@@ -62,7 +28,6 @@ namespace AssetLoading
     private:
       AssetSystem& m_assetSystem;
 
-      // --- Helper Methods (const because they don't modify SceneLoader state) ---
       static void reportProgress(const ProgressCallback& callback, float progress, const std::string& status);
 
       std::unique_ptr<const aiScene, void(*)(const aiScene*)> importScene(const std::filesystem::path& path) const;

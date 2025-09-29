@@ -4,7 +4,7 @@
 
 namespace editor {
 
-    bool MatchesFilter(const std::string& name)
+    bool MatchesFilter([[maybe_unused]] const std::string& name)
     {
 #ifdef IMGUI_ENABLED
         std::string lowerName = name;

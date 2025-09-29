@@ -37,7 +37,6 @@ All rights reserved.
 
 #include "ECSSysLayers.h"
 #include "NameComponent.h"
-#include "AnimatorComponent.h"
 #include "GraphicsECSSprite.h"
 #include "CameraController.h"
 
