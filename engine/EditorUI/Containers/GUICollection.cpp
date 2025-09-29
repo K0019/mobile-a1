@@ -85,7 +85,7 @@ namespace gui {
 	{
 	}
 
-	void Window::DrawContainer(int id)
+	void Window::DrawContainer([[maybe_unused]] int id)
 	{
 #ifdef IMGUI_ENABLED
 		if (ImGui::Begin((id <= 0 ? title.c_str() : (title + "##" + std::to_string(id)).c_str()), &isOpen, +windowFlags))

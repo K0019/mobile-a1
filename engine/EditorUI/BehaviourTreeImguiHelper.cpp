@@ -366,7 +366,6 @@ namespace bt {
         if (startIdx < 0 || startIdx >= (int)nodes.size()) return false;
 
         const int end{ SubtreeEnd(nodes, startIdx) };
-        const int count{ end - startIdx };
 
         //check current selection inside the removed block
         const bool selectionInside{ (selectedIndex >= startIdx && selectedIndex < end) };
