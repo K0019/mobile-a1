@@ -25,6 +25,7 @@ All rights reserved.
 
 #include "LightingSystem.h"
 #include "Engine.h"
+#include "GraphicsScene.h"
 
 LightingSystem::LightingSystem() : System_Internal(&LightingSystem::UpdateLightComp) {
 //renderer = ST<Engine>::Get()->_vulkan->_renderer.get();
@@ -32,7 +33,7 @@ LightingSystem::LightingSystem() : System_Internal(&LightingSystem::UpdateLightC
 
 
 void LightingSystem::UpdateLightComp(LightComponent& lightComp) {
-  //renderer->AddLightInstance(lightComp);
+	ST<GraphicsScene>::Get()->AddLight(lightComp.light);
 }
 
 LightBlinkSystem::LightBlinkSystem()
@@ -42,7 +43,5 @@ LightBlinkSystem::LightBlinkSystem()
 
 void LightBlinkSystem::UpdateComp(LightBlinkComponent& blinkComp, LightComponent& lightComp)
 {
-	Vec2 newLightProperties{ blinkComp.AddTimeElapsed(GameTime::FixedDt()) };
-	lightComp.intensity = newLightProperties.x;
-	lightComp.radius = newLightProperties.y;
+
 }

@@ -21,7 +21,7 @@ All rights reserved.
 #include "GraphicsECSSprite.h"
 #include "GUICollection.h"
 
-#include "AnimatorComponent.h"
+
 #include "ResourceManager.h"
 #include "GraphicsECSMesh.h"
 
@@ -154,14 +154,7 @@ void SpriteComponent::EditorDraw()
 
     auto& sprite = ResourceManagerOld::GetSprite(spriteID);
     ImGui::Text("Sprite Name: %s", sprite.name.c_str());
-    if(ecs::GetEntity(this)->GetComp<AnimatorComponent>())
-    {
-        ImGui::Text("Modify Animator Component to change sprites");
-    }
-    else
-    {
-        ImGui::Text("Drag an Sprite from the browser to assign it");
-    }
+
     ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
     ImGui::ImageButton("Preview", 0, ImVec2(100, 100),
                        ImVec2(sprite.texCoords.x, sprite.texCoords.y),

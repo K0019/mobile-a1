@@ -3,9 +3,12 @@
 #ifdef IMGUI_ENABLED
 
 #include <memory>
+
+#include "asset_types.h"
 #include "ImguiHeader.h"
 #include "imgui_render_feature.h"
 #include "bindless_registry.h"
+#include "context.h"
 
 struct ImGuiConfig {
     bool enableKeyboard = true;
@@ -16,7 +19,7 @@ struct ImGuiConfig {
 
 namespace editor {
     class TransientRegistry;
-    
+
     class ImGuiContext {
     public:
         ImGuiContext(Context& context, GLFWwindow& window, const ImGuiConfig& config = {});
@@ -40,24 +43,27 @@ namespace editor {
         bool wantTextInput() const;
 
         TransientRegistry& GetTransientRegistry();
-    private:
+        private:
         void setupImGuiContext(const ImGuiConfig& config);
-        void setupGLFWBackend() const;
+        void setupPlatformBackend() const;
         void createRenderFeature();
         void createFontTexture();
         void updateRenderFeatureParams();
+
+#if defined(__ANDROID__)
+        int32_t handleAndroidInput(const AInputEvent* inputEvent);
+#endif
 
         static void applyRendererDefaults(ImFontConfig& config);
 
         Context& context_;
         GLFWwindow& window_;
         ImGuiConfig config_;
-        
+
         std::unique_ptr<TransientRegistry> m_transientRegistry;
         uint64_t renderFeatureHandle_;
         TextureHandle fontTextureHandle_;
         bool initialized_;
     };
 }
-
 #endif

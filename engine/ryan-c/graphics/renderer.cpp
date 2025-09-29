@@ -1,9 +1,6 @@
 #include "renderer.h"
 
-#include <ranges>
-
-#include "assets/core/asset_types.h"
-
+#include "asset_types.h"
 #include "logging/log.h"
 #include "logging/profiler.h"
 
@@ -41,7 +38,7 @@ void Renderer::startup()
                                               // 120MB  
                                               ResourceLimits::MATERIAL_BUFFER_SIZE);
   // Create render graph
-  m_renderGraph = std::make_unique<Render::RenderGraph>(*m_vkContext, *m_gpuBuffers);
+  m_renderGraph = std::make_unique<RenderGraph>(*m_vkContext, *m_gpuBuffers);
 
   LOG_INFO("Renderer startup complete");
 }
@@ -57,11 +54,11 @@ void Renderer::shutdown()
       m_vkContext->wait(handle);
     }
   }
-  for (auto& info : m_features | std::views::values)
+  for (auto& info : m_features)
   {
-    if (info.feature)
+    if (info.second.feature)
     {
-      m_renderGraph->RemoveFeature(info.feature.get());
+      m_renderGraph->RemoveFeature(info.second.feature.get());
     }
   }
   m_features.clear();
@@ -82,15 +79,15 @@ void Renderer::beginFrame()
   }
 }
 
-void Renderer::render(Render::FrameData& frameData)
+void Renderer::render(FrameData& frameData)
 {
   frameData.frameNumber = static_cast<uint64_t>(m_framesRendered);
   m_frameResources[m_currentFrame].frameData = frameData;
-  for (auto& info : m_features | std::views::values)
+  for (auto& info : m_features)
   {
-    if (info.feature)
+    if (info.second.feature)
     {
-      info.feature->SwapBuffersForGT_RT();
+      info.second.feature->SwapBuffersForGT_RT();
     }
   }
   // Get swapchain texture - VK wrapper handles acquire automatically
@@ -123,7 +120,7 @@ void Renderer::onWindowResized(int width, int height)
   LOG_INFO("Window resized to {}x{}", width, height);
 }
 
-void Renderer::AddTransientResourceObserver(Render::internal::ITransientResourceObserver* observer) const
+void Renderer::AddTransientResourceObserver(internal::ITransientResourceObserver* observer) const
 {
   if (m_renderGraph && observer)
   {
@@ -131,7 +128,7 @@ void Renderer::AddTransientResourceObserver(Render::internal::ITransientResource
   }
 }
 
-void Renderer::RemoveTransientResourceObserver(Render::internal::ITransientResourceObserver* observer) const
+void Renderer::RemoveTransientResourceObserver(internal::ITransientResourceObserver* observer) const
 {
   if (m_renderGraph && observer)
   {
@@ -190,3 +187,15 @@ void* Renderer::GetFeatureParameterBlockPtr(uint64_t feature_handle)
   }
   return it->second.feature->GetGTParameterBlock_RT();
 }
+
+const ToneMappingSettings& Renderer::GetToneMappingSettings() const
+{
+  return m_renderGraph->GetLinearColorSystem().GetToneMappingSettings();
+}
+
+void Renderer::UpdateToneMappingSettings(const ToneMappingSettings& newSettings) const
+{
+  m_renderGraph->GetLinearColorSystem().UpdateToneMappingSettings(newSettings);
+}
+
+

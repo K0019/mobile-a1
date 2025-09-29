@@ -13,7 +13,7 @@ namespace AssetLoading
     // Mesh settings
     bool optimizeMeshes = true;
     bool autoDetectTangentNeed = true;
-    bool generateTangents = false;
+    bool generateTangents = true;
     bool flipUVs = true;
     uint32_t maxVerticesPerMesh = 1'000'000;
 

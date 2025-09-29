@@ -37,7 +37,6 @@ class LightingSystem :public ecs::System<LightingSystem, LightComponent>
 public:
     LightingSystem();
 private:
-    Renderer* renderer;
     void UpdateLightComp(LightComponent& lightComp);
 };
 

@@ -1,7 +1,7 @@
 #include "asset_system.h"
 #include "logging/log.h"
 #include <algorithm>
-#include <ranges>
+#include "graphics/renderer.h"
 
 #include "Engine.h"
 
@@ -113,8 +113,10 @@ namespace AssetLoading
     }
 
     // Create handle and populate data
-    Material mat = MaterialLoading::convertToStoredMaterial(material);
+    Material mat = convertToStoredMaterial(material);
     MaterialHandle handle = m_materialPool.create();
+
+    uint32_t alphaMode = material.flags & MaterialFlags::ALPHA_MODE_MASK;
 
     if (auto* cold = m_materialPool.getColdData(handle))
     {
@@ -124,15 +126,13 @@ namespace AssetLoading
     if (auto* hot = m_materialPool.getHotData(handle))
     {
       hot->materialOffset = materialAlloc.offset;
-      hot->isTransparent = mat.isTransparent();
-      hot->isAlphaTested = mat.isAlphaTested();
-      hot->isDoubleSided = mat.doubleSided;
+      hot->renderQueue = (alphaMode == ALPHA_MODE_BLEND) 
+    ? RenderQueue::Transparent 
+    : RenderQueue::Opaque;
     }
-
     // Generate GPU data and handle dependencies
     MaterialData gpuData = generateMaterialDataWithTextures_nolock(mat);
     updateMaterialTextureDependencies_nolock(handle, material);
-
     // Queue upload
     {
       std::lock_guard pendingLock(m_pendingMaterialsMutex);
@@ -262,19 +262,7 @@ namespace AssetLoading
   bool AssetSystem::isMaterialTransparent(MaterialHandle handle) const
   {
     const auto* hot = m_materialPool.getHotData(handle);
-    return hot ? hot->isTransparent : false;
-  }
-
-  bool AssetSystem::isMaterialAlphaTested(MaterialHandle handle) const
-  {
-    const auto* hot = m_materialPool.getHotData(handle);
-    return hot ? hot->isAlphaTested : false;
-  }
-
-  bool AssetSystem::isMaterialDoubleSided(MaterialHandle handle) const
-  {
-    const auto* hot = m_materialPool.getHotData(handle);
-    return hot ? hot->isDoubleSided : false;
+    return hot ? hot->renderQueue == RenderQueue::Transparent : false;
   }
 
   // Asset management methods
@@ -443,9 +431,7 @@ namespace AssetLoading
     data.occlusionTexture = resolveTextureIndex_nolock(material.occlusionTexture);
 
     data.materialTypeFlags = material.materialTypeFlags;
-    data.alphaMode = static_cast<uint32_t>(material.alphaMode);
-    data.flags = material.flags;
-    data.padding = 0;
+    data.flags = material.flags; 
 
     return data;
   }
@@ -553,11 +539,11 @@ namespace AssetLoading
       return;
 
     auto sortedItems = items;
-    std::ranges::sort(sortedItems,
-                      [&](const auto& a, const auto& b)
-                      {
-                        return allocSelector(a).offset < allocSelector(b).offset;
-                      });
+    std::sort(sortedItems.begin(), sortedItems.end(),
+              [&](const auto& a, const auto& b)
+              {
+                return allocSelector(a).offset < allocSelector(b).offset;
+              });
 
     constexpr size_t MAX_BATCH_SIZE = 16 * 1024 * 1024; // 16MB
     std::vector<uint8_t> batchBuffer;
@@ -607,19 +593,18 @@ namespace AssetLoading
     if (materials.size() <= 1)
       return;
 
-    // Sort by offset
-    std::ranges::sort(materials,
-                      [](const auto& a, const auto& b)
-                      {
-                        return a.materialAlloc.offset < b.materialAlloc.offset;
-                      });
+    std::sort(materials.begin(), materials.end(),
+              [](const auto& a, const auto& b)
+              {
+                return a.materialAlloc.offset < b.materialAlloc.offset;
+              });
 
     // Remove duplicates, keeping the last (most recent) update for each offset
-    auto newEnd = std::ranges::unique(materials,
-                                      [](const auto& a, const auto& b)
-                                      {
-                                        return a.materialAlloc.offset == b.materialAlloc.offset;
-                                      }).begin();
+    auto newEnd = std::unique(materials.begin(), materials.end(),
+                              [](const auto& a, const auto& b)
+                              {
+                                return a.materialAlloc.offset == b.materialAlloc.offset;
+                              });
     materials.erase(newEnd, materials.end());
   }
 

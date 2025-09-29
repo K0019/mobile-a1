@@ -62,7 +62,7 @@ namespace AssetLoading::MeshLoading
         LOG_WARNING("Failed to optimize mesh '{}'", mesh.name);
       }
     }
-    else if (config.generateTangents)
+    if (config.generateTangents)
     {
       if (!MeshOptimizer::generateTangents(mesh.vertices, mesh.indices))
       {

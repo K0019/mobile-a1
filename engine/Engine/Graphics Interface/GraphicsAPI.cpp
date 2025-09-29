@@ -283,7 +283,7 @@ void GraphicsMain::RenderSampleScene()
 	positioner_.update(GameTime::Dt(), mouse_delta, ST<KeyboardMouseInput>::Get()->GetIsDown(KEY::M_RIGHT));
 
 	auto windowExtent{ ST<GraphicsWindow>::Get()->GetWindowExtent() };
-	Render::FrameData currentFrameData{};
+	::FrameData currentFrameData{};
 	currentFrameData.cameraPos = camera.getPosition();
 	currentFrameData.viewMatrix = camera.getViewMatrix();
 	currentFrameData.projMatrix = perspective(45.0f, (float)windowExtent.x / (float)windowExtent.y, 0.1f, 100.0f);

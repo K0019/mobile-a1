@@ -23,7 +23,6 @@ All rights reserved.
 #include "GameSystems.h"
 #include "ECSSysLayers.h"
 
-#include "AnimatorSystem.h"
 #include "GraphicsECSMesh.h"
 #include "PostProcessingComponent.h"
 #include "TextSystem.h"
@@ -67,7 +66,6 @@ void GameState_Editor::OnEnter()
 {
     GameState_Common::OnEnter();
 
-    ecs::AddSystem(ECS_LAYER::PRE_PHYSICS_0, AnimatorSystem{});
     ecs::AddSystem(ECS_LAYER::PRE_PHYSICS_0, TrailRendererSystem{});
     ecs::AddSystem(ECS_LAYER::PRE_UPDATE_0, UndoShakeSystem{});
     ecs::AddSystem(ECS_LAYER::POST_PHYSICS_1, ShakeSystem{});
@@ -82,8 +80,7 @@ void GameState_Game::OnEnter()
     ecs::AddSystem(ECS_LAYER::PRE_UPDATE_0, UndoShakeSystem{});
 
     ecs::AddSystem(ECS_LAYER::REALTIME_INPUT_0, SliderSystem{});
-    
-    ecs::AddSystem(ECS_LAYER::PRE_PHYSICS_0, AnimatorSystem{});
+
     ecs::AddSystem(ECS_LAYER::PRE_PHYSICS_0, TrailRendererSystem{});
     ecs::AddSystem(ECS_LAYER::PRE_PHYSICS_0, LightBlinkSystem{});
     ecs::AddSystem(ECS_LAYER::INPUT_0, CheatCodes{});

@@ -11,7 +11,7 @@ namespace AssetLoading::MaterialLoading
   ProcessedMaterial extractMaterial(const aiMaterial* aiMat, uint32_t materialIndex, const std::string& scenePath, const std::string& baseDir, const aiScene* scene)
   {
     ProcessedMaterial material;
-
+    material.flags = MaterialFlags::DEFAULT_FLAGS;
     // Extract material name
     aiString name;
     if (aiMat->Get(AI_MATKEY_NAME, name) == AI_SUCCESS && strlen(name.C_Str()) > 0)
@@ -106,62 +106,76 @@ namespace AssetLoading::MaterialLoading
       material.alphaCutoff = std::clamp(factor, 0.0f, 1.0f);
     }
 
-    // Alpha mode
-    int alphaMode;
-    if (aiMat->Get(AI_MATKEY_GLTF_ALPHAMODE, alphaMode) == AI_SUCCESS)
+    aiString alphaModeStr;
+    if (aiMat->Get(AI_MATKEY_GLTF_ALPHAMODE, alphaModeStr) == AI_SUCCESS)
     {
-      switch (alphaMode)
+      std::string mode = alphaModeStr.C_Str();
+      if (mode == "OPAQUE")
       {
-        case 0:
-          material.alphaMode = AlphaMode::Opaque;
-          break;
-        case 1:
-          material.alphaMode = AlphaMode::Mask;
-          break;
-        case 2:
-          material.alphaMode = AlphaMode::Blend;
-          break;
-        default:
-          material.alphaMode = AlphaMode::Opaque;
-          break;
+        material.alphaMode = AlphaMode::Opaque;
       }
-    }
-    else
-    {
-      if (material.baseColorFactor.a < 1.0f)
+      else if (mode == "MASK")
+      {
+        material.alphaMode = AlphaMode::Mask;
+      }
+      else if (mode == "BLEND")
       {
         material.alphaMode = AlphaMode::Blend;
       }
     }
+    else
+    {
+      // Fallback: detect transparency from alpha value
+      if (material.baseColorFactor.a < 0.99f)
+      {
+        material.alphaMode = AlphaMode::Blend;
+      }
+      else
+      {
+        material.alphaMode = AlphaMode::Opaque;
+      }
+    }
 
-    // Material type flags - corrected shading model detection
+    // Alpha cutoff
+    if (aiMat->Get(AI_MATKEY_GLTF_ALPHACUTOFF, factor) == AI_SUCCESS)
+    {
+      material.alphaCutoff = std::clamp(factor, 0.0f, 1.0f);
+    }
+
+    // Unlit detection
     int shadingModel;
     if (aiMat->Get(AI_MATKEY_SHADING_MODEL, shadingModel) == AI_SUCCESS)
     {
       if (shadingModel == aiShadingMode_Unlit || shadingModel == aiShadingMode_NoShading)
       {
-        material.materialTypeFlags |= MaterialType_Unlit;
-        material.flags |= sMaterialFlags_Unlit;
+        material.flags |= MaterialFlags::UNLIT;
       }
     }
 
-    // Alternative unlit detection
-    aiString unlit;
-    if (aiMat->Get("unlit", 0, 0, unlit) == AI_SUCCESS)
+    // Alternative unlit detection for various formats
+    aiString unlitStr;
+    if (aiMat->Get("unlit", 0, 0, unlitStr) == AI_SUCCESS)
     {
-      if (strcmp(unlit.C_Str(), "true") == 0 || strcmp(unlit.C_Str(), "1") == 0)
+      std::string unlit = unlitStr.C_Str();
+      if (unlit == "true" || unlit == "1")
       {
-        material.materialTypeFlags |= MaterialType_Unlit;
-        material.flags |= sMaterialFlags_Unlit;
+        material.flags |= MaterialFlags::UNLIT;
       }
     }
 
-    // Two-sided materials
+    // Two-sided detection
     int twosided;
     if (aiMat->Get(AI_MATKEY_TWOSIDED, twosided) == AI_SUCCESS && twosided)
     {
-      material.doubleSided = true;
+      material.flags |= MaterialFlags::DOUBLE_SIDED;
     }
+
+    // Set material type
+    material.materialTypeFlags = MaterialType::METALLIC_ROUGHNESS;
+
+    // CRITICAL FIX: Set alpha mode in flags
+    uint32_t alphaModeFlags = static_cast<uint32_t>(material.alphaMode) & MaterialFlags::ALPHA_MODE_MASK;
+    material.flags = (material.flags & ~MaterialFlags::ALPHA_MODE_MASK) | alphaModeFlags;
 
     // Extract textures with robust fallback system
     material.baseColorTexture = Detail::extractTextureWithTransform(aiMat, aiTextureType_BASE_COLOR, scenePath, baseDir, scene);
@@ -180,20 +194,6 @@ namespace AssetLoading::MaterialLoading
     if (!material.normalTexture.hasTexture())
     {
       material.normalTexture = Detail::extractTextureWithTransform(aiMat, aiTextureType_HEIGHT, scenePath, baseDir, scene);
-    }
-
-    // Set material flags based on properties
-    if (material.isTransparent())
-    {
-      material.flags |= sMaterialFlags_Transparent;
-    }
-    if (material.isAlphaTested())
-    {
-      material.flags |= sMaterialFlags_AlphaTested;
-    }
-    if (material.doubleSided)
-    {
-      material.flags |= sMaterialFlags_DoubleSided;
     }
 
     // Populate textures vector for texture loader
@@ -221,33 +221,6 @@ namespace AssetLoading::MaterialLoading
     }
 
     return materialPtrs;
-  }
-
-  Material convertToStoredMaterial(const ProcessedMaterial& processed)
-  {
-    Material material;
-
-    material.name = processed.name;
-    material.baseColorFactor = processed.baseColorFactor;
-    material.metallicFactor = processed.metallicFactor;
-    material.roughnessFactor = processed.roughnessFactor;
-    material.emissiveFactor = processed.emissiveFactor;
-    material.normalScale = processed.normalScale;
-    material.occlusionStrength = processed.occlusionStrength;
-    material.alphaCutoff = processed.alphaCutoff;
-
-    material.baseColorTexture = processed.baseColorTexture;
-    material.metallicRoughnessTexture = processed.metallicRoughnessTexture;
-    material.normalTexture = processed.normalTexture;
-    material.emissiveTexture = processed.emissiveTexture;
-    material.occlusionTexture = processed.occlusionTexture;
-
-    material.alphaMode = processed.alphaMode;
-    material.materialTypeFlags = processed.materialTypeFlags;
-    material.flags = processed.flags;
-    material.doubleSided = processed.doubleSided;
-
-    return material;
   }
 
   bool isValidMaterial(const ProcessedMaterial& material)
@@ -382,8 +355,6 @@ namespace AssetLoading::MaterialLoading
           material.textures.push_back(matTex.source);
         }
       };
-
-      // Add all texture sources
       addIfValid(material.baseColorTexture);
       addIfValid(material.metallicRoughnessTexture);
       addIfValid(material.normalTexture);
@@ -413,7 +384,7 @@ namespace AssetLoading::MaterialLoading
       };
 
       // Compare material properties
-      return vec4Equal(a.baseColorFactor, b.baseColorFactor) && floatEqual(a.metallicFactor, b.metallicFactor) && floatEqual(a.roughnessFactor, b.roughnessFactor) && vec3Equal(a.emissiveFactor, b.emissiveFactor) && floatEqual(a.normalScale, b.normalScale) && floatEqual(a.occlusionStrength, b.occlusionStrength) && floatEqual(a.alphaCutoff, b.alphaCutoff) && a.alphaMode == b.alphaMode && a.materialTypeFlags == b.materialTypeFlags && a.flags == b.flags && a.doubleSided == b.doubleSided && texturesEqual(a.baseColorTexture, b.baseColorTexture) && texturesEqual(a.metallicRoughnessTexture, b.metallicRoughnessTexture) && texturesEqual(a.normalTexture, b.normalTexture) && texturesEqual(a.emissiveTexture, b.emissiveTexture) && texturesEqual(a.occlusionTexture, b.occlusionTexture);
+      return vec4Equal(a.baseColorFactor, b.baseColorFactor) && floatEqual(a.metallicFactor, b.metallicFactor) && floatEqual(a.roughnessFactor, b.roughnessFactor) && vec3Equal(a.emissiveFactor, b.emissiveFactor) && floatEqual(a.normalScale, b.normalScale) && floatEqual(a.occlusionStrength, b.occlusionStrength) && floatEqual(a.alphaCutoff, b.alphaCutoff) && a.alphaMode == b.alphaMode && a.materialTypeFlags == b.materialTypeFlags && a.flags == b.flags && texturesEqual(a.baseColorTexture, b.baseColorTexture) && texturesEqual(a.metallicRoughnessTexture, b.metallicRoughnessTexture) && texturesEqual(a.normalTexture, b.normalTexture) && texturesEqual(a.emissiveTexture, b.emissiveTexture) && texturesEqual(a.occlusionTexture, b.occlusionTexture);
     }
   } // namespace Detail
 }   // namespace AssetLoading::MaterialLoading

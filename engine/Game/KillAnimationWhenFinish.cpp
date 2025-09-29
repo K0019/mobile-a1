@@ -22,7 +22,7 @@ All rights reserved.
 /******************************************************************************/
 #include "pch.h"
 #include "KillAnimationWhenFinish.h"
-#include "AnimatorComponent.h"
+
 
 KillWhenAnimationFinishComponent::KillWhenAnimationFinishComponent()
 {
@@ -39,8 +39,5 @@ AnimationFinishSystem::AnimationFinishSystem()
 
 void AnimationFinishSystem::Update(KillWhenAnimationFinishComponent& comp)
 {
-	if (!ecs::GetEntity(&comp)->GetComp<AnimatorComponent>()->IsPlaying())
-	{
-		ecs::DeleteEntity(ecs::GetEntity(&comp));
-	}
+
 }

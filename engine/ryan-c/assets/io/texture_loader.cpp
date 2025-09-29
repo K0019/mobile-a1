@@ -2,7 +2,7 @@
 #include "logging/log.h"
 #include "utilities/util.h"
 #include <FreeImage.h>
-#include "graphics/vulkan/vk_util.h"
+#include <graphics/vulkan/vk_util.h>
 #include <ktxvulkan.h>
 #include <assimp/scene.h>
 #include <algorithm>
@@ -16,44 +16,48 @@ namespace AssetLoading::TextureLoading
 
     // Generate name from source
     texture.name = std::visit([](const auto& src) -> std::string
-                              {
-                                using T = std::decay_t<decltype(src)>;
-                                if constexpr (std::is_same_v<T, std::monostate>) { return "null_texture"; }
-                                else if constexpr (std::is_same_v<T, FilePathSource>)
-                                {
-                                  return std::filesystem::path(src.path).filename().string();
-                                }
-                                else if constexpr (std::is_same_v<T, EmbeddedMemorySource>)
-                                {
-                                  return "embedded_" + src.identifier;
-                                }
-                              },
+    {
+      using T = std::decay_t<decltype(src)>;
+      if constexpr(std::is_same_v<T, std::monostate>) {
+        return "null_texture";
+      }
+      else if constexpr(std::is_same_v<T, FilePathSource>)
+      {
+        return std::filesystem::path(src.path).filename().string();
+      }
+      else if constexpr(std::is_same_v<T, EmbeddedMemorySource>)
+      {
+        return "embedded_" + src.identifier;
+      }
+    },
                               source);
 
     try
     {
       // Load texture data based on source type
       bool loadResult = std::visit([&](const auto& src) -> bool
-                                   {
-                                     using T = std::decay_t<decltype(src)>;
-                                     if constexpr (std::is_same_v<T, std::monostate>) { return false; }
-                                     else if constexpr (std::is_same_v<T, FilePathSource>)
-                                     {
-                                       return Detail::loadFromFile(src.path, texture, true);
-                                     }
-                                     else if constexpr (std::is_same_v<T, EmbeddedMemorySource>)
-                                     {
-                                       return Detail::loadFromEmbedded(src, texture);
-                                     }
-                                   },
+      {
+        using T = std::decay_t<decltype(src)>;
+        if constexpr(std::is_same_v<T, std::monostate>) {
+          return false;
+        }
+        else if constexpr(std::is_same_v<T, FilePathSource>)
+        {
+          return loadFromFile(src.path, texture, true);
+        }
+        else if constexpr(std::is_same_v<T, EmbeddedMemorySource>)
+        {
+          return Detail::loadFromEmbedded(src, texture);
+        }
+      },
                                    source);
 
-      if (!loadResult || texture.data.empty())
+      if(!loadResult || texture.data.empty())
       {
         return texture;
       }
     }
-    catch ([[maybe_unused]] const std::exception& e)
+    catch([[maybe_unused]] const std::exception& e)
     {
       texture.data.clear();
     }
@@ -66,15 +70,15 @@ namespace AssetLoading::TextureLoading
     std::unordered_set<std::string> seen;
     std::vector<TextureDataSource> uniqueTextures;
 
-    for (const auto& material : materials)
+    for(const auto& material : materials)
     {
       auto addIfUnique = [&](const MaterialTexture& matTex)
       {
-        if (!matTex.hasTexture())
+        if(!matTex.hasTexture())
           return;
 
         const std::string key = TextureCacheKeyGenerator::generateKey(matTex.source);
-        if (!key.empty() && !seen.contains(key))
+        if(!key.empty() && !seen.contains(key))
         {
           seen.insert(key);
           uniqueTextures.push_back(matTex.source);
@@ -100,39 +104,41 @@ namespace AssetLoading::TextureLoading
   {
     return !texture.data.empty() && texture.width > 0 && texture.height > 0 && texture.channels > 0 && texture.textureDesc.format != vk::Format::Invalid;
   }
-
-  namespace Detail
+  bool loadFromFile(const std::filesystem::path& path, ProcessedTexture& texture, bool sRGB, vk::TextureType type)
   {
-    bool loadFromFile(const std::filesystem::path& path, ProcessedTexture& texture, bool sRGB)
+    if(!exists(path))
     {
-      if (!exists(path))
-      {
-        LOG_WARNING("Texture file not found: {}", path.string());
-        return false;
-      }
-
-      const std::string ext = path.extension().string();
-      const bool isKTX = (ext == ".ktx" || ext == ".KTX");
-
-      return isKTX ? loadFromFileKTX(path, texture) : loadFromFileStandard(path, texture, sRGB);
+      LOG_WARNING("Texture file not found: {}", path.string());
+      return false;
     }
 
-    bool loadFromFileKTX(const std::filesystem::path& path, ProcessedTexture& texture)
+    const std::string ext = path.extension().string();
+    const bool isKTX = (ext == ".ktx" || ext == ".KTX");
+    if (!isKTX)
+    {
+      ASSERT(type == vk::TextureType::Tex2D);
+    }
+    return isKTX ? Detail::loadFromFileKTX(path, texture, type) : Detail::loadFromFileStandard(path, texture, sRGB);
+  }
+  namespace Detail
+  {
+    bool loadFromFileKTX(const std::filesystem::path& path, ProcessedTexture& texture, vk::TextureType
+                         type)
     {
       ktxTexture1* ktxTex = nullptr;
 
       const auto result = ktxTexture1_CreateFromNamedFile(path.string().c_str(), KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT, &ktxTex);
 
-      if (result != KTX_SUCCESS || !ktxTex)
+      if(result != KTX_SUCCESS || !ktxTex)
       {
         LOG_WARNING("Failed to load KTX file '{}'", path.string());
         return false;
       }
 
-      SCOPE_EXIT { ktxTexture_Destroy(ktxTexture(ktxTex)); };
+      SCOPE_EXIT{ ktxTexture_Destroy(ktxTexture(ktxTex)); };
 
       // Extract texture properties
-      texture.originalFileSize = std::filesystem::file_size(path);
+      texture.originalFileSize = file_size(path);
       texture.width = ktxTex->baseWidth;
       texture.height = ktxTex->baseHeight;
       texture.channels = 4; // Most KTX textures are 4-channel
@@ -143,7 +149,7 @@ namespace AssetLoading::TextureLoading
       std::memcpy(texture.data.data(), ktxTex->pData, dataSize);
 
       // Create descriptor
-      texture.textureDesc = vk::TextureDesc{.type = vk::TextureType::Tex2D, .format = vk::vkFormatToFormat(ktxTexture1_GetVkFormat(ktxTex)), .dimensions = {texture.width, texture.height, 1}, .usage = vk::TextureUsageBits_Sampled, .numMipLevels = ktxTex->numLevels, .debugName = path.string().c_str()};
+      texture.textureDesc = vk::TextureDesc{ .type = type, .format = vk::vkFormatToFormat(ktxTexture1_GetVkFormat(ktxTex)), .dimensions = {texture.width, texture.height, 1}, .usage = vk::TextureUsageBits_Sampled, .numMipLevels = ktxTex->numLevels, .debugName = path.string().c_str() };
 
       LOG_DEBUG("Loaded KTX texture '{}' - {}x{}, {} mips", path.string(), texture.width, texture.height, ktxTex->numLevels);
 
@@ -154,9 +160,11 @@ namespace AssetLoading::TextureLoading
     {
       // Detect file format
       FREE_IMAGE_FORMAT fif = FreeImage_GetFileType(path.string().c_str(), 0);
-      if (fif == FIF_UNKNOWN) { fif = FreeImage_GetFIFFromFilename(path.string().c_str()); }
+      if(fif == FIF_UNKNOWN) {
+        fif = FreeImage_GetFIFFromFilename(path.string().c_str());
+      }
 
-      if (fif == FIF_UNKNOWN || !FreeImage_FIFSupportsReading(fif))
+      if(fif == FIF_UNKNOWN || !FreeImage_FIFSupportsReading(fif))
       {
         LOG_WARNING("Unsupported image format '{}'", path.string());
         return false;
@@ -164,29 +172,29 @@ namespace AssetLoading::TextureLoading
 
       // Load image
       FIBITMAP* dib = FreeImage_Load(fif, path.string().c_str(), 0);
-      if (!dib)
+      if(!dib)
       {
         LOG_WARNING("FreeImage Load failed for '{}'", path.string());
         return false;
       }
-      SCOPE_EXIT { FreeImage_Unload(dib); };
+      SCOPE_EXIT{ FreeImage_Unload(dib); };
 
       // Convert to 32-bit RGBA
       FreeImage_FlipVertical(dib); // Correct orientation
       FIBITMAP* dib32 = FreeImage_ConvertTo32Bits(dib);
-      if (!dib32)
+      if(!dib32)
       {
         LOG_WARNING("Failed to convert to 32-bit for '{}'", path.string());
         return false;
       }
-      SCOPE_EXIT { FreeImage_Unload(dib32); };
+      SCOPE_EXIT{ FreeImage_Unload(dib32); };
 
       // Extract image data
       const unsigned int width = FreeImage_GetWidth(dib32);
       const unsigned int height = FreeImage_GetHeight(dib32);
       const unsigned char* imgData = FreeImage_GetBits(dib32);
 
-      if (!imgData || width == 0 || height == 0)
+      if(!imgData || width == 0 || height == 0)
       {
         LOG_WARNING("Invalid image data in '{}'", path.string());
         return false;
@@ -211,7 +219,7 @@ namespace AssetLoading::TextureLoading
       const vk::Format format = sRGB ? vk::Format::RGBA_SRGB8 : vk::Format::RGBA_UN8;
 #endif
 
-      texture.textureDesc = vk::TextureDesc{.type = vk::TextureType::Tex2D, .format = format, .dimensions = {texture.width, texture.height, 1}, .usage = vk::TextureUsageBits_Sampled, .numMipLevels = 1, .debugName = path.string().c_str()};
+      texture.textureDesc = vk::TextureDesc{ .type = vk::TextureType::Tex2D, .format = format, .dimensions = {texture.width, texture.height, 1}, .usage = vk::TextureUsageBits_Sampled, .numMipLevels = 1, .debugName = path.string().c_str() };
 
       LOG_DEBUG("Loaded texture '{}' - {}x{}", path.string(), width, height);
       return true;
@@ -219,27 +227,31 @@ namespace AssetLoading::TextureLoading
 
     bool loadFromEmbedded(const EmbeddedMemorySource& src, ProcessedTexture& texture)
     {
-      if (!src.scene || src.identifier.empty() || src.identifier[0] != '*') { return false; }
+      if(!src.scene || src.identifier.empty() || src.identifier[0] != '*') {
+        return false;
+      }
 
       size_t embeddedIndex;
-      try { embeddedIndex = std::stoul(src.identifier.substr(1)); }
-      catch (const std::exception&)
+      try {
+        embeddedIndex = std::stoul(src.identifier.substr(1));
+      }
+      catch(const std::exception&)
       {
         LOG_WARNING("Invalid embedded texture identifier: {}", src.identifier);
         return false;
       }
 
-      if (embeddedIndex >= src.scene->mNumTextures)
+      if(embeddedIndex >= src.scene->mNumTextures)
       {
         LOG_WARNING("Embedded texture index {} out of range", embeddedIndex);
         return false;
       }
 
       const aiTexture* aiTex = src.scene->mTextures[embeddedIndex];
-      if (!aiTex)
+      if(!aiTex)
         return false;
 
-      if (aiTex->mHeight == 0)
+      if(aiTex->mHeight == 0)
       {
         // Compressed embedded texture
         const uint8_t* data = reinterpret_cast<const uint8_t*>(aiTex->pcData);
@@ -264,57 +276,57 @@ namespace AssetLoading::TextureLoading
       texture.sRGB = true;
       texture.originalFileSize = dataSize;
 
-      texture.textureDesc = vk::TextureDesc{.type = vk::TextureType::Tex2D, .format = vk::Format::RGBA_UN8, .dimensions = {texture.width, texture.height, 1}, .usage = vk::TextureUsageBits_Sampled, .numMipLevels = 1, .debugName = texture.name.c_str()};
+      texture.textureDesc = vk::TextureDesc{ .type = vk::TextureType::Tex2D, .format = vk::Format::RGBA_UN8, .dimensions = {texture.width, texture.height, 1}, .usage = vk::TextureUsageBits_Sampled, .numMipLevels = 1, .debugName = texture.name.c_str() };
 
       return true;
     }
 
     bool loadFromMemory(const uint8_t* data, size_t size, ProcessedTexture& texture, const std::string& name, bool sRGB)
     {
-      if (!data || size == 0)
+      if(!data || size == 0)
       {
         LOG_WARNING("Invalid memory data for texture: {}", name);
         return false;
       }
 
       FIMEMORY* stream = FreeImage_OpenMemory(const_cast<unsigned char*>(data), static_cast<DWORD>(size));
-      if (!stream)
+      if(!stream)
       {
         LOG_WARNING("FreeImage OpenMemory failed for texture: {}", name);
         return false;
       }
-      SCOPE_EXIT { FreeImage_CloseMemory(stream); };
+      SCOPE_EXIT{ FreeImage_CloseMemory(stream); };
 
       FREE_IMAGE_FORMAT fif = FreeImage_GetFileTypeFromMemory(stream, 0);
-      if (fif == FIF_UNKNOWN)
+      if(fif == FIF_UNKNOWN)
       {
         LOG_WARNING("Unknown image format for texture: {}", name);
         return false;
       }
 
       FIBITMAP* dib = FreeImage_LoadFromMemory(fif, stream, 0);
-      if (!dib)
+      if(!dib)
       {
         LOG_WARNING("Failed to load texture from memory: {}", name);
         return false;
       }
-      SCOPE_EXIT { FreeImage_Unload(dib); };
+      SCOPE_EXIT{ FreeImage_Unload(dib); };
 
       // Same processing as file-based loading
       FreeImage_FlipVertical(dib);
       FIBITMAP* dib32 = FreeImage_ConvertTo32Bits(dib);
-      if (!dib32)
+      if(!dib32)
       {
         LOG_WARNING("Failed to convert embedded texture to 32-bit: {}", name);
         return false;
       }
-      SCOPE_EXIT { FreeImage_Unload(dib32); };
+      SCOPE_EXIT{ FreeImage_Unload(dib32); };
 
       const unsigned int width = FreeImage_GetWidth(dib32);
       const unsigned int height = FreeImage_GetHeight(dib32);
       const unsigned char* imgData = FreeImage_GetBits(dib32);
 
-      if (!imgData || width == 0 || height == 0)
+      if(!imgData || width == 0 || height == 0)
       {
         LOG_WARNING("Invalid embedded texture data: {}", name);
         return false;
@@ -336,7 +348,7 @@ namespace AssetLoading::TextureLoading
       const vk::Format format = sRGB ? vk::Format::RGBA_SRGB8 : vk::Format::RGBA_UN8;
 #endif
 
-      texture.textureDesc = vk::TextureDesc{.type = vk::TextureType::Tex2D, .format = format, .dimensions = {texture.width, texture.height, 1}, .usage = vk::TextureUsageBits_Sampled, .numMipLevels = 1, .debugName = name.c_str()};
+      texture.textureDesc = vk::TextureDesc{ .type = vk::TextureType::Tex2D, .format = format, .dimensions = {texture.width, texture.height, 1}, .usage = vk::TextureUsageBits_Sampled, .numMipLevels = 1, .debugName = name.c_str() };
 
       LOG_DEBUG("Loaded embedded texture '{}' - {}x{}", name, width, height);
       return true;
@@ -344,26 +356,3 @@ namespace AssetLoading::TextureLoading
   } // namespace Detail
 }   // namespace AssetLoading::TextureLoading
 
-namespace AssetLoading
-{
-  std::string TextureCacheKeyGenerator::generateKey(const TextureDataSource& source)
-  {
-    return std::visit([](const auto& src) -> std::string
-                      {
-                        using T = std::decay_t<decltype(src)>;
-                        if constexpr (std::is_same_v<T, std::monostate>)
-                        {
-                          return "";
-                        }
-                        else if constexpr (std::is_same_v<T, FilePathSource>)
-                        {
-                          return std::filesystem::canonical(src.path).string(); // Canonical path
-                        }
-                        else if constexpr (std::is_same_v<T, EmbeddedMemorySource>)
-                        {
-                          return src.scenePath + "|" + src.identifier;
-                        }
-                      },
-                      source);
-  }
-} // namespace AssetLoading

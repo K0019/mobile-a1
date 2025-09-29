@@ -95,7 +95,7 @@ namespace
     void* handle = nullptr;
     void* messageID = nullptr;
 
-
+    //EngineLogLevel level = Info;
     if (isError)
     {
       const vk::VulkanContext* ctx = static_cast<vk::VulkanContext*>(userData);
@@ -103,7 +103,7 @@ namespace
     }
     else if (msgSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT)
     {
-     // level = Warning;
+      //level = Warning;
     }
 
     //if (!isError && !isWarning && cbData->pMessageIdName) {
@@ -3925,7 +3925,7 @@ vk::Holder<vk::TextureHandle> vk::VulkanContext::createTexture(const TextureDesc
     // check if any of the format in compatible list is supported
     for (VkFormat format : compatibleDepthStencilFormatList)
     {
-      if (std::ranges::find(std::as_const(deviceDepthFormats_), format) != deviceDepthFormats_.cend())
+      if (std::find(deviceDepthFormats_.cbegin(), deviceDepthFormats_.cend(), format) != deviceDepthFormats_.cend())
       {
         return format;
       }

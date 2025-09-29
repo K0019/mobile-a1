@@ -12,7 +12,7 @@ public:
 	bool NewFrame();
 
 	void AddObject(const MeshHandle& meshHandle, const MaterialHandle& materialHandle, const Mat4& transform);
-
+	void AddLight(const SceneLight& sceneLight);
 private:
 	friend ST<GraphicsScene>;
 	GraphicsScene();

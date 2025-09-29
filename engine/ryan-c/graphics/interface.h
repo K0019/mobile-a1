@@ -24,7 +24,20 @@
 #include "logging/log.h"
 #include "logging/profiler.h"
 
+#if defined(__ANDROID__)
+#include <android/native_window.h>
+#endif
+
+// Only include GLFW on non-Android platforms
+#if !defined(__ANDROID__)
 typedef struct GLFWwindow GLFWwindow;
+#endif
+
+#if defined(__ANDROID__)
+  using window = ANativeWindow;
+#else
+  using window = GLFWwindow;
+#endif
 
 namespace vk
 {
@@ -348,7 +361,7 @@ namespace vk
     Greater,
     NotEqual,
     GreaterEqual,
-    AlwaysPass
+    Always
   };
 
   enum class StencilOp : uint8_t
@@ -416,14 +429,14 @@ namespace vk
     StencilOp stencilFailureOp = StencilOp::Keep;
     StencilOp depthFailureOp = StencilOp::Keep;
     StencilOp depthStencilPassOp = StencilOp::Keep;
-    CompareOp stencilCompareOp = CompareOp::AlwaysPass;
+    CompareOp stencilCompareOp = CompareOp::Always;
     uint32_t readMask = (uint32_t)~0;
     uint32_t writeMask = (uint32_t)~0;
   };
 
   struct DepthState
   {
-    CompareOp compareOp = CompareOp::AlwaysPass;
+    CompareOp compareOp = CompareOp::Always;
     bool isDepthWriteEnabled = false;
   };
 
@@ -1265,13 +1278,5 @@ namespace vk
     return levels;
   }
 
-#if defined(__ANDROID__)
-using window = ANativeWindow;
-#else
-  using window = GLFWwindow;
-#endif
-
-#if GLFW || defined(__ANDROID__)
   std::unique_ptr<IContext> createVulkanContextWithSwapchain(window* window, uint32_t width, uint32_t height, const ContextConfig& cfg, HWDeviceType preferredDeviceType = HWDeviceType::Discrete);
-#endif
 } // namespace vk
