@@ -44,6 +44,7 @@ namespace physics {
 	{
 		NON_MOVING = 0,
 		MOVING,
+		NON_COLLIDABLE,
 		NUM_LAYERS
 	};
 
@@ -63,7 +64,8 @@ namespace physics {
 	{
 		static constexpr JPH::BroadPhaseLayer NON_MOVING(0);
 		static constexpr JPH::BroadPhaseLayer MOVING(1);
-		static constexpr JPH::uint NUM_LAYERS(2);
+		static constexpr JPH::BroadPhaseLayer NON_COLLIDABLE(2);
+		static constexpr JPH::uint NUM_LAYERS(3);
 	};
 
 	/*****************************************************************//*!

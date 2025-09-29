@@ -15,7 +15,7 @@
 	collision layers. It also contains the definition of the collision listener
 	of Jolt Physics and the collision component member functions.
 
-All content © 2025 DigiPen Institute of Technology Singapore.
+All content ï¿½ 2025 DigiPen Institute of Technology Singapore.
 All rights reserved.
 */
 /******************************************************************************/
@@ -32,7 +32,9 @@ namespace physics {
 		case +Layers::NON_MOVING:
 			return +inObject2 == +Layers::MOVING; // Non moving only collides with moving
 		case +Layers::MOVING:
-			return true; // Moving collides with everything
+			return +inObject2 != +Layers::NON_COLLIDABLE; // Moving collides with everything except non collidable
+		case +Layers::NON_COLLIDABLE:
+			return false; // Can't collide with anything.
 		default:
 			JPH_ASSERT(false);
 			return false;
@@ -43,6 +45,7 @@ namespace physics {
 	{
 		mObjectToBroadPhase[+Layers::NON_MOVING] = BroadPhaseLayers::NON_MOVING;
 		mObjectToBroadPhase[+Layers::MOVING] = BroadPhaseLayers::MOVING;
+		mObjectToBroadPhase[+Layers::NON_COLLIDABLE] = BroadPhaseLayers::NON_COLLIDABLE;
 	}
 
 	JPH::uint BPLayerInterfaceImpl::GetNumBroadPhaseLayers() const
@@ -79,7 +82,9 @@ namespace physics {
 		case +Layers::NON_MOVING:
 			return inLayer2 == BroadPhaseLayers::MOVING;
 		case +Layers::MOVING:
-			return true;
+			return inLayer2 != BroadPhaseLayers::NON_COLLIDABLE;
+		case +Layers::NON_COLLIDABLE:
+			return false;
 		default:
 			JPH_ASSERT(false);
 			return false;
@@ -116,8 +121,17 @@ namespace physics {
 			CONSOLE_LOG(LEVEL_ERROR) << "Invalid Body ID generated while creating the Physics component";
 
 		//Set the body's shape.
-		Vec3 scale{ ecs::GetEntityTransform(this).GetWorldScale() };
-		ST<JoltPhysics>::Get()->GetBodyInterface().SetShape(bodyID, new JPH::ScaledShape(new JPH::BoxShape(JPH::Vec3::sOne()), JPH::Vec3{ scale.x * size.x * 0.5f, scale.y * size.y * 0.5f, scale.z * size.z * 0.5f }), true, JPH::EActivation::Activate);
+		Vec3 scale{ ecs::GetEntityTransform(this).GetWorldScale() * size };
+		JPH::Vec3 scaleJolt{ scale.x * 0.5f, scale.y * 0.5f, scale.z * 0.5f };
+
+		//If the scale of any axis is 0, set it to non collidable.
+		if (JPH::ScaleHelpers::IsZeroScale(scaleJolt))
+		{
+			scaleJolt = JPH::ScaleHelpers::MakeNonZeroScale(scaleJolt);
+			ST<JoltPhysics>::Get()->GetBodyInterface().SetObjectLayer(bodyID, +Layers::NON_COLLIDABLE);
+		}
+		
+		ST<JoltPhysics>::Get()->GetBodyInterface().SetShape(bodyID, new JPH::ScaledShape(new JPH::BoxShape(JPH::Vec3::sOne()), scaleJolt), true, JPH::EActivation::Activate);
 		ST<JoltPhysics>::Get()->SetBodyPosition(bodyID, ecs::GetEntityTransform(this).GetWorldPosition() + center);
 	}
 
@@ -129,7 +143,7 @@ namespace physics {
 		{
 			Vec3 scale{ ecs::GetEntityTransform(this).GetWorldScale() * 0.5f };
 			JPH::Vec3 scaleJolt{scale.x, scale.y, scale.z};
-			ST<JoltPhysics>::Get()->GetBodyInterface().SetShape(bodyID, new JPH::ScaledShape(new JPH::EmptyShape(), scaleJolt), true, JPH::EActivation::Activate);
+			ST<JoltPhysics>::Get()->GetBodyInterface().SetShape(bodyID, new JPH::EmptyShape(scaleJolt), true, JPH::EActivation::Activate);
 		}
 	}
 
