@@ -37,7 +37,6 @@ All rights reserved.
 #include "GameCameraController.h"
 #include "Audio.h"
 #include "TrailSystem.h"
-#include "KillAnimationWhenFinish.h"
 #include "FadeAndDie.h"
 #include "PrefabSpawner.h"
 #include "Physics.h"
@@ -97,7 +96,6 @@ void GameState_Game::OnEnter()
 
     ecs::AddSystem(ECS_LAYER::POST_PHYSICS_2, CameraSystem{});
     ecs::AddSystem(ECS_LAYER::POST_PHYSICS_0, AnchorToCameraSystem{});
-    ecs::AddSystem(ECS_LAYER::POST_PHYSICS_0, AnimationFinishSystem{});
     ecs::AddSystem(ECS_LAYER::POST_PHYSICS_1, ShakeSystem{});
 
     ecs::AddSystem(ECS_LAYER::POST_PHYSICS_0, FadeAndDieSystem{});

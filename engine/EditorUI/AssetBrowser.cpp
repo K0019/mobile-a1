@@ -36,8 +36,6 @@ All rights reserved.
 #include "AssetBrowserCategories.h"
 #include "MeshTab.h"
 #include "MaterialTab.h"
-#include "SpriteTab.h"
-#include "AnimationTab.h"
 #include "SoundTab.h"
 #include "SceneTab.h"
 #include "FileBrowserTab.h"
