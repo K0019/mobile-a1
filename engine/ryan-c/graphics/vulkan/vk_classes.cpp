@@ -2364,7 +2364,7 @@ void vk::CommandBuffer::cmdDispatchThreadGroups(const Dimensions& threadgroupCou
   }
   for (uint32_t i = 0; i != Dependencies::MAX_SUBMIT_DEPENDENCIES && deps.buffers[i]; i++)
   {
-    const VulkanBuffer* buf = ctx_->buffersPool_.get(deps.buffers[i]);
+    [[maybe_unused]] const VulkanBuffer* buf = ctx_->buffersPool_.get(deps.buffers[i]);
     ASSERT_MSG(buf->vkUsageFlags_ & VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, "Did you forget to specify BufferUsageBits_Storage on your buffer?");
     bufferBarrier(deps.buffers[i], VK_PIPELINE_STAGE_2_VERTEX_SHADER_BIT | VK_PIPELINE_STAGE_2_FRAGMENT_SHADER_BIT, VK_PIPELINE_STAGE_2_COMPUTE_SHADER_BIT);
   }
@@ -2491,7 +2491,7 @@ void vk::CommandBuffer::cmdBeginRendering(const RenderPass& renderPass, const Fr
   }
 
   const uint32_t numFbColorAttachments = fb.getNumColorAttachments();
-  const uint32_t numPassColorAttachments = renderPass.getNumColorAttachments();
+  [[maybe_unused]] const uint32_t numPassColorAttachments = renderPass.getNumColorAttachments();
 
   ASSERT(numPassColorAttachments == numFbColorAttachments);
 
@@ -3197,7 +3197,7 @@ void vk::VulkanStagingDevice::bufferSubData(VulkanBuffer& buffer, size_t dstOffs
   }
 }
 
-void vk::VulkanStagingDevice::imageData2D(VulkanImage& image, const VkRect2D& imageRegion, uint32_t baseMipLevel, uint32_t numMipLevels, uint32_t layer, uint32_t numLayers, VkFormat format, const void* data)
+void vk::VulkanStagingDevice::imageData2D(VulkanImage& image, const VkRect2D& imageRegion, uint32_t baseMipLevel, uint32_t numMipLevels, [[maybe_unused]] uint32_t layer, uint32_t numLayers, VkFormat format, const void* data)
 {
   PROFILER_FUNCTION();
 
@@ -5414,7 +5414,7 @@ vk::ShaderModuleState vk::VulkanContext::createShaderModuleFromSPIRV(const void*
   ASSERT(vkShaderModule != VK_NULL_HANDLE);
 
   SpvReflectShaderModule mdl;
-  SpvReflectResult result = spvReflectCreateShaderModule(numBytes, spirv, &mdl);
+  [[maybe_unused]] SpvReflectResult result = spvReflectCreateShaderModule(numBytes, spirv, &mdl);
   ASSERT(result == SPV_REFLECT_RESULT_SUCCESS);
   SCOPE_EXIT { spvReflectDestroyShaderModule(&mdl); };
 
