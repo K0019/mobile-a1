@@ -33,6 +33,12 @@ namespace util {
         return mt;
     }
 
+	const std::string& EmptyStr()
+	{
+		static std::string empty{};
+		return empty;
+	}
+
 	float RandomRangeFloat(float min, float max) {
 				return RandomRange(min,max);
 	}
@@ -158,9 +164,9 @@ namespace util {
 	//	}
 	//}
 
-	void DrawLine(const Vec2& start, const Vec2& end, const Vec3& color, float alpha)
+	void DrawLine([[maybe_unused]] const Vec2& start, [[maybe_unused]] const Vec2& end, [[maybe_unused]] const Vec3& color, [[maybe_unused]] float alpha)
 	{
-		Vec4 lineColor(color, alpha);
+		//Vec4 lineColor(color, alpha);
 		//ST<Engine>::Get()->_vulkan->_renderer->AddLineInstance(start, end, lineColor);
 	}
 }

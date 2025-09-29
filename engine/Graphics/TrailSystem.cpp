@@ -37,7 +37,7 @@ TrailRendererDrawingSystem::TrailRendererDrawingSystem() : System_Internal(&Trai
     //renderer = ST<Engine>::Get()->_vulkan->_renderer.get();
 }
 
-void TrailRendererDrawingSystem::DrawTrailComp(TrailRendererComponent& trailComp)
+void TrailRendererDrawingSystem::DrawTrailComp(TrailRendererComponent&)
 {
     //renderer->AddTrailInstance(trailComp);
 }

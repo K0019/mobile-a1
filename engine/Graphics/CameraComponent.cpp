@@ -41,14 +41,10 @@ void CameraComponent::OnAttached()
 
 void CameraComponent::EditorDraw()
 {
-#ifdef IMGUI_ENABLED
-    bool active = isActive();
-    if(ImGui::Checkbox("Currently Active", &active))
-    {
+    bool b = isActive();
+    if (gui::Checkbox("Currently Active", &b))
         SetActive();
-    }
-    ImGui::Text("Zoom: %.2f", zoom);
-#endif
+    gui::TextFormatted("Zoom: %.2f", zoom);
 }
 
 ShakeComponent::ShakeComponent()

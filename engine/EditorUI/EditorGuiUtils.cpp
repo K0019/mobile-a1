@@ -19,7 +19,7 @@ namespace gui
 	}
 
 
-	std::string TruncateText(const std::string& text, float maxWidth)
+	std::string TruncateText(const std::string& text, [[maybe_unused]] float maxWidth)
 	{
 		std::string displayName = text;
 #ifdef IMGUI_ENABLED
@@ -36,7 +36,7 @@ namespace gui
 		return displayName;
 	}
 
-	void ThumbnailLabel(const std::string& text, float thumbnailWidth)
+	void ThumbnailLabel([[maybe_unused]] const std::string& text, [[maybe_unused]] float thumbnailWidth)
 	{
 #ifdef IMGUI_ENABLED
 		std::string displayName = TruncateText(text, thumbnailWidth);

@@ -44,7 +44,7 @@ void Gizmo::attach(Transform& transform) {
 void Gizmo::detach() {
     m_attachedTransform = nullptr;
 }
-void Gizmo::draw(ImDrawList* viewport) {
+void Gizmo::draw([[maybe_unused]] ImDrawList* viewport) {
     if(m_activeType == GizmoType::None || !m_attachedTransform) return;
 
     CONSOLE_LOG_UNIMPLEMENTED() << "Gizmo draw";

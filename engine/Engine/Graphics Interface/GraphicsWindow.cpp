@@ -142,7 +142,7 @@ void GraphicsWindowGLFW::SetupGLFWCallbacks()
 	glfwSetWindowIconifyCallback(window, GLFW_Callback_IconifyStateChanged);
 }
 
-void GraphicsWindowGLFW::GLFW_Callback_FramebufferResize(GLFWwindow* window, int width, int height)
+void GraphicsWindowGLFW::GLFW_Callback_FramebufferResize(GLFWwindow*, int width, int height)
 {
 	ST<GraphicsWindow>::Get()->Callback_FramebufferResize(width, height);
 }
@@ -157,7 +157,7 @@ void GraphicsWindowGLFW::Callback_FramebufferResize(int width, int height)
 	ST<GraphicsMain>::Get()->INTERNAL_OnWindowResized(width, height);
 }
 
-void GraphicsWindowGLFW::GLFW_Callback_WindowFocusChanged(GLFWwindow* window, int isFocused)
+void GraphicsWindowGLFW::GLFW_Callback_WindowFocusChanged(GLFWwindow*, int isFocused)
 {
 	Messaging::BroadcastAll("OnWindowFocus", static_cast<bool>(isFocused));
 }

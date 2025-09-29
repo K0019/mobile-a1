@@ -606,19 +606,19 @@ static void WalkBTAssetFlat(const BehaviorTreeAsset& asset, F&& fn)
             int i{ startIdx + 1 };
             while (i < (int)nodes.size() && nodes[i].nodeLevel > base) ++i;
             return i;
-            };
+        };
         auto childrenRange = [&](int pIdx) -> std::pair<int, int> {
             int first{ pIdx + 1 };
             int end{ subtreeEnd(pIdx) };
             return { first, end };
-            };
+        };
         auto listDirectChildren = [&](int pIdx, std::vector<int>& out) {
             out.clear();
             auto [first, end]{ childrenRange(pIdx) };
             const unsigned want{ nodes[pIdx].nodeLevel + 1 };
             for (int i{ first }; i < end; ++i)
                 if (nodes[i].nodeLevel == want) out.push_back(i);
-            };
+        };
         auto adjustSubtreeLevel = [&](int startIdx, int delta) {
             int end{ subtreeEnd(startIdx) };
             for (int i{ startIdx }; i < end; ++i) {
@@ -626,13 +626,12 @@ static void WalkBTAssetFlat(const BehaviorTreeAsset& asset, F&& fn)
                 if (nl < 0) nl = 0;
                 nodes[i].nodeLevel = static_cast<unsigned>(nl);
             }
-            };
+        };
         auto moveSubtreeBlock = [&](int startA, int startB) {
             // pre: startA < startB
-            const int endA{ subtreeEnd(startA) };
             const int endB{ subtreeEnd(startB) };
             std::rotate(nodes.begin() + startA, nodes.begin() + startB, nodes.begin() + endB);
-            };
+        };
 
         // Children list
         ImGui::SeparatorText("Children");
