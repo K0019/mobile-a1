@@ -46,16 +46,24 @@ void ResourceNames::RemoveName(size_t hash)
 void ResourceManager::Init()
 {
     Messaging::Subscribe("NeedResourceLoaded", OnResourceRequestedLoad);
+    Messaging::Subscribe("ResourceDeleted", OnResourceDeleted);
 }
 void ResourceManager::Shutdown()
 {
     Messaging::Unsubscribe("NeedResourceLoaded", OnResourceRequestedLoad);
+    Messaging::Unsubscribe("ResourceDeleted", OnResourceDeleted);
 }
 
 void ResourceManager::OnResourceRequestedLoad(size_t resourceHash)
 {
     if (const auto* fileEntry{ ST<ResourceManager>::Get()->filepathsManager.GetFileEntry(resourceHash) })
         ResourceImporter::Import(ST<Filepaths>::Get()->assets / fileEntry->path);
+}
+
+void ResourceManager::OnResourceDeleted(size_t hash, size_t resourceType)
+{
+    ST<ResourceManager>::Get()->filepathsManager.DisassociateResourceHash(hash, resourceType);
+    ST<ResourceManager>::Get()->namesManager.RemoveName(hash);
 }
 
 UserResourceGetter<ResourceMesh> ResourceManager::Meshes()
@@ -65,6 +73,14 @@ UserResourceGetter<ResourceMesh> ResourceManager::Meshes()
 UserResourceGetter<ResourceMaterial> ResourceManager::Materials()
 {
     return UserResourceGetter<ResourceMaterial>{ &ST<ResourceManager>::Get()->materials };
+}
+UserResourceGetter<ResourceTexture> ResourceManager::Textures()
+{
+    return UserResourceGetter<ResourceTexture>{ &ST<ResourceManager>::Get()->textures };
+}
+UserResourceGetter<ResourceAudio> ResourceManager::Audio()
+{
+    return UserResourceGetter<ResourceAudio>{ &ST<ResourceManager>::Get()->audio };
 }
 
 void ResourceManager::SaveToFile() const
@@ -100,6 +116,14 @@ const ResourceContainerMaterials& ResourceManager::Editor_GetMaterials()
 {
     return materials;
 }
+const ResourceContainerTextures& ResourceManager::Editor_GetTextures()
+{
+    return textures;
+}
+const ResourceContainerAudio& ResourceManager::Editor_GetAudio()
+{
+    return audio;
+}
 
 const std::string& ResourceManager::Editor_GetName(size_t hash)
 {
@@ -124,6 +148,14 @@ ResourceContainerMaterials& ResourceManager::INTERNAL_GetMaterials()
 {
     return materials;
 }
+ResourceContainerTextures& ResourceManager::INTERNAL_GetTextures()
+{
+    return textures;
+}
+ResourceContainerAudio& ResourceManager::INTERNAL_GetAudio()
+{
+    return audio;
+}
 
 void ResourceManager::INTERNAL_CreateEmptyResource(size_t resourceTypeHash, size_t resourceHash)
 {
@@ -132,374 +164,10 @@ void ResourceManager::INTERNAL_CreateEmptyResource(size_t resourceTypeHash, size
         meshes.INTERNAL_CreateResource(resourceHash);
     else if (resourceTypeHash == typeid(ResourceMaterial).hash_code())
         materials.INTERNAL_CreateResource(resourceHash);
-}
-
-
-namespace fs = std::filesystem;
-
-#ifdef max
-#undef max
-#endif
-// Instantiate static variables
-std::unordered_map<size_t, AudioAsset>  ResourceManagerOld::Sounds;
-std::unordered_map<size_t, std::string>   ResourceManagerOld::ResourceNames;
-std::unordered_map<size_t, ResourceManagerOld::SpriteSlot> ResourceManagerOld::Sprites;
-size_t ResourceManagerOld::NextSpriteID = 0;
-
-bool ResourceManagerOld::ResourceExists(size_t nameHash)
-{
-    return ResourceNames.contains(nameHash);
-}
-
-const std::string& ResourceManagerOld::GetResourceName(size_t nameHash)
-{
-    return ResourceNames[nameHash];
-}
-
-/*size_t ResourceManagerOld::LoadTexture(const std::string& file, const std::string& name)
-{
-    size_t nameHash = util::GenHash(name);
-    ResourceNames[nameHash] = name;
-    VulkanManager::Get().VkTextureManager().loadTextureFromFile(file, name);
-    return nameHash;
-}
-
-size_t ResourceManagerOld::LoadTexture(const unsigned char* data, int width, int height, const std::string& name)
-{
-    size_t nameHash = util::GenHash(name);
-    ResourceNames[nameHash] = name;
-    VulkanManager::Get().VkTextureManager().LoadTextureFromMemory(data, width, height, name);
-    return nameHash;
-}
-
-const Texture& ResourceManagerOld::GetTexture(const std::string& name)
-{
-    return VulkanManager::Get().VkTextureManager().getTexture(name);
-}
-
-const Texture& ResourceManagerOld::GetTexture(size_t nameHash)
-{
-    return VulkanManager::Get().VkTextureManager().getTexture(ResourceNames[nameHash]);
-}
-
-bool ResourceManagerOld::TextureExists(const std::string& name)
-{
-    return VulkanManager::Get().VkTextureManager().TextureExists(name);
-}*/
-
-/*size_t ResourceManagerOld::LoadFont(const std::string& fontFile)
-{
-    auto name = VulkanManager::Get().VkTextureManager().loadFontAtlasFromFile(fontFile);
-    size_t nameHash = util::GenHash(name);
-    ResourceNames[nameHash] = name;
-    return nameHash;
-}
-
-const FontAtlas& ResourceManagerOld::GetFont(const std::string& name)
-{
-    return VulkanManager::Get().VkTextureManager().getFontAtlas(name);
-}
-
-const FontAtlas& ResourceManagerOld::GetFont(size_t nameHash)
-{
-    return VulkanManager::Get().VkTextureManager().getFontAtlas(ResourceNames[nameHash]);
-}
-
-bool ResourceManagerOld::FontExists(const std::string& name)
-{
-    return VulkanManager::Get().VkTextureManager().FontAtlasExists(name);
-}*/
-
-size_t ResourceManagerOld::AddSprite(const Sprite& sprite) {
-    // Validate texture ID
-    if(sprite.textureID == INVALID_TEXTURE_ID && !std::filesystem::exists(sprite.textureName)) {
-        CONSOLE_LOG(LEVEL_WARNING) << "Adding sprite with invalid texture: " << sprite.textureName;
-    }
-
-    size_t id = NextSpriteID++;
-    Sprites[id] = SpriteSlot{
-        sprite,
-        true,
-        sprite.textureName,
-        sprite.textureID != INVALID_TEXTURE_ID
-    };
-    return id;
-}
-
-
-size_t ResourceManagerOld::GetSpriteID(const std::string& name) {
-    for(const auto& [id, slot] : Sprites) {
-        if(slot.active && slot.sprite.name == name) {
-            return id;
-        }
-    }
-    return INVALID_SPRITE_ID;
-}
-
-const Sprite& ResourceManagerOld::GetSprite(size_t spriteID) {
-    static const Sprite invalidSprite = CreateInvalidSprite();
-
-    auto it = Sprites.find(spriteID);
-    if(it == Sprites.end() || !it->second.active) {
-        //CONSOLE_LOG(LEVEL_WARNING) << "Attempting to access invalid sprite ID: " << spriteID;
-        return invalidSprite;
-    }
-
-    // If texture is invalid, try to reload it
-    if(!it->second.hasValidTexture) {
-        try {
-            if(std::filesystem::exists(it->second.originalPath)) {
-                /*if(!TextureExists(it->second.originalPath)) {
-                    LoadTexture(it->second.originalPath, it->second.originalPath);
-                }*/
-                //const Texture& tex = GetTexture(it->second.originalPath);
-                //it->second.sprite.textureID = tex.index;
-                //it->second.hasValidTexture = true;
-            }
-            else {
-                it->second.sprite.textureID = INVALID_TEXTURE_ID;
-                return invalidSprite;
-            }
-        }
-        catch(...) {
-            it->second.sprite.textureID = INVALID_TEXTURE_ID;
-            return invalidSprite;
-        }
-    }
-
-    return it->second.sprite;
-}
-
-void ResourceManagerOld::RenameSprite(size_t spriteID, const std::string& newName)
-{
-    auto it = Sprites.find(spriteID);
-    if(it != Sprites.end() && it->second.active) {
-        it->second.sprite.name = newName;
-    }
-}
-
-
-void ResourceManagerOld::DeleteSprite(size_t spriteID)
-{
-    auto it = Sprites.find(spriteID);
-    if(it != Sprites.end()) {
-        it->second.active = false;
-    }
-}
-
-bool ResourceManagerOld::SpriteExists(size_t spriteID)
-{
-    auto it = Sprites.find(spriteID);
-    return it != Sprites.end() && it->second.active;
-}
-
-size_t ResourceManagerOld::GetSpriteCount()
-{
-    return NextSpriteID;
-}
-
-const AudioAsset& ResourceManagerOld::LoadSound(const std::string& name, AudioAsset& sound)
-{
-    ResourceNames[util::GenHash(name)] = name;
-    return Sounds[util::GenHash(name)] = sound;
-}
-
-const AudioAsset& ResourceManagerOld::GetSound(const std::string& name)
-{
-    return Sounds[util::GenHash(name)];
-}
-
-const AudioAsset& ResourceManagerOld::GetSound(size_t nameHash)
-{
-    return Sounds[nameHash];
-}
-
-void ResourceManagerOld::DeleteSound(const std::string& name)
-{
-    Sounds.erase(util::GenHash(name));
-}
-
-bool ResourceManagerOld::SoundExists(const std::string& name)
-{
-    return Sounds.contains(util::GenHash(name));
-}
-
-void ResourceManagerOld::Clear()
-{
-    // delete all shaders	
-
-    for(auto& [_, soundAsset] : Sounds)
-    {
-        soundAsset.sound->release();
-    }
-    Sounds.clear();
-
-
-    ResourceNames.clear();
-}
-
-
-bool ResourceManagerOld::SaveAssetsToFile(const std::string& filename)
-{
-    Serializer file{ filename };
-    if (!file.IsOpen())
-    {
-        CONSOLE_LOG(LEVEL_ERROR) << "Failed to open file for writing: " << filename;
-        return false;
-    }
-
-    // Sort sprite slots by ID for consistency
-    auto activeSprites{ util::ToSortedVectorOfRefs(Sprites, util::internal::DefaultBinaryPairPred<size_t, SpriteSlot>,[](const auto& a) -> bool { return a.second.active; }) };
-
-    // Serialize sprites
-    file.StartArray("sprites");
-    for (const auto& [id, slot] : activeSprites)
-    {
-        file.StartObject();
-        file.Serialize("id", id);
-        file.Serialize(slot);
-        file.EndObject();
-    }
-    file.EndArray();
-
-
-    // Serialize animations
-
-    auto sortedSounds{ util::ToSortedVectorOfRefs(Sounds) };
-
-	file.StartArray("sounds");
-    for (const auto& [nameHash, sound] : sortedSounds)
-    {
-        file.StartObject();
-        file.Serialize("name", ResourceNames[nameHash]);
-        file.EndObject();
-    }
-    file.EndArray();
-
-    return true;
-}
-
-
-bool ResourceManagerOld::LoadAssetsFromFile(const std::string& filename) {
-    Sprites.clear();
-    NextSpriteID = 0;
-    ResourceNames.clear();
-
-    Deserializer file{ filename };
-    if (!file.IsValid())
-    {
-        CONSOLE_LOG(LEVEL_INFO) << "No existing assets file found at: " << filename;
-        return false;
-    }
-
-    // Deserialize sprites
-    size_t elemsCount{};
-    file.GetArraySize("sprites", &elemsCount);
-    if (file.PushAccess("sprites"))
-    {
-        for (size_t index{}; index < elemsCount; ++index)
-        {
-            file.PushArrayElementAccess(index);
-            size_t id{};
-            file.DeserializeVar("id", &id);
-            NextSpriteID = std::max(NextSpriteID, id + 1);
-
-            SpriteSlot& slot{ Sprites[id] };
-            file.Deserialize(&slot);
-
-            // Try to load texture
-            slot.sprite.textureID = INVALID_TEXTURE_ID; // start invalid
-            if (std::filesystem::exists(slot.originalPath))
-            {
-                try
-                {
-                    /*if (!TextureExists(slot.originalPath))
-                        LoadTexture(slot.originalPath, slot.originalPath);*/
-                    //slot.sprite.textureID = GetTexture(slot.originalPath).index;
-                    slot.hasValidTexture = true;
-                }
-                catch (const std::exception& e)
-                {
-                    CONSOLE_LOG(LEVEL_WARNING) << "Failed to load texture: " << slot.originalPath << " Error: " << e.what();
-                }
-            }
-            else
-                CONSOLE_LOG(LEVEL_WARNING) << "Texture file not found: " << slot.originalPath;
-
-            file.PopAccess();
-        }
-        file.PopAccess();
-    }
-
-	// Deserialize sounds
-	file.GetArraySize("sounds", &elemsCount);
-    if (file.PushAccess("sounds"))
-    {
-        for (size_t index{}; index < elemsCount; ++index)
-        {
-            file.PushArrayElementAccess(index);
-            std::string name;
-            file.DeserializeVar("name", &name);
-            uint64_t nameHash{ util::GenHash(name) };
-            ResourceNames[nameHash] = name;
-			ST<AudioManager>::Get()->CreateSound(name); 
-            file.PopAccess();
-        }
-    }
-
-    return true;
-}
-
-Sprite ResourceManagerOld::CreateInvalidSprite()
-{
-    Sprite invalidSprite;
-    invalidSprite.textureID = INVALID_TEXTURE_ID;
-    invalidSprite.width = 0;
-    invalidSprite.height = 0;
-    invalidSprite.texCoords = Vec4(0, 0, 1, 1);
-    invalidSprite.name = "INVALID_SPRITE";
-    return invalidSprite;
-
-}
-
-ResourceManagerOld::SpriteSlot::SpriteSlot(const Sprite& inSprite, bool inActive, const std::string& inOriginalPath, bool inHasValidTexture)
-    : sprite{ inSprite }
-    , active{ inActive }
-    , originalPath{ inOriginalPath }
-    , hasValidTexture{ inHasValidTexture }
-{
-}
-
-void ResourceManagerOld::SpriteSlot::Serialize(Serializer& writer) const
-{
-    writer.Serialize("name", sprite.name);
-    writer.Serialize("texturePath", ST<Filepaths>::Get()->TrimWorkingDirectoryFrom(originalPath));
-    writer.Serialize("width", sprite.width);
-    writer.Serialize("height", sprite.height);
-
-    // I(Kendrick) am dumb and this doesn't work because the format of default Vec4 serialization is different... and Ryan's way is better...
-    //writer.Serialize("texCoords", sprite.texCoords);
-    writer.StartArray("texCoords");
-    writer.Serialize("", sprite.texCoords.x);
-    writer.Serialize("", sprite.texCoords.y);
-    writer.Serialize("", sprite.texCoords.z);
-    writer.Serialize("", sprite.texCoords.w);
-    writer.EndArray();
-}
-
-void ResourceManagerOld::SpriteSlot::Deserialize(Deserializer& reader)
-{
-    reader.DeserializeVar("name", &sprite.name);
-    reader.DeserializeVar("texturePath", &originalPath), ST<Filepaths>::Get()->AddWorkingDirectoryTo(&originalPath);
-    sprite.textureName = originalPath; // Keep textureName matching original for now
-    reader.DeserializeVar("width", &sprite.width);
-    reader.DeserializeVar("height", &sprite.height);
-
-    //reader.DeserializeVar("texCoords", &sprite.texCoords);
-    reader.PushAccess("texCoords");
-    reader.PushArrayElementAccess(0), reader.DeserializeVar("", &sprite.texCoords.x), reader.PopAccess();
-    reader.PushArrayElementAccess(1), reader.DeserializeVar("", &sprite.texCoords.y), reader.PopAccess();
-    reader.PushArrayElementAccess(2), reader.DeserializeVar("", &sprite.texCoords.z), reader.PopAccess();
-    reader.PushArrayElementAccess(3), reader.DeserializeVar("", &sprite.texCoords.w), reader.PopAccess();
-    reader.PopAccess();
+    else if (resourceTypeHash == typeid(ResourceTexture).hash_code())
+        textures.INTERNAL_CreateResource(resourceHash);
+    else if (resourceTypeHash == typeid(ResourceAudio).hash_code())
+        audio.INTERNAL_CreateResource(resourceHash);
+    else
+        assert(false);
 }

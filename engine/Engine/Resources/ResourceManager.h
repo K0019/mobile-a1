@@ -1,10 +1,4 @@
-﻿/* PLANNED TO REFACTOR - Remove access via name and only allow access by hash so
-    we force setting of resources via editor. If access by name is really required
-    for some reason, provide that interface elsewhere which returns a hash that can
-    be used here (some class responsible for tracking asset identifiers to hash?) */
-
-
-/******************************************************************************/
+﻿/******************************************************************************/
 /*!
 \file   ResourceManager.h
 \par    Project: 7percent
@@ -29,6 +23,7 @@ All rights reserved.
 
 #pragma once
 #include "ResourceTypesGraphics.h"
+#include "ResourceTypesAudio.h"
 #include "ResourceFilepaths.h"
 #include "ResourceNames.h"
 
@@ -48,16 +43,21 @@ public:
 
     static UserResourceGetter<ResourceMesh> Meshes();
     static UserResourceGetter<ResourceMaterial> Materials();
+    static UserResourceGetter<ResourceTexture> Textures();
+    static UserResourceGetter<ResourceAudio> Audio();
 
     void SaveToFile() const;
     void LoadFromFile();
 
 private:
     static void OnResourceRequestedLoad(size_t hash);
+    static void OnResourceDeleted(size_t hash, size_t resourceType);
 
 public:
     const ResourceContainerMeshes& Editor_GetMeshes();
     const ResourceContainerMaterials& Editor_GetMaterials();
+    const ResourceContainerTextures& Editor_GetTextures();
+    const ResourceContainerAudio& Editor_GetAudio();
     const std::string& Editor_GetName(size_t hash);
 
 public:
@@ -66,6 +66,8 @@ public:
 
     ResourceContainerMeshes& INTERNAL_GetMeshes();
     ResourceContainerMaterials& INTERNAL_GetMaterials();
+    ResourceContainerTextures& INTERNAL_GetTextures();
+    ResourceContainerAudio& INTERNAL_GetAudio();
 
     void INTERNAL_CreateEmptyResource(size_t resourceTypeHash, size_t resourceHash);
 
@@ -75,90 +77,7 @@ private:
 
     ResourceContainerMeshes meshes;
     ResourceContainerMaterials materials;
+    ResourceContainerTextures textures;
+    ResourceContainerAudio audio;
 
 };
-
-
-// A static singleton ResourceManagerOld class that hosts several
-// functions to load Textures and Shaders. Each loaded texture
-// and/or shader is also stored for future reference by string
-// handles. All functions and resources are static and no 
-// public constructor is defined.
-class ResourceManagerOld {
-public:
-    struct SpriteSlot;
-
-public:
-    // Resource management functions
-    static bool ResourceExists(size_t nameHash);
-    static const std::string& GetResourceName(size_t nameHash);
-    /*static size_t LoadTexture(const std::string& file, const std::string& name);
-    static size_t LoadTexture(const unsigned char* data, int width, int height, const std::string& name);
-    /*static const Texture& GetTexture(const std::string& name);
-    static const Texture& GetTexture(size_t nameHash);#1#
-    static bool TextureExists(const std::string& name);
-    
-    // Font management
-    static size_t LoadFont(const std::string& fontFile);
-    /*static const FontAtlas& GetFont(const std::string& name);
-    static const FontAtlas& GetFont(size_t nameHash);#1#
-    static bool FontExists(const std::string& name);*/
-    
-    // Sound management
-    static const AudioAsset& LoadSound(const std::string& name, AudioAsset& sound);
-    static const AudioAsset& GetSound(const std::string& name);
-    static const AudioAsset& GetSound(size_t nameHash);
-    static void DeleteSound(const std::string& name);
-    static bool SoundExists(const std::string& name);
-    
-    // Animation management
-
-    static size_t AddSprite(const Sprite& sprite);
-    static size_t GetSpriteID(const std::string& name);
-    static const Sprite& GetSprite(size_t spriteID);
-    static void RenameSprite(size_t spriteID, const std::string& newName);
-    static void DeleteSprite(size_t spriteID);
-    static bool SpriteExists(size_t spriteID);
-    static size_t GetSpriteCount();
-    // Resource cleanup
-    static void Clear();
-
-
-    static bool SaveAssetsToFile(const std::string& filename);
-    static bool LoadAssetsFromFile(const std::string& filename);
-    
-    static constexpr uint32_t INVALID_TEXTURE_ID = std::numeric_limits<uint32_t>::max();
-    static constexpr size_t INVALID_SPRITE_ID = std::numeric_limits<size_t>::max();
-
-private:
-    static std::unordered_map<size_t, AudioAsset> Sounds;
-    static std::unordered_map<size_t, std::string> ResourceNames;
-    static Sprite CreateInvalidSprite();
-
-    static std::unordered_map<size_t, SpriteSlot> Sprites;
-    static size_t NextSpriteID;
-
-    ResourceManagerOld() = default;
-
-public:
-    struct SpriteSlot : public ISerializeable
-    {
-        SpriteSlot() = default;
-        SpriteSlot(const Sprite& inSprite, bool inActive, const std::string& inOriginalPath, bool inHasValidTexture);
-
-        Sprite sprite;
-        bool active = true;
-        std::string originalPath;
-        bool hasValidTexture = true;
-
-        void Serialize(Serializer& writer) const override;
-        void Deserialize(Deserializer& reader) override;
-
-        property_vtable()
-    };
-};
-
-property_begin(ResourceManagerOld::SpriteSlot)
-{
-}
-property_vend_h(ResourceManagerOld::SpriteSlot)

@@ -10,6 +10,11 @@ size_t ResourceFiletypeImporterBase::GenerateNewHash()
     return hash;
 }
 
+std::filesystem::path ResourceFiletypeImporterBase::GetExeRelativeFilepath(const std::filesystem::path& assetRelativeFilepath)
+{
+    return ST<Filepaths>::Get()->assets / assetRelativeFilepath;
+}
+
 void ResourceFiletypeImporterBase::GenerateNamesForResources(std::vector<AssociatedResourceHashes>& resources, const std::filesystem::path& relativeFilepath)
 {
     auto& namesManager{ ST<ResourceManager>::Get()->INTERNAL_GetNamesManager() };

@@ -5,7 +5,6 @@ struct ResourceBase
     size_t hash;
 
     virtual bool IsLoaded() = 0;
-
 };
 
 template <std::derived_from<ResourceBase> ResourceType>
@@ -13,6 +12,7 @@ class ResourceContainerBase
 {
 public:
     const ResourceType* GetResource(size_t hash);
+    void DeleteResource(size_t hash);
 
 public:
     void INTERNAL_CreateResource(size_t hash);
