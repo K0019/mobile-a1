@@ -78,9 +78,10 @@ private:
         {".jpg", "texture"},
         {".jpeg", "texture"},
         {".bmp", "texture"},
-        {".fbx", "fbx"},
+        {".fbx", "importable"},
+        {".ktx", "importable"},
         {".wav", "audio"},
-        {".mp3", "audio"},
+        {".mp3", "importable"},
         {".ogg", "audio"},
         {".ttf", "font"},
         {".otf", "font"}

@@ -200,7 +200,6 @@ void Engine::init()
 	// load resources
 	ST<ResourceManager>::Get()->Init();
 	ST<ResourceManager>::Get()->LoadFromFile();
-	ResourceManagerOld::LoadAssetsFromFile(ST<Filepaths>::Get()->workingDir + "/Assets/assetsOld.json");
 	//ST<AssetBrowser>::Get()->file_system.Initialize(ST<Filepaths>::Get()->workingDir);
 	// Load fonts manually for now
 	const std::array<std::string, 3> fontsToLoad{
@@ -425,7 +424,6 @@ void Engine::run()
 #endif
 
 	ST<GameSettings>::Get()->Save();
-	ResourceManagerOld::SaveAssetsToFile(ST<Filepaths>::Get()->workingDir + "/Assets/assetsOld.json");
 	ST<ResourceManager>::Get()->SaveToFile();
 }
 

@@ -13,12 +13,6 @@
 	FUNCTION
 #endif
 
-AudioAsset::AudioAsset(FMOD::Sound* sound, const std::string& name, bool is3D, AudioType type)
-	: sound{ sound }
-	, data{ name, is3D, type }
-{
-}
-
 // Creates and loads sounds on launch
 AudioManager::AudioManager()
 	: system{}
@@ -82,17 +76,11 @@ void AudioManager::SetGroupVolume(AudioType type, float vol)
 	}
 }
 
-void AudioManager::CreateSound(const std::string& name)
+FMOD::Sound* AudioManager::CreateSound(const std::string& filepath)
 {
-	// yc: this should be delegated to ResourceManagerOld, when we have a proper asset management system
 	FMOD::Sound* sound = nullptr;
-	FMOD_ASSERT(system->createSound((ST<Filepaths>::Get()->soundFolder + name).c_str(), FMOD_DEFAULT, 0, &sound));
-
-	AudioAsset soundAsset(sound, name);
-	sound->setUserData((void*)&soundAsset.data); // Setup using fmod's own internal user data system for easy retrieval
-	
-	ResourceManagerOld::LoadSound(name, soundAsset);
-	soundNames.push_back(name);
+	FMOD_ASSERT(system->createSound(filepath.c_str(), FMOD_DEFAULT, 0, &sound));
+	return sound;
 }
 
 void AudioManager::FreeSound(FMOD::Sound* sound)
@@ -102,9 +90,13 @@ void AudioManager::FreeSound(FMOD::Sound* sound)
 		FMOD_ASSERT(sound->release());
 }
 
-uint32_t AudioManager::PlaySound(const std::string& name, bool loop, AudioType category)
+uint32_t AudioManager::PlaySound(size_t audioResourceHash, bool loop, AudioType category)
 {
-	FMOD::Sound* sound = ResourceManagerOld::GetSound(name).sound;
+	const auto* resource{ ST<ResourceManager>::Get()->Audio().GetResource(audioResourceHash) };
+	if (!resource)
+		return 0;
+
+	FMOD::Sound* sound = resource->sound;
 	FMOD::Channel* channel = nullptr;
 
 	switch(category)
@@ -126,9 +118,13 @@ uint32_t AudioManager::PlaySound(const std::string& name, bool loop, AudioType c
 	return channelManager.RegisterChannel(channel);
 }
 
-uint32_t AudioManager::PlaySound3D(const std::string& name, bool loop, Vec3 position, AudioType category, std::pair<float, float> rolloff)
+uint32_t AudioManager::PlaySound3D(size_t audioResourceHash, bool loop, Vec3 position, AudioType category, std::pair<float, float> rolloff)
 {
-	FMOD::Sound* sound = ResourceManagerOld::GetSound(name).sound;
+	const auto* resource{ ST<ResourceManager>::Get()->Audio().GetResource(audioResourceHash) };
+	if (!resource)
+		return 0;
+
+	FMOD::Sound* sound = resource->sound;
 	FMOD::Channel* channel = nullptr;
 
 	switch (category)
@@ -207,11 +203,6 @@ void AudioManager::UpdateListener(const Vec3& pos, const Vec3& vel)
 void AudioManager::ConfigureListener(float dopplerScale, float distanceFactor, float rolloffScale)
 {
 	FMOD_ASSERT(system->set3DSettings(dopplerScale, distanceFactor, rolloffScale));
-}
-
-const std::vector<std::string>& AudioManager::GetSoundNames() const
-{
-	return soundNames;
 }
 
 void AudioManager::SetChannelPosition(uint32_t handle, const Vec3& pos, const Vec3& vel)

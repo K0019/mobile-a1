@@ -18,3 +18,11 @@ struct ResourceMaterial : public ResourceBase
     virtual bool IsLoaded() final;
 };
 using ResourceContainerMaterials = ResourceContainerBase<ResourceMaterial>;
+
+struct ResourceTexture : public ResourceBase
+{
+    TextureHandle handle;
+
+    virtual bool IsLoaded() final;
+};
+using ResourceContainerTextures = ResourceContainerBase<ResourceTexture>;

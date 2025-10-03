@@ -14,18 +14,20 @@ const char* SoundTab::GetIdentifier() const
 
 void SoundTab::Render()
 {
-#ifdef IMGUI_ENABLED
-    ImGui::BeginChild("SoundTable", ImVec2(0.f, -FLT_MIN), true); // Fill available space
+    gui::Child child{ "SoundTable", gui::Vec2{ 0.0f, -FLT_MIN }, gui::FLAG_CHILD::BORDERS };
 
-    std::vector<std::string> soundNames = ST<AudioManager>::Get()->GetSoundNames();
+#ifdef IMGUI_ENABLED
+    auto soundResources{ ST<ResourceManager>::Get()->Editor_GetAudio().Editor_GetAllResources() };
 
     ImGui::Columns(2, nullptr, true);
 
     // Left column for single sounds
     ImGui::Text("Sounds");
 
-    for (std::string const& name : soundNames)
+    for (const auto& [hash, resource] : soundResources)
     {
+        const std::string& name{ ST<ResourceManager>::Get()->Editor_GetName(hash) };
+
         // Create Button
         if (ImGui::Selectable(name.c_str()))
         {
@@ -35,27 +37,26 @@ void SoundTab::Render()
                 currentPreviewSound = 0;
             }
 
-            AudioAsset currentAsset = ResourceManagerOld::GetSound(name);
-            if (currentAsset.sound == lastPreviewAudio.sound)
+            if (hash == lastPreviewAudioHash)
             {
-                lastPreviewAudio = {};
+                lastPreviewAudioHash = 0;
             }
             else
             {
                 if (use3DMode)
-                    currentPreviewSound = ST<AudioManager>::Get()->PlaySound3D(name, false, Vec3{}, AudioType::END);
+                    currentPreviewSound = ST<AudioManager>::Get()->PlaySound3D(hash, false, Vec3{}, AudioType::END);
                 else
-                    currentPreviewSound = ST<AudioManager>::Get()->PlaySound(name, false, AudioType::END);
+                    currentPreviewSound = ST<AudioManager>::Get()->PlaySound(hash, false, AudioType::END);
 
-                lastPreviewAudio = currentAsset;
+                lastPreviewAudioHash = hash;
             }
         }
 
         // Drag-drop source
-        gui::PayloadSource{ "SOUND", name, name.c_str() };
+        gui::PayloadSource{ "SOUND_HASH", hash.get(), name.c_str()};
 
         // Context menu
-        RenderSoundContextMenu(name);
+        RenderSoundContextMenu(hash, name);
     }
 
     ImGui::NextColumn();
@@ -77,7 +78,7 @@ void SoundTab::Render()
 
     if (ST<AudioManager>::Get()->IsPlaying(currentPreviewSound))
     {
-        playingName = lastPreviewAudio.data.name;
+        playingName = ST<ResourceManager>::Get()->Editor_GetName(lastPreviewAudioHash);
         FMOD::Sound* currentSound = ST<AudioManager>::Get()->GetSound(currentPreviewSound);
 
         if (currentSound)
@@ -163,25 +164,16 @@ void SoundTab::Render()
         {
             ST<AudioManager>::Get()->StopSound(currentPreviewSound);
             currentPreviewSound = 0;
-            lastPreviewAudio = {};
+            lastPreviewAudioHash = 0;
         }
     }
-
-    ImGui::EndChild();
 #endif
 }
 
-#ifdef IMGUI_ENABLED
-void SoundTab::RenderSoundContextMenu(std::string const& name)
+void SoundTab::RenderSoundContextMenu(size_t hash, const std::string& name)
 {
-    if (ImGui::BeginPopupContextItem(("Delete##" + name).c_str()))
-    {
-        if (ImGui::MenuItem("Delete"))
-        {
-            ST<AudioManager>::Get()->FreeSound(ResourceManagerOld::GetSound(name).sound);
-            ResourceManagerOld::DeleteSound(name);
-        }
-        ImGui::EndPopup();
-    }
+    if (gui::ItemContextMenu contextMenu{ ("Delete##" + name).c_str() })
+        if (gui::MenuItem("Delete"))
+            // Note: The deletion of the resource calls AudioManager::FreeSound(), which stops all sounds, even sounds that are not this sound being deleted
+            ST<ResourceManager>::Get()->INTERNAL_GetAudio().DeleteResource(hash);
 }
-#endif

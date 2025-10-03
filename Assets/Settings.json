@@ -125,10 +125,5 @@
         "Player": [],
         "Enemy": []
     },
-    "systemLayers": {
-        "15214324592707462890": {
-            "_majorityTrue": true,
-            "_except": []
-        }
-    }
+    "systemLayers": {}
 }

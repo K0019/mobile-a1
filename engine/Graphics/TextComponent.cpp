@@ -180,9 +180,9 @@ void TextComponent::EditorDraw()
 #ifdef IMGUI_ENABLED
     ImGui::Text("Font");
     ImGui::SameLine();
-    auto& currentFontName = ResourceManagerOld::GetResourceName(fontNameHash);
-    if(ImGui::BeginCombo("Font", currentFontName.c_str()))
-    {
+    //auto& currentFontName = ResourceManagerOld::GetResourceName(fontNameHash);
+    //if(ImGui::BeginCombo("Font", currentFontName.c_str()))
+    //{
         //const auto& fontAtlases = VulkanManager::Get().VkTextureManager().getFontAtlases();
         /*for(const auto& fontName : fontAtlases | std::views::keys)
         {
@@ -199,8 +199,8 @@ void TextComponent::EditorDraw()
                 ImGui::SetItemDefaultFocus();
             }
         }*/
-        ImGui::EndCombo();
-    }
+        //ImGui::EndCombo();
+    //}
     const char* alignmentItems[] = { "Left", "Center", "Right" };
     int currentAlignment = static_cast<int>(GetAlignment());
     if(ImGui::Combo("Alignment", &currentAlignment, alignmentItems, IM_ARRAYSIZE(alignmentItems))) {

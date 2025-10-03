@@ -21,9 +21,12 @@ public:
     const FileEntry* SetFilepath(const std::filesystem::path& filepath, std::vector<AssociatedResourceHashes>&& associatedHashes);
 
     // Gets the FileEntry associated with a resource hash
-    const FileEntry* GetFileEntry(size_t hash);
+    const FileEntry* GetFileEntry(size_t resourceHash);
     const FileEntry* GetFileEntry(const std::filesystem::path& filepath) const;
     std::vector<const FileEntry*> GetFileEntries() const;
+
+    // Removes a resource hash from a file entry. Deletes the file entry if there are no remaining associated resources.
+    void DisassociateResourceHash(size_t resourceHash, size_t resourceType);
 
 private:
 

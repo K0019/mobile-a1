@@ -10,12 +10,25 @@ const ResourceType* ResourceContainerBase<ResourceType>::GetResource(size_t hash
 
 	// If the resource isn't loaded, try to ask the importer to load it
 	if (!resourceIter->second.IsLoaded())
+	{
 		Messaging::BroadcastAll("NeedResourceLoaded", hash);
-	// If it's still not loaded, don't return anything to ensure upstream doesn't use an invalid resource.
-	if (!resourceIter->second.IsLoaded())
-		return nullptr;
+		// If it's still not loaded, don't return anything to ensure downstream doesn't use an invalid resource.
+		if (!resourceIter->second.IsLoaded())
+			return nullptr;
+	}
 
 	return &resourceIter->second;
+}
+
+template<std::derived_from<ResourceBase> ResourceType>
+void ResourceContainerBase<ResourceType>::DeleteResource(size_t hash)
+{
+	auto resourceIter{ resources.find(hash) };
+	if (resourceIter == resources.end())
+		return;
+
+	Messaging::BroadcastAll("ResourceDeleted", hash, typeid(ResourceType).hash_code());
+	resources.erase(resourceIter);
 }
 
 template<std::derived_from<ResourceBase> ResourceType>

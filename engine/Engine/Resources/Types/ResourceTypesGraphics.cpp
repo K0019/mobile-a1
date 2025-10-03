@@ -9,3 +9,8 @@ bool ResourceMaterial::IsLoaded()
 {
     return handle.isValid();
 }
+
+bool ResourceTexture::IsLoaded()
+{
+    return handle.isValid();
+}

@@ -37,8 +37,8 @@ All rights reserved.
 
 #include "ECSSysLayers.h"
 #include "NameComponent.h"
-#include "GraphicsECSSprite.h"
 #include "CameraController.h"
+#include "Materials.h"
 
 #include "ResourceManager.h"
 #include "Performance.h"
