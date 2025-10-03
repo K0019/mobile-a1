@@ -1,6 +1,6 @@
 #pragma once
 #include "AssetBrowserCategories.h"
-#include "Audio.h"
+#include "ResourceTypesAudio.h"
 
 struct SoundTab
 	: editor::BaseAssetCategory
@@ -10,12 +10,10 @@ struct SoundTab
 	void Render() override;
 
 private:
-#ifdef IMGUI_ENABLED
-	void RenderSoundContextMenu(std::string const& name);
-#endif
+	void RenderSoundContextMenu(size_t hash, const std::string& name);
 
 private:
 	uint32_t currentPreviewSound = 0; /**< Current preview sound channel */
-	AudioAsset lastPreviewAudio; /**< Current preview audio information */
+	size_t lastPreviewAudioHash; /**< Current preview audio information */
 	bool use3DMode = false;
 };

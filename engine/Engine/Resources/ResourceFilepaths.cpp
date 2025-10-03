@@ -49,3 +49,29 @@ std::vector<const ResourceFilepaths::FileEntry*> ResourceFilepaths::GetFileEntri
     });
     return toReturn;
 }
+
+void ResourceFilepaths::DisassociateResourceHash(size_t resourceHash, size_t resourceType)
+{
+    auto fileEntryIter{ hashToFileEntry.find(resourceHash) };
+    if (fileEntryIter == hashToFileEntry.end())
+        return;
+
+    // Remove the resource hash mapping.
+    FileEntry* fileEntry{ fileEntryIter->second };
+    hashToFileEntry.erase(fileEntryIter);
+
+    // Remove the association with the file entry.
+    auto associatedResourcesVecIter{ std::find_if(fileEntry->associatedResources.begin(), fileEntry->associatedResources.end(), [resourceType](const AssociatedResourceHashes& association) -> bool {
+        return association.resourceTypeHash == resourceType;
+    }) };
+    std::erase(associatedResourcesVecIter->hashes, resourceHash);
+    if (associatedResourcesVecIter->hashes.empty())
+        fileEntry->associatedResources.erase(associatedResourcesVecIter);
+    // If there are still other resources associated with the file entry, leave the file entry be
+    if (!fileEntry->associatedResources.empty())
+        return;
+
+    // Remove the file entry
+    size_t fileEntryHash{ util::GenHash(fileEntry->path.string()) };
+    fileEntries.erase(fileEntryHash);
+}

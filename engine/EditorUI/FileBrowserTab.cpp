@@ -279,7 +279,7 @@ void FileBrowserTab::RenderItemContextMenu(const FileSystem::FileEntry& entry)
         }
         ImGui::Separator();
     }
-    else if (entry.fileType == "fbx")
+    else if (entry.fileType == "importable")
     {
         if (gui::MenuItem(ICON_FA_FILE_IMPORT" Import"))
             ResourceImporter::Import(entry.fullPath.string());

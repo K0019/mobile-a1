@@ -1,14 +1,14 @@
 {
     "files": [
         {
-            "filepath": "..\\CompiledAssets\\tractor-shovel.mesh",
+            "filepath": "Sounds\\Kalimba.mp3",
             "resources": [
                 {
-                    "resourceType": 7953536019925557911,
+                    "resourceType": 13608648403210648424,
                     "resourceEntries": [
                         {
-                            "hash": 47759487250472904,
-                            "name": "tractor-shovel0"
+                            "hash": 55578113842451202,
+                            "name": "Kalimba0"
                         }
                     ]
                 }
@@ -34,6 +34,29 @@
                             "name": "box0"
                         }
                     ]
+                },
+                {
+                    "resourceType": 13960108920292451446,
+                    "resourceEntries": [
+                        {
+                            "hash": 54050893246142548,
+                            "name": "box0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "Sounds\\Gylia Shanty (Cinfras County).mp3",
+            "resources": [
+                {
+                    "resourceType": 13608648403210648424,
+                    "resourceEntries": [
+                        {
+                            "hash": 53089919028793173,
+                            "name": "Gylia Shanty (Cinfras County)0"
+                        }
+                    ]
                 }
             ]
         },
@@ -54,6 +77,15 @@
                     "resourceEntries": [
                         {
                             "hash": 60236745507289955,
+                            "name": "ambulance0"
+                        }
+                    ]
+                },
+                {
+                    "resourceType": 13960108920292451446,
+                    "resourceEntries": [
+                        {
+                            "hash": 56092686338945225,
                             "name": "ambulance0"
                         }
                     ]

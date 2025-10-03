@@ -40,6 +40,32 @@
                         }
                     },
                     {
+                        "key": "ReverseDir",
+                        "value": {
+                            "compositeType": 0,
+                            "bindings": [
+                                {
+                                    "hardwareLink": {
+                                        "deviceType": -1,
+                                        "keyIdentifier": -1
+                                    }
+                                },
+                                {
+                                    "hardwareLink": {
+                                        "deviceType": 0,
+                                        "keyIdentifier": 67
+                                    }
+                                },
+                                {
+                                    "hardwareLink": {
+                                        "deviceType": -1,
+                                        "keyIdentifier": -1
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    {
                         "key": "Walk",
                         "value": {
                             "compositeType": 2,
@@ -69,6 +95,27 @@
                     }
                 ]
             }
+        },
+        {
+            "key": "New Input Set",
+            "value": {
+                "actions": [
+                    {
+                        "key": "New Action",
+                        "value": {
+                            "compositeType": 0,
+                            "bindings": [
+                                {
+                                    "hardwareLink": {
+                                        "deviceType": 0,
+                                        "keyIdentifier": 65
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ]
+            }
         }
     ],
     "collisionLayers": {
@@ -78,10 +125,5 @@
         "Player": [],
         "Enemy": []
     },
-    "systemLayers": {
-        "15214324592707462890": {
-            "_majorityTrue": true,
-            "_except": []
-        }
-    }
+    "systemLayers": {}
 }

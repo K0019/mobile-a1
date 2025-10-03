@@ -24,31 +24,7 @@ All rights reserved.
 #pragma once
 #include <FMOD/fmod.hpp>
 #include <FMOD/fmod_studio.hpp>
-
-enum class AudioType : char
-{
-	BGM, 
-	SFX, 
-	END
-};
-
-// Audio metadata
-struct AudioData
-{
-	std::string name = "";
-	bool clip_is_3d = false;
-	AudioType type = AudioType::END; // Undetermined is not an error state, just means the audio is not categorized
-};
-
-// Representation of a loaded sound asset - holds both the handle to fmod sound and the metadata
-struct AudioAsset
-{
-	AudioAsset() = default;
-	AudioAsset(FMOD::Sound* sound, const std::string& name, bool is3D = false, AudioType type = AudioType::END);
-
-	AudioData data;
-	FMOD::Sound* sound = nullptr;
-};
+#include "ResourceTypesAudio.h"
 
 class AudioManager
 {
@@ -80,12 +56,12 @@ public:
 	void Update(); // auto calls system->update() internally, no need for additional calls
 
 	// File management calls
-	void CreateSound(const std::string& name);
+	FMOD::Sound* CreateSound(const std::string& filepath);
 	void FreeSound(FMOD::Sound* sound);
 
 	// Default FMOD System call
 	// 2D call to FMOD
-	uint32_t PlaySound(const std::string& name, bool loop, AudioType category = AudioType::END);  
+	uint32_t PlaySound(size_t audioResourceHash, bool loop, AudioType category = AudioType::END);  
 	void StopSound(uint32_t handle);
 	bool IsPlaying(uint32_t handle);
 	// This refers to the current playback position in milliseconds, not the 3D position
@@ -95,7 +71,7 @@ public:
 	void SetVolume(uint32_t handle, float vol);
 
 	// Default 3D Audio calls
-	uint32_t PlaySound3D(const std::string& name, bool loop, Vec3 position, AudioType category = AudioType::END, std::pair<float, float> rolloff_minmax = { 2.f, 50.f });
+	uint32_t PlaySound3D(size_t audioResourceHash, bool loop, Vec3 position, AudioType category = AudioType::END, std::pair<float, float> rolloff_minmax = { 2.f, 50.f });
 	void SetChannel3D(uint32_t handle, bool is3D);
 	bool IsChannel3D(uint32_t handle) const;
 	void SetChannel3DAttributes(uint32_t handle, const Vec3& pos, const Vec3& vel = Vec3());
@@ -110,15 +86,12 @@ public:
 	void StopAllSounds();
 	void SetGroupVolume(AudioType type, float vol);
 
-	const std::vector<std::string>& GetSoundNames() const;
-
 private:
 	FMOD::System* system;
 	FMOD::Studio::System* fmod_studio;
 
 	FMOD::ChannelGroup* masterChannelGroup;
 	FMOD::ChannelGroup* channelGroups[+AudioType::END]; // BGM, SFX
-	std::vector<std::string> soundNames;
 
 	static constexpr int MAX_CHANNELS = 512;
 	ChannelManager channelManager;

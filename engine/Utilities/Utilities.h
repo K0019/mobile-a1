@@ -56,7 +56,7 @@ namespace util {
 
 		// For default arguments in ToSortedVectorOfRefs()
 		template <typename T, typename U>
-		constexpr auto DefaultBinaryPairPred = [](const std::pair<T, U>& a, const std::pair<T, U>& b) -> bool { return a.first < b.first; };
+		constexpr auto DefaultBinaryPairPred = [](const std::pair< std::reference_wrapper<T>, std::reference_wrapper<U>>& a, const std::pair<std::reference_wrapper<T>, std::reference_wrapper<U>>& b) -> bool { return a.first.get() < b.first.get(); };
 		template <typename T, typename U>
 		constexpr auto DefaultMonoPairSelectPred = [](const std::pair<T, U>&) -> bool { return true; };
 
@@ -340,12 +340,12 @@ namespace util {
 	\return
 		The sorted vector.
 	*//******************************************************************/
-	template <typename T, typename U, typename SortPred = decltype(internal::DefaultBinaryPairPred<T, U>), typename SelectPred = decltype(internal::DefaultMonoPairSelectPred<T, U>)>
-		requires std::predicate<SortPred, std::pair<T, U>, std::pair<T, U>>&& std::predicate<SelectPred, std::pair<T, U>>
+	template <typename T, typename U, typename SortPred = decltype(internal::DefaultBinaryPairPred<const T, const U>), typename SelectPred = decltype(internal::DefaultMonoPairSelectPred<const T, U>)>
+		requires std::predicate<SortPred, std::pair<std::reference_wrapper<const T>, std::reference_wrapper<const U>>, std::pair<std::reference_wrapper<const T>, std::reference_wrapper<const U>>>&& std::predicate<SelectPred, std::pair<const T, U>>
 	std::vector<std::pair<std::reference_wrapper<const T>, std::reference_wrapper<const U>>> ToSortedVectorOfRefs(
 		const std::unordered_map<T, U>& map,
-		SortPred sortPred = internal::DefaultBinaryPairPred<T, U>,
-		SelectPred selectPred = internal::DefaultMonoPairSelectPred<T, U>
+		SortPred sortPred = internal::DefaultBinaryPairPred<const T, const U>,
+		SelectPred selectPred = internal::DefaultMonoPairSelectPred<const T, U>
 	);
 
 	/*****************************************************************//*!
@@ -376,13 +376,13 @@ namespace util {
 	\return
 		The sorted vector.
 	*//******************************************************************/
-	template <typename T, typename U, typename SortPred = decltype(internal::DefaultBinaryPairPred<T, U>), typename SelectPred = decltype(internal::DefaultMonoPairSelectPred<T, U>)>
-		requires std::predicate<SortPred, std::pair<T, U>, std::pair<T, U>>&& std::predicate<SelectPred, std::pair<T, U>>
+	template <typename T, typename U, typename SortPred = decltype(internal::DefaultBinaryPairPred<const T, const U>), typename SelectPred = decltype(internal::DefaultMonoPairSelectPred<const T, U>)>
+		requires std::predicate<SortPred, std::pair<std::reference_wrapper<const T>, std::reference_wrapper<const U>>, std::pair<std::reference_wrapper<const T>, std::reference_wrapper<const U>>>&& std::predicate<SelectPred, std::pair<const T, U>>
 	std::vector<std::pair<std::reference_wrapper<const T>, std::reference_wrapper<const U>>> ToSortedVectorOfRefs(
 		typename std::unordered_map<T, U>::const_iterator begin,
 		const typename std::unordered_map<T, U>::const_iterator& end,
-		SortPred sortPred = internal::DefaultBinaryPairPred<T, U>,
-		SelectPred selectPred = internal::DefaultMonoPairSelectPred<T, U>
+		SortPred sortPred = internal::DefaultBinaryPairPred<const T, const U>,
+		SelectPred selectPred = internal::DefaultMonoPairSelectPred<const T, U>
 	);
 
 	/*****************************************************************//*!
@@ -559,7 +559,7 @@ namespace util {
 	}
 
 	template<typename T, typename U, typename SortPred, typename SelectPred>
-		requires std::predicate<SortPred, std::pair<T, U>, std::pair<T, U>>&& std::predicate<SelectPred, std::pair<T, U>>
+		requires std::predicate<SortPred, std::pair<std::reference_wrapper<const T>, std::reference_wrapper<const U>>, std::pair<std::reference_wrapper<const T>, std::reference_wrapper<const U>>>&& std::predicate<SelectPred, std::pair<const T, U>>
 	std::vector<std::pair<std::reference_wrapper<const T>, std::reference_wrapper<const U>>> ToSortedVectorOfRefs(const std::unordered_map<T, U>& map, SortPred sortPred, SelectPred selectPred)
 	{
 		std::vector<std::pair<std::reference_wrapper<const T>, std::reference_wrapper<const U>>> vec;
@@ -572,7 +572,7 @@ namespace util {
 	}
 
 	template<typename T, typename U, typename SortPred, typename SelectPred>
-		requires std::predicate<SortPred, std::pair<T, U>, std::pair<T, U>>&& std::predicate<SelectPred, std::pair<T, U>>
+		requires std::predicate<SortPred, std::pair<std::reference_wrapper<const T>, std::reference_wrapper<const U>>, std::pair<std::reference_wrapper<const T>, std::reference_wrapper<const U>>>&& std::predicate<SelectPred, std::pair<const T, U>>
 	std::vector<std::pair<std::reference_wrapper<const T>, std::reference_wrapper<const U>>> ToSortedVectorOfRefs(typename std::unordered_map<T, U>::const_iterator begin, const typename std::unordered_map<T, U>::const_iterator& end, SortPred sortPred, SelectPred selectPred)
 	{
 		std::vector<std::pair<std::reference_wrapper<const T>, std::reference_wrapper<const U>>> vec;
