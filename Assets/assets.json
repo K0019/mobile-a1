@@ -1,6 +1,20 @@
 {
     "files": [
         {
+            "filepath": "Sounds\\Kalimba.mp3",
+            "resources": [
+                {
+                    "resourceType": 13608648403210648424,
+                    "resourceEntries": [
+                        {
+                            "hash": 55578113842451202,
+                            "name": "Kalimba0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "fbxcars\\box.fbx",
             "resources": [
                 {
@@ -27,6 +41,20 @@
                         {
                             "hash": 54050893246142548,
                             "name": "box0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "Sounds\\Gylia Shanty (Cinfras County).mp3",
+            "resources": [
+                {
+                    "resourceType": 13608648403210648424,
+                    "resourceEntries": [
+                        {
+                            "hash": 53089919028793173,
+                            "name": "Gylia Shanty (Cinfras County)0"
                         }
                     ]
                 }

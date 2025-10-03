@@ -163,6 +163,12 @@ void ResourceManager::INTERNAL_CreateEmptyResource(size_t resourceTypeHash, size
         meshes.INTERNAL_CreateResource(resourceHash);
     else if (resourceTypeHash == typeid(ResourceMaterial).hash_code())
         materials.INTERNAL_CreateResource(resourceHash);
+    else if (resourceTypeHash == typeid(ResourceTexture).hash_code())
+        textures.INTERNAL_CreateResource(resourceHash);
+    else if (resourceTypeHash == typeid(ResourceAudio).hash_code())
+        audio.INTERNAL_CreateResource(resourceHash);
+    else
+        assert(false);
 }
 
 
@@ -337,20 +343,6 @@ bool ResourceManagerOld::SaveAssetsToFile(const std::string& filename)
         CONSOLE_LOG(LEVEL_ERROR) << "Failed to open file for writing: " << filename;
         return false;
     }
-
-    // Sort sprite slots by ID for consistency
-    auto activeSprites{ util::ToSortedVectorOfRefs(Sprites, util::internal::DefaultBinaryPairPred<size_t, SpriteSlot>,[](const auto& a) -> bool { return a.second.active; }) };
-
-    // Serialize sprites
-    file.StartArray("sprites");
-    for (const auto& [id, slot] : activeSprites)
-    {
-        file.StartObject();
-        file.Serialize("id", id);
-        file.Serialize(slot);
-        file.EndObject();
-    }
-    file.EndArray();
 
 
     // Serialize animations

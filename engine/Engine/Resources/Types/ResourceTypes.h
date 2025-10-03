@@ -5,7 +5,6 @@ struct ResourceBase
     size_t hash;
 
     virtual bool IsLoaded() = 0;
-
 };
 
 template <std::derived_from<ResourceBase> ResourceType>
