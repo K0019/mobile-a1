@@ -60,8 +60,9 @@ void ResourceManager::OnResourceRequestedLoad(size_t resourceHash)
         ResourceImporter::Import(ST<Filepaths>::Get()->assets / fileEntry->path);
 }
 
-void ResourceManager::OnResourceDeleted(size_t hash)
+void ResourceManager::OnResourceDeleted(size_t hash, size_t resourceType)
 {
+    ST<ResourceManager>::Get()->filepathsManager.DisassociateResourceHash(hash, resourceType);
     ST<ResourceManager>::Get()->namesManager.RemoveName(hash);
 }
 

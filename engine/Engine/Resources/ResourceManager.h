@@ -57,7 +57,7 @@ public:
 
 private:
     static void OnResourceRequestedLoad(size_t hash);
-    static void OnResourceDeleted(size_t hash);
+    static void OnResourceDeleted(size_t hash, size_t resourceType);
 
 public:
     const ResourceContainerMeshes& Editor_GetMeshes();
