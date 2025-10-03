@@ -26,6 +26,7 @@ All rights reserved.
 
 #include "BehaviourNode.h"
 #include "BehaviourTreeFactory.h"
+#include "Input.h"
 
 BT_REGISTER_NODE(Sequence, "Sequence")
 BT_REGISTER_NODE(Selector, "Selector")
@@ -197,14 +198,42 @@ NODE_STATUS Selector::OnUpdate(ecs::EntityHandle entity)
     return NODE_STATUS::FAILURE;
 }
 
+
+
+//FOR TESTING 
+static  bool  reverse = 0;
+
 void MoveLeft::OnInitialize()
 {
     count = 0;
+
 }
 
 NODE_STATUS MoveLeft::OnUpdate(ecs::EntityHandle entity)
 {
-    entity->GetTransform().SetWorldPosition(entity->GetTransform().GetWorldPosition() + Vec3{ -0.5f, 0.f, 0.f });
+    //FOR DEMO
+    static bool prev = false; // remembers last frame state
+
+    auto input = ST<Input>::Get();
+    if (input)
+    {
+        bool now = false;
+        if (auto act = input->GetAction<bool>("ReverseDir"))
+            now = act->GetValue();   // true while the button is held
+
+        if (now && !prev)            // toggle only on the rising edge
+            reverse = !reverse;
+
+        prev = now;
+    }
+
+    if (reverse == 0) {
+        entity->GetTransform().SetWorldPosition(entity->GetTransform().GetWorldPosition() + Vec3{ -0.2f, 0.f, 0.f });
+    }
+    else {
+        entity->GetTransform().SetWorldPosition(entity->GetTransform().GetWorldPosition() + Vec3{ 0.2f, 0.f, 0.f });
+
+    }
     return (++count) == 100 ? NODE_STATUS::SUCCESS : NODE_STATUS::RUNNING;
 }
 
@@ -215,7 +244,29 @@ void MoveRight::OnInitialize()
 
 NODE_STATUS MoveRight::OnUpdate(ecs::EntityHandle entity)
 {
-    entity->GetTransform().SetWorldPosition(entity->GetTransform().GetWorldPosition() + Vec3{ 0.5f, 0.f, 0.f });
+    //FOR DEMO
+    static bool prev = false; // remembers last frame state
+
+    auto input = ST<Input>::Get();
+    if (input)
+    {
+        bool now = false;
+        if (auto act = input->GetAction<bool>("ReverseDir"))
+            now = act->GetValue();   // true while the button is held
+
+        if (now && !prev)            // toggle only on the rising edge
+            reverse = !reverse;
+
+        prev = now;
+    }
+
+    if (reverse == 0) {
+        entity->GetTransform().SetWorldPosition(entity->GetTransform().GetWorldPosition() + Vec3{ 0.2f, 0.f, 0.f });
+    }
+    else {
+        entity->GetTransform().SetWorldPosition(entity->GetTransform().GetWorldPosition() + Vec3{ -0.2f, 0.f, 0.f });
+
+    }
     return (++count) == 100 ? NODE_STATUS::SUCCESS : NODE_STATUS::RUNNING;
 }
 
@@ -226,7 +277,29 @@ void MoveUp::OnInitialize()
 
 NODE_STATUS MoveUp::OnUpdate(ecs::EntityHandle entity)
 {
-    entity->GetTransform().SetWorldPosition(entity->GetTransform().GetWorldPosition() + Vec3{ 0.f, 0.5f, 0.f });
+    //FOR DEMO
+    static bool prev = false; // remembers last frame state
+
+    auto input = ST<Input>::Get();
+    if (input)
+    {
+        bool now = false;
+        if (auto act = input->GetAction<bool>("ReverseDir"))
+            now = act->GetValue();   // true while the button is held
+
+        if (now && !prev)            // toggle only on the rising edge
+            reverse = !reverse;
+
+        prev = now;
+    }
+
+    if (reverse == 0) {
+        entity->GetTransform().SetWorldPosition(entity->GetTransform().GetWorldPosition() + Vec3{ 0.f, 0.15f, 0.f });
+    }
+    else {
+        entity->GetTransform().SetWorldPosition(entity->GetTransform().GetWorldPosition() + Vec3{ 0.f, -0.15f, 0.f });
+
+    }
     return (++count) == 100 ? NODE_STATUS::SUCCESS : NODE_STATUS::RUNNING;
 }
 
@@ -237,6 +310,28 @@ void MoveDown::OnInitialize()
 
 NODE_STATUS MoveDown::OnUpdate(ecs::EntityHandle entity)
 {
-    entity->GetTransform().SetWorldPosition(entity->GetTransform().GetWorldPosition() + Vec3{ 0.f, -0.5f, 0.f });
+    //FOR DEMO
+    static bool prev = false; // remembers last frame state
+
+    auto input = ST<Input>::Get();
+    if (input)
+    {
+        bool now = false;
+        if (auto act = input->GetAction<bool>("ReverseDir"))
+            now = act->GetValue();   // true while the button is held
+
+        if (now && !prev)            // toggle only on the rising edge
+            reverse = !reverse;
+
+        prev = now;
+    }
+
+    if (reverse == 0) {
+        entity->GetTransform().SetWorldPosition(entity->GetTransform().GetWorldPosition() + Vec3{ 0.f, -0.15f, 0.f });
+    }
+    else {
+        entity->GetTransform().SetWorldPosition(entity->GetTransform().GetWorldPosition() + Vec3{ 0.f, 0.15f, 0.f });
+
+    }
     return (++count) == 100 ? NODE_STATUS::SUCCESS : NODE_STATUS::RUNNING;
 }

@@ -294,8 +294,7 @@ private:
 };
 
 
-//For testing
-
+//================================== FOR TESTING =====================================================
 class MoveLeft
     : public BehaviorNode
 {
@@ -304,6 +303,8 @@ public:
     NODE_STATUS OnUpdate(ecs::EntityHandle entity) override;
 private:
     unsigned int count;
+    bool reverse_ = false;      // the toggle you care about
+    bool prevBtn_ = false;      // previous frame's button state
 };
 
 class MoveDown
