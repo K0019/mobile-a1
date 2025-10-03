@@ -13,6 +13,7 @@ class ResourceContainerBase
 {
 public:
     const ResourceType* GetResource(size_t hash);
+    void DeleteResource(size_t hash);
 
 public:
     void INTERNAL_CreateResource(size_t hash);

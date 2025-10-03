@@ -46,16 +46,23 @@ void ResourceNames::RemoveName(size_t hash)
 void ResourceManager::Init()
 {
     Messaging::Subscribe("NeedResourceLoaded", OnResourceRequestedLoad);
+    Messaging::Subscribe("ResourceDeleted", OnResourceDeleted);
 }
 void ResourceManager::Shutdown()
 {
     Messaging::Unsubscribe("NeedResourceLoaded", OnResourceRequestedLoad);
+    Messaging::Unsubscribe("ResourceDeleted", OnResourceDeleted);
 }
 
 void ResourceManager::OnResourceRequestedLoad(size_t resourceHash)
 {
     if (const auto* fileEntry{ ST<ResourceManager>::Get()->filepathsManager.GetFileEntry(resourceHash) })
         ResourceImporter::Import(ST<Filepaths>::Get()->assets / fileEntry->path);
+}
+
+void ResourceManager::OnResourceDeleted(size_t hash)
+{
+    ST<ResourceManager>::Get()->namesManager.RemoveName(hash);
 }
 
 UserResourceGetter<ResourceMesh> ResourceManager::Meshes()
@@ -69,6 +76,10 @@ UserResourceGetter<ResourceMaterial> ResourceManager::Materials()
 UserResourceGetter<ResourceTexture> ResourceManager::Textures()
 {
     return UserResourceGetter<ResourceTexture>{ &ST<ResourceManager>::Get()->textures };
+}
+UserResourceGetter<ResourceAudio> ResourceManager::Audio()
+{
+    return UserResourceGetter<ResourceAudio>{ &ST<ResourceManager>::Get()->audio };
 }
 
 void ResourceManager::SaveToFile() const
@@ -108,6 +119,10 @@ const ResourceContainerTextures& ResourceManager::Editor_GetTextures()
 {
     return textures;
 }
+const ResourceContainerAudio& ResourceManager::Editor_GetAudio()
+{
+    return audio;
+}
 
 const std::string& ResourceManager::Editor_GetName(size_t hash)
 {
@@ -136,6 +151,10 @@ ResourceContainerTextures& ResourceManager::INTERNAL_GetTextures()
 {
     return textures;
 }
+ResourceContainerAudio& ResourceManager::INTERNAL_GetAudio()
+{
+    return audio;
+}
 
 void ResourceManager::INTERNAL_CreateEmptyResource(size_t resourceTypeHash, size_t resourceHash)
 {
@@ -153,7 +172,6 @@ namespace fs = std::filesystem;
 #undef max
 #endif
 // Instantiate static variables
-std::unordered_map<size_t, AudioAsset>  ResourceManagerOld::Sounds;
 std::unordered_map<size_t, std::string>   ResourceManagerOld::ResourceNames;
 std::unordered_map<size_t, ResourceManagerOld::SpriteSlot> ResourceManagerOld::Sprites;
 size_t ResourceManagerOld::NextSpriteID = 0;
@@ -310,46 +328,6 @@ size_t ResourceManagerOld::GetSpriteCount()
     return NextSpriteID;
 }
 
-const AudioAsset& ResourceManagerOld::LoadSound(const std::string& name, AudioAsset& sound)
-{
-    ResourceNames[util::GenHash(name)] = name;
-    return Sounds[util::GenHash(name)] = sound;
-}
-
-const AudioAsset& ResourceManagerOld::GetSound(const std::string& name)
-{
-    return Sounds[util::GenHash(name)];
-}
-
-const AudioAsset& ResourceManagerOld::GetSound(size_t nameHash)
-{
-    return Sounds[nameHash];
-}
-
-void ResourceManagerOld::DeleteSound(const std::string& name)
-{
-    Sounds.erase(util::GenHash(name));
-}
-
-bool ResourceManagerOld::SoundExists(const std::string& name)
-{
-    return Sounds.contains(util::GenHash(name));
-}
-
-void ResourceManagerOld::Clear()
-{
-    // delete all shaders	
-
-    for(auto& [_, soundAsset] : Sounds)
-    {
-        soundAsset.sound->release();
-    }
-    Sounds.clear();
-
-
-    ResourceNames.clear();
-}
-
 
 bool ResourceManagerOld::SaveAssetsToFile(const std::string& filename)
 {
@@ -376,17 +354,6 @@ bool ResourceManagerOld::SaveAssetsToFile(const std::string& filename)
 
 
     // Serialize animations
-
-    auto sortedSounds{ util::ToSortedVectorOfRefs(Sounds) };
-
-	file.StartArray("sounds");
-    for (const auto& [nameHash, sound] : sortedSounds)
-    {
-        file.StartObject();
-        file.Serialize("name", ResourceNames[nameHash]);
-        file.EndObject();
-    }
-    file.EndArray();
 
     return true;
 }
@@ -441,22 +408,6 @@ bool ResourceManagerOld::LoadAssetsFromFile(const std::string& filename) {
             file.PopAccess();
         }
         file.PopAccess();
-    }
-
-	// Deserialize sounds
-	file.GetArraySize("sounds", &elemsCount);
-    if (file.PushAccess("sounds"))
-    {
-        for (size_t index{}; index < elemsCount; ++index)
-        {
-            file.PushArrayElementAccess(index);
-            std::string name;
-            file.DeserializeVar("name", &name);
-            uint64_t nameHash{ util::GenHash(name) };
-            ResourceNames[nameHash] = name;
-			ST<AudioManager>::Get()->CreateSound(name); 
-            file.PopAccess();
-        }
     }
 
     return true;

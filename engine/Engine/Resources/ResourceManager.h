@@ -29,6 +29,7 @@ All rights reserved.
 
 #pragma once
 #include "ResourceTypesGraphics.h"
+#include "ResourceTypesAudio.h"
 #include "ResourceFilepaths.h"
 #include "ResourceNames.h"
 
@@ -49,17 +50,20 @@ public:
     static UserResourceGetter<ResourceMesh> Meshes();
     static UserResourceGetter<ResourceMaterial> Materials();
     static UserResourceGetter<ResourceTexture> Textures();
+    static UserResourceGetter<ResourceAudio> Audio();
 
     void SaveToFile() const;
     void LoadFromFile();
 
 private:
     static void OnResourceRequestedLoad(size_t hash);
+    static void OnResourceDeleted(size_t hash);
 
 public:
     const ResourceContainerMeshes& Editor_GetMeshes();
     const ResourceContainerMaterials& Editor_GetMaterials();
     const ResourceContainerTextures& Editor_GetTextures();
+    const ResourceContainerAudio& Editor_GetAudio();
     const std::string& Editor_GetName(size_t hash);
 
 public:
@@ -69,6 +73,7 @@ public:
     ResourceContainerMeshes& INTERNAL_GetMeshes();
     ResourceContainerMaterials& INTERNAL_GetMaterials();
     ResourceContainerTextures& INTERNAL_GetTextures();
+    ResourceContainerAudio& INTERNAL_GetAudio();
 
     void INTERNAL_CreateEmptyResource(size_t resourceTypeHash, size_t resourceHash);
 
@@ -79,6 +84,7 @@ private:
     ResourceContainerMeshes meshes;
     ResourceContainerMaterials materials;
     ResourceContainerTextures textures;
+    ResourceContainerAudio audio;
 
 };
 
@@ -109,11 +115,11 @@ public:
     static bool FontExists(const std::string& name);*/
     
     // Sound management
-    static const AudioAsset& LoadSound(const std::string& name, AudioAsset& sound);
-    static const AudioAsset& GetSound(const std::string& name);
-    static const AudioAsset& GetSound(size_t nameHash);
-    static void DeleteSound(const std::string& name);
-    static bool SoundExists(const std::string& name);
+    //static const AudioAsset& LoadSound(const std::string& name, AudioAsset& sound);
+    //static const AudioAsset& GetSound(const std::string& name);
+    //static const AudioAsset& GetSound(size_t nameHash);
+    //static void DeleteSound(const std::string& name);
+    //static bool SoundExists(const std::string& name);
     
     // Animation management
 
@@ -135,7 +141,7 @@ public:
     static constexpr size_t INVALID_SPRITE_ID = std::numeric_limits<size_t>::max();
 
 private:
-    static std::unordered_map<size_t, AudioAsset> Sounds;
+    //static std::unordered_map<size_t, AudioAsset> Sounds;
     static std::unordered_map<size_t, std::string> ResourceNames;
     static Sprite CreateInvalidSprite();
 

@@ -4,10 +4,12 @@
 
 #include "ResourceFiletypeImporterFBX.h"
 #include "ResourceFiletypeImporterKTX.h"
+#include "ResourceFiletypeImporterAudio.h"
 
 std::unordered_map<std::string, SPtr<ResourceFiletypeImporterBase>> ResourceImporter::importers{
     { std::string{ ".fbx" }, std::make_shared<ResourceFiletypeImporterFBX>() },
-    { std::string{ ".ktx" }, std::make_shared<ResourceFiletypeImporterKTX>() }
+    { std::string{ ".ktx" }, std::make_shared<ResourceFiletypeImporterKTX>() },
+    { std::string{ ".mp3" }, std::make_shared<ResourceFiletypeImporterAudio>() }
 };
 
 bool ResourceImporter::Import(const std::filesystem::path& filepath)

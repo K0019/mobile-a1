@@ -12,9 +12,9 @@ AudioSourceComponent::AudioSourceComponent()
 {
 }
 
-void AudioSourceComponent::Play(AudioType a, const std::string& name)
+void AudioSourceComponent::Play(AudioType a, size_t audioResource)
 {
-	channelHandle = ST<AudioManager>::Get()->PlaySound(name, false, a);
+	channelHandle = ST<AudioManager>::Get()->PlaySound(audioResource, false, a);
 }
 
 void AudioSourceComponent::EditorDraw()

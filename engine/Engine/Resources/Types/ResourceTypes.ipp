@@ -19,6 +19,17 @@ const ResourceType* ResourceContainerBase<ResourceType>::GetResource(size_t hash
 }
 
 template<std::derived_from<ResourceBase> ResourceType>
+void ResourceContainerBase<ResourceType>::DeleteResource(size_t hash)
+{
+	auto resourceIter{ resources.find(hash) };
+	if (resourceIter == resources.end())
+		return;
+
+	Messaging::BroadcastAll("ResourceDeleted", hash);
+	resources.erase(resourceIter);
+}
+
+template<std::derived_from<ResourceBase> ResourceType>
 void ResourceContainerBase<ResourceType>::INTERNAL_CreateResource(size_t hash)
 {
 	auto* resource{ &resources[hash] };

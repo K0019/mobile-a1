@@ -22,7 +22,7 @@ All rights reserved.
 */
 /******************************************************************************/
 #pragma once
-#include "AudioManager.h"
+#include "ResourceTypesAudio.h"
 #include "IRegisteredComponent.h"
 #include "IEditorComponent.h"
 
@@ -33,7 +33,7 @@ class AudioSourceComponent
 public:
 	AudioSourceComponent();
 
-	void Play(AudioType a, const std::string& name);
+	void Play(AudioType a, size_t audioResource);
 
 private:
 	virtual void EditorDraw() override;
