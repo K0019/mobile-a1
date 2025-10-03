@@ -20,6 +20,15 @@
                             "name": "box0"
                         }
                     ]
+                },
+                {
+                    "resourceType": 13960108920292451446,
+                    "resourceEntries": [
+                        {
+                            "hash": 54050893246142548,
+                            "name": "box0"
+                        }
+                    ]
                 }
             ]
         },
@@ -40,6 +49,15 @@
                     "resourceEntries": [
                         {
                             "hash": 60236745507289955,
+                            "name": "ambulance0"
+                        }
+                    ]
+                },
+                {
+                    "resourceType": 13960108920292451446,
+                    "resourceEntries": [
+                        {
+                            "hash": 56092686338945225,
                             "name": "ambulance0"
                         }
                     ]

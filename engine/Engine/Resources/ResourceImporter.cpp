@@ -3,9 +3,11 @@
 #include "ResourceManager.h"
 
 #include "ResourceFiletypeImporterFBX.h"
+#include "ResourceFiletypeImporterKTX.h"
 
 std::unordered_map<std::string, SPtr<ResourceFiletypeImporterBase>> ResourceImporter::importers{
-    { std::string{ ".fbx" }, std::make_shared<ResourceFiletypeImporterFBX>() }
+    { std::string{ ".fbx" }, std::make_shared<ResourceFiletypeImporterFBX>() },
+    { std::string{ ".ktx" }, std::make_shared<ResourceFiletypeImporterKTX>() }
 };
 
 bool ResourceImporter::Import(const std::filesystem::path& filepath)
@@ -29,4 +31,9 @@ bool ResourceImporter::Import(const std::filesystem::path& filepath)
     // Import the file, creating/updating the resources in ResourceManager
     auto relativeFilepath{ std::filesystem::relative(filepath, ST<Filepaths>::Get()->assets) };
     return filetypeImporterIter->second->Import(relativeFilepath);
+}
+
+bool ResourceImporter::FiletypeSupported(const std::string& extension)
+{
+    return importers.find(extension) != importers.end();
 }
