@@ -25,6 +25,10 @@ All rights reserved.
 #include "GUICollection.h"
 #include "ScriptingUtil.h"
 
+#ifdef IMGUI_ENABLED
+#include "ImGuizmo.h"
+#include "CustomViewport.h"
+#endif
 Transform::Transform()
 	: position{}
 	, rotation{}
@@ -101,8 +105,8 @@ void Transform::SetLocalRotation(const Vec& newDegrees)
 {
 	rotation = newDegrees;
 	SetDirty();
-}
 
+}
 void Transform::AddLocalRotation(const Vec& addDegrees)
 {
 	rotation += addDegrees;
@@ -281,13 +285,63 @@ void Transform::SetMat4ToWorld(glm::mat4* outMat4) const
 	//mat4[3][3] = mat[2][2];
 }
 
+void GetWorldMatrixF16(const Transform& t, float out[16])
+{
+	glm::mat4 g{};
+	t.SetMat4ToWorld(&g);               // fills g with the world matrix
+	std::memcpy(out, &g[0][0], 16 * sizeof(float));  // glm is contiguous & column-major
+}
+
 void Transform::EditorDraw()
 {
+	{
+		ImGuizmo::BeginFrame();
+
+		// draw on top of everything so it's not clipped by the Inspector window
+		ImGuizmo::SetDrawlist(ImGui::GetForegroundDrawList());
+		ImGuizmo::Enable(true);
+		ImGuizmo::SetOrthographic(true); // 2D editor style
+
+		// viewport size (we'll anchor at (0,0) for now)
+		auto* vp = ST<CustomViewport>::Get();
+		Vec2  size = vp->GetViewportRenderSize();
+		ImGuizmo::SetRect(0.0f, 0.0f, size.x, size.y);
+
+		// camera: orthographic mapping pixels -> clip space, y-down to match typical 2D viewports
+		glm::mat4 viewM(1.0f); // identity view
+		glm::mat4 projM = glm::ortho(0.0f, size.x,  // left, right
+			size.y, 0.0f,  // bottom, top (flip Y)
+			-1.0f, 1.0f);  // near, far
+
+		float view[16], proj[16];
+		std::memcpy(view, &viewM[0][0], 16 * sizeof(float));
+		std::memcpy(proj, &projM[0][0], 16 * sizeof(float));
+
+		// object matrix: reuse your Transform’s world matrix (already in pixel units)
+		float object[16];
+		{
+			glm::mat4 g{};
+			SetMat4ToWorld(&g);               // <- from your Transform.h
+			std::memcpy(object, &g[0][0], 16 * sizeof(float));
+		}
+
+		// choose an op to visualize; this won't modify your Transform
+		ImGuizmo::Manipulate(view, proj, ImGuizmo::TRANSLATE, ImGuizmo::WORLD, object);
+
+		// ---- your existing numeric controls below ----
+		gui::SetStyleVar styleFramePadding{ gui::FLAG_STYLE_VAR::FRAME_PADDING, gui::Vec2{ 4.0f, 2.0f } };
+		gui::SetStyleVar styleItemSpacing{ gui::FLAG_STYLE_VAR::ITEM_SPACING, gui::Vec2{ 4.0f, 2.0f } };
+		gui::Indent indent{ 4.0f };
+
+		// ... Position / Rotation / Scale UI (unchanged) ...
+	}
+	//guizmo
+
 	gui::SetStyleVar styleFramePadding{ gui::FLAG_STYLE_VAR::FRAME_PADDING, gui::Vec2{ 4.0f, 2.0f } };
 	gui::SetStyleVar styleItemSpacing{ gui::FLAG_STYLE_VAR::ITEM_SPACING, gui::Vec2{ 4.0f, 2.0f } };
 	gui::Indent indent{ 4.0f };
-
-	// Helper function for drawing the controls
+														
+	// Helper function for drawing the controls																	
 	const auto DrawVec3Control = [](const char* label, Vec3* values, float columnWidth, float speed, const char* format) -> bool {
 		bool modified = false;
 		if (gui::Table table{ label, 4, true, gui::FLAG_TABLE::HIDE_HEADER })

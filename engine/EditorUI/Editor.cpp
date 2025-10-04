@@ -33,7 +33,12 @@ All rights reserved.
 #include "EntityLayers.h"
 #include "Game.h"
 
+#include "ImGuizmo.h"
+
 #ifdef IMGUI_ENABLED
+
+//for imgui gizmo
+ImGuizmo::OPERATION currentGizmoOperation = ImGuizmo::TRANSLATE;
 
 Inspector::Inspector()
 	: Window{ ICON_FA_MAGNIFYING_GLASS" Inspector", gui::Vec2{ 300, 400 }, gui::FLAG_WINDOW::ALWAYS_VERTICAL_SCROLL_BAR }
@@ -121,6 +126,17 @@ void Inspector::ProcessInput()
 
 	if(ST<KeyboardMouseInput>::Get()->GetIsPressed(KEY::DEL))
 		DeleteSelectedEntity();
+
+	//to change guizmo settings
+	if (ST<KeyboardMouseInput>::Get()->GetIsPressed(KEY::F1)) {
+		ImGuizmo::OPERATION currentGizmoOperation = ImGuizmo::TRANSLATE;
+	}
+	if (ST<KeyboardMouseInput>::Get()->GetIsPressed(KEY::F2)) {
+		ImGuizmo::OPERATION currentGizmoOperation = ImGuizmo::SCALE;
+	}
+	if (ST<KeyboardMouseInput>::Get()->GetIsPressed(KEY::F3)) {
+		ImGuizmo::OPERATION currentGizmoOperation = ImGuizmo::ROTATE;
+	}
 
 	if(!selectedEntity)
 	{
@@ -326,26 +342,29 @@ void Inspector::DrawContents()
 		gui::TextFormatted("Transform: %s", (selectedEntity->GetTransform().GetParent() ? "Local" : "World"));
 	}
 
-	// Gizmo tool buttons
-	if(gui::Group groupGizmo{})
+	// ============================================================ ============================================================Gizmo tool buttons
 	{
-		const auto RenderGizmoButton{ [&gizmo = m_gizmo, &currType = m_currentGizmoType](GizmoType type, const char* buttonText, const char* hoverText) -> void {
-			gui::SetStyleColor styleColButton{ gui::FLAG_STYLE_COLOR::BUTTON, gui::Vec4{ 0.2f, 0.5f, 0.7f, 1.0f }, currType == type };
-			if(gui::Button button{ buttonText })
-			{
-				currType = (currType == type ? GizmoType::None : type);
-				gizmo.setType(currType);
-			}
-			if(gui::IsItemHovered())
-				gui::Tooltip tooltip{ hoverText };
-		} };
-
-		RenderGizmoButton(GizmoType::Translate, ICON_FA_ARROWS_LEFT_RIGHT, "Translate");
-		gui::SameLine();
-		RenderGizmoButton(GizmoType::Rotate, ICON_FA_ROTATE, "Rotate");
-		gui::SameLine();
-		RenderGizmoButton(GizmoType::Scale, ICON_FA_UP_RIGHT_AND_DOWN_LEFT_FROM_CENTER, "Scale");
+		ImGuizmo::Enable(true);
 	}
+	//if(gui::Group groupGizmo{})
+	//{
+	//	const auto RenderGizmoButton{ [&gizmo = m_gizmo, &currType = m_currentGizmoType](GizmoType type, const char* buttonText, const char* hoverText) -> void {
+	//		gui::SetStyleColor styleColButton{ gui::FLAG_STYLE_COLOR::BUTTON, gui::Vec4{ 0.2f, 0.5f, 0.7f, 1.0f }, currType == type };
+	//		if(gui::Button button{ buttonText })
+	//		{
+	//			currType = (currType == type ? GizmoType::None : type);
+	//			gizmo.setType(currType);
+	//		}
+	//		if(gui::IsItemHovered())
+	//			gui::Tooltip tooltip{ hoverText };
+	//	} };
+
+	//	RenderGizmoButton(GizmoType::Translate, ICON_FA_ARROWS_LEFT_RIGHT, "Translate");
+	//	gui::SameLine();
+	//	RenderGizmoButton(GizmoType::Rotate, ICON_FA_ROTATE, "Rotate");
+	//	gui::SameLine();
+	//	RenderGizmoButton(GizmoType::Scale, ICON_FA_UP_RIGHT_AND_DOWN_LEFT_FROM_CENTER, "Scale");
+	//}
 
 	// Transform panel
 	selectedEntity->GetTransform().EditorDraw();
