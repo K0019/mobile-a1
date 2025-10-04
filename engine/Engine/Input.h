@@ -1,27 +1,24 @@
-﻿#pragma once
-/******************************************************************************/
+﻿/******************************************************************************/
 /*!
 \file   Input.h
-\par    Project: 7percent
-\par    Course: CSD2401
-\par    Section B
-\par    Software Engineering Project 3
-\date   09/26/2024
+\par    Project: Kuro Mahou
+\par    Course: CSD3401
+\par    Software Engineering Project 5
+\date   09/17/2025
 
-\author Chua Wen Shing Bryan (100%)
-\par    email: c.wenshingbryan\@digipen.edu
-\par    DigiPen login: c.wenshingbryan
+\author Kendrick Sim Hean Guan (100%)
+\par    email: kendrickheanguan.s\@digipen.edu
+\par    DigiPen login: kendrickheanguan.s
 
 \brief
-	This is the header file for the game's input movement system.
-	Any buttion related input has been enumed
+	Contains an interface to receive hardware input and converts it into an
+	interface for game systems to read as an input action.
 
-	TODO: Refactor this system to include an intermediate action mapping layer.
-
-All content © 2024 DigiPen Institute of Technology Singapore.
+All content © 2025 DigiPen Institute of Technology Singapore.
 All rights reserved.
 */
 /******************************************************************************/
+#pragma once
 
 #ifdef GLFW
 #include <GLFW/glfw3.h>

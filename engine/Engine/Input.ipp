@@ -1,3 +1,24 @@
+﻿/******************************************************************************/
+/*!
+\file   Input.ipp
+\par    Project: Kuro Mahou
+\par    Course: CSD3401
+\par    Software Engineering Project 5
+\date   09/17/2025
+
+\author Kendrick Sim Hean Guan (100%)
+\par    email: kendrickheanguan.s\@digipen.edu
+\par    DigiPen login: kendrickheanguan.s
+
+\brief
+	Contains an interface to receive hardware input and converts it into an
+	interface for game systems to read as an input action.
+
+All content © 2025 DigiPen Institute of Technology Singapore.
+All rights reserved.
+*/
+/******************************************************************************/
+
 #pragma once
 #include "Input.h"
 

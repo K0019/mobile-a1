@@ -3,7 +3,7 @@
 #include "ResourceImporter.h"
 #include "Import.h"
 #include "SceneCompiler.h"
-
+#include "GameSettings.h"
 #include "GUICollection.h"
 
 const char* FileBrowserTab::GetName() const

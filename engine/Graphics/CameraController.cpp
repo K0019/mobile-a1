@@ -34,6 +34,17 @@ void CameraController::SetCameraData(const CameraData& data)
     m_cameraData = data;
 }
 
+Camera CameraController::GetCameraForGraphics() const
+{
+    static CameraPositioner_MoveTo positioner{ m_cameraData.position, m_cameraData.rotation };
+    positioner.setPosition(m_cameraData.position);
+    positioner.setDesiredPosition(m_cameraData.position);
+    positioner.setAngles(m_cameraData.rotation);
+    positioner.setDesiredAngles(m_cameraData.rotation);
+    positioner.update(0.0f);
+    return Camera{ positioner };
+}
+
 const Vec3& CameraController::GetPosition() const
 {
     return m_cameraData.position;
@@ -63,20 +74,20 @@ void CameraController::AddZoom(float zoom)
     m_cameraData.targetZoom = std::clamp(m_cameraData.targetZoom + zoom, MIN_ZOOM, MAX_ZOOM);
 }
 
-//float CameraController::GetRotation() const
-//{
-//    return m_cameraData.rotation;
-//}
-//
-//void CameraController::SetRotation(float rotation) 
-//{
-//    m_cameraData.rotation = rotation;
-//}
-//
-//void CameraController::AddRotation(float rotation)
-//{
-//    m_cameraData.rotation += rotation;
-//}
+const Vec3& CameraController::GetRotation() const
+{
+    return m_cameraData.rotation;
+}
+
+void CameraController::SetRotation(Vec3 rotation)
+{
+    m_cameraData.rotation = rotation;
+}
+
+void CameraController::AddRotation(Vec3 rotation)
+{
+    m_cameraData.rotation += rotation;
+}
 
 void CameraController::SetTargetZoom(float zoom)
 {

@@ -26,10 +26,10 @@ All rights reserved.
 
 #include "CameraComponent.h"
 
-class CameraSystem : public ecs::System<CameraSystem, CameraComponent>
+class CameraCompUploadSystem : public ecs::System<CameraCompUploadSystem, CameraComponent>
 {
 public:
-    explicit CameraSystem();
+    explicit CameraCompUploadSystem();
 private:
     void UpdateCameraComp(CameraComponent& cameraComp);
 };
@@ -38,6 +38,7 @@ private:
 \class AnchorToCameraSystem
 \brief
     Anchors the entity with AnchorToCameraComponent to the camera's location.
+    NOTE: Currently not working.
 *//******************************************************************/
 class AnchorToCameraSystem : public ecs::System<AnchorToCameraSystem, AnchorToCameraComponent>
 {

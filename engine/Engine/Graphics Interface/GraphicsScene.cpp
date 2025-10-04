@@ -1,3 +1,23 @@
+﻿/******************************************************************************/
+/*!
+\file   GraphicsScene.cpp
+\par    Project: Kuro Mahou
+\par    Course: CSD3401
+\par    Software Engineering Project 5
+\date   09/19/2025
+
+\author Kendrick Sim Hean Guan (100%)
+\par    email: kendrickheanguan.s\@digipen.edu
+\par    DigiPen login: kendrickheanguan.s
+
+\brief
+Abstracts the interface to upload objects into the render pipeline for rendering.
+
+All content © 2025 DigiPen Institute of Technology Singapore.
+All rights reserved.
+*/
+/******************************************************************************/
+
 #include "GraphicsScene.h"
 #include "renderer.h"
 #include "grid_feature.h"
@@ -38,6 +58,12 @@ bool GraphicsScene::NewFrame()
     params->clear();
     objIndex = 0;
     return true;
+}
+
+void GraphicsScene::SetViewCamera(const Camera& camera)
+{
+    frameData.cameraPos = camera.getPosition();
+    frameData.viewMatrix = camera.getViewMatrix();
 }
 
 void GraphicsScene::AddObject(const MeshHandle& meshHandle, const MaterialHandle& materialHandle, const Mat4& transform)
@@ -104,4 +130,7 @@ void GraphicsScene::AddLight(const SceneLight& sceneLight)
     params->activeLightCount = static_cast<uint32_t>(params->lights.size());
 }
 
-
+FrameData& GraphicsScene::INTERNAL_GetFrameData()
+{
+    return frameData;
+}

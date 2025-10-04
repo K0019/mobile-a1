@@ -1,20 +1,17 @@
 ﻿/******************************************************************************/
 /*!
 \file   ResourceManager.cpp
-\par    Project: 7percent
-\par    Course: CSD2401
-\par    Section B
-\par    Software Engineering Project 3
-\date   09/25/2024
+\par    Project: Kuro Mahou
+\par    Course: CSD3401
+\par    Software Engineering Project 5
+\date   09/25/2025
 
-\author Ryan Cheong (100%)
-\par    email: ngaihangryan.cheong\@digipen.edu
-\par    DigiPen login: ngaihangryan.cheong
+\author Kendrick Sim Hean Guan (100%)
+\par    email: kendrickheanguan.s\@digipen.edu
+\par    DigiPen login: kendrickheanguan.s
 
 \brief
-Resource manager class that hosts several functions to load Textures and Shaders. Each loaded texture
-and/or shader is also stored for future reference by string handles. All functions and resources are static and no
-public constructor is defined.
+Central interface to access registered assets such as meshes, and audio.
 
 All content © 2024 DigiPen Institute of Technology Singapore.
 All rights reserved.
@@ -26,22 +23,7 @@ All rights reserved.
 #include "ResourceSerialization.h"
 
 #include "AudioManager.h"
-
-const std::string* ResourceNames::GetName(size_t hash) const
-{
-    auto nameIter{ names.find(hash) };
-    return (nameIter != names.end() ? &nameIter->second : nullptr);
-}
-
-void ResourceNames::SetName(size_t hash, const std::string& name)
-{
-    names[hash] = name;
-}
-
-void ResourceNames::RemoveName(size_t hash)
-{
-    names.erase(hash);
-}
+#include "GameSettings.h"
 
 void ResourceManager::Init()
 {

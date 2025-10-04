@@ -1,5 +1,28 @@
+﻿/******************************************************************************/
+/*!
+\file   ResourceFiletypeImporterBase.cpp
+\par    Project: Kuro Mahou
+\par    Course: CSD3401
+\par    Software Engineering Project 5
+\date   09/25/2025
+
+\author Kendrick Sim Hean Guan (100%)
+\par    email: kendrickheanguan.s\@digipen.edu
+\par    DigiPen login: kendrickheanguan.s
+
+\brief
+Provides a base class for resource importers to inherit from, and provides
+helper functions to make the process of creating a new resouce entry easier.
+
+All content © 2025 DigiPen Institute of Technology Singapore.
+All rights reserved.
+*/
+/******************************************************************************/
+
 #include "ResourceFiletypeImporterBase.h"
 #include "ResourceManager.h"
+
+#include "GameSettings.h"
 
 size_t ResourceFiletypeImporterBase::GenerateNewHash()
 {
