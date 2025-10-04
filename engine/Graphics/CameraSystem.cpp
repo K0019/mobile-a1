@@ -20,27 +20,28 @@ All rights reserved.
 /******************************************************************************/
 #include "CameraSystem.h"
 #include "CameraController.h"
+#include "GraphicsScene.h"
 
-CameraSystem::CameraSystem() : System_Internal(&CameraSystem::UpdateCameraComp) {}
+CameraCompUploadSystem::CameraCompUploadSystem() : System_Internal(&CameraCompUploadSystem::UpdateCameraComp) {}
 
-void CameraSystem::UpdateCameraComp(CameraComponent& cameraComp)
+void CameraCompUploadSystem::UpdateCameraComp(CameraComponent& cameraComp)
 {
-  if(cameraComp.isActive()) // && (cameraComp.priority == CameraComponent::globalPriority || cameraComp.priority > CameraComponent::globalPriority))
-  {
-    const auto entity = ecs::GetEntity(&cameraComp);
-    const auto& transform = entity->GetTransform();
-    ST<CameraController>::Get()->SetPosition(transform.GetWorldPosition());
-    //ST<CameraController>::Get()->SetRotation(transform.GetWorldRotation());
-    if (cameraComp.priority > CameraComponent::globalPriority)
-    {
-      CameraComponent::globalPriority = cameraComp.priority;
-    }
-  }
-  else
-  {
-    cameraComp.active = false;
-  }
-  cameraComp.zoom = ST<CameraController>::Get()->GetZoom();
+    if (!cameraComp.isActive())
+        return;
+
+    if (cameraComp.priority < CameraComponent::globalPriority)
+        return;
+    CameraComponent::globalPriority = cameraComp.priority;
+
+    const auto& transform{ ecs::GetEntityTransform(&cameraComp) };
+    Vec3 position{ transform.GetWorldPosition() }, rotation{ transform.GetWorldRotation() };
+    static CameraPositioner_MoveTo positioner{ position, rotation };
+    positioner.setPosition(position);
+    positioner.setDesiredPosition(position);
+    positioner.setAngles(rotation);
+    positioner.setDesiredAngles(rotation);
+    positioner.update(0.0f);
+    ST<GraphicsScene>::Get()->SetViewCamera(Camera{ positioner });
 }
 
 AnchorToCameraSystem::AnchorToCameraSystem()

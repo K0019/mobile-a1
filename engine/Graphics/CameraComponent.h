@@ -31,7 +31,7 @@ class CameraComponent
 	, public IEditorComponent<CameraComponent>
 	, public ecs::IComponentCallbacks
 {
-	friend class CameraSystem;
+	friend class CameraCompUploadSystem;
 public:
 	explicit CameraComponent(bool active = false);
 

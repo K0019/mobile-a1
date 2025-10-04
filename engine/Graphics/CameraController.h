@@ -19,11 +19,13 @@ All content © 2024 DigiPen Institute of Technology Singapore.
 All rights reserved.
 */
 /******************************************************************************/
+#include "camera.h"
 
 struct CameraData {
     Vec3 position{};
     Vec3 view{};
     Vec3 up{};
+    Vec3 rotation{};
     float zoom{ 1.0f };
     float targetZoom{ zoom }; // The zoom amount to lerp to
 };
@@ -37,6 +39,7 @@ class CameraController
 
     const CameraData& GetCameraData() const;
     void SetCameraData(const CameraData& data);
+    Camera GetCameraForGraphics() const;
 
     const Vec3& GetPosition() const;
     void SetPosition(const Vec3& position);
@@ -46,9 +49,9 @@ class CameraController
     void SetZoom(float zoom);
     void AddZoom(float zoom);
 
-    /*float GetRotation() const;
-    void SetRotation(float rotation);
-    void AddRotation(float rotation);*/
+    const Vec3& GetRotation() const;
+    void SetRotation(Vec3 rotation);
+    void AddRotation(Vec3 rotation);
 
     void SetTargetZoom(float zoom);
     void AddTargetZoom(float zoom);

@@ -21,6 +21,7 @@ All rights reserved.
 #pragma once
 #include "Engine.h"
 #include "imgui_internal.h"
+#include "camera.h"
 
 /**
  * @brief The CustomViewport class represents a custom viewport for rendering graphics.
@@ -57,6 +58,11 @@ public:
     void DrawImGuiWindow();
 
     /**
+     * @brief Polls input and updates the viewport camera accordingly.
+     */
+    void UpdateCameraControl();
+
+    /**
      * @brief MaintainAspectRatio is a callback function used to maintain the aspect ratio of the viewport.
      * @param data The ImGuiSizeCallbackData containing the size information.
      */
@@ -90,14 +96,16 @@ public:
      */
     Vec2 GetViewportRenderSize() const;
 
+    Camera GetViewportCamera() const;
+
      ~CustomViewport() = default;
 
-    std::string name {ICON_FA_GAMEPAD " Scene"}; /**< The name of the ImGui Window. Specifically put here because I use it more than once*/
+    std::string name; /**< The name of the ImGui Window. Specifically put here because I use it more than once*/
 private:
     /**
      * @brief Default constructor for the CustomViewport class.
      */
-    CustomViewport() = default;
+    CustomViewport();
 
     bool disableMoving{ false }; /**< Flag indicating whether moving the viewport is disabled. */
     unsigned width {},height {}; /**< The width and height of the viewport. */
@@ -108,4 +116,16 @@ private:
     Vec contentMax; /**< The maximum position of the content region. */
     Vec viewportRenderSize; /**< The render size of the viewport. */
     
+    CameraPositioner_FirstPerson camera;
+
+};
+
+/*****************************************************************//*!
+\brief
+    Uploads the custom viewport's camera to GameScene, the graphics API.
+*//******************************************************************/
+class CustomViewportCameraUploadSystem : public ecs::System<CustomViewportCameraUploadSystem>
+{
+public:
+    bool PreRun() override;
 };
