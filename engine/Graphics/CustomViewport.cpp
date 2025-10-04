@@ -300,6 +300,9 @@ void CustomViewport::UpdateCameraControl()
 		camera.movement_.up_ = ST<KeyboardMouseInput>::Get()->GetIsDown(KEY::NUM_1);
 		camera.movement_.down_ = ST<KeyboardMouseInput>::Get()->GetIsDown(KEY::NUM_2);
 	}
+	else
+		// Reset keys
+		camera.movement_ = CameraPositioner_FirstPerson::Movement{};
 
 	camera.update(GameTime::FixedDt(), mouse_delta, ST<KeyboardMouseInput>::Get()->GetIsDown(KEY::M_RIGHT));
 }
