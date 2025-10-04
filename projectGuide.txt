@@ -8,5 +8,5 @@ The solution is configured for Visual Studio 17 2022. Please use a version of Vi
 
 .NET Framework 4.7.2 is required to build the C# project within the solution.
 Building configuration in Debug/x64 will include the editor.
-Building configuration in Release/x64 or Installer/x64 will include the game only.
+Building configuration in Release/x64 will include the game only.
 Programmers may need to update their graphics driver to the latest, due to Vulkan renderer API usage.

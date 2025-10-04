@@ -2,7 +2,8 @@
 #include "ResourceManager.h"
 #include "EditorGuiUtils.h"
 #include "SceneManagement.h"
-
+#include "AssetBrowser.h"
+#include "GameSettings.h"
 
 ///////////////
 ///  Scene  ///

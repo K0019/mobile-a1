@@ -1,6 +1,7 @@
 #include "SoundTab.h"
 #include "ResourceManager.h"
 #include "GUICollection.h"
+#include "AudioManager.h"
 
 const char* SoundTab::GetName() const
 {

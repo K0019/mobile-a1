@@ -1,3 +1,27 @@
+﻿/******************************************************************************/
+/*!
+\file   Logging.h
+\par    Project: Kuro Mahou
+\par    Course: CSD3401
+\par    Software Engineering Project 5
+\date   09/23/2025
+
+\author Ryan Cheong (90%)
+\par    email: ngaihangryan.cheong\@digipen.edu
+\par    DigiPen login: ngaihangryan.cheong
+
+\author Kendrick Sim Hean Guan (10%)
+\par    email: kendrickheanguan.s\@digipen.edu
+\par    DigiPen login: kendrickheanguan.s
+
+\brief
+    Saves logging messages from the program into a buffer and file.
+
+All content © 2025 DigiPen Institute of Technology Singapore.
+All rights reserved.
+*/
+/******************************************************************************/
+
 #pragma once
 #include "Singleton.h"
 
