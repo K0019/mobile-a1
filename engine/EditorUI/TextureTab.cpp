@@ -14,6 +14,7 @@ const char* TextureTab::GetIdentifier() const
 
 void TextureTab::Render()
 {
+#ifdef IMGUI_ENABLED
     float THUMBNAIL_SIZE = ST<AssetBrowser>::Get()->THUMBNAIL_SIZE;
     gui::Vec2 thumbnailSizeVec2{ THUMBNAIL_SIZE, THUMBNAIL_SIZE };
     float panelWidth = ImGui::GetContentRegionAvail().x; // random offset
@@ -41,4 +42,5 @@ void TextureTab::Render()
 
         grid.NextItem();
     }
+#endif
 }

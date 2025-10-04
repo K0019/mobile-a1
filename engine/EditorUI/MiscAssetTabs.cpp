@@ -6,6 +6,7 @@
 #include "Import.h"
 #include "EditorHistory.h"
 #include "EditorGuiUtils.h"
+#include "AssetBrowser.h"
 
 ///////////////
 /// Prefabs ///
