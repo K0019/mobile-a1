@@ -6,25 +6,6 @@
 
 namespace compiler
 {
-
-    ProcessedMaterialSlot extractMaterialSlot(const aiMaterial* aiMat, uint32_t materialIndex)
-    {
-        ProcessedMaterialSlot slot;
-        slot.originalIndex = materialIndex;
-
-        // Extract material name
-        aiString name;
-        if (aiMat->Get(AI_MATKEY_NAME, name) == AI_SUCCESS && strlen(name.C_Str()) > 0)
-        {
-            slot.name = name.C_Str();
-        }
-        else
-        {
-            slot.name = "Material_" + std::to_string(materialIndex);
-        }
-
-        return slot;
-    }
     std::vector<const aiMaterial*> collectMaterialPointers(const aiScene* scene)
     {
         if (!scene || scene->mNumMaterials == 0)
@@ -45,6 +26,8 @@ namespace compiler
 
         return materialPtrs;
     }
+    
+    
 }
 
 

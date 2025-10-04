@@ -2,7 +2,7 @@
 #include "AssetBrowser.h"
 #include "ResourceImporter.h"
 #include "Import.h"
-#include "MeshCompiler.h"
+#include "SceneCompiler.h"
 
 #include "GUICollection.h"
 
@@ -286,13 +286,33 @@ void FileBrowserTab::RenderItemContextMenu(const FileSystem::FileEntry& entry)
 
         if (gui::MenuItem(ICON_FA_FILE_IMPORT" Compile and Import"))
         {
-            std::filesystem::path path { entry.fullPath };
-            compiler::MeshCompiler meshcompiler;
-            compiler::MeshCompilerOptions options;
-            options.commonOptions.inputPath = path;
-            options.commonOptions.outputPath = ST<Filepaths>::Get()->workingDir + "/CompiledAssets/";
-            meshcompiler.Compile(options);
-            ResourceImporter::Import(options.commonOptions.outputPath / (options.commonOptions.inputPath.stem().string() + ".mesh"));
+            std::filesystem::path assetPath { entry.fullPath };
+            compiler::SceneCompiler compiler;
+            compiler::CompilerOptions options;
+            options.general.inputPath = assetPath;
+            options.general.outputPath = ST<Filepaths>::Get()->assets + "/CompiledAssets/";
+        
+            compiler::CompilationResult result = compiler.Compile(options);
+
+            for (auto path : result.createdMeshFiles)
+            {
+                ResourceImporter::Import(path);
+            }
+            //for (auto path : result.createdMaterialFiles)
+            //{
+            //    ResourceImporter::Import(path);
+            //}
+            for (auto path : result.createdTextureFiles)
+            {
+                ResourceImporter::Import(path);
+            }
+            
+            //compiler::MeshCompiler meshcompiler;
+            //compiler::MeshCompilerOptions options;
+            //options.commonOptions.inputPath = path;
+            //options.commonOptions.outputPath = ST<Filepaths>::Get()->workingDir + "/CompiledAssets/";
+            //meshcompiler.Compile(options);
+            //ResourceImporter::Import(options.commonOptions.outputPath / (options.commonOptions.inputPath.stem().string() + ".mesh"));
         }
     }
 

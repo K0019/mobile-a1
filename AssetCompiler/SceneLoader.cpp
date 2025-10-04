@@ -2,77 +2,173 @@
 #include "MeshLoader.h"
 #include "MaterialLoader.h"
 
+#include <assimp/material.h>
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
+
 #include <numeric>
 #include <chrono>
 
 namespace compiler
 {
 
-    SceneLoadResult SceneLoader::loadScene(const std::filesystem::path& path, const LoadingConfig& config, ProgressCallback onProgress)
+    void extractTexturePath(const aiMaterial* aiMat, aiTextureType type, const std::string& key, ProcessedMaterialSlot& outSlot, const std::filesystem::path& modelBasePath)
     {
-        auto startTime = std::chrono::steady_clock::now();
-        SceneLoadResult result;
-        result.scene.name = path.filename().string();
+        aiString path;
+        if (aiMat->GetTexture(type, 0, &path) == AI_SUCCESS)
+        {
+            std::filesystem::path texturePath(path.C_Str());
+            if (texturePath.is_relative())
+            {
+                outSlot.texturePaths[key] = modelBasePath / texturePath;
+            }
+            else
+            {
+                outSlot.texturePaths[key] = texturePath;
+            }
+        }
+    }
+
+    std::vector<const aiMesh*> SceneLoader::collectMeshPointers(const aiScene* scene, const MeshOptions& options)
+    {
+        if (!scene || !scene->mMeshes || scene->mNumMeshes == 0) return {};
+
+        std::vector<const aiMesh*> meshPtrs;
+        meshPtrs.reserve(scene->mNumMeshes);
+
+        for (uint32_t i = 0; i < scene->mNumMeshes; ++i)
+        {
+            if (scene->mMeshes[i] && scene->mMeshes[i]->mNumVertices > 0)
+            {
+                meshPtrs.push_back(scene->mMeshes[i]);
+            }
+        }
+        return meshPtrs;
+    }
+
+    void SceneLoader::extractVertices(const aiMesh* aiMesh, std::vector<Vertex>& vertices, const MeshOptions& options)
+    {
+        vertices.resize(aiMesh->mNumVertices);
+        for (uint32_t i = 0; i < aiMesh->mNumVertices; ++i)
+        {
+            Vertex& vertex = vertices[i];
+
+            // Position (always present)
+            vertex.position = vec3(aiMesh->mVertices[i].x, aiMesh->mVertices[i].y, aiMesh->mVertices[i].z);
+
+            // Normal
+            if (aiMesh->mNormals)
+            {
+                vertex.normal = vec3(aiMesh->mNormals[i].x, aiMesh->mNormals[i].y, aiMesh->mNormals[i].z);
+            }
+            else
+            {
+                vertex.normal = vec3(0.0f, 1.0f, 0.0f);
+            }
+
+            if (aiMesh->mTextureCoords[0])
+            {
+                const float u = aiMesh->mTextureCoords[0][i].x;
+                const float v = aiMesh->mTextureCoords[0][i].y;
+                vertex.setUV(u, options.flipUVs ? (1.0f - v) : v);
+            }
+            else
+            {
+                vertex.setUV(0.0f, 0.0f);
+            }
+
+            // Initialize tangent
+            vertex.tangent = vec4(0.0f, 0.0f, 0.0f, 1.0f);
+        }
+    }
+
+    ProcessedMesh SceneLoader::extractMesh(const aiMesh* aiMesh, uint32_t meshIndex, const MeshOptions& options)
+    {
+        ProcessedMesh mesh;
+
+        // 1. Extract name and material index
+        mesh.name = aiMesh->mName.length > 0 ? aiMesh->mName.C_Str() : ("Mesh_" + std::to_string(meshIndex));
+        mesh.materialIndex = aiMesh->mMaterialIndex;
+
+        if (!aiMesh->mVertices || aiMesh->mNumVertices == 0)
+        {
+            return mesh; // Return empty mesh
+        }
+
+        extractVertices(aiMesh, mesh.vertices, options);
+
+        mesh.indices.reserve(aiMesh->mNumFaces * 3);
+        for (uint32_t i = 0; i < aiMesh->mNumFaces; ++i)
+        {
+            const aiFace& face = aiMesh->mFaces[i];
+            if (face.mNumIndices == 3)
+            {
+                mesh.indices.push_back(face.mIndices[0]);
+                mesh.indices.push_back(face.mIndices[1]);
+                mesh.indices.push_back(face.mIndices[2]);
+            }
+        }
+        return mesh;
+    }
+
+
+
+    SceneLoadData SceneLoader::loadScene(const std::filesystem::path& path, const MeshOptions& meshOptions)
+    {
+        SceneLoadData returnData;
 
         try
         {
-            // Step 1: Import scene file from disk
-            reportProgress(onProgress, 0.05f, "Importing scene file...");
+            // Import scene file from disk using Assimp.
             auto assimpScenePtr = importScene(path);
             if (!assimpScenePtr)
             {
-                result.success = false;
-                result.warnings.push_back("Failed to import scene file: " + path.string());
-                return result;
+                returnData.errors.push_back("Failed to import scene file with Assimp: " + path.string());
+                return returnData;
             }
+
             const aiScene* scene = assimpScenePtr.get();
-            const std::string basePath = path.string();
-            const std::string baseDir = path.parent_path().string();
+            const auto baseDir = path.parent_path();
 
-            // Step 2: Extract scene hierarchy (lights, cameras, objects)
-            reportProgress(onProgress, 0.15f, "Extracting scene hierarchy...");
+            // We incrementally build up the scene object
+            // Cotnains: nodes, meshes, materials
+            Scene loadedScene;
+            loadedScene.name = path.filename().string();
 
+            // Extract scene hierarchy (nodes).
             if (scene->mRootNode)
             {
-                uint32_t nodeCount{ 0 };
-                extractNodesForCompiler(scene->mRootNode, -1, scene, result.scene.nodes);
+                extractNodesForCompiler(scene->mRootNode, -1, scene, loadedScene.nodes);
             }
-            // Step 3: Process materials from Assimp data
-            reportProgress(onProgress, 0.30f, "Processing materials...");
+
+            // Process materials
             auto materialPtrs = collectMaterialPointers(scene);
-            result.scene.materials.reserve(materialPtrs.size());
+            loadedScene.materials.reserve(materialPtrs.size());
             for (uint32_t i = 0; i < materialPtrs.size(); ++i)
             {
-                result.scene.materials.push_back(extractMaterialSlot(materialPtrs[i], i));
+                // passing the base directory to correctly resolve relative texture paths
+                loadedScene.materials.push_back(
+                    extractMaterialSlot(materialPtrs[i], i, baseDir)
+                );
             }
 
-            // Step 5: Process meshes from Assimp data
-            reportProgress(onProgress, 0.60f, "Processing meshes...");
-            auto meshPtrs = collectMeshPointers(scene, config);
-            result.scene.meshes.reserve(meshPtrs.size());
+            // Process meshes
+            auto meshPtrs = collectMeshPointers(scene, meshOptions);
+            loadedScene.meshes.reserve(meshPtrs.size());
             for (uint32_t i = 0; i < meshPtrs.size(); ++i)
             {
-                result.scene.meshes.push_back(extractMesh(meshPtrs[i], i, config));
+                loadedScene.meshes.push_back(extractMesh(meshPtrs[i], i, meshOptions));
             }
 
-            // Step 7: Finalize scene
-            reportProgress(onProgress, 0.90f, "Finalizing scene...");
-            //calculateBounds(result.scene, result.scene.meshes);
-
-
-            reportProgress(onProgress, 1.0f, "Load complete");
+            returnData.scene = std::move(loadedScene);
         }
         catch (const std::exception& e)
         {
-            result.success = false;
-            result.warnings.push_back("An exception occurred: " + std::string(e.what()));
-            //LOG_ERROR("Scene loading exception: {}", e.what());
+            returnData.errors.push_back("An exception occurred during scene loading: " + std::string(e.what()));
         }
 
-        return result;
+        return returnData;
     }
 
     void SceneLoader::reportProgress(const ProgressCallback& callback, float progress, const std::string& status)
@@ -117,6 +213,55 @@ namespace compiler
                 /* Importer handles cleanup */
                 } };
     }
+
+
+
+
+    ProcessedMaterialSlot SceneLoader::extractMaterialSlot(const aiMaterial* aiMat, uint32_t materialIndex, const std::filesystem::path& modelBasePath)
+    {
+        ProcessedMaterialSlot slot;
+        slot.originalIndex = materialIndex;
+
+        aiString name;
+        if (aiMat->Get(AI_MATKEY_NAME, name) == AI_SUCCESS && strlen(name.C_Str()) > 0)
+        {
+            slot.name = name.C_Str();
+        }
+        else
+        {
+            slot.name = "Material_" + std::to_string(materialIndex);
+        }
+
+        extractTexturePath(aiMat, aiTextureType_DIFFUSE, "albedo", slot, modelBasePath);
+        extractTexturePath(aiMat, aiTextureType_NORMALS, "normal", slot, modelBasePath);
+        extractTexturePath(aiMat, aiTextureType_METALNESS, "metallic", slot, modelBasePath);
+        extractTexturePath(aiMat, aiTextureType_DIFFUSE_ROUGHNESS, "roughness", slot, modelBasePath);
+        extractTexturePath(aiMat, aiTextureType_AMBIENT_OCCLUSION, "ao", slot, modelBasePath);
+
+        // Extract Parameters
+        // TODO the others as well....
+        aiColor4D color;
+        if (aiMat->Get(AI_MATKEY_COLOR_DIFFUSE, color) == AI_SUCCESS)
+        {
+            slot.vectorParams["baseColorFactor"] = { color.r, color.g, color.b, color.a };
+        }
+
+        float floatValue;
+        if (aiMat->Get(AI_MATKEY_ROUGHNESS_FACTOR, floatValue) == AI_SUCCESS)
+        {
+            slot.scalarParams["roughnessFactor"] = floatValue;
+        }
+        if (aiMat->Get(AI_MATKEY_METALLIC_FACTOR, floatValue) == AI_SUCCESS)
+        {
+            slot.scalarParams["metallicFactor"] = floatValue;
+        }
+
+        return slot;
+    }
+
+
+
+
 
     void SceneLoader::extractNodesForCompiler(
         const aiNode* node,

@@ -1,57 +1,58 @@
 #include "TextureCompiler.h"
-#include <filesystem>
+
 #include <stb_image.h>
+
+#include <filesystem>
 #include <cassert>
 #include <thread>
 #include <iostream>
 
-
 namespace
 {
 
-    CMP_FORMAT MapCMPFormat(compiler::ChannelFormat fmt)
+    CMP_FORMAT MapCMPFormat(compiler::TextureChannelFormat fmt)
     {
         switch (fmt)
         {
-        case compiler::ChannelFormat::RGBA_8888: return CMP_FORMAT_ARGB_8888;
-        case compiler::ChannelFormat::RGBA_8888_S: return CMP_FORMAT_RGBA_8888_S;
-        case compiler::ChannelFormat::ARGB_8888: return CMP_FORMAT_ARGB_8888;
-        case compiler::ChannelFormat::ARGB_8888_S: return CMP_FORMAT_ARGB_8888_S;
-        case compiler::ChannelFormat::RGBA_16F: return CMP_FORMAT_RGBA_16F;
-        case compiler::ChannelFormat::ARGB_16F: return CMP_FORMAT_ARGB_16F;
-        case compiler::ChannelFormat::ARGB_32F: return CMP_FORMAT_ARGB_32F;
-        case compiler::ChannelFormat::RGBA_1010102: return CMP_FORMAT_RGBA_1010102;
+        case compiler::TextureChannelFormat::RGBA_8888: return CMP_FORMAT_ARGB_8888;
+        case compiler::TextureChannelFormat::RGBA_8888_S: return CMP_FORMAT_RGBA_8888_S;
+        case compiler::TextureChannelFormat::ARGB_8888: return CMP_FORMAT_ARGB_8888;
+        case compiler::TextureChannelFormat::ARGB_8888_S: return CMP_FORMAT_ARGB_8888_S;
+        case compiler::TextureChannelFormat::RGBA_16F: return CMP_FORMAT_RGBA_16F;
+        case compiler::TextureChannelFormat::ARGB_16F: return CMP_FORMAT_ARGB_16F;
+        case compiler::TextureChannelFormat::ARGB_32F: return CMP_FORMAT_ARGB_32F;
+        case compiler::TextureChannelFormat::RGBA_1010102: return CMP_FORMAT_RGBA_1010102;
         default: return CMP_FORMAT_ARGB_8888;
         }
     }
 
-    CMP_FORMAT MapCMPFormat(compiler::CompressionFormat fmt)
+    CMP_FORMAT MapCMPFormat(compiler::TextureCompressionFormat fmt)
     {
         switch (fmt)
         {
-        case compiler::CompressionFormat::BC1: return CMP_FORMAT_BC1;
-        case compiler::CompressionFormat::BC3: return CMP_FORMAT_BC3;
-        case compiler::CompressionFormat::BC4: return CMP_FORMAT_BC4;
-        case compiler::CompressionFormat::BC5: return CMP_FORMAT_BC5;
-        case compiler::CompressionFormat::BC7: return CMP_FORMAT_BC7;
-        case compiler::CompressionFormat::ASTC: return CMP_FORMAT_ASTC;
-        case compiler::CompressionFormat::ETC: return CMP_FORMAT_ETC_RGB;
+        case compiler::TextureCompressionFormat::BC1: return CMP_FORMAT_BC1;
+        case compiler::TextureCompressionFormat::BC3: return CMP_FORMAT_BC3;
+        case compiler::TextureCompressionFormat::BC4: return CMP_FORMAT_BC4;
+        case compiler::TextureCompressionFormat::BC5: return CMP_FORMAT_BC5;
+        case compiler::TextureCompressionFormat::BC7: return CMP_FORMAT_BC7;
+        case compiler::TextureCompressionFormat::ASTC: return CMP_FORMAT_ASTC;
+        case compiler::TextureCompressionFormat::ETC: return CMP_FORMAT_ETC_RGB;
             //uncompressed?
         default: return CMP_FORMAT_BC7;
         }
     }
 
-    VkFormat MapVkFormat(compiler::CompressionFormat fmt)
+    VkFormat MapVkFormat(compiler::TextureCompressionFormat fmt)
     {
         switch (fmt)
         {
-        case compiler::CompressionFormat::BC1: return VK_FORMAT_BC1_RGB_UNORM_BLOCK;
-        case compiler::CompressionFormat::BC3: return VK_FORMAT_BC3_UNORM_BLOCK;
-        case compiler::CompressionFormat::BC4: return VK_FORMAT_BC4_UNORM_BLOCK;
-        case compiler::CompressionFormat::BC5: return VK_FORMAT_BC5_UNORM_BLOCK;
-        case compiler::CompressionFormat::BC7: return VK_FORMAT_BC7_UNORM_BLOCK;
-        case compiler::CompressionFormat::ASTC: return VK_FORMAT_ASTC_4x4_UNORM_BLOCK;
-        case compiler::CompressionFormat::ETC: return VK_FORMAT_ETC2_R8G8B8A8_UNORM_BLOCK;
+        case compiler::TextureCompressionFormat::BC1: return VK_FORMAT_BC1_RGB_UNORM_BLOCK;
+        case compiler::TextureCompressionFormat::BC3: return VK_FORMAT_BC3_UNORM_BLOCK;
+        case compiler::TextureCompressionFormat::BC4: return VK_FORMAT_BC4_UNORM_BLOCK;
+        case compiler::TextureCompressionFormat::BC5: return VK_FORMAT_BC5_UNORM_BLOCK;
+        case compiler::TextureCompressionFormat::BC7: return VK_FORMAT_BC7_UNORM_BLOCK;
+        case compiler::TextureCompressionFormat::ASTC: return VK_FORMAT_ASTC_4x4_UNORM_BLOCK;
+        case compiler::TextureCompressionFormat::ETC: return VK_FORMAT_ETC2_R8G8B8A8_UNORM_BLOCK;
         default: return VK_FORMAT_BC7_UNORM_BLOCK;
         }
     }
@@ -80,20 +81,9 @@ namespace compiler
         return g_bAbortCompression;
     }
 
-	bool TextureCompiler::Compile(const TextureCompilerOptions& compileOptions)
-	{
+    bool TextureCompiler::Compile(const CompilerOptions& compileOptions)
+    {
         options = compileOptions;
-        //StartTimer();
-
-        //Check texture formats
-        //jpeg / .jpg
-        //.tga
-        //.png
-        //.bmp
-        //.psd  stbi_load
-        //.hdr  stbi_loadf
-        //.exr  tinyexr
-        //else  Compressonator
 
         //==========================
         // Load Source Texture
@@ -129,31 +119,30 @@ namespace compiler
         stbi_image_free(srcTexture.pData);
         free(destTexture.pData);
 
-		return true;
-	}           
+        return true;
+    }
 
     bool TextureCompiler::LoadSourceTexture(CMP_Texture& outTex)
     {
         int w, h, comp;
-        unsigned char* pixels = stbi_load(options.commonOptions.inputPath.string().c_str(), &w, &h, &comp, 4);
+        unsigned char* pixels = stbi_load(options.general.inputPath.string().c_str(), &w, &h, &comp, 4);
         if (!pixels) return false;
 
         outTex.dwSize = sizeof(outTex);
         outTex.dwWidth = w;
         outTex.dwHeight = h;
-        outTex.format = MapCMPFormat(options.channelFormat);
+        outTex.format = MapCMPFormat(options.texture.channelFormat);
         outTex.dwDataSize = w * h * 4;
         outTex.pData = pixels;
         return true;
     }
-
 
     CMP_CompressOptions TextureCompiler::SetupCompressionOptions()
     {
         CMP_CompressOptions opts = {};
         opts.dwSize = sizeof(opts);
         opts.dwnumThreads = std::thread::hardware_concurrency();
-        opts.fquality = options.quality; // normalized 0–1
+        opts.fquality = options.texture.quality; // normalized 0–1
         return opts;
     }
 
@@ -162,7 +151,7 @@ namespace compiler
         dst.dwSize = sizeof(dst);
         dst.dwWidth = src.dwWidth;
         dst.dwHeight = src.dwHeight;
-        dst.format = MapCMPFormat(options.compressionFormat);
+        dst.format = MapCMPFormat(options.texture.compressionFormat);
         dst.dwDataSize = CMP_CalculateBufferSize(&dst);
         dst.pData = (CMP_BYTE*)malloc(dst.dwDataSize);
 
@@ -178,16 +167,16 @@ namespace compiler
     bool TextureCompiler::SaveAsKTX2(const CMP_Texture& dst)
     {
         ktxTextureCreateInfo createInfo{};
-        createInfo.vkFormat = MapVkFormat(options.compressionFormat);
+        createInfo.vkFormat = MapVkFormat(options.texture.compressionFormat);
         createInfo.baseWidth = dst.dwWidth;
         createInfo.baseHeight = dst.dwHeight;
         createInfo.baseDepth = 1;
-        createInfo.numDimensions = 2;        
-        createInfo.numLevels = options.generateMips ? options.mipCount : 1;
+        createInfo.numDimensions = 2;
+        createInfo.numLevels = options.texture.generateMipmaps ? options.texture.mipCount : 1;
         createInfo.numLayers = 1;
         createInfo.numFaces = 1;
         createInfo.isArray = KTX_FALSE;
-        createInfo.generateMipmaps = options.generateMips ? KTX_TRUE : KTX_FALSE;
+        createInfo.generateMipmaps = options.texture.generateMipmaps ? KTX_TRUE : KTX_FALSE;
 
         ktxTexture2* kTexture;
         ktx_error_code_e result = ktxTexture2_Create(&createInfo, KTX_TEXTURE_CREATE_ALLOC_STORAGE, &kTexture);
@@ -204,8 +193,10 @@ namespace compiler
             dst.pData, dst.dwDataSize
         );
 
-        ktx_error_code_e writeResult =
-            ktxTexture_WriteToNamedFile(reinterpret_cast<ktxTexture*>(kTexture), options.commonOptions.outputPath.string().c_str());
+        std::string outputFilename = options.general.inputPath.stem().string() + ".ktx2";
+        std::filesystem::path outputPath = options.general.outputPath / outputFilename;
+
+        ktx_error_code_e writeResult = ktxTexture_WriteToNamedFile(reinterpret_cast<ktxTexture*>(kTexture), outputPath.string().c_str());
 
         ktxTexture_Destroy(reinterpret_cast<ktxTexture*>(kTexture));
 
@@ -217,29 +208,25 @@ namespace compiler
         return writeResult == KTX_SUCCESS;
     }
 
-
     ktxTextureCreateInfo TextureCompiler::SetupKtxCreateInfo(const CMP_Texture& dest)
     {
         ktxTextureCreateInfo info{};
-        info.vkFormat = MapVkFormat(options.compressionFormat);
+        info.vkFormat = MapVkFormat(options.texture.compressionFormat);
         info.baseWidth = dest.dwWidth;
         info.baseHeight = dest.dwHeight;
         info.baseDepth = 1;
         info.numDimensions = 2;
-        info.numLevels = options.generateMips ? options.mipCount : 1;
+        info.numLevels = options.texture.generateMipmaps ? options.texture.mipCount : 1;
         info.numLayers = 1;
         info.numFaces = 1;
         info.isArray = KTX_FALSE;
-        info.generateMipmaps = options.generateMips ? KTX_TRUE : KTX_FALSE;
+        info.generateMipmaps = options.texture.generateMipmaps ? KTX_TRUE : KTX_FALSE;
         return info;
     }
-
-
 }
 
 
 #if 0
-
 #pragma region DDSD defines
 #define MAKEFOURCC(ch0, ch1, ch2, ch3) \
     ((CMP_DWORD)(CMP_BYTE)(ch0) | ((CMP_DWORD)(CMP_BYTE)(ch1) << 8) | ((CMP_DWORD)(CMP_BYTE)(ch2) << 16) | ((CMP_DWORD)(CMP_BYTE)(ch3) << 24))

@@ -10,6 +10,7 @@
 std::unordered_map<std::string, SPtr<ResourceFiletypeImporterBase>> ResourceImporter::importers{
     { std::string{ ".fbx" }, std::make_shared<ResourceFiletypeImporterFBX>() },
     { std::string{ ".ktx" }, std::make_shared<ResourceFiletypeImporterKTX>() },
+    { std::string{ ".ktx2" }, std::make_shared<ResourceFiletypeImporterKTX>() },
     { std::string{ ".mp3" }, std::make_shared<ResourceFiletypeImporterAudio>() },
     { std::string{ ".mesh" }, std::make_shared<ResourceFiletypeImporterMeshAsset>() }
 };

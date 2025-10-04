@@ -5,18 +5,16 @@
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
-#include "import_config.h"
-#include "material_loader.h"
-#include "texture_loader.h"
-#include "mesh_loader.h"
+
 #include "GraphicsAPI.h"
-#include "AssetCompiler.h"
+#include "import_config.h"
+#include "MeshFileStructure.h"
 
 namespace internal
 {
     bool ImportMeshAsset(
         const std::filesystem::path& filepath, 
-        std::vector<MeshHandle>* outMeshHandles, std::vector<std::pair<uint32_t, Mat4>>* outMeshTransforms/*, std::vector<MaterialHandle>* outMaterialHandles*/)
+        std::vector<MeshHandle>* outMeshHandles, std::vector<std::pair<uint32_t, Mat4>>* outMeshTransforms)
     {
 
         std::ifstream file(filepath, std::ios::binary);
@@ -63,6 +61,9 @@ namespace internal
 
         // Retrieve material names for meshes
         std::map<uint32_t, uint32_t> nameOffsetToMaterialIndex; // Map offset to final index
+        // To retrive material name, 
+        // materialNamesBuffer[nameOffsetToMaterialIndex[meshInfo.materialNameIndex]] and cast it to a string.
+        // The material names are separated by \0
 
         const char* p = materialNamesBuffer.data();
         while (p < materialNamesBuffer.data() + materialNamesBuffer.size())
@@ -70,10 +71,6 @@ namespace internal
             uint32_t offset = static_cast<uint32_t>(p - materialNamesBuffer.data());
             std::string name(p);
             if (name.empty()) break;
-
-            //AssetLoading::ProcessedMaterial mat;
-            //mat.name = name;
-            //processedMaterials.push_back(mat);
 
             nameOffsetToMaterialIndex[offset] = static_cast<uint32_t>(nameOffsetToMaterialIndex.size() - 1);
             p += name.length() + 1; // material names separated by null terminator
@@ -90,6 +87,7 @@ namespace internal
             // Find the material index for this mesh
             mesh.materialIndex = nameOffsetToMaterialIndex[meshInfo.materialNameIndex];
 
+            // Get the vertice and indice data
             uint32_t vertexCount = 0;
             if (&meshInfo != &meshInfos.back())
             {
@@ -111,15 +109,9 @@ namespace internal
             processedMeshes.push_back(mesh);
         }
 
-        //Skip texture loading
-
-
-        // Step 4: Upload to GPU 
+        // Upload to GPU 
         auto graphicsAssetSystem{ ST<GraphicsAssets>::Get()->INTERNAL_GetAssetSystem() };
 
-        //outMaterialHandles->reserve(processedMaterials.size());
-        //for (const auto& material : processedMaterials)
-        //    outMaterialHandles->push_back(graphicsAssetSystem->createMaterial(material));
 
         outMeshHandles->reserve(processedMeshes.size());
         for (const auto& mesh : processedMeshes)
@@ -156,19 +148,15 @@ namespace internal
         const std::vector<MeshHandle>& meshHandles, const std::vector<std::pair<uint32_t, Mat4>> meshTransforms /*, const std::vector<MaterialHandle>& materialHandles*/)
     {
         auto& meshes{ ST<ResourceManager>::Get()->INTERNAL_GetMeshes() };
-        //auto& materials{ ST<ResourceManager>::Get()->INTERNAL_GetMaterials() };
         const auto& meshHashes{ resourceHashes[0].hashes };
-        //const auto& materialHashes{ resourceHashes[1].hashes };
 
         ResourceMesh* mesh{ meshes.INTERNAL_GetResource(meshHashes[0], true) };
         mesh->handles = meshHandles;
         mesh->transforms.resize(meshTransforms.size());
         for (const auto& [index, mat] : meshTransforms)
             mesh->transforms[index] = mat;
-
-        //for (size_t i{}; i < materialHashes.size(); ++i)
-        //    materials.INTERNAL_GetResource(materialHashes[i], true)->handle = materialHandles[i];
     }
+
 }
 
 

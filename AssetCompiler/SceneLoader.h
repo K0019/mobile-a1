@@ -2,15 +2,17 @@
 #include <filesystem>
 #include <functional>
 #include <thread>
+#include <optional>
 
 #include "MeshLoader.h"
 #include "MeshCompilerData.h"
 #include "MaterialLoader.h"
+#include "CompileOptions.h"
 
 struct aiScene;
 struct aiNode;
-struct aiLight;
-struct aiCamera;
+//struct aiLight;
+//struct aiCamera;
 
 namespace compiler
 {
@@ -25,37 +27,27 @@ namespace compiler
     struct Scene
     {
         std::string name;
-        // Scene elements with resolved handles
-        //std::vector<SceneLight> lights;
-        //std::vector<SceneCamera> cameras;
 
         std::vector<SceneNode> nodes;
         std::vector<ProcessedMesh> meshes; // Objects contain direct handles
         std::vector<ProcessedMaterialSlot> materials; // Objects contain direct handles
+
         // Scene bounds
         vec3 center{ 0 };
         float radius = 0;
         vec3 boundingMin{ FLT_MAX };
         vec3 boundingMax{ -FLT_MAX };
+        
         // Statistics
         uint32_t totalMeshes = 0;
         uint32_t totalMaterials = 0;
         uint32_t totalTextures = 0;
     };
 
-    struct SceneLoadResult
+    struct SceneLoadData
     {
-        Scene scene;
-        bool success = true;
-        std::vector<std::string> warnings;
-
-        struct Stats
-        {
-            float totalTimeMs = 0.0f;
-            size_t meshesLoaded = 0;
-            size_t materialsLoaded = 0;
-            size_t texturesLoaded = 0;
-        } stats;
+        std::optional<Scene> scene;
+        std::vector<std::string> errors;
     };
 
     class SceneLoader
@@ -65,13 +57,21 @@ namespace compiler
 
         SceneLoader() = default;
 
-        SceneLoadResult loadScene(const std::filesystem::path& path, const LoadingConfig& config = LoadingConfig::createBalanced(), ProgressCallback onProgress = nullptr);
+        SceneLoadData loadScene(const std::filesystem::path& path, const MeshOptions& meshOptions);
 
     private:
 
         static void reportProgress(const ProgressCallback& callback, float progress, const std::string& status);
 
         std::unique_ptr<const aiScene, void(*)(const aiScene*)> importScene(const std::filesystem::path& path) const;
+
+
+        std::vector<const aiMesh*> collectMeshPointers(const aiScene* scene, const MeshOptions& options);
+        void extractVertices(const aiMesh* aiMesh, std::vector<Vertex>& vertices, const MeshOptions& options);
+        ProcessedMesh extractMesh(const aiMesh* aiMesh, uint32_t meshIndex, const MeshOptions& options);
+
+
+        ProcessedMaterialSlot extractMaterialSlot(const aiMaterial* aiMat, uint32_t materialIndex, const std::filesystem::path& modelBasePath);
 
         void extractNodesForCompiler(
             const aiNode* node,
