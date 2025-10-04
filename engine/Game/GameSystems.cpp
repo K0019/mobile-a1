@@ -27,6 +27,7 @@ All rights reserved.
 #include "PostProcessingComponent.h"
 #include "TextSystem.h"
 #include "ScriptComponent.h"
+#include "CustomViewport.h"
 
 #include "CheatCodes.h"
 #include "CameraSystem.h"
@@ -54,6 +55,10 @@ void GameState_Common::OnEnter()
     ecs::AddSystem(ECS_LAYER::RENDER_0, LightingSystem{});
     ecs::AddSystem(ECS_LAYER::RENDER_0, PostProcessingSystem{});
     ecs::AddSystem(ECS_LAYER::RENDER_UI_0, TextSystem{});
+    
+    // Camera (will be overriden by the game camera during simulation, see GameState_Game)
+    ecs::AddSystem(ECS_LAYER::RENDER_0, CustomViewportCameraUploadSystem{});
+
     ecs::AddSystem(ECS_LAYER::PRE_PHYSICS_0, FPSTextSystem{});
     ecs::AddSystem(ECS_LAYER::AUDIO, AudioSystem{});
     ecs::AddSystem(ECS_LAYER::AUDIO, AudioListenerSystem{});
@@ -89,7 +94,6 @@ void GameState_Game::OnEnter()
 
     ecs::AddSystem(ECS_LAYER::SCRIPT_UPDATE, BehaviorTreeSystem{});
 
-    ecs::AddSystem(ECS_LAYER::POST_PHYSICS_2, CameraSystem{});
     ecs::AddSystem(ECS_LAYER::POST_PHYSICS_0, AnchorToCameraSystem{});
     ecs::AddSystem(ECS_LAYER::POST_PHYSICS_1, ShakeSystem{});
 
@@ -98,6 +102,10 @@ void GameState_Game::OnEnter()
     ecs::AddSystem(ECS_LAYER::PRE_PHYSICS_0, ExampleSystem{});
 
     ecs::AddSystem(ECS_LAYER::PHYSICS, physics::PhysicsSystem{});
+
+    // Override custom viewport camera
+    ecs::AddSystem(ECS_LAYER::RENDER_1, CameraCompUploadSystem{});
+    
 }
 
 void GameState_Pause::OnEnter()

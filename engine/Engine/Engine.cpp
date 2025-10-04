@@ -369,6 +369,7 @@ void Engine::run()
 		ST<PerformanceProfiler>::Get()->StartProfile("Process Input");
 		if(GameTime::RealNumFixedFrames())
 		{
+			ST<CustomViewport>::Get()->UpdateCameraControl();
 #ifdef IMGUI_ENABLED
 			ST<Inspector>::Get()->ProcessInput();
 			// TODO: Put this in some editor windows manager class. In fact, all of this imgui stuff needs to be put in that class or subclasses.
@@ -410,7 +411,6 @@ void Engine::run()
 #ifdef IMGUI_ENABLED
 			ST<Inspector>::Get()->DrawSelectedEntityBorder();
 #endif
-			ST<GraphicsMain>::Get()->RenderSampleScene();
 		}
 		ST<GraphicsMain>::Get()->EndFrame();
 		ST<PerformanceProfiler>::Get()->EndProfile("Render");

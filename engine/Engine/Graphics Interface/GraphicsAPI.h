@@ -70,8 +70,6 @@ public:
 #ifdef IMGUI_ENABLED
     editor::ImGuiContext& GetImGuiContext();
 #endif
-    void LoadSampleScene();
-    void RenderSampleScene();
 
 private:
     friend ST<GraphicsMain>;

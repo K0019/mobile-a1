@@ -60,6 +60,12 @@ bool GraphicsScene::NewFrame()
     return true;
 }
 
+void GraphicsScene::SetViewCamera(const Camera& camera)
+{
+    frameData.cameraPos = camera.getPosition();
+    frameData.viewMatrix = camera.getViewMatrix();
+}
+
 void GraphicsScene::AddObject(const MeshHandle& meshHandle, const MaterialHandle& materialHandle, const Mat4& transform)
 {
     // Validate handles
@@ -124,4 +130,7 @@ void GraphicsScene::AddLight(const SceneLight& sceneLight)
     params->activeLightCount = static_cast<uint32_t>(params->lights.size());
 }
 
-
+FrameData& GraphicsScene::INTERNAL_GetFrameData()
+{
+    return frameData;
+}
