@@ -3,8 +3,10 @@
 #include "ResourceImporter.h"
 #include "Import.h"
 #include "SceneCompiler.h"
+#include "TextureCompiler.h"
 #include "GameSettings.h"
 #include "GUICollection.h"
+#include "logging.h"
 
 const char* FileBrowserTab::GetName() const
 {
@@ -277,6 +279,27 @@ void FileBrowserTab::RenderItemContextMenu(const FileSystem::FileEntry& entry)
             spriteConfig.isSpriteSheet = true;
             spriteConfig.spriteCount = 1;
         }
+        if (ImGui::MenuItem(ICON_FA_FILE_IMPORT" Compile to KTX2"))
+        {
+            std::filesystem::path assetPath{ entry.fullPath };
+            compiler::TextureCompiler textureCompiler;
+            compiler::CompilerOptions options;
+            options.general.inputPath = assetPath;
+            options.general.outputPath = ST<Filepaths>::Get()->assets + "/CompiledAssets/textures";
+
+            if (textureCompiler.Compile(options))
+            {
+                CONSOLE_LOG(LEVEL_INFO) << "Texture compiled!";
+                //i hack first, sorry
+                std::string outputFilename = options.general.inputPath.stem().string() + ".ktx2";
+                std::filesystem::path outputPath = options.general.outputPath / outputFilename;
+                ResourceImporter::Import(outputPath);
+            }
+            else
+            {
+                CONSOLE_LOG(LEVEL_ERROR) << "Texture failed to compile!";
+            }
+        }
         ImGui::Separator();
     }
     else if (entry.fileType == "importable")
@@ -306,13 +329,6 @@ void FileBrowserTab::RenderItemContextMenu(const FileSystem::FileEntry& entry)
             {
                 ResourceImporter::Import(path);
             }
-            
-            //compiler::MeshCompiler meshcompiler;
-            //compiler::MeshCompilerOptions options;
-            //options.commonOptions.inputPath = path;
-            //options.commonOptions.outputPath = ST<Filepaths>::Get()->workingDir + "/CompiledAssets/";
-            //meshcompiler.Compile(options);
-            //ResourceImporter::Import(options.commonOptions.outputPath / (options.commonOptions.inputPath.stem().string() + ".mesh"));
         }
     }
 

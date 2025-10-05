@@ -14,7 +14,7 @@ namespace
     {
         switch (fmt)
         {
-        case compiler::TextureChannelFormat::RGBA_8888: return CMP_FORMAT_ARGB_8888;
+        case compiler::TextureChannelFormat::RGBA_8888: return CMP_FORMAT_RGBA_8888;
         case compiler::TextureChannelFormat::RGBA_8888_S: return CMP_FORMAT_RGBA_8888_S;
         case compiler::TextureChannelFormat::ARGB_8888: return CMP_FORMAT_ARGB_8888;
         case compiler::TextureChannelFormat::ARGB_8888_S: return CMP_FORMAT_ARGB_8888_S;
@@ -22,7 +22,7 @@ namespace
         case compiler::TextureChannelFormat::ARGB_16F: return CMP_FORMAT_ARGB_16F;
         case compiler::TextureChannelFormat::ARGB_32F: return CMP_FORMAT_ARGB_32F;
         case compiler::TextureChannelFormat::RGBA_1010102: return CMP_FORMAT_RGBA_1010102;
-        default: return CMP_FORMAT_ARGB_8888;
+        default: return CMP_FORMAT_RGBA_8888;
         }
     }
 

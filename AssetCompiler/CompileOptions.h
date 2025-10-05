@@ -96,8 +96,8 @@ namespace compiler
 
     struct TextureOptions
     {
-        TextureChannelFormat channelFormat;
-        TextureCompressionFormat compressionFormat;
+        TextureChannelFormat channelFormat = TextureChannelFormat::RGBA_8888;
+        TextureCompressionFormat compressionFormat = TextureCompressionFormat::BC7;
         TextureWrapMode wrapMode;
         TextureAlphaMode alphaMode;
 
