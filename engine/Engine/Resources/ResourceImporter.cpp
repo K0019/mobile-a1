@@ -24,9 +24,10 @@ All rights reserved.
 
 #include "ResourceFiletypeImporterFBX.h"
 #include "ResourceFiletypeImporterKTX.h"
-#include "ResourceFiletypeImporterAudio.h"
 #include "ResourceFiletypeImporterMeshAsset.h"
 #include "ResourceFiletypeImporterMaterial.h"
+#include "ResourceFiletypeImporterImage.h"
+#include "ResourceFiletypeImporterAudio.h"
 
 #include "GameSettings.h"
 
@@ -34,9 +35,13 @@ std::unordered_map<std::string, SPtr<ResourceFiletypeImporterBase>> ResourceImpo
     { std::string{ ".fbx" }, std::make_shared<ResourceFiletypeImporterFBX>() },
     { std::string{ ".ktx" }, std::make_shared<ResourceFiletypeImporterKTX>() },
     { std::string{ ".ktx2" }, std::make_shared<ResourceFiletypeImporterKTX>() },
-    { std::string{ ".mp3" }, std::make_shared<ResourceFiletypeImporterAudio>() },
     { std::string{ ".mesh" }, std::make_shared<ResourceFiletypeImporterMeshAsset>() },
-    { std::string{ ".material" }, std::make_shared<ResourceFiletypeImporterMaterial>() }
+    { std::string{ ".material" }, std::make_shared<ResourceFiletypeImporterMaterial>() },
+    { std::string{ ".png" }, std::make_shared<ResourceFiletypeImporterImage>() },
+    { std::string{ ".jpg" }, std::make_shared<ResourceFiletypeImporterImage>() },
+    { std::string{ ".jpeg" }, std::make_shared<ResourceFiletypeImporterImage>() },
+    { std::string{ ".bmp" }, std::make_shared<ResourceFiletypeImporterImage>() },
+    { std::string{ ".mp3" }, std::make_shared<ResourceFiletypeImporterAudio>() },
 };
 
 bool ResourceImporter::Import(const std::filesystem::path& filepath)
