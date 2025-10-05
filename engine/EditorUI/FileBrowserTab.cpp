@@ -305,31 +305,7 @@ void FileBrowserTab::RenderItemContextMenu(const FileSystem::FileEntry& entry)
     else if (entry.fileType == "importable")
     {
         if (gui::MenuItem(ICON_FA_FILE_IMPORT" Import"))
-            ResourceImporter::Import(entry.fullPath.string());
-
-        if (gui::MenuItem(ICON_FA_FILE_IMPORT" Compile and Import"))
-        {
-            std::filesystem::path assetPath { entry.fullPath };
-            compiler::SceneCompiler compiler;
-            compiler::CompilerOptions options;
-            options.general.inputPath = assetPath;
-            options.general.outputPath = ST<Filepaths>::Get()->assets + "/CompiledAssets/";
-        
-            compiler::CompilationResult result = compiler.Compile(options);
-
-            for (auto path : result.createdMeshFiles)
-            {
-                ResourceImporter::Import(path);
-            }
-            //for (auto path : result.createdMaterialFiles)
-            //{
-            //    ResourceImporter::Import(path);
-            //}
-            for (auto path : result.createdTextureFiles)
-            {
-                ResourceImporter::Import(path);
-            }
-        }
+            ResourceImporter::Import(entry.fullPath);
     }
 
     if (ImGui::MenuItem(ICON_FA_COPY" Copy Path"))

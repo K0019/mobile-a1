@@ -20,6 +20,13 @@ All rights reserved.
 
 #include "ResourceFiletypeImporterFBX.h"
 #include "ResourceTypesGraphics.h"
+// The FBX importer actually calls our asset compiler which produces .mesh and .ktx2 files.
+// We then delegate the importing of these .mesh and .ktx2 files to those respective importers.
+// Therefore, we need to call the resource importer again to process those files.
+#include "SceneCompiler.h"
+#include "TextureCompiler.h"
+#include "GameSettings.h"
+#include "ResourceImporter.h"
 
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
@@ -192,16 +199,24 @@ namespace internal {
 
 bool ResourceFiletypeImporterFBX::Import(const std::filesystem::path& assetRelativeFilepath)
 {
-    // Load the meshes and materials within the file
-    internal::RawResourcesFBX rawResources;
-    if (!internal::ImportFileFBX(GetExeRelativeFilepath(assetRelativeFilepath), &rawResources))
+    // Set up compile options
+    compiler::SceneCompiler compiler;
+    compiler::CompilerOptions options;
+    options.general.inputPath = GetExeRelativeFilepath(assetRelativeFilepath);
+    options.general.outputPath = ST<Filepaths>::Get()->assets + "/CompiledAssets/";
+
+    // Ask the compiler to compile the .fbx into .mesh and .ktx2
+    compiler::CompilationResult result = compiler.Compile(options);
+    if (!result.success)
         return false;
 
-    // Create FileEntry
-    const auto* fileEntry{ GenerateFileEntryForResources<ResourceMesh, ResourceMaterial, ResourceTexture>(assetRelativeFilepath, 1, rawResources.materialHandles.size(), rawResources.textureHandles.size()) };
-
-    // Set the resources to the loaded indexes
-    internal::SetResourceHandlesFBX(fileEntry->associatedResources, std::move(rawResources));
+    // Delegate importing of the created files to their respective importers
+    for (const auto& path : result.createdMeshFiles)
+        ResourceImporter::Import(path);
+    //for (const auto& path : result.createdMaterialFiles)
+    //    ResourceImporter::Import(path);
+    for (const auto& path : result.createdTextureFiles)
+        ResourceImporter::Import(path);
 
     return true;
 }
