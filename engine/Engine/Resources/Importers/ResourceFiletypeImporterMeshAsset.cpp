@@ -107,6 +107,8 @@ namespace internal
                 mesh.indices.push_back(originalIndex);
             }
 
+            mesh.bounds = meshInfo.meshBounds;
+
             processedMeshes.push_back(mesh);
         }
 
