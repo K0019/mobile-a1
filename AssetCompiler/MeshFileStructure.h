@@ -11,7 +11,6 @@ namespace compiler
     struct MeshFileHeader
     {
         uint32_t magic = MESH_FILE_MAGIC;
-        //uint32_t version;
 
         uint32_t numNodes;
         uint32_t numMeshes;
@@ -19,7 +18,11 @@ namespace compiler
         uint32_t totalVertices;
         uint32_t materialNameBufferSize; // Total size of the material name block
 
-        // Bounds
+        // Bounds for the entire scene.
+        // This is actually not needed, since
+        // in the mesh importer's SetResourceHandlesMesh, we take the bounds of every individual mesh,
+        // and nowhere do we ever use the bounds of the entire scene.
+        // might be useful to quickly cull the entire scene instead of part by part though??
         vec3 sceneBoundsCenter;
         float sceneBoundsRadius;
         vec3 sceneBoundsMin;
