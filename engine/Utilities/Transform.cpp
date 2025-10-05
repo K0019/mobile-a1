@@ -28,6 +28,10 @@ All rights reserved.
 #ifdef IMGUI_ENABLED
 #include "ImGuizmo.h"
 #include "CustomViewport.h"
+#include "camera.h"
+#include "EditorCameraBridge.h"
+#include "EditorGizmoBridge.h"
+
 #endif
 Transform::Transform()
 	: position{}
@@ -285,57 +289,134 @@ void Transform::SetMat4ToWorld(glm::mat4* outMat4) const
 	//mat4[3][3] = mat[2][2];
 }
 
-void GetWorldMatrixF16(const Transform& t, float out[16])
-{
-	glm::mat4 g{};
-	t.SetMat4ToWorld(&g);               // fills g with the world matrix
-	std::memcpy(out, &g[0][0], 16 * sizeof(float));  // glm is contiguous & column-major
-}
+
 
 void Transform::EditorDraw()
 {
+	
 	{
 		ImGuizmo::BeginFrame();
-
-		// draw on top of everything so it's not clipped by the Inspector window
 		ImGuizmo::SetDrawlist(ImGui::GetForegroundDrawList());
 		ImGuizmo::Enable(true);
-		ImGuizmo::SetOrthographic(true); // 2D editor style
 
-		// viewport size (we'll anchor at (0,0) for now)
-		auto* vp = ST<CustomViewport>::Get();
-		Vec2  size = vp->GetViewportRenderSize();
-		ImGuizmo::SetRect(0.0f, 0.0f, size.x, size.y);
+		// --- Rect over the Scene window ---
+		const char* kSceneWindowTitle = ICON_FA_GAMEPAD " Scene";
+		ImGuiWindow* sceneWin = ImGui::FindWindowByName(kSceneWindowTitle);
 
-		// camera: orthographic mapping pixels -> clip space, y-down to match typical 2D viewports
-		glm::mat4 viewM(1.0f); // identity view
-		glm::mat4 projM = glm::ortho(0.0f, size.x,  // left, right
-			size.y, 0.0f,  // bottom, top (flip Y)
-			-1.0f, 1.0f);  // near, far
-
-		float view[16], proj[16];
-		std::memcpy(view, &viewM[0][0], 16 * sizeof(float));
-		std::memcpy(proj, &projM[0][0], 16 * sizeof(float));
-
-		// object matrix: reuse your Transform’s world matrix (already in pixel units)
-		float object[16];
-		{
-			glm::mat4 g{};
-			SetMat4ToWorld(&g);               // <- from your Transform.h
-			std::memcpy(object, &g[0][0], 16 * sizeof(float));
+		ImVec2 rectMin, rectSize;
+		if (sceneWin && sceneWin->WasActive) {
+			rectMin = sceneWin->InnerRect.Min;
+			rectSize = ImVec2(sceneWin->InnerRect.GetWidth(),
+				sceneWin->InnerRect.GetHeight());
 		}
+		else {
+			const ImGuiViewport* vp = ImGui::GetMainViewport();
+			rectMin = vp->Pos; rectSize = vp->Size; // fallback
+		}
+		ImGuizmo::SetRect(rectMin.x, rectMin.y, rectSize.x, rectSize.y);
 
-		// choose an op to visualize; this won't modify your Transform
-		ImGuizmo::Manipulate(view, proj, ImGuizmo::TRANSLATE, ImGuizmo::WORLD, object);
+		ImGuizmo::SetImGuiContext(ImGui::GetCurrentContext());
 
-		// ---- your existing numeric controls below ----
-		gui::SetStyleVar styleFramePadding{ gui::FLAG_STYLE_VAR::FRAME_PADDING, gui::Vec2{ 4.0f, 2.0f } };
-		gui::SetStyleVar styleItemSpacing{ gui::FLAG_STYLE_VAR::ITEM_SPACING, gui::Vec2{ 4.0f, 2.0f } };
-		gui::Indent indent{ 4.0f };
 
-		// ... Position / Rotation / Scale UI (unchanged) ...
+
+		// --- Camera from bridge (must be published this frame) ---
+		glm::mat4 V(1.0f), P(1.0f);
+		bool isOrtho = false;
+		if (!EditorCam_TryGet(V, P, isOrtho)) {
+			// No camera yet -> nothing to do this frame.
+			// (Tip: ensure EditorCam_Publish is called before UI draw.)
+		}
+		else {
+			ImGuizmo::SetOrthographic(isOrtho);
+
+#ifdef GLM_FORCE_DEPTH_ZERO_TO_ONE
+			// Convert Vulkan depth [0..1] to OpenGL [-1..1] for ImGuizmo:
+			P[2][2] = P[2][2] * 0.5f;
+			P[3][2] = P[3][2] * 0.5f - 0.5f;
+#endif
+
+
+			float view[16], proj[16];
+			std::memcpy(view, glm::value_ptr(V), 16 * sizeof(float));
+			std::memcpy(proj, glm::value_ptr(P), 16 * sizeof(float));
+
+			// --- Object matrix from this Transform (WORLD) ---
+			glm::mat4 M{};
+			SetMat4ToWorld(&M);
+			float object[16];
+			std::memcpy(object, glm::value_ptr(M), 16 * sizeof(float));
+
+			// --- FOR NOW: force translate so we can validate write-back ---
+			ImGuizmo::OPERATION op = EditorGizmo_Op();   // <— force
+			ImGuizmo::MODE      mode = EditorGizmo_Mode();    // WORLD/LOCAL from your bridge
+
+			// Snap (typed pointer!)
+			bool  snapEnabled = false;                            // set true to test snapping
+			float translateSnap[3] = { 1.0f, 1.0f, 1.0f };
+			float scaleSnap[3] = { 0.1f, 0.1f, 0.1f };
+			float rotateSnapDeg = 15.0f;
+
+			const float* snap = nullptr;
+			if (snapEnabled) {
+				switch (op) {
+				case ImGuizmo::TRANSLATE: snap = translateSnap; break;
+				case ImGuizmo::SCALE:     snap = scaleSnap;     break;
+				case ImGuizmo::ROTATE:    snap = &rotateSnapDeg; break;
+				default: break;
+				}
+			}
+
+			ImGuizmo::Manipulate(view, proj, op, mode, object, nullptr, snap);
+
+
+			//bool mouseInRect = ImGui::IsMouseHoveringRect(rectMin, ImVec2(rectMin.x + rectSize.x, rectMin.y + rectSize.y), false);
+			//CONSOLE_LOG(LEVEL_INFO) << "mouseInRect=" << mouseInRect; // THIS IS WROKING FINE for now
+
+//#ifdef GLM_FORCE_DEPTH_ZERO_TO_ONE
+//			CONSOLE_LOG(LEVEL_INFO) << "Depth remap ACTIVE";
+//#else
+//			CONSOLE_LOG(LEVEL_INFO) << "Depth remap INACTIVE"; // THIS ISS HAPPENING
+////#endif
+// 			bool ok = EditorCam_TryGet(V,P,isOrtho);
+//			CONSOLE_LOG(LEVEL_INFO) << "GotCam=" << ok; // 1
+			//bool sceneHovered = sceneWin && ImGui::IsWindowHovered(ImGuiHoveredFlags_ChildWindows);
+			//CONSOLE_LOG(LEVEL_INFO) << "sceneHovered=" << sceneHovered; // returns 0
+
+
+			// --- WRITE-BACK (translate only) ---
+			if (ImGuizmo::IsUsing())
+			{
+				float t[3], r[3], s[3];
+				ImGuizmo::DecomposeMatrixToComponents(object, t, r, s);
+
+				const Transform* parent = GetParent();
+				if (mode == ImGuizmo::WORLD || !parent) {
+					SetWorldPosition({ t[0], t[1], t[2] });
+				}
+				else {
+					glm::mat4 parentWorld{}; parent->SetMat4ToWorld(&parentWorld);
+					glm::mat4 worldM = glm::make_mat4(object);
+					glm::mat4 localM = glm::inverse(parentWorld) * worldM;
+
+					ImGuizmo::DecomposeMatrixToComponents(glm::value_ptr(localM), t, r, s);
+					SetLocalPosition({ t[0], t[1], t[2] });
+				}
+			}
+			else {
+				// optional: show quick hints while diagnosing
+				if (ImGuizmo::IsOver()) {
+					CONSOLE_LOG(LEVEL_INFO) << "oVer fgizmo but not dragging";
+				}
+				else {
+
+				}
+
+			}
+		}
 	}
-	//guizmo
+
+
+	//=====================END GUIZMO
 
 	gui::SetStyleVar styleFramePadding{ gui::FLAG_STYLE_VAR::FRAME_PADDING, gui::Vec2{ 4.0f, 2.0f } };
 	gui::SetStyleVar styleItemSpacing{ gui::FLAG_STYLE_VAR::ITEM_SPACING, gui::Vec2{ 4.0f, 2.0f } };
@@ -396,7 +477,6 @@ void Transform::EditorDraw()
 		SetLocalScale(tempVec);
 	}
 }
-
 void Transform::SetDirty()
 {
 	isTransformDirty = true;

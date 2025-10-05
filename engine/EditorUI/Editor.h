@@ -26,6 +26,7 @@ All rights reserved.
 #include "CustomViewport.h"
 #include "EditorTweenModule.h"
 #include "Gizmo.h"
+#include "ImGuizmo.h"
 
 class Inspector : public gui::Window
 {
@@ -115,6 +116,7 @@ private:
 	*//******************************************************************/
 	void DrawEntityActionsButton();
 
+
 	
 private:
 	//Vec2 SnapToGrid(const Vec2& worldPos) const;
@@ -129,7 +131,6 @@ private:
 
 	Gizmo m_gizmo;
 	GizmoType m_currentGizmoType = GizmoType::None;
-
 	EditorTweenModule editorTweenModule;
 #endif
 };

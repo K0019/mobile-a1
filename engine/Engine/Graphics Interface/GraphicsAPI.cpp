@@ -24,6 +24,7 @@ All rights reserved.
 
 #include "fa.h"
 
+#include "EditorCameraBridge.h"
 bool GraphicsAssets::Init(Context* context)
 {
 	assetSystem = std::make_unique<AssetLoading::AssetSystem>(context);
@@ -308,5 +309,10 @@ void GraphicsMain::RenderSampleScene()
 	currentFrameData.viewMatrix = camera.getViewMatrix();
 	currentFrameData.projMatrix = perspective(45.0f, (float)windowExtent.x / (float)windowExtent.y, 0.1f, 100.0f);
 	//SceneRenderFeature::UpdateScene(sceneFeatureHandle_, loadedScene_, *context.assetSystem, *renderer);
+
+	// Publish so the editor (ImGuizmo) can read it this frame.
+	EditorCam_Publish(currentFrameData.viewMatrix, currentFrameData.projMatrix, /*ortho*/ false);
+
+
 	renderer->render(currentFrameData);
 }

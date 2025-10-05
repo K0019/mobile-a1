@@ -32,13 +32,12 @@ All rights reserved.
 #include "NameComponent.h"
 #include "EntityLayers.h"
 #include "Game.h"
+#include "EditorGizmoBridge.h"
 
-#include "ImGuizmo.h"
 
 #ifdef IMGUI_ENABLED
 
 //for imgui gizmo
-ImGuizmo::OPERATION currentGizmoOperation = ImGuizmo::TRANSLATE;
 
 Inspector::Inspector()
 	: Window{ ICON_FA_MAGNIFYING_GLASS" Inspector", gui::Vec2{ 300, 400 }, gui::FLAG_WINDOW::ALWAYS_VERTICAL_SCROLL_BAR }
@@ -129,13 +128,15 @@ void Inspector::ProcessInput()
 
 	//to change guizmo settings
 	if (ST<KeyboardMouseInput>::Get()->GetIsPressed(KEY::F1)) {
-		ImGuizmo::OPERATION currentGizmoOperation = ImGuizmo::TRANSLATE;
+		EditorGizmo_Publish(ImGuizmo::TRANSLATE, ImGuizmo::WORLD /* or LOCAL */);
 	}
 	if (ST<KeyboardMouseInput>::Get()->GetIsPressed(KEY::F2)) {
-		ImGuizmo::OPERATION currentGizmoOperation = ImGuizmo::SCALE;
+		EditorGizmo_Publish(ImGuizmo::ROTATE, EditorGizmo_Mode());
+
 	}
 	if (ST<KeyboardMouseInput>::Get()->GetIsPressed(KEY::F3)) {
-		ImGuizmo::OPERATION currentGizmoOperation = ImGuizmo::ROTATE;
+		EditorGizmo_Publish(ImGuizmo::SCALE, EditorGizmo_Mode());
+
 	}
 
 	if(!selectedEntity)
@@ -770,6 +771,7 @@ void Inspector::DrawEntityActionsButton()
 			deleteConfirmation = false;
 	}
 }
+
 
 //Vec2 Inspector::SnapToGrid(const Vec2& worldPos) const {
 //	return {
