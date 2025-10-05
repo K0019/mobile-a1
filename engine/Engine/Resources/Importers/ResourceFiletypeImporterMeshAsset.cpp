@@ -161,35 +161,20 @@ namespace internal
 }
 
 
-bool ResourceFiletypeImporterMeshAsset::Import(const std::filesystem::path& relativeFilepath)
+bool ResourceFiletypeImporterMeshAsset::Import(const std::filesystem::path& assetRelativeFilepath)
 {
-    // Load the meshes and materials within the file
+    // Load the meshes within the file
     std::vector<MeshHandle> meshHandles;
-    //std::vector<MaterialHandle> materialHandles;
     std::vector<std::pair<uint32_t, Mat4>> meshTransforms;
 
-    if (!internal::ImportMeshAsset(ST<Filepaths>::Get()->assets + "/" + relativeFilepath.string(), &meshHandles, &meshTransforms/*, &materialHandles*/))
+    if (!internal::ImportMeshAsset(GetExeRelativeFilepath(assetRelativeFilepath), &meshHandles, &meshTransforms))
         return false;
 
+    // Create the file entry and resource hash
+    const auto* fileEntry{ GenerateFileEntryForResources<ResourceMesh>(assetRelativeFilepath, 1) };
 
-
-    // Check if the resources are already registered
-    const auto* existingFileEntry{ ST<ResourceManager>::Get()->INTERNAL_GetFilepathsManager().GetFileEntry(relativeFilepath) };
-    // If it doesn't exist, create new resources
-    if (!existingFileEntry)
-        existingFileEntry = CreateNewFileEntry(relativeFilepath/*, materialHandles.size()*/);
-
-    // Set the resources to the loaded indexes
-    internal::SetResourceHandlesMesh(existingFileEntry->associatedResources, meshHandles, meshTransforms /*, materialHandles*/);
+    // Set the meshes to the resource
+    internal::SetResourceHandlesMesh(fileEntry->associatedResources, meshHandles, meshTransforms);
 
     return true;
-}
-
-const ResourceFilepaths::FileEntry* ResourceFiletypeImporterMeshAsset::CreateNewFileEntry(const std::filesystem::path& relativeFilepath/*, size_t numMaterials*/)
-{
-    std::vector<AssociatedResourceHashes> resourceHashes{ 1 };
-    GenerateHashesForResourceType<ResourceMesh>(&resourceHashes[0], 1);
-
-    GenerateNamesForResources(resourceHashes, relativeFilepath);
-    return ST<ResourceManager>::Get()->INTERNAL_GetFilepathsManager().SetFilepath(relativeFilepath, std::move(resourceHashes));
 }
