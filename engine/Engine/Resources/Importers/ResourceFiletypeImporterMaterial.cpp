@@ -1,6 +1,7 @@
 #include "ResourceFiletypeImporterMaterial.h"
 #include "ResourceTypesGraphics.h"
 #include "ResourceManager.h"
+#include "ResourceImporter.h"
 
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
@@ -10,40 +11,66 @@
 #include "import_config.h"
 #include "MeshFileStructure.h"
 #include "MaterialSerialization.h"
+#include "GameSettings.h"
 
 using namespace AssetLoading;
 
-namespace internal
+namespace
 {
-    void DeserializeMaterial(Deserializer& reader, Material* outMaterial)
+    void populateTexturesVector(ProcessedMaterial& material)
     {
-        reader.DeserializeVar("name", &outMaterial->name);
+        material.textures.clear();
 
-        // textures: unordered_map<string,string>
-
-        // params: unordered_map<string,float>
+        // Helper to add valid texture sources
+        auto addIfValid = [&](const MaterialTexture& matTex)
+            {
+                if (matTex.hasTexture())
+                {
+                    material.textures.push_back(matTex.source);
+                }
+            };
+        addIfValid(material.baseColorTexture);
+        addIfValid(material.metallicRoughnessTexture);
+        addIfValid(material.normalTexture);
+        addIfValid(material.emissiveTexture);
+        addIfValid(material.occlusionTexture);
     }
-
 }
-
 
 bool ResourceFiletypeImporterMaterial::Import(const std::filesystem::path& relativeFilepath)
 {
+    // Load the file
+    std::filesystem::path fullPath = ST<Filepaths>::Get()->assets / relativeFilepath;
     ProcessedMaterial material;
 
-    Deserializer reader{ relativeFilepath.string()};
-    MaterialSerialization::Deserialize(reader, material);
-
+    Deserializer reader{ fullPath.string()};
     if (!reader.IsValid())
     {
         CONSOLE_LOG(LEVEL_ERROR) << "Failed to open .material file ";
         return false;
     }
+    MaterialSerialization::Deserialize(reader, material);
+    populateTexturesVector(material);
+
+    //Ensure that textures are loaded before we link them with the materials
+    for (const auto& textureDataSource : material.textures)
+    {
+        if (const auto* filePath = std::get_if<FilePathSource>(&textureDataSource))
+        {
+            ResourceImporter::Import(filePath->path);
+        }
+    }
+
+    // Create material handle
+    auto graphicsAssetSystem{ ST<GraphicsAssets>::Get()->INTERNAL_GetAssetSystem() };
+    MaterialHandle materialHandle{ graphicsAssetSystem->createMaterial(material) };
+    graphicsAssetSystem->FlushUploads();
+
+    // Create resource entry
+    const auto* fileEntry{ GenerateFileEntryForResources<ResourceMaterial>(relativeFilepath, 1) };
+
+    // Assign resource to material handle
+    ST<ResourceManager>::Get()->INTERNAL_GetMaterials().INTERNAL_GetResource(fileEntry->associatedResources[0].hashes[0], true)->handle = materialHandle;
 
 	return true;
-}
-
-const ResourceFilepaths::FileEntry* ResourceFiletypeImporterMaterial::CreateNewFileEntry(const std::filesystem::path& relativeFilepath)
-{
-	return nullptr;
 }

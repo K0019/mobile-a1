@@ -26,6 +26,7 @@ All rights reserved.
 #include "ResourceFiletypeImporterKTX.h"
 #include "ResourceFiletypeImporterAudio.h"
 #include "ResourceFiletypeImporterMeshAsset.h"
+#include "ResourceFiletypeImporterMaterial.h"
 
 #include "GameSettings.h"
 
@@ -34,7 +35,8 @@ std::unordered_map<std::string, SPtr<ResourceFiletypeImporterBase>> ResourceImpo
     { std::string{ ".ktx" }, std::make_shared<ResourceFiletypeImporterKTX>() },
     { std::string{ ".ktx2" }, std::make_shared<ResourceFiletypeImporterKTX>() },
     { std::string{ ".mp3" }, std::make_shared<ResourceFiletypeImporterAudio>() },
-    { std::string{ ".mesh" }, std::make_shared<ResourceFiletypeImporterMeshAsset>() }
+    { std::string{ ".mesh" }, std::make_shared<ResourceFiletypeImporterMeshAsset>() },
+    { std::string{ ".material" }, std::make_shared<ResourceFiletypeImporterMaterial>() }
 };
 
 bool ResourceImporter::Import(const std::filesystem::path& filepath)

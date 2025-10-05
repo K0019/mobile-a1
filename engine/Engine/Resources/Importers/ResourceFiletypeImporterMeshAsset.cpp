@@ -1,6 +1,7 @@
 #include "ResourceFiletypeImporterMeshAsset.h"
 #include "ResourceTypesGraphics.h"
 #include "ResourceManager.h"
+#include "GameSettings.h"
 
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>

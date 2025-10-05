@@ -3,6 +3,8 @@
 #include "ResourceManager.h"
 #include "Popup.h"
 #include "asset_types.h"
+#include "GameSettings.h"
+#include "ResourceImporter.h"
 
 namespace editor {
 
@@ -94,11 +96,19 @@ namespace editor {
 				return;
 			}
 
-			// --- 3. SERIALIZE THE DATA ---
+			materialProps.name = materialName;
 			MaterialSerialization::Serialize(writer, materialProps, textures);
+
+			if (!writer.SaveAndClose())
+			{
+				ST<Popup>::Get()->Open("Failed to create material", "Could not save file. Asset not imported: " + assetPath.string());
+				return;
+			}
 
 			ST<Popup>::Get()->Open("Success!", "Material created at: " + assetPath.string());
 			CONSOLE_LOG(LEVEL_INFO) << "Material asset created: " << assetPath;
+
+			ResourceImporter::Import(assetPath);
 		}
 		else
 		{
