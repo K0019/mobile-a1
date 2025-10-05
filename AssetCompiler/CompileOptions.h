@@ -91,7 +91,7 @@ namespace compiler
         bool generateNormals = true;
         bool generateTangents = true;
         bool calculateBounds = true;
-        bool flipUVs = false;
+        bool flipUVs = true;
     };
 
     struct TextureOptions
