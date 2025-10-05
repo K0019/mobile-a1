@@ -24,7 +24,6 @@ All rights reserved.
 // We then delegate the importing of these .mesh and .ktx2 files to those respective importers.
 // Therefore, we need to call the resource importer again to process those files.
 #include "SceneCompiler.h"
-#include "TextureCompiler.h"
 #include "GameSettings.h"
 #include "ResourceImporter.h"
 

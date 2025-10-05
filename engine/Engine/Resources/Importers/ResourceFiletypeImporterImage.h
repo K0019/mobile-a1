@@ -1,11 +1,7 @@
 #pragma once
 #include "ResourceFiletypeImporterBase.h"
-#include "ResourceFilepaths.h"
 
-class ResourceFiletypeImporterMeshAsset : public ResourceFiletypeImporterBase
+class ResourceFiletypeImporterImage : public ResourceFiletypeImporterBase
 {
-public:
     virtual bool Import(const std::filesystem::path& assetRelativeFilepath) final;
-
 };
-
