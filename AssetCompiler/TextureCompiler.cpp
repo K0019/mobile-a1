@@ -9,7 +9,6 @@
 
 namespace
 {
-
     CMP_FORMAT MapCMPFormat(compiler::TextureChannelFormat fmt)
     {
         switch (fmt)
@@ -57,9 +56,6 @@ namespace
         }
     }
 }
-
-
-
 
 namespace compiler
 {

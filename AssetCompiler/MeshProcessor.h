@@ -1,6 +1,7 @@
 #pragma once
 #include <mikktspace.h>
 #include <vector>
+#include <span>
 #include "MeshCompilerData.h"
 
 namespace compiler
@@ -29,6 +30,8 @@ namespace compiler
         static void optimizeVertexFetch(std::vector<Vertex>& vertices, std::vector<uint32_t>& indices);
 
         static bool shouldOptimize(const std::vector<Vertex>& vertices, const std::vector<uint32_t>& indices);
+
+        static vec4 calculateBounds(std::span<const compiler::Vertex> vertices);
 
     private:
         // Mikktspace integration

@@ -181,6 +181,33 @@ namespace compiler
         return true;
     }
 
+    vec4 MeshOptimizer::calculateBounds(std::span<const Vertex> vertices)
+    {
+        if (vertices.empty()) { return vec4(0.0f, 0.0f, 0.0f, 0.0f); }
+
+        // Find axis-aligned bounding box
+        vec3 minPos = vertices[0].position;
+        vec3 maxPos = vertices[0].position;
+
+        for (const auto& vertex : vertices)
+        {
+            minPos = glm::min(minPos, vertex.position);
+            maxPos = glm::max(maxPos, vertex.position);
+        }
+
+        // Calculate bounding sphere center and radius
+        const vec3 center = (minPos + maxPos) * 0.5f;
+        float radius = 0.0f;
+
+        for (const auto& vertex : vertices)
+        {
+            const float distance = glm::length(vertex.position - center);
+            radius = std::max(radius, distance);
+        }
+
+        return { center.x, center.y, center.z, radius };
+    }
+
     int MeshOptimizer::getNumFaces(const SMikkTSpaceContext* pContext)
     {
         const auto* ctx = static_cast<const MikktspaceContext*>(pContext->m_pUserData);

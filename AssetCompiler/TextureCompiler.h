@@ -27,10 +27,8 @@ namespace compiler
 
 		CompilerOptions options;
 	};
-
-
-
 }
+
 //SELF NOTES:
 
 	// Key to format types 0xFnbC
