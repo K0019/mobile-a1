@@ -26,8 +26,6 @@ namespace compiler
 
         return materialPtrs;
     }
-    
-    
 }
 
 

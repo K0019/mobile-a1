@@ -5,6 +5,7 @@
 
 #include <fstream>
 #include <set>
+#include <iostream>
 
 #include "rapidjson/document.h"
 #include "rapidjson/writer.h"
@@ -33,9 +34,10 @@ namespace compiler
         // Processing stage, meshopt is here
         ProcessScene(scene, compileOptions.mesh);
 
+
         // Save the data
         SaveMeshes(scene, result);
-        //SaveMaterialData(scene, result);
+        SaveMaterialData(scene, result);
         CompileTextures(scene, result);
 
         if (!result.errors.empty())
@@ -253,41 +255,68 @@ namespace compiler
 
             doc.AddMember("name", rapidjson::Value(materialSlot.name.c_str(), allocator), allocator);
 
-            if (!materialSlot.texturePaths.empty())
+            std::string alphaModeStr;
+            switch (materialSlot.alphaMode)
             {
-                rapidjson::Value texturesJson(rapidjson::kObjectType);
-                for (const auto& [type, path] : materialSlot.texturePaths)
-                {
-                    std::string filename = path.filename().string();
-
-                    rapidjson::Value key(type.c_str(), allocator);
-                    rapidjson::Value value(filename.c_str(), allocator);
-
-                    texturesJson.AddMember(key, value, allocator);
-                }
-                doc.AddMember("textures", texturesJson, allocator);
+            case AlphaMode::Opaque:
+                alphaModeStr = "Opaque";
+                break;
+            case AlphaMode::Mask:
+                alphaModeStr = "Mask";
+                break;
+            case AlphaMode::Blend:
+                alphaModeStr = "Blend";
+                break;
+            default:
+                alphaModeStr = "Opaque";
             }
+            doc.AddMember("alphaMode", rapidjson::Value(alphaModeStr.c_str(), allocator), allocator);
 
-            if (!materialSlot.scalarParams.empty() || !materialSlot.vectorParams.empty())
+            // PBR properties
+            doc.AddMember("alphaCutoff", materialSlot.alphaCutoff, allocator);
+            doc.AddMember("metallicFactor", materialSlot.metallicFactor, allocator);
+            doc.AddMember("roughnessFactor", materialSlot.roughnessFactor, allocator);
+            doc.AddMember("normalScale", materialSlot.normalScale, allocator);
+            doc.AddMember("occlusionStrength", materialSlot.occlusionStrength, allocator);
+
+            rapidjson::Value baseColor(rapidjson::kArrayType);
+            baseColor.PushBack(materialSlot.baseColorFactor.x, allocator);
+            baseColor.PushBack(materialSlot.baseColorFactor.y, allocator);
+            baseColor.PushBack(materialSlot.baseColorFactor.z, allocator);
+            baseColor.PushBack(materialSlot.baseColorFactor.w, allocator);
+            doc.AddMember("baseColorFactor", baseColor, allocator);
+
+            rapidjson::Value emissive(rapidjson::kArrayType);
+            emissive.PushBack(materialSlot.emissiveFactor.x, allocator);
+            emissive.PushBack(materialSlot.emissiveFactor.y, allocator);
+            emissive.PushBack(materialSlot.emissiveFactor.z, allocator);
+            doc.AddMember("emissiveFactor", emissive, allocator);
+
+
+            const char* textureKeys[] = { "baseColor", "metallicRoughness", "normal", "emissive", "occlusion" };
+            rapidjson::Value texturesArray(rapidjson::kArrayType);
+
+            for (const char* key : textureKeys)
             {
-                rapidjson::Value paramsJson(rapidjson::kObjectType);
-                for (const auto& [name, value] : materialSlot.scalarParams)
-                {
-                    paramsJson.AddMember(rapidjson::Value(name.c_str(), allocator), rapidjson::Value(static_cast<double>(value)), allocator);
-                }
-                for (const auto& [name, value] : materialSlot.vectorParams)
-                {
-                    rapidjson::Value vecArray(rapidjson::kArrayType);
-                    vecArray.PushBack(value.x, allocator);
-                    vecArray.PushBack(value.y, allocator);
-                    vecArray.PushBack(value.z, allocator);
-                    vecArray.PushBack(value.w, allocator);
+                rapidjson::Value textureEntry(rapidjson::kObjectType);
+                textureEntry.AddMember("key", rapidjson::Value(key, allocator), allocator);
 
-                    paramsJson.AddMember(rapidjson::Value(name.c_str(), allocator), vecArray, allocator);
+                std::string valueStr = "";
+                auto it = materialSlot.texturePaths.find(key);
+                if (it != materialSlot.texturePaths.end())
+                {
+                    std::string filename = it->second.stem().string() + ".ktx2";
+                    valueStr = "CompiledAssets\\textures\\" + filename;
                 }
-                doc.AddMember("parameters", paramsJson, allocator);
+
+                textureEntry.AddMember("value", rapidjson::Value(valueStr.c_str(), allocator), allocator);
+                texturesArray.PushBack(textureEntry, allocator);
             }
+            doc.AddMember("textures", texturesArray, allocator);
 
+            doc.AddMember("flags", materialSlot.flags, allocator);
+
+            // Write to disk
             std::string safeFilename = materialSlot.name;
             std::replace(safeFilename.begin(), safeFilename.end(), ' ', '_');
             std::filesystem::path outFilePath = materialOutputDir / (safeFilename + ".material");

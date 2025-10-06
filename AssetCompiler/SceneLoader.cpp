@@ -6,14 +6,15 @@
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
+#include <assimp/GltfMaterial.h>
 
 #include <numeric>
-#include <chrono>
+#include <iostream>
 
 namespace compiler
 {
 
-    void extractTexturePath(const aiMaterial* aiMat, aiTextureType type, const std::string& key, ProcessedMaterialSlot& outSlot, const std::filesystem::path& modelBasePath)
+    bool extractTexturePath(const aiMaterial* aiMat, aiTextureType type, const std::string& key, ProcessedMaterialSlot& outSlot, const std::filesystem::path& modelBasePath)
     {
         aiString path;
         if (aiMat->GetTexture(type, 0, &path) == AI_SUCCESS)
@@ -27,7 +28,9 @@ namespace compiler
             {
                 outSlot.texturePaths[key] = texturePath;
             }
+            return true;
         }
+        return false;
     }
 
     std::vector<const aiMesh*> SceneLoader::collectMeshPointers(const aiScene* scene, const MeshOptions& options)
@@ -111,8 +114,6 @@ namespace compiler
         }
         return mesh;
     }
-
-
 
     SceneLoadData SceneLoader::loadScene(const std::filesystem::path& path, const MeshOptions& meshOptions)
     {
@@ -215,8 +216,6 @@ namespace compiler
     }
 
 
-
-
     ProcessedMaterialSlot SceneLoader::extractMaterialSlot(const aiMaterial* aiMat, uint32_t materialIndex, const std::filesystem::path& modelBasePath)
     {
         ProcessedMaterialSlot slot;
@@ -232,35 +231,168 @@ namespace compiler
             slot.name = "Material_" + std::to_string(materialIndex);
         }
 
-        extractTexturePath(aiMat, aiTextureType_DIFFUSE, "albedo", slot, modelBasePath);
-        extractTexturePath(aiMat, aiTextureType_NORMALS, "normal", slot, modelBasePath);
-        extractTexturePath(aiMat, aiTextureType_METALNESS, "metallic", slot, modelBasePath);
-        extractTexturePath(aiMat, aiTextureType_DIFFUSE_ROUGHNESS, "roughness", slot, modelBasePath);
-        extractTexturePath(aiMat, aiTextureType_AMBIENT_OCCLUSION, "ao", slot, modelBasePath);
+        if (!extractTexturePath(aiMat, aiTextureType_BASE_COLOR, "baseColor", slot, modelBasePath))
+            extractTexturePath(aiMat, aiTextureType_DIFFUSE, "baseColor", slot, modelBasePath);
+        extractTexturePath(aiMat, aiTextureType_METALNESS, "metallicRoughness", slot, modelBasePath);
+        if(!extractTexturePath(aiMat, aiTextureType_NORMALS, "normal", slot, modelBasePath))
+            extractTexturePath(aiMat, aiTextureType_HEIGHT, "normal", slot, modelBasePath);
+        extractTexturePath(aiMat, aiTextureType_EMISSIVE, "emissive", slot, modelBasePath);
+        extractTexturePath(aiMat, aiTextureType_AMBIENT_OCCLUSION, "occlusion", slot, modelBasePath);
 
-        // Extract Parameters
-        // TODO the others as well....
+        // Get material parameter values
         aiColor4D color;
-        if (aiMat->Get(AI_MATKEY_COLOR_DIFFUSE, color) == AI_SUCCESS)
+        float factor;
+        
+        // Base color
+        if (aiMat->Get(AI_MATKEY_BASE_COLOR, color) == AI_SUCCESS)
         {
-            slot.vectorParams["baseColorFactor"] = { color.r, color.g, color.b, color.a };
+            slot.baseColorFactor = { color.r, color.g, color.b, color.a };
+        }
+        else if (aiMat->Get(AI_MATKEY_COLOR_DIFFUSE, color) == AI_SUCCESS)
+        {
+            slot.baseColorFactor = vec4(color.r, color.g, color.b, 1.0f);
+        }
+        else if (aiMat->Get("$clr.diffuse", 0, 0, color) == AI_SUCCESS)
+        {
+            slot.baseColorFactor = vec4(color.r, color.g, color.b, 1.0f);
         }
 
-        float floatValue;
-        if (aiMat->Get(AI_MATKEY_ROUGHNESS_FACTOR, floatValue) == AI_SUCCESS)
+        // Metallic
+        if (aiMat->Get(AI_MATKEY_METALLIC_FACTOR, factor) == AI_SUCCESS)
         {
-            slot.scalarParams["roughnessFactor"] = floatValue;
+            slot.metallicFactor = std::clamp(factor, 0.0f, 1.0f);
         }
-        if (aiMat->Get(AI_MATKEY_METALLIC_FACTOR, floatValue) == AI_SUCCESS)
+        else if (aiMat->Get("$mat.metallicFactor", 0, 0, factor) == AI_SUCCESS)
         {
-            slot.scalarParams["metallicFactor"] = floatValue;
+            slot.metallicFactor = std::clamp(factor, 0.0f, 1.0f);
         }
+        else if (aiMat->Get(AI_MATKEY_REFLECTIVITY, factor) == AI_SUCCESS)
+        {
+            slot.metallicFactor = std::clamp(factor, 0.0f, 1.0f);
+        }
+
+        // Roughness
+        if (aiMat->Get(AI_MATKEY_ROUGHNESS_FACTOR, factor) == AI_SUCCESS)
+        {
+            slot.roughnessFactor = std::clamp(factor, 0.0f, 1.0f);
+        }
+        else if (aiMat->Get("$mat.roughnessFactor", 0, 0, factor) == AI_SUCCESS)
+        {
+            slot.roughnessFactor = std::clamp(factor, 0.0f, 1.0f);
+        }
+        else if (aiMat->Get(AI_MATKEY_SHININESS, factor) == AI_SUCCESS)
+        {
+            slot.roughnessFactor = std::clamp(1.0f - (factor / 256.0f), 0.0f, 1.0f);
+        }
+        else if (aiMat->Get(AI_MATKEY_SHININESS_STRENGTH, factor) == AI_SUCCESS)
+        {
+            slot.roughnessFactor = std::clamp(1.0f - factor, 0.0f, 1.0f);
+        }
+
+        // Emissive
+        if (aiMat->Get(AI_MATKEY_COLOR_EMISSIVE, color) == AI_SUCCESS)
+        {
+            slot.emissiveFactor = vec3(color.r, color.g, color.b);
+        }
+        else if (aiMat->Get("$clr.emissive", 0, 0, color) == AI_SUCCESS)
+        {
+            slot.emissiveFactor = vec3(color.r, color.g, color.b);
+        }
+
+        // Normal scale
+        if (aiMat->Get(AI_MATKEY_GLTF_TEXTURE_SCALE(aiTextureType_NORMALS, 0), factor) == AI_SUCCESS)
+        {
+            slot.normalScale = std::max(0.0f, factor);
+        }
+
+        // Occlusion strength
+        if (aiMat->Get(AI_MATKEY_GLTF_TEXTURE_STRENGTH(aiTextureType_AMBIENT_OCCLUSION, 0), factor) == AI_SUCCESS)
+        {
+            slot.occlusionStrength = std::clamp(factor, 0.0f, 1.0f);
+        }
+
+        // Alpha properties
+        if (aiMat->Get(AI_MATKEY_OPACITY, factor) == AI_SUCCESS)
+        {
+            slot.baseColorFactor.a = std::clamp(factor, 0.0f, 1.0f);
+        }
+
+        if (aiMat->Get(AI_MATKEY_GLTF_ALPHACUTOFF, factor) == AI_SUCCESS)
+        {
+            slot.alphaCutoff = std::clamp(factor, 0.0f, 1.0f);
+        }
+
+        aiString alphaModeStr;
+        if (aiMat->Get(AI_MATKEY_GLTF_ALPHAMODE, alphaModeStr) == AI_SUCCESS)
+        {
+            std::string mode = alphaModeStr.C_Str();
+            if (mode == "OPAQUE")
+            {
+                slot.alphaMode = AlphaMode::Opaque;
+            }
+            else if (mode == "MASK")
+            {
+                slot.alphaMode = AlphaMode::Mask;
+            }
+            else if (mode == "BLEND")
+            {
+                slot.alphaMode = AlphaMode::Blend;
+            }
+        }
+        else
+        {
+            // Fallback: detect transparency from alpha value
+            if (slot.baseColorFactor.a < 0.99f)
+            {
+                slot.alphaMode = AlphaMode::Blend;
+            }
+            else
+            {
+                slot.alphaMode = AlphaMode::Opaque;
+            }
+        }
+
+        // Alpha cutoff
+        if (aiMat->Get(AI_MATKEY_GLTF_ALPHACUTOFF, factor) == AI_SUCCESS)
+        {
+            slot.alphaCutoff = std::clamp(factor, 0.0f, 1.0f);
+        }
+
+        // Unlit detection
+        int shadingModel;
+        if (aiMat->Get(AI_MATKEY_SHADING_MODEL, shadingModel) == AI_SUCCESS)
+        {
+            if (shadingModel == aiShadingMode_Unlit || shadingModel == aiShadingMode_NoShading)
+            {
+                slot.flags |= MaterialFlags::UNLIT;
+            }
+        }
+
+        // Alternative unlit detection for various formats
+        aiString unlitStr;
+        if (aiMat->Get("unlit", 0, 0, unlitStr) == AI_SUCCESS)
+        {
+            std::string unlit = unlitStr.C_Str();
+            if (unlit == "true" || unlit == "1")
+            {
+                slot.flags |= MaterialFlags::UNLIT;
+            }
+        }
+
+        // Two-sided detection
+        int twosided;
+        if (aiMat->Get(AI_MATKEY_TWOSIDED, twosided) == AI_SUCCESS && twosided)
+        {
+            slot.flags |= MaterialFlags::DOUBLE_SIDED;
+        }
+
+        //The importer will materialType and flags for us
+        //slot.materialTypeFlags = MaterialType::METALLIC_ROUGHNESS;
+        //uint32_t alphaModeFlags = static_cast<uint32_t>(slot.alphaMode) & MaterialFlags::ALPHA_MODE_MASK;
+        //slot.flags = (slot.flags & ~MaterialFlags::ALPHA_MODE_MASK) | alphaModeFlags;
 
         return slot;
     }
-
-
-
 
 
     void SceneLoader::extractNodesForCompiler(

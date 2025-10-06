@@ -22,30 +22,35 @@ namespace editor {
 
 	void MaterialCreationWindow::DrawWindow()
 	{
-		// Name
+		// ----- Name -----
 		gui::TextBox("Material Name", materialName, sizeof(materialName));
 		gui::Separator();
 
+		// ----- Shading Model -----
+		gui::Checkbox("Unlit", &isUnlit);
+		gui::Checkbox("Double Sided", &isDoubleSided);
+		gui::Separator();
+
+		// ----- Core PBR properties -----
 		ImGui::ColorEdit4("Base Color", &materialProps.baseColorFactor.x);
 		ImGui::SliderFloat("Metallic", &materialProps.metallicFactor, 0.0f, 1.0f);
 		ImGui::SliderFloat("Roughness", &materialProps.roughnessFactor, 0.0f, 1.0f);
 		ImGui::ColorEdit3("Emissive Factor", &materialProps.emissiveFactor.x);
-
-		gui::Separator();
-
 		ImGui::SliderFloat("Normal Scale", &materialProps.normalScale, 0.0f, 2.0f);
 		ImGui::SliderFloat("Occlusion Strength", &materialProps.occlusionStrength, 0.0f, 1.0f);
 		ImGui::SliderFloat("Alpha Cutoff", &materialProps.alphaCutoff, 0.0f, 1.0f);
+		gui::Separator();
 
+		// ----- Material properties -----
 		const char* alphaModes[] = { "Opaque", "Mask", "Blend" };
 		int currentAlphaMode = static_cast<int>(materialProps.alphaMode);
 		if (ImGui::Combo("Alpha Mode", &currentAlphaMode, alphaModes, 3))
 		{
 			materialProps.alphaMode = static_cast<AlphaMode>(currentAlphaMode);
 		}
-
 		gui::Separator();
 
+		// ----- Texturse -----
 		for (int i{}; i < +MATERIAL_TEXTURE_INDEX::TOTAL; ++i)
 		{
 			gui::SetID id{ i };
@@ -96,7 +101,15 @@ namespace editor {
 				return;
 			}
 
+			// Set the flags
+			materialProps.flags = 0;
+			if (isUnlit)
+				materialProps.flags |= MaterialFlags::UNLIT;
+			if (isDoubleSided)
+				materialProps.flags |= MaterialFlags::DOUBLE_SIDED;
+
 			materialProps.name = materialName;
+			
 			MaterialSerialization::Serialize(writer, materialProps, textures);
 
 			if (!writer.SaveAndClose())
