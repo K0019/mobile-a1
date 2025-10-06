@@ -9,15 +9,22 @@ namespace editor
 {
   // ImGui shaders - corrected push constants
   static const char* kVertexShader = R"(
-  layout (location = 0) in vec2 in_pos;
-layout (location = 1) in vec2 in_uv;
-layout (location = 2) in vec4 in_color;
-
 layout (location = 0) out vec4 out_color;
 layout (location = 1) out vec2 out_uv;
 
+struct Vertex {
+    float x, y;
+    float u, v;
+    uint rgba;
+};
+
+layout(std430, buffer_reference) readonly buffer VertexBuffer {
+    Vertex vertices[];
+};
+
 layout(push_constant) uniform PushConstants {
-    vec4 LRTB;
+    vec4 LRTB;          // Left, Right, Top, Bottom for orthographic projection
+    VertexBuffer vb;        // Fixed: was VertexBuffer, now uint64_t for GPU address
     uint textureId;
     uint samplerId;
 } pc;
@@ -28,16 +35,19 @@ void main() {
     float T = pc.LRTB.z;
     float B = pc.LRTB.w;
     
+    // Orthographic projection matrix
     mat4 proj = mat4(
-        2.0 / (R - L), 0.0, 0.0, 0.0,
-        0.0, 2.0 / (T - B), 0.0, 0.0,
-        0.0, 0.0, -1.0, 0.0,
-        (R + L) / (L - R), (T + B) / (B - T), 0.0, 1.0
+        2.0 / (R - L),                   0.0,  0.0, 0.0,
+        0.0,                   2.0 / (T - B),  0.0, 0.0,
+        0.0,                             0.0, -1.0, 0.0,
+        (R + L) / (L - R), (T + B) / (B - T),  0.0, 1.0
     );
     
-    out_color = in_color;
-    out_uv = in_uv;
-    gl_Position = proj * vec4(in_pos, 0, 1);
+    VertexBuffer vb = VertexBuffer(pc.vb);  // Convert uint64_t to buffer reference
+    Vertex v = vb.vertices[gl_VertexIndex];
+    out_color = unpackUnorm4x8(v.rgba);
+    out_uv = vec2(v.u, v.v);
+    gl_Position = proj * vec4(v.x, v.y, 0, 1);
 }
 )";
 

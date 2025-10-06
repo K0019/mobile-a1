@@ -27,7 +27,6 @@ set(CORE_PUBLIC_DEPS
     $<$<CONFIG:Release>:${EXTERNAL_LIBRARIES_STATIC_RELEASE}>
 )
 # set(CORE_PRIVATE_DEPS
-#     ryEngineTargets
 # )
 
 # Create the target
