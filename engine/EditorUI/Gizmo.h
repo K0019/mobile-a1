@@ -21,6 +21,10 @@ All rights reserved.
 /******************************************************************************/
 #ifdef IMGUI_ENABLED
 #include "ImguiHeader.h"
+#include "ImGuizmo.h"
+#include "EditorCameraBridge.h"   // for EditorCam_TryGet(...)
+#include "EditorGizmoBridge.h"
+#include "fa.h" 
 
 enum class GizmoType {
     None,
@@ -36,7 +40,7 @@ public:
     static constexpr float ROTATION_RADIUS = 50.0f;
     
     Gizmo();
-
+    ~Gizmo();
     void attach(Transform& transform);
 
     void detach();
@@ -50,8 +54,14 @@ public:
     Transform* getAttachedTransform() const;
     bool isAttached() const;
 
+
+    //TK
+    void SetOperation(ImGuizmo::OPERATION op) { m_operation = op; }
+    ImGuizmo::OPERATION GetOperation() const { return m_operation; }
+    static constexpr ImGuizmo::OPERATION kNoneOp = (ImGuizmo::OPERATION)(-1);
+
 private:
-    GizmoType m_activeType;
+    ImGuizmo::OPERATION m_operation = kNoneOp;
     bool m_isDragging;
     int m_selectedAxis;  // -1: none, 0: x, 1: y, 2: both (for scale uniform)
     int m_hoveredAxis = -1;  // -1: none, 0: x, 1: y, 2: both (for scale uniform)
@@ -60,6 +70,12 @@ private:
     float m_initialRotation;
     Vec2 m_initialScale;
     Transform* m_attachedTransform;
+    bool  m_snapEnabled = false;
+    float m_translateSnap[3] = { 1.0f, 1.0f, 1.0f };  // units
+    float m_scaleSnap[3] = { 0.1f, 0.1f, 0.1f };  // scale step
+    float m_rotateSnapDeg = 15.0f;                 // degrees
+    float m_gizmoSizeClip = 0.12f;                 // ImGuizmo::SetGizmoSizeClipSpace (default ~0.1)
+    bool  m_mouseOverScene = false;                 // optional: for gating input/camera
 
     ImU32 getAxisColor(int axis, ImU32 baseColor) const;
 

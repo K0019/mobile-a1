@@ -293,6 +293,8 @@ void Engine::run()
 		ecs::SwitchToPool(ecs::POOL::DEFAULT);
 		ecs::FlushChanges(); // For if any of the editor windows deleted an entity.
 
+
+
 		if(ImGui::BeginMainMenuBar())
 		{
 			// Add a "File" menu
@@ -358,7 +360,10 @@ void Engine::run()
 			ImGui::EndMainMenuBar();  // End the main menu bar
 		}
 
+
 		ST<CustomViewport>::Get()->DrawImGuiWindow();
+
+
 
 		ST<GraphicsMain>::Get()->EndImGuiFrame();
 #endif

@@ -35,62 +35,172 @@ namespace {
     ImU32 Uniform_axis = IM_COL32(0, 0, 200, 255); // Blue for uniform scale/ rotation handle
 }
 
-Gizmo::Gizmo() : m_activeType(GizmoType::None), m_isDragging(false),
-m_selectedAxis(-1), m_attachedTransform(nullptr) {}
+Gizmo::Gizmo()
+    : m_operation(kNoneOp)
+    , m_isDragging(false)
+    , m_hoveredAxis(-1)
+    , m_selectedAxis(-1)
+    , m_attachedTransform(nullptr)
+{
+}
 
-void Gizmo::attach(Transform& transform) {
+Gizmo::~Gizmo() = default;
+
+
+static ImGuizmo::OPERATION ToImguiOp(GizmoType t)
+{
+    switch (t)
+    {
+    case GizmoType::Translate: return ImGuizmo::TRANSLATE;
+    case GizmoType::Rotate:    return ImGuizmo::ROTATE;
+    case GizmoType::Scale:     return ImGuizmo::SCALE;
+    default:                   return (ImGuizmo::OPERATION)(-1); // kNoneOp
+    }
+}
+
+void Gizmo::attach(Transform& transform)
+{
+    // If we’re already attached to the same transform, nothing to do.
+    if (m_attachedTransform == &transform)
+        return;
+
     m_attachedTransform = &transform;
+
+    // Reset transient interaction state
+    m_isDragging = false;
+    m_hoveredAxis = -1;
+    m_selectedAxis = -1;
+
+    // (Optional) choose a default mode on first attach
+    if (m_operation == kNoneOp)
+        m_operation = ImGuizmo::TRANSLATE;
 }
-void Gizmo::detach() {
+
+void Gizmo::detach()
+{
+    if (!m_attachedTransform)
+        return;
+
+    // End any active interaction and drop the reference
+    m_isDragging = false;
+    m_hoveredAxis = -1;
+    m_selectedAxis = -1;
     m_attachedTransform = nullptr;
+
+    // If your old code disabled viewport panning while dragging,
+    // this is the place to re-enable it (no-op if you don't use it):
+    // ST<CustomViewport>::Get()->SetDisableMoving(false);
 }
-void Gizmo::draw([[maybe_unused]] ImDrawList* viewport) {
-    if(m_activeType == GizmoType::None || !m_attachedTransform) return;
 
-    CONSOLE_LOG_UNIMPLEMENTED() << "Gizmo draw";
+//void Gizmo::draw([[maybe_unused]] ImDrawList* /*viewport*/)
+void Gizmo::draw(ImDrawList* /*viewport*/)
+{
+    //// Bail if nothing is attached
+    //if (!m_attachedTransform) return;
 
-    //ImDrawList* drawList = viewport;
+    //// --- pull current operation & mode from the editor bridge ---
+    //ImGuizmo::OPERATION op = EditorGizmo_Op();     // returns ImGuizmo::OPERATION
+    //ImGuizmo::MODE      mode = EditorGizmo_Mode(); // WORLD/LOCAL
 
-    //// Get screen space transform using your viewport system
-    //Transform screenTransform = ST<CustomViewport>::Get()->WorldToWindowTransform(*m_attachedTransform);
-    //Vec2 screenPos = screenTransform.GetLocalPosition();
+    //// If the editor hasn't published anything yet, default once and publish it
+    //if (op == (ImGuizmo::OPERATION)(-1)) {
+    //    op = ImGuizmo::TRANSLATE;
+    //    EditorGizmo_Publish(op, mode);
+    //}
 
-    //if(!m_isDragging) {
-    //    Vec2 mousePos = { ImGui::GetMousePos().x, ImGui::GetMousePos().y };
-    //    switch(m_activeType) {
-    //        case GizmoType::Translate:
-    //            checkTranslationHandles(mousePos, screenPos);
-    //            break;
-    //        case GizmoType::Rotate:
-    //            checkRotationHandle(mousePos, screenPos);
-    //            break;
-    //        case GizmoType::Scale:
-    //            checkScaleHandles(mousePos, screenPos, screenTransform.GetLocalRotation());
-    //            break;
+    //// (optional debug)
+    //// CONSOLE_LOG(LEVEL_INFO) << "Gizmo::draw op=" << (int)op << " mode=" << (int)mode;
+
+    //// --- ImGuizmo begin frame / drawlist / rect (unchanged) ---
+    //ImGuizmo::SetImGuiContext(ImGui::GetCurrentContext());
+    //static int s_lastFrame = -1;
+    //const int curFrame = ImGui::GetFrameCount();
+    //if (s_lastFrame != curFrame) { ImGuizmo::BeginFrame(); s_lastFrame = curFrame; }
+    //ImGuizmo::Enable(true);
+
+    //const char* kSceneWindowTitle = ICON_FA_GAMEPAD " Scene";
+    //ImGuiWindow* sceneWin = ImGui::FindWindowByName(kSceneWindowTitle);
+    //if (!sceneWin || !sceneWin->WasActive) return;
+
+    //const ImRect& inner = sceneWin->InnerRect;
+    //ImGuizmo::SetDrawlist(sceneWin->DrawList);
+    //ImGuizmo::SetRect(inner.Min.x, inner.Min.y, inner.GetWidth(), inner.GetHeight());
+
+    //// --- camera from bridge ---
+    //glm::mat4 V(1.f), P(1.f);
+    //bool isOrtho = false;
+    //if (!EditorCam_TryGet(V, P, isOrtho)) return;
+    //ImGuizmo::SetOrthographic(isOrtho);
+
+    //float view[16], proj[16];
+    //std::memcpy(view, glm::value_ptr(V), sizeof(view));
+    //std::memcpy(proj, glm::value_ptr(P), sizeof(proj));
+
+    //// --- model from attached transform ---
+    //glm::mat4 M(1.f);
+    //m_attachedTransform->SetMat4ToWorld(&M);
+
+    //float model[16];
+    //std::memcpy(model, glm::value_ptr(M), sizeof(model));
+
+    //ImGuizmo::SetID((int)(intptr_t)m_attachedTransform);
+    //ImGuizmo::Manipulate(view, proj, op, mode, model, nullptr, nullptr);
+
+    //// legacy flags
+    //m_isDragging = ImGuizmo::IsUsing();
+    //m_hoveredAxis = ImGuizmo::IsOver() ? 0 : -1;
+
+    //// --- writeback (translate/rotate/scale) ---
+    //if (ImGuizmo::IsUsing())
+    //{
+    //    float t[3], r[3], s[3];
+    //    ImGuizmo::DecomposeMatrixToComponents(model, t, r, s);
+    //    const Transform* parent = m_attachedTransform->GetParent();
+
+    //    auto setLocalFromWorld = [&](auto setterLocal) {
+    //        glm::mat4 parentW(1.f);
+    //        parent->SetMat4ToWorld(&parentW);
+    //        glm::mat4 worldM = glm::make_mat4(model);
+    //        glm::mat4 localM = glm::inverse(parentW) * worldM;
+    //        ImGuizmo::DecomposeMatrixToComponents(glm::value_ptr(localM), t, r, s);
+    //        setterLocal();
+    //        };
+
+    //    switch (op)
+    //    {
+    //    case ImGuizmo::TRANSLATE:
+    //        if (mode == ImGuizmo::WORLD || !parent)
+    //            m_attachedTransform->SetWorldPosition({ t[0], t[1], t[2] });
+    //        else
+    //            setLocalFromWorld([&] { m_attachedTransform->SetLocalPosition({ t[0], t[1], t[2] }); });
+    //        break;
+
+    //    case ImGuizmo::ROTATE:
+    //        if (mode == ImGuizmo::WORLD || !parent)
+    //            m_attachedTransform->SetWorldRotation({ r[0], r[1], r[2] });
+    //        else
+    //            setLocalFromWorld([&] { m_attachedTransform->SetLocalRotation({ r[0], r[1], r[2] }); });
+    //        break;
+
+    //    case ImGuizmo::SCALE:
+    //        if (mode == ImGuizmo::WORLD || !parent)
+    //            m_attachedTransform->SetWorldScale({ s[0], s[1], s[2] });
+    //        else
+    //            setLocalFromWorld([&] { m_attachedTransform->SetLocalScale({ s[0], s[1], s[2] }); });
+    //        break;
+
+    //    default: break;
     //    }
     //}
-
-    //switch(m_activeType) {
-    //    case GizmoType::Translate:
-    //        drawTranslationGizmo(drawList, screenPos);
-    //        break;
-    //    case GizmoType::Rotate:
-    //        drawRotationGizmo(drawList, screenPos, screenTransform.GetLocalRotation());
-    //        break;
-    //    case GizmoType::Scale:
-    //        drawScaleGizmo(drawList, screenPos, screenTransform.GetLocalRotation());
-    //        break;
-    //}
 }
-
 void Gizmo::processInput()
 {
-    if(m_activeType == GizmoType::None || !m_attachedTransform) return;
-    handleInput();
+    //if(m_activeType == GizmoType::None || !m_attachedTransform) return;
+    //handleInput();
 }
 
 void Gizmo::setType(GizmoType type) {
-    m_activeType = type;
+    m_operation = ToImguiOp(type);       // translate legacy type -> ImGuizmo op
     m_isDragging = false;
     m_selectedAxis = -1;
 }

@@ -457,8 +457,10 @@ void Inspector::DrawSelectedEntityBorder()
 
 void Inspector::DrawGizmoInViewport(ImDrawList* drawList)
 {
-	if(CheckIsSelectedEntityValid() && m_currentGizmoType != GizmoType::None)
+
+	if(CheckIsSelectedEntityValid() )
 	{
+
 		m_gizmo.draw(drawList);
 	}
 }
