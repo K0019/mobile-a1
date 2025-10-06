@@ -23,14 +23,17 @@ endif()
 
 # Platform-specific dependencies
 set(CORE_PUBLIC_DEPS
-    ryEngineTargets
     $<$<CONFIG:Debug>:${EXTERNAL_LIBRARIES_STATIC_DEBUG}>
     $<$<CONFIG:Release>:${EXTERNAL_LIBRARIES_STATIC_RELEASE}>
 )
+# set(CORE_PRIVATE_DEPS
+#     ryEngineTargets
+# )
 
 # Create the target
 engine_add_module(MagicEngine-Core
     FOLDER "MagicEngine-core"
+    DEPENDENCIES ${CORE_PRIVATE_DEPS}
     PUBLIC_DEPENDENCIES ${CORE_PUBLIC_DEPS}
     DEFINITIONS ${CORE_DEFINITIONS}
 )
@@ -71,6 +74,9 @@ target_include_directories(MagicEngine-Core
         $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
         $<BUILD_INTERFACE:${EXTERNAL_INCLUDES}>
         $<INSTALL_INTERFACE:${EXTERNAL_INCLUDES_INSTALL}>
+        $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/ryEngine-core>
+        $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/ryEngine-modules>
+        $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/ryEngine>
 )
 file(GLOB_RECURSE ENGINE_SOURCE_FILES_DIRECTORIES LIST_DIRECTORIES true $<BUILD_INTERFACE:"*">$<INSTALL_INTERFACE:"${CMAKE_INSTALL_INCLUDEDIR}/MagicEngine/*">)
 foreach(item ${ENGINE_SOURCE_FILES_DIRECTORIES})
