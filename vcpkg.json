@@ -2,44 +2,65 @@
   "name": "magicengine",
   "version-string": "0.1.0",
   "dependencies": [
-    "assimp",
-    "freeimage",
-    "freetype",
-    "glfw3",
-    "glm",
-	"joltphysics",
     {
-      "name": "imgui",
-      "features": [
-        "docking-experimental",
-        "glfw-binding"
-      ]
+      "name": "assimp",
+      "platform": "!android"
     },
-	"imguizmo",
-    "implot",
+	  "fmt",
     {
-      "name": "ktx",
-      "features": [
-        "vulkan"
-      ]
+      "name": "freeimage",
+      "platform": "!android"
+    },
+    "freetype",
+    {
+      "name": "glfw3",
+      "platform": "!android"
+    },
+    "glm",
+    {
+      "name": "glslang",
+      "features": ["tools", "opt"],
+      "platform": "!android"
     },
     {
       "name": "glslang",
-      "features": [
-        "tools",
-        "opt"
-      ]
+      "platform": "android"
+    },
+	  "joltphysics",
+    {
+      "name": "imgui",
+      "features": ["glfw-binding", "freetype", "docking-experimental"],
+      "platform": "!android"
+    },
+    {
+      "name": "imgui",
+      "features": ["android-binding", "freetype"],
+      "platform": "android"
+    },
+	  "imguizmo",
+    "implot",
+    {
+      "name": "ktx",
+      "features": ["vulkan"],
+	    "platform": "!android"
     },
     "meshoptimizer",
-	"quill",
-	"mikktspace",
-    "tracy",
+    {
+      "name": "mikktspace",
+      "platform": "!android"
+    },
+	  "quill",
+    {
+      "name": "tracy",
+      "platform": "!android"
+    },
     "spirv-reflect",
     "spirv-cross",
     "stb",
     "vulkan-sdk-components",
     "vulkan-memory-allocator",
-	"vulkan-utility-libraries",
+	  "vulkan-utility-libraries",
     "volk"
-  ]
+  ],
+  "builtin-baseline": "120deac3062162151622ca4860575a33844ba10b"
 }

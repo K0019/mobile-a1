@@ -1,0 +1,44 @@
+@PACKAGE_INIT@
+
+include(CMakeFindDependencyMacro)
+
+# Find common dependencies
+find_dependency(glm CONFIG REQUIRED)
+find_dependency(glslang CONFIG REQUIRED)
+find_dependency(Volk CONFIG REQUIRED)
+find_dependency(Vulkan REQUIRED)
+find_dependency(VulkanMemoryAllocator CONFIG REQUIRED)
+find_dependency(VulkanUtilityLibraries CONFIG REQUIRED)
+find_dependency(spirv_cross_core CONFIG REQUIRED)
+find_dependency(spirv_cross_glsl CONFIG REQUIRED)
+find_dependency(unofficial-spirv-reflect CONFIG REQUIRED)
+find_dependency(fmt CONFIG REQUIRED)
+find_dependency(quill CONFIG REQUIRED)
+
+find_dependency(Jolt CONFIG REQUIRED)
+find_dependency(Stb CONFIG REQUIRED)
+
+find_dependency(imgui CONFIG REQUIRED)
+find_dependency(imguizmo CONFIG REQUIRED)
+find_dependency(implot CONFIG REQUIRED)
+find_dependency(Freetype CONFIG REQUIRED)
+
+find_dependency(ZLIB REQUIRED)
+
+# Platform-specific dependencies
+if(NOT ANDROID)
+    find_dependency(glfw3 CONFIG REQUIRED)
+    find_dependency(tracy CONFIG REQUIRED)
+	find_dependency(assimp CONFIG REQUIRED)
+    find_dependency(FreeImage CONFIG REQUIRED)
+    find_dependency(KTX CONFIG REQUIRED)
+	find_dependency(meshoptimizer CONFIG REQUIRED)
+	find_dependency(mikktspace CONFIG REQUIRED)
+
+	find_dependency(Freetype CONFIG REQUIRED)
+    find_dependency(mimalloc CONFIG REQUIRED)
+endif()
+
+include("${CMAKE_CURRENT_LIST_DIR}/@PROJECT_NAME@Targets.cmake")
+
+check_required_components(@PROJECT_NAME@)
