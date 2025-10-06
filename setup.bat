@@ -206,14 +206,6 @@ if errorlevel 1 (
     exit /b 1
 )
 
-@REM cmake --build . --config %BUILD_TYPE%
-@REM if errorlevel 1 (
-@REM     echo [ERROR] Build failed
-@REM     cd ..
-@REM     if "%SHOW_MENU%"=="true" pause
-@REM     exit /b 1
-@REM )
-
 cd ..
 echo [INFO] Windows build complete. You can now open the solution in build/ or run the Editor.
 exit /b 0
