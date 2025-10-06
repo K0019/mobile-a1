@@ -28,6 +28,7 @@ function(engine_add_module module_name)
         "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp" 
         "${CMAKE_CURRENT_SOURCE_DIR}/*.h"
         "${CMAKE_CURRENT_SOURCE_DIR}/*.hpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/*.ipp"
     )
     
     add_library(${module_name} STATIC)

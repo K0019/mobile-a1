@@ -40,6 +40,7 @@ endif()
 # ----- External Libraries Configuration ------
 
 set(EXTERNAL_INCLUDES "${CMAKE_SOURCE_DIR}/extern/include")
+set(EXTERNAL_INCLUDES_INSTALL "${CMAKE_INSTALL_INCLUDEDIR}/extern_include")
 set(EXTERNAL_LIBRARIES "${CMAKE_SOURCE_DIR}/extern/lib")
 
 # ----- Solution -----
@@ -181,30 +182,42 @@ endif()
 # add_subdirectory(extern/offset_allocator)
 # add_subdirectory(engine)
 
+# ryEngine
 set(namespace "ryengine")
 add_subdirectory(ryEngine-core)
 add_subdirectory(ryEngine-modules/imgui)
 if(NOT ANDROID)
     add_subdirectory(ryEngine-modules/tools)
-    add_subdirectory(editor)
 endif()
 
-add_library(MagicEngine INTERFACE)
-target_link_libraries(MagicEngine INTERFACE 
+add_library(ryEngine INTERFACE)
+target_link_libraries(ryEngine INTERFACE 
     ryEngine-Core
     ryEngine-ImGui
 )
+add_library(ryengine::ryEngine ALIAS ryEngine)
 
-# Create alias for export
-add_library(ryengine::ryEngine ALIAS MagicEngine)
+# MagicEngine
+set(namespace "magicengine")
+add_subdirectory(MagicEngine-core)
+
+add_library(MagicEngine INTERFACE)
+target_link_libraries(MagicEngine INTERFACE 
+    ryEngineTargets
+    MagicEngine-core
+)
+add_library(magicengine::MagicEngine ALIAS MagicEngine)
+
+# Application
+if(NOT ANDROID)
+    add_subdirectory(editor)
+endif()
 
 # ----- Target Dependencies -----
 # add_dependencies(Engine AssetCompiler)
 # add_dependencies(Engine EngineScripting)
 
 # ----- Post Configuration Settings -----
-# Set startup project for Visual Studio
-set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT Editor)
 
 # Default CMake configuration sets the intermediate output directory of all projects to the same location.
 # This causes issues with the C++ project trying to reference C# Nuget stuff when it doesn't need to.
