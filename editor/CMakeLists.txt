@@ -27,6 +27,7 @@ target_link_libraries(Editor PRIVATE
     MagicEngine-Core
 )
 
+target_precompile_headers(Editor PRIVATE pch.h)
 target_include_directories(Editor PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 
 # Organize shaders in IDE
