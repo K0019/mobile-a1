@@ -101,7 +101,7 @@ namespace compiler
         TextureWrapMode wrapMode;
         TextureAlphaMode alphaMode;
 
-        float quality; // 0.0f-1.0f
+        float quality = 0.05f; // 0.0f-1.0f
 
         bool generateMipmaps;
         int mipCount = 1;
