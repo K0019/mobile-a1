@@ -15,9 +15,6 @@ using glm::vec2;
 using glm::vec3;
 using glm::vec4;
 
-struct aiScene;
-struct aiMaterial;
-
 namespace compiler
 {
     struct LoadingConfig

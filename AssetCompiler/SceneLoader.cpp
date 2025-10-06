@@ -1,5 +1,4 @@
 #include "SceneLoader.h"
-#include "MeshLoader.h"
 #include "MaterialLoader.h"
 
 #include <assimp/material.h>
@@ -13,6 +12,26 @@
 
 namespace compiler
 {
+    std::vector<const aiMaterial*> collectMaterialPointers(const aiScene* scene)
+    {
+        if (!scene || scene->mNumMaterials == 0)
+        {
+            return {};
+        }
+
+        std::vector<const aiMaterial*> materialPtrs;
+        materialPtrs.reserve(scene->mNumMaterials);
+
+        for (uint32_t i = 0; i < scene->mNumMaterials; ++i)
+        {
+            if (scene->mMaterials[i])
+            {
+                materialPtrs.push_back(scene->mMaterials[i]);
+            }
+        }
+
+        return materialPtrs;
+    }
 
     bool extractTexturePath(const aiMaterial* aiMat, aiTextureType type, const std::string& key, ProcessedMaterialSlot& outSlot, const std::filesystem::path& modelBasePath)
     {

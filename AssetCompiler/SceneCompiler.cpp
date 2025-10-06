@@ -6,6 +6,7 @@
 #include <fstream>
 #include <set>
 #include <iostream>
+#include <span>
 
 #include "rapidjson/document.h"
 #include "rapidjson/writer.h"
@@ -14,6 +15,34 @@
 
 namespace compiler
 {
+    vec4 calculateBounds(std::span<const Vertex> vertices)
+    {
+        if (vertices.empty()) { return vec4(0.0f, 0.0f, 0.0f, 0.0f); }
+
+        // Find axis-aligned bounding box
+        vec3 minPos = vertices[0].position;
+        vec3 maxPos = vertices[0].position;
+
+        for (const auto& vertex : vertices)
+        {
+            minPos = glm::min(minPos, vertex.position);
+            maxPos = glm::max(maxPos, vertex.position);
+        }
+
+        // Calculate bounding sphere center and radius
+        const vec3 center = (minPos + maxPos) * 0.5f;
+        float radius = 0.0f;
+
+        for (const auto& vertex : vertices)
+        {
+            const float distance = glm::length(vertex.position - center);
+            radius = std::max(radius, distance);
+        }
+
+        return { center.x, center.y, center.z, radius };
+    }
+
+
     CompilationResult SceneCompiler::Compile(const CompilerOptions& compileOptions)
     {
         options = compileOptions;

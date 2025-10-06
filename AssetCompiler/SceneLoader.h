@@ -1,21 +1,85 @@
 #pragma once
+#include "MeshCompilerData.h"
+#include "CompileOptions.h"
+
 #include <filesystem>
 #include <functional>
 #include <thread>
 #include <optional>
-
-#include "MeshLoader.h"
-#include "MeshCompilerData.h"
-#include "MaterialLoader.h"
-#include "CompileOptions.h"
+#include <map>
 
 struct aiScene;
+struct aiMaterial;
 struct aiNode;
-//struct aiLight;
-//struct aiCamera;
-
+struct aiMesh;
 namespace compiler
 {
+    // ----- Materials specific -----
+    // Copied same format as ryan for compatability
+    enum class AlphaMode : uint32_t
+    {
+        Opaque = 0,
+        Mask = 1,
+        Blend = 2
+    };
+    enum MaterialType : uint32_t
+    {
+        INVALID = 0,
+        METALLIC_ROUGHNESS = 0x1,
+        SPECULAR_GLOSSINESS = 0x2,
+    };
+    enum MaterialFlags : uint32_t
+    {
+        // Alpha mode (lower 2 bits)
+        ALPHA_MODE_MASK = 0x3,   // 2 bits for masking
+        ALPHA_MODE_OPAQUE = 0x0,   // 00
+        ALPHA_MODE_MASK_TEST = 0x1,  // 01 (renamed to avoid conflict)
+        ALPHA_MODE_BLEND = 0x2,   // 10
+
+        // Material properties
+        DOUBLE_SIDED = 0x4,   // Bit 2
+        UNLIT = 0x8,   // Bit 3
+        CAST_SHADOW = 0x10,  // Bit 4  
+        RECEIVE_SHADOW = 0x20,  // Bit 5
+
+        // Default flags
+        DEFAULT_FLAGS = CAST_SHADOW | RECEIVE_SHADOW
+    };
+    struct ProcessedMaterialSlot
+    {
+        std::string name;
+        uint32_t originalIndex;
+
+        // Core PBR properties
+        vec4 baseColorFactor = vec4(1.0f);
+        float metallicFactor = 1.0f;
+        float roughnessFactor = 1.0f;
+        vec3 emissiveFactor = vec3(0.0f);
+        float normalScale = 1.0f;
+        float occlusionStrength = 1.0f;
+        float alphaCutoff = 0.5f;
+
+        // Material properties
+        AlphaMode alphaMode = AlphaMode::Opaque;
+        uint32_t materialTypeFlags = 0;
+        uint32_t flags = 0;
+
+        // Key: Texture type (e.g., "baseColor", "normal")
+        // Value: The SOURCE filepath of the texture
+        std::map<std::string, std::filesystem::path> texturePaths;
+    };
+
+    // ----- Mesh -----
+    struct ProcessedMesh
+    {
+        std::vector<Vertex> vertices;
+        std::vector<uint32_t> indices;
+        std::string name;
+        uint32_t materialIndex = UINT32_MAX;
+        vec4 bounds{ 0, 0, 0, 1 }; // x,y,z = center, w = radius
+    };
+
+    // ----- Scene -----
     struct SceneNode
     {
         std::string name;
@@ -50,6 +114,11 @@ namespace compiler
         std::vector<std::string> errors;
     };
 
+
+
+
+
+
     class SceneLoader
     {
     public:
@@ -70,7 +139,7 @@ namespace compiler
         void extractVertices(const aiMesh* aiMesh, std::vector<Vertex>& vertices, const MeshOptions& options);
         ProcessedMesh extractMesh(const aiMesh* aiMesh, uint32_t meshIndex, const MeshOptions& options);
 
-
+        std::vector<const aiMaterial*> collectMaterialPointers(const aiScene* scene);
         ProcessedMaterialSlot extractMaterialSlot(const aiMaterial* aiMat, uint32_t materialIndex, const std::filesystem::path& modelBasePath);
 
         void extractNodesForCompiler(
@@ -78,9 +147,5 @@ namespace compiler
             const int32_t parentIdx,
             const aiScene* scene,
             std::vector<SceneNode>& outNodes) const;
-
-        //void resolveSceneObjectHandles(std::vector<SceneObject>& objects, const std::vector<MeshHandle>& meshHandles, const std::vector<MaterialHandle>& materialHandles) const;
-
-        //void calculateBounds(Scene& scene, std::vector<ProcessedMesh>& meshes);
     };
 }
