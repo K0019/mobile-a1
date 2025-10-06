@@ -43,6 +43,20 @@
             ]
         },
         {
+            "filepath": "Materials\\ExampleMaterial.material",
+            "resources": [
+                {
+                    "resourceType": 9642906986363137133,
+                    "resourceEntries": [
+                        {
+                            "hash": 77965270498770591,
+                            "name": "ExampleMaterial0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "Sounds\\Gylia Shanty (Cinfras County).mp3",
             "resources": [
                 {

@@ -1,5 +1,24 @@
+/******************************************************************************/
+/*!
+\file   SceneLoader.cpp
+\par    Project: Kuro Mahou
+\par    Course: CSD3401
+\par    Software Engineering Project 5
+\date   10/06/2025
+
+\author Rocky Sutarius (100%)
+\par    email: rocky.sutarius\@digipen.edu
+\par    DigiPen login: rocky.sutarius
+
+\brief
+Loads an fbx scene, and extracts the meshes, node hierarchy, materials, and referenced textures
+
+All content © 2025 DigiPen Institute of Technology Singapore.
+All rights reserved.
+*/
+/******************************************************************************/
+
 #include "SceneLoader.h"
-#include "MaterialLoader.h"
 
 #include <assimp/material.h>
 #include <assimp/Importer.hpp>
@@ -13,7 +32,7 @@
 namespace compiler
 {
     // ----- Material ----- //
-    std::vector<const aiMaterial*> collectMaterialPointers(const aiScene* scene)
+    std::vector<const aiMaterial*> SceneLoader::collectMaterialPointers(const aiScene* scene)
     {
         if (!scene || scene->mNumMaterials == 0)
         {
@@ -34,7 +53,7 @@ namespace compiler
         return materialPtrs;
     }
 
-    bool extractTexturePath(const aiMaterial* aiMat, aiTextureType type, const std::string& key, ProcessedMaterialSlot& outSlot, const std::filesystem::path& modelBasePath)
+    bool SceneLoader::extractTexturePath(const aiMaterial* aiMat, aiTextureType type, const std::string& key, ProcessedMaterialSlot& outSlot, const std::filesystem::path& modelBasePath)
     {
         aiString path;
         if (aiMat->GetTexture(type, 0, &path) == AI_SUCCESS)

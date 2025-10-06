@@ -1,8 +1,31 @@
+/******************************************************************************/
+/*!
+\file   MeshProcessor.h
+\par    Project: Kuro Mahou
+\par    Course: CSD3401
+\par    Software Engineering Project 5
+\date   10/06/2025
+
+\author Ryan Cheong (100%)
+\par    email: ngaihangryan.cheong\@digipen.edu
+\par    DigiPen login: ngaihangryan.cheong
+
+\author Rocky Sutarius (0%) - just copied everything
+\par    email: rocky.sutarius\@digipen.edu
+\par    DigiPen login: rocky.sutarius
+
+\brief
+Uses meshoptimizer to optimise a mesh.
+
+All content © 2025 DigiPen Institute of Technology Singapore.
+All rights reserved.
+*/
+/******************************************************************************/
 #pragma once
 #include <mikktspace.h>
 #include <vector>
 #include <span>
-#include "MeshCompilerData.h"
+#include "CompilerMath.h"
 
 namespace compiler
 {

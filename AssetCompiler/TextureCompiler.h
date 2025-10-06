@@ -1,3 +1,23 @@
+/******************************************************************************/
+/*!
+\file   TextureCompiler.h
+\par    Project: Kuro Mahou
+\par    Course: CSD3401
+\par    Software Engineering Project 5
+\date   10/06/2025
+
+\author Rocky Sutarius (100%)
+\par    email: rocky.sutarius\@digipen.edu
+\par    DigiPen login: rocky.sutarius
+
+\brief
+Options for compiling.
+
+All content © 2025 DigiPen Institute of Technology Singapore.
+All rights reserved.
+*/
+/******************************************************************************/
+
 #pragma once
 #include "CompileOptions.h"
 #include <Compressonator/compressonator.h>

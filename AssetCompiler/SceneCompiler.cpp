@@ -1,3 +1,23 @@
+/******************************************************************************/
+/*!
+\file   SceneCompiler.cpp
+\par    Project: Kuro Mahou
+\par    Course: CSD3401
+\par    Software Engineering Project 5
+\date   10/06/2025
+
+\author Rocky Sutarius (100%)
+\par    email: rocky.sutarius\@digipen.edu
+\par    DigiPen login: rocky.sutarius
+
+\brief
+Compiles an fbx scene into 3 individual files: 
+a .mesh, a .material, and a .ktx2 texture if texture can be found.
+
+All content © 2025 DigiPen Institute of Technology Singapore.
+All rights reserved.
+*/
+/******************************************************************************/
 #include "SceneCompiler.h"
 #include "MeshProcessor.h"
 #include "TextureCompiler.h"
@@ -61,7 +81,7 @@ namespace compiler
 
             if (options.optimize && MeshOptimizer::shouldOptimize(mesh.vertices, mesh.indices))
             {
-                auto result = MeshOptimizer::optimize(mesh.vertices, mesh.indices);
+                auto result = MeshOptimizer::optimize(mesh.vertices, mesh.indices, options.generateTangents);
 
                 if (!result.success)
                 {
@@ -86,7 +106,7 @@ namespace compiler
     }
 
 
-    //These functions below do the actual saving
+    //These functions below do the actual saving to disk
     void SceneCompiler::CompileTextures(const Scene& scene, CompilationResult& result)
     {
         std::set<std::filesystem::path> uniqueTexturePaths;
@@ -149,7 +169,6 @@ namespace compiler
 			currentNameOffset = materialNames.size();
 		}
 		
-
 		//Set up Mesh vertex and index buffers
 		uint32_t vertexOffset = 0;
 		uint32_t indexOffset = 0;
@@ -189,13 +208,12 @@ namespace compiler
 			finalNodes.push_back(node);
 		}
 
-		// Bounds calculation??????
-		// Transform calculation???
+		// Bounds calculation would be placed here.
+        // Completely unused right now, but may be a performance improvement in the future
 
 		// Populate file header
 		MeshFileHeader header;
 		header.magic = MESH_FILE_MAGIC;
-		//header.version = 1;
 		header.numNodes = finalNodes.size();
 		header.numMeshes = finalMeshInfos.size();
 		header.totalIndices = finalIndices.size();
@@ -273,7 +291,6 @@ namespace compiler
             }
             doc.AddMember("alphaMode", rapidjson::Value(alphaModeStr.c_str(), allocator), allocator);
 
-            // PBR properties
             doc.AddMember("alphaCutoff", materialSlot.alphaCutoff, allocator);
             doc.AddMember("metallicFactor", materialSlot.metallicFactor, allocator);
             doc.AddMember("roughnessFactor", materialSlot.roughnessFactor, allocator);
@@ -306,7 +323,7 @@ namespace compiler
                 auto it = materialSlot.texturePaths.find(key);
                 if (it != materialSlot.texturePaths.end())
                 {
-                    std::string filename = it->second.stem().string() + ".ktx2";
+                    std::string filename = it->second.stem().string() + ".ktx2";    
                     valueStr = "CompiledAssets\\textures\\" + filename;
                 }
 
