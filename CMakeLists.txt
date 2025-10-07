@@ -218,6 +218,8 @@ endif()
 # add_dependencies(Engine EngineScripting)
 
 # ----- Post Configuration Settings -----
+# Set startup project for Visual Studio
+set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT Editor)
 
 # Default CMake configuration sets the intermediate output directory of all projects to the same location.
 # This causes issues with the C++ project trying to reference C# Nuget stuff when it doesn't need to.

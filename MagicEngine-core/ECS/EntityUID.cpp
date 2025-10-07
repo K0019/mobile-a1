@@ -22,7 +22,7 @@ All rights reserved.
 /******************************************************************************/
 
 #include "EntityUID.h"
-#include "Engine/NameComponent.h"
+#include "Components/NameComponent.h"
 #include "Editor/GUICollection.h"
 
 EntityUIDComponent::EntityUIDComponent()
