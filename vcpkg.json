@@ -57,7 +57,7 @@
     "spirv-reflect",
     "spirv-cross",
     "stb",
-    "vulkan-sdk-components",
+    "vulkan",
     "vulkan-memory-allocator",
 	  "vulkan-utility-libraries",
     "volk"
