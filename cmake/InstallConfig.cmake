@@ -1,39 +1,43 @@
-# for CMAKE_INSTALL_LIBDIR, CMAKE_INSTALL_BINDIR, CMAKE_INSTALL_INCLUDEDIR and others
-include(GNUInstallDirs)
+function(install_config projectName)
 
-# note that ${public_headers} should be in quotes
-set_target_properties(${PROJECT_NAME} PROPERTIES PUBLIC_HEADER "${public_headers}")
+    # for CMAKE_INSTALL_LIBDIR, CMAKE_INSTALL_BINDIR, CMAKE_INSTALL_INCLUDEDIR and others
+    include(GNUInstallDirs)
 
-# install the target and create export-set
-install(TARGETS ${PROJECT_NAME}
-    EXPORT "${PROJECT_NAME}Targets"
-    PUBLIC_HEADER DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME}" # include/SomeProject
-    INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR} # include
-)
+    # note that ${public_headers} should be in quotes
+    set_target_properties(${projectName} PROPERTIES PUBLIC_HEADER "${public_headers}")
 
-# generate and install export file
-install(EXPORT "${PROJECT_NAME}Targets"
-    FILE "${PROJECT_NAME}Targets.cmake"
-    NAMESPACE ${namespace}::
-    DESTINATION "share/${PROJECT_NAME}"
-)
+    # install the target and create export-set
+    install(TARGETS ${projectName}
+        EXPORT "${projectName}Targets"
+        PUBLIC_HEADER DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/${projectName}" # include/SomeProject
+        INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR} # include
+    )
 
-include(CMakePackageConfigHelpers)
+    # generate and install export file
+    install(EXPORT "${projectName}Targets"
+        FILE "${projectName}Targets.cmake"
+        NAMESPACE ${namespace}::
+        DESTINATION "share/${projectName}"
+    )
 
-# generate the version file for the config file
-write_basic_package_version_file(
-    "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake"
-    COMPATIBILITY AnyNewerVersion
-)
-# create config file
-configure_package_config_file(
-    ${CMAKE_CURRENT_SOURCE_DIR}/Config.cmake.in
-    "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake"
-    INSTALL_DESTINATION "share/${PROJECT_NAME}"
-)
-# install config files
-install(FILES
-    "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake"
-    "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake"
-    DESTINATION "share/${PROJECT_NAME}"
-)
+    include(CMakePackageConfigHelpers)
+
+    # generate the version file for the config file
+    write_basic_package_version_file(
+        "${CMAKE_CURRENT_BINARY_DIR}/${projectName}ConfigVersion.cmake"
+        COMPATIBILITY AnyNewerVersion
+    )
+    # create config file
+    configure_package_config_file(
+        ${CMAKE_CURRENT_SOURCE_DIR}/Config.cmake.in
+        "${CMAKE_CURRENT_BINARY_DIR}/${projectName}Config.cmake"
+        INSTALL_DESTINATION "share/${projectName}"
+    )
+    # install config files
+    install(FILES
+        "${CMAKE_CURRENT_BINARY_DIR}/${projectName}Config.cmake"
+        "${CMAKE_CURRENT_BINARY_DIR}/${projectName}ConfigVersion.cmake"
+        DESTINATION "share/${projectName}"
+    )
+
+endfunction()

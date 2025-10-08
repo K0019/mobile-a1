@@ -232,3 +232,5 @@ file(COPY "${CMAKE_SOURCE_DIR}/Directory.Build.props" DESTINATION "${CMAKE_BINAR
 
 # Installation
 include(cmake/InstallConfig.cmake)
+install_config(ryEngine)
+install_config(MagicEngine)
