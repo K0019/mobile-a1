@@ -84,7 +84,8 @@ foreach(item ${ENGINE_SOURCE_FILES_DIRECTORIES})
 	endif()
 endforeach()
 
-# Additional compile options
+# Additional compile options for Windows builds
+if (NOT ANDROID)
 target_compile_options(MagicEngine-Core PRIVATE /bigobj)
 
 add_custom_command(TARGET MagicEngine-Core POST_BUILD
@@ -97,3 +98,4 @@ add_custom_command(TARGET MagicEngine-Core POST_BUILD
     COMMAND cmd.exe /c if "$(Configuration)" == "Release" "${CMAKE_COMMAND}" -E copy_directory_if_different "${CMAKE_SOURCE_DIR}/Assets" "$<TARGET_FILE_DIR:MagicEngine-Core>/Assets"
     #COMMAND cmd.exe /c "${CMAKE_COMMAND}" -E copy_directory_if_different "${CMAKE_SOURCE_DIR}/Shaders" "$<TARGET_FILE_DIR:Engine>/Shaders"
 )
+endif()
