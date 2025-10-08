@@ -158,41 +158,41 @@ namespace ecs {
 	template<typename CompType>
 	CompIterator<CompType> GetCompsBegin()
 	{
-		return internal::GetCompArr<CompType>().User_Begin<CompType, EntityHandle>();
+		return internal::GetCompArr<CompType>().template User_Begin<CompType, EntityHandle>();
 	}
 	template<typename CompType>
 	ConstCompIterator<CompType> GetCompsBeginConst()
 	{
-		return internal::GetCompArr<CompType>().User_Begin<const CompType, ConstEntityHandle>();
+		return internal::GetCompArr<CompType>().template User_Begin<const CompType, ConstEntityHandle>();
 	}
 
 	template<typename CompType>
 	CompIterator<CompType> GetCompsActiveBegin()
 	{
-		return internal::GetCompArr<CompType>().User_Begin_Active<CompType, EntityHandle>();
+		return internal::GetCompArr<CompType>().template User_Begin_Active<CompType, EntityHandle>();
 	}
 
 	template<typename CompType>
 	ConstCompIterator<CompType> GetCompsActiveBeginConst()
 	{
-		return internal::GetCompArr<CompType>().User_Begin_Active<const CompType, ConstEntityHandle>();
+		return internal::GetCompArr<CompType>().template User_Begin_Active<const CompType, ConstEntityHandle>();
 	}
 
 	template<typename CompType>
 	CompIterator<CompType> GetCompsEnd()
 	{
-		return internal::GetCompArr<CompType>().User_End<CompType, EntityHandle>();
+		return internal::GetCompArr<CompType>().template User_End<CompType, EntityHandle>();
 	}
 	template<typename CompType>
 	ConstCompIterator<CompType> GetCompsEndConst()
 	{
-		return internal::GetCompArr<CompType>().User_End<const CompType, ConstEntityHandle>();
+		return internal::GetCompArr<CompType>().template User_End<const CompType, ConstEntityHandle>();
 	}
 
 	template<typename CompType>
 	CompIterator<CompType> GetCompsIter(CompHandle<CompType> comp)
 	{
-		return internal::GetCompArr<CompType>().User_Custom<CompType, EntityHandle>(
+		return internal::GetCompArr<CompType>().template User_Custom<CompType, EntityHandle>(
 			reinterpret_cast<internal::InternalEntityHandle>(reinterpret_cast<internal::RawData*>(comp) - internal::CompArr::EntPtrSize));
 	}
 

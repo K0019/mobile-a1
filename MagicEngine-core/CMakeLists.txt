@@ -25,6 +25,7 @@ endif()
 set(CORE_PUBLIC_DEPS
     $<$<CONFIG:Debug>:${EXTERNAL_LIBRARIES_STATIC_DEBUG}>
     $<$<CONFIG:Release>:${EXTERNAL_LIBRARIES_STATIC_RELEASE}>
+    glm::glm-header-only
 )
 # set(CORE_PRIVATE_DEPS
 # )

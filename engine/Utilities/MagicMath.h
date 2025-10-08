@@ -111,17 +111,17 @@ namespace math {
 #define GENERATE_MEMBER_OPERATOR_ADAPTER_H(OurClass, GLMClass, OperatorIdentifier) \
 template <typename T> \
 	requires std::derived_from<T, GLMClass> \
-constexpr OurClass& operator##OperatorIdentifier(const T& other); \
-constexpr OurClass& operator##OperatorIdentifier(std::floating_point auto other);
+constexpr OurClass& operator OperatorIdentifier(const T& other); \
+constexpr OurClass& operator OperatorIdentifier(std::floating_point auto other);
 #define GENERATE_MEMBER_OPERATOR_ADAPTER_IPP(OurClass, GLMClass, OperatorIdentifier) \
 template <typename T> \
 	requires std::derived_from<T, GLMClass> \
-inline constexpr OurClass& OurClass::operator##OperatorIdentifier(const T& other) \
+inline constexpr OurClass& OurClass::operator OperatorIdentifier(const T& other) \
 { \
 	static_cast<GLMClass&>(*this) OperatorIdentifier static_cast<const GLMClass&>(other); \
 	return *this; \
 } \
-inline constexpr OurClass& OurClass::operator##OperatorIdentifier(std::floating_point auto other) \
+inline constexpr OurClass& OurClass::operator OperatorIdentifier(std::floating_point auto other) \
 { \
 	static_cast<GLMClass&>(*this) OperatorIdentifier other; \
 	return *this; \
@@ -130,21 +130,21 @@ inline constexpr OurClass& OurClass::operator##OperatorIdentifier(std::floating_
 #define GENERATE_GLOBAL_OPERATOR_ADAPTER_H(OurClass, GLMClass, OperatorIdentifier) \
 template <typename T, typename U> \
 	requires std::derived_from<T, GLMClass> && std::derived_from<U, GLMClass> \
-constexpr OurClass operator##OperatorIdentifier(const T& left, const U& right); \
-constexpr OurClass operator##OperatorIdentifier(const OurClass& left, std::floating_point auto right); \
-constexpr OurClass operator##OperatorIdentifier(std::floating_point auto left, const OurClass& right);
+constexpr OurClass operator OperatorIdentifier(const T& left, const U& right); \
+constexpr OurClass operator OperatorIdentifier(const OurClass& left, std::floating_point auto right); \
+constexpr OurClass operator OperatorIdentifier(std::floating_point auto left, const OurClass& right);
 #define GENERATE_GLOBAL_OPERATOR_ADAPTER_IPP(OurClass, GLMClass, OperatorIdentifier) \
 template <typename T, typename U> \
 	requires std::derived_from<T, GLMClass> && std::derived_from<U, GLMClass> \
-inline constexpr OurClass operator##OperatorIdentifier(const T& left, const U& right) \
+inline constexpr OurClass operator OperatorIdentifier(const T& left, const U& right) \
 { \
 	return OurClass{ static_cast<const GLMClass&>(left) OperatorIdentifier static_cast<const GLMClass&>(right) }; \
 } \
-inline constexpr OurClass operator##OperatorIdentifier(const OurClass& left, std::floating_point auto right) \
+inline constexpr OurClass operator OperatorIdentifier(const OurClass& left, std::floating_point auto right) \
 { \
 	return OurClass{ static_cast<const GLMClass&>(left) OperatorIdentifier right }; \
 } \
-inline constexpr OurClass operator##OperatorIdentifier(std::floating_point auto left, const OurClass& right) \
+inline constexpr OurClass operator OperatorIdentifier(std::floating_point auto left, const OurClass& right) \
 { \
 	return OurClass{ left OperatorIdentifier static_cast<const GLMClass&>(right) }; \
 }

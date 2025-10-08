@@ -1554,7 +1554,11 @@ namespace ecs {
 			*//******************************************************************/
 			virtual void PostRun() {}
 
+		#ifdef __ANDROID__
+		public:
+		#else
 		protected:
+		#endif
 			/*****************************************************************//*!
 			\brief
 				Dummy function that does nothing. This is for compatibility with System_Internal's constructor, where
