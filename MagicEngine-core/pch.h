@@ -36,7 +36,7 @@ All rights reserved.
 #include <map>
 #include <unordered_map>
 #include <iterator>
-#include <ranges>
+//#include <ranges>
 #include <algorithm>
 #include <functional>
 #include <bitset>
@@ -63,16 +63,3 @@ All rights reserved.
 #include <cctype>
 #include <cstdarg>
 #include <math.h>
-
-#include "Utilities/Singleton.h"
-#include "Utilities/Logging.h"
-#include "Utilities/MagicMath.h"
-#include "Utilities/Transform.h"
-#include "ECS/ECS.h"
-#include "Utilities/Messaging.h"
-#include "Utilities/Scheduler.h" 
-#include "Utilities/GameTime.h"
-#include "Utilities/TypeID.h"
-#include "Utilities/Utilities.h"
-#include "Utilities/MacroTemplates.h"
-#include "Utilities/RandUID.h"
