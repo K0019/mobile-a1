@@ -111,7 +111,7 @@ public:
     constexpr str_view(const char* a, int& i) noexcept
         : m_pStr(a)
         , m_Size
-        { static_cast<std::size_t>
+        { static_cast<uint32_t>
             ([](const char* a, int& i) constexpr
             {
                for (i = 0; a[i] && a[i] != '/' && a[i] != '['; i++);

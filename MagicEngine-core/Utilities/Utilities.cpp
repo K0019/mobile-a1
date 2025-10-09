@@ -46,26 +46,26 @@ namespace util {
 	{
 		const Vec2 point{ x, y };
 
-		// Some insane math to generate consistent gradient values at integer grid coordinates.
-		constexpr auto RandGradient{ [](int x, int y) -> Vec2 {
-			constexpr unsigned int w{ sizeof(unsigned int) * 8 };
-			constexpr unsigned int s{ w / 2 };
-			unsigned int a{ static_cast<unsigned int>(x) }, b{ static_cast<unsigned int>(y) };
-
-			a *= 3284157443;
-
-			b ^= (a << s) | (a >> (w - s));
-			b *= 1911520717;
-
-			a ^= (b << s) | (b >> (w - s));
-			a *= 2048419325;
-
-			float c{ a * (math::PI_f / ~(~0u >> 1)) };
-			return { std::sinf(c), std::cosf(c) };
-		} };
-
 		// Helper func to compute dot of vector from point to corner with gradient vector.
 		constexpr auto GridDotGradient{ [](const Vec2& point, int x, int y) -> float {
+			// Some insane math to generate consistent gradient values at integer grid coordinates.
+			constexpr auto RandGradient{ [](int x, int y) -> Vec2 {
+				constexpr unsigned int w{ sizeof(unsigned int) * 8 };
+				constexpr unsigned int s{ w / 2 };
+				unsigned int a{ static_cast<unsigned int>(x) }, b{ static_cast<unsigned int>(y) };
+
+				a *= 3284157443;
+
+				b ^= (a << s) | (a >> (w - s));
+				b *= 1911520717;
+
+				a ^= (b << s) | (b >> (w - s));
+				a *= 2048419325;
+
+				float c{ a * (math::PI_f / ~(~0u >> 1)) };
+				return { std::sinf(c), std::cosf(c) };
+			} };
+
 			return Vec2{ point.x - static_cast<float>(x), point.y - static_cast<float>(y) }.Dot(RandGradient(x, y));
 		} };
 

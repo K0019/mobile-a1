@@ -137,7 +137,12 @@ namespace internal {
 		auto now_ms = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;
 
 		std::tm tm_time;
+		// wtf is this lack of standardization
+#ifdef WIN32
 		localtime_s(&tm_time, &now_time_t);
+#else
+		localtime_r(&now_time_t, &tm_time);
+#endif
 
 		std::ostringstream oss;
 		oss << std::put_time(&tm_time, "%Y-%m-%d %H:%M:%S");

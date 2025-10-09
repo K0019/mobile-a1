@@ -19,6 +19,9 @@ All rights reserved.
 /******************************************************************************/
 
 #include "CrashHandler.h"
+
+#ifndef __ANDROID__
+
 #include <Windows.h>
 #pragma comment(lib, "dbghelp.lib")
 #include <DbgHelp.h>
@@ -135,7 +138,11 @@ namespace internal {
 
 }
 
+#endif
+
 void CrashHandler::SetupCrashHandler()
 {
+#ifndef __ANDROID__
 	SetUnhandledExceptionFilter(internal::UnhandledExceptionHandler);
+#endif
 }

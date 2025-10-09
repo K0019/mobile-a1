@@ -25,7 +25,12 @@ All rights reserved.
 
 #pragma region SCRIPTING
 
+// TODO: dllexport is not compatible with android. To get scripting working, we have to find another way, or fallback to the old scriptglue implementation...
+#ifdef __ANDROID__
+#define SCRIPT_CALLABLE
+#else
 #define SCRIPT_CALLABLE extern "C" __declspec(dllexport)
+#endif
 
 #define SCRIPT_CALLABLE_COMP_SETTER(CompType, CallableFuncName, ArgType, SetterFuncName) \
 SCRIPT_CALLABLE void CallableFuncName(ecs::EntityHandle entity, ArgType arg) \

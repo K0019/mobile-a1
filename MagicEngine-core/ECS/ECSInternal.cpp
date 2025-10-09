@@ -419,8 +419,9 @@ namespace ecs {
 			if (!emplaceResult.second)
 			{
 				// A task pointing to the same component already exists. Overwrite its type.
-				// note: for some reason, the iterator is const. gonna need to hack it a bit...
-				emplaceResult.first._Ptr->_Myval.SetType(CompModifyTask::TYPE::REMOVE);
+				// note: the iterator is const because std::set is sorted. this operation doesn't change the sortedness, so we're gonna just hack it a bit here...
+				auto& compTask{ *emplaceResult.first };
+				const_cast<CompModifyTask&>(compTask).SetType(CompModifyTask::TYPE::REMOVE);
 			}
 		}
 

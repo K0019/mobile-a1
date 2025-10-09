@@ -76,3 +76,7 @@ All rights reserved.
 #include "Utilities/Utilities.h"
 #include "Utilities/MacroTemplates.h"
 #include "Utilities/RandUID.h"
+
+#ifdef __ANDROID__
+#include "Utilities/AndroidMacros.h"
+#endif

@@ -64,7 +64,7 @@ void Scheduler::Update(float dt)
 	{
 		ScheduledTask* upcomingTaskPtr{ taskIter->Update(dt) };
 		// If the task has not run yet due to delay
-		if (upcomingTaskPtr == taskIter._Ptr)
+		if (upcomingTaskPtr == &*taskIter)
 		{
 			++taskIter;
 			continue;

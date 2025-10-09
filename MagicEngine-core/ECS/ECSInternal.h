@@ -565,12 +565,10 @@ namespace ecs {
 			private:
 				/*****************************************************************//*!
 				\brief
-					Continually increments or decrements this iterator until a fully attached component is found,
+					Continually increments this iterator until a fully attached component is found,
 					or the end of the map is reached.
-				\param isIncrement
-					If true, increments this iterator. Otherwise, decrements this iterator.
 				*//******************************************************************/
-				void TravelNext(bool isIncrement);
+				void TravelNext();
 
 			private:
 				//! The component index map iterator pointing to the current component index.
@@ -1554,6 +1552,7 @@ namespace ecs {
 			*//******************************************************************/
 			virtual void PostRun() {}
 
+		// Clang FOR SOME STUPID REASON can't see DummyFunc() from the System_Internal constructor parameter default value initialization...
 		#ifdef __ANDROID__
 		public:
 		#else
@@ -2077,22 +2076,6 @@ namespace ecs {
 
 				/*****************************************************************//*!
 				\brief
-					Prefix decrements this iterator to the previous active entity within the map.
-				\return
-					A reference to this iterator.
-				*//******************************************************************/
-				Entity_IteratorBlueprint& operator--();
-
-				/*****************************************************************//*!
-				\brief
-					Postfix decrements this iterator to the previous active entity within the map.
-				\return
-					A temporary of the original state of this iterator.
-				*//******************************************************************/
-				Entity_IteratorBlueprint operator--(int);
-
-				/*****************************************************************//*!
-				\brief
 					Increments or decrements an iterator by the specified amount.
 				\tparam EntityHandleType_T
 					The iterator's EntityHandleType template parameter type.
@@ -2164,12 +2147,10 @@ namespace ecs {
 
 				/*****************************************************************//*!
 				\brief
-					Continually increments or decrements this iterator until an alive entity is found,
+					Continually increments this iterator until an alive entity is found,
 					or the end of the map is reached.
-				\param isIncrement
-					If true, increments this iterator. Otherwise, decrements this iterator.
 				*//******************************************************************/
-				void TravelNext(bool isIncrement);
+				void TravelNext();
 
 				//! The entity map iterator pointing to the current entity.
 				EntContIterType iter;

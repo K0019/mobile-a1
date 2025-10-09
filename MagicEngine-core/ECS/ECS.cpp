@@ -20,6 +20,10 @@ All rights reserved.
 */
 /******************************************************************************/
 
+// Override android macros cause we need to define some functions that are macro-ed.
+#define ANDROID_MACROS_DISABLE_ADDING_TEMPLATE
+#include "Utilities/AndroidMacros.h"
+
 #include "ECSSysLayers.h"
 #include "ECS.h"
 

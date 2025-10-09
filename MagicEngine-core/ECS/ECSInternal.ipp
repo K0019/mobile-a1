@@ -41,7 +41,7 @@ namespace ecs {
 		{
 			// If this component is not attached to this entity, increment until we find one that is.
 			if (iter != endIter && iter->second & Entity_Internal::COMP_STATUS_ANY)
-				TravelNext(true);
+				TravelNext();
 		}
 
 		template<template<typename> typename CompHandleType, typename MapIterType, typename ValueType>
@@ -87,41 +87,13 @@ namespace ecs {
 			return *this;
 		}
 
-		template<template<typename> typename CompHandleType, typename MapIterType, typename ValueType>
-		Entity_Internal::EntityComps_IteratorBlueprint<CompHandleType, MapIterType, ValueType>&
-			Entity_Internal::EntityComps_IteratorBlueprint<CompHandleType, MapIterType, ValueType>::operator--()
-		{
-			TravelNext(false);
-			return *this;
-		}
-
-		template<template<typename> typename CompHandleType, typename MapIterType, typename ValueType>
-		Entity_Internal::EntityComps_IteratorBlueprint<CompHandleType, MapIterType, ValueType>
-			Entity_Internal::EntityComps_IteratorBlueprint<CompHandleType, MapIterType, ValueType>::operator--(int)
-		{
-			EntityComps_IteratorBlueprint copy{ *this };
-			TravelNext(false);
-			return *this;
-		}
-
 		template<template<typename> typename CompHandleType_T, typename MapIterType_T, typename ValueType_T>
 		Entity_Internal::EntityComps_IteratorBlueprint<CompHandleType_T, MapIterType_T, ValueType_T> operator+(
 			const Entity_Internal::EntityComps_IteratorBlueprint<CompHandleType_T, MapIterType_T, ValueType_T>& iter, int offset)
 		{
 			Entity_Internal::EntityComps_IteratorBlueprint copy{ iter };
-			while (offset)
-			{
-				if (offset)
-				{
-					copy.TravelNext(true);
-					--offset;
-				}
-				else
-				{
-					copy.TravelNext(false);
-					++offset;
-				}
-			}
+			for (; offset; --offset)
+				copy.TravelNext();
 			return copy;
 		}
 
@@ -148,15 +120,12 @@ namespace ecs {
 		}
 
 		template<template<typename> typename CompHandleType, typename MapIterType, typename ValueType>
-		void Entity_Internal::EntityComps_IteratorBlueprint<CompHandleType, MapIterType, ValueType>::TravelNext(bool isIncrement)
+		void Entity_Internal::EntityComps_IteratorBlueprint<CompHandleType, MapIterType, ValueType>::TravelNext()
 		{
 			// Increment/Decrement until we encounter an alive component
 			do
 			{
-				if (isIncrement)
-					++iter;
-				else
-					--iter;
+				++iter;
 			} while (iter != endIter && iter->second & Entity_Internal::COMP_STATUS_ANY);
 		}
 
@@ -482,7 +451,7 @@ namespace ecs {
 			, endIter{ endIter }
 		{
 			if (IsPointingToDeletedEntity())
-				TravelNext(true);
+				TravelNext();
 		}
 
 		template<typename EntityHandleType, typename EntContIterType, typename ValueType>
@@ -517,7 +486,7 @@ namespace ecs {
 		ECSPool::Entity_IteratorBlueprint<EntityHandleType, EntContIterType, ValueType>&
 			ECSPool::Entity_IteratorBlueprint<EntityHandleType, EntContIterType, ValueType>::operator++()
 		{
-			TravelNext(true);
+			TravelNext();
 			return *this;
 		}
 
@@ -526,24 +495,7 @@ namespace ecs {
 			ECSPool::Entity_IteratorBlueprint<EntityHandleType, EntContIterType, ValueType>::operator++(int)
 		{
 			Entity_IteratorBlueprint copy{ *this };
-			TravelNext(true);
-			return *this;
-		}
-
-		template<typename EntityHandleType, typename EntContIterType, typename ValueType>
-		ECSPool::Entity_IteratorBlueprint<EntityHandleType, EntContIterType, ValueType>&
-			ECSPool::Entity_IteratorBlueprint<EntityHandleType, EntContIterType, ValueType>::operator--()
-		{
-			TravelNext(false);
-			return *this;
-		}
-
-		template<typename EntityHandleType, typename EntContIterType, typename ValueType>
-		ECSPool::Entity_IteratorBlueprint<EntityHandleType, EntContIterType, ValueType>
-			ECSPool::Entity_IteratorBlueprint<EntityHandleType, EntContIterType, ValueType>::operator--(int)
-		{
-			Entity_IteratorBlueprint copy{ *this };
-			TravelNext(false);
+			TravelNext();
 			return *this;
 		}
 
@@ -552,19 +504,8 @@ namespace ecs {
 			operator+(const ECSPool::Entity_IteratorBlueprint<EntityHandleType_T, EntContIterType_T, ValueType_T>& iter, int offset)
 		{
 			ECSPool::Entity_IteratorBlueprint copy{ iter };
-			while (offset)
-			{
-				if (offset)
-				{
-					copy.TravelNext(true);
-					--offset;
-				}
-				else
-				{
-					copy.TravelNext(false);
-					++offset;
-				}
-			}
+			for (; offset; --offset)
+				copy.TravelNext();
 			return copy;
 		}
 
@@ -592,14 +533,11 @@ namespace ecs {
 		}
 
 		template<typename EntityHandleType, typename EntContIterType, typename ValueType>
-		void ECSPool::Entity_IteratorBlueprint<EntityHandleType, EntContIterType, ValueType>::TravelNext(bool isIncrement)
+		void ECSPool::Entity_IteratorBlueprint<EntityHandleType, EntContIterType, ValueType>::TravelNext()
 		{
 			do
 			{
-				if (isIncrement)
-					++iter;
-				else
-					--iter;
+				++iter;
 			} while (IsPointingToDeletedEntity());
 		}
 

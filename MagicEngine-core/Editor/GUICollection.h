@@ -22,7 +22,7 @@ All rights reserved.
 /******************************************************************************/
 
 #pragma once
-#include <Imgui/ImguiHeader.h>
+#include <ImGui/ImguiHeader.h>
 
 namespace gui {
 
@@ -84,7 +84,7 @@ namespace gui {
 	X(NO_NAV_INPUTS, ImGuiWindowFlags_NoNavInputs) \
 	X(NO_NAV_FOCUS, ImGuiWindowFlags_NoNavFocus) \
 	X(UNSAVED_DOCUMENT, ImGuiWindowFlags_UnsavedDocument) \
-	X(NO_DOCKING, ImGuiWindowFlags_NoDocking)
+	X_DEPEND_DOCKING(NO_DOCKING, ImGuiWindowFlags_NoDocking)
 	// Additional (see enum class definition): NO_NAV, NO_DECORATION, NO_INPUTS
 
 	//! ImGuiChildFlags
@@ -215,8 +215,8 @@ namespace gui {
 	X(TAB_DIMMED, ImGuiCol_TabDimmed) \
 	X(TAB_DIMMED_SELECTED, ImGuiCol_TabDimmedSelected) \
 	X(TAB_DIMMED_SELECTED_OVERLINE, ImGuiCol_TabDimmedSelectedOverline) \
-	X(DOCKING_PREVIEW, ImGuiCol_DockingPreview) \
-	X(DOCKING_EMPTY_BG, ImGuiCol_DockingEmptyBg) \
+	X_DEPEND_DOCKING(DOCKING_PREVIEW, ImGuiCol_DockingPreview) \
+	X_DEPEND_DOCKING(DOCKING_EMPTY_BG, ImGuiCol_DockingEmptyBg) \
 	X(PLOT_LINES, ImGuiCol_PlotLines) \
 	X(PLOT_LINES_HOVERED, ImGuiCol_PlotLinesHovered) \
 	X(PLOT_HISTOGRAM, ImGuiCol_PlotHistogram) \
@@ -269,7 +269,7 @@ namespace gui {
 	X(SEPARATOR_TEXT_BORDER_SIZE, ImGuiStyleVar_SeparatorTextBorderSize) \
 	X(SEPARATOR_TEXT_ALIGN, ImGuiStyleVar_SeparatorTextAlign) \
 	X(SEPARATOR_TEXT_TEXT_PADDING, ImGuiStyleVar_SeparatorTextPadding) \
-	X(DOCKING_SEPARATOR_SIZE, ImGuiStyleVar_DockingSeparatorSize)
+	X_DEPEND_DOCKING(DOCKING_SEPARATOR_SIZE, ImGuiStyleVar_DockingSeparatorSize)
 
 	//! ImGuiCond
 #define GUICOLLECTION_FLAG_COND \
@@ -346,9 +346,15 @@ namespace gui {
 
 #ifdef IMGUI_ENABLED
 #define X(enumName, value) enumName = value,
-#else
+#ifdef IMGUI_HAS_DOCK
+#define X_DEPEND_DOCKING(enumName, value) enumName = value,
+#else // IMGUI_HAS_DOCK / !IMGUI_HAS_DOCK
+#define X_DEPEND_DOCKING(enumName, value) enumName = 0,
+#endif // !IMGUI_HAS_DOCK
+#else // IMGUI_ENABLED / !IMGUI_ENABLED
 #define X(enumName, value) enumName,
-#endif
+#define X_DEPEND_DOCKING(enumName, value) enumName,
+#endif // !IMGUI_ENABLED
 
 	/*****************************************************************//*!
 	\enum class KEY
@@ -474,6 +480,7 @@ namespace gui {
 	GENERATE_ENUM_CLASS_BITWISE_OPERATORS(FLAG_TABLE_COLUMN)
 
 #undef X
+#undef X_DEPEND_DOCKING
 
 #pragma endregion // Flags
 
