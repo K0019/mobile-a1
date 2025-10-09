@@ -221,64 +221,8 @@ void CustomViewport::DrawImGuiWindow() {
 			padding = ImVec2(0, 0);
 		}
 
-		{
-			// 1) One BeginFrame per Dear ImGui frame
-			ImGuizmo::SetImGuiContext(ImGui::GetCurrentContext());
-			static int s_lastFrame = -1;
-			const int curFrame = ImGui::GetFrameCount();
-			if (s_lastFrame != curFrame) { ImGuizmo::BeginFrame(); s_lastFrame = curFrame; }
-			ImGuizmo::Enable(true);
 
-			// 2) Target the Scene window’s inner rect so hit-testing matches what you see
-			ImGuiWindow* sceneWin = ImGui::FindWindowByName(ICON_FA_GAMEPAD " Scene");
-			if (sceneWin && sceneWin->WasActive)
-			{
-				const ImRect& inner = sceneWin->InnerRect;
-				ImGuizmo::SetDrawlist(sceneWin->DrawList);
-				ImGuizmo::SetRect(inner.Min.x, inner.Min.y, inner.GetWidth(), inner.GetHeight());
-
-				// 3) View/Proj from your camera bridge (must be published earlier this frame)
-				glm::mat4 V(1.f), P(1.f);
-				bool isOrtho = false;
-				if (EditorCam_TryGet(V, P, isOrtho))
-				{
-					ImGuizmo::SetOrthographic(isOrtho);
-
-					// IMPORTANT: your renderer uses NDC [-1..1]; do NOT remap depth for Vulkan here.
-					float view[16], proj[16];
-					std::memcpy(view, glm::value_ptr(V), sizeof(view));
-					std::memcpy(proj, glm::value_ptr(P), sizeof(proj));
-
-					// 4) Object/world matrix (use selected entity if any, else identity at origin)
-					glm::mat4 M(1.f);
-					if (auto sel = ST<Inspector>::Get()->GetSelectedEntity())
-					{
-						// Safe if entity exists; just render where the selection is
-						Transform& tr = sel->GetTransform();
-						tr.SetMat4ToWorld(&M);
-						// Disambiguate gizmo if multiple could be drawn
-						ImGuizmo::SetID((int)(intptr_t)sel);
-					}
-					float model[16];
-					std::memcpy(model, glm::value_ptr(M), sizeof(model));
-
-					// 5) Operation/Mode published by your editor (F1/F2/F3)
-					ImGuizmo::OPERATION op = EditorGizmo_Op();   // e.g., TRANSLATE/ROTATE/SCALE
-					ImGuizmo::MODE      md = EditorGizmo_Mode(); // WORLD/LOCAL
-
-					// 6) Draw only — no deltaMatrix, no snap, no write-back
-					ImGuizmo::Manipulate(view, proj, op, md, model, nullptr, nullptr);
-
-					// 7) Simple hover feedback (no changes to ECS/Transform)
-					if (ImGuizmo::IsOver())
-					{
-						ImGui::SetTooltip("Gizmo: hover");
-						CONSOLE_LOG(LEVEL_INFO) << "CAN HOVER";
-					}
-				}
-			}
-		}
-
+		//=============================
 		// Store viewport information
 		viewportRenderSize = renderSize;
 		windowPosAbsolute = windowPos;
@@ -286,15 +230,20 @@ void CustomViewport::DrawImGuiWindow() {
 		contentMax = ImVec2(padding.x + renderSize.x,
 			padding.y + renderSize.y + titleBarHeight + playControlsHeight);
 
-		// Set position and render viewport image
+		// 1) Draw the scene texture first
 		ImGui::SetCursorPos(ImVec2(padding.x, padding.y + titleBarHeight + playControlsHeight));
-		if (auto sceneColorID = ST<GraphicsMain>::Get()->GetImGuiContext().GetTransientRegistry().QueryBindlessID("ImGuiSceneView"))
-    {
-			ImGui::Image(*sceneColorID,
-				renderSize,
-				ImVec2(0, 0), ImVec2(1, 1)
-			);
+		if (auto sceneColorID = ST<GraphicsMain>::Get()->GetImGuiContext()
+			.GetTransientRegistry().QueryBindlessID("ImGuiSceneView"))
+		{
+			ImGui::Image(*sceneColorID, renderSize, ImVec2(0, 0), ImVec2(1, 1));
 		}
+
+
+		ImDrawList* drawList = ImGui::GetWindowDrawList();
+		ST<Inspector>::Get()->DrawGizmoInViewport(drawList);
+		//==========================
+
+
 		if (ImGui::BeginDragDropTarget())
 		{
 			if (ImGuiPayload const* payload_entity = ImGui::AcceptDragDropPayload("PREFAB"))
@@ -312,24 +261,27 @@ void CustomViewport::DrawImGuiWindow() {
 			ImGui::EndDragDropTarget();
 		}
 
-		// Create gizmo overlay
-		ImGui::SetItemAllowOverlap();
-		ImGui::SetCursorPos(ImVec2(padding.x, padding.y + titleBarHeight + playControlsHeight));
+		//// Create gizmo overlay
+		//ImGui::SetItemAllowOverlap();
+		//ImGui::SetCursorPos(ImVec2(padding.x, padding.y + titleBarHeight + playControlsHeight));
 
-		// Push a unique ID for the child window to avoid conflicts
-		ImGui::PushID("GizmoOverlay");
-		bool childBegin = ImGui::BeginChild("GizmoContent", renderSize, false,
-			ImGuiWindowFlags_NoMove |
-			ImGuiWindowFlags_NoScrollbar |
-			ImGuiWindowFlags_NoScrollWithMouse |
-			ImGuiWindowFlags_NoBackground);
-		if (childBegin)
-		{
-			ImDrawList* drawList = ImGui::GetWindowDrawList();
-			ST<Inspector>::Get()->DrawGizmoInViewport(drawList);
-			ImGui::EndChild();
-		}
-		ImGui::PopID();
+		//// Push a unique ID for the child window to avoid conflicts
+		//ImGui::PushID("GizmoOverlay");
+		//bool childBegin = ImGui::BeginChild("GizmoContent", renderSize, false,
+		//	ImGuiWindowFlags_NoMove |
+		//	ImGuiWindowFlags_NoScrollbar |
+		//	ImGuiWindowFlags_NoScrollWithMouse |
+		//	ImGuiWindowFlags_NoBackground);
+		//if (childBegin)
+		//{
+		//	ImDrawList* drawList = ImGui::GetWindowDrawList();
+		//	ST<Inspector>::Get()->DrawGizmoInViewport(drawList);
+		//	ImGui::EndChild();
+		//}
+		//ImGui::PopID();
+
+
+
 	}
 	ImGui::End();
 	ImGui::PopStyleVar();
