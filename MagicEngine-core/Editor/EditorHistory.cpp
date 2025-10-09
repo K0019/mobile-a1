@@ -126,10 +126,12 @@ HistoryEventBase* HistoryEvent_EntityDelete::Undo()
 
 	// Reparent if able
 	if (originalParent)
+	{
 		if (ecs::IsEntityHandleValid(originalParent))
 			restoredEntity->GetTransform().SetParent(originalParent->GetTransform());
 		else
 			CONSOLE_LOG(LEVEL_ERROR) << "Undo: The restored entity's original parent does not exist anymore! The restored entity will be unparented.";
+	}
 
 	DeleteSavedEntity();
 

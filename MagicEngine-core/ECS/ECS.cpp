@@ -21,8 +21,10 @@ All rights reserved.
 /******************************************************************************/
 
 // Override android macros cause we need to define some functions that are macro-ed.
+#if __has_include("Utilities/AndroidMacros.h")
 #define ANDROID_MACROS_DISABLE_ADDING_TEMPLATE
 #include "Utilities/AndroidMacros.h"
+#endif
 
 #include "ECSSysLayers.h"
 #include "ECS.h"
@@ -119,12 +121,12 @@ namespace ecs {
 		return components.contains(compHash);
 	}
 
-	CompHandle<void> Entity::GetComp(CompHash compHash)
+	CompHandle<void> Entity::GetCompByHash(CompHash compHash)
 	{
 		return reinterpret_cast<CompHandle<void>>(INTERNAL_GetCompRaw(compHash));
 	}
 
-	ConstCompHandle<void> Entity::GetComp(CompHash compHash) const
+	ConstCompHandle<void> Entity::GetCompByHash(CompHash compHash) const
 	{
 		return reinterpret_cast<ConstCompHandle<void>>(INTERNAL_GetCompRaw(compHash));
 	}

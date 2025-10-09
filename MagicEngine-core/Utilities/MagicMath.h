@@ -195,8 +195,10 @@ struct Vec3 : public glm::vec3
 	Vec3& operator=(const glm::vec3& other);
 	Vec3& operator=(glm::vec3&& other);
 	// Disallow implicit truncation to smaller vectors.
-	operator Vec2() = delete;
-	operator glm::vec2() = delete;
+	// NOTE: Another bs clang behavior. In Vec2{ Vec3{} } kind of syntax clang will invoke the Vec3-to-Vec2 cast operator instead of the Vec2 constructor.
+	// We'll just define these to work around that.
+	explicit operator Vec2();
+	explicit operator glm::vec2();
 
 	constexpr Vec3 operator-() const;
 	GENERATE_MEMBER_OPERATOR_ADAPTER_H(Vec3, glm::vec3, +=)
@@ -231,10 +233,10 @@ struct Vec4 : public glm::vec4
 	Vec4& operator=(const glm::vec4& other);
 	Vec4& operator=(glm::vec4&& other);
 	// Disallow implicit truncation to smaller vectors.
-	operator Vec2() = delete;
-	operator glm::vec2() = delete;
-	operator Vec3() = delete;
-	operator glm::vec3() = delete;
+	explicit operator Vec2();
+	explicit operator glm::vec2();
+	explicit operator Vec3();
+	explicit operator glm::vec3();
 
 	constexpr Vec4 operator-() const;
 	GENERATE_MEMBER_OPERATOR_ADAPTER_H(Vec4, glm::vec4, +=)

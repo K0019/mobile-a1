@@ -527,7 +527,7 @@ namespace property
             , m_FunctionLists(PtrLists)
             , m_Offset(Offset)
             , m_pName(((pName[0] == 'm' && pName[1] == '_') ? &pName[2] : pName))
-            , m_NameHash(mm3_x86_32(str_view{ m_pName, m_pName == pName ? N : N - 2 })) {}
+            , m_NameHash(mm3_x86_32(str_view{ m_pName, static_cast<uint32_t>(m_pName == pName ? N : N - 2) })) {}
 
         constexpr setup_entry DynamicFlags(function_ptr_dynamic_flags Callback) const noexcept
         {

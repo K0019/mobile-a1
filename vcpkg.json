@@ -54,6 +54,7 @@
       "name": "tracy",
       "platform": "!android"
     },
+    "rapidjson",
     "spirv-reflect",
     "spirv-cross",
     "stb",

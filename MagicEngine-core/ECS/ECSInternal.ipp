@@ -74,7 +74,7 @@ namespace ecs {
 		Entity_Internal::EntityComps_IteratorBlueprint<CompHandleType, MapIterType, ValueType>&
 			Entity_Internal::EntityComps_IteratorBlueprint<CompHandleType, MapIterType, ValueType>::operator++()
 		{
-			TravelNext(true);
+			TravelNext();
 			return *this;
 		}
 
@@ -83,7 +83,7 @@ namespace ecs {
 			Entity_Internal::EntityComps_IteratorBlueprint<CompHandleType, MapIterType, ValueType>::operator++(int)
 		{
 			EntityComps_IteratorBlueprint copy{ *this };
-			TravelNext(true);
+			TravelNext();
 			return *this;
 		}
 

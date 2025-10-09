@@ -20,6 +20,12 @@ All rights reserved.
 */
 /******************************************************************************/
 
+// Override android macros cause we need to define some functions that are macro-ed.
+#if __has_include("Utilities/AndroidMacros.h")
+#define ANDROID_MACROS_DISABLE_ADDING_TEMPLATE
+#include "Utilities/AndroidMacros.h"
+#endif
+
 #include "ECSInternal.h"
 
 namespace ecs {

@@ -306,7 +306,7 @@ namespace ecs {
 			ecs::CompHandle<void*> to the component if it is attached to this entity.
 			nullptr if the component doesn't exist on this entity.
 		*//******************************************************************/
-		CompHandle<void> GetComp(CompHash compHash);
+		CompHandle<void> GetCompByHash(CompHash compHash);
 
 		/*****************************************************************//*!
 		\brief
@@ -316,7 +316,7 @@ namespace ecs {
 			ecs::CompHandle<void*> to the component if it is attached to this entity.
 			nullptr if the component doesn't exist on this entity.
 		*//******************************************************************/
-		ConstCompHandle<void> GetComp(CompHash compHash) const;
+		ConstCompHandle<void> GetCompByHash(CompHash compHash) const;
 
 		/*****************************************************************//*!
 		\brief

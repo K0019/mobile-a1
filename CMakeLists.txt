@@ -79,6 +79,7 @@ set(CMAKE_DEBUG_POSTFIX "d" CACHE STRING "Filename postfix for libraries under D
 set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 # Core dependencies (all platforms)
+find_package(rapidjson CONFIG REQUIRED)
 find_package(glm CONFIG REQUIRED)
 find_package(glslang CONFIG REQUIRED)
 find_package(Volk CONFIG REQUIRED)

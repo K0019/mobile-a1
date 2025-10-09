@@ -217,8 +217,8 @@ void Serializer::FlushEntities()
                 auto compHash{ registeredCompData->GetMetaData()->hash };
                 StartObject(std::to_string(compHash));
                 
-                Serialize("_active", ecs::GetCompActive(entity->GetComp(compHash)));
-                registeredCompData->SerializeFuncPtr(entity->GetComp(compHash), *this);
+                Serialize("_active", ecs::GetCompActive(entity->GetCompByHash(compHash)));
+                registeredCompData->SerializeFuncPtr(entity->GetCompByHash(compHash), *this);
 
                 EndObject();
             }
@@ -539,14 +539,14 @@ bool Deserializer::Deserialize(ecs::EntityHandle entity)
         void* compHandle{ registeredData->ConstructDefaultAndAttachNowTo(entity) };
         if (!compHandle)
             // The component is already attached to the entity.
-            compHandle = entity->GetComp(compHash);
+            compHandle = entity->GetCompByHash(compHash);
 
         PushAccess(compHashStr); // Guaranteed to succeed because it's a member
 
         registeredData->DeserializeFuncPtr(compHandle, *this);
         bool isActive{ true };
         DeserializeVar("_active", &isActive);
-        ecs::SetCompActive(entity->GetComp(compHash), isActive);
+        ecs::SetCompActive(entity->GetCompByHash(compHash), isActive);
         
         PopAccess();
     }

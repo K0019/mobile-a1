@@ -3,6 +3,7 @@
 include(CMakeFindDependencyMacro)
 
 # Find common dependencies
+find_dependency(rapidjson CONFIG REQUIRED)
 find_dependency(glm CONFIG REQUIRED)
 find_dependency(glslang CONFIG REQUIRED)
 find_dependency(Vulkan REQUIRED)
