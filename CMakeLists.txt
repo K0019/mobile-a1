@@ -50,6 +50,19 @@ else()
 project(MagicEngine VERSION 0.1.0 LANGUAGES C CXX)
 endif()
 
+include(GNUInstallDirs)
+
+# Force install dirs to be relative for cross-compilation (Android)
+if(IS_ABSOLUTE "${CMAKE_INSTALL_INCLUDEDIR}")
+    set(CMAKE_INSTALL_INCLUDEDIR "include" CACHE PATH "Include directory" FORCE)
+endif()
+if(IS_ABSOLUTE "${CMAKE_INSTALL_LIBDIR}")
+    set(CMAKE_INSTALL_LIBDIR "lib" CACHE PATH "Library directory" FORCE)
+endif()
+if(IS_ABSOLUTE "${CMAKE_INSTALL_BINDIR}")
+    set(CMAKE_INSTALL_BINDIR "bin" CACHE PATH "Binary directory" FORCE)
+endif()
+
 # Set C++ standard
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)

@@ -113,7 +113,7 @@ target_include_directories(${CMAKE_PROJECT_NAME}
 
 target_link_libraries(${CMAKE_PROJECT_NAME}
     PRIVATE
-    ryengine::ryEngine
+    magicengine::ryEngine
     native_app_glue
     android
     log

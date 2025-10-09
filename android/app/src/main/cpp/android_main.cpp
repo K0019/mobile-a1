@@ -174,7 +174,8 @@ void android_main(android_app* app) {
         int events;
         android_poll_source* source;
 
-        while (ALooper_pollAll(0, nullptr, &events, (void**)&source) >= 0) {
+        // Poll all is deprecated, please check if pollOnce here actually causes problems
+        while (ALooper_pollOnce(0, nullptr, &events, (void**)&source) >= 0) {
             if (source) {
                 source->process(app, source);
             }

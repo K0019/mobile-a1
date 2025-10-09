@@ -330,13 +330,13 @@ for /f "tokens=1* delims=," %%a in ("%abi_list%") do (
     )
     
 	REM Copy engine headers
-	if exist "..\android\install\!current_abi!\include\" (
-		echo engine headers already installed
-	) else (
-		echo Installing engine headers...
-		mkdir "..\android\install\!current_abi!\include"
-		xcopy /E /I /Y "..\engine-core\core\engine\engine.h" "..\android\install\!current_abi!\include\" >nul
-	)
+	REM if exist "..\android\install\!current_abi!\include\" (
+	REM	echo engine headers already installed
+	REM) else (
+	REM	echo Installing engine headers...
+	REM	mkdir "..\android\install\!current_abi!\include"
+	REM	xcopy /E /I /Y "..\engine-core\core\engine\engine.h" "..\android\install\!current_abi!\include\" >nul
+	REM)
 
     REM Copy vcpkg dependencies
     set "vcpkg_install_dir=.\vcpkg_installed\!vcpkg_triplet!"
