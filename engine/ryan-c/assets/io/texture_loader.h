@@ -32,6 +32,7 @@ namespace AssetLoading
       
       bool loadFromFileKTX(const std::filesystem::path& path, ProcessedTexture& texture, vk::TextureType
                            type);
+      bool loadFromFileKTX2(const std::filesystem::path& path, ProcessedTexture& texture, vk::TextureType type);
 
       bool loadFromFileStandard(const std::filesystem::path& path, ProcessedTexture& texture, bool sRGB);
 

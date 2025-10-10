@@ -38,6 +38,8 @@ bool ResourceFiletypeImporterKTX::Import(const std::filesystem::path& assetRelat
 	auto graphicsAssetSystem{ ST<GraphicsAssets>::Get()->INTERNAL_GetAssetSystem() };
 	TextureHandle textureHandle{ graphicsAssetSystem->createTexture(processedTexture) };
 
+	graphicsAssetSystem->FlushUploads();
+
 	// Create resource entry
 	const auto* fileEntry{ GenerateFileEntryForResources<ResourceTexture>(assetRelativeFilepath, 1) };
 	

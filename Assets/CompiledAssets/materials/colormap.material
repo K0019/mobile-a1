@@ -1,0 +1,14 @@
+{
+    "name": "colormap",
+    "textures": {
+        "albedo": "colormap.png"
+    },
+    "parameters": {
+        "baseColorFactor": [
+            1.0,
+            1.0,
+            1.0,
+            1.0
+        ]
+    }
+}

@@ -1,0 +1,42 @@
+{
+    "name": "",
+    "alphaMode": "Opaque",
+    "alphaCutoff": 0.5,
+    "metallicFactor": 1.0,
+    "roughnessFactor": 1.0,
+    "normalScale": 1.0,
+    "occlusionStrength": 1.0,
+    "baseColorFactor": [
+        1.0,
+        1.0,
+        1.0,
+        1.0
+    ],
+    "emissiveFactor": [
+        0.0,
+        0.0,
+        0.0
+    ],
+    "textures": [
+        {
+            "key": "baseColor",
+            "value": 80794313699107604
+        },
+        {
+            "key": "emissive",
+            "value": 80794313699107604
+        },
+        {
+            "key": "metallicRoughness",
+            "value": 0
+        },
+        {
+            "key": "normal",
+            "value": 56092686338945225
+        },
+        {
+            "key": "occlusion",
+            "value": 54050893246142548
+        }
+    ]
+}
