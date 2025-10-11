@@ -1,19 +1,53 @@
-// EditorCameraBridge.h
+/******************************************************************************/
+/*!
+\file   EditorCameraBridge.h
+\par    Project: KuroMahou
+\par    Course: CSD3401
+\par    Software Engineering Project 5
+\date   10/10/2025
+
+\author Hong Tze Keat (100%)
+\par    email: h.tzekeat\@digipen.edu
+\par    DigiPen login: h.tzekeat
+
+\brief
+    Declares a lightweight bridge for publishing and retrieving the scene
+    camera (view/projection) so editor can render and hit-test 
+    using the same matrices as renderer
+
+All content © 2025 DigiPen Institute of Technology Singapore.
+All rights reserved.
+*/
+/******************************************************************************/
 #pragma once
 #include <glm/glm.hpp>
 
-// A snapshot of the scene camera that editor code can read.
+/*****************************************************************//*!
+\struct EditorCameraSnapshot
+\brief
+  storing the camera matrices for the current frame.
+*//******************************************************************/
 struct EditorCameraSnapshot {
     glm::mat4 view{ 1.0f };
     glm::mat4 proj{ 1.0f };
     bool orthographic{ false };
-    bool valid{ false };
+    bool valid{ false }; // True if a snapshot has been published this frame
 };
 
-// Inline global so you don't need a .cpp or extern.
+// Inline global so you don't need a .cpp or extern for current frame
 inline EditorCameraSnapshot g_EditorCamera;
 
-// Producer: call this from your renderer when you have the camera matrices.
+/*****************************************************************//*!
+\brief
+  Producer API: publish the curr frame camera matrices.
+
+\param V
+  View matrix
+\param P
+  Projection matrix (renderer’s NDC)
+\param ortho
+  check  camera is orthographic
+*//******************************************************************/
 inline void EditorCam_Publish(const glm::mat4& V,
     const glm::mat4& P,
     bool ortho = false)
@@ -24,7 +58,17 @@ inline void EditorCam_Publish(const glm::mat4& V,
     g_EditorCamera.valid = true;
 }
 
-// Consumer: called by ImGui/editor code to get the latest camera.
+/*****************************************************************//*!
+\brief
+  Consumer API: retrieve the most recently published camera matrices
+
+\param V
+  View matrix
+\param P
+  Projection matrix (renderer’s NDC)
+\param ortho
+  check  camera is orthographic
+*//******************************************************************/
 inline bool EditorCam_TryGet(glm::mat4& V,
     glm::mat4& P,
     bool& ortho)
