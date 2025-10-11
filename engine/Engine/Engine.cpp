@@ -44,6 +44,7 @@ All rights reserved.
 #include "BehaviourTreeWindow.h"
 #include "LayersMatrix.h"
 #include "EntityLayers.h"
+#include "Gizmo.h"
 
 #include "CSScripting.h"
 #include "HotReloader.h"
@@ -280,9 +281,10 @@ void Engine::run()
 			ST<PrefabWindow>::Get()->DrawSaveLoadPrompt(&ST<PrefabWindow>::Get()->IsOpen());
 		}
 		if(ST<Hierarchy>::Get()->isOpen)
-		{
+		{	
 			ST<Hierarchy>::Get()->Draw();
 		}
+		//ST<Gizmo>::Get()->draw()
 		ST<Popup>::Get()->Draw();
 		//ST<Inspector>::Get()->RenderGrid();
 

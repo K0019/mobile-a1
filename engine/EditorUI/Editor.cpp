@@ -209,7 +209,7 @@ void Inspector::ProcessInput()
 			return;
 		}
 
-		m_gizmo.processInput();
+		//m_gizmo.processInput();
 		// Handle deselection with double click
 		//static float lastClickTime = 0.0f;
 		//static const float doubleClickTime = 0.3f; // Adjust this value to change double click sensitivity
@@ -425,14 +425,12 @@ ecs::EntityHandle Inspector::GetSelectedEntity() {
 void Inspector::SetSelectedEntity(ecs::EntityHandle entity)
 {
 	selectedEntity = entity;
-	if(selectedEntity) {
-		m_gizmo.attach(selectedEntity->GetTransform());
-		m_gizmo.setType(m_currentGizmoType = GizmoType::None);
-	}
-	else {
-		m_gizmo.detach();
-		m_gizmo.setType(m_currentGizmoType = GizmoType::None);
-	}
+	//if(selectedEntity) {
+	//	m_gizmo.attach(selectedEntity->GetTransform());
+	//}
+	//else {
+	//	m_gizmo.detach();
+	//}
 }
 
 void Inspector::DrawSelectedEntityBorder()
@@ -461,7 +459,7 @@ void Inspector::DrawGizmoInViewport(ImDrawList* drawList)
 	if(CheckIsSelectedEntityValid() )
 	{
 
-		m_gizmo.draw(drawList);
+	//	m_gizmo.draw(drawList);
 	}
 }
 

@@ -129,8 +129,6 @@ private:
 	ecs::EntityHandle selectedEntity{ nullptr };
 	bool drawBoxes{ true };
 
-	Gizmo m_gizmo;
-	GizmoType m_currentGizmoType = GizmoType::None;
 	EditorTweenModule editorTweenModule;
 #endif
 };

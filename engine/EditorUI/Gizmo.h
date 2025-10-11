@@ -47,6 +47,7 @@ public:
 
     void draw(ImDrawList* viewport);
 
+
     void processInput();
 
     void setType(GizmoType type);

@@ -296,6 +296,8 @@ if (EditorCam_TryGet(V, P, isOrtho))
 }
 
 }
+
+
 void Gizmo::processInput()
 {
     //if(m_activeType == GizmoType::None || !m_attachedTransform) return;

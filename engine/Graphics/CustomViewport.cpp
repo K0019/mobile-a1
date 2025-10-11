@@ -169,8 +169,6 @@ void CustomViewport::DrawPlayControls() {
 
 void CustomViewport::DrawImGuiWindow() {
 
-
-
 	ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
 	ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse;
 	if (disableMoving) {
@@ -240,7 +238,9 @@ void CustomViewport::DrawImGuiWindow() {
 
 
 		ImDrawList* drawList = ImGui::GetWindowDrawList();
-		ST<Inspector>::Get()->DrawGizmoInViewport(drawList);
+		//ST<Inspector>::Get()->DrawGizmoInViewport(drawList);
+		updateCurrentEntity(ST<Inspector>::Get()->GetSelectedEntity());
+		m_gizmo.draw(drawList);
 		//==========================
 
 
@@ -261,24 +261,7 @@ void CustomViewport::DrawImGuiWindow() {
 			ImGui::EndDragDropTarget();
 		}
 
-		//// Create gizmo overlay
-		//ImGui::SetItemAllowOverlap();
-		//ImGui::SetCursorPos(ImVec2(padding.x, padding.y + titleBarHeight + playControlsHeight));
 
-		//// Push a unique ID for the child window to avoid conflicts
-		//ImGui::PushID("GizmoOverlay");
-		//bool childBegin = ImGui::BeginChild("GizmoContent", renderSize, false,
-		//	ImGuiWindowFlags_NoMove |
-		//	ImGuiWindowFlags_NoScrollbar |
-		//	ImGuiWindowFlags_NoScrollWithMouse |
-		//	ImGuiWindowFlags_NoBackground);
-		//if (childBegin)
-		//{
-		//	ImDrawList* drawList = ImGui::GetWindowDrawList();
-		//	ST<Inspector>::Get()->DrawGizmoInViewport(drawList);
-		//	ImGui::EndChild();
-		//}
-		//ImGui::PopID();
 
 
 
@@ -446,3 +429,11 @@ Vec2 CustomViewport::GetViewportRenderSize() const
 	return { viewportRenderSize.x, viewportRenderSize.y };
 }
 
+void CustomViewport::updateCurrentEntity(ecs::EntityHandle entity) {
+	if (entity) {
+		m_gizmo.attach(entity->GetTransform());
+	}
+	else {
+		m_gizmo.detach();
+	}
+}

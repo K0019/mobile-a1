@@ -21,7 +21,7 @@ All rights reserved.
 #pragma once
 #include "Engine.h"
 #include "imgui_internal.h"
-
+#include "Gizmo.h"
 /**
  * @brief The CustomViewport class represents a custom viewport for rendering graphics.
  */
@@ -90,6 +90,7 @@ public:
      */
     Vec2 GetViewportRenderSize() const;
 
+    void updateCurrentEntity(ecs::EntityHandle entity);
      ~CustomViewport() = default;
 
     std::string name {ICON_FA_GAMEPAD " Scene"}; /**< The name of the ImGui Window. Specifically put here because I use it more than once*/
@@ -107,5 +108,6 @@ private:
     Vec contentMin; /**< The minimum position of the content region. */
     Vec contentMax; /**< The maximum position of the content region. */
     Vec viewportRenderSize; /**< The render size of the viewport. */
-    
+    Gizmo m_gizmo;
+
 };
