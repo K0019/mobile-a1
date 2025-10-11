@@ -1,20 +1,20 @@
 /******************************************************************************/
 /*!
 \file   Gizmo.cpp
-\par    Project: 7percent
-\par    Course: CSD2401
-\par    Section B
-\par    Software Engineering Project 3
-\date   09/25/2024
+\par    Project: KuroMahou
+\par    Course: CSD3401
+\par    Software Engineering Project 5
+\date   10/10/2025
 
-\author Ryan Cheong (100%)
-\par    email: ngaihangryan.cheong\@digipen.edu
-\par    DigiPen login: ngaihangryan.cheong
+\author Hong Tze Keat (100%)
+\par    email: h.tzekeat\@digipen.edu
+\par    DigiPen login: h.tzekeat
 
 \brief
-Definition of Gizmo class.
+    Definition of Gizmo class
 
-All content © 2024 DigiPen Institute of Technology Singapore.
+
+All content © 2025 DigiPen Institute of Technology Singapore.
 All rights reserved.
 */
 /******************************************************************************/

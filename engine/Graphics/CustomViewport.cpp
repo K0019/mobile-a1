@@ -238,7 +238,6 @@ void CustomViewport::DrawImGuiWindow() {
 
 
 		ImDrawList* drawList = ImGui::GetWindowDrawList();
-		//ST<Inspector>::Get()->DrawGizmoInViewport(drawList);
 		updateCurrentEntity(ST<Inspector>::Get()->GetSelectedEntity());
 		m_gizmo.draw(drawList);
 		//==========================

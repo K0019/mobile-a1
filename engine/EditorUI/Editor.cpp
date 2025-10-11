@@ -343,29 +343,11 @@ void Inspector::DrawContents()
 		gui::TextFormatted("Transform: %s", (selectedEntity->GetTransform().GetParent() ? "Local" : "World"));
 	}
 
-	// ============================================================ ============================================================Gizmo tool buttons
+	// Gizmo tool buttons
 	{
 		ImGuizmo::Enable(true);
 	}
-	//if(gui::Group groupGizmo{})
-	//{
-	//	const auto RenderGizmoButton{ [&gizmo = m_gizmo, &currType = m_currentGizmoType](GizmoType type, const char* buttonText, const char* hoverText) -> void {
-	//		gui::SetStyleColor styleColButton{ gui::FLAG_STYLE_COLOR::BUTTON, gui::Vec4{ 0.2f, 0.5f, 0.7f, 1.0f }, currType == type };
-	//		if(gui::Button button{ buttonText })
-	//		{
-	//			currType = (currType == type ? GizmoType::None : type);
-	//			gizmo.setType(currType);
-	//		}
-	//		if(gui::IsItemHovered())
-	//			gui::Tooltip tooltip{ hoverText };
-	//	} };
 
-	//	RenderGizmoButton(GizmoType::Translate, ICON_FA_ARROWS_LEFT_RIGHT, "Translate");
-	//	gui::SameLine();
-	//	RenderGizmoButton(GizmoType::Rotate, ICON_FA_ROTATE, "Rotate");
-	//	gui::SameLine();
-	//	RenderGizmoButton(GizmoType::Scale, ICON_FA_UP_RIGHT_AND_DOWN_LEFT_FROM_CENTER, "Scale");
-	//}
 
 	// Transform panel
 	selectedEntity->GetTransform().EditorDraw();
@@ -425,12 +407,7 @@ ecs::EntityHandle Inspector::GetSelectedEntity() {
 void Inspector::SetSelectedEntity(ecs::EntityHandle entity)
 {
 	selectedEntity = entity;
-	//if(selectedEntity) {
-	//	m_gizmo.attach(selectedEntity->GetTransform());
-	//}
-	//else {
-	//	m_gizmo.detach();
-	//}
+
 }
 
 void Inspector::DrawSelectedEntityBorder()
@@ -450,16 +427,6 @@ void Inspector::DrawSelectedEntityBorder()
 		}
 		// TODO 3D: Editor, draw entity bounding box
 		//util::DrawBoundingBox(*transform, { 0.0f, 1.0f, 0.0f });
-	}
-}
-
-void Inspector::DrawGizmoInViewport(ImDrawList* drawList)
-{
-
-	if(CheckIsSelectedEntityValid() )
-	{
-
-	//	m_gizmo.draw(drawList);
 	}
 }
 
@@ -773,12 +740,6 @@ void Inspector::DrawEntityActionsButton()
 }
 
 
-//Vec2 Inspector::SnapToGrid(const Vec2& worldPos) const {
-//	return {
-//		std::round((worldPos.x - m_gridOffset.x) / m_gridSize) * m_gridSize + m_gridOffset.x,
-//		std::round((worldPos.y - m_gridOffset.y) / m_gridSize) * m_gridSize + m_gridOffset.y
-//	};
-//}
 //void Inspector::RenderGrid()
 //{
 //    if(!m_showGrid || (ST<Game>::Get()->GetState() == GAMESTATE::IN_GAME || ST<Game>::Get()->GetState() == GAMESTATE::PAUSE)) return;

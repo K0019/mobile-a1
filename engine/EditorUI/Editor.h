@@ -76,9 +76,7 @@ public:
 	*//******************************************************************/
 	void DrawSelectedEntityBorder();
 
-	void DrawGizmoInViewport(ImDrawList* drawList);
 
-	//void RenderGrid();
 
 	bool m_drawPhysicsBoxes;
 	bool m_drawVelocity;

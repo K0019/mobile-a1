@@ -284,7 +284,6 @@ void Engine::run()
 		{	
 			ST<Hierarchy>::Get()->Draw();
 		}
-		//ST<Gizmo>::Get()->draw()
 		ST<Popup>::Get()->Draw();
 		//ST<Inspector>::Get()->RenderGrid();
 
