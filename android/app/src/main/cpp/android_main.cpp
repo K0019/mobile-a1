@@ -5,6 +5,7 @@
 #include "math/utils_math.h"
 #include <graphics/features/grid_feature.h>
 #include <base/imgui_context.h>
+#include "ryEngine/VFS/vfs.h"
 
 #define LOGI(...) __android_log_print(ANDROID_LOG_INFO, "ryEngine", __VA_ARGS__)
 #define LOGE(...) __android_log_print(ANDROID_LOG_ERROR, "ryEngine", __VA_ARGS__)
@@ -166,6 +167,11 @@ void android_main(android_app* app) {
     app->userData = &ctx;
     app->onAppCmd = HandleCmd;
     app->onInputEvent = HandleInput;
+
+    AAssetManager* assetManager = app->activity->assetManager;
+    VFS::Initialize();
+    VFS::MountAndroidDirectory("assets", assetManager);
+
 
     LOGI("Entering main event loop");
     int frameCount = 0;
