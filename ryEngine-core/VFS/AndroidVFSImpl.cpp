@@ -1,8 +1,12 @@
 #if defined(__ANDROID__)
-
+#include "VFS.h"
 #include "AndroidVFSImpl.h"
 #include "AndroidFileStream.h"
+
 #include <android/asset_manager.h>
+#include <android/log.h>
+
+#include <sstream>
 
 AndroidVFSImpl::AndroidVFSImpl(AAssetManager* assetManager) : m_AssetManager(assetManager) {}
 
@@ -50,10 +54,42 @@ bool AndroidVFSImpl::ReadFile(const std::string& path, std::vector<uint8_t>& out
 }
 
 
-std::vector<std::string> AndroidVFSImpl::ListDirectory(const std::string& path)
+std::vector<std::string> AndroidVFSImpl::ListDirectory(const std::string & path)
 {
-    //Unimplemented.
-    return std::vector<std::string>();
+    std::vector<std::string> entries;
+    std::string manifestContent;
+
+    // Manifest is always inside android/app/src/main/assets/
+    if (!VFS::ReadFile("assets/asset_manifest.txt", manifestContent))
+    {
+        //__android_log_print(ANDROID_LOG_INFO, "ryEngine", "Could not find asset_manifest.txt!");
+        return entries;
+    }
+
+    std::stringstream ss(manifestContent);
+    std::string line;
+    std::string normalizedPath = path;
+    // Ensure the path ends with a slash for easier comparison
+    if (!normalizedPath.empty() && normalizedPath.back() != '/')
+    {
+        normalizedPath += '/';
+    }
+
+    while (std::getline(ss, line, '\n'))
+    {
+        if (line.rfind(normalizedPath, 0) == 0)
+        {
+            std::string subPath = line.substr(normalizedPath.length());
+
+            // Find the next slash. If there isn't one, it's a file.
+            size_t nextSlash = subPath.find('/');
+            if (nextSlash == std::string::npos)
+            {
+                entries.push_back(subPath);
+            }
+        }
+    }
+    return entries;
 }
 
 

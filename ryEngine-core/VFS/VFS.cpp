@@ -156,6 +156,17 @@ bool VFS::ReadFile(const std::string& path, std::vector<uint8_t>& outBuffer)
     return false;
 }
 
+bool VFS::ReadFile(const std::string& path, std::string& outStr)
+{
+    std::vector<uint8_t> buffer;
+    if (!ReadFile(path, buffer))
+    {
+        return false;
+    }
+    outStr.assign(buffer.begin(), buffer.end());
+    return true;
+}
+
 bool VFS::WriteFile(const std::string& path, const std::vector<uint8_t>& buffer)
 {
     if (auto stream = VFS::OpenFile(path, FileMode::Write))

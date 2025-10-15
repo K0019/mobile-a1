@@ -1,0 +1,3 @@
+shaders/tester.txt
+textures/mickey.png
+textures/rockynewyear_closeup.png

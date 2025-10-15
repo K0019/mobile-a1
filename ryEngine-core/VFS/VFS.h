@@ -43,6 +43,7 @@ public:
     static std::unique_ptr<IFileStream> OpenFile(const std::string& path, FileMode mode = FileMode::Read);
     static bool FileExists(const std::string& path);
     static bool ReadFile(const std::string& path, std::vector<uint8_t>& outBuffer);
+    static bool ReadFile(const std::string& path, std::string& outStr);
 
     static bool DeleteFile(const std::string& path);
     static bool RenameFile(const std::string& oldPath, const std::string& newPath);
