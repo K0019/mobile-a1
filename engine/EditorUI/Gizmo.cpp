@@ -30,7 +30,7 @@ Gizmo::Gizmo() = default;
 Gizmo::~Gizmo() = default;
 
 
-void Gizmo::attach(Transform& transform)
+void Gizmo::Attach(Transform& transform)
 {
     // If we’re already attached to the same transform, nothing to do.
     if (m_attachedTransform == &transform) {
@@ -41,14 +41,14 @@ void Gizmo::attach(Transform& transform)
 
 }
 
-void Gizmo::detach()
+void Gizmo::Detach()
 {
     if (!m_attachedTransform)
         return;
     m_attachedTransform = nullptr;
 }
 
-void Gizmo::draw([[maybe_unused]] ImDrawList* /*viewport*/) 
+void Gizmo::Draw([[maybe_unused]] ImDrawList* /*viewport*/)
 {   //skip if no entity selected
     if (!m_attachedTransform) {
         return;
@@ -158,5 +158,7 @@ void Gizmo::draw([[maybe_unused]] ImDrawList* /*viewport*/)
     }
 
 }
+
+
 
 #endif

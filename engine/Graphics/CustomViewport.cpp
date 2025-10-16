@@ -250,7 +250,7 @@ void CustomViewport::DrawImGuiWindow() {
 
 		ImDrawList* drawList = ImGui::GetWindowDrawList();
 		updateCurrentEntity(ST<Inspector>::Get()->GetSelectedEntity());
-		m_gizmo.draw(drawList);
+		m_gizmo.Draw(drawList);
 		//==========================
 
 
@@ -463,10 +463,10 @@ Vec2 CustomViewport::GetViewportRenderSize() const
 
 void CustomViewport::updateCurrentEntity(ecs::EntityHandle entity) {
 	if (entity) {
-		m_gizmo.attach(entity->GetTransform());
+		m_gizmo.Attach(entity->GetTransform());
 	}
 	else {
-		m_gizmo.detach();
+		m_gizmo.Detach();
 	}
 }
 Camera CustomViewport::GetViewportCamera() const

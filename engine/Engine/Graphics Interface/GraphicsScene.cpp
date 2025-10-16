@@ -64,6 +64,8 @@ void GraphicsScene::SetViewCamera(const Camera& camera)
 {
     frameData.cameraPos = camera.getPosition();
     frameData.viewMatrix = camera.getViewMatrix();
+
+    EditorCam_Publish(frameData.viewMatrix, frameData.projMatrix, false);
 }
 
 void GraphicsScene::AddObject(const MeshHandle& meshHandle, const MaterialHandle& materialHandle, const Mat4& transform)

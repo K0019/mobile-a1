@@ -50,18 +50,18 @@ public:
         The Transform to attach. Must remain valid while attached.
     *//******************************************************************/
 
-    void attach(Transform& transform);
+    void Attach(Transform& transform);
     /*****************************************************************//*!
     \brief
          Detach the transform so it stops rendering and dragging
     *//******************************************************************/
 
-    void detach();
+    void Detach();
     /*****************************************************************//*!
     \brief
          Draw the gizmo to match the scene viewport and allow dragging
     *//******************************************************************/
-    void draw(ImDrawList* viewport);
+    void Draw(ImDrawList* viewport);
 
 private:
     Transform* m_attachedTransform = nullptr;
