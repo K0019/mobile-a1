@@ -1,3 +1,23 @@
+/******************************************************************************/
+/*!
+\file   SceneCompiler.cpp
+\par    Project: Kuro Mahou
+\par    Course: CSD3401
+\par    Software Engineering Project 5
+\date   10/06/2025
+
+\author Rocky Sutarius (100%)
+\par    email: rocky.sutarius\@digipen.edu
+\par    DigiPen login: rocky.sutarius
+
+\brief
+Compiles an fbx scene into 3 individual files: 
+a .mesh, a .material, and a .ktx2 texture if texture can be found.
+
+All content © 2025 DigiPen Institute of Technology Singapore.
+All rights reserved.
+*/
+/******************************************************************************/
 #include "SceneCompiler.h"
 #include "MeshProcessor.h"
 #include "TextureCompiler.h"
@@ -5,6 +25,8 @@
 
 #include <fstream>
 #include <set>
+#include <iostream>
+#include <span>
 
 #include "rapidjson/document.h"
 #include "rapidjson/writer.h"
@@ -33,9 +55,10 @@ namespace compiler
         // Processing stage, meshopt is here
         ProcessScene(scene, compileOptions.mesh);
 
+
         // Save the data
         SaveMeshes(scene, result);
-        //SaveMaterialData(scene, result);
+        SaveMaterialData(scene, result);
         CompileTextures(scene, result);
 
         if (!result.errors.empty())
@@ -58,7 +81,7 @@ namespace compiler
 
             if (options.optimize && MeshOptimizer::shouldOptimize(mesh.vertices, mesh.indices))
             {
-                auto result = MeshOptimizer::optimize(mesh.vertices, mesh.indices);
+                auto result = MeshOptimizer::optimize(mesh.vertices, mesh.indices, options.generateTangents);
 
                 if (!result.success)
                 {
@@ -76,12 +99,14 @@ namespace compiler
 
             if (options.calculateBounds)
             {
-                mesh.bounds = calculateBounds(mesh.vertices);
+                mesh.bounds = MeshOptimizer::calculateBounds(mesh.vertices);
             }
         }
         return processingResult;
     }
 
+
+    //These functions below do the actual saving to disk
     void SceneCompiler::CompileTextures(const Scene& scene, CompilationResult& result)
     {
         std::set<std::filesystem::path> uniqueTexturePaths;
@@ -127,8 +152,6 @@ namespace compiler
 
     void SceneCompiler::SaveMeshes(const Scene& scene, CompilationResult& result)
     {
-        // TODO: Loop through scene.meshes and save each one to a separate .mesh file.
-
         std::vector<MeshNode> finalNodes;
 		std::vector<MeshInfo> finalMeshInfos;
 		std::string materialNames; // String with names separated by \0s
@@ -146,7 +169,6 @@ namespace compiler
 			currentNameOffset = materialNames.size();
 		}
 		
-
 		//Set up Mesh vertex and index buffers
 		uint32_t vertexOffset = 0;
 		uint32_t indexOffset = 0;
@@ -186,13 +208,12 @@ namespace compiler
 			finalNodes.push_back(node);
 		}
 
-		// Bounds calculation??????
-		// Transform calculation???
+		// Bounds calculation would be placed here.
+        // Completely unused right now, but may be a performance improvement in the future
 
 		// Populate file header
 		MeshFileHeader header;
 		header.magic = MESH_FILE_MAGIC;
-		//header.version = 1;
 		header.numNodes = finalNodes.size();
 		header.numMeshes = finalMeshInfos.size();
 		header.totalIndices = finalIndices.size();
@@ -253,41 +274,67 @@ namespace compiler
 
             doc.AddMember("name", rapidjson::Value(materialSlot.name.c_str(), allocator), allocator);
 
-            if (!materialSlot.texturePaths.empty())
+            std::string alphaModeStr;
+            switch (materialSlot.alphaMode)
             {
-                rapidjson::Value texturesJson(rapidjson::kObjectType);
-                for (const auto& [type, path] : materialSlot.texturePaths)
-                {
-                    std::string filename = path.filename().string();
-
-                    rapidjson::Value key(type.c_str(), allocator);
-                    rapidjson::Value value(filename.c_str(), allocator);
-
-                    texturesJson.AddMember(key, value, allocator);
-                }
-                doc.AddMember("textures", texturesJson, allocator);
+            case AlphaMode::Opaque:
+                alphaModeStr = "Opaque";
+                break;
+            case AlphaMode::Mask:
+                alphaModeStr = "Mask";
+                break;
+            case AlphaMode::Blend:
+                alphaModeStr = "Blend";
+                break;
+            default:
+                alphaModeStr = "Opaque";
             }
+            doc.AddMember("alphaMode", rapidjson::Value(alphaModeStr.c_str(), allocator), allocator);
 
-            if (!materialSlot.scalarParams.empty() || !materialSlot.vectorParams.empty())
+            doc.AddMember("alphaCutoff", materialSlot.alphaCutoff, allocator);
+            doc.AddMember("metallicFactor", materialSlot.metallicFactor, allocator);
+            doc.AddMember("roughnessFactor", materialSlot.roughnessFactor, allocator);
+            doc.AddMember("normalScale", materialSlot.normalScale, allocator);
+            doc.AddMember("occlusionStrength", materialSlot.occlusionStrength, allocator);
+
+            rapidjson::Value baseColor(rapidjson::kArrayType);
+            baseColor.PushBack(materialSlot.baseColorFactor.x, allocator);
+            baseColor.PushBack(materialSlot.baseColorFactor.y, allocator);
+            baseColor.PushBack(materialSlot.baseColorFactor.z, allocator);
+            baseColor.PushBack(materialSlot.baseColorFactor.w, allocator);
+            doc.AddMember("baseColorFactor", baseColor, allocator);
+
+            rapidjson::Value emissive(rapidjson::kArrayType);
+            emissive.PushBack(materialSlot.emissiveFactor.x, allocator);
+            emissive.PushBack(materialSlot.emissiveFactor.y, allocator);
+            emissive.PushBack(materialSlot.emissiveFactor.z, allocator);
+            doc.AddMember("emissiveFactor", emissive, allocator);
+
+
+            const char* textureKeys[] = { "baseColor", "metallicRoughness", "normal", "emissive", "occlusion" };
+            rapidjson::Value texturesArray(rapidjson::kArrayType);
+
+            for (const char* key : textureKeys)
             {
-                rapidjson::Value paramsJson(rapidjson::kObjectType);
-                for (const auto& [name, value] : materialSlot.scalarParams)
-                {
-                    paramsJson.AddMember(rapidjson::Value(name.c_str(), allocator), rapidjson::Value(static_cast<double>(value)), allocator);
-                }
-                for (const auto& [name, value] : materialSlot.vectorParams)
-                {
-                    rapidjson::Value vecArray(rapidjson::kArrayType);
-                    vecArray.PushBack(value.x, allocator);
-                    vecArray.PushBack(value.y, allocator);
-                    vecArray.PushBack(value.z, allocator);
-                    vecArray.PushBack(value.w, allocator);
+                rapidjson::Value textureEntry(rapidjson::kObjectType);
+                textureEntry.AddMember("key", rapidjson::Value(key, allocator), allocator);
 
-                    paramsJson.AddMember(rapidjson::Value(name.c_str(), allocator), vecArray, allocator);
+                std::string valueStr = "";
+                auto it = materialSlot.texturePaths.find(key);
+                if (it != materialSlot.texturePaths.end())
+                {
+                    std::string filename = it->second.stem().string() + ".ktx2";    
+                    valueStr = "CompiledAssets\\textures\\" + filename;
                 }
-                doc.AddMember("parameters", paramsJson, allocator);
+
+                textureEntry.AddMember("value", rapidjson::Value(valueStr.c_str(), allocator), allocator);
+                texturesArray.PushBack(textureEntry, allocator);
             }
+            doc.AddMember("textures", texturesArray, allocator);
 
+            doc.AddMember("flags", materialSlot.flags, allocator);
+
+            // Write to disk
             std::string safeFilename = materialSlot.name;
             std::replace(safeFilename.begin(), safeFilename.end(), ' ', '_');
             std::filesystem::path outFilePath = materialOutputDir / (safeFilename + ".material");

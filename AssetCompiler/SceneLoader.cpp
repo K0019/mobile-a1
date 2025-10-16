@@ -1,19 +1,59 @@
+/******************************************************************************/
+/*!
+\file   SceneLoader.cpp
+\par    Project: Kuro Mahou
+\par    Course: CSD3401
+\par    Software Engineering Project 5
+\date   10/06/2025
+
+\author Rocky Sutarius (100%)
+\par    email: rocky.sutarius\@digipen.edu
+\par    DigiPen login: rocky.sutarius
+
+\brief
+Loads an fbx scene, and extracts the meshes, node hierarchy, materials, and referenced textures
+
+All content © 2025 DigiPen Institute of Technology Singapore.
+All rights reserved.
+*/
+/******************************************************************************/
+
 #include "SceneLoader.h"
-#include "MeshLoader.h"
-#include "MaterialLoader.h"
 
 #include <assimp/material.h>
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
+#include <assimp/GltfMaterial.h>
 
 #include <numeric>
-#include <chrono>
+#include <iostream>
 
 namespace compiler
 {
+    // ----- Material ----- //
+    std::vector<const aiMaterial*> SceneLoader::collectMaterialPointers(const aiScene* scene)
+    {
+        if (!scene || scene->mNumMaterials == 0)
+        {
+            return {};
+        }
 
-    void extractTexturePath(const aiMaterial* aiMat, aiTextureType type, const std::string& key, ProcessedMaterialSlot& outSlot, const std::filesystem::path& modelBasePath)
+        std::vector<const aiMaterial*> materialPtrs;
+        materialPtrs.reserve(scene->mNumMaterials);
+
+        for (uint32_t i = 0; i < scene->mNumMaterials; ++i)
+        {
+            if (scene->mMaterials[i])
+            {
+                materialPtrs.push_back(scene->mMaterials[i]);
+            }
+        }
+
+        return materialPtrs;
+    }
+
+    bool SceneLoader::extractTexturePath(const aiMaterial* aiMat, aiTextureType type, const std::string& key, ProcessedMaterialSlot& outSlot, const std::filesystem::path& modelBasePath)
     {
         aiString path;
         if (aiMat->GetTexture(type, 0, &path) == AI_SUCCESS)
@@ -27,9 +67,191 @@ namespace compiler
             {
                 outSlot.texturePaths[key] = texturePath;
             }
+            return true;
         }
+        return false;
     }
 
+    ProcessedMaterialSlot SceneLoader::extractMaterialSlot(const aiMaterial* aiMat, uint32_t materialIndex, const std::filesystem::path& modelBasePath)
+    {
+        ProcessedMaterialSlot slot;
+        slot.originalIndex = materialIndex;
+
+        aiString name;
+        if (aiMat->Get(AI_MATKEY_NAME, name) == AI_SUCCESS && strlen(name.C_Str()) > 0)
+        {
+            slot.name = name.C_Str();
+        }
+        else
+        {
+            slot.name = "Material_" + std::to_string(materialIndex);
+        }
+
+        if (!extractTexturePath(aiMat, aiTextureType_BASE_COLOR, "baseColor", slot, modelBasePath))
+            extractTexturePath(aiMat, aiTextureType_DIFFUSE, "baseColor", slot, modelBasePath);
+        extractTexturePath(aiMat, aiTextureType_METALNESS, "metallicRoughness", slot, modelBasePath);
+        if (!extractTexturePath(aiMat, aiTextureType_NORMALS, "normal", slot, modelBasePath))
+            extractTexturePath(aiMat, aiTextureType_HEIGHT, "normal", slot, modelBasePath);
+        extractTexturePath(aiMat, aiTextureType_EMISSIVE, "emissive", slot, modelBasePath);
+        extractTexturePath(aiMat, aiTextureType_AMBIENT_OCCLUSION, "occlusion", slot, modelBasePath);
+
+        // Get material parameter values
+        aiColor4D color;
+        float factor;
+
+        // Base color
+        if (aiMat->Get(AI_MATKEY_BASE_COLOR, color) == AI_SUCCESS)
+        {
+            slot.baseColorFactor = { color.r, color.g, color.b, color.a };
+        }
+        else if (aiMat->Get(AI_MATKEY_COLOR_DIFFUSE, color) == AI_SUCCESS)
+        {
+            slot.baseColorFactor = vec4(color.r, color.g, color.b, 1.0f);
+        }
+        else if (aiMat->Get("$clr.diffuse", 0, 0, color) == AI_SUCCESS)
+        {
+            slot.baseColorFactor = vec4(color.r, color.g, color.b, 1.0f);
+        }
+
+        // Metallic
+        if (aiMat->Get(AI_MATKEY_METALLIC_FACTOR, factor) == AI_SUCCESS)
+        {
+            slot.metallicFactor = std::clamp(factor, 0.0f, 1.0f);
+        }
+        else if (aiMat->Get("$mat.metallicFactor", 0, 0, factor) == AI_SUCCESS)
+        {
+            slot.metallicFactor = std::clamp(factor, 0.0f, 1.0f);
+        }
+        else if (aiMat->Get(AI_MATKEY_REFLECTIVITY, factor) == AI_SUCCESS)
+        {
+            slot.metallicFactor = std::clamp(factor, 0.0f, 1.0f);
+        }
+
+        // Roughness
+        if (aiMat->Get(AI_MATKEY_ROUGHNESS_FACTOR, factor) == AI_SUCCESS)
+        {
+            slot.roughnessFactor = std::clamp(factor, 0.0f, 1.0f);
+        }
+        else if (aiMat->Get("$mat.roughnessFactor", 0, 0, factor) == AI_SUCCESS)
+        {
+            slot.roughnessFactor = std::clamp(factor, 0.0f, 1.0f);
+        }
+        else if (aiMat->Get(AI_MATKEY_SHININESS, factor) == AI_SUCCESS)
+        {
+            slot.roughnessFactor = std::clamp(1.0f - (factor / 256.0f), 0.0f, 1.0f);
+        }
+        else if (aiMat->Get(AI_MATKEY_SHININESS_STRENGTH, factor) == AI_SUCCESS)
+        {
+            slot.roughnessFactor = std::clamp(1.0f - factor, 0.0f, 1.0f);
+        }
+
+        // Emissive
+        if (aiMat->Get(AI_MATKEY_COLOR_EMISSIVE, color) == AI_SUCCESS)
+        {
+            slot.emissiveFactor = vec3(color.r, color.g, color.b);
+        }
+        else if (aiMat->Get("$clr.emissive", 0, 0, color) == AI_SUCCESS)
+        {
+            slot.emissiveFactor = vec3(color.r, color.g, color.b);
+        }
+
+        // Normal scale
+        if (aiMat->Get(AI_MATKEY_GLTF_TEXTURE_SCALE(aiTextureType_NORMALS, 0), factor) == AI_SUCCESS)
+        {
+            slot.normalScale = std::max(0.0f, factor);
+        }
+
+        // Occlusion strength
+        if (aiMat->Get(AI_MATKEY_GLTF_TEXTURE_STRENGTH(aiTextureType_AMBIENT_OCCLUSION, 0), factor) == AI_SUCCESS)
+        {
+            slot.occlusionStrength = std::clamp(factor, 0.0f, 1.0f);
+        }
+
+        // Alpha properties
+        if (aiMat->Get(AI_MATKEY_OPACITY, factor) == AI_SUCCESS)
+        {
+            slot.baseColorFactor.a = std::clamp(factor, 0.0f, 1.0f);
+        }
+
+        if (aiMat->Get(AI_MATKEY_GLTF_ALPHACUTOFF, factor) == AI_SUCCESS)
+        {
+            slot.alphaCutoff = std::clamp(factor, 0.0f, 1.0f);
+        }
+
+        aiString alphaModeStr;
+        if (aiMat->Get(AI_MATKEY_GLTF_ALPHAMODE, alphaModeStr) == AI_SUCCESS)
+        {
+            std::string mode = alphaModeStr.C_Str();
+            if (mode == "OPAQUE")
+            {
+                slot.alphaMode = AlphaMode::Opaque;
+            }
+            else if (mode == "MASK")
+            {
+                slot.alphaMode = AlphaMode::Mask;
+            }
+            else if (mode == "BLEND")
+            {
+                slot.alphaMode = AlphaMode::Blend;
+            }
+        }
+        else
+        {
+            // Fallback: detect transparency from alpha value
+            if (slot.baseColorFactor.a < 0.99f)
+            {
+                slot.alphaMode = AlphaMode::Blend;
+            }
+            else
+            {
+                slot.alphaMode = AlphaMode::Opaque;
+            }
+        }
+
+        // Alpha cutoff
+        if (aiMat->Get(AI_MATKEY_GLTF_ALPHACUTOFF, factor) == AI_SUCCESS)
+        {
+            slot.alphaCutoff = std::clamp(factor, 0.0f, 1.0f);
+        }
+
+        // Unlit detection
+        int shadingModel;
+        if (aiMat->Get(AI_MATKEY_SHADING_MODEL, shadingModel) == AI_SUCCESS)
+        {
+            if (shadingModel == aiShadingMode_Unlit || shadingModel == aiShadingMode_NoShading)
+            {
+                slot.flags |= MaterialFlags::UNLIT;
+            }
+        }
+
+        // Alternative unlit detection for various formats
+        aiString unlitStr;
+        if (aiMat->Get("unlit", 0, 0, unlitStr) == AI_SUCCESS)
+        {
+            std::string unlit = unlitStr.C_Str();
+            if (unlit == "true" || unlit == "1")
+            {
+                slot.flags |= MaterialFlags::UNLIT;
+            }
+        }
+
+        // Two-sided detection
+        int twosided;
+        if (aiMat->Get(AI_MATKEY_TWOSIDED, twosided) == AI_SUCCESS && twosided)
+        {
+            slot.flags |= MaterialFlags::DOUBLE_SIDED;
+        }
+
+        //The importer will materialType and flags for us
+        //slot.materialTypeFlags = MaterialType::METALLIC_ROUGHNESS;
+        //uint32_t alphaModeFlags = static_cast<uint32_t>(slot.alphaMode) & MaterialFlags::ALPHA_MODE_MASK;
+        //slot.flags = (slot.flags & ~MaterialFlags::ALPHA_MODE_MASK) | alphaModeFlags;
+
+        return slot;
+    }
+
+
+    // ----- Mesh ------ //
     std::vector<const aiMesh*> SceneLoader::collectMeshPointers(const aiScene* scene, const MeshOptions& options)
     {
         if (!scene || !scene->mMeshes || scene->mNumMeshes == 0) return {};
@@ -112,8 +334,7 @@ namespace compiler
         return mesh;
     }
 
-
-
+    // ----- Scene ----- //
     SceneLoadData SceneLoader::loadScene(const std::filesystem::path& path, const MeshOptions& meshOptions)
     {
         SceneLoadData returnData;
@@ -216,53 +437,6 @@ namespace compiler
 
 
 
-
-    ProcessedMaterialSlot SceneLoader::extractMaterialSlot(const aiMaterial* aiMat, uint32_t materialIndex, const std::filesystem::path& modelBasePath)
-    {
-        ProcessedMaterialSlot slot;
-        slot.originalIndex = materialIndex;
-
-        aiString name;
-        if (aiMat->Get(AI_MATKEY_NAME, name) == AI_SUCCESS && strlen(name.C_Str()) > 0)
-        {
-            slot.name = name.C_Str();
-        }
-        else
-        {
-            slot.name = "Material_" + std::to_string(materialIndex);
-        }
-
-        extractTexturePath(aiMat, aiTextureType_DIFFUSE, "albedo", slot, modelBasePath);
-        extractTexturePath(aiMat, aiTextureType_NORMALS, "normal", slot, modelBasePath);
-        extractTexturePath(aiMat, aiTextureType_METALNESS, "metallic", slot, modelBasePath);
-        extractTexturePath(aiMat, aiTextureType_DIFFUSE_ROUGHNESS, "roughness", slot, modelBasePath);
-        extractTexturePath(aiMat, aiTextureType_AMBIENT_OCCLUSION, "ao", slot, modelBasePath);
-
-        // Extract Parameters
-        // TODO the others as well....
-        aiColor4D color;
-        if (aiMat->Get(AI_MATKEY_COLOR_DIFFUSE, color) == AI_SUCCESS)
-        {
-            slot.vectorParams["baseColorFactor"] = { color.r, color.g, color.b, color.a };
-        }
-
-        float floatValue;
-        if (aiMat->Get(AI_MATKEY_ROUGHNESS_FACTOR, floatValue) == AI_SUCCESS)
-        {
-            slot.scalarParams["roughnessFactor"] = floatValue;
-        }
-        if (aiMat->Get(AI_MATKEY_METALLIC_FACTOR, floatValue) == AI_SUCCESS)
-        {
-            slot.scalarParams["metallicFactor"] = floatValue;
-        }
-
-        return slot;
-    }
-
-
-
-
-
     void SceneLoader::extractNodesForCompiler(
         const aiNode* node,
         const int32_t parentIdx,
@@ -321,333 +495,3 @@ namespace compiler
 
 
 }
-
-/*
-    void SceneLoader::extractObjectsFromNode(const aiNode* node, const mat4& parentTransform, const int32_t parentIndex, const aiScene* scene, std::vector<SceneObject>& objects) const
-    {
-        if (!node)
-            return;
-
-        // Convert Assimp matrix to GLM matrix
-        const aiMatrix4x4& aiMat = node->mTransformation;
-        const mat4 nodeTransform(aiMat.a1, aiMat.b1, aiMat.c1, aiMat.d1, aiMat.a2, aiMat.b2, aiMat.c2, aiMat.d2, aiMat.a3, aiMat.b3, aiMat.c3, aiMat.d3, aiMat.a4, aiMat.b4, aiMat.c4, aiMat.d4);
-        const mat4 globalTransform = parentTransform * nodeTransform;
-
-        int currentNodeIndex = objects.size();
-    
-        // Create scene objects for each mesh in this node
-        for (uint32_t i = 0; i < node->mNumMeshes; ++i)
-        {
-            const uint32_t meshIndex = node->mMeshes[i];
-            if (meshIndex < scene->mNumMeshes)
-            {
-                SceneObject object;
-                object.type = SceneObjectType::Mesh;
-                object.transform = globalTransform;
-                object.name = node->mName.length > 0 ? node->mName.C_Str() : ("Object_" + std::to_string(objects.size()));
-
-                // Store original indices for later resolution
-                object.meshIndex = meshIndex;
-                const aiMesh* aiMesh = scene->mMeshes[meshIndex];
-                object.materialIndex = aiMesh->mMaterialIndex;
-
-                objects.push_back(object);
-            }
-        }
-
-        // Recursively process child nodes
-        for (uint32_t i = 0; i < node->mNumChildren; ++i)
-        {
-            extractObjectsFromNode(node->mChildren[i], globalTransform, currentNodeIndex, scene, objects);
-        }
-    }
-
-void SceneLoader::calculateBounds(Scene& scene, std::vector<ProcessedMesh>& meshes)
-{
-    if (scene.objects.empty())
-    {
-        scene.center = vec3(0);
-        scene.radius = 0;
-        return;
-    }
-
-    vec3 globalMinBounds(std::numeric_limits<float>::max());
-    vec3 globalMaxBounds(std::numeric_limits<float>::lowest());
-    bool foundAnyGeometry = false;
-
-    // Calculate bounds by transforming actual mesh vertices
-    for (const auto& obj : scene.objects)
-    {
-        if (obj.type != SceneObjectType::Mesh)
-            continue;
-
-        const ProcessedMesh& mesh = meshes[obj.meshIndex];
-
-        const vec3 meshCenter = vec3(mesh.bounds);
-        const float meshRadius = mesh.bounds.w;
-
-        // Convert sphere bounds to box bounds for more accurate calculation
-        vec3 meshMin = meshCenter - vec3(meshRadius);
-        vec3 meshMax = meshCenter + vec3(meshRadius);
-
-        // Transform the 8 corners of the mesh bounding box
-        vec3 corners[8] = {
-            vec3(meshMin.x, meshMin.y, meshMin.z),
-            vec3(meshMax.x, meshMin.y, meshMin.z),
-            vec3(meshMin.x, meshMax.y, meshMin.z),
-            vec3(meshMax.x, meshMax.y, meshMin.z),
-            vec3(meshMin.x, meshMin.y, meshMax.z),
-            vec3(meshMax.x, meshMin.y, meshMax.z),
-            vec3(meshMin.x, meshMax.y, meshMax.z),
-            vec3(meshMax.x, meshMax.y, meshMax.z)
-        };
-
-        // Transform each corner and expand global bounds
-        for (int i = 0; i < 8; ++i)
-        {
-            vec4 worldCorner = obj.transform * vec4(corners[i], 1.0f);
-            vec3 worldPos = vec3(worldCorner);
-
-            globalMinBounds = glm::min(globalMinBounds, worldPos);
-            globalMaxBounds = glm::max(globalMaxBounds, worldPos);
-        }
-
-        foundAnyGeometry = true;
-    }
-
-    if (!foundAnyGeometry)
-    {
-        scene.center = vec3(0);
-        scene.radius = 0;
-        return;
-    }
-
-    // Calculate original scene properties
-    const vec3 originalCenter = (globalMinBounds + globalMaxBounds) * 0.5f;
-    const vec3 originalSize = globalMaxBounds - globalMinBounds;
-    const float originalRadius = glm::length(originalSize) * 0.5f;
-
-    // Calculate scaling to fit within camera view range
-    // Camera is at z = -1.5f looking towards origin, with near=0.1f, far=100.0f
-    const float maxAllowedRadius = 5.0f; // Keep scene at reasonable size for initial viewing
-    const float scaleFactor = originalRadius > 0.0f ? (maxAllowedRadius / originalRadius) : 1.0f;
-
-    // Calculate transforms: first center, then scale
-    const vec3 centeringOffset = -originalCenter;
-    const mat4 centeringTransform = glm::translate(mat4(1.0f), centeringOffset);
-    const mat4 scalingTransform = glm::scale(mat4(1.0f), vec3(scaleFactor));
-    const mat4 combinedTransform = scalingTransform * centeringTransform;
-
-    // Apply transformation to all mesh objects
-    for (auto& obj : scene.objects)
-    {
-        if (obj.type == SceneObjectType::Mesh)
-        {
-            const vec3 oldPos = vec3(obj.transform[3]);
-            obj.transform = combinedTransform * obj.transform;
-            const vec3 newPos = vec3(obj.transform[3]);
-
-        }
-    }
-
-    // Update scene bounds after transformation
-    const vec3 finalSize = originalSize * scaleFactor;
-    scene.boundingMin = -finalSize * 0.5f;
-    scene.boundingMax = finalSize * 0.5f;
-    scene.center = vec3(0.0f); // Centered at origin
-    scene.radius = originalRadius * scaleFactor;
-
-}
-*/
-
-
-
-/*
-
-void SceneLoader::resolveSceneObjectHandles(std::vector<SceneObject>& objects, const std::vector<MeshHandle>& meshHandles, const std::vector<MaterialHandle>& materialHandles) const
-{
-    for (auto& obj : objects)
-    {
-        if (obj.type == SceneObjectType::Mesh)
-        {
-            // Resolve mesh handle from original index
-            if (obj.meshIndex < meshHandles.size())
-            {
-                obj.mesh = meshHandles[obj.meshIndex];
-            }
-            else
-            {
-                //LOG_WARNING("Invalid mesh index {} for object '{}'", obj.meshIndex, obj.name);
-            }
-
-            // Resolve material handle from original index
-            if (obj.materialIndex < materialHandles.size())
-            {
-                obj.material = materialHandles[obj.materialIndex];
-            }
-            else if (!materialHandles.empty())
-            {
-                obj.material = materialHandles[0]; // Fallback to a default material
-            }
-
-            // Clear temporary indices
-            obj.meshIndex = UINT32_MAX;
-            obj.materialIndex = UINT32_MAX;
-        }
-    }
-}
-
-// Modified calculateBounds method with extensive debugging
-void SceneLoader::calculateBounds(Scene& scene, AssetSystem& assetSystem) const
-{
-    LOG_INFO("=== Scene Bounds Calculation Debug ===");
-    LOG_INFO("Scene name: '{}'", scene.name);
-    LOG_INFO("Number of objects: {}", scene.objects.size());
-
-    if (scene.objects.empty())
-    {
-        LOG_WARNING("Scene is empty, setting default bounds");
-        scene.center = vec3(0);
-        scene.radius = 0;
-        return;
-    }
-
-    vec3 globalMinBounds(std::numeric_limits<float>::max());
-    vec3 globalMaxBounds(std::numeric_limits<float>::lowest());
-    bool foundAnyGeometry = false;
-
-    // Calculate bounds by transforming actual mesh vertices
-    for (const auto& obj : scene.objects)
-    {
-        if (obj.type != SceneObjectType::Mesh || !obj.mesh.isValid())
-            continue;
-
-        // Get actual mesh bounds from asset system
-        const auto* meshGPUData = assetSystem.getMesh(obj.mesh);
-        if (!meshGPUData)
-        {
-            LOG_WARNING("Could not get mesh data for object '{}'", obj.name);
-            continue;
-        }
-
-        LOG_INFO("Processing object '{}' at position ({:.3f}, {:.3f}, {:.3f})",
-            obj.name, obj.transform[3][0], obj.transform[3][1], obj.transform[3][2]);
-
-        // Extract mesh bounds from GPU data (bounds = vec4(center.x, center.y, center.z, radius))
-        const vec3 meshCenter = vec3(meshGPUData->bounds);
-        const float meshRadius = meshGPUData->bounds.w;
-
-        // Convert sphere bounds to box bounds for more accurate calculation
-        vec3 meshMin = meshCenter - vec3(meshRadius);
-        vec3 meshMax = meshCenter + vec3(meshRadius);
-
-        LOG_INFO("  Mesh bounds: center=({:.3f}, {:.3f}, {:.3f}), radius={:.3f}",
-            meshCenter.x, meshCenter.y, meshCenter.z, meshRadius);
-        LOG_INFO("  Mesh local bounds: min=({:.3f}, {:.3f}, {:.3f}), max=({:.3f}, {:.3f}, {:.3f})",
-            meshMin.x, meshMin.y, meshMin.z, meshMax.x, meshMax.y, meshMax.z);
-
-        // Transform the 8 corners of the mesh bounding box
-        vec3 corners[8] = {
-            vec3(meshMin.x, meshMin.y, meshMin.z),
-            vec3(meshMax.x, meshMin.y, meshMin.z),
-            vec3(meshMin.x, meshMax.y, meshMin.z),
-            vec3(meshMax.x, meshMax.y, meshMin.z),
-            vec3(meshMin.x, meshMin.y, meshMax.z),
-            vec3(meshMax.x, meshMin.y, meshMax.z),
-            vec3(meshMin.x, meshMax.y, meshMax.z),
-            vec3(meshMax.x, meshMax.y, meshMax.z)
-        };
-
-        // Transform each corner and expand global bounds
-        for (int i = 0; i < 8; ++i)
-        {
-            vec4 worldCorner = obj.transform * vec4(corners[i], 1.0f);
-            vec3 worldPos = vec3(worldCorner);
-
-            globalMinBounds = glm::min(globalMinBounds, worldPos);
-            globalMaxBounds = glm::max(globalMaxBounds, worldPos);
-
-            if (i < 2) // Log first couple corners for debugging
-            {
-                LOG_INFO("    Corner {}: local=({:.3f}, {:.3f}, {:.3f}) -> world=({:.3f}, {:.3f}, {:.3f})",
-                    i, corners[i].x, corners[i].y, corners[i].z, worldPos.x, worldPos.y, worldPos.z);
-            }
-        }
-
-        foundAnyGeometry = true;
-    }
-
-    if (!foundAnyGeometry)
-    {
-        LOG_WARNING("No valid mesh geometry found");
-        scene.center = vec3(0);
-        scene.radius = 0;
-        return;
-    }
-
-    // Debug original bounds
-    LOG_INFO("Global bounds before transform: min=({:.3f}, {:.3f}, {:.3f}), max=({:.3f}, {:.3f}, {:.3f})",
-        globalMinBounds.x, globalMinBounds.y, globalMinBounds.z,
-        globalMaxBounds.x, globalMaxBounds.y, globalMaxBounds.z);
-
-    // Calculate original scene properties
-    const vec3 originalCenter = (globalMinBounds + globalMaxBounds) * 0.5f;
-    const vec3 originalSize = globalMaxBounds - globalMinBounds;
-    const float originalRadius = glm::length(originalSize) * 0.5f;
-
-    LOG_INFO("Original center: ({:.3f}, {:.3f}, {:.3f})", originalCenter.x, originalCenter.y, originalCenter.z);
-    LOG_INFO("Original size: ({:.3f}, {:.3f}, {:.3f})", originalSize.x, originalSize.y, originalSize.z);
-    LOG_INFO("Original radius: {:.3f}", originalRadius);
-
-    // Calculate scaling to fit within camera view range
-    // Camera is at z = -1.5f looking towards origin, with near=0.1f, far=100.0f
-    const float maxAllowedRadius = 5.0f; // Keep scene at reasonable size for initial viewing
-    const float scaleFactor = originalRadius > 0.0f ? (maxAllowedRadius / originalRadius) : 1.0f;
-
-    LOG_INFO("Max allowed radius: {:.3f}", maxAllowedRadius);
-    LOG_INFO("Scale factor: {:.6f}", scaleFactor);
-
-    // Calculate transforms: first center, then scale
-    const vec3 centeringOffset = -originalCenter;
-    const mat4 centeringTransform = glm::translate(mat4(1.0f), centeringOffset);
-    const mat4 scalingTransform = glm::scale(mat4(1.0f), vec3(scaleFactor));
-    const mat4 combinedTransform = scalingTransform * centeringTransform;
-
-    LOG_INFO("Centering offset: ({:.3f}, {:.3f}, {:.3f})", centeringOffset.x, centeringOffset.y, centeringOffset.z);
-
-    // Apply transformation to all mesh objects
-    for (auto& obj : scene.objects)
-    {
-        if (obj.type == SceneObjectType::Mesh)
-        {
-            const vec3 oldPos = vec3(obj.transform[3]);
-            obj.transform = combinedTransform * obj.transform;
-            const vec3 newPos = vec3(obj.transform[3]);
-
-            LOG_INFO("  Object '{}': ({:.3f}, {:.3f}, {:.3f}) -> ({:.3f}, {:.3f}, {:.3f})",
-                obj.name, oldPos.x, oldPos.y, oldPos.z, newPos.x, newPos.y, newPos.z);
-        }
-    }
-
-    // Update scene bounds after transformation
-    const vec3 finalSize = originalSize * scaleFactor;
-    scene.boundingMin = -finalSize * 0.5f;
-    scene.boundingMax = finalSize * 0.5f;
-    scene.center = vec3(0.0f); // Centered at origin
-    scene.radius = originalRadius * scaleFactor;
-
-    LOG_INFO("Final bounds: min=({:.3f}, {:.3f}, {:.3f}), max=({:.3f}, {:.3f}, {:.3f})",
-        scene.boundingMin.x, scene.boundingMin.y, scene.boundingMin.z,
-        scene.boundingMax.x, scene.boundingMax.y, scene.boundingMax.z);
-    LOG_INFO("Final center: ({:.3f}, {:.3f}, {:.3f})", scene.center.x, scene.center.y, scene.center.z);
-    LOG_INFO("Final radius: {:.3f}", scene.radius);
-
-    if (scaleFactor != 1.0f)
-    {
-        LOG_INFO("Scene '{}' scaled by factor {:.3f} to fit view range (original radius: {:.2f}, new radius: {:.2f})",
-            scene.name, scaleFactor, originalRadius, scene.radius);
-    }
-
-    LOG_INFO("=== End Scene Bounds Debug ===");
-}
-*/

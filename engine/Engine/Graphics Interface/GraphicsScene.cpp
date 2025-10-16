@@ -22,6 +22,7 @@ All rights reserved.
 #include "renderer.h"
 #include "grid_feature.h"
 #include "asset_system.h"
+#include "EditorCameraBridge.h"
 
 GraphicsScene::GraphicsScene()
     : context{}
@@ -64,6 +65,8 @@ void GraphicsScene::SetViewCamera(const Camera& camera)
 {
     frameData.cameraPos = camera.getPosition();
     frameData.viewMatrix = camera.getViewMatrix();
+
+    EditorCam_Publish(frameData.viewMatrix, frameData.projMatrix, false);
 }
 
 void GraphicsScene::AddObject(const MeshHandle& meshHandle, const MaterialHandle& materialHandle, const Mat4& transform)

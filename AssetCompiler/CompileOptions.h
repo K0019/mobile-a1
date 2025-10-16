@@ -1,3 +1,22 @@
+/******************************************************************************/
+/*!
+\file   CompileOptions.h
+\par    Project: Kuro Mahou
+\par    Course: CSD3401
+\par    Software Engineering Project 5
+\date   10/06/2025
+
+\author Rocky Sutarius (100%)
+\par    email: rocky.sutarius\@digipen.edu
+\par    DigiPen login: rocky.sutarius
+
+\brief
+Options for compiling.
+
+All content © 2025 DigiPen Institute of Technology Singapore.
+All rights reserved.
+*/
+/******************************************************************************/
 #pragma once
 #include <source_location>
 #include <string>
@@ -8,7 +27,8 @@
 
 namespace compiler
 {
-
+    // This entire section is useless right now.
+    // Thank you for the inspiration though xtexture.plugin  \o LIONant o/
     enum BUILD_PLATFORM : std::uint8_t
     {
         WINDOWS,
@@ -62,6 +82,8 @@ namespace compiler
         ASTC,
         ETC
     };
+    
+    //Still unused
     enum TextureWrapMode
     {
         CLAMP_TO_EDGE,
@@ -81,7 +103,6 @@ namespace compiler
     {
         std::filesystem::path inputPath;
         std::filesystem::path outputPath;
-        bool forceRecompile = false;
     };
 
     struct MeshOptions
@@ -101,7 +122,7 @@ namespace compiler
         TextureWrapMode wrapMode;
         TextureAlphaMode alphaMode;
 
-        float quality; // 0.0f-1.0f
+        float quality = 0.05f; // 0.0f-1.0f
 
         bool generateMipmaps;
         int mipCount = 1;
@@ -116,19 +137,5 @@ namespace compiler
         MeshOptions mesh;
         TextureOptions texture;
     };
-
-
-
-
-    //struct CommonCompileOptions
-    //{
-    //    std::filesystem::path inputPath;
-    //    std::filesystem::path outputPath;
-    //    OPTIMIZATION_TYPE optimization = OPTIMIZATION_TYPE::O1;
-    //    DEBUG_TYPE debug = DEBUG_TYPE::D0;
-
-    //    using platform_list = std::array<Platform, static_cast<int>(BUILD_PLATFORM::COUNT)>;
-    //    platform_list targets{};
-    //};
 
 }

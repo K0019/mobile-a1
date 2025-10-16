@@ -32,8 +32,12 @@ All rights reserved.
 #include "NameComponent.h"
 #include "EntityLayers.h"
 #include "Game.h"
+#include "EditorGizmoBridge.h"
+
 
 #ifdef IMGUI_ENABLED
+
+//for imgui gizmo
 
 Inspector::Inspector()
 	: Window{ ICON_FA_MAGNIFYING_GLASS" Inspector", gui::Vec2{ 300, 400 }, gui::FLAG_WINDOW::ALWAYS_VERTICAL_SCROLL_BAR }
@@ -122,6 +126,19 @@ void Inspector::ProcessInput()
 	if(ST<KeyboardMouseInput>::Get()->GetIsPressed(KEY::DEL))
 		DeleteSelectedEntity();
 
+	//to change guizmo settings
+	if (ST<KeyboardMouseInput>::Get()->GetIsPressed(KEY::F1)) {
+		EditorGizmo_Publish(ImGuizmo::TRANSLATE, ImGuizmo::WORLD /* or LOCAL */);
+	}
+	if (ST<KeyboardMouseInput>::Get()->GetIsPressed(KEY::F2)) {
+		EditorGizmo_Publish(ImGuizmo::ROTATE, EditorGizmo_Mode());
+
+	}
+	if (ST<KeyboardMouseInput>::Get()->GetIsPressed(KEY::F3)) {
+		EditorGizmo_Publish(ImGuizmo::SCALE, EditorGizmo_Mode());
+
+	}
+
 	if(!selectedEntity)
 	{
 		if(!isMouseInViewport || isCameraDragging)
@@ -192,7 +209,7 @@ void Inspector::ProcessInput()
 			return;
 		}
 
-		m_gizmo.processInput();
+		//m_gizmo.processInput();
 		// Handle deselection with double click
 		//static float lastClickTime = 0.0f;
 		//static const float doubleClickTime = 0.3f; // Adjust this value to change double click sensitivity
@@ -327,25 +344,10 @@ void Inspector::DrawContents()
 	}
 
 	// Gizmo tool buttons
-	if(gui::Group groupGizmo{})
 	{
-		const auto RenderGizmoButton{ [&gizmo = m_gizmo, &currType = m_currentGizmoType](GizmoType type, const char* buttonText, const char* hoverText) -> void {
-			gui::SetStyleColor styleColButton{ gui::FLAG_STYLE_COLOR::BUTTON, gui::Vec4{ 0.2f, 0.5f, 0.7f, 1.0f }, currType == type };
-			if(gui::Button button{ buttonText })
-			{
-				currType = (currType == type ? GizmoType::None : type);
-				gizmo.setType(currType);
-			}
-			if(gui::IsItemHovered())
-				gui::Tooltip tooltip{ hoverText };
-		} };
-
-		RenderGizmoButton(GizmoType::Translate, ICON_FA_ARROWS_LEFT_RIGHT, "Translate");
-		gui::SameLine();
-		RenderGizmoButton(GizmoType::Rotate, ICON_FA_ROTATE, "Rotate");
-		gui::SameLine();
-		RenderGizmoButton(GizmoType::Scale, ICON_FA_UP_RIGHT_AND_DOWN_LEFT_FROM_CENTER, "Scale");
+		ImGuizmo::Enable(true);
 	}
+
 
 	// Transform panel
 	selectedEntity->GetTransform().EditorDraw();
@@ -405,14 +407,7 @@ ecs::EntityHandle Inspector::GetSelectedEntity() {
 void Inspector::SetSelectedEntity(ecs::EntityHandle entity)
 {
 	selectedEntity = entity;
-	if(selectedEntity) {
-		m_gizmo.attach(selectedEntity->GetTransform());
-		m_gizmo.setType(m_currentGizmoType = GizmoType::None);
-	}
-	else {
-		m_gizmo.detach();
-		m_gizmo.setType(m_currentGizmoType = GizmoType::None);
-	}
+
 }
 
 void Inspector::DrawSelectedEntityBorder()
@@ -432,14 +427,6 @@ void Inspector::DrawSelectedEntityBorder()
 		}
 		// TODO 3D: Editor, draw entity bounding box
 		//util::DrawBoundingBox(*transform, { 0.0f, 1.0f, 0.0f });
-	}
-}
-
-void Inspector::DrawGizmoInViewport(ImDrawList* drawList)
-{
-	if(CheckIsSelectedEntityValid() && m_currentGizmoType != GizmoType::None)
-	{
-		m_gizmo.draw(drawList);
 	}
 }
 
@@ -752,12 +739,7 @@ void Inspector::DrawEntityActionsButton()
 	}
 }
 
-//Vec2 Inspector::SnapToGrid(const Vec2& worldPos) const {
-//	return {
-//		std::round((worldPos.x - m_gridOffset.x) / m_gridSize) * m_gridSize + m_gridOffset.x,
-//		std::round((worldPos.y - m_gridOffset.y) / m_gridSize) * m_gridSize + m_gridOffset.y
-//	};
-//}
+
 //void Inspector::RenderGrid()
 //{
 //    if(!m_showGrid || (ST<Game>::Get()->GetState() == GAMESTATE::IN_GAME || ST<Game>::Get()->GetState() == GAMESTATE::PAUSE)) return;

@@ -26,6 +26,7 @@ All rights reserved.
 #include "CustomViewport.h"
 #include "EditorTweenModule.h"
 #include "Gizmo.h"
+#include "ImGuizmo.h"
 
 class Inspector : public gui::Window
 {
@@ -75,9 +76,7 @@ public:
 	*//******************************************************************/
 	void DrawSelectedEntityBorder();
 
-	void DrawGizmoInViewport(ImDrawList* drawList);
 
-	//void RenderGrid();
 
 	bool m_drawPhysicsBoxes;
 	bool m_drawVelocity;
@@ -115,6 +114,7 @@ private:
 	*//******************************************************************/
 	void DrawEntityActionsButton();
 
+
 	
 private:
 	//Vec2 SnapToGrid(const Vec2& worldPos) const;
@@ -126,9 +126,6 @@ private:
 	//Vec4 m_gridColor{ 1.0f,1.0f,1.0f,1.0f };
 	ecs::EntityHandle selectedEntity{ nullptr };
 	bool drawBoxes{ true };
-
-	Gizmo m_gizmo;
-	GizmoType m_currentGizmoType = GizmoType::None;
 
 	EditorTweenModule editorTweenModule;
 #endif

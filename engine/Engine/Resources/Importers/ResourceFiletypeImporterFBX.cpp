@@ -212,9 +212,9 @@ bool ResourceFiletypeImporterFBX::Import(const std::filesystem::path& assetRelat
     // Delegate importing of the created files to their respective importers
     for (const auto& path : result.createdMeshFiles)
         ResourceImporter::Import(path);
-    //for (const auto& path : result.createdMaterialFiles)
-    //    ResourceImporter::Import(path);
     for (const auto& path : result.createdTextureFiles)
+        ResourceImporter::Import(path);
+    for (const auto& path : result.createdMaterialFiles)
         ResourceImporter::Import(path);
 
     return true;

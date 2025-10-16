@@ -1,3 +1,27 @@
+/******************************************************************************/
+/*!
+\file   MeshProcessor.cpp
+\par    Project: Kuro Mahou
+\par    Course: CSD3401
+\par    Software Engineering Project 5
+\date   10/06/2025
+
+\author Ryan Cheong (100%)
+\par    email: ngaihangryan.cheong\@digipen.edu 
+\par    DigiPen login: ngaihangryan.cheong
+
+\author Rocky Sutarius (0%) - just copied everything
+\par    email: rocky.sutarius\@digipen.edu
+\par    DigiPen login: rocky.sutarius
+
+\brief
+Uses meshoptimizer to optimise a mesh.
+
+All content © 2025 DigiPen Institute of Technology Singapore.
+All rights reserved.
+*/
+/******************************************************************************/
+
 #include "MeshProcessor.h"
 #include <meshoptimizer.h>
 #include <algorithm>
@@ -179,6 +203,33 @@ namespace compiler
         if (indices.size() % 3 != 0) { return false; }
 
         return true;
+    }
+
+    vec4 MeshOptimizer::calculateBounds(std::span<const Vertex> vertices)
+    {
+        if (vertices.empty()) { return vec4(0.0f, 0.0f, 0.0f, 0.0f); }
+
+        // Find axis-aligned bounding box
+        vec3 minPos = vertices[0].position;
+        vec3 maxPos = vertices[0].position;
+
+        for (const auto& vertex : vertices)
+        {
+            minPos = glm::min(minPos, vertex.position);
+            maxPos = glm::max(maxPos, vertex.position);
+        }
+
+        // Calculate bounding sphere center and radius
+        const vec3 center = (minPos + maxPos) * 0.5f;
+        float radius = 0.0f;
+
+        for (const auto& vertex : vertices)
+        {
+            const float distance = glm::length(vertex.position - center);
+            radius = std::max(radius, distance);
+        }
+
+        return { center.x, center.y, center.z, radius };
     }
 
     int MeshOptimizer::getNumFaces(const SMikkTSpaceContext* pContext)

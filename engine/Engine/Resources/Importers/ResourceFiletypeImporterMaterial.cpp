@@ -40,7 +40,7 @@ namespace
 bool ResourceFiletypeImporterMaterial::Import(const std::filesystem::path& relativeFilepath)
 {
     // Load the file
-    std::filesystem::path fullPath = ST<Filepaths>::Get()->assets / relativeFilepath;
+    std::filesystem::path fullPath = GetExeRelativeFilepath(relativeFilepath);
     ProcessedMaterial material;
 
     Deserializer reader{ fullPath.string()};

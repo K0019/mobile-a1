@@ -1,5 +1,24 @@
+/******************************************************************************/
+/*!
+\file   MeshFileStructure.h
+\par    Project: Kuro Mahou
+\par    Course: CSD3401
+\par    Software Engineering Project 5
+\date   10/06/2025
+
+\author Rocky Sutarius (100%)
+\par    email: rocky.sutarius\@digipen.edu
+\par    DigiPen login: rocky.sutarius
+
+\brief
+Defines the structure of a .mesh file
+
+All content © 2025 DigiPen Institute of Technology Singapore.
+All rights reserved.
+*/
+/******************************************************************************/
+
 #pragma once
-#include "MeshCompilerData.h"
 #include <cstdint>
 
 namespace compiler
@@ -40,8 +59,6 @@ namespace compiler
     struct MeshNode
     {
         mat4 transform;
-        //mat4 localTransform;
-        //mat4 worldTransform;
         int32_t parentIndex; // Index into the node array, -1 for root
         int32_t meshIndex;   // Index into the mesh info array, -1 if no mesh
         char name[64];       // Fixed-size name for simplicity

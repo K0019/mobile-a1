@@ -35,6 +35,8 @@ X(OCCLUSION_TEXTURE, "Occlusion")
 
 		std::array<size_t, +MATERIAL_TEXTURE_INDEX::TOTAL> textures;
 		AssetLoading::ProcessedMaterial materialProps;
+		bool isUnlit = false;
+		bool isDoubleSided = false;
 	};
 
 }

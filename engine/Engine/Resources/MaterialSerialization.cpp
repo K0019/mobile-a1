@@ -66,6 +66,9 @@ void MaterialSerialization::Serialize(Serializer& writer, const ProcessedMateria
     textures["emissive"]          = getPathFromHandle(textureHandles[3]);
     textures["occlusion"]         = getPathFromHandle(textureHandles[4]);
     writer.Serialize("textures", textures);
+
+    writer.Serialize("flags", material.flags);
+    //writer.Serialize("materialTypeFlags", material.materialTypeFlags);
 }
 
 
@@ -110,9 +113,14 @@ void MaterialSerialization::Deserialize(Deserializer& reader, ProcessedMaterial&
         outMaterial.occlusionTexture.source         = constructDataSource(assetsRootPath, textures["occlusion"]);
     }
 
+    reader.DeserializeVar("flags", &outMaterial.flags);
+    //reader.DeserializeVar("materialTypeFlags", &outMaterial.materialTypeFlags);
+
+
     //Default flags
     outMaterial.materialTypeFlags = MaterialType::METALLIC_ROUGHNESS;
-    outMaterial.flags = MaterialFlags::DEFAULT_FLAGS;
+    outMaterial.flags |= MaterialFlags::DEFAULT_FLAGS;
+    //outMaterial.flags = MaterialFlags::DEFAULT_FLAGS;
 
     // CRITICAL FIX: Set alpha mode in flags
     uint32_t alphaModeFlags = static_cast<uint32_t>(outMaterial.alphaMode) & MaterialFlags::ALPHA_MODE_MASK;
