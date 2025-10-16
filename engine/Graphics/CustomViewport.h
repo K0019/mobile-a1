@@ -14,7 +14,7 @@
 \brief
 This file contains the declaration of the CustomViewport class, which represents a custom viewport for rendering graphics.
 
-All content © 2024 DigiPen Institute of Technology Singapore.
+All content ï¿½ 2024 DigiPen Institute of Technology Singapore.
 All rights reserved.
 */
 /******************************************************************************/
@@ -22,6 +22,8 @@ All rights reserved.
 #include "Engine.h"
 #include "imgui_internal.h"
 #include "Gizmo.h"
+#include "camera.h"
+
 /**
  * @brief The CustomViewport class represents a custom viewport for rendering graphics.
  */
@@ -55,6 +57,11 @@ public:
      * @brief DrawImGuiWindow draws the ImGui window for the custom viewport.
      */
     void DrawImGuiWindow();
+
+    /**
+     * @brief Polls input and updates the viewport camera accordingly.
+     */
+    void UpdateCameraControl();
 
     /**
      * @brief MaintainAspectRatio is a callback function used to maintain the aspect ratio of the viewport.
@@ -91,14 +98,16 @@ public:
     Vec2 GetViewportRenderSize() const;
 
     void updateCurrentEntity(ecs::EntityHandle entity);
+    Camera GetViewportCamera() const;
+
      ~CustomViewport() = default;
 
-    std::string name {ICON_FA_GAMEPAD " Scene"}; /**< The name of the ImGui Window. Specifically put here because I use it more than once*/
+    std::string name; /**< The name of the ImGui Window. Specifically put here because I use it more than once*/
 private:
     /**
      * @brief Default constructor for the CustomViewport class.
      */
-    CustomViewport() = default;
+    CustomViewport();
 
     bool disableMoving{ false }; /**< Flag indicating whether moving the viewport is disabled. */
     unsigned width {},height {}; /**< The width and height of the viewport. */
@@ -109,5 +118,16 @@ private:
     Vec contentMax; /**< The maximum position of the content region. */
     Vec viewportRenderSize; /**< The render size of the viewport. */
     Gizmo m_gizmo;
+    CameraPositioner_FirstPerson camera;
 
+};
+
+/*****************************************************************//*!
+\brief
+    Uploads the custom viewport's camera to GameScene, the graphics API.
+*//******************************************************************/
+class CustomViewportCameraUploadSystem : public ecs::System<CustomViewportCameraUploadSystem>
+{
+public:
+    bool PreRun() override;
 };

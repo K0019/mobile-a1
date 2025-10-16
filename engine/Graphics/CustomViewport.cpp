@@ -26,6 +26,17 @@ All rights reserved.
 #include "imgui_context.h"
 #include "GraphicsAPI.h"
 
+CustomViewport::CustomViewport()
+	: disableMoving{}
+	, width{}
+	, height{}
+	, aspect_ratio{}
+	, titleBarHeight{}
+	, name{ ICON_FA_GAMEPAD " Scene" }
+	, camera{ vec3(0.0f, 1.0f, -1.5f), vec3(0.0f, 0.5f, 0.0f), vec3(0.0f, 1.0f, 0.0f) }
+{
+}
+
 void CustomViewport::Init(unsigned newWidth, unsigned newHeight)
 {
 	width = newWidth;
@@ -269,6 +280,28 @@ void CustomViewport::DrawImGuiWindow() {
 	ImGui::PopStyleVar();
 }
 
+void CustomViewport::UpdateCameraControl()
+{
+	static Vec2 lastMousePos;
+	vec2 mouse_delta = ST<KeyboardMouseInput>::Get()->GetMousePos() - lastMousePos;
+	lastMousePos = ST<KeyboardMouseInput>::Get()->GetMousePos();
+
+	if (ST<KeyboardMouseInput>::Get()->GetIsDown(KEY::M_RIGHT))
+	{
+		camera.movement_.forward_ = ST<KeyboardMouseInput>::Get()->GetIsDown(KEY::W);
+		camera.movement_.backward_ = ST<KeyboardMouseInput>::Get()->GetIsDown(KEY::S);
+		camera.movement_.left_ = ST<KeyboardMouseInput>::Get()->GetIsDown(KEY::A);
+		camera.movement_.right_ = ST<KeyboardMouseInput>::Get()->GetIsDown(KEY::D);
+		camera.movement_.up_ = ST<KeyboardMouseInput>::Get()->GetIsDown(KEY::NUM_1);
+		camera.movement_.down_ = ST<KeyboardMouseInput>::Get()->GetIsDown(KEY::NUM_2);
+	}
+	else
+		// Reset keys
+		camera.movement_ = CameraPositioner_FirstPerson::Movement{};
+
+	camera.update(GameTime::FixedDt(), mouse_delta, ST<KeyboardMouseInput>::Get()->GetIsDown(KEY::M_RIGHT));
+}
+
 void CustomViewport::MaintainAspectRatio(ImGuiSizeCallbackData* data) {
 	CustomViewport* viewport = static_cast<CustomViewport*>(data->UserData);
 	float aspect_ratio = viewport->aspect_ratio;
@@ -435,4 +468,16 @@ void CustomViewport::updateCurrentEntity(ecs::EntityHandle entity) {
 	else {
 		m_gizmo.detach();
 	}
+}
+Camera CustomViewport::GetViewportCamera() const
+{
+	return Camera{ camera };
+}
+
+bool CustomViewportCameraUploadSystem::PreRun()
+{
+	ST<GraphicsScene>::Get()->SetViewCamera(ST<CustomViewport>::Get()->GetViewportCamera());
+
+	// No components are needed
+	return false;
 }

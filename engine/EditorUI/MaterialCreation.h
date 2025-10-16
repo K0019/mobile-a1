@@ -1,10 +1,15 @@
 #pragma once
 #include "GUIAsECS.h"
+#include "processed_assets.h"
 
 namespace editor {
 
 #define MATERIAL_TEXTURE_INDEX_ENUM \
-X(NORMAL_COLOR, "Normal Color")
+X(BASE_COLOR_TEXTURE, "Base Color") \
+X(METALLIC_ROUGHNESS_TEXTURE, "Metallic Roughness") \
+X(NORMAL_TEXTURE, "Normal Map") \
+X(EMISSIVE_TEXTURE, "Emissive") \
+X(OCCLUSION_TEXTURE, "Occlusion")
 
 #define X(type, str) type,
 	enum class MATERIAL_TEXTURE_INDEX
@@ -13,6 +18,7 @@ X(NORMAL_COLOR, "Normal Color")
 		TOTAL
 	};
 #undef X
+
 
 	class MaterialCreationWindow : public WindowBase<MaterialCreationWindow, false>
 	{
@@ -25,8 +31,12 @@ X(NORMAL_COLOR, "Normal Color")
 		void AttemptCreateMaterial();
 
 	private:
-		std::array<size_t, +MATERIAL_TEXTURE_INDEX::TOTAL> textures;
+		char materialName[128]{ "NewMaterial" };
 
+		std::array<size_t, +MATERIAL_TEXTURE_INDEX::TOTAL> textures;
+		AssetLoading::ProcessedMaterial materialProps;
+		bool isUnlit = false;
+		bool isDoubleSided = false;
 	};
 
 }

@@ -22,6 +22,7 @@ All rights reserved.
 #include "context.h"
 #include "scene_feature.h"
 #include "asset_types.h"
+#include "camera.h"
 
 class GraphicsScene
 {
@@ -31,8 +32,13 @@ public:
 	bool Init(Context inContext);
 	bool NewFrame();
 
+	void SetViewCamera(const Camera& camera);
 	void AddObject(const MeshHandle& meshHandle, const MaterialHandle& materialHandle, const Mat4& transform);
 	void AddLight(const SceneLight& sceneLight);
+
+public:
+	FrameData& INTERNAL_GetFrameData();
+
 private:
 	friend ST<GraphicsScene>;
 	GraphicsScene();
@@ -43,6 +49,7 @@ private:
 	SceneRenderParams* params;
 
 	size_t objIndex;
+	FrameData frameData;
 
 	uint64_t gridHandle;
 };

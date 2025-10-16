@@ -108,6 +108,13 @@ void GraphicsMain::EndImGuiFrame()
 
 void GraphicsMain::EndFrame()
 {
+	// Update perspective matrix based on window extents
+	auto windowExtent{ ST<GraphicsWindow>::Get()->GetWindowExtent() };
+	ST<GraphicsScene>::Get()->INTERNAL_GetFrameData().projMatrix = perspective(45.0f, (float)windowExtent.x / (float)windowExtent.y, 0.1f, 100.0f);
+	
+	// Upload the camera and tell the renderer to render the uploaded objects
+	renderer->render(ST<GraphicsScene>::Get()->INTERNAL_GetFrameData());
+	// Frame is done
 	renderer->endFrame();
 }
 
@@ -251,68 +258,3 @@ editor::ImGuiContext& GraphicsMain::GetImGuiContext()
 }
 
 #endif
-
-#include "grid_feature.h"
-#include "scene_feature.h"
-#include "scene_loader.h"
-#include "camera.h"
-#include "Input.h"
-
-// NOTE: These handles aren't being cleaned up because this is just temp code.
-static uint64_t gridFeature{};
-static uint64_t sceneFeatureHandle_{};
-static AssetLoading::Scene loadedScene_{};
-
-void GraphicsMain::LoadSampleScene()
-{
-	// HEY SORRY ABOUT THIS, BUT THERE IS NO ISSUE WITH THE ASSET BEING LOADED, THE CAMERA JUST SPAWNS INSIDE THE BOX SO YOU NEED TO MOVE BACK TO SEE IT
-	gridFeature = renderer->CreateFeature<GridFeature>();
-	sceneFeatureHandle_ = renderer->CreateFeature<SceneRenderFeature>();
-	const std::unique_ptr<AssetLoading::SceneLoader> sceneLoader_ = std::make_unique<AssetLoading::SceneLoader>(*context.assetSystem);
-	std::filesystem::path workingDir = std::filesystem::canonical(ST<Filepaths>::Get()->workingDir);
-	std::filesystem::path asset = workingDir / "Assets" / "fbxcars" / "box.fbx";
-	const std::filesystem::path testScenePath = asset.string().c_str();
-	if (exists(testScenePath))
-	{
-		auto loadResult = sceneLoader_->loadScene(testScenePath);
-		if (loadResult.success)
-		{
-			loadedScene_ = std::move(loadResult.scene);
-		}
-	}
-}
-
-void GraphicsMain::RenderSampleScene()
-{
-	//TODO PLEASE PUT A REAL CAMERA IN HERE OR ELSE!!!!!!!!!!
-	static CameraPositioner_FirstPerson positioner_ = { vec3(0.0f, 1.0f, -1.5f), vec3(0.0f, 0.5f, 0.0f), vec3(0.0f, 1.0f, 0.0f) };
-	static Camera camera = Camera(positioner_);
-	positioner_.movement_.forward_ = ST<KeyboardMouseInput>::Get()->GetIsDown(KEY::W);
-	positioner_.movement_.backward_ = ST<KeyboardMouseInput>::Get()->GetIsDown(KEY::S);
-	positioner_.movement_.left_ = ST<KeyboardMouseInput>::Get()->GetIsDown(KEY::A);
-	positioner_.movement_.right_ = ST<KeyboardMouseInput>::Get()->GetIsDown(KEY::D);
-	positioner_.movement_.up_ = ST<KeyboardMouseInput>::Get()->GetIsDown(KEY::NUM_1);
-	positioner_.movement_.down_ = ST<KeyboardMouseInput>::Get()->GetIsDown(KEY::NUM_2);
-	if (ST<KeyboardMouseInput>::Get()->GetIsDown(KEY::SPACE))
-	{
-		positioner_.lookAt(vec3(0.0f, 1.0f, -1.5f), vec3(0.0f, 0.5f, 0.0f), vec3(0.0f, 1.0f, 0.0f));
-		positioner_.setSpeed(vec3(0.0f));
-	}
-	static Vec2 lastMousePos;
-	vec2 mouse_delta = ST<KeyboardMouseInput>::Get()->GetMousePos() - lastMousePos;
-	lastMousePos = ST<KeyboardMouseInput>::Get()->GetMousePos();
-	positioner_.update(GameTime::Dt(), mouse_delta, ST<KeyboardMouseInput>::Get()->GetIsDown(KEY::M_RIGHT));
-
-	auto windowExtent{ ST<GraphicsWindow>::Get()->GetWindowExtent() };
-	::FrameData currentFrameData{};
-	currentFrameData.cameraPos = camera.getPosition();
-	currentFrameData.viewMatrix = camera.getViewMatrix();
-	currentFrameData.projMatrix = perspective(45.0f, (float)windowExtent.x / (float)windowExtent.y, 0.1f, 100.0f);
-	//SceneRenderFeature::UpdateScene(sceneFeatureHandle_, loadedScene_, *context.assetSystem, *renderer);
-
-	// Publish so the editor (ImGuizmo) can read it this frame.
-	EditorCam_Publish(currentFrameData.viewMatrix, currentFrameData.projMatrix, /*ortho*/ false);
-
-
-	renderer->render(currentFrameData);
-}

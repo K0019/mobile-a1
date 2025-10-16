@@ -2,8 +2,11 @@
 #include "AssetBrowser.h"
 #include "ResourceImporter.h"
 #include "Import.h"
+#include "SceneCompiler.h"
+#include "TextureCompiler.h"
 #include "GameSettings.h"
 #include "GUICollection.h"
+#include "logging.h"
 
 const char* FileBrowserTab::GetName() const
 {
@@ -276,12 +279,16 @@ void FileBrowserTab::RenderItemContextMenu(const FileSystem::FileEntry& entry)
             spriteConfig.isSpriteSheet = true;
             spriteConfig.spriteCount = 1;
         }
+        if (ImGui::MenuItem(ICON_FA_FILE_IMPORT" Import as KTX2"))
+        {
+            ResourceImporter::Import(entry.fullPath);
+        }
         ImGui::Separator();
     }
     else if (entry.fileType == "importable")
     {
         if (gui::MenuItem(ICON_FA_FILE_IMPORT" Import"))
-            ResourceImporter::Import(entry.fullPath.string());
+            ResourceImporter::Import(entry.fullPath);
     }
 
     if (ImGui::MenuItem(ICON_FA_COPY" Copy Path"))
