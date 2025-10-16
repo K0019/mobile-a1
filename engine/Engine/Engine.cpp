@@ -44,7 +44,6 @@ All rights reserved.
 #include "BehaviourTreeWindow.h"
 #include "LayersMatrix.h"
 #include "EntityLayers.h"
-#include "Gizmo.h"
 
 #include "CSScripting.h"
 #include "HotReloader.h"
@@ -281,7 +280,7 @@ void Engine::run()
 			ST<PrefabWindow>::Get()->DrawSaveLoadPrompt(&ST<PrefabWindow>::Get()->IsOpen());
 		}
 		if(ST<Hierarchy>::Get()->isOpen)
-		{	
+		{
 			ST<Hierarchy>::Get()->Draw();
 		}
 		ST<Popup>::Get()->Draw();
@@ -293,8 +292,6 @@ void Engine::run()
 		ecs::FlushChanges(); // This deletes entities whose windows were closed (see WindowBase::OnOpenStateChanged())
 		ecs::SwitchToPool(ecs::POOL::DEFAULT);
 		ecs::FlushChanges(); // For if any of the editor windows deleted an entity.
-
-
 
 		if(ImGui::BeginMainMenuBar())
 		{
@@ -361,10 +358,7 @@ void Engine::run()
 			ImGui::EndMainMenuBar();  // End the main menu bar
 		}
 
-
 		ST<CustomViewport>::Get()->DrawImGuiWindow();
-
-
 
 		ST<GraphicsMain>::Get()->EndImGuiFrame();
 #endif

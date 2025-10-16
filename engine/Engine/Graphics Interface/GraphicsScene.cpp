@@ -22,6 +22,7 @@ All rights reserved.
 #include "renderer.h"
 #include "grid_feature.h"
 #include "asset_system.h"
+#include "EditorCameraBridge.h"
 
 GraphicsScene::GraphicsScene()
     : context{}

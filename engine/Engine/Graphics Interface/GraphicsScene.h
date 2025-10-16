@@ -23,7 +23,7 @@ All rights reserved.
 #include "scene_feature.h"
 #include "asset_types.h"
 #include "camera.h"
-#include "EditorCameraBridge.h"
+
 class GraphicsScene
 {
 public:

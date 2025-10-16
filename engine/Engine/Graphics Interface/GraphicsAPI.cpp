@@ -24,7 +24,6 @@ All rights reserved.
 
 #include "fa.h"
 
-#include "EditorCameraBridge.h"
 bool GraphicsAssets::Init(Context* context)
 {
 	assetSystem = std::make_unique<AssetLoading::AssetSystem>(context);
