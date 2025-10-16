@@ -179,6 +179,7 @@ void CustomViewport::DrawPlayControls() {
 }
 
 void CustomViewport::DrawImGuiWindow() {
+
 	ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
 	ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse;
 	if (disableMoving) {
@@ -229,6 +230,8 @@ void CustomViewport::DrawImGuiWindow() {
 			padding = ImVec2(0, 0);
 		}
 
+
+		//=============================
 		// Store viewport information
 		viewportRenderSize = renderSize;
 		windowPosAbsolute = windowPos;
@@ -236,15 +239,21 @@ void CustomViewport::DrawImGuiWindow() {
 		contentMax = ImVec2(padding.x + renderSize.x,
 			padding.y + renderSize.y + titleBarHeight + playControlsHeight);
 
-		// Set position and render viewport image
+		// 1) Draw the scene texture first
 		ImGui::SetCursorPos(ImVec2(padding.x, padding.y + titleBarHeight + playControlsHeight));
-		if (auto sceneColorID = ST<GraphicsMain>::Get()->GetImGuiContext().GetTransientRegistry().QueryBindlessID("ImGuiSceneView"))
-    {
-			ImGui::Image(*sceneColorID,
-				renderSize,
-				ImVec2(0, 0), ImVec2(1, 1)
-			);
+		if (auto sceneColorID = ST<GraphicsMain>::Get()->GetImGuiContext()
+			.GetTransientRegistry().QueryBindlessID("ImGuiSceneView"))
+		{
+			ImGui::Image(*sceneColorID, renderSize, ImVec2(0, 0), ImVec2(1, 1));
 		}
+
+
+		ImDrawList* drawList = ImGui::GetWindowDrawList();
+		updateCurrentEntity(ST<Inspector>::Get()->GetSelectedEntity());
+		m_gizmo.Draw(drawList);
+		//==========================
+
+
 		if (ImGui::BeginDragDropTarget())
 		{
 			if (ImGuiPayload const* payload_entity = ImGui::AcceptDragDropPayload("PREFAB"))
@@ -262,24 +271,10 @@ void CustomViewport::DrawImGuiWindow() {
 			ImGui::EndDragDropTarget();
 		}
 
-		// Create gizmo overlay
-		ImGui::SetItemAllowOverlap();
-		ImGui::SetCursorPos(ImVec2(padding.x, padding.y + titleBarHeight + playControlsHeight));
 
-		// Push a unique ID for the child window to avoid conflicts
-		ImGui::PushID("GizmoOverlay");
-		bool childBegin = ImGui::BeginChild("GizmoContent", renderSize, false,
-			ImGuiWindowFlags_NoMove |
-			ImGuiWindowFlags_NoScrollbar |
-			ImGuiWindowFlags_NoScrollWithMouse |
-			ImGuiWindowFlags_NoBackground);
-		if (childBegin)
-		{
-			ImDrawList* drawList = ImGui::GetWindowDrawList();
-			ST<Inspector>::Get()->DrawGizmoInViewport(drawList);
-			ImGui::EndChild();
-		}
-		ImGui::PopID();
+
+
+
 	}
 	ImGui::End();
 	ImGui::PopStyleVar();
@@ -466,6 +461,14 @@ Vec2 CustomViewport::GetViewportRenderSize() const
 	return { viewportRenderSize.x, viewportRenderSize.y };
 }
 
+void CustomViewport::updateCurrentEntity(ecs::EntityHandle entity) {
+	if (entity) {
+		m_gizmo.Attach(entity->GetTransform());
+	}
+	else {
+		m_gizmo.Detach();
+	}
+}
 Camera CustomViewport::GetViewportCamera() const
 {
 	return Camera{ camera };

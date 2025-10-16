@@ -2,89 +2,68 @@
 /******************************************************************************/
 /*!
 \file   Gizmo.h
-\par    Project: 7percent
-\par    Course: CSD2401
-\par    Section B
-\par    Software Engineering Project 3
-\date   09/25/2024
+\par    Project: KuroMahou
+\par    Course: CSD3401
+\par    Software Engineering Project 5
+\date   10/10/2025
 
-\author Ryan Cheong (100%)
-\par    email: ngaihangryan.cheong\@digipen.edu
-\par    DigiPen login: ngaihangryan.cheong
+\author Hong Tze Keat (100%)
+\par    email: h.tzekeat\@digipen.edu
+\par    DigiPen login: h.tzekeat
 
 \brief
-Class that handles Gizmo operations for the editor. Implemented in ImGui.
+    Class that handles Gizmo operations for the editor. Implemented with Imguizmo.
 
-All content © 2024 DigiPen Institute of Technology Singapore.
+
+All content © 2025 DigiPen Institute of Technology Singapore.
 All rights reserved.
 */
 /******************************************************************************/
 #ifdef IMGUI_ENABLED
 #include "ImguiHeader.h"
+#include "ImGuizmo.h"
+#include "EditorCameraBridge.h"   // for EditorCam_TryGet(...)
+#include "EditorGizmoBridge.h"
 
-enum class GizmoType {
-    None,
-    Translate,
-    Rotate,
-    Scale
-};
 
+/*****************************************************************//*!
+\class Gizmo
+\brief
+    Thin wrapper around ImGuizmo that can attach to a 
+    Transform and draw a manipulator in the viewport’s draw list.
+*//******************************************************************/
 class Gizmo {
 public:
-    static constexpr float GIZMO_SIZE = 100.0f;
-    static constexpr float HANDLE_SIZE = 10.0f;
-    static constexpr float ROTATION_RADIUS = 50.0f;
-    
+
+/*****************************************************************//*!
+\brief
+    Constructor and Destructor
+*//******************************************************************/
     Gizmo();
+    ~Gizmo();
 
-    void attach(Transform& transform);
+    /*****************************************************************//*!
+    \brief
+        Attach this gizmo to a Transform so subsequent draw calls can
+        be drag and render
+    \param transform
+        The Transform to attach. Must remain valid while attached.
+    *//******************************************************************/
 
-    void detach();
+    void Attach(Transform& transform);
+    /*****************************************************************//*!
+    \brief
+         Detach the transform so it stops rendering and dragging
+    *//******************************************************************/
 
-    void draw(ImDrawList* viewport);
-
-    void processInput();
-
-    void setType(GizmoType type);
-
-    Transform* getAttachedTransform() const;
-    bool isAttached() const;
+    void Detach();
+    /*****************************************************************//*!
+    \brief
+         Draw the gizmo to match the scene viewport and allow dragging
+    *//******************************************************************/
+    void Draw(ImDrawList* viewport);
 
 private:
-    GizmoType m_activeType;
-    bool m_isDragging;
-    int m_selectedAxis;  // -1: none, 0: x, 1: y, 2: both (for scale uniform)
-    int m_hoveredAxis = -1;  // -1: none, 0: x, 1: y, 2: both (for scale uniform)
-    Vec2 m_dragStart;
-    Vec2 m_initialPosition;
-    float m_initialRotation;
-    Vec2 m_initialScale;
-    Transform* m_attachedTransform;
-
-    ImU32 getAxisColor(int axis, ImU32 baseColor) const;
-
-    float getScaledHandleSize() const;
-
-    float getScaledRotationRadius() const;
-
-    float getScaledGizmoSize() const;
-
-    void handleInput();
-
-    void drawTranslationGizmo(ImDrawList* drawList, const Vec2& center);
-
-    void drawRotationGizmo(ImDrawList* drawList, const Vec2& center, float rotation);
-
-    void drawScaleGizmo(ImDrawList* drawList, const Vec2& center, float rotation);
-
-    bool isPointNearLine(Vec2 point, Vec2 line_start, Vec2 line_end, float threshold);
-
-    bool isPointInRect(const Vec2& point, const Vec2& rectCenter, float size);
-
-    void checkTranslationHandles(const Vec2& mousePos, const Vec2& center);
-
-    void checkRotationHandle(const Vec2& mousePos, const Vec2& center);
-
-    void checkScaleHandles(const Vec2& mousePos, const Vec2& center, float rotation);
+    Transform* m_attachedTransform = nullptr;
 };
 #endif

@@ -140,6 +140,7 @@ target_link_libraries(Engine PUBLIC
     glm::glm-header-only
     GPUOpen::VulkanMemoryAllocator
     imgui::imgui
+    imguizmo::imguizmo
     KTX::ktx
     meshoptimizer::meshoptimizer
 	mikktspace::mikktspace

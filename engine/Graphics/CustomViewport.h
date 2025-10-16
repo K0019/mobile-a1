@@ -14,13 +14,14 @@
 \brief
 This file contains the declaration of the CustomViewport class, which represents a custom viewport for rendering graphics.
 
-All content © 2024 DigiPen Institute of Technology Singapore.
+All content ï¿½ 2024 DigiPen Institute of Technology Singapore.
 All rights reserved.
 */
 /******************************************************************************/
 #pragma once
 #include "Engine.h"
 #include "imgui_internal.h"
+#include "Gizmo.h"
 #include "camera.h"
 
 /**
@@ -96,6 +97,7 @@ public:
      */
     Vec2 GetViewportRenderSize() const;
 
+    void updateCurrentEntity(ecs::EntityHandle entity);
     Camera GetViewportCamera() const;
 
      ~CustomViewport() = default;
@@ -115,7 +117,7 @@ private:
     Vec contentMin; /**< The minimum position of the content region. */
     Vec contentMax; /**< The maximum position of the content region. */
     Vec viewportRenderSize; /**< The render size of the viewport. */
-    
+    Gizmo m_gizmo;
     CameraPositioner_FirstPerson camera;
 
 };
