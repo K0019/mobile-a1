@@ -24,9 +24,9 @@ All rights reserved.
 /******************************************************************************/
 
 #include "BehaviourTree.h"
-#include "BehaviourTreeImguiHelper.h"
+#include "Editor/BehaviourTreeImguiHelper.h"
 #include "BehaviourTreeFactory.h"
-
+#include "GameSettings.h"
 
 BehaviorTree::BehaviorTree()
     : entity{ nullptr }

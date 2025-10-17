@@ -19,10 +19,10 @@ All rights reserved.
 */
 /******************************************************************************/
 #pragma once
-#include "Engine.h"
+#include "Engine/Engine.h"
 #include "imgui_internal.h"
-#include "Gizmo.h"
-#include "camera.h"
+#include "Editor/Gizmo.h"
+#include "math/camera.h"
 
 /**
  * @brief The CustomViewport class represents a custom viewport for rendering graphics.

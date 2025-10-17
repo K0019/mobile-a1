@@ -1,7 +1,7 @@
-#include "SoundTab.h"
-#include "ResourceManager.h"
-#include "GUICollection.h"
-#include "AudioManager.h"
+#include "Editor/SoundTab.h"
+#include "Engine/Resources/ResourceManager.h"
+#include "Editor/Containers/GUICollection.h"
+#include "Managers/AudioManager.h"
 
 const char* SoundTab::GetName() const
 {
@@ -18,7 +18,7 @@ void SoundTab::Render()
     gui::Child child{ "SoundTable", gui::Vec2{ 0.0f, -FLT_MIN }, gui::FLAG_CHILD::BORDERS };
 
 #ifdef IMGUI_ENABLED
-    auto soundResources{ ST<ResourceManager>::Get()->Editor_GetAudio().Editor_GetAllResources() };
+    auto soundResources{ ST<MagicResourceManager>::Get()->Editor_GetAudio().Editor_GetAllResources() };
 
     ImGui::Columns(2, nullptr, true);
 
@@ -27,7 +27,7 @@ void SoundTab::Render()
 
     for (const auto& [hash, resource] : soundResources)
     {
-        const std::string& name{ ST<ResourceManager>::Get()->Editor_GetName(hash) };
+        const std::string& name{ ST<MagicResourceManager>::Get()->Editor_GetName(hash) };
 
         // Create Button
         if (ImGui::Selectable(name.c_str()))
@@ -79,7 +79,7 @@ void SoundTab::Render()
 
     if (ST<AudioManager>::Get()->IsPlaying(currentPreviewSound))
     {
-        playingName = ST<ResourceManager>::Get()->Editor_GetName(lastPreviewAudioHash);
+        playingName = ST<MagicResourceManager>::Get()->Editor_GetName(lastPreviewAudioHash);
         FMOD::Sound* currentSound = ST<AudioManager>::Get()->GetSound(currentPreviewSound);
 
         if (currentSound)
@@ -176,5 +176,5 @@ void SoundTab::RenderSoundContextMenu(size_t hash, const std::string& name)
     if (gui::ItemContextMenu contextMenu{ ("Delete##" + name).c_str() })
         if (gui::MenuItem("Delete"))
             // Note: The deletion of the resource calls AudioManager::FreeSound(), which stops all sounds, even sounds that are not this sound being deleted
-            ST<ResourceManager>::Get()->INTERNAL_GetAudio().DeleteResource(hash);
+            ST<MagicResourceManager>::Get()->INTERNAL_GetAudio().DeleteResource(hash);
 }

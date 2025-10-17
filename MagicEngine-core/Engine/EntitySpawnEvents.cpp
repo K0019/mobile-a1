@@ -20,12 +20,12 @@ All rights reserved.
 */
 /******************************************************************************/
 
-#include "EntitySpawnEvents.h"
+#include "Engine/EntitySpawnEvents.h"
 
-#include "NameComponent.h"
-#include "EntityUID.h"
-#include "EntityEvents.h"
-#include "EntityLayers.h"
+#include "Components/NameComponent.h"
+#include "ECS/EntityUID.h"
+#include "Engine/EntityEvents.h"
+#include "Engine/EntityLayers.h"
 
 EntitySpawnEvents::EntitySpawnEvents()
 	: entityCreatedEventName{ "OnEntityCreated" }

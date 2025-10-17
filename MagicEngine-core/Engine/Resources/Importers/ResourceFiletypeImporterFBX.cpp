@@ -18,23 +18,23 @@ All rights reserved.
 */
 /******************************************************************************/
 
-#include "ResourceFiletypeImporterFBX.h"
-#include "ResourceTypesGraphics.h"
+#include "Engine/Resources/Importers/ResourceFiletypeImporterFBX.h"
+#include "Engine/Resources/Types/ResourceTypesGraphics.h"
 // The FBX importer actually calls our asset compiler which produces .mesh and .ktx2 files.
 // We then delegate the importing of these .mesh and .ktx2 files to those respective importers.
 // Therefore, we need to call the resource importer again to process those files.
 #include "SceneCompiler.h"
 #include "GameSettings.h"
-#include "ResourceImporter.h"
+#include "Engine/Resources/ResourceImporter.h"
 
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
-#include "import_config.h"
-#include "material_loader.h"
-#include "texture_loader.h"
-#include "mesh_loader.h"
-#include "GraphicsAPI.h"
+#include "tools/assets/io/import_config.h"
+#include "tools/assets/io/material_loader.h"
+#include "tools/assets/io/texture_loader.h"
+#include "tools/assets/io/mesh_loader.h"
+#include "Engine/Graphics Interface/GraphicsAPI.h"
 
 namespace internal {
 
@@ -173,9 +173,9 @@ namespace internal {
 
     void SetResourceHandlesFBX(const std::vector<AssociatedResourceHashes>& resourceHashes, RawResourcesFBX&& rawResources)
     {
-        auto& meshes{ ST<ResourceManager>::Get()->INTERNAL_GetMeshes() };
-        auto& materials{ ST<ResourceManager>::Get()->INTERNAL_GetMaterials() };
-        auto& textures{ ST<ResourceManager>::Get()->INTERNAL_GetTextures() };
+        auto& meshes{ ST<MagicResourceManager>::Get()->INTERNAL_GetMeshes() };
+        auto& materials{ ST<MagicResourceManager>::Get()->INTERNAL_GetMaterials() };
+        auto& textures{ ST<MagicResourceManager>::Get()->INTERNAL_GetTextures() };
         const auto& meshHashes{ resourceHashes[0].hashes };
         const auto& materialHashes{ resourceHashes[1].hashes };
         const auto& textureHashes{ resourceHashes[2].hashes };

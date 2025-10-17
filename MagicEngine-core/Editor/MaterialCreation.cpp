@@ -1,10 +1,10 @@
-#include "MaterialCreation.h"
-#include "MaterialSerialization.h"
-#include "ResourceManager.h"
-#include "Popup.h"
-#include "asset_types.h"
+#include "Editor/MaterialCreation.h"
+#include "Engine/Resources/MaterialSerialization.h"
+#include "Engine/Resources/ResourceManager.h"
+#include "Editor/Popup.h"
+#include "resource/resource_types.h"
 #include "GameSettings.h"
-#include "ResourceImporter.h"
+#include "Engine/Resources/ResourceImporter.h"
 
 namespace editor {
 
@@ -75,7 +75,7 @@ namespace editor {
 	void MaterialCreationWindow::AttemptCreateMaterial()
 	{
 		bool valid = false;
-		auto texturesGetter{ ResourceManager::Textures() };
+		auto texturesGetter{ MagicResourceManager::Textures() };
 		for (size_t resourceHash : textures)
 		{
 			if (resourceHash == 0) continue;

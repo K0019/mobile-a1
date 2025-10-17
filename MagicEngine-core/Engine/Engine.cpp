@@ -24,34 +24,34 @@ All content © 2024 DigiPen Institute of Technology Singapore.
 All rights reserved.
 */
 /******************************************************************************/
-#include "Engine.h"
-#include "CrashHandler.h"
+#include "Engine/Engine.h"
+#include "Utilities/CrashHandler.h"
 
-#include "Input.h"
+#include "Engine/Input.h"
 
-#include "ResourceManager.h"
-#include "SceneManagement.h"
-#include "EntitySpawnEvents.h"
-#include "IGameComponentCallbacks.h"
-#include "TweenManager.h"
-#include "PrefabManager.h"
+#include "Engine/Resources/ResourceManager.h"
+#include "Engine/SceneManagement.h"
+#include "Engine/EntitySpawnEvents.h"
+#include "Game/IGameComponentCallbacks.h"
+#include "Tween/TweenManager.h"
+#include "Engine/PrefabManager.h"
 #include "GameSettings.h"
-#include "JoltPhysics.h"
+#include "Physics/JoltPhysics.h"
 
-#include "GUIAsECS.h"
-#include "SettingsWindow.h"
-#include "BehaviourTreeFactory.h"
-#include "BehaviourTreeWindow.h"
-#include "LayersMatrix.h"
-#include "EntityLayers.h"
+#include "Editor/Containers/GUIAsECS.h"
+#include "Editor/SettingsWindow.h"
+#include "Engine/BehaviorTree/BehaviourTreeFactory.h"
+#include "Editor/BehaviourTreeWindow.h"
+#include "Editor/LayersMatrix.h"
+#include "Engine/EntityLayers.h"
 
-#include "CSScripting.h"
-#include "HotReloader.h"
+#include "Scripting/CSScripting.h"
+#include "Scripting/HotReloader.h"
 
-#include "GraphicsAPI.h"
-#include "camera.h"
-#include "Import.h"
-#include "Filesystem.h"
+#include "Engine/Graphics Interface/GraphicsAPI.h"
+#include "Editor/Import.h"
+#include "Managers/Filesystem.h"
+#include "math/camera.h"
 
 #ifdef IMGUI_ENABLED
 namespace
@@ -91,11 +91,11 @@ namespace
 }
 #endif
 
-Engine::Engine() = default;
+MagicEngine::MagicEngine() = default;
 
-Engine::~Engine() = default;
+MagicEngine::~MagicEngine() = default;
 
-void Engine::setFPS(double _fps)
+void MagicEngine::setFPS(double _fps)
 {
 	this->fps = _fps;
 	if(_fps > 0.0) {
@@ -108,7 +108,7 @@ void Engine::setFPS(double _fps)
 	m_lastFrameTime = clock::now();
 }
 
-void Engine::wait()
+void MagicEngine::wait()
 {
 	// Skip timing if no FPS limit is set (m_targetFrameTime will be zero)
 	if(m_targetFrameTime == duration::zero()) {
@@ -158,17 +158,17 @@ void Engine::wait()
 	// JUST SET TO UNLIMITED FOR 99% OF THE TIME, BUT THIS WORKS
 }
 
-void Engine::MarkToShutdown()
+void MagicEngine::MarkToShutdown()
 {
 	ST<GraphicsMain>::Get()->SetPendingShutdown();
 }
 
-bool Engine::IsShuttingDown() const
+bool MagicEngine::IsShuttingDown() const
 {
 	return ST<GraphicsMain>::Get()->GetIsPendingShutdown();
 }
 
-void Engine::init()
+void MagicEngine::init()
 {
 	ST<GameSettings>::Get()->Load(); // Only load settings from file first so we have the correct filepaths.
 #ifdef _DEBUG
@@ -178,7 +178,7 @@ void Engine::init()
 #endif
 	CrashHandler::SetupCrashHandler(); // DO NOT REMOVE THIS LINE EVER
 
-	// Scripting Engine Initialisation
+	// Scripting MagicEngine Initialisation
 	CSharpScripts::CSScripting::Init();
 
 	// FMOD Initialisation
@@ -198,8 +198,8 @@ void Engine::init()
 
 
 	// load resources
-	ST<ResourceManager>::Get()->Init();
-	ST<ResourceManager>::Get()->LoadFromFile();
+	ST<MagicResourceManager>::Get()->Init();
+	ST<MagicResourceManager>::Get()->LoadFromFile();
 	//ST<AssetBrowser>::Get()->file_system.Initialize(ST<Filepaths>::Get()->workingDir);
 	// Load fonts manually for now
 	const std::array<std::string, 3> fontsToLoad{
@@ -233,7 +233,7 @@ void Engine::init()
 #endif
 }
 
-void Engine::run()
+void MagicEngine::run()
 {
 	while (!ST<GraphicsMain>::Get()->GetIsPendingShutdown())
 	{
@@ -253,7 +253,7 @@ void Engine::run()
 		// Only reset key states when systems are updating so we don't skip inputs.
 		if(GameTime::RealNumFixedFrames())
 		{
-			ST<Input>::Get()->NewFrame();
+			ST<MagicInput>::Get()->NewFrame();
 			glfwPollEvents();
 			//GamepadInput::PollInput();
 		}
@@ -424,10 +424,10 @@ void Engine::run()
 #endif
 
 	ST<GameSettings>::Get()->Save();
-	ST<ResourceManager>::Get()->SaveToFile();
+	ST<MagicResourceManager>::Get()->SaveToFile();
 }
 
-void Engine::shutdown() {
+void MagicEngine::shutdown() {
 
 	// Clean up your subsystems
 	ST<Game>::Get()->Shutdown();
@@ -435,7 +435,7 @@ void Engine::shutdown() {
 	ST<GameComponentCallbacksHandler>::Destroy();
 	ST<EntitySpawnEvents>::Destroy();
 	ST<SceneManager>::Destroy();
-	ST<ResourceManager>::Destroy();
+	ST<MagicResourceManager>::Destroy();
 	//ResourceManagerOld::Clear();
 	// Singletons
 	ST<AudioManager>::Destroy();
@@ -465,8 +465,8 @@ void Engine::shutdown() {
 	//ST<Filepaths>::Destroy(); // Filepaths kinda needs to live for other threads to reference filepaths... smart pointers will free this later. sry about this
 	ST<ecs::RegisteredSystemsOperatingByLayer>::Destroy();
 
-	ST<ResourceManager>::Get()->Shutdown();
-	ST<ResourceManager>::Destroy();
+	ST<MagicResourceManager>::Get()->Shutdown();
+	ST<MagicResourceManager>::Destroy();
 
 	ST<GraphicsMain>::Destroy();
 	// In case any systems send logs to the console while destructing.

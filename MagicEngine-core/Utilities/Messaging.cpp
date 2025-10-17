@@ -22,7 +22,7 @@ All content © 2024 DigiPen Institute of Technology Singapore.
 All rights reserved.
 */
 /******************************************************************************/
-#include "Messaging.h"
+#include "Utilities/Messaging.h"
 
 namespace Messaging {
 

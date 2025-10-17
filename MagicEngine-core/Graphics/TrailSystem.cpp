@@ -1,6 +1,6 @@
-#include "TrailSystem.h"
+#include "Graphics/TrailSystem.h"
 
-#include "Engine.h"
+#include "Engine/Engine.h"
 
 TrailRendererSystem::TrailRendererSystem() : System_Internal(&TrailRendererSystem::UpdateTrailComp) {
 }

@@ -1,5 +1,5 @@
 #pragma once
-#include "TrailComponent.h"
+#include "Graphics/TrailComponent.h"
 
 class Renderer;
 

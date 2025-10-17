@@ -18,8 +18,8 @@ All rights reserved.
 */
 /******************************************************************************/
 
-#include "BehaviourTreeImguiHelper.h"
-#include "BehaviourTreeFactory.h"
+#include "Editor/BehaviourTreeImguiHelper.h"
+#include "Engine/BehaviorTree/BehaviourTreeFactory.h"
 namespace bt {
     bool LoadBTAssetFromFile(const std::string& path, BehaviorTreeAsset* out)
     {

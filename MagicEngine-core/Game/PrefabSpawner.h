@@ -1,7 +1,7 @@
 #pragma once
-#include "IRegisteredComponent.h"
-#include "IEditorComponent.h"
-#include "IGameComponentCallbacks.h"
+#include "ECS/IRegisteredComponent.h"
+#include "Editor/IEditorComponent.h"
+#include "Game/IGameComponentCallbacks.h"
 
 /*****************************************************************//*!
 \class PrefabSpawnComponent

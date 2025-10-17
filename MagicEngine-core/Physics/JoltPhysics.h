@@ -35,7 +35,7 @@ All rights reserved.
 #include <Jolt/Physics/Body/BodyCreationSettings.h>
 #include <Jolt/Physics/Body/BodyActivationListener.h>
 
-#include "Collision.h"
+#include "Physics/Collision.h"
 
 JPH_SUPPRESS_WARNINGS
 

@@ -24,7 +24,7 @@ All rights reserved.
 */
 /******************************************************************************/
 
-#include "Serializer.h"
+#include "Utilities/Serializer.h"
 #include "ECS/EntityUID.h"
 
 enum class PROPERTY_TYPE

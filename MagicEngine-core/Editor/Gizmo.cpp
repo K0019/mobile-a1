@@ -19,10 +19,10 @@ All rights reserved.
 */
 /******************************************************************************/
 #ifdef IMGUI_ENABLED
-#include "Gizmo.h"
-#include "CustomViewport.h"
+#include "Editor/Gizmo.h"
+#include "Graphics/CustomViewport.h"
 #include "imgui_internal.h"
-#include "EditorHistory.h"
+#include "Editor/EditorHistory.h"
 
 
 Gizmo::Gizmo() = default;

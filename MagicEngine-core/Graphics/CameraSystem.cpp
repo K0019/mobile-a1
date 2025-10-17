@@ -18,9 +18,9 @@ All content © 2024 DigiPen Institute of Technology Singapore.
 All rights reserved.
 */
 /******************************************************************************/
-#include "CameraSystem.h"
-#include "CameraController.h"
-#include "GraphicsScene.h"
+#include "Graphics/CameraSystem.h"
+#include "Graphics/CameraController.h"
+#include "Engine/Graphics Interface/GraphicsScene.h"
 
 CameraCompUploadSystem::CameraCompUploadSystem() : System_Internal(&CameraCompUploadSystem::UpdateCameraComp) {}
 

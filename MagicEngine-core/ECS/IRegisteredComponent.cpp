@@ -19,7 +19,7 @@ All rights reserved.
 */
 /******************************************************************************/
 
-#include "IRegisteredComponent.h"
+#include "ECS/IRegisteredComponent.h"
 
 const RegisteredComponentData* RegisteredComponents::GetData(ecs::CompHash compHash)
 {

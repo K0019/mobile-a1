@@ -18,7 +18,7 @@ All rights reserved.
 */
 /******************************************************************************/
 
-#include "ResourceSerialization.h"
+#include "Engine/Resources/ResourceSerialization.h"
 
 void ResourceSerialization::Serialize(Serializer& writer, const ResourceFilepaths& filepaths, const ResourceNames& names)
 {

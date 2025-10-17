@@ -24,7 +24,7 @@ All rights reserved.
 
 #pragma once
 #include <chrono>
-#include "GUICollection.h"
+#include "Editor/Containers/GUICollection.h"
 
 class PerformanceProfiler : public gui::Window {
     public:

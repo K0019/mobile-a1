@@ -20,8 +20,8 @@ All rights reserved.
 */
 /******************************************************************************/
 
-#include "LayersMatrix.h"
-#include "EntityLayers.h"
+#include "Editor/LayersMatrix.h"
+#include "Engine/EntityLayers.h"
 
 namespace editor {
 

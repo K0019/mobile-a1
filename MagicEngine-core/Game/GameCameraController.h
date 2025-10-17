@@ -22,8 +22,8 @@ All rights reserved.
 */
 /******************************************************************************/
 #pragma once
-#include "EntityUID.h"
-#include "IEditorComponent.h"
+#include "ECS/EntityUID.h"
+#include "Editor/IEditorComponent.h"
 
 /*****************************************************************//*!
 \class GameCameraControllerComponent

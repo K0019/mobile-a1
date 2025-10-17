@@ -19,7 +19,7 @@ All rights reserved.
 */
 /******************************************************************************/
 #pragma once
-#include "TweenBase.h"
+#include "Tween/TweenBase.h"
 
 // TweenECS - A modified Tween
 /*****************************************************************//*!

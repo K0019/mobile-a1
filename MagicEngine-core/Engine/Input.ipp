@@ -20,7 +20,7 @@ All rights reserved.
 /******************************************************************************/
 
 #pragma once
-#include "Input.h"
+#include "Engine/Input.h"
 
 template <InputSupportedValueTypes ValueType>
 ValueType InputBinding<ValueType>::GetValue() const
@@ -225,7 +225,7 @@ std::vector<InputBinding<ValueType>>& InputAction<ValueType>::Editor_GetBindings
 }
 
 template <InputSupportedValueTypes ValueType>
-SPtr<const InputAction<ValueType>> Input::GetAction(const std::string& actionName) const
+SPtr<const InputAction<ValueType>> MagicInput::GetAction(const std::string& actionName) const
 {
 	for (const auto& inputSet : inputSets)
 		if (auto actionBasePtr{ inputSet.second->GetAction(actionName) })

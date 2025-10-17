@@ -18,11 +18,11 @@ All content © 2024 DigiPen Institute of Technology Singapore.
 All rights reserved.
 */
 /******************************************************************************/
-#include "EditorTweenModule.h"
-#include "TweenManager.h"
-#include "CameraController.h"
-#include "Editor.h"
-#include "GraphicsAPI.h"
+#include "Editor/EditorTweenModule.h"
+#include "Tween/TweenManager.h"
+#include "Graphics/CameraController.h"
+#include "Editor/Editor.h"
+#include "Engine/Graphics Interface/GraphicsAPI.h"
 
 EditorTweenModule::EditorTweenModule()
 {

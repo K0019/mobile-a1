@@ -1,6 +1,6 @@
-#include "PrefabSpawner.h"
-#include "PrefabManager.h"
-#include "GUICollection.h"
+#include "Game/PrefabSpawner.h"
+#include "Engine/PrefabManager.h"
+#include "Editor/Containers/GUICollection.h"
 
 PrefabSpawnComponent::PrefabSpawnComponent()
     : inited{ false }

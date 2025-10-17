@@ -25,7 +25,7 @@ All rights reserved.
 /******************************************************************************/
 
 #pragma once
-#include "ECSInternal.h"
+#include "ECS/ECSInternal.h"
 
 // Forward declare of systems layers enum (defined in ECSSysLayers.h)
 enum class ECS_LAYER;

@@ -20,8 +20,8 @@ All rights reserved.
 /******************************************************************************/
 
 #pragma once
-#include "MaskTemplate.h"
-#include "IRegisteredComponent.h"
+#include "Utilities/MaskTemplate.h"
+#include "ECS/IRegisteredComponent.h"
 
 #pragma region Interface
 

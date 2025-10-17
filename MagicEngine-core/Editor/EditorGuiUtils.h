@@ -1,5 +1,5 @@
 #pragma once
-#include "GUICollection.h"
+#include "Editor/Containers/GUICollection.h"
 
 namespace gui
 {

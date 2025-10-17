@@ -1,6 +1,6 @@
 #pragma once
-#include "IRegisteredComponent.h"
-#include "IEditorComponent.h"
+#include "ECS/IRegisteredComponent.h"
+#include "Editor/IEditorComponent.h"
 
 class PostProcessingComponent
     : public IRegisteredComponent<PostProcessingComponent>

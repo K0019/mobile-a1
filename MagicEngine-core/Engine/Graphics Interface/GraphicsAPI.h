@@ -19,11 +19,11 @@ All rights reserved.
 /******************************************************************************/
 
 #pragma once
-#include "renderer.h"
-#include "asset_system.h"
-#include "imgui_context.h"
-#include "GraphicsWindow.h"
-#include "GraphicsScene.h"
+#include "graphics/renderer.h"
+#include "resource/resource_manager.h"
+#include "imgui/base/imgui_context.h"
+#include "Engine/Graphics Interface/GraphicsWindow.h"
+#include "Engine/Graphics Interface/GraphicsScene.h"
 
 class GraphicsAssets
 {
@@ -31,10 +31,10 @@ public:
     bool Init(Context* context);
 
 public:
-    AssetLoading::AssetSystem* INTERNAL_GetAssetSystem();
+    Resource::ResourceManager* INTERNAL_GetAssetSystem();
 
 private:
-    UPtr<AssetLoading::AssetSystem> assetSystem;
+    UPtr<Resource::ResourceManager> assetSystem;
 
 };
 

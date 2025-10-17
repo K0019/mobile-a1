@@ -18,7 +18,7 @@ All content © 2024 DigiPen Institute of Technology Singapore.
 All rights reserved.
 */
 /******************************************************************************/
-#include "TweenECS.h"
+#include "Tween/TweenECS.h"
 
 template<typename V, typename U, typename Object>
 TweenECS<V, U, Object>::TweenECS(

@@ -21,9 +21,9 @@ All rights reserved.
 */
 /******************************************************************************/
 
-#include "EntityUID.h"
+#include "ECS/EntityUID.h"
 #include "Components/NameComponent.h"
-#include "Editor/GUICollection.h"
+#include "Editor/Containers/GUICollection.h"
 
 EntityUIDComponent::EntityUIDComponent()
 	: uid{ RegisterUID() }

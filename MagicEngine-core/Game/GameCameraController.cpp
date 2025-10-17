@@ -21,10 +21,10 @@ All content � 2024 DigiPen Institute of Technology Singapore.
 All rights reserved.
 */
 /******************************************************************************/
-#include "GameCameraController.h"
-#include "TweenManager.h"
-#include "Messaging.h"
-#include "GUICollection.h"
+#include "Game/GameCameraController.h"
+#include "Tween/TweenManager.h"
+#include "Utilities/Messaging.h"
+#include "Editor/Containers/GUICollection.h"
 
 GameCameraControllerComponent::GameCameraControllerComponent()
 	: cameraEntity{ nullptr }

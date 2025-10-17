@@ -21,9 +21,9 @@ All rights reserved.
 /******************************************************************************/
 
 #pragma once
-#include "GUICollection.h"
-#include "ECSSysLayers.h"
-#include "Scheduler.h"
+#include "Editor/Containers/GUICollection.h"
+#include "ECS/ECSSysLayers.h"
+#include "Utilities/Scheduler.h"
 
 #pragma region Interface
 

@@ -36,9 +36,9 @@ All rights reserved.
 #include "rapidjson/stringbuffer.h"
 #include "rapidjson/pointer.h"
 
-#include "Singleton.h"
-#include "Utilities.h"
-#include "MagicMath.h"
+#include "Utilities/Singleton.h"
+#include "Utilities/Utilities.h"
+#include "Utilities/MagicMath.h"
 
 #include <fstream>
 #include <stack>

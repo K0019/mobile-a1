@@ -1,5 +1,5 @@
-#include "TrailComponent.h"
-#include "GUICollection.h"
+#include "Graphics/TrailComponent.h"
+#include "Editor/Containers/GUICollection.h"
 
 TrailRendererComponent::TrailRendererComponent()
     : m_lastPosition()

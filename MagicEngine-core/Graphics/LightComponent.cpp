@@ -23,8 +23,8 @@ All rights reserved.
 */
 /******************************************************************************/
 
-#include "LightComponent.h"
-#include "GUICollection.h"
+#include "Graphics/LightComponent.h"
+#include "Editor/Containers/GUICollection.h"
 
 LightComponent::LightComponent() = default;
 

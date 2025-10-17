@@ -19,7 +19,7 @@ All rights reserved.
 */
 /******************************************************************************/
 
-#include "EntityEvents.h"
+#include "Engine/EntityEvents.h"
 
 uint64_t EntityEventsComponent::GenerateIdentifier(ecs::EntityHandle entity, size_t functionHash)
 {

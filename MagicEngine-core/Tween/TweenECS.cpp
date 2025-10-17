@@ -18,7 +18,7 @@ All content © 2024 DigiPen Institute of Technology Singapore.
 All rights reserved.
 */
 /******************************************************************************/
-#include "TweenECS.h"
+#include "Tween/TweenECS.h"
 
 TweenComponent::TweenComponent() : tweens{}
 {

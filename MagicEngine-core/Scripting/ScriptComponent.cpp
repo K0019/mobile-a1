@@ -27,14 +27,14 @@ All content � 2024 DigiPen Institute of Technology Singapore.
 All rights reserved.
 */
 /******************************************************************************/
-#include "ScriptComponent.h"
-#include "GUICollection.h"
-#include "ScriptingUtil.h"
+#include "Scripting/ScriptComponent.h"
+#include "Editor/Containers/GUICollection.h"
+#include "Utilities/ScriptingUtil.h"
 
-#include "ResourceManager.h"
-#include "EntityUID.h"
-#include "NameComponent.h"
-#include "PrefabManager.h"
+#include "Engine/Resources/ResourceManager.h"
+#include "ECS/EntityUID.h"
+#include "Components/NameComponent.h"
+#include "Engine/PrefabManager.h"
 
 using namespace CSharpScripts;
 

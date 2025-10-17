@@ -21,7 +21,7 @@ All rights reserved.
 /******************************************************************************/
 
 #pragma once
-#include "MagicMath.h"
+#include "Utilities/MagicMath.h"
 #include <glm/glm.hpp>
 #include <set>
 

@@ -19,11 +19,11 @@ All rights reserved.
 */
 /******************************************************************************/
 
-#include "Input.h"
-#include "CustomViewport.h"
+#include "Engine/Input.h"
+#include "Graphics/CustomViewport.h"
 
 #ifndef IMGUI_ENABLED
-#include "GraphicsWindow.h"
+#include "Engine/Graphics Interface/GraphicsWindow.h"
 #endif
 
 const std::array<InputHardwareValueLink::FuncType_GetValue, +INPUT_DEVICE_TYPE::NUM_DEVICES> InputHardwareValueLink::GetValueFromDevice{
@@ -177,7 +177,7 @@ bool KeyboardMouseInput::GetIsPressed(KEY key) const
 
 bool KeyboardMouseInput::GetIsReleased(KEY key) const
 {
-	if (ST<Input>::Get()->IsFinalIterationThisFrame())
+	if (ST<MagicInput>::Get()->IsFinalIterationThisFrame())
 		return false;
 	return releasedKeystate[+key];
 }
@@ -306,31 +306,31 @@ void KeyboardMouseInput::Callback_OnMouseScroll(float offset)
 	scrollOffset = offset;
 }
 
-void Input::NewFrame()
+void MagicInput::NewFrame()
 {
 	ST<KeyboardMouseInput>::Get()->NewFrame();
 
 	currIteration = GameTime::RealNumFixedFrames();
 }
 
-void Input::NewIteration()
+void MagicInput::NewIteration()
 {
 	ST<KeyboardMouseInput>::Get()->NewIteration();
 
 	--currIteration;
 }
 
-bool Input::IsFinalIterationThisFrame() const
+bool MagicInput::IsFinalIterationThisFrame() const
 {
 	return currIteration <= 1;
 }
 
-bool Input::CreateInputSet(const std::string& name)
+bool MagicInput::CreateInputSet(const std::string& name)
 {
 	return inputSets.try_emplace(name, std::make_shared<InputSet>()).second;
 }
 
-bool Input::SwitchInputSet(const std::string& inputSetIdentifier)
+bool MagicInput::SwitchInputSet(const std::string& inputSetIdentifier)
 {
 	auto inputSetIter{ inputSets.find(inputSetIdentifier) };
 	if (inputSetIter == inputSets.end())
@@ -340,7 +340,7 @@ bool Input::SwitchInputSet(const std::string& inputSetIdentifier)
 	return true;
 }
 
-bool Input::RenameInputSet(const std::string& oldName, const std::string& newName)
+bool MagicInput::RenameInputSet(const std::string& oldName, const std::string& newName)
 {
 	if (inputSets.find(newName) != inputSets.end() || inputSets.find(oldName) == inputSets.end())
 		return false;
@@ -350,21 +350,21 @@ bool Input::RenameInputSet(const std::string& oldName, const std::string& newNam
 	return true;
 }
 
-SPtr<const InputSet> Input::GetCurrentInputSet() const
+SPtr<const InputSet> MagicInput::GetCurrentInputSet() const
 {
 	return currentInputSet.lock();
 }
-SPtr<InputSet> Input::GetCurrentInputSet()
+SPtr<InputSet> MagicInput::GetCurrentInputSet()
 {
 	return currentInputSet.lock();
 }
 
-void Input::Serialize(Serializer& writer) const
+void MagicInput::Serialize(Serializer& writer) const
 {
 	writer.Serialize("inputSets", inputSets);
 }
 
-void Input::Deserialize(Deserializer& reader)
+void MagicInput::Deserialize(Deserializer& reader)
 {
 	reader.DeserializeVar("inputSets", &inputSets, [](Deserializer& inReader, decltype(inputSets)* map) -> void {
 		std::pair<std::string, SPtr<InputSet>> pair{ "", std::make_shared<InputSet>() };
@@ -374,12 +374,12 @@ void Input::Deserialize(Deserializer& reader)
 	});
 }
 
-decltype(util::ToSortedVectorOfRefs(Input::inputSets)) Input::Editor_GetInputSets()
+decltype(util::ToSortedVectorOfRefs(MagicInput::inputSets)) MagicInput::Editor_GetInputSets()
 {
 	return util::ToSortedVectorOfRefs(inputSets);
 }
 
-WPtr<InputSet> Input::Editor_GetCurrentInputSet()
+WPtr<InputSet> MagicInput::Editor_GetCurrentInputSet()
 {
 	return currentInputSet;
 }

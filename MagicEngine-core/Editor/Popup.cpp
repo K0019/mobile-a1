@@ -18,7 +18,7 @@ All content © 2024 DigiPen Institute of Technology Singapore.
 All rights reserved.
 */
 /******************************************************************************/
-#include "Popup.h"
+#include "Editor/Popup.h"
 
 Popup::Popup()
 	: gui::PopupWindow{ "", gui::Vec2{ 500, 250 } }

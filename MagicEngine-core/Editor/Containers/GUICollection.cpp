@@ -21,7 +21,7 @@ All rights reserved.
 */
 /******************************************************************************/
 
-#include "GUICollection.h"
+#include "Editor/Containers/GUICollection.h"
 
 namespace gui {
 

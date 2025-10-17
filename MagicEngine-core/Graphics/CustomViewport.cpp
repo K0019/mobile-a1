@@ -18,13 +18,12 @@ All content © 2024 DigiPen Institute of Technology Singapore.
 All rights reserved.
 */
 /******************************************************************************/
-#include "CustomViewport.h"
-#include "Input.h"
+#include "Graphics/CustomViewport.h"
+#include "Engine/Input.h"
 
-#include "SceneManagement.h"
-#include "EditorHistory.h"
-#include "imgui_context.h"
-#include "GraphicsAPI.h"
+#include "Engine/SceneManagement.h"
+#include "Editor/EditorHistory.h"
+#include "Engine/Graphics Interface/GraphicsAPI.h"
 
 CustomViewport::CustomViewport()
 	: disableMoving{}

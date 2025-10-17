@@ -23,10 +23,10 @@ All rights reserved.
 */
 /******************************************************************************/
 #include "GameSettings.h"
-#include "Input.h"
-#include "EntityLayers.h"
-#include "GraphicsAPI.h"
-#include "Engine.h"
+#include "Engine/Input.h"
+#include "Engine/EntityLayers.h"
+#include "Engine/Graphics Interface/GraphicsAPI.h"
+#include "Engine/Engine.h"
 
 GameSettings::GameSettings()
 {
@@ -72,7 +72,7 @@ void GameSettings::Serialize(Serializer& writer) const
 	ISerializeable::Serialize(writer);
 
 	// In addition to the reflected vars, serialize other systems that are constant across all game builds
-	ST<Input>::Get()->Serialize(writer);
+	ST<MagicInput>::Get()->Serialize(writer);
 
 	EntityLayerComponent::SerializeLayersMatrix(writer, "collisionLayers");
 	ST<ecs::RegisteredSystemsOperatingByLayer>::Get()->SerializeLayerSettings(writer, "systemLayers");
@@ -82,7 +82,7 @@ void GameSettings::Deserialize(Deserializer& reader)
 {
 	ISerializeable::Deserialize(reader);
 
-	ST<Input>::Get()->Deserialize(reader);
+	ST<MagicInput>::Get()->Deserialize(reader);
 
 	EntityLayerComponent::DeserializeLayersMatrix(reader, "collisionLayers");
 	ST<ecs::RegisteredSystemsOperatingByLayer>::Get()->DeserializeLayerSettings(reader, "systemLayers");

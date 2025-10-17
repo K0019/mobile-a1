@@ -21,7 +21,7 @@ All content © 2024 DigiPen Institute of Technology Singapore.
 All rights reserved.
 */
 /******************************************************************************/
-#include "TweenManager.h"
+#include "Tween/TweenManager.h"
 
 TweenManager::TweenManager() : tweens{}
 {

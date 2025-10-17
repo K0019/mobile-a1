@@ -1,13 +1,13 @@
-#include "ResourceFiletypeImporterMeshAsset.h"
-#include "ResourceTypesGraphics.h"
-#include "ResourceManager.h"
+#include "Engine/Resources/Importers/ResourceFiletypeImporterMeshAsset.h"
+#include "Engine/Resources/Types/ResourceTypesGraphics.h"
+#include "Engine/Resources/ResourceManager.h"
 #include "GameSettings.h"
 
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
 
-#include "GraphicsAPI.h"
+#include "Engine/Graphics Interface/GraphicsAPI.h"
 #include "import_config.h"
 #include "MeshFileStructure.h"
 
@@ -150,7 +150,7 @@ namespace internal
     void SetResourceHandlesMesh(const std::vector<AssociatedResourceHashes>& resourceHashes, 
         const std::vector<MeshHandle>& meshHandles, const std::vector<std::pair<uint32_t, Mat4>> meshTransforms /*, const std::vector<MaterialHandle>& materialHandles*/)
     {
-        auto& meshes{ ST<ResourceManager>::Get()->INTERNAL_GetMeshes() };
+        auto& meshes{ ST<MagicResourceManager>::Get()->INTERNAL_GetMeshes() };
         const auto& meshHashes{ resourceHashes[0].hashes };
 
         ResourceMesh* mesh{ meshes.INTERNAL_GetResource(meshHashes[0], true) };

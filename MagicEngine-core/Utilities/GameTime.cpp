@@ -20,7 +20,7 @@ All rights reserved.
 */
 /******************************************************************************/
 
-#include "GameTime.h"
+#include "Game/GameTime.h"
 
 float GameTime::fps{};
 bool GameTime::isUsingFixedDeltaTime{ true };

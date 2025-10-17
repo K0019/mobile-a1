@@ -19,7 +19,7 @@ All rights reserved.
 */
 /******************************************************************************/
 
-#include "EditorHistory.h"
+#include "Editor/EditorHistory.h"
 
 HistoryEvent_Translation::HistoryEvent_Translation(ecs::EntityHandle entity, const Vec3& originalPos)
 	: HistoryEventECSBase{ entity }

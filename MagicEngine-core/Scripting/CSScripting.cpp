@@ -23,13 +23,13 @@ All content � 2024 DigiPen Institute of Technology Singapore.
 All rights reserved.
 */
 /******************************************************************************/
-#include "CSScripting.h"
-#include "HotReloader.h"
+#include "Scripting/CSScripting.h"
+#include "Scripting/HotReloader.h"
 #include "GameSettings.h"
-#include "Popup.h"
-#include "Engine.h"
-#include "ScriptComponent.h"
-#include "EntityUID.h"
+#include "Editor/Popup.h"
+#include "Engine/Engine.h"
+#include "Scripting/ScriptComponent.h"
+#include "ECS/EntityUID.h"
 
 #include <Windows.h>
 
@@ -645,7 +645,7 @@ R"(<Project Sdk="Microsoft.NET.Sdk">
 	bool CSScripting::CompileUserAssembly()
 	{
 		// Helper function to detect if the main thread is still alive (so if we're multithreaded, we avoid any operation that requires the main thread)
-		auto IsMainThreadAlive{ []() -> bool { return ST<Engine>::IsInitialized() && !ST<Engine>::Get()->IsShuttingDown(); } };
+		auto IsMainThreadAlive{ []() -> bool { return ST<MagicEngine>::IsInitialized() && !ST<MagicEngine>::Get()->IsShuttingDown(); } };
 
 
 		// Create a read/write pipe for the compilation to output to

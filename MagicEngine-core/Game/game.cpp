@@ -27,23 +27,23 @@ All rights reserved.
 */
 /******************************************************************************/
 
-#include "game.h"
+#include "Game/game.h"
 
-#include "Input.h"
+#include "Engine/Input.h"
 
-#include "SceneManagement.h"
-#include "Editor.h"
+#include "Engine/SceneManagement.h"
+#include "Editor/Editor.h"
 #include "GameSettings.h"
 
-#include "ECSSysLayers.h"
-#include "NameComponent.h"
-#include "CameraController.h"
-#include "Materials.h"
+#include "ECS/ECSSysLayers.h"
+#include "Components/NameComponent.h"
+#include "Graphics/CameraController.h"
+#include "Graphics/Materials.h"
 
-#include "ResourceManager.h"
-#include "Performance.h"
-#include "TweenManager.h"
-#include "AudioManager.h"
+#include "Engine/Resources/ResourceManager.h"
+#include "Editor/Performance.h"
+#include "Tween/TweenManager.h"
+#include "Managers/AudioManager.h"
 
 // Game-related State data
 
@@ -131,7 +131,7 @@ void Game::Update()
             ecs::RunSystemsInLayers(ECS_LAYER::CUTOFF_POST_PHYSICS, ECS_LAYER::CUTOFF_POST_PHYSICS_SCRIPTS);
         });
 
-        ST<Input>::Get()->NewIteration();
+        ST<MagicInput>::Get()->NewIteration();
     }
 }
 

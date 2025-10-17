@@ -22,12 +22,12 @@ All content © 2024 DigiPen Institute of Technology Singapore.
 All rights reserved.
 */
 /******************************************************************************/
-#include "Hierarchy.h"
-#include "ResourceManager.h"
-#include "SceneManagement.h"
-#include "Editor.h"
-#include "TweenManager.h"
-#include "NameComponent.h"
+#include "Editor/Hierarchy.h"
+#include "Engine/Resources/ResourceManager.h"
+#include "Engine/SceneManagement.h"
+#include "Editor/Editor.h"
+#include "Tween/TweenManager.h"
+#include "Components/NameComponent.h"
 #ifdef IMGUI_ENABLED
 
 Hierarchy::Hierarchy()

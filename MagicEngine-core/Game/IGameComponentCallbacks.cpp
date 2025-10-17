@@ -20,7 +20,7 @@ All rights reserved.
 */
 /******************************************************************************/
 
-#include "IGameComponentCallbacks.h"
+#include "Game/IGameComponentCallbacks.h"
 
 GameComponentCallbacksHandler::GameComponentCallbacksHandler()
 {

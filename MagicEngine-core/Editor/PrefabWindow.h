@@ -19,8 +19,8 @@ All rights reserved.
 */
 /******************************************************************************/
 #pragma once
-#include "ResourceManager.h"
-#include "PrefabManager.h"
+#include "Engine/Resources/ResourceManager.h"
+#include "Engine/PrefabManager.h"
 
 
 class PrefabWindow {

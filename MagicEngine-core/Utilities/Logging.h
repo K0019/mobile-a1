@@ -23,7 +23,7 @@ All rights reserved.
 /******************************************************************************/
 
 #pragma once
-#include "Singleton.h"
+#include "Utilities/Singleton.h"
 
 enum LogLevel
 {

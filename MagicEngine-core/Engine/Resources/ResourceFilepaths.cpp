@@ -18,7 +18,7 @@ All rights reserved.
 */
 /******************************************************************************/
 
-#include "ResourceFilepaths.h"
+#include "Engine/Resources/ResourceFilepaths.h"
 
 const ResourceFilepaths::FileEntry* ResourceFilepaths::SetFilepath(const std::filesystem::path& filepath, std::vector<AssociatedResourceHashes>&& associatedHashes)
 {

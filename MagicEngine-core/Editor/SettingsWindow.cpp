@@ -24,12 +24,12 @@ All rights reserved.
 */
 /******************************************************************************/
 
-#include "SettingsWindow.h"
+#include "Editor/SettingsWindow.h"
 #include "GameSettings.h"
-#include "LayersMatrix.h"
-#include "InputConfig.h"
-#include "Editor.h"
-#include "AssetBrowser.h"
+#include "Editor/LayersMatrix.h"
+#include "Editor/InputConfig.h"
+#include "Editor/Editor.h"
+#include "Editor/AssetBrowser.h"
 
 namespace editor {
 

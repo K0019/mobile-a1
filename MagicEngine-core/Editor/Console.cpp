@@ -18,12 +18,12 @@ All content © 2024 DigiPen Institute of Technology Singapore.
 All rights reserved.
 */
 /******************************************************************************/
-#include "Console.h"
+#include "Editor/Console.h"
 
-#include "NameComponent.h"
-#include "EntityUID.h"
-#include "CustomViewport.h"
-#include "Engine.h"
+#include "Components/NameComponent.h"
+#include "ECS/EntityUID.h"
+#include "Graphics/CustomViewport.h"
+#include "Engine/Engine.h"
 
 namespace editor {
 
@@ -65,7 +65,7 @@ namespace editor {
 					try
 					{
 						double maxFPS{ std::stod(tokens[1]) };
-						ST<Engine>::Get()->setFPS(maxFPS);
+						ST<MagicEngine>::Get()->setFPS(maxFPS);
 						CONSOLE_LOG(LEVEL_INFO) << "Maximum FPS set to " << maxFPS;
 					}
 					catch (const std::invalid_argument&)

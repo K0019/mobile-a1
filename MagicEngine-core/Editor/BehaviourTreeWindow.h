@@ -20,7 +20,7 @@ All rights reserved.
 /******************************************************************************/
 
 #pragma once
-#include "GUIAsECS.h"   // <-- Required so WindowBase is known
+#include "Editor/Containers/GUIAsECS.h"   // <-- Required so WindowBase is known
 
 namespace editor {
 

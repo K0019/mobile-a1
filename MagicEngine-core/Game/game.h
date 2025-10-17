@@ -20,7 +20,7 @@ All rights reserved.
 /******************************************************************************/
 
 #pragma once
-#include "GameSystems.h"
+#include "Game/GameSystems.h"
 
 //! Represents the current state of the game
 enum class GAMESTATE : int

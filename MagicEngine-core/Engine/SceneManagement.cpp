@@ -20,11 +20,11 @@ All rights reserved.
 */
 /******************************************************************************/
 
-#include "SceneManagement.h"
-#include "Editor.h"
-#include "History.h"
+#include "Engine/SceneManagement.h"
+#include "Editor/Editor.h"
+#include "Utilities/History.h"
 #include "GameSettings.h"
-#include "EntityUID.h"
+#include "ECS/EntityUID.h"
 
 #pragma region Helper
 

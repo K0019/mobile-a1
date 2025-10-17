@@ -19,10 +19,10 @@ All rights reserved.
 /******************************************************************************/
 
 #pragma once
-#include "context.h"
-#include "scene_feature.h"
-#include "asset_types.h"
-#include "camera.h"
+#include "core/engine/engine.h"
+#include "graphics/features/scene_feature.h"
+#include "resource/resource_types.h"
+#include "math/camera.h"
 
 class GraphicsScene
 {

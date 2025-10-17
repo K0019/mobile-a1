@@ -19,15 +19,15 @@ All rights reserved.
 */
 /******************************************************************************/
 
-#include "ResourceFiletypeImporterBase.h"
-#include "ResourceManager.h"
+#include "Engine/Resources/Importers/ResourceFiletypeImporterBase.h"
+#include "Engine/Resources/ResourceManager.h"
 
 #include "GameSettings.h"
 
 size_t ResourceFiletypeImporterBase::GenerateNewHash()
 {
     size_t hash{ util::Rand_UID() };
-    while (ST<ResourceManager>::Get()->INTERNAL_GetNamesManager().GetName(hash))
+    while (ST<MagicResourceManager>::Get()->INTERNAL_GetNamesManager().GetName(hash))
         hash = util::Rand_UID();
     CONSOLE_LOG(LEVEL_INFO) << "Generated " << hash;
     return hash;
@@ -40,7 +40,7 @@ std::filesystem::path ResourceFiletypeImporterBase::GetExeRelativeFilepath(const
 
 void ResourceFiletypeImporterBase::GenerateNamesForResources(std::vector<AssociatedResourceHashes>& resources, const std::filesystem::path& relativeFilepath)
 {
-    auto& namesManager{ ST<ResourceManager>::Get()->INTERNAL_GetNamesManager() };
+    auto& namesManager{ ST<MagicResourceManager>::Get()->INTERNAL_GetNamesManager() };
     std::string filename{ relativeFilepath.stem().string() };
 
     for (const auto& resource : resources)

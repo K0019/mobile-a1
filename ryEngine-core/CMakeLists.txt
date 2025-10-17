@@ -2,9 +2,9 @@
 
 # Add offset_allocator sources as extra
 file(GLOB_RECURSE OFFSET_ALLOCATOR_SOURCES CONFIGURE_DEPENDS 
-    "${PROJECT_SOURCE_DIR}/extern/offset_allocator/*.hpp"
-    "${PROJECT_SOURCE_DIR}/extern/offset_allocator/*.cpp"
-    "${PROJECT_SOURCE_DIR}/extern/offset_allocator/*.h"
+    "${PROJECT_SOURCE_DIR}/extern/include/offset_allocator/*.hpp"
+    "${PROJECT_SOURCE_DIR}/extern/include/offset_allocator/*.cpp"
+    "${PROJECT_SOURCE_DIR}/extern/include/offset_allocator/*.h"
 )
 
 set(CORE_DEFINITIONS
@@ -61,7 +61,7 @@ target_include_directories(ryEngine-Core
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
         $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
-        $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/extern/offset_allocator>
+        $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/extern/include/offset_allocator>
         $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/offset_allocator>
 )
 
@@ -90,7 +90,7 @@ install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/
 )
 
 # Install offset_allocator headers
-install(DIRECTORY ${PROJECT_SOURCE_DIR}/extern/offset_allocator/
+install(DIRECTORY ${PROJECT_SOURCE_DIR}/extern/include/offset_allocator/
     DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/offset_allocator
     FILES_MATCHING 
     PATTERN "*.h"

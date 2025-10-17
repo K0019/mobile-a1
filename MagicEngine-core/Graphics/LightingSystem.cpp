@@ -23,9 +23,9 @@ All rights reserved.
 */
 /******************************************************************************/
 
-#include "LightingSystem.h"
-#include "Engine.h"
-#include "GraphicsScene.h"
+#include "Graphics/LightingSystem.h"
+#include "Engine/Engine.h"
+#include "Engine/Graphics Interface/GraphicsScene.h"
 
 LightingSystem::LightingSystem() : System_Internal(&LightingSystem::UpdateLightComp) {
 //renderer = ST<Engine>::Get()->_vulkan->_renderer.get();

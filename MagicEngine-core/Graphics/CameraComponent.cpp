@@ -18,8 +18,8 @@ All content © 2024 DigiPen Institute of Technology Singapore.
 All rights reserved.
 */
 /******************************************************************************/
-#include "CameraComponent.h"
-#include "GUICollection.h"
+#include "Graphics/CameraComponent.h"
+#include "Editor/Containers/GUICollection.h"
 
 int CameraComponent::globalPriority = 0;
 

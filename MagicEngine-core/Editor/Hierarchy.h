@@ -23,7 +23,7 @@ All rights reserved.
 */
 /******************************************************************************/
 #pragma once
-#include "GUICollection.h"
+#include "Editor/Containers/GUICollection.h"
 
 /*****************************************************************//*!
 \class Hierarchy

@@ -20,9 +20,9 @@ All rights reserved.
 */
 /******************************************************************************/
 
-#include "NameComponent.h"
-#include "UIScreenManager.h"
-#include "GUICollection.h"
+#include "Components/NameComponent.h"
+#include "GameUI/UIScreenManager.h"
+#include "Editor/Containers/GUICollection.h"
 
 UIScreenManagerComponent::UIScreenManagerComponent()
 	: currScreen{}

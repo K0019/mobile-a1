@@ -21,7 +21,7 @@ All rights reserved.
 /******************************************************************************/
 
 #pragma once
-#include "ECSInternal.h"
+#include "ECS/ECSInternal.h"
 #include <cassert>
 #include <iostream>
 #include "Utilities/TypeID.h"

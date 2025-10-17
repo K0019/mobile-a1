@@ -20,7 +20,7 @@ All rights reserved.
 */
 /******************************************************************************/
 
-#include "IHiddenComponent.h"
+#include "Editor/IHiddenComponent.h"
 
 bool HiddenComponentsStore::IsHidden(ecs::CompHash compHash)
 {

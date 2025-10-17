@@ -20,9 +20,9 @@ All rights reserved.
 /******************************************************************************/
 
 #include "pch.h"
-#include "Collision.h"
-#include "Physics.h"
-#include "NameComponent.h"
+#include "Physics/Collision.h"
+#include "Physics/Physics.h"
+#include "Components/NameComponent.h"
 
 #define X(name, str) str,
 static const char* physicsFlagNames[]{

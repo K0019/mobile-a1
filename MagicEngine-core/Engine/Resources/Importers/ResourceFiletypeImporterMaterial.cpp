@@ -1,16 +1,16 @@
-#include "ResourceFiletypeImporterMaterial.h"
-#include "ResourceTypesGraphics.h"
-#include "ResourceManager.h"
-#include "ResourceImporter.h"
+#include "Engine/Resources/Importers/ResourceFiletypeImporterMaterial.h"
+#include "Engine/Resources/Types/ResourceTypesGraphics.h"
+#include "Engine/Resources/ResourceManager.h"
+#include "Engine/Resources/ResourceImporter.h"
 
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
 
-#include "GraphicsAPI.h"
+#include "Engine/Graphics Interface/GraphicsAPI.h"
 #include "import_config.h"
 #include "MeshFileStructure.h"
-#include "MaterialSerialization.h"
+#include "Engine/Resources/MaterialSerialization.h"
 #include "GameSettings.h"
 
 using namespace AssetLoading;
@@ -70,7 +70,7 @@ bool ResourceFiletypeImporterMaterial::Import(const std::filesystem::path& relat
     const auto* fileEntry{ GenerateFileEntryForResources<ResourceMaterial>(relativeFilepath, 1) };
 
     // Assign resource to material handle
-    ST<ResourceManager>::Get()->INTERNAL_GetMaterials().INTERNAL_GetResource(fileEntry->associatedResources[0].hashes[0], true)->handle = materialHandle;
+    ST<MagicResourceManager>::Get()->INTERNAL_GetMaterials().INTERNAL_GetResource(fileEntry->associatedResources[0].hashes[0], true)->handle = materialHandle;
 
 	return true;
 }

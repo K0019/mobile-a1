@@ -19,8 +19,8 @@ All rights reserved.
 */
 /******************************************************************************/
 #pragma once
-#include "ResourceManager.h"
-#include "TextComponent.h"
+#include "Engine/Resources/ResourceManager.h"
+#include "Graphics/TextComponent.h"
 
 class Renderer;
 // A renderer class for rendering text displayed by a font loaded using the 

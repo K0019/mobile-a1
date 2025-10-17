@@ -1,8 +1,8 @@
-#include "SceneTab.h"
-#include "ResourceManager.h"
-#include "EditorGuiUtils.h"
-#include "SceneManagement.h"
-#include "AssetBrowser.h"
+#include "Editor/SceneTab.h"
+#include "Engine/Resources/ResourceManager.h"
+#include "Editor/EditorGuiUtils.h"
+#include "Engine/SceneManagement.h"
+#include "Editor/AssetBrowser.h"
 #include "GameSettings.h"
 
 ///////////////

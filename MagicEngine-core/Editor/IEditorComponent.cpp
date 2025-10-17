@@ -20,7 +20,7 @@ All rights reserved.
 */
 /******************************************************************************/
 
-#include "IEditorComponent.h"
+#include "Editor/IEditorComponent.h"
 
 void editor::ComponentDrawMethods::Register(size_t compHash, size_t offset)
 {

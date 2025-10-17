@@ -19,12 +19,12 @@ All rights reserved.
 /******************************************************************************/
 
 #pragma once
-#include "ResourceTypesGraphics.h"
-#include "ResourceTypesAudio.h"
-#include "ResourceFilepaths.h"
-#include "ResourceNames.h"
+#include "Engine/Resources/Types/ResourceTypesGraphics.h"
+#include "Engine/Resources/Types/ResourceTypesAudio.h"
+#include "Engine/Resources/ResourceFilepaths.h"
+#include "Engine/Resources/ResourceNames.h"
 
-class ResourceManager
+class MagicResourceManager
 {
 public:
     void Init();

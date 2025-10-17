@@ -1,5 +1,5 @@
-#include "EditorGuiUtils.h"
-#include "ResourceManager.h"
+#include "Editor/EditorGuiUtils.h"
+#include "Engine/Resources/ResourceManager.h"
 
 namespace gui
 {

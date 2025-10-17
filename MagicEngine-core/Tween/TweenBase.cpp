@@ -20,7 +20,7 @@ All content © 2024 DigiPen Institute of Technology Singapore.
 All rights reserved.
 */
 /******************************************************************************/
-#include "TweenBase.h"
+#include "Tween/TweenBase.h"
 
 void TweenBase::Interpolate(float& t, TT type)
 {

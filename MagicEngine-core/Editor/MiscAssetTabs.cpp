@@ -1,12 +1,12 @@
-#include "MiscAssetTabs.h"
-#include "ResourceManager.h"
-#include "ScriptManagement.h"
-#include "CSScripting.h"
-#include "PrefabWindow.h"
-#include "Import.h"
-#include "EditorHistory.h"
-#include "EditorGuiUtils.h"
-#include "AssetBrowser.h"
+#include "Editor/MiscAssetTabs.h"
+#include "Engine/Resources/ResourceManager.h"
+#include "Scripting/ScriptManagement.h"
+#include "Scripting/CSScripting.h"
+#include "Editor/PrefabWindow.h"
+#include "Editor/Import.h"
+#include "Editor/EditorHistory.h"
+#include "Editor/EditorGuiUtils.h"
+#include "Editor/AssetBrowser.h"
 
 ///////////////
 /// Prefabs ///

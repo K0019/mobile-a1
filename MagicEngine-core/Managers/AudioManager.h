@@ -24,7 +24,7 @@ All rights reserved.
 #pragma once
 #include <FMOD/fmod.hpp>
 #include <FMOD/fmod_studio.hpp>
-#include "ResourceTypesAudio.h"
+#include "Engine/Resources/Types/ResourceTypesAudio.h"
 
 class AudioManager
 {

@@ -19,8 +19,8 @@ All rights reserved.
 /******************************************************************************/
 
 #pragma once
-#include "ResourceTypes.h"
-#include "asset_types.h"
+#include "Engine/Resources/Types/ResourceTypes.h"
+#include "resource/resource_types.h"
 
 struct ResourceMesh : public ResourceBase
 {

@@ -28,9 +28,9 @@ All rights reserved.
 */
 /******************************************************************************/
 #pragma once
-#include "CSScripting.h"
-#include "IRegisteredComponent.h"
-#include "IEditorComponent.h"
+#include "Scripting/CSScripting.h"
+#include "ECS/IRegisteredComponent.h"
+#include "Editor/IEditorComponent.h"
 
 /*****************************************************************//*!
 \brief

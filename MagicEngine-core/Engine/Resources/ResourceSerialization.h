@@ -19,9 +19,9 @@ All rights reserved.
 /******************************************************************************/
 
 #pragma once
-#include "ResourceFilepaths.h"
-#include "ResourceNames.h"
-#include "Serializer.h"
+#include "Engine/Resources/ResourceFilepaths.h"
+#include "Engine/Resources/ResourceNames.h"
+#include "Utilities/Serializer.h"
 
 class ResourceSerialization
 {

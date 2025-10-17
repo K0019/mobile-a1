@@ -18,9 +18,9 @@ All content © 2024 DigiPen Institute of Technology Singapore.
 All rights reserved.
 */
 /******************************************************************************/
-#include "PrefabWindow.h"
-#include "AssetBrowser.h"
-#include "Editor.h"
+#include "Editor/PrefabWindow.h"
+#include "Editor/AssetBrowser.h"
+#include "Editor/Editor.h"
 
 PrefabWindow::PrefabWindow()
 {

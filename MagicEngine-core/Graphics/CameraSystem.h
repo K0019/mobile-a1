@@ -24,7 +24,7 @@ All rights reserved.
 */
 /******************************************************************************/
 
-#include "CameraComponent.h"
+#include "Graphics/CameraComponent.h"
 
 class CameraCompUploadSystem : public ecs::System<CameraCompUploadSystem, CameraComponent>
 {

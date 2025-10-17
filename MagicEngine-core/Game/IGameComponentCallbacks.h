@@ -21,7 +21,7 @@ All rights reserved.
 /******************************************************************************/
 
 #pragma once
-#include "game.h"
+#include "Game/game.h"
 
 /*****************************************************************//*!
 \class IGameComponentCallbacks

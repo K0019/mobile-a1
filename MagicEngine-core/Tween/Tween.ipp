@@ -20,7 +20,7 @@ All rights reserved.
 */
 /******************************************************************************/
 #pragma once
-#include "Tween.h"
+#include "Tween/Tween.h"
 
 template <typename V, typename U, typename Object>
 Tween<V, U, Object>::Tween(

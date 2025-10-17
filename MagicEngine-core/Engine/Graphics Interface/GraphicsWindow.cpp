@@ -18,11 +18,11 @@ All rights reserved.
 */
 /******************************************************************************/
 
-#include "GraphicsWindow.h"
-#include "GraphicsAPI.h"
-#include "Input.h"
+#include "Engine/Graphics Interface/GraphicsWindow.h"
+#include "Engine/Graphics Interface/GraphicsAPI.h"
+#include "Engine/Input.h"
 #include "GameSettings.h"
-#include "GUICollection.h"
+#include "Editor/Containers/GUICollection.h"
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"

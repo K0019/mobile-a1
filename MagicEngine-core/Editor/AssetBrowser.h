@@ -23,9 +23,9 @@ All rights reserved.
 */
 /******************************************************************************/
 #pragma once
-#include "AssetBrowserCategories.h"
-#include "ResourceManager.h"
-#include "Filesystem.h"
+#include "Editor/AssetBrowserCategories.h"
+#include "Engine/Resources/ResourceManager.h"
+#include "Managers/Filesystem.h"
 
 class AssetBrowser {
     friend class ST<AssetBrowser>;

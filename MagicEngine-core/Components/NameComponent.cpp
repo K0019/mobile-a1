@@ -20,7 +20,7 @@ All rights reserved.
 */
 /******************************************************************************/
 
-#include "NameComponent.h"
+#include "Components/NameComponent.h"
 
 NameComponent::NameComponent()
 	: name{ "New Entity" }

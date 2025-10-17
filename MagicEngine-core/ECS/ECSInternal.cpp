@@ -26,7 +26,7 @@ All rights reserved.
 #include "Utilities/AndroidMacros.h"
 #endif
 
-#include "ECSInternal.h"
+#include "ECS/ECSInternal.h"
 
 namespace ecs {
 	namespace internal {

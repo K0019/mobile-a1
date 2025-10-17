@@ -18,16 +18,16 @@ All rights reserved.
 */
 /******************************************************************************/
 
-#include "ResourceImporter.h"
-#include "ResourceTypes.h"
-#include "ResourceManager.h"
+#include "Engine/Resources/ResourceImporter.h"
+#include "Engine/Resources/Types/ResourceTypes.h"
+#include "Engine/Resources/ResourceManager.h"
 
-#include "ResourceFiletypeImporterFBX.h"
-#include "ResourceFiletypeImporterKTX.h"
-#include "ResourceFiletypeImporterMeshAsset.h"
-#include "ResourceFiletypeImporterMaterial.h"
-#include "ResourceFiletypeImporterImage.h"
-#include "ResourceFiletypeImporterAudio.h"
+#include "Engine/Resources/Importers/ResourceFiletypeImporterFBX.h"
+#include "Engine/Resources/Importers/ResourceFiletypeImporterKTX.h"
+#include "Engine/Resources/Importers/ResourceFiletypeImporterMeshAsset.h"
+#include "Engine/Resources/Importers/ResourceFiletypeImporterMaterial.h"
+#include "Engine/Resources/Importers/ResourceFiletypeImporterImage.h"
+#include "Engine/Resources/Importers/ResourceFiletypeImporterAudio.h"
 
 #include "GameSettings.h"
 

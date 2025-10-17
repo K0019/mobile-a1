@@ -1,5 +1,5 @@
 #pragma once
-#include "ResourceFiletypeImporterBase.h"
+#include "Engine/Resources/Importers/ResourceFiletypeImporterBase.h"
 
 class ResourceFiletypeImporterImage : public ResourceFiletypeImporterBase
 {

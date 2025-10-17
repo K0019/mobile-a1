@@ -22,9 +22,9 @@ All rights reserved.
 */
 /******************************************************************************/
 #pragma once
-#include "ResourceTypesAudio.h"
-#include "IRegisteredComponent.h"
-#include "IEditorComponent.h"
+#include "Engine/Resources/Types/ResourceTypesAudio.h"
+#include "ECS/IRegisteredComponent.h"
+#include "Editor/IEditorComponent.h"
 
 class AudioSourceComponent
 	: public IRegisteredComponent<AudioSourceComponent>

@@ -1,5 +1,5 @@
 #pragma once
-#include "AssetBrowserCategories.h"
+#include "Editor/AssetBrowserCategories.h"
 
 struct FileBrowserTab
 	: editor::BaseAssetCategory

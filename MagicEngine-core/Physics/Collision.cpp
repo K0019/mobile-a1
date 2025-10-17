@@ -20,9 +20,9 @@ All rights reserved.
 */
 /******************************************************************************/
 
-#include "Collision.h"
-#include "Physics.h"
-#include "GUICollection.h"
+#include "Physics/Collision.h"
+#include "Physics/Physics.h"
+#include "Editor/Containers/GUICollection.h"
 
 namespace physics {
 	bool ObjectLayerPairFilterImpl::ShouldCollide(JPH::ObjectLayer inObject1, JPH::ObjectLayer inObject2) const

@@ -24,9 +24,9 @@ All rights reserved.
 */
 /******************************************************************************/
 
-#include "BehaviourNode.h"
+#include "Engine/BehaviorTree/BehaviourNode.h"
 #include "BehaviourTreeFactory.h"
-#include "Input.h"
+#include "Engine/Input.h"
 
 BT_REGISTER_NODE(Sequence, "Sequence")
 BT_REGISTER_NODE(Selector, "Selector")
@@ -214,7 +214,7 @@ NODE_STATUS MoveLeft::OnUpdate(ecs::EntityHandle entity)
     //FOR DEMO
     static bool prev = false; // remembers last frame state
 
-    auto input = ST<Input>::Get();
+    auto input = ST<MagicInput>::Get();
     if (input)
     {
         bool now = false;
@@ -247,7 +247,7 @@ NODE_STATUS MoveRight::OnUpdate(ecs::EntityHandle entity)
     //FOR DEMO
     static bool prev = false; // remembers last frame state
 
-    auto input = ST<Input>::Get();
+    auto input = ST<MagicInput>::Get();
     if (input)
     {
         bool now = false;
@@ -280,7 +280,7 @@ NODE_STATUS MoveUp::OnUpdate(ecs::EntityHandle entity)
     //FOR DEMO
     static bool prev = false; // remembers last frame state
 
-    auto input = ST<Input>::Get();
+    auto input = ST<MagicInput>::Get();
     if (input)
     {
         bool now = false;
@@ -313,7 +313,7 @@ NODE_STATUS MoveDown::OnUpdate(ecs::EntityHandle entity)
     //FOR DEMO
     static bool prev = false; // remembers last frame state
 
-    auto input = ST<Input>::Get();
+    auto input = ST<MagicInput>::Get();
     if (input)
     {
         bool now = false;

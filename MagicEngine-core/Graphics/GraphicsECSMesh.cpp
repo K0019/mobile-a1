@@ -18,10 +18,10 @@ All content � 2024 DigiPen Institute of Technology Singapore.
 All rights reserved.
 */
 /******************************************************************************/
-#include "GraphicsECSMesh.h"
-#include "GraphicsScene.h"
-#include "ResourceManager.h"
-#include "GUICollection.h"
+#include "Graphics/GraphicsECSMesh.h"
+#include "Engine/Graphics Interface/GraphicsScene.h"
+#include "Engine/Resources/ResourceManager.h"
+#include "Editor/Containers/GUICollection.h"
 
 size_t RenderComponent::GetMeshHash() const
 {
@@ -52,8 +52,8 @@ RenderSystem::RenderSystem()
 
 void RenderSystem::ProcessComp(RenderComponent& comp)
 {
-    auto mesh{ ResourceManager::Meshes().GetResource(comp.GetMeshHash()) };
-    auto material{ ResourceManager::Materials().GetResource(comp.GetMaterialHash()) };
+    auto mesh{ MagicResourceManager::Meshes().GetResource(comp.GetMeshHash()) };
+    auto material{ MagicResourceManager::Materials().GetResource(comp.GetMaterialHash()) };
     if (!(mesh && material))
         return;
 

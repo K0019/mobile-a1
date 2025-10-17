@@ -1,6 +1,6 @@
 #pragma once
-#include "AssetBrowserCategories.h"
-#include "ResourceTypesAudio.h"
+#include "Editor/AssetBrowserCategories.h"
+#include "Engine/Resources/Types/ResourceTypesAudio.h"
 
 struct SoundTab
 	: editor::BaseAssetCategory

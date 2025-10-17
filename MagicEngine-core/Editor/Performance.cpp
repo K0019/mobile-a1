@@ -22,7 +22,7 @@ All rights reserved.
 */
 /******************************************************************************/
 
-#include "Performance.h"
+#include "Editor/Performance.h"
 #include <GLFW/glfw3.h>
 #include <Windows.h>
 #include <Psapi.h>

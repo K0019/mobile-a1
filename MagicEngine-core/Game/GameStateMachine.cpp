@@ -20,7 +20,7 @@ All rights reserved.
 */
 /******************************************************************************/
 
-#include "GameStateMachine.h"
+#include "Game/GameStateMachine.h"
 
 namespace sm {
 

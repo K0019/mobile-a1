@@ -19,7 +19,7 @@ All rights reserved.
 */
 /******************************************************************************/
 
-#include "EntityLayers.h"
+#include "Engine/EntityLayers.h"
 
 // Use X Macro to obtain enum name
 #define X(name, str) str,

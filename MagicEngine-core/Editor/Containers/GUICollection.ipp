@@ -1,5 +1,5 @@
 #pragma once
-#include "GUICollection.h"
+#include "Editor/Containers/GUICollection.h"
 
 namespace gui {
 	namespace internal {
@@ -41,7 +41,7 @@ namespace gui {
 		template<auto StartFunc, void (*EndFunc)(), bool AlwaysCallEnd, bool StartIsOptional>
 		BeginEndBound<StartFunc, EndFunc, AlwaysCallEnd, StartIsOptional>::~BeginEndBound()
 		{
-			if constexpr (EndFunc)
+			if constexpr (static_cast<bool>(EndFunc))
 				if (isOpen || AlwaysCallEnd)
 					EndFunc();
 		}
@@ -158,7 +158,11 @@ namespace gui {
 				if (MenuItem("Rename"))
 				{
 					idOfItemBeingRenamed = currId;
+				#ifdef __ANDROID__
+					strncpy(buffer, currText, 256);
+				#else
 					strncpy_s(buffer, currText, 256);
+				#endif
 				}
 		}
 		else

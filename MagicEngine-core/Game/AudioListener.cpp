@@ -19,8 +19,8 @@ All content © 2024 DigiPen Institute of Technology Singapore.
 All rights reserved.
 */
 /******************************************************************************/
-#include "AudioListener.h"
-#include "AudioManager.h"
+#include "Game/AudioListener.h"
+#include "Managers/AudioManager.h"
 
 AudioListenerComponent::AudioListenerComponent()
 {

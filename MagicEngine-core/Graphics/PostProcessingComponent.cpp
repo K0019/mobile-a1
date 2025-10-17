@@ -1,5 +1,5 @@
-#include "PostProcessingComponent.h"
-#include "Engine.h"
+#include "Graphics/PostProcessingComponent.h"
+#include "Engine/Engine.h"
 
 PostProcessingComponent::PostProcessingComponent(bool bloomEnabled)
     : bloomEnabled{ bloomEnabled }

@@ -18,8 +18,8 @@ All content � 2024 DigiPen Institute of Technology Singapore.
 All rights reserved.
 */
 /******************************************************************************/
-#include "ScriptManagement.h"
-#include "CSScripting.h"
+#include "Scripting/ScriptManagement.h"
+#include "Scripting/CSScripting.h"
 #include "GameSettings.h"
 
 bool ScriptManager::IsScriptsFolderExists()

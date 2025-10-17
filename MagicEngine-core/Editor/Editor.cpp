@@ -21,18 +21,18 @@ All rights reserved.
 */
 /******************************************************************************/
 
-#include "Editor.h"
-#include "EditorHistory.h"
-#include "Input.h"
-#include "IEditorComponent.h"
+#include "Editor/Editor.h"
+#include "Editor/EditorHistory.h"
+#include "Engine/Input.h"
+#include "Editor/IEditorComponent.h"
 
-#include "Engine.h"
-#include "TextComponent.h"
+#include "Engine/Engine.h"
+#include "Graphics/TextComponent.h"
 
-#include "NameComponent.h"
-#include "EntityLayers.h"
-#include "Game.h"
-#include "EditorGizmoBridge.h"
+#include "Components/NameComponent.h"
+#include "Engine/EntityLayers.h"
+#include "Game/game.h"
+#include "Editor/EditorGizmoBridge.h"
 
 
 #ifdef IMGUI_ENABLED

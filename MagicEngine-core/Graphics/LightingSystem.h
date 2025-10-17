@@ -24,7 +24,7 @@ All rights reserved.
 /******************************************************************************/
 
 #pragma once
-#include "LightComponent.h"
+#include "Graphics/LightComponent.h"
 
 class Renderer;
 /*****************************************************************//*!

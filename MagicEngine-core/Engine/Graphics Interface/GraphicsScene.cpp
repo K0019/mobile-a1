@@ -18,11 +18,11 @@ All rights reserved.
 */
 /******************************************************************************/
 
-#include "GraphicsScene.h"
-#include "renderer.h"
-#include "grid_feature.h"
-#include "asset_system.h"
-#include "EditorCameraBridge.h"
+#include "Engine/Graphics Interface/GraphicsScene.h"
+#include "graphics/renderer.h"
+#include "graphics/features/grid_feature.h"
+#include "resource/resource_manager.h"
+#include "Editor/EditorCameraBridge.h"
 
 GraphicsScene::GraphicsScene()
     : context{}
@@ -75,13 +75,13 @@ void GraphicsScene::AddObject(const MeshHandle& meshHandle, const MaterialHandle
     if (!meshHandle.isValid() || !materialHandle.isValid())
         return;
 
-    const auto* meshData{ context.assetSystem->getMesh(meshHandle) };
+    const auto* meshData{ context.resourceMngr->getMesh(meshHandle) };
     if (!meshData)
         return;
 
     // Store object data
     params->objectTransforms.push_back(transform);
-    params->materialIndices.push_back(context.assetSystem->getMaterialIndex(materialHandle));
+    params->materialIndices.push_back(context.resourceMngr->getMaterialIndex(materialHandle));
 
     // Transform mesh bounds to world space
     Vec3 center{ meshData->bounds.x,  meshData->bounds.y,  meshData->bounds.z };
@@ -100,7 +100,7 @@ void GraphicsScene::AddObject(const MeshHandle& meshHandle, const MaterialHandle
 
     DrawData drawData{
         .transformId = static_cast<uint32_t>(objIndex),
-        .materialId = context.assetSystem->getMaterialIndex(materialHandle)
+        .materialId = context.resourceMngr->getMaterialIndex(materialHandle)
     };
 
     uint32_t drawCommandIndex = static_cast<uint32_t>(params->drawCommands.size());
@@ -108,7 +108,7 @@ void GraphicsScene::AddObject(const MeshHandle& meshHandle, const MaterialHandle
     params->drawData.push_back(drawData);
 
     // Determine transparency and add to render queues
-    if (context.assetSystem->isMaterialTransparent(materialHandle))
+    if (context.resourceMngr->isMaterialTransparent(materialHandle))
         params->transparentIndices.push_back(drawCommandIndex);
     else
         params->opaqueIndices.push_back(drawCommandIndex);

@@ -19,8 +19,8 @@ All rights reserved.
 /******************************************************************************/
 #pragma once
 #include "pch.h"
-#include "GUIAsECS.h"   // <-- Required so WindowBase is known
-#include "BehaviourTree.h"
+#include "Editor/Containers/GUIAsECS.h"   // <-- Required so WindowBase is known
+#include "Engine/BehaviorTree/BehaviourTree.h"
 
 namespace bt {
 	/*****************************************************************//*!

@@ -1,6 +1,6 @@
 #pragma once
-#include "GUIAsECS.h"
-#include "processed_assets.h"
+#include "Editor/Containers/GUIAsECS.h"
+#include "resource/processed_assets.h"
 
 namespace editor {
 
@@ -34,7 +34,7 @@ X(OCCLUSION_TEXTURE, "Occlusion")
 		char materialName[128]{ "NewMaterial" };
 
 		std::array<size_t, +MATERIAL_TEXTURE_INDEX::TOTAL> textures;
-		AssetLoading::ProcessedMaterial materialProps;
+		Resource::ProcessedMaterial materialProps;
 		bool isUnlit = false;
 		bool isDoubleSided = false;
 	};

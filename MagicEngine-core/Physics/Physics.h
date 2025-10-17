@@ -18,10 +18,10 @@ All rights reserved.
 */
 /******************************************************************************/
 
-#include "JoltPhysics.h"
-#include "MaskTemplate.h"
-#include "IRegisteredComponent.h"
-#include "IGameComponentCallbacks.h"
+#include "Physics/JoltPhysics.h"
+#include "Utilities/MaskTemplate.h"
+#include "ECS/IRegisteredComponent.h"
+#include "Game/IGameComponentCallbacks.h"
 
 namespace physics {
 	class ColliderComp;

@@ -1,6 +1,6 @@
-#include "AudioManager.h"
+#include "Managers/AudioManager.h"
 #include <FMOD/fmod_errors.h>
-#include "ResourceManager.h"
+#include "Engine/Resources/ResourceManager.h"
 
 // Macro sprinkler for FMOD error, we don't need a function call stack for this
 // If condition tests against FMOD_OK (which is 0)
@@ -92,7 +92,7 @@ void AudioManager::FreeSound(FMOD::Sound* sound)
 
 uint32_t AudioManager::PlaySound(size_t audioResourceHash, bool loop, AudioType category)
 {
-	const auto* resource{ ST<ResourceManager>::Get()->Audio().GetResource(audioResourceHash) };
+	const auto* resource{ ST<MagicResourceManager>::Get()->Audio().GetResource(audioResourceHash) };
 	if (!resource)
 		return 0;
 
@@ -120,7 +120,7 @@ uint32_t AudioManager::PlaySound(size_t audioResourceHash, bool loop, AudioType 
 
 uint32_t AudioManager::PlaySound3D(size_t audioResourceHash, bool loop, Vec3 position, AudioType category, std::pair<float, float> rolloff)
 {
-	const auto* resource{ ST<ResourceManager>::Get()->Audio().GetResource(audioResourceHash) };
+	const auto* resource{ ST<MagicResourceManager>::Get()->Audio().GetResource(audioResourceHash) };
 	if (!resource)
 		return 0;
 

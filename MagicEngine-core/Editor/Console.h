@@ -27,7 +27,7 @@ All rights reserved.
 */
 /******************************************************************************/
 #pragma once
-#include "GUIAsECS.h"
+#include "Editor/Containers/GUIAsECS.h"
 
 namespace editor {
 

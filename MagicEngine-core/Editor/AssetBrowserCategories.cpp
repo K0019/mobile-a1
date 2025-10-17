@@ -1,6 +1,6 @@
-#include "AssetBrowserCategories.h"
-#include "AssetBrowser.h"
-#include "GUICollection.h"
+#include "Editor/AssetBrowserCategories.h"
+#include "Editor/AssetBrowser.h"
+#include "Editor/Containers/GUICollection.h"
 
 namespace editor {
 

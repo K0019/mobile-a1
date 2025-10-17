@@ -20,7 +20,7 @@ All rights reserved.
 /******************************************************************************/
 
 #pragma once
-#include "ResourceTypes.h"
+#include "Engine/Resources/Types/ResourceTypes.h"
 
 template<std::derived_from<ResourceBase> ResourceType>
 const ResourceType* ResourceContainerBase<ResourceType>::GetResource(size_t hash)

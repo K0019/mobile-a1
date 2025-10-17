@@ -18,10 +18,10 @@ All content © 2024 DigiPen Institute of Technology Singapore.
 All rights reserved.
 */
 /******************************************************************************/
-#include "HotReloader.h"
+#include "Scripting/HotReloader.h"
 #include "GameSettings.h"
-#include "CSScripting.h"
-#include "game.h"
+#include "Scripting/CSScripting.h"
+#include "Game/game.h"
 
 void HotReloader::Init()
 {

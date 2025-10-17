@@ -22,8 +22,8 @@ All rights reserved.
 */
 /******************************************************************************/
 #pragma once
-#include "Tween.h"
-#include "TweenECS.h"
+#include "Tween/Tween.h"
+#include "Tween/TweenECS.h"
 
 template<typename T>
 class ST; // Forward declare singleton template

@@ -26,8 +26,8 @@ All rights reserved.
 #include "Utilities/AndroidMacros.h"
 #endif
 
-#include "ECSSysLayers.h"
-#include "ECS.h"
+#include "ECS/ECSSysLayers.h"
+#include "ECS/ECS.h"
 
 namespace ecs {
 

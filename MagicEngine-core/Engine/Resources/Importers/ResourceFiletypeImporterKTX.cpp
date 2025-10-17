@@ -18,11 +18,11 @@ All rights reserved.
 */
 /******************************************************************************/
 
-#include "ResourceFiletypeImporterKTX.h"
-#include "ResourceTypesGraphics.h"
+#include "Engine/Resources/Importers/ResourceFiletypeImporterKTX.h"
+#include "Engine/Resources/Types/ResourceTypesGraphics.h"
 
-#include "GraphicsAPI.h"
-#include "asset_types.h"
+#include "Engine/Graphics Interface/GraphicsAPI.h"
+#include "resource/resource_types.h"
 #include "texture_loader.h"
 
 bool ResourceFiletypeImporterKTX::Import(const std::filesystem::path& assetRelativeFilepath)
@@ -44,7 +44,7 @@ bool ResourceFiletypeImporterKTX::Import(const std::filesystem::path& assetRelat
 	const auto* fileEntry{ GenerateFileEntryForResources<ResourceTexture>(assetRelativeFilepath, 1) };
 	
 	// Assign resource to texture handle
-	ST<ResourceManager>::Get()->INTERNAL_GetTextures().INTERNAL_GetResource(fileEntry->associatedResources[0].hashes[0], true)->handle = textureHandle;
+	ST<MagicResourceManager>::Get()->INTERNAL_GetTextures().INTERNAL_GetResource(fileEntry->associatedResources[0].hashes[0], true)->handle = textureHandle;
 
 	return true;
 }

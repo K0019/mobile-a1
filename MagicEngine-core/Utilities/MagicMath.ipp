@@ -1,4 +1,4 @@
-#include "MagicMath.h"
+#include "Utilities/MagicMath.h"
 
 namespace math {
 

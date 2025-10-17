@@ -1,5 +1,5 @@
 #pragma once
-#include "BehaviourNode.h"
+#include "Engine/BehaviorTree/BehaviourNode.h"
 
 class DecoratorInverter
     : public Decorator

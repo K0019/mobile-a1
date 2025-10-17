@@ -19,7 +19,7 @@ All rights reserved.
 */
 /******************************************************************************/
 
-#include "Materials.h"
+#include "Graphics/Materials.h"
 #include <GameSettings.h>
 
 MaterialInstance::MaterialInstance() = default;

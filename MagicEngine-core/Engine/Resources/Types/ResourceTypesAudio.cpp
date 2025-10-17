@@ -18,8 +18,8 @@ All rights reserved.
 */
 /******************************************************************************/
 
-#include "ResourceTypesAudio.h"
-#include "AudioManager.h"
+#include "Engine/Resources/Types/ResourceTypesAudio.h"
+#include "Managers/AudioManager.h"
 
 bool ResourceAudio::IsLoaded()
 {

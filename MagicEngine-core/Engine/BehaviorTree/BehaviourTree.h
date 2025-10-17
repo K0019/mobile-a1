@@ -23,11 +23,11 @@ All rights reserved.
 */
 /******************************************************************************/
 #pragma once
-#include "BehaviourNode.h"
-#include "Serializer.h"
-#include "IRegisteredComponent.h"
-#include "IEditorComponent.h"
-#include "IGameComponentCallbacks.h"
+#include "Engine/BehaviorTree/BehaviourNode.h"
+#include "Utilities/Serializer.h"
+#include "ECS/IRegisteredComponent.h"
+#include "Editor/IEditorComponent.h"
+#include "Game/IGameComponentCallbacks.h"
 
  /*****************************************************************//*!
      \brief

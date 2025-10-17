@@ -19,7 +19,7 @@ All content © 2024 DigiPen Institute of Technology Singapore.
 All rights reserved.
 */
 /******************************************************************************/
-#include "camera.h"
+#include "math/camera.h"
 
 struct CameraData {
     Vec3 position{};

@@ -1,8 +1,8 @@
-#include "MaterialTab.h"
-#include "AssetBrowser.h"
-#include "EditorGuiUtils.h"
+#include "Editor/MaterialTab.h"
+#include "Editor/AssetBrowser.h"
+#include "Editor/EditorGuiUtils.h"
 
-#include "MaterialCreation.h"
+#include "Editor/MaterialCreation.h"
 
 const char* MaterialTab::GetName() const
 {
@@ -31,9 +31,9 @@ void MaterialTab::Render()
     gui::SetStyleVar framePadding(gui::FLAG_STYLE_VAR::FRAME_PADDING, ImVec2(2, 2));
 
     int count{};
-    for (const auto& [hash, material] : ST<ResourceManager>::Get()->Editor_GetMaterials().Editor_GetAllResources())
+    for (const auto& [hash, material] : ST<MagicResourceManager>::Get()->Editor_GetMaterials().Editor_GetAllResources())
     {
-        const std::string& materialName{ ST<ResourceManager>::Get()->Editor_GetName(hash) };
+        const std::string& materialName{ ST<MagicResourceManager>::Get()->Editor_GetName(hash) };
         if (!editor::MatchesFilter(materialName))
             continue;
 

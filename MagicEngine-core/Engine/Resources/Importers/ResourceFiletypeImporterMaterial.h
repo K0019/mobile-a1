@@ -1,6 +1,6 @@
 #pragma once
-#include "ResourceFiletypeImporterBase.h"
-#include "ResourceFilepaths.h"
+#include "Engine/Resources/Importers/ResourceFiletypeImporterBase.h"
+#include "Engine/Resources/ResourceFilepaths.h"
 
 class ResourceFiletypeImporterMaterial : public ResourceFiletypeImporterBase
 {

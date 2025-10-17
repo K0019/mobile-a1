@@ -20,8 +20,8 @@ All rights reserved.
 /******************************************************************************/
 
 #pragma once
-#include "ResourceFilepaths.h"
-#include "ResourceManager.h"
+#include "Engine/Resources/ResourceFilepaths.h"
+#include "Engine/Resources/ResourceManager.h"
 
 class ResourceFiletypeImporterBase
 {
@@ -51,13 +51,13 @@ private:
 template<typename ...ResourceTypes, typename ...ResourceCountType>
 const ResourceFilepaths::FileEntry* ResourceFiletypeImporterBase::GenerateFileEntryForResources(const std::filesystem::path& assetRelativeFilepath, ResourceCountType ...numResources)
 {
-    if (const ResourceFilepaths::FileEntry* existingFileEntry{ ST<ResourceManager>::Get()->INTERNAL_GetFilepathsManager().GetFileEntry(assetRelativeFilepath)})
+    if (const ResourceFilepaths::FileEntry* existingFileEntry{ ST<MagicResourceManager>::Get()->INTERNAL_GetFilepathsManager().GetFileEntry(assetRelativeFilepath)})
         return existingFileEntry;
 
     std::vector<AssociatedResourceHashes> resourceHashes{ sizeof...(ResourceTypes) };
     GenerateHashForOneResourceType<ResourceTypes...>(resourceHashes.begin(), numResources...);
     GenerateNamesForResources(resourceHashes, assetRelativeFilepath);
-    return ST<ResourceManager>::Get()->INTERNAL_GetFilepathsManager().SetFilepath(assetRelativeFilepath, std::move(resourceHashes));
+    return ST<MagicResourceManager>::Get()->INTERNAL_GetFilepathsManager().SetFilepath(assetRelativeFilepath, std::move(resourceHashes));
 }
 
 template<typename ResourceType, typename ...RemainingResourceTypes, typename ...ResourceCountType>

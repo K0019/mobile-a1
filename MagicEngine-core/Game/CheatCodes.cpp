@@ -21,8 +21,8 @@ All rights reserved.
 */
 /******************************************************************************/
 
-#include "CheatCodes.h"
-#include "Input.h"
+#include "Game/CheatCodes.h"
+#include "Engine/Input.h"
 
 Time CheatCodes::start = std::chrono::steady_clock::now();
 Time CheatCodes::end = std::chrono::steady_clock::now();

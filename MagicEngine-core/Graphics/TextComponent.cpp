@@ -18,11 +18,11 @@ All content © 2024 DigiPen Institute of Technology Singapore.
 All rights reserved.
 */
 /******************************************************************************/
-#include "TextComponent.h"
-#include "GUICollection.h"
-#include "ScriptingUtil.h"
+#include "Graphics/TextComponent.h"
+#include "Editor/Containers/GUICollection.h"
+#include "Utilities/ScriptingUtil.h"
 
-#include "ResourceManager.h"
+#include "Engine/Resources/ResourceManager.h"
 
 TextComponent::TextComponent()
     : TextComponent{ "Arial", "Default Text" }

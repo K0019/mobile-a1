@@ -18,21 +18,21 @@ All rights reserved.
 */
 /******************************************************************************/
 
-#include "GraphicsAPI.h"
+#include "Engine/Graphics Interface/GraphicsAPI.h"
 #include "GameSettings.h"
-#include "GUICollection.h"
+#include "Editor/Containers/GUICollection.h"
 
 #include "fa.h"
 
 bool GraphicsAssets::Init(Context* context)
 {
-	assetSystem = std::make_unique<AssetLoading::AssetSystem>(context);
-	context->assetSystem = assetSystem.get();
+	assetSystem = std::make_unique<Resource::ResourceManager>(context);
+	context->resourceMngr = assetSystem.get();
 
 	return true;
 }
 
-AssetLoading::AssetSystem* GraphicsAssets::INTERNAL_GetAssetSystem()
+Resource::ResourceManager* GraphicsAssets::INTERNAL_GetAssetSystem()
 {
 	return assetSystem.get();
 }

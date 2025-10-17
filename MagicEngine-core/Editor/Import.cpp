@@ -24,12 +24,12 @@ All rights reserved.
 */
 /******************************************************************************/
 
-#include "Import.h"
+#include "Editor/Import.h"
 #include <Windows.h>
 #include <shellapi.h> // For DragQueryFile
 #include "GameSettings.h"
-#include "AudioManager.h"
-#include "Popup.h"
+#include "Managers/AudioManager.h"
+#include "Editor/Popup.h"
 
 // Thanks Microsoft
 #ifdef CopyFile

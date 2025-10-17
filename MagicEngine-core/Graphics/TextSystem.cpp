@@ -18,10 +18,10 @@ All content © 2024 DigiPen Institute of Technology Singapore.
 All rights reserved.
 */
 /******************************************************************************/
-#include "TextSystem.h"
-#include "Input.h"
+#include "Graphics/TextSystem.h"
+#include "Engine/Input.h"
 
-#include "Engine.h"
+#include "Engine/Engine.h"
 //#include "ryan-c/Renderer.h"
 
 TextSystem::TextSystem()

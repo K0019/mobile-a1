@@ -19,7 +19,7 @@ All rights reserved.
 /******************************************************************************/
 
 #pragma once
-#include "ResourceFiletypeImporterBase.h"
+#include "Engine/Resources/Importers/ResourceFiletypeImporterBase.h"
 
 class ResourceFiletypeImporterFBX : public ResourceFiletypeImporterBase
 {

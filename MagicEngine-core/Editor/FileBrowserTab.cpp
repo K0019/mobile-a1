@@ -1,12 +1,10 @@
-#include "FileBrowserTab.h"
-#include "AssetBrowser.h"
-#include "ResourceImporter.h"
-#include "Import.h"
-#include "SceneCompiler.h"
-#include "TextureCompiler.h"
+#include "Editor/FileBrowserTab.h"
+#include "Editor/AssetBrowser.h"
+#include "Engine/Resources/ResourceImporter.h"
+#include "Editor/Import.h"
 #include "GameSettings.h"
-#include "GUICollection.h"
-#include "logging.h"
+#include "Editor/Containers/GUICollection.h"
+#include "Utilities/Logging.h"
 
 const char* FileBrowserTab::GetName() const
 {

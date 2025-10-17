@@ -18,7 +18,7 @@ All content © 2024 DigiPen Institute of Technology Singapore.
 All rights reserved.
 */
 /******************************************************************************/
-#include "CameraController.h"
+#include "Graphics/CameraController.h"
 #include "GameSettings.h"
 
 CameraController::CameraController()

@@ -22,7 +22,7 @@ All rights reserved.
 /******************************************************************************/
 
 #pragma once
-#include "IRegisteredComponent.h"
+#include "ECS/IRegisteredComponent.h"
 #include "Editor/IHiddenComponent.h"
 
 //! The type of the UID

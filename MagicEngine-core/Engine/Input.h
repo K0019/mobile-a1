@@ -26,9 +26,9 @@ All rights reserved.
 
 #include <bitset>
 
-#include "MagicMath.h"
-#include "MacroTemplates.h"
-#include "Serializer.h"
+#include "Utilities/MagicMath.h"
+#include "Utilities/MacroTemplates.h"
+#include "Utilities/Serializer.h"
 
 // Forward declaration
 class InputConfig;
@@ -398,7 +398,7 @@ private:
 
 #pragma region New Interface
 
-class Input : public ISerializeable
+class MagicInput : public ISerializeable
 {
 public:
 	bool CreateInputSet(const std::string& name);
@@ -453,10 +453,10 @@ public:
 public:
 	property_vtable()
 };
-property_begin(Input)
+property_begin(MagicInput)
 {
 }
-property_vend_h(Input)
+property_vend_h(MagicInput)
 
 #pragma endregion // New Interface
 

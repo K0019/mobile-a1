@@ -24,9 +24,9 @@ All rights reserved.
 /******************************************************************************/
 
 #pragma once
-#include "IRegisteredComponent.h"
-#include "IEditorComponent.h"
-#include "scene.h"
+#include "ECS/IRegisteredComponent.h"
+#include "Editor/IEditorComponent.h"
+#include "graphics/scene.h"
 
 /*****************************************************************//*!
 \class LightComponent

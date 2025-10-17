@@ -20,10 +20,10 @@ All rights reserved.
 */
 /******************************************************************************/
 
-#include "Transform.h"
+#include "Utilities/Transform.h"
 #include "Editor/EditorHistory.h"
-#include "Editor/GUICollection.h"
-#include "ScriptingUtil.h"
+#include "Editor/Containers/GUICollection.h"
+#include "Utilities/ScriptingUtil.h"
 
 Transform::Transform()
 	: position{}

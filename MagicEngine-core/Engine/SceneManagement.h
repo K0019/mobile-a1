@@ -21,7 +21,7 @@ All rights reserved.
 /******************************************************************************/
 
 #pragma once
-#include "IHiddenComponent.h"
+#include "Editor/IHiddenComponent.h"
 
 // Forward declarations
 struct SceneIterator;

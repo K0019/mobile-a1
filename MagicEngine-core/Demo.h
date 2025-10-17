@@ -1,7 +1,7 @@
 #pragma once
-#include "IRegisteredComponent.h"
-#include "IGameComponentCallbacks.h"
-#include "IEditorComponent.h"
+#include "ECS/IRegisteredComponent.h"
+#include "Game/IGameComponentCallbacks.h"
+#include "Editor/IEditorComponent.h"
 
 // This is an example component.
 class ExampleComponent

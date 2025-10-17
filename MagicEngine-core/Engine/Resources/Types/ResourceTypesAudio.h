@@ -19,13 +19,12 @@ All rights reserved.
 /******************************************************************************/
 
 #pragma once
-#include "ResourceTypes.h"
+#include "Engine/Resources/Types/ResourceTypes.h"
 
 // Forward declaration
 namespace FMOD {
 	class Sound;
 }
-
 
 enum class AudioType : char
 {
@@ -47,7 +46,7 @@ struct ResourceAudio : public ResourceBase
 	AudioData data;
 	FMOD::Sound* sound = nullptr;
 
-    virtual bool IsLoaded() final;
+	virtual bool IsLoaded() final;
 	~ResourceAudio();
 };
 using ResourceContainerAudio = ResourceContainerBase<ResourceAudio>;

@@ -1,5 +1,5 @@
 #include "pch.h"
-#include "InputConfig.h"
+#include "Editor/InputConfig.h"
 
 namespace editor {
 
@@ -68,17 +68,17 @@ namespace editor {
 	{
 		// Create an input set, adding a number to the back if it fails
 		std::string newInputSetName{ "New Input Set" };
-		if (!ST<Input>::Get()->CreateInputSet(newInputSetName))
+		if (!ST<MagicInput>::Get()->CreateInputSet(newInputSetName))
 		{
 			int i{};
-			while (!ST<Input>::Get()->CreateInputSet(newInputSetName + std::to_string(i)))
+			while (!ST<MagicInput>::Get()->CreateInputSet(newInputSetName + std::to_string(i)))
 				++i;
 			newInputSetName += std::to_string(i);
 		}
 
 		// Switch to it
-		ST<Input>::Get()->SwitchInputSet(newInputSetName);
-		selectedInputSetPtr = ST<Input>::Get()->Editor_GetCurrentInputSet();
+		ST<MagicInput>::Get()->SwitchInputSet(newInputSetName);
+		selectedInputSetPtr = ST<MagicInput>::Get()->Editor_GetCurrentInputSet();
 	}
 
 	void InputConfig::CreateNewAction()
@@ -110,7 +110,7 @@ namespace editor {
 	{
 		auto selectedInputSet{ selectedInputSetPtr.lock() };
 
-		for (auto& [name, inputSet] : ST<Input>::Get()->Editor_GetInputSets())
+		for (auto& [name, inputSet] : ST<MagicInput>::Get()->Editor_GetInputSets())
 		{
 			gui::SetID id{ name.get().c_str() };
 			gui::Renamable::Wrap(name.get().c_str(),
@@ -119,7 +119,7 @@ namespace editor {
 						selectedInputSetPtr = inputSet.get();
 				}, [&name](const char* newName) -> void { // Rename
 					// Should be safe to make changes because the vector we're iterating is an rvalue
-					ST<Input>::Get()->RenameInputSet(name, newName);
+					ST<MagicInput>::Get()->RenameInputSet(name, newName);
 				}
 			);
 		}

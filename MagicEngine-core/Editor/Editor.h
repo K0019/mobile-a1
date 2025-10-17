@@ -22,10 +22,10 @@ All rights reserved.
 /******************************************************************************/
 
 #pragma once
-#include "Console.h"
-#include "CustomViewport.h"
-#include "EditorTweenModule.h"
-#include "Gizmo.h"
+#include "Editor/Console.h"
+#include "Graphics/CustomViewport.h"
+#include "Editor/EditorTweenModule.h"
+#include "Editor/Gizmo.h"
 #include "ImGuizmo.h"
 
 class Inspector : public gui::Window

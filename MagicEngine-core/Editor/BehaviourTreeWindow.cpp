@@ -19,10 +19,11 @@ All rights reserved.
 */
 /******************************************************************************/
 
-#include "BehaviourTreeWindow.h"
-#include "BehaviourTree.h"
-#include "BehaviourTreeFactory.h"
-#include "BehaviourTreeImguiHelper.h"
+#include "Editor/BehaviourTreeWindow.h"
+#include "Engine/BehaviorTree/BehaviourTree.h"
+#include "Engine/BehaviorTree/BehaviourTreeFactory.h"
+#include "Editor/BehaviourTreeImguiHelper.h"
+#include "GameSettings.h"
 
 namespace editor {
 

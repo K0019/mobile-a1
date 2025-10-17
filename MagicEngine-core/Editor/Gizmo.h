@@ -20,10 +20,10 @@ All rights reserved.
 */
 /******************************************************************************/
 #ifdef IMGUI_ENABLED
-#include "ImguiHeader.h"
+#include "ImGui/ImguiHeader.h"
 #include "ImGuizmo.h"
-#include "EditorCameraBridge.h"   // for EditorCam_TryGet(...)
-#include "EditorGizmoBridge.h"
+#include "Editor/EditorCameraBridge.h"   // for EditorCam_TryGet(...)
+#include "Editor/EditorGizmoBridge.h"
 
 
 /*****************************************************************//*!

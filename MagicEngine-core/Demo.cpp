@@ -1,6 +1,6 @@
 #include "Demo.h"
-#include "GUICollection.h"
-#include "NameComponent.h"
+#include "Editor/Containers/GUICollection.h"
+#include "Components/NameComponent.h"
 
 ExampleComponent::ExampleComponent()
 	: x{ 24.0f, -10.0f }

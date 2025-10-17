@@ -22,29 +22,29 @@ All content © 2024 DigiPen Institute of Technology Singapore.
 All rights reserved.
 */
 /******************************************************************************/
-#include "AssetBrowser.h"
-#include "PrefabWindow.h"
-#include "SceneManagement.h"
-#include "EditorHistory.h"
-#include "NameComponent.h"
-#include "AudioManager.h"
-#include "GUICollection.h"
+#include "Editor/AssetBrowser.h"
+#include "Editor/PrefabWindow.h"
+#include "Engine/SceneManagement.h"
+#include "Editor/EditorHistory.h"
+#include "Components/NameComponent.h"
+#include "Managers/AudioManager.h"
+#include "Editor/Containers/GUICollection.h"
 
-#include "Filesystem.h"
-#include "Import.h"
+#include "Managers/Filesystem.h"
+#include "Editor/Import.h"
 
-#include "AssetBrowserCategories.h"
-#include "MeshTab.h"
-#include "MaterialTab.h"
-#include "TextureTab.h"
-#include "SoundTab.h"
-#include "SceneTab.h"
-#include "FileBrowserTab.h"
-#include "MiscAssetTabs.h"
+#include "Editor/AssetBrowserCategories.h"
+#include "Editor/MeshTab.h"
+#include "Editor/MaterialTab.h"
+#include "Editor/TextureTab.h"
+#include "Editor/SoundTab.h"
+#include "Editor/SceneTab.h"
+#include "Editor/FileBrowserTab.h"
+#include "Editor/MiscAssetTabs.h"
 
-#include "CSScripting.h"
-#include "ScriptManagement.h"
-#include "HotReloader.h"
+#include "Scripting/CSScripting.h"
+#include "Scripting/ScriptManagement.h"
+#include "Scripting/HotReloader.h"
 
 namespace fs = std::filesystem;
 

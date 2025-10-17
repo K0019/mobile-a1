@@ -58,7 +58,7 @@ install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/
     PATTERN "*.ipp"
 )
 # Install external headers
-install(DIRECTORY ${PROJECT_SOURCE_DIR}/extern/offset_allocator/
+install(DIRECTORY ${PROJECT_SOURCE_DIR}/extern/include/offset_allocator/
     DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/offset_allocator
     FILES_MATCHING 
     PATTERN "*.h"
@@ -75,6 +75,8 @@ target_include_directories(MagicEngine-Core
         $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
         $<BUILD_INTERFACE:${EXTERNAL_INCLUDES}>
         $<INSTALL_INTERFACE:${EXTERNAL_INCLUDES_INSTALL}>
+        $<BUILD_INTERFACE:${EXTERNAL_INCLUDES}/offset_allocator> # required due to ryEngine externals set up as such
+        $<INSTALL_INTERFACE:${EXTERNAL_INCLUDES_INSTALL}/offset_allocator>
         $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/ryEngine-core>
         $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/ryEngine-modules>
         $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/ryEngine>

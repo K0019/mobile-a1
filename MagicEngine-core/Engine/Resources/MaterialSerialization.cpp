@@ -1,16 +1,16 @@
-#include "MaterialSerialization.h"
-#include "ResourceManager.h"
+#include "Engine/Resources/MaterialSerialization.h"
+#include "Engine/Resources/ResourceManager.h"
 #include "GameSettings.h"
 
 #include <variant>
 
-using namespace AssetLoading;
+using namespace Resource;
 
 namespace
 {
     std::string getPathFromHandle(size_t handle)
     {
-        auto& filepathManager = ST<ResourceManager>::Get()->INTERNAL_GetFilepathsManager();
+        auto& filepathManager = ST<MagicResourceManager>::Get()->INTERNAL_GetFilepathsManager();
         if (handle == 0)
         {
             return ""; // return an empty string for invalid handles
