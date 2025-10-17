@@ -38,6 +38,11 @@ engine_add_module(MagicEngine-Core
     DEFINITIONS ${CORE_DEFINITIONS}
 )
 
+# link asset compiler to engine for resource building
+if(NOT ANDROID)
+    target_link_libraries(MagicEngine-Core PRIVATE AssetCompiler)
+endif()
+
 # Install for later linking to the whole solution
 engine_configure_platform(MagicEngine-Core)
 install(TARGETS MagicEngine-Core

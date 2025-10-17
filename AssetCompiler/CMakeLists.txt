@@ -20,9 +20,10 @@ target_sources(AssetCompiler PRIVATE
 #target_precompile_headers(AssetCompiler PRIVATE asset_compiler/pch.h)
 
 target_include_directories(AssetCompiler PUBLIC
-    ${CMAKE_SOURCE_DIR}/AssetCompiler
-    ${CMAKE_SOURCE_DIR}/engine
-    ${EXTERNAL_INCLUDES}
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/AssetCompiler>
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/engine>
+    $<BUILD_INTERFACE:${EXTERNAL_INCLUDES}>
+    $<INSTALL_INTERFACE:include>
 )
 
 target_link_libraries(AssetCompiler PRIVATE
@@ -31,6 +32,13 @@ target_link_libraries(AssetCompiler PRIVATE
     KTX::ktx
 	mikktspace::mikktspace
     compressonator
+)
+
+install(TARGETS AssetCompiler 
+    EXPORT MagicEngineTargets
+    ARCHIVE DESTINATION lib
+    LIBRARY DESTINATION lib
+    RUNTIME DESTINATION bin
 )
 
 engine_set_source_groups(AssetCompiler)

@@ -195,7 +195,6 @@ if(ANDROID)
 endif()
 
 # ----- Subdirectories (Add Projects) -----
-# add_subdirectory(AssetCompiler)
 # add_subdirectory(EngineScripting)
 # add_subdirectory(extern/offset_allocator)
 # add_subdirectory(engine)
@@ -219,16 +218,27 @@ add_library(ryengine::ryEngine ALIAS ryEngine)
 set(namespace "magicengine")
 add_subdirectory(MagicEngine-core)
 
+# Dont want to link with assetcompiler and tools on android
 add_library(MagicEngine INTERFACE)
-target_link_libraries(MagicEngine INTERFACE 
-    ryEngineTargets
-    MagicEngine-core
-)
+if (NOT ANDROID)
+    add_subdirectory(AssetCompiler)
+    target_link_libraries(MagicEngine INTERFACE 
+        ryEngineTargets
+        MagicEngine-core
+        AssetCompiler
+    )
+else()
+    target_link_libraries(MagicEngine INTERFACE 
+        ryEngineTargets
+        MagicEngine-core
+    )
+endif()
 add_library(magicengine::MagicEngine ALIAS MagicEngine)
 
 # Application
 if(NOT ANDROID)
     add_subdirectory(editor)
+    
 endif()
 
 # ----- Target Dependencies -----
