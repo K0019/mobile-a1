@@ -114,7 +114,7 @@ namespace internal {
                 CONSOLE_LOG(LEVEL_ERROR) << "Failed to import scene file: " << filepath.string();
                 return false;
             }
-            AssetLoading::LoadingConfig config{ AssetLoading::LoadingConfig::createBalanced() };
+            Resource::LoadingConfig config{ Resource::LoadingConfig::createBalanced() };
             const aiScene* scene = assimpScenePtr.get();
             const std::string basePath = filepath.string();
             const std::string baseDir = filepath.parent_path().string();
@@ -123,25 +123,25 @@ namespace internal {
             // For us, no need to do this cause we're only extracting the meshes and materials
 
             // Step 3: Process materials from Assimp data
-            auto materialPtrs{ AssetLoading::MaterialLoading::collectMaterialPointers(scene, config) };
-            std::vector<AssetLoading::ProcessedMaterial> processedMaterials;
+            auto materialPtrs{ Resource::MaterialLoading::collectMaterialPointers(scene, config) };
+            std::vector<Resource::ProcessedMaterial> processedMaterials;
             processedMaterials.reserve(materialPtrs.size());
             for (uint32_t i = 0; i < materialPtrs.size(); ++i)
-                processedMaterials.push_back(AssetLoading::MaterialLoading::extractMaterial(materialPtrs[i], i, basePath, baseDir, scene));
+                processedMaterials.push_back(Resource::MaterialLoading::extractMaterial(materialPtrs[i], i, basePath, baseDir, scene));
 
             // Step 4: Process textures (dependent on materials)
-            auto textureSources{ AssetLoading::TextureLoading::collectUniqueTextures(processedMaterials) };
-            std::vector<AssetLoading::ProcessedTexture> processedTextures;
+            auto textureSources{ Resource::TextureLoading::collectUniqueTextures(processedMaterials) };
+            std::vector<Resource::ProcessedTexture> processedTextures;
             processedTextures.reserve(textureSources.size());
             for (const auto& source : textureSources)
-                processedTextures.push_back(AssetLoading::TextureLoading::extractTexture(source, config));
+                processedTextures.push_back(Resource::TextureLoading::extractTexture(source, config));
 
             // Step 5: Process meshes from Assimp data
-            auto meshPtrs{ AssetLoading::MeshLoading::collectMeshPointers(scene, config) };
-            std::vector<AssetLoading::ProcessedMesh> processedMeshes;
+            auto meshPtrs{ Resource::MeshLoading::collectMeshPointers(scene, config) };
+            std::vector<Resource::ProcessedMesh> processedMeshes;
             processedMeshes.reserve(meshPtrs.size());
             for (uint32_t i = 0; i < meshPtrs.size(); ++i)
-                processedMeshes.push_back(AssetLoading::MeshLoading::extractMesh(meshPtrs[i], i, config));
+                processedMeshes.push_back(Resource::MeshLoading::extractMesh(meshPtrs[i], i, config));
 
             // Step 6: Upload assets to the GPU
             auto graphicsAssetSystem{ ST<GraphicsAssets>::Get()->INTERNAL_GetAssetSystem() };

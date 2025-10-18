@@ -33,6 +33,7 @@ All rights reserved.
 #include "Engine/EntityLayers.h"
 #include "Game/game.h"
 #include "Editor/EditorGizmoBridge.h"
+#include "Engine/PrefabManager.h"
 
 
 #ifdef IMGUI_ENABLED

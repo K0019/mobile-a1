@@ -39,7 +39,7 @@ All rights reserved.
 #include "Graphics/TrailSystem.h"
 #include "Game/PrefabSpawner.h"
 #include "Physics/Physics.h"
-#include "BehaviourTree.h"
+#include "Engine/BehaviorTree/BehaviourTree.h"
 
 #include "Demo.h"
 

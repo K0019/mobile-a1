@@ -20,7 +20,7 @@ All rights reserved.
 /******************************************************************************/
 #pragma once
 #include "Engine/Engine.h"
-#include "imgui_internal.h"
+#include "ImGui/ImguiHeader.h"
 #include "Editor/Gizmo.h"
 #include "math/camera.h"
 

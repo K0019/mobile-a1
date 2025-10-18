@@ -20,6 +20,9 @@ All rights reserved.
 /******************************************************************************/
 #include "Graphics/CustomViewport.h"
 #include "Engine/Input.h"
+#include "Engine/PrefabManager.h"
+#include "Editor/Editor.h"
+#include "Game/game.h"
 
 #include "Engine/SceneManagement.h"
 #include "Editor/EditorHistory.h"

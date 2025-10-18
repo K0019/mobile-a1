@@ -8,7 +8,7 @@
 #include <assimp/postprocess.h>
 
 #include "Engine/Graphics Interface/GraphicsAPI.h"
-#include "import_config.h"
+#include "tools/assets/io/import_config.h"
 #include "MeshFileStructure.h"
 
 namespace internal
@@ -78,12 +78,12 @@ namespace internal
         }
 
         // Construct meshes from loaded vertices
-        std::vector<AssetLoading::ProcessedMesh> processedMeshes;
+        std::vector<Resource::ProcessedMesh> processedMeshes;
         processedMeshes.reserve(meshInfos.size());
 
         for (const auto& meshInfo : meshInfos)
         {
-            AssetLoading::ProcessedMesh mesh;
+            Resource::ProcessedMesh mesh;
 
             // Find the material index for this mesh
             mesh.materialIndex = nameOffsetToMaterialIndex[meshInfo.materialNameIndex];

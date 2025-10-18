@@ -20,7 +20,7 @@ class CameraPositionerInterface
 class Camera final
 {
   public:
-    explicit Camera(CameraPositionerInterface& positioner) : positioner_(&positioner), proj_() {}
+    explicit Camera(const CameraPositionerInterface& positioner) : positioner_(&positioner), proj_() {}
 
     Camera(const Camera&) = default;
 

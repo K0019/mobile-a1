@@ -19,7 +19,7 @@ All rights reserved.
 /******************************************************************************/
 
 #include "Physics/JoltPhysics.h"
-#include "Game/GameTime.h"
+#include "Utilities/GameTime.h"
 
 namespace physics {
 	JoltPhysics::JoltPhysics()

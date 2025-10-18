@@ -8,12 +8,12 @@
 #include <assimp/postprocess.h>
 
 #include "Engine/Graphics Interface/GraphicsAPI.h"
-#include "import_config.h"
+#include "tools/assets/io/import_config.h"
 #include "MeshFileStructure.h"
 #include "Engine/Resources/MaterialSerialization.h"
 #include "GameSettings.h"
 
-using namespace AssetLoading;
+using namespace Resource;
 
 namespace
 {

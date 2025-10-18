@@ -27,6 +27,7 @@ All rights reserved.
 #include "Engine/EntityLayers.h"
 #include "Engine/Graphics Interface/GraphicsAPI.h"
 #include "Engine/Engine.h"
+#include "Managers/AudioManager.h"
 
 GameSettings::GameSettings()
 {
@@ -51,7 +52,7 @@ void GameSettings::Load()
 
 void GameSettings::Apply()
 {
-	ST<Engine>::Get()->setFPS(m_maxFPS);
+	ST<MagicEngine>::Get()->setFPS(m_maxFPS);
 	GameTime::SetTargetFixedDt(m_targetFixedDt);
 	ST<internal::LoggedMessagesBuffer>::Get()->SetLogLevel(static_cast<LogLevel>(m_logLevel));
 

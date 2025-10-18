@@ -1,5 +1,5 @@
 #include "Graphics/PostProcessingComponent.h"
-#include "Engine/Engine.h"
+#include "ImGui/ImguiHeader.h"
 
 PostProcessingComponent::PostProcessingComponent(bool bloomEnabled)
     : bloomEnabled{ bloomEnabled }

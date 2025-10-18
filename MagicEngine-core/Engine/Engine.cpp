@@ -25,6 +25,17 @@ All rights reserved.
 */
 /******************************************************************************/
 #include "Engine/Engine.h"
+#include "Game/game.h"
+#include "Engine/Resources/ResourceManager.h"
+#include "Editor/Console.h"
+#include "Editor/Performance.h"
+#include "Graphics/CustomViewport.h"
+#include "Managers/AudioManager.h"
+#include "Editor/AssetBrowser.h"
+#include "Editor/PrefabWindow.h"
+#include "Editor/Hierarchy.h"
+#include "Editor/Popup.h"
+#include "Editor/Editor.h"
 #include "Utilities/CrashHandler.h"
 
 #include "Engine/Input.h"

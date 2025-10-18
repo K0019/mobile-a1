@@ -19,14 +19,15 @@ All rights reserved.
 /******************************************************************************/
 
 #include "Engine/Graphics Interface/GraphicsAPI.h"
-#include "GameSettings.h"
 #include "Editor/Containers/GUICollection.h"
+#include "GameSettings.h"
 
 #include "fa.h"
 
 bool GraphicsAssets::Init(Context* context)
 {
-	assetSystem = std::make_unique<Resource::ResourceManager>(context);
+	assetSystem = std::make_unique<Resource::ResourceManager>();
+	assetSystem->initialize(context);
 	context->resourceMngr = assetSystem.get();
 
 	return true;

@@ -23,7 +23,7 @@ All rights reserved.
 #include "Components/NameComponent.h"
 #include "ECS/EntityUID.h"
 #include "Graphics/CustomViewport.h"
-#include "Engine/Engine.h"
+#include "Editor/Editor.h"
 
 namespace editor {
 
