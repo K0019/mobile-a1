@@ -144,23 +144,23 @@ namespace internal {
                 processedMeshes.push_back(Resource::MeshLoading::extractMesh(meshPtrs[i], i, config));
 
             // Step 6: Upload assets to the GPU
-            auto graphicsAssetSystem{ ST<GraphicsAssets>::Get()->INTERNAL_GetAssetSystem() };
+            auto& graphicsAssetSystem{ ST<GraphicsMain>::Get()->GetAssetSystem() };
             outRawResources->textureHandles.reserve(processedTextures.size());
             for (const auto& texture : processedTextures)
-                outRawResources->textureHandles.push_back(graphicsAssetSystem->createTexture(texture));
+                outRawResources->textureHandles.push_back(graphicsAssetSystem.createTexture(texture));
 
             outRawResources->materialHandles.reserve(processedMaterials.size());
             for (const auto& material : processedMaterials)
-                outRawResources->materialHandles.push_back(graphicsAssetSystem->createMaterial(material));
+                outRawResources->materialHandles.push_back(graphicsAssetSystem.createMaterial(material));
 
             outRawResources->meshHandles.reserve(processedMeshes.size());
             for (const auto& mesh : processedMeshes)
-                outRawResources->meshHandles.push_back(graphicsAssetSystem->createMesh(mesh));
+                outRawResources->meshHandles.push_back(graphicsAssetSystem.createMesh(mesh));
 
             // Step 7: Finalize scene
             ExtractMeshTransformsFromNode(scene->mRootNode, mat4(1.0f), scene, &outRawResources->meshTransforms);
 
-            graphicsAssetSystem->FlushUploads();
+            graphicsAssetSystem.FlushUploads();
         }
         catch (const std::exception& e)
         {

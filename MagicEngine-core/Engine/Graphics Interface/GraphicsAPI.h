@@ -25,38 +25,22 @@ All rights reserved.
 #include "Engine/Graphics Interface/GraphicsWindow.h"
 #include "Engine/Graphics Interface/GraphicsScene.h"
 
-class GraphicsAssets
-{
-public:
-    bool Init(Context* context);
-
-public:
-    Resource::ResourceManager* INTERNAL_GetAssetSystem();
-
-private:
-    UPtr<Resource::ResourceManager> assetSystem;
-
-};
-
 class GraphicsMain
 {
 public:
     ~GraphicsMain();
 
-    void Init();
+    void Init(Context inContext);
 
     void BeginFrame();
 #ifdef IMGUI_ENABLED
     void BeginImGuiFrame();
     void EndImGuiFrame();
 #endif
-    void EndFrame();
+    void EndFrame(FrameData* outFrameData);
 
     void SetPendingShutdown();
     bool GetIsPendingShutdown() const;
-
-public:
-    void INTERNAL_OnWindowResized(int width, int height);
 
 private:
 #ifdef IMGUI_ENABLED
@@ -70,13 +54,13 @@ public:
 #ifdef IMGUI_ENABLED
     editor::ImGuiContext& GetImGuiContext();
 #endif
+    Resource::ResourceManager& GetAssetSystem();
 
 private:
     friend ST<GraphicsMain>;
     GraphicsMain() = default;
 
 private:
-    UPtr<Renderer> renderer;
 #ifdef IMGUI_ENABLED
     UPtr<editor::ImGuiContext> imguiContext;
 #endif

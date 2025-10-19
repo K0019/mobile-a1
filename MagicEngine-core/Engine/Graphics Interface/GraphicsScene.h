@@ -30,7 +30,7 @@ public:
 	~GraphicsScene();
 
 	bool Init(Context inContext);
-	bool NewFrame();
+	void UploadToPipeline(FrameData* outFrameData);
 
 	void SetViewCamera(const Camera& camera);
 	void AddObject(const MeshHandle& meshHandle, const MaterialHandle& materialHandle, const Mat4& transform);
@@ -46,9 +46,8 @@ private:
 private:
 	Context context;
 	uint64_t sceneFeatureHandle;
-	SceneRenderParams* params;
+	Resource::Scene scene;
 
-	size_t objIndex;
 	FrameData frameData;
 
 	uint64_t gridHandle;

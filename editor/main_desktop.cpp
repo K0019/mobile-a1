@@ -6,6 +6,7 @@
 #endif
 #include <windows.h>
 #include "application.h"
+#include "core/engine/engine.h"
 #include <stdexcept>
 #include <logging/log_backend.h>
 #ifdef _WIN32

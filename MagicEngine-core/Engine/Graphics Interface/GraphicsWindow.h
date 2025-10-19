@@ -57,47 +57,66 @@ protected:
 	IntVec2 worldExtent;
 };
 
-#ifdef GLFW
-class GraphicsWindowGLFW : public IGraphicsWindow
+class GraphicsWindowGeneric : public IGraphicsWindow
 {
-public:
-	~GraphicsWindowGLFW();
-
+public:	
 	void Init() override;
-
+	
 	void SetPendingShutdown() override;
 	bool GetIsPendingShutdown() const override;
-
+	
 	bool GetIsWindowMinimized() const override;
-
+	
 	bool SetWindowIcon(const std::string& filepath) override;
 	void SetWindowResolution(int width, int height) override;
 	void SetFullscreen(bool isFullscreen) override;
 	void BringWindowToFront() override;
 
-private:
-	void InitGLFW();
-	void SetupGLFWSettings();
-	void SetupGLFWCallbacks();
-
-	static void GLFW_Callback_FramebufferResize(GLFWwindow* window, int width, int height);
-	void Callback_FramebufferResize(int width, int height);
-	static void GLFW_Callback_WindowFocusChanged(GLFWwindow* window, int isFocused);
-	static void GLFW_Callback_IconifyStateChanged(GLFWwindow* window, int isIconified);
-	static void GLFW_Callback_CursorEnteredWindow(GLFWwindow* window, int isEntered);
-
-public:
-	GLFWwindow* INTERNAL_GetWindow();
-	
-private:
-	GLFWwindow* window;
-	GLFWmonitor* monitor;
-
 };
 
-using GraphicsWindow = GraphicsWindowGLFW;
-#else
-// TODO: A graphics window for something not using GLFW
-using GraphicsWindow = std::nullptr_t;
-#endif
+using GraphicsWindow = GraphicsWindowGeneric;
+
+//#ifdef GLFW
+//class GraphicsWindowGLFW : public IGraphicsWindow
+//{
+//public:
+//	~GraphicsWindowGLFW();
+//
+//	void Init() override;
+//
+//	void SetPendingShutdown() override;
+//	bool GetIsPendingShutdown() const override;
+//
+//	bool GetIsWindowMinimized() const override;
+//
+//	bool SetWindowIcon(const std::string& filepath) override;
+//	void SetWindowResolution(int width, int height) override;
+//	void SetFullscreen(bool isFullscreen) override;
+//	void BringWindowToFront() override;
+//
+//private:
+//	void InitGLFW();
+//	void SetupGLFWSettings();
+//	void SetupGLFWCallbacks();
+//
+//	static void GLFW_Callback_FramebufferResize(GLFWwindow* window, int width, int height);
+//	void Callback_FramebufferResize(int width, int height);
+//	static void GLFW_Callback_WindowFocusChanged(GLFWwindow* window, int isFocused);
+//	static void GLFW_Callback_IconifyStateChanged(GLFWwindow* window, int isIconified);
+//	static void GLFW_Callback_CursorEnteredWindow(GLFWwindow* window, int isEntered);
+//
+//public:
+//	GLFWwindow* INTERNAL_GetWindow();
+//	
+//private:
+//	GLFWwindow* window;
+//	GLFWmonitor* monitor;
+//
+//};
+//
+////using GraphicsWindow = GraphicsWindowGLFW;
+//#else
+//// TODO: A graphics window for something not using GLFW
+//using GraphicsWindow = std::nullptr_t;
+//#endif
 

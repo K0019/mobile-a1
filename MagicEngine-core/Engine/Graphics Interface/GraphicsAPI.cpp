@@ -24,40 +24,15 @@ All rights reserved.
 
 #include "fa.h"
 
-bool GraphicsAssets::Init(Context* context)
-{
-	assetSystem = std::make_unique<Resource::ResourceManager>();
-	assetSystem->initialize(context);
-	context->resourceMngr = assetSystem.get();
-
-	return true;
-}
-
-Resource::ResourceManager* GraphicsAssets::INTERNAL_GetAssetSystem()
-{
-	return assetSystem.get();
-}
-
 GraphicsMain::~GraphicsMain()
 {
 	ST<GraphicsScene>::Destroy();
-	ST<GraphicsAssets>::Destroy();
-
-	renderer->shutdown();
-	ST<GraphicsWindow>::Destroy();
 }
 
-void GraphicsMain::Init()
+void GraphicsMain::Init(Context inContext)
 {
-	ST<GraphicsWindow>::Get()->Init();
-
-	auto windowExtent{ ST<GraphicsWindow>::Get()->GetWindowExtent() };
-	renderer = std::make_unique<Renderer>(ST<GraphicsWindow>::Get()->INTERNAL_GetWindow(), windowExtent.x, windowExtent.y);
-	context.renderer = renderer.get();
-	ST<GraphicsAssets>::Get()->Init(&context);
-	renderer->startup();
-
-	ST<GraphicsScene>::Get()->Init(context);
+	context = inContext;
+	ST<GraphicsScene>::Get()->Init(inContext);
 
 #ifdef IMGUI_ENABLED
 	InitImGui(ST<Filepaths>::Get()->fontsSave + "/Lato-Regular.ttf");
@@ -66,8 +41,7 @@ void GraphicsMain::Init()
 
 void GraphicsMain::BeginFrame()
 {
-	renderer->beginFrame();
-	ST<GraphicsScene>::Get()->NewFrame();
+
 }
 
 #ifdef IMGUI_ENABLED
@@ -106,16 +80,9 @@ void GraphicsMain::EndImGuiFrame()
 }
 #endif
 
-void GraphicsMain::EndFrame()
+void GraphicsMain::EndFrame(FrameData* outFrameData)
 {
-	// Update perspective matrix based on window extents
-	auto windowExtent{ ST<GraphicsWindow>::Get()->GetWindowExtent() };
-	ST<GraphicsScene>::Get()->INTERNAL_GetFrameData().projMatrix = perspective(45.0f, (float)windowExtent.x / (float)windowExtent.y, 0.1f, 100.0f);
-	
-	// Upload the camera and tell the renderer to render the uploaded objects
-	renderer->render(ST<GraphicsScene>::Get()->INTERNAL_GetFrameData());
-	// Frame is done
-	renderer->endFrame();
+	ST<GraphicsScene>::Get()->UploadToPipeline(outFrameData);
 }
 
 void GraphicsMain::SetPendingShutdown()
@@ -127,16 +94,10 @@ bool GraphicsMain::GetIsPendingShutdown() const
 	return ST<GraphicsWindow>::Get()->GetIsPendingShutdown();
 }
 
-void GraphicsMain::INTERNAL_OnWindowResized(int width, int height)
-{
-	if (renderer)
-		renderer->onWindowResized(width, height);
-}
-
 #ifdef IMGUI_ENABLED
 void GraphicsMain::InitImGui(const std::string& fontfile)
 {
-	imguiContext = std::make_unique<editor::ImGuiContext>(context, *ST<GraphicsWindow>::Get()->INTERNAL_GetWindow());
+	imguiContext = std::make_unique<editor::ImGuiContext>(context);
 	SetImGuiStyle();
 
 	ImGuiIO& io = ImGui::GetIO();
@@ -255,6 +216,12 @@ void GraphicsMain::SetImGuiStyle()
 editor::ImGuiContext& GraphicsMain::GetImGuiContext()
 {
 	return *imguiContext.get();
+}
+
+Resource::ResourceManager& GraphicsMain::GetAssetSystem()
+{
+	assert(context.resourceMngr);
+	return *context.resourceMngr;
 }
 
 #endif

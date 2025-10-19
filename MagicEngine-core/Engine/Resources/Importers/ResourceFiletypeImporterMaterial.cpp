@@ -62,9 +62,9 @@ bool ResourceFiletypeImporterMaterial::Import(const std::filesystem::path& relat
     }
 
     // Create material handle
-    auto graphicsAssetSystem{ ST<GraphicsAssets>::Get()->INTERNAL_GetAssetSystem() };
-    MaterialHandle materialHandle{ graphicsAssetSystem->createMaterial(material) };
-    graphicsAssetSystem->FlushUploads();
+    auto& graphicsAssetSystem{ ST<GraphicsMain>::Get()->GetAssetSystem() };
+    MaterialHandle materialHandle{ graphicsAssetSystem.createMaterial(material) };
+    graphicsAssetSystem.FlushUploads();
 
     // Create resource entry
     const auto* fileEntry{ GenerateFileEntryForResources<ResourceMaterial>(relativeFilepath, 1) };

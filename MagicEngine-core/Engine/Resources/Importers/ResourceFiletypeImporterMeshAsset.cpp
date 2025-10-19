@@ -113,12 +113,12 @@ namespace internal
         }
 
         // Upload to GPU 
-        auto graphicsAssetSystem{ ST<GraphicsAssets>::Get()->INTERNAL_GetAssetSystem() };
+        auto& graphicsAssetSystem{ ST<GraphicsMain>::Get()->GetAssetSystem() };
 
 
         outMeshHandles->reserve(processedMeshes.size());
         for (const auto& mesh : processedMeshes)
-            outMeshHandles->push_back(graphicsAssetSystem->createMesh(mesh));
+            outMeshHandles->push_back(graphicsAssetSystem.createMesh(mesh));
 
         // We could precomute this...
         std::vector<Mat4> worldTransforms(nodes.size());
@@ -143,7 +143,7 @@ namespace internal
             }
         }
 
-        graphicsAssetSystem->FlushUploads();
+        graphicsAssetSystem.FlushUploads();
         return true;
     }
 

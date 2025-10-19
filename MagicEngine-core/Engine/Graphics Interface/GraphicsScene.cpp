@@ -27,8 +27,6 @@ All rights reserved.
 GraphicsScene::GraphicsScene()
     : context{}
     , sceneFeatureHandle{}
-    , params{}
-    , objIndex{}
     , gridHandle{}
 {
 }
@@ -50,15 +48,23 @@ bool GraphicsScene::Init(Context inContext)
     return true;
 }
 
-bool GraphicsScene::NewFrame()
+void GraphicsScene::UploadToPipeline(FrameData* outFrameData)
 {
-    params = static_cast<SceneRenderParams*>(context.renderer->GetFeatureParameterBlockPtr(sceneFeatureHandle));
-    if (!params)
-        return false;
+    SceneRenderFeature::UpdateScene(sceneFeatureHandle, scene, *context.resourceMngr, *context.renderer);
 
-    params->clear();
-    objIndex = 0;
-    return true;
+    if (auto params = static_cast<SceneRenderParams*>(context.renderer->GetFeatureParameterBlockPtr(sceneFeatureHandle)))
+    {
+        params->irradianceTexture = 0;
+        params->prefilterTexture = 0;
+        params->brdfLUT = 0;
+        params->environmentIntensity = 1.0f;
+    }
+
+    float width{ static_cast<float>(Core::Display().GetWidth()) };
+    float height{ static_cast<float>(Core::Display().GetHeight()) };
+    outFrameData->cameraPos = frameData.cameraPos;
+    outFrameData->viewMatrix = frameData.viewMatrix;
+    outFrameData->projMatrix = glm::perspective(45.0f, width / height, 0.1f, 1000.0f);
 }
 
 void GraphicsScene::SetViewCamera(const Camera& camera)
@@ -80,41 +86,11 @@ void GraphicsScene::AddObject(const MeshHandle& meshHandle, const MaterialHandle
         return;
 
     // Store object data
-    params->objectTransforms.push_back(transform);
-    params->materialIndices.push_back(context.resourceMngr->getMaterialIndex(materialHandle));
-
-    // Transform mesh bounds to world space
-    Vec3 center{ meshData->bounds.x,  meshData->bounds.y,  meshData->bounds.z };
-    Vec3 radius{ meshData->bounds.w };
-    Vec3 worldCenter = Vec3(transform * Vec4{ center, 1.0f });
-    params->objectBounds.emplace_back(worldCenter - radius, worldCenter + radius);
-
-    // Build draw command
-    DrawIndexedIndirectCommand cmd{
-        .count = meshData->indexCount,
-        .instanceCount = 1,
-        .firstIndex = static_cast<uint32_t>(meshData->indexByteOffset / sizeof(uint32_t)),
-        .baseVertex = static_cast<int32_t>(meshData->vertexByteOffset / sizeof(Vertex)),
-        .baseInstance = static_cast<uint32_t>(objIndex)
-    };
-
-    DrawData drawData{
-        .transformId = static_cast<uint32_t>(objIndex),
-        .materialId = context.resourceMngr->getMaterialIndex(materialHandle)
-    };
-
-    uint32_t drawCommandIndex = static_cast<uint32_t>(params->drawCommands.size());
-    params->drawCommands.push_back(cmd);
-    params->drawData.push_back(drawData);
-
-    // Determine transparency and add to render queues
-    if (context.resourceMngr->isMaterialTransparent(materialHandle))
-        params->transparentIndices.push_back(drawCommandIndex);
-    else
-        params->opaqueIndices.push_back(drawCommandIndex);
-
-    // Track next object's index
-    ++objIndex;
+    auto& newObj{ scene.objects.emplace_back() };
+    newObj.type = SceneObjectType::Mesh;
+    newObj.mesh = meshHandle;
+    newObj.material = materialHandle;
+    newObj.transform = transform;
 }
 
 void GraphicsScene::AddLight(const SceneLight& sceneLight)
@@ -127,10 +103,7 @@ void GraphicsScene::AddLight(const SceneLight& sceneLight)
     if (length(sceneLight.color) <= 0.0f)
         return;
 
-    Lighting::GPULight gpuLight;
-    SceneRenderFeature::convertSceneLight(sceneLight, gpuLight);
-    params->lights.push_back(gpuLight);
-    params->activeLightCount = static_cast<uint32_t>(params->lights.size());
+    scene.lights.push_back(sceneLight);
 }
 
 FrameData& GraphicsScene::INTERNAL_GetFrameData()

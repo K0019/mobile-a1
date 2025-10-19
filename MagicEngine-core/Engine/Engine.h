@@ -23,12 +23,8 @@ All rights reserved.
 
 #pragma once
 
-namespace editor
-{
-    class ImGuiContext;
-}
-
-class Renderer;
+struct Context;
+struct FrameData;
 
 namespace Resource
 {
@@ -71,9 +67,9 @@ public:
     *//******************************************************************/
     bool IsShuttingDown() const;
 
-    void init();
+    void Init(Context& context);
+    void ExecuteFrame(FrameData& frameData);
     void shutdown();
-    void run();
 
 private:
     double fps{};

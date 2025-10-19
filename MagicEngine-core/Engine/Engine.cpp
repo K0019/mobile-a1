@@ -179,7 +179,7 @@ bool MagicEngine::IsShuttingDown() const
 	return ST<GraphicsMain>::Get()->GetIsPendingShutdown();
 }
 
-void MagicEngine::init()
+void MagicEngine::Init(Context& context)
 {
 	ST<GameSettings>::Get()->Load(); // Only load settings from file first so we have the correct filepaths.
 #ifdef _DEBUG
@@ -202,7 +202,7 @@ void MagicEngine::init()
 	auto windowCreate = std::chrono::high_resolution_clock::now();
 
 	// Graphics initialization
-	ST<GraphicsMain>::Get()->Init();
+	ST<GraphicsMain>::Get()->Init(context);
 	//graphicsMain->SetCallback_DragDrop(import::DropCallback);
 
 	ST<GameSettings>::Get()->Apply(); // Apply the loaded settings here
@@ -226,7 +226,8 @@ void MagicEngine::init()
 	ST<SceneManager>::Get(); // Initialize scene manager
 	ST<EntitySpawnEvents>::Get(); // Initialize systems that listen for entity created events
 
-	auto worldExtents{ ST<GraphicsWindow>::Get()->GetWorldExtent()};
+	//auto worldExtents{ ST<GraphicsWindow>::Get()->GetWorldExtent()};
+	auto worldExtents{ Vec2{ 1920, 1080 } };
 #ifdef IMGUI_ENABLED
 	ST<Game>::Get()->Init(worldExtents.x, worldExtents.y, GAMESTATE::EDITOR);
 #else
@@ -238,207 +239,204 @@ void MagicEngine::init()
 
 	// get ready for running
 	// ---------------------
-	ST<GraphicsWindow>::Get()->BringWindowToFront();
+	//ST<GraphicsWindow>::Get()->BringWindowToFront();
 #ifdef IMGUI_ENABLED
 	loadState("imgui.json");
 #endif
 }
 
-void MagicEngine::run()
+void MagicEngine::ExecuteFrame(FrameData& frameData)
 {
-	while (!ST<GraphicsMain>::Get()->GetIsPendingShutdown())
-	{
-		// Wait till the start of this frame
-		wait();
+	// Wait till the start of this frame
+	wait();
 
-		// Update tracking of framerate and frametime
+	// Update tracking of framerate and frametime
 #ifdef IMGUI_ENABLED
-		ImGuiIO& io = ImGui::GetIO();
-		GameTime::SetFps(io.Framerate);
+	ImGuiIO& io = ImGui::GetIO();
+	GameTime::SetFps(io.Framerate);
 #else
-		GameTime::SetFps(ST<PerformanceProfiler>::Get()->GetFPS());
+	GameTime::SetFps(ST<PerformanceProfiler>::Get()->GetFPS());
 #endif
-		ST<PerformanceProfiler>::Get()->StartFrame();
-		GameTime::NewFrame(ST<PerformanceProfiler>::Get()->GetDeltaTime());
+	ST<PerformanceProfiler>::Get()->StartFrame();
+	GameTime::NewFrame(ST<PerformanceProfiler>::Get()->GetDeltaTime());
 
-		// Only reset key states when systems are updating so we don't skip inputs.
-		if(GameTime::RealNumFixedFrames())
-		{
-			ST<MagicInput>::Get()->NewFrame();
-			glfwPollEvents();
-			//GamepadInput::PollInput();
-		}
-
-		ST<GraphicsMain>::Get()->BeginFrame();
-#ifdef IMGUI_ENABLED
-		ST<GraphicsMain>::Get()->BeginImGuiFrame();
-
-		// TODO: Convert all of these window singletons into the ecs versions so we can support multiple instances of a single window.
-		if(ST<PerformanceProfiler>::Get()->GetIsOpen())
-		{
-			ST<PerformanceProfiler>::Get()->Draw();
-		}
-		if(ST<Inspector>::Get()->GetIsOpen())
-		{
-			ST<Inspector>::Get()->Draw();
-		}
-		if(show_browser)
-		{
-			ST<AssetBrowser>::Get()->Draw(&show_browser);
-		}
-		if(ST<PrefabWindow>::Get()->IsOpen())
-		{
-			ST<PrefabWindow>::Get()->DrawSaveLoadPrompt(&ST<PrefabWindow>::Get()->IsOpen());
-		}
-		if(ST<Hierarchy>::Get()->isOpen)
-		{
-			ST<Hierarchy>::Get()->Draw();
-		}
-		ST<Popup>::Get()->Draw();
-		//ST<Inspector>::Get()->RenderGrid();
-
-		// Draw editor windows
-		ecs::SwitchToPool(ecs::POOL::EDITOR_GUI);
-		ecs::RunSystems(ECS_LAYER::PRE_PHYSICS_0); // Editor window systems are placed in this layer.
-		ecs::FlushChanges(); // This deletes entities whose windows were closed (see WindowBase::OnOpenStateChanged())
-		ecs::SwitchToPool(ecs::POOL::DEFAULT);
-		ecs::FlushChanges(); // For if any of the editor windows deleted an entity.
-
-		if(ImGui::BeginMainMenuBar())
-		{
-			// Add a "File" menu
-			if(ImGui::BeginMenu("File"))
-			{
-				if(ImGui::MenuItem("New"))
-				{
-					// Handle "New" action
-				}
-				if(ImGui::MenuItem("Save"))
-				{
-					ST<SceneManager>::Get()->SaveAllScenes();
-					ST<SceneManager>::Get()->SaveWhichScenesOpened();
-				}
-				if(ImGui::MenuItem("Settings"))
-				{
-					editor::CreateGuiWindow<editor::SettingsWindow>();
-				}
-				if(ImGui::MenuItem("Exit"))
-				{
-					MarkToShutdown();
-				}
-				ImGui::EndMenu();
-			}
-
-			if(ImGui::BeginMenu("Tools"))
-			{
-				if(ImGui::MenuItem("Console"))
-				{
-					editor::CreateGuiWindow<editor::Console>();
-					ImGui::SetWindowFocus(ICON_FA_TERMINAL"Console"); // Save the name of the windows somewhere else so i dont have to copy paste = ryan cheong
-				}
-				if(ImGui::MenuItem("Performance"))
-				{
-					ST<PerformanceProfiler>::Get()->SetIsOpen(true);
-					ImGui::SetWindowFocus(ICON_FA_GAUGE_HIGH" Performance");
-				}
-				if(ImGui::MenuItem("Inspector"))
-				{
-					ST<Inspector>::Get()->SetIsOpen(true);
-					ImGui::SetWindowFocus(ICON_FA_MAGNIFYING_GLASS" Inspector");
-				}
-				if(ImGui::MenuItem("Browser"))
-				{
-					show_browser = true;
-					ImGui::SetWindowFocus(ICON_FA_FOLDER" Browser");
-				}
-				if(ImGui::MenuItem("Hierarchy", 0, false))
-				{
-					ST<Hierarchy>::Get()->isOpen = true;
-					ImGui::SetWindowFocus(ICON_FA_SITEMAP" Hierarchy");
-				}
-
-				ImGui::EndMenu();
-			}
-
-			if (ImGui::BeginMenu("Behaviour Tree"))
-			{
-				editor::CreateGuiWindow<editor::BehaviourTreeWindow>();
-				ImGui::EndMenu();
-			}
-
-			ImGui::EndMainMenuBar();  // End the main menu bar
-		}
-
-		ST<CustomViewport>::Get()->DrawImGuiWindow();
-
-		ST<GraphicsMain>::Get()->EndImGuiFrame();
-#endif
-
-
-		// manage user input
-		// -----------------
-		ST<PerformanceProfiler>::Get()->StartProfile("Process Input");
-		if(GameTime::RealNumFixedFrames())
-		{
-			ST<CustomViewport>::Get()->UpdateCameraControl();
-#ifdef IMGUI_ENABLED
-			ST<Inspector>::Get()->ProcessInput();
-			// TODO: Put this in some editor windows manager class. In fact, all of this imgui stuff needs to be put in that class or subclasses.
-			/*if (ST<KeyboardMouseInput>::Get()->GetIsPressed(KEY::GRAVE))
-				ST<Console>::Get()->SetIsOpen(!ST<Console>::Get()->GetIsOpen());*/
-#endif
-
-			if(ST<KeyboardMouseInput>::Get()->GetIsPressed(KEY::F11))
-			{
-				if(ST<GameSettings>::Get()->m_fullscreenMode == 0)
-				{
-					ST<GameSettings>::Get()->m_fullscreenMode = 1;
-				}
-				else
-				{
-					ST<GameSettings>::Get()->m_fullscreenMode = 0;
-				}
-				ST<GameSettings>::Get()->Apply();
-			}
-		}
-		ST<PerformanceProfiler>::Get()->EndProfile("Process Input");
-
-		// update game state
-		// -----------------
-#ifdef IMGUI_ENABLED
-		CSharpScripts::CSScripting::CheckCompileUserAssemblyAsyncCompletion();
-#endif
-		ST<Game>::Get()->Update();
-		ST<Scheduler>::Get()->Update(GameTime::FixedDt() * static_cast<float>(GameTime::NumFixedFrames()));
-
-		// render
-		// ------
-
-		// Game window draw
-		ST<PerformanceProfiler>::Get()->StartProfile("Render");
-		if (!ST<GraphicsWindow>::Get()->GetIsWindowMinimized())
-		{
-			ST<Game>::Get()->Render();
-#ifdef IMGUI_ENABLED
-			ST<Inspector>::Get()->DrawSelectedEntityBorder();
-#endif
-		}
-		ST<GraphicsMain>::Get()->EndFrame();
-		ST<PerformanceProfiler>::Get()->EndProfile("Render");
-
-
-		ST<PerformanceProfiler>::Get()->EndFrame();
+	// Only reset key states when systems are updating so we don't skip inputs.
+	if(GameTime::RealNumFixedFrames())
+	{
+		ST<MagicInput>::Get()->NewFrame();
+		glfwPollEvents();
+		//GamepadInput::PollInput();
 	}
 
+	ST<GraphicsMain>::Get()->BeginFrame();
+#ifdef IMGUI_ENABLED
+	ST<GraphicsMain>::Get()->BeginImGuiFrame();
+
+	// TODO: Convert all of these window singletons into the ecs versions so we can support multiple instances of a single window.
+	if(ST<PerformanceProfiler>::Get()->GetIsOpen())
+	{
+		ST<PerformanceProfiler>::Get()->Draw();
+	}
+	if(ST<Inspector>::Get()->GetIsOpen())
+	{
+		ST<Inspector>::Get()->Draw();
+	}
+	if(show_browser)
+	{
+		ST<AssetBrowser>::Get()->Draw(&show_browser);
+	}
+	if(ST<PrefabWindow>::Get()->IsOpen())
+	{
+		ST<PrefabWindow>::Get()->DrawSaveLoadPrompt(&ST<PrefabWindow>::Get()->IsOpen());
+	}
+	if(ST<Hierarchy>::Get()->isOpen)
+	{
+		ST<Hierarchy>::Get()->Draw();
+	}
+	ST<Popup>::Get()->Draw();
+	//ST<Inspector>::Get()->RenderGrid();
+
+	// Draw editor windows
+	ecs::SwitchToPool(ecs::POOL::EDITOR_GUI);
+	ecs::RunSystems(ECS_LAYER::PRE_PHYSICS_0); // Editor window systems are placed in this layer.
+	ecs::FlushChanges(); // This deletes entities whose windows were closed (see WindowBase::OnOpenStateChanged())
+	ecs::SwitchToPool(ecs::POOL::DEFAULT);
+	ecs::FlushChanges(); // For if any of the editor windows deleted an entity.
+
+	if(ImGui::BeginMainMenuBar())
+	{
+		// Add a "File" menu
+		if(ImGui::BeginMenu("File"))
+		{
+			if(ImGui::MenuItem("New"))
+			{
+				// Handle "New" action
+			}
+			if(ImGui::MenuItem("Save"))
+			{
+				ST<SceneManager>::Get()->SaveAllScenes();
+				ST<SceneManager>::Get()->SaveWhichScenesOpened();
+			}
+			if(ImGui::MenuItem("Settings"))
+			{
+				editor::CreateGuiWindow<editor::SettingsWindow>();
+			}
+			if(ImGui::MenuItem("Exit"))
+			{
+				MarkToShutdown();
+			}
+			ImGui::EndMenu();
+		}
+
+		if(ImGui::BeginMenu("Tools"))
+		{
+			if(ImGui::MenuItem("Console"))
+			{
+				editor::CreateGuiWindow<editor::Console>();
+				ImGui::SetWindowFocus(ICON_FA_TERMINAL"Console"); // Save the name of the windows somewhere else so i dont have to copy paste = ryan cheong
+			}
+			if(ImGui::MenuItem("Performance"))
+			{
+				ST<PerformanceProfiler>::Get()->SetIsOpen(true);
+				ImGui::SetWindowFocus(ICON_FA_GAUGE_HIGH" Performance");
+			}
+			if(ImGui::MenuItem("Inspector"))
+			{
+				ST<Inspector>::Get()->SetIsOpen(true);
+				ImGui::SetWindowFocus(ICON_FA_MAGNIFYING_GLASS" Inspector");
+			}
+			if(ImGui::MenuItem("Browser"))
+			{
+				show_browser = true;
+				ImGui::SetWindowFocus(ICON_FA_FOLDER" Browser");
+			}
+			if(ImGui::MenuItem("Hierarchy", 0, false))
+			{
+				ST<Hierarchy>::Get()->isOpen = true;
+				ImGui::SetWindowFocus(ICON_FA_SITEMAP" Hierarchy");
+			}
+
+			ImGui::EndMenu();
+		}
+
+		if (ImGui::BeginMenu("Behaviour Tree"))
+		{
+			editor::CreateGuiWindow<editor::BehaviourTreeWindow>();
+			ImGui::EndMenu();
+		}
+
+		ImGui::EndMainMenuBar();  // End the main menu bar
+	}
+
+	ST<CustomViewport>::Get()->DrawImGuiWindow();
+
+	ST<GraphicsMain>::Get()->EndImGuiFrame();
+#endif
+
+
+	// manage user input
+	// -----------------
+	ST<PerformanceProfiler>::Get()->StartProfile("Process Input");
+	if(GameTime::RealNumFixedFrames())
+	{
+		ST<CustomViewport>::Get()->UpdateCameraControl();
+#ifdef IMGUI_ENABLED
+		ST<Inspector>::Get()->ProcessInput();
+		// TODO: Put this in some editor windows manager class. In fact, all of this imgui stuff needs to be put in that class or subclasses.
+		/*if (ST<KeyboardMouseInput>::Get()->GetIsPressed(KEY::GRAVE))
+			ST<Console>::Get()->SetIsOpen(!ST<Console>::Get()->GetIsOpen());*/
+#endif
+
+		if(ST<KeyboardMouseInput>::Get()->GetIsPressed(KEY::F11))
+		{
+			if(ST<GameSettings>::Get()->m_fullscreenMode == 0)
+			{
+				ST<GameSettings>::Get()->m_fullscreenMode = 1;
+			}
+			else
+			{
+				ST<GameSettings>::Get()->m_fullscreenMode = 0;
+			}
+			ST<GameSettings>::Get()->Apply();
+		}
+	}
+	ST<PerformanceProfiler>::Get()->EndProfile("Process Input");
+
+	// update game state
+	// -----------------
+#ifdef IMGUI_ENABLED
+	CSharpScripts::CSScripting::CheckCompileUserAssemblyAsyncCompletion();
+#endif
+	ST<Game>::Get()->Update();
+	ST<Scheduler>::Get()->Update(GameTime::FixedDt() * static_cast<float>(GameTime::NumFixedFrames()));
+
+	// render
+	// ------
+
+	// Game window draw
+	ST<PerformanceProfiler>::Get()->StartProfile("Render");
+	if (!ST<GraphicsWindow>::Get()->GetIsWindowMinimized())
+	{
+		ST<Game>::Get()->Render();
+#ifdef IMGUI_ENABLED
+		ST<Inspector>::Get()->DrawSelectedEntityBorder();
+#endif
+	}
+	ST<GraphicsMain>::Get()->EndFrame(&frameData);
+	ST<PerformanceProfiler>::Get()->EndProfile("Render");
+
+
+	ST<PerformanceProfiler>::Get()->EndFrame();
+}
+
+void MagicEngine::shutdown()
+{
 #ifdef IMGUI_ENABLED
 	saveState("imgui.json");
 #endif
 
 	ST<GameSettings>::Get()->Save();
 	ST<MagicResourceManager>::Get()->SaveToFile();
-}
-
-void MagicEngine::shutdown() {
 
 	// Clean up your subsystems
 	ST<Game>::Get()->Shutdown();
