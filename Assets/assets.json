@@ -41,6 +41,20 @@
                     ]
                 }
             ]
+        },
+        {
+            "filepath": "CompiledAssets\\textures\\colormap.ktx2",
+            "resources": [
+                {
+                    "resourceType": 13960108920292451446,
+                    "resourceEntries": [
+                        {
+                            "hash": 23431692402752494,
+                            "name": "colormap0"
+                        }
+                    ]
+                }
+            ]
         }
     ]
 }
