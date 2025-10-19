@@ -3,12 +3,6 @@
 # File locations
 file(GLOB_RECURSE EXTERNAL_LIBRARIES_STATIC_DEBUG "${EXTERNAL_LIBRARIES}/debug/*.lib")
 file(GLOB_RECURSE EXTERNAL_LIBRARIES_STATIC_RELEASE "${EXTERNAL_LIBRARIES}/release/*.lib")
-file(GLOB_RECURSE EXTERNAL_LIBRARIES_DYNAMIC_DEBUG "${EXTERNAL_LIBRARIES}/debug/*.dll")
-file(GLOB_RECURSE EXTERNAL_LIBRARIES_DYNAMIC_RELEASE "${EXTERNAL_LIBRARIES}/release/*.dll")
-set(EXTERNAL_LIBRARIES_WHOLE_DIRECTORIES "${EXTERNAL_LIBRARIES}/directory_copy")
-# To reformat into a style that copy_if_different can accept
-string(REPLACE ";" "\" \"" EXTERNAL_LIBRARIES_DYNAMIC_DEBUG "${EXTERNAL_LIBRARIES_DYNAMIC_DEBUG}")
-string(REPLACE ";" "\" \"" EXTERNAL_LIBRARIES_DYNAMIC_RELEASE "${EXTERNAL_LIBRARIES_DYNAMIC_RELEASE}")
 
 
 # Preprocessor definitions
@@ -99,14 +93,4 @@ endforeach()
 if (NOT ANDROID)
 target_compile_options(MagicEngine-Core PRIVATE /bigobj)
 
-add_custom_command(TARGET MagicEngine-Core POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different
-        "\"$<$<CONFIG:Debug>:${EXTERNAL_LIBRARIES_DYNAMIC_DEBUG}>$<$<CONFIG:Release>:${EXTERNAL_LIBRARIES_DYNAMIC_RELEASE}>\""
-        "\"$<TARGET_FILE_DIR:MagicEngine-Core>\""
-    COMMAND ${CMAKE_COMMAND} -E copy_directory_if_different
-        "\"${EXTERNAL_LIBRARIES_WHOLE_DIRECTORIES}\""
-        "\"$<TARGET_FILE_DIR:MagicEngine-Core>\""
-    COMMAND cmd.exe /c if "$(Configuration)" == "Release" "${CMAKE_COMMAND}" -E copy_directory_if_different "${CMAKE_SOURCE_DIR}/Assets" "$<TARGET_FILE_DIR:MagicEngine-Core>/Assets"
-    #COMMAND cmd.exe /c "${CMAKE_COMMAND}" -E copy_directory_if_different "${CMAKE_SOURCE_DIR}/Shaders" "$<TARGET_FILE_DIR:Engine>/Shaders"
-)
 endif()
