@@ -720,11 +720,11 @@ R"(<Project Sdk="Microsoft.NET.Sdk">
 		// If compilation failed, there's no new assembly to overwrite.
 		// Otherwise, if we're on the async thread, the user might've closed the program while we were compiling.
 		// In either case, just stop doing any further work.
-		if (!(compilationSucceeded && IsMainThreadAlive()))
-		{
-			CleanUserAssemblyTempFiles();
-			return false;
-		}
+		//if (!(compilationSucceeded && IsMainThreadAlive()))
+		//{
+		//	CleanUserAssemblyTempFiles();
+		//	return false;
+		//}
 
 		try
 		{

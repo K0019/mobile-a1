@@ -190,7 +190,7 @@ void MagicEngine::Init(Context& context)
 	CrashHandler::SetupCrashHandler(); // DO NOT REMOVE THIS LINE EVER
 
 	// Scripting MagicEngine Initialisation
-	//CSharpScripts::CSScripting::Init();
+	CSharpScripts::CSScripting::Init();
 
 	// FMOD Initialisation
 	ST<AudioManager>::Get()->Initialise();
@@ -405,7 +405,7 @@ void MagicEngine::ExecuteFrame(FrameData& frameData)
 	// update game state
 	// -----------------
 #ifdef IMGUI_ENABLED
-	//CSharpScripts::CSScripting::CheckCompileUserAssemblyAsyncCompletion();
+	CSharpScripts::CSScripting::CheckCompileUserAssemblyAsyncCompletion();
 #endif
 	ST<Game>::Get()->Update();
 	ST<Scheduler>::Get()->Update(GameTime::FixedDt() * static_cast<float>(GameTime::NumFixedFrames()));
@@ -468,7 +468,7 @@ void MagicEngine::shutdown()
 	ecs::Shutdown();
 
 	ST<physics::JoltPhysics>::Destroy();
-	//CSharpScripts::CSScripting::Exit();
+	CSharpScripts::CSScripting::Exit();
 
 	ST<GameSettings>::Destroy();
 	ST<ecs::RegisteredSystemsOperatingByLayer>::Destroy();
