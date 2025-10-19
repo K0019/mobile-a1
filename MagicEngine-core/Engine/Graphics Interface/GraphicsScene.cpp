@@ -71,14 +71,14 @@ void GraphicsScene::UploadToPipeline(FrameData* outFrameData)
     outFrameData->cameraPos = frameData.cameraPos;
     outFrameData->viewMatrix = frameData.viewMatrix;
     outFrameData->projMatrix = glm::perspective(45.0f, width / height, 0.1f, 1000.0f);
+
+    EditorCam_Publish(outFrameData->viewMatrix, outFrameData->projMatrix, false);
 }
 
 void GraphicsScene::SetViewCamera(const Camera& camera)
 {
     frameData.cameraPos = camera.getPosition();
     frameData.viewMatrix = camera.getViewMatrix();
-
-    EditorCam_Publish(frameData.viewMatrix, frameData.projMatrix, false);
 }
 
 void GraphicsScene::AddObject(const MeshHandle& meshHandle, const MaterialHandle& materialHandle, const Mat4& transform)
