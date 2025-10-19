@@ -174,7 +174,7 @@ decltype(util::ToSortedVectorOfRefs(InputSet::actions)) InputSet::Editor_GetActi
 bool KeyboardMouseInput::GetIsPressed(KEY key) const
 {
 	//return pressedKeystate[+key];
-	return Input::GetKey(static_cast<Key>(key));
+	return Input::GetKeyDown(static_cast<Key>(key));
 }
 
 bool KeyboardMouseInput::GetIsReleased(KEY key) const
@@ -188,7 +188,13 @@ bool KeyboardMouseInput::GetIsReleased(KEY key) const
 bool KeyboardMouseInput::GetIsDown(KEY key) const
 {
 	//return keystate[+key];
-	return Input::GetKeyDown(static_cast<Key>(key));
+	switch (key)
+	{
+	case KEY::M1: case KEY::M2: case KEY::M3:
+		return Input::GetMouseButton(static_cast<MouseButton>(+key - +KEY::M1));
+	default:
+		return Input::GetKey(static_cast<Key>(key));
+	}
 }
 
 bool KeyboardMouseInput::GetValue(INPUT_READ_TYPE readType, KEY key) const
@@ -210,12 +216,14 @@ bool KeyboardMouseInput::GetValue(INPUT_READ_TYPE readType, KEY key) const
 
 float KeyboardMouseInput::GetScroll() const
 {
-	return scrollOffset;
+	//return scrollOffset;
+	return Input::GetScrollDelta().y;
 }
 
 Vec2 KeyboardMouseInput::GetMousePos() const
 {
-	return mousePos;
+	//return mousePos;
+	return Input::GetMousePosition();
 }
 
 void KeyboardMouseInput::NewFrame()
