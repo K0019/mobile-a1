@@ -30,6 +30,8 @@ public:
 	~GraphicsScene();
 
 	bool Init(Context inContext);
+
+	void Clear();
 	void UploadToPipeline(FrameData* outFrameData);
 
 	void SetViewCamera(const Camera& camera);

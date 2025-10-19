@@ -41,7 +41,7 @@ void GraphicsMain::Init(Context inContext)
 
 void GraphicsMain::BeginFrame()
 {
-
+	ST<GraphicsScene>::Get()->Clear();
 }
 
 #ifdef IMGUI_ENABLED

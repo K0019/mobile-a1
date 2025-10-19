@@ -48,6 +48,12 @@ bool GraphicsScene::Init(Context inContext)
     return true;
 }
 
+void GraphicsScene::Clear()
+{
+    scene.objects.clear();
+    scene.lights.clear();
+}
+
 void GraphicsScene::UploadToPipeline(FrameData* outFrameData)
 {
     SceneRenderFeature::UpdateScene(sceneFeatureHandle, scene, *context.resourceMngr, *context.renderer);
