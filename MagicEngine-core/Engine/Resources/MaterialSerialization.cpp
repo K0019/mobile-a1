@@ -1,6 +1,6 @@
 #include "Engine/Resources/MaterialSerialization.h"
 #include "Engine/Resources/ResourceManager.h"
-#include "GameSettings.h"
+#include "FilepathConstants.h"
 
 #include <variant>
 
@@ -74,7 +74,7 @@ void MaterialSerialization::Serialize(Serializer& writer, const ProcessedMateria
 
 void MaterialSerialization::Deserialize(Deserializer& reader, ProcessedMaterial& outMaterial)
 {
-    const auto& assetsRootPath = ST<Filepaths>::Get()->assets + "/";
+    const auto& assetsRootPath = Filepaths::assets + "/";
 
     reader.DeserializeVar("name", &outMaterial.name);
 

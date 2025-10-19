@@ -26,7 +26,7 @@ All rights reserved.
 #include "BehaviourTree.h"
 #include "Editor/BehaviourTreeImguiHelper.h"
 #include "BehaviourTreeFactory.h"
-#include "GameSettings.h"
+#include "FilepathConstants.h"
 
 BehaviorTree::BehaviorTree()
     : entity{ nullptr }
@@ -51,7 +51,7 @@ void BehaviorTree::Set(ecs::EntityHandle entityHandle)
     std::vector<std::unique_ptr<BehaviorNode*>> parents{};
 
     //All the data of the tree.
-    std::string fileName{ ST<Filepaths>::Get()->behaviourTreeSave + "/" + btName + ".json"};
+    std::string fileName{ Filepaths::behaviourTreeSave + "/" + btName + ".json"};
     BehaviorTreeAsset btAsset{};
     if (!bt::LoadBTAssetFromFile(fileName, &btAsset))
     {

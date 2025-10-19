@@ -21,8 +21,7 @@ All rights reserved.
 
 #include "Engine/Resources/Importers/ResourceFiletypeImporterBase.h"
 #include "Engine/Resources/ResourceManager.h"
-
-#include "GameSettings.h"
+#include "FilepathConstants.h"
 
 size_t ResourceFiletypeImporterBase::GenerateNewHash()
 {
@@ -35,7 +34,7 @@ size_t ResourceFiletypeImporterBase::GenerateNewHash()
 
 std::filesystem::path ResourceFiletypeImporterBase::GetExeRelativeFilepath(const std::filesystem::path& assetRelativeFilepath)
 {
-    return ST<Filepaths>::Get()->assets / assetRelativeFilepath;
+    return Filepaths::assets / assetRelativeFilepath;
 }
 
 void ResourceFiletypeImporterBase::GenerateNamesForResources(std::vector<AssociatedResourceHashes>& resources, const std::filesystem::path& relativeFilepath)

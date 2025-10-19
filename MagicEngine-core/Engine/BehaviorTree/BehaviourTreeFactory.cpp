@@ -23,7 +23,7 @@ All rights reserved.
 /******************************************************************************/
 
 #include "BehaviourTreeFactory.h"
-#include "GameSettings.h"
+#include "FilepathConstants.h"
 
 BTFactory::BTFactory()
     : nodeTypes{}
@@ -57,7 +57,7 @@ std::vector<std::string> BTFactory::RegisteredTypes() const
 
 void BTFactory::SetAllFilePath()
 {
-    std::filesystem::path saveLocation{ ST<Filepaths>::Get()->behaviourTreeSave };
+    std::filesystem::path saveLocation{ Filepaths::behaviourTreeSave };
     if (!std::filesystem::exists(saveLocation))
         return;
 

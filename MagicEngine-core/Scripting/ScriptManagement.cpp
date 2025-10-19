@@ -20,7 +20,7 @@ All rights reserved.
 /******************************************************************************/
 #include "Scripting/ScriptManagement.h"
 #include "Scripting/CSScripting.h"
-#include "GameSettings.h"
+#include "FilepathConstants.h"
 
 bool ScriptManager::IsScriptsFolderExists()
 {
@@ -44,13 +44,13 @@ bool ScriptManager::EnsureScriptsFolderExists()
 
 const std::string& ScriptManager::GetScriptsFolder()
 {
-	return ST<Filepaths>::Get()->scriptsSave;
+	return Filepaths::scriptsSave;
 }
 
 bool ScriptManager::OpenScript(const std::string& scriptName)
 {
-	std::string filePath = ST<Filepaths>::Get()->scriptsSave + "/" + scriptName;
-	std::string command = "start devenv \"" + GetAbsolutePath(ST<Filepaths>::Get()->csproj) + "\" \"" + GetAbsolutePath(filePath) + "\"";
+	std::string filePath = Filepaths::scriptsSave + "/" + scriptName;
+	std::string command = "start devenv \"" + GetAbsolutePath(Filepaths::csproj) + "\" \"" + GetAbsolutePath(filePath) + "\"";
 
 	// Use std::system to execute the command
 	int result = std::system(command.c_str());
@@ -70,7 +70,7 @@ std::string ScriptManager::GetAbsolutePath(const std::string& relativePath)
 
 bool ScriptManager::CreateScript(const std::string& scriptName)
 {
-	std::string filePath = ST<Filepaths>::Get()->scriptsSave + "/" + scriptName;
+	std::string filePath = Filepaths::scriptsSave + "/" + scriptName;
 	std::ofstream s(filePath);
 	/*std::ofstream("./Assets/Scripts/" + name);*/
 	if (!s.is_open())

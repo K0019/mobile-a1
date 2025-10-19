@@ -184,7 +184,7 @@ void MagicEngine::Init(Context& context)
 	ST<GameSettings>::Get()->Load(); // Only load settings from file first so we have the correct filepaths.
 #ifdef _DEBUG
 	// identify file path for loading asset files
-	CONSOLE_LOG(LEVEL_INFO) << "Current working directory: " << std::filesystem::canonical(ST<Filepaths>::Get()->workingDir);
+	CONSOLE_LOG(LEVEL_INFO) << "Current working directory: " << std::filesystem::canonical(Filepaths::workingDir);
 	CONSOLE_LOG(LEVEL_INFO) << "Actual working directory: " << std::filesystem::current_path();
 #endif
 	CrashHandler::SetupCrashHandler(); // DO NOT REMOVE THIS LINE EVER
@@ -211,12 +211,12 @@ void MagicEngine::Init(Context& context)
 	// load resources
 	ST<MagicResourceManager>::Get()->Init();
 	ST<MagicResourceManager>::Get()->LoadFromFile();
-	//ST<AssetBrowser>::Get()->file_system.Initialize(ST<Filepaths>::Get()->workingDir);
+	//ST<AssetBrowser>::Get()->file_system.Initialize(Filepaths::workingDir);
 	// Load fonts manually for now
 	const std::array<std::string, 3> fontsToLoad{
-		ST<Filepaths>::Get()->fontsSave + "/Arial.ttf",
-		ST<Filepaths>::Get()->fontsSave + "/Lato-Regular.ttf",
-		ST<Filepaths>::Get()->fontsSave + "/slkscre.ttf"
+		Filepaths::fontsSave + "/Arial.ttf",
+		Filepaths::fontsSave + "/Lato-Regular.ttf",
+		Filepaths::fontsSave + "/slkscre.ttf"
 	};
 	//std::for_each(fontsToLoad.begin(), fontsToLoad.end(), ResourceManagerOld::LoadFont);
 	
@@ -471,7 +471,6 @@ void MagicEngine::shutdown()
 	//CSharpScripts::CSScripting::Exit();
 
 	ST<GameSettings>::Destroy();
-	//ST<Filepaths>::Destroy(); // Filepaths kinda needs to live for other threads to reference filepaths... smart pointers will free this later. sry about this
 	ST<ecs::RegisteredSystemsOperatingByLayer>::Destroy();
 
 	ST<MagicResourceManager>::Get()->Shutdown();

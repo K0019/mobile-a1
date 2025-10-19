@@ -20,7 +20,7 @@ All rights reserved.
 /******************************************************************************/
 
 #include "Graphics/Materials.h"
-#include <GameSettings.h>
+#include "FilepathConstants.h"
 
 MaterialInstance::MaterialInstance() = default;
 
@@ -100,7 +100,7 @@ void MaterialSystem::createDefaultMaterials() {
 
 bool MaterialSystem::loadMaterials() {
 
-    auto path = (ST<Filepaths>::Get()->materialsSave + "/materials.json");
+    auto path = (Filepaths::materialsSave + "/materials.json");
     try {
         Deserializer reader(path.c_str());
         if(!reader.IsValid()) {
@@ -191,7 +191,7 @@ bool MaterialSystem::loadMaterials() {
 
 bool MaterialSystem::saveMaterials() {
 
-    auto path = (ST<Filepaths>::Get()->materialsSave + "/materials.json");
+    auto path = (Filepaths::materialsSave + "/materials.json");
 
     try {
         Serializer writer(path.c_str());

@@ -2,9 +2,9 @@
 #include "Editor/AssetBrowser.h"
 #include "Engine/Resources/ResourceImporter.h"
 #include "Editor/Import.h"
-#include "GameSettings.h"
 #include "Editor/Containers/GUICollection.h"
 #include "Utilities/Logging.h"
+#include "FilepathConstants.h"
 
 const char* FileBrowserTab::GetName() const
 {
@@ -380,7 +380,7 @@ void FileBrowserTab::ShowSpriteSheetDialog()
             spriteConfig.spriteName = nameBuffer;
         }
 
-        std::string relativePath = ST<Filepaths>::Get()->MakeRelativeToWorkingDir(spriteConfig.targetPath);
+        std::string relativePath = Filepaths::MakeRelativeToWorkingDir(spriteConfig.targetPath);
         // Show dimensions info
         /*if (ResourceManagerOld::TextureExists(relativePath))
         {
@@ -497,15 +497,15 @@ void FileBrowserTab::ImportAsSprite(const std::filesystem::path& path, [[maybe_u
 
 std::filesystem::path FileBrowserTab::CopyIntoWorkingDir(const std::filesystem::path& file)
 {
-    if (ST<Filepaths>::Get()->IsWithinWorkingDir(file))
-        return ST<Filepaths>::Get()->MakeRelativeToWorkingDir(file);
+    if (Filepaths::IsWithinWorkingDir(file))
+        return Filepaths::MakeRelativeToWorkingDir(file);
 
     std::filesystem::path resultantFilepath{};
     switch (import::ImportToAssets(file, &resultantFilepath))
     {
     case import::IMPORT_RESULT::SUCCESS:
     case import::IMPORT_RESULT::ALREADY_IMPORTED:
-        return ST<Filepaths>::Get()->MakeRelativeToWorkingDir(resultantFilepath);
+        return Filepaths::MakeRelativeToWorkingDir(resultantFilepath);
     default:
         CONSOLE_LOG(LEVEL_ERROR) << "Failed to copy file into working directory: " << file.string();
         return file;

@@ -3,7 +3,7 @@
 #include "Editor/EditorGuiUtils.h"
 #include "Engine/SceneManagement.h"
 #include "Editor/AssetBrowser.h"
-#include "GameSettings.h"
+#include "FilepathConstants.h"
 
 ///////////////
 ///  Scene  ///
@@ -29,7 +29,7 @@ void SceneTab::Render()
     gui::SetStyleVar framePadding(gui::FLAG_STYLE_VAR::FRAME_PADDING, ImVec2(2, 2));
 
     int count{};
-    for (const auto& entry : std::filesystem::directory_iterator{ ST<Filepaths>::Get()->scenesSave })
+    for (const auto& entry : std::filesystem::directory_iterator{ Filepaths::scenesSave })
     {
         if (!editor::MatchesFilter(entry.path().string()))
             continue;

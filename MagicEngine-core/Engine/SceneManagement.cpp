@@ -23,7 +23,7 @@ All rights reserved.
 #include "Engine/SceneManagement.h"
 #include "Editor/Editor.h"
 #include "Utilities/History.h"
-#include "GameSettings.h"
+#include "FilepathConstants.h"
 #include "ECS/EntityUID.h"
 
 #pragma region Helper
@@ -48,7 +48,7 @@ public:
 	*//******************************************************************/
 	static const std::string& GetScenesFolder()
 	{
-		return ST<Filepaths>::Get()->scenesSave;
+		return Filepaths::scenesSave;
 	}
 
 	/*****************************************************************//*!
@@ -578,7 +578,7 @@ void ScenePool::ResetAndLoadPrevOpenScenes()
 		return;
 	}
 	for (const std::string& path : scenePaths)
-		LoadScene(ST<Filepaths>::Get()->workingDir + path, false);
+		LoadScene(Filepaths::workingDir + path, false);
 
 	// If there is another scene loaded and the default scene has nothing (didn't load), unload the default scene
 	if (loadedScenes.size() > 1 && activeScene->IsEmpty())

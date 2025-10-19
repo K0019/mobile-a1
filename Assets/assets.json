@@ -27,6 +27,20 @@
                     ]
                 }
             ]
+        },
+        {
+            "filepath": "Sounds\\Gylia Shanty (Cinfras County).mp3",
+            "resources": [
+                {
+                    "resourceType": 13608648403210648424,
+                    "resourceEntries": [
+                        {
+                            "hash": 24791788278831619,
+                            "name": "Gylia Shanty (Cinfras County)0"
+                        }
+                    ]
+                }
+            ]
         }
     ]
 }

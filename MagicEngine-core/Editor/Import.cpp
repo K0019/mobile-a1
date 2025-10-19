@@ -27,7 +27,7 @@ All rights reserved.
 #include "Editor/Import.h"
 #include <Windows.h>
 #include <shellapi.h> // For DragQueryFile
-#include "GameSettings.h"
+#include "FilepathConstants.h"
 #include "Managers/AudioManager.h"
 #include "Editor/Popup.h"
 
@@ -73,8 +73,7 @@ namespace import
         if (!file.has_extension())
             return IMPORT_RESULT::NO_EXTENSION;
 
-        Filepaths& filepaths{ *ST<Filepaths>::Get() };
-        std::filesystem::path dest{ filepaths.assets };
+        std::filesystem::path dest{ Filepaths::assets };
         std::string extension{ file.extension().string() };
 
         // Ensure extension is in lower case
@@ -85,7 +84,7 @@ namespace import
         if (extension == ".png" || extension == ".jpg")
             dest /= "Images";
         else if (extension == ".wav" || extension == ".mp3")
-            dest = filepaths.soundFolder;
+            dest = Filepaths::soundFolder;
         else
             return IMPORT_RESULT::UNSUPPORTED_EXTENSION;
         dest /= file.filename();

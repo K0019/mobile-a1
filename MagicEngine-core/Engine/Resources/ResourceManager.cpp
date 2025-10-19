@@ -23,7 +23,7 @@ All rights reserved.
 #include "Engine/Resources/ResourceSerialization.h"
 
 #include "Managers/AudioManager.h"
-#include "GameSettings.h"
+#include "FilepathConstants.h"
 
 void MagicResourceManager::Init()
 {
@@ -39,7 +39,7 @@ void MagicResourceManager::Shutdown()
 void MagicResourceManager::OnResourceRequestedLoad(size_t resourceHash)
 {
     if (const auto* fileEntry{ ST<MagicResourceManager>::Get()->filepathsManager.GetFileEntry(resourceHash) })
-        ResourceImporter::Import(ST<Filepaths>::Get()->assets / fileEntry->path);
+        ResourceImporter::Import(Filepaths::assets / fileEntry->path);
 }
 
 void MagicResourceManager::OnResourceDeleted(size_t hash, size_t resourceType)
@@ -67,10 +67,10 @@ UserResourceGetter<ResourceAudio> MagicResourceManager::Audio()
 
 void MagicResourceManager::SaveToFile() const
 {
-    Serializer writer{ ST<Filepaths>::Get()->assetsJson };
+    Serializer writer{ Filepaths::assetsJson };
     if (!writer.IsOpen())
     {
-        CONSOLE_LOG(LEVEL_ERROR) << "Failed to save resources: " << ST<Filepaths>::Get()->assetsJson;
+        CONSOLE_LOG(LEVEL_ERROR) << "Failed to save resources: " << Filepaths::assetsJson;
         return;
     }
 
@@ -78,10 +78,10 @@ void MagicResourceManager::SaveToFile() const
 }
 void MagicResourceManager::LoadFromFile()
 {
-    Deserializer reader{ ST<Filepaths>::Get()->assetsJson };
+    Deserializer reader{ Filepaths::assetsJson };
     if (!reader.IsValid())
     {
-        CONSOLE_LOG(LEVEL_ERROR) << "Failed to open resources: " << ST<Filepaths>::Get()->assetsJson;
+        CONSOLE_LOG(LEVEL_ERROR) << "Failed to open resources: " << Filepaths::assetsJson;
         return;
     }
 

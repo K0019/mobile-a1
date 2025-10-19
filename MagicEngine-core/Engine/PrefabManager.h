@@ -25,7 +25,8 @@ All rights reserved.
 */
 /******************************************************************************/
 #pragma once
-#include "GameSettings.h"
+#include "FilepathConstants.h"
+#include "Utilities/Serializer.h"
 
 class PrefabManager
 {
@@ -35,7 +36,7 @@ class PrefabManager
 private:
 	static const std::string& FolderDir()
 	{
-		return ST<Filepaths>::Get()->prefabsSave;
+		return Filepaths::prefabsSave;
 	}
 public:
 	PrefabManager() {

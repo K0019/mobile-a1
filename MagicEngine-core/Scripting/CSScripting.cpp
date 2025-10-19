@@ -25,11 +25,11 @@ All rights reserved.
 /******************************************************************************/
 #include "Scripting/CSScripting.h"
 #include "Scripting/HotReloader.h"
-#include "GameSettings.h"
 #include "Editor/Popup.h"
 #include "Engine/Engine.h"
 #include "Scripting/ScriptComponent.h"
 #include "ECS/EntityUID.h"
+#include "FilepathConstants.h"
 
 #include <Windows.h>
 
@@ -464,13 +464,13 @@ namespace CSharpScripts
 		ScriptEngineData = new SCScriptData();
 		ScriptEngineData->s_CoreClasses.clear();
 		InitMono();
-		LoadAssembly(ST<Filepaths>::Get()->engineScriptingDll);
+		LoadAssembly(Filepaths::engineScriptingDll);
 		//Utils::LoadAssemblyClasses(ScriptEngineData->s_CoreAssembly); // <<< This one can remove later since no core classes will be exposed to attach to entities
 		// Can check if .csproj exists. if exists then dont bother calling this function
 		// for future notice - Marc
 
 #ifndef IMGUI_ENABLED
-		if (!std::filesystem::exists(ST<Filepaths>::Get()->userAssemblyDll))
+		if (!std::filesystem::exists(Filepaths::userAssemblyDll))
 		{
 #endif
 		CreateUserProject();
@@ -479,7 +479,7 @@ namespace CSharpScripts
 		}
 #endif
 
-		LoadUserAssembly(ST<Filepaths>::Get()->userAssemblyDll);
+		LoadUserAssembly(Filepaths::userAssemblyDll);
 		Utils::LoadUserAssemblyClasses(ScriptEngineData->s_UserAssembly);
 		for (auto& pair : ScriptEngineData->s_CoreClasses)
 		{
@@ -508,12 +508,12 @@ namespace CSharpScripts
 
 		mono_domain_unload(ScriptEngineData->s_AppDomain);
 		ScriptEngineData->s_CoreClasses.clear();
-		LoadAssembly(ST<Filepaths>::Get()->engineScriptingDll);
+		LoadAssembly(Filepaths::engineScriptingDll);
 		//Utils::LoadAssemblyClasses(ScriptEngineData->s_CoreAssembly);
 
 		CreateUserProject();
 		CompileUserAssemblyAsync([]() -> void {
-			LoadUserAssembly(ST<Filepaths>::Get()->userAssemblyDll);
+			LoadUserAssembly(Filepaths::userAssemblyDll);
 			Utils::LoadUserAssemblyClasses(ScriptEngineData->s_UserAssembly);
 
 			// reload the ecs scripts
@@ -597,16 +597,16 @@ namespace CSharpScripts
 
 	void CSScripting::CreateUserProject()
 	{
-		std::ofstream csprojFile(ST<Filepaths>::Get()->csproj);
+		std::ofstream csprojFile(Filepaths::csproj);
 		if (!csprojFile.is_open())
 		{
 			CONSOLE_LOG(LEVEL_WARNING) << "Failed to create/overwrite scripting .csproj file";
 			return;
 		}
 
-		auto engineDll{ std::filesystem::absolute(ST<Filepaths>::Get()->engineScriptingDll) };
-		auto csproj{ std::filesystem::absolute(ST<Filepaths>::Get()->csproj) };
-		auto glmSharpDll{ std::filesystem::absolute(ST<Filepaths>::Get()->glmSharpDll) };
+		auto engineDll{ std::filesystem::absolute(Filepaths::engineScriptingDll) };
+		auto csproj{ std::filesystem::absolute(Filepaths::csproj) };
+		auto glmSharpDll{ std::filesystem::absolute(Filepaths::glmSharpDll) };
 
 		csprojFile <<
 R"(<Project Sdk="Microsoft.NET.Sdk">
@@ -660,7 +660,7 @@ R"(<Project Sdk="Microsoft.NET.Sdk">
 		}
 
 		// Setup the cmd command
-		std::string csprojPathAsStr{ "\"" + ST<Filepaths>::Get()->csproj + "\"" };
+		std::string csprojPathAsStr{ "\"" + Filepaths::csproj + "\"" };
 		std::wstring csprojPath{ csprojPathAsStr.begin(), csprojPathAsStr.end() }; // Note that this only works with non-multibyte chars
 		std::wstring buildCmd;
 #ifdef _DEBUG
@@ -730,11 +730,11 @@ R"(<Project Sdk="Microsoft.NET.Sdk">
 		{
 			std::filesystem::path sourcePath;
 #ifdef _DEBUG  // If in Debug mode
-			sourcePath = ST<Filepaths>::Get()->scriptsWorkingDir + "/bin/Debug/net472/UserAssembly.dll";
+			sourcePath = Filepaths::scriptsWorkingDir + "/bin/Debug/net472/UserAssembly.dll";
 #else  // If in Release mode
-			sourcePath = ST<Filepaths>::Get()->scriptsWorkingDir + "/bin/Release/net472/UserAssembly.dll";
+			sourcePath = Filepaths::scriptsWorkingDir + "/bin/Release/net472/UserAssembly.dll";
 #endif
-			std::filesystem::path destinationPath = ST<Filepaths>::Get()->userAssemblyDll;
+			std::filesystem::path destinationPath = Filepaths::userAssemblyDll;
 			if (std::filesystem::exists(sourcePath))
 			{
 				std::filesystem::create_directories(destinationPath.parent_path());
@@ -797,9 +797,8 @@ R"(<Project Sdk="Microsoft.NET.Sdk">
 
 	void CSScripting::CleanUserAssemblyTempFiles()
 	{
-		Filepaths& filepaths{ *ST<Filepaths>::Get() };
-		std::filesystem::remove_all(filepaths.scriptsWorkingDir + "/bin");
-		std::filesystem::remove_all(filepaths.scriptsWorkingDir + "/obj");
+		std::filesystem::remove_all(Filepaths::scriptsWorkingDir + "/bin");
+		std::filesystem::remove_all(Filepaths::scriptsWorkingDir + "/obj");
 	}
 
 	void CSScripting::LoadUserAssembly(const std::filesystem::path& filepath)

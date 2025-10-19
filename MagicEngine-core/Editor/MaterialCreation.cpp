@@ -1,10 +1,10 @@
 #include "Editor/MaterialCreation.h"
 #include "Engine/Resources/MaterialSerialization.h"
 #include "Engine/Resources/ResourceManager.h"
+#include "Engine/Resources/ResourceImporter.h"
 #include "Editor/Popup.h"
 #include "resource/resource_types.h"
-#include "GameSettings.h"
-#include "Engine/Resources/ResourceImporter.h"
+#include "FilepathConstants.h"
 
 namespace editor {
 
@@ -90,7 +90,7 @@ namespace editor {
 
 		if (valid)
 		{
-			std::filesystem::path assetDir = ST<Filepaths>::Get()->assets + "/Materials/";
+			std::filesystem::path assetDir = Filepaths::assets + "/Materials/";
 			std::filesystem::create_directories(assetDir);
 			std::filesystem::path assetPath = assetDir / (std::string(materialName) + ".material");
 

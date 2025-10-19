@@ -23,7 +23,7 @@ All rights reserved.
 #include "Engine/BehaviorTree/BehaviourTree.h"
 #include "Engine/BehaviorTree/BehaviourTreeFactory.h"
 #include "Editor/BehaviourTreeImguiHelper.h"
-#include "GameSettings.h"
+#include "FilepathConstants.h"
 
 namespace editor {
 
@@ -812,8 +812,7 @@ static void WalkBTAssetFlat(const BehaviorTreeAsset& asset, F&& fn)
         // Init dir + list + first load
         if (dir.empty()) 
         {
-            if (auto* fp = ST<Filepaths>::Get()) dir = fp->behaviourTreeSave;
-            else                                 dir = "Assets/BehaviourTrees";
+            dir = Filepaths::behaviourTreeSave;
 
             bt::RefreshBTList(dir, files, currentIndex, loadedAsset, hasAsset, lastLoadedPath);
             bt::LoadSelectedBT(dir, files, currentIndex, loadedAsset, hasAsset, lastLoadedPath, selectedNodeIndex);

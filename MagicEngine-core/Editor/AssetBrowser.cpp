@@ -62,7 +62,7 @@ AssetBrowser::AssetBrowser() {
     assetCategories.push_back(std::make_unique<ShaderTab>());
 
     //FileSystem inside AssetBrowser or its own tab?
-    auto browser = std::make_unique<FileBrowserTab>(); browser->Initialize(ST<Filepaths>::Get()->workingDir);
+    auto browser = std::make_unique<FileBrowserTab>(); browser->Initialize(Filepaths::workingDir);
     assetCategories.push_back(std::move(browser));
 #endif
 }

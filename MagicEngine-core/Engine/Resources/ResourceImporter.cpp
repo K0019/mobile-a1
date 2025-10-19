@@ -21,6 +21,7 @@ All rights reserved.
 #include "Engine/Resources/ResourceImporter.h"
 #include "Engine/Resources/Types/ResourceTypes.h"
 #include "Engine/Resources/ResourceManager.h"
+#include "FilepathConstants.h"
 
 #include "Engine/Resources/Importers/ResourceFiletypeImporterFBX.h"
 #include "Engine/Resources/Importers/ResourceFiletypeImporterKTX.h"
@@ -28,8 +29,6 @@ All rights reserved.
 #include "Engine/Resources/Importers/ResourceFiletypeImporterMaterial.h"
 #include "Engine/Resources/Importers/ResourceFiletypeImporterImage.h"
 #include "Engine/Resources/Importers/ResourceFiletypeImporterAudio.h"
-
-#include "GameSettings.h"
 
 std::unordered_map<std::string, SPtr<ResourceFiletypeImporterBase>> ResourceImporter::importers{
     { std::string{ ".fbx" }, std::make_shared<ResourceFiletypeImporterFBX>() },
@@ -63,7 +62,7 @@ bool ResourceImporter::Import(const std::filesystem::path& filepath)
     }
 
     // Import the file, creating/updating the resources in ResourceManager
-    auto relativeFilepath{ std::filesystem::relative(filepath, ST<Filepaths>::Get()->assets) };
+    auto relativeFilepath{ std::filesystem::relative(filepath, Filepaths::assets) };
 
     return filetypeImporterIter->second->Import(relativeFilepath);
 }

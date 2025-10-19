@@ -132,7 +132,7 @@ void ShaderTab::Render()
     if (shaderNames.empty())
     {
         const std::unordered_set<std::string> allowedExtensions{ ".vert", ".frag", ".comp" };
-        for (const auto& entry : std::filesystem::directory_iterator{ ST<Filepaths>::Get()->shadersSave })
+        for (const auto& entry : std::filesystem::directory_iterator{ Filepaths::shadersSave })
             if (allowedExtensions.find(entry.path().extension().string()) != allowedExtensions.end())
                 shaderNames.push_back(entry.path().filename().string());
     }
@@ -188,7 +188,7 @@ void ScriptTab::Render()
     }
     ImGui::Separator();
 
-    std::string path = ST<Filepaths>::Get()->scriptsSave;
+    std::string path = Filepaths::scriptsSave;
     std::vector<std::string> scriptFiles;
 
     if (ST<ScriptManager>::Get()->EnsureScriptsFolderExists())

@@ -20,7 +20,7 @@ All rights reserved.
 
 #include "Engine/Graphics Interface/GraphicsAPI.h"
 #include "Editor/Containers/GUICollection.h"
-#include "GameSettings.h"
+#include "FilepathConstants.h"
 
 #include "fa.h"
 
@@ -35,7 +35,7 @@ void GraphicsMain::Init(Context inContext)
 	ST<GraphicsScene>::Get()->Init(inContext);
 
 #ifdef IMGUI_ENABLED
-	InitImGui(ST<Filepaths>::Get()->fontsSave + "/Lato-Regular.ttf");
+	InitImGui(Filepaths::fontsSave + "/Lato-Regular.ttf");
 #endif
 }
 

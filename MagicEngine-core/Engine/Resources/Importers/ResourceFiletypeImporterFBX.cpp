@@ -24,7 +24,7 @@ All rights reserved.
 // We then delegate the importing of these .mesh and .ktx2 files to those respective importers.
 // Therefore, we need to call the resource importer again to process those files.
 #include "SceneCompiler.h"
-#include "GameSettings.h"
+#include "FilepathConstants.h"
 #include "Engine/Resources/ResourceImporter.h"
 
 #include <assimp/Importer.hpp>
@@ -202,7 +202,7 @@ bool ResourceFiletypeImporterFBX::Import(const std::filesystem::path& assetRelat
     compiler::SceneCompiler compiler;
     compiler::CompilerOptions options;
     options.general.inputPath = GetExeRelativeFilepath(assetRelativeFilepath);
-    options.general.outputPath = ST<Filepaths>::Get()->assets + "/CompiledAssets/";
+    options.general.outputPath = Filepaths::assets + "/CompiledAssets/";
 
     // Ask the compiler to compile the .fbx into .mesh and .ktx2
     compiler::CompilationResult result = compiler.Compile(options);
