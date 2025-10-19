@@ -20,9 +20,9 @@ All rights reserved.
 #include "FilepathConstants.h"
 
 #ifdef _DEBUG
-const std::string Filepaths::workingDir = ".";
-#else
 const std::string Filepaths::workingDir = "../../..";
+#else
+const std::string Filepaths::workingDir = ".";
 #endif
 
 const std::string Filepaths::gameSettings		= Filepaths::workingDir + "/Assets/Settings.json";
