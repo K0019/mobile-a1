@@ -28,7 +28,12 @@ static std::string NormalizePath(const std::string& path)
     return lowerPath;
 }
 
-
+static std::string AddTrailingSlash(std::string& path)
+{
+    if (!path.empty() && path.back() != '/')
+        path.push_back('/');
+    return path;
+}
 
 
 std::vector<VFS::MountPoint> VFS::s_MountPoints;
@@ -54,6 +59,7 @@ bool VFS::MountAndroidDirectory(const std::string& virtualPath, AAssetManager* a
 bool VFS::MountDirectory(const std::string& virtualPath, const std::string& physicalPath)
 {
     std::string normalizedPath = NormalizePath(virtualPath);
+    AddTrailingSlash(normalizedPath);
 
     auto directoryBackend = std::make_shared<DirectoryVFSImpl>(physicalPath);
     return MountBackend(normalizedPath, std::move(directoryBackend));
@@ -215,8 +221,6 @@ std::vector<std::string> VFS::ListDirectory(const std::string& path)
     return std::vector<std::string>();
 }
 
-
-
 // ----- Helper ----- //
 
 bool VFS::MountBackend(const std::string& virtualPath, std::shared_ptr<IVFSImpl> backend)
@@ -228,4 +232,95 @@ bool VFS::MountBackend(const std::string& virtualPath, std::shared_ptr<IVFSImpl>
 
     s_MountPoints.emplace_back(MountPoint{ virtualPath, std::move(backend) });
     return true;
+}
+
+
+
+
+// ----- Utility ----- //
+std::string VFS::JoinPath(const std::string& path1, const std::string& path2)
+{
+    if (path1.empty())
+    {
+        return path2;
+    }
+    if (path2.empty())
+    {
+        return path1;
+    }
+
+    // Accounting for cases like "/assets/" + "/textures"
+    bool p1_has_slash = path1.back() == '/';
+    bool p2_has_slash = path2.front() == '/';
+
+    if (p1_has_slash && p2_has_slash)
+    {
+        // Remove the slash from path2
+        return path1 + path2.substr(1);
+    }
+    else if (!p1_has_slash && !p2_has_slash)
+    {
+        // Neither has a slash. Add one in the middle
+        return path1 + "/" + path2;
+    }
+    else
+    {
+        return path1 + path2;
+    }
+}
+
+std::string VFS::GetExtension(const std::string& path)
+{
+    size_t dot_pos = path.find_last_of('.');
+    size_t slash_pos = path.find_last_of('/');
+
+    // Ensure the dot comes after the last slash
+    if (dot_pos != std::string::npos && (slash_pos == std::string::npos || dot_pos > slash_pos))
+    {
+        return path.substr(dot_pos);
+    }
+
+    return ""; // No extension
+}
+
+std::string VFS::GetFilename(const std::string& path)
+{
+    size_t slash_pos = path.find_last_of('/');
+
+    if (slash_pos != std::string::npos)
+    {
+        return path.substr(slash_pos + 1);
+    }
+    return path;
+}
+
+std::string VFS::GetStem(const std::string& path)
+{
+    std::string filename = GetFilename(path);
+    size_t dot_pos = filename.find_last_of('.');
+
+    if (dot_pos != std::string::npos)
+    {
+        return filename.substr(0, dot_pos);
+    }
+
+    return filename;
+}
+
+std::string VFS::GetParentPath(const std::string& path)
+{
+    size_t slash_pos = path.find_last_of('/');
+
+    if (slash_pos != std::string::npos)
+    {
+        if (slash_pos == 0)
+        {
+            // Special case: path is "/filename.txt", parent is "/"
+            return "/";
+        }
+        // Return everything before the last slash
+        return path.substr(0, slash_pos);
+    }
+
+    return "";
 }
