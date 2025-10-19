@@ -21,6 +21,7 @@ All rights reserved.
 
 #include "Engine/Input.h"
 #include "Graphics/CustomViewport.h"
+#include "core/platform/platform.h"
 
 #ifndef IMGUI_ENABLED
 #include "Engine/Graphics Interface/GraphicsWindow.h"
@@ -172,19 +173,22 @@ decltype(util::ToSortedVectorOfRefs(InputSet::actions)) InputSet::Editor_GetActi
 
 bool KeyboardMouseInput::GetIsPressed(KEY key) const
 {
-	return pressedKeystate[+key];
+	//return pressedKeystate[+key];
+	return Input::GetKey(static_cast<Key>(key));
 }
 
 bool KeyboardMouseInput::GetIsReleased(KEY key) const
 {
 	if (ST<MagicInput>::Get()->IsFinalIterationThisFrame())
 		return false;
-	return releasedKeystate[+key];
+	//return releasedKeystate[+key];
+	return Input::GetKeyUp(static_cast<Key>(key));
 }
 
 bool KeyboardMouseInput::GetIsDown(KEY key) const
 {
-	return keystate[+key];
+	//return keystate[+key];
+	return Input::GetKeyDown(static_cast<Key>(key));
 }
 
 bool KeyboardMouseInput::GetValue(INPUT_READ_TYPE readType, KEY key) const
