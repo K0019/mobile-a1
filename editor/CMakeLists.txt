@@ -46,7 +46,7 @@ if(MSVC)
     
     # Visual Studio settings
     set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT Editor)
-    set_property(TARGET Editor PROPERTY VS_DEBUGGER_WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
+    set_property(TARGET Editor PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:Editor>")
 	
 	set(PORTABLE_LAYERS_PATH "${CMAKE_SOURCE_DIR}/extern/vulkan_validation_layers")
         if(EXISTS "${PORTABLE_LAYERS_PATH}/VkLayer_khronos_validation.json")
