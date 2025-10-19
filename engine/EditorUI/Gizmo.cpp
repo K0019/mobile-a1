@@ -131,9 +131,18 @@ void Gizmo::Draw([[maybe_unused]] ImDrawList* /*viewport*/)
                 if (md == ImGuizmo::WORLD || !parent)
                 {
                     // No parent or WORLD mode -> set world-space directly
-                    if (op == ImGuizmo::TRANSLATE) tr.SetWorldPosition({ t[0], t[1], t[2] });
-                    else if (op == ImGuizmo::ROTATE) tr.SetWorldRotation({ r[0], r[1], r[2] });  // degrees
-                    else if (op == ImGuizmo::SCALE)  tr.SetWorldScale({ s[0], s[1], s[2] });
+                    if (op == ImGuizmo::TRANSLATE) {
+                        ST<History>::Get()->IntermediateEvent(HistoryEvent_Translation{ m_attachedTransform->GetEntity(), m_attachedTransform->GetLocalPosition() });
+                        tr.SetWorldPosition({ t[0], t[1], t[2] });
+                    }
+                    else if (op == ImGuizmo::ROTATE) {
+                        ST<History>::Get()->IntermediateEvent(HistoryEvent_Rotation{ m_attachedTransform->GetEntity(), m_attachedTransform->GetLocalRotation() });
+                        tr.SetWorldRotation({ r[0], r[1], r[2] });  // degrees
+                    }
+                    else if (op == ImGuizmo::SCALE) {
+                        ST<History>::Get()->IntermediateEvent(HistoryEvent_Scale{ m_attachedTransform->GetEntity(), m_attachedTransform->GetLocalScale() });
+                        tr.SetWorldScale({ s[0], s[1], s[2] });
+                    }
                 }
                 else
                 {

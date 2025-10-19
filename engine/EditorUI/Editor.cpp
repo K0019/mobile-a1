@@ -232,40 +232,40 @@ void Inspector::ProcessInput()
 		//	lastClickTime = currentTime;
 		//}
 
-		// Only handle dragging if gizmo is not active
-		/*if(m_currentGizmoType == GizmoType::None)
-		{
-			if(isDragging) {
-				if(ImGui::IsMouseDown(ImGuiMouseButton_Left)) {
-					Vec2 newPosition = worldMousePos;
-					if(!m_snapToGrid) {
-						const Vec2 delta = worldMousePos - lastMousePos;
-						newPosition = transform->GetWorldPosition() + delta;
-					}
-					else
-					{
-						newPosition = SnapToGrid(newPosition);
-					}
-					ST<History>::Get()->IntermediateEvent(HistoryEvent_Translation{ selectedEntity, selectedEntity->GetTransform().GetLocalPosition() });
-					selectedEntity->GetTransform().SetWorldPosition(newPosition);
-					lastMousePos = worldMousePos;
-				}
-				else {
-					isDragging = false;
-					ST<CustomViewport>::Get()->SetDisableMoving(false);
-				}
-			}
-			else {
-				if(ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
-					if(util::IsPointInside(worldMousePos, *transform))
-					{
-						isDragging = true;
-						lastMousePos = worldMousePos;
-						ST<CustomViewport>::Get()->SetDisableMoving(true);
-					}
-				}
-			}
-		}*/
+		//// Only handle dragging if gizmo is not active
+		//if(m_currentGizmoType == GizmoType::None)
+		//{
+		//	if(isDragging) {
+		//		if(ImGui::IsMouseDown(ImGuiMouseButton_Left)) {
+		//			Vec2 newPosition = worldMousePos;
+		//			if(!m_snapToGrid) {
+		//				const Vec2 delta = worldMousePos - lastMousePos;
+		//				newPosition = transform->GetWorldPosition() + delta;
+		//			}
+		//			else
+		//			{
+		//				newPosition = SnapToGrid(newPosition);
+		//			}
+		//			ST<History>::Get()->IntermediateEvent(HistoryEvent_Translation{ selectedEntity, selectedEntity->GetTransform().GetLocalPosition() });
+		//			selectedEntity->GetTransform().SetWorldPosition(newPosition);
+		//			lastMousePos = worldMousePos;
+		//		}
+		//		else {
+		//			isDragging = false;
+		//			ST<CustomViewport>::Get()->SetDisableMoving(false);
+		//		}
+		//	}
+		//	else {
+		//		if(ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
+		//			if(util::IsPointInside(worldMousePos, *transform))
+		//			{
+		//				isDragging = true;
+		//				lastMousePos = worldMousePos;
+		//				ST<CustomViewport>::Get()->SetDisableMoving(true);
+		//			}
+		//		}
+		//	}
+		//}
 	}
 }
 
