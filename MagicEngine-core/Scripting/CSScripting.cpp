@@ -39,6 +39,7 @@ namespace CSharpScripts
 	std::future<int> CSScripting::compileUserAssemblyFuture;
 	bool CSScripting::isCompilingUserAssemblyAsync;
 	void(*CSScripting::compileUserAssemblyCallback)();
+	std::atomic_bool CSScripting::isInitialized{};
 
 	namespace internal {
 		template <typename T>
@@ -468,6 +469,7 @@ namespace CSharpScripts
 		//Utils::LoadAssemblyClasses(ScriptEngineData->s_CoreAssembly); // <<< This one can remove later since no core classes will be exposed to attach to entities
 		// Can check if .csproj exists. if exists then dont bother calling this function
 		// for future notice - Marc
+		isInitialized = true;
 
 #ifndef IMGUI_ENABLED
 		if (!std::filesystem::exists(Filepaths::userAssemblyDll))
@@ -535,6 +537,7 @@ namespace CSharpScripts
 
 	void CSScripting::Exit()
 	{
+		isInitialized = false;
 		ST<HotReloader>::Destroy();
 
 		// unload root domain
@@ -644,10 +647,6 @@ R"(<Project Sdk="Microsoft.NET.Sdk">
 
 	bool CSScripting::CompileUserAssembly()
 	{
-		// Helper function to detect if the main thread is still alive (so if we're multithreaded, we avoid any operation that requires the main thread)
-		auto IsMainThreadAlive{ []() -> bool { return ST<MagicEngine>::IsInitialized() && !ST<MagicEngine>::Get()->IsShuttingDown(); } };
-
-
 		// Create a read/write pipe for the compilation to output to
 		HANDLE hReadPipe, hWritePipe;
 		SECURITY_ATTRIBUTES saAttr;
@@ -697,7 +696,7 @@ R"(<Project Sdk="Microsoft.NET.Sdk">
 			buffer[dwRead - 1] = '\0';
 
 			// If the main program is shutting down, there's no need to continue processing the compilation output
-			if (!IsMainThreadAlive())
+			if (!isInitialized)
 				break;
 			CONSOLE_LOG(LEVEL_DEBUG) << buffer;
 		}
@@ -709,7 +708,7 @@ R"(<Project Sdk="Microsoft.NET.Sdk">
 		DWORD exitCode{};
 		GetExitCodeProcess(pi.hProcess, &exitCode);
 		bool compilationSucceeded{ exitCode == 0 };
-		if (!compilationSucceeded && IsMainThreadAlive())
+		if (!compilationSucceeded && isInitialized)
 			CONSOLE_LOG(LEVEL_ERROR) << "User Assembly Compilation: Compilation failed! Please check debug output for the compilation log.";
 
 		// Close handles
@@ -720,11 +719,11 @@ R"(<Project Sdk="Microsoft.NET.Sdk">
 		// If compilation failed, there's no new assembly to overwrite.
 		// Otherwise, if we're on the async thread, the user might've closed the program while we were compiling.
 		// In either case, just stop doing any further work.
-		//if (!(compilationSucceeded && IsMainThreadAlive()))
-		//{
-		//	CleanUserAssemblyTempFiles();
-		//	return false;
-		//}
+		if (!(compilationSucceeded && isInitialized))
+		{
+			CleanUserAssemblyTempFiles();
+			return false;
+		}
 
 		try
 		{

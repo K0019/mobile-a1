@@ -562,6 +562,8 @@ X(ON_AWAKE, Awake, 0)
 		//! The callback function to call once the async user compilation is complete
 		static void(*compileUserAssemblyCallback)();
 
+		static std::atomic_bool isInitialized;
+
 		friend class ScriptClass;
 	};
 
