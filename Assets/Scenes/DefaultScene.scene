@@ -4,7 +4,7 @@
             "parentIndex": -1,
             "position": {
                 "x": 0.0,
-                "y": 0.0,
+                "y": 0.44796326756477356,
                 "z": 0.0
             },
             "rotation": {
@@ -19,28 +19,78 @@
             },
             "components": {
                 "1048412265199846848": {
-                    "_active": true,
+                    "_active": false,
                     "layer": 0
                 },
                 "1223095846833079106": {
-                    "_active": true,
+                    "_active": false,
                     "uid": 29901218811757137
                 },
                 "1944538217630733064": {
-                    "_active": true,
+                    "_active": false,
                     "flags": {
                         "_majorityTrue": true,
                         "_except": []
                     }
                 },
                 "2471509561333568296": {
-                    "_active": true,
+                    "_active": false,
                     "name": "New Entity"
+                },
+                "3381165323192817782": {
+                    "_active": false,
+                    "meshHash": 13867040743873860,
+                    "materialHash": 19207368719981903
+                }
+            }
+        },
+        {
+            "parentIndex": -1,
+            "position": {
+                "x": 0.0,
+                "y": -1.0,
+                "z": 0.0
+            },
+            "rotation": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "scale": {
+                "x": 150.0,
+                "y": 0.009999999776482582,
+                "z": 150.0
+            },
+            "components": {
+                "1048412265199846848": {
+                    "_active": true,
+                    "layer": 0
+                },
+                "1223095846833079106": {
+                    "_active": true,
+                    "uid": 34162926540441025
+                },
+                "2471509561333568296": {
+                    "_active": true,
+                    "name": "Floor"
                 },
                 "3381165323192817782": {
                     "_active": true,
                     "meshHash": 13867040743873860,
                     "materialHash": 19207368719981903
+                },
+                "17211506741407007748": {
+                    "_active": true,
+                    "center": {
+                        "x": 0.0,
+                        "y": 0.0,
+                        "z": 0.0
+                    },
+                    "size": {
+                        "x": 1.0,
+                        "y": 1.0,
+                        "z": 1.0
+                    }
                 }
             }
         }
