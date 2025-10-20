@@ -37,6 +37,7 @@ All rights reserved.
 #include "Editor/Popup.h"
 #include "Editor/Editor.h"
 #include "Utilities/CrashHandler.h"
+#include "VFS/VFS.h"
 
 #include "Engine/Input.h"
 
@@ -181,6 +182,15 @@ bool MagicEngine::IsShuttingDown() const
 
 void MagicEngine::Init(Context& context)
 {
+	
+#if !defined(__ANDROID__)
+	// The ifdef is to prevent double loading on android's side.
+	// A temporary thing while I decide where android and windows directory adding goes.
+	// Right now, android's is inside android_main.cpp.
+	//VFS::MountDirectory("assets/", Filepaths::assets);
+	VFS::MountDirectory("", Filepaths::assets);
+#endif
+
 	ST<GameSettings>::Get()->Load(); // Only load settings from file first so we have the correct filepaths.
 #ifdef _DEBUG
 	// identify file path for loading asset files

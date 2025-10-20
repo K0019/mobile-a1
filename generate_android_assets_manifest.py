@@ -14,6 +14,51 @@ if not os.path.exists(asset_dir):
 # Ensure the output directory exists
 os.makedirs(asset_dir, exist_ok=True)
 
+def rename_to_lowercase(directory):
+    """Recursively rename all files and directories to lowercase."""
+    renamed_count = 0
+    
+    # Walk bottom-up to handle nested directories properly
+    for root, dirs, files in os.walk(directory, topdown=False):
+        # Rename files first
+        for name in files:
+            if name == 'asset_manifest.txt':
+                continue
+                
+            lowercase_name = name.lower()
+            if name != lowercase_name:
+                old_path = os.path.join(root, name)
+                new_path = os.path.join(root, lowercase_name)
+                
+                # Handle case where target file already exists (and is not the same file)
+                if os.path.exists(new_path) and os.path.normcase(old_path) != os.path.normcase(new_path):
+                    print(f"Warning: Cannot rename '{name}' to '{lowercase_name}' - target already exists")
+                else:
+                    os.rename(old_path, new_path)
+                    print(f"Renamed: {name} -> {lowercase_name}")
+                    renamed_count += 1
+        
+        # Rename directories
+        for name in dirs:
+            lowercase_name = name.lower()
+            if name != lowercase_name:
+                old_path = os.path.join(root, name)
+                new_path = os.path.join(root, lowercase_name)
+                
+                if os.path.exists(new_path) and os.path.normcase(old_path) != os.path.normcase(new_path):
+                    print(f"Warning: Cannot rename directory '{name}' to '{lowercase_name}' - target already exists")
+                else:
+                    os.rename(old_path, new_path)
+                    print(f"Renamed directory: {name} -> {lowercase_name}")
+                    renamed_count += 1
+    
+    return renamed_count
+
+# Rename all assets to lowercase
+print("Renaming assets to lowercase...")
+renamed_count = rename_to_lowercase(asset_dir)
+print(f"Renamed {renamed_count} files/directories to lowercase\n")
+
 try:
     with open(output_file, 'w', encoding='utf-8') as f:
         file_count = 0

@@ -196,7 +196,7 @@ namespace internal {
 }
 
 
-bool ResourceFiletypeImporterFBX::Import(const std::filesystem::path& assetRelativeFilepath)
+bool ResourceFiletypeImporterFBX::Import(const std::string& assetRelativeFilepath)
 {
     // Set up compile options
     compiler::SceneCompiler compiler;
@@ -209,13 +209,26 @@ bool ResourceFiletypeImporterFBX::Import(const std::filesystem::path& assetRelat
     if (!result.success)
         return false;
 
+    // CompilationResult holds physical paths. Convert them back to virtual paths before
+    // passing them to the ResourceImporter to comply with VFS
     // Delegate importing of the created files to their respective importers
     for (const auto& path : result.createdMeshFiles)
-        ResourceImporter::Import(path);
+    {
+        std::string virtualPath = std::filesystem::relative(path, Filepaths::assets).generic_string();
+        std::transform(virtualPath.begin(), virtualPath.end(), virtualPath.begin(), ::tolower);
+        ResourceImporter::Import(virtualPath);
+    }
     for (const auto& path : result.createdTextureFiles)
-        ResourceImporter::Import(path);
+    {
+        std::string virtualPath = std::filesystem::relative(path, Filepaths::assets).generic_string();
+        std::transform(virtualPath.begin(), virtualPath.end(), virtualPath.begin(), ::tolower);
+        ResourceImporter::Import(virtualPath);
+    }
     for (const auto& path : result.createdMaterialFiles)
-        ResourceImporter::Import(path);
-
+    {
+        std::string virtualPath = std::filesystem::relative(path, Filepaths::assets).generic_string();
+        std::transform(virtualPath.begin(), virtualPath.end(), virtualPath.begin(), ::tolower);
+        ResourceImporter::Import(virtualPath);
+    }
     return true;
 }

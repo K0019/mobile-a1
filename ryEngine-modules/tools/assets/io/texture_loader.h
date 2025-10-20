@@ -26,15 +26,15 @@ namespace Resource
 
     std::string generateTextureCacheKey(const ProcessedTexture& texture);
 
-    bool loadFromFile(const std::filesystem::path& path, ProcessedTexture& texture, bool sRGB, vk::TextureType type = vk::TextureType::Tex2D);
+    bool loadFromFile(const std::string& path, ProcessedTexture& texture, bool sRGB, vk::TextureType type = vk::TextureType::Tex2D);
     // Core loading implementations (internal use)
     namespace Detail
     {
       
-      bool loadFromFileKTX(const std::filesystem::path& path, ProcessedTexture& texture, vk::TextureType
-                           type);
-      bool loadFromFileKTX2(const std::filesystem::path& path, ProcessedTexture& texture, vk::TextureType
-                           type);
+      bool loadFromFileKTX(const std::filesystem::path& path, ProcessedTexture& texture, vk::TextureType type);
+      bool loadFromMemoryKTX(const uint8_t* data, size_t size, const std::string& path, ProcessedTexture& texture, vk::TextureType type);
+      bool loadFromFileKTX2(const std::filesystem::path& path, ProcessedTexture& texture, vk::TextureType type);
+      bool loadFromMemoryKTX2(const uint8_t* data, size_t size, const std::string& path, ProcessedTexture& texture, vk::TextureType type);
 
       bool loadFromFileStandard(const std::filesystem::path& path, ProcessedTexture& texture, bool sRGB);
 

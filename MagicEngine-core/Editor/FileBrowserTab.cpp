@@ -279,14 +279,20 @@ void FileBrowserTab::RenderItemContextMenu(const FileSystem::FileEntry& entry)
         }
         if (ImGui::MenuItem(ICON_FA_FILE_IMPORT" Import as KTX2"))
         {
-            ResourceImporter::Import(entry.fullPath);
+            std::string virtualPath = std::filesystem::relative(entry.fullPath, Filepaths::assets).generic_string();
+            ResourceImporter::Import(virtualPath);
+            //ResourceImporter::Import(entry.fullPath.string().c_str());
         }
         ImGui::Separator();
     }
     else if (entry.fileType == "importable")
     {
         if (gui::MenuItem(ICON_FA_FILE_IMPORT" Import"))
-            ResourceImporter::Import(entry.fullPath);
+        {
+            std::string virtualPath = std::filesystem::relative(entry.fullPath, Filepaths::assets).generic_string();
+            ResourceImporter::Import(virtualPath);
+            //ResourceImporter::Import(entry.fullPath.string().c_str());
+        }
     }
 
     if (ImGui::MenuItem(ICON_FA_COPY" Copy Path"))

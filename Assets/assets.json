@@ -1,13 +1,13 @@
 {
     "files": [
         {
-            "filepath": "CompiledAssets\\box.mesh",
+            "filepath": "compiledassets/box.mesh",
             "resources": [
                 {
                     "resourceType": 7953536019925557911,
                     "resourceEntries": [
                         {
-                            "hash": 13867040743873860,
+                            "hash": 47273502467327145,
                             "name": "box0"
                         }
                     ]
@@ -15,13 +15,13 @@
             ]
         },
         {
-            "filepath": "CompiledAssets\\materials\\colormap.material",
+            "filepath": "compiledassets/materials/colormap.material",
             "resources": [
                 {
                     "resourceType": 9642906986363137133,
                     "resourceEntries": [
                         {
-                            "hash": 19207368719981903,
+                            "hash": 43746269165415208,
                             "name": "colormap0"
                         }
                     ]
@@ -29,28 +29,28 @@
             ]
         },
         {
-            "filepath": "Sounds\\Gylia Shanty (Cinfras County).mp3",
-            "resources": [
-                {
-                    "resourceType": 13608648403210648424,
-                    "resourceEntries": [
-                        {
-                            "hash": 24791788278831619,
-                            "name": "Gylia Shanty (Cinfras County)0"
-                        }
-                    ]
-                }
-            ]
-        },
-        {
-            "filepath": "CompiledAssets\\textures\\colormap.ktx2",
+            "filepath": "compiledassets/textures/colormap.ktx2",
             "resources": [
                 {
                     "resourceType": 13960108920292451446,
                     "resourceEntries": [
                         {
-                            "hash": 23431692402752494,
+                            "hash": 38989781863656229,
                             "name": "colormap0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/sedan.mesh",
+            "resources": [
+                {
+                    "resourceType": 7953536019925557911,
+                    "resourceEntries": [
+                        {
+                            "hash": 33741812864281374,
+                            "name": "sedan0"
                         }
                     ]
                 }

@@ -83,6 +83,19 @@ FMOD::Sound* AudioManager::CreateSound(const std::string& filepath)
 	return sound;
 }
 
+FMOD::Sound* AudioManager::CreateSound(const char* data, size_t length)
+{
+	FMOD::Sound* sound = nullptr;
+	
+	FMOD_CREATESOUNDEXINFO exinfo;
+	memset(&exinfo, 0, sizeof(FMOD_CREATESOUNDEXINFO));
+	exinfo.cbsize = sizeof(FMOD_CREATESOUNDEXINFO);
+	exinfo.length = (unsigned int)length;
+
+	FMOD_ASSERT(system->createSound(data, FMOD_OPENMEMORY, &exinfo, &sound));
+	return sound;
+}
+
 void AudioManager::FreeSound(FMOD::Sound* sound)
 {
 	StopAllSounds(); // Ensure no sounds are playing before we free, as a channel might still be referencing it

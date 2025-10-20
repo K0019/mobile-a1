@@ -25,10 +25,12 @@ All rights reserved.
 #include "resource/resource_types.h"
 #include "tools/assets/io/texture_loader.h"
 
-bool ResourceFiletypeImporterKTX::Import(const std::filesystem::path& assetRelativeFilepath)
+bool ResourceFiletypeImporterKTX::Import(const std::string& assetRelativeFilepath)
 {
 	// Load the file
-	FilePathSource filepathSource{ GetExeRelativeFilepath(assetRelativeFilepath) };
+	//FilePathSource filepathSource{ GetExeRelativeFilepath(assetRelativeFilepath) };
+	FilePathSource filepathSource{ assetRelativeFilepath };
+
 	Resource::LoadingConfig config{ Resource::LoadingConfig::createBalanced() };
 	Resource::ProcessedTexture processedTexture{ Resource::TextureLoading::extractTexture(filepathSource, config) };
 	if (processedTexture.data.empty())

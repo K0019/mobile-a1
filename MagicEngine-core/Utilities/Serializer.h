@@ -397,6 +397,12 @@ public:
 
     /*****************************************************************//*!
     \brief
+        Constructor. Loads from a pre-filled buffer.
+    *//******************************************************************/
+    Deserializer(const char* jsonBuffer);
+
+    /*****************************************************************//*!
+    \brief
         Checks whether this deserializer is in a valid state to read from.
     \return
         True if this deserializer is in a valid state to read from. False otherwise.

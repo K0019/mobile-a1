@@ -424,6 +424,25 @@ Deserializer::Deserializer(const std::string& filepath)
 
 }
 
+Deserializer::Deserializer(const char* jsonBuffer)
+    : isValid{ false }
+    , document{}
+    , valueStack{}
+{
+    if (!jsonBuffer)
+    {
+        return;
+    }
+    
+    document.Parse(jsonBuffer);
+    isValid = !document.HasParseError();
+    if (!isValid)
+    {
+        CONSOLE_LOG(LEVEL_ERROR) << "File Error when deserializing ";
+        return;
+    }
+}
+
 bool Deserializer::IsValid() const
 {
     return isValid;

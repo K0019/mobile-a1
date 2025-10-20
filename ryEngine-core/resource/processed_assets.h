@@ -137,7 +137,8 @@ namespace Resource
         }
         else if constexpr(std::is_same_v<T, FilePathSource>)
         {
-          return std::filesystem::canonical(src.path).string(); // Canonical path
+            //return std::filesystem::canonical(src.path).string(); // Canonical path
+            return src.path; // because of vfs, should already be canonical.
         }
         else if constexpr(std::is_same_v<T, EmbeddedMemorySource>)
         {

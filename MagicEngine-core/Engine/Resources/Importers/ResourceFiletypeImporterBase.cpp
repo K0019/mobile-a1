@@ -18,7 +18,6 @@ All content © 2025 DigiPen Institute of Technology Singapore.
 All rights reserved.
 */
 /******************************************************************************/
-
 #include "Engine/Resources/Importers/ResourceFiletypeImporterBase.h"
 #include "Engine/Resources/ResourceManager.h"
 #include "FilepathConstants.h"
@@ -37,10 +36,11 @@ std::filesystem::path ResourceFiletypeImporterBase::GetExeRelativeFilepath(const
     return Filepaths::assets / assetRelativeFilepath;
 }
 
-void ResourceFiletypeImporterBase::GenerateNamesForResources(std::vector<AssociatedResourceHashes>& resources, const std::filesystem::path& relativeFilepath)
+void ResourceFiletypeImporterBase::GenerateNamesForResources(std::vector<AssociatedResourceHashes>& resources, const std::string& relativeFilepath)
 {
     auto& namesManager{ ST<MagicResourceManager>::Get()->INTERNAL_GetNamesManager() };
-    std::string filename{ relativeFilepath.stem().string() };
+    //std::string filename{ relativeFilepath.stem().string() };
+    std::string filename{ VFS::GetStem(relativeFilepath)};
 
     for (const auto& resource : resources)
         for (size_t i{}; i < resource.hashes.size(); ++i)

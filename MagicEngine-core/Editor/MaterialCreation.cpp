@@ -121,7 +121,7 @@ namespace editor {
 			ST<Popup>::Get()->Open("Success!", "Material created at: " + assetPath.string());
 			CONSOLE_LOG(LEVEL_INFO) << "Material asset created: " << assetPath;
 
-			ResourceImporter::Import(assetPath);
+			ResourceImporter::Import(assetPath.string());
 		}
 		else
 		{

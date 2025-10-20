@@ -1,3 +1,5 @@
+#include "VFS/VFS.h"
+
 #include "Engine/Resources/MaterialSerialization.h"
 #include "Engine/Resources/ResourceManager.h"
 #include "FilepathConstants.h"
@@ -18,13 +20,13 @@ namespace
 
         if (auto* fileEntry = filepathManager.GetFileEntry(handle))
         {
-            return fileEntry->path.string();
+            return fileEntry->path;
         }
 
         return "";
     }
 
-    TextureDataSource constructDataSource(const std::filesystem::path& assetsRootPath, const std::filesystem::path& relativePath)
+    TextureDataSource constructDataSource(const std::string& assetsRootPath, const std::string& relativePath)
     {
         if (relativePath.empty())
         {
@@ -32,7 +34,8 @@ namespace
         }
         else
         {
-            return FilePathSource{ assetsRootPath / relativePath };
+            //return FilePathSource{ (assetsRootPath + relativePath).string()};
+            return FilePathSource{ VFS::JoinPath(assetsRootPath, relativePath)};
         }
     }
 }
@@ -74,7 +77,8 @@ void MaterialSerialization::Serialize(Serializer& writer, const ProcessedMateria
 
 void MaterialSerialization::Deserialize(Deserializer& reader, ProcessedMaterial& outMaterial)
 {
-    const auto& assetsRootPath = Filepaths::assets + "/";
+    //const auto& assetsRootPath = Filepaths::assets + "/";
+    const auto& assetsRootPath = "";
 
     reader.DeserializeVar("name", &outMaterial.name);
 

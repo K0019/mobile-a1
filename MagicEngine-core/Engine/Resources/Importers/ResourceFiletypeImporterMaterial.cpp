@@ -37,16 +37,23 @@ namespace
     }
 }
 
-bool ResourceFiletypeImporterMaterial::Import(const std::filesystem::path& relativeFilepath)
+bool ResourceFiletypeImporterMaterial::Import(const std::string& relativeFilepath)
 {
     // Load the file
-    std::filesystem::path fullPath = GetExeRelativeFilepath(relativeFilepath);
-    ProcessedMaterial material;
-
-    Deserializer reader{ fullPath.string()};
-    if (!reader.IsValid())
+    //std::filesystem::path fullPath = GetExeRelativeFilepath(relativeFilepath);
+    std::string fileData;
+    if (!VFS::ReadFile(relativeFilepath, fileData))
     {
         CONSOLE_LOG(LEVEL_ERROR) << "Failed to open .material file ";
+    }
+    fileData.push_back('\0');
+
+    ProcessedMaterial material;
+
+    Deserializer reader{ fileData.c_str() };
+    if (!reader.IsValid())
+    {
+        CONSOLE_LOG(LEVEL_ERROR) << "Failed to deserialize .material file ";
         return false;
     }
     MaterialSerialization::Deserialize(reader, material);
@@ -57,7 +64,9 @@ bool ResourceFiletypeImporterMaterial::Import(const std::filesystem::path& relat
     {
         if (const auto* filePath = std::get_if<FilePathSource>(&textureDataSource))
         {
-            ResourceImporter::Import(filePath->path);
+            std::string virtualPath = filePath->path;
+            std::transform(virtualPath.begin(), virtualPath.end(), virtualPath.begin(), ::tolower);
+            ResourceImporter::Import(virtualPath);
         }
     }
 

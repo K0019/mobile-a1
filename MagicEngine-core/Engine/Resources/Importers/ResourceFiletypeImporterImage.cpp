@@ -4,7 +4,7 @@
 #include "Engine/Resources/ResourceImporter.h"
 #include "FilepathConstants.h"
 
-bool ResourceFiletypeImporterImage::Import(const std::filesystem::path& assetRelativeFilepath)
+bool ResourceFiletypeImporterImage::Import(const std::string& assetRelativeFilepath)
 {
     // Set up compile options
     compiler::TextureCompiler textureCompiler;
@@ -20,5 +20,7 @@ bool ResourceFiletypeImporterImage::Import(const std::filesystem::path& assetRel
     }
 
     // Import the .ktx2
-    return ResourceImporter::Import(options.general.outputPath / options.general.inputPath.stem() += ".ktx2");
+    std::string filename = (options.general.outputPath / options.general.inputPath.stem()).string();
+    filename += ".ktx2";
+    return ResourceImporter::Import(filename);
 }

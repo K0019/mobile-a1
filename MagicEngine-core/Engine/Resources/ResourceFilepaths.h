@@ -32,17 +32,18 @@ public:
     struct FileEntry
     {
         //! The relative filepath from the assets folder to the file
-        std::filesystem::path path;
+        //std::filesystem::path path;
+        std::string path;
         //! The resources that can be loaded by loading this file
         std::vector<AssociatedResourceHashes> associatedResources;
     };
 
 public:
-    const FileEntry* SetFilepath(const std::filesystem::path& filepath, std::vector<AssociatedResourceHashes>&& associatedHashes);
+    const FileEntry* SetFilepath(const std::string& filepath, std::vector<AssociatedResourceHashes>&& associatedHashes);
 
     // Gets the FileEntry associated with a resource hash
     const FileEntry* GetFileEntry(size_t resourceHash);
-    const FileEntry* GetFileEntry(const std::filesystem::path& filepath) const;
+    const FileEntry* GetFileEntry(const std::string& filepath) const;
     std::vector<const FileEntry*> GetFileEntries() const;
 
     // Removes a resource hash from a file entry. Deletes the file entry if there are no remaining associated resources.

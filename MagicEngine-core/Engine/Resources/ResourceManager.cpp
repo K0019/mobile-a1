@@ -39,7 +39,9 @@ void MagicResourceManager::Shutdown()
 void MagicResourceManager::OnResourceRequestedLoad(size_t resourceHash)
 {
     if (const auto* fileEntry{ ST<MagicResourceManager>::Get()->filepathsManager.GetFileEntry(resourceHash) })
-        ResourceImporter::Import(Filepaths::assets / fileEntry->path);
+        //ResourceImporter::Import(Filepaths::assets / fileEntry->path);
+        //ResourceImporter::Import(VFS::JoinPath("assets", fileEntry->path));
+        ResourceImporter::Import(fileEntry->path);
 }
 
 void MagicResourceManager::OnResourceDeleted(size_t hash, size_t resourceType)
