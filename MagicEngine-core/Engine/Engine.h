@@ -52,9 +52,6 @@ public:
     MagicEngine(MagicEngine&&) = default;
     MagicEngine& operator=(MagicEngine&&) = default;
 
-    void setFPS(double _fps);
-    void wait();
-
     /*****************************************************************//*!
     \brief
         Marks the program to shutdown.
@@ -76,10 +73,5 @@ private:
     void ExecuteRenderSystems();
 
 private:
-    double fps{};
-    duration m_targetFrameTime{};
-    time_point m_lastFrameTime{};
 
-    // Spin-wait threshold - sleep for longer waits, spin for shorter ones
-    static constexpr duration SPIN_THRESHOLD = std::chrono::microseconds(500);
 };

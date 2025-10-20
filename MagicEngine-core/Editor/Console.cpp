@@ -65,7 +65,7 @@ namespace editor {
 					try
 					{
 						double maxFPS{ std::stod(tokens[1]) };
-						ST<MagicEngine>::Get()->setFPS(maxFPS);
+						GameTime::SetTargetFps(maxFPS);
 						CONSOLE_LOG(LEVEL_INFO) << "Maximum FPS set to " << maxFPS;
 					}
 					catch (const std::invalid_argument&)

@@ -52,7 +52,7 @@ void GameSettings::Load()
 
 void GameSettings::Apply()
 {
-	ST<MagicEngine>::Get()->setFPS(m_maxFPS);
+	GameTime::SetTargetFps(m_maxFPS);
 	GameTime::SetTargetFixedDt(m_targetFixedDt);
 	ST<internal::LoggedMessagesBuffer>::Get()->SetLogLevel(static_cast<LogLevel>(m_logLevel));
 
