@@ -25,7 +25,7 @@ All rights reserved.
 */
 /******************************************************************************/
 #include "Engine/Engine.h"
-#include "Game/game.h"
+#include "Game/GameSystems.h"
 #include "Engine/Resources/ResourceManager.h"
 #include "Editor/Console.h"
 #include "Editor/Performance.h"
@@ -41,7 +41,6 @@ All rights reserved.
 
 #include "Engine/Input.h"
 
-#include "Engine/Resources/ResourceManager.h"
 #include "Engine/SceneManagement.h"
 #include "Engine/EntitySpawnEvents.h"
 #include "Game/IGameComponentCallbacks.h"
@@ -61,6 +60,8 @@ All rights reserved.
 #include "Scripting/HotReloader.h"
 
 #include "Engine/Graphics Interface/GraphicsAPI.h"
+#include "Graphics/CameraController.h"
+#include "Graphics/Materials.h"
 #include "Editor/Import.h"
 #include "Managers/Filesystem.h"
 #include "math/camera.h"
@@ -106,69 +107,6 @@ namespace
 MagicEngine::MagicEngine() = default;
 
 MagicEngine::~MagicEngine() = default;
-
-void MagicEngine::setFPS(double _fps)
-{
-	this->fps = _fps;
-	if(_fps > 0.0) {
-		const double frameTimeNs = 1e9 / _fps;
-		m_targetFrameTime = duration(static_cast<int64_t>(frameTimeNs));
-	}
-	else {
-		m_targetFrameTime = duration::zero();
-	}
-	m_lastFrameTime = clock::now();
-}
-
-void MagicEngine::wait()
-{
-	// Skip timing if no FPS limit is set (m_targetFrameTime will be zero)
-	if(m_targetFrameTime == duration::zero()) {
-		return;
-	}
-
-	// Get current time - using steady_clock prevents issues with system time changes
-	const time_point now = clock::now();
-
-	// Calculate when this frame should end based on the perfect frame sequence
-	// Instead of measuring from 'now', we measure from the last frame time
-	// This prevents error accumulation that would cause FPS drift
-	const time_point targetTime = m_lastFrameTime + m_targetFrameTime;
-
-	// Only wait if we're ahead of schedule
-	if(now < targetTime) {
-		// Calculate how long we need to wait
-		const auto remainingTime = targetTime - now;
-
-		// For longer waits (>500µs by default), use sleep_for first
-		// This saves CPU compared to pure spin-waiting
-		// We stop sleeping SPIN_THRESHOLD before the target to account for
-		// sleep_for's inaccuracy (OS might wake us up a few ms late)
-		// Thread keeps running, actively checking time
-		// Like watching the clock tick instead of using an alarm
-		// This is more CPU-intensive but more accurate than sleep_for
-
-		if(remainingTime > SPIN_THRESHOLD) {
-			std::this_thread::sleep_for(remainingTime - SPIN_THRESHOLD);
-		}
-
-		// Fine-tune the remaining time with spin-waiting
-		// yield() allows other threads to run during the spin-wait
-		while(clock::now() < targetTime) {
-			std::this_thread::yield();
-		}
-	}
-
-	// Update our frame time tracking
-	// We use targetTime instead of now to maintain perfect frame pacing
-	// If we're running behind (now > targetTime), this sets up the next frame
-	// to be relative to where this frame SHOULD have been, not where it actually was
-	// This helps maintain consistent frame pacing even if some frames take too long
-	m_lastFrameTime = targetTime;
-
-
-	// JUST SET TO UNLIMITED FOR 99% OF THE TIME, BUT THIS WORKS
-}
 
 void MagicEngine::MarkToShutdown()
 {
@@ -221,6 +159,7 @@ void MagicEngine::Init(Context& context)
 	// load resources
 	ST<MagicResourceManager>::Get()->Init();
 	ST<MagicResourceManager>::Get()->LoadFromFile();
+	ST<MaterialSystem>::Get()->initialize();
 	//ST<AssetBrowser>::Get()->file_system.Initialize(Filepaths::workingDir);
 	// Load fonts manually for now
 	const std::array<std::string, 3> fontsToLoad{
@@ -238,10 +177,14 @@ void MagicEngine::Init(Context& context)
 
 	//auto worldExtents{ ST<GraphicsWindow>::Get()->GetWorldExtent()};
 	auto worldExtents{ Vec2{ 1920, 1080 } };
+	ST<CameraController>::Get()->SetCameraData(CameraData{
+		.position = Vec3{static_cast<float>(worldExtents.x) / 2, static_cast<float>(worldExtents.y) / 2, 0.0f },
+		.zoom = 1.0f
+	});
 #ifdef IMGUI_ENABLED
-	ST<Game>::Get()->Init(worldExtents.x, worldExtents.y, GAMESTATE::EDITOR);
+	ST<GameSystemsManager>::Get()->Init(GAMESTATE::EDITOR);
 #else
-	ST<Game>::Get()->Init(worldExtents.x, worldExtents.y, GAMESTATE::IN_GAME);
+	ST<GameSystemsManager>::Get()->Init(GAMESTATE::IN_GAME);
 #endif
 
 	auto timeafterwindow = std::chrono::high_resolution_clock::now();
@@ -252,23 +195,16 @@ void MagicEngine::Init(Context& context)
 	//ST<GraphicsWindow>::Get()->BringWindowToFront();
 #ifdef IMGUI_ENABLED
 	loadState("imgui.json");
+	// Hopefully we can get rid of this in the future. CustomViewport should eventually be able to read its window size from ImGui.
+	ST<CustomViewport>::Get()->Init(worldExtents.x, worldExtents.y);
 #endif
 }
 
 void MagicEngine::ExecuteFrame(FrameData& frameData)
 {
-	// Wait till the start of this frame
-	wait();
-
 	// Update tracking of framerate and frametime
-#ifdef IMGUI_ENABLED
-	ImGuiIO& io = ImGui::GetIO();
-	GameTime::SetFps(io.Framerate);
-#else
-	GameTime::SetFps(ST<PerformanceProfiler>::Get()->GetFPS());
-#endif
+	GameTime::WaitUntilNextFrame();
 	ST<PerformanceProfiler>::Get()->StartFrame();
-	GameTime::NewFrame(ST<PerformanceProfiler>::Get()->GetDeltaTime());
 
 	// Only reset key states when systems are updating so we don't skip inputs.
 	if(GameTime::RealNumFixedFrames())
@@ -417,7 +353,8 @@ void MagicEngine::ExecuteFrame(FrameData& frameData)
 #ifdef IMGUI_ENABLED
 	CSharpScripts::CSScripting::CheckCompileUserAssemblyAsyncCompletion();
 #endif
-	ST<Game>::Get()->Update();
+	ST<GameSystemsManager>::Get()->UpdateState(); // Update which ecs systems are active
+	ExecuteUpdateSystems(); // Run ecs systems that update the world
 	ST<Scheduler>::Get()->Update(GameTime::FixedDt() * static_cast<float>(GameTime::NumFixedFrames()));
 
 	// render
@@ -427,7 +364,7 @@ void MagicEngine::ExecuteFrame(FrameData& frameData)
 	ST<PerformanceProfiler>::Get()->StartProfile("Render");
 	if (!ST<GraphicsWindow>::Get()->GetIsWindowMinimized())
 	{
-		ST<Game>::Get()->Render();
+		ExecuteRenderSystems(); // Run ecs systems that render the world to the graphics pipeline
 #ifdef IMGUI_ENABLED
 		ST<Inspector>::Get()->DrawSelectedEntityBorder();
 #endif
@@ -449,8 +386,8 @@ void MagicEngine::shutdown()
 	ST<MagicResourceManager>::Get()->SaveToFile();
 
 	// Clean up your subsystems
-	ST<Game>::Get()->Shutdown();
-	ST<Game>::Destroy();
+	ST<GameSystemsManager>::Get()->Exit();
+	ST<GameSystemsManager>::Destroy();
 	ST<GameComponentCallbacksHandler>::Destroy();
 	ST<EntitySpawnEvents>::Destroy();
 	ST<SceneManager>::Destroy();
@@ -489,4 +426,59 @@ void MagicEngine::shutdown()
 	ST<GraphicsMain>::Destroy();
 	// In case any systems send logs to the console while destructing.
 	ST<internal::LoggedMessagesBuffer>::Destroy();
+}
+
+void MagicEngine::ExecuteUpdateSystems()
+{
+	auto UpdateSystemsGroup{ [](const std::string& profileName, void(*executeSystemsFunc)()) -> void {
+#ifdef IMGUI_ENABLED
+		ST<PerformanceProfiler>::Get()->StartProfile(profileName);
+#endif
+		executeSystemsFunc();
+#ifdef IMGUI_ENABLED
+		ST<PerformanceProfiler>::Get()->EndProfile(profileName);
+#endif
+	} };
+
+	// Calculate number of realtime iterations (mainly for UI and other systems that don't run off of timescale)
+	for (int realtimeIterationsLeft{ GameTime::RealNumFixedFrames() }; realtimeIterationsLeft; --realtimeIterationsLeft)
+		ecs::RunSystemsInLayers(ECS_LAYER::CUTOFF_START, ECS_LAYER::CUTOFF_REALTIME_INPUT);
+
+	// Calculate how many iterations to run this frame.
+	int iterationsLeft{ GameTime::NumFixedFrames() };
+	if (iterationsLeft <= 0)
+		return; // No need to update this frame...
+	else if (iterationsLeft > 1)
+		CONSOLE_LOG(LEVEL_INFO) << "Running behind by " << iterationsLeft - 1 << " frames. Catching up...";
+
+	for (; iterationsLeft; --iterationsLeft)
+	{
+		UpdateSystemsGroup("Input", []() -> void {
+			ecs::RunSystemsInLayers(ECS_LAYER::CUTOFF_REALTIME_INPUT, ECS_LAYER::CUTOFF_INPUT);
+		});
+
+		UpdateSystemsGroup("Pre-Physics", []() -> void {
+			ST<TweenManager>::Get()->Update(GameTime::FixedDt());
+			ecs::RunSystemsInLayers(ECS_LAYER::CUTOFF_INPUT, ECS_LAYER::CUTOFF_PRE_PHYSICS);
+		});
+		UpdateSystemsGroup("Scripting", []() -> void {
+			ecs::RunSystemsInLayers(ECS_LAYER::CUTOFF_PRE_PHYSICS, ECS_LAYER::CUTOFF_PRE_PHYSICS_SCRIPTS);
+		});
+		UpdateSystemsGroup("Physics", []() -> void {
+			ecs::RunSystemsInLayers(ECS_LAYER::CUTOFF_PRE_PHYSICS_SCRIPTS, ECS_LAYER::CUTOFF_PHYSICS);
+		});
+		UpdateSystemsGroup("Post-Physics", []() -> void {
+			ecs::RunSystemsInLayers(ECS_LAYER::CUTOFF_PHYSICS, ECS_LAYER::CUTOFF_POST_PHYSICS);
+		});
+		UpdateSystemsGroup("Script-Late-Update", []() -> void {
+			ecs::RunSystemsInLayers(ECS_LAYER::CUTOFF_POST_PHYSICS, ECS_LAYER::CUTOFF_POST_PHYSICS_SCRIPTS);
+		});
+
+		ST<MagicInput>::Get()->NewIteration();
+	}
+}
+
+void MagicEngine::ExecuteRenderSystems()
+{
+	ecs::RunSystemsInLayers(ECS_LAYER::CUTOFF_POST_PHYSICS_SCRIPTS, ECS_LAYER::CUTOFF_RENDER);
 }

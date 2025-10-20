@@ -22,7 +22,7 @@ All rights reserved.
 #include "Engine/Input.h"
 #include "Engine/PrefabManager.h"
 #include "Editor/Editor.h"
-#include "Game/game.h"
+#include "Game/GameSystems.h"
 
 #include "Engine/SceneManagement.h"
 #include "Editor/EditorHistory.h"
@@ -96,13 +96,13 @@ void CustomViewport::DrawPlayControls() {
 
 	// Play/Stop button
 	bool isPlayMode{ false };
-	switch (ST<Game>::Get()->GetState())
+	switch (ST<GameSystemsManager>::Get()->GetState())
 	{
 	case GAMESTATE::IN_GAME:
 	case GAMESTATE::PAUSE:
 		isPlayMode = true;
 	}
-	bool isPauseMode{ ST<Game>::Get()->GetState() == GAMESTATE::PAUSE };
+	bool isPauseMode{ ST<GameSystemsManager>::Get()->GetState() == GAMESTATE::PAUSE };
 	
 
 	ImGui::PushStyleColor(ImGuiCol_Button, isPlayMode ? activeColor : inactiveColor);
@@ -130,7 +130,7 @@ void CustomViewport::DrawPlayControls() {
 		{
 			ST<CameraController>::Get()->SetCameraData(camera_data);
 		}*/
-		ST<Game>::Get()->TogglePlayMode();
+		Messaging::BroadcastAll("EngineTogglePlayMode");
 	}
 	ImGui::PopStyleColor(5); // Text + Button colors + Border
 
@@ -149,7 +149,7 @@ void CustomViewport::DrawPlayControls() {
 
 	if (ImGui::Button(ICON_FA_PAUSE, ImVec2(BUTTON_WIDTH, BUTTON_HEIGHT)) && isPlayMode)
 	{
-		ST<Game>::Get()->TogglePauseMode();
+		Messaging::BroadcastAll("EngineTogglePauseMode");
 	}
 	if (ImGui::IsItemHovered()) {
 		ImGui::SetTooltip("Pause");

@@ -181,9 +181,8 @@ void GridFeature::SetupPasses(internal::RenderPassBuilder& passBuilder)
   PassDeclarationInfo gPassInfo;
   gPassInfo.framebufferDebugName = "GridDraw";
   gPassInfo.colorAttachments[0] = {.textureName = RenderResources::SCENE_COLOR,
-    .loadOp = vk::LoadOp::Clear,
-    .storeOp = vk::StoreOp::Store,
-    .clearColor = {1.0,0.0,1.0,1.0}};
+    .loadOp = vk::LoadOp::Load,
+    .storeOp = vk::StoreOp::Store};
 
   gPassInfo.depthAttachment = {.textureName = RenderResources::SCENE_DEPTH,
     .loadOp = vk::LoadOp::Load,

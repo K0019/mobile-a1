@@ -25,6 +25,15 @@ All rights reserved.
 
 #pragma region Interface
 
+//! Represents the current state of the game
+enum class GAMESTATE : int
+{
+	NONE,
+	EDITOR,
+	IN_GAME,
+	PAUSE
+};
+
 /*****************************************************************//*!
 \class GameStateBase
 \brief
@@ -105,13 +114,53 @@ public:
 
 
 /*****************************************************************//*!
-\class GameStateManager
+\class GameSystemsManager
 \brief
 	A state machine with an interface specifically for managing game states.
 *//******************************************************************/
-class GameStateManager : private sm::SimpleStateMachine
+class GameSystemsManager : private sm::SimpleStateMachine
 {
+private:
+	GameSystemsManager();
+	friend ST<GameSystemsManager>;
+
 public:
+	/*****************************************************************//*!
+	\brief
+		Initializes the state machine.
+	\param initialState
+		The initial game state.
+	*//******************************************************************/
+	void Init(GAMESTATE initalState);
+
+	/*****************************************************************//*!
+	\brief
+		Gets the current state of the game.
+	\return
+		The current state of the game.
+	*//******************************************************************/
+	GAMESTATE GetState() const;
+
+	/*****************************************************************//*!
+	\brief
+		Updates the game state to the next state, replacing ECS systems
+		with those in the new state.
+	*//******************************************************************/
+	void UpdateState();
+
+	/*****************************************************************//*!
+	\brief
+		Resets all loaded ECS systems in the current state.
+	*//******************************************************************/
+	void ResetState();
+
+	/*****************************************************************//*!
+	\brief
+		Shuts down the state machine.
+	*//******************************************************************/
+	void Exit();
+
+private:
 	/*****************************************************************//*!
 	\brief
 		Switches game state to the specified class type.
@@ -123,9 +172,28 @@ public:
 
 	/*****************************************************************//*!
 	\brief
-		Shuts down the state machine.
+		Updates the state machine managing the game state to the specified state.
+	\param newState
+		The new game state.
 	*//******************************************************************/
-	void Exit();
+	void UpdateState(GAMESTATE newState);
+
+private:
+	/*****************************************************************//*!
+	\brief
+		Toggles the gamemode between editor mode and game mode.
+	*//******************************************************************/
+	static void OnTogglePlayMode();
+
+	/*****************************************************************//*!
+	\brief
+		Toggles the gamemode between game mode and pause mode.
+	*//******************************************************************/
+	static void OnTogglePauseMode();
+
+private:
+	GAMESTATE state, nextState;
+	bool flaggedForReset;
 };
 
 #pragma endregion // Interface
@@ -133,7 +201,7 @@ public:
 #pragma region Definition
 
 template<typename GameStateType>
-void GameStateManager::SwitchToState()
+void GameSystemsManager::SwitchToState()
 {
 	SimpleStateMachine::SwitchToState(new GameStateType{});
 }
