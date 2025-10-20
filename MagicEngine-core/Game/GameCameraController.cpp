@@ -57,6 +57,23 @@ GameCameraControllerSystem::GameCameraControllerSystem()
 	: System_Internal{ &GameCameraControllerSystem::UpdateGameCameraController }
 {
 }
+glm::mat3x3 GetRotationMatrix(Vec3 rotation)
+{
+	Vec3 rot = rotation;
+	float cx = cos(rot.x); // pitch
+	float sx = sin(rot.x);
+	float cy = cos(rot.y); // yaw
+	float sy = sin(rot.y);
+	float cz = cos(rot.z); // roll
+	float sz = sin(rot.z);
+
+	// Rotation order: Y * X * Z
+	return  glm::mat3x3(
+		cy * cz + sy * sx * sz, cz * sy * sx - cy * sz, sy * cx,
+		cx * sz, cx * cz, -sx,
+		cy * sx * sz - cz * sy, cy * cz * sx + sy * sz, cy * cx
+	);
+}
 
 void GameCameraControllerSystem::UpdateGameCameraController(GameCameraControllerComponent& comp)
 {
@@ -100,13 +117,14 @@ void GameCameraControllerSystem::UpdateGameCameraController(GameCameraController
 		verticalFactor,
 		horizontalFactor * sin(math::ToRadians(yaw))
 	);
+	calculatedCameraDirection *= math::ToDegrees(1);
 
 	ecs::EntityHandle compEntity = ecs::GetEntity(&comp);
-	compEntity->GetTransform().SetWorldRotation()
+	compEntity->GetTransform().SetWorldRotation(calculatedCameraDirection);
 	//Vec2 cameraMovement = comp.lookAction.ConvertToValueType();
 
 	// Find player position
-	Vec3 playerPosition = comp.playerEntity->GetTransform().GetWorldPosition();
+	//Vec3 playerPosition = comp.playerEntity->GetTransform().GetWorldPosition();
 
 	// Update prevPos
 }

@@ -113,27 +113,7 @@
             },
             "components": {
                 "183801612358667588": {
-                    "_active": true,
-                    "cameraEntity": {
-                        "entityUid": 0
-                    },
-                    "playerEntity": {
-                        "entityUid": 0
-                    },
-                    "cameraPitch": -1.258765222127653e30,
-                    "cameraYaw": 4.590373509435236e-41,
-                    "cameraAutoZoomSpeed": 5.0,
-                    "targetCameraDistance": 7.174648137343064e-43,
-                    "currentCameraDistance": 2.3528600705087649e27,
-                    "offsetPosition": {
-                        "x": 0.5,
-                        "y": 1.2000000476837158,
-                        "z": 0.0
-                    },
-                    "lookAction": {
-                        "compositeType": 2,
-                        "bindings": []
-                    }
+                    "_active": true
                 },
                 "1048412265199846848": {
                     "_active": true,
