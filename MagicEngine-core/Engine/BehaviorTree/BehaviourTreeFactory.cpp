@@ -21,6 +21,7 @@ All content © 2025 DigiPen Institute of Technology Singapore.
 All rights reserved.
 */
 /******************************************************************************/
+#include "VFS/VFS.h"
 
 #include "BehaviourTreeFactory.h"
 #include "FilepathConstants.h"
@@ -58,12 +59,28 @@ std::vector<std::string> BTFactory::RegisteredTypes() const
 void BTFactory::SetAllFilePath()
 {
     std::filesystem::path saveLocation{ Filepaths::behaviourTreeSave };
-    if (!std::filesystem::exists(saveLocation))
+    //if (!std::filesystem::exists(saveLocation))
+    //    return;
+
+    //for (const auto& entry : std::filesystem::directory_iterator(saveLocation))
+    //    if (std::filesystem::is_regular_file(entry.status()))
+    //        filePaths[entry.path().stem().string()] = entry.path().filename().string();
+
+    if (VFS::FileExists("BehaviourTrees"))
         return;
 
-    for (const auto& entry : std::filesystem::directory_iterator(saveLocation))
-        if (std::filesystem::is_regular_file(entry.status()))
-            filePaths[entry.path().stem().string()] = entry.path().filename().string();
+    std::vector<std::string> filesInDir = VFS::ListDirectory("BehaviourTrees");
+
+    for (const auto& filename : filesInDir)
+    {
+        std::string stem = VFS::GetStem(filename);
+
+        if (stem.empty()) //equivalent of !is_regular_file
+        {
+            continue;
+        }
+        filePaths[stem] = filename;
+    }
 }
 
 const std::string& BTFactory::GetFilePath(const std::string& btName) const

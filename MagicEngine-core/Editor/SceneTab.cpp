@@ -42,7 +42,8 @@ void SceneTab::Render()
 
             if (ImGui::Button("##scene", ImVec2(THUMBNAIL_SIZE, THUMBNAIL_SIZE)))
             {
-                ST<SceneManager>::Get()->LoadScene(entry.path());
+                //ST<SceneManager>::Get()->LoadScene(entry.path());
+                ST<SceneManager>::Get()->LoadScene(entry.path().string());
             }
 
             // Name label

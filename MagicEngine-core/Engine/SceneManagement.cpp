@@ -19,6 +19,7 @@ All content © 2024 DigiPen Institute of Technology Singapore.
 All rights reserved.
 */
 /******************************************************************************/
+#include "VFS/VFS.h"
 
 #include "Engine/SceneManagement.h"
 #include "Editor/Editor.h"
@@ -48,7 +49,8 @@ public:
 	*//******************************************************************/
 	static const std::string& GetScenesFolder()
 	{
-		return Filepaths::scenesSave;
+		//return Filepaths::scenesSave;
+		return Filepaths::virtualScenesSave;
 	}
 
 	/*****************************************************************//*!
@@ -59,7 +61,8 @@ public:
 	*//******************************************************************/
 	static const std::string GetPathToSceneInSceneFolder(const std::string& sceneName)
 	{
-		return GetScenesFolder() + '/' + sceneName + ".scene";
+		//return GetScenesFolder() + '/' + sceneName + ".scene";
+		return VFS::JoinPath(GetScenesFolder(), sceneName + ".scene");
 	}
 
 	/*****************************************************************//*!
@@ -71,7 +74,8 @@ public:
 	*//******************************************************************/
 	static const std::string GetOpenScenesJsonPath()
 	{
-		return GetScenesFolder() + "/openScenes.json";
+		//return GetScenesFolder() + "/openScenes.json";
+		return VFS::JoinPath(GetScenesFolder(), "openScenes.json");
 	}
 
 	/*****************************************************************//*!
@@ -82,7 +86,8 @@ public:
 	*//******************************************************************/
 	static bool IsScenesFolderExist()
 	{
-		return std::filesystem::exists(GetScenesFolder());
+		//return std::filesystem::exists(GetScenesFolder());
+		return VFS::FileExists(GetScenesFolder());
 	}
 
 	/*****************************************************************//*!
@@ -93,7 +98,8 @@ public:
 	*//******************************************************************/
 	static bool CreateScenesFolder()
 	{
-		return std::filesystem::create_directory(GetScenesFolder());
+		//return std::filesystem::create_directory(GetScenesFolder());
+		return VFS::CreateDirectory(GetScenesFolder());
 	}
 
 	/*****************************************************************//*!
@@ -239,7 +245,19 @@ void Scene::SaveToFile()
 void Scene::LoadFromFile()
 {
 	// Open file
-	Deserializer deserializer{ filepath };
+	//Deserializer deserializer{ filepath };
+	//if (!deserializer.IsValid())
+	//	return;
+
+	std::vector<char> fileBuffer; // Use char, not uint8_t, for string data
+	if (!VFS::ReadFile(filepath, fileBuffer))
+	{
+		CONSOLE_LOG(LEVEL_ERROR) << "VFS: Failed to read scene file: " << filepath;
+		return;
+	}
+	fileBuffer.push_back('\0');
+
+	Deserializer deserializer{ fileBuffer.data() };
 	if (!deserializer.IsValid())
 		return;
 
@@ -393,20 +411,27 @@ int ScenePool::CreateEmptyScene(const std::string& name, const std::string& file
 	return index;
 }
 
-int ScenePool::LoadScene(const std::filesystem::path& path, bool setActiveScene)
+int ScenePool::LoadScene(const std::string& path, bool setActiveScene)
 {
-	CONSOLE_LOG(LEVEL_DEBUG) << "Loading scene " << path.string();
+	CONSOLE_LOG(LEVEL_DEBUG) << "Loading scene " << path;
 
 	// Ensure scene exists
-	if (!std::filesystem::exists(path))
+	//if (!std::filesystem::exists(path))
+	//{
+	//	CONSOLE_LOG(LEVEL_WARNING) << "Attempted to load scene from path " << path << " which does not exist!";
+	//	return -1;
+	//}
+	if (!VFS::FileExists(path))
 	{
-		CONSOLE_LOG(LEVEL_WARNING) << "Attempted to load scene from path " << path << " which does not exist!";
+		CONSOLE_LOG(LEVEL_WARNING) << "Attempted to load scene path " << path << " which does not exist!";
 		return -1;
 	}
 
+
 	// This creates an empty scene if it doesn't exist. If it already does, this will get the existing scene.
-	const std::string sceneName{ path.stem().string() };
-	int index{ CreateEmptyScene(sceneName, path.string(), setActiveScene) };
+	//const std::string sceneName{ path.stem().string() };
+	const std::string sceneName{ VFS::GetStem(path) };
+	int index{ CreateEmptyScene(sceneName, path, setActiveScene) };
 	if (index < 0)
 	{
 		CONSOLE_LOG(LEVEL_DEBUG) << "Loading the default scene. The previous debug message can be ignored.";
@@ -494,7 +519,7 @@ bool ScenePool::UnloadScene(int index, bool doCheckOrCreateDefault)
 	return true;
 }
 
-void ScenePool::UnloadAllScenes(const std::filesystem::path& replacingScenePath)
+void ScenePool::UnloadAllScenes(const std::string& replacingScenePath)
 {
 	UnloadAllScenes_NoDefaultScene();
 
@@ -554,11 +579,21 @@ void ScenePool::ResetAndLoadPrevOpenScenes()
 		CONSOLE_LOG(LEVEL_WARNING) << "No scene directory exists.";
 		return;
 	}
+
 	// Ensure openScenes.json exists
-	Deserializer deserializer{ SceneHelper::GetOpenScenesJsonPath() };
+	std::string jsonPath = SceneHelper::GetOpenScenesJsonPath();
+	std::vector<char> fileBuffer;
+	if (!VFS::ReadFile(jsonPath, fileBuffer))
+	{
+		CONSOLE_LOG(LEVEL_WARNING) << jsonPath << " does not exist, aborting loading scenes.";
+		return;
+	}
+	fileBuffer.push_back('\0');
+
+	Deserializer deserializer{ fileBuffer.data() };
 	if (!deserializer.IsValid())
 	{
-		CONSOLE_LOG(LEVEL_WARNING) << SceneHelper::GetOpenScenesJsonPath() << " does not exist, aborting loading scenes.";
+		CONSOLE_LOG(LEVEL_WARNING) << "Failed to parse " << jsonPath << ", aborting loading scenes.";
 		return;
 	}
 
@@ -578,7 +613,10 @@ void ScenePool::ResetAndLoadPrevOpenScenes()
 		return;
 	}
 	for (const std::string& path : scenePaths)
-		LoadScene(Filepaths::workingDir + path, false);
+	{
+		LoadScene(VFS::JoinPath(Filepaths::workingDir, path), false);
+		//LoadScene(Filepaths::workingDir + path, false);
+	}
 
 	// If there is another scene loaded and the default scene has nothing (didn't load), unload the default scene
 	if (loadedScenes.size() > 1 && activeScene->IsEmpty())
@@ -837,7 +875,7 @@ int SceneManager::CreateEmptyScene(const std::string& name, const std::string& f
 	return currentScenePool->CreateEmptyScene(name, filepath, setActiveScene);
 }
 
-int SceneManager::LoadScene(const std::filesystem::path& path, bool setActiveScene)
+int SceneManager::LoadScene(const std::string& path, bool setActiveScene)
 {
 	CheckIsDefaultECSPool("Loading a new scene");
 
@@ -849,7 +887,7 @@ bool SceneManager::UnloadScene(int index)
 	return currentScenePool->UnloadScene(index);
 }
 
-void SceneManager::UnloadAllScenes(const std::filesystem::path& replacingScenePath)
+void SceneManager::UnloadAllScenes(const std::string& replacingScenePath)
 {
 	currentScenePool->UnloadAllScenes(replacingScenePath);
 }

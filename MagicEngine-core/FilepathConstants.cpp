@@ -37,6 +37,8 @@ const std::string Filepaths::scriptsSave		= Filepaths::assets + "/Scripts";
 const std::string Filepaths::materialsSave		= Filepaths::assets + "/Materials";
 const std::string Filepaths::behaviourTreeSave	= Filepaths::assets + "/BehaviourTrees";
 const std::string Filepaths::soundFolder		= Filepaths::assets + "/Sounds";
+const std::string Filepaths::virtualBehaviourTreeSave	= "BehaviourTrees";
+const std::string Filepaths::virtualScenesSave			= "Scenes";
 
 const std::string Filepaths::graphicsWindowIcon = Filepaths::assets + "/Icon_game.png";
 

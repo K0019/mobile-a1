@@ -41,9 +41,11 @@ public:
 	static const std::string fontsSave;
 	static const std::string prefabsSave;
 	static const std::string scenesSave;
+	static const std::string virtualScenesSave;
 	static const std::string scriptsSave;
 	static const std::string materialsSave;
 	static const std::string behaviourTreeSave;
+	static const std::string virtualBehaviourTreeSave;
 
 	// Graphics
 	static const std::string graphicsWindowIcon;
