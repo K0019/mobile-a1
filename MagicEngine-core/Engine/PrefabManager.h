@@ -25,6 +25,7 @@ All rights reserved.
 */
 /******************************************************************************/
 #pragma once
+#include "VFS/VFS.h"
 #include "FilepathConstants.h"
 #include "Utilities/Serializer.h"
 
@@ -36,25 +37,54 @@ class PrefabManager
 private:
 	static const std::string& FolderDir()
 	{
-		return Filepaths::prefabsSave;
+		//return Filepaths::prefabsSave;
+		return Filepaths::virtualPrefabsSave;
 	}
-public:
-	PrefabManager() {
-		Update();
-	}
-	static bool DeletePrefab(std::string name)
+
+	static bool EnsurePrefabDirExists()
 	{
-		// Ensure directory is created
-		if (!std::filesystem::exists(FolderDir()) && !std::filesystem::create_directory(FolderDir()))
+		if (!VFS::FileExists(FolderDir()) && !VFS::CreateDirectory(FolderDir()))
 		{
 			CONSOLE_LOG(LEVEL_ERROR) << "Failed to create prefabs directory!";
 			return false;
 		}
+		return true;
+	}
+
+public:
+	PrefabManager() {
+		Update();
+	}
+
+	static bool DeletePrefab(std::string name)
+	{
+		// Ensure directory is created
+		//if (!std::filesystem::exists(FolderDir()) && !std::filesystem::create_directory(FolderDir()))
+		//{
+		//	CONSOLE_LOG(LEVEL_ERROR) << "Failed to create prefabs directory!";
+		//	return false;
+		//}
+		//// Delete the file if it exists
+		//if (std::filesystem::exists(FolderDir() + "/" + name + ".prefab"))
+		//{
+		//	std::remove((FolderDir() + "/" + name + ".prefab").c_str());
+		//	// Update just this prefab afterwards
+		//	ST<PrefabManager>::Get()->Update(name);
+		//	return true;
+		//}
+		//return false;
+
+		if (!EnsurePrefabDirExists())
+		{
+			return false;
+		}
+
+		std::string prefabPath = VFS::JoinPath(FolderDir(), name + ".prefab");
 
 		// Delete the file if it exists
-		if (std::filesystem::exists(FolderDir() + "/" + name + ".prefab"))
+		if (VFS::FileExists(prefabPath))
 		{
-			std::remove((FolderDir() + "/" + name + ".prefab").c_str());
+			VFS::DeleteFile(prefabPath);
 			// Update just this prefab afterwards
 			ST<PrefabManager>::Get()->Update(name);
 
@@ -67,12 +97,13 @@ public:
 	static bool SavePrefab(ecs::EntityHandle entity, std::string name)
 	{
 		// Ensure directory is created (ty Kendrick)
-		if (!std::filesystem::exists(FolderDir()) && !std::filesystem::create_directory(FolderDir()))
+		if (!EnsurePrefabDirExists())
 		{
-			CONSOLE_LOG(LEVEL_ERROR) << "Failed to create prefabs directory!";
 			return false;
 		}
-		Serializer serializer{ FolderDir() + "/" + name + ".prefab" };
+
+		//Serializer serializer{ FolderDir() + "/" + name + ".prefab" };
+		Serializer serializer{ VFS::JoinPath(FolderDir(), name + ".prefab") };
 
 		// Save Children
 		SaveChildOfPrefab(entity, serializer);
@@ -116,18 +147,22 @@ public:
 	}
 	void Update(std::string name = "")
 	{
-		if (!std::filesystem::exists(FolderDir()) && !std::filesystem::create_directory(FolderDir()))
+		if (!EnsurePrefabDirExists())
 		{
-			CONSOLE_LOG(LEVEL_ERROR) << "Failed to create prefabs directory!";
 			return;
 		}
 
-		_allPrefabs.resize(0);
-		for (const auto& entry : std::filesystem::directory_iterator(FolderDir()))
-		{
-			_allPrefabs.push_back(entry.path().stem().string());
-		}
+		//for (const auto& entry : std::filesystem::directory_iterator(FolderDir()))
+		//{
+		//	_allPrefabs.push_back(entry.path().stem().string());
+		//}
 
+		_allPrefabs.resize(0);
+		std::vector<std::string> filesInDir = VFS::ListDirectory(FolderDir());
+		for (const auto& filename : filesInDir)
+		{
+			_allPrefabs.push_back(VFS::GetStem(filename));
+		}
 		// Reload all prefabs in the pool
 		// Get the current pool first so we can switch back to it after
 		ecs::POOL initialPool = ecs::GetCurrentPoolId();
@@ -194,7 +229,17 @@ public:
 private:
 	ecs::EntityHandle CreatePrefabEntityFromName(const std::string name)
 	{
-		Deserializer deserializer{ FolderDir() + "/" + name + ".prefab" };
+		std::string prefabPath = VFS::JoinPath(FolderDir(), name + ".prefab");
+		std::vector<char> fileBuffer;
+		if (!VFS::ReadFile(prefabPath, fileBuffer))
+		{
+			CONSOLE_LOG(LEVEL_INFO) << "Could not find prefab file: " << prefabPath;
+			return nullptr;
+		}
+		fileBuffer.push_back('\0');
+		Deserializer deserializer{ fileBuffer.data() };
+
+		//Deserializer deserializer{ FolderDir() + "/" + name + ".prefab" };
 
 		// Error Checking
 		if (!deserializer.IsValid())

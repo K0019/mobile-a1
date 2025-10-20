@@ -1,6 +1,20 @@
 {
     "files": [
         {
+            "filepath": "compiledassets/taxi.mesh",
+            "resources": [
+                {
+                    "resourceType": 7953536019925557911,
+                    "resourceEntries": [
+                        {
+                            "hash": 52521471542623567,
+                            "name": "taxi0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/box.mesh",
             "resources": [
                 {

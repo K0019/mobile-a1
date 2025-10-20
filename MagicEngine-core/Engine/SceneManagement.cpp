@@ -232,7 +232,11 @@ void Scene::SaveToFile()
 	// TODO: Copy swap files
 	
 	// Create file
-	Serializer serializer{ filepath };
+	//Serializer serializer{ filepath };
+	//Physical path for serializer instead of virtual.
+	//Filepath would be something like Scenes/xxScene.scene
+	//So the combined path would be ../../../Assets/Scenes/xxScene.scene
+	Serializer serializer{ VFS::JoinPath(Filepaths::assets, filepath) }; 
 	if (!serializer.IsOpen())
 		return;
 
@@ -547,13 +551,16 @@ void ScenePool::SaveWhichScenesOpened()
 	if (!SceneHelper::EnsureScenesFolderExists())
 		return;
 
-	Serializer serializer{ SceneHelper::GetOpenScenesJsonPath() };
+	//Serializer serializer{ SceneHelper::GetOpenScenesJsonPath() };
+	Serializer serializer{ Filepaths::scenesSave + "/openScenes.json" }; //For writing, we want the physical path instead of virtual
 	serializer.StartArray("scenes");
 
 	for (const auto& scenePair : loadedScenes)
 	{
 		// Sanitize the filepath, removing everything up to /Assets/
 		std::string filepath{ scenePair.second.GetFilepath() };
+		
+		/*
 		size_t rootPos{ filepath.find("/Assets/") };
 		if (rootPos == std::string::npos)
 		{
@@ -562,7 +569,8 @@ void ScenePool::SaveWhichScenesOpened()
 			continue;
 		}
 		filepath.erase(0, rootPos);
-
+		*/
+		
 		serializer.Serialize("", filepath);
 	}
 
@@ -614,7 +622,8 @@ void ScenePool::ResetAndLoadPrevOpenScenes()
 	}
 	for (const std::string& path : scenePaths)
 	{
-		LoadScene(VFS::JoinPath(Filepaths::workingDir, path), false);
+		LoadScene(path, false);
+		//LoadScene(VFS::JoinPath(Filepaths::workingDir, path), false);
 		//LoadScene(Filepaths::workingDir + path, false);
 	}
 

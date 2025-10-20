@@ -40,6 +40,7 @@ public:
 	static const std::string shadersSave;
 	static const std::string fontsSave;
 	static const std::string prefabsSave;
+	static const std::string virtualPrefabsSave;
 	static const std::string scenesSave;
 	static const std::string virtualScenesSave;
 	static const std::string scriptsSave;
