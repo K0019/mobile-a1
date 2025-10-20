@@ -51,40 +51,6 @@ namespace physics {
 		bodyManager.Init(cMaxBodies, cNumBodyMutexes, broadPhaseLayerInterface);
 	}
 
-	JPH::BodyID JoltPhysics::CreateAndAddEmptyBody(const Transform& transform, JPH::EMotionType motionType, JPH::ObjectLayer collisionLayer, bool activate)
-	{
-		//Settings of the empty shape.
-		JPH::EmptyShapeSettings emptyShapeSetting{};
-
-		// A ref counted object on the stack (base class RefTarget) should be marked as such to prevent it from being freed when its reference count goes to 0.
-		emptyShapeSetting.SetEmbedded();
-
-		//Create the shape.
-		JPH::ShapeSettings::ShapeResult emptyShapeResult{ emptyShapeSetting.Create() };
-		JPH::ShapeRefC emptyShape{ emptyShapeResult.Get() };
-
-		//Convert Vec3 to JPH::RVec3Arg
-		Vec3 pos{ transform.GetWorldPosition() };
-		JPH::RVec3Arg position{pos.x, pos.y, pos.z };
-
-		Vec3 scale{ transform.GetWorldScale() };
-		JPH::Vec3 scaleJolt{ scale.x * 0.5f, scale.y * 0.5f, scale.z * 0.5f };
-		if (JPH::ScaleHelpers::IsZeroScale(scaleJolt))
-		{
-			//Set the scale to minimum so that it doesn't crash.
-			scaleJolt = JPH::ScaleHelpers::MakeNonZeroScale(scaleJolt);
-		}
-
-		Vec3 rot{ transform.GetWorldRotation() };
-		JPH::QuatArg rotation{ JPH::Quat::sEulerAngles(JPH::Vec3{math::ToRadians(rot.x), math::ToRadians(rot.y), math::ToRadians(rot.z)}) };
-
-		JPH::BodyCreationSettings settings{ new JPH::ScaledShape(new JPH::EmptyShape(), scaleJolt), position, rotation, motionType, collisionLayer};
-		settings.mAllowDynamicOrKinematic = true;
-		if (JPH::ScaleHelpers::IsZeroScale(scaleJolt))
-			settings.mIsSensor = true;
-		return bodyInterface.CreateAndAddBody(settings, (activate ? JPH::EActivation::Activate : JPH::EActivation::DontActivate));
-	}
-
 	void JoltPhysics::RemoveAndDestroyBody(JPH::BodyID bodyID)
 	{
 		bodyInterface.RemoveBody(bodyID);
@@ -94,6 +60,11 @@ namespace physics {
 	JPH::BodyInterface& JoltPhysics::GetBodyInterface()
 	{
 		return bodyInterface;
+	}
+
+	JPH::BodyManager& JoltPhysics::GetBodyManager()
+	{
+		return bodyManager;
 	}
 
 	void JoltPhysics::UpdatePhysicsSystem()
@@ -116,63 +87,241 @@ namespace physics {
 		JPH::Factory::sInstance = nullptr;
 	}
 
-	void JoltPhysics::SetBodyPosition(JPH::BodyID bodyID, const Vec3& pos)
+	JoltBodyComp::JoltBodyComp()
+		: bodyID{}
+		, motionType{JPH::EMotionType::Static}
+		, shapeType{ShapeType::EMPTY}
+		, collisionLayer{Layers::NON_COLLIDABLE}
 	{
-		JPH::RVec3Arg position{ pos.x, pos.y, pos.z };
-		bodyInterface.SetPosition(bodyID, position, JPH::EActivation::Activate);
+	}
+	
+	JoltBodyComp::JoltBodyComp(JPH::EMotionType motion, ShapeType shape, Layers layer)
+		: bodyID{}
+		, motionType{motion}
+		, shapeType{shape}
+		, collisionLayer{layer}
+		, prevTrans{}
+	{
 	}
 
-	void JoltPhysics::ScaleShape(JPH::BodyID bodyID, const Vec3& scale)
+	void JoltBodyComp::OnAttached()
 	{
-		// convert and halve once
-		JPH::Vec3 scaleJolt{ scale.x * 0.5f, scale.y * 0.5f, scale.z * 0.5f };
+		JPH::ScaledShapeSettings scaleSetting{};
+		switch (shapeType)
+		{
+		case ShapeType::EMPTY:
+			scaleSetting.mInnerShape = JPH::RefConst<JPH::EmptyShapeSettings>(new JPH::EmptyShapeSettings());
+			break;
+		case ShapeType::BOX:
+			scaleSetting.mInnerShape = JPH::RefConst<JPH::BoxShapeSettings>(new JPH::BoxShapeSettings(JPH::Vec3{0.5f, 0.5f, 0.5f}));
+			break;
+		default:
+			CONSOLE_LOG(LEVEL_ERROR) << "Cannot recognize shape of the created body";
+		}
 
-		// normalize/check the scale
+		//Convert Vec3 to JPH::RVec3Arg
+		const Transform& transform{ ecs::GetEntityTransform(this) };
+		Vec3 pos{ transform.GetWorldPosition() };
+		JPH::RVec3Arg position{ pos.x, pos.y, pos.z };
+
+		Vec3 scale{ transform.GetWorldScale() };
+		JPH::Vec3 scaleJolt{ scale.x * 0.5f, scale.y * 0.5f, scale.z * 0.5f };
+		Layers layer{ collisionLayer };
 		if (JPH::ScaleHelpers::IsZeroScale(scaleJolt))
 		{
+			//Set the scale to minimum so that it doesn't crash.
 			scaleJolt = JPH::ScaleHelpers::MakeNonZeroScale(scaleJolt);
-			physicsSystem.GetBodyInterfaceNoLock().SetObjectLayer(bodyID, +Layers::NON_COLLIDABLE);
+			layer = Layers::NON_COLLIDABLE;
+		}
+		scaleSetting.mScale = scaleJolt;
+
+		Vec3 rot{ transform.GetWorldRotation() };
+		JPH::QuatArg rotation{ JPH::Quat::sEulerAngles(JPH::Vec3{math::ToRadians(rot.x), math::ToRadians(rot.y), math::ToRadians(rot.z)}) };
+
+		// A ref counted object on the stack (base class RefTarget) should be marked as such to prevent it from being freed when its reference count goes to 0.
+		scaleSetting.SetEmbedded();
+
+		//Create the shape.
+		JPH::ShapeSettings::ShapeResult scaleShapeResult{ scaleSetting.Create() };
+		JPH::ShapeRefC scaleShape{ scaleShapeResult.Get() };
+
+		JPH::BodyCreationSettings bodySettings{ scaleShape, position, rotation, motionType, +layer };
+		bodySettings.mAllowDynamicOrKinematic = true;
+
+		bodyID = ST<JoltPhysics>::Get()->GetBodyInterface().CreateAndAddBody(bodySettings, JPH::EActivation::Activate);
+	}
+
+	void JoltBodyComp::OnDetached()
+	{
+		ST<JoltPhysics>::Get()->RemoveAndDestroyBody(bodyID);
+	}
+
+	JPH::BodyID JoltBodyComp::GetBodyID() const
+	{
+		return bodyID;
+	}
+
+	JPH::EMotionType JoltBodyComp::GetMotionType() const
+	{
+		return motionType;
+	}	
+	
+	ShapeType JoltBodyComp::GetShapeType() const
+	{
+		return shapeType;
+	}
+
+	Layers JoltBodyComp::GetCollisionLayer() const 
+	{
+		return collisionLayer;
+	}
+
+	const Transform& JoltBodyComp::GetPrevTrans() const 
+	{
+		return prevTrans;
+	}
+
+	void JoltBodyComp::SetMotionType(JPH::EMotionType type)
+	{
+		ST<JoltPhysics>::Get()->GetBodyInterface().SetMotionType(bodyID, type, JPH::EActivation::Activate);
+		motionType = type;
+	}
+
+	void JoltBodyComp::SetShapeType(ShapeType type)
+	{
+		if (shapeType == type)
+			return;
+
+		JPH::Vec3 scale{};
+		const JPH::Shape* shapePtr{ ST<JoltPhysics>::Get()->GetBodyInterface().GetShape(bodyID)};
+		if (shapePtr->GetSubType() == JPH::EShapeSubType::Scaled)
+		{
+			const JPH::ScaledShape* scaledShapePtr{ static_cast<const JPH::ScaledShape*>(shapePtr) };
+			scale = scaledShapePtr->GetScale();
 		}
 		else
 		{
-			// read object layer / motion type via no-lock interface
-			auto objLayer = physicsSystem.GetBodyInterfaceNoLock().GetObjectLayer(bodyID);
-			if (objLayer == +Layers::NON_COLLIDABLE)
+			CONSOLE_LOG(LEVEL_ERROR) << "The body shape is not scaled shape";
+			return;
+		}
+
+		JPH::Shape* shape{ nullptr };
+		switch (type)
+		{
+		case ShapeType::EMPTY:
+			shape = new JPH::EmptyShape();
+			break;
+		case ShapeType::BOX:
+			shape = new JPH::BoxShape(JPH::Vec3{ 0.5f, 0.5f, 0.5f });
+			break;
+		default:
+			CONSOLE_LOG(LEVEL_ERROR) << "Input shape cannot be recognized";
+			return;
+		}
+
+		JPH::RefConst<JPH::Shape> scaledShape{ new JPH::ScaledShape{shape, scale} };
+		ST<JoltPhysics>::Get()->GetBodyInterface().SetShape(bodyID, scaledShape.GetPtr(), true, JPH::EActivation::Activate);
+
+		shapeType = type;
+	}
+
+	void JoltBodyComp::SetCollisionLayer(Layers layer)
+	{
+		ST<JoltPhysics>::Get()->GetBodyInterface().SetObjectLayer(bodyID, +layer);
+		collisionLayer = layer;
+	}
+
+	void JoltBodyComp::SetGravityFactor(float gravity)
+	{
+		ST<JoltPhysics>::Get()->GetBodyInterface().SetGravityFactor(bodyID, gravity);
+	}
+
+	void JoltBodyComp::SetPosition(const Vec3& pos)
+	{
+		JPH::Vec3 joltPos{ pos.x, pos.y, pos.z };
+		ST<JoltPhysics>::Get()->GetBodyInterface().SetPosition(bodyID, joltPos, JPH::EActivation::Activate);
+	}
+
+	void JoltBodyComp::SetRotation(const Vec3& rot)
+	{
+		JPH::Quat joltRot{ JPH::Quat::sEulerAngles(JPH::Vec3{math::ToRadians(rot.x), math::ToRadians(rot.y), math::ToRadians(rot.z)}) };
+		ST<JoltPhysics>::Get()->GetBodyInterface().SetRotation(bodyID, joltRot, JPH::EActivation::Activate);
+	}
+
+	void JoltBodyComp::SetScale(const Vec3& scale)
+	{
+		JPH::Vec3 joltScale{ scale.x / 2.f, scale.y / 2.f, scale.z / 2.f };
+		const JPH::Shape* shapePtr{ ST<JoltPhysics>::Get()->GetBodyInterface().GetShape(bodyID) };
+		if (shapePtr->GetSubType() == JPH::EShapeSubType::Scaled)
+		{
+			const JPH::ScaledShape* scaledShapePtr{ static_cast<const JPH::ScaledShape*>(shapePtr) };
+			if (!scaledShapePtr->IsValidScale(joltScale))
 			{
-				auto motion = physicsSystem.GetBodyInterfaceNoLock().GetMotionType(bodyID);
-				if (motion == JPH::EMotionType::Static)
-					physicsSystem.GetBodyInterfaceNoLock().SetObjectLayer(bodyID, +Layers::NON_MOVING);
-				else
-					physicsSystem.GetBodyInterfaceNoLock().SetObjectLayer(bodyID, +Layers::MOVING);
+				joltScale = JPH::ScaleHelpers::MakeNonZeroScale(joltScale);
+				ST<JoltPhysics>::Get()->GetBodyInterface().SetObjectLayer(bodyID, +Layers::NON_COLLIDABLE);
 			}
+			else 
+				ST<JoltPhysics>::Get()->GetBodyInterface().SetObjectLayer(bodyID, +collisionLayer);
 		}
 
-		// get the shape via no-lock
-		JPH::RefConst<JPH::Shape> shapeRef = physicsSystem.GetBodyInterfaceNoLock().GetShape(bodyID);
-		if (!shapeRef)
+		JPH::Shape::ShapeResult result{ shapePtr->ScaleShape(joltScale) };
+		if (!result.IsValid())
+			CONSOLE_LOG(LEVEL_ERROR) << "Error when scaling the rigid body.";
+	}
+
+	void JoltBodyComp::SetPrevTrans(const Transform& trans)
+	{
+		prevTrans = trans;
+	}
+
+	void JoltBodyComp::SetLinearVelocity(const Vec3& vel)
+	{
+		JPH::Vec3 joltVel{ vel.x, vel.y, vel.z };
+		ST<JoltPhysics>::Get()->GetBodyInterface().SetLinearVelocity(bodyID, joltVel);
+	}
+
+	void JoltBodyComp::UpdateBody()
+	{
+		Transform const& trans{ ecs::GetEntityTransform(this) };
+
+		Vec3 pos{ trans.GetWorldPosition() };
+		if (pos != prevTrans.GetWorldPosition())
 		{
-			CONSOLE_LOG(LEVEL_ERROR) << "Could not get shape for body";
-			return;
+			if (auto colliderComp{ ecs::GetEntity(this)->GetComp<BoxColliderComp>() })
+				pos += colliderComp->GetCenter();			
+			SetPosition(pos);
 		}
 
-		if (shapeRef->GetSubType() != JPH::EShapeSubType::Scaled)
+		Vec3 scale{ trans.GetWorldScale() };
+		if (scale != prevTrans.GetWorldScale())
 		{
-			CONSOLE_LOG(LEVEL_ERROR) << "The shape cannot be scaled";
-			return;
+			if (auto colliderComp{ ecs::GetEntity(this)->GetComp<BoxColliderComp>() })
+				scale *= colliderComp->GetSize();
+			SetScale(scale);
 		}
 
-		const JPH::ScaledShape* scaledShape = static_cast<const JPH::ScaledShape*>(shapeRef.GetPtr());
-		const JPH::Shape* nonScaledShape = scaledShape->GetInnerShape();
-
-		// IMPORTANT: use the clamped 'scaleJolt' here
-		JPH::Shape::ShapeResult newShape = nonScaledShape->ScaleShape(scaleJolt);
-		if (!newShape.IsValid())
+		Vec3 rot{ trans.GetWorldRotation() };
+		if (rot != prevTrans.GetWorldRotation())
 		{
-			CONSOLE_LOG(LEVEL_ERROR) << "Scaled Shape is not valid";
-			return;
+			SetRotation(rot);
 		}
+	}
 
-		physicsSystem.GetBodyInterfaceNoLock().SetShape(bodyID, newShape.Get(), true, JPH::EActivation::Activate);
+	void JoltBodyComp::UpdateEntity()
+	{
+		if (motionType == JPH::EMotionType::Static)
+			return;
+
+		JPH::RVec3 joltPos{ ST<JoltPhysics>::Get()->GetBodyInterface().GetPosition(bodyID) };
+		Vec3 pos{ joltPos.GetX(), joltPos.GetY(), joltPos.GetZ() };
+		if (auto colliderComp{ ecs::GetEntity(this)->GetComp<BoxColliderComp>() })
+			pos -= colliderComp->GetCenter();
+		ecs::GetEntityTransform(this).SetWorldPosition(Vec3{ pos.x, pos.y, pos.z });
+
+		JPH::RVec3 rot{ ST<JoltPhysics>::Get()->GetBodyInterface().GetRotation(bodyID).GetEulerAngles() };
+		ecs::GetEntityTransform(this).SetWorldRotation(Vec3{ rot.GetX(), rot.GetY(), rot.GetZ() });
+
+		prevTrans = ecs::GetEntityTransform(this);
 	}
 
 	// Callback for traces, connect this to your own trace function if you have one

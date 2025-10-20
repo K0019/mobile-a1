@@ -63,10 +63,9 @@ X(USE_GRAVITY, "Use Gravity")
 	private:
 		// Is Kinematic and Use Gravity
 		PhysicsCompFlags flags;
-		// ID to identify the assigned Jolt Body.
-		JPH::BodyID bodyID;
-		// entity's transform in the previous frame.
-		Transform prevTransform;
+		// linear velocity
+		Vec3 linearVel;
+
 	public:
 
 		/*****************************************************************//*!
@@ -87,14 +86,6 @@ X(USE_GRAVITY, "Use Gravity")
 
 		/*****************************************************************//*!
 		\brief
-			Get the body id of the corresponding body.
-		\return
-			The id of the body.
-		*//******************************************************************/
-		JPH::BodyID GetBodyID() const;
-
-		/*****************************************************************//*!
-		\brief
 			Gets the value of the corresponding flag.
 		\param flag
 			Flag to get the value.
@@ -105,7 +96,7 @@ X(USE_GRAVITY, "Use Gravity")
 
 		/*****************************************************************//*!
 		\brief
-			Set a value to a certain. flag.
+			Set a value to a certain flag.
 		\param flag
 			Flag to set the value
 		\param val
@@ -115,31 +106,23 @@ X(USE_GRAVITY, "Use Gravity")
 
 		/*****************************************************************//*!
 		\brief
-			Get the previous transform values.
+			Gets the value of the linear velocity.
 		\return
-			Transform value that represent the previous transform of the entity.
+			3d vector that represents the linear velocity.
 		*//******************************************************************/
-		const Transform& GetPrevTransform() const;
+		const Vec3& GetLinearVelocity() const;
 
 		/*****************************************************************//*!
 		\brief
-			Set a value to the previous transform.
-		\param transform
-			The value to set the previous transform.
+			Set the value of the linear velocity.
+		\param flag
+			Flag to set the value
+		\param vel
+			3d vector value to set to the linear velocity.
 		*//******************************************************************/
-		void SetPrevTransform(const Transform& transform);
+		void SetLinearVelocity(const Vec3& vel);
 
-		/*****************************************************************//*!
-		\brief
-			Updates the Jolt Body based on the entity.
-		*//******************************************************************/
-		void UpdateJoltBody();
 
-		/*****************************************************************//*!
-		\brief
-			Updates the entity transform based on the Jolt Body.
-		*//******************************************************************/
-		void UpdateTransform();
 
 	private:
 		/*****************************************************************//*!
@@ -166,6 +149,7 @@ X(USE_GRAVITY, "Use Gravity")
 }
 property_begin(physics::PhysicsComp)
 {
+	property_var(linearVel)
 }
 property_vend_h(physics::PhysicsComp)
 

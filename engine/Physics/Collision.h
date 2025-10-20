@@ -136,14 +136,10 @@ namespace physics {
 		BoxColliderComp();
 
 	private:
-		// Jolt Physics Body ID of the collider.
-		JPH::BodyID bodyID;
 		// position difference from the center of the object.
 		Vec3 center;
 		// size difference from the object's scale.
 		Vec3 size;
-		// transform of the previous update.
-		Transform prevTransform;
 
 	public:
 		/*****************************************************************//*!
@@ -161,14 +157,6 @@ namespace physics {
 			the body to be empty.
 		*//******************************************************************/
 		void OnDetached() override;
-
-		/*****************************************************************//*!
-		\brief
-			Get the body id of the collider.
-		\return 
-			integer that represent the body id.
-		*//******************************************************************/
-		JPH::BodyID GetBodyID();
 
 		/*****************************************************************//*!
 		\brief
@@ -201,28 +189,6 @@ namespace physics {
 			The value of size to set.
 		*//******************************************************************/
 		void SetSize(const Vec3& val);
-
-		/*****************************************************************//*!
-		\brief
-			Get the previous transform values.
-		\return
-			Transform value that represent the previous transform of the entity.
-		*//******************************************************************/
-		const Transform& GetPrevTransform() const;
-
-		/*****************************************************************//*!
-		\brief
-			Set a value to the previous transform.
-		\param transform
-			The value to set the previous transform.
-		*//******************************************************************/
-		void SetPrevTransform(const Transform& transform);
-
-		/*****************************************************************//*!
-		\brief
-			Updates the Jolt Body based on the entity.
-		*//******************************************************************/
-		void UpdateJoltBody();
 
 	private:
 		/*****************************************************************//*!

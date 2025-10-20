@@ -36,10 +36,19 @@ All rights reserved.
 #include <Jolt/Physics/Body/BodyActivationListener.h>
 
 #include "Collision.h"
+#include "ECS.h"
+#include "IEditorComponent.h"
+#include "IGameComponentCallbacks.h"
 
 JPH_SUPPRESS_WARNINGS
 
 namespace physics {
+	enum class ShapeType
+	{
+		EMPTY,
+		BOX
+	};
+
 	class JoltPhysics
 	{
 	public:
@@ -63,17 +72,9 @@ namespace physics {
 
 		/*****************************************************************//*!
 		\brief
-			Create and add a body to the bodyInterface.
-		\param transform
-			Transform component of the entity.
-		\param motionType
-			Motion type of the body (DYNAMIC, STATIC, KINEMATIC)
-		\param collisionLayer
-			collision layer of the body (currently NON_MOVING and MOVING)
-		\param activate
-			shared pointer of the body created.
+			Create and add a rigid body to the body interface.
 		*//******************************************************************/
-		JPH::BodyID CreateAndAddEmptyBody(const Transform& transform, JPH::EMotionType motionType, JPH::ObjectLayer collisionLayer, bool activate = true);
+		JPH::BodyID CreateAndAddBody(JPH::EMotionType motion, ShapeType shape, Layers layer, const Transform trans);
 
 		/*****************************************************************//*!
 		\brief
@@ -93,6 +94,14 @@ namespace physics {
 
 		/*****************************************************************//*!
 		\brief
+			Get a reference of the body manager.
+		\return
+			Reference of the body manager.
+		*//******************************************************************/
+		JPH::BodyManager& GetBodyManager();
+
+		/*****************************************************************//*!
+		\brief
 			Update the Jolt Physics System.
 		*//******************************************************************/
 		void UpdatePhysicsSystem();
@@ -103,25 +112,6 @@ namespace physics {
 		*//******************************************************************/
 		void OptimizeBroadPhase();
 
-		/*****************************************************************//*!
-		\brief
-			Scale a body in certain size.
-		\param bodyID
-			ID of the body to scale.
-		\param scaleFactor
-			scale value to scale the body.
-		*//******************************************************************/
-		void ScaleShape(JPH::BodyID bodyID, const Vec3& scale);
-
-		/*****************************************************************//*!
-		\brief
-			Set the position of the body in the body interface.
-		\param bodyID
-			The ID of the body to get the position.
-		\param pos
-			Position to set the body.
-		*//******************************************************************/
-		void SetBodyPosition(JPH::BodyID bodyID, const Vec3& pos);
 	private:
 		// We need a temp allocator for temporary allocations during the physics update. We're
 		// pre-allocating 10 MB to avoid having to do allocations during the physics update.
@@ -176,6 +166,50 @@ namespace physics {
 
 		// Body manager that allows certain bodies to change the scale.
 		JPH::BodyManager bodyManager;
+	};
+
+	class JoltBodyComp
+		: public ecs::IComponentCallbacks
+		, public IHiddenComponent<JoltBodyComp>
+	{
+	public:
+		JoltBodyComp();
+		JoltBodyComp(JPH::EMotionType motion, ShapeType shape, Layers layer);
+
+	private:
+		//Body ID of the containing JPH::Body
+		JPH::BodyID bodyID;
+		//Static, Dynamic, or Kinematic
+		JPH::EMotionType motionType;
+		//The type of shape of the body.
+		ShapeType shapeType;
+		//Collision layer.
+		Layers collisionLayer;
+		//Previous Transform stored.
+		Transform prevTrans;
+
+	public:
+		void OnAttached() override;
+		void OnDetached() override;
+
+		JPH::BodyID GetBodyID() const;
+		JPH::EMotionType GetMotionType() const;
+		ShapeType GetShapeType() const;
+		Layers GetCollisionLayer() const;
+		const Transform& GetPrevTrans() const;
+
+		void SetMotionType(JPH::EMotionType type);
+		void SetShapeType(ShapeType type);
+		void SetCollisionLayer(Layers layer);
+		void SetGravityFactor(float gravity);
+		void SetPosition(const Vec3& pos);
+		void SetRotation(const Vec3& rot);
+		void SetScale(const Vec3& scale);
+		void SetPrevTrans(const Transform& trans);
+		void SetLinearVelocity(const Vec3& vel);
+
+		void UpdateBody();
+		void UpdateEntity();
 	};
 
 	/*****************************************************************//*!

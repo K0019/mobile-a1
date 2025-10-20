@@ -102,8 +102,7 @@ namespace physics {
 	}
 
 	BoxColliderComp::BoxColliderComp()
-		: bodyID{}
-		, center{}
+		: center{}
 		, size{1.f, 1.f, 1.f}
 	{
 	}
@@ -112,44 +111,32 @@ namespace physics {
 	{
 		//If the entity has the physics component, get the body pointer of the physics component.
 		//If not, create a body.
-		if (auto physComp{ ecs::GetEntity(this)->GetComp<PhysicsComp>() })
-			bodyID = physComp->GetBodyID();
-		else
-			bodyID = ST<JoltPhysics>::Get()->CreateAndAddEmptyBody(ecs::GetEntityTransform(this), JPH::EMotionType::Static, +Layers::NON_MOVING);
-
-		if (bodyID.IsInvalid())
-			CONSOLE_LOG(LEVEL_ERROR) << "Invalid Body ID generated while creating the Physics component";
-
-		//Set the body's shape.
-		Vec3 scale{ ecs::GetEntityTransform(this).GetWorldScale() * size };
-		JPH::Vec3 scaleJolt{ scale.x * 0.5f, scale.y * 0.5f, scale.z * 0.5f };
-
-		//If the scale of any axis is 0, set it to non collidable.
-		if (JPH::ScaleHelpers::IsZeroScale(scaleJolt))
+		if (auto bodyCompPtr{ ecs::GetEntity(this)->GetComp<JoltBodyComp>() })
 		{
-			scaleJolt = JPH::ScaleHelpers::MakeNonZeroScale(scaleJolt);
-			ST<JoltPhysics>::Get()->GetBodyInterface().SetObjectLayer(bodyID, +Layers::NON_COLLIDABLE);
+			bodyCompPtr->SetShapeType(ShapeType::BOX);
+			bodyCompPtr->SetCollisionLayer(Layers::MOVING);
 		}
-		
-		ST<JoltPhysics>::Get()->GetBodyInterface().SetShape(bodyID, new JPH::ScaledShape(new JPH::BoxShape(JPH::Vec3::sOne()), scaleJolt), true, JPH::EActivation::Activate);
-		ST<JoltPhysics>::Get()->SetBodyPosition(bodyID, ecs::GetEntityTransform(this).GetWorldPosition() + center);
+		else
+		{
+			ecs::GetEntity(this)->AddComp<JoltBodyComp>(JoltBodyComp{ JPH::EMotionType::Static, ShapeType::BOX, Layers::NON_MOVING });
+		}
 	}
 
 	void BoxColliderComp::OnDetached()
 	{
+		if (!ecs::GetEntity(this)->HasComp<JoltBodyComp>())
+			return;
+
 		if (!ecs::GetEntity(this)->HasComp<PhysicsComp>())
-			ST<JoltPhysics>::Get()->RemoveAndDestroyBody(bodyID);
+			ecs::GetEntity(this)->RemoveCompNow<JoltBodyComp>();
 		else
 		{
-			Vec3 scale{ ecs::GetEntityTransform(this).GetWorldScale() * 0.5f };
-			JPH::Vec3 scaleJolt{scale.x, scale.y, scale.z};
-			ST<JoltPhysics>::Get()->GetBodyInterface().SetShape(bodyID, new JPH::EmptyShape(scaleJolt), true, JPH::EActivation::Activate);
+			JoltBodyComp* bodyCompPtr{ ecs::GetEntity(this)->GetComp<JoltBodyComp>() };
+			bodyCompPtr->SetCollisionLayer(Layers::NON_COLLIDABLE);
+			bodyCompPtr->SetShapeType(ShapeType::EMPTY);
+			bodyCompPtr->SetPosition(ecs::GetEntityTransform(this).GetWorldPosition());
+			bodyCompPtr->SetScale(ecs::GetEntityTransform(this).GetWorldScale());
 		}
-	}
-
-	JPH::BodyID BoxColliderComp::GetBodyID()
-	{
-		return bodyID;
 	}
 
 	Vec3 const& BoxColliderComp::GetCenter() const
@@ -159,6 +146,7 @@ namespace physics {
 
 	void BoxColliderComp::SetCenter(const Vec3& val)
 	{
+		ecs::GetEntity(this)->GetComp<JoltBodyComp>()->SetPosition(ecs::GetEntityTransform(this).GetWorldPosition() + val);
 		center = val;
 	}
 
@@ -169,46 +157,8 @@ namespace physics {
 
 	void BoxColliderComp::SetSize(const Vec3& val)
 	{
+		ecs::GetEntity(this)->GetComp<JoltBodyComp>()->SetScale(ecs::GetEntityTransform(this).GetWorldScale() * val);
 		size = val;
-	}
-
-	Transform const& BoxColliderComp::GetPrevTransform() const
-	{
-		return prevTransform;
-	}
-
-	void BoxColliderComp::SetPrevTransform(const Transform& transform)
-	{
-		prevTransform = transform;
-	}
-
-	void BoxColliderComp::UpdateJoltBody()
-	{
-		JPH::BodyInterface& bodyInterface{ ST<JoltPhysics>::Get()->GetBodyInterface() };
-
-		//Position
-		Vec3 pos{ ecs::GetEntityTransform(this).GetWorldPosition() };
-		if (pos != prevTransform.GetWorldPosition())
-		{
-			pos += center;
-			bodyInterface.SetPosition(bodyID, JPH::Vec3{ pos.x, pos.y, pos.z }, JPH::EActivation::Activate);
-		}
-
-		//Scale
-		Vec3 scale{ ecs::GetEntityTransform(this).GetWorldScale() };
-		if (scale != prevTransform.GetWorldScale())
-		{
-			scale *= size;
-			ST<JoltPhysics>::Get()->ScaleShape(bodyID, scale);
-		}
-
-		//Rotation
-		Vec3 rot{ ecs::GetEntityTransform(this).GetWorldRotation() };
-		if (rot != prevTransform.GetWorldRotation())
-		{
-			Vec3 radians{ math::ToRadians(rot.x), math::ToRadians(rot.y), math::ToRadians(rot.z) };
-			bodyInterface.SetRotation(bodyID, JPH::QuatArg{ JPH::Quat::sEulerAngles(JPH::Vec3{radians.x, radians.y, radians.z}) }, JPH::EActivation::Activate);
-		}
 	}
 
 	void BoxColliderComp::EditorDraw()
@@ -250,16 +200,16 @@ namespace physics {
 
 		//Center of collider control
 		Vec3 tempVec{ center };
-		if (DrawVec3Control("Center", &center, 60.f, 1.f, "%.1f"))
+		if (DrawVec3Control("Center", &tempVec, 60.f, 1.f, "%.1f"))
 		{
-			ST<JoltPhysics>::Get()->SetBodyPosition(bodyID, ecs::GetEntityTransform(this).GetWorldPosition() + center);
+			SetCenter(tempVec);
 		}
 
 		//Size of collider control
 		tempVec = size;
-		if (DrawVec3Control("Size", &size, 60.f, 0.02f, "%.01f"))
+		if (DrawVec3Control("Size", &tempVec, 60.f, 0.02f, "%.01f"))
 		{
-			ST<JoltPhysics>::Get()->ScaleShape(bodyID, ecs::GetEntityTransform(this).GetWorldScale() * size);
+			SetSize(tempVec);
 		}
 	}
 
