@@ -102,7 +102,7 @@ void GameCameraControllerSystem::UpdateGameCameraController(GameCameraController
 	);
 
 	ecs::EntityHandle compEntity = ecs::GetEntity(&comp);
-
+	compEntity->GetTransform().SetWorldRotation()
 	//Vec2 cameraMovement = comp.lookAction.ConvertToValueType();
 
 	// Find player position
