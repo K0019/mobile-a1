@@ -84,7 +84,8 @@ bool DirectoryVFSImpl::FileExists(const std::string& path) const
 {
     std::filesystem::path fullPath = m_RootPath / path;
 
-    return std::filesystem::exists(fullPath) && std::filesystem::is_regular_file(fullPath);
+    return std::filesystem::exists(fullPath);
+    //return std::filesystem::exists(fullPath) && std::filesystem::is_regular_file(fullPath);
 }
 
 
