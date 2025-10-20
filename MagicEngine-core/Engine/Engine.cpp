@@ -25,7 +25,7 @@ All rights reserved.
 */
 /******************************************************************************/
 #include "Engine/Engine.h"
-#include "Game/game.h"
+#include "Game/GameSystems.h"
 #include "Engine/Resources/ResourceManager.h"
 #include "Editor/Console.h"
 #include "Editor/Performance.h"
@@ -40,7 +40,6 @@ All rights reserved.
 
 #include "Engine/Input.h"
 
-#include "Engine/Resources/ResourceManager.h"
 #include "Engine/SceneManagement.h"
 #include "Engine/EntitySpawnEvents.h"
 #include "Game/IGameComponentCallbacks.h"
@@ -60,6 +59,8 @@ All rights reserved.
 #include "Scripting/HotReloader.h"
 
 #include "Engine/Graphics Interface/GraphicsAPI.h"
+#include "Graphics/CameraController.h"
+#include "Graphics/Materials.h"
 #include "Editor/Import.h"
 #include "Managers/Filesystem.h"
 #include "math/camera.h"
@@ -211,6 +212,7 @@ void MagicEngine::Init(Context& context)
 	// load resources
 	ST<MagicResourceManager>::Get()->Init();
 	ST<MagicResourceManager>::Get()->LoadFromFile();
+	ST<MaterialSystem>::Get()->initialize();
 	//ST<AssetBrowser>::Get()->file_system.Initialize(Filepaths::workingDir);
 	// Load fonts manually for now
 	const std::array<std::string, 3> fontsToLoad{
@@ -228,10 +230,14 @@ void MagicEngine::Init(Context& context)
 
 	//auto worldExtents{ ST<GraphicsWindow>::Get()->GetWorldExtent()};
 	auto worldExtents{ Vec2{ 1920, 1080 } };
+	ST<CameraController>::Get()->SetCameraData(CameraData{
+		.position = Vec3{static_cast<float>(worldExtents.x) / 2, static_cast<float>(worldExtents.y) / 2, 0.0f },
+		.zoom = 1.0f
+	});
 #ifdef IMGUI_ENABLED
-	ST<Game>::Get()->Init(worldExtents.x, worldExtents.y, GAMESTATE::EDITOR);
+	ST<GameSystemsManager>::Get()->Init(GAMESTATE::EDITOR);
 #else
-	ST<Game>::Get()->Init(worldExtents.x, worldExtents.y, GAMESTATE::IN_GAME);
+	ST<GameSystemsManager>::Get()->Init(GAMESTATE::IN_GAME);
 #endif
 
 	auto timeafterwindow = std::chrono::high_resolution_clock::now();
@@ -409,7 +415,7 @@ void MagicEngine::ExecuteFrame(FrameData& frameData)
 #ifdef IMGUI_ENABLED
 	CSharpScripts::CSScripting::CheckCompileUserAssemblyAsyncCompletion();
 #endif
-	ST<Game>::Get()->UpdateState(); // Update which ecs systems are active
+	ST<GameSystemsManager>::Get()->UpdateState(); // Update which ecs systems are active
 	ExecuteUpdateSystems(); // Run ecs systems that update the world
 	ST<Scheduler>::Get()->Update(GameTime::FixedDt() * static_cast<float>(GameTime::NumFixedFrames()));
 
@@ -442,8 +448,8 @@ void MagicEngine::shutdown()
 	ST<MagicResourceManager>::Get()->SaveToFile();
 
 	// Clean up your subsystems
-	ST<Game>::Get()->Shutdown();
-	ST<Game>::Destroy();
+	ST<GameSystemsManager>::Get()->Exit();
+	ST<GameSystemsManager>::Destroy();
 	ST<GameComponentCallbacksHandler>::Destroy();
 	ST<EntitySpawnEvents>::Destroy();
 	ST<SceneManager>::Destroy();

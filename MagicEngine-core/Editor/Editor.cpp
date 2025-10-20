@@ -31,7 +31,7 @@ All rights reserved.
 
 #include "Components/NameComponent.h"
 #include "Engine/EntityLayers.h"
-#include "Game/game.h"
+#include "Game/GameSystems.h"
 #include "Editor/EditorGizmoBridge.h"
 #include "Engine/PrefabManager.h"
 
@@ -88,7 +88,7 @@ void Inspector::ProcessInput()
 		ST<CameraController>::Get()->AddPosition({ 1000.0f * dt, 0 });
 	}*/
 
-	if(isMouseInViewport && ST<Game>::Get()->GetState() == GAMESTATE::EDITOR) // Only able to scroll camera while in editor mode
+	if(isMouseInViewport && ST<GameSystemsManager>::Get()->GetState() == GAMESTATE::EDITOR) // Only able to scroll camera while in editor mode
 	{
 		//ST<CameraController>::Get()->MultTargetZoom(CameraController::GetZoomMultiplierFromInput(Input::GetScroll(), ST<GameSettings>::Get()->m_editorZoomSensitivity));
 

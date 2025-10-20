@@ -22,6 +22,9 @@ All rights reserved.
 
 #include "Game/GameSystems.h"
 #include "ECS/ECSSysLayers.h"
+#include "Utilities/Messaging.h"
+#include "Engine/SceneManagement.h"
+#include "Managers/AudioManager.h"
 
 #include "Graphics/GraphicsECSMesh.h"
 #include "Graphics/PostProcessingComponent.h"
@@ -113,7 +116,119 @@ void GameState_Pause::OnEnter()
     GameState_Common::OnEnter();
 }
 
-void GameStateManager::Exit()
+GameSystemsManager::GameSystemsManager()
+    : state{ GAMESTATE::NONE }
+    , nextState{ state }
+    , flaggedForReset{ false }
 {
+}
+
+void GameSystemsManager::Init(GAMESTATE initalState)
+{
+    nextState = initalState;
+    UpdateState();
+
+    Messaging::Subscribe("EngineTogglePlayMode", OnTogglePlayMode);
+    Messaging::Subscribe("EngineTogglePauseMode", OnTogglePauseMode);
+}
+
+GAMESTATE GameSystemsManager::GetState() const
+{
+    return state;
+}
+
+void GameSystemsManager::UpdateState()
+{
+    // Don't update state if there are no changes
+    if (nextState == state && !flaggedForReset)
+        return;
+    // Don't set the next state if we're not in the default ecs pool (we could be in the prefab window for example)
+    if (ecs::GetCurrentPoolId() != ecs::POOL::DEFAULT)
+        return;
+
+    GAMESTATE prevState{ state };
+    state = nextState;
+    flaggedForReset = false;
+
+    switch (state)
+    {
+    case GAMESTATE::NONE:
+        Exit();
+        break;
+    case GAMESTATE::EDITOR:
+        SwitchToState<GameState_Editor>();
+        ST<SceneManager>::Get()->ResetAndLoadPrevOpenScenes();
+        break;
+    case GAMESTATE::IN_GAME:
+        // Don't save scenes if we're resuming from pause mode.
+        if (prevState == GAMESTATE::EDITOR)
+        {
+            ST<SceneManager>::Get()->SaveAllScenes();
+            ST<SceneManager>::Get()->SaveWhichScenesOpened();
+            Messaging::BroadcastAll("OnEngineSimulationStart");
+        }
+        SwitchToState<GameState_Game>();
+        break;
+    case GAMESTATE::PAUSE:
+        SwitchToState<GameState_Pause>();
+        break;
+    default:
+        CONSOLE_LOG(LEVEL_ERROR) << "Unimplemented game state " << +state << '!';
+        return;
+    }
+}
+
+void GameSystemsManager::ResetState()
+{
+    flaggedForReset = true;
+}
+
+void GameSystemsManager::Exit()
+{
+    Messaging::Unsubscribe("EngineTogglePlayMode", OnTogglePlayMode);
+    Messaging::Unsubscribe("EngineTogglePauseMode", OnTogglePauseMode);
+
     SimpleStateMachine::SwitchToState(nullptr);
+}
+
+void GameSystemsManager::OnTogglePlayMode()
+{
+    auto* gameStateManager{ ST<GameSystemsManager>::Get() };
+    switch (gameStateManager->GetState())
+    {
+    case GAMESTATE::EDITOR:
+        gameStateManager->nextState = GAMESTATE::IN_GAME;
+        break;
+    case GAMESTATE::NONE:
+    case GAMESTATE::IN_GAME:
+    case GAMESTATE::PAUSE:
+    {
+        gameStateManager->nextState = GAMESTATE::EDITOR;
+
+        // Stop all sounds
+        // TODO: Use event system for this
+        ST<AudioManager>::Get()->StopAllSounds();
+        break;
+    }
+    default:
+        CONSOLE_LOG(LEVEL_ERROR) << "class Game has not implemented TogglePlayMode() for state " << +gameStateManager->GetState() << '!';
+    }
+}
+void GameSystemsManager::OnTogglePauseMode()
+{
+    auto* gameStateManager{ ST<GameSystemsManager>::Get() };
+    switch (gameStateManager->GetState())
+    {
+    case GAMESTATE::EDITOR:
+        CONSOLE_LOG(LEVEL_ERROR) << "Game state should not toggle pause mode when in editor mode!";
+        break;
+    case GAMESTATE::IN_GAME:
+        gameStateManager->nextState = GAMESTATE::PAUSE;
+        break;
+    case GAMESTATE::PAUSE:
+        gameStateManager->nextState = GAMESTATE::IN_GAME;
+        break;
+    default:
+        CONSOLE_LOG(LEVEL_ERROR) << "class Game has not implemented TogglePauseMode() for state " << +gameStateManager->GetState() << '!';
+    }
 }
