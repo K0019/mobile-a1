@@ -25,27 +25,24 @@ All rights reserved.
 #include "Tween/TweenManager.h"
 #include "Utilities/Messaging.h"
 #include "Editor/Containers/GUICollection.h"
+#include "Engine/Input.h"
 
 GameCameraControllerComponent::GameCameraControllerComponent()
 	: cameraEntity{ nullptr }
 	, playerEntity{ nullptr }
-	, minX{ 0.0f }
-	, maxX{ 0.0f }
-	, minY{ 0.0f }
-	, maxY{ 0.0f }
-	, offsetAmount{ 0.0f }
-	, offsetDuration{ 1.0f }
-	, offsetAmountCurrent{ 0.0f }
 {
 }
 
-GameCameraControllerComponent::~GameCameraControllerComponent()
+//GameCameraControllerComponent::~GameCameraControllerComponent()
+//{
+//}
+
+void GameCameraControllerComponent::Serialize(Serializer& writer) const
 {
 }
 
-void GameCameraControllerComponent::SetOffsetCurrent(float offset)
+void GameCameraControllerComponent::Deserialize(Deserializer& reader)
 {
-	offsetAmountCurrent = offset;
 }
 
 void GameCameraControllerComponent::EditorDraw()
@@ -67,6 +64,49 @@ void GameCameraControllerSystem::UpdateGameCameraController(GameCameraController
 	if (!comp.playerEntity || !comp.cameraEntity)
 		return;
 
-	// Find player position
+	// Mouse look
+	float yaw = comp.cameraYaw;
+	float pitch = comp.cameraPitch;
+	Vec2 currPos = ST<KeyboardMouseInput>::Get()->GetMousePos();
+	if (prevPos.x > 0)
+	{
+		Vec2 mouseDelta = currPos - prevPos;
 
+		yaw -= mouseDelta.x * comp.cameraSensitivity;
+		pitch+= mouseDelta.y * comp.cameraSensitivity;
+
+		// Wrap yaw
+		if (yaw < 0.0f)
+			yaw += 360.0f;
+		if (yaw > 360.0f)
+			yaw -= 360.0f;
+
+		// Clamp pitch
+		if (pitch < -85.0f)
+			pitch = -85.0f;
+		if (pitch > 5.0f)
+			pitch = 5.0f;
+
+		comp.cameraPitch = pitch;
+		comp.cameraYaw = yaw;
+	}
+	prevPos = currPos;
+
+	// Get the camera's position
+	float verticalFactor = sin(math::ToRadians(pitch));
+	float horizontalFactor =cos(math::ToRadians(pitch));
+	Vec3 calculatedCameraDirection = Vec3(
+		horizontalFactor * cos(math::ToRadians(yaw)),
+		verticalFactor,
+		horizontalFactor * sin(math::ToRadians(yaw))
+	);
+
+	ecs::EntityHandle compEntity = ecs::GetEntity(&comp);
+
+	//Vec2 cameraMovement = comp.lookAction.ConvertToValueType();
+
+	// Find player position
+	Vec3 playerPosition = comp.playerEntity->GetTransform().GetWorldPosition();
+
+	// Update prevPos
 }
