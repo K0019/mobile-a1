@@ -58,4 +58,6 @@ void PlayerMovementComponentSystem::UpdatePlayerMovementComponent(PlayerMovement
 	ecs::CompHandle<physics::PhysicsComp> physicsComp = comp.playerEntity->GetComp<physics::PhysicsComp>();
 
 	//physicsComp.
+
+	
 }

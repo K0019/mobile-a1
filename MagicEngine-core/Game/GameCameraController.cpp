@@ -53,49 +53,12 @@ void GameCameraControllerComponent::EditorDraw()
 #ifdef IMGUI_ENABLED
 	cameraEntity.EditorDraw("Camera");
 	playerEntity.EditorDraw("Player");
-	ImGui::InputFloat("Min X", &minX);
-	ImGui::InputFloat("Max X", &maxX);
-	ImGui::InputFloat("Min Y", &minY);
-	ImGui::InputFloat("Max Y", &maxY);
-	ImGui::InputFloat("Offset Amount", &offsetAmount);
-	ImGui::InputFloat("Offset Duration", &offsetDuration);
 #endif
 }
 
 GameCameraControllerSystem::GameCameraControllerSystem()
 	: System_Internal{ &GameCameraControllerSystem::UpdateGameCameraController }
 {
-}
-
-void GameCameraControllerSystem::OnAdded()
-{
-	Messaging::Subscribe("WaveStarted", GameCameraControllerSystem::OnWaveStarted);
-}
-
-void GameCameraControllerSystem::OnRemoved()
-{
-	Messaging::Unsubscribe("WaveStarted", GameCameraControllerSystem::OnWaveStarted);
-}
-
-void GameCameraControllerSystem::OnWaveStarted()
-{
-	// Get the camera controller component
-	auto it = ecs::GetCompsActiveBegin<GameCameraControllerComponent>();
-	ecs::CompHandle<GameCameraControllerComponent> comp = it.GetComp();
-	ecs::EntityHandle gameCamera = it.GetEntity();
-
-	// If cannot find game camera, just return.
-	if (!gameCamera) return;
-
-	// Tween camera
-	ST<TweenManager>::Get()->StartTween(
-		gameCamera,
-		&GameCameraControllerComponent::SetOffsetCurrent,
-		0.0f,
-		comp->offsetAmount,
-		comp->offsetDuration,
-		TT::EASE_BOTH
-	);
 }
 
 void GameCameraControllerSystem::UpdateGameCameraController(GameCameraControllerComponent& comp)
@@ -105,8 +68,5 @@ void GameCameraControllerSystem::UpdateGameCameraController(GameCameraController
 		return;
 
 	// Find player position
-	Vec3 playerPosition = comp.playerEntity->GetTransform().GetWorldPosition();
-	float x = std::clamp(playerPosition.x, comp.minX, comp.maxX);
-	float y = std::clamp(playerPosition.y + comp.offsetAmountCurrent, comp.minY, comp.maxY);
-	comp.cameraEntity->GetTransform().SetWorldPosition(Vec3(x, y, playerPosition.z));
+
 }
