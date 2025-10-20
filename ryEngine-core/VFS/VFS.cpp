@@ -162,6 +162,17 @@ bool VFS::ReadFile(const std::string& path, std::vector<uint8_t>& outBuffer)
     return false;
 }
 
+bool VFS::ReadFile(const std::string& path, std::vector<char>& outStr)
+{
+    std::vector<uint8_t> buffer;
+    if (!ReadFile(path, buffer))
+    {
+        return false;
+    }
+    outStr.assign(buffer.begin(), buffer.end());
+    return true;
+}
+
 bool VFS::ReadFile(const std::string& path, std::string& outStr)
 {
     std::vector<uint8_t> buffer;
@@ -192,6 +203,92 @@ bool VFS::WriteFile(const std::string& path, const std::string& text)
         return bytesWritten == text.length();
     }
     return false;
+}
+
+bool VFS::DeleteFile(const std::string& path)
+{
+    std::string normalizedPath = NormalizePath(path);
+
+    for (auto it = s_MountPoints.rbegin(); it != s_MountPoints.rend(); ++it)
+    {
+        const MountPoint& mp = *it;
+        if (normalizedPath.rfind(mp.virtualPath, 0) == 0)
+        {
+            std::string relativePath = normalizedPath.substr(mp.virtualPath.length());
+            if (!relativePath.empty() && relativePath.front() == '/')
+            {
+                relativePath = relativePath.substr(1);
+            }
+            
+            if (mp.backend->DeleteFile(relativePath))
+            {
+                return true;
+            }
+        }
+    }
+    return false; // No backend could delete the file
+}
+
+bool VFS::RenameFile(const std::string& oldPath, const std::string& newPath)
+{
+    std::string normOldPath = NormalizePath(oldPath);
+    std::string normNewPath = NormalizePath(newPath);
+
+    for (auto it = s_MountPoints.rbegin(); it != s_MountPoints.rend(); ++it)
+    {
+        const MountPoint& mp = *it;
+
+        if (normOldPath.rfind(mp.virtualPath, 0) == 0)
+        {
+            // Make sure the old path and new path are both in the same mount. Changing mounts not allowed.
+            if (normNewPath.rfind(mp.virtualPath, 0) == 0)
+            {
+                std::string relOldPath = normOldPath.substr(mp.virtualPath.length());
+                if (!relOldPath.empty() && relOldPath.front() == '/')
+                {
+                    relOldPath = relOldPath.substr(1);
+                }
+
+                std::string relNewPath = normNewPath.substr(mp.virtualPath.length());
+                if (!relNewPath.empty() && relNewPath.front() == '/')
+                {
+                    relNewPath = relNewPath.substr(1);
+                }
+
+                return mp.backend->RenameFile(relOldPath, relNewPath);
+            }
+            else
+            {
+                return false;
+            }
+        }
+    }
+
+    return false; // No mount point was found for the old path
+}
+
+bool VFS::CreateDirectory(const std::string& path)
+{
+    std::string normalizedPath = NormalizePath(path);
+
+    for (auto it = s_MountPoints.rbegin(); it != s_MountPoints.rend(); ++it)
+    {
+        const MountPoint& mp = *it;
+        if (normalizedPath.rfind(mp.virtualPath, 0) == 0)
+        {
+            std::string relativePath = normalizedPath.substr(mp.virtualPath.length());
+            if (!relativePath.empty() && relativePath.front() == '/')
+            {
+                relativePath = relativePath.substr(1);
+            }
+
+            if (mp.backend->CreateDirectory(relativePath))
+            {
+                return true;
+            }
+        }
+    }
+    return false; // No backend could create the directory
 }
 
 
