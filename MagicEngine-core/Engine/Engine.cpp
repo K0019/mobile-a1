@@ -242,6 +242,8 @@ void MagicEngine::Init(Context& context)
 	//ST<GraphicsWindow>::Get()->BringWindowToFront();
 #ifdef IMGUI_ENABLED
 	loadState("imgui.json");
+	// Hopefully we can get rid of this in the future. CustomViewport should eventually be able to read its window size from ImGui.
+	ST<CustomViewport>::Get()->Init(worldExtents.x, worldExtents.y);
 #endif
 }
 
@@ -407,7 +409,8 @@ void MagicEngine::ExecuteFrame(FrameData& frameData)
 #ifdef IMGUI_ENABLED
 	CSharpScripts::CSScripting::CheckCompileUserAssemblyAsyncCompletion();
 #endif
-	ST<Game>::Get()->Update();
+	ST<Game>::Get()->UpdateState(); // Update which ecs systems are active
+	ExecuteUpdateSystems(); // Run ecs systems that update the world
 	ST<Scheduler>::Get()->Update(GameTime::FixedDt() * static_cast<float>(GameTime::NumFixedFrames()));
 
 	// render
@@ -417,7 +420,7 @@ void MagicEngine::ExecuteFrame(FrameData& frameData)
 	ST<PerformanceProfiler>::Get()->StartProfile("Render");
 	if (!ST<GraphicsWindow>::Get()->GetIsWindowMinimized())
 	{
-		ST<Game>::Get()->Render();
+		ExecuteRenderSystems(); // Run ecs systems that render the world to the graphics pipeline
 #ifdef IMGUI_ENABLED
 		ST<Inspector>::Get()->DrawSelectedEntityBorder();
 #endif
@@ -479,4 +482,59 @@ void MagicEngine::shutdown()
 	ST<GraphicsMain>::Destroy();
 	// In case any systems send logs to the console while destructing.
 	ST<internal::LoggedMessagesBuffer>::Destroy();
+}
+
+void MagicEngine::ExecuteUpdateSystems()
+{
+	auto UpdateSystemsGroup{ [](const std::string& profileName, void(*executeSystemsFunc)()) -> void {
+#ifdef IMGUI_ENABLED
+		ST<PerformanceProfiler>::Get()->StartProfile(profileName);
+#endif
+		executeSystemsFunc();
+#ifdef IMGUI_ENABLED
+		ST<PerformanceProfiler>::Get()->EndProfile(profileName);
+#endif
+	} };
+
+	// Calculate number of realtime iterations (mainly for UI and other systems that don't run off of timescale)
+	for (int realtimeIterationsLeft{ GameTime::RealNumFixedFrames() }; realtimeIterationsLeft; --realtimeIterationsLeft)
+		ecs::RunSystemsInLayers(ECS_LAYER::CUTOFF_START, ECS_LAYER::CUTOFF_REALTIME_INPUT);
+
+	// Calculate how many iterations to run this frame.
+	int iterationsLeft{ GameTime::NumFixedFrames() };
+	if (iterationsLeft <= 0)
+		return; // No need to update this frame...
+	else if (iterationsLeft > 1)
+		CONSOLE_LOG(LEVEL_INFO) << "Running behind by " << iterationsLeft - 1 << " frames. Catching up...";
+
+	for (; iterationsLeft; --iterationsLeft)
+	{
+		UpdateSystemsGroup("Input", []() -> void {
+			ecs::RunSystemsInLayers(ECS_LAYER::CUTOFF_REALTIME_INPUT, ECS_LAYER::CUTOFF_INPUT);
+		});
+
+		UpdateSystemsGroup("Pre-Physics", []() -> void {
+			ST<TweenManager>::Get()->Update(GameTime::FixedDt());
+			ecs::RunSystemsInLayers(ECS_LAYER::CUTOFF_INPUT, ECS_LAYER::CUTOFF_PRE_PHYSICS);
+		});
+		UpdateSystemsGroup("Scripting", []() -> void {
+			ecs::RunSystemsInLayers(ECS_LAYER::CUTOFF_PRE_PHYSICS, ECS_LAYER::CUTOFF_PRE_PHYSICS_SCRIPTS);
+		});
+		UpdateSystemsGroup("Physics", []() -> void {
+			ecs::RunSystemsInLayers(ECS_LAYER::CUTOFF_PRE_PHYSICS_SCRIPTS, ECS_LAYER::CUTOFF_PHYSICS);
+		});
+		UpdateSystemsGroup("Post-Physics", []() -> void {
+			ecs::RunSystemsInLayers(ECS_LAYER::CUTOFF_PHYSICS, ECS_LAYER::CUTOFF_POST_PHYSICS);
+		});
+		UpdateSystemsGroup("Script-Late-Update", []() -> void {
+			ecs::RunSystemsInLayers(ECS_LAYER::CUTOFF_POST_PHYSICS, ECS_LAYER::CUTOFF_POST_PHYSICS_SCRIPTS);
+		});
+
+		ST<MagicInput>::Get()->NewIteration();
+	}
+}
+
+void MagicEngine::ExecuteRenderSystems()
+{
+	ecs::RunSystemsInLayers(ECS_LAYER::CUTOFF_POST_PHYSICS_SCRIPTS, ECS_LAYER::CUTOFF_RENDER);
 }

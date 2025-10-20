@@ -32,7 +32,6 @@ All rights reserved.
 #include "Engine/Input.h"
 
 #include "Engine/SceneManagement.h"
-#include "Editor/Editor.h"
 #include "GameSettings.h"
 
 #include "ECS/ECSSysLayers.h"
@@ -41,7 +40,6 @@ All rights reserved.
 #include "Graphics/Materials.h"
 
 #include "Engine/Resources/ResourceManager.h"
-#include "Editor/Performance.h"
 #include "Tween/TweenManager.h"
 #include "Managers/AudioManager.h"
 
@@ -50,8 +48,6 @@ All rights reserved.
 Game::Game()
     : state{ GAMESTATE::NONE }
     , nextState{ state }
-    , Width{ 0 }
-    , Height{ 0 }
     , flaggedForReset{ false }
 {
 }
@@ -62,15 +58,8 @@ Game::~Game()
 
 void Game::Init(unsigned int width, unsigned int height, GAMESTATE firstState)
 {
-    Width = width, Height = height;
-
-    // load shaders
-#ifdef IMGUI_ENABLED
-    //ST<Engine>::Get()->_vulkan->_renderer->resize(Width, Height);
-    ST<CustomViewport>::Get()->Init(Width, Height);
-#endif
     ST<CameraController>::Get()->SetCameraData(CameraData{
-        .position = Vec3{static_cast<float>(Width / 2), static_cast<float>(Height) / 2, 0.0f },
+        .position = Vec3{static_cast<float>(width) / 2, static_cast<float>(height) / 2, 0.0f },
         .zoom = 1.0f
     });
 
@@ -82,73 +71,10 @@ void Game::Init(unsigned int width, unsigned int height, GAMESTATE firstState)
     // Attempt to load scenes
     if (firstState != GAMESTATE::EDITOR) // I'm sorry for this check, this is to guard against loading scenes twice when we're in editor mode. Could maybe be avoided with a bool flag somewhere.
         ST<SceneManager>::Get()->ResetAndLoadPrevOpenScenes();
-
-    // TEMPORARY: Listen for window focus callback so we can automatically load the pause menu
-    Messaging::Subscribe("OnWindowFocus", OnFocusCallback);
-}
-
-void Game::Update()
-{
-    if (flaggedForReset)
-    {
-        // Reload current state
-        UpdateState(state);
-        flaggedForReset = false;
-        return;
-    }
-
-    UpdateState();
-
-    // Calculate number of realtime iterations (mainly for UI and other systems that don't run off of timescale)
-    for (int realtimeIterationsLeft{ GameTime::RealNumFixedFrames() }; realtimeIterationsLeft; --realtimeIterationsLeft)
-        ecs::RunSystemsInLayers(ECS_LAYER::CUTOFF_START, ECS_LAYER::CUTOFF_REALTIME_INPUT);
-
-    // Calculate how many iterations to run this frame.
-    int iterationsLeft{ GameTime::NumFixedFrames() };
-    if (iterationsLeft <= 0)
-        return; // No need to update this frame...
-    else if (iterationsLeft > 1)
-        CONSOLE_LOG(LEVEL_INFO) << "Running behind by " << iterationsLeft - 1 << " frames. Catching up...";
-
-    for (; iterationsLeft; --iterationsLeft)
-    {
-        ProcessInput();
-
-        UpdateSystemsGroup("Pre-Physics", []() -> void {
-            ST<TweenManager>::Get()->Update(GameTime::FixedDt());
-            ecs::RunSystemsInLayers(ECS_LAYER::CUTOFF_INPUT, ECS_LAYER::CUTOFF_PRE_PHYSICS);
-        });
-        UpdateSystemsGroup("Scripting", []() -> void {
-            ecs::RunSystemsInLayers(ECS_LAYER::CUTOFF_PRE_PHYSICS, ECS_LAYER::CUTOFF_PRE_PHYSICS_SCRIPTS);
-        });
-        UpdateSystemsGroup("Physics", []() -> void {
-            ecs::RunSystemsInLayers(ECS_LAYER::CUTOFF_PRE_PHYSICS_SCRIPTS, ECS_LAYER::CUTOFF_PHYSICS);
-        });
-        UpdateSystemsGroup("Post-Physics", []() -> void {
-            ecs::RunSystemsInLayers(ECS_LAYER::CUTOFF_PHYSICS, ECS_LAYER::CUTOFF_POST_PHYSICS);
-        });
-        UpdateSystemsGroup("Script-Late-Update", []() -> void {
-            ecs::RunSystemsInLayers(ECS_LAYER::CUTOFF_POST_PHYSICS, ECS_LAYER::CUTOFF_POST_PHYSICS_SCRIPTS);
-        });
-
-        ST<MagicInput>::Get()->NewIteration();
-    }
-}
-
-void Game::ProcessInput()
-{
-    // Updates player movement and animation
-    ecs::RunSystemsInLayers(ECS_LAYER::CUTOFF_REALTIME_INPUT, ECS_LAYER::CUTOFF_INPUT);
-}
-
-void Game::Render()
-{
-    ecs::RunSystemsInLayers(ECS_LAYER::CUTOFF_POST_PHYSICS, ECS_LAYER::CUTOFF_RENDER);
 }
 
 void Game::Shutdown()
 {
-    Messaging::Unsubscribe("OnWindowFocus", OnFocusCallback);
     gameStateManager.Exit();
 }
 
@@ -209,7 +135,7 @@ void Game::TogglePauseMode()
 
 void Game::UpdateState()
 {
-    if (nextState == state)
+    if (nextState == state && !flaggedForReset)
         return;
 
     UpdateState(nextState);
@@ -250,16 +176,4 @@ void Game::UpdateState(GAMESTATE newState)
         CONSOLE_LOG(LEVEL_ERROR) << "Unimplemented game state " << static_cast<int>(prevState) << '!';
         return;
     }
-}
-
-void Game::UpdateSystemsGroup(const std::string& profileName, void(*executeSystemsFunc)())
-{
-    ST<PerformanceProfiler>::Get()->StartProfile(profileName);
-    executeSystemsFunc();
-    ST<PerformanceProfiler>::Get()->EndProfile(profileName);
-}
-
-void Game::OnFocusCallback([[maybe_unused]] bool isFocused)
-{
-    // To use for future purposes...
 }

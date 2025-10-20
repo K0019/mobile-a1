@@ -72,6 +72,10 @@ public:
     void shutdown();
 
 private:
+    void ExecuteUpdateSystems();
+    void ExecuteRenderSystems();
+
+private:
     double fps{};
     duration m_targetFrameTime{};
     time_point m_lastFrameTime{};
