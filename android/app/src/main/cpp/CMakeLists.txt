@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.18)
-
+#set(CMAKE_FIND_DEBUG_MODE ON)
 project("ryEngineAndroid")
 
 set(CMAKE_CXX_STANDARD 20)
@@ -46,11 +46,11 @@ message(STATUS "Final CMAKE_PREFIX_PATH: ${CMAKE_PREFIX_PATH}")
 message(STATUS "Looking for configs in: ${ABI_SPECIFIC_PATH}/share/")
 
 # Check if the actual config file exists
-set(CONFIG_FILE "${ABI_SPECIFIC_PATH}/share/ryEngine/ryEngineConfig.cmake")
+set(CONFIG_FILE "${ABI_SPECIFIC_PATH}/share/MagicEngine/MagicEngineConfig.cmake")
 if(EXISTS "${CONFIG_FILE}")
-    message(STATUS "✓ Found ryEngine config file: ${CONFIG_FILE}")
+    message(STATUS "✓ Found MagicEngine config file: ${CONFIG_FILE}")
 else()
-    message(STATUS "✗ ryEngine config file NOT found: ${CONFIG_FILE}")
+    message(STATUS "✗ MagicEngine config file NOT found: ${CONFIG_FILE}")
     # List what's actually in the share directory
     file(GLOB SHARE_CONTENTS "${ABI_SPECIFIC_PATH}/share/*")
     message(STATUS "Contents of share directory: ${SHARE_CONTENTS}")
@@ -62,7 +62,7 @@ list(REMOVE_AT CMAKE_PREFIX_PATH 0)
 list(PREPEND CMAKE_PREFIX_PATH "${ABI_SPECIFIC_PATH}")
 
 # ALSO set the explicit directory for ryEngine
-# set(ryEngine_DIR "${ABI_SPECIFIC_PATH}/share/ryEngine")
+set(magicEngine_DIR "${ABI_SPECIFIC_PATH}/share/MagicEngine")
 set(unofficial-spirv-reflect_DIR "${ABI_SPECIFIC_PATH}/share/unofficial-spirv-reflect")
 
 file(GLOB PACKAGE_DIRS "${ABI_SPECIFIC_PATH}/share/*")
@@ -74,10 +74,9 @@ foreach(PACKAGE_DIR ${PACKAGE_DIRS})
 endforeach()
 
 message(STATUS "CMAKE_PREFIX_PATH: ${CMAKE_PREFIX_PATH}")
-message(STATUS "ryEngine_DIR: ${ryEngine_DIR}")
+message(STATUS "magicEngine_DIR: ${magicEngine_DIR}")
 
-find_package(ryEngine REQUIRED)
-
+find_package(MagicEngine REQUIRED)
 message(STATUS "=========================")
 
 # Add native_app_glue as an OBJECT library (recommended modern approach)
@@ -109,11 +108,13 @@ target_include_directories(${CMAKE_PROJECT_NAME}
     ${ABI_SPECIFIC_PATH}/include/ryEngine
     # For nice #include "engine.h", and so forth
     ${ABI_SPECIFIC_PATH}/include/ryEngine/core/engine
+        ${ABI_SPECIFIC_PATH}/include
+        ${ABI_SPECIFIC_PATH}/include/offset_allocator
 )
 
 target_link_libraries(${CMAKE_PROJECT_NAME}
     PRIVATE
-    magicengine::ryEngine
+    MagicEngine::MagicEngine
     native_app_glue
     android
     log

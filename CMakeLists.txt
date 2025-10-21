@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.26)
 
 include(cmake/EngineUtils.cmake)
+set(namespace "MagicEngine") # cannot remove this, must have a namespace for install_config
 
 # ----- VCPKG Configuration -----
 
@@ -40,7 +41,7 @@ endif()
 # ----- External Libraries Configuration ------
 
 set(EXTERNAL_INCLUDES "${CMAKE_SOURCE_DIR}/extern/include")
-set(EXTERNAL_INCLUDES_INSTALL "${CMAKE_INSTALL_INCLUDEDIR}/extern_include")
+set(EXTERNAL_INCLUDES_INSTALL "${CMAKE_INSTALL_INCLUDEDIR}")
 set(EXTERNAL_LIBRARIES "${CMAKE_SOURCE_DIR}/extern/lib")
 
 # ----- Solution -----
@@ -195,50 +196,43 @@ if(ANDROID)
 endif()
 
 # ----- Subdirectories (Add Projects) -----
-# add_subdirectory(engine)
-
 # ryEngine
-set(namespace "ryengine")
 add_subdirectory(ryEngine-core)
 add_subdirectory(ryEngine-modules/imgui)
 if(NOT ANDROID)
     add_subdirectory(ryEngine-modules/tools)
 endif()
 
-add_library(ryEngine INTERFACE)
-target_link_libraries(ryEngine INTERFACE 
-    ryEngine-Core
-    ryEngine-ImGui
-)
-add_library(ryengine::ryEngine ALIAS ryEngine)
-
 # MagicEngine
-set(namespace "magicengine")
 add_subdirectory(MagicEngine-core)
+if (NOT ANDROID)
+    add_subdirectory(EngineScripting)
+    add_subdirectory(AssetCompiler)
+endif()
 
 # Dont want to link with assetcompiler and tools on android
 add_library(MagicEngine INTERFACE)
 if (NOT ANDROID)
-    add_subdirectory(EngineScripting)
-    add_subdirectory(AssetCompiler)
     target_link_libraries(MagicEngine INTERFACE 
-        ryEngineTargets
-        MagicEngine-core
+        ryEngine-Core
+        ryEngine-ImGui
+        MagicEngine-Core
         AssetCompiler
 	    EngineScripting
     )
 else()
     target_link_libraries(MagicEngine INTERFACE 
-        ryEngineTargets
-        MagicEngine-core
+        ryEngine-Core
+        ryEngine-ImGui
+        MagicEngine-Core
     )
 endif()
-add_library(magicengine::MagicEngine ALIAS MagicEngine)
+
+# add_library(magicengine::MagicEngine ALIAS MagicEngine)
 
 # Application
 if(NOT ANDROID)
     add_subdirectory(editor)
-    
 endif()
 
 # ----- Target Dependencies -----
@@ -256,5 +250,4 @@ file(COPY "${CMAKE_SOURCE_DIR}/Directory.Build.props" DESTINATION "${CMAKE_BINAR
 
 # Installation
 include(cmake/InstallConfig.cmake)
-install_config(ryEngine)
 install_config(MagicEngine)

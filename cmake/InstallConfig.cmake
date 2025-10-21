@@ -1,5 +1,15 @@
 function(install_config projectName)
-
+message(STATUS "=== install_config called for ${projectName} ===")
+    message(STATUS "CMAKE_CURRENT_SOURCE_DIR: ${CMAKE_CURRENT_SOURCE_DIR}")
+    
+    set(CONFIG_IN_FILE "${CMAKE_CURRENT_SOURCE_DIR}/Config.cmake.in")
+    message(STATUS "Looking for: ${CONFIG_IN_FILE}")
+    
+    if(EXISTS "${CONFIG_IN_FILE}")
+        message(STATUS "✓ Config.cmake.in EXISTS")
+    else()
+        message(FATAL_ERROR "✗ Config.cmake.in NOT FOUND at ${CONFIG_IN_FILE}")
+    endif()
     # for CMAKE_INSTALL_LIBDIR, CMAKE_INSTALL_BINDIR, CMAKE_INSTALL_INCLUDEDIR and others
     include(GNUInstallDirs)
 

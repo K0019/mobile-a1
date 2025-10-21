@@ -5,40 +5,24 @@
 #include "math/utils_math.h"
 #include <graphics/features/grid_feature.h>
 #include <base/imgui_context.h>
-#include "ryEngine/VFS/vfs.h"
+#include "VFS/VFS.h"
+#include "MagicEngine/Engine/Engine.h"
 
 #define LOGI(...) __android_log_print(ANDROID_LOG_INFO, "ryEngine", __VA_ARGS__)
 #define LOGE(...) __android_log_print(ANDROID_LOG_ERROR, "ryEngine", __VA_ARGS__)
 
 class AndroidApp {
-    uint64_t gridFeatureHandle_;
-    CameraPositioner_FirstPerson positioner_ = {vec3(0.0f, 1.0f, -1.5f), vec3(0.0f, 0.5f, 0.0f), vec3(0.0f, 1.0f, 0.0f)};
-    Camera camera = Camera(positioner_);
-    std::unique_ptr<editor::ImGuiContext> imguiContext_;
+    MagicEngine engine;
 public:
     void Initialize(Context& context) {
-        imguiContext_ = std::make_unique<editor::ImGuiContext>(context);
-        LOGI("AndroidApp::Initialize called");
-        gridFeatureHandle_ = context.renderer->CreateFeature<GridFeature>();
-        LOGI("GridFeature created with handle: %llu", gridFeatureHandle_);
+        //engine.Init(context);
     }
 
     void Update(Context& context, FrameData& frame) {
-        imguiContext_->beginFrame();
-        int width =  Core::Display().GetWidth();
-        int height = Core::Display().GetHeight();
-        positioner_.movement_.forward_ = true;
-        positioner_.update(frame.deltaTime, {0,0}, false);
-        frame.cameraPos = camera.getPosition();
-        frame.viewMatrix = camera.getViewMatrix();
-        frame.projMatrix = perspective(45.0f, (float)width / (float)height, 0.1f, 1000.0f);
-        ImGui::ShowDemoWindow();
-        imguiContext_->endFrame();
     }
 
     void Shutdown(Context& context) {
         LOGI("AndroidApp::Shutdown called");
-        context.renderer->DestroyFeature(gridFeatureHandle_);
     }
 };
 
