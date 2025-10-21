@@ -3,13 +3,12 @@
 #include "Engine/Resources/ResourceManager.h"
 #include "GameSettings.h"
 
-#include <assimp/Importer.hpp>
-#include <assimp/scene.h>
-#include <assimp/postprocess.h>
-
 #include "Engine/Graphics Interface/GraphicsAPI.h"
 #include "tools/assets/io/import_config.h"
+
+#ifndef GLFW
 #include "MeshFileStructure.h"
+#endif
 
 namespace internal
 {

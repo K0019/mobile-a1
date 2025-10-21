@@ -317,8 +317,8 @@ for /f "tokens=1* delims=," %%a in ("%abi_list%") do (
         -DANDROID_ABI=!current_abi! ^
         -DANDROID_PLATFORM=%ANDROID_PLATFORM% ^
         -DANDROID=ON ^
-        -DCMAKE_CXX_FLAGS="!EXTRA_CXX_FLAGS!" ^
-        -DCMAKE_C_FLAGS="!EXTRA_CXX_FLAGS!"
+        -DCMAKE_CXX_FLAGS="!EXTRA_CXX_FLAGS! -Wno-error" ^
+        -DCMAKE_C_FLAGS="!EXTRA_CXX_FLAGS! -Wno-error"
     
     if errorlevel 1 (
         echo [ERROR] CMake configuration failed for !current_abi!

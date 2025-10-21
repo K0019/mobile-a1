@@ -1262,7 +1262,7 @@ namespace ecs {
 				\return
 					A handle to the component.
 				*//******************************************************************/
-				InternalCompHandle<CompType> GetComp();
+				InternalCompHandle<CompType> GetCompHandle();
 
 				/*****************************************************************//*!
 				\brief

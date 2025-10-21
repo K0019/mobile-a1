@@ -23,13 +23,15 @@ All rights reserved.
 // The FBX importer actually calls our asset compiler which produces .mesh and .ktx2 files.
 // We then delegate the importing of these .mesh and .ktx2 files to those respective importers.
 // Therefore, we need to call the resource importer again to process those files.
+#ifdef GLFW
 #include "SceneCompiler.h"
-#include "FilepathConstants.h"
-#include "Engine/Resources/ResourceImporter.h"
-
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
+#endif
+#include "FilepathConstants.h"
+#include "Engine/Resources/ResourceImporter.h"
+
 #include "tools/assets/io/import_config.h"
 #include "tools/assets/io/material_loader.h"
 #include "tools/assets/io/texture_loader.h"
@@ -196,8 +198,9 @@ namespace internal {
 }
 
 
-bool ResourceFiletypeImporterFBX::Import(const std::filesystem::path& assetRelativeFilepath)
+bool ResourceFiletypeImporterFBX::Import([[maybe_unused]] const std::filesystem::path& assetRelativeFilepath)
 {
+#ifdef GLFW
     // Set up compile options
     compiler::SceneCompiler compiler;
     compiler::CompilerOptions options;
@@ -218,4 +221,8 @@ bool ResourceFiletypeImporterFBX::Import(const std::filesystem::path& assetRelat
         ResourceImporter::Import(path);
 
     return true;
+#else
+	CONSOLE_LOG_UNIMPLEMENTED() << "Importing FBX files is not implemented for this platform.";
+    return false;
+#endif
 }

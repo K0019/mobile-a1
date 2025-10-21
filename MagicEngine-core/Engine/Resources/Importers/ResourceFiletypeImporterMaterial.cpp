@@ -3,10 +3,6 @@
 #include "Engine/Resources/ResourceManager.h"
 #include "Engine/Resources/ResourceImporter.h"
 
-#include <assimp/Importer.hpp>
-#include <assimp/scene.h>
-#include <assimp/postprocess.h>
-
 #include "Engine/Graphics Interface/GraphicsAPI.h"
 #include "tools/assets/io/import_config.h"
 #include "MeshFileStructure.h"

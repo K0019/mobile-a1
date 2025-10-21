@@ -24,6 +24,7 @@ All rights reserved.
 */
 /******************************************************************************/
 
+#ifdef GLFW
 #include "Editor/Import.h"
 #include <Windows.h>
 #include <shellapi.h> // For DragQueryFile
@@ -114,3 +115,5 @@ namespace import
         );
     }
 }
+
+#endif

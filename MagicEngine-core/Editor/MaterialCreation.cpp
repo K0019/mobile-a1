@@ -22,6 +22,7 @@ namespace editor {
 
 	void MaterialCreationWindow::DrawWindow()
 	{
+#ifdef IMGUI_ENABLED
 		// ----- Name -----
 		gui::TextBox("Material Name", materialName, sizeof(materialName));
 		gui::Separator();
@@ -70,6 +71,7 @@ namespace editor {
 
 		if (gui::Button createButton{ "Create" })
 			AttemptCreateMaterial();
+#endif
 	}
 
 	void MaterialCreationWindow::AttemptCreateMaterial()
