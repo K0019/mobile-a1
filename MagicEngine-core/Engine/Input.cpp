@@ -220,11 +220,17 @@ float KeyboardMouseInput::GetScroll() const
 	return Input::GetScrollDelta().y;
 }
 
+
 Vec2 KeyboardMouseInput::GetMousePos() const
 {
 	//return mousePos;
 	return Input::GetMousePosition();
 }
+
+Vec2 KeyboardMouseInput::GetMouseDelta() const {
+	return Input::GetMouseDelta();
+}
+
 
 void KeyboardMouseInput::NewFrame()
 {
