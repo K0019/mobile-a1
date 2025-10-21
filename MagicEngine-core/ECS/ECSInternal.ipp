@@ -242,36 +242,6 @@ namespace ecs {
 			return copy;
 		}
 
-		template <typename CompType, typename EntityHandleType, typename ValueType>
-		CompArr::iterator_blueprint<CompType, EntityHandleType, ValueType> operator+(
-			const CompArr::iterator_blueprint<CompType, EntityHandleType, ValueType>& iter, int offset)
-		{
-			return CompArr::iterator_blueprint<CompType, EntityHandleType, ValueType>{ iter.compStepSize, iter.ptr + offset * iter.compStepSize };
-		}
-
-		template<typename CompType, typename EntityHandleType, typename ValueType>
-		CompArr::iterator_blueprint<CompType, EntityHandleType, ValueType>::difference_type operator-(
-			const CompArr::iterator_blueprint<CompType, EntityHandleType, ValueType>& a,
-			const CompArr::iterator_blueprint<CompType, EntityHandleType, ValueType>& b)
-		{
-			return (a.ptr - b.ptr) / a.compStepSize;
-		}
-
-		template <typename CompType, typename EntityHandleType, typename ValueType>
-		bool operator==(
-			const CompArr::iterator_blueprint<CompType, EntityHandleType, ValueType>& a,
-			const CompArr::iterator_blueprint<CompType, EntityHandleType, ValueType>& b)
-		{
-			return a.ptr == b.ptr;
-		}
-		template <typename CompType, typename EntityHandleType, typename ValueType>
-		bool operator!=(
-			const CompArr::iterator_blueprint<CompType, EntityHandleType, ValueType>& a,
-			const CompArr::iterator_blueprint<CompType, EntityHandleType, ValueType>& b)
-		{
-			return a.ptr != b.ptr;
-		}
-
 
 		template<typename CompType, typename EntityHandleType>
 		CompArr::iterator_blueprint<CompType, EntityHandleType> CompArr::User_Begin()
