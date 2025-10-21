@@ -27,6 +27,7 @@ All content � 2024 DigiPen Institute of Technology Singapore.
 All rights reserved.
 */
 /******************************************************************************/
+#ifdef GLFW
 #include "Scripting/ScriptComponent.h"
 #include "Editor/Containers/GUICollection.h"
 #include "Utilities/ScriptingUtil.h"
@@ -379,6 +380,7 @@ SCRIPT_CALLABLE intptr_t CS_GetScriptInstance(ecs::EntityHandle entity, const ch
 		return mono_gchandle_new(scriptInstance, false);
 	else
 		return 0;
+
 }
 
 /*****************************************************************//*!
@@ -456,3 +458,4 @@ SCRIPT_CALLABLE ecs::EntityHandle CS_SpawnPrefab(const char* prefabName, ecs::En
 }
 
 #pragma endregion // Scripting
+#endif

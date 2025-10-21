@@ -23,6 +23,7 @@ All content � 2024 DigiPen Institute of Technology Singapore.
 All rights reserved.
 */
 /******************************************************************************/
+#ifdef GLFW
 #include "Scripting/CSScripting.h"
 #include "Scripting/HotReloader.h"
 #include "Editor/Popup.h"
@@ -464,6 +465,7 @@ namespace CSharpScripts
 
 	void CSScripting::Init()
 	{
+#ifdef GLFW
 		ScriptEngineData = new SCScriptData();
 		ScriptEngineData->s_CoreClasses.clear();
 		InitMono();
@@ -492,6 +494,7 @@ namespace CSharpScripts
 
 #ifdef IMGUI_ENABLED
 		ST<HotReloader>::Get()->Init();
+#endif
 #endif
 	}
 
@@ -780,6 +783,7 @@ R"(<Project Sdk="Microsoft.NET.Sdk">
 
 	void CSScripting::CheckCompileUserAssemblyAsyncCompletion()
 	{
+#ifdef GLFW
 		if (!isCompilingUserAssemblyAsync)
 			return;
 
@@ -793,6 +797,7 @@ R"(<Project Sdk="Microsoft.NET.Sdk">
 
 		if (compileUserAssemblyCallback)
 			compileUserAssemblyCallback();
+#endif
 	}
 
 	bool CSScripting::IsCurrentlyCompilingUserAssembly()
@@ -1057,3 +1062,4 @@ R"(<Project Sdk="Microsoft.NET.Sdk">
 		});
 	}
 }
+#endif
