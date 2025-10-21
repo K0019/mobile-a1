@@ -196,9 +196,9 @@ namespace physics {
 		ShapeType GetShapeType() const;
 		Layers GetCollisionLayer() const;
 		const Transform& GetPrevTrans() const;
-		const Vec3& GetPosition() const;
-		const Vec3& GetScale() const;
-		const Vec3& GetRotation() const;
+		Vec3 GetPosition() const;
+		Vec3 GetScale() const;
+		Vec3 GetRotation() const;
 
 		void SetMotionType(JPH::EMotionType type);
 		void SetShapeType(ShapeType type);

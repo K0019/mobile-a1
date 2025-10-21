@@ -190,6 +190,8 @@ namespace physics {
 		*//******************************************************************/
 		void SetSize(const Vec3& val);
 
+		void Deserialize(Deserializer& reader) override;
+
 	private:
 		/*****************************************************************//*!
 		\brief

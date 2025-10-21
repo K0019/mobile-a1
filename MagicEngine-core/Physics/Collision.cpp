@@ -118,7 +118,7 @@ namespace physics {
 		}
 		else
 		{
-			ecs::GetEntity(this)->AddComp<JoltBodyComp>(JoltBodyComp{ JPH::EMotionType::Static, ShapeType::BOX, Layers::NON_MOVING });
+			ecs::GetEntity(this)->AddCompNow<JoltBodyComp>(JoltBodyComp{ JPH::EMotionType::Static, ShapeType::BOX, Layers::NON_MOVING });
 		}
 	}
 
@@ -159,6 +159,13 @@ namespace physics {
 	{
 		ecs::GetEntity(this)->GetComp<JoltBodyComp>()->SetScale(ecs::GetEntityTransform(this).GetWorldScale() * val);
 		size = val;
+	}
+
+	void BoxColliderComp::Deserialize(Deserializer& reader)
+	{
+		ISerializeable::Deserialize(reader);
+		ecs::GetEntity(this)->GetComp<JoltBodyComp>()->SetPosition(ecs::GetEntityTransform(this).GetWorldPosition() + center);
+		ecs::GetEntity(this)->GetComp<JoltBodyComp>()->SetScale(ecs::GetEntityTransform(this).GetWorldScale() * size);
 	}
 
 	void BoxColliderComp::EditorDraw()

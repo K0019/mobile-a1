@@ -20,6 +20,7 @@ All rights reserved.
 
 #include "Physics/JoltPhysics.h"
 #include "Utilities/GameTime.h"
+#include "Editor/Containers/GUICollection.h"
 
 namespace physics {
 	JoltPhysics::JoltPhysics()
@@ -182,13 +183,13 @@ namespace physics {
 		return prevTrans;
 	}
 
-	const Vec3& JoltBodyComp::GetPosition() const
+	Vec3 JoltBodyComp::GetPosition() const
 	{
 		JPH::RVec3 joltPos{ ST<JoltPhysics>::Get()->GetBodyInterface().GetPosition(bodyID) };
 		return Vec3{ joltPos.GetX(), joltPos.GetY(), joltPos.GetZ() };
 	}
 	
-	const Vec3& JoltBodyComp::GetScale() const
+	Vec3 JoltBodyComp::GetScale() const
 	{
 		JPH::Vec3 joltScale{};
 		const JPH::Shape* shapePtr{ ST<JoltPhysics>::Get()->GetBodyInterface().GetShape(bodyID) };
@@ -200,7 +201,7 @@ namespace physics {
 		return Vec3{ joltScale.GetX(), joltScale.GetY(), joltScale.GetZ() };
 	}
 
-	const Vec3& JoltBodyComp::GetRotation() const
+	Vec3 JoltBodyComp::GetRotation() const
 	{
 		JPH::RVec3 joltRot{ ST<JoltPhysics>::Get()->GetBodyInterface().GetRotation(bodyID).GetEulerAngles() };
 		return Vec3{ joltRot.GetX(), joltRot.GetY(), joltRot.GetZ() };
@@ -307,6 +308,8 @@ namespace physics {
 
 	void JoltBodyComp::UpdateBody()
 	{
+		ST<JoltPhysics>::Get()->GetBodyInterface().ActivateBody(bodyID);
+
 		Transform const& trans{ ecs::GetEntityTransform(this) };
 
 		Vec3 pos{ trans.GetWorldPosition() };
@@ -330,6 +333,9 @@ namespace physics {
 		{
 			SetRotation(rot);
 		}
+
+		if (!ST<JoltPhysics>::Get()->GetBodyInterface().IsActive(bodyID))
+			CONSOLE_LOG(LEVEL_ERROR) << "Body not activated.";
 	}
 
 	void JoltBodyComp::UpdateEntity()

@@ -49,7 +49,7 @@ namespace physics {
 		else
 		{
 			JPH::EMotionType motion{ GetFlag(PHYSICS_COMP_FLAG::IS_KINEMATIC) ? JPH::EMotionType::Kinematic : JPH::EMotionType::Dynamic };
-			ecs::GetEntity(this)->AddComp<JoltBodyComp>(JoltBodyComp{motion, ShapeType::EMPTY, Layers::NON_COLLIDABLE});
+			ecs::GetEntity(this)->AddCompNow<JoltBodyComp>(JoltBodyComp{motion, ShapeType::EMPTY, Layers::NON_COLLIDABLE});
 		}
 	}
 
@@ -113,12 +113,16 @@ namespace physics {
 
 	void PhysicsComp::Serialize(Serializer& writer) const
 	{
+		ISerializeable::Serialize(writer);
 		flags.MaskSerialize(writer, "flags", physicsFlagNames);
 	}
 
 	void PhysicsComp::Deserialize(Deserializer& reader)
 	{
+		ISerializeable::Deserialize(reader);
 		flags.MaskDeserialize(reader, "flags", physicsFlagNames);
+		ecs::GetEntity(this)->GetComp<JoltBodyComp>()->SetMotionType(GetFlag(PHYSICS_COMP_FLAG::IS_KINEMATIC) ? JPH::EMotionType::Kinematic : JPH::EMotionType::Dynamic);
+		ecs::GetEntity(this)->GetComp<JoltBodyComp>()->SetGravityFactor(GetFlag(PHYSICS_COMP_FLAG::USE_GRAVITY) ? 1.f : 0.f);
 	}
 
 	void PhysicsSystem::OnAdded()
@@ -140,10 +144,6 @@ namespace physics {
 
 		for (auto compIter{ ecs::GetCompsActiveBegin<JoltBodyComp>() }, endIter{ ecs::GetCompsEnd<JoltBodyComp>() }; compIter != endIter; ++compIter)
 			compIter->UpdateEntity();
-
-		std::vector<BoxColliderComp*> colliders{};
-		if (OverlapSphere(colliders, Vec3{ 0.f, 1000.f, 0.f }, 10.f))
-			CONSOLE_LOG(LEVEL_DEBUG) << "Object Overlaping";
 
 		return true;
 	}
