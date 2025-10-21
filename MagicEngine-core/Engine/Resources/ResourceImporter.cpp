@@ -64,8 +64,6 @@ bool ResourceImporter::Import(const std::string& filepath)
     }
 
     // Import the file, creating/updating the resources in ResourceManager
-    //auto relativeFilepath{ std::filesystem::relative(filepath, Filepaths::assets) };
-
     return filetypeImporterIter->second->Import(filepath);
 }
 

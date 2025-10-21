@@ -32,7 +32,6 @@ public:
     struct FileEntry
     {
         //! The relative filepath from the assets folder to the file
-        //std::filesystem::path path;
         std::string path;
         //! The resources that can be loaded by loading this file
         std::vector<AssociatedResourceHashes> associatedResources;

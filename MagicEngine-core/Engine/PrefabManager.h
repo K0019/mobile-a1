@@ -58,22 +58,6 @@ public:
 
 	static bool DeletePrefab(std::string name)
 	{
-		// Ensure directory is created
-		//if (!std::filesystem::exists(FolderDir()) && !std::filesystem::create_directory(FolderDir()))
-		//{
-		//	CONSOLE_LOG(LEVEL_ERROR) << "Failed to create prefabs directory!";
-		//	return false;
-		//}
-		//// Delete the file if it exists
-		//if (std::filesystem::exists(FolderDir() + "/" + name + ".prefab"))
-		//{
-		//	std::remove((FolderDir() + "/" + name + ".prefab").c_str());
-		//	// Update just this prefab afterwards
-		//	ST<PrefabManager>::Get()->Update(name);
-		//	return true;
-		//}
-		//return false;
-
 		if (!EnsurePrefabDirExists())
 		{
 			return false;
@@ -151,11 +135,6 @@ public:
 		{
 			return;
 		}
-
-		//for (const auto& entry : std::filesystem::directory_iterator(FolderDir()))
-		//{
-		//	_allPrefabs.push_back(entry.path().stem().string());
-		//}
 
 		_allPrefabs.resize(0);
 		std::vector<std::string> filesInDir = VFS::ListDirectory(FolderDir());

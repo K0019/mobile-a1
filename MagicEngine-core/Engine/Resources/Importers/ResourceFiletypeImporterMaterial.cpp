@@ -35,7 +35,6 @@ namespace
 bool ResourceFiletypeImporterMaterial::Import(const std::string& relativeFilepath)
 {
     // Load the file
-    //std::filesystem::path fullPath = GetExeRelativeFilepath(relativeFilepath);
     std::string fileData;
     if (!VFS::ReadFile(relativeFilepath, fileData))
     {

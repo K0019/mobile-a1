@@ -24,7 +24,6 @@ All rights reserved.
 class ResourceFiletypeImporterAudio : public ResourceFiletypeImporterBase
 {
 public:
-    //virtual bool Import(const std::filesystem::path& assetRelativeFilepath) override;
     virtual bool Import(const std::string& assetRelativeFilepath) override;
 };
 

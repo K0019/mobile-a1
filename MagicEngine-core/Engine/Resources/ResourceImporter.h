@@ -24,7 +24,6 @@ All rights reserved.
 class ResourceImporter
 {
 public:
-    //static bool Import(const std::filesystem::path& filepath);
     static bool Import(const std::string& filepath);
     static bool FiletypeSupported(const std::string& extension);
 

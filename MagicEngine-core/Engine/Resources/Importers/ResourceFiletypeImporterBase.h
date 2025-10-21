@@ -27,7 +27,6 @@ All rights reserved.
 class ResourceFiletypeImporterBase
 {
 public:
-    //virtual bool Import(const std::filesystem::path& assetRelativeFilepath) = 0;
     virtual bool Import(const std::string& assetRelativeFilepath) = 0;
 
 protected:

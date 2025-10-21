@@ -63,7 +63,6 @@ All rights reserved.
 #include "Graphics/CameraController.h"
 #include "Graphics/Materials.h"
 #include "Editor/Import.h"
-#include "Managers/Filesystem.h"
 #include "math/camera.h"
 
 #ifdef IMGUI_ENABLED

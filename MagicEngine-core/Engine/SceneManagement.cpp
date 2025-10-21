@@ -86,7 +86,6 @@ public:
 	*//******************************************************************/
 	static bool IsScenesFolderExist()
 	{
-		//return std::filesystem::exists(GetScenesFolder());
 		return VFS::FileExists(GetScenesFolder());
 	}
 
@@ -98,7 +97,6 @@ public:
 	*//******************************************************************/
 	static bool CreateScenesFolder()
 	{
-		//return std::filesystem::create_directory(GetScenesFolder());
 		return VFS::CreateDirectory(GetScenesFolder());
 	}
 
@@ -420,11 +418,6 @@ int ScenePool::LoadScene(const std::string& path, bool setActiveScene)
 	CONSOLE_LOG(LEVEL_DEBUG) << "Loading scene " << path;
 
 	// Ensure scene exists
-	//if (!std::filesystem::exists(path))
-	//{
-	//	CONSOLE_LOG(LEVEL_WARNING) << "Attempted to load scene from path " << path << " which does not exist!";
-	//	return -1;
-	//}
 	if (!VFS::FileExists(path))
 	{
 		CONSOLE_LOG(LEVEL_WARNING) << "Attempted to load scene path " << path << " which does not exist!";
