@@ -6,9 +6,64 @@
 #include "Engine/Graphics Interface/GraphicsAPI.h"
 #include "tools/assets/io/import_config.h"
 
-#ifndef GLFW
-#include "MeshFileStructure.h"
-#endif
+// Just copy pasting definitions from assetcompiler/MeshFileStructure.h 
+// To make engine not depend on assetcompiler project
+
+constexpr uint32_t MESH_FILE_MAGIC = { 'MESH' };
+
+#pragma pack(push, 1)
+// Header at the very start of the file
+struct MeshFileHeader
+{
+    uint32_t magic = MESH_FILE_MAGIC;
+
+    uint32_t numNodes;
+    uint32_t numMeshes;
+    uint32_t totalIndices;
+    uint32_t totalVertices;
+    uint32_t materialNameBufferSize; // Total size of the material name block
+
+    // Bounds for the entire scene.
+    // This is actually not needed, since
+    // in the mesh importer's SetResourceHandlesMesh, we take the bounds of every individual mesh,
+    // and nowhere do we ever use the bounds of the entire scene.
+    // might be useful to quickly cull the entire scene instead of part by part though??
+    vec3 sceneBoundsCenter;
+    float sceneBoundsRadius;
+    vec3 sceneBoundsMin;
+    vec3 sceneBoundsMax;
+
+    // Offsets to the start of each data block from the beginning of the file
+    uint64_t nodeDataOffset;
+    uint64_t meshInfoDataOffset;
+    uint64_t materialNamesOffset;
+    uint64_t indexDataOffset;
+    uint64_t vertexDataOffset;
+};
+
+// Information for each node inside fbx
+struct MeshNode
+{
+    mat4 transform;
+    int32_t parentIndex; // Index into the node array, -1 for root
+    int32_t meshIndex;   // Index into the mesh info array, -1 if no mesh
+    char name[64];       // Fixed-size name for simplicity
+};
+
+// Describes how to get mesh data from the buffers
+struct MeshInfo
+{
+    uint32_t indexCount;
+    uint32_t firstIndex;        // Offset into the index buffer
+    uint32_t firstVertex;       // Offset into the vertex buffer
+    uint32_t materialNameIndex; // Index into the material name offset table
+
+    // Bounding volume for this individual mesh part
+    vec4 meshBounds; // (x,y,z, radius)
+};
+#pragma pack(pop)
+
+
 
 namespace internal
 {
@@ -25,10 +80,10 @@ namespace internal
         }
 
         //Validate Header
-        compiler::MeshFileHeader header;
-        file.read(reinterpret_cast<char*>(&header), sizeof(compiler::MeshFileHeader));
+        MeshFileHeader header;
+        file.read(reinterpret_cast<char*>(&header), sizeof(MeshFileHeader));
 
-        if (header.magic != compiler::MESH_FILE_MAGIC)
+        if (header.magic != MESH_FILE_MAGIC)
         {
             CONSOLE_LOG(LEVEL_ERROR) << "Invalid mesh asset file format: " << filepath.string();
             file.close();
@@ -36,17 +91,17 @@ namespace internal
         }
         
         // Read file data
-        std::vector<compiler::MeshNode> nodes(header.numNodes);
-        std::vector<compiler::MeshInfo> meshInfos(header.numMeshes);
+        std::vector<MeshNode> nodes(header.numNodes);
+        std::vector<MeshInfo> meshInfos(header.numMeshes);
         std::vector<char> materialNamesBuffer(header.materialNameBufferSize);
         std::vector<uint32_t> allIndices(header.totalIndices);
         std::vector<Vertex> allVertices(header.totalVertices); // Assuming Vertex struct
 
         file.seekg(header.nodeDataOffset);
-        file.read(reinterpret_cast<char*>(nodes.data()), nodes.size() * sizeof(compiler::MeshNode));
+        file.read(reinterpret_cast<char*>(nodes.data()), nodes.size() * sizeof(MeshNode));
 
         file.seekg(header.meshInfoDataOffset);
-        file.read(reinterpret_cast<char*>(meshInfos.data()), meshInfos.size() * sizeof(compiler::MeshInfo));
+        file.read(reinterpret_cast<char*>(meshInfos.data()), meshInfos.size() * sizeof(MeshInfo));
 
         file.seekg(header.materialNamesOffset);
         file.read(materialNamesBuffer.data(), materialNamesBuffer.size());

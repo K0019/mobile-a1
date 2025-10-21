@@ -38,6 +38,7 @@ All rights reserved.
 #include "tools/assets/io/mesh_loader.h"
 #include "Engine/Graphics Interface/GraphicsAPI.h"
 
+#if 0
 namespace internal {
 
     struct RawResourcesFBX
@@ -194,8 +195,8 @@ namespace internal {
         for (size_t i{}; i < textureHashes.size(); ++i)
             textures.INTERNAL_GetResource(textureHashes[i], true)->handle = std::move(rawResources.textureHandles[i]);
     }
-
 }
+#endif
 
 
 bool ResourceFiletypeImporterFBX::Import([[maybe_unused]] const std::filesystem::path& assetRelativeFilepath)
