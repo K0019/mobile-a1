@@ -224,6 +224,8 @@ else()
         ryEngine-Core
         ryEngine-ImGui
         MagicEngine-Core
+        $<BUILD_INTERFACE:fmod_core>
+        $<BUILD_INTERFACE:fmod_studio>
     )
 endif()
 

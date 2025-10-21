@@ -56,7 +56,6 @@ else()
     message(STATUS "Contents of share directory: ${SHARE_CONTENTS}")
 endif()
 
-# Find ryEngine package
 # Set CMAKE_PREFIX_PATH so dependencies can be found
 list(REMOVE_AT CMAKE_PREFIX_PATH 0)
 list(PREPEND CMAKE_PREFIX_PATH "${ABI_SPECIFIC_PATH}")
@@ -72,6 +71,41 @@ foreach(PACKAGE_DIR ${PACKAGE_DIRS})
     string(REPLACE "-" "_" PACKAGE_VAR ${PACKAGE_NAME})
     set(${PACKAGE_VAR}_DIR ${PACKAGE_DIR})
 endforeach()
+
+# Grab FMOD
+# From android/app/src/main/cpp/ up to project root
+get_filename_component(PROJECT_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/../../../../../" ABSOLUTE)
+set(FMOD_ROOT "${PROJECT_ROOT}/extern/lib/fmodAndroid")
+set(FMOD_CORE_LOCATION "${FMOD_ROOT}/${ANDROID_ABI}/libfmod.so")
+set(FMOD_STUDIO_LOCATION "${FMOD_ROOT}/${ANDROID_ABI}/libfmodstudio.so")
+message(STATUS "CMAKE_CURRENT_SOURCE_DIR: ${CMAKE_CURRENT_SOURCE_DIR}")
+message(STATUS "PROJECT_ROOT: ${PROJECT_ROOT}")
+message(STATUS "FMOD_ROOT: ${FMOD_ROOT}")
+
+if(NOT EXISTS "${FMOD_CORE_LOCATION}")
+    message(FATAL_ERROR "FMOD core not found at ${FMOD_CORE_LOCATION}")
+endif()
+
+if(NOT EXISTS "${FMOD_STUDIO_LOCATION}")
+    message(FATAL_ERROR "FMOD studio not found at ${FMOD_STUDIO_LOCATION}")
+endif()
+
+message(STATUS "FMOD core found ✓")
+message(STATUS "FMOD studio found ✓")
+
+add_library(fmod_core SHARED IMPORTED)
+set_target_properties(fmod_core PROPERTIES
+        IMPORTED_LOCATION "${FMOD_CORE_LOCATION}"
+        IMPORTED_NO_SONAME TRUE
+        INTERFACE_INCLUDE_DIRECTORIES "${PROJECT_ROOT}/extern/include/FMOD"
+)
+
+add_library(fmod_studio SHARED IMPORTED)
+set_target_properties(fmod_studio PROPERTIES
+        IMPORTED_LOCATION "${FMOD_STUDIO_LOCATION}"
+        IMPORTED_NO_SONAME TRUE
+        INTERFACE_INCLUDE_DIRECTORIES "${PROJECT_ROOT}/extern/include/FMOD"
+)
 
 message(STATUS "CMAKE_PREFIX_PATH: ${CMAKE_PREFIX_PATH}")
 message(STATUS "magicEngine_DIR: ${magicEngine_DIR}")
@@ -118,6 +152,8 @@ target_link_libraries(${CMAKE_PROJECT_NAME}
     native_app_glue
     android
     log
+    fmod_core
+    fmod_studio
 )
 
 # Android-specific compile definitions

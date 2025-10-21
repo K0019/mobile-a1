@@ -3,7 +3,7 @@ plugins {
 }
 
 android {
-    namespace 'com.ryengine.vulkan'
+    namespace 'com.magicengine.kurorekishi'
     compileSdk 34
 
     defaultConfig {
@@ -52,5 +52,9 @@ android {
             path file('./src/main/cpp/CMakeLists.txt')
             version '3.22.1'
         }
+    }
+
+    dependencies {
+        implementation files('libs/fmod.jar')
     }
 }
