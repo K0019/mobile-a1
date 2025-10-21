@@ -65,6 +65,8 @@ void AudioManager::SetGroupVolume(AudioType type, float vol)
 		case AudioType::SFX:
 			channelGroups[1]->setVolume(vol);
 			break;
+		default:
+			break;
 	}
 
 	// Ensure master volume is never lower than any category volume, because that makes no sense
