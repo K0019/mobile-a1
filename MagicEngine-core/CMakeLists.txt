@@ -20,6 +20,7 @@ if (NOT ANDROID)
         $<$<CONFIG:Release>:${EXTERNAL_LIBRARIES_STATIC_RELEASE}>
         glm::glm-header-only
         imgui::imgui
+        imguizmo::imguizmo
         Jolt::Jolt
     )
 else()
