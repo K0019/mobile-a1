@@ -21,7 +21,7 @@ All rights reserved.
 /******************************************************************************/
 
 #pragma once
-#include "Game/game.h"
+#include "Game/GameSystems.h"
 
 /*****************************************************************//*!
 \class IGameComponentCallbacks
@@ -115,7 +115,7 @@ void IGameComponentCallbacks<CompType>::OnAttached()
 	// If the game has already started, call OnStart() immediately
 	// But don't call on start if the ecs dimension isn't the default pool
 	if (ecs::GetCurrentPoolId() == ecs::POOL::DEFAULT &&
-		ST<Game>::Get()->GetState() != GAMESTATE::EDITOR)
+		ST<GameSystemsManager>::Get()->GetState() != GAMESTATE::EDITOR)
 	{
 		OnStart();
 	}

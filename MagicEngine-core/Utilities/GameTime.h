@@ -89,11 +89,11 @@ public:
 
 	/*****************************************************************//*!
 	\brief
-		Set the instantaneous fps of this current frame as recorded in this class.
-	\param newFps
-		The instantaneous fps at this current frame.
+		Set the target FPS to run the program at.
+	\param newTargetFps
+		The new target FPS.
 	*//******************************************************************/
-	static void SetFps(float newFps);
+	static void SetTargetFps(float newTargetFps);
 
 	/*****************************************************************//*!
 	\brief
@@ -110,7 +110,7 @@ public:
 	\param dt
 		The time since the last frame.
 	*//******************************************************************/
-	static void NewFrame(float dt);
+	static void WaitUntilNextFrame();
 
 	/*****************************************************************//*!
 	\brief
@@ -129,7 +129,16 @@ public:
 	static float GetTimeScale();
 
 private:
+	static void Wait();
+
+private:
 	GameTime() = delete;
+
+	//! The target realtime fps to run at
+	static float targetRealFps;
+	static std::chrono::time_point<std::chrono::steady_clock> lastFrameTimepoint;
+	static std::chrono::nanoseconds targetFrametime;
+	static std::chrono::time_point<std::chrono::steady_clock> targetFrameTimepoint;
 
 	//! The instantaneous fps at this current frame
 	static float fps;

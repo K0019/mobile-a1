@@ -176,6 +176,12 @@ if errorlevel 1 (
 )
 
 if /i "%TARGET%"=="android" (
+    REM Need Ninja for Android build
+	call :check_ninja
+    if errorlevel 1 (
+        if "%SHOW_MENU%"=="true" pause
+        exit /b 1
+    )
     if "%VCPKG_ROOT%"=="" (
         echo [ERROR] VCPKG_ROOT environment variable is not set
         echo [ERROR] Please set it to your vcpkg installation directory
@@ -431,3 +437,48 @@ exit /b 0
 @REM pause
 
 @REM endlocal
+
+:check_ninja
+REM Check if already installed in our custom location
+set "NINJA_DIR=%USERPROFILE%\.ninja"
+set "NINJA_EXE=%NINJA_DIR%\ninja.exe"
+
+if exist "%NINJA_EXE%" (
+    echo [INFO] Ninja found at %NINJA_EXE%
+    set "PATH=%NINJA_DIR%;%PATH%"
+    exit /b 0
+)
+
+REM Check if ninja is in system PATH
+where ninja >nul 2>&1
+if %errorlevel%==0 (
+    echo [INFO] Ninja already installed in PATH
+    exit /b 0
+)
+
+echo [INFO] Ninja not found, installing...
+if not exist "%NINJA_DIR%" mkdir "%NINJA_DIR%"
+
+curl.exe -L -o "%NINJA_DIR%\ninja.zip" https://github.com/ninja-build/ninja/releases/latest/download/ninja-win.zip
+if errorlevel 1 (
+    echo [ERROR] Failed to download Ninja
+    exit /b 1
+)
+
+tar -xf "%NINJA_DIR%\ninja.zip" -C "%NINJA_DIR%"
+if errorlevel 1 (
+    echo [ERROR] Failed to extract Ninja
+    exit /b 1
+)
+
+del "%NINJA_DIR%\ninja.zip"
+
+set "PATH=%NINJA_DIR%;%PATH%"
+
+if not exist "%NINJA_EXE%" (
+    echo [ERROR] Ninja installation failed
+    exit /b 1
+)
+
+echo [INFO] Ninja installed to %NINJA_DIR%
+exit /b 0
