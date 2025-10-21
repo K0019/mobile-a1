@@ -78,10 +78,10 @@ private:
 };
 property_begin(GameCameraControllerComponent)
 {
-	property_var(cameraEntity),
-	property_var(playerEntity),
-	property_var(cameraPitch),
-	property_var(cameraYaw),
+	//property_var(cameraEntity),
+	//property_var(playerEntity),
+	//property_var(cameraPitch),
+	//property_var(cameraYaw),
 	property_var(cameraAutoZoomSpeed),
 	property_var(targetCameraDistance),
 	property_var(currentCameraDistance),
