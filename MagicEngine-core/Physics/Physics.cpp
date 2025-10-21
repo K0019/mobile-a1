@@ -172,7 +172,7 @@ namespace physics {
 			if (sphere.Overlaps(colliderAABB))
 			{
 				result = true;
-				outColliders.push_back(compIter.GetComp());
+				outColliders.push_back(compIter.GetCompHandle());
 			}
 		}
 

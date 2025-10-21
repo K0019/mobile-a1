@@ -35,9 +35,9 @@ All rights reserved.
 #include <Jolt/Physics/Body/BodyCreationSettings.h>
 #include <Jolt/Physics/Body/BodyActivationListener.h>
 
-#include "ECS.h"
-#include "IEditorComponent.h"
-#include "IGameComponentCallbacks.h"
+#include "ECS/ECS.h"
+#include "Editor/IEditorComponent.h"
+#include "Game/IGameComponentCallbacks.h"
 #include "Physics/Collision.h"
 
 JPH_SUPPRESS_WARNINGS
