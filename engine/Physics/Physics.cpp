@@ -141,6 +141,41 @@ namespace physics {
 		for (auto compIter{ ecs::GetCompsActiveBegin<JoltBodyComp>() }, endIter{ ecs::GetCompsEnd<JoltBodyComp>() }; compIter != endIter; ++compIter)
 			compIter->UpdateEntity();
 
+		std::vector<BoxColliderComp*> colliders{};
+		if (OverlapSphere(colliders, Vec3{ 0.f, 1000.f, 0.f }, 10.f))
+			CONSOLE_LOG(LEVEL_DEBUG) << "Object Overlaping";
+
 		return true;
+	}
+
+	bool OverlapSphere(std::vector<BoxColliderComp*>& outColliders, const Vec3& origin, float radius, EntityLayersMask layers)
+	{
+		bool result{false};
+		JPH::Float3 center{ origin.x, origin.y, origin.z };
+		JPH::Sphere sphere{ center, radius };
+
+		for (auto compIter{ ecs::GetCompsActiveBegin<BoxColliderComp>() }, endIter{ ecs::GetCompsEnd<BoxColliderComp>() }; compIter != endIter; ++compIter)
+		{
+			if (!layers.TestMaskAll())
+			{
+				if (auto layerComp{ compIter.GetEntity()->GetComp<EntityLayerComponent>() })
+					if (!layers.TestMask(layerComp->GetLayer()))
+						continue;
+				else 
+					continue;
+			}
+
+			Vec3 pos{ compIter.GetEntity()->GetComp<JoltBodyComp>()->GetPosition() };
+			Vec3 scale{ compIter.GetEntity()->GetComp<JoltBodyComp>()->GetScale() / 2.f};
+			Vec3 min{ pos - scale }, max{ pos + scale };
+			JPH::AABox colliderAABB{ JPH::Vec3{min.x, min.y, min.z}, JPH::Vec3{max.x, max.y, max.z} };
+			if (sphere.Overlaps(colliderAABB))
+			{
+				result = true;
+				outColliders.push_back(compIter.GetComp());
+			}
+		}
+
+		return result;
 	}
 }

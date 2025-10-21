@@ -72,12 +72,6 @@ namespace physics {
 
 		/*****************************************************************//*!
 		\brief
-			Create and add a rigid body to the body interface.
-		*//******************************************************************/
-		JPH::BodyID CreateAndAddBody(JPH::EMotionType motion, ShapeType shape, Layers layer, const Transform trans);
-
-		/*****************************************************************//*!
-		\brief
 			Remove and destroy the body from the Jolt Physics System.
 		\param bodyID
 			bodyID of the body to remove.
@@ -173,7 +167,12 @@ namespace physics {
 		, public IHiddenComponent<JoltBodyComp>
 	{
 	public:
+		/*****************************************************************//*!
+		\brief
+			Default Constructor.
+		*//******************************************************************/
 		JoltBodyComp();
+
 		JoltBodyComp(JPH::EMotionType motion, ShapeType shape, Layers layer);
 
 	private:
@@ -197,6 +196,9 @@ namespace physics {
 		ShapeType GetShapeType() const;
 		Layers GetCollisionLayer() const;
 		const Transform& GetPrevTrans() const;
+		const Vec3& GetPosition() const;
+		const Vec3& GetScale() const;
+		const Vec3& GetRotation() const;
 
 		void SetMotionType(JPH::EMotionType type);
 		void SetShapeType(ShapeType type);

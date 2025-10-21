@@ -22,6 +22,7 @@ All rights reserved.
 #include "MaskTemplate.h"
 #include "IRegisteredComponent.h"
 #include "IGameComponentCallbacks.h"
+#include "EntityLayers.h"
 
 namespace physics {
 	class ColliderComp;
@@ -122,8 +123,6 @@ X(USE_GRAVITY, "Use Gravity")
 		*//******************************************************************/
 		void SetLinearVelocity(const Vec3& vel);
 
-
-
 	private:
 		/*****************************************************************//*!
 		\brief
@@ -146,7 +145,9 @@ X(USE_GRAVITY, "Use Gravity")
 		void OnAdded() override;
 		bool PreRun() override;
 	};
-}
+
+	bool OverlapSphere(std::vector<BoxColliderComp*>& outColliders, const Vec3& origin, float radius, EntityLayersMask layers = EntityLayersMask{});
+} 
 property_begin(physics::PhysicsComp)
 {
 	property_var(linearVel)

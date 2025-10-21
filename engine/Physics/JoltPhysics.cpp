@@ -92,6 +92,7 @@ namespace physics {
 		, motionType{JPH::EMotionType::Static}
 		, shapeType{ShapeType::EMPTY}
 		, collisionLayer{Layers::NON_COLLIDABLE}
+		, prevTrans{}
 	{
 	}
 	
@@ -179,6 +180,30 @@ namespace physics {
 	const Transform& JoltBodyComp::GetPrevTrans() const 
 	{
 		return prevTrans;
+	}
+
+	const Vec3& JoltBodyComp::GetPosition() const
+	{
+		JPH::RVec3 joltPos{ ST<JoltPhysics>::Get()->GetBodyInterface().GetPosition(bodyID) };
+		return Vec3{ joltPos.GetX(), joltPos.GetY(), joltPos.GetZ() };
+	}
+	
+	const Vec3& JoltBodyComp::GetScale() const
+	{
+		JPH::Vec3 joltScale{};
+		const JPH::Shape* shapePtr{ ST<JoltPhysics>::Get()->GetBodyInterface().GetShape(bodyID) };
+		if (shapePtr->GetSubType() == JPH::EShapeSubType::Scaled)
+		{
+			const JPH::ScaledShape* scaledShapePtr{ static_cast<const JPH::ScaledShape*>(shapePtr) };
+			joltScale = scaledShapePtr->GetScale() * 2.f;
+		}
+		return Vec3{ joltScale.GetX(), joltScale.GetY(), joltScale.GetZ() };
+	}
+
+	const Vec3& JoltBodyComp::GetRotation() const
+	{
+		JPH::RVec3 joltRot{ ST<JoltPhysics>::Get()->GetBodyInterface().GetRotation(bodyID).GetEulerAngles() };
+		return Vec3{ joltRot.GetX(), joltRot.GetY(), joltRot.GetZ() };
 	}
 
 	void JoltBodyComp::SetMotionType(JPH::EMotionType type)
