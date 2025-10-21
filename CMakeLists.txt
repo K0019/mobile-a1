@@ -38,12 +38,6 @@ if(NOT ANDROID)
         CACHE STRING "Vcpkg toolchain file")
 endif()
 
-# ----- External Libraries Configuration ------
-
-set(EXTERNAL_INCLUDES "${CMAKE_SOURCE_DIR}/extern/include")
-set(EXTERNAL_INCLUDES_INSTALL "${CMAKE_INSTALL_INCLUDEDIR}")
-set(EXTERNAL_LIBRARIES "${CMAKE_SOURCE_DIR}/extern/lib")
-
 # ----- Solution -----
 if (NOT ANDROID)
 project(MagicEngine VERSION 0.1.0 LANGUAGES C CXX CSharp)
@@ -51,7 +45,12 @@ else()
 project(MagicEngine VERSION 0.1.0 LANGUAGES C CXX)
 endif()
 
+# ----- External Libraries Configuration ------
 include(GNUInstallDirs)
+
+set(EXTERNAL_INCLUDES "${CMAKE_SOURCE_DIR}/extern/include")
+set(EXTERNAL_INCLUDES_INSTALL "${CMAKE_INSTALL_INCLUDEDIR}")
+set(EXTERNAL_LIBRARIES "${CMAKE_SOURCE_DIR}/extern/lib")
 
 # Force install dirs to be relative for cross-compilation (Android)
 if(IS_ABSOLUTE "${CMAKE_INSTALL_INCLUDEDIR}")
