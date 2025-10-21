@@ -1,23 +1,6 @@
 cmake_minimum_required(VERSION 3.26)
 
-# ----- Function to organize source files into logical folders in IDEs -----
-function(set_source_groups target_name)
-    get_target_property(target_sources ${target_name} SOURCES)
-    foreach(source ${target_sources})
-        get_filename_component(source_path "${source}" PATH)
-        # Ensure the path is relative to the source directory for cleaner filter names
-        file(RELATIVE_PATH rel_source_path ${CMAKE_SOURCE_DIR} ${source_path})
-        if(rel_source_path)
-            # Use forward slashes for CMake source_group
-            string(REPLACE "\\" "/" source_group_path "${rel_source_path}")
-            source_group("${source_group_path}" FILES "${source}")
-        else()
-             # Handle files directly in CMAKE_SOURCE_DIR if any (less common for targets)
-             # source_group("Source Files" FILES "${source}") # Example: Source files directly in root
-        endif()
-    endforeach()
-endfunction()
-
+include(cmake/EngineUtils.cmake)
 
 # ----- VCPKG Configuration -----
 
@@ -47,252 +30,136 @@ if(EXISTS "${VCPKG_ROOT}" AND NOT EXISTS "${VCPKG_ROOT}/vcpkg.exe")
     message(STATUS "vcpkg bootstrapped successfully.")
 endif()
 
+set(VCPKG_MANIFEST_MODE ON)
+set(VCPKG_MANIFEST_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
+if(NOT ANDROID)
+    set(CMAKE_TOOLCHAIN_FILE "${CMAKE_CURRENT_SOURCE_DIR}/extern/vcpkg/scripts/buildsystems/vcpkg.cmake"
+        CACHE STRING "Vcpkg toolchain file")
+endif()
+
 # ----- External Libraries Configuration ------
 
-set(EXTERNAL_INCLUDES "${CMAKE_CURRENT_SOURCE_DIR}/extern/include")
-set(EXTERNAL_LIBRARIES "${CMAKE_CURRENT_SOURCE_DIR}/extern/lib")
+set(EXTERNAL_INCLUDES "${CMAKE_SOURCE_DIR}/extern/include")
+set(EXTERNAL_INCLUDES_INSTALL "${CMAKE_INSTALL_INCLUDEDIR}/extern_include")
+set(EXTERNAL_LIBRARIES "${CMAKE_SOURCE_DIR}/extern/lib")
 
 # ----- Solution -----
-
+if (NOT ANDROID)
 project(MagicEngine VERSION 0.1.0 LANGUAGES C CXX CSharp)
-set(CMAKE_INCLUDE_DIRECTORIES_BEFORE ON)
+else()
+project(MagicEngine VERSION 0.1.0 LANGUAGES C CXX)
+endif()
+
+include(GNUInstallDirs)
+
+# Force install dirs to be relative for cross-compilation (Android)
+if(IS_ABSOLUTE "${CMAKE_INSTALL_INCLUDEDIR}")
+    set(CMAKE_INSTALL_INCLUDEDIR "include" CACHE PATH "Include directory" FORCE)
+endif()
+if(IS_ABSOLUTE "${CMAKE_INSTALL_LIBDIR}")
+    set(CMAKE_INSTALL_LIBDIR "lib" CACHE PATH "Library directory" FORCE)
+endif()
+if(IS_ABSOLUTE "${CMAKE_INSTALL_BINDIR}")
+    set(CMAKE_INSTALL_BINDIR "bin" CACHE PATH "Binary directory" FORCE)
+endif()
+
 # Set C++ standard
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
+set(CMAKE_INCLUDE_DIRECTORIES_BEFORE ON)
+set_property(GLOBAL PROPERTY USE_FOLDERS OFF) # Disable putting projects into folders in the solution directory
 
 # Output directories for binaries and libraries
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
-find_package(assimp CONFIG REQUIRED)
-find_package(FreeImage CONFIG REQUIRED)
-find_package(Freetype CONFIG REQUIRED)
-find_package(glfw3 CONFIG REQUIRED)
+set(CMAKE_DEBUG_POSTFIX "d" CACHE STRING "Filename postfix for libraries under DEBUG configuration")
+set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+
+# Core dependencies (all platforms)
+find_package(rapidjson CONFIG REQUIRED)
 find_package(glm CONFIG REQUIRED)
 find_package(glslang CONFIG REQUIRED)
-find_package(imgui CONFIG REQUIRED)
-find_package(KTX CONFIG REQUIRED)
-find_package(meshoptimizer CONFIG REQUIRED)
-find_package(mikktspace CONFIG REQUIRED)
-find_package(quill CONFIG REQUIRED)
-find_package(spirv_cross_core CONFIG REQUIRED)
-find_package(spirv_cross_glsl CONFIG REQUIRED)
-find_package(Jolt CONFIG REQUIRED)
-find_package(Stb REQUIRED)
-find_package(tracy CONFIG REQUIRED)
-find_package(unofficial-spirv-reflect CONFIG REQUIRED)
 find_package(Volk CONFIG REQUIRED)
 find_package(Vulkan REQUIRED)
 find_package(VulkanMemoryAllocator CONFIG REQUIRED)
+find_package(VulkanUtilityLibraries CONFIG REQUIRED)
+find_package(spirv_cross_core CONFIG REQUIRED)
+find_package(spirv_cross_glsl CONFIG REQUIRED)
+find_package(unofficial-spirv-reflect CONFIG REQUIRED)
+find_package(fmt CONFIG REQUIRED)
+find_package(quill CONFIG REQUIRED)
+
+find_package(Jolt CONFIG REQUIRED)
+find_package(Stb REQUIRED)
+
+# ImGui dependencies (cross-platform)
 find_package(imgui CONFIG REQUIRED)
 find_package(imguizmo CONFIG REQUIRED)
 find_package(implot CONFIG REQUIRED)
-add_subdirectory(extern/offset_allocator)
+find_package(Freetype CONFIG REQUIRED)
 
-# ----- Engine Target -----
-add_executable(Engine WIN32) #
-
-# Search for files needed
-file(GLOB_RECURSE ENGINE_IMPLEMENTATION_FILES CONFIGURE_DEPENDS "engine/*.cpp")
-file(GLOB_RECURSE ENGINE_HEADER_FILES CONFIGURE_DEPENDS "engine/*.h" "engine/*.hpp" "engine/*.ipp")
-file(GLOB_RECURSE SHADER_FILES "${CMAKE_SOURCE_DIR}/shaders/*.vert" "${CMAKE_SOURCE_DIR}/shaders/*.frag")
-file(GLOB_RECURSE ENGINE_SOURCE_FILES_DIRECTORIES LIST_DIRECTORIES true "${CMAKE_SOURCE_DIR}/engine/*")
-file(GLOB_RECURSE EXTERNAL_LIBRARIES_STATIC_DEBUG "${EXTERNAL_LIBRARIES}/debug/*.lib")
-file(GLOB_RECURSE EXTERNAL_LIBRARIES_STATIC_RELEASE "${EXTERNAL_LIBRARIES}/release/*.lib")
-file(GLOB_RECURSE EXTERNAL_LIBRARIES_DYNAMIC_DEBUG "${EXTERNAL_LIBRARIES}/debug/*.dll")
-file(GLOB_RECURSE EXTERNAL_LIBRARIES_DYNAMIC_RELEASE "${EXTERNAL_LIBRARIES}/release/*.dll")
-set(EXTERNAL_LIBRARIES_WHOLE_DIRECTORIES "${EXTERNAL_LIBRARIES}/directory_copy")
-# To reformat into a style that copy_if_different can accept
-string(REPLACE ";" "\" \"" EXTERNAL_LIBRARIES_DYNAMIC_DEBUG "${EXTERNAL_LIBRARIES_DYNAMIC_DEBUG}")
-string(REPLACE ";" "\" \"" EXTERNAL_LIBRARIES_DYNAMIC_RELEASE "${EXTERNAL_LIBRARIES_DYNAMIC_RELEASE}")
-# To reformat for xcopy
-string(REPLACE "/" "\\" COMPILED_SHADER_FILES "${CMAKE_SOURCE_DIR}/Shaders/*.spv")
-string(REPLACE "/" "\\" OUTPUT_COMPILED_SHADER_FILES "$<$<CONFIG:Debug>:${CMAKE_SOURCE_DIR}/Assets/Shaders>$<$<CONFIG:Release>:$<TARGET_FILE_DIR:Engine>/Assets/Shaders>")
-
-target_sources(Engine PRIVATE
-    ${ENGINE_IMPLEMENTATION_FILES}
-    ${ENGINE_HEADER_FILES}
-    ${SHADER_FILES}
-)
-
-target_precompile_headers(Engine PRIVATE engine/pch.h)
-
-target_include_directories(Engine PUBLIC
-    ${CMAKE_SOURCE_DIR}/engine
-    ${EXTERNAL_INCLUDES}
-)
-foreach(item ${ENGINE_SOURCE_FILES_DIRECTORIES})
-	if(IS_DIRECTORY ${item})
-		target_include_directories(Engine PUBLIC ${item})
-	endif()
-endforeach()
-
-target_link_libraries(Engine PUBLIC
-    # --- Core Dependencies (from vcpkg) ---
-    # Correct namespaced targets are used as per vcpkg output.
-    assimp::assimp
-    freeimage::FreeImage 
-	freeimage::FreeImagePlus # FreeImage::FreeImagePlus is also available if needed
-    Freetype::Freetype
-    glfw
-    glm::glm-header-only
-    GPUOpen::VulkanMemoryAllocator
-    imgui::imgui
-    imguizmo::imguizmo
-    KTX::ktx
-    meshoptimizer::meshoptimizer
-	mikktspace::mikktspace
-    quill::quill
-    Tracy::TracyClient
-    volk::volk_headers  # This provides the Vulkan headers
-    Vulkan::Vulkan
-	Jolt::Jolt
-
-    AssetCompiler
-
-    # Shader compilation
-    glslang::glslang
-    glslang::glslang-default-resource-limits
-    glslang::SPIRV
-    glslang::SPVRemapper
-    spirv-cross-core
-    spirv-cross-glsl
-    unofficial::spirv-reflect
-	offsetAllocator
-    # External libraries
-    $<$<CONFIG:Debug>:${EXTERNAL_LIBRARIES_STATIC_DEBUG}>
-    $<$<CONFIG:Release>:${EXTERNAL_LIBRARIES_STATIC_RELEASE}>
-)
-
-set_source_groups(Engine)
-
-target_compile_options(Engine PRIVATE /W4 /MP /bigobj)
-target_compile_definitions(Engine PUBLIC
-    TRACY_ENABLE
-	GLFW
-    -DQUILL_DISABLE_NON_PREFIXED_MACROS
-    $<$<CONFIG:Debug>:IMGUI_ENABLED>
-)
-
-add_custom_command(TARGET Engine POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different
-        "\"$<$<CONFIG:Debug>:${EXTERNAL_LIBRARIES_DYNAMIC_DEBUG}>$<$<CONFIG:Release>:${EXTERNAL_LIBRARIES_DYNAMIC_RELEASE}>\""
-        "\"$<TARGET_FILE_DIR:Engine>\""
-    COMMAND ${CMAKE_COMMAND} -E copy_directory_if_different
-        "\"${EXTERNAL_LIBRARIES_WHOLE_DIRECTORIES}\""
-        "\"$<TARGET_FILE_DIR:Engine>\""
-    COMMAND cmd.exe /c if "$(Configuration)" == "Release" "${CMAKE_COMMAND}" -E copy_directory_if_different "${CMAKE_SOURCE_DIR}/Assets" "$<TARGET_FILE_DIR:Engine>/Assets"
-    COMMAND cmd.exe /c "${CMAKE_COMMAND}" -E copy_directory_if_different "${CMAKE_SOURCE_DIR}/Shaders" "$<TARGET_FILE_DIR:Engine>/Shaders"
+# Desktop-only dependencies
+if(NOT ANDROID)
+    find_package(glfw3 CONFIG REQUIRED)
+    find_package(tracy CONFIG REQUIRED)
     
-)
-
-if(MSVC)
-    target_compile_options(Engine PUBLIC
-        /wd4819 # Unicode characters in non-unicode formatted source files
-        /wd4324 # Structure padding added due to explicit alignas() specifier
-    )
-    target_compile_definitions(Engine PUBLIC
-        WIN32_LEAN_AND_MEAN
-    )
-    target_link_options(Engine PUBLIC
-        $<$<CONFIG:Debug>:/SUBSYSTEM:CONSOLE>
-        $<$<CONFIG:Release>:/SUBSYSTEM:WINDOWS>
-    )
-    set_target_properties(Engine PROPERTIES
-        VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:Engine>"
-    )
-	set(PORTABLE_LAYERS_PATH "${CMAKE_SOURCE_DIR}/extern/vulkan-debug-layer")
-	if(EXISTS "${PORTABLE_LAYERS_PATH}/VkLayer_khronos_validation.json")
-		file(TO_NATIVE_PATH "${PORTABLE_LAYERS_PATH}" NATIVE_PORTABLE_LAYERS_PATH)
-		message(STATUS "Configuring portable Vulkan layers for MSVC debugging at: ${NATIVE_PORTABLE_LAYERS_PATH}")
-
-		set_property(TARGET Engine PROPERTY
-			VS_DEBUGGER_ENVIRONMENT
-				"VK_LAYER_PATH=${NATIVE_PORTABLE_LAYERS_PATH}
-				 VK_LOADER_DEBUG=all"
-		)
-	else()
-		message(WARNING "Portable Vulkan layer manifest not found at ${PORTABLE_LAYERS_PATH}")
-	endif()
+    # Tools dependencies
+    find_package(assimp CONFIG REQUIRED)
+    find_package(FreeImage CONFIG REQUIRED)
+    find_package(KTX CONFIG REQUIRED)
+    find_package(meshoptimizer CONFIG REQUIRED)
+    find_package(mikktspace CONFIG REQUIRED)
 endif()
 
+# ----- Android Settings -----
+if(ANDROID)
+    # Validate NDK path
+    if(NOT ANDROID_NDK)
+        message(FATAL_ERROR "ANDROID_NDK variable not set")
+    endif()
+    
+    add_link_options(-Wl,-z,max-page-size=16384)
+    # Check for native app glue availability
+    set(NATIVE_APP_GLUE_DIR ${ANDROID_NDK}/sources/android/native_app_glue)
+    if(NOT EXISTS ${NATIVE_APP_GLUE_DIR}/android_native_app_glue.c)
+        message(FATAL_ERROR "Android native app glue not found at: ${NATIVE_APP_GLUE_DIR}")
+    endif()
+    
+    message(STATUS "Android configuration:")
+    message(STATUS "  Platform: ${ANDROID_PLATFORM}")
+    message(STATUS "  ABI: ${ANDROID_ABI}")
+    message(STATUS "  NDK: ${ANDROID_NDK}")
+    message(STATUS "  Native app glue: ${NATIVE_APP_GLUE_DIR}")
 
-# ----- C# Target -----
+    # Find required Android libraries
+    find_library(android-lib android)
+    find_library(log-lib log)
+    
+    # Add native app glue
+    set(NATIVE_APP_GLUE_DIR ${ANDROID_NDK}/sources/android/native_app_glue)
+    add_library(native_app_glue STATIC
+        ${NATIVE_APP_GLUE_DIR}/android_native_app_glue.c
+    )
+    target_include_directories(native_app_glue PUBLIC
+        ${NATIVE_APP_GLUE_DIR}
+    )
+    target_link_libraries(native_app_glue ${android-lib} ${log-lib})
+    
+    # Make native_app_glue available to all targets
+    set(ANDROID_COMMON_LIBS 
+        native_app_glue
+        ${android-lib}
+        ${log-lib}
+        CACHE INTERNAL "Common Android libraries"
+    )
+    
+    message(STATUS "Android native app glue configured")
+endif()
 
-add_library(EngineScripting SHARED)
-
-file(GLOB_RECURSE CSHARP_IMPLEMENTATION_FILES CONFIGURE_DEPENDS "EngineScripting/*.cs")
-
-target_sources(EngineScripting PRIVATE
-    ${CSHARP_IMPLEMENTATION_FILES}
-)
-
-set_source_groups(EngineScripting)
-
-set_property(TARGET EngineScripting PROPERTY VS_DOTNET_TARGET_FRAMEWORK_VERSION "v4.7.2")
-set_property(TARGET EngineScripting PROPERTY VS_DOTNET_REFERENCES
-    "Microsoft.CSharp"
-    "System"
-    "System.Core"
-    "System.Xml.Linq"
-    "System.Data.DataSetExtensions"
-    "System.Data"
-    "System.Net.Http"
-    "System.Xml"
-)
-set_property(TARGET EngineScripting PROPERTY VS_PACKAGE_REFERENCES "GlmSharp_0.9.8")
-
-
-
-
-
-
-# Compressonator imported target
-add_library(compressonator STATIC IMPORTED)
-set_target_properties(compressonator PROPERTIES
-    IMPORTED_LOCATION_DEBUG   "${CMAKE_SOURCE_DIR}/extern/lib/compressonator/Compressonator_MDd.lib"
-    IMPORTED_LOCATION_RELEASE "${CMAKE_SOURCE_DIR}/extern/lib/compressonator/Compressonator_MD.lib"
-    INTERFACE_INCLUDE_DIRECTORIES "${CMAKE_SOURCE_DIR}/extern/include/compressonator"
-)
-# ----- AssetCompiler Target -----
-add_library(AssetCompiler)
-
-file(GLOB_RECURSE ASSET_COMPILER_IMPLEMENTATION_FILES CONFIGURE_DEPENDS "AssetCompiler/*.cpp")
-file(GLOB_RECURSE ASSET_COMPILER_HEADER_FILES CONFIGURE_DEPENDS "AssetCompiler/*.h")
-
-target_sources(AssetCompiler PRIVATE
-    ${ASSET_COMPILER_IMPLEMENTATION_FILES}
-    ${ASSET_COMPILER_HEADER_FILES}
-)
-
-#target_precompile_headers(AssetCompiler PRIVATE asset_compiler/pch.h)
-
-target_include_directories(AssetCompiler PUBLIC
-    ${CMAKE_SOURCE_DIR}/AssetCompiler
-    ${CMAKE_SOURCE_DIR}/engine
-    ${EXTERNAL_INCLUDES}
-)
-
-target_link_libraries(AssetCompiler PRIVATE
-    assimp::assimp
-    meshoptimizer::meshoptimizer
-    KTX::ktx
-	mikktspace::mikktspace
-    compressonator
-)
-set_source_groups(AssetCompiler)
-
-
-
-# ----- Target Dependencies -----
-add_dependencies(Engine AssetCompiler)
-add_dependencies(Engine EngineScripting)
-
-# ----- Global Build Settings -----
-# Set startup project for Visual Studio
-set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT Engine)
+# ----- Global project settings -----
 
 add_definitions("-DQUILL_DISABLE_NON_PREFIXED_MACROS")
 add_definitions("-DVK_NO_PROTOTYPES=1")
@@ -308,17 +175,86 @@ if(MSVC)
     add_compile_options(
         /W4 # Warning level 4
         /MP # Enable parallel builds
-        $<$<CONFIG:Release>:/O2 /GL> # Optimization level for Release
-        $<$<CONFIG:Debug>:/Zi> # Or /Zi for debug info format
+        # $<$<CONFIG:Release>:/O2 /GL> # Optimization level for Release
+        # $<$<CONFIG:Debug>:/Zi> # Or /Zi for debug info format
+        /wd4819 # Unicode characters in non-unicode formatted source files
+        /wd4324 # Structure padding added due to explicit alignas() specifier
     )
 	string(APPEND CMAKE_EXE_LINKER_FLAGS_DEBUG " /ignore:4099 /ignore:4098")
     string(APPEND CMAKE_SHARED_LINKER_FLAGS_DEBUG " /ignore:4099 /ignore:4098")
-    add_link_options(
-         $<$<CONFIG:Release>:/LTCG /OPT:REF /OPT:ICF>
+    # add_link_options(
+    #      $<$<CONFIG:Release>:/LTCG /OPT:REF /OPT:ICF>
+    # )
+endif()
+
+message(STATUS "Generator: ${CMAKE_GENERATOR}")
+message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
+message(STATUS "Platform: ${CMAKE_SYSTEM_NAME}")
+if(ANDROID)
+    message(STATUS "Android ABI: ${ANDROID_ABI}")
+endif()
+
+# ----- Subdirectories (Add Projects) -----
+# add_subdirectory(engine)
+
+# ryEngine
+set(namespace "ryengine")
+add_subdirectory(ryEngine-core)
+add_subdirectory(ryEngine-modules/imgui)
+if(NOT ANDROID)
+    add_subdirectory(ryEngine-modules/tools)
+endif()
+
+add_library(ryEngine INTERFACE)
+target_link_libraries(ryEngine INTERFACE 
+    ryEngine-Core
+    ryEngine-ImGui
+)
+add_library(ryengine::ryEngine ALIAS ryEngine)
+
+# MagicEngine
+set(namespace "magicengine")
+add_subdirectory(MagicEngine-core)
+
+# Dont want to link with assetcompiler and tools on android
+add_library(MagicEngine INTERFACE)
+if (NOT ANDROID)
+    add_subdirectory(EngineScripting)
+    add_subdirectory(AssetCompiler)
+    target_link_libraries(MagicEngine INTERFACE 
+        ryEngineTargets
+        MagicEngine-core
+        AssetCompiler
+	    EngineScripting
+    )
+else()
+    target_link_libraries(MagicEngine INTERFACE 
+        ryEngineTargets
+        MagicEngine-core
     )
 endif()
+add_library(magicengine::MagicEngine ALIAS MagicEngine)
+
+# Application
+if(NOT ANDROID)
+    add_subdirectory(editor)
+    
+endif()
+
+# ----- Target Dependencies -----
+# add_dependencies(Engine AssetCompiler)
+# add_dependencies(Engine EngineScripting)
+
+# ----- Post Configuration Settings -----
+# Set startup project for Visual Studio
+set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT Editor)
 
 # Default CMake configuration sets the intermediate output directory of all projects to the same location.
 # This causes issues with the C++ project trying to reference C# Nuget stuff when it doesn't need to.
 # This file overrides the intermediate output directory location to avoid this issue.
 file(COPY "${CMAKE_SOURCE_DIR}/Directory.Build.props" DESTINATION "${CMAKE_BINARY_DIR}")
+
+# Installation
+include(cmake/InstallConfig.cmake)
+install_config(ryEngine)
+install_config(MagicEngine)

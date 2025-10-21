@@ -1,27 +1,13 @@
 {
     "files": [
         {
-            "filepath": "Sounds\\Kalimba.mp3",
-            "resources": [
-                {
-                    "resourceType": 13608648403210648424,
-                    "resourceEntries": [
-                        {
-                            "hash": 84387517499529593,
-                            "name": "Kalimba0"
-                        }
-                    ]
-                }
-            ]
-        },
-        {
             "filepath": "CompiledAssets\\box.mesh",
             "resources": [
                 {
                     "resourceType": 7953536019925557911,
                     "resourceEntries": [
                         {
-                            "hash": 79681607732401665,
+                            "hash": 13867040743873860,
                             "name": "box0"
                         }
                     ]
@@ -29,28 +15,14 @@
             ]
         },
         {
-            "filepath": "Materials\\fbxcars.material",
+            "filepath": "CompiledAssets\\materials\\colormap.material",
             "resources": [
                 {
                     "resourceType": 9642906986363137133,
                     "resourceEntries": [
                         {
-                            "hash": 93624514684246151,
-                            "name": "fbxcars0"
-                        }
-                    ]
-                }
-            ]
-        },
-        {
-            "filepath": "Materials\\ExampleMaterial.material",
-            "resources": [
-                {
-                    "resourceType": 9642906986363137133,
-                    "resourceEntries": [
-                        {
-                            "hash": 77965270498770591,
-                            "name": "ExampleMaterial0"
+                            "hash": 19207368719981903,
+                            "name": "colormap0"
                         }
                     ]
                 }
@@ -63,7 +35,7 @@
                     "resourceType": 13608648403210648424,
                     "resourceEntries": [
                         {
-                            "hash": 78930641290876194,
+                            "hash": 24791788278831619,
                             "name": "Gylia Shanty (Cinfras County)0"
                         }
                     ]
@@ -77,22 +49,8 @@
                     "resourceType": 13960108920292451446,
                     "resourceEntries": [
                         {
-                            "hash": 84694281243432456,
+                            "hash": 23431692402752494,
                             "name": "colormap0"
-                        }
-                    ]
-                }
-            ]
-        },
-        {
-            "filepath": "CompiledAssets\\ambulance.mesh",
-            "resources": [
-                {
-                    "resourceType": 7953536019925557911,
-                    "resourceEntries": [
-                        {
-                            "hash": 164436362047980249,
-                            "name": "ambulance0"
                         }
                     ]
                 }

@@ -1,6 +1,6 @@
 #include <string>
 #include <variant>
-#include "MagicMath.h"
+#include "Utilities/MagicMath.h"
 using string_t = std::string;
 
 
