@@ -57,4 +57,10 @@ android {
     dependencies {
         implementation files('libs/fmod.jar')
     }
+
+    sourceSets {
+        main {
+            jniLibs.srcDirs = ['src/main/jniLibs']
+        }
+    }
 }

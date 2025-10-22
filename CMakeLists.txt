@@ -94,7 +94,6 @@ find_package(quill CONFIG REQUIRED)
 
 find_package(Jolt CONFIG REQUIRED)
 find_package(Stb REQUIRED)
-find_package(KTX CONFIG REQUIRED) # TODO: REMOVE THIS LINE when KTX texture loading is changed to binary file loading
 
 # ImGui dependencies (cross-platform)
 find_package(imgui CONFIG REQUIRED)
@@ -110,9 +109,41 @@ if(NOT ANDROID)
     # Tools dependencies
     find_package(assimp CONFIG REQUIRED)
     find_package(FreeImage CONFIG REQUIRED)
-    #find_package(KTX CONFIG REQUIRED) # TODO: UNCOMMENT THIS LINE when KTX texture loading is changed to binary file loading
+    find_package(KTX CONFIG REQUIRED)
     find_package(meshoptimizer CONFIG REQUIRED)
     find_package(mikktspace CONFIG REQUIRED)
+else() #Android dependencies
+    # Looking only for KTX library read ability, not the tools or anything else...
+    set(KTX_FEATURE_TOOLS OFF CACHE BOOL "" FORCE)
+    set(KTX_FEATURE_TESTS OFF CACHE BOOL "" FORCE)
+    set(KTX_FEATURE_LOADTEST_APPS OFF CACHE BOOL "" FORCE)
+    set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
+    set(BASISU_SUPPORT_SSE OFF CACHE BOOL "" FORCE)
+    
+    # Save the postfix, disable it for KTX, then restore
+    set(SAVED_DEBUG_POSTFIX ${CMAKE_DEBUG_POSTFIX})
+    set(CMAKE_DEBUG_POSTFIX "" CACHE STRING "" FORCE)
+
+    add_subdirectory(extern/KTX-Software)
+
+    # restore post fix
+    set(CMAKE_DEBUG_POSTFIX ${SAVED_DEBUG_POSTFIX} CACHE STRING "" FORCE)
+
+    add_library(KTX::ktx ALIAS ktx)
+    
+    # Install library
+    install(TARGETS ktx
+        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    )
+    
+    # Install headers
+    install(DIRECTORY extern/KTX-Software/include/
+        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+        FILES_MATCHING 
+        PATTERN "*.h"
+        PATTERN "*.hpp"
+    )
 endif()
 
 # ----- Android Settings -----
@@ -219,6 +250,7 @@ if (NOT ANDROID)
         MagicEngine-Core
         AssetCompiler
 	    EngineScripting
+        # Someone is silently loading fmod, suspicious, but ok.
     )
 else()
     target_link_libraries(MagicEngine INTERFACE 
@@ -230,16 +262,10 @@ else()
     )
 endif()
 
-# add_library(magicengine::MagicEngine ALIAS MagicEngine)
-
 # Application
 if(NOT ANDROID)
     add_subdirectory(editor)
 endif()
-
-# ----- Target Dependencies -----
-# add_dependencies(Engine AssetCompiler)
-# add_dependencies(Engine EngineScripting)
 
 # ----- Post Configuration Settings -----
 # Set startup project for Visual Studio

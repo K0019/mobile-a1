@@ -22,6 +22,7 @@ if (NOT ANDROID)
         imgui::imgui
         imguizmo::imguizmo
         Jolt::Jolt
+        KTX::ktx
     )
 else()
     set(CORE_PUBLIC_DEPS
@@ -29,11 +30,8 @@ else()
         $<$<CONFIG:Release>:${EXTERNAL_LIBRARIES_STATIC_RELEASE}>
         glm::glm-header-only
         Jolt::Jolt
-        KTX::ktx # TODO: REMOVE THIS when KTX texture loading is changed to binary file loading
     )
 endif()
-# set(CORE_PRIVATE_DEPS
-# )
 
 # Create the target
 engine_add_module(MagicEngine-Core
@@ -42,6 +40,15 @@ engine_add_module(MagicEngine-Core
     PUBLIC_DEPENDENCIES ${CORE_PUBLIC_DEPS}
     DEFINITIONS ${CORE_DEFINITIONS}
 )
+
+target_link_libraries(MagicEngine-Core PRIVATE 
+    $<$<NOT:$<BOOL:${ANDROID}>>:KTX::ktx>
+    $<$<BOOL:${ANDROID}>:ktx>
+)
+
+if(ANDROID)
+    target_compile_definitions(MagicEngine-Core PUBLIC KHRONOS_STATIC)
+endif()
 
 # link asset compiler to engine for resource building
 if(NOT ANDROID)
@@ -98,8 +105,7 @@ foreach(item ${ENGINE_SOURCE_FILES_DIRECTORIES})
 	endif()
 endforeach()
 
-# Additional compile options for Windows builds
+# Additional compile options
 if (NOT ANDROID)
-target_compile_options(MagicEngine-Core PRIVATE /bigobj)
-
+    target_compile_options(MagicEngine-Core PRIVATE /bigobj)
 endif()

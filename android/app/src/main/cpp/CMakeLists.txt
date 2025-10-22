@@ -33,6 +33,9 @@ message(STATUS "ABI subdirectory: ${ABI_SUBDIR}")
 message(STATUS "Library install path: ${LIBRARY_INSTALL_PATH}")
 message(STATUS "Looking for libraries in: ${ABI_SPECIFIC_PATH}")
 
+# Add library search path for libktx.a and other installed libraries
+link_directories("${ABI_SPECIFIC_PATH}/lib")
+
 # Check if the ABI-specific directory exists
 if(NOT EXISTS "${ABI_SPECIFIC_PATH}")
     message(FATAL_ERROR "ABI-specific directory not found: ${ABI_SPECIFIC_PATH}")
@@ -106,6 +109,12 @@ set_target_properties(fmod_studio PROPERTIES
         IMPORTED_NO_SONAME TRUE
         INTERFACE_INCLUDE_DIRECTORIES "${PROJECT_ROOT}/extern/include/FMOD"
 )
+
+# Copy .so for FMOD to the JNILibs for packaging into the apk.
+set(JNILIBS_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../jniLibs/${ANDROID_ABI}")
+file(MAKE_DIRECTORY ${JNILIBS_DIR})
+file(COPY ${FMOD_CORE_LOCATION} DESTINATION ${JNILIBS_DIR})
+file(COPY ${FMOD_STUDIO_LOCATION} DESTINATION ${JNILIBS_DIR})
 
 message(STATUS "CMAKE_PREFIX_PATH: ${CMAKE_PREFIX_PATH}")
 message(STATUS "magicEngine_DIR: ${magicEngine_DIR}")
