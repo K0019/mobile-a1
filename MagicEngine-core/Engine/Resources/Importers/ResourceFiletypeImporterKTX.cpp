@@ -40,7 +40,8 @@ bool ResourceFiletypeImporterKTX::Import(const std::string& assetRelativeFilepat
 	Resource::LoadingConfig config{ Resource::LoadingConfig::createBalanced() };
 	Resource::ProcessedTexture processedTexture{ Resource::TextureLoading::extractTexture(filepathSource, config) };
 #else
-	Resource::ProcessedTexture processedTexture{ ManualLoadTexture(GetExeRelativeFilepath(assetRelativeFilepath)) };
+	//Resource::ProcessedTexture processedTexture{ ManualLoadTexture(GetExeRelativeFilepath(assetRelativeFilepath)) };
+	Resource::ProcessedTexture processedTexture{ ManualLoadTexture(assetRelativeFilepath) };
 #endif
 	if (processedTexture.data.empty())
 		return false;
@@ -61,19 +62,26 @@ bool ResourceFiletypeImporterKTX::Import(const std::string& assetRelativeFilepat
 }
 
 #ifndef GLFW
-Resource::ProcessedTexture ResourceFiletypeImporterKTX::ManualLoadTexture(const std::filesystem::path& filepath)
+Resource::ProcessedTexture ResourceFiletypeImporterKTX::ManualLoadTexture(const std::string& filepath)
 {
 	// This is hardcoded af to make android work for now. For this, we're only supporting ktx2.
-	assert(filepath.extension() == "ktx2" || filepath.extension() == "KTX2");
+	assert(VFS::GetExtension(filepath) == ".ktx2");
 
 	Resource::ProcessedTexture texture{};
     ktxTexture2* ktxTex = nullptr;
 
-    KTX_error_code result = ktxTexture2_CreateFromNamedFile(filepath.string().c_str(), KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT, &ktxTex);
+    std::vector<uint8_t> fileData;
+    if (!VFS::ReadFile(filepath, fileData))
+    {
+        CONSOLE_LOG(LEVEL_ERROR) << "VFS: Read texture file failed: " << filepath;
+        return texture;
+    }
+
+    KTX_error_code result = ktxTexture2_CreateFromMemory(fileData.data(), fileData.size(), KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT, &ktxTex);
 
     if (result != KTX_SUCCESS || !ktxTex)
     {
-        CONSOLE_LOG(LEVEL_ERROR) << "Failed to load KTX2 file " << filepath.string() << ".KTX Error : " << ktxErrorString(result);
+        CONSOLE_LOG(LEVEL_ERROR) << "Failed to load KTX2 file " << filepath << ".KTX Error : " << ktxErrorString(result);
         if (ktxTex) ktxTexture_Destroy(ktxTexture(ktxTex));
         return texture;
     }
@@ -105,9 +113,9 @@ Resource::ProcessedTexture ResourceFiletypeImporterKTX::ManualLoadTexture(const 
         .dimensions = {texture.width, texture.height, 1},
         .usage = vk::TextureUsageBits_Sampled,
         .numMipLevels = ktxTex->numLevels,
-        .debugName = filepath.string().c_str() };
+        .debugName = filepath.c_str() };
 
-    CONSOLE_LOG(LEVEL_DEBUG) << "Loaded KTX2 texture " << filepath.string() << " - " << texture.width << "x" << texture.height << ", " << ktxTex->numLevels << " mips";
+    CONSOLE_LOG(LEVEL_DEBUG) << "Loaded KTX2 texture " << filepath << " - " << texture.width << "x" << texture.height << ", " << ktxTex->numLevels << " mips";
     return texture;
 }
 #endif

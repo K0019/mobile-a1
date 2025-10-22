@@ -71,12 +71,6 @@ namespace internal
         const std::string& filepath, 
         std::vector<MeshHandle>* outMeshHandles, std::vector<std::pair<uint32_t, Mat4>>* outMeshTransforms)
     {
-        //std::ifstream file(filepath, std::ios::binary);
-        //if (!file.is_open())
-        //{
-        //    CONSOLE_LOG(LEVEL_ERROR) << "Failed to import mesh file: " << filepath.string();
-        //    return false;
-        //}
         auto file = VFS::OpenFile(filepath, FileMode::Read);
         if (!file)
         {
@@ -227,8 +221,6 @@ bool ResourceFiletypeImporterMeshAsset::Import(const std::string& assetRelativeF
     std::vector<MeshHandle> meshHandles;
     std::vector<std::pair<uint32_t, Mat4>> meshTransforms;
 
-    //if (!internal::ImportMeshAsset(GetExeRelativeFilepath(assetRelativeFilepath), &meshHandles, &meshTransforms))
-    //    return false;
     if (!internal::ImportMeshAsset(assetRelativeFilepath, &meshHandles, &meshTransforms))
         return false;
 

@@ -547,7 +547,7 @@ void ScenePool::SaveWhichScenesOpened()
 		return;
 
 	//Serializer serializer{ SceneHelper::GetOpenScenesJsonPath() };
-	Serializer serializer{ Filepaths::scenesSave + "/openScenes.json" }; //For writing, we want the physical path instead of virtual
+	Serializer serializer{ Filepaths::scenesSave + "/openScenes.json" }; //For the Serializer class, we use the physical path instead of virtual
 	serializer.StartArray("scenes");
 
 	for (const auto& scenePair : loadedScenes)

@@ -32,7 +32,7 @@ public:
 
 #ifndef GLFW
 private:
-    Resource::ProcessedTexture ManualLoadTexture(const std::filesystem::path& filepath);
+    Resource::ProcessedTexture ManualLoadTexture(const std::string& filepath);
 #endif
 
 };
