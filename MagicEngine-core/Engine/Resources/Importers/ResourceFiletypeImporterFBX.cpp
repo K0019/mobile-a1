@@ -218,21 +218,24 @@ bool ResourceFiletypeImporterFBX::Import([[maybe_unused]] const std::string& ass
     // Delegate importing of the created files to their respective importers
     for (const auto& path : result.createdMeshFiles)
     {
-        std::string virtualPath = std::filesystem::relative(path, Filepaths::assets).generic_string();
-        std::transform(virtualPath.begin(), virtualPath.end(), virtualPath.begin(), ::tolower);
-        ResourceImporter::Import(virtualPath);
+        //std::string virtualPath = std::filesystem::relative(path, Filepaths::assets).generic_string();
+        //std::transform(virtualPath.begin(), virtualPath.end(), virtualPath.begin(), ::tolower);
+        //ResourceImporter::Import(virtualPath);
+        ResourceImporter::Import(path.generic_string());
     }
     for (const auto& path : result.createdTextureFiles)
     {
-        std::string virtualPath = std::filesystem::relative(path, Filepaths::assets).generic_string();
-        std::transform(virtualPath.begin(), virtualPath.end(), virtualPath.begin(), ::tolower);
-        ResourceImporter::Import(virtualPath);
+        //std::string virtualPath = std::filesystem::relative(path, Filepaths::assets).generic_string();
+        //std::transform(virtualPath.begin(), virtualPath.end(), virtualPath.begin(), ::tolower);
+        //ResourceImporter::Import(virtualPath);
+        ResourceImporter::Import(path.generic_string());
     }
     for (const auto& path : result.createdMaterialFiles)
     {
-        std::string virtualPath = std::filesystem::relative(path, Filepaths::assets).generic_string();
-        std::transform(virtualPath.begin(), virtualPath.end(), virtualPath.begin(), ::tolower);
-        ResourceImporter::Import(virtualPath);
+        //std::string virtualPath = std::filesystem::relative(path, Filepaths::assets).generic_string();
+        //std::transform(virtualPath.begin(), virtualPath.end(), virtualPath.begin(), ::tolower);
+        //ResourceImporter::Import(virtualPath);
+        ResourceImporter::Import(path.generic_string());
     }
     return true;
 #else
