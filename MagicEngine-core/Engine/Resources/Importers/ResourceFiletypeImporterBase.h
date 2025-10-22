@@ -20,7 +20,7 @@ All rights reserved.
 /******************************************************************************/
 
 #pragma once
-#include "VFS/vfs.h"
+#include "VFS/VFS.h"
 #include "Engine/Resources/ResourceFilepaths.h"
 #include "Engine/Resources/ResourceManager.h"
 
