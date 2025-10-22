@@ -23,6 +23,7 @@ All rights reserved.
 /******************************************************************************/
 #include "Game/PlayerCharacter.h"
 #include "Physics/Physics.h"
+#include "Engine/Input.h"
 
 PlayerMovementComponent::PlayerMovementComponent()
 	: cameraEntity{ nullptr }
@@ -56,7 +57,18 @@ void PlayerMovementComponentSystem::UpdatePlayerMovementComponent(PlayerMovement
 		comp.playerEntity = ecs::GetEntity(&comp);
 
 	ecs::CompHandle<physics::PhysicsComp> physicsComp = comp.playerEntity->GetComp<physics::PhysicsComp>();
+	Vec2 movement( 0.0f,0.0f );
+	auto inputInstance = ST<KeyboardMouseInput>::Get();
+	if (inputInstance->GetIsDown(KEY::W))
+		movement.y += 1.0f;
+	if (inputInstance->GetIsDown(KEY::S))
+		movement.y -= 1.0f;
+	if (inputInstance->GetIsDown(KEY::D))
+		movement.x += 1.0f;
+	if (inputInstance->GetIsDown(KEY::A))
+		movement.x -= 1.0f;
 
+	physicsComp->SetLinearVelocity(Vec3{ movement.x,0.0f,movement.y });
 	//physicsComp.
 
 	
