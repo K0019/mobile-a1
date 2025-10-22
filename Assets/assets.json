@@ -1,13 +1,55 @@
 {
     "files": [
         {
-            "filepath": "CompiledAssets\\box.mesh",
+            "filepath": "compiledassets/unitbox.mesh",
             "resources": [
                 {
                     "resourceType": 7953536019925557911,
                     "resourceEntries": [
                         {
-                            "hash": 13867040743873860,
+                            "hash": 78460050512333958,
+                            "name": "unitbox0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "Sounds/Gylia Shanty (Cinfras County).mp3",
+            "resources": [
+                {
+                    "resourceType": 13608648403210648424,
+                    "resourceEntries": [
+                        {
+                            "hash": 80998822861036530,
+                            "name": "gylia shanty (cinfras county)0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/materials/material.material",
+            "resources": [
+                {
+                    "resourceType": 9642906986363137133,
+                    "resourceEntries": [
+                        {
+                            "hash": 84893293046451336,
+                            "name": "material0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/box.mesh",
+            "resources": [
+                {
+                    "resourceType": 7953536019925557911,
+                    "resourceEntries": [
+                        {
+                            "hash": 89593705255246094,
                             "name": "box0"
                         }
                     ]
@@ -15,13 +57,13 @@
             ]
         },
         {
-            "filepath": "CompiledAssets\\materials\\colormap.material",
+            "filepath": "compiledassets/materials/colormap.material",
             "resources": [
                 {
                     "resourceType": 9642906986363137133,
                     "resourceEntries": [
                         {
-                            "hash": 19207368719981903,
+                            "hash": 95291374510381336,
                             "name": "colormap0"
                         }
                     ]
@@ -29,55 +71,13 @@
             ]
         },
         {
-            "filepath": "Sounds\\Gylia Shanty (Cinfras County).mp3",
-            "resources": [
-                {
-                    "resourceType": 13608648403210648424,
-                    "resourceEntries": [
-                        {
-                            "hash": 24791788278831619,
-                            "name": "Gylia Shanty (Cinfras County)0"
-                        }
-                    ]
-                }
-            ]
-        },
-        {
-            "filepath": "CompiledAssets\\unitBox.mesh",
-            "resources": [
-                {
-                    "resourceType": 7953536019925557911,
-                    "resourceEntries": [
-                        {
-                            "hash": 21084235054651615,
-                            "name": "unitBox0"
-                        }
-                    ]
-                }
-            ]
-        },
-        {
-            "filepath": "CompiledAssets\\materials\\Material.material",
-            "resources": [
-                {
-                    "resourceType": 9642906986363137133,
-                    "resourceEntries": [
-                        {
-                            "hash": 23643898124114146,
-                            "name": "Material0"
-                        }
-                    ]
-                }
-            ]
-        },
-        {
-            "filepath": "CompiledAssets\\textures\\colormap.ktx2",
+            "filepath": "compiledassets/textures/colormap.ktx2",
             "resources": [
                 {
                     "resourceType": 13960108920292451446,
                     "resourceEntries": [
                         {
-                            "hash": 23431692402752494,
+                            "hash": 94431556417460502,
                             "name": "colormap0"
                         }
                     ]
