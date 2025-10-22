@@ -168,9 +168,9 @@ void GameCameraControllerSystem::UpdateGameCameraController(GameCameraController
 	float verticalFactor = sin(math::ToRadians(-pitch));
 	float horizontalFactor = cos(math::ToRadians(-pitch));
 	Vec3 calculatedCameraDirection = Vec3(
-		horizontalFactor * cos(math::ToRadians(-yaw+90)),
+		horizontalFactor * cos(math::ToRadians(-yaw + 90)),
 		verticalFactor,
-		horizontalFactor * sin(math::ToRadians(-yaw+90))
+		horizontalFactor * sin(math::ToRadians(-yaw + 90))
 	);
 
 
@@ -184,8 +184,19 @@ void GameCameraControllerSystem::UpdateGameCameraController(GameCameraController
 	rot.z = (rotMatrix[1][0] - rotMatrix[0][1]) / sqrt(pow(rotMatrix[2][1] - rotMatrix[1][2], 2) + pow(rotMatrix[0][2] - rotMatrix[2][0], 2) + pow(rotMatrix[1][0] - rotMatrix[0][1], 2));
 
 	//compEntity->GetTransform().SetWorldRotation(rot*math::ToDegrees(1));
-	comp.cameraEntity->GetTransform().SetWorldRotation(Vec3(0, yaw, 0));
-	compEntity->GetTransform().SetLocalRotation(Vec3(pitch, 0, 0));
+	//comp.cameraEntity->GetTransform().SetWorldRotation(Vec3(0, yaw, 0));
+	//Vec3 childRot = Vec3(
+	//	pitch * sin(math::ToRadians(yaw)),
+	//	yaw + 90,
+	//	pitch * sin(math::ToRadians(yaw)));
+	//compEntity->GetTransform().SetLocalRotation(childRot);
+	Vec3 currRot = compEntity->GetTransform().GetWorldRotation();
+	currRot.y = yaw+90;
+
+	compEntity->GetTransform().SetWorldRotation(currRot);
+	//compEntity->GetTransform().SetLocalRotation({ 0 });
+	//compEntity->GetTransform().AddWorldRotation({ 0,0,pitch });
+	//compEntity->GetTransform().AddWorldRotation({ 0,yaw,0 });
 
 	comp.cameraEntity->GetTransform().SetWorldPosition(comp.playerEntity->GetTransform().GetWorldPosition() - calculatedCameraDirection * 10.0f);
 }
