@@ -44,23 +44,23 @@ public class CameraController : ComponentBase
 	public float cameraYaw;
 	public float cameraAutoZoomSpeed = 5f;
 
-	public float targetCameraDistance;
+	public float targetCameraDistance = 5;
 	public float currentCameraDistance;
 	public vec3 offsetPosition = new vec3(0.5f, 1.2f, 0);
 
 	// This method is called once per frame
 	void Update(float dt)
 	{
-		focusedObject = GameObject.Find("Player");
+		focusedObject = GameObject.Find("Floor");
 		if (focusedObject == gameObject) return;
 		if (focusedObject == null)
 		{
-			//Debug.Log("No focused object!");
+			Debug.Log("No focused object!");
 			return;
 		}
 		else
 		{
-			//Debug.Log("Attached to Ambulance!");
+			Debug.Log("Attached to Floor!");
 		}
 
 		// Normal camera movement (including lerp if returning)
@@ -75,7 +75,7 @@ public class CameraController : ComponentBase
 		//if (cameraLock.triggered) CameraLock();
 
 		// Read input
-		vec2 cameraMovement = new vec2(dt*15, 0.0f);// * cameraSensitivityMultiplier;
+		vec2 cameraMovement = new vec2(dt, 0.0f);// * cameraSensitivityMultiplier;
 		//vec2 cameraMovement = moveAction.ReadValue<vec2>() * cameraSensitivityMultiplier;
 		//
 		//
