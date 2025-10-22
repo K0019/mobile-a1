@@ -40,8 +40,9 @@ namespace physics {
 
 	void PhysicsComp::OnAttached()
 	{
-		if (auto bodyCompPtr{ ecs::GetEntity(this)->GetComp<JoltBodyComp>() })
+		if (ecs::GetEntity(this)->GetComp<BoxColliderComp>())
 		{
+			auto bodyCompPtr{ ecs::GetEntity(this)->GetComp<JoltBodyComp>() };
 			JPH::EMotionType motion{ GetFlag(PHYSICS_COMP_FLAG::IS_KINEMATIC) ? JPH::EMotionType::Kinematic : JPH::EMotionType::Dynamic };
 			bodyCompPtr->SetCollisionLayer(Layers::MOVING);
 			bodyCompPtr->SetMotionType(motion);
@@ -134,8 +135,6 @@ namespace physics {
 
 	bool PhysicsSystem::PreRun()
 	{
-		// TODO: This is kinda inefficient, if 500 boxes are physics enabled, we're gonna be doing 1000 iterations and 500 lookups just to update 500 times
-		// Fixed by combining the physics component and collider component into jolt body component.
 		for (auto compIter{ ecs::GetCompsActiveBegin<JoltBodyComp>() }, endIter{ ecs::GetCompsEnd<JoltBodyComp>() }; compIter != endIter; ++compIter)
 			compIter->UpdateBody();
 

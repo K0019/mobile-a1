@@ -111,8 +111,9 @@ namespace physics {
 	{
 		//If the entity has the physics component, get the body pointer of the physics component.
 		//If not, create a body.
-		if (auto bodyCompPtr{ ecs::GetEntity(this)->GetComp<JoltBodyComp>() })
+		if (ecs::GetEntity(this)->HasComp<PhysicsComp>())
 		{
+			auto bodyCompPtr{ ecs::GetEntity(this)->GetComp<JoltBodyComp>() };
 			bodyCompPtr->SetShapeType(ShapeType::BOX);
 			bodyCompPtr->SetCollisionLayer(Layers::MOVING);
 		}
