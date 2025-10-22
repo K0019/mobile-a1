@@ -34,38 +34,40 @@ namespace physics {
 	PhysicsComp::PhysicsComp()
 		: flags{ (1 << +(PHYSICS_COMP_FLAG::IS_KINEMATIC)) +
 				 (1 << +(PHYSICS_COMP_FLAG::USE_GRAVITY)) }
-		, bodyID {}
+		, linearVel{}
 	{
 	}
 
 	void PhysicsComp::OnAttached()
 	{
-		if (auto boxColliderComp{ ecs::GetEntity(this)->GetComp<BoxColliderComp>() })
+		if (ecs::GetEntity(this)->GetComp<BoxColliderComp>())
 		{
-			bodyID = boxColliderComp->GetBodyID();
-			JPH::EMotionType motionType{ GetFlag(PHYSICS_COMP_FLAG::IS_KINEMATIC) ? JPH::EMotionType::Kinematic : JPH::EMotionType::Dynamic };
-			ST<JoltPhysics>::Get()->GetBodyInterface().SetMotionType(bodyID, motionType, JPH::EActivation::Activate);
-			ST<JoltPhysics>::Get()->GetBodyInterface().SetObjectLayer(bodyID, +Layers::MOVING);
+			auto bodyCompPtr{ ecs::GetEntity(this)->GetComp<JoltBodyComp>() };
+			JPH::EMotionType motion{ GetFlag(PHYSICS_COMP_FLAG::IS_KINEMATIC) ? JPH::EMotionType::Kinematic : JPH::EMotionType::Dynamic };
+			bodyCompPtr->SetCollisionLayer(Layers::MOVING);
+			bodyCompPtr->SetMotionType(motion);
 		}
 		else
-			bodyID = ST<JoltPhysics>::Get()->CreateAndAddEmptyBody(ecs::GetEntityTransform(this), JPH::EMotionType::Dynamic, +Layers::MOVING);
-
-		if (bodyID.IsInvalid())
-			CONSOLE_LOG(LEVEL_ERROR) << "Invalid Body ID generated while creating the Physics component";
+		{
+			JPH::EMotionType motion{ GetFlag(PHYSICS_COMP_FLAG::IS_KINEMATIC) ? JPH::EMotionType::Kinematic : JPH::EMotionType::Dynamic };
+			ecs::GetEntity(this)->AddCompNow<JoltBodyComp>(JoltBodyComp{motion, ShapeType::EMPTY, Layers::NON_COLLIDABLE});
+		}
 	}
 
 	void PhysicsComp::OnDetached()
 	{
+		if (!ecs::GetEntity(this)->HasComp<JoltBodyComp>())
+			return;
+
 		//If the entity doens't have a collider component, destroy the body from the body interface.
 		if (!ecs::GetEntity(this)->HasComp<BoxColliderComp>())
-			ST<JoltPhysics>::Get()->RemoveAndDestroyBody(bodyID);
+			ecs::GetEntity(this)->RemoveCompNow<JoltBodyComp>();
 		else
-			ST<JoltPhysics>::Get()->GetBodyInterface().SetMotionType(bodyID, JPH::EMotionType::Static, JPH::EActivation::Activate);
-	}
-
-	JPH::BodyID PhysicsComp::GetBodyID() const
-	{
-		return bodyID;
+		{
+			JoltBodyComp* bodyCompPtr{ ecs::GetEntity(this)->GetComp<JoltBodyComp>() };
+			bodyCompPtr->SetMotionType(JPH::EMotionType::Static);
+			bodyCompPtr->SetCollisionLayer(Layers::NON_MOVING);
+		}
 	}
 
 	bool PhysicsComp::GetFlag(PHYSICS_COMP_FLAG flag) const
@@ -78,53 +80,15 @@ namespace physics {
 		flags.SetMask(flag, val);
 	}
 
-	Transform const& PhysicsComp::GetPrevTransform() const
+	const Vec3& PhysicsComp::GetLinearVelocity() const
 	{
-		return prevTransform;
+		return linearVel;
 	}
 
-	void PhysicsComp::SetPrevTransform(Transform const& transform)
+	void PhysicsComp::SetLinearVelocity(const Vec3& vel)
 	{
-		prevTransform = transform;
-	}
-
-	void PhysicsComp::UpdateJoltBody()
-	{
-		JPH::BodyInterface& bodyInterface{ ST<JoltPhysics>::Get()->GetBodyInterface() };
-
-		//Position
-		Vec3 pos{ ecs::GetEntity(this)->GetTransform().GetWorldPosition() };
-		if (pos != prevTransform.GetWorldPosition())
-		{
-			if (auto boxColliderComp{ ecs::GetEntity(this)->GetComp<BoxColliderComp>() })
-				pos += boxColliderComp->GetCenter();
-			bodyInterface.SetPosition(bodyID, JPH::Vec3{ pos.x, pos.y, pos.z }, JPH::EActivation::Activate);
-		}
-		
-		//Rotation
-		Vec3 rot{ ecs::GetEntity(this)->GetTransform().GetWorldRotation() };
-		if (rot != prevTransform.GetWorldRotation())
-		{
-			Vec3 radians{ math::ToRadians(rot.x), math::ToRadians(rot.y), math::ToRadians(rot.z) };
-			bodyInterface.SetRotation(bodyID, JPH::QuatArg{ JPH::Quat::sEulerAngles(JPH::Vec3{radians.x, radians.y, radians.z}) }, JPH::EActivation::Activate);
-		}
-	}
-
-	void PhysicsComp::UpdateTransform()
-	{
-		JPH::BodyInterface& bodyInterface{ ST<JoltPhysics>::Get()->GetBodyInterface() };
-
-		//Position
-		JPH::Vec3 pos{ bodyInterface.GetPosition(bodyID) };
-		Vec3 center{};
-		if (auto boxColliderComp{ ecs::GetEntity(this)->GetComp<BoxColliderComp>() })
-			center = boxColliderComp->GetCenter();
-		ecs::GetEntity(this)->GetTransform().SetWorldPosition(Transform::Vec{ pos.GetX() - center.x, pos.GetY() - center.y, pos.GetZ() - center.z });
-
-		//Rotation
-		JPH::Vec3 rot{ bodyInterface.GetRotation(bodyID).GetEulerAngles()};
-		Vec3 degrees{ math::ToDegrees(rot.GetX()), math::ToDegrees(rot.GetY()), math::ToDegrees(rot.GetZ()) };
-		ecs::GetEntity(this)->GetTransform().SetWorldRotation(degrees);
+		ecs::GetEntity(this)->GetComp<JoltBodyComp>()->SetLinearVelocity(vel);
+		linearVel = vel;
 	}
 
 	void PhysicsComp::EditorDraw()
@@ -135,7 +99,7 @@ namespace physics {
 			SetFlag(PHYSICS_COMP_FLAG::IS_KINEMATIC, kinematic);
 
 			//Change the motion type in jolt body.
-			ST<JoltPhysics>::Get()->GetBodyInterface().SetMotionType(bodyID, (kinematic ? JPH::EMotionType::Kinematic : JPH::EMotionType::Dynamic), JPH::EActivation::Activate);
+			ecs::GetEntity(this)->GetComp<JoltBodyComp>()->SetMotionType(kinematic ? JPH::EMotionType::Kinematic : JPH::EMotionType::Dynamic);
 		}
 
 		bool gravity = GetFlag(PHYSICS_COMP_FLAG::USE_GRAVITY);
@@ -144,18 +108,22 @@ namespace physics {
 			SetFlag(PHYSICS_COMP_FLAG::USE_GRAVITY, gravity);
 
 			//Change the gravity factor in jolt body.
-			ST<JoltPhysics>::Get()->GetBodyInterface().SetGravityFactor(bodyID, (GetFlag(PHYSICS_COMP_FLAG::USE_GRAVITY) ? 1.f : 0.f));
+			ecs::GetEntity(this)->GetComp<JoltBodyComp>()->SetGravityFactor(gravity ? 1.f : 0.f);
 		}
 	}
 
 	void PhysicsComp::Serialize(Serializer& writer) const
 	{
+		ISerializeable::Serialize(writer);
 		flags.MaskSerialize(writer, "flags", physicsFlagNames);
 	}
 
 	void PhysicsComp::Deserialize(Deserializer& reader)
 	{
+		ISerializeable::Deserialize(reader);
 		flags.MaskDeserialize(reader, "flags", physicsFlagNames);
+		ecs::GetEntity(this)->GetComp<JoltBodyComp>()->SetMotionType(GetFlag(PHYSICS_COMP_FLAG::IS_KINEMATIC) ? JPH::EMotionType::Kinematic : JPH::EMotionType::Dynamic);
+		ecs::GetEntity(this)->GetComp<JoltBodyComp>()->SetGravityFactor(GetFlag(PHYSICS_COMP_FLAG::USE_GRAVITY) ? 1.f : 0.f);
 	}
 
 	void PhysicsSystem::OnAdded()
@@ -167,30 +135,78 @@ namespace physics {
 
 	bool PhysicsSystem::PreRun()
 	{
-		// TODO: This is kinda inefficient, if 500 boxes are physics enabled, we're gonna be doing 1000 iterations and 500 lookups just to update 500 times
-		
-		// In case the body's transform was changed during the stimulation using the inspector menu.
-		for (auto compIter{ ecs::GetCompsActiveBegin<PhysicsComp>() }, endIter{ ecs::GetCompsEnd<PhysicsComp>() }; compIter != endIter; ++compIter)
-			compIter->UpdateJoltBody();
-
-		for (auto compIter{ ecs::GetCompsActiveBegin<BoxColliderComp>() }, endIter{ ecs::GetCompsEnd<BoxColliderComp>() }; compIter != endIter; ++compIter)
-			if (!compIter.GetEntity()->HasComp<PhysicsComp>())
-				compIter->UpdateJoltBody();
+		for (auto compIter{ ecs::GetCompsActiveBegin<JoltBodyComp>() }, endIter{ ecs::GetCompsEnd<JoltBodyComp>() }; compIter != endIter; ++compIter)
+			compIter->UpdateBody();
 
 		// Update all the bodies.
 		ST<JoltPhysics>::Get()->UpdatePhysicsSystem();
 
-		// Update each entity based on the physics system update.
-		for (auto compIter{ ecs::GetCompsActiveBegin<PhysicsComp>() }, endIter{ ecs::GetCompsEnd<PhysicsComp>() }; compIter != endIter; ++compIter)
-		{
-			compIter->UpdateTransform();
-			compIter->SetPrevTransform(compIter.GetEntity()->GetTransform());
-		}
-
-		for (auto compIter{ ecs::GetCompsActiveBegin<BoxColliderComp>() }, endIter{ ecs::GetCompsEnd<BoxColliderComp>() }; compIter != endIter; ++compIter)
-			if (!compIter.GetEntity()->HasComp<PhysicsComp>())
-				compIter->SetPrevTransform(compIter.GetEntity()->GetTransform());
+		for (auto compIter{ ecs::GetCompsActiveBegin<JoltBodyComp>() }, endIter{ ecs::GetCompsEnd<JoltBodyComp>() }; compIter != endIter; ++compIter)
+			compIter->UpdateEntity();
 
 		return true;
+	}
+
+	bool OverlapSphere(std::vector<BoxColliderComp*>& outColliders, const Vec3& origin, float radius, EntityLayersMask layers)
+	{
+		bool result{false};
+		JPH::Float3 center{ origin.x, origin.y, origin.z };
+		JPH::Sphere sphere{ center, radius };
+
+		for (auto compIter{ ecs::GetCompsActiveBegin<BoxColliderComp>() }, endIter{ ecs::GetCompsEnd<BoxColliderComp>() }; compIter != endIter; ++compIter)
+		{
+			if (!layers.TestMaskAll())
+			{
+				if (auto layerComp{ compIter.GetEntity()->GetComp<EntityLayerComponent>() })
+					if (!layers.TestMask(layerComp->GetLayer()))
+						continue;
+				else 
+					continue;
+			}
+
+			Vec3 pos{ compIter.GetEntity()->GetComp<JoltBodyComp>()->GetPosition() };
+			Vec3 scale{ compIter.GetEntity()->GetComp<JoltBodyComp>()->GetScale() / 2.f};
+			Vec3 min{ pos - scale }, max{ pos + scale };
+			JPH::AABox colliderAABB{ JPH::Vec3{min.x, min.y, min.z}, JPH::Vec3{max.x, max.y, max.z} };
+			if (sphere.Overlaps(colliderAABB))
+			{
+				result = true;
+				outColliders.push_back(compIter.GetCompHandle());
+			}
+		}
+
+		return result;
+	}
+
+	bool OverlapBox(std::vector<BoxColliderComp*>& outColliders, const Vec3& origin, const Vec3& halfExtent, const Vec3& orientation, EntityLayersMask layers)
+	{
+		bool result{ false };
+		Vec3 boxMin{ origin - halfExtent }, boxMax{ origin + halfExtent };
+		JPH::AABox box{ JPH::Vec3{boxMin.x, boxMin.y, boxMin.z}, JPH::Vec3{boxMax.x, boxMax.y, boxMax.z} };
+
+		for (auto compIter{ ecs::GetCompsActiveBegin<BoxColliderComp>() }, endIter{ ecs::GetCompsEnd<BoxColliderComp>() }; compIter != endIter; ++compIter)
+		{
+			if (!layers.TestMaskAll())
+			{
+				if (auto layerComp{ compIter.GetEntity()->GetComp<EntityLayerComponent>() })
+					if (!layers.TestMask(layerComp->GetLayer()))
+						continue;
+					else
+						continue;
+			}
+
+			Vec3 pos{ compIter.GetEntity()->GetComp<JoltBodyComp>()->GetPosition() };
+			Vec3 scale{ compIter.GetEntity()->GetComp<JoltBodyComp>()->GetScale() / 2.f };
+			Vec3 rot{ compIter.GetEntity()->GetComp<JoltBodyComp>()->GetRotation() };
+			Vec3 min{ pos - scale }, max{ pos + scale };
+			JPH::AABox colliderAABB{ JPH::Vec3{min.x, min.y, min.z}, JPH::Vec3{max.x, max.y, max.z} };
+			if (box.Overlaps(colliderAABB))
+			{
+				result = true;
+				outColliders.push_back(compIter.GetCompHandle());
+			}
+		}
+
+		return result;
 	}
 }
