@@ -88,7 +88,7 @@ Resource::ProcessedTexture ResourceFiletypeImporterKTX::ManualLoadTexture(const 
 
     if (ktxTex->classId != class_id::ktxTexture2_c)
     {
-        CONSOLE_LOG(LEVEL_ERROR) << "File " << filepath.string() << "is not a KTX2 file. Found KTX1 instead.";
+        CONSOLE_LOG(LEVEL_ERROR) << "File " << filepath << "is not a KTX2 file. Found KTX1 instead.";
         ktxTexture_Destroy(ktxTexture(ktxTex));
         return texture;
     }
