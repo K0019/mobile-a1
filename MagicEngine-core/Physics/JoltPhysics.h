@@ -173,6 +173,16 @@ namespace physics {
 		*//******************************************************************/
 		JoltBodyComp();
 
+		/*****************************************************************//*!
+		\brief
+			Constructor.
+		\param motion
+			motion type to set.
+		\param shape
+			shape type to set.
+		\param layer
+			collision layer to set.
+		*//******************************************************************/
 		JoltBodyComp(JPH::EMotionType motion, ShapeType shape, Layers layer);
 
 	private:
@@ -191,26 +201,152 @@ namespace physics {
 		void OnAttached() override;
 		void OnDetached() override;
 
+		/*****************************************************************//*!
+		\brief
+			Get the body ID of the body.
+		\return
+			body ID value.
+		*//******************************************************************/
 		JPH::BodyID GetBodyID() const;
+
+		/*****************************************************************//*!
+		\brief
+			Get the motion type of the body. DYNAMIC, KINEMATIC, STATIC
+		\return
+			motion type value.
+		*//******************************************************************/
 		JPH::EMotionType GetMotionType() const;
+
+		/*****************************************************************//*!
+		\brief
+			Get the shape type of the body. BOX, EMPTY
+		\return
+			shape type value.
+		*//******************************************************************/
 		ShapeType GetShapeType() const;
+
+		/*****************************************************************//*!
+		\brief
+			Get the collision layer of the body. NON_MOVING, MOVING, NON_COLLIDABLE
+		\return
+			collision layer value.
+		*//******************************************************************/
 		Layers GetCollisionLayer() const;
+
+		/*****************************************************************//*!
+		\brief
+			Get the previous transform of the entity.
+		\return
+			previous transform value.
+		*//******************************************************************/
 		const Transform& GetPrevTrans() const;
+
+		/*****************************************************************//*!
+		\brief
+			Get the position of the body.
+		\return
+			position value.
+		*//******************************************************************/
 		Vec3 GetPosition() const;
+
+		/*****************************************************************//*!
+		\brief
+			Get the scale of the body.
+		\return
+			scale value.
+		*//******************************************************************/
 		Vec3 GetScale() const;
+
+		/*****************************************************************//*!
+		\brief
+			Get the rotation of the body.
+		\return
+			rotation value.
+		*//******************************************************************/
 		Vec3 GetRotation() const;
 
+		/*****************************************************************//*!
+		\brief
+			Set the motion type of the body. DYNAMIC, KINEMATIC, STATIC
+		\param type
+			motion type value.
+		*//******************************************************************/
 		void SetMotionType(JPH::EMotionType type);
+
+		/*****************************************************************//*!
+		\brief
+			Set the shape type of the body. BOX, EMPTY
+		\param type
+			shape type value.
+		*//******************************************************************/
 		void SetShapeType(ShapeType type);
+
+		/*****************************************************************//*!
+		\brief
+			Set the collision layer of the body. NON_MOVING, MOVING, NON_COLLIDABLE
+		\param layer
+			collision layer value.
+		*//******************************************************************/
 		void SetCollisionLayer(Layers layer);
+
+		/*****************************************************************//*!
+		\brief
+			Set the gravity factor of the body.
+		\param gravity
+			gravity factor value.
+		*//******************************************************************/
 		void SetGravityFactor(float gravity);
+
+		/*****************************************************************//*!
+		\brief
+			Set the position of the body.
+		\param pos
+			position value.
+		*//******************************************************************/
 		void SetPosition(const Vec3& pos);
+
+		/*****************************************************************//*!
+		\brief
+			Set the rotation of the body.
+		\param rot
+			rotation value.
+		*//******************************************************************/
 		void SetRotation(const Vec3& rot);
+
+		/*****************************************************************//*!
+		\brief
+			Set the scale of the body.
+		\param rot
+			scale value.
+		*//******************************************************************/
 		void SetScale(const Vec3& scale);
+
+		/*****************************************************************//*!
+		\brief
+			Set the previous transform of the entity.
+		\param trans
+			previous transform value.
+		*//******************************************************************/
 		void SetPrevTrans(const Transform& trans);
+
+		/*****************************************************************//*!
+		\brief
+			Set the linear velocity of the body.
+		\param vel
+			linear velocity value.
+		*//******************************************************************/
 		void SetLinearVelocity(const Vec3& vel);
 
+		/*****************************************************************//*!
+		\brief
+			Update the jolt body before the physics update..
+		*//******************************************************************/
 		void UpdateBody();
+
+		/*****************************************************************//*!
+		\brief
+			Update the entity's transform after the physics update.
+		*//******************************************************************/
 		void UpdateEntity();
 	};
 

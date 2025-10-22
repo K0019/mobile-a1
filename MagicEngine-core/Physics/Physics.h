@@ -147,7 +147,38 @@ X(USE_GRAVITY, "Use Gravity")
 		bool PreRun() override;
 	};
 
+	/*****************************************************************//*!
+	\brief
+		Check if there's colliders that overlap the given sphere.
+	\param outColliders
+		out param to store all the pointers of the colliders that overlaped.
+	\param origin
+		center of the sphere.
+	\param radius
+		radius of the sphere.
+	\param layers
+		entity layers to check overlap. By default, it checks all the layers.
+	\return
+		true if there is an overlap. False if not.
+	*//******************************************************************/
 	bool OverlapSphere(std::vector<BoxColliderComp*>& outColliders, const Vec3& origin, float radius, EntityLayersMask layers = EntityLayersMask{});
+
+	/*****************************************************************//*!
+	\brief
+		Check if there's colliders that overlap the given box.
+	\param outColliders
+		out param to store all the pointers of the colliders that overlaped.
+	\param origin
+		center of the box.
+	\param halfExtent
+		half of the scale of the box.
+	\param orientation
+		rotation of the box. **Currently not working**
+	\param layers
+		entity layers to check overlap. By default, it checks all the layers.
+	\return
+		true if there is an overlap. False if not.
+	*//******************************************************************/
 	bool OverlapBox(std::vector<BoxColliderComp*>& outColliders, const Vec3& origin, const Vec3& halfExtent, const Vec3& orientation = Vec3{}, EntityLayersMask layers = EntityLayersMask{});
 } 
 property_begin(physics::PhysicsComp)
