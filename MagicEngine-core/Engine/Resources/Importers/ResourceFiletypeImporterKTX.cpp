@@ -23,7 +23,7 @@ All rights reserved.
 
 #include "Engine/Graphics Interface/GraphicsAPI.h"
 #include "resource/resource_types.h"
-#ifndef GLFW
+#ifdef GLFW
 #include "tools/assets/io/texture_loader.h"
 #else
 #include "ktx.h"
@@ -32,7 +32,7 @@ All rights reserved.
 
 bool ResourceFiletypeImporterKTX::Import(const std::filesystem::path& assetRelativeFilepath)
 {
-#ifndef GLFW
+#ifdef GLFW
 	// Load the file
 	FilePathSource filepathSource{ GetExeRelativeFilepath(assetRelativeFilepath) };
 	Resource::LoadingConfig config{ Resource::LoadingConfig::createBalanced() };
@@ -58,7 +58,7 @@ bool ResourceFiletypeImporterKTX::Import(const std::filesystem::path& assetRelat
 	return true;
 }
 
-#ifdef GLFW
+#ifndef GLFW
 Resource::ProcessedTexture ResourceFiletypeImporterKTX::ManualLoadTexture(const std::filesystem::path& filepath)
 {
 	// This is hardcoded af to make android work for now. For this, we're only supporting ktx2.

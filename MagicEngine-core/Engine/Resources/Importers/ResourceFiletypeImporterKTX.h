@@ -26,7 +26,7 @@ class ResourceFiletypeImporterKTX : public ResourceFiletypeImporterBase
 public:
     virtual bool Import(const std::filesystem::path& assetRelativeFilepath) final;
 
-#ifdef GLFW
+#ifndef GLFW
 private:
     Resource::ProcessedTexture ManualLoadTexture(const std::filesystem::path& filepath);
 #endif
