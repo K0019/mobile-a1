@@ -200,7 +200,6 @@ void MagicEngine::ExecuteFrame(FrameData& frameData)
 	if(GameTime::RealNumFixedFrames())
 	{
 		ST<MagicInput>::Get()->NewFrame();
-		glfwPollEvents();
 		//GamepadInput::PollInput();
 	}
 

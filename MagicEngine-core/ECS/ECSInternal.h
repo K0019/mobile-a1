@@ -1262,7 +1262,7 @@ namespace ecs {
 				\return
 					A handle to the component.
 				*//******************************************************************/
-				InternalCompHandle<CompType> GetComp();
+				InternalCompHandle<CompType> GetCompHandle();
 
 				/*****************************************************************//*!
 				\brief
@@ -1328,9 +1328,14 @@ namespace ecs {
 				\return
 					A temporary of this iterator incremented/decremented by the specified number of times.
 				*//******************************************************************/
+#ifdef GLFW // MSVC prefers this version for some reason
 				template <typename CompType_T, typename EntityHandleType_T, typename ValueType_T>
 				friend iterator_blueprint<CompType_T, EntityHandleType_T, ValueType_T> operator+(
 					const iterator_blueprint<CompType_T, EntityHandleType_T, ValueType_T>& iter, int offset);
+#else
+				friend iterator_blueprint<CompType, EntityHandleType, ValueType> operator+(
+					const iterator_blueprint<CompType, EntityHandleType, ValueType>& iter, int offset);
+#endif
 
 				/*****************************************************************//*!
 				\brief
@@ -1348,10 +1353,16 @@ namespace ecs {
 				\return
 					The difference between the iterators.
 				*//******************************************************************/
+#ifdef GLFW
 				template <typename CompType_T, typename EntityHandleType_T, typename ValueType_T>
 				friend difference_type operator-(
 					const iterator_blueprint<CompType_T, EntityHandleType_T, ValueType_T>& a,
 					const iterator_blueprint<CompType_T, EntityHandleType_T, ValueType_T>& b);
+#else
+				friend difference_type operator-(
+					const iterator_blueprint<CompType, EntityHandleType, ValueType>& a,
+					const iterator_blueprint<CompType, EntityHandleType, ValueType>& b);
+#endif
 
 				/*****************************************************************//*!
 				\brief
@@ -1369,10 +1380,16 @@ namespace ecs {
 				\return
 					True if both iterators point to the same component within this CompArr. False otherwise.
 				*//******************************************************************/
+#ifdef GLFW
 				template <typename CompType_T, typename EntityHandleType_T, typename ValueType_T>
 				friend bool operator==(
 					const iterator_blueprint<CompType_T, EntityHandleType_T, ValueType_T>& a,
 					const iterator_blueprint<CompType_T, EntityHandleType_T, ValueType_T>& b);
+#else
+				friend bool operator==(
+					const iterator_blueprint<CompType, EntityHandleType, ValueType>& a,
+					const iterator_blueprint<CompType, EntityHandleType, ValueType>& b);
+#endif
 
 				/*****************************************************************//*!
 				\brief
@@ -1390,10 +1407,16 @@ namespace ecs {
 				\return
 					True if both iterators do not point to the same component within this CompArr. False otherwise.
 				*//******************************************************************/
+#ifdef GLFW
 				template <typename CompType_T, typename EntityHandleType_T, typename ValueType_T>
 				friend bool operator!=(
 					const iterator_blueprint<CompType_T, EntityHandleType_T, ValueType_T>& a,
 					const iterator_blueprint<CompType_T, EntityHandleType_T, ValueType_T>& b);
+#else
+				friend bool operator!=(
+					const iterator_blueprint<CompType, EntityHandleType, ValueType>& a,
+					const iterator_blueprint<CompType, EntityHandleType, ValueType>& b);
+#endif
 
 			private:
 				//! The pointer to the entity that owns the component that we're pointing to.

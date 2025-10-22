@@ -31,7 +31,9 @@ All rights reserved.
 #include "ECS/EntityUID.h"
 #include "FilepathConstants.h"
 
+#ifdef GLFW
 #include <Windows.h>
+#endif
 
 namespace CSharpScripts
 {
@@ -522,15 +524,15 @@ namespace CSharpScripts
 			// 
 			for (auto ite = ecs::GetCompsBegin<ScriptComponent>(); ite != ecs::GetCompsEnd<ScriptComponent>(); ++ite)
 			{
-				ite.GetComp()->SaveVariables();
-				ite.GetComp()->RemoveAllScripts();
+				ite.GetCompHandle()->SaveVariables();
+				ite.GetCompHandle()->RemoveAllScripts();
 			}
 
 			// After reloading all the scripts load the variables into them
 			for (auto ite = ecs::GetCompsBegin<ScriptComponent>(); ite != ecs::GetCompsEnd<ScriptComponent>(); ++ite)
 			{
-				ite.GetComp()->ReattachAllScripts();
-				ite.GetComp()->LoadVariables();
+				ite.GetCompHandle()->ReattachAllScripts();
+				ite.GetCompHandle()->LoadVariables();
 			}
 		});
 	}
@@ -647,6 +649,7 @@ R"(<Project Sdk="Microsoft.NET.Sdk">
 
 	bool CSScripting::CompileUserAssembly()
 	{
+#ifdef GLFW
 		// Create a read/write pipe for the compilation to output to
 		HANDLE hReadPipe, hWritePipe;
 		SECURITY_ATTRIBUTES saAttr;
@@ -751,6 +754,9 @@ R"(<Project Sdk="Microsoft.NET.Sdk">
 		CleanUserAssemblyTempFiles();
 		CONSOLE_LOG(LEVEL_INFO) << "User Assembly Compilation: Successful";
 		return true;
+#else
+		return false;
+#endif
 	}
 
 	void CSScripting::CompileUserAssemblyAsync(void(*callback)())

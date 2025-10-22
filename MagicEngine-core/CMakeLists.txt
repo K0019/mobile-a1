@@ -6,16 +6,18 @@ file(GLOB_RECURSE EXTERNAL_LIBRARIES_STATIC_RELEASE "${EXTERNAL_LIBRARIES}/relea
 
 
 # Preprocessor definitions
-set(CORE_DEFINITIONS
-    $<$<CONFIG:Debug>:IMGUI_ENABLED>
-)
+
 if(NOT ANDROID)
+    set(CORE_DEFINITIONS
+        $<$<CONFIG:Debug>:IMGUI_ENABLED>
+    )
 	list(APPEND CORE_DEFINITIONS
 		GLFW
     )
 endif()
 
 # Platform-specific dependencies
+if (NOT ANDROID)
 set(CORE_PUBLIC_DEPS
     $<$<CONFIG:Debug>:${EXTERNAL_LIBRARIES_STATIC_DEBUG}>
     $<$<CONFIG:Release>:${EXTERNAL_LIBRARIES_STATIC_RELEASE}>
@@ -23,6 +25,14 @@ set(CORE_PUBLIC_DEPS
     imguizmo::imguizmo
     Jolt::Jolt
 )
+else()
+set(CORE_PUBLIC_DEPS
+    $<$<CONFIG:Debug>:${EXTERNAL_LIBRARIES_STATIC_DEBUG}>
+    $<$<CONFIG:Release>:${EXTERNAL_LIBRARIES_STATIC_RELEASE}>
+    glm::glm-header-only
+    Jolt::Jolt
+)
+endif()
 # set(CORE_PRIVATE_DEPS
 # )
 

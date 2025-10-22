@@ -72,7 +72,7 @@ private:
 		Editor draw function, draws the IMGui elements to allow the
 		component's values to be edited. Disabled when IMGui is disabled.
 	*//******************************************************************/
-	virtual void EditorDraw();
+	virtual void EditorDraw() override;
 
 	property_vtable()
 };

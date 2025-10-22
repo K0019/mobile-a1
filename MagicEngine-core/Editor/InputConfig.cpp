@@ -180,6 +180,8 @@ namespace editor {
 			break;
 			ENUM_INPUT_COMPOSITE_TYPE
 #undef X
+		default:
+			break;
 		}
 	}
 
@@ -200,6 +202,8 @@ namespace editor {
 				break;
 			ENUM_INPUT_COMPOSITE_TYPE
 #undef X
+			default:
+				break;
 			}
 
 			// Otherwise draw the action inspector
@@ -220,6 +224,8 @@ namespace editor {
 			break;
 		ENUM_INPUT_COMPOSITE_TYPE
 #undef X
+		default:
+			break;
 		}
 	}
 

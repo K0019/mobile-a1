@@ -197,7 +197,7 @@ namespace ecs {
 		}
 
 		template <typename CompType, typename EntityHandleType, typename ValueType>
-		InternalCompHandle<CompType> CompArr::iterator_blueprint<CompType, EntityHandleType, ValueType>::GetComp()
+		InternalCompHandle<CompType> CompArr::iterator_blueprint<CompType, EntityHandleType, ValueType>::GetCompHandle()
 		{
 			return reinterpret_cast<InternalCompHandle<CompType>>(ptr + CompArr::EntPtrSize);
 		}
@@ -211,7 +211,7 @@ namespace ecs {
 		template<typename CompType, typename EntityHandleType, typename ValueType>
 		bool CompArr::iterator_blueprint<CompType, EntityHandleType, ValueType>::GetIsActive() const
 		{
-			return (*reinterpret_cast<CompArr**>(ptr - CompArr::CompArrPtrSize))->GetIsCompActive(GetComp());
+			return (*reinterpret_cast<CompArr**>(ptr - CompArr::CompArrPtrSize))->GetIsCompActive(GetCompHandle());
 		}
 
 		template <typename CompType, typename EntityHandleType, typename ValueType>
@@ -345,10 +345,10 @@ namespace ecs {
 
 				// Get each required component from the entity and pass that to the function ptr
 				if constexpr (sizeof...(Args) <= 1) // With 1 or less comps, we can skip checking for and getting other comps
-					callProcessEntity(this, *reinterpret_cast<InternalCompHandle<Args>>(compIter.GetComp())...);
+					callProcessEntity(this, *reinterpret_cast<InternalCompHandle<Args>>(compIter.GetCompHandle())...);
 				else // With 2 or more comps, we'll need to get the other comps with this GetComponent() function
 					callProcessEntity(this, *reinterpret_cast<InternalCompHandle<Args>>(GetComponent(
-						compIter.GetEntity(), compArr.GetCompHash(), compIter.GetComp(), GetCompHash<Args>()
+						compIter.GetEntity(), compArr.GetCompHash(), compIter.GetCompHandle(), GetCompHash<Args>()
 					))...);
 			}
 		}
