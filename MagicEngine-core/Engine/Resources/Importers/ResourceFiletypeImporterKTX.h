@@ -21,6 +21,10 @@ All rights reserved.
 #pragma once
 #include "Engine/Resources/Importers/ResourceFiletypeImporterBase.h"
 
+namespace Resource {
+    struct ProcessedTexture;
+}
+
 class ResourceFiletypeImporterKTX : public ResourceFiletypeImporterBase
 {
 public:
