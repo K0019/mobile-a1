@@ -94,6 +94,7 @@ find_package(quill CONFIG REQUIRED)
 
 find_package(Jolt CONFIG REQUIRED)
 find_package(Stb REQUIRED)
+find_package(KTX CONFIG REQUIRED) # TODO: REMOVE THIS LINE when KTX texture loading is changed to binary file loading
 
 # ImGui dependencies (cross-platform)
 find_package(imgui CONFIG REQUIRED)
@@ -109,7 +110,7 @@ if(NOT ANDROID)
     # Tools dependencies
     find_package(assimp CONFIG REQUIRED)
     find_package(FreeImage CONFIG REQUIRED)
-    find_package(KTX CONFIG REQUIRED)
+    #find_package(KTX CONFIG REQUIRED) # TODO: UNCOMMENT THIS LINE when KTX texture loading is changed to binary file loading
     find_package(meshoptimizer CONFIG REQUIRED)
     find_package(mikktspace CONFIG REQUIRED)
 endif()

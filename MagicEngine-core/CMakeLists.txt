@@ -29,6 +29,7 @@ else()
         $<$<CONFIG:Release>:${EXTERNAL_LIBRARIES_STATIC_RELEASE}>
         glm::glm-header-only
         Jolt::Jolt
+        KTX::ktx # TODO: REMOVE THIS when KTX texture loading is changed to binary file loading
     )
 endif()
 # set(CORE_PRIVATE_DEPS
