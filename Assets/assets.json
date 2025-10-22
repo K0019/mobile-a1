@@ -43,6 +43,34 @@
             ]
         },
         {
+            "filepath": "CompiledAssets\\unitBox.mesh",
+            "resources": [
+                {
+                    "resourceType": 7953536019925557911,
+                    "resourceEntries": [
+                        {
+                            "hash": 21084235054651615,
+                            "name": "unitBox0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "CompiledAssets\\materials\\Material.material",
+            "resources": [
+                {
+                    "resourceType": 9642906986363137133,
+                    "resourceEntries": [
+                        {
+                            "hash": 23643898124114146,
+                            "name": "Material0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "CompiledAssets\\textures\\colormap.ktx2",
             "resources": [
                 {
