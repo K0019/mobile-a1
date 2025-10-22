@@ -156,6 +156,11 @@ inline constexpr Vec3::Vec3(glm::vec3&& other)
 {
 }
 
+inline Vec3::operator Vec2()
+{
+	return Vec2{ x, y };
+}
+
 inline Vec3& Vec3::operator=(const glm::vec3& other)
 {
 	static_cast<glm::vec3&>(*this) = other;
@@ -225,6 +230,16 @@ inline constexpr Vec4::Vec4(const glm::vec4& other)
 inline constexpr Vec4::Vec4(glm::vec4&& other)
 	: glm::vec4{ std::move(other) }
 {
+}
+
+inline Vec4::operator Vec2()
+{
+	return Vec2{ x, y };
+}
+
+inline Vec4::operator Vec3()
+{
+	return Vec3{ x, y, z };
 }
 
 inline Vec4& Vec4::operator=(const glm::vec4& other)

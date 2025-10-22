@@ -506,12 +506,14 @@ bool ScenePool::UnloadScene(int index, bool doCheckOrCreateDefault)
 	// If there are no scenes loaded, load the default scene.
 	// If loading default is disabled, set active scene to null.
 	if (isActiveSceneBeingUnloaded)
+	{
 		if (!loadedScenes.empty())
 			activeScene = &loadedScenes.begin()->second;
 		else if (doCheckOrCreateDefault)
 			EnsureDefaultSceneExists();
 		else
 			activeScene = nullptr;
+	}
 
 	return true;
 }
@@ -979,19 +981,6 @@ SceneIterator SceneIterator::operator++(int)
 {
 	SceneIterator copy{ *this };
 	++iter;
-	return copy;
-}
-
-SceneIterator& SceneIterator::operator--()
-{
-	--iter;
-	return *this;
-}
-
-SceneIterator SceneIterator::operator--(int)
-{
-	SceneIterator copy{ *this };
-	--iter;
 	return copy;
 }
 

@@ -200,7 +200,7 @@ template <InputSupportedValueTypes OriginalValueType>
 void InputAction<ValueType>::INTERNAL_ConvertAndSetBindings(const std::vector<InputBinding<OriginalValueType>>& originalBindings)
 {
 	std::transform(originalBindings.begin(), originalBindings.end(), std::back_inserter(bindings), [](const auto& binding) -> auto {
-		return binding.ConvertToValueType<ValueType>();
+		return binding.template ConvertToValueType<ValueType>();
 	});
 }
 

@@ -18,7 +18,7 @@ target_include_directories(ryEngine-ImGui
 )
 
 install(TARGETS ryEngine-ImGui
-    EXPORT ryEngineTargets
+    EXPORT MagicEngineTargets
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}

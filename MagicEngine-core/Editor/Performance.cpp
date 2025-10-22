@@ -23,9 +23,11 @@ All rights reserved.
 /******************************************************************************/
 
 #include "Editor/Performance.h"
+#ifdef GLFW
 #include <GLFW/glfw3.h>
 #include <Windows.h>
 #include <Psapi.h>
+#endif
 
 #ifdef max
 #undef max
@@ -34,6 +36,7 @@ All rights reserved.
 namespace
 {
     size_t GetMemoryUsage() {
+#ifdef GLFW
         PROCESS_MEMORY_COUNTERS_EX pmc;
         // Get the handle to the current process
         HANDLE process = GetCurrentProcess();
@@ -43,6 +46,7 @@ namespace
             // Return the working set size, which is the amount of memory used by the process (in bytes)
             return pmc.WorkingSetSize;
         }
+#endif
 
         return 0; // Return 0 if memory retrieval failed
     }
@@ -66,6 +70,7 @@ PerformanceProfiler::PerformanceProfiler()
 
 void PerformanceProfiler::StartFrame() {
     startFrameTime = Clock::now();
+#ifdef GLFW // TODO: Implement for android
     static float prev_time = static_cast<float>(glfwGetTime());
     const float curr_time = static_cast<float>(glfwGetTime());
     deltaTime = curr_time - prev_time;
@@ -73,6 +78,7 @@ void PerformanceProfiler::StartFrame() {
 
     for (auto& [_, duration] : systemTimes)
         duration.old = true;
+#endif
 }
 
 void PerformanceProfiler::StartProfile(const std::string& name) {

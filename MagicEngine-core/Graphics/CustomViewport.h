@@ -51,17 +51,17 @@ public:
      * @param newHeight The new height of the viewport.
      */
     void Resize(unsigned newWidth, unsigned newHeight);
+
+    /**
+     * @brief Polls input and updates the viewport camera accordingly.
+     */
+    void UpdateCameraControl();
 #ifdef IMGUI_ENABLED
     void DrawPlayControls();
     /**
      * @brief DrawImGuiWindow draws the ImGui window for the custom viewport.
      */
     void DrawImGuiWindow();
-
-    /**
-     * @brief Polls input and updates the viewport camera accordingly.
-     */
-    void UpdateCameraControl();
 
     /**
      * @brief MaintainAspectRatio is a callback function used to maintain the aspect ratio of the viewport.
@@ -117,7 +117,9 @@ private:
     Vec contentMin; /**< The minimum position of the content region. */
     Vec contentMax; /**< The maximum position of the content region. */
     Vec viewportRenderSize; /**< The render size of the viewport. */
+#ifdef IMGUI_ENABLED
     Gizmo m_gizmo;
+#endif
     CameraPositioner_FirstPerson camera;
 
 };

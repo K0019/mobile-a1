@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.18)
-
+#set(CMAKE_FIND_DEBUG_MODE ON)
 project("ryEngineAndroid")
 
 set(CMAKE_CXX_STANDARD 20)
@@ -33,6 +33,9 @@ message(STATUS "ABI subdirectory: ${ABI_SUBDIR}")
 message(STATUS "Library install path: ${LIBRARY_INSTALL_PATH}")
 message(STATUS "Looking for libraries in: ${ABI_SPECIFIC_PATH}")
 
+# Add library search path for libktx.a and other installed libraries
+link_directories("${ABI_SPECIFIC_PATH}/lib")
+
 # Check if the ABI-specific directory exists
 if(NOT EXISTS "${ABI_SPECIFIC_PATH}")
     message(FATAL_ERROR "ABI-specific directory not found: ${ABI_SPECIFIC_PATH}")
@@ -46,23 +49,22 @@ message(STATUS "Final CMAKE_PREFIX_PATH: ${CMAKE_PREFIX_PATH}")
 message(STATUS "Looking for configs in: ${ABI_SPECIFIC_PATH}/share/")
 
 # Check if the actual config file exists
-set(CONFIG_FILE "${ABI_SPECIFIC_PATH}/share/ryEngine/ryEngineConfig.cmake")
+set(CONFIG_FILE "${ABI_SPECIFIC_PATH}/share/MagicEngine/MagicEngineConfig.cmake")
 if(EXISTS "${CONFIG_FILE}")
-    message(STATUS "✓ Found ryEngine config file: ${CONFIG_FILE}")
+    message(STATUS "✓ Found MagicEngine config file: ${CONFIG_FILE}")
 else()
-    message(STATUS "✗ ryEngine config file NOT found: ${CONFIG_FILE}")
+    message(STATUS "✗ MagicEngine config file NOT found: ${CONFIG_FILE}")
     # List what's actually in the share directory
     file(GLOB SHARE_CONTENTS "${ABI_SPECIFIC_PATH}/share/*")
     message(STATUS "Contents of share directory: ${SHARE_CONTENTS}")
 endif()
 
-# Find ryEngine package
 # Set CMAKE_PREFIX_PATH so dependencies can be found
 list(REMOVE_AT CMAKE_PREFIX_PATH 0)
 list(PREPEND CMAKE_PREFIX_PATH "${ABI_SPECIFIC_PATH}")
 
 # ALSO set the explicit directory for ryEngine
-# set(ryEngine_DIR "${ABI_SPECIFIC_PATH}/share/ryEngine")
+set(magicEngine_DIR "${ABI_SPECIFIC_PATH}/share/MagicEngine")
 set(unofficial-spirv-reflect_DIR "${ABI_SPECIFIC_PATH}/share/unofficial-spirv-reflect")
 
 file(GLOB PACKAGE_DIRS "${ABI_SPECIFIC_PATH}/share/*")
@@ -73,11 +75,51 @@ foreach(PACKAGE_DIR ${PACKAGE_DIRS})
     set(${PACKAGE_VAR}_DIR ${PACKAGE_DIR})
 endforeach()
 
+# Grab FMOD
+# From android/app/src/main/cpp/ up to project root
+get_filename_component(PROJECT_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/../../../../../" ABSOLUTE)
+set(FMOD_ROOT "${PROJECT_ROOT}/extern/lib/fmodAndroid")
+set(FMOD_CORE_LOCATION "${FMOD_ROOT}/${ANDROID_ABI}/libfmod.so")
+set(FMOD_STUDIO_LOCATION "${FMOD_ROOT}/${ANDROID_ABI}/libfmodstudio.so")
+message(STATUS "CMAKE_CURRENT_SOURCE_DIR: ${CMAKE_CURRENT_SOURCE_DIR}")
+message(STATUS "PROJECT_ROOT: ${PROJECT_ROOT}")
+message(STATUS "FMOD_ROOT: ${FMOD_ROOT}")
+
+if(NOT EXISTS "${FMOD_CORE_LOCATION}")
+    message(FATAL_ERROR "FMOD core not found at ${FMOD_CORE_LOCATION}")
+endif()
+
+if(NOT EXISTS "${FMOD_STUDIO_LOCATION}")
+    message(FATAL_ERROR "FMOD studio not found at ${FMOD_STUDIO_LOCATION}")
+endif()
+
+message(STATUS "FMOD core found ✓")
+message(STATUS "FMOD studio found ✓")
+
+add_library(fmod_core SHARED IMPORTED)
+set_target_properties(fmod_core PROPERTIES
+        IMPORTED_LOCATION "${FMOD_CORE_LOCATION}"
+        IMPORTED_NO_SONAME TRUE
+        INTERFACE_INCLUDE_DIRECTORIES "${PROJECT_ROOT}/extern/include/FMOD"
+)
+
+add_library(fmod_studio SHARED IMPORTED)
+set_target_properties(fmod_studio PROPERTIES
+        IMPORTED_LOCATION "${FMOD_STUDIO_LOCATION}"
+        IMPORTED_NO_SONAME TRUE
+        INTERFACE_INCLUDE_DIRECTORIES "${PROJECT_ROOT}/extern/include/FMOD"
+)
+
+# Copy .so for FMOD to the JNILibs for packaging into the apk.
+set(JNILIBS_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../jniLibs/${ANDROID_ABI}")
+file(MAKE_DIRECTORY ${JNILIBS_DIR})
+file(COPY ${FMOD_CORE_LOCATION} DESTINATION ${JNILIBS_DIR})
+file(COPY ${FMOD_STUDIO_LOCATION} DESTINATION ${JNILIBS_DIR})
+
 message(STATUS "CMAKE_PREFIX_PATH: ${CMAKE_PREFIX_PATH}")
-message(STATUS "ryEngine_DIR: ${ryEngine_DIR}")
+message(STATUS "magicEngine_DIR: ${magicEngine_DIR}")
 
-find_package(ryEngine REQUIRED)
-
+find_package(MagicEngine REQUIRED)
 message(STATUS "=========================")
 
 # Add native_app_glue as an OBJECT library (recommended modern approach)
@@ -109,14 +151,18 @@ target_include_directories(${CMAKE_PROJECT_NAME}
     ${ABI_SPECIFIC_PATH}/include/ryEngine
     # For nice #include "engine.h", and so forth
     ${ABI_SPECIFIC_PATH}/include/ryEngine/core/engine
+        ${ABI_SPECIFIC_PATH}/include
+        ${ABI_SPECIFIC_PATH}/include/offset_allocator
 )
 
 target_link_libraries(${CMAKE_PROJECT_NAME}
     PRIVATE
-    magicengine::ryEngine
+    MagicEngine::MagicEngine
     native_app_glue
     android
     log
+    fmod_core
+    fmod_studio
 )
 
 # Android-specific compile definitions

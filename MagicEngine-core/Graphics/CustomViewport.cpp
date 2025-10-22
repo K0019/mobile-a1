@@ -61,6 +61,28 @@ void CustomViewport::Resize(unsigned newWidth, unsigned newHeight)
 	CONSOLE_LOG(LEVEL_INFO) << "Custom viewport resized to dimensions " << width << " * " << height << " with aspect ratio " << aspect_ratio;
 }
 
+void CustomViewport::UpdateCameraControl()
+{
+	static Vec2 lastMousePos;
+	vec2 mouse_delta = ST<KeyboardMouseInput>::Get()->GetMousePos() - lastMousePos;
+	lastMousePos = ST<KeyboardMouseInput>::Get()->GetMousePos();
+
+	if (ST<KeyboardMouseInput>::Get()->GetIsDown(KEY::M_RIGHT))
+	{
+		camera.movement_.forward_ = ST<KeyboardMouseInput>::Get()->GetIsDown(KEY::W);
+		camera.movement_.backward_ = ST<KeyboardMouseInput>::Get()->GetIsDown(KEY::S);
+		camera.movement_.left_ = ST<KeyboardMouseInput>::Get()->GetIsDown(KEY::A);
+		camera.movement_.right_ = ST<KeyboardMouseInput>::Get()->GetIsDown(KEY::D);
+		camera.movement_.up_ = ST<KeyboardMouseInput>::Get()->GetIsDown(KEY::NUM_1);
+		camera.movement_.down_ = ST<KeyboardMouseInput>::Get()->GetIsDown(KEY::NUM_2);
+	}
+	else
+		// Reset keys
+		camera.movement_ = CameraPositioner_FirstPerson::Movement{};
+
+	camera.update(GameTime::FixedDt(), mouse_delta, ST<KeyboardMouseInput>::Get()->GetIsDown(KEY::M_RIGHT));
+}
+
 #ifdef IMGUI_ENABLED
 
 void CustomViewport::DrawPlayControls() {
@@ -282,28 +304,6 @@ void CustomViewport::DrawImGuiWindow() {
 	ImGui::PopStyleVar();
 }
 
-void CustomViewport::UpdateCameraControl()
-{
-	static Vec2 lastMousePos;
-	vec2 mouse_delta = ST<KeyboardMouseInput>::Get()->GetMousePos() - lastMousePos;
-	lastMousePos = ST<KeyboardMouseInput>::Get()->GetMousePos();
-
-	if (ST<KeyboardMouseInput>::Get()->GetIsDown(KEY::M_RIGHT))
-	{
-		camera.movement_.forward_ = ST<KeyboardMouseInput>::Get()->GetIsDown(KEY::W);
-		camera.movement_.backward_ = ST<KeyboardMouseInput>::Get()->GetIsDown(KEY::S);
-		camera.movement_.left_ = ST<KeyboardMouseInput>::Get()->GetIsDown(KEY::A);
-		camera.movement_.right_ = ST<KeyboardMouseInput>::Get()->GetIsDown(KEY::D);
-		camera.movement_.up_ = ST<KeyboardMouseInput>::Get()->GetIsDown(KEY::NUM_1);
-		camera.movement_.down_ = ST<KeyboardMouseInput>::Get()->GetIsDown(KEY::NUM_2);
-	}
-	else
-		// Reset keys
-		camera.movement_ = CameraPositioner_FirstPerson::Movement{};
-
-	camera.update(GameTime::FixedDt(), mouse_delta, ST<KeyboardMouseInput>::Get()->GetIsDown(KEY::M_RIGHT));
-}
-
 void CustomViewport::MaintainAspectRatio(ImGuiSizeCallbackData* data) {
 	CustomViewport* viewport = static_cast<CustomViewport*>(data->UserData);
 	float aspect_ratio = viewport->aspect_ratio;
@@ -463,13 +463,15 @@ Vec2 CustomViewport::GetViewportRenderSize() const
 	return { viewportRenderSize.x, viewportRenderSize.y };
 }
 
-void CustomViewport::updateCurrentEntity(ecs::EntityHandle entity) {
+void CustomViewport::updateCurrentEntity([[maybe_unused]] ecs::EntityHandle entity) {
+#ifdef IMGUI_ENABLED
 	if (entity) {
 		m_gizmo.Attach(entity->GetTransform());
 	}
 	else {
 		m_gizmo.Detach();
 	}
+#endif
 }
 Camera CustomViewport::GetViewportCamera() const
 {

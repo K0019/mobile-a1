@@ -1,30 +1,37 @@
 # ----- Engine Target -----
-
-# File locations
-file(GLOB_RECURSE EXTERNAL_LIBRARIES_STATIC_DEBUG "${EXTERNAL_LIBRARIES}/debug/*.lib")
-file(GLOB_RECURSE EXTERNAL_LIBRARIES_STATIC_RELEASE "${EXTERNAL_LIBRARIES}/release/*.lib")
-
-
 # Preprocessor definitions
-set(CORE_DEFINITIONS
-    $<$<CONFIG:Debug>:IMGUI_ENABLED>
-)
 if(NOT ANDROID)
+    set(CORE_DEFINITIONS
+        $<$<CONFIG:Debug>:IMGUI_ENABLED>
+    )
 	list(APPEND CORE_DEFINITIONS
 		GLFW
     )
 endif()
 
 # Platform-specific dependencies
-set(CORE_PUBLIC_DEPS
-    $<$<CONFIG:Debug>:${EXTERNAL_LIBRARIES_STATIC_DEBUG}>
-    $<$<CONFIG:Release>:${EXTERNAL_LIBRARIES_STATIC_RELEASE}>
-    glm::glm-header-only
-    imguizmo::imguizmo
-    Jolt::Jolt
-)
-# set(CORE_PRIVATE_DEPS
-# )
+if (NOT ANDROID)
+    # GLOB libs locations
+    file(GLOB_RECURSE EXTERNAL_LIBRARIES_STATIC_DEBUG "${EXTERNAL_LIBRARIES}/debug/*.lib")
+    file(GLOB_RECURSE EXTERNAL_LIBRARIES_STATIC_RELEASE "${EXTERNAL_LIBRARIES}/release/*.lib")
+
+    set(CORE_PUBLIC_DEPS
+        $<$<CONFIG:Debug>:${EXTERNAL_LIBRARIES_STATIC_DEBUG}>
+        $<$<CONFIG:Release>:${EXTERNAL_LIBRARIES_STATIC_RELEASE}>
+        glm::glm-header-only
+        imgui::imgui
+        imguizmo::imguizmo
+        Jolt::Jolt
+        KTX::ktx
+    )
+else()
+    set(CORE_PUBLIC_DEPS
+        $<$<CONFIG:Debug>:${EXTERNAL_LIBRARIES_STATIC_DEBUG}>
+        $<$<CONFIG:Release>:${EXTERNAL_LIBRARIES_STATIC_RELEASE}>
+        glm::glm-header-only
+        Jolt::Jolt
+    )
+endif()
 
 # Create the target
 engine_add_module(MagicEngine-Core
@@ -33,6 +40,15 @@ engine_add_module(MagicEngine-Core
     PUBLIC_DEPENDENCIES ${CORE_PUBLIC_DEPS}
     DEFINITIONS ${CORE_DEFINITIONS}
 )
+
+target_link_libraries(MagicEngine-Core PRIVATE 
+    $<$<NOT:$<BOOL:${ANDROID}>>:KTX::ktx>
+    $<$<BOOL:${ANDROID}>:ktx>
+)
+
+if(ANDROID)
+    target_compile_definitions(MagicEngine-Core PUBLIC KHRONOS_STATIC)
+endif()
 
 # link asset compiler to engine for resource building
 if(NOT ANDROID)
@@ -89,8 +105,7 @@ foreach(item ${ENGINE_SOURCE_FILES_DIRECTORIES})
 	endif()
 endforeach()
 
-# Additional compile options for Windows builds
+# Additional compile options
 if (NOT ANDROID)
-target_compile_options(MagicEngine-Core PRIVATE /bigobj)
-
+    target_compile_options(MagicEngine-Core PRIVATE /bigobj)
 endif()

@@ -1,16 +1,17 @@
 #pragma once
-
 // Forward declaration
+#ifdef GLFW
 struct _MonoString;
+#endif
 
 namespace util {
-
 	void AssertEntityHandleValid(ecs::EntityHandle entity);
 
 	template <typename CompType>
 	CompType* AssertCompExistsOnValidEntityAndGet(ecs::EntityHandle entity);
-
+#ifdef GLFW
 	_MonoString* StrToMonoStr(const std::string& str);
+#endif
 
 }
 
@@ -29,3 +30,4 @@ namespace util {
 	}
 
 }
+

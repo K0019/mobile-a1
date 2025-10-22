@@ -66,7 +66,7 @@ const ResourceFilepaths::FileEntry* ResourceFiletypeImporterBase::GenerateFileEn
 template<typename ResourceType, typename ...RemainingResourceTypes, typename ...ResourceCountType>
 void ResourceFiletypeImporterBase::GenerateHashForOneResourceType(std::vector<AssociatedResourceHashes>::iterator resourceHashes, size_t numResource, ResourceCountType ...remaining)
 {
-    GenerateHashesForResourceType<ResourceType>(resourceHashes._Ptr, numResource);
+    GenerateHashesForResourceType<ResourceType>(&*resourceHashes, numResource);
     GenerateHashForOneResourceType<RemainingResourceTypes...>(++resourceHashes, remaining...);
 }
 template <typename ...RemainingResourceTypes>

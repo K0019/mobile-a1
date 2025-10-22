@@ -856,22 +856,6 @@ struct SceneIterator
 
 	/*****************************************************************//*!
 	\brief
-		Prefix decrements this iterator to the previous scene within the map.
-	\return
-		A reference to this iterator.
-	*//******************************************************************/
-	SceneIterator& operator--();
-
-	/*****************************************************************//*!
-	\brief
-		Postfix decrements this iterator to the previous scene within the map.
-	\return
-		A temporary of the original state of this iterator.
-	*//******************************************************************/
-	SceneIterator operator--(int);
-
-	/*****************************************************************//*!
-	\brief
 		Increments or decrements an iterator by the specified amount.
 	\param iter
 		The iterator to increment/decrement.

@@ -23,6 +23,7 @@ All content � 2024 DigiPen Institute of Technology Singapore.
 All rights reserved.
 */
 /******************************************************************************/
+#ifdef GLFW
 #include "Scripting/CSScripting.h"
 #include "Scripting/HotReloader.h"
 #include "Editor/Popup.h"
@@ -31,7 +32,9 @@ All rights reserved.
 #include "ECS/EntityUID.h"
 #include "FilepathConstants.h"
 
+#ifdef GLFW
 #include <Windows.h>
+#endif
 
 namespace CSharpScripts
 {
@@ -462,6 +465,7 @@ namespace CSharpScripts
 
 	void CSScripting::Init()
 	{
+#ifdef GLFW
 		ScriptEngineData = new SCScriptData();
 		ScriptEngineData->s_CoreClasses.clear();
 		InitMono();
@@ -490,6 +494,7 @@ namespace CSharpScripts
 
 #ifdef IMGUI_ENABLED
 		ST<HotReloader>::Get()->Init();
+#endif
 #endif
 	}
 
@@ -522,15 +527,15 @@ namespace CSharpScripts
 			// 
 			for (auto ite = ecs::GetCompsBegin<ScriptComponent>(); ite != ecs::GetCompsEnd<ScriptComponent>(); ++ite)
 			{
-				ite.GetComp()->SaveVariables();
-				ite.GetComp()->RemoveAllScripts();
+				ite.GetCompHandle()->SaveVariables();
+				ite.GetCompHandle()->RemoveAllScripts();
 			}
 
 			// After reloading all the scripts load the variables into them
 			for (auto ite = ecs::GetCompsBegin<ScriptComponent>(); ite != ecs::GetCompsEnd<ScriptComponent>(); ++ite)
 			{
-				ite.GetComp()->ReattachAllScripts();
-				ite.GetComp()->LoadVariables();
+				ite.GetCompHandle()->ReattachAllScripts();
+				ite.GetCompHandle()->LoadVariables();
 			}
 		});
 	}
@@ -647,6 +652,7 @@ R"(<Project Sdk="Microsoft.NET.Sdk">
 
 	bool CSScripting::CompileUserAssembly()
 	{
+#ifdef GLFW
 		// Create a read/write pipe for the compilation to output to
 		HANDLE hReadPipe, hWritePipe;
 		SECURITY_ATTRIBUTES saAttr;
@@ -751,6 +757,9 @@ R"(<Project Sdk="Microsoft.NET.Sdk">
 		CleanUserAssemblyTempFiles();
 		CONSOLE_LOG(LEVEL_INFO) << "User Assembly Compilation: Successful";
 		return true;
+#else
+		return false;
+#endif
 	}
 
 	void CSScripting::CompileUserAssemblyAsync(void(*callback)())
@@ -774,6 +783,7 @@ R"(<Project Sdk="Microsoft.NET.Sdk">
 
 	void CSScripting::CheckCompileUserAssemblyAsyncCompletion()
 	{
+#ifdef GLFW
 		if (!isCompilingUserAssemblyAsync)
 			return;
 
@@ -787,6 +797,7 @@ R"(<Project Sdk="Microsoft.NET.Sdk">
 
 		if (compileUserAssemblyCallback)
 			compileUserAssemblyCallback();
+#endif
 	}
 
 	bool CSScripting::IsCurrentlyCompilingUserAssembly()
@@ -1051,3 +1062,4 @@ R"(<Project Sdk="Microsoft.NET.Sdk">
 		});
 	}
 }
+#endif

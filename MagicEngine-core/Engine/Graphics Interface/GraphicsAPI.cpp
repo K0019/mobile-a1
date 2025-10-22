@@ -217,11 +217,10 @@ editor::ImGuiContext& GraphicsMain::GetImGuiContext()
 {
 	return *imguiContext.get();
 }
+#endif // IMGUI_ENABLED
 
 Resource::ResourceManager& GraphicsMain::GetAssetSystem()
 {
 	assert(context.resourceMngr);
 	return *context.resourceMngr;
 }
-
-#endif

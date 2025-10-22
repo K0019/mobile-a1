@@ -1262,7 +1262,7 @@ namespace ecs {
 				\return
 					A handle to the component.
 				*//******************************************************************/
-				InternalCompHandle<CompType> GetComp();
+				InternalCompHandle<CompType> GetCompHandle();
 
 				/*****************************************************************//*!
 				\brief
@@ -1328,9 +1328,11 @@ namespace ecs {
 				\return
 					A temporary of this iterator incremented/decremented by the specified number of times.
 				*//******************************************************************/
-				template <typename CompType_T, typename EntityHandleType_T, typename ValueType_T>
-				friend iterator_blueprint<CompType_T, EntityHandleType_T, ValueType_T> operator+(
-					const iterator_blueprint<CompType_T, EntityHandleType_T, ValueType_T>& iter, int offset);
+				friend iterator_blueprint<CompType, EntityHandleType, ValueType> operator+(
+					const iterator_blueprint<CompType, EntityHandleType, ValueType>& iter, int offset)
+				{ // Defining here because it's the only way to define a non-template friend function that has template parameters
+					return CompArr::iterator_blueprint<CompType, EntityHandleType, ValueType>{ iter.compStepSize, iter.ptr + offset * iter.compStepSize };
+				}
 
 				/*****************************************************************//*!
 				\brief
@@ -1348,10 +1350,12 @@ namespace ecs {
 				\return
 					The difference between the iterators.
 				*//******************************************************************/
-				template <typename CompType_T, typename EntityHandleType_T, typename ValueType_T>
 				friend difference_type operator-(
-					const iterator_blueprint<CompType_T, EntityHandleType_T, ValueType_T>& a,
-					const iterator_blueprint<CompType_T, EntityHandleType_T, ValueType_T>& b);
+					const iterator_blueprint<CompType, EntityHandleType, ValueType>& a,
+					const iterator_blueprint<CompType, EntityHandleType, ValueType>& b)
+				{
+					return (a.ptr - b.ptr) / a.compStepSize;
+				}
 
 				/*****************************************************************//*!
 				\brief
@@ -1369,10 +1373,12 @@ namespace ecs {
 				\return
 					True if both iterators point to the same component within this CompArr. False otherwise.
 				*//******************************************************************/
-				template <typename CompType_T, typename EntityHandleType_T, typename ValueType_T>
 				friend bool operator==(
-					const iterator_blueprint<CompType_T, EntityHandleType_T, ValueType_T>& a,
-					const iterator_blueprint<CompType_T, EntityHandleType_T, ValueType_T>& b);
+					const iterator_blueprint<CompType, EntityHandleType, ValueType>& a,
+					const iterator_blueprint<CompType, EntityHandleType, ValueType>& b)
+				{
+					return a.ptr == b.ptr;
+				}
 
 				/*****************************************************************//*!
 				\brief
@@ -1390,10 +1396,12 @@ namespace ecs {
 				\return
 					True if both iterators do not point to the same component within this CompArr. False otherwise.
 				*//******************************************************************/
-				template <typename CompType_T, typename EntityHandleType_T, typename ValueType_T>
 				friend bool operator!=(
-					const iterator_blueprint<CompType_T, EntityHandleType_T, ValueType_T>& a,
-					const iterator_blueprint<CompType_T, EntityHandleType_T, ValueType_T>& b);
+					const iterator_blueprint<CompType, EntityHandleType, ValueType>& a,
+					const iterator_blueprint<CompType, EntityHandleType, ValueType>& b)
+				{
+					return a.ptr != b.ptr;
+				}
 
 			private:
 				//! The pointer to the entity that owns the component that we're pointing to.

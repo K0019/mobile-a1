@@ -62,7 +62,9 @@ namespace gui {
 
 	template<typename ...Args>
 	Tooltip::Tooltip(const char* fmt, const Args&... args)
+#ifdef IMGUI_ENABLED
 		: internal::BeginEndBound_Tooltip{ false }
+#endif
 	{
 #ifdef IMGUI_ENABLED
 		ImGui::SetTooltip(fmt, args...);

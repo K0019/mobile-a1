@@ -6,7 +6,7 @@
 #include "Engine/Resources/ResourceImporter.h"
 #include "FilepathConstants.h"
 
-bool ResourceFiletypeImporterImage::Import(const std::string& assetRelativeFilepath)
+bool ResourceFiletypeImporterImage::Import([[maybe_unused]]const std::string& assetRelativeFilepath)
 {
 #ifdef GLFW
     // Set up compile options

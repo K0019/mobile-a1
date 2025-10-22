@@ -199,7 +199,7 @@ namespace internal {
 #endif
 
 
-bool ResourceFiletypeImporterFBX::Import(const std::string& assetRelativeFilepath)
+bool ResourceFiletypeImporterFBX::Import([[maybe_unused]] const std::string& assetRelativeFilepath)
 {
 #ifdef GLFW
     // Set up compile options

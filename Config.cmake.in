@@ -1,5 +1,6 @@
 @PACKAGE_INIT@
 
+list(APPEND CMAKE_PREFIX_PATH "${PACKAGE_PREFIX_DIR}")
 include(CMakeFindDependencyMacro)
 
 # Find common dependencies
@@ -35,8 +36,11 @@ if(NOT ANDROID)
     find_dependency(Stb CONFIG REQUIRED)
 endif()
 
-include("${CMAKE_CURRENT_LIST_DIR}/${CMAKE_FIND_PACKAGE_NAME}Targets.cmake")
-# old one
-# include("${CMAKE_CURRENT_LIST_DIR}/@PROJECT_NAME@Targets.cmake")
-
-check_required_components(@PROJECT_NAME@)
+include("${CMAKE_CURRENT_LIST_DIR}/MagicEngineTargets.cmake")
+if(NOT TARGET MagicEngine)
+    add_library(MagicEngine INTERFACE IMPORTED)
+    set_target_properties(MagicEngine PROPERTIES
+        INTERFACE_LINK_LIBRARIES "MagicEngine::ryEngine-Core;MagicEngine::ryEngine-ImGui;MagicEngine::MagicEngine-Core;quill::quill;glm::glm-header-only;fmt::fmt;GPUOpen::VulkanMemoryAllocator;Jolt::Jolt;imgui::imgui;imguizmo::imguizmo"
+    )
+endif()
+check_required_components(MagicEngine)

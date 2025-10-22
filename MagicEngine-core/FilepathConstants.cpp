@@ -68,7 +68,7 @@ void Filepaths::TrimWorkingDirectoryFrom(std::string* targetString)
 
 std::string Filepaths::TrimWorkingDirectoryFrom(const std::string& targetString)
 {
-	if (!targetString.rfind(workingDir, 0) == 0)
+	if (!(targetString.rfind(workingDir, 0) == 0))
 		return targetString;
 	return targetString.substr(workingDir.size());
 }

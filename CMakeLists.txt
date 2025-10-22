@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.26)
 
 include(cmake/EngineUtils.cmake)
+set(namespace "MagicEngine") # cannot remove this, must have a namespace for install_config
 
 # ----- VCPKG Configuration -----
 
@@ -37,12 +38,6 @@ if(NOT ANDROID)
         CACHE STRING "Vcpkg toolchain file")
 endif()
 
-# ----- External Libraries Configuration ------
-
-set(EXTERNAL_INCLUDES "${CMAKE_SOURCE_DIR}/extern/include")
-set(EXTERNAL_INCLUDES_INSTALL "${CMAKE_INSTALL_INCLUDEDIR}/extern_include")
-set(EXTERNAL_LIBRARIES "${CMAKE_SOURCE_DIR}/extern/lib")
-
 # ----- Solution -----
 if (NOT ANDROID)
 project(MagicEngine VERSION 0.1.0 LANGUAGES C CXX CSharp)
@@ -50,7 +45,12 @@ else()
 project(MagicEngine VERSION 0.1.0 LANGUAGES C CXX)
 endif()
 
+# ----- External Libraries Configuration ------
 include(GNUInstallDirs)
+
+set(EXTERNAL_INCLUDES "${CMAKE_SOURCE_DIR}/extern/include")
+set(EXTERNAL_INCLUDES_INSTALL "${CMAKE_INSTALL_INCLUDEDIR}")
+set(EXTERNAL_LIBRARIES "${CMAKE_SOURCE_DIR}/extern/lib")
 
 # Force install dirs to be relative for cross-compilation (Android)
 if(IS_ABSOLUTE "${CMAKE_INSTALL_INCLUDEDIR}")
@@ -112,6 +112,38 @@ if(NOT ANDROID)
     find_package(KTX CONFIG REQUIRED)
     find_package(meshoptimizer CONFIG REQUIRED)
     find_package(mikktspace CONFIG REQUIRED)
+else() #Android dependencies
+    # Looking only for KTX library read ability, not the tools or anything else...
+    set(KTX_FEATURE_TOOLS OFF CACHE BOOL "" FORCE)
+    set(KTX_FEATURE_TESTS OFF CACHE BOOL "" FORCE)
+    set(KTX_FEATURE_LOADTEST_APPS OFF CACHE BOOL "" FORCE)
+    set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
+    set(BASISU_SUPPORT_SSE OFF CACHE BOOL "" FORCE)
+    
+    # Save the postfix, disable it for KTX, then restore
+    set(SAVED_DEBUG_POSTFIX ${CMAKE_DEBUG_POSTFIX})
+    set(CMAKE_DEBUG_POSTFIX "" CACHE STRING "" FORCE)
+
+    add_subdirectory(extern/KTX-Software)
+
+    # restore post fix
+    set(CMAKE_DEBUG_POSTFIX ${SAVED_DEBUG_POSTFIX} CACHE STRING "" FORCE)
+
+    add_library(KTX::ktx ALIAS ktx)
+    
+    # Install library
+    install(TARGETS ktx
+        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    )
+    
+    # Install headers
+    install(DIRECTORY extern/KTX-Software/include/
+        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+        FILES_MATCHING 
+        PATTERN "*.h"
+        PATTERN "*.hpp"
+    )
 endif()
 
 # ----- Android Settings -----
@@ -195,55 +227,45 @@ if(ANDROID)
 endif()
 
 # ----- Subdirectories (Add Projects) -----
-# add_subdirectory(engine)
-
 # ryEngine
-set(namespace "ryengine")
 add_subdirectory(ryEngine-core)
 add_subdirectory(ryEngine-modules/imgui)
 if(NOT ANDROID)
     add_subdirectory(ryEngine-modules/tools)
 endif()
 
-add_library(ryEngine INTERFACE)
-target_link_libraries(ryEngine INTERFACE 
-    ryEngine-Core
-    ryEngine-ImGui
-)
-add_library(ryengine::ryEngine ALIAS ryEngine)
-
 # MagicEngine
-set(namespace "magicengine")
 add_subdirectory(MagicEngine-core)
+if (NOT ANDROID)
+    add_subdirectory(EngineScripting)
+    add_subdirectory(AssetCompiler)
+endif()
 
 # Dont want to link with assetcompiler and tools on android
 add_library(MagicEngine INTERFACE)
 if (NOT ANDROID)
-    add_subdirectory(EngineScripting)
-    add_subdirectory(AssetCompiler)
     target_link_libraries(MagicEngine INTERFACE 
-        ryEngineTargets
-        MagicEngine-core
+        ryEngine-Core
+        ryEngine-ImGui
+        MagicEngine-Core
         AssetCompiler
 	    EngineScripting
+        # Someone is silently loading fmod, suspicious, but ok.
     )
 else()
     target_link_libraries(MagicEngine INTERFACE 
-        ryEngineTargets
-        MagicEngine-core
+        ryEngine-Core
+        ryEngine-ImGui
+        MagicEngine-Core
+        $<BUILD_INTERFACE:fmod_core>
+        $<BUILD_INTERFACE:fmod_studio>
     )
 endif()
-add_library(magicengine::MagicEngine ALIAS MagicEngine)
 
 # Application
 if(NOT ANDROID)
     add_subdirectory(editor)
-    
 endif()
-
-# ----- Target Dependencies -----
-# add_dependencies(Engine AssetCompiler)
-# add_dependencies(Engine EngineScripting)
 
 # ----- Post Configuration Settings -----
 # Set startup project for Visual Studio
@@ -256,5 +278,4 @@ file(COPY "${CMAKE_SOURCE_DIR}/Directory.Build.props" DESTINATION "${CMAKE_BINAR
 
 # Installation
 include(cmake/InstallConfig.cmake)
-install_config(ryEngine)
 install_config(MagicEngine)

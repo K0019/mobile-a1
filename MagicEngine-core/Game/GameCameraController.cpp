@@ -81,7 +81,7 @@ void GameCameraControllerSystem::OnWaveStarted()
 {
 	// Get the camera controller component
 	auto it = ecs::GetCompsActiveBegin<GameCameraControllerComponent>();
-	ecs::CompHandle<GameCameraControllerComponent> comp = it.GetComp();
+	ecs::CompHandle<GameCameraControllerComponent> comp = it.GetCompHandle();
 	ecs::EntityHandle gameCamera = it.GetEntity();
 
 	// If cannot find game camera, just return.

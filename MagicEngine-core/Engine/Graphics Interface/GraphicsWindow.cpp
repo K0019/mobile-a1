@@ -75,9 +75,11 @@ void GraphicsWindowGeneric::SetWindowResolution(int width, int height)
 {
 }
 
-void GraphicsWindowGeneric::SetFullscreen(bool isFullscreen)
+void GraphicsWindowGeneric::SetFullscreen([[maybe_unused]] bool isFullscreen)
 {
+#ifdef GLFW
 	Core::Display().setFullscreen(isFullscreen);
+#endif
 }
 
 void GraphicsWindowGeneric::BringWindowToFront()

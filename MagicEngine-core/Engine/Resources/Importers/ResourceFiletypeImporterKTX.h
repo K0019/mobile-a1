@@ -21,9 +21,18 @@ All rights reserved.
 #pragma once
 #include "Engine/Resources/Importers/ResourceFiletypeImporterBase.h"
 
+namespace Resource {
+    struct ProcessedTexture;
+}
+
 class ResourceFiletypeImporterKTX : public ResourceFiletypeImporterBase
 {
 public:
     virtual bool Import(const std::string& assetRelativeFilepath) final;
+
+#ifndef GLFW
+private:
+    Resource::ProcessedTexture ManualLoadTexture(const std::filesystem::path& filepath);
+#endif
 
 };

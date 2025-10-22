@@ -826,8 +826,8 @@ namespace ecs {
 
 				InternalEntityHandle entity{ compIter.GetEntity() };
 				SetEntityPtr(destIndex, entity);
-				callMoveFunc(compIter.GetComp(), GetComp(destIndex));
-				callDestructorFunc(compIter.GetComp());
+				callMoveFunc(compIter.GetCompHandle(), GetComp(destIndex));
+				callDestructorFunc(compIter.GetCompHandle());
 				// note: this is assuming that we're transfering components from a buffer (this) to a pool (other).
 				entity->INTERNAL_ChangeCompIndex(compHash, destIndex, true);
 
