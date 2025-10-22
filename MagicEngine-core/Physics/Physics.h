@@ -13,11 +13,13 @@
 \brief
 	
 
-All content © 2025 DigiPen Institute of Technology Singapore.
+All content ï¿½ 2025 DigiPen Institute of Technology Singapore.
 All rights reserved.
 */
 /******************************************************************************/
 
+
+#include "Engine/EntityLayers.h"
 #include "Physics/JoltPhysics.h"
 #include "Utilities/MaskTemplate.h"
 #include "ECS/IRegisteredComponent.h"
@@ -63,10 +65,9 @@ X(USE_GRAVITY, "Use Gravity")
 	private:
 		// Is Kinematic and Use Gravity
 		PhysicsCompFlags flags;
-		// ID to identify the assigned Jolt Body.
-		JPH::BodyID bodyID;
-		// entity's transform in the previous frame.
-		Transform prevTransform;
+		// linear velocity
+		Vec3 linearVel;
+
 	public:
 
 		/*****************************************************************//*!
@@ -87,14 +88,6 @@ X(USE_GRAVITY, "Use Gravity")
 
 		/*****************************************************************//*!
 		\brief
-			Get the body id of the corresponding body.
-		\return
-			The id of the body.
-		*//******************************************************************/
-		JPH::BodyID GetBodyID() const;
-
-		/*****************************************************************//*!
-		\brief
 			Gets the value of the corresponding flag.
 		\param flag
 			Flag to get the value.
@@ -105,7 +98,7 @@ X(USE_GRAVITY, "Use Gravity")
 
 		/*****************************************************************//*!
 		\brief
-			Set a value to a certain. flag.
+			Set a value to a certain flag.
 		\param flag
 			Flag to set the value
 		\param val
@@ -115,31 +108,21 @@ X(USE_GRAVITY, "Use Gravity")
 
 		/*****************************************************************//*!
 		\brief
-			Get the previous transform values.
+			Gets the value of the linear velocity.
 		\return
-			Transform value that represent the previous transform of the entity.
+			3d vector that represents the linear velocity.
 		*//******************************************************************/
-		const Transform& GetPrevTransform() const;
+		const Vec3& GetLinearVelocity() const;
 
 		/*****************************************************************//*!
 		\brief
-			Set a value to the previous transform.
-		\param transform
-			The value to set the previous transform.
+			Set the value of the linear velocity.
+		\param flag
+			Flag to set the value
+		\param vel
+			3d vector value to set to the linear velocity.
 		*//******************************************************************/
-		void SetPrevTransform(const Transform& transform);
-
-		/*****************************************************************//*!
-		\brief
-			Updates the Jolt Body based on the entity.
-		*//******************************************************************/
-		void UpdateJoltBody();
-
-		/*****************************************************************//*!
-		\brief
-			Updates the entity transform based on the Jolt Body.
-		*//******************************************************************/
-		void UpdateTransform();
+		void SetLinearVelocity(const Vec3& vel);
 
 	private:
 		/*****************************************************************//*!
@@ -163,9 +146,44 @@ X(USE_GRAVITY, "Use Gravity")
 		void OnAdded() override;
 		bool PreRun() override;
 	};
-}
+
+	/*****************************************************************//*!
+	\brief
+		Check if there's colliders that overlap the given sphere.
+	\param outColliders
+		out param to store all the pointers of the colliders that overlaped.
+	\param origin
+		center of the sphere.
+	\param radius
+		radius of the sphere.
+	\param layers
+		entity layers to check overlap. By default, it checks all the layers.
+	\return
+		true if there is an overlap. False if not.
+	*//******************************************************************/
+	bool OverlapSphere(std::vector<BoxColliderComp*>& outColliders, const Vec3& origin, float radius, EntityLayersMask layers = EntityLayersMask{});
+
+	/*****************************************************************//*!
+	\brief
+		Check if there's colliders that overlap the given box.
+	\param outColliders
+		out param to store all the pointers of the colliders that overlaped.
+	\param origin
+		center of the box.
+	\param halfExtent
+		half of the scale of the box.
+	\param orientation
+		rotation of the box. **Currently not working**
+	\param layers
+		entity layers to check overlap. By default, it checks all the layers.
+	\return
+		true if there is an overlap. False if not.
+	*//******************************************************************/
+	bool OverlapBox(std::vector<BoxColliderComp*>& outColliders, const Vec3& origin, const Vec3& halfExtent, const Vec3& orientation = Vec3{}, EntityLayersMask layers = EntityLayersMask{});
+} 
 property_begin(physics::PhysicsComp)
 {
+	property_var(linearVel)
 }
 property_vend_h(physics::PhysicsComp)
 
