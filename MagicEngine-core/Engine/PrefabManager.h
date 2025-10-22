@@ -87,7 +87,8 @@ public:
 		}
 
 		//Serializer serializer{ FolderDir() + "/" + name + ".prefab" };
-		Serializer serializer{ VFS::JoinPath(FolderDir(), name + ".prefab") };
+		//Serializer serializer{ VFS::JoinPath(FolderDir(), name + ".prefab") };
+		Serializer serializer{ VFS::JoinPath(Filepaths::prefabsSave, name + ".prefab") };
 
 		// Save Children
 		SaveChildOfPrefab(entity, serializer);
