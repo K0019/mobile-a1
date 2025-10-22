@@ -148,6 +148,7 @@ X(USE_GRAVITY, "Use Gravity")
 	};
 
 	bool OverlapSphere(std::vector<BoxColliderComp*>& outColliders, const Vec3& origin, float radius, EntityLayersMask layers = EntityLayersMask{});
+	bool OverlapBox(std::vector<BoxColliderComp*>& outColliders, const Vec3& origin, const Vec3& halfExtent, const Vec3& orientation = Vec3{}, EntityLayersMask layers = EntityLayersMask{});
 } 
 property_begin(physics::PhysicsComp)
 {

@@ -177,4 +177,36 @@ namespace physics {
 
 		return result;
 	}
+
+	bool OverlapBox(std::vector<BoxColliderComp*>& outColliders, const Vec3& origin, const Vec3& halfExtent, const Vec3& orientation, EntityLayersMask layers)
+	{
+		bool result{ false };
+		Vec3 boxMin{ origin - halfExtent }, boxMax{ origin + halfExtent };
+		JPH::AABox box{ JPH::Vec3{boxMin.x, boxMin.y, boxMin.z}, JPH::Vec3{boxMax.x, boxMax.y, boxMax.z} };
+
+		for (auto compIter{ ecs::GetCompsActiveBegin<BoxColliderComp>() }, endIter{ ecs::GetCompsEnd<BoxColliderComp>() }; compIter != endIter; ++compIter)
+		{
+			if (!layers.TestMaskAll())
+			{
+				if (auto layerComp{ compIter.GetEntity()->GetComp<EntityLayerComponent>() })
+					if (!layers.TestMask(layerComp->GetLayer()))
+						continue;
+					else
+						continue;
+			}
+
+			Vec3 pos{ compIter.GetEntity()->GetComp<JoltBodyComp>()->GetPosition() };
+			Vec3 scale{ compIter.GetEntity()->GetComp<JoltBodyComp>()->GetScale() / 2.f };
+			Vec3 rot{ compIter.GetEntity()->GetComp<JoltBodyComp>()->GetRotation() };
+			Vec3 min{ pos - scale }, max{ pos + scale };
+			JPH::AABox colliderAABB{ JPH::Vec3{min.x, min.y, min.z}, JPH::Vec3{max.x, max.y, max.z} };
+			if (box.Overlaps(colliderAABB))
+			{
+				result = true;
+				outColliders.push_back(compIter.GetCompHandle());
+			}
+		}
+
+		return result;
+	}
 }
