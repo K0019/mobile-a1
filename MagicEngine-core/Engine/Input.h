@@ -57,7 +57,7 @@ X(GAMEPAD, "Gamepad")
 	{
 		ENUM_INPUT_DEVICE_TYPE
 		NUM_DEVICES,
-		INVALID_DEVICE = -1
+		INVALID_DEVICE = static_cast<char>(-1)
 	};
 #undef X
 
@@ -155,9 +155,15 @@ public:
 private:
 	//! The values of this binding will be read from these hardware values.
 	//! Store 1, 2 or 4 InputHardwareValueLink depending on the composite type.
+#ifdef GLFW
 	[[msvc::no_unique_address]] util::OptionalVar<std::is_same_v<ValueType, bool>, InputHardwareValueLink> hardwareValues_Button;
 	[[msvc::no_unique_address]] util::OptionalVar<std::is_same_v<ValueType, float>, std::array<InputHardwareValueLink, 2>> hardwareValues_1D;
 	[[msvc::no_unique_address]] util::OptionalVar<std::is_same_v<ValueType, Vec2>, std::array<InputHardwareValueLink, 4>> hardwareValues_2D;
+#else
+	util::OptionalVar<std::is_same_v<ValueType, bool>, InputHardwareValueLink> hardwareValues_Button;
+	util::OptionalVar<std::is_same_v<ValueType, float>, std::array<InputHardwareValueLink, 2>> hardwareValues_1D;
+	util::OptionalVar<std::is_same_v<ValueType, Vec2>, std::array<InputHardwareValueLink, 4>> hardwareValues_2D;
+#endif
 
 public:
 	template <typename FuncType>

@@ -439,7 +439,7 @@ MaskTemplate<ENUM_TYPE, EnableMatrix>::MatrixType MaskTemplate<ENUM_TYPE, Enable
 		for (MaskTemplate<ENUM_TYPE, EnableMatrix>::UnderlyingEnumType i{}; i < BitSize; ++i)
 			matrixArr[i].set(i);
 		return matrixArr;
-	}.operator()<MaskTemplate<ENUM_TYPE, EnableMatrix>::BitSize>()
+	}.template operator()<MaskTemplate<ENUM_TYPE, EnableMatrix>::BitSize>()
 };
 
 template<typename ENUM_TYPE, bool EnableMatrix>

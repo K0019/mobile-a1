@@ -54,13 +54,15 @@ namespace editor {
 #define X(name, str, type) \
 			case INPUT_COMPOSITE_TYPE::name: \
 			{ \
-				auto newAction{ std::make_shared<InputAction<type>>(action->ConvertToValueType<type>()) }; \
+				auto newAction{ std::make_shared<InputAction<type>>(action->template ConvertToValueType<type>()) }; \
 				selectedActionPtr = newAction; \
 				inputSet->SetAction(*actionName, std::move(newAction)); \
 				return; \
 			}
 			ENUM_INPUT_COMPOSITE_TYPE
 #undef X
+			default:
+				break;
 			}
 		}
 	}

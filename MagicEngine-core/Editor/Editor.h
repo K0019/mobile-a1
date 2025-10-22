@@ -26,7 +26,9 @@ All rights reserved.
 #include "Graphics/CustomViewport.h"
 #include "Editor/EditorTweenModule.h"
 #include "Editor/Gizmo.h"
+#ifdef IMGUI_ENABLED
 #include "ImGuizmo.h"
+#endif
 
 class Inspector : public gui::Window
 {
