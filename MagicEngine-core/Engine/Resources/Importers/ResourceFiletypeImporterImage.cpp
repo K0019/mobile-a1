@@ -25,7 +25,7 @@ bool ResourceFiletypeImporterImage::Import([[maybe_unused]]const std::string& as
     // Import the .ktx2
     std::string filename = (options.general.outputPath / options.general.inputPath.stem()).string();
     filename += ".ktx2";
-    return ResourceImporter::Import(filename);
+    return ResourceImporter::Import(VFS::ConvertPhysicalToVirtual(filename));
 #else
 	CONSOLE_LOG_UNIMPLEMENTED() << "Importing images is not implemented for this platform.";
 	return false;
