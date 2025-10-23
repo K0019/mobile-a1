@@ -356,7 +356,7 @@ std::string VFS::ConvertVirtualToPhysical(const std::string& path)
 
 std::string VFS::ConvertPhysicalToVirtual(const std::string& path)
 {
-    std::string normalizedPath = NormalizePath(path);
+    std::string normalizedPath = NormalizePath(std::filesystem::absolute(path).string());
 
     for (auto it = s_MountPoints.rbegin(); it != s_MountPoints.rend(); ++it)
     {
@@ -369,7 +369,7 @@ std::string VFS::ConvertPhysicalToVirtual(const std::string& path)
             continue;
         }
 
-        std::string normPhysicalRoot = NormalizePath(physicalRoot);
+        std::string normPhysicalRoot = NormalizePath(std::filesystem::absolute(physicalRoot).string());
         AddTrailingSlash(normPhysicalRoot);
 
         // See if the physical path starts with this mount's physical root
