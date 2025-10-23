@@ -79,34 +79,40 @@ namespace math {
 		return current + Sign(target - current) * delta;
 	}
 
-	constexpr float MoveTowardsAngle(float current, float target, float delta)
+	constexpr float RepeatAngle(float angle)
 	{
-		// Sanity check
-		if (delta < 0.0f)
-			return current;
+		// "Wraps" the value until it's within 0.0f to 360.0f
+		while (angle >= 360.0f) angle -= 360.0f;
+		while (angle < 0.0f) angle += 360.0f;
+		return angle;
+	}
 
-		float difference = target - current;
+	constexpr float AngleDifference(float a, float b)
+	{
+		float difference = RepeatAngle(b - a);
 
-		// Repeat within 0.0f to 360.0f
-		while (difference > 360.0f)
-			difference -= 360.0f;
-		while (difference <0.0f)
-			difference += 360.0f;
-
-		// If the difference is over 180.0f, we deduct 360
+		// Makes the angle difference negative if it's greater than 180 degrees
 		if (difference > 180.0f)
 		{
 			difference -= 360.0f;
 		}
 
-		// If the difference is below delta, we can just return target
-		if (Abs(difference) < delta)
+		return difference;
+	}
+
+	constexpr float MoveTowardsAngle(float current, float target, float delta)
+	{
+		// We don't do anything if delta isn't +ve
+		if (delta < 0.0f)
+			return current;
+
+		float difference = AngleDifference(current, target);
+		if (Abs(difference) <= delta)
 		{
 			return target;
 		}
 
-		target = current + difference;
-		return MoveTowards(current, target, delta);
+		return MoveTowards(current, current + difference, delta);
 	}
 }
 

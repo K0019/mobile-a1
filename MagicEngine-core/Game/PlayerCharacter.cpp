@@ -47,7 +47,7 @@ void PlayerMovementComponentSystem::UpdatePlayerMovementComponent(PlayerMovement
 {
 	auto playerEntity = ecs::GetEntity(&comp);
 	ecs::CompHandle<physics::PhysicsComp> physicsComp = playerEntity->GetComp<physics::PhysicsComp>();
-	Vec2 movement( 0.0f,0.0f );
+	Vec2 movement(0.0f, 0.0f);
 
 	// Get inputs
 	auto inputInstance = ST<KeyboardMouseInput>::Get();
@@ -65,24 +65,26 @@ void PlayerMovementComponentSystem::UpdatePlayerMovementComponent(PlayerMovement
 
 	// Apply input movement
 	Vec3 currVel = physicsComp->GetLinearVelocity();
-	Vec3 moveDir = Vec3{ movement.x *comp.moveSpeed,currVel.y,-movement.y * comp.moveSpeed };
+	Vec3 moveDir = Vec3{ movement.x * comp.moveSpeed,currVel.y,-movement.y * comp.moveSpeed };
 	physicsComp->SetLinearVelocity(moveDir);
 	//physicsComp->SetAngularVelocity(Vec3{ 0.0f });
 
-	// Handle rotation
-	if (movement.LengthSqr() > 0.0f)
-	{
-		Transform& playerTransform = playerEntity->GetTransform();
-		float targetAngle = math::ToDegrees(atan2(movement.y, movement.x));
-		CONSOLE_LOG(LogLevel::LEVEL_DEBUG) << targetAngle;
+	Transform& playerTransform = playerEntity->GetTransform();
+	Vec3 currentRotation = playerTransform.GetWorldRotation();
 
-		Vec3 currentRotation = playerTransform.GetWorldRotation();
+	// Debug line here, not sure why the angle is having issues when being rotated past 90 degrees
+	playerTransform.SetWorldRotation(currentRotation);
 
-		float newAngle = math::MoveTowardsAngle(currentRotation.y, targetAngle, comp.rotateSpeed * GameTime::Dt());
-
-		Vec3 rotation{ 0.0f,newAngle ,0.0f };
-		playerTransform.SetWorldRotation(rotation);
-	}
-
-	
+	// Commented out for testing, these *should* work.
+	//float newAngle = currentRotation.y;
+	//Vec3 rotation{ 0.0f,newAngle ,0.0f };
+	//// Handle rotation
+	//if (movement.LengthSqr() > 0.0f)
+	//{
+	//	float targetAngle = math::ToDegrees(atan2(movement.y, movement.x));
+	//	newAngle = math::MoveTowardsAngle(currentRotation.y, targetAngle, comp.rotateSpeed * GameTime::Dt());
+	//	rotation.y = newAngle;
+	//}
+	//	CONSOLE_LOG(LogLevel::LEVEL_DEBUG) << rotation.y;
+	//playerTransform.SetWorldRotation(rotation);
 }

@@ -53,9 +53,9 @@
         {
             "parentIndex": -1,
             "position": {
-                "x": 0.0,
-                "y": 30.0,
-                "z": 0.0
+                "x": 7.393733024597168,
+                "y": 1.0,
+                "z": 8.954866409301758
             },
             "rotation": {
                 "x": 0.0,
@@ -166,7 +166,7 @@
                 "15107580261673771032": {
                     "_active": true,
                     "moveSpeed": 10.0,
-                    "rotateSpeed": 1440.0
+                    "rotateSpeed": 14400.0
                 },
                 "17211506741407007748": {
                     "_active": true,
@@ -289,7 +289,7 @@
                 "14723636048609971163": {
                     "_active": true,
                     "active": true,
-                    "priority": 1,
+                    "priority": 5,
                     "zoom": 0.0
                 }
             }
