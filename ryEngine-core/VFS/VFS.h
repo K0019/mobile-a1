@@ -57,6 +57,9 @@ public:
 
     // ----- Utility functions ----- //
     // just string checking and manipulation functions...
+    static std::string ConvertVirtualToPhysical(const std::string& path);
+    static std::string ConvertPhysicalToVirtual(const std::string& path);
+
     static std::string JoinPath(const std::string& path1, const std::string& path2);
     static std::string GetExtension(const std::string& path);
     static std::string GetFilename(const std::string& path);

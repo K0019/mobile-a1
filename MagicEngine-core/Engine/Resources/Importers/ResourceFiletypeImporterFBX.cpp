@@ -205,8 +205,8 @@ bool ResourceFiletypeImporterFBX::Import([[maybe_unused]] const std::string& ass
     // Set up compile options
     compiler::SceneCompiler compiler;
     compiler::CompilerOptions options;
-    options.general.inputPath = GetExeRelativeFilepath(assetRelativeFilepath);
-    options.general.outputPath = Filepaths::assets + "/CompiledAssets/";
+    options.general.inputPath = VFS::ConvertVirtualToPhysical(assetRelativeFilepath);
+    options.general.outputPath = VFS::ConvertVirtualToPhysical("CompiledAssets");
 
     // Ask the compiler to compile the .fbx into .mesh and .ktx2
     compiler::CompilationResult result = compiler.Compile(options);
@@ -218,21 +218,15 @@ bool ResourceFiletypeImporterFBX::Import([[maybe_unused]] const std::string& ass
     // Delegate importing of the created files to their respective importers
     for (const auto& path : result.createdMeshFiles)
     {
-        std::string virtualPath = std::filesystem::relative(path, Filepaths::assets).generic_string();
-        std::transform(virtualPath.begin(), virtualPath.end(), virtualPath.begin(), ::tolower);
-        ResourceImporter::Import(virtualPath);
+        ResourceImporter::Import(VFS::ConvertPhysicalToVirtual(path.string()));
     }
     for (const auto& path : result.createdTextureFiles)
     {
-        std::string virtualPath = std::filesystem::relative(path, Filepaths::assets).generic_string();
-        std::transform(virtualPath.begin(), virtualPath.end(), virtualPath.begin(), ::tolower);
-        ResourceImporter::Import(virtualPath);
+        ResourceImporter::Import(VFS::ConvertPhysicalToVirtual(path.string()));
     }
     for (const auto& path : result.createdMaterialFiles)
     {
-        std::string virtualPath = std::filesystem::relative(path, Filepaths::assets).generic_string();
-        std::transform(virtualPath.begin(), virtualPath.end(), virtualPath.begin(), ::tolower);
-        ResourceImporter::Import(virtualPath);
+        ResourceImporter::Import(VFS::ConvertPhysicalToVirtual(path.string()));
     }
     return true;
 #else

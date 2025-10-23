@@ -234,7 +234,8 @@ void Scene::SaveToFile()
 	//Physical path for serializer instead of virtual.
 	//Filepath would be something like Scenes/xxScene.scene
 	//So the combined path would be ../../../Assets/Scenes/xxScene.scene
-	Serializer serializer{ VFS::JoinPath(Filepaths::assets, filepath) }; 
+	//Serializer serializer{ VFS::JoinPath(Filepaths::assets, filepath) }; 
+	Serializer serializer{ VFS::ConvertVirtualToPhysical(filepath)};
 	if (!serializer.IsOpen())
 		return;
 
@@ -547,7 +548,8 @@ void ScenePool::SaveWhichScenesOpened()
 		return;
 
 	//Serializer serializer{ SceneHelper::GetOpenScenesJsonPath() };
-	Serializer serializer{ Filepaths::scenesSave + "/openScenes.json" }; //For the Serializer class, we use the physical path instead of virtual
+	//Serializer serializer{ Filepaths::scenesSave + "/openScenes.json" };
+	Serializer serializer{ VFS::ConvertVirtualToPhysical(SceneHelper::GetOpenScenesJsonPath())}; //For the Serializer class, we use the physical path instead of virtual
 	serializer.StartArray("scenes");
 
 	for (const auto& scenePair : loadedScenes)

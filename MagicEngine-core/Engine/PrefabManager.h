@@ -87,8 +87,8 @@ public:
 		}
 
 		//Serializer serializer{ FolderDir() + "/" + name + ".prefab" };
-		//Serializer serializer{ VFS::JoinPath(FolderDir(), name + ".prefab") };
-		Serializer serializer{ VFS::JoinPath(Filepaths::prefabsSave, name + ".prefab") };
+		//Serializer serializer{ VFS::JoinPath(Filepaths::prefabsSave, name + ".prefab") };
+		Serializer serializer{ VFS::ConvertVirtualToPhysical(VFS::JoinPath(FolderDir(), name + ".prefab"))};
 
 		// Save Children
 		SaveChildOfPrefab(entity, serializer);
@@ -218,8 +218,6 @@ private:
 		}
 		fileBuffer.push_back('\0');
 		Deserializer deserializer{ fileBuffer.data() };
-
-		//Deserializer deserializer{ FolderDir() + "/" + name + ".prefab" };
 
 		// Error Checking
 		if (!deserializer.IsValid())

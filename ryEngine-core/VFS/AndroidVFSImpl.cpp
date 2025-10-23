@@ -92,6 +92,16 @@ std::vector<std::string> AndroidVFSImpl::ListDirectory(const std::string & path)
     return entries;
 }
 
+std::string AndroidVFSImpl::GetPhysicalPath(const std::string& path) const
+{
+    return "";  // idea of physical path not supported on android assets mount. it's just "", where the assets directory lives.
+}
+
+std::string AndroidVFSImpl::GetPhysicalRoot() const
+{
+    return "";
+}
+
 
 
 // ALL these are not supported. APK should be read only.

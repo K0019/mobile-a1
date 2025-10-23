@@ -279,9 +279,10 @@ void FileBrowserTab::RenderItemContextMenu(const FileSystem::FileEntry& entry)
         }
         if (ImGui::MenuItem(ICON_FA_FILE_IMPORT" Import as KTX2"))
         {
-            std::string virtualPath = std::filesystem::relative(entry.fullPath, Filepaths::assets).generic_string();
-            ResourceImporter::Import(virtualPath);
+            //std::string virtualPath = std::filesystem::relative(entry.fullPath, Filepaths::assets).generic_string();
             //ResourceImporter::Import(entry.fullPath.string().c_str());
+            std::string virtualPath = VFS::ConvertPhysicalToVirtual(entry.fullPath.string());
+            ResourceImporter::Import(virtualPath);
         }
         ImGui::Separator();
     }
@@ -289,9 +290,10 @@ void FileBrowserTab::RenderItemContextMenu(const FileSystem::FileEntry& entry)
     {
         if (gui::MenuItem(ICON_FA_FILE_IMPORT" Import"))
         {
-            std::string virtualPath = std::filesystem::relative(entry.fullPath, Filepaths::assets).generic_string();
-            ResourceImporter::Import(virtualPath);
+            //std::string virtualPath = std::filesystem::relative(entry.fullPath, Filepaths::assets).generic_string();
             //ResourceImporter::Import(entry.fullPath.string().c_str());
+            std::string virtualPath = VFS::ConvertPhysicalToVirtual(entry.fullPath.string());
+            ResourceImporter::Import(virtualPath);
         }
     }
 

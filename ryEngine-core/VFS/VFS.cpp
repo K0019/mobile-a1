@@ -332,9 +332,59 @@ bool VFS::MountBackend(const std::string& virtualPath, std::shared_ptr<IVFSImpl>
 }
 
 
-
-
 // ----- Utility ----- //
+
+std::string VFS::ConvertVirtualToPhysical(const std::string& path)
+{
+    std::string normalizedPath = NormalizePath(path);
+
+    for (auto it = s_MountPoints.rbegin(); it != s_MountPoints.rend(); ++it)
+    {
+        const MountPoint& mp = *it;
+        if (normalizedPath.rfind(mp.virtualPath, 0) == 0)
+        {
+            std::string relativePath = normalizedPath.substr(mp.virtualPath.length());
+            if (!relativePath.empty() && relativePath.front() == '/')
+            {
+                relativePath = relativePath.substr(1);
+            }
+
+            return mp.backend->GetPhysicalPath(relativePath);
+        }
+    }
+}
+
+std::string VFS::ConvertPhysicalToVirtual(const std::string& path)
+{
+    std::string normalizedPath = NormalizePath(path);
+
+    for (auto it = s_MountPoints.rbegin(); it != s_MountPoints.rend(); ++it)
+    {
+        const MountPoint& mp = *it;
+        std::string physicalRoot = mp.backend->GetPhysicalRoot();
+
+        // Skip android/archive mounts
+        if (physicalRoot.empty())
+        {
+            continue;
+        }
+
+        std::string normPhysicalRoot = NormalizePath(physicalRoot);
+        AddTrailingSlash(normPhysicalRoot);
+
+        // See if the physical path starts with this mount's physical root
+        if (normalizedPath.rfind(normPhysicalRoot, 0) == 0)
+        {
+            std::string relativePath = normalizedPath.substr(normPhysicalRoot.length());
+
+            return VFS::JoinPath(mp.virtualPath, relativePath);
+        }
+    }
+}
+
+
+
+
 std::string VFS::JoinPath(const std::string& path1, const std::string& path2)
 {
     std::string normPath1 = NormalizePath(path1);

@@ -100,3 +100,13 @@ std::vector<std::string> DirectoryVFSImpl::ListDirectory(const std::string& path
     }
     return entries;
 }
+
+std::string DirectoryVFSImpl::GetPhysicalPath(const std::string& path) const
+{
+    return (m_RootPath / path).string();
+}
+
+std::string DirectoryVFSImpl::GetPhysicalRoot() const
+{
+    return m_RootPath.string();
+}
