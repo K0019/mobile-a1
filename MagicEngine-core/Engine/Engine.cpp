@@ -85,7 +85,7 @@ namespace
 		ecs::SwitchToPool(ecs::POOL::DEFAULT);
 	}
 	void loadState(const char* filename) {
-		Deserializer deserializer{ filename };
+		Deserializer deserializer{ std::string(filename) };
 		if (!deserializer.IsValid())
 			return;
 
@@ -305,10 +305,9 @@ void MagicEngine::ExecuteFrame(FrameData& frameData)
 			ImGui::EndMenu();
 		}
 
-		if (ImGui::BeginMenu("Behaviour Tree"))
+		if (ImGui::MenuItem("Behaviour Tree"))
 		{
 			editor::CreateGuiWindow<editor::BehaviourTreeWindow>();
-			ImGui::EndMenu();
 		}
 
 		ImGui::EndMainMenuBar();  // End the main menu bar
