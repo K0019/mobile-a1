@@ -1,6 +1,6 @@
 /******************************************************************************/
 /*!
-\file   PlayerMovementComponent.h
+\file   PlayerCharacter.h
 \par    Project: 7percent
 \par    Course: CSD2401
 \par    Section B
@@ -12,10 +12,7 @@
 \par    DigiPen login: c.kuanfuryan
 
 \brief
-	PlayerMovementComponent is an ECS component-system pair which takes control of 
-	the camera when the default scene is loaded (game scene). It in in charge of
-	making camera follow the player, map bounds, and any other such effects to be
-	implemented now or in the future.
+	PlayerMovementComponent is an ECS component-system pair which controls player movement. 
 
 All content � 2024 DigiPen Institute of Technology Singapore.
 All rights reserved.
@@ -35,17 +32,8 @@ class PlayerMovementComponent
 	, public IEditorComponent<PlayerMovementComponent>
 {
 public:
-	EntityReference cameraEntity;
-	EntityReference playerEntity;
-
-	float minX;
-	float maxX;
-	float minY;
-	float maxY;
-	float offsetAmount;
-	float offsetDuration;
-	float offsetAmountCurrent;	// Not serialised
-
+	float moveSpeed;
+	float rotateSpeed;
 	/*****************************************************************//*!
 	\brief
 		Default constructor.
@@ -56,15 +44,10 @@ public:
 	\brief
 		Default destructor.
 	*//******************************************************************/
-	~PlayerMovementComponent();
+	//~PlayerMovementComponent();
 
-	/*****************************************************************//*!
-	\brief
-		Offset setter function
-	\param offset
-		Float value.
-	*//******************************************************************/
-	void SetOffsetCurrent(float offset);
+
+	property_vtable()
 
 private:
 	/*****************************************************************//*!
@@ -74,18 +57,12 @@ private:
 	*//******************************************************************/
 	virtual void EditorDraw();
 
-	property_vtable()
 };
+
 property_begin(PlayerMovementComponent)
 {
-	property_var(cameraEntity),
-	property_var(playerEntity),
-	property_var(minX),
-	property_var(maxX),
-	property_var(minY),
-	property_var(maxY),
-	property_var(offsetAmount),
-	property_var(offsetDuration),
+	property_var(moveSpeed),
+	property_var(rotateSpeed)
 }
 property_vend_h(PlayerMovementComponent)
 
@@ -97,30 +74,7 @@ property_vend_h(PlayerMovementComponent)
 class PlayerMovementComponentSystem : public ecs::System<PlayerMovementComponentSystem, PlayerMovementComponent>
 {
 public:
-	/*****************************************************************//*!
-	\brief
-		Default constructor.
-	*//******************************************************************/
 	PlayerMovementComponentSystem();
-
-	/*****************************************************************//*!
-	\brief
-		Subscribes to relevant messages.
-	*//******************************************************************/
-	void OnAdded() override;
-
-	/*****************************************************************//*!
-	\brief
-		Unsubscribes from relevant messages.
-	*//******************************************************************/
-	void OnRemoved() override;
-
-	/*****************************************************************//*!
-	\brief
-		Static callback function.
-	*//******************************************************************/
-	static void OnWaveStarted();
-
 private:
 	/*****************************************************************//*!
 	\brief

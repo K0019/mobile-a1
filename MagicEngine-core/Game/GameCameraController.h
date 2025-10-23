@@ -38,8 +38,6 @@ public:
 	EntityReference cameraEntity;
 	EntityReference playerEntity;
 
-	//InputBinding<Vec2> lookAction;
-
 	float cameraPitch;
 	float cameraYaw;
 	float cameraAutoZoomSpeed = 5.0f;

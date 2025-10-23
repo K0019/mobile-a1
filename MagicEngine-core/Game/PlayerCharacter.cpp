@@ -24,40 +24,32 @@ All rights reserved.
 #include "Game/PlayerCharacter.h"
 #include "Physics/Physics.h"
 #include "Engine/Input.h"
+#include "Editor/Containers/GUICollection.h"
 
 PlayerMovementComponent::PlayerMovementComponent()
-	: cameraEntity{ nullptr }
-	, playerEntity{ nullptr }
-	, minX{ 0.0f }
-	, maxX{ 0.0f }
-	, minY{ 0.0f }
-	, maxY{ 0.0f }
-	, offsetAmount{ 0.0f }
-	, offsetDuration{ 1.0f }
-	, offsetAmountCurrent{ 0.0f }
 {
 }
 
-PlayerMovementComponent::~PlayerMovementComponent()
-{
-}
-
-void PlayerMovementComponent::SetOffsetCurrent(float offset)
-{
-	offsetAmountCurrent = offset;
-}
 
 void PlayerMovementComponent::EditorDraw()
+{
+	gui::VarInput("Move Speed", &moveSpeed);
+	gui::VarInput("Rotation Speed", &rotateSpeed);
+}
+
+PlayerMovementComponentSystem::PlayerMovementComponentSystem()
+	: System_Internal{ &PlayerMovementComponentSystem::UpdatePlayerMovementComponent }
+
 {
 }
 
 void PlayerMovementComponentSystem::UpdatePlayerMovementComponent(PlayerMovementComponent& comp)
 {
-	if (comp.playerEntity == nullptr)
-		comp.playerEntity = ecs::GetEntity(&comp);
-
-	ecs::CompHandle<physics::PhysicsComp> physicsComp = comp.playerEntity->GetComp<physics::PhysicsComp>();
+	auto playerEntity = ecs::GetEntity(&comp);
+	ecs::CompHandle<physics::PhysicsComp> physicsComp = playerEntity->GetComp<physics::PhysicsComp>();
 	Vec2 movement( 0.0f,0.0f );
+
+	// Get inputs
 	auto inputInstance = ST<KeyboardMouseInput>::Get();
 	if (inputInstance->GetIsDown(KEY::W))
 		movement.y += 1.0f;
@@ -68,8 +60,29 @@ void PlayerMovementComponentSystem::UpdatePlayerMovementComponent(PlayerMovement
 	if (inputInstance->GetIsDown(KEY::A))
 		movement.x -= 1.0f;
 
-	physicsComp->SetLinearVelocity(Vec3{ movement.x,0.0f,movement.y });
-	//physicsComp.
+	if (movement.LengthSqr() > 0.0f)
+		movement = movement.Normalized();
+
+	// Apply input movement
+	Vec3 currVel = physicsComp->GetLinearVelocity();
+	Vec3 moveDir = Vec3{ movement.x *comp.moveSpeed,currVel.y,-movement.y * comp.moveSpeed };
+	physicsComp->SetLinearVelocity(moveDir);
+	//physicsComp->SetAngularVelocity(Vec3{ 0.0f });
+
+	// Handle rotation
+	if (movement.LengthSqr() > 0.0f)
+	{
+		Transform& playerTransform = playerEntity->GetTransform();
+		float targetAngle = math::ToDegrees(atan2(movement.y, movement.x));
+		CONSOLE_LOG(LogLevel::LEVEL_DEBUG) << targetAngle;
+
+		Vec3 currentRotation = playerTransform.GetWorldRotation();
+
+		float newAngle = math::MoveTowardsAngle(currentRotation.y, targetAngle, comp.rotateSpeed * GameTime::Dt());
+
+		Vec3 rotation{ 0.0f,newAngle ,0.0f };
+		playerTransform.SetWorldRotation(rotation);
+	}
 
 	
 }

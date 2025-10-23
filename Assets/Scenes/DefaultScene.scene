@@ -118,6 +118,75 @@
             "parentIndex": -1,
             "position": {
                 "x": 0.0,
+                "y": 2.201585292816162,
+                "z": 0.0
+            },
+            "rotation": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "scale": {
+                "x": 3.0,
+                "y": 3.0,
+                "z": 3.0
+            },
+            "components": {
+                "1048412265199846848": {
+                    "_active": true,
+                    "layer": 0
+                },
+                "1223095846833079106": {
+                    "_active": true,
+                    "uid": 71065835561821693
+                },
+                "1944538217630733064": {
+                    "_active": true,
+                    "linearVel": {
+                        "x": 0.0,
+                        "y": 0.0,
+                        "z": 0.0
+                    },
+                    "flags": {
+                        "_majorityTrue": true,
+                        "_except": [
+                            "Is Kinematic"
+                        ]
+                    }
+                },
+                "2471509561333568296": {
+                    "_active": true,
+                    "name": "PlayerTest"
+                },
+                "3381165323192817782": {
+                    "_active": true,
+                    "meshHash": 21084235054651615,
+                    "materialHash": 19207368719981903
+                },
+                "15107580261673771032": {
+                    "_active": true,
+                    "moveSpeed": 10.0,
+                    "rotateSpeed": 1440.0
+                },
+                "17211506741407007748": {
+                    "_active": true,
+                    "center": {
+                        "x": 0.0,
+                        "y": 0.0,
+                        "z": 0.0
+                    },
+                    "size": {
+                        "x": 1.0,
+                        "y": 1.0,
+                        "z": 1.0
+                    }
+                }
+            }
+        },
+        {
+            "parentIndex": -1,
+            "position": {
+                "x": 0.0,
                 "y": 70.0,
                 "z": 0.0
             },
@@ -175,6 +244,53 @@
                         "y": 1.0,
                         "z": 1.0
                     }
+                }
+            }
+        },
+        {
+            "parentIndex": -1,
+            "position": {
+                "x": 200.0,
+                "y": 200.0,
+                "z": 0.0
+            },
+            "rotation": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "scale": {
+                "x": 150.0,
+                "y": 150.0,
+                "z": 150.0
+            },
+            "components": {
+                "183801612358667588": {
+                    "_active": true,
+                    "cameraEntity": {
+                        "entityUid": 220388310708474085
+                    },
+                    "playerEntity": {
+                        "entityUid": 71065835561821693
+                    }
+                },
+                "1048412265199846848": {
+                    "_active": true,
+                    "layer": 0
+                },
+                "1223095846833079106": {
+                    "_active": true,
+                    "uid": 220388310708474085
+                },
+                "2471509561333568296": {
+                    "_active": true,
+                    "name": "Camera"
+                },
+                "14723636048609971163": {
+                    "_active": true,
+                    "active": true,
+                    "priority": 1,
+                    "zoom": 0.0
                 }
             }
         },

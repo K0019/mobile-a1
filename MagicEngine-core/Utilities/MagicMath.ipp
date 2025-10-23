@@ -60,7 +60,54 @@ namespace math {
 		else
 			return 1;
 	}
+	template <std::floating_point T>
+	constexpr T Abs(T x)
+	{
+		if (x < 0)
+			return -x;
+		else
+			return x;
+	}
 
+	constexpr float MoveTowards(float current, float target, float delta)
+	{
+		if (Abs(target - current) <= delta)
+		{
+			return target;
+		}
+
+		return current + Sign(target - current) * delta;
+	}
+
+	constexpr float MoveTowardsAngle(float current, float target, float delta)
+	{
+		// Sanity check
+		if (delta < 0.0f)
+			return current;
+
+		float difference = target - current;
+
+		// Repeat within 0.0f to 360.0f
+		while (difference > 360.0f)
+			difference -= 360.0f;
+		while (difference <0.0f)
+			difference += 360.0f;
+
+		// If the difference is over 180.0f, we deduct 360
+		if (difference > 180.0f)
+		{
+			difference -= 360.0f;
+		}
+
+		// If the difference is below delta, we can just return target
+		if (Abs(difference) < delta)
+		{
+			return target;
+		}
+
+		target = current + difference;
+		return MoveTowards(current, target, delta);
+	}
 }
 
 #pragma region Vec2
