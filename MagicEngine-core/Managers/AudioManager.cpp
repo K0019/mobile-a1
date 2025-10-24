@@ -85,7 +85,7 @@ FMOD::Sound* AudioManager::CreateSound(const std::string& filepath)
 	return sound;
 }
 
-FMOD::Sound* AudioManager::CreateSound(const char* data, size_t length)
+FMOD::Sound* AudioManager::CreateSoundFromData(const char* data, size_t length)
 {
 	FMOD::Sound* sound = nullptr;
 	

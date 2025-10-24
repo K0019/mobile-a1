@@ -57,7 +57,7 @@ public:
 
 	// File management calls
 	FMOD::Sound* CreateSound(const std::string& filepath);
-	FMOD::Sound* CreateSound(const char* data, size_t length);
+	FMOD::Sound* CreateSoundFromData(const char* data, size_t length);
 	void FreeSound(FMOD::Sound* sound);
 
 	// Default FMOD System call

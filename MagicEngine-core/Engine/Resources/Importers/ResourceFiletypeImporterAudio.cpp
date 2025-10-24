@@ -33,7 +33,7 @@ bool ResourceFiletypeImporterAudio::Import(const std::string& assetRelativeFilep
 		return false;
 	}
 
-	auto sound{ ST<AudioManager>::Get()->CreateSound(reinterpret_cast<const char*>(fileData.data()), fileData.size()) };
+	auto sound{ ST<AudioManager>::Get()->CreateSoundFromData(reinterpret_cast<const char*>(fileData.data()), fileData.size()) };
 	if (!sound)
 		return false;
 
