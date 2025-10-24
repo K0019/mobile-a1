@@ -38,6 +38,7 @@ All rights reserved.
 #include "Editor/Editor.h"
 #include "Utilities/CrashHandler.h"
 
+#include "Engine/Events/EventsQueue.h"
 #include "Engine/Input.h"
 
 #include "Engine/SceneManagement.h"
@@ -195,6 +196,9 @@ void MagicEngine::ExecuteFrame(FrameData& frameData)
 	// Update tracking of framerate and frametime
 	GameTime::WaitUntilNextFrame();
 	ST<PerformanceProfiler>::Get()->StartFrame();
+
+	// Clear the events of the previous frame
+	ST<EventsQueue>::Get()->NewFrame();
 
 	// Only reset key states when systems are updating so we don't skip inputs.
 	if(GameTime::RealNumFixedFrames())
@@ -413,6 +417,7 @@ void MagicEngine::shutdown()
 	ST<MagicResourceManager>::Destroy();
 
 	ST<GraphicsMain>::Destroy();
+	ST<EventsQueue>::Destroy();
 	// In case any systems send logs to the console while destructing.
 	ST<internal::LoggedMessagesBuffer>::Destroy();
 }
