@@ -15,7 +15,7 @@
 
 
 //Helper
-static std::string NormalizePath(const std::string& path)
+std::string VFS::NormalizePath(const std::string& path)
 {
     std::string lowerPath = path;
     // Convert to lowercase

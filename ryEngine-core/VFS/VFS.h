@@ -65,6 +65,7 @@ public:
     static std::string GetFilename(const std::string& path);
     static std::string GetStem(const std::string& path);
     static std::string GetParentPath(const std::string& path);
+    static std::string NormalizePath(const std::string& path);
 
 private:
     static bool MountBackend(const std::string& virtualPath, std::shared_ptr<IVFSImpl> backend);

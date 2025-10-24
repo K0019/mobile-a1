@@ -63,11 +63,11 @@ void MaterialSerialization::Serialize(Serializer& writer, const ProcessedMateria
     writer.Serialize("emissiveFactor", emissive);
 
     std::unordered_map<std::string, std::string> textures;
-    textures["baseColor"]         = getPathFromHandle(textureHandles[0]);
-    textures["metallicRoughness"] = getPathFromHandle(textureHandles[1]);
-    textures["normal"]            = getPathFromHandle(textureHandles[2]);
-    textures["emissive"]          = getPathFromHandle(textureHandles[3]);
-    textures["occlusion"]         = getPathFromHandle(textureHandles[4]);
+    textures["baseColor"]         = VFS::NormalizePath(getPathFromHandle(textureHandles[0]));
+    textures["metallicRoughness"] = VFS::NormalizePath(getPathFromHandle(textureHandles[1]));
+    textures["normal"]            = VFS::NormalizePath(getPathFromHandle(textureHandles[2]));
+    textures["emissive"]          = VFS::NormalizePath(getPathFromHandle(textureHandles[3]));
+    textures["occlusion"]         = VFS::NormalizePath(getPathFromHandle(textureHandles[4]));
     writer.Serialize("textures", textures);
 
     writer.Serialize("flags", material.flags);

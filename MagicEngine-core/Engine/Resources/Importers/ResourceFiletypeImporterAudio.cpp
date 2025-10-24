@@ -38,7 +38,7 @@ bool ResourceFiletypeImporterAudio::Import(const std::string& assetRelativeFilep
 		return false;
 
 	// Create fileentry
-	const auto* fileentry{ GenerateFileEntryForResources<ResourceAudio>(assetRelativeFilepath, 1) };
+	const auto* fileentry{ GenerateFileEntryForResources<ResourceAudio>(VFS::NormalizePath(assetRelativeFilepath), 1) };
 
 	// Set the resource to the FMOD sound
 	size_t hash{ fileentry->associatedResources[0].hashes[0] };
