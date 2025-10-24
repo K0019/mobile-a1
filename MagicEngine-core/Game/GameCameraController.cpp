@@ -33,6 +33,7 @@ GameCameraControllerComponent::GameCameraControllerComponent()
 	, cameraPitch{ 0.0f }
 	, cameraYaw{ 0.0f }
 	, cameraSensitivity{ 1.0f }
+	, currentCameraDistance{ 20.0f }
 {
 }
 
@@ -63,6 +64,7 @@ void GameCameraControllerComponent::EditorDraw()
 	playerEntity.EditorDraw("Player");
 	gui::TextBoxReadOnly("Yaw", std::to_string(cameraYaw));
 	gui::TextBoxReadOnly("Pitch", std::to_string(cameraPitch));
+	gui::VarDrag("Sensitivity", &cameraSensitivity, 0.05f, 0.05f, 1.0f);
 #endif
 }
 
@@ -73,22 +75,65 @@ GameCameraControllerSystem::GameCameraControllerSystem()
 
 void GameCameraControllerSystem::UpdateGameCameraController(GameCameraControllerComponent& comp)
 {
-	if (!comp.playerEntity || !comp.cameraEntity)
+	//comp.cameraYaw += GameTime::Dt() *180.0f;
+	//float pitch = 45.0f;
+	
+	// Mouse look
+	float yaw = comp.cameraYaw;
+	float pitch = comp.cameraPitch;
+	Vec2 currPos = ST<KeyboardMouseInput>::Get()->GetMousePos();
+	if (prevPos.x > 0)
+	{
+		Vec2 mouseDelta = currPos - prevPos;
+
+		yaw -= mouseDelta.x * comp.cameraSensitivity;
+		pitch += mouseDelta.y * comp.cameraSensitivity;
+
+		// Wrap yaw
+		if (yaw < 0.0f)
+			yaw += 360.0f;
+		if (yaw > 360.0f)
+			yaw -= 360.0f;
+
+		// Clamp pitch
+		if (pitch < -25.0f)
+			pitch = -25.0f;
+		if (pitch > 1.0f)
+			pitch = 1.0f;
+
+		comp.cameraPitch = pitch;
+		comp.cameraYaw = yaw;
+	}
+	prevPos = currPos;
+	// This was the best method I could find to rotate the camera with minimal pitch/yaw weirdness
+	// I'm not sure why the cam rotation is misbehaving so much, other objects work just fine
+	ecs::GetEntity(&comp)->GetTransform().SetWorldRotation(Vec3{
+		-pitch * cos(math::ToRadians(comp.cameraYaw)),
+		comp.cameraYaw,
+		-pitch * sin(math::ToRadians(comp.cameraYaw))
+		});
+
+	// If no player, we skip the tracking portion
+	if (!comp.playerEntity)
 		return;
+	
+	
+	// Get the camera's position
+	float yawRad = math::ToRadians(yaw - 90.0f);  // keep -90 if forward = +X
+	float pitchRad = math::ToRadians(pitch);
 
-	Vec3 offset;
+	Vec3 calculatedCameraDirection = Vec3(
+		cos(pitchRad) * cos(yawRad),
+		sin(pitchRad),
+		cos(pitchRad) * sin(yawRad)
+	).Normalized();
 
-	offset.x = 0.0f;
-	offset.y = 10.0f;
-	offset.z = 10.0f;
+	CONSOLE_LOG(LogLevel::LEVEL_DEBUG) << "P:" << pitch << " Y:" << yaw;
+	Vec3 offset = calculatedCameraDirection * comp.currentCameraDistance;
 
 	Vec3 playerPos = comp.playerEntity->GetTransform().GetWorldPosition();
-	Vec3 cameraPos = playerPos + offset;
+	Vec3 cameraPos = playerPos - offset;
 
-	comp.cameraEntity->GetTransform().SetWorldPosition(cameraPos);
+	ecs::GetEntity(&comp)->GetTransform().SetWorldPosition(cameraPos);
 
-	float camYaw = 0.0f;
-	float camPitch = 45.0f;
-
-	comp.cameraEntity->GetTransform().SetWorldRotation({ camPitch, camYaw, 0.0f });
 }
