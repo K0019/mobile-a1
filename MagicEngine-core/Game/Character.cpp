@@ -1,0 +1,92 @@
+/******************************************************************************/
+/*!
+\file   GameCameraController.cpp
+\par    Project: 7percent
+\par    Course: CSD2401
+\par    Section B
+\par    Software Engineering Project 3
+\date   04/02/2025
+
+\author Chan Kuan Fu Ryan (100%)
+\par    email: c.kuanfuryan\@digipen.edu
+\par    DigiPen login: c.kuanfuryan
+
+\brief
+	GameCameraController is an ECS component-system pair which takes control of
+	the camera when the default scene is loaded (game scene). It in in charge of
+	making camera follow the character, map bounds, and any other such effects to be
+	implemented now or in the future.
+
+All content � 2024 DigiPen Institute of Technology Singapore.
+All rights reserved.
+*/
+/******************************************************************************/
+#include "Game/Character.h"
+#include "Physics/Physics.h"
+#include "Engine/Input.h"
+#include "Editor/Containers/GUICollection.h"
+
+CharacterMovementComponent::CharacterMovementComponent()
+{
+}
+
+const Vec2 CharacterMovementComponent::GetMovementVector()
+{
+	return movementVector;
+}
+
+void CharacterMovementComponent::SetMovementVector(Vec2 vector)
+{
+	movementVector = vector;
+}
+
+
+void CharacterMovementComponent::EditorDraw()
+{
+	gui::VarInput("Move Speed", &moveSpeed);
+	gui::VarInput("Rotation Speed", &rotateSpeed);
+}
+
+CharacterMovementComponentSystem::CharacterMovementComponentSystem()
+	: System_Internal{ &CharacterMovementComponentSystem::UpdateCharacterMovementComponent }
+
+{
+}
+
+void CharacterMovementComponentSystem::UpdateCharacterMovementComponent(CharacterMovementComponent& comp)
+{
+	auto characterEntity = ecs::GetEntity(&comp);
+	ecs::CompHandle<physics::PhysicsComp> physicsComp = characterEntity->GetComp<physics::PhysicsComp>();
+
+	// Get inputs
+	Vec2 movement = comp.GetMovementVector();
+
+	// Normalize the move vector if it's overr 1.0f in length
+	if (movement.LengthSqr()>1.0f)
+		movement = movement.Normalized();
+
+	// Apply input movement
+	Vec3 currVel = physicsComp->GetLinearVelocity();
+	Vec3 moveDir = Vec3{ movement.x * comp.moveSpeed,currVel.y+GameTime::Dt()*-9.8f,-movement.y * comp.moveSpeed};
+	physicsComp->SetLinearVelocity(moveDir);
+	//physicsComp->SetAngularVelocity(Vec3{ 0.0f });
+
+	Transform& characterTransform = characterEntity->GetTransform();
+	Vec3 currentRotation = characterTransform.GetWorldRotation();
+
+	// Debug line here, not sure why the angle is having issues when being rotated past 90 degrees
+	characterTransform.SetWorldRotation(Vec3{ 0.0f,90.0f,0.0f });
+
+	// Commented out for testing, these *should* work.
+	//float newAngle = currentRotation.y;
+	//Vec3 rotation{ 0.0f,newAngle ,0.0f };
+	//// Handle rotation
+	//if (movement.LengthSqr() > 0.0f)
+	//{
+	//	float targetAngle = math::ToDegrees(atan2(movement.y, movement.x));
+	//	newAngle = math::MoveTowardsAngle(currentRotation.y, targetAngle, comp.rotateSpeed * GameTime::Dt());
+	//	rotation.y = newAngle;
+	//}
+	//	CONSOLE_LOG(LogLevel::LEVEL_DEBUG) << rotation.y;
+	//characterTransform.SetWorldRotation(rotation);
+}

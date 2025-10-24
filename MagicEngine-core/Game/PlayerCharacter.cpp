@@ -22,6 +22,7 @@ All rights reserved.
 */
 /******************************************************************************/
 #include "Game/PlayerCharacter.h"
+#include "Game/Character.h"
 #include "Physics/Physics.h"
 #include "Engine/Input.h"
 #include "Editor/Containers/GUICollection.h"
@@ -33,8 +34,6 @@ PlayerMovementComponent::PlayerMovementComponent()
 
 void PlayerMovementComponent::EditorDraw()
 {
-	gui::VarInput("Move Speed", &moveSpeed);
-	gui::VarInput("Rotation Speed", &rotateSpeed);
 }
 
 PlayerMovementComponentSystem::PlayerMovementComponentSystem()
@@ -47,6 +46,7 @@ void PlayerMovementComponentSystem::UpdatePlayerMovementComponent(PlayerMovement
 {
 	auto playerEntity = ecs::GetEntity(&comp);
 	ecs::CompHandle<physics::PhysicsComp> physicsComp = playerEntity->GetComp<physics::PhysicsComp>();
+	ecs::CompHandle<CharacterMovementComponent> characterComp = playerEntity->GetComp<CharacterMovementComponent>();
 	Vec2 movement(0.0f, 0.0f);
 
 	// Get inputs
@@ -63,28 +63,5 @@ void PlayerMovementComponentSystem::UpdatePlayerMovementComponent(PlayerMovement
 	if (movement.LengthSqr() > 0.0f)
 		movement = movement.Normalized();
 
-	// Apply input movement
-	Vec3 currVel = physicsComp->GetLinearVelocity();
-	Vec3 moveDir = Vec3{ movement.x * comp.moveSpeed,currVel.y,-movement.y * comp.moveSpeed };
-	physicsComp->SetLinearVelocity(moveDir);
-	//physicsComp->SetAngularVelocity(Vec3{ 0.0f });
-
-	Transform& playerTransform = playerEntity->GetTransform();
-	Vec3 currentRotation = playerTransform.GetWorldRotation();
-
-	// Debug line here, not sure why the angle is having issues when being rotated past 90 degrees
-	playerTransform.SetWorldRotation(currentRotation);
-
-	// Commented out for testing, these *should* work.
-	//float newAngle = currentRotation.y;
-	//Vec3 rotation{ 0.0f,newAngle ,0.0f };
-	//// Handle rotation
-	//if (movement.LengthSqr() > 0.0f)
-	//{
-	//	float targetAngle = math::ToDegrees(atan2(movement.y, movement.x));
-	//	newAngle = math::MoveTowardsAngle(currentRotation.y, targetAngle, comp.rotateSpeed * GameTime::Dt());
-	//	rotation.y = newAngle;
-	//}
-	//	CONSOLE_LOG(LogLevel::LEVEL_DEBUG) << rotation.y;
-	//playerTransform.SetWorldRotation(rotation);
+	characterComp->SetMovementVector(movement);
 }

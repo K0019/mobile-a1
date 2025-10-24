@@ -1,6 +1,6 @@
 /******************************************************************************/
 /*!
-\file   PlayerCharacter.h
+\file   CharacterCharacter.h
 \par    Project: 7percent
 \par    Course: CSD2401
 \par    Section B
@@ -12,7 +12,7 @@
 \par    DigiPen login: c.kuanfuryan
 
 \brief
-	PlayerMovementComponent is an ECS component-system pair which controls player movement. 
+	CharacterMovementComponent is an ECS component-system pair which controls character movement. 
 
 All content � 2024 DigiPen Institute of Technology Singapore.
 All rights reserved.
@@ -23,27 +23,27 @@ All rights reserved.
 #include "Editor/IEditorComponent.h"
 
 /*****************************************************************//*!
-\class PlayerMovementComponent
+\class CharacterMovementComponent
 \brief
 	ECS Component that serializes relevant parameters.
 *//******************************************************************/
-class PlayerMovementComponent
-	: public IRegisteredComponent<PlayerMovementComponent>
-	, public IEditorComponent<PlayerMovementComponent>
+class CharacterMovementComponent
+	: public IRegisteredComponent<CharacterMovementComponent>
+	, public IEditorComponent<CharacterMovementComponent>
 {
+private:
+	Vec2 movementVector;
 public:
+	float moveSpeed;
+	float rotateSpeed;
 	/*****************************************************************//*!
 	\brief
 		Default constructor.
 	*//******************************************************************/
-	PlayerMovementComponent();
+	CharacterMovementComponent();
 
-	/*****************************************************************//*!
-	\brief
-		Default destructor.
-	*//******************************************************************/
-	//~PlayerMovementComponent();
-
+	const Vec2 GetMovementVector();
+	void SetMovementVector(Vec2 vector);
 
 	property_vtable()
 
@@ -57,26 +57,28 @@ private:
 
 };
 
-property_begin(PlayerMovementComponent)
+property_begin(CharacterMovementComponent)
 {
+	property_var(moveSpeed),
+	property_var(rotateSpeed)
 }
-property_vend_h(PlayerMovementComponent)
+property_vend_h(CharacterMovementComponent)
 
 /*****************************************************************//*!
-\class PlayerMovementComponentSystem
+\class CharacterMovementComponentSystem
 \brief
 	ECS System that acts on the relevant component.
 *//******************************************************************/
-class PlayerMovementComponentSystem : public ecs::System<PlayerMovementComponentSystem, PlayerMovementComponent>
+class CharacterMovementComponentSystem : public ecs::System<CharacterMovementComponentSystem, CharacterMovementComponent>
 {
 public:
-	PlayerMovementComponentSystem();
+	CharacterMovementComponentSystem();
 private:
 	/*****************************************************************//*!
 	\brief
-		Updates PlayerMovementComponent.
+		Updates CharacterMovementComponent.
 	\param comp
-		The PlayerMovementComponent to update.
+		The CharacterMovementComponent to update.
 	*//******************************************************************/
-	void UpdatePlayerMovementComponent(PlayerMovementComponent& comp);
+	void UpdateCharacterMovementComponent(CharacterMovementComponent& comp);
 };
