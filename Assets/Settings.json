@@ -108,7 +108,7 @@
                                 {
                                     "hardwareLink": {
                                         "deviceType": 0,
-                                        "keyIdentifier": 65
+                                        "keyIdentifier": -1001
                                     }
                                 }
                             ]

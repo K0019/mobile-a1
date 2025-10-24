@@ -25,15 +25,26 @@ All rights reserved.
 template <InputSupportedValueTypes ValueType>
 ValueType InputBinding<ValueType>::GetValue() const
 {
-	if constexpr (std::is_same_v<ValueType, bool>)
+	if constexpr (std::is_same_v<ValueType, bool>) {
 		return Get<bool>(hardwareValues_Button);
-	else if constexpr (std::is_same_v<ValueType, float>)
+	}
+	else if constexpr (std::is_same_v<ValueType, float>) {
 		return Get<float>(hardwareValues_1D[0]) - Get<float>(hardwareValues_1D[1]);
-	else if constexpr (std::is_same_v<ValueType, Vec2>)
+	}
+	else if constexpr (std::is_same_v<ValueType, Vec2>) {
+
+		//FOR  KEY::MOUSE_DELTA_2D)
+		{
+			const InputHardwareValue v0 = hardwareValues_2D[0].ReadValue();
+			if (std::holds_alternative<Vec2>(v0))
+				return std::get<Vec2>(v0);
+		}
+
 		return Vec2{
 			Get<float>(hardwareValues_2D[0]) - Get<float>(hardwareValues_2D[1]),
 			Get<float>(hardwareValues_2D[2]) - Get<float>(hardwareValues_2D[3]),
 		};
+	}
 	else
 	{
 		assert(false); // Unimplemented value type
@@ -60,21 +71,45 @@ DesiredValueType InputBinding<ValueType>::Get(const InputHardwareValueLink& hard
 
 	if constexpr (std::is_same_v<DesiredValueType, bool>)
 		return std::visit(util::VisitFunctions{
-			[](bool value) -> bool { return value; },
-			[](float value) -> bool { return value >= internal::DEADZONE; }
-		}, variantValue);
+			[](bool        v) -> bool { return v; },
+			[](float       v) -> bool { return v >= internal::DEADZONE; },
+			[](const Vec2& v) -> bool { return std::fabs(v.x) >= internal::DEADZONE
+									   || std::fabs(v.y) >= internal::DEADZONE; }
+			}, variantValue);
 	else if constexpr (std::is_same_v<DesiredValueType, float>)
 		return std::visit(util::VisitFunctions{
-			[](bool value) -> float { return (value ? 1.0f : 0.0f); },
-			[](float value) -> float { return value; }
-		}, variantValue);
-	else
-	{
-		// Unimplemented value type for the variant InputHardwareValue
+			[](bool        v) -> float { return v ? 1.0f : 0.0f; },
+			[](float       v) -> float { return v; },
+			[](const Vec2&) -> float { return 0.0f; } // not meaningful; safe default
+			}, variantValue);
+	else {
 		assert(false);
 		return DesiredValueType{};
 	}
 }
+
+//template <typename DesiredValueType>
+//DesiredValueType InputBinding<ValueType>::Get(const InputHardwareValueLink& hardwareValueLink)
+//{
+//	auto variantValue{ hardwareValueLink.ReadValue() };
+//
+//	if constexpr (std::is_same_v<DesiredValueType, bool>)
+//		return std::visit(util::VisitFunctions{
+//			[](bool value) -> bool { return value; },
+//			[](float value) -> bool { return value >= internal::DEADZONE; }
+//		}, variantValue);
+//	else if constexpr (std::is_same_v<DesiredValueType, float>)
+//		return std::visit(util::VisitFunctions{
+//			[](bool value) -> float { return (value ? 1.0f : 0.0f); },
+//			[](float value) -> float { return value; }
+//		}, variantValue);
+//	else
+//	{
+//		// Unimplemented value type for the variant InputHardwareValue
+//		assert(false);
+//		return DesiredValueType{};
+//	}
+//}
 
 template<InputSupportedValueTypes ValueType>
 void InputBinding<ValueType>::Serialize(Serializer& writer) const
