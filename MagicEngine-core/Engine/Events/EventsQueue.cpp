@@ -17,7 +17,7 @@ All rights reserved.
 */
 /******************************************************************************/
 
-#include "Engine/EventsQueue.h"
+#include "Engine/Events/EventsQueue.h"
 
 EventsQueue::EventsQueue()
 	: activeBufferSetIndex{}
@@ -35,12 +35,12 @@ void EventsQueue::NewFrame()
 	activeBufferSetIndex = (~activeBufferSetIndex) & 1;
 }
 
-EventsQueue::EventsBufferSetType& EventsQueue::GetCurrentBufferSet()
+EventsQueue::EventsBuffersSetType& EventsQueue::GetCurrentBufferSet()
 {
 	return buffersSet[activeBufferSetIndex];
 }
 
-EventsQueue::EventsBufferSetType& EventsQueue::GetNextBufferSet()
+EventsQueue::EventsBuffersSetType& EventsQueue::GetNextBufferSet()
 {
 	return buffersSet[(~activeBufferSetIndex) & 1];
 }

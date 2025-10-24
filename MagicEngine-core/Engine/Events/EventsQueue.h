@@ -46,10 +46,10 @@ namespace internal {
 
 // Create this as a variable to obtain events from EventsQueue.
 template <typename EventType>
-class EventGetter
+class EventsReader
 {
 public:
-	EventGetter();
+	EventsReader();
 
 	// Reads next event, if there is one available
 	const EventType* ExtractEvent();
@@ -68,7 +68,7 @@ private:
 	EventsQueue();
 	friend ST<EventsQueue>;
 
-	using EventsBufferSetType = std::unordered_map<size_t, UPtr<internal::EventsBufferBase>>;
+	using EventsBuffersSetType = std::unordered_map<size_t, UPtr<internal::EventsBufferBase>>;
 
 public:
 	template <typename EventType>
@@ -79,11 +79,11 @@ public:
 	void NewFrame();
 
 private:
-	EventsBufferSetType& GetCurrentBufferSet();
-	EventsBufferSetType& GetNextBufferSet();
+	EventsBuffersSetType& GetCurrentBufferSet();
+	EventsBuffersSetType& GetNextBufferSet();
 
 	template <typename EventType>
-	internal::EventsBuffer<EventType>& GetEventsBuffer(EventsBufferSetType& bufferSet);
+	internal::EventsBuffer<EventType>& GetEventsBuffer(EventsBuffersSetType& bufferSet);
 
 public:
 	int INTERNAL_GetCurrentFrameNum() const;
@@ -92,7 +92,7 @@ public:
 
 private:
 	// Double buffer, for adding events to the current or next frame.
-	EventsBufferSetType buffersSet[2];
+	EventsBuffersSetType buffersSet[2];
 	int activeBufferSetIndex;
 	int frameNum;
 

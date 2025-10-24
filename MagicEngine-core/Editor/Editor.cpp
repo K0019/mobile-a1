@@ -52,14 +52,6 @@ Inspector::~Inspector()
 
 void Inspector::ProcessInput()
 {
-	static bool isDragging = false;
-	static bool isCameraDragging = false;
-	static Vec2 lastMousePos;
-	static Vec2 lastCameraMousePos;
-
-	const Vec2 mousePos = { ImGui::GetMousePos().x, ImGui::GetMousePos().y };
-	const Vec3 worldMousePos = ST<CustomViewport>::Get()->WindowToWorldPosition(mousePos);
-
 	if(ST<KeyboardMouseInput>::Get()->GetIsDown(KEY::LCTRL))
 		if(ST<KeyboardMouseInput>::Get()->GetIsPressed(KEY::Z))
 			ST<History>::Get()->UndoOne();
@@ -68,61 +60,6 @@ void Inspector::ProcessInput()
 
 	// Undoing or somewhere outside may have deleted the selected entity. Check if it still exists. If not, deselect it.
 	CheckIsSelectedEntityValid();
-
-	bool isMouseInViewport = ST<CustomViewport>::Get()->IsMouseInViewport(mousePos);
-	//float dt{ GameTime::FixedDt() };
-	/*if(InputOld::GetKeyCurr(KEY::UP))
-	{
-		ST<CameraController>::Get()->AddPosition({ 0, 1000.0f * dt });
-	}
-	else if(InputOld::GetKeyCurr(KEY::DOWN))
-	{
-		ST<CameraController>::Get()->AddPosition({ 0, -1000.0f * dt });
-	}
-	if(InputOld::GetKeyCurr(KEY::LEFT))
-	{
-		ST<CameraController>::Get()->AddPosition({ -1000.0f * dt, 0 });
-	}
-	else if(InputOld::GetKeyCurr(KEY::RIGHT))
-	{
-		ST<CameraController>::Get()->AddPosition({ 1000.0f * dt, 0 });
-	}*/
-
-	if(isMouseInViewport && ST<GameSystemsManager>::Get()->GetState() == GAMESTATE::EDITOR) // Only able to scroll camera while in editor mode
-	{
-		//ST<CameraController>::Get()->MultTargetZoom(CameraController::GetZoomMultiplierFromInput(Input::GetScroll(), ST<GameSettings>::Get()->m_editorZoomSensitivity));
-
-		if(ImGui::IsMouseClicked(ImGuiMouseButton_Right))
-		{
-			isCameraDragging = true;
-			lastCameraMousePos = mousePos;  // Store screen space coordinates
-		}
-		else if(ImGui::IsMouseReleased(ImGuiMouseButton_Right))
-		{
-			isCameraDragging = false;
-		}
-
-		/*if(isCameraDragging && ImGui::IsMouseDown(ImGuiMouseButton_Right))
-		{
-			CONSOLE_LOG_UNIMPLEMENTED() << "Viewport camera view drag";
-			//Vec2 mouseDelta = mousePos - lastCameraMousePos;
-
-			//// Convert screen space delta to world space delta
-			//float zoomFactor = ST<CameraController>::Get()->GetZoom();
-			//Vec2 worldDelta = mouseDelta / zoomFactor;
-			//worldDelta.x *= -1;  // Invert x axis
-			//// Apply camera movement
-			//ST<CameraController>::Get()->AddPosition(worldDelta);
-
-			//// Update last mouse position
-			//lastCameraMousePos = mousePos;////
-		}*/
-	}
-	else
-	{
-		isCameraDragging = false;
-	}
-	//ST<CameraController>::Get()->LerpZoom(dt);
 
 	if(ST<KeyboardMouseInput>::Get()->GetIsPressed(KEY::DEL))
 		DeleteSelectedEntity();
@@ -133,140 +70,9 @@ void Inspector::ProcessInput()
 	}
 	if (ST<KeyboardMouseInput>::Get()->GetIsPressed(KEY::F2)) {
 		EditorGizmo_Publish(ImGuizmo::ROTATE, EditorGizmo_Mode());
-
 	}
 	if (ST<KeyboardMouseInput>::Get()->GetIsPressed(KEY::F3)) {
 		EditorGizmo_Publish(ImGuizmo::SCALE, EditorGizmo_Mode());
-
-	}
-
-	if(!selectedEntity)
-	{
-		if(!isMouseInViewport || isCameraDragging)
-		{
-			return;
-		}
-		Transform textTransform; // For storing the transform of the text.
-		//float zpos = -1;
-		for(auto iter = ecs::GetEntitiesBegin(), endIter = ecs::GetEntitiesEnd(); iter != endIter; ++iter)
-		{
-			const auto entity = *iter;
-			/*if(iter->GetComp<SpriteComponent>() && iter->GetComp<SpriteComponent>()->GetTextureHash() == util::GenHash("background"))
-			{
-				continue;
-			}*/
-			// There is an issue with the following line of code, where 2 unnecessary copies of Transform are being performed.
-			// const Transform& transform = (iter->GetComp<TextComponent>())
-			//		? iter->GetComp<TextComponent>()->GetWorldTextTransform()
-			//		: entity->GetTransform();
-			// It is likely because the compiler is converting GetTransform()'s lvalue ref into an rvalue for the return of ? operator,
-			// then copying it into the const lvalue ref of transform.
-			// To workaround this, we'll use pointers instead.
-			const Transform* transform{};
-			if(ecs::CompHandle<TextComponent> textComp{ iter->GetComp<TextComponent>() })
-			{
-				textTransform = iter->GetComp<TextComponent>()->GetWorldTextTransform();
-				transform = &textTransform;
-			}
-			else
-			{
-				transform = &entity->GetTransform();
-			}
-			//DrawBoundingBox(transform);
-			/*if(drawBoxes)*/
-				//DrawBoundingBox(*transform, Vec3(1.0f, 0.0f, 0.0f));
-
-			//if(ImGui::IsMouseClicked(ImGuiMouseButton_Left) &&
-			//	 util::IsPointInside(mousePos, ST<CustomViewport>::Get()->WorldToWindowTransform(*transform)) &&
-			//	 ST<Game>::Get()->GetState() == GAMESTATE::EDITOR) // Only able to select through clicking while in editor mode
-			//{
-			//	if(transform->GetZPos() > zpos)
-			//	{
-			//		zpos = transform->GetZPos();
-			//		SetSelectedEntity(entity);
-			//		ST<CustomViewport>::Get()->SetDisableMoving(true);
-			//	}
-			//}
-		}
-	}
-	else
-	{
-		Transform textTransform;
-		const Transform* transform{};
-		if(ecs::CompHandle<TextComponent> textComp{ selectedEntity->GetComp<TextComponent>() })
-		{
-			textTransform = selectedEntity->GetComp<TextComponent>()->GetWorldTextTransform();
-			transform = &textTransform;
-		}
-		else
-		{
-			transform = &selectedEntity->GetTransform();
-		}
-
-
-		if(!isMouseInViewport || isCameraDragging)
-		{
-			isDragging = false;
-			return;
-		}
-
-		//m_gizmo.processInput();
-		// Handle deselection with double click
-		//static float lastClickTime = 0.0f;
-		//static const float doubleClickTime = 0.3f; // Adjust this value to change double click sensitivity
-
-		//if(ImGui::IsMouseClicked(ImGuiMouseButton_Left))
-		//{
-		//	float currentTime = static_cast<float>(ImGui::GetTime());
-		//	if(currentTime - lastClickTime < doubleClickTime)
-		//	{
-		//		// Double click detected
-		//		if(!util::IsPointInside(worldMousePos, *transform))
-		//		{
-		//			SetSelectedEntity(nullptr);
-		//			isDragging = false;
-		//			ST<CustomViewport>::Get()->SetDisableMoving(false);
-		//			lastClickTime = 0.0f;
-		//			return;
-		//		}
-		//	}
-		//	lastClickTime = currentTime;
-		//}
-
-		//// Only handle dragging if gizmo is not active
-		//if(m_currentGizmoType == GizmoType::None)
-		//{
-		//	if(isDragging) {
-		//		if(ImGui::IsMouseDown(ImGuiMouseButton_Left)) {
-		//			Vec2 newPosition = worldMousePos;
-		//			if(!m_snapToGrid) {
-		//				const Vec2 delta = worldMousePos - lastMousePos;
-		//				newPosition = transform->GetWorldPosition() + delta;
-		//			}
-		//			else
-		//			{
-		//				newPosition = SnapToGrid(newPosition);
-		//			}
-		//			ST<History>::Get()->IntermediateEvent(HistoryEvent_Translation{ selectedEntity, selectedEntity->GetTransform().GetLocalPosition() });
-		//			selectedEntity->GetTransform().SetWorldPosition(newPosition);
-		//			lastMousePos = worldMousePos;
-		//		}
-		//		else {
-		//			isDragging = false;
-		//			ST<CustomViewport>::Get()->SetDisableMoving(false);
-		//		}
-		//	}
-		//	else {
-		//		if(ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
-		//			if(util::IsPointInside(worldMousePos, *transform))
-		//			{
-		//				isDragging = true;
-		//				lastMousePos = worldMousePos;
-		//				ST<CustomViewport>::Get()->SetDisableMoving(true);
-		//			}
-		//		}
-		//	}
-		//}
 	}
 }
 
@@ -740,43 +546,4 @@ void Inspector::DrawEntityActionsButton()
 	}
 }
 
-
-//void Inspector::RenderGrid()
-//{
-//    if(!m_showGrid || (ST<Game>::Get()->GetState() == GAMESTATE::IN_GAME || ST<Game>::Get()->GetState() == GAMESTATE::PAUSE)) return;
-//    
-//    // Get necessary information from the renderer
-//    const auto& cameraData = ST<CameraController>::Get()->GetCameraData();
-//    Vec2 cameraPosition = cameraData.position;
-//    float zoom = cameraData.zoom;
-//    VkExtent2D viewport = ST<Engine>::Get()->_worldExtent;
-//    float halfWidth = viewport.width / (2.0f * zoom);
-//    float halfHeight = viewport.height / (2.0f * zoom);
-//    Vec2 topLeft = cameraPosition - Vec2(halfWidth, halfHeight);
-//    Vec2 bottomRight = cameraPosition + Vec2(halfWidth, halfHeight);
-//    topLeft -= m_gridOffset;
-//    bottomRight -= m_gridOffset;
-//    int startX = static_cast<int>(std::floor(topLeft.x / m_gridSize));
-//    int endX = static_cast<int>(std::ceil(bottomRight.x / m_gridSize));
-//    int startY = static_cast<int>(std::floor(topLeft.y / m_gridSize));
-//    int endY = static_cast<int>(std::ceil(bottomRight.y / m_gridSize));
-//    
-//    // Extract color components from Vec4
-//    Vec3 gridColorRGB(m_gridColor.x, m_gridColor.y, m_gridColor.z);
-//    float gridAlpha = m_gridColor.w;
-//    
-//    // Vertical lines
-//    for(int x = startX; x <= endX; ++x) {
-//        Vec2 start(x * m_gridSize + m_gridOffset.x, startY * m_gridSize + m_gridOffset.y);
-//        Vec2 end(x * m_gridSize + m_gridOffset.x, endY * m_gridSize + m_gridOffset.y);
-//        util::DrawLine(start, end, gridColorRGB, gridAlpha);
-//    }
-//    
-//    // Horizontal lines
-//    for(int y = startY; y <= endY; ++y) {
-//        Vec2 start(startX * m_gridSize + m_gridOffset.x, y * m_gridSize + m_gridOffset.y);
-//        Vec2 end(endX * m_gridSize + m_gridOffset.x, y * m_gridSize + m_gridOffset.y);
-//        util::DrawLine(start, end, gridColorRGB, gridAlpha);
-//    }
-//}
 #endif

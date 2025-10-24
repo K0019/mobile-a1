@@ -30,7 +30,6 @@ All rights reserved.
 #include "Graphics/PostProcessingComponent.h"
 #include "Graphics/TextSystem.h"
 #include "Scripting/ScriptComponent.h"
-#include "Graphics/CustomViewport.h"
 
 #include "Game/CheatCodes.h"
 #include "Graphics/CameraSystem.h"
@@ -58,9 +57,6 @@ void GameState_Common::OnEnter()
     ecs::AddSystem(ECS_LAYER::RENDER_0, LightingSystem{});
     ecs::AddSystem(ECS_LAYER::RENDER_0, PostProcessingSystem{});
     ecs::AddSystem(ECS_LAYER::RENDER_UI_0, TextSystem{});
-    
-    // Camera (will be overriden by the game camera during simulation, see GameState_Game)
-    ecs::AddSystem(ECS_LAYER::RENDER_0, CustomViewportCameraUploadSystem{});
 
     ecs::AddSystem(ECS_LAYER::PRE_PHYSICS_0, FPSTextSystem{});
     ecs::AddSystem(ECS_LAYER::AUDIO, AudioSystem{});

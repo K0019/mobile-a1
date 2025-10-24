@@ -22,8 +22,9 @@ All rights reserved.
 
 #include "Components/NameComponent.h"
 #include "ECS/EntityUID.h"
-#include "Graphics/CustomViewport.h"
 #include "Editor/Editor.h"
+#include "Engine/Events/EventsQueue.h"
+#include "Engine/Events/EventsTypeBasic.h"
 
 namespace editor {
 
@@ -49,7 +50,7 @@ namespace editor {
 					{
 						unsigned int width = std::stoi(tokens[1]);
 						unsigned int height = std::stoi(tokens[2]);
-						ST<CustomViewport>::Get()->Resize(width, height);
+						ST<EventsQueue>::Get()->AddEventForNextFrame(Events::ResizeViewport{ width, height });
 					}
 					catch (const std::invalid_argument&)
 					{

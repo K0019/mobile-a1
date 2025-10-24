@@ -25,14 +25,14 @@ namespace internal {
 }
 
 template<typename EventType>
-EventGetter<EventType>::EventGetter()
+EventsReader<EventType>::EventsReader()
 	: nextEventIndex{}
 	, currentFrame{}
 {
 }
 
 template<typename EventType>
-const EventType* EventGetter<EventType>::ExtractEvent()
+const EventType* EventsReader<EventType>::ExtractEvent()
 {
 	// Reset next event index if the frame has changed.
 	if (ST<EventsQueue>::Get()->INTERNAL_GetCurrentFrameNum() != currentFrame)
@@ -60,7 +60,7 @@ void EventsQueue::AddEventForNextFrame(EventType&& event)
 }
 
 template<typename EventType>
-internal::EventsBuffer<EventType>& EventsQueue::GetEventsBuffer(EventsBufferSetType& bufferSet)
+internal::EventsBuffer<EventType>& EventsQueue::GetEventsBuffer(EventsBuffersSetType& bufferSet)
 {
 	// Get and return if the buffer already exists
 	size_t typeHash{ typeid(EventType).hash_code() };

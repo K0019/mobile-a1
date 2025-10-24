@@ -19,6 +19,7 @@ All rights reserved.
 */
 /******************************************************************************/
 #pragma once
+#include "Editor/Containers/GUIAsECS.h"
 #include "Engine/Engine.h"
 #include "ImGui/ImguiHeader.h"
 #include "Editor/Gizmo.h"
@@ -27,15 +28,19 @@ All rights reserved.
 /**
  * @brief The CustomViewport class represents a custom viewport for rendering graphics.
  */
-class CustomViewport
+class CustomViewport : public editor::WindowBase<CustomViewport, false>
 {
-    friend class ST<CustomViewport>;
-
 #ifdef IMGUI_ENABLED
     using Vec = ImVec2;
 #else
     using Vec = Vec2;
 #endif
+
+public:
+    CustomViewport(unsigned int width, unsigned int height);
+
+    void DrawContainer(int id) override;
+    void DrawWindow() override;
 
 public:
     /**
@@ -58,10 +63,6 @@ public:
     void UpdateCameraControl();
 #ifdef IMGUI_ENABLED
     void DrawPlayControls();
-    /**
-     * @brief DrawImGuiWindow draws the ImGui window for the custom viewport.
-     */
-    void DrawImGuiWindow();
 
     /**
      * @brief MaintainAspectRatio is a callback function used to maintain the aspect ratio of the viewport.
@@ -86,12 +87,6 @@ public:
     bool IsMouseInViewport(const Vec2& mousePos) const;
 
     /**
-     * @brief SetDisableMoving sets whether moving the viewport is disabled.
-     * @param disable True to disable moving the viewport, false otherwise.
-     */
-    void SetDisableMoving(bool disable);
-
-    /**
      * @brief GetViewportRenderSize returns the render size of the viewport.
      * @return The render size of the viewport.
      */
@@ -100,16 +95,8 @@ public:
     void updateCurrentEntity(ecs::EntityHandle entity);
     Camera GetViewportCamera() const;
 
-     ~CustomViewport() = default;
-
     std::string name; /**< The name of the ImGui Window. Specifically put here because I use it more than once*/
 private:
-    /**
-     * @brief Default constructor for the CustomViewport class.
-     */
-    CustomViewport();
-
-    bool disableMoving{ false }; /**< Flag indicating whether moving the viewport is disabled. */
     unsigned width {},height {}; /**< The width and height of the viewport. */
     float aspect_ratio {}; /**< The aspect ratio of the viewport. */
     float titleBarHeight {}; /**< The height of the title bar of the viewport window. */
@@ -122,14 +109,4 @@ private:
 #endif
     CameraPositioner_FirstPerson camera;
 
-};
-
-/*****************************************************************//*!
-\brief
-    Uploads the custom viewport's camera to GameScene, the graphics API.
-*//******************************************************************/
-class CustomViewportCameraUploadSystem : public ecs::System<CustomViewportCameraUploadSystem>
-{
-public:
-    bool PreRun() override;
 };

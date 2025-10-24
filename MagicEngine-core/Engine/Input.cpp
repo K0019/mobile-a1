@@ -20,10 +20,11 @@ All rights reserved.
 /******************************************************************************/
 
 #include "Engine/Input.h"
-#include "Graphics/CustomViewport.h"
 #include "core/platform/platform.h"
 
-#ifndef IMGUI_ENABLED
+#ifdef IMGUI_ENABLED
+#include <ImGui/ImguiHeader.h>
+#else
 #include "Engine/Graphics Interface/GraphicsWindow.h"
 #endif
 
