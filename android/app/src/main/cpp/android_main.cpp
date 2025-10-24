@@ -154,7 +154,7 @@ void android_main(android_app* app) {
 
     AAssetManager* assetManager = app->activity->assetManager;
     VFS::Initialize();
-    VFS::MountAndroidDirectory("assets", assetManager);
+    VFS::MountAndroidDirectory("", assetManager);
 
 
     LOGI("Entering main event loop");
