@@ -28,3 +28,13 @@ namespace Events {
 	};
 
 }
+
+namespace Getters {
+
+#pragma region Editor
+
+	struct EditorSelectedEntity{};
+
+#pragma endregion // Editor
+
+}

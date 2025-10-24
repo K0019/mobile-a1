@@ -3,6 +3,53 @@
 namespace internal {
 
 	template<typename EventType>
+	IEventHandlerIntermediate<EventType>::IEventHandlerIntermediate(CallUserFunctionType callUserFunction)
+		: callUserFunction{ callUserFunction }
+	{
+	}
+
+	template<typename EventType>
+	void IEventHandlerIntermediate<EventType>::ProcessEventIntermediate(const EventType& event)
+	{
+		callUserFunction(this, &event, 0, nullptr);
+	}
+	template<typename EventType>
+	bool IEventHandlerIntermediate<EventType>::ProcessEventIntermediate(const EventType& event, size_t returnTypeHash, void* outReturnData)
+	{
+		return callUserFunction(this, &event, returnTypeHash, outReturnData);
+	}
+
+}
+
+template<typename EventType, typename ReturnType>
+IEventHandler<EventType, ReturnType>::IEventHandler()
+	: internal::IEventHandlerIntermediate<EventType>{ [](internal::IEventHandlerBase* baseHandlerPtr, const void* eventData, size_t returnTypeHash, void* outReturnData) -> bool {
+		auto eventHandlerPtr{ static_cast<IEventHandler<EventType, ReturnType>*>(baseHandlerPtr) };
+
+		// Special value: 0 (new event was added)
+		// Just call the user function and don't care about the return value
+		if (returnTypeHash == 0)
+		{
+			eventHandlerPtr->ProcessEvent(*reinterpret_cast<const EventType*>(eventData));
+			return true;
+		}
+
+		// We want the return value.
+		
+		// If the return type doesn't match, don't call this handler
+		if (typeid(ReturnType).hash_code() != returnTypeHash)
+			return false;
+
+		// Call the handler and write the result to the out data ptr
+		*reinterpret_cast<ReturnType*>(outReturnData) = eventHandlerPtr->ProcessEvent(*reinterpret_cast<const EventType*>(eventData));
+		return true;
+	} }
+{
+}
+
+namespace internal {
+
+	template<typename EventType>
 	void EventsBuffer<EventType>::AddEvent(EventType&& event)
 	{
 		queuedEvents.push_back(std::forward<EventType>(event));
@@ -57,6 +104,43 @@ template<typename EventType>
 void EventsQueue::AddEventForNextFrame(EventType&& event)
 {
 	GetEventsBuffer<EventType>(GetNextBufferSet()).AddEvent(std::forward<EventType>(event));
+}
+
+template <typename EventType, typename EventHandlerType>
+EventHandlerHandle EventsQueue::AddEventHandler(EventHandlerType&& eventHandler)
+{
+	auto& eventSet{ eventHandlerSets[typeid(EventType).hash_code()] };
+
+	// Generate event handler handle
+	EventHandlerHandle handle{ util::Rand_UID() };
+	while (eventSet.eventHandlerIndexLookup.find(handle) != eventSet.eventHandlerIndexLookup.end())
+		handle = util::Rand_UID();
+
+	// Add the event handler
+	eventSet.eventHandlerIndexLookup[handle] = eventSet.eventHandlers.size();
+	eventSet.eventHandlers.emplace_back(new EventHandlerType{ std::forward<EventHandlerType>(eventHandler) });
+
+	return handle;
+}
+
+template<typename DesiredReturnType, typename EventType>
+std::optional<DesiredReturnType> EventsQueue::RequestValueFromEventHandlers(const EventType& event) const
+{
+	// Check if any event handlers exist for this EventType
+	size_t eventTypeHash{ typeid(EventType).hash_code() };
+	auto eventSetIter{ eventHandlerSets.find(eventTypeHash) };
+	if (eventSetIter == eventHandlerSets.end())
+		return std::nullopt;
+
+	// Return the return value of the first event handler that returns one
+	size_t returnTypeHash{ typeid(DesiredReturnType).hash_code() };
+	DesiredReturnType returnVal{};
+	for (const auto& eventHandler : eventSetIter->second.eventHandlers)
+		if (static_cast<internal::IEventHandlerIntermediate<EventType>&>(*eventHandler).ProcessEventIntermediate(event, returnTypeHash, &returnVal))
+			return returnVal;
+
+	// No event handlers returned the desired return value type
+	return std::nullopt;
 }
 
 template<typename EventType>

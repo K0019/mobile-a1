@@ -21,6 +21,45 @@ All rights reserved.
 
 namespace internal {
 
+	class IEventHandlerBase
+	{
+	public:
+		virtual ~IEventHandlerBase() = default;
+	};
+
+	template <typename EventType>
+	class IEventHandlerIntermediate : public IEventHandlerBase
+	{
+	protected:
+		using CallUserFunctionType = bool (*)(IEventHandlerBase* baseHandlerPtr, const void* eventData, size_t returnTypeHash, void* outReturnData);
+
+		IEventHandlerIntermediate(CallUserFunctionType callUserFunction);
+
+	public:
+		void ProcessEventIntermediate(const EventType& event);
+		bool ProcessEventIntermediate(const EventType& event, size_t returnTypeHash, void* outReturnData);
+
+	private:
+		CallUserFunctionType callUserFunction;
+
+	};
+
+}
+
+template <typename EventType, typename ReturnType = void>
+class IEventHandler : public internal::IEventHandlerIntermediate<EventType>
+{
+protected:
+	IEventHandler();
+
+public:
+	virtual ReturnType ProcessEvent(const EventType& event) = 0;
+
+};
+using EventHandlerHandle = size_t;
+
+namespace internal {
+
 	class EventsBufferBase
 	{
 	public:
@@ -76,6 +115,11 @@ public:
 	template <typename EventType>
 	void AddEventForNextFrame(EventType&& event);
 
+	template <typename EventType, typename EventHandlerType>
+	EventHandlerHandle AddEventHandler(EventHandlerType&& eventHandler);
+	template <typename DesiredReturnType, typename EventType>
+	std::optional<DesiredReturnType> RequestValueFromEventHandlers(const EventType& event) const;
+
 	void NewFrame();
 
 private:
@@ -95,6 +139,14 @@ private:
 	EventsBuffersSetType buffersSet[2];
 	int activeBufferSetIndex;
 	int frameNum;
+
+	// Event handlers
+	struct EventHandlersSet
+	{
+		std::vector<UPtr<internal::IEventHandlerBase>> eventHandlers;
+		std::unordered_map<EventHandlerHandle, size_t> eventHandlerIndexLookup;
+	};
+	std::unordered_map<size_t, EventHandlersSet> eventHandlerSets;
 
 };
 

@@ -22,7 +22,6 @@ All rights reserved.
 
 #include "Components/NameComponent.h"
 #include "ECS/EntityUID.h"
-#include "Editor/Editor.h"
 #include "Engine/Events/EventsQueue.h"
 #include "Engine/Events/EventsTypeBasic.h"
 
@@ -76,30 +75,31 @@ namespace editor {
 				}},
 		// For getting information about the currently selected entity or an entity with the provided UID
 		{ "entityInfo", [](Console&, const std::vector<std::string>& tokens) -> void {
-			ecs::EntityHandle entity{};
+			std::optional<ecs::EntityHandle> entityOpt{};
 			if (tokens.size() > 2)
 			{
 				if (tokens[1] == "uid")
-					entity = EntityUIDLookup::GetEntity(std::stoull(tokens[2]));
+					entityOpt = EntityUIDLookup::GetEntity(std::stoull(tokens[2]));
 				else if (tokens[1] == "addr")
-					entity = reinterpret_cast<ecs::EntityHandle>(std::stoull(tokens[2]));
+					entityOpt = reinterpret_cast<ecs::EntityHandle>(std::stoull(tokens[2]));
 				else if (tokens[1] == "name")
 					for (auto nameCompIter{ ecs::GetCompsBegin<NameComponent>() }, endIter{ ecs::GetCompsEnd<NameComponent>() }; nameCompIter != endIter; ++nameCompIter)
 						if (nameCompIter->GetName() == tokens[2])
 						{
-							entity = nameCompIter.GetEntity();
+							entityOpt = nameCompIter.GetEntity();
 							break;
 						}
 			}
 			else
-				entity = ST<Inspector>::Get()->GetSelectedEntity();
-			if (!entity)
+				entityOpt = ST<EventsQueue>::Get()->RequestValueFromEventHandlers<ecs::EntityHandle>(Getters::EditorSelectedEntity{});
+			if (!entityOpt.has_value() || !entityOpt.value())
 			{
 				CONSOLE_LOG(LEVEL_INFO) << "No entity selected.";
 				return;
 			}
 
-			Transform* parentTransform{ entity->GetTransform().GetParent() };
+			ecs::EntityHandle entity{ entityOpt.value() };
+			Transform* parentTransform{ entity->GetTransform().GetParent()};
 
 			CONSOLE_LOG(LEVEL_INFO) << "Entity: " << entity->GetComp<NameComponent>()->GetName();
 			CONSOLE_LOG(LEVEL_INFO) << "-- UID: " << entity->GetComp<EntityUIDComponent>()->GetUID();
