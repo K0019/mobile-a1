@@ -44,6 +44,10 @@ public:
 	*//******************************************************************/
 	//~PlayerMovementComponent();
 
+	EntityReference cameraReference;
+
+	void Serialize(Serializer& writer) const;
+	void Deserialize(Deserializer& reader);
 
 	property_vtable()
 

@@ -23,6 +23,7 @@ All rights reserved.
 /******************************************************************************/
 #include "Game/PlayerCharacter.h"
 #include "Game/Character.h"
+#include "Game/GameCameraController.h"
 #include "Physics/Physics.h"
 #include "Engine/Input.h"
 #include "Editor/Containers/GUICollection.h"
@@ -31,9 +32,20 @@ PlayerMovementComponent::PlayerMovementComponent()
 {
 }
 
+void PlayerMovementComponent::Serialize(Serializer& writer) const
+{
+	writer.Serialize("cameraReference", cameraReference);
+}
+
+void PlayerMovementComponent::Deserialize(Deserializer& reader)
+{
+	reader.Deserialize("cameraReference", &cameraReference);
+}
 
 void PlayerMovementComponent::EditorDraw()
 {
+	cameraReference.EditorDraw("Camera");
+
 }
 
 PlayerMovementComponentSystem::PlayerMovementComponentSystem()
@@ -51,14 +63,21 @@ void PlayerMovementComponentSystem::UpdatePlayerMovementComponent(PlayerMovement
 
 	// Get inputs
 	auto inputInstance = ST<KeyboardMouseInput>::Get();
+
+	ecs::CompHandle< GameCameraControllerComponent> camComp = comp.cameraReference->GetComp< GameCameraControllerComponent>();
+
+	float yawRad = -math::ToRadians(camComp->cameraYaw-90.0f);
+	Vec2 camForward = Vec2{ cos(yawRad),sin(yawRad) };
+	Vec2 camRight = Vec2{ sin(yawRad),-cos(yawRad) };
+
 	if (inputInstance->GetIsDown(KEY::W))
-		movement.y += 1.0f;
+		movement = movement + camForward;
 	if (inputInstance->GetIsDown(KEY::S))
-		movement.y -= 1.0f;
+		movement = movement - camForward;
 	if (inputInstance->GetIsDown(KEY::D))
-		movement.x += 1.0f;
+		movement = movement + camRight;
 	if (inputInstance->GetIsDown(KEY::A))
-		movement.x -= 1.0f;
+		movement = movement - camRight;
 
 	if (movement.LengthSqr() > 0.0f)
 		movement = movement.Normalized();

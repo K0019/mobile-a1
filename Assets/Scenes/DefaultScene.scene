@@ -169,7 +169,10 @@
                     "rotateSpeed": 14400.0
                 },
                 "15107580261673771032": {
-                    "_active": true
+                    "_active": true,
+                    "cameraReference": {
+                        "entityUid": 220388310708474085
+                    }
                 },
                 "17211506741407007748": {
                     "_active": true,
