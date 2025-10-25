@@ -25,6 +25,11 @@ All rights reserved.
 #include "Managers/AudioManager.h"
 #include "FilepathConstants.h"
 
+#ifndef GLFW
+#include <android/log.h>
+#define LOG_TAG "ryEngine"
+#endif
+
 void MagicResourceManager::Init()
 {
     Messaging::Subscribe("NeedResourceLoaded", OnResourceRequestedLoad);
@@ -143,6 +148,15 @@ ResourceContainerAudio& MagicResourceManager::INTERNAL_GetAudio()
 
 void MagicResourceManager::INTERNAL_CreateEmptyResource(size_t resourceTypeHash, size_t resourceHash)
 {
+#ifndef GLFW
+    __android_log_print(ANDROID_LOG_ERROR, LOG_TAG, "resourceTypeHash:               %llu", (unsigned long long)resourceTypeHash);
+
+    __android_log_print(ANDROID_LOG_ERROR, LOG_TAG, "Androids ResourceMesh hash:     %llu", (unsigned long long)typeid(ResourceMesh).hash_code());
+    __android_log_print(ANDROID_LOG_ERROR, LOG_TAG, "Androids ResourceMaterial hash: %llu", (unsigned long long)typeid(ResourceMaterial).hash_code());
+    __android_log_print(ANDROID_LOG_ERROR, LOG_TAG, "Androids ResourceTexture hash:  %llu", (unsigned long long)typeid(ResourceTexture).hash_code());
+    __android_log_print(ANDROID_LOG_ERROR, LOG_TAG, "Androids ResourceAudio hash:    %llu", (unsigned long long)typeid(ResourceAudio).hash_code());
+#endif
+
     // Sorry for this if spam kinda running out of time, this function existing's also kinda ugly anyway
     if (resourceTypeHash == typeid(ResourceMesh).hash_code())
         meshes.INTERNAL_CreateResource(resourceHash);

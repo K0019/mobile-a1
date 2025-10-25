@@ -15,7 +15,7 @@ class AndroidApp {
     MagicEngine engine;
 public:
     void Initialize(Context& context) {
-        //engine.Init(context);
+        engine.Init(context);
     }
 
     void Update(Context& context, FrameData& frame) {
@@ -147,14 +147,18 @@ static int32_t HandleInput(android_app* app, AInputEvent* event) {
 void android_main(android_app* app) {
     LOGI("===== android_main starting =====");
 
+    AAssetManager* assetManager = app->activity->assetManager;
+    VFS::Initialize();
+    VFS::MountAndroidDirectory("", assetManager);
+
     EngineContext ctx;
     app->userData = &ctx;
     app->onAppCmd = HandleCmd;
     app->onInputEvent = HandleInput;
+    ctx.engine = new Engine<AndroidApp>();
+    ctx.engine->Initialize();
 
-    AAssetManager* assetManager = app->activity->assetManager;
-    VFS::Initialize();
-    VFS::MountAndroidDirectory("", assetManager);
+
 
 
     LOGI("Entering main event loop");
