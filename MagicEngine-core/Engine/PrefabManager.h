@@ -210,14 +210,13 @@ private:
 	ecs::EntityHandle CreatePrefabEntityFromName(const std::string name)
 	{
 		std::string prefabPath = VFS::JoinPath(FolderDir(), name + ".prefab");
-		std::vector<char> fileBuffer;
+		std::string fileBuffer;
 		if (!VFS::ReadFile(prefabPath, fileBuffer))
 		{
 			CONSOLE_LOG(LEVEL_INFO) << "Could not find prefab file: " << prefabPath;
 			return nullptr;
 		}
-		fileBuffer.push_back('\0');
-		Deserializer deserializer{ fileBuffer.data() };
+		Deserializer deserializer{ fileBuffer };
 
 		// Error Checking
 		if (!deserializer.IsValid())

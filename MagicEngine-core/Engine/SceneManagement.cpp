@@ -29,7 +29,7 @@ All rights reserved.
 
 #pragma region Helper
 
-const std::string defaultSceneName{ "DefaultScene" };
+const std::string defaultSceneName{ "defaultscene" };
 
 /*****************************************************************//*!
 \class SceneHelper
@@ -587,15 +587,14 @@ void ScenePool::ResetAndLoadPrevOpenScenes()
 
 	// Ensure openScenes.json exists
 	std::string jsonPath = SceneHelper::GetOpenScenesJsonPath();
-	std::vector<char> fileBuffer;
+	std::string fileBuffer;
 	if (!VFS::ReadFile(jsonPath, fileBuffer))
 	{
 		CONSOLE_LOG(LEVEL_WARNING) << jsonPath << " does not exist, aborting loading scenes.";
 		return;
 	}
-	fileBuffer.push_back('\0');
 
-	Deserializer deserializer{ fileBuffer.data() };
+	Deserializer deserializer{ fileBuffer };
 	if (!deserializer.IsValid())
 	{
 		CONSOLE_LOG(LEVEL_WARNING) << "Failed to parse " << jsonPath << ", aborting loading scenes.";

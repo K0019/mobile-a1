@@ -40,11 +40,10 @@ bool ResourceFiletypeImporterMaterial::Import(const std::string& relativeFilepat
     {
         CONSOLE_LOG(LEVEL_ERROR) << "Failed to open .material file ";
     }
-    fileData.push_back('\0');
 
     ProcessedMaterial material;
 
-    Deserializer reader{ fileData.c_str() };
+    Deserializer reader{ fileData };
     if (!reader.IsValid())
     {
         CONSOLE_LOG(LEVEL_ERROR) << "Failed to deserialize .material file ";
