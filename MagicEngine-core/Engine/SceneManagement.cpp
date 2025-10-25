@@ -29,7 +29,7 @@ All rights reserved.
 
 #pragma region Helper
 
-const std::string defaultSceneName{ "DefaultScene" };
+const std::string defaultSceneName{ "defaultscene" };
 
 /*****************************************************************//*!
 \class SceneHelper
@@ -49,8 +49,7 @@ public:
 	*//******************************************************************/
 	static const std::string& GetScenesFolder()
 	{
-		//return Filepaths::scenesSave;
-		return Filepaths::virtualScenesSave;
+		return Filepaths::scenesSave;
 	}
 
 	/*****************************************************************//*!
@@ -252,15 +251,15 @@ void Scene::LoadFromFile()
 	//if (!deserializer.IsValid())
 	//	return;
 
-	std::vector<char> fileBuffer; // Use char, not uint8_t, for string data
-	if (!VFS::ReadFile(filepath, fileBuffer))
-	{
-		CONSOLE_LOG(LEVEL_ERROR) << "VFS: Failed to read scene file: " << filepath;
-		return;
-	}
-	fileBuffer.push_back('\0');
+	//std::vector<char> fileBuffer;
+	//if (!VFS::ReadFile(filepath, fileBuffer))
+	//{
+	//	CONSOLE_LOG(LEVEL_ERROR) << "VFS: Failed to read scene file: " << filepath;
+	//	return;
+	//}
 
-	Deserializer deserializer{ fileBuffer.data() };
+	//Deserializer deserializer{ fileBuffer.data() };
+	Deserializer deserializer{ filepath };
 	if (!deserializer.IsValid())
 		return;
 
@@ -587,15 +586,14 @@ void ScenePool::ResetAndLoadPrevOpenScenes()
 
 	// Ensure openScenes.json exists
 	std::string jsonPath = SceneHelper::GetOpenScenesJsonPath();
-	std::vector<char> fileBuffer;
+	std::string fileBuffer;
 	if (!VFS::ReadFile(jsonPath, fileBuffer))
 	{
 		CONSOLE_LOG(LEVEL_WARNING) << jsonPath << " does not exist, aborting loading scenes.";
 		return;
 	}
-	fileBuffer.push_back('\0');
 
-	Deserializer deserializer{ fileBuffer.data() };
+	Deserializer deserializer{ fileBuffer };
 	if (!deserializer.IsValid())
 	{
 		CONSOLE_LOG(LEVEL_WARNING) << "Failed to parse " << jsonPath << ", aborting loading scenes.";
