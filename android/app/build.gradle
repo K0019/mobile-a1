@@ -61,6 +61,7 @@ android {
     sourceSets {
         main {
             jniLibs.srcDirs = ['src/main/jniLibs']
+            assets.srcDirs = ['src/main/assets', '../../Assets'] // includes main proj assets
         }
     }
 }
