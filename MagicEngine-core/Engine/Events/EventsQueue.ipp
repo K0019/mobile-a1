@@ -134,15 +134,16 @@ void EventsQueue::AddEventForNextFrame(EventType&& event)
 template <typename EventType, typename EventHandlerType>
 EventHandlerHandle EventsQueue::AddEventHandler(EventHandlerType&& eventHandler)
 {
-	auto& eventSet{ GetEventHandlersSet<EventType>() };
-
 	// Generate event handler handle
 	EventHandlerHandle handle{ util::Rand_UID() };
-	while (eventSet.eventHandlerIndexLookup.find(handle) != eventSet.eventHandlerIndexLookup.end())
+	while (eventHandlerLookup.find(handle) != eventHandlerLookup.end())
 		handle = util::Rand_UID();
+	eventHandlerLookup.insert({ handle, typeid(EventType).hash_code() });
+	eventHandler.INTERNAL_SetHandle(handle);
 
 	// Add the event handler
-	eventSet.eventHandlerIndexLookup[handle] = eventSet.eventHandlers.size();
+	auto& eventSet{ GetEventHandlersSet<EventType>() };
+	eventSet.eventHandlerIndexLookup.insert({ handle, eventSet.eventHandlers.size() });
 	eventSet.eventHandlers.emplace_back(new EventHandlerType{ std::forward<EventHandlerType>(eventHandler) });
 
 	return handle;

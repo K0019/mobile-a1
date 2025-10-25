@@ -19,10 +19,53 @@ All rights reserved.
 
 #include "Engine/Events/EventsQueue.h"
 
+namespace internal {
+
+	IEventHandlerBase::IEventHandlerBase()
+		: handle{}
+	{
+	}
+
+	size_t IEventHandlerBase::GetHandle() const
+	{
+		return handle;
+	}
+
+	void IEventHandlerBase::INTERNAL_SetHandle(size_t newHandle)
+	{
+		handle = newHandle;
+	}
+
+}
+
 EventsQueue::EventsQueue()
 	: activeBufferSetIndex{}
 	, frameNum{}
 {
+}
+
+void EventsQueue::DeleteEventHandler(EventHandlerHandle handle)
+{
+	// Find the event handler set containing this event handler
+	auto eventHandlerHashIter{ eventHandlerLookup.find(handle) };
+	if (eventHandlerHashIter == eventHandlerLookup.end())
+		return;
+
+	// Get the index of the event handler within the vector
+	auto& eventHandlerSet{ eventHandlerSets.at(eventHandlerHashIter->second) };
+	size_t eventHandlerIndex{ eventHandlerSet.eventHandlerIndexLookup.at(handle) };
+
+	// If the event handler is not the last in the vector, swap with the last
+	if (eventHandlerIndex < eventHandlerSet.eventHandlers.size() - 1)
+	{
+		EventHandlerHandle lastEventHandlerHandle{ eventHandlerSet.eventHandlers.back()->GetHandle() };
+		std::swap(eventHandlerSet.eventHandlers[eventHandlerIndex], eventHandlerSet.eventHandlers.back());
+		eventHandlerSet.eventHandlerIndexLookup[handle] = eventHandlerIndex;
+	}
+
+	// Delete the event handler
+	eventHandlerSet.eventHandlers.pop_back();
+	eventHandlerSet.eventHandlerIndexLookup.erase(handle);
 }
 
 void EventsQueue::NewFrame()

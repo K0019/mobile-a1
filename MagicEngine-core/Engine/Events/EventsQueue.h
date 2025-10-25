@@ -23,8 +23,17 @@ namespace internal {
 
 	class IEventHandlerBase
 	{
+	protected:
+		IEventHandlerBase();
+
 	public:
 		virtual ~IEventHandlerBase() = default;
+
+		size_t INTERNAL_GetHandle() const;
+		void INTERNAL_SetHandle(size_t newHandle);
+
+	private:
+		size_t handle;
 	};
 
 	template <typename EventType>
@@ -46,6 +55,7 @@ namespace internal {
 
 }
 
+// Inherit this for creating event handlers that get informed when a new event is added.
 template <typename EventType, typename ReturnType = void>
 class IEventHandler : public internal::IEventHandlerIntermediate<EventType>
 {
@@ -96,7 +106,7 @@ namespace internal {
 
 }
 
-// Create this as a variable to obtain events from EventsQueue.
+// Create this as a variable to pull events from EventsQueue.
 template <typename EventType>
 class EventsReader
 {
@@ -132,15 +142,20 @@ private:
 	};
 
 public:
+	// Add a new event here
 	template <typename EventType>
 	void AddEventForThisFrame(EventType&& event);
 	template <typename EventType>
 	void AddEventForNextFrame(EventType&& event);
 
+	// Add a new event handler here
 	template <typename EventType, typename EventHandlerType>
 	EventHandlerHandle AddEventHandler(EventHandlerType&& eventHandler);
 	template <typename EventType, typename FuncType>
 	EventHandlerHandle AddEventHandlerFunc(FuncType&& func);
+	// Delete an event handler
+	void DeleteEventHandler(EventHandlerHandle handle);
+	// Request for a return value from event handlers
 	template <typename DesiredReturnType, typename EventType>
 	std::optional<DesiredReturnType> RequestValueFromEventHandlers(const EventType& event) const;
 
@@ -171,6 +186,7 @@ private:
 
 	// Event handlers
 	std::unordered_map<size_t, EventHandlersSet> eventHandlerSets;
+	std::unordered_map<EventHandlerHandle, size_t> eventHandlerLookup;
 
 };
 
