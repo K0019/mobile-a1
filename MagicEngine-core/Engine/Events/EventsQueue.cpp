@@ -26,7 +26,7 @@ namespace internal {
 	{
 	}
 
-	size_t IEventHandlerBase::GetHandle() const
+	size_t IEventHandlerBase::INTERNAL_GetHandle() const
 	{
 		return handle;
 	}
@@ -58,7 +58,7 @@ void EventsQueue::DeleteEventHandler(EventHandlerHandle handle)
 	// If the event handler is not the last in the vector, swap with the last
 	if (eventHandlerIndex < eventHandlerSet.eventHandlers.size() - 1)
 	{
-		EventHandlerHandle lastEventHandlerHandle{ eventHandlerSet.eventHandlers.back()->GetHandle() };
+		EventHandlerHandle lastEventHandlerHandle{ eventHandlerSet.eventHandlers.back()->INTERNAL_GetHandle() };
 		std::swap(eventHandlerSet.eventHandlers[eventHandlerIndex], eventHandlerSet.eventHandlers.back());
 		eventHandlerSet.eventHandlerIndexLookup[handle] = eventHandlerIndex;
 	}
