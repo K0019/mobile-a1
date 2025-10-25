@@ -49,8 +49,7 @@ public:
 	*//******************************************************************/
 	static const std::string& GetScenesFolder()
 	{
-		//return Filepaths::scenesSave;
-		return Filepaths::virtualScenesSave;
+		return Filepaths::scenesSave;
 	}
 
 	/*****************************************************************//*!

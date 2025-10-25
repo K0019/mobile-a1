@@ -32,16 +32,12 @@ const std::string Filepaths::gameSettings		= "Settings.json";
 const std::string Filepaths::assetsJson			= "assets.json";
 const std::string Filepaths::shadersSave		= "Shaders";
 const std::string Filepaths::fontsSave			= "Fonts";
-const std::string Filepaths::prefabsSave		= Filepaths::assets + "/Prefab";
+const std::string Filepaths::prefabsSave		= "Prefabs";
 const std::string Filepaths::scenesSave			= "Scenes";
 const std::string Filepaths::scriptsSave		= "Scripts";
 const std::string Filepaths::materialsSave		= "Materials";
 const std::string Filepaths::behaviourTreeSave	= "BehaviourTrees";
 const std::string Filepaths::soundFolder		= "Sounds";
-const std::string Filepaths::virtualGameSettings		= "Settings.json";
-const std::string Filepaths::virtualPrefabsSave			= "Prefabs";
-const std::string Filepaths::virtualBehaviourTreeSave	= "BehaviourTrees";
-const std::string Filepaths::virtualScenesSave			= "Scenes";
 
 const std::string Filepaths::graphicsWindowIcon = Filepaths::assets + "/Icon_game.png";
 

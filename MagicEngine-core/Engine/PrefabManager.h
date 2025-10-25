@@ -37,8 +37,7 @@ class PrefabManager
 private:
 	static const std::string& FolderDir()
 	{
-		//return Filepaths::prefabsSave;
-		return Filepaths::virtualPrefabsSave;
+		return Filepaths::prefabsSave;
 	}
 
 	static bool EnsurePrefabDirExists()
