@@ -31,8 +31,22 @@ void EventsQueue::NewFrame()
 	for (auto& [_, buffer] : GetCurrentBufferSet())
 		buffer->Clear();
 
+	// Swap buffers
 	++frameNum;
 	activeBufferSetIndex = (~activeBufferSetIndex) & 1;
+
+	// Call event handlers
+	auto& currentBufferSet{ GetCurrentBufferSet() };
+	for (auto& eventHandlerIter : eventHandlerSets)
+	{
+		// Skip this set of event handlers if there are no events
+		auto bufferIter{ currentBufferSet.find(eventHandlerIter.first) };
+		if (bufferIter == currentBufferSet.end())
+			continue;
+
+		// Execute
+		eventHandlerIter.second.callEventHandlersToProcessEventBuffer(eventHandlerIter.second.eventHandlers, *bufferIter->second);
+	}
 }
 
 EventsQueue::EventsBuffersSetType& EventsQueue::GetCurrentBufferSet()

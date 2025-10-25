@@ -83,8 +83,10 @@ namespace internal {
 	class EventsBuffer : public EventsBufferBase
 	{
 	public:
-		void AddEvent(EventType&& event);
+		const EventType& AddEvent(EventType&& event);
 		const EventType* GetEvent(int index) const;
+		const std::vector<EventType>& GetEvents() const;
+
 		void Clear() override;
 
 	private:
@@ -120,6 +122,15 @@ private:
 
 	using EventsBuffersSetType = std::unordered_map<size_t, UPtr<internal::EventsBufferBase>>;
 
+	struct EventHandlersSet
+	{
+		std::vector<UPtr<internal::IEventHandlerBase>> eventHandlers;
+		std::unordered_map<EventHandlerHandle, size_t> eventHandlerIndexLookup;
+
+		// For calling event handlers on stored events when we don't know the EventType
+		void (*callEventHandlersToProcessEventBuffer)(decltype(eventHandlers)&, internal::EventsBufferBase&){};
+	};
+
 public:
 	template <typename EventType>
 	void AddEventForThisFrame(EventType&& event);
@@ -141,6 +152,11 @@ private:
 
 	template <typename EventType>
 	internal::EventsBuffer<EventType>& GetEventsBuffer(EventsBuffersSetType& bufferSet);
+	template <typename EventType>
+	EventHandlersSet& GetEventHandlersSet();
+
+	template <typename EventType>
+	void CallEventHandlers(const EventType& event);
 
 public:
 	int INTERNAL_GetCurrentFrameNum() const;
@@ -154,11 +170,6 @@ private:
 	int frameNum;
 
 	// Event handlers
-	struct EventHandlersSet
-	{
-		std::vector<UPtr<internal::IEventHandlerBase>> eventHandlers;
-		std::unordered_map<EventHandlerHandle, size_t> eventHandlerIndexLookup;
-	};
 	std::unordered_map<size_t, EventHandlersSet> eventHandlerSets;
 
 };

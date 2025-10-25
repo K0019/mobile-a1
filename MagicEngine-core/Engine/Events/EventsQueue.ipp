@@ -34,15 +34,20 @@ IEventHandler<EventType, ReturnType>::IEventHandler()
 			return true;
 		}
 
-		// We want the return value.
-		
-		// If the return type doesn't match, don't call this handler
-		if (typeid(ReturnType).hash_code() != returnTypeHash)
-			return false;
+		// We want the return value (which can only work when non-void,
+		// so if we care about the return value but our event handler returns void, do nothing)
+		if constexpr (!std::is_same_v<ReturnType, void>)
+		{
+			// If the return type doesn't match, don't call this handler
+			if (typeid(ReturnType).hash_code() != returnTypeHash)
+				return false;
 
-		// Call the handler and write the result to the out data ptr
-		*reinterpret_cast<ReturnType*>(outReturnData) = eventHandlerPtr->ProcessEvent(*reinterpret_cast<const EventType*>(eventData));
-		return true;
+			// Call the handler and write the result to the out data ptr
+			*reinterpret_cast<ReturnType*>(outReturnData) = eventHandlerPtr->ProcessEvent(*reinterpret_cast<const EventType*>(eventData));
+			return true;
+		}
+		else
+			return false;
 	} }
 {
 }
@@ -62,9 +67,10 @@ namespace internal {
 	}
 
 	template<typename EventType>
-	void EventsBuffer<EventType>::AddEvent(EventType&& event)
+	const EventType& EventsBuffer<EventType>::AddEvent(EventType&& event)
 	{
 		queuedEvents.push_back(std::forward<EventType>(event));
+		return queuedEvents.back();
 	}
 
 	template<typename EventType>
@@ -73,6 +79,12 @@ namespace internal {
 		if (static_cast<size_t>(index) >= queuedEvents.size())
 			return nullptr;
 		return &queuedEvents[index];
+	}
+
+	template<typename EventType>
+	const std::vector<EventType>& EventsBuffer<EventType>::GetEvents() const
+	{
+		return queuedEvents;
 	}
 
 	template <typename EventType>
@@ -110,7 +122,8 @@ const EventType* EventsReader<EventType>::ExtractEvent()
 template<typename EventType>
 void EventsQueue::AddEventForThisFrame(EventType&& event)
 {
-	GetEventsBuffer<EventType>(GetCurrentBufferSet()).AddEvent(std::forward<EventType>(event));
+	const EventType& storedEvent{ GetEventsBuffer<EventType>(GetCurrentBufferSet()).AddEvent(std::forward<EventType>(event)) };
+	CallEventHandlers(storedEvent);
 }
 template<typename EventType>
 void EventsQueue::AddEventForNextFrame(EventType&& event)
@@ -121,7 +134,7 @@ void EventsQueue::AddEventForNextFrame(EventType&& event)
 template <typename EventType, typename EventHandlerType>
 EventHandlerHandle EventsQueue::AddEventHandler(EventHandlerType&& eventHandler)
 {
-	auto& eventSet{ eventHandlerSets[typeid(EventType).hash_code()] };
+	auto& eventSet{ GetEventHandlersSet<EventType>() };
 
 	// Generate event handler handle
 	EventHandlerHandle handle{ util::Rand_UID() };
@@ -173,6 +186,36 @@ internal::EventsBuffer<EventType>& EventsQueue::GetEventsBuffer(EventsBuffersSet
 	// Create the buffer and return
 	auto result{ bufferSet.insert({ typeHash, std::make_unique<internal::EventsBuffer<EventType>>() }) };
 	return static_cast<internal::EventsBuffer<EventType>&>(*result.first->second);
+}
+
+template<typename EventType>
+EventsQueue::EventHandlersSet& EventsQueue::GetEventHandlersSet()
+{
+	// Return immediately if the struct was already initialized
+	EventHandlersSet& eventHandlersSet{ eventHandlerSets[typeid(EventType).hash_code()] };
+	if (eventHandlersSet.callEventHandlersToProcessEventBuffer)
+		return eventHandlersSet;
+
+	// The struct was just created, and we need to initialize the function
+	eventHandlersSet.callEventHandlersToProcessEventBuffer = [](decltype(eventHandlersSet.eventHandlers)& eventHandlers, internal::EventsBufferBase& eventBuffers) -> void {
+		for (const auto& event : static_cast<internal::EventsBuffer<EventType>&>(eventBuffers).GetEvents())
+			for (const auto& eventHandler : eventHandlers)
+				static_cast<internal::IEventHandlerIntermediate<EventType>&>(*eventHandler).ProcessEventIntermediate(event);
+	};
+}
+
+template<typename EventType>
+void EventsQueue::CallEventHandlers(const EventType& event)
+{
+	// Check if any event handlers exist for this EventType
+	size_t eventTypeHash{ typeid(EventType).hash_code() };
+	auto eventSetIter{ eventHandlerSets.find(eventTypeHash) };
+	if (eventSetIter == eventHandlerSets.end())
+		return;
+
+	// Call the handlers
+	for (const auto& eventHandler : eventSetIter->second.eventHandlers)
+		static_cast<internal::IEventHandlerIntermediate<EventType>&>(*eventHandler).ProcessEventIntermediate(event);
 }
 
 template<typename EventType>
