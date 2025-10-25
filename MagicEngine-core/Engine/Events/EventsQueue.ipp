@@ -202,6 +202,8 @@ EventsQueue::EventHandlersSet& EventsQueue::GetEventHandlersSet()
 			for (const auto& eventHandler : eventHandlers)
 				static_cast<internal::IEventHandlerIntermediate<EventType>&>(*eventHandler).ProcessEventIntermediate(event);
 	};
+
+	return eventHandlersSet;
 }
 
 template<typename EventType>
