@@ -35,7 +35,8 @@ void GraphicsMain::Init(Context inContext)
 	ST<GraphicsScene>::Get()->Init(inContext);
 
 #ifdef IMGUI_ENABLED
-	InitImGui(Filepaths::fontsSave + "/Lato-Regular.ttf");
+	InitImGui(Filepaths::assets + "/Fonts" + "/Lato-Regular.ttf");
+	//InitImGui(Filepaths::fontsSave + "/Lato-Regular.ttf");
 #endif
 }
 

@@ -85,7 +85,13 @@ namespace
 		ecs::SwitchToPool(ecs::POOL::DEFAULT);
 	}
 	void loadState(const char* filename) {
-		Deserializer deserializer{ std::string(filename) };
+
+		std::ifstream t(filename); //Should be safe, only used on windows
+		std::stringstream buffer;
+		buffer << t.rdbuf();
+		Deserializer deserializer{ buffer.str()};
+
+		//Deserializer deserializer{ filename };
 		if (!deserializer.IsValid())
 			return;
 

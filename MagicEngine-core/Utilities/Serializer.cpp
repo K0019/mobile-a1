@@ -26,6 +26,7 @@ All rights reserved.
 
 #include "Utilities/Serializer.h"
 #include "ECS/EntityUID.h"
+#include "VFS/VFS.h"
 
 enum class PROPERTY_TYPE
 {
@@ -424,14 +425,17 @@ Deserializer::Deserializer(const std::string& input)
     else
     {
         // Is a filepath
-        std::ifstream ifs{ input };
-        if (!ifs.is_open())
-        {
-            CONSOLE_LOG(LEVEL_ERROR) << "Deserializer failed to open file " << input;
-            return;
-        }
+        //std::ifstream ifs{ input };
+        //if (!ifs.is_open())
+        //{
+        //    CONSOLE_LOG(LEVEL_ERROR) << "Deserializer failed to open file " << input;
+        //    return;
+        //}
+        //document.Parse(std::string{ std::istreambuf_iterator{ifs}, std::istreambuf_iterator<char>{} });
+        std::string fileBuffer;
+        VFS::ReadFile(input, fileBuffer);
+        document.Parse(fileBuffer.c_str());
 
-        document.Parse(std::string{ std::istreambuf_iterator{ifs}, std::istreambuf_iterator<char>{} });
         isValid = !document.HasParseError();
         if (!isValid)
         {

@@ -252,15 +252,15 @@ void Scene::LoadFromFile()
 	//if (!deserializer.IsValid())
 	//	return;
 
-	std::vector<char> fileBuffer; // Use char, not uint8_t, for string data
-	if (!VFS::ReadFile(filepath, fileBuffer))
-	{
-		CONSOLE_LOG(LEVEL_ERROR) << "VFS: Failed to read scene file: " << filepath;
-		return;
-	}
-	fileBuffer.push_back('\0');
+	//std::vector<char> fileBuffer;
+	//if (!VFS::ReadFile(filepath, fileBuffer))
+	//{
+	//	CONSOLE_LOG(LEVEL_ERROR) << "VFS: Failed to read scene file: " << filepath;
+	//	return;
+	//}
 
-	Deserializer deserializer{ fileBuffer.data() };
+	//Deserializer deserializer{ fileBuffer.data() };
+	Deserializer deserializer{ filepath };
 	if (!deserializer.IsValid())
 		return;
 
