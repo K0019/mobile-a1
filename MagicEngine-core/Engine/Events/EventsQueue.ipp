@@ -49,6 +49,18 @@ IEventHandler<EventType, ReturnType>::IEventHandler()
 
 namespace internal {
 
+	template<typename EventType, typename FuncType, typename ReturnType>
+	EventHandlerWrappingFunction<EventType, FuncType, ReturnType>::EventHandlerWrappingFunction(FuncType&& func)
+		: func{ std::forward<FuncType>(func) }
+	{
+	}
+
+	template<typename EventType, typename FuncType, typename ReturnType>
+	ReturnType EventHandlerWrappingFunction<EventType, FuncType, ReturnType>::ProcessEvent(const EventType& event)
+	{
+		return func(event);
+	}
+
 	template<typename EventType>
 	void EventsBuffer<EventType>::AddEvent(EventType&& event)
 	{
@@ -121,6 +133,12 @@ EventHandlerHandle EventsQueue::AddEventHandler(EventHandlerType&& eventHandler)
 	eventSet.eventHandlers.emplace_back(new EventHandlerType{ std::forward<EventHandlerType>(eventHandler) });
 
 	return handle;
+}
+
+template<typename EventType, typename FuncType>
+EventHandlerHandle EventsQueue::AddEventHandlerFunc(FuncType&& func)
+{
+	return AddEventHandler<EventType>(internal::EventHandlerWrappingFunction<EventType, FuncType>{ std::forward<FuncType>(func) });
 }
 
 template<typename DesiredReturnType, typename EventType>

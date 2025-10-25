@@ -60,6 +60,17 @@ using EventHandlerHandle = size_t;
 
 namespace internal {
 
+	template <typename EventType, typename FuncType, typename ReturnType = std::invoke_result_t<FuncType, const EventType&>>
+	class EventHandlerWrappingFunction : public IEventHandler<EventType, ReturnType>
+	{
+	public:
+		EventHandlerWrappingFunction(FuncType&& func);
+		virtual ReturnType ProcessEvent(const EventType& event) override;
+
+	private:
+		std::function<ReturnType(const EventType&)> func;
+	};
+
 	class EventsBufferBase
 	{
 	public:
@@ -117,6 +128,8 @@ public:
 
 	template <typename EventType, typename EventHandlerType>
 	EventHandlerHandle AddEventHandler(EventHandlerType&& eventHandler);
+	template <typename EventType, typename FuncType>
+	EventHandlerHandle AddEventHandlerFunc(FuncType&& func);
 	template <typename DesiredReturnType, typename EventType>
 	std::optional<DesiredReturnType> RequestValueFromEventHandlers(const EventType& event) const;
 

@@ -40,18 +40,15 @@ All rights reserved.
 
 #ifdef IMGUI_ENABLED
 
-class EventHandler_EditorSelectedEntity_Inspector : public IEventHandler<Getters::EditorSelectedEntity, ecs::EntityHandle>
-{
-	ecs::EntityHandle ProcessEvent(const Getters::EditorSelectedEntity& event) override { return ST<Inspector>::Get()->GetSelectedEntity(); }
-};
-
 //for imgui gizmo
 
 Inspector::Inspector()
 	: Window{ ICON_FA_MAGNIFYING_GLASS" Inspector", gui::Vec2{ 300, 400 }, gui::FLAG_WINDOW::ALWAYS_VERTICAL_SCROLL_BAR }
 {
 	// TEMPORARY
-	ST<EventsQueue>::Get()->AddEventHandler<Getters::EditorSelectedEntity>(EventHandler_EditorSelectedEntity_Inspector{});
+	ST<EventsQueue>::Get()->AddEventHandlerFunc<Getters::EditorSelectedEntity>([](const Getters::EditorSelectedEntity& event) -> ecs::EntityHandle {
+		return ST<Inspector>::Get()->GetSelectedEntity();
+	});
 }
 
 Inspector::~Inspector()
