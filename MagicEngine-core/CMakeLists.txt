@@ -31,7 +31,6 @@ else()
         $<$<CONFIG:Release>:${EXTERNAL_LIBRARIES_STATIC_RELEASE}>
         glm::glm-header-only
         Jolt::Jolt
-        Boost::type_index
     )
 endif()
 
@@ -43,10 +42,15 @@ engine_add_module(MagicEngine-Core
     DEFINITIONS ${CORE_DEFINITIONS}
 )
 
+# Private links 
 target_link_libraries(MagicEngine-Core PRIVATE 
     $<$<NOT:$<BOOL:${ANDROID}>>:KTX::ktx>
     $<$<BOOL:${ANDROID}>:ktx>
 )
+
+if (ANDROID)
+    target_link_libraries(MagicEngine-Core PRIVATE Boost::type_index)
+endif()
 
 if(ANDROID)
     target_compile_definitions(MagicEngine-Core PUBLIC KHRONOS_STATIC)
