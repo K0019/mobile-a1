@@ -130,11 +130,6 @@ bool MagicEngine::IsShuttingDown() const
 void MagicEngine::Init(Context& context)
 {
 #ifdef GLFW
-	CONSOLE_LOG(LEVEL_INFO) << util::ConsistentHash<MagicEngine>();
-#else
-	__android_log_print(ANDROID_LOG_ERROR, LOG_TAG, "testHash:               %llu", (unsigned long long)util::ConsistentHash<MagicEngine>());
-#endif
-#ifdef GLFW
 	// The ifdef is to prevent double loading on android's side.
 	// A temporary thing while I decide where android and windows directory adding goes.
 	// Right now, android's is inside android_main.cpp.
