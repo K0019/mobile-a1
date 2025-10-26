@@ -109,6 +109,13 @@ namespace
 }
 #endif
 
+#ifndef GLFW
+#include <android/log.h>
+#define LOG_TAG "ryEngine"
+#endif
+
+#include "ECS/TestRegister.h"
+
 MagicEngine::MagicEngine() = default;
 
 MagicEngine::~MagicEngine() = default;
@@ -122,13 +129,10 @@ bool MagicEngine::IsShuttingDown() const
 {
 	return ST<GraphicsMain>::Get()->GetIsPendingShutdown();
 }
-#ifndef GLFW
-#include <android/log.h>
-#define LOG_TAG "ryEngine"
-#endif
 
 void MagicEngine::Init(Context& context)
 {
+	RegisterShit();
 #ifdef GLFW
 	// The ifdef is to prevent double loading on android's side.
 	// A temporary thing while I decide where android and windows directory adding goes.
@@ -195,6 +199,8 @@ void MagicEngine::Init(Context& context)
 	ST<GameSystemsManager>::Get()->Init(GAMESTATE::EDITOR);
 #else
 	ST<GameSystemsManager>::Get()->Init(GAMESTATE::IN_GAME);
+	//ST<SceneManager>::Get()->LoadScene("scenes/defaultscene.scene");
+	ST<SceneManager>::Get()->ResetAndLoadPrevOpenScenes();
 #endif
 
 	auto timeafterwindow = std::chrono::high_resolution_clock::now();

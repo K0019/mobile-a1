@@ -48,7 +48,8 @@ void ResourceContainerBase<ResourceType>::DeleteResource(size_t hash)
 	if (resourceIter == resources.end())
 		return;
 
-	Messaging::BroadcastAll("ResourceDeleted", hash, typeid(ResourceType).hash_code());
+	//Messaging::BroadcastAll("ResourceDeleted", hash, typeid(ResourceType).hash_code());
+	Messaging::BroadcastAll("ResourceDeleted", hash, util::ConsistentHash<ResourceType>());
 	resources.erase(resourceIter);
 }
 

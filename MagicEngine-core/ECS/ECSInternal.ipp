@@ -26,6 +26,7 @@ All rights reserved.
 #include <iostream>
 #include "Utilities/TypeID.h"
 #include "Utilities/Utilities.h"
+#include "Utilities/RandUID.h"
 
 namespace ecs {
 
@@ -548,13 +549,15 @@ namespace ecs {
 		template<typename T>
 		constexpr CompHash GetCompHash()
 		{
-			return typeid(T).hash_code();
+			//return typeid(T).hash_code();
+			return util::ConsistentHash<T>();
 		}
 		// Gets the hash of a system type
 		template<typename T>
 		constexpr SysHash GetSysHash()
 		{
-			return typeid(T).hash_code();
+			//return typeid(T).hash_code();
+			return util::ConsistentHash<T>();
 		}
 
 		template<typename T>

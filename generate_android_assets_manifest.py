@@ -2,17 +2,11 @@ import os
 import sys
 
 # The root directory of your assets, relative to where the script is run
-asset_dir = 'android/app/src/main/assets'
-output_file = os.path.join(asset_dir, 'asset_manifest.txt')
+android_asset_dir = 'android/app/src/main/assets'
+output_file = os.path.join(android_asset_dir, 'asset_manifest.txt')
+working_asset_dir = 'assets'
 
-# Check if the asset directory exists
-if not os.path.exists(asset_dir):
-    print(f"Error: Asset directory '{asset_dir}' does not exist.")
-    print(f"Current working directory: {os.getcwd()}")
-    sys.exit(1)
 
-# Ensure the output directory exists
-os.makedirs(asset_dir, exist_ok=True)
 
 def rename_to_lowercase(directory):
     """Recursively rename all files and directories to lowercase."""
@@ -54,17 +48,35 @@ def rename_to_lowercase(directory):
     
     return renamed_count
 
-# Rename all assets to lowercase
-print("Renaming assets to lowercase...")
-renamed_count = rename_to_lowercase(asset_dir)
-print(f"Renamed {renamed_count} files/directories to lowercase\n")
 
+
+
+
+# Rename all assets to lowercase
+#print("Renaming assets to lowercase...")
+#renamed_count = rename_to_lowercase(android_asset_dir)
+#print(f"Renamed {renamed_count} files/directories to lowercase\n")
+
+
+
+
+# Check if the asset directory exists
+if not os.path.exists(android_asset_dir):
+    print(f"Error: Asset directory '{android_asset_dir}' does not exist.")
+    print(f"Current working directory: {os.getcwd()}")
+    sys.exit(1)
+
+# Ensure the output directory exists
+os.makedirs(android_asset_dir, exist_ok=True)
+
+
+# Building the asset manifest
 try:
     with open(output_file, 'w', encoding='utf-8') as f:
         file_count = 0
         
         # Recursively walk through the asset directory
-        for root, dirs, files in os.walk(asset_dir):
+        for root, dirs, files in os.walk(working_asset_dir):
             # Sort for consistent output
             files.sort()
             
@@ -75,7 +87,7 @@ try:
                 
                 full_path = os.path.join(root, name)
                 # Get the path relative to the asset_dir and normalize slashes to forward slashes
-                relative_path = os.path.relpath(full_path, asset_dir).replace('\\', '/')
+                relative_path = os.path.relpath(full_path, working_asset_dir).replace('\\', '/').lower()
                 f.write(relative_path + '\n')
                 file_count += 1
         
