@@ -96,7 +96,8 @@ Resource::ProcessedTexture ResourceFiletypeImporterKTX::ManualLoadTexture(const 
     SCOPE_EXIT{ ktxTexture_Destroy(ktxTexture(ktxTex)); };
 
     // Extract texture properties
-    texture.originalFileSize = std::filesystem::file_size(filepath);
+    //texture.originalFileSize = std::filesystem::file_size(filepath);
+    texture.originalFileSize = fileData.size();
     texture.width = ktxTex->baseWidth;
     texture.height = ktxTex->baseHeight;
     texture.channels = 4; // Most KTX textures are 4-channel
