@@ -28,9 +28,6 @@ All rights reserved.
 
 namespace util {
 
-	//! The hasher class object that hashes objects.
-	std::hash<std::string> strHasher;
-
 	uint64_t Rand_UID()
 	{
 		constexpr uint16_t MASK12BITS{ 0xFFF };
@@ -71,7 +68,19 @@ namespace util {
 
 	uint64_t GenHash(const std::string& s)
 	{
-		return strHasher(s);
+		// https://stackoverflow.com/questions/66764096/calculating-stdhash-using-different-compilers
+
+		constexpr uint64_t fnv_prime{ 1099511628211ULL };
+		constexpr uint64_t fnv_offset_basis{ 14695981039346656037ULL };
+
+		uint64_t hash{ fnv_offset_basis };
+
+		for (auto c : s) {
+			hash ^= c;
+			hash *= fnv_prime;
+		}
+
+		return hash;
 	}
 
 	size_t HashMatrix(const glm::mat4& mat)
