@@ -125,10 +125,10 @@ bool VFS::FileExists(const std::string& path)
         if (normalizedPath.rfind(mp.virtualPath, 0) == 0)
         {
             std::string relativePath = normalizedPath.substr(mp.virtualPath.length());
-            if (!relativePath.empty() && (relativePath[0] == '/' || relativePath[0] == '\\'))
-            {
-                relativePath = relativePath.substr(1);
-            }
+            //if (!relativePath.empty() && (relativePath[0] == '/' || relativePath[0] == '\\'))
+            //{
+            //    relativePath = relativePath.substr(1);
+            //}
 
             if (mp.backend->FileExists(relativePath))
             {
