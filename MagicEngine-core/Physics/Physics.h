@@ -37,8 +37,10 @@ namespace physics {
 	*//******************************************************************/
 #define D_PHYSICS_COMP_FLAG \
 X(IS_KINEMATIC, "Is Kinematic") \
-X(USE_GRAVITY, "Use Gravity")
-//X(ROTATION_LOCKED, "Lock Rotation")
+X(USE_GRAVITY, "Use Gravity") \
+X(ROTATION_LOCKED_X, "Lock Rotation X") \
+X(ROTATION_LOCKED_Y, "Lock Rotation Y") \
+X(ROTATION_LOCKED_Z, "Lock Rotation Z")
 
 #define X(name, str) name,
 	enum class PHYSICS_COMP_FLAG : int
@@ -67,6 +69,8 @@ X(USE_GRAVITY, "Use Gravity")
 		PhysicsCompFlags flags;
 		// linear velocity
 		Vec3 linearVel;
+		// angular velocity
+		Vec3 angularVel;
 
 	public:
 
@@ -123,6 +127,22 @@ X(USE_GRAVITY, "Use Gravity")
 			3d vector value to set to the linear velocity.
 		*//******************************************************************/
 		void SetLinearVelocity(const Vec3& vel);
+
+		/*****************************************************************//*!
+		\brief
+			Gets the value of the angular velocity.
+		\return
+			3d vector that represents the angular velocity.
+		*//******************************************************************/
+		const Vec3& GetAngularVelocity() const;
+
+		/*****************************************************************//*!
+		\brief
+			Set the value of the angular velocity.
+		\param vel
+			3d vector value to set to the angular velocity in degrees.
+		*//******************************************************************/
+		void SetAngularVelocity(const Vec3& vel);
 
 	private:
 		/*****************************************************************//*!

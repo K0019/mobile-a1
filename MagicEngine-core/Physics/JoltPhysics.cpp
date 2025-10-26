@@ -20,7 +20,6 @@ All rights reserved.
 
 #include "Physics/JoltPhysics.h"
 #include "Utilities/GameTime.h"
-#include "Editor/Containers/GUICollection.h"
 
 namespace physics {
 	JoltPhysics::JoltPhysics()
@@ -68,6 +67,11 @@ namespace physics {
 		return bodyManager;
 	}
 
+	JPH::PhysicsSystem& JoltPhysics::GetPhysicsSystem()
+	{
+		return physicsSystem;
+	}
+
 	void JoltPhysics::UpdatePhysicsSystem()
 	{
 		physicsSystem.Update((GameTime::IsFixedDtMode() ? GameTime::FixedDt() : GameTime::RealDt()), 1, &tempAllocator, &jobSystem);
@@ -94,6 +98,8 @@ namespace physics {
 		, shapeType{ShapeType::EMPTY}
 		, collisionLayer{Layers::NON_COLLIDABLE}
 		, prevTrans{}
+		, prevQuat{}
+		, dof{JPH::EAllowedDOFs::All}
 	{
 	}
 	
@@ -103,6 +109,8 @@ namespace physics {
 		, shapeType{shape}
 		, collisionLayer{layer}
 		, prevTrans{}
+		, prevQuat{}
+		, dof{JPH::EAllowedDOFs::All}
 	{
 	}
 
@@ -201,10 +209,9 @@ namespace physics {
 		return Vec3{ joltScale.GetX(), joltScale.GetY(), joltScale.GetZ() };
 	}
 
-	Vec3 JoltBodyComp::GetRotation() const
+	JPH::Quat JoltBodyComp::GetRotation() const
 	{
-		JPH::RVec3 joltRot{ ST<JoltPhysics>::Get()->GetBodyInterface().GetRotation(bodyID).GetEulerAngles() };
-		return Vec3{ joltRot.GetX(), joltRot.GetY(), joltRot.GetZ() };
+		return ST<JoltPhysics>::Get()->GetBodyInterface().GetRotation(bodyID);
 	}
 
 	void JoltBodyComp::SetMotionType(JPH::EMotionType type)
@@ -269,12 +276,6 @@ namespace physics {
 		ST<JoltPhysics>::Get()->GetBodyInterface().SetPosition(bodyID, joltPos, JPH::EActivation::Activate);
 	}
 
-	void JoltBodyComp::SetRotation(const Vec3& rot)
-	{
-		JPH::Quat joltRot{ JPH::Quat::sEulerAngles(JPH::Vec3{math::ToRadians(rot.x), math::ToRadians(rot.y), math::ToRadians(rot.z)}) };
-		ST<JoltPhysics>::Get()->GetBodyInterface().SetRotation(bodyID, joltRot, JPH::EActivation::Activate);
-	}
-
 	void JoltBodyComp::SetScale(const Vec3& scale)
 	{
 		JPH::Vec3 joltScale{ scale.x / 2.f, scale.y / 2.f, scale.z / 2.f };
@@ -299,6 +300,13 @@ namespace physics {
 		ST<JoltPhysics>::Get()->GetBodyInterface().SetShape(bodyID, result.Get(), true, JPH::EActivation::Activate);
 	}
 
+	void JoltBodyComp::SetRotation(const Vec3& rot)
+	{
+		JPH::Quat joltRot{ JPH::Quat::sEulerAngles(JPH::Vec3{math::ToRadians(rot.x), math::ToRadians(rot.y), math::ToRadians(rot.z)}) };
+		ST<JoltPhysics>::Get()->GetBodyInterface().SetRotation(bodyID, joltRot, JPH::EActivation::Activate);
+	}
+
+
 	void JoltBodyComp::SetPrevTrans(const Transform& trans)
 	{
 		prevTrans = trans;
@@ -310,10 +318,47 @@ namespace physics {
 		ST<JoltPhysics>::Get()->GetBodyInterface().SetLinearVelocity(bodyID, joltVel);
 	}
 
+	void JoltBodyComp::SetAngularVelocity(const Vec3& vel)
+	{
+		JPH::Vec3 joltVel{ math::ToRadians(vel.x), math::ToRadians(vel.y), math::ToRadians(vel.z) };
+		ST<JoltPhysics>::Get()->GetBodyInterface().SetAngularVelocity(bodyID, joltVel);
+	}
+
+	void JoltBodyComp::SetLockRotationX(bool val)
+	{
+		val ? dof &= ~JPH::EAllowedDOFs::RotationX : dof |= JPH::EAllowedDOFs::RotationX;
+		SetDOF(dof);
+	}
+
+	void JoltBodyComp::SetLockRotationY(bool val)
+	{
+		val ? dof &= ~JPH::EAllowedDOFs::RotationY : dof |= JPH::EAllowedDOFs::RotationY;
+		SetDOF(dof);
+	}
+
+	void JoltBodyComp::SetLockRotationZ(bool val)
+	{
+		val ? dof &= ~JPH::EAllowedDOFs::RotationZ : dof |= JPH::EAllowedDOFs::RotationZ;
+		SetDOF(dof);
+	}
+
+	void JoltBodyComp::SetDOF(JPH::EAllowedDOFs val)
+	{
+		JPH::BodyLockWrite lock{ ST<JoltPhysics>::Get()->GetPhysicsSystem().GetBodyLockInterface(), bodyID };
+		if (!lock.Succeeded())
+			return;
+
+		JPH::Body& body{ lock.GetBody() };
+		JPH::MotionProperties* property{ body.GetMotionProperties() };
+		JPH::MassProperties massProp{ body.GetShape()->GetMassProperties() };
+		float invMass{ property->GetInverseMass() };
+		if (invMass > 0.f)
+			massProp.ScaleToMass(1.f / invMass);
+		property->SetMassProperties(val, massProp);
+	}
+
 	void JoltBodyComp::UpdateBody()
 	{
-		ST<JoltPhysics>::Get()->GetBodyInterface().ActivateBody(bodyID);
-
 		Transform const& trans{ ecs::GetEntityTransform(this) };
 
 		Vec3 pos{ trans.GetWorldPosition() };
@@ -337,6 +382,8 @@ namespace physics {
 		{
 			SetRotation(rot);
 		}
+
+		prevQuat = ST<JoltPhysics>::Get()->GetBodyInterface().GetRotation(bodyID);
 	}
 
 	void JoltBodyComp::UpdateEntity()
@@ -353,9 +400,30 @@ namespace physics {
 			pos -= colliderComp->GetCenter();
 		ecs::GetEntityTransform(this).SetWorldPosition(Vec3{ pos.x, pos.y, pos.z });
 
-		JPH::RVec3 rot{ ST<JoltPhysics>::Get()->GetBodyInterface().GetRotation(bodyID).GetEulerAngles() };
-		ecs::GetEntityTransform(this).SetWorldRotation(Vec3{ math::ToDegrees(rot.GetX()), math::ToDegrees(rot.GetY()), math::ToDegrees(rot.GetZ()) });
+		auto wrapDeg = [](float deg)
+			{
+				float temp{ std::fmod(deg + 180.f, 360.f) }; 
+				if (temp < 0.f) 
+					temp += 360.f; 
+				return temp - 180.0;
+			};
 
+		JPH::Quat quat{ GetRotation() };
+		JPH::Quat deltaQuat{ (quat * prevQuat.Inversed()).Normalized() };
+		JPH::Vec3 deltaEuler{ deltaQuat.GetEulerAngles() };
+		Vec3 deltaEulerDeg{ math::ToDegrees(deltaEuler.GetX()), math::ToDegrees(deltaEuler.GetY()), math::ToDegrees(deltaEuler.GetZ()) };
+		Vec3 estimateRot{ ecs::GetEntityTransform(this).GetWorldRotation() + deltaEulerDeg };
+		JPH::Vec3 joltRot{ quat.GetEulerAngles() };
+		Vec3 rot{ math::ToDegrees(joltRot.GetX()), math::ToDegrees(joltRot.GetY()), math::ToDegrees(joltRot.GetZ()) };
+		if (estimateRot.y > 90.f || estimateRot.y < -90.f)
+		{
+			rot.x = wrapDeg(rot.x + 180.f);
+			rot.y = wrapDeg(180.f - rot.y);
+			rot.z = wrapDeg(rot.z + 180.f);
+		}
+		
+		ecs::GetEntityTransform(this).SetWorldRotation(rot);
+		
 		prevTrans = ecs::GetEntityTransform(this);
 	}
 

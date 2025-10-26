@@ -96,6 +96,14 @@ namespace physics {
 
 		/*****************************************************************//*!
 		\brief
+			Get a reference of the physics system.
+		\return
+			Reference of the physics system.
+		*//******************************************************************/
+		JPH::PhysicsSystem& GetPhysicsSystem();
+
+		/*****************************************************************//*!
+		\brief
 			Update the Jolt Physics System.
 		*//******************************************************************/
 		void UpdatePhysicsSystem();
@@ -196,6 +204,10 @@ namespace physics {
 		Layers collisionLayer;
 		//Previous Transform stored.
 		Transform prevTrans;
+		//Quaternion before the physics update.
+		JPH::Quat prevQuat;
+		//Degree of Freedom
+		JPH::EAllowedDOFs dof;
 
 	public:
 		void OnAttached() override;
@@ -263,7 +275,7 @@ namespace physics {
 		\return
 			rotation value.
 		*//******************************************************************/
-		Vec3 GetRotation() const;
+		JPH::Quat GetRotation() const;
 
 		/*****************************************************************//*!
 		\brief
@@ -336,6 +348,46 @@ namespace physics {
 			linear velocity value.
 		*//******************************************************************/
 		void SetLinearVelocity(const Vec3& vel);
+
+		/*****************************************************************//*!
+		\brief
+			Set the angular velocity of the body.
+		\param vel
+			angular velocity value.
+		*//******************************************************************/
+		void SetAngularVelocity(const Vec3& vel);
+
+		/*****************************************************************//*!
+		\brief
+			Set the degree of freedom on the X axis.
+		\param vel
+			true if lock, false if unlock
+		*//******************************************************************/
+		void SetLockRotationX(bool val);
+
+		/*****************************************************************//*!
+		\brief
+			Set the degree of freedom on the Y axis.
+		\param vel
+			true if lock, false if unlock
+		*//******************************************************************/
+		void SetLockRotationY(bool val);
+
+		/*****************************************************************//*!
+		\brief
+			Set the degree of freedom on the Z axis.
+		\param vel
+			true if lock, false if unlock
+		*//******************************************************************/
+		void SetLockRotationZ(bool val);
+
+		/*****************************************************************//*!
+		\brief
+			Set the degree of freedom to the body
+		\param dof
+			degree of freedom value.
+		*//******************************************************************/
+		void SetDOF(JPH::EAllowedDOFs val);
 
 		/*****************************************************************//*!
 		\brief

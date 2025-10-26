@@ -23,6 +23,7 @@ All rights reserved.
 #include "Physics/Collision.h"
 #include "Physics/Physics.h"
 #include "Components/NameComponent.h"
+#include "Editor/Containers/GUICollection.h"
 
 #define X(name, str) str,
 static const char* physicsFlagNames[]{
@@ -32,8 +33,7 @@ static const char* physicsFlagNames[]{
 
 namespace physics {
 	PhysicsComp::PhysicsComp()
-		: flags{ (1 << +(PHYSICS_COMP_FLAG::IS_KINEMATIC)) +
-				 (1 << +(PHYSICS_COMP_FLAG::USE_GRAVITY)) }
+		: flags{ 1 << +(PHYSICS_COMP_FLAG::USE_GRAVITY) }
 		, linearVel{}
 	{
 	}
@@ -91,9 +91,20 @@ namespace physics {
 		linearVel = vel;
 	}
 
+	const Vec3& PhysicsComp::GetAngularVelocity() const
+	{
+		return angularVel;
+	}
+
+	void PhysicsComp::SetAngularVelocity(const Vec3& vel)
+	{
+		ecs::GetEntity(this)->GetComp<JoltBodyComp>()->SetAngularVelocity(vel);
+		angularVel = vel;
+	}
+
 	void PhysicsComp::EditorDraw()
 	{
-		bool kinematic = GetFlag(PHYSICS_COMP_FLAG::IS_KINEMATIC);
+		bool kinematic{ GetFlag(PHYSICS_COMP_FLAG::IS_KINEMATIC) };
 		if (gui::Checkbox("Is Kinematic", &kinematic))
 		{
 			SetFlag(PHYSICS_COMP_FLAG::IS_KINEMATIC, kinematic);
@@ -102,13 +113,35 @@ namespace physics {
 			ecs::GetEntity(this)->GetComp<JoltBodyComp>()->SetMotionType(kinematic ? JPH::EMotionType::Kinematic : JPH::EMotionType::Dynamic);
 		}
 
-		bool gravity = GetFlag(PHYSICS_COMP_FLAG::USE_GRAVITY);
+		bool gravity{ GetFlag(PHYSICS_COMP_FLAG::USE_GRAVITY) };
 		if (gui::Checkbox("Use Gravity", &gravity))
 		{
 			SetFlag(PHYSICS_COMP_FLAG::USE_GRAVITY, gravity);
 
 			//Change the gravity factor in jolt body.
 			ecs::GetEntity(this)->GetComp<JoltBodyComp>()->SetGravityFactor(gravity ? 1.f : 0.f);
+		}
+
+		ImGui::Text("Freeze Rotation");
+		bool lockX{ GetFlag(PHYSICS_COMP_FLAG::ROTATION_LOCKED_X) };
+		if (gui::Checkbox("X", &lockX))
+		{
+			SetFlag(PHYSICS_COMP_FLAG::ROTATION_LOCKED_X, lockX);
+			ecs::GetEntity(this)->GetComp<JoltBodyComp>()->SetLockRotationX(lockX);
+		}
+		gui::SameLine();
+		bool lockY{ GetFlag(PHYSICS_COMP_FLAG::ROTATION_LOCKED_Y) };
+		if (gui::Checkbox("Y", &lockY))
+		{
+			SetFlag(PHYSICS_COMP_FLAG::ROTATION_LOCKED_Y, lockY);
+			ecs::GetEntity(this)->GetComp<JoltBodyComp>()->SetLockRotationY(lockY);
+		}
+		gui::SameLine();
+		bool lockZ{ GetFlag(PHYSICS_COMP_FLAG::ROTATION_LOCKED_Z) };
+		if (gui::Checkbox("Z", &lockZ))
+		{
+			SetFlag(PHYSICS_COMP_FLAG::ROTATION_LOCKED_Z, lockZ);
+			ecs::GetEntity(this)->GetComp<JoltBodyComp>()->SetLockRotationZ(lockZ);
 		}
 	}
 
@@ -124,6 +157,9 @@ namespace physics {
 		flags.MaskDeserialize(reader, "flags", physicsFlagNames);
 		ecs::GetEntity(this)->GetComp<JoltBodyComp>()->SetMotionType(GetFlag(PHYSICS_COMP_FLAG::IS_KINEMATIC) ? JPH::EMotionType::Kinematic : JPH::EMotionType::Dynamic);
 		ecs::GetEntity(this)->GetComp<JoltBodyComp>()->SetGravityFactor(GetFlag(PHYSICS_COMP_FLAG::USE_GRAVITY) ? 1.f : 0.f);
+		ecs::GetEntity(this)->GetComp<JoltBodyComp>()->SetLockRotationX(GetFlag(PHYSICS_COMP_FLAG::ROTATION_LOCKED_X));
+		ecs::GetEntity(this)->GetComp<JoltBodyComp>()->SetLockRotationY(GetFlag(PHYSICS_COMP_FLAG::ROTATION_LOCKED_Y));
+		ecs::GetEntity(this)->GetComp<JoltBodyComp>()->SetLockRotationZ(GetFlag(PHYSICS_COMP_FLAG::ROTATION_LOCKED_Z));
 	}
 
 	void PhysicsSystem::OnAdded()
@@ -134,7 +170,7 @@ namespace physics {
 	}
 
 	bool PhysicsSystem::PreRun()
-	{
+	{	
 		for (auto compIter{ ecs::GetCompsActiveBegin<JoltBodyComp>() }, endIter{ ecs::GetCompsEnd<JoltBodyComp>() }; compIter != endIter; ++compIter)
 			compIter->UpdateBody();
 
@@ -197,7 +233,6 @@ namespace physics {
 
 			Vec3 pos{ compIter.GetEntity()->GetComp<JoltBodyComp>()->GetPosition() };
 			Vec3 scale{ compIter.GetEntity()->GetComp<JoltBodyComp>()->GetScale() / 2.f };
-			Vec3 rot{ compIter.GetEntity()->GetComp<JoltBodyComp>()->GetRotation() };
 			Vec3 min{ pos - scale }, max{ pos + scale };
 			JPH::AABox colliderAABB{ JPH::Vec3{min.x, min.y, min.z}, JPH::Vec3{max.x, max.y, max.z} };
 			if (box.Overlaps(colliderAABB))
