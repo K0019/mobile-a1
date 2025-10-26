@@ -1,6 +1,7 @@
 #pragma once
 #include <unordered_map>
 #include "interface.h"
+#include "VFS/VFS.h"
 
 /*namespace shader::internals
 {
@@ -10,29 +11,21 @@
 
 inline std::string readShaderFile(const char* fileName)
 {
-#if !defined(__ANDROID__)
-  FILE* file;
-  fopen_s(&file, fileName, "r");
-
-  if (!file)
+  std::string buffer;
+  if (!VFS::ReadFile(fileName, buffer))
   {
-    LOG_WARNING("I/O error. Cannot open shader file {}", fileName);
-    return {};
+      LOG_WARNING("VFS I/O error. Cannot open shader file {}", fileName);
   }
-
-  fseek(file, 0L, SEEK_END);
-  const size_t bytesinfile = ftell(file);
-  fseek(file, 0L, SEEK_SET);
-
-  char* buffer = (char*)alloca(bytesinfile + 1);
-  const size_t bytesread = fread(buffer, 1, bytesinfile, file);
-  fclose(file);
-
-  buffer[bytesread] = 0;
 
   static constexpr unsigned char BOM[] = {0xEF, 0xBB, 0xBF};
 
-  if (bytesread > 3) { if (!memcmp(buffer, BOM, 3)) { memset(buffer, ' ', 3); } }
+  if (buffer.size() > 3)
+  {
+      if (!memcmp(buffer.data(), BOM, 3))
+      {
+          memset(buffer.data(), ' ', 3);
+      }
+  }
 
   std::string code(buffer);
 
@@ -51,9 +44,6 @@ inline std::string readShaderFile(const char* fileName)
     code.replace(pos, p2 - pos + 1, include.c_str());
   }
   return code;
-#else
-    return "";
-#endif
 }
 
 inline vk::ShaderStage vkShaderStageFromFileName(const char* fileName)

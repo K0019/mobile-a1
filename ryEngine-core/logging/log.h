@@ -136,7 +136,7 @@
     // do { QUILL_LOG_NOTICE(::LogBackend::getLogger(), fmt, ##__VA_ARGS__); } while(false)
 
 #define LOG_WARNING(fmt, ...) \
-    // do { QUILL_LOG_WARNING(::LogBackend::getLogger(), fmt, ##__VA_ARGS__); } while(false)
+    do { QUILL_LOG_WARNING(::LogBackend::getLogger(), fmt, ##__VA_ARGS__); } while(false)
 
 #define LOG_ERROR(fmt, ...) \
     // do { QUILL_LOG_ERROR(::LogBackend::getLogger(), fmt, ##__VA_ARGS__); } while(false)
