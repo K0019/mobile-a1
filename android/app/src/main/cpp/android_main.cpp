@@ -18,7 +18,9 @@ public:
         engine.Init(context);
     }
 
-    void Update(Context& context, FrameData& frame) {
+    void Update(Context& context, FrameData& frame)
+    {
+        engine.ExecuteFrame(frame);
     }
 
     void Shutdown(Context& context) {
