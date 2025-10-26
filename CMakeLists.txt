@@ -79,7 +79,10 @@ set(CMAKE_DEBUG_POSTFIX "d" CACHE STRING "Filename postfix for libraries under D
 set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 # Core dependencies (all platforms)
-find_package(Boost REQUIRED COMPONENTS type_index)
+cmake_policy(PUSH) # silence deprecated problems
+cmake_policy(SET CMP0167 OLD)
+find_package(Boost CONFIG REQUIRED)
+cmake_policy(POP)
 find_package(rapidjson CONFIG REQUIRED)
 find_package(glm CONFIG REQUIRED)
 find_package(glslang CONFIG REQUIRED)

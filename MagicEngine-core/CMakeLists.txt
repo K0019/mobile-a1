@@ -32,6 +32,10 @@ else()
         glm::glm-header-only
         Jolt::Jolt
     )
+
+    set(CORE_PRIVATE_DEPS
+        $<BUILD_INTERFACE:Boost::boost>
+    )
 endif()
 
 # Create the target
@@ -47,10 +51,6 @@ target_link_libraries(MagicEngine-Core PRIVATE
     $<$<NOT:$<BOOL:${ANDROID}>>:KTX::ktx>
     $<$<BOOL:${ANDROID}>:ktx>
 )
-
-if (ANDROID)
-    target_link_libraries(MagicEngine-Core PRIVATE Boost::type_index)
-endif()
 
 if(ANDROID)
     target_compile_definitions(MagicEngine-Core PUBLIC KHRONOS_STATIC)
