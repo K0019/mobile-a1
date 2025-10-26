@@ -261,8 +261,13 @@ namespace physics {
 
 	void JoltBodyComp::SetCollisionLayer(Layers layer)
 	{
-		ST<JoltPhysics>::Get()->GetBodyInterface().SetObjectLayer(bodyID, +layer);
 		collisionLayer = layer;
+		Vec3 scale{ ecs::GetEntityTransform(this).GetWorldScale() };
+		if (auto colliderPtr{ ecs::GetEntity(this)->GetComp<BoxColliderComp>() })
+			scale *= colliderPtr->GetSize();
+		if (!scale.x || !scale.y || !scale.z)
+			layer = Layers::NON_COLLIDABLE;
+		ST<JoltPhysics>::Get()->GetBodyInterface().SetObjectLayer(bodyID, +layer);
 	}
 
 	void JoltBodyComp::SetGravityFactor(float gravity)
@@ -285,7 +290,7 @@ namespace physics {
 
 		const JPH::ScaledShape* scaledShapePtr{ static_cast<const JPH::ScaledShape*>(shapePtr) };
 		const JPH::Shape* nonScaledShapePtr{ scaledShapePtr->GetInnerShape() };
-		if (!nonScaledShapePtr->IsValidScale(joltScale))
+		if (!nonScaledShapePtr->IsValidScale(joltScale) || !scale.x || !scale.y ||!scale.z)
 		{
 			joltScale = JPH::ScaleHelpers::MakeNonZeroScale(joltScale);
 			ST<JoltPhysics>::Get()->GetBodyInterface().SetObjectLayer(bodyID, +Layers::NON_COLLIDABLE);
@@ -344,6 +349,9 @@ namespace physics {
 
 	void JoltBodyComp::SetDOF(JPH::EAllowedDOFs val)
 	{
+		if (motionType == JPH::EMotionType::Static)
+			return;
+
 		JPH::BodyLockWrite lock{ ST<JoltPhysics>::Get()->GetPhysicsSystem().GetBodyLockInterface(), bodyID };
 		if (!lock.Succeeded())
 			return;
@@ -415,11 +423,13 @@ namespace physics {
 		Vec3 estimateRot{ ecs::GetEntityTransform(this).GetWorldRotation() + deltaEulerDeg };
 		JPH::Vec3 joltRot{ quat.GetEulerAngles() };
 		Vec3 rot{ math::ToDegrees(joltRot.GetX()), math::ToDegrees(joltRot.GetY()), math::ToDegrees(joltRot.GetZ()) };
-		if (estimateRot.y > 90.f || estimateRot.y < -90.f)
+		float xDiff{ std::abs(rot.x - estimateRot.x) };
+		float zDiff{ std::abs(rot.z - estimateRot.z) };
+		if (estimateRot.y >= 90.f || estimateRot.y <= -90.f)
 		{
-			rot.x = wrapDeg(rot.x + 180.f);
+			rot.x = wrapDeg(xDiff < 1e-4 ? rot.x : rot.x + 180.f);
 			rot.y = wrapDeg(180.f - rot.y);
-			rot.z = wrapDeg(rot.z + 180.f);
+			rot.z = wrapDeg(zDiff < 1e-4 ? rot.z : rot.z + 180.f);
 		}
 		
 		ecs::GetEntityTransform(this).SetWorldRotation(rot);

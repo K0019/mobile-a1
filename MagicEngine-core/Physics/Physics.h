@@ -40,7 +40,8 @@ X(IS_KINEMATIC, "Is Kinematic") \
 X(USE_GRAVITY, "Use Gravity") \
 X(ROTATION_LOCKED_X, "Lock Rotation X") \
 X(ROTATION_LOCKED_Y, "Lock Rotation Y") \
-X(ROTATION_LOCKED_Z, "Lock Rotation Z")
+X(ROTATION_LOCKED_Z, "Lock Rotation Z") \
+X(ENABLED, "Enabled")
 
 #define X(name, str) name,
 	enum class PHYSICS_COMP_FLAG : int
@@ -65,7 +66,7 @@ X(ROTATION_LOCKED_Z, "Lock Rotation Z")
 		PhysicsComp();
 
 	private:
-		// Is Kinematic and Use Gravity
+		// Physics component flags
 		PhysicsCompFlags flags;
 		// linear velocity
 		Vec3 linearVel;
