@@ -23,7 +23,7 @@ if (NOT ANDROID)
         imguizmo::imguizmo
         Jolt::Jolt
         KTX::ktx
-        Boost::type_index
+        Boost::boost
     )
 else()
     set(CORE_PUBLIC_DEPS
