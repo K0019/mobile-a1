@@ -77,7 +77,7 @@ void ResourceFiletypeImporterBase::GenerateHashForOneResourceType(std::vector<As
 template <typename ResourceType>
 void ResourceFiletypeImporterBase::GenerateHashesForResourceType(AssociatedResourceHashes* resource, size_t numHashes)
 {
-    resource->resourceTypeHash = typeid(ResourceType).hash_code();
+    resource->resourceTypeHash = util::ConsistentHash<ResourceType>();
     for (size_t i{}; i < numHashes; ++i)
         resource->hashes.push_back(GenerateNewHash());
 }

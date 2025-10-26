@@ -74,7 +74,7 @@ UserResourceGetter<ResourceAudio> MagicResourceManager::Audio()
 
 void MagicResourceManager::SaveToFile() const
 {
-    Serializer writer{ Filepaths::assetsJson };
+    Serializer writer{ VFS::ConvertVirtualToPhysical(Filepaths::assetsJson) };
     if (!writer.IsOpen())
     {
         CONSOLE_LOG(LEVEL_ERROR) << "Failed to save resources: " << Filepaths::assetsJson;
@@ -158,13 +158,13 @@ void MagicResourceManager::INTERNAL_CreateEmptyResource(size_t resourceTypeHash,
 #endif
 
     // Sorry for this if spam kinda running out of time, this function existing's also kinda ugly anyway
-    if (resourceTypeHash == typeid(ResourceMesh).hash_code())
+    if (resourceTypeHash == util::ConsistentHash<ResourceMesh>())
         meshes.INTERNAL_CreateResource(resourceHash);
-    else if (resourceTypeHash == typeid(ResourceMaterial).hash_code())
+    else if (resourceTypeHash == util::ConsistentHash<ResourceMaterial>())
         materials.INTERNAL_CreateResource(resourceHash);
-    else if (resourceTypeHash == typeid(ResourceTexture).hash_code())
+    else if (resourceTypeHash == util::ConsistentHash<ResourceTexture>())
         textures.INTERNAL_CreateResource(resourceHash);
-    else if (resourceTypeHash == typeid(ResourceAudio).hash_code())
+    else if (resourceTypeHash == util::ConsistentHash<ResourceAudio>())
         audio.INTERNAL_CreateResource(resourceHash);
     else
         assert(false);

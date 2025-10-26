@@ -20,7 +20,7 @@
     "textures": [
         {
             "key": "baseColor",
-            "value": "CompiledAssets\\textures\\colormap.ktx2"
+            "value": "compiledassets/textures/colormap.ktx2"
         },
         {
             "key": "metallicRoughness",
