@@ -31,6 +31,7 @@ else()
         $<$<CONFIG:Release>:${EXTERNAL_LIBRARIES_STATIC_RELEASE}>
         glm::glm-header-only
         Jolt::Jolt
+        Boost::type_index
     )
 endif()
 
