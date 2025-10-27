@@ -38,6 +38,7 @@ All rights reserved.
 #include "Game/AudioListener.h"
 #include "Graphics/LightingSystem.h"
 #include "Game/GameCameraController.h"
+#include "Game/GrabbableItem.h"
 #include "Game/PlayerCharacter.h"
 #include "Game/Character.h"
 #include "Engine/Audio.h"

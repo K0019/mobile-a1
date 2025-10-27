@@ -5,11 +5,11 @@
 \par    Course: CSD2401
 \par    Section B
 \par    Software Engineering Project 3
-\date   04/02/2025
+\date   10/26/2025
 
-\author Chan Kuan Fu Ryan (100%)
-\par    email: c.kuanfuryan\@digipen.edu
-\par    DigiPen login: c.kuanfuryan
+\author Matthew Chan Shao Jie (100%)
+\par    email: m.chan\@digipen.edu
+\par    DigiPen login: m.chsn
 
 \brief
 	GameCameraController is an ECS component-system pair which takes control of
@@ -29,6 +29,8 @@ All rights reserved.
 #include "Editor/Containers/GUICollection.h"
 
 PlayerMovementComponent::PlayerMovementComponent()
+	: grabDistance{ 0.0f }
+	, cameraReference{nullptr}
 {
 }
 
@@ -81,6 +83,33 @@ void PlayerMovementComponentSystem::UpdatePlayerMovementComponent(PlayerMovement
 
 	if (movement.LengthSqr() > 0.0f)
 		movement = movement.Normalized();
+
+	// Grabbing items
+	if (inputInstance->GetIsPressed(KEY::F))
+	{
+		float closestDistance = comp.grabDistance * comp.grabDistance;
+		ecs::CompHandle< GrabbableItemComponent> closestItem = nullptr;
+		for (auto itemComp = ecs::GetCompsBegin<GrabbableItemComponent>(); itemComp != ecs::GetCompsEnd<GrabbableItemComponent>(); ++itemComp)
+		{
+			// Just in case, this shouldn't happen
+			if (itemComp.GetEntity() == nullptr)
+				continue;
+
+			// Distance check
+			Vec3 direction = itemComp.GetEntity()->GetTransform().GetWorldPosition()- playerEntity->GetTransform().GetWorldPosition();
+			if (direction.LengthSqr() < closestDistance)
+			{
+				closestItem = itemComp.GetCompHandle();
+				closestDistance = direction.LengthSqr();
+			}
+		}
+
+		if (closestItem != nullptr)
+		{
+			characterComp->DropItem();
+			characterComp->GrabItem(closestItem);
+		}
+	}
 
 	characterComp->SetMovementVector(movement);
 }

@@ -5,11 +5,11 @@
 \par    Course: CSD2401
 \par    Section B
 \par    Software Engineering Project 3
-\date   04/02/2025
+\date   10/26/2025
 
-\author Chan Kuan Fu Ryan (100%)
-\par    email: c.kuanfuryan\@digipen.edu
-\par    DigiPen login: c.kuanfuryan
+\author Matthew Chan Shao Jie (100%)
+\par    email: m.chan\@digipen.edu
+\par    DigiPen login: m.chsn
 
 \brief
 	GameCameraController is an ECS component-system pair which takes control of
@@ -38,6 +38,20 @@ const Vec2 CharacterMovementComponent::GetMovementVector()
 void CharacterMovementComponent::SetMovementVector(Vec2 vector)
 {
 	movementVector = vector;
+}
+
+void CharacterMovementComponent::DropItem()
+{
+}
+
+void CharacterMovementComponent::GrabItem(ecs::CompHandle<GrabbableItemComponent> item)
+{
+	// Sanity check!
+	if (item == nullptr)
+		return;
+
+	item->isHeld = true;
+	heldItem = ecs::GetEntity(item);
 }
 
 
@@ -75,18 +89,18 @@ void CharacterMovementComponentSystem::UpdateCharacterMovementComponent(Characte
 	Vec3 currentRotation = characterTransform.GetWorldRotation();
 
 	// Debug line here, not sure why the angle is having issues when being rotated past 90 degrees
-	characterTransform.SetWorldRotation(Vec3{ 0.0f,90.0f,0.0f });
+	//characterTransform.SetWorldRotation(Vec3{ 0.0f,90.0f,0.0f });
 
 	// Commented out for testing, these *should* work.
-	//float newAngle = currentRotation.y;
-	//Vec3 rotation{ 0.0f,newAngle ,0.0f };
-	//// Handle rotation
-	//if (movement.LengthSqr() > 0.0f)
-	//{
-	//	float targetAngle = math::ToDegrees(atan2(movement.y, movement.x));
-	//	newAngle = math::MoveTowardsAngle(currentRotation.y, targetAngle, comp.rotateSpeed * GameTime::Dt());
-	//	rotation.y = newAngle;
-	//}
-	//	CONSOLE_LOG(LogLevel::LEVEL_DEBUG) << rotation.y;
-	//characterTransform.SetWorldRotation(rotation);
+	float newAngle = currentRotation.y;
+	Vec3 rotation{ 0.0f,newAngle ,0.0f };
+	// Handle rotation
+	if (movement.LengthSqr() > 0.0f)
+	{
+		float targetAngle = math::ToDegrees(atan2(movement.y, movement.x));
+		newAngle = math::MoveTowardsAngle(currentRotation.y, targetAngle, comp.rotateSpeed * GameTime::Dt());
+		rotation.y = newAngle;
+	}
+		CONSOLE_LOG(LogLevel::LEVEL_DEBUG) << rotation.y;
+	characterTransform.SetWorldRotation(rotation);
 }

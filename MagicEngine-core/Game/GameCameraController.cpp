@@ -5,11 +5,11 @@
 \par    Course: CSD2401
 \par    Section B
 \par    Software Engineering Project 3
-\date   04/02/2025
+\date   10/26/2025
 
-\author Chan Kuan Fu Ryan (100%)
-\par    email: c.kuanfuryan\@digipen.edu
-\par    DigiPen login: c.kuanfuryan
+\author Matthew Chan Shao Jie (100%)
+\par    email: m.chan\@digipen.edu
+\par    DigiPen login: m.chsn
 
 \brief
 	GameCameraController is an ECS component-system pair which takes control of
@@ -86,8 +86,8 @@ void GameCameraControllerSystem::UpdateGameCameraController(GameCameraController
 	{
 		Vec2 mouseDelta = currPos - prevPos;
 
-		yaw -= mouseDelta.x * comp.cameraSensitivity;
-		pitch += mouseDelta.y * comp.cameraSensitivity;
+		yaw += mouseDelta.x * comp.cameraSensitivity;
+		pitch -= mouseDelta.y * comp.cameraSensitivity;
 
 		// Wrap yaw
 		if (yaw < 0.0f)

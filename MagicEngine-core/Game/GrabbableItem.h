@@ -5,14 +5,14 @@
 \par    Course: CSD2401
 \par    Section B
 \par    Software Engineering Project 3
-\date   10/26/2025
+\date   04/02/2025
 
-\author Matthew Chan Shao Jie (100%)
-\par    email: m.chan\@digipen.edu
-\par    DigiPen login: m.chsn
+\author Chan Kuan Fu Ryan (100%)
+\par    email: c.kuanfuryan\@digipen.edu
+\par    DigiPen login: c.kuanfuryan
 
 \brief
-	PlayerCharacter is an ECS component-system pair which controls player movement. 
+	GrabbableItemComponent is an ECS component-system pair which controls player movement. 
 
 All content � 2024 DigiPen Institute of Technology Singapore.
 All rights reserved.
@@ -23,30 +23,30 @@ All rights reserved.
 #include "Editor/IEditorComponent.h"
 
 /*****************************************************************//*!
-\class PlayerMovementComponent
+\class GrabbableItemComponent
 \brief
 	ECS Component that serializes relevant parameters.
 *//******************************************************************/
-class PlayerMovementComponent
-	: public IRegisteredComponent<PlayerMovementComponent>
-	, public IEditorComponent<PlayerMovementComponent>
+class GrabbableItemComponent
+	: public IRegisteredComponent<GrabbableItemComponent>
+	, public IEditorComponent<GrabbableItemComponent>
 {
 public:
 	/*****************************************************************//*!
 	\brief
 		Default constructor.
 	*//******************************************************************/
-	PlayerMovementComponent();
+	GrabbableItemComponent();
 
 	/*****************************************************************//*!
 	\brief
 		Default destructor.
 	*//******************************************************************/
-	//~PlayerMovementComponent();
+	//~GrabbableItemComponent();
 
-	// Serialized
-	EntityReference cameraReference;
-	float grabDistance;
+	// Not serialized
+	bool isHeld;
+	EntityReference owner;
 
 	void Serialize(Serializer& writer) const;
 	void Deserialize(Deserializer& reader);
@@ -63,27 +63,26 @@ private:
 
 };
 
-property_begin(PlayerMovementComponent)
+property_begin(GrabbableItemComponent)
 {
-	property_var(grabDistance)
 }
-property_vend_h(PlayerMovementComponent)
+property_vend_h(GrabbableItemComponent)
 
 /*****************************************************************//*!
-\class PlayerMovementComponentSystem
+\class GrabbableItemComponentSystem
 \brief
 	ECS System that acts on the relevant component.
 *//******************************************************************/
-class PlayerMovementComponentSystem : public ecs::System<PlayerMovementComponentSystem, PlayerMovementComponent>
+class GrabbableItemComponentSystem : public ecs::System<GrabbableItemComponentSystem, GrabbableItemComponent>
 {
 public:
-	PlayerMovementComponentSystem();
+	GrabbableItemComponentSystem();
 private:
 	/*****************************************************************//*!
 	\brief
-		Updates PlayerMovementComponent.
+		Updates GrabbableItemComponent.
 	\param comp
-		The PlayerMovementComponent to update.
+		The GrabbableItemComponent to update.
 	*//******************************************************************/
-	void UpdatePlayerMovementComponent(PlayerMovementComponent& comp);
+	void UpdateGrabbableItemComponent(GrabbableItemComponent& comp);
 };

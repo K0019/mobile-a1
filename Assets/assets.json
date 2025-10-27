@@ -97,6 +97,20 @@
                     ]
                 }
             ]
+        },
+        {
+            "filepath": "CompiledAssets\\ambulance.mesh",
+            "resources": [
+                {
+                    "resourceType": 7953536019925557911,
+                    "resourceEntries": [
+                        {
+                            "hash": 90114874687583703,
+                            "name": "ambulance0"
+                        }
+                    ]
+                }
+            ]
         }
     ]
 }
