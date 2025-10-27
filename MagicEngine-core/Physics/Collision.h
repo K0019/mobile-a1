@@ -20,6 +20,8 @@ All rights reserved.
 /******************************************************************************/
 
 #pragma once
+#include "pch.h"
+#include "Utilities/MaskTemplate.h"
 #include "ECS/IRegisteredComponent.h"
 #include "Editor/IEditorComponent.h"
 
@@ -31,6 +33,22 @@ All rights reserved.
 #include <Jolt/Physics/Collision/Shape/SphereShape.h>
 
 namespace physics {
+	/*****************************************************************//*!
+	\brief
+		Enums that differentiates flags within the collider component.
+	*//******************************************************************/
+#define D_COLLIDER_COMP_FLAG \
+X(ENABLED, "Enabled")
+
+#define X(name, str) name,
+	enum class COLLIDER_COMP_FLAG : int
+	{
+		D_COLLIDER_COMP_FLAG
+
+		TOTAL,
+		ALL = TOTAL
+	};
+
 	/*****************************************************************//*!
 	\brief
 		Layer that objects can be in, determines which other objects 
@@ -123,6 +141,8 @@ namespace physics {
 		virtual void OnContactRemoved(const JPH::SubShapeIDPair& inSubShapePair) override;
 	};
 
+	using ColliderCompFlag = MaskTemplate<COLLIDER_COMP_FLAG>;
+
 	class BoxColliderComp
 		: public IRegisteredComponent<BoxColliderComp>
 		, public IEditorComponent<BoxColliderComp>
@@ -136,6 +156,8 @@ namespace physics {
 		BoxColliderComp();
 
 	private:
+		// Collider component flags
+		ColliderCompFlag flags;
 		// position difference from the center of the object.
 		Vec3 center;
 		// size difference from the object's scale.
@@ -157,6 +179,26 @@ namespace physics {
 			the body to be empty.
 		*//******************************************************************/
 		void OnDetached() override;
+
+		/*****************************************************************//*!
+		\brief
+			Gets the value of the corresponding flag.
+		\param flag
+			Flag to get the value.
+		\return
+			Boolean value of the flag.
+		*//******************************************************************/
+		bool GetFlag(COLLIDER_COMP_FLAG flag) const;
+
+		/*****************************************************************//*!
+		\brief
+			Set a value to a certain flag.
+		\param flag
+			Flag to set the value
+		\param val
+			Boolean value to set to the flag.
+		*//******************************************************************/
+		void SetFlag(COLLIDER_COMP_FLAG flag, bool val);
 
 		/*****************************************************************//*!
 		\brief
@@ -190,6 +232,7 @@ namespace physics {
 		*//******************************************************************/
 		void SetSize(const Vec3& val);
 
+		void Serialize(Serializer& writer) const;
 		void Deserialize(Deserializer& reader) override;
 
 	private:
