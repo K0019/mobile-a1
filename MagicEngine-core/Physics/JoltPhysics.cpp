@@ -82,6 +82,14 @@ namespace physics {
 		physicsSystem.OptimizeBroadPhase();
 	}
 
+	TransformValues& TransformValues::operator=(Transform& trans)
+	{
+		pos = trans.GetWorldPosition();
+		scale = trans.GetWorldScale();
+		rot = trans.GetWorldRotation();
+		return *this;
+	}
+
 	JoltPhysics::~JoltPhysics()
 	{
 		// Unregisters all types with the factory and cleans up the default material
@@ -184,11 +192,6 @@ namespace physics {
 	Layers JoltBodyComp::GetCollisionLayer() const 
 	{
 		return collisionLayer;
-	}
-
-	const Transform& JoltBodyComp::GetPrevTrans() const 
-	{
-		return prevTrans;
 	}
 
 	Vec3 JoltBodyComp::GetPosition() const
@@ -311,12 +314,6 @@ namespace physics {
 		ST<JoltPhysics>::Get()->GetBodyInterface().SetRotation(bodyID, joltRot, JPH::EActivation::Activate);
 	}
 
-
-	void JoltBodyComp::SetPrevTrans(const Transform& trans)
-	{
-		prevTrans = trans;
-	}
-
 	void JoltBodyComp::SetLinearVelocity(const Vec3& vel)
 	{
 		JPH::Vec3 joltVel{ vel.x, vel.y, vel.z };
@@ -370,7 +367,7 @@ namespace physics {
 		Transform const& trans{ ecs::GetEntityTransform(this) };
 
 		Vec3 pos{ trans.GetWorldPosition() };
-		if (pos != prevTrans.GetWorldPosition())
+		if (pos != prevTrans.pos)
 		{
 			if (auto colliderComp{ ecs::GetEntity(this)->GetComp<BoxColliderComp>() })
 				pos += colliderComp->GetCenter();			
@@ -378,7 +375,7 @@ namespace physics {
 		}
 
 		Vec3 scale{ trans.GetWorldScale() };
-		if (scale != prevTrans.GetWorldScale())
+		if (scale != prevTrans.scale)
 		{
 			if (auto colliderComp{ ecs::GetEntity(this)->GetComp<BoxColliderComp>() })
 				scale *= colliderComp->GetSize();
@@ -386,7 +383,7 @@ namespace physics {
 		}
 
 		Vec3 rot{ trans.GetWorldRotation() };
-		if (rot != prevTrans.GetWorldRotation())
+		if (rot != prevTrans.rot)
 		{
 			SetRotation(rot);
 		}
