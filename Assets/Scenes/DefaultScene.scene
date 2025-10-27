@@ -46,6 +46,10 @@
                         "x": 1.0,
                         "y": 1.0,
                         "z": 1.0
+                    },
+                    "flags": {
+                        "_majorityTrue": true,
+                        "_except": []
                     }
                 }
             }
@@ -110,6 +114,10 @@
                         "x": 1.0,
                         "y": 1.0,
                         "z": 1.0
+                    },
+                    "flags": {
+                        "_majorityTrue": true,
+                        "_except": []
                     }
                 }
             }
@@ -172,7 +180,8 @@
                     "_active": true,
                     "cameraReference": {
                         "entityUid": 220388310708474085
-                    }
+                    },
+                    "grabDistance": 10.0
                 },
                 "17211506741407007748": {
                     "_active": true,
@@ -185,6 +194,10 @@
                         "x": 1.0,
                         "y": 1.0,
                         "z": 1.0
+                    },
+                    "flags": {
+                        "_majorityTrue": true,
+                        "_except": []
                     }
                 }
             }
@@ -238,6 +251,9 @@
                     "meshHash": 90114874687583703,
                     "materialHash": 97763077498500649
                 },
+                "6147353843724495199": {
+                    "_active": true
+                },
                 "17211506741407007748": {
                     "_active": true,
                     "center": {
@@ -249,6 +265,10 @@
                         "x": 100.0,
                         "y": 100.0,
                         "z": 100.0
+                    },
+                    "flags": {
+                        "_majorityTrue": true,
+                        "_except": []
                     }
                 }
             }
@@ -313,6 +333,10 @@
                         "x": 1.0,
                         "y": 1.0,
                         "z": 1.0
+                    },
+                    "flags": {
+                        "_majorityTrue": true,
+                        "_except": []
                     }
                 }
             }
@@ -359,7 +383,7 @@
                 "14723636048609971163": {
                     "_active": true,
                     "active": true,
-                    "priority": 5,
+                    "priority": 8,
                     "zoom": 0.0
                 }
             }
@@ -424,6 +448,10 @@
                         "x": 1.0,
                         "y": 1.0,
                         "z": 1.0
+                    },
+                    "flags": {
+                        "_majorityTrue": true,
+                        "_except": []
                     }
                 }
             }

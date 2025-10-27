@@ -42,6 +42,15 @@ void CharacterMovementComponent::SetMovementVector(Vec2 vector)
 
 void CharacterMovementComponent::DropItem()
 {
+	// Sanity check!
+	if (heldItem == nullptr)
+		return;
+
+	// Physics Comp related
+	heldItem->GetComp<physics::PhysicsComp>()->SetFlag(physics::PHYSICS_COMP_FLAG::ENABLED, true);
+
+	// Transform related
+	heldItem->GetTransform().SetParent(nullptr);
 }
 
 void CharacterMovementComponent::GrabItem(ecs::CompHandle<GrabbableItemComponent> item)
@@ -52,6 +61,14 @@ void CharacterMovementComponent::GrabItem(ecs::CompHandle<GrabbableItemComponent
 
 	item->isHeld = true;
 	heldItem = ecs::GetEntity(item);
+
+	// Physics Comp related
+	heldItem->GetComp<physics::PhysicsComp>()->SetFlag(physics::PHYSICS_COMP_FLAG::ENABLED, false);
+
+	// Transform related
+	heldItem->GetTransform().SetParent(&ecs::GetEntity(this)->GetTransform());
+	heldItem->GetTransform().SetLocalPosition(Vec3{ 0,0,1 });
+	heldItem->GetTransform().SetLocalRotation(Vec3{ 0,5,10 });
 }
 
 
@@ -81,7 +98,7 @@ void CharacterMovementComponentSystem::UpdateCharacterMovementComponent(Characte
 
 	// Apply input movement
 	Vec3 currVel = physicsComp->GetLinearVelocity();
-	Vec3 moveDir = Vec3{ movement.x * comp.moveSpeed,currVel.y+GameTime::Dt()*-9.8f,-movement.y * comp.moveSpeed};
+	Vec3 moveDir = Vec3{ movement.x * comp.moveSpeed,currVel.y,-movement.y * comp.moveSpeed};
 	physicsComp->SetLinearVelocity(moveDir);
 	//physicsComp->SetAngularVelocity(Vec3{ 0.0f });
 
