@@ -24,6 +24,11 @@ All rights reserved.
 
 #include "Utilities/Logging.h"
 
+#ifndef GLFW
+#include <android/log.h>
+#define LOG_TAG "MagicEngine"
+#endif
+
 namespace internal {
 
 	LoggedMessagesBuffer::Logger::Logger(LogLevel level, LoggedMessagesBuffer* buffer)
@@ -118,9 +123,9 @@ namespace internal {
 	void LoggedMessagesBuffer::AddLog(std::string_view message, LogLevel level)
 	{
 		log.push_back({ std::string(message), level });
-#ifdef _DEBUG
+#if defined(_DEBUG) && defined(GLFW)
 		std::cout << CreateFormattedMessage(level, message) << '\n';
-#elif defined(GLFW)
+#elif !defined(GLFW)
 		android_LogPriority priority{};
 		switch (level)
 		{
@@ -130,7 +135,7 @@ namespace internal {
 		case LEVEL_ERROR: priority = ANDROID_LOG_ERROR; break;
 		case LEVEL_FATAL: priority = ANDROID_LOG_FATAL; break;
 		}
-		__android_log_print(priority, LOG_TAG, "%.s", message.data(), message.size());
+		__android_log_print(priority, LOG_TAG, "%s", message.data());
 #endif
 		if (log_count < MAX_LOG_ENTRIES)
 			log_count++;
