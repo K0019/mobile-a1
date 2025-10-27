@@ -170,6 +170,15 @@ namespace physics {
 		JPH::BodyManager bodyManager;
 	};
 
+	struct TransformValues
+	{
+		Vec3 pos;
+		Vec3 rot;
+		Vec3 scale;
+
+		TransformValues& operator=(Transform& trans);
+	};
+
 	class JoltBodyComp
 		: public ecs::IComponentCallbacks
 		, public IHiddenComponent<JoltBodyComp>
@@ -203,7 +212,7 @@ namespace physics {
 		//Collision layer.
 		Layers collisionLayer;
 		//Previous Transform stored.
-		Transform prevTrans;
+		TransformValues prevTrans;
 		//Quaternion before the physics update.
 		JPH::Quat prevQuat;
 		//Degree of Freedom
@@ -244,14 +253,6 @@ namespace physics {
 			collision layer value.
 		*//******************************************************************/
 		Layers GetCollisionLayer() const;
-
-		/*****************************************************************//*!
-		\brief
-			Get the previous transform of the entity.
-		\return
-			previous transform value.
-		*//******************************************************************/
-		const Transform& GetPrevTrans() const;
 
 		/*****************************************************************//*!
 		\brief
@@ -332,14 +333,6 @@ namespace physics {
 			scale value.
 		*//******************************************************************/
 		void SetScale(const Vec3& scale);
-
-		/*****************************************************************//*!
-		\brief
-			Set the previous transform of the entity.
-		\param trans
-			previous transform value.
-		*//******************************************************************/
-		void SetPrevTrans(const Transform& trans);
 
 		/*****************************************************************//*!
 		\brief
