@@ -203,6 +203,10 @@ namespace physics {
 		JoltBodyComp(JPH::EMotionType motion, ShapeType shape, Layers layer);
 
 	private:
+		//Previous Transform stored.
+		TransformValues prevTrans;
+		//Quaternion before the physics update.
+		JPH::Quat prevQuat;
 		//Body ID of the containing JPH::Body
 		JPH::BodyID bodyID;
 		//Static, Dynamic, or Kinematic
@@ -211,10 +215,6 @@ namespace physics {
 		ShapeType shapeType;
 		//Collision layer.
 		Layers collisionLayer;
-		//Previous Transform stored.
-		TransformValues prevTrans;
-		//Quaternion before the physics update.
-		JPH::Quat prevQuat;
 		//Degree of Freedom
 		JPH::EAllowedDOFs dof;
 
