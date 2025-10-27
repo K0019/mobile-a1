@@ -52,6 +52,7 @@ public:
 
 	void DropItem();
 	void GrabItem(ecs::CompHandle<GrabbableItemComponent> item);
+	void Attack();
 	property_vtable()
 
 private:

@@ -48,9 +48,12 @@ void CharacterMovementComponent::DropItem()
 
 	// Physics Comp related
 	heldItem->GetComp<physics::PhysicsComp>()->SetFlag(physics::PHYSICS_COMP_FLAG::ENABLED, true);
+	heldItem->GetComp<GrabbableItemComponent>()->isHeld = false;
 
 	// Transform related
 	heldItem->GetTransform().SetParent(nullptr);
+
+	heldItem = nullptr;
 }
 
 void CharacterMovementComponent::GrabItem(ecs::CompHandle<GrabbableItemComponent> item)
@@ -65,10 +68,18 @@ void CharacterMovementComponent::GrabItem(ecs::CompHandle<GrabbableItemComponent
 	// Physics Comp related
 	heldItem->GetComp<physics::PhysicsComp>()->SetFlag(physics::PHYSICS_COMP_FLAG::ENABLED, false);
 
-	// Transform related
-	heldItem->GetTransform().SetParent(&ecs::GetEntity(this)->GetTransform());
-	heldItem->GetTransform().SetLocalPosition(Vec3{ 0,0,1 });
-	heldItem->GetTransform().SetLocalRotation(Vec3{ 0,5,10 });
+}
+
+void CharacterMovementComponent::Attack()
+{
+	// No item, no attack (again different from the proto but we can change it later
+	if (heldItem == nullptr)
+		return;
+
+	// Hard-code a simple start point etc for now
+	Vec3 rotation = ecs::GetEntity(this)->GetTransform().GetWorldRotation();
+	Vec3 startPoint = ecs::GetEntity(this)->GetTransform().GetWorldPosition() + Vec3(sin(rotation.y), 0, cos(rotation.y));
+
 }
 
 
@@ -120,4 +131,13 @@ void CharacterMovementComponentSystem::UpdateCharacterMovementComponent(Characte
 	}
 		CONSOLE_LOG(LogLevel::LEVEL_DEBUG) << rotation.y;
 	characterTransform.SetWorldRotation(rotation);
+
+	// Update held item
+	if (auto heldItem{ comp.heldItem })
+	{
+		// Transform related
+		heldItem->GetTransform().SetParent(characterTransform);
+		heldItem->GetTransform().SetLocalPosition(Vec3{ 0,0,1 });
+		heldItem->GetTransform().SetLocalRotation(Vec3{ 0,5,10 });
+	}
 }

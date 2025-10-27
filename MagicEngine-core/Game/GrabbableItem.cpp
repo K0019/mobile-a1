@@ -23,10 +23,27 @@ All rights reserved.
 /******************************************************************************/
 #include "Game/GrabbableItem.h"
 #include "Game/Character.h"
-#include "Game/GameCameraController.h"
+#include "Game/Health.h"
 #include "Physics/Physics.h"
 #include "Engine/Input.h"
 #include "Editor/Containers/GUICollection.h"
+
+void GrabbableItemComponent::Attack(Vec3 origin, Vec3 direction)
+{
+	std::vector<physics::BoxColliderComp*> colliders;
+	physics::OverlapBox(colliders, origin, Vec3(1), direction);
+
+	for (auto collider : colliders)
+	{
+		ecs::EntityHandle hitEntity = ecs::GetEntity(collider);
+
+		if (ecs::CompHandle<HealthComponent> healthComp{ hitEntity->GetComp<HealthComponent>() })
+		{
+			// Just flat-out kill it for now
+			healthComp->TakeDamage(1000.0f);
+		}
+	}
+}
 
 GrabbableItemComponent::GrabbableItemComponent()
 {

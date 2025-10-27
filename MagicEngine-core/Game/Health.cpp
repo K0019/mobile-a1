@@ -1,0 +1,99 @@
+/******************************************************************************/
+/*!
+\file   Health.cpp
+\par    Project: 7percent
+\par    Course: CSD2401
+\par    Section B
+\par    Software Engineering Project 3
+\date   27/11/2024
+
+\author Matthew Chan Shao Jie (50%)
+\par    email: m.chan\@digipen.edu
+\par    DigiPen login: m.chan
+
+\author Chan Kuan Fu Ryan (50%)
+\par    email: c.kuanfuryan\@digipen.edu
+\par    DigiPen login: c.kuanfuryan
+
+\brief
+	Health component which stores a health type and broadcasts a message that it
+	has died if the health goes below 0.
+
+All content © 2024 DigiPen Institute of Technology Singapore.
+All rights reserved.
+*/
+/******************************************************************************/
+
+#include "Health.h"
+#include "math/utils_math.h"
+
+int cheatState = 0;
+bool cheatActive = false; ///THis is so the healthbar colour wont keep updating
+
+HealthComponent::HealthComponent() :
+	maxHealth(defaultMax)
+	, currHealth(maxHealth)
+{
+}
+
+int HealthComponent::GetCurrHealth() const
+{
+	return currHealth;
+}
+
+bool HealthComponent::IsDead() const
+{
+	return currHealth <= 0;
+}
+
+int HealthComponent::GetMaxHealth() const
+{
+	return maxHealth;
+}
+
+
+void HealthComponent::AddHealth(int amount)
+{
+	currHealth += amount;
+	if (currHealth > maxHealth)
+		currHealth = maxHealth;
+}
+
+void HealthComponent::TakeDamage(int amount)
+{
+	// We don't need to flash if the entity is already dead,
+	// or this health component is invulnerable.
+	if (IsDead())
+		return;
+
+	currHealth -= amount;
+}
+
+void HealthComponent::SetHealth(int newValue)
+{
+	if (newValue < 0)
+		newValue = 0;
+	if (newValue > maxHealth)
+		newValue = maxHealth;
+
+	// Set and update values
+	currHealth = newValue;
+}
+
+void HealthComponent::SetMaxHealth(int newMaxAmount)
+{
+	maxHealth = newMaxAmount;
+	if (currHealth > maxHealth)
+		currHealth = maxHealth;
+}
+
+
+float HealthComponent::GetHealthFraction()
+{
+	return (float)currHealth/(float)maxHealth;
+}
+
+void HealthComponent::EditorDraw()
+{
+
+}

@@ -32,6 +32,7 @@ class GrabbableItemComponent
 	, public IEditorComponent<GrabbableItemComponent>
 {
 public:
+	void Attack(Vec3 origin, Vec3 direction);
 	/*****************************************************************//*!
 	\brief
 		Default constructor.

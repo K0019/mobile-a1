@@ -236,9 +236,10 @@
                         "z": 0.0
                     },
                     "flags": {
-                        "_majorityTrue": true,
+                        "_majorityTrue": false,
                         "_except": [
-                            "Is Kinematic"
+                            "Use Gravity",
+                            "Enabled"
                         ]
                     }
                 },
