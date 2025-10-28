@@ -1,6 +1,8 @@
 #include "Managers/AudioManager.h"
 #include <FMOD/fmod_errors.h>
 #include "Engine/Resources/ResourceManager.h"
+#include "../../ryEngine-core/VFS/VFS.h"
+#include "../../ryEngine-core/VFS/IFileStream.h"
 
 // Macro sprinkler for FMOD error, we don't need a function call stack for this
 // If condition tests against FMOD_OK (which is 0)
@@ -32,6 +34,19 @@ AudioManager::AudioManager()
 	FMOD_ASSERT(masterChannelGroup->addGroup(channelGroups[1]));
 
 	FMOD_ASSERT(system->set3DSettings(1.0, 1.0f, 1.0f));
+
+#ifdef __ANDROID__
+	// Setup the VFS callbacks for FMOD on Android
+	FMOD_ASSERT(system->setFileSystem(
+		AudioManager::FileOpenCallback,
+		AudioManager::FileCloseCallback,
+		AudioManager::FileReadCallback,
+		AudioManager::FileSeekCallback,
+		nullptr,
+		nullptr,
+		-1
+	));
+#endif
 }
 
 AudioManager::~AudioManager()
@@ -319,3 +334,84 @@ void AudioManager::ChannelManager::ClearAllChannels()
 {
 	channelMap.clear();
 }
+
+
+#ifdef __ANDROID__
+// FMOD's FileOpen Callback
+FMOD_RESULT F_CALLBACK AudioManager::FileOpenCallback(const char* name, unsigned int* filesize, void** handle, void* userdata)
+{
+	if (!name || !filesize || !handle)
+		return FMOD_ERR_INVALID_PARAM;
+
+	std::unique_ptr<IFileStream> fileStream = VFS::OpenFile(name, FileMode::Read);
+
+	if (!fileStream)
+	{
+		*filesize = 0;
+		*handle = nullptr;
+		return FMOD_ERR_FILE_NOTFOUND;
+	}
+
+	int64_t size = fileStream->GetSize();
+
+	// Check for overflow (files > 2GB)
+	if (size > INT_MAX)
+	{
+		*filesize = 0;
+		*handle = nullptr;
+		return FMOD_ERR_FILE_BAD;
+	}
+
+	*filesize = static_cast<int>(size);
+	*handle = fileStream.release();
+
+	return FMOD_OK;
+}
+
+// FMOD's FileClose Callback
+FMOD_RESULT F_CALLBACK AudioManager::FileCloseCallback(void* handle, void* userdata)
+{
+	// The 'handle' is the raw IFileStream* pointer
+	IFileStream* stream = static_cast<IFileStream*>(handle);
+
+	// Use a unique_ptr to manage the memory and call the destructor/cleanup
+	// (which for AndroidFileStream calls AAsset_close)
+	std::unique_ptr<IFileStream> fileStream(stream);
+
+	// fileStream goes out of scope and calls delete on 'stream'
+	return FMOD_OK;
+}
+
+// FMOD's FileRead Callback
+FMOD_RESULT F_CALLBACK AudioManager::FileReadCallback(void* handle, void* buffer, unsigned int sizebytes, unsigned int* bytesread, void* userdata)
+{
+	if (!handle || !buffer || !bytesread)
+		return FMOD_ERR_INVALID_PARAM;
+
+	IFileStream* stream = static_cast<IFileStream*>(handle);
+
+	size_t actualRead = stream->Read(buffer, sizebytes);
+	*bytesread = static_cast<unsigned int>(actualRead);
+
+	if (actualRead == 0 && stream->IsEOF())
+		return FMOD_ERR_FILE_EOF;
+
+	return FMOD_OK;
+}
+
+// FMOD's FileSeek Callback
+FMOD_RESULT F_CALLBACK AudioManager::FileSeekCallback(void* handle, unsigned int pos, void* userdata)
+{
+	if (!handle)
+		return FMOD_ERR_INVALID_HANDLE;
+
+	IFileStream* stream = static_cast<IFileStream*>(handle);
+
+	// Check if seeking beyond file size
+	if (static_cast<int64_t>(pos) > stream->GetSize())
+		return FMOD_ERR_FILE_EOF;
+
+	stream->Seek(static_cast<int64_t>(pos), SeekOrigin::Begin);
+	return FMOD_OK;
+}
+#endif // __ANDROID__
