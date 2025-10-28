@@ -64,7 +64,10 @@ void HealthComponent::TakeDamage(int amount)
 	// We don't need to flash if the entity is already dead,
 	// or this health component is invulnerable.
 	if (IsDead())
+	{
+		ecs::DeleteEntity(ecs::GetEntity(this));
 		return;
+	}
 
 	currHealth -= amount;
 }

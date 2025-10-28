@@ -36,6 +36,7 @@ private:
 	Vec2 movementVector;
 public:
 
+	EntityReference hitDebugObject;
 	float moveSpeed;
 	float rotateSpeed;
 	// Not serialized
@@ -53,6 +54,10 @@ public:
 	void DropItem();
 	void GrabItem(ecs::CompHandle<GrabbableItemComponent> item);
 	void Attack();
+
+	void Serialize(Serializer& writer) const;
+	void Deserialize(Deserializer& reader);
+
 	property_vtable()
 
 private:

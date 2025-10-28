@@ -78,15 +78,37 @@ void CharacterMovementComponent::Attack()
 
 	// Hard-code a simple start point etc for now
 	Vec3 rotation = ecs::GetEntity(this)->GetTransform().GetWorldRotation();
-	Vec3 startPoint = ecs::GetEntity(this)->GetTransform().GetWorldPosition() + Vec3(sin(rotation.y), 0, cos(rotation.y));
-
+	Vec3 direction(sin(math::ToRadians(rotation.y+90)), 0, cos(math::ToRadians(rotation.y+90)));
+	Vec3 startPoint = ecs::GetEntity(this)->GetTransform().GetWorldPosition() + direction*2.5f;
+	
+	if(hitDebugObject!=nullptr)
+	{
+		hitDebugObject->GetTransform().SetWorldPosition(startPoint);
+		hitDebugObject->GetTransform().SetWorldRotation(Vec3(0.0f, math::ToDegrees(atan2(direction.x,direction.z)), 0.0f));
+	}
+	// Call Attack from the GrabbableItem component
+	heldItem->GetComp<GrabbableItemComponent>()->Attack(startPoint, direction);
 }
 
+void CharacterMovementComponent::Serialize(Serializer& writer) const
+{
+	writer.Serialize("moveSpeed", moveSpeed);
+	writer.Serialize("rotateSpeed", rotateSpeed);
+	writer.Serialize(hitDebugObject);
+}
+
+void CharacterMovementComponent::Deserialize(Deserializer& reader)
+{
+	reader.DeserializeVar("moveSpeed", &moveSpeed);
+	reader.DeserializeVar("rotateSpeed", &rotateSpeed);
+	reader.Deserialize(&hitDebugObject);
+}
 
 void CharacterMovementComponent::EditorDraw()
 {
 	gui::VarInput("Move Speed", &moveSpeed);
 	gui::VarInput("Rotation Speed", &rotateSpeed);
+	hitDebugObject.EditorDraw("Hit Debug Object");
 }
 
 CharacterMovementComponentSystem::CharacterMovementComponentSystem()
@@ -94,6 +116,8 @@ CharacterMovementComponentSystem::CharacterMovementComponentSystem()
 
 {
 }
+
+
 
 void CharacterMovementComponentSystem::UpdateCharacterMovementComponent(CharacterMovementComponent& comp)
 {
@@ -129,7 +153,7 @@ void CharacterMovementComponentSystem::UpdateCharacterMovementComponent(Characte
 		newAngle = math::MoveTowardsAngle(currentRotation.y, targetAngle, comp.rotateSpeed * GameTime::Dt());
 		rotation.y = newAngle;
 	}
-		CONSOLE_LOG(LogLevel::LEVEL_DEBUG) << rotation.y;
+	CONSOLE_LOG(LogLevel::LEVEL_DEBUG) << rotation.y;
 	characterTransform.SetWorldRotation(rotation);
 
 	// Update held item

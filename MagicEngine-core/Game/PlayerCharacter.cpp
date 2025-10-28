@@ -119,5 +119,8 @@ void PlayerMovementComponentSystem::UpdatePlayerMovementComponent(PlayerMovement
 	if (inputInstance->GetValue(INPUT_READ_TYPE::CURRENT, KEY::B))
 		characterComp->DropItem();
 
+	if (inputInstance->GetIsPressed(KEY::M1))
+		characterComp->Attack();
+
 	characterComp->SetMovementVector(movement);
 }
