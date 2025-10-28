@@ -26,13 +26,31 @@ All rights reserved.
 #ifndef IMGUI_ENABLED
 #include "Engine/Graphics Interface/GraphicsWindow.h"
 #endif
+//
+//const std::array<InputHardwareValueLink::FuncType_GetValue, +INPUT_DEVICE_TYPE::NUM_DEVICES> InputHardwareValueLink::GetValueFromDevice{
+//	[](int keyIdentifier, INPUT_READ_TYPE readType) -> InputHardwareValue {
+//		return ST<KeyboardMouseInput>::Get()->GetValue(readType, static_cast<KEY>(keyIdentifier));
+//	}
+//};
 
-const std::array<InputHardwareValueLink::FuncType_GetValue, +INPUT_DEVICE_TYPE::NUM_DEVICES> InputHardwareValueLink::GetValueFromDevice{
+const std::array<InputHardwareValueLink::FuncType_GetValue, +INPUT_DEVICE_TYPE::NUM_DEVICES>
+InputHardwareValueLink::GetValueFromDevice{
 	[](int keyIdentifier, INPUT_READ_TYPE readType) -> InputHardwareValue {
-		return ST<KeyboardMouseInput>::Get()->GetValue(readType, static_cast<KEY>(keyIdentifier));
-	}
-};
+		const KEY k = static_cast<KEY>(keyIdentifier);
 
+		// Special key that should return a Vec2 directly
+		if (k == KEY::MOUSE_DELTA_2D) {
+			return InputHardwareValue{ ST<KeyboardMouseInput>::Get()->GetMouseDelta() };
+		}
+
+		// Fallback:  existing bool path for real keys/buttons
+		return InputHardwareValue{
+			ST<KeyboardMouseInput>::Get()->GetValue(readType, k)
+		};
+	}
+		// If  later add GAMEPAD, put a second function pointer here
+
+};
 
 InputHardwareValueLink::InputHardwareValueLink()
 	: deviceType{ INPUT_DEVICE_TYPE::INVALID_DEVICE }
@@ -49,7 +67,12 @@ InputHardwareValueLink::InputHardwareValueLink(INPUT_DEVICE_TYPE deviceType, int
 }
 
 InputHardwareValue InputHardwareValueLink::ReadValue() const
-{
+{	
+	//special case for mouse delta
+	if (keyIdentifier == -1001 && deviceType != INPUT_DEVICE_TYPE::INVALID_DEVICE) {
+		return GetValueFromDevice[+deviceType](keyIdentifier, readType);
+	}
+
 	if (deviceType == INPUT_DEVICE_TYPE::INVALID_DEVICE || keyIdentifier < 0)
 		return false;
 	return GetValueFromDevice[+deviceType](keyIdentifier, readType);
