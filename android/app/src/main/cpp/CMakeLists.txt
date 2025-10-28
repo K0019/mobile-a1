@@ -79,8 +79,8 @@ endforeach()
 # From android/app/src/main/cpp/ up to project root
 get_filename_component(PROJECT_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/../../../../../" ABSOLUTE)
 set(FMOD_ROOT "${PROJECT_ROOT}/extern/lib/fmodAndroid")
-set(FMOD_CORE_LOCATION "${FMOD_ROOT}/${ANDROID_ABI}/libfmod.so")
-set(FMOD_STUDIO_LOCATION "${FMOD_ROOT}/${ANDROID_ABI}/libfmodstudio.so")
+set(FMOD_CORE_LOCATION "${FMOD_ROOT}/${ANDROID_ABI}/libfmodL.so")
+set(FMOD_STUDIO_LOCATION "${FMOD_ROOT}/${ANDROID_ABI}/libfmodstudioL.so")
 message(STATUS "CMAKE_CURRENT_SOURCE_DIR: ${CMAKE_CURRENT_SOURCE_DIR}")
 message(STATUS "PROJECT_ROOT: ${PROJECT_ROOT}")
 message(STATUS "FMOD_ROOT: ${FMOD_ROOT}")
@@ -100,14 +100,14 @@ add_library(fmod_core SHARED IMPORTED)
 set_target_properties(fmod_core PROPERTIES
         IMPORTED_LOCATION "${FMOD_CORE_LOCATION}"
         IMPORTED_NO_SONAME TRUE
-        INTERFACE_INCLUDE_DIRECTORIES "${PROJECT_ROOT}/extern/include/FMOD"
+        INTERFACE_INCLUDE_DIRECTORIES "${PROJECT_ROOT}/extern/include"
 )
 
 add_library(fmod_studio SHARED IMPORTED)
 set_target_properties(fmod_studio PROPERTIES
         IMPORTED_LOCATION "${FMOD_STUDIO_LOCATION}"
         IMPORTED_NO_SONAME TRUE
-        INTERFACE_INCLUDE_DIRECTORIES "${PROJECT_ROOT}/extern/include/FMOD"
+        INTERFACE_INCLUDE_DIRECTORIES "${PROJECT_ROOT}/extern/include"
 )
 
 # Copy .so for FMOD to the JNILibs for packaging into the apk.
@@ -153,6 +153,7 @@ target_include_directories(${CMAKE_PROJECT_NAME}
     ${ABI_SPECIFIC_PATH}/include/ryEngine/core/engine
         ${ABI_SPECIFIC_PATH}/include
         ${ABI_SPECIFIC_PATH}/include/offset_allocator
+        ${PROJECT_ROOT}/MagicEngine-core
 )
 
 target_link_libraries(${CMAKE_PROJECT_NAME}

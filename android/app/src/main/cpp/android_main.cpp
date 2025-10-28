@@ -148,7 +148,14 @@ static int32_t HandleInput(android_app* app, AInputEvent* event) {
 
 void android_main(android_app* app) {
     LOGI("===== android_main starting =====");
-
+    JNIEnv* env = nullptr;
+    JavaVM* vm = app->activity->vm;
+    jint result = vm->AttachCurrentThread(&env, nullptr);
+    if (result != JNI_OK) {
+        LOGE("Failed to attach thread to JVM: %d", result);
+        return;
+    }
+    LOGI("Thread attached to JVM");
     AAssetManager* assetManager = app->activity->assetManager;
     VFS::Initialize();
     VFS::MountAndroidDirectory("", assetManager);
@@ -159,6 +166,9 @@ void android_main(android_app* app) {
     app->onInputEvent = HandleInput;
     //ctx.engine = new Engine<AndroidApp>();
     //ctx.engine->Initialize();
+
+
+
 
     LOGI("Entering main event loop");
     int frameCount = 0;
