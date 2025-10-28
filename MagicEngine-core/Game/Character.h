@@ -9,7 +9,7 @@
 
 \author Matthew Chan Shao Jie (100%)
 \par    email: m.chan\@digipen.edu
-\par    DigiPen login: m.chsn
+\par    DigiPen login: m.chan
 
 \brief
 	CharacterMovementComponent is an ECS component-system pair which controls character movement. 

@@ -1,7 +1,7 @@
 #include "LeafMoveTowardsPlayer.h"
 #include "BehaviourTreeFactory.h"
+#include "Game/EnemyCharacter.h"
 
-BT_REGISTER_NODE(L_MoveTowardsPlayer, "L_MoveTowardsPlayer")
 
 void L_MoveTowardsPlayer::OnInitialize()
 {
@@ -10,7 +10,11 @@ void L_MoveTowardsPlayer::OnInitialize()
 
 NODE_STATUS L_MoveTowardsPlayer::OnUpdate([[maybe_unused]] ecs::EntityHandle entity)
 {
-    ecs::EntityHandle player = nullptr;// ecs::FindEntityByName("Player");
+    ecs::CompHandle< EnemyComponent> enemyComp = entity->GetComp< EnemyComponent>();
+    if (!enemyComp)
+        return NODE_STATUS::FAILURE;
+
+    ecs::EntityHandle player = enemyComp->playerReference;// ecs::FindEntityByName("Player");
     if (!player)
         return NODE_STATUS::FAILURE;
 

@@ -45,7 +45,10 @@ All rights reserved.
 #include "Graphics/TrailSystem.h"
 #include "Game/PrefabSpawner.h"
 #include "Physics/Physics.h"
+
 #include "Engine/BehaviorTree/BehaviourTree.h"
+#include "Engine/BehaviorTree/LeafLookForPlayer.h"
+#include "Engine/BehaviorTree/LeafMoveTowardsPlayer.h"
 
 #include "Demo.h"
 

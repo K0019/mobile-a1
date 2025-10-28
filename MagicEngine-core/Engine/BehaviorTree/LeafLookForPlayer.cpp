@@ -1,10 +1,15 @@
 #include "LeafLookForPlayer.h"
 #include "BehaviourTreeFactory.h"
-BT_REGISTER_NODE(L_LookForPlayer, "L_LookForPlayer")
+#include "Game/EnemyCharacter.h"
+
 
 NODE_STATUS L_LookForPlayer::OnUpdate([[maybe_unused]] ecs::EntityHandle entity)
 {
-    ecs::EntityHandle player = nullptr;// ecs::FindEntityByName("Player");
+    ecs::CompHandle< EnemyComponent> enemyComp = entity->GetComp< EnemyComponent>();
+    if (!enemyComp)
+        return NODE_STATUS::FAILURE;
+
+    ecs::EntityHandle player = enemyComp->playerReference;// ecs::FindEntityByName("Player");
     if (!player)
         return NODE_STATUS::FAILURE;
 

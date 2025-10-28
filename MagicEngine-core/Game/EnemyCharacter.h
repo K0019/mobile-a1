@@ -1,6 +1,6 @@
 /******************************************************************************/
 /*!
-\file   PlayerCharacter.h
+\file   EnemyCharacter.h
 \par    Project: 7percent
 \par    Course: CSD2401
 \par    Section B
@@ -12,7 +12,7 @@
 \par    DigiPen login: m.chan
 
 \brief
-	PlayerCharacter is an ECS component-system pair which controls player movement. 
+	EnemyCharacter is an ECS component-system pair which controls enemy movement. 
 
 All content � 2024 DigiPen Institute of Technology Singapore.
 All rights reserved.
@@ -23,30 +23,28 @@ All rights reserved.
 #include "Editor/IEditorComponent.h"
 
 /*****************************************************************//*!
-\class PlayerMovementComponent
+\class EnemyComponent
 \brief
 	ECS Component that serializes relevant parameters.
 *//******************************************************************/
-class PlayerMovementComponent
-	: public IRegisteredComponent<PlayerMovementComponent>
-	, public IEditorComponent<PlayerMovementComponent>
+class EnemyComponent
+	: public IRegisteredComponent<EnemyComponent>
+	, public IEditorComponent<EnemyComponent>
 {
 public:
 	/*****************************************************************//*!
 	\brief
 		Default constructor.
 	*//******************************************************************/
-	PlayerMovementComponent();
+	EnemyComponent();
 
 	/*****************************************************************//*!
 	\brief
 		Default destructor.
 	*//******************************************************************/
-	//~PlayerMovementComponent();
+	//~EnemyComponent();
 
-	// Serialized
-	EntityReference cameraReference;
-	float grabDistance;
+	EntityReference playerReference;
 
 	void Serialize(Serializer& writer) const;
 	void Deserialize(Deserializer& reader);
@@ -63,27 +61,26 @@ private:
 
 };
 
-property_begin(PlayerMovementComponent)
+property_begin(EnemyComponent)
 {
-	property_var(grabDistance)
 }
-property_vend_h(PlayerMovementComponent)
+property_vend_h(EnemyComponent)
 
 /*****************************************************************//*!
-\class PlayerMovementComponentSystem
+\class EnemyMovementComponentSystem
 \brief
 	ECS System that acts on the relevant component.
 *//******************************************************************/
-class PlayerMovementComponentSystem : public ecs::System<PlayerMovementComponentSystem, PlayerMovementComponent>
+class EnemyMovementComponentSystem : public ecs::System<EnemyMovementComponentSystem, EnemyComponent>
 {
 public:
-	PlayerMovementComponentSystem();
+	EnemyMovementComponentSystem();
 private:
 	/*****************************************************************//*!
 	\brief
-		Updates PlayerMovementComponent.
+		Updates EnemyComponent.
 	\param comp
-		The PlayerMovementComponent to update.
+		The EnemyComponent to update.
 	*//******************************************************************/
-	void UpdatePlayerMovementComponent(PlayerMovementComponent& comp);
+	void UpdateEnemyMovementComponent(EnemyComponent& comp);
 };

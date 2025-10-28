@@ -550,6 +550,12 @@
                         ]
                     }
                 },
+                "2130793284427054791": {
+                    "_active": true,
+                    "behaviorTree": {
+                        "btName": "enemyBase"
+                    }
+                },
                 "2471509561333568296": {
                     "_active": true,
                     "name": "EnemyTest"
