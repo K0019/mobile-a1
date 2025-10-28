@@ -40,27 +40,83 @@
                         }
                     },
                     {
-                        "key": "ReverseDir",
+                        "key": "Look",
                         "value": {
                             "compositeType": 0,
                             "bindings": [
                                 {
                                     "hardwareLink": {
-                                        "deviceType": -1,
-                                        "keyIdentifier": -1
-                                    }
-                                },
-                                {
-                                    "hardwareLink": {
                                         "deviceType": 0,
-                                        "keyIdentifier": 67
+                                        "keyIdentifier": -1001
                                     }
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "key": "ReverseDir",
+                        "value": {
+                            "compositeType": 2,
+                            "bindings": [
+                                {
+                                    "hardwareLink": [
+                                        {
+                                            "deviceType": -1,
+                                            "keyIdentifier": -1
+                                        },
+                                        {
+                                            "deviceType": -1,
+                                            "keyIdentifier": -1
+                                        },
+                                        {
+                                            "deviceType": -1,
+                                            "keyIdentifier": -1
+                                        },
+                                        {
+                                            "deviceType": -1,
+                                            "keyIdentifier": -1
+                                        }
+                                    ]
                                 },
                                 {
-                                    "hardwareLink": {
-                                        "deviceType": -1,
-                                        "keyIdentifier": -1
-                                    }
+                                    "hardwareLink": [
+                                        {
+                                            "deviceType": 0,
+                                            "keyIdentifier": 67
+                                        },
+                                        {
+                                            "deviceType": -1,
+                                            "keyIdentifier": -1
+                                        },
+                                        {
+                                            "deviceType": -1,
+                                            "keyIdentifier": -1
+                                        },
+                                        {
+                                            "deviceType": -1,
+                                            "keyIdentifier": -1
+                                        }
+                                    ]
+                                },
+                                {
+                                    "hardwareLink": [
+                                        {
+                                            "deviceType": -1,
+                                            "keyIdentifier": -1
+                                        },
+                                        {
+                                            "deviceType": -1,
+                                            "keyIdentifier": -1
+                                        },
+                                        {
+                                            "deviceType": -1,
+                                            "keyIdentifier": -1
+                                        },
+                                        {
+                                            "deviceType": -1,
+                                            "keyIdentifier": -1
+                                        }
+                                    ]
                                 }
                             ]
                         }
@@ -108,7 +164,7 @@
                                 {
                                     "hardwareLink": {
                                         "deviceType": 0,
-                                        "keyIdentifier": 65
+                                        "keyIdentifier": -1001
                                     }
                                 }
                             ]

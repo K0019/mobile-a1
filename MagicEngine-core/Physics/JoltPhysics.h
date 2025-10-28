@@ -96,6 +96,14 @@ namespace physics {
 
 		/*****************************************************************//*!
 		\brief
+			Get a reference of the physics system.
+		\return
+			Reference of the physics system.
+		*//******************************************************************/
+		JPH::PhysicsSystem& GetPhysicsSystem();
+
+		/*****************************************************************//*!
+		\brief
 			Update the Jolt Physics System.
 		*//******************************************************************/
 		void UpdatePhysicsSystem();
@@ -162,6 +170,15 @@ namespace physics {
 		JPH::BodyManager bodyManager;
 	};
 
+	struct TransformValues
+	{
+		Vec3 pos;
+		Vec3 rot;
+		Vec3 scale;
+
+		TransformValues& operator=(Transform& trans);
+	};
+
 	class JoltBodyComp
 		: public ecs::IComponentCallbacks
 		, public IHiddenComponent<JoltBodyComp>
@@ -186,6 +203,10 @@ namespace physics {
 		JoltBodyComp(JPH::EMotionType motion, ShapeType shape, Layers layer);
 
 	private:
+		//Previous Transform stored.
+		TransformValues prevTrans;
+		//Quaternion before the physics update.
+		JPH::Quat prevQuat;
 		//Body ID of the containing JPH::Body
 		JPH::BodyID bodyID;
 		//Static, Dynamic, or Kinematic
@@ -194,8 +215,8 @@ namespace physics {
 		ShapeType shapeType;
 		//Collision layer.
 		Layers collisionLayer;
-		//Previous Transform stored.
-		Transform prevTrans;
+		//Degree of Freedom
+		JPH::EAllowedDOFs dof;
 
 	public:
 		void OnAttached() override;
@@ -235,14 +256,6 @@ namespace physics {
 
 		/*****************************************************************//*!
 		\brief
-			Get the previous transform of the entity.
-		\return
-			previous transform value.
-		*//******************************************************************/
-		const Transform& GetPrevTrans() const;
-
-		/*****************************************************************//*!
-		\brief
 			Get the position of the body.
 		\return
 			position value.
@@ -263,7 +276,7 @@ namespace physics {
 		\return
 			rotation value.
 		*//******************************************************************/
-		Vec3 GetRotation() const;
+		JPH::Quat GetRotation() const;
 
 		/*****************************************************************//*!
 		\brief
@@ -323,19 +336,51 @@ namespace physics {
 
 		/*****************************************************************//*!
 		\brief
-			Set the previous transform of the entity.
-		\param trans
-			previous transform value.
-		*//******************************************************************/
-		void SetPrevTrans(const Transform& trans);
-
-		/*****************************************************************//*!
-		\brief
 			Set the linear velocity of the body.
 		\param vel
 			linear velocity value.
 		*//******************************************************************/
 		void SetLinearVelocity(const Vec3& vel);
+
+		/*****************************************************************//*!
+		\brief
+			Set the angular velocity of the body.
+		\param vel
+			angular velocity value.
+		*//******************************************************************/
+		void SetAngularVelocity(const Vec3& vel);
+
+		/*****************************************************************//*!
+		\brief
+			Set the degree of freedom on the X axis.
+		\param vel
+			true if lock, false if unlock
+		*//******************************************************************/
+		void SetLockRotationX(bool val);
+
+		/*****************************************************************//*!
+		\brief
+			Set the degree of freedom on the Y axis.
+		\param vel
+			true if lock, false if unlock
+		*//******************************************************************/
+		void SetLockRotationY(bool val);
+
+		/*****************************************************************//*!
+		\brief
+			Set the degree of freedom on the Z axis.
+		\param vel
+			true if lock, false if unlock
+		*//******************************************************************/
+		void SetLockRotationZ(bool val);
+
+		/*****************************************************************//*!
+		\brief
+			Set the degree of freedom to the body
+		\param dof
+			degree of freedom value.
+		*//******************************************************************/
+		void SetDOF(JPH::EAllowedDOFs val);
 
 		/*****************************************************************//*!
 		\brief
