@@ -58,7 +58,7 @@ std::vector<std::string> BTFactory::RegisteredTypes() const
 
 void BTFactory::SetAllFilePath()
 {
-    if (VFS::FileExists(Filepaths::behaviourTreeSave))
+    if (!VFS::FileExists(Filepaths::behaviourTreeSave))
         return;
 
     std::vector<std::string> filesInDir = VFS::ListDirectory(Filepaths::behaviourTreeSave);

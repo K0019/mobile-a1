@@ -169,6 +169,7 @@ void MagicEngine::Init(Context& context)
 
 	ST<GameSettings>::Get()->Apply(); // Apply the loaded settings here
 
+	ST<BTFactory>::Get()->SetAllFilePath();
 
 	// load resources
 	ST<MagicResourceManager>::Get()->Init();
