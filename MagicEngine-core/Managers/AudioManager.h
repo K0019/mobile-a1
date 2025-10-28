@@ -17,13 +17,20 @@
 
 	However, it does control channels via groups, allowing for group mixing and volume control.
 
-All content © 2025 DigiPen Institute of Technology Singapore.
+All content ï¿½ 2025 DigiPen Institute of Technology Singapore.
 All rights reserved.
 */
 /******************************************************************************/
 #pragma once
+#ifdef __ANDROID__
+#include <FMOD/fmod_android.h>
+#include <FMOD/fmod_errors.h>
 #include <FMOD/fmod.hpp>
 #include <FMOD/fmod_studio.hpp>
+#else
+#include <FMOD/fmod.hpp>
+#include <FMOD/fmod_studio.hpp>
+#endif
 #include "Engine/Resources/Types/ResourceTypesAudio.h"
 
 class AudioManager
@@ -86,6 +93,13 @@ public:
 	void ConfigureListener(float dopplerScale, float distanceFactor, float rolloffScale);
 	void StopAllSounds();
 	void SetGroupVolume(AudioType type, float vol);
+
+#ifdef __ANDROID__
+    static FMOD_RESULT F_CALLBACK FileOpenCallback(const char* name, unsigned int* filesize, void** handle, void* userdata);
+	static FMOD_RESULT F_CALLBACK FileCloseCallback(void* handle, void* userdata);
+	static FMOD_RESULT F_CALLBACK FileReadCallback(void* handle, void* buffer, unsigned int sizebytes, unsigned int* bytesread, void* userdata);
+	static FMOD_RESULT F_CALLBACK FileSeekCallback(void* handle, unsigned int pos, void* userdata);
+#endif
 
 private:
 	FMOD::System* system;

@@ -383,6 +383,7 @@ void MagicEngine::ExecuteFrame(FrameData& frameData)
 		ST<Inspector>::Get()->DrawSelectedEntityBorder();
 #endif
 	}
+	ST<AudioManager>::Get()->PlaySound(18105658310966845, false); // Play startup sound
 	ST<GraphicsMain>::Get()->EndFrame(&frameData);
 	ST<PerformanceProfiler>::Get()->EndProfile("Render");
 
