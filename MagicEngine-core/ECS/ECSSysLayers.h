@@ -30,11 +30,6 @@ enum class ECS_LAYER : int
 {
 	CUTOFF_START, // --- UNUSED
 
-	//! The realtime input layer, for systems that run at input, regardless of timescale.
-	REALTIME_INPUT_0,
-
-	CUTOFF_REALTIME_INPUT, // --- UNUSED
-
 	//! The input layer, for systems that run at player input.
 	INPUT_0,
 

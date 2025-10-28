@@ -174,15 +174,29 @@ decltype(util::ToSortedVectorOfRefs(InputSet::actions)) InputSet::Editor_GetActi
 bool KeyboardMouseInput::GetIsPressed(KEY key) const
 {
 	//return pressedKeystate[+key];
-	return Input::GetKeyDown(static_cast<Key>(key));
+	//if (!ST<MagicInput>::Get()->IsFirstIterationThisFrame())
+		//return false;
+	switch (key)
+	{
+	case KEY::M1: case KEY::M2: case KEY::M3:
+		return Input::GetMouseButtonDown(static_cast<MouseButton>(+key - +KEY::M1));
+	default:
+		return Input::GetKeyDown(static_cast<Key>(key));
+	}
 }
 
 bool KeyboardMouseInput::GetIsReleased(KEY key) const
 {
-	if (ST<MagicInput>::Get()->IsFinalIterationThisFrame())
-		return false;
+	//if (ST<MagicInput>::Get()->IsFinalIterationThisFrame())
+		//return false;
 	//return releasedKeystate[+key];
-	return Input::GetKeyUp(static_cast<Key>(key));
+	switch (key)
+	{
+	case KEY::M1: case KEY::M2: case KEY::M3:
+		return Input::GetMouseButtonUp(static_cast<MouseButton>(+key - +KEY::M1));
+	default:
+		return Input::GetKeyUp(static_cast<Key>(key));
+	}
 }
 
 bool KeyboardMouseInput::GetIsDown(KEY key) const
@@ -329,6 +343,7 @@ void MagicInput::NewFrame()
 	ST<KeyboardMouseInput>::Get()->NewFrame();
 
 	currIteration = GameTime::RealNumFixedFrames();
+	isFirstIteration = true;
 }
 
 void MagicInput::NewIteration()
@@ -336,6 +351,12 @@ void MagicInput::NewIteration()
 	ST<KeyboardMouseInput>::Get()->NewIteration();
 
 	--currIteration;
+	isFirstIteration = false;
+}
+
+bool MagicInput::IsFirstIterationThisFrame() const
+{
+	return isFirstIteration;
 }
 
 bool MagicInput::IsFinalIterationThisFrame() const
