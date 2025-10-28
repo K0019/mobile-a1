@@ -139,8 +139,8 @@ namespace editor {
 	\tparam WindowType
 		The type of the window.
 	*//******************************************************************/
-	template <typename WindowType>
-	void CreateGuiWindow();
+	template <typename WindowType, typename ...Args>
+	void CreateGuiWindow(Args&&... windowConstructorParams);
 
 }
 
@@ -219,8 +219,8 @@ namespace editor {
 		window.Draw(++idCounter);
 	}
 
-	template<typename WindowType>
-	void CreateGuiWindow()
+	template<typename WindowType, typename ...Args>
+	void CreateGuiWindow(Args&&... windowConstructorParams)
 	{
 		// Create an entity in EDITOR_GUI with the window attached as a component.
 		::ecs::POOL originalPool{ ::ecs::GetCurrentPoolId() };
@@ -234,7 +234,7 @@ namespace editor {
 				return;
 			}
 
-		::ecs::CreateEntity()->AddCompNow(WindowType{});
+		::ecs::CreateEntity()->AddCompNow(WindowType{ std::forward<Args>(windowConstructorParams)... });
 		::ecs::SwitchToPool(originalPool);
 	}
 

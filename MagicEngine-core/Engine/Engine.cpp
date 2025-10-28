@@ -38,6 +38,7 @@ All rights reserved.
 #include "Editor/Editor.h"
 #include "Utilities/CrashHandler.h"
 
+#include "Engine/Events/EventsQueue.h"
 #include "Engine/Input.h"
 
 #include "Engine/SceneManagement.h"
@@ -166,7 +167,7 @@ void MagicEngine::Init(Context& context)
 	ST<EntitySpawnEvents>::Get(); // Initialize systems that listen for entity created events
 
 	//auto worldExtents{ ST<GraphicsWindow>::Get()->GetWorldExtent()};
-	auto worldExtents{ Vec2{ 1920, 1080 } };
+	auto worldExtents{ IntVec2{ 1920, 1080 } };
 	ST<CameraController>::Get()->SetCameraData(CameraData{
 		.position = Vec3{static_cast<float>(worldExtents.x) / 2, static_cast<float>(worldExtents.y) / 2, 0.0f },
 		.zoom = 1.0f
@@ -185,8 +186,7 @@ void MagicEngine::Init(Context& context)
 	//ST<GraphicsWindow>::Get()->BringWindowToFront();
 #ifdef IMGUI_ENABLED
 	loadState("imgui.json");
-	// Hopefully we can get rid of this in the future. CustomViewport should eventually be able to read its window size from ImGui.
-	ST<CustomViewport>::Get()->Init(worldExtents.x, worldExtents.y);
+	editor::CreateGuiWindow<CustomViewport>(static_cast<unsigned int>(worldExtents.x), static_cast<unsigned int>(worldExtents.y));
 #endif
 }
 
@@ -195,6 +195,9 @@ void MagicEngine::ExecuteFrame(FrameData& frameData)
 	// Update tracking of framerate and frametime
 	GameTime::WaitUntilNextFrame();
 	ST<PerformanceProfiler>::Get()->StartFrame();
+
+	// Clear the events of the previous frame
+	ST<EventsQueue>::Get()->NewFrame();
 
 	// Only reset key states when systems are updating so we don't skip inputs.
 	if(GameTime::RealNumFixedFrames())
@@ -303,8 +306,6 @@ void MagicEngine::ExecuteFrame(FrameData& frameData)
 		ImGui::EndMainMenuBar();  // End the main menu bar
 	}
 
-	ST<CustomViewport>::Get()->DrawImGuiWindow();
-
 	ST<GraphicsMain>::Get()->EndImGuiFrame();
 #endif
 
@@ -314,7 +315,6 @@ void MagicEngine::ExecuteFrame(FrameData& frameData)
 	ST<PerformanceProfiler>::Get()->StartProfile("Process Input");
 	if(GameTime::RealNumFixedFrames())
 	{
-		ST<CustomViewport>::Get()->UpdateCameraControl();
 #ifdef IMGUI_ENABLED
 		ST<Inspector>::Get()->ProcessInput();
 		// TODO: Put this in some editor windows manager class. In fact, all of this imgui stuff needs to be put in that class or subclasses.
@@ -413,6 +413,7 @@ void MagicEngine::shutdown()
 	ST<MagicResourceManager>::Destroy();
 
 	ST<GraphicsMain>::Destroy();
+	ST<EventsQueue>::Destroy();
 	// In case any systems send logs to the console while destructing.
 	ST<internal::LoggedMessagesBuffer>::Destroy();
 }
