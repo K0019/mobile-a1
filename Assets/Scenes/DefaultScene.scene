@@ -509,6 +509,80 @@
                     }
                 }
             }
+        },
+        {
+            "parentIndex": -1,
+            "position": {
+                "x": 8.453021049499512,
+                "y": 2.201585292816162,
+                "z": -7.2906174659729
+            },
+            "rotation": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "scale": {
+                "x": 3.0,
+                "y": 3.0,
+                "z": 3.0
+            },
+            "components": {
+                "1048412265199846848": {
+                    "_active": true,
+                    "layer": 0
+                },
+                "1223095846833079106": {
+                    "_active": true,
+                    "uid": 238906284847382677
+                },
+                "1944538217630733064": {
+                    "_active": true,
+                    "linearVel": {
+                        "x": 0.0,
+                        "y": 0.0,
+                        "z": 0.0
+                    },
+                    "flags": {
+                        "_majorityTrue": true,
+                        "_except": [
+                            "Is Kinematic"
+                        ]
+                    }
+                },
+                "2471509561333568296": {
+                    "_active": true,
+                    "name": "EnemyTest"
+                },
+                "3381165323192817782": {
+                    "_active": true,
+                    "meshHash": 21084235054651615,
+                    "materialHash": 234014557615317635
+                },
+                "9504732287659554652": {
+                    "_active": true,
+                    "moveSpeed": 10.0,
+                    "rotateSpeed": 14400.0,
+                    "entityUid": 0
+                },
+                "17211506741407007748": {
+                    "_active": true,
+                    "center": {
+                        "x": 0.0,
+                        "y": 0.0,
+                        "z": 0.0
+                    },
+                    "size": {
+                        "x": 1.0,
+                        "y": 1.0,
+                        "z": 1.0
+                    },
+                    "flags": {
+                        "_majorityTrue": true,
+                        "_except": []
+                    }
+                }
+            }
         }
     ]
 }

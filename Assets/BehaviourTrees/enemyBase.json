@@ -1,0 +1,9 @@
+{
+    "name": "enemyBase",
+    "nodes": [
+        {
+            "nodeType": "Sequence",
+            "nodeLevel": 0
+        }
+    ]
+}

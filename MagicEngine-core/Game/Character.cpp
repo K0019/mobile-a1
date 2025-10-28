@@ -27,6 +27,7 @@ All rights reserved.
 #include "Editor/Containers/GUICollection.h"
 
 CharacterMovementComponent::CharacterMovementComponent()
+	: movementVector{ 0.0f,0.0f }
 {
 }
 
