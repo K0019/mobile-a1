@@ -53,9 +53,9 @@ def rename_to_lowercase(directory):
 
 
 # Rename all assets to lowercase
-#print("Renaming assets to lowercase...")
-#renamed_count = rename_to_lowercase(android_asset_dir)
-#print(f"Renamed {renamed_count} files/directories to lowercase\n")
+print("Renaming assets to lowercase...")
+renamed_count = rename_to_lowercase(working_asset_dir)
+print(f"Renamed {renamed_count} files/directories to lowercase\n")
 
 
 
