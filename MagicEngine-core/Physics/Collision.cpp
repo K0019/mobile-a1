@@ -108,7 +108,7 @@ namespace physics {
 	}
 
 	BoxColliderComp::BoxColliderComp()
-		: flags{1 << +COLLIDER_COMP_FLAG::ENABLED}
+		: flags{COLLIDER_COMP_FLAG::ENABLED}
 		, center{}
 		, size{1.f, 1.f, 1.f}
 	{
