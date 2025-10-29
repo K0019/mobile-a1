@@ -23,20 +23,125 @@ All rights reserved.
 #include "Engine/PrefabManager.h"
 #include "Editor/Editor.h"
 #include "Game/GameSystems.h"
+#include "Engine/Events/EventsQueue.h"
+#include "Engine/Events/EventsTypeBasic.h"
 
 #include "Engine/SceneManagement.h"
 #include "Editor/EditorHistory.h"
 #include "Engine/Graphics Interface/GraphicsAPI.h"
 
-CustomViewport::CustomViewport()
-	: disableMoving{}
-	, width{}
-	, height{}
-	, aspect_ratio{}
+CustomViewport::CustomViewport(unsigned int width, unsigned int height)
+	: WindowBase{ "Viewport", { 1366, 768 }, gui::FLAG_WINDOW::NO_SCROLL_BAR | gui::FLAG_WINDOW::NO_SCROLL_WITH_MOUSE }
+	, width{ width }
+	, height{ height }
+	, aspect_ratio{ static_cast<float>(width) / static_cast<float>(height) }
 	, titleBarHeight{}
 	, name{ ICON_FA_GAMEPAD " Scene" }
 	, camera{ vec3(0.0f, 1.0f, -1.5f), vec3(0.0f, 0.5f, 0.0f), vec3(0.0f, 1.0f, 0.0f) }
 {
+}
+
+void CustomViewport::DrawContainer(int id)
+{
+#ifdef IMGUI_ENABLED
+	gui::SetStyleVar windowPadding{ gui::FLAG_STYLE_VAR::WINDOW_PADDING, gui::Vec2{ 0, 0 } };
+
+	// Set size constraints for undocked windows
+	if (!ImGui::GetCurrentWindow()->DockIsActive)
+		ImGui::SetNextWindowSizeConstraints(gui::Vec2{ 100, 100 }, gui::Vec2{ FLT_MAX, FLT_MAX }, MaintainAspectRatio, this);
+#endif
+
+	WindowBase::DrawContainer(id);
+}
+
+void CustomViewport::DrawWindow()
+{
+	// TODO: Have some update for editor windows so they don't update in the DrawWindow() function
+
+	// Handle events
+	EventsReader<Events::ResizeViewport> resizeViewportEvent{};
+	while (auto event{ resizeViewportEvent.ExtractEvent() })
+		Resize(event->width, event->height);
+
+	// Camera movement (should be moved to an input update section)
+	UpdateCameraControl();
+	// Camera upload (should also be moved...)
+	ST<GraphicsScene>::Get()->SetViewCamera(GetViewportCamera());
+
+
+	const float playControlsHeight = 22.0f; // Height of play controls bar
+	DrawPlayControls();
+
+	ImVec2 windowPos = ImGui::GetWindowPos();
+	ImVec2 contentRegionAvail = ImGui::GetContentRegionAvail();
+	titleBarHeight = ImGui::GetFrameHeight();
+	bool isDocked = ImGui::GetCurrentWindow()->DockIsActive;
+
+	// Subtract play controls height from available space
+	contentRegionAvail.y -= playControlsHeight;
+	ImVec2 renderSize;
+	ImVec2 padding;
+
+	if (isDocked)
+	{
+		// For docked windows, fit content to available area while maintaining aspect ratio
+		float contentAspectRatio = contentRegionAvail.x / contentRegionAvail.y;
+		if (contentAspectRatio > aspect_ratio) {
+			renderSize.y = contentRegionAvail.y;
+			renderSize.x = renderSize.y * aspect_ratio;
+		}
+		else {
+			renderSize.x = contentRegionAvail.x;
+			renderSize.y = renderSize.x / aspect_ratio;
+		}
+		padding = ImVec2((contentRegionAvail.x - renderSize.x) * 0.5f,
+			(contentRegionAvail.y - renderSize.y) * 0.5f);
+	}
+	else
+	{
+		renderSize = contentRegionAvail;
+		padding = ImVec2(0, 0);
+	}
+
+
+	//=============================
+	// Store viewport information
+	viewportRenderSize = renderSize;
+	windowPosAbsolute = windowPos;
+	contentMin = ImVec2(padding.x, padding.y + titleBarHeight + playControlsHeight);
+	contentMax = ImVec2(padding.x + renderSize.x,
+		padding.y + renderSize.y + titleBarHeight + playControlsHeight);
+
+	// 1) Draw the scene texture first
+	ImGui::SetCursorPos(ImVec2(padding.x, padding.y + titleBarHeight + playControlsHeight));
+	if (auto sceneColorID = ST<GraphicsMain>::Get()->GetImGuiContext()
+		.GetTransientRegistry().QueryBindlessID("ImGuiSceneView"))
+	{
+		ImGui::Image(*sceneColorID, renderSize, ImVec2(0, 0), ImVec2(1, 1));
+	}
+
+
+	ImDrawList* drawList = ImGui::GetWindowDrawList();
+	updateCurrentEntity(ST<Inspector>::Get()->GetSelectedEntity());
+	m_gizmo.Draw(drawList);
+	//==========================
+
+	if (ImGui::BeginDragDropTarget())
+	{
+		if (ImGuiPayload const* payload_entity = ImGui::AcceptDragDropPayload("PREFAB"))
+		{
+			if (ImGui::IsMouseReleased(0))
+			{
+				std::string prefabName{ static_cast<char*>(payload_entity->Data) };
+				ecs::EntityHandle entity = PrefabManager::LoadPrefab(prefabName);
+				ST<History>::Get()->OneEvent(HistoryEvent_EntityCreate{ entity });
+				CONSOLE_LOG_UNIMPLEMENTED() << "Spawn entity from prefab drop into viewport";
+				//entity->GetTransform().SetWorldPosition(InputOld::GetMousePosWorld());
+				ST<Inspector>::Get()->SetSelectedEntity(entity);
+			}
+		}
+		ImGui::EndDragDropTarget();
+	}
 }
 
 void CustomViewport::Init(unsigned newWidth, unsigned newHeight)
@@ -80,7 +185,7 @@ void CustomViewport::UpdateCameraControl()
 		// Reset keys
 		camera.movement_ = CameraPositioner_FirstPerson::Movement{};
 
-	camera.update(GameTime::FixedDt(), mouse_delta, ST<KeyboardMouseInput>::Get()->GetIsDown(KEY::M_RIGHT));
+	camera.update(GameTime::RealDt(), mouse_delta, ST<KeyboardMouseInput>::Get()->GetIsDown(KEY::M_RIGHT));
 }
 
 #ifdef IMGUI_ENABLED
@@ -200,108 +305,6 @@ void CustomViewport::DrawPlayControls() {
 
 	// Restore original style
 	style.ItemSpacing.x = originalSpacing;
-}
-
-void CustomViewport::DrawImGuiWindow() {
-
-	ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
-	ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse;
-	if (disableMoving) {
-		window_flags |= ImGuiWindowFlags_NoMove;
-		disableMoving = false;
-	}
-
-	// Set size constraints for undocked windows
-	if (!ImGui::GetCurrentWindow()->DockIsActive)
-	{
-		ImGui::SetNextWindowSizeConstraints(ImVec2(100, 100), ImVec2(FLT_MAX, FLT_MAX), MaintainAspectRatio, this);
-	}
-
-	// Begin main window
-	if (ImGui::Begin(name.c_str(), nullptr, window_flags))
-	{
-		const float playControlsHeight = 22.0f; // Height of play controls bar
-		DrawPlayControls();
-
-		ImVec2 windowPos = ImGui::GetWindowPos();
-		ImVec2 contentRegionAvail = ImGui::GetContentRegionAvail();
-		titleBarHeight = ImGui::GetFrameHeight();
-		bool isDocked = ImGui::GetCurrentWindow()->DockIsActive;
-
-		// Subtract play controls height from available space
-		contentRegionAvail.y -= playControlsHeight;
-		ImVec2 renderSize;
-		ImVec2 padding;
-
-		if (isDocked)
-		{
-			// For docked windows, fit content to available area while maintaining aspect ratio
-			float contentAspectRatio = contentRegionAvail.x / contentRegionAvail.y;
-			if (contentAspectRatio > aspect_ratio) {
-				renderSize.y = contentRegionAvail.y;
-				renderSize.x = renderSize.y * aspect_ratio;
-			}
-			else {
-				renderSize.x = contentRegionAvail.x;
-				renderSize.y = renderSize.x / aspect_ratio;
-			}
-			padding = ImVec2((contentRegionAvail.x - renderSize.x) * 0.5f,
-				(contentRegionAvail.y - renderSize.y) * 0.5f);
-		}
-		else
-		{
-			renderSize = contentRegionAvail;
-			padding = ImVec2(0, 0);
-		}
-
-
-		//=============================
-		// Store viewport information
-		viewportRenderSize = renderSize;
-		windowPosAbsolute = windowPos;
-		contentMin = ImVec2(padding.x, padding.y + titleBarHeight + playControlsHeight);
-		contentMax = ImVec2(padding.x + renderSize.x,
-			padding.y + renderSize.y + titleBarHeight + playControlsHeight);
-
-		// 1) Draw the scene texture first
-		ImGui::SetCursorPos(ImVec2(padding.x, padding.y + titleBarHeight + playControlsHeight));
-		if (auto sceneColorID = ST<GraphicsMain>::Get()->GetImGuiContext()
-			.GetTransientRegistry().QueryBindlessID("ImGuiSceneView"))
-		{
-			ImGui::Image(*sceneColorID, renderSize, ImVec2(0, 0), ImVec2(1, 1));
-		}
-
-
-		ImDrawList* drawList = ImGui::GetWindowDrawList();
-		updateCurrentEntity(ST<Inspector>::Get()->GetSelectedEntity());
-		m_gizmo.Draw(drawList);
-		//==========================
-
-
-		if (ImGui::BeginDragDropTarget())
-		{
-			if (ImGuiPayload const* payload_entity = ImGui::AcceptDragDropPayload("PREFAB"))
-			{
-				if (ImGui::IsMouseReleased(0))
-				{
-					std::string prefabName{ static_cast<char*>(payload_entity->Data) };
-					ecs::EntityHandle entity = PrefabManager::LoadPrefab(prefabName);
-					ST<History>::Get()->OneEvent(HistoryEvent_EntityCreate{ entity });
-					CONSOLE_LOG_UNIMPLEMENTED() << "Spawn entity from prefab drop into viewport";
-					//entity->GetTransform().SetWorldPosition(InputOld::GetMousePosWorld());
-					ST<Inspector>::Get()->SetSelectedEntity(entity);
-				}
-			}
-			ImGui::EndDragDropTarget();
-		}
-
-
-
-
-
-	}
-	ImGui::End();
-	ImGui::PopStyleVar();
 }
 
 void CustomViewport::MaintainAspectRatio(ImGuiSizeCallbackData* data) {
@@ -455,9 +458,6 @@ bool CustomViewport::IsMouseInViewport([[maybe_unused]] const Vec2& mousePos) co
 	return true;
 }
 
-void CustomViewport::SetDisableMoving(bool disable) {
-	disableMoving = disable;
-}
 Vec2 CustomViewport::GetViewportRenderSize() const
 {
 	return { viewportRenderSize.x, viewportRenderSize.y };
@@ -476,12 +476,4 @@ void CustomViewport::updateCurrentEntity([[maybe_unused]] ecs::EntityHandle enti
 Camera CustomViewport::GetViewportCamera() const
 {
 	return Camera{ camera };
-}
-
-bool CustomViewportCameraUploadSystem::PreRun()
-{
-	ST<GraphicsScene>::Get()->SetViewCamera(ST<CustomViewport>::Get()->GetViewportCamera());
-
-	// No components are needed
-	return false;
 }
