@@ -1,6 +1,7 @@
 #include "LeafMoveTowardsPlayer.h"
 #include "BehaviourTreeFactory.h"
 #include "Game/EnemyCharacter.h"
+#include "Game/Character.h"
 
 
 void L_MoveTowardsPlayer::OnInitialize()
@@ -10,8 +11,12 @@ void L_MoveTowardsPlayer::OnInitialize()
 
 NODE_STATUS L_MoveTowardsPlayer::OnUpdate([[maybe_unused]] ecs::EntityHandle entity)
 {
-    ecs::CompHandle< EnemyComponent> enemyComp = entity->GetComp< EnemyComponent>();
+    ecs::CompHandle<EnemyComponent> enemyComp = entity->GetComp< EnemyComponent>();
     if (!enemyComp)
+        return NODE_STATUS::FAILURE;
+
+    ecs::CompHandle<CharacterMovementComponent> characterComp = entity->GetComp< CharacterMovementComponent>();
+    if (!characterComp)
         return NODE_STATUS::FAILURE;
 
     ecs::EntityHandle player = enemyComp->playerReference;// ecs::FindEntityByName("Player");
@@ -22,20 +27,17 @@ NODE_STATUS L_MoveTowardsPlayer::OnUpdate([[maybe_unused]] ecs::EntityHandle ent
     Vec3 playerPos = player->GetTransform().GetWorldPosition();
 
     Vec3 dir = playerPos - enemyPos;
-    float dist = dir.Length();
+    dir.y = 0.0f;
 
     //stop if close to player
-    if (dist < 1.0f)
+    if (dir.Length() < 8.0f)
+    {
+        characterComp->SetMovementVector(Vec2(0.0f, 0.0f));
         return NODE_STATUS::SUCCESS;
+    }
 
-    //normalize
-    float len = std::sqrt(dir.x * dir.x + dir.y * dir.y + dir.z * dir.z);
-    if (len > 0.0f)
-        dir = dir / len;
 
     // move towards player
-    float dt = GameTime::Dt();
-    entity->GetTransform().AddWorldPosition(dir * moveSpeed * dt);
-
+    characterComp->SetMovementVector(Vec2(dir.x, -dir.z));
     return NODE_STATUS::RUNNING;
 }

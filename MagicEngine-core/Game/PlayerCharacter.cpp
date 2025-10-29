@@ -119,6 +119,7 @@ void PlayerMovementComponentSystem::UpdatePlayerMovementComponent(PlayerMovement
 	if (inputInstance->GetValue(INPUT_READ_TYPE::CURRENT, KEY::B))
 		characterComp->DropItem();
 
+	// Doesn't seem to be working again
 	if (inputInstance->GetIsPressed(KEY::M1))
 		characterComp->Attack();
 

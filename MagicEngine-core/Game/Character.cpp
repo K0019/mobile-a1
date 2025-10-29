@@ -136,17 +136,13 @@ void CharacterMovementComponentSystem::UpdateCharacterMovementComponent(Characte
 	Vec3 currVel = physicsComp->GetLinearVelocity();
 	Vec3 moveDir = Vec3{ movement.x * comp.moveSpeed,currVel.y,-movement.y * comp.moveSpeed};
 	physicsComp->SetLinearVelocity(moveDir);
-	//physicsComp->SetAngularVelocity(Vec3{ 0.0f });
 
 	Transform& characterTransform = characterEntity->GetTransform();
 	Vec3 currentRotation = characterTransform.GetWorldRotation();
 
-	// Debug line here, not sure why the angle is having issues when being rotated past 90 degrees
-	//characterTransform.SetWorldRotation(Vec3{ 0.0f,90.0f,0.0f });
-
-	// Commented out for testing, these *should* work.
 	float newAngle = currentRotation.y;
 	Vec3 rotation{ 0.0f,newAngle ,0.0f };
+
 	// Handle rotation
 	if (movement.LengthSqr() > 0.0f)
 	{
