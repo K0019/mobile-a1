@@ -33,25 +33,34 @@ static const char* physicsFlagNames[]{
 
 namespace physics {
 	PhysicsComp::PhysicsComp()
-		: flags{ 1 << +(PHYSICS_COMP_FLAG::USE_GRAVITY) +
-				 1 << +(PHYSICS_COMP_FLAG::ENABLED)}
+		: flags{ PHYSICS_COMP_FLAG::USE_GRAVITY, PHYSICS_COMP_FLAG::ENABLED }
 		, linearVel{}
 	{
 	}
 
 	void PhysicsComp::OnAttached()
 	{
+		JPH::EMotionType motion{};
+		if (!GetFlag(PHYSICS_COMP_FLAG::ENABLED))
+			motion = JPH::EMotionType::Static;
+		else if (GetFlag(PHYSICS_COMP_FLAG::IS_KINEMATIC))
+			motion = JPH::EMotionType::Kinematic;
+		else
+			motion = JPH::EMotionType::Dynamic;
+
 		if (auto colCompPtr{ ecs::GetEntity(this)->GetComp<BoxColliderComp>() })
 		{
 			auto bodyCompPtr{ ecs::GetEntity(this)->GetComp<JoltBodyComp>() };
-			JPH::EMotionType motion{ GetFlag(PHYSICS_COMP_FLAG::IS_KINEMATIC) ? JPH::EMotionType::Kinematic : JPH::EMotionType::Dynamic };
+			if (!bodyCompPtr || bodyCompPtr->GetBodyID().IsInvalid())
+				return;
+
 			bodyCompPtr->SetCollisionLayer(colCompPtr->GetFlag(COLLIDER_COMP_FLAG::ENABLED) ? Layers::MOVING : Layers::NON_COLLIDABLE);
+			bodyCompPtr->SetGravityFactor(GetFlag(PHYSICS_COMP_FLAG::USE_GRAVITY) ? 1.f : 0.f);
 			bodyCompPtr->SetMotionType(motion);
 		}
 		else
 		{
-			JPH::EMotionType motion{ GetFlag(PHYSICS_COMP_FLAG::IS_KINEMATIC) ? JPH::EMotionType::Kinematic : JPH::EMotionType::Dynamic };
-			ecs::GetEntity(this)->AddCompNow<JoltBodyComp>(JoltBodyComp{motion, ShapeType::EMPTY, Layers::NON_COLLIDABLE});
+			ecs::GetEntity(this)->AddCompNow<JoltBodyComp>(JoltBodyComp{ motion, ShapeType::EMPTY, Layers::NON_COLLIDABLE });
 		}
 	}
 
@@ -188,18 +197,25 @@ namespace physics {
 	{
 		ISerializeable::Deserialize(reader);
 		flags.MaskDeserialize(reader, "flags", physicsFlagNames);
-		JPH::EMotionType type{};
-		if (!GetFlag(PHYSICS_COMP_FLAG::ENABLED))
-			type = JPH::EMotionType::Static;
-		else if (GetFlag(PHYSICS_COMP_FLAG::IS_KINEMATIC))
-			type = JPH::EMotionType::Kinematic;
-		else
-			type = JPH::EMotionType::Dynamic;
-		ecs::GetEntity(this)->GetComp<JoltBodyComp>()->SetMotionType(type);
-		ecs::GetEntity(this)->GetComp<JoltBodyComp>()->SetGravityFactor(GetFlag(PHYSICS_COMP_FLAG::USE_GRAVITY) ? 1.f : 0.f);
-		ecs::GetEntity(this)->GetComp<JoltBodyComp>()->SetLockRotationX(GetFlag(PHYSICS_COMP_FLAG::ROTATION_LOCKED_X));
-		ecs::GetEntity(this)->GetComp<JoltBodyComp>()->SetLockRotationY(GetFlag(PHYSICS_COMP_FLAG::ROTATION_LOCKED_Y));
-		ecs::GetEntity(this)->GetComp<JoltBodyComp>()->SetLockRotationZ(GetFlag(PHYSICS_COMP_FLAG::ROTATION_LOCKED_Z));
+		if (ecs::GetCurrentPoolId() == ecs::POOL::DEFAULT)
+		{
+			ST<Scheduler>::Get()->Add(0.0f, [entity = ecs::GetEntity(this), this]() {
+				JPH::EMotionType type{};
+				if (!GetFlag(PHYSICS_COMP_FLAG::ENABLED))
+					type = JPH::EMotionType::Static;
+				else if (GetFlag(PHYSICS_COMP_FLAG::IS_KINEMATIC))
+					type = JPH::EMotionType::Kinematic;
+				else
+					type = JPH::EMotionType::Dynamic;
+				if (!entity->HasComp<JoltBodyComp>())
+					return;
+				entity->GetComp<JoltBodyComp>()->SetMotionType(type);
+				entity->GetComp<JoltBodyComp>()->SetGravityFactor(GetFlag(PHYSICS_COMP_FLAG::USE_GRAVITY) ? 1.f : 0.f);
+				entity->GetComp<JoltBodyComp>()->SetLockRotationX(GetFlag(PHYSICS_COMP_FLAG::ROTATION_LOCKED_X));
+				entity->GetComp<JoltBodyComp>()->SetLockRotationY(GetFlag(PHYSICS_COMP_FLAG::ROTATION_LOCKED_Y));
+				entity->GetComp<JoltBodyComp>()->SetLockRotationZ(GetFlag(PHYSICS_COMP_FLAG::ROTATION_LOCKED_Z));
+				});
+		}
 	}
 
 	void PhysicsSystem::OnAdded()

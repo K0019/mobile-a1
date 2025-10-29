@@ -204,7 +204,8 @@ X(ENABLED, "Enabled")
 } 
 property_begin(physics::PhysicsComp)
 {
-	property_var(linearVel)
+	property_var(linearVel),
+	property_var(angularVel)
 }
 property_vend_h(physics::PhysicsComp)
 
