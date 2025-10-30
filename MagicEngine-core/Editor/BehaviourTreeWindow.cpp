@@ -24,6 +24,7 @@ All rights reserved.
 #include "Engine/BehaviorTree/BehaviourTreeFactory.h"
 #include "Editor/BehaviourTreeImguiHelper.h"
 #include "FilepathConstants.h"
+#include "VFS/VFS.h"
 
 namespace editor {
 
@@ -130,7 +131,6 @@ static void WalkBTAssetFlat(const BehaviorTreeAsset& asset, F&& fn)
         int& currentIndex,
         std::string& lastErrorOut)
     {
-        namespace fs = std::filesystem;
 
         if (currentIndex < 0 || currentIndex >= (int)files.size())
         {
@@ -169,12 +169,18 @@ static void WalkBTAssetFlat(const BehaviorTreeAsset& asset, F&& fn)
             }
             else 
             {
-                const fs::path oldPath = fs::path(dir) / files[currentIndex];
-                const fs::path newPath = fs::path(dir) / proposed;
+                //const fs::path oldPath = fs::path(dir) / files[currentIndex];
+                //const fs::path newPath = fs::path(dir) / proposed;
 
-                //check for clash
-                if (fs::exists(newPath)) 
-                {
+                ////check for clash
+                //if (fs::exists(newPath)) 
+                //{
+                //    lastErrorOut = "A file with that name already exists.";
+                //    ImGui::OpenPopup("BT Rename Error");
+                //}
+                const std::string oldPath = VFS::NormalizePath(VFS::JoinPath(dir, files[currentIndex]));
+                const std::string newPath = VFS::NormalizePath(VFS::JoinPath(dir, proposed));
+                if (VFS::FileExists(newPath)) {
                     lastErrorOut = "A file with that name already exists.";
                     ImGui::OpenPopup("BT Rename Error");
                 }
@@ -187,8 +193,8 @@ static void WalkBTAssetFlat(const BehaviorTreeAsset& asset, F&& fn)
                     //======================================== endADD IN ECS LOGIC HERE ======================
 
                     std::error_code ec;
-                    fs::rename(oldPath, newPath, ec);
-                    if (ec) 
+                    VFS::RenameFile(oldPath, newPath);
+                    if (ec)
                     {
                         lastErrorOut = ec.message();
                         ImGui::OpenPopup("BT Rename Error");
@@ -244,12 +250,12 @@ static void WalkBTAssetFlat(const BehaviorTreeAsset& asset, F&& fn)
                 }
                 else 
                 {
-                    std::filesystem::path p{ std::filesystem::path(dir) / filename };
-                    lastPath = p.string();
+                    // Build virtual path and keep it for UI
+                    lastPath = VFS::NormalizePath(VFS::JoinPath(dir, filename));
 
-                    // keep asset.name == filename stem
-                    loadedAsset.name = p.stem().string();
-
+                    // Keep asset.name == filename stem
+                    loadedAsset.name = VFS::GetStem(filename);
+                    lastPath = VFS::ConvertVirtualToPhysical(lastPath);
                     // optional: validate before saving
                     std::string why;
                     if (!bt::ValidateLevelOrder(loadedAsset, why)) 
@@ -260,6 +266,7 @@ static void WalkBTAssetFlat(const BehaviorTreeAsset& asset, F&& fn)
                     else if (bt::SaveBTAssetToFile(lastPath, loadedAsset)) 
                     {
                         ImGui::OpenPopup("BT Save Success");
+
                     }
                     else 
                     {
@@ -326,6 +333,7 @@ static void WalkBTAssetFlat(const BehaviorTreeAsset& asset, F&& fn)
                 {
                     // Refresh the list (also maintains/auto-loads selection per your helper)
                     bt::RefreshBTList(dir, files, currentIndex, loadedAsset, hasAsset, lastLoadedPath);
+                    ST<BTFactory>::Get()->SetAllFilePath();
 
                     // Select the newly created file & load it explicitly
                     const std::string target{ std::filesystem::path(createdPath).filename().string() };
