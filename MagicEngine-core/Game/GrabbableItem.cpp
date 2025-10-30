@@ -1,0 +1,72 @@
+/******************************************************************************/
+/*!
+\file   GameCameraController.cpp
+\par    Project: 7percent
+\par    Course: CSD2401
+\par    Section B
+\par    Software Engineering Project 3
+\date   04/02/2025
+
+\author Chan Kuan Fu Ryan (100%)
+\par    email: c.kuanfuryan\@digipen.edu
+\par    DigiPen login: c.kuanfuryan
+
+\brief
+	GameCameraController is an ECS component-system pair which takes control of
+	the camera when the default scene is loaded (game scene). It in in charge of
+	making camera follow the player, map bounds, and any other such effects to be
+	implemented now or in the future.
+
+All content � 2024 DigiPen Institute of Technology Singapore.
+All rights reserved.
+*/
+/******************************************************************************/
+#include "Game/GrabbableItem.h"
+#include "Game/Character.h"
+#include "Game/Health.h"
+#include "Physics/Physics.h"
+#include "Engine/Input.h"
+#include "Editor/Containers/GUICollection.h"
+
+void GrabbableItemComponent::Attack(Vec3 origin, Vec3 direction)
+{
+	std::vector<physics::BoxColliderComp*> colliders;
+	physics::OverlapBox(colliders, origin, Vec3(1,1,1), direction);
+
+	for (auto collider : colliders)
+	{
+		ecs::EntityHandle hitEntity = ecs::GetEntity(collider);
+
+		if (ecs::CompHandle<HealthComponent> healthComp{ hitEntity->GetComp<HealthComponent>() })
+		{
+			// Just flat-out kill it for now
+			healthComp->TakeDamage(1000.0f);
+		}
+	}
+}
+
+GrabbableItemComponent::GrabbableItemComponent()
+{
+}
+
+void GrabbableItemComponent::Serialize(Serializer& writer) const
+{
+}
+
+void GrabbableItemComponent::Deserialize(Deserializer& reader)
+{
+}
+
+void GrabbableItemComponent::EditorDraw()
+{
+}
+
+GrabbableItemComponentSystem::GrabbableItemComponentSystem()
+	: System_Internal{ &GrabbableItemComponentSystem::UpdateGrabbableItemComponent }
+
+{
+}
+
+void GrabbableItemComponentSystem::UpdateGrabbableItemComponent(GrabbableItemComponent& comp)
+{
+}

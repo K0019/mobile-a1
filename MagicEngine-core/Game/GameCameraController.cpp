@@ -5,11 +5,11 @@
 \par    Course: CSD2401
 \par    Section B
 \par    Software Engineering Project 3
-\date   04/02/2025
+\date   10/26/2025
 
-\author Chan Kuan Fu Ryan (100%)
-\par    email: c.kuanfuryan\@digipen.edu
-\par    DigiPen login: c.kuanfuryan
+\author Matthew Chan Shao Jie (100%)
+\par    email: m.chan\@digipen.edu
+\par    DigiPen login: m.chan
 
 \brief
 	GameCameraController is an ECS component-system pair which takes control of
@@ -25,27 +25,36 @@ All rights reserved.
 #include "Tween/TweenManager.h"
 #include "Utilities/Messaging.h"
 #include "Editor/Containers/GUICollection.h"
+#include "Engine/Input.h"
 
 GameCameraControllerComponent::GameCameraControllerComponent()
 	: cameraEntity{ nullptr }
 	, playerEntity{ nullptr }
-	, minX{ 0.0f }
-	, maxX{ 0.0f }
-	, minY{ 0.0f }
-	, maxY{ 0.0f }
-	, offsetAmount{ 0.0f }
-	, offsetDuration{ 1.0f }
-	, offsetAmountCurrent{ 0.0f }
+	, cameraPitch{ 0.0f }
+	, cameraYaw{ 0.0f }
+	, cameraSensitivity{ 1.0f }
+	, currentCameraDistance{ 20.0f }
 {
 }
 
-GameCameraControllerComponent::~GameCameraControllerComponent()
+//GameCameraControllerComponent::~GameCameraControllerComponent()
+//{
+//}
+
+void GameCameraControllerComponent::Serialize(Serializer& writer) const
 {
+	writer.Serialize("cameraEntity", cameraEntity);
+	writer.Serialize("playerEntity", playerEntity);
+	//.Serialize(writer);
+	//playerEntity.Serialize(writer);
 }
 
-void GameCameraControllerComponent::SetOffsetCurrent(float offset)
+void GameCameraControllerComponent::Deserialize(Deserializer& reader)
 {
-	offsetAmountCurrent = offset;
+	reader.Deserialize("cameraEntity", &cameraEntity);
+	reader.Deserialize("playerEntity", &playerEntity);
+	//cameraEntity.Deserialize(reader);
+	//playerEntity.Deserialize(reader);
 }
 
 void GameCameraControllerComponent::EditorDraw()
@@ -53,12 +62,9 @@ void GameCameraControllerComponent::EditorDraw()
 #ifdef IMGUI_ENABLED
 	cameraEntity.EditorDraw("Camera");
 	playerEntity.EditorDraw("Player");
-	ImGui::InputFloat("Min X", &minX);
-	ImGui::InputFloat("Max X", &maxX);
-	ImGui::InputFloat("Min Y", &minY);
-	ImGui::InputFloat("Max Y", &maxY);
-	ImGui::InputFloat("Offset Amount", &offsetAmount);
-	ImGui::InputFloat("Offset Duration", &offsetDuration);
+	gui::TextBoxReadOnly("Yaw", std::to_string(cameraYaw));
+	gui::TextBoxReadOnly("Pitch", std::to_string(cameraPitch));
+	gui::VarDrag("Sensitivity", &cameraSensitivity, 0.05f, 0.05f, 1.0f);
 #endif
 }
 
@@ -67,46 +73,68 @@ GameCameraControllerSystem::GameCameraControllerSystem()
 {
 }
 
-void GameCameraControllerSystem::OnAdded()
-{
-	Messaging::Subscribe("WaveStarted", GameCameraControllerSystem::OnWaveStarted);
-}
-
-void GameCameraControllerSystem::OnRemoved()
-{
-	Messaging::Unsubscribe("WaveStarted", GameCameraControllerSystem::OnWaveStarted);
-}
-
-void GameCameraControllerSystem::OnWaveStarted()
-{
-	// Get the camera controller component
-	auto it = ecs::GetCompsActiveBegin<GameCameraControllerComponent>();
-	ecs::CompHandle<GameCameraControllerComponent> comp = it.GetCompHandle();
-	ecs::EntityHandle gameCamera = it.GetEntity();
-
-	// If cannot find game camera, just return.
-	if (!gameCamera) return;
-
-	// Tween camera
-	ST<TweenManager>::Get()->StartTween(
-		gameCamera,
-		&GameCameraControllerComponent::SetOffsetCurrent,
-		0.0f,
-		comp->offsetAmount,
-		comp->offsetDuration,
-		TT::EASE_BOTH
-	);
-}
-
 void GameCameraControllerSystem::UpdateGameCameraController(GameCameraControllerComponent& comp)
 {
-	// If no player or camera reference, just return.
-	if (!comp.playerEntity || !comp.cameraEntity)
-		return;
+	//comp.cameraYaw += GameTime::Dt() *180.0f;
+	//float pitch = 45.0f;
+	
+	// Mouse look
+	float yaw = comp.cameraYaw;
+	float pitch = comp.cameraPitch;
+	Vec2 currPos = ST<KeyboardMouseInput>::Get()->GetMousePos();
+	if (prevPos.x > 0)
+	{
+		Vec2 mouseDelta = currPos - prevPos;
 
-	// Find player position
-	Vec3 playerPosition = comp.playerEntity->GetTransform().GetWorldPosition();
-	float x = std::clamp(playerPosition.x, comp.minX, comp.maxX);
-	float y = std::clamp(playerPosition.y + comp.offsetAmountCurrent, comp.minY, comp.maxY);
-	comp.cameraEntity->GetTransform().SetWorldPosition(Vec3(x, y, playerPosition.z));
+		yaw += mouseDelta.x * comp.cameraSensitivity;
+		pitch -= mouseDelta.y * comp.cameraSensitivity;
+
+		// Wrap yaw
+		if (yaw < 0.0f)
+			yaw += 360.0f;
+		if (yaw > 360.0f)
+			yaw -= 360.0f;
+
+		// Clamp pitch
+		if (pitch < -25.0f)
+			pitch = -25.0f;
+		if (pitch > 1.0f)
+			pitch = 1.0f;
+
+		comp.cameraPitch = pitch;
+		comp.cameraYaw = yaw;
+	}
+
+	prevPos = currPos;
+	// This was the best method I could find to rotate the camera with minimal pitch/yaw weirdness
+	// I'm not sure why specifically the cam rotation is misbehaving so much, other objects work just fine
+	ecs::GetEntity(&comp)->GetTransform().SetWorldRotation(Vec3{
+		-pitch * cos(math::ToRadians(comp.cameraYaw)),
+		comp.cameraYaw,
+		-pitch * sin(math::ToRadians(comp.cameraYaw))
+		});
+
+	// If no player, we skip the tracking portion
+	if (!comp.playerEntity)
+		return;
+	
+	// Get the camera's position
+	float yawRad = math::ToRadians(yaw - 90.0f);
+	float pitchRad = math::ToRadians(pitch);
+
+	// NOTE THIS CAUSES SOME DESYNC AT HIGH PITCH ANGLES FOR SOME REASON
+	Vec3 calculatedCameraDirection = Vec3(
+		cos(pitchRad) * cos(yawRad),
+		sin(pitchRad),
+		cos(pitchRad) * sin(yawRad)
+	).Normalized();
+
+	//CONSOLE_LOG(LogLevel::LEVEL_DEBUG) << "P:" << pitch << " Y:" << yaw;
+	Vec3 offset = calculatedCameraDirection * comp.currentCameraDistance;
+
+	Vec3 playerPos = comp.playerEntity->GetTransform().GetWorldPosition();
+	Vec3 cameraPos = playerPos - offset;
+
+	ecs::GetEntity(&comp)->GetTransform().SetWorldPosition(cameraPos);
+
 }

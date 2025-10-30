@@ -37,11 +37,17 @@ All rights reserved.
 #include "Game/AudioListener.h"
 #include "Graphics/LightingSystem.h"
 #include "Game/GameCameraController.h"
+#include "Game/GrabbableItem.h"
+#include "Game/PlayerCharacter.h"
+#include "Game/Character.h"
 #include "Engine/Audio.h"
 #include "Graphics/TrailSystem.h"
 #include "Game/PrefabSpawner.h"
 #include "Physics/Physics.h"
+
 #include "Engine/BehaviorTree/BehaviourTree.h"
+#include "Engine/BehaviorTree/LeafLookForPlayer.h"
+#include "Engine/BehaviorTree/LeafMoveTowardsPlayer.h"
 
 #include "Demo.h"
 
@@ -83,6 +89,8 @@ void GameState_Game::OnEnter()
     ecs::AddSystem(ECS_LAYER::PRE_PHYSICS_0, TrailRendererSystem{});
     ecs::AddSystem(ECS_LAYER::INPUT_0, CheatCodes{});
     ecs::AddSystem(ECS_LAYER::POST_PHYSICS_0, GameCameraControllerSystem{});
+    ecs::AddSystem(ECS_LAYER::INPUT_0, PlayerMovementComponentSystem{});
+    ecs::AddSystem(ECS_LAYER::POST_PHYSICS_0, CharacterMovementComponentSystem{});
     ecs::AddSystem(ECS_LAYER::TWEENING, TweenSystem{});
 
     ecs::AddSystem(ECS_LAYER::SCRIPT_PREAWAKE, ScriptPreAwakeSystem{});

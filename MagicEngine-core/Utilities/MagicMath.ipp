@@ -60,7 +60,60 @@ namespace math {
 		else
 			return 1;
 	}
+	template <std::floating_point T>
+	constexpr T Abs(T x)
+	{
+		if (x < 0)
+			return -x;
+		else
+			return x;
+	}
 
+	constexpr float MoveTowards(float current, float target, float delta)
+	{
+		if (Abs(target - current) <= delta)
+		{
+			return target;
+		}
+
+		return current + Sign(target - current) * delta;
+	}
+
+	constexpr float RepeatAngle(float angle)
+	{
+		// "Wraps" the value until it's within 0.0f to 360.0f
+		while (angle >= 360.0f) angle -= 360.0f;
+		while (angle < 0.0f) angle += 360.0f;
+		return angle;
+	}
+
+	constexpr float AngleDifference(float a, float b)
+	{
+		float difference = RepeatAngle(b - a);
+
+		// Makes the angle difference negative if it's greater than 180 degrees
+		if (difference > 180.0f)
+		{
+			difference -= 360.0f;
+		}
+
+		return difference;
+	}
+
+	constexpr float MoveTowardsAngle(float current, float target, float delta)
+	{
+		// We don't do anything if delta isn't +ve
+		if (delta < 0.0f)
+			return current;
+
+		float difference = AngleDifference(current, target);
+		if (Abs(difference) <= delta)
+		{
+			return target;
+		}
+
+		return MoveTowards(current, current + difference, delta);
+	}
 }
 
 #pragma region Vec2

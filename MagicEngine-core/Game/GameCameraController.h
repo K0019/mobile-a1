@@ -5,11 +5,11 @@
 \par    Course: CSD2401
 \par    Section B
 \par    Software Engineering Project 3
-\date   04/02/2025
+\date   10/26/2025
 
-\author Chan Kuan Fu Ryan (100%)
-\par    email: c.kuanfuryan\@digipen.edu
-\par    DigiPen login: c.kuanfuryan
+\author Matthew Chan Shao Jie (100%)
+\par    email: m.chan\@digipen.edu
+\par    DigiPen login: m.chan
 
 \brief
 	GameCameraController is an ECS component-system pair which takes control of 
@@ -38,13 +38,16 @@ public:
 	EntityReference cameraEntity;
 	EntityReference playerEntity;
 
-	float minX;
-	float maxX;
-	float minY;
-	float maxY;
-	float offsetAmount;
-	float offsetDuration;
-	float offsetAmountCurrent;	// Not serialised
+	float cameraPitch;
+	float cameraYaw;
+	float cameraAutoZoomSpeed = 5.0f;
+
+	float targetCameraDistance;
+	float currentCameraDistance;
+	Vec3 offsetPosition = Vec3(0.5f, 1.2f, 0);
+
+	float cameraSensitivity;
+
 
 	/*****************************************************************//*!
 	\brief
@@ -56,15 +59,10 @@ public:
 	\brief
 		Default destructor.
 	*//******************************************************************/
-	~GameCameraControllerComponent();
+	//~GameCameraControllerComponent();
 
-	/*****************************************************************//*!
-	\brief
-		Offset setter function
-	\param offset
-		Float value.
-	*//******************************************************************/
-	void SetOffsetCurrent(float offset);
+	void Serialize(Serializer& writer) const;
+	void Deserialize(Deserializer& reader);
 
 private:
 	/*****************************************************************//*!
@@ -78,14 +76,16 @@ private:
 };
 property_begin(GameCameraControllerComponent)
 {
-	property_var(cameraEntity),
-	property_var(playerEntity),
-	property_var(minX),
-	property_var(maxX),
-	property_var(minY),
-	property_var(maxY),
-	property_var(offsetAmount),
-	property_var(offsetDuration),
+	//property_var(cameraEntity),
+	//property_var(playerEntity),
+	//property_var(cameraPitch),
+	//property_var(cameraYaw),
+	property_var(cameraAutoZoomSpeed),
+	property_var(targetCameraDistance),
+	property_var(currentCameraDistance),
+	property_var(offsetPosition),
+	property_var(cameraSensitivity),
+	//property_var(lookAction),
 }
 property_vend_h(GameCameraControllerComponent)
 
@@ -107,13 +107,13 @@ public:
 	\brief
 		Subscribes to relevant messages.
 	*//******************************************************************/
-	void OnAdded() override;
+	//void OnAdded() override;
 
 	/*****************************************************************//*!
 	\brief
 		Unsubscribes from relevant messages.
 	*//******************************************************************/
-	void OnRemoved() override;
+	//void OnRemoved() override;
 
 	/*****************************************************************//*!
 	\brief
@@ -122,6 +122,7 @@ public:
 	static void OnWaveStarted();
 
 private:
+	Vec2 prevPos = Vec2(-1, -1);
 	/*****************************************************************//*!
 	\brief
 		Updates GameCameraControllerComponent.
