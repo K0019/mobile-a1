@@ -23,6 +23,7 @@ All rights reserved.
 #include "Physics/Collision.h"
 #include "Physics/Physics.h"
 #include "Components/NameComponent.h"
+#include "Editor/Containers/GUICollection.h"
 
 #define X(name, str) str,
 static const char* physicsFlagNames[]{
@@ -32,25 +33,34 @@ static const char* physicsFlagNames[]{
 
 namespace physics {
 	PhysicsComp::PhysicsComp()
-		: flags{ (1 << +(PHYSICS_COMP_FLAG::IS_KINEMATIC)) +
-				 (1 << +(PHYSICS_COMP_FLAG::USE_GRAVITY)) }
+		: flags{ PHYSICS_COMP_FLAG::USE_GRAVITY, PHYSICS_COMP_FLAG::ENABLED }
 		, linearVel{}
 	{
 	}
 
 	void PhysicsComp::OnAttached()
 	{
-		if (ecs::GetEntity(this)->GetComp<BoxColliderComp>())
+		JPH::EMotionType motion{};
+		if (!GetFlag(PHYSICS_COMP_FLAG::ENABLED))
+			motion = JPH::EMotionType::Static;
+		else if (GetFlag(PHYSICS_COMP_FLAG::IS_KINEMATIC))
+			motion = JPH::EMotionType::Kinematic;
+		else
+			motion = JPH::EMotionType::Dynamic;
+
+		if (auto colCompPtr{ ecs::GetEntity(this)->GetComp<BoxColliderComp>() })
 		{
 			auto bodyCompPtr{ ecs::GetEntity(this)->GetComp<JoltBodyComp>() };
-			JPH::EMotionType motion{ GetFlag(PHYSICS_COMP_FLAG::IS_KINEMATIC) ? JPH::EMotionType::Kinematic : JPH::EMotionType::Dynamic };
-			bodyCompPtr->SetCollisionLayer(Layers::MOVING);
+			if (!bodyCompPtr || bodyCompPtr->GetBodyID().IsInvalid())
+				return;
+
+			bodyCompPtr->SetCollisionLayer(colCompPtr->GetFlag(COLLIDER_COMP_FLAG::ENABLED) ? Layers::MOVING : Layers::NON_COLLIDABLE);
+			bodyCompPtr->SetGravityFactor(GetFlag(PHYSICS_COMP_FLAG::USE_GRAVITY) ? 1.f : 0.f);
 			bodyCompPtr->SetMotionType(motion);
 		}
 		else
 		{
-			JPH::EMotionType motion{ GetFlag(PHYSICS_COMP_FLAG::IS_KINEMATIC) ? JPH::EMotionType::Kinematic : JPH::EMotionType::Dynamic };
-			ecs::GetEntity(this)->AddCompNow<JoltBodyComp>(JoltBodyComp{motion, ShapeType::EMPTY, Layers::NON_COLLIDABLE});
+			ecs::GetEntity(this)->AddCompNow<JoltBodyComp>(JoltBodyComp{ motion, ShapeType::EMPTY, Layers::NON_COLLIDABLE });
 		}
 	}
 
@@ -65,8 +75,12 @@ namespace physics {
 		else
 		{
 			JoltBodyComp* bodyCompPtr{ ecs::GetEntity(this)->GetComp<JoltBodyComp>() };
+			Layers layer{Layers::NON_MOVING};
+			auto colCompPtr{ ecs::GetEntity(this)->GetComp<BoxColliderComp>() };
+			if (!colCompPtr->GetFlag(COLLIDER_COMP_FLAG::ENABLED))
+				layer = Layers::NON_COLLIDABLE;
 			bodyCompPtr->SetMotionType(JPH::EMotionType::Static);
-			bodyCompPtr->SetCollisionLayer(Layers::NON_MOVING);
+			bodyCompPtr->SetCollisionLayer(layer);
 		}
 	}
 
@@ -91,24 +105,85 @@ namespace physics {
 		linearVel = vel;
 	}
 
+	const Vec3& PhysicsComp::GetAngularVelocity() const
+	{
+		return angularVel;
+	}
+
+	void PhysicsComp::SetAngularVelocity(const Vec3& vel)
+	{
+		ecs::GetEntity(this)->GetComp<JoltBodyComp>()->SetAngularVelocity(vel);
+		angularVel = vel;
+	}
+
 	void PhysicsComp::EditorDraw()
 	{
-		bool kinematic = GetFlag(PHYSICS_COMP_FLAG::IS_KINEMATIC);
+		bool enabled{ GetFlag(PHYSICS_COMP_FLAG::ENABLED) };
+		bool kinematic{ GetFlag(PHYSICS_COMP_FLAG::IS_KINEMATIC) };
+		bool lockX{ GetFlag(PHYSICS_COMP_FLAG::ROTATION_LOCKED_X) };
+		bool lockY{ GetFlag(PHYSICS_COMP_FLAG::ROTATION_LOCKED_Y) };
+		bool lockZ{ GetFlag(PHYSICS_COMP_FLAG::ROTATION_LOCKED_Z) };
+		if (gui::Checkbox(physicsFlagNames[+PHYSICS_COMP_FLAG::ENABLED], &enabled))
+		{
+			SetFlag(PHYSICS_COMP_FLAG::ENABLED, enabled);
+			JPH::EMotionType type{};
+			if (!enabled)
+				type = JPH::EMotionType::Static;
+			else if (kinematic)
+				type = JPH::EMotionType::Kinematic;
+			else
+				type = JPH::EMotionType::Dynamic;
+			ecs::GetEntity(this)->GetComp<JoltBodyComp>()->SetMotionType(type);
+
+			if (enabled)
+			{
+				ecs::GetEntity(this)->GetComp<JoltBodyComp>()->SetLockRotationX(lockX);
+				ecs::GetEntity(this)->GetComp<JoltBodyComp>()->SetLockRotationY(lockY);
+				ecs::GetEntity(this)->GetComp<JoltBodyComp>()->SetLockRotationZ(lockZ);
+			}
+		}
+
 		if (gui::Checkbox("Is Kinematic", &kinematic))
 		{
 			SetFlag(PHYSICS_COMP_FLAG::IS_KINEMATIC, kinematic);
 
 			//Change the motion type in jolt body.
-			ecs::GetEntity(this)->GetComp<JoltBodyComp>()->SetMotionType(kinematic ? JPH::EMotionType::Kinematic : JPH::EMotionType::Dynamic);
+			JPH::EMotionType type{};
+			if (!enabled)
+				type = JPH::EMotionType::Static;
+			else if (kinematic)
+				type = JPH::EMotionType::Kinematic;
+			else
+				type = JPH::EMotionType::Dynamic;
+			ecs::GetEntity(this)->GetComp<JoltBodyComp>()->SetMotionType(type);
 		}
 
-		bool gravity = GetFlag(PHYSICS_COMP_FLAG::USE_GRAVITY);
+		bool gravity{ GetFlag(PHYSICS_COMP_FLAG::USE_GRAVITY) };
 		if (gui::Checkbox("Use Gravity", &gravity))
 		{
 			SetFlag(PHYSICS_COMP_FLAG::USE_GRAVITY, gravity);
 
 			//Change the gravity factor in jolt body.
 			ecs::GetEntity(this)->GetComp<JoltBodyComp>()->SetGravityFactor(gravity ? 1.f : 0.f);
+		}
+
+		ImGui::Text("Freeze Rotation");
+		if (gui::Checkbox("X", &lockX))
+		{
+			SetFlag(PHYSICS_COMP_FLAG::ROTATION_LOCKED_X, lockX);
+			ecs::GetEntity(this)->GetComp<JoltBodyComp>()->SetLockRotationX(lockX);
+		}
+		gui::SameLine();
+		if (gui::Checkbox("Y", &lockY))
+		{
+			SetFlag(PHYSICS_COMP_FLAG::ROTATION_LOCKED_Y, lockY);
+			ecs::GetEntity(this)->GetComp<JoltBodyComp>()->SetLockRotationY(lockY);
+		}
+		gui::SameLine();
+		if (gui::Checkbox("Z", &lockZ))
+		{
+			SetFlag(PHYSICS_COMP_FLAG::ROTATION_LOCKED_Z, lockZ);
+			ecs::GetEntity(this)->GetComp<JoltBodyComp>()->SetLockRotationZ(lockZ);
 		}
 	}
 
@@ -122,8 +197,25 @@ namespace physics {
 	{
 		ISerializeable::Deserialize(reader);
 		flags.MaskDeserialize(reader, "flags", physicsFlagNames);
-		ecs::GetEntity(this)->GetComp<JoltBodyComp>()->SetMotionType(GetFlag(PHYSICS_COMP_FLAG::IS_KINEMATIC) ? JPH::EMotionType::Kinematic : JPH::EMotionType::Dynamic);
-		ecs::GetEntity(this)->GetComp<JoltBodyComp>()->SetGravityFactor(GetFlag(PHYSICS_COMP_FLAG::USE_GRAVITY) ? 1.f : 0.f);
+		if (ecs::GetCurrentPoolId() == ecs::POOL::DEFAULT)
+		{
+			ST<Scheduler>::Get()->Add(0.0f, [entity = ecs::GetEntity(this), this]() {
+				JPH::EMotionType type{};
+				if (!GetFlag(PHYSICS_COMP_FLAG::ENABLED))
+					type = JPH::EMotionType::Static;
+				else if (GetFlag(PHYSICS_COMP_FLAG::IS_KINEMATIC))
+					type = JPH::EMotionType::Kinematic;
+				else
+					type = JPH::EMotionType::Dynamic;
+				if (!entity->HasComp<JoltBodyComp>())
+					return;
+				entity->GetComp<JoltBodyComp>()->SetMotionType(type);
+				entity->GetComp<JoltBodyComp>()->SetGravityFactor(GetFlag(PHYSICS_COMP_FLAG::USE_GRAVITY) ? 1.f : 0.f);
+				entity->GetComp<JoltBodyComp>()->SetLockRotationX(GetFlag(PHYSICS_COMP_FLAG::ROTATION_LOCKED_X));
+				entity->GetComp<JoltBodyComp>()->SetLockRotationY(GetFlag(PHYSICS_COMP_FLAG::ROTATION_LOCKED_Y));
+				entity->GetComp<JoltBodyComp>()->SetLockRotationZ(GetFlag(PHYSICS_COMP_FLAG::ROTATION_LOCKED_Z));
+				});
+		}
 	}
 
 	void PhysicsSystem::OnAdded()
@@ -134,7 +226,7 @@ namespace physics {
 	}
 
 	bool PhysicsSystem::PreRun()
-	{
+	{	
 		for (auto compIter{ ecs::GetCompsActiveBegin<JoltBodyComp>() }, endIter{ ecs::GetCompsEnd<JoltBodyComp>() }; compIter != endIter; ++compIter)
 			compIter->UpdateBody();
 
@@ -197,7 +289,6 @@ namespace physics {
 
 			Vec3 pos{ compIter.GetEntity()->GetComp<JoltBodyComp>()->GetPosition() };
 			Vec3 scale{ compIter.GetEntity()->GetComp<JoltBodyComp>()->GetScale() / 2.f };
-			Vec3 rot{ compIter.GetEntity()->GetComp<JoltBodyComp>()->GetRotation() };
 			Vec3 min{ pos - scale }, max{ pos + scale };
 			JPH::AABox colliderAABB{ JPH::Vec3{min.x, min.y, min.z}, JPH::Vec3{max.x, max.y, max.z} };
 			if (box.Overlaps(colliderAABB))

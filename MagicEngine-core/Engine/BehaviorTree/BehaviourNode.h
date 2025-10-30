@@ -1,6 +1,6 @@
 /******************************************************************************/
 /*!
-\file   BehaviorNode.h
+\file   BehaviourNode.h
 \par    Project: KuroMahou
 \par    Course: CSD3401
 \par    Software Engineering Project 5
@@ -26,6 +26,7 @@ All rights reserved.
 /******************************************************************************/
 
 #pragma once
+
 /*****************************************************************//*!
 \brief
     Return types of a behavior node.
