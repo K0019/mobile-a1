@@ -69,6 +69,7 @@ void CustomViewport::DrawWindow()
 	ST<GraphicsScene>::Get()->SetViewCamera(GetViewportCamera());
 
 
+#ifdef IMGUI_ENABLED
 	const float playControlsHeight = 22.0f; // Height of play controls bar
 	DrawPlayControls();
 
@@ -142,6 +143,7 @@ void CustomViewport::DrawWindow()
 		}
 		ImGui::EndDragDropTarget();
 	}
+#endif
 }
 
 void CustomViewport::Init(unsigned newWidth, unsigned newHeight)
