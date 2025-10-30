@@ -160,7 +160,7 @@
                 "17579205194823809952": {
                     "_active": true,
                     "moveSpeed": 10.0,
-                    "rotateSpeed": 14400.0,
+                    "rotateSpeed": 1440.0,
                     "entityUid": 0
                 },
                 "18236831197208900764": {
