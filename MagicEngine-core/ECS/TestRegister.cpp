@@ -22,7 +22,9 @@
 #include "Game/GameCameraController.h"
 #include "Game/Character.h"
 #include "Game/PlayerCharacter.h"
+#include "Game/EnemyCharacter.h"
 #include "Game/GrabbableItem.h"
+#include "Game/Health.h"
 
 void RegisterShit()
 {
@@ -47,4 +49,6 @@ void RegisterShit()
 	IRegisteredComponent<CharacterMovementComponent>::RegisterComponent();
 	IRegisteredComponent<PlayerMovementComponent>::RegisterComponent();
 	IRegisteredComponent<GrabbableItemComponent>::RegisterComponent();
+	IRegisteredComponent<EnemyComponent>::RegisterComponent();
+	IRegisteredComponent<HealthComponent>::RegisterComponent();
 }
