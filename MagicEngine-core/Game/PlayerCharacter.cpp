@@ -49,7 +49,7 @@ void PlayerMovementComponent::Deserialize(Deserializer& reader)
 void PlayerMovementComponent::EditorDraw()
 {
 	cameraReference.EditorDraw("Camera");
-	ImGui::InputFloat("Grab Distance", &grabDistance);
+	gui::VarInput("Grab Distance", &grabDistance);
 }
 
 PlayerMovementComponentSystem::PlayerMovementComponentSystem()

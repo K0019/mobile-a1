@@ -61,8 +61,8 @@ public:
 	*//******************************************************************/
 	//~GameCameraControllerComponent();
 
-	void Serialize(Serializer& writer) const;
-	void Deserialize(Deserializer& reader);
+	void Serialize(Serializer& writer) const override;
+	void Deserialize(Deserializer& reader) override;
 
 private:
 	/*****************************************************************//*!
