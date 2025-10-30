@@ -164,11 +164,6 @@ void android_main(android_app* app) {
     app->userData = &ctx;
     app->onAppCmd = HandleCmd;
     app->onInputEvent = HandleInput;
-    //ctx.engine = new Engine<AndroidApp>();
-    //ctx.engine->Initialize();
-
-
-
 
     LOGI("Entering main event loop");
     int frameCount = 0;

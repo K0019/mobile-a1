@@ -8,8 +8,8 @@ import org.fmod.FMOD;
 
 public class MainActivity extends NativeActivity {
     static {
-        System.loadLibrary("fmodL");
-        System.loadLibrary("fmodstudioL");
+        System.loadLibrary("fmod");
+        System.loadLibrary("fmodstudio");
     }
     
     @Override
