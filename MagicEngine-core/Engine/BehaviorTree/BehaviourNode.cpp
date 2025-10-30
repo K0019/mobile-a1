@@ -38,6 +38,8 @@ BT_REGISTER_NODE(MoveLeft, "MoveLeft")
 BT_REGISTER_NODE(MoveRight, "MoveRight")
 BT_REGISTER_NODE(MoveUp, "MoveUp")
 BT_REGISTER_NODE(MoveDown, "MoveDown")
+BT_REGISTER_NODE(DetectClickTest, "DetectClickTest")
+
 
 BT_REGISTER_NODE(L_MoveTowardsPlayer, "L_MoveTowardsPlayer")
 BT_REGISTER_NODE(L_LookForPlayer, "L_LookForPlayer")
@@ -340,4 +342,30 @@ NODE_STATUS MoveDown::OnUpdate(ecs::EntityHandle entity)
 
     }
     return (++count) == 100 ? NODE_STATUS::SUCCESS : NODE_STATUS::RUNNING;
+}
+
+void DetectClickTest::OnInitialize()
+{ }
+NODE_STATUS DetectClickTest::OnUpdate(ecs::EntityHandle entity)
+{
+    //FOR DEMO
+    static bool prev = false; // remembers last frame state
+
+    auto input = ST<MagicInput>::Get();
+    if (input)
+    {
+        if (auto act = input->GetAction<bool>("ClickTest")) {
+            CONSOLE_LOG(LEVEL_DEBUG) << "Can click anywhere";
+        }
+
+    }
+
+    //if (reverse == 0) {
+    //    entity->GetTransform().SetWorldPosition(entity->GetTransform().GetWorldPosition() + Vec3{ 0.f, -0.15f, 0.f });
+    //}
+    //else {
+    //    entity->GetTransform().SetWorldPosition(entity->GetTransform().GetWorldPosition() + Vec3{ 0.f, 0.15f, 0.f });
+
+    //}
+    return NODE_STATUS::SUCCESS;
 }
