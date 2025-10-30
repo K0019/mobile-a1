@@ -1,0 +1,13 @@
+{
+    "name": "testclick",
+    "nodes": [
+        {
+            "nodeType": "Sequence",
+            "nodeLevel": 0
+        },
+        {
+            "nodeType": "DetectClickTest",
+            "nodeLevel": 1
+        }
+    ]
+}

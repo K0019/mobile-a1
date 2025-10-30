@@ -24,6 +24,7 @@ All rights reserved.
 /******************************************************************************/
 #include "GameSettings.h"
 #include "FilepathConstants.h"
+#include "VFS/VFS.h"
 #include "Engine/Input.h"
 #include "Engine/EntityLayers.h"
 #include "Engine/Graphics Interface/GraphicsAPI.h"
@@ -37,7 +38,7 @@ GameSettings::GameSettings()
 void GameSettings::Save()
 {
 #ifdef GLFW
-	Serializer{ Filepaths::gameSettings }.Serialize(*this);
+	Serializer{ VFS::ConvertVirtualToPhysical(Filepaths::gameSettings) }.Serialize(*this);
 #endif
 }
 

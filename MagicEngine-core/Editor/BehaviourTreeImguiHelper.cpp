@@ -197,11 +197,10 @@ namespace bt {
         if (currentIndex < 0 || currentIndex >= (int)files.size())
             return false;
 
-        const std::filesystem::path full{ std::filesystem::path(dir) / files[currentIndex] };
-        std::error_code ec;
-        if (std::filesystem::remove(full, ec))
-        {
-            deletedPath = full.string();
+        const std::string virt = VFS::NormalizePath(VFS::JoinPath(dir, files[currentIndex]));
+
+        if (VFS::DeleteFile(virt)) {
+            deletedPath = virt;
             return true;
         }
         return false;
@@ -215,8 +214,6 @@ namespace bt {
         bool& hasAsset,
         std::string& lastLoadedPath)
     {
-        namespace fs = std::filesystem;
-
         files.clear();
         hasAsset = false;
 
@@ -252,11 +249,6 @@ namespace bt {
         {
             currentIndex = 0;
         }
-
-        // Auto-load the selected file
-        //const fs::path full{ fs::path(dir) / files[currentIndex] };
-        //lastLoadedPath = full.string();
-        //hasAsset = LoadBTAssetFromFile(lastLoadedPath, &loadedAsset);
 
         const std::string full { VFS::JoinPath(dir, files[currentIndex])};
         hasAsset = LoadBTAssetFromFile(full, &loadedAsset);
