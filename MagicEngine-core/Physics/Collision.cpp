@@ -108,7 +108,7 @@ namespace physics {
 	}
 
 	BoxColliderComp::BoxColliderComp()
-		: flags{1 << +COLLIDER_COMP_FLAG::ENABLED}
+		: flags{COLLIDER_COMP_FLAG::ENABLED}
 		, center{}
 		, size{1.f, 1.f, 1.f}
 	{
@@ -118,15 +118,26 @@ namespace physics {
 	{
 		//If the entity has the physics component, get the body pointer of the physics component.
 		//If not, create a body.
+		Layers layer{};
+		if (!GetFlag(COLLIDER_COMP_FLAG::ENABLED))
+			layer = Layers::NON_COLLIDABLE;
+		else if (ecs::GetEntity(this)->HasComp<PhysicsComp>())
+			layer = Layers::MOVING;
+		else
+			layer = Layers::NON_MOVING;
+
 		if (ecs::GetEntity(this)->HasComp<PhysicsComp>())
 		{
 			auto bodyCompPtr{ ecs::GetEntity(this)->GetComp<JoltBodyComp>() };
+			if (!bodyCompPtr || bodyCompPtr->GetBodyID().IsInvalid())
+				return;
+
 			bodyCompPtr->SetShapeType(ShapeType::BOX);
-			bodyCompPtr->SetCollisionLayer(Layers::MOVING);
+			bodyCompPtr->SetCollisionLayer(layer);
 		}
 		else
 		{
-			ecs::GetEntity(this)->AddCompNow<JoltBodyComp>(JoltBodyComp{ JPH::EMotionType::Static, ShapeType::BOX, Layers::NON_MOVING });
+			ecs::GetEntity(this)->AddCompNow<JoltBodyComp>(JoltBodyComp{ JPH::EMotionType::Static, ShapeType::BOX, layer });
 		}
 	}
 
@@ -189,16 +200,21 @@ namespace physics {
 	{
 		ISerializeable::Deserialize(reader);
 		flags.MaskDeserialize(reader, "flags", colliderFlagNames);
-		ecs::GetEntity(this)->GetComp<JoltBodyComp>()->SetPosition(ecs::GetEntityTransform(this).GetWorldPosition() + center);
-		ecs::GetEntity(this)->GetComp<JoltBodyComp>()->SetScale(ecs::GetEntityTransform(this).GetWorldScale() * size);
-		Layers layer{};
-		if (!GetFlag(COLLIDER_COMP_FLAG::ENABLED))
-			layer = Layers::NON_COLLIDABLE;
-		else if (ecs::GetEntity(this)->HasComp<PhysicsComp>())
-			layer = Layers::MOVING;
-		else
-			layer = Layers::NON_MOVING;
-		ecs::GetEntity(this)->GetComp<JoltBodyComp>()->SetCollisionLayer(layer);
+		if (ecs::GetCurrentPoolId() == ecs::POOL::DEFAULT)
+		{
+			ST<Scheduler>::Get()->Add(0.0f, [entity = ecs::GetEntity(this), this]() {
+				entity->GetComp<JoltBodyComp>()->SetPosition(entity->GetTransform().GetWorldPosition() + center);
+				entity->GetComp<JoltBodyComp>()->SetScale(entity->GetTransform().GetWorldScale() * size);
+				Layers layer{};
+				if (!GetFlag(COLLIDER_COMP_FLAG::ENABLED))
+					layer = Layers::NON_COLLIDABLE;
+				else if (ecs::GetEntity(this)->HasComp<PhysicsComp>())
+					layer = Layers::MOVING;
+				else
+					layer = Layers::NON_MOVING;
+				ecs::GetEntity(this)->GetComp<JoltBodyComp>()->SetCollisionLayer(layer);
+				});
+		}
 	}
 
 	void BoxColliderComp::EditorDraw()
