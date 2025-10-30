@@ -20,6 +20,7 @@
 #include "Scripting/ScriptComponent.h"
 #include "Components/NameComponent.h"
 #include "Game/GameCameraController.h"
+#include "Game/Character.h"
 #include "Game/PlayerCharacter.h"
 #include "Game/GrabbableItem.h"
 
@@ -43,6 +44,7 @@ void RegisterShit()
 	IRegisteredComponent<physics::PhysicsComp>::RegisterComponent();
 	IRegisteredComponent<NameComponent>::RegisterComponent();
 	IRegisteredComponent<GameCameraControllerComponent>::RegisterComponent();
+	IRegisteredComponent<CharacterMovementComponent>::RegisterComponent();
 	IRegisteredComponent<PlayerMovementComponent>::RegisterComponent();
 	IRegisteredComponent<GrabbableItemComponent>::RegisterComponent();
 }
