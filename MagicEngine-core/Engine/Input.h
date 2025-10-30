@@ -438,6 +438,13 @@ public: // Frame management
 	/*****************************************************************//*!
 	 \brief
 		Checks whether the current iteration of the game systems is the
+		first iteration for this current frame.
+	*//******************************************************************/
+	bool IsFirstIterationThisFrame() const;
+
+	/*****************************************************************//*!
+	 \brief
+		Checks whether the current iteration of the game systems is the
 		final iteration for this current frame.
 	*//******************************************************************/
 	bool IsFinalIterationThisFrame() const;
@@ -452,6 +459,7 @@ private:
 
 	//! Tracks which iteration we're at.
 	int currIteration;
+	bool isFirstIteration;
 
 public:
 	// For InputConfig to get and modify input sets

@@ -225,13 +225,9 @@ void MagicEngine::ExecuteFrame(FrameData& frameData)
 
 	// Clear the events of the previous frame
 	ST<EventsQueue>::Get()->NewFrame();
-
-	// Only reset key states when systems are updating so we don't skip inputs.
-	if(GameTime::RealNumFixedFrames())
-	{
-		ST<MagicInput>::Get()->NewFrame();
-		//GamepadInput::PollInput();
-	}
+	
+	ST<MagicInput>::Get()->NewFrame();
+	//GamepadInput::PollInput();
 
 	ST<GraphicsMain>::Get()->BeginFrame();
 #ifdef IMGUI_ENABLED
@@ -339,27 +335,24 @@ void MagicEngine::ExecuteFrame(FrameData& frameData)
 	// manage user input
 	// -----------------
 	ST<PerformanceProfiler>::Get()->StartProfile("Process Input");
-	if(GameTime::RealNumFixedFrames())
-	{
 #ifdef IMGUI_ENABLED
-		ST<Inspector>::Get()->ProcessInput();
-		// TODO: Put this in some editor windows manager class. In fact, all of this imgui stuff needs to be put in that class or subclasses.
-		/*if (ST<KeyboardMouseInput>::Get()->GetIsPressed(KEY::GRAVE))
-			ST<Console>::Get()->SetIsOpen(!ST<Console>::Get()->GetIsOpen());*/
+	ST<Inspector>::Get()->ProcessInput();
+	// TODO: Put this in some editor windows manager class. In fact, all of this imgui stuff needs to be put in that class or subclasses.
+	/*if (ST<KeyboardMouseInput>::Get()->GetIsPressed(KEY::GRAVE))
+		ST<Console>::Get()->SetIsOpen(!ST<Console>::Get()->GetIsOpen());*/
 #endif
 
-		if(ST<KeyboardMouseInput>::Get()->GetIsPressed(KEY::F11))
+	if(ST<KeyboardMouseInput>::Get()->GetIsPressed(KEY::F11))
+	{
+		if(ST<GameSettings>::Get()->m_fullscreenMode == 0)
 		{
-			if(ST<GameSettings>::Get()->m_fullscreenMode == 0)
-			{
-				ST<GameSettings>::Get()->m_fullscreenMode = 1;
-			}
-			else
-			{
-				ST<GameSettings>::Get()->m_fullscreenMode = 0;
-			}
-			ST<GameSettings>::Get()->Apply();
+			ST<GameSettings>::Get()->m_fullscreenMode = 1;
 		}
+		else
+		{
+			ST<GameSettings>::Get()->m_fullscreenMode = 0;
+		}
+		ST<GameSettings>::Get()->Apply();
 	}
 	ST<PerformanceProfiler>::Get()->EndProfile("Process Input");
 
@@ -458,42 +451,29 @@ void MagicEngine::ExecuteUpdateSystems()
 #endif
 	} };
 
-	// Calculate number of realtime iterations (mainly for UI and other systems that don't run off of timescale)
-	for (int realtimeIterationsLeft{ GameTime::RealNumFixedFrames() }; realtimeIterationsLeft; --realtimeIterationsLeft)
-		ecs::RunSystemsInLayers(ECS_LAYER::CUTOFF_START, ECS_LAYER::CUTOFF_REALTIME_INPUT);
+	UpdateSystemsGroup("Input", []() -> void {
+		ecs::RunSystemsInLayers(ECS_LAYER::CUTOFF_START, ECS_LAYER::CUTOFF_INPUT);
+	});
+	UpdateSystemsGroup("Pre-Physics", []() -> void {
+		ST<TweenManager>::Get()->Update(GameTime::FixedDt());
+		ecs::RunSystemsInLayers(ECS_LAYER::CUTOFF_INPUT, ECS_LAYER::CUTOFF_PRE_PHYSICS);
+	});
+	UpdateSystemsGroup("Scripting", []() -> void {
+		ecs::RunSystemsInLayers(ECS_LAYER::CUTOFF_PRE_PHYSICS, ECS_LAYER::CUTOFF_PRE_PHYSICS_SCRIPTS);
+	});
 
-	// Calculate how many iterations to run this frame.
-	int iterationsLeft{ GameTime::NumFixedFrames() };
-	if (iterationsLeft <= 0)
-		return; // No need to update this frame...
-	else if (iterationsLeft > 1)
-		CONSOLE_LOG(LEVEL_INFO) << "Running behind by " << iterationsLeft - 1 << " frames. Catching up...";
-
-	for (; iterationsLeft; --iterationsLeft)
-	{
-		UpdateSystemsGroup("Input", []() -> void {
-			ecs::RunSystemsInLayers(ECS_LAYER::CUTOFF_REALTIME_INPUT, ECS_LAYER::CUTOFF_INPUT);
-		});
-
-		UpdateSystemsGroup("Pre-Physics", []() -> void {
-			ST<TweenManager>::Get()->Update(GameTime::FixedDt());
-			ecs::RunSystemsInLayers(ECS_LAYER::CUTOFF_INPUT, ECS_LAYER::CUTOFF_PRE_PHYSICS);
-		});
-		UpdateSystemsGroup("Scripting", []() -> void {
-			ecs::RunSystemsInLayers(ECS_LAYER::CUTOFF_PRE_PHYSICS, ECS_LAYER::CUTOFF_PRE_PHYSICS_SCRIPTS);
-		});
-		UpdateSystemsGroup("Physics", []() -> void {
+	// Run physics on real time frames only
+	UpdateSystemsGroup("Physics", []() -> void {
+		for (int iterationsLeft{ GameTime::NumFixedFrames() }; iterationsLeft; --iterationsLeft)
 			ecs::RunSystemsInLayers(ECS_LAYER::CUTOFF_PRE_PHYSICS_SCRIPTS, ECS_LAYER::CUTOFF_PHYSICS);
-		});
-		UpdateSystemsGroup("Post-Physics", []() -> void {
-			ecs::RunSystemsInLayers(ECS_LAYER::CUTOFF_PHYSICS, ECS_LAYER::CUTOFF_POST_PHYSICS);
-		});
-		UpdateSystemsGroup("Script-Late-Update", []() -> void {
-			ecs::RunSystemsInLayers(ECS_LAYER::CUTOFF_POST_PHYSICS, ECS_LAYER::CUTOFF_POST_PHYSICS_SCRIPTS);
-		});
+	});
 
-		ST<MagicInput>::Get()->NewIteration();
-	}
+	UpdateSystemsGroup("Post-Physics", []() -> void {
+		ecs::RunSystemsInLayers(ECS_LAYER::CUTOFF_PHYSICS, ECS_LAYER::CUTOFF_POST_PHYSICS);
+	});
+	UpdateSystemsGroup("Script-Late-Update", []() -> void {
+		ecs::RunSystemsInLayers(ECS_LAYER::CUTOFF_POST_PHYSICS, ECS_LAYER::CUTOFF_POST_PHYSICS_SCRIPTS);
+	});
 }
 
 void MagicEngine::ExecuteRenderSystems()

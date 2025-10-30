@@ -271,6 +271,14 @@ public:
     static bool GetMouseButton(MouseButton button) {
         return Core::Platform::Get().GetInput().IsPointerDown(static_cast<int>(button));
     }
+
+    static bool GetMouseButtonDown(MouseButton button) {
+        return Core::Platform::Get().GetInput().IsPointerJustPressed(static_cast<int>(button));
+    }
+
+    static bool GetMouseButtonUp(MouseButton button) {
+        return Core::Platform::Get().GetInput().IsPointerJustReleased(static_cast<int>(button));
+    }
     
     static glm::vec2 GetMouseDelta() {
         return Core::Platform::Get().GetInput().GetPointerDelta(0);

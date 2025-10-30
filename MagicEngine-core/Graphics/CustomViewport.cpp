@@ -187,7 +187,7 @@ void CustomViewport::UpdateCameraControl()
 		// Reset keys
 		camera.movement_ = CameraPositioner_FirstPerson::Movement{};
 
-	camera.update(GameTime::RealDt(), mouse_delta, ST<KeyboardMouseInput>::Get()->GetIsDown(KEY::M_RIGHT));
+	camera.update(GameTime::Dt(), mouse_delta, ST<KeyboardMouseInput>::Get()->GetIsDown(KEY::M_RIGHT));
 }
 
 #ifdef IMGUI_ENABLED
