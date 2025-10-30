@@ -27,7 +27,8 @@ void ResourceSerialization::Serialize(Serializer& writer, const ResourceFilepath
 	{
 		writer.StartObject();
 
-		writer.Serialize("filepath", fileEntry->path.string());
+		//writer.Serialize("filepath", fileEntry->path.string());
+		writer.Serialize("filepath", fileEntry->path);
 		writer.StartArray("resources");
 
 		for (const auto& resource : fileEntry->associatedResources)

@@ -25,6 +25,8 @@ All rights reserved.
 /******************************************************************************/
 
 #include "Engine/BehaviorTree/BehaviourNode.h"
+#include "LeafMoveTowardsPlayer.h"
+#include "LeafLookForPlayer.h"
 #include "BehaviourTreeFactory.h"
 #include "Engine/Input.h"
 
@@ -36,6 +38,10 @@ BT_REGISTER_NODE(MoveLeft, "MoveLeft")
 BT_REGISTER_NODE(MoveRight, "MoveRight")
 BT_REGISTER_NODE(MoveUp, "MoveUp")
 BT_REGISTER_NODE(MoveDown, "MoveDown")
+
+BT_REGISTER_NODE(L_MoveTowardsPlayer, "L_MoveTowardsPlayer")
+BT_REGISTER_NODE(L_LookForPlayer, "L_LookForPlayer")
+
 
 BehaviorNode::BehaviorNode()
     : status{ NODE_STATUS::READY }

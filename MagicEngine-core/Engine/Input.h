@@ -74,7 +74,7 @@ enum class INPUT_READ_TYPE : char
 
 #pragma region Hardware Link
 
-using InputHardwareValue = std::variant<bool, float>;
+using InputHardwareValue = std::variant<bool, float, Vec2>;
 class InputHardwareValueLink
 {
 public:
@@ -107,7 +107,7 @@ private:
 	// To avoid virtualization based on device type, we're storing virtualized behaviors in these function pointer arrays.
 
 	//! Set of functions that query a particular input device for a key value
-	using FuncType_GetValue = std::variant<bool, float>(*)(int keyIdentifier, INPUT_READ_TYPE readType);
+	using FuncType_GetValue = InputHardwareValue(*)(int keyIdentifier, INPUT_READ_TYPE);
 	static const std::array<FuncType_GetValue, +INPUT_DEVICE_TYPE::NUM_DEVICES> GetValueFromDevice;
 };
 
@@ -332,8 +332,8 @@ X(F11, GLFW_KEY_F11, "F11") \
 X(F12, GLFW_KEY_F12, "F12") \
 X(M1, GLFW_MOUSE_BUTTON_LEFT, "Left Mouse Button") \
 X(M2, GLFW_MOUSE_BUTTON_RIGHT, "Right Mouse Button") \
-X(M3, GLFW_MOUSE_BUTTON_MIDDLE, "Middle Mouse Button")
-
+X(M3, GLFW_MOUSE_BUTTON_MIDDLE, "Middle Mouse Button") \
+X(MOUSE_DELTA_2D, -1001, "Mouse Delta (2D)")
 #ifdef GLFW
 #define X(name, glfw, str) name = glfw,
 #else
@@ -345,6 +345,7 @@ enum class KEY : int
 	M_LEFT = M1,
 	M_RIGHT = M2,
 	M_MIDDLE = M3,
+	M_POSITION = MOUSE_DELTA_2D
 };
 #undef X
 GENERATE_ENUM_CLASS_ARITHMETIC_OPERATORS(KEY)

@@ -17,6 +17,7 @@ All content © 2025 DigiPen Institute of Technology Singapore.
 All rights reserved.
 */
 /******************************************************************************/
+#include "VFS/VFS.h"
 
 #include "Engine/Resources/ResourceImporter.h"
 #include "Engine/Resources/Types/ResourceTypes.h"
@@ -31,29 +32,30 @@ All rights reserved.
 #include "Engine/Resources/Importers/ResourceFiletypeImporterAudio.h"
 
 std::unordered_map<std::string, SPtr<ResourceFiletypeImporterBase>> ResourceImporter::importers{
-    { std::string{ ".fbx" }, std::make_shared<ResourceFiletypeImporterFBX>() },
-    { std::string{ ".ktx" }, std::make_shared<ResourceFiletypeImporterKTX>() },
-    { std::string{ ".ktx2" }, std::make_shared<ResourceFiletypeImporterKTX>() },
-    { std::string{ ".mesh" }, std::make_shared<ResourceFiletypeImporterMeshAsset>() },
-    { std::string{ ".material" }, std::make_shared<ResourceFiletypeImporterMaterial>() },
-    { std::string{ ".png" }, std::make_shared<ResourceFiletypeImporterImage>() },
-    { std::string{ ".jpg" }, std::make_shared<ResourceFiletypeImporterImage>() },
-    { std::string{ ".jpeg" }, std::make_shared<ResourceFiletypeImporterImage>() },
-    { std::string{ ".bmp" }, std::make_shared<ResourceFiletypeImporterImage>() },
-    { std::string{ ".mp3" }, std::make_shared<ResourceFiletypeImporterAudio>() },
+    { std::string{ ".fbx" }, std::make_shared<ResourceFiletypeImporterFBX>() }, //compile
+    { std::string{ ".ktx" }, std::make_shared<ResourceFiletypeImporterKTX>() }, //load
+    { std::string{ ".ktx2" }, std::make_shared<ResourceFiletypeImporterKTX>() }, //load
+    { std::string{ ".mesh" }, std::make_shared<ResourceFiletypeImporterMeshAsset>() }, //load
+    { std::string{ ".material" }, std::make_shared<ResourceFiletypeImporterMaterial>() }, //load
+    { std::string{ ".png" }, std::make_shared<ResourceFiletypeImporterImage>() },   //compile
+    { std::string{ ".jpg" }, std::make_shared<ResourceFiletypeImporterImage>() },   //compile
+    { std::string{ ".jpeg" }, std::make_shared<ResourceFiletypeImporterImage>() },  //compile
+    { std::string{ ".bmp" }, std::make_shared<ResourceFiletypeImporterImage>() },   //compile
+    { std::string{ ".mp3" }, std::make_shared<ResourceFiletypeImporterAudio>() },   //load
 };
 
-bool ResourceImporter::Import(const std::filesystem::path& filepath)
+bool ResourceImporter::Import(const std::string& filepath)
 {
     // Check file exists
-    if (!std::filesystem::exists(filepath))
+    if (!VFS::FileExists(filepath))
     {
         CONSOLE_LOG(LEVEL_ERROR) << "File does not exist: " << filepath;
         return false;
     }
 
     // Get the importer for this filetype
-    std::string filetype{ util::ToLowerStr(filepath.extension().string()) };
+    //std::string filetype{ util::ToLowerStr(filepath.extension().string()) };
+    std::string filetype{ util::ToLowerStr(VFS::GetExtension(filepath)) };
     auto filetypeImporterIter{ importers.find(filetype) };
     if (filetypeImporterIter == importers.end())
     {
@@ -62,9 +64,7 @@ bool ResourceImporter::Import(const std::filesystem::path& filepath)
     }
 
     // Import the file, creating/updating the resources in ResourceManager
-    auto relativeFilepath{ std::filesystem::relative(filepath, Filepaths::assets) };
-
-    return filetypeImporterIter->second->Import(relativeFilepath);
+    return filetypeImporterIter->second->Import(filepath);
 }
 
 bool ResourceImporter::FiletypeSupported(const std::string& extension)

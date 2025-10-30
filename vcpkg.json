@@ -6,6 +6,7 @@
       "name": "assimp",
       "platform": "!android"
     },
+    "boost-type-index",
 	  "fmt",
     {
       "name": "freeimage",

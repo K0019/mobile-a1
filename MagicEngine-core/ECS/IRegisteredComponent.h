@@ -52,7 +52,7 @@ namespace rj = rapidjson;
 template <typename CompType>
 class IRegisteredComponent : public ISerializeable
 {
-private:
+public:
 	/*****************************************************************//*!
 	\brief
 		Registers the component type into RegisteredComponents.

@@ -356,7 +356,7 @@ public:
 	\return
 		The scene's index. -1 if the scene failed to be created.
 	*//******************************************************************/
-	int LoadScene(const std::filesystem::path& path, bool setActiveScene = true);
+	int LoadScene(const std::string& path, bool setActiveScene = true);
 
 	/*****************************************************************//*!
 	\brief
@@ -397,7 +397,7 @@ public:
 		The scene that will be loaded after all scenes are unloaded. If empty,
 		loads the default scene.
 	*//******************************************************************/
-	void UnloadAllScenes(const std::filesystem::path& replacingScenePath);
+	void UnloadAllScenes(const std::string& replacingScenePath);
 
 	/*****************************************************************//*!
 	\brief
@@ -658,7 +658,7 @@ public:
 	\return
 		The scene's index. -1 if the scene failed to be created.
 	*//******************************************************************/
-	int LoadScene(const std::filesystem::path& path, bool setActiveScene = true);
+	int LoadScene(const std::string& path, bool setActiveScene = true);
 
 	/*****************************************************************//*!
 	\brief
@@ -679,7 +679,7 @@ public:
 		The scene that will be loaded after all scenes are unloaded. If empty,
 		loads the default scene.
 	*//******************************************************************/
-	void UnloadAllScenes(const std::filesystem::path& replacingScenePath = "");
+	void UnloadAllScenes(const std::string& replacingScenePath = "");
 
 	/*****************************************************************//*!
 	\brief

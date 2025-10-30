@@ -1,0 +1,17 @@
+{
+    "name": "enemyBase",
+    "nodes": [
+        {
+            "nodeType": "Sequence",
+            "nodeLevel": 0
+        },
+        {
+            "nodeType": "L_LookForPlayer",
+            "nodeLevel": 1
+        },
+        {
+            "nodeType": "L_MoveTowardsPlayer",
+            "nodeLevel": 1
+        }
+    ]
+}

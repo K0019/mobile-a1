@@ -68,25 +68,24 @@ struct MeshInfo
 namespace internal
 {
     bool ImportMeshAsset(
-        const std::filesystem::path& filepath, 
+        const std::string& filepath, 
         std::vector<MeshHandle>* outMeshHandles, std::vector<std::pair<uint32_t, Mat4>>* outMeshTransforms)
     {
-
-        std::ifstream file(filepath, std::ios::binary);
-        if (!file.is_open())
+        auto file = VFS::OpenFile(filepath, FileMode::Read);
+        if (!file)
         {
-            CONSOLE_LOG(LEVEL_ERROR) << "Failed to import scene file: " << filepath.string();
+            CONSOLE_LOG(LEVEL_ERROR) << "VFS: Failed to open mesh file: " << filepath;
             return false;
         }
 
         //Validate Header
         MeshFileHeader header;
-        file.read(reinterpret_cast<char*>(&header), sizeof(MeshFileHeader));
+        file->Read(&header, sizeof(MeshFileHeader));
 
         if (header.magic != MESH_FILE_MAGIC)
         {
-            CONSOLE_LOG(LEVEL_ERROR) << "Invalid mesh asset file format: " << filepath.string();
-            file.close();
+            CONSOLE_LOG(LEVEL_ERROR) << "Invalid mesh asset file format: " << filepath;
+            //file.close();
             return false;
         }
         
@@ -97,22 +96,21 @@ namespace internal
         std::vector<uint32_t> allIndices(header.totalIndices);
         std::vector<Vertex> allVertices(header.totalVertices); // Assuming Vertex struct
 
-        file.seekg(header.nodeDataOffset);
-        file.read(reinterpret_cast<char*>(nodes.data()), nodes.size() * sizeof(MeshNode));
+        file->Seek(header.nodeDataOffset, SeekOrigin::Begin);
+        file->Read(nodes.data(), nodes.size() * sizeof(MeshNode));
 
-        file.seekg(header.meshInfoDataOffset);
-        file.read(reinterpret_cast<char*>(meshInfos.data()), meshInfos.size() * sizeof(MeshInfo));
+        file->Seek(header.meshInfoDataOffset, SeekOrigin::Begin);
+        file->Read(meshInfos.data(), meshInfos.size() * sizeof(MeshInfo));
 
-        file.seekg(header.materialNamesOffset);
-        file.read(materialNamesBuffer.data(), materialNamesBuffer.size());
+        file->Seek(header.materialNamesOffset, SeekOrigin::Begin);
+        file->Read(materialNamesBuffer.data(), materialNamesBuffer.size());
 
-        file.seekg(header.indexDataOffset);
-        file.read(reinterpret_cast<char*>(allIndices.data()), allIndices.size() * sizeof(uint32_t));
+        file->Seek(header.indexDataOffset, SeekOrigin::Begin);
+        file->Read(allIndices.data(), allIndices.size() * sizeof(uint32_t));
 
-        file.seekg(header.vertexDataOffset);
-        file.read(reinterpret_cast<char*>(allVertices.data()), allVertices.size() * sizeof(Vertex));
+        file->Seek(header.vertexDataOffset, SeekOrigin::Begin);
+        file->Read(allVertices.data(), allVertices.size() * sizeof(Vertex));
 
-        file.close();
 
         // Retrieve material names for meshes
         std::map<uint32_t, uint32_t> nameOffsetToMaterialIndex; // Map offset to final index
@@ -217,13 +215,13 @@ namespace internal
 }
 
 
-bool ResourceFiletypeImporterMeshAsset::Import(const std::filesystem::path& assetRelativeFilepath)
+bool ResourceFiletypeImporterMeshAsset::Import(const std::string& assetRelativeFilepath)
 {
     // Load the meshes within the file
     std::vector<MeshHandle> meshHandles;
     std::vector<std::pair<uint32_t, Mat4>> meshTransforms;
 
-    if (!internal::ImportMeshAsset(GetExeRelativeFilepath(assetRelativeFilepath), &meshHandles, &meshTransforms))
+    if (!internal::ImportMeshAsset(assetRelativeFilepath, &meshHandles, &meshTransforms))
         return false;
 
     // Create the file entry and resource hash

@@ -9,7 +9,7 @@
 
 \author Matthew Chan Shao Jie (100%)
 \par    email: m.chan\@digipen.edu
-\par    DigiPen login: m.chsn
+\par    DigiPen login: m.chan
 
 \brief
 	GameCameraController is an ECS component-system pair which takes control of
@@ -49,7 +49,7 @@ void PlayerMovementComponent::Deserialize(Deserializer& reader)
 void PlayerMovementComponent::EditorDraw()
 {
 	cameraReference.EditorDraw("Camera");
-	ImGui::InputFloat("Grab Distance", &grabDistance);
+	gui::VarInput("Grab Distance", &grabDistance);
 }
 
 PlayerMovementComponentSystem::PlayerMovementComponentSystem()
@@ -119,6 +119,7 @@ void PlayerMovementComponentSystem::UpdatePlayerMovementComponent(PlayerMovement
 	if (inputInstance->GetValue(INPUT_READ_TYPE::CURRENT, KEY::B))
 		characterComp->DropItem();
 
+	// Doesn't seem to be working again
 	if (inputInstance->GetIsPressed(KEY::M1))
 		characterComp->Attack();
 

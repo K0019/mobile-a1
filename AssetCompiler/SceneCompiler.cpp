@@ -324,7 +324,7 @@ namespace compiler
                 if (it != materialSlot.texturePaths.end())
                 {
                     std::string filename = it->second.stem().string() + ".ktx2";    
-                    valueStr = "CompiledAssets\\textures\\" + filename;
+                    valueStr = "compiledassets/textures/" + filename;
                 }
 
                 textureEntry.AddMember("value", rapidjson::Value(valueStr.c_str(), allocator), allocator);

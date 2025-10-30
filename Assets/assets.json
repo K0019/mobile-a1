@@ -1,13 +1,83 @@
 {
     "files": [
         {
-            "filepath": "CompiledAssets\\box.mesh",
+            "filepath": "compiledassets/unitbox.mesh",
             "resources": [
                 {
-                    "resourceType": 7953536019925557911,
+                    "resourceType": 6209910166724260588,
                     "resourceEntries": [
                         {
-                            "hash": 13867040743873860,
+                            "hash": 1065489439484661976,
+                            "name": "unitbox0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/cone.mesh",
+            "resources": [
+                {
+                    "resourceType": 6209910166724260588,
+                    "resourceEntries": [
+                        {
+                            "hash": 296776880041022392,
+                            "name": "cone0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/hatchback-sports.mesh",
+            "resources": [
+                {
+                    "resourceType": 6209910166724260588,
+                    "resourceEntries": [
+                        {
+                            "hash": 210052900400148801,
+                            "name": "hatchback-sports0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/ambulance.mesh",
+            "resources": [
+                {
+                    "resourceType": 6209910166724260588,
+                    "resourceEntries": [
+                        {
+                            "hash": 29074385975684521,
+                            "name": "ambulance0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/materials/material.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 1070015029344587994,
+                            "name": "material0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/box.mesh",
+            "resources": [
+                {
+                    "resourceType": 6209910166724260588,
+                    "resourceEntries": [
+                        {
+                            "hash": 40701721439478582,
                             "name": "box0"
                         }
                     ]
@@ -15,13 +85,13 @@
             ]
         },
         {
-            "filepath": "CompiledAssets\\materials\\colormap.material",
+            "filepath": "compiledassets/materials/colormap.material",
             "resources": [
                 {
-                    "resourceType": 9642906986363137133,
+                    "resourceType": 645030769166885040,
                     "resourceEntries": [
                         {
-                            "hash": 19207368719981903,
+                            "hash": 37929852625792432,
                             "name": "colormap0"
                         }
                     ]
@@ -29,84 +99,14 @@
             ]
         },
         {
-            "filepath": "Materials\\NewMaterial.material",
+            "filepath": "compiledassets/textures/colormap.ktx2",
             "resources": [
                 {
-                    "resourceType": 9642906986363137133,
+                    "resourceType": 16443744738808614340,
                     "resourceEntries": [
                         {
-                            "hash": 97763077498500649,
-                            "name": "NewMaterial0"
-                        }
-                    ]
-                }
-            ]
-        },
-        {
-            "filepath": "Sounds\\Gylia Shanty (Cinfras County).mp3",
-            "resources": [
-                {
-                    "resourceType": 13608648403210648424,
-                    "resourceEntries": [
-                        {
-                            "hash": 24791788278831619,
-                            "name": "Gylia Shanty (Cinfras County)0"
-                        }
-                    ]
-                }
-            ]
-        },
-        {
-            "filepath": "CompiledAssets\\unitBox.mesh",
-            "resources": [
-                {
-                    "resourceType": 7953536019925557911,
-                    "resourceEntries": [
-                        {
-                            "hash": 21084235054651615,
-                            "name": "unitBox0"
-                        }
-                    ]
-                }
-            ]
-        },
-        {
-            "filepath": "CompiledAssets\\materials\\Material.material",
-            "resources": [
-                {
-                    "resourceType": 9642906986363137133,
-                    "resourceEntries": [
-                        {
-                            "hash": 23643898124114146,
-                            "name": "Material0"
-                        }
-                    ]
-                }
-            ]
-        },
-        {
-            "filepath": "CompiledAssets\\textures\\colormap.ktx2",
-            "resources": [
-                {
-                    "resourceType": 13960108920292451446,
-                    "resourceEntries": [
-                        {
-                            "hash": 23431692402752494,
+                            "hash": 33900142509993390,
                             "name": "colormap0"
-                        }
-                    ]
-                }
-            ]
-        },
-        {
-            "filepath": "CompiledAssets\\ambulance.mesh",
-            "resources": [
-                {
-                    "resourceType": 7953536019925557911,
-                    "resourceEntries": [
-                        {
-                            "hash": 90114874687583703,
-                            "name": "ambulance0"
                         }
                     ]
                 }

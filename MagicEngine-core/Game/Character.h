@@ -9,7 +9,7 @@
 
 \author Matthew Chan Shao Jie (100%)
 \par    email: m.chan\@digipen.edu
-\par    DigiPen login: m.chsn
+\par    DigiPen login: m.chan
 
 \brief
 	CharacterMovementComponent is an ECS component-system pair which controls character movement. 
@@ -55,8 +55,8 @@ public:
 	void GrabItem(ecs::CompHandle<GrabbableItemComponent> item);
 	void Attack();
 
-	void Serialize(Serializer& writer) const;
-	void Deserialize(Deserializer& reader);
+	void Serialize(Serializer& writer) const override;
+	void Deserialize(Deserializer& reader) override;
 
 	property_vtable()
 
@@ -66,7 +66,7 @@ private:
 		Editor draw function, draws the IMGui elements to allow the
 		component's values to be edited. Disabled when IMGui is disabled.
 	*//******************************************************************/
-	virtual void EditorDraw();
+	virtual void EditorDraw() override;
 };
 
 property_begin(CharacterMovementComponent)

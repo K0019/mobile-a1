@@ -37,7 +37,8 @@ struct aiScene;
 
 struct FilePathSource
 {
-  std::filesystem::path path;
+  //std::filesystem::path path;
+  std::string path;
 
   bool operator<(const FilePathSource& other) const {
     return path < other.path;

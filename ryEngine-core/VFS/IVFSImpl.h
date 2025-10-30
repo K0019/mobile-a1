@@ -21,4 +21,7 @@ public:
 
     virtual bool FileExists(const std::string& path) const = 0;
     virtual std::vector<std::string> ListDirectory(const std::string& path) = 0;
+
+    virtual std::string GetPhysicalPath(const std::string& path) const = 0;
+    virtual std::string GetPhysicalRoot() const = 0;
 };

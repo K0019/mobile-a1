@@ -29,8 +29,10 @@ All rights reserved.
 #include "Graphics/GraphicsECSMesh.h"
 #include "Graphics/PostProcessingComponent.h"
 #include "Graphics/TextSystem.h"
-#include "Scripting/ScriptComponent.h"
 #include "Graphics/CustomViewport.h"
+#ifdef GLFW
+#include "Scripting/ScriptComponent.h"
+#endif
 
 #include "Game/CheatCodes.h"
 #include "Graphics/CameraSystem.h"
@@ -45,7 +47,10 @@ All rights reserved.
 #include "Graphics/TrailSystem.h"
 #include "Game/PrefabSpawner.h"
 #include "Physics/Physics.h"
+
 #include "Engine/BehaviorTree/BehaviourTree.h"
+#include "Engine/BehaviorTree/LeafLookForPlayer.h"
+#include "Engine/BehaviorTree/LeafMoveTowardsPlayer.h"
 
 #include "Demo.h"
 
@@ -61,9 +66,6 @@ void GameState_Common::OnEnter()
     ecs::AddSystem(ECS_LAYER::RENDER_0, LightingSystem{});
     ecs::AddSystem(ECS_LAYER::RENDER_0, PostProcessingSystem{});
     ecs::AddSystem(ECS_LAYER::RENDER_UI_0, TextSystem{});
-    
-    // Camera (will be overriden by the game camera during simulation, see GameState_Game)
-    ecs::AddSystem(ECS_LAYER::RENDER_0, CustomViewportCameraUploadSystem{});
 
     ecs::AddSystem(ECS_LAYER::PRE_PHYSICS_0, FPSTextSystem{});
     ecs::AddSystem(ECS_LAYER::AUDIO, AudioSystem{});
@@ -94,11 +96,13 @@ void GameState_Game::OnEnter()
     ecs::AddSystem(ECS_LAYER::POST_PHYSICS_0, CharacterMovementComponentSystem{});
     ecs::AddSystem(ECS_LAYER::TWEENING, TweenSystem{});
 
+#ifdef GLFW
     ecs::AddSystem(ECS_LAYER::SCRIPT_PREAWAKE, ScriptPreAwakeSystem{});
     ecs::AddSystem(ECS_LAYER::SCRIPT_AWAKE, ScriptAwakeSystem{});
     ecs::AddSystem(ECS_LAYER::SCRIPT_START, ScriptStartSystem{});
     ecs::AddSystem(ECS_LAYER::SCRIPT_UPDATE, ScriptSystem{});
     ecs::AddSystem(ECS_LAYER::SCRIPT_LATE_UPDATE, ScriptLateUpdateSystem{});
+#endif
 
     ecs::AddSystem(ECS_LAYER::SCRIPT_UPDATE, BehaviorTreeSystem{});
 

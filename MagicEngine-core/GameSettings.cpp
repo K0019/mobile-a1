@@ -36,7 +36,9 @@ GameSettings::GameSettings()
 
 void GameSettings::Save()
 {
+#ifdef GLFW
 	Serializer{ Filepaths::gameSettings }.Serialize(*this);
+#endif
 }
 
 void GameSettings::Load()

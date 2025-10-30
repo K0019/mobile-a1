@@ -1,5 +1,5 @@
 {
     "scenes": [
-        "/Assets/Scenes/DefaultScene.scene"
+        "scenes/defaultscene.scene"
     ]
 }

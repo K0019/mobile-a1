@@ -26,6 +26,7 @@ All rights reserved.
 
 #include "Utilities/Serializer.h"
 #include "ECS/EntityUID.h"
+#include "VFS/VFS.h"
 
 enum class PROPERTY_TYPE
 {
@@ -402,25 +403,47 @@ void Serializer::Serialize(const std::string& key, const property::data& data)
 
 #pragma region Deserializer
 
-Deserializer::Deserializer(const std::string& filepath)
+Deserializer::Deserializer(const std::string& input)
     : isValid{ false }
     , document{}
     , valueStack{}
 {
-    std::ifstream ifs{ filepath };
-    if (!ifs.is_open())
-    {
-        CONSOLE_LOG(LEVEL_ERROR) << "Deserializer failed to open file " << filepath;
+    if (input.empty())
         return;
+
+    //Determine if filepath or json text
+    if (input[0] == '{')
+    {
+        document.Parse(input.c_str());
+        isValid = !document.HasParseError();
+        if (!isValid)
+        {
+            CONSOLE_LOG(LEVEL_ERROR) << "File Error when deserializing ";
+            return;
+        }
+    }
+    else
+    {
+        // Is a filepath
+        //std::ifstream ifs{ input };
+        //if (!ifs.is_open())
+        //{
+        //    CONSOLE_LOG(LEVEL_ERROR) << "Deserializer failed to open file " << input;
+        //    return;
+        //}
+        //document.Parse(std::string{ std::istreambuf_iterator{ifs}, std::istreambuf_iterator<char>{} });
+        std::string fileBuffer;
+        VFS::ReadFile(input, fileBuffer);
+        document.Parse(fileBuffer.c_str());
+
+        isValid = !document.HasParseError();
+        if (!isValid)
+        {
+            CONSOLE_LOG(LEVEL_ERROR) << "File Error when deserializing " << input;
+            return;
+        }
     }
 
-    document.Parse(std::string{ std::istreambuf_iterator{ifs}, std::istreambuf_iterator<char>{} });
-    isValid = !document.HasParseError();
-    if (!isValid)
-    {
-        CONSOLE_LOG(LEVEL_ERROR) << "File Error when deserializing " << filepath;
-        return;
-    }
 
 }
 

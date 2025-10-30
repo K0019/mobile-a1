@@ -84,7 +84,8 @@ bool DirectoryVFSImpl::FileExists(const std::string& path) const
 {
     std::filesystem::path fullPath = m_RootPath / path;
 
-    return std::filesystem::exists(fullPath) && std::filesystem::is_regular_file(fullPath);
+    return std::filesystem::exists(fullPath);
+    //return std::filesystem::exists(fullPath) && std::filesystem::is_regular_file(fullPath);
 }
 
 
@@ -98,4 +99,14 @@ std::vector<std::string> DirectoryVFSImpl::ListDirectory(const std::string& path
         entries.push_back(entry.path().filename().string());
     }
     return entries;
+}
+
+std::string DirectoryVFSImpl::GetPhysicalPath(const std::string& path) const
+{
+    return (m_RootPath / path).string();
+}
+
+std::string DirectoryVFSImpl::GetPhysicalRoot() const
+{
+    return m_RootPath.string();
 }

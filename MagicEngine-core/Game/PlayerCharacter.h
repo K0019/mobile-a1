@@ -9,7 +9,7 @@
 
 \author Matthew Chan Shao Jie (100%)
 \par    email: m.chan\@digipen.edu
-\par    DigiPen login: m.chsn
+\par    DigiPen login: m.chan
 
 \brief
 	PlayerCharacter is an ECS component-system pair which controls player movement. 
@@ -48,8 +48,8 @@ public:
 	EntityReference cameraReference;
 	float grabDistance;
 
-	void Serialize(Serializer& writer) const;
-	void Deserialize(Deserializer& reader);
+	void Serialize(Serializer& writer) const override;
+	void Deserialize(Deserializer& reader) override;
 
 	property_vtable()
 
@@ -59,7 +59,7 @@ private:
 		Editor draw function, draws the IMGui elements to allow the
 		component's values to be edited. Disabled when IMGui is disabled.
 	*//******************************************************************/
-	virtual void EditorDraw();
+	virtual void EditorDraw() override;
 
 };
 

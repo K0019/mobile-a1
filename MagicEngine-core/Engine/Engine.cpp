@@ -37,7 +37,9 @@ All rights reserved.
 #include "Editor/Popup.h"
 #include "Editor/Editor.h"
 #include "Utilities/CrashHandler.h"
+#include "VFS/VFS.h"
 
+#include "Engine/Events/EventsQueue.h"
 #include "Engine/Input.h"
 
 #include "Engine/SceneManagement.h"
@@ -62,7 +64,6 @@ All rights reserved.
 #include "Graphics/CameraController.h"
 #include "Graphics/Materials.h"
 #include "Editor/Import.h"
-#include "Managers/Filesystem.h"
 #include "math/camera.h"
 
 #ifdef IMGUI_ENABLED
@@ -85,7 +86,13 @@ namespace
 		ecs::SwitchToPool(ecs::POOL::DEFAULT);
 	}
 	void loadState(const char* filename) {
-		Deserializer deserializer{ filename };
+
+		std::ifstream t(filename); //Should be safe, only used on windows
+		std::stringstream buffer;
+		buffer << t.rdbuf();
+		Deserializer deserializer{ buffer.str()};
+
+		//Deserializer deserializer{ filename };
 		if (!deserializer.IsValid())
 			return;
 
@@ -103,6 +110,13 @@ namespace
 }
 #endif
 
+#ifndef GLFW
+#include <android/log.h>
+#define LOG_TAG "ryEngine"
+#endif
+
+#include "ECS/TestRegister.h"
+
 MagicEngine::MagicEngine() = default;
 
 MagicEngine::~MagicEngine() = default;
@@ -119,6 +133,15 @@ bool MagicEngine::IsShuttingDown() const
 
 void MagicEngine::Init(Context& context)
 {
+	RegisterShit();
+#ifdef GLFW
+	// The ifdef is to prevent double loading on android's side.
+	// A temporary thing while I decide where android and windows directory adding goes.
+	// Right now, android's is inside android_main.cpp.
+	//VFS::MountDirectory("assets/", Filepaths::assets);
+	VFS::MountDirectory("", Filepaths::assets);
+#endif
+
 	ST<GameSettings>::Get()->Load(); // Only load settings from file first so we have the correct filepaths.
 #ifdef _DEBUG
 	// identify file path for loading asset files
@@ -128,7 +151,9 @@ void MagicEngine::Init(Context& context)
 	CrashHandler::SetupCrashHandler(); // DO NOT REMOVE THIS LINE EVER
 
 	// Scripting MagicEngine Initialisation
+#ifdef GLFW
 	CSharpScripts::CSScripting::Init();
+#endif
 
 	// FMOD Initialisation
 	ST<AudioManager>::Get()->Initialise();
@@ -145,6 +170,7 @@ void MagicEngine::Init(Context& context)
 
 	ST<GameSettings>::Get()->Apply(); // Apply the loaded settings here
 
+	ST<BTFactory>::Get()->SetAllFilePath();
 
 	// load resources
 	ST<MagicResourceManager>::Get()->Init();
@@ -166,7 +192,7 @@ void MagicEngine::Init(Context& context)
 	ST<EntitySpawnEvents>::Get(); // Initialize systems that listen for entity created events
 
 	//auto worldExtents{ ST<GraphicsWindow>::Get()->GetWorldExtent()};
-	auto worldExtents{ Vec2{ 1920, 1080 } };
+	auto worldExtents{ IntVec2{ 1920, 1080 } };
 	ST<CameraController>::Get()->SetCameraData(CameraData{
 		.position = Vec3{static_cast<float>(worldExtents.x) / 2, static_cast<float>(worldExtents.y) / 2, 0.0f },
 		.zoom = 1.0f
@@ -175,6 +201,8 @@ void MagicEngine::Init(Context& context)
 	ST<GameSystemsManager>::Get()->Init(GAMESTATE::EDITOR);
 #else
 	ST<GameSystemsManager>::Get()->Init(GAMESTATE::IN_GAME);
+	//ST<SceneManager>::Get()->LoadScene("scenes/defaultscene.scene");
+	ST<SceneManager>::Get()->ResetAndLoadPrevOpenScenes();
 #endif
 
 	auto timeafterwindow = std::chrono::high_resolution_clock::now();
@@ -185,8 +213,7 @@ void MagicEngine::Init(Context& context)
 	//ST<GraphicsWindow>::Get()->BringWindowToFront();
 #ifdef IMGUI_ENABLED
 	loadState("imgui.json");
-	// Hopefully we can get rid of this in the future. CustomViewport should eventually be able to read its window size from ImGui.
-	ST<CustomViewport>::Get()->Init(worldExtents.x, worldExtents.y);
+	editor::CreateGuiWindow<CustomViewport>(static_cast<unsigned int>(worldExtents.x), static_cast<unsigned int>(worldExtents.y));
 #endif
 }
 
@@ -196,6 +223,9 @@ void MagicEngine::ExecuteFrame(FrameData& frameData)
 	GameTime::WaitUntilNextFrame();
 	ST<PerformanceProfiler>::Get()->StartFrame();
 
+	// Clear the events of the previous frame
+	ST<EventsQueue>::Get()->NewFrame();
+	
 	ST<MagicInput>::Get()->NewFrame();
 	//GamepadInput::PollInput();
 
@@ -290,16 +320,13 @@ void MagicEngine::ExecuteFrame(FrameData& frameData)
 			ImGui::EndMenu();
 		}
 
-		if (ImGui::BeginMenu("Behaviour Tree"))
+		if (ImGui::MenuItem("Behaviour Tree"))
 		{
 			editor::CreateGuiWindow<editor::BehaviourTreeWindow>();
-			ImGui::EndMenu();
 		}
 
 		ImGui::EndMainMenuBar();  // End the main menu bar
 	}
-
-	ST<CustomViewport>::Get()->DrawImGuiWindow();
 
 	ST<GraphicsMain>::Get()->EndImGuiFrame();
 #endif
@@ -308,7 +335,6 @@ void MagicEngine::ExecuteFrame(FrameData& frameData)
 	// manage user input
 	// -----------------
 	ST<PerformanceProfiler>::Get()->StartProfile("Process Input");
-	ST<CustomViewport>::Get()->UpdateCameraControl();
 #ifdef IMGUI_ENABLED
 	ST<Inspector>::Get()->ProcessInput();
 	// TODO: Put this in some editor windows manager class. In fact, all of this imgui stuff needs to be put in that class or subclasses.
@@ -332,7 +358,7 @@ void MagicEngine::ExecuteFrame(FrameData& frameData)
 
 	// update game state
 	// -----------------
-#ifdef IMGUI_ENABLED
+#if defined(IMGUI_ENABLED) && defined(GLFW)
 	CSharpScripts::CSScripting::CheckCompileUserAssemblyAsyncCompletion();
 #endif
 	ST<GameSystemsManager>::Get()->UpdateState(); // Update which ecs systems are active
@@ -397,7 +423,9 @@ void MagicEngine::shutdown()
 	ecs::Shutdown();
 
 	ST<physics::JoltPhysics>::Destroy();
+#ifdef GLFW
 	CSharpScripts::CSScripting::Exit();
+#endif
 
 	ST<GameSettings>::Destroy();
 	ST<ecs::RegisteredSystemsOperatingByLayer>::Destroy();
@@ -406,6 +434,7 @@ void MagicEngine::shutdown()
 	ST<MagicResourceManager>::Destroy();
 
 	ST<GraphicsMain>::Destroy();
+	ST<EventsQueue>::Destroy();
 	// In case any systems send logs to the console while destructing.
 	ST<internal::LoggedMessagesBuffer>::Destroy();
 }

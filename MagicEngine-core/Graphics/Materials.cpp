@@ -102,7 +102,7 @@ bool MaterialSystem::loadMaterials() {
 
     auto path = (Filepaths::materialsSave + "/materials.json");
     try {
-        Deserializer reader(path.c_str());
+        Deserializer reader(path);
         if(!reader.IsValid()) {
             CONSOLE_LOG(LEVEL_ERROR) << "Failed to open materials file for reading";
             return false;

@@ -17,13 +17,13 @@ All content © 2025 DigiPen Institute of Technology Singapore.
 All rights reserved.
 */
 /******************************************************************************/
-
+#include "VFS/VFS.h"
 #include "Editor/BehaviourTreeImguiHelper.h"
 #include "Engine/BehaviorTree/BehaviourTreeFactory.h"
 namespace bt {
     bool LoadBTAssetFromFile(const std::string& path, BehaviorTreeAsset* out)
     {
-        Deserializer r(path.c_str());
+        Deserializer r(path);
         if (!r.IsValid()) return false;
         return r.Deserialize(out);
     }
@@ -95,7 +95,7 @@ namespace bt {
     {
         try
         {
-            Serializer writer(fullPath.c_str());
+            Serializer writer(fullPath);
             if (!writer.IsOpen())
             {
                 CONSOLE_LOG(LEVEL_ERROR) << "[BT Save] cannot open: " << fullPath;
@@ -146,8 +146,7 @@ namespace bt {
             const std::string stem{ SanitizeFilename(fileStem) };
             if (stem.empty()) return false;
 
-            std::filesystem::path folder(dir);
-            std::filesystem::path full{ folder / EnsureJsonExt(stem) };
+            std::string fullPath = VFS::ConvertVirtualToPhysical(VFS::JoinPath(dir, EnsureJsonExt(stem)));
 
             // Build a minimal tree: name is the file *stem*, one root at level 0.
             BehaviorTreeAsset asset;
@@ -160,10 +159,10 @@ namespace bt {
             asset.nodes.clear();
             asset.nodes.push_back(root);
 
-            if (!SaveBTAssetToFile(full.string(), asset))
+            if (!SaveBTAssetToFile(fullPath, asset))
                 return false;
 
-            outFullPath = full.string();
+            outFullPath = fullPath;
             return true;
         }
         catch (...)
@@ -222,22 +221,21 @@ namespace bt {
         hasAsset = false;
 
         // Validate folder
-        std::error_code ec;
-        if (dir.empty() || !fs::exists(dir, ec) || !fs::is_directory(dir, ec))
+        if (VFS::ListDirectory(dir).empty() || !VFS::FileExists(dir))   // TODO: VFS::IsDirectory()
         {
             currentIndex = -1;
             return;
         }
 
         // Gather .json / .bht files
-        for (const auto& e : fs::directory_iterator(dir, ec))
+        for (const auto& e : VFS::ListDirectory(dir))
         {
-            if (ec) break;
-            if (!e.is_regular_file(ec)) continue;
-            const std::string ext{ e.path().extension().string() };
+            //hack. TODOtoEnsureSameAsOriginalAuthor'sIntention: VFS::IsRegularFile()
+            const std::string ext{ VFS::GetExtension(e)};
+            if (ext == "") continue;
             if (ext == ".json" || ext == ".bht")
             {
-                files.emplace_back(e.path().filename().string());
+                files.emplace_back(VFS::GetFilename(e));
             }
         }
 
@@ -256,10 +254,12 @@ namespace bt {
         }
 
         // Auto-load the selected file
-        const fs::path full{ fs::path(dir) / files[currentIndex] };
-        lastLoadedPath = full.string();
+        //const fs::path full{ fs::path(dir) / files[currentIndex] };
+        //lastLoadedPath = full.string();
+        //hasAsset = LoadBTAssetFromFile(lastLoadedPath, &loadedAsset);
 
-        hasAsset = LoadBTAssetFromFile(lastLoadedPath, &loadedAsset);
+        const std::string full { VFS::JoinPath(dir, files[currentIndex])};
+        hasAsset = LoadBTAssetFromFile(full, &loadedAsset);
     }
 
 
@@ -272,7 +272,8 @@ namespace bt {
             return false;
         }
 
-        const std::string full{ (std::filesystem::path(dir) / files[currentIndex]).string() };
+        //const std::string full{ (std::filesystem::path(dir) / files[currentIndex]).string() };
+        const std::string full{ VFS::JoinPath(dir, files[currentIndex]) };
 
         if (!LoadBTAssetFromFile(full, &out))
         {

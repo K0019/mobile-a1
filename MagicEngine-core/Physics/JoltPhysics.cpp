@@ -19,6 +19,7 @@ All rights reserved.
 /******************************************************************************/
 
 #include "Physics/JoltPhysics.h"
+#include "Physics/Physics.h"
 #include "Utilities/GameTime.h"
 
 namespace physics {
@@ -167,6 +168,14 @@ namespace physics {
 		}
 		SetScale(scale);
 
+		if (auto physicsCompPtr{ ecs::GetEntity(this)->GetComp<PhysicsComp>() })
+		{
+			SetGravityFactor(physicsCompPtr->GetFlag(PHYSICS_COMP_FLAG::USE_GRAVITY) ? 1.f : 0.f);
+		}
+		if (ecs::GetEntity(this)->HasComp<BoxColliderComp>())
+		{
+			SetShapeType(ShapeType::BOX);
+		}
 	}
 
 	void JoltBodyComp::OnDetached()

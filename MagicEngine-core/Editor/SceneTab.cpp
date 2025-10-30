@@ -5,6 +5,8 @@
 #include "Editor/AssetBrowser.h"
 #include "FilepathConstants.h"
 
+#include "VFS/VFS.h"
+
 ///////////////
 ///  Scene  ///
 ///////////////
@@ -29,12 +31,19 @@ void SceneTab::Render()
     gui::SetStyleVar framePadding(gui::FLAG_STYLE_VAR::FRAME_PADDING, ImVec2(2, 2));
 
     int count{};
-    for (const auto& entry : std::filesystem::directory_iterator{ Filepaths::scenesSave })
+    //    for (const auto& [hash, texture] : ST<MagicResourceManager>::Get()->Editor_GetTextures().Editor_GetAllResources())
+    
+    for (const auto& entry : VFS::ListDirectory(Filepaths::scenesSave) )
     {
-        if (!editor::MatchesFilter(entry.path().string()))
+        if (!editor::MatchesFilter(entry)) {
             continue;
-        if (entry.path().extension() != ".scene")
+        }
+
+        ////manual string slicing rip
+         std::string sliced = entry.substr(entry.length() - 6, 6);
+        if (sliced != ".scene") {
             continue;
+        }
 
         ImGui::PushID(count++);
         {
@@ -42,11 +51,11 @@ void SceneTab::Render()
 
             if (ImGui::Button("##scene", ImVec2(THUMBNAIL_SIZE, THUMBNAIL_SIZE)))
             {
-                ST<SceneManager>::Get()->LoadScene(entry.path());
+                ST<SceneManager>::Get()->LoadScene(entry);
             }
 
             // Name label
-            std::string displayName = entry.path().stem().string();
+            std::string displayName = entry;
             gui::ThumbnailLabel(displayName, THUMBNAIL_SIZE);
 
         }
@@ -54,5 +63,6 @@ void SceneTab::Render()
 
         grid.NextItem();
     }
+
 #endif
 }
