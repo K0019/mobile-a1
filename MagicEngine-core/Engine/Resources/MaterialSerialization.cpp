@@ -1,3 +1,5 @@
+#include "VFS/VFS.h"
+
 #include "Engine/Resources/MaterialSerialization.h"
 #include "Engine/Resources/ResourceManager.h"
 #include "FilepathConstants.h"
@@ -18,13 +20,13 @@ namespace
 
         if (auto* fileEntry = filepathManager.GetFileEntry(handle))
         {
-            return fileEntry->path.string();
+            return fileEntry->path;
         }
 
         return "";
     }
 
-    TextureDataSource constructDataSource(const std::filesystem::path& assetsRootPath, const std::filesystem::path& relativePath)
+    TextureDataSource constructDataSource(const std::string& assetsRootPath, const std::string& relativePath)
     {
         if (relativePath.empty())
         {
@@ -32,7 +34,8 @@ namespace
         }
         else
         {
-            return FilePathSource{ assetsRootPath / relativePath };
+            //return FilePathSource{ (assetsRootPath + relativePath).string()};
+            return FilePathSource{ VFS::JoinPath(assetsRootPath, relativePath)};
         }
     }
 }
@@ -60,11 +63,11 @@ void MaterialSerialization::Serialize(Serializer& writer, const ProcessedMateria
     writer.Serialize("emissiveFactor", emissive);
 
     std::unordered_map<std::string, std::string> textures;
-    textures["baseColor"]         = getPathFromHandle(textureHandles[0]);
-    textures["metallicRoughness"] = getPathFromHandle(textureHandles[1]);
-    textures["normal"]            = getPathFromHandle(textureHandles[2]);
-    textures["emissive"]          = getPathFromHandle(textureHandles[3]);
-    textures["occlusion"]         = getPathFromHandle(textureHandles[4]);
+    textures["baseColor"]         = VFS::NormalizePath(getPathFromHandle(textureHandles[0]));
+    textures["metallicRoughness"] = VFS::NormalizePath(getPathFromHandle(textureHandles[1]));
+    textures["normal"]            = VFS::NormalizePath(getPathFromHandle(textureHandles[2]));
+    textures["emissive"]          = VFS::NormalizePath(getPathFromHandle(textureHandles[3]));
+    textures["occlusion"]         = VFS::NormalizePath(getPathFromHandle(textureHandles[4]));
     writer.Serialize("textures", textures);
 
     writer.Serialize("flags", material.flags);
@@ -74,7 +77,8 @@ void MaterialSerialization::Serialize(Serializer& writer, const ProcessedMateria
 
 void MaterialSerialization::Deserialize(Deserializer& reader, ProcessedMaterial& outMaterial)
 {
-    const auto& assetsRootPath = Filepaths::assets + "/";
+    //const auto& assetsRootPath = Filepaths::assets + "/";
+    const auto& assetsRootPath = "";
 
     reader.DeserializeVar("name", &outMaterial.name);
 

@@ -43,6 +43,7 @@ public:
     static std::unique_ptr<IFileStream> OpenFile(const std::string& path, FileMode mode = FileMode::Read);
     static bool FileExists(const std::string& path);
     static bool ReadFile(const std::string& path, std::vector<uint8_t>& outBuffer);
+    static bool ReadFile(const std::string& path, std::vector<char>& outBuffer);
     static bool ReadFile(const std::string& path, std::string& outStr);
 
     static bool DeleteFile(const std::string& path);
@@ -52,8 +53,19 @@ public:
     bool WriteFile(const std::string& path, const std::vector<uint8_t>& buffer);
     bool WriteFile(const std::string& path, const std::string& text);
 
-
     static std::vector<std::string> ListDirectory(const std::string& path);
+
+    // ----- Utility functions ----- //
+    // just string checking and manipulation functions...
+    static std::string ConvertVirtualToPhysical(const std::string& path);
+    static std::string ConvertPhysicalToVirtual(const std::string& path);
+
+    static std::string JoinPath(const std::string& path1, const std::string& path2);
+    static std::string GetExtension(const std::string& path);
+    static std::string GetFilename(const std::string& path);
+    static std::string GetStem(const std::string& path);
+    static std::string GetParentPath(const std::string& path);
+    static std::string NormalizePath(const std::string& path);
 
 private:
     static bool MountBackend(const std::string& virtualPath, std::shared_ptr<IVFSImpl> backend);

@@ -39,7 +39,9 @@ void MagicResourceManager::Shutdown()
 void MagicResourceManager::OnResourceRequestedLoad(size_t resourceHash)
 {
     if (const auto* fileEntry{ ST<MagicResourceManager>::Get()->filepathsManager.GetFileEntry(resourceHash) })
-        ResourceImporter::Import(Filepaths::assets / fileEntry->path);
+        //ResourceImporter::Import(Filepaths::assets / fileEntry->path);
+        //ResourceImporter::Import(VFS::JoinPath("assets", fileEntry->path));
+        ResourceImporter::Import(fileEntry->path);
 }
 
 void MagicResourceManager::OnResourceDeleted(size_t hash, size_t resourceType)
@@ -67,7 +69,7 @@ UserResourceGetter<ResourceAudio> MagicResourceManager::Audio()
 
 void MagicResourceManager::SaveToFile() const
 {
-    Serializer writer{ Filepaths::assetsJson };
+    Serializer writer{ VFS::ConvertVirtualToPhysical(Filepaths::assetsJson) };
     if (!writer.IsOpen())
     {
         CONSOLE_LOG(LEVEL_ERROR) << "Failed to save resources: " << Filepaths::assetsJson;
@@ -142,13 +144,13 @@ ResourceContainerAudio& MagicResourceManager::INTERNAL_GetAudio()
 void MagicResourceManager::INTERNAL_CreateEmptyResource(size_t resourceTypeHash, size_t resourceHash)
 {
     // Sorry for this if spam kinda running out of time, this function existing's also kinda ugly anyway
-    if (resourceTypeHash == typeid(ResourceMesh).hash_code())
+    if (resourceTypeHash == util::ConsistentHash<ResourceMesh>())
         meshes.INTERNAL_CreateResource(resourceHash);
-    else if (resourceTypeHash == typeid(ResourceMaterial).hash_code())
+    else if (resourceTypeHash == util::ConsistentHash<ResourceMaterial>())
         materials.INTERNAL_CreateResource(resourceHash);
-    else if (resourceTypeHash == typeid(ResourceTexture).hash_code())
+    else if (resourceTypeHash == util::ConsistentHash<ResourceTexture>())
         textures.INTERNAL_CreateResource(resourceHash);
-    else if (resourceTypeHash == typeid(ResourceAudio).hash_code())
+    else if (resourceTypeHash == util::ConsistentHash<ResourceAudio>())
         audio.INTERNAL_CreateResource(resourceHash);
     else
         assert(false);

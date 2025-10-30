@@ -20,12 +20,12 @@ All rights reserved.
 
 #include "Engine/Resources/ResourceFilepaths.h"
 
-const ResourceFilepaths::FileEntry* ResourceFilepaths::SetFilepath(const std::filesystem::path& filepath, std::vector<AssociatedResourceHashes>&& associatedHashes)
+const ResourceFilepaths::FileEntry* ResourceFilepaths::SetFilepath(const std::string& filepath, std::vector<AssociatedResourceHashes>&& associatedHashes)
 {
     FileEntry* fileEntry{};
 
     // If the file is already registered, overwrite the previous entry.
-    size_t filepathHash{ util::GenHash(filepath.string()) };
+    size_t filepathHash{ util::GenHash(filepath) };
     const auto existingFileEntryIter{ fileEntries.find(filepathHash) };
     if (existingFileEntryIter != fileEntries.end())
     {
@@ -53,9 +53,9 @@ const ResourceFilepaths::FileEntry* ResourceFilepaths::GetFileEntry(size_t hash)
     return (fileEntryIter != hashToFileEntry.end() ? fileEntryIter->second : nullptr);
 }
 
-const ResourceFilepaths::FileEntry* ResourceFilepaths::GetFileEntry(const std::filesystem::path& filepath) const
+const ResourceFilepaths::FileEntry* ResourceFilepaths::GetFileEntry(const std::string& filepath) const
 {
-    auto fileEntryLookupIter{ fileEntries.find(util::GenHash(filepath.string())) };
+    auto fileEntryLookupIter{ fileEntries.find(util::GenHash(filepath)) };
     return (fileEntryLookupIter != fileEntries.end() ? &fileEntryLookupIter->second : nullptr);
 }
 
@@ -92,6 +92,6 @@ void ResourceFilepaths::DisassociateResourceHash(size_t resourceHash, size_t res
         return;
 
     // Remove the file entry
-    size_t fileEntryHash{ util::GenHash(fileEntry->path.string()) };
+    size_t fileEntryHash{ util::GenHash(fileEntry->path) };
     fileEntries.erase(fileEntryHash);
 }

@@ -1,3 +1,4 @@
+#include "VFS/VFS.h"
 #include "texture_loader.h"
 #include "logging/log.h"
 #include "utilities/util.h"
@@ -104,27 +105,52 @@ namespace Resource::TextureLoading
   {
     return !texture.data.empty() && texture.width > 0 && texture.height > 0 && texture.channels > 0 && texture.textureDesc.format != vk::Format::Invalid;
   }
-  bool loadFromFile(const std::filesystem::path& path, ProcessedTexture& texture, bool sRGB, vk::TextureType type)
+  bool loadFromFile(const std::string& path, ProcessedTexture& texture, bool sRGB, vk::TextureType type)
   {
-    if(!exists(path))
-    {
-      LOG_WARNING("Texture file not found: {}", path.string());
-      return false;
-    }
+      //if(!exists(path))
+      //{
+      //  LOG_WARNING("Texture file not found: {}", path.string());
+      //  return false;
+      //}
+      //const std::string ext = path.extension().string();
+      //if (ext == ".ktx" || ext == ".KTX")
+      //{
+      //    ASSERT(type == vk::TextureType::Tex2D);
+      //    return Detail::loadFromFileKTX(path, texture, type);
+      //}
+      //if (ext == ".ktx2" || ext == ".KTX2")
+      //{
+      //    return Detail::loadFromFileKTX2(path, texture, type);
+      //}
+      //ASSERT(type == vk::TextureType::Tex2D);
+      //return Detail::loadFromFileStandard(path, texture, sRGB);
 
-    const std::string ext = path.extension().string();
-    if (ext == ".ktx" || ext == ".KTX")
-    {
-        ASSERT(type == vk::TextureType::Tex2D);
-        return Detail::loadFromFileKTX(path, texture, type);
-    }
-    if (ext == ".ktx2" || ext == ".KTX2")
-    {
-        return Detail::loadFromFileKTX2(path, texture, type);
-    }
+      if (!VFS::FileExists(path))
+      {
+          LOG_WARNING("Texture file not found: {}", path);
+          return false;
+      }
+      const std::string ext = VFS::GetExtension(path);
 
-    ASSERT(type == vk::TextureType::Tex2D);
-    return Detail::loadFromFileStandard(path, texture, sRGB);
+      std::vector<uint8_t> fileData;
+      if (!VFS::ReadFile(path, fileData))
+      {
+          LOG_WARNING("VFS: Read texture file failed: {}", path);
+          return false;
+      }
+
+      if (ext == ".ktx" || ext == ".KTX")
+      {
+          ASSERT(type == vk::TextureType::Tex2D);
+          return Detail::loadFromMemoryKTX(fileData.data(), fileData.size(), path, texture, type);
+      }
+      if (ext == ".ktx2" || ext == ".KTX2")
+      {
+          return Detail::loadFromMemoryKTX2(fileData.data(), fileData.size(), path, texture, type);
+      }
+
+      ASSERT(type == vk::TextureType::Tex2D);
+      return Detail::loadFromMemory(fileData.data(), fileData.size(), texture, path, sRGB);
   }
   namespace Detail
   {
@@ -160,6 +186,45 @@ namespace Resource::TextureLoading
       LOG_DEBUG("Loaded KTX texture '{}' - {}x{}, {} mips", path.string(), texture.width, texture.height, ktxTex->numLevels);
 
       return true;
+    }
+
+    bool loadFromMemoryKTX(const uint8_t* data, size_t size, const std::string& path, ProcessedTexture& texture, vk::TextureType type)
+    {
+        ktxTexture1* ktxTex = nullptr;
+
+        const auto result = ktxTexture1_CreateFromMemory(data, size, KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT, &ktxTex);
+
+        if (result != KTX_SUCCESS || !ktxTex)
+        {
+            LOG_WARNING("Failed to load KTX file '{}'", path);
+            return false;
+        }
+
+        SCOPE_EXIT{ ktxTexture_Destroy(ktxTexture(ktxTex)); };
+
+        // Extract texture properties
+        texture.originalFileSize = size;
+        texture.width = ktxTex->baseWidth;
+        texture.height = ktxTex->baseHeight;
+        texture.channels = 4; // Most KTX textures are 4-channel
+
+        // Copy texture data
+        const size_t dataSize = ktxTexture_GetDataSize(ktxTexture(ktxTex));
+        texture.data.resize(dataSize);
+        std::memcpy(texture.data.data(), ktxTex->pData, dataSize);
+
+        // Create descriptor
+        texture.textureDesc = vk::TextureDesc{ 
+            .type = type, 
+            .format = vk::vkFormatToFormat(ktxTexture1_GetVkFormat(ktxTex)), 
+            .dimensions = {texture.width, texture.height, 1}, 
+            .usage = vk::TextureUsageBits_Sampled, 
+            .numMipLevels = ktxTex->numLevels, 
+            .debugName = path.c_str() };
+
+        LOG_DEBUG("Loaded KTX texture '{}' - {}x{}, {} mips", path, texture.width, texture.height, ktxTex->numLevels);
+
+        return true;
     }
 
     bool loadFromFileKTX2(const std::filesystem::path& path, ProcessedTexture& texture, vk::TextureType type)
@@ -206,6 +271,54 @@ namespace Resource::TextureLoading
 
         LOG_DEBUG("Loaded KTX2 texture '{}' - {}x{}, {} mips",
             path.string(), texture.width, texture.height, ktxTex->numLevels/*, vk::getFormatName(texture.textureDesc.format)*/);
+
+        return true;
+    }
+
+    bool loadFromMemoryKTX2(const uint8_t* data, size_t size, const std::string& path, ProcessedTexture& texture, vk::TextureType type)
+    {
+        ktxTexture2* ktxTex = nullptr;
+
+        KTX_error_code result = ktxTexture2_CreateFromMemory(data, size, KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT, &ktxTex);
+
+        if (result != KTX_SUCCESS || !ktxTex)
+        {
+            LOG_WARNING("Failed to load KTX2 file '{}'. KTX Error: {}", path, ktxErrorString(result));
+            if (ktxTex) ktxTexture_Destroy(ktxTexture(ktxTex));
+            return false;
+        }
+
+        if (ktxTex->classId != class_id::ktxTexture2_c)
+        {
+            LOG_WARNING("File '{}' is not a KTX2 file. Found KTX1 instead.", path);
+            ktxTexture_Destroy(ktxTexture(ktxTex));
+            return false;
+        }
+
+        SCOPE_EXIT{ ktxTexture_Destroy(ktxTexture(ktxTex)); };
+
+        // Extract texture properties
+        texture.originalFileSize = size;
+        texture.width = ktxTex->baseWidth;
+        texture.height = ktxTex->baseHeight;
+        texture.channels = 4; // Most KTX textures are 4-channel
+
+        // Copy texture data
+        const size_t dataSize = ktxTexture_GetDataSize(ktxTexture(ktxTex));
+        texture.data.resize(dataSize);
+        std::memcpy(texture.data.data(), ktxTex->pData, dataSize);
+
+        // Create descriptor
+        texture.textureDesc = vk::TextureDesc{
+            .type = type,
+            .format = vk::vkFormatToFormat(static_cast<VkFormat>(ktxTex->vkFormat)),
+            .dimensions = {texture.width, texture.height, 1},
+            .usage = vk::TextureUsageBits_Sampled,
+            .numMipLevels = ktxTex->numLevels,
+            .debugName = path.c_str() };
+
+        LOG_DEBUG("Loaded KTX2 texture '{}' - {}x{}, {} mips",
+            path, texture.width, texture.height, ktxTex->numLevels/*, vk::getFormatName(texture.textureDesc.format)*/);
 
         return true;
     }

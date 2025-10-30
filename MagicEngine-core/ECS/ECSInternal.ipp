@@ -26,6 +26,7 @@ All rights reserved.
 #include <iostream>
 #include "Utilities/TypeID.h"
 #include "Utilities/Utilities.h"
+#include "Utilities/RandUID.h"
 
 namespace ecs {
 
@@ -240,36 +241,6 @@ namespace ecs {
 			iterator_blueprint<CompType, EntityHandleType, ValueType> copy{ *this };
 			--*this;
 			return copy;
-		}
-
-		template <typename CompType, typename EntityHandleType, typename ValueType>
-		CompArr::iterator_blueprint<CompType, EntityHandleType, ValueType> operator+(
-			const CompArr::iterator_blueprint<CompType, EntityHandleType, ValueType>& iter, int offset)
-		{
-			return CompArr::iterator_blueprint<CompType, EntityHandleType, ValueType>{ iter.compStepSize, iter.ptr + offset * iter.compStepSize };
-		}
-
-		template<typename CompType, typename EntityHandleType, typename ValueType>
-		CompArr::iterator_blueprint<CompType, EntityHandleType, ValueType>::difference_type operator-(
-			const CompArr::iterator_blueprint<CompType, EntityHandleType, ValueType>& a,
-			const CompArr::iterator_blueprint<CompType, EntityHandleType, ValueType>& b)
-		{
-			return (a.ptr - b.ptr) / a.compStepSize;
-		}
-
-		template <typename CompType, typename EntityHandleType, typename ValueType>
-		bool operator==(
-			const CompArr::iterator_blueprint<CompType, EntityHandleType, ValueType>& a,
-			const CompArr::iterator_blueprint<CompType, EntityHandleType, ValueType>& b)
-		{
-			return a.ptr == b.ptr;
-		}
-		template <typename CompType, typename EntityHandleType, typename ValueType>
-		bool operator!=(
-			const CompArr::iterator_blueprint<CompType, EntityHandleType, ValueType>& a,
-			const CompArr::iterator_blueprint<CompType, EntityHandleType, ValueType>& b)
-		{
-			return a.ptr != b.ptr;
 		}
 
 
@@ -578,13 +549,15 @@ namespace ecs {
 		template<typename T>
 		constexpr CompHash GetCompHash()
 		{
-			return typeid(T).hash_code();
+			//return typeid(T).hash_code();
+			return util::ConsistentHash<T>();
 		}
 		// Gets the hash of a system type
 		template<typename T>
 		constexpr SysHash GetSysHash()
 		{
-			return typeid(T).hash_code();
+			//return typeid(T).hash_code();
+			return util::ConsistentHash<T>();
 		}
 
 		template<typename T>

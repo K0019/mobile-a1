@@ -19,6 +19,9 @@ public:
     bool FileExists(const std::string& path) const override;
     std::vector<std::string> ListDirectory(const std::string& path) override;
 
+    std::string GetPhysicalPath(const std::string& path) const override;
+    std::string GetPhysicalRoot() const override;
+
 private:
     std::filesystem::path m_RootPath;
 };

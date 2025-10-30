@@ -1,3 +1,6 @@
 [submodule "extern/vcpkg"]
 	path = extern/vcpkg
 	url = https://github.com/microsoft/vcpkg
+[submodule "extern/KTX-Software"]
+	path = extern/KTX-Software
+	url = https://github.com/KhronosGroup/KTX-Software.git

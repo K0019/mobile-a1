@@ -393,7 +393,8 @@ public:
     \param filepath
         The filepath to deserialize from. This should also include the file extension.
     *//******************************************************************/
-    Deserializer(const std::string& filepath);
+    Deserializer(const std::string& input);
+
 
     /*****************************************************************//*!
     \brief

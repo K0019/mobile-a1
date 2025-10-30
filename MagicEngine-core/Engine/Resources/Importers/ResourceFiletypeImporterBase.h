@@ -20,20 +20,23 @@ All rights reserved.
 /******************************************************************************/
 
 #pragma once
+#include "VFS/VFS.h"
 #include "Engine/Resources/ResourceFilepaths.h"
 #include "Engine/Resources/ResourceManager.h"
 
 class ResourceFiletypeImporterBase
 {
 public:
-    virtual bool Import(const std::filesystem::path& assetRelativeFilepath) = 0;
+    virtual bool Import(const std::string& assetRelativeFilepath) = 0;
 
 protected:
     static size_t GenerateNewHash();
+
     static std::filesystem::path GetExeRelativeFilepath(const std::filesystem::path& assetRelativeFilepath);
 
     template <typename ...ResourceTypes, typename ...ResourceCountType>
-    static const ResourceFilepaths::FileEntry* GenerateFileEntryForResources(const std::filesystem::path& assetRelativeFilepath, ResourceCountType... numResources);
+    static const ResourceFilepaths::FileEntry* GenerateFileEntryForResources(const std::string& assetRelativeFilepath, ResourceCountType... numResources);
+
 private:
     template <typename ResourceType, typename ...RemainingResourceTypes, typename ...ResourceCountType>
     static void GenerateHashForOneResourceType(std::vector<AssociatedResourceHashes>::iterator resourceHashes, size_t numResource, ResourceCountType... remaining);
@@ -42,14 +45,14 @@ private:
 protected:
     template <typename ResourceType>
     static void GenerateHashesForResourceType(AssociatedResourceHashes* resource, size_t numHashes);
-    static void GenerateNamesForResources(std::vector<AssociatedResourceHashes>& resources, const std::filesystem::path& relativeFilepath);
+    static void GenerateNamesForResources(std::vector<AssociatedResourceHashes>& resources, const std::string& relativeFilepath);
 
 private:
 
 };
 
 template<typename ...ResourceTypes, typename ...ResourceCountType>
-const ResourceFilepaths::FileEntry* ResourceFiletypeImporterBase::GenerateFileEntryForResources(const std::filesystem::path& assetRelativeFilepath, ResourceCountType ...numResources)
+const ResourceFilepaths::FileEntry* ResourceFiletypeImporterBase::GenerateFileEntryForResources(const std::string& assetRelativeFilepath, ResourceCountType ...numResources)
 {
     if (const ResourceFilepaths::FileEntry* existingFileEntry{ ST<MagicResourceManager>::Get()->INTERNAL_GetFilepathsManager().GetFileEntry(assetRelativeFilepath)})
         return existingFileEntry;
@@ -74,7 +77,7 @@ void ResourceFiletypeImporterBase::GenerateHashForOneResourceType(std::vector<As
 template <typename ResourceType>
 void ResourceFiletypeImporterBase::GenerateHashesForResourceType(AssociatedResourceHashes* resource, size_t numHashes)
 {
-    resource->resourceTypeHash = typeid(ResourceType).hash_code();
+    resource->resourceTypeHash = util::ConsistentHash<ResourceType>();
     for (size_t i{}; i < numHashes; ++i)
         resource->hashes.push_back(GenerateNewHash());
 }

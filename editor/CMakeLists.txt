@@ -74,7 +74,6 @@ if(NOT ANDROID)
             "\"${EXTERNAL_LIBRARIES_WHOLE_DIRECTORIES}\""
             "\"$<TARGET_FILE_DIR:Editor>\""
         COMMAND cmd.exe /c if "$(Configuration)" == "Release" "${CMAKE_COMMAND}" -E copy_directory_if_different "${CMAKE_SOURCE_DIR}/Assets" "$<TARGET_FILE_DIR:Editor>/Assets"
-        COMMAND ${CMAKE_COMMAND} -E copy_directory_if_different "\"${PROJECT_SOURCE_DIR}/Shaders\"" "\"$<TARGET_FILE_DIR:Editor>/Shaders\""
     )
 endif()
 

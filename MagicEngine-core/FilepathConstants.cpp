@@ -25,18 +25,19 @@ const std::string Filepaths::workingDir = "../../..";
 const std::string Filepaths::workingDir = ".";
 #endif
 
-const std::string Filepaths::gameSettings		= Filepaths::workingDir + "/Assets/Settings.json";
 const std::string Filepaths::assets				= Filepaths::workingDir + "/Assets";
+const std::string Filepaths::imguiJson			= Filepaths::workingDir + "/imgui.json";	//Physical path. outside of assets directory
+const std::string Filepaths::gameSettings		= "Settings.json";
 
-const std::string Filepaths::assetsJson			= Filepaths::assets + "/assets.json";
-const std::string Filepaths::shadersSave		= Filepaths::workingDir + "/Shaders";
-const std::string Filepaths::fontsSave			= Filepaths::assets + "/Fonts";
-const std::string Filepaths::prefabsSave		= Filepaths::assets + "/Prefab";
-const std::string Filepaths::scenesSave			= Filepaths::assets + "/Scenes";
-const std::string Filepaths::scriptsSave		= Filepaths::assets + "/Scripts";
-const std::string Filepaths::materialsSave		= Filepaths::assets + "/Materials";
-const std::string Filepaths::behaviourTreeSave	= Filepaths::assets + "/BehaviourTrees";
-const std::string Filepaths::soundFolder		= Filepaths::assets + "/Sounds";
+const std::string Filepaths::assetsJson			= "assets.json";
+const std::string Filepaths::shadersSave		= "Shaders";
+const std::string Filepaths::fontsSave			= "Fonts";
+const std::string Filepaths::prefabsSave		= "Prefabs";
+const std::string Filepaths::scenesSave			= "Scenes";
+const std::string Filepaths::scriptsSave		= "Scripts";
+const std::string Filepaths::materialsSave		= "Materials";
+const std::string Filepaths::behaviourTreeSave	= "BehaviourTrees";
+const std::string Filepaths::soundFolder		= "Sounds";
 
 const std::string Filepaths::graphicsWindowIcon = Filepaths::assets + "/Icon_game.png";
 

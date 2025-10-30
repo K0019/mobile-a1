@@ -29,6 +29,7 @@ All rights reserved.
 #include <string>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include <boost/type_index.hpp>
 
 namespace util {
 
@@ -68,5 +69,26 @@ namespace util {
 	*//******************************************************************/
 	size_t HashMatrix(const glm::mat4& mat);
 
+	/*****************************************************************//*!
+	\brief
+		Returns a hash of an object that is consistent across platforms.
+	*//******************************************************************/
+	template <typename T>
+	uint64_t ConsistentHash();
+
 }
 
+namespace util {
+
+	template<typename T>
+	uint64_t ConsistentHash()
+	{
+		std::string prettyName{ boost::typeindex::type_id<T>().pretty_name() };
+#ifdef GLFW
+		// MSVC appends a class/struct/whatever to the start. Remove it to get a consistent name
+		prettyName.erase(0, prettyName.find(' ') + 1);
+#endif
+		return GenHash(prettyName);
+	}
+
+}

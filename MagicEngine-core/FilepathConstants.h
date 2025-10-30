@@ -31,6 +31,7 @@ private:
 public:
 	static const std::string workingDir;
 	static const std::string gameSettings;
+	static const std::string imguiJson;
 
 	// Assets folder
 	static const std::string assets;

@@ -35,7 +35,8 @@ void GraphicsMain::Init(Context inContext)
 	ST<GraphicsScene>::Get()->Init(inContext);
 
 #ifdef IMGUI_ENABLED
-	InitImGui(Filepaths::fontsSave + "/Lato-Regular.ttf");
+	InitImGui(Filepaths::assets + "/Fonts" + "/Lato-Regular.ttf");
+	//InitImGui(Filepaths::fontsSave + "/Lato-Regular.ttf");
 #endif
 }
 
@@ -217,11 +218,10 @@ editor::ImGuiContext& GraphicsMain::GetImGuiContext()
 {
 	return *imguiContext.get();
 }
+#endif // IMGUI_ENABLED
 
 Resource::ResourceManager& GraphicsMain::GetAssetSystem()
 {
 	assert(context.resourceMngr);
 	return *context.resourceMngr;
 }
-
-#endif

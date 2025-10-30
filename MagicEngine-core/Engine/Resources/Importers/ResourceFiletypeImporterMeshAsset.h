@@ -5,7 +5,7 @@
 class ResourceFiletypeImporterMeshAsset : public ResourceFiletypeImporterBase
 {
 public:
-    virtual bool Import(const std::filesystem::path& assetRelativeFilepath) final;
+    virtual bool Import(const std::string& assetRelativeFilepath) final;
 
 };
 

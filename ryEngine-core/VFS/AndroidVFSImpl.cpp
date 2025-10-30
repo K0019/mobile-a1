@@ -37,6 +37,38 @@ bool AndroidVFSImpl::FileExists(const std::string& path) const
         AAsset_close(assetHandle);
         return true;
     }
+
+    // TODO: a proper isdirectory... 
+    // This fake way uses assetsmanifest to do so
+    std::string manifestContent;
+
+    if (!VFS::ReadFile("asset_manifest.txt", manifestContent))
+    {
+        // WHERE IS MY MANIFEST????!!!!.
+        return false;
+    }
+
+    // Since this part searched for directories, we append / in case
+    std::string dirPath = path;
+    if (!dirPath.empty() && dirPath.back() != '/')
+    {
+        dirPath += '/';
+    }
+
+    std::stringstream ss(manifestContent);
+    std::string line;
+
+    while (std::getline(ss, line, '\n'))
+    {
+        if (line.rfind(dirPath, 0) == 0)
+        {
+            // Found at least one file inside this path,
+            // so the directory exists.
+            return true;
+        }
+    }
+
+
     return false;
 }
 
@@ -90,6 +122,16 @@ std::vector<std::string> AndroidVFSImpl::ListDirectory(const std::string & path)
         }
     }
     return entries;
+}
+
+std::string AndroidVFSImpl::GetPhysicalPath(const std::string& path) const
+{
+    return "";  // idea of physical path not supported on android assets mount. it's just "", where the assets directory lives.
+}
+
+std::string AndroidVFSImpl::GetPhysicalRoot() const
+{
+    return "";
 }
 
 
