@@ -103,6 +103,11 @@ namespace physics {
 		ecs::GetEntity(this)->GetComp<JoltBodyComp>()->SetLinearVelocity(vel);
 	}
 
+	void PhysicsComp::AddLinearVelocity(const Vec3& vel)
+	{
+		ecs::GetEntity(this)->GetComp<JoltBodyComp>()->AddLinearVelocity(vel);
+	}
+
 	Vec3 PhysicsComp::GetAngularVelocity() const
 	{
 		return ecs::GetEntity(this)->GetComp<JoltBodyComp>()->GetAngularVelocity();
