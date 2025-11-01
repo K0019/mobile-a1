@@ -98,6 +98,7 @@ find_package(quill CONFIG REQUIRED)
 
 find_package(Jolt CONFIG REQUIRED)
 find_package(Stb REQUIRED)
+find_package(Lua REQUIRED)
 
 # ImGui dependencies (cross-platform)
 find_package(imgui CONFIG REQUIRED)

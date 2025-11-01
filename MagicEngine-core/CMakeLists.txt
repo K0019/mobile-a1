@@ -24,6 +24,7 @@ if (NOT ANDROID)
         Jolt::Jolt
         KTX::ktx
         Boost::boost
+        ${LUA_INCLUDE_DIR}
     )
 else()
     set(CORE_PUBLIC_DEPS
@@ -31,6 +32,7 @@ else()
         $<$<CONFIG:Release>:${EXTERNAL_LIBRARIES_STATIC_RELEASE}>
         glm::glm-header-only
         Jolt::Jolt
+        ${LUA_INCLUDE_DIR}
     )
 
     set(CORE_PRIVATE_DEPS
