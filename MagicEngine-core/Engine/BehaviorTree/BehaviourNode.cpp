@@ -345,7 +345,8 @@ NODE_STATUS MoveDown::OnUpdate(ecs::EntityHandle entity)
 }
 
 void DetectClickTest::OnInitialize()
-{ }
+{ 
+}
 NODE_STATUS DetectClickTest::OnUpdate(ecs::EntityHandle entity)
 {
     //FOR DEMO

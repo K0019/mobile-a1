@@ -23,6 +23,7 @@ All rights reserved.
 namespace bt {
     bool LoadBTAssetFromFile(const std::string& path, BehaviorTreeAsset* out)
     {
+        CONSOLE_LOG(LEVEL_DEBUG) << "The file path when LoadBTAssetFromFile is " << path;
         Deserializer r(path);
         if (!r.IsValid()) return false;
         return r.Deserialize(out);

@@ -53,6 +53,7 @@ void BehaviorTree::Set(ecs::EntityHandle entityHandle)
     //All the data of the tree.
     std::string fileName{ Filepaths::behaviourTreeSave + "/" + btName + ".json"};
     BehaviorTreeAsset btAsset{};
+
     if (!bt::LoadBTAssetFromFile(fileName, &btAsset))
     {
         CONSOLE_LOG(LEVEL_ERROR) << "behavior tree file could not be loaded.";
@@ -149,6 +150,9 @@ void BehaviorTreeComp::OnAttached()
 
 void BehaviorTreeComp::OnStart()
 {
+    //const auto& name = behaviorTree.GetName();   // btName from central deserializer
+    //CONSOLE_LOG(LEVEL_INFO) << "[BTComp] OnStart btName='" << name << "'";
+
     behaviorTree.Set(ecs::GetEntity(this));
 }
 
@@ -159,6 +163,10 @@ void BehaviorTreeComp::OnDetached()
 
 void BehaviorTreeComp::Update()
 {
+    if ( !behaviorTree.GetName().empty()) {
+        behaviorTree.Set(ecs::GetEntity(this));  // guarded; will log and return if anything is wrong
+    }
+
     behaviorTree.Update();
 }
 
