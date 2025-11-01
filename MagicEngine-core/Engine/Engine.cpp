@@ -66,6 +66,9 @@ All rights reserved.
 #include "Editor/Import.h"
 #include "math/camera.h"
 
+#include "core/platform/android/android_input_system.h"
+
+
 #ifdef IMGUI_ENABLED
 namespace
 {
@@ -129,6 +132,10 @@ void MagicEngine::MarkToShutdown()
 bool MagicEngine::IsShuttingDown() const
 {
 	return ST<GraphicsMain>::Get()->GetIsPendingShutdown();
+}
+
+static void OnTap(float x, float y, int /*pointerId*/) {
+	CONSOLE_LOG(LEVEL_INFO) << "[AndroidInput] Tap @ (" << x << ", " << y << ")";
 }
 
 void MagicEngine::Init(Context& context)
@@ -215,6 +222,11 @@ void MagicEngine::Init(Context& context)
 	loadState("imgui.json");
 	editor::CreateGuiWindow<CustomViewport>(static_cast<unsigned int>(worldExtents.x), static_cast<unsigned int>(worldExtents.y));
 #endif
+
+#if defined(__ANDROID__)
+	ry_set_tap_callback(&OnTap);
+
+#endif
 }
 
 void MagicEngine::ExecuteFrame(FrameData& frameData)
@@ -226,6 +238,7 @@ void MagicEngine::ExecuteFrame(FrameData& frameData)
 	// Clear the events of the previous frame
 	ST<EventsQueue>::Get()->NewFrame();
 	
+
 	ST<MagicInput>::Get()->NewFrame();
 	//GamepadInput::PollInput();
 
@@ -340,6 +353,7 @@ void MagicEngine::ExecuteFrame(FrameData& frameData)
 	// TODO: Put this in some editor windows manager class. In fact, all of this imgui stuff needs to be put in that class or subclasses.
 	/*if (ST<KeyboardMouseInput>::Get()->GetIsPressed(KEY::GRAVE))
 		ST<Console>::Get()->SetIsOpen(!ST<Console>::Get()->GetIsOpen());*/
+
 #endif
 
 	if(ST<KeyboardMouseInput>::Get()->GetIsPressed(KEY::F11))

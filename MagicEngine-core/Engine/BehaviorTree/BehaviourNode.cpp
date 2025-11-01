@@ -349,16 +349,23 @@ void DetectClickTest::OnInitialize()
 NODE_STATUS DetectClickTest::OnUpdate(ecs::EntityHandle entity)
 {
     //FOR DEMO
+
     static bool prev = false; // remembers last frame state
 
     auto input = ST<MagicInput>::Get();
     if (input)
     {
+        bool now = false;
         if (auto act = input->GetAction<bool>("ClickTest")) {
-            CONSOLE_LOG(LEVEL_DEBUG) << "Can click anywhere";
+            now = act->GetValue();   // true while the button is held
         }
 
+        if (now && !prev)            // toggle only on the rising edge
+            CONSOLE_LOG(LEVEL_DEBUG) << "Can click anywhere";
+
+        prev = now;
     }
+
 
     //if (reverse == 0) {
     //    entity->GetTransform().SetWorldPosition(entity->GetTransform().GetWorldPosition() + Vec3{ 0.f, -0.15f, 0.f });
