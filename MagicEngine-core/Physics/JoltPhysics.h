@@ -280,6 +280,22 @@ namespace physics {
 
 		/*****************************************************************//*!
 		\brief
+			Get the linear velocity of the body.
+		\return
+			linear velocity value.
+		*//******************************************************************/
+		Vec3 GetLinearVelocity() const;
+
+		/*****************************************************************//*!
+		\brief
+			Get the angular velocity of the body.
+		\return
+			angular velocity value.
+		*//******************************************************************/
+		Vec3 GetAngularVelocity() const;
+
+		/*****************************************************************//*!
+		\brief
 			Set the motion type of the body. DYNAMIC, KINEMATIC, STATIC
 		\param type
 			motion type value.
@@ -341,6 +357,14 @@ namespace physics {
 			linear velocity value.
 		*//******************************************************************/
 		void SetLinearVelocity(const Vec3& vel);
+
+		/*****************************************************************//*!
+		\brief
+			Add linear velocity to the current linear velocity of the body.
+		\param vel
+			linear velocity value to add.
+		*//******************************************************************/
+		void AddLinearVelocity(const Vec3& vel);
 
 		/*****************************************************************//*!
 		\brief

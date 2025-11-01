@@ -34,7 +34,6 @@ static const char* physicsFlagNames[]{
 namespace physics {
 	PhysicsComp::PhysicsComp()
 		: flags{ PHYSICS_COMP_FLAG::USE_GRAVITY, PHYSICS_COMP_FLAG::ENABLED }
-		, linearVel{}
 	{
 	}
 
@@ -94,26 +93,24 @@ namespace physics {
 		flags.SetMask(flag, val);
 	}
 
-	const Vec3& PhysicsComp::GetLinearVelocity() const
+	Vec3 PhysicsComp::GetLinearVelocity() const
 	{
-		return linearVel;
+		return ecs::GetEntity(this)->GetComp<JoltBodyComp>()->GetLinearVelocity();
 	}
 
 	void PhysicsComp::SetLinearVelocity(const Vec3& vel)
 	{
 		ecs::GetEntity(this)->GetComp<JoltBodyComp>()->SetLinearVelocity(vel);
-		linearVel = vel;
 	}
 
-	const Vec3& PhysicsComp::GetAngularVelocity() const
+	Vec3 PhysicsComp::GetAngularVelocity() const
 	{
-		return angularVel;
+		return ecs::GetEntity(this)->GetComp<JoltBodyComp>()->GetAngularVelocity();
 	}
 
 	void PhysicsComp::SetAngularVelocity(const Vec3& vel)
 	{
 		ecs::GetEntity(this)->GetComp<JoltBodyComp>()->SetAngularVelocity(vel);
-		angularVel = vel;
 	}
 
 	void PhysicsComp::EditorDraw()
