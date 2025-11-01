@@ -232,7 +232,7 @@ X(ENABLED, "Enabled")
 		*//******************************************************************/
 		void SetSize(const Vec3& val);
 
-		void Serialize(Serializer& writer) const;
+		void Serialize(Serializer& writer) const override;
 		void Deserialize(Deserializer& reader) override;
 
 	private:

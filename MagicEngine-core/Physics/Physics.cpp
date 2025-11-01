@@ -164,7 +164,7 @@ namespace physics {
 			ecs::GetEntity(this)->GetComp<JoltBodyComp>()->SetGravityFactor(gravity ? 1.f : 0.f);
 		}
 
-		ImGui::Text("Freeze Rotation");
+		gui::TextUnformatted("Freeze Rotation");
 		if (gui::Checkbox("X", &lockX))
 		{
 			SetFlag(PHYSICS_COMP_FLAG::ROTATION_LOCKED_X, lockX);
@@ -247,8 +247,10 @@ namespace physics {
 			if (!layers.TestMaskAll())
 			{
 				if (auto layerComp{ compIter.GetEntity()->GetComp<EntityLayerComponent>() })
+				{
 					if (!layers.TestMask(layerComp->GetLayer()))
 						continue;
+				}
 				else 
 					continue;
 			}
@@ -278,10 +280,12 @@ namespace physics {
 			if (!layers.TestMaskAll())
 			{
 				if (auto layerComp{ compIter.GetEntity()->GetComp<EntityLayerComponent>() })
+				{
 					if (!layers.TestMask(layerComp->GetLayer()))
 						continue;
-					else
-						continue;
+				}
+				else
+					continue;
 			}
 
 			Vec3 pos{ compIter.GetEntity()->GetComp<JoltBodyComp>()->GetPosition() };
