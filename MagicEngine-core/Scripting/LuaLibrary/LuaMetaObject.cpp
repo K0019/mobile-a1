@@ -47,18 +47,18 @@ void LuaMetaObject::_storeData() {
 void LuaMetaObject::_retreiveData() {
 }
 
-std::shared_ptr<LuaType> LuaMetaObject::getValue(int key) {
+std::shared_ptr<LuaType> LuaMetaObject::getValue(int) {
 	return std::make_shared<LuaTNil>();
 }
 
-std::shared_ptr<LuaType> LuaMetaObject::getValue(std::string &key) {
+std::shared_ptr<LuaType> LuaMetaObject::getValue(std::string &) {
 	return std::make_shared<LuaTNil>();
 }
 
-void LuaMetaObject::setValue(int key, std::shared_ptr<LuaType> val) {
+void LuaMetaObject::setValue(int, std::shared_ptr<LuaType>) {
 }
 
-void LuaMetaObject::setValue(std::string &key, std::shared_ptr<LuaType> val) {
+void LuaMetaObject::setValue(std::string &, std::shared_ptr<LuaType>) {
 }
 
 int LuaMetaObject::_getValue(LuaState &L) {
@@ -66,7 +66,7 @@ int LuaMetaObject::_getValue(LuaState &L) {
 		std::string key(lua_tostring(L, 2));
 		getValue(key)->PushValue(L);
 	} else {
-		getValue(lua_tointeger(L,2))->PushValue(L);
+		getValue(static_cast<int>(lua_tointeger(L,2)))->PushValue(L);
 	}
 	return 1;
 }
@@ -104,14 +104,14 @@ int LuaMetaObject::_setValue(LuaState &L) {
 		std::string key(lua_tostring(L, 2));
 		setValue(key, val);
 	} else {
-		int key = lua_tointeger(L,2);
+		int key = static_cast<int>(lua_tointeger(L,2));
 		setValue(key, val);
 	}
 
 	return 0;
 }
 
-int LuaMetaObject::Execute(LuaState &L) {
+int LuaMetaObject::Execute(LuaState &) {
 	return 0;
 }
 

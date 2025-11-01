@@ -159,7 +159,7 @@ void LuaTTable::PopValue(LuaState &L, int idx) {
 			if (lua_type(L, -2) == LUA_TSTRING) {
 				setValue(Table::Key(lua_tostring(L,-2)), field);
 			} else {
-				setValue(Table::Key(lua_tointeger(L,-2)), field);
+				setValue(Table::Key(static_cast<int>(lua_tointeger(L,-2))), field);
 			}
 			lua_pop(L,1); // Remove the value from the stack so lua_next can continue
 		}

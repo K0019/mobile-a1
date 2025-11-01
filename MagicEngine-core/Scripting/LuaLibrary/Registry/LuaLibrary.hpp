@@ -146,12 +146,12 @@ namespace LuaCpp {
 			 *
 			 * @return true if the method name is already in the library, otherwise false
 			 */
-			 bool inline Exists_m(const std::string &name) {
-			    return !(methods.find( name ) == methods.end());
+			 bool inline Exists_m(const std::string &inName) {
+			    return !(methods.find( inName ) == methods.end());
 			}
 			
-			 bool inline Exists_m_meta(const std::string &name) {
-			    return !(metaMethods.find(name) == metaMethods.end());
+			 bool inline Exists_m_meta(const std::string & inName) {
+			    return !(metaMethods.find(inName) == metaMethods.end());
 			}
 
 			/**
@@ -162,8 +162,8 @@ namespace LuaCpp {
 			 *
 			 * @return true if the function name is already in the library, otherwise false
 			 */
-			 bool inline Exists_f(const std::string &name) {
-				return !(functions.find( name ) == functions.end());
+			 bool inline Exists_f(const std::string & inName) {
+				return !(functions.find(inName) == functions.end());
 			}
 
 			/**

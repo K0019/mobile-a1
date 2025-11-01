@@ -43,74 +43,74 @@ void LuaLibrary::setName(const std::string &_name) {
 	name = std::move(_name);
 }
 
-void LuaLibrary::AddCMetaMethod(const std::string &name, lua_CFunction cfunction) {
-	AddCMetaMethod(name, cfunction, false);
+void LuaLibrary::AddCMetaMethod(const std::string & inName, lua_CFunction cfunction) {
+	AddCMetaMethod(inName, cfunction, false);
 }
 
-void LuaLibrary::AddCMetaMethod(const std::string &name, lua_CFunction cfunction, bool replace)
+void LuaLibrary::AddCMetaMethod(const std::string & inName, lua_CFunction cfunction, bool replace)
 {
    // if we want to replace already existing element, we have to remove old one from list first:
    if(replace)
    {
-       metaMethods.erase(name);
+       metaMethods.erase(inName);
    }
 
-   if(!Exists_m_meta(name))
+   if(!Exists_m_meta(inName))
    {
        std::unique_ptr<LuaCFunction> func = std::make_unique<LuaCFunction>(cfunction);
-       func->setName(name);
-       metaMethods.insert(std::make_pair(name, std::move(*func)));
+       func->setName(inName);
+       metaMethods.insert(std::make_pair(inName, std::move(*func)));
    }
 }
 
-void LuaLibrary::AddCMethod(const std::string &name, lua_CFunction cfunction) {
-	AddCMethod(name, cfunction, false);
+void LuaLibrary::AddCMethod(const std::string & inName, lua_CFunction cfunction) {
+	AddCMethod(inName, cfunction, false);
 }
 
-void LuaLibrary::AddCMethod(const std::string &name, lua_CFunction cfunction, bool replace)
+void LuaLibrary::AddCMethod(const std::string & inName, lua_CFunction cfunction, bool replace)
 {
 	// if we want to replace already existing element, we have to remove old one from list first:
 	if(replace)
 	{
-		methods.erase(name);
+		methods.erase(inName);
 	}
 
-	if(!Exists_m(name))
+	if(!Exists_m(inName))
 	{
 		std::unique_ptr<LuaCFunction> func = std::make_unique<LuaCFunction>(cfunction);
-		func->setName(name);
-		methods.insert(std::make_pair(name, std::move(*func)));
+		func->setName(inName);
+		methods.insert(std::make_pair(inName, std::move(*func)));
 	}
 }
 
-void LuaLibrary::AddCFunction(const std::string &name, lua_CFunction cfunction) {
-	AddCFunction(name, cfunction, false);
+void LuaLibrary::AddCFunction(const std::string & inName, lua_CFunction cfunction) {
+	AddCFunction(inName, cfunction, false);
 }
 
-void LuaLibrary::AddCFunction(const std::string &name, lua_CFunction cfunction, bool replace)
+void LuaLibrary::AddCFunction(const std::string & inName, lua_CFunction cfunction, bool replace)
 {
 	// if we want to replace already existing element, we have to remove old one from list first:
 	if(replace)
 	{
-		functions.erase(name);
+		functions.erase(inName);
 	}
 
-	if(!Exists_f(name))
+	if(!Exists_f(inName))
 	{
 		std::unique_ptr<LuaCFunction> func = std::make_unique<LuaCFunction>(cfunction);
-		func->setName(name);
-		functions.insert(std::make_pair(name, std::move(*func)));
+		func->setName(inName);
+		functions.insert(std::make_pair(inName, std::move(*func)));
 	}
 }
 
-lua_CFunction LuaLibrary::getLibMethod(const std::string &name)
+lua_CFunction LuaLibrary::getLibMethod(const std::string & inName)
 {
-	return methods.at(name).getCFunction();
+	return methods.at(inName).getCFunction();
 }
 
-lua_CFunction LuaLibrary::getLibFunction(const std::string &name)
+lua_CFunction LuaLibrary::getLibFunction(const std::string & inName)
 {
-	return functions.at(name).getCFunction();
+	return functions.at(inName).getCFunction();
 }
 
 int LuaLibrary::RegisterFunctions(LuaState &L)
@@ -166,7 +166,7 @@ int LuaLibrary::RegisterFunctions(LuaState &L)
 
 	// create method table:
 	//luaL_newlibtable(L, arraylib);
-	lua_createtable(L, 0, arrayLibSize - 1);
+	lua_createtable(L, 0, static_cast<int>(arrayLibSize - 1));
 
 	// Set the methods to the metatable that should be accessed via object:func:
 	luaL_setfuncs(L, arraylib, 0);
@@ -177,7 +177,7 @@ int LuaLibrary::RegisterFunctions(LuaState &L)
 
 	// Register the functions and methods into the global table:
 	//luaL_newlib(L, arraylib);
-	(luaL_checkversion_(L, 504, (sizeof(lua_Integer) * 16 + sizeof(lua_Number))), lua_createtable(L, 0, arrayLibSize - 1), luaL_setfuncs(L, arraylib, 0));
+	(luaL_checkversion_(L, 504, (sizeof(lua_Integer) * 16 + sizeof(lua_Number))), lua_createtable(L, 0, static_cast<int>(arrayLibSize - 1)), luaL_setfuncs(L, arraylib, 0));
 	lua_setglobal(L, name.c_str());
 	delete[] arraylib;
 

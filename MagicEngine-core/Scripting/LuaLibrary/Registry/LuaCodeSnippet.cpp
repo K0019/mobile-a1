@@ -42,7 +42,7 @@ int LuaCodeSnippet::WriteCode(unsigned char* buff, size_t size) {
 }	
 
 int LuaCodeSnippet::getSize() {
-	return code.size();
+	return static_cast<int>(code.size());
 }
 
 void LuaCodeSnippet::setName(std::string _name) {
@@ -61,11 +61,11 @@ void LuaCodeSnippet::UploadCode(LuaState &L) {
 	lua_load(L, code_reader, this, (const char *)name.c_str(), NULL);
 }
 
-int code_writer (lua_State* L, const void* p, size_t size, void* u) {
+int code_writer (lua_State* , const void* p, size_t size, void* u) {
 	return ((LuaCodeSnippet *) u)->WriteCode((unsigned char*)p, size);
 }
 
-const char * code_reader (lua_State *L, void *data, size_t *size) {
+const char * code_reader (lua_State *, void *data, size_t *size) {
 	*size = ((LuaCodeSnippet *)data)->getSize();
 	return ((LuaCodeSnippet *)data)->getBuffer();
 }
