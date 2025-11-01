@@ -168,7 +168,6 @@ void CharacterMovementComponentSystem::UpdateCharacterMovementComponent(Characte
 		newAngle = math::MoveTowardsAngle(currentRotation.y, targetAngle, comp.rotateSpeed * GameTime::Dt());
 		rotation.y = newAngle;
 	}
-
 	characterTransform.SetWorldRotation(rotation);
 
 	// Update held item
