@@ -226,6 +226,18 @@ namespace physics {
 		return ST<JoltPhysics>::Get()->GetBodyInterface().GetRotation(bodyID);
 	}
 
+	Vec3 JoltBodyComp::GetLinearVelocity() const
+	{
+		JPH::Vec3 vec{ ST<JoltPhysics>::Get()->GetBodyInterface().GetLinearVelocity(bodyID) };
+		return Vec3{ vec.GetX(), vec.GetY(), vec.GetZ() };
+	}
+
+	Vec3 JoltBodyComp::GetAngularVelocity() const
+	{
+		JPH::Vec3 vec{ ST<JoltPhysics>::Get()->GetBodyInterface().GetAngularVelocity(bodyID) };
+		return Vec3{ vec.GetX(), vec.GetY(), vec.GetZ() };
+	}
+
 	void JoltBodyComp::SetMotionType(JPH::EMotionType type)
 	{
 		ST<JoltPhysics>::Get()->GetBodyInterface().SetMotionType(bodyID, type, JPH::EActivation::Activate);
@@ -327,6 +339,12 @@ namespace physics {
 	{
 		JPH::Vec3 joltVel{ vel.x, vel.y, vel.z };
 		ST<JoltPhysics>::Get()->GetBodyInterface().SetLinearVelocity(bodyID, joltVel);
+	}
+
+	void JoltBodyComp::AddLinearVelocity(const Vec3& vel)
+	{
+		JPH::Vec3 joltVel{ vel.x, vel.y, vel.z };
+		ST<JoltPhysics>::Get()->GetBodyInterface().AddLinearVelocity(bodyID, joltVel);
 	}
 
 	void JoltBodyComp::SetAngularVelocity(const Vec3& vel)
