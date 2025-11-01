@@ -87,7 +87,7 @@
                 "13209209574413295037": {
                     "_active": true,
                     "active": true,
-                    "priority": 1,
+                    "priority": 3,
                     "zoom": 0.0
                 },
                 "13908760601806044847": {
@@ -161,6 +161,99 @@
                     "_active": true,
                     "moveSpeed": 10.0,
                     "rotateSpeed": 1440.0,
+                    "stunTimePerHit": 0.0,
+                    "entityUid": 378152835290477126
+                },
+                "18236831197208900764": {
+                    "_active": true,
+                    "center": {
+                        "x": 0.0,
+                        "y": 0.0,
+                        "z": 0.0
+                    },
+                    "size": {
+                        "x": 1.0,
+                        "y": 1.0,
+                        "z": 1.0
+                    },
+                    "flags": {
+                        "_majorityTrue": true,
+                        "_except": []
+                    }
+                }
+            }
+        },
+        {
+            "parentIndex": -1,
+            "position": {
+                "x": 0.0,
+                "y": 1.0,
+                "z": 10.761808395385742
+            },
+            "rotation": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "scale": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0
+            },
+            "components": {
+                "5725819782531291880": {
+                    "_active": true,
+                    "behaviorTree": {
+                        "btName": "enemybase"
+                    }
+                },
+                "6766054303456732338": {
+                    "_active": true,
+                    "layer": 0
+                },
+                "7205334411763290517": {
+                    "_active": true,
+                    "name": "Enemy"
+                },
+                "7930599578754533802": {
+                    "_active": true,
+                    "maxHealth": 1000.0,
+                    "currHealth": 100.0
+                },
+                "9315785795257285655": {
+                    "_active": true,
+                    "uid": 89746537111669461
+                },
+                "9501525575059265452": {
+                    "_active": true,
+                    "linearVel": {
+                        "x": 0.0,
+                        "y": 0.0,
+                        "z": 0.0
+                    },
+                    "angularVel": {
+                        "x": 8.251595947821721e-32,
+                        "y": 4.590513639281668e-41,
+                        "z": 3.9971291766735547e-23
+                    },
+                    "flags": {
+                        "_majorityTrue": true,
+                        "_except": [
+                            "Is Kinematic"
+                        ]
+                    }
+                },
+                "16763493199777387366": {
+                    "_active": true,
+                    "playerReference": {
+                        "entityUid": 51797992787031769
+                    }
+                },
+                "17579205194823809952": {
+                    "_active": true,
+                    "moveSpeed": 10.0,
+                    "rotateSpeed": 14400.0,
+                    "stunTimePerHit": 1.0,
                     "entityUid": 0
                 },
                 "18236831197208900764": {
@@ -216,12 +309,12 @@
                 },
                 "7930599578754533802": {
                     "_active": true,
-                    "maxHealth": 100,
-                    "currHealth": 100
+                    "maxHealth": 1000.0,
+                    "currHealth": 100.0
                 },
                 "9315785795257285655": {
                     "_active": true,
-                    "uid": 89746537111669461
+                    "uid": 239812282280350701
                 },
                 "9501525575059265452": {
                     "_active": true,
@@ -252,6 +345,191 @@
                     "_active": true,
                     "moveSpeed": 10.0,
                     "rotateSpeed": 14400.0,
+                    "stunTimePerHit": 1.0,
+                    "entityUid": 0
+                },
+                "18236831197208900764": {
+                    "_active": true,
+                    "center": {
+                        "x": 0.0,
+                        "y": 0.0,
+                        "z": 0.0
+                    },
+                    "size": {
+                        "x": 1.0,
+                        "y": 1.0,
+                        "z": 1.0
+                    },
+                    "flags": {
+                        "_majorityTrue": true,
+                        "_except": []
+                    }
+                }
+            }
+        },
+        {
+            "parentIndex": -1,
+            "position": {
+                "x": 0.0,
+                "y": 1.0,
+                "z": 10.761808395385742
+            },
+            "rotation": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "scale": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0
+            },
+            "components": {
+                "5725819782531291880": {
+                    "_active": true,
+                    "behaviorTree": {
+                        "btName": "enemybase"
+                    }
+                },
+                "6766054303456732338": {
+                    "_active": true,
+                    "layer": 0
+                },
+                "7205334411763290517": {
+                    "_active": true,
+                    "name": "Enemy"
+                },
+                "7930599578754533802": {
+                    "_active": true,
+                    "maxHealth": 10000.0,
+                    "currHealth": 100.0
+                },
+                "9315785795257285655": {
+                    "_active": true,
+                    "uid": 257164774789911698
+                },
+                "9501525575059265452": {
+                    "_active": true,
+                    "linearVel": {
+                        "x": 0.0,
+                        "y": 0.0,
+                        "z": 0.0
+                    },
+                    "angularVel": {
+                        "x": 8.251595947821721e-32,
+                        "y": 4.590513639281668e-41,
+                        "z": 3.9971291766735547e-23
+                    },
+                    "flags": {
+                        "_majorityTrue": true,
+                        "_except": [
+                            "Is Kinematic"
+                        ]
+                    }
+                },
+                "16763493199777387366": {
+                    "_active": true,
+                    "playerReference": {
+                        "entityUid": 51797992787031769
+                    }
+                },
+                "17579205194823809952": {
+                    "_active": true,
+                    "moveSpeed": 10.0,
+                    "rotateSpeed": 14400.0,
+                    "stunTimePerHit": 1.0,
+                    "entityUid": 0
+                },
+                "18236831197208900764": {
+                    "_active": true,
+                    "center": {
+                        "x": 0.0,
+                        "y": 0.0,
+                        "z": 0.0
+                    },
+                    "size": {
+                        "x": 1.0,
+                        "y": 1.0,
+                        "z": 1.0
+                    },
+                    "flags": {
+                        "_majorityTrue": true,
+                        "_except": []
+                    }
+                }
+            }
+        },
+        {
+            "parentIndex": -1,
+            "position": {
+                "x": 0.0,
+                "y": 1.0,
+                "z": 10.761808395385742
+            },
+            "rotation": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "scale": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0
+            },
+            "components": {
+                "5725819782531291880": {
+                    "_active": true,
+                    "behaviorTree": {
+                        "btName": "enemybase"
+                    }
+                },
+                "6766054303456732338": {
+                    "_active": true,
+                    "layer": 0
+                },
+                "7205334411763290517": {
+                    "_active": true,
+                    "name": "Enemy"
+                },
+                "7930599578754533802": {
+                    "_active": true,
+                    "maxHealth": 1000.0,
+                    "currHealth": 100.0
+                },
+                "9315785795257285655": {
+                    "_active": true,
+                    "uid": 275609082345854255
+                },
+                "9501525575059265452": {
+                    "_active": true,
+                    "linearVel": {
+                        "x": 0.0,
+                        "y": 0.0,
+                        "z": 0.0
+                    },
+                    "angularVel": {
+                        "x": 8.251595947821721e-32,
+                        "y": 4.590513639281668e-41,
+                        "z": 3.9971291766735547e-23
+                    },
+                    "flags": {
+                        "_majorityTrue": true,
+                        "_except": [
+                            "Is Kinematic"
+                        ]
+                    }
+                },
+                "16763493199777387366": {
+                    "_active": true,
+                    "playerReference": {
+                        "entityUid": 51797992787031769
+                    }
+                },
+                "17579205194823809952": {
+                    "_active": true,
+                    "moveSpeed": 10.0,
+                    "rotateSpeed": 14400.0,
+                    "stunTimePerHit": 1.0,
                     "entityUid": 0
                 },
                 "18236831197208900764": {
@@ -292,7 +570,8 @@
             },
             "components": {
                 "137465014557233347": {
-                    "_active": true
+                    "_active": true,
+                    "damage": 10.0
                 },
                 "5352011725353660904": {
                     "_active": true,
@@ -351,6 +630,43 @@
             }
         },
         {
+            "parentIndex": -1,
+            "position": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 0.0
+            },
+            "rotation": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "scale": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0
+            },
+            "components": {
+                "5352011725353660904": {
+                    "_active": true,
+                    "meshHash": 1065489439484661976,
+                    "materialHash": 1070015029344587994
+                },
+                "6766054303456732338": {
+                    "_active": true,
+                    "layer": 0
+                },
+                "7205334411763290517": {
+                    "_active": true,
+                    "name": "HitDebugObject"
+                },
+                "9315785795257285655": {
+                    "_active": true,
+                    "uid": 378152835290477126
+                }
+            }
+        },
+        {
             "parentIndex": 3,
             "position": {
                 "x": 0.0,
@@ -388,6 +704,43 @@
             }
         },
         {
+            "parentIndex": 4,
+            "position": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "rotation": {
+                "x": 0.0,
+                "y": 90.0,
+                "z": 0.0
+            },
+            "scale": {
+                "x": 0.009999999776482582,
+                "y": 0.009999999776482582,
+                "z": 0.009999999776482582
+            },
+            "components": {
+                "5352011725353660904": {
+                    "_active": true,
+                    "meshHash": 210052900400148801,
+                    "materialHash": 37929852625792432
+                },
+                "6766054303456732338": {
+                    "_active": true,
+                    "layer": 0
+                },
+                "7205334411763290517": {
+                    "_active": true,
+                    "name": "PlayerModel"
+                },
+                "9315785795257285655": {
+                    "_active": true,
+                    "uid": 249360441255957485
+                }
+            }
+        },
+        {
             "parentIndex": 2,
             "position": {
                 "x": 0.0,
@@ -421,6 +774,80 @@
                 "9315785795257285655": {
                     "_active": true,
                     "uid": 268131303601138568
+                }
+            }
+        },
+        {
+            "parentIndex": 5,
+            "position": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "rotation": {
+                "x": 0.0,
+                "y": 90.0,
+                "z": 0.0
+            },
+            "scale": {
+                "x": 0.009999999776482582,
+                "y": 0.009999999776482582,
+                "z": 0.009999999776482582
+            },
+            "components": {
+                "5352011725353660904": {
+                    "_active": true,
+                    "meshHash": 210052900400148801,
+                    "materialHash": 37929852625792432
+                },
+                "6766054303456732338": {
+                    "_active": true,
+                    "layer": 0
+                },
+                "7205334411763290517": {
+                    "_active": true,
+                    "name": "PlayerModel"
+                },
+                "9315785795257285655": {
+                    "_active": true,
+                    "uid": 269580460090758290
+                }
+            }
+        },
+        {
+            "parentIndex": 6,
+            "position": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "rotation": {
+                "x": 0.0,
+                "y": 90.0,
+                "z": 0.0
+            },
+            "scale": {
+                "x": 0.009999999776482582,
+                "y": 0.009999999776482582,
+                "z": 0.009999999776482582
+            },
+            "components": {
+                "5352011725353660904": {
+                    "_active": true,
+                    "meshHash": 210052900400148801,
+                    "materialHash": 37929852625792432
+                },
+                "6766054303456732338": {
+                    "_active": true,
+                    "layer": 0
+                },
+                "7205334411763290517": {
+                    "_active": true,
+                    "name": "PlayerModel"
+                },
+                "9315785795257285655": {
+                    "_active": true,
+                    "uid": 285525577716765999
                 }
             }
         }

@@ -1,6 +1,6 @@
 /******************************************************************************/
 /*!
-\file   CharacterCharacter.h
+\file   Character.h
 \par    Project: 7percent
 \par    Course: CSD2401
 \par    Section B
@@ -14,7 +14,7 @@
 \brief
 	CharacterMovementComponent is an ECS component-system pair which controls character movement. 
 
-All content � 2024 DigiPen Institute of Technology Singapore.
+All content � 2025 DigiPen Institute of Technology Singapore.
 All rights reserved.
 */
 /******************************************************************************/
@@ -39,8 +39,10 @@ public:
 	EntityReference hitDebugObject;
 	float moveSpeed;
 	float rotateSpeed;
+	float stunTimePerHit;
 	// Not serialized
 	EntityReference heldItem;
+	float currentStunTime;
 
 	/*****************************************************************//*!
 	\brief

@@ -25,9 +25,12 @@ All rights reserved.
 /******************************************************************************/
 
 #include "Health.h"
+#include "Character.h"
+#include "Physics//Physics.h"
 #include "math/utils_math.h"
+#include "Editor/Containers/GUICollection.h"
 
-int cheatState = 0;
+HealthComponent::health_type cheatState = 0;
 bool cheatActive = false; ///THis is so the healthbar colour wont keep updating
 
 HealthComponent::HealthComponent() :
@@ -36,7 +39,7 @@ HealthComponent::HealthComponent() :
 {
 }
 
-int HealthComponent::GetCurrHealth() const
+HealthComponent::health_type HealthComponent::GetCurrHealth() const
 {
 	return currHealth;
 }
@@ -46,21 +49,23 @@ bool HealthComponent::IsDead() const
 	return currHealth <= 0;
 }
 
-int HealthComponent::GetMaxHealth() const
+HealthComponent::health_type HealthComponent::GetMaxHealth() const
 {
 	return maxHealth;
 }
 
 
-void HealthComponent::AddHealth(int amount)
+void HealthComponent::AddHealth(health_type amount)
 {
 	currHealth += amount;
 	if (currHealth > maxHealth)
 		currHealth = maxHealth;
 }
 
-void HealthComponent::TakeDamage(int amount)
+void HealthComponent::TakeDamage(HealthComponent::health_type amount, Vec3 direction)
 {
+	currHealth -= amount;
+
 	// We don't need to flash if the entity is already dead,
 	// or this health component is invulnerable.
 	if (IsDead())
@@ -69,10 +74,29 @@ void HealthComponent::TakeDamage(int amount)
 		return;
 	}
 
-	currHealth -= amount;
+	// Stun the character
+	if (auto characterComp{ ecs::GetEntity(this)->GetComp< CharacterMovementComponent >() })
+	{
+		characterComp->currentStunTime = characterComp->stunTimePerHit;
+	}
+
+	// Add the force
+	if (direction.LengthSqr() > 0.0f)
+	{
+		if (auto physicsComp{ ecs::GetEntity(this)->GetComp< physics::PhysicsComp >() })
+		{
+			auto hitVector = direction * amount;
+			hitVector.y = 0;
+
+
+
+			// Disabled: Causes flying???
+			//physicsComp->SetLinearVelocity(direction * amount + Vec3{ 0.0f,amount,0.0f });
+		}
+	}
 }
 
-void HealthComponent::SetHealth(int newValue)
+void HealthComponent::SetHealth(health_type newValue)
 {
 	if (newValue < 0)
 		newValue = 0;
@@ -83,7 +107,7 @@ void HealthComponent::SetHealth(int newValue)
 	currHealth = newValue;
 }
 
-void HealthComponent::SetMaxHealth(int newMaxAmount)
+void HealthComponent::SetMaxHealth(health_type newMaxAmount)
 {
 	maxHealth = newMaxAmount;
 	if (currHealth > maxHealth)
@@ -98,5 +122,5 @@ float HealthComponent::GetHealthFraction()
 
 void HealthComponent::EditorDraw()
 {
-
+	ImGui::InputFloat("Max Health", &maxHealth);
 }

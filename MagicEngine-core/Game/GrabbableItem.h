@@ -39,12 +39,9 @@ public:
 	*//******************************************************************/
 	GrabbableItemComponent();
 
-	/*****************************************************************//*!
-	\brief
-		Default destructor.
-	*//******************************************************************/
-	//~GrabbableItemComponent();
-
+	// Serialized
+	float damage;
+	
 	// Not serialized
 	bool isHeld;
 	EntityReference owner;

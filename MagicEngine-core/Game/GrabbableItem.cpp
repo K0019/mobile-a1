@@ -37,28 +37,38 @@ void GrabbableItemComponent::Attack(Vec3 origin, Vec3 direction)
 	{
 		ecs::EntityHandle hitEntity = ecs::GetEntity(collider);
 
+		// Can't hit self or owner
+		if (hitEntity == owner || hitEntity == ecs::GetEntity(this))
+			continue;
+
 		if (ecs::CompHandle<HealthComponent> healthComp{ hitEntity->GetComp<HealthComponent>() })
 		{
-			// Just flat-out kill it for now
-			healthComp->TakeDamage(1000.0f);
+			// Deal damage to it
+			healthComp->TakeDamage(damage,direction);
 		}
 	}
 }
 
-GrabbableItemComponent::GrabbableItemComponent()
+GrabbableItemComponent::GrabbableItemComponent() :
+	damage{ 1.0f },
+	isHeld{ false },
+	owner(nullptr)
 {
 }
 
 void GrabbableItemComponent::Serialize(Serializer& writer) const
 {
+	writer.Serialize("damage",damage);
 }
 
 void GrabbableItemComponent::Deserialize(Deserializer& reader)
 {
+	reader.DeserializeVar("damage", &damage);
 }
 
 void GrabbableItemComponent::EditorDraw()
 {
+	ImGui::InputFloat("Damage", &damage);
 }
 
 GrabbableItemComponentSystem::GrabbableItemComponentSystem()

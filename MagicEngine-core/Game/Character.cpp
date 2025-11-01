@@ -1,6 +1,6 @@
 /******************************************************************************/
 /*!
-\file   GameCameraController.cpp
+\file   Character.cpp
 \par    Project: 7percent
 \par    Course: CSD2401
 \par    Section B
@@ -12,12 +12,9 @@
 \par    DigiPen login: m.chan
 
 \brief
-	GameCameraController is an ECS component-system pair which takes control of
-	the camera when the default scene is loaded (game scene). It in in charge of
-	making camera follow the character, map bounds, and any other such effects to be
-	implemented now or in the future.
+	CharacterMovementComponent is an ECS component-system pair which controls character movement.
 
-All content � 2024 DigiPen Institute of Technology Singapore.
+All content � 2025 DigiPen Institute of Technology Singapore.
 All rights reserved.
 */
 /******************************************************************************/
@@ -27,7 +24,13 @@ All rights reserved.
 #include "Editor/Containers/GUICollection.h"
 
 CharacterMovementComponent::CharacterMovementComponent()
-	: movementVector{ 0.0f,0.0f }
+	: movementVector{ 0.0f,0.0f },
+	hitDebugObject{ nullptr },
+	moveSpeed{ 0.0f },
+	rotateSpeed{ 0.0f },
+	stunTimePerHit{ 0.0f },
+	heldItem{ nullptr },
+	currentStunTime{ 0.0f }
 {
 }
 
@@ -87,6 +90,7 @@ void CharacterMovementComponent::Attack()
 		hitDebugObject->GetTransform().SetWorldPosition(startPoint);
 		hitDebugObject->GetTransform().SetWorldRotation(Vec3(0.0f, math::ToDegrees(atan2(direction.x,direction.z)), 0.0f));
 	}
+
 	// Call Attack from the GrabbableItem component
 	heldItem->GetComp<GrabbableItemComponent>()->Attack(startPoint, direction);
 }
@@ -95,6 +99,7 @@ void CharacterMovementComponent::Serialize(Serializer& writer) const
 {
 	writer.Serialize("moveSpeed", moveSpeed);
 	writer.Serialize("rotateSpeed", rotateSpeed);
+	writer.Serialize("stunTimePerHit", stunTimePerHit);
 	writer.Serialize(hitDebugObject);
 }
 
@@ -102,6 +107,7 @@ void CharacterMovementComponent::Deserialize(Deserializer& reader)
 {
 	reader.DeserializeVar("moveSpeed", &moveSpeed);
 	reader.DeserializeVar("rotateSpeed", &rotateSpeed);
+	reader.DeserializeVar("stunTimePerHit", &stunTimePerHit);
 	reader.Deserialize(&hitDebugObject);
 }
 
@@ -109,6 +115,7 @@ void CharacterMovementComponent::EditorDraw()
 {
 	gui::VarInput("Move Speed", &moveSpeed);
 	gui::VarInput("Rotation Speed", &rotateSpeed);
+	gui::VarInput("Stun Time Per Hit", &stunTimePerHit);
 	hitDebugObject.EditorDraw("Hit Debug Object");
 }
 
@@ -124,6 +131,18 @@ void CharacterMovementComponentSystem::UpdateCharacterMovementComponent(Characte
 {
 	auto characterEntity = ecs::GetEntity(&comp);
 	ecs::CompHandle<physics::PhysicsComp> physicsComp = characterEntity->GetComp<physics::PhysicsComp>();
+	Vec3 currVel = physicsComp->GetLinearVelocity();
+	if (comp.currentStunTime > 0.0f)
+	{
+		comp.currentStunTime -= GameTime::Dt();
+
+		// Can only come out of stun when on the ground
+		if (math::Abs(currVel.y) > 0.01f && comp.currentStunTime < 0.0f)
+			comp.currentStunTime = GameTime::Dt();
+
+		return;
+	}
+
 
 	// Get inputs
 	Vec2 movement = comp.GetMovementVector();
@@ -133,7 +152,6 @@ void CharacterMovementComponentSystem::UpdateCharacterMovementComponent(Characte
 		movement = movement.Normalized();
 
 	// Apply input movement
-	Vec3 currVel = physicsComp->GetLinearVelocity();
 	Vec3 moveDir = Vec3{ movement.x * comp.moveSpeed,currVel.y,-movement.y * comp.moveSpeed};
 	physicsComp->SetLinearVelocity(moveDir);
 
@@ -150,7 +168,7 @@ void CharacterMovementComponentSystem::UpdateCharacterMovementComponent(Characte
 		newAngle = math::MoveTowardsAngle(currentRotation.y, targetAngle, comp.rotateSpeed * GameTime::Dt());
 		rotation.y = newAngle;
 	}
-	CONSOLE_LOG(LogLevel::LEVEL_DEBUG) << rotation.y;
+
 	characterTransform.SetWorldRotation(rotation);
 
 	// Update held item
