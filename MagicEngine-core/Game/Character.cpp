@@ -163,8 +163,8 @@ void CharacterMovementComponentSystem::UpdateCharacterMovementComponent(Characte
 		movement = movement.Normalized();
 
 	// Apply input movement
-	Vec3 moveDir = Vec3{ movement.x * comp.moveSpeed,currVel.y,-movement.y * comp.moveSpeed};
-	physicsComp->SetLinearVelocity(moveDir);
+	Vec3 moveDir = Vec3{ movement.x * comp.moveSpeed,0.0f,-movement.y * comp.moveSpeed};
+	physicsComp->AddLinearVelocity(moveDir);
 
 	Transform& characterTransform = characterEntity->GetTransform();
 	Vec3 currentRotation = characterTransform.GetWorldRotation();
