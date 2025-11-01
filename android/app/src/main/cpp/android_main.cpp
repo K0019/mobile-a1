@@ -7,6 +7,7 @@
 #include <base/imgui_context.h>
 #include "VFS/VFS.h"
 #include "MagicEngine/Engine/Engine.h"
+#include "core/platform/android/ry_android_input_api.h"
 
 #define LOGI(...) __android_log_print(ANDROID_LOG_INFO, "ryEngine", __VA_ARGS__)
 #define LOGE(...) __android_log_print(ANDROID_LOG_ERROR, "ryEngine", __VA_ARGS__)
@@ -16,6 +17,7 @@ class AndroidApp {
 public:
     void Initialize(Context& context) {
         engine.Init(context);
+
     }
 
     void Update(Context& context, FrameData& frame)
@@ -185,8 +187,11 @@ void android_main(android_app* app) {
         }
 
         if (ctx.initialized && ctx.engine) {
-            Core::Platform::Get().GetInput().Update();
+            //ry_fire_tap_if_any();
+            ry_input_dispatch_frame_events();
 
+            Core::Platform::Get().GetInput().Update();
+            //TK Testing this stuff for input
             if (!ctx.engine->ExecuteFrame()) {
                 LOGE("ExecuteFrame returned false!");
                 break;

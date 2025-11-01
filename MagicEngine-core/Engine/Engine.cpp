@@ -66,8 +66,16 @@ All rights reserved.
 #include "Editor/Import.h"
 #include "math/camera.h"
 
-#include "core/platform/android/android_input_system.h"
-
+#include "core/platform/android/ry_android_input_api.h"
+#include "Engine/Platform/Android/MagicPointerInject.h"
+//
+//static void OnTapFromRy(float x, float y, int /*id*/) {
+//	CONSOLE_LOG(LEVEL_INFO) << "[AndroidInput] Tap @ (" << x << ", " << y << ")";
+//	CONSOLE_LOG(LEVEL_INFO) << "THIS CODE IS FINALLY WORKING BLESSSSSSS";
+//}
+static void MagicPointerSink(int id, int action, float x, float y) {
+	MagicInjectPointer(id, action, x, y);
+}
 
 #ifdef IMGUI_ENABLED
 namespace
@@ -134,9 +142,6 @@ bool MagicEngine::IsShuttingDown() const
 	return ST<GraphicsMain>::Get()->GetIsPendingShutdown();
 }
 
-static void OnTap(float x, float y, int /*pointerId*/) {
-	CONSOLE_LOG(LEVEL_INFO) << "[AndroidInput] Tap @ (" << x << ", " << y << ")";
-}
 
 void MagicEngine::Init(Context& context)
 {
@@ -176,6 +181,8 @@ void MagicEngine::Init(Context& context)
 	//graphicsMain->SetCallback_DragDrop(import::DropCallback);
 
 	ST<GameSettings>::Get()->Apply(); // Apply the loaded settings here
+
+	CONSOLE_LOG(LEVEL_DEBUG) << "IS THIS EVEN RUNNING??????????????????????????????????????????????????????????";
 
 	ST<BTFactory>::Get()->SetAllFilePath();
 
@@ -224,9 +231,9 @@ void MagicEngine::Init(Context& context)
 #endif
 
 #if defined(__ANDROID__)
-	ry_set_tap_callback(&OnTap);
-
+	ry_input_set_pointer_callback(&MagicPointerSink);
 #endif
+
 }
 
 void MagicEngine::ExecuteFrame(FrameData& frameData)
@@ -238,6 +245,9 @@ void MagicEngine::ExecuteFrame(FrameData& frameData)
 	// Clear the events of the previous frame
 	ST<EventsQueue>::Get()->NewFrame();
 	
+//#if defined(__ANDROID__)
+//	ry_set_tap_callback(&OnTapFromRy);
+//#endif
 
 	ST<MagicInput>::Get()->NewFrame();
 	//GamepadInput::PollInput();

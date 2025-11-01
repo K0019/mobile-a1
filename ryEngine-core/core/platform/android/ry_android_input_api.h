@@ -2,19 +2,12 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+	// Callback Magic registers to receive pointer events.
+	// action: 0=Down, 1=Up, 2=Move
+	typedef void (*RyPointerFn)(int id, int action, float x, float y);
 
-	// Simple callback Magic can install to get a tap (x,y). pointerId is optional for multi-touch.
-	typedef void (*RyTapFn)(float x, float y, int pointerId);
-
-	// Called once by Magic during init (Android build only).
-	void ry_set_tap_callback(RyTapFn fn);
-
-	// Call this from ry's Android input callback (where you already receive AInputEvent*).
-	// The pointer stays opaque to Magic; only ry sees the real type in its .cpp.
-	int  ry_handle_ainput_event(void* ainput_event);
-
-	// Call once per frame (after draining events). If a tap happened, we invoke the callback.
-	void ry_tick_android_input(void);
+	void ry_input_set_pointer_callback(RyPointerFn fn);
+	void ry_input_dispatch_frame_events(void);  // call once per frame (AFTER looper events, BEFORE Magic Update)
 
 #ifdef __cplusplus
 }
