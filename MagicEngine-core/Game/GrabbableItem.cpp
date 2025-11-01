@@ -31,7 +31,7 @@ All rights reserved.
 void GrabbableItemComponent::Attack(Vec3 origin, Vec3 direction)
 {
 	std::vector<physics::BoxColliderComp*> colliders;
-	physics::OverlapBox(colliders, origin, Vec3(1,1,1), direction);
+	physics::OverlapBox(colliders, origin, Vec3(2,1,2), direction);
 
 	for (auto collider : colliders)
 	{

@@ -111,7 +111,10 @@ void CharacterMovementComponent::Serialize(Serializer& writer) const
 	writer.Serialize("moveSpeed", moveSpeed);
 	writer.Serialize("rotateSpeed", rotateSpeed);
 	writer.Serialize("stunTimePerHit", stunTimePerHit);
-	writer.Serialize(hitDebugObject);
+	writer.Serialize("groundFriction", groundFriction);
+
+	writer.Serialize("hitDebugObject",hitDebugObject);
+	writer.Serialize("heldItem",heldItem);
 }
 
 void CharacterMovementComponent::Deserialize(Deserializer& reader)
@@ -119,7 +122,10 @@ void CharacterMovementComponent::Deserialize(Deserializer& reader)
 	reader.DeserializeVar("moveSpeed", &moveSpeed);
 	reader.DeserializeVar("rotateSpeed", &rotateSpeed);
 	reader.DeserializeVar("stunTimePerHit", &stunTimePerHit);
-	reader.Deserialize(&hitDebugObject);
+	reader.DeserializeVar("groundFriction", &groundFriction);
+
+	reader.DeserializeVar("hitDebugObject", &hitDebugObject);
+	reader.DeserializeVar("heldItem", &heldItem);
 }
 
 void CharacterMovementComponent::EditorDraw()
@@ -127,7 +133,10 @@ void CharacterMovementComponent::EditorDraw()
 	gui::VarInput("Move Speed", &moveSpeed);
 	gui::VarInput("Rotation Speed", &rotateSpeed);
 	gui::VarInput("Stun Time Per Hit", &stunTimePerHit);
+	gui::VarInput("Ground Friction", &groundFriction);
+
 	hitDebugObject.EditorDraw("Hit Debug Object");
+	heldItem.EditorDraw("Held Item");
 }
 
 CharacterMovementComponentSystem::CharacterMovementComponentSystem()
@@ -141,6 +150,18 @@ CharacterMovementComponentSystem::CharacterMovementComponentSystem()
 void CharacterMovementComponentSystem::UpdateCharacterMovementComponent(CharacterMovementComponent& comp)
 {
 	auto characterEntity = ecs::GetEntity(&comp);
+	Transform& characterTransform = characterEntity->GetTransform();
+
+	// Update held item
+	if (auto heldItem{ comp.heldItem })
+	{
+		// Transform related
+		heldItem->GetTransform().SetParent(characterTransform);
+		heldItem->GetTransform().SetLocalPosition(Vec3{ 0,0,1 });
+		heldItem->GetTransform().SetLocalRotation(Vec3{ 0,5,10 });
+	}
+
+	// Perform stun check
 	ecs::CompHandle<physics::PhysicsComp> physicsComp = characterEntity->GetComp<physics::PhysicsComp>();
 	Vec3 currVel = physicsComp->GetLinearVelocity();
 	if (comp.currentStunTime > 0.0f)
@@ -162,11 +183,22 @@ void CharacterMovementComponentSystem::UpdateCharacterMovementComponent(Characte
 	if (movement.LengthSqr()>1.0f)
 		movement = movement.Normalized();
 
+	// Apply friction
+	Vec3 drag{ -currVel.x,0.0f,-currVel.z };
+	float groundSpeed = drag.Length();
+	if (groundSpeed <= comp.groundFriction)
+	{
+		physicsComp->AddLinearVelocity(drag);
+	}
+	else
+	{
+		physicsComp->AddLinearVelocity(drag.Normalized() * comp.groundFriction* groundSpeed);
+	}
+
 	// Apply input movement
 	Vec3 moveDir = Vec3{ movement.x * comp.moveSpeed,0.0f,-movement.y * comp.moveSpeed};
 	physicsComp->AddLinearVelocity(moveDir);
 
-	Transform& characterTransform = characterEntity->GetTransform();
 	Vec3 currentRotation = characterTransform.GetWorldRotation();
 
 	float newAngle = currentRotation.y;
@@ -181,12 +213,4 @@ void CharacterMovementComponentSystem::UpdateCharacterMovementComponent(Characte
 	}
 	characterTransform.SetWorldRotation(rotation);
 
-	// Update held item
-	if (auto heldItem{ comp.heldItem })
-	{
-		// Transform related
-		heldItem->GetTransform().SetParent(characterTransform);
-		heldItem->GetTransform().SetLocalPosition(Vec3{ 0,0,1 });
-		heldItem->GetTransform().SetLocalRotation(Vec3{ 0,5,10 });
-	}
 }

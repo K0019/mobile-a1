@@ -37,11 +37,13 @@ private:
 public:
 
 	EntityReference hitDebugObject;
+	EntityReference heldItem;
 	float moveSpeed;
 	float rotateSpeed;
 	float stunTimePerHit;
+	float groundFriction;
+
 	// Not serialized
-	EntityReference heldItem;
 	float currentStunTime;
 
 	/*****************************************************************//*!

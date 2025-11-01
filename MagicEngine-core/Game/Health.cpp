@@ -85,13 +85,8 @@ void HealthComponent::TakeDamage(HealthComponent::health_type amount, Vec3 direc
 	{
 		if (auto physicsComp{ ecs::GetEntity(this)->GetComp< physics::PhysicsComp >() })
 		{
-			auto hitVector = direction * amount;
-			hitVector.y = 0;
-
-
-
 			// Disabled: Causes flying???
-			//physicsComp->SetLinearVelocity(direction * amount + Vec3{ 0.0f,amount,0.0f });
+			physicsComp->SetLinearVelocity(direction * amount + Vec3{ 0.0f,amount,0.0f });
 		}
 	}
 }
