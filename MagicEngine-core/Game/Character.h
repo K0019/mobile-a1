@@ -54,6 +54,7 @@ public:
 	void SetMovementVector(Vec2 vector);
 
 	void DropItem();
+	void Throw(Vec3 direction);
 	void GrabItem(ecs::CompHandle<GrabbableItemComponent> item);
 	void Attack();
 

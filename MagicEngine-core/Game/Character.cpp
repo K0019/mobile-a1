@@ -60,6 +60,17 @@ void CharacterMovementComponent::DropItem()
 	heldItem = nullptr;
 }
 
+void CharacterMovementComponent::Throw(Vec3 direction)
+{
+	if (heldItem == nullptr)
+		return;
+
+	auto tmpItem = heldItem;
+	DropItem();
+
+	tmpItem->GetComp<physics::PhysicsComp>()->SetLinearVelocity(direction*10.0f);
+}
+
 void CharacterMovementComponent::GrabItem(ecs::CompHandle<GrabbableItemComponent> item)
 {
 	// Sanity check!
@@ -147,7 +158,7 @@ void CharacterMovementComponentSystem::UpdateCharacterMovementComponent(Characte
 	// Get inputs
 	Vec2 movement = comp.GetMovementVector();
 
-	// Normalize the move vector if it's overr 1.0f in length
+	// Normalize the move vector if it's over 1.0f in length
 	if (movement.LengthSqr()>1.0f)
 		movement = movement.Normalized();
 

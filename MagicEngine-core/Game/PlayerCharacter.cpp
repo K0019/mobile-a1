@@ -116,8 +116,15 @@ void PlayerMovementComponentSystem::UpdatePlayerMovementComponent(PlayerMovement
 			}
 		}
 	}
+
+	// Throw item
 	if (inputInstance->GetValue(INPUT_READ_TYPE::CURRENT, KEY::B))
-		characterComp->DropItem();
+	{
+		// Look for the nearest enemy
+		Vec3 throwDirection{ camForward.x,1.0f,-(camForward.y ) };
+
+		characterComp->Throw(throwDirection);
+	}
 
 	// Doesn't seem to be working again
 	if (inputInstance->GetIsPressed(KEY::M1))
