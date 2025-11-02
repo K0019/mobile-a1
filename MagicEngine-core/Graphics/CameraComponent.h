@@ -57,7 +57,6 @@ private:
 property_begin(CameraComponent)
 {
 	property_var(active),
-	property_var(priority),
 	property_var(zoom)
 }
 property_vend_h(CameraComponent)
