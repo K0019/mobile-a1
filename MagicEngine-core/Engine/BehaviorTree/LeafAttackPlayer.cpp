@@ -3,8 +3,9 @@
 #include "Game/EnemyCharacter.h"
 #include "Game/Character.h"
 #include "Game/Health.h"
-#include "../Utilities/GameTime.h"
+#include "Utilities/GameTime.h"
 #include "Math/utils_math.h"
+// Matthew here, I'm going to be performing the equivalent of sledgehammer surgery on this file, be prepared to rewrite all of it after M2
 
 void L_AttackPlayer::OnInitialize()
 {
@@ -16,6 +17,7 @@ void L_AttackPlayer::OnInitialize()
 NODE_STATUS L_AttackPlayer::OnUpdate(ecs::EntityHandle entity)
 {
     ecs::CompHandle<EnemyComponent> enemyComp = entity->GetComp<EnemyComponent>();
+    ecs::CompHandle<CharacterMovementComponent> characterComp = entity->GetComp<CharacterMovementComponent>();
     if (!enemyComp)
         return NODE_STATUS::FAILURE;
 
@@ -34,45 +36,23 @@ NODE_STATUS L_AttackPlayer::OnUpdate(ecs::EntityHandle entity)
     // calculate rotation to face player
     if (distanceToPlayer > 0.0f)
     {
-        float desiredYaw = glm::degrees(atan2(toPlayer.x, -toPlayer.z));
-        Vec3 newRot = entity->GetTransform().GetWorldRotation();
-        newRot.y = desiredYaw;
-        entity->GetTransform().SetWorldRotation(newRot);
+        characterComp->RotateTowards(Vec2{ toPlayer.x, -toPlayer.z });
+        if (distanceToPlayer > 3.0f)
+            return NODE_STATUS::FAILURE;
     }
+    
 
-    // forward/right vectors
-    Vec3 rotation = entity->GetTransform().GetWorldRotation();
-    float yawRad = glm::radians(rotation.y);
-    Vec3 forward{ sin(yawRad), 0.0f, -cos(yawRad) };
-    Vec3 right{ forward.z, 0.0f, -forward.x };
-
-    float forwardDist = Dot(toPlayer, forward);
-    float sideDist = Dot(toPlayer, right);
-    bool inAttackZone = (forwardDist > 0.0f && forwardDist <= attackRange &&
-        std::abs(sideDist) <= attackWidth * 0.5f);
 
     //attack phases
     switch (phase)
     {
     case AttackPhase::Idle:
-        if (inAttackZone)
-        {
             phase = AttackPhase::Windup;
-            attackTimer = 0.0f;
-            attackHit = false;
-        }
         break;
-
     case AttackPhase::Windup:
         attackTimer += GameTime::Dt();
-        if (!inAttackZone)
-        {
-            // Player stepped out: cancel windup
-            phase = AttackPhase::Idle;
-            attackTimer = 0.0f;
-            attackHit = false;
-        }
-        else if (attackTimer >= attackWindup)
+
+        if (attackTimer >= attackWindup)
         {
             phase = AttackPhase::Attack;
             attackTimer = 0.0f;
@@ -83,15 +63,8 @@ NODE_STATUS L_AttackPlayer::OnUpdate(ecs::EntityHandle entity)
         if (!attackHit)
         {
             attackHit = true;
-            if (inAttackZone)
-            {
-                auto healthComp = player->GetComp<HealthComponent>();
-                if (healthComp != nullptr)
-                {
-                    Vec3 knockDir = toPlayer.LengthSqr() > 0.0f ? toPlayer.Normalized() : forward;
-                    healthComp->TakeDamage(attackDamage, knockDir);
-                }
-            }
+
+            characterComp->Attack();
         }
         attackTimer += GameTime::Dt();
         if (attackTimer >= attackCooldown)

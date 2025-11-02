@@ -100,6 +100,10 @@ void PlayerMovementComponentSystem::UpdatePlayerMovementComponent(PlayerMovement
 				if (itemComp.GetEntity() == nullptr)
 					continue;
 
+				// Can't pick up other held items
+				if (itemComp->isHeld == true)
+					continue;
+
 				// Distance check
 				Vec3 direction = itemComp.GetEntity()->GetTransform().GetWorldPosition() - playerEntity->GetTransform().GetWorldPosition();
 				if (direction.LengthSqr() < closestDistance)

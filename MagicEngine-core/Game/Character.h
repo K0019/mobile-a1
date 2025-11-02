@@ -54,6 +54,7 @@ public:
 
 	const Vec2 GetMovementVector();
 	void SetMovementVector(Vec2 vector);
+	void RotateTowards(Vec2 vector);
 
 	void DropItem();
 	void Throw(Vec3 direction);

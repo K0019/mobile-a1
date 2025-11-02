@@ -44,6 +44,20 @@ void CharacterMovementComponent::SetMovementVector(Vec2 vector)
 	movementVector = vector;
 }
 
+void CharacterMovementComponent::RotateTowards(Vec2 vector)
+{
+	auto characterEntity = ecs::GetEntity(this);
+	Transform& characterTransform = characterEntity->GetTransform();
+
+	Vec3 currentRotation = characterTransform.GetWorldRotation();
+
+	float targetAngle = math::ToDegrees(atan2(vector.y, vector.x));
+	float newAngle = math::MoveTowardsAngle(currentRotation.y, targetAngle, rotateSpeed * GameTime::Dt());
+	currentRotation.y = newAngle;
+
+	characterTransform.SetWorldRotation(currentRotation);
+}
+
 void CharacterMovementComponent::DropItem()
 {
 	// Sanity check!
@@ -159,6 +173,8 @@ void CharacterMovementComponentSystem::UpdateCharacterMovementComponent(Characte
 		heldItem->GetTransform().SetParent(characterTransform);
 		heldItem->GetTransform().SetLocalPosition(Vec3{ 0,0,1 });
 		heldItem->GetTransform().SetLocalRotation(Vec3{ 0,5,10 });
+		heldItem->GetComp<GrabbableItemComponent>()->owner = characterEntity;
+		heldItem->GetComp<GrabbableItemComponent>()->isHeld = true;
 	}
 
 	// Perform stun check
@@ -180,7 +196,7 @@ void CharacterMovementComponentSystem::UpdateCharacterMovementComponent(Characte
 	Vec2 movement = comp.GetMovementVector();
 
 	// Normalize the move vector if it's over 1.0f in length
-	if (movement.LengthSqr()>1.0f)
+	if (movement.LengthSqr() > 1.0f)
 		movement = movement.Normalized();
 
 	// Apply friction
@@ -192,25 +208,14 @@ void CharacterMovementComponentSystem::UpdateCharacterMovementComponent(Characte
 	}
 	else
 	{
-		physicsComp->AddLinearVelocity(drag.Normalized() * comp.groundFriction* groundSpeed);
+		physicsComp->AddLinearVelocity(drag.Normalized() * comp.groundFriction * groundSpeed);
 	}
 
 	// Apply input movement
-	Vec3 moveDir = Vec3{ movement.x * comp.moveSpeed,0.0f,-movement.y * comp.moveSpeed};
+	Vec3 moveDir = Vec3{ movement.x * comp.moveSpeed,0.0f,-movement.y * comp.moveSpeed };
 	physicsComp->AddLinearVelocity(moveDir);
 
-	Vec3 currentRotation = characterTransform.GetWorldRotation();
-
-	float newAngle = currentRotation.y;
-	Vec3 rotation{ 0.0f,newAngle ,0.0f };
-
-	// Handle rotation
 	if (movement.LengthSqr() > 0.0f)
-	{
-		float targetAngle = math::ToDegrees(atan2(movement.y, movement.x));
-		newAngle = math::MoveTowardsAngle(currentRotation.y, targetAngle, comp.rotateSpeed * GameTime::Dt());
-		rotation.y = newAngle;
-	}
-	characterTransform.SetWorldRotation(rotation);
+		comp.RotateTowards(movement);
 
 }
