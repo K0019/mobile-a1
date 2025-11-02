@@ -27,6 +27,8 @@ All rights reserved.
 #include "Physics/Physics.h"
 #include "Engine/Input.h"
 #include "Editor/Containers/GUICollection.h"
+#include "Game/PlayerCharacter.h"
+#include "Game/EnemyCharacter.h"
 
 void GrabbableItemComponent::Attack(Vec3 origin, Vec3 direction)
 {
@@ -39,6 +41,10 @@ void GrabbableItemComponent::Attack(Vec3 origin, Vec3 direction)
 
 		// Can't hit self or owner
 		if (hitEntity == owner || hitEntity == ecs::GetEntity(this))
+			continue;
+
+		// Enemies can't hit each other
+		if (owner->GetComp<EnemyComponent>() && hitEntity->GetComp<EnemyComponent>())
 			continue;
 
 		if (ecs::CompHandle<HealthComponent> healthComp{ hitEntity->GetComp<HealthComponent>() })

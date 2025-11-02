@@ -66,6 +66,8 @@ void HealthComponent::AddHealth(health_type amount)
 
 void HealthComponent::TakeDamage(HealthComponent::health_type amount, Vec3 direction)
 {
+	if (currHealth > maxHealth)
+		currHealth = maxHealth;
 	currHealth -= amount;
 
 
@@ -75,7 +77,7 @@ void HealthComponent::TakeDamage(HealthComponent::health_type amount, Vec3 direc
 	{
 		if (auto playerComp{ ecs::GetEntity(this)->GetComp< PlayerMovementComponent >() })
 		{
-			ST<SceneManager>::Get()->ReloadScene(0);
+			ST<Scheduler>::Get()->Add([]() {ST<SceneManager>::Get()->ReloadScene(0); });
 		}
 		else
 		{
