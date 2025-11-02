@@ -1169,6 +1169,18 @@ vk::Result vk::VulkanSwapchain::initResources(uint32_t& outWidth, uint32_t& outH
     return result;
   }
 
+#if defined(__ANDROID__)
+  // RECALCULATE identityExtent based on new surface capabilities
+  identityExtent_ = surfaceCapabilities_.currentExtent;
+  preTransform_ = surfaceCapabilities_.currentTransform;
+
+  // If rotated 90° or 270°, swap dimensions
+  if (surfaceCapabilities_.currentTransform & VK_SURFACE_TRANSFORM_ROTATE_90_BIT_KHR ||
+      surfaceCapabilities_.currentTransform & VK_SURFACE_TRANSFORM_ROTATE_270_BIT_KHR) {
+      std::swap(identityExtent_.width, identityExtent_.height);
+  }
+#endif
+
   // Select optimal swapchain parameters
   surfaceFormat_ = selectSwapSurfaceFormat(surfaceFormats_);
   presentMode_ = selectSwapPresentMode(presentModes_, vSync);
@@ -1247,7 +1259,13 @@ vk::Result vk::VulkanSwapchain::initResources(uint32_t& outWidth, uint32_t& outH
     VK_ASSERT(vk::setDebugObjectName(device_, VK_OBJECT_TYPE_IMAGE_VIEW, (uint64_t)swapImg.imageView, debugName));
 
     // Create VulkanImage for texture pool
-    VulkanImage vulkanImg = {.vkImage_ = swapImg.image, .vkUsageFlags_ = selectUsageFlags(), .vkExtent_ = {extent_.width, extent_.height, 1}, .vkType_ = VK_IMAGE_TYPE_2D, .vkImageFormat_ = surfaceFormat_.format, .vkSamples_ = VK_SAMPLE_COUNT_1_BIT, .isSwapchainImage_ = true, .isOwningVkImage_ = false, .numLevels_ = 1, .numLayers_ = 1, .isDepthFormat_ = VulkanImage::isDepthFormat(surfaceFormat_.format), .isStencilFormat_ = VulkanImage::isStencilFormat(surfaceFormat_.format), .vkImageLayout_ = VK_IMAGE_LAYOUT_UNDEFINED, .imageView_ = swapImg.imageView,};
+    VulkanImage vulkanImg = {.vkImage_ = swapImg.image, .vkUsageFlags_ = selectUsageFlags(), 
+#if defined(__ANDROID__)
+        .vkExtent_ = {identityExtent_.width, identityExtent_.height, 1},
+#else
+        .vkExtent_ = {extent_.width, extent_.height, 1}, 
+#endif
+        .vkType_ = VK_IMAGE_TYPE_2D, .vkImageFormat_ = surfaceFormat_.format, .vkSamples_ = VK_SAMPLE_COUNT_1_BIT, .isSwapchainImage_ = true, .isOwningVkImage_ = false, .numLevels_ = 1, .numLayers_ = 1, .isDepthFormat_ = VulkanImage::isDepthFormat(surfaceFormat_.format), .isStencilFormat_ = VulkanImage::isStencilFormat(surfaceFormat_.format), .vkImageLayout_ = VK_IMAGE_LAYOUT_UNDEFINED, .imageView_ = swapImg.imageView,};
 
     snprintf(vulkanImg.debugName_, sizeof(vulkanImg.debugName_), "Swapchain Image %u", i);
 

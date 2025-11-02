@@ -160,13 +160,13 @@ namespace vk
       switch (transform)
       {
       case SurfaceTransform::Rotate90:
-          return glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+          return glm::rotate(glm::mat4(1.0f), glm::radians(-90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
 
       case SurfaceTransform::Rotate180:
           return glm::rotate(glm::mat4(1.0f), glm::radians(180.0f), glm::vec3(0.0f, 0.0f, 1.0f));
 
       case SurfaceTransform::Rotate270:
-          return glm::rotate(glm::mat4(1.0f), glm::radians(270.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+          return glm::rotate(glm::mat4(1.0f), glm::radians(-270.0f), glm::vec3(0.0f, 0.0f, 1.0f));
 
       case SurfaceTransform::Identity:
       default:
