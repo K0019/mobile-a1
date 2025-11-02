@@ -2,13 +2,14 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-	// Callback Magic registers to receive pointer events.
-	// action: 0=Down, 1=Up, 2=Move
-	typedef void (*RyPointerFn)(int id, int action, float x, float y);
 
-	void ry_input_set_pointer_callback(RyPointerFn fn);
-	void ry_input_dispatch_frame_events(void);  // call once per frame (AFTER looper events, BEFORE Magic Update)
+	typedef void (*RyTapFn)(float x, float y, int pointerId);
+
+	void ry_set_tap_callback(RyTapFn fn);
+	int  ry_handle_ainput_event(void* ainput_event);
+	void ry_tick_android_input(void);
+	void ry_fire_tap_if_any(void);  // optional
 
 #ifdef __cplusplus
-}
+} // extern "C"
 #endif

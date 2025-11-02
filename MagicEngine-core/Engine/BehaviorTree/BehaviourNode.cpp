@@ -350,6 +350,9 @@ void DetectClickTest::OnInitialize()
 NODE_STATUS DetectClickTest::OnUpdate(ecs::EntityHandle entity)
 {
     //FOR DEMO
+    auto* km = ST<KeyboardMouseInput>::Get();
+    if (km->GetIsPressed(KEY::M1))   CONSOLE_LOG(LEVEL_DEBUG) << "M1 pressed";
+    if (km->GetIsReleased(KEY::M1))  CONSOLE_LOG(LEVEL_DEBUG) << "M1 released";
 
     static bool prev = false; // remembers last frame state
 

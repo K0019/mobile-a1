@@ -73,9 +73,16 @@ All rights reserved.
 //	CONSOLE_LOG(LEVEL_INFO) << "[AndroidInput] Tap @ (" << x << ", " << y << ")";
 //	CONSOLE_LOG(LEVEL_INFO) << "THIS CODE IS FINALLY WORKING BLESSSSSSS";
 //}
-static void MagicPointerSink(int id, int action, float x, float y) {
-	MagicInjectPointer(id, action, x, y);
+
+static void OnTapFromRy(float x, float y, int /*id*/) {
+	CONSOLE_LOG(LEVEL_INFO) << "HEHEHE finally ok again idk y it wasnt ok but ok [AndroidInput] Tap @ (" << x << ", " << y << ")";
+	// If/when you want: inject into your input system here
+	// MagicInjectPointer(kUp, x, y, 0);  // or call your public mouse API
 }
+
+//static void MagicPointerSink(int id, int action, float x, float y) {
+//	MagicInjectPointer(id, action, x, y);
+//}
 
 #ifdef IMGUI_ENABLED
 namespace
@@ -229,11 +236,17 @@ void MagicEngine::Init(Context& context)
 	editor::CreateGuiWindow<CustomViewport>(static_cast<unsigned int>(worldExtents.x), static_cast<unsigned int>(worldExtents.y));
 #endif
 
+//#if defined(__ANDROID__)
+//	ry_input_set_pointer_callback(&MagicPointerSink);
+//#endif
+
+//#if defined(__ANDROID__)
+//	Magic_AndroidInputBridge_Initialize();
+//#endif
 #if defined(__ANDROID__)
-	ry_input_set_pointer_callback(&MagicPointerSink);
+
+	ry_set_tap_callback(&OnTapFromRy);
 #endif
-
-
 
 }
 

@@ -164,6 +164,7 @@ void BehaviorTreeComp::OnDetached()
 void BehaviorTreeComp::Update()
 {
     if ( !behaviorTree.GetName().empty()) {
+       // CONSOLE_LOG(LEVEL_INFO)<< "[BTComp] OnStart btName='" << behaviorTree.GetName() << "'";
         behaviorTree.Set(ecs::GetEntity(this));  // guarded; will log and return if anything is wrong
     }
 
