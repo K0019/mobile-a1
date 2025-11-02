@@ -26,9 +26,11 @@ All rights reserved.
 
 #include "Health.h"
 #include "Character.h"
+#include "PlayerCharacter.h"
 #include "Physics//Physics.h"
 #include "math/utils_math.h"
 #include "Editor/Containers/GUICollection.h"
+#include "Engine/SceneManagement.h"
 
 HealthComponent::health_type cheatState = 0;
 bool cheatActive = false; ///THis is so the healthbar colour wont keep updating
@@ -66,11 +68,19 @@ void HealthComponent::TakeDamage(HealthComponent::health_type amount, Vec3 direc
 {
 	currHealth -= amount;
 
+
 	// We don't need to flash if the entity is already dead,
 	// or this health component is invulnerable.
 	if (IsDead())
 	{
-		ecs::DeleteEntity(ecs::GetEntity(this));
+		if (auto playerComp{ ecs::GetEntity(this)->GetComp< PlayerMovementComponent >() })
+		{
+			ST<SceneManager>::Get()->ReloadScene(0);
+		}
+		else
+		{
+			ecs::DeleteEntity(ecs::GetEntity(this));
+		}
 		return;
 	}
 

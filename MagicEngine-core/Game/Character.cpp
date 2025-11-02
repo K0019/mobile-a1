@@ -92,6 +92,7 @@ void CharacterMovementComponent::GrabItem(ecs::CompHandle<GrabbableItemComponent
 		return;
 
 	item->isHeld = true;
+	item->owner = ecs::GetEntity(this);
 	heldItem = ecs::GetEntity(item);
 
 	// Physics Comp related
