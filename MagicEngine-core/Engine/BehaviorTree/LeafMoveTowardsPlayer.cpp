@@ -30,7 +30,7 @@ NODE_STATUS L_MoveTowardsPlayer::OnUpdate([[maybe_unused]] ecs::EntityHandle ent
     dir.y = 0.0f;
 
     //stop if close to player
-    if (dir.Length() < 8.0f)
+    if (dir.Length() < 2.0f)
     {
         characterComp->SetMovementVector(Vec2(0.0f, 0.0f));
         return NODE_STATUS::SUCCESS;

@@ -59,13 +59,11 @@ void GameCameraControllerComponent::Deserialize(Deserializer& reader)
 
 void GameCameraControllerComponent::EditorDraw()
 {
-#ifdef IMGUI_ENABLED
 	cameraEntity.EditorDraw("Camera");
 	playerEntity.EditorDraw("Player");
 	gui::TextBoxReadOnly("Yaw", std::to_string(cameraYaw));
 	gui::TextBoxReadOnly("Pitch", std::to_string(cameraPitch));
 	gui::VarDrag("Sensitivity", &cameraSensitivity, 0.05f, 0.05f, 1.0f);
-#endif
 }
 
 GameCameraControllerSystem::GameCameraControllerSystem()

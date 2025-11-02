@@ -1,6 +1,6 @@
 /******************************************************************************/
 /*!
-\file   CharacterCharacter.h
+\file   Character.h
 \par    Project: 7percent
 \par    Course: CSD2401
 \par    Section B
@@ -14,7 +14,7 @@
 \brief
 	CharacterMovementComponent is an ECS component-system pair which controls character movement. 
 
-All content � 2024 DigiPen Institute of Technology Singapore.
+All content � 2025 DigiPen Institute of Technology Singapore.
 All rights reserved.
 */
 /******************************************************************************/
@@ -37,10 +37,14 @@ private:
 public:
 
 	EntityReference hitDebugObject;
+	EntityReference heldItem;
 	float moveSpeed;
 	float rotateSpeed;
+	float stunTimePerHit;
+	float groundFriction;
+
 	// Not serialized
-	EntityReference heldItem;
+	float currentStunTime;
 
 	/*****************************************************************//*!
 	\brief
@@ -50,8 +54,10 @@ public:
 
 	const Vec2 GetMovementVector();
 	void SetMovementVector(Vec2 vector);
+	void RotateTowards(Vec2 vector);
 
 	void DropItem();
+	void Throw(Vec3 direction);
 	void GrabItem(ecs::CompHandle<GrabbableItemComponent> item);
 	void Attack();
 
