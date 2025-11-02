@@ -268,6 +268,16 @@ exit /b 0
 :build_android
 echo [INFO] Building engine for Android (%BUILD_TYPE%)...
 
+echo [INFO] Running Rocky's python script
+@echo off
+py --version >nul 2>&1
+if %errorlevel% neq 0 (
+    echo Python is not installed.
+    pause
+    exit /b 1
+)
+py generate_android_assets_manifest.py
+
 if exist "android\install" rmdir /s /q android\install
 if exist "build-android" rmdir /s /q build-android
 mkdir android\install
