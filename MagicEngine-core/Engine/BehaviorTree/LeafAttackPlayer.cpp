@@ -2,8 +2,8 @@
 #include "BehaviourTreeFactory.h"
 #include "Game/EnemyCharacter.h"
 #include "Game/Character.h"
-#include "Health.h"
-#include "GameTime.h"
+#include "Game/Health.h"
+#include "../Utilities/GameTime.h"
 #include "Math/utils_math.h"
 
 void L_AttackPlayer::OnInitialize()
