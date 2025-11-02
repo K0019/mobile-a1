@@ -24,13 +24,13 @@ All rights reserved.
 #include "Editor/Containers/GUICollection.h"
 
 CharacterMovementComponent::CharacterMovementComponent()
-	: movementVector{ 0.0f,0.0f },
-	hitDebugObject{ nullptr },
-	moveSpeed{ 0.0f },
-	rotateSpeed{ 0.0f },
-	stunTimePerHit{ 0.0f },
-	heldItem{ nullptr },
-	currentStunTime{ 0.0f }
+	: movementVector{ 0.0f,0.0f }
+	, hitDebugObject{ nullptr }
+	, moveSpeed{ 0.0f }
+	, rotateSpeed{ 0.0f }
+	, stunTimePerHit{ 0.0f }
+	, heldItem{ nullptr }
+	, currentStunTime{ 0.0f }
 {
 }
 
