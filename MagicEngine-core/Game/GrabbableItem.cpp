@@ -74,7 +74,7 @@ void GrabbableItemComponent::Deserialize(Deserializer& reader)
 
 void GrabbableItemComponent::EditorDraw()
 {
-	ImGui::InputFloat("Damage", &damage);
+	gui::VarInput("Damage", &damage);
 }
 
 GrabbableItemComponentSystem::GrabbableItemComponentSystem()

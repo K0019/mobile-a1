@@ -129,5 +129,5 @@ float HealthComponent::GetHealthFraction()
 
 void HealthComponent::EditorDraw()
 {
-	ImGui::InputFloat("Max Health", &maxHealth);
+	gui::VarInput("Max Health", &maxHealth);
 }
