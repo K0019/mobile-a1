@@ -1103,6 +1103,23 @@ vk::Result vk::VulkanSwapchain::init(const InitInfo& info)
     return Result(Result::Code::RuntimeError, "Queue family does not support presentation");
   }
 
+#if defined(__ANDROID__)
+  // Capture identity (natural) resolution at startup
+  VkSurfaceCapabilitiesKHR caps;
+  result = vkGetPhysicalDeviceSurfaceCapabilitiesKHR(physicalDevice_, surface_, &caps);
+  if (result == VK_SUCCESS)
+  {
+      identityExtent_ = caps.currentExtent;
+      preTransform_ = caps.currentTransform;
+
+      // If device starts in 90° or 270° rotation, swap dimensions to get natural resolution
+      if (caps.currentTransform & (VK_SURFACE_TRANSFORM_ROTATE_90_BIT_KHR | VK_SURFACE_TRANSFORM_ROTATE_270_BIT_KHR))
+      {
+          std::swap(identityExtent_.width, identityExtent_.height);
+      }
+  }
+#endif
+
   // Initialize with the requested size
   uint32_t width = info.width;
   uint32_t height = info.height;
@@ -1152,6 +1169,18 @@ vk::Result vk::VulkanSwapchain::initResources(uint32_t& outWidth, uint32_t& outH
     return result;
   }
 
+#if defined(__ANDROID__)
+  // RECALCULATE identityExtent based on new surface capabilities
+  identityExtent_ = surfaceCapabilities_.currentExtent;
+  preTransform_ = surfaceCapabilities_.currentTransform;
+
+  // If rotated 90° or 270°, swap dimensions
+  if (surfaceCapabilities_.currentTransform & VK_SURFACE_TRANSFORM_ROTATE_90_BIT_KHR ||
+      surfaceCapabilities_.currentTransform & VK_SURFACE_TRANSFORM_ROTATE_270_BIT_KHR) {
+      std::swap(identityExtent_.width, identityExtent_.height);
+  }
+#endif
+
   // Select optimal swapchain parameters
   surfaceFormat_ = selectSwapSurfaceFormat(surfaceFormats_);
   presentMode_ = selectSwapPresentMode(presentModes_, vSync);
@@ -1172,10 +1201,32 @@ vk::Result vk::VulkanSwapchain::initResources(uint32_t& outWidth, uint32_t& outH
   imageCount = std::min(imageCount, static_cast<uint32_t>(MAX_SWAPCHAIN_IMAGES));
 
   // Create swapchain
+#if defined(__ANDROID__)
+// On Android: use identity extent and current transform for pre-rotation
+  preTransform_ = surfaceCapabilities_.currentTransform;
+  const VkSwapchainCreateInfoKHR createInfo = {
+    .sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,
+    .surface = surface_,
+    .minImageCount = imageCount,
+    .imageFormat = surfaceFormat_.format,
+    .imageColorSpace = surfaceFormat_.colorSpace,
+    .imageExtent = identityExtent_,  // Use identity extent, not current extent
+    .imageArrayLayers = 1,
+    .imageUsage = selectUsageFlags(),
+    .imageSharingMode = VK_SHARING_MODE_EXCLUSIVE,
+    .queueFamilyIndexCount = 1,
+    .pQueueFamilyIndices = &queueFamilyIndex_,
+    .preTransform = preTransform_,  // Use current transform
+    .compositeAlpha = selectCompositeAlpha(surfaceCapabilities_),
+    .presentMode = presentMode_,
+    .clipped = VK_TRUE,
+    .oldSwapchain = VK_NULL_HANDLE,
+  };
+#else
   const VkSwapchainCreateInfoKHR createInfo = {.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR, .surface = surface_, .minImageCount = imageCount, .imageFormat = surfaceFormat_.format, .imageColorSpace = surfaceFormat_.colorSpace, .imageExtent = extent_, .imageArrayLayers = 1, .imageUsage = selectUsageFlags(), .imageSharingMode = VK_SHARING_MODE_EXCLUSIVE, .queueFamilyIndexCount = 1, .pQueueFamilyIndices = &queueFamilyIndex_,   .preTransform = (surfaceCapabilities_.supportedTransforms & VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR) 
                    ? VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR 
                    : surfaceCapabilities_.currentTransform, .compositeAlpha = selectCompositeAlpha(surfaceCapabilities_), .presentMode = presentMode_, .clipped = VK_TRUE, .oldSwapchain = VK_NULL_HANDLE,};
-
+#endif
   VK_ASSERT(vkCreateSwapchainKHR(device_, &createInfo, nullptr, &swapchain_));
   VK_ASSERT(vk::setDebugObjectName(device_, VK_OBJECT_TYPE_SWAPCHAIN_KHR, (uint64_t)swapchain_, "VulkanSwapchain"));
 
@@ -1208,7 +1259,13 @@ vk::Result vk::VulkanSwapchain::initResources(uint32_t& outWidth, uint32_t& outH
     VK_ASSERT(vk::setDebugObjectName(device_, VK_OBJECT_TYPE_IMAGE_VIEW, (uint64_t)swapImg.imageView, debugName));
 
     // Create VulkanImage for texture pool
-    VulkanImage vulkanImg = {.vkImage_ = swapImg.image, .vkUsageFlags_ = selectUsageFlags(), .vkExtent_ = {extent_.width, extent_.height, 1}, .vkType_ = VK_IMAGE_TYPE_2D, .vkImageFormat_ = surfaceFormat_.format, .vkSamples_ = VK_SAMPLE_COUNT_1_BIT, .isSwapchainImage_ = true, .isOwningVkImage_ = false, .numLevels_ = 1, .numLayers_ = 1, .isDepthFormat_ = VulkanImage::isDepthFormat(surfaceFormat_.format), .isStencilFormat_ = VulkanImage::isStencilFormat(surfaceFormat_.format), .vkImageLayout_ = VK_IMAGE_LAYOUT_UNDEFINED, .imageView_ = swapImg.imageView,};
+    VulkanImage vulkanImg = {.vkImage_ = swapImg.image, .vkUsageFlags_ = selectUsageFlags(), 
+#if defined(__ANDROID__)
+        .vkExtent_ = {identityExtent_.width, identityExtent_.height, 1},
+#else
+        .vkExtent_ = {extent_.width, extent_.height, 1}, 
+#endif
+        .vkType_ = VK_IMAGE_TYPE_2D, .vkImageFormat_ = surfaceFormat_.format, .vkSamples_ = VK_SAMPLE_COUNT_1_BIT, .isSwapchainImage_ = true, .isOwningVkImage_ = false, .numLevels_ = 1, .numLayers_ = 1, .isDepthFormat_ = VulkanImage::isDepthFormat(surfaceFormat_.format), .isStencilFormat_ = VulkanImage::isStencilFormat(surfaceFormat_.format), .vkImageLayout_ = VK_IMAGE_LAYOUT_UNDEFINED, .imageView_ = swapImg.imageView,};
 
     snprintf(vulkanImg.debugName_, sizeof(vulkanImg.debugName_), "Swapchain Image %u", i);
 
@@ -1236,6 +1293,9 @@ vk::Result vk::VulkanSwapchain::reinitResources(uint32_t& outWidth, uint32_t& ou
 
   // Wait for all operations to complete
   VK_ASSERT(vkQueueWaitIdle(graphicsQueue_));
+
+  // Wait for device idle
+  VK_ASSERT(vkDeviceWaitIdle(device_));
 
   // Store old swapchain for optimization
   VkSwapchainKHR oldSwapchain = swapchain_;
@@ -1270,6 +1330,18 @@ vk::Result vk::VulkanSwapchain::reinitResources(uint32_t& outWidth, uint32_t& ou
     return result;
   }
 
+#if defined(__ANDROID__)
+  // RECALCULATE identityExtent based on new surface capabilities
+  identityExtent_ = surfaceCapabilities_.currentExtent;
+  preTransform_ = surfaceCapabilities_.currentTransform;
+
+  // If rotated 90° or 270°, swap dimensions
+  if (surfaceCapabilities_.currentTransform & VK_SURFACE_TRANSFORM_ROTATE_90_BIT_KHR ||
+      surfaceCapabilities_.currentTransform & VK_SURFACE_TRANSFORM_ROTATE_270_BIT_KHR) {
+      std::swap(identityExtent_.width, identityExtent_.height);
+  }
+#endif
+
   // Select new parameters
   surfaceFormat_ = selectSwapSurfaceFormat(surfaceFormats_);
   presentMode_ = selectSwapPresentMode(presentModes_, vSync);
@@ -1285,7 +1357,12 @@ vk::Result vk::VulkanSwapchain::reinitResources(uint32_t& outWidth, uint32_t& ou
   }
   imageCount = std::min(imageCount, static_cast<uint32_t>(MAX_SWAPCHAIN_IMAGES));
 
+#if defined(__ANDROID__)
+  preTransform_ = surfaceCapabilities_.currentTransform;
+  const VkSwapchainCreateInfoKHR createInfo = { .sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR, .surface = surface_, .minImageCount = imageCount, .imageFormat = surfaceFormat_.format, .imageColorSpace = surfaceFormat_.colorSpace, .imageExtent = identityExtent_, .imageArrayLayers = 1, .imageUsage = selectUsageFlags(), .imageSharingMode = VK_SHARING_MODE_EXCLUSIVE, .queueFamilyIndexCount = 1, .pQueueFamilyIndices = &queueFamilyIndex_, .preTransform = preTransform_, .compositeAlpha = selectCompositeAlpha(surfaceCapabilities_), .presentMode = presentMode_, .clipped = VK_TRUE, .oldSwapchain = oldSwapchain, };
+#else    
   const VkSwapchainCreateInfoKHR createInfo = {.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR, .surface = surface_, .minImageCount = imageCount, .imageFormat = surfaceFormat_.format, .imageColorSpace = surfaceFormat_.colorSpace, .imageExtent = extent_, .imageArrayLayers = 1, .imageUsage = selectUsageFlags(), .imageSharingMode = VK_SHARING_MODE_EXCLUSIVE, .queueFamilyIndexCount = 1, .pQueueFamilyIndices = &queueFamilyIndex_, .preTransform = surfaceCapabilities_.currentTransform, .compositeAlpha = selectCompositeAlpha(surfaceCapabilities_), .presentMode = presentMode_, .clipped = VK_TRUE, .oldSwapchain = oldSwapchain,};
+#endif
 
   VkResult vkResult = vkCreateSwapchainKHR(device_, &createInfo, nullptr, &swapchain_);
 
@@ -1320,8 +1397,11 @@ vk::Result vk::VulkanSwapchain::reinitResources(uint32_t& outWidth, uint32_t& ou
     viewInfo.image = swapImg.image;
     VK_ASSERT(vkCreateImageView(device_, &viewInfo, nullptr, &swapImg.imageView));
 
+#if defined(__ANDROID__)
+    VulkanImage vulkanImg = { .vkImage_ = swapImg.image, .vkUsageFlags_ = selectUsageFlags(), .vkExtent_ = {identityExtent_.width, identityExtent_.height, 1}, .vkType_ = VK_IMAGE_TYPE_2D, .vkImageFormat_ = surfaceFormat_.format, .vkSamples_ = VK_SAMPLE_COUNT_1_BIT, .isSwapchainImage_ = true, .isOwningVkImage_ = false, .numLevels_ = 1, .numLayers_ = 1, .isDepthFormat_ = VulkanImage::isDepthFormat(surfaceFormat_.format), .isStencilFormat_ = VulkanImage::isStencilFormat(surfaceFormat_.format), .vkImageLayout_ = VK_IMAGE_LAYOUT_UNDEFINED, .imageView_ = swapImg.imageView, };
+#else
     VulkanImage vulkanImg = {.vkImage_ = swapImg.image, .vkUsageFlags_ = selectUsageFlags(), .vkExtent_ = {extent_.width, extent_.height, 1}, .vkType_ = VK_IMAGE_TYPE_2D, .vkImageFormat_ = surfaceFormat_.format, .vkSamples_ = VK_SAMPLE_COUNT_1_BIT, .isSwapchainImage_ = true, .isOwningVkImage_ = false, .numLevels_ = 1, .numLayers_ = 1, .isDepthFormat_ = VulkanImage::isDepthFormat(surfaceFormat_.format), .isStencilFormat_ = VulkanImage::isStencilFormat(surfaceFormat_.format), .vkImageLayout_ = VK_IMAGE_LAYOUT_UNDEFINED, .imageView_ = swapImg.imageView,};
-
+#endif
     snprintf(vulkanImg.debugName_, sizeof(vulkanImg.debugName_), "Swapchain Image %u", i);
     swapImg.handle = ctx_->texturesPool_.create(std::move(vulkanImg));
   }
@@ -1581,6 +1661,11 @@ VkSurfaceFormatKHR vk::VulkanSwapchain::selectSwapSurfaceFormat(const std::vecto
 
 VkPresentModeKHR vk::VulkanSwapchain::selectSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes, bool vSync) const
 {
+#ifdef ANDROID
+    // On Android, always use FIFO to ensure compatibility
+    return VK_PRESENT_MODE_FIFO_KHR;
+#endif
+
   if (vSync)
   {
     return VK_PRESENT_MODE_FIFO_KHR; // Always available and guarantees vsync
@@ -7140,3 +7225,39 @@ uint32_t vk::VulkanContext::getMaxStorageBufferRange() const
 {
   return vkPhysicalDeviceProperties2_.properties.limits.maxStorageBufferRange;
 }
+
+#if defined(__ANDROID__)
+SurfaceTransform vk::VulkanContext::getSwapchainPreTransform() const
+{
+    if (!swapchain_)
+    {
+        return SurfaceTransform::Identity;
+    }
+
+    VkSurfaceTransformFlagBitsKHR vkTransform = swapchain_->getPreTransform();
+
+    switch (vkTransform)
+    {
+    case VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR:
+        return SurfaceTransform::Identity;
+    case VK_SURFACE_TRANSFORM_ROTATE_90_BIT_KHR:
+        return SurfaceTransform::Rotate90;
+    case VK_SURFACE_TRANSFORM_ROTATE_180_BIT_KHR:
+        return SurfaceTransform::Rotate180;
+    case VK_SURFACE_TRANSFORM_ROTATE_270_BIT_KHR:
+        return SurfaceTransform::Rotate270;
+    case VK_SURFACE_TRANSFORM_HORIZONTAL_MIRROR_BIT_KHR:
+        return SurfaceTransform::HorizontalMirror;
+    case VK_SURFACE_TRANSFORM_HORIZONTAL_MIRROR_ROTATE_90_BIT_KHR:
+        return SurfaceTransform::HorizontalMirrorRotate90;
+    case VK_SURFACE_TRANSFORM_HORIZONTAL_MIRROR_ROTATE_180_BIT_KHR:
+        return SurfaceTransform::HorizontalMirrorRotate180;
+    case VK_SURFACE_TRANSFORM_HORIZONTAL_MIRROR_ROTATE_270_BIT_KHR:
+        return SurfaceTransform::HorizontalMirrorRotate270;
+    case VK_SURFACE_TRANSFORM_INHERIT_BIT_KHR:
+        return SurfaceTransform::Inherit;
+    default:
+        return SurfaceTransform::Identity;
+    }
+}
+#endif

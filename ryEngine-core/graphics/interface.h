@@ -39,6 +39,22 @@ typedef struct GLFWwindow GLFWwindow;
   using window = GLFWwindow;
 #endif
 
+#if defined(__ANDROID__)
+// Platform-independent wrapper for Vulkan surface transform flags (Android only)
+enum class SurfaceTransform : uint8_t
+{
+    Identity = 0,
+    Rotate90,
+    Rotate180,
+    Rotate270,
+    HorizontalMirror,
+    HorizontalMirrorRotate90,
+    HorizontalMirrorRotate180,
+    HorizontalMirrorRotate270,
+    Inherit,
+};
+#endif
+
 namespace vk
 {
   class IContext;
@@ -1216,6 +1232,10 @@ namespace vk
       [[nodiscard]] virtual uint32_t getNumSwapchainImages() const = 0;
 
       virtual void recreateSwapchain(int newWidth, int newHeight) = 0;
+
+#if defined(__ANDROID__)
+      [[nodiscard]] virtual SurfaceTransform getSwapchainPreTransform() const = 0;
+#endif
 
       // Surface management (for Android lifecycle)
       virtual void createSurface(void* nativeWindow, void* display) = 0;

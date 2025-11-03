@@ -33,6 +33,9 @@
 #include "vulkan/vk_enum_string_helper.h"
 #include "logging/log.h"
 
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+
 #define VK_ASSERT(func)                                                  \
   {                                                                      \
     const VkResult vk_assert_result = func;                              \
@@ -149,4 +152,26 @@ namespace vk
   const VkPhysicalDeviceVulkan12Properties& getVkPhysicalDeviceVulkan12Properties(const IContext* ctx);
 
   const VkPhysicalDeviceVulkan13Properties& getVkPhysicalDeviceVulkan13Properties(const IContext* ctx);
+
+#if defined(__ANDROID__)
+  // Android Pre-Rotation Helper: Converts SurfaceTransform enum to GLM rotation matrix
+  inline glm::mat4 getPreRotationMatrix(SurfaceTransform transform)
+  {
+      switch (transform)
+      {
+      case SurfaceTransform::Rotate90:
+          return glm::rotate(glm::mat4(1.0f), glm::radians(-90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+
+      case SurfaceTransform::Rotate180:
+          return glm::rotate(glm::mat4(1.0f), glm::radians(180.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+
+      case SurfaceTransform::Rotate270:
+          return glm::rotate(glm::mat4(1.0f), glm::radians(-270.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+
+      case SurfaceTransform::Identity:
+      default:
+          return glm::mat4(1.0f);
+      }
+  }
+#endif
 } // namespace vk
