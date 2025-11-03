@@ -150,9 +150,9 @@ static int32_t HandleInput(android_app* app, AInputEvent* event) {
 
     int handled_ry = ry_handle_ainput_event(event);                         // <-- feed ry
     int handled_core = Core::Platform::Get().GetInput().HandleInputEvent(event);
-
-   // return Core::Platform::Get().GetInput().HandleInputEvent(event);
     return (handled_ry || handled_core) ? 1 : 0;   // equivalent to (handled_ry | handled_core)
+
+    //return Core::Platform::Get().GetInput().HandleInputEvent(event);
 
 }
 
@@ -199,8 +199,9 @@ void android_main(android_app* app) {
             //ry_input_dispatch_frame_events();
             ry_fire_tap_if_any();
 
-            //ry_tick_android_input();
             Core::Platform::Get().GetInput().Update();
+
+            //ry_tick_android_input();
             //TK Testing this stuff for input
             if (!ctx.engine->ExecuteFrame()) {
                 LOGE("ExecuteFrame returned false!");

@@ -73,11 +73,18 @@ All rights reserved.
 //	CONSOLE_LOG(LEVEL_INFO) << "[AndroidInput] Tap @ (" << x << ", " << y << ")";
 //	CONSOLE_LOG(LEVEL_INFO) << "THIS CODE IS FINALLY WORKING BLESSSSSSS";
 //}
+#include"BehaviorTree/BehaviourNode.h"
+
 
 static void OnTapFromRy(float x, float y, int /*id*/) {
-	CONSOLE_LOG(LEVEL_INFO) << "HEHEHE finally ok again idk y it wasnt ok but ok [AndroidInput] Tap @ (" << x << ", " << y << ")";
+	CONSOLE_LOG(LEVEL_INFO) << "HEHEHE123 finally ok again idk y it wasnt ok but ok [AndroidInput] Tap @ (" << x << ", " << y << ")";
 	// If/when you want: inject into your input system here
 	// MagicInjectPointer(kUp, x, y, 0);  // or call your public mouse API
+	ForM2Use::SetHijackingM2(true);
+	auto* km = ST<KeyboardMouseInput>::Get();
+	if (km->GetIsPressed(KEY::LSHIFT))   CONSOLE_LOG(LEVEL_INFO) << "LSHIFT pressed in ONTAPFROMRY";
+	if (km->GetIsReleased(KEY::LSHIFT))  CONSOLE_LOG(LEVEL_INFO) << "LSHIFT released ONTAPFROMRY";
+
 }
 
 //static void MagicPointerSink(int id, int action, float x, float y) {
@@ -420,6 +427,7 @@ void MagicEngine::ExecuteFrame(FrameData& frameData)
 
 
 	ST<PerformanceProfiler>::Get()->EndFrame();
+
 }
 
 void MagicEngine::shutdown()

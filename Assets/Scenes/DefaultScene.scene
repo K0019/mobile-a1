@@ -276,7 +276,7 @@
         {
             "parentIndex": -1,
             "position": {
-                "x": 1.3819096088409424,
+                "x": 0.0,
                 "y": 2.88800048828125,
                 "z": 0.00006103515625
             },
@@ -299,7 +299,7 @@
                 "5725819782531291880": {
                     "_active": true,
                     "behaviorTree": {
-                        "btName": "testclick"
+                        "btName": "testm2androidmove"
                     }
                 },
                 "6766054303456732338": {

@@ -39,7 +39,7 @@ BT_REGISTER_NODE(MoveRight, "MoveRight")
 BT_REGISTER_NODE(MoveUp, "MoveUp")
 BT_REGISTER_NODE(MoveDown, "MoveDown")
 BT_REGISTER_NODE(DetectClickTest, "DetectClickTest")
-
+BT_REGISTER_NODE (ForM2PresentationClick, "ForM2PresentationClick")
 
 BT_REGISTER_NODE(L_MoveTowardsPlayer, "L_MoveTowardsPlayer")
 BT_REGISTER_NODE(L_LookForPlayer, "L_LookForPlayer")
@@ -351,8 +351,8 @@ NODE_STATUS DetectClickTest::OnUpdate(ecs::EntityHandle entity)
 {
     //FOR DEMO
     auto* km = ST<KeyboardMouseInput>::Get();
-    if (km->GetIsPressed(KEY::M1))   CONSOLE_LOG(LEVEL_DEBUG) << "M1 pressed";
-    if (km->GetIsReleased(KEY::M1))  CONSOLE_LOG(LEVEL_DEBUG) << "M1 released";
+    if (km->GetIsPressed(KEY::LSHIFT))   CONSOLE_LOG(LEVEL_DEBUG) << "LSHIFT pressed";
+    if (km->GetIsReleased(KEY::LSHIFT))  CONSOLE_LOG(LEVEL_DEBUG) << "LSHIFT released";
 
     static bool prev = false; // remembers last frame state
 
@@ -369,14 +369,31 @@ NODE_STATUS DetectClickTest::OnUpdate(ecs::EntityHandle entity)
 
         prev = now;
     }
-
-
-    //if (reverse == 0) {
-    //    entity->GetTransform().SetWorldPosition(entity->GetTransform().GetWorldPosition() + Vec3{ 0.f, -0.15f, 0.f });
-    //}
-    //else {
-    //    entity->GetTransform().SetWorldPosition(entity->GetTransform().GetWorldPosition() + Vec3{ 0.f, 0.15f, 0.f });
-
-    //}
     return NODE_STATUS::SUCCESS;
 }
+
+void ForM2Use::SetHijackingM2(bool val) {
+    hijackingForM2 = val;
+}
+
+void ForM2PresentationClick::OnInitialize()
+{
+}
+NODE_STATUS ForM2PresentationClick::OnUpdate(ecs::EntityHandle entity)
+{
+    auto* km = ST<KeyboardMouseInput>::Get();
+
+    if (km->GetIsPressed(KEY::M1)) {
+        ForM2Use::hijackingForM2 = true;
+    }
+    //FOR DEMO
+    if (ForM2Use::hijackingForM2) {
+        entity->GetTransform().SetWorldPosition(entity->GetTransform().GetWorldPosition() + Vec3{ 0.55f, 0.f, 0.f });
+        CONSOLE_LOG(LEVEL_DEBUG) << "IS RUNNING horr?" << entity->GetTransform().GetWorldPosition().x;
+    }
+    ForM2Use::hijackingForM2 = false;
+
+    return NODE_STATUS::SUCCESS;
+
+}
+
