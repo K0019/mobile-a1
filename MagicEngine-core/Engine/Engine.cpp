@@ -66,6 +66,31 @@ All rights reserved.
 #include "Editor/Import.h"
 #include "math/camera.h"
 
+#include "core/platform/android/ry_android_input_api.h"
+#include "Engine/Platform/Android/MagicPointerInject.h"
+//
+//static void OnTapFromRy(float x, float y, int /*id*/) {
+//	CONSOLE_LOG(LEVEL_INFO) << "[AndroidInput] Tap @ (" << x << ", " << y << ")";
+//	CONSOLE_LOG(LEVEL_INFO) << "THIS CODE IS FINALLY WORKING BLESSSSSSS";
+//}
+#include"BehaviorTree/BehaviourNode.h"
+
+
+static void OnTapFromRy(float x, float y, int /*id*/) {
+	CONSOLE_LOG(LEVEL_INFO) << "HEHEHE123 finally ok again idk y it wasnt ok but ok [AndroidInput] Tap @ (" << x << ", " << y << ")";
+	// If/when you want: inject into your input system here
+	// MagicInjectPointer(kUp, x, y, 0);  // or call your public mouse API
+	ForM2Use::SetHijackingM2(true);
+	auto* km = ST<KeyboardMouseInput>::Get();
+	if (km->GetIsPressed(KEY::LSHIFT))   CONSOLE_LOG(LEVEL_INFO) << "LSHIFT pressed in ONTAPFROMRY";
+	if (km->GetIsReleased(KEY::LSHIFT))  CONSOLE_LOG(LEVEL_INFO) << "LSHIFT released ONTAPFROMRY";
+
+}
+
+//static void MagicPointerSink(int id, int action, float x, float y) {
+//	MagicInjectPointer(id, action, x, y);
+//}
+
 #ifdef IMGUI_ENABLED
 namespace
 {
@@ -131,6 +156,7 @@ bool MagicEngine::IsShuttingDown() const
 	return ST<GraphicsMain>::Get()->GetIsPendingShutdown();
 }
 
+
 void MagicEngine::Init(Context& context)
 {
 	RegisterShit();
@@ -169,6 +195,7 @@ void MagicEngine::Init(Context& context)
 	//graphicsMain->SetCallback_DragDrop(import::DropCallback);
 
 	ST<GameSettings>::Get()->Apply(); // Apply the loaded settings here
+
 
 	ST<BTFactory>::Get()->SetAllFilePath();
 
@@ -215,6 +242,19 @@ void MagicEngine::Init(Context& context)
 	loadState("imgui.json");
 	editor::CreateGuiWindow<CustomViewport>(static_cast<unsigned int>(worldExtents.x), static_cast<unsigned int>(worldExtents.y));
 #endif
+
+//#if defined(__ANDROID__)
+//	ry_input_set_pointer_callback(&MagicPointerSink);
+//#endif
+
+//#if defined(__ANDROID__)
+//	Magic_AndroidInputBridge_Initialize();
+//#endif
+#if defined(__ANDROID__)
+
+	ry_set_tap_callback(&OnTapFromRy);
+#endif
+
 }
 
 void MagicEngine::ExecuteFrame(FrameData& frameData)
@@ -226,6 +266,10 @@ void MagicEngine::ExecuteFrame(FrameData& frameData)
 	// Clear the events of the previous frame
 	ST<EventsQueue>::Get()->NewFrame();
 	
+//#if defined(__ANDROID__)
+//	ry_set_tap_callback(&OnTapFromRy);
+//#endif
+
 	ST<MagicInput>::Get()->NewFrame();
 	//GamepadInput::PollInput();
 
@@ -340,6 +384,7 @@ void MagicEngine::ExecuteFrame(FrameData& frameData)
 	// TODO: Put this in some editor windows manager class. In fact, all of this imgui stuff needs to be put in that class or subclasses.
 	/*if (ST<KeyboardMouseInput>::Get()->GetIsPressed(KEY::GRAVE))
 		ST<Console>::Get()->SetIsOpen(!ST<Console>::Get()->GetIsOpen());*/
+
 #endif
 
 	if(ST<KeyboardMouseInput>::Get()->GetIsPressed(KEY::F11))
@@ -382,6 +427,7 @@ void MagicEngine::ExecuteFrame(FrameData& frameData)
 
 
 	ST<PerformanceProfiler>::Get()->EndFrame();
+
 }
 
 void MagicEngine::shutdown()

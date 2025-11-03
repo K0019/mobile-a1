@@ -72,6 +72,9 @@ public:
     *//******************************************************************/
     void EditorDraw();
 
+    void SetName(std::string n) { btName = std::move(n); }
+    const std::string& GetName() const { return btName; }
+
 private:
     ecs::EntityHandle entity;   //entity the tree is bound to
     BehaviorNode* rootNode;     //starting node

@@ -7,15 +7,18 @@
 #include <base/imgui_context.h>
 #include "VFS/VFS.h"
 #include "MagicEngine/Engine/Engine.h"
+#include "core/platform/android/ry_android_input_api.h"
 
 #define LOGI(...) __android_log_print(ANDROID_LOG_INFO, "ryEngine", __VA_ARGS__)
 #define LOGE(...) __android_log_print(ANDROID_LOG_ERROR, "ryEngine", __VA_ARGS__)
+
 
 class AndroidApp {
     MagicEngine engine;
 public:
     void Initialize(Context& context) {
         engine.Init(context);
+
     }
 
     void Update(Context& context, FrameData& frame)
@@ -139,11 +142,18 @@ static void HandleCmd(android_app* app, int32_t cmd) {
     }
 }
 
+
+
 static int32_t HandleInput(android_app* app, AInputEvent* event) {
     EngineContext* ctx = static_cast<EngineContext*>(app->userData);
     if (!ctx || !ctx->initialized) return 0;
 
-    return Core::Platform::Get().GetInput().HandleInputEvent(event);
+    int handled_ry = ry_handle_ainput_event(event);                         // <-- feed ry
+    int handled_core = Core::Platform::Get().GetInput().HandleInputEvent(event);
+    return (handled_ry || handled_core) ? 1 : 0;   // equivalent to (handled_ry | handled_core)
+
+    //return Core::Platform::Get().GetInput().HandleInputEvent(event);
+
 }
 
 void android_main(android_app* app) {
@@ -185,8 +195,14 @@ void android_main(android_app* app) {
         }
 
         if (ctx.initialized && ctx.engine) {
+            //ry_fire_tap_if_any();
+            //ry_input_dispatch_frame_events();
+            ry_fire_tap_if_any();
+
             Core::Platform::Get().GetInput().Update();
 
+            //ry_tick_android_input();
+            //TK Testing this stuff for input
             if (!ctx.engine->ExecuteFrame()) {
                 LOGE("ExecuteFrame returned false!");
                 break;

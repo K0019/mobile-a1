@@ -18,7 +18,7 @@
       This is the source file that contains the definition of the BehaviorTree
       class.
 
-All content © 2025 DigiPen Institute of Technology Singapore.
+All content ï¿½ 2025 DigiPen Institute of Technology Singapore.
 All rights reserved.
 */
 /******************************************************************************/
@@ -53,6 +53,7 @@ void BehaviorTree::Set(ecs::EntityHandle entityHandle)
     //All the data of the tree.
     std::string fileName{ Filepaths::behaviourTreeSave + "/" + btName + ".json"};
     BehaviorTreeAsset btAsset{};
+
     if (!bt::LoadBTAssetFromFile(fileName, &btAsset))
     {
         CONSOLE_LOG(LEVEL_ERROR) << "behavior tree file could not be loaded.";
@@ -163,6 +164,11 @@ void BehaviorTreeComp::OnDetached()
 
 void BehaviorTreeComp::Update()
 {
+    if ( !behaviorTree.GetName().empty()) {
+       // CONSOLE_LOG(LEVEL_INFO)<< "[BTComp] OnStart btName='" << behaviorTree.GetName() << "'";
+        behaviorTree.Set(ecs::GetEntity(this));  // guarded; will log and return if anything is wrong
+    }
+
     behaviorTree.Update();
 }
 
