@@ -10,6 +10,7 @@
 struct Vec2;
 struct Vec3;
 struct Vec4;
+struct Mat4;
 
 namespace math {
 
@@ -105,6 +106,12 @@ namespace math {
 	*************************************************************************/
 	template <std::floating_point T>
 	constexpr T Sign(T x);
+
+	/*!***********************************************************************
+	\brief
+		Creates a rotation matrix based on euler angles.
+	*************************************************************************/
+	Mat4 EulerAnglesToRotationMatrix(const Vec3& angles);
 
 }
 

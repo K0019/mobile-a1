@@ -17,6 +17,11 @@ namespace math {
 		return x * x;
 	}
 
+	inline Mat4 EulerAnglesToRotationMatrix(const Vec3& angles)
+	{
+		return Mat4{ glm::yawPitchRoll(glm::radians(angles.y), glm::radians(angles.x), glm::radians(angles.z)) };
+	}
+
 	template<unsigned int p>
 	constexpr int PowInt(int x)
 	{

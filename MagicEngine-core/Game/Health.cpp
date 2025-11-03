@@ -77,7 +77,7 @@ void HealthComponent::TakeDamage(HealthComponent::HealthType amount, Vec3 direct
 	{
 		if (auto playerComp{ ecs::GetEntity(this)->GetComp< PlayerMovementComponent >() })
 		{
-			ST<Scheduler>::Get()->Add([]() {ST<SceneManager>::Get()->ReloadScene(0); });
+			//ST<Scheduler>::Get()->Add([]() {ST<SceneManager>::Get()->ReloadScene(0); });
 		}
 		else
 		{
