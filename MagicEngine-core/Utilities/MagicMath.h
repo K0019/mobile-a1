@@ -2,8 +2,10 @@
 #include <type_traits>
 #include <concepts>
 #define GLM_ZERO_TO_ONE_RANGE
+#define GLM_ENABLE_EXPERIMENTAL
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtx/euler_angles.hpp>
 
 struct Vec2;
 struct Vec3;
