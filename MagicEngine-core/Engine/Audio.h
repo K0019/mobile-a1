@@ -6,9 +6,13 @@
 \par    Section B
 \date   10/09/2025
 
-\author Kuan Yew Chong (100%)
+\author Kuan Yew Chong (90%)
 \par    email: yewchong.k\@digipen.edu
 \par    DigiPen login: yewchong.k
+
+\author Elijah Teo (10%)
+\par    email: teo.e\@digipen.edu
+\par    DigiPen login: teo.e
 
 \brief
 	The audio system is responsible for ensuring FMOD gets a update call every frame.
@@ -44,7 +48,8 @@ private:
 	float dopperScale;
 	float distanceFactor;
 	float rolloffScale;
-
+	size_t audioFile;
+	bool isPlaying;
 	uint32_t channelHandle;
 
 	property_vtable()
@@ -52,10 +57,12 @@ private:
 property_begin(AudioSourceComponent)
 {
 	property_var(minDistance),
-	property_var(maxDistance),
-	property_var(dopperScale),
-	property_var(distanceFactor),
-	property_var(rolloffScale),
+		property_var(maxDistance),
+		property_var(dopperScale),
+		property_var(distanceFactor),
+		property_var(rolloffScale),
+		property_var(audioFile),
+
 }
 property_vend_h(AudioSourceComponent)
 

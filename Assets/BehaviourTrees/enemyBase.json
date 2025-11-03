@@ -1,5 +1,5 @@
 {
-    "name": "enemyBase",
+    "name": "enemybase",
     "nodes": [
         {
             "nodeType": "Sequence",
@@ -11,6 +11,10 @@
         },
         {
             "nodeType": "L_MoveTowardsPlayer",
+            "nodeLevel": 1
+        },
+        {
+            "nodeType": "L_AttackPlayer",
             "nodeLevel": 1
         }
     ]

@@ -18,7 +18,7 @@
       This is the source file that contains the definition of the BehaviorTree
       class.
 
-All content © 2025 DigiPen Institute of Technology Singapore.
+All content ï¿½ 2025 DigiPen Institute of Technology Singapore.
 All rights reserved.
 */
 /******************************************************************************/
@@ -150,10 +150,11 @@ void BehaviorTreeComp::OnAttached()
 
 void BehaviorTreeComp::OnStart()
 {
-    //const auto& name = behaviorTree.GetName();   // btName from central deserializer
-    //CONSOLE_LOG(LEVEL_INFO) << "[BTComp] OnStart btName='" << name << "'";
-
-    behaviorTree.Set(ecs::GetEntity(this));
+    ST<Scheduler>::Get()->Add(0.0f, [entity = ecs::GetEntity(this)]() -> void {
+        if (ecs::IsEntityHandleValid(entity))
+            if (auto comp{ entity->GetComp<BehaviorTreeComp>() })
+                comp->behaviorTree.Set(entity);
+    });
 }
 
 void BehaviorTreeComp::OnDetached()

@@ -19,5 +19,6 @@ NODE_STATUS L_LookForPlayer::OnUpdate([[maybe_unused]] ecs::EntityHandle entity)
     float distance = (playerPos - enemyPos).Length();
     const float detectionRange = 10.0f; //tentative
 
-    return (distance < detectionRange) ? NODE_STATUS::SUCCESS : NODE_STATUS::FAILURE;
+    return NODE_STATUS::SUCCESS;
+    //return (distance < detectionRange) ? NODE_STATUS::SUCCESS : NODE_STATUS::FAILURE;
 }

@@ -27,6 +27,7 @@ All rights reserved.
 #include "Engine/BehaviorTree/BehaviourNode.h"
 #include "LeafMoveTowardsPlayer.h"
 #include "LeafLookForPlayer.h"
+#include "LeafAttackPlayer.h"
 #include "BehaviourTreeFactory.h"
 #include "Engine/Input.h"
 
@@ -43,6 +44,7 @@ BT_REGISTER_NODE (ForM2PresentationClick, "ForM2PresentationClick")
 
 BT_REGISTER_NODE(L_MoveTowardsPlayer, "L_MoveTowardsPlayer")
 BT_REGISTER_NODE(L_LookForPlayer, "L_LookForPlayer")
+BT_REGISTER_NODE(L_AttackPlayer, "L_AttackPlayer")
 
 
 BehaviorNode::BehaviorNode()

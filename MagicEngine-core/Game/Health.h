@@ -37,6 +37,8 @@ class HealthComponent
 	, public  IEditorComponent<HealthComponent>
 {
 public:
+	using HealthType = float;
+
 	/*****************************************************************//*!
 	\brief
 		Default constructor.
@@ -49,7 +51,7 @@ public:
 	\return
 		The current health.
 	*//******************************************************************/
-	int GetCurrHealth() const;
+	HealthType GetCurrHealth() const;
 
 	/*****************************************************************//*!
 	\brief
@@ -65,7 +67,7 @@ public:
 	\return
 		The max health.
 	*//******************************************************************/
-	int GetMaxHealth() const;
+	HealthType GetMaxHealth() const;
 
 	/*****************************************************************//*!
 	\brief
@@ -73,7 +75,7 @@ public:
 	\param amount
 		The amount of health to add.
 	*//******************************************************************/
-	void AddHealth(int amount);
+	void AddHealth(HealthType amount);
 
 	/*****************************************************************//*!
 	\brief
@@ -81,7 +83,7 @@ public:
 	\param amount
 		The amount of damage to deal.
 	*//******************************************************************/
-	void TakeDamage(int amount);
+	void TakeDamage(HealthType amount, Vec3 direction = Vec3{ 0 });
 
 	/*****************************************************************//*!
 	\brief
@@ -89,7 +91,7 @@ public:
 	\param newAmount
 		The amount of health to set to.
 	*//******************************************************************/
-	void SetHealth(int newValue);
+	void SetHealth(HealthType newValue);
 
 	/*****************************************************************//*!
 	\brief
@@ -97,7 +99,7 @@ public:
 	\param newMaxAmount
 		The new max health.
 	*//******************************************************************/
-	void SetMaxHealth(int newMaxAmount);
+	void SetMaxHealth(HealthType newMaxAmount);
 
 	float GetHealthFraction();
 private:
@@ -110,10 +112,10 @@ private:
 	virtual void EditorDraw() override;
 
 private:
-	int maxHealth;
-	int currHealth;
+	HealthType maxHealth;
+	HealthType currHealth;
 
-	static constexpr int defaultMax{ 100 };
+	static constexpr HealthType defaultMax{ 100 };
 	property_vtable()
 };
 property_begin(HealthComponent)

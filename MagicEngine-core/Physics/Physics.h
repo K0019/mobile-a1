@@ -68,10 +68,6 @@ X(ENABLED, "Enabled")
 	private:
 		// Physics component flags
 		PhysicsCompFlags flags;
-		// linear velocity
-		Vec3 linearVel;
-		// angular velocity
-		Vec3 angularVel;
 
 	public:
 
@@ -117,17 +113,24 @@ X(ENABLED, "Enabled")
 		\return
 			3d vector that represents the linear velocity.
 		*//******************************************************************/
-		const Vec3& GetLinearVelocity() const;
+		Vec3 GetLinearVelocity() const;
 
 		/*****************************************************************//*!
 		\brief
 			Set the value of the linear velocity.
-		\param flag
-			Flag to set the value
 		\param vel
 			3d vector value to set to the linear velocity.
 		*//******************************************************************/
 		void SetLinearVelocity(const Vec3& vel);
+
+
+		/*****************************************************************//*!
+		\brief
+			Add the value of the linear velocity to the current.
+		\param vel
+			3d vector value to set to the linear velocity.
+		*//******************************************************************/
+		void AddLinearVelocity(const Vec3& vel);
 
 		/*****************************************************************//*!
 		\brief
@@ -135,7 +138,7 @@ X(ENABLED, "Enabled")
 		\return
 			3d vector that represents the angular velocity.
 		*//******************************************************************/
-		const Vec3& GetAngularVelocity() const;
+		Vec3 GetAngularVelocity() const;
 
 		/*****************************************************************//*!
 		\brief
@@ -204,8 +207,6 @@ X(ENABLED, "Enabled")
 } 
 property_begin(physics::PhysicsComp)
 {
-	property_var(linearVel),
-	property_var(angularVel)
 }
 property_vend_h(physics::PhysicsComp)
 
