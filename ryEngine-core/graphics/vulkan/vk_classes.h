@@ -207,6 +207,8 @@ namespace vk
       // For recreation only
       VkSwapchainKHR releaseNativeHandle();
 
+      VkSurfaceTransformFlagBitsKHR getPreTransform() const { return preTransform_; }
+
     private:
       // Helper methods
       Result querySwapchainSupport();
@@ -258,6 +260,10 @@ namespace vk
       std::vector<VkSurfaceFormatKHR> surfaceFormats_;
       std::vector<VkPresentModeKHR> presentModes_;
       bool surfaceDataValid_ = false;
+
+      // Android pre-rotation
+      VkExtent2D identityExtent_ = { 0, 0 };
+      VkSurfaceTransformFlagBitsKHR preTransform_ = VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR;
   };
 
   class VulkanImmediateCommands final
@@ -743,6 +749,9 @@ namespace vk
       void destroySurface() override;
       bool hasSurface() const override
       { return vkSurface_ != VK_NULL_HANDLE; }
+#if defined(__ANDROID__)
+      SurfaceTransform getSwapchainPreTransform() const override;
+#endif
       const VkPhysicalDeviceProperties& getVkPhysicalDeviceProperties() const
       {
         return vkPhysicalDeviceProperties2_.properties;
