@@ -68,7 +68,7 @@ int WINAPI WinMain([[maybe_unused]] HINSTANCE hInstance, [[maybe_unused]] HINSTA
   Core::Platform::Config platformConfig{
     .displayWidth = 1920,
     .displayHeight = 1080,
-    .appName = "ryEngine",
+    .appName = "MagicEngine",
     .enableValidation = false,
     .logFilename = "engine.log",
     .logToConsole = true,
