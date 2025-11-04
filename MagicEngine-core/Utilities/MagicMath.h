@@ -113,6 +113,11 @@ namespace math {
 	*************************************************************************/
 	Mat4 EulerAnglesToRotationMatrix(const Vec3& angles);
 
+	/*!***********************************************************************
+	\brief
+		Creates a forward vector based on euler angles. 0,0 degrees results in
+		a vector in the positve X direction.
+	*************************************************************************/
 	Vec3 EulerAnglesToVector(float pitch, float yaw);
 
 }
