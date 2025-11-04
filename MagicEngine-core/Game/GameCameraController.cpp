@@ -104,16 +104,9 @@ void GameCameraControllerSystem::UpdateGameCameraController(GameCameraController
 	}
 
 	prevPos = currPos;
-	// This was the best method I could find to rotate the camera with minimal pitch/yaw weirdness
-	// I'm not sure why specifically the cam rotation is misbehaving so much, other objects work just fine
-	Vec3 eulerAngles{ Vec3{
-		/*-pitch * cos(math::ToRadians(comp.cameraYaw)),
-		comp.cameraYaw,
-		-pitch * sin(math::ToRadians(comp.cameraYaw))*/
-		pitch,
-		yaw,
-		0.0f
-	} };
+
+	// Set camera rotation
+	Vec3 eulerAngles{ Vec3{ pitch, yaw, 0.0f } };
 	ecs::GetEntityTransform(&comp).SetWorldRotation(eulerAngles);
 
 	// If no player, we skip the tracking portion
@@ -126,5 +119,5 @@ void GameCameraControllerSystem::UpdateGameCameraController(GameCameraController
 	// Calculate camera position
 	Vec3 playerPos = comp.playerEntity->GetTransform().GetWorldPosition();
 	Vec3 cameraPos = playerPos - forward;
-	ecs::GetEntity(&comp)->GetTransform().SetWorldPosition(cameraPos);
+	ecs::GetEntityTransform(&comp).SetWorldPosition(cameraPos);
 }
