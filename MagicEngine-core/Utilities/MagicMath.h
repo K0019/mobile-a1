@@ -2,12 +2,15 @@
 #include <type_traits>
 #include <concepts>
 #define GLM_ZERO_TO_ONE_RANGE
+#define GLM_ENABLE_EXPERIMENTAL
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtx/euler_angles.hpp>
 
 struct Vec2;
 struct Vec3;
 struct Vec4;
+struct Mat4;
 
 namespace math {
 
@@ -103,6 +106,19 @@ namespace math {
 	*************************************************************************/
 	template <std::floating_point T>
 	constexpr T Sign(T x);
+
+	/*!***********************************************************************
+	\brief
+		Creates a rotation matrix based on euler angles.
+	*************************************************************************/
+	Mat4 EulerAnglesToRotationMatrix(const Vec3& angles);
+
+	/*!***********************************************************************
+	\brief
+		Creates a forward vector based on euler angles. 0,0 degrees results in
+		a vector in the positve X direction.
+	*************************************************************************/
+	Vec3 EulerAnglesToVector(float pitch, float yaw);
 
 }
 
