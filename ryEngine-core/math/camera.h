@@ -64,7 +64,7 @@ class CameraPositioner_FirstPerson final : public CameraPositionerInterface
       {
         if (length(delta) > glm::epsilon<float>())
         {
-          yaw_ += mouseSpeed_ * delta.x;
+          yaw_ -= mouseSpeed_ * delta.x;
           pitch_ -= mouseSpeed_ * delta.y;
 
           constexpr float pitchLimit = glm::pi<float>() / 2.0f - 0.01f; // Approx +/- 89.9 degrees
