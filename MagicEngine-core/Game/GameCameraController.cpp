@@ -106,7 +106,7 @@ void GameCameraControllerSystem::UpdateGameCameraController(GameCameraController
 	prevPos = currPos;
 
 	// Set camera rotation
-	Vec3 eulerAngles{ Vec3{ pitch, yaw, 0.0f } };
+	Vec3 eulerAngles{ pitch, yaw, 0.0f };
 	ecs::GetEntityTransform(&comp).SetWorldRotation(eulerAngles);
 
 	// If no player, we skip the tracking portion

@@ -393,7 +393,7 @@ inline void Mat4::Set(const Vec3& position, const Vec3& scale, const Vec3& rotat
 {
 	*this = Mat4::Identity();
 	Mat4 matScale{ glm::scale(*this, scale) };
-	Mat4 matRotate{ glm::eulerAngleXYZ(glm::radians(rotation.x), glm::radians(rotation.y), glm::radians(rotation.z)) };
+	Mat4 matRotate{ glm::yawPitchRoll(glm::radians(rotation.y), glm::radians(rotation.x), glm::radians(rotation.z)) };
 	Mat4 matTranslate{ glm::translate(*this, position) };
 	*this = matTranslate * matRotate * matScale;
 }
