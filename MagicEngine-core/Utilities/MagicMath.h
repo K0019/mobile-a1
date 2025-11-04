@@ -113,6 +113,8 @@ namespace math {
 	*************************************************************************/
 	Mat4 EulerAnglesToRotationMatrix(const Vec3& angles);
 
+	Vec3 EulerAnglesToVector(float pitch, float yaw);
+
 }
 
 // glm template functions will treat our classes as a scalars when used as a function parameter without explicit instantiation of

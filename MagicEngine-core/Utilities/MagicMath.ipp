@@ -22,6 +22,19 @@ namespace math {
 		return Mat4{ glm::yawPitchRoll(glm::radians(angles.y), glm::radians(angles.x), glm::radians(angles.z)) };
 	}
 
+	inline Vec3 EulerAnglesToVector(float pitch, float yaw)
+	{
+		pitch = glm::radians(pitch);
+		yaw = glm::radians(yaw);
+		float pitchCos{ std::cosf(pitch) }, pitchSin{ std::sinf(pitch) };
+		float yawCos{ std::cosf(yaw) }, yawSin{ std::sinf(yaw) };
+		return Vec3{
+			pitchCos * yawSin,
+			pitchSin,
+			pitchCos * yawCos
+		};
+	}
+
 	template<unsigned int p>
 	constexpr int PowInt(int x)
 	{

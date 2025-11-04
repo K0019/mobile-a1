@@ -122,12 +122,13 @@ void GameCameraControllerSystem::UpdateGameCameraController(GameCameraController
 
 	// Create a look vector
 	// TODO: Create forward vector manually bah
-	Mat4 rotateMatrix{ math::EulerAnglesToRotationMatrix(eulerAngles) };
+	/*Mat4 rotateMatrix{ math::EulerAnglesToRotationMatrix(eulerAngles) };
 	Vec4 forwardVec4{ comp.currentCameraDistance, 0.0f, 0.0f, 0.0f };
-	Vec3 forward = Vec3{ rotateMatrix * forwardVec4 };
+	Vec3 forward = Vec3{ rotateMatrix * forwardVec4 };*/
+	Vec3 forward = comp.currentCameraDistance * math::EulerAnglesToVector(eulerAngles.x, eulerAngles.y);
 
 	// Calculate camera position
 	Vec3 playerPos = comp.playerEntity->GetTransform().GetWorldPosition();
-	Vec3 cameraPos = playerPos + forward;
-	ecs::GetEntity(&comp)->GetTransform().SetWorldPosition(forward);
+	Vec3 cameraPos = playerPos - forward;
+	ecs::GetEntity(&comp)->GetTransform().SetWorldPosition(cameraPos);
 }
