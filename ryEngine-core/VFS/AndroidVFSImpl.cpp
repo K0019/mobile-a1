@@ -92,9 +92,8 @@ std::vector<std::string> AndroidVFSImpl::ListDirectory(const std::string & path)
     std::string manifestContent;
 
     // Manifest is always inside android/app/src/main/assets/
-    if (!VFS::ReadFile("assets/asset_manifest.txt", manifestContent))
+    if (!VFS::ReadFile("asset_manifest.txt", manifestContent))
     {
-        //__android_log_print(ANDROID_LOG_INFO, "ryEngine", "Could not find asset_manifest.txt!");
         return entries;
     }
 
@@ -109,6 +108,7 @@ std::vector<std::string> AndroidVFSImpl::ListDirectory(const std::string & path)
 
     while (std::getline(ss, line, '\n'))
     {
+
         if (line.rfind(normalizedPath, 0) == 0)
         {
             std::string subPath = line.substr(normalizedPath.length());

@@ -45,7 +45,9 @@ void GameSettings::Save()
 void GameSettings::Load()
 {
 	auto latestVer{ m_settingsversion };
-	Deserializer d{ Filepaths::gameSettings };
+	//Deserializer d{ Filepaths::gameSettings };
+	const std::string vpath = VFS::NormalizePath(Filepaths::gameSettings); // e.g. "user://settings/game.json"
+	Deserializer d{ vpath };  // <- VFS path, matches your Deserializer
 	if (!d.IsValid() || !d.Deserialize(this) || m_settingsversion != latestVer)
 	{
 		m_settingsversion = latestVer;

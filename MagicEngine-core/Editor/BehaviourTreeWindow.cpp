@@ -342,7 +342,7 @@ static void WalkBTAssetFlat(const BehaviorTreeAsset& asset, F&& fn)
                     {
                         currentIndex = static_cast<int>(std::distance(files.begin(), it));
 
-                        const std::string full{ (std::filesystem::path(dir) / files[currentIndex]).string() };
+                        const std::string full = VFS::ConvertVirtualToPhysical(VFS::NormalizePath(VFS::JoinPath(dir, files[currentIndex])));                        
                         BehaviorTreeAsset tmp;
                         if (bt::LoadBTAssetFromFile(full, &tmp)) 
                         {

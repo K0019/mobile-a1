@@ -362,6 +362,20 @@ void KeyboardMouseInput::Callback_OnMouseScroll(float offset)
 	scrollOffset = offset;
 }
 
+//Android input 
+void KeyboardMouseInput::Platform_OnMouseMove(float x, float y) {
+	Callback_OnMouseMove(x, y);  // updates mousePos
+}  // :contentReference[oaicite:2]{index=2}
+
+void KeyboardMouseInput::Platform_OnMouseDownLeft() {
+	// GLFW left mouse is index 0; our callbacks store into bitsets keyed by short
+	Callback_OnKeyDown(/*GLFW_MOUSE_BUTTON_LEFT*/ 0);
+}  // :contentReference[oaicite:3]{index=3}
+
+void KeyboardMouseInput::Platform_OnMouseUpLeft() {
+	Callback_OnKeyUp(/*GLFW_MOUSE_BUTTON_LEFT*/ 0);
+}  // :contentReference[oaicite:4]{index=4}
+
 void MagicInput::NewFrame()
 {
 	ST<KeyboardMouseInput>::Get()->NewFrame();
