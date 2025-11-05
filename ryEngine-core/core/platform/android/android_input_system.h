@@ -66,11 +66,15 @@ public:
                !m_pointerStates[index] && m_prevPointerStates[index];
     }
     
+    //glm::vec2 GetPointerPosition(int index = 0) const {
+    //    if (index == 0 && m_touches[0].active) {
+    //        return glm::vec2(m_touches[0].x, m_touches[0].y);
+    //    }
+    //    return glm::vec2(0.0f);
+    //}
     glm::vec2 GetPointerPosition(int index = 0) const {
-        if (index == 0 && m_touches[0].active) {
-            return glm::vec2(m_touches[0].x, m_touches[0].y);
-        }
-        return glm::vec2(0.0f);
+        const int id = std::min(index, MAX_TOUCHES - 1);
+        return glm::vec2(m_touches[id].x, m_touches[id].y);
     }
     
     glm::vec2 GetPointerDelta(int index = 0) const {
