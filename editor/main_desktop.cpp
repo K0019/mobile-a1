@@ -81,19 +81,7 @@ int WINAPI WinMain([[maybe_unused]] HINSTANCE hInstance, [[maybe_unused]] HINSTA
   }
   {
     // Inject runtime env variables for vulkan validation layers, if you need this when running the exe direct
-#if !defined(__ANDROID__)
-    #ifdef _WIN32
-        _putenv_s("VK_ADD_LAYER_PATH", "vulkan");
-    #else
-        setenv("VK_ADD_LAYER_PATH", "vulkan", 1);
-    #endif
-#endif
-
-//#if defined(_WIN32)
-//        _putenv_s("VK_SYNC_DISABLE_ATOMICS", "1");
-//#else // Android/Linux
-//        setenv("VK_SYNC_DISABLE_ATOMICS", "1", 1);
-//#endif
+    _putenv_s("VK_ADD_LAYER_PATH", "vulkan");
 
     Engine<Application> engine;
     // Initialize engine and application
