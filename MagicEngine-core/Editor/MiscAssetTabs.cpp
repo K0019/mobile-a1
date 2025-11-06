@@ -1,7 +1,5 @@
 #include "Editor/MiscAssetTabs.h"
 #include "Engine/Resources/ResourceManager.h"
-#include "Scripting/ScriptManagement.h"
-#include "Scripting/CSScripting.h"
 #include "Editor/PrefabWindow.h"
 #include "Editor/Import.h"
 #include "Editor/EditorHistory.h"
@@ -172,111 +170,111 @@ const char* ScriptTab::GetIdentifier() const
 void ScriptTab::Render()
 {
 #ifdef IMGUI_ENABLED
-    float THUMBNAIL_SIZE = ST<AssetBrowser>::Get()->THUMBNAIL_SIZE;
-    ImGui::InputText(" ", buffer, sizeof(buffer));
-    if (ImGui::Button("Create Script") && ST<ScriptManager>::Get()->EnsureScriptsFolderExists())
-    {
-        CONSOLE_LOG(LEVEL_DEBUG) << "Name of Script: " << buffer << ".cs";
+    //float THUMBNAIL_SIZE = ST<AssetBrowser>::Get()->THUMBNAIL_SIZE;
+    //ImGui::InputText(" ", buffer, sizeof(buffer));
+    //if (ImGui::Button("Create Script") && ST<ScriptManager>::Get()->EnsureScriptsFolderExists())
+    //{
+    //    CONSOLE_LOG(LEVEL_DEBUG) << "Name of Script: " << buffer << ".cs";
 
-        if (!ST<ScriptManager>::Get()->CreateScript(buffer))
-            CONSOLE_LOG(LEVEL_ERROR) << "Failed to create script: " << buffer;
-    }
-    ImGui::SameLine();
-    if (ImGui::Button("Reload"))
-    {
-        //CSharpScripts::CSScripting::ReloadAssembly();
-    }
-    ImGui::Separator();
+    //    if (!ST<ScriptManager>::Get()->CreateScript(buffer))
+    //        CONSOLE_LOG(LEVEL_ERROR) << "Failed to create script: " << buffer;
+    //}
+    //ImGui::SameLine();
+    //if (ImGui::Button("Reload"))
+    //{
+    //    //CSharpScripts::CSScripting::ReloadAssembly();
+    //}
+    //ImGui::Separator();
 
-    std::string path = Filepaths::scriptsSave;
-    std::vector<std::string> scriptFiles;
+    //std::string path = Filepaths::scriptsSave;
+    //std::vector<std::string> scriptFiles;
 
-    if (ST<ScriptManager>::Get()->EnsureScriptsFolderExists())
-    {
-        for (const auto& entry : std::filesystem::directory_iterator(path))
-        {
-            if (entry.is_regular_file() && entry.path().extension() == ".cs")
-            {
-                scriptFiles.push_back(entry.path().filename().string());
-            }
-        }
-    }
-    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(5, 5));
+    //if (ST<ScriptManager>::Get()->EnsureScriptsFolderExists())
+    //{
+    //    for (const auto& entry : std::filesystem::directory_iterator(path))
+    //    {
+    //        if (entry.is_regular_file() && entry.path().extension() == ".cs")
+    //        {
+    //            scriptFiles.push_back(entry.path().filename().string());
+    //        }
+    //    }
+    //}
+    //ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(5, 5));
 
-    // Define the number of columns you want
-    float thumbnailSize = THUMBNAIL_SIZE * 2;
-    float availableWidth = ImGui::GetContentRegionAvail().x;
-    int columnsCount = static_cast<int>(availableWidth / thumbnailSize);  // Calculate number of columns
+    //// Define the number of columns you want
+    //float thumbnailSize = THUMBNAIL_SIZE * 2;
+    //float availableWidth = ImGui::GetContentRegionAvail().x;
+    //int columnsCount = static_cast<int>(availableWidth / thumbnailSize);  // Calculate number of columns
 
-    for (size_t i = 0; i < scriptFiles.size(); ++i)
-    {
-        const std::string& scriptname = scriptFiles[i];
-        if (!editor::MatchesFilter(scriptname))
-        {
-            continue;
-        }
+    //for (size_t i = 0; i < scriptFiles.size(); ++i)
+    //{
+    //    const std::string& scriptname = scriptFiles[i];
+    //    if (!editor::MatchesFilter(scriptname))
+    //    {
+    //        continue;
+    //    }
 
-        ImGui::PushID(static_cast<int>(i));
+    //    ImGui::PushID(static_cast<int>(i));
 
-        ImGui::BeginGroup(); // Group to keep each button and label together
+    //    ImGui::BeginGroup(); // Group to keep each button and label together
 
-        // Create the thumbnail (button)
-        if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceAllowNullID))
-        {
-            // Set the drag-and-drop payload (here, the file name)
-            std::string sent_script = scriptname;
-            ImGui::SetDragDropPayload("SCRIPT", sent_script.c_str(), (sent_script.size() + 1) * sizeof(char));
-            ImGui::Text(ICON_FA_CODE);  // Display the icon during dragging
-            ImGui::EndDragDropSource();
-        }
+    //    // Create the thumbnail (button)
+    //    if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceAllowNullID))
+    //    {
+    //        // Set the drag-and-drop payload (here, the file name)
+    //        std::string sent_script = scriptname;
+    //        ImGui::SetDragDropPayload("SCRIPT", sent_script.c_str(), (sent_script.size() + 1) * sizeof(char));
+    //        ImGui::Text(ICON_FA_CODE);  // Display the icon during dragging
+    //        ImGui::EndDragDropSource();
+    //    }
 
-        // Draw the icon button (thumbnail)
-        if (ImGui::Button(ICON_FA_CODE, ImVec2(thumbnailSize, thumbnailSize)))
-        {
-            // Single button click if needed
-        }
+    //    // Draw the icon button (thumbnail)
+    //    if (ImGui::Button(ICON_FA_CODE, ImVec2(thumbnailSize, thumbnailSize)))
+    //    {
+    //        // Single button click if needed
+    //    }
 
-        // Check for double-click on the item (icon)
-        if (ImGui::IsItemClicked(ImGuiMouseButton_Left) && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
-        {
-            // When double-clicked, load the script
-            ST<ScriptManager>::Get()->OpenScript(scriptname);
-        }
+    //    // Check for double-click on the item (icon)
+    //    if (ImGui::IsItemClicked(ImGuiMouseButton_Left) && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
+    //    {
+    //        // When double-clicked, load the script
+    //        ST<ScriptManager>::Get()->OpenScript(scriptname);
+    //    }
 
-        // Script Name Label (showing truncated if it's too long)
-        std::string displayName = scriptname;
-        float maxWidth = thumbnailSize;
-        ImVec2 textSize = ImGui::CalcTextSize(displayName.c_str());
-        if (textSize.x > maxWidth)
-        {
-            // Truncate text if it's too wide
-            while (textSize.x > maxWidth && displayName.length() > 3)
-            {
-                displayName = displayName.substr(0, displayName.length() - 4) + "...";
-                textSize = ImGui::CalcTextSize(displayName.c_str());
-            }
-        }
+    //    // Script Name Label (showing truncated if it's too long)
+    //    std::string displayName = scriptname;
+    //    float maxWidth = thumbnailSize;
+    //    ImVec2 textSize = ImGui::CalcTextSize(displayName.c_str());
+    //    if (textSize.x > maxWidth)
+    //    {
+    //        // Truncate text if it's too wide
+    //        while (textSize.x > maxWidth && displayName.length() > 3)
+    //        {
+    //            displayName = displayName.substr(0, displayName.length() - 4) + "...";
+    //            textSize = ImGui::CalcTextSize(displayName.c_str());
+    //        }
+    //    }
 
-        // Center the text label below the thumbnail
-        float textX = (thumbnailSize - textSize.x) * 0.5f;
-        ImGui::SetCursorPosX(ImGui::GetCursorPosX() + textX);
-        ImGui::TextUnformatted(displayName.c_str());
+    //    // Center the text label below the thumbnail
+    //    float textX = (thumbnailSize - textSize.x) * 0.5f;
+    //    ImGui::SetCursorPosX(ImGui::GetCursorPosX() + textX);
+    //    ImGui::TextUnformatted(displayName.c_str());
 
-        ImGui::EndGroup();
+    //    ImGui::EndGroup();
 
-        ImGui::PopID();
+    //    ImGui::PopID();
 
-        // Arrange items in columns
-        if ((static_cast<int>(i) + 1) % columnsCount != 0)
-        {
-            ImGui::SameLine(0.0f, ImGui::GetStyle().ItemSpacing.x);
-        }
-        else
-        {
-            ImGui::NewLine();
-        }
-    }
+    //    // Arrange items in columns
+    //    if ((static_cast<int>(i) + 1) % columnsCount != 0)
+    //    {
+    //        ImGui::SameLine(0.0f, ImGui::GetStyle().ItemSpacing.x);
+    //    }
+    //    else
+    //    {
+    //        ImGui::NewLine();
+    //    }
+    //}
 
-    ImGui::PopStyleVar();
+    //ImGui::PopStyleVar();
 #endif
 }

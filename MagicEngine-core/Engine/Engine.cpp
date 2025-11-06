@@ -58,7 +58,6 @@ All rights reserved.
 #include "Engine/EntityLayers.h"
 
 #include "Scripting/LuaScripting.h"
-#include "Scripting/CSScripting.h"
 #include "Scripting/HotReloader.h"
 
 #include "Engine/Graphics Interface/GraphicsAPI.h"
@@ -152,11 +151,7 @@ void MagicEngine::Init(Context& context)
 	CrashHandler::SetupCrashHandler(); // DO NOT REMOVE THIS LINE EVER
 
 	// Scripting MagicEngine Initialisation
-#ifdef GLFW
-	// Lua scripting is initialized from program startup
 	ST<LuaScripting>::Get()->LoadScriptsInFolder(Filepaths::scriptsSave);
-	CSharpScripts::CSScripting::Init();
-#endif
 
 	// FMOD Initialisation
 	ST<AudioManager>::Get()->Initialise();
@@ -361,9 +356,6 @@ void MagicEngine::ExecuteFrame(FrameData& frameData)
 
 	// update game state
 	// -----------------
-#if defined(IMGUI_ENABLED) && defined(GLFW)
-	CSharpScripts::CSScripting::CheckCompileUserAssemblyAsyncCompletion();
-#endif
 	ST<GameSystemsManager>::Get()->UpdateState(); // Update which ecs systems are active
 	ExecuteUpdateSystems(); // Run ecs systems that update the world
 	ST<Scheduler>::Get()->Update(GameTime::FixedDt() * static_cast<float>(GameTime::NumFixedFrames()));
@@ -425,11 +417,8 @@ void MagicEngine::shutdown()
 
 	ecs::Shutdown();
 
-	ST<physics::JoltPhysics>::Destroy();
-#ifdef GLFW
 	ST<LuaScripting>::Destroy();
-	CSharpScripts::CSScripting::Exit();
-#endif
+	ST<physics::JoltPhysics>::Destroy();
 
 	ST<GameSettings>::Destroy();
 	ST<ecs::RegisteredSystemsOperatingByLayer>::Destroy();

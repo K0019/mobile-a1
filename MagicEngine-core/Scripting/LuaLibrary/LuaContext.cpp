@@ -144,6 +144,11 @@ void LuaContext::Run(const std::string &inName) {
 	RunWithEnvironment(inName, globalEnvironment);
 }
 
+void LuaContext::Run(StateProxy& state)
+{
+	state.RunWithEnvironment(globalEnvironment);
+}
+
 StateProxy LuaContext::CreateStateFor(const std::string & inName, std::optional<Engine::StateParams> params) {
 	std::unique_ptr<LuaState> L = newStateFor(inName, params);
 	return StateProxy(std::move(L));

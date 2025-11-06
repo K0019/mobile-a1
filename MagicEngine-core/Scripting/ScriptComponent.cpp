@@ -39,11 +39,6 @@ All rights reserved.
 
 using namespace CSharpScripts;
 
-const std::vector<LuaScript>& ScriptComponent::GetAttachedScripts() const
-{
-	return scripts;
-}
-
 void ScriptComponent::EditorDraw()
 {
 	gui::TextCenteredUnformatted("Attached Scripts");
@@ -103,8 +98,9 @@ void ScriptUpdateSystem::PostRun()
 
 void ScriptUpdateSystem::UpdateScriptComp(ScriptComponent& comp)
 {
-	for (const auto& script : comp.GetAttachedScripts())
+	comp.ForEachAttachedScript([](LuaScript& script) -> void {
 		ST<LuaScripting>::Get()->RunScript(script);
+	});
 }
 
 ScriptAwakeSystem::ScriptAwakeSystem()

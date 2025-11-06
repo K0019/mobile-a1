@@ -20,7 +20,6 @@ All rights reserved.
 /******************************************************************************/
 #include "Scripting/HotReloader.h"
 #include "GameSettings.h"
-#include "Scripting/CSScripting.h"
 #include "Game/GameSystems.h"
 
 void HotReloader::Init()
@@ -38,7 +37,7 @@ void HotReloader::OnFocusChanged([[maybe_unused]] bool isFocused)
 #ifdef IMGUI_ENABLED
 	if (isFocused && ST<GameSystemsManager>::Get()->GetState() == GAMESTATE::EDITOR)
 	{
-		CSharpScripts::CSScripting::ReloadAssembly();
+		//CSharpScripts::CSScripting::ReloadAssembly();
 	}
 #endif
 }

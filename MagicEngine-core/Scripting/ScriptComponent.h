@@ -29,7 +29,6 @@ All rights reserved.
 /******************************************************************************/
 #pragma once
 #include "Scripting/LuaScripting.h"
-#include "Scripting/CSScripting.h"
 #include "ECS/IRegisteredComponent.h"
 #include "Editor/IEditorComponent.h"
 
@@ -43,7 +42,8 @@ class ScriptComponent
 	, public ecs::IComponentCallbacks
 {
 public:
-	const std::vector<LuaScript>& GetAttachedScripts() const;
+	template <typename FuncType>
+	void ForEachAttachedScript(FuncType function);
 
 private:
 	std::vector<LuaScript> scripts;
@@ -228,3 +228,10 @@ private:
 	*//******************************************************************/
 	void PreAwakeScriptComp(ScriptComponent& comp);
 };
+
+template<typename FuncType>
+void ScriptComponent::ForEachAttachedScript(FuncType function)
+{
+	for (auto& script : scripts)
+		function(script);
+}

@@ -95,9 +95,9 @@ const std::vector<std::string>& LuaScripting::GetAllScriptNames() const
 	return loadedScripts;
 }
 
-void LuaScripting::RunScript(const LuaScript& script)
+void LuaScripting::RunScript(LuaScript& script)
 {
-	context.Run(script.scriptName);
+	context.Run(script.code);
 }
 
 LuaLibrary LuaScripting::GetLibrary(const std::string& libName)

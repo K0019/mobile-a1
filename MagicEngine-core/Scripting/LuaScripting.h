@@ -65,7 +65,7 @@ public:
 	std::optional<LuaScript> GetScript(const std::string& scriptName);
 	const std::vector<std::string>& GetAllScriptNames() const;
 
-	void RunScript(const LuaScript& script);
+	void RunScript(LuaScript& script);
 
 private:
 	// Retrieves the lua library (equivalent to c++ namespaces).

@@ -389,6 +389,8 @@ namespace LuaCpp {
 		 * @param name Name under which the snippet is registered
 		 */
 		void Run(const std::string &name);
+		// MagicEngine custom function - run an already created state instead of creating a new state
+		void Run(StateProxy& state);
 
 		/**
 		 * @bried Run a code snippet with a given `lua` global table
