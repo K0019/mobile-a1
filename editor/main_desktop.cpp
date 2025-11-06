@@ -69,7 +69,7 @@ int WINAPI WinMain([[maybe_unused]] HINSTANCE hInstance, [[maybe_unused]] HINSTA
     .displayWidth = 1920,
     .displayHeight = 1080,
     .appName = "MagicEngine",
-    .enableValidation = false,
+    .enableValidation = true,
     .logFilename = "engine.log",
     .logToConsole = true,
     .logToFile = false,
@@ -80,6 +80,15 @@ int WINAPI WinMain([[maybe_unused]] HINSTANCE hInstance, [[maybe_unused]] HINSTA
     return 1;
   }
   {
+    // Inject runtime env variables for vulkan validation layers, if you need this when running the exe direct
+#if !defined(__ANDROID__)
+    #ifdef _WIN32
+        _putenv_s("VK_ADD_LAYER_PATH", "vulkan");
+    #else
+        setenv("VK_ADD_LAYER_PATH", "vulkan", 1);
+    #endif
+#endif
+
     Engine<Application> engine;
     // Initialize engine and application
     engine.Initialize();
