@@ -34,6 +34,26 @@ extern "C" {
     void ry_fire_tap_if_any(void) {
         const int pid = 0;
 
+        ///===== Not sure if needed==============================================
+        //int w = Core::Platform::Get().GetDisplay().GetWidth();
+        //int h = Core::Platform::Get().GetDisplay().GetHeight();
+
+        //float engX = x;
+        //float engY = (float)h - 1.0f - y;   // flip Y
+        //// Normalized [0,1]
+        //float u = x / (float)w;
+        //float v = y / (float)h;        // or 1 - y/h if bottom-left origin
+
+        //// NDC [-1,1] (OpenGL-style, y up)
+        //float ndcX = 2.0f * x / w - 1.0f;
+        //float ndcY = 1.0f - 2.0f * y / h;
+
+        //// Ortho world (pixel-like world with camera at center)
+        //worldX = (x - w * 0.5f) / zoom + cam.position.x;
+        //worldY = (h * 0.5f - y) / zoom + cam.position.y;
+        ///===== Not sure if needed==============================================
+
+
         // detect edges BEFORE tick/update
         if (g_input.IsPointerJustReleased(pid)) {
             auto p = g_input.GetPointerPosition(pid);

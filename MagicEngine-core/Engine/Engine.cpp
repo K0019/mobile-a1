@@ -242,13 +242,7 @@ void MagicEngine::Init(Context& context)
 	editor::CreateGuiWindow<CustomViewport>(static_cast<unsigned int>(worldExtents.x), static_cast<unsigned int>(worldExtents.y));
 #endif
 
-//#if defined(__ANDROID__)
-//	ry_input_set_pointer_callback(&MagicPointerSink);
-//#endif
 
-//#if defined(__ANDROID__)
-//	Magic_AndroidInputBridge_Initialize();
-//#endif
 #if defined(__ANDROID__)
 
 	ry_set_tap_callback(&OnTapFromRy);
