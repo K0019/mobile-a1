@@ -37,7 +37,34 @@ All rights reserved.
 #include "Components/NameComponent.h"
 #include "Engine/PrefabManager.h"
 
-using namespace CSharpScripts;
+
+LuaScriptWithMeta::LuaScriptWithMeta(LuaScript&& script)
+	: LuaScript{ std::forward<LuaScript>(script) }
+#define X(funcName) , has_##funcName{ DoesFunctionExist(#funcName) }
+	SCRIPT_FUNCTIONS
+#undef X
+{
+}
+
+LuaScriptWithMeta::LuaScriptWithMeta()
+	: LuaScript{}
+#define X(funcName) , has_##funcName{}
+	SCRIPT_FUNCTIONS
+#undef X
+{
+}
+
+bool LuaScriptWithMeta::DoesFunctionExist(const char* funcName)
+{
+	try {
+		code.PushGlobalFunction(funcName);
+		code.Pop();
+		return true;
+	}
+	catch (const std::runtime_error&) {
+		return false;
+	}
+}
 
 void ScriptComponent::EditorDraw()
 {
@@ -99,7 +126,7 @@ void ScriptUpdateSystem::PostRun()
 void ScriptUpdateSystem::UpdateScriptComp(ScriptComponent& comp)
 {
 	comp.ForEachAttachedScript([](LuaScript& script) -> void {
-		script.code.PushGlobalFunction("test");
+		script.code.PushGlobalFunction(ScriptComponent::funcName_update);
 		ST<LuaScripting>::Get()->RunScript(script);
 		script.code.Pop();
 	});

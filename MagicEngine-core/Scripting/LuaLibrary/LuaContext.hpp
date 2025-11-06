@@ -58,7 +58,7 @@ namespace LuaCpp {
 			return *this;
 		}
 
-		void PushGlobalFunction(const std::string& funName);
+		void PushGlobalFunction(const char* funcName);
 
 		void RunWithEnvironment(const LuaEnvironment &env);
 

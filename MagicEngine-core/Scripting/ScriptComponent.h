@@ -32,6 +32,27 @@ All rights reserved.
 #include "ECS/IRegisteredComponent.h"
 #include "Editor/IEditorComponent.h"
 
+#define SCRIPT_FUNCTIONS \
+X(update)
+
+struct LuaScriptWithMeta : public LuaScript
+{
+	LuaScriptWithMeta(LuaScript&& script);
+	LuaScriptWithMeta();
+	LuaScriptWithMeta(const LuaScriptWithMeta&) = default; // JUST TO SATISFY STD::VECTOR COMPILATION, SHOULD NEVER BE CALLED
+	LuaScriptWithMeta(LuaScriptWithMeta&&) = default;
+	LuaScriptWithMeta& operator=(const LuaScriptWithMeta&) = default; // JUST TO SATISFY STD::VECTOR COMPILATION, SHOULD NEVER BE CALLED
+	LuaScriptWithMeta& operator=(LuaScriptWithMeta&&) = default;
+
+
+#define X(funcName) bool has_##funcName;
+	SCRIPT_FUNCTIONS
+#undef X
+
+private:
+	bool DoesFunctionExist(const char* funcName);
+};
+
 /*****************************************************************//*!
 \brief
 	Class to be used as part of the ECS system
@@ -42,11 +63,16 @@ class ScriptComponent
 	, public ecs::IComponentCallbacks
 {
 public:
+#define X(funcName) inline static const char* funcName_##funcName{ #funcName };
+	SCRIPT_FUNCTIONS
+#undef X
+
+public:
 	template <typename FuncType>
 	void ForEachAttachedScript(FuncType function);
 
 private:
-	std::vector<LuaScript> scripts;
+	std::vector<LuaScriptWithMeta> scripts;
 
 public:
 	void EditorDraw() override;

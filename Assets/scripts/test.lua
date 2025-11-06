@@ -1,3 +1,6 @@
-function test()
-    print('The fastest way to start using lua in a project')
+local var = 1;
+
+function update()
+    print('Number: ' .. var)
+    var = var + 1;
 end

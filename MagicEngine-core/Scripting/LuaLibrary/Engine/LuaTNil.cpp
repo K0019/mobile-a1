@@ -39,7 +39,7 @@ void LuaTNil::PushValue(LuaState &L) {
 }
 
 void LuaTNil::PopValue(LuaState &L, int idx) {
-	if (!lua_type(L, idx) == LUA_TNIL) {
+	if ((!lua_type(L, idx)) == LUA_TNIL) {
 		throw std::invalid_argument("The value at the stack position " + std::to_string(idx) + " is not LUA_TNUMBER");
 	}
 }

@@ -154,11 +154,11 @@ StateProxy LuaContext::CreateStateFor(const std::string & inName, std::optional<
 	return StateProxy(std::move(L));
 }
 
-void StateProxy::PushGlobalFunction(const std::string& funName)
+void StateProxy::PushGlobalFunction(const char* funcName)
 {
-	lua_getglobal(*state_, funName.c_str());
+	lua_getglobal(*state_, funcName);
 	if (!lua_isfunction(*state_, -1))
-		throw std::runtime_error(funName + " is not a function");
+		throw std::runtime_error(std::string{ funcName } + " is not a function");
 }
 
 void StateProxy::RunWithEnvironment(const LuaEnvironment &env) {
