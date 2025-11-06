@@ -39,262 +39,72 @@ All rights reserved.
 
 using namespace CSharpScripts;
 
-ScriptComponent::ScriptComponent(const ScriptComponent& other)
-	: scriptMap(other.scriptMap)
+const std::vector<LuaScript>& ScriptComponent::GetAttachedScripts() const
 {
-	scriptsToAwaken = other.scriptsToAwaken;
-	scriptsToStart = other.scriptsToStart;
-	//for (auto const& pair : other.scriptMap)
-	//{
-	//	AddScript(pair.first);
-	//}
-}
-
-ScriptComponent::ScriptComponent(ScriptComponent&& other) noexcept
-	: scriptMap(std::move(other.scriptMap))
-{
-	scriptsToAwaken = std::move(other.scriptsToAwaken);
-	scriptsToStart = std::move(other.scriptsToStart);
-}
-
-ScriptComponent::~ScriptComponent()
-{
-	scriptMap.clear();
-	openStates.clear();
-	scriptsToAwaken.clear();
-	scriptsToStart.clear();
+	return scripts;
 }
 
 void ScriptComponent::EditorDraw()
 {
-	// Don't draw anything if the compilation is ongoing. We can't be sure if anything exists in that case.
-	if (CSScripting::IsCurrentlyCompilingUserAssembly())
-		return;
-
-	gui::TextUnformatted("Attached Scripts:");
-
-	for (auto& [scriptName, scriptInstance] : scriptMap)
+	gui::TextCenteredUnformatted("Attached Scripts");
+	for (auto scriptIter{ scripts.begin() }; scriptIter != scripts.end(); )
 	{
-		{ // Draw scripts as buttons
-			if (gui::Button scriptButton{ scriptName.c_str() })
-				openStates[scriptName] = !openStates[scriptName];
-			gui::SameLine();
-			gui::SetID buttonID{ scriptName.c_str() };
-			if (gui::Button removeButton{ "Remove" })
+		if (gui::CollapsingHeader header{ scriptIter->scriptName })
+		{
+			gui::SetID id{ scriptIter->scriptName.c_str() };
+			gui::SetStyleColor buttonColor{ gui::FLAG_STYLE_COLOR::BUTTON, gui::Vec4{ 0.8f, 0.1f, 0.1f, 1.0f } };
+			gui::SetStyleColor buttonHoveredColor{ gui::FLAG_STYLE_COLOR::BUTTON_HOVERED, gui::Vec4{ 1.0f, 0.1f, 0.1f, 1.0f } };
+			if (gui::Button deleteButton{ "Delete", { gui::GetAvailableContentRegion().x, 0.0f } })
 			{
-				RemoveScript(scriptName);
-				break;
+				scriptIter = scripts.erase(scriptIter);
+				continue;
 			}
 		}
 
-		if (!openStates[scriptName])
+		++scriptIter;
+	}
+
+	gui::Spacing();
+	gui::Separator();
+	gui::Spacing();
+
+	if (gui::Combo combo{ "Add Script", "Add Script" })
+		for (const std::string& scriptName : ST<LuaScripting>::Get()->GetAllScriptNames())
+			if (std::find_if(scripts.begin(), scripts.end(), [&scriptName](const LuaScript& existingScript) -> bool { return scriptName == existingScript.scriptName; }) == scripts.end())
+				if (combo.Selectable(scriptName.c_str(), false))
+					scripts.emplace_back(ST<LuaScripting>::Get()->GetScript(scriptName).value());
+}
+
+void ScriptComponent::Deserialize(Deserializer& reader)
+{
+	reader.PushAccess("scripts");
+	for (size_t i{}; reader.PushArrayElementAccess(i); reader.PopAccess(), ++i)
+	{
+		std::string scriptName{};
+		if (!reader.DeserializeVar("scriptName", &scriptName))
 			continue;
 
-		// Define the height of the child rect based on the number of public variables
-		auto& publicVars{ scriptInstance.GetPublicVars() };
-		const float itemHeight = gui::GetTextLineHeightWithSpacing(); // Height of each item
-		const float padding = 45.0f; // Extra padding for aesthetics
-		float totalHeight = (publicVars.size() * itemHeight) + padding;
-
-		// Draw each public variable
-		if (gui::Child rectChild{ ("Child Rect" + scriptName).c_str(), gui::Vec2{ 0, totalHeight }, gui::FLAG_CHILD::NONE, gui::FLAG_WINDOW::NO_TITLE_BAR })
-		{
-			gui::TextFormatted("Details for %s", scriptName.c_str());
-			for (auto& [varName, varField] : publicVars)
-				varField.EditorDraw(varName, scriptInstance.GetInstance());
-		}
+		if (auto instantiatedScript{ ST<LuaScripting>::Get()->GetScript(scriptName) })
+			scripts.push_back(std::move(instantiatedScript.value()));
 	}
-
-	// Draw add script dropdown
-	gui::TextUnformatted("Add New Script:");
-	if (gui::Combo addScriptCombo{ "", "Select Script" })
-		for (const auto& [scriptName, _] : CSScripting::GetCoreClassMap())
-			if (scriptMap.find(scriptName) == scriptMap.end())
-				if (gui::Selectable(scriptName.c_str()))
-					AddScript(scriptName);
-}
-
-bool ScriptComponent::AddScript(const std::string& sName)
-{
-	// We can't add a duplicate of a script
-	if (scriptMap.find(sName) != scriptMap.end())
-		return false;
-
-	ScriptInstance& scriptInstance{ scriptMap.try_emplace(sName, CSScripting::GetClassFromData(sName)).first->second };
-	openStates[sName] = true;
-
-	InitializeScriptInstance(scriptInstance, sName);
-
-	return true;
-}
-
-void ScriptComponent::RemoveScript(const std::string& sName)
-{
-	auto it{ scriptMap.find(sName) };
-	if (it == scriptMap.end())
-		return;
-
-	auto ite{ std::find(scriptsToAwaken.begin(), scriptsToAwaken.end(), sName) };
-	if (ite != scriptsToAwaken.end())
-		scriptsToAwaken.erase(ite);
-
-	ite = std::find(scriptsToStart.begin(), scriptsToStart.end(), sName);
-	if (ite != scriptsToStart.end())
-		scriptsToStart.erase(ite);
-
-	openStates.erase(sName);
-	scriptMap.erase(it);
-}
-
-void ScriptComponent::InvokeOnUpdate()
-{
-	float dt{ GameTime::FixedDt() };
-	for (auto& pair : scriptMap)
-		pair.second.InvokeMethod(METHOD::ON_UPDATE, &dt);
-}
-
-void ScriptComponent::InvokeAwake()
-{
-	if (scriptsToAwaken.empty())
-		return;
-
-	for (const std::string& name : scriptsToAwaken)
-		scriptMap[name].InvokeMethod(METHOD::ON_AWAKE);
-
-	// Move awaken scripts to the list of scripts to start
-	scriptsToStart.insert(scriptsToStart.end(), std::make_move_iterator(scriptsToAwaken.begin()), std::make_move_iterator(scriptsToAwaken.end()));
-	scriptsToAwaken.clear();
-}
-
-void ScriptComponent::InvokeOnStart()
-{
-	if (scriptsToStart.empty())
-		return;
-
-	for (const std::string& name : scriptsToStart)
-		scriptMap[name].InvokeMethod(METHOD::ON_START);
-
-	scriptsToStart.clear();
-}
-
-void ScriptComponent::InvokeLateUpdate()
-{
-	float dt{ GameTime::FixedDt() };
-	for (auto& pair : scriptMap)
-		pair.second.InvokeMethod(METHOD::ON_LATE_UPDATE, &dt);
-}
-
-void ScriptComponent::SaveVariables()
-{
-	// Clear all these first
-
-	// Save everything first
-	pvs.clear();
-	names.clear();
-	scriptsToAwaken.clear();
-	scriptsToStart.clear();
-
-	for (auto& pair : scriptMap)
-	{
-		names.push_back(pair.first);
-		pvs.push_back(pair.second.GetPublicVars());
-	}
-}
-
-void ScriptComponent::InvokeSetHandle()
-{
-	ecs::EntityHandle entity{ ecs::GetEntity(this) };
-	for (auto& pair : scriptMap)
-		pair.second.InvokeMethod(METHOD::SET_HANDLE, &entity);
-}
-
-MonoObject* ScriptComponent::FindScriptInstance(const std::string& name)
-{
-	auto it = scriptMap.find(name);
-	if (it != scriptMap.end())
-		return it->second.GetInstance();
-	return nullptr;
-}
-
-void ScriptComponent::Serialize(Serializer& writer) const
-{
-	//Serialize scriptMap
-	//Maybe serailize openStates as well? Could be convenient
-	writer.Serialize("scriptMap", scriptMap);
-}
-
-void ScriptComponent::Deserialize(Deserializer& entry)
-{
-	entry.DeserializeVar("scriptMap",&scriptMap);
-
-	for (auto& script : scriptMap)
-		InitializeScriptInstance(script.second, script.first);
-}
-
-void ScriptComponent::RemoveAllScripts()
-{
-	for (std::string n : names)
-	{
-		RemoveScript(n);
-	}
-}
-
-void ScriptComponent::ReattachAllScripts()
-{
-	// After all the scripts
-	for (std::string n : names)
-	{
-		AddScript(n);
-		scriptMap[n].RetrievePublicVariables();
-	}
-}
-
-void ScriptComponent::LoadVariables()
-{
-	// Load variables saved previous before reload back into the scripts
-	for (size_t i = 0; i < names.size(); ++i)
-		for (auto& pair : pvs[i])
-			scriptMap[names[i]].SetPublicVar(pair.first, pair.second.GetValue());
-
-	pvs.clear();
-	names.clear();
-}
-
-void ScriptComponent::OnAttached()
-{
-	//ecs::GetEntity(this)->GetComp<EntityEventsComponent>()->Subscribe("OnCollision", this, &ScriptComponent::OnCollision);
-}
-
-void ScriptComponent::OnDetached()
-{
-	/*if (auto eventsComp{ ecs::GetEntity(this)->GetComp<EntityEventsComponent>() })
-		eventsComp->Unsubscribe("OnCollision", this, &ScriptComponent::OnCollision);*/
-}
-
-void ScriptComponent::InitializeScriptInstance(CSharpScripts::ScriptInstance& instance, const std::string& scriptName)
-{
-	ecs::EntityHandle entity{ ecs::GetEntity(this) };
-	instance.InvokeMethod(METHOD::SET_HANDLE, &entity);
-	instance.InvokeMethod(METHOD::ON_AWAKE);
-
-	instance.RetrievePublicVariables();
-	scriptsToAwaken.push_back(scriptName);
+	reader.PopAccess();
 }
 
 
-ScriptSystem::ScriptSystem()
-	: System_Internal{ &ScriptSystem::UpdateScriptComp }
+ScriptUpdateSystem::ScriptUpdateSystem()
+	: System_Internal{ &ScriptUpdateSystem::UpdateScriptComp }
 {
 }
 
-void ScriptSystem::PostRun()
+void ScriptUpdateSystem::PostRun()
 {
 	ecs::FlushChanges();
 }
 
-void ScriptSystem::UpdateScriptComp(ScriptComponent& comp)
+void ScriptUpdateSystem::UpdateScriptComp(ScriptComponent& comp)
 {
-	comp.InvokeOnUpdate();
+	for (const auto& script : comp.GetAttachedScripts())
+		ST<LuaScripting>::Get()->RunScript(script);
 }
 
 ScriptAwakeSystem::ScriptAwakeSystem()
@@ -305,7 +115,7 @@ ScriptAwakeSystem::ScriptAwakeSystem()
 
 void ScriptAwakeSystem::AwakenScriptComp(ScriptComponent& comp)
 {
-	comp.InvokeAwake();
+	//comp.InvokeAwake();
 }
 
 ScriptStartSystem::ScriptStartSystem()
@@ -321,7 +131,7 @@ void ScriptStartSystem::PostRun()
 
 void ScriptStartSystem::StartScriptComp(ScriptComponent& comp)
 {
-	comp.InvokeOnStart();
+	//comp.InvokeOnStart();
 }
 
 ScriptLateUpdateSystem::ScriptLateUpdateSystem()
@@ -337,7 +147,7 @@ void ScriptLateUpdateSystem::PostRun()
 
 void ScriptLateUpdateSystem::LateUpdateScriptComp(ScriptComponent& comp)
 {
-	comp.InvokeLateUpdate();
+	//comp.InvokeLateUpdate();
 }
 
 ScriptPreAwakeSystem::ScriptPreAwakeSystem()
@@ -347,115 +157,115 @@ ScriptPreAwakeSystem::ScriptPreAwakeSystem()
 
 void ScriptPreAwakeSystem::PreAwakeScriptComp(ScriptComponent& comp)
 {
-	comp.InvokeSetHandle();
+	//comp.InvokeSetHandle();
 }
 
 
-#pragma region Scripting
-
-/*****************************************************************//*!
-\brief
-	Gets a GCHandle to a C# script object that's attached to an entity.
-	Freeing the handle doesn't delete the script object, but do still
-	remember to free the handle on C# side, otherwise there will be a
-	memory leak!
-\param entity
-	The entity to search for the script object on.
-\param typeName
-	The name of the class of the C# script object. If the class is defined
-	inside a namespace, it must be included in the name and delimited by '.'
-\return
-	A C# IntPtr object which can be converted into a GCHandle via GCHandle.FromIntPtr().
-	If the script object doesn't exist on the entity, returns 0. On C#,
-	this can be checked for by a comparison against IntPtr.Zero.
-*//******************************************************************/
-SCRIPT_CALLABLE intptr_t CS_GetScriptInstance(ecs::EntityHandle entity, const char* typeName)
-{
-	util::AssertEntityHandleValid(entity);
-	auto scriptComp{ entity->GetComp<ScriptComponent>() };
-	if (!scriptComp)
-		return 0;
-
-	if (MonoObject* scriptInstance{ scriptComp->FindScriptInstance(typeName) })
-		return mono_gchandle_new(scriptInstance, false);
-	else
-		return 0;
-
-}
-
-/*****************************************************************//*!
-\brief
-	Searches the world for an entity of the specified name.
-	THIS IS VERY EXPENSIVE!
-\param name
-	The name of the entity.
-\return
-	The entity. If not found, 0.
-*//******************************************************************/
-SCRIPT_CALLABLE ecs::EntityHandle CS_FindEntityByName(const char* name)
-{
-	for (auto iter = ecs::GetCompsBegin<NameComponent>(); iter != ecs::GetCompsEnd<NameComponent>(); ++iter)
-		if (iter->GetName() == name)
-			return iter.GetEntity();
-	return nullptr;
-}
-
-/*****************************************************************//*!
-\brief
-	Deletes an entity.
-\param entity
-	The entity.
-*//******************************************************************/
-SCRIPT_CALLABLE void CS_DeleteEntity(ecs::EntityHandle entity)
-{
-	util::AssertEntityHandleValid(entity);
-	ecs::DeleteEntity(entity);
-}
-
-/*****************************************************************//*!
-\brief
-	Deferred clones an entity.
-\param entity
-	The entity.
-\param parent
-	The entity to parent the cloned entity to. If null, the new entity
-	does not have a parent.
-\return
-	The cloned entity.
-*//******************************************************************/
-SCRIPT_CALLABLE ecs::EntityHandle CS_CloneEntity(ecs::EntityHandle entity, ecs::EntityHandle parent)
-{
-	util::AssertEntityHandleValid(entity);
-	ecs::EntityHandle clonedEntity{ ecs::CloneEntity(entity) };
-	if (parent)
-	{
-		util::AssertEntityHandleValid(parent);
-		clonedEntity->GetTransform().SetParent(parent->GetTransform());
-	}
-	return clonedEntity;
-}
-
-/*****************************************************************//*!
-\brief
-	Spawns a prefab as a new entity.
-\param prefabName
-	The name of the prefab.
-\param parent
-	The entity to parent the cloned entity to. If null, the new entity
-	does not have a parent.
-\return
-	The spawned prefab entity.
-*//******************************************************************/
-SCRIPT_CALLABLE ecs::EntityHandle CS_SpawnPrefab(const char* prefabName, ecs::EntityHandle parent)
-{
-	ecs::EntityHandle prefabEntity{ ST<PrefabManager>::Get()->LoadPrefab(prefabName) };
-	if (parent)
-	{
-		util::AssertEntityHandleValid(parent);
-		prefabEntity->GetTransform().SetParent(parent->GetTransform());
-	}
-	return prefabEntity;
-}
-
-#pragma endregion // Scripting
+//#pragma region Scripting
+//
+///*****************************************************************//*!
+//\brief
+//	Gets a GCHandle to a C# script object that's attached to an entity.
+//	Freeing the handle doesn't delete the script object, but do still
+//	remember to free the handle on C# side, otherwise there will be a
+//	memory leak!
+//\param entity
+//	The entity to search for the script object on.
+//\param typeName
+//	The name of the class of the C# script object. If the class is defined
+//	inside a namespace, it must be included in the name and delimited by '.'
+//\return
+//	A C# IntPtr object which can be converted into a GCHandle via GCHandle.FromIntPtr().
+//	If the script object doesn't exist on the entity, returns 0. On C#,
+//	this can be checked for by a comparison against IntPtr.Zero.
+//*//******************************************************************/
+//SCRIPT_CALLABLE intptr_t CS_GetScriptInstance(ecs::EntityHandle entity, const char* typeName)
+//{
+//	util::AssertEntityHandleValid(entity);
+//	auto scriptComp{ entity->GetComp<ScriptComponent>() };
+//	if (!scriptComp)
+//		return 0;
+//
+//	if (MonoObject* scriptInstance{ scriptComp->FindScriptInstance(typeName) })
+//		return mono_gchandle_new(scriptInstance, false);
+//	else
+//		return 0;
+//
+//}
+//
+///*****************************************************************//*!
+//\brief
+//	Searches the world for an entity of the specified name.
+//	THIS IS VERY EXPENSIVE!
+//\param name
+//	The name of the entity.
+//\return
+//	The entity. If not found, 0.
+//*//******************************************************************/
+//SCRIPT_CALLABLE ecs::EntityHandle CS_FindEntityByName(const char* name)
+//{
+//	for (auto iter = ecs::GetCompsBegin<NameComponent>(); iter != ecs::GetCompsEnd<NameComponent>(); ++iter)
+//		if (iter->GetName() == name)
+//			return iter.GetEntity();
+//	return nullptr;
+//}
+//
+///*****************************************************************//*!
+//\brief
+//	Deletes an entity.
+//\param entity
+//	The entity.
+//*//******************************************************************/
+//SCRIPT_CALLABLE void CS_DeleteEntity(ecs::EntityHandle entity)
+//{
+//	util::AssertEntityHandleValid(entity);
+//	ecs::DeleteEntity(entity);
+//}
+//
+///*****************************************************************//*!
+//\brief
+//	Deferred clones an entity.
+//\param entity
+//	The entity.
+//\param parent
+//	The entity to parent the cloned entity to. If null, the new entity
+//	does not have a parent.
+//\return
+//	The cloned entity.
+//*//******************************************************************/
+//SCRIPT_CALLABLE ecs::EntityHandle CS_CloneEntity(ecs::EntityHandle entity, ecs::EntityHandle parent)
+//{
+//	util::AssertEntityHandleValid(entity);
+//	ecs::EntityHandle clonedEntity{ ecs::CloneEntity(entity) };
+//	if (parent)
+//	{
+//		util::AssertEntityHandleValid(parent);
+//		clonedEntity->GetTransform().SetParent(parent->GetTransform());
+//	}
+//	return clonedEntity;
+//}
+//
+///*****************************************************************//*!
+//\brief
+//	Spawns a prefab as a new entity.
+//\param prefabName
+//	The name of the prefab.
+//\param parent
+//	The entity to parent the cloned entity to. If null, the new entity
+//	does not have a parent.
+//\return
+//	The spawned prefab entity.
+//*//******************************************************************/
+//SCRIPT_CALLABLE ecs::EntityHandle CS_SpawnPrefab(const char* prefabName, ecs::EntityHandle parent)
+//{
+//	ecs::EntityHandle prefabEntity{ ST<PrefabManager>::Get()->LoadPrefab(prefabName) };
+//	if (parent)
+//	{
+//		util::AssertEntityHandleValid(parent);
+//		prefabEntity->GetTransform().SetParent(parent->GetTransform());
+//	}
+//	return prefabEntity;
+//}
+//
+//#pragma endregion // Scripting
 #endif

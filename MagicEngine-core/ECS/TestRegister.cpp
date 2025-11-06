@@ -51,4 +51,5 @@ void RegisterShit()
 	IRegisteredComponent<GrabbableItemComponent>::RegisterComponent();
 	IRegisteredComponent<EnemyComponent>::RegisterComponent();
 	IRegisteredComponent<HealthComponent>::RegisterComponent();
+	IRegisteredComponent<ScriptComponent>::RegisterComponent();
 }

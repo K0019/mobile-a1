@@ -57,6 +57,7 @@ All rights reserved.
 #include "Editor/LayersMatrix.h"
 #include "Engine/EntityLayers.h"
 
+#include "Scripting/LuaScripting.h"
 #include "Scripting/CSScripting.h"
 #include "Scripting/HotReloader.h"
 
@@ -152,6 +153,8 @@ void MagicEngine::Init(Context& context)
 
 	// Scripting MagicEngine Initialisation
 #ifdef GLFW
+	// Lua scripting is initialized from program startup
+	ST<LuaScripting>::Get()->LoadScriptsInFolder(Filepaths::scriptsSave);
 	CSharpScripts::CSScripting::Init();
 #endif
 
@@ -424,6 +427,7 @@ void MagicEngine::shutdown()
 
 	ST<physics::JoltPhysics>::Destroy();
 #ifdef GLFW
+	ST<LuaScripting>::Destroy();
 	CSharpScripts::CSScripting::Exit();
 #endif
 

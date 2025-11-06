@@ -527,15 +527,15 @@ namespace CSharpScripts
 			// 
 			for (auto ite = ecs::GetCompsBegin<ScriptComponent>(); ite != ecs::GetCompsEnd<ScriptComponent>(); ++ite)
 			{
-				ite.GetCompHandle()->SaveVariables();
-				ite.GetCompHandle()->RemoveAllScripts();
+				//ite.GetCompHandle()->SaveVariables();
+				//ite.GetCompHandle()->RemoveAllScripts();
 			}
 
 			// After reloading all the scripts load the variables into them
 			for (auto ite = ecs::GetCompsBegin<ScriptComponent>(); ite != ecs::GetCompsEnd<ScriptComponent>(); ++ite)
 			{
-				ite.GetCompHandle()->ReattachAllScripts();
-				ite.GetCompHandle()->LoadVariables();
+				//ite.GetCompHandle()->ReattachAllScripts();
+				//ite.GetCompHandle()->LoadVariables();
 			}
 		});
 	}

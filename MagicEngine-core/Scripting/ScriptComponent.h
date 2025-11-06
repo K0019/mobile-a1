@@ -28,6 +28,7 @@ All rights reserved.
 */
 /******************************************************************************/
 #pragma once
+#include "Scripting/LuaScripting.h"
 #include "Scripting/CSScripting.h"
 #include "ECS/IRegisteredComponent.h"
 #include "Editor/IEditorComponent.h"
@@ -42,202 +43,21 @@ class ScriptComponent
 	, public ecs::IComponentCallbacks
 {
 public:
-	ScriptComponent() = default;
-
-	/*****************************************************************//*!
-	\brief
-		Copy Constructor of the class
-	\param[in]
-		Reference of another ScriptComponent to copy from
-	\return
-		None
-	*//******************************************************************/
-	ScriptComponent(const ScriptComponent& other);
-
-	/*****************************************************************//*!
-	\brief
-		Move Constructor of the class
-	\param[in]
-		ScriptComponent to take over ownership of.
-	\return
-		None
-	*//******************************************************************/
-	ScriptComponent(ScriptComponent&& other) noexcept;
-
-	/*****************************************************************//*!
-	\brief
-		Destructor of the class
-	\return
-		None
-	*//******************************************************************/
-	~ScriptComponent();
-
-	/*****************************************************************//*!
-	\brief
-		Draws in editor, the Script component. Will draw the scripts 
-		attached inside the component and the scripts variables that can
-		be adjusted/manipulated during runtime.
-	*//******************************************************************/
-	virtual void EditorDraw() override;
-
-	/*****************************************************************//*!
-	\brief
-		Adds to the unordered map of scripts attached to the entity containing
-		this component.
-	\param[in] sName
-		Name of the Script to add
-	\return
-		Whether the add operation was successful.
-	*//******************************************************************/
-	bool AddScript(const std::string& sName);
-	/*****************************************************************//*!
-	\brief
-		Removes from the unordered map of scripts attached to the entity containing
-		this component.
-	\param[in] sName
-		Name of the Script to remove
-	\return
-		None
-	*//******************************************************************/
-	void RemoveScript(const std::string& sName);
-
-	/*****************************************************************//*!
-	\brief
-		Calls the InvokeOnUpdate method of each script inside the 
-		unordered map.
-	\return
-		None
-	*//******************************************************************/
-	void InvokeOnUpdate();
-
-	/*****************************************************************//*!
-	\brief
-		Calls the InvokeAwake method of each script inside the
-		unordered map.
-	\return
-		None
-	*//******************************************************************/
-	void InvokeAwake();
-
-	/*****************************************************************//*!
-	\brief
-		Calls the InvokeOnStart method of each script inside the
-		unordered map.
-	\return
-		None
-	*//******************************************************************/
-	void InvokeOnStart();
-
-	/*****************************************************************//*!
-	\brief
-		Calls the InvokeLateUpdate method of each script inside the
-		unordered map.
-	\return
-		None
-	*//******************************************************************/
-	void InvokeLateUpdate();
-
-	/*****************************************************************//*!
-	\brief
-		Saves varaibles of all scripts attached
-	\return
-		None
-	*//******************************************************************/
-	void SaveVariables();
-
-	/*****************************************************************//*!
-	\brief
-		Removes all scripts attached to the component
-	\return
-		None
-	*//******************************************************************/
-	void RemoveAllScripts();
-
-	/*****************************************************************//*!
-	\brief
-		Reattaches all scripts removed to the component
-	\return
-		None
-	*//******************************************************************/
-	void ReattachAllScripts();
-
-	/*****************************************************************//*!
-	\brief
-		Loads varaibles of all scripts attached
-	\return
-		None
-	*//******************************************************************/
-	void LoadVariables();
-
-	/*****************************************************************//*!
-	\brief
-		Calls the InvokeSetHandle method of each script inside the
-		unordered map.
-	\return
-		None
-	*//******************************************************************/
-	void InvokeSetHandle();
-
-	/*****************************************************************//*!
-	\brief
-		Tries to find the specified script instance attached to the entity.
-	\param[in] name
-		Name of the script class to find.
-	\return
-		MonoObject* of the class
-	*//******************************************************************/
-	MonoObject* FindScriptInstance(const std::string& name);
-
-	/*****************************************************************//*!
-	\brief
-		Function to call when this object is serialized.
-	\param[in] serializer
-		The Serializer instance.
-	\return
-		None
-	*//******************************************************************/
-	void Serialize(Serializer& serializer) const final;
-	/*****************************************************************//*!
-	\brief
-		Function to call when this object is deserialized.
-	\param[in] deserializer
-		The Deserializer instance.
-	\return
-		None
-	*//******************************************************************/
-	void Deserialize(Deserializer& deserializer) final;
-
-	/*****************************************************************//*!
-	\brief
-		Registers to the collision callback on this entity.
-	*//******************************************************************/
-	void OnAttached() override;
-
-	/*****************************************************************//*!
-	\brief
-		Unregisters from the collision callback on this entity.
-	*//******************************************************************/
-	void OnDetached() override;
+	const std::vector<LuaScript>& GetAttachedScripts() const;
 
 private:
-	void InitializeScriptInstance(CSharpScripts::ScriptInstance& instance, const std::string& scriptName);
+	std::vector<LuaScript> scripts;
 
-private:
-	std::unordered_map<std::string, CSharpScripts::ScriptInstance> scriptMap;
-	std::vector<std::string> scriptsToAwaken;
-	std::vector<std::string> scriptsToStart;
-	// For EditorDraw
-	std::unordered_map<std::string, bool> openStates;
+public:
+	void EditorDraw() override;
 
-	// Map containing:
-	//	Key: Name of Script, Value: Map Containing:
-	//							Key: name of variable, Value: value of variable
-	std::vector<std::string> names;
-	std::vector<std::unordered_map<std::string, CSharpScripts::internal::Field>> pvs;
+	void Deserialize(Deserializer& reader) override;
+
 	property_vtable()
 };
 property_begin(ScriptComponent)
 {
+	property_var(scripts)
 }
 property_vend_h(ScriptComponent)
 
@@ -246,7 +66,7 @@ property_vend_h(ScriptComponent)
 	System used as part of ecs to updates the scripts attached to 
 	entities.
 *//******************************************************************/
-class ScriptSystem : public ecs::System<ScriptSystem, ScriptComponent>
+class ScriptUpdateSystem : public ecs::System<ScriptUpdateSystem, ScriptComponent>
 {
 public:
 	/*****************************************************************//*!
@@ -255,7 +75,7 @@ public:
 	\return
 		None
 	*//******************************************************************/
-	ScriptSystem();
+	ScriptUpdateSystem();
 
 	/*****************************************************************//*!
 	\brief

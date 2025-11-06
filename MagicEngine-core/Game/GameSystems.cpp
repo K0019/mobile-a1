@@ -100,7 +100,7 @@ void GameState_Game::OnEnter()
     ecs::AddSystem(ECS_LAYER::SCRIPT_PREAWAKE, ScriptPreAwakeSystem{});
     ecs::AddSystem(ECS_LAYER::SCRIPT_AWAKE, ScriptAwakeSystem{});
     ecs::AddSystem(ECS_LAYER::SCRIPT_START, ScriptStartSystem{});
-    ecs::AddSystem(ECS_LAYER::SCRIPT_UPDATE, ScriptSystem{});
+    ecs::AddSystem(ECS_LAYER::SCRIPT_UPDATE, ScriptUpdateSystem{});
     ecs::AddSystem(ECS_LAYER::SCRIPT_LATE_UPDATE, ScriptLateUpdateSystem{});
 #endif
 
