@@ -66,25 +66,19 @@ All rights reserved.
 #include "Editor/Import.h"
 #include "math/camera.h"
 
-#include "core/platform/android/ry_android_input_api.h"
-#include "Engine/Platform/Android/MagicPointerInject.h"
-//
-//static void OnTapFromRy(float x, float y, int /*id*/) {
-//	CONSOLE_LOG(LEVEL_INFO) << "[AndroidInput] Tap @ (" << x << ", " << y << ")";
-//	CONSOLE_LOG(LEVEL_INFO) << "THIS CODE IS FINALLY WORKING BLESSSSSSS";
-//}
+#include "Engine/Platform/Android/AndroidInputBridge.h"
 #include"BehaviorTree/BehaviourNode.h"
 
 
-static void OnTapFromRy(float x, float y, int /*id*/) {
-	CONSOLE_LOG(LEVEL_INFO) << "HEHEHE123 finally ok again idk y it wasnt ok but ok [AndroidInput] Tap @ (" << x << ", " << y << ")";
-	// If/when you want: inject into your input system here
-	// MagicInjectPointer(kUp, x, y, 0);  // or call your public mouse API
-	auto* km = ST<KeyboardMouseInput>::Get();
-	if (km->GetIsPressed(KEY::LSHIFT))   CONSOLE_LOG(LEVEL_INFO) << "LSHIFT pressed in ONTAPFROMRY";
-	if (km->GetIsReleased(KEY::LSHIFT))  CONSOLE_LOG(LEVEL_INFO) << "LSHIFT released ONTAPFROMRY";
-
-}
+//static void OnTapFromRy(float x, float y, int /*id*/) {
+//	CONSOLE_LOG(LEVEL_INFO) << "HEHEHE123 finally ok again idk y it wasnt ok but ok [AndroidInput] Tap @ (" << x << ", " << y << ")";
+//	// If/when you want: inject into your input system here
+//	// MagicInjectPointer(kUp, x, y, 0);  // or call your public mouse API
+//	auto* km = ST<KeyboardMouseInput>::Get();
+//	if (km->GetIsPressed(KEY::LSHIFT))   CONSOLE_LOG(LEVEL_INFO) << "LSHIFT pressed in ONTAPFROMRY";
+//	if (km->GetIsReleased(KEY::LSHIFT))  CONSOLE_LOG(LEVEL_INFO) << "LSHIFT released ONTAPFROMRY";
+//
+//}
 
 //static void MagicPointerSink(int id, int action, float x, float y) {
 //	MagicInjectPointer(id, action, x, y);
@@ -243,26 +237,28 @@ void MagicEngine::Init(Context& context)
 #endif
 
 
+//#if defined(__ANDROID__)
+//
+//	ry_set_tap_callback(&OnTapFromRy);
+//#endif
 #if defined(__ANDROID__)
-
-	ry_set_tap_callback(&OnTapFromRy);
+	AndroidInputBridge::Initialize();
 #endif
 
 }
 
 void MagicEngine::ExecuteFrame(FrameData& frameData)
 {
+
 	// Update tracking of framerate and frametime
 	GameTime::WaitUntilNextFrame();
 	ST<PerformanceProfiler>::Get()->StartFrame();
 
 	// Clear the events of the previous frame
 	ST<EventsQueue>::Get()->NewFrame();
-	
-//#if defined(__ANDROID__)
-//	ry_set_tap_callback(&OnTapFromRy);
-//#endif
 
+
+	
 	ST<MagicInput>::Get()->NewFrame();
 	//GamepadInput::PollInput();
 
@@ -420,6 +416,11 @@ void MagicEngine::ExecuteFrame(FrameData& frameData)
 
 
 	ST<PerformanceProfiler>::Get()->EndFrame();
+
+#if defined(__ANDROID__)
+	// read State() anywhere you need during the frame
+	AndroidInputBridge::ClearEdges();   // once per frame after you've consumed it
+#endif
 
 }
 
