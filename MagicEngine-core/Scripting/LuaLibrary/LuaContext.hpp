@@ -58,7 +58,11 @@ namespace LuaCpp {
 			return *this;
 		}
 
+		void PushGlobalFunction(const std::string& funName);
+
 		void RunWithEnvironment(const LuaEnvironment &env);
+
+		void Pop();
 
 	private:
 		std::unique_ptr<Engine::LuaState> state_ = nullptr;

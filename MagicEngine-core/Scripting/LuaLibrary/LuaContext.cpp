@@ -154,6 +154,13 @@ StateProxy LuaContext::CreateStateFor(const std::string & inName, std::optional<
 	return StateProxy(std::move(L));
 }
 
+void StateProxy::PushGlobalFunction(const std::string& funName)
+{
+	lua_getglobal(*state_, funName.c_str());
+	if (!lua_isfunction(*state_, -1))
+		throw std::runtime_error(funName + " is not a function");
+}
+
 void StateProxy::RunWithEnvironment(const LuaEnvironment &env) {
 	for(const auto &var : env) {
 		((std::shared_ptr<LuaType>) var.second)->PushGlobal(*state_, var.first);
@@ -166,6 +173,11 @@ void StateProxy::RunWithEnvironment(const LuaEnvironment &env) {
 	for(const auto &var : env) {
 		((std::shared_ptr<LuaType>) var.second)->PopGlobal(*state_);
 	}
+}
+
+void StateProxy::Pop()
+{
+	lua_pop(*state_, lua_gettop(*state_));
 }
 
 void LuaContext::RunWithEnvironment(const std::string &inName, const LuaEnvironment &env, std::optional<Engine::StateParams> params) {

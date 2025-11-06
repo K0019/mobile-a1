@@ -25,6 +25,7 @@ LuaScript::LuaScript(const std::string& scriptName, LuaCpp::StateProxy&& code)
 	: scriptName{ scriptName }
 	, code{ std::forward<LuaCpp::StateProxy>(code) }
 {
+	ST<LuaScripting>::Get()->RunScript(*this);
 }
 
 LuaScript::LuaScript()
@@ -97,7 +98,12 @@ const std::vector<std::string>& LuaScripting::GetAllScriptNames() const
 
 void LuaScripting::RunScript(LuaScript& script)
 {
-	context.Run(script.code);
+	try {
+		context.Run(script.code);
+	}
+	catch (const std::runtime_error& e) {
+		CONSOLE_LOG(LEVEL_ERROR) << "Error running script " << script.scriptName << ": " << e.what();
+	}
 }
 
 LuaLibrary LuaScripting::GetLibrary(const std::string& libName)

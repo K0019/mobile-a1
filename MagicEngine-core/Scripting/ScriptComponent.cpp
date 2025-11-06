@@ -99,7 +99,9 @@ void ScriptUpdateSystem::PostRun()
 void ScriptUpdateSystem::UpdateScriptComp(ScriptComponent& comp)
 {
 	comp.ForEachAttachedScript([](LuaScript& script) -> void {
+		script.code.PushGlobalFunction("test");
 		ST<LuaScripting>::Get()->RunScript(script);
+		script.code.Pop();
 	});
 }
 
