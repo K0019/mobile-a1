@@ -35,7 +35,7 @@ public:
 	void UploadToPipeline(FrameData* outFrameData);
 
 	void SetViewCamera(const Camera& camera);
-	void AddObject(const MeshHandle& meshHandle, const MaterialHandle& materialHandle, const Mat4& transform);
+	void AddObject(const MeshHandle& meshHandle, const MaterialHandle& materialHandle, const Transform& transform, const Mat4& meshTransform);
 	void AddLight(const SceneLight& sceneLight);
 
 public:
