@@ -28,6 +28,7 @@ All rights reserved.
 #include <Jolt/Core/JobSystemThreadPool.h>
 #include <Jolt/Physics/PhysicsSettings.h>
 #include <Jolt/Physics/PhysicsSystem.h>
+#include <Jolt/Physics/Collision/Shape/Shape.h>
 #include <Jolt/Physics/Collision/Shape/EmptyShape.h>
 #include <Jolt/Physics/Collision/Shape/BoxShape.h>
 #include <Jolt/Physics/Collision/Shape/ScaledShape.h>
@@ -113,6 +114,9 @@ namespace physics {
 			Optimize the broad face collision to increase efficiency.
 		*//******************************************************************/
 		void OptimizeBroadPhase();
+
+		void CollectAllTriangles(const JPH::AABox& range, std::vector<float>& outVertices, std::vector<int>& outTriIndex);
+
 
 	private:
 		// We need a temp allocator for temporary allocations during the physics update. We're

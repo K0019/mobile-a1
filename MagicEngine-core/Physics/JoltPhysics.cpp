@@ -83,6 +83,69 @@ namespace physics {
 		physicsSystem.OptimizeBroadPhase();
 	}
 
+	void JoltPhysics::CollectAllTriangles(const JPH::AABox& range, std::vector<float>& outVertices, std::vector<int>& outTriIndex)
+	{
+		std::unordered_map<JPH::Float3, int> vert2Index{};
+		int highestIndex{};
+
+		for (auto colCompIter{ ecs::GetCompsActiveBegin<physics::BoxColliderComp>() }, endIter{ ecs::GetCompsEnd<physics::BoxColliderComp>() }; colCompIter != endIter; ++colCompIter)
+		{
+			// If the collider is not enabled or if it has a physics component, it's not a static object so go to the next collider.
+			if (!colCompIter->GetFlag(physics::COLLIDER_COMP_FLAG::ENABLED) || colCompIter.GetEntity()->HasComp<physics::PhysicsComp>())
+				continue;
+
+			auto bodyCompPtr{ colCompIter.GetEntity()->GetComp<physics::JoltBodyComp>() };
+
+			//Get necessary data.
+			JPH::Shape::GetTrianglesContext triContext{};
+
+			const JPH::Shape* shape{ bodyInterface.GetShape(bodyCompPtr->GetBodyID()) };
+			const JPH::ScaledShape* scaledShape{ static_cast<const JPH::ScaledShape*>(shape) };
+			shape = scaledShape->GetInnerShape();
+
+			JPH::Vec3 pos{ bodyInterface.GetPosition(bodyCompPtr->GetBodyID()) };
+			Vec3 temp{ bodyCompPtr->GetScale() / 2.f };
+			JPH::Vec3 scale{ temp.x, temp.y, temp.z };
+			JPH::Quat rot{ bodyInterface.GetRotation(bodyCompPtr->GetBodyID()) };
+
+			//Get triangles
+			shape->GetTrianglesStart(triContext, range, pos, rot, scale);
+			std::size_t maxTri{ 512 };
+			std::vector<JPH::Float3> triBuffer(maxTri * 3);
+			int triCount{};
+
+
+			while ((triCount = shape->GetTrianglesNext(triContext, maxTri, triBuffer.data())) > 0)
+			{
+				for (std::size_t count{}; count < triCount; ++count)
+				{
+					std::array<JPH::Float3, 3> vert{ triBuffer[count * 3], triBuffer[count * 3 + 1], triBuffer[count * 3 + 2] };
+					std::vector<int> indices{};
+					for (std::size_t vertexNum{}; vertexNum < 3; ++vertexNum)
+					{
+						auto iter{ vert2Index.find(vert[vertexNum]) };
+						if (iter != vert2Index.end())
+						{
+							indices.push_back(iter->second);
+						}
+						else
+						{
+							indices.push_back(highestIndex);
+							vert2Index[vert[vertexNum]] = highestIndex++;
+							outVertices.push_back(vert[vertexNum][0]);
+							outVertices.push_back(vert[vertexNum][1]);
+							outVertices.push_back(vert[vertexNum][2]);
+						}
+					}
+					//Change the indices to clock wise.
+					//std::swap(indices[1], indices[2]);
+					for (int index : indices)
+						outTriIndex.push_back(index);
+				}
+			}
+		}
+	}
+
 	TransformValues& TransformValues::operator=(Transform& trans)
 	{
 		pos = trans.GetWorldPosition();
