@@ -22,7 +22,7 @@
             android:launchMode="singleTask"
             android:screenOrientation="landscape">
 
-            <meta-data android:name="android.app.lib_name" android:value="ryEngineAndroid" />
+            <meta-data android:name="android.app.lib_name" android:value="MagicEngineAndroid" />
 
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

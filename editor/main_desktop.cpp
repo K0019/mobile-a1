@@ -89,6 +89,12 @@ int WINAPI WinMain([[maybe_unused]] HINSTANCE hInstance, [[maybe_unused]] HINSTA
     #endif
 #endif
 
+//#if defined(_WIN32)
+//        _putenv_s("VK_SYNC_DISABLE_ATOMICS", "1");
+//#else // Android/Linux
+//        setenv("VK_SYNC_DISABLE_ATOMICS", "1", 1);
+//#endif
+
     Engine<Application> engine;
     // Initialize engine and application
     engine.Initialize();

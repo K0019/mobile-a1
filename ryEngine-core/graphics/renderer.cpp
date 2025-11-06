@@ -31,7 +31,7 @@ void Renderer::startup()
   m_vkContext = vk::createContext({
     .vulkanVersion = vk::VulkanVersion_1_3,
     .terminateOnValidationError = false,
-    .enableValidation = true,
+    .enableValidation = false,
     .swapchainRequestedColorSpace = vk::ColorSpace::SRGB_LINEAR,
     .disableVSync = true
   });
