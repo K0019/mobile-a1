@@ -50,8 +50,8 @@ public:
     static bool RenameFile(const std::string& oldPath, const std::string& newPath);
     static bool CreateDirectory(const std::string& path);
 
-    bool WriteFile(const std::string& path, const std::vector<uint8_t>& buffer);
-    bool WriteFile(const std::string& path, const std::string& text);
+    static bool WriteFile(const std::string& path, const std::vector<uint8_t>& buffer);
+    static bool WriteFile(const std::string& path, const std::string& text);
 
     static std::vector<std::string> ListDirectory(const std::string& path);
 

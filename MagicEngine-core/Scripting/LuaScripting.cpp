@@ -19,9 +19,10 @@ All rights reserved.
 */
 /******************************************************************************/
 #include "LuaScripting.h"
-#include <VFS/VFS.h>
-
 #include "Scripting/LuaRegistration.h"
+#include <VFS/VFS.h>
+#include "Engine/Events/EventsTypeBasic.h"
+#include "FilepathConstants.h"
 
 LuaScript::LuaScript(const std::string& scriptName, LuaCpp::StateProxy&& code)
 	: scriptName{ scriptName }
@@ -44,6 +45,19 @@ LuaScript& LuaScript::operator=(const LuaScript&)
 {
 	CONSOLE_LOG(LEVEL_FATAL) << "LuaScript copy assignment called. SHOULD NEVER BE CALLED";
 	return *this;
+}
+
+void LuaScripting::Init()
+{
+	reloadEventHandler.Assign(ST<EventsQueue>::Get()->AddEventHandlerFunc<Events::RequestReloadLuaScripts>([this](const Events::RequestReloadLuaScripts&) -> void {
+		DisposeAllLoadedScripts();
+		LoadScriptsInFolder(Filepaths::scriptsSave);
+		CONSOLE_LOG(LEVEL_INFO) << "Scripts reloaded successfully";
+
+		ST<EventsQueue>::Get()->AddEventForThisFrame(Events::LuaScriptsReloaded{});
+	}));
+
+	LoadScriptsInFolder(Filepaths::scriptsSave);
 }
 
 void LuaScripting::LoadScriptsInFolder(const std::string& folder)
@@ -79,6 +93,12 @@ void LuaScripting::LoadScriptsInFolder(const std::string& folder)
 
 	// Sort script names alphabetically
 	std::sort(loadedScripts.begin(), loadedScripts.end());
+}
+
+void LuaScripting::DisposeAllLoadedScripts()
+{
+	context = LuaCpp::LuaContext{}; // Replace existing context
+	loadedScripts.clear();
 }
 
 std::optional<LuaScript> LuaScripting::GetScript(const std::string& scriptName)

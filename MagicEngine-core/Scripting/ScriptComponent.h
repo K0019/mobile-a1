@@ -78,6 +78,7 @@ class ScriptComponent
 public:
 	template <typename FuncType>
 	void ForEachAttachedScript(FuncType function);
+	void RefreshScripts();
 
 private:
 	std::vector<LuaScriptWithMeta> scripts;
@@ -150,3 +151,14 @@ class ScriptAwakeSystem : public ScriptSystemBase<ScriptAwakeSystem, SCRIPT_FUNC
 class ScriptStartSystem : public ScriptSystemBase<ScriptStartSystem, SCRIPT_FUNCTION::START> {};
 class ScriptUpdateSystem : public ScriptSystemBase<ScriptUpdateSystem, SCRIPT_FUNCTION::UPDATE> {};
 class ScriptLateUpdateSystem : public ScriptSystemBase<ScriptLateUpdateSystem, SCRIPT_FUNCTION::LATE_UPDATE> {};
+
+// Listens for when the lua script context is refreshed, to reload the lua states of all script components
+class ScriptRefreshListenerSystem : public ecs::System<ScriptRefreshListenerSystem, ScriptComponent>
+{
+public:
+	ScriptRefreshListenerSystem();
+	bool PreRun() override;
+
+private:
+	void RefreshScriptsInComp(ScriptComponent& comp);
+};

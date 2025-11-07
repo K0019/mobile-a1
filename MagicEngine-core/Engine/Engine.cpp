@@ -158,7 +158,7 @@ void MagicEngine::Init(Context& context)
 	CrashHandler::SetupCrashHandler(); // DO NOT REMOVE THIS LINE EVER
 
 	// Scripting MagicEngine Initialisation
-	ST<LuaScripting>::Get()->LoadScriptsInFolder(Filepaths::scriptsSave);
+	ST<LuaScripting>::Get()->Init();
 
 	// FMOD Initialisation
 	ST<AudioManager>::Get()->Initialise();

@@ -27,6 +27,11 @@ namespace Events {
 		unsigned int width, height;
 	};
 
+	// Consumed by: LuaScripting
+	struct RequestReloadLuaScripts {};
+	// Consumed by: ScriptRefreshListenerSystem
+	struct LuaScriptsReloaded {};
+
 }
 
 namespace Getters {

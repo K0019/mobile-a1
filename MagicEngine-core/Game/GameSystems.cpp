@@ -76,6 +76,7 @@ void GameState_Editor::OnEnter()
 {
     GameState_Common::OnEnter();
 
+    ecs::AddSystem(ECS_LAYER::SCRIPT_PREAWAKE, ScriptRefreshListenerSystem{});
     ecs::AddSystem(ECS_LAYER::PRE_PHYSICS_0, TrailRendererSystem{});
     ecs::AddSystem(ECS_LAYER::PRE_UPDATE_0, UndoShakeSystem{});
     ecs::AddSystem(ECS_LAYER::POST_PHYSICS_1, ShakeSystem{});

@@ -21,6 +21,7 @@ All rights reserved.
 #include "LuaLibrary/LuaCpp.hpp"
 #include <luabridge3/LuaBridge/LuaBridge.h>
 #include "Utilities/Serializer.h"
+#include "Engine/Events/EventsQueue.h"
 
 class LuaScripting;
 
@@ -56,7 +57,9 @@ struct LuaLibrary
 class LuaScripting
 {
 public:
+	void Init();
 	void LoadScriptsInFolder(const std::string& folder);
+	void DisposeAllLoadedScripts();
 
 	// fullName should be how referring to the function looks like in lua.
 	// e.g. Magic.FuncX
@@ -82,6 +85,8 @@ private:
 
 	//! Record of the available scripts
 	std::vector<std::string> loadedScripts;
+
+	AutoEventHandler reloadEventHandler;
 };
 
 template<typename FuncType>

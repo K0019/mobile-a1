@@ -6,6 +6,14 @@
 #include "Editor/EditorGuiUtils.h"
 #include "Editor/AssetBrowser.h"
 
+#include "Engine/Events/EventsQueue.h"
+#include "Engine/Events/EventsTypeBasic.h"
+
+#ifdef GLFW
+#include <Windows.h>
+#include <shellapi.h>
+#endif
+
 ///////////////
 /// Prefabs ///
 ///////////////
@@ -157,6 +165,11 @@ void ShaderTab::Render()
 ///////////////
 /// Scripts ///
 ///////////////
+ScriptTab::ScriptTab()
+    : newScriptName{ "New Script Name" }
+{
+}
+
 const char* ScriptTab::GetName() const
 {
     return "Scripts";
@@ -170,21 +183,33 @@ const char* ScriptTab::GetIdentifier() const
 void ScriptTab::Render()
 {
 #ifdef IMGUI_ENABLED
-    //float THUMBNAIL_SIZE = ST<AssetBrowser>::Get()->THUMBNAIL_SIZE;
-    //ImGui::InputText(" ", buffer, sizeof(buffer));
-    //if (ImGui::Button("Create Script") && ST<ScriptManager>::Get()->EnsureScriptsFolderExists())
-    //{
-    //    CONSOLE_LOG(LEVEL_DEBUG) << "Name of Script: " << buffer << ".cs";
-
-    //    if (!ST<ScriptManager>::Get()->CreateScript(buffer))
-    //        CONSOLE_LOG(LEVEL_ERROR) << "Failed to create script: " << buffer;
-    //}
-    //ImGui::SameLine();
-    //if (ImGui::Button("Reload"))
-    //{
-    //    //CSharpScripts::CSScripting::ReloadAssembly();
-    //}
-    //ImGui::Separator();
+    float THUMBNAIL_SIZE = ST<AssetBrowser>::Get()->THUMBNAIL_SIZE;
+    newScriptName.Draw();
+    {
+        gui::Disabled buttonDisable{ *newScriptName.GetBufferPtr() == '\0' };
+        if (gui::Button scriptButton{ "Create Script" })
+        {
+            const std::string scriptFilepath{ VFS::JoinPath(Filepaths::scriptsSave, newScriptName.GetBuffer() + ".lua") };
+            if (!VFS::FileExists(scriptFilepath))
+            {
+                // Create the file
+                if (!VFS::WriteFile(scriptFilepath, "function update(entity)\n\t\nend"))
+                    CONSOLE_LOG(LEVEL_ERROR) << "Failed to generate new script file";
+#ifdef GLFW
+                // Then open the file
+                else
+                {
+                    ShellExecute(0, 0, VFS::ConvertVirtualToPhysical(scriptFilepath).c_str(), 0, 0, SW_SHOW);
+                    CONSOLE_LOG(LEVEL_INFO) << "Created new script file " << newScriptName.GetBuffer();
+                }
+#endif
+            }
+        }
+    }
+    gui::SameLine();
+    if (gui::Button reloadButton{ "Reload" })
+        ST<EventsQueue>::Get()->AddEventForThisFrame(Events::RequestReloadLuaScripts{});
+    gui::Separator();
 
     //std::string path = Filepaths::scriptsSave;
     //std::vector<std::string> scriptFiles;
