@@ -30,6 +30,8 @@ void TestFunction(ecs::EntityHandle entity)
 
 void RegisterCppStuffToLua(luabridge::Namespace baseTable)
 {
+	// Reference for how to do stuff: https://kunitoki.github.io/LuaBridge3/Manual
+
 	baseTable
 		// ----- CLASSES -----
 		.beginClass<ecs::Entity>("Entity").endClass() // apparently this works yay, with this we can pass ecs::EntityHandle as is

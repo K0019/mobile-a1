@@ -37,21 +37,32 @@ All rights reserved.
 #include "Components/NameComponent.h"
 #include "Engine/PrefabManager.h"
 
+#define X(funcName, enumName) #funcName,
+const char* const scriptFunctionNames[]{
+	SCRIPT_FUNCTIONS
+};
+#undef X
+
 
 LuaScriptWithMeta::LuaScriptWithMeta(LuaScript&& script)
 	: LuaScript{ std::forward<LuaScript>(script) }
-#define X(funcName) , has_##funcName{ DoesFunctionExist(#funcName) }
-	SCRIPT_FUNCTIONS
-#undef X
+	, availableFunctions{ GetAvailableFunctionsMask() }
 {
 }
 
 LuaScriptWithMeta::LuaScriptWithMeta()
 	: LuaScript{}
-#define X(funcName) , has_##funcName{}
-	SCRIPT_FUNCTIONS
-#undef X
+	, availableFunctions{ GetAvailableFunctionsMask() }
 {
+}
+
+int LuaScriptWithMeta::GetAvailableFunctionsMask()
+{
+	int mask{};
+	for (SCRIPT_FUNCTION func{}; func < SCRIPT_FUNCTION::TOTAL; ++func)
+		if (DoesFunctionExist(scriptFunctionNames[+func]))
+			mask |= (1 << +func);
+	return mask;
 }
 
 bool LuaScriptWithMeta::DoesFunctionExist(const char* funcName)
@@ -125,8 +136,10 @@ void ScriptUpdateSystem::PostRun()
 
 void ScriptUpdateSystem::UpdateScriptComp(ScriptComponent& comp)
 {
-	comp.ForEachAttachedScript([entity = ecs::GetEntity(&comp)](LuaScript& script) -> void {
-		script.code.PushGlobalFunction(ScriptComponent::funcName_update);
+	comp.ForEachAttachedScript([entity = ecs::GetEntity(&comp)](LuaScriptWithMeta& script) -> void {
+		if (!script.availableFunctions.TestMask(SCRIPT_FUNCTION::UPDATE))
+			return;
+		script.code.PushGlobalFunction(scriptFunctionNames[+SCRIPT_FUNCTION::UPDATE]);
 		script.code.PushArgument(entity);
 		ST<LuaScripting>::Get()->RunScript(script);
 		script.code.Pop();

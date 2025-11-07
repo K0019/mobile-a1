@@ -31,9 +31,19 @@ All rights reserved.
 #include "Scripting/LuaScripting.h"
 #include "ECS/IRegisteredComponent.h"
 #include "Editor/IEditorComponent.h"
+#include "Utilities/MaskTemplate.h"
 
 #define SCRIPT_FUNCTIONS \
-X(update)
+X(update, UPDATE)
+
+enum class SCRIPT_FUNCTION {
+#define X(funcName, enumName) enumName,
+	SCRIPT_FUNCTIONS
+#undef X
+	TOTAL,
+	ALL = TOTAL
+};
+GENERATE_ENUM_CLASS_ITERATION_OPERATORS(SCRIPT_FUNCTION)
 
 struct LuaScriptWithMeta : public LuaScript
 {
@@ -44,12 +54,10 @@ struct LuaScriptWithMeta : public LuaScript
 	LuaScriptWithMeta& operator=(const LuaScriptWithMeta&) = default; // JUST TO SATISFY STD::VECTOR COMPILATION, SHOULD NEVER BE CALLED
 	LuaScriptWithMeta& operator=(LuaScriptWithMeta&&) = default;
 
-
-#define X(funcName) bool has_##funcName;
-	SCRIPT_FUNCTIONS
-#undef X
+	MaskTemplate<SCRIPT_FUNCTION> availableFunctions;
 
 private:
+	int GetAvailableFunctionsMask();
 	bool DoesFunctionExist(const char* funcName);
 };
 
@@ -62,11 +70,6 @@ class ScriptComponent
 	, public IEditorComponent<ScriptComponent>
 	, public ecs::IComponentCallbacks
 {
-public:
-#define X(funcName) inline static const char* const funcName_##funcName{ #funcName };
-	SCRIPT_FUNCTIONS
-#undef X
-
 public:
 	template <typename FuncType>
 	void ForEachAttachedScript(FuncType function);
