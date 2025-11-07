@@ -158,8 +158,8 @@
                     "stunTimePerHit": 0.0,
                     "groundFriction": 0.5,
                     "dodgeCooldown": 1.0,
-                    "dodgeDuration": 0.25,
-                    "dodgeSpeed": 50.0,
+                    "dodgeDuration": 0.20000000298023224,
+                    "dodgeSpeed": 30.0,
                     "hitDebugObject": {
                         "entityUid": 378152835290477126
                     },

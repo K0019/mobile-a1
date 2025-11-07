@@ -56,6 +56,7 @@ void CharacterMovementComponent::Dodge(Vec2 vector)
 
 	SetMovementVector(vector.Normalized());
 	currentDodgeTime = dodgeDuration;
+	currentDodgeCooldown = dodgeCooldown;
 }
 
 void CharacterMovementComponent::SetMovementVector(Vec2 vector)
@@ -279,7 +280,7 @@ void CharacterMovementComponentSystem::UpdateCharacterMovementComponent(Characte
 		Vec3 localRot = child->GetLocalRotation();
 		if (comp.currentDodgeTime > 0.0f)
 		{
-			localRot.x = 720.0f * (1.0f - (comp.currentDodgeTime / comp.dodgeDuration));
+			localRot.x = 360.0f * (1.0f - (comp.currentDodgeTime / comp.dodgeDuration));
 		}
 		else
 		{
