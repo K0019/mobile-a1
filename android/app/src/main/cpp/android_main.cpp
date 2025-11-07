@@ -198,7 +198,8 @@ void android_main(android_app* app) {
         if (ctx.initialized && ctx.engine) {
             //ry_fire_tap_if_any();
             //ry_input_dispatch_frame_events();
-            ry_fire_tap_if_any();
+          //  ry_fire_tap_if_any();
+            ry_pump_touch_events();         // <-- replaces old tick + fire
 
             Core::Platform::Get().GetInput().Update();
 
