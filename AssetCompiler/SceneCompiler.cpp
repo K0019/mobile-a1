@@ -35,7 +35,22 @@ All rights reserved.
 
 namespace compiler
 {
-    // Filepath helpers
+    // ----- String helpers ----- //
+    static std::string ToLower(const std::string& str)
+    {
+        std::string lowerStr = str;
+        std::transform(lowerStr.begin(), lowerStr.end(), lowerStr.begin(), ::tolower);
+        return lowerStr;
+    }
+
+    static bool EndsWith(const std::string& str, const std::string& suffix)
+    {
+        if (suffix.length() > str.length()) return false;
+        return std::equal(suffix.rbegin(), suffix.rend(), str.rbegin());
+    }
+
+
+    // ----- Texture / Filepath helpers ----- //
     struct PathResolutionResult
     {
         std::filesystem::path finalPath; // The correct, true, real, not fake, path that actually exists to a file on the disk.
@@ -110,7 +125,41 @@ namespace compiler
         result.warning = "Could not find texture '" + sourcePath.string();
         return result;
     }
+    // Parse the filename to determine texture compilation options
+    TextureOptions GetTextureOptionsForFile(const std::filesystem::path& resolvedPath, const TextureOptions& defaultOptions)
+    {
+        TextureOptions newOptions = defaultOptions;
+        std::string stem = ToLower(resolvedPath.stem().string());
 
+        // Check for Normal Maps
+        // e.g: "N00_000_00_HairBack_00_nml.normal.png", "_11.normal.png"
+        if (EndsWith(stem, "_n") || EndsWith(stem, "_nml") || EndsWith(stem, "_normal"))
+        {
+            newOptions.compressionFormat = TextureCompressionFormat::BC5;
+            newOptions.channelFormat = TextureChannelFormat::RGBA_8888;
+            return newOptions;
+        }
+
+        // Check for Specular/Roughness/Metallic/Mask
+        // e.g., "_roughness", "_metallic", "_s", "_r", "_m", "_mask"
+        if (EndsWith(stem, "_s") || EndsWith(stem, "_specular") ||
+            EndsWith(stem, "_r") || EndsWith(stem, "_roughness") ||
+            EndsWith(stem, "_m") || EndsWith(stem, "_metallic") ||
+            EndsWith(stem, "_ao") || EndsWith(stem, "_mask"))
+        {
+            newOptions.compressionFormat = TextureCompressionFormat::BC4;
+            newOptions.channelFormat = TextureChannelFormat::RGBA_8888;
+            return newOptions;
+        }
+
+        // Default: Assume Diffuse/Albedo
+        newOptions.compressionFormat = TextureCompressionFormat::BC7;
+        newOptions.channelFormat = TextureChannelFormat::RGBA_8888;
+        return newOptions;
+    }
+
+
+    // ----- Scene Compilation ----- //
     CompilationResult SceneCompiler::Compile(const CompilerOptions& compileOptions)
     {
         options = compileOptions;
@@ -200,7 +249,8 @@ namespace compiler
         return processingResult;
     }
 
-    //These functions below do the actual saving to disk
+
+    // ----- Saving to disk ----- //
     void SceneCompiler::CompileTextures(const Scene& scene, CompilationResult& result)
     {
         std::set<std::filesystem::path> uniqueTexturePaths;
@@ -264,6 +314,10 @@ namespace compiler
             texOpts.general.inputPath = resolvedPath; // Use the *correct* path
             texOpts.general.outputPath = textureOutputDir;
             texOpts.texture = options.texture;
+
+            // Parse filename to set specific options - e.g: normal maps use BC5
+            //Disable parsing for now - ryans vk::Format vk::vkFormatToFormat(VkFormat format) doesn't support any BC5s and BC4s
+            //texOpts.texture = GetTextureOptionsForFile(resolvedPath, options.texture);
 
             if (texCompiler.Compile(texOpts))
             {
