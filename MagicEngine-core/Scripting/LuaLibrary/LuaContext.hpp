@@ -64,6 +64,8 @@ namespace LuaCpp {
 
 		void Pop();
 
+		lua_State* GetState();
+
 	private:
 		std::unique_ptr<Engine::LuaState> state_ = nullptr;
 	};

@@ -63,7 +63,7 @@ class ScriptComponent
 	, public ecs::IComponentCallbacks
 {
 public:
-#define X(funcName) inline static const char* funcName_##funcName{ #funcName };
+#define X(funcName) inline static const char* const funcName_##funcName{ #funcName };
 	SCRIPT_FUNCTIONS
 #undef X
 

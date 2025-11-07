@@ -1,6 +1,6 @@
 local var = 1;
 
 function update()
-    print('Number: ' .. var)
+    Magic.TestFunction();
     var = var + 1;
 end

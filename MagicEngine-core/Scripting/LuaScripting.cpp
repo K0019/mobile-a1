@@ -21,11 +21,13 @@ All rights reserved.
 #include "LuaScripting.h"
 #include <VFS/VFS.h>
 
+#include "Scripting/LuaRegistration.h"
+#include <luabridge3/LuaBridge/LuaBridge.h>
+
 LuaScript::LuaScript(const std::string& scriptName, LuaCpp::StateProxy&& code)
 	: scriptName{ scriptName }
 	, code{ std::forward<LuaCpp::StateProxy>(code) }
 {
-	ST<LuaScripting>::Get()->RunScript(*this);
 }
 
 LuaScript::LuaScript()
@@ -83,7 +85,10 @@ void LuaScripting::LoadScriptsInFolder(const std::string& folder)
 std::optional<LuaScript> LuaScripting::GetScript(const std::string& scriptName)
 {
 	try {
-		return LuaScript{ scriptName, context.CreateStateFor(scriptName) };
+		LuaScript scriptInstance{ scriptName, context.CreateStateFor(scriptName) };
+		RegisterCppStuffToLua(luabridge::getGlobalNamespace(scriptInstance.code.GetState()).beginNamespace("Magic")); // Register cpp functions & classes to the lua namespace
+		RunScript(scriptInstance); // Lua doesn't yet know of the existance of anything within this script. Need to run it to discover functions, etc
+		return scriptInstance;
 	}
 	catch (const std::runtime_error&) {
 		// The script doesn't exist

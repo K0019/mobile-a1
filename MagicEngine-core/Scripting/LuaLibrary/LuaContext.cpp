@@ -180,6 +180,11 @@ void StateProxy::Pop()
 	lua_pop(*state_, lua_gettop(*state_));
 }
 
+lua_State* LuaCpp::StateProxy::GetState()
+{
+	return state_->getState();
+}
+
 void LuaContext::RunWithEnvironment(const std::string &inName, const LuaEnvironment &env, std::optional<Engine::StateParams> params) {
 	std::unique_ptr<LuaState> L = newStateFor(inName, params);
 
