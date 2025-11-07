@@ -158,7 +158,7 @@ void StateProxy::PushGlobalFunction(const char* funcName)
 {
 	lua_getglobal(*state_, funcName);
 	if (!lua_isfunction(*state_, -1))
-		throw std::runtime_error(std::string{ funcName } + " is not a function");
+		throw std::runtime_error("Not a function");
 }
 
 void StateProxy::RunWithEnvironment(const LuaEnvironment &env) {

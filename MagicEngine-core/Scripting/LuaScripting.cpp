@@ -39,11 +39,13 @@ LuaScript::LuaScript(const LuaScript&)
 	: code{ {} }
 {
 	CONSOLE_LOG(LEVEL_FATAL) << "LuaScript copy constructor called. SHOULD NEVER BE CALLED";
+	assert(false);
 }
 
 LuaScript& LuaScript::operator=(const LuaScript&)
 {
 	CONSOLE_LOG(LEVEL_FATAL) << "LuaScript copy assignment called. SHOULD NEVER BE CALLED";
+	assert(false);
 	return *this;
 }
 
