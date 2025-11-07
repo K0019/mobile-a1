@@ -183,7 +183,6 @@ void MagicEngine::Init(Context& context)
 	// load resources
 	ST<MagicResourceManager>::Get()->Init();
 	ST<MagicResourceManager>::Get()->LoadFromFile();
-	ST<MaterialSystem>::Get()->initialize();
 	//ST<AssetBrowser>::Get()->file_system.Initialize(Filepaths::workingDir);
 	// Load fonts manually for now
 	const std::array<std::string, 3> fontsToLoad{
