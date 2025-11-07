@@ -125,7 +125,7 @@ void PlayerMovementComponentSystem::UpdatePlayerMovementComponent(PlayerMovement
 	if (inputInstance->GetValue(INPUT_READ_TYPE::CURRENT, KEY::B))
 	{
 		// Look for the nearest enemy
-		Vec3 throwDirection{ camForward.x,1.0f,-(camForward.y ) };
+		Vec3 throwDirection{ camForward.x,1.0f,camForward.y  };
 
 		characterComp->Throw(throwDirection);
 	}
