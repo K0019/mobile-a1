@@ -33,6 +33,12 @@
 #include "Engine/LuaState.hpp"
 #include "Engine/LuaType.hpp"
 
+namespace luabridge {
+	struct Result;
+	template <class T>
+	Result push(lua_State* L, const T& t);
+}
+
 namespace LuaCpp {
 	/**
 	 * @brief Lua Context for execution
@@ -59,6 +65,8 @@ namespace LuaCpp {
 		}
 
 		void PushGlobalFunction(const char* funcName);
+		template <typename T>
+		void PushArgument(const T& arg);
 
 		void RunWithEnvironment(const LuaEnvironment &env);
 
@@ -68,6 +76,8 @@ namespace LuaCpp {
 
 	private:
 		std::unique_ptr<Engine::LuaState> state_ = nullptr;
+
+		int numArgs{};
 	};
 
 	class LuaContext {
@@ -511,6 +521,14 @@ namespace LuaCpp {
 
 		void registerHooks(LuaCpp::Engine::LuaState &L);
 	};
+
+	template<typename T>
+	void StateProxy::PushArgument(const T& arg)
+	{
+		if (!luabridge::push(GetState(), arg))
+			CONSOLE_LOG(LEVEL_ERROR) << "Failed to push to Lua stack!";
+		++numArgs;
+	}
 }
 
 /**

@@ -165,7 +165,8 @@ void StateProxy::RunWithEnvironment(const LuaEnvironment &env) {
 	for(const auto &var : env) {
 		((std::shared_ptr<LuaType>) var.second)->PushGlobal(*state_, var.first);
 	}
-	int res = lua_pcall(*state_, 0, LUA_MULTRET, 0);
+	int res = lua_pcall(*state_, numArgs, LUA_MULTRET, 0);
+	numArgs = 0; // Arguments are popped from the stack automatically
 	if (res != LUA_OK ) {
 		state_->PrintStack(std::cout);
 		throw std::runtime_error(lua_tostring(*state_,1));

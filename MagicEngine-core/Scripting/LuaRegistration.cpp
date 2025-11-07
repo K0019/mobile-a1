@@ -21,14 +21,19 @@ All rights reserved.
 #include "LuaRegistration.h"
 #include <lua.hpp>
 #include <luabridge3/LuaBridge/LuaBridge.h>
+#include "Components/NameComponent.h"
 
-void TestFunction()
+void TestFunction(ecs::EntityHandle entity)
 {
-	std::cout << "HELLO FROM LUA!";
+	std::cout << "HELLO FROM LUA! by " << entity->GetComp<NameComponent>()->GetName();
 }
 
 void RegisterCppStuffToLua(luabridge::Namespace baseTable)
 {
 	baseTable
+		// ----- CLASSES -----
+		.beginClass<ecs::Entity>("Entity").endClass() // apparently this works yay, with this we can pass ecs::EntityHandle as is
+
+		// ----- GLOBAL FUNCTIONS -----
 		.addFunction("TestFunction", TestFunction);
 }

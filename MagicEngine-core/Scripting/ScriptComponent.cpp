@@ -27,8 +27,8 @@ All content � 2024 DigiPen Institute of Technology Singapore.
 All rights reserved.
 */
 /******************************************************************************/
-#ifdef GLFW
 #include "Scripting/ScriptComponent.h"
+#include <luabridge3/LuaBridge/LuaBridge.h>
 #include "Editor/Containers/GUICollection.h"
 #include "Utilities/ScriptingUtil.h"
 
@@ -125,8 +125,9 @@ void ScriptUpdateSystem::PostRun()
 
 void ScriptUpdateSystem::UpdateScriptComp(ScriptComponent& comp)
 {
-	comp.ForEachAttachedScript([](LuaScript& script) -> void {
+	comp.ForEachAttachedScript([entity = ecs::GetEntity(&comp)](LuaScript& script) -> void {
 		script.code.PushGlobalFunction(ScriptComponent::funcName_update);
+		script.code.PushArgument(entity);
 		ST<LuaScripting>::Get()->RunScript(script);
 		script.code.Pop();
 	});
@@ -293,4 +294,3 @@ void ScriptPreAwakeSystem::PreAwakeScriptComp(ScriptComponent& comp)
 //}
 //
 //#pragma endregion // Scripting
-#endif
