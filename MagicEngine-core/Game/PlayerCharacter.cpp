@@ -70,9 +70,9 @@ void PlayerMovementComponentSystem::UpdatePlayerMovementComponent(PlayerMovement
 
 	ecs::CompHandle< GameCameraControllerComponent> camComp = comp.cameraReference->GetComp< GameCameraControllerComponent>();
 
-	float yawRad = -math::ToRadians(camComp->cameraYaw-90.0f);
-	Vec2 camForward = Vec2{ cos(yawRad),-sin(yawRad) };
-	Vec2 camRight = Vec2{ -sin(yawRad),cos(yawRad) };
+	float yawRad = math::ToRadians(camComp->cameraYaw-90.0f);
+	Vec2 camForward = Vec2{ cos(yawRad),sin(yawRad) };
+	Vec2 camRight = Vec2{ sin(yawRad),-cos(yawRad) };
 
 	if (inputInstance->GetIsDown(KEY::W))
 		movement = movement + camForward;
@@ -98,6 +98,10 @@ void PlayerMovementComponentSystem::UpdatePlayerMovementComponent(PlayerMovement
 			{
 				// Just in case, this shouldn't happen
 				if (itemComp.GetEntity() == nullptr)
+					continue;
+
+				// Can't pick up other held items
+				if (itemComp->isHeld == true)
 					continue;
 
 				// Distance check

@@ -362,6 +362,12 @@ public:
 	Vec2 GetMouseDelta() const;
 	Vec2 GetMousePos() const;
 
+	// Android/platform injection
+	void Platform_OnMouseMove(float x, float y);
+	void Platform_OnMouseDownLeft();
+	void Platform_OnMouseUpLeft();
+
+
 public:
 	// Frame management
 	void NewFrame();

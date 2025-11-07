@@ -68,6 +68,8 @@ Resource::ProcessedTexture ResourceFiletypeImporterKTX::ManualLoadTexture(const 
 	assert(VFS::GetExtension(filepath) == ".ktx2");
 
 	Resource::ProcessedTexture texture{};
+    texture.source = FilePathSource{ filepath };
+    texture.name = VFS::GetFilename(filepath);
     ktxTexture2* ktxTex = nullptr;
 
     std::vector<uint8_t> fileData;

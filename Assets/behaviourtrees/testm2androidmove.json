@@ -1,0 +1,13 @@
+{
+    "name": "testm2androidmove",
+    "nodes": [
+        {
+            "nodeType": "Sequence",
+            "nodeLevel": 0
+        },
+        {
+            "nodeType": "ForM2PresentationClick",
+            "nodeLevel": 1
+        }
+    ]
+}

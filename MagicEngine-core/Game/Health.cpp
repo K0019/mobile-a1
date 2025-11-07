@@ -32,7 +32,7 @@ All rights reserved.
 #include "Editor/Containers/GUICollection.h"
 #include "Engine/SceneManagement.h"
 
-HealthComponent::health_type cheatState = 0;
+HealthComponent::HealthType cheatState = 0;
 bool cheatActive = false; ///THis is so the healthbar colour wont keep updating
 
 HealthComponent::HealthComponent() :
@@ -41,7 +41,7 @@ HealthComponent::HealthComponent() :
 {
 }
 
-HealthComponent::health_type HealthComponent::GetCurrHealth() const
+HealthComponent::HealthType HealthComponent::GetCurrHealth() const
 {
 	return currHealth;
 }
@@ -51,21 +51,23 @@ bool HealthComponent::IsDead() const
 	return currHealth <= 0;
 }
 
-HealthComponent::health_type HealthComponent::GetMaxHealth() const
+HealthComponent::HealthType HealthComponent::GetMaxHealth() const
 {
 	return maxHealth;
 }
 
 
-void HealthComponent::AddHealth(health_type amount)
+void HealthComponent::AddHealth(HealthType amount)
 {
 	currHealth += amount;
 	if (currHealth > maxHealth)
 		currHealth = maxHealth;
 }
 
-void HealthComponent::TakeDamage(HealthComponent::health_type amount, Vec3 direction)
+void HealthComponent::TakeDamage(HealthComponent::HealthType amount, Vec3 direction)
 {
+	if (currHealth > maxHealth)
+		currHealth = maxHealth;
 	currHealth -= amount;
 
 
@@ -75,7 +77,7 @@ void HealthComponent::TakeDamage(HealthComponent::health_type amount, Vec3 direc
 	{
 		if (auto playerComp{ ecs::GetEntity(this)->GetComp< PlayerMovementComponent >() })
 		{
-			ST<SceneManager>::Get()->ReloadScene(0);
+			ST<Scheduler>::Get()->Add([]() {ST<SceneManager>::Get()->ReloadScene(0); });
 		}
 		else
 		{
@@ -101,7 +103,7 @@ void HealthComponent::TakeDamage(HealthComponent::health_type amount, Vec3 direc
 	}
 }
 
-void HealthComponent::SetHealth(health_type newValue)
+void HealthComponent::SetHealth(HealthType newValue)
 {
 	if (newValue < 0)
 		newValue = 0;
@@ -112,7 +114,7 @@ void HealthComponent::SetHealth(health_type newValue)
 	currHealth = newValue;
 }
 
-void HealthComponent::SetMaxHealth(health_type newMaxAmount)
+void HealthComponent::SetMaxHealth(HealthType newMaxAmount)
 {
 	maxHealth = newMaxAmount;
 	if (currHealth > maxHealth)
@@ -127,5 +129,5 @@ float HealthComponent::GetHealthFraction()
 
 void HealthComponent::EditorDraw()
 {
-	ImGui::InputFloat("Max Health", &maxHealth);
+	gui::VarInput("Max Health", &maxHealth);
 }

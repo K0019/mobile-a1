@@ -64,7 +64,7 @@ class CameraPositioner_FirstPerson final : public CameraPositionerInterface
       {
         if (length(delta) > glm::epsilon<float>())
         {
-          yaw_ += mouseSpeed_ * delta.x;
+          yaw_ -= mouseSpeed_ * delta.x;
           pitch_ -= mouseSpeed_ * delta.y;
 
           constexpr float pitchLimit = glm::pi<float>() / 2.0f - 0.01f; // Approx +/- 89.9 degrees
@@ -213,7 +213,14 @@ class CameraPositioner_MoveTo final : public CameraPositionerInterface
 
       const vec3 a = radians(anglesCurrent_);
 
-      currentTransform_ = translate(glm::yawPitchRoll(a.y, a.x, a.z), -positionCurrent_);
+      vec3 angles = glm::radians(anglesCurrent_);
+      vec3 forward;
+      forward.x = cos(angles.x) * sin(angles.y);
+      forward.y = sin(angles.x);
+      forward.z = cos(angles.x) * cos(angles.y);
+
+      vec3 target = positionCurrent_ + forward;
+      currentTransform_ = glm::lookAt(positionCurrent_, target, vec3(0, 1, 0));
     }
 
     void setPosition(const vec3& p) { positionCurrent_ = p; }

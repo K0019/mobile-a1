@@ -59,13 +59,11 @@ void GameCameraControllerComponent::Deserialize(Deserializer& reader)
 
 void GameCameraControllerComponent::EditorDraw()
 {
-#ifdef IMGUI_ENABLED
 	cameraEntity.EditorDraw("Camera");
 	playerEntity.EditorDraw("Player");
 	gui::TextBoxReadOnly("Yaw", std::to_string(cameraYaw));
 	gui::TextBoxReadOnly("Pitch", std::to_string(cameraPitch));
 	gui::VarDrag("Sensitivity", &cameraSensitivity, 0.05f, 0.05f, 1.0f);
-#endif
 }
 
 GameCameraControllerSystem::GameCameraControllerSystem()
@@ -106,35 +104,20 @@ void GameCameraControllerSystem::UpdateGameCameraController(GameCameraController
 	}
 
 	prevPos = currPos;
-	// This was the best method I could find to rotate the camera with minimal pitch/yaw weirdness
-	// I'm not sure why specifically the cam rotation is misbehaving so much, other objects work just fine
-	ecs::GetEntity(&comp)->GetTransform().SetWorldRotation(Vec3{
-		-pitch * cos(math::ToRadians(comp.cameraYaw)),
-		comp.cameraYaw,
-		-pitch * sin(math::ToRadians(comp.cameraYaw))
-		});
+
+	// Set camera rotation
+	Vec3 eulerAngles{ pitch, yaw, 0.0f };
+	ecs::GetEntityTransform(&comp).SetWorldRotation(eulerAngles);
 
 	// If no player, we skip the tracking portion
 	if (!comp.playerEntity)
 		return;
-	
-	// Get the camera's position
-	float yawRad = math::ToRadians(yaw - 90.0f);
-	float pitchRad = math::ToRadians(pitch);
 
-	// NOTE THIS CAUSES SOME DESYNC AT HIGH PITCH ANGLES FOR SOME REASON
-	Vec3 calculatedCameraDirection = Vec3(
-		cos(pitchRad) * cos(yawRad),
-		sin(pitchRad),
-		cos(pitchRad) * sin(yawRad)
-	).Normalized();
+	// Create a look vector
+	Vec3 forward = comp.currentCameraDistance * math::EulerAnglesToVector(eulerAngles.x, eulerAngles.y);
 
-	//CONSOLE_LOG(LogLevel::LEVEL_DEBUG) << "P:" << pitch << " Y:" << yaw;
-	Vec3 offset = calculatedCameraDirection * comp.currentCameraDistance;
-
+	// Calculate camera position
 	Vec3 playerPos = comp.playerEntity->GetTransform().GetWorldPosition();
-	Vec3 cameraPos = playerPos - offset;
-
-	ecs::GetEntity(&comp)->GetTransform().SetWorldPosition(cameraPos);
-
+	Vec3 cameraPos = playerPos - forward;
+	ecs::GetEntityTransform(&comp).SetWorldPosition(cameraPos);
 }

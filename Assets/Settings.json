@@ -26,6 +26,20 @@
             "value": {
                 "actions": [
                     {
+                        "key": "ClickTest",
+                        "value": {
+                            "compositeType": 0,
+                            "bindings": [
+                                {
+                                    "hardwareLink": {
+                                        "deviceType": 0,
+                                        "keyIdentifier": 0
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    {
                         "key": "Jump",
                         "value": {
                             "compositeType": 0,

@@ -346,3 +346,16 @@ public:
     NODE_STATUS OnUpdate(ecs::EntityHandle entity) override;
 private:
 };
+
+namespace ForM2Use{
+    static bool hijackingForM2;
+    void SetHijackingM2(bool val);
+}
+class ForM2PresentationClick
+    : public BehaviorNode
+{
+public:
+    void OnInitialize() override;
+    NODE_STATUS OnUpdate(ecs::EntityHandle entity) override;
+private:
+};

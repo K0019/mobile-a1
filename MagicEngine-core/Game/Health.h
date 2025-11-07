@@ -37,7 +37,7 @@ class HealthComponent
 	, public  IEditorComponent<HealthComponent>
 {
 public:
-	using health_type = float;
+	using HealthType = float;
 
 	/*****************************************************************//*!
 	\brief
@@ -51,7 +51,7 @@ public:
 	\return
 		The current health.
 	*//******************************************************************/
-	health_type GetCurrHealth() const;
+	HealthType GetCurrHealth() const;
 
 	/*****************************************************************//*!
 	\brief
@@ -67,7 +67,7 @@ public:
 	\return
 		The max health.
 	*//******************************************************************/
-	health_type GetMaxHealth() const;
+	HealthType GetMaxHealth() const;
 
 	/*****************************************************************//*!
 	\brief
@@ -75,7 +75,7 @@ public:
 	\param amount
 		The amount of health to add.
 	*//******************************************************************/
-	void AddHealth(health_type amount);
+	void AddHealth(HealthType amount);
 
 	/*****************************************************************//*!
 	\brief
@@ -83,7 +83,7 @@ public:
 	\param amount
 		The amount of damage to deal.
 	*//******************************************************************/
-	void TakeDamage(health_type amount, Vec3 direction = Vec3{ 0 });
+	void TakeDamage(HealthType amount, Vec3 direction = Vec3{ 0 });
 
 	/*****************************************************************//*!
 	\brief
@@ -91,7 +91,7 @@ public:
 	\param newAmount
 		The amount of health to set to.
 	*//******************************************************************/
-	void SetHealth(health_type newValue);
+	void SetHealth(HealthType newValue);
 
 	/*****************************************************************//*!
 	\brief
@@ -99,7 +99,7 @@ public:
 	\param newMaxAmount
 		The new max health.
 	*//******************************************************************/
-	void SetMaxHealth(health_type newMaxAmount);
+	void SetMaxHealth(HealthType newMaxAmount);
 
 	float GetHealthFraction();
 private:
@@ -112,10 +112,10 @@ private:
 	virtual void EditorDraw() override;
 
 private:
-	health_type maxHealth;
-	health_type currHealth;
+	HealthType maxHealth;
+	HealthType currHealth;
 
-	static constexpr health_type defaultMax{ 100 };
+	static constexpr HealthType defaultMax{ 100 };
 	property_vtable()
 };
 property_begin(HealthComponent)
