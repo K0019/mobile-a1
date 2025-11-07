@@ -149,6 +149,7 @@ namespace compiler
         outTex.dwHeight = h;
         outTex.format = MapCMPFormat(options.texture.channelFormat);
         outTex.dwDataSize = w * h * 4;
+        outTex.dwPitch = w * 4;
         outTex.pData = pixels;
         return true;
     }
@@ -174,7 +175,7 @@ namespace compiler
         CMP_ERROR status = CMP_ConvertTexture(&src, &dst, &opts, CompressionCallback);
         if (status != CMP_OK)
         {
-            std::cout << "ERROR CODE: " << status << "\n";
+            std::cout << "TextureCompiler::CompressTexture ERROR CODE: " << status << "\n";
             return false;
         }
         return true;
@@ -220,6 +221,10 @@ namespace compiler
         {
             std::cout << "KTX2 Saving ERROR: " << writeResult << "\n";
             return false;
+        }
+        else
+        {
+            std::cout << "Successfully saved: " << outputPath << "\n";
         }
         return writeResult == KTX_SUCCESS;
     }
