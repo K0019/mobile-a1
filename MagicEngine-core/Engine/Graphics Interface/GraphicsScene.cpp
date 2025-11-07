@@ -81,7 +81,7 @@ void GraphicsScene::SetViewCamera(const Camera& camera)
     frameData.viewMatrix = camera.getViewMatrix();
 }
 
-void GraphicsScene::AddObject(const MeshHandle& meshHandle, const MaterialHandle& materialHandle, const Mat4& transform)
+void GraphicsScene::AddObject(const MeshHandle& meshHandle, const MaterialHandle& materialHandle, const Transform& transform, const Mat4& meshTransform)
 {
     // Validate handles
     if (!meshHandle.isValid() || !materialHandle.isValid())
@@ -96,7 +96,8 @@ void GraphicsScene::AddObject(const MeshHandle& meshHandle, const MaterialHandle
     newObj.type = SceneObjectType::Mesh;
     newObj.mesh = meshHandle;
     newObj.material = materialHandle;
-    newObj.transform = transform;
+    newObj.transform = transform.GetWorldMat() * meshTransform;
+    newObj.maxScale = glm::compMax(glm::abs(static_cast<glm::vec3>(transform.GetWorldScale())));
 }
 
 void GraphicsScene::AddLight(const SceneLight& sceneLight)

@@ -58,5 +58,5 @@ void RenderSystem::ProcessComp(RenderComponent& comp)
         return;
 
     for (size_t i{}; i < mesh->handles.size(); ++i)
-        ST<GraphicsScene>::Get()->AddObject(mesh->handles[i], material->handle, ecs::GetEntityTransform(&comp).GetWorldMat() * mesh->transforms[i]);
+        ST<GraphicsScene>::Get()->AddObject(mesh->handles[i], material->handle, ecs::GetEntityTransform(&comp), mesh->transforms[i]);
 }
