@@ -70,9 +70,9 @@ void PlayerMovementComponentSystem::UpdatePlayerMovementComponent(PlayerMovement
 
 	ecs::CompHandle< GameCameraControllerComponent> camComp = comp.cameraReference->GetComp< GameCameraControllerComponent>();
 
-	float yawRad = math::ToRadians(camComp->cameraYaw-90.0f);
+	float yawRad = math::ToRadians(-camComp->cameraYaw+90.0f);
 	Vec2 camForward = Vec2{ cos(yawRad),sin(yawRad) };
-	Vec2 camRight = Vec2{ sin(yawRad),-cos(yawRad) };
+	Vec2 camRight = Vec2{ -sin(yawRad),cos(yawRad) };
 
 	if (inputInstance->GetIsDown(KEY::W))
 		movement = movement + camForward;
@@ -125,7 +125,7 @@ void PlayerMovementComponentSystem::UpdatePlayerMovementComponent(PlayerMovement
 	if (inputInstance->GetValue(INPUT_READ_TYPE::CURRENT, KEY::B))
 	{
 		// Look for the nearest enemy
-		Vec3 throwDirection{ camForward.x,1.0f,-(camForward.y ) };
+		Vec3 throwDirection{ camForward.x,1.0f,camForward.y  };
 
 		characterComp->Throw(throwDirection);
 	}
@@ -135,4 +135,7 @@ void PlayerMovementComponentSystem::UpdatePlayerMovementComponent(PlayerMovement
 		characterComp->Attack();
 
 	characterComp->SetMovementVector(movement);
+
+	if (inputInstance->GetIsDown(KEY::LSHIFT))
+		characterComp->Dodge(movement);
 }

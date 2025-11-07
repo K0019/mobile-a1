@@ -36,7 +36,7 @@ NODE_STATUS L_AttackPlayer::OnUpdate(ecs::EntityHandle entity)
     // calculate rotation to face player
     if (distanceToPlayer > 0.0f)
     {
-        characterComp->RotateTowards(Vec2{ toPlayer.x, -toPlayer.z });
+        characterComp->RotateTowards(Vec2{ toPlayer.x, toPlayer.z });
         if (distanceToPlayer > 3.0f)
             return NODE_STATUS::FAILURE;
     }
