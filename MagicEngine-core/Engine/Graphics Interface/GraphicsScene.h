@@ -53,5 +53,6 @@ private:
 	FrameData frameData;
 
 	uint64_t gridHandle;
+	uint64_t im3dHandle;
 };
 

@@ -19,14 +19,19 @@ All rights reserved.
 /******************************************************************************/
 
 #include "Physics/JoltPhysics.h"
+#include "im3d.h"
 #include "Physics/Physics.h"
 #include "Utilities/GameTime.h"
+
+#include "Graphics/CameraController.h"
+
+#define JPH_DEBUG_RENDERER
 
 namespace physics {
 	JoltPhysics::JoltPhysics()
 		: tempAllocator{ 10 * 1024 * 1024 }
 		, jobSystem{ JPH::cMaxPhysicsJobs, JPH::cMaxPhysicsBarriers, static_cast<int>(JPH::thread::hardware_concurrency()) - 1 }
-		, cMaxBodies{ 65536 } 
+		, cMaxBodies{ 65536 }
 		, cNumBodyMutexes{ 0 }
 		, cMaxBodyPairs{ 65536 }
 		, cMaxContactConstraints{ 10240 }
@@ -34,7 +39,7 @@ namespace physics {
 		, objectVsBroadphaseLayerFilter{}
 		, objectVsObjectLayerFilter{}
 		, physicsSystem{}
-		, bodyInterface{physicsSystem.GetBodyInterface()}
+		, bodyInterface{ physicsSystem.GetBodyInterface() }
 		, contactListener{}
 		, bodyManager{}
 	{
@@ -103,23 +108,23 @@ namespace physics {
 
 	JoltBodyComp::JoltBodyComp()
 		: bodyID{}
-		, motionType{JPH::EMotionType::Static}
-		, shapeType{ShapeType::EMPTY}
-		, collisionLayer{Layers::NON_COLLIDABLE}
+		, motionType{ JPH::EMotionType::Static }
+		, shapeType{ ShapeType::EMPTY }
+		, collisionLayer{ Layers::NON_COLLIDABLE }
 		, prevTrans{}
 		, prevQuat{}
-		, dof{JPH::EAllowedDOFs::All}
+		, dof{ JPH::EAllowedDOFs::All }
 	{
 	}
-	
+
 	JoltBodyComp::JoltBodyComp(JPH::EMotionType motion, ShapeType shape, Layers layer)
 		: bodyID{}
-		, motionType{motion}
-		, shapeType{shape}
-		, collisionLayer{layer}
+		, motionType{ motion }
+		, shapeType{ shape }
+		, collisionLayer{ layer }
 		, prevTrans{}
 		, prevQuat{}
-		, dof{JPH::EAllowedDOFs::All}
+		, dof{ JPH::EAllowedDOFs::All }
 	{
 	}
 
@@ -132,7 +137,7 @@ namespace physics {
 			scaleSetting.mInnerShape = JPH::RefConst<JPH::EmptyShapeSettings>(new JPH::EmptyShapeSettings());
 			break;
 		case ShapeType::BOX:
-			scaleSetting.mInnerShape = JPH::RefConst<JPH::BoxShapeSettings>(new JPH::BoxShapeSettings(JPH::Vec3{1.f, 1.f, 1.f}));
+			scaleSetting.mInnerShape = JPH::RefConst<JPH::BoxShapeSettings>(new JPH::BoxShapeSettings(JPH::Vec3{ 1.f, 1.f, 1.f }));
 			break;
 		default:
 			CONSOLE_LOG(LEVEL_ERROR) << "Cannot recognize shape of the created body";
@@ -157,7 +162,7 @@ namespace physics {
 		bodySettings.mAllowDynamicOrKinematic = true;
 
 		bodyID = ST<JoltPhysics>::Get()->GetBodyInterface().CreateAndAddBody(bodySettings, JPH::EActivation::Activate);
-		
+
 		Vec3 scale{ transform.GetWorldScale() };
 		JPH::Vec3 scaleJolt{ scale.x, scale.y, scale.z };
 		if (JPH::ScaleHelpers::IsZeroScale(scaleJolt))
@@ -191,14 +196,14 @@ namespace physics {
 	JPH::EMotionType JoltBodyComp::GetMotionType() const
 	{
 		return motionType;
-	}	
-	
+	}
+
 	ShapeType JoltBodyComp::GetShapeType() const
 	{
 		return shapeType;
 	}
 
-	Layers JoltBodyComp::GetCollisionLayer() const 
+	Layers JoltBodyComp::GetCollisionLayer() const
 	{
 		return collisionLayer;
 	}
@@ -208,7 +213,7 @@ namespace physics {
 		JPH::RVec3 joltPos{ ST<JoltPhysics>::Get()->GetBodyInterface().GetPosition(bodyID) };
 		return Vec3{ joltPos.GetX(), joltPos.GetY(), joltPos.GetZ() };
 	}
-	
+
 	Vec3 JoltBodyComp::GetScale() const
 	{
 		JPH::Vec3 joltScale{};
@@ -250,7 +255,7 @@ namespace physics {
 			return;
 
 		JPH::Vec3 scale{};
-		const JPH::Shape* shapePtr{ ST<JoltPhysics>::Get()->GetBodyInterface().GetShape(bodyID)};
+		const JPH::Shape* shapePtr{ ST<JoltPhysics>::Get()->GetBodyInterface().GetShape(bodyID) };
 		if (shapePtr->GetSubType() == JPH::EShapeSubType::Scaled)
 		{
 			const JPH::ScaledShape* scaledShapePtr{ static_cast<const JPH::ScaledShape*>(shapePtr) };
@@ -314,12 +319,12 @@ namespace physics {
 
 		const JPH::ScaledShape* scaledShapePtr{ static_cast<const JPH::ScaledShape*>(shapePtr) };
 		const JPH::Shape* nonScaledShapePtr{ scaledShapePtr->GetInnerShape() };
-		if (!nonScaledShapePtr->IsValidScale(joltScale) || !scale.x || !scale.y ||!scale.z)
+		if (!nonScaledShapePtr->IsValidScale(joltScale) || !scale.x || !scale.y || !scale.z)
 		{
 			joltScale = JPH::ScaleHelpers::MakeNonZeroScale(joltScale);
 			ST<JoltPhysics>::Get()->GetBodyInterface().SetObjectLayer(bodyID, +Layers::NON_COLLIDABLE);
 		}
-		else 
+		else
 			ST<JoltPhysics>::Get()->GetBodyInterface().SetObjectLayer(bodyID, +collisionLayer);
 
 		JPH::Shape::ShapeResult result{ nonScaledShapePtr->ScaleShape(joltScale) };
@@ -397,7 +402,7 @@ namespace physics {
 		if (pos != prevTrans.pos)
 		{
 			if (auto colliderComp{ ecs::GetEntity(this)->GetComp<BoxColliderComp>() })
-				pos += colliderComp->GetCenter();			
+				pos += colliderComp->GetCenter();
 			SetPosition(pos);
 		}
 
@@ -434,9 +439,9 @@ namespace physics {
 
 		auto wrapDeg = [](float deg)
 			{
-				float temp{ std::fmod(deg + 180.f, 360.f) }; 
-				if (temp < 0.f) 
-					temp += 360.f; 
+				float temp{ std::fmod(deg + 180.f, 360.f) };
+				if (temp < 0.f)
+					temp += 360.f;
 				return temp - 180.0;
 			};
 
@@ -455,9 +460,9 @@ namespace physics {
 			rot.y = wrapDeg(180.f - rot.y);
 			rot.z = wrapDeg(zDiff < 1e-4 ? rot.z : rot.z + 180.f);
 		}
-		
+
 		ecs::GetEntityTransform(this).SetWorldRotation(rot);
-		
+
 		prevTrans = ecs::GetEntityTransform(this);
 	}
 
@@ -499,13 +504,27 @@ namespace physics {
 		JPH::Trace = TraceImpl;
 		JPH_IF_ENABLE_ASSERTS(JPH::AssertFailed = AssertFailedImpl;)
 
-		// Create a factory, this class is responsible for creating instances of classes based on their name or hash and is mainly used for deserialization of saved data.
-		// It is not directly used in this example but still required.
-		JPH::Factory::sInstance = new JPH::Factory();
+			// Create a factory, this class is responsible for creating instances of classes based on their name or hash and is mainly used for deserialization of saved data.
+			// It is not directly used in this example but still required.
+			JPH::Factory::sInstance = new JPH::Factory();
 
 		// Register all physics types with the factory and install their collision handlers with the CollisionDispatch class.
 		// If you have your own custom shape types you probably need to register their handlers with the CollisionDispatch before calling this function.
 		// If you implement your own default material (PhysicsMaterial::sDefault) make sure to initialize it before this function or else this function will create one for you.
 		JPH::RegisterTypes();
+	}
+
+	void JoltPhysics::DebugDraw()
+	{
+		Vec3 v = ST<CameraController>::Get()->GetCameraData().position;
+		joltDebugger.SetCameraPos(JPH::RVec3(v.x, v.y, v.z));
+
+#if defined(JPH_DEBUG_RENDERER)
+		JPH::BodyManager::DrawSettings settings;
+		settings.mDrawShape = true;
+		settings.mDrawShapeWireframe = true;
+
+		physicsSystem.DrawBodies(settings, &joltDebugger);
+#endif
 	}
 }

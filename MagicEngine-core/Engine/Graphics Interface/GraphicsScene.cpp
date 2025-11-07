@@ -21,6 +21,7 @@ All rights reserved.
 #include "Engine/Graphics Interface/GraphicsScene.h"
 #include "graphics/renderer.h"
 #include "graphics/features/grid_feature.h"
+#include "graphics/features/im3d_feature.h"
 #include "resource/resource_manager.h"
 #include "Editor/EditorCameraBridge.h"
 
@@ -38,6 +39,7 @@ GraphicsScene::~GraphicsScene()
 
     context.renderer->DestroyFeature(gridHandle);
     context.renderer->DestroyFeature(sceneFeatureHandle);
+	context.renderer->DestroyFeature(im3dHandle);
 }
 
 bool GraphicsScene::Init(Context inContext)
@@ -45,6 +47,7 @@ bool GraphicsScene::Init(Context inContext)
     context = inContext;
     sceneFeatureHandle = context.renderer->CreateFeature<SceneRenderFeature>();
     gridHandle = context.renderer->CreateFeature<GridFeature>();
+	im3dHandle = context.renderer->CreateFeature<Im3dFeature>();
     return true;
 }
 
