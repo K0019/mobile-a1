@@ -139,8 +139,8 @@ void BehaviorTree::EditorDraw()
 }
 
 BehaviorTreeComp::BehaviorTreeComp()
-    : behaviorTree{}
 {
+
 }
 
 void BehaviorTreeComp::OnAttached()
