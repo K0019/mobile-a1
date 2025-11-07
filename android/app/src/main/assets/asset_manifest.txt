@@ -6,7 +6,6 @@ behaviourtrees/enemybase.json
 behaviourtrees/movetest.json
 behaviourtrees/newtest.json
 behaviourtrees/testclick.json
-behaviourtrees/testm2androidmove.json
 behaviourtrees/testnestednewtree.json
 compiledassets/ambulance.mesh
 compiledassets/box.mesh

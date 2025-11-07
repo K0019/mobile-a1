@@ -1,13 +1,13 @@
 cmake_minimum_required(VERSION 3.18)
 #set(CMAKE_FIND_DEBUG_MODE ON)
-project("ryEngineAndroid")
+project("MagicEngineAndroid")
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 add_link_options(-Wl,-z,max-page-size=16384)
 
-message(STATUS "=== Android ryEngine Integration ===")
+message(STATUS "=== Android MagicEngine Integration ===")
 message(STATUS "Android ABI: ${ANDROID_ABI}")
 message(STATUS "Initial CMAKE_PREFIX_PATH: ${CMAKE_PREFIX_PATH}")
 
@@ -63,7 +63,7 @@ endif()
 list(REMOVE_AT CMAKE_PREFIX_PATH 0)
 list(PREPEND CMAKE_PREFIX_PATH "${ABI_SPECIFIC_PATH}")
 
-# ALSO set the explicit directory for ryEngine
+# ALSO set the explicit directory for MagicEngine
 set(magicEngine_DIR "${ABI_SPECIFIC_PATH}/share/MagicEngine")
 set(unofficial-spirv-reflect_DIR "${ABI_SPECIFIC_PATH}/share/unofficial-spirv-reflect")
 
@@ -155,6 +155,30 @@ target_include_directories(${CMAKE_PROJECT_NAME}
         ${ABI_SPECIFIC_PATH}/include/offset_allocator
         ${PROJECT_ROOT}/MagicEngine-core
 )
+
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    message(STATUS "Setting up Vulkan validation layers...")
+
+    set(VALIDATION_LAYER_DIR "${ANDROID_NDK}/sources/third_party/vulkan/src/build-android/jniLibs/${ANDROID_ABI}")
+    set(VALIDATION_LAYER_LIB "${VALIDATION_LAYER_DIR}/libVkLayer_khronos_validation.so")
+
+    if(EXISTS "${VALIDATION_LAYER_LIB}")
+        message(STATUS "  Found: ${VALIDATION_LAYER_LIB}")
+
+        add_library(VkLayer_khronos_validation SHARED IMPORTED)
+        set_target_properties(VkLayer_khronos_validation PROPERTIES
+                IMPORTED_LOCATION "${VALIDATION_LAYER_LIB}"
+        )
+
+        list(APPEND ANDROID_COMMON_LIBS VkLayer_khronos_validation)
+        set(ANDROID_COMMON_LIBS ${ANDROID_COMMON_LIBS} CACHE INTERNAL "Common Android libraries")
+
+        message(STATUS "  Validation layer configured ✓")
+    else()
+        message(WARNING "Validation layer not found!")
+        message(WARNING "  Searched: ${VALIDATION_LAYER_LIB}")
+    endif()
+endif()
 
 target_link_libraries(${CMAKE_PROJECT_NAME}
     PRIVATE
