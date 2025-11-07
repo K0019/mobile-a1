@@ -10,6 +10,8 @@ namespace Core {
 
 class AndroidInputSystem {
 public:
+    static constexpr int MAX_KEYS_OF_DESKTOP = 512;   // match desktop
+
     AndroidInputSystem() {
         m_touches.fill(TouchState{});
         m_keyStates.fill(false);
@@ -32,18 +34,18 @@ public:
     // Keyboard
     bool IsKeyPressed(Key key) const {
         int idx = static_cast<int>(key);
-        return idx >= 0 && idx < 256 && m_keyStates[idx];
+        return idx >= 0 && idx < MAX_KEYS_OF_DESKTOP && m_keyStates[idx];
     }
     
     bool IsKeyJustPressed(Key key) const {
         int idx = static_cast<int>(key);
-        if (idx < 0 || idx >= 256) return false;
+        if (idx < 0 || idx >= MAX_KEYS_OF_DESKTOP) return false;
         return m_keyStates[idx] && !m_prevKeyStates[idx];
     }
     
     bool IsKeyJustReleased(Key key) const {
         int idx = static_cast<int>(key);
-        if (idx < 0 || idx >= 256) return false;
+        if (idx < 0 || idx >= MAX_KEYS_OF_DESKTOP) return false;
         return !m_keyStates[idx] && m_prevKeyStates[idx];
     }
     
@@ -64,11 +66,10 @@ public:
                !m_pointerStates[index] && m_prevPointerStates[index];
     }
     
+
     glm::vec2 GetPointerPosition(int index = 0) const {
-        if (index == 0 && m_touches[0].active) {
-            return glm::vec2(m_touches[0].x, m_touches[0].y);
-        }
-        return glm::vec2(0.0f);
+        const int id = std::min(index, MAX_TOUCHES - 1);
+        return glm::vec2(m_touches[id].x, m_touches[id].y);
     }
     
     glm::vec2 GetPointerDelta(int index = 0) const {
@@ -99,6 +100,7 @@ public:
         return count;
     }
     
+
     // Android event handling
     int32_t HandleInputEvent(AInputEvent* event) {
         int32_t eventType = AInputEvent_getType(event);
@@ -125,8 +127,8 @@ private:
     static constexpr int MAX_POINTERS = 3;
     
     std::array<TouchState, MAX_TOUCHES> m_touches;
-    std::array<bool, 256> m_keyStates{};
-    std::array<bool, 256> m_prevKeyStates{};
+    std::array<bool, MAX_KEYS_OF_DESKTOP> m_keyStates{};
+    std::array<bool, MAX_KEYS_OF_DESKTOP> m_prevKeyStates{};
     std::array<bool, MAX_POINTERS> m_pointerStates{};
     std::array<bool, MAX_POINTERS> m_prevPointerStates{};
     
@@ -197,7 +199,7 @@ private:
         if (engineKey == Key::Unknown) return 0;
         
         int keyIndex = static_cast<int>(engineKey);
-        if (keyIndex < 0 || keyIndex >= 256) return 0;
+        if (keyIndex < 0 || keyIndex >= MAX_KEYS_OF_DESKTOP) return 0;
         
         m_keyStates[keyIndex] = (action == AKEY_EVENT_ACTION_DOWN);
         return 1;

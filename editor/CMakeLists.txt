@@ -77,5 +77,24 @@ if(NOT ANDROID)
     )
 endif()
 
+# --- Setting up Vulkan validation layers ---
+if(WIN32 AND NOT ANDROID)
+	set(PORTABLE_LAYERS_PATH "${CMAKE_SOURCE_DIR}/extern/vulkan-debug-layer")
+
+        if(EXISTS "${PORTABLE_LAYERS_PATH}/VkLayer_khronos_validation.json")
+
+            file(TO_NATIVE_PATH "${PORTABLE_LAYERS_PATH}" NATIVE_PORTABLE_LAYERS_PATH)
+
+            message(STATUS "Configuring portable Vulkan layers: ${NATIVE_PORTABLE_LAYERS_PATH}")
+
+            set_property(TARGET Editor PROPERTY VS_DEBUGGER_ENVIRONMENT
+
+                "VK_LAYER_PATH=${NATIVE_PORTABLE_LAYERS_PATH}\nVK_LOADER_DEBUG=all"
+
+            )
+
+endif()
+endif()
+
 engine_set_folder(Editor "Editor")
 engine_set_source_groups(Editor)

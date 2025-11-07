@@ -42,7 +42,7 @@ void SceneRenderFeature::UpdateScene(uint64_t renderFeatureID,
       meshData->bounds.x,
       meshData->bounds.y,
       meshData->bounds.z);
-    float radius = meshData->bounds.w;
+    float radius = meshData->bounds.w * obj.maxScale;
     auto worldCenter = vec3(obj.transform * vec4(center, 1.0f));
     params->objectBounds.emplace_back(
       worldCenter - vec3(radius),

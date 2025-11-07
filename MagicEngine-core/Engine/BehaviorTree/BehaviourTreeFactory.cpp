@@ -56,23 +56,99 @@ std::vector<std::string> BTFactory::RegisteredTypes() const
     return out;
 }
 
+//void BTFactory::SetAllFilePath()
+//{
+//    if (!VFS::FileExists(Filepaths::behaviourTreeSave))
+//        return;
+//
+//    std::vector<std::string> filesInDir = VFS::ListDirectory(Filepaths::behaviourTreeSave);
+//
+//    for (const auto& filename : filesInDir)
+//    {
+//        std::string stem = VFS::GetStem(filename);
+//
+//        if (stem.empty()) //equivalent of !is_regular_file
+//        {
+//            continue;
+//        }
+//        filePaths[stem] = filename;
+//    }
+//}
+
+static inline void trim_ascii_ws(std::string& s) {
+    auto ws = [](unsigned char c) { return c == ' ' || c == '\t' || c == '\r' || c == '\n' || c == '\f' || c == '\v'; };
+    size_t i = 0; while (i < s.size() && ws((unsigned char)s[i])) ++i; s.erase(0, i);
+    while (!s.empty() && ws((unsigned char)s.back())) s.pop_back();
+}
+
+static inline bool ends_with_json_ci_sanitized(const std::string& path) {
+    // get filename
+    size_t slash = path.find_last_of("/\\");
+    const std::string fname = (slash == std::string::npos) ? path : path.substr(slash + 1);
+
+    // last '.' must be after last slash
+    size_t dot = fname.find_last_of('.');
+    if (dot == std::string::npos || dot + 1 >= fname.size()) return false;
+
+    // sanitize extension: keep only letters/digits, lowercased
+    std::string ext;
+    for (size_t i = dot + 1; i < fname.size(); ++i) {
+        unsigned char c = (unsigned char)fname[i];
+        if (std::isalnum(c)) ext.push_back((char)std::tolower(c));
+    }
+    return ext == "json";
+}
+
 void BTFactory::SetAllFilePath()
 {
-    if (!VFS::FileExists(Filepaths::behaviourTreeSave))
-        return;
+    CONSOLE_LOG(LEVEL_DEBUG) << "RUNNING SetAllFilePath()";
+    filePaths.clear();
 
-    std::vector<std::string> filesInDir = VFS::ListDirectory(Filepaths::behaviourTreeSave);
+    const std::string dir = VFS::NormalizePath(Filepaths::behaviourTreeSave); // "behaviourtrees"
+    auto entries = VFS::ListDirectory(dir);
 
-    for (const auto& filename : filesInDir)
-    {
-        std::string stem = VFS::GetStem(filename);
+    CONSOLE_LOG(LEVEL_DEBUG) << "[BT] ListDirectory('" << dir << "') -> " << entries.size() << " entries";
+    for (auto& e : entries) CONSOLE_LOG(LEVEL_DEBUG) << "  [BT] entry: " << e;
+    if (entries.empty()) return;
 
-        if (stem.empty()) //equivalent of !is_regular_file
-        {
+    for (std::string nameOrPath : entries) {   // copy; we'll sanitize
+        trim_ascii_ws(nameOrPath);
+
+        // canonicalize under dir
+        const bool hasPrefix = nameOrPath.rfind(dir, 0) == 0;
+        std::string fullPath = hasPrefix ? VFS::NormalizePath(nameOrPath)
+            : VFS::JoinPath(dir, nameOrPath);
+        trim_ascii_ws(fullPath);
+
+        if (!ends_with_json_ci_sanitized(fullPath)) {
+            CONSOLE_LOG(LEVEL_DEBUG) << "[BT] skip (not .json after sanitize): " << fullPath;
+
             continue;
         }
-        filePaths[stem] = filename;
+
+        // derive stem from filename
+        size_t slash = fullPath.find_last_of("/\\");
+        std::string fname = (slash == std::string::npos) ? fullPath : fullPath.substr(slash + 1);
+        size_t dot = fname.find_last_of('.');
+        std::string stem = (dot == std::string::npos) ? fname : fname.substr(0, dot);
+        trim_ascii_ws(stem);
+        if (stem.empty()) {
+            CONSOLE_LOG(LEVEL_DEBUG) << "[BT] skip (empty stem): " << fullPath;
+            continue;
+        }
+
+        filePaths[stem] = fullPath;   // e.g. "testclick" -> "behaviourtrees/testclick.json"
+        CONSOLE_LOG(LEVEL_DEBUG) << "  [BT] mapped '" << stem << "' -> '" << fullPath << "'";
     }
+
+    CONSOLE_LOG(LEVEL_DEBUG) << "[BT] filePaths.size=" << filePaths.size();
+
+    // Optional: prove reads succeed once
+    // for (auto &kv : filePaths) {
+    //     std::string buf; bool ok = VFS::ReadFile(kv.second, buf);
+    //     CONSOLE_LOG(LEVEL_DEBUG) << "[BT] probe read " << kv.second
+    //                              << " ok=" << ok << " bytes=" << buf.size();
+    // }
 }
 
 const std::string& BTFactory::GetFilePath(const std::string& btName) const

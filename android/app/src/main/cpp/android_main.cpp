@@ -7,15 +7,20 @@
 #include <base/imgui_context.h>
 #include "VFS/VFS.h"
 #include "MagicEngine/Engine/Engine.h"
+#include "core/platform/android/ry_android_input_api.h"
 
-#define LOGI(...) __android_log_print(ANDROID_LOG_INFO, "ryEngine", __VA_ARGS__)
-#define LOGE(...) __android_log_print(ANDROID_LOG_ERROR, "ryEngine", __VA_ARGS__)
+#include <stdlib.h> // For using setenv to enable vulkan validation
+
+#define LOGI(...) __android_log_print(ANDROID_LOG_INFO, "MagicEngine", __VA_ARGS__)
+#define LOGE(...) __android_log_print(ANDROID_LOG_ERROR, "MagicEngine", __VA_ARGS__)
+
 
 class AndroidApp {
     MagicEngine engine;
 public:
     void Initialize(Context& context) {
         engine.Init(context);
+
     }
 
     void Update(Context& context, FrameData& frame)
@@ -51,7 +56,7 @@ static void HandleCmd(android_app* app, int32_t cmd) {
                 LOGI("Starting initialization sequence");
 
                 Core::Platform::Config config;
-                config.appName = "ryEngine App";
+                config.appName = "Game App";
                 config.enableValidation = false;
                 config.logToConsole = true;
                 config.logLevel = Trace;
@@ -143,7 +148,12 @@ static int32_t HandleInput(android_app* app, AInputEvent* event) {
     EngineContext* ctx = static_cast<EngineContext*>(app->userData);
     if (!ctx || !ctx->initialized) return 0;
 
-    return Core::Platform::Get().GetInput().HandleInputEvent(event);
+    int handled_ry = ry_handle_ainput_event(event);                         // <-- feed ry
+    int handled_core = Core::Platform::Get().GetInput().HandleInputEvent(event);
+    return (handled_ry || handled_core) ? 1 : 0;   // equivalent to (handled_ry | handled_core)
+
+    //return Core::Platform::Get().GetInput().HandleInputEvent(event);
+
 }
 
 void android_main(android_app* app) {
@@ -156,6 +166,7 @@ void android_main(android_app* app) {
         return;
     }
     LOGI("Thread attached to JVM");
+
     AAssetManager* assetManager = app->activity->assetManager;
     VFS::Initialize();
     VFS::MountAndroidDirectory("", assetManager);
@@ -185,8 +196,15 @@ void android_main(android_app* app) {
         }
 
         if (ctx.initialized && ctx.engine) {
+            //ry_fire_tap_if_any();
+            //ry_input_dispatch_frame_events();
+          //  ry_fire_tap_if_any();
+            ry_pump_touch_events();         // <-- replaces old tick + fire
+
             Core::Platform::Get().GetInput().Update();
 
+            //ry_tick_android_input();
+            //TK Testing this stuff for input
             if (!ctx.engine->ExecuteFrame()) {
                 LOGE("ExecuteFrame returned false!");
                 break;
@@ -203,4 +221,22 @@ void android_main(android_app* app) {
 
     Core::Platform::Get().Shutdown();
     LOGI("===== android_main exiting =====");
+}
+
+extern "C" JNIEXPORT void JNICALL
+Java_com_magicengine_kurorekishi_MainActivity_setVulkanLayerPath(
+        JNIEnv* env, jobject thiz, jstring layerPathJstr)
+{
+    // 1. Get the absolute path string from Java
+    const char* androidAbsolutePath = env->GetStringUTFChars(layerPathJstr, 0);
+
+    // 2. Set the *absolute* path to VK_LAYER_PATH
+    // This variable takes precedence over VK_ADD_LAYER_PATH
+    // and correctly points the Vulkan Loader to your copied JSON manifest.
+    setenv("VK_LAYER_PATH", androidAbsolutePath, 1);
+
+    __android_log_print(ANDROID_LOG_INFO, "MagicEngine", "VK_LAYER_PATH set to: %s", androidAbsolutePath);
+
+    // 3. Clean up
+    env->ReleaseStringUTFChars(layerPathJstr, androidAbsolutePath);
 }

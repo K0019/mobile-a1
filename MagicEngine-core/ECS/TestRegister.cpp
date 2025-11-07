@@ -9,6 +9,7 @@
 #include "EntityUID.h"
 #include "Engine/Audio.h"
 #include "Engine/BehaviorTree/BehaviourTree.h"
+#include "Engine/Platform/Android/AndroidInputManager.h"
 #include "Engine/EntityLayers.h"
 #include "Graphics/CameraComponent.h"
 #include "Graphics/LightComponent.h"
@@ -31,6 +32,7 @@ void RegisterShit()
 	IRegisteredComponent<EntityUIDComponent>::RegisterComponent();
 	IRegisteredComponent<AudioSourceComponent>::RegisterComponent();
 	IRegisteredComponent<BehaviorTreeComp>::RegisterComponent();
+	IRegisteredComponent<AndroidInputComp>::RegisterComponent();
 	IRegisteredComponent<EntityLayerComponent>::RegisterComponent();
 	IRegisteredComponent<ShakeComponent>::RegisterComponent();
 	IRegisteredComponent<CameraComponent>::RegisterComponent();

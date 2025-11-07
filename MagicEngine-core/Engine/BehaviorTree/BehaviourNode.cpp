@@ -27,6 +27,7 @@ All rights reserved.
 #include "Engine/BehaviorTree/BehaviourNode.h"
 #include "LeafMoveTowardsPlayer.h"
 #include "LeafLookForPlayer.h"
+#include "LeafAttackPlayer.h"
 #include "BehaviourTreeFactory.h"
 #include "Engine/Input.h"
 
@@ -40,9 +41,9 @@ BT_REGISTER_NODE(MoveUp, "MoveUp")
 BT_REGISTER_NODE(MoveDown, "MoveDown")
 BT_REGISTER_NODE(DetectClickTest, "DetectClickTest")
 
-
 BT_REGISTER_NODE(L_MoveTowardsPlayer, "L_MoveTowardsPlayer")
 BT_REGISTER_NODE(L_LookForPlayer, "L_LookForPlayer")
+BT_REGISTER_NODE(L_AttackPlayer, "L_AttackPlayer")
 
 
 BehaviorNode::BehaviorNode()
@@ -345,27 +346,33 @@ NODE_STATUS MoveDown::OnUpdate(ecs::EntityHandle entity)
 }
 
 void DetectClickTest::OnInitialize()
-{ }
+{ 
+}
 NODE_STATUS DetectClickTest::OnUpdate(ecs::EntityHandle entity)
 {
     //FOR DEMO
+    auto* km = ST<KeyboardMouseInput>::Get();
+    if (km->GetIsPressed(KEY::LSHIFT))   CONSOLE_LOG(LEVEL_DEBUG) << "LSHIFT pressed";
+    if (km->GetIsReleased(KEY::LSHIFT))  CONSOLE_LOG(LEVEL_DEBUG) << "LSHIFT released";
+
     static bool prev = false; // remembers last frame state
 
     auto input = ST<MagicInput>::Get();
     if (input)
     {
+        bool now = false;
         if (auto act = input->GetAction<bool>("ClickTest")) {
-            CONSOLE_LOG(LEVEL_DEBUG) << "Can click anywhere";
+            now = act->GetValue();   // true while the button is held
         }
 
+        if (now && !prev)            // toggle only on the rising edge
+            CONSOLE_LOG(LEVEL_DEBUG) << "Can click anywhere";
+
+        prev = now;
     }
-
-    //if (reverse == 0) {
-    //    entity->GetTransform().SetWorldPosition(entity->GetTransform().GetWorldPosition() + Vec3{ 0.f, -0.15f, 0.f });
-    //}
-    //else {
-    //    entity->GetTransform().SetWorldPosition(entity->GetTransform().GetWorldPosition() + Vec3{ 0.f, 0.15f, 0.f });
-
-    //}
     return NODE_STATUS::SUCCESS;
 }
+
+
+
+

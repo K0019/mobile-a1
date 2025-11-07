@@ -346,3 +346,4 @@ public:
     NODE_STATUS OnUpdate(ecs::EntityHandle entity) override;
 private:
 };
+

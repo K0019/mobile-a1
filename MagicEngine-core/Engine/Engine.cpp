@@ -66,6 +66,12 @@ All rights reserved.
 #include "Editor/Import.h"
 #include "math/camera.h"
 
+#include "Engine/Platform/Android/AndroidInputBridge.h"
+#include"BehaviorTree/BehaviourNode.h"
+
+
+
+
 #ifdef IMGUI_ENABLED
 namespace
 {
@@ -131,6 +137,7 @@ bool MagicEngine::IsShuttingDown() const
 	return ST<GraphicsMain>::Get()->GetIsPendingShutdown();
 }
 
+
 void MagicEngine::Init(Context& context)
 {
 	RegisterShit();
@@ -167,6 +174,7 @@ void MagicEngine::Init(Context& context)
 	//graphicsMain->SetCallback_DragDrop(import::DropCallback);
 
 	ST<GameSettings>::Get()->Apply(); // Apply the loaded settings here
+
 
 	ST<BTFactory>::Get()->SetAllFilePath();
 
@@ -213,16 +221,25 @@ void MagicEngine::Init(Context& context)
 	loadState("imgui.json");
 	editor::CreateGuiWindow<CustomViewport>(static_cast<unsigned int>(worldExtents.x), static_cast<unsigned int>(worldExtents.y));
 #endif
+
+
+#if defined(__ANDROID__)
+	AndroidInputBridge::Initialize();
+#endif
+
 }
 
 void MagicEngine::ExecuteFrame(FrameData& frameData)
 {
+
 	// Update tracking of framerate and frametime
 	GameTime::WaitUntilNextFrame();
 	ST<PerformanceProfiler>::Get()->StartFrame();
 
 	// Clear the events of the previous frame
 	ST<EventsQueue>::Get()->NewFrame();
+
+
 	
 	ST<MagicInput>::Get()->NewFrame();
 	//GamepadInput::PollInput();
@@ -338,6 +355,7 @@ void MagicEngine::ExecuteFrame(FrameData& frameData)
 	// TODO: Put this in some editor windows manager class. In fact, all of this imgui stuff needs to be put in that class or subclasses.
 	/*if (ST<KeyboardMouseInput>::Get()->GetIsPressed(KEY::GRAVE))
 		ST<Console>::Get()->SetIsOpen(!ST<Console>::Get()->GetIsOpen());*/
+
 #endif
 
 	if(ST<KeyboardMouseInput>::Get()->GetIsPressed(KEY::F11))
@@ -377,6 +395,12 @@ void MagicEngine::ExecuteFrame(FrameData& frameData)
 
 
 	ST<PerformanceProfiler>::Get()->EndFrame();
+
+#if defined(__ANDROID__)
+	// read State() anywhere you need during the frame
+	AndroidInputBridge::ClearEdges();   // once per frame after you've consumed it
+#endif
+
 }
 
 void MagicEngine::shutdown()

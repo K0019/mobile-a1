@@ -70,7 +70,7 @@ void PlayerMovementComponentSystem::UpdatePlayerMovementComponent(PlayerMovement
 
 	ecs::CompHandle< GameCameraControllerComponent> camComp = comp.cameraReference->GetComp< GameCameraControllerComponent>();
 
-	float yawRad = -math::ToRadians(camComp->cameraYaw-90.0f);
+	float yawRad = math::ToRadians(camComp->cameraYaw-90.0f);
 	Vec2 camForward = Vec2{ cos(yawRad),sin(yawRad) };
 	Vec2 camRight = Vec2{ sin(yawRad),-cos(yawRad) };
 
@@ -100,6 +100,10 @@ void PlayerMovementComponentSystem::UpdatePlayerMovementComponent(PlayerMovement
 				if (itemComp.GetEntity() == nullptr)
 					continue;
 
+				// Can't pick up other held items
+				if (itemComp->isHeld == true)
+					continue;
+
 				// Distance check
 				Vec3 direction = itemComp.GetEntity()->GetTransform().GetWorldPosition() - playerEntity->GetTransform().GetWorldPosition();
 				if (direction.LengthSqr() < closestDistance)
@@ -116,8 +120,15 @@ void PlayerMovementComponentSystem::UpdatePlayerMovementComponent(PlayerMovement
 			}
 		}
 	}
+
+	// Throw item
 	if (inputInstance->GetValue(INPUT_READ_TYPE::CURRENT, KEY::B))
-		characterComp->DropItem();
+	{
+		// Look for the nearest enemy
+		Vec3 throwDirection{ camForward.x,1.0f,-(camForward.y ) };
+
+		characterComp->Throw(throwDirection);
+	}
 
 	// Doesn't seem to be working again
 	if (inputInstance->GetIsPressed(KEY::M1))

@@ -3,6 +3,8 @@
 #include "core/platform/platform.h"
 #include "logging/log.h"
 #include "logging/profiler.h"
+#include "graphics/vulkan/vk_util.h"
+#include "interface.h"
 
 Renderer::Renderer() = default;
 
@@ -106,6 +108,13 @@ void Renderer::render(FrameData& frameData)
   {
     return;
   }
+
+  #if defined(__ANDROID__)
+  // Automatically apply pre-rotation to projection matrix for Android orientation handling
+  SurfaceTransform transform = m_vkContext->getSwapchainPreTransform();
+  mat4 preRotationMatrix = vk::getPreRotationMatrix(transform);
+  frameData.projMatrix = preRotationMatrix * frameData.projMatrix;
+  #endif
 
   // Update frame data
   frameData.frameNumber = static_cast<uint64_t>(m_framesRendered);

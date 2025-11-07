@@ -68,8 +68,8 @@ int WINAPI WinMain([[maybe_unused]] HINSTANCE hInstance, [[maybe_unused]] HINSTA
   Core::Platform::Config platformConfig{
     .displayWidth = 1920,
     .displayHeight = 1080,
-    .appName = "ryEngine",
-    .enableValidation = false,
+    .appName = "MagicEngine",
+    .enableValidation = true,
     .logFilename = "engine.log",
     .logToConsole = true,
     .logToFile = false,
@@ -80,6 +80,9 @@ int WINAPI WinMain([[maybe_unused]] HINSTANCE hInstance, [[maybe_unused]] HINSTA
     return 1;
   }
   {
+    // Inject runtime env variables for vulkan validation layers, if you need this when running the exe direct
+    _putenv_s("VK_ADD_LAYER_PATH", "vulkan");
+
     Engine<Application> engine;
     // Initialize engine and application
     engine.Initialize();

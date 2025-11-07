@@ -17,6 +17,24 @@ namespace math {
 		return x * x;
 	}
 
+	inline Mat4 EulerAnglesToRotationMatrix(const Vec3& angles)
+	{
+		return Mat4{ glm::yawPitchRoll(glm::radians(angles.y), glm::radians(angles.x), glm::radians(angles.z)) };
+	}
+
+	inline Vec3 EulerAnglesToVector(float pitch, float yaw)
+	{
+		pitch = glm::radians(pitch);
+		yaw = glm::radians(yaw);
+		float pitchCos{ std::cosf(pitch) }, pitchSin{ std::sinf(pitch) };
+		float yawCos{ std::cosf(yaw) }, yawSin{ std::sinf(yaw) };
+		return Vec3{
+			pitchCos * yawSin,
+			pitchSin,
+			pitchCos * yawCos
+		};
+	}
+
 	template<unsigned int p>
 	constexpr int PowInt(int x)
 	{
@@ -373,14 +391,11 @@ inline constexpr Mat4::Mat4(glm::mat4&& other)
 
 inline void Mat4::Set(const Vec3& position, const Vec3& scale, const Vec3& rotation)
 {
-	*this = glm::translate(Mat4::Identity(), position);
-	if (rotation.y) // yaw
-		*this = glm::rotate(*this, glm::radians(rotation.y), { 0.0f, 1.0f, 0.0f });
-	if (rotation.x) // pitch
-		*this = glm::rotate(*this, glm::radians(rotation.x), { 1.0f, 0.0f, 0.0f });
-	if (rotation.z) // roll
-		*this = glm::rotate(*this, glm::radians(rotation.z), { 0.0f, 0.0f, 1.0f });
-	*this = glm::scale(*this, scale);
+	*this = Mat4::Identity();
+	Mat4 matScale{ glm::scale(*this, scale) };
+	Mat4 matRotate{ glm::yawPitchRoll(glm::radians(rotation.y), glm::radians(rotation.x), glm::radians(rotation.z)) };
+	Mat4 matTranslate{ glm::translate(*this, position) };
+	*this = matTranslate * matRotate * matScale;
 }
 
 inline constexpr Mat4 Mat4::Identity()

@@ -27,38 +27,54 @@ All rights reserved.
 #include "Physics/Physics.h"
 #include "Engine/Input.h"
 #include "Editor/Containers/GUICollection.h"
+#include "Game/PlayerCharacter.h"
+#include "Game/EnemyCharacter.h"
 
 void GrabbableItemComponent::Attack(Vec3 origin, Vec3 direction)
 {
 	std::vector<physics::BoxColliderComp*> colliders;
-	physics::OverlapBox(colliders, origin, Vec3(1,1,1), direction);
+	physics::OverlapBox(colliders, origin, Vec3(2,1,2), direction);
 
 	for (auto collider : colliders)
 	{
 		ecs::EntityHandle hitEntity = ecs::GetEntity(collider);
 
+		// Can't hit self or owner
+		if (hitEntity == owner || hitEntity == ecs::GetEntity(this))
+			continue;
+
+		// Enemies can't hit each other
+		if (owner->GetComp<EnemyComponent>() && hitEntity->GetComp<EnemyComponent>())
+			continue;
+
 		if (ecs::CompHandle<HealthComponent> healthComp{ hitEntity->GetComp<HealthComponent>() })
 		{
-			// Just flat-out kill it for now
-			healthComp->TakeDamage(1000.0f);
+			// Deal damage to it
+			healthComp->TakeDamage(damage,direction);
 		}
 	}
 }
 
-GrabbableItemComponent::GrabbableItemComponent()
+GrabbableItemComponent::GrabbableItemComponent() :
+	damage{ 1.0f },
+	isHeld{ false },
+	owner(nullptr)
 {
 }
 
 void GrabbableItemComponent::Serialize(Serializer& writer) const
 {
+	writer.Serialize("damage",damage);
 }
 
 void GrabbableItemComponent::Deserialize(Deserializer& reader)
 {
+	reader.DeserializeVar("damage", &damage);
 }
 
 void GrabbableItemComponent::EditorDraw()
 {
+	gui::VarInput("Damage", &damage);
 }
 
 GrabbableItemComponentSystem::GrabbableItemComponentSystem()
