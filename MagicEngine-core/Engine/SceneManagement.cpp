@@ -283,12 +283,7 @@ void Scene::LoadFromFile()
 	{
 		ecs::EntityHandle entity{ ecs::CreateEntity() };
 
-		if (deserializer.Deserialize(entity))
-		{
-			// Register entity to this scene
-			ST<SceneManager>::Get()->SetEntitySceneIndex_NoUnparent(entity, index);
-		}
-		else
+		if (!deserializer.Deserialize(entity))
 		{
 			CONSOLE_LOG(LEVEL_ERROR) << "Failed to deserialize entity " << entityCounter << " in scene " << name;
 			ecs::DeleteEntity(entity);
@@ -428,7 +423,8 @@ int ScenePool::LoadScene(const std::string& path, bool setActiveScene)
 	// This creates an empty scene if it doesn't exist. If it already does, this will get the existing scene.
 	//const std::string sceneName{ path.stem().string() };
 	const std::string sceneName{ VFS::GetStem(path) };
-	int index{ CreateEmptyScene(sceneName, path, setActiveScene) };
+	int prevActiveSceneIndex{ GetActiveScene() ? GetActiveScene()->GetIndex() : -1 }; // Bug fix: Set the new scene as the active scene for now, to let the new entities register themselves to the correct scene without knowing its index
+	int index{ CreateEmptyScene(sceneName, path, true) };
 	if (index < 0)
 	{
 		CONSOLE_LOG(LEVEL_DEBUG) << "Loading the default scene. The previous debug message can be ignored.";
@@ -445,6 +441,9 @@ int ScenePool::LoadScene(const std::string& path, bool setActiveScene)
 
 	// Populate it with the entities loaded from the folder
 	scene->LoadFromFile();
+
+	if (!setActiveScene && prevActiveSceneIndex >= 0)
+		SetActiveScene(prevActiveSceneIndex);
 
 	return index;
 }
@@ -944,7 +943,7 @@ void SceneManager::ReloadAllScenes()
 void SceneManager::RegisterEntity(ecs::EntityHandle entity)
 {
 	// If the entity was cloned, a scene index component would already be initialized.
-	// Otherwise, initially register all entities to DefaultScene. SetEntitySceneIndex() will later set the entity to the appropriate scene.
+	// Otherwise, register all entities to the active scene.
 	ecs::CompHandle<SceneIndexComponent> sceneIndexComp{ entity->GetComp<SceneIndexComponent>() };
 	if (!sceneIndexComp)
 		sceneIndexComp = entity->AddCompNow(SceneIndexComponent{ 0 });
