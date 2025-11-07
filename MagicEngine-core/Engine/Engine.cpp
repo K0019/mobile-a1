@@ -70,19 +70,7 @@ All rights reserved.
 #include"BehaviorTree/BehaviourNode.h"
 
 
-//static void OnTapFromRy(float x, float y, int /*id*/) {
-//	CONSOLE_LOG(LEVEL_INFO) << "HEHEHE123 finally ok again idk y it wasnt ok but ok [AndroidInput] Tap @ (" << x << ", " << y << ")";
-//	// If/when you want: inject into your input system here
-//	// MagicInjectPointer(kUp, x, y, 0);  // or call your public mouse API
-//	auto* km = ST<KeyboardMouseInput>::Get();
-//	if (km->GetIsPressed(KEY::LSHIFT))   CONSOLE_LOG(LEVEL_INFO) << "LSHIFT pressed in ONTAPFROMRY";
-//	if (km->GetIsReleased(KEY::LSHIFT))  CONSOLE_LOG(LEVEL_INFO) << "LSHIFT released ONTAPFROMRY";
-//
-//}
 
-//static void MagicPointerSink(int id, int action, float x, float y) {
-//	MagicInjectPointer(id, action, x, y);
-//}
 
 #ifdef IMGUI_ENABLED
 namespace
@@ -237,10 +225,6 @@ void MagicEngine::Init(Context& context)
 #endif
 
 
-//#if defined(__ANDROID__)
-//
-//	ry_set_tap_callback(&OnTapFromRy);
-//#endif
 #if defined(__ANDROID__)
 	AndroidInputBridge::Initialize();
 #endif
