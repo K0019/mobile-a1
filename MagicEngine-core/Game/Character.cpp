@@ -29,14 +29,29 @@ CharacterMovementComponent::CharacterMovementComponent()
 	, moveSpeed{ 0.0f }
 	, rotateSpeed{ 0.0f }
 	, stunTimePerHit{ 0.0f }
+	, groundFriction{ 0.0f }
+	, dodgeCooldown{ 0.0f }
+	, dodgeDuration{ 0.0f }
+	, dodgeSpeed{ 0.0f }
 	, heldItem{ nullptr }
 	, currentStunTime{ 0.0f }
+	, currentDodgeTime{ 0.0f }
 {
 }
 
 const Vec2 CharacterMovementComponent::GetMovementVector()
 {
 	return movementVector;
+}
+
+void CharacterMovementComponent::Dodge(Vec2 vector)
+{
+	// Don't allow dodging if still on cooldown
+	if (currentDodgeCooldown > 0.0f)
+		return;
+
+	SetMovementVector(vector);
+	currentDodgeTime = dodgeDuration;
 }
 
 void CharacterMovementComponent::SetMovementVector(Vec2 vector)
