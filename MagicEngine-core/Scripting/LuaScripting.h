@@ -19,6 +19,7 @@ All rights reserved.
 /******************************************************************************/
 #pragma once
 #include "LuaLibrary/LuaCpp.hpp"
+#include <luabridge3/LuaBridge/LuaBridge.h>
 #include "Utilities/Serializer.h"
 
 class LuaScripting;

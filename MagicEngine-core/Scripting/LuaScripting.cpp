@@ -22,7 +22,6 @@ All rights reserved.
 #include <VFS/VFS.h>
 
 #include "Scripting/LuaRegistration.h"
-#include <luabridge3/LuaBridge/LuaBridge.h>
 
 LuaScript::LuaScript(const std::string& scriptName, LuaCpp::StateProxy&& code)
 	: scriptName{ scriptName }

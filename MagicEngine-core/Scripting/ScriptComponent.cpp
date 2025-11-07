@@ -28,7 +28,6 @@ All rights reserved.
 */
 /******************************************************************************/
 #include "Scripting/ScriptComponent.h"
-#include <luabridge3/LuaBridge/LuaBridge.h>
 #include "Editor/Containers/GUICollection.h"
 #include "Utilities/ScriptingUtil.h"
 
@@ -54,6 +53,11 @@ LuaScriptWithMeta::LuaScriptWithMeta()
 	: LuaScript{}
 	, availableFunctions{ GetAvailableFunctionsMask() }
 {
+}
+
+const char* LuaScriptWithMeta::GetFunctionStr(SCRIPT_FUNCTION func)
+{
+	return scriptFunctionNames[+func];
 }
 
 int LuaScriptWithMeta::GetAvailableFunctionsMask()
@@ -121,82 +125,6 @@ void ScriptComponent::Deserialize(Deserializer& reader)
 			scripts.push_back(std::move(instantiatedScript.value()));
 	}
 	reader.PopAccess();
-}
-
-
-ScriptUpdateSystem::ScriptUpdateSystem()
-	: System_Internal{ &ScriptUpdateSystem::UpdateScriptComp }
-{
-}
-
-void ScriptUpdateSystem::PostRun()
-{
-	ecs::FlushChanges();
-}
-
-void ScriptUpdateSystem::UpdateScriptComp(ScriptComponent& comp)
-{
-	comp.ForEachAttachedScript([entity = ecs::GetEntity(&comp)](LuaScriptWithMeta& script) -> void {
-		if (!script.availableFunctions.TestMask(SCRIPT_FUNCTION::UPDATE))
-			return;
-		script.code.PushGlobalFunction(scriptFunctionNames[+SCRIPT_FUNCTION::UPDATE]);
-		script.code.PushArgument(entity);
-		ST<LuaScripting>::Get()->RunScript(script);
-		script.code.Pop();
-	});
-}
-
-ScriptAwakeSystem::ScriptAwakeSystem()
-	: System_Internal{ &ScriptAwakeSystem::AwakenScriptComp }
-
-{
-}
-
-void ScriptAwakeSystem::AwakenScriptComp(ScriptComponent& comp)
-{
-	//comp.InvokeAwake();
-}
-
-ScriptStartSystem::ScriptStartSystem()
-	: System_Internal{ &ScriptStartSystem::StartScriptComp }
-
-{
-}
-
-void ScriptStartSystem::PostRun()
-{
-	ecs::FlushChanges();
-}
-
-void ScriptStartSystem::StartScriptComp(ScriptComponent& comp)
-{
-	//comp.InvokeOnStart();
-}
-
-ScriptLateUpdateSystem::ScriptLateUpdateSystem()
-	: System_Internal{ &ScriptLateUpdateSystem::LateUpdateScriptComp }
-
-{
-}
-
-void ScriptLateUpdateSystem::PostRun()
-{
-	ecs::FlushChanges();
-}
-
-void ScriptLateUpdateSystem::LateUpdateScriptComp(ScriptComponent& comp)
-{
-	//comp.InvokeLateUpdate();
-}
-
-ScriptPreAwakeSystem::ScriptPreAwakeSystem()
-	: System_Internal{ &ScriptPreAwakeSystem::PreAwakeScriptComp }
-{
-}
-
-void ScriptPreAwakeSystem::PreAwakeScriptComp(ScriptComponent& comp)
-{
-	//comp.InvokeSetHandle();
 }
 
 
