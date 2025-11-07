@@ -38,6 +38,6 @@ NODE_STATUS L_MoveTowardsPlayer::OnUpdate([[maybe_unused]] ecs::EntityHandle ent
 
 
     // move towards player
-    characterComp->SetMovementVector(Vec2(dir.x, -dir.z));
+    characterComp->SetMovementVector(Vec2(dir.x, dir.z));
     return NODE_STATUS::RUNNING;
 }

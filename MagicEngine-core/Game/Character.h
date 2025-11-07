@@ -42,9 +42,14 @@ public:
 	float rotateSpeed;
 	float stunTimePerHit;
 	float groundFriction;
+	float dodgeCooldown;
+	float dodgeDuration;
+	float dodgeSpeed;
 
 	// Not serialized
 	float currentStunTime;
+	float currentDodgeTime;
+	float currentDodgeCooldown;
 
 	/*****************************************************************//*!
 	\brief
@@ -53,6 +58,7 @@ public:
 	CharacterMovementComponent();
 
 	const Vec2 GetMovementVector();
+	void Dodge(Vec2 vector);
 	void SetMovementVector(Vec2 vector);
 	void RotateTowards(Vec2 vector);
 
