@@ -197,7 +197,7 @@ void CharacterMovementComponentSystem::UpdateCharacterMovementComponent(Characte
 	}
 
 	// Apply input movement
-	Vec3 moveDir = Vec3{ movement.x * comp.moveSpeed,0.0f,-movement.y * comp.moveSpeed};
+	Vec3 moveDir = Vec3{ movement.x * comp.moveSpeed,0.0f,movement.y * comp.moveSpeed };
 	physicsComp->AddLinearVelocity(moveDir);
 
 	Vec3 currentRotation = characterTransform.GetWorldRotation();
@@ -208,7 +208,7 @@ void CharacterMovementComponentSystem::UpdateCharacterMovementComponent(Characte
 	// Handle rotation
 	if (movement.LengthSqr() > 0.0f)
 	{
-		float targetAngle = math::ToDegrees(atan2(movement.y, movement.x));
+		float targetAngle = math::ToDegrees(atan2(-movement.y, movement.x));
 		newAngle = math::MoveTowardsAngle(currentRotation.y, targetAngle, comp.rotateSpeed * GameTime::Dt());
 		rotation.y = newAngle;
 	}
