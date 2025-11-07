@@ -92,11 +92,11 @@ namespace editor {
 
 		if (valid)
 		{
-			std::filesystem::path assetDir = Filepaths::assets + "/Materials/";
+			std::filesystem::path assetDir = "compiledassets/materials/";
 			std::filesystem::create_directories(assetDir);
 			std::filesystem::path assetPath = assetDir / (std::string(materialName) + ".material");
 
-			Serializer writer(assetPath.string());
+			Serializer writer(VFS::ConvertVirtualToPhysical(assetPath.string()));
 			if (!writer.IsOpen())
 			{
 				ST<Popup>::Get()->Open("Failed to create material", "Could not open file for writing: " + assetPath.string());
@@ -123,7 +123,7 @@ namespace editor {
 			ST<Popup>::Get()->Open("Success!", "Material created at: " + assetPath.string());
 			CONSOLE_LOG(LEVEL_INFO) << "Material asset created: " << assetPath;
 
-			ResourceImporter::Import(VFS::ConvertPhysicalToVirtual(assetPath.string()));
+			ResourceImporter::Import(assetPath.string());
 		}
 		else
 		{
