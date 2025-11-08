@@ -29,14 +29,12 @@ class RenderComponent
 {
 public:
     size_t GetMeshHash() const;
-    //size_t GetMaterialHash() const;
     const std::vector<size_t>& GetMaterialsList() const;
 
     void EditorDraw() override;
 
 private:
     size_t meshHash;
-    //size_t materialHash;
     std::vector<size_t> materials;
 
 public:
@@ -45,7 +43,6 @@ public:
 property_begin(RenderComponent)
 {
     property_var(meshHash),
-    //property_var(materialHash),
     property_var(materials)
 }
 property_vend_h(RenderComponent)

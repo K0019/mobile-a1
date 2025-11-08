@@ -28,10 +28,6 @@ size_t RenderComponent::GetMeshHash() const
 {
     return meshHash;
 }
-//size_t RenderComponent::GetMaterialHash() const
-//{
-//    return materialHash;
-//}
 
 const std::vector<size_t>& RenderComponent::GetMaterialsList() const
 {
@@ -115,14 +111,6 @@ RenderSystem::RenderSystem()
 
 void RenderSystem::ProcessComp(RenderComponent& comp)
 {
-    //auto material{ MagicResourceManager::Materials().GetResource(comp.GetMaterialHash()) };
-    //if (!(mesh && material))
-    //    return;
-
-    //for (size_t i{}; i < mesh->handles.size(); ++i)
-    //    ST<GraphicsScene>::Get()->AddObject(mesh->handles[i], material->handle, ecs::GetEntityTransform(&comp).GetWorldMat() * mesh->transforms[i]);
-    //    ST<GraphicsScene>::Get()->AddObject(mesh->handles[i], material->handle, ecs::GetEntityTransform(&comp), mesh->transforms[i]);
-
     auto mesh{ MagicResourceManager::Meshes().GetResource(comp.GetMeshHash()) };
     if (!mesh)
         return;
