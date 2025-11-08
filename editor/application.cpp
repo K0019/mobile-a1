@@ -7,12 +7,12 @@ void Application::Initialize(Context& context)
     magicEngine.Init(context);
 }
 
-void Application::Update(Context& context, FrameData& frame)
+void Application::Update([[maybe_unused]] Context& context, FrameData& frame)
 {
     magicEngine.ExecuteFrame(frame);
 }
 
-void Application::Shutdown(Context& context)
+void Application::Shutdown([[maybe_unused]] Context& context)
 {
     magicEngine.shutdown();
 }

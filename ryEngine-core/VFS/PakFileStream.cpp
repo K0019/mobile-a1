@@ -6,12 +6,12 @@ PakFileStream::PakFileStream()
 
 }
 
-size_t PakFileStream::Read(void* buffer, size_t bytesToRead)
+size_t PakFileStream::Read([[maybe_unused]] void* buffer, [[maybe_unused]] size_t bytesToRead)
 {
     return 0;
 }
 
-void PakFileStream::Seek(int64_t offset, SeekOrigin origin)
+void PakFileStream::Seek([[maybe_unused]] int64_t offset, [[maybe_unused]] SeekOrigin origin)
 {
     return;
 }
@@ -31,7 +31,7 @@ bool PakFileStream::IsEOF() const
     return false;
 }
 
-size_t PakFileStream::Write(const void* buffer, size_t bytesToWrite)
+size_t PakFileStream::Write([[maybe_unused]] const void* buffer, [[maybe_unused]] size_t bytesToWrite)
 {
     // Pak is readonly
     return 0;

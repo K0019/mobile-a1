@@ -65,7 +65,7 @@ namespace editor {
 					try
 					{
 						double maxFPS{ std::stod(tokens[1]) };
-						GameTime::SetTargetFps(maxFPS);
+						GameTime::SetTargetFps(static_cast<float>(maxFPS));
 						CONSOLE_LOG(LEVEL_INFO) << "Maximum FPS set to " << maxFPS;
 					}
 					catch (const std::invalid_argument&)

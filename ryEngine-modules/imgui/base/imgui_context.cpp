@@ -63,7 +63,7 @@ namespace editor {
         if(fontPath) {
             size_t data_size = 0;
             data = ImFileLoadToMemory(fontPath, "rb", &data_size, 0);
-            io.Fonts->AddFontFromMemoryTTF(data, data_size ,cfg.SizePixels, &cfg);
+            io.Fonts->AddFontFromMemoryTTF(data, static_cast<int>(data_size), cfg.SizePixels, &cfg);
 
             // save memory by taking ownership of the font data and deleting it the moment this function returns.
             //font = io.Fonts->AddFontFromFileTTF(fontPath, cfg.SizePixels, &cfg);
