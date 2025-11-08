@@ -48,12 +48,14 @@ const char* const scriptFunctionNames[]{
 LuaScriptWithMeta::LuaScriptWithMeta(LuaScript&& script)
 	: LuaScript{ std::forward<LuaScript>(script) }
 	, availableFunctions{ GetAvailableFunctionsMask() }
+	, markedAsCalledFunctions{ 0 }
 {
 }
 
 LuaScriptWithMeta::LuaScriptWithMeta()
 	: LuaScript{}
 	, availableFunctions{ GetAvailableFunctionsMask() }
+	, markedAsCalledFunctions{ 0 }
 {
 }
 

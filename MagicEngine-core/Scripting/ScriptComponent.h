@@ -60,6 +60,7 @@ struct LuaScriptWithMeta : public LuaScript
 	LuaScriptWithMeta& operator=(LuaScriptWithMeta&&) = default;
 
 	MaskTemplate<SCRIPT_FUNCTION> availableFunctions;
+	MaskTemplate<SCRIPT_FUNCTION> markedAsCalledFunctions; // For systems that only want to run a function once
 	static const char* GetFunctionStr(SCRIPT_FUNCTION func);
 
 private:
@@ -102,7 +103,7 @@ property_vend_h(ScriptComponent)
 	Blueprint of an ecs system that runs a particular function in a
 	lua script, passing the entity handle to it.
 *//******************************************************************/
-template <typename FinalSystemType, SCRIPT_FUNCTION luaFuncToCall>
+template <typename FinalSystemType, SCRIPT_FUNCTION luaFuncToCall, bool callOnlyOnce = false>
 class ScriptSystemBase : public ecs::System<FinalSystemType, ScriptComponent>
 {
 public:
@@ -122,26 +123,33 @@ void ScriptComponent::ForEachAttachedScript(FuncType function)
 		function(script);
 }
 
-template<typename FinalSystemType, SCRIPT_FUNCTION luaFuncToCall>
-ScriptSystemBase<FinalSystemType, luaFuncToCall>::ScriptSystemBase()
+template<typename FinalSystemType, SCRIPT_FUNCTION luaFuncToCall, bool callOnlyOnce>
+ScriptSystemBase<FinalSystemType, luaFuncToCall, callOnlyOnce>::ScriptSystemBase()
 	: ecs::internal::System_Internal<FinalSystemType, ScriptComponent>{ &ScriptSystemBase::UpdateScriptComp }
 {
 }
 
-template<typename FinalSystemType, SCRIPT_FUNCTION luaFuncToCall>
-void ScriptSystemBase<FinalSystemType, luaFuncToCall>::PostRun()
+template<typename FinalSystemType, SCRIPT_FUNCTION luaFuncToCall, bool callOnlyOnce>
+void ScriptSystemBase<FinalSystemType, luaFuncToCall, callOnlyOnce>::PostRun()
 {
 	// Flushes ecs changes made by script components
 	ecs::FlushChanges();
 }
 
-template<typename FinalSystemType, SCRIPT_FUNCTION luaFuncToCall>
-void ScriptSystemBase<FinalSystemType, luaFuncToCall>::UpdateScriptComp(ScriptComponent& comp)
+template<typename FinalSystemType, SCRIPT_FUNCTION luaFuncToCall, bool callOnlyOnce>
+void ScriptSystemBase<FinalSystemType, luaFuncToCall, callOnlyOnce>::UpdateScriptComp(ScriptComponent& comp)
 {
 	// Regarding keyword mutable: LuaWrapperEntity needs to be non-const for the lua metatable to work
 	comp.ForEachAttachedScript([entity = LuaWrapperEntity{ ecs::GetEntity(&comp) }](LuaScriptWithMeta& script) mutable -> void {
 		if (!script.availableFunctions.TestMask(luaFuncToCall))
 			return;
+		if constexpr (callOnlyOnce)
+		{
+			if (script.markedAsCalledFunctions.TestMask(luaFuncToCall))
+				return;
+			script.markedAsCalledFunctions.SetMask(luaFuncToCall, true);
+		}
+
 		script.code.PushGlobalFunction(LuaScriptWithMeta::GetFunctionStr(luaFuncToCall));
 		script.code.PushArgument(&entity);
 		ST<LuaScripting>::Get()->RunScript(script);
@@ -149,8 +157,8 @@ void ScriptSystemBase<FinalSystemType, luaFuncToCall>::UpdateScriptComp(ScriptCo
 	});
 }
 
-class ScriptAwakeSystem : public ScriptSystemBase<ScriptAwakeSystem, SCRIPT_FUNCTION::AWAKE> {};
-class ScriptStartSystem : public ScriptSystemBase<ScriptStartSystem, SCRIPT_FUNCTION::START> {};
+class ScriptAwakeSystem : public ScriptSystemBase<ScriptAwakeSystem, SCRIPT_FUNCTION::AWAKE, true> {};
+class ScriptStartSystem : public ScriptSystemBase<ScriptStartSystem, SCRIPT_FUNCTION::START, true> {};
 class ScriptUpdateSystem : public ScriptSystemBase<ScriptUpdateSystem, SCRIPT_FUNCTION::UPDATE> {};
 class ScriptLateUpdateSystem : public ScriptSystemBase<ScriptLateUpdateSystem, SCRIPT_FUNCTION::LATE_UPDATE> {};
 
