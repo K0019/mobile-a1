@@ -24,8 +24,9 @@ All rights reserved.
 #include "LuaTypesECS.h"
 #include "Components/NameComponent.h"
 
+// This section is unfortunately required. This registers what functions are available in a component.
 SCRIPT_GENERATE_COMP_WRAPPER_BEGIN(NameComponent)
-	SCRIPT_GENERATE_PROPERTY_FUNCS(std::string, GetName, SetName)
+	SCRIPT_GENERATE_PROPERTY_FUNCS(std::string, GetName, SetName) // NameComponent::GetName() / SetName() exist, and they return/set std::string type.
 SCRIPT_GENERATE_COMP_WRAPPER_END()
 
 void Lua_Log(int level, std::string message)
@@ -62,10 +63,12 @@ void RegisterCppStuffToLua(luabridge::Namespace baseTable)
 		.endClass()
 		.beginClass<ecs::Entity>("Entity")
 			.addProperty("transform", [](ecs::EntityHandle entity) -> Transform* { return &entity->GetTransform(); })
-			SCRIPT_REGISTER_COMP_GETTER(NameComponent)
+			// This section allows lua to get components
+			SCRIPT_REGISTER_COMP_GETTER(NameComponent) // syntax e.g. - local nameComp = entity:GetNameComponent(); if nameComp:Exists() then ...;
 		.endClass()
+		// This section registers the component type to lua and allows lua to call functions on that component. Ensure the getter/setter names align with your GENERATE macro calls at the top of this file.
 		SCRIPT_REGISTER_COMP_BEGIN(NameComponent)
-			SCRIPT_REGISTER_COMP_PROPERTY(NameComponent, "name", GetName, SetName)
+			SCRIPT_REGISTER_COMP_PROPERTY(NameComponent, "name", GetName, SetName) // Calls NameComponent::GetName() / SetName(). syntax e.g. - print(nameComp.name); nameComp.name = "LuaObject";
 		SCRIPT_REGISTER_COMP_END()
 
 		// ----- GLOBAL FUNCTIONS -----
