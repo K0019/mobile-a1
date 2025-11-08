@@ -516,9 +516,10 @@ namespace compiler
             doc.AddMember("flags", materialSlot.flags, allocator);
 
             // Write to disk
-            std::string safeFilename = materialSlot.name;
-            std::replace(safeFilename.begin(), safeFilename.end(), ' ', '_');
-            std::filesystem::path outFilePath = materialOutputDir / (safeFilename + ".material");
+            //std::string safeFilename = materialSlot.name;
+            //std::replace(safeFilename.begin(), safeFilename.end(), ' ', '_');
+            //std::filesystem::path outFilePath = materialOutputDir / (safeFilename + ".material");
+            std::filesystem::path outFilePath = materialOutputDir / (materialSlot.name + ".material");
 
             std::ofstream outFile(outFilePath);
             rapidjson::OStreamWrapper osw(outFile);
