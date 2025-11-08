@@ -18,6 +18,7 @@ All content � 2024 DigiPen Institute of Technology Singapore.
 All rights reserved.
 */
 /******************************************************************************/
+#include "VFS/VFS.h"
 #include "Graphics/GraphicsECSMesh.h"
 #include "Engine/Graphics Interface/GraphicsScene.h"
 #include "Engine/Resources/ResourceManager.h"
@@ -27,14 +28,28 @@ size_t RenderComponent::GetMeshHash() const
 {
     return meshHash;
 }
-size_t RenderComponent::GetMaterialHash() const
+//size_t RenderComponent::GetMaterialHash() const
+//{
+//    return materialHash;
+//}
+
+const std::vector<size_t>& RenderComponent::GetMaterialsList() const
 {
-    return materialHash;
+    return materials;
 }
 
 void RenderComponent::EditorDraw()
 {
-    gui::TextBoxReadOnly("Mesh", std::to_string(meshHash));
+    auto& fpManager = ST<MagicResourceManager>::Get()->INTERNAL_GetFilepathsManager();
+    auto meshEntry = fpManager.GetFileEntry(meshHash);
+
+    std::string meshText = std::to_string(meshHash);
+    if (meshEntry)
+        meshText = VFS::GetStem(meshEntry->path);
+
+    gui::TextUnformatted("Mesh");
+    gui::SameLine();
+    gui::TextBoxReadOnly("##", meshText);
     gui::PayloadTarget<size_t>("MESH_HASH", [this](size_t hash) -> void {
         meshHash = hash;
 
@@ -49,26 +64,48 @@ void RenderComponent::EditorDraw()
     });
 
     auto mesh{ MagicResourceManager::Meshes().GetResource(meshHash) };
-    size_t meshCount = mesh->handles.size();
-    gui::TextFormatted("Materials List: %d", meshCount);
-    for (int i = 0; i < meshCount; i++)
+
+
+    if (mesh)
     {
-        if (i >= materials.size()) break;    //go reassign the mesh
+        size_t meshCount = mesh->handles.size();
+        std::string materialHeaderLabel = "Materials (" + std::to_string(meshCount) + ")";
+        if (ImGui::CollapsingHeader(materialHeaderLabel.c_str()))
+        {
+            for (int i = 0; i < meshCount; i++)
+            {
+                if (i >= materials.size()) break;    //go reassign the mesh
+                gui::SetID id(i);
 
-        gui::SetID id(i);
+                std::string materialText = std::to_string(materials[i]);
+                auto materialEntry = fpManager.GetFileEntry(materials[i]);
+                if(materialEntry)
+                    materialText = VFS::GetStem(materialEntry->path);
 
-        gui::TextBoxReadOnly("MaterialSlot", std::to_string(materials[i]));
-        gui::PayloadTarget<size_t>("MATERIAL_HASH", [&](size_t hash) -> void {
-            materials[i] = hash;
-        });
+                gui::TextUnformatted(std::string("Material") + std::to_string(i));
+                gui::SameLine();
+                gui::TextBoxReadOnly("##", materialText);
+                gui::PayloadTarget<size_t>("MATERIAL_HASH", [&](size_t hash) -> void {
+                    materials[i] = hash;
+                });
+                gui::SameLine();
+            
+                if (ImGui::Button(ICON_FA_REPEAT))
+                {
+                    materials[i] = mesh->defaultMaterialHashes[i];
+                }
+            }
+
+            if (gui::Button("Reset Materials"))
+            {
+                materials.resize(meshCount);
+                for (int i = 0; i < meshCount; i++)
+                {
+                    materials[i] = mesh->defaultMaterialHashes[i];
+                }
+            }
+        }
     }
-
-    //gui::TextBoxReadOnly("Materials List", "Materials List");
-
-    gui::PayloadTarget<size_t>("MATERIAL_HASH", [this](size_t hash) -> void {
-        materialHash = hash;
-    });
-
 }
 
 RenderSystem::RenderSystem()
@@ -78,8 +115,7 @@ RenderSystem::RenderSystem()
 
 void RenderSystem::ProcessComp(RenderComponent& comp)
 {
-    auto mesh{ MagicResourceManager::Meshes().GetResource(comp.GetMeshHash()) };
-    auto material{ MagicResourceManager::Materials().GetResource(comp.GetMaterialHash()) };
+    //auto material{ MagicResourceManager::Materials().GetResource(comp.GetMaterialHash()) };
     //if (!(mesh && material))
     //    return;
 
@@ -87,13 +123,27 @@ void RenderSystem::ProcessComp(RenderComponent& comp)
     //    ST<GraphicsScene>::Get()->AddObject(mesh->handles[i], material->handle, ecs::GetEntityTransform(&comp).GetWorldMat() * mesh->transforms[i]);
     //    ST<GraphicsScene>::Get()->AddObject(mesh->handles[i], material->handle, ecs::GetEntityTransform(&comp), mesh->transforms[i]);
 
+    auto mesh{ MagicResourceManager::Meshes().GetResource(comp.GetMeshHash()) };
     if (!mesh)
         return;
 
+    const auto& materialList = comp.GetMaterialsList();
+    size_t materialCount = materialList.size();
+
     for (size_t i{}; i < mesh->handles.size(); ++i)
     {
-        auto material{ MagicResourceManager::Materials().GetResource(mesh->defaultMaterialHashes[i]) };
+        size_t materialHashToUse = 0;
+        if (i < materialCount && materialList[i] != 0)
+        {
+            materialHashToUse = materialList[i];
+        }
+        else
+        {
+            // Use the default material from the mesh
+            materialHashToUse = mesh->defaultMaterialHashes[i];
+        }
 
+        auto material{ MagicResourceManager::Materials().GetResource(materialHashToUse) };
         if (!material)
             continue;
 
