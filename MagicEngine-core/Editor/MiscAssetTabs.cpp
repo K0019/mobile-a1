@@ -182,8 +182,7 @@ const char* ScriptTab::GetIdentifier() const
 
 void ScriptTab::Render()
 {
-#ifdef IMGUI_ENABLED
-    float THUMBNAIL_SIZE = ST<AssetBrowser>::Get()->THUMBNAIL_SIZE;
+    // Create new script text box & button
     newScriptName.Draw();
     {
         gui::Disabled buttonDisable{ *newScriptName.GetBufferPtr() == '\0' };
@@ -206,100 +205,40 @@ void ScriptTab::Render()
             }
         }
     }
+
+    // Reload scripts button
     gui::SameLine();
     if (gui::Button reloadButton{ "Reload" })
         ST<EventsQueue>::Get()->AddEventForThisFrame(Events::RequestReloadLuaScripts{});
     gui::Separator();
 
-    //std::string path = Filepaths::scriptsSave;
-    //std::vector<std::string> scriptFiles;
+    // Grid list
+    constexpr float THUMBNAIL_SIZE = AssetBrowser::THUMBNAIL_SIZE;
+    gui::GridHelper grid{ gui::GetAvailableContentRegion().x, THUMBNAIL_SIZE };
+    gui::SetStyleVar itemSpacing{ gui::FLAG_STYLE_VAR::ITEM_SPACING, gui::Vec2{ 5, 5 } };
+    gui::SetStyleVar framePadding{ gui::FLAG_STYLE_VAR::FRAME_PADDING, gui::Vec2{ 2, 2 } };
 
-    //if (ST<ScriptManager>::Get()->EnsureScriptsFolderExists())
-    //{
-    //    for (const auto& entry : std::filesystem::directory_iterator(path))
-    //    {
-    //        if (entry.is_regular_file() && entry.path().extension() == ".cs")
-    //        {
-    //            scriptFiles.push_back(entry.path().filename().string());
-    //        }
-    //    }
-    //}
-    //ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(5, 5));
+    int count{};
+    for (const auto& filename : VFS::ListDirectory(Filepaths::scriptsSave))
+    {
+        if (VFS::GetExtension(filename) != ".lua")
+            continue;
 
-    //// Define the number of columns you want
-    //float thumbnailSize = THUMBNAIL_SIZE * 2;
-    //float availableWidth = ImGui::GetContentRegionAvail().x;
-    //int columnsCount = static_cast<int>(availableWidth / thumbnailSize);  // Calculate number of columns
+        {
+            gui::SetID id{ count++ };
+            gui::Group group;
 
-    //for (size_t i = 0; i < scriptFiles.size(); ++i)
-    //{
-    //    const std::string& scriptname = scriptFiles[i];
-    //    if (!editor::MatchesFilter(scriptname))
-    //    {
-    //        continue;
-    //    }
-
-    //    ImGui::PushID(static_cast<int>(i));
-
-    //    ImGui::BeginGroup(); // Group to keep each button and label together
-
-    //    // Create the thumbnail (button)
-    //    if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceAllowNullID))
-    //    {
-    //        // Set the drag-and-drop payload (here, the file name)
-    //        std::string sent_script = scriptname;
-    //        ImGui::SetDragDropPayload("SCRIPT", sent_script.c_str(), (sent_script.size() + 1) * sizeof(char));
-    //        ImGui::Text(ICON_FA_CODE);  // Display the icon during dragging
-    //        ImGui::EndDragDropSource();
-    //    }
-
-    //    // Draw the icon button (thumbnail)
-    //    if (ImGui::Button(ICON_FA_CODE, ImVec2(thumbnailSize, thumbnailSize)))
-    //    {
-    //        // Single button click if needed
-    //    }
-
-    //    // Check for double-click on the item (icon)
-    //    if (ImGui::IsItemClicked(ImGuiMouseButton_Left) && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
-    //    {
-    //        // When double-clicked, load the script
-    //        ST<ScriptManager>::Get()->OpenScript(scriptname);
-    //    }
-
-    //    // Script Name Label (showing truncated if it's too long)
-    //    std::string displayName = scriptname;
-    //    float maxWidth = thumbnailSize;
-    //    ImVec2 textSize = ImGui::CalcTextSize(displayName.c_str());
-    //    if (textSize.x > maxWidth)
-    //    {
-    //        // Truncate text if it's too wide
-    //        while (textSize.x > maxWidth && displayName.length() > 3)
-    //        {
-    //            displayName = displayName.substr(0, displayName.length() - 4) + "...";
-    //            textSize = ImGui::CalcTextSize(displayName.c_str());
-    //        }
-    //    }
-
-    //    // Center the text label below the thumbnail
-    //    float textX = (thumbnailSize - textSize.x) * 0.5f;
-    //    ImGui::SetCursorPosX(ImGui::GetCursorPosX() + textX);
-    //    ImGui::TextUnformatted(displayName.c_str());
-
-    //    ImGui::EndGroup();
-
-    //    ImGui::PopID();
-
-    //    // Arrange items in columns
-    //    if ((static_cast<int>(i) + 1) % columnsCount != 0)
-    //    {
-    //        ImGui::SameLine(0.0f, ImGui::GetStyle().ItemSpacing.x);
-    //    }
-    //    else
-    //    {
-    //        ImGui::NewLine();
-    //    }
-    //}
-
-    //ImGui::PopStyleVar();
+            if (gui::Button button{ ICON_FA_CODE"##script", gui::Vec2{ THUMBNAIL_SIZE, THUMBNAIL_SIZE } })
+#ifdef GLFW
+                ShellExecute(0, 0, VFS::ConvertVirtualToPhysical(VFS::JoinPath(Filepaths::scriptsSave, filename)).c_str(), 0, 0, SW_SHOW);
+#else
+                (void*)0;
 #endif
+
+            // Name label
+            gui::ThumbnailLabel(VFS::GetStem(filename), THUMBNAIL_SIZE);
+        }
+
+        grid.NextItem();
+    }
 }
