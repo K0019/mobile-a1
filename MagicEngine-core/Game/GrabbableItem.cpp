@@ -51,6 +51,26 @@ void GrabbableItemComponent::Attack(Vec3 origin, Vec3 direction)
 		{
 			// Deal damage to it
 			healthComp->TakeDamage(damage,direction);
+
+			//damage taken tied to delusion for now
+			//if owner is enemy
+			if (owner->GetComp<EnemyComponent>())
+			{
+				//hit player lose delusion
+				if (ecs::CompHandle<DelusionComponent> delusionComp{ hitEntity->GetComp<DelusionComponent>() })
+				{
+					delusionComp->LoseDelusion(damage * 0.2f);
+				}
+			}
+			// if owner is player
+			else 
+			{
+				//owner player gain delusion
+				if (ecs::CompHandle<DelusionComponent> delusionComp{ owner->GetComp<DelusionComponent>() })
+				{
+					delusionComp->GainDelusion(damage * 0.2f);
+				}
+			}
 		}
 	}
 }
