@@ -36,6 +36,7 @@ public:
 private:
     size_t meshHash;
     size_t materialHash;
+    std::vector<size_t> materials;
 
 public:
     property_vtable()
@@ -43,7 +44,8 @@ public:
 property_begin(RenderComponent)
 {
     property_var(meshHash),
-    property_var(materialHash)
+    property_var(materialHash),
+    property_var(materials)
 }
 property_vend_h(RenderComponent)
 

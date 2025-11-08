@@ -37,12 +37,38 @@ void RenderComponent::EditorDraw()
     gui::TextBoxReadOnly("Mesh", std::to_string(meshHash));
     gui::PayloadTarget<size_t>("MESH_HASH", [this](size_t hash) -> void {
         meshHash = hash;
+
+        //now based on this new mesh, update the default materials
+        auto newMesh{ MagicResourceManager::Meshes().GetResource(meshHash) };
+        size_t meshCount = newMesh->handles.size();
+        materials.resize(meshCount);
+        for (int i = 0; i < meshCount; i++)
+        {
+            materials[i] = newMesh->defaultMaterialHashes[i];
+        }
     });
 
-    gui::TextBoxReadOnly("Material", std::to_string(materialHash));
+    auto mesh{ MagicResourceManager::Meshes().GetResource(meshHash) };
+    size_t meshCount = mesh->handles.size();
+    gui::TextFormatted("Materials List: %d", meshCount);
+    for (int i = 0; i < meshCount; i++)
+    {
+        if (i >= materials.size()) break;    //go reassign the mesh
+
+        gui::SetID id(i);
+
+        gui::TextBoxReadOnly("MaterialSlot", std::to_string(materials[i]));
+        gui::PayloadTarget<size_t>("MATERIAL_HASH", [&](size_t hash) -> void {
+            materials[i] = hash;
+        });
+    }
+
+    //gui::TextBoxReadOnly("Materials List", "Materials List");
+
     gui::PayloadTarget<size_t>("MATERIAL_HASH", [this](size_t hash) -> void {
         materialHash = hash;
     });
+
 }
 
 RenderSystem::RenderSystem()
@@ -54,9 +80,28 @@ void RenderSystem::ProcessComp(RenderComponent& comp)
 {
     auto mesh{ MagicResourceManager::Meshes().GetResource(comp.GetMeshHash()) };
     auto material{ MagicResourceManager::Materials().GetResource(comp.GetMaterialHash()) };
-    if (!(mesh && material))
+    //if (!(mesh && material))
+    //    return;
+
+    //for (size_t i{}; i < mesh->handles.size(); ++i)
+    //    ST<GraphicsScene>::Get()->AddObject(mesh->handles[i], material->handle, ecs::GetEntityTransform(&comp).GetWorldMat() * mesh->transforms[i]);
+    //    ST<GraphicsScene>::Get()->AddObject(mesh->handles[i], material->handle, ecs::GetEntityTransform(&comp), mesh->transforms[i]);
+
+    if (!mesh)
         return;
 
     for (size_t i{}; i < mesh->handles.size(); ++i)
-        ST<GraphicsScene>::Get()->AddObject(mesh->handles[i], material->handle, ecs::GetEntityTransform(&comp), mesh->transforms[i]);
+    {
+        auto material{ MagicResourceManager::Materials().GetResource(mesh->defaultMaterialHashes[i]) };
+
+        if (!material)
+            continue;
+
+        ST<GraphicsScene>::Get()->AddObject(
+            mesh->handles[i],
+            material->handle,
+            ecs::GetEntityTransform(&comp),
+            mesh->transforms[i]
+        );
+    }
 }

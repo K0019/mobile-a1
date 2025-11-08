@@ -56,20 +56,30 @@ struct MeshInfo
     uint32_t indexCount;
     uint32_t firstIndex;        // Offset into the index buffer
     uint32_t firstVertex;       // Offset into the vertex buffer
-    uint32_t materialNameIndex; // Index into the material name offset table
+    uint32_t materialNameIndex; // Offset into the material name offset table
 
     // Bounding volume for this individual mesh part
     vec4 meshBounds; // (x,y,z, radius)
 };
 #pragma pack(pop)
 
-
+namespace
+{
+    std::string to_lower(std::string& s)
+    {
+        std::transform(s.begin(), s.end(), s.begin(),
+            [](unsigned char c) { return std::tolower(c); });
+        return s;
+    }
+}
 
 namespace internal
 {
     bool ImportMeshAsset(
         const std::string& filepath, 
-        std::vector<MeshHandle>* outMeshHandles, std::vector<std::pair<uint32_t, Mat4>>* outMeshTransforms)
+        std::vector<MeshHandle>* outMeshHandles, 
+        std::vector<std::pair<uint32_t, Mat4>>* outMeshTransforms,
+        std::vector<size_t>* outMaterialHashes)
     {
         auto file = VFS::OpenFile(filepath, FileMode::Read);
         if (!file)
@@ -123,9 +133,11 @@ namespace internal
         {
             uint32_t offset = static_cast<uint32_t>(p - materialNamesBuffer.data());
             std::string name(p);
+
             if (name.empty()) break;
 
-            nameOffsetToMaterialIndex[offset] = static_cast<uint32_t>(nameOffsetToMaterialIndex.size() - 1);
+            nameOffsetToMaterialIndex[offset] = static_cast<uint32_t>(nameOffsetToMaterialIndex.size());
+
             p += name.length() + 1; // material names separated by null terminator
         }
 
@@ -139,6 +151,20 @@ namespace internal
 
             // Find the material index for this mesh
             mesh.materialIndex = nameOffsetToMaterialIndex[meshInfo.materialNameIndex];
+            std::string materialname = { materialNamesBuffer.data() + meshInfo.materialNameIndex };
+            to_lower(materialname);
+
+            std::string constructedPathToMaterial = "compiledassets/materials/" + materialname + ".material";
+            size_t materialHash { 0 };
+            const auto& fpManager = ST<MagicResourceManager>::Get()->INTERNAL_GetFilepathsManager();
+            auto materialEntry = fpManager.GetFileEntry(constructedPathToMaterial);
+            if (materialEntry)
+            {
+                //Assume only one associated resource, the material
+                materialHash = materialEntry->associatedResources[0].hashes[0];
+            }
+            outMaterialHashes->push_back(materialHash);
+
 
             // Get the vertice and indice data
             uint32_t vertexCount = 0;
@@ -200,7 +226,7 @@ namespace internal
     }
 
     void SetResourceHandlesMesh(const std::vector<AssociatedResourceHashes>& resourceHashes, 
-        const std::vector<MeshHandle>& meshHandles, const std::vector<std::pair<uint32_t, Mat4>> meshTransforms /*, const std::vector<MaterialHandle>& materialHandles*/)
+        const std::vector<MeshHandle>& meshHandles, const std::vector<std::pair<uint32_t, Mat4>> meshTransforms, const std::vector<size_t>& materialHashes)
     {
         auto& meshes{ ST<MagicResourceManager>::Get()->INTERNAL_GetMeshes() };
         const auto& meshHashes{ resourceHashes[0].hashes };
@@ -210,6 +236,8 @@ namespace internal
         mesh->transforms.resize(meshTransforms.size());
         for (const auto& [index, mat] : meshTransforms)
             mesh->transforms[index] = mat;
+        
+        mesh->defaultMaterialHashes = materialHashes;
     }
 
 }
@@ -220,15 +248,16 @@ bool ResourceFiletypeImporterMeshAsset::Import(const std::string& assetRelativeF
     // Load the meshes within the file
     std::vector<MeshHandle> meshHandles;
     std::vector<std::pair<uint32_t, Mat4>> meshTransforms;
+    std::vector<size_t> materialHashes;
 
-    if (!internal::ImportMeshAsset(assetRelativeFilepath, &meshHandles, &meshTransforms))
+    if (!internal::ImportMeshAsset(assetRelativeFilepath, &meshHandles, &meshTransforms, &materialHashes))
         return false;
 
     // Create the file entry and resource hash
     const auto* fileEntry{ GenerateFileEntryForResources<ResourceMesh>(assetRelativeFilepath, 1) };
 
     // Set the meshes to the resource
-    internal::SetResourceHandlesMesh(fileEntry->associatedResources, meshHandles, meshTransforms);
+    internal::SetResourceHandlesMesh(fileEntry->associatedResources, meshHandles, meshTransforms, materialHashes);
 
     return true;
 }

@@ -216,15 +216,15 @@ bool ResourceFiletypeImporterFBX::Import([[maybe_unused]] const std::string& ass
     // CompilationResult holds physical paths. Convert them back to virtual paths before
     // passing them to the ResourceImporter to comply with VFS
     // Delegate importing of the created files to their respective importers
-    for (const auto& path : result.createdMeshFiles)
-    {
-        ResourceImporter::Import(VFS::ConvertPhysicalToVirtual(path.string()));
-    }
     for (const auto& path : result.createdTextureFiles)
     {
         ResourceImporter::Import(VFS::ConvertPhysicalToVirtual(path.string()));
     }
     for (const auto& path : result.createdMaterialFiles)
+    {
+        ResourceImporter::Import(VFS::ConvertPhysicalToVirtual(path.string()));
+    }
+    for (const auto& path : result.createdMeshFiles)
     {
         ResourceImporter::Import(VFS::ConvertPhysicalToVirtual(path.string()));
     }
