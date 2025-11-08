@@ -28,9 +28,17 @@ SCRIPT_GENERATE_COMP_WRAPPER_BEGIN(NameComponent)
 	SCRIPT_GENERATE_PROPERTY_FUNCS(std::string, GetName, SetName)
 SCRIPT_GENERATE_COMP_WRAPPER_END()
 
-void TestFunction(LuaWrapperEntity entity)
+void Lua_Log(int level, std::string message)
 {
-	std::cout << "HELLO FROM LUA! by " << entity->GetComp<NameComponent>()->GetName();
+	switch (level)
+	{
+	case +LEVEL_DEBUG: case +LEVEL_INFO: case +LEVEL_WARNING: case +LEVEL_ERROR:
+		CONSOLE_LOG(static_cast<LogLevel>(level)) << message;
+		break;
+	default:
+		CONSOLE_LOG(LEVEL_INFO) << message;
+		break;
+	}
 }
 
 void RegisterCppStuffToLua(luabridge::Namespace baseTable)
@@ -45,11 +53,15 @@ void RegisterCppStuffToLua(luabridge::Namespace baseTable)
 		SCRIPT_REGISTER_COMP_BEGIN(NameComponent)
 			SCRIPT_REGISTER_COMP_PROPERTY(NameComponent, "name", GetName, SetName)
 		SCRIPT_REGISTER_COMP_END()
-		/*.beginClass<LuaWrapperComp_NameComponent>("NameComp")
-			.addFunction("exists", &LuaWrapperComp_NameComponent::Valid)
-			.addProperty("name", &LuaWrapperComp_NameComponent::GetName, LuaWrapperComp_NameComponent::SetName)
-		.endClass()*/
 
 		// ----- GLOBAL FUNCTIONS -----
-		.addFunction("TestFunction", TestFunction);
+		.addFunction("Log", Lua_Log)
+
+		// ----- GLOBAL VARIABLES -----
+		.beginNamespace("LogLevel")
+			.addVariable("debug", +LEVEL_DEBUG)
+			.addVariable("info", +LEVEL_INFO)
+			.addVariable("warning", +LEVEL_WARNING)
+			.addVariable("error", +LEVEL_ERROR)
+		.endNamespace();
 }
