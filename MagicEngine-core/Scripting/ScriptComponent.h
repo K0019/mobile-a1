@@ -29,6 +29,7 @@ All rights reserved.
 /******************************************************************************/
 #pragma once
 #include "Scripting/LuaScripting.h"
+#include "Scripting/LuaTypesECS.h"
 #include "ECS/IRegisteredComponent.h"
 #include "Editor/IEditorComponent.h"
 #include "Utilities/MaskTemplate.h"
@@ -137,11 +138,12 @@ void ScriptSystemBase<FinalSystemType, luaFuncToCall>::PostRun()
 template<typename FinalSystemType, SCRIPT_FUNCTION luaFuncToCall>
 void ScriptSystemBase<FinalSystemType, luaFuncToCall>::UpdateScriptComp(ScriptComponent& comp)
 {
-	comp.ForEachAttachedScript([entity = ecs::GetEntity(&comp)](LuaScriptWithMeta& script) -> void {
+	// Regarding keyword mutable: LuaWrapperEntity needs to be non-const for the lua metatable to work
+	comp.ForEachAttachedScript([entity = LuaWrapperEntity{ ecs::GetEntity(&comp) }](LuaScriptWithMeta& script) mutable -> void {
 		if (!script.availableFunctions.TestMask(luaFuncToCall))
 			return;
 		script.code.PushGlobalFunction(LuaScriptWithMeta::GetFunctionStr(luaFuncToCall));
-		script.code.PushArgument(entity);
+		script.code.PushArgument(&entity);
 		ST<LuaScripting>::Get()->RunScript(script);
 		script.code.Pop(); // Pop global function from the stack
 	});

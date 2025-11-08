@@ -21,9 +21,14 @@ All rights reserved.
 #include "LuaRegistration.h"
 #include <lua.hpp>
 #include <luabridge3/LuaBridge/LuaBridge.h>
+#include "LuaTypesECS.h"
 #include "Components/NameComponent.h"
 
-void TestFunction(ecs::EntityHandle entity)
+SCRIPT_GENERATE_COMP_WRAPPER_BEGIN(NameComponent)
+	SCRIPT_GENERATE_PROPERTY_FUNCS(std::string, GetName, SetName)
+SCRIPT_GENERATE_COMP_WRAPPER_END()
+
+void TestFunction(LuaWrapperEntity entity)
 {
 	std::cout << "HELLO FROM LUA! by " << entity->GetComp<NameComponent>()->GetName();
 }
@@ -34,7 +39,16 @@ void RegisterCppStuffToLua(luabridge::Namespace baseTable)
 
 	baseTable
 		// ----- CLASSES -----
-		.beginClass<ecs::Entity>("Entity").endClass() // apparently this works yay, with this we can pass ecs::EntityHandle as is
+		.beginClass<LuaWrapperEntity>("Entity")
+			SCRIPT_REGISTER_COMP_GETTER(NameComponent)
+		.endClass()
+		SCRIPT_REGISTER_COMP_BEGIN(NameComponent)
+			SCRIPT_REGISTER_COMP_PROPERTY(NameComponent, "name", GetName, SetName)
+		SCRIPT_REGISTER_COMP_END()
+		/*.beginClass<LuaWrapperComp_NameComponent>("NameComp")
+			.addFunction("exists", &LuaWrapperComp_NameComponent::Valid)
+			.addProperty("name", &LuaWrapperComp_NameComponent::GetName, LuaWrapperComp_NameComponent::SetName)
+		.endClass()*/
 
 		// ----- GLOBAL FUNCTIONS -----
 		.addFunction("TestFunction", TestFunction);
