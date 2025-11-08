@@ -4,7 +4,7 @@
 #include "Game/Character.h"
 #include "Game/Health.h"
 #include "Utilities/GameTime.h"
-#include "Math/utils_math.h"
+#include "math/utils_math.h"
 // Matthew here, I'm going to be performing the equivalent of sledgehammer surgery on this file, be prepared to rewrite all of it after M2
 
 void L_AttackPlayer::OnInitialize()
@@ -72,6 +72,8 @@ NODE_STATUS L_AttackPlayer::OnUpdate(ecs::EntityHandle entity)
             phase = AttackPhase::Idle;
             attackTimer = 0.0f;
         }
+        break;
+    default:
         break;
     }
 

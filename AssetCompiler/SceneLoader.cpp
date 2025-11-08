@@ -252,7 +252,7 @@ namespace compiler
 
 
     // ----- Mesh ------ //
-    std::vector<const aiMesh*> SceneLoader::collectMeshPointers(const aiScene* scene, const MeshOptions& options)
+    std::vector<const aiMesh*> SceneLoader::collectMeshPointers(const aiScene* scene, [[maybe_unused]] const MeshOptions& options)
     {
         if (!scene || !scene->mMeshes || scene->mNumMeshes == 0) return {};
 
@@ -468,7 +468,7 @@ namespace compiler
             // The first mesh is assigned to our primary node.
             primaryNode.meshIndex = node->mMeshes[0];
             outNodes.push_back(primaryNode);
-            currentNodeIndex = outNodes.size() - 1;
+            currentNodeIndex = static_cast<int32_t>(outNodes.size()) - 1;
 
             // If there are more meshes, create sibling nodes for them.
             for (uint32_t i = 1; i < node->mNumMeshes; ++i)
@@ -483,7 +483,7 @@ namespace compiler
             // If there are no meshes, we still add the node to preserve the hierarchy.
             // Its meshIndex will remain -1.
             outNodes.push_back(primaryNode);
-            currentNodeIndex = outNodes.size() - 1;
+            currentNodeIndex = static_cast<int32_t>(outNodes.size()) - 1;
         }
 
         // Recursively process child nodes

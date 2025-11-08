@@ -437,7 +437,7 @@ namespace physics {
 				float temp{ std::fmod(deg + 180.f, 360.f) }; 
 				if (temp < 0.f) 
 					temp += 360.f; 
-				return temp - 180.0;
+				return temp - 180.0f;
 			};
 
 		JPH::Quat quat{ GetRotation() };

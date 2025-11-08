@@ -348,7 +348,7 @@ NODE_STATUS MoveDown::OnUpdate(ecs::EntityHandle entity)
 void DetectClickTest::OnInitialize()
 { 
 }
-NODE_STATUS DetectClickTest::OnUpdate(ecs::EntityHandle entity)
+NODE_STATUS DetectClickTest::OnUpdate([[maybe_unused]] ecs::EntityHandle entity)
 {
     //FOR DEMO
     auto* km = ST<KeyboardMouseInput>::Get();

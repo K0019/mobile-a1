@@ -13,11 +13,11 @@ NODE_STATUS L_LookForPlayer::OnUpdate([[maybe_unused]] ecs::EntityHandle entity)
     if (!player)
         return NODE_STATUS::FAILURE;
 
-    Vec3 enemyPos = entity->GetTransform().GetWorldPosition();
-    Vec3 playerPos = player->GetTransform().GetWorldPosition();
+    //Vec3 enemyPos = entity->GetTransform().GetWorldPosition();
+    //Vec3 playerPos = player->GetTransform().GetWorldPosition();
 
-    float distance = (playerPos - enemyPos).Length();
-    const float detectionRange = 10.0f; //tentative
+    //float distance = (playerPos - enemyPos).Length();
+    //const float detectionRange = 10.0f; //tentative
 
     return NODE_STATUS::SUCCESS;
     //return (distance < detectionRange) ? NODE_STATUS::SUCCESS : NODE_STATUS::FAILURE;
