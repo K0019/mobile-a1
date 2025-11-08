@@ -84,7 +84,7 @@ void GameCameraControllerSystem::UpdateGameCameraController(GameCameraController
 	{
 		Vec2 mouseDelta = currPos - prevPos;
 
-		yaw += mouseDelta.x * comp.cameraSensitivity;
+		yaw -= mouseDelta.x * comp.cameraSensitivity;
 		pitch -= mouseDelta.y * comp.cameraSensitivity;
 
 		// Wrap yaw

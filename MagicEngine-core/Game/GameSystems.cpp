@@ -51,7 +51,7 @@ All rights reserved.
 #include "Engine/BehaviorTree/BehaviourTree.h"
 #include "Engine/BehaviorTree/LeafLookForPlayer.h"
 #include "Engine/BehaviorTree/LeafMoveTowardsPlayer.h"
-
+#include "Engine/Platform/Android/AndroidInputManager.h"
 #include "Demo.h"
 
 void GameStateBase::OnExit()
@@ -91,6 +91,8 @@ void GameState_Game::OnEnter()
 
     ecs::AddSystem(ECS_LAYER::PRE_PHYSICS_0, TrailRendererSystem{});
     ecs::AddSystem(ECS_LAYER::INPUT_0, CheatCodes{});
+    ecs::AddSystem(ECS_LAYER::INPUT_0, AndroidInputSystem{});
+
     ecs::AddSystem(ECS_LAYER::POST_PHYSICS_0, GameCameraControllerSystem{});
     ecs::AddSystem(ECS_LAYER::INPUT_0, PlayerMovementComponentSystem{});
     ecs::AddSystem(ECS_LAYER::PRE_PHYSICS_0, CharacterMovementComponentSystem{});

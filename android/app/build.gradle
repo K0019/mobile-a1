@@ -19,7 +19,7 @@ android {
 
         externalNativeBuild {
             cmake {
-                targets "ryEngineAndroid"
+                targets "MagicEngineAndroid"
                 cppFlags "-std=c++20"
                 arguments "-DCMAKE_PREFIX_PATH=${project.rootDir}/install"
             }

@@ -65,7 +65,7 @@ bool VFS::MountDirectory(const std::string& virtualPath, const std::string& phys
     return MountBackend(normalizedPath, std::move(directoryBackend));
 }
 
-bool VFS::MountArchive(const std::string& virtualPath, const std::string& physicalPath)
+bool VFS::MountArchive([[maybe_unused]] const std::string& virtualPath, [[maybe_unused]] const std::string& physicalPath)
 {
     //Implementation not ready
     return false;
@@ -352,6 +352,8 @@ std::string VFS::ConvertVirtualToPhysical(const std::string& path)
             return mp.backend->GetPhysicalPath(relativePath);
         }
     }
+
+    return path;
 }
 
 std::string VFS::ConvertPhysicalToVirtual(const std::string& path)
@@ -380,6 +382,8 @@ std::string VFS::ConvertPhysicalToVirtual(const std::string& path)
             return VFS::JoinPath(mp.virtualPath, relativePath);
         }
     }
+
+    return path;
 }
 
 

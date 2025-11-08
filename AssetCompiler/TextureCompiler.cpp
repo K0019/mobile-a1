@@ -90,7 +90,7 @@ namespace compiler
     }
 
     CMP_BOOL g_bAbortCompression = false;  // If set true current compression will abort
-    CMP_BOOL CompressionCallback(CMP_FLOAT fProgress, CMP_DWORD_PTR pUser1, CMP_DWORD_PTR pUser2)
+    CMP_BOOL CompressionCallback(CMP_FLOAT fProgress, [[maybe_unused]] CMP_DWORD_PTR pUser1, [[maybe_unused]] CMP_DWORD_PTR pUser2)
     {
         std::printf("\rCompression progress = %3.0f", fProgress);
         return g_bAbortCompression;
@@ -158,7 +158,7 @@ namespace compiler
         CMP_CompressOptions opts = {};
         opts.dwSize = sizeof(opts);
         opts.dwnumThreads = std::thread::hardware_concurrency();
-        opts.fquality = options.texture.quality; // normalized 0–1
+        opts.fquality = options.texture.quality; // normalized
         return opts;
     }
 

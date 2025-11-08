@@ -4,8 +4,12 @@
 
 #if defined(_WIN32) || defined(_WIN64)
     #define PLATFORM_WINDOWS 1
-    #define WIN32_LEAN_AND_MEAN
-    #define NOMINMAX
+    #ifndef WIN32_LEAN_AND_MEAN
+        #define WIN32_LEAN_AND_MEAN
+    #endif
+    #ifndef NOMINMAX
+        #define NOMINMAX
+    #endif
     #include <windows.h>
 #else
     #include <time.h>
@@ -82,7 +86,13 @@ uint64_t Time::GetUnixTimestamp() {
 void Time::GetLocalTime(int& year, int& month, int& day, 
                        int& hour, int& minute, int& second) {
     std::time_t now = std::time(nullptr);
+#ifdef PLATFORM_WINDOWS
+    std::tm timeStruct;
+    std::tm* local{ &timeStruct };
+    localtime_s(local, &now);
+#else
     std::tm* local = std::localtime(&now);
+#endif
     
     year = local->tm_year + 1900;
     month = local->tm_mon + 1;

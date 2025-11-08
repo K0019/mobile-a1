@@ -46,7 +46,7 @@ Inspector::Inspector()
 	: Window{ ICON_FA_MAGNIFYING_GLASS" Inspector", gui::Vec2{ 300, 400 }, gui::FLAG_WINDOW::ALWAYS_VERTICAL_SCROLL_BAR }
 {
 	// TEMPORARY
-	ST<EventsQueue>::Get()->AddEventHandlerFunc<Getters::EditorSelectedEntity>([](const Getters::EditorSelectedEntity& event) -> ecs::EntityHandle {
+	ST<EventsQueue>::Get()->AddEventHandlerFunc<Getters::EditorSelectedEntity>([](const Getters::EditorSelectedEntity&) -> ecs::EntityHandle {
 		return ST<Inspector>::Get()->GetSelectedEntity();
 	});
 }

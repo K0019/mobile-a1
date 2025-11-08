@@ -79,10 +79,7 @@ set(CMAKE_DEBUG_POSTFIX "d" CACHE STRING "Filename postfix for libraries under D
 set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 # Core dependencies (all platforms)
-# cmake_policy(PUSH) # silence deprecated problems
-# cmake_policy(SET CMP0167 OLD)
 find_package(Boost CONFIG REQUIRED)
-# cmake_policy(POP)
 find_package(rapidjson CONFIG REQUIRED)
 find_package(glm CONFIG REQUIRED)
 find_package(glslang CONFIG REQUIRED)
@@ -214,7 +211,9 @@ if(MSVC)
         /MP # Enable parallel builds
         # $<$<CONFIG:Release>:/O2 /GL> # Optimization level for Release
         # $<$<CONFIG:Debug>:/Zi> # Or /Zi for debug info format
+        /wd4828 # Illegal characters in current source character set
         /wd4819 # Unicode characters in non-unicode formatted source files
+        /wd4505 # Unreferenced function with internal linkage has been removed
         /wd4324 # Structure padding added due to explicit alignas() specifier
     )
 	string(APPEND CMAKE_EXE_LINKER_FLAGS_DEBUG " /ignore:4099 /ignore:4098")

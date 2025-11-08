@@ -67,7 +67,7 @@ bool DirectoryVFSImpl::RenameFile(const std::string& oldPath, const std::string&
     {
         std::filesystem::rename(m_RootPath / oldPath, m_RootPath / newPath);
     }
-    catch(const std::filesystem::filesystem_error& e)
+    catch(const std::filesystem::filesystem_error&)
     {
         return false;
     }

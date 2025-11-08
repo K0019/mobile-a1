@@ -69,7 +69,7 @@ void* Memory::Allocate(size_t size)
 #endif
 }
 
-void Memory::Deallocate(void* ptr, size_t alignment)
+void Memory::Deallocate(void* ptr, [[maybe_unused]] size_t alignment)
 {
   if (ptr == nullptr)
     return;
