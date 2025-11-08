@@ -19,28 +19,3 @@ All rights reserved.
 */
 /******************************************************************************/
 #include "LuaTypesECS.h"
-
-LuaWrapperEntity::LuaWrapperEntity(ecs::EntityHandle entity)
-	: entityRaw{ reinterpret_cast<size_t>(entity) }
-{
-}
-
-ecs::EntityHandle LuaWrapperEntity::operator->()
-{
-	return GetHandle();
-}
-
-LuaWrapperEntity::operator ecs::EntityHandle()
-{
-	return GetHandle();
-}
-
-Transform* LuaWrapperEntity::GetTransform() const
-{
-	return &GetHandle()->GetTransform();
-}
-
-inline ecs::EntityHandle LuaWrapperEntity::GetHandle() const
-{
-	return reinterpret_cast<ecs::EntityHandle>(entityRaw);
-}

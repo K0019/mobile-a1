@@ -140,7 +140,7 @@ template<typename FinalSystemType, SCRIPT_FUNCTION luaFuncToCall, bool callOnlyO
 void ScriptSystemBase<FinalSystemType, luaFuncToCall, callOnlyOnce>::UpdateScriptComp(ScriptComponent& comp)
 {
 	// Regarding keyword mutable: LuaWrapperEntity needs to be non-const for the lua metatable to work
-	comp.ForEachAttachedScript([entity = LuaWrapperEntity{ ecs::GetEntity(&comp) }](LuaScriptWithMeta& script) mutable -> void {
+	comp.ForEachAttachedScript([entity = ecs::GetEntity(&comp)](LuaScriptWithMeta& script) mutable -> void {
 		if (!script.availableFunctions.TestMask(luaFuncToCall))
 			return;
 		if constexpr (callOnlyOnce)
@@ -151,7 +151,7 @@ void ScriptSystemBase<FinalSystemType, luaFuncToCall, callOnlyOnce>::UpdateScrip
 		}
 
 		script.code.PushGlobalFunction(LuaScriptWithMeta::GetFunctionStr(luaFuncToCall));
-		script.code.PushArgument(&entity);
+		script.code.PushArgument(entity);
 		ST<LuaScripting>::Get()->RunScript(script);
 		script.code.Pop(); // Pop global function from the stack
 	});

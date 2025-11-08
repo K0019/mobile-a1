@@ -20,24 +20,8 @@ All rights reserved.
 #pragma once
 #include "ECS/ECS.h"
 
-class LuaWrapperEntity
-{
-public:
-	LuaWrapperEntity(ecs::EntityHandle entity);
-
-	ecs::EntityHandle operator->();
-	operator ecs::EntityHandle();
-
-	Transform* GetTransform() const;
-
-private:
-	inline ecs::EntityHandle GetHandle() const;
-
-	size_t entityRaw;
-};
-
 #define SCRIPT_REGISTER_COMP_GETTER(compType) \
-	.addFunction("Get"#compType, [](LuaWrapperEntity entity) -> LuaWrapperComp_##compType { return entity->GetComp<compType>(); })
+	.addFunction("Get"#compType, [](ecs::EntityHandle entity) -> LuaWrapperComp_##compType { return entity->GetComp<compType>(); })
 
 
 template <typename CompType>
