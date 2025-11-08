@@ -66,12 +66,12 @@ bool GraphicsWindowGeneric::GetIsWindowMinimized() const
 	return false;
 }
 
-bool GraphicsWindowGeneric::SetWindowIcon(const std::string& filepath)
+bool GraphicsWindowGeneric::SetWindowIcon([[maybe_unused]] const std::string& filepath)
 {
 	return false;
 }
 
-void GraphicsWindowGeneric::SetWindowResolution(int width, int height)
+void GraphicsWindowGeneric::SetWindowResolution([[maybe_unused]] int width, [[maybe_unused]] int height)
 {
 }
 

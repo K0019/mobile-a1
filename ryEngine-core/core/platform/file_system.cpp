@@ -122,7 +122,12 @@ std::string FileSystem::GetAbsolutePath(const char* path, FileLocation location)
 bool FileSystem::ReadFile(const char* path, FileLocation location, std::vector<uint8_t>& outData) {
     std::string fullPath = GetAbsolutePath(path, location);
     
+#ifdef PLATFORM_WINDOWS
+    FILE* file;
+    fopen_s(&file, fullPath.c_str(), "rb");
+#else
     FILE* file = fopen(fullPath.c_str(), "rb");
+#endif
     if (!file) {
         LOG_WARNING("Failed to open file for reading: {}", fullPath);
         return false;
@@ -189,8 +194,13 @@ bool FileSystem::WriteFile(const char* path, FileLocation location, const void* 
         std::string dir = fullPath.substr(0, lastSlash);
         CreateDirectoryRecursive(dir);
     }
-    
+
+#ifdef PLATFORM_WINDOWS
+    FILE* file;
+    fopen_s(&file, fullPath.c_str(), "wb");
+#else
     FILE* file = fopen(fullPath.c_str(), "wb");
+#endif
     if (!file) {
         LOG_WARNING("Failed to open file for writing: {}", fullPath);
         return false;
@@ -204,8 +214,13 @@ bool FileSystem::WriteFile(const char* path, FileLocation location, const void* 
 
 bool FileSystem::AppendFile(const char* path, FileLocation location, const void* data, size_t size) {
     std::string fullPath = GetAbsolutePath(path, location);
-    
+
+#ifdef PLATFORM_WINDOWS
+    FILE* file;
+    fopen_s(&file, fullPath.c_str(), "ab");
+#else
     FILE* file = fopen(fullPath.c_str(), "ab");
+#endif
     if (!file) {
         return false;
     }

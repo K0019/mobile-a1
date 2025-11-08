@@ -112,7 +112,13 @@ namespace
     //	}
     //}
 
-    if (char typeName[128] = {}; sscanf(cbData->pMessage, "Validation Error: [ %[^]] ] Object %i: handle = %p, type = %127s | MessageID = %p", errorName, &object, &handle, typeName, &messageID) >= 2)
+#ifdef __ANDROID__
+    auto scanfFunc{ sscanf };
+#else
+    auto scanfFunc{ sscanf_s };
+#endif
+
+    if (char typeName[128] = {}; scanfFunc(cbData->pMessage, "Validation Error: [ %[^]] ] Object %i: handle = %p, type = %127s | MessageID = %p", errorName, &object, &handle, typeName, &messageID) >= 2)
     {
       const char* message = strrchr(cbData->pMessage, '|') + 1;
 
@@ -133,17 +139,17 @@ namespace
         int line = 0;
         int col = 0;
         const char* substr1 = strstr(cbData->pMessage, "Shader validation error occurred at line ");
-        if (substr1 && sscanf(substr1, "Shader validation error occurred at line %d, column %d.", &line, &col) >= 1)
+        if (substr1 && scanfFunc(substr1, "Shader validation error occurred at line %d, column %d.", &line, &col) >= 1)
         {
           const char* substr2 = strstr(cbData->pMessage, "Shader Module (Shader Module: ");
           std::vector<char> shaderModuleDebugBuffer(len + 1);
           char* shaderModuleDebugName = shaderModuleDebugBuffer.data();
           VkShaderModule shaderModule = VK_NULL_HANDLE;
 #if VK_USE_64_BIT_PTR_DEFINES
-          if (substr2 && sscanf(substr2, "Shader Module (Shader Module: %[^)])(%p)", shaderModuleDebugName, &shaderModule) == 2)
+          if (substr2 && scanfFunc(substr2, "Shader Module (Shader Module: %[^)])(%p)", shaderModuleDebugName, &shaderModule) == 2)
           {
 #else
-					if(substr2 && sscanf(substr2, "Shader Module (Shader Module: %[^)])(%llu)", shaderModuleDebugName, &shaderModule) == 2) {
+					if(substr2 && scanfFunc(substr2, "Shader Module (Shader Module: %[^)])(%llu)", shaderModuleDebugName, &shaderModule) == 2) {
 #endif // VK_USE_64_BIT_PTR_DEFINES
             ctx->invokeShaderModuleErrorCallback(line, col, shaderModuleDebugName, shaderModule);
           }
@@ -6025,7 +6031,11 @@ uint32_t vk::VulkanContext::queryDevices(HWDeviceType deviceType, HWDeviceDesc* 
     if (outDevices && numCompatibleDevices < maxOutDevices)
     {
       outDevices[numCompatibleDevices] = {.guid = (uintptr_t)vkDevices[i], .type = hw_device};
+#ifdef __ANDROID__
       strncpy(outDevices[numCompatibleDevices].name, deviceProperties.deviceName, strlen(deviceProperties.deviceName));
+#else
+      strncpy_s(outDevices[numCompatibleDevices].name, 256, deviceProperties.deviceName, strlen(deviceProperties.deviceName));
+#endif
       numCompatibleDevices++;
     }
   }
@@ -6604,7 +6614,7 @@ vk::Result vk::VulkanContext::initContext(const HWDeviceDesc& desc)
   return Result();
 }
 
-void vk::VulkanContext::createSurface(void* nativeWindow, void* display)
+void vk::VulkanContext::createSurface(void* nativeWindow, [[maybe_unused]] void* display)
 {
   // Check for existing surface
   if (vkSurface_ != VK_NULL_HANDLE)
