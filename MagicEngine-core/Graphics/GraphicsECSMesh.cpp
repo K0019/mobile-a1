@@ -36,12 +36,9 @@ const std::vector<size_t>& RenderComponent::GetMaterialsList() const
 
 void RenderComponent::EditorDraw()
 {
-    auto& fpManager = ST<MagicResourceManager>::Get()->INTERNAL_GetFilepathsManager();
-    auto meshEntry = fpManager.GetFileEntry(meshHash);
-
-    std::string meshText = std::to_string(meshHash);
-    if (meshEntry)
-        meshText = VFS::GetStem(meshEntry->path);
+    std::string meshText{};
+    if(ST<MagicResourceManager>::Get()->Meshes().GetResource(meshHash))
+        meshText = ST<MagicResourceManager>::Get()->Editor_GetName(meshHash);
 
     gui::TextUnformatted("Mesh");
     gui::SameLine();
@@ -73,10 +70,9 @@ void RenderComponent::EditorDraw()
                 if (i >= materials.size()) break;    //go reassign the mesh
                 gui::SetID id(i);
 
-                std::string materialText = std::to_string(materials[i]);
-                auto materialEntry = fpManager.GetFileEntry(materials[i]);
-                if(materialEntry)
-                    materialText = VFS::GetStem(materialEntry->path);
+                std::string materialText{};
+                if (ST<MagicResourceManager>::Get()->Materials().GetResource(materials[i]))
+                    materialText = ST<MagicResourceManager>::Get()->Editor_GetName(materials[i]);
 
                 gui::TextUnformatted(std::string("Material") + std::to_string(i));
                 gui::SameLine();
