@@ -35,6 +35,11 @@ LuaWrapperEntity::operator ecs::EntityHandle()
 	return GetHandle();
 }
 
+Transform* LuaWrapperEntity::GetTransform() const
+{
+	return &GetHandle()->GetTransform();
+}
+
 inline ecs::EntityHandle LuaWrapperEntity::GetHandle() const
 {
 	return reinterpret_cast<ecs::EntityHandle>(entityRaw);

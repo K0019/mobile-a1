@@ -28,6 +28,8 @@ public:
 	ecs::EntityHandle operator->();
 	operator ecs::EntityHandle();
 
+	Transform* GetTransform() const;
+
 private:
 	inline ecs::EntityHandle GetHandle() const;
 
