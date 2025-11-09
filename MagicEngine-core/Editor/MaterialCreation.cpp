@@ -161,7 +161,11 @@ namespace editor {
 		MaterialSerialization::Deserialize(reader, materialProps);
 
 		// Name
+#ifdef GLFW
+		strncpy_s(materialName, 128, materialProps.name.c_str(), sizeof(materialName));
+#else
 		strncpy(materialName, materialProps.name.c_str(), sizeof(materialName));
+#endif
 		materialName[sizeof(materialName) - 1] = '\0';
 
 		// Texture hashes

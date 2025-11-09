@@ -2,6 +2,11 @@
 // Define this *before* including any Quill headers
 // This prevents Quill from defining LOG_INFO(logger, ...) itself.
 #define QUILL_DISABLE_NON_PREFIXED_MACROS 1
+// We're crashing on release due to quill race conditions it seems.
+// Disable quill logging on release
+#ifdef NDEBUG
+#define QUILL_COMPILE_ACTIVE_LOG_LEVEL 9
+#endif
 
 #include <string>
 #include <string_view>

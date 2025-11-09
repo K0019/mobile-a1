@@ -230,8 +230,8 @@ void Engine<AppType>::CleanupCoreSystems()
 }
 
 template <App AppType>
-void Engine<AppType>::OnLifecycleChange(Core::AppState oldState,
-    Core::AppState newState
+void Engine<AppType>::OnLifecycleChange([[maybe_unused]] Core::AppState oldState,
+    [[maybe_unused]] Core::AppState newState
 )
 {
     LOG_INFO("Lifecycle change: {} -> {}", 
