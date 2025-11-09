@@ -38,6 +38,28 @@ namespace internal {
 
 }
 
+AutoEventHandler::AutoEventHandler(EventHandlerHandle handle)
+	: handle{ handle }
+{
+}
+
+AutoEventHandler::~AutoEventHandler()
+{
+	Dispose();
+}
+
+void AutoEventHandler::Assign(EventHandlerHandle newHandle)
+{
+	Dispose();
+	handle = newHandle;
+}
+
+void AutoEventHandler::Dispose()
+{
+	if (handle && ST<EventsQueue>::IsInitialized())
+		ST<EventsQueue>::Get()->DeleteEventHandler(handle);
+}
+
 EventsQueue::EventsQueue()
 	: activeBufferSetIndex{}
 	, frameNum{}
