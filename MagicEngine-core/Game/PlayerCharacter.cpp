@@ -61,7 +61,6 @@ PlayerMovementComponentSystem::PlayerMovementComponentSystem()
 void PlayerMovementComponentSystem::UpdatePlayerMovementComponent(PlayerMovementComponent& comp)
 {
 	auto playerEntity = ecs::GetEntity(&comp);
-	ecs::CompHandle<physics::PhysicsComp> physicsComp = playerEntity->GetComp<physics::PhysicsComp>();
 	ecs::CompHandle<CharacterMovementComponent> characterComp = playerEntity->GetComp<CharacterMovementComponent>();
 	Vec2 movement(0.0f, 0.0f);
 

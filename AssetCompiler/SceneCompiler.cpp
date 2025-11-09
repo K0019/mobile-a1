@@ -213,7 +213,7 @@ namespace compiler
         return result;
     }
 
-    SceneProcessingResult SceneCompiler::ProcessScene(Scene& scene, const MeshOptions& options)
+    SceneProcessingResult SceneCompiler::ProcessScene(Scene& scene, const MeshOptions& inOptions)
     {
         SceneProcessingResult processingResult;
         for (ProcessedMesh& mesh : scene.meshes)
@@ -223,9 +223,9 @@ namespace compiler
                 continue;
             }
 
-            if (options.optimize && MeshOptimizer::shouldOptimize(mesh.vertices, mesh.indices))
+            if (inOptions.optimize && MeshOptimizer::shouldOptimize(mesh.vertices, mesh.indices))
             {
-                auto result = MeshOptimizer::optimize(mesh.vertices, mesh.indices, options.generateTangents);
+                auto result = MeshOptimizer::optimize(mesh.vertices, mesh.indices, inOptions.generateTangents);
 
                 if (!result.success)
                 {
@@ -233,7 +233,7 @@ namespace compiler
                 }
             }
 
-            if (options.generateTangents)
+            if (inOptions.generateTangents)
             {
                 if (!MeshOptimizer::generateTangents(mesh.vertices, mesh.indices))
                 {
@@ -241,7 +241,7 @@ namespace compiler
                 }
             }
 
-            if (options.calculateBounds)
+            if (inOptions.calculateBounds)
             {
                 mesh.bounds = MeshOptimizer::calculateBounds(mesh.vertices);
             }
@@ -347,7 +347,7 @@ namespace compiler
 			materialIndexToNameOffset[i] = currentNameOffset;
 			materialNames += scene.materials[i].name;
 			materialNames += '\0';
-			currentNameOffset = materialNames.size();
+			currentNameOffset = static_cast<uint32_t>(materialNames.size());
 		}
 		
 		//Set up Mesh vertex and index buffers
@@ -358,7 +358,7 @@ namespace compiler
 		{
 			MeshInfo meshInfo;
 			meshInfo.firstIndex = indexOffset;
-			meshInfo.indexCount = mesh.indices.size();
+			meshInfo.indexCount = static_cast<uint32_t>(mesh.indices.size());
 			meshInfo.firstVertex = vertexOffset;
 			meshInfo.materialNameIndex = materialIndexToNameOffset[mesh.materialIndex];
 			meshInfo.meshBounds = mesh.bounds;
@@ -372,8 +372,8 @@ namespace compiler
 				finalIndices.push_back(index + vertexOffset);
 			}
 
-			vertexOffset += mesh.vertices.size();
-			indexOffset += mesh.indices.size();
+			vertexOffset += static_cast<uint32_t>(mesh.vertices.size());
+			indexOffset += static_cast<uint32_t>(mesh.indices.size());
 		}
 
 		for (const auto& compilerNode : scene.nodes)
@@ -395,11 +395,11 @@ namespace compiler
 		// Populate file header
 		MeshFileHeader header;
 		header.magic = MESH_FILE_MAGIC;
-		header.numNodes = finalNodes.size();
-		header.numMeshes = finalMeshInfos.size();
-		header.totalIndices = finalIndices.size();
-		header.totalVertices = finalVertices.size();
-		header.materialNameBufferSize = materialNames.size();
+		header.numNodes = static_cast<uint32_t>(finalNodes.size());
+		header.numMeshes = static_cast<uint32_t>(finalMeshInfos.size());
+		header.totalIndices = static_cast<uint32_t>(finalIndices.size());
+		header.totalVertices = static_cast<uint32_t>(finalVertices.size());
+		header.materialNameBufferSize = static_cast<uint32_t>(materialNames.size());
 		header.sceneBoundsCenter = scene.center;
 		header.sceneBoundsRadius = scene.radius;
 		header.sceneBoundsMin = scene.boundingMin;
