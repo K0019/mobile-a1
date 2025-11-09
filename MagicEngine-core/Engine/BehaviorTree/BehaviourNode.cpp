@@ -348,13 +348,9 @@ NODE_STATUS MoveDown::OnUpdate(ecs::EntityHandle entity)
 void DetectClickTest::OnInitialize()
 { 
 }
-NODE_STATUS DetectClickTest::OnUpdate(ecs::EntityHandle entity)
+NODE_STATUS DetectClickTest::OnUpdate([[maybe_unused]] ecs::EntityHandle entity)
 {
     //FOR DEMO
-    auto* km = ST<KeyboardMouseInput>::Get();
-    if (km->GetIsPressed(KEY::LSHIFT))   CONSOLE_LOG(LEVEL_DEBUG) << "LSHIFT pressed";
-    if (km->GetIsReleased(KEY::LSHIFT))  CONSOLE_LOG(LEVEL_DEBUG) << "LSHIFT released";
-
     static bool prev = false; // remembers last frame state
 
     auto input = ST<MagicInput>::Get();

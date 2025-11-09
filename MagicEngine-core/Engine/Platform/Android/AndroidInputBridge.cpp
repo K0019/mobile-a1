@@ -20,14 +20,17 @@ All rights reserved.
 */
 /******************************************************************************/
 
-#if defined(__ANDROID__)
 #include "AndroidInputBridge.h"
 #include "core/platform/android/ry_android_input_api.h"
+static TouchState s_touch;
+static Vec2 s_virtualStick{ 0.f, 0.f };
+#if defined(__ANDROID__)
+
 
 // -----------------------------------------------------------------------------
 // Single, static touch state used by the bridge.
 // This is a "latest known state" snapshot updated by ryEngine's callback and
-static TouchState s_touch;
+
 
 /*****************************************************************//*!
     \brief
@@ -70,5 +73,19 @@ namespace AndroidInputBridge {
     }
     const TouchState& State() { return s_touch; }
     void ClearEdges() { s_touch.justDown = s_touch.justUp = false; }
+
+    void PublishVirtualStick(const Vec2& v) { s_virtualStick = v; }
+    Vec2 ReadVirtualStick() { return s_virtualStick; }
+}
+#else
+// ---- non-Android stubs (so Editor/Windows link succeeds) ----
+namespace AndroidInputBridge {
+
+    void Initialize() {}
+    const TouchState& State() { return s_touch; }
+    void ClearEdges() {}
+
+    void PublishVirtualStick(const Vec2& v) { s_virtualStick = v; }
+    Vec2 ReadVirtualStick() { return s_virtualStick; }
 }
 #endif

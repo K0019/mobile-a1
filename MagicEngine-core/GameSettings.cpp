@@ -57,7 +57,7 @@ void GameSettings::Load()
 
 void GameSettings::Apply()
 {
-	GameTime::SetTargetFps(m_maxFPS);
+	GameTime::SetTargetFps(static_cast<float>(m_maxFPS));
 	GameTime::SetTargetFixedDt(m_targetFixedDt);
 	ST<internal::LoggedMessagesBuffer>::Get()->SetLogLevel(static_cast<LogLevel>(m_logLevel));
 

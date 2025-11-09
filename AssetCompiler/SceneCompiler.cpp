@@ -35,6 +35,131 @@ All rights reserved.
 
 namespace compiler
 {
+    // ----- String helpers ----- //
+    static std::string ToLower(const std::string& str)
+    {
+        std::string lowerStr = str;
+        std::transform(lowerStr.begin(), lowerStr.end(), lowerStr.begin(), ::tolower);
+        return lowerStr;
+    }
+
+    static bool EndsWith(const std::string& str, const std::string& suffix)
+    {
+        if (suffix.length() > str.length()) return false;
+        return std::equal(suffix.rbegin(), suffix.rend(), str.rbegin());
+    }
+
+
+    // ----- Texture / Filepath helpers ----- //
+    struct PathResolutionResult
+    {
+        std::filesystem::path finalPath; // The correct, true, real, not fake, path that actually exists to a file on the disk.
+        std::string warning;
+        bool success = false;
+    };
+
+    // Try to find the texture file, even if some FELLA gives the wrong filenames
+    PathResolutionResult ResolveTexturePath(const std::filesystem::path& sourcePath, const std::filesystem::path& modelBasePath)
+    {
+        PathResolutionResult result;
+
+        // Perfect match
+        if (std::filesystem::exists(sourcePath))
+        {
+            result.success = true;
+            result.finalPath = sourcePath;
+            return result;
+        }
+
+        // Wrong subfolder case - material says "textures/N00_000_Hair_00_nml.png", but its just "N00_000_Hair_00_nml.png"
+        std::filesystem::path textureFileName = sourcePath.filename();
+        std::filesystem::path alternatePath = modelBasePath / textureFileName;
+
+        if (std::filesystem::exists(alternatePath))
+        {
+            result.success = true;
+            result.finalPath = alternatePath;
+            result.warning =
+                "[Path Fix] Texture '" + sourcePath.string() +
+                "' was not found. However, a file with the same name was found at '" + alternatePath.string();
+            
+            return result;
+        }
+
+        // Wrong foldername case - material wants "Aji.fbm/_16.png", but its "Aji.vrm1.Textures/_16.png"
+        std::filesystem::path searchRoot = modelBasePath;
+        try
+        {
+            if (std::filesystem::exists(searchRoot) && std::filesystem::is_directory(searchRoot))
+            {
+                for (const auto& entry : std::filesystem::recursive_directory_iterator(searchRoot))
+                {
+                    // Only check directories
+                    if (entry.is_directory())
+                    {
+                        std::filesystem::path possibleFix = entry.path() / textureFileName;
+                        if (std::filesystem::exists(possibleFix))
+                        {
+                            result.success = true;
+                            result.finalPath = possibleFix;
+                            result.warning =
+                                "[Path Fix] Texture '" + sourcePath.string() +
+                                "' was not found. However, a file with the same name was found at '" + possibleFix.string();
+                            
+                            return result;
+                        }
+                    }
+                }
+            }
+        }
+        catch (const std::filesystem::filesystem_error& e)
+        {
+            result.success = false;
+            result.warning = "Filesystem error while searching for '" + sourcePath.string() + "': " + e.what();
+            return result;
+        }
+
+
+        // Sorry, im not as good as unity, i cant find the file.
+        result.success = false;
+        result.warning = "Could not find texture '" + sourcePath.string();
+        return result;
+    }
+    // Parse the filename to determine texture compilation options
+    TextureOptions GetTextureOptionsForFile(const std::filesystem::path& resolvedPath, const TextureOptions& defaultOptions)
+    {
+        TextureOptions newOptions = defaultOptions;
+        std::string stem = ToLower(resolvedPath.stem().string());
+
+        // Check for Normal Maps
+        // e.g: "N00_000_00_HairBack_00_nml.normal.png", "_11.normal.png"
+        if (EndsWith(stem, "_n") || EndsWith(stem, "_nml") || EndsWith(stem, "_normal"))
+        {
+            newOptions.compressionFormat = TextureCompressionFormat::BC5;
+            newOptions.channelFormat = TextureChannelFormat::RGBA_8888;
+            return newOptions;
+        }
+
+        // Check for Specular/Roughness/Metallic/Mask
+        // e.g., "_roughness", "_metallic", "_s", "_r", "_m", "_mask"
+        if (EndsWith(stem, "_s") || EndsWith(stem, "_specular") ||
+            EndsWith(stem, "_r") || EndsWith(stem, "_roughness") ||
+            EndsWith(stem, "_m") || EndsWith(stem, "_metallic") ||
+            EndsWith(stem, "_ao") || EndsWith(stem, "_mask"))
+        {
+            newOptions.compressionFormat = TextureCompressionFormat::BC4;
+            newOptions.channelFormat = TextureChannelFormat::RGBA_8888;
+            return newOptions;
+        }
+
+        // Default: Assume Diffuse/Albedo
+        newOptions.compressionFormat = TextureCompressionFormat::BC7;
+        newOptions.channelFormat = TextureChannelFormat::RGBA_8888;
+        return newOptions;
+    }
+
+
+    // ----- Scene Compilation ----- //
     CompilationResult SceneCompiler::Compile(const CompilerOptions& compileOptions)
     {
         options = compileOptions;
@@ -53,8 +178,17 @@ namespace compiler
         Scene scene = std::move(*loadData.scene);
         
         // Processing stage, meshopt is here
-        ProcessScene(scene, compileOptions.mesh);
+        auto sceneProcessResult = ProcessScene(scene, compileOptions.mesh);
 
+        if (!sceneProcessResult.errors.empty())
+        {
+            result.errors.insert(result.errors.end(), sceneProcessResult.errors.begin(), sceneProcessResult.errors.end());
+            return result;
+        }
+        if (!sceneProcessResult.warnings.empty())
+        {
+            result.warnings.insert(result.warnings.end(), sceneProcessResult.warnings.begin(), sceneProcessResult.warnings.end());
+        }
 
         // Save the data
         SaveMeshes(scene, result);
@@ -64,12 +198,22 @@ namespace compiler
         if (!result.errors.empty())
         {
             result.success = false;
+            std::cout << "\n----------------- ERROR WHEN COMPILING SCENE -----------------\n";
+            for (const auto& error : result.errors)
+            {
+                std::cout << "ERROR: " << error << "\n";
+            }
+        }
+
+        for (const auto& warning : result.warnings)
+        {
+            std::cout << "Warning: " << warning << "\n";
         }
 
         return result;
     }
 
-    SceneProcessingResult SceneCompiler::ProcessScene(Scene& scene, const MeshOptions& options)
+    SceneProcessingResult SceneCompiler::ProcessScene(Scene& scene, const MeshOptions& inOptions)
     {
         SceneProcessingResult processingResult;
         for (ProcessedMesh& mesh : scene.meshes)
@@ -79,9 +223,9 @@ namespace compiler
                 continue;
             }
 
-            if (options.optimize && MeshOptimizer::shouldOptimize(mesh.vertices, mesh.indices))
+            if (inOptions.optimize && MeshOptimizer::shouldOptimize(mesh.vertices, mesh.indices))
             {
-                auto result = MeshOptimizer::optimize(mesh.vertices, mesh.indices, options.generateTangents);
+                auto result = MeshOptimizer::optimize(mesh.vertices, mesh.indices, inOptions.generateTangents);
 
                 if (!result.success)
                 {
@@ -89,7 +233,7 @@ namespace compiler
                 }
             }
 
-            if (options.generateTangents)
+            if (inOptions.generateTangents)
             {
                 if (!MeshOptimizer::generateTangents(mesh.vertices, mesh.indices))
                 {
@@ -97,7 +241,7 @@ namespace compiler
                 }
             }
 
-            if (options.calculateBounds)
+            if (inOptions.calculateBounds)
             {
                 mesh.bounds = MeshOptimizer::calculateBounds(mesh.vertices);
             }
@@ -106,7 +250,7 @@ namespace compiler
     }
 
 
-    //These functions below do the actual saving to disk
+    // ----- Saving to disk ----- //
     void SceneCompiler::CompileTextures(const Scene& scene, CompilationResult& result)
     {
         std::set<std::filesystem::path> uniqueTexturePaths;
@@ -126,28 +270,65 @@ namespace compiler
             return;
         }
 
-        compiler::TextureCompiler texCompiler;
+        // Resolve paths, make sure they actually exists
+        std::vector<std::string> texturePathErrors;
+        std::filesystem::path modelBasePath = options.general.inputPath.parent_path();
+        std::map<std::filesystem::path, std::filesystem::path> resolvedTexturePaths;
 
-        std::filesystem::path textureOutputDir = options.general.outputPath / "textures";
-        std::filesystem::create_directories(textureOutputDir);
         for (const auto& sourcePath : uniqueTexturePaths)
         {
+            PathResolutionResult pathResolution = ResolveTexturePath(sourcePath, modelBasePath);
+
+            if (pathResolution.success)
+            {
+                if (!pathResolution.warning.empty())
+                {
+                    result.warnings.push_back(pathResolution.warning);
+                }
+                // This path is confirmed to exist on disk, safe to send to texturecompiler
+                resolvedTexturePaths[sourcePath] = pathResolution.finalPath;
+            }
+            else
+            {
+                // Cannot find the file anywhere.
+                //texturePathErrors.push_back("Failed to find texture: " + sourcePath.string() + ". " + pathResolution.warning);
+                texturePathErrors.push_back(pathResolution.warning);
+            }
+        }
+
+        if (!texturePathErrors.empty())
+        {
+            result.errors.push_back("Texture path errors: Could not find one or more textures. Texture compilation aborted entirely.");
+            result.errors.insert(result.errors.end(), texturePathErrors.begin(), texturePathErrors.end());
+            return;
+        }
+
+
+        compiler::TextureCompiler texCompiler;
+        std::filesystem::path textureOutputDir = options.general.outputPath / "textures";
+        std::filesystem::create_directories(textureOutputDir);
+
+        for (const auto& [originalPath, resolvedPath] : resolvedTexturePaths)
+        {
             CompilerOptions texOpts;
-            texOpts.general.inputPath = sourcePath;
+            texOpts.general.inputPath = resolvedPath; // Use the *correct* path
             texOpts.general.outputPath = textureOutputDir;
             texOpts.texture = options.texture;
 
+            // Parse filename to set specific options - e.g: normal maps use BC5
+            //Disable parsing for now - ryans vk::Format vk::vkFormatToFormat(VkFormat format) doesn't support any BC5s and BC4s
+            //texOpts.texture = GetTextureOptionsForFile(resolvedPath, options.texture);
+
             if (texCompiler.Compile(texOpts))
             {
-                std::string outputFilename = sourcePath.stem().string() + ".ktx2";
+                std::string outputFilename = originalPath.stem().string() + ".ktx2";
                 result.createdTextureFiles.push_back(options.general.outputPath / "textures" / outputFilename);
             }
             else
             {
-                result.errors.push_back("Failed to compile texture: " + sourcePath.string());
+                result.errors.push_back("Failed to compile texture: " + resolvedPath.string());
             }
         }
-
     }
 
     void SceneCompiler::SaveMeshes(const Scene& scene, CompilationResult& result)
@@ -166,7 +347,7 @@ namespace compiler
 			materialIndexToNameOffset[i] = currentNameOffset;
 			materialNames += scene.materials[i].name;
 			materialNames += '\0';
-			currentNameOffset = materialNames.size();
+			currentNameOffset = static_cast<uint32_t>(materialNames.size());
 		}
 		
 		//Set up Mesh vertex and index buffers
@@ -177,7 +358,7 @@ namespace compiler
 		{
 			MeshInfo meshInfo;
 			meshInfo.firstIndex = indexOffset;
-			meshInfo.indexCount = mesh.indices.size();
+			meshInfo.indexCount = static_cast<uint32_t>(mesh.indices.size());
 			meshInfo.firstVertex = vertexOffset;
 			meshInfo.materialNameIndex = materialIndexToNameOffset[mesh.materialIndex];
 			meshInfo.meshBounds = mesh.bounds;
@@ -191,8 +372,8 @@ namespace compiler
 				finalIndices.push_back(index + vertexOffset);
 			}
 
-			vertexOffset += mesh.vertices.size();
-			indexOffset += mesh.indices.size();
+			vertexOffset += static_cast<uint32_t>(mesh.vertices.size());
+			indexOffset += static_cast<uint32_t>(mesh.indices.size());
 		}
 
 		for (const auto& compilerNode : scene.nodes)
@@ -214,11 +395,11 @@ namespace compiler
 		// Populate file header
 		MeshFileHeader header;
 		header.magic = MESH_FILE_MAGIC;
-		header.numNodes = finalNodes.size();
-		header.numMeshes = finalMeshInfos.size();
-		header.totalIndices = finalIndices.size();
-		header.totalVertices = finalVertices.size();
-		header.materialNameBufferSize = materialNames.size();
+		header.numNodes = static_cast<uint32_t>(finalNodes.size());
+		header.numMeshes = static_cast<uint32_t>(finalMeshInfos.size());
+		header.totalIndices = static_cast<uint32_t>(finalIndices.size());
+		header.totalVertices = static_cast<uint32_t>(finalVertices.size());
+		header.materialNameBufferSize = static_cast<uint32_t>(materialNames.size());
 		header.sceneBoundsCenter = scene.center;
 		header.sceneBoundsRadius = scene.radius;
 		header.sceneBoundsMin = scene.boundingMin;
@@ -335,9 +516,10 @@ namespace compiler
             doc.AddMember("flags", materialSlot.flags, allocator);
 
             // Write to disk
-            std::string safeFilename = materialSlot.name;
-            std::replace(safeFilename.begin(), safeFilename.end(), ' ', '_');
-            std::filesystem::path outFilePath = materialOutputDir / (safeFilename + ".material");
+            //std::string safeFilename = materialSlot.name;
+            //std::replace(safeFilename.begin(), safeFilename.end(), ' ', '_');
+            //std::filesystem::path outFilePath = materialOutputDir / (safeFilename + ".material");
+            std::filesystem::path outFilePath = materialOutputDir / (materialSlot.name + ".material");
 
             std::ofstream outFile(outFilePath);
             rapidjson::OStreamWrapper osw(outFile);

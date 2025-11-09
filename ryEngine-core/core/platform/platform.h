@@ -97,7 +97,7 @@ namespace Core {
             }
 
 #if PLATFORM_DESKTOP
-            glfwSetErrorCallback([](int error, const char* description) {
+            glfwSetErrorCallback([]([[maybe_unused]] int error, [[maybe_unused]] const char* description) {
                 LOG_ERROR("GLFW Error {}: {}", error, description);
             });
 

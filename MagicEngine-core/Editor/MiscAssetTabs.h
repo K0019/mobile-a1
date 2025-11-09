@@ -1,5 +1,6 @@
 #pragma once
 #include "Editor/AssetBrowserCategories.h"
+#include "Editor/Containers/GUICollection.h"
 
 struct PrefabTab
 	: editor::BaseAssetCategory
@@ -31,10 +32,12 @@ struct FontTab
 struct ScriptTab
 	: editor::BaseAssetCategory
 {
+	ScriptTab();
+
 	const char* GetName() const override;
 	const char* GetIdentifier() const override;
 	void Render() override;
 
 private:
-	char buffer[1024] = "NewScript";
+	gui::TextBoxWithBuffer<256> newScriptName;
 };

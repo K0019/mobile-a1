@@ -34,9 +34,7 @@ namespace
         switch (fmt)
         {
         case compiler::TextureChannelFormat::RGBA_8888: return CMP_FORMAT_RGBA_8888;
-        case compiler::TextureChannelFormat::RGBA_8888_S: return CMP_FORMAT_RGBA_8888_S;
         case compiler::TextureChannelFormat::ARGB_8888: return CMP_FORMAT_ARGB_8888;
-        case compiler::TextureChannelFormat::ARGB_8888_S: return CMP_FORMAT_ARGB_8888_S;
         case compiler::TextureChannelFormat::RGBA_16F: return CMP_FORMAT_RGBA_16F;
         case compiler::TextureChannelFormat::ARGB_16F: return CMP_FORMAT_ARGB_16F;
         case compiler::TextureChannelFormat::ARGB_32F: return CMP_FORMAT_ARGB_32F;
@@ -61,18 +59,25 @@ namespace
         }
     }
 
-    VkFormat MapVkFormat(compiler::TextureCompressionFormat fmt)
+    VkFormat MapVkFormat(compiler::TextureCompressionFormat fmt, bool isSRGB)
     {
         switch (fmt)
         {
-        case compiler::TextureCompressionFormat::BC1: return VK_FORMAT_BC1_RGB_UNORM_BLOCK;
-        case compiler::TextureCompressionFormat::BC3: return VK_FORMAT_BC3_UNORM_BLOCK;
+        case compiler::TextureCompressionFormat::BC1: return isSRGB ? VK_FORMAT_BC1_RGB_SRGB_BLOCK : VK_FORMAT_BC1_RGB_UNORM_BLOCK;
+
+        case compiler::TextureCompressionFormat::BC3: return isSRGB ? VK_FORMAT_BC3_SRGB_BLOCK : VK_FORMAT_BC3_UNORM_BLOCK;
+
         case compiler::TextureCompressionFormat::BC4: return VK_FORMAT_BC4_UNORM_BLOCK;
+
         case compiler::TextureCompressionFormat::BC5: return VK_FORMAT_BC5_UNORM_BLOCK;
-        case compiler::TextureCompressionFormat::BC7: return VK_FORMAT_BC7_UNORM_BLOCK;
-        case compiler::TextureCompressionFormat::ASTC: return VK_FORMAT_ASTC_4x4_UNORM_BLOCK;
-        case compiler::TextureCompressionFormat::ETC: return VK_FORMAT_ETC2_R8G8B8A8_UNORM_BLOCK;
-        default: return VK_FORMAT_BC7_UNORM_BLOCK;
+
+        case compiler::TextureCompressionFormat::BC7: return isSRGB ? VK_FORMAT_BC7_SRGB_BLOCK : VK_FORMAT_BC7_UNORM_BLOCK;
+
+        case compiler::TextureCompressionFormat::ASTC: return isSRGB ? VK_FORMAT_ASTC_4x4_SRGB_BLOCK : VK_FORMAT_ASTC_4x4_UNORM_BLOCK;
+
+        case compiler::TextureCompressionFormat::ETC: return isSRGB ? VK_FORMAT_ETC2_R8G8B8A8_SRGB_BLOCK : VK_FORMAT_ETC2_R8G8B8A8_UNORM_BLOCK;
+
+        default: return isSRGB ? VK_FORMAT_BC7_SRGB_BLOCK : VK_FORMAT_BC7_UNORM_BLOCK;
         }
     }
 }
@@ -90,7 +95,7 @@ namespace compiler
     }
 
     CMP_BOOL g_bAbortCompression = false;  // If set true current compression will abort
-    CMP_BOOL CompressionCallback(CMP_FLOAT fProgress, CMP_DWORD_PTR pUser1, CMP_DWORD_PTR pUser2)
+    CMP_BOOL CompressionCallback(CMP_FLOAT fProgress, [[maybe_unused]] CMP_DWORD_PTR pUser1, [[maybe_unused]] CMP_DWORD_PTR pUser2)
     {
         std::printf("\rCompression progress = %3.0f", fProgress);
         return g_bAbortCompression;
@@ -149,6 +154,7 @@ namespace compiler
         outTex.dwHeight = h;
         outTex.format = MapCMPFormat(options.texture.channelFormat);
         outTex.dwDataSize = w * h * 4;
+        outTex.dwPitch = w * 4;
         outTex.pData = pixels;
         return true;
     }
@@ -158,7 +164,7 @@ namespace compiler
         CMP_CompressOptions opts = {};
         opts.dwSize = sizeof(opts);
         opts.dwnumThreads = std::thread::hardware_concurrency();
-        opts.fquality = options.texture.quality; // normalized 0–1
+        opts.fquality = options.texture.quality; // normalized
         return opts;
     }
 
@@ -174,7 +180,7 @@ namespace compiler
         CMP_ERROR status = CMP_ConvertTexture(&src, &dst, &opts, CompressionCallback);
         if (status != CMP_OK)
         {
-            std::cout << "ERROR CODE: " << status << "\n";
+            std::cout << "TextureCompiler::CompressTexture ERROR CODE: " << status << "\n";
             return false;
         }
         return true;
@@ -183,7 +189,7 @@ namespace compiler
     bool TextureCompiler::SaveAsKTX2(const CMP_Texture& dst)
     {
         ktxTextureCreateInfo createInfo{};
-        createInfo.vkFormat = MapVkFormat(options.texture.compressionFormat);
+        createInfo.vkFormat = MapVkFormat(options.texture.compressionFormat, options.texture.isSRGB);
         createInfo.baseWidth = dst.dwWidth;
         createInfo.baseHeight = dst.dwHeight;
         createInfo.baseDepth = 1;
@@ -221,13 +227,17 @@ namespace compiler
             std::cout << "KTX2 Saving ERROR: " << writeResult << "\n";
             return false;
         }
+        else
+        {
+            std::cout << "Successfully saved: " << outputPath << "\n";
+        }
         return writeResult == KTX_SUCCESS;
     }
 
     ktxTextureCreateInfo TextureCompiler::SetupKtxCreateInfo(const CMP_Texture& dest)
     {
         ktxTextureCreateInfo info{};
-        info.vkFormat = MapVkFormat(options.texture.compressionFormat);
+        info.vkFormat = MapVkFormat(options.texture.compressionFormat, options.texture.isSRGB);
         info.baseWidth = dest.dwWidth;
         info.baseHeight = dest.dwHeight;
         info.baseDepth = 1;

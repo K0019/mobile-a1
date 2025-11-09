@@ -42,8 +42,6 @@ All rights reserved.
 #include "Editor/FileBrowserTab.h"
 #include "Editor/MiscAssetTabs.h"
 
-#include "Scripting/CSScripting.h"
-#include "Scripting/ScriptManagement.h"
 #include "Scripting/HotReloader.h"
 
 namespace fs = std::filesystem;
