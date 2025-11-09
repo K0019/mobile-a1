@@ -351,8 +351,6 @@ void DetectClickTest::OnInitialize()
 NODE_STATUS DetectClickTest::OnUpdate([[maybe_unused]] ecs::EntityHandle entity)
 {
     //FOR DEMO
-    auto* km = ST<KeyboardMouseInput>::Get();
-
     static bool prev = false; // remembers last frame state
 
     auto input = ST<MagicInput>::Get();
