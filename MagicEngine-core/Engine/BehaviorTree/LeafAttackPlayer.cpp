@@ -4,7 +4,7 @@
 #include "Game/Character.h"
 #include "Game/Health.h"
 #include "Utilities/GameTime.h"
-#include "Math/utils_math.h"
+#include "math/utils_math.h"
 // Matthew here, I'm going to be performing the equivalent of sledgehammer surgery on this file, be prepared to rewrite all of it after M2
 
 void L_AttackPlayer::OnInitialize()
@@ -36,7 +36,7 @@ NODE_STATUS L_AttackPlayer::OnUpdate(ecs::EntityHandle entity)
     // calculate rotation to face player
     if (distanceToPlayer > 0.0f)
     {
-        characterComp->RotateTowards(Vec2{ toPlayer.x, -toPlayer.z });
+        characterComp->RotateTowards(Vec2{ toPlayer.x, toPlayer.z });
         if (distanceToPlayer > 3.0f)
             return NODE_STATUS::FAILURE;
     }
@@ -72,6 +72,8 @@ NODE_STATUS L_AttackPlayer::OnUpdate(ecs::EntityHandle entity)
             phase = AttackPhase::Idle;
             attackTimer = 0.0f;
         }
+        break;
+    default:
         break;
     }
 

@@ -213,7 +213,7 @@ namespace bt {
         int& currentIndex,
         BehaviorTreeAsset& loadedAsset,
         bool& hasAsset,
-        std::string& lastLoadedPath)
+        [[maybe_unused]] std::string& lastLoadedPath)
     {
         files.clear();
         hasAsset = false;

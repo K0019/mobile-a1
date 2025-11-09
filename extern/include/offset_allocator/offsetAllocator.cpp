@@ -137,7 +137,7 @@ namespace OffsetAllocator
   // Allocator...
   Allocator::Allocator(uint32 size, uint32 maxAllocs) : m_size(size), m_maxAllocs(maxAllocs), m_nodes(nullptr), m_freeNodes(nullptr)
   {
-    if (sizeof(NodeIndex) == 2)
+    if constexpr (sizeof(NodeIndex) == 2)
     {
       ASSERT(maxAllocs <= 65536);
     }

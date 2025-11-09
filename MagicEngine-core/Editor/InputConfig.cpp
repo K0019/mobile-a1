@@ -231,18 +231,70 @@ namespace editor {
 
 	void InputConfig::DrawInspector_HardwareValueLink(InputHardwareValueLink& hardwareValueLink, int index)
 	{
-		int deviceType{ +hardwareValueLink.GetDeviceType() };
-		// TODO: Give a nicer hardware value link name to the user (button should not be called X Positive)
-		if (gui::Combo deviceCombo{ hardwareValueLinkNames[index], hardwareDeviceNames, &deviceType})
+		int deviceType = +hardwareValueLink.GetDeviceType();
+		if (gui::Combo deviceCombo{ hardwareValueLinkNames[index], hardwareDeviceNames, &deviceType })
 			hardwareValueLink.SetDeviceType(static_cast<INPUT_DEVICE_TYPE>(deviceType));
 
-		// TODO: Different keys depending on device type
-		auto keyIdentifierNameIter{ keyIdentifierNames.find(static_cast<KEY>(hardwareValueLink.GetKeyIdentifier())) };
-		const char* selectedKeyIdentifierName{ (keyIdentifierNameIter == keyIdentifierNames.end() ? nullptr : keyIdentifierNameIter->second) };
-		if (gui::Combo keyCombo{ "Key", selectedKeyIdentifierName })
-			for (KEY key : keyEnums)
-				if (keyCombo.Selectable(keyIdentifierNames.at(key), +key == hardwareValueLink.GetKeyIdentifier()))
-					hardwareValueLink.SetKeyIdentifier(+key);
+		// Special UI for Android joystick
+		if (hardwareValueLink.GetDeviceType() == INPUT_DEVICE_TYPE::ANDROID_JOYSTICK) {
+			// 0..3 = X+, X-, Y+, Y-
+			static const char* kAxisNames[4] = { "X Positive", "X Negative", "Y Positive", "Y Negative" };
+
+			// initialize default if uninitialized
+			int axis = hardwareValueLink.GetKeyIdentifier();
+			if (axis < 0 || axis > 3) {
+				axis = (index < 4) ? index : 0;                // give a sensible default per row
+				hardwareValueLink.SetKeyIdentifier(axis);
+			}
+
+			// draw combo using "current text" overload
+			const char* currentText = kAxisNames[axis];
+			if (gui::Combo axisCombo{ "Axis", currentText }) {
+				for (int i = 0; i < 4; ++i) {
+					const bool selected = (i == axis);
+					if (axisCombo.Selectable(kAxisNames[i], selected)) {
+						hardwareValueLink.SetKeyIdentifier(i); // store AJAxis as an int
+						axis = i;                              // update current text for this draw
+					}
+				}
+			}
+
+
+
+			//if (axis < 0 || axis > 3) axis = index; // nice default based on which row we’re editing
+			//if (gui::Combo axisCombo{ "Axis", axisNames[axis] }) {
+			//	for (int i = 0; i < 4; ++i)
+			//		if (axisCombo.Selectable(axisNames[i], i == axis))
+			//			hardwareValueLink.SetKeyIdentifier(i);            // store AJAxis as int
+			//}
+			return; // don’t show the regular KEY picker
+		}
+		else {
+			// Existing KEY-based UI for other devices:
+			// (unchanged code)
+			// - uses keyIdentifierNames and keyEnums to populate the Combo
+			// - then link.SetKeyIdentifier(+key) when user picks one
+			// TODO: Different keys depending on device type
+			auto keyIdentifierNameIter{ keyIdentifierNames.find(static_cast<KEY>(hardwareValueLink.GetKeyIdentifier())) };
+			const char* selectedKeyIdentifierName{ (keyIdentifierNameIter == keyIdentifierNames.end() ? nullptr : keyIdentifierNameIter->second) };
+			if (gui::Combo keyCombo{ "Key", selectedKeyIdentifierName })
+				for (KEY key : keyEnums)
+					if (keyCombo.Selectable(keyIdentifierNames.at(key), +key == hardwareValueLink.GetKeyIdentifier()))
+						hardwareValueLink.SetKeyIdentifier(+key);
+		}
+
+		//int deviceType{ +hardwareValueLink.GetDeviceType() };
+		//// TODO: Give a nicer hardware value link name to the user (button should not be called X Positive)
+		//if (gui::Combo deviceCombo{ hardwareValueLinkNames[index], hardwareDeviceNames, &deviceType})
+		//	hardwareValueLink.SetDeviceType(static_cast<INPUT_DEVICE_TYPE>(deviceType));
+
+		//// TODO: Different keys depending on device type
+		//auto keyIdentifierNameIter{ keyIdentifierNames.find(static_cast<KEY>(hardwareValueLink.GetKeyIdentifier())) };
+		//const char* selectedKeyIdentifierName{ (keyIdentifierNameIter == keyIdentifierNames.end() ? nullptr : keyIdentifierNameIter->second) };
+		//if (gui::Combo keyCombo{ "Key", selectedKeyIdentifierName })
+		//	for (KEY key : keyEnums)
+		//		if (keyCombo.Selectable(keyIdentifierNames.at(key), +key == hardwareValueLink.GetKeyIdentifier()))
+		//			hardwareValueLink.SetKeyIdentifier(+key);
 	}
 
 }

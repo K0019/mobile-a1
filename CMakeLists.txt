@@ -95,6 +95,7 @@ find_package(quill CONFIG REQUIRED)
 
 find_package(Jolt CONFIG REQUIRED)
 find_package(Stb REQUIRED)
+find_package(Lua REQUIRED)
 
 # ImGui dependencies (cross-platform)
 find_package(imgui CONFIG REQUIRED)
@@ -210,7 +211,9 @@ if(MSVC)
         /MP # Enable parallel builds
         # $<$<CONFIG:Release>:/O2 /GL> # Optimization level for Release
         # $<$<CONFIG:Debug>:/Zi> # Or /Zi for debug info format
+        /wd4828 # Illegal characters in current source character set
         /wd4819 # Unicode characters in non-unicode formatted source files
+        /wd4505 # Unreferenced function with internal linkage has been removed
         /wd4324 # Structure padding added due to explicit alignas() specifier
     )
 	string(APPEND CMAKE_EXE_LINKER_FLAGS_DEBUG " /ignore:4099 /ignore:4098")

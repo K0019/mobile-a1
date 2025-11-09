@@ -38,6 +38,28 @@ namespace internal {
 
 }
 
+AutoEventHandler::AutoEventHandler(EventHandlerHandle handle)
+	: handle{ handle }
+{
+}
+
+AutoEventHandler::~AutoEventHandler()
+{
+	Dispose();
+}
+
+void AutoEventHandler::Assign(EventHandlerHandle newHandle)
+{
+	Dispose();
+	handle = newHandle;
+}
+
+void AutoEventHandler::Dispose()
+{
+	if (handle && ST<EventsQueue>::IsInitialized())
+		ST<EventsQueue>::Get()->DeleteEventHandler(handle);
+}
+
 EventsQueue::EventsQueue()
 	: activeBufferSetIndex{}
 	, frameNum{}
@@ -60,7 +82,7 @@ void EventsQueue::DeleteEventHandler(EventHandlerHandle handle)
 	{
 		EventHandlerHandle lastEventHandlerHandle{ eventHandlerSet.eventHandlers.back()->INTERNAL_GetHandle() };
 		std::swap(eventHandlerSet.eventHandlers[eventHandlerIndex], eventHandlerSet.eventHandlers.back());
-		eventHandlerSet.eventHandlerIndexLookup[handle] = eventHandlerIndex;
+		eventHandlerSet.eventHandlerIndexLookup[lastEventHandlerHandle] = eventHandlerIndex;
 	}
 
 	// Delete the event handler

@@ -47,7 +47,7 @@ namespace Resource
       result.vertexCacheImprovement = std::max(0.0f, (originalACMR - optimizedACMR) / originalACMR);
       result.overdrawImprovement = 0.1f; // Conservative estimate
     }
-    catch (const std::exception& e)
+    catch ([[maybe_unused]] const std::exception& e)
     {
       LOG_WARNING("Mesh optimization failed: {}", e.what());
       result.success = false;

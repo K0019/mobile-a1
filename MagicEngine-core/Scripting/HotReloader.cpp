@@ -20,11 +20,13 @@ All rights reserved.
 /******************************************************************************/
 #include "Scripting/HotReloader.h"
 #include "GameSettings.h"
-#include "Scripting/CSScripting.h"
 #include "Game/GameSystems.h"
+#include "Engine/Events/EventsQueue.h"
+#include "Engine/Events/EventsTypeBasic.h"
 
 void HotReloader::Init()
 {
+	// NOTE: THIS IS DEAD. NEEDS RYAN'S ENGINE TO PROPOGATE A FOCUS CHANGED EVENT.
 	Messaging::Subscribe("OnWindowFocus", OnFocusChanged);
 }
 
@@ -38,7 +40,7 @@ void HotReloader::OnFocusChanged([[maybe_unused]] bool isFocused)
 #ifdef IMGUI_ENABLED
 	if (isFocused && ST<GameSystemsManager>::Get()->GetState() == GAMESTATE::EDITOR)
 	{
-		CSharpScripts::CSScripting::ReloadAssembly();
+		ST<EventsQueue>::Get()->AddEventForThisFrame(Events::RequestReloadLuaScripts{});
 	}
 #endif
 }

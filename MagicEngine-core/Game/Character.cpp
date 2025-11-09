@@ -29,8 +29,13 @@ CharacterMovementComponent::CharacterMovementComponent()
 	, moveSpeed{ 0.0f }
 	, rotateSpeed{ 0.0f }
 	, stunTimePerHit{ 0.0f }
+	, groundFriction{ 0.0f }
+	, dodgeCooldown{ 0.0f }
+	, dodgeDuration{ 0.0f }
+	, dodgeSpeed{ 0.0f }
 	, heldItem{ nullptr }
 	, currentStunTime{ 0.0f }
+	, currentDodgeTime{ 0.0f }
 {
 }
 
@@ -39,8 +44,27 @@ const Vec2 CharacterMovementComponent::GetMovementVector()
 	return movementVector;
 }
 
+void CharacterMovementComponent::Dodge(Vec2 vector)
+{
+	// Don't allow dodging if still on cooldown
+	if (currentDodgeCooldown > 0.0f)
+		return;
+
+	// Don't dodge nowhere
+	if (vector.LengthSqr() == 0.0f)
+		return;	
+
+	SetMovementVector(vector.Normalized());
+	currentDodgeTime = dodgeDuration;
+	currentDodgeCooldown = dodgeCooldown;
+}
+
 void CharacterMovementComponent::SetMovementVector(Vec2 vector)
 {
+	// Can't change movement direction if dodging
+	if (currentDodgeTime > 0.0f)
+		return;
+
 	movementVector = vector;
 }
 
@@ -51,7 +75,7 @@ void CharacterMovementComponent::RotateTowards(Vec2 vector)
 
 	Vec3 currentRotation = characterTransform.GetWorldRotation();
 
-	float targetAngle = math::ToDegrees(atan2(vector.y, vector.x));
+	float targetAngle = math::ToDegrees(atan2(-vector.y, vector.x));
 	float newAngle = math::MoveTowardsAngle(currentRotation.y, targetAngle, rotateSpeed * GameTime::Dt());
 	currentRotation.y = newAngle;
 
@@ -128,6 +152,11 @@ void CharacterMovementComponent::Serialize(Serializer& writer) const
 	writer.Serialize("stunTimePerHit", stunTimePerHit);
 	writer.Serialize("groundFriction", groundFriction);
 
+	writer.Serialize("dodgeCooldown", dodgeCooldown);
+	writer.Serialize("dodgeDuration", dodgeDuration);
+	writer.Serialize("dodgeSpeed", dodgeSpeed);
+
+
 	writer.Serialize("hitDebugObject",hitDebugObject);
 	writer.Serialize("heldItem",heldItem);
 }
@@ -139,6 +168,11 @@ void CharacterMovementComponent::Deserialize(Deserializer& reader)
 	reader.DeserializeVar("stunTimePerHit", &stunTimePerHit);
 	reader.DeserializeVar("groundFriction", &groundFriction);
 
+	reader.DeserializeVar("dodgeCooldown", &dodgeCooldown);
+	reader.DeserializeVar("dodgeDuration", &dodgeDuration);
+	reader.DeserializeVar("dodgeSpeed", &dodgeSpeed);
+
+
 	reader.DeserializeVar("hitDebugObject", &hitDebugObject);
 	reader.DeserializeVar("heldItem", &heldItem);
 }
@@ -149,6 +183,10 @@ void CharacterMovementComponent::EditorDraw()
 	gui::VarInput("Rotation Speed", &rotateSpeed);
 	gui::VarInput("Stun Time Per Hit", &stunTimePerHit);
 	gui::VarInput("Ground Friction", &groundFriction);
+
+	gui::VarInput("Dodge Cooldown", &dodgeCooldown);
+	gui::VarInput("Dodge Duration", &dodgeDuration);
+	gui::VarInput("Dodge Speed", &dodgeSpeed);
 
 	hitDebugObject.EditorDraw("Hit Debug Object");
 	heldItem.EditorDraw("Held Item");
@@ -189,6 +227,7 @@ void CharacterMovementComponentSystem::UpdateCharacterMovementComponent(Characte
 		if (math::Abs(currVel.y) > 0.01f && comp.currentStunTime < 0.0f)
 			comp.currentStunTime = GameTime::Dt();
 
+		comp.currentDodgeTime = 0.0f;
 		return;
 	}
 
@@ -213,10 +252,40 @@ void CharacterMovementComponentSystem::UpdateCharacterMovementComponent(Characte
 	}
 
 	// Apply input movement
-	Vec3 moveDir = Vec3{ movement.x * comp.moveSpeed,0.0f,-movement.y * comp.moveSpeed };
+	Vec3 moveDir = Vec3{ movement.x ,0.0f,movement.y };
+
+	// If dodging, move faster
+	if (comp.currentDodgeTime > 0.0f)
+	{
+		comp.currentDodgeTime -= GameTime::Dt();
+		moveDir *= comp.dodgeSpeed;
+	}
+	else
+	{
+		moveDir *= comp.moveSpeed;
+	}
+
 	physicsComp->AddLinearVelocity(moveDir);
+
+	comp.currentDodgeCooldown -= GameTime::Dt();
 
 	if (movement.LengthSqr() > 0.0f)
 		comp.RotateTowards(movement);
 
+	// Handle dodge "animation"
+	// Lord forgive me for I have committed jank
+	auto children = characterTransform.GetChildren();
+	for (auto child : children)
+	{
+		Vec3 localRot = child->GetLocalRotation();
+		if (comp.currentDodgeTime > 0.0f)
+		{
+			localRot.x = 360.0f * (1.0f - (comp.currentDodgeTime / comp.dodgeDuration));
+		}
+		else
+		{
+			localRot.x = 0.0f;
+		}
+		child->SetLocalRotation(localRot);
+	}
 }

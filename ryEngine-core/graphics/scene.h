@@ -59,6 +59,7 @@ struct SceneObject
 {
   SceneObjectType type = SceneObjectType::Empty;
   mat4 transform = mat4(1.0f);
+  float maxScale = 1.0f; // Greatest scale coefficient along the standard axes
 
   // Mesh data
   MeshHandle mesh;
