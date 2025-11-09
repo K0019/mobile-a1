@@ -41,6 +41,7 @@ namespace OffsetAllocator
   {
     uint32 totalFreeSpace;
     uint32 largestFreeRegion;
+    uint32 highWatermark;
   };
 
   struct StorageReportFull
@@ -96,6 +97,7 @@ namespace OffsetAllocator
       uint32 m_size;
       uint32 m_maxAllocs;
       uint32 m_freeStorage;
+      uint32 m_highWatermark;
 
       uint32 m_usedBinsTop;
       uint8 m_usedBins[NUM_TOP_BINS];
@@ -105,4 +107,4 @@ namespace OffsetAllocator
       NodeIndex* m_freeNodes;
       uint32 m_freeOffset;
   };
-}
+} // namespace OffsetAllocator

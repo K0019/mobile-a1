@@ -13,6 +13,9 @@ class IRenderer
     template <typename TFeature>
     uint64_t CreateFeature() { return DoCreateFeature([] { return std::make_unique<TFeature>(); }); }
 
+    template <typename TFeature, typename... Args>
+    uint64_t CreateFeature(Args&&... args) { return DoCreateFeature([&] { return std::make_unique<TFeature>(std::forward<Args>(args)...); }); }
+
     virtual void DestroyFeature(uint64_t feature_handle) = 0;
 
     virtual void* GetFeatureParameterBlockPtr(uint64_t feature_handle) = 0;

@@ -1,6 +1,9 @@
 #pragma once
 
 #include "resource/resource_types.h"
+#include <glm/gtc/quaternion.hpp>
+#include <optional>
+#include <vector>
 
 namespace Resource
 {
@@ -66,8 +69,39 @@ struct SceneObject
 
   uint32_t flags = 0; // visibility, shadow casting, etc.
   std::string name;
+  struct AnimBinding
+  {
+    enum FlagBits : uint8_t
+    {
+      Playing = 1 << 0,
+      Loop    = 1 << 1,
+      Crossfade = 1 << 2
+    };
+
+    Resource::SkeletonId skeleton = Resource::INVALID_SKELETON_ID;
+    Resource::ClipId clipA = Resource::INVALID_CLIP_ID;
+    Resource::ClipId clipB = Resource::INVALID_CLIP_ID;
+    Resource::MorphSetId morphSet = Resource::INVALID_MORPH_SET_ID;
+    uint16_t jointCount = 0;
+    uint16_t morphCount = 0;
+    float timeA = 0.0f;
+    float timeB = 0.0f;
+    float speed = 1.0f;
+    float blend = 0.0f;
+    uint8_t flags = 0;
+    std::vector<mat4> skinMatrices;
+    std::vector<float> morphWeights;
+    // Map from mesh joint index to skeleton joint index
+    std::vector<int16_t> jointRemap;
+    // Copy of the mesh's inverse bind matrices, in mesh joint order
+    std::vector<mat4> invBindMatrices;
+  };
+
+  std::optional<AnimBinding> anim;
 
   bool isRenderable() const { return type == SceneObjectType::Mesh && mesh.isValid() && material.isValid(); }
+
+  uint32_t getSourceMeshIndex() const { return meshIndex; }
 
   private:
     // Temporary loading indices - only accessible to SceneLoader

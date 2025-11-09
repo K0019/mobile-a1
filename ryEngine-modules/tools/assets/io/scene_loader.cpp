@@ -3,13 +3,112 @@
 #include "assets/io/material_loader.h"
 #include "assets/io/mesh_loader.h"
 #include "assets/io/texture_loader.h"
+#include "resource/morph_set.h"
 #include "resource/resource_manager.h"
+#include "resource/skeleton.h"
 #include "logging/log.h"
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
-#include <numeric>
+#include <algorithm>
 #include <chrono>
+#include <limits>
+#include <numeric>
+#include <unordered_map>
+#include "math/utils_math.h"
+
+namespace
+{
+    using namespace Resource;
+	inline vec3 toVec3(const aiVector3D& v)
+  {
+    return vec3(v.x, v.y, v.z);
+  }
+
+  inline glm::quat toQuat(const aiQuaternion& q)
+  {
+    return glm::quat(q.w, q.x, q.y, q.z);
+  }
+
+  inline float ticksToSeconds(double time, double ticksPerSecond)
+  {
+    if(ticksPerSecond <= 0.0)
+      return static_cast<float>(time);
+    return static_cast<float>(time / ticksPerSecond);
+  }
+
+  ProcessedAnimationChannel extractNodeChannel(const aiNodeAnim* channel, double ticksPerSecond)
+  {
+    ProcessedAnimationChannel result;
+    result.nodeName = channel->mNodeName.C_Str();
+
+    result.translationKeys.reserve(channel->mNumPositionKeys);
+    for(uint32_t i = 0; i < channel->mNumPositionKeys; ++i)
+    {
+      const auto& key = channel->mPositionKeys[i];
+      result.translationKeys.push_back({ ticksToSeconds(key.mTime, ticksPerSecond), toVec3(key.mValue) });
+    }
+
+    result.rotationKeys.reserve(channel->mNumRotationKeys);
+    for(uint32_t i = 0; i < channel->mNumRotationKeys; ++i)
+    {
+      const auto& key = channel->mRotationKeys[i];
+      result.rotationKeys.push_back({ ticksToSeconds(key.mTime, ticksPerSecond), toQuat(key.mValue) });
+    }
+
+    result.scaleKeys.reserve(channel->mNumScalingKeys);
+    for(uint32_t i = 0; i < channel->mNumScalingKeys; ++i)
+    {
+      const auto& key = channel->mScalingKeys[i];
+      result.scaleKeys.push_back({ ticksToSeconds(key.mTime, ticksPerSecond), toVec3(key.mValue) });
+    }
+
+    return result;
+  }
+
+  ProcessedMorphChannel extractMorphChannel(const aiMeshMorphAnim* channel, double ticksPerSecond)
+  {
+    ProcessedMorphChannel result;
+    result.meshName = channel->mName.C_Str();
+    result.keys.reserve(channel->mNumKeys);
+    for(uint32_t i = 0; i < channel->mNumKeys; ++i)
+    {
+      const aiMeshMorphKey& key = channel->mKeys[i];
+      ProcessedMorphKey morphKey;
+      morphKey.time = ticksToSeconds(key.mTime, ticksPerSecond);
+      morphKey.targetIndices.assign(key.mValues, key.mValues + key.mNumValuesAndWeights);
+      morphKey.weights.reserve(key.mNumValuesAndWeights);
+      for(uint32_t w = 0; w < key.mNumValuesAndWeights; ++w)
+      {
+        morphKey.weights.push_back(static_cast<float>(key.mWeights[w]));
+      }
+      result.keys.push_back(std::move(morphKey));
+    }
+    return result;
+  }
+
+  ProcessedAnimationClip extractAnimationClip(const aiAnimation* animation)
+  {
+    ProcessedAnimationClip clip;
+    clip.name = animation->mName.length > 0 ? animation->mName.C_Str() : "Animation";
+    clip.ticksPerSecond = animation->mTicksPerSecond > 0.0 ? static_cast<float>(animation->mTicksPerSecond) : 1.0f;
+    clip.duration = animation->mDuration > 0.0 ? static_cast<float>(animation->mDuration / clip.ticksPerSecond) : 0.0f;
+
+    clip.skeletalChannels.reserve(animation->mNumChannels);
+    for(uint32_t i = 0; i < animation->mNumChannels; ++i)
+    {
+      clip.skeletalChannels.push_back(extractNodeChannel(animation->mChannels[i], clip.ticksPerSecond));
+    }
+
+    clip.morphChannels.reserve(animation->mNumMorphMeshChannels);
+    for(uint32_t i = 0; i < animation->mNumMorphMeshChannels; ++i)
+    {
+      clip.morphChannels.push_back(extractMorphChannel(animation->mMorphMeshChannels[i], clip.ticksPerSecond));
+    }
+
+    return clip;
+  }
+} // namespace
 
 namespace Resource
 {
@@ -79,7 +178,28 @@ namespace Resource
       processedMeshes.reserve(meshPtrs.size());
       for (uint32_t i = 0; i < meshPtrs.size(); ++i)
       {
-        processedMeshes.push_back(MeshLoading::extractMesh(meshPtrs[i], i, config));
+        processedMeshes.push_back(MeshLoading::extractMesh(scene, meshPtrs[i], i, config));
+      }
+
+      std::unordered_map<std::string, uint32_t> meshNameToIndex;
+      for(uint32_t i = 0; i < processedMeshes.size(); ++i)
+      {
+        meshNameToIndex[processedMeshes[i].name] = i;
+      }
+
+      result.scene.animationClips.reserve(scene->mNumAnimations);
+      for(uint32_t animIndex = 0; animIndex < scene->mNumAnimations; ++animIndex)
+      {
+        ProcessedAnimationClip clip = extractAnimationClip(scene->mAnimations[animIndex]);
+        for(auto& morphChannel : clip.morphChannels)
+        {
+          if(auto it = meshNameToIndex.find(morphChannel.meshName); it != meshNameToIndex.end())
+          {
+            morphChannel.meshIndex = it->second;
+          }
+        }
+        ClipId clipId = m_assetSystem.createClip(clip);
+        result.scene.animationClips.push_back(clipId);
       }
 
       // Step 6: Upload assets to the GPU
@@ -108,6 +228,51 @@ namespace Resource
       // Step 7: Finalize scene
       reportProgress(onProgress, 0.90f, "Finalizing scene...");
       resolveSceneObjectHandles(result.scene.objects, meshHandles, materialHandles);
+
+      for(auto& object : result.scene.objects)
+      {
+        if(object.type != SceneObjectType::Mesh || !object.mesh.isValid())
+          continue;
+
+        const auto* meshMetadata = m_assetSystem.getMeshMetadata(object.mesh);
+        if(!meshMetadata)
+          continue;
+
+        const bool hasSkeleton = meshMetadata->skeletonId != INVALID_SKELETON_ID;
+        const bool hasMorphs = meshMetadata->morphSetId != INVALID_MORPH_SET_ID;
+
+        if(!hasSkeleton && !hasMorphs)
+          continue;
+
+        SceneObject::AnimBinding binding;
+        binding.skeleton = meshMetadata->skeletonId;
+        binding.morphSet = meshMetadata->morphSetId;
+        binding.clipA = INVALID_CLIP_ID;
+        binding.clipB = INVALID_CLIP_ID;
+        binding.speed = 1.0f;
+        binding.blend = 0.0f;
+        binding.timeA = 0.0f;
+        binding.timeB = 0.0f;
+        binding.flags = SceneObject::AnimBinding::Playing | SceneObject::AnimBinding::Loop;
+
+        if(hasSkeleton)
+        {
+          const Skeleton& skeleton = m_assetSystem.Skeleton(meshMetadata->skeletonId);
+          const uint32_t jointCount = skeleton.jointCount();
+          binding.jointCount = static_cast<uint16_t>(std::min<uint32_t>(jointCount, std::numeric_limits<uint16_t>::max()));
+          binding.skinMatrices.assign(binding.jointCount, glm::mat4(1.0f));
+        }
+
+        if(hasMorphs)
+        {
+          const MorphSet& morphSet = m_assetSystem.Morph(meshMetadata->morphSetId);
+          const uint32_t morphCount = morphSet.count();
+          binding.morphCount = static_cast<uint16_t>(std::min<uint32_t>(morphCount, std::numeric_limits<uint16_t>::max()));
+          binding.morphWeights.assign(binding.morphCount, 0.0f);
+        }
+
+        object.anim = std::move(binding);
+      }
       calculateBounds(result.scene, m_assetSystem);
 
       // Final stats

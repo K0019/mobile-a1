@@ -3,8 +3,6 @@
 #include "core/platform/platform.h"
 #include "logging/log.h"
 #include "logging/profiler.h"
-#include "graphics/vulkan/vk_util.h"
-#include "interface.h"
 
 Renderer::Renderer() = default;
 
@@ -47,7 +45,12 @@ void Renderer::startup()
     *m_vkContext,
     ResourceLimits::VERTEX_BUFFER_SIZE,
     ResourceLimits::INDEX_BUFFER_SIZE,
-    ResourceLimits::MATERIAL_BUFFER_SIZE
+    ResourceLimits::MATERIAL_BUFFER_SIZE,
+    ResourceLimits::MESH_DECOMPRESSION_BUFFER_SIZE,
+    ResourceLimits::SKINNING_BUFFER_SIZE,
+    ResourceLimits::MORPH_DELTA_BUFFER_SIZE,
+    ResourceLimits::MORPH_VERTEX_BASE_BUFFER_SIZE,
+    ResourceLimits::MORPH_VERTEX_COUNT_BUFFER_SIZE
   );
 
   // Create RenderGraph (compilation deferred)

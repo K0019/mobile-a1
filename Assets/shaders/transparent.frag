@@ -18,7 +18,7 @@ void main() {
     // Sample base color
     vec4 baseColor = mat.baseColorFactor;
     if (mat.baseColorTexture != 0) {
-        baseColor *= SRGBtoLINEAR(textureBindless2D(mat.baseColorTexture, 0, uv));
+        baseColor *= textureBindless2D(mat.baseColorTexture, 0, uv);
     }
     
     // Sample material properties
@@ -43,7 +43,7 @@ void main() {
         finalNormal = perturbNormal(normalSample, TBN);
     }
     
-    vec3 viewDir = normalize(pc.cameraPos.xyz - worldPos);
+    vec3 viewDir = normalize(pc.frameConstants.constants.cameraPos.xyz - worldPos);
     
     // NEW: Calculate clustered lighting for transparent fragment
     vec3 litColor = calculateLighting(worldPos, finalNormal, baseColor.rgb, metallic, roughness, viewDir, occlusion);
@@ -51,7 +51,7 @@ void main() {
     // Add emissive
     vec3 emissive = mat.emissiveFactorAlphaCutoff.rgb;
     if (mat.emissiveTexture != 0) {
-        emissive *= SRGBtoLINEAR(textureBindless2D(mat.emissiveTexture, 0, uv)).rgb;
+        emissive *= textureBindless2D(mat.emissiveTexture, 0, uv).rgb;
     }
     litColor += emissive;
     

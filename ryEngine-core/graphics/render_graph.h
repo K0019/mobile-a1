@@ -38,7 +38,17 @@ namespace RenderResources
   constexpr const char* SCENE_DEPTH = "SceneDepth";
   constexpr const char* MATERIAL_BUFFER = "MaterialBuffer";
   constexpr const char* VERTEX_BUFFER = "VertexBuffer";
+  constexpr const char* SKINNED_VERTEX_BUFFER = "SkinnedVertexBuffer";
   constexpr const char* INDEX_BUFFER = "IndexBuffer";
+  constexpr const char* MESH_DECOMPRESSION_BUFFER = "MeshDecompressionBuffer";
+  constexpr const char* FRAME_CONSTANTS = "FrameConstants";
+  constexpr const char* SKINNING_BUFFER = "SkinningBuffer";
+  constexpr const char* MORPH_DELTA_BUFFER = "MorphDeltaBuffer";
+  constexpr const char* MORPH_VERTEX_BASE_BUFFER = "MorphVertexBaseBuffer";
+  constexpr const char* MORPH_VERTEX_COUNT_BUFFER = "MorphVertexCountBuffer";
+  constexpr const char* ANIM_BONE_BUFFER = "AnimationBoneBuffer";
+  constexpr const char* ANIM_MORPH_BUFFER = "AnimationMorphBuffer";
+  constexpr const char* ANIM_INSTANCE_BUFFER = "AnimationInstanceBuffer";
 
   /*// Pre-computed hashes using compile-time function
   consteval uint32_t SWAPCHAIN_HASH = fnv1a_32(SWAPCHAIN_IMAGE);

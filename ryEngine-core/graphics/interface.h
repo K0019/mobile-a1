@@ -497,10 +497,14 @@ namespace vk
     UByte2Norm,
     UByte4Norm,
 
+    Short1Norm,
     Short2Norm,
+    Short3Norm,
     Short4Norm,
 
+    UShort1Norm,
     UShort2Norm,
+    UShort3Norm,
     UShort4Norm,
 
     Int1,
@@ -518,7 +522,7 @@ namespace vk
     HalfFloat3,
     HalfFloat4,
 
-    Int_2_10_10_10_REV,
+    R10G10B10A2_SNORM,
   };
 
   enum class Format : uint8_t
@@ -553,6 +557,24 @@ namespace vk
 
     ETC2_RGB8,
     ETC2_SRGB8,
+    BC1_RGB,
+    BC1_RGB_SRGB,
+    BC1_RGBA,
+    BC1_RGBA_SRGB,
+
+    BC2_RGBA,
+    BC2_RGBA_SRGB,
+
+    BC3_RGBA,
+    BC3_RGBA_SRGB,
+
+    BC4_R,
+    BC5_RG,
+
+    BC6H_RGB_UFLOAT,
+    BC6H_RGB_SFLOAT,
+
+    BC7_RGBA_SRGB,
     BC7_RGBA,
 
     Z_UN16,
@@ -1110,6 +1132,8 @@ namespace vk
       virtual void cmdWriteTimestamp(QueryPoolHandle pool, uint32_t query) = 0;
 
       virtual void cmdClearColorImage(TextureHandle tex, const ClearColorValue& value, const TextureLayers& layers = {}) = 0;
+
+      virtual void cmdCopyBuffer(BufferHandle src, BufferHandle dst, size_t size, size_t srcOffset = 0, size_t dstOffset = 0) = 0;
 
       virtual void cmdCopyImage(TextureHandle src, TextureHandle dst, const Dimensions& extent, const Offset3D& srcOffset = {}, const Offset3D& dstOffset = {}, const TextureLayers& srcLayers = {}, const TextureLayers& dstLayers = {}) = 0;
 

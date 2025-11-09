@@ -1,5 +1,12 @@
 #pragma once
+#include <array>
+#include <limits>
+#include "math/utils_math.h"
+#include "resource/animation_ids.h"
 #include "graphics/scene.h"
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
 
 namespace Resource
 {
@@ -16,6 +23,87 @@ namespace Resource
     size_t originalFileSize = 0;
   };
 
+  static constexpr uint32_t INVALID_BONE_INDEX = static_cast<uint32_t>(-1);
+
+  struct SkinningData
+  {
+    std::array<uint32_t, 4> boneIndices{ INVALID_BONE_INDEX, INVALID_BONE_INDEX, INVALID_BONE_INDEX, INVALID_BONE_INDEX };
+    std::array<float, 4> weights{ 0.0f, 0.0f, 0.0f, 0.0f };
+
+    bool isStatic() const { return boneIndices[0] == INVALID_BONE_INDEX; }
+  };
+
+  static constexpr uint32_t INVALID_JOINT_INDEX = INVALID_BONE_INDEX;
+
+  struct ProcessedSkeleton
+  {
+    std::vector<uint32_t> parentIndices;
+    std::vector<mat4> inverseBindMatrices;
+    std::vector<mat4> bindPoseMatrices;
+    std::vector<std::string> jointNames;
+
+    bool empty() const { return parentIndices.empty(); }
+  };
+
+  struct MorphTargetVertexDelta
+  {
+    uint32_t vertexIndex = 0;
+    vec3 deltaPosition{ 0.0f };
+    vec3 deltaNormal{ 0.0f };
+    vec3 deltaTangent{ 0.0f };
+  };
+
+  struct MorphTargetData
+  {
+    std::string name;
+    std::vector<MorphTargetVertexDelta> deltas;
+
+    bool empty() const { return deltas.empty(); }
+  };
+
+  struct ProcessedAnimationVectorKey
+  {
+    float time = 0.0f;
+    vec3 value{ 0.0f };
+  };
+
+  struct ProcessedAnimationQuatKey
+  {
+    float time = 0.0f;
+    glm::quat value{ 1.0f, 0.0f, 0.0f, 0.0f };
+  };
+
+  struct ProcessedAnimationChannel
+  {
+    std::string nodeName;
+    std::vector<ProcessedAnimationVectorKey> translationKeys;
+    std::vector<ProcessedAnimationQuatKey> rotationKeys;
+    std::vector<ProcessedAnimationVectorKey> scaleKeys;
+  };
+
+  struct ProcessedMorphKey
+  {
+    float time = 0.0f;
+    std::vector<uint32_t> targetIndices;
+    std::vector<float> weights;
+  };
+
+  struct ProcessedMorphChannel
+  {
+    uint32_t meshIndex = UINT32_MAX;
+    std::string meshName;
+    std::vector<ProcessedMorphKey> keys;
+  };
+
+  struct ProcessedAnimationClip
+  {
+    std::string name;
+    float duration = 0.0f;
+    float ticksPerSecond = 0.0f;
+    std::vector<ProcessedAnimationChannel> skeletalChannels;
+    std::vector<ProcessedMorphChannel> morphChannels;
+  };
+
   struct ProcessedMesh
   {
     std::vector<Vertex> vertices;
@@ -23,6 +111,9 @@ namespace Resource
     std::string name;
     uint32_t materialIndex = UINT32_MAX;
     vec4 bounds{ 0, 0, 0, 1 }; // x,y,z = center, w = radius
+    std::vector<SkinningData> skinning;
+    ProcessedSkeleton skeleton;
+    std::vector<MorphTargetData> morphTargets;
   };
 
   struct ProcessedMaterial
@@ -97,6 +188,7 @@ namespace Resource
     std::vector<SceneLight> lights;
     std::vector<SceneCamera> cameras;
     std::vector<SceneObject> objects; // Objects contain direct handles
+    std::vector<ClipId> animationClips;
     // Scene bounds
     vec3 center{ 0 };
     float radius = 0;

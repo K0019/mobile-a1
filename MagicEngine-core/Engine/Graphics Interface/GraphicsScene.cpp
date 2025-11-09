@@ -47,7 +47,7 @@ bool GraphicsScene::Init(Context inContext)
     context = inContext;
     sceneFeatureHandle = context.renderer->CreateFeature<SceneRenderFeature>();
     gridHandle = context.renderer->CreateFeature<GridFeature>();
-	im3dHandle = context.renderer->CreateFeature<Im3dFeature>();
+	im3dHandle = context.renderer->CreateFeature<Im3dRenderFeature>();
     return true;
 }
 

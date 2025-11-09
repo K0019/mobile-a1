@@ -506,10 +506,16 @@ namespace
         return VK_FORMAT_R8G8_UNORM;
       case VertexFormat::UByte4Norm:
         return VK_FORMAT_R8G8B8A8_UNORM;
+      case VertexFormat::Short1Norm:
+        return VK_FORMAT_R16_SNORM;
       case VertexFormat::Short2Norm:
         return VK_FORMAT_R16G16_SNORM;
+      case VertexFormat::Short3Norm:
+        return VK_FORMAT_R16G16B16_SNORM;
       case VertexFormat::Short4Norm:
         return VK_FORMAT_R16G16B16A16_SNORM;
+      case VertexFormat::UShort1Norm:
+        return VK_FORMAT_R16_UNORM;
       case VertexFormat::UShort2Norm:
         return VK_FORMAT_R16G16_UNORM;
       case VertexFormat::UShort4Norm:
@@ -538,7 +544,7 @@ namespace
         return VK_FORMAT_R16G16B16_SFLOAT;
       case VertexFormat::HalfFloat4:
         return VK_FORMAT_R16G16B16A16_SFLOAT;
-      case VertexFormat::Int_2_10_10_10_REV:
+      case VertexFormat::R10G10B10A2_SNORM:
         return VK_FORMAT_A2B10G10R10_SNORM_PACK32;
     }
     ASSERT(false);
@@ -1112,7 +1118,7 @@ vk::Result vk::VulkanSwapchain::init(const InitInfo& info)
       identityExtent_ = caps.currentExtent;
       preTransform_ = caps.currentTransform;
 
-      // If device starts in 90° or 270° rotation, swap dimensions to get natural resolution
+      // If device starts in 90ï¿½ or 270ï¿½ rotation, swap dimensions to get natural resolution
       if (caps.currentTransform & (VK_SURFACE_TRANSFORM_ROTATE_90_BIT_KHR | VK_SURFACE_TRANSFORM_ROTATE_270_BIT_KHR))
       {
           std::swap(identityExtent_.width, identityExtent_.height);
@@ -1174,7 +1180,7 @@ vk::Result vk::VulkanSwapchain::initResources(uint32_t& outWidth, uint32_t& outH
   identityExtent_ = surfaceCapabilities_.currentExtent;
   preTransform_ = surfaceCapabilities_.currentTransform;
 
-  // If rotated 90° or 270°, swap dimensions
+  // If rotated 90ï¿½ or 270ï¿½, swap dimensions
   if (surfaceCapabilities_.currentTransform & VK_SURFACE_TRANSFORM_ROTATE_90_BIT_KHR ||
       surfaceCapabilities_.currentTransform & VK_SURFACE_TRANSFORM_ROTATE_270_BIT_KHR) {
       std::swap(identityExtent_.width, identityExtent_.height);
@@ -1335,7 +1341,7 @@ vk::Result vk::VulkanSwapchain::reinitResources(uint32_t& outWidth, uint32_t& ou
   identityExtent_ = surfaceCapabilities_.currentExtent;
   preTransform_ = surfaceCapabilities_.currentTransform;
 
-  // If rotated 90° or 270°, swap dimensions
+  // If rotated 90ï¿½ or 270ï¿½, swap dimensions
   if (surfaceCapabilities_.currentTransform & VK_SURFACE_TRANSFORM_ROTATE_90_BIT_KHR ||
       surfaceCapabilities_.currentTransform & VK_SURFACE_TRANSFORM_ROTATE_270_BIT_KHR) {
       std::swap(identityExtent_.width, identityExtent_.height);
@@ -3101,6 +3107,71 @@ void vk::CommandBuffer::cmdClearColorImage(TextureHandle tex, const ClearColorVa
   imageMemoryBarrier2(wrapper_->cmdBuf_, img->vkImage_, StageAccess{.stage = VK_PIPELINE_STAGE_2_TRANSFER_BIT, .access = VK_ACCESS_2_TRANSFER_WRITE_BIT}, StageAccess{.stage = VK_PIPELINE_STAGE_2_ALL_COMMANDS_BIT, .access = VK_ACCESS_2_MEMORY_READ_BIT | VK_ACCESS_2_MEMORY_WRITE_BIT}, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, newLayout, range);
 
   img->vkImageLayout_ = newLayout;
+}
+
+void vk::CommandBuffer::cmdCopyBuffer(BufferHandle src, BufferHandle dst, size_t size, size_t srcOffset, size_t dstOffset)
+{
+  PROFILER_GPU_ZONE("cmdCopyBuffer()", ctx_, wrapper_->cmdBuf_, PROFILER_COLOR_CMD_COPY);
+
+  ASSERT(src.valid());
+  ASSERT(dst.valid());
+  ASSERT(size > 0);
+
+  VulkanBuffer* bufSrc = ctx_->buffersPool_.get(src);
+  VulkanBuffer* bufDst = ctx_->buffersPool_.get(dst);
+
+  if (!VERIFY(bufSrc) || !VERIFY(bufDst))
+  {
+    return;
+  }
+
+  // Ensure source buffer is ready for transfer read
+  bufferBarrier(src, VK_PIPELINE_STAGE_2_ALL_COMMANDS_BIT, VK_PIPELINE_STAGE_2_TRANSFER_BIT);
+
+  // Ensure destination buffer is ready for transfer write
+  bufferBarrier(dst, VK_PIPELINE_STAGE_2_ALL_COMMANDS_BIT, VK_PIPELINE_STAGE_2_TRANSFER_BIT);
+
+  const VkBufferCopy region = {
+    .srcOffset = srcOffset,
+    .dstOffset = dstOffset,
+    .size = size,
+  };
+
+  vkCmdCopyBuffer(wrapper_->cmdBuf_, bufSrc->vkBuffer_, bufDst->vkBuffer_, 1, &region);
+
+  // Determine destination pipeline stages based on buffer usage flags
+  VkPipelineStageFlags2 dstStage = VK_PIPELINE_STAGE_2_VERTEX_SHADER_BIT;
+
+  if (bufDst->vkUsageFlags_ & VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT)
+  {
+    dstStage |= VK_PIPELINE_STAGE_2_DRAW_INDIRECT_BIT;
+  }
+  if (bufDst->vkUsageFlags_ & VK_BUFFER_USAGE_VERTEX_BUFFER_BIT)
+  {
+    dstStage |= VK_PIPELINE_STAGE_2_VERTEX_INPUT_BIT;
+  }
+  if (bufDst->vkUsageFlags_ & VK_BUFFER_USAGE_INDEX_BUFFER_BIT)
+  {
+    dstStage |= VK_PIPELINE_STAGE_2_INDEX_INPUT_BIT;
+  }
+  if (bufDst->vkUsageFlags_ & VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT)
+  {
+    dstStage |= VK_PIPELINE_STAGE_2_VERTEX_SHADER_BIT | VK_PIPELINE_STAGE_2_FRAGMENT_SHADER_BIT | VK_PIPELINE_STAGE_2_COMPUTE_SHADER_BIT;
+  }
+  if (bufDst->vkUsageFlags_ & VK_BUFFER_USAGE_STORAGE_BUFFER_BIT)
+  {
+    dstStage |= VK_PIPELINE_STAGE_2_VERTEX_SHADER_BIT | VK_PIPELINE_STAGE_2_FRAGMENT_SHADER_BIT | VK_PIPELINE_STAGE_2_COMPUTE_SHADER_BIT;
+  }
+  if (bufDst->vkUsageFlags_ & VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_BUILD_INPUT_READ_ONLY_BIT_KHR)
+  {
+    dstStage |= VK_PIPELINE_STAGE_2_ACCELERATION_STRUCTURE_BUILD_BIT_KHR;
+  }
+
+  // Ensure destination buffer writes are visible to subsequent operations
+  bufferBarrier(dst, VK_PIPELINE_STAGE_2_TRANSFER_BIT, dstStage);
+
+  // Ensure source buffer is available for subsequent operations
+  bufferBarrier(src, VK_PIPELINE_STAGE_2_TRANSFER_BIT, VK_PIPELINE_STAGE_2_ALL_COMMANDS_BIT);
 }
 
 void vk::CommandBuffer::cmdCopyImage(TextureHandle src, TextureHandle dst, const Dimensions& extent, const Offset3D& srcOffset, const Offset3D& dstOffset, const TextureLayers& srcLayers, const TextureLayers& dstLayers)

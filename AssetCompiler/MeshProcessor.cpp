@@ -27,7 +27,6 @@ All rights reserved.
 #include <algorithm>
 #include <unordered_map>
 #include <cstring>
-
 namespace
 {
     constexpr uint32_t MIN_VERTICES_FOR_OPTIMIZATION = 100;

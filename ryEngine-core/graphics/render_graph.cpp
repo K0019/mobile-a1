@@ -31,20 +31,25 @@ void RenderGraph::EnsureBufferCapacity(internal::FrameBufferManager::Entry& reso
 
 void RenderGraph::ResizeTransientBuffer(LogicalResourceName name, uint64_t newSize)
 {
-  internal::NameID id = FindNameID(name); // Use const-correct method
-  if(id == internal::INVALID_NAME_ID)
-    return;
+    internal::NameID id = FindNameID(name);
+    if (id == internal::INVALID_NAME_ID)
+        return;
 
-  if(auto* entry = m_frameBuffers.GetEntry(id))
-  {
-    EnsureBufferCapacity(*entry, newSize);
-
-    // Update resolved handle
-    if(auto* info = GetResolvedResource(id))
+    if (const auto* info = GetResolvedResource(id))
     {
-      info->concreteHandle = ResourceHandle(entry->buffers[m_currentFrameIndex]);
+        if (info->isExternal || info->definition.persistent)
+            return;
     }
-  }
+
+    if (auto* entry = m_frameBuffers.GetEntry(id))
+    {
+        EnsureBufferCapacity(*entry, newSize);
+
+        if (auto* info = GetResolvedResource(id))
+        {
+            info->concreteHandle = ResourceHandle(entry->buffers[m_currentFrameIndex]);
+        }
+    }
 }
 
 void RenderGraph::AddTransientObserver(internal::ITransientResourceObserver* observer)
@@ -452,15 +457,27 @@ namespace internal
 
   uint64_t ExecutionContext::GetBufferSize(LogicalResourceName name) const
   {
-    NameID id = m_pGraph->FindNameID(name);
-    if(id == INVALID_NAME_ID)
-      return 0;
+      NameID id = m_pGraph->FindNameID(name);
+      if (id == INVALID_NAME_ID)
+          return 0;
 
-    if(auto* entry = m_pGraph->m_frameBuffers.GetEntry(id))
-    {
-      return entry->currentSize;
-    }
-    return 0;
+      const auto* info = m_pGraph->GetResolvedResource(id);
+      if (!info)
+          return 0;
+
+      if (info->definition.type == ResourceType::Buffer &&
+          (info->isExternal || info->definition.persistent))
+      {
+      	const auto desc = info->definition.desc;
+          return std::get<vk::BufferDesc>(desc).size;
+      }
+
+      if (auto* entry = m_pGraph->m_frameBuffers.GetEntry(id))
+      {
+          return entry->currentSize;
+      }
+
+      return 0;
   }
 
   vk::TextureHandle ExecutionContext::GetTextureByIndex(size_t index) const
@@ -905,6 +922,11 @@ void RenderGraph::Compile()
   ImportExternalBuffer(RenderResources::MATERIAL_BUFFER, m_gpu_buffers.GetMaterialBuffer(), m_gpu_buffers.GetMaterialBufferDesc());
   ImportExternalBuffer(RenderResources::VERTEX_BUFFER, m_gpu_buffers.GetVertexBuffer(), m_gpu_buffers.GetVertexBufferDesc());
   ImportExternalBuffer(RenderResources::INDEX_BUFFER, m_gpu_buffers.GetIndexBuffer(), m_gpu_buffers.GetIndexBufferDesc());
+  ImportExternalBuffer(RenderResources::MESH_DECOMPRESSION_BUFFER, m_gpu_buffers.GetMeshDecompressionBuffer(), m_gpu_buffers.GetMeshDecompressionBufferDesc());
+  ImportExternalBuffer(RenderResources::SKINNING_BUFFER, m_gpu_buffers.GetSkinningBuffer(), m_gpu_buffers.GetSkinningBufferDesc());
+  ImportExternalBuffer(RenderResources::MORPH_DELTA_BUFFER, m_gpu_buffers.GetMorphDeltaBuffer(), m_gpu_buffers.GetMorphDeltaBufferDesc());
+  ImportExternalBuffer(RenderResources::MORPH_VERTEX_BASE_BUFFER, m_gpu_buffers.GetMorphVertexBaseBuffer(), m_gpu_buffers.GetMorphVertexBaseBufferDesc());
+  ImportExternalBuffer(RenderResources::MORPH_VERTEX_COUNT_BUFFER, m_gpu_buffers.GetMorphVertexCountBuffer(), m_gpu_buffers.GetMorphVertexCountBufferDesc());
 
   // Register standard render targets
   linearColorSystem.RegisterLinearColorResources(*this);

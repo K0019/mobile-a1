@@ -8,8 +8,8 @@ struct FrameData
   mat4 projMatrix;
   vec3 cameraPos;
   float deltaTime = 0.0f;
-  uint32_t width = 1;
-  uint32_t height = 1;
+  uint32_t screenWidth = 1;
+  uint32_t screenHeight = 1;
   uint32_t depth = 1;
 
   float zNear = 0.1f;

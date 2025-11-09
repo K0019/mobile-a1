@@ -3,9 +3,15 @@
 #include <future>
 #include <shared_mutex>
 #include <unordered_map>
+
+#include "animation_clip.h"
+#include "morph_set.h"
 #include "offsetAllocator.hpp"
 #include "processed_assets.h"
+#include "graphics/gpu_data.h"
 #include "resource_pool.h"
+#include "skeleton.h"
+#include "resource/animation_ids.h"
 
 struct Context;
 
@@ -28,6 +34,12 @@ namespace Resource
 
       TextureHandle createTexture(const ProcessedTexture& texture);
 
+      size_t getUsedVertexBytes() const;
+
+      uint32_t getVertexBufferVersion() const;
+
+      void bumpVertexBufferVersion();
+
       // Batch asset creation
       std::vector<MeshHandle> createMeshBatch(const std::vector<ProcessedMesh>& meshes);
 
@@ -35,8 +47,16 @@ namespace Resource
 
       std::vector<TextureHandle> createTextureBatch(const std::vector<ProcessedTexture>& textures);
 
+      // Animation assets
+      ClipId createClip(const ProcessedAnimationClip& clip);
+      const AnimationClip& Clip(ClipId id) const;
+
+      const Skeleton& Skeleton(SkeletonId id) const;
+      const MorphSet& Morph(MorphSetId id) const;
+
       // Asset data access
       const MeshGPUData* getMesh(MeshHandle handle) const;
+      const ResourceTraits<MeshAsset>::ColdData* getMeshMetadata(MeshHandle handle) const;
 
       uint32_t getMaterialIndex(MaterialHandle handle) const;
 
@@ -61,6 +81,8 @@ namespace Resource
       // Core systems
       Context* m_context;
 
+      uint32_t m_vertexBufferVersion = 1; // start at 1, 0 = uninitialized
+
       // Asset storage
       ResourcePool<MeshAsset> m_meshPool;
       ResourcePool<MaterialAsset> m_materialPool;
@@ -73,13 +95,29 @@ namespace Resource
       OffsetAllocator::Allocator m_vertexAllocator;
       OffsetAllocator::Allocator m_indexAllocator;
       OffsetAllocator::Allocator m_materialAllocator;
+      OffsetAllocator::Allocator m_meshDecompAllocator;
+      OffsetAllocator::Allocator m_skinningAllocator;
+      OffsetAllocator::Allocator m_morphDeltaAllocator;
+      OffsetAllocator::Allocator m_morphBaseAllocator;
+      OffsetAllocator::Allocator m_morphCountAllocator;
 
       // Pending upload structures
       struct PendingMeshUpload
       {
-        ProcessedMesh data;
+        std::vector<CompressedVertex> compressedVertices;  // Compressed on CPU
+        std::vector<uint32_t> indices;
+        std::vector<GPUSkinningData> skinningData;
+        std::vector<GPUMorphDelta> morphDeltas;
+        std::vector<uint32_t> morphVertexStarts;
+        std::vector<uint32_t> morphVertexCounts;
+        MeshDecompressionData decompressionData;           // Decompression parameters
         OffsetAllocator::Allocation vertexAlloc;
         OffsetAllocator::Allocation indexAlloc;
+        OffsetAllocator::Allocation meshDecompAlloc;       // Decompression data allocation
+        OffsetAllocator::Allocation skinningAlloc;
+        OffsetAllocator::Allocation morphDeltaAlloc;
+        OffsetAllocator::Allocation morphVertexStartAlloc;
+        OffsetAllocator::Allocation morphVertexCountAlloc;
       };
 
       struct PendingMaterialUpload
@@ -105,10 +143,6 @@ namespace Resource
       std::mutex m_dependencyMutex;
       std::unordered_map<std::string, std::vector<MaterialHandle>> m_unresolvedTextureToMaterials;
 
-      // Internal helper methods
-      template <typename T>
-      std::vector<T> createAssetBatch(const std::vector<typename T::ProcessedType>& assets, T (ResourceManager::*createFunc)(const typename T::ProcessedType&));
-
       MaterialData generateMaterialDataWithTextures_nolock(const Material& material);
 
       uint32_t resolveTextureIndex_nolock(const MaterialTexture& matTex);
@@ -122,6 +156,9 @@ namespace Resource
 
       void uploadMaterialBatch(std::vector<PendingMaterialUpload>& materials);
 
+      SkeletonId registerSkeleton(const ProcessedSkeleton& skeleton);
+      MorphSetId registerMorphSet(const std::vector<MeshMorphTargetInfo>& morphTargets);
+
       template <typename Container, typename AllocSelector, typename DataSelector>
       void uploadContiguousBatches(const Container& items, vk::BufferHandle targetBuffer, AllocSelector&& allocSelector, DataSelector&& dataSelector);
 
@@ -133,5 +170,9 @@ namespace Resource
       static std::string generateMaterialCacheKey(const ProcessedMaterial& material);
 
       static std::string generateTextureCacheKey(const ProcessedTexture& texture);
+
+      std::vector<Resource::AnimationClip> m_clips;
+      std::vector<Resource::Skeleton> m_skeletons;
+      std::vector<Resource::MorphSet> m_morphSets;
   };
 } // namespace AssetLoading

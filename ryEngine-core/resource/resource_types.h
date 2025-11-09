@@ -8,17 +8,25 @@
 #include "graphics/gpu_data.h"
 #include "math/utils_math.h"
 #include "graphics/interface.h"
+#include "resource/animation_ids.h"
 
 namespace ResourceLimits
 {
   static constexpr size_t MAX_VERTICES = 10'000'000; // 10M vertices
-  static constexpr size_t MAX_INDICES = 30'000'000;  // 30M indices  
+  static constexpr size_t MAX_INDICES = 30'000'000;  // 30M indices
   static constexpr size_t MAX_MATERIALS = 50'000;    // 50K materials
   static constexpr size_t MAX_TEXTURES = 10'000;     // 10K textures
+  static constexpr size_t MAX_MESHES = 100'000;      // 100K meshes
 
-  static constexpr size_t VERTEX_BUFFER_SIZE = MAX_VERTICES * sizeof(Vertex);
+  static constexpr size_t VERTEX_BUFFER_SIZE = MAX_VERTICES * sizeof(CompressedVertex);
   static constexpr size_t INDEX_BUFFER_SIZE = MAX_INDICES * sizeof(uint32_t);
   static constexpr size_t MATERIAL_BUFFER_SIZE = MAX_MATERIALS * sizeof(MaterialData);
+  static constexpr size_t MESH_DECOMPRESSION_BUFFER_SIZE = MAX_MESHES * sizeof(MeshDecompressionData);
+  static constexpr size_t MAX_MORPH_TARGET_VERTICES = MAX_VERTICES * 4;
+  static constexpr size_t SKINNING_BUFFER_SIZE = MAX_VERTICES * sizeof(GPUSkinningData);
+  static constexpr size_t MORPH_DELTA_BUFFER_SIZE = MAX_MORPH_TARGET_VERTICES * sizeof(GPUMorphDelta);
+  static constexpr size_t MORPH_VERTEX_BASE_BUFFER_SIZE = MAX_VERTICES * sizeof(uint32_t);
+  static constexpr size_t MORPH_VERTEX_COUNT_BUFFER_SIZE = MAX_VERTICES * sizeof(uint32_t);
 } // namespace ResourceLimits
 
 struct LoadOptions
@@ -79,6 +87,12 @@ struct MeshAsset
 {
 };
 
+struct MeshMorphTargetInfo
+{
+  std::string name;
+  uint32_t morphTargetIndex = 0;   // Index into mesh-local morph list
+};
+
 template <>
 struct ResourceTraits<MeshAsset>
 {
@@ -89,10 +103,22 @@ struct ResourceTraits<MeshAsset>
     uint32_t vertexCount;
     uint32_t indexCount;
     vec4 bounds;
+    uint32_t decompressionByteOffset; // Offset into mesh decompression buffer
+    struct AnimationOffsets
+    {
+      uint32_t skinningByteOffset = UINT32_MAX;
+      uint32_t morphDeltaByteOffset = UINT32_MAX;
+      uint32_t morphDeltaCount = 0;
+      uint32_t morphVertexBaseOffset = UINT32_MAX;
+      uint32_t morphVertexCountOffset = UINT32_MAX;
+      uint32_t morphTargetCount = 0;
+      uint32_t jointCount = 0;
+    } animation;
 
     HotData() = default;
 
-    HotData(uint32_t vOffset, uint32_t iOffset, uint32_t vCount, uint32_t iCount, const vec4& b) : vertexByteOffset(vOffset), indexByteOffset(iOffset), vertexCount(vCount), indexCount(iCount), bounds(b) {
+    HotData(uint32_t vOffset, uint32_t iOffset, uint32_t vCount, uint32_t iCount, const vec4& b, uint32_t decompOffset = 0)
+      : vertexByteOffset(vOffset), indexByteOffset(iOffset), vertexCount(vCount), indexCount(iCount), bounds(b), decompressionByteOffset(decompOffset) {
     }
   };
 
@@ -101,6 +127,11 @@ struct ResourceTraits<MeshAsset>
     // Loading metadata
     OffsetAllocator::Allocation vertexMetadata;
     OffsetAllocator::Allocation indexMetadata;
+    OffsetAllocator::Allocation meshDecompressionMetadata;
+    OffsetAllocator::Allocation skinningMetadata;
+    OffsetAllocator::Allocation morphDeltaMetadata;
+    OffsetAllocator::Allocation morphVertexBaseMetadata;
+    OffsetAllocator::Allocation morphVertexCountMetadata;
     std::string sourceFile;
     std::string meshName; // Name from file (e.g., "Cube.001")
 
@@ -108,6 +139,15 @@ struct ResourceTraits<MeshAsset>
     float vertexCacheOptimization{ 0.0f }; // ACMR improvement ratio
     float overdrawOptimization{ 0.0f };    // Overdraw reduction ratio
     bool wasOptimized{ false };
+
+    // Animation metadata
+    std::vector<uint32_t> jointParentIndices;
+    std::vector<mat4> jointInverseBindMatrices;
+    std::vector<mat4> jointBindPoseMatrices;
+    std::vector<std::string> jointNames;
+    std::vector<MeshMorphTargetInfo> morphTargets;
+    Resource::SkeletonId skeletonId = Resource::INVALID_SKELETON_ID;
+    Resource::MorphSetId morphSetId = Resource::INVALID_MORPH_SET_ID;
 
     ColdData() = default;
 
@@ -319,4 +359,3 @@ concept IsValidResourceTrait = requires
 
 template <typename T>
 concept IsResource = IsValidResourceTrait<ResourceTraits<T>>;
-

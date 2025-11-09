@@ -38,6 +38,7 @@ public:
 	void AddObject(const MeshHandle& meshHandle, const MaterialHandle& materialHandle, const Mat4& transform);
 	void AddLight(const SceneLight& sceneLight);
 
+
 public:
 	FrameData& INTERNAL_GetFrameData();
 
