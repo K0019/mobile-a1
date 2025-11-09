@@ -30,9 +30,7 @@ All rights reserved.
 #include "Graphics/PostProcessingComponent.h"
 #include "Graphics/TextSystem.h"
 #include "Graphics/CustomViewport.h"
-#ifdef GLFW
 #include "Scripting/ScriptComponent.h"
-#endif
 
 #include "Game/CheatCodes.h"
 #include "Graphics/CameraSystem.h"
@@ -99,12 +97,10 @@ void GameState_Game::OnEnter()
     ecs::AddSystem(ECS_LAYER::PRE_PHYSICS_0, CharacterMovementComponentSystem{});
     ecs::AddSystem(ECS_LAYER::TWEENING, TweenSystem{});
 
-#ifdef GLFW
     ecs::AddSystem(ECS_LAYER::SCRIPT_AWAKE, ScriptAwakeSystem{});
     ecs::AddSystem(ECS_LAYER::SCRIPT_START, ScriptStartSystem{});
     ecs::AddSystem(ECS_LAYER::SCRIPT_UPDATE, ScriptUpdateSystem{});
     ecs::AddSystem(ECS_LAYER::SCRIPT_LATE_UPDATE, ScriptLateUpdateSystem{});
-#endif
 
     ecs::AddSystem(ECS_LAYER::SCRIPT_UPDATE, BehaviorTreeSystem{});
 

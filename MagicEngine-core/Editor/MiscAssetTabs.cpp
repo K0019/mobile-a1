@@ -232,7 +232,7 @@ void ScriptTab::Render()
 #ifdef GLFW
                 ShellExecute(0, 0, VFS::ConvertVirtualToPhysical(VFS::JoinPath(Filepaths::scriptsSave, filename)).c_str(), 0, 0, SW_SHOW);
 #else
-                (void*)0;
+                (void)0;
 #endif
 
             // Name label
