@@ -1,5 +1,5 @@
 {
-    "name": "NewMaterial",
+    "name": "N00_000_00_FaceBrow_00_FACE (Instance)",
     "alphaMode": "Opaque",
     "alphaCutoff": 0.5,
     "metallicFactor": 1.0,
@@ -20,11 +20,7 @@
     "textures": [
         {
             "key": "baseColor",
-            "value": "CompiledAssets\\textures\\colormap.ktx2"
-        },
-        {
-            "key": "emissive",
-            "value": ""
+            "value": "compiledassets/textures/_07.ktx2"
         },
         {
             "key": "metallicRoughness",
@@ -32,7 +28,11 @@
         },
         {
             "key": "normal",
-            "value": ""
+            "value": "compiledassets/textures/Shader_NoneNormal.ktx2"
+        },
+        {
+            "key": "emissive",
+            "value": "compiledassets/textures/Shader_NoneBlack.ktx2"
         },
         {
             "key": "occlusion",

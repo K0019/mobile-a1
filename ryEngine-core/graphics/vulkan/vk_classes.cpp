@@ -120,13 +120,13 @@ namespace
 
     if (char typeName[128] = {}; scanfFunc(cbData->pMessage, "Validation Error: [ %[^]] ] Object %i: handle = %p, type = %127s | MessageID = %p", errorName, &object, &handle, typeName, &messageID) >= 2)
     {
-      const char* message = strrchr(cbData->pMessage, '|') + 1;
+      [[maybe_unused]] const char* message = strrchr(cbData->pMessage, '|') + 1;
 
-      //LOG_DYNAMIC(level, "{}Validation layer:\n Validation Error: {} \n Object {}: handle = {:#x}, type = {}\n " "MessageID = {:#x} \n{} \n", isError ? "\nERROR:\n" : "", errorName, object, reinterpret_cast<uintptr_t>(handle), typeName, reinterpret_cast<uintptr_t>(messageID), message);
+      LOG_DYNAMIC(level, "{}Validation layer:\n Validation Error: {} \n Object {}: handle = {:#x}, type = {}\n " "MessageID = {:#x} \n{} \n", isError ? "\nERROR:\n" : "", errorName, object, reinterpret_cast<uintptr_t>(handle), typeName, reinterpret_cast<uintptr_t>(messageID), message);
     }
     else
     {
-      //LOG_DYNAMIC(level, "{}Validation layer: {}", isError ? "\nERROR:\n" : "", cbData->pMessage);
+      LOG_DYNAMIC(level, "{}Validation layer: {}", isError ? "\nERROR:\n" : "", cbData->pMessage);
     }
 
     if (isError)
@@ -5973,7 +5973,7 @@ void vk::VulkanContext::createInstance()
   // log available instance extensions
   LOG_INFO("Vulkan instance extensions:");
 
-  for (const VkExtensionProperties& extension : allInstanceExtensions)
+  for ([[maybe_unused]] const VkExtensionProperties& extension : allInstanceExtensions)
   {
     LOG_INFO("{}", extension.extensionName);
   }
@@ -6170,10 +6170,9 @@ vk::Result vk::VulkanContext::initContext(const HWDeviceDesc& desc)
 
   LOG_INFO("Vulkan physical device extensions:\n");
   // log available physical device extensions
-  for (const VkExtensionProperties& ext : allDeviceExtensions)
+  for ([[maybe_unused]] const VkExtensionProperties& ext : allDeviceExtensions)
   {
-      // YC- Commented as this crashes on release
-    //LOG_INFO("{}", ext.extensionName);
+    LOG_INFO("{}", ext.extensionName);
   }
 
   deviceQueues_.graphicsQueueFamilyIndex = findQueueFamilyIndex(vkPhysicalDevice_, VK_QUEUE_GRAPHICS_BIT);

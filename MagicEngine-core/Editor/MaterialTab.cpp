@@ -41,11 +41,20 @@ void MaterialTab::Render()
             gui::SetID id{ count++ };
             gui::Group group;
 
-            gui::Button{ "Material", thumbnailSizeVec2 };
-            gui::PayloadSource{ "MATERIAL_HASH", hash.get() };
+            gui::Button materialButton { "Material", thumbnailSizeVec2 };
+            if (ImGui::BeginPopupContextItem(materialName.c_str()))
+            {
+                if (ImGui::MenuItem(ICON_FA_FILE_IMPORT" Edit Material"))
+                {
+                    editor::CreateGuiWindow<editor::MaterialEditWindow>(hash);
+                }
+                ImGui::EndPopup();
+            }
 
+            gui::PayloadSource payloadSource { "MATERIAL_HASH", hash.get() };
             gui::ThumbnailLabel(materialName, THUMBNAIL_SIZE);
         }
+
 
         grid.NextItem();
     }

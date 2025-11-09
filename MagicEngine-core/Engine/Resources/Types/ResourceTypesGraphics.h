@@ -26,6 +26,7 @@ struct ResourceMesh : public ResourceBase
 {
     std::vector<MeshHandle> handles;
     std::vector<Mat4> transforms;
+    std::vector<size_t> defaultMaterialHashes;
 
     virtual bool IsLoaded() final;
 };
