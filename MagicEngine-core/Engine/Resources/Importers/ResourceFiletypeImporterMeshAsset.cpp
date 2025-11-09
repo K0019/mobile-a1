@@ -190,14 +190,6 @@ namespace internal
             processedMeshes.push_back(mesh);
         }
 
-        // Upload to GPU 
-        auto& graphicsAssetSystem{ ST<GraphicsMain>::Get()->GetAssetSystem() };
-
-
-        outMeshHandles->reserve(processedMeshes.size());
-        for (const auto& mesh : processedMeshes)
-            outMeshHandles->push_back(graphicsAssetSystem.createMesh(mesh));
-
         // We could precomute this...
         std::vector<Mat4> worldTransforms(nodes.size());
         for (size_t i = 0; i < nodes.size(); ++i)
@@ -221,6 +213,35 @@ namespace internal
             }
         }
 
+
+        //Scale bounds by node transform
+        std::map<uint32_t, Mat4> meshIndexToTransform;
+        for (const auto& [index, mat] : *outMeshTransforms)
+        {
+            Resource::ProcessedMesh& mesh = processedMeshes[index];
+
+            float scaleX = glm::length(vec3(mat[0]));
+            float scaleY = glm::length(vec3(mat[1]));
+            float scaleZ = glm::length(vec3(mat[2]));
+            float nodeMaxScale = glm::max(scaleX, glm::max(scaleY, scaleZ));
+
+            // Scale local radius
+            // The bounds.center is currently already being handled by the this line in scene_feature.cpp
+                    //auto worldCenter = vec3(obj.transform * vec4(center, 1.0f));
+            // The radius of the bounds is not being handled yet, so we do it here
+            
+            mesh.bounds.w = mesh.bounds.w * nodeMaxScale;
+        }
+
+        // Upload to GPU 
+        auto& graphicsAssetSystem{ ST<GraphicsMain>::Get()->GetAssetSystem() };
+
+        outMeshHandles->reserve(processedMeshes.size());
+        for (const auto& mesh : processedMeshes)
+            outMeshHandles->push_back(graphicsAssetSystem.createMesh(mesh));
+
+
+
         graphicsAssetSystem.FlushUploads();
         return true;
     }
@@ -234,6 +255,7 @@ namespace internal
         ResourceMesh* mesh{ meshes.INTERNAL_GetResource(meshHashes[0], true) };
         mesh->handles = meshHandles;
         mesh->transforms.resize(meshTransforms.size());
+
         for (const auto& [index, mat] : meshTransforms)
             mesh->transforms[index] = mat;
         
