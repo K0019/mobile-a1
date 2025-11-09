@@ -82,6 +82,20 @@ void PlayerMovementComponentSystem::UpdatePlayerMovementComponent(PlayerMovement
 	if (inputInstance->GetIsDown(KEY::A))
 		movement = movement - camRight;
 
+#ifdef __ANDROID__
+
+	auto* input = ST<MagicInput>::Get();
+	if (input) {
+		// Action name must match what is created in the Input Binding (“AndroidJoystick”)
+		if (auto a = input->GetAction<Vec2>("AndroidJoystick")) {
+			Vec2 joy = a->GetValue();        // expected in [-1,1], x=right, y=up
+			Vec2 tempMove = camForward * joy.y + camRight * joy.x;  // note += so it blends with WASD
+			movement = movement + tempMove;
+		}
+	}
+#endif
+
+
 	if (movement.LengthSqr() > 0.0f)
 		movement = movement.Normalized();
 

@@ -34,22 +34,59 @@ All rights reserved.
 //	}
 //};
 
+#include "Engine/Platform/Android/AndroidInputBridge.h"
+
+// If you haven't already, define an axis enum somewhere shared:
+enum class AJAxis : int {
+	Stick2D = 0,   // full Vec2 (for 2D actions)
+	XPos,          // float in [0,1]
+	XNeg,          // float in [0,1]
+	YPos,          // float in [0,1]
+	YNeg           // float in [0,1]
+};
+
+
 const std::array<InputHardwareValueLink::FuncType_GetValue, +INPUT_DEVICE_TYPE::NUM_DEVICES>
-InputHardwareValueLink::GetValueFromDevice{
+InputHardwareValueLink::GetValueFromDevice = {
+
+	// [0] KEYBOARD_MOUSE (existing)
 	[](int keyIdentifier, INPUT_READ_TYPE readType) -> InputHardwareValue {
 		const KEY k = static_cast<KEY>(keyIdentifier);
 
-		// Special key that should return a Vec2 directly
+		// Special key that returns a Vec2 directly
 		if (k == KEY::MOUSE_DELTA_2D) {
 			return InputHardwareValue{ ST<KeyboardMouseInput>::Get()->GetMouseDelta() };
 		}
 
-		// Fallback:  existing bool path for real keys/buttons
+		// Fallback: bool/float via your existing keyboard/mouse path
 		return InputHardwareValue{
 			ST<KeyboardMouseInput>::Get()->GetValue(readType, k)
 		};
-	}
-		// If  later add GAMEPAD, put a second function pointer here
+	},
+
+	/* 1: GAMEPAD (stub for now) */
+	[](int /*keyIdentifier*/, INPUT_READ_TYPE /*readType*/) -> InputHardwareValue {
+		return InputHardwareValue{}; // 0 / neutral
+	},
+
+	// [1] ANDROID_JOY (use the correct index for your enum!)
+	[](int keyIdentifier, INPUT_READ_TYPE /*readType*/) -> InputHardwareValue {
+		// Pull the latest virtual stick published by your component.
+		const Vec2 v = AndroidInputBridge::ReadVirtualStick(); // each in [-1, 1]
+
+		switch (static_cast<AJAxis>(keyIdentifier)) {
+			case AJAxis::Stick2D: return v;                               // return Vec2
+			case AJAxis::XPos:    return std::max(0.0f,  v.x);            // float [0,1]
+			case AJAxis::XNeg:    return std::max(0.0f, -v.x);            // float [0,1]
+			case AJAxis::YPos:    return std::max(0.0f,  v.y);            // float [0,1]
+			case AJAxis::YNeg:    return std::max(0.0f, -v.y);            // float [0,1]
+			default:              return 0.0f;                            // safe default
+		}
+	},
+
+
+
+	//add more device lambdas here
 
 };
 
@@ -70,7 +107,7 @@ InputHardwareValueLink::InputHardwareValueLink(INPUT_DEVICE_TYPE deviceType, int
 InputHardwareValue InputHardwareValueLink::ReadValue() const
 {	
 	//special case for mouse delta
-	if (keyIdentifier == -1001 && deviceType != INPUT_DEVICE_TYPE::INVALID_DEVICE) {
+	if ((keyIdentifier == KEYID_MOUSE_DELTA_2D || keyIdentifier == KEYID_ANDROID_JOY_2D) && deviceType != INPUT_DEVICE_TYPE::INVALID_DEVICE){
 		return GetValueFromDevice[+deviceType](keyIdentifier, readType);
 	}
 
