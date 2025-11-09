@@ -226,7 +226,7 @@ void ScriptTab::Render()
 
         {
             gui::SetID id{ count++ };
-            gui::Group group;
+            gui::Group group{};
 
             if (gui::Button button{ ICON_FA_CODE"##script", gui::Vec2{ THUMBNAIL_SIZE, THUMBNAIL_SIZE } })
 #ifdef GLFW
