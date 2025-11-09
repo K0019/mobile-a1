@@ -63,7 +63,7 @@ void RenderComponent::EditorDraw()
     {
         size_t meshCount = mesh->handles.size();
         std::string materialHeaderLabel = "Materials (" + std::to_string(meshCount) + ")";
-        if (ImGui::CollapsingHeader(materialHeaderLabel.c_str()))
+        if (gui::CollapsingHeader materialHeader{ materialHeaderLabel.c_str() })
         {
             for (int i = 0; i < meshCount; i++)
             {
@@ -82,13 +82,13 @@ void RenderComponent::EditorDraw()
                 });
                 gui::SameLine();
             
-                if (ImGui::Button(ICON_FA_REPEAT))
+                if (gui::Button repeatButton{ ICON_FA_REPEAT })
                 {
                     materials[i] = mesh->defaultMaterialHashes[i];
                 }
             }
 
-            if (gui::Button("Reset Materials"))
+            if (gui::Button resetButton{ "Reset Materials" })
             {
                 materials.resize(meshCount);
                 for (int i = 0; i < meshCount; i++)
