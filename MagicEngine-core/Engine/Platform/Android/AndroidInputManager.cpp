@@ -228,6 +228,10 @@ void AndroidInputComp::Update() {
         m_value = Vec2{ 0.f, 0.f };
         m_prevDir.clear();
     }
+
+    //let the AndroidInputComp push its [-1,1]^2 each frame, and the input system consumer pull it
+    AndroidInputBridge::PublishVirtualStick(m_value);
+
 #endif
 }
 

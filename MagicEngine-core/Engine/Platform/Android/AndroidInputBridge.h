@@ -22,6 +22,7 @@ All rights reserved.
 
 #pragma once
 #include "pch.h"
+#include <atomic>
 
  /*****************************************************************//*!
 	 \brief
@@ -61,4 +62,9 @@ namespace AndroidInputBridge {
 	Clear one-frame edge flags after you’ve consumed the state.
 *//******************************************************************/
 	void ClearEdges();                 // call once per frame after reading (honestly not sure if needed tho)
+}
+
+namespace AndroidInputBridge {
+	void PublishVirtualStick(const Vec2& v);  // called by your component
+	Vec2  ReadVirtualStick();                  // used by Input system
 }
