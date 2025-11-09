@@ -19,7 +19,10 @@ All rights reserved.
 /******************************************************************************/
 #pragma once
 #include "LuaLibrary/LuaCpp.hpp"
+#pragma warning(push)
+#pragma warning(disable : 4702) // unreachable code
 #include <luabridge3/LuaBridge/LuaBridge.h>
+#pragma warning(pop)
 #include "Utilities/Serializer.h"
 #include "Engine/Events/EventsQueue.h"
 
