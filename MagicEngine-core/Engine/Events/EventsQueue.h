@@ -68,6 +68,21 @@ public:
 };
 using EventHandlerHandle = size_t;
 
+// Use this class to store an EventHandlerHandle that automatically deletes it from the event queue when it goes out of scope
+class AutoEventHandler
+{
+public:
+	AutoEventHandler(EventHandlerHandle handle = 0);
+	AutoEventHandler(const AutoEventHandler&) = delete;
+	~AutoEventHandler();
+
+	void Assign(EventHandlerHandle newHandle);
+	void Dispose();
+
+private:
+	EventHandlerHandle handle;
+};
+
 namespace internal {
 
 	template <typename EventType, typename FuncType, typename ReturnType = std::invoke_result_t<FuncType, const EventType&>>

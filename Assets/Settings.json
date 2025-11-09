@@ -26,15 +26,29 @@
             "value": {
                 "actions": [
                     {
-                        "key": "ClickTest",
+                        "key": "AndroidJoystick",
                         "value": {
-                            "compositeType": 0,
+                            "compositeType": 2,
                             "bindings": [
                                 {
-                                    "hardwareLink": {
-                                        "deviceType": 0,
-                                        "keyIdentifier": 0
-                                    }
+                                    "hardwareLink": [
+                                        {
+                                            "deviceType": 2,
+                                            "keyIdentifier": 0
+                                        },
+                                        {
+                                            "deviceType": 2,
+                                            "keyIdentifier": 1
+                                        },
+                                        {
+                                            "deviceType": 2,
+                                            "keyIdentifier": 2
+                                        },
+                                        {
+                                            "deviceType": 2,
+                                            "keyIdentifier": 3
+                                        }
+                                    ]
                                 }
                             ]
                         }

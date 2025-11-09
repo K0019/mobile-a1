@@ -45,6 +45,8 @@
       "features": ["vulkan"],
 	    "platform": "!android"
     },
+    "lua",
+    "luabridge3",
     "meshoptimizer",
     {
       "name": "mikktspace",

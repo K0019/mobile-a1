@@ -90,8 +90,8 @@ prefabs/player.prefab
 scenes/defaultscene.scene
 scenes/defaultscene_backup.scene
 scenes/openscenes.json
-scripts/deletewhenthere'ssomething.txt
-scripts/testscript.cs
+scripts/test - copy.lua
+scripts/test.lua
 shaders/bloom_compose.frag
 shaders/blur_horiz.frag
 shaders/blur_vert.frag
