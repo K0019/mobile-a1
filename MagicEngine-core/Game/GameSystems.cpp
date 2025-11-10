@@ -26,7 +26,7 @@ All rights reserved.
 #include "Engine/SceneManagement.h"
 #include "Managers/AudioManager.h"
 
-#include "Graphics/GraphicsECSMesh.h"
+#include "Graphics/RenderComponent.h"
 #include "Graphics/PostProcessingComponent.h"
 #include "Graphics/TextSystem.h"
 #include "Graphics/CustomViewport.h"

@@ -23,7 +23,7 @@ All rights reserved.
 #include "FilepathConstants.h"
 #include "graphics/features/grid_feature.h"
 #include "Editor/EditorCameraBridge.h"
-#include "Graphics/GraphicsECSMesh.h"
+#include "Graphics/RenderComponent.h"
 #include "Graphics/LightComponent.h"
 #include "Engine/Resources/ResourceManager.h"
 

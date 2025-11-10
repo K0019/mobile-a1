@@ -5,7 +5,7 @@
 #define LOG_TAG "ryEngine"
 #endif
 
-#include "Graphics/GraphicsECSMesh.h"
+#include "Graphics/RenderComponent.h"
 #include "EntityUID.h"
 #include "Engine/Audio.h"
 #include "Engine/BehaviorTree/BehaviourTree.h"

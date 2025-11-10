@@ -19,7 +19,7 @@ All rights reserved.
 */
 /******************************************************************************/
 #include "VFS/VFS.h"
-#include "Graphics/GraphicsECSMesh.h"
+#include "Graphics/RenderComponent.h"
 #include "Engine/Resources/ResourceManager.h"
 #include "Editor/Containers/GUICollection.h"
 
