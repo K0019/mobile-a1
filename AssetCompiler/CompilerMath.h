@@ -39,10 +39,10 @@ namespace compiler
     struct Vertex
     {
         vec3 position;
-        vec3 normal;
-        vec4 tangent; // xyz = tangent direction, w = bitangent handedness
         float uv_x;
+        vec3 normal;
         float uv_y;
+        vec4 tangent; // xyz = tangent direction, w = bitangent handedness
 
         //uint8_t  bone_indices[4] = { 0 };
         //uint8_t  bone_weights[4] = { 0 };
