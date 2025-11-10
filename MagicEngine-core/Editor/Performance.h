@@ -24,10 +24,11 @@ All rights reserved.
 
 #pragma once
 #include <chrono>
-#include "Editor/Containers/GUICollection.h"
+#include "Editor/Containers/GUIAsECS.h"
 
-class PerformanceProfiler : public gui::Window {
-    public:
+class PerformanceProfiler
+{
+public:
     // Enable singleton without exposing constructor/destructor
     friend class ST<PerformanceProfiler>;
 
@@ -47,6 +48,8 @@ class PerformanceProfiler : public gui::Window {
          */
         SystemProfileDuration();
     };
+
+    using SystemTimesContType = std::unordered_map<std::string, SystemProfileDuration>;
 
     /**
      * \brief Starts a new frame for performance profiling.
@@ -74,6 +77,7 @@ class PerformanceProfiler : public gui::Window {
      * \brief Sleep until next frame.
      * \parram targetFPS
      */
+    [[deprecated("Use GameTime::WaitUntilNextFrame() instead")]]
     void WaitTillNextFrame(float targetFPS);
 
     /**
@@ -94,65 +98,56 @@ class PerformanceProfiler : public gui::Window {
      */
     float GetDeltaTime() const;
 
-    /*****************************************************************//*!
-    \brief
-        Gets whether this window is open.
-    \return
-        True if this window is open. False otherwise.
-    *//******************************************************************/
-    bool GetIsOpen() const;
+    const SystemTimesContType& GetSystemTimes() const;
 
-    /*****************************************************************//*!
-    \brief
-        Sets whether this window is open.
-    \param newIsOpen
-        Whether this window is open.
-    *//******************************************************************/
-    void SetIsOpen(bool newIsOpen);
-
-    /**
-     * \brief Draws the performance profiler window.
-     */
-    void DrawContents() override;
-
-    private:
-
+private:
     PerformanceProfiler();
     PerformanceProfiler(const PerformanceProfiler&) = delete;
     PerformanceProfiler& operator=(const PerformanceProfiler&) = delete;
-
-    struct ProfileData {
-        std::string name;
-        Duration duration;
-    };
 
     TimePoint startFrameTime;
     TimePoint lastFrameTime;
     Duration totalFrameTime;
     float deltaTime;
-    float max_memory;
     std::unordered_map<std::string, TimePoint> startTimes;
-    std::unordered_map<std::string, SystemProfileDuration> systemTimes;
+    SystemTimesContType systemTimes;
 
-    // For framerate graph
-    static constexpr size_t MAX_GRAPH_PLOT = 40;
-    std::vector<float> fpsGraph;
-    std::vector<float> memoryGraph;
-    std::vector<float> gpuFrameTimeGraph;
-
-    bool skipFirstFrame = true;
-
-    /**
-     * \brief Updates the FPS graph with a new FPS value.
-     * \param fps The new FPS value.
-     */
-    void UpdateFPSGraph(float fps);
-
-    /**
-     * \brief Updates the memory graph with a new memory value.
-     * \param memory The new memory value.
-     */
-    void UpdateMemoryGraph(float memory);
-
-    void UpdateGPU(float gpuFrameTime);
 };
+
+namespace editor {
+
+    class PerformanceWindow : public WindowBase<PerformanceWindow>
+    {
+    public:
+        PerformanceWindow();
+
+        void DrawWindow() override;
+
+    private:
+        /**
+         * \brief Updates the FPS graph with a new FPS value.
+         * \param fps The new FPS value.
+         */
+        void UpdateFPSGraph(float fps);
+
+        /**
+         * \brief Updates the memory graph with a new memory value.
+         * \param memory The new memory value.
+         */
+        void UpdateMemoryGraph(float memory);
+
+        void UpdateGPU(float gpuFrameTime);
+
+    private:
+        //! The first frame that this window is open may not have valid data.
+        bool skipFirstFrame;
+
+        // For framerate graph
+        static constexpr size_t MAX_GRAPH_PLOT{ 40 };
+        float max_memory;
+        std::vector<float> fpsGraph;
+        std::vector<float> memoryGraph;
+        std::vector<float> gpuFrameTimeGraph;
+    };
+    
+}

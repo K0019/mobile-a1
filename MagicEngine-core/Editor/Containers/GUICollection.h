@@ -1646,10 +1646,23 @@ namespace gui {
 
 #pragma endregion // Images
 
+#pragma region Graphs
+
+	// ImGui::PlotLines()
+	template <typename ContType>
+		requires util::ConvertibleToCArray<ContType> && std::is_same_v<typename ContType::value_type, float>
+	void PlotLines(const char* label, const ContType& cont, Vec2 graphSize, float scaleMin = std::numeric_limits<float>::max(), float scaleMax = std::numeric_limits<float>::max(), const char* overlayText = nullptr);
+
+#pragma endregion
+
 #pragma region Custom Drawables
 
+	//! ImGui::GetWindowDrawList()->AddLine()
+	void DrawLine(Vec2 p0, Vec2 p1, const Vec4& color);
 	//! ImGui::GetWindowDrawList()->AddTriangleFilled()
 	void DrawTriangle(Vec2 p0, Vec2 p1, Vec2 p2, const Vec4& color);
+	//! ImGui::GetWindowDrawList()->AddText()
+	void DrawText(const char* text, Vec2 pos, const Vec4& color);
 
 #pragma endregion // Custom Drawables
 

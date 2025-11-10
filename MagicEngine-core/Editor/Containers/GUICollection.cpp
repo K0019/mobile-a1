@@ -926,10 +926,24 @@ namespace gui {
 #endif
 	}
 
+	void DrawLine([[maybe_unused]] Vec2 p0, [[maybe_unused]] Vec2 p1, [[maybe_unused]] const Vec4& color)
+	{
+#ifdef IMGUI_ENABLED
+		ImGui::GetWindowDrawList()->AddLine(p0, p1, ImGui::ColorConvertFloat4ToU32(color));
+#endif
+	}
+
 	void DrawTriangle([[maybe_unused]] Vec2 p0, [[maybe_unused]] Vec2 p1, [[maybe_unused]] Vec2 p2, [[maybe_unused]] const Vec4& color)
 	{
 #ifdef IMGUI_ENABLED
 		ImGui::GetWindowDrawList()->AddTriangleFilled(p0, p1, p2, ImGui::ColorConvertFloat4ToU32(color));
+#endif
+	}
+
+	void DrawText([[maybe_unused]] const char* text, Vec2 pos, [[maybe_unused]] const Vec4& color)
+	{
+#ifdef IMGUI_ENABLED
+		ImGui::GetWindowDrawList()->AddText(pos, ImGui::ColorConvertFloat4ToU32(color), text);
 #endif
 	}
 

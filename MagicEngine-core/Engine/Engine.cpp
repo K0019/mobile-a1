@@ -84,7 +84,7 @@ namespace
 		ecs::SwitchToPool(ecs::POOL::EDITOR_GUI);
 		Serializer serializer{ filename };
 		serializer.Serialize("show_console", ecs::GetCompsBegin<editor::Console>() != ecs::GetCompsEnd<editor::Console>());
-		serializer.Serialize("show_performance", ST<PerformanceProfiler>::Get()->GetIsOpen());
+		serializer.Serialize("show_performance", ecs::GetCompsBegin<editor::PerformanceWindow>() != ecs::GetCompsEnd<editor::PerformanceWindow>());
 		serializer.Serialize("show_editor", ST<Inspector>::Get()->GetIsOpen());
 		//serializer.Serialize("show_settings", ST<SettingsWindow>::Get()->GetIsOpen());
 		serializer.Serialize("show_browser", show_browser);
@@ -96,18 +96,20 @@ namespace
 		std::ifstream t(filename); //Should be safe, only used on windows
 		std::stringstream buffer;
 		buffer << t.rdbuf();
-		Deserializer deserializer{ buffer.str()};
-
-		//Deserializer deserializer{ filename };
+		Deserializer deserializer{ buffer.str() };
 		if (!deserializer.IsValid())
 			return;
 
-		bool b{};
-		deserializer.DeserializeVar("show_console", &b);
-		if (b)
-			editor::CreateGuiWindow<editor::Console>();
+		auto LoadWindowOpen{ [&deserializer, b = false]<typename WindowType>(const char* varName) mutable -> void {
+			deserializer.DeserializeVar(varName, &b);
+			if (b)
+				editor::CreateGuiWindow<WindowType>();
+		} };
 
-		deserializer.DeserializeVar("show_performance", &b), ST<PerformanceProfiler>::Get()->SetIsOpen(b);
+		LoadWindowOpen.template operator()<editor::Console>("show_console");
+		LoadWindowOpen.template operator()<editor::PerformanceWindow>("show_performance");
+
+		bool b{};
 		deserializer.DeserializeVar("show_editor", &b), ST<Inspector>::Get()->SetIsOpen(b);
 		//deserializer.DeserializeVar("show_settings", &b), ST<SettingsWindow>::Get()->SetIsOpen(b);
 		deserializer.DeserializeVar("show_browser", &show_browser);
@@ -231,7 +233,6 @@ void MagicEngine::Init(Context& context)
 
 void MagicEngine::ExecuteFrame(FrameData& frameData)
 {
-
 	// Update tracking of framerate and frametime
 	GameTime::WaitUntilNextFrame();
 	ST<PerformanceProfiler>::Get()->StartFrame();
@@ -249,10 +250,6 @@ void MagicEngine::ExecuteFrame(FrameData& frameData)
 	ST<GraphicsMain>::Get()->BeginImGuiFrame();
 
 	// TODO: Convert all of these window singletons into the ecs versions so we can support multiple instances of a single window.
-	if(ST<PerformanceProfiler>::Get()->GetIsOpen())
-	{
-		ST<PerformanceProfiler>::Get()->Draw();
-	}
 	if(ST<Inspector>::Get()->GetIsOpen())
 	{
 		ST<Inspector>::Get()->Draw();
@@ -313,7 +310,7 @@ void MagicEngine::ExecuteFrame(FrameData& frameData)
 			}
 			if(ImGui::MenuItem("Performance"))
 			{
-				ST<PerformanceProfiler>::Get()->SetIsOpen(true);
+				editor::CreateGuiWindow<editor::PerformanceWindow>();
 				ImGui::SetWindowFocus(ICON_FA_GAUGE_HIGH" Performance");
 			}
 			if(ImGui::MenuItem("Inspector"))
