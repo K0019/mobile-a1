@@ -91,7 +91,7 @@ namespace
 		serializer.Serialize("show_editor", ecs::GetCompsBegin<editor::Inspector>() != ecs::GetCompsEnd<editor::Inspector>());
 		//serializer.Serialize("show_settings", ST<SettingsWindow>::Get()->GetIsOpen());
 		serializer.Serialize("show_browser", ecs::GetCompsBegin<editor::AssetBrowser>() != ecs::GetCompsEnd<editor::AssetBrowser>());
-		serializer.Serialize("show_hierarchy", ST<Hierarchy>::Get()->isOpen);
+		serializer.Serialize("show_hierarchy", ecs::GetCompsBegin<editor::Hierarchy>() != ecs::GetCompsEnd<editor::Hierarchy>());
 		ecs::SwitchToPool(ecs::POOL::DEFAULT);
 	}
 	void loadState(const char* filename) {
@@ -112,10 +112,10 @@ namespace
 		LoadWindowOpen.template operator()<editor::Console>("show_console");
 		LoadWindowOpen.template operator()<editor::PerformanceWindow>("show_performance");
 		LoadWindowOpen.template operator()<editor::Inspector>("show_editor");
-		LoadWindowOpen.template operator()<editor::AssetBrowser >("show_browser");
+		LoadWindowOpen.template operator()<editor::AssetBrowser>("show_browser");
+		LoadWindowOpen.template operator()<editor::Hierarchy>("show_hierarchy");
 
 		//deserializer.DeserializeVar("show_settings", &b), ST<SettingsWindow>::Get()->SetIsOpen(b);
-		deserializer.DeserializeVar("show_hierarchy", &ST<Hierarchy>::Get()->isOpen);
 	}
 }
 #endif
@@ -259,10 +259,6 @@ void MagicEngine::ExecuteFrame(FrameData& frameData)
 	{
 		ST<PrefabWindow>::Get()->DrawSaveLoadPrompt(&ST<PrefabWindow>::Get()->IsOpen());
 	}
-	if(ST<Hierarchy>::Get()->isOpen)
-	{
-		ST<Hierarchy>::Get()->Draw();
-	}
 	ST<Popup>::Get()->Draw();
 
 	// Draw editor windows
@@ -321,7 +317,7 @@ void MagicEngine::ExecuteFrame(FrameData& frameData)
 			}
 			if(ImGui::MenuItem("Hierarchy", 0, false))
 			{
-				ST<Hierarchy>::Get()->isOpen = true;
+				editor::CreateGuiWindow<editor::Hierarchy>();
 				ImGui::SetWindowFocus(ICON_FA_SITEMAP" Hierarchy");
 			}
 
@@ -413,9 +409,6 @@ void MagicEngine::shutdown()
 	ST<RegisteredComponents>::Destroy();
 	ST<PrefabManager>::Destroy();
 	ST<PrefabWindow>::Destroy();
-#ifdef IMGUI_ENABLED
-	ST<Hierarchy>::Destroy();
-#endif
 	ST<History>::Destroy();
 
 	ecs::Shutdown();
