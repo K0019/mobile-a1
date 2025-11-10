@@ -24,7 +24,9 @@ All rights reserved.
 #include "Editor/Editor.h"
 #include "Engine/Events/EventsTypeEditor.h"
 
+#include "Engine/Input.h"
 #include "Editor/EditorHistory.h"
+#include "Editor/EditorGizmoBridge.h"
 
 namespace editor {
 
@@ -44,7 +46,7 @@ namespace editor {
 	{
 		UpdateSelectedEntity();
 
-		return false;
+		return false; // No components to run
 	}
 
 	void EditorSystem::UpdateSelectedEntity()
@@ -80,6 +82,30 @@ namespace editor {
 			selectedEntity = ecs::CreateEntity();
 			ST<History>::Get()->OneEvent(HistoryEvent_EntityCreate{ selectedEntity });
 		});
+	}
+
+	bool EditorInputSystem::PreRun()
+	{
+		if (ST<KeyboardMouseInput>::Get()->GetIsDown(KEY::LCTRL))
+			if (ST<KeyboardMouseInput>::Get()->GetIsPressed(KEY::Z))
+				ST<History>::Get()->UndoOne();
+			else if (ST<KeyboardMouseInput>::Get()->GetIsPressed(KEY::Y))
+				ST<History>::Get()->RedoOne();
+
+		if (ST<KeyboardMouseInput>::Get()->GetIsPressed(KEY::DEL))
+			ST<EventsQueue>::Get()->AddEventForNextFrame(Events::EditorDeleteSelectedEntity{});
+
+		if (ST<KeyboardMouseInput>::Get()->GetIsPressed(KEY::F1)) {
+			EditorGizmo_Publish(ImGuizmo::TRANSLATE, ImGuizmo::WORLD /* or LOCAL */);
+		}
+		if (ST<KeyboardMouseInput>::Get()->GetIsPressed(KEY::F2)) {
+			EditorGizmo_Publish(ImGuizmo::ROTATE, EditorGizmo_Mode());
+		}
+		if (ST<KeyboardMouseInput>::Get()->GetIsPressed(KEY::F3)) {
+			EditorGizmo_Publish(ImGuizmo::SCALE, EditorGizmo_Mode());
+		}
+
+		return false; // No components to run
 	}
 
 }

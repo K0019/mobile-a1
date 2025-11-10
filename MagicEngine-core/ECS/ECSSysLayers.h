@@ -30,8 +30,9 @@ enum class ECS_LAYER : int
 {
 	CUTOFF_START, // --- UNUSED
 
-	//! Systems added to these layers will always run and will never be removed. (see Engine.cpp)
+	//! Systems added to these permanent layers will always run and will never be removed. (see Engine.cpp)
 	PERMANENT_EDITOR,
+	PERMANENT_INPUT,
 	PERMANENT_UPDATE,
 	PERMANENT_RENDER,
 

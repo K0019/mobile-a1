@@ -30,6 +30,7 @@ All rights reserved.
 
 // Permanent systems
 #include "Editor/Editor.h"
+#include "Editor/Gizmo.h"
 
 #include "Editor/Console.h"
 #include "Editor/Performance.h"
@@ -89,7 +90,7 @@ namespace
 		Serializer serializer{ filename };
 		serializer.Serialize("show_console", ecs::GetCompsBegin<editor::Console>() != ecs::GetCompsEnd<editor::Console>());
 		serializer.Serialize("show_performance", ecs::GetCompsBegin<editor::PerformanceWindow>() != ecs::GetCompsEnd<editor::PerformanceWindow>());
-		serializer.Serialize("show_editor", ST<Inspector>::Get()->GetIsOpen());
+		serializer.Serialize("show_editor", ecs::GetCompsBegin<editor::Inspector>() != ecs::GetCompsEnd<editor::Inspector>());
 		//serializer.Serialize("show_settings", ST<SettingsWindow>::Get()->GetIsOpen());
 		serializer.Serialize("show_browser", show_browser);
 		serializer.Serialize("show_hierarchy", ST<Hierarchy>::Get()->isOpen);
@@ -112,9 +113,9 @@ namespace
 
 		LoadWindowOpen.template operator()<editor::Console>("show_console");
 		LoadWindowOpen.template operator()<editor::PerformanceWindow>("show_performance");
+		LoadWindowOpen.template operator()<editor::Inspector>("show_editor");
 
 		bool b{};
-		deserializer.DeserializeVar("show_editor", &b), ST<Inspector>::Get()->SetIsOpen(b);
 		//deserializer.DeserializeVar("show_settings", &b), ST<SettingsWindow>::Get()->SetIsOpen(b);
 		deserializer.DeserializeVar("show_browser", &show_browser);
 		deserializer.DeserializeVar("show_hierarchy", &ST<Hierarchy>::Get()->isOpen);
@@ -254,14 +255,10 @@ void MagicEngine::ExecuteFrame(FrameData& frameData)
 #ifdef IMGUI_ENABLED
 	ST<GraphicsMain>::Get()->BeginImGuiFrame();
 
-	// Run editor systems (not windows)
+	// Run permanent editor systems (not windows)
 	ecs::RunSystems(ECS_LAYER::PERMANENT_EDITOR);
 
 	// TODO: Convert all of these window singletons into the ecs versions so we can support multiple instances of a single window.
-	if(ST<Inspector>::Get()->GetIsOpen())
-	{
-		ST<Inspector>::Get()->Draw();
-	}
 	if(show_browser)
 	{
 		ST<AssetBrowser>::Get()->Draw(&show_browser);
@@ -275,7 +272,6 @@ void MagicEngine::ExecuteFrame(FrameData& frameData)
 		ST<Hierarchy>::Get()->Draw();
 	}
 	ST<Popup>::Get()->Draw();
-	//ST<Inspector>::Get()->RenderGrid();
 
 	// Draw editor windows
 	ecs::SwitchToPool(ecs::POOL::EDITOR_GUI);
@@ -323,7 +319,7 @@ void MagicEngine::ExecuteFrame(FrameData& frameData)
 			}
 			if(ImGui::MenuItem("Inspector"))
 			{
-				ST<Inspector>::Get()->SetIsOpen(true);
+				editor::CreateGuiWindow<editor::Inspector>();
 				ImGui::SetWindowFocus(ICON_FA_MAGNIFYING_GLASS" Inspector");
 			}
 			if(ImGui::MenuItem("Browser"))
@@ -355,13 +351,7 @@ void MagicEngine::ExecuteFrame(FrameData& frameData)
 	// manage user input
 	// -----------------
 	ST<PerformanceProfiler>::Get()->StartProfile("Process Input");
-#ifdef IMGUI_ENABLED
-	ST<Inspector>::Get()->ProcessInput();
-	// TODO: Put this in some editor windows manager class. In fact, all of this imgui stuff needs to be put in that class or subclasses.
-	/*if (ST<KeyboardMouseInput>::Get()->GetIsPressed(KEY::GRAVE))
-		ST<Console>::Get()->SetIsOpen(!ST<Console>::Get()->GetIsOpen());*/
-
-#endif
+	ecs::RunSystems(ECS_LAYER::PERMANENT_INPUT);
 
 	if(ST<KeyboardMouseInput>::Get()->GetIsPressed(KEY::F11))
 	{
@@ -428,9 +418,6 @@ void MagicEngine::shutdown()
 	
 	ST<BTFactory>::Destroy();
 
-#ifdef IMGUI_ENABLED
-	ST<Inspector>::Destroy();
-#endif
 	ST<HiddenComponentsStore>::Destroy();
 	ST<RegisteredComponents>::Destroy();
 	ST<PrefabManager>::Destroy();
@@ -438,6 +425,7 @@ void MagicEngine::shutdown()
 #ifdef IMGUI_ENABLED
 	ST<Hierarchy>::Destroy();
 #endif
+	ST<History>::Destroy();
 
 	ecs::Shutdown();
 
@@ -460,6 +448,7 @@ void MagicEngine::LoadPermanentSystems()
 {
 #ifdef IMGUI_ENABLED
 	ecs::AddSystem(ECS_LAYER::PERMANENT_EDITOR, editor::EditorSystem{});
+	ecs::AddSystem(ECS_LAYER::PERMANENT_INPUT, editor::EditorInputSystem{});
 	ecs::AddSystem(ECS_LAYER::PERMANENT_RENDER, editor::SelectedEntityBorderDrawSystem{}); // TODO: System is currently unimplemented
 #endif
 }

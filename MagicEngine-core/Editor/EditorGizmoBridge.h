@@ -20,6 +20,7 @@ All rights reserved.
 /******************************************************************************/
 #pragma once
 #ifdef IMGUI_ENABLED
+#include <ImGui/ImguiHeader.h>
 #include "ImGuizmo.h"
 #endif
 

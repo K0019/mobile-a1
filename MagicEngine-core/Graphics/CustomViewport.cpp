@@ -120,10 +120,8 @@ void CustomViewport::DrawWindow()
 		ImGui::Image(*sceneColorID, renderSize, ImVec2(0, 0), ImVec2(1, 1));
 	}
 
+	m_gizmo.Draw(ST<EventsQueue>::Get()->RequestValueFromEventHandlers<ecs::EntityHandle>(Getters::EditorSelectedEntity{}).value_or(nullptr));
 
-	ImDrawList* drawList = ImGui::GetWindowDrawList();
-	updateCurrentEntity(ST<EventsQueue>::Get()->RequestValueFromEventHandlers<ecs::EntityHandle>(Getters::EditorSelectedEntity{}).value_or(nullptr));
-	m_gizmo.Draw(drawList);
 	//==========================
 
 	gui::PayloadTarget<std::string>("PREFAB", [camera = &camera](const std::string& prefabName) -> void {
@@ -455,16 +453,6 @@ Vec2 CustomViewport::GetViewportRenderSize() const
 	return { viewportRenderSize.x, viewportRenderSize.y };
 }
 
-void CustomViewport::updateCurrentEntity([[maybe_unused]] ecs::EntityHandle entity) {
-#ifdef IMGUI_ENABLED
-	if (entity) {
-		m_gizmo.Attach(entity->GetTransform());
-	}
-	else {
-		m_gizmo.Detach();
-	}
-#endif
-}
 Camera CustomViewport::GetViewportCamera() const
 {
 	return Camera{ camera };

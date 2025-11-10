@@ -48,4 +48,11 @@ namespace editor {
 
 	};
 
+	class EditorInputSystem : public ecs::System<EditorInputSystem>
+	{
+	public:
+		// Update function
+		bool PreRun() override;
+	};
+
 }

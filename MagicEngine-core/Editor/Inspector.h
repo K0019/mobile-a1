@@ -22,55 +22,49 @@ All rights reserved.
 /******************************************************************************/
 
 #pragma once
-#include "Editor/Console.h"
-#include "Editor/Gizmo.h"
+#include "Editor/Containers/GUIAsECS.h"
+
+namespace editor {
+
+	class Inspector : public WindowBase<Inspector>
+	{
 #ifdef IMGUI_ENABLED
-#include "ImGuizmo.h"
-#endif
+	public:
+		Inspector();
 
-class Inspector : public gui::Window
-{
-#ifdef IMGUI_ENABLED
-public:
-	Inspector();
-	~Inspector();
+		void DrawContainer(int id) override;
 
-	/**
-	* \brief Processes the user input for the editor.
-	*/
-	void ProcessInput();
+		/**
+		* \brief Draws the user interface for the editor.
+		*/
+		void DrawWindow() override;
 
-	void DrawContainer(int id) override;
+	private:
+		/*****************************************************************//*!
+		\brief
+			Draws the selected entity's name and layer.
+		*//******************************************************************/
+		void DrawEntityHeader(ecs::EntityHandle selectedEntity);
 
-	/**
-	* \brief Draws the user interface for the editor.
-	*/
-	void DrawContents() override;
+		/*****************************************************************//*!
+		\brief
+			Draws the selected entity's components.
+		*//******************************************************************/
+		void DrawEntityComps(ecs::EntityHandle selectedEntity);
 
-private:
-	/*****************************************************************//*!
-	\brief
-		Draws the selected entity's name and layer.
-	*//******************************************************************/
-	void DrawEntityHeader(ecs::EntityHandle selectedEntity);
+		/*****************************************************************//*!
+		\brief
+			Draws the add component section.
+		*//******************************************************************/
+		void DrawAddComp(ecs::EntityHandle selectedEntity);
 
-	/*****************************************************************//*!
-	\brief
-		Draws the selected entity's components.
-	*//******************************************************************/
-	void DrawEntityComps(ecs::EntityHandle selectedEntity);
-
-	/*****************************************************************//*!
-	\brief
-		Draws the add component section.
-	*//******************************************************************/
-	void DrawAddComp(ecs::EntityHandle selectedEntity);
-
-	/*****************************************************************//*!
-	\brief
-		Draw buttons that interact with the selected entity.
-	*//******************************************************************/
-	void DrawEntityActionsButton(ecs::EntityHandle selectedEntity);
+		/*****************************************************************//*!
+		\brief
+			Draw buttons that interact with the selected entity.
+		*//******************************************************************/
+		void DrawEntityActionsButton(ecs::EntityHandle selectedEntity);
 
 #endif
-};
+	};
+
+}

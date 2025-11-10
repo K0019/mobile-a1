@@ -86,7 +86,6 @@ public:
      */
     Vec2 GetViewportRenderSize() const;
 
-    void updateCurrentEntity(ecs::EntityHandle entity);
     Camera GetViewportCamera() const;
 
     std::string name; /**< The name of the ImGui Window. Specifically put here because I use it more than once*/
@@ -99,7 +98,7 @@ private:
     gui::Vec2 contentMax; /**< The maximum position of the content region. */
     gui::Vec2 viewportRenderSize; /**< The render size of the viewport. */
 #ifdef IMGUI_ENABLED
-    Gizmo m_gizmo;
+    editor::Gizmo m_gizmo;
 #endif
     CameraPositioner_FirstPerson camera;
 
