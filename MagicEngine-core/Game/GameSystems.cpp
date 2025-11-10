@@ -26,7 +26,7 @@ All rights reserved.
 #include "Engine/SceneManagement.h"
 #include "Managers/AudioManager.h"
 
-#include "Graphics/GraphicsECSMesh.h"
+#include "Graphics/RenderComponent.h"
 #include "Graphics/PostProcessingComponent.h"
 #include "Graphics/TextSystem.h"
 #include "Graphics/CustomViewport.h"
@@ -36,13 +36,11 @@ All rights reserved.
 #include "Graphics/CameraSystem.h"
 #include "Tween/TweenECS.h"
 #include "Game/AudioListener.h"
-#include "Graphics/LightingSystem.h"
 #include "Game/GameCameraController.h"
 #include "Game/GrabbableItem.h"
 #include "Game/PlayerCharacter.h"
 #include "Game/Character.h"
 #include "Engine/Audio.h"
-#include "Graphics/TrailSystem.h"
 #include "Game/PrefabSpawner.h"
 #include "Physics/Physics.h"
 
@@ -60,9 +58,7 @@ void GameStateBase::OnExit()
 
 void GameState_Common::OnEnter()
 {
-    ecs::AddSystem(ECS_LAYER::RENDER_0, RenderSystem{});
-    ecs::AddSystem(ECS_LAYER::RENDER_0, TrailRendererDrawingSystem{});
-    ecs::AddSystem(ECS_LAYER::RENDER_0, LightingSystem{});
+    // RenderSystem and LightingSystem removed - GraphicsMain now reads directly from ECS components
     ecs::AddSystem(ECS_LAYER::RENDER_0, PostProcessingSystem{});
     ecs::AddSystem(ECS_LAYER::RENDER_UI_0, TextSystem{});
 
@@ -76,7 +72,6 @@ void GameState_Editor::OnEnter()
     GameState_Common::OnEnter();
 
     ecs::AddSystem(ECS_LAYER::SCRIPT_PREAWAKE, ScriptRefreshListenerSystem{});
-    ecs::AddSystem(ECS_LAYER::PRE_PHYSICS_0, TrailRendererSystem{});
     ecs::AddSystem(ECS_LAYER::PRE_UPDATE_0, UndoShakeSystem{});
     ecs::AddSystem(ECS_LAYER::POST_PHYSICS_1, ShakeSystem{});
 
@@ -89,7 +84,6 @@ void GameState_Game::OnEnter()
 
     ecs::AddSystem(ECS_LAYER::PRE_UPDATE_0, UndoShakeSystem{});
 
-    ecs::AddSystem(ECS_LAYER::PRE_PHYSICS_0, TrailRendererSystem{});
     ecs::AddSystem(ECS_LAYER::INPUT_0, CheatCodes{});
     ecs::AddSystem(ECS_LAYER::INPUT_0, AndroidInputSystem{});
 
