@@ -146,6 +146,8 @@ bool MagicEngine::IsShuttingDown() const
 
 void MagicEngine::Init(Context& context)
 {
+	CrashHandler::SetupCrashHandler(); // DO NOT REMOVE THIS LINE EVER
+
 	RegisterShit();
 #ifdef GLFW
 	// The ifdef is to prevent double loading on android's side.
@@ -161,7 +163,6 @@ void MagicEngine::Init(Context& context)
 	CONSOLE_LOG(LEVEL_INFO) << "Current working directory: " << std::filesystem::canonical(Filepaths::workingDir);
 	CONSOLE_LOG(LEVEL_INFO) << "Actual working directory: " << std::filesystem::current_path();
 #endif
-	CrashHandler::SetupCrashHandler(); // DO NOT REMOVE THIS LINE EVER
 
 	// Scripting MagicEngine Initialisation
 	ST<LuaScripting>::Get()->Init();
