@@ -90,4 +90,20 @@ namespace compiler
     // A ProcessedAnimation describes an animation "file", and each ProcessedBoneChannel describes the movement of each bone during the animation.
 
 // Morph animtion
-    // Again, a morph animation will have a vector of channels, with each channel describing
+// MorphTargetVertexDelta - move vertexIndex by deltaPosition
+// MorphTargetData - the shape to morph to. Groups a bunch of MorphTargetVertexDelta together to make a shape
+// ProcessedMesh - Holds vector<MorphTargetData>, the list of shapes able to be morphed to.
+// ProcessedMorphKey - A single keyframe of animation. Time, indices, weights.
+//      - At time xx, use weight[i] of shape[i] amd weight[j] of shape[j].
+// ProcessedMorphChannel - A group of keyframes, when combined together, animates a single mesh over time.
+// ProcessedAnimation(morph) - A group of MorphChannels, each animating a single mesh. Together, forms an entire animation clip.
+
+// How it's all linked?
+// For each morph channel inside ProcessedAnimation -> morphChannel.index -> i want mesh at index 5 out of the 21 meshes inside Aji
+// -> i need to apply the keyframes(morphkeys) inside this channel to mesh #5
+// ProcessedMorphKey.targetindices are linked as such. Say targetIndices is {0, 2}, then
+// -> in mesh#5.morphTargets[0] and mesh#5.morphTargets[2] will have ProcessedMorphKeys.weights applied to it.
+// -> lastly, MorphTargetData holds MorphTargetData.deltas[], which are just the vertices to be morphed.
+
+
+

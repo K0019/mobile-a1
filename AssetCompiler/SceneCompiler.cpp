@@ -224,9 +224,19 @@ namespace compiler
                 continue;
             }
 
+            if (inOptions.generateTangents)
+            {
+                if (!MeshOptimizer::generateTangents(mesh.vertices, mesh.indices, 
+                                                     mesh.skinning.empty() ? nullptr : &mesh.skinning, mesh.morphTargets.empty() ? nullptr : &mesh.morphTargets))
+                {
+                    processingResult.warnings.push_back("MeshOptimizer::generateTangents failed");
+                }
+            }
+
             if (inOptions.optimize && MeshOptimizer::shouldOptimize(mesh.vertices, mesh.indices))
             {
-                auto result = MeshOptimizer::optimize(mesh.vertices, mesh.indices, inOptions.generateTangents);
+                auto result = MeshOptimizer::optimize(mesh.vertices, mesh.indices, 
+                                                      mesh.skinning.empty() ? nullptr : &mesh.skinning, mesh.morphTargets.empty() ? nullptr : &mesh.morphTargets);
 
                 if (!result.success)
                 {
@@ -234,17 +244,9 @@ namespace compiler
                 }
             }
 
-            if (inOptions.generateTangents)
-            {
-                if (!MeshOptimizer::generateTangents(mesh.vertices, mesh.indices))
-                {
-                    processingResult.warnings.push_back("MeshOptimizer::generateTangents failed");
-                }
-            }
-
             if (inOptions.calculateBounds)
             {
-                mesh.bounds = MeshOptimizer::calculateBounds(mesh.vertices);
+                mesh.bounds = MeshOptimizer::calculateBounds(mesh.vertices, mesh.morphTargets.empty() ? nullptr : &mesh.morphTargets);
             }
         }
         return processingResult;
@@ -339,7 +341,11 @@ namespace compiler
 		std::string materialNames; // String with names separated by \0s
 		std::vector<uint32_t> finalIndices;
 		std::vector<Vertex> finalVertices;
+        
         std::vector<SkinningData> finalSkinningData;
+        std::vector<MeshFile_MorphTarget> finalMorphTargets;
+        std::vector<MeshFile_MorphDelta>  finalMorphDeltas;
+        std::string morphTargetNameBuffer;
 
 		// Put material names into lookup map
 		std::map<uint32_t, uint32_t> materialIndexToNameOffset;
@@ -365,6 +371,9 @@ namespace compiler
 			meshInfo.materialNameIndex = materialIndexToNameOffset[mesh.materialIndex];
 			meshInfo.meshBounds = mesh.bounds;
 
+            meshInfo.firstMorphTarget = static_cast<uint32_t>(finalMorphTargets.size());
+            meshInfo.morphTargetCount = static_cast<uint32_t>(mesh.morphTargets.size());
+
 			finalMeshInfos.push_back(meshInfo);
 
 			finalVertices.insert(finalVertices.end(), mesh.vertices.begin(), mesh.vertices.end());
@@ -374,6 +383,31 @@ namespace compiler
 			{
 				finalIndices.push_back(index + vertexOffset);
 			}
+
+            for (const auto& processedTarget : mesh.morphTargets)
+            {
+                MeshFile_MorphTarget target;
+                target.nameOffset = static_cast<uint32_t>(morphTargetNameBuffer.size());
+                morphTargetNameBuffer += processedTarget.name;
+                morphTargetNameBuffer += '\0';
+
+                target.firstDelta = static_cast<uint32_t>(finalMorphDeltas.size());
+                target.deltaCount = static_cast<uint32_t>(processedTarget.deltas.size());
+
+                // Copy the deltas
+                for (const auto& processedDelta : processedTarget.deltas)
+                {
+                    // We must add the vertexOffset to the delta's index
+                    // so it correctly points into the final global vertex buffer
+                    finalMorphDeltas.push_back({
+                        processedDelta.vertexIndex + vertexOffset,
+                        processedDelta.deltaPosition,
+                        processedDelta.deltaNormal,
+                        processedDelta.deltaTangent
+                        });
+                }
+                finalMorphTargets.push_back(target);
+            }
 
 			vertexOffset += static_cast<uint32_t>(mesh.vertices.size());
 			indexOffset += static_cast<uint32_t>(mesh.indices.size());
@@ -429,9 +463,15 @@ namespace compiler
 		header.totalIndices = static_cast<uint32_t>(finalIndices.size());
 		header.totalVertices = static_cast<uint32_t>(finalVertices.size());
 		header.materialNameBufferSize = static_cast<uint32_t>(materialNames.size());
+
         header.hasSkeleton = finalBones.empty() ? 0 : 1;
         header.numBones = (uint32_t)finalBones.size();
         header.boneNameBufferSize = (uint32_t)boneNameBuffer.size();
+
+        header.hasMorphs = finalMorphTargets.empty() ? 0 : 1;
+        header.numMorphTargets = (uint32_t)finalMorphTargets.size();
+        header.numMorphDeltas = (uint32_t)finalMorphDeltas.size();
+        header.morphTargetNameBufferSize = (uint32_t)morphTargetNameBuffer.size();
 
 		header.sceneBoundsCenter = scene.center;
 		header.sceneBoundsRadius = scene.radius;
@@ -466,6 +506,15 @@ namespace compiler
         header.boneNameOffset = currentOffset;
         currentOffset += boneNameBuffer.size();
 
+        header.morphTargetDataOffset = currentOffset;
+        currentOffset += finalMorphTargets.size() * sizeof(MeshFile_MorphTarget);
+
+        header.morphDeltaDataOffset = currentOffset;
+        currentOffset += finalMorphDeltas.size() * sizeof(MeshFile_MorphDelta);
+
+        header.morphTargetNameOffset = currentOffset;
+        currentOffset += morphTargetNameBuffer.size();
+
 
 		// Writing to file timeu~~ :3
         std::filesystem::path meshOutputDir = options.general.outputPath / "meshes";
@@ -484,6 +533,10 @@ namespace compiler
         outFile.write(reinterpret_cast<const char*>(finalSkinningData.data()), finalSkinningData.size() * sizeof(SkinningData));
         outFile.write(reinterpret_cast<const char*>(finalBones.data()), finalBones.size() * sizeof(MeshFile_Bone));
         outFile.write(boneNameBuffer.c_str(), boneNameBuffer.size());
+        // Morph data blok
+        outFile.write(reinterpret_cast<const char*>(finalMorphTargets.data()), finalMorphTargets.size() * sizeof(MeshFile_MorphTarget));
+        outFile.write(reinterpret_cast<const char*>(finalMorphDeltas.data()), finalMorphDeltas.size() * sizeof(MeshFile_MorphDelta));
+        outFile.write(morphTargetNameBuffer.c_str(), morphTargetNameBuffer.size());
 
 		outFile.close();
 

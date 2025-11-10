@@ -562,9 +562,12 @@ namespace compiler
             }
         }
 
-        if (aiMesh->HasBones() && mesh.vertices.size() > 0)
+        const size_t vertexCount = mesh.vertices.size();
+
+        // Skinning
+        if (aiMesh->HasBones() && vertexCount > 0)
         {
-            mesh.skinning.resize(mesh.vertices.size());
+            mesh.skinning.resize(vertexCount);
 
             for (uint32_t boneIdx = 0; boneIdx < aiMesh->mNumBones; ++boneIdx)
             {
@@ -592,6 +595,37 @@ namespace compiler
             for (SkinningData& skinData : mesh.skinning)
             {
                 normalizeWeights(skinData);
+            }
+        }
+
+        // Morphs
+        if (aiMesh->mNumAnimMeshes > 0)
+        {
+            mesh.morphTargets.reserve(aiMesh->mNumAnimMeshes);
+
+            for (uint32_t targetIdx = 0; targetIdx < aiMesh->mNumAnimMeshes; ++targetIdx)
+            {
+                const aiAnimMesh* aiAnimMesh = aiMesh->mAnimMeshes[targetIdx];
+                MorphTargetData target;
+                target.name = aiAnimMesh->mName.length > 0 ? aiAnimMesh->mName.C_Str() : ("Morph_" + std::to_string(targetIdx));
+                target.deltas.resize(vertexCount);
+
+                const uint32_t limit = std::min<uint32_t>(vertexCount, aiAnimMesh->mNumVertices);
+                for (uint32_t v = 0; v < limit; ++v)
+                {
+                    auto& delta = target.deltas[v];
+                    delta.vertexIndex = v;
+
+                    if (aiAnimMesh->mVertices)
+                        delta.deltaPosition = AiToVec3(aiAnimMesh->mVertices[v]) - AiToVec3(aiMesh->mVertices[v]);
+
+                    if (aiAnimMesh->mNormals && aiMesh->mNormals)
+                        delta.deltaNormal = AiToVec3(aiAnimMesh->mNormals[v]) - AiToVec3(aiMesh->mNormals[v]);
+
+                    if (aiAnimMesh->mTangents && aiMesh->mTangents)
+                        delta.deltaTangent = AiToVec3(aiAnimMesh->mTangents[v]) - AiToVec3(aiMesh->mTangents[v]);
+                }
+                mesh.morphTargets.push_back(std::move(target));
             }
         }
 

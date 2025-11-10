@@ -40,9 +40,15 @@ namespace compiler
         uint32_t materialNameBufferSize; // Total size of the material name block
 
         // Skelaton
-        uint32_t hasSkeleton;
+        uint32_t hasSkeleton; // 1 or 0
         uint32_t numBones;
         uint32_t boneNameBufferSize;
+
+        // Morphs
+        uint32_t hasMorphs;
+        uint32_t numMorphTargets;
+        uint32_t numMorphDeltas;
+        uint32_t morphTargetNameBufferSize;
 
         // Bounds for the entire scene.
         // This is actually not needed, since
@@ -64,6 +70,10 @@ namespace compiler
         uint64_t skinningDataOffset; 
         uint64_t boneDataOffset;
         uint64_t boneNameOffset;
+
+        uint64_t morphTargetDataOffset;
+        uint64_t morphDeltaDataOffset;
+        uint64_t morphTargetNameOffset;
     };
 
     // Information for each node inside fbx
@@ -85,6 +95,9 @@ namespace compiler
 
         // Bounding volume for this individual mesh part
         vec4 meshBounds; // (x,y,z, radius)
+
+        uint32_t firstMorphTarget;  // Index into the global morphTargetData blob
+        uint32_t morphTargetCount;  // Number of morph targets for this mesh
     };
 
     // Structure of bone data
@@ -95,6 +108,24 @@ namespace compiler
         int32_t  parentIndex;     // Index into this file's array of Bones. -1 for root.
         uint32_t nameOffset;      // Offset into the boneNameBuffer
     };
-    #pragma pack(pop)
+    
+    // This struct holds the per-vertex changes
+    struct MeshFile_MorphDelta  //MorphTargetVertexDelta
+    {
+        uint32_t vertexIndex;
+        vec3     deltaPosition;
+        vec3     deltaNormal;
+        vec3     deltaTangent;
+    };
+
+    // This defines one morph target
+    struct MeshFile_MorphTarget //MorphTargetData
+    {
+        uint32_t nameOffset;   // Offset into the morphTargetNameBuffer
+        uint32_t firstDelta;   // Index into the main morphDeltaData blob
+        uint32_t deltaCount;   // Number of deltas for this target
+    };
+
+#pragma pack(pop)
 
 }

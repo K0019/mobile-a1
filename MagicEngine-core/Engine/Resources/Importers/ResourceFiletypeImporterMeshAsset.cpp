@@ -11,6 +11,7 @@
 // To make engine not depend on assetcompiler project
 
 constexpr uint32_t MESH_FILE_MAGIC = { 'MESH' };
+
 #pragma pack(push, 1)
 // Header at the very start of the file
 struct MeshFileHeader
@@ -24,9 +25,15 @@ struct MeshFileHeader
     uint32_t materialNameBufferSize; // Total size of the material name block
 
     // Skelaton
-    uint32_t hasSkeleton;
+    uint32_t hasSkeleton; // 1 or 0
     uint32_t numBones;
     uint32_t boneNameBufferSize;
+
+    // Morphs
+    uint32_t hasMorphs;
+    uint32_t numMorphTargets;
+    uint32_t numMorphDeltas;
+    uint32_t morphTargetNameBufferSize;
 
     // Bounds for the entire scene.
     // This is actually not needed, since
@@ -48,6 +55,10 @@ struct MeshFileHeader
     uint64_t skinningDataOffset;
     uint64_t boneDataOffset;
     uint64_t boneNameOffset;
+
+    uint64_t morphTargetDataOffset;
+    uint64_t morphDeltaDataOffset;
+    uint64_t morphTargetNameOffset;
 };
 
 // Information for each node inside fbx
@@ -69,6 +80,9 @@ struct MeshInfo
 
     // Bounding volume for this individual mesh part
     vec4 meshBounds; // (x,y,z, radius)
+
+    uint32_t firstMorphTarget;  // Index into the global morphTargetData blob
+    uint32_t morphTargetCount;  // Number of morph targets for this mesh
 };
 
 // Structure of bone data
@@ -79,6 +93,24 @@ struct MeshFile_Bone
     int32_t  parentIndex;     // Index into this file's array of Bones. -1 for root.
     uint32_t nameOffset;      // Offset into the boneNameBuffer
 };
+
+// This struct holds the per-vertex changes
+struct MeshFile_MorphDelta  //MorphTargetVertexDelta
+{
+    uint32_t vertexIndex;
+    vec3     deltaPosition;
+    vec3     deltaNormal;
+    vec3     deltaTangent;
+};
+
+// This defines one morph target
+struct MeshFile_MorphTarget //MorphTargetData
+{
+    uint32_t nameOffset;   // Offset into the morphTargetNameBuffer
+    uint32_t firstDelta;   // Index into the main morphDeltaData blob
+    uint32_t deltaCount;   // Number of deltas for this target
+};
+
 #pragma pack(pop)
 
 #pragma endregion
@@ -127,7 +159,15 @@ namespace internal
         std::vector<MeshInfo> meshInfos(header.numMeshes);
         std::vector<char> materialNamesBuffer(header.materialNameBufferSize);
         std::vector<uint32_t> allIndices(header.totalIndices);
-        std::vector<Vertex> allVertices(header.totalVertices); // Assuming Vertex struct
+        std::vector<Vertex> allVertices(header.totalVertices); // CompilerTypes.h's Vertex must be exactly the same
+        
+        std::vector<Resource::SkinningData> allSkinningData(header.totalVertices);  // So must this
+        std::vector<MeshFile_Bone> allBones(header.numBones);
+        std::vector<char> boneNameBuffer(header.boneNameBufferSize);
+
+        std::vector<MeshFile_MorphTarget> allMorphTargets(header.numMorphTargets);
+        std::vector<MeshFile_MorphDelta> allMorphDeltas(header.numMorphDeltas);
+        std::vector<char> morphTargetNameBuffer(header.morphTargetNameBufferSize);
 
         file->Seek(header.nodeDataOffset, SeekOrigin::Begin);
         file->Read(nodes.data(), nodes.size() * sizeof(MeshNode));
@@ -144,6 +184,29 @@ namespace internal
         file->Seek(header.vertexDataOffset, SeekOrigin::Begin);
         file->Read(allVertices.data(), allVertices.size() * sizeof(Vertex));
 
+        if (header.hasSkeleton)
+        {
+            file->Seek(header.skinningDataOffset, SeekOrigin::Begin);
+            file->Read(allSkinningData.data(), allSkinningData.size() * sizeof(Resource::SkinningData));
+
+            file->Seek(header.boneDataOffset, SeekOrigin::Begin);
+            file->Read(allBones.data(), allBones.size() * sizeof(MeshFile_Bone));
+
+            file->Seek(header.boneNameOffset, SeekOrigin::Begin);
+            file->Read(boneNameBuffer.data(), boneNameBuffer.size());
+        }
+        
+        if (header.hasMorphs)
+        {
+            file->Seek(header.morphTargetDataOffset, SeekOrigin::Begin);
+            file->Read(allMorphTargets.data(), allMorphTargets.size() * sizeof(MeshFile_MorphTarget));
+
+            file->Seek(header.morphDeltaDataOffset, SeekOrigin::Begin);
+            file->Read(allMorphDeltas.data(), allMorphDeltas.size() * sizeof(MeshFile_MorphDelta));
+
+            file->Seek(header.morphTargetNameOffset, SeekOrigin::Begin);
+            file->Read(morphTargetNameBuffer.data(), morphTargetNameBuffer.size());
+        }
 
         // Retrieve material names for meshes
         std::map<uint32_t, uint32_t> nameOffsetToMaterialIndex; // Map offset to final index
@@ -162,6 +225,52 @@ namespace internal
             nameOffsetToMaterialIndex[offset] = static_cast<uint32_t>(nameOffsetToMaterialIndex.size());
 
             p += name.length() + 1; // material names separated by null terminator
+        }
+
+        // Rebuild the skeleton
+        Resource::ProcessedSkeleton tempSkeleton;
+        if (header.hasSkeleton)
+        {
+            tempSkeleton.parentIndices.resize(header.numBones);
+            tempSkeleton.inverseBindMatrices.resize(header.numBones);
+            tempSkeleton.bindPoseMatrices.resize(header.numBones);
+            tempSkeleton.jointNames.resize(header.numBones);
+
+            for (uint32_t i = 0; i < header.numBones; ++i)
+            {
+                const auto& fileBone = allBones[i];
+
+                tempSkeleton.parentIndices[i] = fileBone.parentIndex;
+                tempSkeleton.inverseBindMatrices[i] = fileBone.inverseBindPose;
+                tempSkeleton.bindPoseMatrices[i] = fileBone.bindPose;
+                tempSkeleton.jointNames[i] = &boneNameBuffer[fileBone.nameOffset];
+            }
+        }
+
+        // Rebuild the morph target
+        std::vector<Resource::MorphTargetData> tempMorphTargets;
+        if (header.hasMorphs)
+        {
+            tempMorphTargets.resize(header.numMorphTargets);
+            for (uint32_t i = 0; i < header.numMorphTargets; ++i)
+            {
+                const auto& fileTarget = allMorphTargets[i];
+                auto& engineTarget = tempMorphTargets[i];
+
+                engineTarget.name = &morphTargetNameBuffer[fileTarget.nameOffset];
+                engineTarget.deltas.resize(fileTarget.deltaCount);
+
+                for (uint32_t j = 0; j < fileTarget.deltaCount; ++j)
+                {
+                    const auto& fileDelta = allMorphDeltas[fileTarget.firstDelta + j];
+                    auto& engineDelta = engineTarget.deltas[j];
+
+                    engineDelta.vertexIndex   = fileDelta.vertexIndex;
+                    engineDelta.deltaPosition = fileDelta.deltaPosition;
+                    engineDelta.deltaNormal   = fileDelta.deltaNormal;
+                    engineDelta.deltaTangent  = fileDelta.deltaTangent;
+                }
+            }
         }
 
         // Construct meshes from loaded vertices
@@ -188,7 +297,6 @@ namespace internal
             }
             outMaterialHashes->push_back(materialHash);
 
-
             // Get the vertice and indice data
             uint32_t vertexCount = 0;
             if (&meshInfo != &meshInfos.back())
@@ -210,6 +318,37 @@ namespace internal
 
             mesh.bounds = meshInfo.meshBounds;
 
+            if (header.hasSkeleton)
+            {
+                mesh.skinning.assign(allSkinningData.begin() + meshInfo.firstVertex, allSkinningData.begin() + meshInfo.firstVertex + vertexCount);
+                mesh.skeleton = tempSkeleton;
+            }
+
+            if (header.hasMorphs && meshInfo.morphTargetCount > 0)
+            {
+                // Assign this mesh its specific "slice" of the master list
+                auto start = tempMorphTargets.begin() + meshInfo.firstMorphTarget;
+                auto end = start + meshInfo.morphTargetCount;
+                mesh.morphTargets.assign(start, end);
+
+                // Remap the vertex indices in these deltas to be local to this mesh
+                for (auto& target : mesh.morphTargets)
+                {
+                    std::vector<Resource::MorphTargetVertexDelta> localDeltas;
+                    for (const auto& delta : target.deltas)
+                    {
+                        // Check if this delta's GLOBAL index belongs to THIS mesh
+                        // Convert from global indices back to local indices
+                        if (delta.vertexIndex >= meshInfo.firstVertex && delta.vertexIndex < (meshInfo.firstVertex + vertexCount))
+                        {
+                            Resource::MorphTargetVertexDelta localDelta = delta;
+                            localDelta.vertexIndex = delta.vertexIndex - meshInfo.firstVertex;
+                            localDeltas.push_back(localDelta);
+                        }
+                    }
+                    target.deltas = std::move(localDeltas);
+                }
+            }
             processedMeshes.push_back(mesh);
         }
 

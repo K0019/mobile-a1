@@ -93,7 +93,7 @@ namespace compiler
         //Animations
         std::vector<SkinningData> skinning;
         ProcessedSkeleton skeleton;
-        //std::vector<MorphTargetData> morphTargets;
+        std::vector<MorphTargetData> morphTargets;
     };
 
 
