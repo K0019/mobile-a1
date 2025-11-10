@@ -194,6 +194,7 @@ namespace compiler
         SaveMeshes(scene, result);
         SaveMaterialData(scene, result);
         CompileTextures(scene, result);
+        //SaveAnimations(scene, result);
 
         if (!result.errors.empty())
         {
@@ -338,6 +339,7 @@ namespace compiler
 		std::string materialNames; // String with names separated by \0s
 		std::vector<uint32_t> finalIndices;
 		std::vector<Vertex> finalVertices;
+        std::vector<SkinningData> finalSkinningData;
 
 		// Put material names into lookup map
 		std::map<uint32_t, uint32_t> materialIndexToNameOffset;
@@ -366,6 +368,7 @@ namespace compiler
 			finalMeshInfos.push_back(meshInfo);
 
 			finalVertices.insert(finalVertices.end(), mesh.vertices.begin(), mesh.vertices.end());
+            finalSkinningData.insert(finalSkinningData.end(), mesh.skinning.begin(), mesh.skinning.end());
 
 			for (uint32_t index : mesh.indices)
 			{
@@ -389,6 +392,32 @@ namespace compiler
 			finalNodes.push_back(node);
 		}
 
+        // Prepare skelly data
+        std::vector<MeshFile_Bone> finalBones;
+        std::string boneNameBuffer;
+
+        if (!scene.skeleton.bones.empty())
+        {
+            finalBones.reserve(scene.skeleton.bones.size());
+            uint32_t currentBoneNameOffset = 0;
+
+            for (const auto& processedBone : scene.skeleton.bones)
+            {
+                MeshFile_Bone bone;
+                bone.inverseBindPose = processedBone.inverseBindPose;
+                bone.bindPose = processedBone.bindPose;
+                bone.parentIndex = processedBone.parentIndex;
+
+                bone.nameOffset = currentBoneNameOffset;
+                boneNameBuffer += processedBone.name;
+                boneNameBuffer += '\0';
+                currentBoneNameOffset = (uint32_t)boneNameBuffer.size();
+
+                finalBones.push_back(bone);
+            }
+        }
+
+
 		// Bounds calculation would be placed here.
         // Completely unused right now, but may be a performance improvement in the future
 
@@ -400,6 +429,10 @@ namespace compiler
 		header.totalIndices = static_cast<uint32_t>(finalIndices.size());
 		header.totalVertices = static_cast<uint32_t>(finalVertices.size());
 		header.materialNameBufferSize = static_cast<uint32_t>(materialNames.size());
+        header.hasSkeleton = finalBones.empty() ? 0 : 1;
+        header.numBones = (uint32_t)finalBones.size();
+        header.boneNameBufferSize = (uint32_t)boneNameBuffer.size();
+
 		header.sceneBoundsCenter = scene.center;
 		header.sceneBoundsRadius = scene.radius;
 		header.sceneBoundsMin = scene.boundingMin;
@@ -408,34 +441,49 @@ namespace compiler
 
 		// Calculate data offsets
 		uint64_t currentOffset = sizeof(MeshFileHeader);
-		header.nodeDataOffset = currentOffset;
-		currentOffset += finalNodes.size() * sizeof(MeshNode);
 
-		header.meshInfoDataOffset = currentOffset;
-		currentOffset += finalMeshInfos.size() * sizeof(MeshInfo);
+        header.nodeDataOffset = currentOffset;
+        currentOffset += finalNodes.size() * sizeof(MeshNode);
 
-		header.materialNamesOffset = currentOffset;
-		currentOffset += materialNames.size(); // Size of the packed string buffer
+        header.meshInfoDataOffset = currentOffset;
+        currentOffset += finalMeshInfos.size() * sizeof(MeshInfo);
 
-		header.indexDataOffset = currentOffset;
-		currentOffset += finalIndices.size() * sizeof(uint32_t);
+        header.materialNamesOffset = currentOffset;
+        currentOffset += materialNames.size();
 
-		header.vertexDataOffset = currentOffset;
+        header.indexDataOffset = currentOffset;
+        currentOffset += finalIndices.size() * sizeof(uint32_t);
+
+        header.vertexDataOffset = currentOffset;
+        currentOffset += finalVertices.size() * sizeof(Vertex);
+
+        header.skinningDataOffset = currentOffset;
+        currentOffset += finalSkinningData.size() * sizeof(SkinningData);
+
+        header.boneDataOffset = currentOffset;
+        currentOffset += finalBones.size() * sizeof(MeshFile_Bone);
+
+        header.boneNameOffset = currentOffset;
+        currentOffset += boneNameBuffer.size();
 
 
+		// Writing to file timeu~~ :3
         std::filesystem::path meshOutputDir = options.general.outputPath / "meshes";
         std::filesystem::create_directories(meshOutputDir);
 		std::filesystem::path outFilePath = options.general.outputPath / (options.general.inputPath.stem().string() + ".mesh");
 		std::ofstream outFile(outFilePath, std::ios::binary);
 
-		//Write the actual data to file
-		outFile.write(reinterpret_cast<const char*>(&header), sizeof(MeshFileHeader));
-
-		outFile.write(reinterpret_cast<const char*>(finalNodes.data()), finalNodes.size() * sizeof(MeshNode));
-		outFile.write(reinterpret_cast<const char*>(finalMeshInfos.data()), finalMeshInfos.size() * sizeof(MeshInfo));
-		outFile.write(materialNames.c_str(), materialNames.size());
-		outFile.write(reinterpret_cast<const char*>(finalIndices.data()), finalIndices.size() * sizeof(uint32_t));
-		outFile.write(reinterpret_cast<const char*>(finalVertices.data()), finalVertices.size() * sizeof(Vertex));
+        // Mesh data
+        outFile.write(reinterpret_cast<const char*>(&header), sizeof(MeshFileHeader));
+        outFile.write(reinterpret_cast<const char*>(finalNodes.data()), finalNodes.size() * sizeof(MeshNode));
+        outFile.write(reinterpret_cast<const char*>(finalMeshInfos.data()), finalMeshInfos.size() * sizeof(MeshInfo));
+        outFile.write(materialNames.c_str(), materialNames.size());
+        outFile.write(reinterpret_cast<const char*>(finalIndices.data()), finalIndices.size() * sizeof(uint32_t));
+        outFile.write(reinterpret_cast<const char*>(finalVertices.data()), finalVertices.size() * sizeof(Vertex));
+        //Skellyton data
+        outFile.write(reinterpret_cast<const char*>(finalSkinningData.data()), finalSkinningData.size() * sizeof(SkinningData));
+        outFile.write(reinterpret_cast<const char*>(finalBones.data()), finalBones.size() * sizeof(MeshFile_Bone));
+        outFile.write(boneNameBuffer.c_str(), boneNameBuffer.size());
 
 		outFile.close();
 
@@ -532,4 +580,171 @@ namespace compiler
             result.createdMaterialFiles.push_back(outFilePath);
         }
     }
+
+#if 0
+    void SceneCompiler::SaveAnimations(const Scene& scene, CompilationResult& result)
+    {
+        if (scene.animations.empty())
+        {
+            return; // No animations to save
+        }
+
+        std::filesystem::path animOutputDir = options.general.outputPath / "meshanimations";
+        std::filesystem::create_directories(animOutputDir);
+
+        std::string stem = options.general.inputPath.stem().string();
+
+        // Loop and save one file PER animation clip
+        for (const auto& anim : scene.animations)
+        {
+            ProcessedAnimation animToSave = anim;
+
+            if (options.mesh.optimize) // Re-use the mesh optimize flag
+            {
+                // TODO: optimisation
+            }
+
+            std::vector<BoneAnimationChannel> finalChannels;
+            std::vector<char> keyframeBuffer; // All keys go in one big blob
+
+            for (const auto& channel : animToSave.channels)
+            {
+                if (channel.positionKeys.empty() && channel.rotationKeys.empty() && channel.scaleKeys.empty())
+                {
+                    continue; // Skip bones that aren't animated in this clip
+                }
+
+                BoneAnimationChannel finalChannel;
+                finalChannel.boneIndex = channel.boneIndex;
+
+                // Position keys
+                finalChannel.numPositionKeys = (uint32_t)channel.positionKeys.size();
+                finalChannel.positionKeyOffset = keyframeBuffer.size();
+                keyframeBuffer.insert(keyframeBuffer.end(),
+                    reinterpret_cast<const char*>(channel.positionKeys.data()),
+                    reinterpret_cast<const char*>(channel.positionKeys.data() + channel.positionKeys.size()));
+
+                // Rotation keys
+                finalChannel.numRotationKeys = (uint32_t)channel.rotationKeys.size();
+                finalChannel.rotationKeyOffset = keyframeBuffer.size();
+                keyframeBuffer.insert(keyframeBuffer.end(),
+                    reinterpret_cast<const char*>(channel.rotationKeys.data()),
+                    reinterpret_cast<const char*>(channel.rotationKeys.data() + channel.rotationKeys.size()));
+
+                // Scale keys
+                finalChannel.numScaleKeys = (uint32_t)channel.scaleKeys.size();
+                finalChannel.scaleKeyOffset = keyframeBuffer.size();
+                keyframeBuffer.insert(keyframeBuffer.end(),
+                    reinterpret_cast<const char*>(channel.scaleKeys.data()),
+                    reinterpret_cast<const char*>(channel.scaleKeys.data() + channel.scaleKeys.size()));
+
+                finalChannels.push_back(finalChannel);
+            }
+
+            if (finalChannels.empty())
+            {
+                continue; // No animated bones in this clip
+            }
+
+            // Populate file header
+            AnimationFileHeader header;
+            header.magic = ANIM_FILE_MAGIC;
+            header.duration = animToSave.duration;
+            header.ticksPerSecond = animToSave.ticksPerSecond;
+            header.numChannels = (uint32_t)finalChannels.size();
+
+            uint64_t currentOffset = sizeof(AnimationFileHeader);
+            header.channelDataOffset = currentOffset;
+            currentOffset += finalChannels.size() * sizeof(BoneAnimationChannel);
+            header.keyframeDataOffset = currentOffset;
+
+            // Write to disk
+            // Format: ModelName@AnimName.anim (e.g., "Character@Run.anim")
+            std::string animFilename = stem + "@" + animToSave.name + ".anim";
+            std::filesystem::path outFilePath = animOutputDir / animFilename;
+
+            std::ofstream outFile(outFilePath, std::ios::binary);
+            if (!outFile.is_open())
+            {
+                result.errors.push_back("Failed to create animation file: " + outFilePath.string());
+                continue;
+            }
+
+            // Write data
+            outFile.write(reinterpret_cast<const char*>(&header), sizeof(AnimationFileHeader));
+            outFile.write(reinterpret_cast<const char*>(finalChannels.data()), finalChannels.size() * sizeof(BoneAnimationChannel));
+            outFile.write(keyframeBuffer.data(), keyframeBuffer.size());
+
+            outFile.close();
+
+            result.createdAnimationFiles.push_back(outFilePath);
+        }
+    }
+#endif
+
+#if 0
+    void SceneCompiler::SaveSkeleton(const Scene& scene, CompilationResult& result)
+    {
+        if (scene.skeleton.bones.empty())
+        {
+            return; // No skeleton to save
+        }
+
+        // Prepare data for binary writing
+        std::vector<Bone> finalBones;
+        finalBones.reserve(scene.skeleton.bones.size());
+
+        std::string nameBuffer;
+        uint32_t currentNameOffset = 0;
+
+        for (const auto& processedBone : scene.skeleton.bones)
+        {
+            Bone bone;
+            bone.inverseBindPose = processedBone.inverseBindPose;
+            bone.parentIndex = processedBone.parentIndex;
+
+            bone.nameOffset = currentNameOffset;
+            nameBuffer += processedBone.name;
+            nameBuffer += '\0'; // Null terminator
+            currentNameOffset = (uint32_t)nameBuffer.size();
+
+            finalBones.push_back(bone);
+        }
+
+        // Populate file header
+        SkeletonFileHeader header;
+        header.magic = SKELETON_FILE_MAGIC;
+        header.boneCount = (uint32_t)finalBones.size();
+        header.boneNameBufferSize = (uint32_t)nameBuffer.size();
+
+        uint64_t currentOffset = sizeof(SkeletonFileHeader);
+        header.boneDataOffset = currentOffset;
+        currentOffset += finalBones.size() * sizeof(Bone);
+        header.boneNameBufferOffset = currentOffset;
+
+        // Write to disk
+        std::filesystem::path skeletonOutputDir = options.general.outputPath / "skeletons";
+        std::filesystem::create_directories(skeletonOutputDir);
+
+        // Use the input file's stem name (e.g., "Character.fbx" -> "Character.skeleton")
+        std::string stem = options.general.inputPath.stem().string();
+        std::filesystem::path outFilePath = skeletonOutputDir / (stem + ".skeleton");
+
+        std::ofstream outFile(outFilePath, std::ios::binary);
+        if (!outFile.is_open())
+        {
+            result.errors.push_back("Failed to create skeleton file: " + outFilePath.string());
+            return;
+        }
+
+        // Write data
+        outFile.write(reinterpret_cast<const char*>(&header), sizeof(SkeletonFileHeader));
+        outFile.write(reinterpret_cast<const char*>(finalBones.data()), finalBones.size() * sizeof(Bone));
+        outFile.write(nameBuffer.c_str(), nameBuffer.size());
+
+        outFile.close();
+
+        result.createdSkeletonFiles.push_back(outFilePath);
+    }
+#endif
 }

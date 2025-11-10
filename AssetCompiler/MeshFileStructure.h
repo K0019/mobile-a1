@@ -20,6 +20,8 @@ All rights reserved.
 
 #pragma once
 #include <cstdint>
+#include "CompilerMath.h"
+#include "CompilerTypes.h"
 
 namespace compiler
 {
@@ -37,6 +39,11 @@ namespace compiler
         uint32_t totalVertices;
         uint32_t materialNameBufferSize; // Total size of the material name block
 
+        // Skelaton
+        uint32_t hasSkeleton;
+        uint32_t numBones;
+        uint32_t boneNameBufferSize;
+
         // Bounds for the entire scene.
         // This is actually not needed, since
         // in the mesh importer's SetResourceHandlesMesh, we take the bounds of every individual mesh,
@@ -53,6 +60,10 @@ namespace compiler
         uint64_t materialNamesOffset;
         uint64_t indexDataOffset;
         uint64_t vertexDataOffset;
+
+        uint64_t skinningDataOffset; 
+        uint64_t boneDataOffset;
+        uint64_t boneNameOffset;
     };
 
     // Information for each node inside fbx
@@ -74,6 +85,15 @@ namespace compiler
 
         // Bounding volume for this individual mesh part
         vec4 meshBounds; // (x,y,z, radius)
+    };
+
+    // Structure of bone data
+    struct MeshFile_Bone
+    {
+        mat4     inverseBindPose; // Assimp's aiBone::mOffsetMatrix
+        mat4     bindPose;        // The bone's global transform in bind pose
+        int32_t  parentIndex;     // Index into this file's array of Bones. -1 for root.
+        uint32_t nameOffset;      // Offset into the boneNameBuffer
     };
     #pragma pack(pop)
 

@@ -23,6 +23,7 @@ All rights reserved.
 #include <filesystem>
 #include <string>
 #include "CompileOptions.h"
+#include "CompilerTypes.h"
 #include "SceneLoader.h"
 
 namespace compiler
@@ -59,6 +60,8 @@ namespace compiler
         void CompileTextures(const Scene& scene, CompilationResult& result);
         void SaveMeshes(const Scene& scene, CompilationResult& result);
         void SaveMaterialData(const Scene& scene, CompilationResult& result);
+        //void SaveSkeleton(const Scene& scene, CompilationResult& result);
+        //void SaveAnimations(const Scene& scene, CompilationResult& result);
 
         SceneLoader sceneLoader;
         CompilerOptions options;

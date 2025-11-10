@@ -6,11 +6,11 @@
 #include "Engine/Graphics Interface/GraphicsAPI.h"
 #include "tools/assets/io/import_config.h"
 
+#pragma region Mesh File Structure
 // Just copy pasting definitions from assetcompiler/MeshFileStructure.h 
 // To make engine not depend on assetcompiler project
 
 constexpr uint32_t MESH_FILE_MAGIC = { 'MESH' };
-
 #pragma pack(push, 1)
 // Header at the very start of the file
 struct MeshFileHeader
@@ -22,6 +22,11 @@ struct MeshFileHeader
     uint32_t totalIndices;
     uint32_t totalVertices;
     uint32_t materialNameBufferSize; // Total size of the material name block
+
+    // Skelaton
+    uint32_t hasSkeleton;
+    uint32_t numBones;
+    uint32_t boneNameBufferSize;
 
     // Bounds for the entire scene.
     // This is actually not needed, since
@@ -39,6 +44,10 @@ struct MeshFileHeader
     uint64_t materialNamesOffset;
     uint64_t indexDataOffset;
     uint64_t vertexDataOffset;
+
+    uint64_t skinningDataOffset;
+    uint64_t boneDataOffset;
+    uint64_t boneNameOffset;
 };
 
 // Information for each node inside fbx
@@ -56,12 +65,26 @@ struct MeshInfo
     uint32_t indexCount;
     uint32_t firstIndex;        // Offset into the index buffer
     uint32_t firstVertex;       // Offset into the vertex buffer
-    uint32_t materialNameIndex; // Offset into the material name offset table
+    uint32_t materialNameIndex; // Index into the material name offset table
 
     // Bounding volume for this individual mesh part
     vec4 meshBounds; // (x,y,z, radius)
 };
+
+// Structure of bone data
+struct MeshFile_Bone
+{
+    mat4     inverseBindPose; // Assimp's aiBone::mOffsetMatrix
+    mat4     bindPose;        // The bone's global transform in bind pose
+    int32_t  parentIndex;     // Index into this file's array of Bones. -1 for root.
+    uint32_t nameOffset;      // Offset into the boneNameBuffer
+};
 #pragma pack(pop)
+
+#pragma endregion
+
+
+
 
 namespace
 {
