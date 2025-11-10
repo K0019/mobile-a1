@@ -21,18 +21,31 @@ All rights reserved.
 #include "Engine/Graphics Interface/GraphicsAPI.h"
 #include "Editor/Containers/GUICollection.h"
 #include "FilepathConstants.h"
+#include "graphics/features/grid_feature.h"
+#include "Editor/EditorCameraBridge.h"
 
 #include "fa.h"
 
+GraphicsMain::GraphicsMain()
+    : sceneFeatureHandle{}
+    , gridHandle{}
+{
+}
+
 GraphicsMain::~GraphicsMain()
 {
-	ST<GraphicsScene>::Destroy();
+    if (context.renderer)
+    {
+        context.renderer->DestroyFeature(gridHandle);
+        context.renderer->DestroyFeature(sceneFeatureHandle);
+    }
 }
 
 void GraphicsMain::Init(Context inContext)
 {
 	context = inContext;
-	ST<GraphicsScene>::Get()->Init(inContext);
+	sceneFeatureHandle = context.renderer->CreateFeature<SceneRenderFeature>();
+	gridHandle = context.renderer->CreateFeature<GridFeature>();
 
 #ifdef IMGUI_ENABLED
 	InitImGui(Filepaths::assets + "/Fonts" + "/Lato-Regular.ttf");
@@ -42,7 +55,13 @@ void GraphicsMain::Init(Context inContext)
 
 void GraphicsMain::BeginFrame()
 {
-	ST<GraphicsScene>::Get()->Clear();
+	Clear();
+}
+
+void GraphicsMain::Clear()
+{
+    scene.objects.clear();
+    scene.lights.clear();
 }
 
 #ifdef IMGUI_ENABLED
@@ -83,7 +102,71 @@ void GraphicsMain::EndImGuiFrame()
 
 void GraphicsMain::EndFrame(FrameData* outFrameData)
 {
-	ST<GraphicsScene>::Get()->UploadToPipeline(outFrameData);
+	UploadToPipeline(outFrameData);
+}
+
+void GraphicsMain::UploadToPipeline(FrameData* outFrameData)
+{
+    SceneRenderFeature::UpdateScene(sceneFeatureHandle, scene, *context.resourceMngr, *context.renderer);
+
+    if (auto params = static_cast<SceneRenderParams*>(context.renderer->GetFeatureParameterBlockPtr(sceneFeatureHandle)))
+    {
+        params->irradianceTexture = 0;
+        params->prefilterTexture = 0;
+        params->brdfLUT = 0;
+        params->environmentIntensity = 1.0f;
+    }
+
+    float width{ static_cast<float>(Core::Display().GetWidth()) };
+    float height{ static_cast<float>(Core::Display().GetHeight()) };
+    outFrameData->cameraPos = frameData.cameraPos;
+    outFrameData->viewMatrix = frameData.viewMatrix;
+    outFrameData->projMatrix = glm::perspective(45.0f, width / height, 0.1f, 1000.0f);
+
+    EditorCam_Publish(outFrameData->viewMatrix, outFrameData->projMatrix, false);
+}
+
+void GraphicsMain::SetViewCamera(const Camera& camera)
+{
+    frameData.cameraPos = camera.getPosition();
+    frameData.viewMatrix = camera.getViewMatrix();
+}
+
+void GraphicsMain::AddObject(const MeshHandle& meshHandle, const MaterialHandle& materialHandle, const Transform& transform, const Mat4& meshTransform)
+{
+    // Validate handles
+    if (!meshHandle.isValid() || !materialHandle.isValid())
+        return;
+
+    const auto* meshData{ context.resourceMngr->getMesh(meshHandle) };
+    if (!meshData)
+        return;
+
+    // Store object data
+    auto& newObj{ scene.objects.emplace_back() };
+    newObj.type = SceneObjectType::Mesh;
+    newObj.mesh = meshHandle;
+    newObj.material = materialHandle;
+    newObj.transform = transform.GetWorldMat() * meshTransform;
+    newObj.maxScale = glm::compMax(glm::abs(static_cast<glm::vec3>(transform.GetWorldScale())));
+}
+
+void GraphicsMain::AddLight(const SceneLight& sceneLight)
+{
+    // Skip disabled lights
+    if (sceneLight.intensity <= 0.0f)
+        return;
+
+    // Skip lights with zero/invalid color
+    if (length(sceneLight.color) <= 0.0f)
+        return;
+
+    scene.lights.push_back(sceneLight);
+}
+
+FrameData& GraphicsMain::INTERNAL_GetFrameData()
+{
+    return frameData;
 }
 
 void GraphicsMain::SetPendingShutdown()

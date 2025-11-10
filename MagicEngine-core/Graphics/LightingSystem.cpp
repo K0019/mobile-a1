@@ -25,7 +25,7 @@ All rights reserved.
 
 #include "Graphics/LightingSystem.h"
 #include "Engine/Engine.h"
-#include "Engine/Graphics Interface/GraphicsScene.h"
+#include "Engine/Graphics Interface/GraphicsAPI.h"
 
 LightingSystem::LightingSystem() : System_Internal(&LightingSystem::UpdateLightComp) {
 //renderer = ST<Engine>::Get()->_vulkan->_renderer.get();
@@ -33,5 +33,5 @@ LightingSystem::LightingSystem() : System_Internal(&LightingSystem::UpdateLightC
 
 
 void LightingSystem::UpdateLightComp(LightComponent& lightComp) {
-	ST<GraphicsScene>::Get()->AddLight(lightComp.light);
+	ST<GraphicsMain>::Get()->AddLight(lightComp.light);
 }

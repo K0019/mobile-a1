@@ -20,7 +20,7 @@ All rights reserved.
 /******************************************************************************/
 #include "VFS/VFS.h"
 #include "Graphics/GraphicsECSMesh.h"
-#include "Engine/Graphics Interface/GraphicsScene.h"
+#include "Engine/Graphics Interface/GraphicsAPI.h"
 #include "Engine/Resources/ResourceManager.h"
 #include "Editor/Containers/GUICollection.h"
 
@@ -131,7 +131,7 @@ void RenderSystem::ProcessComp(RenderComponent& comp)
         if (!material)
             continue;
 
-        ST<GraphicsScene>::Get()->AddObject(
+        ST<GraphicsMain>::Get()->AddObject(
             mesh->handles[i],
             material->handle,
             ecs::GetEntityTransform(&comp),

@@ -66,7 +66,7 @@ void CustomViewport::DrawWindow()
 	// Camera movement (should be moved to an input update section)
 	UpdateCameraControl();
 	// Camera upload (should also be moved...)
-	ST<GraphicsScene>::Get()->SetViewCamera(GetViewportCamera());
+	ST<GraphicsMain>::Get()->SetViewCamera(GetViewportCamera());
 
 
 #ifdef IMGUI_ENABLED
