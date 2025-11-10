@@ -81,7 +81,6 @@ namespace
 {
 	// ImGui windows
 	// dumb way to do it but sure i guess.
-	bool show_browser = false;
 
 	void saveState(const char* filename) {
 		// TODO: Do proper state saving
@@ -91,7 +90,7 @@ namespace
 		serializer.Serialize("show_performance", ecs::GetCompsBegin<editor::PerformanceWindow>() != ecs::GetCompsEnd<editor::PerformanceWindow>());
 		serializer.Serialize("show_editor", ecs::GetCompsBegin<editor::Inspector>() != ecs::GetCompsEnd<editor::Inspector>());
 		//serializer.Serialize("show_settings", ST<SettingsWindow>::Get()->GetIsOpen());
-		serializer.Serialize("show_browser", show_browser);
+		serializer.Serialize("show_browser", ecs::GetCompsBegin<editor::AssetBrowser>() != ecs::GetCompsEnd<editor::AssetBrowser>());
 		serializer.Serialize("show_hierarchy", ST<Hierarchy>::Get()->isOpen);
 		ecs::SwitchToPool(ecs::POOL::DEFAULT);
 	}
@@ -113,9 +112,9 @@ namespace
 		LoadWindowOpen.template operator()<editor::Console>("show_console");
 		LoadWindowOpen.template operator()<editor::PerformanceWindow>("show_performance");
 		LoadWindowOpen.template operator()<editor::Inspector>("show_editor");
+		LoadWindowOpen.template operator()<editor::AssetBrowser >("show_browser");
 
 		//deserializer.DeserializeVar("show_settings", &b), ST<SettingsWindow>::Get()->SetIsOpen(b);
-		deserializer.DeserializeVar("show_browser", &show_browser);
 		deserializer.DeserializeVar("show_hierarchy", &ST<Hierarchy>::Get()->isOpen);
 	}
 }
@@ -187,7 +186,6 @@ void MagicEngine::Init(Context& context)
 	// load resources
 	ST<MagicResourceManager>::Get()->Init();
 	ST<MagicResourceManager>::Get()->LoadFromFile();
-	//ST<AssetBrowser>::Get()->file_system.Initialize(Filepaths::workingDir);
 	// Load fonts manually for now
 	const std::array<std::string, 3> fontsToLoad{
 		Filepaths::fontsSave + "/Arial.ttf",
@@ -257,10 +255,6 @@ void MagicEngine::ExecuteFrame(FrameData& frameData)
 	ecs::RunSystems(ECS_LAYER::PERMANENT_EDITOR);
 
 	// TODO: Convert all of these window singletons into the ecs versions so we can support multiple instances of a single window.
-	if(show_browser)
-	{
-		ST<AssetBrowser>::Get()->Draw(&show_browser);
-	}
 	if(ST<PrefabWindow>::Get()->IsOpen())
 	{
 		ST<PrefabWindow>::Get()->DrawSaveLoadPrompt(&ST<PrefabWindow>::Get()->IsOpen());
@@ -322,7 +316,7 @@ void MagicEngine::ExecuteFrame(FrameData& frameData)
 			}
 			if(ImGui::MenuItem("Browser"))
 			{
-				show_browser = true;
+				editor::CreateGuiWindow<editor::AssetBrowser>();
 				ImGui::SetWindowFocus(ICON_FA_FOLDER" Browser");
 			}
 			if(ImGui::MenuItem("Hierarchy", 0, false))
@@ -412,7 +406,6 @@ void MagicEngine::shutdown()
 	ST<AudioManager>::Destroy();
 	ST<TweenManager>::Destroy();
 	ST<PerformanceProfiler>::Destroy();
-	ST<AssetBrowser>::Destroy();
 	
 	ST<BTFactory>::Destroy();
 

@@ -1075,10 +1075,12 @@ namespace gui {
 			Draws a text field.
 		\param label
 			The label of the text field.
+		\param hint
+			The hint of the text field.
 		\param width
 			The width of the text field.
 		*//******************************************************************/
-		void Draw(const char* label, float width = 0.0f);
+		void Draw(const char* label, const char* hint = nullptr, float width = 0.0f);
 
 		/*****************************************************************//*!
 		\brief
@@ -1088,6 +1090,7 @@ namespace gui {
 			The text to test whether it passes the filter or not.
 		*//******************************************************************/
 		bool PassFilter(const char* text) const;
+		bool PassFilter(const std::string& text) const;
 
 		/*****************************************************************//*!
 		\brief

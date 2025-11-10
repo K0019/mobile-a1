@@ -200,7 +200,7 @@ namespace editor {
 
 		// Filter
 		static gui::TextBoxWithFilter filter;
-		filter.Draw("Search", gui::GetWindowWidth() * 0.25f);
+		filter.Draw("Search", nullptr, gui::GetWindowWidth() * 0.25f);
 		gui::SameLine();
 		gui::TextDisabled("(?)");
 		if (gui::IsItemHovered())

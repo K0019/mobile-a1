@@ -420,10 +420,16 @@ namespace gui {
 	{
 	}
 
-	void TextBoxWithFilter::Draw([[maybe_unused]] const char* label, [[maybe_unused]] float width)
+	void TextBoxWithFilter::Draw([[maybe_unused]] const char* label, [[maybe_unused]] const char* hint, [[maybe_unused]] float width)
 	{
 #ifdef IMGUI_ENABLED
-		ImGuiTextFilter::Draw(label, width);
+		if (!hint)
+			ImGuiTextFilter::Draw(label, width);
+		else
+		{
+			ImGui::InputTextWithHint(label, hint, InputBuf, 256);
+			Build();
+		}
 #endif
 	}
 
@@ -445,6 +451,11 @@ namespace gui {
 #else
 		return false;
 #endif
+	}
+
+	bool gui::TextBoxWithFilter::PassFilter(const std::string& text) const
+	{
+		return PassFilter(text.c_str());
 	}
 
 	void TextBoxWithFilter::Clear()

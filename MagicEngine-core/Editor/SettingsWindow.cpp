@@ -28,7 +28,6 @@ All rights reserved.
 #include "GameSettings.h"
 #include "Editor/LayersMatrix.h"
 #include "Editor/InputConfig.h"
-#include "Editor/AssetBrowser.h"
 
 namespace editor {
 
@@ -142,10 +141,6 @@ namespace editor {
 			CreateGuiWindow<LayersMatrix>();
 		if (gui::Button{ "Input", gui::Vec2{ -0.1f, 30.0f } })
 			CreateGuiWindow<InputConfig>();
-
-#ifdef IMGUI_ENABLED
-		ST<AssetBrowser>::Get()->DrawConfig();
-#endif
 	}
 
 }
