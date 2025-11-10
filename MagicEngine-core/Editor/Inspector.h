@@ -23,7 +23,6 @@ All rights reserved.
 
 #pragma once
 #include "Editor/Console.h"
-#include "Editor/EditorTweenModule.h"
 #include "Editor/Gizmo.h"
 #ifdef IMGUI_ENABLED
 #include "ImGuizmo.h"
@@ -47,13 +46,6 @@ public:
 	* \brief Draws the user interface for the editor.
 	*/
 	void DrawContents() override;
-
-	void DrawSceneView();
-
-
-
-	bool m_drawPhysicsBoxes;
-	bool m_drawVelocity;
 
 private:
 	/*****************************************************************//*!
@@ -80,18 +72,5 @@ private:
 	*//******************************************************************/
 	void DrawEntityActionsButton(ecs::EntityHandle selectedEntity);
 
-
-	
-private:
-	//Vec2 SnapToGrid(const Vec2& worldPos) const;
-
-	float m_gridSize{ 128.0f };
-	//Vec2 m_gridOffset{ 0.0f,0.0f };
-	bool m_showGrid{ false };
-	bool m_snapToGrid{ false };
-	//Vec4 m_gridColor{ 1.0f,1.0f,1.0f,1.0f };
-	bool drawBoxes{ true };
-
-	EditorTweenModule editorTweenModule;
 #endif
 };

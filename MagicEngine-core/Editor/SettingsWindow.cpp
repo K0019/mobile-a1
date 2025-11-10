@@ -28,7 +28,6 @@ All rights reserved.
 #include "GameSettings.h"
 #include "Editor/LayersMatrix.h"
 #include "Editor/InputConfig.h"
-#include "Editor/Inspector.h"
 #include "Editor/AssetBrowser.h"
 
 namespace editor {
@@ -145,7 +144,6 @@ namespace editor {
 			CreateGuiWindow<InputConfig>();
 
 #ifdef IMGUI_ENABLED
-		ST<Inspector>::Get()->DrawSceneView();
 		ST<AssetBrowser>::Get()->DrawConfig();
 #endif
 	}

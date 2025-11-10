@@ -88,12 +88,6 @@ void Inspector::DrawContents()
 	// Get the selected entity from the editor system
 	ecs::EntityHandle selectedEntity{ ST<EventsQueue>::Get()->RequestValueFromEventHandlers<ecs::EntityHandle>(Getters::EditorSelectedEntity{}).value_or(nullptr) };
 
-	// Settings section
-	if(gui::CollapsingHeader header{ "Settings", gui::FLAG_TREE_NODE::DEFAULT_OPEN })
-	{
-		gui::Checkbox("Draw Selection Boxes", &drawBoxes);
-	}
-
 	// New Entity button - styled and full width
 	{
 		gui::SetStyleColor buttonCol{ gui::FLAG_STYLE_COLOR::BUTTON, gui::Vec4{ 0.2f, 0.4f, 0.8f, 1.0f } };
@@ -173,26 +167,6 @@ void Inspector::DrawContents()
 
 	// Entity action buttons
 	DrawEntityActionsButton(selectedEntity);
-}
-
-void Inspector::DrawSceneView()
-{
-	ImGui::Separator();
-	ImGui::Text("Physics Settings");
-	ImGui::Checkbox("Show Colliders", &m_drawPhysicsBoxes);
-	ImGui::Checkbox("Draw Velocity", &m_drawVelocity);
-	ImGui::Separator();
-	ImGui::Text("Grid Settings");
-	ImGui::Checkbox("Show Grid", &m_showGrid);
-	ImGui::Checkbox("Snap to Grid", &m_snapToGrid);
-	ImGui::DragFloat("Grid Size", &m_gridSize, 10.0f, 10.0f, 1000.0f);
-	//ImGui::DragFloat2("Grid Offset", &m_gridOffset.x, 10.0f);
-	//ImGui::ColorEdit3("Grid Color", &m_gridColor.x);
-	//VkClearValue clearColor = ST<Engine>::Get()->_vulkan->_renderer->getClearColor();
-	/*if(ImGui::ColorEdit3("Background Color", clearColor.color.float32))
-	{
-		ST<Engine>::Get()->_vulkan->_renderer->setClearColor(clearColor);
-	}*/
 }
 
 void Inspector::DrawEntityHeader(ecs::EntityHandle selectedEntity)
