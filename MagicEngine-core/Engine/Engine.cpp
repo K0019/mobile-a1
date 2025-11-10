@@ -115,7 +115,6 @@ namespace
 		LoadWindowOpen.template operator()<editor::PerformanceWindow>("show_performance");
 		LoadWindowOpen.template operator()<editor::Inspector>("show_editor");
 
-		bool b{};
 		//deserializer.DeserializeVar("show_settings", &b), ST<SettingsWindow>::Get()->SetIsOpen(b);
 		deserializer.DeserializeVar("show_browser", &show_browser);
 		deserializer.DeserializeVar("show_hierarchy", &ST<Hierarchy>::Get()->isOpen);

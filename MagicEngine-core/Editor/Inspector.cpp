@@ -28,12 +28,8 @@ All rights reserved.
 #include "Engine/Events/EventsQueue.h"
 #include "Engine/Events/EventsTypeEditor.h"
 
-#include "Engine/Engine.h"
-#include "Graphics/TextComponent.h"
-
 #include "Components/NameComponent.h"
 #include "Engine/EntityLayers.h"
-#include "Game/GameSystems.h"
 #include "Engine/PrefabManager.h"
 
 namespace editor {
