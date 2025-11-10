@@ -111,14 +111,11 @@ void GraphicsMain::UploadToPipeline(FrameData* outFrameData)
     params->clear();
 
     // Estimate size for performance
-    size_t estimatedObjects = 0;
-    for (auto iter = ecs::GetCompsBegin<RenderComponent>(); iter != ecs::GetCompsEnd<RenderComponent>(); ++iter)
-        ++estimatedObjects;
-    params->reserve(estimatedObjects);
+    params->reserve(ecs::GetCompsActiveCount<RenderComponent>());
 
     // Iterate all RenderComponents in the ECS and populate render params directly
     size_t objectIndex = 0;
-    for (auto compIter = ecs::GetCompsBegin<RenderComponent>(); compIter != ecs::GetCompsEnd<RenderComponent>(); ++compIter)
+    for (auto compIter = ecs::GetCompsActiveBegin<RenderComponent>(); compIter != ecs::GetCompsEnd<RenderComponent>(); ++compIter)
     {
         RenderComponent& comp = *compIter;
 
@@ -202,7 +199,7 @@ void GraphicsMain::UploadToPipeline(FrameData* outFrameData)
 
     // Iterate all LightComponents in the ECS and populate light data directly
     params->lights.clear();
-    for (auto lightIter = ecs::GetCompsBegin<LightComponent>(); lightIter != ecs::GetCompsEnd<LightComponent>(); ++lightIter)
+    for (auto lightIter = ecs::GetCompsActiveBegin<LightComponent>(); lightIter != ecs::GetCompsEnd<LightComponent>(); ++lightIter)
     {
         LightComponent& lightComp = *lightIter;
         const SceneLight& sceneLight = lightComp.light;
