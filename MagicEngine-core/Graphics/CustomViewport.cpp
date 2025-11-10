@@ -127,6 +127,13 @@ void CustomViewport::DrawWindow()
 	m_gizmo.Draw(drawList);
 	//==========================
 
+	gui::PayloadTarget<std::string>("PREFAB", [camera = &camera](const std::string& prefabName) -> void {
+		ecs::EntityHandle entity{ PrefabManager::LoadPrefab(prefabName) };
+		ST<History>::Get()->OneEvent(HistoryEvent_EntityCreate{ entity });
+		entity->GetTransform().SetWorldPosition(camera->getPosition());
+		ST<Inspector>::Get()->SetSelectedEntity(entity);
+	});
+
 	if (ImGui::BeginDragDropTarget())
 	{
 		if (ImGuiPayload const* payload_entity = ImGui::AcceptDragDropPayload("PREFAB"))
