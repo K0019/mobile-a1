@@ -62,15 +62,11 @@ All rights reserved.
 
 #include "Engine/Graphics Interface/GraphicsAPI.h"
 #include "Graphics/CameraController.h"
-#include "Graphics/Materials.h"
 #include "Editor/Import.h"
 #include "math/camera.h"
 
 #include "Engine/Platform/Android/AndroidInputBridge.h"
 #include"BehaviorTree/BehaviourNode.h"
-
-
-
 
 #ifdef IMGUI_ENABLED
 namespace
@@ -181,7 +177,6 @@ void MagicEngine::Init(Context& context)
 	// load resources
 	ST<MagicResourceManager>::Get()->Init();
 	ST<MagicResourceManager>::Get()->LoadFromFile();
-	ST<MaterialSystem>::Get()->initialize();
 	//ST<AssetBrowser>::Get()->file_system.Initialize(Filepaths::workingDir);
 	// Load fonts manually for now
 	const std::array<std::string, 3> fontsToLoad{
@@ -245,6 +240,9 @@ void MagicEngine::ExecuteFrame(FrameData& frameData)
 	//GamepadInput::PollInput();
 
 	ST<GraphicsMain>::Get()->BeginFrame();
+
+	ST<physics::JoltPhysics>::Get()->DebugDraw();
+
 #ifdef IMGUI_ENABLED
 	ST<GraphicsMain>::Get()->BeginImGuiFrame();
 
@@ -278,6 +276,7 @@ void MagicEngine::ExecuteFrame(FrameData& frameData)
 	ecs::FlushChanges(); // This deletes entities whose windows were closed (see WindowBase::OnOpenStateChanged())
 	ecs::SwitchToPool(ecs::POOL::DEFAULT);
 	ecs::FlushChanges(); // For if any of the editor windows deleted an entity.
+
 
 	if(ImGui::BeginMainMenuBar())
 	{

@@ -1,12 +1,116 @@
 #include "resource_manager.h"
 #include <algorithm>
+#include <limits>
+#include <numeric>
 #include <span>
 
 #include "core/engine/engine.h"
+#include "resource/animation_clip.h"
+#include "resource/morph_set.h"
+#include "resource/skeleton.h"
+
+namespace
+{
+  constexpr float MORPH_DELTA_EPSILON = 1e-6f;
+  constexpr float MORPH_DELTA_EPSILON_SQ = MORPH_DELTA_EPSILON * MORPH_DELTA_EPSILON;
+
+  bool isDeltaNonZero(const Resource::MorphTargetVertexDelta& delta)
+  {
+    const float pos = glm::dot(delta.deltaPosition, delta.deltaPosition);
+    const float norm = glm::dot(delta.deltaNormal, delta.deltaNormal);
+    const float tan = glm::dot(delta.deltaTangent, delta.deltaTangent);
+    return pos > MORPH_DELTA_EPSILON_SQ || norm > MORPH_DELTA_EPSILON_SQ || tan > MORPH_DELTA_EPSILON_SQ;
+  }
+
+  std::vector<GPUSkinningData> buildSkinningBuffer(const std::vector<Resource::SkinningData>& skinning)
+  {
+    std::vector<GPUSkinningData> result;
+    result.reserve(skinning.size());
+    for(const auto& src : skinning)
+    {
+      GPUSkinningData dst;
+      dst.indices = glm::uvec4(src.boneIndices[0], src.boneIndices[1], src.boneIndices[2], src.boneIndices[3]);
+      dst.weights = glm::vec4(src.weights[0], src.weights[1], src.weights[2], src.weights[3]);
+      result.push_back(dst);
+    }
+    return result;
+  }
+
+  void buildMorphBuffers(const Resource::ProcessedMesh& mesh,
+                         std::vector<GPUMorphDelta>& outDeltas,
+                         std::vector<uint32_t>& outStarts,
+                         std::vector<uint32_t>& outCounts,
+                         std::vector<MeshMorphTargetInfo>& outInfos)
+  {
+    constexpr uint32_t INVALID = std::numeric_limits<uint32_t>::max();
+    const size_t vertexCount = mesh.vertices.size();
+    outDeltas.clear();
+    outStarts.assign(vertexCount, INVALID);
+    outCounts.assign(vertexCount, INVALID);
+    outInfos.clear();
+    outInfos.reserve(mesh.morphTargets.size());
+
+    std::vector<std::vector<GPUMorphDelta>> perVertexDeltas(vertexCount);
+
+    for(uint32_t targetIdx = 0; targetIdx < mesh.morphTargets.size(); ++targetIdx)
+    {
+      const auto& target = mesh.morphTargets[targetIdx];
+      outInfos.push_back({ target.name, targetIdx });
+
+      if(target.deltas.size() != vertexCount)
+        continue;
+
+      for(uint32_t v = 0; v < vertexCount; ++v)
+      {
+        const auto& delta = target.deltas[v];
+        if(!isDeltaNonZero(delta))
+          continue;
+
+        GPUMorphDelta gpuDelta;
+        gpuDelta.morphTargetIndex = targetIdx;
+        gpuDelta.vertexIndex = v;
+        gpuDelta.deltaPosition = glm::vec4(delta.deltaPosition, 0.0f);
+        gpuDelta.deltaNormal = glm::vec4(delta.deltaNormal, 0.0f);
+        gpuDelta.deltaTangent = glm::vec4(delta.deltaTangent, 0.0f);
+        perVertexDeltas[v].push_back(gpuDelta);
+      }
+    }
+
+    size_t totalDeltaCount = 0;
+    for(const auto& bucket : perVertexDeltas)
+    {
+      totalDeltaCount += bucket.size();
+    }
+    outDeltas.reserve(totalDeltaCount);
+
+    for(uint32_t v = 0; v < vertexCount; ++v)
+    {
+      const auto& bucket = perVertexDeltas[v];
+      if(bucket.empty())
+        continue;
+
+      outStarts[v] = static_cast<uint32_t>(outDeltas.size());
+      outCounts[v] = static_cast<uint32_t>(bucket.size());
+      outDeltas.insert(outDeltas.end(), bucket.begin(), bucket.end());
+    }
+  }
+} // namespace
+
 namespace Resource
 {
-  ResourceManager::ResourceManager() : m_vertexAllocator(ResourceLimits::VERTEX_BUFFER_SIZE), m_indexAllocator(ResourceLimits::INDEX_BUFFER_SIZE), m_materialAllocator(ResourceLimits::MATERIAL_BUFFER_SIZE)
+  ResourceManager::ResourceManager()
+    : m_vertexAllocator(ResourceLimits::VERTEX_BUFFER_SIZE),
+      m_indexAllocator(ResourceLimits::INDEX_BUFFER_SIZE),
+      m_materialAllocator(ResourceLimits::MATERIAL_BUFFER_SIZE),
+      m_meshDecompAllocator(ResourceLimits::MESH_DECOMPRESSION_BUFFER_SIZE),
+      m_skinningAllocator(ResourceLimits::SKINNING_BUFFER_SIZE),
+      m_morphDeltaAllocator(ResourceLimits::MORPH_DELTA_BUFFER_SIZE),
+      m_morphBaseAllocator(ResourceLimits::MORPH_VERTEX_BASE_BUFFER_SIZE),
+      m_morphCountAllocator(ResourceLimits::MORPH_VERTEX_COUNT_BUFFER_SIZE)
   {
+    m_clips.emplace_back();
+    m_skeletons.emplace_back();
+    m_morphSets.emplace_back();
 
   }
 
@@ -47,19 +151,88 @@ namespace Resource
       return it->second;
     }
 
+    // Compute decompression data and compress vertices on CPU
+    MeshDecompressionData decompressionData = VertexCompression::computeDecompressionData(mesh.vertices.data(), mesh.vertices.size());
+
+    std::vector<CompressedVertex> compressedVertices;
+    compressedVertices.reserve(mesh.vertices.size());
+    for(const auto& v : mesh.vertices)
+    {
+      compressedVertices.push_back(VertexCompression::compress(v, decompressionData));
+    }
+
+    VertexCompression::validateCompression(mesh.vertices, compressedVertices, decompressionData);
+
+    // Prepare animation GPU payloads
+    std::vector<GPUSkinningData> gpuSkinning = buildSkinningBuffer(mesh.skinning);
+    std::vector<GPUMorphDelta> gpuMorphDeltas;
+    std::vector<uint32_t> morphVertexStarts;
+    std::vector<uint32_t> morphVertexCounts;
+    std::vector<MeshMorphTargetInfo> morphInfos;
+    if(!mesh.morphTargets.empty())
+    {
+      buildMorphBuffers(mesh, gpuMorphDeltas, morphVertexStarts, morphVertexCounts, morphInfos);
+    }
+    if(gpuMorphDeltas.empty())
+    {
+      morphVertexStarts.clear();
+      morphVertexCounts.clear();
+    }
+
     // Allocate GPU memory
-    OffsetAllocator::Allocation vertexAlloc, indexAlloc;
+    OffsetAllocator::Allocation vertexAlloc;
+    OffsetAllocator::Allocation indexAlloc;
+    OffsetAllocator::Allocation meshDecompAlloc;
+    OffsetAllocator::Allocation skinningAlloc;
+    OffsetAllocator::Allocation morphDeltaAlloc;
+    OffsetAllocator::Allocation morphBaseAlloc;
+    OffsetAllocator::Allocation morphCountAlloc;
+
+    auto releaseAllocations = [&]()
+    {
+      if(vertexAlloc.isValid())
+        m_vertexAllocator.free(vertexAlloc);
+      if(indexAlloc.isValid())
+        m_indexAllocator.free(indexAlloc);
+      if(meshDecompAlloc.isValid())
+        m_meshDecompAllocator.free(meshDecompAlloc);
+      if(skinningAlloc.isValid())
+        m_skinningAllocator.free(skinningAlloc);
+      if(morphDeltaAlloc.isValid())
+        m_morphDeltaAllocator.free(morphDeltaAlloc);
+      if(morphBaseAlloc.isValid())
+        m_morphBaseAllocator.free(morphBaseAlloc);
+      if(morphCountAlloc.isValid())
+        m_morphCountAllocator.free(morphCountAlloc);
+    };
+
     {
       std::lock_guard allocatorLock(m_meshAllocatorMutex);
-      vertexAlloc = m_vertexAllocator.allocate(static_cast<uint32_t>(mesh.vertices.size() * sizeof(Vertex)));
+      vertexAlloc = m_vertexAllocator.allocate(static_cast<uint32_t>(compressedVertices.size() * sizeof(CompressedVertex)));
       indexAlloc = m_indexAllocator.allocate(static_cast<uint32_t>(mesh.indices.size() * sizeof(uint32_t)));
+      meshDecompAlloc = m_meshDecompAllocator.allocate(sizeof(MeshDecompressionData));
 
-      if(!vertexAlloc.isValid() || !indexAlloc.isValid())
+      if(!gpuSkinning.empty())
       {
-        if(vertexAlloc.isValid())
-          m_vertexAllocator.free(vertexAlloc);
-        if(indexAlloc.isValid())
-          m_indexAllocator.free(indexAlloc);
+        skinningAlloc = m_skinningAllocator.allocate(static_cast<uint32_t>(gpuSkinning.size() * sizeof(GPUSkinningData)));
+      }
+      if(!gpuMorphDeltas.empty())
+      {
+        morphDeltaAlloc = m_morphDeltaAllocator.allocate(static_cast<uint32_t>(gpuMorphDeltas.size() * sizeof(GPUMorphDelta)));
+        morphBaseAlloc = m_morphBaseAllocator.allocate(static_cast<uint32_t>(morphVertexStarts.size() * sizeof(uint32_t)));
+        morphCountAlloc = m_morphCountAllocator.allocate(static_cast<uint32_t>(morphVertexCounts.size() * sizeof(uint32_t)));
+      }
+
+      const bool allocationsOk =
+        vertexAlloc.isValid() &&
+        indexAlloc.isValid() &&
+        meshDecompAlloc.isValid() &&
+        (gpuSkinning.empty() || skinningAlloc.isValid()) &&
+        (gpuMorphDeltas.empty() || (morphDeltaAlloc.isValid() && morphBaseAlloc.isValid() && morphCountAlloc.isValid()));
+
+      if(!allocationsOk)
+      {
+        releaseAllocations();
         LOG_ERROR("Out of GPU memory for mesh '{}'", mesh.name);
         return {};
       }
@@ -67,12 +240,24 @@ namespace Resource
 
     // Create handle and populate data
     MeshHandle handle = m_meshPool.create();
-    if(auto* cold = m_meshPool.getColdData(handle))
-    {
-      cold->meshName = mesh.name;
-      cold->vertexMetadata = vertexAlloc;
-      cold->indexMetadata = indexAlloc;
-    }
+      if(auto* cold = m_meshPool.getColdData(handle))
+      {
+        cold->meshName = mesh.name;
+        cold->vertexMetadata = vertexAlloc;
+        cold->indexMetadata = indexAlloc;
+      cold->meshDecompressionMetadata = meshDecompAlloc;
+      cold->skinningMetadata = skinningAlloc;
+      cold->morphDeltaMetadata = morphDeltaAlloc;
+      cold->morphVertexBaseMetadata = morphBaseAlloc;
+      cold->morphVertexCountMetadata = morphCountAlloc;
+      cold->jointParentIndices = mesh.skeleton.parentIndices;
+        cold->jointInverseBindMatrices = mesh.skeleton.inverseBindMatrices;
+        cold->jointBindPoseMatrices = mesh.skeleton.bindPoseMatrices;
+        cold->jointNames = mesh.skeleton.jointNames;
+        cold->morphTargets = morphInfos;
+        cold->skeletonId = registerSkeleton(mesh.skeleton);
+        cold->morphSetId = registerMorphSet(morphInfos);
+      }
     if(auto* hot = m_meshPool.getHotData(handle))
     {
       hot->vertexByteOffset = vertexAlloc.offset;
@@ -80,11 +265,37 @@ namespace Resource
       hot->vertexCount = static_cast<uint32_t>(mesh.vertices.size());
       hot->indexCount = static_cast<uint32_t>(mesh.indices.size());
       hot->bounds = mesh.bounds;
+      hot->decompressionByteOffset = meshDecompAlloc.offset;
+
+      auto& anim = hot->animation;
+      anim.jointCount = static_cast<uint32_t>(mesh.skeleton.parentIndices.size());
+      anim.skinningByteOffset = skinningAlloc.isValid() ? skinningAlloc.offset : UINT32_MAX;
+      anim.morphDeltaByteOffset = morphDeltaAlloc.isValid() ? morphDeltaAlloc.offset : UINT32_MAX;
+      anim.morphDeltaCount = morphDeltaAlloc.isValid() ? static_cast<uint32_t>(gpuMorphDeltas.size()) : 0;
+      anim.morphVertexBaseOffset = morphBaseAlloc.isValid() ? morphBaseAlloc.offset : UINT32_MAX;
+      anim.morphVertexCountOffset = morphCountAlloc.isValid() ? morphCountAlloc.offset : UINT32_MAX;
+      anim.morphTargetCount = static_cast<uint32_t>(mesh.morphTargets.size());
     }
+
     // Queue upload
     {
       std::lock_guard pendingLock(m_pendingMeshesMutex);
-      m_pendingMeshes.push_back({ mesh, vertexAlloc, indexAlloc });
+      PendingMeshUpload pending;
+      pending.compressedVertices = std::move(compressedVertices);
+      pending.indices = mesh.indices;
+      pending.skinningData = std::move(gpuSkinning);
+      pending.morphDeltas = std::move(gpuMorphDeltas);
+      pending.morphVertexStarts = std::move(morphVertexStarts);
+      pending.morphVertexCounts = std::move(morphVertexCounts);
+      pending.decompressionData = decompressionData;
+      pending.vertexAlloc = vertexAlloc;
+      pending.indexAlloc = indexAlloc;
+      pending.meshDecompAlloc = meshDecompAlloc;
+      pending.skinningAlloc = skinningAlloc;
+      pending.morphDeltaAlloc = morphDeltaAlloc;
+      pending.morphVertexStartAlloc = morphBaseAlloc;
+      pending.morphVertexCountAlloc = morphCountAlloc;
+      m_pendingMeshes.push_back(std::move(pending));
     }
 
     m_meshCache[cacheKey] = handle;
@@ -207,6 +418,66 @@ namespace Resource
     return handle;
   }
 
+  ClipId ResourceManager::createClip(const ProcessedAnimationClip& clip)
+  {
+    m_clips.emplace_back(clip);
+    return static_cast<ClipId>(m_clips.size() - 1);
+  }
+
+  const AnimationClip& ResourceManager::Clip(ClipId id) const
+  {
+    if(id == INVALID_CLIP_ID || id >= static_cast<ClipId>(m_clips.size()))
+      return m_clips.front();
+    return m_clips[id];
+  }
+
+  SkeletonId ResourceManager::registerSkeleton(const ProcessedSkeleton& skeleton)
+  {
+    if(skeleton.parentIndices.empty())
+      return INVALID_SKELETON_ID;
+
+    m_skeletons.emplace_back(skeleton);
+    return static_cast<SkeletonId>(m_skeletons.size() - 1);
+  }
+
+  const Skeleton& ResourceManager::Skeleton(SkeletonId id) const
+  {
+    if(id == INVALID_SKELETON_ID || id >= static_cast<SkeletonId>(m_skeletons.size()))
+      return m_skeletons.front();
+    return m_skeletons[id];
+  }
+
+  MorphSetId ResourceManager::registerMorphSet(const std::vector<MeshMorphTargetInfo>& morphTargets)
+  {
+    if(morphTargets.empty())
+      return INVALID_MORPH_SET_ID;
+
+    m_morphSets.emplace_back(morphTargets);
+    return static_cast<MorphSetId>(m_morphSets.size() - 1);
+  }
+
+  const MorphSet& ResourceManager::Morph(MorphSetId id) const
+  {
+    if(id == INVALID_MORPH_SET_ID || id >= static_cast<MorphSetId>(m_morphSets.size()))
+      return m_morphSets.front();
+    return m_morphSets[id];
+  }
+
+  size_t ResourceManager::getUsedVertexBytes() const
+  {
+      return m_vertexAllocator.storageReport().highWatermark;
+  }
+
+  uint32_t ResourceManager::getVertexBufferVersion() const
+  {
+    return m_vertexBufferVersion;
+  }
+
+  void ResourceManager::bumpVertexBufferVersion()
+  {
+    ++m_vertexBufferVersion;
+  }
+
   std::vector<MeshHandle> ResourceManager::createMeshBatch(const std::vector<ProcessedMesh>& meshes)
   {
     std::vector<MeshHandle> handles;
@@ -252,6 +523,11 @@ namespace Resource
     return m_meshPool.getHotData(handle);
   }
 
+  const ResourceTraits<MeshAsset>::ColdData* ResourceManager::getMeshMetadata(MeshHandle handle) const
+  {
+    return m_meshPool.getColdData(handle);
+  }
+
   uint32_t ResourceManager::getMaterialIndex(MaterialHandle handle) const
   {
     const auto* hot = m_materialPool.getHotData(handle);
@@ -283,11 +559,16 @@ namespace Resource
       return;
 
     // Get allocation data before destroying handle
-    OffsetAllocator::Allocation vertexAlloc, indexAlloc;
+    OffsetAllocator::Allocation vertexAlloc, indexAlloc, meshDecompAlloc, skinningAlloc, morphDeltaAlloc, morphBaseAlloc, morphCountAlloc;
     if(const auto* cold = m_meshPool.getColdData(handle))
     {
       vertexAlloc = cold->vertexMetadata;
       indexAlloc = cold->indexMetadata;
+      meshDecompAlloc = cold->meshDecompressionMetadata;
+      skinningAlloc = cold->skinningMetadata;
+      morphDeltaAlloc = cold->morphDeltaMetadata;
+      morphBaseAlloc = cold->morphVertexBaseMetadata;
+      morphCountAlloc = cold->morphVertexCountMetadata;
     }
 
     // Remove from cache
@@ -307,9 +588,20 @@ namespace Resource
         m_vertexAllocator.free(vertexAlloc);
       if(indexAlloc.isValid())
         m_indexAllocator.free(indexAlloc);
+      if(meshDecompAlloc.isValid())
+        m_meshDecompAllocator.free(meshDecompAlloc);
+      if(skinningAlloc.isValid())
+        m_skinningAllocator.free(skinningAlloc);
+      if(morphDeltaAlloc.isValid())
+        m_morphDeltaAllocator.free(morphDeltaAlloc);
+      if(morphBaseAlloc.isValid())
+        m_morphBaseAllocator.free(morphBaseAlloc);
+      if(morphCountAlloc.isValid())
+        m_morphCountAllocator.free(morphCountAlloc);
     }
 
     m_meshPool.destroy(handle);
+    bumpVertexBufferVersion();
   }
 
   void ResourceManager::freeMaterial(MaterialHandle handle)
@@ -415,6 +707,7 @@ namespace Resource
     if(!meshesToUpload.empty())
     {
       LOG_INFO("Flushing {} meshes...", meshesToUpload.size());
+      bumpVertexBufferVersion();
       uploadMeshBatch(meshesToUpload);
     }
 
@@ -527,11 +820,26 @@ namespace Resource
   {
     auto& gpuBuffers = m_context->renderer->getGPUBuffers();
 
-    // Upload vertices
-    uploadContiguousBatches(meshes, gpuBuffers.GetVertexBuffer(), [](const PendingMeshUpload& mesh) { return mesh.vertexAlloc; }, [](const PendingMeshUpload& mesh) { return std::span(mesh.data.vertices); });
+    // Upload compressed vertices
+    uploadContiguousBatches(meshes, gpuBuffers.GetVertexBuffer(), [](const PendingMeshUpload& mesh) { return mesh.vertexAlloc; }, [](const PendingMeshUpload& mesh) { return std::span(mesh.compressedVertices); });
 
     // Upload indices
-    uploadContiguousBatches(meshes, gpuBuffers.GetIndexBuffer(), [](const PendingMeshUpload& mesh) { return mesh.indexAlloc; }, [](const PendingMeshUpload& mesh) { return std::span(mesh.data.indices); });
+    uploadContiguousBatches(meshes, gpuBuffers.GetIndexBuffer(), [](const PendingMeshUpload& mesh) { return mesh.indexAlloc; }, [](const PendingMeshUpload& mesh) { return std::span(mesh.indices); });
+
+    // Upload mesh decompression data
+    uploadContiguousBatches(meshes, gpuBuffers.GetMeshDecompressionBuffer(), [](const PendingMeshUpload& mesh) { return mesh.meshDecompAlloc; }, [](const PendingMeshUpload& mesh) { return std::span(&mesh.decompressionData, 1); });
+
+    // Upload skinning data
+    uploadContiguousBatches(meshes, gpuBuffers.GetSkinningBuffer(), [](const PendingMeshUpload& mesh) { return mesh.skinningAlloc; }, [](const PendingMeshUpload& mesh) { return std::span(mesh.skinningData); });
+
+    // Upload morph deltas
+    uploadContiguousBatches(meshes, gpuBuffers.GetMorphDeltaBuffer(), [](const PendingMeshUpload& mesh) { return mesh.morphDeltaAlloc; }, [](const PendingMeshUpload& mesh) { return std::span(mesh.morphDeltas); });
+
+    // Upload morph vertex mapping (start offsets)
+    uploadContiguousBatches(meshes, gpuBuffers.GetMorphVertexBaseBuffer(), [](const PendingMeshUpload& mesh) { return mesh.morphVertexStartAlloc; }, [](const PendingMeshUpload& mesh) { return std::span(mesh.morphVertexStarts); });
+
+    // Upload morph vertex counts
+    uploadContiguousBatches(meshes, gpuBuffers.GetMorphVertexCountBuffer(), [](const PendingMeshUpload& mesh) { return mesh.morphVertexCountAlloc; }, [](const PendingMeshUpload& mesh) { return std::span(mesh.morphVertexCounts); });
   }
 
   void ResourceManager::uploadMaterialBatch(std::vector<PendingMaterialUpload>& materials)
@@ -549,11 +857,25 @@ namespace Resource
     if(items.empty())
       return;
 
-    auto sortedItems = items;
-    std::sort(sortedItems.begin(), sortedItems.end(),
-              [&](const auto& a, const auto& b)
+    using ItemType = typename Container::value_type;
+    std::vector<const ItemType*> validItems;
+    validItems.reserve(items.size());
+    for(const auto& item : items)
     {
-      return allocSelector(a).offset < allocSelector(b).offset;
+      const auto alloc = allocSelector(item);
+      const auto data = dataSelector(item);
+      if(!alloc.isValid() || data.empty())
+        continue;
+      validItems.push_back(&item);
+    }
+
+    if(validItems.empty())
+      return;
+
+    std::sort(validItems.begin(), validItems.end(),
+              [&](const ItemType* a, const ItemType* b)
+    {
+      return allocSelector(*a).offset < allocSelector(*b).offset;
     });
 
     constexpr size_t MAX_BATCH_SIZE = 16 * 1024 * 1024; // 16MB
@@ -577,11 +899,11 @@ namespace Resource
       }
     };
 
-    for(const auto& item : sortedItems)
+    for(const ItemType* item : validItems)
     {
-      const auto alloc = allocSelector(item);
-      const auto data = dataSelector(item);
-      const size_t dataSize = data.size() * sizeof(typename decltype(data)::element_type);
+      const auto alloc = allocSelector(*item);
+      const auto data = dataSelector(*item);
+      const size_t dataSize = data.size_bytes();
 
       const bool isContiguous = batchActive && (alloc.offset == batchStartOffset + batchBuffer.size());
 

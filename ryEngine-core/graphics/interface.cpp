@@ -20,7 +20,7 @@
 #ifdef _WIN32
 #  define GLFW_EXPOSE_NATIVE_WIN32
 #elif defined(__linux__)
-#  if defined(WAYLAND) 
+#  if defined(WAYLAND)
 #    define GLFW_EXPOSE_NATIVE_WAYLAND
 #  else
 #    define GLFW_EXPOSE_NATIVE_X11
@@ -84,6 +84,19 @@ namespace
     PROPS(A2R10G10B10_UN, 4),
     PROPS(ETC2_RGB8, 8, .blockWidth = 4, .blockHeight = 4, .compressed = true),
     PROPS(ETC2_SRGB8, 8, .blockWidth = 4, .blockHeight = 4, .compressed = true),
+    PROPS(BC1_RGB,        8,  .blockWidth = 4, .blockHeight = 4, .compressed = true),
+    PROPS(BC1_RGB_SRGB,   8,  .blockWidth = 4, .blockHeight = 4, .compressed = true),
+    PROPS(BC1_RGBA,       8,  .blockWidth = 4, .blockHeight = 4, .compressed = true), // 1-bit alpha
+    PROPS(BC1_RGBA_SRGB,  8,  .blockWidth = 4, .blockHeight = 4, .compressed = true),
+    PROPS(BC2_RGBA,       16, .blockWidth = 4, .blockHeight = 4, .compressed = true),
+    PROPS(BC2_RGBA_SRGB,  16, .blockWidth = 4, .blockHeight = 4, .compressed = true),
+    PROPS(BC3_RGBA,       16, .blockWidth = 4, .blockHeight = 4, .compressed = true),
+    PROPS(BC3_RGBA_SRGB,  16, .blockWidth = 4, .blockHeight = 4, .compressed = true),
+    PROPS(BC6H_RGB_UFLOAT,16, .blockWidth = 4, .blockHeight = 4, .compressed = true),
+    PROPS(BC6H_RGB_SFLOAT,16, .blockWidth = 4, .blockHeight = 4, .compressed = true),
+    PROPS(BC7_RGBA_SRGB,  16, .blockWidth = 4, .blockHeight = 4, .compressed = true),
+    PROPS(BC4_R,  8,  .blockWidth = 4, .blockHeight = 4, .compressed = true),
+    PROPS(BC5_RG, 16, .blockWidth = 4, .blockHeight = 4, .compressed = true),
     PROPS(BC7_RGBA, 16, .blockWidth = 4, .blockHeight = 4, .compressed = true),
     PROPS(Z_UN16, 2, .depth = true),
     PROPS(Z_UN24, 3, .depth = true),
@@ -118,6 +131,11 @@ uint32_t vk::getVertexFormatSize(VertexFormat format)
 #define SIZE2_4_NORM(LVKBaseType, BaseType)           \
   case VertexFormat::LVKBaseType##2Norm: return sizeof(BaseType) * 2u; \
   case VertexFormat::LVKBaseType##4Norm: return sizeof(BaseType) * 4u;
+#define SIZE1_2_3_4_NORM(LVKBaseType, BaseType)           \
+  case VertexFormat::LVKBaseType##1Norm: return sizeof(BaseType) * 1u; \
+  case VertexFormat::LVKBaseType##2Norm: return sizeof(BaseType) * 2u; \
+  case VertexFormat::LVKBaseType##3Norm: return sizeof(BaseType) * 3u; \
+  case VertexFormat::LVKBaseType##4Norm: return sizeof(BaseType) * 4u;
 
   // clang-format on
 
@@ -130,12 +148,12 @@ uint32_t vk::getVertexFormatSize(VertexFormat format)
     SIZE4(UShort, uint16_t);
     SIZE2_4_NORM(Byte, uint8_t);
     SIZE2_4_NORM(UByte, uint8_t);
-    SIZE2_4_NORM(Short, uint16_t);
-    SIZE2_4_NORM(UShort, uint16_t);
+    SIZE1_2_3_4_NORM(Short, uint16_t);
+    SIZE1_2_3_4_NORM(UShort, uint16_t);
     SIZE4(Int, uint32_t);
     SIZE4(UInt, uint32_t);
     SIZE4(HalfFloat, uint16_t);
-    case VertexFormat::Int_2_10_10_10_REV:
+    case VertexFormat::R10G10B10A2_SNORM:
       return sizeof(uint32_t);
     default: assert(false);
       return 0;

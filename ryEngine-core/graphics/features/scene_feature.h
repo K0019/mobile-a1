@@ -27,7 +27,10 @@ struct DrawData
 {
   uint32_t transformId; // Index into transform arrays
   uint32_t materialId;  // Material index for GPU buffer access
+  uint32_t meshDecompIndex; // Index into MeshDecompressionBuffer
+  uint32_t objectId; // Index into scene's object array for identification
 };
+static_assert(sizeof(DrawData) == 16, "DrawData must be 16 bytes");
 
 struct CullingData
 {
@@ -38,17 +41,14 @@ struct CullingData
 };
 
 struct PushConstants {
-    mat4 viewProj;
-    vec4 cameraPos;
+    uint64_t frameConstants;
     uint64_t bufferTransforms;
-    uint64_t bufferDrawData;  
+    uint64_t bufferDrawData;
     uint64_t bufferMaterials;
+    uint64_t meshDecomp;
     uint64_t oitBuffer;
-    uint64_t lightingBuffer;  // NEW: Clustered lighting data
-    uint32_t irradianceTexture;
-    uint32_t prefilteredTexture;
-    uint32_t brdfLutTexture;
-    float environmentIntensity; // Padding to align to 16 bytes
+    uint64_t lightingBuffer;
+    uint64_t textureIndices; // Reserved for future use
 };
 
 namespace Lighting
@@ -131,6 +131,40 @@ struct SceneRenderParams
   // Render queues (indices into drawCommands array)
   std::vector<uint32_t> opaqueIndices;
   std::vector<uint32_t> transparentIndices;
+  uint32_t opaqueStaticCount = 0;
+  uint32_t opaqueAnimatedCount = 0;
+  uint32_t transparentStaticCount = 0;
+  uint32_t transparentAnimatedCount = 0;
+
+
+  struct AnimatedInstanceParams
+  {
+    static constexpr uint32_t INVALID = 0xFFFFFFFFu;
+
+    uint32_t drawIndex = INVALID;
+    uint32_t srcBaseVertex = 0;         // Vertex offset in bind pose buffer
+    uint32_t dstBaseVertex = 0;         // Vertex offset in skinned buffer
+    uint32_t vertexCount = 0;
+    uint32_t meshDecompIndex = 0;
+
+    uint32_t skinningOffset = INVALID;  // GPUSkinningData element offset
+    uint32_t boneMatrixOffset = INVALID;// mat4 offset into bone matrix buffer
+    uint32_t jointCount = 0;
+
+    uint32_t morphDeltaOffset = INVALID;// GPUMorphDelta element offset
+    uint32_t morphDeltaCount = 0;
+    uint32_t morphStateOffset = INVALID;// MorphRuntimeState offset
+    uint32_t morphTargetCount = 0;
+    uint32_t morphVertexBaseOffset = INVALID;  // uint32_t element offset
+    uint32_t morphVertexCountOffset = INVALID; // uint32_t element offset
+  };
+
+  std::vector<mat4> boneMatrices;
+  std::vector<float> morphWeights;
+  std::vector<AnimatedInstanceParams> animatedInstances;
+  std::vector<uint8_t> drawIsAnimated;
+  uint32_t usedAnimatedVertexBytes = 0;
+  bool hasAnimatedInstances = false;
 
   std::vector<Lighting::GPULight> lights;
   uint32_t activeLightCount = 0;
@@ -171,8 +205,18 @@ struct SceneRenderParams
     drawData.clear();
     opaqueIndices.clear();
     transparentIndices.clear();
+    opaqueStaticCount = 0;
+    opaqueAnimatedCount = 0;
+    transparentStaticCount = 0;
+    transparentAnimatedCount = 0;
     lights.clear();
     activeLightCount = 0;
+    boneMatrices.clear();
+    morphWeights.clear();
+    animatedInstances.clear();
+    drawIsAnimated.clear();
+    usedAnimatedVertexBytes = 0;
+    hasAnimatedInstances = false;
   }
 
   void reserve(size_t objectCount)
@@ -184,6 +228,8 @@ struct SceneRenderParams
     drawData.reserve(objectCount);
     opaqueIndices.reserve(objectCount);
     transparentIndices.reserve(objectCount);
+    animatedInstances.reserve(objectCount);
+    drawIsAnimated.reserve(objectCount);
     lights.reserve(std::min(static_cast<size_t>(MAX_LIGHTS), objectCount / 4)); //estimate
   }
 };
@@ -193,8 +239,10 @@ class SceneRenderFeature final : public RenderFeatureBase<SceneRenderParams>
   using Parameters = SceneRenderParams;
 
   public:
+    explicit SceneRenderFeature(bool enableObjectPicking = false);
+
     void static UpdateScene(uint64_t renderFeatureID,
-                            const Resource::Scene& gameScene,
+                            Resource::Scene& gameScene,
                             const Resource::ResourceManager& asset_system,
                             Renderer& renderer);
 
@@ -202,10 +250,24 @@ class SceneRenderFeature final : public RenderFeatureBase<SceneRenderParams>
 
     const char* GetName() const override;
 
+    // Object picking API
+    struct PickResult
+    {
+        bool valid = false;
+        uint32_t sceneObjectIndex = 0;
+        uint32_t primitiveId = 0;
+        uint32_t drawId = 0;
+    };
+
+    void RequestObjectPick(int screenX, int screenY);
+    PickResult GetLastPickResult() const;
+    void ClearPickResult();
+
   private:
 
     static void convertSceneLight(const SceneLight& sceneLight, Lighting::GPULight& gpuLight);
 
+    void ExecuteDeformationPass(internal::ExecutionContext& ctx);
     void ExecuteCullingPass(internal::ExecutionContext& ctx);
 
     void ExecuteOpaquePass(internal::ExecutionContext& ctx);
@@ -227,17 +289,23 @@ class SceneRenderFeature final : public RenderFeatureBase<SceneRenderParams>
     void EnsureComputePipeline(internal::ExecutionContext& ctx);
 
     void EnsureRenderPipelines(internal::ExecutionContext& ctx);
+    void EnsureDeformationPipeline(internal::ExecutionContext& ctx);
 
     uint32_t sampleCount = 1;
 
     vk::Holder<vk::ShaderModuleHandle> m_cullingShader;
+    vk::Holder<vk::ComputePipelineHandle> m_deformationPipeline;
     vk::Holder<vk::ComputePipelineHandle> m_cullingPipeline;
+    vk::Holder<vk::ShaderModuleHandle> m_deformationShader;
 
     vk::Holder<vk::ShaderModuleHandle> vertShader;
+    vk::Holder<vk::ShaderModuleHandle> m_skinnedVertShader;
     vk::Holder<vk::ShaderModuleHandle> opaquefragShader;
     vk::Holder<vk::ShaderModuleHandle> transparentfragShader;
     vk::Holder<vk::RenderPipelineHandle> m_opaqueRenderPipeline;
+    vk::Holder<vk::RenderPipelineHandle> m_opaqueAnimatedRenderPipeline;
     vk::Holder<vk::RenderPipelineHandle> m_transparentRenderPipeline;
+    vk::Holder<vk::RenderPipelineHandle> m_transparentAnimatedRenderPipeline;
 
     vk::Holder<vk::RenderPipelineHandle> m_skyboxRenderPipeline;
     vk::Holder<vk::ShaderModuleHandle> m_skyboxVertShader;
@@ -247,4 +315,29 @@ class SceneRenderFeature final : public RenderFeatureBase<SceneRenderParams>
     vk::Holder<vk::ComputePipelineHandle> m_clusterBoundsPipeline;
     vk::Holder<vk::ShaderModuleHandle> m_lightCullingShader;
     vk::Holder<vk::ComputePipelineHandle> m_lightCullingPipeline;
+
+    vk::Holder<vk::RenderPipelineHandle> m_depthPrepassPipeline;
+    vk::Holder<vk::RenderPipelineHandle> m_depthPrepassAnimatedPipeline;
+    vk::Holder<vk::ShaderModuleHandle> m_depthPrepassVertShader;
+    vk::Holder<vk::ShaderModuleHandle> m_depthPrepassSkinnedVertShader;
+    vk::Holder<vk::ShaderModuleHandle> m_depthPrepassFragShader;
+
+    void EnsureDepthPrepassPipeline(internal::ExecutionContext& ctx);
+    void ExecuteDepthPrepass(internal::ExecutionContext& ctx);
+
+    // Picking state
+    bool m_enableObjectPicking = false;
+
+    struct PickRequest
+    {
+        int screenX = 0;
+        int screenY = 0;
+        bool pending = false;
+    };
+
+    PickRequest m_pickRequest;
+    PickResult m_lastPickResult;
+    mutable std::mutex m_pickResultMutex;
+
+    void ProcessPendingPick(internal::ExecutionContext& ctx);
 };

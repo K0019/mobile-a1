@@ -14,7 +14,7 @@ namespace Resource
 {
   namespace MeshLoading
   {
-    ProcessedMesh extractMesh(const aiMesh* aiMesh, uint32_t meshIndex, const LoadingConfig& config);
+    ProcessedMesh extractMesh(const aiScene* scene, const aiMesh* aiMesh, uint32_t meshIndex, const LoadingConfig& config);
 
     // Collection utilities
     std::vector<const aiMesh*> collectMeshPointers(const aiScene* scene, const LoadingConfig& config);
@@ -22,7 +22,7 @@ namespace Resource
     // Utility functions
     bool isValidMesh(const ProcessedMesh& mesh);
 
-    vec4 calculateBounds(std::span<const Vertex> vertices);
+    vec4 calculateBounds(std::span<const Vertex> vertices, const std::vector<MorphTargetData>* morphTargets = nullptr);
 
     std::string generateMeshCacheKey(const ProcessedMesh& mesh);
 

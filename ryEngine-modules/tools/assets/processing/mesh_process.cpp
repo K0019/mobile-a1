@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <unordered_map>
 #include <cstring>
+#include <limits>
 #include "logging/log.h"
 
 namespace Resource
@@ -14,7 +15,10 @@ namespace Resource
     constexpr float VERTEX_CACHE_SIZE = 16.0f;
   }
 
-  MeshOptimizer::OptimizationResult MeshOptimizer::optimize(std::vector<Vertex>& vertices, std::vector<uint32_t>& indices, bool generateTangents)
+  MeshOptimizer::OptimizationResult MeshOptimizer::optimize(std::vector<Vertex>& vertices,
+                                                            std::vector<uint32_t>& indices,
+                                                            std::vector<SkinningData>* skinningData,
+                                                            std::vector<MorphTargetData>* morphTargets)
   {
     OptimizationResult result;
     result.originalVertexCount = static_cast<uint32_t>(vertices.size());
@@ -28,19 +32,10 @@ namespace Resource
 
     try
     {
-      if (generateTangents)
-      {
-        // Generate tangents first, then optimize
-        if (MeshOptimizer::generateTangents(vertices, indices))
-        {
-          LOG_DEBUG("Generated tangents for {} vertices", vertices.size());
-        }
-      }
-
       // Optimize mesh using meshoptimizer
       optimizeVertexCache(indices, vertices.size());
       optimizeOverdraw(indices, vertices);
-      optimizeVertexFetch(vertices, indices);
+      optimizeVertexFetch(vertices, indices, skinningData, morphTargets);
 
       result.success = true;
       result.optimizedVertexCount = static_cast<uint32_t>(vertices.size());
@@ -62,28 +57,46 @@ namespace Resource
     return result;
   }
 
-  bool MeshOptimizer::generateTangents(std::vector<Vertex>& vertices, std::vector<uint32_t>& indices)
+  bool MeshOptimizer::generateTangents(std::vector<Vertex>& vertices,
+                                       std::vector<uint32_t>& indices,
+                                       std::vector<SkinningData>* skinningData,
+                                       std::vector<MorphTargetData>* morphTargets)
   {
     if (vertices.empty() || indices.empty() || indices.size() % 3 != 0) { return false; }
 
     // Create unwelded mesh for tangent generation
-    std::vector<Vertex> unweldedVertices = unweldMesh(vertices, indices);
+    std::vector<uint32_t> unweldToOriginal;
+    std::vector<Vertex> unweldedVertices = unweldMesh(vertices, indices, unweldToOriginal);
 
     // Generate tangents on unwelded mesh
     generateTangentsUnwelded(unweldedVertices);
 
     // Re-index the mesh
-    reindexMesh(vertices, indices, unweldedVertices);
+    reindexMesh(vertices, indices, unweldedVertices, unweldToOriginal, skinningData, morphTargets);
 
     return true;
   }
 
-  std::vector<Vertex> MeshOptimizer::unweldMesh(const std::vector<Vertex>& vertices, const std::vector<uint32_t>& indices)
+  std::vector<Vertex> MeshOptimizer::unweldMesh(const std::vector<Vertex>& vertices,
+                                                const std::vector<uint32_t>& indices,
+                                                std::vector<uint32_t>& unweldToOriginal)
   {
     std::vector<Vertex> unweldedVertices;
     unweldedVertices.reserve(indices.size());
+    unweldToOriginal.reserve(indices.size());
 
-    for (uint32_t index : indices) { if (index < vertices.size()) { unweldedVertices.push_back(vertices[index]); } }
+    for (uint32_t index : indices)
+    {
+      if (index < vertices.size())
+      {
+        unweldedVertices.push_back(vertices[index]);
+        unweldToOriginal.push_back(index);
+      }
+      else
+      {
+        unweldToOriginal.push_back(std::numeric_limits<uint32_t>::max());
+      }
+    }
 
     return unweldedVertices;
   }
@@ -112,19 +125,116 @@ namespace Resource
     if (!genTangSpaceDefault(&mikktContext)) { LOG_WARNING("Failed to generate tangents using mikktspace"); }
   }
 
-  void MeshOptimizer::reindexMesh(std::vector<Vertex>& vertices, std::vector<uint32_t>& indices, const std::vector<Vertex>& unweldedVertices)
+  void MeshOptimizer::reindexMesh(std::vector<Vertex>& vertices,
+                                  std::vector<uint32_t>& indices,
+                                  const std::vector<Vertex>& unweldedVertices,
+                                  const std::vector<uint32_t>& unweldToOriginal,
+                                  std::vector<SkinningData>* skinningData,
+                                  std::vector<MorphTargetData>* morphTargets)
   {
     // Generate vertex remap
     std::vector<uint32_t> remap(unweldedVertices.size());
-    size_t uniqueVertices = meshopt_generateVertexRemap(remap.data(), nullptr, unweldedVertices.size(), unweldedVertices.data(), unweldedVertices.size(), sizeof(Vertex));
+    size_t uniqueVertices = meshopt_generateVertexRemap(remap.data(),
+                                                        nullptr,
+                                                        unweldedVertices.size(),
+                                                        unweldedVertices.data(),
+                                                        unweldedVertices.size(),
+                                                        sizeof(Vertex));
 
     // Create new index buffer
     indices.resize(unweldedVertices.size());
-    for (size_t i = 0; i < unweldedVertices.size(); ++i) { indices[i] = remap[i]; }
+    for (size_t i = 0; i < unweldedVertices.size(); ++i)
+    {
+      indices[i] = remap[i];
+    }
 
     // Create new vertex buffer with unique vertices only
     vertices.resize(uniqueVertices);
     meshopt_remapVertexBuffer(vertices.data(), unweldedVertices.data(), unweldedVertices.size(), sizeof(Vertex), remap.data());
+
+    // Build mapping from new vertices back to original vertex indices
+    std::vector<uint32_t> originalForUnique(uniqueVertices, std::numeric_limits<uint32_t>::max());
+    for(size_t i = 0; i < remap.size(); ++i)
+    {
+      const uint32_t newIndex = remap[i];
+      if(newIndex >= uniqueVertices)
+        continue;
+      uint32_t sourceIndex = (i < unweldToOriginal.size()) ? unweldToOriginal[i] : std::numeric_limits<uint32_t>::max();
+      if(originalForUnique[newIndex] == std::numeric_limits<uint32_t>::max() || sourceIndex != std::numeric_limits<uint32_t>::max())
+      {
+        originalForUnique[newIndex] = sourceIndex;
+      }
+    }
+
+    uint32_t originalVertexCount = 0;
+    for(uint32_t originalIndex : unweldToOriginal)
+    {
+      if(originalIndex != std::numeric_limits<uint32_t>::max())
+        originalVertexCount = std::max(originalVertexCount, originalIndex + 1);
+    }
+
+    auto resolveOriginalIndex = [&](uint32_t newIndex) -> uint32_t
+    {
+      if(newIndex >= originalForUnique.size())
+        return std::numeric_limits<uint32_t>::max();
+      return originalForUnique[newIndex];
+    };
+
+    if (skinningData && !skinningData->empty())
+    {
+      if (skinningData->size() == originalVertexCount)
+      {
+        std::vector<SkinningData> remapped(uniqueVertices);
+        for (size_t i = 0; i < uniqueVertices; ++i)
+        {
+          uint32_t originalIndex = resolveOriginalIndex(static_cast<uint32_t>(i));
+          if (originalIndex != std::numeric_limits<uint32_t>::max() &&
+              static_cast<size_t>(originalIndex) < skinningData->size())
+            remapped[i] = (*skinningData)[originalIndex];
+          else
+            remapped[i] = SkinningData{};
+        }
+        skinningData->swap(remapped);
+      }
+      else
+      {
+        LOG_WARNING("Tangent generation skipped skinning remap due to size mismatch (expected {}, got {})",
+                    originalVertexCount,
+                    skinningData->size());
+      }
+    }
+
+    if (morphTargets && !morphTargets->empty())
+    {
+      for (auto& target : *morphTargets)
+      {
+        auto& deltas = target.deltas;
+        if (deltas.empty())
+          continue;
+
+        if (deltas.size() == originalVertexCount)
+        {
+          std::vector<MorphTargetVertexDelta> remapped(uniqueVertices);
+          for (size_t i = 0; i < uniqueVertices; ++i)
+          {
+            uint32_t originalIndex = resolveOriginalIndex(static_cast<uint32_t>(i));
+            if (originalIndex != std::numeric_limits<uint32_t>::max() &&
+                static_cast<size_t>(originalIndex) < deltas.size())
+              remapped[i] = deltas[originalIndex];
+            else
+              remapped[i] = MorphTargetVertexDelta{};
+          }
+          deltas.swap(remapped);
+        }
+        else
+        {
+          LOG_WARNING("Tangent generation skipped morph target '{}' remap due to size mismatch (expected {}, got {})",
+                      target.name,
+                      originalVertexCount,
+                      deltas.size());
+        }
+      }
+    }
   }
 
   void MeshOptimizer::optimizeVertexCache(std::vector<uint32_t>& indices, size_t vertexCount)
@@ -155,17 +265,72 @@ namespace Resource
     );
   }
 
-  void MeshOptimizer::optimizeVertexFetch(std::vector<Vertex>& vertices, std::vector<uint32_t>& indices)
+  void MeshOptimizer::optimizeVertexFetch(std::vector<Vertex>& vertices,
+                                          std::vector<uint32_t>& indices,
+                                          std::vector<SkinningData>* skinningData,
+                                          std::vector<MorphTargetData>* morphTargets)
   {
-    std::vector<uint32_t> remap(vertices.size());
-    size_t uniqueVertices = meshopt_optimizeVertexFetchRemap(remap.data(), indices.data(), indices.size(), vertices.size());
+    if (vertices.empty())
+      return;
+
+    const size_t vertexCount = vertices.size();
+    std::vector<uint32_t> remap(vertexCount);
+    size_t uniqueVertices = meshopt_optimizeVertexFetchRemap(remap.data(), indices.data(), indices.size(), vertexCount);
 
     meshopt_remapIndexBuffer(indices.data(), indices.data(), indices.size(), remap.data());
 
     std::vector<Vertex> optimizedVertices(uniqueVertices);
-    meshopt_remapVertexBuffer(optimizedVertices.data(), vertices.data(), vertices.size(), sizeof(Vertex), remap.data());
+    meshopt_remapVertexBuffer(optimizedVertices.data(), vertices.data(), vertexCount, sizeof(Vertex), remap.data());
 
     vertices = std::move(optimizedVertices);
+
+    if (skinningData && !skinningData->empty())
+    {
+      if (skinningData->size() == vertexCount)
+      {
+        std::vector<SkinningData> remapped(uniqueVertices);
+        meshopt_remapVertexBuffer(remapped.data(),
+                                  skinningData->data(),
+                                  vertexCount,
+                                  sizeof(SkinningData),
+                                  remap.data());
+        skinningData->swap(remapped);
+      }
+      else
+      {
+        LOG_WARNING("Mesh optimization skipped skinning remap due to size mismatch (expected {}, got {})",
+                    vertexCount,
+                    skinningData->size());
+      }
+    }
+
+    if (morphTargets && !morphTargets->empty())
+    {
+      for (auto& target : *morphTargets)
+      {
+        auto& deltas = target.deltas;
+        if (deltas.empty())
+          continue;
+
+        if (deltas.size() == vertexCount)
+        {
+          std::vector<MorphTargetVertexDelta> remapped(uniqueVertices);
+          meshopt_remapVertexBuffer(remapped.data(),
+                                    deltas.data(),
+                                    vertexCount,
+                                    sizeof(MorphTargetVertexDelta),
+                                    remap.data());
+          deltas.swap(remapped);
+        }
+        else
+        {
+          LOG_WARNING("Mesh optimization skipped morph target '{}' remap due to size mismatch (expected {}, got {})",
+                      target.name,
+                      vertexCount,
+                      deltas.size());
+        }
+      }
+    }
   }
 
   bool MeshOptimizer::shouldOptimize(const std::vector<Vertex>& vertices, const std::vector<uint32_t>& indices)

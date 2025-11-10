@@ -550,6 +550,8 @@ namespace vk
 
       void cmdClearColorImage(TextureHandle tex, const ClearColorValue& value, const TextureLayers& layers) override;
 
+      void cmdCopyBuffer(BufferHandle src, BufferHandle dst, size_t size, size_t srcOffset, size_t dstOffset) override;
+
       void cmdCopyImage(TextureHandle src, TextureHandle dst, const Dimensions& extent, const Offset3D& srcOffset, const Offset3D& dstOffset, const TextureLayers& srcLayers, const TextureLayers& dstLayers) override;
 
       void cmdGenerateMipmap(TextureHandle handle) override;

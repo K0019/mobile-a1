@@ -121,7 +121,7 @@ namespace OffsetAllocator
         return (mantissa | MANTISSA_VALUE) << (exponent - 1);
       }
     }
-  }
+  } // namespace SmallFloat
 
   // Utility functions
   uint32 findLowestSetBitAfter(uint32 bitMask, uint32 startBitIndex)
@@ -161,6 +161,7 @@ namespace OffsetAllocator
     m_freeStorage = 0;
     m_usedBinsTop = 0;
     m_freeOffset = m_maxAllocs - 1;
+    m_highWatermark = 0;
 
     for (uint32 i = 0; i < NUM_TOP_BINS; i++)
       m_usedBins[i] = 0;
@@ -245,6 +246,9 @@ namespace OffsetAllocator
     if (node.binListNext != Node::unused)
       m_nodes[node.binListNext].binListPrev = Node::unused;
     m_freeStorage -= nodeTotalSize;
+    uint32 end = node.dataOffset + size;
+    if (end > m_highWatermark)
+        m_highWatermark = end;
 #ifdef DEBUG_VERBOSE
         printf("Free storage: %u (-%u) (allocate)\n", m_freeStorage, nodeTotalSize);
 #endif
@@ -463,8 +467,7 @@ namespace OffsetAllocator
         ASSERT(freeStorage >= largestFreeRegion);
       }
     }
-
-    return {.totalFreeSpace = freeStorage, .largestFreeRegion = largestFreeRegion};
+    return {.totalFreeSpace = freeStorage, .largestFreeRegion = largestFreeRegion, .highWatermark = m_highWatermark};
   }
 
   StorageReportFull Allocator::storageReportFull() const
@@ -483,4 +486,4 @@ namespace OffsetAllocator
     }
     return report;
   }
-}
+} // namespace OffsetAllocator

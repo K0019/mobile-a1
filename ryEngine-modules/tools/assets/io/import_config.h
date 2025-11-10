@@ -12,8 +12,6 @@ namespace Resource
 
     // Mesh settings
     bool optimizeMeshes = true;
-    bool autoDetectTangentNeed = true;
-    bool generateTangents = true;
     bool flipUVs = true;
     uint32_t maxVerticesPerMesh = 1'000'000;
 
@@ -29,7 +27,6 @@ namespace Resource
     // Scene settings
     bool extractLights = true;
     bool extractCameras = true;
-    bool calculateBounds = true;
 
     // Memory limits
     uint32_t maxMeshes = 1000;
@@ -57,7 +54,6 @@ namespace Resource
     static LoadingConfig createQuality()
     {
       LoadingConfig config;
-      config.generateTangents = true;
       config.maxFrameTimeMs = 1.0f;
       config.maxTextureResolution = 8192;
       return config;

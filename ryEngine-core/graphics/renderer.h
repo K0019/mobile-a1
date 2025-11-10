@@ -40,6 +40,17 @@ class Renderer : public IRenderer
 
     void* GetFeatureParameterBlockPtr(uint64_t feature_handle) override;
 
+    template <typename TFeature>
+    TFeature* GetFeature(uint64_t feature_handle)
+    {
+      auto it = m_features.find(feature_handle);
+      if (it == m_features.end() || !it->second.feature)
+      {
+        return nullptr;
+      }
+      return dynamic_cast<TFeature*>(it->second.feature.get());
+    }
+
     GPUBuffers& getGPUBuffers() { return *m_gpuBuffers; }
 
     const GPUBuffers& getGPUBuffers() const { return *m_gpuBuffers; }

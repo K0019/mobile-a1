@@ -40,6 +40,8 @@ All rights reserved.
 #include "Game/IGameComponentCallbacks.h"
 #include "Physics/Collision.h"
 
+// YC: For debugging
+#include "Physics/JoltDebugRenderer.h"
 JPH_SUPPRESS_WARNINGS
 
 namespace physics {
@@ -114,6 +116,8 @@ namespace physics {
 		*//******************************************************************/
 		void OptimizeBroadPhase();
 
+		void DebugDraw();
+
 	private:
 		// We need a temp allocator for temporary allocations during the physics update. We're
 		// pre-allocating 10 MB to avoid having to do allocations during the physics update.
@@ -168,6 +172,8 @@ namespace physics {
 
 		// Body manager that allows certain bodies to change the scale.
 		JPH::BodyManager bodyManager;
+
+		JoltDebugRenderer joltDebugger;
 	};
 
 	struct TransformValues

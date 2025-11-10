@@ -27,7 +27,10 @@
       "name": "glslang",
       "platform": "android"
     },
-	  "joltphysics",
+	  {
+      "name": "joltphysics",
+      "features": ["debugrenderer"]
+    },
     {
       "name": "imgui",
       "features": ["glfw-binding", "freetype", "docking-experimental"],
