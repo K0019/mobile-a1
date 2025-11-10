@@ -29,6 +29,7 @@ if (NOT ANDROID)
         RecastNavigation::DebugUtils
         KTX::ktx
         Boost::boost
+        ${LUA_LIBRARIES}
     )
 else()
     set(CORE_PUBLIC_DEPS
@@ -41,6 +42,7 @@ else()
         RecastNavigation::DetourCrowd
         RecastNavigation::DetourTileCache
         RecastNavigation::DebugUtils
+        ${LUA_LIBRARIES}
     )
 
     set(CORE_PRIVATE_DEPS

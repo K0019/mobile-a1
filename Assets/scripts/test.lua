@@ -1,0 +1,8 @@
+function start(entity)
+    local nameComp = entity:GetNameComponent();
+    if nameComp:Exists() then
+        Magic.Log(Magic.LogLevel.info, nameComp.name)
+    end
+    --Magic.TestFunction(entity);
+    --print(entity.transform.localPosition.x)
+end

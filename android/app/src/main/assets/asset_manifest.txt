@@ -7,6 +7,7 @@ behaviourtrees/movetest.json
 behaviourtrees/newtest.json
 behaviourtrees/testclick.json
 behaviourtrees/testnestednewtree.json
+compiledassets/aji.mesh
 compiledassets/ambulance.mesh
 compiledassets/box.mesh
 compiledassets/cone.mesh
@@ -17,7 +18,77 @@ compiledassets/taxi.mesh
 compiledassets/unitbox.mesh
 compiledassets/materials/colormap.material
 compiledassets/materials/material.material
+compiledassets/materials/n00_000_00_body_00_skin (instance).material
+compiledassets/materials/n00_000_00_body_00_skin_(instance).material
+compiledassets/materials/n00_000_00_eyehighlight_00_eye (instance).material
+compiledassets/materials/n00_000_00_eyehighlight_00_eye_(instance).material
+compiledassets/materials/n00_000_00_eyeiris_00_eye (instance).material
+compiledassets/materials/n00_000_00_eyeiris_00_eye_(instance).material
+compiledassets/materials/n00_000_00_eyewhite_00_eye (instance).material
+compiledassets/materials/n00_000_00_eyewhite_00_eye_(instance).material
+compiledassets/materials/n00_000_00_face_00_skin (instance).material
+compiledassets/materials/n00_000_00_face_00_skin_(instance).material
+compiledassets/materials/n00_000_00_facebrow_00_face (instance).material
+compiledassets/materials/n00_000_00_facebrow_00_face_(instance).material
+compiledassets/materials/n00_000_00_faceeyeline_00_face (instance).material
+compiledassets/materials/n00_000_00_faceeyeline_00_face_(instance).material
+compiledassets/materials/n00_000_00_facemouth_00_face (instance).material
+compiledassets/materials/n00_000_00_facemouth_00_face_(instance).material
+compiledassets/materials/n00_000_00_hairback_00_hair (instance).material
+compiledassets/materials/n00_000_00_hairback_00_hair_(instance).material
+compiledassets/materials/n00_000_hair_00_hair (instance).material
+compiledassets/materials/n00_000_hair_00_hair_(instance).material
+compiledassets/materials/n00_002_03_tops_01_cloth_01 (instance).material
+compiledassets/materials/n00_002_03_tops_01_cloth_01_(instance).material
+compiledassets/materials/n00_002_03_tops_01_cloth_02 (instance).material
+compiledassets/materials/n00_002_03_tops_01_cloth_02_(instance).material
+compiledassets/materials/n00_002_03_tops_01_cloth_03 (instance).material
+compiledassets/materials/n00_002_03_tops_01_cloth_03_(instance).material
+compiledassets/materials/n00_002_03_tops_01_cloth_04 (instance).material
+compiledassets/materials/n00_002_03_tops_01_cloth_04_(instance).material
+compiledassets/materials/n00_002_03_tops_01_cloth_05 (instance).material
+compiledassets/materials/n00_002_03_tops_01_cloth_05_(instance).material
+compiledassets/materials/n00_007_01_tops_01_cloth_01 (instance).material
+compiledassets/materials/n00_007_01_tops_01_cloth_01_(instance).material
+compiledassets/materials/n00_007_01_tops_01_cloth_02 (instance).material
+compiledassets/materials/n00_007_01_tops_01_cloth_02_(instance).material
+compiledassets/materials/n00_008_01_shoes_01_cloth_01 (instance).material
+compiledassets/materials/n00_008_01_shoes_01_cloth_01_(instance).material
+compiledassets/materials/n00_008_01_shoes_01_cloth_02 (instance).material
+compiledassets/materials/n00_008_01_shoes_01_cloth_02_(instance).material
+compiledassets/materials/n00_010_01_onepiece_00_cloth_01 (instance).material
+compiledassets/materials/n00_010_01_onepiece_00_cloth_01_(instance).material
+compiledassets/materials/n00_010_01_onepiece_00_cloth_02 (instance).material
+compiledassets/materials/n00_010_01_onepiece_00_cloth_02_(instance).material
+compiledassets/textures/_01.ktx2
+compiledassets/textures/_02.ktx2
+compiledassets/textures/_03.ktx2
+compiledassets/textures/_04.ktx2
+compiledassets/textures/_05.ktx2
+compiledassets/textures/_06.ktx2
+compiledassets/textures/_07.ktx2
+compiledassets/textures/_09.ktx2
+compiledassets/textures/_10.ktx2
+compiledassets/textures/_11.ktx2
+compiledassets/textures/_12.ktx2
+compiledassets/textures/_13.ktx2
+compiledassets/textures/_14.ktx2
+compiledassets/textures/_15.ktx2
+compiledassets/textures/_16.ktx2
+compiledassets/textures/_17.ktx2
+compiledassets/textures/_18.ktx2
+compiledassets/textures/_19.ktx2
+compiledassets/textures/_20.ktx2
+compiledassets/textures/_21.ktx2
+compiledassets/textures/_22.ktx2
+compiledassets/textures/_23.ktx2
+compiledassets/textures/_24.ktx2
+compiledassets/textures/_25.ktx2
 compiledassets/textures/colormap.ktx2
+compiledassets/textures/n00_000_00_hairback_00_nml.ktx2
+compiledassets/textures/n00_000_hair_00_nml.ktx2
+compiledassets/textures/shader_noneblack.ktx2
+compiledassets/textures/shader_nonenormal.ktx2
 fbxcars/ambulance.fbx
 fbxcars/box.fbx
 fbxcars/cone-flat.fbx
@@ -81,17 +152,46 @@ fonts/slkscre.ttf
 fonts/tx-02-regular.ttf
 images/null.png
 images/white.png
-materials/materials.json
-materials/newmaterial.material
-materials/red.material
+models/aji/aji.fbx
+models/aji/aji.vrm1.textures/_01.png
+models/aji/aji.vrm1.textures/_02.png
+models/aji/aji.vrm1.textures/_03.png
+models/aji/aji.vrm1.textures/_04.png
+models/aji/aji.vrm1.textures/_05.png
+models/aji/aji.vrm1.textures/_06.png
+models/aji/aji.vrm1.textures/_07.png
+models/aji/aji.vrm1.textures/_09.png
+models/aji/aji.vrm1.textures/_10.png
+models/aji/aji.vrm1.textures/_11.png
+models/aji/aji.vrm1.textures/_12.png
+models/aji/aji.vrm1.textures/_13.png
+models/aji/aji.vrm1.textures/_14.png
+models/aji/aji.vrm1.textures/_15.png
+models/aji/aji.vrm1.textures/_16.png
+models/aji/aji.vrm1.textures/_17.png
+models/aji/aji.vrm1.textures/_18.png
+models/aji/aji.vrm1.textures/_19.png
+models/aji/aji.vrm1.textures/_20.png
+models/aji/aji.vrm1.textures/_21.png
+models/aji/aji.vrm1.textures/_22.png
+models/aji/aji.vrm1.textures/_23.png
+models/aji/aji.vrm1.textures/_24.png
+models/aji/aji.vrm1.textures/_25.png
+models/aji/aji.vrm1.textures/matcapwarp.png
+models/aji/aji.vrm1.textures/n00_000_00_face_00_out.linear.png
+models/aji/aji.vrm1.textures/n00_000_00_hairback_00_nml.png
+models/aji/aji.vrm1.textures/n00_000_hair_00_nml.png
+models/aji/aji.vrm1.textures/shader_noneblack.png
+models/aji/aji.vrm1.textures/shader_nonenormal.png
+models/aji/aji.vrm1.textures/thumbnail__vrm10.png
 prefab/deletewhenthere'ssomething.txt
 prefabs/enemy.prefab
 prefabs/player.prefab
 scenes/defaultscene.scene
 scenes/defaultscene_backup.scene
 scenes/openscenes.json
-scripts/deletewhenthere'ssomething.txt
-scripts/testscript.cs
+scripts/test - copy.lua
+scripts/test.lua
 shaders/bloom_compose.frag
 shaders/blur_horiz.frag
 shaders/blur_vert.frag

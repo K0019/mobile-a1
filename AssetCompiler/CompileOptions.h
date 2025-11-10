@@ -61,9 +61,7 @@ namespace compiler
     enum TextureChannelFormat
     {
         RGBA_8888,
-        RGBA_8888_S,
         ARGB_8888,
-        ARGB_8888_S,
         RGBA_16F,
         ARGB_16F,
         ARGB_32F,
@@ -121,6 +119,8 @@ namespace compiler
         TextureCompressionFormat compressionFormat = TextureCompressionFormat::BC7;
         TextureWrapMode wrapMode;
         TextureAlphaMode alphaMode;
+
+        bool isSRGB = false;
 
         float quality = 0.05f; // 0.0f-1.0f
 

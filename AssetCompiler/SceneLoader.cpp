@@ -59,6 +59,7 @@ namespace compiler
         if (aiMat->GetTexture(type, 0, &path) == AI_SUCCESS)
         {
             std::filesystem::path texturePath(path.C_Str());
+            //std::cout << "Material says it wants: " << texturePath << "\n";
             if (texturePath.is_relative())
             {
                 outSlot.texturePaths[key] = modelBasePath / texturePath;

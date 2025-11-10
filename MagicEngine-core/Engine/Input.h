@@ -50,7 +50,8 @@ namespace internal {
 
 #define ENUM_INPUT_DEVICE_TYPE \
 X(KEYBOARD_MOUSE, "Keyboard/Mouse") \
-X(GAMEPAD, "Gamepad")
+X(GAMEPAD, "Gamepad") \
+X(ANDROID_JOYSTICK, "AndroidJoystick")
 
 #define X(name, str) name,
 	enum class INPUT_DEVICE_TYPE : char
@@ -75,6 +76,9 @@ enum class INPUT_READ_TYPE : char
 #pragma region Hardware Link
 
 using InputHardwareValue = std::variant<bool, float, Vec2>;
+inline constexpr int KEYID_ANDROID_JOY_2D = -2001; // NEW: Android joystick Vec2 may not be here put here for now ( MOVE TO ENUM KEY???)
+inline constexpr int KEYID_MOUSE_DELTA_2D = -1001; // already used in code
+
 class InputHardwareValueLink
 {
 public:

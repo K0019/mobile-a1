@@ -29,7 +29,7 @@ static const char* const entityLayerNames[]{
 #undef X
 
 EntityLayerComponent::EntityLayerComponent()
-	: mask{ { ENTITY_LAYER::DEFAULT } }
+	: mask{ ENTITY_LAYER::DEFAULT }
 {
 }
 

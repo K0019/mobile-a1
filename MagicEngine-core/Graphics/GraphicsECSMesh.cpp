@@ -18,6 +18,7 @@ All content � 2024 DigiPen Institute of Technology Singapore.
 All rights reserved.
 */
 /******************************************************************************/
+#include "VFS/VFS.h"
 #include "Graphics/GraphicsECSMesh.h"
 #include "Engine/Graphics Interface/GraphicsScene.h"
 #include "Engine/Resources/ResourceManager.h"
@@ -27,22 +28,76 @@ size_t RenderComponent::GetMeshHash() const
 {
     return meshHash;
 }
-size_t RenderComponent::GetMaterialHash() const
+
+const std::vector<size_t>& RenderComponent::GetMaterialsList() const
 {
-    return materialHash;
+    return materials;
 }
 
 void RenderComponent::EditorDraw()
 {
-    gui::TextBoxReadOnly("Mesh", std::to_string(meshHash));
+    std::string meshText{};
+    if(ST<MagicResourceManager>::Get()->Meshes().GetResource(meshHash))
+        meshText = ST<MagicResourceManager>::Get()->Editor_GetName(meshHash);
+
+    gui::TextUnformatted("Mesh");
+    gui::SameLine();
+    gui::TextBoxReadOnly("##", meshText);
     gui::PayloadTarget<size_t>("MESH_HASH", [this](size_t hash) -> void {
         meshHash = hash;
+
+        //now based on this new mesh, update the default materials
+        auto newMesh{ MagicResourceManager::Meshes().GetResource(meshHash) };
+        size_t meshCount = newMesh->handles.size();
+        materials.resize(meshCount);
+        for (int i = 0; i < meshCount; i++)
+        {
+            materials[i] = newMesh->defaultMaterialHashes[i];
+        }
     });
 
-    gui::TextBoxReadOnly("Material", std::to_string(materialHash));
-    gui::PayloadTarget<size_t>("MATERIAL_HASH", [this](size_t hash) -> void {
-        materialHash = hash;
-    });
+    auto mesh{ MagicResourceManager::Meshes().GetResource(meshHash) };
+
+
+    if (mesh)
+    {
+        size_t meshCount = mesh->handles.size();
+        std::string materialHeaderLabel = "Materials (" + std::to_string(meshCount) + ")";
+        if (gui::CollapsingHeader materialHeader{ materialHeaderLabel.c_str() })
+        {
+            for (int i = 0; i < meshCount; i++)
+            {
+                if (i >= materials.size()) break;    //go reassign the mesh
+                gui::SetID id(i);
+
+                std::string materialText{};
+                if (ST<MagicResourceManager>::Get()->Materials().GetResource(materials[i]))
+                    materialText = ST<MagicResourceManager>::Get()->Editor_GetName(materials[i]);
+
+                gui::TextUnformatted(std::string("Material") + std::to_string(i));
+                gui::SameLine();
+                gui::TextBoxReadOnly("##", materialText);
+                gui::PayloadTarget<size_t>("MATERIAL_HASH", [&](size_t hash) -> void {
+                    materials[i] = hash;
+                });
+                gui::SameLine();
+            
+                if (gui::Button repeatButton{ ICON_FA_REPEAT })
+                {
+                    materials[i] = mesh->defaultMaterialHashes[i];
+                }
+            }
+
+            if (gui::Button resetButton{ "Reset Materials" })
+            {
+                materials.resize(meshCount);
+                for (int i = 0; i < meshCount; i++)
+                {
+                    materials[i] = mesh->defaultMaterialHashes[i];
+                }
+            }
+        }
+    }
 }
 
 RenderSystem::RenderSystem()
@@ -53,10 +108,34 @@ RenderSystem::RenderSystem()
 void RenderSystem::ProcessComp(RenderComponent& comp)
 {
     auto mesh{ MagicResourceManager::Meshes().GetResource(comp.GetMeshHash()) };
-    auto material{ MagicResourceManager::Materials().GetResource(comp.GetMaterialHash()) };
-    if (!(mesh && material))
+    if (!mesh)
         return;
 
+    const auto& materialList = comp.GetMaterialsList();
+    size_t materialCount = materialList.size();
+
     for (size_t i{}; i < mesh->handles.size(); ++i)
-        ST<GraphicsScene>::Get()->AddObject(mesh->handles[i], material->handle, ecs::GetEntityTransform(&comp), mesh->transforms[i]);
+    {
+        size_t materialHashToUse = 0;
+        if (i < materialCount && materialList[i] != 0)
+        {
+            materialHashToUse = materialList[i];
+        }
+        else
+        {
+            // Use the default material from the mesh
+            materialHashToUse = mesh->defaultMaterialHashes[i];
+        }
+
+        auto material{ MagicResourceManager::Materials().GetResource(materialHashToUse) };
+        if (!material)
+            continue;
+
+        ST<GraphicsScene>::Get()->AddObject(
+            mesh->handles[i],
+            material->handle,
+            ecs::GetEntityTransform(&comp),
+            mesh->transforms[i]
+        );
+    }
 }

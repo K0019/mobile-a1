@@ -42,8 +42,6 @@ All rights reserved.
 #include "Editor/FileBrowserTab.h"
 #include "Editor/MiscAssetTabs.h"
 
-#include "Scripting/CSScripting.h"
-#include "Scripting/ScriptManagement.h"
 #include "Scripting/HotReloader.h"
 
 namespace fs = std::filesystem;
@@ -59,7 +57,7 @@ AssetBrowser::AssetBrowser() {
     assetCategories.push_back(std::make_unique<SoundTab>());
     assetCategories.push_back(std::make_unique<FontTab>());
     assetCategories.push_back(std::make_unique<ScriptTab>());
-    assetCategories.push_back(std::make_unique<ShaderTab>());
+    //assetCategories.push_back(std::make_unique<ShaderTab>());
 
     //FileSystem inside AssetBrowser or its own tab?
     auto browser = std::make_unique<FileBrowserTab>(); browser->Initialize(Filepaths::workingDir);

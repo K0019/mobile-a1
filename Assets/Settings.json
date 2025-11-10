@@ -5,7 +5,7 @@
     "volumeBGM": 1.0,
     "volumeSFX": 1.0,
     "logLevel": 0,
-    "maxFPS": 0,
+    "maxFPS": 60,
     "targetFixedDt": 0.01666666753590107,
     "fullscreenMode": 0,
     "resolutionX": 1920,
@@ -26,15 +26,29 @@
             "value": {
                 "actions": [
                     {
-                        "key": "ClickTest",
+                        "key": "AndroidJoystick",
                         "value": {
-                            "compositeType": 0,
+                            "compositeType": 2,
                             "bindings": [
                                 {
-                                    "hardwareLink": {
-                                        "deviceType": 0,
-                                        "keyIdentifier": 0
-                                    }
+                                    "hardwareLink": [
+                                        {
+                                            "deviceType": 2,
+                                            "keyIdentifier": 0
+                                        },
+                                        {
+                                            "deviceType": 2,
+                                            "keyIdentifier": 1
+                                        },
+                                        {
+                                            "deviceType": 2,
+                                            "keyIdentifier": 2
+                                        },
+                                        {
+                                            "deviceType": 2,
+                                            "keyIdentifier": 3
+                                        }
+                                    ]
                                 }
                             ]
                         }

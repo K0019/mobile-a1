@@ -39,4 +39,25 @@ X(OCCLUSION_TEXTURE, "Occlusion")
 		bool isDoubleSided = false;
 	};
 
+	class MaterialEditWindow : public WindowBase<MaterialEditWindow, false>
+	{
+	public:
+		MaterialEditWindow(size_t materialHash);
+
+		void DrawWindow() override;
+
+	private:
+		void AttemptCreateMaterial();
+
+	private:
+		std::string pathToMaterialFile;
+		Resource::ProcessedMaterial materialProps;
+
+		char materialName[128]{ "NewMaterial" };
+
+		std::array<size_t, +MATERIAL_TEXTURE_INDEX::TOTAL> textures;
+		bool isUnlit = false;
+		bool isDoubleSided = false;
+	};
+
 }
