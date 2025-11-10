@@ -21,10 +21,9 @@ All rights reserved.
 #include "Graphics/CustomViewport.h"
 #include "Engine/Input.h"
 #include "Engine/PrefabManager.h"
-#include "Editor/Editor.h"
 #include "Game/GameSystems.h"
 #include "Engine/Events/EventsQueue.h"
-#include "Engine/Events/EventsTypeBasic.h"
+#include "Engine/Events/EventsTypeEditor.h"
 
 #include "Engine/SceneManagement.h"
 #include "Editor/EditorHistory.h"
@@ -123,7 +122,7 @@ void CustomViewport::DrawWindow()
 
 
 	ImDrawList* drawList = ImGui::GetWindowDrawList();
-	updateCurrentEntity(ST<Inspector>::Get()->GetSelectedEntity());
+	updateCurrentEntity(ST<EventsQueue>::Get()->RequestValueFromEventHandlers<ecs::EntityHandle>(Getters::EditorSelectedEntity{}).value_or(nullptr));
 	m_gizmo.Draw(drawList);
 	//==========================
 
@@ -131,7 +130,7 @@ void CustomViewport::DrawWindow()
 		ecs::EntityHandle entity{ PrefabManager::LoadPrefab(prefabName) };
 		ST<History>::Get()->OneEvent(HistoryEvent_EntityCreate{ entity });
 		entity->GetTransform().SetWorldPosition(camera->getPosition());
-		ST<Inspector>::Get()->SetSelectedEntity(entity);
+		ST<EventsQueue>::Get()->AddEventForNextFrame(Events::EditorSelectEntity{ entity });
 	});
 #endif
 }
@@ -471,3 +470,27 @@ Camera CustomViewport::GetViewportCamera() const
 	return Camera{ camera };
 }
 
+namespace editor {
+
+	bool SelectedEntityBorderDrawSystem::PreRun()
+	{
+		// TODO 3D: Editor, draw entity bounding box
+		//if (ecs::EntityHandle selectedEntity{ ST<EventsQueue>::Get()->RequestValueFromEventHandlers<ecs::EntityHandle>(Getters::EditorSelectedEntity{}).value_or(nullptr) })
+		//{
+		//	Transform textTransform;
+		//	const Transform* transform{};
+		//	if (ecs::CompHandle<TextComponent> textComp{ selectedEntity->GetComp<TextComponent>() })
+		//	{
+		//		textTransform = selectedEntity->GetComp<TextComponent>()->GetWorldTextTransform();
+		//		transform = &textTransform;
+		//	}
+		//	else
+		//	{
+		//		transform = &selectedEntity->GetTransform();
+		//	}
+		//	//util::DrawBoundingBox(*transform, { 0.0f, 1.0f, 0.0f });
+		//}
+		return false;
+	}
+
+}

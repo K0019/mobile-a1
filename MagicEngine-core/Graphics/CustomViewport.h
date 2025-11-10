@@ -104,3 +104,15 @@ private:
     CameraPositioner_FirstPerson camera;
 
 };
+
+namespace editor {
+
+    // Draws a border around the currently selected entity
+    class SelectedEntityBorderDrawSystem : public ecs::System<SelectedEntityBorderDrawSystem>
+    {
+    public:
+        // Draw function
+        bool PreRun() override;
+    };
+
+}

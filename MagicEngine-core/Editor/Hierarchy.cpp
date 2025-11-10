@@ -25,9 +25,12 @@ All rights reserved.
 #include "Editor/Hierarchy.h"
 #include "Engine/Resources/ResourceManager.h"
 #include "Engine/SceneManagement.h"
-#include "Editor/Editor.h"
 #include "Tween/TweenManager.h"
 #include "Components/NameComponent.h"
+
+#include "Editor/Editor.h"
+#include "Engine/Events/EventsTypeEditor.h"
+
 #ifdef IMGUI_ENABLED
 
 Hierarchy::Hierarchy()
@@ -192,7 +195,7 @@ void Hierarchy::Draw()
             {
                 // Set active scene first
                 ST<SceneManager>::Get()->SetActiveScene(sceneIndex);
-                ST<Inspector>::Get()->CreateEntityAndSelect();
+                ST<EventsQueue>::Get()->AddEventForNextFrame(Events::EditorCreateEntityAndSelect{});
             }
             ImGui::PopStyleColor(2);
             ImGui::PopStyleVar();
@@ -303,8 +306,7 @@ bool Hierarchy::ShowEntity(ecs::EntityHandle entity, int targetSceneIndex, const
     bool isLeaf                            { childTransforms.empty() };
     
     // Get the selected entity
-    ecs::EntityHandle selectedEntity = nullptr;
-    selectedEntity = ST<Inspector>::Get()->GetSelectedEntity();
+    ecs::EntityHandle selectedEntity = ST<EventsQueue>::Get()->RequestValueFromEventHandlers<ecs::EntityHandle>(Getters::EditorSelectedEntity{}).value_or(nullptr);
     bool isSelected = (entity == selectedEntity);
     // Check if this entity is an ancestor of the selected entity
     // Only do this check if we're not the selected entity itself and there is a selected entity
@@ -556,7 +558,7 @@ void Hierarchy::HandleSceneDropTarget(int targetSceneIndex)
                 SwitchEntityScene(draggedEntity, targetSceneIndex);
 
                 // Update editor's selected entity
-                ST<Inspector>::Get()->SetSelectedEntity(draggedEntity);
+                ST<EventsQueue>::Get()->AddEventForNextFrame(Events::EditorSelectEntity{ draggedEntity });
             }
         }
         ImGui::EndDragDropTarget();
@@ -712,7 +714,7 @@ void Hierarchy::HandleDragAndDrop(ecs::EntityHandle entity, std::string const& n
                 }
 
                 // Update selected entity
-                ST<Inspector>::Get()->SetSelectedEntity(draggedEntity);
+                ST<EventsQueue>::Get()->AddEventForNextFrame(Events::EditorSelectEntity{ draggedEntity });
 
                 // Provide visual feedback on successful drop with a quick flash effect
                 drawlist->AddRectFilled(
@@ -844,7 +846,7 @@ void Hierarchy::CheckSelection(ecs::EntityHandle entity)
 	{
 		// Set selected entity on single click
 #ifdef IMGUI_ENABLED
-		ST<Inspector>::Get()->SetSelectedEntity(entity);
+        ST<EventsQueue>::Get()->AddEventForNextFrame(Events::EditorSelectEntity{ entity });
 #endif
 
     // Trigger message on double click
@@ -869,7 +871,7 @@ void Hierarchy::CheckBackgroundWindowContextMenu()
 
 
 		if(ImGui::MenuItem("Create Entity"))
-			ST<Inspector>::Get()->CreateEntityAndSelect();
+            ST<EventsQueue>::Get()->AddEventForNextFrame(Events::EditorCreateEntityAndSelect{});
 
 		ImGui::EndPopup();
 	}
@@ -913,7 +915,7 @@ void Hierarchy::CheckEntityContextMenu(ecs::EntityHandle entity)
 {
 	if(ImGui::BeginPopupContextItem("EntityContextMenu"))
 	{
-		ST<Inspector>::Get()->SetSelectedEntity(entity);
+        ST<EventsQueue>::Get()->AddEventForNextFrame(Events::EditorSelectEntity{ entity });
 
 		if(ImGui::MenuItem("Rename"))
 		{
@@ -923,8 +925,8 @@ void Hierarchy::CheckEntityContextMenu(ecs::EntityHandle entity)
 			buffer.resize(BUFFER_SIZE);
 		}
 
-		if(ImGui::MenuItem("Delete Entity"))
-			ST<Inspector>::Get()->DeleteSelectedEntity();
+        if (ImGui::MenuItem("Delete Entity"))
+            ST<EventsQueue>::Get()->AddEventForNextFrame(Events::EditorDeleteSelectedEntity{});
 
 		ImGui::EndPopup();
 	}

@@ -43,6 +43,20 @@ AutoEventHandler::AutoEventHandler(EventHandlerHandle handle)
 {
 }
 
+AutoEventHandler::AutoEventHandler(AutoEventHandler&& other)
+	: handle{ other.handle }
+{
+	other.handle = 0;
+}
+
+AutoEventHandler& AutoEventHandler::operator=(AutoEventHandler&& other) noexcept
+{
+	Dispose();
+	handle = other.handle;
+	other.handle = 0;
+	return *this;
+}
+
 AutoEventHandler::~AutoEventHandler()
 {
 	Dispose();

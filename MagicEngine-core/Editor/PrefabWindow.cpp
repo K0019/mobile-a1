@@ -20,7 +20,10 @@ All rights reserved.
 /******************************************************************************/
 #include "Editor/PrefabWindow.h"
 #include "Editor/AssetBrowser.h"
-#include "Editor/Editor.h"
+#include "ImGui/ImguiHeader.h"
+
+#include "Engine/Events/EventsQueue.h"
+#include "Engine/Events/EventsTypeEditor.h"
 
 PrefabWindow::PrefabWindow()
 {
@@ -28,7 +31,8 @@ PrefabWindow::PrefabWindow()
 #ifdef IMGUI_ENABLED
 void PrefabWindow::DrawSaveLoadPrompt(bool* p_open)
 {
-	if (!isLoading && ST<Inspector>::Get()->GetSelectedEntity() != nullptr)
+	ecs::EntityHandle selectedEntity{ ST<EventsQueue>::Get()->RequestValueFromEventHandlers<ecs::EntityHandle>(Getters::EditorSelectedEntity{}).value_or(nullptr) };
+	if (!isLoading && selectedEntity)
 	{
 		ImGui::Begin("Save Prefab", p_open);
 		ImGui::SetWindowSize(ImVec2(500, 100));
@@ -37,7 +41,7 @@ void PrefabWindow::DrawSaveLoadPrompt(bool* p_open)
 		if (ImGui::Button("Save"))
 		{
 			*p_open = false;
-			PrefabManager::SavePrefab(ST<Inspector>::Get()->GetSelectedEntity(), prefabName);
+			PrefabManager::SavePrefab(selectedEntity, prefabName);
 		}
 		ImGui::End();
 	}

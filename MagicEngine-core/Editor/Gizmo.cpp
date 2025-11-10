@@ -23,7 +23,9 @@ All rights reserved.
 #include "Editor/Gizmo.h"
 #include "ImGui/ImguiHeader.h"
 #include "Editor/EditorHistory.h"
-#include "Editor/Editor.h"
+
+#include "Engine/Events/EventsQueue.h"
+#include "Engine/Events/EventsTypeEditor.h"
 
 Gizmo::Gizmo() = default;
 
@@ -85,7 +87,7 @@ void Gizmo::Draw([[maybe_unused]] ImDrawList* /*viewport*/)
 
         // 6) Object/world matrix of selected entity 
         glm::mat4 M(1.f);
-        if (auto sel = ST<Inspector>::Get()->GetSelectedEntity())
+        if (auto sel = ST<EventsQueue>::Get()->RequestValueFromEventHandlers<ecs::EntityHandle>(Getters::EditorSelectedEntity{}).value_or(nullptr))
         {
             Transform& tr = sel->GetTransform();
             tr.SetMat4ToWorld(&M);
@@ -123,7 +125,7 @@ void Gizmo::Draw([[maybe_unused]] ImDrawList* /*viewport*/)
             float t[3], r[3], s[3];
             ImGuizmo::DecomposeMatrixToComponents(model, t, r, s);
 
-            if (auto sel = ST<Inspector>::Get()->GetSelectedEntity())
+            if (auto sel = ST<EventsQueue>::Get()->RequestValueFromEventHandlers<ecs::EntityHandle>(Getters::EditorSelectedEntity{}).value_or(nullptr))
             {
                 Transform& tr = sel->GetTransform();
                 const Transform* parent = tr.GetParent();

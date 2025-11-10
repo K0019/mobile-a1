@@ -54,7 +54,8 @@ All rights reserved.
 
 void GameStateBase::OnExit()
 {
-	ecs::RemoveAllSystems();
+    for (auto layer{ ECS_LAYER::CUTOFF_PERMANENT + 1 }; layer < ECS_LAYER::CUTOFF_END; ++layer)
+        ecs::RemoveSystemsInLayer(layer);
 }
 
 void GameState_Common::OnEnter()

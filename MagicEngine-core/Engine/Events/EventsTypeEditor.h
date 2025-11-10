@@ -18,12 +18,33 @@ All rights reserved.
 /******************************************************************************/
 
 #pragma once
+#include "ECS/ECS.h"
 
 namespace Events {
+	
+	// Consumed by: EditorSystem
+	struct EditorSelectEntity
+	{
+		ecs::EntityHandle entity;
+	};
+	// Consumed by: EditorSystem
+	struct EditorCreateEntityAndSelect {};
+	// Consumed by: EditorSystem
+	struct EditorCloneSelectedEntity {};
+	// Consumed by: EditorSystem
+	struct EditorDeleteSelectedEntity {};
 
-	// Consumed by: LuaScripting
-	struct RequestReloadLuaScripts {};
-	// Consumed by: ScriptRefreshListenerSystem
-	struct LuaScriptsReloaded {};
+	// Consumed by: CustomViewport
+	struct ResizeViewport
+	{
+		unsigned int width, height;
+	};
+
+}
+
+namespace Getters {
+
+	// Provided by: EditorSystem
+	struct EditorSelectedEntity {};
 
 }

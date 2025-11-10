@@ -69,6 +69,8 @@ public:
     void shutdown();
 
 private:
+    void LoadPermanentSystems();
+
     void ExecuteUpdateSystems();
     void ExecuteRenderSystems();
 

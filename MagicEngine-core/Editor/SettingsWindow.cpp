@@ -28,7 +28,7 @@ All rights reserved.
 #include "GameSettings.h"
 #include "Editor/LayersMatrix.h"
 #include "Editor/InputConfig.h"
-#include "Editor/Editor.h"
+#include "Editor/Inspector.h"
 #include "Editor/AssetBrowser.h"
 
 namespace editor {

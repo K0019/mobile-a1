@@ -30,6 +30,13 @@ enum class ECS_LAYER : int
 {
 	CUTOFF_START, // --- UNUSED
 
+	//! Systems added to these layers will always run and will never be removed. (see Engine.cpp)
+	PERMANENT_EDITOR,
+	PERMANENT_UPDATE,
+	PERMANENT_RENDER,
+
+	CUTOFF_PERMANENT, // --- UNUSED
+
 	//! The input layer, for systems that run at player input.
 	INPUT_0,
 
@@ -82,8 +89,12 @@ enum class ECS_LAYER : int
 	//! The render UI layer, for systems that run during the UI render step.
 	RENDER_UI_0,
 
-	CUTOFF_RENDER // --- UNUSED
+	CUTOFF_RENDER, // --- UNUSED
+
+	CUTOFF_END // --- UNUSED
 };
+GENERATE_ENUM_CLASS_ITERATION_OPERATORS(ECS_LAYER)
+GENERATE_ENUM_CLASS_ARITHMETIC_OPERATORS(ECS_LAYER)
 
 namespace ecs {
 

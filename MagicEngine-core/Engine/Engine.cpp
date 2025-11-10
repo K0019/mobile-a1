@@ -27,6 +27,10 @@ All rights reserved.
 #include "Engine/Engine.h"
 #include "Game/GameSystems.h"
 #include "Engine/Resources/ResourceManager.h"
+
+// Permanent systems
+#include "Editor/Editor.h"
+
 #include "Editor/Console.h"
 #include "Editor/Performance.h"
 #include "Graphics/CustomViewport.h"
@@ -35,7 +39,7 @@ All rights reserved.
 #include "Editor/PrefabWindow.h"
 #include "Editor/Hierarchy.h"
 #include "Editor/Popup.h"
-#include "Editor/Editor.h"
+#include "Editor/Inspector.h"
 #include "Utilities/CrashHandler.h"
 #include "VFS/VFS.h"
 
@@ -205,6 +209,9 @@ void MagicEngine::Init(Context& context)
 		.position = Vec3{static_cast<float>(worldExtents.x) / 2, static_cast<float>(worldExtents.y) / 2, 0.0f },
 		.zoom = 1.0f
 	});
+
+	// Load ecs systems
+	LoadPermanentSystems();
 #ifdef IMGUI_ENABLED
 	ST<GameSystemsManager>::Get()->Init(GAMESTATE::EDITOR);
 #else
@@ -239,8 +246,6 @@ void MagicEngine::ExecuteFrame(FrameData& frameData)
 
 	// Clear the events of the previous frame
 	ST<EventsQueue>::Get()->NewFrame();
-
-
 	
 	ST<MagicInput>::Get()->NewFrame();
 	//GamepadInput::PollInput();
@@ -248,6 +253,9 @@ void MagicEngine::ExecuteFrame(FrameData& frameData)
 	ST<GraphicsMain>::Get()->BeginFrame();
 #ifdef IMGUI_ENABLED
 	ST<GraphicsMain>::Get()->BeginImGuiFrame();
+
+	// Run editor systems (not windows)
+	ecs::RunSystems(ECS_LAYER::PERMANENT_EDITOR);
 
 	// TODO: Convert all of these window singletons into the ecs versions so we can support multiple instances of a single window.
 	if(ST<Inspector>::Get()->GetIsOpen())
@@ -381,12 +389,7 @@ void MagicEngine::ExecuteFrame(FrameData& frameData)
 	// Game window draw
 	ST<PerformanceProfiler>::Get()->StartProfile("Render");
 	if (!ST<GraphicsWindow>::Get()->GetIsWindowMinimized())
-	{
 		ExecuteRenderSystems(); // Run ecs systems that render the world to the graphics pipeline
-#ifdef IMGUI_ENABLED
-		ST<Inspector>::Get()->DrawSelectedEntityBorder();
-#endif
-	}
 	ST<GraphicsMain>::Get()->EndFrame(&frameData);
 	ST<PerformanceProfiler>::Get()->EndProfile("Render");
 
@@ -453,8 +456,18 @@ void MagicEngine::shutdown()
 	ST<internal::LoggedMessagesBuffer>::Destroy();
 }
 
+void MagicEngine::LoadPermanentSystems()
+{
+#ifdef IMGUI_ENABLED
+	ecs::AddSystem(ECS_LAYER::PERMANENT_EDITOR, editor::EditorSystem{});
+	ecs::AddSystem(ECS_LAYER::PERMANENT_RENDER, editor::SelectedEntityBorderDrawSystem{}); // TODO: System is currently unimplemented
+#endif
+}
+
 void MagicEngine::ExecuteUpdateSystems()
 {
+	ecs::RunSystems(ECS_LAYER::PERMANENT_UPDATE);
+
 	auto UpdateSystemsGroup{ [](const std::string& profileName, void(*executeSystemsFunc)()) -> void {
 #ifdef IMGUI_ENABLED
 		ST<PerformanceProfiler>::Get()->StartProfile(profileName);
@@ -466,7 +479,7 @@ void MagicEngine::ExecuteUpdateSystems()
 	} };
 
 	UpdateSystemsGroup("Input", []() -> void {
-		ecs::RunSystemsInLayers(ECS_LAYER::CUTOFF_START, ECS_LAYER::CUTOFF_INPUT);
+		ecs::RunSystemsInLayers(ECS_LAYER::CUTOFF_PERMANENT, ECS_LAYER::CUTOFF_INPUT);
 	});
 	UpdateSystemsGroup("Pre-Physics", []() -> void {
 		ST<TweenManager>::Get()->Update(GameTime::FixedDt());
@@ -493,4 +506,6 @@ void MagicEngine::ExecuteUpdateSystems()
 void MagicEngine::ExecuteRenderSystems()
 {
 	ecs::RunSystemsInLayers(ECS_LAYER::CUTOFF_POST_PHYSICS_SCRIPTS, ECS_LAYER::CUTOFF_RENDER);
+
+	ecs::RunSystems(ECS_LAYER::PERMANENT_RENDER);
 }
