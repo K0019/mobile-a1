@@ -248,9 +248,9 @@ namespace navmesh
 		params.detailVertsCount = pMeshDetail->nverts;
 		params.detailTris = pMeshDetail->tris;
 		params.detailTriCount = pMeshDetail->ntris;
-		params.walkableHeight = config.walkableHeight;
-		params.walkableRadius = config.walkableRadius;
-		params.walkableClimb = config.walkableClimb;
+		params.walkableHeight = static_cast<float>(config.walkableHeight);
+		params.walkableRadius = static_cast<float>(config.walkableRadius);
+		params.walkableClimb = static_cast<float>(config.walkableClimb);
 		rcVcopy(params.bmin, pMesh->bmin);
 		rcVcopy(params.bmax, pMesh->bmax);
 		params.cs = config.cs;
