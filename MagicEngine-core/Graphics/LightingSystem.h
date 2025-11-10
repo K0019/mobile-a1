@@ -26,16 +26,4 @@ All rights reserved.
 #pragma once
 #include "Graphics/LightComponent.h"
 
-class Renderer;
-/*****************************************************************//*!
-\class LightingSystem
-\brief
-    Uploads light objects from the scene to the render pipeline.
-*//******************************************************************/
-class LightingSystem :public ecs::System<LightingSystem, LightComponent>
-{
-public:
-    LightingSystem();
-private:
-    void UpdateLightComp(LightComponent& lightComp);
-};
+// LightingSystem is no longer needed - GraphicsMain reads directly from ECS LightComponents

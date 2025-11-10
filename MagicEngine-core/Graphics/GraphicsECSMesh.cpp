@@ -20,7 +20,6 @@ All rights reserved.
 /******************************************************************************/
 #include "VFS/VFS.h"
 #include "Graphics/GraphicsECSMesh.h"
-#include "Engine/Graphics Interface/GraphicsAPI.h"
 #include "Engine/Resources/ResourceManager.h"
 #include "Editor/Containers/GUICollection.h"
 
@@ -100,42 +99,4 @@ void RenderComponent::EditorDraw()
     }
 }
 
-RenderSystem::RenderSystem()
-    : System_Internal{ &RenderSystem::ProcessComp }
-{
-}
-
-void RenderSystem::ProcessComp(RenderComponent& comp)
-{
-    auto mesh{ MagicResourceManager::Meshes().GetResource(comp.GetMeshHash()) };
-    if (!mesh)
-        return;
-
-    const auto& materialList = comp.GetMaterialsList();
-    size_t materialCount = materialList.size();
-
-    for (size_t i{}; i < mesh->handles.size(); ++i)
-    {
-        size_t materialHashToUse = 0;
-        if (i < materialCount && materialList[i] != 0)
-        {
-            materialHashToUse = materialList[i];
-        }
-        else
-        {
-            // Use the default material from the mesh
-            materialHashToUse = mesh->defaultMaterialHashes[i];
-        }
-
-        auto material{ MagicResourceManager::Materials().GetResource(materialHashToUse) };
-        if (!material)
-            continue;
-
-        ST<GraphicsMain>::Get()->AddObject(
-            mesh->handles[i],
-            material->handle,
-            ecs::GetEntityTransform(&comp),
-            mesh->transforms[i]
-        );
-    }
-}
+// RenderSystem is no longer needed - GraphicsMain reads directly from ECS components

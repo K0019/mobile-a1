@@ -25,13 +25,5 @@ All rights reserved.
 
 #include "Graphics/LightingSystem.h"
 #include "Engine/Engine.h"
-#include "Engine/Graphics Interface/GraphicsAPI.h"
 
-LightingSystem::LightingSystem() : System_Internal(&LightingSystem::UpdateLightComp) {
-//renderer = ST<Engine>::Get()->_vulkan->_renderer.get();
-}
-
-
-void LightingSystem::UpdateLightComp(LightComponent& lightComp) {
-	ST<GraphicsMain>::Get()->AddLight(lightComp.light);
-}
+// LightingSystem is no longer needed - GraphicsMain reads directly from ECS LightComponents

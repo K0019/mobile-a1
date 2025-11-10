@@ -23,6 +23,9 @@ All rights reserved.
 #include "FilepathConstants.h"
 #include "graphics/features/grid_feature.h"
 #include "Editor/EditorCameraBridge.h"
+#include "Graphics/GraphicsECSMesh.h"
+#include "Graphics/LightComponent.h"
+#include "Engine/Resources/ResourceManager.h"
 
 #include "fa.h"
 
@@ -55,13 +58,6 @@ void GraphicsMain::Init(Context inContext)
 
 void GraphicsMain::BeginFrame()
 {
-	Clear();
-}
-
-void GraphicsMain::Clear()
-{
-    scene.objects.clear();
-    scene.lights.clear();
 }
 
 #ifdef IMGUI_ENABLED
@@ -107,18 +103,160 @@ void GraphicsMain::EndFrame(FrameData* outFrameData)
 
 void GraphicsMain::UploadToPipeline(FrameData* outFrameData)
 {
-    SceneRenderFeature::UpdateScene(sceneFeatureHandle, scene, *context.resourceMngr, *context.renderer);
+    auto params = static_cast<SceneRenderParams*>(context.renderer->GetFeatureParameterBlockPtr(sceneFeatureHandle));
+    if (!params)
+        return;
 
-    if (auto params = static_cast<SceneRenderParams*>(context.renderer->GetFeatureParameterBlockPtr(sceneFeatureHandle)))
+    // Clear previous frame data
+    params->clear();
+
+    // Estimate size for performance
+    size_t estimatedObjects = 0;
+    for (auto iter = ecs::GetCompsBegin<RenderComponent>(); iter != ecs::GetCompsEnd<RenderComponent>(); ++iter)
+        ++estimatedObjects;
+    params->reserve(estimatedObjects);
+
+    // Iterate all RenderComponents in the ECS and populate render params directly
+    size_t objectIndex = 0;
+    for (auto compIter = ecs::GetCompsBegin<RenderComponent>(); compIter != ecs::GetCompsEnd<RenderComponent>(); ++compIter)
     {
-        params->irradianceTexture = 0;
-        params->prefilterTexture = 0;
-        params->brdfLUT = 0;
-        params->environmentIntensity = 1.0f;
+        RenderComponent& comp = *compIter;
+
+        auto mesh = MagicResourceManager::Meshes().GetResource(comp.GetMeshHash());
+        if (!mesh)
+            continue;
+
+        const auto& materialList = comp.GetMaterialsList();
+        size_t materialCount = materialList.size();
+
+        // Process each submesh
+        for (size_t i = 0; i < mesh->handles.size(); ++i)
+        {
+            // Determine material to use
+            size_t materialHashToUse = 0;
+            if (i < materialCount && materialList[i] != 0)
+                materialHashToUse = materialList[i];
+            else
+                materialHashToUse = mesh->defaultMaterialHashes[i];
+
+            auto material = MagicResourceManager::Materials().GetResource(materialHashToUse);
+            if (!material)
+                continue;
+
+            const MeshHandle& meshHandle = mesh->handles[i];
+            const MaterialHandle& materialHandle = material->handle;
+
+            // Validate handles
+            if (!meshHandle.isValid() || !materialHandle.isValid())
+                continue;
+
+            const auto* meshData = context.resourceMngr->getMesh(meshHandle);
+            if (!meshData)
+                continue;
+
+            // Get entity transform
+            const Transform& entityTransform = ecs::GetEntityTransform(&comp);
+            Mat4 worldTransform = entityTransform.GetWorldMat() * mesh->transforms[i];
+            float maxScale = glm::compMax(glm::abs(static_cast<glm::vec3>(entityTransform.GetWorldScale())));
+
+            // Store object data
+            params->objectTransforms.push_back(worldTransform);
+            params->materialIndices.push_back(context.resourceMngr->getMaterialIndex(materialHandle));
+
+            // Transform mesh bounds to world space
+            auto center = vec3(meshData->bounds.x, meshData->bounds.y, meshData->bounds.z);
+            float radius = meshData->bounds.w * maxScale;
+            auto worldCenter = vec3((glm::mat4)worldTransform * vec4(center, 1.0f));
+            params->objectBounds.emplace_back(
+                worldCenter - vec3(radius),
+                worldCenter + vec3(radius)
+            );
+
+            // Build draw command
+            DrawIndexedIndirectCommand cmd = {
+                .count = meshData->indexCount,
+                .instanceCount = 1,
+                .firstIndex = static_cast<uint32_t>(meshData->indexByteOffset / sizeof(uint32_t)),
+                .baseVertex = static_cast<int32_t>(meshData->vertexByteOffset / sizeof(Vertex)),
+                .baseInstance = static_cast<uint32_t>(objectIndex)
+            };
+
+            DrawData drawData = {
+                .transformId = static_cast<uint32_t>(objectIndex),
+                .materialId = context.resourceMngr->getMaterialIndex(materialHandle)
+            };
+
+            uint32_t drawCommandIndex = static_cast<uint32_t>(params->drawCommands.size());
+            params->drawCommands.push_back(cmd);
+            params->drawData.push_back(drawData);
+
+            // Sort into opaque/transparent queues
+            if (context.resourceMngr->isMaterialTransparent(materialHandle))
+                params->transparentIndices.push_back(drawCommandIndex);
+            else
+                params->opaqueIndices.push_back(drawCommandIndex);
+
+            ++objectIndex;
+        }
     }
 
-    float width{ static_cast<float>(Core::Display().GetWidth()) };
-    float height{ static_cast<float>(Core::Display().GetHeight()) };
+    // Iterate all LightComponents in the ECS and populate light data directly
+    params->lights.clear();
+    for (auto lightIter = ecs::GetCompsBegin<LightComponent>(); lightIter != ecs::GetCompsEnd<LightComponent>(); ++lightIter)
+    {
+        LightComponent& lightComp = *lightIter;
+        const SceneLight& sceneLight = lightComp.light;
+
+        // Skip disabled lights
+        if (sceneLight.intensity <= 0.0f)
+            continue;
+
+        // Skip lights with zero/invalid color
+        if (length(sceneLight.color) <= 0.0f)
+            continue;
+
+        Lighting::GPULight gpuLight;
+        // Convert SceneLight to GPULight (using the same conversion logic as SceneRenderFeature)
+        gpuLight.position = sceneLight.position;
+        gpuLight.color = sceneLight.color * sceneLight.intensity;
+        gpuLight.type = static_cast<uint32_t>(sceneLight.type);
+        gpuLight.direction = sceneLight.direction;
+
+        // Calculate range from attenuation
+        float constant = sceneLight.attenuation.x;
+        float linear = sceneLight.attenuation.y;
+        float quadratic = sceneLight.attenuation.z;
+        float threshold = 0.01f;
+        float maxIntensity = std::max(std::max(sceneLight.color.r, sceneLight.color.g), sceneLight.color.b) * sceneLight.intensity;
+        if (quadratic > 0.0f)
+        {
+            gpuLight.range = (-linear + sqrt(linear * linear - 4.0f * quadratic * (constant - maxIntensity / threshold))) / (2.0f * quadratic);
+        }
+        else if (linear > 0.0f)
+        {
+            gpuLight.range = (maxIntensity / threshold - constant) / linear;
+        }
+        else
+        {
+            gpuLight.range = 1000.0f; // Default large range
+        }
+
+        gpuLight.spotAngle = glm::cos(sceneLight.outerConeAngle);
+
+        params->lights.push_back(gpuLight);
+    }
+
+    params->activeLightCount = static_cast<uint32_t>(params->lights.size());
+
+    // Set environment parameters
+    params->irradianceTexture = 0;
+    params->prefilterTexture = 0;
+    params->brdfLUT = 0;
+    params->environmentIntensity = 1.0f;
+
+    // Update frame data
+    float width = static_cast<float>(Core::Display().GetWidth());
+    float height = static_cast<float>(Core::Display().GetHeight());
     outFrameData->cameraPos = frameData.cameraPos;
     outFrameData->viewMatrix = frameData.viewMatrix;
     outFrameData->projMatrix = glm::perspective(45.0f, width / height, 0.1f, 1000.0f);
@@ -130,38 +268,6 @@ void GraphicsMain::SetViewCamera(const Camera& camera)
 {
     frameData.cameraPos = camera.getPosition();
     frameData.viewMatrix = camera.getViewMatrix();
-}
-
-void GraphicsMain::AddObject(const MeshHandle& meshHandle, const MaterialHandle& materialHandle, const Transform& transform, const Mat4& meshTransform)
-{
-    // Validate handles
-    if (!meshHandle.isValid() || !materialHandle.isValid())
-        return;
-
-    const auto* meshData{ context.resourceMngr->getMesh(meshHandle) };
-    if (!meshData)
-        return;
-
-    // Store object data
-    auto& newObj{ scene.objects.emplace_back() };
-    newObj.type = SceneObjectType::Mesh;
-    newObj.mesh = meshHandle;
-    newObj.material = materialHandle;
-    newObj.transform = transform.GetWorldMat() * meshTransform;
-    newObj.maxScale = glm::compMax(glm::abs(static_cast<glm::vec3>(transform.GetWorldScale())));
-}
-
-void GraphicsMain::AddLight(const SceneLight& sceneLight)
-{
-    // Skip disabled lights
-    if (sceneLight.intensity <= 0.0f)
-        return;
-
-    // Skip lights with zero/invalid color
-    if (length(sceneLight.color) <= 0.0f)
-        return;
-
-    scene.lights.push_back(sceneLight);
 }
 
 FrameData& GraphicsMain::INTERNAL_GetFrameData()

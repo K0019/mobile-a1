@@ -44,10 +44,8 @@ public:
     void SetPendingShutdown();
     bool GetIsPendingShutdown() const;
 
-    // Graphics scene interface - called by ECS systems
+    // Graphics scene interface - for camera uploads
     void SetViewCamera(const Camera& camera);
-    void AddObject(const MeshHandle& meshHandle, const MaterialHandle& materialHandle, const Transform& transform, const Mat4& meshTransform);
-    void AddLight(const SceneLight& sceneLight);
 
 public:
     FrameData& INTERNAL_GetFrameData();
@@ -57,7 +55,6 @@ private:
     void InitImGui(const std::string& fontfile);
     void SetImGuiStyle();
 #endif
-    void Clear();
     void UploadToPipeline(FrameData* outFrameData);
 
 public:
@@ -81,7 +78,6 @@ private:
 
     // Scene rendering
     uint64_t sceneFeatureHandle;
-    Resource::Scene scene;
     FrameData frameData;
     uint64_t gridHandle;
 
