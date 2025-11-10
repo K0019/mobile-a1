@@ -133,23 +133,6 @@ void CustomViewport::DrawWindow()
 		entity->GetTransform().SetWorldPosition(camera->getPosition());
 		ST<Inspector>::Get()->SetSelectedEntity(entity);
 	});
-
-	if (ImGui::BeginDragDropTarget())
-	{
-		if (ImGuiPayload const* payload_entity = ImGui::AcceptDragDropPayload("PREFAB"))
-		{
-			if (ImGui::IsMouseReleased(0))
-			{
-				std::string prefabName{ static_cast<char*>(payload_entity->Data) };
-				ecs::EntityHandle entity = PrefabManager::LoadPrefab(prefabName);
-				ST<History>::Get()->OneEvent(HistoryEvent_EntityCreate{ entity });
-				CONSOLE_LOG_UNIMPLEMENTED() << "Spawn entity from prefab drop into viewport";
-				//entity->GetTransform().SetWorldPosition(InputOld::GetMousePosWorld());
-				ST<Inspector>::Get()->SetSelectedEntity(entity);
-			}
-		}
-		ImGui::EndDragDropTarget();
-	}
 #endif
 }
 
