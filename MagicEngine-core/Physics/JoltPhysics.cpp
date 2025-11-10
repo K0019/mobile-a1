@@ -21,6 +21,7 @@ All rights reserved.
 #include "Physics/JoltPhysics.h"
 #include "Physics/Physics.h"
 #include "Utilities/GameTime.h"
+#include <imgui.h>
 
 namespace physics {
 	JoltPhysics::JoltPhysics()
@@ -522,6 +523,17 @@ namespace physics {
 		ecs::GetEntityTransform(this).SetWorldRotation(rot);
 		
 		prevTrans = ecs::GetEntityTransform(this);
+	}
+
+	void JoltBodyComp::EditorDraw()
+	{
+		std::string motion{ motionType == JPH::EMotionType::Static ? "Static" : (motionType == JPH::EMotionType::Dynamic ? "Dynamic" : "Kinematic") };
+		std::string shape{ shapeType == ShapeType::BOX ? "Box" : "Empty" };
+		std::string col{ collisionLayer == Layers::MOVING ? "Moving" : (collisionLayer == Layers::NON_COLLIDABLE ? "Non Collidable" : "Non Moving") };
+
+		ImGui::Text((std::string{ "MotionType = " } + motion).c_str());
+		ImGui::Text((std::string{ "ShapeType  = " } + shape).c_str());
+		ImGui::Text((std::string{ "Collision  = " } + col).c_str());
 	}
 
 	// Callback for traces, connect this to your own trace function if you have one

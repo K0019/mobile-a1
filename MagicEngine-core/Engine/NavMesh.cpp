@@ -1,255 +1,357 @@
 #include "NavMesh.h"
 #include <cstring>
 #include <vector>
-#include "ECS/ECS.h"
 #include "Physics/Physics.h"
 #include "Physics/Collision.h"
 #include "Physics/JoltPhysics.h"
+#include "Editor/Containers/GUICollection.h"
 
-NavMesh::NavMesh()
-	: context{ false }
-	, navMesh{ nullptr }
-	, navMeshQuery{ nullptr }
+namespace navmesh 
 {
-	navMeshQuery = dtAllocNavMeshQuery();
-}
-
-NavMesh::~NavMesh()
-{
-	if (navMesh)
-		dtFreeNavMesh(navMesh);
-	if (navMeshQuery)
-		dtFreeNavMeshQuery(navMeshQuery);
-}
-
-void NavMesh::BuildNavMesh()
-{
-	//Initialize Build Config.
-	std::memset(&config, 0, sizeof(rcConfig));
-	config.cs = 0.25f;
-	config.ch = 0.25f;
-	config.walkableSlopeAngle = 45.f;
-	config.walkableHeight = 4;
-	config.walkableClimb = 4;
-	config.walkableRadius = 4;
-	config.maxEdgeLen = 32;
-	config.maxSimplificationError = 1.3f;
-	config.minRegionArea = 1;
-	config.mergeRegionArea = 0;
-	config.maxVertsPerPoly = 3;
-	config.detailSampleDist = 6.f;
-	config.detailSampleMaxError = 1.f;
-
-	std::vector<float> minBound{ -1000.f, -1000.f, -1000.f };
-	std::vector<float> maxBound{ 1000.f, 1000.f, 1000.f };
-
-	rcVcopy(config.bmin, minBound.data());
-	rcVcopy(config.bmax, maxBound.data());
-	rcCalcGridSize(config.bmin, config.bmax, config.cs, &config.width, &config.height);
-
-	//Rasterize the polygon meshes.
-	//Allocate the height field.
-	rcHeightfield* heightField{ rcAllocHeightfield() };
-	if (!heightField)
+	float const NavMeshSystem::CELL_SIZE = 0.3f;
+	float const NavMeshSystem::CELL_HEIGHT = 0.2f;
+	int const NavMeshSystem::TILE_SIZE = 256;
+	int const NavMeshSystem::MAX_TILE = 128;
+	int const NavMeshSystem::MAX_POLY = 16384;
+	
+	std::vector<TileDataBuffer> NavMeshData::LoadAllTileBuffers()
 	{
-		CONSOLE_LOG(LEVEL_ERROR) << "Height Field couldn't be allocated.";
-		return;
+		return std::vector<TileDataBuffer>{};
 	}
 
-	//Create height field.
-	if (!rcCreateHeightfield(&context, *heightField, config.width, config.height, config.bmin, config.bmax, config.cs, config.ch))
+	void NavMeshData::SaveAllTileBuffers(std::vector<TileDataBuffer>& allTileData)
 	{
-		CONSOLE_LOG(LEVEL_ERROR) << "Height Field couldn't be created.";
-		return;
+
 	}
 
-	unsigned char* triAreaIDs = new unsigned char[100];
-	JPH::AABox bound{ JPH::Vec3{minBound[0], minBound[1], minBound[2]}, JPH::Vec3{maxBound[0], maxBound[1], maxBound[2]}};
-
-	//Collect the triangle mesh of the collider.
-	std::vector<float> vertices{};
-	std::vector<int> indices{};
-	ST<physics::JoltPhysics>::Get()->CollectAllTriangles(bound, vertices, indices);
-
-	//Mark the triangle mesh if it's walkable based on the walkable slope angle.
-	std::memset(triAreaIDs, 0, 100 * sizeof(unsigned char));
-	int vertCount{ static_cast<int>(vertices.size()) };
-	int triCount{ static_cast<int>(indices.size()) / 3 };
-	rcMarkWalkableTriangles(&context, config.walkableSlopeAngle, vertices.data(), vertCount, indices.data(), triCount, triAreaIDs);
-
-	//Rastrize the triangle mesh.
-	if (!rcRasterizeTriangles(&context, vertices.data(), vertCount, indices.data(), triAreaIDs, triCount, *heightField))
+	NavMeshSurfaceComp::NavMeshSurfaceComp()
+		: config{}
+		, navMeshData{}
 	{
-		CONSOLE_LOG(LEVEL_ERROR) << "Could not rasterize triangles.";
-		return;
+		std::memset(&config, 0, sizeof(rcConfig));
+		config.cs = NavMeshSystem::CELL_SIZE;
+		config.ch = NavMeshSystem::CELL_HEIGHT;
+		config.tileSize = NavMeshSystem::TILE_SIZE;
+		config.walkableSlopeAngle = 45.f;
+		config.walkableHeight = 4;
+		config.walkableClimb = 4;
+		config.walkableRadius = 4;
+		config.maxEdgeLen = 32;
+		config.maxSimplificationError = 1.3f;
+		config.minRegionArea = 1;
+		config.mergeRegionArea = 0;
+		config.maxVertsPerPoly = 6;
+		config.detailSampleDist = 6.f;
+		config.detailSampleMaxError = 1.f;
+		config.bmin[0] = config.bmin[1] = config.bmin[2] = -1000.f;
+		config.bmax[0] = config.bmax[1] = config.bmax[2] = 1000.f;
 	}
 
-	delete[] triAreaIDs;
-
-	//Filter meshes to get accurate mesh that is walkable.
-	rcFilterLowHangingWalkableObstacles(&context, config.walkableClimb, *heightField);
-	//Filter the mesh for extruded edges
-	rcFilterLedgeSpans(&context, config.walkableHeight, config.walkableClimb, *heightField);
-	//Filter the mesh for low steps like stairs.
-	rcFilterWalkableLowHeightSpans(&context, config.walkableHeight, *heightField);
-
-	//Compact the height field so that it is easier to handle.
-	rcCompactHeightfield* compactHF{ rcAllocCompactHeightfield() };
-	if (!compactHF)
+	void NavMeshSurfaceComp::OnAttached()
 	{
-		CONSOLE_LOG(LEVEL_ERROR) << "Couldn't allocate compact height field.";
-		return;
-	}
-	if (!rcBuildCompactHeightfield(&context, config.walkableHeight, config.walkableClimb, *heightField, *compactHF))
-	{
-		CONSOLE_LOG(LEVEL_ERROR) << "Couldn't build compact height field.";
-		return;
+		navMeshData.LoadAllTileBuffers();
 	}
 
-	//Delete height field.
-	rcFreeHeightField(heightField);
-
-	//Erode walkable areas.
-	if (!rcErodeWalkableArea(&context, config.walkableRadius, *compactHF))
+	void NavMeshSurfaceComp::OnDetached()
 	{
-		CONSOLE_LOG(LEVEL_ERROR) << "Couldn't erode compact height field.";
-		return;
 	}
 
-	// Partition the heightfield so that we can use simple algorithm later to triangulate the walkable areas.
-	if (!rcBuildDistanceField(&context, *compactHF))
+	NavMeshData& NavMeshSurfaceComp::GetNavMeshData()
 	{
-		CONSOLE_LOG(LEVEL_ERROR) << "Couldn't build distance field.";
-		return;
-	}
-	if (!rcBuildRegions(&context, *compactHF, 0, config.minRegionArea, config.mergeRegionArea))
-	{
-		CONSOLE_LOG(LEVEL_ERROR) << "Couldn't build watershed region.";
-		return;
+		return navMeshData;
 	}
 
-	//Create Contours
-	rcContourSet* contourSet{ rcAllocContourSet() };
-	if (!contourSet)
+	void NavMeshSurfaceComp::AddTileRef(const dtTileRef& tileRef)
 	{
-		CONSOLE_LOG(LEVEL_ERROR) << "Couldn't allocate contour set.";
-		return;
-	}
-	//Build contours to trace and simplify region contours.
-	if (!rcBuildContours(&context, *compactHF, config.maxSimplificationError, config.maxEdgeLen, *contourSet))
-	{
-		CONSOLE_LOG(LEVEL_ERROR) << "Couldn't build contour set.";
-		return;
+		tileRefs.push_back(tileRef);
 	}
 
-	//Build Polygon Mesh
-	rcPolyMesh* pMesh{ rcAllocPolyMesh() };
-	if (!pMesh)
+	void NavMeshSurfaceComp::BakeNavMeshData()
 	{
-		CONSOLE_LOG(LEVEL_ERROR) << "Couldn't allocate polygon mesh detail memory.";
-		return;
-	}
-	if (!rcBuildPolyMesh(&context, *contourSet, config.maxVertsPerPoly, *pMesh))
-	{
-		CONSOLE_LOG(LEVEL_ERROR) << "Couldn't build poly mesh.";
-		return;
-	}
+		rcCalcGridSize(config.bmin, config.bmax, config.cs, &config.width, &config.height);
+		JPH::AABox bound{ JPH::Vec3{config.bmin[0], config.bmin[1], config.bmin[2]}, JPH::Vec3{config.bmax[0], config.bmax[1], config.bmax[2]} };
 
-	//Build detail polygon mesh which allows to access approximate height on each polygon.
-	rcPolyMeshDetail* pMeshDetail{ rcAllocPolyMeshDetail() };
-	if (!pMeshDetail)
-	{
-		CONSOLE_LOG(LEVEL_ERROR) << "Couldn't allocate memory for detail polygon mesh.";
-		return;
-	}
-	if (!rcBuildPolyMeshDetail(&context, *pMesh, *compactHF, config.detailSampleDist, config.detailSampleMaxError, *pMeshDetail))
-	{
-		CONSOLE_LOG(LEVEL_ERROR) << "Couldn't build detail polygon mesh.";
-		return;
-	}
+		//Collect the triangle mesh of the collider.
+		std::vector<float> vertices{};
+		std::vector<int> indices{};
+		ST<physics::JoltPhysics>::Get()->CollectAllTriangles(bound, vertices, indices);
 
-	rcFreeCompactHeightfield(compactHF);
-	rcFreeContourSet(contourSet);
+		std::vector<TileDataBuffer> allTileData{};
 
-	unsigned char* navData = 0;
-	int navDataSize = 0;
+		float worldTileSize{ config.cs * static_cast<float>(config.tileSize) };
+		int tileMinX{ static_cast<int>(std::floor(config.bmin[0] / worldTileSize)) };
+		int tileMinZ{ static_cast<int>(std::floor(config.bmin[2] / worldTileSize)) };
+		int tileMaxX{ static_cast<int>(std::floor(config.bmax[0] / worldTileSize)) };
+		int tileMaxZ{ static_cast<int>(std::floor(config.bmax[2] / worldTileSize)) };
 
-	dtNavMeshCreateParams params{};
-	std::memset(&params, 0, sizeof(params));
-	params.verts = pMesh->verts;
-	params.vertCount = pMesh->nverts;
-	params.polys = pMesh->polys;
-	params.polyAreas = pMesh->areas;
-	params.polyFlags = pMesh->flags;
-	params.polyCount = pMesh->npolys;
-	params.nvp = pMesh->nvp;
-	params.detailMeshes = pMeshDetail->meshes;
-	params.detailVerts = pMeshDetail->verts;
-	params.detailVertsCount = pMeshDetail->nverts;
-	params.detailTris = pMeshDetail->tris;
-	params.detailTriCount = pMeshDetail->ntris;
-	params.walkableHeight = config.height;
-	params.walkableRadius = config.walkableRadius;
-	params.walkableClimb = config.walkableClimb;
-	rcVcopy(params.bmin, pMesh->bmin);
-	rcVcopy(params.bmax, pMesh->bmax);
-	params.cs = config.cs;
-	params.ch = config.ch;
-	params.buildBvTree = true;
+		float tileBMin[3];
+		float tileBMax[3];
 
-	if (!dtCreateNavMeshData(&params, &navData, &navDataSize))
-	{
-		CONSOLE_LOG(LEVEL_ERROR) << "Couldn't build NavMesh data.";
-		return;
+		for (int tileZ{tileMinZ}; tileZ <= tileMaxZ; ++tileZ)
+			for (int tileX{ tileMinX }; tileX <= tileMaxX; ++tileX)
+			{
+				tileBMin[0] = tileX * worldTileSize;
+				tileBMin[1] = config.bmin[1];
+				tileBMin[2] = tileZ * worldTileSize;
+				
+				tileBMax[0] = (tileX + 1) * worldTileSize;
+				tileBMax[1] = config.bmax[1];
+				tileBMax[2] = (tileZ + 1) * worldTileSize;
+
+				allTileData.push_back(BakeNavMeshTile(vertices, indices, tileBMin, tileBMax, tileX, tileZ));
+			}
+
+		navMeshData.SaveAllTileBuffers(allTileData);
 	}
 
-	navMesh = dtAllocNavMesh();
-	if (!navMesh)
+	TileDataBuffer NavMeshSurfaceComp::BakeNavMeshTile(std::vector<float>& vertices, std::vector<int>& indices,
+											 float* bmin, float* bmax, int xIndex, int zIndex)
 	{
-		CONSOLE_LOG(LEVEL_ERROR) << "Couldn't allocate memory for the NavMesh.";
-		return;
-	}
+		//Initialize Build Config.
+		rcContext context{};
+		
+		int width{}, height{};
+		rcCalcGridSize(bmin, bmax, config.cs, &width, &height);
 
-	//Check if the detour navmesh can be initialized.
-	dtStatus status{navMesh->init(navData, navDataSize, DT_TILE_FREE_DATA)};
-	if (dtStatusFailed(status))
-	{
-		CONSOLE_LOG(LEVEL_ERROR) << "Couldn't initialize the Detour NavMesh.";
-		return;
-	}
-
-	//Check if the detour navmesh query can be initialized.
-	status = navMeshQuery->init(navMesh, 2048);
-	if (dtStatusFailed(status))
-	{
-		CONSOLE_LOG(LEVEL_ERROR) << "Couldn't initialize the Detour NavMesh Query.";
-		return;
-	}
-
-	// 1. Loop over every Tile in the mesh
-	// (A non-tiled mesh will just have one tile at index 0)
-	for (int i = 0; i < navMesh->getMaxTiles(); ++i)
-	{
-		const dtMeshTile* tile{ navMesh->getTile(i) };
-		if (!tile || !tile->header) 
-			continue;
-
-		// 2. Get the vertex array and count for this tile
-		const float* tileVertices = tile->verts; // Array of (x, y, z) floats
-		const int vertexCount = tile->header->vertCount;
-
-		// 3. Loop through all vertices in this tile
-		for (int j = 0; j < vertexCount; ++j)
+		//Rasterize the polygon meshes.
+		//Allocate the height field.
+		rcHeightfield* heightField{ rcAllocHeightfield() };
+		if (!heightField)
 		{
-			// Get a pointer to the start of the j-th vertex
-			const float* v = &tileVertices[j * 3];
-
-			// v[0] is world-space X
-			// v[1] is world-space Y
-			// v[2] is world-space Z
-
-			// You can now use these (e.g., add to a list)
-			CONSOLE_LOG(LEVEL_DEBUG) << v[0] << "," << v[1] << "," << v[2];
+			CONSOLE_LOG(LEVEL_ERROR) << "Height Field couldn't be allocated.";
+			return std::make_pair<int, unsigned char*>(0, nullptr);
 		}
+
+		//Create height field.
+		if (!rcCreateHeightfield(&context, *heightField, width, height, bmin, bmax, config.cs, config.ch))
+		{
+			CONSOLE_LOG(LEVEL_ERROR) << "Height Field couldn't be created.";
+			return std::make_pair<int, unsigned char*>(0, nullptr);;
+		}
+
+		unsigned char* triAreaIDs = new unsigned char[100];
+
+		//Mark the triangle mesh if it's walkable based on the walkable slope angle.
+		std::memset(triAreaIDs, 0, 100 * sizeof(unsigned char));
+		int vertCount{ static_cast<int>(vertices.size()) };
+		int triCount{ static_cast<int>(indices.size()) / 3 };
+		rcMarkWalkableTriangles(&context, config.walkableSlopeAngle, vertices.data(), vertCount, indices.data(), triCount, triAreaIDs);
+
+		//Rastrize the triangle mesh.
+		if (!rcRasterizeTriangles(&context, vertices.data(), vertCount, indices.data(), triAreaIDs, triCount, *heightField))
+		{
+			CONSOLE_LOG(LEVEL_ERROR) << "Could not rasterize triangles.";
+			return std::make_pair<int, unsigned char*>(0, nullptr);;
+		}
+
+		delete[] triAreaIDs;
+
+		//Filter meshes to get accurate mesh that is walkable.
+		rcFilterLowHangingWalkableObstacles(&context, config.walkableClimb, *heightField);
+		//Filter the mesh for extruded edges
+		rcFilterLedgeSpans(&context, config.walkableHeight, config.walkableClimb, *heightField);
+		//Filter the mesh for low steps like stairs.
+		rcFilterWalkableLowHeightSpans(&context, config.walkableHeight, *heightField);
+
+		//Compact the height field so that it is easier to handle.
+		rcCompactHeightfield* compactHF{ rcAllocCompactHeightfield() };
+		if (!compactHF)
+		{
+			CONSOLE_LOG(LEVEL_ERROR) << "Couldn't allocate compact height field.";
+			return std::make_pair<int, unsigned char*>(0, nullptr);;
+		}
+		if (!rcBuildCompactHeightfield(&context, config.walkableHeight, config.walkableClimb, *heightField, *compactHF))
+		{
+			CONSOLE_LOG(LEVEL_ERROR) << "Couldn't build compact height field.";
+			return std::make_pair<int, unsigned char*>(0, nullptr);;
+		}
+
+		//Delete height field.
+		rcFreeHeightField(heightField);
+
+		//Erode walkable areas.
+		if (!rcErodeWalkableArea(&context, config.walkableRadius, *compactHF))
+		{
+			CONSOLE_LOG(LEVEL_ERROR) << "Couldn't erode compact height field.";
+			return std::make_pair<int, unsigned char*>(0, nullptr);;
+		}
+
+		// Partition the heightfield so that we can use simple algorithm later to triangulate the walkable areas.
+		if (!rcBuildDistanceField(&context, *compactHF))
+		{
+			CONSOLE_LOG(LEVEL_ERROR) << "Couldn't build distance field.";
+			return std::make_pair<int, unsigned char*>(0, nullptr);;
+		}
+		if (!rcBuildRegions(&context, *compactHF, 0, config.minRegionArea, config.mergeRegionArea))
+		{
+			CONSOLE_LOG(LEVEL_ERROR) << "Couldn't build watershed region.";
+			return std::make_pair<int, unsigned char*>(0, nullptr);;
+		}
+
+		//Create Contours
+		rcContourSet* contourSet{ rcAllocContourSet() };
+		if (!contourSet)
+		{
+			CONSOLE_LOG(LEVEL_ERROR) << "Couldn't allocate contour set.";
+			return std::make_pair<int, unsigned char*>(0, nullptr);;
+		}
+		//Build contours to trace and simplify region contours.
+		if (!rcBuildContours(&context, *compactHF, config.maxSimplificationError, config.maxEdgeLen, *contourSet))
+		{
+			CONSOLE_LOG(LEVEL_ERROR) << "Couldn't build contour set.";
+			return std::make_pair<int, unsigned char*>(0, nullptr);;
+		}
+
+		//Build Polygon Mesh
+		rcPolyMesh* pMesh{ rcAllocPolyMesh() };
+		if (!pMesh)
+		{
+			CONSOLE_LOG(LEVEL_ERROR) << "Couldn't allocate polygon mesh detail memory.";
+			return std::make_pair<int, unsigned char*>(0, nullptr);;
+		}
+		if (!rcBuildPolyMesh(&context, *contourSet, config.maxVertsPerPoly, *pMesh))
+		{
+			CONSOLE_LOG(LEVEL_ERROR) << "Couldn't build poly mesh.";
+			return std::make_pair<int, unsigned char*>(0, nullptr);;
+		}
+
+		//Build detail polygon mesh which allows to access approximate height on each polygon.
+		rcPolyMeshDetail* pMeshDetail{ rcAllocPolyMeshDetail() };
+		if (!pMeshDetail)
+		{
+			CONSOLE_LOG(LEVEL_ERROR) << "Couldn't allocate memory for detail polygon mesh.";
+			return std::make_pair<int, unsigned char*>(0, nullptr);;
+		}
+		if (!rcBuildPolyMeshDetail(&context, *pMesh, *compactHF, config.detailSampleDist, config.detailSampleMaxError, *pMeshDetail))
+		{
+			CONSOLE_LOG(LEVEL_ERROR) << "Couldn't build detail polygon mesh.";
+			return std::make_pair<int, unsigned char*>(0, nullptr);;
+		}
+
+		rcFreeCompactHeightfield(compactHF);
+		rcFreeContourSet(contourSet);
+
+		unsigned char* data = 0;
+		int size{};
+
+		dtNavMeshCreateParams params{};
+		std::memset(&params, 0, sizeof(params));
+		params.verts = pMesh->verts;
+		params.vertCount = pMesh->nverts;
+		params.polys = pMesh->polys;
+		params.polyAreas = pMesh->areas;
+		params.polyFlags = pMesh->flags;
+		params.polyCount = pMesh->npolys;
+		params.nvp = pMesh->nvp;
+		params.detailMeshes = pMeshDetail->meshes;
+		params.detailVerts = pMeshDetail->verts;
+		params.detailVertsCount = pMeshDetail->nverts;
+		params.detailTris = pMeshDetail->tris;
+		params.detailTriCount = pMeshDetail->ntris;
+		params.walkableHeight = config.walkableHeight;
+		params.walkableRadius = config.walkableRadius;
+		params.walkableClimb = config.walkableClimb;
+		rcVcopy(params.bmin, pMesh->bmin);
+		rcVcopy(params.bmax, pMesh->bmax);
+		params.cs = config.cs;
+		params.ch = config.ch;
+		params.tileX = xIndex;
+		params.tileY = zIndex;
+		params.buildBvTree = true;
+
+		if (!dtCreateNavMeshData(&params, &data, &size))
+		{
+			CONSOLE_LOG(LEVEL_ERROR) << "Couldn't build NavMesh data.";
+			rcFreePolyMesh(pMesh); 
+			rcFreePolyMeshDetail(pMeshDetail); 
+			return std::make_pair<int, unsigned char*>(0, nullptr);
+		}
+
+		rcFreePolyMesh(pMesh);
+		rcFreePolyMeshDetail(pMeshDetail);
+
+		return std::make_pair<int, unsigned char*>(std::forward<int>(size), std::forward<unsigned char*>(data));
+	}
+
+	void NavMeshSurfaceComp::EditorDraw()
+	{
+		gui::VarDefault("Agent Height", &config.walkableHeight);
+		gui::VarDefault("Agent Radius", &config.walkableRadius);
+		gui::VarDefault("Agent Max Climb", &config.walkableClimb);
+		gui::VarDefault("Agent Max Slope", &config.walkableSlopeAngle);
+
+		if (gui::Button clearButton{ "Clear" })
+		{
+			navMeshData.filePath = "";
+		}
+		gui::SameLine();
+		if (gui::Button bakeButton{ "Bake" })
+		{
+			BakeNavMeshData();
+		}
+	}
+
+	NavMeshSystem::NavMeshSystem()
+		: navMesh{ nullptr }
+	{
+	}
+
+	void NavMeshSystem::OnAdded()
+	{
+		navMesh = dtAllocNavMesh();
+		if (!navMesh)
+		{
+			CONSOLE_LOG(LEVEL_ERROR) << "Couldn't allocate memory for the navmesh.";
+			return;
+		}
+
+		//Parameters to initialize the navmesh.
+		dtNavMeshParams param{};
+		param.orig[0] = param.orig[1] = param.orig[2] = 0.f;
+		param.tileWidth = static_cast<float>(TILE_SIZE) * CELL_SIZE;
+		param.tileHeight = static_cast<float>(TILE_SIZE) * CELL_HEIGHT;
+		param.maxTiles = MAX_TILE;
+		param.maxPolys = MAX_POLY;
+
+		//Initialize the navmesh
+		dtStatus status;
+		status = navMesh->init(&param);
+		if (dtStatusFailed(status))
+		{
+			CONSOLE_LOG(LEVEL_ERROR) << "Couldn't initialize the navmesh.";
+			return;
+		}
+
+		for (auto compIter{ ecs::GetCompsActiveBegin<NavMeshSurfaceComp>() }, endIter{ ecs::GetCompsEnd<NavMeshSurfaceComp>() }; compIter != endIter; ++compIter)
+		{
+			std::vector<TileDataBuffer> const& allTileData{ compIter->GetNavMeshData().LoadAllTileBuffers() };
+			if (allTileData.size() == 0)
+				continue;
+
+			for (TileDataBuffer const& tileData : allTileData)
+			{
+				if (!tileData.second || tileData.first == 0)
+					continue;
+
+				dtTileRef tileRef{};
+				status = navMesh->addTile(tileData.second, tileData.first, DT_TILE_FREE_DATA, 0, &tileRef);
+				if (dtStatusFailed(status))
+				{
+					CONSOLE_LOG(LEVEL_ERROR) << "Couldn't add a tile to the global navmesh.";
+					return;
+				}
+				compIter->AddTileRef(tileRef);
+			}
+		}
+	}
+
+	void NavMeshSystem::OnRemoved()
+	{
+		dtFreeNavMesh(navMesh);
+	}
+
+	dtNavMesh* NavMeshSystem::GetNavMesh()
+	{
+		return navMesh;
 	}
 }
