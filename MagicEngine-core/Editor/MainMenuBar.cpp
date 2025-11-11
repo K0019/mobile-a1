@@ -36,6 +36,7 @@ namespace editor {
 
 	bool MainMenuBar::PreRun()
 	{
+#ifdef IMGUI_ENABLED
 		if (gui::MainMenuBar mainMenuBar{})
 		{
 			// Add a "File" menu
@@ -83,6 +84,7 @@ namespace editor {
 					editor::CreateGuiWindow<editor::BehaviourTreeWindow>();
 			}
 		}
+#endif
 
 		return false; // No components to run
 	}

@@ -86,11 +86,14 @@ namespace editor {
 
 	bool EditorInputSystem::PreRun()
 	{
+#ifdef IMGUI_ENABLED
 		if (ST<KeyboardMouseInput>::Get()->GetIsDown(KEY::LCTRL))
+		{
 			if (ST<KeyboardMouseInput>::Get()->GetIsPressed(KEY::Z))
 				ST<History>::Get()->UndoOne();
 			else if (ST<KeyboardMouseInput>::Get()->GetIsPressed(KEY::Y))
 				ST<History>::Get()->RedoOne();
+		}
 
 		if (ST<KeyboardMouseInput>::Get()->GetIsPressed(KEY::DEL))
 			ST<EventsQueue>::Get()->AddEventForNextFrame(Events::EditorDeleteSelectedEntity{});
@@ -104,6 +107,7 @@ namespace editor {
 		if (ST<KeyboardMouseInput>::Get()->GetIsPressed(KEY::F3)) {
 			EditorGizmo_Publish(ImGuizmo::SCALE, EditorGizmo_Mode());
 		}
+#endif
 
 		return false; // No components to run
 	}

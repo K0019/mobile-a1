@@ -53,10 +53,6 @@ namespace editor {
 
         void DrawWindow() override;
 
-        //FileSystem file_system;
-
-#ifdef IMGUI_ENABLED
-
         /**
          * @brief Render the sidebar of the asset browser.
          */
@@ -80,7 +76,6 @@ namespace editor {
 
     public:
         // Constants
-#endif // IMGUI_ENABLED
         static constexpr float THUMBNAIL_SIZE = 50.0f; /**< Size of thumbnails */
         static constexpr float SIDEBAR_WIDTH = 150.0f; /**< Width of the sidebar */
 

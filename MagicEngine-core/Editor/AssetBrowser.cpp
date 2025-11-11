@@ -75,75 +75,46 @@ namespace editor {
     {
         // Main layout
         RenderSidebar();
-        ImGui::SameLine();
+        gui::SameLine();
 
         RenderMainView();
-        if (ImGui::BeginDragDropTarget())
-        {
-            // Accept the drag if the payload is of the correct type
-            ImGuiPayload const* acceptedPayload = ImGui::AcceptDragDropPayload("ENTITY", ImGuiDragDropFlags_AcceptPeekOnly);
-            if (acceptedPayload)
-            {
-                ecs::EntityHandle draggedEntity = *(ecs::EntityHandle*)acceptedPayload->Data;
-
-                // Drop handling 
-                //currentCategory = CATEGORY::PREFABS;
-                if (ImGui::IsMouseReleased(0))
-                {
-                    PrefabManager::SavePrefab(draggedEntity, draggedEntity->GetComp<NameComponent>()->GetName());
-                }
-            }
-            ImGui::EndDragDropTarget();
-        }
-        //ShowSpriteSheetDialog();
-        //ShowCreateAnimationDialog();
+        gui::PayloadTarget<ecs::EntityHandle>("ENTITY", [](ecs::EntityHandle draggedEntity) -> void {
+            PrefabManager::SavePrefab(draggedEntity, draggedEntity->GetComp<NameComponent>()->GetName());
+        });
     }
 
-#ifdef IMGUI_ENABLED
+    void AssetBrowser::RenderSidebar()
+    {
+        gui::Child sidebarChild{ "Sidebar", gui::Vec2{ SIDEBAR_WIDTH, 0 }, gui::FLAG_CHILD::BORDERS };
 
-    void AssetBrowser::RenderSidebar() {
-        ImGui::BeginChild("Sidebar", ImVec2(SIDEBAR_WIDTH, 0), true);
-
-        for (size_t i = 0; i < assetCategories.size(); i++)
-        {
-            auto& category = assetCategories[i];
-            if (ImGui::Selectable(category->GetIdentifier(), currentCategoryIndex == i))
-            {
+        for (size_t i{}; i < assetCategories.size(); ++i)
+            if (gui::Selectable(assetCategories[i]->GetIdentifier(), currentCategoryIndex == i))
                 currentCategoryIndex = static_cast<int>(i);
-            }
-        }
-
-        ImGui::EndChild();
     }
 
-    void AssetBrowser::RenderMainView() {
-        ImGui::BeginChild("MainView");
+    void AssetBrowser::RenderMainView()
+    {
+        gui::Child mainViewChild{ "MainView" };
 
         // Toolbar with filter and breadcrumb
         RenderToolbar();
 
         assetCategories[currentCategoryIndex]->Render(searchBuffer);
-
-        ImGui::EndChild();
     }
 
     void AssetBrowser::RenderToolbar()
     {
-        ImGui::BeginGroup();
-        float windowWidth = ImGui::GetContentRegionAvail().x;
-        float searchWidth = 300;
+        gui::Group toolbarGroup{};
+
+        const float windowWidth{ gui::GetAvailableContentRegion().x };
+        constexpr float searchWidth = 300;
 
         assetCategories[currentCategoryIndex]->RenderBreadcrumb();
 
-
         // Right-aligned search bar
-        ImGui::SameLine(windowWidth - searchWidth);
-        ImGui::SetNextItemWidth(searchWidth);
+        gui::SameLine(windowWidth - searchWidth);
+        gui::SetNextItemWidth(searchWidth);
         searchBuffer.Draw("##filter", ICON_FA_MAGNIFYING_GLASS" Search");
-
-        ImGui::EndGroup();
     }
-
-#endif
 
 }
