@@ -214,7 +214,7 @@ void GraphicsMain::UploadToPipeline(FrameData* outFrameData)
 
         Lighting::GPULight gpuLight;
         // Convert SceneLight to GPULight (using the same conversion logic as SceneRenderFeature)
-        gpuLight.position = sceneLight.position;
+        gpuLight.position = lightIter.GetEntity()->GetTransform().GetWorldPosition();
         gpuLight.color = sceneLight.color * sceneLight.intensity;
         gpuLight.type = static_cast<uint32_t>(sceneLight.type);
         gpuLight.direction = sceneLight.direction;
