@@ -32,6 +32,7 @@ All rights reserved.
 #include "Editor/Editor.h"
 #include "Editor/Gizmo.h"
 
+#include "Editor/MainMenuBar.h"
 #include "Editor/Console.h"
 #include "Editor/Performance.h"
 #include "Graphics/CustomViewport.h"
@@ -260,70 +261,6 @@ void MagicEngine::ExecuteFrame(FrameData& frameData)
 	ecs::SwitchToPool(ecs::POOL::DEFAULT);
 	ecs::FlushChanges(); // For if any of the editor windows deleted an entity.
 
-	if(ImGui::BeginMainMenuBar())
-	{
-		// Add a "File" menu
-		if(ImGui::BeginMenu("File"))
-		{
-			if(ImGui::MenuItem("New"))
-			{
-				// Handle "New" action
-			}
-			if(ImGui::MenuItem("Save"))
-			{
-				ST<SceneManager>::Get()->SaveAllScenes();
-				ST<SceneManager>::Get()->SaveWhichScenesOpened();
-			}
-			if(ImGui::MenuItem("Settings"))
-			{
-				editor::CreateGuiWindow<editor::SettingsWindow>();
-			}
-			if(ImGui::MenuItem("Exit"))
-			{
-				MarkToShutdown();
-			}
-			ImGui::EndMenu();
-		}
-
-		if(ImGui::BeginMenu("Tools"))
-		{
-			if(ImGui::MenuItem("Console"))
-			{
-				editor::CreateGuiWindow<editor::Console>();
-				ImGui::SetWindowFocus(ICON_FA_TERMINAL"Console"); // Save the name of the windows somewhere else so i dont have to copy paste = ryan cheong
-			}
-			if(ImGui::MenuItem("Performance"))
-			{
-				editor::CreateGuiWindow<editor::PerformanceWindow>();
-				ImGui::SetWindowFocus(ICON_FA_GAUGE_HIGH" Performance");
-			}
-			if(ImGui::MenuItem("Inspector"))
-			{
-				editor::CreateGuiWindow<editor::Inspector>();
-				ImGui::SetWindowFocus(ICON_FA_MAGNIFYING_GLASS" Inspector");
-			}
-			if(ImGui::MenuItem("Browser"))
-			{
-				editor::CreateGuiWindow<editor::AssetBrowser>();
-				ImGui::SetWindowFocus(ICON_FA_FOLDER" Browser");
-			}
-			if(ImGui::MenuItem("Hierarchy", 0, false))
-			{
-				editor::CreateGuiWindow<editor::Hierarchy>();
-				ImGui::SetWindowFocus(ICON_FA_SITEMAP" Hierarchy");
-			}
-
-			ImGui::EndMenu();
-		}
-
-		if (ImGui::MenuItem("Behaviour Tree"))
-		{
-			editor::CreateGuiWindow<editor::BehaviourTreeWindow>();
-		}
-
-		ImGui::EndMainMenuBar();  // End the main menu bar
-	}
-
 	ST<GraphicsMain>::Get()->EndImGuiFrame();
 #endif
 
@@ -423,6 +360,7 @@ void MagicEngine::LoadPermanentSystems()
 {
 #ifdef IMGUI_ENABLED
 	ecs::AddSystem(ECS_LAYER::PERMANENT_EDITOR, editor::EditorSystem{});
+	ecs::AddSystem(ECS_LAYER::PERMANENT_EDITOR, editor::MainMenuBar{});
 	ecs::AddSystem(ECS_LAYER::PERMANENT_EDITOR, editor::Popup{});
 	ecs::AddSystem(ECS_LAYER::PERMANENT_INPUT, editor::EditorInputSystem{});
 	ecs::AddSystem(ECS_LAYER::PERMANENT_RENDER, editor::SelectedEntityBorderDrawSystem{}); // TODO: System is currently unimplemented

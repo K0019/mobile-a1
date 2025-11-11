@@ -603,6 +603,7 @@ namespace gui {
 
 		using BeginEndBound_Button = BeginEndBound<ImGui::Button>;
 
+		using BeginEndBound_MainMenuBar = BeginEndBound<ImGui::BeginMainMenuBar, ImGui::EndMainMenuBar>;
 		using BeginEndBound_MenuBar = BeginEndBound<ImGui::BeginMenuBar, ImGui::EndMenuBar>;
 		using BeginEndBound_Menu = BeginEndBound<ImGui::BeginMenu, ImGui::EndMenu>;
 		using BeginEndBound_ItemContextMenu = BeginEndBound<ImGui::BeginPopupContextItem, ImGui::EndPopup>;
@@ -628,6 +629,7 @@ namespace gui {
 
 		using BeginEndBound_Button = std::false_type;
 
+		using BeginEndBound_MainMenuBar = std::false_type;
 		using BeginEndBound_MenuBar = std::false_type;
 		using BeginEndBound_Menu = std::false_type;
 		using BeginEndBound_ItemContextMenu = std::false_type;
@@ -1384,6 +1386,15 @@ namespace gui {
 #pragma endregion // Combo
 
 #pragma region Menu
+
+	/*****************************************************************//*!
+	\class MainMenuBar
+	\brief
+		Wraps ImGui::BeginMainMenuBar() and ImGui::EndMainMenuBar().
+	*//******************************************************************/
+	class MainMenuBar : public internal::BeginEndBound_MenuBar
+	{
+	};
 
 	/*****************************************************************//*!
 	\class MenuBar
