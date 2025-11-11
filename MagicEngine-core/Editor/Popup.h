@@ -28,8 +28,7 @@ namespace editor {
 	\class Popup
 	\brief
 		The primary class for popup.
-		Taking some code from GUIAsECS because we're not a WindowBase...
-		Also making this an ecs system so it can process itself.
+		Making this an ecs system so it can process itself.
 	*//******************************************************************/
 	class Popup : public ecs::System<Popup>, public gui::PopupWindow
 	{
@@ -79,16 +78,6 @@ namespace editor {
 
 	private:
 		std::string content;
-
-	private:
-		/*****************************************************************//*!
-		\brief
-			Schedules adding a system that will process this kind of component.
-		*//******************************************************************/
-		static bool RegisterWindowType();
-
-		//! CRTP, execute per window type.
-		inline static bool isRegistered{ RegisterWindowType() };
 
 	};
 

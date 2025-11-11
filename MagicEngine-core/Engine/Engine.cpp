@@ -38,7 +38,7 @@ All rights reserved.
 #include "Managers/AudioManager.h"
 #include "Editor/AssetBrowser.h"
 #include "Editor/Hierarchy.h"
-#include "Editor/Popup.h" // Needed so Popup doesn't get eliminated by the linker
+#include "Editor/Popup.h"
 #include "Editor/Inspector.h"
 #include "Utilities/CrashHandler.h"
 #include "VFS/VFS.h"
@@ -423,6 +423,7 @@ void MagicEngine::LoadPermanentSystems()
 {
 #ifdef IMGUI_ENABLED
 	ecs::AddSystem(ECS_LAYER::PERMANENT_EDITOR, editor::EditorSystem{});
+	ecs::AddSystem(ECS_LAYER::PERMANENT_EDITOR, editor::Popup{});
 	ecs::AddSystem(ECS_LAYER::PERMANENT_INPUT, editor::EditorInputSystem{});
 	ecs::AddSystem(ECS_LAYER::PERMANENT_RENDER, editor::SelectedEntityBorderDrawSystem{}); // TODO: System is currently unimplemented
 #endif

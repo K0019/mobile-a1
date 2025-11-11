@@ -67,19 +67,4 @@ namespace editor {
 		gui::TextWrapped("%s", content.c_str());
 	}
 
-	bool Popup::RegisterWindowType()
-	{
-#ifdef IMGUI_ENABLED
-		// Schedule, because ECS needs to be initialized first.
-		ST<Scheduler>::Get()->Add([]() -> void {
-			// Add a system that will process this window type into the EDITOR_GUI ecs pool.
-			::ecs::POOL originalPool{ ::ecs::GetCurrentPoolId() };
-			::ecs::SwitchToPool(::ecs::POOL::EDITOR_GUI);
-			::ecs::AddSystem(ECS_LAYER::PRE_PHYSICS_0, Popup{});
-			::ecs::SwitchToPool(originalPool);
-		});
-#endif
-		return true;
-	}
-
 }
