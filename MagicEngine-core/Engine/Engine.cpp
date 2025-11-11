@@ -73,6 +73,12 @@ All rights reserved.
 #include "Engine/Platform/Android/AndroidInputBridge.h"
 #include"BehaviorTree/BehaviourNode.h"
 
+#ifndef GLFW
+#include <android/log.h>
+#define LOG_TAG "ryEngine"
+#endif
+
+#include "ECS/TestRegister.h"
 
 
 
@@ -119,28 +125,6 @@ namespace
 	}
 }
 #endif
-
-#ifndef GLFW
-#include <android/log.h>
-#define LOG_TAG "ryEngine"
-#endif
-
-#include "ECS/TestRegister.h"
-
-MagicEngine::MagicEngine() = default;
-
-MagicEngine::~MagicEngine() = default;
-
-void MagicEngine::MarkToShutdown()
-{
-	ST<GraphicsMain>::Get()->SetPendingShutdown();
-}
-
-bool MagicEngine::IsShuttingDown() const
-{
-	return ST<GraphicsMain>::Get()->GetIsPendingShutdown();
-}
-
 
 void MagicEngine::Init(Context& context)
 {
