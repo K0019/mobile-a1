@@ -1,6 +1,6 @@
 #include "Editor/MiscAssetTabs.h"
 #include "Engine/Resources/ResourceManager.h"
-#include "Editor/PrefabWindow.h"
+#include "Engine/PrefabManager.h"
 #include "Editor/Import.h"
 #include "Editor/EditorHistory.h"
 #include "Editor/EditorGuiUtils.h"

@@ -37,7 +37,6 @@ All rights reserved.
 #include "Graphics/CustomViewport.h"
 #include "Managers/AudioManager.h"
 #include "Editor/AssetBrowser.h"
-#include "Editor/PrefabWindow.h"
 #include "Editor/Hierarchy.h"
 #include "Editor/Popup.h"
 #include "Editor/Inspector.h"
@@ -255,10 +254,6 @@ void MagicEngine::ExecuteFrame(FrameData& frameData)
 	ecs::RunSystems(ECS_LAYER::PERMANENT_EDITOR);
 
 	// TODO: Convert all of these window singletons into the ecs versions so we can support multiple instances of a single window.
-	if(ST<PrefabWindow>::Get()->IsOpen())
-	{
-		ST<PrefabWindow>::Get()->DrawSaveLoadPrompt(&ST<PrefabWindow>::Get()->IsOpen());
-	}
 	ST<Popup>::Get()->Draw();
 
 	// Draw editor windows
@@ -408,7 +403,6 @@ void MagicEngine::shutdown()
 	ST<HiddenComponentsStore>::Destroy();
 	ST<RegisteredComponents>::Destroy();
 	ST<PrefabManager>::Destroy();
-	ST<PrefabWindow>::Destroy();
 	ST<History>::Destroy();
 
 	ecs::Shutdown();

@@ -23,15 +23,16 @@ All rights reserved.
 */
 /******************************************************************************/
 #include "Editor/AssetBrowser.h"
-#include "Editor/PrefabWindow.h"
 #include "Engine/SceneManagement.h"
 #include "Editor/EditorHistory.h"
 #include "Components/NameComponent.h"
 #include "Managers/AudioManager.h"
 #include "Editor/Containers/GUICollection.h"
 
+#include "FilepathConstants.h"
 #include "Managers/Filesystem.h"
 #include "Editor/Import.h"
+#include "Engine/PrefabManager.h"
 
 #include "Editor/AssetBrowserCategories.h"
 #include "Editor/MeshTab.h"
