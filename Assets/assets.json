@@ -141,6 +141,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/chair.mesh",
+            "resources": [
+                {
+                    "resourceType": 6209910166724260588,
+                    "resourceEntries": [
+                        {
+                            "hash": 253250513833225460,
+                            "name": "chair0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/unitbox.mesh",
             "resources": [
                 {
@@ -149,6 +163,20 @@
                         {
                             "hash": 1065489439484661976,
                             "name": "unitbox0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/materials/standardsurface1.001.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 181343552887972683,
+                            "name": "standardsurface1.0010"
                         }
                     ]
                 }
@@ -275,6 +303,20 @@
                         {
                             "hash": 327635774104455127,
                             "name": "n00_000_00_eyeiris_00_eye (instance)0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/classroom_level2.mesh",
+            "resources": [
+                {
+                    "resourceType": 6209910166724260588,
+                    "resourceEntries": [
+                        {
+                            "hash": 157674366075006956,
+                            "name": "classroom_level20"
                         }
                     ]
                 }
@@ -421,6 +463,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/table.mesh",
+            "resources": [
+                {
+                    "resourceType": 6209910166724260588,
+                    "resourceEntries": [
+                        {
+                            "hash": 185395253236327252,
+                            "name": "table0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/textures/_07.ktx2",
             "resources": [
                 {
@@ -555,6 +611,34 @@
                         {
                             "hash": 37929852625792432,
                             "name": "colormap0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/materials/standardsurface1.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 146056926215925705,
+                            "name": "standardsurface10"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/materials/concrete.001.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 175120317074093097,
+                            "name": "concrete.0010"
                         }
                     ]
                 }
@@ -729,6 +813,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/floor.mesh",
+            "resources": [
+                {
+                    "resourceType": 6209910166724260588,
+                    "resourceEntries": [
+                        {
+                            "hash": 178782790306214968,
+                            "name": "floor0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/materials/n00_000_00_facebrow_00_face (instance).material",
             "resources": [
                 {
@@ -771,6 +869,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/materials/concrete.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 149766678448041952,
+                            "name": "concrete0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/materials/n00_010_01_onepiece_00_cloth_02 (instance).material",
             "resources": [
                 {
@@ -779,6 +891,20 @@
                         {
                             "hash": 288280954411468736,
                             "name": "n00_010_01_onepiece_00_cloth_02 (instance)0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/materials/metallic.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 155266435610177508,
+                            "name": "metallic0"
                         }
                     ]
                 }

@@ -63,6 +63,8 @@ void RegisterCppStuffToLua(luabridge::Namespace baseTable)
 			.addProperty("worldPosition", &Transform::GetWorldPosition, &Transform::SetWorldPosition)
 			.addProperty("worldRotation", &Transform::GetWorldRotation, &Transform::SetWorldRotation)
 			.addProperty("worldScale",	  &Transform::GetWorldScale   , &Transform::SetWorldScale   )
+			// Parent
+			// Child
 		.endClass()
 		.beginClass<ecs::Entity>("Entity")
 			.addProperty("transform", [](ecs::EntityHandle entity) -> Transform* { return &entity->GetTransform(); })
