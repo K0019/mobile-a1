@@ -34,6 +34,8 @@ struct FrameData;
 class MagicEngine
 {
 public:
+    MagicEngine() = default;
+
     // Prevent copying
     MagicEngine(const MagicEngine&) = delete;
     MagicEngine& operator=(const MagicEngine&) = delete;
