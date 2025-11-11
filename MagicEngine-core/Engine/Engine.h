@@ -26,24 +26,14 @@ All rights reserved.
 struct Context;
 struct FrameData;
 
-namespace Resource
-{
-    class ResourceManager;
-}
-
 /*****************************************************************//*!
 \class MagicEngine
 \brief
     The manager of the program.
 *//******************************************************************/
-class MagicEngine {
+class MagicEngine
+{
 public:
-    using clock = std::chrono::steady_clock;  // More reliable than system_clock
-    using duration = std::chrono::nanoseconds; // Higher precision
-    using time_point = std::chrono::time_point<clock>;
-
-    MagicEngine();
-    ~MagicEngine();
     // Prevent copying
     MagicEngine(const MagicEngine&) = delete;
     MagicEngine& operator=(const MagicEngine&) = delete;
@@ -52,26 +42,14 @@ public:
     MagicEngine(MagicEngine&&) = default;
     MagicEngine& operator=(MagicEngine&&) = default;
 
-    /*****************************************************************//*!
-    \brief
-        Marks the program to shutdown.
-    *//******************************************************************/
-    void MarkToShutdown();
-
-    /*****************************************************************//*!
-    \brief
-        Gets whether the program is marked to shutdown.
-    *//******************************************************************/
-    bool IsShuttingDown() const;
-
     void Init(Context& context);
     void ExecuteFrame(FrameData& frameData);
     void shutdown();
 
 private:
+    void LoadPermanentSystems();
+
     void ExecuteUpdateSystems();
     void ExecuteRenderSystems();
-
-private:
 
 };

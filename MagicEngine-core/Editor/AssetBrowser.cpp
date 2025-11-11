@@ -23,15 +23,16 @@ All rights reserved.
 */
 /******************************************************************************/
 #include "Editor/AssetBrowser.h"
-#include "Editor/PrefabWindow.h"
 #include "Engine/SceneManagement.h"
 #include "Editor/EditorHistory.h"
 #include "Components/NameComponent.h"
 #include "Managers/AudioManager.h"
 #include "Editor/Containers/GUICollection.h"
 
+#include "FilepathConstants.h"
 #include "Managers/Filesystem.h"
 #include "Editor/Import.h"
+#include "Engine/PrefabManager.h"
 
 #include "Editor/AssetBrowserCategories.h"
 #include "Editor/MeshTab.h"
@@ -46,114 +47,103 @@ All rights reserved.
 
 namespace fs = std::filesystem;
 
-AssetBrowser::AssetBrowser() {
-#ifdef IMGUI_ENABLED
-    // Initialize with default state
-    assetCategories.push_back(std::make_unique<MeshTab>());
-    assetCategories.push_back(std::make_unique<MaterialTab>());
-    assetCategories.push_back(std::make_unique<TextureTab>());
-    assetCategories.push_back(std::make_unique<PrefabTab>());
-    assetCategories.push_back(std::make_unique<SceneTab>());
-    assetCategories.push_back(std::make_unique<SoundTab>());
-    assetCategories.push_back(std::make_unique<FontTab>());
-    assetCategories.push_back(std::make_unique<ScriptTab>());
-    //assetCategories.push_back(std::make_unique<ShaderTab>());
+namespace editor {
 
-    //FileSystem inside AssetBrowser or its own tab?
-    auto browser = std::make_unique<FileBrowserTab>(); browser->Initialize(Filepaths::workingDir);
-    assetCategories.push_back(std::move(browser));
+    AssetBrowser::AssetBrowser()
+        : WindowBase{ ICON_FA_FOLDER" Browser", gui::Vec2{ 1200.0f, 600.0f } }
+    {
+#ifdef IMGUI_ENABLED
+        // Initialize with default state
+        assetCategories.push_back(std::make_shared<MeshTab>());
+        assetCategories.push_back(std::make_shared<MaterialTab>());
+        assetCategories.push_back(std::make_shared<TextureTab>());
+        assetCategories.push_back(std::make_shared<PrefabTab>());
+        assetCategories.push_back(std::make_shared<SceneTab>());
+        assetCategories.push_back(std::make_shared<SoundTab>());
+        assetCategories.push_back(std::make_shared<FontTab>());
+        assetCategories.push_back(std::make_shared<ScriptTab>());
+        //assetCategories.push_back(std::make_shared<ShaderTab>());
+
+        //FileSystem inside AssetBrowser or its own tab?
+        auto browser = std::make_shared<FileBrowserTab>();
+        browser->Initialize(Filepaths::workingDir);
+        assetCategories.push_back(std::move(browser));
 #endif
-}
-
-AssetBrowser::~AssetBrowser() = default;
-
-#ifdef IMGUI_ENABLED
-void AssetBrowser::Draw(bool* p_open) {
-    ImGui::SetNextWindowSize(ImVec2(1200, 600), ImGuiCond_FirstUseEver);
-
-    if(!ImGui::Begin(ICON_FA_FOLDER" Browser", p_open)) {
-        ImGui::End();
-        return;
     }
 
-    // Main layout
-    RenderSidebar();
-    ImGui::SameLine();
-
-    RenderMainView();
-    if(ImGui::BeginDragDropTarget())
+    void AssetBrowser::DrawWindow()
     {
-        // Accept the drag if the payload is of the correct type
-        ImGuiPayload const* acceptedPayload = ImGui::AcceptDragDropPayload("ENTITY", ImGuiDragDropFlags_AcceptPeekOnly);
-        if(acceptedPayload)
-        {
-            ecs::EntityHandle draggedEntity = *(ecs::EntityHandle*)acceptedPayload->Data;
+        // Main layout
+        RenderSidebar();
+        ImGui::SameLine();
 
-            // Drop handling 
-            //currentCategory = CATEGORY::PREFABS;
-            if(ImGui::IsMouseReleased(0))
+        RenderMainView();
+        if (ImGui::BeginDragDropTarget())
+        {
+            // Accept the drag if the payload is of the correct type
+            ImGuiPayload const* acceptedPayload = ImGui::AcceptDragDropPayload("ENTITY", ImGuiDragDropFlags_AcceptPeekOnly);
+            if (acceptedPayload)
             {
-                PrefabManager::SavePrefab(draggedEntity, draggedEntity->GetComp<NameComponent>()->GetName());
+                ecs::EntityHandle draggedEntity = *(ecs::EntityHandle*)acceptedPayload->Data;
+
+                // Drop handling 
+                //currentCategory = CATEGORY::PREFABS;
+                if (ImGui::IsMouseReleased(0))
+                {
+                    PrefabManager::SavePrefab(draggedEntity, draggedEntity->GetComp<NameComponent>()->GetName());
+                }
+            }
+            ImGui::EndDragDropTarget();
+        }
+        //ShowSpriteSheetDialog();
+        //ShowCreateAnimationDialog();
+    }
+
+#ifdef IMGUI_ENABLED
+
+    void AssetBrowser::RenderSidebar() {
+        ImGui::BeginChild("Sidebar", ImVec2(SIDEBAR_WIDTH, 0), true);
+
+        for (size_t i = 0; i < assetCategories.size(); i++)
+        {
+            auto& category = assetCategories[i];
+            if (ImGui::Selectable(category->GetIdentifier(), currentCategoryIndex == i))
+            {
+                currentCategoryIndex = static_cast<int>(i);
             }
         }
-        ImGui::EndDragDropTarget();
+
+        ImGui::EndChild();
     }
-    //ShowSpriteSheetDialog();
-    //ShowCreateAnimationDialog();
 
-    ImGui::End();
-}
+    void AssetBrowser::RenderMainView() {
+        ImGui::BeginChild("MainView");
 
-void AssetBrowser::RenderSidebar() {
-    ImGui::BeginChild("Sidebar", ImVec2(SIDEBAR_WIDTH, 0), true);
+        // Toolbar with filter and breadcrumb
+        RenderToolbar();
 
-    for (size_t i = 0; i < assetCategories.size(); i++)
+        assetCategories[currentCategoryIndex]->Render(searchBuffer);
+
+        ImGui::EndChild();
+    }
+
+    void AssetBrowser::RenderToolbar()
     {
-        auto& category = assetCategories[i];
-        if (ImGui::Selectable(category->GetIdentifier(), currentCategoryIndex == i))
-        {
-            currentCategoryIndex = static_cast<int>(i);
-        }
+        ImGui::BeginGroup();
+        float windowWidth = ImGui::GetContentRegionAvail().x;
+        float searchWidth = 300;
+
+        assetCategories[currentCategoryIndex]->RenderBreadcrumb();
+
+
+        // Right-aligned search bar
+        ImGui::SameLine(windowWidth - searchWidth);
+        ImGui::SetNextItemWidth(searchWidth);
+        searchBuffer.Draw("##filter", ICON_FA_MAGNIFYING_GLASS" Search");
+
+        ImGui::EndGroup();
     }
-
-    ImGui::EndChild();
-}
-
-void AssetBrowser::RenderMainView() {
-    ImGui::BeginChild("MainView");
-
-    // Toolbar with filter and breadcrumb
-    RenderToolbar();
-
-    assetCategories[currentCategoryIndex]->Render();
-
-    ImGui::EndChild();
-}
-
-void AssetBrowser::RenderToolbar()
-{
-    ImGui::BeginGroup();
-    float windowWidth = ImGui::GetContentRegionAvail().x;
-    float searchWidth = 300;
-
-    assetCategories[currentCategoryIndex]->RenderBreadcrumb();
-
-
-    // Right-aligned search bar
-    ImGui::SameLine(windowWidth - searchWidth);
-    ImGui::SetNextItemWidth(searchWidth);
-    ImGui::InputTextWithHint("##filter", ICON_FA_MAGNIFYING_GLASS" Search", searchBuffer, std::size(searchBuffer));
-
-    ImGui::EndGroup();
-}
-
-void AssetBrowser::DrawConfig()
-{
-    float thumbnailSize{ THUMBNAIL_SIZE }, sidebarWidth{ SIDEBAR_WIDTH };
-    ImGui::Separator();
-    ImGui::Text("Browser Settings");
-    ImGui::DragFloat("Thumbnail Size", &thumbnailSize, 10.0f, 50.0f, 200.0f);
-    ImGui::DragFloat("Sidebar Width", &sidebarWidth, 10.0f, 150.0f, 250.0f);
-}
 
 #endif
+
+}

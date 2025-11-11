@@ -19,65 +19,66 @@ All rights reserved.
 */
 /******************************************************************************/
 #pragma once
-#include "Editor/Containers/GUICollection.h"
+#include "ECS/ECS.h"
+#include "Editor/Containers/GUIAsECS.h"
 
-/*****************************************************************//*!
-\class Popup
-\brief
-	The primary class for popup.
-*//******************************************************************/
-class Popup : public gui::PopupWindow
-{
-public:
-	friend ST<Popup>;
+namespace editor {
 
 	/*****************************************************************//*!
+	\class Popup
 	\brief
-		Default constructor.
+		The primary class for popup.
+		Making this an ecs system so it can process itself.
 	*//******************************************************************/
-	Popup();
+	class Popup : public ecs::System<Popup>, public gui::PopupWindow
+	{
+	public:
+		/*****************************************************************//*!
+		\brief
+			Default constructor.
+		*//******************************************************************/
+		Popup();
 
-	/*****************************************************************//*!
-	\brief
-		Opens the popup with content specified in parameters.
-	\param title
-		Title of the popup.
-	\param content
-		String stream to display within the popup window.
-	\param flags
-		The flags of the popup
-	*//******************************************************************/
-	void Open(const std::string& title, const std::string& message, gui::PopupWindow::FLAG flags = gui::PopupWindow::FLAG::NONE);
+		/*****************************************************************//*!
+		\brief
+			Processes relevant events and draws the popup.
+		*//******************************************************************/
+		bool PreRun() override;
 
-	/*****************************************************************//*!
-	\brief
-		Opens the popup with content specified in parameters.
-	\param title
-		Title of the popup.
-	\param content
-		String stream to display within the popup window.
-	*//******************************************************************/
-	void OpenWithContent(std::string const& title, std::ostringstream const& content);
+		/*****************************************************************//*!
+		\brief
+			Opens the popup with content specified in parameters.
+		\param title
+			Title of the popup.
+		\param content
+			String stream to display within the popup window.
+		\param flags
+			The flags of the popup
+		*//******************************************************************/
+		void Open(const std::string& title, const std::string& message, gui::PopupWindow::FLAG flags = gui::PopupWindow::FLAG::NONE);
 
-	/*****************************************************************//*!
-	\brief
-		Close the popup window.
-	*//******************************************************************/
-	void Close();
+		/*****************************************************************//*!
+		\brief
+			Close the popup window.
+		*//******************************************************************/
+		void Close();
 
-private:
-	/*****************************************************************//*!
-	\brief
-		Sets this popup window's style.
-	*//******************************************************************/
-	void DrawContainer(int id) final;
+	private:
+		/*****************************************************************//*!
+		\brief
+			Sets this popup window's style.
+		*//******************************************************************/
+		void DrawContainer(int id) final;
 
-	/*****************************************************************//*!
-	\brief
-		Draws the contents of this popup.
-	*//******************************************************************/
-	void DrawContents() final;
+		/*****************************************************************//*!
+		\brief
+			Draws the contents of this popup.
+		*//******************************************************************/
+		void DrawContents() final;
 
-private:
-	std::string content;
-};
+	private:
+		std::string content;
+
+	};
+
+}

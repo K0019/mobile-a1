@@ -23,7 +23,7 @@ All rights reserved.
 #include "Components/NameComponent.h"
 #include "ECS/EntityUID.h"
 #include "Engine/Events/EventsQueue.h"
-#include "Engine/Events/EventsTypeBasic.h"
+#include "Engine/Events/EventsTypeEditor.h"
 
 namespace editor {
 
@@ -200,7 +200,7 @@ namespace editor {
 
 		// Filter
 		static gui::TextBoxWithFilter filter;
-		filter.Draw("Search", gui::GetWindowWidth() * 0.25f);
+		filter.Draw("Search", nullptr, gui::GetWindowWidth() * 0.25f);
 		gui::SameLine();
 		gui::TextDisabled("(?)");
 		if (gui::IsItemHovered())

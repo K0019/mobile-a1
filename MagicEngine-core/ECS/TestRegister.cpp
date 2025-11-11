@@ -5,7 +5,7 @@
 #define LOG_TAG "ryEngine"
 #endif
 
-#include "Graphics/GraphicsECSMesh.h"
+#include "Graphics/RenderComponent.h"
 #include "EntityUID.h"
 #include "Engine/Audio.h"
 #include "Engine/BehaviorTree/BehaviourTree.h"
@@ -15,7 +15,6 @@
 #include "Graphics/LightComponent.h"
 #include "Graphics/PostProcessingComponent.h"
 #include "Graphics/TextComponent.h"
-#include "Graphics/TrailComponent.h"
 #include "Physics/Collision.h"
 #include "Physics/Physics.h"
 #include "Scripting/ScriptComponent.h"
@@ -43,7 +42,6 @@ void RegisterShit()
 	IRegisteredComponent<PostProcessingComponent>::RegisterComponent();
 	IRegisteredComponent<TextComponent>::RegisterComponent();
 	IRegisteredComponent<FPSTextComponent>::RegisterComponent();
-	IRegisteredComponent<TrailRendererComponent>::RegisterComponent();
 	IRegisteredComponent<physics::BoxColliderComp>::RegisterComponent();
 	IRegisteredComponent<physics::PhysicsComp>::RegisterComponent();
 	IRegisteredComponent<NameComponent>::RegisterComponent();

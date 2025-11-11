@@ -47,12 +47,4 @@ property_begin(RenderComponent)
 }
 property_vend_h(RenderComponent)
 
-class RenderSystem : public ecs::System<RenderSystem, RenderComponent>
-{
-public:
-    RenderSystem();
-
-private:
-    void ProcessComp(RenderComponent& comp);
-
-};
+// RenderSystem is no longer needed - GraphicsMain reads directly from ECS RenderComponents

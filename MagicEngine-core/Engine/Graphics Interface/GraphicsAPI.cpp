@@ -21,18 +21,34 @@ All rights reserved.
 #include "Engine/Graphics Interface/GraphicsAPI.h"
 #include "Editor/Containers/GUICollection.h"
 #include "FilepathConstants.h"
+#include "graphics/features/grid_feature.h"
+#include "Editor/EditorCameraBridge.h"
+#include "Graphics/RenderComponent.h"
+#include "Graphics/LightComponent.h"
+#include "Engine/Resources/ResourceManager.h"
 
 #include "fa.h"
 
+GraphicsMain::GraphicsMain()
+    : sceneFeatureHandle{}
+    , gridHandle{}
+{
+}
+
 GraphicsMain::~GraphicsMain()
 {
-	ST<GraphicsScene>::Destroy();
+    if (context.renderer)
+    {
+        context.renderer->DestroyFeature(gridHandle);
+        context.renderer->DestroyFeature(sceneFeatureHandle);
+    }
 }
 
 void GraphicsMain::Init(Context inContext)
 {
 	context = inContext;
-	ST<GraphicsScene>::Get()->Init(inContext);
+	sceneFeatureHandle = context.renderer->CreateFeature<SceneRenderFeature>();
+	gridHandle = context.renderer->CreateFeature<GridFeature>();
 
 #ifdef IMGUI_ENABLED
 	InitImGui(Filepaths::assets + "/Fonts" + "/Lato-Regular.ttf");
@@ -42,7 +58,6 @@ void GraphicsMain::Init(Context inContext)
 
 void GraphicsMain::BeginFrame()
 {
-	ST<GraphicsScene>::Get()->Clear();
 }
 
 #ifdef IMGUI_ENABLED
@@ -83,7 +98,178 @@ void GraphicsMain::EndImGuiFrame()
 
 void GraphicsMain::EndFrame(FrameData* outFrameData)
 {
-	ST<GraphicsScene>::Get()->UploadToPipeline(outFrameData);
+	UploadToPipeline(outFrameData);
+}
+
+void GraphicsMain::UploadToPipeline(FrameData* outFrameData)
+{
+    auto params = static_cast<SceneRenderParams*>(context.renderer->GetFeatureParameterBlockPtr(sceneFeatureHandle));
+    if (!params)
+        return;
+
+    // Clear previous frame data
+    params->clear();
+
+    // Estimate size for performance
+    params->reserve(ecs::GetCompsActiveCount<RenderComponent>());
+
+    // Iterate all RenderComponents in the ECS and populate render params directly
+    size_t objectIndex = 0;
+    for (auto compIter = ecs::GetCompsActiveBegin<RenderComponent>(); compIter != ecs::GetCompsEnd<RenderComponent>(); ++compIter)
+    {
+        RenderComponent& comp = *compIter;
+
+        auto mesh = MagicResourceManager::Meshes().GetResource(comp.GetMeshHash());
+        if (!mesh)
+            continue;
+
+        const auto& materialList = comp.GetMaterialsList();
+        size_t materialCount = materialList.size();
+
+        // Process each submesh
+        for (size_t i = 0; i < mesh->handles.size(); ++i)
+        {
+            // Determine material to use
+            size_t materialHashToUse = 0;
+            if (i < materialCount && materialList[i] != 0)
+                materialHashToUse = materialList[i];
+            else
+                materialHashToUse = mesh->defaultMaterialHashes[i];
+
+            auto material = MagicResourceManager::Materials().GetResource(materialHashToUse);
+            if (!material)
+                continue;
+
+            const MeshHandle& meshHandle = mesh->handles[i];
+            const MaterialHandle& materialHandle = material->handle;
+
+            // Validate handles
+            if (!meshHandle.isValid() || !materialHandle.isValid())
+                continue;
+
+            const auto* meshData = context.resourceMngr->getMesh(meshHandle);
+            if (!meshData)
+                continue;
+
+            // Get entity transform
+            const Transform& entityTransform = ecs::GetEntityTransform(&comp);
+            Mat4 worldTransform = entityTransform.GetWorldMat() * mesh->transforms[i];
+            float maxScale = glm::compMax(glm::abs(static_cast<glm::vec3>(entityTransform.GetWorldScale())));
+
+            // Store object data
+            params->objectTransforms.push_back(worldTransform);
+            params->materialIndices.push_back(context.resourceMngr->getMaterialIndex(materialHandle));
+
+            // Transform mesh bounds to world space
+            auto center = vec3(meshData->bounds.x, meshData->bounds.y, meshData->bounds.z);
+            float radius = meshData->bounds.w * maxScale;
+            auto worldCenter = vec3((glm::mat4)worldTransform * vec4(center, 1.0f));
+            params->objectBounds.emplace_back(
+                worldCenter - vec3(radius),
+                worldCenter + vec3(radius)
+            );
+
+            // Build draw command
+            DrawIndexedIndirectCommand cmd = {
+                .count = meshData->indexCount,
+                .instanceCount = 1,
+                .firstIndex = static_cast<uint32_t>(meshData->indexByteOffset / sizeof(uint32_t)),
+                .baseVertex = static_cast<int32_t>(meshData->vertexByteOffset / sizeof(Vertex)),
+                .baseInstance = static_cast<uint32_t>(objectIndex)
+            };
+
+            DrawData drawData = {
+                .transformId = static_cast<uint32_t>(objectIndex),
+                .materialId = context.resourceMngr->getMaterialIndex(materialHandle)
+            };
+
+            uint32_t drawCommandIndex = static_cast<uint32_t>(params->drawCommands.size());
+            params->drawCommands.push_back(cmd);
+            params->drawData.push_back(drawData);
+
+            // Sort into opaque/transparent queues
+            if (context.resourceMngr->isMaterialTransparent(materialHandle))
+                params->transparentIndices.push_back(drawCommandIndex);
+            else
+                params->opaqueIndices.push_back(drawCommandIndex);
+
+            ++objectIndex;
+        }
+    }
+
+    // Iterate all LightComponents in the ECS and populate light data directly
+    params->lights.clear();
+    for (auto lightIter = ecs::GetCompsActiveBegin<LightComponent>(); lightIter != ecs::GetCompsEnd<LightComponent>(); ++lightIter)
+    {
+        LightComponent& lightComp = *lightIter;
+        const SceneLight& sceneLight = lightComp.light;
+
+        // Skip disabled lights
+        if (sceneLight.intensity <= 0.0f)
+            continue;
+
+        // Skip lights with zero/invalid color
+        if (length(sceneLight.color) <= 0.0f)
+            continue;
+
+        Lighting::GPULight gpuLight;
+        // Convert SceneLight to GPULight (using the same conversion logic as SceneRenderFeature)
+        gpuLight.position = lightIter.GetEntity()->GetTransform().GetWorldPosition();
+        gpuLight.color = sceneLight.color * sceneLight.intensity;
+        gpuLight.type = static_cast<uint32_t>(sceneLight.type);
+        gpuLight.direction = sceneLight.direction;
+
+        // Calculate range from attenuation
+        float constant = sceneLight.attenuation.x;
+        float linear = sceneLight.attenuation.y;
+        float quadratic = sceneLight.attenuation.z;
+        float threshold = 0.01f;
+        float maxIntensity = std::max(std::max(sceneLight.color.r, sceneLight.color.g), sceneLight.color.b) * sceneLight.intensity;
+        if (quadratic > 0.0f)
+        {
+            gpuLight.range = (-linear + sqrt(linear * linear - 4.0f * quadratic * (constant - maxIntensity / threshold))) / (2.0f * quadratic);
+        }
+        else if (linear > 0.0f)
+        {
+            gpuLight.range = (maxIntensity / threshold - constant) / linear;
+        }
+        else
+        {
+            gpuLight.range = 1000.0f; // Default large range
+        }
+
+        gpuLight.spotAngle = glm::cos(sceneLight.outerConeAngle);
+
+        params->lights.push_back(gpuLight);
+    }
+
+    params->activeLightCount = static_cast<uint32_t>(params->lights.size());
+
+    // Set environment parameters
+    params->irradianceTexture = 0;
+    params->prefilterTexture = 0;
+    params->brdfLUT = 0;
+    params->environmentIntensity = 1.0f;
+
+    // Update frame data
+    float width = static_cast<float>(Core::Display().GetWidth());
+    float height = static_cast<float>(Core::Display().GetHeight());
+    outFrameData->cameraPos = frameData.cameraPos;
+    outFrameData->viewMatrix = frameData.viewMatrix;
+    outFrameData->projMatrix = glm::perspective(45.0f, width / height, 0.1f, 1000.0f);
+
+    EditorCam_Publish(outFrameData->viewMatrix, outFrameData->projMatrix, false);
+}
+
+void GraphicsMain::SetViewCamera(const Camera& camera)
+{
+    frameData.cameraPos = camera.getPosition();
+    frameData.viewMatrix = camera.getViewMatrix();
+}
+
+FrameData& GraphicsMain::INTERNAL_GetFrameData()
+{
+    return frameData;
 }
 
 void GraphicsMain::SetPendingShutdown()

@@ -74,6 +74,8 @@ class AutoEventHandler
 public:
 	AutoEventHandler(EventHandlerHandle handle = 0);
 	AutoEventHandler(const AutoEventHandler&) = delete;
+	AutoEventHandler(AutoEventHandler&& other);
+	AutoEventHandler& operator=(AutoEventHandler&& other) noexcept;
 	~AutoEventHandler();
 
 	void Assign(EventHandlerHandle newHandle);
@@ -130,6 +132,12 @@ public:
 
 	// Reads next event, if there is one available
 	const EventType* ExtractEvent();
+
+	// Convenience function for the pattern of executing some code for each event
+	// Returns true if there was at least 1 event available. False otherwise.
+	template <typename FuncType>
+		requires std::regular_invocable<FuncType, const EventType&>
+	static bool ForEach(FuncType func);
 
 private:
 	//! Tracks the next event index for the next extraction

@@ -655,6 +655,30 @@ namespace ecs {
 
 	/*****************************************************************//*!
 	\brief
+		Get the number of components (both active and inactive) of a
+		certain type currently in ECS.
+	\tparam CompType
+		The component type.
+	\return
+		The number of components.
+	*//******************************************************************/
+	template <typename CompType>
+	size_t GetCompsCount();
+
+	/*****************************************************************//*!
+	\brief
+		Get the number of active components of a certain type currently
+		in ECS.
+	\tparam CompType
+		The component type.
+	\return
+		The number of components.
+	*//******************************************************************/
+	template <typename CompType>
+	size_t GetCompsActiveCount();
+
+	/*****************************************************************//*!
+	\brief
 		Gets whether a component is active or not.
 	\param component
 		The address to the component object. All ConstCompHandle<T> can be passed as an argument.

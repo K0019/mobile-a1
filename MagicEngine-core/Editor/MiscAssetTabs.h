@@ -2,42 +2,42 @@
 #include "Editor/AssetBrowserCategories.h"
 #include "Editor/Containers/GUICollection.h"
 
-struct PrefabTab
-	: editor::BaseAssetCategory
-{
-	const char* GetName() const override;
-	const char* GetIdentifier() const override;
-	void Render() override;
-};
+namespace editor {
 
-struct ShaderTab
-	: editor::BaseAssetCategory
-{
-	const char* GetName() const override;
-	const char* GetIdentifier() const override;
-	void Render() override;
+	struct PrefabTab : public BaseAssetCategory
+	{
+		const char* GetName() const override;
+		const char* GetIdentifier() const override;
+		void Render(const gui::TextBoxWithFilter& filter) override;
+	};
 
-private:
-	std::vector<std::string> shaderNames;
-};
+	struct ShaderTab : public BaseAssetCategory
+	{
+		const char* GetName() const override;
+		const char* GetIdentifier() const override;
+		void Render(const gui::TextBoxWithFilter& filter) override;
 
-struct FontTab
-	: editor::BaseAssetCategory
-{
-	const char* GetName() const override;
-	const char* GetIdentifier() const override;
-	void Render() override;
-};
+	private:
+		std::vector<std::string> shaderNames;
+	};
 
-struct ScriptTab
-	: editor::BaseAssetCategory
-{
-	ScriptTab();
+	struct FontTab : public BaseAssetCategory
+	{
+		const char* GetName() const override;
+		const char* GetIdentifier() const override;
+		void Render(const gui::TextBoxWithFilter& filter) override;
+	};
 
-	const char* GetName() const override;
-	const char* GetIdentifier() const override;
-	void Render() override;
+	struct ScriptTab : public BaseAssetCategory
+	{
+		ScriptTab();
 
-private:
-	gui::TextBoxWithBuffer<256> newScriptName;
-};
+		const char* GetName() const override;
+		const char* GetIdentifier() const override;
+		void Render(const gui::TextBoxWithFilter& filter) override;
+
+	private:
+		gui::TextBoxWithBuffer<256> newScriptName;
+	};
+
+}
