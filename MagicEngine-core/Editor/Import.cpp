@@ -30,7 +30,8 @@ All rights reserved.
 #include <shellapi.h> // For DragQueryFile
 #include "FilepathConstants.h"
 #include "Managers/AudioManager.h"
-#include "Editor/Popup.h"
+#include "Engine/Events/EventsQueue.h"
+#include "Engine/Events/EventsTypeEditor.h"
 
 // Thanks Microsoft
 #ifdef CopyFile
@@ -65,7 +66,8 @@ namespace import
                 continue;
             }
         }
-        ST<Popup>::Get()->OpenWithContent("Import", ss);
+
+        ST<EventsQueue>::Get()->AddEventForNextFrame(Events::PopupOpenRequest{ "Import", ss.str() });
     }
 
     IMPORT_RESULT ImportToAssets(const std::filesystem::path& file, std::filesystem::path* resultantPath)

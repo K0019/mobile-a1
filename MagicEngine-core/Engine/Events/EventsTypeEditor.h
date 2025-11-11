@@ -19,6 +19,7 @@ All rights reserved.
 
 #pragma once
 #include "ECS/ECS.h"
+#include "Editor/Containers/GUICollection.h"
 
 namespace Events {
 	
@@ -39,6 +40,16 @@ namespace Events {
 	{
 		unsigned int width, height;
 	};
+
+	// Consumed by: Popup
+	struct PopupOpenRequest
+	{
+		std::string title;
+		std::string message;
+		gui::PopupWindow::FLAG flags{ gui::PopupWindow::FLAG::NONE };
+	};
+	// Consumed by: Popup
+	struct PopupCloseRequest {};
 
 }
 

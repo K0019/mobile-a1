@@ -38,7 +38,7 @@ All rights reserved.
 #include "Managers/AudioManager.h"
 #include "Editor/AssetBrowser.h"
 #include "Editor/Hierarchy.h"
-#include "Editor/Popup.h"
+#include "Editor/Popup.h" // Needed so Popup doesn't get eliminated by the linker
 #include "Editor/Inspector.h"
 #include "Utilities/CrashHandler.h"
 #include "VFS/VFS.h"
@@ -252,9 +252,6 @@ void MagicEngine::ExecuteFrame(FrameData& frameData)
 
 	// Run permanent editor systems (not windows)
 	ecs::RunSystems(ECS_LAYER::PERMANENT_EDITOR);
-
-	// TODO: Convert all of these window singletons into the ecs versions so we can support multiple instances of a single window.
-	ST<Popup>::Get()->Draw();
 
 	// Draw editor windows
 	ecs::SwitchToPool(ecs::POOL::EDITOR_GUI);
