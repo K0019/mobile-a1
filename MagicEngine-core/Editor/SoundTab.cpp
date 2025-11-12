@@ -1,5 +1,6 @@
 #include "Editor/SoundTab.h"
 #include "Engine/Resources/ResourceManager.h"
+#include "Engine/Resources/Types/ResourceTypesAudio.h"
 #include "Editor/Containers/GUICollection.h"
 #include "Managers/AudioManager.h"
 
@@ -20,7 +21,7 @@ namespace editor {
         gui::Child child{ "SoundTable", gui::Vec2{ 0.0f, -FLT_MIN }, gui::FLAG_CHILD::BORDERS };
 
 #ifdef IMGUI_ENABLED
-        auto soundResources{ ST<MagicResourceManager>::Get()->Editor_GetAudio().Editor_GetAllResources() };
+        auto soundResources{ ST<MagicResourceManager>::Get()->Editor_GetContainer<ResourceAudio>().Editor_GetAllResources() };
 
         ImGui::Columns(2, nullptr, true);
 
@@ -29,7 +30,7 @@ namespace editor {
 
         for (const auto& [hash, resource] : soundResources)
         {
-            const std::string& name{ ST<MagicResourceManager>::Get()->Editor_GetName(hash) };
+            const std::string& name{ *ST<MagicResourceManager>::Get()->Editor_GetName(hash) };
 
             // Create Button
             if (ImGui::Selectable(name.c_str()))
@@ -81,7 +82,8 @@ namespace editor {
 
         if (ST<AudioManager>::Get()->IsPlaying(currentPreviewSound))
         {
-            playingName = ST<MagicResourceManager>::Get()->Editor_GetName(lastPreviewAudioHash);
+            if (const std::string* previewSoundName{ ST<MagicResourceManager>::Get()->Editor_GetName(lastPreviewAudioHash) })
+                playingName = *previewSoundName;
             FMOD::Sound* currentSound = ST<AudioManager>::Get()->GetSound(currentPreviewSound);
 
             if (currentSound)
@@ -178,7 +180,7 @@ namespace editor {
         if (gui::ItemContextMenu contextMenu{ ("Delete##" + name).c_str() })
             if (gui::MenuItem("Delete"))
                 // Note: The deletion of the resource calls AudioManager::FreeSound(), which stops all sounds, even sounds that are not this sound being deleted
-                ST<MagicResourceManager>::Get()->INTERNAL_GetAudio().DeleteResource(hash);
+                ST<MagicResourceManager>::Get()->INTERNAL_GetContainer<ResourceAudio>().DeleteResource(hash);
     }
 
 }
