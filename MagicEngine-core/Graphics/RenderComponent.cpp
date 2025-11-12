@@ -21,32 +21,31 @@ All rights reserved.
 #include "VFS/VFS.h"
 #include "Graphics/RenderComponent.h"
 #include "Engine/Resources/ResourceManager.h"
+#include "Engine/Resources/Types/ResourceTypesGraphics.h"
 #include "Editor/Containers/GUICollection.h"
 
-size_t RenderComponent::GetMeshHash() const
+const ResourceMesh* RenderComponent::GetMesh()
 {
-    return meshHash;
+    return meshHandle.GetResource();
 }
 
-const std::vector<size_t>& RenderComponent::GetMaterialsList() const
+const std::vector<UserResourceHandle<ResourceMaterial>>& RenderComponent::GetMaterialsList() const
 {
     return materials;
 }
 
 void RenderComponent::EditorDraw()
 {
-    std::string meshText{};
-    if(ST<MagicResourceManager>::Get()->Meshes().GetResource(meshHash))
-        meshText = ST<MagicResourceManager>::Get()->Editor_GetName(meshHash);
+    const std::string* meshText{ ST<MagicResourceManager>::Get()->Editor_GetName(meshHandle.GetHash()) };
 
     gui::TextUnformatted("Mesh");
     gui::SameLine();
-    gui::TextBoxReadOnly("##", meshText);
+    gui::TextBoxReadOnly("##", meshText ? meshText->c_str() : "");
     gui::PayloadTarget<size_t>("MESH_HASH", [this](size_t hash) -> void {
-        meshHash = hash;
+        meshHandle = hash;
 
         //now based on this new mesh, update the default materials
-        auto newMesh{ MagicResourceManager::Meshes().GetResource(meshHash) };
+        auto newMesh{ meshHandle.GetResource() };
         size_t meshCount = newMesh->handles.size();
         materials.resize(meshCount);
         for (int i = 0; i < meshCount; i++)
@@ -55,7 +54,7 @@ void RenderComponent::EditorDraw()
         }
     });
 
-    auto mesh{ MagicResourceManager::Meshes().GetResource(meshHash) };
+    auto mesh{ meshHandle.GetResource() };
 
 
     if (mesh)
@@ -69,13 +68,11 @@ void RenderComponent::EditorDraw()
                 if (i >= materials.size()) break;    //go reassign the mesh
                 gui::SetID id(i);
 
-                std::string materialText{};
-                if (ST<MagicResourceManager>::Get()->Materials().GetResource(materials[i]))
-                    materialText = ST<MagicResourceManager>::Get()->Editor_GetName(materials[i]);
+                const std::string* materialText{ ST<MagicResourceManager>::Get()->Editor_GetName(materials[i].GetHash()) };
 
                 gui::TextUnformatted(std::string("Material") + std::to_string(i));
                 gui::SameLine();
-                gui::TextBoxReadOnly("##", materialText);
+                gui::TextBoxReadOnly("##", materialText ? materialText->c_str() : "");
                 gui::PayloadTarget<size_t>("MATERIAL_HASH", [&](size_t hash) -> void {
                     materials[i] = hash;
                 });

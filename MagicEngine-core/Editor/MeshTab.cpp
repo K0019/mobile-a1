@@ -1,6 +1,7 @@
 #include "Editor/MeshTab.h"
 #include "Editor/AssetBrowser.h"
 #include "Editor/EditorGuiUtils.h"
+#include "Engine/Resources/Types/ResourceTypesGraphics.h"
 
 namespace editor {
 
@@ -26,9 +27,9 @@ namespace editor {
         gui::SetStyleVar framePadding(gui::FLAG_STYLE_VAR::FRAME_PADDING, ImVec2(2, 2));
 
         int count{};
-        for (const auto& [hash, mesh] : ST<MagicResourceManager>::Get()->Editor_GetMeshes().Editor_GetAllResources())
+        for (const auto& [hash, mesh] : ST<MagicResourceManager>::Get()->INTERNAL_GetContainer<ResourceMesh>().Editor_GetAllResources())
         {
-            const std::string& meshName{ ST<MagicResourceManager>::Get()->Editor_GetName(hash) };
+            const std::string& meshName{ *ST<MagicResourceManager>::Get()->Editor_GetName(hash) };
             if (!filter.PassFilter(meshName))
                 continue;
 

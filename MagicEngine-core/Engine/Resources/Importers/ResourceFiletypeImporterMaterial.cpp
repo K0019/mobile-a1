@@ -72,7 +72,7 @@ bool ResourceFiletypeImporterMaterial::Import(const std::string& relativeFilepat
     const auto* fileEntry{ GenerateFileEntryForResources<ResourceMaterial>(relativeFilepath, 1) };
 
     // Assign resource to material handle
-    ST<MagicResourceManager>::Get()->INTERNAL_GetMaterials().INTERNAL_GetResource(fileEntry->associatedResources[0].hashes[0], true)->handle = materialHandle;
+    ST<MagicResourceManager>::Get()->INTERNAL_GetContainer<ResourceMaterial>().INTERNAL_GetResource(fileEntry->associatedResources[0].hashes[0], true)->handle = materialHandle;
 
 	return true;
 }

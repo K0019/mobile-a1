@@ -119,7 +119,7 @@ void GraphicsMain::UploadToPipeline(FrameData* outFrameData)
     {
         RenderComponent& comp = *compIter;
 
-        auto mesh = MagicResourceManager::Meshes().GetResource(comp.GetMeshHash());
+        auto mesh = comp.GetMesh();
         if (!mesh)
             continue;
 
@@ -130,13 +130,9 @@ void GraphicsMain::UploadToPipeline(FrameData* outFrameData)
         for (size_t i = 0; i < mesh->handles.size(); ++i)
         {
             // Determine material to use
-            size_t materialHashToUse = 0;
-            if (i < materialCount && materialList[i] != 0)
-                materialHashToUse = materialList[i];
-            else
-                materialHashToUse = mesh->defaultMaterialHashes[i];
-
-            auto material = MagicResourceManager::Materials().GetResource(materialHashToUse);
+			const ResourceMaterial* material{ (i < materialCount ? materialList[i].GetResource() : nullptr) };
+			if (!material)
+				material = MagicResourceManager::GetContainer<ResourceMaterial>().GetResource(mesh->defaultMaterialHashes[i]);
             if (!material)
                 continue;
 

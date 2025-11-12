@@ -1,6 +1,7 @@
 #include "Editor/MaterialCreation.h"
 #include "Engine/Resources/MaterialSerialization.h"
 #include "Engine/Resources/ResourceManager.h"
+#include "Engine/Resources/Types/ResourceTypesGraphics.h"
 #include "Engine/Resources/ResourceImporter.h"
 #include "Engine/Events/EventsQueue.h"
 #include "Engine/Events/EventsTypeEditor.h"
@@ -78,7 +79,7 @@ namespace editor {
 	void MaterialCreationWindow::AttemptCreateMaterial()
 	{
 		bool valid = false;
-		auto texturesGetter{ MagicResourceManager::Textures() };
+		auto texturesGetter{ MagicResourceManager::GetContainer<ResourceTexture>() };
 		for (size_t resourceHash : textures)
 		{
 			if (resourceHash == 0) continue;
@@ -247,7 +248,7 @@ namespace editor {
 	void MaterialEditWindow::AttemptCreateMaterial()
 	{
 		bool valid = false;
-		auto texturesGetter{ MagicResourceManager::Textures() };
+		auto texturesGetter{ MagicResourceManager::GetContainer<ResourceTexture>() };
 		for (size_t resourceHash : textures)
 		{
 			if (resourceHash == 0) continue;
