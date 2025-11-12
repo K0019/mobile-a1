@@ -309,6 +309,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/materials/openpbr_shader1.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 238111338519535503,
+                            "name": "openpbr_shader10"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/materials/n00_000_00_eyewhite_00_eye (instance).material",
             "resources": [
                 {
@@ -513,6 +527,20 @@
                         {
                             "hash": 158010816883595619,
                             "name": "box0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/vending machine.mesh",
+            "resources": [
+                {
+                    "resourceType": 6209910166724260588,
+                    "resourceEntries": [
+                        {
+                            "hash": 239620967984471955,
+                            "name": "vending machine0"
                         }
                     ]
                 }
@@ -821,6 +849,20 @@
                         {
                             "hash": 310970476493317429,
                             "name": "n00_010_01_onepiece_00_cloth_01 (instance)0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/locker.mesh",
+            "resources": [
+                {
+                    "resourceType": 6209910166724260588,
+                    "resourceEntries": [
+                        {
+                            "hash": 254978946401300259,
+                            "name": "locker0"
                         }
                     ]
                 }

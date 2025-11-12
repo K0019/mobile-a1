@@ -33,7 +33,7 @@ GameCameraControllerComponent::GameCameraControllerComponent()
 	, cameraPitch{ 0.0f }
 	, cameraYaw{ 0.0f }
 	, cameraSensitivity{ 1.0f }
-	, currentCameraDistance{ 20.0f }
+	, currentCameraDistance{ 5.0f }
 {
 }
 
