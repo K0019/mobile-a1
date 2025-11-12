@@ -22,37 +22,31 @@ All rights reserved.
 #pragma once
 #include "ECS/IRegisteredComponent.h"
 #include "Editor/IEditorComponent.h"
+#include "Engine/Resources/ResourcesHeader.h"
+#include "Engine/Resources/Types/ResourceTypesGraphics.h"
 
 class RenderComponent
     : public IRegisteredComponent<RenderComponent>
     , public IEditorComponent<RenderComponent>
 {
 public:
-    size_t GetMeshHash() const;
-    const std::vector<size_t>& GetMaterialsList() const;
+    const ResourceMesh* GetMesh();
+    const std::vector<UserResourceHandle<ResourceMaterial>>& GetMaterialsList() const;
 
     void EditorDraw() override;
 
 private:
-    size_t meshHash;
-    std::vector<size_t> materials;
+    UserResourceHandle<ResourceMesh> meshHandle;
+    std::vector<UserResourceHandle<ResourceMaterial>> materials;
 
 public:
     property_vtable()
 };
 property_begin(RenderComponent)
 {
-    property_var(meshHash),
+    property_var(meshHandle),
     property_var(materials)
 }
 property_vend_h(RenderComponent)
 
-class RenderSystem : public ecs::System<RenderSystem, RenderComponent>
-{
-public:
-    RenderSystem();
-
-private:
-    void ProcessComp(RenderComponent& comp);
-
-};
+// RenderSystem is no longer needed - GraphicsMain reads directly from ECS RenderComponents

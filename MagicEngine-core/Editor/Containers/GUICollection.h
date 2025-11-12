@@ -603,6 +603,7 @@ namespace gui {
 
 		using BeginEndBound_Button = BeginEndBound<ImGui::Button>;
 
+		using BeginEndBound_MainMenuBar = BeginEndBound<ImGui::BeginMainMenuBar, ImGui::EndMainMenuBar>;
 		using BeginEndBound_MenuBar = BeginEndBound<ImGui::BeginMenuBar, ImGui::EndMenuBar>;
 		using BeginEndBound_Menu = BeginEndBound<ImGui::BeginMenu, ImGui::EndMenu>;
 		using BeginEndBound_ItemContextMenu = BeginEndBound<ImGui::BeginPopupContextItem, ImGui::EndPopup>;
@@ -628,6 +629,7 @@ namespace gui {
 
 		using BeginEndBound_Button = std::false_type;
 
+		using BeginEndBound_MainMenuBar = std::false_type;
 		using BeginEndBound_MenuBar = std::false_type;
 		using BeginEndBound_Menu = std::false_type;
 		using BeginEndBound_ItemContextMenu = std::false_type;
@@ -1075,10 +1077,12 @@ namespace gui {
 			Draws a text field.
 		\param label
 			The label of the text field.
+		\param hint
+			The hint of the text field.
 		\param width
 			The width of the text field.
 		*//******************************************************************/
-		void Draw(const char* label, float width = 0.0f);
+		void Draw(const char* label, const char* hint = nullptr, float width = 0.0f);
 
 		/*****************************************************************//*!
 		\brief
@@ -1088,6 +1092,7 @@ namespace gui {
 			The text to test whether it passes the filter or not.
 		*//******************************************************************/
 		bool PassFilter(const char* text) const;
+		bool PassFilter(const std::string& text) const;
 
 		/*****************************************************************//*!
 		\brief
@@ -1383,6 +1388,15 @@ namespace gui {
 #pragma region Menu
 
 	/*****************************************************************//*!
+	\class MainMenuBar
+	\brief
+		Wraps ImGui::BeginMainMenuBar() and ImGui::EndMainMenuBar().
+	*//******************************************************************/
+	class MainMenuBar : public internal::BeginEndBound_MenuBar
+	{
+	};
+
+	/*****************************************************************//*!
 	\class MenuBar
 	\brief
 		Wraps ImGui::BeginMenuBar() and ImGui::EndMenuBar().
@@ -1646,10 +1660,23 @@ namespace gui {
 
 #pragma endregion // Images
 
+#pragma region Graphs
+
+	// ImGui::PlotLines()
+	template <typename ContType>
+		requires util::ConvertibleToCArray<ContType> && std::is_same_v<typename ContType::value_type, float>
+	void PlotLines(const char* label, const ContType& cont, Vec2 graphSize, float scaleMin = std::numeric_limits<float>::max(), float scaleMax = std::numeric_limits<float>::max(), const char* overlayText = nullptr);
+
+#pragma endregion
+
 #pragma region Custom Drawables
 
+	//! ImGui::GetWindowDrawList()->AddLine()
+	void DrawLine(Vec2 p0, Vec2 p1, const Vec4& color);
 	//! ImGui::GetWindowDrawList()->AddTriangleFilled()
 	void DrawTriangle(Vec2 p0, Vec2 p1, Vec2 p2, const Vec4& color);
+	//! ImGui::GetWindowDrawList()->AddText()
+	void DrawText(const char* text, Vec2 pos, const Vec4& color);
 
 #pragma endregion // Custom Drawables
 

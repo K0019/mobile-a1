@@ -30,7 +30,7 @@ void AudioSourceComponent::EditorDraw()
 
 	if (audioFile != 0) {
 
-		gui::TextBoxReadOnly("Audio File", ST<MagicResourceManager>::Get()->Editor_GetName(audioFile));
+		gui::TextBoxReadOnly("Audio File", *ST<MagicResourceManager>::Get()->Editor_GetName(audioFile));
 		gui::PayloadTarget<size_t>("SOUND_HASH", [this](size_t hash) -> void {
 			audioFile = hash;
 			});
