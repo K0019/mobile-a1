@@ -1,0 +1,774 @@
+{
+    "files": [
+        {
+            "filepath": "compiledassets/textures/_01.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 181509579392460051,
+                            "name": "_010"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/textures/_04.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 195305151786165525,
+                            "name": "_040"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/materials/n00_000_00_body_00_skin (instance).material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 289444237844718891,
+                            "name": "n00_000_00_body_00_skin (instance)0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/textures/_17.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 251904711849190685,
+                            "name": "_170"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/materials/n00_007_01_tops_01_cloth_02 (instance).material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 325720424979932477,
+                            "name": "n00_007_01_tops_01_cloth_02 (instance)0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/textures/n00_000_00_hairback_00_nml.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 166370403789612305,
+                            "name": "n00_000_00_hairback_00_nml0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/materials/n00_007_01_tops_01_cloth_01 (instance).material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 296511898588063021,
+                            "name": "n00_007_01_tops_01_cloth_01 (instance)0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/materials/n00_000_00_faceeyeline_00_face (instance).material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 376182511136712019,
+                            "name": "n00_000_00_faceeyeline_00_face (instance)0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/textures/n00_000_hair_00_nml.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 170483676789122321,
+                            "name": "n00_000_hair_00_nml0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/materials/n00_008_01_shoes_01_cloth_02 (instance).material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 309434458749314355,
+                            "name": "n00_008_01_shoes_01_cloth_02 (instance)0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/materials/n00_008_01_shoes_01_cloth_01 (instance).material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 306110635098547505,
+                            "name": "n00_008_01_shoes_01_cloth_01 (instance)0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/cone.mesh",
+            "resources": [
+                {
+                    "resourceType": 6209910166724260588,
+                    "resourceEntries": [
+                        {
+                            "hash": 391631749018628039,
+                            "name": "cone0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/textures/_11.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 221354781271434521,
+                            "name": "_110"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/materials/n00_002_03_tops_01_cloth_02 (instance).material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 331522547839706431,
+                            "name": "n00_002_03_tops_01_cloth_02 (instance)0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/textures/shader_noneblack.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 172141740323808529,
+                            "name": "shader_noneblack0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/textures/_12.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 229404305898382617,
+                            "name": "_120"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/hatchback-sports.mesh",
+            "resources": [
+                {
+                    "resourceType": 6209910166724260588,
+                    "resourceEntries": [
+                        {
+                            "hash": 161595224790399665,
+                            "name": "hatchback-sports0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/textures/_15.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 240818336106325275,
+                            "name": "_150"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/materials/n00_000_00_eyeiris_00_eye (instance).material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 353055383558071625,
+                            "name": "n00_000_00_eyeiris_00_eye (instance)0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/materials/n00_000_00_eyewhite_00_eye (instance).material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 365327032835679567,
+                            "name": "n00_000_00_eyewhite_00_eye (instance)0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/textures/_13.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 231828729037628699,
+                            "name": "_130"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/textures/_05.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 201087483436639509,
+                            "name": "_050"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/textures/shader_nonenormal.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 177183001137161491,
+                            "name": "shader_nonenormal0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/textures/_10.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 218189287295067415,
+                            "name": "_100"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/textures/_09.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 214951225551267095,
+                            "name": "_090"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/textures/_06.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 206277178319742229,
+                            "name": "_060"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/materials/n00_002_03_tops_01_cloth_03 (instance).material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 335684199350838593,
+                            "name": "n00_002_03_tops_01_cloth_03 (instance)0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/textures/_22.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 271358371079431461,
+                            "name": "_220"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/textures/_07.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 208859931133388053,
+                            "name": "_070"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/textures/_14.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 235230618013967643,
+                            "name": "_140"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/box.mesh",
+            "resources": [
+                {
+                    "resourceType": 6209910166724260588,
+                    "resourceEntries": [
+                        {
+                            "hash": 158010816883595619,
+                            "name": "box0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/textures/_20.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 264829471033697571,
+                            "name": "_200"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/materials/n00_002_03_tops_01_cloth_04 (instance).material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 339340075513193795,
+                            "name": "n00_002_03_tops_01_cloth_04 (instance)0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/materials/n00_002_03_tops_01_cloth_01 (instance).material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 321917214259455291,
+                            "name": "n00_002_03_tops_01_cloth_01 (instance)0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/aji.mesh",
+            "resources": [
+                {
+                    "resourceType": 6209910166724260588,
+                    "resourceEntries": [
+                        {
+                            "hash": 385509668275135841,
+                            "name": "aji0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/materials/n00_000_00_hairback_00_hair (instance).material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 299577337006302511,
+                            "name": "n00_000_00_hairback_00_hair (instance)0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/materials/colormap.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 162632064255066865,
+                            "name": "colormap0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/materials/n00_000_00_facemouth_00_face (instance).material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 348684824837662025,
+                            "name": "n00_000_00_facemouth_00_face (instance)0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/textures/_19.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 259127403732051233,
+                            "name": "_190"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/textures/_21.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 269404538916873509,
+                            "name": "_210"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/textures/colormap.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 160263716208837359,
+                            "name": "colormap0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/materials/n00_000_hair_00_hair (instance).material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 380172638833911123,
+                            "name": "n00_000_hair_00_hair (instance)0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/textures/_02.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 184855393275782419,
+                            "name": "_020"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/textures/_25.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 284771313426670889,
+                            "name": "_250"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/materials/n00_000_00_face_00_skin (instance).material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 364536483975308621,
+                            "name": "n00_000_00_face_00_skin (instance)0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/materials/n00_000_00_eyehighlight_00_eye (instance).material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 359993301929338187,
+                            "name": "n00_000_00_eyehighlight_00_eye (instance)0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/textures/_16.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 244124567571047709,
+                            "name": "_160"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/textures/_23.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 276662415171822887,
+                            "name": "_230"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/materials/n00_002_03_tops_01_cloth_05 (instance).material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 346555070814659911,
+                            "name": "n00_002_03_tops_01_cloth_05 (instance)0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/materials/n00_000_00_facebrow_00_face (instance).material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 372586008602256721,
+                            "name": "n00_000_00_facebrow_00_face (instance)0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/materials/n00_010_01_onepiece_00_cloth_01 (instance).material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 310970476493317429,
+                            "name": "n00_010_01_onepiece_00_cloth_01 (instance)0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/textures/_18.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 253984987848942879,
+                            "name": "_180"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/materials/n00_010_01_onepiece_00_cloth_02 (instance).material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 316792390562391353,
+                            "name": "n00_010_01_onepiece_00_cloth_02 (instance)0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/textures/_24.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 280950510520149287,
+                            "name": "_240"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/textures/_03.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 192210026553976083,
+                            "name": "_030"
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}
