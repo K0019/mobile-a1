@@ -166,6 +166,16 @@ namespace physics {
 	void BoxColliderComp::SetFlag(COLLIDER_COMP_FLAG flag, bool val)
 	{
 		flags.SetMask(flag, val);
+
+		Layers layer{};
+		if (!val)
+			layer = Layers::NON_COLLIDABLE;
+		else if (ecs::GetEntity(this)->HasComp<PhysicsComp>())
+			layer = Layers::MOVING;
+		else
+			layer = Layers::NON_MOVING;
+
+		ecs::GetEntity(this)->GetComp<JoltBodyComp>()->SetCollisionLayer(layer);
 	}
 
 	Vec3 const& BoxColliderComp::GetCenter() const
@@ -223,15 +233,6 @@ namespace physics {
 		if (gui::Checkbox(colliderFlagNames[+COLLIDER_COMP_FLAG::ENABLED], &enabled))
 		{
 			SetFlag(COLLIDER_COMP_FLAG::ENABLED, enabled);
-			Layers layer{};
-			if (!enabled)
-				layer = Layers::NON_COLLIDABLE;
-			else if (ecs::GetEntity(this)->HasComp<PhysicsComp>())
-				layer = Layers::MOVING;
-			else
-				layer = Layers::NON_MOVING;
-
-			ecs::GetEntity(this)->GetComp<JoltBodyComp>()->SetCollisionLayer(layer);
 		}
 
 		gui::SetStyleVar styleFramePadding{ gui::FLAG_STYLE_VAR::FRAME_PADDING, gui::Vec2{ 4.0f, 2.0f } };
