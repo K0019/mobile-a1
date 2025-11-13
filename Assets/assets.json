@@ -1065,6 +1065,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/door_classroom.mesh",
+            "resources": [
+                {
+                    "resourceType": 6209910166724260588,
+                    "resourceEntries": [
+                        {
+                            "hash": 977458141484000961,
+                            "name": "door_classroom0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/textures/_03.ktx2",
             "resources": [
                 {
