@@ -6,7 +6,7 @@
 #endif
 
 #include "Graphics/RenderComponent.h"
-#include "Graphics/AnimatorSystem.h"
+#include "Graphics/AnimationComponent.h"
 #include "EntityUID.h"
 #include "Engine/Audio.h"
 #include "Engine/BehaviorTree/BehaviourTree.h"

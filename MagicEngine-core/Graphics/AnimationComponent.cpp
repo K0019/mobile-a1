@@ -1,39 +1,34 @@
 #include "VFS/VFS.h"
-#include "Graphics/GraphicsECSMesh.h"
-#include "Engine/Graphics Interface/GraphicsScene.h"
+#include "Graphics/RenderComponent.h"
 #include "Engine/Resources/ResourceManager.h"
 #include "Editor/Containers/GUICollection.h"
-#include "AnimatorSystem.h"
+#include "Graphics/AnimationComponent.h"
 
 
-size_t AnimationComponent::GetMeshHash() const
+const ResourceMesh* AnimationComponent::GetMesh()
 {
-    return meshHash;
+    return meshHandle.GetResource();
 }
-const std::vector<size_t>& AnimationComponent::GetMaterialsList() const
+const std::vector<UserResourceHandle<ResourceMaterial>>& AnimationComponent::GetMaterialsList() const
 {
     return materials;
 }
-const size_t AnimationComponent::GetAnimationHash() const
+const ResourceAnimation* AnimationComponent::GetAnimation() const
 {
-    return animHash;
+    return animHandle.GetResource();
 }
-
 const bool AnimationComponent::IsPlaying() const
 {
     return isPlaying;
 }
-
 const bool AnimationComponent::IsLooping() const
 {
     return loop;
 }
-
 const float AnimationComponent::GetTime() const
 {
     return time;
 }
-
 const float AnimationComponent::GetPlaybackSpeed() const
 {
     return playbackSpeed;
@@ -42,18 +37,16 @@ const float AnimationComponent::GetPlaybackSpeed() const
 
 void AnimationComponent::EditorDraw()
 {
-    std::string meshText{};
-    if (ST<MagicResourceManager>::Get()->Meshes().GetResource(meshHash))
-        meshText = ST<MagicResourceManager>::Get()->Editor_GetName(meshHash);
+    const std::string* meshText{ ST<MagicResourceManager>::Get()->Editor_GetName(meshHandle.GetHash()) };
 
     gui::TextUnformatted("Mesh");
     gui::SameLine();
-    gui::TextBoxReadOnly("##1", meshText);
+    gui::TextBoxReadOnly("##1", meshText ? meshText->c_str() : "");
     gui::PayloadTarget<size_t>("MESH_HASH", [this](size_t hash) -> void {
-        meshHash = hash;
+        meshHandle = hash;
 
         //now based on this new mesh, update the default materials
-        auto newMesh{ MagicResourceManager::Meshes().GetResource(meshHash) };
+        auto newMesh{ meshHandle.GetResource() };
         size_t meshCount = newMesh->handles.size();
         materials.resize(meshCount);
         for (int i = 0; i < meshCount; i++)
@@ -62,14 +55,14 @@ void AnimationComponent::EditorDraw()
         }
         });
 
-    auto mesh{ MagicResourceManager::Meshes().GetResource(meshHash) };
+    auto mesh{ meshHandle.GetResource() };
 
     // Animation input
     gui::TextUnformatted(std::string("Animation Clip"));
     gui::SameLine();
-    gui::TextBoxReadOnly("##2", std::to_string(animHash));
+    gui::TextBoxReadOnly("##2", std::to_string(animHandle.GetHash()));
     gui::PayloadTarget<size_t>("ANIMATION_HASH", [&](size_t hash) -> void {
-        animHash = hash;
+        animHandle = hash;
         });
 
     gui::TextUnformatted(std::string("Is Playing"));
@@ -92,13 +85,11 @@ void AnimationComponent::EditorDraw()
                 if (i >= materials.size()) break;    //go reassign the mesh
                 gui::SetID id(i);
 
-                std::string materialText{};
-                if (ST<MagicResourceManager>::Get()->Materials().GetResource(materials[i]))
-                    materialText = ST<MagicResourceManager>::Get()->Editor_GetName(materials[i]);
+                const std::string* materialText{ ST<MagicResourceManager>::Get()->Editor_GetName(materials[i].GetHash()) };
 
                 gui::TextUnformatted(std::string("Material") + std::to_string(i));
                 gui::SameLine();
-                gui::TextBoxReadOnly("##", materialText);
+                gui::TextBoxReadOnly("##", materialText ? materialText->c_str() : "");
                 gui::PayloadTarget<size_t>("MATERIAL_HASH", [&](size_t hash) -> void {
                     materials[i] = hash;
                     });
@@ -119,10 +110,11 @@ void AnimationComponent::EditorDraw()
                 }
             }
         }
-
     }
 }
 
+
+/*
 AnimationSystem::AnimationSystem()
     : System_Internal{ &AnimationSystem::ProcessComp }
 {}
@@ -185,3 +177,5 @@ void AnimationSystem::ProcessComp(AnimationComponent& comp)
         }
     }
 }
+
+*/

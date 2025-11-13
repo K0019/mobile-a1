@@ -201,7 +201,7 @@ namespace internal
 
     void SetResourceHandlesAnimation(const std::vector<AssociatedResourceHashes>& resourceHashes, Resource::ClipId clipId)
     {
-        auto& anims{ ST<MagicResourceManager>::Get()->INTERNAL_GetAnimations() };
+        auto& anims{ ST<MagicResourceManager>::Get()->INTERNAL_GetContainer< ResourceAnimation>() };
         const auto& animHashes { resourceHashes[0].hashes };
 
         ResourceAnimation* anim = { anims.INTERNAL_GetResource(animHashes[0], true) };

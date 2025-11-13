@@ -27,7 +27,7 @@ All rights reserved.
 #include "Managers/AudioManager.h"
 
 #include "Graphics/RenderComponent.h"
-#include "Graphics/AnimatorSystem.h"
+#include "Graphics/AnimationComponent.h"
 #include "Graphics/PostProcessingComponent.h"
 #include "Graphics/TextSystem.h"
 #include "Graphics/CustomViewport.h"
