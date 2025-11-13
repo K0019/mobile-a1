@@ -15,6 +15,7 @@ function start(entity)
         Magic.Log(Magic.LogLevel.info, audioSourceComp.rolloffScale)
         Magic.Log(Magic.LogLevel.info, audioSourceComp.audioFile)
         Magic.Log(Magic.LogLevel.info, tostring(audioSourceComp.isPlaying))
+        audioSourceComp:Play(Magic.AudioType.SFX, 0)
         Magic.Log(Magic.LogLevel.info, "END AUDIO SOURCE =================================================")
 
     end
