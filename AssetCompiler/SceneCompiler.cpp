@@ -22,6 +22,7 @@ All rights reserved.
 #include "MeshProcessor.h"
 #include "TextureCompiler.h"
 #include "MeshFileStructure.h"
+#include "AnimationFileStructure.h"
 
 #include <fstream>
 #include <set>
@@ -194,7 +195,7 @@ namespace compiler
         SaveMeshes(scene, result);
         SaveMaterialData(scene, result);
         CompileTextures(scene, result);
-        //SaveAnimations(scene, result);
+        SaveAnimations(scene, result);
 
         if (!result.errors.empty())
         {
@@ -634,85 +635,163 @@ namespace compiler
         }
     }
 
-#if 0
     void SceneCompiler::SaveAnimations(const Scene& scene, CompilationResult& result)
     {
         if (scene.animations.empty())
         {
             return; // No animations to save
         }
-
         std::filesystem::path animOutputDir = options.general.outputPath / "meshanimations";
         std::filesystem::create_directories(animOutputDir);
 
         std::string stem = options.general.inputPath.stem().string();
 
+        // --- NEW: Create a lookup map for mesh names -> index ---
+        // This is needed to resolve the meshName in ProcessedMorphChannel
+        std::map<std::string, uint32_t> meshNameToIndex;
+        for (uint32_t i = 0; i < scene.meshes.size(); ++i)
+        {
+            meshNameToIndex[scene.meshes[i].name] = i;
+        }
+
         // Loop and save one file PER animation clip
         for (const auto& anim : scene.animations)
         {
-            ProcessedAnimation animToSave = anim;
+            ProcessedAnimation animToSave = anim; // This is your struct
 
-            if (options.mesh.optimize) // Re-use the mesh optimize flag
-            {
-                // TODO: optimisation
-            }
+            // --- Buffers for Skeletal Data ---
+            std::vector<BoneAnimationChannel> finalSkeletalChannels;
+            std::vector<char> skeletalKeyframeBuffer;
+            std::string skeletalNameBuffer;
 
-            std::vector<BoneAnimationChannel> finalChannels;
-            std::vector<char> keyframeBuffer; // All keys go in one big blob
+            // --- NEW: Buffers for Morph Data ---
+            std::vector<AnimationFile_MorphChannel> finalMorphChannels;
+            std::vector<AnimationFile_MorphKey> finalMorphKeys;
+            std::vector<uint32_t> morphIndexBuffer;
+            std::vector<float> morphWeightBuffer;
 
-            for (const auto& channel : animToSave.channels)
+
+            // --- 1. Process Skeletal Channels (Existing Logic) ---
+            for (const auto& channel : animToSave.skeletalChannels) //
             {
                 if (channel.positionKeys.empty() && channel.rotationKeys.empty() && channel.scaleKeys.empty())
                 {
-                    continue; // Skip bones that aren't animated in this clip
+                    continue; // Skip bones that arent animated
                 }
 
-                BoneAnimationChannel finalChannel;
-                finalChannel.boneIndex = channel.boneIndex;
+                BoneAnimationChannel finalChannel; 
+                finalChannel.nameOffset = static_cast<uint32_t>(skeletalNameBuffer.size()); 
+                skeletalNameBuffer += channel.nodeName;
+                skeletalNameBuffer += '\0';
 
                 // Position keys
                 finalChannel.numPositionKeys = (uint32_t)channel.positionKeys.size();
-                finalChannel.positionKeyOffset = keyframeBuffer.size();
-                keyframeBuffer.insert(keyframeBuffer.end(),
+                finalChannel.positionKeyOffset = skeletalKeyframeBuffer.size();
+                skeletalKeyframeBuffer.insert(skeletalKeyframeBuffer.end(),
                     reinterpret_cast<const char*>(channel.positionKeys.data()),
                     reinterpret_cast<const char*>(channel.positionKeys.data() + channel.positionKeys.size()));
 
                 // Rotation keys
                 finalChannel.numRotationKeys = (uint32_t)channel.rotationKeys.size();
-                finalChannel.rotationKeyOffset = keyframeBuffer.size();
-                keyframeBuffer.insert(keyframeBuffer.end(),
+                finalChannel.rotationKeyOffset = skeletalKeyframeBuffer.size();
+                skeletalKeyframeBuffer.insert(skeletalKeyframeBuffer.end(),
                     reinterpret_cast<const char*>(channel.rotationKeys.data()),
                     reinterpret_cast<const char*>(channel.rotationKeys.data() + channel.rotationKeys.size()));
 
                 // Scale keys
                 finalChannel.numScaleKeys = (uint32_t)channel.scaleKeys.size();
-                finalChannel.scaleKeyOffset = keyframeBuffer.size();
-                keyframeBuffer.insert(keyframeBuffer.end(),
+                finalChannel.scaleKeyOffset = skeletalKeyframeBuffer.size();
+                skeletalKeyframeBuffer.insert(skeletalKeyframeBuffer.end(),
                     reinterpret_cast<const char*>(channel.scaleKeys.data()),
                     reinterpret_cast<const char*>(channel.scaleKeys.data() + channel.scaleKeys.size()));
 
-                finalChannels.push_back(finalChannel);
+                finalSkeletalChannels.push_back(finalChannel);
             }
 
-            if (finalChannels.empty())
+            // --- 2. NEW: Process Morph Channels ---
+            for (const auto& channel : animToSave.morphChannels) //
             {
-                continue; // No animated bones in this clip
+                if (channel.keys.empty())
+                {
+                    continue; // Skip meshes that aren't animated
+                }
+
+                AnimationFile_MorphChannel finalChannel;
+
+                // Resolve mesh name to index
+                auto it = meshNameToIndex.find(channel.meshName);
+                if (it == meshNameToIndex.end())
+                {
+                    // This mesh isn't in our scene, skip this track
+                    continue;
+                }
+                finalChannel.meshIndex = it->second;
+                finalChannel.numKeys = (uint32_t)channel.keys.size();
+                finalChannel.keyOffset = finalMorphKeys.size() * sizeof(AnimationFile_MorphKey);
+
+                // Process all keys in this channel
+                for (const auto& key : channel.keys)
+                {
+                    AnimationFile_MorphKey finalKey;
+                    finalKey.time = key.time;
+                    finalKey.numTargets = (uint32_t)key.targetIndices.size();
+
+                    // Get offsets into the final data blobs
+                    finalKey.targetIndexOffset = morphIndexBuffer.size() * sizeof(uint32_t);
+                    finalKey.weightOffset = morphWeightBuffer.size() * sizeof(float);
+
+                    // Append this key's data to the blobs
+                    morphIndexBuffer.insert(morphIndexBuffer.end(), key.targetIndices.begin(), key.targetIndices.end());
+                    morphWeightBuffer.insert(morphWeightBuffer.end(), key.weights.begin(), key.weights.end());
+
+                    finalMorphKeys.push_back(finalKey);
+                }
+
+                finalMorphChannels.push_back(finalChannel);
             }
 
-            // Populate file header
-            AnimationFileHeader header;
+            if (finalSkeletalChannels.empty() && finalMorphChannels.empty())
+            {
+                continue; // No data to save for this clip
+            }
+
+            // --- 3. Populate File Header ---
+            AnimationFileHeader header; //
             header.magic = ANIM_FILE_MAGIC;
             header.duration = animToSave.duration;
             header.ticksPerSecond = animToSave.ticksPerSecond;
-            header.numChannels = (uint32_t)finalChannels.size();
 
             uint64_t currentOffset = sizeof(AnimationFileHeader);
-            header.channelDataOffset = currentOffset;
-            currentOffset += finalChannels.size() * sizeof(BoneAnimationChannel);
-            header.keyframeDataOffset = currentOffset;
 
-            // Write to disk
-            // Format: ModelName@AnimName.anim (e.g., "Character@Run.anim")
+            // Skeletal offsets
+            header.numChannels = static_cast<uint32_t>(finalSkeletalChannels.size());
+            header.channelDataOffset = currentOffset;
+            currentOffset += finalSkeletalChannels.size() * sizeof(BoneAnimationChannel);
+
+            header.keyframeDataOffset = currentOffset;
+            currentOffset += skeletalKeyframeBuffer.size();
+
+            header.skeletalNameBufferSize = static_cast<uint32_t>(skeletalNameBuffer.size());
+            header.skeletalNameBufferOffset = currentOffset;
+            currentOffset += skeletalNameBuffer.size();
+
+            // Morph offsets
+            header.numMorphChannels = static_cast<uint32_t>(finalMorphChannels.size());
+            header.morphChannelDataOffset = currentOffset;
+            currentOffset += finalMorphChannels.size() * sizeof(AnimationFile_MorphChannel);
+
+            header.morphKeyDataOffset = currentOffset;
+            currentOffset += finalMorphKeys.size() * sizeof(AnimationFile_MorphKey);
+
+            header.morphIndexDataOffset = currentOffset;
+            currentOffset += morphIndexBuffer.size() * sizeof(uint32_t);
+
+            header.morphWeightDataBufferSize = morphWeightBuffer.size() * sizeof(float);
+            header.morphWeightDataOffset = currentOffset;
+            currentOffset += morphWeightBuffer.size() * sizeof(float);
+
+
+            // --- 4. Write to Disk ---
             std::string animFilename = stem + "@" + animToSave.name + ".anim";
             std::filesystem::path outFilePath = animOutputDir / animFilename;
 
@@ -723,17 +802,25 @@ namespace compiler
                 continue;
             }
 
-            // Write data
+            // Write all data blocks in order
             outFile.write(reinterpret_cast<const char*>(&header), sizeof(AnimationFileHeader));
-            outFile.write(reinterpret_cast<const char*>(finalChannels.data()), finalChannels.size() * sizeof(BoneAnimationChannel));
-            outFile.write(keyframeBuffer.data(), keyframeBuffer.size());
+
+            // Skeletal data
+            outFile.write(reinterpret_cast<const char*>(finalSkeletalChannels.data()), finalSkeletalChannels.size() * sizeof(BoneAnimationChannel));
+            outFile.write(skeletalKeyframeBuffer.data(), skeletalKeyframeBuffer.size()); 
+            outFile.write(skeletalNameBuffer.c_str(), skeletalNameBuffer.size());
+
+            // Morph data
+            outFile.write(reinterpret_cast<const char*>(finalMorphChannels.data()), finalMorphChannels.size() * sizeof(AnimationFile_MorphChannel));
+            outFile.write(reinterpret_cast<const char*>(finalMorphKeys.data()), finalMorphKeys.size() * sizeof(AnimationFile_MorphKey));
+            outFile.write(reinterpret_cast<const char*>(morphIndexBuffer.data()), morphIndexBuffer.size() * sizeof(uint32_t));
+            outFile.write(reinterpret_cast<const char*>(morphWeightBuffer.data()), morphWeightBuffer.size() * sizeof(float));
 
             outFile.close();
 
             result.createdAnimationFiles.push_back(outFilePath);
         }
     }
-#endif
 
 #if 0
     void SceneCompiler::SaveSkeleton(const Scene& scene, CompilationResult& result)

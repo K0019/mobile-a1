@@ -27,6 +27,7 @@ All rights reserved.
 #include "Managers/AudioManager.h"
 
 #include "Graphics/GraphicsECSMesh.h"
+#include "Graphics/AnimatorSystem.h"
 #include "Graphics/PostProcessingComponent.h"
 #include "Graphics/TextSystem.h"
 #include "Graphics/CustomViewport.h"
@@ -60,6 +61,7 @@ void GameStateBase::OnExit()
 void GameState_Common::OnEnter()
 {
     ecs::AddSystem(ECS_LAYER::RENDER_0, RenderSystem{});
+    ecs::AddSystem(ECS_LAYER::RENDER_0, AnimationSystem{});
     ecs::AddSystem(ECS_LAYER::RENDER_0, TrailRendererDrawingSystem{});
     ecs::AddSystem(ECS_LAYER::RENDER_0, LightingSystem{});
     ecs::AddSystem(ECS_LAYER::RENDER_0, PostProcessingSystem{});

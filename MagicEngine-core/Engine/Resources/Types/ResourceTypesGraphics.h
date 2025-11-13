@@ -21,6 +21,7 @@ All rights reserved.
 #pragma once
 #include "Engine/Resources/Types/ResourceTypes.h"
 #include "resource/resource_types.h"
+#include "resource/animation_ids.h"
 
 struct ResourceMesh : public ResourceBase
 {
@@ -47,3 +48,11 @@ struct ResourceTexture : public ResourceBase
     virtual bool IsLoaded() final;
 };
 using ResourceContainerTextures = ResourceContainerBase<ResourceTexture>;
+
+struct ResourceAnimation : public ResourceBase
+{
+    Resource::ClipId handle;
+
+    virtual bool IsLoaded() final;
+};
+using ResourceContainerAnimations = ResourceContainerBase<ResourceAnimation>;

@@ -27,7 +27,7 @@ namespace compiler
     };
     struct ProcessedBoneChannel
     {
-        uint32_t boneIndex; // The index into ProcessedSkeleton::bones
+        std::string nodeName;
         std::vector<PositionKey> positionKeys;
         std::vector<RotationKey> rotationKeys;
         std::vector<ScaleKey>    scaleKeys;

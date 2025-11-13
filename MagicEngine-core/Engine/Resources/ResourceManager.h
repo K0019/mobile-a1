@@ -33,6 +33,7 @@ public:
     static UserResourceGetter<ResourceMesh> Meshes();
     static UserResourceGetter<ResourceMaterial> Materials();
     static UserResourceGetter<ResourceTexture> Textures();
+    static UserResourceGetter<ResourceAnimation> Animations();
     static UserResourceGetter<ResourceAudio> Audio();
 
     void SaveToFile() const;
@@ -46,6 +47,7 @@ public:
     const ResourceContainerMeshes& Editor_GetMeshes();
     const ResourceContainerMaterials& Editor_GetMaterials();
     const ResourceContainerTextures& Editor_GetTextures();
+    const ResourceContainerAnimations& Editor_GetAnimations();
     const ResourceContainerAudio& Editor_GetAudio();
     const std::string& Editor_GetName(size_t hash);
 
@@ -56,6 +58,7 @@ public:
     ResourceContainerMeshes& INTERNAL_GetMeshes();
     ResourceContainerMaterials& INTERNAL_GetMaterials();
     ResourceContainerTextures& INTERNAL_GetTextures();
+    ResourceContainerAnimations& INTERNAL_GetAnimations();
     ResourceContainerAudio& INTERNAL_GetAudio();
 
     void INTERNAL_CreateEmptyResource(size_t resourceTypeHash, size_t resourceHash);
@@ -67,6 +70,7 @@ private:
     ResourceContainerMeshes meshes;
     ResourceContainerMaterials materials;
     ResourceContainerTextures textures;
+    ResourceContainerAnimations animations;
     ResourceContainerAudio audio;
 
 };

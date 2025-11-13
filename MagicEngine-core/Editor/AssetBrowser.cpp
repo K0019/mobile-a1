@@ -37,6 +37,7 @@ All rights reserved.
 #include "Editor/MeshTab.h"
 #include "Editor/MaterialTab.h"
 #include "Editor/TextureTab.h"
+#include "Editor/AnimationsTab.h"
 #include "Editor/SoundTab.h"
 #include "Editor/SceneTab.h"
 #include "Editor/FileBrowserTab.h"
@@ -52,6 +53,7 @@ AssetBrowser::AssetBrowser() {
     assetCategories.push_back(std::make_unique<MeshTab>());
     assetCategories.push_back(std::make_unique<MaterialTab>());
     assetCategories.push_back(std::make_unique<TextureTab>());
+    assetCategories.push_back(std::make_unique<AnimationsTab>());
     assetCategories.push_back(std::make_unique<PrefabTab>());
     assetCategories.push_back(std::make_unique<SceneTab>());
     assetCategories.push_back(std::make_unique<SoundTab>());

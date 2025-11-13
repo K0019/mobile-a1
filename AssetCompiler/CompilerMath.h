@@ -74,18 +74,18 @@ namespace compiler
     struct PositionKey
     {
         float time; // Timestamp in ticks
-        vec3  value;
+        vec3  value{ 0.0f };
     };
 
     struct RotationKey
     {
         float time;
-        quat  value;
+        quat  value{ 1.0f, 0.0f, 0.0f, 0.0f };
     };
 
     struct ScaleKey
     {
         float time;
-        vec3  value;
+        vec3  value{ 0.0f };
     };
 }

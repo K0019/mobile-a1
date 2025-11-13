@@ -62,6 +62,10 @@ UserResourceGetter<ResourceTexture> MagicResourceManager::Textures()
 {
     return UserResourceGetter<ResourceTexture>{ &ST<MagicResourceManager>::Get()->textures };
 }
+UserResourceGetter<ResourceAnimation> MagicResourceManager::Animations()
+{
+    return UserResourceGetter<ResourceAnimation>( &ST<MagicResourceManager>::Get()->animations);
+}
 UserResourceGetter<ResourceAudio> MagicResourceManager::Audio()
 {
     return UserResourceGetter<ResourceAudio>{ &ST<MagicResourceManager>::Get()->audio };
@@ -104,6 +108,10 @@ const ResourceContainerTextures& MagicResourceManager::Editor_GetTextures()
 {
     return textures;
 }
+const ResourceContainerAnimations& MagicResourceManager::Editor_GetAnimations()
+{
+    return animations;
+}
 const ResourceContainerAudio& MagicResourceManager::Editor_GetAudio()
 {
     return audio;
@@ -136,6 +144,10 @@ ResourceContainerTextures& MagicResourceManager::INTERNAL_GetTextures()
 {
     return textures;
 }
+ResourceContainerAnimations& MagicResourceManager::INTERNAL_GetAnimations()
+{
+    return animations;
+}
 ResourceContainerAudio& MagicResourceManager::INTERNAL_GetAudio()
 {
     return audio;
@@ -152,6 +164,8 @@ void MagicResourceManager::INTERNAL_CreateEmptyResource(size_t resourceTypeHash,
         textures.INTERNAL_CreateResource(resourceHash);
     else if (resourceTypeHash == util::ConsistentHash<ResourceAudio>())
         audio.INTERNAL_CreateResource(resourceHash);
+    else if (resourceTypeHash == util::ConsistentHash<ResourceAnimation>())
+        animations.INTERNAL_CreateResource(resourceHash);
     else
         assert(false);
 }

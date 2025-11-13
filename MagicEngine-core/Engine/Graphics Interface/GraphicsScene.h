@@ -24,6 +24,7 @@ All rights reserved.
 #include "resource/resource_types.h"
 #include "math/camera.h"
 
+
 class GraphicsScene
 {
 public:
@@ -36,6 +37,7 @@ public:
 
 	void SetViewCamera(const Camera& camera);
 	void AddObject(const MeshHandle& meshHandle, const MaterialHandle& materialHandle, const Transform& transform, const Mat4& meshTransform);
+	void AddAnimatedObject(const MeshHandle& meshHandle, const MaterialHandle& materialHandle, const Transform& transform, const Mat4& meshTransform, SceneObject::AnimBinding animBinding);
 	void AddLight(const SceneLight& sceneLight);
 
 

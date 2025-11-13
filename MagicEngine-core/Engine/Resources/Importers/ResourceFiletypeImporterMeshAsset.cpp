@@ -443,5 +443,6 @@ bool ResourceFiletypeImporterMeshAsset::Import(const std::string& assetRelativeF
     // Set the meshes to the resource
     internal::SetResourceHandlesMesh(fileEntry->associatedResources, meshHandles, meshTransforms, materialHashes);
 
+
     return true;
 }

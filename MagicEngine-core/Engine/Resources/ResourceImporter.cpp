@@ -30,6 +30,7 @@ All rights reserved.
 #include "Engine/Resources/Importers/ResourceFiletypeImporterMaterial.h"
 #include "Engine/Resources/Importers/ResourceFiletypeImporterImage.h"
 #include "Engine/Resources/Importers/ResourceFiletypeImporterAudio.h"
+#include "Engine/Resources/Importers/ResourceFiletypeImporterAnimationAsset.h"
 
 std::unordered_map<std::string, SPtr<ResourceFiletypeImporterBase>> ResourceImporter::importers{
     { std::string{ ".fbx" }, std::make_shared<ResourceFiletypeImporterFBX>() }, //compile
@@ -37,6 +38,7 @@ std::unordered_map<std::string, SPtr<ResourceFiletypeImporterBase>> ResourceImpo
     { std::string{ ".ktx2" }, std::make_shared<ResourceFiletypeImporterKTX>() }, //load
     { std::string{ ".mesh" }, std::make_shared<ResourceFiletypeImporterMeshAsset>() }, //load
     { std::string{ ".material" }, std::make_shared<ResourceFiletypeImporterMaterial>() }, //load
+    { std::string{ ".anim" }, std::make_shared<ResourceFiletypeImporterAnimationAsset>() },   //load
     { std::string{ ".png" }, std::make_shared<ResourceFiletypeImporterImage>() },   //compile
     { std::string{ ".jpg" }, std::make_shared<ResourceFiletypeImporterImage>() },   //compile
     { std::string{ ".jpeg" }, std::make_shared<ResourceFiletypeImporterImage>() },  //compile

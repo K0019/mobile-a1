@@ -32,22 +32,29 @@ All rights reserved.
 namespace compiler
 {
     // ----- Helpers ----- //
-    vec3 AiToVec3(const aiVector3D& v)
+    inline vec3 AiToVec3(const aiVector3D& v)
     {
         return vec3(v.x, v.y, v.z);
     }
 
-    quat AiToQuat(const aiQuaternion& q)
+    inline quat AiToQuat(const aiQuaternion& q)
     {
         return quat(q.w, q.x, q.y, q.z); // Note: GLM/quat constructor is (w, x, y, z)
     }
 
-    mat4 AiToMat4(const aiMatrix4x4& aiMat)
+    inline mat4 AiToMat4(const aiMatrix4x4& aiMat)
     {
         return mat4(aiMat.a1, aiMat.b1, aiMat.c1, aiMat.d1,
             aiMat.a2, aiMat.b2, aiMat.c2, aiMat.d2,
             aiMat.a3, aiMat.b3, aiMat.c3, aiMat.d3,
             aiMat.a4, aiMat.b4, aiMat.c4, aiMat.d4);
+    }
+
+    inline float ticksToSeconds(double time, double ticksPerSecond)
+    {
+        if (ticksPerSecond <= 0.0)
+            return static_cast<float>(time);
+        return static_cast<float>(time / ticksPerSecond);
     }
 
     void buildNodeTransformMap(const aiNode* node, const mat4& parentTransform, std::map<std::string, mat4>& transformMap)
@@ -212,8 +219,8 @@ namespace compiler
             anim.ticksPerSecond = aiAnim->mTicksPerSecond > 0.0 ? static_cast<float>(aiAnim->mTicksPerSecond) : 1.0f;
             anim.duration = aiAnim->mDuration > 0.0 ? static_cast<float>(aiAnim->mDuration / anim.ticksPerSecond) : 0.0f;
 
+            //Skeleteal animations
             anim.skeletalChannels.reserve(aiAnim->mNumChannels);
-
             for (uint32_t j = 0; j < aiAnim->mNumChannels; ++j)
             {
                 const aiNodeAnim* aiChannel = aiAnim->mChannels[j];
@@ -227,8 +234,8 @@ namespace compiler
                     continue;
                 }
 
-                ProcessedBoneChannel pbc;
-                pbc.boneIndex = it->second;
+                ProcessedBoneChannel pbc; 
+                pbc.nodeName = nodeName;
 
                 // Copy keyframes
                 pbc.positionKeys.resize(aiChannel->mNumPositionKeys);
@@ -254,6 +261,39 @@ namespace compiler
 
                 anim.skeletalChannels.push_back(pbc);
             }
+            
+            //Morph Animations
+            anim.morphChannels.reserve(aiAnim->mNumMorphMeshChannels);
+            for (uint32_t j = 0; j < aiAnim->mNumMorphMeshChannels; ++j)
+            {
+                const aiMeshMorphAnim* aiMorphChannel = aiAnim->mMorphMeshChannels[j];
+
+                ProcessedMorphChannel morphChannel;
+                morphChannel.meshName = aiMorphChannel->mName.C_Str();
+                morphChannel.keys.reserve(aiMorphChannel->mNumKeys);
+
+                for (uint32_t k = 0; k < aiMorphChannel->mNumKeys; ++k)
+                {
+                    const aiMeshMorphKey& aiKey = aiMorphChannel->mKeys[k];
+                    ProcessedMorphKey morphKey; // Your struct
+                    morphKey.time = (float)aiKey.mTime / anim.ticksPerSecond;
+                    morphKey.time = ticksToSeconds(aiKey.mTime, anim.ticksPerSecond);
+
+                    morphKey.targetIndices.assign(aiKey.mValues, aiKey.mValues + aiKey.mNumValuesAndWeights);
+                    morphKey.weights.reserve(aiKey.mNumValuesAndWeights);
+                    for (uint32_t w = 0; w < aiKey.mNumValuesAndWeights; ++w)
+                    {
+                        morphKey.weights.push_back(static_cast<float>(aiKey.mWeights[w]));
+                    }
+
+                    morphChannel.keys.push_back(std::move(morphKey));
+                }
+
+                anim.morphChannels.push_back(std::move(morphChannel));
+            }
+            
+            
+            
             outScene.animations.push_back(anim);
         }
     }

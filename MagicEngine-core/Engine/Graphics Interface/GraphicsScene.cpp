@@ -24,6 +24,8 @@ All rights reserved.
 #include "graphics/features/im3d_feature.h"
 #include "resource/resource_manager.h"
 #include "Editor/EditorCameraBridge.h"
+#include "Engine/Graphics Interface/GraphicsAPI.h"
+#include "graphics/animation_update.h"
 
 GraphicsScene::GraphicsScene()
     : context{}
@@ -101,6 +103,77 @@ void GraphicsScene::AddObject(const MeshHandle& meshHandle, const MaterialHandle
     newObj.material = materialHandle;
     newObj.transform = transform.GetWorldMat() * meshTransform;
     newObj.maxScale = glm::compMax(glm::abs(static_cast<glm::vec3>(transform.GetWorldScale())));
+}
+
+void GraphicsScene::AddAnimatedObject(const MeshHandle& meshHandle, const MaterialHandle& materialHandle, const Transform& transform, const Mat4& meshTransform, SceneObject::AnimBinding animBinding)
+{
+    // Validate handles
+    if (!meshHandle.isValid() || !materialHandle.isValid())
+        return;
+
+    const auto* meshData{ context.resourceMngr->getMesh(meshHandle) };
+    if (!meshData)
+        return;
+
+    // Store object data
+    auto& newObj{ scene.objects.emplace_back() };
+    newObj.type = SceneObjectType::Mesh;
+    newObj.mesh = meshHandle;
+    newObj.material = materialHandle;
+    newObj.transform = transform.GetWorldMat() * meshTransform;
+    newObj.maxScale = glm::compMax(glm::abs(static_cast<glm::vec3>(transform.GetWorldScale())));
+
+    // Animation info
+    auto& graphicsAssetSystem = ST<GraphicsMain>::Get()->GetAssetSystem();
+    const auto* meshMetadata = graphicsAssetSystem.getMeshMetadata(meshHandle);
+    if (!meshMetadata)
+        return;
+
+    const bool hasSkeleton = meshMetadata->skeletonId != Resource::INVALID_SKELETON_ID;
+    const bool hasMorphs = meshMetadata->morphSetId != Resource::INVALID_MORPH_SET_ID;
+
+    if (!hasSkeleton && !hasMorphs)
+        return;
+
+    animBinding.skeleton = meshMetadata->skeletonId;
+    animBinding.morphSet = meshMetadata->morphSetId;
+    //Rest of animBinding params populated in AnimatorSystem
+
+    if (hasSkeleton)
+    {
+        const Resource::Skeleton& skeleton = graphicsAssetSystem.Skeleton(meshMetadata->skeletonId);
+        const uint32_t jointCount = skeleton.jointCount();
+        animBinding.jointCount = static_cast<uint16_t>(std::min<uint32_t>(jointCount, std::numeric_limits<uint16_t>::max()));
+        animBinding.skinMatrices.assign(animBinding.jointCount, glm::mat4(1.0f));
+    }
+
+    if (hasMorphs)
+    {
+        const Resource::MorphSet & morphSet = graphicsAssetSystem.Morph(meshMetadata->morphSetId);
+        const uint32_t morphCount = morphSet.count();
+        animBinding.morphCount = static_cast<uint16_t>(std::min<uint32_t>(morphCount, std::numeric_limits<uint16_t>::max()));
+        animBinding.morphWeights.assign(animBinding.morphCount, 0.0f);
+    }
+
+    // Store mesh-specific data required for correct skinning
+    const auto* meshCold = meshMetadata;
+    animBinding.invBindMatrices = meshCold->jointInverseBindMatrices;
+    animBinding.jointRemap.assign(animBinding.jointCount, -1);
+
+    const auto& skeleton = graphicsAssetSystem.Skeleton(animBinding.skeleton);
+
+    // Build the remap table: mesh joint index -> skeleton joint index
+    for (uint16_t jMesh = 0; jMesh < animBinding.jointCount; ++jMesh)
+    {
+        const std::string& meshJointName = meshCold->jointNames[jMesh];
+        const int16_t jSkel = skeleton.indexOfJoint(meshJointName);
+        animBinding.jointRemap[jMesh] = jSkel;
+    }
+
+
+    newObj.anim = std::move(animBinding);
+
+    Animation::Animate(*context.resourceMngr, newObj, 0.001f);
 }
 
 void GraphicsScene::AddLight(const SceneLight& sceneLight)
