@@ -85,4 +85,17 @@ GrabbableItemComponentSystem::GrabbableItemComponentSystem()
 
 void GrabbableItemComponentSystem::UpdateGrabbableItemComponent(GrabbableItemComponent& comp)
 {
+	ecs::EntityHandle itemEntity = ecs::GetEntity(&comp);
+	ecs::CompHandle<physics::PhysicsComp> physicsComp = itemEntity->GetComp<physics::PhysicsComp>();
+	ecs::CompHandle<physics::BoxColliderComp> colliderComp = itemEntity->GetComp<physics::BoxColliderComp>();
+
+	physicsComp->SetFlag(physics::PHYSICS_COMP_FLAG::ENABLED, !comp.isHeld);
+	physicsComp->SetFlag(physics::PHYSICS_COMP_FLAG::USE_GRAVITY, !comp.isHeld);
+	colliderComp->SetFlag(physics::COLLIDER_COMP_FLAG::ENABLED, !comp.isHeld);
+
+	if (comp.isHeld)
+	{
+		physicsComp->SetAngularVelocity(Vec3{ 0 });
+		physicsComp->SetLinearVelocity(Vec3{ 0 });
+	}
 }

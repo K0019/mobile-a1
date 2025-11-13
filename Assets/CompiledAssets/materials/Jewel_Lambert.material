@@ -1,5 +1,5 @@
 {
-    "name": "N00_010_01_Onepiece_00_CLOTH_02 (Instance)",
+    "name": "Jewel_Lambert",
     "alphaMode": "Opaque",
     "alphaCutoff": 0.5,
     "metallicFactor": 1.0,
@@ -7,9 +7,9 @@
     "normalScale": 1.0,
     "occlusionStrength": 1.0,
     "baseColorFactor": [
-        1.0,
-        1.0,
-        1.0,
+        0.4000000059604645,
+        0.10809333622455597,
+        0.0,
         1.0
     ],
     "emissiveFactor": [
@@ -20,7 +20,7 @@
     "textures": [
         {
             "key": "baseColor",
-            "value": "compiledassets/textures/_16.ktx2"
+            "value": ""
         },
         {
             "key": "metallicRoughness",
@@ -28,11 +28,11 @@
         },
         {
             "key": "normal",
-            "value": "compiledassets/textures/Shader_NoneNormal.ktx2"
+            "value": ""
         },
         {
             "key": "emissive",
-            "value": "compiledassets/textures/Shader_NoneBlack.ktx2"
+            "value": ""
         },
         {
             "key": "occlusion",

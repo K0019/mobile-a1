@@ -1,5 +1,5 @@
 {
-    "name": "N00_010_01_Onepiece_00_CLOTH_02 (Instance)",
+    "name": "N00_000_00_FaceEyelash_00_FACE (Instance)",
     "alphaMode": "Opaque",
     "alphaCutoff": 0.5,
     "metallicFactor": 1.0,
@@ -20,7 +20,7 @@
     "textures": [
         {
             "key": "baseColor",
-            "value": "compiledassets/textures/_16.ktx2"
+            "value": "compiledassets/textures/_08.ktx2"
         },
         {
             "key": "metallicRoughness",

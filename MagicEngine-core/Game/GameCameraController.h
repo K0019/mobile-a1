@@ -41,6 +41,8 @@ public:
 	float cameraPitch;
 	float cameraYaw;
 	float cameraAutoZoomSpeed = 5.0f;
+	float minPitch;
+	float maxPitch;
 
 	float targetCameraDistance;
 	float currentCameraDistance;
@@ -84,6 +86,8 @@ property_begin(GameCameraControllerComponent)
 	property_var(targetCameraDistance),
 	property_var(currentCameraDistance),
 	property_var(offsetPosition),
+	property_var(minPitch),
+	property_var(maxPitch),
 	property_var(cameraSensitivity),
 	//property_var(lookAction),
 }

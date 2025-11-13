@@ -90,6 +90,7 @@ void GameState_Game::OnEnter()
     ecs::AddSystem(ECS_LAYER::POST_PHYSICS_0, GameCameraControllerSystem{});
     ecs::AddSystem(ECS_LAYER::INPUT_0, PlayerMovementComponentSystem{});
     ecs::AddSystem(ECS_LAYER::PRE_PHYSICS_0, CharacterMovementComponentSystem{});
+    ecs::AddSystem(ECS_LAYER::PRE_PHYSICS_0, GrabbableItemComponentSystem{});
     ecs::AddSystem(ECS_LAYER::TWEENING, TweenSystem{});
 
     ecs::AddSystem(ECS_LAYER::SCRIPT_AWAKE, ScriptAwakeSystem{});

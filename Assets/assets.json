@@ -43,6 +43,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/materials/handle_base_lambert.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 579815363225868047,
+                            "name": "handle_base_lambert0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/textures/_17.ktx2",
             "resources": [
                 {
@@ -323,6 +337,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/materials/spike_lambert.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 587570218736572179,
+                            "name": "spike_lambert0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/materials/n00_000_00_eyewhite_00_eye (instance).material",
             "resources": [
                 {
@@ -435,6 +463,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/materials/handle_lambert.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 583131490295240465,
+                            "name": "handle_lambert0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/materials/n00_002_03_tops_01_cloth_03 (instance).material",
             "resources": [
                 {
@@ -499,6 +541,20 @@
                         {
                             "hash": 235230618013967643,
                             "name": "_140"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/materials/lambert2.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 592161779294164757,
+                            "name": "lambert20"
                         }
                     ]
                 }
@@ -631,6 +687,48 @@
             ]
         },
         {
+            "filepath": "compiledassets/materials/jewel_lambert.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 574081410087016203,
+                            "name": "jewel_lambert0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/materials/circlewing_lambert.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 594601595596199703,
+                            "name": "circlewing_lambert0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/materials/standardsurface1.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 1832346024244832933,
+                            "name": "standardsurface10"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/materials/concrete.001.material",
             "resources": [
                 {
@@ -695,6 +793,20 @@
                         {
                             "hash": 160263716208837359,
                             "name": "colormap0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/sword_prototype.mesh",
+            "resources": [
+                {
+                    "resourceType": 6209910166724260588,
+                    "resourceEntries": [
+                        {
+                            "hash": 602294878455748381,
+                            "name": "sword_prototype0"
                         }
                     ]
                 }
@@ -863,6 +975,20 @@
                         {
                             "hash": 254978946401300259,
                             "name": "locker0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/wall_doors.mesh",
+            "resources": [
+                {
+                    "resourceType": 6209910166724260588,
+                    "resourceEntries": [
+                        {
+                            "hash": 1836851822895458989,
+                            "name": "wall_doors0"
                         }
                     ]
                 }

@@ -20,7 +20,7 @@
     "textures": [
         {
             "key": "baseColor",
-            "value": "compiledassets/textures/_13.ktx2"
+            "value": "compiledassets/textures/_15.ktx2"
         },
         {
             "key": "metallicRoughness",
