@@ -44,7 +44,7 @@ SCRIPT_GENERATE_COMP_WRAPPER_BEGIN(AudioSourceComponent)
 	SCRIPT_GENERATE_PROPERTY_FUNCS(float, GetRolloffScale, SetRolloffScale)
 	SCRIPT_GENERATE_PROPERTY_FUNCS(size_t, GetAudioFile, SetAudioFile)
 	SCRIPT_GENERATE_PROPERTY_FUNCS(bool, IsPlaying, SetIsPlaying)
-	void Play(int a, size_t audioResource) { GetHandle()->Play(static_cast<AudioType>(a), audioResource); }
+	void Play(int a) { GetHandle()->Play(static_cast<AudioType>(a)); }
 SCRIPT_GENERATE_COMP_WRAPPER_END()
 
 void Lua_Log(int level, std::string message)
