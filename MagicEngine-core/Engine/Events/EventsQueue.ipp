@@ -120,6 +120,17 @@ const EventType* EventsReader<EventType>::ExtractEvent()
 }
 
 template<typename EventType>
+template<typename FuncType>
+	requires std::regular_invocable<FuncType, const EventType&>
+bool EventsReader<EventType>::ForEach(FuncType func)
+{
+	EventsReader<EventType> events{};
+	while (auto event{ events.ExtractEvent() })
+		func(*event);
+	return events.nextEventIndex != 0;
+}
+
+template<typename EventType>
 void EventsQueue::AddEventForThisFrame(EventType&& event)
 {
 	const EventType& storedEvent{ GetEventsBuffer<EventType>(GetCurrentBufferSet()).AddEvent(std::forward<EventType>(event)) };

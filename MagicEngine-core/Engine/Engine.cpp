@@ -27,15 +27,20 @@ All rights reserved.
 #include "Engine/Engine.h"
 #include "Game/GameSystems.h"
 #include "Engine/Resources/ResourceManager.h"
+
+// Permanent systems
+#include "Editor/Editor.h"
+#include "Editor/Gizmo.h"
+
+#include "Editor/MainMenuBar.h"
 #include "Editor/Console.h"
 #include "Editor/Performance.h"
 #include "Graphics/CustomViewport.h"
 #include "Managers/AudioManager.h"
 #include "Editor/AssetBrowser.h"
-#include "Editor/PrefabWindow.h"
 #include "Editor/Hierarchy.h"
 #include "Editor/Popup.h"
-#include "Editor/Editor.h"
+#include "Editor/Inspector.h"
 #include "Utilities/CrashHandler.h"
 #include "VFS/VFS.h"
 
@@ -68,50 +73,6 @@ All rights reserved.
 #include "Engine/Platform/Android/AndroidInputBridge.h"
 #include"BehaviorTree/BehaviourNode.h"
 
-#ifdef IMGUI_ENABLED
-namespace
-{
-	// ImGui windows
-	// dumb way to do it but sure i guess.
-	bool show_browser = false;
-
-	void saveState(const char* filename) {
-		// TODO: Do proper state saving
-		ecs::SwitchToPool(ecs::POOL::EDITOR_GUI);
-		Serializer serializer{ filename };
-		serializer.Serialize("show_console", ecs::GetCompsBegin<editor::Console>() != ecs::GetCompsEnd<editor::Console>());
-		serializer.Serialize("show_performance", ST<PerformanceProfiler>::Get()->GetIsOpen());
-		serializer.Serialize("show_editor", ST<Inspector>::Get()->GetIsOpen());
-		//serializer.Serialize("show_settings", ST<SettingsWindow>::Get()->GetIsOpen());
-		serializer.Serialize("show_browser", show_browser);
-		serializer.Serialize("show_hierarchy", ST<Hierarchy>::Get()->isOpen);
-		ecs::SwitchToPool(ecs::POOL::DEFAULT);
-	}
-	void loadState(const char* filename) {
-
-		std::ifstream t(filename); //Should be safe, only used on windows
-		std::stringstream buffer;
-		buffer << t.rdbuf();
-		Deserializer deserializer{ buffer.str()};
-
-		//Deserializer deserializer{ filename };
-		if (!deserializer.IsValid())
-			return;
-
-		bool b{};
-		deserializer.DeserializeVar("show_console", &b);
-		if (b)
-			editor::CreateGuiWindow<editor::Console>();
-
-		deserializer.DeserializeVar("show_performance", &b), ST<PerformanceProfiler>::Get()->SetIsOpen(b);
-		deserializer.DeserializeVar("show_editor", &b), ST<Inspector>::Get()->SetIsOpen(b);
-		//deserializer.DeserializeVar("show_settings", &b), ST<SettingsWindow>::Get()->SetIsOpen(b);
-		deserializer.DeserializeVar("show_browser", &show_browser);
-		deserializer.DeserializeVar("show_hierarchy", &ST<Hierarchy>::Get()->isOpen);
-	}
-}
-#endif
-
 #ifndef GLFW
 #include <android/log.h>
 #define LOG_TAG "ryEngine"
@@ -119,23 +80,56 @@ namespace
 
 #include "ECS/TestRegister.h"
 
-MagicEngine::MagicEngine() = default;
 
-MagicEngine::~MagicEngine() = default;
 
-void MagicEngine::MarkToShutdown()
+#ifdef IMGUI_ENABLED
+namespace
 {
-	ST<GraphicsMain>::Get()->SetPendingShutdown();
-}
+	// ImGui windows
+	// dumb way to do it but sure i guess.
 
-bool MagicEngine::IsShuttingDown() const
-{
-	return ST<GraphicsMain>::Get()->GetIsPendingShutdown();
-}
+	void saveState(const char* filename) {
+		// TODO: Do proper state saving
+		ecs::SwitchToPool(ecs::POOL::EDITOR_GUI);
+		Serializer serializer{ filename };
+		serializer.Serialize("show_console", ecs::GetCompsBegin<editor::Console>() != ecs::GetCompsEnd<editor::Console>());
+		serializer.Serialize("show_performance", ecs::GetCompsBegin<editor::PerformanceWindow>() != ecs::GetCompsEnd<editor::PerformanceWindow>());
+		serializer.Serialize("show_editor", ecs::GetCompsBegin<editor::Inspector>() != ecs::GetCompsEnd<editor::Inspector>());
+		//serializer.Serialize("show_settings", ST<SettingsWindow>::Get()->GetIsOpen());
+		serializer.Serialize("show_browser", ecs::GetCompsBegin<editor::AssetBrowser>() != ecs::GetCompsEnd<editor::AssetBrowser>());
+		serializer.Serialize("show_hierarchy", ecs::GetCompsBegin<editor::Hierarchy>() != ecs::GetCompsEnd<editor::Hierarchy>());
+		ecs::SwitchToPool(ecs::POOL::DEFAULT);
+	}
+	void loadState(const char* filename) {
 
+		std::ifstream t(filename); //Should be safe, only used on windows
+		std::stringstream buffer;
+		buffer << t.rdbuf();
+		Deserializer deserializer{ buffer.str() };
+		if (!deserializer.IsValid())
+			return;
+
+		auto LoadWindowOpen{ [&deserializer, b = false]<typename WindowType>(const char* varName) mutable -> void {
+			deserializer.DeserializeVar(varName, &b);
+			if (b)
+				editor::CreateGuiWindow<WindowType>();
+		} };
+
+		LoadWindowOpen.template operator()<editor::Console>("show_console");
+		LoadWindowOpen.template operator()<editor::PerformanceWindow>("show_performance");
+		LoadWindowOpen.template operator()<editor::Inspector>("show_editor");
+		LoadWindowOpen.template operator()<editor::AssetBrowser>("show_browser");
+		LoadWindowOpen.template operator()<editor::Hierarchy>("show_hierarchy");
+
+		//deserializer.DeserializeVar("show_settings", &b), ST<SettingsWindow>::Get()->SetIsOpen(b);
+	}
+}
+#endif
 
 void MagicEngine::Init(Context& context)
 {
+	CrashHandler::SetupCrashHandler(); // DO NOT REMOVE THIS LINE EVER
+
 	RegisterShit();
 #ifdef GLFW
 	// The ifdef is to prevent double loading on android's side.
@@ -151,7 +145,6 @@ void MagicEngine::Init(Context& context)
 	CONSOLE_LOG(LEVEL_INFO) << "Current working directory: " << std::filesystem::canonical(Filepaths::workingDir);
 	CONSOLE_LOG(LEVEL_INFO) << "Actual working directory: " << std::filesystem::current_path();
 #endif
-	CrashHandler::SetupCrashHandler(); // DO NOT REMOVE THIS LINE EVER
 
 	// Scripting MagicEngine Initialisation
 	ST<LuaScripting>::Get()->Init();
@@ -177,7 +170,6 @@ void MagicEngine::Init(Context& context)
 	// load resources
 	ST<MagicResourceManager>::Get()->Init();
 	ST<MagicResourceManager>::Get()->LoadFromFile();
-	//ST<AssetBrowser>::Get()->file_system.Initialize(Filepaths::workingDir);
 	// Load fonts manually for now
 	const std::array<std::string, 3> fontsToLoad{
 		Filepaths::fontsSave + "/Arial.ttf",
@@ -198,6 +190,9 @@ void MagicEngine::Init(Context& context)
 		.position = Vec3{static_cast<float>(worldExtents.x) / 2, static_cast<float>(worldExtents.y) / 2, 0.0f },
 		.zoom = 1.0f
 	});
+
+	// Load ecs systems
+	LoadPermanentSystems();
 #ifdef IMGUI_ENABLED
 	ST<GameSystemsManager>::Get()->Init(GAMESTATE::EDITOR);
 #else
@@ -226,15 +221,12 @@ void MagicEngine::Init(Context& context)
 
 void MagicEngine::ExecuteFrame(FrameData& frameData)
 {
-
 	// Update tracking of framerate and frametime
 	GameTime::WaitUntilNextFrame();
 	ST<PerformanceProfiler>::Get()->StartFrame();
 
 	// Clear the events of the previous frame
 	ST<EventsQueue>::Get()->NewFrame();
-
-
 	
 	ST<MagicInput>::Get()->NewFrame();
 	//GamepadInput::PollInput();
@@ -246,29 +238,8 @@ void MagicEngine::ExecuteFrame(FrameData& frameData)
 #ifdef IMGUI_ENABLED
 	ST<GraphicsMain>::Get()->BeginImGuiFrame();
 
-	// TODO: Convert all of these window singletons into the ecs versions so we can support multiple instances of a single window.
-	if(ST<PerformanceProfiler>::Get()->GetIsOpen())
-	{
-		ST<PerformanceProfiler>::Get()->Draw();
-	}
-	if(ST<Inspector>::Get()->GetIsOpen())
-	{
-		ST<Inspector>::Get()->Draw();
-	}
-	if(show_browser)
-	{
-		ST<AssetBrowser>::Get()->Draw(&show_browser);
-	}
-	if(ST<PrefabWindow>::Get()->IsOpen())
-	{
-		ST<PrefabWindow>::Get()->DrawSaveLoadPrompt(&ST<PrefabWindow>::Get()->IsOpen());
-	}
-	if(ST<Hierarchy>::Get()->isOpen)
-	{
-		ST<Hierarchy>::Get()->Draw();
-	}
-	ST<Popup>::Get()->Draw();
-	//ST<Inspector>::Get()->RenderGrid();
+	// Run permanent editor systems (not windows)
+	ecs::RunSystems(ECS_LAYER::PERMANENT_EDITOR);
 
 	// Draw editor windows
 	ecs::SwitchToPool(ecs::POOL::EDITOR_GUI);
@@ -277,71 +248,6 @@ void MagicEngine::ExecuteFrame(FrameData& frameData)
 	ecs::SwitchToPool(ecs::POOL::DEFAULT);
 	ecs::FlushChanges(); // For if any of the editor windows deleted an entity.
 
-
-	if(ImGui::BeginMainMenuBar())
-	{
-		// Add a "File" menu
-		if(ImGui::BeginMenu("File"))
-		{
-			if(ImGui::MenuItem("New"))
-			{
-				// Handle "New" action
-			}
-			if(ImGui::MenuItem("Save"))
-			{
-				ST<SceneManager>::Get()->SaveAllScenes();
-				ST<SceneManager>::Get()->SaveWhichScenesOpened();
-			}
-			if(ImGui::MenuItem("Settings"))
-			{
-				editor::CreateGuiWindow<editor::SettingsWindow>();
-			}
-			if(ImGui::MenuItem("Exit"))
-			{
-				MarkToShutdown();
-			}
-			ImGui::EndMenu();
-		}
-
-		if(ImGui::BeginMenu("Tools"))
-		{
-			if(ImGui::MenuItem("Console"))
-			{
-				editor::CreateGuiWindow<editor::Console>();
-				ImGui::SetWindowFocus(ICON_FA_TERMINAL"Console"); // Save the name of the windows somewhere else so i dont have to copy paste = ryan cheong
-			}
-			if(ImGui::MenuItem("Performance"))
-			{
-				ST<PerformanceProfiler>::Get()->SetIsOpen(true);
-				ImGui::SetWindowFocus(ICON_FA_GAUGE_HIGH" Performance");
-			}
-			if(ImGui::MenuItem("Inspector"))
-			{
-				ST<Inspector>::Get()->SetIsOpen(true);
-				ImGui::SetWindowFocus(ICON_FA_MAGNIFYING_GLASS" Inspector");
-			}
-			if(ImGui::MenuItem("Browser"))
-			{
-				show_browser = true;
-				ImGui::SetWindowFocus(ICON_FA_FOLDER" Browser");
-			}
-			if(ImGui::MenuItem("Hierarchy", 0, false))
-			{
-				ST<Hierarchy>::Get()->isOpen = true;
-				ImGui::SetWindowFocus(ICON_FA_SITEMAP" Hierarchy");
-			}
-
-			ImGui::EndMenu();
-		}
-
-		if (ImGui::MenuItem("Behaviour Tree"))
-		{
-			editor::CreateGuiWindow<editor::BehaviourTreeWindow>();
-		}
-
-		ImGui::EndMainMenuBar();  // End the main menu bar
-	}
-
 	ST<GraphicsMain>::Get()->EndImGuiFrame();
 #endif
 
@@ -349,13 +255,7 @@ void MagicEngine::ExecuteFrame(FrameData& frameData)
 	// manage user input
 	// -----------------
 	ST<PerformanceProfiler>::Get()->StartProfile("Process Input");
-#ifdef IMGUI_ENABLED
-	ST<Inspector>::Get()->ProcessInput();
-	// TODO: Put this in some editor windows manager class. In fact, all of this imgui stuff needs to be put in that class or subclasses.
-	/*if (ST<KeyboardMouseInput>::Get()->GetIsPressed(KEY::GRAVE))
-		ST<Console>::Get()->SetIsOpen(!ST<Console>::Get()->GetIsOpen());*/
-
-#endif
+	ecs::RunSystems(ECS_LAYER::PERMANENT_INPUT);
 
 	if(ST<KeyboardMouseInput>::Get()->GetIsPressed(KEY::F11))
 	{
@@ -383,12 +283,7 @@ void MagicEngine::ExecuteFrame(FrameData& frameData)
 	// Game window draw
 	ST<PerformanceProfiler>::Get()->StartProfile("Render");
 	if (!ST<GraphicsWindow>::Get()->GetIsWindowMinimized())
-	{
 		ExecuteRenderSystems(); // Run ecs systems that render the world to the graphics pipeline
-#ifdef IMGUI_ENABLED
-		ST<Inspector>::Get()->DrawSelectedEntityBorder();
-#endif
-	}
 	ST<GraphicsMain>::Get()->EndFrame(&frameData);
 	ST<PerformanceProfiler>::Get()->EndProfile("Render");
 
@@ -423,20 +318,13 @@ void MagicEngine::shutdown()
 	ST<AudioManager>::Destroy();
 	ST<TweenManager>::Destroy();
 	ST<PerformanceProfiler>::Destroy();
-	ST<AssetBrowser>::Destroy();
 	
 	ST<BTFactory>::Destroy();
 
-#ifdef IMGUI_ENABLED
-	ST<Inspector>::Destroy();
-#endif
 	ST<HiddenComponentsStore>::Destroy();
 	ST<RegisteredComponents>::Destroy();
 	ST<PrefabManager>::Destroy();
-	ST<PrefabWindow>::Destroy();
-#ifdef IMGUI_ENABLED
-	ST<Hierarchy>::Destroy();
-#endif
+	ST<History>::Destroy();
 
 	ecs::Shutdown();
 
@@ -455,8 +343,21 @@ void MagicEngine::shutdown()
 	ST<internal::LoggedMessagesBuffer>::Destroy();
 }
 
+void MagicEngine::LoadPermanentSystems()
+{
+#ifdef IMGUI_ENABLED
+	ecs::AddSystem(ECS_LAYER::PERMANENT_EDITOR, editor::EditorSystem{});
+	ecs::AddSystem(ECS_LAYER::PERMANENT_EDITOR, editor::MainMenuBar{});
+	ecs::AddSystem(ECS_LAYER::PERMANENT_EDITOR, editor::Popup{});
+	ecs::AddSystem(ECS_LAYER::PERMANENT_INPUT, editor::EditorInputSystem{});
+	ecs::AddSystem(ECS_LAYER::PERMANENT_RENDER, editor::SelectedEntityBorderDrawSystem{}); // TODO: System is currently unimplemented
+#endif
+}
+
 void MagicEngine::ExecuteUpdateSystems()
 {
+	ecs::RunSystems(ECS_LAYER::PERMANENT_UPDATE);
+
 	auto UpdateSystemsGroup{ [](const std::string& profileName, void(*executeSystemsFunc)()) -> void {
 #ifdef IMGUI_ENABLED
 		ST<PerformanceProfiler>::Get()->StartProfile(profileName);
@@ -468,7 +369,7 @@ void MagicEngine::ExecuteUpdateSystems()
 	} };
 
 	UpdateSystemsGroup("Input", []() -> void {
-		ecs::RunSystemsInLayers(ECS_LAYER::CUTOFF_START, ECS_LAYER::CUTOFF_INPUT);
+		ecs::RunSystemsInLayers(ECS_LAYER::CUTOFF_PERMANENT, ECS_LAYER::CUTOFF_INPUT);
 	});
 	UpdateSystemsGroup("Pre-Physics", []() -> void {
 		ST<TweenManager>::Get()->Update(GameTime::FixedDt());
@@ -495,4 +396,6 @@ void MagicEngine::ExecuteUpdateSystems()
 void MagicEngine::ExecuteRenderSystems()
 {
 	ecs::RunSystemsInLayers(ECS_LAYER::CUTOFF_POST_PHYSICS_SCRIPTS, ECS_LAYER::CUTOFF_RENDER);
+
+	ecs::RunSystems(ECS_LAYER::PERMANENT_RENDER);
 }

@@ -22,112 +22,37 @@ All rights reserved.
 /******************************************************************************/
 
 #pragma once
-#include "Editor/Console.h"
-#include "Editor/EditorTweenModule.h"
-#include "Editor/Gizmo.h"
-#ifdef IMGUI_ENABLED
-#include "ImGuizmo.h"
-#endif
+#include "Engine/Events/EventsQueue.h"
 
-class Inspector : public gui::Window
-{
-#ifdef IMGUI_ENABLED
-public:
-	Inspector();
-	~Inspector();
+namespace editor {
 
-	/**
-	* \brief Processes the user input for the editor.
-	*/
-	void ProcessInput();
+	class EditorSystem : public ecs::System<EditorSystem>
+	{
+	public:
+		// Initialize default values to variables
+		EditorSystem();
 
-	void DrawContainer(int id) override;
+		// The initialize function
+		void OnAdded() override;
 
-	/**
-	* \brief Draws the user interface for the editor.
-	*/
-	void DrawContents() override;
+		// The Update function
+		bool PreRun() override;
 
-	/*****************************************************************//*!
-	\brief
-		Creates an entity and selects it.
-	*//******************************************************************/
-	void CreateEntityAndSelect();
+	private:
+		void UpdateSelectedEntity();
 
-	/*****************************************************************//*!
-	\brief
-		Unselects the selected entity.
-	*//******************************************************************/
-	void ForceUnselectEntity();
+	private:
+		AutoEventHandler provider_SelectedEntity;
 
-	/*****************************************************************//*!
-	\brief
-		Deletes the selected entity.
-	*//******************************************************************/
-	void DeleteSelectedEntity();
+		ecs::EntityHandle selectedEntity;
 
-	void DrawSceneView();
+	};
 
-	ecs::EntityHandle GetSelectedEntity();
-	void SetSelectedEntity(ecs::EntityHandle entity);
+	class EditorInputSystem : public ecs::System<EditorInputSystem>
+	{
+	public:
+		// Update function
+		bool PreRun() override;
+	};
 
-	/*****************************************************************//*!
-	\brief
-		Draws a border around the selected entity, if drawBoxes is true.
-	*//******************************************************************/
-	void DrawSelectedEntityBorder();
-
-
-
-	bool m_drawPhysicsBoxes;
-	bool m_drawVelocity;
-
-private:
-	/*****************************************************************//*!
-	\brief
-		Checks if the selected entity is valid, and if it isn't deselects it.
-	\return
-		True if the selected entity points to a valid entity. False otherwise.
-	*//******************************************************************/
-	bool CheckIsSelectedEntityValid();
-
-	/*****************************************************************//*!
-	\brief
-		Draws the selected entity's name and layer.
-	*//******************************************************************/
-	void DrawEntityHeader();
-
-	/*****************************************************************//*!
-	\brief
-		Draws the selected entity's components.
-	*//******************************************************************/
-	void DrawEntityComps();
-
-	/*****************************************************************//*!
-	\brief
-		Draws the add component section.
-	*//******************************************************************/
-	void DrawAddComp();
-
-	/*****************************************************************//*!
-	\brief
-		Draw buttons that interact with the selected entity.
-	*//******************************************************************/
-	void DrawEntityActionsButton();
-
-
-	
-private:
-	//Vec2 SnapToGrid(const Vec2& worldPos) const;
-
-	float m_gridSize{ 128.0f };
-	//Vec2 m_gridOffset{ 0.0f,0.0f };
-	bool m_showGrid{ false };
-	bool m_snapToGrid{ false };
-	//Vec4 m_gridColor{ 1.0f,1.0f,1.0f,1.0f };
-	ecs::EntityHandle selectedEntity{ nullptr };
-	bool drawBoxes{ true };
-
-	EditorTweenModule editorTweenModule;
-#endif
-};
+}

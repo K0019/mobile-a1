@@ -1,8 +1,10 @@
 #include "Editor/MaterialCreation.h"
 #include "Engine/Resources/MaterialSerialization.h"
 #include "Engine/Resources/ResourceManager.h"
+#include "Engine/Resources/Types/ResourceTypesGraphics.h"
 #include "Engine/Resources/ResourceImporter.h"
-#include "Editor/Popup.h"
+#include "Engine/Events/EventsQueue.h"
+#include "Engine/Events/EventsTypeEditor.h"
 #include "resource/resource_types.h"
 #include "FilepathConstants.h"
 
@@ -77,14 +79,14 @@ namespace editor {
 	void MaterialCreationWindow::AttemptCreateMaterial()
 	{
 		bool valid = false;
-		auto texturesGetter{ MagicResourceManager::Textures() };
+		auto texturesGetter{ MagicResourceManager::GetContainer<ResourceTexture>() };
 		for (size_t resourceHash : textures)
 		{
 			if (resourceHash == 0) continue;
 
 			if (!texturesGetter.GetResource(resourceHash))
 			{
-				ST<Popup>::Get()->Open("Failed to create material", "Invalid texture");
+				ST<EventsQueue>::Get()->AddEventForNextFrame(Events::PopupOpenRequest{ "Failed to create material", "Invalid texture" });
 				return;
 			}
 			valid = true;
@@ -99,7 +101,7 @@ namespace editor {
 			Serializer writer(VFS::ConvertVirtualToPhysical(assetPath.string()));
 			if (!writer.IsOpen())
 			{
-				ST<Popup>::Get()->Open("Failed to create material", "Could not open file for writing: " + assetPath.string());
+				ST<EventsQueue>::Get()->AddEventForNextFrame(Events::PopupOpenRequest{ "Failed to create material", "Could not open file for writing: " + assetPath.string() });
 				return;
 			}
 
@@ -116,18 +118,18 @@ namespace editor {
 
 			if (!writer.SaveAndClose())
 			{
-				ST<Popup>::Get()->Open("Failed to create material", "Could not save file. Asset not imported: " + assetPath.string());
+				ST<EventsQueue>::Get()->AddEventForNextFrame(Events::PopupOpenRequest{ "Failed to create material", "Could not save file. Asset not imported: " + assetPath.string() });
 				return;
 			}
 
-			ST<Popup>::Get()->Open("Success!", "Material created at: " + assetPath.string());
+			ST<EventsQueue>::Get()->AddEventForNextFrame(Events::PopupOpenRequest{ "Success!", "Material created at: " + assetPath.string() });
 			CONSOLE_LOG(LEVEL_INFO) << "Material asset created: " << assetPath;
 
 			ResourceImporter::Import(assetPath.string());
 		}
 		else
 		{
-			ST<Popup>::Get()->Open("Failed to create material", "No textures assigned");
+			ST<EventsQueue>::Get()->AddEventForNextFrame(Events::PopupOpenRequest{ "Failed to create material", "No textures assigned" });
 		}
 	}
 
@@ -246,14 +248,14 @@ namespace editor {
 	void MaterialEditWindow::AttemptCreateMaterial()
 	{
 		bool valid = false;
-		auto texturesGetter{ MagicResourceManager::Textures() };
+		auto texturesGetter{ MagicResourceManager::GetContainer<ResourceTexture>() };
 		for (size_t resourceHash : textures)
 		{
 			if (resourceHash == 0) continue;
 
 			if (!texturesGetter.GetResource(resourceHash))
 			{
-				ST<Popup>::Get()->Open("Failed to create material", "Invalid texture");
+				ST<EventsQueue>::Get()->AddEventForNextFrame(Events::PopupOpenRequest{ "Failed to create material", "Invalid texture" });
 				return;
 			}
 			valid = true;
@@ -268,7 +270,7 @@ namespace editor {
 			Serializer writer(VFS::ConvertVirtualToPhysical(assetPath.string()));
 			if (!writer.IsOpen())
 			{
-				ST<Popup>::Get()->Open("Failed to create material", "Could not open file for writing: " + assetPath.string());
+				ST<EventsQueue>::Get()->AddEventForNextFrame(Events::PopupOpenRequest{ "Failed to create material", "Could not open file for writing: " + assetPath.string() });
 				return;
 			}
 
@@ -285,18 +287,18 @@ namespace editor {
 
 			if (!writer.SaveAndClose())
 			{
-				ST<Popup>::Get()->Open("Failed to create material", "Could not save file. Asset not imported: " + assetPath.string());
+				ST<EventsQueue>::Get()->AddEventForNextFrame(Events::PopupOpenRequest{ "Failed to create material", "Could not save file. Asset not imported: " + assetPath.string() });
 				return;
 			}
 
-			ST<Popup>::Get()->Open("Success!", "Material created at: " + assetPath.string());
+			ST<EventsQueue>::Get()->AddEventForNextFrame(Events::PopupOpenRequest{ "Success!", "Material created at: " + assetPath.string() });
 			CONSOLE_LOG(LEVEL_INFO) << "Material asset created: " << assetPath;
 
 			ResourceImporter::Import(assetPath.string());
 		}
 		else
 		{
-			ST<Popup>::Get()->Open("Failed to create material", "No textures assigned");
+			ST<EventsQueue>::Get()->AddEventForNextFrame(Events::PopupOpenRequest{ "Failed to create material", "No textures assigned" });
 		}
 
 

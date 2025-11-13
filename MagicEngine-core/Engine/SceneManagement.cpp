@@ -22,10 +22,14 @@ All rights reserved.
 #include "VFS/VFS.h"
 
 #include "Engine/SceneManagement.h"
-#include "Editor/Editor.h"
-#include "Utilities/History.h"
 #include "FilepathConstants.h"
 #include "ECS/EntityUID.h"
+
+#include "Engine/Events/EventsQueue.h"
+#if __has_include("Engine/Events/EventsTypeEditor.h")
+	#include "Engine/Events/EventsTypeEditor.h"
+	#define HAS_EVENTS_TYPE_EDITOR
+#endif
 
 #pragma region Helper
 
@@ -487,11 +491,10 @@ bool ScenePool::UnloadScene(int index, bool doCheckOrCreateDefault)
 	CONSOLE_LOG(LEVEL_DEBUG) << "Unloading scene " << sceneIter->second.GetName();
 
 	// Need to unselect entity if it is under the scene that we're unloading
-#ifdef IMGUI_ENABLED
-
-	if (ecs::EntityHandle selectedEntity{ ST<Inspector>::Get()->GetSelectedEntity() })
+#if defined(IMGUI_ENABLED) && defined(HAS_EVENTS_TYPE_EDITOR)
+	if (ecs::EntityHandle selectedEntity{ ST<EventsQueue>::Get()->RequestValueFromEventHandlers<ecs::EntityHandle>(Getters::EditorSelectedEntity{}).value_or(nullptr) })
 		if (selectedEntity->GetComp<SceneIndexComponent>()->GetSceneIndex() == index)
-			ST<Inspector>::Get()->ForceUnselectEntity();
+			ST<EventsQueue>::Get()->AddEventForNextFrame(Events::EditorSelectEntity{ nullptr });
 #endif
 	bool isActiveSceneBeingUnloaded{ activeScene->GetIndex() == index };
 
@@ -704,8 +707,8 @@ void ScenePool::UnloadAllScenes_NoDefaultScene()
 	CONSOLE_LOG(LEVEL_DEBUG) << "Unloading all scenes...";
 
 	// Need to unselect entity if there is one selected since it will be deleted.
-#ifdef IMGUI_ENABLED
-	ST<Inspector>::Get()->ForceUnselectEntity();
+#if defined(IMGUI_ENABLED) && defined(HAS_EVENTS_TYPE_EDITOR)
+	ST<EventsQueue>::Get()->AddEventForNextFrame(Events::EditorSelectEntity{ nullptr });
 #endif
 	activeScene = nullptr;
 	sceneNameToIndex.clear();

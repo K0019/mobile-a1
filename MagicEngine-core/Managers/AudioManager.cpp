@@ -120,9 +120,14 @@ void AudioManager::FreeSound(FMOD::Sound* sound)
 		FMOD_ASSERT(sound->release());
 }
 
+uint32_t AudioManager::PlaySound(const std::string& filename, bool loop, AudioType category)
+{
+	return PlaySound(util::GenHash(filename), loop, category);
+}
+
 uint32_t AudioManager::PlaySound(size_t audioResourceHash, bool loop, AudioType category)
 {
-	const auto* resource{ ST<MagicResourceManager>::Get()->Audio().GetResource(audioResourceHash) };
+	const auto* resource{ ST<MagicResourceManager>::Get()->GetContainer<ResourceAudio>().GetResource(audioResourceHash)};
 	if (!resource)
 		return 0;
 
@@ -150,7 +155,7 @@ uint32_t AudioManager::PlaySound(size_t audioResourceHash, bool loop, AudioType 
 
 uint32_t AudioManager::PlaySound3D(size_t audioResourceHash, bool loop, Vec3 position, AudioType category, std::pair<float, float> rolloff)
 {
-	const auto* resource{ ST<MagicResourceManager>::Get()->Audio().GetResource(audioResourceHash) };
+	const auto* resource{ ST<MagicResourceManager>::Get()->GetContainer<ResourceAudio>().GetResource(audioResourceHash) };
 	if (!resource)
 		return 0;
 

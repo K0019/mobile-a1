@@ -4,19 +4,6 @@
 
 namespace editor {
 
-    bool MatchesFilter([[maybe_unused]] const std::string& name)
-    {
-#ifdef IMGUI_ENABLED
-        std::string lowerName = name;
-        std::string lowerFilter = ST<AssetBrowser>::Get()->searchBuffer;
-        std::ranges::transform(lowerName, lowerName.begin(), util::ToLower);
-        std::ranges::transform(lowerFilter, lowerFilter.begin(), util::ToLower);
-        return lowerName.find(lowerFilter) != std::string::npos;
-#else
-        return false;
-#endif
-    }
-
     void BaseAssetCategory::RenderBreadcrumb()
     {
 #ifdef IMGUI_ENABLED

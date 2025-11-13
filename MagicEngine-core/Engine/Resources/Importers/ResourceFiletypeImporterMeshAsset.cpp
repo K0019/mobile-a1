@@ -411,7 +411,7 @@ namespace internal
     void SetResourceHandlesMesh(const std::vector<AssociatedResourceHashes>& resourceHashes, 
         const std::vector<MeshHandle>& meshHandles, const std::vector<std::pair<uint32_t, Mat4>> meshTransforms, const std::vector<size_t>& materialHashes)
     {
-        auto& meshes{ ST<MagicResourceManager>::Get()->INTERNAL_GetMeshes() };
+        auto& meshes{ ST<MagicResourceManager>::Get()->INTERNAL_GetContainer<ResourceMesh>() };
         const auto& meshHashes{ resourceHashes[0].hashes };
 
         ResourceMesh* mesh{ meshes.INTERNAL_GetResource(meshHashes[0], true) };

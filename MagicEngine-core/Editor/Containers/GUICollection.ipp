@@ -308,4 +308,13 @@ namespace gui {
 		CallCombo(label, std::data(data), std::size(data), selectedIndex);
 	}
 
+	template<typename ContType>
+		requires util::ConvertibleToCArray<ContType>&& std::is_same_v<typename ContType::value_type, float>
+	void PlotLines([[maybe_unused]] const char* label, [[maybe_unused]] const ContType& cont, [[maybe_unused]] Vec2 graphSize, [[maybe_unused]] float scaleMin, [[maybe_unused]] float scaleMax, [[maybe_unused]] const char* overlayText)
+	{
+#ifdef IMGUI_ENABLED
+		ImGui::PlotLines(label, std::data(cont), static_cast<int>(std::size(cont)), 0, overlayText, scaleMin, scaleMax, graphSize);
+#endif
+	}
+
 }

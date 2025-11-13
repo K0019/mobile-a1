@@ -21,10 +21,9 @@ All rights reserved.
 #include "Graphics/CustomViewport.h"
 #include "Engine/Input.h"
 #include "Engine/PrefabManager.h"
-#include "Editor/Editor.h"
 #include "Game/GameSystems.h"
 #include "Engine/Events/EventsQueue.h"
-#include "Engine/Events/EventsTypeBasic.h"
+#include "Engine/Events/EventsTypeEditor.h"
 
 #include "Engine/SceneManagement.h"
 #include "Editor/EditorHistory.h"
@@ -66,7 +65,7 @@ void CustomViewport::DrawWindow()
 	// Camera movement (should be moved to an input update section)
 	UpdateCameraControl();
 	// Camera upload (should also be moved...)
-	ST<GraphicsScene>::Get()->SetViewCamera(GetViewportCamera());
+	ST<GraphicsMain>::Get()->SetViewCamera(GetViewportCamera());
 
 
 #ifdef IMGUI_ENABLED
@@ -121,28 +120,16 @@ void CustomViewport::DrawWindow()
 		ImGui::Image(*sceneColorID, renderSize, ImVec2(0, 0), ImVec2(1, 1));
 	}
 
+	m_gizmo.Draw(ST<EventsQueue>::Get()->RequestValueFromEventHandlers<ecs::EntityHandle>(Getters::EditorSelectedEntity{}).value_or(nullptr));
 
-	ImDrawList* drawList = ImGui::GetWindowDrawList();
-	updateCurrentEntity(ST<Inspector>::Get()->GetSelectedEntity());
-	m_gizmo.Draw(drawList);
 	//==========================
 
-	if (ImGui::BeginDragDropTarget())
-	{
-		if (ImGuiPayload const* payload_entity = ImGui::AcceptDragDropPayload("PREFAB"))
-		{
-			if (ImGui::IsMouseReleased(0))
-			{
-				std::string prefabName{ static_cast<char*>(payload_entity->Data) };
-				ecs::EntityHandle entity = PrefabManager::LoadPrefab(prefabName);
-				ST<History>::Get()->OneEvent(HistoryEvent_EntityCreate{ entity });
-				CONSOLE_LOG_UNIMPLEMENTED() << "Spawn entity from prefab drop into viewport";
-				//entity->GetTransform().SetWorldPosition(InputOld::GetMousePosWorld());
-				ST<Inspector>::Get()->SetSelectedEntity(entity);
-			}
-		}
-		ImGui::EndDragDropTarget();
-	}
+	gui::PayloadTarget<std::string>("PREFAB", [camera = &camera](const std::string& prefabName) -> void {
+		ecs::EntityHandle entity{ PrefabManager::LoadPrefab(prefabName) };
+		ST<History>::Get()->OneEvent(HistoryEvent_EntityCreate{ entity });
+		entity->GetTransform().SetWorldPosition(camera->getPosition());
+		ST<EventsQueue>::Get()->AddEventForNextFrame(Events::EditorSelectEntity{ entity });
+	});
 #endif
 }
 
@@ -466,18 +453,32 @@ Vec2 CustomViewport::GetViewportRenderSize() const
 	return { viewportRenderSize.x, viewportRenderSize.y };
 }
 
-void CustomViewport::updateCurrentEntity([[maybe_unused]] ecs::EntityHandle entity) {
-#ifdef IMGUI_ENABLED
-	if (entity) {
-		m_gizmo.Attach(entity->GetTransform());
-	}
-	else {
-		m_gizmo.Detach();
-	}
-#endif
-}
 Camera CustomViewport::GetViewportCamera() const
 {
 	return Camera{ camera };
 }
 
+namespace editor {
+
+	bool SelectedEntityBorderDrawSystem::PreRun()
+	{
+		// TODO 3D: Editor, draw entity bounding box
+		//if (ecs::EntityHandle selectedEntity{ ST<EventsQueue>::Get()->RequestValueFromEventHandlers<ecs::EntityHandle>(Getters::EditorSelectedEntity{}).value_or(nullptr) })
+		//{
+		//	Transform textTransform;
+		//	const Transform* transform{};
+		//	if (ecs::CompHandle<TextComponent> textComp{ selectedEntity->GetComp<TextComponent>() })
+		//	{
+		//		textTransform = selectedEntity->GetComp<TextComponent>()->GetWorldTextTransform();
+		//		transform = &textTransform;
+		//	}
+		//	else
+		//	{
+		//		transform = &selectedEntity->GetTransform();
+		//	}
+		//	//util::DrawBoundingBox(*transform, { 0.0f, 1.0f, 0.0f });
+		//}
+		return false;
+	}
+
+}

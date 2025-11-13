@@ -28,15 +28,26 @@ struct ResourceBase
     virtual bool IsLoaded() = 0;
 };
 
-template <std::derived_from<ResourceBase> ResourceType>
-class ResourceContainerBase
+class IResourceContainer
 {
 public:
-    const ResourceType* GetResource(size_t hash);
-    void DeleteResource(size_t hash);
+    virtual ~IResourceContainer() = default;
+
+    virtual const void* GetResource(size_t hash) = 0;
+    virtual void DeleteResource(size_t hash) = 0;
+
+    virtual void INTERNAL_CreateResource(size_t hash) = 0;
+};
+
+template <std::derived_from<ResourceBase> ResourceType>
+class ResourceContainerBase : public IResourceContainer
+{
+public:
+    const void* GetResource(size_t hash) override;
+    void DeleteResource(size_t hash) override;
 
 public:
-    void INTERNAL_CreateResource(size_t hash);
+    void INTERNAL_CreateResource(size_t hash) override;
     ResourceType* INTERNAL_GetResource(size_t hash, bool createIfMissing);
 
 private:

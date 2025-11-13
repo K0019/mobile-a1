@@ -56,7 +56,7 @@ bool ResourceFiletypeImporterKTX::Import(const std::string& assetRelativeFilepat
 	const auto* fileEntry{ GenerateFileEntryForResources<ResourceTexture>(assetRelativeFilepath, 1) };
 	
 	// Assign resource to texture handle
-	ST<MagicResourceManager>::Get()->INTERNAL_GetTextures().INTERNAL_GetResource(fileEntry->associatedResources[0].hashes[0], true)->handle = textureHandle;
+	ST<MagicResourceManager>::Get()->INTERNAL_GetContainer<ResourceTexture>().INTERNAL_GetResource(fileEntry->associatedResources[0].hashes[0], true)->handle = textureHandle;
 
 	return true;
 }

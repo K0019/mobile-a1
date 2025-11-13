@@ -197,6 +197,18 @@ namespace ecs {
 	}
 
 	template<typename CompType>
+	size_t GetCompsCount()
+	{
+		return internal::GetCompArr<CompType>().GetNumComps();
+	}
+
+	template<typename CompType>
+	size_t GetCompsActiveCount()
+	{
+		return internal::GetCompArr<CompType>().GetNumActiveComps();
+	}
+
+	template<typename CompType>
 	constexpr CompHash GetCompHash()
 	{
 		return internal::GetCompHash<CompType>();

@@ -23,7 +23,7 @@ All rights reserved.
 #include "Engine/Resources/Types/ResourceTypes.h"
 
 template<std::derived_from<ResourceBase> ResourceType>
-const ResourceType* ResourceContainerBase<ResourceType>::GetResource(size_t hash)
+const void* ResourceContainerBase<ResourceType>::GetResource(size_t hash)
 {
 	auto resourceIter{ resources.find(hash) };
 	if (resourceIter == resources.end())
@@ -90,5 +90,5 @@ UserResourceGetter<ResourceType>::UserResourceGetter(ResourceContainerBase<Resou
 template<std::derived_from<ResourceBase> ResourceType>
 const ResourceType* UserResourceGetter<ResourceType>::GetResource(size_t hash) const
 {
-	return container->GetResource(hash);
+	return reinterpret_cast<const ResourceType*>(container->GetResource(hash));
 }

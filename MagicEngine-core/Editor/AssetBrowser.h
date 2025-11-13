@@ -23,76 +23,62 @@ All rights reserved.
 */
 /******************************************************************************/
 #pragma once
+#include "Editor/Containers/GUIAsECS.h"
 #include "Editor/AssetBrowserCategories.h"
 #include "Engine/Resources/ResourceManager.h"
 #include "Managers/Filesystem.h"
 
-class AssetBrowser {
-    friend class ST<AssetBrowser>;
+namespace editor {
+
+    class AssetBrowser : public WindowBase<AssetBrowser>
+    {
     public:
-    
-    enum class CATEGORY {
-        NONE,       /**< No category */
-        SPRITES,    /**< Sprite assets */
-        ANIMATIONS, /**< Animation assets */
-        SOUNDS,     /**< Sound assets */
-        FONTS,      /**< Font assets */
-        PREFABS,    /**< Prefab assets */
-        SCENES,     /**< Scene assets */
-        SCRIPTS,    /**< Script assets */
-        SHADERS,    /**< Shader assets */
-        FILESYSTEM  /**< Filesystem assets */
+        enum class CATEGORY {
+            NONE,       /**< No category */
+            SPRITES,    /**< Sprite assets */
+            ANIMATIONS, /**< Animation assets */
+            SOUNDS,     /**< Sound assets */
+            FONTS,      /**< Font assets */
+            PREFABS,    /**< Prefab assets */
+            SCENES,     /**< Scene assets */
+            SCRIPTS,    /**< Script assets */
+            SHADERS,    /**< Shader assets */
+            FILESYSTEM  /**< Filesystem assets */
+        };
+
+        /**
+         * @brief Construct a new Asset Browser object.
+         */
+        AssetBrowser();
+
+        void DrawWindow() override;
+
+        /**
+         * @brief Render the sidebar of the asset browser.
+         */
+        void RenderSidebar();
+
+        /**
+         * @brief Render the main view of the asset browser.
+         */
+        void RenderMainView();
+
+        /**
+         * @brief Render the toolbar of the asset browser.
+         */
+        void RenderToolbar();
+
+    private:
+        std::vector<SPtr<BaseAssetCategory>> assetCategories;
+        int currentCategoryIndex = 0;
+
+        gui::TextBoxWithFilter searchBuffer;
+
+    public:
+        // Constants
+        static constexpr float THUMBNAIL_SIZE = 50.0f; /**< Size of thumbnails */
+        static constexpr float SIDEBAR_WIDTH = 150.0f; /**< Width of the sidebar */
+
     };
 
-    /**
-     * @brief Construct a new Asset Browser object.
-     */
-    AssetBrowser();
-    
-    /**
-     * @brief Destroy the Asset Browser object.
-     */
-    ~AssetBrowser();
-
-    //FileSystem file_system;
-
-#ifdef IMGUI_ENABLED
-
-    /**
-     * @brief Draw the asset browser UI.
-     * @param p_open Pointer to a boolean indicating if the window is open.
-     */
-    void Draw(bool* p_open = nullptr);
-
-    /**
-     * @brief Render the sidebar of the asset browser.
-     */
-    void RenderSidebar();
-
-    /**
-     * @brief Render the main view of the asset browser.
-     */
-    void RenderMainView();
-
-    /**
-     * @brief Render the toolbar of the asset browser.
-     */
-    void RenderToolbar();
-
-    /**
-     * @brief Draw the configuration UI for the asset browser.
-     */
-    void DrawConfig();
-
-private:
-    std::vector<std::unique_ptr<editor::BaseAssetCategory>> assetCategories;
-    int currentCategoryIndex = 0;
-
-public:
-    // Constants
-    char searchBuffer[256] = ""; /**< Buffer for search input */
-#endif // IMGUI_ENABLED
-    static constexpr float THUMBNAIL_SIZE = 50.0f; /**< Size of thumbnails */
-    static constexpr float SIDEBAR_WIDTH = 150.0f; /**< Width of the sidebar */
-
-};
+}

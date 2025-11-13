@@ -19,41 +19,52 @@ All rights reserved.
 */
 /******************************************************************************/
 #include "Editor/Popup.h"
+#include "Engine/Events/EventsQueue.h"
+#include "Engine/Events/EventsTypeEditor.h"
 
-Popup::Popup()
-	: gui::PopupWindow{ "", gui::Vec2{ 500, 250 } }
-{
-}
+namespace editor {
 
-void Popup::Open(const std::string& t, const std::string& message, gui::PopupWindow::FLAG flgs)
-{
-	isOpen = true;
-	title = t;
-	content = message;
-	flags = flgs;
-}
+	Popup::Popup()
+		: gui::PopupWindow{ "", gui::Vec2{ 500, 250 } }
+	{
+	}
 
-void Popup::OpenWithContent(const std::string& t, const std::ostringstream& c)
-{
-	isOpen = true;
-	title = t;
-	content = c.str();
-	flags = gui::PopupWindow::FLAG::NONE;
-}
+	bool Popup::PreRun()
+	{
+		// Process request to open/close popup, but only the first one.
+		if (const auto* openEvent{ EventsReader<Events::PopupOpenRequest>{}.ExtractEvent() })
+			Open(openEvent->title, openEvent->message, openEvent->flags);
+		if (const auto* closeEvent{ EventsReader<Events::PopupCloseRequest>{}.ExtractEvent() })
+			Close();
 
-void Popup::Close()
-{
-	isOpen = false;
-}
+		// Draw the popup.
+		Draw();
+		return false; // No components to process
+	}
 
-void Popup::DrawContainer(int id)
-{
-	gui::SetStyleColor styleColor{ gui::FLAG_STYLE_COLOR::WINDOW_BG, gui::Vec4{ 0.0f, 0.0f, 0.0f, 0.5f } };
-	gui::PopupWindow::DrawContainer(id);
-}
+	void Popup::Open(const std::string& t, const std::string& message, gui::PopupWindow::FLAG flgs)
+	{
+		isOpen = true;
+		title = t;
+		content = message;
+		flags = flgs;
+	}
 
-void Popup::DrawContents()
-{
-	gui::Separator();
-	gui::TextWrapped("%s", content.c_str());
+	void Popup::Close()
+	{
+		isOpen = false;
+	}
+
+	void Popup::DrawContainer(int id)
+	{
+		gui::SetStyleColor styleColor{ gui::FLAG_STYLE_COLOR::WINDOW_BG, gui::Vec4{ 0.0f, 0.0f, 0.0f, 0.5f } };
+		gui::PopupWindow::DrawContainer(id);
+	}
+
+	void Popup::DrawContents()
+	{
+		gui::Separator();
+		gui::TextWrapped("%s", content.c_str());
+	}
+
 }

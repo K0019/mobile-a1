@@ -19,8 +19,7 @@ All rights reserved.
 /******************************************************************************/
 
 #pragma once
-#include "Engine/Resources/Types/ResourceTypesGraphics.h"
-#include "Engine/Resources/Types/ResourceTypesAudio.h"
+#include "Engine/Resources/Types/ResourceTypes.h"
 #include "Engine/Resources/ResourceFilepaths.h"
 #include "Engine/Resources/ResourceNames.h"
 
@@ -30,11 +29,8 @@ public:
     void Init();
     void Shutdown();
 
-    static UserResourceGetter<ResourceMesh> Meshes();
-    static UserResourceGetter<ResourceMaterial> Materials();
-    static UserResourceGetter<ResourceTexture> Textures();
-    static UserResourceGetter<ResourceAnimation> Animations();
-    static UserResourceGetter<ResourceAudio> Audio();
+    template <typename ResourceType>
+    static UserResourceGetter<ResourceType> GetContainer();
 
     void SaveToFile() const;
     void LoadFromFile();
@@ -44,22 +40,16 @@ private:
     static void OnResourceDeleted(size_t hash, size_t resourceType);
 
 public:
-    const ResourceContainerMeshes& Editor_GetMeshes();
-    const ResourceContainerMaterials& Editor_GetMaterials();
-    const ResourceContainerTextures& Editor_GetTextures();
-    const ResourceContainerAnimations& Editor_GetAnimations();
-    const ResourceContainerAudio& Editor_GetAudio();
-    const std::string& Editor_GetName(size_t hash);
+    template <typename ResourceType>
+    const ResourceContainerBase<ResourceType>& Editor_GetContainer();
+    const std::string* Editor_GetName(size_t hash);
 
 public:
     ResourceFilepaths& INTERNAL_GetFilepathsManager();
     ResourceNames& INTERNAL_GetNamesManager();
 
-    ResourceContainerMeshes& INTERNAL_GetMeshes();
-    ResourceContainerMaterials& INTERNAL_GetMaterials();
-    ResourceContainerTextures& INTERNAL_GetTextures();
-    ResourceContainerAnimations& INTERNAL_GetAnimations();
-    ResourceContainerAudio& INTERNAL_GetAudio();
+    template <typename ResourceType>
+    ResourceContainerBase<ResourceType>& INTERNAL_GetContainer();
 
     void INTERNAL_CreateEmptyResource(size_t resourceTypeHash, size_t resourceHash);
 
@@ -67,10 +57,28 @@ private:
     ResourceFilepaths filepathsManager;
     ResourceNames namesManager;
 
-    ResourceContainerMeshes meshes;
-    ResourceContainerMaterials materials;
-    ResourceContainerTextures textures;
-    ResourceContainerAnimations animations;
-    ResourceContainerAudio audio;
+    std::unordered_map<size_t, UPtr<IResourceContainer>> resourceContainers;
 
 };
+
+template<typename ResourceType>
+UserResourceGetter<ResourceType> MagicResourceManager::GetContainer()
+{
+    return UserResourceGetter<ResourceType>{ &ST<MagicResourceManager>::Get()->INTERNAL_GetContainer<ResourceType>() };
+}
+
+template<typename ResourceType>
+const ResourceContainerBase<ResourceType>& MagicResourceManager::Editor_GetContainer()
+{
+    return INTERNAL_GetContainer<ResourceType>();
+}
+
+template<typename ResourceType>
+ResourceContainerBase<ResourceType>& MagicResourceManager::INTERNAL_GetContainer()
+{
+    size_t hash{ util::ConsistentHash<ResourceType>() };
+    auto containerIter{ resourceContainers.find(hash) };
+    if (containerIter != resourceContainers.end())
+        return static_cast<ResourceContainerBase<ResourceType>&>(*containerIter->second);
+    return static_cast<ResourceContainerBase<ResourceType>&>(*resourceContainers.try_emplace(hash, std::make_unique<ResourceContainerBase<ResourceType>>()).first->second);
+}

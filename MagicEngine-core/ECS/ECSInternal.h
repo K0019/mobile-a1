@@ -1048,6 +1048,14 @@ namespace ecs {
 
 			/*****************************************************************//*!
 			\brief
+				Get the number of active components stored in this CompArr.
+			\return
+				The number of active components stored in this CompArr.
+			*//******************************************************************/
+			uint32_t GetNumActiveComps() const;
+
+			/*****************************************************************//*!
+			\brief
 				Gets whether a component stored at a certain address within this CompArr
 				is active or inactive.
 			\param compAddr

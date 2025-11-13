@@ -22,13 +22,20 @@ All rights reserved.
 #include "Engine/Resources/ResourceImporter.h"
 #include "Engine/Resources/ResourceSerialization.h"
 
-#include "Managers/AudioManager.h"
+#include "Engine/Resources/Types/ResourceTypesAudio.h"
+#include "Engine/Resources/Types/ResourceTypesGraphics.h"
 #include "FilepathConstants.h"
 
 void MagicResourceManager::Init()
 {
     Messaging::Subscribe("NeedResourceLoaded", OnResourceRequestedLoad);
     Messaging::Subscribe("ResourceDeleted", OnResourceDeleted);
+
+    // Unfortunately since we don't have automatic type information when we deserialize, we need to register our types manually..
+    INTERNAL_GetContainer<ResourceAudio>();
+    INTERNAL_GetContainer<ResourceMesh>();
+    INTERNAL_GetContainer<ResourceMaterial>();
+    INTERNAL_GetContainer<ResourceTexture>();
 }
 void MagicResourceManager::Shutdown()
 {
@@ -48,27 +55,6 @@ void MagicResourceManager::OnResourceDeleted(size_t hash, size_t resourceType)
 {
     ST<MagicResourceManager>::Get()->filepathsManager.DisassociateResourceHash(hash, resourceType);
     ST<MagicResourceManager>::Get()->namesManager.RemoveName(hash);
-}
-
-UserResourceGetter<ResourceMesh> MagicResourceManager::Meshes()
-{
-    return UserResourceGetter<ResourceMesh>{ &ST<MagicResourceManager>::Get()->meshes };
-}
-UserResourceGetter<ResourceMaterial> MagicResourceManager::Materials()
-{
-    return UserResourceGetter<ResourceMaterial>{ &ST<MagicResourceManager>::Get()->materials };
-}
-UserResourceGetter<ResourceTexture> MagicResourceManager::Textures()
-{
-    return UserResourceGetter<ResourceTexture>{ &ST<MagicResourceManager>::Get()->textures };
-}
-UserResourceGetter<ResourceAnimation> MagicResourceManager::Animations()
-{
-    return UserResourceGetter<ResourceAnimation>( &ST<MagicResourceManager>::Get()->animations);
-}
-UserResourceGetter<ResourceAudio> MagicResourceManager::Audio()
-{
-    return UserResourceGetter<ResourceAudio>{ &ST<MagicResourceManager>::Get()->audio };
 }
 
 void MagicResourceManager::SaveToFile() const
@@ -96,32 +82,9 @@ void MagicResourceManager::LoadFromFile()
     });
 }
 
-const ResourceContainerMeshes& MagicResourceManager::Editor_GetMeshes()
+const std::string* MagicResourceManager::Editor_GetName(size_t hash)
 {
-    return meshes;
-}
-const ResourceContainerMaterials& MagicResourceManager::Editor_GetMaterials()
-{
-    return materials;
-}
-const ResourceContainerTextures& MagicResourceManager::Editor_GetTextures()
-{
-    return textures;
-}
-const ResourceContainerAnimations& MagicResourceManager::Editor_GetAnimations()
-{
-    return animations;
-}
-const ResourceContainerAudio& MagicResourceManager::Editor_GetAudio()
-{
-    return audio;
-}
-
-const std::string& MagicResourceManager::Editor_GetName(size_t hash)
-{
-    const std::string* name{ namesManager.GetName(hash) };
-    assert(name);
-    return *name;
+    return namesManager.GetName(hash);
 }
 
 ResourceFilepaths& MagicResourceManager::INTERNAL_GetFilepathsManager()
@@ -132,40 +95,14 @@ ResourceNames& MagicResourceManager::INTERNAL_GetNamesManager()
 {
     return namesManager;
 }
-ResourceContainerMeshes& MagicResourceManager::INTERNAL_GetMeshes()
-{
-    return meshes;
-}
-ResourceContainerMaterials& MagicResourceManager::INTERNAL_GetMaterials()
-{
-    return materials;
-}
-ResourceContainerTextures& MagicResourceManager::INTERNAL_GetTextures()
-{
-    return textures;
-}
-ResourceContainerAnimations& MagicResourceManager::INTERNAL_GetAnimations()
-{
-    return animations;
-}
-ResourceContainerAudio& MagicResourceManager::INTERNAL_GetAudio()
-{
-    return audio;
-}
 
 void MagicResourceManager::INTERNAL_CreateEmptyResource(size_t resourceTypeHash, size_t resourceHash)
 {
-    // Sorry for this if spam kinda running out of time, this function existing's also kinda ugly anyway
-    if (resourceTypeHash == util::ConsistentHash<ResourceMesh>())
-        meshes.INTERNAL_CreateResource(resourceHash);
-    else if (resourceTypeHash == util::ConsistentHash<ResourceMaterial>())
-        materials.INTERNAL_CreateResource(resourceHash);
-    else if (resourceTypeHash == util::ConsistentHash<ResourceTexture>())
-        textures.INTERNAL_CreateResource(resourceHash);
-    else if (resourceTypeHash == util::ConsistentHash<ResourceAudio>())
-        audio.INTERNAL_CreateResource(resourceHash);
-    else if (resourceTypeHash == util::ConsistentHash<ResourceAnimation>())
-        animations.INTERNAL_CreateResource(resourceHash);
-    else
-        assert(false);
+    auto containerIter{ resourceContainers.find(resourceTypeHash) };
+    if (containerIter == resourceContainers.end())
+    {
+        CONSOLE_LOG(LEVEL_ERROR) << "Resource container does not exist for hash " << resourceTypeHash << "! Did you forget to initialize a container for a new resource?";
+        return;
+    }
+    containerIter->second->INTERNAL_CreateResource(resourceHash);
 }
