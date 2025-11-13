@@ -5,6 +5,9 @@
 #include "Physics/Collision.h"
 #include "Physics/JoltPhysics.h"
 #include "Editor/Containers/GUICollection.h"
+#include "Utilities/GameTime.h"
+#include "VFS/VFS.h"
+#include "FilepathConstants.h"
 
 namespace navmesh 
 {
@@ -16,17 +19,87 @@ namespace navmesh
 	
 	std::vector<TileDataBuffer> NavMeshData::LoadAllTileBuffers()
 	{
-		return std::vector<TileDataBuffer>{};
+		if (filePath == "" || !VFS::FileExists(filePath))
+			return std::vector<TileDataBuffer>{};
+
+		std::vector<TileDataBuffer> result{};
+
+		//Read all the data from the file.
+		std::vector<uint8_t> allFileData{};
+		if (!VFS::ReadFile(filePath, allFileData))
+		{
+			CONSOLE_LOG(LEVEL_ERROR) << "Couldn't read navmesh data from file.";
+			return std::vector<TileDataBuffer>{};
+		}
+		
+		//Read the tile count.
+		std::size_t readOffset{ sizeof(uint32_t) };
+		uint32_t tileCount{};
+		std::memcpy(&tileCount, allFileData.data(), readOffset);
+
+		//Read navmesh data.
+		for (std::size_t count{}; count < tileCount; ++count)
+		{
+			//Read the data size value.
+			TileDataBuffer dataBuffer{ std::make_pair<int, unsigned char*>(0, nullptr) };
+			uint32_t dataSize{};
+			std::memcpy(&dataSize, allFileData.data() + readOffset, sizeof(uint32_t));
+			readOffset += sizeof(uint32_t);
+			dataBuffer.first = static_cast<int>(dataSize);
+
+			//Allocate memory for the navmesh data.
+			dataBuffer.second = (unsigned char*)dtAlloc(dataBuffer.first, DT_ALLOC_PERM);
+
+			//Read the navmesh data.
+			std::memcpy(dataBuffer.second, allFileData.data() + readOffset, static_cast<std::size_t>(dataBuffer.first));
+			readOffset += dataBuffer.first;
+
+			result.push_back(dataBuffer);
+		}
+
+		return result;
 	}
 
-	void NavMeshData::SaveAllTileBuffers(std::vector<TileDataBuffer>& allTileData)
+	void NavMeshData::SaveAllTileBuffers(std::vector<TileDataBuffer>& allTileData, const std::string& navMeshName)
 	{
+		//if the filepath doesn't exist create a filepath.
+		if (filePath == "" || !VFS::FileExists(filePath))
+		{
+			std::string directory{Filepaths::navMeshDataSave + "/" + navMeshName};
+			std::string extension{ ".navmesh" };
+			filePath = directory + extension;
+			int count{ 1 };
+			while (VFS::FileExists(filePath))
+				filePath = directory + std::to_string(count++) + extension;
+		}
 
+		std::vector<uint8_t> dataBuffer{};
+
+		//Insert the data count to the buffer.
+		uint32_t dataCount{ static_cast<uint32_t>(allTileData.size()) };
+		dataBuffer.insert(dataBuffer.end(), (uint8_t*)&dataCount, (uint8_t*)&dataCount + sizeof(uint32_t));
+
+		//Write the data to the file.
+		for (TileDataBuffer& tileData : allTileData)
+		{
+			//Insert the data size.
+			uint32_t dataSize{ static_cast<uint32_t>(tileData.first) };
+			dataBuffer.insert(dataBuffer.end(), (uint8_t*)&dataSize, (uint8_t*)&dataSize + sizeof(uint32_t));
+
+			//Insert the data.
+			dataBuffer.insert(dataBuffer.end(), tileData.second, tileData.second + dataSize);
+		}
+
+		//Write the entire data to the file.
+		if (!VFS::WriteFile(filePath, dataBuffer))
+			CONSOLE_LOG(LEVEL_ERROR) << "Couldn't save navmesh data to file.";
 	}
 
 	NavMeshSurfaceComp::NavMeshSurfaceComp()
 		: config{}
 		, navMeshData{}
+		, tileRefs{}
+		, navMeshName{ "navmesh" }
 	{
 		std::memset(&config, 0, sizeof(rcConfig));
 		config.cs = NavMeshSystem::CELL_SIZE;
@@ -54,6 +127,19 @@ namespace navmesh
 
 	void NavMeshSurfaceComp::OnDetached()
 	{
+		if (!ecs::GetSystem<NavMeshSystem>())
+			return;
+
+		dtStatus status{};
+		dtNavMesh* navMesh{ ecs::GetSystem<NavMeshSystem>()->GetNavMesh() };
+		for (dtTileRef tileRef : tileRefs)
+		{
+			status = navMesh->removeTile(tileRef, nullptr, nullptr);
+			if (dtStatusFailed(status))
+			{
+				CONSOLE_LOG(LEVEL_ERROR) << "Couldn't remove tile from the global navmesh.";
+			}
+		}
 	}
 
 	NavMeshData& NavMeshSurfaceComp::GetNavMeshData()
@@ -101,7 +187,7 @@ namespace navmesh
 				allTileData.push_back(BakeNavMeshTile(vertices, indices, tileBMin, tileBMax, tileX, tileZ));
 			}
 
-		navMeshData.SaveAllTileBuffers(allTileData);
+		navMeshData.SaveAllTileBuffers(allTileData, navMeshName);
 	}
 
 	TileDataBuffer NavMeshSurfaceComp::BakeNavMeshTile(std::vector<float>& vertices, std::vector<int>& indices,
@@ -126,7 +212,7 @@ namespace navmesh
 		if (!rcCreateHeightfield(&context, *heightField, width, height, bmin, bmax, config.cs, config.ch))
 		{
 			CONSOLE_LOG(LEVEL_ERROR) << "Height Field couldn't be created.";
-			return std::make_pair<int, unsigned char*>(0, nullptr);;
+			return std::make_pair<int, unsigned char*>(0, nullptr);
 		}
 
 		unsigned char* triAreaIDs = new unsigned char[100];
@@ -141,7 +227,7 @@ namespace navmesh
 		if (!rcRasterizeTriangles(&context, vertices.data(), vertCount, indices.data(), triAreaIDs, triCount, *heightField))
 		{
 			CONSOLE_LOG(LEVEL_ERROR) << "Could not rasterize triangles.";
-			return std::make_pair<int, unsigned char*>(0, nullptr);;
+			return std::make_pair<int, unsigned char*>(0, nullptr);
 		}
 
 		delete[] triAreaIDs;
@@ -158,12 +244,12 @@ namespace navmesh
 		if (!compactHF)
 		{
 			CONSOLE_LOG(LEVEL_ERROR) << "Couldn't allocate compact height field.";
-			return std::make_pair<int, unsigned char*>(0, nullptr);;
+			return std::make_pair<int, unsigned char*>(0, nullptr);
 		}
 		if (!rcBuildCompactHeightfield(&context, config.walkableHeight, config.walkableClimb, *heightField, *compactHF))
 		{
 			CONSOLE_LOG(LEVEL_ERROR) << "Couldn't build compact height field.";
-			return std::make_pair<int, unsigned char*>(0, nullptr);;
+			return std::make_pair<int, unsigned char*>(0, nullptr);
 		}
 
 		//Delete height field.
@@ -173,19 +259,19 @@ namespace navmesh
 		if (!rcErodeWalkableArea(&context, config.walkableRadius, *compactHF))
 		{
 			CONSOLE_LOG(LEVEL_ERROR) << "Couldn't erode compact height field.";
-			return std::make_pair<int, unsigned char*>(0, nullptr);;
+			return std::make_pair<int, unsigned char*>(0, nullptr);
 		}
 
 		// Partition the heightfield so that we can use simple algorithm later to triangulate the walkable areas.
 		if (!rcBuildDistanceField(&context, *compactHF))
 		{
 			CONSOLE_LOG(LEVEL_ERROR) << "Couldn't build distance field.";
-			return std::make_pair<int, unsigned char*>(0, nullptr);;
+			return std::make_pair<int, unsigned char*>(0, nullptr);
 		}
 		if (!rcBuildRegions(&context, *compactHF, 0, config.minRegionArea, config.mergeRegionArea))
 		{
 			CONSOLE_LOG(LEVEL_ERROR) << "Couldn't build watershed region.";
-			return std::make_pair<int, unsigned char*>(0, nullptr);;
+			return std::make_pair<int, unsigned char*>(0, nullptr);
 		}
 
 		//Create Contours
@@ -193,13 +279,13 @@ namespace navmesh
 		if (!contourSet)
 		{
 			CONSOLE_LOG(LEVEL_ERROR) << "Couldn't allocate contour set.";
-			return std::make_pair<int, unsigned char*>(0, nullptr);;
+			return std::make_pair<int, unsigned char*>(0, nullptr);
 		}
 		//Build contours to trace and simplify region contours.
 		if (!rcBuildContours(&context, *compactHF, config.maxSimplificationError, config.maxEdgeLen, *contourSet))
 		{
 			CONSOLE_LOG(LEVEL_ERROR) << "Couldn't build contour set.";
-			return std::make_pair<int, unsigned char*>(0, nullptr);;
+			return std::make_pair<int, unsigned char*>(0, nullptr);
 		}
 
 		//Build Polygon Mesh
@@ -207,12 +293,12 @@ namespace navmesh
 		if (!pMesh)
 		{
 			CONSOLE_LOG(LEVEL_ERROR) << "Couldn't allocate polygon mesh detail memory.";
-			return std::make_pair<int, unsigned char*>(0, nullptr);;
+			return std::make_pair<int, unsigned char*>(0, nullptr);
 		}
 		if (!rcBuildPolyMesh(&context, *contourSet, config.maxVertsPerPoly, *pMesh))
 		{
 			CONSOLE_LOG(LEVEL_ERROR) << "Couldn't build poly mesh.";
-			return std::make_pair<int, unsigned char*>(0, nullptr);;
+			return std::make_pair<int, unsigned char*>(0, nullptr);
 		}
 
 		//Build detail polygon mesh which allows to access approximate height on each polygon.
@@ -220,12 +306,12 @@ namespace navmesh
 		if (!pMeshDetail)
 		{
 			CONSOLE_LOG(LEVEL_ERROR) << "Couldn't allocate memory for detail polygon mesh.";
-			return std::make_pair<int, unsigned char*>(0, nullptr);;
+			return std::make_pair<int, unsigned char*>(0, nullptr);
 		}
 		if (!rcBuildPolyMeshDetail(&context, *pMesh, *compactHF, config.detailSampleDist, config.detailSampleMaxError, *pMeshDetail))
 		{
 			CONSOLE_LOG(LEVEL_ERROR) << "Couldn't build detail polygon mesh.";
-			return std::make_pair<int, unsigned char*>(0, nullptr);;
+			return std::make_pair<int, unsigned char*>(0, nullptr);
 		}
 
 		rcFreeCompactHeightfield(compactHF);
@@ -261,14 +347,8 @@ namespace navmesh
 
 		if (!dtCreateNavMeshData(&params, &data, &size))
 		{
-			CONSOLE_LOG(LEVEL_ERROR) << "Couldn't build NavMesh data.";
-			rcFreePolyMesh(pMesh); 
-			rcFreePolyMeshDetail(pMeshDetail); 
 			return std::make_pair<int, unsigned char*>(0, nullptr);
 		}
-
-		rcFreePolyMesh(pMesh);
-		rcFreePolyMeshDetail(pMeshDetail);
 
 		return std::make_pair<int, unsigned char*>(std::forward<int>(size), std::forward<unsigned char*>(data));
 	}

@@ -2,6 +2,7 @@
 #include <DetourNavMesh.h>
 #include <DetourNavMeshBuilder.h>
 #include <DetourNavMeshQuery.h>
+#include <DetourCrowd.h>
 #include <RecastDebugDraw.h>
 #include <Recast.h>
 #include "ECS/ECS.h"
@@ -18,7 +19,7 @@ namespace navmesh
 	{
 		std::string filePath;
 		std::vector<TileDataBuffer> LoadAllTileBuffers();
-		void SaveAllTileBuffers(std::vector<TileDataBuffer>& allTileData);
+		void SaveAllTileBuffers(std::vector<TileDataBuffer>& allTileData, const std::string& navMeshName);
 		property_vtable()
 	};
 
@@ -40,9 +41,9 @@ namespace navmesh
 		rcConfig config;
 		NavMeshData navMeshData;
 		std::vector<dtTileRef> tileRefs;
+		std::string navMeshName;
 
 		void BakeNavMeshData();
-		
 		TileDataBuffer BakeNavMeshTile(std::vector<float>& vertices, std::vector<int>& indices, 
 									   float* bmin, float* bmax, int xIndex, int zIndex);
 		virtual void EditorDraw() override;
