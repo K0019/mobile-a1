@@ -31,6 +31,8 @@ struct ResourceBase
 class IResourceContainer
 {
 public:
+    virtual ~IResourceContainer() = default;
+
     virtual const void* GetResource(size_t hash) = 0;
     virtual void DeleteResource(size_t hash) = 0;
 
