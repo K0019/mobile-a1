@@ -37,7 +37,7 @@ class AudioSourceComponent
 public:
 	AudioSourceComponent();
 
-	void Play(AudioType a, size_t audioResource);
+	void Play(AudioType a);
 
 //FOR LUAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
 public:
