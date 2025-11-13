@@ -84,7 +84,7 @@
                 },
                 "7930599578754533802": {
                     "_active": true,
-                    "maxHealth": 20.0,
+                    "maxHealth": 100.0,
                     "currHealth": 100.0
                 },
                 "9315785795257285655": {
@@ -99,6 +99,14 @@
                             "Is Kinematic"
                         ]
                     }
+                },
+                "16735904824485644755": {
+                    "_active": true,
+                    "maxDelusion": 100.0,
+                    "gainRate": 10.0,
+                    "lossRate": 7.0,
+                    "ultValue": 90.0,
+                    "currDelusion": 0.0
                 },
                 "17579205194823809952": {
                     "_active": true,
@@ -298,30 +306,30 @@
             },
             "components": {
                 "5725819782531291880": {
-                    "_active": false,
+                    "_active": true,
                     "behaviorTree": {
                         "btName": "enemybase"
                     }
                 },
                 "6766054303456732338": {
-                    "_active": false,
+                    "_active": true,
                     "layer": 0
                 },
                 "7205334411763290517": {
-                    "_active": false,
+                    "_active": true,
                     "name": "Enemy"
                 },
                 "7930599578754533802": {
-                    "_active": false,
+                    "_active": true,
                     "maxHealth": 1000.0,
                     "currHealth": 100.0
                 },
                 "9315785795257285655": {
-                    "_active": false,
+                    "_active": true,
                     "uid": 336609987718299699
                 },
                 "9501525575059265452": {
-                    "_active": false,
+                    "_active": true,
                     "flags": {
                         "_majorityTrue": true,
                         "_except": [
@@ -330,13 +338,13 @@
                     }
                 },
                 "16763493199777387366": {
-                    "_active": false,
+                    "_active": true,
                     "playerReference": {
                         "entityUid": 51797992787031769
                     }
                 },
                 "17579205194823809952": {
-                    "_active": false,
+                    "_active": true,
                     "moveSpeed": 10.0,
                     "rotateSpeed": 14400.0,
                     "stunTimePerHit": 1.0,
@@ -352,7 +360,7 @@
                     }
                 },
                 "18236831197208900764": {
-                    "_active": false,
+                    "_active": true,
                     "center": {
                         "x": 0.0,
                         "y": 0.800000011920929,
@@ -655,23 +663,23 @@
             },
             "components": {
                 "137465014557233347": {
-                    "_active": false,
+                    "_active": true,
                     "damage": 10.0
                 },
                 "6766054303456732338": {
-                    "_active": false,
+                    "_active": true,
                     "layer": 0
                 },
                 "7205334411763290517": {
-                    "_active": false,
+                    "_active": true,
                     "name": "ItemTest"
                 },
                 "9315785795257285655": {
-                    "_active": false,
+                    "_active": true,
                     "uid": 352048231000215665
                 },
                 "9501525575059265452": {
-                    "_active": false,
+                    "_active": true,
                     "flags": {
                         "_majorityTrue": false,
                         "_except": [
@@ -681,7 +689,7 @@
                     }
                 },
                 "18236831197208900764": {
-                    "_active": false,
+                    "_active": true,
                     "center": {
                         "x": 0.0,
                         "y": 0.0,
@@ -718,7 +726,7 @@
             },
             "components": {
                 "5352011725353660904": {
-                    "_active": false,
+                    "_active": true,
                     "meshHandle": {
                         "hash": 385509668275135841
                     },
@@ -789,15 +797,15 @@
                     ]
                 },
                 "6766054303456732338": {
-                    "_active": false,
+                    "_active": true,
                     "layer": 0
                 },
                 "7205334411763290517": {
-                    "_active": false,
+                    "_active": true,
                     "name": "PlayerModel"
                 },
                 "9315785795257285655": {
-                    "_active": false,
+                    "_active": true,
                     "uid": 352582593135001652
                 }
             }
@@ -1168,7 +1176,7 @@
             },
             "components": {
                 "5352011725353660904": {
-                    "_active": false,
+                    "_active": true,
                     "meshHandle": {
                         "hash": 602294878455748381
                     },
@@ -1236,15 +1244,15 @@
                     ]
                 },
                 "6766054303456732338": {
-                    "_active": false,
+                    "_active": true,
                     "layer": 0
                 },
                 "7205334411763290517": {
-                    "_active": false,
+                    "_active": true,
                     "name": "Model"
                 },
                 "9315785795257285655": {
-                    "_active": false,
+                    "_active": true,
                     "uid": 363822901022068849
                 }
             }

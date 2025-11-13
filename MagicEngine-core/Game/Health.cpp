@@ -98,7 +98,7 @@ void HealthComponent::TakeDamage(HealthComponent::HealthType amount, Vec3 direct
 		if (auto physicsComp{ ecs::GetEntity(this)->GetComp< physics::PhysicsComp >() })
 		{
 			// Disabled: Causes flying???
-			physicsComp->SetLinearVelocity(direction * amount + Vec3{ 0.0f,amount,0.0f });
+			//physicsComp->SetLinearVelocity(direction * amount + Vec3{ 0.0f,amount,0.0f });
 		}
 	}
 }

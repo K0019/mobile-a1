@@ -42,12 +42,17 @@ std::string DelusionComponent::to_string()
 	};
 
 	//returns alphabet name as std::string
-	return names.at(currentTier);
+	return names.at(currTier);
 }
 
 DelusionComponent::DelusionComponent() :
 	maxDelusion(defaultMax)
-	, currDelusion(0)
+	, currDelusion{ 0.0f }
+	, lossRate{ 0.0f }
+	, gainRate{ 0.0f }
+	, ultValue{ 0.0f }
+	, prevTier{DelusionTiers::DT_F}
+	, currTier{DelusionTiers::DT_F}
 {
 }
 
@@ -78,7 +83,7 @@ void DelusionComponent::AddDelusion(DelusionType amount)
 //should also be called after not doing anything for a while... or maybe a separate function like unity, idk
 void DelusionComponent::LoseDelusion(DelusionType amount)
 {
-	currDelusion -= amount * loseRate;
+	currDelusion -= amount * lossRate;
 
 	if (currDelusion < 0)
 		currDelusion = 0;
@@ -107,8 +112,8 @@ void DelusionComponent::SetMaxDelusion(DelusionType newMaxAmount)
 
 void DelusionComponent::UpdateDelusionTier()
 {
-	float ratio = GetDelusionFraction();
-	currentTier =
+	DelusionType ratio = GetDelusionFraction();
+	currTier =
 		(ratio >= 0.9f) ? DelusionTiers::DT_APLUS :
 		(ratio >= 0.8f) ? DelusionTiers::DT_A :
 		(ratio >= 0.6f) ? DelusionTiers::DT_B :
@@ -116,10 +121,10 @@ void DelusionComponent::UpdateDelusionTier()
 		(ratio >= 0.2f) ? DelusionTiers::DT_D :
 		DelusionTiers::DT_F;
 
-	if (currentTier == prevTier) return;
+	if (currTier == prevTier) return;
 
 	//buffs and debuffs, as of yet unimplemented due to it being hard to see interactions, but ill throw in the pseudo code
-	if (currentTier == DelusionTiers::DT_F)
+	if (currTier == DelusionTiers::DT_F)
 	{
 		// comment: probably store reference to original health max from health component on awake, then get health component 
 		// if (ecs::CompHandle<HealthComponent> healthComp{ owner->GetComp<HealthComponent>() }), 
@@ -135,7 +140,7 @@ void DelusionComponent::UpdateDelusionTier()
 		//loseRate = 1.0f;
 		//comment: remove delusion lose decrease
 	}
-	else if (currentTier == DelusionTiers::DT_D)
+	else if (currTier == DelusionTiers::DT_D)
 	{
 		// comment: probably store reference to original health max from health component on awake, then get health component 
 		// if (ecs::CompHandle<HealthComponent> healthComp{ owner->GetComp<HealthComponent>() }), 
@@ -146,7 +151,7 @@ void DelusionComponent::UpdateDelusionTier()
 		// characterComp->moveSpeed = characterComp->baseMoveSpeed //comment: base ms doesn't exist but can store reference in delusion or add there
 		// comment: speed buff, moveSpeed from CharacterMovementComponent
 	}
-	else if (currentTier == DelusionTiers::DT_C)
+	else if (currTier == DelusionTiers::DT_C)
 	{
 		// comment: probably store reference to original health max from health component on awake, then get health component 
 		// if (ecs::CompHandle<HealthComponent> healthComp{ owner->GetComp<HealthComponent>() }), 
@@ -155,7 +160,7 @@ void DelusionComponent::UpdateDelusionTier()
 		// comment: hundred being hardcoded value, but it should be taking from the max health reference stored from on awake
 		// gainRate = 1.2f;
 	}
-	else if (currentTier == DelusionTiers::DT_B)
+	else if (currTier == DelusionTiers::DT_B)
 	{
 		// comment: probably store reference to original health max from health component on awake, then get health component 
 		// if (ecs::CompHandle<HealthComponent> healthComp{ owner->GetComp<HealthComponent>() }), 
@@ -167,7 +172,7 @@ void DelusionComponent::UpdateDelusionTier()
 		// healthComp->AddHealth(20);
 		// comment: health regen function not coded, should be toggleable on and off and not a 1 time burst
 	}
-	else if (currentTier == DelusionTiers::DT_A)
+	else if (currTier == DelusionTiers::DT_A)
 	{
 		// comment: probably store reference to original health max from health component on awake, then get health component 
 		// if (ecs::CompHandle<HealthComponent> healthComp{ owner->GetComp<HealthComponent>() }), 
@@ -176,7 +181,7 @@ void DelusionComponent::UpdateDelusionTier()
 		// comment: hundred being hardcoded value, but it should be taking from the max health reference stored from on awake
 		// loseRate = 0.8f;
 	}
-	else if (currentTier == DelusionTiers::DT_APLUS)
+	else if (currTier == DelusionTiers::DT_APLUS)
 	{
 		// comment: probably store reference to original health max from health component on awake, then get health component 
 		// if (ecs::CompHandle<HealthComponent> healthComp{ owner->GetComp<HealthComponent>() }), 
@@ -185,16 +190,20 @@ void DelusionComponent::UpdateDelusionTier()
 		// comment: hundred being hardcoded value, but it should be taking from the max health reference stored from on awake
 		// ulti available, no buff for now
 	}
-	prevTier = currentTier;
+	prevTier = currTier;
 }
 
-float DelusionComponent::GetDelusionFraction()
+DelusionComponent::DelusionType DelusionComponent::GetDelusionFraction()
 {
-	return (float)currDelusion / (float)maxDelusion;
+	return (DelusionType)currDelusion / (DelusionType)maxDelusion;
 }
 
 void DelusionComponent::EditorDraw()
 {
 	std::string to_print = to_string();
 	gui::VarInput("Max Delusion", &maxDelusion); //swap this out for one that prints to_print instead of &maxDelusion
+	gui::VarInput("Gain Rate", &gainRate); //swap this out for one that prints to_print instead of &maxDelusion
+	gui::VarInput("Loss Rate", &lossRate); //swap this out for one that prints to_print instead of &maxDelusion
+	gui::VarInput("Ult Value", &ultValue); //swap this out for one that prints to_print instead of &maxDelusion
+	gui::VarInput("Current Delusion", &currDelusion); //swap this out for one that prints to_print instead of &maxDelusion
 }

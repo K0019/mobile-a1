@@ -29,6 +29,7 @@ All rights reserved.
 #include "Editor/Containers/GUICollection.h"
 #include "Game/PlayerCharacter.h"
 #include "Game/EnemyCharacter.h"
+#include "Game/Delusion.h"
 
 void GrabbableItemComponent::Attack(Vec3 origin, Vec3 direction)
 {
@@ -68,7 +69,7 @@ void GrabbableItemComponent::Attack(Vec3 origin, Vec3 direction)
 				//owner player gain delusion
 				if (ecs::CompHandle<DelusionComponent> delusionComp{ owner->GetComp<DelusionComponent>() })
 				{
-					delusionComp->GainDelusion(damage * 0.2f);
+					delusionComp->AddDelusion(damage * 0.2f);
 				}
 			}
 		}

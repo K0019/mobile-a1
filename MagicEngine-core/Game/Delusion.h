@@ -49,6 +49,8 @@ class DelusionComponent
 public:
 	using DelusionType = float;
 
+
+
 	/*****************************************************************//*!
 	\brief
 		Default constructor.
@@ -125,7 +127,7 @@ public:
 	*//******************************************************************/
 	void UpdateDelusionTier();
 
-	float GetDelusionFraction();
+	DelusionType GetDelusionFraction();
 private:
 	/*****************************************************************//*!
 	\brief
@@ -145,12 +147,15 @@ private:
 	DelusionTiers prevTier;
 	DelusionTiers currTier;
 
-	static constexpr DelusionType defaultMax{ 100 };
+	static constexpr DelusionType defaultMax{ 100.0f };
 	property_vtable()
 };
 property_begin(DelusionComponent)
 {
 	property_var(maxDelusion),
-		property_var(currDelusion),
+	property_var(gainRate),
+	property_var(lossRate),
+	property_var(ultValue),
+	property_var(currDelusion),
 }
 property_vend_h(DelusionComponent)
