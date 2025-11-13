@@ -21,25 +21,9 @@ All rights reserved.
 
 namespace Events {
 
-	// Consumed by: CustomViewport
-	struct ResizeViewport
-	{
-		unsigned int width, height;
-	};
-
 	// Consumed by: LuaScripting
 	struct RequestReloadLuaScripts {};
 	// Consumed by: ScriptRefreshListenerSystem
 	struct LuaScriptsReloaded {};
-
-}
-
-namespace Getters {
-
-#pragma region Editor
-
-	struct EditorSelectedEntity{};
-
-#pragma endregion // Editor
 
 }

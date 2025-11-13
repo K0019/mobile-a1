@@ -22,61 +22,50 @@ All rights reserved.
 #include <glm/ext.hpp>
 #include "Editor/Gizmo.h"
 #include "ImGui/ImguiHeader.h"
+#include "ImGuizmo.h"
+#include "Editor/EditorCameraBridge.h"   // for EditorCam_TryGet(...)
+#include "Editor/EditorGizmoBridge.h"
+
+#include "Engine/Input.h"
 #include "Editor/EditorHistory.h"
-#include "Editor/Editor.h"
+#include "Engine/Events/EventsQueue.h"
+#include "Engine/Events/EventsTypeEditor.h"
 
-Gizmo::Gizmo() = default;
+namespace editor {
 
-Gizmo::~Gizmo() = default;
-
-
-void Gizmo::Attach(Transform& transform)
-{
-    // If we’re already attached to the same transform, nothing to do.
-    if (m_attachedTransform == &transform) {
-        return;
-    }
-
-    m_attachedTransform = &transform;
-
-}
-
-void Gizmo::Detach()
-{
-    if (!m_attachedTransform)
-        return;
-    m_attachedTransform = nullptr;
-}
-
-void Gizmo::Draw([[maybe_unused]] ImDrawList* /*viewport*/)
-{   //skip if no entity selected
-    if (!m_attachedTransform) {
-        return;
-    }
-
-    //MUST PUT to allow gizmo to overlap the Image
-    ImGui::SetItemAllowOverlap();
-
-    //Compute the rect of the just-drawn Image 
-    ImVec2 imgMin = ImGui::GetItemRectMin();
-    ImVec2 imgSize = ImGui::GetItemRectSize();
-
-    //One BeginFrame per Dear ImGui frame + enable
-    ImGuizmo::SetImGuiContext(ImGui::GetCurrentContext());
-    static int s_lastFrame = -1;
-    int curFrame = ImGui::GetFrameCount();
-    if (s_lastFrame != curFrame) { ImGuizmo::BeginFrame(); s_lastFrame = curFrame; }
-    ImGuizmo::Enable(true);
-
-    // 4) Draw into the same window’s drawlist
-    ImGuizmo::SetDrawlist(ImGui::GetWindowDrawList());
-    ImGuizmo::SetRect(imgMin.x, imgMin.y, imgSize.x, imgSize.y);
-
-    // 5) View/Proj 
-    glm::mat4 V(1.f), P(1.f);
-    bool isOrtho = false;
-    if (EditorCam_TryGet(V, P, isOrtho))
+    void Gizmo::Draw(ecs::EntityHandle selectedEntity)
     {
+        // Only enable drawing of the gizmos if there is a selected entity
+        ImGuizmo::Enable(selectedEntity);
+
+        if (!selectedEntity)
+            return;
+
+        Transform& transform{ selectedEntity->GetTransform() };
+
+        //MUST PUT to allow gizmo to overlap the Image
+        ImGui::SetItemAllowOverlap();
+
+        //Compute the rect of the just-drawn Image 
+        ImVec2 imgMin = ImGui::GetItemRectMin();
+        ImVec2 imgSize = ImGui::GetItemRectSize();
+
+        //One BeginFrame per Dear ImGui frame + enable
+        ImGuizmo::SetImGuiContext(ImGui::GetCurrentContext());
+        static int s_lastFrame = -1;
+        int curFrame = ImGui::GetFrameCount();
+        if (s_lastFrame != curFrame) { ImGuizmo::BeginFrame(); s_lastFrame = curFrame; }
+
+        // 4) Draw into the same window’s drawlist
+        ImGuizmo::SetDrawlist(ImGui::GetWindowDrawList());
+        ImGuizmo::SetRect(imgMin.x, imgMin.y, imgSize.x, imgSize.y);
+
+        // 5) View/Proj 
+        glm::mat4 V(1.f), P(1.f);
+        bool isOrtho = false;
+        if (!EditorCam_TryGet(V, P, isOrtho))
+            return;
+
         ImGuizmo::SetOrthographic(isOrtho);
 
         float view[16], proj[16];
@@ -85,7 +74,7 @@ void Gizmo::Draw([[maybe_unused]] ImDrawList* /*viewport*/)
 
         // 6) Object/world matrix of selected entity 
         glm::mat4 M(1.f);
-        if (auto sel = ST<Inspector>::Get()->GetSelectedEntity())
+        if (auto sel = ST<EventsQueue>::Get()->RequestValueFromEventHandlers<ecs::EntityHandle>(Getters::EditorSelectedEntity{}).value_or(nullptr))
         {
             Transform& tr = sel->GetTransform();
             tr.SetMat4ToWorld(&M);
@@ -97,7 +86,7 @@ void Gizmo::Draw([[maybe_unused]] ImDrawList* /*viewport*/)
         // 7) Operation and mode
         ImGuizmo::OPERATION op = EditorGizmo_Op();
         ImGuizmo::MODE      md = EditorGizmo_Mode(); //curr using default
-    
+
         //Snapping controls (Ctrl)
         const bool snapOn = ImGui::GetIO().KeyCtrl;
         float snapT[3] = { 0.5f, 0.5f, 0.5f };  // meters/units
@@ -105,12 +94,18 @@ void Gizmo::Draw([[maybe_unused]] ImDrawList* /*viewport*/)
         float snapDeg = 15.0f;                 // degrees
         const float* snapPtr = nullptr;
         if (snapOn) {
-            if (op == ImGuizmo::TRANSLATE) 
-            { snapPtr = snapT; }
-            else if (op == ImGuizmo::ROTATE) 
-            { snapPtr = &snapDeg; }
-            else if (op == ImGuizmo::SCALE) 
-            { snapPtr = snapS; }
+            if (op == ImGuizmo::TRANSLATE)
+            {
+                snapPtr = snapT;
+            }
+            else if (op == ImGuizmo::ROTATE)
+            {
+                snapPtr = &snapDeg;
+            }
+            else if (op == ImGuizmo::SCALE)
+            {
+                snapPtr = snapS;
+            }
         }
 
         // 8) Draw only (no write-back in this pass)
@@ -123,42 +118,38 @@ void Gizmo::Draw([[maybe_unused]] ImDrawList* /*viewport*/)
             float t[3], r[3], s[3];
             ImGuizmo::DecomposeMatrixToComponents(model, t, r, s);
 
-            if (auto sel = ST<Inspector>::Get()->GetSelectedEntity())
+            const Transform* parent = transform.GetParent();
+
+            if (md == ImGuizmo::WORLD || !parent)
             {
-                Transform& tr = sel->GetTransform();
-                const Transform* parent = tr.GetParent();
-
-                if (md == ImGuizmo::WORLD || !parent)
-                {
-                    // No parent or WORLD mode -> set world-space directly
-                    if (op == ImGuizmo::TRANSLATE) {
-                        ST<History>::Get()->IntermediateEvent(HistoryEvent_Translation{ m_attachedTransform->GetEntity(), m_attachedTransform->GetLocalPosition() });
-                        tr.SetWorldPosition({ t[0], t[1], t[2] });
-                    }
-                    else if (op == ImGuizmo::ROTATE) {
-                        ST<History>::Get()->IntermediateEvent(HistoryEvent_Rotation{ m_attachedTransform->GetEntity(), m_attachedTransform->GetLocalRotation() });
-                        tr.SetWorldRotation({ r[0], r[1], r[2] });  // degrees
-                    }
-                    else if (op == ImGuizmo::SCALE) {
-                        ST<History>::Get()->IntermediateEvent(HistoryEvent_Scale{ m_attachedTransform->GetEntity(), m_attachedTransform->GetLocalScale() });
-                        tr.SetWorldScale({ s[0], s[1], s[2] });
-                    }
+                // No parent or WORLD mode -> set world-space directly
+                if (op == ImGuizmo::TRANSLATE) {
+                    ST<History>::Get()->IntermediateEvent(HistoryEvent_Translation{ selectedEntity, transform.GetLocalPosition() });
+                    transform.SetWorldPosition({ t[0], t[1], t[2] });
                 }
-                else
-                {
-                    // LOCAL mode with a parent -> convert world -> local first
-                    glm::mat4 parentW(1.f);
-                    parent->SetMat4ToWorld(&parentW);
-
-                    glm::mat4 worldM = glm::make_mat4(model);
-                    glm::mat4 localM = glm::inverse(parentW) * worldM;
-
-                    ImGuizmo::DecomposeMatrixToComponents(glm::value_ptr(localM), t, r, s);
-
-                    if (op == ImGuizmo::TRANSLATE) tr.SetLocalPosition({ t[0], t[1], t[2] });
-                    else if (op == ImGuizmo::ROTATE) tr.SetLocalRotation({ r[0], r[1], r[2] });  // degrees
-                    else if (op == ImGuizmo::SCALE)  tr.SetLocalScale({ s[0], s[1], s[2] });
+                else if (op == ImGuizmo::ROTATE) {
+                    ST<History>::Get()->IntermediateEvent(HistoryEvent_Rotation{ selectedEntity, transform.GetLocalRotation() });
+                    transform.SetWorldRotation({ r[0], r[1], r[2] });  // degrees
                 }
+                else if (op == ImGuizmo::SCALE) {
+                    ST<History>::Get()->IntermediateEvent(HistoryEvent_Scale{ selectedEntity, transform.GetLocalScale() });
+                    transform.SetWorldScale({ s[0], s[1], s[2] });
+                }
+            }
+            else
+            {
+                // LOCAL mode with a parent -> convert world -> local first
+                glm::mat4 parentW(1.f);
+                parent->SetMat4ToWorld(&parentW);
+
+                glm::mat4 worldM = glm::make_mat4(model);
+                glm::mat4 localM = glm::inverse(parentW) * worldM;
+
+                ImGuizmo::DecomposeMatrixToComponents(glm::value_ptr(localM), t, r, s);
+
+                if (op == ImGuizmo::TRANSLATE) transform.SetLocalPosition({ t[0], t[1], t[2] });
+                else if (op == ImGuizmo::ROTATE) transform.SetLocalRotation({ r[0], r[1], r[2] });  // degrees
+                else if (op == ImGuizmo::SCALE)  transform.SetLocalScale({ s[0], s[1], s[2] });
             }
         }
 
@@ -167,7 +158,5 @@ void Gizmo::Draw([[maybe_unused]] ImDrawList* /*viewport*/)
     }
 
 }
-
-
 
 #endif

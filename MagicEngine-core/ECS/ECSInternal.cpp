@@ -990,6 +990,11 @@ namespace ecs {
 			return static_cast<uint32_t>(arrRaw.size() / compStepSize);
 		}
 
+		uint32_t CompArr::GetNumActiveComps() const
+		{
+			return GetNumComps() - numInactive;
+		}
+
 		bool CompArr::GetIsCompActive(const void* compAddr) const
 		{
 			return GetComp(firstActiveIndex) <= compAddr;

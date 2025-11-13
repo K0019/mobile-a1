@@ -91,6 +91,42 @@ namespace physics {
 	void PhysicsComp::SetFlag(PHYSICS_COMP_FLAG flag, bool val)
 	{
 		flags.SetMask(flag, val);
+
+		JPH::EMotionType type{};
+		switch (flag)
+		{
+		case PHYSICS_COMP_FLAG::ENABLED:
+			if (!val)
+				type = JPH::EMotionType::Static;
+			else if (GetFlag(PHYSICS_COMP_FLAG::IS_KINEMATIC))
+				type = JPH::EMotionType::Kinematic;
+			else
+				type = JPH::EMotionType::Dynamic;
+			ecs::GetEntity(this)->GetComp<JoltBodyComp>()->SetMotionType(type);
+			break;
+		case PHYSICS_COMP_FLAG::IS_KINEMATIC:
+			if (!GetFlag(PHYSICS_COMP_FLAG::ENABLED))
+				type = JPH::EMotionType::Static;
+			else if (val)
+				type = JPH::EMotionType::Kinematic;
+			else
+				type = JPH::EMotionType::Dynamic;
+			ecs::GetEntity(this)->GetComp<JoltBodyComp>()->SetMotionType(type);
+			break;
+		case PHYSICS_COMP_FLAG::USE_GRAVITY:
+			//Change the gravity factor in jolt body.
+			ecs::GetEntity(this)->GetComp<JoltBodyComp>()->SetGravityFactor(val ? 1.f : 0.f);
+			break;
+		case PHYSICS_COMP_FLAG::ROTATION_LOCKED_X:
+			ecs::GetEntity(this)->GetComp<JoltBodyComp>()->SetLockRotationX(val);
+			break;
+		case PHYSICS_COMP_FLAG::ROTATION_LOCKED_Y:
+			ecs::GetEntity(this)->GetComp<JoltBodyComp>()->SetLockRotationY(val);
+			break;
+		case PHYSICS_COMP_FLAG::ROTATION_LOCKED_Z:
+			ecs::GetEntity(this)->GetComp<JoltBodyComp>()->SetLockRotationZ(val);
+			break;
+		}
 	}
 
 	Vec3 PhysicsComp::GetLinearVelocity() const
@@ -128,14 +164,6 @@ namespace physics {
 		if (gui::Checkbox(physicsFlagNames[+PHYSICS_COMP_FLAG::ENABLED], &enabled))
 		{
 			SetFlag(PHYSICS_COMP_FLAG::ENABLED, enabled);
-			JPH::EMotionType type{};
-			if (!enabled)
-				type = JPH::EMotionType::Static;
-			else if (kinematic)
-				type = JPH::EMotionType::Kinematic;
-			else
-				type = JPH::EMotionType::Dynamic;
-			ecs::GetEntity(this)->GetComp<JoltBodyComp>()->SetMotionType(type);
 
 			if (enabled)
 			{
@@ -148,44 +176,28 @@ namespace physics {
 		if (gui::Checkbox("Is Kinematic", &kinematic))
 		{
 			SetFlag(PHYSICS_COMP_FLAG::IS_KINEMATIC, kinematic);
-
-			//Change the motion type in jolt body.
-			JPH::EMotionType type{};
-			if (!enabled)
-				type = JPH::EMotionType::Static;
-			else if (kinematic)
-				type = JPH::EMotionType::Kinematic;
-			else
-				type = JPH::EMotionType::Dynamic;
-			ecs::GetEntity(this)->GetComp<JoltBodyComp>()->SetMotionType(type);
 		}
 
 		bool gravity{ GetFlag(PHYSICS_COMP_FLAG::USE_GRAVITY) };
 		if (gui::Checkbox("Use Gravity", &gravity))
 		{
 			SetFlag(PHYSICS_COMP_FLAG::USE_GRAVITY, gravity);
-
-			//Change the gravity factor in jolt body.
-			ecs::GetEntity(this)->GetComp<JoltBodyComp>()->SetGravityFactor(gravity ? 1.f : 0.f);
 		}
 
 		gui::TextUnformatted("Freeze Rotation");
 		if (gui::Checkbox("X", &lockX))
 		{
 			SetFlag(PHYSICS_COMP_FLAG::ROTATION_LOCKED_X, lockX);
-			ecs::GetEntity(this)->GetComp<JoltBodyComp>()->SetLockRotationX(lockX);
 		}
 		gui::SameLine();
 		if (gui::Checkbox("Y", &lockY))
 		{
 			SetFlag(PHYSICS_COMP_FLAG::ROTATION_LOCKED_Y, lockY);
-			ecs::GetEntity(this)->GetComp<JoltBodyComp>()->SetLockRotationY(lockY);
 		}
 		gui::SameLine();
 		if (gui::Checkbox("Z", &lockZ))
 		{
 			SetFlag(PHYSICS_COMP_FLAG::ROTATION_LOCKED_Z, lockZ);
-			ecs::GetEntity(this)->GetComp<JoltBodyComp>()->SetLockRotationZ(lockZ);
 		}
 	}
 

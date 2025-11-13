@@ -69,7 +69,8 @@ public:
 
 	// Default FMOD System call
 	// 2D call to FMOD
-	uint32_t PlaySound(size_t audioResourceHash, bool loop, AudioType category = AudioType::END);  
+	uint32_t PlaySound(const std::string& filename, bool loop, AudioType category = AudioType::END);
+	uint32_t PlaySound(size_t audioResourceHash, bool loop, AudioType category = AudioType::END);
 	void StopSound(uint32_t handle);
 	bool IsPlaying(uint32_t handle);
 	// This refers to the current playback position in milliseconds, not the 3D position

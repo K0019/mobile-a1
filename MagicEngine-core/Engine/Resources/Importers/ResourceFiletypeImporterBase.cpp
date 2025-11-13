@@ -24,9 +24,9 @@ All rights reserved.
 
 size_t ResourceFiletypeImporterBase::GenerateNewHash()
 {
-    size_t hash{ util::Rand_UID() };
+    size_t hash{ util::Rand_UID() | 1 }; // Fill first bit so hash caching can use it to check for validity
     while (ST<MagicResourceManager>::Get()->INTERNAL_GetNamesManager().GetName(hash))
-        hash = util::Rand_UID();
+        hash = util::Rand_UID() | 1;
     CONSOLE_LOG(LEVEL_INFO) << "Generated " << hash;
     return hash;
 }

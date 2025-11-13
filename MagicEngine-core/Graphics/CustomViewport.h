@@ -30,12 +30,6 @@ All rights reserved.
  */
 class CustomViewport : public editor::WindowBase<CustomViewport, false>
 {
-#ifdef IMGUI_ENABLED
-    using Vec = ImVec2;
-#else
-    using Vec = Vec2;
-#endif
-
 public:
     CustomViewport(unsigned int width, unsigned int height);
 
@@ -92,7 +86,6 @@ public:
      */
     Vec2 GetViewportRenderSize() const;
 
-    void updateCurrentEntity(ecs::EntityHandle entity);
     Camera GetViewportCamera() const;
 
     std::string name; /**< The name of the ImGui Window. Specifically put here because I use it more than once*/
@@ -100,13 +93,25 @@ private:
     unsigned width {},height {}; /**< The width and height of the viewport. */
     float aspect_ratio {}; /**< The aspect ratio of the viewport. */
     float titleBarHeight {}; /**< The height of the title bar of the viewport window. */
-    Vec windowPosAbsolute; /**< The absolute position of the viewport window. */
-    Vec contentMin; /**< The minimum position of the content region. */
-    Vec contentMax; /**< The maximum position of the content region. */
-    Vec viewportRenderSize; /**< The render size of the viewport. */
+    gui::Vec2 windowPosAbsolute; /**< The absolute position of the viewport window. */
+    gui::Vec2 contentMin; /**< The minimum position of the content region. */
+    gui::Vec2 contentMax; /**< The maximum position of the content region. */
+    gui::Vec2 viewportRenderSize; /**< The render size of the viewport. */
 #ifdef IMGUI_ENABLED
-    Gizmo m_gizmo;
+    editor::Gizmo m_gizmo;
 #endif
     CameraPositioner_FirstPerson camera;
 
 };
+
+namespace editor {
+
+    // Draws a border around the currently selected entity
+    class SelectedEntityBorderDrawSystem : public ecs::System<SelectedEntityBorderDrawSystem>
+    {
+    public:
+        // Draw function
+        bool PreRun() override;
+    };
+
+}

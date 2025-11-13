@@ -20,7 +20,7 @@ All rights reserved.
 /******************************************************************************/
 #include "Graphics/CameraSystem.h"
 #include "Graphics/CameraController.h"
-#include "Engine/Graphics Interface/GraphicsScene.h"
+#include "Engine/Graphics Interface/GraphicsAPI.h"
 
 CameraCompUploadSystem::CameraCompUploadSystem() : System_Internal(&CameraCompUploadSystem::UpdateCameraComp) {}
 
@@ -41,7 +41,7 @@ void CameraCompUploadSystem::UpdateCameraComp(CameraComponent& cameraComp)
     positioner.setAngles(rotation);
     positioner.setDesiredAngles(rotation);
     positioner.update(0.0f);
-    ST<GraphicsScene>::Get()->SetViewCamera(Camera{ positioner });
+    ST<GraphicsMain>::Get()->SetViewCamera(Camera{ positioner });
 }
 
 AnchorToCameraSystem::AnchorToCameraSystem()

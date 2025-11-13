@@ -23,7 +23,9 @@ All rights reserved.
 #include "resource/resource_manager.h"
 #include "imgui/base/imgui_context.h"
 #include "Engine/Graphics Interface/GraphicsWindow.h"
-#include "Engine/Graphics Interface/GraphicsScene.h"
+#include "graphics/features/scene_feature.h"
+#include "resource/resource_types.h"
+#include "math/camera.h"
 
 class GraphicsMain
 {
@@ -42,11 +44,18 @@ public:
     void SetPendingShutdown();
     bool GetIsPendingShutdown() const;
 
+    // Graphics scene interface - for camera uploads
+    void SetViewCamera(const Camera& camera);
+
+public:
+    FrameData& INTERNAL_GetFrameData();
+
 private:
 #ifdef IMGUI_ENABLED
     void InitImGui(const std::string& fontfile);
     void SetImGuiStyle();
 #endif
+    void UploadToPipeline(FrameData* outFrameData);
 
 public:
     // For compatibility with whatever old graphics interfaces are still here
@@ -58,7 +67,7 @@ public:
 
 private:
     friend ST<GraphicsMain>;
-    GraphicsMain() = default;
+    GraphicsMain();
 
 private:
 #ifdef IMGUI_ENABLED
@@ -66,6 +75,11 @@ private:
 #endif
 
     Context context;
+
+    // Scene rendering
+    uint64_t sceneFeatureHandle;
+    FrameData frameData;
+    uint64_t gridHandle;
 
 };
 
