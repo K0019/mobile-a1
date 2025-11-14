@@ -137,6 +137,41 @@ function start(entity)
         Magic.Log(Magic.LogLevel.info, "END grabComp  =================================================")
     end
 
+    local health = entity:GetHealthComponent()
+if health and health:Exists() then
+    Magic.Log(Magic.LogLevel.info, "=== HealthComponent TEST START ===")
+
+    -- Read current values
+    Magic.Log(Magic.LogLevel.info,
+        "health    = " .. tostring(health.health))
+    Magic.Log(Magic.LogLevel.info,
+        "maxHealth = " .. tostring(health.maxHealth))
+
+    Magic.Log(Magic.LogLevel.info,
+        "isDead    = " .. tostring(health:IsDead()))
+    Magic.Log(Magic.LogLevel.info,
+        "fraction  = " .. tostring(health:GetHealthFraction()))
+
+    -- Heal a bit
+    health:AddHealth(10.0)
+    Magic.Log(Magic.LogLevel.info,
+        "after AddHealth(10) -> health = " .. tostring(health.health))
+
+    -- Take damage from some direction
+    local dir = Magic.Vec3(1.0, 0.0, 0.0)
+    health:TakeDamage(25.0, dir)
+    Magic.Log(Magic.LogLevel.info,
+        "after TakeDamage(25) -> health = " .. tostring(health.health))
+
+    Magic.Log(Magic.LogLevel.info,
+        "isDead (after) = " .. tostring(health:IsDead()))
+    Magic.Log(Magic.LogLevel.info,
+        "fraction(after) = " .. tostring(health:GetHealthFraction()))
+
+    Magic.Log(Magic.LogLevel.info, "=== HealthComponent TEST END ===")
+end
+
+
     --Magic.TestFunction(entity);
     --print(entity.transform.localPosition.x)
 end

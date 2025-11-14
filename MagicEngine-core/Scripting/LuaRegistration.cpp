@@ -35,6 +35,7 @@ All rights reserved.
 #include "Game/Character.h"
 #include "Game/PlayerCharacter.h"
 #include "Game/GrabbableItem.h"
+#include "Game/Health.h"
 
 //=========================================== START REGISTERING COMPONENTS ================================================================================
 // This section is unfortunately required. This registers what functions are available in a component.
@@ -164,11 +165,32 @@ SCRIPT_GENERATE_COMP_WRAPPER_END()
 SCRIPT_GENERATE_COMP_WRAPPER_BEGIN(GrabbableItemComponent)
 SCRIPT_GENERATE_PROPERTY_FUNCS(float, GetDamage, SetDamage)
 SCRIPT_GENERATE_PROPERTY_FUNCS(bool, GetIsHeld, SetIsHeld)
-
-// Behaviour wrapper for Attack(Vec3 origin, Vec3 direction)
 void AttackLua(const Vec3& origin, const Vec3& direction)
+{ GetHandle()->Attack(origin, direction);}
+SCRIPT_GENERATE_COMP_WRAPPER_END()
+
+// HealthComponent
+SCRIPT_GENERATE_COMP_WRAPPER_BEGIN(HealthComponent)
+SCRIPT_GENERATE_PROPERTY_FUNCS(float, GetCurrHealth, SetHealth)
+SCRIPT_GENERATE_PROPERTY_FUNCS(float, GetMaxHealth, SetMaxHealth)
+void AddHealthLua(float amount)
 {
-	GetHandle()->Attack(origin, direction);
+	GetHandle()->AddHealth(amount);
+}
+
+void TakeDamageLua(float amount, const Vec3& direction)
+{
+	GetHandle()->TakeDamage(amount, direction);
+}
+
+bool IsDead() const
+{
+	return GetHandle()->IsDead();
+}
+
+float GetHealthFractionLua() const
+{
+	return GetHandle()->GetHealthFraction();
 }
 SCRIPT_GENERATE_COMP_WRAPPER_END()
 
@@ -232,6 +254,7 @@ void RegisterCppStuffToLua(luabridge::Namespace baseTable)
 		SCRIPT_REGISTER_COMP_GETTER(CharacterMovementComponent)
 		SCRIPT_REGISTER_COMP_GETTER(PlayerMovementComponent)
 		SCRIPT_REGISTER_COMP_GETTER(GrabbableItemComponent)
+		SCRIPT_REGISTER_COMP_GETTER(HealthComponent)
 		//=========================================== END REGISTER GETTER ================================================================================
 
 		.endClass()
@@ -356,6 +379,16 @@ void RegisterCppStuffToLua(luabridge::Namespace baseTable)
 		SCRIPT_REGISTER_COMP_PROPERTY(GrabbableItemComponent,"damage", GetDamage, SetDamage)
 		SCRIPT_REGISTER_COMP_PROPERTY(GrabbableItemComponent,"isHeld", GetIsHeld, SetIsHeld)
 		SCRIPT_REGISTER_COMP_FUNCTION(GrabbableItemComponent,"Attack", AttackLua)
+		SCRIPT_REGISTER_COMP_END()
+
+		// HealthComponent
+		SCRIPT_REGISTER_COMP_BEGIN(HealthComponent)
+		SCRIPT_REGISTER_COMP_PROPERTY(HealthComponent,"health", GetCurrHealth, SetHealth)
+		SCRIPT_REGISTER_COMP_PROPERTY(HealthComponent,"maxHealth", GetMaxHealth, SetMaxHealth)
+		SCRIPT_REGISTER_COMP_FUNCTION(HealthComponent,"AddHealth", AddHealthLua)
+		SCRIPT_REGISTER_COMP_FUNCTION(HealthComponent,"TakeDamage", TakeDamageLua)
+		SCRIPT_REGISTER_COMP_FUNCTION(HealthComponent,"IsDead", IsDead)
+		SCRIPT_REGISTER_COMP_FUNCTION(HealthComponent,"GetHealthFraction", GetHealthFractionLua)
 		SCRIPT_REGISTER_COMP_END()
 		// ----- GLOBAL FUNCTIONS -----
 		.addFunction("Log", Lua_Log)
