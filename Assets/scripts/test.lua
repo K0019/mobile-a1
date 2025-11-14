@@ -41,6 +41,16 @@ function start(entity)
         Magic.Log(Magic.LogLevel.info, "Blink intensity=" .. result.x .. " radius=" .. result.y)
         Magic.Log(Magic.LogLevel.info, "END lightBlinkComp  =================================================")
     end
+    local lightComp = entity:GetLightComponent();
+    if lightComp:Exists() then
+        Magic.Log(Magic.LogLevel.info, "Start lightComp  =================================================")
+        Magic.Log(Magic.LogLevel.info, lightComp.intensity)
+        Magic.Log(Magic.LogLevel.info, lightComp.type)
+        lightComp.type = Magic.LightType.Spot
+        Magic.Log(Magic.LogLevel.info, lightComp.type)
+        Magic.Log(Magic.LogLevel.info, "END lightComp  =================================================")
+    end
+
     --Magic.TestFunction(entity);
     --print(entity.transform.localPosition.x)
 end

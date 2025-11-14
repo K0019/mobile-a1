@@ -79,7 +79,15 @@ SCRIPT_GENERATE_PROPERTY_FUNCS(float, GetSpeed, SetSpeed)
 Vec2 AddTimeElapsed(float dt) {
 	return GetHandle()->AddTimeElapsed(static_cast<float>(dt));
 }
+SCRIPT_GENERATE_COMP_WRAPPER_END()
 
+// LightComponent
+SCRIPT_GENERATE_COMP_WRAPPER_BEGIN(LightComponent)
+SCRIPT_GENERATE_PROPERTY_FUNCS(int, GetTypeLua, SetTypeLua)
+SCRIPT_GENERATE_PROPERTY_FUNCS(float, GetIntensity, SetIntensity)
+SCRIPT_GENERATE_PROPERTY_FUNCS(float, GetInnerConeAngle, SetInnerConeAngle)
+SCRIPT_GENERATE_PROPERTY_FUNCS(float, GetOuterConeAngle, SetOuterConeAngle)
+SCRIPT_GENERATE_PROPERTY_FUNCS(std::string, GetName, SetName)
 SCRIPT_GENERATE_COMP_WRAPPER_END()
 
 //=========================================== END REGISTERING COMPONENTS ================================================================================
@@ -132,6 +140,7 @@ void RegisterCppStuffToLua(luabridge::Namespace baseTable)
 		SCRIPT_REGISTER_COMP_GETTER(CameraComponent)
 		SCRIPT_REGISTER_COMP_GETTER(AnchorToCameraComponent)
 		SCRIPT_REGISTER_COMP_GETTER(ShakeComponent)
+		SCRIPT_REGISTER_COMP_GETTER(LightComponent)
 		SCRIPT_REGISTER_COMP_GETTER(LightBlinkComponent)
 
 		//=========================================== END REGISTER GETTER ================================================================================
@@ -184,9 +193,16 @@ void RegisterCppStuffToLua(luabridge::Namespace baseTable)
 		SCRIPT_REGISTER_COMP_PROPERTY(LightBlinkComponent, "minRadius", GetMinRadius, SetMinRadius)
 		SCRIPT_REGISTER_COMP_PROPERTY(LightBlinkComponent, "maxRadius", GetMaxRadius, SetMaxRadius)
 		SCRIPT_REGISTER_COMP_PROPERTY(LightBlinkComponent, "speed", GetSpeed, SetSpeed)
-
-		// Optional: expose the behaviour function too
 		SCRIPT_REGISTER_COMP_FUNCTION(LightBlinkComponent, "AddTimeElapsed", AddTimeElapsed)
+		SCRIPT_REGISTER_COMP_END()
+
+		// LightComponent
+		SCRIPT_REGISTER_COMP_BEGIN(LightComponent)
+		SCRIPT_REGISTER_COMP_PROPERTY(LightComponent, "type", GetTypeLua, SetTypeLua)
+		SCRIPT_REGISTER_COMP_PROPERTY(LightComponent, "intensity", GetIntensity, SetIntensity)
+		SCRIPT_REGISTER_COMP_PROPERTY(LightComponent, "innerConeAngle", GetInnerConeAngle, SetInnerConeAngle)
+		SCRIPT_REGISTER_COMP_PROPERTY(LightComponent, "outerConeAngle", GetOuterConeAngle, SetOuterConeAngle)
+		SCRIPT_REGISTER_COMP_PROPERTY(LightComponent, "name", GetName, SetName)
 		SCRIPT_REGISTER_COMP_END()
 
 		// ----- GLOBAL FUNCTIONS -----
@@ -202,5 +218,11 @@ void RegisterCppStuffToLua(luabridge::Namespace baseTable)
 		.beginNamespace("AudioType")
 			.addVariable("BGM", static_cast<int>(AudioType::BGM))
 			.addVariable("SFX", static_cast<int>(AudioType::SFX))
+		.endNamespace()
+		.beginNamespace("LightType")
+			.addVariable("Directional", static_cast<int>(LightType::Directional))
+			.addVariable("Point", static_cast<int>(LightType::Point))
+			.addVariable("Spot", static_cast<int>(LightType::Spot))
+			.addVariable("Area", static_cast<int>(LightType::Area))
 		.endNamespace();
 }
