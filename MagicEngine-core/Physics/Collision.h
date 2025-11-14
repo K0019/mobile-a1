@@ -235,6 +235,17 @@ X(ENABLED, "Enabled")
 		void Serialize(Serializer& writer) const override;
 		void Deserialize(Deserializer& reader) override;
 
+		// ===== Lua helpers =====
+		bool GetEnabled() const
+		{
+			return GetFlag(COLLIDER_COMP_FLAG::ENABLED);
+		}
+
+		void SetEnabled(bool v)
+		{
+			SetFlag(COLLIDER_COMP_FLAG::ENABLED, v);
+		}
+
 	private:
 		/*****************************************************************//*!
 		\brief

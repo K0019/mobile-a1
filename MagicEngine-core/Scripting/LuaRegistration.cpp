@@ -29,6 +29,8 @@ All rights reserved.
 #include "Engine/Audio.h"
 #include "Graphics/CameraComponent.h"
 #include "Graphics/LightComponent.h"
+#include "Physics/Collision.h"  
+#include "Physics/Physics.h"
 
 
 //=========================================== START REGISTERING COMPONENTS ================================================================================
@@ -90,6 +92,33 @@ SCRIPT_GENERATE_PROPERTY_FUNCS(float, GetOuterConeAngle, SetOuterConeAngle)
 SCRIPT_GENERATE_PROPERTY_FUNCS(std::string, GetName, SetName)
 SCRIPT_GENERATE_COMP_WRAPPER_END()
 
+using BoxColliderComp = physics::BoxColliderComp;
+
+// BoxColliderComp
+SCRIPT_GENERATE_COMP_WRAPPER_BEGIN(BoxColliderComp)
+SCRIPT_GENERATE_PROPERTY_FUNCS(Vec3, GetCenter, SetCenter)
+SCRIPT_GENERATE_PROPERTY_FUNCS(Vec3, GetSize, SetSize)
+SCRIPT_GENERATE_PROPERTY_FUNCS(bool, GetEnabled, SetEnabled)
+SCRIPT_GENERATE_COMP_WRAPPER_END()
+
+using PhysicsComp = physics::PhysicsComp;
+// PhysicsComp
+SCRIPT_GENERATE_COMP_WRAPPER_BEGIN(PhysicsComp)
+SCRIPT_GENERATE_PROPERTY_FUNCS(Vec3, GetLinearVelocity, SetLinearVelocity)
+SCRIPT_GENERATE_PROPERTY_FUNCS(Vec3, GetAngularVelocity, SetAngularVelocity)
+
+SCRIPT_GENERATE_PROPERTY_FUNCS(bool, GetIsKinematic, SetIsKinematic)
+SCRIPT_GENERATE_PROPERTY_FUNCS(bool, GetUseGravity, SetUseGravity)
+SCRIPT_GENERATE_PROPERTY_FUNCS(bool, GetRotLockedX, SetRotLockedX)
+SCRIPT_GENERATE_PROPERTY_FUNCS(bool, GetRotLockedY, SetRotLockedY)
+SCRIPT_GENERATE_PROPERTY_FUNCS(bool, GetRotLockedZ, SetRotLockedZ)
+SCRIPT_GENERATE_PROPERTY_FUNCS(bool, GetEnabled, SetEnabled)
+void AddLinearVelocity(const Vec3& vel)
+{
+	GetHandle()->AddLinearVelocity(vel);
+}
+SCRIPT_GENERATE_COMP_WRAPPER_END()
+
 //=========================================== END REGISTERING COMPONENTS ================================================================================
 
 void Lua_Log(int level, std::string message)
@@ -112,11 +141,13 @@ void RegisterCppStuffToLua(luabridge::Namespace baseTable)
 	baseTable
 		// ----- CLASSES -----
 		.beginClass<Vec2>("Vec2")
-		.addProperty("x", [](const Vec2* v) -> float { return v->x; }, [](Vec2* v, float x) { v->x = x; })
-		.addProperty("y", [](const Vec2* v) -> float { return v->y; }, [](Vec2* v, float y) { v->y = y; })
+			.addConstructor<void(*)(float, float)>()
+			.addProperty("x", [](const Vec2* v) -> float { return v->x; }, [](Vec2* v, float x) { v->x = x; })
+			.addProperty("y", [](const Vec2* v) -> float { return v->y; }, [](Vec2* v, float y) { v->y = y; })
 		.endClass()
 
 		.beginClass<Vec3>("Vec3")
+			.addConstructor<void(*)(float, float, float)>()
 			.addProperty("x", [](const Vec3* v) -> float { return v->x; }, [](Vec3* v, float x) { v->x = x; })
 			.addProperty("y", [](const Vec3* v) -> float { return v->y; }, [](Vec3* v, float y) { v->y = y; })
 			.addProperty("z", [](const Vec3* v) -> float { return v->z; }, [](Vec3* v, float z) { v->z = z; })
@@ -142,6 +173,8 @@ void RegisterCppStuffToLua(luabridge::Namespace baseTable)
 		SCRIPT_REGISTER_COMP_GETTER(ShakeComponent)
 		SCRIPT_REGISTER_COMP_GETTER(LightComponent)
 		SCRIPT_REGISTER_COMP_GETTER(LightBlinkComponent)
+		SCRIPT_REGISTER_COMP_GETTER(BoxColliderComp)
+		SCRIPT_REGISTER_COMP_GETTER(PhysicsComp)
 
 		//=========================================== END REGISTER GETTER ================================================================================
 
@@ -203,6 +236,26 @@ void RegisterCppStuffToLua(luabridge::Namespace baseTable)
 		SCRIPT_REGISTER_COMP_PROPERTY(LightComponent, "innerConeAngle", GetInnerConeAngle, SetInnerConeAngle)
 		SCRIPT_REGISTER_COMP_PROPERTY(LightComponent, "outerConeAngle", GetOuterConeAngle, SetOuterConeAngle)
 		SCRIPT_REGISTER_COMP_PROPERTY(LightComponent, "name", GetName, SetName)
+		SCRIPT_REGISTER_COMP_END()
+
+		// BoxColliderComponent
+		SCRIPT_REGISTER_COMP_BEGIN(BoxColliderComp)
+		SCRIPT_REGISTER_COMP_PROPERTY(BoxColliderComp, "center", GetCenter, SetCenter)
+		SCRIPT_REGISTER_COMP_PROPERTY(BoxColliderComp, "size", GetSize, SetSize)
+		SCRIPT_REGISTER_COMP_PROPERTY(BoxColliderComp, "enabled", GetEnabled, SetEnabled)
+		SCRIPT_REGISTER_COMP_END()
+
+		// PhysicsComp (Slightly different in how takumi use it in his component but is same functions)
+		SCRIPT_REGISTER_COMP_BEGIN(PhysicsComp)
+		SCRIPT_REGISTER_COMP_PROPERTY(PhysicsComp, "linearVelocity", GetLinearVelocity, SetLinearVelocity)
+		SCRIPT_REGISTER_COMP_PROPERTY(PhysicsComp, "angularVelocity", GetAngularVelocity, SetAngularVelocity)
+		SCRIPT_REGISTER_COMP_PROPERTY(PhysicsComp, "isKinematic", GetIsKinematic, SetIsKinematic)
+		SCRIPT_REGISTER_COMP_PROPERTY(PhysicsComp, "useGravity", GetUseGravity, SetUseGravity)
+		SCRIPT_REGISTER_COMP_PROPERTY(PhysicsComp, "lockRotationX", GetRotLockedX, SetRotLockedX)
+		SCRIPT_REGISTER_COMP_PROPERTY(PhysicsComp, "lockRotationY", GetRotLockedY, SetRotLockedY)
+		SCRIPT_REGISTER_COMP_PROPERTY(PhysicsComp, "lockRotationZ", GetRotLockedZ, SetRotLockedZ)
+		SCRIPT_REGISTER_COMP_PROPERTY(PhysicsComp, "enabled", GetEnabled, SetEnabled)
+		SCRIPT_REGISTER_COMP_FUNCTION(PhysicsComp, "AddLinearVelocity", AddLinearVelocity)
 		SCRIPT_REGISTER_COMP_END()
 
 		// ----- GLOBAL FUNCTIONS -----

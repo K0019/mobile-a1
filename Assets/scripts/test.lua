@@ -51,6 +51,37 @@ function start(entity)
         Magic.Log(Magic.LogLevel.info, "END lightComp  =================================================")
     end
 
+    local boxCollisionComp = entity:GetBoxColliderComp();
+    if boxCollisionComp:Exists() then
+        Magic.Log(Magic.LogLevel.info, "Start boxCollisionComp  =================================================")
+        Magic.Log(Magic.LogLevel.info, boxCollisionComp.center.x)
+        Magic.Log(Magic.LogLevel.info, boxCollisionComp.size.x)
+        Magic.Log(Magic.LogLevel.info, "END boxCollisionComp  =================================================")
+    end
+
+    local physicsComp = entity:GetPhysicsComp();
+    if physicsComp:Exists() then
+        --Slightly diff from original physics comp in engine
+        Magic.Log(Magic.LogLevel.info, "Start GetPhysicsComp  =================================================")
+        -- flags (bools)
+        Magic.Log(Magic.LogLevel.info, "isKinematic   = " .. tostring(physicsComp.isKinematic))
+        Magic.Log(Magic.LogLevel.info, "useGravity    = " .. tostring(physicsComp.useGravity))
+        Magic.Log(Magic.LogLevel.info, "lockRotationX = " .. tostring(physicsComp.lockRotationX))
+        Magic.Log(Magic.LogLevel.info, "lockRotationY = " .. tostring(physicsComp.lockRotationY))
+        Magic.Log(Magic.LogLevel.info, "lockRotationZ = " .. tostring(physicsComp.lockRotationZ))
+        Magic.Log(Magic.LogLevel.info, "enabled       = " .. tostring(physicsComp.enabled))
+        -- nudge linear velocity a bit using AddLinearVelocity
+        physicsComp:AddLinearVelocity(Magic.Vec3(1.0, 0.0, 0.0))   -- +X impulse
+        -- set angular velocity directly
+        physicsComp.angularVelocity = Magic.Vec3(0.0, 90.0, 0.0)
+        local lv2 = physicsComp.linearVelocity
+        Magic.Log(Magic.LogLevel.info,string.format("linearVelocity (after) = (%.3f, %.3f, %.3f)", lv2.x, lv2.y, lv2.z))
+        local av2 = physicsComp.angularVelocity
+        Magic.Log(Magic.LogLevel.info,string.format("angularVelocity (after) = (%.3f, %.3f, %.3f)", av2.x, av2.y, av2.z))
+        Magic.Log(Magic.LogLevel.info, "isKinematic   (after) = " .. tostring(physicsComp.isKinematic))
+        Magic.Log(Magic.LogLevel.info, "useGravity    (after) = " .. tostring(physicsComp.useGravity))
+        Magic.Log(Magic.LogLevel.info, "END GetPhysicsComp  =================================================")
+    end
     --Magic.TestFunction(entity);
     --print(entity.transform.localPosition.x)
 end
