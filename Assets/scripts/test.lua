@@ -19,6 +19,17 @@ function start(entity)
         Magic.Log(Magic.LogLevel.info, "END AUDIO SOURCE =================================================")
 
     end
+
+    local cameraComp = entity:GetCameraComponent();
+    if cameraComp:Exists() then
+        Magic.Log(Magic.LogLevel.info, "Start CAMERA  =================================================")
+        Magic.Log(Magic.LogLevel.info, tostring(cameraComp.active))
+        Magic.Log(Magic.LogLevel.info, cameraComp.zoom)
+        cameraComp.active = false
+        Magic.Log(Magic.LogLevel.info, tostring(cameraComp.active))
+        Magic.Log(Magic.LogLevel.info, "END CAMERA  =================================================")
+
+    end
     --Magic.TestFunction(entity);
     --print(entity.transform.localPosition.x)
 end

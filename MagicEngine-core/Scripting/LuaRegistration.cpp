@@ -27,7 +27,10 @@ All rights reserved.
 #include "LuaTypesECS.h"
 #include "Components/NameComponent.h"
 #include "Engine/Audio.h"
+#include "Graphics/CameraComponent.h"
 
+
+//=========================================== START REGISTERING COMPONENTS ================================================================================
 // This section is unfortunately required. This registers what functions are available in a component.
 
 //Name Component
@@ -46,6 +49,26 @@ SCRIPT_GENERATE_COMP_WRAPPER_BEGIN(AudioSourceComponent)
 	SCRIPT_GENERATE_PROPERTY_FUNCS(bool, IsPlaying, SetIsPlaying)
 	void Play(int a) { GetHandle()->Play(static_cast<AudioType>(a)); }
 SCRIPT_GENERATE_COMP_WRAPPER_END()
+
+// CameraComponent
+SCRIPT_GENERATE_COMP_WRAPPER_BEGIN(CameraComponent)
+SCRIPT_GENERATE_PROPERTY_FUNCS(bool, GetActive, SetActiveLua)
+SCRIPT_GENERATE_PROPERTY_FUNCS(float, GetZoom, SetZoom)
+SCRIPT_GENERATE_COMP_WRAPPER_END()
+
+// AnchorToCameraComponent – no properties, but we still generate a wrapper type
+SCRIPT_GENERATE_COMP_WRAPPER_BEGIN(AnchorToCameraComponent)
+SCRIPT_GENERATE_COMP_WRAPPER_END()
+
+// ShakeComponent
+SCRIPT_GENERATE_COMP_WRAPPER_BEGIN(ShakeComponent)
+SCRIPT_GENERATE_PROPERTY_FUNCS(float, GetTraumaLua, SetTraumaLua)
+SCRIPT_GENERATE_PROPERTY_FUNCS(float, GetTraumaExponent, SetTraumaExponent)
+SCRIPT_GENERATE_PROPERTY_FUNCS(float, GetRecoverySpeed, SetRecoverySpeed)
+SCRIPT_GENERATE_PROPERTY_FUNCS(float, GetFrequency, SetFrequency)
+SCRIPT_GENERATE_COMP_WRAPPER_END()
+
+//=========================================== END REGISTERING COMPONENTS ================================================================================
 
 void Lua_Log(int level, std::string message)
 {
@@ -82,9 +105,16 @@ void RegisterCppStuffToLua(luabridge::Namespace baseTable)
 		.beginClass<ecs::Entity>("Entity")
 			.addProperty("transform", [](ecs::EntityHandle entity) -> Transform* { return &entity->GetTransform(); })
 
+		//=========================================== START REGISTER GETTER ================================================================================
+
 			// This section allows lua to get components
 			SCRIPT_REGISTER_COMP_GETTER(NameComponent)  // syntax e.g. - local nameComp = entity:GetNameComponent(); if nameComp:Exists() then ...;
 			SCRIPT_REGISTER_COMP_GETTER(AudioSourceComponent)
+			SCRIPT_REGISTER_COMP_GETTER(CameraComponent)
+			SCRIPT_REGISTER_COMP_GETTER(AnchorToCameraComponent)
+			SCRIPT_REGISTER_COMP_GETTER(ShakeComponent)
+		//=========================================== END REGISTER GETTER ================================================================================
+
 		.endClass()
 		// This section registers the component type to lua and allows lua to call functions on that component. Ensure the getter/setter names align with your GENERATE macro calls at the top of this file.
 
@@ -103,6 +133,28 @@ void RegisterCppStuffToLua(luabridge::Namespace baseTable)
 			SCRIPT_REGISTER_COMP_PROPERTY(AudioSourceComponent, "audioFile", GetAudioFile, SetAudioFile)
 			SCRIPT_REGISTER_COMP_PROPERTY(AudioSourceComponent, "isPlaying", IsPlaying, SetIsPlaying)
 			SCRIPT_REGISTER_COMP_FUNCTION(AudioSourceComponent, "Play", Play)
+		SCRIPT_REGISTER_COMP_END()
+
+		// CameraComponent
+		SCRIPT_REGISTER_COMP_BEGIN(CameraComponent)
+		SCRIPT_REGISTER_COMP_PROPERTY(CameraComponent, "active", GetActive, SetActiveLua)
+		SCRIPT_REGISTER_COMP_PROPERTY(CameraComponent, "zoom", GetZoom, SetZoom)
+		SCRIPT_REGISTER_COMP_END()
+
+		// AnchorToCameraComponent (no properties / functions for now)
+		SCRIPT_REGISTER_COMP_BEGIN(AnchorToCameraComponent)
+		SCRIPT_REGISTER_COMP_END()
+
+		// ShakeComponent
+		SCRIPT_REGISTER_COMP_BEGIN(ShakeComponent)
+		SCRIPT_REGISTER_COMP_PROPERTY(ShakeComponent, "trauma", GetTraumaLua, SetTraumaLua)
+		SCRIPT_REGISTER_COMP_PROPERTY(ShakeComponent, "traumaExponent", GetTraumaExponent, SetTraumaExponent)
+		SCRIPT_REGISTER_COMP_PROPERTY(ShakeComponent, "recoverySpeed", GetRecoverySpeed, SetRecoverySpeed)
+		SCRIPT_REGISTER_COMP_PROPERTY(ShakeComponent, "frequency", GetFrequency, SetFrequency)
+
+		// Behaviour functions
+		//SCRIPT_REGISTER_COMP_FUNCTION(ShakeComponent,"InduceStress", InduceStress)
+		//SCRIPT_REGISTER_COMP_FUNCTION(ShakeComponent,"UpdateTime",		UpdateTime)
 		SCRIPT_REGISTER_COMP_END()
 
 		// ----- GLOBAL FUNCTIONS -----
