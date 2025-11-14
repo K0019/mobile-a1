@@ -267,6 +267,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/shelf.mesh",
+            "resources": [
+                {
+                    "resourceType": 6209910166724260588,
+                    "resourceEntries": [
+                        {
+                            "hash": 1089787547996323405,
+                            "name": "shelf0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/textures/_12.ktx2",
             "resources": [
                 {
@@ -387,6 +401,20 @@
                         {
                             "hash": 201087483436639509,
                             "name": "_050"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/shelf_small.mesh",
+            "resources": [
+                {
+                    "resourceType": 6209910166724260588,
+                    "resourceEntries": [
+                        {
+                            "hash": 1664505574374296871,
+                            "name": "shelf_small0"
                         }
                     ]
                 }

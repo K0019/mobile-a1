@@ -106,7 +106,7 @@ void CharacterMovementComponent::Throw(Vec3 direction)
 	auto tmpItem = heldItem;
 	DropItem();
 
-	tmpItem->GetComp<physics::PhysicsComp>()->SetLinearVelocity(direction*10.0f);
+	tmpItem->GetComp<physics::PhysicsComp>()->SetLinearVelocity(direction);
 }
 
 void CharacterMovementComponent::GrabItem(ecs::CompHandle<GrabbableItemComponent> item)
