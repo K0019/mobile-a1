@@ -50,6 +50,30 @@ public:
     void Serialize(Serializer& writer) const override;
     void Deserialize(Deserializer& reader) override;
 
+    // ===== Lua wrappers =====
+public:
+    int GetTypeLua() const
+    {
+        return static_cast<int>(light.type); // 0..3
+    }
+    void SetTypeLua(int t)
+    {
+        light.type = static_cast<LightType>(t);
+    }
+
+    float GetIntensity() const { return light.intensity; }
+    void  SetIntensity(float v) { light.intensity = v; }
+
+    float GetInnerConeAngle() const { return light.innerConeAngle; }
+    void  SetInnerConeAngle(float v) { light.innerConeAngle = v; }
+
+    float GetOuterConeAngle() const { return light.outerConeAngle; }
+    void  SetOuterConeAngle(float v) { light.outerConeAngle = v; }
+
+    std::string GetName() const { return light.name; }
+    void        SetName(const std::string& n) { light.name = n; }
+
+
 };
 
 
@@ -101,6 +125,24 @@ private:
     float accumulatedTime;
 
     property_vtable()
+
+public:
+    // ===== For Lua =====
+    float GetMinAlpha()   const { return minAlpha; }
+    void  SetMinAlpha(float v) { minAlpha = v; }
+
+    float GetMaxAlpha()   const { return maxAlpha; }
+    void  SetMaxAlpha(float v) { maxAlpha = v; }
+
+    float GetMinRadius()  const { return minRadius; }
+    void  SetMinRadius(float v) { minRadius = v; }
+
+    float GetMaxRadius()  const { return maxRadius; }
+    void  SetMaxRadius(float v) { maxRadius = v; }
+
+    float GetSpeed()      const { return speed; }
+    void  SetSpeed(float v) { speed = v; }
+
 };
 property_begin(LightBlinkComponent)
 {

@@ -148,6 +148,27 @@ X(ENABLED, "Enabled")
 		*//******************************************************************/
 		void SetAngularVelocity(const Vec3& vel);
 
+		// ===== Lua helpers =====
+	public:
+		bool GetIsKinematic() const { return GetFlag(PHYSICS_COMP_FLAG::IS_KINEMATIC); }
+		void SetIsKinematic(bool v) { SetFlag(PHYSICS_COMP_FLAG::IS_KINEMATIC, v); }
+
+		bool GetUseGravity() const { return GetFlag(PHYSICS_COMP_FLAG::USE_GRAVITY); }
+		void SetUseGravity(bool v) { SetFlag(PHYSICS_COMP_FLAG::USE_GRAVITY, v); }
+
+		bool GetRotLockedX() const { return GetFlag(PHYSICS_COMP_FLAG::ROTATION_LOCKED_X); }
+		void SetRotLockedX(bool v) { SetFlag(PHYSICS_COMP_FLAG::ROTATION_LOCKED_X, v); }
+
+		bool GetRotLockedY() const { return GetFlag(PHYSICS_COMP_FLAG::ROTATION_LOCKED_Y); }
+		void SetRotLockedY(bool v) { SetFlag(PHYSICS_COMP_FLAG::ROTATION_LOCKED_Y, v); }
+
+		bool GetRotLockedZ() const { return GetFlag(PHYSICS_COMP_FLAG::ROTATION_LOCKED_Z); }
+		void SetRotLockedZ(bool v) { SetFlag(PHYSICS_COMP_FLAG::ROTATION_LOCKED_Z, v); }
+
+		bool GetEnabled() const { return GetFlag(PHYSICS_COMP_FLAG::ENABLED); }
+		void SetEnabled(bool v) { SetFlag(PHYSICS_COMP_FLAG::ENABLED, v); }
+
+
 	private:
 		/*****************************************************************//*!
 		\brief

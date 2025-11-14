@@ -91,4 +91,7 @@ public: \
 #define SCRIPT_REGISTER_COMP_PROPERTY(compType, propertyName, Getter, Setter) \
 		.addProperty(propertyName, &LuaWrapperComp_##compType::Getter, &LuaWrapperComp_##compType::Setter)
 
+#define SCRIPT_REGISTER_COMP_FUNCTION(compType, luaFuncName, funcName) \
+		.addFunction(luaFuncName, &LuaWrapperComp_##compType::funcName)
+
 #define SCRIPT_REGISTER_COMP_END() .endClass()
