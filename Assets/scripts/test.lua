@@ -171,6 +171,25 @@ if health and health:Exists() then
     Magic.Log(Magic.LogLevel.info, "=== HealthComponent TEST END ===")
 end
 
+local layerComp = entity:GetEntityLayerComponent()
+if layerComp and layerComp:Exists() then
+    Magic.Log(Magic.LogLevel.info, "=== EntityLayer TEST START ===")
+
+    Magic.Log(
+        Magic.LogLevel.info,
+        "Current layer (int) = " .. tostring(layerComp.layer)
+    )
+
+    -- Change it to PLAYER
+    layerComp.layer = Magic.EntityLayer.Player
+    Magic.Log(
+        Magic.LogLevel.info,
+        "New layer (int) = " .. tostring(layerComp.layer)
+    )
+
+    Magic.Log(Magic.LogLevel.info, "=== EntityLayer TEST END ===")
+end
+
 
     --Magic.TestFunction(entity);
     --print(entity.transform.localPosition.x)

@@ -36,6 +36,7 @@ All rights reserved.
 #include "Game/PlayerCharacter.h"
 #include "Game/GrabbableItem.h"
 #include "Game/Health.h"
+#include "Engine/EntityLayers.h"
 
 //=========================================== START REGISTERING COMPONENTS ================================================================================
 // This section is unfortunately required. This registers what functions are available in a component.
@@ -194,6 +195,19 @@ float GetHealthFractionLua() const
 }
 SCRIPT_GENERATE_COMP_WRAPPER_END()
 
+// EntityLayerComponent
+SCRIPT_GENERATE_COMP_WRAPPER_BEGIN(EntityLayerComponent)
+int GetLayerLua() const
+{
+	return static_cast<int>(GetHandle()->GetLayer());
+}
+
+void SetLayerLua(int v)
+{
+	GetHandle()->SetLayer(static_cast<ENTITY_LAYER>(v));
+}
+SCRIPT_GENERATE_COMP_WRAPPER_END()
+
 //=========================================== END REGISTERING COMPONENTS ================================================================================
 
 void Lua_Log(int level, std::string message)
@@ -255,6 +269,7 @@ void RegisterCppStuffToLua(luabridge::Namespace baseTable)
 		SCRIPT_REGISTER_COMP_GETTER(PlayerMovementComponent)
 		SCRIPT_REGISTER_COMP_GETTER(GrabbableItemComponent)
 		SCRIPT_REGISTER_COMP_GETTER(HealthComponent)
+		SCRIPT_REGISTER_COMP_GETTER(EntityLayerComponent)
 		//=========================================== END REGISTER GETTER ================================================================================
 
 		.endClass()
@@ -390,6 +405,11 @@ void RegisterCppStuffToLua(luabridge::Namespace baseTable)
 		SCRIPT_REGISTER_COMP_FUNCTION(HealthComponent,"IsDead", IsDead)
 		SCRIPT_REGISTER_COMP_FUNCTION(HealthComponent,"GetHealthFraction", GetHealthFractionLua)
 		SCRIPT_REGISTER_COMP_END()
+
+		// EntityLayerComponent
+		SCRIPT_REGISTER_COMP_BEGIN(EntityLayerComponent)
+		SCRIPT_REGISTER_COMP_PROPERTY(EntityLayerComponent,"layer", GetLayerLua, SetLayerLua)
+		SCRIPT_REGISTER_COMP_END()
 		// ----- GLOBAL FUNCTIONS -----
 		.addFunction("Log", Lua_Log)
 
@@ -409,5 +429,11 @@ void RegisterCppStuffToLua(luabridge::Namespace baseTable)
 			.addVariable("Point", static_cast<int>(LightType::Point))
 			.addVariable("Spot", static_cast<int>(LightType::Spot))
 			.addVariable("Area", static_cast<int>(LightType::Area))
+		.endNamespace()
+		.beginNamespace("EntityLayer")
+			.addVariable("Default", static_cast<int>(ENTITY_LAYER::DEFAULT))
+			.addVariable("Environment", static_cast<int>(ENTITY_LAYER::ENVIRONMENT))
+			.addVariable("Player", static_cast<int>(ENTITY_LAYER::PLAYER))
+			.addVariable("Enemy", static_cast<int>(ENTITY_LAYER::ENEMY))
 		.endNamespace();
 }
