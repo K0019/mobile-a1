@@ -339,6 +339,7 @@ namespace compiler
     {
         std::vector<MeshNode> finalNodes;
 		std::vector<MeshInfo> finalMeshInfos;
+		std::string meshNames; // String with names separated by \0s
 		std::string materialNames; // String with names separated by \0s
 		std::vector<uint32_t> finalIndices;
 		std::vector<Vertex> finalVertices;
@@ -371,6 +372,10 @@ namespace compiler
 			meshInfo.firstVertex = vertexOffset;
 			meshInfo.materialNameIndex = materialIndexToNameOffset[mesh.materialIndex];
 			meshInfo.meshBounds = mesh.bounds;
+
+            meshInfo.nameOffset = static_cast<uint32_t>(meshNames.size());
+            meshNames += mesh.name; // This is the aiMesh->mName
+            meshNames += '\0';
 
             meshInfo.firstMorphTarget = static_cast<uint32_t>(finalMorphTargets.size());
             meshInfo.morphTargetCount = static_cast<uint32_t>(mesh.morphTargets.size());
@@ -463,6 +468,7 @@ namespace compiler
 		header.numMeshes = static_cast<uint32_t>(finalMeshInfos.size());
 		header.totalIndices = static_cast<uint32_t>(finalIndices.size());
 		header.totalVertices = static_cast<uint32_t>(finalVertices.size());
+        header.meshNameBufferSize = static_cast<uint32_t>(meshNames.size());
 		header.materialNameBufferSize = static_cast<uint32_t>(materialNames.size());
 
         header.hasSkeleton = finalBones.empty() ? 0 : 1;
@@ -488,6 +494,9 @@ namespace compiler
 
         header.meshInfoDataOffset = currentOffset;
         currentOffset += finalMeshInfos.size() * sizeof(MeshInfo);
+
+        header.meshNamesOffset = currentOffset;
+        currentOffset += meshNames.size();
 
         header.materialNamesOffset = currentOffset;
         currentOffset += materialNames.size();
@@ -527,6 +536,7 @@ namespace compiler
         outFile.write(reinterpret_cast<const char*>(&header), sizeof(MeshFileHeader));
         outFile.write(reinterpret_cast<const char*>(finalNodes.data()), finalNodes.size() * sizeof(MeshNode));
         outFile.write(reinterpret_cast<const char*>(finalMeshInfos.data()), finalMeshInfos.size() * sizeof(MeshInfo));
+        outFile.write(meshNames.c_str(), meshNames.size());
         outFile.write(materialNames.c_str(), materialNames.size());
         outFile.write(reinterpret_cast<const char*>(finalIndices.data()), finalIndices.size() * sizeof(uint32_t));
         outFile.write(reinterpret_cast<const char*>(finalVertices.data()), finalVertices.size() * sizeof(Vertex));

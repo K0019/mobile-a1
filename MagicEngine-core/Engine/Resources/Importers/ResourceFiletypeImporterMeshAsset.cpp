@@ -10,6 +10,7 @@
 // Just copy pasting definitions from assetcompiler/MeshFileStructure.h 
 // To make engine not depend on assetcompiler project
 
+
 constexpr uint32_t MESH_FILE_MAGIC = { 'MESH' };
 
 #pragma pack(push, 1)
@@ -22,6 +23,7 @@ struct MeshFileHeader
     uint32_t numMeshes;
     uint32_t totalIndices;
     uint32_t totalVertices;
+    uint32_t meshNameBufferSize;
     uint32_t materialNameBufferSize; // Total size of the material name block
 
     // Skelaton
@@ -48,6 +50,7 @@ struct MeshFileHeader
     // Offsets to the start of each data block from the beginning of the file
     uint64_t nodeDataOffset;
     uint64_t meshInfoDataOffset;
+    uint64_t meshNamesOffset;
     uint64_t materialNamesOffset;
     uint64_t indexDataOffset;
     uint64_t vertexDataOffset;
@@ -76,6 +79,7 @@ struct MeshInfo
     uint32_t indexCount;
     uint32_t firstIndex;        // Offset into the index buffer
     uint32_t firstVertex;       // Offset into the vertex buffer
+    uint32_t nameOffset;
     uint32_t materialNameIndex; // Index into the material name offset table
 
     // Bounding volume for this individual mesh part
@@ -157,6 +161,7 @@ namespace internal
         // Read file data
         std::vector<MeshNode> nodes(header.numNodes);
         std::vector<MeshInfo> meshInfos(header.numMeshes);
+        std::vector<char> meshNameBuffer(header.meshNameBufferSize);
         std::vector<char> materialNamesBuffer(header.materialNameBufferSize);
         std::vector<uint32_t> allIndices(header.totalIndices);
         std::vector<Vertex> allVertices(header.totalVertices); // CompilerTypes.h's Vertex must be exactly the same
@@ -174,6 +179,9 @@ namespace internal
 
         file->Seek(header.meshInfoDataOffset, SeekOrigin::Begin);
         file->Read(meshInfos.data(), meshInfos.size() * sizeof(MeshInfo));
+
+        file->Seek(header.meshNamesOffset, SeekOrigin::Begin);
+        file->Read(meshNameBuffer.data(), meshNameBuffer.size());
 
         file->Seek(header.materialNamesOffset, SeekOrigin::Begin);
         file->Read(materialNamesBuffer.data(), materialNamesBuffer.size());
@@ -280,6 +288,7 @@ namespace internal
         for (const auto& meshInfo : meshInfos)
         {
             Resource::ProcessedMesh mesh;
+            mesh.name = &meshNameBuffer[meshInfo.nameOffset];
 
             // Find the material index for this mesh
             mesh.materialIndex = nameOffsetToMaterialIndex[meshInfo.materialNameIndex];

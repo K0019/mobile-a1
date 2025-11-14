@@ -37,6 +37,7 @@ namespace compiler
         uint32_t numMeshes;
         uint32_t totalIndices;
         uint32_t totalVertices;
+        uint32_t meshNameBufferSize;
         uint32_t materialNameBufferSize; // Total size of the material name block
 
         // Skelaton
@@ -63,6 +64,7 @@ namespace compiler
         // Offsets to the start of each data block from the beginning of the file
         uint64_t nodeDataOffset;
         uint64_t meshInfoDataOffset;
+        uint64_t meshNamesOffset;
         uint64_t materialNamesOffset;
         uint64_t indexDataOffset;
         uint64_t vertexDataOffset;
@@ -91,6 +93,7 @@ namespace compiler
         uint32_t indexCount;
         uint32_t firstIndex;        // Offset into the index buffer
         uint32_t firstVertex;       // Offset into the vertex buffer
+        uint32_t nameOffset;
         uint32_t materialNameIndex; // Index into the material name offset table
 
         // Bounding volume for this individual mesh part
