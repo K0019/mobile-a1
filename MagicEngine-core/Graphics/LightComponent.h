@@ -101,6 +101,24 @@ private:
     float accumulatedTime;
 
     property_vtable()
+
+public:
+    // ===== For Lua =====
+    float GetMinAlpha()   const { return minAlpha; }
+    void  SetMinAlpha(float v) { minAlpha = v; }
+
+    float GetMaxAlpha()   const { return maxAlpha; }
+    void  SetMaxAlpha(float v) { maxAlpha = v; }
+
+    float GetMinRadius()  const { return minRadius; }
+    void  SetMinRadius(float v) { minRadius = v; }
+
+    float GetMaxRadius()  const { return maxRadius; }
+    void  SetMaxRadius(float v) { maxRadius = v; }
+
+    float GetSpeed()      const { return speed; }
+    void  SetSpeed(float v) { speed = v; }
+
 };
 property_begin(LightBlinkComponent)
 {

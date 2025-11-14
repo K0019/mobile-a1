@@ -30,6 +30,17 @@ function start(entity)
         Magic.Log(Magic.LogLevel.info, "END CAMERA  =================================================")
 
     end
+
+    local lightBlinkComp = entity:GetLightBlinkComponent();
+    if lightBlinkComp:Exists() then
+        Magic.Log(Magic.LogLevel.info, "Start lightBlinkComp  =================================================")
+        Magic.Log(Magic.LogLevel.info, lightBlinkComp.minAlpha)
+        lightBlinkComp.minAlpha = 0.1
+        Magic.Log(Magic.LogLevel.info, lightBlinkComp.minAlpha)
+        local  result = lightBlinkComp:AddTimeElapsed(0.016) 
+        Magic.Log(Magic.LogLevel.info, "Blink intensity=" .. result.x .. " radius=" .. result.y)
+        Magic.Log(Magic.LogLevel.info, "END lightBlinkComp  =================================================")
+    end
     --Magic.TestFunction(entity);
     --print(entity.transform.localPosition.x)
 end

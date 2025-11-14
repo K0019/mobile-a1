@@ -28,6 +28,7 @@ All rights reserved.
 #include "Components/NameComponent.h"
 #include "Engine/Audio.h"
 #include "Graphics/CameraComponent.h"
+#include "Graphics/LightComponent.h"
 
 
 //=========================================== START REGISTERING COMPONENTS ================================================================================
@@ -68,6 +69,19 @@ SCRIPT_GENERATE_PROPERTY_FUNCS(float, GetRecoverySpeed, SetRecoverySpeed)
 SCRIPT_GENERATE_PROPERTY_FUNCS(float, GetFrequency, SetFrequency)
 SCRIPT_GENERATE_COMP_WRAPPER_END()
 
+// LightBlinkComponent
+SCRIPT_GENERATE_COMP_WRAPPER_BEGIN(LightBlinkComponent)
+SCRIPT_GENERATE_PROPERTY_FUNCS(float, GetMinAlpha, SetMinAlpha)
+SCRIPT_GENERATE_PROPERTY_FUNCS(float, GetMaxAlpha, SetMaxAlpha)
+SCRIPT_GENERATE_PROPERTY_FUNCS(float, GetMinRadius, SetMinRadius)
+SCRIPT_GENERATE_PROPERTY_FUNCS(float, GetMaxRadius, SetMaxRadius)
+SCRIPT_GENERATE_PROPERTY_FUNCS(float, GetSpeed, SetSpeed)
+Vec2 AddTimeElapsed(float dt) {
+	return GetHandle()->AddTimeElapsed(static_cast<float>(dt));
+}
+
+SCRIPT_GENERATE_COMP_WRAPPER_END()
+
 //=========================================== END REGISTERING COMPONENTS ================================================================================
 
 void Lua_Log(int level, std::string message)
@@ -89,6 +103,11 @@ void RegisterCppStuffToLua(luabridge::Namespace baseTable)
 
 	baseTable
 		// ----- CLASSES -----
+		.beginClass<Vec2>("Vec2")
+		.addProperty("x", [](const Vec2* v) -> float { return v->x; }, [](Vec2* v, float x) { v->x = x; })
+		.addProperty("y", [](const Vec2* v) -> float { return v->y; }, [](Vec2* v, float y) { v->y = y; })
+		.endClass()
+
 		.beginClass<Vec3>("Vec3")
 			.addProperty("x", [](const Vec3* v) -> float { return v->x; }, [](Vec3* v, float x) { v->x = x; })
 			.addProperty("y", [](const Vec3* v) -> float { return v->y; }, [](Vec3* v, float y) { v->y = y; })
@@ -107,12 +126,14 @@ void RegisterCppStuffToLua(luabridge::Namespace baseTable)
 
 		//=========================================== START REGISTER GETTER ================================================================================
 
-			// This section allows lua to get components
-			SCRIPT_REGISTER_COMP_GETTER(NameComponent)  // syntax e.g. - local nameComp = entity:GetNameComponent(); if nameComp:Exists() then ...;
-			SCRIPT_REGISTER_COMP_GETTER(AudioSourceComponent)
-			SCRIPT_REGISTER_COMP_GETTER(CameraComponent)
-			SCRIPT_REGISTER_COMP_GETTER(AnchorToCameraComponent)
-			SCRIPT_REGISTER_COMP_GETTER(ShakeComponent)
+		// This section allows lua to get components
+		SCRIPT_REGISTER_COMP_GETTER(NameComponent)  // syntax e.g. - local nameComp = entity:GetNameComponent(); if nameComp:Exists() then ...;
+		SCRIPT_REGISTER_COMP_GETTER(AudioSourceComponent)
+		SCRIPT_REGISTER_COMP_GETTER(CameraComponent)
+		SCRIPT_REGISTER_COMP_GETTER(AnchorToCameraComponent)
+		SCRIPT_REGISTER_COMP_GETTER(ShakeComponent)
+		SCRIPT_REGISTER_COMP_GETTER(LightBlinkComponent)
+
 		//=========================================== END REGISTER GETTER ================================================================================
 
 		.endClass()
@@ -152,9 +173,20 @@ void RegisterCppStuffToLua(luabridge::Namespace baseTable)
 		SCRIPT_REGISTER_COMP_PROPERTY(ShakeComponent, "recoverySpeed", GetRecoverySpeed, SetRecoverySpeed)
 		SCRIPT_REGISTER_COMP_PROPERTY(ShakeComponent, "frequency", GetFrequency, SetFrequency)
 
-		// Behaviour functions
 		//SCRIPT_REGISTER_COMP_FUNCTION(ShakeComponent,"InduceStress", InduceStress)
 		//SCRIPT_REGISTER_COMP_FUNCTION(ShakeComponent,"UpdateTime",		UpdateTime)
+		SCRIPT_REGISTER_COMP_END()
+
+		// LightBlinkComponent
+		SCRIPT_REGISTER_COMP_BEGIN(LightBlinkComponent)
+		SCRIPT_REGISTER_COMP_PROPERTY(LightBlinkComponent, "minAlpha", GetMinAlpha, SetMinAlpha)
+		SCRIPT_REGISTER_COMP_PROPERTY(LightBlinkComponent, "maxAlpha", GetMaxAlpha, SetMaxAlpha)
+		SCRIPT_REGISTER_COMP_PROPERTY(LightBlinkComponent, "minRadius", GetMinRadius, SetMinRadius)
+		SCRIPT_REGISTER_COMP_PROPERTY(LightBlinkComponent, "maxRadius", GetMaxRadius, SetMaxRadius)
+		SCRIPT_REGISTER_COMP_PROPERTY(LightBlinkComponent, "speed", GetSpeed, SetSpeed)
+
+		// Optional: expose the behaviour function too
+		SCRIPT_REGISTER_COMP_FUNCTION(LightBlinkComponent, "AddTimeElapsed", AddTimeElapsed)
 		SCRIPT_REGISTER_COMP_END()
 
 		// ----- GLOBAL FUNCTIONS -----
