@@ -82,6 +82,61 @@ function start(entity)
         Magic.Log(Magic.LogLevel.info, "useGravity    (after) = " .. tostring(physicsComp.useGravity))
         Magic.Log(Magic.LogLevel.info, "END GetPhysicsComp  =================================================")
     end
+
+    local charComp = entity:GetCharacterMovementComponent()
+    if charComp and charComp:Exists() then
+        Magic.Log(Magic.LogLevel.info, "Start charComp  =================================================")
+
+        -- read properties
+        local mv = charComp.movementVector
+        Magic.Log(Magic.LogLevel.info,
+            string.format("movementVector = (%.3f, %.3f)", mv.x, mv.y))
+
+        Magic.Log(Magic.LogLevel.info, "moveSpeed           = " .. tostring(charComp.moveSpeed))
+        Magic.Log(Magic.LogLevel.info, "rotateSpeed         = " .. tostring(charComp.rotateSpeed))
+        Magic.Log(Magic.LogLevel.info, "stunTimePerHit      = " .. tostring(charComp.stunTimePerHit))
+        Magic.Log(Magic.LogLevel.info, "groundFriction      = " .. tostring(charComp.groundFriction))
+        Magic.Log(Magic.LogLevel.info, "dodgeCooldown       = " .. tostring(charComp.dodgeCooldown))
+        Magic.Log(Magic.LogLevel.info, "dodgeDuration       = " .. tostring(charComp.dodgeDuration))
+        Magic.Log(Magic.LogLevel.info, "dodgeSpeed          = " .. tostring(charComp.dodgeSpeed))
+        Magic.Log(Magic.LogLevel.info, "currentStunTime     = " .. tostring(charComp.currentStunTime))
+        Magic.Log(Magic.LogLevel.info, "currentDodgeTime    = " .. tostring(charComp.currentDodgeTime))
+        Magic.Log(Magic.LogLevel.info, "currentDodgeCooldown= " .. tostring(charComp.currentDodgeCooldown))
+
+        -- tweak movement vector & speed
+        charComp.movementVector = Magic.Vec2(1.0, 0.0)      -- move right
+        charComp.moveSpeed      = charComp.moveSpeed + 1.0
+
+        -- try some behaviours
+        charComp:Dodge(Magic.Vec2(1.0, 0.0))                -- dodge to the right
+        charComp:RotateTowards(Magic.Vec2(0.0, 1.0))        -- face "up"
+        charComp:Attack()
+
+        Magic.Log(Magic.LogLevel.info, "END charComp  =================================================")
+    end
+
+    local grabComp = entity:GetGrabbableItemComponent()
+    if grabComp and grabComp:Exists() then
+        Magic.Log(Magic.LogLevel.info, "Start grabComp  =================================================")
+
+        Magic.Log(Magic.LogLevel.info, "damage = " .. tostring(grabComp.damage))
+        Magic.Log(Magic.LogLevel.info, "isHeld = " .. tostring(grabComp.isHeld))
+
+        -- tweak damage a bit
+        grabComp.damage = grabComp.damage + 5.0
+
+        Magic.Log(Magic.LogLevel.info, "damage (after) = " .. tostring(grabComp.damage))
+
+        --IDK HOW TEST PROPERLY HERE IT JUST CRASH
+        -- -- test Attack: origin/direction as Vec3
+        -- local origin    = Magic.Vec3(0.0, 0.0, 0.0)
+        -- local direction = Magic.Vec3(1.0, 0.0, 0.0)
+
+        -- grabComp:Attack(origin, direction)
+
+        Magic.Log(Magic.LogLevel.info, "END grabComp  =================================================")
+    end
+
     --Magic.TestFunction(entity);
     --print(entity.transform.localPosition.x)
 end

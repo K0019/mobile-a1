@@ -72,6 +72,38 @@ public:
 
 	property_vtable()
 
+	// ===== Lua helpers =====
+public:
+	float GetMoveSpeed() const { return moveSpeed; }
+	void  SetMoveSpeed(float v) { moveSpeed = v; }
+
+	float GetRotateSpeed() const { return rotateSpeed; }
+	void  SetRotateSpeed(float v) { rotateSpeed = v; }
+
+	float GetStunTimePerHit() const { return stunTimePerHit; }
+	void  SetStunTimePerHit(float v) { stunTimePerHit = v; }
+
+	float GetGroundFriction() const { return groundFriction; }
+	void  SetGroundFriction(float v) { groundFriction = v; }
+
+	float GetDodgeCooldown() const { return dodgeCooldown; }
+	void  SetDodgeCooldown(float v) { dodgeCooldown = v; }
+
+	float GetDodgeDuration() const { return dodgeDuration; }
+	void  SetDodgeDuration(float v) { dodgeDuration = v; }
+
+	float GetDodgeSpeed() const { return dodgeSpeed; }
+	void  SetDodgeSpeed(float v) { dodgeSpeed = v; }
+
+	float GetCurrentStunTime() const { return currentStunTime; }
+	void  SetCurrentStunTime(float v) { currentStunTime = v; }
+
+	float GetCurrentDodgeTime() const { return currentDodgeTime; }
+	void  SetCurrentDodgeTime(float v) { currentDodgeTime = v; }
+
+	float GetCurrentDodgeCooldown() const { return currentDodgeCooldown; }
+	void  SetCurrentDodgeCooldown(float v) { currentDodgeCooldown = v; }
+
 private:
 	/*****************************************************************//*!
 	\brief

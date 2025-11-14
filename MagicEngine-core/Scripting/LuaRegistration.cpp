@@ -31,7 +31,10 @@ All rights reserved.
 #include "Graphics/LightComponent.h"
 #include "Physics/Collision.h"  
 #include "Physics/Physics.h"
-
+#include "Game/GameCameraController.h"
+#include "Game/Character.h"
+#include "Game/PlayerCharacter.h"
+#include "Game/GrabbableItem.h"
 
 //=========================================== START REGISTERING COMPONENTS ================================================================================
 // This section is unfortunately required. This registers what functions are available in a component.
@@ -119,6 +122,56 @@ void AddLinearVelocity(const Vec3& vel)
 }
 SCRIPT_GENERATE_COMP_WRAPPER_END()
 
+
+// GameCameraControllerComponent
+SCRIPT_GENERATE_COMP_WRAPPER_BEGIN(GameCameraControllerComponent)
+SCRIPT_GENERATE_PROPERTY_FUNCS(float, GetCameraAutoZoomSpeed, SetCameraAutoZoomSpeed)
+SCRIPT_GENERATE_PROPERTY_FUNCS(float, GetTargetCameraDistance, SetTargetCameraDistance)
+SCRIPT_GENERATE_PROPERTY_FUNCS(float, GetCurrentCameraDistance, SetCurrentCameraDistance)
+SCRIPT_GENERATE_PROPERTY_FUNCS(Vec3, GetOffsetPosition, SetOffsetPosition)
+SCRIPT_GENERATE_PROPERTY_FUNCS(float, GetCameraSensitivity, SetCameraSensitivity)
+SCRIPT_GENERATE_COMP_WRAPPER_END()
+
+// CharacterMovementComponent
+SCRIPT_GENERATE_COMP_WRAPPER_BEGIN(CharacterMovementComponent)
+// Properties
+SCRIPT_GENERATE_PROPERTY_FUNCS(Vec2, GetMovementVector, SetMovementVector)
+SCRIPT_GENERATE_PROPERTY_FUNCS(float, GetMoveSpeed, SetMoveSpeed)
+SCRIPT_GENERATE_PROPERTY_FUNCS(float, GetRotateSpeed, SetRotateSpeed)
+SCRIPT_GENERATE_PROPERTY_FUNCS(float, GetStunTimePerHit, SetStunTimePerHit)
+SCRIPT_GENERATE_PROPERTY_FUNCS(float, GetGroundFriction, SetGroundFriction)
+SCRIPT_GENERATE_PROPERTY_FUNCS(float, GetDodgeCooldown, SetDodgeCooldown)
+SCRIPT_GENERATE_PROPERTY_FUNCS(float, GetDodgeDuration, SetDodgeDuration)
+SCRIPT_GENERATE_PROPERTY_FUNCS(float, GetDodgeSpeed, SetDodgeSpeed)
+SCRIPT_GENERATE_PROPERTY_FUNCS(float, GetCurrentStunTime, SetCurrentStunTime)
+SCRIPT_GENERATE_PROPERTY_FUNCS(float, GetCurrentDodgeTime, SetCurrentDodgeTime)
+SCRIPT_GENERATE_PROPERTY_FUNCS(float, GetCurrentDodgeCooldown, SetCurrentDodgeCooldown)
+//functions
+void Dodge(const Vec2& v) { GetHandle()->Dodge(v); }
+void RotateTowards(const Vec2& v) { GetHandle()->RotateTowards(v); }
+void SetMovementVectorLua(const Vec2& v) { GetHandle()->SetMovementVector(v); }
+void DropItem() { GetHandle()->DropItem(); }
+void Throw(const Vec3& dir) { GetHandle()->Throw(dir); }
+void Attack() { GetHandle()->Attack(); }
+SCRIPT_GENERATE_COMP_WRAPPER_END()
+
+// PlayerMovementComponent
+SCRIPT_GENERATE_COMP_WRAPPER_BEGIN(PlayerMovementComponent)
+SCRIPT_GENERATE_PROPERTY_FUNCS(float, GetGrabDistance, SetGrabDistance)
+SCRIPT_GENERATE_COMP_WRAPPER_END()
+
+// GrabbableItemComponent
+SCRIPT_GENERATE_COMP_WRAPPER_BEGIN(GrabbableItemComponent)
+SCRIPT_GENERATE_PROPERTY_FUNCS(float, GetDamage, SetDamage)
+SCRIPT_GENERATE_PROPERTY_FUNCS(bool, GetIsHeld, SetIsHeld)
+
+// Behaviour wrapper for Attack(Vec3 origin, Vec3 direction)
+void AttackLua(const Vec3& origin, const Vec3& direction)
+{
+	GetHandle()->Attack(origin, direction);
+}
+SCRIPT_GENERATE_COMP_WRAPPER_END()
+
 //=========================================== END REGISTERING COMPONENTS ================================================================================
 
 void Lua_Log(int level, std::string message)
@@ -175,7 +228,10 @@ void RegisterCppStuffToLua(luabridge::Namespace baseTable)
 		SCRIPT_REGISTER_COMP_GETTER(LightBlinkComponent)
 		SCRIPT_REGISTER_COMP_GETTER(BoxColliderComp)
 		SCRIPT_REGISTER_COMP_GETTER(PhysicsComp)
-
+		SCRIPT_REGISTER_COMP_GETTER(GameCameraControllerComponent)
+		SCRIPT_REGISTER_COMP_GETTER(CharacterMovementComponent)
+		SCRIPT_REGISTER_COMP_GETTER(PlayerMovementComponent)
+		SCRIPT_REGISTER_COMP_GETTER(GrabbableItemComponent)
 		//=========================================== END REGISTER GETTER ================================================================================
 
 		.endClass()
@@ -258,6 +314,49 @@ void RegisterCppStuffToLua(luabridge::Namespace baseTable)
 		SCRIPT_REGISTER_COMP_FUNCTION(PhysicsComp, "AddLinearVelocity", AddLinearVelocity)
 		SCRIPT_REGISTER_COMP_END()
 
+		// GameCameraControllerComponent
+		SCRIPT_REGISTER_COMP_BEGIN(GameCameraControllerComponent)
+		SCRIPT_REGISTER_COMP_PROPERTY(GameCameraControllerComponent,"cameraAutoZoomSpeed", GetCameraAutoZoomSpeed, SetCameraAutoZoomSpeed)
+		SCRIPT_REGISTER_COMP_PROPERTY(GameCameraControllerComponent,"targetCameraDistance", GetTargetCameraDistance, SetTargetCameraDistance)
+		SCRIPT_REGISTER_COMP_PROPERTY(GameCameraControllerComponent,"currentCameraDistance", GetCurrentCameraDistance, SetCurrentCameraDistance)
+		SCRIPT_REGISTER_COMP_PROPERTY(GameCameraControllerComponent,"offsetPosition", GetOffsetPosition, SetOffsetPosition)
+		SCRIPT_REGISTER_COMP_PROPERTY(GameCameraControllerComponent,"cameraSensitivity", GetCameraSensitivity, SetCameraSensitivity)
+		SCRIPT_REGISTER_COMP_END()
+
+		// CharacterMovementComponent
+		SCRIPT_REGISTER_COMP_BEGIN(CharacterMovementComponent)
+		// properties
+		SCRIPT_REGISTER_COMP_PROPERTY(CharacterMovementComponent, "movementVector", GetMovementVector, SetMovementVector)
+		SCRIPT_REGISTER_COMP_PROPERTY(CharacterMovementComponent, "moveSpeed", GetMoveSpeed, SetMoveSpeed)
+		SCRIPT_REGISTER_COMP_PROPERTY(CharacterMovementComponent, "rotateSpeed", GetRotateSpeed, SetRotateSpeed)
+		SCRIPT_REGISTER_COMP_PROPERTY(CharacterMovementComponent, "stunTimePerHit", GetStunTimePerHit, SetStunTimePerHit)
+		SCRIPT_REGISTER_COMP_PROPERTY(CharacterMovementComponent, "groundFriction", GetGroundFriction, SetGroundFriction)
+		SCRIPT_REGISTER_COMP_PROPERTY(CharacterMovementComponent, "dodgeCooldown", GetDodgeCooldown, SetDodgeCooldown)
+		SCRIPT_REGISTER_COMP_PROPERTY(CharacterMovementComponent, "dodgeDuration", GetDodgeDuration, SetDodgeDuration)
+		SCRIPT_REGISTER_COMP_PROPERTY(CharacterMovementComponent, "dodgeSpeed", GetDodgeSpeed, SetDodgeSpeed)
+		SCRIPT_REGISTER_COMP_PROPERTY(CharacterMovementComponent, "currentStunTime", GetCurrentStunTime, SetCurrentStunTime)
+		SCRIPT_REGISTER_COMP_PROPERTY(CharacterMovementComponent, "currentDodgeTime", GetCurrentDodgeTime, SetCurrentDodgeTime)
+		SCRIPT_REGISTER_COMP_PROPERTY(CharacterMovementComponent, "currentDodgeCooldown", GetCurrentDodgeCooldown, SetCurrentDodgeCooldown)
+		// functions
+		SCRIPT_REGISTER_COMP_FUNCTION(CharacterMovementComponent, "Dodge", Dodge)
+		SCRIPT_REGISTER_COMP_FUNCTION(CharacterMovementComponent, "RotateTowards", RotateTowards)
+		SCRIPT_REGISTER_COMP_FUNCTION(CharacterMovementComponent, "SetMovementVector", SetMovementVectorLua)
+		SCRIPT_REGISTER_COMP_FUNCTION(CharacterMovementComponent, "DropItem", DropItem)
+		SCRIPT_REGISTER_COMP_FUNCTION(CharacterMovementComponent, "Throw", Throw)
+		SCRIPT_REGISTER_COMP_FUNCTION(CharacterMovementComponent, "Attack", Attack)
+		SCRIPT_REGISTER_COMP_END()
+
+		// PlayerMovementComponent
+		SCRIPT_REGISTER_COMP_BEGIN(PlayerMovementComponent)
+		SCRIPT_REGISTER_COMP_PROPERTY(PlayerMovementComponent,"grabDistance", GetGrabDistance, SetGrabDistance)
+		SCRIPT_REGISTER_COMP_END()
+
+		// GrabbableItemComponent
+		SCRIPT_REGISTER_COMP_BEGIN(GrabbableItemComponent)
+		SCRIPT_REGISTER_COMP_PROPERTY(GrabbableItemComponent,"damage", GetDamage, SetDamage)
+		SCRIPT_REGISTER_COMP_PROPERTY(GrabbableItemComponent,"isHeld", GetIsHeld, SetIsHeld)
+		SCRIPT_REGISTER_COMP_FUNCTION(GrabbableItemComponent,"Attack", AttackLua)
+		SCRIPT_REGISTER_COMP_END()
 		// ----- GLOBAL FUNCTIONS -----
 		.addFunction("Log", Lua_Log)
 
