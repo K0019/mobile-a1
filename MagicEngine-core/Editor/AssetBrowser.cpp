@@ -62,7 +62,7 @@ namespace editor {
         assetCategories.push_back(std::make_shared<SoundTab>());
         assetCategories.push_back(std::make_shared<FontTab>());
         assetCategories.push_back(std::make_shared<ScriptTab>());
-        //assetCategories.push_back(std::make_shared<ShaderTab>());
+        assetCategories.push_back(std::make_shared<ShaderTab>());
 
         //FileSystem inside AssetBrowser or its own tab?
         auto browser = std::make_shared<FileBrowserTab>();
