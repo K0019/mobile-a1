@@ -213,21 +213,22 @@ namespace physics {
 		flags.MaskDeserialize(reader, "flags", physicsFlagNames);
 		if (ecs::GetCurrentPoolId() == ecs::POOL::DEFAULT)
 		{
-			ST<Scheduler>::Get()->Add(0.0f, [entity = ecs::GetEntity(this), this]() {
+			ST<Scheduler>::Get()->Add(0.0f, [entity = ecs::GetEntity(this)]() {
 				JPH::EMotionType type{};
-				if (!GetFlag(PHYSICS_COMP_FLAG::ENABLED))
+				auto compPtr{ entity->GetComp<PhysicsComp>() };
+				if (!compPtr->GetFlag(PHYSICS_COMP_FLAG::ENABLED))
 					type = JPH::EMotionType::Static;
-				else if (GetFlag(PHYSICS_COMP_FLAG::IS_KINEMATIC))
+				else if (compPtr->GetFlag(PHYSICS_COMP_FLAG::IS_KINEMATIC))
 					type = JPH::EMotionType::Kinematic;
 				else
 					type = JPH::EMotionType::Dynamic;
 				if (!entity->HasComp<JoltBodyComp>())
 					return;
 				entity->GetComp<JoltBodyComp>()->SetMotionType(type);
-				entity->GetComp<JoltBodyComp>()->SetGravityFactor(GetFlag(PHYSICS_COMP_FLAG::USE_GRAVITY) ? 1.f : 0.f);
-				entity->GetComp<JoltBodyComp>()->SetLockRotationX(GetFlag(PHYSICS_COMP_FLAG::ROTATION_LOCKED_X));
-				entity->GetComp<JoltBodyComp>()->SetLockRotationY(GetFlag(PHYSICS_COMP_FLAG::ROTATION_LOCKED_Y));
-				entity->GetComp<JoltBodyComp>()->SetLockRotationZ(GetFlag(PHYSICS_COMP_FLAG::ROTATION_LOCKED_Z));
+				entity->GetComp<JoltBodyComp>()->SetGravityFactor(compPtr->GetFlag(PHYSICS_COMP_FLAG::USE_GRAVITY) ? 1.f : 0.f);
+				entity->GetComp<JoltBodyComp>()->SetLockRotationX(compPtr->GetFlag(PHYSICS_COMP_FLAG::ROTATION_LOCKED_X));
+				entity->GetComp<JoltBodyComp>()->SetLockRotationY(compPtr->GetFlag(PHYSICS_COMP_FLAG::ROTATION_LOCKED_Y));
+				entity->GetComp<JoltBodyComp>()->SetLockRotationZ(compPtr->GetFlag(PHYSICS_COMP_FLAG::ROTATION_LOCKED_Z));
 				});
 		}
 	}

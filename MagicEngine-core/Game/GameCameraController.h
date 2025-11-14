@@ -66,6 +66,23 @@ public:
 	void Serialize(Serializer& writer) const override;
 	void Deserialize(Deserializer& reader) override;
 
+public:
+	// ===== Lua helpers =====
+	float GetCameraAutoZoomSpeed() const { return cameraAutoZoomSpeed; }
+	void  SetCameraAutoZoomSpeed(float v) { cameraAutoZoomSpeed = v; }
+
+	float GetTargetCameraDistance() const { return targetCameraDistance; }
+	void  SetTargetCameraDistance(float v) { targetCameraDistance = v; }
+
+	float GetCurrentCameraDistance() const { return currentCameraDistance; }
+	void  SetCurrentCameraDistance(float v) { currentCameraDistance = v; }
+
+	Vec3  GetOffsetPosition() const { return offsetPosition; }
+	void  SetOffsetPosition(const Vec3& v) { offsetPosition = v; }
+
+	float GetCameraSensitivity() const { return cameraSensitivity; }
+	void  SetCameraSensitivity(float v) { cameraSensitivity = v; }
+
 private:
 	/*****************************************************************//*!
 	\brief

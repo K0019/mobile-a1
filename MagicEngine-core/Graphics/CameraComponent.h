@@ -44,6 +44,22 @@ public:
 	*//******************************************************************/
 	void OnAttached() override;
 
+	// ==== For Lua ====
+public:
+	bool GetActive() const { return active; }
+
+	// If you want Lua to be able to set active and still use your internal logic:
+	void SetActiveLua(bool v)
+	{
+		if (v)
+			SetActive();      // go through your existing logic
+		else
+			active = false;   // simple off – adjust if you need custom behaviour
+	}
+
+	float GetZoom() const { return zoom; }
+	void  SetZoom(float z) { zoom = z; }
+
 private:
 	bool active{ false };
 	int priority{ 0 };
@@ -144,6 +160,20 @@ public:
 		The current trauma.
 	*//******************************************************************/
 	float GetTrauma() const;
+
+	// ==== For Lua ====
+public:
+	float GetTraumaLua() const { return trauma; }
+	void  SetTraumaLua(float t) { trauma = t; }
+
+	float GetTraumaExponent() const { return traumaExponent; }
+	void  SetTraumaExponent(float v) { traumaExponent = v; }
+
+	float GetRecoverySpeed() const { return recoverySpeed; }
+	void  SetRecoverySpeed(float v) { recoverySpeed = v; }
+
+	float GetFrequency() const { return frequency; }
+	void  SetFrequency(float v) { frequency = v; }
 
 private:
 	virtual void EditorDraw() override;

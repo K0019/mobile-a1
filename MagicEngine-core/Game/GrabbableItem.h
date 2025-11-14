@@ -51,6 +51,14 @@ public:
 
 	property_vtable()
 
+		// ===== Lua helpers =====
+public:
+	float GetDamage() const { return damage; }
+	void  SetDamage(float v) { damage = v; }
+
+	bool  GetIsHeld() const { return isHeld; }
+	void  SetIsHeld(bool v) { isHeld = v; }
+
 private:
 	/*****************************************************************//*!
 	\brief
