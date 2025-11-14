@@ -170,28 +170,57 @@ void GraphicsMain::UploadToPipeline(FrameData* outFrameData)
                 .count = meshData->indexCount,
                 .instanceCount = 1,
                 .firstIndex = static_cast<uint32_t>(meshData->indexByteOffset / sizeof(uint32_t)),
-                .baseVertex = static_cast<int32_t>(meshData->vertexByteOffset / sizeof(Vertex)),
+                .baseVertex = static_cast<int32_t>(meshData->vertexByteOffset / sizeof(CompressedVertex)),
                 .baseInstance = static_cast<uint32_t>(objectIndex)
             };
 
             DrawData drawData = {
                 .transformId = static_cast<uint32_t>(objectIndex),
-                .materialId = context.resourceMngr->getMaterialIndex(materialHandle)
+                .materialId = context.resourceMngr->getMaterialIndex(materialHandle),
+				.meshDecompIndex = static_cast<uint32_t>(meshData->decompressionByteOffset / sizeof(MeshDecompressionData)),
+				.objectId = static_cast<uint32_t>(objectIndex)
             };
 
             uint32_t drawCommandIndex = static_cast<uint32_t>(params->drawCommands.size());
             params->drawCommands.push_back(cmd);
             params->drawData.push_back(drawData);
 
+
+			//Animation binding
+			ecs::EntityHandle entity{ ecs::GetEntity(&comp) };
+
+			const bool objectAnimated = false;
+			params->drawIsAnimated.push_back(objectAnimated ? 1u : 0u);
+
             // Sort into opaque/transparent queues
-            if (context.resourceMngr->isMaterialTransparent(materialHandle))
-                params->transparentIndices.push_back(drawCommandIndex);
-            else
+			if (context.resourceMngr->isMaterialTransparent(materialHandle))
+			{
+				params->transparentIndices.push_back(drawCommandIndex);
+				++params->opaqueAnimatedCount;
+			}
+			else
+			{
                 params->opaqueIndices.push_back(drawCommandIndex);
+				++params->opaqueStaticCount;
+			}
 
             ++objectIndex;
         }
     }
+
+	if (params->animatedInstances.empty())
+	{
+		params->boneMatrices.clear();
+		params->morphWeights.clear();
+		params->hasAnimatedInstances = false;
+	}
+	else
+	{
+		params->hasAnimatedInstances = true;
+	}
+
+
+
 
     // Iterate all LightComponents in the ECS and populate light data directly
     params->lights.clear();
