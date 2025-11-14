@@ -140,7 +140,7 @@ namespace editor {
         if (shaderNames.empty())
         {
             const std::unordered_set<std::string> allowedExtensions{ ".vert", ".frag", ".comp" };
-            for (const auto& entry : std::filesystem::directory_iterator{ Filepaths::shadersSave })
+            for (const auto& entry : std::filesystem::directory_iterator{ VFS::ConvertVirtualToPhysical(Filepaths::shadersSave) })
                 if (allowedExtensions.find(entry.path().extension().string()) != allowedExtensions.end())
                     shaderNames.push_back(entry.path().filename().string());
         }
