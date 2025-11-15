@@ -38,12 +38,14 @@ PlayerMovementComponent::PlayerMovementComponent()
 void PlayerMovementComponent::Serialize(Serializer& writer) const
 {
 	writer.Serialize("cameraReference", cameraReference);
+	writer.Serialize("testReference", testReference);
 	writer.Serialize("grabDistance", grabDistance);
 }
 
 void PlayerMovementComponent::Deserialize(Deserializer& reader)
 {
 	reader.Deserialize("cameraReference", &cameraReference);
+	reader.Deserialize("testReference", &testReference);
 	reader.DeserializeVar("grabDistance", &grabDistance);
 }
 
@@ -153,6 +155,7 @@ void PlayerMovementComponentSystem::UpdatePlayerMovementComponent(PlayerMovement
 	{
 		if (auto scriptComp{ comp.testReference->GetComp<ScriptComponent>() })
 		{
+			scriptComp->CallScriptFunction("open");
 			//scriptComp->ForEachAttachedScript([](LuaScriptWithMeta& lswm) {lswm.});
 		}
 	}

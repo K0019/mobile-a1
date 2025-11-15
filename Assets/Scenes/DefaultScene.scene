@@ -72,6 +72,9 @@
                     "cameraReference": {
                         "entityUid": 51380178370257494
                     },
+                    "testReference": {
+                        "entityUid": 1311534854128091278
+                    },
                     "grabDistance": 10.0
                 },
                 "6766054303456732338": {

@@ -1,6 +1,6 @@
-local opening = true
+local opening = false
 local openingDistance = 70.0
-local openSpeed = 3.50
+local openSpeed = 35
 local currentOpeningDistance = 0.0
 
 function open()
