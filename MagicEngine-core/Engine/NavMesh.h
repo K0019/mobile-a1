@@ -14,6 +14,11 @@ namespace navmesh
 {
 	using TileDataBuffer = std::pair<int, unsigned char*>;
 
+	enum PolyFlags
+	{
+		WALKABLE = 1
+	};
+
 	struct NavMeshData
 		: public ISerializeable
 	{

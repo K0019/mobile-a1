@@ -44,6 +44,7 @@ All rights reserved.
 #include "Game/PrefabSpawner.h"
 #include "Physics/Physics.h"
 #include "Engine/NavMesh.h"
+#include "Engine/NavMeshAgent.h"
 
 #include "Engine/BehaviorTree/BehaviourTree.h"
 #include "Engine/BehaviorTree/LeafLookForPlayer.h"
@@ -100,6 +101,7 @@ void GameState_Game::OnEnter()
 
     ecs::AddSystem(ECS_LAYER::SCRIPT_UPDATE, BehaviorTreeSystem{});
     ecs::AddSystem(ECS_LAYER::PRE_PHYSICS_0, navmesh::NavMeshSystem{});
+    ecs::AddSystem(ECS_LAYER::PRE_PHYSICS_0, navmesh::NavMeshAgentSystem{});
 
     ecs::AddSystem(ECS_LAYER::POST_PHYSICS_0, AnchorToCameraSystem{});
     ecs::AddSystem(ECS_LAYER::POST_PHYSICS_1, ShakeSystem{});

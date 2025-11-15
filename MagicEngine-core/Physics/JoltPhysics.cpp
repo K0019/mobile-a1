@@ -91,6 +91,9 @@ namespace physics {
 
 		for (auto colCompIter{ ecs::GetCompsActiveBegin<physics::BoxColliderComp>() }, endIter{ ecs::GetCompsEnd<physics::BoxColliderComp>() }; colCompIter != endIter; ++colCompIter)
 		{
+			//Update the body first.
+			colCompIter.GetEntity()->GetComp<JoltBodyComp>()->UpdateBody();
+
 			// If the collider is not enabled or if it has a physics component, it's not a static object so go to the next collider.
 			if (!colCompIter->GetFlag(physics::COLLIDER_COMP_FLAG::ENABLED) || colCompIter.GetEntity()->HasComp<physics::PhysicsComp>())
 				continue;
