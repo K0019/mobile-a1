@@ -64,7 +64,7 @@ namespace LuaCpp {
 			return *this;
 		}
 
-		void PushGlobalFunction(const char* funcName);
+		bool PushGlobalFunction(const char* funcName);
 		template <typename T>
 		void PushArgument(const T& arg);
 

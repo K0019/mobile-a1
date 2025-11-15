@@ -75,14 +75,9 @@ int LuaScriptWithMeta::GetAvailableFunctionsMask()
 
 bool LuaScriptWithMeta::DoesFunctionExist(const char* funcName)
 {
-	try {
-		code.PushGlobalFunction(funcName);
-		code.Pop();
-		return true;
-	}
-	catch (const std::runtime_error&) {
-		return false;
-	}
+	bool functionExists{ code.PushGlobalFunction(funcName) };
+	code.Pop();
+	return functionExists;
 }
 
 void ScriptComponent::RefreshScripts()
