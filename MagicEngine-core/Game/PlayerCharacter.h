@@ -53,6 +53,10 @@ public:
 
 	property_vtable()
 
+// ===== Lua helpers =====
+public:
+	float GetGrabDistance() const { return grabDistance; }
+	void  SetGrabDistance(float v) { grabDistance = v; }
 private:
 	/*****************************************************************//*!
 	\brief
