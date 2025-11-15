@@ -208,6 +208,10 @@ void GraphicsMain::UploadToPipeline(FrameData* outFrameData)
 			uint32_t morphCount = GetAssetSystem().Morph(meshMetadata->morphSetId).count();
 			bool objectAnimated = (jointCount > 0) || (morphCount > 0);
 
+			// Just override it if we don't plan on animating it anyway
+			if (!animComp)
+				objectAnimated = false;
+
 			params->drawIsAnimated.push_back(objectAnimated ? 1u : 0u);
 			
 			if (objectAnimated)
