@@ -37,7 +37,33 @@ class AudioSourceComponent
 public:
 	AudioSourceComponent();
 
-	void Play(AudioType a, size_t audioResource);
+	void Play(AudioType a);
+
+//FOR LUAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+public:
+	// (Optional) convenience overload for Lua:
+
+	// ---- Getters / setters for Lua ----
+	float GetMinDistance()   const { return minDistance; }
+	void  SetMinDistance(float v) { minDistance = v; }
+
+	float GetMaxDistance()   const { return maxDistance; }
+	void  SetMaxDistance(float v) { maxDistance = v; }
+
+	float GetDopplerScale()  const { return dopperScale; }
+	void  SetDopplerScale(float v) { dopperScale = v; }
+
+	float GetDistanceFactor() const { return distanceFactor; }
+	void  SetDistanceFactor(float v) { distanceFactor = v; }
+
+	float GetRolloffScale()  const { return rolloffScale; }
+	void  SetRolloffScale(float v) { rolloffScale = v; }
+
+	size_t GetAudioFile()    const { return audioFile; }
+	void   SetAudioFile(size_t id) { audioFile = id; }
+
+	bool   IsPlaying()       const { return isPlaying; }
+	void   SetIsPlaying(bool b) { isPlaying = b; } // if you want Lua to control flag
 
 private:
 	virtual void EditorDraw() override;
