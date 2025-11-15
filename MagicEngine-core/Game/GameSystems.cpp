@@ -60,6 +60,7 @@ void GameStateBase::OnExit()
 void GameState_Common::OnEnter()
 {
     // RenderSystem and LightingSystem removed - GraphicsMain now reads directly from ECS components
+    ecs::AddSystem(ECS_LAYER::RENDER_0, AnimationSystem{});
     ecs::AddSystem(ECS_LAYER::RENDER_0, PostProcessingSystem{});
     ecs::AddSystem(ECS_LAYER::RENDER_UI_0, TextSystem{});
 

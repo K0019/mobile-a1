@@ -24,6 +24,7 @@ All rights reserved.
 #include "graphics/features/grid_feature.h"
 #include "Editor/EditorCameraBridge.h"
 #include "Graphics/RenderComponent.h"
+#include "Graphics/AnimationComponent.h"
 #include "Graphics/LightComponent.h"
 #include "Engine/Resources/ResourceManager.h"
 
@@ -115,6 +116,8 @@ void GraphicsMain::UploadToPipeline(FrameData* outFrameData)
 
     // Iterate all RenderComponents in the ECS and populate render params directly
     size_t objectIndex = 0;
+	uint32_t animatedVertexCursor = 0;
+
     for (auto compIter = ecs::GetCompsActiveBegin<RenderComponent>(); compIter != ecs::GetCompsEnd<RenderComponent>(); ++compIter)
     {
         RenderComponent& comp = *compIter;
@@ -125,6 +128,11 @@ void GraphicsMain::UploadToPipeline(FrameData* outFrameData)
 
         const auto& materialList = comp.GetMaterialsList();
         size_t materialCount = materialList.size();
+
+
+		// Do we have animations on this object
+		auto animComp = ecs::GetEntity(&comp)->GetComp<AnimationComponent>();
+
 
         // Process each submesh
         for (size_t i = 0; i < mesh->handles.size(); ++i)
@@ -151,6 +159,14 @@ void GraphicsMain::UploadToPipeline(FrameData* outFrameData)
             const Transform& entityTransform = ecs::GetEntityTransform(&comp);
             Mat4 worldTransform = entityTransform.GetWorldMat() * mesh->transforms[i];
             float maxScale = glm::compMax(glm::abs(static_cast<glm::vec3>(entityTransform.GetWorldScale())));
+
+			// For meshes with morph targets, expand bounds to account for deformation
+			//const bool hasMorphTargets = meshData->animation.morphDeltaByteOffset != UINT32_MAX;
+			//if (hasMorphTargets)
+			//{
+			//	constexpr float MORPH_BOUNDS_EXPANSION = 2.0f;
+			//	radius *= MORPH_BOUNDS_EXPANSION;
+			//}
 
             // Store object data
             params->objectTransforms.push_back(worldTransform);
@@ -185,24 +201,78 @@ void GraphicsMain::UploadToPipeline(FrameData* outFrameData)
             params->drawCommands.push_back(cmd);
             params->drawData.push_back(drawData);
 
+			// Animation binding
+			const auto* meshMetadata = GetAssetSystem().getMeshMetadata(mesh->handles[i]);
+			const auto& skeleton = GetAssetSystem().Skeleton(meshMetadata->skeletonId);
+			uint32_t jointCount = GetAssetSystem().Skeleton(meshMetadata->skeletonId).jointCount();
+			uint32_t morphCount = GetAssetSystem().Morph(meshMetadata->morphSetId).count();
+			bool objectAnimated = (jointCount > 0) || (morphCount > 0);
 
-			//Animation binding
-			ecs::EntityHandle entity{ ecs::GetEntity(&comp) };
-
-			const bool objectAnimated = false;
 			params->drawIsAnimated.push_back(objectAnimated ? 1u : 0u);
+			
+			if (objectAnimated)
+			{
+				SceneRenderParams::AnimatedInstanceParams instance{};
+				instance.drawIndex = drawCommandIndex;
+				instance.srcBaseVertex = static_cast<uint32_t>(meshData->vertexByteOffset / sizeof(CompressedVertex));
+				instance.dstBaseVertex = animatedVertexCursor;
+				instance.vertexCount = meshData->vertexCount;
+				instance.meshDecompIndex = drawData.meshDecompIndex;
+
+				if (meshData->animation.skinningByteOffset != UINT32_MAX)
+					instance.skinningOffset = meshData->animation.skinningByteOffset / sizeof(GPUSkinningData);
+
+				if (animComp && animComp->jointCount > 0 && !animComp->skinMatrices.empty())
+				{
+					instance.boneMatrixOffset = static_cast<uint32_t>(params->boneMatrices.size());
+					instance.jointCount = animComp->jointCount;
+					params->boneMatrices.insert(params->boneMatrices.end(),
+						animComp->skinMatrices.begin(),
+						animComp->skinMatrices.begin() + animComp->jointCount);
+				}
+
+				if (meshData->animation.morphDeltaByteOffset != UINT32_MAX)
+					instance.morphDeltaOffset = meshData->animation.morphDeltaByteOffset / sizeof(GPUMorphDelta);
+				instance.morphDeltaCount = meshData->animation.morphDeltaCount;
+
+				if (meshData->animation.morphVertexBaseOffset != UINT32_MAX)
+					instance.morphVertexBaseOffset = meshData->animation.morphVertexBaseOffset / sizeof(uint32_t);
+				if (meshData->animation.morphVertexCountOffset != UINT32_MAX)
+					instance.morphVertexCountOffset = meshData->animation.morphVertexCountOffset / sizeof(uint32_t);
+
+				if (animComp && animComp->morphCount > 0 && !animComp->morphWeights.empty())
+				{
+					instance.morphStateOffset = static_cast<uint32_t>(params->morphWeights.size());
+					instance.morphTargetCount = animComp->morphCount;
+					params->morphWeights.insert(params->morphWeights.end(),
+						animComp->morphWeights.begin(),
+						animComp->morphWeights.begin() + animComp->morphCount);
+				}
+
+				params->drawCommands[drawCommandIndex].baseVertex = static_cast<int32_t>(instance.dstBaseVertex);
+				params->animatedInstances.push_back(instance);
+				params->hasAnimatedInstances = true;
+				animatedVertexCursor += instance.vertexCount;
+			}
 
             // Sort into opaque/transparent queues
 			if (context.resourceMngr->isMaterialTransparent(materialHandle))
 			{
 				params->transparentIndices.push_back(drawCommandIndex);
-				++params->opaqueAnimatedCount;
+				if(objectAnimated)
+					++params->transparentAnimatedCount;
+				else
+					++params->transparentStaticCount;
 			}
 			else
 			{
                 params->opaqueIndices.push_back(drawCommandIndex);
-				++params->opaqueStaticCount;
+				if(objectAnimated)
+					++params->opaqueAnimatedCount;
+				else
+					++params->opaqueStaticCount;
 			}
+
 
             ++objectIndex;
         }
