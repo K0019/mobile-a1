@@ -294,6 +294,7 @@ void GraphicsMain::UploadToPipeline(FrameData* outFrameData)
 	}
 
 
+	params->usedAnimatedVertexBytes = animatedVertexCursor * sizeof(SkinnedVertex);
 
 
     // Iterate all LightComponents in the ECS and populate light data directly
