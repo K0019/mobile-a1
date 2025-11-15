@@ -82,6 +82,10 @@ public:
 	void ForEachAttachedScript(FuncType function);
 	void RefreshScripts();
 
+	// Attempts to call a function on each attached script
+	template <typename ...Args>
+	void CallScriptFunction(const std::string& funcName, const Args&... args);
+
 private:
 	std::vector<LuaScriptWithMeta> scripts;
 
@@ -121,6 +125,18 @@ void ScriptComponent::ForEachAttachedScript(FuncType function)
 {
 	for (auto& script : scripts)
 		function(script);
+}
+
+template<typename ...Args>
+void ScriptComponent::CallScriptFunction(const std::string& funcName, const Args& ...args)
+{
+	ForEachAttachedScript([&funcName, ...args = &args](LuaScriptWithMeta& script) -> void {
+		if (!script.code.PushGlobalFunction(funcName.c_str()))
+			return;
+		(script.code.PushArgument(args), ...);
+		ST<LuaScripting>::Get()->RunScript(script);
+		script.code.Pop(); // Pop global function from the stack
+	});
 }
 
 template<typename FinalSystemType, SCRIPT_FUNCTION luaFuncToCall, bool callOnlyOnce>
