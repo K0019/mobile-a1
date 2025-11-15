@@ -242,13 +242,12 @@ void RegisterCppStuffToLua(luabridge::Namespace baseTable)
 			.addProperty("z", [](const Vec3* v) -> float { return v->z; }, [](Vec3* v, float z) { v->z = z; })
 		.endClass()
 		.beginClass<Transform>("Transform")
-			.addProperty("localPosition", &Transform::GetLocalPosition, &Transform::SetLocalPosition)
-			.addProperty("localRotation", &Transform::GetLocalRotation, &Transform::SetLocalRotation)
-			.addProperty("localScale",	  &Transform::GetLocalScale   , &Transform::SetLocalScale   )
-			.addProperty("worldPosition", &Transform::GetWorldPosition, &Transform::SetWorldPosition)
-			.addProperty("worldRotation", &Transform::GetWorldRotation, &Transform::SetWorldRotation)
-			.addProperty("worldScale",	  &Transform::GetWorldScale   , &Transform::SetWorldScale   )
-			// Parent
+			.addProperty("localPosition", [](const Transform* t) -> Vec3 { return t->GetLocalPosition(); }, [](Transform* t, Vec3 v) { t->SetLocalPosition(v); })
+			.addProperty("localRotation", [](const Transform* t) -> Vec3 { return t->GetLocalRotation(); }, [](Transform* t, Vec3 v) { t->SetLocalRotation(v); })
+			.addProperty("localScale", [](const Transform* t) -> Vec3 { return t->GetLocalScale();    }, [](Transform* t, Vec3 v) { t->SetLocalScale(v);    })
+			.addProperty("worldPosition", [](const Transform* t) -> Vec3 { return t->GetWorldPosition(); }, [](Transform* t, Vec3 v) { t->SetWorldPosition(v); })
+			.addProperty("worldRotation", [](const Transform* t) -> Vec3 { return t->GetWorldRotation(); }, [](Transform* t, Vec3 v) { t->SetWorldRotation(v); })
+			.addProperty("worldScale", [](const Transform* t) -> Vec3 { return t->GetWorldScale();    }, [](Transform* t, Vec3 v) { t->SetWorldScale(v);    })			// Parent
 			// Child
 		.endClass()
 		.beginClass<ecs::Entity>("Entity")
@@ -414,6 +413,7 @@ void RegisterCppStuffToLua(luabridge::Namespace baseTable)
 		SCRIPT_REGISTER_COMP_END()
 		// ----- GLOBAL FUNCTIONS -----
 		.addFunction("Log", Lua_Log)
+		.addFunction("DeltaTime", []() -> float { return GameTime::Dt(); })
 
 		// ----- GLOBAL VARIABLES -----
 		.beginNamespace("LogLevel")

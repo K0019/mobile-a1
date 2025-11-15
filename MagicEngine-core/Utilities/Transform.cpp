@@ -175,6 +175,10 @@ const Transform::Vec& Transform::GetLocalPosition() const
 {
 	return position;
 }
+const Transform::Vec Transform::GetLocalPosition1() const
+{
+	return position;
+}
 
 const Transform::Vec& Transform::GetLocalRotation() const
 {

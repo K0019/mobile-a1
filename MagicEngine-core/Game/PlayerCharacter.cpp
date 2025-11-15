@@ -26,6 +26,7 @@ All rights reserved.
 #include "Game/GameCameraController.h"
 #include "Physics/Physics.h"
 #include "Engine/Input.h"
+#include "Scripting//ScriptComponent.h"
 #include "Editor/Containers/GUICollection.h"
 
 PlayerMovementComponent::PlayerMovementComponent()
@@ -49,6 +50,7 @@ void PlayerMovementComponent::Deserialize(Deserializer& reader)
 void PlayerMovementComponent::EditorDraw()
 {
 	cameraReference.EditorDraw("Camera");
+	testReference.EditorDraw("Test");
 	gui::VarInput("Grab Distance", &grabDistance);
 }
 
@@ -143,9 +145,17 @@ void PlayerMovementComponentSystem::UpdatePlayerMovementComponent(PlayerMovement
 		characterComp->Throw(throwDirection);
 	}
 
-	// Doesn't seem to be working again
 	if (inputInstance->GetIsPressed(KEY::M1))
 		characterComp->Attack();
+
+	// Test opening the door
+	if (inputInstance->GetIsPressed(KEY::O))
+	{
+		if (auto scriptComp{ comp.testReference->GetComp<ScriptComponent>() })
+		{
+			//scriptComp->ForEachAttachedScript([](LuaScriptWithMeta& lswm) {lswm.});
+		}
+	}
 
 	characterComp->SetMovementVector(movement);
 

@@ -46,6 +46,7 @@ public:
 
 	// Serialized
 	EntityReference cameraReference;
+	EntityReference testReference;
 	float grabDistance;
 
 	void Serialize(Serializer& writer) const override;

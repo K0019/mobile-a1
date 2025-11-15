@@ -227,6 +227,14 @@ public:
 
 	/*****************************************************************//*!
 	\brief
+		Gets the local position of this Transform.
+	\return
+		The local position of the Transform.
+	*//******************************************************************/
+	const Vec GetLocalPosition1() const;
+
+	/*****************************************************************//*!
+	\brief
 		Gets the local rotation of this Transform.
 	\return
 		The local rotation of the Transform.
