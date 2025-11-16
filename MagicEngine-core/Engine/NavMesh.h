@@ -10,7 +10,7 @@
 #include "Editor/IEditorComponent.h"
 #include "Utilities/Serializer.h"
 
-namespace navmesh 
+namespace navmesh
 {
 	using TileDataBuffer = std::pair<int, unsigned char*>;
 
@@ -43,14 +43,13 @@ namespace navmesh
 		void AddTileRef(const dtTileRef& tileRef);
 
 	private:
-		rcConfig config;
 		NavMeshData navMeshData;
 		std::vector<dtTileRef> tileRefs;
 		std::string navMeshName;
 
 		void BakeNavMeshData();
-		TileDataBuffer BakeNavMeshTile(std::vector<float>& vertices, std::vector<int>& indices, 
-									   float* bmin, float* bmax, int xIndex, int zIndex);
+		TileDataBuffer BakeNavMeshTile(std::vector<float>& vertices, std::vector<int>& indices,
+			float* bmin, float* bmax, int xIndex, int zIndex);
 		virtual void EditorDraw() override;
 
 	public:

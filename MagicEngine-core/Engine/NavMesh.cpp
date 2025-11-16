@@ -10,14 +10,14 @@
 #include "FilepathConstants.h"
 #include "Engine/NavMeshAgent.h"
 
-namespace navmesh 
+namespace navmesh
 {
 	float const NavMeshSystem::CELL_SIZE = 0.3f;
 	float const NavMeshSystem::CELL_HEIGHT = 0.2f;
 	int const NavMeshSystem::TILE_SIZE = 256;
 	int const NavMeshSystem::MAX_TILE = 128;
 	int const NavMeshSystem::MAX_POLY = 32768;
-	
+
 	std::vector<TileDataBuffer> NavMeshData::LoadAllTileBuffers()
 	{
 		if (filePath == "" || !VFS::FileExists(filePath))
@@ -32,7 +32,7 @@ namespace navmesh
 			CONSOLE_LOG(LEVEL_ERROR) << "Couldn't read navmesh data from file.";
 			return std::vector<TileDataBuffer>{};
 		}
-		
+
 		//Read the tile count.
 		std::size_t readOffset{ sizeof(uint32_t) };
 		uint32_t tileCount{};
@@ -67,7 +67,7 @@ namespace navmesh
 		//if the filepath doesn't exist create a filepath.
 		if (filePath == "" || !VFS::FileExists(filePath))
 		{
-			std::string directory{Filepaths::navMeshDataSave + "/" + navMeshName};
+			std::string directory{ Filepaths::navMeshDataSave + "/" + navMeshName };
 			std::string extension{ ".navmesh" };
 			filePath = directory + extension;
 			int count{ 1 };
@@ -98,30 +98,10 @@ namespace navmesh
 	}
 
 	NavMeshSurfaceComp::NavMeshSurfaceComp()
-		: config{}
-		, navMeshData{}
+		: navMeshData{}
 		, tileRefs{}
 		, navMeshName{ "navmesh" }
 	{
-		std::memset(&config, 0, sizeof(rcConfig));
-		config.cs = NavMeshSystem::CELL_SIZE;
-		config.ch = NavMeshSystem::CELL_HEIGHT;
-		config.tileSize = NavMeshSystem::TILE_SIZE;
-		config.walkableSlopeAngle = 45.f;
-		config.walkableHeight = NavMeshAgentComp::WALKABLE_HEIGHT;
-		config.walkableClimb = NavMeshAgentComp::WALKABLE_HEIGHT;
-		config.walkableRadius = NavMeshAgentComp::WALKABLE_RADIUS;
-		config.maxEdgeLen = 32;
-		config.maxSimplificationError = 1.3f;
-		config.minRegionArea = 1;
-		config.mergeRegionArea = 0;
-		config.maxVertsPerPoly = 6;
-		config.detailSampleDist = 6.f;
-		config.detailSampleMaxError = 1.f;
-		config.bmin[0] = config.bmin[1] = config.bmin[2] = -50.f;
-		config.bmax[0] = config.bmax[1] = config.bmax[2] = 50.f;
-		config.borderSize = config.walkableRadius + 3;
-		config.width = config.height = config.tileSize + 2 * config.borderSize;
 	}
 
 	void NavMeshSurfaceComp::OnAttached()
@@ -158,35 +138,36 @@ namespace navmesh
 
 	void NavMeshSurfaceComp::BakeNavMeshData()
 	{
-		//rcCalcGridSize(config.bmin, config.bmax, config.cs, &config.width, &config.height);
-		JPH::AABox bound{ JPH::Vec3{config.bmin[0], config.bmin[1], config.bmin[2]}, JPH::Vec3{config.bmax[0], config.bmax[1], config.bmax[2]} };
-
 		//Collect the triangle mesh of the collider.
 		std::vector<float> vertices{};
 		std::vector<int> indices{};
-		ST<physics::JoltPhysics>::Get()->CollectAllTriangles(bound, vertices, indices);
+		JPH::AABox bound{ ST<physics::JoltPhysics>::Get()->CollectAllTriangles(vertices, indices) };
 
 		std::vector<TileDataBuffer> allTileData{};
 
-		float worldTileSize{ config.cs * static_cast<float>(config.tileSize) };
-		//int tileMinX{ static_cast<int>(std::floor(config.bmin[0] / worldTileSize)) };
-		//int tileMinZ{ static_cast<int>(std::floor(config.bmin[2] / worldTileSize)) };
-		int tileMaxX{ static_cast<int>(std::floor((config.bmax[0] - config.bmin[0]) / worldTileSize)) };
-		int tileMaxZ{ static_cast<int>(std::floor((config.bmax[2] - config.bmin[2]) / worldTileSize)) };
+		int gw = 0, gh = 0;
+		std::array<float, 3> bMin{ bound.mMin.GetX(), bound.mMin.GetY(), bound.mMin.GetZ() };
+		std::array<float, 3> bMax{ bound.mMax.GetX(), bound.mMax.GetY(), bound.mMax.GetZ() };
+		rcCalcGridSize(bMin.data(), bMax.data(), NavMeshSystem::CELL_SIZE, &gw, &gh);
+
+		float worldTileSize{ NavMeshSystem::CELL_SIZE * static_cast<float>(NavMeshSystem::TILE_SIZE) };
+		const int ts = static_cast<int>(NavMeshSystem::TILE_SIZE);
+		const int tw = (gw + ts - 1) / ts;
+		const int th = (gh + ts - 1) / ts;
 
 		float tileBMin[3];
 		float tileBMax[3];
 
-		for (int tileZ{}; tileZ <= tileMaxZ; ++tileZ)
-			for (int tileX{}; tileX <= tileMaxX; ++tileX)
+		for (int tileZ{}; tileZ <= th; ++tileZ)
+			for (int tileX{}; tileX <= tw; ++tileX)
 			{
-				tileBMin[0] = config.bmin[0] + tileX * worldTileSize;
-				tileBMin[1] = config.bmin[1];
-				tileBMin[2] = config.bmin[2] + tileZ * worldTileSize;
-				
-				tileBMax[0] = config.bmin[0] + (tileX + 1) * worldTileSize;
-				tileBMax[1] = config.bmax[1];
-				tileBMax[2] = config.bmin[2] + (tileZ + 1) * worldTileSize;
+				tileBMin[0] = bound.mMin.GetX() + tileX * worldTileSize;
+				tileBMin[1] = bound.mMin.GetY();
+				tileBMin[2] = bound.mMin.GetZ() + tileZ * worldTileSize;
+
+				tileBMax[0] = bound.mMin.GetX() + (tileX + 1) * worldTileSize;
+				tileBMax[1] = bound.mMax.GetY();
+				tileBMax[2] = bound.mMin.GetZ() + (tileZ + 1) * worldTileSize;
 
 				allTileData.push_back(BakeNavMeshTile(vertices, indices, tileBMin, tileBMax, tileX, tileZ));
 			}
@@ -198,12 +179,30 @@ namespace navmesh
 	}
 
 	TileDataBuffer NavMeshSurfaceComp::BakeNavMeshTile(std::vector<float>& vertices, std::vector<int>& indices,
-											 float* bmin, float* bmax, int xIndex, int zIndex)
+		float* bmin, float* bmax, int xIndex, int zIndex)
 	{
 		//Initialize Build Config.
 		rcContext context{};
-		
-		rcConfig tileConfig{ config };
+
+		rcConfig tileConfig{};
+
+		std::memset(&tileConfig, 0, sizeof(rcConfig));
+		tileConfig.cs = NavMeshSystem::CELL_SIZE;
+		tileConfig.ch = NavMeshSystem::CELL_HEIGHT;
+		tileConfig.tileSize = NavMeshSystem::TILE_SIZE;
+		tileConfig.walkableSlopeAngle = 45.f;
+		tileConfig.walkableHeight = NavMeshAgentComp::WALKABLE_HEIGHT;
+		tileConfig.walkableClimb = NavMeshAgentComp::WALKABLE_HEIGHT;
+		tileConfig.walkableRadius = NavMeshAgentComp::WALKABLE_RADIUS;
+		tileConfig.maxEdgeLen = 32;
+		tileConfig.maxSimplificationError = 1.3f;
+		tileConfig.minRegionArea = 1;
+		tileConfig.mergeRegionArea = 0;
+		tileConfig.maxVertsPerPoly = 6;
+		tileConfig.detailSampleDist = 6.f;
+		tileConfig.detailSampleMaxError = 1.f;
+		tileConfig.borderSize = tileConfig.walkableRadius + 3;
+		tileConfig.width = tileConfig.height = tileConfig.tileSize + 2 * tileConfig.borderSize;
 
 		rcVcopy(tileConfig.bmin, bmin);
 		rcVcopy(tileConfig.bmax, bmax);
@@ -376,11 +375,6 @@ namespace navmesh
 
 	void NavMeshSurfaceComp::EditorDraw()
 	{
-		gui::VarDefault("Agent Height", &config.walkableHeight);
-		gui::VarDefault("Agent Radius", &config.walkableRadius);
-		gui::VarDefault("Agent Max Climb", &config.walkableClimb);
-		gui::VarDefault("Agent Max Slope", &config.walkableSlopeAngle);
-
 		if (gui::Button clearButton{ "Clear" })
 		{
 			navMeshData.filePath = "";
@@ -408,7 +402,14 @@ namespace navmesh
 
 		//Parameters to initialize the navmesh.
 		dtNavMeshParams param{};
-		param.orig[0] = param.orig[1] = param.orig[2] = -50.f;
+		//param.orig[0] = param.orig[1] = param.orig[2] = -50.f;
+		std::vector<float> vertices{};
+		std::vector<int> indices{};
+		JPH::AABox bound{ ST<physics::JoltPhysics>::Get()->CollectAllTriangles(vertices, indices) };
+		param.orig[0] = bound.mMin.GetX();
+		param.orig[1] = bound.mMin.GetY();
+		param.orig[2] = bound.mMin.GetZ();
+
 		param.tileWidth = static_cast<float>(TILE_SIZE) * CELL_SIZE;
 		param.tileHeight = static_cast<float>(TILE_SIZE) * CELL_SIZE;
 		param.maxTiles = MAX_TILE;

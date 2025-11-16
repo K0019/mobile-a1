@@ -11,9 +11,9 @@
 \par    DigiPen login: t.shibamoto
 
 \brief
-	JoltPhysics contains the Joly Physics System that updates all the bodies. 
+	JoltPhysics contains the Joly Physics System that updates all the bodies.
 
-All content � 2025 DigiPen Institute of Technology Singapore.
+All content   2025 DigiPen Institute of Technology Singapore.
 All rights reserved.
 */
 /******************************************************************************/
@@ -35,6 +35,7 @@ All rights reserved.
 #include <Jolt/Physics/Collision/Shape/SphereShape.h>
 #include <Jolt/Physics/Body/BodyCreationSettings.h>
 #include <Jolt/Physics/Body/BodyActivationListener.h>
+#include <Jolt/Renderer/DebugRenderer.h>
 
 #include "ECS/ECS.h"
 #include "Editor/IEditorComponent.h"
@@ -115,7 +116,7 @@ namespace physics {
 		*//******************************************************************/
 		void OptimizeBroadPhase();
 
-		void CollectAllTriangles(const JPH::AABox& range, std::vector<float>& outVertices, std::vector<int>& outTriIndex);
+		JPH::AABox CollectAllTriangles(std::vector<float>& outVertices, std::vector<int>& outTriIndex);
 
 
 	private:
@@ -168,7 +169,7 @@ namespace physics {
 		JPH::BodyInterface& bodyInterface;
 
 		// This contact listener prints to the console when a collision occurs.
-		MyContactListener contactListener;	
+		MyContactListener contactListener;
 
 		// Body manager that allows certain bodies to change the scale.
 		JPH::BodyManager bodyManager;

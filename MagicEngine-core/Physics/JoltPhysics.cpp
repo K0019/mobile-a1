@@ -13,7 +13,7 @@
 \brief
 	Contains definitions for the JoltPhysics class.
 
-All content � 2025 DigiPen Institute of Technology Singapore.
+All content   2025 DigiPen Institute of Technology Singapore.
 All rights reserved.
 */
 /******************************************************************************/
@@ -27,7 +27,7 @@ namespace physics {
 	JoltPhysics::JoltPhysics()
 		: tempAllocator{ 10 * 1024 * 1024 }
 		, jobSystem{ JPH::cMaxPhysicsJobs, JPH::cMaxPhysicsBarriers, static_cast<int>(JPH::thread::hardware_concurrency()) - 1 }
-		, cMaxBodies{ 65536 } 
+		, cMaxBodies{ 65536 }
 		, cNumBodyMutexes{ 0 }
 		, cMaxBodyPairs{ 65536 }
 		, cMaxContactConstraints{ 10240 }
@@ -35,7 +35,7 @@ namespace physics {
 		, objectVsBroadphaseLayerFilter{}
 		, objectVsObjectLayerFilter{}
 		, physicsSystem{}
-		, bodyInterface{physicsSystem.GetBodyInterface()}
+		, bodyInterface{ physicsSystem.GetBodyInterface() }
 		, contactListener{}
 		, bodyManager{}
 	{
@@ -84,10 +84,13 @@ namespace physics {
 		physicsSystem.OptimizeBroadPhase();
 	}
 
-	void JoltPhysics::CollectAllTriangles(const JPH::AABox& range, std::vector<float>& outVertices, std::vector<int>& outTriIndex)
+	JPH::AABox JoltPhysics::CollectAllTriangles(std::vector<float>& outVertices, std::vector<int>& outTriIndex)
 	{
 		std::unordered_map<JPH::Float3, int> vert2Index{};
 		int highestIndex{};
+		JPH::AABox bound{ physicsSystem.GetBounds() };
+		bound.mMin -= JPH::Vec3{ 1.f, 1.f, 1.f };
+		bound.mMax += JPH::Vec3{ 1.f, 1.f, 1.f };
 
 		for (auto colCompIter{ ecs::GetCompsActiveBegin<physics::BoxColliderComp>() }, endIter{ ecs::GetCompsEnd<physics::BoxColliderComp>() }; colCompIter != endIter; ++colCompIter)
 		{
@@ -113,7 +116,7 @@ namespace physics {
 			JPH::Quat rot{ bodyInterface.GetRotation(bodyCompPtr->GetBodyID()) };
 
 			//Get triangles
-			shape->GetTrianglesStart(triContext, range, pos, rot, scale);
+			shape->GetTrianglesStart(triContext, bound, pos, rot, scale);
 			std::size_t maxTri{ 512 };
 			std::vector<JPH::Float3> triBuffer(maxTri * 3);
 			int triCount{};
@@ -141,13 +144,14 @@ namespace physics {
 							outVertices.push_back(vert[vertexNum][2]);
 						}
 					}
-					//Change the indices to clock wise.
-					//std::swap(indices[1], indices[2]);
+
 					for (int index : indices)
 						outTriIndex.push_back(index);
 				}
 			}
 		}
+
+		return bound;
 	}
 
 	TransformValues& TransformValues::operator=(Transform& trans)
@@ -170,23 +174,23 @@ namespace physics {
 
 	JoltBodyComp::JoltBodyComp()
 		: bodyID{}
-		, motionType{JPH::EMotionType::Static}
-		, shapeType{ShapeType::EMPTY}
-		, collisionLayer{Layers::NON_COLLIDABLE}
+		, motionType{ JPH::EMotionType::Static }
+		, shapeType{ ShapeType::EMPTY }
+		, collisionLayer{ Layers::NON_COLLIDABLE }
 		, prevTrans{}
 		, prevQuat{}
-		, dof{JPH::EAllowedDOFs::All}
+		, dof{ JPH::EAllowedDOFs::All }
 	{
 	}
-	
+
 	JoltBodyComp::JoltBodyComp(JPH::EMotionType motion, ShapeType shape, Layers layer)
 		: bodyID{}
-		, motionType{motion}
-		, shapeType{shape}
-		, collisionLayer{layer}
+		, motionType{ motion }
+		, shapeType{ shape }
+		, collisionLayer{ layer }
 		, prevTrans{}
 		, prevQuat{}
-		, dof{JPH::EAllowedDOFs::All}
+		, dof{ JPH::EAllowedDOFs::All }
 	{
 	}
 
@@ -199,7 +203,7 @@ namespace physics {
 			scaleSetting.mInnerShape = JPH::RefConst<JPH::EmptyShapeSettings>(new JPH::EmptyShapeSettings());
 			break;
 		case ShapeType::BOX:
-			scaleSetting.mInnerShape = JPH::RefConst<JPH::BoxShapeSettings>(new JPH::BoxShapeSettings(JPH::Vec3{1.f, 1.f, 1.f}));
+			scaleSetting.mInnerShape = JPH::RefConst<JPH::BoxShapeSettings>(new JPH::BoxShapeSettings(JPH::Vec3{ 1.f, 1.f, 1.f }));
 			break;
 		default:
 			CONSOLE_LOG(LEVEL_ERROR) << "Cannot recognize shape of the created body";
@@ -224,7 +228,7 @@ namespace physics {
 		bodySettings.mAllowDynamicOrKinematic = true;
 
 		bodyID = ST<JoltPhysics>::Get()->GetBodyInterface().CreateAndAddBody(bodySettings, JPH::EActivation::Activate);
-		
+
 		Vec3 scale{ transform.GetWorldScale() };
 		JPH::Vec3 scaleJolt{ scale.x, scale.y, scale.z };
 		if (JPH::ScaleHelpers::IsZeroScale(scaleJolt))
@@ -258,14 +262,14 @@ namespace physics {
 	JPH::EMotionType JoltBodyComp::GetMotionType() const
 	{
 		return motionType;
-	}	
-	
+	}
+
 	ShapeType JoltBodyComp::GetShapeType() const
 	{
 		return shapeType;
 	}
 
-	Layers JoltBodyComp::GetCollisionLayer() const 
+	Layers JoltBodyComp::GetCollisionLayer() const
 	{
 		return collisionLayer;
 	}
@@ -275,7 +279,7 @@ namespace physics {
 		JPH::RVec3 joltPos{ ST<JoltPhysics>::Get()->GetBodyInterface().GetPosition(bodyID) };
 		return Vec3{ joltPos.GetX(), joltPos.GetY(), joltPos.GetZ() };
 	}
-	
+
 	Vec3 JoltBodyComp::GetScale() const
 	{
 		JPH::Vec3 joltScale{};
@@ -317,7 +321,7 @@ namespace physics {
 			return;
 
 		JPH::Vec3 scale{};
-		const JPH::Shape* shapePtr{ ST<JoltPhysics>::Get()->GetBodyInterface().GetShape(bodyID)};
+		const JPH::Shape* shapePtr{ ST<JoltPhysics>::Get()->GetBodyInterface().GetShape(bodyID) };
 		if (shapePtr->GetSubType() == JPH::EShapeSubType::Scaled)
 		{
 			const JPH::ScaledShape* scaledShapePtr{ static_cast<const JPH::ScaledShape*>(shapePtr) };
@@ -381,12 +385,12 @@ namespace physics {
 
 		const JPH::ScaledShape* scaledShapePtr{ static_cast<const JPH::ScaledShape*>(shapePtr) };
 		const JPH::Shape* nonScaledShapePtr{ scaledShapePtr->GetInnerShape() };
-		if (!nonScaledShapePtr->IsValidScale(joltScale) || !scale.x || !scale.y ||!scale.z)
+		if (!nonScaledShapePtr->IsValidScale(joltScale) || !scale.x || !scale.y || !scale.z)
 		{
 			joltScale = JPH::ScaleHelpers::MakeNonZeroScale(joltScale);
 			ST<JoltPhysics>::Get()->GetBodyInterface().SetObjectLayer(bodyID, +Layers::NON_COLLIDABLE);
 		}
-		else 
+		else
 			ST<JoltPhysics>::Get()->GetBodyInterface().SetObjectLayer(bodyID, +collisionLayer);
 
 		JPH::Shape::ShapeResult result{ nonScaledShapePtr->ScaleShape(joltScale) };
@@ -464,7 +468,7 @@ namespace physics {
 		if (pos != prevTrans.pos)
 		{
 			if (auto colliderComp{ ecs::GetEntity(this)->GetComp<BoxColliderComp>() })
-				pos += colliderComp->GetCenter();			
+				pos += colliderComp->GetCenter();
 			SetPosition(pos);
 		}
 
@@ -501,9 +505,9 @@ namespace physics {
 
 		auto wrapDeg = [](float deg)
 			{
-				float temp{ std::fmod(deg + 180.f, 360.f) }; 
-				if (temp < 0.f) 
-					temp += 360.f; 
+				float temp{ std::fmod(deg + 180.f, 360.f) };
+				if (temp < 0.f)
+					temp += 360.f;
 				return temp - 180.0f;
 			};
 
@@ -522,9 +526,9 @@ namespace physics {
 			rot.y = wrapDeg(180.f - rot.y);
 			rot.z = wrapDeg(zDiff < 1e-4 ? rot.z : rot.z + 180.f);
 		}
-		
+
 		ecs::GetEntityTransform(this).SetWorldRotation(rot);
-		
+
 		prevTrans = ecs::GetEntityTransform(this);
 	}
 
