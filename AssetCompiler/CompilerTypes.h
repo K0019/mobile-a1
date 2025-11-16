@@ -2,9 +2,13 @@
 #include "CompilerMath.h"
 #include <map>
 #include <array>
+#include <variant>
 
 namespace compiler
 {
+    //Forward decl
+    //struct aiScene;
+
     using ClipId = uint32_t;
     using SkeletonId = uint32_t;
     using MorphSetId = uint32_t;
@@ -127,6 +131,68 @@ namespace compiler
         // Default flags
         DEFAULT_FLAGS = CAST_SHADOW | RECEIVE_SHADOW
     };
+
+    struct FilePathSource
+    {
+        std::filesystem::path path;
+
+        bool operator<(const FilePathSource& other) const
+        {
+            return path < other.path;
+        }
+
+        bool operator==(const FilePathSource& other) const
+        {
+            return path == other.path;
+        }
+    };
+    struct EmbeddedTextureSource
+    {
+        //const aiScene* scene = nullptr; // Pointer to the scene containing the texture
+        std::string name;
+
+        // 1. Compressed (PNG/JPG)
+        const uint8_t* compressedData = nullptr;
+        size_t compressedSize = 0;
+
+        // 2. Raw (uncompressed RGBA8 pixels)
+        const uint8_t* rawData = nullptr;
+        uint32_t width = 0;
+        uint32_t height = 0;
+
+        bool operator<(const EmbeddedTextureSource& other) const
+        {
+            if (name != other.name)
+                return name < other.name;
+
+            if (compressedSize != other.compressedSize)
+                return compressedSize < other.compressedSize;
+
+            if (width != other.width)
+                return width < other.width;
+
+            if (height != other.height)
+                return height < other.height;
+
+            if (compressedData != other.compressedData)
+                return compressedData < other.compressedData;
+
+            return rawData < other.rawData;
+        }
+
+        bool operator==(const EmbeddedTextureSource& other) const
+        {
+            return name == other.name &&
+                compressedSize == other.compressedSize &&
+                width == other.width &&
+                height == other.height &&
+                compressedData == other.compressedData &&
+                rawData == other.rawData;
+        }
+    };
+
+    using TextureDataSource = std::variant<std::monostate, FilePathSource, EmbeddedTextureSource>;
+
     struct ProcessedMaterialSlot
     {
         std::string name;
@@ -148,7 +214,7 @@ namespace compiler
 
         // Key: Texture type (e.g., "baseColor", "normal")
         // Value: The SOURCE filepath of the texture
-        std::map<std::string, std::filesystem::path> texturePaths;
+        std::map<std::string, TextureDataSource> texturePaths;
     };
 
 

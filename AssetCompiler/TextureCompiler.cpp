@@ -143,11 +143,91 @@ namespace compiler
         return true;
     }
 
+    bool TextureCompiler::CompileFromMemory(const EmbeddedTextureSource& source, const CompilerOptions& compileOptions)
+    {
+        options = compileOptions; // Set options for the helper functions
+
+        //==========================
+        // Load Source Texture
+        //==========================
+        CMP_Texture srcTexture = {};
+        CMP_Texture destTexture = {};
+        LoadSourceTextureFromMemory(source, srcTexture);
+
+        //===================================
+        // Initialize Compressed Destination
+        //===================================
+        CMP_CompressOptions cmpOptions = SetupCompressionOptions();
+
+        //==========================
+        // Compress Texture
+        //==========================
+        if (!CompressTexture(srcTexture, destTexture, cmpOptions))
+        {
+            stbi_image_free(srcTexture.pData);
+            free(destTexture.pData);
+            return false;
+        }
+
+        // Hijack options to insert correct filename to save as
+        options.general.inputPath = std::filesystem::path(source.name).stem();
+
+        if (!SaveAsKTX2(destTexture))
+        {
+            stbi_image_free(srcTexture.pData);
+            free(destTexture.pData);
+            return false;
+        }
+
+        stbi_image_free(srcTexture.pData);
+        free(destTexture.pData);
+
+        return true;
+    }
+
     bool TextureCompiler::LoadSourceTexture(CMP_Texture& outTex)
     {
         int w, h, comp;
         unsigned char* pixels = stbi_load(options.general.inputPath.string().c_str(), &w, &h, &comp, 4);
         if (!pixels) return false;
+
+        outTex.dwSize = sizeof(outTex);
+        outTex.dwWidth = w;
+        outTex.dwHeight = h;
+        outTex.format = MapCMPFormat(options.texture.channelFormat);
+        outTex.dwDataSize = w * h * 4;
+        outTex.dwPitch = w * 4;
+        outTex.pData = pixels;
+        return true;
+    }
+
+    bool TextureCompiler::LoadSourceTextureFromMemory(const EmbeddedTextureSource& source, CMP_Texture& outTex)
+    {
+        int w, h, comp;
+        unsigned char* pixels = nullptr;
+
+        if (source.compressedData)
+        {
+            pixels = stbi_load_from_memory(source.compressedData, static_cast<int>(source.compressedSize), &w, &h, &comp, 4);
+        }
+        else if (source.rawData)
+        {
+            // No STB needed for raw data, just copy it.
+            w = source.width;
+            h = source.height;
+            comp = 4;
+            size_t dataSize = static_cast<size_t>(w * h * 4);
+            pixels = new unsigned char[dataSize];
+            if (pixels)
+            {
+                memcpy(pixels, source.rawData, dataSize);
+            }
+        }
+
+        if (!pixels)
+        {
+            return false;
+        }
 
         outTex.dwSize = sizeof(outTex);
         outTex.dwWidth = w;

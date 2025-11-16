@@ -58,9 +58,9 @@ namespace compiler
     private:
         SceneProcessingResult ProcessScene(Scene& scene, const MeshOptions& options);
 
-        void CompileTextures(const Scene& scene, CompilationResult& result);
+        std::map<TextureDataSource, std::filesystem::path> CompileTextures(const Scene& scene, CompilationResult& result);
         void SaveMeshes(const Scene& scene, CompilationResult& result);
-        void SaveMaterialData(const Scene& scene, CompilationResult& result);
+        void SaveMaterialData(const Scene& scene, CompilationResult& result, std::map<TextureDataSource, std::filesystem::path> savedTexturesMap);
         void SaveAnimations(const Scene& scene, CompilationResult& result);
         //void SaveSkeleton(const Scene& scene, CompilationResult& result);
 

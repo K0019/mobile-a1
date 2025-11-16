@@ -193,8 +193,8 @@ namespace compiler
 
         // Save the data
         SaveMeshes(scene, result);
-        SaveMaterialData(scene, result);
-        CompileTextures(scene, result);
+        auto savedTexturesMap = CompileTextures(scene, result);
+        SaveMaterialData(scene, result, savedTexturesMap);
         SaveAnimations(scene, result);
 
         if (!result.errors.empty())
@@ -255,84 +255,136 @@ namespace compiler
 
 
     // ----- Saving to disk ----- //
-    void SceneCompiler::CompileTextures(const Scene& scene, CompilationResult& result)
+    std::map<TextureDataSource, std::filesystem::path> SceneCompiler::CompileTextures(const Scene& scene, CompilationResult& result)
     {
-        std::set<std::filesystem::path> uniqueTexturePaths;
+        std::map<TextureDataSource, std::filesystem::path> compiledTextures;
+
+
+        std::set<TextureDataSource> uniqueTextureSources;
         for (const auto& material : scene.materials)
         {
-            for (const auto& [type, path] : material.texturePaths)
+            for (const auto& [type, source] : material.texturePaths)
             {
-                if (!path.empty())
+                if (source.index() != 0) // Not std::monostate
                 {
-                    uniqueTexturePaths.insert(path);
+                    uniqueTextureSources.insert(source);
                 }
             }
         }
 
-        if (uniqueTexturePaths.empty())
+        if (uniqueTextureSources.empty())
         {
-            return;
+            return compiledTextures;
         }
 
-        // Resolve paths, make sure they actually exists
-        std::vector<std::string> texturePathErrors;
-        std::filesystem::path modelBasePath = options.general.inputPath.parent_path();
-        std::map<std::filesystem::path, std::filesystem::path> resolvedTexturePaths;
-
-        for (const auto& sourcePath : uniqueTexturePaths)
+        // We just assume that everything inside textureSources are filepaths if the first element is one, because why would it be anything else
+        if (std::holds_alternative<FilePathSource>(*uniqueTextureSources.begin()))
         {
-            PathResolutionResult pathResolution = ResolveTexturePath(sourcePath, modelBasePath);
+            // Resolve paths, make sure they actually exists
+            std::vector<std::string> texturePathErrors;
+            std::filesystem::path modelBasePath = options.general.inputPath.parent_path();
+            std::map<std::filesystem::path, std::filesystem::path> resolvedTexturePaths;
 
-            if (pathResolution.success)
+            for (auto& source : uniqueTextureSources)
             {
-                if (!pathResolution.warning.empty())
+                std::filesystem::path sourcePath = std::get<FilePathSource>(source).path;
+                PathResolutionResult pathResolution = ResolveTexturePath(sourcePath, modelBasePath);
+
+                if (pathResolution.success)
                 {
-                    result.warnings.push_back(pathResolution.warning);
+                    if (!pathResolution.warning.empty())
+                    {
+                        result.warnings.push_back(pathResolution.warning);
+                    }
+                    // This path is confirmed to exist on disk, safe to send to texturecompiler
+                    resolvedTexturePaths[sourcePath] = pathResolution.finalPath;
                 }
-                // This path is confirmed to exist on disk, safe to send to texturecompiler
-                resolvedTexturePaths[sourcePath] = pathResolution.finalPath;
+                else
+                {
+                    // Cannot find the file anywhere.
+                    //texturePathErrors.push_back("Failed to find texture: " + sourcePath.string() + ". " + pathResolution.warning);
+                    texturePathErrors.push_back(pathResolution.warning);
+                }
             }
-            else
+
+            if (!texturePathErrors.empty())
             {
-                // Cannot find the file anywhere.
-                //texturePathErrors.push_back("Failed to find texture: " + sourcePath.string() + ". " + pathResolution.warning);
-                texturePathErrors.push_back(pathResolution.warning);
+                result.errors.push_back("Texture path errors: Could not find one or more textures. Texture compilation aborted entirely.");
+                result.errors.insert(result.errors.end(), texturePathErrors.begin(), texturePathErrors.end());
+                return compiledTextures;
+            }
+
+            compiler::TextureCompiler texCompiler;
+            std::filesystem::path textureOutputDir = options.general.outputPath / "textures";
+            std::filesystem::create_directories(textureOutputDir);
+
+            for (const auto& [originalPath, resolvedPath] : resolvedTexturePaths)
+            {
+                CompilerOptions texOpts;
+                texOpts.general.inputPath = resolvedPath; // Use the *correct* path
+                texOpts.general.outputPath = textureOutputDir;
+                texOpts.texture = options.texture;
+
+                // Parse filename to set specific options - e.g: normal maps use BC5
+                //Disable parsing for now - ryans vk::Format vk::vkFormatToFormat(VkFormat format) doesn't support any BC5s and BC4s
+                //texOpts.texture = GetTextureOptionsForFile(resolvedPath, options.texture);
+
+                if (texCompiler.Compile(texOpts))
+                {
+                    std::string outputFilename = originalPath.stem().string() + ".ktx2";
+                    result.createdTextureFiles.push_back(options.general.outputPath / "textures" / outputFilename);
+                    FilePathSource compiledFilePathSource {originalPath};
+                    compiledTextures[compiledFilePathSource] = options.general.outputPath / "textures" / outputFilename;
+                }
+                else
+                {
+                    result.errors.push_back("Failed to compile texture: " + resolvedPath.string());
+                }
             }
         }
-
-        if (!texturePathErrors.empty())
+        else // Assume its an embedded texture...
         {
-            result.errors.push_back("Texture path errors: Could not find one or more textures. Texture compilation aborted entirely.");
-            result.errors.insert(result.errors.end(), texturePathErrors.begin(), texturePathErrors.end());
-            return;
+            compiler::TextureCompiler texCompiler;
+            std::filesystem::path textureOutputDir = options.general.outputPath / "textures";
+            std::filesystem::create_directories(textureOutputDir);
+
+            int i = 0;
+
+            for (const auto& source : uniqueTextureSources)
+            {
+                CompilerOptions texOpts;
+                texOpts.general.outputPath = textureOutputDir;
+                texOpts.texture = options.texture;
+
+                EmbeddedTextureSource embdeddedSource = std::get<EmbeddedTextureSource>(source);
+
+                bool success = false;
+                std::string textureFilename;
+
+                if (!embdeddedSource.name.empty())
+                {
+                    textureFilename = std::filesystem::path(embdeddedSource.name).stem().string();
+                }
+                else
+                {
+                    // Create a hash based name if no name
+                    textureFilename = options.general.inputPath.stem().string() +
+                        std::to_string(std::hash<const uint8_t*>{}(embdeddedSource.compressedData ? embdeddedSource.compressedData : embdeddedSource.rawData));
+
+                    embdeddedSource.name = textureFilename;
+                }
+                success = texCompiler.CompileFromMemory(embdeddedSource, texOpts);
+
+                if (success)
+                {
+                    std::string outputFilename = textureFilename + ".ktx2";
+                    result.createdTextureFiles.push_back(textureOutputDir / outputFilename);
+                    compiledTextures[source] = textureOutputDir / outputFilename;
+                }
+            }
         }
 
-
-        compiler::TextureCompiler texCompiler;
-        std::filesystem::path textureOutputDir = options.general.outputPath / "textures";
-        std::filesystem::create_directories(textureOutputDir);
-
-        for (const auto& [originalPath, resolvedPath] : resolvedTexturePaths)
-        {
-            CompilerOptions texOpts;
-            texOpts.general.inputPath = resolvedPath; // Use the *correct* path
-            texOpts.general.outputPath = textureOutputDir;
-            texOpts.texture = options.texture;
-
-            // Parse filename to set specific options - e.g: normal maps use BC5
-            //Disable parsing for now - ryans vk::Format vk::vkFormatToFormat(VkFormat format) doesn't support any BC5s and BC4s
-            //texOpts.texture = GetTextureOptionsForFile(resolvedPath, options.texture);
-
-            if (texCompiler.Compile(texOpts))
-            {
-                std::string outputFilename = originalPath.stem().string() + ".ktx2";
-                result.createdTextureFiles.push_back(options.general.outputPath / "textures" / outputFilename);
-            }
-            else
-            {
-                result.errors.push_back("Failed to compile texture: " + resolvedPath.string());
-            }
-        }
+        return compiledTextures;
     }
 
     void SceneCompiler::SaveMeshes(const Scene& scene, CompilationResult& result)
@@ -554,7 +606,7 @@ namespace compiler
         result.createdMeshFiles.push_back(outFilePath);
     }
 
-    void SceneCompiler::SaveMaterialData(const Scene& scene, CompilationResult& result)
+    void SceneCompiler::SaveMaterialData(const Scene& scene, CompilationResult& result, std::map<TextureDataSource, std::filesystem::path> savedTexturesMap)
     {
         std::filesystem::path materialOutputDir = options.general.outputPath / "materials";
         std::filesystem::create_directories(materialOutputDir);
@@ -616,8 +668,14 @@ namespace compiler
                 auto it = materialSlot.texturePaths.find(key);
                 if (it != materialSlot.texturePaths.end())
                 {
-                    std::string filename = it->second.stem().string() + ".ktx2";    
-                    valueStr = "compiledassets/textures/" + filename;
+                    auto mapIt = savedTexturesMap.find(it->second);
+                    if (mapIt != savedTexturesMap.end())
+                    {
+                        std::string filename = mapIt->second.filename().string();
+                        valueStr = "compiledassets/textures/" + filename;
+                    }
+                    //std::string filename = it->second.stem().string() + ".ktx2";    
+                    //valueStr = "compiledassets/textures/" + filename;
                 }
 
                 textureEntry.AddMember("value", rapidjson::Value(valueStr.c_str(), allocator), allocator);

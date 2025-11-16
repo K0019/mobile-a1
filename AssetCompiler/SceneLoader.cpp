@@ -322,27 +322,66 @@ namespace compiler
         return materialPtrs;
     }
 
-    bool SceneLoader::extractTexturePath(const aiMaterial* aiMat, aiTextureType type, const std::string& key, ProcessedMaterialSlot& outSlot, const std::filesystem::path& modelBasePath)
+    bool SceneLoader::extractTexturePath(const aiScene* scene, const aiMaterial* aiMat, aiTextureType type, const std::string& key, ProcessedMaterialSlot& outSlot, const std::filesystem::path& modelBasePath)
     {
+
         aiString path;
-        if (aiMat->GetTexture(type, 0, &path) == AI_SUCCESS)
+        if (aiMat->GetTexture(type, 0, &path) != AI_SUCCESS)
         {
-            std::filesystem::path texturePath(path.C_Str());
-            //std::cout << "Material says it wants: " << texturePath << "\n";
-            if (texturePath.is_relative())
+            return false;
+        }
+
+        std::string pathStr(path.C_Str());
+
+        // Check if embedded texture (path is "*0", "*1")
+        if (pathStr.rfind('*', 0) == 0)
+        {
+            int textureIndex = std::stoi(pathStr.substr(1));
+            if (textureIndex < 0 || textureIndex >= scene->mNumTextures)
             {
-                outSlot.texturePaths[key] = modelBasePath / texturePath;
+                outSlot.texturePaths[key] = std::monostate{};
+                return false;
+            }
+
+            const aiTexture* aiTex = scene->mTextures[textureIndex];
+            EmbeddedTextureSource embeddedTex;
+            embeddedTex.name = aiTex->mFilename.C_Str();
+
+            // Check if embedded data is compressed
+            if (aiTex->mHeight == 0) // Yes it is
+            {
+                embeddedTex.compressedData = (const uint8_t*)aiTex->pcData;
+                embeddedTex.compressedSize = aiTex->mWidth; // Assimp stores size in mWidth
             }
             else
             {
-                outSlot.texturePaths[key] = texturePath;
+                embeddedTex.rawData = (const uint8_t*)aiTex->pcData;
+                embeddedTex.width = aiTex->mWidth;
+                embeddedTex.height = aiTex->mHeight;
             }
+
+            // Store the EmbeddedTextureSource struct in our map
+            outSlot.texturePaths[key] = embeddedTex;
             return true;
         }
-        return false;
+
+
+        // fbx file support - textures not embedded
+        FilePathSource fileSource;
+        std::filesystem::path texturePath(pathStr);
+        if (texturePath.is_relative())
+        {
+            fileSource.path = modelBasePath / texturePath;
+        }
+        else
+        {
+            fileSource.path = texturePath;
+        }
+        outSlot.texturePaths[key] = fileSource;
+        return true;
     }
 
-    ProcessedMaterialSlot SceneLoader::extractMaterialSlot(const aiMaterial* aiMat, uint32_t materialIndex, const std::filesystem::path& modelBasePath)
+    ProcessedMaterialSlot SceneLoader::extractMaterialSlot(const aiScene* scene, const aiMaterial* aiMat, uint32_t materialIndex, const std::filesystem::path& modelBasePath)
     {
         ProcessedMaterialSlot slot;
         slot.originalIndex = materialIndex;
@@ -357,13 +396,13 @@ namespace compiler
             slot.name = "Material_" + std::to_string(materialIndex);
         }
 
-        if (!extractTexturePath(aiMat, aiTextureType_BASE_COLOR, "baseColor", slot, modelBasePath))
-            extractTexturePath(aiMat, aiTextureType_DIFFUSE, "baseColor", slot, modelBasePath);
-        extractTexturePath(aiMat, aiTextureType_METALNESS, "metallicRoughness", slot, modelBasePath);
-        if (!extractTexturePath(aiMat, aiTextureType_NORMALS, "normal", slot, modelBasePath))
-            extractTexturePath(aiMat, aiTextureType_HEIGHT, "normal", slot, modelBasePath);
-        extractTexturePath(aiMat, aiTextureType_EMISSIVE, "emissive", slot, modelBasePath);
-        extractTexturePath(aiMat, aiTextureType_AMBIENT_OCCLUSION, "occlusion", slot, modelBasePath);
+        if (!extractTexturePath(scene, aiMat, aiTextureType_BASE_COLOR, "baseColor", slot, modelBasePath))
+            extractTexturePath(scene, aiMat, aiTextureType_DIFFUSE, "baseColor", slot, modelBasePath);
+        extractTexturePath(scene, aiMat, aiTextureType_METALNESS, "metallicRoughness", slot, modelBasePath);
+        if (!extractTexturePath(scene, aiMat, aiTextureType_NORMALS, "normal", slot, modelBasePath))
+            extractTexturePath(scene, aiMat, aiTextureType_HEIGHT, "normal", slot, modelBasePath);
+        extractTexturePath(scene, aiMat, aiTextureType_EMISSIVE, "emissive", slot, modelBasePath);
+        extractTexturePath(scene, aiMat, aiTextureType_AMBIENT_OCCLUSION, "occlusion", slot, modelBasePath);
 
         // Get material parameter values
         aiColor4D color;
@@ -707,7 +746,7 @@ namespace compiler
             for (uint32_t i = 0; i < materialPtrs.size(); ++i)
             {
                 // passing the base directory to correctly resolve relative texture paths
-                loadedScene.materials.push_back(extractMaterialSlot(materialPtrs[i], i, baseDir));
+                loadedScene.materials.push_back(extractMaterialSlot(scene, materialPtrs[i], i, baseDir));
             }
 
             // Build the bone map (bone info, bone parents, construct bone hierarchy)

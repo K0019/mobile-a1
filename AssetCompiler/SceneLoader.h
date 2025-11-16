@@ -63,8 +63,8 @@ namespace compiler
 
         // Materials
         std::vector<const aiMaterial*> collectMaterialPointers(const aiScene* scene);
-        ProcessedMaterialSlot extractMaterialSlot(const aiMaterial* aiMat, uint32_t materialIndex, const std::filesystem::path& modelBasePath);
-        bool extractTexturePath(const aiMaterial* aiMat, aiTextureType type, const std::string& key, ProcessedMaterialSlot& outSlot, const std::filesystem::path& modelBasePath);
+        ProcessedMaterialSlot extractMaterialSlot(const aiScene* scene, const aiMaterial* aiMat, uint32_t materialIndex, const std::filesystem::path& modelBasePath);
+        bool extractTexturePath(const aiScene* scene, const aiMaterial* aiMat, aiTextureType type, const std::string& key, ProcessedMaterialSlot& outSlot, const std::filesystem::path& modelBasePath);
 
         // Nodes
         void extractNodesForCompiler(
