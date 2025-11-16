@@ -1,4 +1,25 @@
-#include "NavMesh.h"
+/******************************************************************************/
+/*!
+\file	NavMesh.cpp
+\par    Project: 7percent
+\par    Course: CSD3401
+\par    Software Engineering Project 5
+\date   16/11/2025
+
+\author Takumi Shibamoto (100%)
+\par    email: t.shibamoto\@digipen.edu
+\par    DigiPen login: t.shibamoto
+
+\brief
+	Definition of system, components, and objects that are used for the
+	navmesh.
+
+All content © 2025 DigiPen Institute of Technology Singapore.
+All rights reserved.
+*/
+/******************************************************************************/
+
+#include "Engine/NavMesh.h"
 #include <cstring>
 #include <vector>
 #include "Physics/Physics.h"
@@ -101,6 +122,7 @@ namespace navmesh
 		: navMeshData{}
 		, tileRefs{}
 		, navMeshName{ "navmesh" }
+		, agentParam{}
 	{
 	}
 
@@ -190,10 +212,10 @@ namespace navmesh
 		tileConfig.cs = NavMeshSystem::CELL_SIZE;
 		tileConfig.ch = NavMeshSystem::CELL_HEIGHT;
 		tileConfig.tileSize = NavMeshSystem::TILE_SIZE;
-		tileConfig.walkableSlopeAngle = 45.f;
-		tileConfig.walkableHeight = NavMeshAgentComp::WALKABLE_HEIGHT;
-		tileConfig.walkableClimb = NavMeshAgentComp::WALKABLE_HEIGHT;
-		tileConfig.walkableRadius = NavMeshAgentComp::WALKABLE_RADIUS;
+		tileConfig.walkableSlopeAngle = agentParam.angle;
+		tileConfig.walkableHeight = static_cast<int>(agentParam.height / tileConfig.ch) + 1;
+		tileConfig.walkableClimb = static_cast<int>(agentParam.climb / tileConfig.ch) + 1;
+		tileConfig.walkableRadius = static_cast<int>(agentParam.radius / tileConfig.cs) + 1;
 		tileConfig.maxEdgeLen = 32;
 		tileConfig.maxSimplificationError = 1.3f;
 		tileConfig.minRegionArea = 1;
@@ -332,7 +354,7 @@ namespace navmesh
 		for (int i = 0; i < pMesh->npolys; ++i)
 		{
 			if (pMesh->areas[i] == RC_WALKABLE_AREA)
-				pMesh->flags[i] = PolyFlags::WALKABLE;
+				pMesh->flags[i] = +PolyFlags::WALKABLE;
 		}
 
 		dtNavMeshCreateParams params{};
@@ -375,6 +397,11 @@ namespace navmesh
 
 	void NavMeshSurfaceComp::EditorDraw()
 	{
+		gui::VarDefault("Walkable Radius", &agentParam.radius);
+		gui::VarDefault("Walkable Height", &agentParam.height);
+		gui::VarDefault("Walkable Climb", &agentParam.climb);
+		gui::VarDefault("Walkable Angle", &agentParam.angle);
+
 		if (gui::Button clearButton{ "Clear" })
 		{
 			navMeshData.filePath = "";
