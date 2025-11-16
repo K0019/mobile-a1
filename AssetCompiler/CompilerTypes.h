@@ -6,9 +6,6 @@
 
 namespace compiler
 {
-    //Forward decl
-    //struct aiScene;
-
     using ClipId = uint32_t;
     using SkeletonId = uint32_t;
     using MorphSetId = uint32_t;
@@ -151,11 +148,12 @@ namespace compiler
         //const aiScene* scene = nullptr; // Pointer to the scene containing the texture
         std::string name;
 
-        // 1. Compressed (PNG/JPG)
+        // Only one of the two: compressed or raw
+        // Compressed (PNG/JPG)
         const uint8_t* compressedData = nullptr;
         size_t compressedSize = 0;
 
-        // 2. Raw (uncompressed RGBA8 pixels)
+        // Raw (uncompressed RGBA8 pixels)
         const uint8_t* rawData = nullptr;
         uint32_t width = 0;
         uint32_t height = 0;

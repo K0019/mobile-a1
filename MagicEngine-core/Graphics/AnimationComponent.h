@@ -23,7 +23,7 @@ public:
     UserResourceHandle<ResourceAnimation> animHandleA;
     UserResourceHandle<ResourceAnimation> animHandleB;
 
-    //The below can be thought of as the animBinding representation used by ryan
+    //The below can be thought of as the equivalent of the animBinding representation used by ryan
     bool isPlaying = false;
     bool loop = true;
     float speed = 1.0f;

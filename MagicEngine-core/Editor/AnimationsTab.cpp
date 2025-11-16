@@ -5,8 +5,6 @@
 
 namespace editor
 {
-
-
     const char* AnimationsTab::GetName() const
     {
         return "Animations";

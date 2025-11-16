@@ -720,7 +720,7 @@ namespace compiler
         {
             meshNameToIndex[scene.meshes[i].name] = i;
         }
-        for (const auto& node : scene.nodes)
+        for (const auto& node : scene.nodes)    //Alternate resolving method
         {
             if (node.meshIndex != -1)
             {
@@ -894,70 +894,4 @@ namespace compiler
             result.createdAnimationFiles.push_back(outFilePath);
         }
     }
-
-#if 0
-    void SceneCompiler::SaveSkeleton(const Scene& scene, CompilationResult& result)
-    {
-        if (scene.skeleton.bones.empty())
-        {
-            return; // No skeleton to save
-        }
-
-        // Prepare data for binary writing
-        std::vector<Bone> finalBones;
-        finalBones.reserve(scene.skeleton.bones.size());
-
-        std::string nameBuffer;
-        uint32_t currentNameOffset = 0;
-
-        for (const auto& processedBone : scene.skeleton.bones)
-        {
-            Bone bone;
-            bone.inverseBindPose = processedBone.inverseBindPose;
-            bone.parentIndex = processedBone.parentIndex;
-
-            bone.nameOffset = currentNameOffset;
-            nameBuffer += processedBone.name;
-            nameBuffer += '\0'; // Null terminator
-            currentNameOffset = (uint32_t)nameBuffer.size();
-
-            finalBones.push_back(bone);
-        }
-
-        // Populate file header
-        SkeletonFileHeader header;
-        header.magic = SKELETON_FILE_MAGIC;
-        header.boneCount = (uint32_t)finalBones.size();
-        header.boneNameBufferSize = (uint32_t)nameBuffer.size();
-
-        uint64_t currentOffset = sizeof(SkeletonFileHeader);
-        header.boneDataOffset = currentOffset;
-        currentOffset += finalBones.size() * sizeof(Bone);
-        header.boneNameBufferOffset = currentOffset;
-
-        // Write to disk
-        std::filesystem::path skeletonOutputDir = options.general.outputPath / "skeletons";
-        std::filesystem::create_directories(skeletonOutputDir);
-
-        // Use the input file's stem name (e.g., "Character.fbx" -> "Character.skeleton")
-        std::string stem = options.general.inputPath.stem().string();
-        std::filesystem::path outFilePath = skeletonOutputDir / (stem + ".skeleton");
-
-        std::ofstream outFile(outFilePath, std::ios::binary);
-        if (!outFile.is_open())
-        {
-            result.errors.push_back("Failed to create skeleton file: " + outFilePath.string());
-            return;
-        }
-
-        // Write data
-        outFile.write(reinterpret_cast<const char*>(&header), sizeof(SkeletonFileHeader));
-        outFile.write(reinterpret_cast<const char*>(finalBones.data()), finalBones.size() * sizeof(Bone));
-        outFile.write(nameBuffer.c_str(), nameBuffer.size());
-
-        outFile.close();
-
-        result.createdSkeletonFiles.push_back(outFilePath);
-    }
-#endif
 }

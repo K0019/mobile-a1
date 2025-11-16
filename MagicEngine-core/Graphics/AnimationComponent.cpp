@@ -271,7 +271,6 @@ void AnimationSystem::ProcessComp(AnimationComponent & comp)
     if (!mesh || mesh->handles.empty())
         return;
 
-    // Animate that shit
     const float dt = GameTime::Dt();
     
     auto& graphicsAssetSystem{ ST<GraphicsMain>::Get()->GetAssetSystem() };
@@ -395,8 +394,9 @@ void AnimationSystem::ProcessComp(AnimationComponent & comp)
             const float primaryWeight = clipB ? (1.0f - blend) : 1.0f;
             //accumulateMorphWeights(*clipA, obj, anim.timeA, primaryWeight, anim.morphWeights, rm);
 
-            //object.name = node->mName.length > 0 ? node->mName.C_Str() : ("Object_" + std::to_string(objects.size()));
-            //i dont have nodes. its a fallback anyway. dont care.
+            // object.name = node->mName.length > 0 ? node->mName.C_Str() : ("Object_" + std::to_string(objects.size()));
+            // regarding the "" passed into accumulateMorphWeights, the above line is the ryan's original line of what it should be
+            // but i dont have the concepts of nodes during runtime. its a fallback anyway. dont care.
 
             accumulateMorphWeights(*clipA, comp.timeA, primaryWeight, graphicsAssetSystem, *renderComp, "", comp.morphWeights);
             if (clipB && blend > 0.0f)

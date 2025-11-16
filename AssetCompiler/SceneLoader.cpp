@@ -364,7 +364,7 @@ namespace compiler
         }
 
 
-        // fbx file support - textures not embedded
+        // For fbx file support - where textures not embedded
         FilePathSource fileSource;
         std::filesystem::path texturePath(pathStr);
         if (texturePath.is_relative())
