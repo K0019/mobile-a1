@@ -150,24 +150,37 @@ void AnimationComponent::SetupAnimationBinding()
     if (!meshCold)
         return;
 
-    // Store mesh-specific data required for correct skinning
-    jointCount = static_cast<uint16_t>(meshCold->jointNames.size());
-    invBindMatrices = meshCold->jointInverseBindMatrices;
-    skinMatrices.resize(jointCount);
-    jointRemap.resize(jointCount);
-
-    if (meshCold->skeletonId == Resource::INVALID_SKELETON_ID) return;
-
-    // Calculate the remap table
-    const auto& skeleton = graphicsAssetSystem.Skeleton(meshCold->skeletonId);
-    if (skeleton.jointCount() == 0) return;
-
-    // Build the remap table: mesh joint index -> skeleton joint index
-    for (uint16_t jMesh = 0; jMesh < jointCount; ++jMesh)
+    if (meshCold->skeletonId != Resource::INVALID_SKELETON_ID)
     {
-        const std::string& meshJointName = meshCold->jointNames[jMesh];
-        const int16_t jSkel = skeleton.indexOfJoint(meshJointName);
-        jointRemap[jMesh] = jSkel;
+        // Store mesh-specific data required for correct skinning
+        jointCount = static_cast<uint16_t>(meshCold->jointNames.size());
+        invBindMatrices = meshCold->jointInverseBindMatrices;
+        skinMatrices.resize(jointCount);
+        jointRemap.resize(jointCount);
+
+        // Calculate the remap table
+        const auto& skeleton = graphicsAssetSystem.Skeleton(meshCold->skeletonId);
+        if (skeleton.jointCount() == 0) return;
+
+        // Build the remap table: mesh joint index -> skeleton joint index
+        for (uint16_t jMesh = 0; jMesh < jointCount; ++jMesh)
+        {
+            const std::string& meshJointName = meshCold->jointNames[jMesh];
+            const int16_t jSkel = skeleton.indexOfJoint(meshJointName);
+            jointRemap[jMesh] = jSkel;
+        }
+    }
+
+    if (meshCold->morphSetId != Resource::INVALID_MORPH_SET_ID)
+    {
+        const auto& morph = graphicsAssetSystem.Morph(meshCold->morphSetId);
+        morphCount = morph.count();
+        morphWeights.assign(morph.count(), 0.0f);
+    }
+    else
+    {
+        morphCount = 0;
+        morphWeights.clear();
     }
 }
 
@@ -369,7 +382,9 @@ void AnimationSystem::ProcessComp(AnimationComponent & comp)
     if (morph.count() > 0)
     {
         if (comp.morphWeights.size() != morph.count())
-            comp.morphWeights.assign(morph.count(), 0.0f);
+        {
+            comp.SetupAnimationBinding();
+        }
 
         std::fill(comp.morphWeights.begin(), comp.morphWeights.end(), 0.0f);
         if (clipA)

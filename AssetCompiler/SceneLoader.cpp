@@ -292,8 +292,6 @@ namespace compiler
                 anim.morphChannels.push_back(std::move(morphChannel));
             }
             
-            
-            
             outScene.animations.push_back(anim);
         }
     }

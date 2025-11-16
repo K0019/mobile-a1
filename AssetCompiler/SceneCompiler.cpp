@@ -714,32 +714,38 @@ namespace compiler
 
         std::string stem = options.general.inputPath.stem().string();
 
-        // --- NEW: Create a lookup map for mesh names -> index ---
         // This is needed to resolve the meshName in ProcessedMorphChannel
         std::map<std::string, uint32_t> meshNameToIndex;
         for (uint32_t i = 0; i < scene.meshes.size(); ++i)
         {
             meshNameToIndex[scene.meshes[i].name] = i;
         }
+        for (const auto& node : scene.nodes)
+        {
+            if (node.meshIndex != -1)
+            {
+                meshNameToIndex[node.name] = (uint32_t)node.meshIndex;
+            }
+        }
 
         // Loop and save one file PER animation clip
         for (const auto& anim : scene.animations)
         {
-            ProcessedAnimation animToSave = anim; // This is your struct
+            ProcessedAnimation animToSave = anim;
 
             // --- Buffers for Skeletal Data ---
             std::vector<BoneAnimationChannel> finalSkeletalChannels;
             std::vector<char> skeletalKeyframeBuffer;
             std::string skeletalNameBuffer;
 
-            // --- NEW: Buffers for Morph Data ---
+            // --- Buffers for Morph Data ---
             std::vector<AnimationFile_MorphChannel> finalMorphChannels;
             std::vector<AnimationFile_MorphKey> finalMorphKeys;
             std::vector<uint32_t> morphIndexBuffer;
             std::vector<float> morphWeightBuffer;
 
 
-            // --- 1. Process Skeletal Channels (Existing Logic) ---
+            // --- Process Skeletal Channels ---
             for (const auto& channel : animToSave.skeletalChannels) //
             {
                 if (channel.positionKeys.empty() && channel.rotationKeys.empty() && channel.scaleKeys.empty())
@@ -776,7 +782,7 @@ namespace compiler
                 finalSkeletalChannels.push_back(finalChannel);
             }
 
-            // --- 2. NEW: Process Morph Channels ---
+            // --- Process Morph Channels ---
             for (const auto& channel : animToSave.morphChannels) //
             {
                 if (channel.keys.empty())
@@ -823,7 +829,7 @@ namespace compiler
                 continue; // No data to save for this clip
             }
 
-            // --- 3. Populate File Header ---
+            // --- Populate File Header ---
             AnimationFileHeader header; //
             header.magic = ANIM_FILE_MAGIC;
             header.duration = animToSave.duration;
@@ -860,7 +866,7 @@ namespace compiler
 
 
             // --- 4. Write to Disk ---
-            std::string animFilename = stem + "@" + animToSave.name + ".anim";
+            std::string animFilename = stem + animToSave.name + ".anim";
             std::filesystem::path outFilePath = animOutputDir / animFilename;
 
             std::ofstream outFile(outFilePath, std::ios::binary);
@@ -870,7 +876,6 @@ namespace compiler
                 continue;
             }
 
-            // Write all data blocks in order
             outFile.write(reinterpret_cast<const char*>(&header), sizeof(AnimationFileHeader));
 
             // Skeletal data
