@@ -200,7 +200,7 @@ void AnimationComponent::EditorDraw()
     const std::string* clip1Name{ ST<MagicResourceManager>::Get()->Editor_GetName(animHandleA.GetHash()) };
     gui::TextUnformatted(std::string("Clip 1"));
     gui::SameLine();
-    gui::TextBoxReadOnly("##AnimClip1", clip1Name->c_str());
+    gui::TextBoxReadOnly("##AnimClip1", clip1Name ? clip1Name->c_str() : "");
     gui::PayloadTarget<size_t>("ANIMATION_HASH", [&](size_t hash) -> void {
         animHandleA = hash;
         SetupAnimationBinding();
@@ -211,7 +211,7 @@ void AnimationComponent::EditorDraw()
         const std::string* clip2Name{ ST<MagicResourceManager>::Get()->Editor_GetName(animHandleB.GetHash()) };
         gui::TextUnformatted(std::string("Clip 2"));
         gui::SameLine();
-        gui::TextBoxReadOnly("##AnimClip2", clip2Name->c_str());
+        gui::TextBoxReadOnly("##AnimClip2", clip2Name ? clip2Name->c_str() : "");
         gui::PayloadTarget<size_t>("ANIMATION_HASH", [&](size_t hash) -> void {
             animHandleB = hash;
             SetupAnimationBinding();
