@@ -19,6 +19,13 @@ namespace navmesh
 		WALKABLE = 1
 	};
 
+	struct NavMeshHit
+	{
+		Vec3 position;
+		dtPolyRef poly;
+		float distance;
+	};
+
 	struct NavMeshData
 		: public ISerializeable
 	{
@@ -76,6 +83,8 @@ namespace navmesh
 	private:
 		dtNavMesh* navMesh;
 	};
+
+	bool SamplePosition(Vec3 sourcePos, NavMeshHit& hit, float maxDistance, unsigned int areaMask);
 }
 property_begin(navmesh::NavMeshData)
 {

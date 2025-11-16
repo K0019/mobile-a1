@@ -10,8 +10,6 @@ namespace navmesh
 	int const NavMeshAgentComp::WALKABLE_RADIUS = 2;
 	int const NavMeshAgentComp::WALKABLE_CLIMB = 2;
 
-	
-
 	NavMeshAgentComp::NavMeshAgentComp()
 		: agent{ nullptr }
 		, agentID{ -1 }
@@ -59,18 +57,11 @@ namespace navmesh
 			return;
 
 		dtCrowd* crowdSystem{ ecs::GetSystem<NavMeshAgentSystem>()->GetCrowdSystem() };
-		const dtNavMeshQuery* query{crowdSystem->getNavMeshQuery()};
-		dtQueryFilter filter;
-		filter.setIncludeFlags(PolyFlags::WALKABLE);  // Include all polygon flags
-
-		float halfExtent[3]{ 100.f, 100.f, 100.f };
-		dtPolyRef nearestRef{};
-		float position[3]{ pos.x, pos.y, pos.z };
-		float nearestPos[3]{};
-		dtStatus status{ query->findNearestPoly(position, halfExtent, &filter, &nearestRef, nearestPos) };
-		if (dtStatusSucceed(status) && nearestRef != 0)
+		NavMeshHit hit{};
+		if (SamplePosition(pos, hit, 100.f, WALKABLE))
 		{
-			crowdSystem->requestMoveTarget(agentID, nearestRef, nearestPos);
+			float hitPos[3]{ hit.position.x, hit.position.y, hit.position.z };
+			crowdSystem->requestMoveTarget(agentID, hit.poly, hitPos);
 		}
 	}
 
@@ -124,28 +115,27 @@ namespace navmesh
 			params.maxSpeed = 10.f;
 			params.maxAcceleration = 1000.f;
 
-			//Set the position so that the agent is on the navmesh.
-			const dtNavMeshQuery* query{ crowdSystem->getNavMeshQuery() };
-			dtQueryFilter filter;
-			filter.setIncludeFlags(PolyFlags::WALKABLE);  // Include all polygon flags
+			params.updateFlags = DT_CROWD_ANTICIPATE_TURNS | DT_CROWD_SEPARATION | DT_CROWD_OBSTACLE_AVOIDANCE;
 
-			float halfExtent[3]{ 100.f, 100.f, 100.f };
-			dtPolyRef nearestRef{};
-			float nearestPos[3]{};
-			dtStatus status{ query->findNearestPoly(pos, halfExtent, &filter, &nearestRef, nearestPos) };
-			if (dtStatusSucceed(status) && nearestRef != 0)
+			int id{-1};
+			NavMeshHit hit{};
+			if (SamplePosition(transPos, hit, 100.f, PolyFlags::WALKABLE))
 			{
-				compIter.GetEntity()->GetTransform().SetWorldPosition(Vec3{ nearestPos[0], nearestPos[1], nearestPos[2] });
+				//Update the entity transform.
+				compIter.GetEntity()->GetTransform().SetWorldPosition(Vec3{hit.position});
+
+				//Create agent.
+				float nearestPos[3]{ hit.position.x, hit.position.y, hit.position.z };
+				int id = crowdSystem->addAgent(nearestPos, &params);
+				compIter->SetAgentID(id);
+				compIter->SetAgent(crowdSystem->getEditableAgent(id));
 			}
 
-			int id = crowdSystem->addAgent(nearestPos, &params);
 			if (id == -1)
 			{
 				CONSOLE_LOG(LEVEL_ERROR) << "Couldn't add agent to the agent system.";
 				return;
 			}
-			compIter->SetAgentID(id);
-			compIter->SetAgent(crowdSystem->getEditableAgent(id));
 		}
 	}
 
@@ -153,6 +143,9 @@ namespace navmesh
 	{
 		for (auto compIter{ ecs::GetCompsActiveBegin<NavMeshAgentComp>() }, endIter{ ecs::GetCompsEnd<NavMeshAgentComp>() }; compIter != endIter; ++compIter)
 		{
+			if (!compIter->GetAgent())
+				continue;
+
 			compIter->SetAgentPos(compIter.GetEntity()->GetTransform().GetWorldPosition());
 			if (compIter.GetEntity()->HasComp<EnemyComponent>())
 			{
@@ -165,6 +158,9 @@ namespace navmesh
 
 		for (auto compIter{ ecs::GetCompsActiveBegin<NavMeshAgentComp>() }, endIter{ ecs::GetCompsEnd<NavMeshAgentComp>() }; compIter != endIter; ++compIter)
 		{
+			if (!compIter->GetAgent())
+				continue;
+
 			Vec3 pos{ compIter->GetAgent()->npos[0], compIter->GetAgent()->npos[1], compIter->GetAgent()->npos[2] };
 			compIter.GetEntity()->GetTransform().SetWorldPosition(pos);
 		}

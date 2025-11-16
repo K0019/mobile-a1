@@ -456,4 +456,46 @@ namespace navmesh
 	{
 		return navMesh;
 	}
+
+	bool SamplePosition(Vec3 sourcePos, NavMeshHit& hit, float maxDistance, unsigned int areaMask)
+	{
+		//Get the crowd system.
+		dtCrowd* crowdSystem{ ecs::GetSystem<NavMeshAgentSystem>()->GetCrowdSystem() };
+		if (!crowdSystem)
+			return false;
+
+		//Get the query.
+		const dtNavMeshQuery* query{ crowdSystem->getNavMeshQuery() };
+		if (!query)
+			return false;
+
+		//Set the filter for the areaMast.
+		dtQueryFilter filter;
+		filter.setIncludeFlags(static_cast<unsigned short>(areaMask)); 
+
+		//Check if there's any where on the navmesh.
+		float halfExtent[3]{ maxDistance, maxDistance, maxDistance };
+		dtPolyRef nearestRef{};
+		float position[3]{ sourcePos.x, sourcePos.y, sourcePos.z };
+		float nearestPos[3]{};
+		dtStatus status{ query->findNearestPoly(position, halfExtent, &filter, &nearestRef, nearestPos) };
+		
+		//Found
+		if (dtStatusSucceed(status) && nearestRef != 0)
+		{
+			Vec3 pos{ nearestPos[0], nearestPos[1], nearestPos[2] };
+			Vec3 diff{ sourcePos - pos };
+			float distance{ std::sqrt(math::PowSqr(math::Abs(diff.x)) + math::PowSqr(math::Abs(diff.y)) + math::PowSqr(math::Abs(diff.z))) };
+			if (distance > maxDistance)
+				return false;
+
+			hit.position = pos;
+			hit.distance = distance;
+			hit.poly = nearestRef;
+			return true;
+		}
+
+		//Not found
+		return false;
+	}
 }
