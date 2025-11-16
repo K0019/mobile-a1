@@ -114,6 +114,11 @@ namespace navmesh
 		return agentData.acceleration;
 	}
 	
+	float NavMeshAgentComp::GetBaseOffset() const
+	{
+		return agentData.baseOffset;
+	}
+
 	bool NavMeshAgentComp::IsActive() const
 	{
 		return agentData.active;
@@ -171,6 +176,12 @@ namespace navmesh
 	void NavMeshAgentComp::SetMaxAcceleration(float acceleration)
 	{
 		agentData.acceleration = acceleration;
+		SetAgentParam();
+	}
+
+	void NavMeshAgentComp::SetBaseOffset(float offset)
+	{
+		agentData.baseOffset = offset;
 		SetAgentParam();
 	}
 
@@ -235,6 +246,7 @@ namespace navmesh
 		if (gui::Checkbox("Active", &agentData.active))
 			SetActive(agentData.active);
 
+		bool offsetChanged{ gui::VarDefault("Base Offset", &agentData.baseOffset) };
 		bool radChanged{ gui::VarDefault("Radius", &agentData.param.radius) };
 		bool heightChanged{ gui::VarDefault("Height", &agentData.param.height) };
 		bool climbChanged{ gui::VarDefault("Climb Height", &agentData.param.climb) };
@@ -242,7 +254,7 @@ namespace navmesh
 		bool speedChanged{ gui::VarDefault("Max Speed", &agentData.speed) };
 		bool accelChanged{ gui::VarDefault("Max Acceleration", &agentData.acceleration) };
 
-		if (agentID != -1 && (radChanged || heightChanged || climbChanged || angleChanged || speedChanged || accelChanged))
+		if (agentID != -1 && (offsetChanged || radChanged || heightChanged || climbChanged || angleChanged || speedChanged || accelChanged))
 			SetAgentParam();
 	}
 
@@ -290,14 +302,15 @@ namespace navmesh
 			NavMeshHit hit{};
 			if (SamplePosition(transPos, hit, 100.f, +PolyFlags::WALKABLE))
 			{
-				//Update the entity transform.
-				compIter.GetEntity()->GetTransform().SetWorldPosition(Vec3{hit.position});
-
 				//Create agent.
 				float nearestPos[3]{ hit.position.x, hit.position.y, hit.position.z };
 				id = crowdSystem->addAgent(nearestPos, &params);
 				compIter->SetAgentID(id);
 				compIter->SetAgent(crowdSystem->getEditableAgent(id));
+
+				//Update the entity transform.
+				nearestPos[1] += compIter->GetBaseOffset();
+				compIter.GetEntity()->GetTransform().SetWorldPosition(Vec3{nearestPos[0], nearestPos[1], nearestPos[2]});
 			}
 
 			if (id == -1)
@@ -314,8 +327,9 @@ namespace navmesh
 		{
 			if (!compIter->GetAgent())
 				continue;
-
-			compIter->SetAgentPos(compIter.GetEntity()->GetTransform().GetWorldPosition());
+			NavMeshHit hit{};
+			if (SamplePosition(compIter.GetEntity()->GetTransform().GetWorldPosition(), hit, compIter->GetBaseOffset() + 1.f, +PolyFlags::WALKABLE))
+				compIter->SetAgentPos(hit.position);
 		}
 
 		crowdSystem->update(GameTime::Dt(), nullptr);
@@ -325,7 +339,7 @@ namespace navmesh
 			if (!compIter->GetAgent())
 				continue;
 
-			Vec3 pos{ compIter->GetAgent()->npos[0], compIter->GetAgent()->npos[1], compIter->GetAgent()->npos[2] };
+			Vec3 pos{ compIter->GetAgent()->npos[0], compIter->GetAgent()->npos[1] + compIter->GetBaseOffset(), compIter->GetAgent()->npos[2]};
 			compIter.GetEntity()->GetTransform().SetWorldPosition(pos);
 		}
 		return true;

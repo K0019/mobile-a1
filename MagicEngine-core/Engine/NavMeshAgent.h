@@ -33,6 +33,7 @@ namespace navmesh
 		NavMeshParams param;
 		float speed;
 		float acceleration;
+		float baseOffset;
 		bool active;
 
 		property_vtable()
@@ -140,6 +141,14 @@ namespace navmesh
 
 		/*****************************************************************//*!
 		\brief
+			Get the agent base offset.
+		\return
+			agent base offset.
+		*//******************************************************************/
+		float GetBaseOffset() const;
+
+		/*****************************************************************//*!
+		\brief
 			Get the agent activeness.
 		\return
 			true if active, else false.
@@ -228,6 +237,14 @@ namespace navmesh
 
 		/*****************************************************************//*!
 		\brief
+			Set the agent's base offset.
+		\param acceleration
+			agent's base offset.
+		*//******************************************************************/
+		void SetBaseOffset(float offset);
+
+		/*****************************************************************//*!
+		\brief
 			Set the agent's activeness.
 		\param val
 			agent's activeness.
@@ -291,6 +308,7 @@ property_begin(navmesh::NavMeshAgentData)
 	property_var(param),
 	property_var(speed),
 	property_var(acceleration),
+	property_var(baseOffset),
 	property_var(active)
 }
 property_vend_h(navmesh::NavMeshAgentData)
