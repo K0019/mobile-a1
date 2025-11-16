@@ -28,6 +28,7 @@ All rights reserved.
 #include <set>
 #include <iostream>
 #include <span>
+#include <utility>
 
 #include "rapidjson/document.h"
 #include "rapidjson/writer.h"
@@ -145,12 +146,16 @@ namespace compiler
         // e.g., "_roughness", "_metallic", "_s", "_r", "_m", "_mask"
         if (EndsWith(stem, "_s") || EndsWith(stem, "_specular") ||
             EndsWith(stem, "_r") || EndsWith(stem, "_roughness") ||
-            EndsWith(stem, "_m") || EndsWith(stem, "_metallic") ||
-            EndsWith(stem, "_ao") || EndsWith(stem, "_mask"))
+            EndsWith(stem, "_m") || EndsWith(stem, "_metallic"))
+        {
+            newOptions.compressionFormat = TextureCompressionFormat::BC5;
+            newOptions.channelFormat = TextureChannelFormat::RGBA_8888;
+            return newOptions;
+        }
+        if (EndsWith(stem, "_ao") || EndsWith(stem, "_mask"))
         {
             newOptions.compressionFormat = TextureCompressionFormat::BC4;
             newOptions.channelFormat = TextureChannelFormat::RGBA_8888;
-            return newOptions;
         }
 
         // Default: Assume Diffuse/Albedo
@@ -260,14 +265,14 @@ namespace compiler
         std::map<TextureDataSource, std::filesystem::path> compiledTextures;
 
 
-        std::set<TextureDataSource> uniqueTextureSources;
+        std::set<std::pair<std::string, TextureDataSource>> uniqueTextureSources;
         for (const auto& material : scene.materials)
         {
             for (const auto& [type, source] : material.texturePaths)
             {
                 if (source.index() != 0) // Not std::monostate
                 {
-                    uniqueTextureSources.insert(source);
+                    uniqueTextureSources.insert(std::make_pair(type, source));
                 }
             }
         }
@@ -278,14 +283,14 @@ namespace compiler
         }
 
         // We just assume that everything inside textureSources are filepaths if the first element is one, because why would it be anything else
-        if (std::holds_alternative<FilePathSource>(*uniqueTextureSources.begin()))
+        if (std::holds_alternative<FilePathSource>(std::get<TextureDataSource>(*uniqueTextureSources.begin())))
         {
             // Resolve paths, make sure they actually exists
             std::vector<std::string> texturePathErrors;
             std::filesystem::path modelBasePath = options.general.inputPath.parent_path();
             std::map<std::filesystem::path, std::filesystem::path> resolvedTexturePaths;
 
-            for (auto& source : uniqueTextureSources)
+            for (auto& [key, source] : uniqueTextureSources)
             {
                 std::filesystem::path sourcePath = std::get<FilePathSource>(source).path;
                 PathResolutionResult pathResolution = ResolveTexturePath(sourcePath, modelBasePath);
@@ -350,7 +355,7 @@ namespace compiler
 
             int i = 0;
 
-            for (const auto& source : uniqueTextureSources)
+            for (const auto& [key, source] : uniqueTextureSources)
             {
                 CompilerOptions texOpts;
                 texOpts.general.outputPath = textureOutputDir;
@@ -373,6 +378,30 @@ namespace compiler
 
                     embdeddedSource.name = textureFilename;
                 }
+
+                // Setup texture options
+                if (key == texturekeys::BASE_COLOR || key == texturekeys::EMISSIVE)
+                {
+                    texOpts.texture.compressionFormat = TextureCompressionFormat::BC7;
+                    texOpts.texture.channelFormat = TextureChannelFormat::RGBA_8888;
+                }
+                else if (key == texturekeys::NORMAL)
+                {
+                    texOpts.texture.compressionFormat = TextureCompressionFormat::BC5;
+                    texOpts.texture.channelFormat = TextureChannelFormat::RGBA_8888;
+                }
+                else if (key == texturekeys::METALLIC_ROUGHNESS)
+                {
+                    texOpts.texture.compressionFormat = TextureCompressionFormat::BC5;
+                    texOpts.texture.channelFormat = TextureChannelFormat::RGBA_8888;
+                }
+                else if (key == texturekeys::OCCLUSION)
+                {
+                    texOpts.texture.compressionFormat = TextureCompressionFormat::BC4;
+                    texOpts.texture.channelFormat = TextureChannelFormat::RGBA_8888;
+                }
+
+
                 success = texCompiler.CompileFromMemory(embdeddedSource, texOpts);
 
                 if (success)
@@ -656,10 +685,9 @@ namespace compiler
             doc.AddMember("emissiveFactor", emissive, allocator);
 
 
-            const char* textureKeys[] = { "baseColor", "metallicRoughness", "normal", "emissive", "occlusion" };
             rapidjson::Value texturesArray(rapidjson::kArrayType);
 
-            for (const char* key : textureKeys)
+            for (const char* key : texturekeys::ALL)
             {
                 rapidjson::Value textureEntry(rapidjson::kObjectType);
                 textureEntry.AddMember("key", rapidjson::Value(key, allocator), allocator);

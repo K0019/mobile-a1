@@ -394,13 +394,13 @@ namespace compiler
             slot.name = "Material_" + std::to_string(materialIndex);
         }
 
-        if (!extractTexturePath(scene, aiMat, aiTextureType_BASE_COLOR, "baseColor", slot, modelBasePath))
-            extractTexturePath(scene, aiMat, aiTextureType_DIFFUSE, "baseColor", slot, modelBasePath);
-        extractTexturePath(scene, aiMat, aiTextureType_METALNESS, "metallicRoughness", slot, modelBasePath);
-        if (!extractTexturePath(scene, aiMat, aiTextureType_NORMALS, "normal", slot, modelBasePath))
-            extractTexturePath(scene, aiMat, aiTextureType_HEIGHT, "normal", slot, modelBasePath);
-        extractTexturePath(scene, aiMat, aiTextureType_EMISSIVE, "emissive", slot, modelBasePath);
-        extractTexturePath(scene, aiMat, aiTextureType_AMBIENT_OCCLUSION, "occlusion", slot, modelBasePath);
+        if (!extractTexturePath(scene, aiMat, aiTextureType_BASE_COLOR, texturekeys::BASE_COLOR, slot, modelBasePath))
+            extractTexturePath(scene, aiMat, aiTextureType_DIFFUSE, texturekeys::BASE_COLOR, slot, modelBasePath);
+        extractTexturePath(scene, aiMat, aiTextureType_METALNESS, texturekeys::METALLIC_ROUGHNESS, slot, modelBasePath);
+        if (!extractTexturePath(scene, aiMat, aiTextureType_NORMALS, texturekeys::NORMAL, slot, modelBasePath))
+            extractTexturePath(scene, aiMat, aiTextureType_HEIGHT, texturekeys::NORMAL, slot, modelBasePath);
+        extractTexturePath(scene, aiMat, aiTextureType_EMISSIVE, texturekeys::EMISSIVE, slot, modelBasePath);
+        extractTexturePath(scene, aiMat, aiTextureType_AMBIENT_OCCLUSION, texturekeys::OCCLUSION, slot, modelBasePath);
 
         // Get material parameter values
         aiColor4D color;

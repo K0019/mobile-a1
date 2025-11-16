@@ -6,6 +6,23 @@
 
 namespace compiler
 {
+    namespace texturekeys
+    {
+        constexpr const char* BASE_COLOR = "baseColor";
+        constexpr const char* METALLIC_ROUGHNESS = "metallicRoughness";
+        constexpr const char* NORMAL = "normal";
+        constexpr const char* EMISSIVE = "emissive";
+        constexpr const char* OCCLUSION = "occlusion";
+        
+        constexpr const char* ALL[] = {
+            BASE_COLOR,
+            METALLIC_ROUGHNESS,
+            NORMAL,
+            EMISSIVE,
+            OCCLUSION
+        };
+    }
+
     using ClipId = uint32_t;
     using SkeletonId = uint32_t;
     using MorphSetId = uint32_t;
