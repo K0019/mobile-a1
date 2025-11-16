@@ -290,13 +290,16 @@ void AnimationSystem::ProcessComp(AnimationComponent & comp)
     if (comp.crossfade)  flags |= 4;
     
 
-    if (clipA)
+    if (comp.isPlaying)
     {
-        comp.timeA = advanceTime(comp.timeA, dt * comp.speed, clipA->duration(), (flags & SceneObject::AnimBinding::Loop) != 0);
-    }
-    if (clipB)
-    {
-        comp.timeB = advanceTime(comp.timeB, dt * comp.speed, clipB->duration(), (flags & SceneObject::AnimBinding::Loop) != 0);
+        if (clipA)
+        {
+            comp.timeA = advanceTime(comp.timeA, dt * comp.speed, clipA->duration(), (flags & SceneObject::AnimBinding::Loop) != 0);
+        }
+        if (clipB)
+        {
+            comp.timeB = advanceTime(comp.timeB, dt * comp.speed, clipB->duration(), (flags & SceneObject::AnimBinding::Loop) != 0);
+        }
     }
 
     //const auto* meshData = graphicsAssetSystem.getMesh(mesh->handles[0]);
