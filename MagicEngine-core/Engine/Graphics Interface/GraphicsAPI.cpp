@@ -160,13 +160,6 @@ void GraphicsMain::UploadToPipeline(FrameData* outFrameData)
             Mat4 worldTransform = entityTransform.GetWorldMat() * mesh->transforms[i];
             float maxScale = glm::compMax(glm::abs(static_cast<glm::vec3>(entityTransform.GetWorldScale())));
 
-			// For meshes with morph targets, expand bounds to account for deformation
-			//const bool hasMorphTargets = meshData->animation.morphDeltaByteOffset != UINT32_MAX;
-			//if (hasMorphTargets)
-			//{
-			//	constexpr float MORPH_BOUNDS_EXPANSION = 2.0f;
-			//	radius *= MORPH_BOUNDS_EXPANSION;
-			//}
 
             // Store object data
             params->objectTransforms.push_back(worldTransform);
@@ -175,6 +168,12 @@ void GraphicsMain::UploadToPipeline(FrameData* outFrameData)
             // Transform mesh bounds to world space
             auto center = vec3(meshData->bounds.x, meshData->bounds.y, meshData->bounds.z);
             float radius = meshData->bounds.w * maxScale;
+			const bool hasMorphTargets = meshData->animation.morphDeltaByteOffset != UINT32_MAX;
+			if (hasMorphTargets)
+			{
+				constexpr float MORPH_BOUNDS_EXPANSION = 2.0f;
+				radius *= MORPH_BOUNDS_EXPANSION;
+			}
             auto worldCenter = vec3((glm::mat4)worldTransform * vec4(center, 1.0f));
             params->objectBounds.emplace_back(
                 worldCenter - vec3(radius),
