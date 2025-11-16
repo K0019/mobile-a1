@@ -34,6 +34,7 @@ All rights reserved.
 
 std::unordered_map<std::string, SPtr<ResourceFiletypeImporterBase>> ResourceImporter::importers{
     { std::string{ ".fbx" }, std::make_shared<ResourceFiletypeImporterFBX>() }, //compile
+    { std::string{ ".glb" }, std::make_shared<ResourceFiletypeImporterFBX>() }, //compile
     { std::string{ ".ktx" }, std::make_shared<ResourceFiletypeImporterKTX>() }, //load
     { std::string{ ".ktx2" }, std::make_shared<ResourceFiletypeImporterKTX>() }, //load
     { std::string{ ".mesh" }, std::make_shared<ResourceFiletypeImporterMeshAsset>() }, //load

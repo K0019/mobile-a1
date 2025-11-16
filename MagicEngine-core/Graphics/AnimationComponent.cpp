@@ -153,7 +153,8 @@ void AnimationComponent::SetupAnimationBinding()
     // Store mesh-specific data required for correct skinning
     jointCount = static_cast<uint16_t>(meshCold->jointNames.size());
     invBindMatrices = meshCold->jointInverseBindMatrices;
-    jointRemap.assign(jointCount, -1);
+    skinMatrices.resize(jointCount);
+    jointRemap.resize(jointCount);
 
     if (meshCold->skeletonId == Resource::INVALID_SKELETON_ID) return;
 
@@ -178,30 +179,6 @@ const ResourceAnimation* AnimationComponent::GetAnimationClipB() const
 {
     return animHandleB.GetResource();
 }
-const bool AnimationComponent::IsPlaying() const
-{
-    return isPlaying;
-}
-const bool AnimationComponent::IsLooping() const
-{
-    return loop;
-}
-const bool AnimationComponent::IsCrossfade() const
-{
-    return crossfade;
-}
-const float AnimationComponent::GetPlaybackSpeed() const
-{
-    return speed;
-}
-const float AnimationComponent::GetTimeA() const
-{
-    return timeA;
-}
-const float AnimationComponent::GetTimeB() const
-{
-    return timeB;
-}
 
 
 void AnimationComponent::EditorDraw()
@@ -209,19 +186,26 @@ void AnimationComponent::EditorDraw()
     // Animation input
     gui::TextUnformatted(std::string("Clip 1"));
     gui::SameLine();
-    gui::TextBoxReadOnly("##1", std::to_string(animHandleA.GetHash()));
+    gui::TextBoxReadOnly("##AnimClip1", std::to_string(animHandleA.GetHash()));
     gui::PayloadTarget<size_t>("ANIMATION_HASH", [&](size_t hash) -> void {
         animHandleA = hash;
         SetupAnimationBinding();
         });
 
-    gui::TextUnformatted(std::string("Clip 2"));
-    gui::SameLine();
-    gui::TextBoxReadOnly("##2", std::to_string(animHandleB.GetHash()));
-    gui::PayloadTarget<size_t>("ANIMATION_HASH", [&](size_t hash) -> void {
-        animHandleB = hash;
-        SetupAnimationBinding();
-        });
+    if (crossfade)
+    {
+        gui::TextUnformatted(std::string("Clip 2"));
+        gui::SameLine();
+        gui::TextBoxReadOnly("##AnimClip2", std::to_string(animHandleB.GetHash()));
+        gui::PayloadTarget<size_t>("ANIMATION_HASH", [&](size_t hash) -> void {
+            animHandleB = hash;
+            SetupAnimationBinding();
+            });
+
+        gui::TextUnformatted(std::string("Blend"));
+        gui::SameLine();
+        gui::VarDrag("##blend", &blend);
+    }
 
     gui::TextUnformatted(std::string("Is Playing"));
     gui::SameLine();
@@ -231,22 +215,20 @@ void AnimationComponent::EditorDraw()
     gui::SameLine();
     gui::Checkbox("##looping", &loop);
 
-    gui::TextUnformatted(std::string("Crossfade"));
-    gui::SameLine();
-    gui::Checkbox("##crossfade", &crossfade);
-
     gui::TextUnformatted(std::string("Playback Speed"));
     gui::SameLine();
     gui::VarDrag("##playbackspeed", &speed);
 
 
-    gui::TextUnformatted(std::string("Time Speed Thing"));
+    gui::TextUnformatted(std::string("Crossfade"));
     gui::SameLine();
-    gui::VarDrag("##time", &timeA);
+    gui::Checkbox("##crossfade", &crossfade);
+    
+
+    gui::TextUnformatted(std::string("ClipA playback"));
+    gui::SameLine();
+    gui::VarDrag("##timeA", &timeA);
 }
-
-
-
 
 
 
@@ -257,7 +239,7 @@ AnimationSystem::AnimationSystem() :
 
 void AnimationSystem::ProcessComp(AnimationComponent & comp)
 {
-    if (!comp.IsPlaying() || !comp.GetAnimationClipA())
+    if (!comp.isPlaying || !comp.GetAnimationClipA())
         return;
 
     const ResourceAnimation* clip = comp.GetAnimationClipA();
@@ -275,12 +257,12 @@ void AnimationSystem::ProcessComp(AnimationComponent & comp)
         return;
 
     // Animate that shit
-    const float dt = 0.001f;
+    const float dt = GameTime::Dt();
     
     auto& graphicsAssetSystem{ ST<GraphicsMain>::Get()->GetAssetSystem() };
     const Resource::AnimationClip* clipA = comp.GetAnimationClipA() && comp.GetAnimationClipA()->handle != Resource::INVALID_CLIP_ID
         ? &graphicsAssetSystem.Clip(comp.GetAnimationClipA()->handle) : nullptr;
-    const Resource::AnimationClip* clipB = comp.IsCrossfade() && comp.GetAnimationClipB() && comp.GetAnimationClipB()->handle != Resource::INVALID_CLIP_ID
+    const Resource::AnimationClip* clipB = comp.crossfade && comp.GetAnimationClipB() && comp.GetAnimationClipB()->handle != Resource::INVALID_CLIP_ID
         ? &graphicsAssetSystem.Clip(comp.GetAnimationClipB()->handle) : nullptr;
 
 
@@ -315,8 +297,7 @@ void AnimationSystem::ProcessComp(AnimationComponent & comp)
         // Ensure output buffer is correctly sized for the mesh's joint palette
         if (comp.skinMatrices.size() != jointCount)
         {
-            comp.skinMatrices.resize(jointCount);
-            comp.jointRemap.resize(jointCount);
+            comp.SetupAnimationBinding();
         }
 
         // Fast path for rest pose: if no clip is active, fill with identity matrices.
@@ -324,7 +305,6 @@ void AnimationSystem::ProcessComp(AnimationComponent & comp)
         {
             std::fill(comp.skinMatrices.begin(), comp.skinMatrices.end(), glm::mat4(1.0f));
         }
-
         else
         {
             const uint32_t skeletonJointCount = skeleton.jointCount();

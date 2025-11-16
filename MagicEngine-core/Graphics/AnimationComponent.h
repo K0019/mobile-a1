@@ -10,18 +10,11 @@ class AnimationComponent
     : public IRegisteredComponent<AnimationComponent>
     , public IEditorComponent<AnimationComponent>
 {
-private:
-    void SetupAnimationBinding();
 
 public:
+    void  SetupAnimationBinding();
     const ResourceAnimation* GetAnimationClipA() const;
     const ResourceAnimation* GetAnimationClipB() const;
-    const bool   IsPlaying() const;
-    const bool   IsLooping() const;
-    const bool   IsCrossfade() const;
-    const float  GetPlaybackSpeed() const;
-    const float  GetTimeA() const;
-    const float  GetTimeB() const;
 
     void EditorDraw() override;
 
@@ -33,9 +26,10 @@ public:
     //The below can be thought of as the animBinding representation used by ryan
     bool isPlaying = false;
     bool loop = true;
+    float speed = 1.0f;
+
     bool crossfade = false;
     float blend = 0.0f;
-    float speed = 1.0f;
 
     float timeA = 0.0f;
     float timeB = 0.0f;
