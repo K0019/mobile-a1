@@ -6,6 +6,7 @@
 #include <optional>
 #include <atomic>
 #include <shared_mutex>
+#include <vector>
 #include <graphics/i_graph_observer.h>
 
 namespace editor

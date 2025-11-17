@@ -177,7 +177,7 @@ if errorlevel 1 (
 
 if /i "%TARGET%"=="android" (
     REM Need Ninja for Android build
-	call :check_ninja
+    call :check_ninja
     if errorlevel 1 (
         if "%SHOW_MENU%"=="true" pause
         exit /b 1
@@ -269,14 +269,37 @@ exit /b 0
 echo [INFO] Building engine for Android (%BUILD_TYPE%)...
 
 echo [INFO] Running Rocky's python script
-@echo off
-py --version >nul 2>&1
-if %errorlevel% neq 0 (
-    echo Python is not installed.
-    pause
+
+REM Detect a usable Python executable: try py first, then python
+set "PYTHON_EXE="
+
+where py >nul 2>&1
+if not errorlevel 1 set "PYTHON_EXE=py"
+
+if not defined PYTHON_EXE (
+    where python >nul 2>&1
+    if not errorlevel 1 set "PYTHON_EXE=python"
+)
+
+if not defined PYTHON_EXE (
+    echo [ERROR] Python is not installed or not on PATH.
+    if "%SHOW_MENU%"=="true" pause
     exit /b 1
 )
-py generate_android_assets_manifest.py
+
+"%PYTHON_EXE%" --version >nul 2>&1
+if errorlevel 1 (
+    echo [ERROR] Failed to run "%PYTHON_EXE%". Check your Python installation.
+    if "%SHOW_MENU%"=="true" pause
+    exit /b 1
+)
+
+"%PYTHON_EXE%" generate_android_assets_manifest.py
+if errorlevel 1 (
+    echo [ERROR] Failed to generate Android assets manifest.
+    if "%SHOW_MENU%"=="true" pause
+    exit /b 1
+)
 
 if exist "android\install" rmdir /s /q android\install
 if exist "build-android" rmdir /s /q build-android
@@ -345,15 +368,6 @@ for /f "tokens=1* delims=," %%a in ("%abi_list%") do (
         exit /b 1
     )
     
-	REM Copy engine headers
-	REM if exist "..\android\install\!current_abi!\include\" (
-	REM	echo engine headers already installed
-	REM) else (
-	REM	echo Installing engine headers...
-	REM	mkdir "..\android\install\!current_abi!\include"
-	REM	xcopy /E /I /Y "..\engine-core\core\engine\engine.h" "..\android\install\!current_abi!\include\" >nul
-	REM)
-
     REM Copy vcpkg dependencies
     set "vcpkg_install_dir=.\vcpkg_installed\!vcpkg_triplet!"
     set "abi_install_dir=..\android\install\!current_abi!"
@@ -408,45 +422,13 @@ echo   ANDROID_PLATFORM Android API level (default: 30)
 echo   VCPKG_ROOT      Path to vcpkg (required for Android)
 echo.
 echo Examples:
-echo   %0                              # Interactive menu
-echo   %0 windows debug                # Build Windows in Debug
-echo   %0 android debug --no-menu      # Build Android Debug without menu
-echo   %0 android relwithdebinfo       # Build Android with symbols and optimization
+echo   %0                              ^# Interactive menu
+echo   %0 windows debug                ^# Build Windows in Debug
+echo   %0 android debug --no-menu      ^# Build Android Debug without menu
+echo   %0 android relwithdebinfo       ^# Build Android with symbols and optimization
 echo   set BUILD_TYPE=Debug ^&^& %0 windows
 if "%SHOW_MENU%"=="true" pause
 exit /b 0
-
-
-@REM @echo off
-@REM setlocal
-
-@REM set "BUILD_DIR=build"
-
-@REM echo.
-@REM echo Configuring project with CMake...
-
-@REM :: Create the build directory if it doesn't exist
-@REM if not exist "%BUILD_DIR%" (
-@REM     mkdir "%BUILD_DIR%"
-@REM )
-
-@REM :: Navigate into the build directory and run CMake
-@REM cd "%BUILD_DIR%"
-@REM cmake ..
-
-@REM if %errorlevel% neq 0 (
-@REM     echo.
-@REM     echo ERROR: CMake configuration failed.
-@REM     pause
-@REM     exit /b %errorlevel%
-@REM )
-
-@REM echo.
-@REM echo CMake configuration complete.
-@REM echo You can now open the .sln file in the '%BUILD_DIR%' directory.
-@REM pause
-
-@REM endlocal
 
 :check_ninja
 REM Check if already installed in our custom location

@@ -3,6 +3,7 @@
 #include "core/platform/platform.h"
 #include "logging/log.h"
 #include "logging/profiler.h"
+#include "vulkan/vk_util.h"
 
 Renderer::Renderer() = default;
 
