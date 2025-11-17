@@ -216,7 +216,11 @@ namespace navmesh
 
 	void NavMeshAgentComp::SetAgentParam()
 	{
-		auto crowdSystem{ ecs::GetSystem<NavMeshAgentSystem>()->GetCrowdSystem() };
+		auto agentSystem{ ecs::GetSystem<NavMeshAgentSystem>() };
+		if (!agentSystem)
+			return;
+
+		auto crowdSystem{ agentSystem->GetCrowdSystem() };
 		if (!crowdSystem)
 			return;
 
@@ -234,7 +238,11 @@ namespace navmesh
 
 	void NavMeshAgentComp::SetAgentParam(dtCrowdAgentParams const& param)
 	{
-		auto crowdSystem{ ecs::GetSystem<NavMeshAgentSystem>()->GetCrowdSystem() };
+		auto agentSystem{ ecs::GetSystem<NavMeshAgentSystem>() };
+		if (!agentSystem)
+			return;
+
+		auto crowdSystem{ agentSystem->GetCrowdSystem() };
 		if (!crowdSystem)
 			return;
 
