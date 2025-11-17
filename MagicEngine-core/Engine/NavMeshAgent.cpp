@@ -192,8 +192,8 @@ namespace navmesh
 
 		params.radius = agentData.param.radius;
 		params.height = agentData.param.height;
-		params.maxSpeed = 0.f;
-		params.maxAcceleration = 0.f;
+		params.maxSpeed = val ? agentData.speed : 0.f;
+		params.maxAcceleration = val ? agentData.acceleration : 0.f;
 
 		params.updateFlags = DT_CROWD_ANTICIPATE_TURNS | DT_CROWD_SEPARATION | DT_CROWD_OBSTACLE_AVOIDANCE;
 		SetAgentParam(params);
