@@ -26,6 +26,7 @@ All rights reserved.
 
 #include "Engine/BehaviorTree/BehaviourNode.h"
 #include "LeafMoveTowardsPlayer.h"
+#include "FollowPlayerUsingNavMesh.h"
 #include "LeafLookForPlayer.h"
 #include "LeafAttackPlayer.h"
 #include "BehaviourTreeFactory.h"
@@ -44,6 +45,7 @@ BT_REGISTER_NODE(DetectClickTest, "DetectClickTest")
 BT_REGISTER_NODE(L_MoveTowardsPlayer, "L_MoveTowardsPlayer")
 BT_REGISTER_NODE(L_LookForPlayer, "L_LookForPlayer")
 BT_REGISTER_NODE(L_AttackPlayer, "L_AttackPlayer")
+BT_REGISTER_NODE(L_FollowPlayerUsingNavMesh, "L_FollowPlayerUsingNavMesh")
 
 
 BehaviorNode::BehaviorNode()
