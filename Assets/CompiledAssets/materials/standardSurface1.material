@@ -2,8 +2,8 @@
     "name": "standardSurface1",
     "alphaMode": "Opaque",
     "alphaCutoff": 0.5,
-    "metallicFactor": 0.0,
-    "roughnessFactor": 0.5527864098548889,
+    "metallicFactor": 1.0,
+    "roughnessFactor": 1.0,
     "normalScale": 1.0,
     "occlusionStrength": 1.0,
     "baseColorFactor": [

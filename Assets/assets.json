@@ -141,6 +141,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/corridor_level2.mesh",
+            "resources": [
+                {
+                    "resourceType": 6209910166724260588,
+                    "resourceEntries": [
+                        {
+                            "hash": 1359071138829199245,
+                            "name": "corridor_level20"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/materials/n00_008_01_shoes_01_cloth_02 (instance).material",
             "resources": [
                 {
