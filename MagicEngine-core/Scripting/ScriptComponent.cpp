@@ -47,14 +47,24 @@ const char* const scriptFunctionNames[]{
 
 LuaScriptWithMeta::LuaScriptWithMeta(LuaScript&& script)
 	: LuaScript{ std::forward<LuaScript>(script) }
+	, valid{ true }
 	, availableFunctions{ GetAvailableFunctionsMask() }
+	, markedAsCalledFunctions{ 0 }
+{
+}
+
+LuaScriptWithMeta::LuaScriptWithMeta(const std::string& scriptName)
+	: LuaScript{ scriptName, LuaCpp::StateProxy{ {} } }
+	, valid{}
+	, availableFunctions{}
 	, markedAsCalledFunctions{ 0 }
 {
 }
 
 LuaScriptWithMeta::LuaScriptWithMeta()
 	: LuaScript{}
-	, availableFunctions{ GetAvailableFunctionsMask() }
+	, valid{}
+	, availableFunctions{}
 	, markedAsCalledFunctions{ 0 }
 {
 }
@@ -82,14 +92,11 @@ bool LuaScriptWithMeta::DoesFunctionExist(const char* funcName)
 
 void ScriptComponent::RefreshScripts()
 {
-	for (auto scriptIter{ scripts.begin() }; scriptIter != scripts.end(); )
+	for (auto scriptIter{ scripts.begin() }; scriptIter != scripts.end(); ++scriptIter)
 		if (auto newScriptInstance{ ST<LuaScripting>::Get()->GetScript(scriptIter->scriptName) })
-		{
 			*scriptIter = LuaScriptWithMeta{ std::move(newScriptInstance.value()) };
-			++scriptIter;
-		}
 		else
-			scriptIter = scripts.erase(scriptIter);
+			scriptIter->valid = false;
 }
 
 void ScriptComponent::EditorDraw()
@@ -97,9 +104,12 @@ void ScriptComponent::EditorDraw()
 	gui::TextCenteredUnformatted("Attached Scripts");
 	for (auto scriptIter{ scripts.begin() }; scriptIter != scripts.end(); )
 	{
+		gui::SetStyleColor headerColor{ gui::FLAG_STYLE_COLOR::HEADER, gui::Vec4{ 0.0f, 0.0f, 0.0f, 0.156f }, !scriptIter->valid };
+		gui::SetStyleColor textColor{ gui::FLAG_STYLE_COLOR::TEXT, gui::Vec4{ 1.0f, 1.0f, 1.0f, 0.3f }, !scriptIter->valid };
 		if (gui::CollapsingHeader header{ scriptIter->scriptName })
 		{
 			gui::SetID id{ scriptIter->scriptName.c_str() };
+			gui::UnsetStyleColor unsetTextColor{ (scriptIter->valid ? 0u : 1u) };
 			gui::SetStyleColor buttonColor{ gui::FLAG_STYLE_COLOR::BUTTON, gui::Vec4{ 0.8f, 0.1f, 0.1f, 1.0f } };
 			gui::SetStyleColor buttonHoveredColor{ gui::FLAG_STYLE_COLOR::BUTTON_HOVERED, gui::Vec4{ 1.0f, 0.1f, 0.1f, 1.0f } };
 			if (gui::Button deleteButton{ "Delete", { gui::GetAvailableContentRegion().x, 0.0f } })
@@ -134,6 +144,8 @@ void ScriptComponent::Deserialize(Deserializer& reader)
 
 		if (auto instantiatedScript{ ST<LuaScripting>::Get()->GetScript(scriptName) })
 			scripts.push_back(std::move(instantiatedScript.value()));
+		else
+			scripts.emplace_back(scriptName);
 	}
 	reader.PopAccess();
 }
