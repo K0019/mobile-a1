@@ -94,6 +94,7 @@ find_package(fmt CONFIG REQUIRED)
 find_package(quill CONFIG REQUIRED)
 
 find_package(Jolt CONFIG REQUIRED)
+find_package(recastnavigation CONFIG REQUIRED)
 find_package(Stb REQUIRED)
 find_package(Lua REQUIRED)
 

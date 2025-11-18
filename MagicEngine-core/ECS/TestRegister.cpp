@@ -11,6 +11,8 @@
 #include "Engine/BehaviorTree/BehaviourTree.h"
 #include "Engine/Platform/Android/AndroidInputManager.h"
 #include "Engine/EntityLayers.h"
+#include "Engine/NavMesh.h"
+#include "Engine/NavMeshAgent.h"
 #include "Graphics/CameraComponent.h"
 #include "Graphics/LightComponent.h"
 #include "Graphics/PostProcessingComponent.h"
@@ -52,4 +54,6 @@ void RegisterShit()
 	IRegisteredComponent<EnemyComponent>::RegisterComponent();
 	IRegisteredComponent<HealthComponent>::RegisterComponent();
 	IRegisteredComponent<ScriptComponent>::RegisterComponent();
+	IRegisteredComponent<navmesh::NavMeshSurfaceComp>::RegisterComponent();
+	IRegisteredComponent<navmesh::NavMeshAgentComp>::RegisterComponent();
 }

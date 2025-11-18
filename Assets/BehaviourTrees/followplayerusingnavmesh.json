@@ -1,0 +1,13 @@
+{
+    "name": "followplayerusingnavmesh",
+    "nodes": [
+        {
+            "nodeType": "Sequence",
+            "nodeLevel": 0
+        },
+        {
+            "nodeType": "L_FollowPlayerUsingNavMesh",
+            "nodeLevel": 1
+        }
+    ]
+}
