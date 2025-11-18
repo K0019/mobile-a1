@@ -23,6 +23,7 @@ All rights reserved.
 
 #pragma once
 #include <ImGui/ImguiHeader.h>
+//#include "Utilities//MacroTemplates.h"
 
 namespace gui {
 

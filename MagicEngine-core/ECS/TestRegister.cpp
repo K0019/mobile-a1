@@ -21,6 +21,7 @@
 #include "Physics/Physics.h"
 #include "Scripting/ScriptComponent.h"
 #include "Components/NameComponent.h"
+#include "Components/EntityReferenceHolder.h"
 #include "Game/GameCameraController.h"
 #include "Game/Character.h"
 #include "Game/PlayerCharacter.h"
@@ -47,6 +48,7 @@ void RegisterShit()
 	IRegisteredComponent<physics::BoxColliderComp>::RegisterComponent();
 	IRegisteredComponent<physics::PhysicsComp>::RegisterComponent();
 	IRegisteredComponent<NameComponent>::RegisterComponent();
+	IRegisteredComponent<EntityReferenceHolderComponent>::RegisterComponent();
 	IRegisteredComponent<GameCameraControllerComponent>::RegisterComponent();
 	IRegisteredComponent<CharacterMovementComponent>::RegisterComponent();
 	IRegisteredComponent<PlayerMovementComponent>::RegisterComponent();
