@@ -127,7 +127,8 @@ template<typename FuncType>
 void ScriptComponent::ForEachAttachedScript(FuncType function)
 {
 	for (auto& script : scripts)
-		function(script);
+		if (script.valid)
+			function(script);
 }
 
 template<typename ...Args>
