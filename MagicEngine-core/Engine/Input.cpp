@@ -126,6 +126,15 @@ void InputHardwareValueLink::SetDeviceType(INPUT_DEVICE_TYPE newDeviceType)
 	deviceType = newDeviceType;
 }
 
+INPUT_READ_TYPE InputHardwareValueLink::GetReadType() const
+{
+	return readType;
+}
+void InputHardwareValueLink::SetReadType(INPUT_READ_TYPE newReadType)
+{
+	readType = newReadType;
+}
+
 int InputHardwareValueLink::GetKeyIdentifier() const
 {
 	return keyIdentifier;
