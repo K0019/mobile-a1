@@ -86,6 +86,7 @@ namespace physics {
 
 	JPH::AABox JoltPhysics::CollectAllTriangles(std::vector<float>& outVertices, std::vector<int>& outTriIndex)
 	{
+		OptimizeBroadPhase();
 		std::unordered_map<JPH::Float3, int> vert2Index{};
 		int highestIndex{};
 		JPH::AABox bound{ physicsSystem.GetBounds() };
