@@ -18,6 +18,9 @@ namespace editor {
 	const std::array<const char*, +INPUT_DEVICE_TYPE::NUM_DEVICES> InputConfig::hardwareDeviceNames{
 		ENUM_INPUT_DEVICE_TYPE
 	};
+	const std::array<const char*, 3> InputConfig::hardwareReadTypeNames{
+		ENUM_INPUT_READ_TYPE
+	};
 #undef X
 #define X(name, glfw, str) std::make_pair(KEY::name, str),
 	const std::unordered_map<KEY, const char*> InputConfig::keyIdentifierNames{
@@ -234,6 +237,9 @@ namespace editor {
 		int deviceType = +hardwareValueLink.GetDeviceType();
 		if (gui::Combo deviceCombo{ hardwareValueLinkNames[index], hardwareDeviceNames, &deviceType })
 			hardwareValueLink.SetDeviceType(static_cast<INPUT_DEVICE_TYPE>(deviceType));
+		int readType = +hardwareValueLink.GetReadType();
+		if (gui::Combo readTypeCombo{ "Read Type", hardwareReadTypeNames, &readType })
+			hardwareValueLink.SetReadType(static_cast<INPUT_READ_TYPE>(readType));
 
 		// Special UI for Android joystick
 		if (hardwareValueLink.GetDeviceType() == INPUT_DEVICE_TYPE::ANDROID_JOYSTICK) {
