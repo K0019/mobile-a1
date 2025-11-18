@@ -47,7 +47,6 @@ function update(entity)
                 moving = false
             end
         end
-        Magic.Log(Magic.LogLevel.info,currentOpeningDistance)
     end
 
     localPos.z = localPos.z + (currentOpeningDistance - prevOpenDistance)

@@ -90,6 +90,14 @@
                     "maxHealth": 100.0,
                     "currHealth": 100.0
                 },
+                "8426725214831635516": {
+                    "_active": true,
+                    "entityReferences": [
+                        {
+                            "entityUid": 268131303601138568
+                        }
+                    ]
+                },
                 "9315785795257285655": {
                     "_active": true,
                     "uid": 51797992787031769
@@ -143,6 +151,14 @@
                         "_majorityTrue": true,
                         "_except": []
                     }
+                },
+                "18288371625365795113": {
+                    "_active": true,
+                    "scripts": [
+                        {
+                            "scriptName": "character.lua"
+                        }
+                    ]
                 }
             }
         },
@@ -341,23 +357,6 @@
                     "_active": true,
                     "maxHealth": 1000.0,
                     "currHealth": 100.0
-                },
-                "8426725214831635516": {
-                    "_active": true,
-                    "entityReferences": [
-                        {
-                            "entityUid": 336609987718299699
-                        },
-                        {
-                            "entityUid": 1372311458949668672
-                        },
-                        {
-                            "entityUid": 0
-                        },
-                        {
-                            "entityUid": 352048231000215665
-                        }
-                    ]
                 },
                 "9315785795257285655": {
                     "_active": true,

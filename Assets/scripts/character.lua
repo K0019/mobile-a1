@@ -6,13 +6,17 @@ local dodgeCooldown = 1.0
 local dodgeDuration = 0.2
 local dodgeSpeed = 6.0
 
-local movementVector = Vec2()
+--local movementVector = Vec2()
 
 local physicsComp
 local heldItem
 
 function start(entity)
-physicsComp = entity.GetPhysicsComp()
+    --physicsComp = entity.GetPhysicsComp()
+    local refContainer = entity.GetEntityReferenceHolderComponent()
+    if(refContainer.Exists) then
+        Magic.Log(Magic.LogLevel.info, "HEHE HAHA IS WORKING =================================================")
+    end
 end
 
 function update(entity)
