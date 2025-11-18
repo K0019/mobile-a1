@@ -37,6 +37,7 @@ All rights reserved.
 #include "Game/GrabbableItem.h"
 #include "Game/Health.h"
 #include "Engine/EntityLayers.h"
+#include "Managers/AudioManager.h"
 
 //=========================================== START REGISTERING COMPONENTS ================================================================================
 // This section is unfortunately required. This registers what functions are available in a component.
@@ -223,6 +224,11 @@ void Lua_Log(int level, std::string message)
 	}
 }
 
+void Lua_PlayAudio(std::string name, Vec3 position)
+{
+	ST<AudioManager>::Get()->PlaySound3D(util::GenHash(name), false, position);
+}
+
 void RegisterCppStuffToLua(luabridge::Namespace baseTable)
 {
 	// Reference for how to do stuff: https://kunitoki.github.io/LuaBridge3/Manual
@@ -252,7 +258,7 @@ void RegisterCppStuffToLua(luabridge::Namespace baseTable)
 		.endClass()
 		.beginClass<ecs::Entity>("Entity")
 			.addProperty("transform", [](ecs::EntityHandle entity) -> Transform* { return &entity->GetTransform(); })
-
+		
 		//=========================================== START REGISTER GETTER ================================================================================
 
 		// This section allows lua to get components
@@ -415,6 +421,10 @@ void RegisterCppStuffToLua(luabridge::Namespace baseTable)
 		.addFunction("Log", Lua_Log)
 		.addFunction("DeltaTime", []() -> float { return GameTime::Dt(); })
 
+		.beginNamespace("AudioManager")
+			.addFunction("PlaySound", Lua_PlayAudio)
+		.endNamespace()
+
 		// ----- GLOBAL VARIABLES -----
 		.beginNamespace("LogLevel")
 			.addVariable("debug", +LEVEL_DEBUG)
@@ -438,4 +448,6 @@ void RegisterCppStuffToLua(luabridge::Namespace baseTable)
 			.addVariable("Player", static_cast<int>(ENTITY_LAYER::PLAYER))
 			.addVariable("Enemy", static_cast<int>(ENTITY_LAYER::ENEMY))
 		.endNamespace();
+
+	
 }
