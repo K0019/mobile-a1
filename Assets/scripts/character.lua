@@ -6,10 +6,17 @@ local dodgeCooldown = 1.0
 local dodgeDuration = 0.2
 local dodgeSpeed = 6.0
 
-function start(entity)
+local movementVector = Vec2()
 
+local physicsComp
+local heldItem
+
+function start(entity)
+physicsComp = entity.GetPhysicsComp()
 end
 
 function update(entity)
-	
+	if heldItem then
+        heldItem.transform.
+    end
 end

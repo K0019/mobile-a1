@@ -26,55 +26,33 @@ All rights reserved.
 EntityReferenceHolderComponent::EntityReferenceHolderComponent()
 {
 }
-EntityReferenceHolderComponent::~EntityReferenceHolderComponent()
-{
-	for (int i = 0; i < entityNames.size(); ++i)
-		delete entityNames[i];
-}
 
-EntityReferenceHolderComponent::EntityReferenceHolderComponent(const std::string& name)
-{
-}
 
 void EntityReferenceHolderComponent::Serialize(Serializer& writer) const
 {
-	writer.Serialize("referencedComponents", referencedComponents);
+	writer.Serialize("entityReferences", entityReferences);
 }
 
 void EntityReferenceHolderComponent::Deserialize(Deserializer& reader)
 {
-	reader.DeserializeVar("referencedComponents", &referencedComponents);
-	UpdateVectors();
+	reader.DeserializeVar("entityReferences", &entityReferences);
 }
 
-void EntityReferenceHolderComponent::UpdateVectors()
+EntityReference EntityReferenceHolderComponent::GetEntity(int index)
 {
-	for (int i = 0; i < entityNames.size(); ++i)
-		delete entityNames[i];
-
-	entityNames.resize(0);
-	entityReferences.resize(0);
-
-	for (auto iterator : referencedComponents)
+	if (index < 0 || index >= entityReferences.size())
 	{
-		char* name = new char[16];
-		strcpy_s(name, 16, iterator.first.c_str());
-		entityNames.push_back(name);
-
-		entityReferences.push_back(iterator.second);
+		return nullptr;
 	}
-
+	return entityReferences[index];
 }
-
-void EntityReferenceHolderComponent::UpdateMap()
+void EntityReferenceHolderComponent::SetEntity(int index, EntityReference entity)
 {
-	referencedComponents.clear();
-
-	for (int i = 0;i<entityNames.size();++i)
+	if (index < 0 || index >= entityReferences.size())
 	{
-		referencedComponents[std::string{ entityNames[i] }] = entityReferences[i];
+		return;
 	}
-
+	entityReferences[index] = entity;
 }
 
 void EntityReferenceHolderComponent::EditorDraw()
@@ -103,40 +81,21 @@ void EntityReferenceHolderComponent::EditorDraw()
 	{
 		if (gui::Button button{ "Add Reference" })
 		{
-			auto name = new char[16] {};
-			strcpy(name, (std::to_string(referencedComponents.size())).c_str());
-			name[15] = '\0';
-			referencedComponents[name] = nullptr;
-			UpdateVectors();
+			entityReferences.push_back(nullptr);
 		}
 		table.NextColumn();
 		if (gui::Button button{ "Remove Reference" })
 		{
-			if (referencedComponents.size() > 0)
+			if (entityReferences.size() > 0)
 			{
-				auto lastItem{ referencedComponents.end() };
-				--lastItem;
-				referencedComponents.erase(lastItem);
-				UpdateVectors();
+				entityReferences.pop_back();
 			}
 		}
-
-		for (int i = 0; i < referencedComponents.size(); ++i)
-		{
-			table.NextColumn();
-
-			if (gui::VarDefault(std::string("-##" + std::to_string(i)).c_str(), entityNames[i]))
-			{
-				UpdateMap();
-			}
-
-			//gui::TextBox(std::string("-##" + std::to_string(i)).c_str(), entityNames[i], 16);
-			table.NextColumn();
-			if (entityReferences[i].EditorDraw(std::string("##" + std::to_string(i)).c_str()))
-			{
-				UpdateMap();
-			}
-		}
+	}
+	int index = 0;
+	for (auto& iterator : entityReferences)
+	{
+		iterator.EditorDraw(std::string("##"+std::to_string(index++)).c_str());
 	}
 #endif
 }

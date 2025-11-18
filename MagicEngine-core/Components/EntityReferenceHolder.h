@@ -40,28 +40,16 @@ public:
 	*//******************************************************************/
 	EntityReferenceHolderComponent();
 
-	~EntityReferenceHolderComponent();
-
-	/*****************************************************************//*!
-	\brief
-		Constructs this component with the provided name.
-	\param name
-		The name of the entity.
-	*//******************************************************************/
-	EntityReferenceHolderComponent(const std::string& name);
 
 	void Serialize(Serializer& writer) const override;
 	void Deserialize(Deserializer& reader) override;
 
-	void UpdateVectors();
-
-	void UpdateMap();
+	EntityReference GetEntity(int index);
+	void SetEntity(int index, EntityReference entity);
 
 private:
 	virtual void EditorDraw() override;
 
-	std::unordered_map<std::string, EntityReference> referencedComponents;
-	std::vector<char*> entityNames;
 	std::vector<EntityReference> entityReferences;
 	property_vtable()
 };

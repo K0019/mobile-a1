@@ -26,6 +26,7 @@ All rights reserved.
 #pragma warning(pop)
 #include "LuaTypesECS.h"
 #include "Components/NameComponent.h"
+#include "Components/EntityReferenceHolder.h"
 #include "Engine/Audio.h"
 #include "Graphics/CameraComponent.h"
 #include "Graphics/LightComponent.h"
@@ -209,6 +210,21 @@ void SetLayerLua(int v)
 	GetHandle()->SetLayer(static_cast<ENTITY_LAYER>(v));
 }
 SCRIPT_GENERATE_COMP_WRAPPER_END()
+
+// EntityReferenceHolderComponent
+SCRIPT_GENERATE_COMP_WRAPPER_BEGIN(EntityReferenceHolderComponent)
+EntityReference GetEntity(int index)
+{
+	return GetHandle()->GetEntity(index);
+}
+void SetEntity(int index, EntityReference entity)
+{
+	GetHandle()->SetEntity(index, entity);
+}
+SCRIPT_GENERATE_COMP_WRAPPER_END()
+
+
+
 
 //=========================================== END REGISTERING COMPONENTS ================================================================================
 
@@ -443,6 +459,14 @@ void RegisterCppStuffToLua(luabridge::Namespace baseTable)
 		SCRIPT_REGISTER_COMP_BEGIN(EntityLayerComponent)
 		SCRIPT_REGISTER_COMP_PROPERTY(EntityLayerComponent,"layer", GetLayerLua, SetLayerLua)
 		SCRIPT_REGISTER_COMP_END()
+
+		// GrabbableItemComponent
+		SCRIPT_REGISTER_COMP_BEGIN(EntityReferenceHolderComponent)
+			.addFunction("GetEntity", &EntityReferenceHolderComponent::GetEntity)
+			.addFunction("SetEntity", &EntityReferenceHolderComponent::SetEntity)
+			//.addProperty("GetEntityReference", [](const EntityReferenceHolderComponent* comp) -> EntityReference { return comp->GetEntity() })
+		SCRIPT_REGISTER_COMP_END()
+
 		// ----- GLOBAL FUNCTIONS -----
 		.addFunction("Log", Lua_Log)
 		.addFunction("DeltaTime", []() -> float { return GameTime::Dt(); })
