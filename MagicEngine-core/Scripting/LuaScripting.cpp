@@ -79,9 +79,10 @@ void LuaScripting::LoadScriptsInFolder(const std::string& folder)
 		}
 
 		// Register script
-		std::string scriptName{ VFS::GetFilename(file) };
 		try {
+			std::string scriptName{ VFS::GetFilename(file) };
 			context.CompileString(scriptName, fileContents);
+			loadedScripts.push_back(std::move(scriptName));
 			CONSOLE_LOG(LEVEL_DEBUG) << "Compiled script successfully: " << file;
 		}
 		catch (const std::logic_error& e) {
@@ -90,8 +91,6 @@ void LuaScripting::LoadScriptsInFolder(const std::string& folder)
 		catch (const std::runtime_error& e) {
 			CONSOLE_LOG(LEVEL_ERROR) << "Unexpected error while compiling script: " << file << " - " << e.what();
 		}
-		// Register script no matter what so we don't remove scripts from ScriptComponent just because they can't compile
-		loadedScripts.push_back(std::move(scriptName));
 	}
 
 	// Sort script names alphabetically
