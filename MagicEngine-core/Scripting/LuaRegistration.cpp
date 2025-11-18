@@ -462,8 +462,8 @@ void RegisterCppStuffToLua(luabridge::Namespace baseTable)
 
 		// GrabbableItemComponent
 		SCRIPT_REGISTER_COMP_BEGIN(EntityReferenceHolderComponent)
-			.addFunction("GetEntity", &EntityReferenceHolderComponent::GetEntity)
-			.addFunction("SetEntity", &EntityReferenceHolderComponent::SetEntity)
+			.addFunction("GetEntity", &LuaWrapperComp_EntityReferenceHolderComponent::GetEntity)
+			.addFunction("SetEntity", &LuaWrapperComp_EntityReferenceHolderComponent::SetEntity)
 			//.addProperty("GetEntityReference", [](const EntityReferenceHolderComponent* comp) -> EntityReference { return comp->GetEntity() })
 		SCRIPT_REGISTER_COMP_END()
 

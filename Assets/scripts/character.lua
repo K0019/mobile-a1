@@ -17,6 +17,6 @@ end
 
 function update(entity)
 	if heldItem then
-        heldItem.transform.
+        --heldItem.transform.
     end
 end
