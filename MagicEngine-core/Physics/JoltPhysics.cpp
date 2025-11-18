@@ -13,19 +13,15 @@
 \brief
 	Contains definitions for the JoltPhysics class.
 
-All content � 2025 DigiPen Institute of Technology Singapore.
+All content   2025 DigiPen Institute of Technology Singapore.
 All rights reserved.
 */
 /******************************************************************************/
 
 #include "Physics/JoltPhysics.h"
-#include "im3d.h"
 #include "Physics/Physics.h"
 #include "Utilities/GameTime.h"
-
-#include "Graphics/CameraController.h"
-
-#define JPH_DEBUG_RENDERER
+#include <imgui.h>
 
 namespace physics {
 	JoltPhysics::JoltPhysics()
@@ -86,6 +82,76 @@ namespace physics {
 	void JoltPhysics::OptimizeBroadPhase()
 	{
 		physicsSystem.OptimizeBroadPhase();
+	}
+
+	JPH::AABox JoltPhysics::CollectAllTriangles(std::vector<float>& outVertices, std::vector<int>& outTriIndex)
+	{
+		std::unordered_map<JPH::Float3, int> vert2Index{};
+		int highestIndex{};
+		JPH::AABox bound{ physicsSystem.GetBounds() };
+		bound.mMin -= JPH::Vec3{ 1.f, 1.f, 1.f };
+		bound.mMax += JPH::Vec3{ 1.f, 1.f, 1.f };
+
+		for (auto colCompIter{ ecs::GetCompsActiveBegin<physics::BoxColliderComp>() }, endIter{ ecs::GetCompsEnd<physics::BoxColliderComp>() }; colCompIter != endIter; ++colCompIter)
+		{
+			//Update the body first.
+			colCompIter.GetEntity()->GetComp<JoltBodyComp>()->UpdateBody();
+
+			// If the collider is not enabled or if it has a physics component, it's not a static object so go to the next collider.
+			if (!colCompIter->GetFlag(physics::COLLIDER_COMP_FLAG::ENABLED) || colCompIter.GetEntity()->HasComp<physics::PhysicsComp>())
+				continue;
+
+			auto bodyCompPtr{ colCompIter.GetEntity()->GetComp<physics::JoltBodyComp>() };
+
+			//Get necessary data.
+			JPH::Shape::GetTrianglesContext triContext{};
+
+			const JPH::Shape* shape{ bodyInterface.GetShape(bodyCompPtr->GetBodyID()) };
+			const JPH::ScaledShape* scaledShape{ static_cast<const JPH::ScaledShape*>(shape) };
+			shape = scaledShape->GetInnerShape();
+
+			JPH::Vec3 pos{ bodyInterface.GetPosition(bodyCompPtr->GetBodyID()) };
+			Vec3 temp{ bodyCompPtr->GetScale() / 2.f };
+			JPH::Vec3 scale{ temp.x, temp.y, temp.z };
+			JPH::Quat rot{ bodyInterface.GetRotation(bodyCompPtr->GetBodyID()) };
+
+			//Get triangles
+			shape->GetTrianglesStart(triContext, bound, pos, rot, scale);
+			std::size_t maxTri{ 512 };
+			std::vector<JPH::Float3> triBuffer(maxTri * 3);
+			int triCount{};
+
+
+			while ((triCount = shape->GetTrianglesNext(triContext, static_cast<int>(maxTri), triBuffer.data())) > 0)
+			{
+				for (std::size_t count{}; count < triCount; ++count)
+				{
+					std::array<JPH::Float3, 3> vert{ triBuffer[count * 3], triBuffer[count * 3 + 1], triBuffer[count * 3 + 2] };
+					std::vector<int> indices{};
+					for (std::size_t vertexNum{}; vertexNum < 3; ++vertexNum)
+					{
+						auto iter{ vert2Index.find(vert[vertexNum]) };
+						if (iter != vert2Index.end())
+						{
+							indices.push_back(iter->second);
+						}
+						else
+						{
+							indices.push_back(highestIndex);
+							vert2Index[vert[vertexNum]] = highestIndex++;
+							outVertices.push_back(vert[vertexNum][0]);
+							outVertices.push_back(vert[vertexNum][1]);
+							outVertices.push_back(vert[vertexNum][2]);
+						}
+					}
+
+					for (int index : indices)
+						outTriIndex.push_back(index);
+				}
+			}
+		}
+
+		return bound;
 	}
 
 	TransformValues& TransformValues::operator=(Transform& trans)
@@ -442,7 +508,7 @@ namespace physics {
 				float temp{ std::fmod(deg + 180.f, 360.f) };
 				if (temp < 0.f)
 					temp += 360.f;
-				return temp - 180.0;
+				return temp - 180.0f;
 			};
 
 		JPH::Quat quat{ GetRotation() };
@@ -504,31 +570,13 @@ namespace physics {
 		JPH::Trace = TraceImpl;
 		JPH_IF_ENABLE_ASSERTS(JPH::AssertFailed = AssertFailedImpl;)
 
-			// Create a factory, this class is responsible for creating instances of classes based on their name or hash and is mainly used for deserialization of saved data.
-			// It is not directly used in this example but still required.
-			JPH::Factory::sInstance = new JPH::Factory();
+		// Create a factory, this class is responsible for creating instances of classes based on their name or hash and is mainly used for deserialization of saved data.
+		// It is not directly used in this example but still required.
+		JPH::Factory::sInstance = new JPH::Factory();
 
 		// Register all physics types with the factory and install their collision handlers with the CollisionDispatch class.
 		// If you have your own custom shape types you probably need to register their handlers with the CollisionDispatch before calling this function.
 		// If you implement your own default material (PhysicsMaterial::sDefault) make sure to initialize it before this function or else this function will create one for you.
 		JPH::RegisterTypes();
-	}
-
-	void JoltPhysics::DebugDraw()
-	{
-#if defined(JPH_DEBUG_RENDERER)
-		Im3d::NewFrame();
-		
-		Vec3 v = ST<CameraController>::Get()->GetCameraData().position;
-		joltDebugger.SetCameraPos(JPH::RVec3(v.x, v.y, v.z));
-
-		JPH::BodyManager::DrawSettings settings;
-		settings.mDrawShape = true;
-		settings.mDrawShapeWireframe = true;
-
-		physicsSystem.DrawBodies(settings, &joltDebugger);
-
-		Im3d::EndFrame();
-#endif
 	}
 }

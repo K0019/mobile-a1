@@ -61,6 +61,7 @@
       "platform": "!android"
     },
     "rapidjson",
+    "recast",
     "spirv-reflect",
     "spirv-cross",
     "stb",

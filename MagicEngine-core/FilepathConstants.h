@@ -45,6 +45,7 @@ public:
 	static const std::string scriptsSave;
 	static const std::string materialsSave;
 	static const std::string behaviourTreeSave;
+	static const std::string navMeshDataSave;
 
 	// Graphics
 	static const std::string graphicsWindowIcon;

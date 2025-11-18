@@ -11,9 +11,9 @@
 \par    DigiPen login: t.shibamoto
 
 \brief
-	JoltPhysics contains the Joly Physics System that updates all the bodies. 
+	JoltPhysics contains the Joly Physics System that updates all the bodies.
 
-All content � 2025 DigiPen Institute of Technology Singapore.
+All content   2025 DigiPen Institute of Technology Singapore.
 All rights reserved.
 */
 /******************************************************************************/
@@ -28,20 +28,20 @@ All rights reserved.
 #include <Jolt/Core/JobSystemThreadPool.h>
 #include <Jolt/Physics/PhysicsSettings.h>
 #include <Jolt/Physics/PhysicsSystem.h>
+#include <Jolt/Physics/Collision/Shape/Shape.h>
 #include <Jolt/Physics/Collision/Shape/EmptyShape.h>
 #include <Jolt/Physics/Collision/Shape/BoxShape.h>
 #include <Jolt/Physics/Collision/Shape/ScaledShape.h>
 #include <Jolt/Physics/Collision/Shape/SphereShape.h>
 #include <Jolt/Physics/Body/BodyCreationSettings.h>
 #include <Jolt/Physics/Body/BodyActivationListener.h>
+#include <Jolt/Renderer/DebugRenderer.h>
 
 #include "ECS/ECS.h"
 #include "Editor/IEditorComponent.h"
 #include "Game/IGameComponentCallbacks.h"
 #include "Physics/Collision.h"
 
-// YC: For debugging
-#include "Physics/JoltDebugRenderer.h"
 JPH_SUPPRESS_WARNINGS
 
 namespace physics {
@@ -116,7 +116,8 @@ namespace physics {
 		*//******************************************************************/
 		void OptimizeBroadPhase();
 
-		void DebugDraw();
+		JPH::AABox CollectAllTriangles(std::vector<float>& outVertices, std::vector<int>& outTriIndex);
+
 
 	private:
 		// We need a temp allocator for temporary allocations during the physics update. We're
@@ -168,12 +169,10 @@ namespace physics {
 		JPH::BodyInterface& bodyInterface;
 
 		// This contact listener prints to the console when a collision occurs.
-		MyContactListener contactListener;	
+		MyContactListener contactListener;
 
 		// Body manager that allows certain bodies to change the scale.
 		JPH::BodyManager bodyManager;
-
-		JoltDebugRenderer joltDebugger;
 	};
 
 	struct TransformValues
