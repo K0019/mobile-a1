@@ -78,8 +78,10 @@ private:
 
     // Scene rendering
     uint64_t sceneFeatureHandle;
+    uint64_t ui2dFeatureHandle;
     FrameData frameData;
     uint64_t gridHandle;
+    FontHandle ui2dFontHandle;
 
 };
 

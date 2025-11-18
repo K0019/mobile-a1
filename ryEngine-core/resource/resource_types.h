@@ -1,14 +1,16 @@
 #pragma once
 #include <filesystem>
 #include <array>
+#include <vector>
 #include <offsetAllocator.hpp>
 #include <variant>
-
 #include "resource_handle.h"
 #include "graphics/gpu_data.h"
 #include "math/utils_math.h"
 #include "graphics/interface.h"
+#include "graphics/render_feature.h"
 #include "resource/animation_ids.h"
+#include "resource/font_types.h"
 
 namespace ResourceLimits
 {
@@ -31,14 +33,14 @@ namespace ResourceLimits
 
 struct LoadOptions
 {
-  bool loadAllMeshes = true;      // Load all meshes vs first mesh only
-  bool loadMaterials = true;      // Load materials or use defaults
-  bool loadTextures = true;       // Load referenced textures
+  bool loadAllMeshes = true; // Load all meshes vs first mesh only
+  bool loadMaterials = true; // Load materials or use defaults
+  bool loadTextures = true; // Load referenced textures
   bool generateMissingUVs = true; // Generate UVs if missing
-  bool optimizeMeshes = true;     // Apply meshoptimizer
-  size_t meshLimit = 100;         // Safety limit for mesh count
-  size_t textureLimit = 200;      // Safety limit for texture count
-  std::string basePath;           // Override texture search path
+  bool optimizeMeshes = true; // Apply meshoptimizer
+  size_t meshLimit = 100; // Safety limit for mesh count
+  size_t textureLimit = 200; // Safety limit for texture count
+  std::string basePath; // Override texture search path
 };
 
 struct aiScene;
@@ -48,11 +50,13 @@ struct FilePathSource
   //std::filesystem::path path;
   std::string path;
 
-  bool operator<(const FilePathSource& other) const {
+  bool operator<(const FilePathSource& other) const
+  {
     return path < other.path;
   }
 
-  bool operator==(const FilePathSource& other) const {
+  bool operator==(const FilePathSource& other) const
+  {
     return path == other.path;
   }
 };
@@ -60,26 +64,22 @@ struct FilePathSource
 struct EmbeddedMemorySource
 {
   const aiScene* scene = nullptr; // Pointer to the scene containing the texture
-  std::string identifier;         // e.g., "*0", "*1"
-  std::string scenePath;          // The path of the parent scene file, for unique caching
-
+  std::string identifier; // e.g., "*0", "*1"
+  std::string scenePath; // The path of the parent scene file, for unique caching
   bool operator<(const EmbeddedMemorySource& other) const
   {
-    if(scenePath != other.scenePath)
-      return scenePath < other.scenePath;
+    if (scenePath != other.scenePath) return scenePath < other.scenePath;
     return identifier < other.identifier;
   }
 
   bool operator==(const EmbeddedMemorySource& other) const
   {
-    if(!scene || !other.scene)
-      return false;
+    if (!scene || !other.scene) return false;
     return scene == other.scene && identifier == other.identifier && scenePath == other.scenePath;
   }
 };
 
 using TextureDataSource = std::variant<std::monostate, FilePathSource, EmbeddedMemorySource>;
-
 template <typename Tag>
 struct ResourceTraits;
 
@@ -90,7 +90,7 @@ struct MeshAsset
 struct MeshMorphTargetInfo
 {
   std::string name;
-  uint32_t morphTargetIndex = 0;   // Index into mesh-local morph list
+  uint32_t morphTargetIndex = 0; // Index into mesh-local morph list
 };
 
 template <>
@@ -99,7 +99,7 @@ struct ResourceTraits<MeshAsset>
   struct HotData
   {
     uint32_t vertexByteOffset; // GPU buffer offset
-    uint32_t indexByteOffset;  // GPU buffer offset
+    uint32_t indexByteOffset; // GPU buffer offset
     uint32_t vertexCount;
     uint32_t indexCount;
     vec4 bounds;
@@ -117,8 +117,11 @@ struct ResourceTraits<MeshAsset>
 
     HotData() = default;
 
-    HotData(uint32_t vOffset, uint32_t iOffset, uint32_t vCount, uint32_t iCount, const vec4& b, uint32_t decompOffset = 0)
-      : vertexByteOffset(vOffset), indexByteOffset(iOffset), vertexCount(vCount), indexCount(iCount), bounds(b), decompressionByteOffset(decompOffset) {
+    HotData(uint32_t vOffset, uint32_t iOffset, uint32_t vCount, uint32_t iCount, const vec4& b,
+            uint32_t decompOffset = 0)
+      : vertexByteOffset(vOffset), indexByteOffset(iOffset), vertexCount(vCount), indexCount(iCount), bounds(b),
+        decompressionByteOffset(decompOffset)
+    {
     }
   };
 
@@ -134,12 +137,10 @@ struct ResourceTraits<MeshAsset>
     OffsetAllocator::Allocation morphVertexCountMetadata;
     std::string sourceFile;
     std::string meshName; // Name from file (e.g., "Cube.001")
-
     // Optimization results
-    float vertexCacheOptimization{ 0.0f }; // ACMR improvement ratio
-    float overdrawOptimization{ 0.0f };    // Overdraw reduction ratio
-    bool wasOptimized{ false };
-
+    float vertexCacheOptimization{0.0f}; // ACMR improvement ratio
+    float overdrawOptimization{0.0f}; // Overdraw reduction ratio
+    bool wasOptimized{false};
     // Animation metadata
     std::vector<uint32_t> jointParentIndices;
     std::vector<mat4> jointInverseBindMatrices;
@@ -151,11 +152,12 @@ struct ResourceTraits<MeshAsset>
 
     ColdData() = default;
 
-    explicit ColdData(std::string file, std::string name = "") : sourceFile(std::move(file)), meshName(std::move(name)) {
+    explicit ColdData(std::string file, std::string name = "") : sourceFile(std::move(file)), meshName(std::move(name))
+    {
     }
   };
 
-  static constexpr std::string_view supported_extensions[] = { ".gltf", ".glb", ".obj", ".fbx" };
+  static constexpr std::string_view supported_extensions[] = {".gltf", ".glb", ".obj", ".fbx"};
 };
 
 using MeshHandle = Handle<MeshAsset>;
@@ -170,51 +172,82 @@ struct ResourceTraits<TextureAsset>
 {
   struct HotData
   {
-    uint32_t bindlessIndex{ 0 }; // GPU bindless texture index
-
+    uint32_t bindlessIndex{0}; // GPU bindless texture index
     HotData() = default;
 
-    explicit HotData(uint32_t index) : bindlessIndex(index) {
+    explicit HotData(uint32_t index) : bindlessIndex(index)
+    {
     }
   };
 
   struct ColdData
   {
     vk::TextureDesc textureDesc;
-
     // File properties
-    std::string sourceFile;     // Original file path or embedded identifier
-    std::string cacheKey;       // Unique key for caching
-    bool isSRGB{ true };          // Color space
-    bool isCompressed{ false };   // KTX vs standard image
-    size_t originalFileSize{ 0 }; // File size in bytes
-    size_t uncompressedSize{ 0 }; // Raw texture data size
-
+    std::string sourceFile; // Original file path or embedded identifier
+    std::string cacheKey; // Unique key for caching
+    bool isSRGB{true}; // Color space
+    bool isCompressed{false}; // KTX vs standard image
+    size_t originalFileSize{0}; // File size in bytes
+    size_t uncompressedSize{0}; // Raw texture data size
     ColdData() = default;
 
-    explicit ColdData(std::string file, bool srgb = true) : sourceFile(std::move(file)), isSRGB(srgb) {
+    explicit ColdData(std::string file, bool srgb = true) : sourceFile(std::move(file)), isSRGB(srgb)
+    {
     }
   };
 
-  static constexpr std::string_view supported_extensions[] = { ".png", ".jpg", ".jpeg", ".tga", ".bmp", ".dds", ".ktx", ".ktx2", ".hdr", ".exr" };
+  static constexpr std::string_view supported_extensions[] = {
+    ".png", ".jpg", ".jpeg", ".tga", ".bmp", ".dds", ".ktx", ".ktx2", ".hdr", ".exr"
+  };
 };
 
 using TextureHandle = Handle<TextureAsset>;
 
+struct FontAsset
+{
+};
+
+template <>
+struct ResourceTraits<FontAsset>
+{
+  struct HotData
+  {
+    TextureHandle atlasTexture;
+    uint32_t bindlessIndex = 0;
+    float ascent = 0.0f;
+    float descent = 0.0f;
+    float lineGap = 0.0f;
+    float fontSize = 0.0f;
+    uint32_t atlasWidth = 0;
+    uint32_t atlasHeight = 0;
+    Resource::FontCPUData cpuData;
+  };
+
+  struct ColdData
+  {
+    std::vector<uint8_t> fontBinary;
+    std::string cacheKey;
+    std::vector<Resource::FontMergeSource> mergeSources;
+  };
+
+  static constexpr std::string_view supported_extensions[] = {".ttf", ".otf"};
+};
+
+using FontHandle = Handle<FontAsset>;
+
 enum MaterialFlags : uint32_t
 {
   // Alpha mode (lower 2 bits)
-  ALPHA_MODE_MASK = 0x3,   // 2 bits for masking
-  ALPHA_MODE_OPAQUE = 0x0,   // 00
-  ALPHA_MODE_MASK_TEST = 0x1,  // 01 (renamed to avoid conflict)
-  ALPHA_MODE_BLEND = 0x2,   // 10
-
+  ALPHA_MODE_MASK = 0x3, // 2 bits for masking
+  ALPHA_MODE_OPAQUE = 0x0, // 00
+  ALPHA_MODE_MASK_TEST = 0x1, // 01 (renamed to avoid conflict)
+  ALPHA_MODE_BLEND = 0x2, // 10
   // Material properties
-  DOUBLE_SIDED = 0x4,   // Bit 2
-  UNLIT = 0x8,   // Bit 3
-  CAST_SHADOW = 0x10,  // Bit 4  
-  RECEIVE_SHADOW = 0x20,  // Bit 5
-
+  DOUBLE_SIDED = 0x4, // Bit 2
+  UNLIT = 0x8, // Bit 3
+  CAST_SHADOW = 0x10, // Bit 4  
+  RECEIVE_SHADOW = 0x20, // Bit 5
   // Default flags
   DEFAULT_FLAGS = CAST_SHADOW | RECEIVE_SHADOW
 };
@@ -244,7 +277,6 @@ enum class TextureDependencyType : uint8_t
   Occlusion = 4
 };
 
-
 enum class RenderQueue : uint8_t
 {
   Opaque = 0,
@@ -267,7 +299,6 @@ struct MaterialTexture
 struct Material
 {
   std::string name;
-
   // Core PBR properties
   vec4 baseColorFactor = vec4(1.0f);
   float metallicFactor = 1.0f;
@@ -276,14 +307,12 @@ struct Material
   float normalScale = 1.0f;
   float occlusionStrength = 1.0f;
   float alphaCutoff = 0.5f;
-
   // Texture properties with transforms
   MaterialTexture baseColorTexture;
   MaterialTexture metallicRoughnessTexture;
   MaterialTexture normalTexture;
   MaterialTexture emissiveTexture;
   MaterialTexture occlusionTexture;
-
   // Material properties
   AlphaMode alphaMode = AlphaMode::Opaque;
   uint32_t materialTypeFlags = 0;
@@ -304,7 +333,9 @@ struct ResourceTraits<MaterialAsset>
 
     HotData() = default;
 
-    explicit HotData(uint32_t offset, RenderQueue queue = RenderQueue::Opaque) : materialOffset(offset) , renderQueue(queue){
+    explicit HotData(uint32_t offset, RenderQueue queue = RenderQueue::Opaque) : materialOffset(offset),
+                                                                                 renderQueue(queue)
+    {
     }
   };
 
@@ -318,14 +349,17 @@ struct ResourceTraits<MaterialAsset>
 
     ColdData() = default;
 
-    explicit ColdData(Material mat) : material(std::move(mat)) {
+    explicit ColdData(Material mat) : material(std::move(mat))
+    {
     }
 
-    ColdData(Material mat, std::string file, size_t idx) : material(std::move(mat)), sourceFile(std::move(file)), materialIndex(idx), wasLoadedFromFile(true) {
+    ColdData(Material mat, std::string file, size_t idx) : material(std::move(mat)), sourceFile(std::move(file)),
+                                                           materialIndex(idx), wasLoadedFromFile(true)
+    {
     }
   };
 
-  static constexpr std::array supported_extensions = { ".mtl", ".mat", ".json" };
+  static constexpr std::array supported_extensions = {".mtl", ".mat", ".json"};
 };
 
 using MaterialHandle = Handle<MaterialAsset>;
@@ -341,21 +375,15 @@ struct TextureDependency
   }
 };
 
-template <typename T>
-concept IsValidResourceTrait = requires
+template <typename T>concept IsValidResourceTrait = requires
 {
-  typename ResourceTraits<T>;
-  typename T::HotData;
-  typename T::ColdData;
+  typename ResourceTraits<T>; typename T::HotData; typename T::ColdData;
   // Check for the existence of the static supported_extensions member
   // and ensure it's iterable using std::begin and std::end.
   {
     std::begin(T::supported_extensions)
-  };
-  {
+  }; {
     std::end(T::supported_extensions)
   };
 };
-
-template <typename T>
-concept IsResource = IsValidResourceTrait<ResourceTraits<T>>;
+template <typename T>concept IsResource = IsValidResourceTrait<ResourceTraits<T>>;

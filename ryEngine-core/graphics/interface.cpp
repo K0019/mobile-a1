@@ -10,10 +10,8 @@
  *
  * Licensed under the MIT License. See LICENSE for more details.
  */
-
 #include "interface.h"
 #include <cassert>
-
 // Only include GLFW headers on desktop platforms
 #if !defined(__ANDROID__)
 #define GLFW_INCLUDE_NONE
@@ -35,10 +33,9 @@
 #  include <windows.h>
 #  include "GLFW/glfw3native.h"
 #elif defined(__linux__)
-   // to fix later
+// to fix later
 #endif
 #endif // !defined(__ANDROID__)
-
 #include "graphics/vulkan/vk_classes.h"
 
 namespace
@@ -59,57 +56,35 @@ namespace
 
 #define PROPS(fmt, bpb, ...) \
   TextureFormatProperties{ .format = vk::Format::fmt, .bytesPerBlock = bpb __VA_OPT__(,) __VA_ARGS__ }
-
-  static constexpr TextureFormatProperties properties[] = {PROPS(Invalid, 1),
-    PROPS(R_UN8, 1),
-    PROPS(R_UI16, 2),
-    PROPS(R_UI32, 4),
-    PROPS(R_UN16, 2),
-    PROPS(R_F16, 2),
-    PROPS(R_F32, 4),
-    PROPS(RG_UN8, 2),
-    PROPS(RG_UI16, 4),
-    PROPS(RG_UI32, 8),
-    PROPS(RG_UN16, 4),
-    PROPS(RG_F16, 4),
-    PROPS(RG_F32, 8),
-    PROPS(RGBA_UN8, 4),
-    PROPS(RGBA_UI32, 16),
-    PROPS(RGBA_F16, 8),
-    PROPS(RGBA_F32, 16),
-    PROPS(RGBA_SRGB8, 4),
-    PROPS(BGRA_UN8, 4),
-    PROPS(BGRA_SRGB8, 4),
-    PROPS(A2B10G10R10_UN, 4),
-    PROPS(A2R10G10B10_UN, 4),
+  static constexpr TextureFormatProperties properties[] = {
+    PROPS(Invalid, 1), PROPS(R_UN8, 1), PROPS(R_UI16, 2), PROPS(R_UI32, 4), PROPS(R_UN16, 2), PROPS(R_F16, 2),
+    PROPS(R_F32, 4), PROPS(RG_UN8, 2), PROPS(RG_UI16, 4), PROPS(RG_UI32, 8), PROPS(RG_UN16, 4), PROPS(RG_F16, 4),
+    PROPS(RG_F32, 8), PROPS(RGBA_UN8, 4), PROPS(RGBA_UI32, 16), PROPS(RGBA_F16, 8), PROPS(RGBA_F32, 16),
+    PROPS(RGBA_SRGB8, 4), PROPS(BGRA_UN8, 4), PROPS(BGRA_SRGB8, 4), PROPS(A2B10G10R10_UN, 4), PROPS(A2R10G10B10_UN, 4),
     PROPS(ETC2_RGB8, 8, .blockWidth = 4, .blockHeight = 4, .compressed = true),
     PROPS(ETC2_SRGB8, 8, .blockWidth = 4, .blockHeight = 4, .compressed = true),
-    PROPS(BC1_RGB,        8,  .blockWidth = 4, .blockHeight = 4, .compressed = true),
-    PROPS(BC1_RGB_SRGB,   8,  .blockWidth = 4, .blockHeight = 4, .compressed = true),
-    PROPS(BC1_RGBA,       8,  .blockWidth = 4, .blockHeight = 4, .compressed = true), // 1-bit alpha
-    PROPS(BC1_RGBA_SRGB,  8,  .blockWidth = 4, .blockHeight = 4, .compressed = true),
-    PROPS(BC2_RGBA,       16, .blockWidth = 4, .blockHeight = 4, .compressed = true),
-    PROPS(BC2_RGBA_SRGB,  16, .blockWidth = 4, .blockHeight = 4, .compressed = true),
-    PROPS(BC3_RGBA,       16, .blockWidth = 4, .blockHeight = 4, .compressed = true),
-    PROPS(BC3_RGBA_SRGB,  16, .blockWidth = 4, .blockHeight = 4, .compressed = true),
-    PROPS(BC6H_RGB_UFLOAT,16, .blockWidth = 4, .blockHeight = 4, .compressed = true),
-    PROPS(BC6H_RGB_SFLOAT,16, .blockWidth = 4, .blockHeight = 4, .compressed = true),
-    PROPS(BC7_RGBA_SRGB,  16, .blockWidth = 4, .blockHeight = 4, .compressed = true),
-    PROPS(BC4_R,  8,  .blockWidth = 4, .blockHeight = 4, .compressed = true),
+    PROPS(BC1_RGB, 8, .blockWidth = 4, .blockHeight = 4, .compressed = true),
+    PROPS(BC1_RGB_SRGB, 8, .blockWidth = 4, .blockHeight = 4, .compressed = true),
+    PROPS(BC1_RGBA, 8, .blockWidth = 4, .blockHeight = 4, .compressed = true), // 1-bit alpha
+    PROPS(BC1_RGBA_SRGB, 8, .blockWidth = 4, .blockHeight = 4, .compressed = true),
+    PROPS(BC2_RGBA, 16, .blockWidth = 4, .blockHeight = 4, .compressed = true),
+    PROPS(BC2_RGBA_SRGB, 16, .blockWidth = 4, .blockHeight = 4, .compressed = true),
+    PROPS(BC3_RGBA, 16, .blockWidth = 4, .blockHeight = 4, .compressed = true),
+    PROPS(BC3_RGBA_SRGB, 16, .blockWidth = 4, .blockHeight = 4, .compressed = true),
+    PROPS(BC6H_RGB_UFLOAT, 16, .blockWidth = 4, .blockHeight = 4, .compressed = true),
+    PROPS(BC6H_RGB_SFLOAT, 16, .blockWidth = 4, .blockHeight = 4, .compressed = true),
+    PROPS(BC7_RGBA_SRGB, 16, .blockWidth = 4, .blockHeight = 4, .compressed = true),
+    PROPS(BC4_R, 8, .blockWidth = 4, .blockHeight = 4, .compressed = true),
     PROPS(BC5_RG, 16, .blockWidth = 4, .blockHeight = 4, .compressed = true),
-    PROPS(BC7_RGBA, 16, .blockWidth = 4, .blockHeight = 4, .compressed = true),
-    PROPS(Z_UN16, 2, .depth = true),
-    PROPS(Z_UN24, 3, .depth = true),
-    PROPS(Z_F32, 4, .depth = true),
-    PROPS(Z_UN24_S_UI8, 4, .depth = true, .stencil = true),
-    PROPS(Z_F32_S_UI8, 5, .depth = true, .stencil = true),
+    PROPS(BC7_RGBA, 16, .blockWidth = 4, .blockHeight = 4, .compressed = true), PROPS(Z_UN16, 2, .depth = true),
+    PROPS(Z_UN24, 3, .depth = true), PROPS(Z_F32, 4, .depth = true),
+    PROPS(Z_UN24_S_UI8, 4, .depth = true, .stencil = true), PROPS(Z_F32_S_UI8, 5, .depth = true, .stencil = true),
     PROPS(YUV_NV12, 24, .blockWidth = 4, .blockHeight = 4, .compressed = true, .numPlanes = 2),
     // Subsampled 420
     PROPS(YUV_420p, 24, .blockWidth = 4, .blockHeight = 4, .compressed = true, .numPlanes = 3),
     // Subsampled 420
   };
 } // namespace
-
 static_assert(sizeof(TextureFormatProperties) <= sizeof(uint32_t));
 static_assert(std::size(properties) == (uint8_t)vk::Format::YUV_420p + 1);
 
@@ -138,25 +113,24 @@ uint32_t vk::getVertexFormatSize(VertexFormat format)
   case VertexFormat::LVKBaseType##4Norm: return sizeof(BaseType) * 4u;
 
   // clang-format on
-
   switch (format)
   {
-    SIZE4(Float, float);
-    SIZE4(Byte, uint8_t);
-    SIZE4(UByte, uint8_t);
-    SIZE4(Short, uint16_t);
-    SIZE4(UShort, uint16_t);
-    SIZE2_4_NORM(Byte, uint8_t);
-    SIZE2_4_NORM(UByte, uint8_t);
-    SIZE1_2_3_4_NORM(Short, uint16_t);
-    SIZE1_2_3_4_NORM(UShort, uint16_t);
-    SIZE4(Int, uint32_t);
-    SIZE4(UInt, uint32_t);
-    SIZE4(HalfFloat, uint16_t);
-    case VertexFormat::R10G10B10A2_SNORM:
-      return sizeof(uint32_t);
-    default: assert(false);
-      return 0;
+  SIZE4(Float, float);
+  SIZE4(Byte, uint8_t);
+  SIZE4(UByte, uint8_t);
+  SIZE4(Short, uint16_t);
+  SIZE4(UShort, uint16_t);
+  SIZE2_4_NORM(Byte, uint8_t);
+  SIZE2_4_NORM(UByte, uint8_t);
+  SIZE1_2_3_4_NORM(Short, uint16_t);
+  SIZE1_2_3_4_NORM(UShort, uint16_t);
+  SIZE4(Int, uint32_t);
+  SIZE4(UInt, uint32_t);
+  SIZE4(HalfFloat, uint16_t);
+  case VertexFormat::R10G10B10A2_SNORM:
+    return sizeof(uint32_t);
+  default: assert(false);
+    return 0;
   }
 #undef SIZE4
 }
@@ -165,11 +139,8 @@ uint32_t vk::getTextureBytesPerLayer(uint32_t width, uint32_t height, Format for
 {
   const uint32_t levelWidth = (std::max)(width >> level, 1u);
   const uint32_t levelHeight = (std::max)(height >> level, 1u);
-
   const TextureFormatProperties props = properties[(uint8_t)format];
-
   if (!props.compressed) { return props.bytesPerBlock * levelWidth * levelHeight; }
-
   //const uint32_t blockWidth = (std::max)((uint32_t)props.blockWidth, 1u);
   //const uint32_t blockHeight = (std::max)((uint32_t)props.blockHeight, 1u);
   const uint32_t widthInBlocks = (levelWidth + props.blockWidth - 1) / props.blockWidth;
@@ -180,18 +151,15 @@ uint32_t vk::getTextureBytesPerLayer(uint32_t width, uint32_t height, Format for
 uint32_t vk::getTextureBytesPerPlane(uint32_t width, uint32_t height, Format format, uint32_t plane)
 {
   const TextureFormatProperties props = properties[(uint8_t)format];
-
   ASSERT(plane < props.numPlanes);
-
   switch (format)
   {
-    case Format::YUV_NV12:
-      return width * height / (plane + 1);
-    case Format::YUV_420p:
-      return width * height / (plane ? 4 : 1);
-    default: ;
+  case Format::YUV_NV12:
+    return width * height / (plane + 1);
+  case Format::YUV_420p:
+    return width * height / (plane ? 4 : 1);
+  default: ;
   }
-
   return getTextureBytesPerLayer(width, height, format, 0);
 }
 
@@ -221,7 +189,6 @@ void vk::logShaderSource(const char* text)
     LOG_INFO("( Shader source is NULL )");
     return;
   }
-
   uint32_t line_num = 0;
   const char* line_start = text;
   const char* ptr = text;
@@ -246,18 +213,12 @@ void vk::logShaderSource(const char* text)
 
 vk::ShaderStage vk::ShaderStageFromFileName(const char* fileName)
 {
-  if (endsWith(fileName, ".vert"))
-    return ShaderStage::Vert;
-  if (endsWith(fileName, ".frag"))
-    return ShaderStage::Frag;
-  if (endsWith(fileName, ".geom"))
-    return ShaderStage::Geom;
-  if (endsWith(fileName, ".comp"))
-    return ShaderStage::Comp;
-  if (endsWith(fileName, ".tesc"))
-    return ShaderStage::Tesc;
-  if (endsWith(fileName, ".tese"))
-    return ShaderStage::Tese;
+  if (endsWith(fileName, ".vert")) return ShaderStage::Vert;
+  if (endsWith(fileName, ".frag")) return ShaderStage::Frag;
+  if (endsWith(fileName, ".geom")) return ShaderStage::Geom;
+  if (endsWith(fileName, ".comp")) return ShaderStage::Comp;
+  if (endsWith(fileName, ".tesc")) return ShaderStage::Tesc;
+  if (endsWith(fileName, ".tese")) return ShaderStage::Tese;
   return ShaderStage::Vert;
 }
 
@@ -272,17 +233,13 @@ uint32_t vk::VertexInput::getVertexSize() const
   return vertexSize;
 }
 
-std::unique_ptr<vk::IContext> vk::createContext(
-  const ContextConfig& cfg,
-  HWDeviceType preferredDeviceType)
+std::unique_ptr<vk::IContext> vk::createContext(const ContextConfig& cfg, HWDeviceType preferredDeviceType)
 {
   // 1. Create headless context (Instance only - no surface)
   auto ctx = std::make_unique<VulkanContext>(cfg);
-
   // 2. Query and select physical device
   HWDeviceDesc devices[8];
   uint32_t numDevices = ctx->queryDevices(preferredDeviceType, devices, std::size(devices));
-
   if (!numDevices)
   {
     if (preferredDeviceType == HWDeviceType::Discrete)
@@ -294,13 +251,11 @@ std::unique_ptr<vk::IContext> vk::createContext(
       numDevices = ctx->queryDevices(HWDeviceType::Discrete, devices, std::size(devices));
     }
   }
-
   if (!numDevices)
   {
     LOG_ERROR("No suitable Vulkan devices found");
     return nullptr;
   }
-
   // 3. Initialize device and queues (no swapchain)
   Result result = ctx->initContext(devices[0]);
   if (!result.isOk())
@@ -308,11 +263,12 @@ std::unique_ptr<vk::IContext> vk::createContext(
     LOG_ERROR("Failed to initialize Vulkan context: {}", result.message);
     return nullptr;
   }
-
   return ctx;
 }
 
-std::unique_ptr<vk::IContext> vk::createVulkanContextWithSwapchain(window* window, uint32_t width, uint32_t height, const ContextConfig& cfg, HWDeviceType preferredDeviceType)
+std::unique_ptr<vk::IContext> vk::createVulkanContextWithSwapchain(window* window, uint32_t width, uint32_t height,
+                                                                   const ContextConfig& cfg,
+                                                                   HWDeviceType preferredDeviceType)
 {
   // Use new headless factory
   auto ctx = createContext(cfg, preferredDeviceType);
@@ -320,38 +276,30 @@ std::unique_ptr<vk::IContext> vk::createVulkanContextWithSwapchain(window* windo
   {
     return nullptr;
   }
-
   // Extract native window handle (platform-specific)
   void* nativeWindow = nullptr;
   void* display = nullptr;
-
 #if defined(_WIN32)
   nativeWindow = (void*)glfwGetWin32Window(window);
 #elif defined(__ANDROID__)
   nativeWindow = (void*)window;
 #elif defined(__linux__)
 #if defined(LVK_WITH_WAYLAND)
-  wl_surface* waylandWindow = glfwGetWaylandWindow(window);
-  if (!waylandWindow)
+  wl_surface* waylandWindow = glfwGetWaylandWindow(window); if (!waylandWindow)
   {
     ASSERT_MSG(false, "Wayland window not found");
     return nullptr;
-  }
-  nativeWindow = (void*)waylandWindow;
-  display = (void*)glfwGetWaylandDisplay();
+  } nativeWindow = (void*)waylandWindow; display = (void*)glfwGetWaylandDisplay();
 #else
-  nativeWindow = (void*)glfwGetX11Window(window);
-  display = (void*)glfwGetX11Display();
+  nativeWindow = (void*)glfwGetX11Window(window); display = (void*)glfwGetX11Display();
 #endif
 #elif defined(__APPLE__)
   nativeWindow = createCocoaWindowView(window);
 #else
 #error Unsupported OS
 #endif
-
   // Create surface through IContext interface
   ctx->createSurface(nativeWindow, display);
-
   // Initialize swapchain - need to cast to access initSwapchain which is not in IContext
   auto* vkCtx = static_cast<VulkanContext*>(ctx.get());
   if (width > 0 && height > 0)
@@ -363,6 +311,5 @@ std::unique_ptr<vk::IContext> vk::createVulkanContextWithSwapchain(window* windo
       return nullptr;
     }
   }
-
   return ctx;
 }

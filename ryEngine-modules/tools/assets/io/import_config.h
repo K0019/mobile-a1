@@ -9,25 +9,20 @@ namespace Resource
     float maxFrameTimeMs = 2.0f;
     bool enableParallelLoading = true;
     size_t jobSystemThreads = 0; // 0 = auto-detect
-
     // Mesh settings
     bool optimizeMeshes = true;
     bool flipUVs = true;
     uint32_t maxVerticesPerMesh = 1'000'000;
-
     // Texture settings
     bool compressTextures = true;
     uint32_t maxTextureResolution = 4096;
     bool generateMipmaps = true;
-
     // Material settings
     bool deduplicateMaterials = false;
     float deduplicationTolerance = 0.001f;
-
     // Scene settings
     bool extractLights = true;
     bool extractCameras = true;
-
     // Memory limits
     uint32_t maxMeshes = 1000;
     uint32_t maxMaterials = 500;

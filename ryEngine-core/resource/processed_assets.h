@@ -3,11 +3,11 @@
 #include <limits>
 #include "math/utils_math.h"
 #include "resource/animation_ids.h"
+#include "resource/font_types.h"
 #include "graphics/scene.h"
 #ifndef NOMINMAX
 #define NOMINMAX
 #endif
-
 namespace Resource
 {
   struct ProcessedTexture
@@ -27,8 +27,8 @@ namespace Resource
 
   struct SkinningData
   {
-    std::array<uint32_t, 4> boneIndices{ INVALID_BONE_INDEX, INVALID_BONE_INDEX, INVALID_BONE_INDEX, INVALID_BONE_INDEX };
-    std::array<float, 4> weights{ 0.0f, 0.0f, 0.0f, 0.0f };
+    std::array<uint32_t, 4> boneIndices{INVALID_BONE_INDEX, INVALID_BONE_INDEX, INVALID_BONE_INDEX, INVALID_BONE_INDEX};
+    std::array<float, 4> weights{0.0f, 0.0f, 0.0f, 0.0f};
 
     bool isStatic() const { return boneIndices[0] == INVALID_BONE_INDEX; }
   };
@@ -48,9 +48,9 @@ namespace Resource
   struct MorphTargetVertexDelta
   {
     uint32_t vertexIndex = 0;
-    vec3 deltaPosition{ 0.0f };
-    vec3 deltaNormal{ 0.0f };
-    vec3 deltaTangent{ 0.0f };
+    vec3 deltaPosition{0.0f};
+    vec3 deltaNormal{0.0f};
+    vec3 deltaTangent{0.0f};
   };
 
   struct MorphTargetData
@@ -64,13 +64,13 @@ namespace Resource
   struct ProcessedAnimationVectorKey
   {
     float time = 0.0f;
-    vec3 value{ 0.0f };
+    vec3 value{0.0f};
   };
 
   struct ProcessedAnimationQuatKey
   {
     float time = 0.0f;
-    glm::quat value{ 1.0f, 0.0f, 0.0f, 0.0f };
+    glm::quat value{1.0f, 0.0f, 0.0f, 0.0f};
   };
 
   struct ProcessedAnimationChannel
@@ -119,7 +119,6 @@ namespace Resource
   struct ProcessedMaterial
   {
     std::string name;
-
     // Core PBR properties
     vec4 baseColorFactor = vec4(1.0f);
     float metallicFactor = 1.0f;
@@ -128,19 +127,16 @@ namespace Resource
     float normalScale = 1.0f;
     float occlusionStrength = 1.0f;
     float alphaCutoff = 0.5f;
-
     // Texture properties with transforms
     MaterialTexture baseColorTexture;
     MaterialTexture metallicRoughnessTexture;
     MaterialTexture normalTexture;
     MaterialTexture emissiveTexture;
     MaterialTexture occlusionTexture;
-
     // Material properties
     AlphaMode alphaMode = AlphaMode::Opaque;
     uint32_t materialTypeFlags = 0;
     uint32_t flags = 0;
-
     // For texture loader compatibility
     std::vector<TextureDataSource> textures;
 
@@ -151,14 +147,13 @@ namespace Resource
 
     AlphaMode getAlphaModeFromFlags() const
     {
-    return static_cast<AlphaMode>(flags & ALPHA_MODE_MASK);
+      return static_cast<AlphaMode>(flags & ALPHA_MODE_MASK);
     }
   };
 
   inline Material convertToStoredMaterial(const ProcessedMaterial& processed)
   {
     Material material;
-
     material.name = processed.name;
     material.baseColorFactor = processed.baseColorFactor;
     material.metallicFactor = processed.metallicFactor;
@@ -167,17 +162,14 @@ namespace Resource
     material.normalScale = processed.normalScale;
     material.occlusionStrength = processed.occlusionStrength;
     material.alphaCutoff = processed.alphaCutoff;
-
     material.baseColorTexture = processed.baseColorTexture;
     material.metallicRoughnessTexture = processed.metallicRoughnessTexture;
     material.normalTexture = processed.normalTexture;
     material.emissiveTexture = processed.emissiveTexture;
     material.occlusionTexture = processed.occlusionTexture;
-
     material.alphaMode = processed.alphaMode;
     material.materialTypeFlags = processed.materialTypeFlags;
     material.flags = processed.flags;
-
     return material;
   }
 
@@ -190,10 +182,10 @@ namespace Resource
     std::vector<SceneObject> objects; // Objects contain direct handles
     std::vector<ClipId> animationClips;
     // Scene bounds
-    vec3 center{ 0 };
+    vec3 center{0};
     float radius = 0;
-    vec3 boundingMin{ FLT_MAX };
-    vec3 boundingMax{ -FLT_MAX };
+    vec3 boundingMin{FLT_MAX};
+    vec3 boundingMax{-FLT_MAX};
     // Statistics
     uint32_t totalMeshes = 0;
     uint32_t totalMaterials = 0;
@@ -217,27 +209,48 @@ namespace Resource
 
   class TextureCacheKeyGenerator
   {
-    public:
+  public:
     static std::string generateKey(const TextureDataSource& source)
     {
       return std::visit([](const auto& src) -> std::string
       {
         using T = std::decay_t<decltype(src)>;
-        if constexpr(std::is_same_v<T, std::monostate>)
+        if constexpr (std::is_same_v<T, std::monostate>)
         {
           return "";
         }
-        else if constexpr(std::is_same_v<T, FilePathSource>)
+        else if constexpr (std::is_same_v<T, FilePathSource>)
         {
             //return std::filesystem::canonical(src.path).string(); // Canonical path
             return src.path; // because of vfs, should already be canonical.
         }
-        else if constexpr(std::is_same_v<T, EmbeddedMemorySource>)
+        else if constexpr (std::is_same_v<T, EmbeddedMemorySource>)
         {
           return src.scenePath + "|" + src.identifier;
         }
-      },
-                        source);
+      }, source);
+    }
+  };
+
+  struct ProcessedFont
+  {
+    std::string name;
+    std::vector<uint8_t> fontFileData;
+    FontBuildSettings buildSettings;
+    std::filesystem::path sourceFile;
+    std::vector<FontMergeSource> mergeSources;
+
+    bool isValid() const
+    {
+      if (fontFileData.empty() || name.empty())
+      {
+        return false;
+      }
+      const bool mergesValid = std::all_of(mergeSources.begin(), mergeSources.end(), [](const FontMergeSource& merge)
+      {
+        return merge.isValid();
+      });
+      return mergesValid;
     }
   };
 } // namespace AssetLoading

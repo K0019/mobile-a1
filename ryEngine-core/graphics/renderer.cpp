@@ -3,60 +3,44 @@
 #include "core/platform/platform.h"
 #include "logging/log.h"
 #include "logging/profiler.h"
-#include "vulkan/vk_util.h"
 
 Renderer::Renderer() = default;
 
 void Renderer::initialize()
 {
-    // Initialize frame submit handles to empty (invalid) state
+  // Initialize frame submit handles to empty (invalid) state
   m_frameSubmitHandles.fill(vk::SubmitHandle{});
-
   // Initialize frame resources
   for (auto& frame : m_frameResources)
   {
     frame.frameData = {};
   }
-
-
-  LOG_INFO("Renderer created (single-threaded) - {}x{}", Core::Display().GetWidth(),  Core::Display().GetHeight());
+  LOG_INFO("Renderer created (single-threaded) - {}x{}", Core::Display().GetWidth(), Core::Display().GetHeight());
 }
 
 void Renderer::startup()
 {
   PROFILER_FUNCTION();
-
   // Create headless Vulkan context (no surface/swapchain)
   m_vkContext = vk::createContext({
-    .vulkanVersion = vk::VulkanVersion_1_3,
-    .terminateOnValidationError = false,
-    .enableValidation = false,
-    .swapchainRequestedColorSpace = vk::ColorSpace::SRGB_LINEAR,
-    .disableVSync = true
+    .vulkanVersion = vk::VulkanVersion_1_3, .terminateOnValidationError = false, .enableValidation = false,
+    .swapchainRequestedColorSpace = vk::ColorSpace::SRGB_LINEAR, .disableVSync = true
   });
-
   if (!m_vkContext)
   {
     LOG_CRITICAL("Failed to create Vulkan context");
     return;
   }
-
   // Initialize GPU buffers
-  m_gpuBuffers = std::make_unique<GPUBuffers>(
-    *m_vkContext,
-    ResourceLimits::VERTEX_BUFFER_SIZE,
-    ResourceLimits::INDEX_BUFFER_SIZE,
-    ResourceLimits::MATERIAL_BUFFER_SIZE,
-    ResourceLimits::MESH_DECOMPRESSION_BUFFER_SIZE,
-    ResourceLimits::SKINNING_BUFFER_SIZE,
-    ResourceLimits::MORPH_DELTA_BUFFER_SIZE,
-    ResourceLimits::MORPH_VERTEX_BASE_BUFFER_SIZE,
-    ResourceLimits::MORPH_VERTEX_COUNT_BUFFER_SIZE
-  );
-
+  m_gpuBuffers = std::make_unique<GPUBuffers>(*m_vkContext, ResourceLimits::VERTEX_BUFFER_SIZE,
+                                              ResourceLimits::INDEX_BUFFER_SIZE, ResourceLimits::MATERIAL_BUFFER_SIZE,
+                                              ResourceLimits::MESH_DECOMPRESSION_BUFFER_SIZE,
+                                              ResourceLimits::SKINNING_BUFFER_SIZE,
+                                              ResourceLimits::MORPH_DELTA_BUFFER_SIZE,
+                                              ResourceLimits::MORPH_VERTEX_BASE_BUFFER_SIZE,
+                                              ResourceLimits::MORPH_VERTEX_COUNT_BUFFER_SIZE);
   // Create RenderGraph (compilation deferred)
   m_renderGraph = std::make_unique<RenderGraph>(*m_vkContext, *m_gpuBuffers);
-
   LOG_INFO("Renderer startup complete (headless)");
 }
 
@@ -82,7 +66,6 @@ void Renderer::shutdown()
   m_gpuBuffers.reset();
   m_renderGraph.reset();
   m_vkContext.reset();
-
   LOG_INFO("Renderer shutdown complete");
 }
 
@@ -99,31 +82,20 @@ void Renderer::beginFrame()
 void Renderer::render(FrameData& frameData)
 {
   PROFILER_FUNCTION();
-
   // Validation
   if (!m_vkContext)
   {
     LOG_ERROR("Cannot render - Vulkan context is null");
     return;
   }
-
   // Silent early exit if no surface (normal on Android)
   if (!m_vkContext->hasSurface() || !m_vkContext->hasSwapchain())
   {
     return;
   }
-
-  #if defined(__ANDROID__)
-  // Automatically apply pre-rotation to projection matrix for Android orientation handling
-  SurfaceTransform transform = m_vkContext->getSwapchainPreTransform();
-  mat4 preRotationMatrix = vk::getPreRotationMatrix(transform);
-  frameData.projMatrix = preRotationMatrix * frameData.projMatrix;
-  #endif
-
   // Update frame data
   frameData.frameNumber = static_cast<uint64_t>(m_framesRendered);
   m_frameResources[m_currentFrame].frameData = frameData;
-
   // Swap buffers for features
   for (auto& info : m_features)
   {
@@ -132,21 +104,20 @@ void Renderer::render(FrameData& frameData)
       info.second.feature->SwapBuffersForGT_RT();
     }
   }
-
   // Get swapchain texture
   const vk::TextureHandle currentTexture = m_vkContext->getCurrentSwapchainTexture();
   if (!currentTexture.valid())
   {
     return; // Swapchain not ready
   }
-
+  auto dims = m_vkContext->getDimensions(currentTexture);
+  m_frameResources[m_currentFrame].frameData.screenWidth = dims.width;
+  m_frameResources[m_currentFrame].frameData.screenHeight = dims.height;
   // Execute render graph
   vk::ICommandBuffer& cmdBuffer = m_vkContext->acquireCommandBuffer();
   m_renderGraph->Execute(cmdBuffer, m_frameResources[m_currentFrame].frameData);
-
   m_frameSubmitHandles[m_currentFrame] = m_vkContext->submit(cmdBuffer, currentTexture);
   m_framesRendered++;
-
   if (!m_windowReadyForShow && m_framesRendered >= MIN_FRAMES_BEFORE_SHOW)
   {
     m_windowReadyForShow = true;
@@ -161,12 +132,10 @@ void Renderer::endFrame()
 void Renderer::onWindowResized(int width, int height)
 {
   PROFILER_FUNCTION();
-
   if (!m_vkContext || width <= 0 || height <= 0)
   {
     return;
   }
-
   // Only recreate if we have a surface
   if (m_vkContext->hasSurface())
   {
@@ -182,16 +151,13 @@ void Renderer::handleSurfaceCreated()
     LOG_ERROR("Vulkan context not initialized");
     return;
   }
-
   // Create surface
   void* nativeWindow = Core::Display().GetVulkanWindowHandle();
   void* nativeDisplay = Core::Display().GetVulkanDisplayHandle(); // May be null
   m_vkContext->createSurface(nativeWindow, nativeDisplay);
-
   // Create swapchain
   uint32_t width = Core::Display().GetWidth();
   uint32_t height = Core::Display().GetHeight();
-
   m_vkContext->recreateSwapchain(width, height);
   // Trigger render graph compilation
   if (m_renderGraph)
@@ -199,7 +165,6 @@ void Renderer::handleSurfaceCreated()
     m_renderGraph->Invalidate();
     LOG_INFO("Surface created - render graph will compile on next execute");
   }
-
   LOG_INFO("Surface and swapchain created: {}x{}", width, height);
 }
 
@@ -209,16 +174,13 @@ void Renderer::handleSurfaceDestroyed()
   {
     return;
   }
-
   // Invalidate before destroying
   if (m_renderGraph)
   {
     m_renderGraph->Invalidate();
     LOG_INFO("Render graph invalidated");
   }
-
   m_vkContext->destroySurface();
-
   LOG_INFO("Surface and swapchain destroyed");
 }
 
@@ -250,23 +212,22 @@ uint64_t Renderer::DoCreateFeature(std::function<std::unique_ptr<IRenderFeature>
   }
   LOG_INFO("Creating feature '{}' with handle {}", feature->GetName(), handle);
   m_renderGraph->AddFeature(feature.get());
-  m_features.emplace(std::piecewise_construct, std::forward_as_tuple(handle), std::forward_as_tuple(std::move(feature), handle));
-
+  m_features.emplace(std::piecewise_construct, std::forward_as_tuple(handle),
+                     std::forward_as_tuple(std::move(feature), handle));
   return handle;
 }
 
 void Renderer::DestroyFeature(uint64_t feature_handle)
 {
   PROFILER_FUNCTION();
-
   auto it = m_features.find(feature_handle);
   if (it == m_features.end())
   {
     LOG_WARNING("Attempted to destroy non-existent feature handle {}", feature_handle);
     return;
   }
-
-  LOG_INFO("Destroying feature '{}' with handle {}", it->second.feature ? it->second.feature->GetName() : "unknown", feature_handle);
+  LOG_INFO("Destroying feature '{}' with handle {}", it->second.feature ? it->second.feature->GetName() : "unknown",
+           feature_handle);
   if (it->second.feature)
   {
     m_renderGraph->RemoveFeature(it->second.feature.get());
@@ -299,5 +260,3 @@ void Renderer::UpdateToneMappingSettings(const ToneMappingSettings& newSettings)
 {
   m_renderGraph->GetLinearColorSystem().UpdateToneMappingSettings(newSettings);
 }
-
-

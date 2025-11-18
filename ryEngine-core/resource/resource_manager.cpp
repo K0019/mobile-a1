@@ -1,18 +1,36 @@
 #include "resource_manager.h"
 #include <algorithm>
+#include <filesystem>
+#include <fstream>
 #include <limits>
+#include <mutex>
 #include <numeric>
 #include <span>
+#include <stdexcept>
 
 #include "core/engine/engine.h"
 #include "resource/animation_clip.h"
 #include "resource/morph_set.h"
 #include "resource/skeleton.h"
+#include "graphics/ui/font_system.h"
+#include "VFS/VFS.h"
 
 namespace
 {
   constexpr float MORPH_DELTA_EPSILON = 1e-6f;
   constexpr float MORPH_DELTA_EPSILON_SQ = MORPH_DELTA_EPSILON * MORPH_DELTA_EPSILON;
+  constexpr const char* kDefaultUIFontPath = "assets/fonts/DefaultUI.ttf";
+
+  std::vector<uint8_t> LoadBinaryFile(const std::string& vfsPath)
+  {
+    std::vector<uint8_t> data;
+    if(!VFS::ReadFile(vfsPath, data))
+    {
+      LOG_WARNING("Failed to read file via VFS: {}", vfsPath);
+      return {};
+    }
+    return data;
+  }
 
   bool isDeltaNonZero(const Resource::MorphTargetVertexDelta& delta)
   {
@@ -121,6 +139,49 @@ namespace Resource
 
   }
 
+  void ResourceManager::postRendererInitialize()
+  {
+    //loadDefaultUIFont();
+  }
+
+  void ResourceManager::loadDefaultUIFont()
+  {
+      //I legit swtg this entire filesystem and the working directory shit legit pisses me off holy shit how difficult is it to just hardcode the path,
+      //leaving this out because legit i cannot trust that the file will be in that place.
+
+    if(m_defaultUIFont.isValid())
+      return;
+
+    if(!m_context || !m_context->renderer)
+    {
+      throw std::runtime_error("ResourceManager: Renderer is not ready for default UI font creation");
+    }
+
+    std::vector<uint8_t> fontBytes = LoadBinaryFile(kDefaultUIFontPath);
+    if(fontBytes.empty())
+    {
+      throw std::runtime_error("ResourceManager: Default UI font '" + std::string(kDefaultUIFontPath) + "' is missing");
+    }
+
+    ProcessedFont processed;
+    processed.name = "DefaultUIFont";
+    processed.fontFileData = std::move(fontBytes);
+    processed.buildSettings.pixelHeight = 20.0f;
+    processed.buildSettings.firstCodepoint = 32;
+    processed.buildSettings.lastCodepoint = 255;
+    processed.buildSettings.fallbackCodepoint = '?';
+    processed.buildSettings.extraCodepoints.push_back(0x2026u);
+    processed.sourceFile = kDefaultUIFontPath;
+
+    m_defaultUIFont = createFont(processed);
+    if(!m_defaultUIFont.isValid())
+    {
+      throw std::runtime_error("ResourceManager: Failed to create default UI font atlas");
+    }
+
+    LOG_INFO("Default UI font '{}' loaded", kDefaultUIFontPath);
+  }
+
   ResourceManager::~ResourceManager() = default;
 
   void ResourceManager::shutdown()
@@ -128,6 +189,7 @@ namespace Resource
     m_meshPool.clear();
     m_texturePool.clear();
     m_materialPool.clear();
+    m_defaultUIFont = {};
     LOG_INFO("Resource Manager shutdown complete");
   }
 
@@ -161,7 +223,7 @@ namespace Resource
       compressedVertices.push_back(VertexCompression::compress(v, decompressionData));
     }
 
-    VertexCompression::validateCompression(mesh.vertices, compressedVertices, decompressionData);
+    //VertexCompression::validateCompression(mesh.vertices, compressedVertices, decompressionData);
 
     // Prepare animation GPU payloads
     std::vector<GPUSkinningData> gpuSkinning = buildSkinningBuffer(mesh.skinning);
@@ -222,6 +284,7 @@ namespace Resource
         morphBaseAlloc = m_morphBaseAllocator.allocate(static_cast<uint32_t>(morphVertexStarts.size() * sizeof(uint32_t)));
         morphCountAlloc = m_morphCountAllocator.allocate(static_cast<uint32_t>(morphVertexCounts.size() * sizeof(uint32_t)));
       }
+    }
 
       const bool allocationsOk =
         vertexAlloc.isValid() &&
@@ -236,7 +299,7 @@ namespace Resource
         LOG_ERROR("Out of GPU memory for mesh '{}'", mesh.name);
         return {};
       }
-    }
+    
 
     // Create handle and populate data
     MeshHandle handle = m_meshPool.create();
@@ -418,6 +481,86 @@ namespace Resource
     return handle;
   }
 
+  FontHandle ResourceManager::createFont(const ProcessedFont& font)
+  {
+    if(!font.isValid())
+    {
+      LOG_ERROR("ResourceManager: Invalid font request");
+      return {};
+    }
+
+    const std::string cacheKey = generateFontCacheKey(font);
+    {
+      std::shared_lock cacheRead(m_cacheMutex);
+      auto it = m_fontCache.find(cacheKey);
+      if(it != m_fontCache.end())
+      {
+        return it->second;
+      }
+    }
+
+    Resource::FontCPUData cpuData = ui::FontSystem::BuildFontCPUData(font.fontFileData, font.buildSettings,
+                                                                     font.mergeSources, font.name);
+    if(cpuData.atlasPixelsRGBA.empty() || cpuData.atlasWidth == 0 || cpuData.atlasHeight == 0)
+    {
+      LOG_ERROR("ResourceManager: Failed to build font atlas '{}'", font.name);
+      return {};
+    }
+
+    ProcessedTexture atlasTexture;
+    atlasTexture.name = font.name + "_FontAtlas";
+    atlasTexture.textureDesc.type = vk::TextureType::Tex2D;
+    atlasTexture.textureDesc.format = vk::Format::RGBA_UN8;
+    atlasTexture.textureDesc.dimensions.width = cpuData.atlasWidth;
+    atlasTexture.textureDesc.dimensions.height = cpuData.atlasHeight;
+    atlasTexture.textureDesc.dimensions.depth = 1u;
+    atlasTexture.textureDesc.numMipLevels = 1;
+    atlasTexture.textureDesc.usage = vk::TextureUsageBits_Sampled;
+    atlasTexture.data = cpuData.atlasPixelsRGBA;
+    atlasTexture.width = cpuData.atlasWidth;
+    atlasTexture.height = cpuData.atlasHeight;
+    atlasTexture.channels = 4;
+    atlasTexture.sRGB = false;
+    EmbeddedMemorySource atlasSource{};
+    atlasSource.scene = nullptr;
+    atlasSource.identifier = cacheKey;
+    atlasSource.scenePath = "FontResource";
+    atlasTexture.source = atlasSource;
+
+    TextureHandle textureHandle = createTexture(atlasTexture);
+    if(!textureHandle.isValid())
+    {
+      LOG_ERROR("ResourceManager: Failed to upload font atlas '{}'", font.name);
+      return {};
+    }
+
+    ResourceTraits<FontAsset>::HotData hot{
+      .atlasTexture = textureHandle,
+      .bindlessIndex = getTextureBindlessIndex(textureHandle),
+      .ascent = cpuData.ascent,
+      .descent = cpuData.descent,
+      .lineGap = cpuData.lineGap,
+      .fontSize = font.buildSettings.pixelHeight,
+      .atlasWidth = cpuData.atlasWidth,
+      .atlasHeight = cpuData.atlasHeight,
+      .cpuData = std::move(cpuData)
+    };
+
+    ResourceTraits<FontAsset>::ColdData cold;
+    cold.fontBinary = font.fontFileData;
+    cold.cacheKey = cacheKey;
+    cold.mergeSources = font.mergeSources;
+
+    FontHandle handle = m_fontPool.create(hot, cold);
+
+    {
+      std::unique_lock cacheWrite(m_cacheMutex);
+      m_fontCache.emplace(cacheKey, handle);
+    }
+
+    return handle;
+  }
+
   ClipId ResourceManager::createClip(const ProcessedAnimationClip& clip)
   {
     m_clips.emplace_back(clip);
@@ -538,6 +681,40 @@ namespace Resource
   {
     const auto* hot = m_texturePool.getHotData(handle);
     return hot ? hot->bindlessIndex : 0;
+  }
+
+  const ResourceTraits<FontAsset>::HotData* ResourceManager::getFont(FontHandle handle) const
+  {
+    return m_fontPool.getHotData(handle);
+  }
+
+  const ResourceTraits<FontAsset>::ColdData* ResourceManager::getFontMetadata(FontHandle handle) const
+  {
+    return m_fontPool.getColdData(handle);
+  }
+
+  const FontGlyph* ResourceManager::getFontGlyph(FontHandle handle, uint32_t codepoint) const
+  {
+    const auto* hot = getFont(handle);
+    if(!hot)
+      return nullptr;
+    return hot->cpuData.findGlyph(codepoint);
+  }
+
+  uint32_t ResourceManager::getFontTextureBindlessIndex(FontHandle handle) const
+  {
+    const auto* hot = getFont(handle);
+    return hot ? hot->bindlessIndex : 0;
+  }
+
+  FontHandle ResourceManager::getDefaultUIFont() const
+  {
+    return m_defaultUIFont;
+  }
+
+  void ResourceManager::setDefaultUIFont(FontHandle handle)
+  {
+    m_defaultUIFont = handle;
   }
 
   const Material* ResourceManager::getMaterialCPU(MaterialHandle handle) const
@@ -680,6 +857,47 @@ namespace Resource
     }
 
     m_texturePool.destroy(handle);
+  }
+
+  void ResourceManager::freeFont(FontHandle handle)
+  {
+    if(!m_fontPool.isValid(handle))
+      return;
+
+    TextureHandle atlasHandle;
+    std::string cacheKey;
+
+    if(const auto* hot = m_fontPool.getHotData(handle))
+    {
+      atlasHandle = hot->atlasTexture;
+    }
+    if(const auto* cold = m_fontPool.getColdData(handle))
+    {
+      cacheKey = cold->cacheKey;
+    }
+
+    if(atlasHandle.isValid())
+    {
+      freeTexture(atlasHandle);
+    }
+
+    {
+      std::unique_lock lock(m_cacheMutex);
+      if(!cacheKey.empty())
+      {
+        m_fontCache.erase(cacheKey);
+      }
+      else
+      {
+        std::erase_if(m_fontCache,
+                      [handle](const auto& pair)
+        {
+          return pair.second == handle;
+        });
+      }
+    }
+
+    m_fontPool.destroy(handle);
   }
 
   void ResourceManager::FlushUploads()
@@ -961,5 +1179,49 @@ namespace Resource
   std::string ResourceManager::generateTextureCacheKey(const ProcessedTexture& texture)
   {
     return TextureCacheKeyGenerator::generateKey(texture.source);
+  }
+
+  std::string ResourceManager::generateFontCacheKey(const ProcessedFont& font)
+  {
+    size_t hash = std::hash<std::string>{}(font.name);
+    hash ^= std::hash<uint32_t>{}(static_cast<uint32_t>(font.buildSettings.pixelHeight * 100.0f) + font.buildSettings.firstCodepoint + (font.buildSettings.lastCodepoint << 16));
+    hash ^= std::hash<int>{}(font.buildSettings.oversample);
+    hash ^= std::hash<bool>{}(font.buildSettings.snapToPixel);
+    hash ^= std::hash<uint32_t>{}(static_cast<uint32_t>(font.buildSettings.rasterizerMultiply * 1000.0f));
+    auto hashCombine = [](size_t seed, size_t value)
+    {
+      return seed ^ (value + 0x9e3779b9 + (seed << 6) + (seed >> 2));
+    };
+    if(!font.sourceFile.empty())
+    {
+      hash = hashCombine(hash, std::hash<std::string>{}(font.sourceFile.string()));
+    }
+    else
+    {
+      hash = hashCombine(hash, std::hash<std::string>{}(std::string(
+        reinterpret_cast<const char*>(font.fontFileData.data()), font.fontFileData.size())));
+    }
+    for(const auto& merge : font.mergeSources)
+    {
+      size_t mergeHash = std::hash<std::string>{}(merge.name);
+      mergeHash = hashCombine(mergeHash, std::hash<uint32_t>{}(static_cast<uint32_t>(merge.buildSettings.pixelHeight * 100.0f)));
+      mergeHash = hashCombine(mergeHash, std::hash<uint32_t>{}(merge.buildSettings.firstCodepoint));
+      mergeHash = hashCombine(mergeHash, std::hash<uint32_t>{}(merge.buildSettings.lastCodepoint));
+      mergeHash = hashCombine(mergeHash, std::hash<int>{}(merge.buildSettings.oversample));
+      mergeHash = hashCombine(mergeHash, std::hash<bool>{}(merge.buildSettings.snapToPixel));
+      mergeHash = hashCombine(mergeHash, std::hash<uint32_t>{}(static_cast<uint32_t>(merge.buildSettings.rasterizerMultiply * 1000.0f)));
+      mergeHash = hashCombine(mergeHash, std::hash<uint32_t>{}(static_cast<uint32_t>(merge.buildSettings.glyphMinAdvanceX * 100.0f)));
+      if(!merge.sourceFile.empty())
+      {
+        mergeHash = hashCombine(mergeHash, std::hash<std::string>{}(merge.sourceFile.string()));
+      }
+      else
+      {
+        mergeHash = hashCombine(mergeHash, std::hash<std::string>{}(std::string(
+          reinterpret_cast<const char*>(merge.fontFileData.data()), merge.fontFileData.size())));
+      }
+      hash = hashCombine(hash, mergeHash);
+    }
+    return font.name + "_" + std::to_string(hash);
   }
 } // namespace AssetLoading

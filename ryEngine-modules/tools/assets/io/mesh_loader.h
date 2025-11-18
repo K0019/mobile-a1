@@ -2,11 +2,8 @@
 #include <vector>
 #include <span>
 #include <resource/processed_assets.h>
-
-
 #include "import_config.h"
 #include "graphics/gpu_data.h"
-
 struct aiScene;
 struct aiMesh;
 
@@ -14,7 +11,8 @@ namespace Resource
 {
   namespace MeshLoading
   {
-    ProcessedMesh extractMesh(const aiScene* scene, const aiMesh* aiMesh, uint32_t meshIndex, const LoadingConfig& config);
+    ProcessedMesh extractMesh(const aiScene* scene, const aiMesh* aiMesh, uint32_t meshIndex,
+                              const LoadingConfig& config);
 
     // Collection utilities
     std::vector<const aiMesh*> collectMeshPointers(const aiScene* scene, const LoadingConfig& config);

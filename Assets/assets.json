@@ -211,6 +211,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/meshanimations/cesiummananim_0.anim",
+            "resources": [
+                {
+                    "resourceType": 7232515681596383213,
+                    "resourceEntries": [
+                        {
+                            "hash": 177963654405000807,
+                            "name": "cesiummananim_00"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/textures/_12.ktx2",
             "resources": [
                 {
@@ -295,6 +309,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/textures/cesiumman2146822282649598438.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 162188961081298529,
+                            "name": "cesiumman21468222826495984380"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/textures/_05.ktx2",
             "resources": [
                 {
@@ -303,6 +331,20 @@
                         {
                             "hash": 208238706537251915,
                             "name": "_050"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/materials/material_1.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 173633777614818917,
+                            "name": "material_10"
                         }
                     ]
                 }
@@ -331,6 +373,20 @@
                         {
                             "hash": 226147551930467407,
                             "name": "_100"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/cesiumman.mesh",
+            "resources": [
+                {
+                    "resourceType": 6209910166724260588,
+                    "resourceEntries": [
+                        {
+                            "hash": 183637134404324973,
+                            "name": "cesiumman0"
                         }
                     ]
                 }
@@ -387,6 +443,20 @@
                         {
                             "hash": 280797677877445729,
                             "name": "_220"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/materials/cesium_man-effect.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 169869049801313893,
+                            "name": "cesium_man-effect0"
                         }
                     ]
                 }

@@ -6,5 +6,4 @@ namespace Resource
     : m_targets(targets)
   {
   }
-
 } // namespace Resource

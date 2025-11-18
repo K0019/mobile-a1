@@ -1,5 +1,4 @@
 #pragma once
-
 #include "graphics/scene.h"
 
 namespace Resource
@@ -9,7 +8,5 @@ namespace Resource
 
 namespace Animation
 {
-  void Animate(const Resource::ResourceManager& resources,
-               SceneObject& object,
-               float deltaTime);
+  void Animate(const Resource::ResourceManager& resources, SceneObject& object, float deltaTime);
 }

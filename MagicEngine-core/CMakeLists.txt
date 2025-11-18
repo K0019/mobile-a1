@@ -32,6 +32,7 @@ else()
         $<$<CONFIG:Release>:${EXTERNAL_LIBRARIES_STATIC_RELEASE}>
         glm::glm-header-only
         Jolt::Jolt
+        fmt::fmt
         ${LUA_LIBRARIES}
     )
 
@@ -115,7 +116,7 @@ endforeach()
 
 # Additional compile options
 if (NOT ANDROID)
-    target_compile_options(MagicEngine-Core PRIVATE /bigobj)
+    target_compile_options(MagicEngine-Core PRIVATE /bigobj /utf-8)
 
 # Debug renderer for Jolt
 target_compile_definitions(Jolt::Jolt INTERFACE JPH_DEBUG_RENDERER)

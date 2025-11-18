@@ -1,5 +1,4 @@
 #pragma once
-
 #if defined(TRACY_ENABLE)
 #include "tracy/Tracy.hpp"
 // predefined RGB colors for "heavy" point-of-interest operations
@@ -22,7 +21,6 @@
 #define PROFILER_COLOR_CPU_IO 0x808080
 #define PROFILER_COLOR_CPU_OTHER 0xA52A2A
 #define PROFILER_COLOR_CPU_SCRIPTING 0x8B008B
-
 //
 #define PROFILER_FUNCTION() ZoneScoped
 #define PROFILER_FUNCTION_COLOR(color) ZoneScopedC(color)
