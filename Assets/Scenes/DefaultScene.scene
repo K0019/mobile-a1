@@ -52,7 +52,7 @@
         {
             "parentIndex": -1,
             "position": {
-                "x": 0.0,
+                "x": -6.790838718414307,
                 "y": 1.0,
                 "z": -0.32777106761932373
             },
@@ -308,31 +308,46 @@
                 "z": 1.0
             },
             "components": {
+                "2042496555980785": {
+                    "_active": true,
+                    "agentData": {
+                        "param": {
+                            "radius": 0.20000000298023224,
+                            "height": 1.5,
+                            "climb": 0.5,
+                            "angle": 5.0
+                        },
+                        "speed": 2.0,
+                        "acceleration": 2.0,
+                        "baseOffset": 0.0,
+                        "active": true
+                    }
+                },
                 "5725819782531291880": {
-                    "_active": false,
+                    "_active": true,
                     "behaviorTree": {
-                        "btName": "enemybase"
+                        "btName": "followplayerusingnavmesh"
                     }
                 },
                 "6766054303456732338": {
-                    "_active": false,
+                    "_active": true,
                     "layer": 0
                 },
                 "7205334411763290517": {
-                    "_active": false,
+                    "_active": true,
                     "name": "Enemy"
                 },
                 "7930599578754533802": {
-                    "_active": false,
+                    "_active": true,
                     "maxHealth": 1000.0,
                     "currHealth": 100.0
                 },
                 "9315785795257285655": {
-                    "_active": false,
+                    "_active": true,
                     "uid": 336609987718299699
                 },
                 "9501525575059265452": {
-                    "_active": false,
+                    "_active": true,
                     "flags": {
                         "_majorityTrue": true,
                         "_except": [
@@ -341,14 +356,14 @@
                     }
                 },
                 "16763493199777387366": {
-                    "_active": false,
+                    "_active": true,
                     "playerReference": {
                         "entityUid": 51797992787031769
                     }
                 },
                 "17579205194823809952": {
-                    "_active": false,
-                    "moveSpeed": 10.0,
+                    "_active": true,
+                    "moveSpeed": 1.7999999523162842,
                     "rotateSpeed": 14400.0,
                     "stunTimePerHit": 1.0,
                     "groundFriction": 0.75,
@@ -363,7 +378,7 @@
                     }
                 },
                 "18236831197208900764": {
-                    "_active": false,
+                    "_active": true,
                     "center": {
                         "x": 0.0,
                         "y": 0.800000011920929,
@@ -440,6 +455,50 @@
                     "flags": {
                         "_majorityTrue": true,
                         "_except": []
+                    }
+                }
+            }
+        },
+        {
+            "parentIndex": -1,
+            "position": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "rotation": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "scale": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0
+            },
+            "components": {
+                "6766054303456732338": {
+                    "_active": true,
+                    "layer": 0
+                },
+                "7205334411763290517": {
+                    "_active": true,
+                    "name": "Navmesh"
+                },
+                "9315785795257285655": {
+                    "_active": true,
+                    "uid": 1372311458949668672
+                },
+                "17194726475873209191": {
+                    "_active": true,
+                    "navMeshData": {
+                        "filePath": "NavMeshData/navmesh.navmesh"
+                    },
+                    "agentParam": {
+                        "radius": 0.20000000298023224,
+                        "height": 1.5,
+                        "climb": 0.5,
+                        "angle": 5.0
                     }
                 }
             }
@@ -666,23 +725,23 @@
             },
             "components": {
                 "137465014557233347": {
-                    "_active": false,
+                    "_active": true,
                     "damage": 10.0
                 },
                 "6766054303456732338": {
-                    "_active": false,
+                    "_active": true,
                     "layer": 0
                 },
                 "7205334411763290517": {
-                    "_active": false,
+                    "_active": true,
                     "name": "ItemTest"
                 },
                 "9315785795257285655": {
-                    "_active": false,
+                    "_active": true,
                     "uid": 352048231000215665
                 },
                 "9501525575059265452": {
-                    "_active": false,
+                    "_active": true,
                     "flags": {
                         "_majorityTrue": false,
                         "_except": [
@@ -692,7 +751,7 @@
                     }
                 },
                 "18236831197208900764": {
-                    "_active": false,
+                    "_active": true,
                     "center": {
                         "x": 0.0,
                         "y": 0.0,
@@ -729,7 +788,7 @@
             },
             "components": {
                 "5352011725353660904": {
-                    "_active": false,
+                    "_active": true,
                     "meshHandle": {
                         "hash": 385509668275135841
                     },
@@ -800,15 +859,15 @@
                     ]
                 },
                 "6766054303456732338": {
-                    "_active": false,
+                    "_active": true,
                     "layer": 0
                 },
                 "7205334411763290517": {
-                    "_active": false,
+                    "_active": true,
                     "name": "PlayerModel"
                 },
                 "9315785795257285655": {
-                    "_active": false,
+                    "_active": true,
                     "uid": 352582593135001652
                 }
             }
@@ -906,7 +965,7 @@
             }
         },
         {
-            "parentIndex": 11,
+            "parentIndex": 12,
             "position": {
                 "x": -284.942138671875,
                 "y": 171.56336975097656,
@@ -938,7 +997,7 @@
             }
         },
         {
-            "parentIndex": 12,
+            "parentIndex": 13,
             "position": {
                 "x": 0.19666284322738647,
                 "y": 0.621158242225647,
@@ -981,7 +1040,7 @@
             }
         },
         {
-            "parentIndex": 11,
+            "parentIndex": 12,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -1041,7 +1100,7 @@
             }
         },
         {
-            "parentIndex": 9,
+            "parentIndex": 10,
             "position": {
                 "x": 0.0,
                 "y": -0.6000000238418579,
@@ -1059,7 +1118,7 @@
             },
             "components": {
                 "5352011725353660904": {
-                    "_active": false,
+                    "_active": true,
                     "meshHandle": {
                         "hash": 602294878455748381
                     },
@@ -1127,21 +1186,21 @@
                     ]
                 },
                 "6766054303456732338": {
-                    "_active": false,
+                    "_active": true,
                     "layer": 0
                 },
                 "7205334411763290517": {
-                    "_active": false,
+                    "_active": true,
                     "name": "Model"
                 },
                 "9315785795257285655": {
-                    "_active": false,
+                    "_active": true,
                     "uid": 363822901022068849
                 }
             }
         },
         {
-            "parentIndex": 11,
+            "parentIndex": 12,
             "position": {
                 "x": 375.0,
                 "y": 0.0,
@@ -1190,7 +1249,7 @@
             }
         },
         {
-            "parentIndex": 11,
+            "parentIndex": 12,
             "position": {
                 "x": -373.6549072265625,
                 "y": 137.65390014648438,
@@ -1236,7 +1295,7 @@
             }
         },
         {
-            "parentIndex": 11,
+            "parentIndex": 12,
             "position": {
                 "x": 48.52607727050781,
                 "y": 89.57457733154297,
@@ -1279,7 +1338,7 @@
             }
         },
         {
-            "parentIndex": 11,
+            "parentIndex": 12,
             "position": {
                 "x": -373.6548767089844,
                 "y": 137.65390014648438,
@@ -1325,7 +1384,7 @@
             }
         },
         {
-            "parentIndex": 11,
+            "parentIndex": 12,
             "position": {
                 "x": 0.0,
                 "y": 196.47315979003906,
@@ -1385,7 +1444,7 @@
             }
         },
         {
-            "parentIndex": 11,
+            "parentIndex": 12,
             "position": {
                 "x": 0.0,
                 "y": 453.5102233886719,
@@ -1454,7 +1513,7 @@
             }
         },
         {
-            "parentIndex": 11,
+            "parentIndex": 12,
             "position": {
                 "x": 300.6227722167969,
                 "y": 123.53225708007813,
@@ -1497,7 +1556,7 @@
             }
         },
         {
-            "parentIndex": 11,
+            "parentIndex": 12,
             "position": {
                 "x": 0.0,
                 "y": 196.47315979003906,
@@ -1557,7 +1616,7 @@
             }
         },
         {
-            "parentIndex": 11,
+            "parentIndex": 12,
             "position": {
                 "x": -375.0,
                 "y": 0.0,
@@ -1589,7 +1648,7 @@
             }
         },
         {
-            "parentIndex": 12,
+            "parentIndex": 13,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -1649,7 +1708,7 @@
             }
         },
         {
-            "parentIndex": 11,
+            "parentIndex": 12,
             "position": {
                 "x": -298.8127136230469,
                 "y": 171.55654907226563,
@@ -1681,7 +1740,7 @@
             }
         },
         {
-            "parentIndex": 11,
+            "parentIndex": 12,
             "position": {
                 "x": -88.98660278320313,
                 "y": 171.55023193359375,
@@ -1713,7 +1772,7 @@
             }
         },
         {
-            "parentIndex": 11,
+            "parentIndex": 12,
             "position": {
                 "x": -322.44354248046875,
                 "y": 123.5381851196289,
@@ -1756,7 +1815,7 @@
             }
         },
         {
-            "parentIndex": 13,
+            "parentIndex": 14,
             "position": {
                 "x": 1.442169189453125,
                 "y": -70.35421752929688,
@@ -1805,7 +1864,7 @@
             }
         },
         {
-            "parentIndex": 14,
+            "parentIndex": 15,
             "position": {
                 "x": 0.0,
                 "y": 105.14971923828125,
@@ -1854,7 +1913,7 @@
             }
         },
         {
-            "parentIndex": 17,
+            "parentIndex": 18,
             "position": {
                 "x": 0.3063488006591797,
                 "y": 0.6200643181800842,
@@ -1903,7 +1962,7 @@
             }
         },
         {
-            "parentIndex": 17,
+            "parentIndex": 18,
             "position": {
                 "x": 0.08627128601074219,
                 "y": 0.6499803066253662,
@@ -1949,7 +2008,7 @@
             }
         },
         {
-            "parentIndex": 18,
+            "parentIndex": 19,
             "position": {
                 "x": -0.98992919921875,
                 "y": 0.0,
@@ -1995,7 +2054,7 @@
             }
         },
         {
-            "parentIndex": 19,
+            "parentIndex": 20,
             "position": {
                 "x": 0.0179443359375,
                 "y": 1.33154296875,
@@ -2044,7 +2103,7 @@
             }
         },
         {
-            "parentIndex": 18,
+            "parentIndex": 19,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -2090,7 +2149,7 @@
             }
         },
         {
-            "parentIndex": 20,
+            "parentIndex": 21,
             "position": {
                 "x": -0.989959716796875,
                 "y": 0.0,
@@ -2144,7 +2203,7 @@
             }
         },
         {
-            "parentIndex": 20,
+            "parentIndex": 21,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -2190,7 +2249,7 @@
             }
         },
         {
-            "parentIndex": 23,
+            "parentIndex": 24,
             "position": {
                 "x": 0.017974853515625,
                 "y": 1.33154296875,
@@ -2239,7 +2298,7 @@
             }
         },
         {
-            "parentIndex": 25,
+            "parentIndex": 26,
             "position": {
                 "x": 0.08626747131347656,
                 "y": 0.5844864249229431,
@@ -3026,7 +3085,7 @@
             }
         },
         {
-            "parentIndex": 25,
+            "parentIndex": 26,
             "position": {
                 "x": 0.0000019073486328125,
                 "y": 0.6200643181800842,
@@ -3075,7 +3134,7 @@
             }
         },
         {
-            "parentIndex": 25,
+            "parentIndex": 26,
             "position": {
                 "x": -0.0000019073486328125,
                 "y": 0.6200643181800842,
@@ -3135,7 +3194,7 @@
             }
         },
         {
-            "parentIndex": 25,
+            "parentIndex": 26,
             "position": {
                 "x": -0.0000019073486328125,
                 "y": 0.6200643181800842,
@@ -3195,7 +3254,7 @@
             }
         },
         {
-            "parentIndex": 25,
+            "parentIndex": 26,
             "position": {
                 "x": -0.0000019073486328125,
                 "y": 1.0170819759368896,
@@ -3238,7 +3297,7 @@
             }
         },
         {
-            "parentIndex": 13,
+            "parentIndex": 14,
             "position": {
                 "x": -39.67547607421875,
                 "y": -95.23800659179688,
@@ -3287,7 +3346,7 @@
             }
         },
         {
-            "parentIndex": 13,
+            "parentIndex": 14,
             "position": {
                 "x": -94.85832977294922,
                 "y": -95.23805236816406,
@@ -3336,7 +3395,7 @@
             }
         },
         {
-            "parentIndex": 13,
+            "parentIndex": 14,
             "position": {
                 "x": -159.13259887695313,
                 "y": -70.36083221435547,
@@ -3385,7 +3444,7 @@
             }
         },
         {
-            "parentIndex": 13,
+            "parentIndex": 14,
             "position": {
                 "x": -96.44023132324219,
                 "y": -82.8124771118164,
@@ -3428,7 +3487,7 @@
             }
         },
         {
-            "parentIndex": 13,
+            "parentIndex": 14,
             "position": {
                 "x": -175.30589294433594,
                 "y": -82.80941772460938,
@@ -3471,7 +3530,7 @@
             }
         },
         {
-            "parentIndex": 13,
+            "parentIndex": 14,
             "position": {
                 "x": -136.92837524414063,
                 "y": -82.80938720703125,
@@ -3514,7 +3573,7 @@
             }
         },
         {
-            "parentIndex": 13,
+            "parentIndex": 14,
             "position": {
                 "x": 0.0000152587890625,
                 "y": 0.0,
@@ -3557,7 +3616,7 @@
             }
         },
         {
-            "parentIndex": 27,
+            "parentIndex": 28,
             "position": {
                 "x": 1.4421844482421875,
                 "y": -70.35423278808594,
@@ -3606,7 +3665,7 @@
             }
         },
         {
-            "parentIndex": 27,
+            "parentIndex": 28,
             "position": {
                 "x": 0.0000457763671875,
                 "y": 0.0,
@@ -3649,7 +3708,7 @@
             }
         },
         {
-            "parentIndex": 27,
+            "parentIndex": 28,
             "position": {
                 "x": -136.92835998535156,
                 "y": -82.80938720703125,
@@ -3692,7 +3751,7 @@
             }
         },
         {
-            "parentIndex": 27,
+            "parentIndex": 28,
             "position": {
                 "x": -94.85831451416016,
                 "y": -95.23805236816406,
@@ -3741,7 +3800,7 @@
             }
         },
         {
-            "parentIndex": 27,
+            "parentIndex": 28,
             "position": {
                 "x": -159.13259887695313,
                 "y": -70.36083221435547,
@@ -3790,7 +3849,7 @@
             }
         },
         {
-            "parentIndex": 27,
+            "parentIndex": 28,
             "position": {
                 "x": -96.44021606445313,
                 "y": -82.81248474121094,
@@ -3833,7 +3892,7 @@
             }
         },
         {
-            "parentIndex": 27,
+            "parentIndex": 28,
             "position": {
                 "x": -39.67546081542969,
                 "y": -95.2380142211914,
@@ -3882,7 +3941,7 @@
             }
         },
         {
-            "parentIndex": 27,
+            "parentIndex": 28,
             "position": {
                 "x": -175.30587768554688,
                 "y": -82.8094253540039,
@@ -3925,7 +3984,7 @@
             }
         },
         {
-            "parentIndex": 28,
+            "parentIndex": 29,
             "position": {
                 "x": -96.44024658203125,
                 "y": -82.8125,
@@ -3968,7 +4027,7 @@
             }
         },
         {
-            "parentIndex": 28,
+            "parentIndex": 29,
             "position": {
                 "x": -39.67547607421875,
                 "y": -95.23802947998047,
@@ -4017,7 +4076,7 @@
             }
         },
         {
-            "parentIndex": 28,
+            "parentIndex": 29,
             "position": {
                 "x": -94.85833740234375,
                 "y": -95.23806762695313,
@@ -4066,7 +4125,7 @@
             }
         },
         {
-            "parentIndex": 28,
+            "parentIndex": 29,
             "position": {
                 "x": -136.92837524414063,
                 "y": -82.80940246582031,
@@ -4109,7 +4168,7 @@
             }
         },
         {
-            "parentIndex": 28,
+            "parentIndex": 29,
             "position": {
                 "x": -175.305908203125,
                 "y": -82.8094482421875,
@@ -4152,7 +4211,7 @@
             }
         },
         {
-            "parentIndex": 28,
+            "parentIndex": 29,
             "position": {
                 "x": -159.13262939453125,
                 "y": -70.36084747314453,
@@ -4201,7 +4260,7 @@
             }
         },
         {
-            "parentIndex": 28,
+            "parentIndex": 29,
             "position": {
                 "x": 0.000030517578125,
                 "y": -0.0000152587890625,
@@ -4244,7 +4303,7 @@
             }
         },
         {
-            "parentIndex": 28,
+            "parentIndex": 29,
             "position": {
                 "x": 1.442169189453125,
                 "y": -70.35424041748047,
@@ -4293,7 +4352,7 @@
             }
         },
         {
-            "parentIndex": 29,
+            "parentIndex": 30,
             "position": {
                 "x": 0.01800537109375,
                 "y": 1.33154296875,
@@ -4342,7 +4401,7 @@
             }
         },
         {
-            "parentIndex": 25,
+            "parentIndex": 26,
             "position": {
                 "x": -0.0000019073486328125,
                 "y": 0.9163541197776794,
@@ -4391,7 +4450,7 @@
             }
         },
         {
-            "parentIndex": 30,
+            "parentIndex": 31,
             "position": {
                 "x": 1.495086669921875,
                 "y": -3.9215240478515625,
@@ -4440,7 +4499,7 @@
             }
         },
         {
-            "parentIndex": 34,
+            "parentIndex": 35,
             "position": {
                 "x": -1.82708740234375,
                 "y": 0.495208740234375,
@@ -4489,7 +4548,7 @@
             }
         },
         {
-            "parentIndex": 36,
+            "parentIndex": 37,
             "position": {
                 "x": 0.599578857421875,
                 "y": 0.495208740234375,
@@ -4538,7 +4597,7 @@
             }
         },
         {
-            "parentIndex": 37,
+            "parentIndex": 38,
             "position": {
                 "x": -1.82708740234375,
                 "y": 0.495208740234375,
@@ -4587,7 +4646,7 @@
             }
         },
         {
-            "parentIndex": 38,
+            "parentIndex": 39,
             "position": {
                 "x": 0.59954833984375,
                 "y": 0.495208740234375,
@@ -4636,7 +4695,7 @@
             }
         },
         {
-            "parentIndex": 45,
+            "parentIndex": 46,
             "position": {
                 "x": 1.495086669921875,
                 "y": -3.9215240478515625,
@@ -4685,7 +4744,7 @@
             }
         },
         {
-            "parentIndex": 46,
+            "parentIndex": 47,
             "position": {
                 "x": 1.495086669921875,
                 "y": -3.9215087890625,
@@ -4734,7 +4793,7 @@
             }
         },
         {
-            "parentIndex": 47,
+            "parentIndex": 48,
             "position": {
                 "x": 1.495086669921875,
                 "y": -3.9215240478515625,
@@ -4783,7 +4842,7 @@
             }
         },
         {
-            "parentIndex": 48,
+            "parentIndex": 49,
             "position": {
                 "x": 0.000030517578125,
                 "y": -2.97412109375,
@@ -4832,7 +4891,7 @@
             }
         },
         {
-            "parentIndex": 49,
+            "parentIndex": 50,
             "position": {
                 "x": 0.0,
                 "y": -2.9741058349609375,
@@ -4881,7 +4940,7 @@
             }
         },
         {
-            "parentIndex": 50,
+            "parentIndex": 51,
             "position": {
                 "x": -0.0000152587890625,
                 "y": -2.9741058349609375,
@@ -4930,7 +4989,7 @@
             }
         },
         {
-            "parentIndex": 51,
+            "parentIndex": 52,
             "position": {
                 "x": 0.000030517578125,
                 "y": -2.97412109375,
@@ -4979,7 +5038,7 @@
             }
         },
         {
-            "parentIndex": 52,
+            "parentIndex": 53,
             "position": {
                 "x": 1.495086669921875,
                 "y": -3.9215164184570313,
@@ -5028,7 +5087,7 @@
             }
         },
         {
-            "parentIndex": 53,
+            "parentIndex": 54,
             "position": {
                 "x": 0.00003814697265625,
                 "y": -2.97412109375,
@@ -5077,7 +5136,7 @@
             }
         },
         {
-            "parentIndex": 54,
+            "parentIndex": 55,
             "position": {
                 "x": -0.0000152587890625,
                 "y": -2.9740982055664063,
@@ -5126,7 +5185,7 @@
             }
         },
         {
-            "parentIndex": 55,
+            "parentIndex": 56,
             "position": {
                 "x": 1.495086669921875,
                 "y": -3.9215087890625,
@@ -5175,7 +5234,7 @@
             }
         },
         {
-            "parentIndex": 56,
+            "parentIndex": 57,
             "position": {
                 "x": 1.4951019287109375,
                 "y": -3.9215316772460938,
@@ -5224,7 +5283,7 @@
             }
         },
         {
-            "parentIndex": 57,
+            "parentIndex": 58,
             "position": {
                 "x": 0.000030517578125,
                 "y": -2.9741134643554688,
@@ -5273,7 +5332,7 @@
             }
         },
         {
-            "parentIndex": 58,
+            "parentIndex": 59,
             "position": {
                 "x": 1.4951324462890625,
                 "y": -3.9215240478515625,
@@ -5322,7 +5381,7 @@
             }
         },
         {
-            "parentIndex": 59,
+            "parentIndex": 60,
             "position": {
                 "x": -0.0000152587890625,
                 "y": -2.9740982055664063,
@@ -5371,7 +5430,7 @@
             }
         },
         {
-            "parentIndex": 60,
+            "parentIndex": 61,
             "position": {
                 "x": 0.000030517578125,
                 "y": -2.97412109375,
@@ -5420,7 +5479,7 @@
             }
         },
         {
-            "parentIndex": 61,
+            "parentIndex": 62,
             "position": {
                 "x": 1.495147705078125,
                 "y": -3.921527862548828,
@@ -5469,7 +5528,7 @@
             }
         },
         {
-            "parentIndex": 62,
+            "parentIndex": 63,
             "position": {
                 "x": 1.495086669921875,
                 "y": -3.9214935302734375,
@@ -5518,7 +5577,7 @@
             }
         },
         {
-            "parentIndex": 63,
+            "parentIndex": 64,
             "position": {
                 "x": 0.0,
                 "y": -2.974090576171875,
@@ -5567,7 +5626,7 @@
             }
         },
         {
-            "parentIndex": 64,
+            "parentIndex": 65,
             "position": {
                 "x": 0.000030517578125,
                 "y": -2.974090576171875,
@@ -5616,7 +5675,7 @@
             }
         },
         {
-            "parentIndex": 65,
+            "parentIndex": 66,
             "position": {
                 "x": 1.49505615234375,
                 "y": -3.9215316772460938,
@@ -5665,7 +5724,7 @@
             }
         },
         {
-            "parentIndex": 66,
+            "parentIndex": 67,
             "position": {
                 "x": 0.000030517578125,
                 "y": -2.9741363525390625,
@@ -5714,7 +5773,7 @@
             }
         },
         {
-            "parentIndex": 67,
+            "parentIndex": 68,
             "position": {
                 "x": 1.495086669921875,
                 "y": -3.9215087890625,

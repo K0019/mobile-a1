@@ -407,6 +407,20 @@
             ]
         },
         {
+            "filepath": "sounds/kalimba.mp3",
+            "resources": [
+                {
+                    "resourceType": 16184316770661419113,
+                    "resourceEntries": [
+                        {
+                            "hash": 3396394154554478828,
+                            "name": "kalimba0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/textures/_05.ktx2",
             "resources": [
                 {

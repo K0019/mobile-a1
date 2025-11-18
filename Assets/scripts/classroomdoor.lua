@@ -8,9 +8,6 @@ function open()
     opening = true
     moving = true
 
-    local pos = Vec3()
-
-    Magic.AudioManager.PlaySound("",pos)
 end
 
 function close()
@@ -23,15 +20,23 @@ function toggle()
     moving = true
 end
 
+function start(entity)
+    local transform = entity.transform
+    local localPos = transform.worldPosition
+
+    Magic.AudioManager.PlaySound("kalimba",localPos)
+end
 
 function update(entity)
     local prevOpenDistance = currentOpeningDistance;
+    local transform = entity.transform
+    local localPos = transform.localPosition
     if(moving) then
         if(opening) then
                 currentOpeningDistance = currentOpeningDistance + Magic.DeltaTime() * openSpeed
 
-            if(currentOpeningDistance > openingDistance) then
-                currentOpeningDistance = openingDistance
+                if(currentOpeningDistance > openingDistance) then
+                    currentOpeningDistance = openingDistance
                 moving = false
             end
         else
@@ -44,10 +49,10 @@ function update(entity)
         end
         Magic.Log(Magic.LogLevel.info,currentOpeningDistance)
     end
-    local transform = entity.transform
-    local localPos = transform.localPosition
 
     localPos.z = localPos.z + (currentOpeningDistance - prevOpenDistance)
     
     transform.localPosition = localPos
+
+
 end

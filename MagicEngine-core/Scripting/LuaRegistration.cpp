@@ -38,6 +38,7 @@ All rights reserved.
 #include "Game/Health.h"
 #include "Engine/EntityLayers.h"
 #include "Managers/AudioManager.h"
+#include "Engine/Input.h"
 
 //=========================================== START REGISTERING COMPONENTS ================================================================================
 // This section is unfortunately required. This registers what functions are available in a component.
@@ -224,8 +225,27 @@ void Lua_Log(int level, std::string message)
 	}
 }
 
+bool GetButtonDown(std::string name)
+{
+	if (auto action{ ST<MagicInput>::Get()->GetAction<bool>(name) })
+		return action->GetValue();
+}
+
+float GetAxis(std::string name)
+{
+	if (auto action{ ST<MagicInput>::Get()->GetAction<float>(name) })
+		return action->GetValue();
+}
+
+Vec2 Get2DAxis(std::string name)
+{
+	if (auto action{ ST<MagicInput>::Get()->GetAction<Vec2>(name) })
+		return action->GetValue();
+}
+
 void Lua_PlayAudio(std::string name, Vec3 position)
 {
+	//ST<AudioManager>::Get()->PlaySound(name, false, AudioType::SFX);
 	ST<AudioManager>::Get()->PlaySound3D(util::GenHash(name), false, position);
 }
 
@@ -239,6 +259,9 @@ void RegisterCppStuffToLua(luabridge::Namespace baseTable)
 			.addConstructor<void(*)(float, float)>()
 			.addProperty("x", [](const Vec2* v) -> float { return v->x; }, [](Vec2* v, float x) { v->x = x; })
 			.addProperty("y", [](const Vec2* v) -> float { return v->y; }, [](Vec2* v, float y) { v->y = y; })
+			.addFunction("Normalized", [](const Vec2* v) -> Vec2 {return v->Normalized(); })
+			.addFunction("Length", [](const Vec2* v) -> float {return v->Length(); })
+			.addFunction("LengthSqr", [](const Vec2* v) -> float {return v->LengthSqr(); })
 		.endClass()
 
 		.beginClass<Vec3>("Vec3")
@@ -246,6 +269,9 @@ void RegisterCppStuffToLua(luabridge::Namespace baseTable)
 			.addProperty("x", [](const Vec3* v) -> float { return v->x; }, [](Vec3* v, float x) { v->x = x; })
 			.addProperty("y", [](const Vec3* v) -> float { return v->y; }, [](Vec3* v, float y) { v->y = y; })
 			.addProperty("z", [](const Vec3* v) -> float { return v->z; }, [](Vec3* v, float z) { v->z = z; })
+			.addFunction("Normalized", [](const Vec3* v) -> Vec3 {return v->Normalized(); })
+			.addFunction("Length", [](const Vec3* v) -> float {return v->Length(); })
+			.addFunction("LengthSqr", [](const Vec3* v) -> float {return v->LengthSqr(); })
 		.endClass()
 		.beginClass<Transform>("Transform")
 			.addProperty("localPosition", [](const Transform* t) -> Vec3 { return t->GetLocalPosition(); }, [](Transform* t, Vec3 v) { t->SetLocalPosition(v); })
