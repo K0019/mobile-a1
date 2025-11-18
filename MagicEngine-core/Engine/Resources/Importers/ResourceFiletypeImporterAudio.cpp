@@ -38,14 +38,15 @@ bool ResourceFiletypeImporterAudio::Import(const std::string& assetRelativeFilep
 		return false;
 
 	// Create fileentry
-	if (const ResourceFilepaths::FileEntry* existingFileEntry{ ST<MagicResourceManager>::Get()->INTERNAL_GetFilepathsManager().GetFileEntry(assetRelativeFilepath) })
-		return existingFileEntry;
-
-	std::vector<AssociatedResourceHashes> resourceHashes{ 1 };
-	resourceHashes[0].resourceTypeHash = util::ConsistentHash<ResourceAudio>();
-	resourceHashes[0].hashes.push_back(util::GenHash(VFS::GetStem(VFS::NormalizePath(assetRelativeFilepath))));
-	GenerateNamesForResources(resourceHashes, assetRelativeFilepath);
-	const auto* fileentry{ ST<MagicResourceManager>::Get()->INTERNAL_GetFilepathsManager().SetFilepath(assetRelativeFilepath, std::move(resourceHashes)) };
+	const ResourceFilepaths::FileEntry* fileentry{ ST<MagicResourceManager>::Get()->INTERNAL_GetFilepathsManager().GetFileEntry(assetRelativeFilepath) };
+	if (!fileentry)
+	{
+		std::vector<AssociatedResourceHashes> resourceHashes{ 1 };
+		resourceHashes[0].resourceTypeHash = util::ConsistentHash<ResourceAudio>();
+		resourceHashes[0].hashes.push_back(util::GenHash(VFS::GetStem(VFS::NormalizePath(assetRelativeFilepath))));
+		GenerateNamesForResources(resourceHashes, assetRelativeFilepath);
+		fileentry = ST<MagicResourceManager>::Get()->INTERNAL_GetFilepathsManager().SetFilepath(assetRelativeFilepath, std::move(resourceHashes));
+	}
 
 	// Set the resource to the FMOD sound
 	size_t hash{ fileentry->associatedResources[0].hashes[0] };
