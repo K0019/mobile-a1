@@ -1779,6 +1779,8 @@ void SceneRenderFeature::ProcessPendingPick(internal::ExecutionContext& ctx)
 
     if (drawId >= params.drawData.size())
     {
+        std::lock_guard<std::mutex> lock(m_pickResultMutex);
+        m_lastPickResult.valid = false;
         return;
     }
 
@@ -1789,6 +1791,6 @@ void SceneRenderFeature::ProcessPendingPick(internal::ExecutionContext& ctx)
         m_lastPickResult.valid = true;
         m_lastPickResult.sceneObjectIndex = sceneObjectIndex;
         m_lastPickResult.primitiveId = primitiveId;
-        m_lastPickResult.drawId = drawId;
+        m_lastPickResult.drawId = sceneObjectIndex;
     }
 }

@@ -77,10 +77,10 @@ layout(buffer_reference, std430) readonly buffer LBuf { LineGPU lns[]; };
 
 layout(push_constant) uniform Push {
   mat4  viewProj;
-  vec2  viewportSize;  // needed for screen-space line expansion
+  vec2  viewportSize; 
   uvec2 baseAddr;
   uint  offPoints;
-  uint  offLines;      // byte offset to LineGPU[]
+  uint  offLines;
   uint  offTris;
   uint  mode;
 } PC;
@@ -101,59 +101,86 @@ void main() {
   LBuf B = LBuf(addBytes(PC.baseAddr, PC.offLines));
   LineGPU s = B.lns[gl_InstanceIndex];
 
-  // Transform endpoints to clip space
-  vec4 p0c = PC.viewProj * vec4(s.p0, 1.0);
-  vec4 p1c = PC.viewProj * vec4(s.p1, 1.0);
+  // 1. Transform to Clip Space
+  vec4 p0 = PC.viewProj * vec4(s.p0, 1.0);
+  vec4 p1 = PC.viewProj * vec4(s.p1, 1.0);
 
-  // Screen-space direction of the line (in NDC)
-  vec2 p0_ss = p0c.xy / p0c.w;
-  vec2 p1_ss = p1c.xy / p1c.w;
-
-  // Avoid division by zero for zero-length lines
-  if (all(equal(p0_ss, p1_ss))) {
-    gl_Position = vec4(0,0,0,-1); // Degenerate triangle
+  // 2. Manual Near-Plane Clipping
+  // If points are behind the camera (w < epsilon), we must clip them.
+  // Otherwise, the perspective divide (xyz / w) will invert coordinates 
+  // or explode, causing the massive stretching artifacts.
+  const float kNearW = 0.001;
+  
+  // If both are behind, discard the primitive
+  if (p0.w < kNearW && p1.w < kNearW) {
+    gl_Position = vec4(0,0,0,0); // Degenerate
     return;
   }
-  vec2 dir_ss = normalize(p1_ss - p0_ss);
 
-  // Screen-space perpendicular
-  vec2 perp_ss = vec2(-dir_ss.y, dir_ss.x);
+  // Clip p0 against Near Plane
+  if (p0.w < kNearW) {
+    float t = (kNearW - p0.w) / (p1.w - p0.w);
+    p0 = mix(p0, p1, t);
+  }
+  // Clip p1 against Near Plane
+  if (p1.w < kNearW) {
+    float t = (kNearW - p1.w) / (p0.w - p1.w);
+    p1 = mix(p1, p0, t);
+  }
 
-  // Convert world-space size to screen-space size (in NDC)
-  // We use the average W for a stable thickness along the line
-  float avg_w = (p0c.w + p1c.w) * 0.5;
-  float projScale = abs(PC.viewProj[1][1]); // Vertical projection scale
-  float size_pixels = (s.sizeWorld * projScale * PC.viewportSize.y * 0.5) / avg_w;
-  vec2 size_ndc = vec2(size_pixels / PC.viewportSize.x, size_pixels / PC.viewportSize.y);
+  // 3. Screen Space Direction
+  vec2 p0_ndc = p0.xy / p0.w;
+  vec2 p1_ndc = p1.xy / p1.w;
+  
+  vec2 dir_s = p1_ndc - p0_ndc;
+  
+  // Handle zero-length after clipping
+  if (dot(dir_s, dir_s) < 0.0000001) {
+     gl_Position = vec4(0,0,0,0);
+     return;
+  }
+  
+  dir_s = normalize(dir_s);
+  vec2 perp_s = vec2(-dir_s.y, dir_s.x);
 
-  // Offset vector in NDC
-  vec2 offset_ndc = perp_ss * size_ndc * 0.5;
+  // 4. Calculate Offset
+  // We want 'sizeWorld' thickness.
+  // In NDC, visual width = offset / w. 
+  // Therefore, we need a Constant offset in Clip Space to achieve 1/w scaling in NDC.
+  
+  // Correct for aspect ratio so lines look uniform width
+  float aspect = PC.viewportSize.x / PC.viewportSize.y;
+  
+  // Projection scale (usually 1.0 / tan(fov/2))
+  float projScaleY = abs(PC.viewProj[1][1]); 
+  
+  // Calculate expansion vector in Clip Space
+  vec2 normal_clip = perp_s * s.sizeWorld * projScaleY * 0.5;
+  normal_clip.x /= aspect; // Correct X for aspect ratio
 
-  // Apply offset in clip space for perspective-correct thickness
-  vec2 offset0_clip = offset_ndc * p0c.w;
-  vec2 offset1_clip = offset_ndc * p1c.w;
+  // 5. Expand Quad
+  uint vid = gl_VertexIndex % 6;
+  vec4 pos = (vid < 3) ? p0 : p1; // 0,1,2 -> p0; 3,4,5 -> p1
+  
+  // Expansion direction pattern for a strip-like quad 
+  // (0: -1, 1: +1, 2: +1) for p0 logic, effectively
+  float sign = (vid == 0 || vid == 3 || vid == 5) ? -1.0 : 1.0;
+  
+  vec2 expansion;
+  if      (vid == 0) { pos = p0; expansion = -normal_clip; }
+  else if (vid == 1) { pos = p0; expansion =  normal_clip; }
+  else if (vid == 2) { pos = p1; expansion =  normal_clip; }
+  else if (vid == 3) { pos = p0; expansion = -normal_clip; }
+  else if (vid == 4) { pos = p1; expansion =  normal_clip; }
+  else               { pos = p1; expansion = -normal_clip; }
 
-  vec4 p0a_c = p0c + vec4(-offset0_clip, 0.0, 0.0);
-  vec4 p0b_c = p0c + vec4( offset0_clip, 0.0, 0.0);
-  vec4 p1a_c = p1c + vec4(-offset1_clip, 0.0, 0.0);
-  vec4 p1b_c = p1c + vec4( offset1_clip, 0.0, 0.0);
-
-  // Triangle list index within the instance: 0..5
-  uint vid = uint(gl_VertexIndex) % 6u;
-
-  // Two triangles: [p0a,p0b,p1b] and [p0a,p1b,p1a]
-  vec4 outPos;
-  if (vid == 0u) outPos = p0a_c;
-  else if (vid == 1u) outPos = p0b_c;
-  else if (vid == 2u) outPos = p1b_c;
-  else if (vid == 3u) outPos = p0a_c;
-  else if (vid == 4u) outPos = p1b_c;
-  else outPos = p1a_c;
-
-  gl_Position = outPos;
+  // Apply offset directly to Clip Position.
+  // When hardware divides by W later, the visual width becomes (expansion / pos.w).
+  // This creates the desired world-space size effect.
+  gl_Position = pos + vec4(expansion, 0.0, 0.0);
+  
   vColor = unpackRGBA(s.abgr);
 }
-
 )";
 static const char* kLineFS = R"(
 #version 460
