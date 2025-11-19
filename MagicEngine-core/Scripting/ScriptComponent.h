@@ -53,11 +53,14 @@ GENERATE_ENUM_CLASS_ITERATION_OPERATORS(SCRIPT_FUNCTION)
 struct LuaScriptWithMeta : public LuaScript
 {
 	LuaScriptWithMeta(LuaScript&& script);
+	LuaScriptWithMeta(const std::string& scriptName); // Sets as invalid script
 	LuaScriptWithMeta();
 	LuaScriptWithMeta(const LuaScriptWithMeta&) = default; // JUST TO SATISFY STD::VECTOR COMPILATION, SHOULD NEVER BE CALLED
 	LuaScriptWithMeta(LuaScriptWithMeta&&) = default;
 	LuaScriptWithMeta& operator=(const LuaScriptWithMeta&) = default; // JUST TO SATISFY STD::VECTOR COMPILATION, SHOULD NEVER BE CALLED
 	LuaScriptWithMeta& operator=(LuaScriptWithMeta&&) = default;
+
+	bool valid; // Indicates whether the script successfully compiled
 
 	MaskTemplate<SCRIPT_FUNCTION> availableFunctions;
 	MaskTemplate<SCRIPT_FUNCTION> markedAsCalledFunctions; // For systems that only want to run a function once
@@ -124,7 +127,8 @@ template<typename FuncType>
 void ScriptComponent::ForEachAttachedScript(FuncType function)
 {
 	for (auto& script : scripts)
-		function(script);
+		if (script.valid)
+			function(script);
 }
 
 template<typename ...Args>

@@ -19,6 +19,7 @@ find_dependency(implot CONFIG REQUIRED)
 find_dependency(quill CONFIG REQUIRED)
 find_dependency(fmt CONFIG REQUIRED)
 find_dependency(Jolt CONFIG REQUIRED)
+find_package(recastnavigation CONFIG REQUIRED)
 find_dependency(ZLIB REQUIRED)
 
 # Platform-specific dependencies

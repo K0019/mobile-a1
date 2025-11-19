@@ -60,18 +60,19 @@ X(ANDROID_JOYSTICK, "AndroidJoystick")
 		NUM_DEVICES,
 		INVALID_DEVICE = static_cast<char>(-1)
 	};
-#undef X
 
 #pragma region Bindings
 
+#define ENUM_INPUT_READ_TYPE \
+X(PRESSED, "Press") \
+X(RELEASED, "Release") \
+X(CURRENT, "Down")
+
 enum class INPUT_READ_TYPE : char
 {
-	// Pressed/Released THIS FRAME
-	PRESSED,
-	RELEASED,
-	// CURRENTLY up/down
-	CURRENT
+	ENUM_INPUT_READ_TYPE
 };
+#undef X
 
 #pragma region Hardware Link
 
@@ -91,6 +92,9 @@ public:
 	// Gets the hardware device that this reads from
 	INPUT_DEVICE_TYPE GetDeviceType() const;
 	void SetDeviceType(INPUT_DEVICE_TYPE newDeviceType);
+
+	INPUT_READ_TYPE GetReadType() const;
+	void SetReadType(INPUT_READ_TYPE newReadType);
 
 	int GetKeyIdentifier() const;
 	void SetKeyIdentifier(int newKeyIdentifier);
