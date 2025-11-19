@@ -1,15 +1,15 @@
 {
-    "name": "Concrete.001",
+    "name": "WoodDark",
     "alphaMode": "Opaque",
     "alphaCutoff": 0.5,
     "metallicFactor": 0.0,
-    "roughnessFactor": 0.5527864098548889,
+    "roughnessFactor": 0.5,
     "normalScale": 1.0,
     "occlusionStrength": 1.0,
     "baseColorFactor": [
-        0.5,
-        0.5,
-        0.5,
+        0.05780208483338356,
+        0.017787523567676544,
+        0.004577588755637407,
         1.0
     ],
     "emissiveFactor": [

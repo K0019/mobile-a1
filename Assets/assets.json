@@ -43,6 +43,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/materials/darkmetal.001.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 669955524822524005,
+                            "name": "darkmetal.0010"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/textures/_17.ktx2",
             "resources": [
                 {
@@ -99,6 +113,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/materials/wood.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 373268804738410323,
+                            "name": "wood0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/materials/n00_000_00_faceeyeline_00_face (instance).material",
             "resources": [
                 {
@@ -141,6 +169,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/materials/darkmetal.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 556717921788425205,
+                            "name": "darkmetal0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/chair.mesh",
             "resources": [
                 {
@@ -149,6 +191,20 @@
                         {
                             "hash": 161358829201315781,
                             "name": "chair0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/unitbox.mesh",
+            "resources": [
+                {
+                    "resourceType": 6209910166724260588,
+                    "resourceEntries": [
+                        {
+                            "hash": 394651007363811311,
+                            "name": "unitbox0"
                         }
                     ]
                 }
@@ -233,6 +289,20 @@
                         {
                             "hash": 182908157656548423,
                             "name": "shader_noneblack0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/shelf.mesh",
+            "resources": [
+                {
+                    "resourceType": 6209910166724260588,
+                    "resourceEntries": [
+                        {
+                            "hash": 384621262295197531,
+                            "name": "shelf0"
                         }
                     ]
                 }
@@ -393,6 +463,34 @@
             ]
         },
         {
+            "filepath": "compiledassets/materials/material_4.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 676256825961308265,
+                            "name": "material_40"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/shelf_small.mesh",
+            "resources": [
+                {
+                    "resourceType": 6209910166724260588,
+                    "resourceEntries": [
+                        {
+                            "hash": 435224085941127225,
+                            "name": "shelf_small0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/textures/shader_nonenormal.ktx2",
             "resources": [
                 {
@@ -435,6 +533,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/materials/wooddark.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 368945525017995089,
+                            "name": "wooddark0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/textures/_09.ktx2",
             "resources": [
                 {
@@ -443,6 +555,20 @@
                         {
                             "hash": 221253625675236427,
                             "name": "_090"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/wall_window.mesh",
+            "resources": [
+                {
+                    "resourceType": 6209910166724260588,
+                    "resourceEntries": [
+                        {
+                            "hash": 566947777973253117,
+                            "name": "wall_window0"
                         }
                     ]
                 }
@@ -505,6 +631,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/table.mesh",
+            "resources": [
+                {
+                    "resourceType": 6209910166724260588,
+                    "resourceEntries": [
+                        {
+                            "hash": 362711294088504259,
+                            "name": "table0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/textures/_07.ktx2",
             "resources": [
                 {
@@ -541,6 +681,20 @@
                         {
                             "hash": 157414880993324893,
                             "name": "material.0010"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/materials/material.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 388567409527326701,
+                            "name": "material0"
                         }
                     ]
                 }
@@ -639,6 +793,20 @@
                         {
                             "hash": 161694180310058757,
                             "name": "colormap0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/materials/concrete.001.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 671988521822281831,
+                            "name": "concrete.0010"
                         }
                     ]
                 }
@@ -813,6 +981,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/materials/woodlight.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 373935108784842579,
+                            "name": "woodlight0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/materials/n00_000_00_facebrow_00_face (instance).material",
             "resources": [
                 {
@@ -841,6 +1023,34 @@
             ]
         },
         {
+            "filepath": "compiledassets/wall_doors.mesh",
+            "resources": [
+                {
+                    "resourceType": 6209910166724260588,
+                    "resourceEntries": [
+                        {
+                            "hash": 576378289204928147,
+                            "name": "wall_doors0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/materials/material_3.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 380003313458538325,
+                            "name": "material_30"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/textures/_18.ktx2",
             "resources": [
                 {
@@ -849,6 +1059,20 @@
                         {
                             "hash": 261858590089004121,
                             "name": "_180"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/materials/concrete.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 559371043346248697,
+                            "name": "concrete0"
                         }
                     ]
                 }
@@ -877,6 +1101,20 @@
                         {
                             "hash": 289855454667064421,
                             "name": "_240"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/door_classroom.mesh",
+            "resources": [
+                {
+                    "resourceType": 6209910166724260588,
+                    "resourceEntries": [
+                        {
+                            "hash": 569100621740440249,
+                            "name": "door_classroom0"
                         }
                     ]
                 }

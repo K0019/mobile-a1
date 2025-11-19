@@ -1,0 +1,224 @@
+{
+    "entities": [
+        {
+            "parentIndex": -1,
+            "position": {
+                "x": 5.738994121551514,
+                "y": 1.00006103515625,
+                "z": 8.181181907653809
+            },
+            "rotation": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "scale": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0
+            },
+            "components": {
+                "5725819782531291880": {
+                    "_active": true,
+                    "behaviorTree": {
+                        "btName": "enemybase"
+                    }
+                },
+                "6766054303456732338": {
+                    "_active": true,
+                    "layer": 0
+                },
+                "7205334411763290517": {
+                    "_active": true,
+                    "name": "Enemy"
+                },
+                "7930599578754533802": {
+                    "_active": true,
+                    "maxHealth": 1000.0,
+                    "currHealth": 100.0
+                },
+                "9315785795257285655": {
+                    "_active": true,
+                    "uid": 336609987718299699
+                },
+                "9501525575059265452": {
+                    "_active": true,
+                    "flags": {
+                        "_majorityTrue": true,
+                        "_except": [
+                            "Is Kinematic"
+                        ]
+                    }
+                },
+                "16763493199777387366": {
+                    "_active": true,
+                    "playerReference": {
+                        "entityUid": 51797992787031769
+                    }
+                },
+                "17579205194823809952": {
+                    "_active": true,
+                    "moveSpeed": 1.7999999523162842,
+                    "rotateSpeed": 14400.0,
+                    "stunTimePerHit": 1.0,
+                    "groundFriction": 0.75,
+                    "dodgeCooldown": 0.0,
+                    "dodgeDuration": 0.15000000596046448,
+                    "dodgeSpeed": 4.0,
+                    "hitDebugObject": {
+                        "entityUid": 0
+                    },
+                    "heldItem": {
+                        "entityUid": 346382447065972787
+                    }
+                },
+                "18236831197208900764": {
+                    "_active": true,
+                    "center": {
+                        "x": 0.0,
+                        "y": 0.0,
+                        "z": 0.0
+                    },
+                    "size": {
+                        "x": 1.0,
+                        "y": 1.0,
+                        "z": 1.0
+                    },
+                    "flags": {
+                        "_majorityTrue": true,
+                        "_except": []
+                    }
+                }
+            }
+        },
+        {
+            "parentIndex": 0,
+            "position": {
+                "x": -5.738994121551514,
+                "y": 8.99993896484375,
+                "z": -8.181181907653809
+            },
+            "rotation": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "scale": {
+                "x": 0.019999999552965164,
+                "y": 0.019999999552965164,
+                "z": 0.019999999552965164
+            },
+            "components": {
+                "137465014557233347": {
+                    "_active": true,
+                    "damage": 10.0
+                },
+                "5352011725353660904": {
+                    "_active": true,
+                    "meshHandle": {
+                        "hash": 169436941192905929
+                    },
+                    "materials": [
+                        {
+                            "hash": 161694180310058757
+                        }
+                    ]
+                },
+                "6766054303456732338": {
+                    "_active": true,
+                    "layer": 0
+                },
+                "7205334411763290517": {
+                    "_active": true,
+                    "name": "ItemTest"
+                },
+                "9315785795257285655": {
+                    "_active": true,
+                    "uid": 346382447065972787
+                },
+                "9501525575059265452": {
+                    "_active": true,
+                    "flags": {
+                        "_majorityTrue": false,
+                        "_except": [
+                            "Use Gravity",
+                            "Enabled"
+                        ]
+                    }
+                },
+                "18236831197208900764": {
+                    "_active": true,
+                    "center": {
+                        "x": 0.0,
+                        "y": 0.0,
+                        "z": 0.0
+                    },
+                    "size": {
+                        "x": 10.0,
+                        "y": 50.0,
+                        "z": 10.0
+                    },
+                    "flags": {
+                        "_majorityTrue": true,
+                        "_except": []
+                    }
+                }
+            }
+        },
+        {
+            "parentIndex": 0,
+            "position": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "rotation": {
+                "x": 0.0,
+                "y": 90.0,
+                "z": 0.0
+            },
+            "scale": {
+                "x": 0.009999999776482582,
+                "y": 0.009999999776482582,
+                "z": 0.009999999776482582
+            },
+            "components": {
+                "5352011725353660904": {
+                    "_active": true,
+                    "meshHandle": {
+                        "hash": 400736804281799239
+                    },
+                    "materials": [
+                        {
+                            "hash": 161694180310058757
+                        },
+                        {
+                            "hash": 161694180310058757
+                        },
+                        {
+                            "hash": 161694180310058757
+                        },
+                        {
+                            "hash": 161694180310058757
+                        },
+                        {
+                            "hash": 161694180310058757
+                        }
+                    ]
+                },
+                "6766054303456732338": {
+                    "_active": true,
+                    "layer": 0
+                },
+                "7205334411763290517": {
+                    "_active": true,
+                    "name": "PlayerModel"
+                },
+                "9315785795257285655": {
+                    "_active": true,
+                    "uid": 352582593135001652
+                }
+            }
+        }
+    ]
+}

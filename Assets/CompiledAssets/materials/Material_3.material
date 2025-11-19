@@ -1,15 +1,15 @@
 {
-    "name": "Concrete.001",
+    "name": "Material_3",
     "alphaMode": "Opaque",
     "alphaCutoff": 0.5,
-    "metallicFactor": 0.0,
-    "roughnessFactor": 0.5527864098548889,
+    "metallicFactor": 1.0,
+    "roughnessFactor": 1.0,
     "normalScale": 1.0,
     "occlusionStrength": 1.0,
     "baseColorFactor": [
-        0.5,
-        0.5,
-        0.5,
+        1.0,
+        1.0,
+        1.0,
         1.0
     ],
     "emissiveFactor": [
@@ -39,5 +39,5 @@
             "value": ""
         }
     ],
-    "flags": 4
+    "flags": 0
 }
