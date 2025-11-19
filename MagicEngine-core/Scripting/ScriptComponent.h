@@ -54,8 +54,8 @@ struct LuaScriptWithMeta : public LuaScript
 {
 	LuaScriptWithMeta(LuaScript&& script);
 	LuaScriptWithMeta(const std::string& scriptName); // Sets as invalid script
+	LuaScriptWithMeta(const LuaScriptWithMeta&);
 	LuaScriptWithMeta();
-	LuaScriptWithMeta(const LuaScriptWithMeta&) = default; // JUST TO SATISFY STD::VECTOR COMPILATION, SHOULD NEVER BE CALLED
 	LuaScriptWithMeta(LuaScriptWithMeta&&) = default;
 	LuaScriptWithMeta& operator=(const LuaScriptWithMeta&) = default; // JUST TO SATISFY STD::VECTOR COMPILATION, SHOULD NEVER BE CALLED
 	LuaScriptWithMeta& operator=(LuaScriptWithMeta&&) = default;
