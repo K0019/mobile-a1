@@ -501,6 +501,15 @@ namespace gui {
 		return false;
 #endif
 	}
+	bool VarDrag([[maybe_unused]] const char* label, [[maybe_unused]] unsigned int* v, [[maybe_unused]] float speed, [[maybe_unused]] unsigned int min, [[maybe_unused]] unsigned int max)
+	{
+#ifdef IMGUI_ENABLED
+		assert(min <= std::numeric_limits<int>::max() && max <= std::numeric_limits<int>::max()); // current implementation uses imgui int behavior, only values that int can hold are allowed
+		return ImGui::DragInt(label, reinterpret_cast<int*>(v), speed, static_cast<int>(min), static_cast<int>(max));
+#else
+		return false;
+#endif
+	}
 	bool VarDrag([[maybe_unused]] const char* label, [[maybe_unused]] float* v, [[maybe_unused]] float speed, [[maybe_unused]] float min, [[maybe_unused]] float max, [[maybe_unused]] const char* format)
 	{
 #ifdef IMGUI_ENABLED

@@ -1,0 +1,67 @@
+/******************************************************************************/
+/*!
+\file   EventsQueue.cpp
+\par    Project: Kuro Mahou
+\par    Course: CSD3401
+\date   10/19/2025
+
+\author Kendrick Sim Hean Guan (100%)
+\par    email: kendrickheanguan.s\@digipen.edu
+\par    DigiPen login: kendrickheanguan.s
+
+\brief
+	Provides a buffer to queue events for event handlers to later pull.
+
+All content © 2025 DigiPen Institute of Technology Singapore.
+All rights reserved.
+*/
+/******************************************************************************/
+
+#include "TextComponent.h"
+#include "Editor/Containers/GUICollection.h"
+#include "Engine/Graphics Interface/GraphicsAPI.h"
+
+TextComponent::TextComponent()
+	: text{}
+	, color{ 1.0f, 1.0f, 1.0f, 1.0f }
+{
+}
+
+const std::string& TextComponent::GetText() const
+{
+	return text;
+}
+void TextComponent::SetText(const std::string& newText)
+{
+	text = newText;
+}
+const Vec4& TextComponent::GetColor() const
+{
+	return color;
+}
+void TextComponent::SetColor(const Vec4& newColor)
+{
+	color = newColor;
+}
+
+void TextComponent::EditorDraw()
+{
+	gui::TextBoxWithBuffer<256> textBuffer{ "Text" };
+	textBuffer.SetBuffer(text);
+	if (textBuffer.Draw())
+		text = textBuffer.GetBuffer();
+
+	gui::VarInput("Color", &color);
+}
+
+TextSystem::TextSystem()
+	: System_Internal{ &TextSystem::RenderText }
+{
+}
+
+void TextSystem::RenderText(TextComponent& comp)
+{
+	ui::TextLayoutDesc layoutDesc;
+	layoutDesc.origin = ecs::GetEntityTransform(&comp).GetWorldPosition();
+	ST<GraphicsMain>::Get()->GetImmediateGui().addText(comp.GetText(), layoutDesc, comp.GetColor());
+}

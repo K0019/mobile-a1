@@ -32,8 +32,9 @@ All rights reserved.
 #include "graphics/im3d_helper.h"
 #include "graphics/features/im3d_feature.h"
 #include "graphics/features/ui2d_render_feature.h"
-#include "graphics/ui/ui_immediate.h"
 #include "VFS/VFS.h"
+
+#include "ECS/ECSSysLayers.h"
 
 GraphicsMain::GraphicsMain()
 	: sceneFeatureHandle{}
@@ -63,6 +64,8 @@ void GraphicsMain::Init(Context inContext)
 #ifdef IMGUI_ENABLED
 	InitImGui(Filepaths::fontsSave + "/Lato-Regular.ttf");
 #endif
+
+	overlayGui = std::make_unique<ui::ImmediateGui>(*context.renderer, ui2dFeatureHandle, *context.resourceMngr);
 }
 
 void GraphicsMain::BeginFrame()
@@ -109,7 +112,7 @@ void GraphicsMain::EndImGuiFrame()
 void GraphicsMain::EndFrame(FrameData* outFrameData)
 {
 	Im3dHelper::EndFrame(im3dHandle, *context.renderer);
-  UploadToPipeline(outFrameData);
+	UploadToPipeline(outFrameData);
 }
 
 void GraphicsMain::UploadToPipeline(FrameData* outFrameData)
@@ -368,6 +371,11 @@ void GraphicsMain::UploadToPipeline(FrameData* outFrameData)
 	outFrameData->projMatrix = glm::perspective(45.0f, width / height, 0.1f, 1000.0f);
 
 	EditorCam_Publish(outFrameData->viewMatrix, outFrameData->projMatrix, false);
+
+	// 2D UI pass
+	overlayGui->begin(ui2dFontHandle);
+	ecs::RunSystemsInLayers(ECS_LAYER::CUTOFF_RENDER, ECS_LAYER::CUTOFF_RENDER_UI);
+	overlayGui->end();
 
 	// Disable sample 2D UI for now
 	if (false && ui2dFeatureHandle != 0 && context.resourceMngr)
@@ -1095,4 +1103,9 @@ Resource::ResourceManager& GraphicsMain::GetAssetSystem()
 {
 	assert(context.resourceMngr);
 	return *context.resourceMngr;
+}
+
+ui::ImmediateGui& GraphicsMain::GetImmediateGui()
+{
+	return *overlayGui;
 }

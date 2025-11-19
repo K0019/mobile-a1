@@ -24,6 +24,7 @@ All rights reserved.
 #include "imgui/base/imgui_context.h"
 #include "Engine/Graphics Interface/GraphicsWindow.h"
 #include "graphics/features/scene_feature.h"
+#include "graphics/ui/ui_immediate.h"
 #include "resource/resource_types.h"
 #include "math/camera.h"
 
@@ -64,6 +65,7 @@ public:
     editor::ImGuiContext& GetImGuiContext();
 #endif
     Resource::ResourceManager& GetAssetSystem();
+    ui::ImmediateGui& GetImmediateGui();
 
 private:
     friend ST<GraphicsMain>;
@@ -83,6 +85,7 @@ private:
     uint64_t gridHandle;
     uint64_t im3dHandle;
     FontHandle ui2dFontHandle;
+    UPtr<ui::ImmediateGui> overlayGui;
 
 };
 

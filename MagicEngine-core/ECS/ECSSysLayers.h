@@ -87,10 +87,12 @@ enum class ECS_LAYER : int
 	RENDER_0,
 	RENDER_1,
 
+	CUTOFF_RENDER, // --- UNUSED
+
 	//! The render UI layer, for systems that run during the UI render step.
 	RENDER_UI_0,
 
-	CUTOFF_RENDER, // --- UNUSED
+	CUTOFF_RENDER_UI, // --- UNUSED
 
 	CUTOFF_END // --- UNUSED
 };
