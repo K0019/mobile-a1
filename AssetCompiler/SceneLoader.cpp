@@ -31,6 +31,273 @@ All rights reserved.
 
 namespace compiler
 {
+    // ----- Helpers ----- //
+    inline vec3 AiToVec3(const aiVector3D& v)
+    {
+        return vec3(v.x, v.y, v.z);
+    }
+
+    inline quat AiToQuat(const aiQuaternion& q)
+    {
+        return quat(q.w, q.x, q.y, q.z); // Note: GLM/quat constructor is (w, x, y, z)
+    }
+
+    inline mat4 AiToMat4(const aiMatrix4x4& aiMat)
+    {
+        return mat4(aiMat.a1, aiMat.b1, aiMat.c1, aiMat.d1,
+            aiMat.a2, aiMat.b2, aiMat.c2, aiMat.d2,
+            aiMat.a3, aiMat.b3, aiMat.c3, aiMat.d3,
+            aiMat.a4, aiMat.b4, aiMat.c4, aiMat.d4);
+    }
+
+    inline float ticksToSeconds(double time, double ticksPerSecond)
+    {
+        if (ticksPerSecond <= 0.0)
+            return static_cast<float>(time);
+        return static_cast<float>(time / ticksPerSecond);
+    }
+
+    void buildNodeTransformMap(const aiNode* node, const mat4& parentTransform, std::map<std::string, mat4>& transformMap)
+    {
+        if (!node) return;
+
+        std::string nodeName(node->mName.C_Str());
+        mat4 globalTransform = parentTransform * AiToMat4(node->mTransformation);
+
+        if (!nodeName.empty())
+        {
+            transformMap[nodeName] = globalTransform;
+        }
+
+        for (uint32_t i = 0; i < node->mNumChildren; ++i)
+        {
+            buildNodeTransformMap(node->mChildren[i], globalTransform, transformMap);
+        }
+    }
+
+    void accumulateWeight(SkinningData& data, uint32_t jointIndex, float weight)
+    {
+        if (weight <= 0.0f) return;
+
+        // Find an empty slot
+        for (size_t i = 0; i < MAX_BONES_PER_VERTEX; ++i)
+        {
+            if (data.weights[i] == 0.0f)
+            {
+                data.boneIndices[i] = jointIndex;
+                data.weights[i] = weight;
+                return;
+            }
+        }
+
+        // If no empty slot, replace the one with the smallest weight
+        size_t smallest = 0;
+        for (size_t i = 1; i < MAX_BONES_PER_VERTEX; ++i)
+        {
+            if (data.weights[i] < data.weights[smallest])
+            {
+                smallest = i;
+            }
+        }
+
+        if (weight > data.weights[smallest])
+        {
+            data.boneIndices[smallest] = jointIndex;
+            data.weights[smallest] = weight;
+        }
+    }
+
+    void normalizeWeights(SkinningData& data)
+    {
+        float totalWeight = 0.0f;
+        for (size_t i = 0; i < MAX_BONES_PER_VERTEX; ++i)
+        {
+            totalWeight += data.weights[i];
+        }
+
+        if (totalWeight > 0.0f)
+        {
+            float inv = 1.0f / totalWeight;
+            for (size_t i = 0; i < MAX_BONES_PER_VERTEX; ++i)
+            {
+                data.weights[i] *= inv;
+            }
+        }
+        else
+        {
+            data = SkinningData{};
+        }
+
+    }
+
+    // ----- Aniamtins ----- //
+    void SceneLoader::extractSkeleton(const aiScene* scene, Scene& outScene)
+    {
+        std::map<std::string, mat4> globalNodeTransforms;
+        buildNodeTransformMap(scene->mRootNode, mat4(1.0f), globalNodeTransforms);
+
+        // Build Bone Map & Get mOffsetMatrix (mesh space -> bone space in bind pose)
+        for (uint32_t meshIdx = 0; meshIdx < scene->mNumMeshes; ++meshIdx)
+        {
+            const aiMesh* aiMesh = scene->mMeshes[meshIdx];
+            if (!aiMesh->HasBones()) continue;
+
+            for (uint32_t boneIdx = 0; boneIdx < aiMesh->mNumBones; ++boneIdx)
+            {
+                const aiBone* aiBone = aiMesh->mBones[boneIdx];
+                std::string boneName(aiBone->mName.C_Str());
+
+                // If bone is not in our map yet, add it
+                if (outScene.skeleton.boneNameToIndex.find(boneName) == outScene.skeleton.boneNameToIndex.end())
+                {
+                    uint32_t index = outScene.skeleton.bones.size();
+                    outScene.skeleton.boneNameToIndex[boneName] = index;
+
+                    ProcessedBone bone;
+                    bone.name = boneName;
+                    bone.inverseBindPose = AiToMat4(aiBone->mOffsetMatrix);
+
+                    if (globalNodeTransforms.count(boneName))
+                    {
+                        bone.bindPose = globalNodeTransforms[boneName];
+                    }
+                    else
+                    {
+                        bone.bindPose = mat4(1.0f);
+                    }
+
+                    outScene.skeleton.bones.push_back(bone);
+                }
+            }
+        }
+
+        buildBoneHierarchy(scene->mRootNode, -1, outScene.skeleton);
+    }
+
+    void SceneLoader::buildBoneHierarchy(const aiNode* node, int32_t parentBoneIndex, ProcessedSkeleton& skeleton)
+    {
+        std::string nodeName(node->mName.C_Str());
+        int32_t currentBoneIndex = -1; // Default to -1 (not a bone)
+
+        // If a node represents a bone in the hierarchy, then the node name must match the bone name.
+        // Check if this node is a bone we've already registered
+        auto it = skeleton.boneNameToIndex.find(nodeName);
+        if (it != skeleton.boneNameToIndex.end())
+        {
+            // It's a bone! Get its index.
+            currentBoneIndex = it->second;
+            // Set its parent
+            skeleton.bones[currentBoneIndex].parentIndex = parentBoneIndex;
+        }
+
+        // Recurse for all children
+        for (uint32_t i = 0; i < node->mNumChildren; ++i)
+        {
+            // If this node was a bone, it's the parent for its children.
+            // If it wasn't, we just pass down the parentBoneIndex we were given.
+            buildBoneHierarchy(node->mChildren[i], (currentBoneIndex != -1) ? currentBoneIndex : parentBoneIndex, skeleton);
+        }
+    }
+
+    void SceneLoader::extractAnimations(const aiScene* scene, Scene& outScene)
+    {
+        outScene.animations.reserve(scene->mNumAnimations);
+
+        for (uint32_t i = 0; i < scene->mNumAnimations; ++i)
+        {
+            const aiAnimation* aiAnim = scene->mAnimations[i];
+            ProcessedAnimation anim;
+            anim.name = aiAnim->mName.C_Str();
+
+            // If name is empty, generate one
+            if (anim.name.empty())
+            {
+                anim.name = "Anim_" + std::to_string(i);
+            }
+
+            // Assimp stores duration in ticks. Convert to seconds.
+            anim.ticksPerSecond = aiAnim->mTicksPerSecond > 0.0 ? static_cast<float>(aiAnim->mTicksPerSecond) : 1.0f;
+            anim.duration = aiAnim->mDuration > 0.0 ? static_cast<float>(aiAnim->mDuration / anim.ticksPerSecond) : 0.0f;
+
+            //Skeleteal animations
+            anim.skeletalChannels.reserve(aiAnim->mNumChannels);
+            for (uint32_t j = 0; j < aiAnim->mNumChannels; ++j)
+            {
+                const aiNodeAnim* aiChannel = aiAnim->mChannels[j];
+                std::string nodeName(aiChannel->mNodeName.C_Str());
+
+                // Find the bone index this channel animates
+                auto it = outScene.skeleton.boneNameToIndex.find(nodeName);
+                if (it == outScene.skeleton.boneNameToIndex.end())
+                {
+                    // This channel animates a node that is not part of our skeleton
+                    continue;
+                }
+
+                ProcessedBoneChannel pbc; 
+                pbc.nodeName = nodeName;
+
+                // Copy keyframes
+                pbc.positionKeys.resize(aiChannel->mNumPositionKeys);
+                for (uint32_t k = 0; k < aiChannel->mNumPositionKeys; ++k)
+                {
+                    pbc.positionKeys[k].time = (float)aiChannel->mPositionKeys[k].mTime / anim.ticksPerSecond;
+                    pbc.positionKeys[k].value = AiToVec3(aiChannel->mPositionKeys[k].mValue);
+                }
+
+                pbc.rotationKeys.resize(aiChannel->mNumRotationKeys);
+                for (uint32_t k = 0; k < aiChannel->mNumRotationKeys; ++k)
+                {
+                    pbc.rotationKeys[k].time = (float)aiChannel->mRotationKeys[k].mTime / anim.ticksPerSecond;
+                    pbc.rotationKeys[k].value = AiToQuat(aiChannel->mRotationKeys[k].mValue);
+                }
+
+                pbc.scaleKeys.resize(aiChannel->mNumScalingKeys);
+                for (uint32_t k = 0; k < aiChannel->mNumScalingKeys; ++k)
+                {
+                    pbc.scaleKeys[k].time = (float)aiChannel->mScalingKeys[k].mTime / anim.ticksPerSecond;
+                    pbc.scaleKeys[k].value = AiToVec3(aiChannel->mScalingKeys[k].mValue);
+                }
+
+                anim.skeletalChannels.push_back(pbc);
+            }
+            
+            //Morph Animations
+            anim.morphChannels.reserve(aiAnim->mNumMorphMeshChannels);
+            for (uint32_t j = 0; j < aiAnim->mNumMorphMeshChannels; ++j)
+            {
+                const aiMeshMorphAnim* aiMorphChannel = aiAnim->mMorphMeshChannels[j];
+
+                ProcessedMorphChannel morphChannel;
+                morphChannel.meshName = aiMorphChannel->mName.C_Str();
+                morphChannel.keys.reserve(aiMorphChannel->mNumKeys);
+
+                for (uint32_t k = 0; k < aiMorphChannel->mNumKeys; ++k)
+                {
+                    const aiMeshMorphKey& aiKey = aiMorphChannel->mKeys[k];
+                    ProcessedMorphKey morphKey; // Your struct
+                    morphKey.time = (float)aiKey.mTime / anim.ticksPerSecond;
+                    morphKey.time = ticksToSeconds(aiKey.mTime, anim.ticksPerSecond);
+
+                    morphKey.targetIndices.assign(aiKey.mValues, aiKey.mValues + aiKey.mNumValuesAndWeights);
+                    morphKey.weights.reserve(aiKey.mNumValuesAndWeights);
+                    for (uint32_t w = 0; w < aiKey.mNumValuesAndWeights; ++w)
+                    {
+                        morphKey.weights.push_back(static_cast<float>(aiKey.mWeights[w]));
+                    }
+
+                    morphChannel.keys.push_back(std::move(morphKey));
+                }
+
+                anim.morphChannels.push_back(std::move(morphChannel));
+            }
+            
+            outScene.animations.push_back(anim);
+        }
+    }
+
+
+
     // ----- Material ----- //
     std::vector<const aiMaterial*> SceneLoader::collectMaterialPointers(const aiScene* scene)
     {
@@ -53,27 +320,66 @@ namespace compiler
         return materialPtrs;
     }
 
-    bool SceneLoader::extractTexturePath(const aiMaterial* aiMat, aiTextureType type, const std::string& key, ProcessedMaterialSlot& outSlot, const std::filesystem::path& modelBasePath)
+    bool SceneLoader::extractTexturePath(const aiScene* scene, const aiMaterial* aiMat, aiTextureType type, const std::string& key, ProcessedMaterialSlot& outSlot, const std::filesystem::path& modelBasePath)
     {
+
         aiString path;
-        if (aiMat->GetTexture(type, 0, &path) == AI_SUCCESS)
+        if (aiMat->GetTexture(type, 0, &path) != AI_SUCCESS)
         {
-            std::filesystem::path texturePath(path.C_Str());
-            //std::cout << "Material says it wants: " << texturePath << "\n";
-            if (texturePath.is_relative())
+            return false;
+        }
+
+        std::string pathStr(path.C_Str());
+
+        // Check if embedded texture (path is "*0", "*1")
+        if (pathStr.rfind('*', 0) == 0)
+        {
+            int textureIndex = std::stoi(pathStr.substr(1));
+            if (textureIndex < 0 || textureIndex >= scene->mNumTextures)
             {
-                outSlot.texturePaths[key] = modelBasePath / texturePath;
+                outSlot.texturePaths[key] = std::monostate{};
+                return false;
+            }
+
+            const aiTexture* aiTex = scene->mTextures[textureIndex];
+            EmbeddedTextureSource embeddedTex;
+            embeddedTex.name = aiTex->mFilename.C_Str();
+
+            // Check if embedded data is compressed
+            if (aiTex->mHeight == 0) // Yes it is
+            {
+                embeddedTex.compressedData = (const uint8_t*)aiTex->pcData;
+                embeddedTex.compressedSize = aiTex->mWidth; // Assimp stores size in mWidth
             }
             else
             {
-                outSlot.texturePaths[key] = texturePath;
+                embeddedTex.rawData = (const uint8_t*)aiTex->pcData;
+                embeddedTex.width = aiTex->mWidth;
+                embeddedTex.height = aiTex->mHeight;
             }
+
+            // Store the EmbeddedTextureSource struct in our map
+            outSlot.texturePaths[key] = embeddedTex;
             return true;
         }
-        return false;
+
+
+        // For fbx file support - where textures not embedded
+        FilePathSource fileSource;
+        std::filesystem::path texturePath(pathStr);
+        if (texturePath.is_relative())
+        {
+            fileSource.path = modelBasePath / texturePath;
+        }
+        else
+        {
+            fileSource.path = texturePath;
+        }
+        outSlot.texturePaths[key] = fileSource;
+        return true;
     }
 
-    ProcessedMaterialSlot SceneLoader::extractMaterialSlot(const aiMaterial* aiMat, uint32_t materialIndex, const std::filesystem::path& modelBasePath)
+    ProcessedMaterialSlot SceneLoader::extractMaterialSlot(const aiScene* scene, const aiMaterial* aiMat, uint32_t materialIndex, const std::filesystem::path& modelBasePath)
     {
         ProcessedMaterialSlot slot;
         slot.originalIndex = materialIndex;
@@ -88,13 +394,13 @@ namespace compiler
             slot.name = "Material_" + std::to_string(materialIndex);
         }
 
-        if (!extractTexturePath(aiMat, aiTextureType_BASE_COLOR, "baseColor", slot, modelBasePath))
-            extractTexturePath(aiMat, aiTextureType_DIFFUSE, "baseColor", slot, modelBasePath);
-        extractTexturePath(aiMat, aiTextureType_METALNESS, "metallicRoughness", slot, modelBasePath);
-        if (!extractTexturePath(aiMat, aiTextureType_NORMALS, "normal", slot, modelBasePath))
-            extractTexturePath(aiMat, aiTextureType_HEIGHT, "normal", slot, modelBasePath);
-        extractTexturePath(aiMat, aiTextureType_EMISSIVE, "emissive", slot, modelBasePath);
-        extractTexturePath(aiMat, aiTextureType_AMBIENT_OCCLUSION, "occlusion", slot, modelBasePath);
+        if (!extractTexturePath(scene, aiMat, aiTextureType_BASE_COLOR, texturekeys::BASE_COLOR, slot, modelBasePath))
+            extractTexturePath(scene, aiMat, aiTextureType_DIFFUSE, texturekeys::BASE_COLOR, slot, modelBasePath);
+        extractTexturePath(scene, aiMat, aiTextureType_METALNESS, texturekeys::METALLIC_ROUGHNESS, slot, modelBasePath);
+        if (!extractTexturePath(scene, aiMat, aiTextureType_NORMALS, texturekeys::NORMAL, slot, modelBasePath))
+            extractTexturePath(scene, aiMat, aiTextureType_HEIGHT, texturekeys::NORMAL, slot, modelBasePath);
+        extractTexturePath(scene, aiMat, aiTextureType_EMISSIVE, texturekeys::EMISSIVE, slot, modelBasePath);
+        extractTexturePath(scene, aiMat, aiTextureType_AMBIENT_OCCLUSION, texturekeys::OCCLUSION, slot, modelBasePath);
 
         // Get material parameter values
         aiColor4D color;
@@ -278,7 +584,7 @@ namespace compiler
             Vertex& vertex = vertices[i];
 
             // Position (always present)
-            vertex.position = vec3(aiMesh->mVertices[i].x, aiMesh->mVertices[i].y, aiMesh->mVertices[i].z);
+            vertex.position = AiToVec3(aiMesh->mVertices[i]);
 
             // Normal
             if (aiMesh->mNormals)
@@ -287,7 +593,7 @@ namespace compiler
             }
             else
             {
-                vertex.normal = vec3(0.0f, 1.0f, 0.0f);
+                vertex.normal = AiToVec3(aiMesh->mNormals[i]);
             }
 
             if (aiMesh->mTextureCoords[0])
@@ -306,11 +612,11 @@ namespace compiler
         }
     }
 
-    ProcessedMesh SceneLoader::extractMesh(const aiMesh* aiMesh, uint32_t meshIndex, const MeshOptions& options)
+    ProcessedMesh SceneLoader::extractMesh(const aiMesh* aiMesh, uint32_t meshIndex, const MeshOptions& options, const ProcessedSkeleton& skeleton)
     {
         ProcessedMesh mesh;
 
-        // 1. Extract name and material index
+        // Extract name and material index
         mesh.name = aiMesh->mName.length > 0 ? aiMesh->mName.C_Str() : ("Mesh_" + std::to_string(meshIndex));
         mesh.materialIndex = aiMesh->mMaterialIndex;
 
@@ -332,6 +638,74 @@ namespace compiler
                 mesh.indices.push_back(face.mIndices[2]);
             }
         }
+
+        const size_t vertexCount = mesh.vertices.size();
+
+        // Skinning
+        if (aiMesh->HasBones() && vertexCount > 0)
+        {
+            mesh.skinning.resize(vertexCount);
+
+            for (uint32_t boneIdx = 0; boneIdx < aiMesh->mNumBones; ++boneIdx)
+            {
+                const aiBone* aiBone = aiMesh->mBones[boneIdx];
+                std::string boneName(aiBone->mName.C_Str());
+
+                auto it = skeleton.boneNameToIndex.find(boneName);
+                if (it == skeleton.boneNameToIndex.end()) continue;
+
+                uint32_t globalBoneIndex = it->second;
+
+                // Add this bone's weights to all affected vertices
+                for (uint32_t weightIdx = 0; weightIdx < aiBone->mNumWeights; ++weightIdx)
+                {
+                    const aiVertexWeight& weight = aiBone->mWeights[weightIdx];
+
+                    // Get the SkinningData for this vertex
+                    SkinningData& vertexSkinData = mesh.skinning[weight.mVertexId];
+
+                    // Add the weight
+                    accumulateWeight(vertexSkinData, globalBoneIndex, weight.mWeight);
+                }
+            }
+
+            for (SkinningData& skinData : mesh.skinning)
+            {
+                normalizeWeights(skinData);
+            }
+        }
+
+        // Morphs
+        if (aiMesh->mNumAnimMeshes > 0)
+        {
+            mesh.morphTargets.reserve(aiMesh->mNumAnimMeshes);
+
+            for (uint32_t targetIdx = 0; targetIdx < aiMesh->mNumAnimMeshes; ++targetIdx)
+            {
+                const aiAnimMesh* aiAnimMesh = aiMesh->mAnimMeshes[targetIdx];
+                MorphTargetData target;
+                target.name = aiAnimMesh->mName.length > 0 ? aiAnimMesh->mName.C_Str() : ("Morph_" + std::to_string(targetIdx));
+                target.deltas.resize(vertexCount);
+
+                const uint32_t limit = std::min<uint32_t>(vertexCount, aiAnimMesh->mNumVertices);
+                for (uint32_t v = 0; v < limit; ++v)
+                {
+                    auto& delta = target.deltas[v];
+                    delta.vertexIndex = v;
+
+                    if (aiAnimMesh->mVertices)
+                        delta.deltaPosition = AiToVec3(aiAnimMesh->mVertices[v]) - AiToVec3(aiMesh->mVertices[v]);
+
+                    if (aiAnimMesh->mNormals && aiMesh->mNormals)
+                        delta.deltaNormal = AiToVec3(aiAnimMesh->mNormals[v]) - AiToVec3(aiMesh->mNormals[v]);
+
+                    if (aiAnimMesh->mTangents && aiMesh->mTangents)
+                        delta.deltaTangent = AiToVec3(aiAnimMesh->mTangents[v]) - AiToVec3(aiMesh->mTangents[v]);
+                }
+                mesh.morphTargets.push_back(std::move(target));
+            }
+        }
+
         return mesh;
     }
 
@@ -370,17 +744,20 @@ namespace compiler
             for (uint32_t i = 0; i < materialPtrs.size(); ++i)
             {
                 // passing the base directory to correctly resolve relative texture paths
-                loadedScene.materials.push_back(
-                    extractMaterialSlot(materialPtrs[i], i, baseDir)
-                );
+                loadedScene.materials.push_back(extractMaterialSlot(scene, materialPtrs[i], i, baseDir));
             }
+
+            // Build the bone map (bone info, bone parents, construct bone hierarchy)
+            extractSkeleton(scene, loadedScene);
+            // Get animation information - timing + keyframe information for each bone
+            extractAnimations(scene, loadedScene);
 
             // Process meshes
             auto meshPtrs = collectMeshPointers(scene, meshOptions);
             loadedScene.meshes.reserve(meshPtrs.size());
             for (uint32_t i = 0; i < meshPtrs.size(); ++i)
             {
-                loadedScene.meshes.push_back(extractMesh(meshPtrs[i], i, meshOptions));
+                loadedScene.meshes.push_back(extractMesh(meshPtrs[i], i, meshOptions, loadedScene.skeleton));
             }
 
             returnData.scene = std::move(loadedScene);

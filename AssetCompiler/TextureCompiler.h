@@ -20,6 +20,7 @@ All rights reserved.
 
 #pragma once
 #include "CompileOptions.h"
+#include "CompilerTypes.h"
 #include <Compressonator/compressonator.h>
 #include <vulkan/vulkan.h>
 #include <ktx.h>
@@ -35,11 +36,11 @@ namespace compiler
 		~TextureCompiler() = default;
 
 		bool Compile(const CompilerOptions& compileOptions);
-
+		bool CompileFromMemory(const EmbeddedTextureSource& source, const CompilerOptions& compileOptions);
 
 	private:
 		bool LoadSourceTexture(CMP_Texture& outTex);
-
+		bool LoadSourceTextureFromMemory(const EmbeddedTextureSource& source, CMP_Texture& outTex);
 		ktxTextureCreateInfo SetupKtxCreateInfo(const CMP_Texture& dest);
 		CMP_CompressOptions SetupCompressionOptions();
 		bool CompressTexture(CMP_Texture& src, CMP_Texture& dst, const CMP_CompressOptions& opts);

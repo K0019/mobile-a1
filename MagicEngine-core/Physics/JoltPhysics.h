@@ -42,6 +42,8 @@ All rights reserved.
 #include "Game/IGameComponentCallbacks.h"
 #include "Physics/Collision.h"
 
+// YC: For debugging
+#include "Physics/JoltDebugRenderer.h"
 JPH_SUPPRESS_WARNINGS
 
 namespace physics {
@@ -116,8 +118,9 @@ namespace physics {
 		*//******************************************************************/
 		void OptimizeBroadPhase();
 
-		JPH::AABox CollectAllTriangles(std::vector<float>& outVertices, std::vector<int>& outTriIndex);
+		void DebugDraw();
 
+		JPH::AABox CollectAllTriangles(std::vector<float>& outVertices, std::vector<int>& outTriIndex);
 
 	private:
 		// We need a temp allocator for temporary allocations during the physics update. We're
@@ -173,6 +176,8 @@ namespace physics {
 
 		// Body manager that allows certain bodies to change the scale.
 		JPH::BodyManager bodyManager;
+
+		JoltDebugRenderer joltDebugger;
 	};
 
 	struct TransformValues

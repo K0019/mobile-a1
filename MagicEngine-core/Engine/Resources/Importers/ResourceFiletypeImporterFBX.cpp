@@ -224,6 +224,10 @@ bool ResourceFiletypeImporterFBX::Import([[maybe_unused]] const std::string& ass
     {
         ResourceImporter::Import(VFS::ConvertPhysicalToVirtual(path.string()));
     }
+    for (const auto& path : result.createdAnimationFiles)
+    {
+        ResourceImporter::Import(VFS::ConvertPhysicalToVirtual(path.string()));
+    }
     for (const auto& path : result.createdMeshFiles)
     {
         ResourceImporter::Import(VFS::ConvertPhysicalToVirtual(path.string()));

@@ -11,7 +11,7 @@ namespace OITResources
 {
   // OIT resource names - used by transparent features
   constexpr const char* FRAGMENT_BUFFER = "OIT_FragmentBuffer";
-  constexpr const char* HEAD_TEXTURE = "OIT_HeadTexture";  
+  constexpr const char* HEAD_TEXTURE = "OIT_HeadTexture";
   constexpr const char* ATOMIC_COUNTER = "OIT_AtomicCounter";
   constexpr const char* OIT_BUFFER = "OIT_Buffer"; // New: packed OIT metadata buffer
 }
@@ -25,7 +25,7 @@ namespace OIT
     float depth;
     uint32_t next;
   };
-  
+
   // Packed OIT buffer structure
   struct OITBuffer
   {
@@ -35,7 +35,6 @@ namespace OIT
     uint32_t maxOITFragments;
   };
 } // namespace OIT
-
 class OITSystem
 {
 public:
@@ -47,17 +46,18 @@ public:
   };
 
   explicit OITSystem(vk::IContext& context);
+
   ~OITSystem() = default;
 
   void SetupPasses(internal::RenderPassBuilder& passBuilder);
 
   const Settings& GetSettings() const { return m_settings; }
+
   void UpdateSettings(const Settings& newSettings) { m_settings = newSettings; }
 
 private:
   vk::IContext& m_context;
   Settings m_settings;
-
   vk::Holder<vk::ShaderModuleHandle> m_vertOIT;
   vk::Holder<vk::ShaderModuleHandle> m_fragOIT;
   vk::Holder<vk::RenderPipelineHandle> m_pipelineOIT;

@@ -24,7 +24,7 @@ All rights reserved.
 #include "Engine/Resources/Types/ResourceTypesGraphics.h"
 #include "Editor/Containers/GUICollection.h"
 
-const ResourceMesh* RenderComponent::GetMesh()
+const ResourceMesh* RenderComponent::GetMesh() const
 {
     return meshHandle.GetResource();
 }

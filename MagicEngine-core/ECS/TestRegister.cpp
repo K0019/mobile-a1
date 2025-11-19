@@ -6,6 +6,7 @@
 #endif
 
 #include "Graphics/RenderComponent.h"
+#include "Graphics/AnimationComponent.h"
 #include "EntityUID.h"
 #include "Engine/Audio.h"
 #include "Engine/BehaviorTree/BehaviourTree.h"
@@ -39,6 +40,7 @@ void RegisterShit()
 	IRegisteredComponent<CameraComponent>::RegisterComponent();
 	IRegisteredComponent<AnchorToCameraComponent>::RegisterComponent();
 	IRegisteredComponent<RenderComponent>::RegisterComponent();
+	IRegisteredComponent<AnimationComponent>::RegisterComponent();
 	IRegisteredComponent<LightComponent>::RegisterComponent();
 	IRegisteredComponent<LightBlinkComponent>::RegisterComponent();
 	IRegisteredComponent<PostProcessingComponent>::RegisterComponent();

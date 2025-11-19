@@ -179,6 +179,26 @@ VkFormat vk::formatToVkFormat(Format format)
       return VK_FORMAT_ETC2_R8G8B8_UNORM_BLOCK;
     case Format::ETC2_SRGB8:
       return VK_FORMAT_ETC2_R8G8B8_SRGB_BLOCK;
+      case Format::BC1_RGB:         return VK_FORMAT_BC1_RGB_UNORM_BLOCK;
+      case Format::BC1_RGB_SRGB:    return VK_FORMAT_BC1_RGB_SRGB_BLOCK;
+      case Format::BC1_RGBA:        return VK_FORMAT_BC1_RGBA_UNORM_BLOCK;
+      case Format::BC1_RGBA_SRGB:   return VK_FORMAT_BC1_RGBA_SRGB_BLOCK;
+
+      case Format::BC2_RGBA:        return VK_FORMAT_BC2_UNORM_BLOCK;
+      case Format::BC2_RGBA_SRGB:   return VK_FORMAT_BC2_SRGB_BLOCK;
+
+      case Format::BC3_RGBA:        return VK_FORMAT_BC3_UNORM_BLOCK;
+      case Format::BC3_RGBA_SRGB:   return VK_FORMAT_BC3_SRGB_BLOCK;
+
+      case Format::BC6H_RGB_UFLOAT: return VK_FORMAT_BC6H_UFLOAT_BLOCK;
+      case Format::BC6H_RGB_SFLOAT: return VK_FORMAT_BC6H_SFLOAT_BLOCK;
+
+      case Format::BC7_RGBA_SRGB:   return VK_FORMAT_BC7_SRGB_BLOCK;
+
+    case Format::BC4_R:
+      return VK_FORMAT_BC4_UNORM_BLOCK;
+    case Format::BC5_RG:
+      return VK_FORMAT_BC5_UNORM_BLOCK;
     case Format::BC7_RGBA:
       return VK_FORMAT_BC7_UNORM_BLOCK;
     case Format::Z_UN16:
@@ -267,6 +287,26 @@ vk::Format vk::vkFormatToFormat(VkFormat format)
       return Format::ETC2_SRGB8;
     case VK_FORMAT_D16_UNORM:
       return Format::Z_UN16;
+    case VK_FORMAT_BC4_UNORM_BLOCK:
+      return Format::BC4_R;
+    case VK_FORMAT_BC5_UNORM_BLOCK:
+      return Format::BC5_RG;
+      case VK_FORMAT_BC1_RGB_UNORM_BLOCK:    return Format::BC1_RGB;
+      case VK_FORMAT_BC1_RGB_SRGB_BLOCK:     return Format::BC1_RGB_SRGB;
+      case VK_FORMAT_BC1_RGBA_UNORM_BLOCK:   return Format::BC1_RGBA;
+      case VK_FORMAT_BC1_RGBA_SRGB_BLOCK:    return Format::BC1_RGBA_SRGB;
+
+      case VK_FORMAT_BC2_UNORM_BLOCK:        return Format::BC2_RGBA;
+      case VK_FORMAT_BC2_SRGB_BLOCK:         return Format::BC2_RGBA_SRGB;
+
+      case VK_FORMAT_BC3_UNORM_BLOCK:        return Format::BC3_RGBA;
+      case VK_FORMAT_BC3_SRGB_BLOCK:         return Format::BC3_RGBA_SRGB;
+
+      case VK_FORMAT_BC6H_UFLOAT_BLOCK:      return Format::BC6H_RGB_UFLOAT;
+      case VK_FORMAT_BC6H_SFLOAT_BLOCK:      return Format::BC6H_RGB_SFLOAT;
+
+      case VK_FORMAT_BC7_SRGB_BLOCK:         return Format::BC7_RGBA_SRGB;
+
     case VK_FORMAT_BC7_UNORM_BLOCK:
       return Format::BC7_RGBA;
     case VK_FORMAT_X8_D24_UNORM_PACK32:
@@ -417,7 +457,7 @@ namespace
     ASSERT_MSG(false, "SamplerWrapMode value not handled: %d", (int)mode);
     return VK_SAMPLER_ADDRESS_MODE_REPEAT;
   }
-} // namespace 
+} // namespace
 
 VkSamplerCreateInfo vk::samplerStateDescToVkSamplerCreateInfo(const SamplerStateDesc& desc, const VkPhysicalDeviceLimits& limits)
 {

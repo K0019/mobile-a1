@@ -3,11 +3,116 @@
 #include <assimp/scene.h>
 #include <assimp/mesh.h>
 #include <algorithm>
+#include <numeric>
+#include <unordered_map>
 #include "assets/processing/mesh_process.h"
+
+namespace
+{
+  mat4 toMat4(const aiMatrix4x4& matrix)
+  {
+    return mat4(matrix.a1, matrix.b1, matrix.c1, matrix.d1,
+                matrix.a2, matrix.b2, matrix.c2, matrix.d2,
+                matrix.a3, matrix.b3, matrix.c3, matrix.d3,
+                matrix.a4, matrix.b4, matrix.c4, matrix.d4);
+  }
+
+  void buildNodeMaps(const aiNode* node,
+                     const mat4& parentTransform,
+                     std::unordered_map<std::string, mat4>& transforms,
+                     std::unordered_map<std::string, const aiNode*>& nodes)
+  {
+    if(!node)
+      return;
+
+    const mat4 local = toMat4(node->mTransformation);
+    const mat4 global = parentTransform * local;
+    const std::string nodeName = node->mName.length > 0 ? node->mName.C_Str() : "";
+
+    if(!nodeName.empty())
+    {
+      transforms[nodeName] = global;
+      nodes[nodeName] = node;
+    }
+
+    for(uint32_t i = 0; i < node->mNumChildren; ++i)
+    {
+      buildNodeMaps(node->mChildren[i], global, transforms, nodes);
+    }
+  }
+
+  void accumulateWeight(Resource::SkinningData& data, uint32_t jointIndex, float weight)
+  {
+    if(weight <= 0.0f)
+      return;
+
+    for(size_t i = 0; i < data.boneIndices.size(); ++i)
+    {
+      if(data.boneIndices[i] == jointIndex)
+      {
+        data.weights[i] += weight;
+        return;
+      }
+    }
+
+    for(size_t i = 0; i < data.boneIndices.size(); ++i)
+    {
+      if(data.boneIndices[i] == Resource::INVALID_BONE_INDEX)
+      {
+        data.boneIndices[i] = jointIndex;
+        data.weights[i] = weight;
+        return;
+      }
+    }
+
+    size_t smallest = 0;
+    for(size_t i = 1; i < data.weights.size(); ++i)
+    {
+      if(data.weights[i] < data.weights[smallest])
+      {
+        smallest = i;
+      }
+    }
+
+    if(weight > data.weights[smallest])
+    {
+      data.boneIndices[smallest] = jointIndex;
+      data.weights[smallest] = weight;
+    }
+  }
+
+  void normalizeWeights(Resource::SkinningData& data)
+  {
+    float totalWeight = 0.0f;
+    for(size_t i = 0; i < data.weights.size(); ++i)
+    {
+      if(data.boneIndices[i] != Resource::INVALID_BONE_INDEX)
+      {
+        totalWeight += data.weights[i];
+      }
+    }
+
+    if(totalWeight > 0.0f)
+    {
+      const float inv = 1.0f / totalWeight;
+      for(size_t i = 0; i < data.weights.size(); ++i)
+      {
+        if(data.boneIndices[i] != Resource::INVALID_BONE_INDEX)
+          data.weights[i] = std::clamp(data.weights[i] * inv, 0.0f, 1.0f);
+        else
+          data.weights[i] = 0.0f;
+      }
+    }
+    else
+    {
+      data = Resource::SkinningData{};
+    }
+  }
+} // namespace
 
 namespace Resource::MeshLoading
 {
-  ProcessedMesh extractMesh(const aiMesh* aiMesh, uint32_t meshIndex, const LoadingConfig& config)
+  ProcessedMesh extractMesh(const aiScene* scene, const aiMesh* aiMesh, uint32_t meshIndex, const LoadingConfig& config)
   {
     ProcessedMesh mesh;
 
@@ -52,28 +157,154 @@ namespace Resource::MeshLoading
                     });
     }
 
-    // Apply mesh optimization if requested
-    if (config.optimizeMeshes && MeshOptimizer::shouldOptimize(mesh.vertices, mesh.indices))
-    {
-      auto result = MeshOptimizer::optimize(mesh.vertices, mesh.indices, config.generateTangents);
+    const size_t vertexCount = mesh.vertices.size();
 
-      if (!result.success)
+    if(scene && aiMesh->mNumBones > 0 && vertexCount > 0)
+    {
+      mesh.skinning.resize(vertexCount);
+
+      mesh.skeleton.parentIndices.assign(aiMesh->mNumBones, INVALID_JOINT_INDEX);
+      mesh.skeleton.inverseBindMatrices.resize(aiMesh->mNumBones, mat4(1.0f));
+      mesh.skeleton.bindPoseMatrices.resize(aiMesh->mNumBones, mat4(1.0f));
+      mesh.skeleton.jointNames.resize(aiMesh->mNumBones);
+
+      std::unordered_map<std::string, uint32_t> boneIndexMap;
+      boneIndexMap.reserve(aiMesh->mNumBones);
+
+      std::unordered_map<std::string, mat4> nodeTransforms;
+      std::unordered_map<std::string, const aiNode*> nodeLookup;
+      buildNodeMaps(scene->mRootNode, mat4(1.0f), nodeTransforms, nodeLookup);
+
+      for(uint32_t boneIdx = 0; boneIdx < aiMesh->mNumBones; ++boneIdx)
       {
-        LOG_WARNING("Failed to optimize mesh '{}'", mesh.name);
+        const aiBone* bone = aiMesh->mBones[boneIdx];
+        const std::string boneName = bone->mName.length > 0 ? bone->mName.C_Str() : ("Bone_" + std::to_string(boneIdx));
+        mesh.skeleton.jointNames[boneIdx] = boneName;
+        mesh.skeleton.inverseBindMatrices[boneIdx] = toMat4(bone->mOffsetMatrix);
+        boneIndexMap[boneName] = boneIdx;
+      }
+
+      for(uint32_t boneIdx = 0; boneIdx < aiMesh->mNumBones; ++boneIdx)
+      {
+        const aiBone* bone = aiMesh->mBones[boneIdx];
+        const std::string boneName = mesh.skeleton.jointNames[boneIdx];
+
+        auto nodeIt = nodeLookup.find(boneName);
+        if(nodeIt != nodeLookup.end())
+        {
+          const aiNode* node = nodeIt->second->mParent;
+          while(node)
+          {
+            const std::string parentName = node->mName.length > 0 ? node->mName.C_Str() : "";
+            if(auto parentIt = boneIndexMap.find(parentName); parentIt != boneIndexMap.end())
+            {
+              mesh.skeleton.parentIndices[boneIdx] = parentIt->second;
+              break;
+            }
+            node = node->mParent;
+          }
+        }
+
+        auto transformIt = nodeTransforms.find(boneName);
+        if(transformIt != nodeTransforms.end())
+        {
+          mesh.skeleton.bindPoseMatrices[boneIdx] = transformIt->second;
+        }
+        else
+        {
+          mesh.skeleton.bindPoseMatrices[boneIdx] = mat4(1.0f);
+          LOG_WARNING("Mesh '{}' bone '{}' missing node transform data", mesh.name, boneName);
+        }
+
+        for(uint32_t weightIdx = 0; weightIdx < bone->mNumWeights; ++weightIdx)
+        {
+          const aiVertexWeight& weight = bone->mWeights[weightIdx];
+          if(weight.mVertexId < vertexCount)
+          {
+            accumulateWeight(mesh.skinning[weight.mVertexId], boneIdx, weight.mWeight);
+          }
+        }
+      }
+
+      for(auto& weights : mesh.skinning)
+      {
+        normalizeWeights(weights);
+      }
+
+      bool anySkinnedVertex = std::any_of(mesh.skinning.begin(), mesh.skinning.end(),
+        [](const SkinningData& data)
+        {
+          return data.boneIndices[0] != INVALID_BONE_INDEX;
+        });
+
+      if(!anySkinnedVertex)
+      {
+        mesh.skinning.clear();
+        mesh.skeleton = ProcessedSkeleton{};
       }
     }
-    if (config.generateTangents)
+
+    if(aiMesh->mNumAnimMeshes > 0 && vertexCount > 0)
     {
-      if (!MeshOptimizer::generateTangents(mesh.vertices, mesh.indices))
+      mesh.morphTargets.reserve(aiMesh->mNumAnimMeshes);
+      for(uint32_t targetIdx = 0; targetIdx < aiMesh->mNumAnimMeshes; ++targetIdx)
       {
-        LOG_WARNING("Failed to generate tangents for mesh '{}'", mesh.name);
+        const aiAnimMesh* animMesh = aiMesh->mAnimMeshes[targetIdx];
+        MorphTargetData target;
+        target.name = animMesh->mName.length > 0 ? animMesh->mName.C_Str() : ("Morph_" + std::to_string(targetIdx));
+        target.deltas.resize(vertexCount);
+
+        const uint32_t limit = std::min<uint32_t>(vertexCount, animMesh->mNumVertices);
+        for(uint32_t v = 0; v < limit; ++v)
+        {
+          auto& delta = target.deltas[v];
+          delta.vertexIndex = v;
+
+          if(animMesh->mVertices)
+          {
+            const aiVector3D& animPos = animMesh->mVertices[v];
+            const vec3 basePos = mesh.vertices[v].position;
+            delta.deltaPosition = vec3(animPos.x, animPos.y, animPos.z) - basePos;
+          }
+
+          if(animMesh->mNormals && v < animMesh->mNumVertices)
+          {
+            const aiVector3D& animNormal = animMesh->mNormals[v];
+            const vec3 baseNormal = mesh.vertices[v].normal;
+            delta.deltaNormal = vec3(animNormal.x, animNormal.y, animNormal.z) - baseNormal;
+          }
+
+          if(animMesh->mTangents && v < animMesh->mNumVertices)
+          {
+            const aiVector3D& animTangent = animMesh->mTangents[v];
+            const vec3 baseTangent = vec3(mesh.vertices[v].tangent);
+            delta.deltaTangent = vec3(animTangent.x, animTangent.y, animTangent.z) - baseTangent;
+          }
+        }
+
+        mesh.morphTargets.push_back(std::move(target));
       }
+    }
+
+    if (!MeshOptimizer::generateTangents(mesh.vertices, mesh.indices, &mesh.skinning, &mesh.morphTargets))
+    {
+        LOG_WARNING("Failed to generate tangents for mesh '{}'", mesh.name);
+    }
+
+    if (config.optimizeMeshes && MeshOptimizer::shouldOptimize(mesh.vertices, mesh.indices))
+    {
+        auto result = MeshOptimizer::optimize(mesh.vertices, mesh.indices, &mesh.skinning, &mesh.morphTargets);
+
+        if (!result.success)
+        {
+            LOG_WARNING("Failed to optimize mesh '{}'", mesh.name);
+        }
     }
 
     // Calculate bounding sphere if requested
-    if (config.calculateBounds && !mesh.vertices.empty())
+    if (!mesh.vertices.empty())
     {
-      mesh.bounds = calculateBounds(mesh.vertices);
+      mesh.bounds = calculateBounds(mesh.vertices, mesh.morphTargets.empty() ? nullptr : &mesh.morphTargets);
     }
 
     return mesh;
@@ -100,7 +331,7 @@ namespace Resource::MeshLoading
     return meshPtrs;
   }
 
-  vec4 calculateBounds(std::span<const Vertex> vertices)
+  vec4 calculateBounds(std::span<const Vertex> vertices, const std::vector<MorphTargetData>* morphTargets)
   {
     if (vertices.empty()) { return vec4(0.0f, 0.0f, 0.0f, 0.0f); }
 
@@ -118,10 +349,29 @@ namespace Resource::MeshLoading
     const vec3 center = (minPos + maxPos) * 0.5f;
     float radius = 0.0f;
 
-    for (const auto& vertex : vertices)
+    for (size_t i = 0; i < vertices.size(); ++i)
     {
-      const float distance = glm::length(vertex.position - center);
+      const float distance = glm::length(vertices[i].position - center);
       radius = std::max(radius, distance);
+    }
+
+    if (morphTargets)
+    {
+        std::vector<float> maxDisplacement(vertices.size(), 0.0f);
+        for (const auto& target : *morphTargets)
+        {
+            for (const auto& delta : target.deltas)
+            {
+                maxDisplacement[delta.vertexIndex] += glm::length(delta.deltaPosition);
+            }
+        }
+
+        for (size_t i = 0; i < vertices.size(); ++i)
+        {
+            const float distanceFromCenter = glm::length(vertices[i].position - center);
+            const float maxPossibleDistance = distanceFromCenter + maxDisplacement[i];
+            radius = std::max(radius, maxPossibleDistance);
+        }
     }
 
     return {center.x, center.y, center.z, radius};

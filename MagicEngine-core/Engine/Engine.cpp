@@ -232,6 +232,9 @@ void MagicEngine::ExecuteFrame(FrameData& frameData)
 	//GamepadInput::PollInput();
 
 	ST<GraphicsMain>::Get()->BeginFrame();
+
+	ST<physics::JoltPhysics>::Get()->DebugDraw();
+
 #ifdef IMGUI_ENABLED
 	ST<GraphicsMain>::Get()->BeginImGuiFrame();
 
