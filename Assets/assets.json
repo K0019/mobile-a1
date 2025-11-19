@@ -449,6 +449,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/materials/standardsurface1_1002.001.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2295582366992094053,
+                            "name": "standardsurface1_1002.0010"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/materials/material_1.material",
             "resources": [
                 {
@@ -499,6 +513,20 @@
                         {
                             "hash": 184839999586550855,
                             "name": "shader_nonenormal0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/textures/image_1.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 2275549265134008805,
+                            "name": "image_10"
                         }
                     ]
                 }
@@ -561,6 +589,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/desktextured.mesh",
+            "resources": [
+                {
+                    "resourceType": 6209910166724260588,
+                    "resourceEntries": [
+                        {
+                            "hash": 2298014486712734571,
+                            "name": "desktextured0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/wall_window.mesh",
             "resources": [
                 {
@@ -583,6 +625,20 @@
                         {
                             "hash": 212426746327450699,
                             "name": "_060"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/deskplain.mesh",
+            "resources": [
+                {
+                    "resourceType": 6209910166724260588,
+                    "resourceEntries": [
+                        {
+                            "hash": 2289518560364902911,
+                            "name": "deskplain0"
                         }
                     ]
                 }
@@ -695,6 +751,20 @@
                         {
                             "hash": 388567409527326701,
                             "name": "material0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/textures/image_0.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 2273508571552856543,
+                            "name": "image_00"
                         }
                     ]
                 }
@@ -869,6 +939,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/materials/standardsurface1_1002.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2286680720853613049,
+                            "name": "standardsurface1_10020"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/materials/n00_000_hair_00_hair (instance).material",
             "resources": [
                 {
@@ -877,6 +961,20 @@
                         {
                             "hash": 389680115352847513,
                             "name": "n00_000_hair_00_hair (instance)0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/textures/image_2.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 2280285961226467817,
+                            "name": "image_20"
                         }
                     ]
                 }
