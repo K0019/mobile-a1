@@ -143,22 +143,34 @@ void CustomViewport::DrawWindow()
 			if (isInViewport)
 			{
 
-				// Convert to integer screen coordinates within the viewport
-				int screenX = static_cast<int>(viewportRelativeX);
-				int screenY = static_cast<int>(viewportRelativeY);
+				// Get the actual render target dimensions
+				auto sceneColorID = ST<GraphicsMain>::Get()->GetImGuiContext()
+					.GetTransientRegistry().QueryBindlessID("ImGuiSceneView");
 
-				// Clamp to viewport bounds for safety
-				screenX = std::max(0, std::min(screenX, static_cast<int>(viewportRenderSize.x) - 1));
-				screenY = std::max(0, std::min(screenY, static_cast<int>(viewportRenderSize.y) - 1));
+				// Calculate the actual render target size
+				// You may need to get this from your graphics system
+				// For now, assuming it matches your configured width/height
+				float renderTargetWidth = static_cast<float>(width);
+				float renderTargetHeight = static_cast<float>(height);
 
-				// Request object pick from scene feature
+				// Convert viewport coordinates to render target coordinates
+				float normalizedX = viewportRelativeX / viewportRenderSize.x;
+				float normalizedY = viewportRelativeY / viewportRenderSize.y;
+
+				int screenX = static_cast<int>(normalizedX * renderTargetWidth);
+				int screenY = static_cast<int>(normalizedY * renderTargetHeight);
+
+				// Clamp to render target bounds
+				screenX = std::max(0, std::min(screenX, static_cast<int>(renderTargetWidth) - 1));
+				screenY = std::max(0, std::min(screenY, static_cast<int>(renderTargetHeight) - 1));
+
 				if (ST<GraphicsMain>::Get()->RequestObjPick(screenX, screenY))
 				{
-					std::cout << "Object pick requested at viewport position (" << screenX << ", " << screenY << ")\n";
-					std::cout << "  Viewport size: " << viewportRenderSize.x << "x" << viewportRenderSize.y << "\n";
+					// Debug output
+					// std::cout << "Object pick requested at render target position (" << screenX << ", " << screenY << ")\n";
+					// std::cout << "  Viewport position: (" << viewportRelativeX << ", " << viewportRelativeY << ")\n";
+					// std::cout << "  Render target size: " << renderTargetWidth << "x" << renderTargetHeight << "\n";
 				}
-				// Request object pick from scene feature
-				//ST<GraphicsMain>::Get()->RequestObjPick(screenX, screenY);
 			}
 		}
 

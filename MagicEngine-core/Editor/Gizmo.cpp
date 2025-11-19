@@ -30,6 +30,7 @@ All rights reserved.
 #include "Editor/EditorHistory.h"
 #include "Engine/Events/EventsQueue.h"
 #include "Engine/Events/EventsTypeEditor.h"
+#include "../MagicEngine-core/Components/NameComponent.h"
 
 namespace editor {
 
@@ -78,6 +79,7 @@ namespace editor {
         {
             Transform& tr = sel->GetTransform();
             tr.SetMat4ToWorld(&M);
+            std::cout << sel->GetComp<NameComponent>()->GetName() << std::endl;
             ImGuizmo::SetID((int)(intptr_t)sel);
         }
         float model[16];
