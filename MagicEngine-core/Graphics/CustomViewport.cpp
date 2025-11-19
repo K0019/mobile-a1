@@ -120,6 +120,56 @@ void CustomViewport::DrawWindow()
 		ImGui::Image(*sceneColorID, renderSize, ImVec2(0, 0), ImVec2(1, 1));
 	}
 
+	// Left click to pick objects (when not dragging camera with right mouse)
+	static bool wasLeftMouseDown = false;
+	bool isLeftMouseDown = Input::GetMouseButton(MouseButton::Left);
+	bool leftClickJustPressed = isLeftMouseDown && !wasLeftMouseDown;
+	wasLeftMouseDown = isLeftMouseDown;
+
+	if (leftClickJustPressed && !Input::GetMouseButton(MouseButton::Right))
+	{
+		ImVec2 mousePos = ImGui::GetMousePos();
+		int screenX = static_cast<int>(mousePos.x);
+		int screenY = static_cast<int>(mousePos.y);
+
+		// Convert to viewport-relative coordinates first
+		float viewportRelativeX = mousePos.x - (windowPosAbsolute.x + contentMin.x);
+		float viewportRelativeY = mousePos.y - (windowPosAbsolute.y + contentMin.y);
+
+		// Check if mouse is within the viewport bounds
+		bool isInViewport = (viewportRelativeX >= 0 && viewportRelativeX < viewportRenderSize.x &&
+			viewportRelativeY >= 0 && viewportRelativeY < viewportRenderSize.y);
+
+			if (isInViewport)
+			{
+
+				// Convert to integer screen coordinates within the viewport
+				int screenX = static_cast<int>(viewportRelativeX);
+				int screenY = static_cast<int>(viewportRelativeY);
+
+				// Clamp to viewport bounds for safety
+				screenX = std::max(0, std::min(screenX, static_cast<int>(viewportRenderSize.x) - 1));
+				screenY = std::max(0, std::min(screenY, static_cast<int>(viewportRenderSize.y) - 1));
+
+				// Request object pick from scene feature
+				if (ST<GraphicsMain>::Get()->RequestObjPick(screenX, screenY))
+				{
+					std::cout << "Object pick requested at viewport position (" << screenX << ", " << screenY << ")\n";
+					std::cout << "  Viewport size: " << viewportRenderSize.x << "x" << viewportRenderSize.y << "\n";
+				}
+				// Request object pick from scene feature
+				//ST<GraphicsMain>::Get()->RequestObjPick(screenX, screenY);
+			}
+		}
+
+		// Check for pick rsult from previous frame
+		ecs::EntityHandle pickedEntity = ST<GraphicsMain>::Get()->PreviousPick();
+		if (pickedEntity)
+		{
+			ST<EventsQueue>::Get()->AddEventForNextFrame(Events::EditorSelectEntity{ pickedEntity });
+		}
+
+
 	m_gizmo.Draw(ST<EventsQueue>::Get()->RequestValueFromEventHandlers<ecs::EntityHandle>(Getters::EditorSelectedEntity{}).value_or(nullptr));
 
 	//==========================

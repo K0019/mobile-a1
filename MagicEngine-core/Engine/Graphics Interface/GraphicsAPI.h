@@ -49,6 +49,8 @@ public:
 
 public:
     FrameData& INTERNAL_GetFrameData();
+    bool RequestObjPick(int mouseX, int mouseY);
+    ecs::EntityHandle PreviousPick();
 
 private:
 #ifdef IMGUI_ENABLED
@@ -83,6 +85,8 @@ private:
     uint64_t gridHandle;
     uint64_t im3dHandle;
     FontHandle ui2dFontHandle;
+    uint64_t lastPickedObjectIndex;
+    std::unordered_map<uint64_t, ecs::EntityHandle> mapIdxToId;
 
 };
 

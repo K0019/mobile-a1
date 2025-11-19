@@ -55,7 +55,7 @@ GraphicsMain::~GraphicsMain()
 void GraphicsMain::Init(Context inContext)
 {
 	context = inContext;
-	sceneFeatureHandle = context.renderer->CreateFeature<SceneRenderFeature>();
+	sceneFeatureHandle = context.renderer->CreateFeature<SceneRenderFeature>(true);
 	gridHandle = context.renderer->CreateFeature<GridFeature>();
 	ui2dFeatureHandle = context.renderer->CreateFeature<Ui2DRenderFeature>();
 	im3dHandle = context.renderer->CreateFeature<Im3dRenderFeature>();
@@ -170,6 +170,7 @@ void GraphicsMain::UploadToPipeline(FrameData* outFrameData)
 			Mat4 worldTransform = entityTransform.GetWorldMat() * mesh->transforms[i];
 			float maxScale = glm::compMax(glm::abs(static_cast<glm::vec3>(entityTransform.GetWorldScale())));
 
+			mapIdxToId[objectIndex] = ecs::GetEntity(&comp);
 
 			// Store object data
 			params->objectTransforms.push_back(worldTransform);
@@ -1095,4 +1096,35 @@ Resource::ResourceManager& GraphicsMain::GetAssetSystem()
 {
 	assert(context.resourceMngr);
 	return *context.resourceMngr;
+}
+
+bool GraphicsMain::RequestObjPick(int mouseX, int mouseY) {
+	auto* sceneFeature = context.renderer->GetFeature<SceneRenderFeature>(sceneFeatureHandle);
+	if (sceneFeature) {
+		sceneFeature->RequestObjectPick(mouseX, mouseY);
+		return true;
+	}
+}
+
+ecs::EntityHandle GraphicsMain::PreviousPick() {
+	ecs::EntityHandle pickedEntity = nullptr;
+	auto* sceneFeature = context.renderer->GetFeature<SceneRenderFeature>(sceneFeatureHandle);
+	if (sceneFeature) {
+		auto pickResult = sceneFeature->GetLastPickResult();
+
+		if (pickResult.valid)
+		{
+			lastPickedObjectIndex = pickResult.sceneObjectIndex;
+
+			if (pickResult.sceneObjectIndex < mapIdxToId.size())
+			{
+				const auto& pickedObj = mapIdxToId[pickResult.sceneObjectIndex];
+				pickedEntity = pickedObj;
+			}
+
+			// Clear so we don't process again next frame
+			sceneFeature->ClearPickResult();
+		}
+		return pickedEntity;
+	}
 }
