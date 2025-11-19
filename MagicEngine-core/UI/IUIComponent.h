@@ -26,12 +26,3 @@ class IUIComponent
 public:
 	void OnAttached() override;
 };
-
-class CanvasComponent
-	: public IRegisteredComponent<CanvasComponent>
-{
-public:
-
-private:
-
-};

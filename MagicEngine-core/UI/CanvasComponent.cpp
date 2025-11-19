@@ -17,4 +17,4 @@ All rights reserved.
 */
 /******************************************************************************/
 
-#include "UI/UI.h"
+#include "UI/CanvasComponent.h"
