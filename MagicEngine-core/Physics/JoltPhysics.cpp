@@ -447,14 +447,14 @@ namespace physics {
 
 	void JoltBodyComp::SetDOF(JPH::EAllowedDOFs val)
 	{
-		if (motionType == JPH::EMotionType::Static)
-			return;
-
 		JPH::BodyLockWrite lock{ ST<JoltPhysics>::Get()->GetPhysicsSystem().GetBodyLockInterface(), bodyID };
 		if (!lock.Succeeded())
 			return;
 
 		JPH::Body& body{ lock.GetBody() };
+		if (!body.IsDynamic())
+			return;
+
 		JPH::MotionProperties* property{ body.GetMotionProperties() };
 		JPH::MassProperties massProp{ body.GetShape()->GetMassProperties() };
 		float invMass{ property->GetInverseMass() };
