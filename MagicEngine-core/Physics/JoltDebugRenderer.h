@@ -11,8 +11,8 @@ public:
         Im3d::DrawLine(
             Im3d::Vec3(inFrom.GetX(), inFrom.GetY(), inFrom.GetZ()),
             Im3d::Vec3(inTo.GetX(), inTo.GetY(), inTo.GetZ()),
-            10,
-            Im3d::Color(inColor.r, inColor.g, inColor.b, inColor.a)
+            0.02,
+            Im3d::Color(inColor.r, inColor.g, inColor.b, 1.0f) //fk this lmaoo
         );
     }
     
@@ -31,7 +31,7 @@ public:
                       static_cast<float>(pos.GetY()), 
                       static_cast<float>(pos.GetZ())),
             height,
-            Im3d::Color(color.r, color.g, color.b, color.a),
+            Im3d::Color(color.r, color.g, color.b, 1.0f),
             Im3d::TextFlags_Default, 
             str.data()
         );

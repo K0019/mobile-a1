@@ -585,8 +585,6 @@ namespace physics {
 	void JoltPhysics::DebugDraw()
 	{
 #if defined(JPH_DEBUG_RENDERER)
-		Im3d::NewFrame();
-
 		Vec3 v = ST<CameraController>::Get()->GetCameraData().position;
 		joltDebugger.SetCameraPos(JPH::RVec3(v.x, v.y, v.z));
 
@@ -595,8 +593,6 @@ namespace physics {
 		settings.mDrawShapeWireframe = true;
 
 		physicsSystem.DrawBodies(settings, &joltDebugger);
-
-		Im3d::EndFrame();
 #endif
 	}
 }

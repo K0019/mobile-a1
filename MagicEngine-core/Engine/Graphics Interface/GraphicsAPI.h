@@ -81,6 +81,7 @@ private:
     uint64_t ui2dFeatureHandle;
     FrameData frameData;
     uint64_t gridHandle;
+    uint64_t im3dHandle;
     FontHandle ui2dFontHandle;
 
 };
