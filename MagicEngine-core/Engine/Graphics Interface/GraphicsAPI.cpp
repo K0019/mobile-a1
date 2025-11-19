@@ -61,10 +61,12 @@ void GraphicsMain::Init(Context inContext)
 	ui2dFeatureHandle = context.renderer->CreateFeature<Ui2DRenderFeature>();
 	im3dHandle = context.renderer->CreateFeature<Im3dRenderFeature>();
 
+	const std::string fontsFile{ Filepaths::fontsSave + "/Lato-Regular.ttf" };
 #ifdef IMGUI_ENABLED
-	InitImGui(Filepaths::fontsSave + "/Lato-Regular.ttf");
+	InitImGui(fontsFile);
 #endif
 
+	InitFont(fontsFile);
 	overlayGui = std::make_unique<ui::ImmediateGui>(*context.renderer, ui2dFeatureHandle, *context.resourceMngr);
 }
 
@@ -113,6 +115,27 @@ void GraphicsMain::EndFrame(FrameData* outFrameData)
 {
 	Im3dHelper::EndFrame(im3dHandle, *context.renderer);
 	UploadToPipeline(outFrameData);
+}
+
+void GraphicsMain::InitFont(const std::string& fontfile)
+{
+	std::vector<uint8_t> fontBytes{};
+	if (!VFS::ReadFile(fontfile, fontBytes))
+	{
+		CONSOLE_LOG(LEVEL_ERROR) << "Failed to initialize font: " << fontfile;
+		return;
+	}
+
+	Resource::ProcessedFont processed;
+	processed.name = "UI2D_Font";
+	processed.fontFileData = std::move(fontBytes);
+	processed.buildSettings.pixelHeight = 20.0f;
+	processed.buildSettings.firstCodepoint = 32;
+	processed.buildSettings.lastCodepoint = 255;
+	processed.buildSettings.fallbackCodepoint = '?';
+	processed.sourceFile = fontfile;
+	processed.buildSettings.extraCodepoints.push_back(0x2026u); // Ellipsis
+	ui2dFontHandle = context.resourceMngr->createFont(processed);
 }
 
 void GraphicsMain::UploadToPipeline(FrameData* outFrameData)
@@ -974,30 +997,6 @@ void GraphicsMain::InitImGui(const std::string& fontfile)
 	//If you want change between icons size you will need to create a new font
 	//io.Fonts->AddFontFromMemoryCompressedTTF(FA_compressed_data, FA_compressed_size, 12.0f, &icons_config, icons_ranges);
 	//io.Fonts->AddFontFromMemoryCompressedTTF(FA_compressed_data, FA_compressed_size, 20.0f, &icons_config, icons_ranges);
-
-	// Create a separate font for UI2D immediate mode rendering
-	size_t dataSize = 0;
-	void* rawData = ImFileLoadToMemory(physicalFilepath.c_str(), "rb", &dataSize, 0);
-	if (rawData && dataSize > 0)
-	{
-		std::vector fontBytes(static_cast<uint8_t*>(rawData), static_cast<uint8_t*>(rawData) + dataSize);
-		IM_FREE(rawData);
-
-		Resource::ProcessedFont processed;
-		processed.name = "UI2D_Font";
-		processed.fontFileData = std::move(fontBytes);
-		processed.buildSettings.pixelHeight = 20.0f;
-		processed.buildSettings.firstCodepoint = 32;
-		processed.buildSettings.lastCodepoint = 255;
-		processed.buildSettings.fallbackCodepoint = '?';
-		processed.sourceFile = fontfile;
-		processed.buildSettings.extraCodepoints.push_back(0x2026u); // Ellipsis
-		ui2dFontHandle = context.resourceMngr->createFont(processed);
-	}
-	else if (rawData)
-	{
-		IM_FREE(rawData);
-	}
 }
 
 void GraphicsMain::SetImGuiStyle()

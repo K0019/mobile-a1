@@ -56,6 +56,7 @@ private:
     void InitImGui(const std::string& fontfile);
     void SetImGuiStyle();
 #endif
+    void InitFont(const std::string& fontfile);
     void UploadToPipeline(FrameData* outFrameData);
 
 public:
