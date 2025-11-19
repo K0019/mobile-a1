@@ -309,6 +309,20 @@
             ]
         },
         {
+            "filepath": "sounds/kalimba.mp3",
+            "resources": [
+                {
+                    "resourceType": 16184316770661419113,
+                    "resourceEntries": [
+                        {
+                            "hash": 3396394154554478828,
+                            "name": "kalimba0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/textures/cesiumman2146822282649598438.ktx2",
             "resources": [
                 {

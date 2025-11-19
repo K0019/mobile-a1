@@ -28,15 +28,11 @@ All rights reserved.
 
 #include "Graphics/RenderComponent.h"
 #include "Graphics/AnimationComponent.h"
-#include "Graphics/PostProcessingComponent.h"
-#include "Graphics/TextSystem.h"
 #include "Graphics/CustomViewport.h"
 #include "Scripting/ScriptComponent.h"
 
-#include "Game/CheatCodes.h"
 #include "Graphics/CameraSystem.h"
 #include "Tween/TweenECS.h"
-#include "Game/AudioListener.h"
 #include "Game/GameCameraController.h"
 #include "Game/GrabbableItem.h"
 #include "Game/PlayerCharacter.h"
@@ -63,12 +59,7 @@ void GameState_Common::OnEnter()
 {
     // RenderSystem and LightingSystem removed - GraphicsMain now reads directly from ECS components
     ecs::AddSystem(ECS_LAYER::RENDER_0, AnimationSystem{});
-    ecs::AddSystem(ECS_LAYER::RENDER_0, PostProcessingSystem{});
-    ecs::AddSystem(ECS_LAYER::RENDER_UI_0, TextSystem{});
-
-    ecs::AddSystem(ECS_LAYER::PRE_PHYSICS_0, FPSTextSystem{});
     ecs::AddSystem(ECS_LAYER::AUDIO, AudioSystem{});
-    ecs::AddSystem(ECS_LAYER::AUDIO, AudioListenerSystem{});
 }
 
 void GameState_Editor::OnEnter()
@@ -88,7 +79,6 @@ void GameState_Game::OnEnter()
 
     ecs::AddSystem(ECS_LAYER::PRE_UPDATE_0, UndoShakeSystem{});
 
-    ecs::AddSystem(ECS_LAYER::INPUT_0, CheatCodes{});
     ecs::AddSystem(ECS_LAYER::INPUT_0, AndroidInputSystem{});
 
     ecs::AddSystem(ECS_LAYER::POST_PHYSICS_0, GameCameraControllerSystem{});

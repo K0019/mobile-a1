@@ -16,8 +16,6 @@
 #include "Engine/NavMeshAgent.h"
 #include "Graphics/CameraComponent.h"
 #include "Graphics/LightComponent.h"
-#include "Graphics/PostProcessingComponent.h"
-#include "Graphics/TextComponent.h"
 #include "Physics/Collision.h"
 #include "Physics/Physics.h"
 #include "Scripting/ScriptComponent.h"
@@ -43,9 +41,6 @@ void RegisterShit()
 	IRegisteredComponent<AnimationComponent>::RegisterComponent();
 	IRegisteredComponent<LightComponent>::RegisterComponent();
 	IRegisteredComponent<LightBlinkComponent>::RegisterComponent();
-	IRegisteredComponent<PostProcessingComponent>::RegisterComponent();
-	IRegisteredComponent<TextComponent>::RegisterComponent();
-	IRegisteredComponent<FPSTextComponent>::RegisterComponent();
 	IRegisteredComponent<physics::BoxColliderComp>::RegisterComponent();
 	IRegisteredComponent<physics::PhysicsComp>::RegisterComponent();
 	IRegisteredComponent<NameComponent>::RegisterComponent();
@@ -58,4 +53,5 @@ void RegisterShit()
 	IRegisteredComponent<ScriptComponent>::RegisterComponent();
 	IRegisteredComponent<navmesh::NavMeshSurfaceComp>::RegisterComponent();
 	IRegisteredComponent<navmesh::NavMeshAgentComp>::RegisterComponent();
+	IRegisteredComponent<AudioListenerComponent>::RegisterComponent();
 }
