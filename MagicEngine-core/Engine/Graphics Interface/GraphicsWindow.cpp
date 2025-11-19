@@ -54,11 +54,18 @@ void GraphicsWindowGeneric::Init()
 
 void GraphicsWindowGeneric::SetPendingShutdown()
 {
+#if PLATFORM_DESKTOP
+	Core::Lifecycle().RequestExit();
+#endif
 }
 
 bool GraphicsWindowGeneric::GetIsPendingShutdown() const
 {
+#if PLATFORM_DESKTOP
+	return Core::Lifecycle().ShouldQuit();
+#else
 	return false;
+#endif
 }
 
 bool GraphicsWindowGeneric::GetIsWindowMinimized() const
@@ -77,7 +84,7 @@ void GraphicsWindowGeneric::SetWindowResolution([[maybe_unused]] int width, [[ma
 
 void GraphicsWindowGeneric::SetFullscreen([[maybe_unused]] bool isFullscreen)
 {
-#ifdef GLFW
+#if PLATFORM_DESKTOP
 	Core::Display().setFullscreen(isFullscreen);
 #endif
 }
