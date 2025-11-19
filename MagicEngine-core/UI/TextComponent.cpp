@@ -61,7 +61,11 @@ TextSystem::TextSystem()
 
 void TextSystem::RenderText(TextComponent& comp)
 {
+	const Vec3 worldPos{ ecs::GetEntityTransform(&comp).GetWorldPosition() };
+
 	ui::TextLayoutDesc layoutDesc;
-	layoutDesc.origin = ecs::GetEntityTransform(&comp).GetWorldPosition();
-	ST<GraphicsMain>::Get()->GetImmediateGui().addText(comp.GetText(), layoutDesc, comp.GetColor());
+	layoutDesc.origin = worldPos;
+	ui::DrawOptions drawOptions;
+	drawOptions.layer = static_cast<uint16_t>(worldPos.z);
+	ST<GraphicsMain>::Get()->GetImmediateGui().addText(comp.GetText(), layoutDesc, comp.GetColor(), drawOptions);
 }
