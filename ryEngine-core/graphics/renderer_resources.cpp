@@ -2,15 +2,30 @@
 
 #include "resource/resource_types.h"
 
-GPUBuffers::GPUBuffers(vk::IContext& context, size_t vertexBufferSize, size_t indexBufferSize, size_t materialBufferSize) : m_context(context)
+GPUBuffers::GPUBuffers(vk::IContext& context,
+                       size_t vertexBufferSize,
+                       size_t indexBufferSize,
+                       size_t materialBufferSize,
+                       size_t meshDecompressionBufferSize,
+                       size_t skinningBufferSize,
+                       size_t morphDeltaBufferSize,
+                       size_t morphVertexBaseBufferSize,
+                       size_t morphVertexCountBufferSize)
+  : m_context(context)
 {
   m_ownedTextures.reserve(ResourceLimits::MAX_TEXTURES);
 
   m_indexBufferDesc.size = indexBufferSize;
   m_vertexBufferDesc.size = vertexBufferSize;
   m_materialBufferDesc.size = materialBufferSize;
+  m_meshDecompressionBufferDesc.size = meshDecompressionBufferSize;
+  m_skinningBufferDesc.size = skinningBufferSize;
+  m_morphDeltaBufferDesc.size = morphDeltaBufferSize;
+  m_morphVertexBaseBufferDesc.size = morphVertexBaseBufferSize;
+  m_morphVertexCountBufferDesc.size = morphVertexCountBufferSize;
   CreateFixedBuffers();
-  if (!m_vertexBuffer.valid() || !m_indexBuffer.valid() || !m_materialBuffer.valid())
+  if(!m_vertexBuffer.valid()  || !m_indexBuffer.valid() || !m_materialBuffer.valid() || !m_meshDecompressionBuffer.valid() ||
+     !m_skinningBuffer.valid() || !m_morphDeltaBuffer.valid() || !m_morphVertexBaseBuffer.valid() || !m_morphVertexCountBuffer.valid())
   {
     throw std::runtime_error("Failed to create GPU buffers");
   }
@@ -69,6 +84,19 @@ bool GPUBuffers::uploadMaterial(uint32_t byteOffset, const MaterialData& data)
   return true;
 }
 
+bool GPUBuffers::uploadMeshDecompression(uint32_t byteOffset, const MeshDecompressionData& data)
+{
+  vk::Result result = m_context.upload(m_meshDecompressionBuffer, &data, sizeof(MeshDecompressionData), byteOffset);
+
+  if (!result.isOk())
+  {
+    LOG_ERROR("Failed to upload mesh decompression data: {}", result.message);
+    return false;
+  }
+
+  return true;
+}
+
 uint32_t GPUBuffers::uploadTexture(const vk::TextureDesc& desc, const std::vector<uint8_t>& data)
 {
   vk::TextureDesc textureDesc = desc;
@@ -111,11 +139,32 @@ vk::BufferHandle GPUBuffers::GetIndexBuffer() const { return m_indexBuffer; }
 
 vk::BufferHandle GPUBuffers::GetMaterialBuffer() const { return m_materialBuffer; }
 
+vk::BufferHandle GPUBuffers::GetMeshDecompressionBuffer() const { return m_meshDecompressionBuffer; }
+
+vk::BufferHandle GPUBuffers::GetSkinningBuffer() const { return m_skinningBuffer; }
+
+vk::BufferHandle GPUBuffers::GetMorphDeltaBuffer() const { return m_morphDeltaBuffer; }
+
+vk::BufferHandle GPUBuffers::GetMorphVertexBaseBuffer() const { return m_morphVertexBaseBuffer; }
+
+vk::BufferHandle GPUBuffers::GetMorphVertexCountBuffer() const { return m_morphVertexCountBuffer; }
+
 vk::BufferDesc GPUBuffers::GetVertexBufferDesc() const { return m_vertexBufferDesc; }
+
 
 vk::BufferDesc GPUBuffers::GetIndexBufferDesc() const { return m_indexBufferDesc; }
 
 vk::BufferDesc GPUBuffers::GetMaterialBufferDesc() const { return m_materialBufferDesc; }
+
+vk::BufferDesc GPUBuffers::GetMeshDecompressionBufferDesc() const { return m_meshDecompressionBufferDesc; }
+
+vk::BufferDesc GPUBuffers::GetSkinningBufferDesc() const { return m_skinningBufferDesc; }
+
+vk::BufferDesc GPUBuffers::GetMorphDeltaBufferDesc() const { return m_morphDeltaBufferDesc; }
+
+vk::BufferDesc GPUBuffers::GetMorphVertexBaseBufferDesc() const { return m_morphVertexBaseBufferDesc; }
+
+vk::BufferDesc GPUBuffers::GetMorphVertexCountBufferDesc() const { return m_morphVertexCountBufferDesc; }
 
 size_t GPUBuffers::GetOwnedTextureCount() const { return m_ownedTextures.size(); }
 
@@ -126,4 +175,14 @@ void GPUBuffers::CreateFixedBuffers()
   m_indexBuffer = m_context.createBuffer(m_indexBufferDesc, "IndexBuffer");
 
   m_materialBuffer = m_context.createBuffer(m_materialBufferDesc, "MaterialBuffer");
+
+  m_meshDecompressionBuffer = m_context.createBuffer(m_meshDecompressionBufferDesc, "MeshDecompressionBuffer");
+
+  m_skinningBuffer = m_context.createBuffer(m_skinningBufferDesc, "SkinningBuffer");
+
+  m_morphDeltaBuffer = m_context.createBuffer(m_morphDeltaBufferDesc, "MorphDeltaBuffer");
+
+  m_morphVertexBaseBuffer = m_context.createBuffer(m_morphVertexBaseBufferDesc, "MorphVertexBaseBuffer");
+
+  m_morphVertexCountBuffer = m_context.createBuffer(m_morphVertexCountBufferDesc, "MorphVertexCountBuffer");
 }

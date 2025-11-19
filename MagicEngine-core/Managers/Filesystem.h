@@ -79,6 +79,7 @@ private:
         {".jpeg", "texture"},
         {".bmp", "texture"},
         {".fbx", "importable"},
+        {".glb", "importable"},
         {".ktx", "importable"},
         {".wav", "audio"},
         {".mp3", "importable"},

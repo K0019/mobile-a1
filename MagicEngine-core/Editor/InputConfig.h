@@ -38,6 +38,7 @@ namespace editor {
 		static const std::array<const char*, +INPUT_COMPOSITE_TYPE::NUM_TYPES> compositeNames;
 		static const std::array<const char*, (+INPUT_COMPOSITE_TYPE::NUM_TYPES - 1) * 2> hardwareValueLinkNames;
 		static const std::array<const char*, +INPUT_DEVICE_TYPE::NUM_DEVICES> hardwareDeviceNames;
+		static const std::array<const char*, 3> hardwareReadTypeNames;
 		static const std::unordered_map<KEY, const char*> keyIdentifierNames;
 
 	};

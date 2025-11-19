@@ -3,6 +3,7 @@ icon_game.png
 settings.json
 userassembly.csproj
 behaviourtrees/enemybase.json
+behaviourtrees/followplayerusingnavmesh.json
 behaviourtrees/movetest.json
 behaviourtrees/newtest.json
 behaviourtrees/testclick.json
@@ -10,14 +11,17 @@ behaviourtrees/testnestednewtree.json
 compiledassets/aji.mesh
 compiledassets/ambulance.mesh
 compiledassets/box.mesh
+compiledassets/cesiumman.mesh
 compiledassets/cone.mesh
 compiledassets/garbage-truck.mesh
 compiledassets/hatchback-sports.mesh
 compiledassets/sedan.mesh
 compiledassets/taxi.mesh
 compiledassets/unitbox.mesh
+compiledassets/materials/cesium_man-effect.material
 compiledassets/materials/colormap.material
 compiledassets/materials/material.material
+compiledassets/materials/material_1.material
 compiledassets/materials/n00_000_00_body_00_skin (instance).material
 compiledassets/materials/n00_000_00_body_00_skin_(instance).material
 compiledassets/materials/n00_000_00_eyehighlight_00_eye (instance).material
@@ -60,6 +64,7 @@ compiledassets/materials/n00_010_01_onepiece_00_cloth_01 (instance).material
 compiledassets/materials/n00_010_01_onepiece_00_cloth_01_(instance).material
 compiledassets/materials/n00_010_01_onepiece_00_cloth_02 (instance).material
 compiledassets/materials/n00_010_01_onepiece_00_cloth_02_(instance).material
+compiledassets/meshanimations/cesiummananim_0.anim
 compiledassets/textures/_01.ktx2
 compiledassets/textures/_02.ktx2
 compiledassets/textures/_03.ktx2
@@ -84,6 +89,7 @@ compiledassets/textures/_22.ktx2
 compiledassets/textures/_23.ktx2
 compiledassets/textures/_24.ktx2
 compiledassets/textures/_25.ktx2
+compiledassets/textures/cesiumman2146822282649598438.ktx2
 compiledassets/textures/colormap.ktx2
 compiledassets/textures/n00_000_00_hairback_00_nml.ktx2
 compiledassets/textures/n00_000_hair_00_nml.ktx2
@@ -184,6 +190,9 @@ models/aji/aji.vrm1.textures/n00_000_hair_00_nml.png
 models/aji/aji.vrm1.textures/shader_noneblack.png
 models/aji/aji.vrm1.textures/shader_nonenormal.png
 models/aji/aji.vrm1.textures/thumbnail__vrm10.png
+models/misc/animatedmorphcube.glb
+models/misc/cesiumman.glb
+models/misc/damagedhelmet.glb
 prefab/deletewhenthere'ssomething.txt
 prefabs/enemy.prefab
 prefabs/player.prefab
@@ -203,30 +212,40 @@ shaders/compose.vert
 shaders/culling.comp
 shaders/debug.frag
 shaders/debug.vert
+shaders/depth_prepass.frag
+shaders/depth_prepass.vert
+shaders/depth_prepass_skinned.vert
 shaders/emissive.frag
 shaders/emissive.vert
 shaders/fullscreen.vert
 shaders/glslangvalidator.exe
 shaders/glslc.exe
+shaders/im3d.frag
+shaders/im3d.vert
+shaders/im3d_lines.geom
 shaders/light_culling.comp
 shaders/lighting.frag
 shaders/lighting.vert
 shaders/object.vert
+shaders/object_skinned.vert
 shaders/oit_resolve.frag
 shaders/opaque.frag
 shaders/opaque.vert
 shaders/post-shadow.comp
 shaders/scene_common.sp
+shaders/scene_structures.sp
 shaders/shader.frag
 shaders/shader.vert
 shaders/shadow-gen.frag
 shaders/shadow-gen.vert
+shaders/skinning.comp
 shaders/skybox.frag
 shaders/skybox.vert
 shaders/text.frag
 shaders/text.vert
 shaders/tonemap.frag
 shaders/transparent.frag
+shaders/vertex_compression.sp
 shaders/vignette.frag
 sounds/gylia shanty (cinfras county).mp3
 sounds/kalimba.mp3

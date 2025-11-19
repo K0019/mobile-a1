@@ -23,6 +23,7 @@ All rights reserved.
 #include <filesystem>
 #include <string>
 #include "CompileOptions.h"
+#include "CompilerTypes.h"
 #include "SceneLoader.h"
 
 namespace compiler
@@ -43,6 +44,7 @@ namespace compiler
         std::vector<std::filesystem::path> createdMeshFiles;
         std::vector<std::filesystem::path> createdMaterialFiles;
         std::vector<std::filesystem::path> createdTextureFiles;
+        std::vector<std::filesystem::path> createdAnimationFiles;
 
         std::vector<std::string> warnings;
         std::vector<std::string> errors;
@@ -56,9 +58,11 @@ namespace compiler
     private:
         SceneProcessingResult ProcessScene(Scene& scene, const MeshOptions& options);
 
-        void CompileTextures(const Scene& scene, CompilationResult& result);
+        std::map<TextureDataSource, std::filesystem::path> CompileTextures(const Scene& scene, CompilationResult& result);
         void SaveMeshes(const Scene& scene, CompilationResult& result);
-        void SaveMaterialData(const Scene& scene, CompilationResult& result);
+        void SaveMaterialData(const Scene& scene, CompilationResult& result, std::map<TextureDataSource, std::filesystem::path> savedTexturesMap);
+        void SaveAnimations(const Scene& scene, CompilationResult& result);
+        //void SaveSkeleton(const Scene& scene, CompilationResult& result);
 
         SceneLoader sceneLoader;
         CompilerOptions options;

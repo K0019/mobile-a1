@@ -64,7 +64,6 @@ void main() {
     gl_Position = mvp * vec4(worldPosition, 1.0);
 }
 )";
-
 static const char* codeFS = R"(
 #version 460 core
 
@@ -180,68 +179,50 @@ void GridFeature::SetupPasses(internal::RenderPassBuilder& passBuilder)
 {
   PassDeclarationInfo gPassInfo;
   gPassInfo.framebufferDebugName = "GridDraw";
-  gPassInfo.colorAttachments[0] = {.textureName = RenderResources::SCENE_COLOR,
-    .loadOp = vk::LoadOp::Load,
-    .storeOp = vk::StoreOp::Store};
-
-  gPassInfo.depthAttachment = {.textureName = RenderResources::SCENE_DEPTH,
-    .loadOp = vk::LoadOp::Load,
-    .storeOp = vk::StoreOp::Store};
-
-  passBuilder.CreatePass().UseResource(RenderResources::SCENE_COLOR,
-               AccessType::ReadWrite)
+  gPassInfo.colorAttachments[0] = {
+    .textureName = RenderResources::SCENE_COLOR, .loadOp = vk::LoadOp::Load, .storeOp = vk::StoreOp::Store
+  };
+  gPassInfo.depthAttachment = {
+    .textureName = RenderResources::SCENE_DEPTH, .loadOp = vk::LoadOp::Load, .storeOp = vk::StoreOp::Store
+  };
+  passBuilder.CreatePass().UseResource(RenderResources::SCENE_COLOR, AccessType::ReadWrite)
              // Declare as write since it's a render target
-             .UseResource(RenderResources::SCENE_DEPTH,AccessType::ReadWrite)
+             .UseResource(RenderResources::SCENE_DEPTH, AccessType::ReadWrite)
              // Declare as write since it's a depth target
-             .SetPriority(
-               internal::RenderPassBuilder::PassPriority::Transparent)
+             .SetPriority(internal::RenderPassBuilder::PassPriority::Transparent)
              // Optional: set priority
-             .AddGraphicsPass("GridDraw",
-               gPassInfo,
-               [this](const internal::ExecutionContext& context)
+             .AddGraphicsPass("GridDraw", gPassInfo, [this](const internal::ExecutionContext& context)
+             {
+               // Get target properties for pipeline creation
+               auto& cmd = context.GetvkCommandBuffer();
+               EnsurePipelineCreated(context);
+               const Parameters& params_ = *static_cast<const Parameters*>(GetParameterBlock_RT());
+               if (!pipeline_.valid())
                {
-                 // Get target properties for pipeline creation
-                 auto& cmd = context.GetvkCommandBuffer();
-
-                 EnsurePipelineCreated(context);
-
-                 const Parameters& params_ = *static_cast<const Parameters*>(
-                   GetParameterBlock_RT());
-                 if (!pipeline_.valid())
-                 {
-                   return;
-                 }
-                 struct PushConstant
-                 {
-                   mat4 mvp;
-                   vec4 cameraPos;
-                   vec4 origin;
-                   vec4 gridParams;
-                   // .x = majorGridDiv, .y = planeAxis (0=X, 1=Y, 2=Z)
-                 } pushConstants_;
-
-                 auto& framedata = context.GetFrameData();
-
-                 pushConstants_.mvp =
-                   framedata.projMatrix * framedata.viewMatrix;
-                 pushConstants_.cameraPos = vec4(framedata.cameraPos,1.0f);
-                 pushConstants_.origin = vec4(params_.originOffset,1.0f);
-                 pushConstants_.gridParams = vec4(
-                   static_cast<float>(params_.majorGridDivisions),
-                   static_cast<float>(params_.axis),
-                   0.0f,
-                   0.0f);
-
-                 cmd.cmdBindRenderPipeline(pipeline_);
-                 cmd.cmdBindDepthState({.compareOp = vk::CompareOp::Less,
-                   .isDepthWriteEnabled = false});
-                 cmd.cmdPushConstants(pushConstants_);
-                 cmd.cmdDraw(6);
-               });
+                 return;
+               }
+               struct PushConstant
+               {
+                 mat4 mvp;
+                 vec4 cameraPos;
+                 vec4 origin;
+                 vec4 gridParams;
+                 // .x = majorGridDiv, .y = planeAxis (0=X, 1=Y, 2=Z)
+               } pushConstants_;
+               auto& framedata = context.GetFrameData();
+               pushConstants_.mvp = framedata.projMatrix * framedata.viewMatrix;
+               pushConstants_.cameraPos = vec4(framedata.cameraPos, 1.0f);
+               pushConstants_.origin = vec4(params_.originOffset, 1.0f);
+               pushConstants_.gridParams = vec4(static_cast<float>(params_.majorGridDivisions),
+                                                static_cast<float>(params_.axis), 0.0f, 0.0f);
+               cmd.cmdBindRenderPipeline(pipeline_);
+               cmd.cmdBindDepthState({.compareOp = vk::CompareOp::Less, .isDepthWriteEnabled = false});
+               cmd.cmdPushConstants(pushConstants_);
+               cmd.cmdDraw(6);
+             });
 }
 
-void GridFeature::EnsurePipelineCreated(
-  const internal::ExecutionContext& context)
+void GridFeature::EnsurePipelineCreated(const internal::ExecutionContext& context)
 {
   const Parameters& params_ = *(const Parameters*)GetParameterBlock_RT();
   auto& ctx = context.GetvkContext();
@@ -250,26 +231,23 @@ void GridFeature::EnsurePipelineCreated(
   if (pipeline_.empty() || cachedSamples_ != params_.pipelineSamples)
   {
     pipeline_.reset();
-    vert_ = ctx.createShaderModule({codeVS,
-      vk::ShaderStage::Vert,
-      "Shader Module: Grid (vert)"});
-    frag_ = ctx.createShaderModule({codeFS,
-      vk::ShaderStage::Frag,
-      "Shader Module: Grid (frag)"});
-    pipeline_ = ctx.createRenderPipeline({.smVert = vert_,
-        .smFrag = frag_,
-        .color = {{.format = ctx.getFormat(handle),
-          .blendEnabled = true,
-          .alphaBlendOp = vk::BlendOp::Add,
-          .srcRGBBlendFactor = vk::BlendFactor::SrcAlpha,
-          .srcAlphaBlendFactor = vk::BlendFactor::Zero,
-          .dstRGBBlendFactor = vk::BlendFactor::OneMinusSrcAlpha,
-          .dstAlphaBlendFactor = vk::BlendFactor::One}},
-        .depthFormat = depth.valid() ? ctx.getFormat(depth) :
-                         vk::Format::Invalid,
-        .samplesCount = params_.pipelineSamples,
-        .debugName = "Pipeline: Draw Grid",},
-      nullptr);
+    vert_ = ctx.createShaderModule({codeVS, vk::ShaderStage::Vert, "Shader Module: Grid (vert)"});
+    frag_ = ctx.createShaderModule({codeFS, vk::ShaderStage::Frag, "Shader Module: Grid (frag)"});
+    pipeline_ = ctx.createRenderPipeline({
+                                           .smVert = vert_, .smFrag = frag_,
+                                           .color = {
+                                             {
+                                               .format = ctx.getFormat(handle), .blendEnabled = true,
+                                               .alphaBlendOp = vk::BlendOp::Add,
+                                               .srcRGBBlendFactor = vk::BlendFactor::SrcAlpha,
+                                               .srcAlphaBlendFactor = vk::BlendFactor::Zero,
+                                               .dstRGBBlendFactor = vk::BlendFactor::OneMinusSrcAlpha,
+                                               .dstAlphaBlendFactor = vk::BlendFactor::One
+                                             }
+                                           },
+                                           .depthFormat = depth.valid() ? ctx.getFormat(depth) : vk::Format::Invalid,
+                                           .samplesCount = params_.pipelineSamples, .debugName = "Pipeline: Draw Grid",
+                                         }, nullptr);
     cachedSamples_ = params_.pipelineSamples;
   }
 }

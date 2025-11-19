@@ -34,3 +34,8 @@ bool ResourceTexture::IsLoaded()
 {
     return handle.isValid();
 }
+
+bool ResourceAnimation::IsLoaded()
+{
+    return handle != Resource::INVALID_CLIP_ID;
+}

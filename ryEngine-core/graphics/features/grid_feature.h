@@ -1,5 +1,4 @@
 #pragma once
-
 #include "graphics/interface.h"
 #include "graphics/render_graph.h"
 
@@ -14,12 +13,12 @@ inline const char* AxisToString(const Axis e)
 {
   switch (e)
   {
-    case Axis::X:
-      return "X";
-    case Axis::Y:
-      return "Y";
-    case Axis::Z:
-      return "Z";
+  case Axis::X:
+    return "X";
+  case Axis::Y:
+    return "Y";
+  case Axis::Z:
+    return "Z";
   }
   return "";
 }
@@ -35,23 +34,22 @@ namespace render_feature_internal
   };
 }
 
-class GridFeature final : public RenderFeatureBase<
-    render_feature_internal::Grid_Parameters>
+class GridFeature final : public RenderFeatureBase<render_feature_internal::Grid_Parameters>
 {
-  public:
-    using Parameters = render_feature_internal::Grid_Parameters;
+public:
+  using Parameters = render_feature_internal::Grid_Parameters;
 
-    ~GridFeature() override;
+  ~GridFeature() override;
 
-    [[nodiscard]] const char* GetName() const override;
+  [[nodiscard]] const char* GetName() const override;
 
-    void SetupPasses(internal::RenderPassBuilder& passBuilder) override;
+  void SetupPasses(internal::RenderPassBuilder& passBuilder) override;
 
-  private:
-    void EnsurePipelineCreated(const internal::ExecutionContext& context);;
+private:
+  void EnsurePipelineCreated(const internal::ExecutionContext& context);;
 
-    uint32_t cachedSamples_ = 1;
-    vk::Holder<vk::ShaderModuleHandle> vert_;
-    vk::Holder<vk::ShaderModuleHandle> frag_;
-    vk::Holder<vk::RenderPipelineHandle> pipeline_;
+  uint32_t cachedSamples_ = 1;
+  vk::Holder<vk::ShaderModuleHandle> vert_;
+  vk::Holder<vk::ShaderModuleHandle> frag_;
+  vk::Holder<vk::RenderPipelineHandle> pipeline_;
 };

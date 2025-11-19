@@ -50,7 +50,6 @@ void main() {
     gl_Position = proj * vec4(v.x, v.y, 0, 1);
 }
 )";
-
   static const char* kFragmentShader = R"(
 layout (location = 0) in vec4 in_color;
 layout (location = 1) in vec2 in_uv;
@@ -74,117 +73,89 @@ void main() {
 
   void ImGuiRenderFeature::SetupPasses(internal::RenderPassBuilder& passBuilder)
   {
-    vk::BufferDesc vertexDesc{ .usage = vk::BufferUsageBits_Storage,
-      .storage = vk::StorageType::HostVisible,
-      .size = 64 * 1024,
+    vk::BufferDesc vertexDesc{
+      .usage = vk::BufferUsageBits_Storage, .storage = vk::StorageType::HostVisible, .size = 64 * 1024,
     };
-
-    vk::BufferDesc indexDesc{ .usage = vk::BufferUsageBits_Index,
-      .storage = vk::StorageType::HostVisible,
-      .size = 32 * 1024,
+    vk::BufferDesc indexDesc{
+      .usage = vk::BufferUsageBits_Index, .storage = vk::StorageType::HostVisible, .size = 32 * 1024,
     };
-
     PassDeclarationInfo passInfo;
     passInfo.framebufferDebugName = "ImGuiOverlay";
-    passInfo.colorAttachments[0] = { .textureName = RenderResources::SCENE_COLOR, .loadOp = vk::LoadOp::Load, .storeOp = vk::StoreOp::Store, };
-
-    passBuilder.CreatePass()
-      .DeclareTransientResource("ImGuiSceneView", vk::TextureDesc{
-          .type = vk::TextureType::Tex2D,
-          .format = vk::Format::Invalid,
-          .dimensions = ResourceProperties::SWAPCHAIN_RELATIVE_DIMENSIONS,
-          .usage = vk::TextureUsageBits_Sampled })
-          .UseResource(RenderResources::SCENE_COLOR, AccessType::Read)
-      .UseResource("ImGuiSceneView", AccessType::Write)
-      .SetPriority(internal::RenderPassBuilder::PassPriority::UI)
-      .AddGenericPass("CopySceneForImGui", [this](const internal::ExecutionContext& context) {
-      CopySceneForImGuiView(context);
-    });
-    passBuilder.CreatePass().
-      DeclareTransientResource("ImGuiVertexBuffer", vertexDesc).
-      DeclareTransientResource("ImGuiIndexBuffer", indexDesc).
-      UseResource(RenderResources::SCENE_COLOR, AccessType::ReadWrite).
-      UseResource("ImGuiVertexBuffer", AccessType::ReadWrite).
-      UseResource("ImGuiIndexBuffer", AccessType::ReadWrite).
-      SetPriority(internal::RenderPassBuilder::PassPriority::UI).
-      ExecuteAfter("CopySceneForImGui").
-      AddGraphicsPass("ImGuiRender",
-                      passInfo,
-                      [this](const internal::ExecutionContext& context)
-    {
-      RenderImGui(context);
-    });
+    passInfo.colorAttachments[0] = {
+      .textureName = RenderResources::SCENE_COLOR, .loadOp = vk::LoadOp::Load, .storeOp = vk::StoreOp::Store,
+    };
+    passBuilder.CreatePass().DeclareTransientResource("ImGuiSceneView", vk::TextureDesc{
+                                                        .type = vk::TextureType::Tex2D, .format = vk::Format::Invalid,
+                                                        .dimensions = ResourceProperties::SWAPCHAIN_RELATIVE_DIMENSIONS,
+                                                        .usage = vk::TextureUsageBits_Sampled
+                                                      }).UseResource(RenderResources::SCENE_COLOR, AccessType::Read).
+                UseResource("ImGuiSceneView", AccessType::Write).SetPriority(
+                  internal::RenderPassBuilder::PassPriority::UI).
+                AddGenericPass("CopySceneForImGui", [this](const internal::ExecutionContext& context)
+                {
+                  CopySceneForImGuiView(context);
+                });
+    passBuilder.CreatePass().DeclareTransientResource("ImGuiVertexBuffer", vertexDesc).
+                DeclareTransientResource("ImGuiIndexBuffer", indexDesc).
+                UseResource(RenderResources::SCENE_COLOR, AccessType::ReadWrite).
+                UseResource("ImGuiVertexBuffer", AccessType::ReadWrite).
+                UseResource("ImGuiIndexBuffer", AccessType::ReadWrite).
+                SetPriority(internal::RenderPassBuilder::PassPriority::UI).ExecuteAfter("CopySceneForImGui").
+                AddGraphicsPass("ImGuiRender", passInfo, [this](const internal::ExecutionContext& context)
+                {
+                  RenderImGui(context);
+                });
   }
 
   void ImGuiRenderFeature::EnsurePipelineCreated(const internal::ExecutionContext& context)
   {
-    if(resourcesCreated_)
-      return;
-
+    if (resourcesCreated_) return;
     vk::IContext& vkContext = context.GetvkContext();
-
-    vertShader_ = vkContext.createShaderModule({ kVertexShader, vk::ShaderStage::Vert, "ImGui Vertex Shader" });
-    fragShader_ = vkContext.createShaderModule({ kFragmentShader, vk::ShaderStage::Frag, "ImGui Fragment Shader" });
-
+    vertShader_ = vkContext.createShaderModule({kVertexShader, vk::ShaderStage::Vert, "ImGui Vertex Shader"});
+    fragShader_ = vkContext.createShaderModule({kFragmentShader, vk::ShaderStage::Frag, "ImGui Fragment Shader"});
     fontSampler_ = vkContext.createSampler({
-    .wrapU = vk::SamplerWrap::Clamp,
-    .wrapV = vk::SamplerWrap::Clamp,
-    .wrapW = vk::SamplerWrap::Clamp,
-    .debugName = "ImGui Font Sampler"
-});
-
+      .wrapU = vk::SamplerWrap::Clamp, .wrapV = vk::SamplerWrap::Clamp, .wrapW = vk::SamplerWrap::Clamp,
+      .debugName = "ImGui Font Sampler"
+    });
     resourcesCreated_ = true;
   }
 
   void ImGuiRenderFeature::RenderImGui(const internal::ExecutionContext& context)
   {
     const Parameters& params = *static_cast<const Parameters*>(GetParameterBlock_RT());
-
-    if(!params.enabled || !params.hasNewFrame)
-      return;
-
+    if (!params.enabled || !params.hasNewFrame) return;
     ImDrawData* drawData = ImGui::GetDrawData();
-    if(!drawData || drawData->TotalVtxCount == 0 || drawData->TotalIdxCount == 0 || drawData->CmdListsCount == 0)
+    if (!drawData || drawData->TotalVtxCount == 0 || drawData->TotalIdxCount == 0 || drawData->CmdListsCount == 0)
     {
       return;
     }
-
     static_assert(sizeof(ImDrawIdx) == 2, "ImDrawIdx must be 16-bit");
-
     EnsurePipelineCreated(context);
-
     vk::ICommandBuffer& cmd = context.GetvkCommandBuffer();
     vk::IContext& vkContext = context.GetvkContext();
-
     const float fbWidth = drawData->DisplaySize.x * drawData->FramebufferScale.x;
     const float fbHeight = drawData->DisplaySize.y * drawData->FramebufferScale.y;
-
-    if(fbWidth <= 0 || fbHeight <= 0)
-      return;
+    if (fbWidth <= 0 || fbHeight <= 0) return;
     // Calculate required sizes
     const size_t requiredVertexSize = drawData->TotalVtxCount * sizeof(ImDrawVert);
     const size_t requiredIndexSize = drawData->TotalIdxCount * sizeof(ImDrawIdx);
-
     // Resize buffers if needed - render graph handles frame isolation automatically
-    if(requiredVertexSize > context.GetBufferSize("ImGuiVertexBuffer"))
+    if (requiredVertexSize > context.GetBufferSize("ImGuiVertexBuffer"))
     {
       context.ResizeBuffer("ImGuiVertexBuffer", requiredVertexSize);
     }
-    if(requiredIndexSize > context.GetBufferSize("ImGuiIndexBuffer"))
+    if (requiredIndexSize > context.GetBufferSize("ImGuiIndexBuffer"))
     {
       context.ResizeBuffer("ImGuiIndexBuffer", requiredIndexSize);
     }
-
     // Get automatically frame-buffered resources - no manual cycling needed
     vk::BufferHandle vertexBuffer = context.GetBuffer("ImGuiVertexBuffer");
     vk::BufferHandle indexBuffer = context.GetBuffer("ImGuiIndexBuffer");
-
     // Upload data - same as before but using render graph buffers
     {
       ImDrawVert* vtx = reinterpret_cast<ImDrawVert*>(vkContext.getMappedPtr(vertexBuffer));
       uint16_t* idx = reinterpret_cast<uint16_t*>(vkContext.getMappedPtr(indexBuffer));
-
-      for(int n = 0; n < drawData->CmdListsCount; n++)
+      for (int n = 0; n < drawData->CmdListsCount; n++)
       {
         const ImDrawList* cmdList = drawData->CmdLists[n];
         std::memcpy(vtx, cmdList->VtxBuffer.Data, cmdList->VtxBuffer.Size * sizeof(ImDrawVert));
@@ -192,109 +163,104 @@ void main() {
         vtx += cmdList->VtxBuffer.Size;
         idx += cmdList->IdxBuffer.Size;
       }
-
       vkContext.flushMappedMemory(vertexBuffer, 0, requiredVertexSize);
       vkContext.flushMappedMemory(indexBuffer, 0, requiredIndexSize);
     }
-
     // Create pipeline if needed - same as before
-    if(pipeline_.empty())
+    if (pipeline_.empty())
     {
       vk::TextureHandle sceneColor = context.GetTexture(RenderResources::SCENE_COLOR);
       const bool needsLinearColorSpace = vkContext.getSwapchainColorSpace() == vk::ColorSpace::SRGB_LINEAR;
       const uint32_t linearColorSpaceFlag = needsLinearColorSpace ? 1u : 0u;
-      pipeline_ = vkContext.createRenderPipeline({ .smVert = vertShader_, .smFrag = fragShader_, .specInfo = {.entries = {{.constantId = 0, .size = sizeof(linearColorSpaceFlag)}}, .data = &linearColorSpaceFlag, .dataSize = sizeof(linearColorSpaceFlag)}, .color = {{.format = vkContext.getFormat(sceneColor), .blendEnabled = true, .srcRGBBlendFactor = vk::BlendFactor::SrcAlpha, .dstRGBBlendFactor = vk::BlendFactor::OneMinusSrcAlpha,}}, .depthFormat = vk::Format::Invalid, .cullMode = vk::CullMode::None, .debugName = "ImGui Render Pipeline" }, nullptr);
+      pipeline_ = vkContext.createRenderPipeline({
+                                                   .smVert = vertShader_, .smFrag = fragShader_,
+                                                   .specInfo = {
+                                                     .entries = {
+                                                       {.constantId = 0, .size = sizeof(linearColorSpaceFlag)}
+                                                     },
+                                                     .data = &linearColorSpaceFlag,
+                                                     .dataSize = sizeof(linearColorSpaceFlag)
+                                                   },
+                                                   .color = {
+                                                     {
+                                                       .format = vkContext.getFormat(sceneColor), .blendEnabled = true,
+                                                       .srcRGBBlendFactor = vk::BlendFactor::SrcAlpha,
+                                                       .dstRGBBlendFactor = vk::BlendFactor::OneMinusSrcAlpha,
+                                                     }
+                                                   },
+                                                   .depthFormat = vk::Format::Invalid,
+                                                   .cullMode = vk::CullMode::None, .debugName = "ImGui Render Pipeline"
+                                                 }, nullptr);
     }
-
     // Render setup and commands - unchanged except using render graph buffers
     cmd.cmdBindDepthState({});
-    cmd.cmdBindViewport({ .x = 0.0f, .y = 0.0f, .width = fbWidth, .height = fbHeight, });
-
+    cmd.cmdBindViewport({.x = 0.0f, .y = 0.0f, .width = fbWidth, .height = fbHeight,});
     const float L = drawData->DisplayPos.x;
     const float R = drawData->DisplayPos.x + drawData->DisplaySize.x;
     const float T = drawData->DisplayPos.y;
     const float B = drawData->DisplayPos.y + drawData->DisplaySize.y;
-
     const ImVec2 clipOff = drawData->DisplayPos;
     const ImVec2 clipScale = drawData->FramebufferScale;
-
     uint32_t idxOffset = 0;
     uint32_t vtxOffset = 0;
-
     cmd.cmdBindIndexBuffer(indexBuffer, vk::IndexFormat::UI16);
     cmd.cmdBindRenderPipeline(pipeline_);
-
     // Render commands - same as before
-    for(int n = 0; n < drawData->CmdListsCount; n++)
+    for (int n = 0; n < drawData->CmdListsCount; n++)
     {
       const ImDrawList* cmdList = drawData->CmdLists[n];
-
-      for(int cmdIdx = 0; cmdIdx < cmdList->CmdBuffer.Size; cmdIdx++)
+      for (int cmdIdx = 0; cmdIdx < cmdList->CmdBuffer.Size; cmdIdx++)
       {
         const ImDrawCmd& drawCmd = cmdList->CmdBuffer[cmdIdx];
-
-        if(drawCmd.UserCallback)
-          continue;
-
+        if (drawCmd.UserCallback) continue;
         ImVec2 clipMin((drawCmd.ClipRect.x - clipOff.x) * clipScale.x, (drawCmd.ClipRect.y - clipOff.y) * clipScale.y);
         ImVec2 clipMax((drawCmd.ClipRect.z - clipOff.x) * clipScale.x, (drawCmd.ClipRect.w - clipOff.y) * clipScale.y);
-
         clipMin.x = std::max(clipMin.x, 0.0f);
         clipMin.y = std::max(clipMin.y, 0.0f);
         clipMax.x = std::min(clipMax.x, fbWidth);
         clipMax.y = std::min(clipMax.y, fbHeight);
-
-        if(clipMax.x <= clipMin.x || clipMax.y <= clipMin.y)
-          continue;
-
+        if (clipMax.x <= clipMin.x || clipMax.y <= clipMin.y) continue;
         struct VulkanImguiBindData
         {
           float LRTB[4];
           uint64_t vb = 0;
           uint32_t textureId = 0;
           uint32_t samplerId = 0;
-        } bindData = { .LRTB = {L, R, T, B},
-          .vb = vkContext.gpuAddress(vertexBuffer),
-          // Using render graph buffer
-          .textureId = static_cast<uint32_t>(drawCmd.TextureId),
-          .samplerId = fontSampler_.index(), };
-
+        } bindData = {
+            .LRTB = {L, R, T, B}, .vb = vkContext.gpuAddress(vertexBuffer),
+            // Using render graph buffer
+            .textureId = static_cast<uint32_t>(drawCmd.TextureId), .samplerId = fontSampler_.index(),
+          };
         cmd.cmdPushConstants(bindData);
-        cmd.cmdBindScissorRect({ .x = static_cast<uint32_t>(clipMin.x), .y = static_cast<uint32_t>(clipMin.y), .width = static_cast<uint32_t>(clipMax.x - clipMin.x), .height = static_cast<uint32_t>(clipMax.y - clipMin.y) });
-
-        cmd.cmdDrawIndexed(drawCmd.ElemCount, 1u, idxOffset + drawCmd.IdxOffset, static_cast<int32_t>(vtxOffset + drawCmd.VtxOffset));
+        cmd.cmdBindScissorRect({
+          .x = static_cast<uint32_t>(clipMin.x), .y = static_cast<uint32_t>(clipMin.y),
+          .width = static_cast<uint32_t>(clipMax.x - clipMin.x), .height = static_cast<uint32_t>(clipMax.y - clipMin.y)
+        });
+        cmd.cmdDrawIndexed(drawCmd.ElemCount, 1u, idxOffset + drawCmd.IdxOffset,
+                           static_cast<int32_t>(vtxOffset + drawCmd.VtxOffset));
       }
-
       idxOffset += cmdList->IdxBuffer.Size;
       vtxOffset += cmdList->VtxBuffer.Size;
     }
   }
 
-  void ImGuiRenderFeature::CopySceneForImGuiView(
-    const internal::ExecutionContext& context)
+  void ImGuiRenderFeature::CopySceneForImGuiView(const internal::ExecutionContext& context)
   {
     vk::TextureHandle sceneColor = context.GetTexture(RenderResources::SCENE_COLOR);
     vk::TextureHandle sceneView = context.GetTexture("ImGuiSceneView");
-
-    if(!sceneColor.valid() || !sceneView.valid())
+    if (!sceneColor.valid() || !sceneView.valid())
     {
       return;
     }
-
     vk::ICommandBuffer& cmd = context.GetvkCommandBuffer();
     vk::IContext& vkContext = context.GetvkContext();
-
     vk::Dimensions sceneDims = vkContext.getDimensions(sceneColor);
     vk::Dimensions viewDims = vkContext.getDimensions(sceneView);
-
     vk::Dimensions copyExtent = {
-        .width = std::min(sceneDims.width, viewDims.width),
-        .height = std::min(sceneDims.height, viewDims.height),
-        .depth = 1
+      .width = std::min(sceneDims.width, viewDims.width), .height = std::min(sceneDims.height, viewDims.height),
+      .depth = 1
     };
-
-    cmd.cmdCopyImage(sceneColor, sceneView, copyExtent,
-                     vk::Offset3D{ 0, 0, 0 }, vk::Offset3D{ 0, 0, 0 },
-                     vk::TextureLayers{ 0, 0, 1 }, vk::TextureLayers{ 0, 0, 1 });
+    cmd.cmdCopyImage(sceneColor, sceneView, copyExtent, vk::Offset3D{0, 0, 0}, vk::Offset3D{0, 0, 0},
+                     vk::TextureLayers{0, 0, 1}, vk::TextureLayers{0, 0, 1});
   }
 } // namespace editor

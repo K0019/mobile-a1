@@ -38,6 +38,7 @@ All rights reserved.
 #include "Editor/MeshTab.h"
 #include "Editor/MaterialTab.h"
 #include "Editor/TextureTab.h"
+#include "Editor/AnimationsTab.h"
 #include "Editor/SoundTab.h"
 #include "Editor/SceneTab.h"
 #include "Editor/FileBrowserTab.h"
@@ -57,6 +58,7 @@ namespace editor {
         assetCategories.push_back(std::make_shared<MeshTab>());
         assetCategories.push_back(std::make_shared<MaterialTab>());
         assetCategories.push_back(std::make_shared<TextureTab>());
+        assetCategories.push_back(std::make_shared<AnimationsTab>());
         assetCategories.push_back(std::make_shared<PrefabTab>());
         assetCategories.push_back(std::make_shared<SceneTab>());
         assetCategories.push_back(std::make_shared<SoundTab>());

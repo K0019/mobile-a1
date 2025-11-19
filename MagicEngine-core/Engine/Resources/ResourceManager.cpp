@@ -36,6 +36,7 @@ void MagicResourceManager::Init()
     INTERNAL_GetContainer<ResourceMesh>();
     INTERNAL_GetContainer<ResourceMaterial>();
     INTERNAL_GetContainer<ResourceTexture>();
+    INTERNAL_GetContainer<ResourceAnimation>();
 }
 void MagicResourceManager::Shutdown()
 {
