@@ -10,15 +10,20 @@
  *
  * Licensed under the MIT License. See LICENSE for more details.
  */
+
 #pragma once
+
 #define VMA_VULKAN_VERSION 1003000
 #define VMA_STATIC_VULKAN_FUNCTIONS 0
 #define VMA_DYNAMIC_VULKAN_FUNCTIONS 1
+
 // set to 1 to see very verbose debug console logs with Vulkan commands
 #define VULKAN_PRINT_COMMANDS 0
+
 #if !defined(VK_NO_PROTOTYPES)
 #define VK_NO_PROTOTYPES 1
 #endif // !defined(VK_NO_PROTOTYPES)
+
 #include <cassert>
 #include <cstdio>
 #include <vector>
@@ -76,28 +81,19 @@ namespace vk
 
   glslang_resource_t getGlslangResource(const VkPhysicalDeviceLimits& limits);
 
-  Result compileShader(VkShaderStageFlagBits stage, const char* code, std::vector<uint8_t>* outSPIRV,
-                       const glslang_resource_t* glslLangResource = nullptr);
+  Result compileShader(VkShaderStageFlagBits stage, const char* code, std::vector<uint8_t>* outSPIRV, const glslang_resource_t* glslLangResource = nullptr);
 
-  VkSamplerCreateInfo samplerStateDescToVkSamplerCreateInfo(const SamplerStateDesc& desc,
-                                                            const VkPhysicalDeviceLimits& limits);
+  VkSamplerCreateInfo samplerStateDescToVkSamplerCreateInfo(const SamplerStateDesc& desc, const VkPhysicalDeviceLimits& limits);
 
-  VkDescriptorSetLayoutBinding getDSLBinding(uint32_t binding, VkDescriptorType descriptorType,
-                                             uint32_t descriptorCount, VkShaderStageFlags stageFlags,
-                                             const VkSampler* immutableSamplers = nullptr);
+  VkDescriptorSetLayoutBinding getDSLBinding(uint32_t binding, VkDescriptorType descriptorType, uint32_t descriptorCount, VkShaderStageFlags stageFlags, const VkSampler* immutableSamplers = nullptr);
 
-  VkSpecializationInfo getPipelineShaderStageSpecializationInfo(SpecializationConstantDesc desc,
-                                                                VkSpecializationMapEntry* outEntries);
+  VkSpecializationInfo getPipelineShaderStageSpecializationInfo(SpecializationConstantDesc desc, VkSpecializationMapEntry* outEntries);
 
-  VkPipelineShaderStageCreateInfo getPipelineShaderStageCreateInfo(VkShaderStageFlagBits stage,
-                                                                   VkShaderModule shaderModule, const char* entryPoint,
-                                                                   const VkSpecializationInfo* specializationInfo);
+  VkPipelineShaderStageCreateInfo getPipelineShaderStageCreateInfo(VkShaderStageFlagBits stage, VkShaderModule shaderModule, const char* entryPoint, const VkSpecializationInfo* specializationInfo);
 
   StageAccess getPipelineStageAccess(VkImageLayout layout);
 
-  void imageMemoryBarrier2(VkCommandBuffer buffer, VkImage image, StageAccess src, StageAccess dst,
-                           VkImageLayout oldImageLayout, VkImageLayout newImageLayout,
-                           VkImageSubresourceRange subresourceRange);
+  void imageMemoryBarrier2(VkCommandBuffer buffer, VkImage image, StageAccess src, StageAccess dst, VkImageLayout oldImageLayout, VkImageLayout newImageLayout, VkImageSubresourceRange subresourceRange);
 
   VkSampleCountFlagBits getVulkanSampleCountFlags(uint32_t numSamples, VkSampleCountFlags maxSamplesMask);
 
