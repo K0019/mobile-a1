@@ -141,6 +141,34 @@
             ]
         },
         {
+            "filepath": "compiledassets/chair.mesh",
+            "resources": [
+                {
+                    "resourceType": 6209910166724260588,
+                    "resourceEntries": [
+                        {
+                            "hash": 161358829201315781,
+                            "name": "chair0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/materials/standardsurface1.001.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 155322510364825539,
+                            "name": "standardsurface1.0010"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/materials/n00_008_01_shoes_01_cloth_01 (instance).material",
             "resources": [
                 {
@@ -303,6 +331,20 @@
                         {
                             "hash": 239440647510279251,
                             "name": "_130"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/materials/material_2.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 161618313946312541,
+                            "name": "material_20"
                         }
                     ]
                 }
@@ -485,6 +527,20 @@
                         {
                             "hash": 245612206276985939,
                             "name": "_140"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/materials/material.001.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 157414880993324893,
+                            "name": "material.0010"
                         }
                     ]
                 }
