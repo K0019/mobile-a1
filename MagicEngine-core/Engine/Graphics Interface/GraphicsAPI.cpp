@@ -31,6 +31,7 @@ All rights reserved.
 #include "fa.h"
 #include "graphics/features/ui2d_render_feature.h"
 #include "graphics/ui/ui_immediate.h"
+#include "VFS/VFS.h"
 
 GraphicsMain::GraphicsMain()
     : sceneFeatureHandle{}
@@ -55,11 +56,8 @@ void GraphicsMain::Init(Context inContext)
 	gridHandle = context.renderer->CreateFeature<GridFeature>();
 	ui2dFeatureHandle = context.renderer->CreateFeature<Ui2DRenderFeature>();
 
-
-
 #ifdef IMGUI_ENABLED
-	InitImGui(Filepaths::assets + "/Fonts" + "/Lato-Regular.ttf");
-	//InitImGui(Filepaths::fontsSave + "/Lato-Regular.ttf");
+	InitImGui(Filepaths::fontsSave + "/Lato-Regular.ttf");
 #endif
 }
 
@@ -939,6 +937,8 @@ bool GraphicsMain::GetIsPendingShutdown() const
 #ifdef IMGUI_ENABLED
 void GraphicsMain::InitImGui(const std::string& fontfile)
 {
+	const std::string physicalFilepath{ VFS::ConvertVirtualToPhysical(fontfile) };
+
 	imguiContext = std::make_unique<editor::ImGuiContext>(context);
 	SetImGuiStyle();
 
@@ -953,7 +953,7 @@ void GraphicsMain::InitImGui(const std::string& fontfile)
 	icons_config.MergeMode = true; // Merge icon font to the previous font if you want to have both icons and text
 	icons_config.PixelSnapH = true;
 	icons_config.GlyphMinAdvanceX = iconFontSize;
-	io.Fonts->AddFontFromFileTTF(fontfile.c_str(), baseFontSize);
+	io.Fonts->AddFontFromFileTTF(physicalFilepath.c_str(), baseFontSize);
 	io.Fonts->AddFontFromMemoryCompressedTTF(FA_compressed_data, FA_compressed_size, iconFontSize, &icons_config, icons_ranges);
 
 	imguiContext->rebuildFontAtlas();
@@ -963,7 +963,7 @@ void GraphicsMain::InitImGui(const std::string& fontfile)
 
 	// Create a separate font for UI2D immediate mode rendering
 	size_t dataSize = 0;
-	void* rawData = ImFileLoadToMemory(fontfile.c_str(), "rb", &dataSize, 0); // <- fix this to use VFS in android builds
+	void* rawData = ImFileLoadToMemory(physicalFilepath.c_str(), "rb", &dataSize, 0);
 	if (rawData && dataSize > 0)
 	{
 		std::vector fontBytes(static_cast<uint8_t*>(rawData), static_cast<uint8_t*>(rawData) + dataSize);
