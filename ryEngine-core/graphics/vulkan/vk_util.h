@@ -27,6 +27,10 @@
 #include "graphics/interface.h"
 #include "vulkan/vk_enum_string_helper.h"
 #include "logging/log.h"
+
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+
 #define VK_ASSERT(func)                                                  \
   {                                                                      \
     const VkResult vk_assert_result = func;                              \

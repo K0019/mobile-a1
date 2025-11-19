@@ -22,6 +22,11 @@ if (NOT ANDROID)
         imgui::imgui
         imguizmo::imguizmo
         Jolt::Jolt
+        RecastNavigation::Recast
+        RecastNavigation::Detour
+        RecastNavigation::DetourCrowd
+        RecastNavigation::DetourTileCache
+        RecastNavigation::DebugUtils
         KTX::ktx
         Boost::boost
         ${LUA_LIBRARIES}
@@ -33,6 +38,11 @@ else()
         glm::glm-header-only
         Jolt::Jolt
         fmt::fmt
+        RecastNavigation::Recast
+        RecastNavigation::Detour
+        RecastNavigation::DetourCrowd
+        RecastNavigation::DetourTileCache
+        RecastNavigation::DebugUtils
         ${LUA_LIBRARIES}
     )
 
