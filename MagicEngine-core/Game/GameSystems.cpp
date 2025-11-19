@@ -28,13 +28,11 @@ All rights reserved.
 
 #include "Graphics/RenderComponent.h"
 #include "Graphics/AnimationComponent.h"
-#include "Graphics/PostProcessingComponent.h"
 #include "Graphics/CustomViewport.h"
 #include "Scripting/ScriptComponent.h"
 
 #include "Graphics/CameraSystem.h"
 #include "Tween/TweenECS.h"
-#include "Game/AudioListener.h"
 #include "Game/GameCameraController.h"
 #include "Game/GrabbableItem.h"
 #include "Game/PlayerCharacter.h"
@@ -61,9 +59,7 @@ void GameState_Common::OnEnter()
 {
     // RenderSystem and LightingSystem removed - GraphicsMain now reads directly from ECS components
     ecs::AddSystem(ECS_LAYER::RENDER_0, AnimationSystem{});
-    ecs::AddSystem(ECS_LAYER::RENDER_0, PostProcessingSystem{});
     ecs::AddSystem(ECS_LAYER::AUDIO, AudioSystem{});
-    ecs::AddSystem(ECS_LAYER::AUDIO, AudioListenerSystem{});
 }
 
 void GameState_Editor::OnEnter()

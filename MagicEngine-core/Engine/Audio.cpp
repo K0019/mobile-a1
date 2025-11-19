@@ -65,6 +65,15 @@ void AudioSourceComponent::EditorDraw()
 	//gui::VarDefaultTextBox("Audio Resource", &audioFile);
 }
 
+AudioListenerComponent::AudioListenerComponent()
+{
+}
+
+void AudioListenerComponent::EditorDraw()
+{
+	gui::TextUnformatted("Make sure you only have one of this component in the scene!");
+}
+
 bool AudioSystem::PreRun()
 {
 	ST<AudioManager>::Get()->Update();

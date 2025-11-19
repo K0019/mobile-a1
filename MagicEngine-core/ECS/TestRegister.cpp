@@ -53,4 +53,5 @@ void RegisterShit()
 	IRegisteredComponent<ScriptComponent>::RegisterComponent();
 	IRegisteredComponent<navmesh::NavMeshSurfaceComp>::RegisterComponent();
 	IRegisteredComponent<navmesh::NavMeshAgentComp>::RegisterComponent();
+	IRegisteredComponent<AudioListenerComponent>::RegisterComponent();
 }

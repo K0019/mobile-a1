@@ -3,6 +3,7 @@
 #include "Engine/Resources/ResourceManager.h"
 #include "../../ryEngine-core/VFS/VFS.h"
 #include "../../ryEngine-core/VFS/IFileStream.h"
+#include "Engine/Audio.h"
 
 // Macro sprinkler for FMOD error, we don't need a function call stack for this
 // If condition tests against FMOD_OK (which is 0)
@@ -61,6 +62,13 @@ void AudioManager::Initialise()
 
 void AudioManager::Update()
 {
+	// Update listeners first, before calling update
+	auto begin = ecs::GetCompsActiveBegin<AudioListenerComponent>();
+	auto end = ecs::GetCompsEnd<AudioListenerComponent>();
+	if (begin != end)
+	{
+		UpdateListener(begin.GetEntity()->GetTransform().GetWorldPosition(), Vec3{0.0f, 0.0f, 0.0f});
+	}
 	FMOD_ASSERT(fmod_studio->update());
 }
 
