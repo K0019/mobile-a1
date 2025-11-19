@@ -128,9 +128,9 @@ endforeach()
 if (NOT ANDROID)
     target_compile_options(MagicEngine-Core PRIVATE /bigobj /utf-8)
 
-# Debug renderer for Jolt
-target_compile_definitions(Jolt::Jolt INTERFACE JPH_DEBUG_RENDERER)
-# Check if a STATIC vcpkg triplet was used anywhere
+    # Debug renderer for Jolt
+    target_compile_definitions(Jolt::Jolt INTERFACE JPH_DEBUG_RENDERER)
+    # Check if a STATIC vcpkg triplet was used anywhere
     if (VCPKG_TARGET_TRIPLET MATCHES "-static")
         # Ensure ALL targets (Core, Editor, etc.) use the Static C Runtime
         set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>" CACHE STRING "" FORCE)

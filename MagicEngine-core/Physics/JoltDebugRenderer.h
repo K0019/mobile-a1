@@ -2,7 +2,6 @@
 #include <Jolt/Jolt.h>
 #include <Jolt/Renderer/DebugRendererSimple.h>
 #include <im3d.h>
-#include <iostream>
 
 class JoltDebugRenderer : public JPH::DebugRendererSimple {
 public:
