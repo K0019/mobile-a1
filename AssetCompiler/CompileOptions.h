@@ -124,7 +124,7 @@ namespace compiler
 
         float quality = 0.05f; // 0.0f-1.0f
 
-        bool generateMipmaps;
+        bool generateMipmaps = false;
         int mipCount = 1;
 
         // Tiling and Wrapping requires their own settings
