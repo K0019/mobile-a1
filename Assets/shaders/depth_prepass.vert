@@ -49,5 +49,5 @@ void main()
   gl_Position = pc.frameConstants.constants.viewProj * vec4(worldPosition, 1.0);
 
   // Output draw ID for visibility buffer (primitiveID available in fragment shader)
-  outDrawID = gl_DrawID;
+  outDrawID = gl_BaseInstance;
 }

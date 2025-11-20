@@ -120,6 +120,68 @@ void CustomViewport::DrawWindow()
 		ImGui::Image(*sceneColorID, renderSize, ImVec2(0, 0), ImVec2(1, 1));
 	}
 
+	// Left click to pick objects (when not dragging camera with right mouse)
+	static bool wasLeftMouseDown = false;
+	bool isLeftMouseDown = Input::GetMouseButton(MouseButton::Left);
+	bool leftClickJustPressed = isLeftMouseDown && !wasLeftMouseDown;
+	wasLeftMouseDown = isLeftMouseDown;
+
+	if (leftClickJustPressed && !Input::GetMouseButton(MouseButton::Right))
+	{
+		ImVec2 mousePos = ImGui::GetMousePos();
+		int screenX = static_cast<int>(mousePos.x);
+		int screenY = static_cast<int>(mousePos.y);
+
+		// Convert to viewport-relative coordinates first
+		float viewportRelativeX = mousePos.x - (windowPosAbsolute.x + contentMin.x);
+		float viewportRelativeY = mousePos.y - (windowPosAbsolute.y + contentMin.y);
+
+		// Check if mouse is within the viewport bounds
+		bool isInViewport = (viewportRelativeX >= 0 && viewportRelativeX < viewportRenderSize.x &&
+			viewportRelativeY >= 0 && viewportRelativeY < viewportRenderSize.y);
+
+			if (isInViewport)
+			{
+
+				// Get the actual render target dimensions
+				auto sceneColorID = ST<GraphicsMain>::Get()->GetImGuiContext()
+					.GetTransientRegistry().QueryBindlessID("ImGuiSceneView");
+
+				// Calculate the actual render target size
+				// You may need to get this from your graphics system
+				// For now, assuming it matches your configured width/height
+				float renderTargetWidth = static_cast<float>(width);
+				float renderTargetHeight = static_cast<float>(height);
+
+				// Convert viewport coordinates to render target coordinates
+				float normalizedX = viewportRelativeX / viewportRenderSize.x;
+				float normalizedY = viewportRelativeY / viewportRenderSize.y;
+
+				int screenX = static_cast<int>(normalizedX * renderTargetWidth);
+				int screenY = static_cast<int>(normalizedY * renderTargetHeight);
+
+				// Clamp to render target bounds
+				screenX = std::max(0, std::min(screenX, static_cast<int>(renderTargetWidth) - 1));
+				screenY = std::max(0, std::min(screenY, static_cast<int>(renderTargetHeight) - 1));
+
+				if (ST<GraphicsMain>::Get()->RequestObjPick(screenX, screenY))
+				{
+					// Debug output
+					// std::cout << "Object pick requested at render target position (" << screenX << ", " << screenY << ")\n";
+					// std::cout << "  Viewport position: (" << viewportRelativeX << ", " << viewportRelativeY << ")\n";
+					// std::cout << "  Render target size: " << renderTargetWidth << "x" << renderTargetHeight << "\n";
+				}
+			}
+		}
+
+		// Check for pick rsult from previous frame
+		ecs::EntityHandle pickedEntity = ST<GraphicsMain>::Get()->PreviousPick();
+		if (pickedEntity)
+		{
+			ST<EventsQueue>::Get()->AddEventForNextFrame(Events::EditorSelectEntity{ pickedEntity });
+		}
+
+
 	m_gizmo.Draw(ST<EventsQueue>::Get()->RequestValueFromEventHandlers<ecs::EntityHandle>(Getters::EditorSelectedEntity{}).value_or(nullptr));
 
 	//==========================
