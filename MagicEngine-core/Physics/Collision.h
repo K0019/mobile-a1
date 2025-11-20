@@ -257,10 +257,18 @@ X(IS_TRIGGER, "Is Trigger")
 		{
 			return GetFlag(COLLIDER_COMP_FLAG::ENABLED);
 		}
+		bool IsTrigger() const
+		{
+			return GetFlag(COLLIDER_COMP_FLAG::IS_TRIGGER);
+		}
 
 		void SetEnabled(bool v)
 		{
 			SetFlag(COLLIDER_COMP_FLAG::ENABLED, v);
+		}
+		void SetIsTrigger(bool v)
+		{
+			SetFlag(COLLIDER_COMP_FLAG::IS_TRIGGER, v);
 		}
 
 	private:
