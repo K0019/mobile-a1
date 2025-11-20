@@ -183,6 +183,7 @@ struct Vec2 : public glm::vec2
 	constexpr Vec2(float x, float y);
 	constexpr Vec2(const glm::vec2& other);
 	constexpr Vec2(glm::vec2&& other);
+	constexpr Vec2(Vec3&& other);
 	Vec2& operator=(const glm::vec2& other);
 	Vec2& operator=(glm::vec2&& other);
 
