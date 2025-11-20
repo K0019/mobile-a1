@@ -32,7 +32,7 @@ All rights reserved.
 #include "Scripting/ScriptComponent.h"
 
 #include "UI/TextComponent.h"
-#include "UI/CircleComponent.h"
+#include "UI/SpriteComponent.h"
 
 #include "Graphics/CameraSystem.h"
 #include "Tween/TweenECS.h"

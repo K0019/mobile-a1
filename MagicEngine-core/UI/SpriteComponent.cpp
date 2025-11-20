@@ -17,7 +17,7 @@ All rights reserved.
 */
 /******************************************************************************/
 
-#include "CircleComponent.h"
+#include "SpriteComponent.h"
 #include "Editor/Containers/GUICollection.h"
 #include "Engine/Graphics Interface/GraphicsAPI.h"
 
@@ -106,8 +106,7 @@ void Primitive2DRect::EditorDraw()
 }
 
 SpriteComponent::SpriteComponent()
-	: primitiveType{ PRIMITIVE2D_TYPE::CIRCLE }
-	, primitive{ Primitive2DCircle{} }
+	: primitive{ Primitive2DCircle{} }
 	, color{ 1.0f, 1.0f, 1.0f, 1.0f }
 {
 }
@@ -133,23 +132,20 @@ void SpriteComponent::SetColor(const Vec4& newColor)
 
 void SpriteComponent::EditorDraw()
 {
-	int type{ +primitiveType };
+	int type{ static_cast<int>(primitive.index()) };
 	if (gui::Combo{ "Type", primitiveNames, &type })
-	{
-		primitiveType = static_cast<PRIMITIVE2D_TYPE>(type);
-		UpdatePrimitive(primitiveType);
-	}
+		UpdatePrimitive(type);
 
-	VisitPrimitive([](auto& primitive) -> void {
+	std::visit([](auto& primitive) -> void {
 		primitive.EditorDraw();
-	});
+	}, primitive);
 
 	gui::VarColor("Color", &color);
 }
 
 void SpriteComponent::Serialize(Serializer& writer) const
 {
-	writer.Serialize("type", +primitiveType);
+	writer.Serialize("type", primitive.index());
 	writer.StartObject("primitive");
 	std::visit([&writer](auto& primitive) -> void {
 		primitive.Serialize(writer);
@@ -160,8 +156,9 @@ void SpriteComponent::Serialize(Serializer& writer) const
 
 void SpriteComponent::Deserialize(Deserializer& reader)
 {
-	reader.DeserializeVar("type", &primitiveType);
-	UpdatePrimitive(primitiveType);
+	size_t type{};
+	reader.DeserializeVar("type", &type);
+	UpdatePrimitive(type);
 	if (reader.PushAccess("primitive"))
 	{
 		std::visit([&reader](auto& primitive) -> void {
@@ -172,11 +169,11 @@ void SpriteComponent::Deserialize(Deserializer& reader)
 	reader.DeserializeVar("color", &color);
 }
 
-void SpriteComponent::UpdatePrimitive(PRIMITIVE2D_TYPE type)
+void SpriteComponent::UpdatePrimitive(size_t typeIndex)
 {
-	if (primitive.index() == +type)
+	if (primitive.index() == typeIndex)
 		return;
-	primitive = util::VariantFromIndex<Primitive2D>(static_cast<size_t>(+type));
+	primitive = util::VariantFromIndex<Primitive2D>(typeIndex);
 }
 
 SpriteRenderSystem::SpriteRenderSystem()

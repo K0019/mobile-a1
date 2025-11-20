@@ -89,7 +89,7 @@ using Primitive2D = std::variant<Primitive2DCircle, Primitive2DRect>;
 X(CIRCLE, "Circle") \
 X(RECT, "Rectangle")
 #define X(enumType, name) enumType,
-enum class PRIMITIVE2D_TYPE
+enum class PRIMITIVE2D_TYPE // Note: Unused, except for "TOTAL". This is just to easily count the number of types
 {
 	PRIMITIVE2D_TYPE_ENUM
 	TOTAL,
@@ -116,10 +116,9 @@ public:
 	void Deserialize(Deserializer& reader) override;
 
 private:
-	void UpdatePrimitive(PRIMITIVE2D_TYPE type);
+	void UpdatePrimitive(size_t type);
 
 private:
-	PRIMITIVE2D_TYPE primitiveType;
 	Primitive2D primitive;
 	Vec4 color;
 
