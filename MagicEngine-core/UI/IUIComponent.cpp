@@ -24,3 +24,10 @@ void IUIComponent::OnAttached()
 {
 	ecs::GetEntity(this)->AddCompNow(RectTransformComponent{});
 }
+
+//void IUIComponentWithInput::OnAttached()
+//{
+//	IUIComponent::OnAttached();
+//
+//	ecs::GetEntity(this)->GetComp<EntityE
+//}

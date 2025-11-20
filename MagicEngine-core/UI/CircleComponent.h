@@ -22,40 +22,47 @@ All rights reserved.
 #include "Editor/IEditorComponent.h"
 #include "UI/IUIComponent.h"
 
-class TextComponent
+class CircleComponent
 	: public IUIComponent
-	, public IRegisteredComponent<TextComponent>
-	, public IEditorComponent<TextComponent>
+	, public IRegisteredComponent<CircleComponent>
+	, public IEditorComponent<CircleComponent>
 {
 public:
-	TextComponent();
+	CircleComponent();
 
-	const std::string& GetText() const;
-	void SetText(const std::string& newText);
+	float GetRadius() const;
+	void SetRadius(float newRadius);
+	float GetNumSegments() const;
 	const Vec4& GetColor() const;
 	void SetColor(const Vec4& color);
 
 	void EditorDraw() override;
 
+	void Deserialize(Deserializer& reader) override;
+
 private:
-	std::string text;
+	static int GetNumSegmentsForSmoothCircle(float radius);
+
+private:
+	float radius;
+	int numSegments;
 	Vec4 color;
 
 public:
 	property_vtable()
 };
-property_begin(TextComponent)
+property_begin(CircleComponent)
 {
-	property_var(text),
+	property_var(radius),
 	property_var(color)
 }
-property_vend_h(TextComponent)
+property_vend_h(CircleComponent)
 
-class TextSystem : public ecs::System<TextSystem, TextComponent>
+class CircleSystem : public ecs::System<CircleSystem, CircleComponent>
 {
 public:
-	TextSystem();
+	CircleSystem();
 
 private:
-	void RenderText(TextComponent& comp);
+	void RenderCircle(CircleComponent& comp);
 };

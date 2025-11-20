@@ -46,12 +46,8 @@ void TextComponent::SetColor(const Vec4& newColor)
 
 void TextComponent::EditorDraw()
 {
-	gui::TextBoxWithBuffer<256> textBuffer{ "Text" };
-	textBuffer.SetBuffer(text);
-	if (textBuffer.Draw())
-		text = textBuffer.GetBuffer();
-
-	gui::VarInput("Color", &color);
+	gui::VarDefault("Text", &text);
+	gui::VarColor("Color", &color);
 }
 
 TextSystem::TextSystem()

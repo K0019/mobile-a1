@@ -62,6 +62,16 @@ namespace math {
 
 	/*!***********************************************************************
 	\brief
+		Calculates the natural logarithm with a faster but less accurate method.
+	\param x
+		The number to take the natural logarithm of.
+	\return
+		The natural logarithm of the number.
+	*************************************************************************/
+	inline float FastLog(float x);
+
+	/*!***********************************************************************
+	\brief
 		Wraps a value around a range.
 	\tparam T
 		The type of the value.

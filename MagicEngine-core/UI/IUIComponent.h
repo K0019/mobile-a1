@@ -26,3 +26,10 @@ class IUIComponent
 public:
 	void OnAttached() override;
 };
+
+//class IUIComponentWithInput
+//	: public IUIComponent
+//{
+//public:
+//	void OnAttached() override;
+//};
