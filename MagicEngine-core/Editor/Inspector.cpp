@@ -28,6 +28,7 @@ All rights reserved.
 #include "Engine/Events/EventsQueue.h"
 #include "Engine/Events/EventsTypeEditor.h"
 
+#include "UI/RectTransform.h"
 #include "Components/NameComponent.h"
 #include "Engine/EntityLayers.h"
 #include "Engine/PrefabManager.h"
@@ -112,7 +113,10 @@ namespace editor {
 		}
 
 		// Transform panel
-		selectedEntity->GetTransform().EditorDraw();
+		if (auto rectTransform{ selectedEntity->GetComp<RectTransformComponent>() })
+			rectTransform->EditorDraw();
+		else
+			selectedEntity->GetTransform().EditorDraw();
 
 		gui::Separator();
 
