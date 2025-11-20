@@ -32,8 +32,9 @@ All rights reserved.
 #include "graphics/im3d_helper.h"
 #include "graphics/features/im3d_feature.h"
 #include "graphics/features/ui2d_render_feature.h"
-#include "graphics/ui/ui_immediate.h"
 #include "VFS/VFS.h"
+
+#include "ECS/ECSSysLayers.h"
 
 GraphicsMain::GraphicsMain()
 	: sceneFeatureHandle{}
@@ -60,9 +61,13 @@ void GraphicsMain::Init(Context inContext)
 	ui2dFeatureHandle = context.renderer->CreateFeature<Ui2DRenderFeature>();
 	im3dHandle = context.renderer->CreateFeature<Im3dRenderFeature>();
 
+	const std::string fontsFile{ Filepaths::fontsSave + "/Lato-Regular.ttf" };
 #ifdef IMGUI_ENABLED
-	InitImGui(Filepaths::fontsSave + "/Lato-Regular.ttf");
+	InitImGui(fontsFile);
 #endif
+
+	InitFont(fontsFile);
+	overlayGui = std::make_unique<ui::ImmediateGui>(*context.renderer, ui2dFeatureHandle, *context.resourceMngr);
 }
 
 void GraphicsMain::BeginFrame()
@@ -109,7 +114,28 @@ void GraphicsMain::EndImGuiFrame()
 void GraphicsMain::EndFrame(FrameData* outFrameData)
 {
 	Im3dHelper::EndFrame(im3dHandle, *context.renderer);
-  UploadToPipeline(outFrameData);
+	UploadToPipeline(outFrameData);
+}
+
+void GraphicsMain::InitFont(const std::string& fontfile)
+{
+	std::vector<uint8_t> fontBytes{};
+	if (!VFS::ReadFile(fontfile, fontBytes))
+	{
+		CONSOLE_LOG(LEVEL_ERROR) << "Failed to initialize font: " << fontfile;
+		return;
+	}
+
+	Resource::ProcessedFont processed;
+	processed.name = "UI2D_Font";
+	processed.fontFileData = std::move(fontBytes);
+	processed.buildSettings.pixelHeight = 20.0f;
+	processed.buildSettings.firstCodepoint = 32;
+	processed.buildSettings.lastCodepoint = 255;
+	processed.buildSettings.fallbackCodepoint = '?';
+	processed.sourceFile = fontfile;
+	processed.buildSettings.extraCodepoints.push_back(0x2026u); // Ellipsis
+	ui2dFontHandle = context.resourceMngr->createFont(processed);
 }
 
 void GraphicsMain::UploadToPipeline(FrameData* outFrameData)
@@ -369,6 +395,11 @@ void GraphicsMain::UploadToPipeline(FrameData* outFrameData)
 	outFrameData->projMatrix = glm::perspective(45.0f, width / height, 0.1f, 1000.0f);
 
 	EditorCam_Publish(outFrameData->viewMatrix, outFrameData->projMatrix, false);
+
+	// 2D UI pass
+	overlayGui->begin(ui2dFontHandle);
+	ecs::RunSystemsInLayers(ECS_LAYER::CUTOFF_RENDER, ECS_LAYER::CUTOFF_RENDER_UI);
+	overlayGui->end();
 
 	// Disable sample 2D UI for now
 	if (false && ui2dFeatureHandle != 0 && context.resourceMngr)
@@ -967,30 +998,6 @@ void GraphicsMain::InitImGui(const std::string& fontfile)
 	//If you want change between icons size you will need to create a new font
 	//io.Fonts->AddFontFromMemoryCompressedTTF(FA_compressed_data, FA_compressed_size, 12.0f, &icons_config, icons_ranges);
 	//io.Fonts->AddFontFromMemoryCompressedTTF(FA_compressed_data, FA_compressed_size, 20.0f, &icons_config, icons_ranges);
-
-	// Create a separate font for UI2D immediate mode rendering
-	size_t dataSize = 0;
-	void* rawData = ImFileLoadToMemory(physicalFilepath.c_str(), "rb", &dataSize, 0);
-	if (rawData && dataSize > 0)
-	{
-		std::vector fontBytes(static_cast<uint8_t*>(rawData), static_cast<uint8_t*>(rawData) + dataSize);
-		IM_FREE(rawData);
-
-		Resource::ProcessedFont processed;
-		processed.name = "UI2D_Font";
-		processed.fontFileData = std::move(fontBytes);
-		processed.buildSettings.pixelHeight = 20.0f;
-		processed.buildSettings.firstCodepoint = 32;
-		processed.buildSettings.lastCodepoint = 255;
-		processed.buildSettings.fallbackCodepoint = '?';
-		processed.sourceFile = fontfile;
-		processed.buildSettings.extraCodepoints.push_back(0x2026u); // Ellipsis
-		ui2dFontHandle = context.resourceMngr->createFont(processed);
-	}
-	else if (rawData)
-	{
-		IM_FREE(rawData);
-	}
 }
 
 void GraphicsMain::SetImGuiStyle()
@@ -1096,6 +1103,11 @@ Resource::ResourceManager& GraphicsMain::GetAssetSystem()
 {
 	assert(context.resourceMngr);
 	return *context.resourceMngr;
+}
+
+ui::ImmediateGui& GraphicsMain::GetImmediateGui()
+{
+	return *overlayGui;
 }
 
 bool GraphicsMain::RequestObjPick(int mouseX, int mouseY) {

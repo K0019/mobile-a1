@@ -24,6 +24,7 @@ All rights reserved.
 #include "imgui/base/imgui_context.h"
 #include "Engine/Graphics Interface/GraphicsWindow.h"
 #include "graphics/features/scene_feature.h"
+#include "graphics/ui/ui_immediate.h"
 #include "resource/resource_types.h"
 #include "math/camera.h"
 
@@ -57,6 +58,7 @@ private:
     void InitImGui(const std::string& fontfile);
     void SetImGuiStyle();
 #endif
+    void InitFont(const std::string& fontfile);
     void UploadToPipeline(FrameData* outFrameData);
 
 public:
@@ -66,6 +68,7 @@ public:
     editor::ImGuiContext& GetImGuiContext();
 #endif
     Resource::ResourceManager& GetAssetSystem();
+    ui::ImmediateGui& GetImmediateGui();
 
 private:
     friend ST<GraphicsMain>;
@@ -85,6 +88,7 @@ private:
     uint64_t gridHandle;
     uint64_t im3dHandle;
     FontHandle ui2dFontHandle;
+    UPtr<ui::ImmediateGui> overlayGui;
     uint64_t lastPickedObjectIndex;
     std::unordered_map<uint64_t, ecs::EntityHandle> mapIdxToId;
 

@@ -501,6 +501,14 @@ namespace gui {
 		return false;
 #endif
 	}
+	bool VarDrag([[maybe_unused]] const char* label, [[maybe_unused]] unsigned int* v, [[maybe_unused]] float speed, [[maybe_unused]] unsigned int min, [[maybe_unused]] unsigned int max)
+	{
+#ifdef IMGUI_ENABLED
+		return ImGui::DragScalar(label, ImGuiDataType_U32, v, speed, &min, &max);
+#else
+		return false;
+#endif
+	}
 	bool VarDrag([[maybe_unused]] const char* label, [[maybe_unused]] float* v, [[maybe_unused]] float speed, [[maybe_unused]] float min, [[maybe_unused]] float max, [[maybe_unused]] const char* format)
 	{
 #ifdef IMGUI_ENABLED
@@ -509,25 +517,29 @@ namespace gui {
 		return false;
 #endif
 	}
+
+	namespace internal {
+		bool DrawFloatComponent(const char* text, const char* label, float* value, float min, float max, float speed, const Vec4& textColor, const char* format)
+		{
+			{
+				SetStyleColor styleColText{ FLAG_STYLE_COLOR::TEXT, textColor };
+				TextUnformatted(text);
+			}
+			SameLine();
+			SetNextItemWidth(GetAvailableContentRegion().x);
+			return VarDrag(label, value, speed, min, max, format);
+		}
+	}
+
 	bool VarDrag([[maybe_unused]] const char* label, [[maybe_unused]] ::Vec2* v, [[maybe_unused]] float speed, [[maybe_unused]] ::Vec2 min, [[maybe_unused]] ::Vec2 max, [[maybe_unused]] const char* format)
 	{
 #ifdef IMGUI_ENABLED
 		bool modified = false;
 		if (Table table{ label, 3, false, FLAG_TABLE::HIDE_HEADER })
 		{
-			const auto DrawFloatComponent{ [&modified, speed, format](const char* text, const char* label, float* value, float min, float max, const Vec4& textColor) -> void {
-				{
-					SetStyleColor styleColText{ FLAG_STYLE_COLOR::TEXT, textColor };
-					TextUnformatted(text);
-				}
-				SameLine();
-				SetNextItemWidth(GetAvailableContentRegion().x);
-				modified |= VarDrag(label, value, speed, min, max, format);
-			} };
-
-			DrawFloatComponent("X", "##X", &v->x, min.x, max.x, Vec4{ 1.0f, 0.4f, 0.4f, 1.0f });
+			modified |= internal::DrawFloatComponent("X", "##X", &v->x, min.x, max.x, speed, Vec4{ 1.0f, 0.4f, 0.4f, 1.0f }, format);
 			table.NextColumn();
-			DrawFloatComponent("Y", "##Y", &v->y, min.y, max.y, Vec4{ 0.4f, 1.0f, 0.4f, 1.0f });
+			modified |= internal::DrawFloatComponent("Y", "##Y", &v->y, min.y, max.y, speed, Vec4{ 0.4f, 1.0f, 0.4f, 1.0f }, format);
 			table.NextColumn();
 			TextUnformatted(label);
 		}
@@ -539,8 +551,44 @@ namespace gui {
 
 	bool VarDrag([[maybe_unused]] const char* label, [[maybe_unused]] ::Vec3* v, [[maybe_unused]] float speed, [[maybe_unused]] ::Vec3 min, [[maybe_unused]] ::Vec3 max, [[maybe_unused]] const char* format)
 	{
-		CONSOLE_LOG_UNIMPLEMENTED() << "VarDrag Vec3";
+#ifdef IMGUI_ENABLED
+		bool modified = false;
+		if (gui::Table table{ label, 4, false, gui::FLAG_TABLE::HIDE_HEADER })
+		{
+			modified |= internal::DrawFloatComponent("X", "##X", &v->x, min.x, max.x, speed, Vec4{ 1.0f, 0.4f, 0.4f, 1.0f }, format);
+			table.NextColumn();
+			modified |= internal::DrawFloatComponent("Y", "##Y", &v->y, min.y, max.y, speed, Vec4{ 0.4f, 1.0f, 0.4f, 1.0f }, format);
+			table.NextColumn();
+			modified |= internal::DrawFloatComponent("Z", "##Z", &v->z, min.z, max.z, speed, Vec4{ 0.4f, 0.4f, 1.0f, 1.0f }, format);
+			table.NextColumn();
+			TextUnformatted(label);
+		}
+		return modified;
+#else
 		return false;
+#endif
+	}
+
+	bool VarDrag([[maybe_unused]] const char* label, [[maybe_unused]] ::Vec4* v, [[maybe_unused]] float speed, [[maybe_unused]] ::Vec4 min, [[maybe_unused]] ::Vec4 max, [[maybe_unused]] const char* format)
+	{
+#ifdef IMGUI_ENABLED
+		bool modified = false;
+		if (gui::Table table{ label, 5, false, gui::FLAG_TABLE::HIDE_HEADER })
+		{
+			modified |= internal::DrawFloatComponent("X", "##X", &v->x, min.x, max.x, speed, Vec4{ 1.0f, 0.4f, 0.4f, 1.0f }, format);
+			table.NextColumn();
+			modified |= internal::DrawFloatComponent("Y", "##Y", &v->y, min.y, max.y, speed, Vec4{ 0.4f, 1.0f, 0.4f, 1.0f }, format);
+			table.NextColumn();
+			modified |= internal::DrawFloatComponent("Z", "##Z", &v->z, min.z, max.z, speed, Vec4{ 0.4f, 0.4f, 1.0f, 1.0f }, format);
+			table.NextColumn();
+			modified |= internal::DrawFloatComponent("W", "##W", &v->w, min.w, max.w, speed, Vec4{ 0.6f, 0.6f, 0.6f, 1.0f }, format);
+			table.NextColumn();
+			TextUnformatted(label);
+		}
+		return modified;
+#else
+		return false;
+#endif
 	}
 
 	bool VarInput([[maybe_unused]] const char* label, [[maybe_unused]] int* v, [[maybe_unused]] int step)
@@ -605,6 +653,23 @@ namespace gui {
 	{
 #ifdef IMGUI_ENABLED
 		return ImGui::InputFloat4(label, &v->x);
+#else
+		return false;
+#endif
+	}
+
+	bool VarColor([[maybe_unused]] const char* label, [[maybe_unused]] ::Vec3* v, [[maybe_unused]] FLAG_COLOR_EDIT flags)
+	{
+#ifdef IMGUI_ENABLED
+		return ImGui::ColorEdit3(label, &v->x, +flags);
+#else
+		return false;
+#endif
+	}
+	bool VarColor([[maybe_unused]] const char* label, [[maybe_unused]] ::Vec4* v, [[maybe_unused]] FLAG_COLOR_EDIT flags)
+	{
+#ifdef IMGUI_ENABLED
+		return ImGui::ColorEdit4(label, &v->x, +flags);
 #else
 		return false;
 #endif
@@ -686,9 +751,13 @@ namespace gui {
 	{
 		TextBoxWithBuffer<256> textBox{ label };
 		textBox.SetBuffer(*v);
-		bool modified{ textBox.Draw() };
-		*v = textBox.GetBufferPtr();
-		return modified;
+		if (textBox.Draw())
+		{
+			*v = textBox.GetBufferPtr();
+			return true;
+		}
+		else
+			return false;
 	}
 
 	template <>
