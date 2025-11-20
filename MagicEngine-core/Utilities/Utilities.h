@@ -31,6 +31,7 @@ All rights reserved.
 #include <unordered_map>
 #include <vector>
 #include <algorithm>
+#include <variant>
 
 // Forward declares
 struct Vec2;
@@ -406,6 +407,22 @@ namespace util {
 
 	/*****************************************************************//*!
 	\brief
+		Default constructs an object of a type at the specified variant
+		type index.
+	\tparam VariantType
+		The type of the variant.
+	\tparam I
+		Internal parameter, specifies the current index iteration.
+	\param index
+		The index of the class type to initialize.
+	\return
+		The variant instantiated with the class.
+	*//******************************************************************/
+	template <typename VariantType, size_t I = 0>
+	VariantType VariantFromIndex(size_t index);
+
+	/*****************************************************************//*!
+	\brief
 		Tests if a point is inside an entity's square transform.
 		DEPRECATED 3D: This only makes sense in the 2D world. We'll need to redefine
 			this concept now that we're in 3D.
@@ -587,6 +604,15 @@ namespace util {
 	size_t FindIndexOfElement(const IteratorType& begin, const IteratorType& end, const T& value)
 	{
 		return std::distance(begin, std::find(begin, end, value));
+	}
+
+	template<typename VariantType, size_t I>
+	VariantType VariantFromIndex(size_t index)
+	{
+		if constexpr (I >= std::variant_size_v<VariantType>)
+			throw std::runtime_error{ "Variant index " + std::to_string(I + index) + " out of bounds" };
+		else
+			return (index == 0 ? VariantType{ std::in_place_index<I> } : VariantFromIndex<VariantType, I + 1>(index - 1));
 	}
 
 }

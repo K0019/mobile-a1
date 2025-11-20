@@ -29,8 +29,9 @@ class RectTransformComponent
 public:
 	uint16_t GetLayer() const;
 	void SetLayer(uint16_t layer);
-	Vec2 GetPosition() const;
-	void SetPosition(Vec2 newPos);
+	Vec2 GetLocalPosition() const;
+	void SetLocalPosition(Vec2 newPos);
+	Vec2 GetWorldPosition() const;
 	float GetRotation() const;
 	void SetRotation(float newRot);
 	Vec2 GetScale() const;

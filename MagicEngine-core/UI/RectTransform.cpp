@@ -30,13 +30,17 @@ void RectTransformComponent::SetLayer(uint16_t layer)
 	pos.z = static_cast<float>(layer) + 0.5f; // Try to avoid floating point inaccuracies with this
 	ecs::GetEntityTransform(this).SetLocalPosition(pos);
 }
-Vec2 RectTransformComponent::GetPosition() const
+Vec2 RectTransformComponent::GetLocalPosition() const
 {
 	return Vec2{ ecs::GetEntityTransform(this).GetLocalPosition() };
 }
-void RectTransformComponent::SetPosition(Vec2 newPos)
+void RectTransformComponent::SetLocalPosition(Vec2 newPos)
 {
 	ecs::GetEntityTransform(this).SetLocalPosition(Vec3{ newPos, 0.0f });
+}
+Vec2 RectTransformComponent::GetWorldPosition() const
+{
+	return Vec2{ ecs::GetEntityTransform(this).GetWorldPosition() };
 }
 float RectTransformComponent::GetRotation() const
 {
@@ -60,9 +64,9 @@ void RectTransformComponent::EditorDraw()
 	unsigned int layer{ GetLayer() };
 	if (gui::VarDrag("Layer", &layer))
 		SetLayer(static_cast<uint16_t>(layer));
-	Vec2 vec{ GetPosition() };
+	Vec2 vec{ GetLocalPosition() };
 	if (gui::VarDrag("Position", &vec))
-		SetPosition(vec);
+		SetLocalPosition(vec);
 	float f{ GetRotation() };
 	if (gui::VarDrag("Rotation", &f))
 		SetRotation(f);
