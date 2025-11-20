@@ -206,6 +206,7 @@ bool ResourceFiletypeImporterFBX::Import([[maybe_unused]] const std::string& ass
     // Set up compile options
     compiler::SceneCompiler compiler;
     compiler::CompilerOptions options;
+    options.general.assetsRoot = std::filesystem::path(Filepaths::assets);
     options.general.inputPath = VFS::ConvertVirtualToPhysical(assetRelativeFilepath);
     options.general.outputPath = VFS::ConvertVirtualToPhysical("CompiledAssets");
 

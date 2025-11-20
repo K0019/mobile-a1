@@ -102,8 +102,9 @@ namespace compiler
         return g_bAbortCompression;
     }
 
-    bool TextureCompiler::Compile(const CompilerOptions& compileOptions)
+    CompilationResult TextureCompiler::Compile(const CompilerOptions& compileOptions)
     {
+        CompilationResult result;
         options = compileOptions;
 
         //==========================
@@ -127,25 +128,27 @@ namespace compiler
         {
             stbi_image_free(srcTexture.pData);
             free(destTexture.pData);
-            return false;
+            result.errors.push_back("Texture compression failure: " + options.general.inputPath.string());
+            return result;
         }
 
-        if (!SaveAsKTX2(destTexture))
+        if (!SaveAsKTX2(destTexture, result))
         {
             stbi_image_free(srcTexture.pData);
             free(destTexture.pData);
-
-            return false;
+            result.errors.push_back("Texture saving failure: " + options.general.inputPath.string());
+            return result;
         }
 
         stbi_image_free(srcTexture.pData);
         free(destTexture.pData);
 
-        return true;
+        return result;
     }
 
-    bool TextureCompiler::CompileFromMemory(const EmbeddedTextureSource& source, const CompilerOptions& compileOptions)
+    CompilationResult TextureCompiler::CompileFromMemory(const EmbeddedTextureSource& source, const CompilerOptions& compileOptions)
     {
+        CompilationResult result;
         options = compileOptions; // Set options for the helper functions
 
         //==========================
@@ -167,23 +170,25 @@ namespace compiler
         {
             stbi_image_free(srcTexture.pData);
             free(destTexture.pData);
-            return false;
+            result.errors.push_back("Texture compression failure: " + options.general.inputPath.string());
+            return result;
         }
 
         // Hijack options to insert correct filename to save as
-        options.general.inputPath = std::filesystem::path(source.name).stem();
+        //options.general.inputPath = std::filesystem::path(source.name).stem();
 
-        if (!SaveAsKTX2(destTexture))
+        if (!SaveAsKTX2(destTexture, result, source.name))
         {
             stbi_image_free(srcTexture.pData);
             free(destTexture.pData);
-            return false;
+            result.errors.push_back("Texture saving failure: " + options.general.inputPath.string());
+            return result;
         }
 
         stbi_image_free(srcTexture.pData);
         free(destTexture.pData);
 
-        return true;
+        return result;
     }
 
     bool TextureCompiler::LoadSourceTexture(CMP_Texture& outTex)
@@ -267,7 +272,7 @@ namespace compiler
         return true;
     }
 
-    bool TextureCompiler::SaveAsKTX2(const CMP_Texture& dst)
+    bool TextureCompiler::SaveAsKTX2(const CMP_Texture& dst, CompilationResult& compilationResult, const std::string& filename)
     {
         ktxTextureCreateInfo createInfo{};
         createInfo.vkFormat = MapVkFormat(options.texture.compressionFormat, options.texture.isSRGB);
@@ -296,8 +301,17 @@ namespace compiler
             dst.pData, dst.dwDataSize
         );
 
+        std::filesystem::path relativeDir = std::filesystem::relative(options.general.inputPath.parent_path(), options.general.assetsRoot);
+        std::filesystem::path assetOutputDir = options.general.outputPath / relativeDir;
+        std::filesystem::create_directories(assetOutputDir);
+
         std::string outputFilename = options.general.inputPath.stem().string() + ".ktx2";
-        std::filesystem::path outputPath = options.general.outputPath / outputFilename;
+        if (!filename.empty())
+        {
+            outputFilename = filename + ".ktx2";
+        }
+
+        std::filesystem::path outputPath = assetOutputDir / outputFilename;
 
         ktx_error_code_e writeResult = ktxTexture_WriteToNamedFile(reinterpret_cast<ktxTexture*>(kTexture), outputPath.string().c_str());
 
@@ -312,6 +326,8 @@ namespace compiler
         {
             std::cout << "Successfully saved: " << outputPath << "\n";
         }
+        compilationResult.createdTextureFiles.push_back(outputPath);
+
         return writeResult == KTX_SUCCESS;
     }
 

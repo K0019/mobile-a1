@@ -17,9 +17,14 @@ bool ResourceFiletypeImporterImage::Import([[maybe_unused]]const std::string& as
     options.general.outputPath = Filepaths::assets + "/CompiledAssets/textures";
 
     // Compile into .ktx2
-    if (!textureCompiler.Compile(options))
+    auto texCompilerResult = textureCompiler.Compile(options);
+    if (!texCompilerResult.errors.empty())
     {
-        CONSOLE_LOG(LEVEL_ERROR) << "Failed to convert " << options.general.inputPath.string() << " to .ktx2";
+        for (const auto& error : texCompilerResult.errors)
+        {
+            CONSOLE_LOG(LEVEL_ERROR) << error;
+        }
+        
         return false;
     }
 

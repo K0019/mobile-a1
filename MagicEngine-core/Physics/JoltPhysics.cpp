@@ -88,6 +88,7 @@ namespace physics {
 
 	JPH::AABox JoltPhysics::CollectAllTriangles(std::vector<float>& outVertices, std::vector<int>& outTriIndex)
 	{
+		OptimizeBroadPhase();
 		std::unordered_map<JPH::Float3, int> vert2Index{};
 		int highestIndex{};
 		JPH::AABox bound{ physicsSystem.GetBounds() };
@@ -228,6 +229,7 @@ namespace physics {
 
 		JPH::BodyCreationSettings bodySettings{ scaleShape, position, rotation, motionType, +collisionLayer };
 		bodySettings.mAllowDynamicOrKinematic = true;
+		bodySettings.mUserData = ecs::GetEntity(this)->GetHash();
 
 		bodyID = ST<JoltPhysics>::Get()->GetBodyInterface().CreateAndAddBody(bodySettings, JPH::EActivation::Activate);
 
@@ -309,6 +311,15 @@ namespace physics {
 	{
 		JPH::Vec3 vec{ ST<JoltPhysics>::Get()->GetBodyInterface().GetAngularVelocity(bodyID) };
 		return Vec3{ vec.GetX(), vec.GetY(), vec.GetZ() };
+	}
+
+	bool JoltBodyComp::IsTrigger() const
+	{
+		JPH::BodyLockWrite lock(ST<JoltPhysics>::Get()->GetPhysicsSystem().GetBodyLockInterface(), bodyID);
+		if (lock.Succeeded())
+			return lock.GetBody().IsSensor();
+
+		return false;
 	}
 
 	void JoltBodyComp::SetMotionType(JPH::EMotionType type)
@@ -446,20 +457,27 @@ namespace physics {
 
 	void JoltBodyComp::SetDOF(JPH::EAllowedDOFs val)
 	{
-		if (motionType == JPH::EMotionType::Static)
-			return;
-
 		JPH::BodyLockWrite lock{ ST<JoltPhysics>::Get()->GetPhysicsSystem().GetBodyLockInterface(), bodyID };
 		if (!lock.Succeeded())
 			return;
 
 		JPH::Body& body{ lock.GetBody() };
+		if (!body.IsDynamic())
+			return;
+
 		JPH::MotionProperties* property{ body.GetMotionProperties() };
 		JPH::MassProperties massProp{ body.GetShape()->GetMassProperties() };
 		float invMass{ property->GetInverseMass() };
 		if (invMass > 0.f)
 			massProp.ScaleToMass(1.f / invMass);
 		property->SetMassProperties(val, massProp);
+	}
+
+	void JoltBodyComp::SetIsTrigger(bool val)
+	{
+		JPH::BodyLockWrite lock(ST<JoltPhysics>::Get()->GetPhysicsSystem().GetBodyLockInterface(), bodyID);
+		if (lock.Succeeded())
+			lock.GetBody().SetIsSensor(val);
 	}
 
 	void JoltBodyComp::UpdateBody()
