@@ -170,7 +170,6 @@ namespace compiler
     {
         options = compileOptions;
         CompilationResult result;
-        result.inputPath = options.general.inputPath;
 
         SceneLoadData loadData = sceneLoader.loadScene(options.general.inputPath, options.mesh);
 
@@ -195,6 +194,13 @@ namespace compiler
         {
             result.warnings.insert(result.warnings.end(), sceneProcessResult.warnings.begin(), sceneProcessResult.warnings.end());
         }
+
+        // Set filepaths for saving compiled asssets
+        // For now, i guess ill just append internal filename to the sourcefile name, along with proper subdirectories...
+        std::filesystem::path relativeDir = std::filesystem::relative(options.general.inputPath.parent_path(), options.general.assetsRoot);
+        std::filesystem::path assetOutputDir = options.general.outputPath / relativeDir;
+        std::filesystem::create_directories(assetOutputDir);
+
 
         // Save the data
         SaveMeshes(scene, result);
@@ -263,9 +269,11 @@ namespace compiler
     std::map<TextureDataSource, std::filesystem::path> SceneCompiler::CompileTextures(const Scene& scene, CompilationResult& result)
     {
         std::map<TextureDataSource, std::filesystem::path> compiledTextures;
-
-
         std::set<std::pair<std::string, TextureDataSource>> uniqueTextureSources;
+        
+
+        //std::filesystem::create_directories(assetOutputDir);
+
         for (const auto& material : scene.materials)
         {
             for (const auto& [type, source] : material.texturePaths)
@@ -320,26 +328,28 @@ namespace compiler
             }
 
             compiler::TextureCompiler texCompiler;
-            std::filesystem::path textureOutputDir = options.general.outputPath / "textures";
-            std::filesystem::create_directories(textureOutputDir);
+            //std::filesystem::path textureOutputDir = options.general.outputPath / "textures";
+            //std::filesystem::create_directories(textureOutputDir);
 
             for (const auto& [originalPath, resolvedPath] : resolvedTexturePaths)
             {
-                CompilerOptions texOpts;
+                CompilerOptions texOpts = options;
                 texOpts.general.inputPath = resolvedPath; // Use the *correct* path
-                texOpts.general.outputPath = textureOutputDir;
+                //texOpts.general.outputPath = textureOutputDir;
                 texOpts.texture = options.texture;
 
                 // Parse filename to set specific options - e.g: normal maps use BC5
                 //Disable parsing for now - ryans vk::Format vk::vkFormatToFormat(VkFormat format) doesn't support any BC5s and BC4s
                 //texOpts.texture = GetTextureOptionsForFile(resolvedPath, options.texture);
 
-                if (texCompiler.Compile(texOpts))
+                auto texCompileResult = texCompiler.Compile(texOpts);
+                if (texCompileResult.errors.empty())
                 {
                     std::string outputFilename = originalPath.stem().string() + ".ktx2";
-                    result.createdTextureFiles.push_back(options.general.outputPath / "textures" / outputFilename);
+                    //result.createdTextureFiles.push_back(options.general.outputPath / "textures" / outputFilename);
+                    result.createdTextureFiles.push_back(texCompileResult.createdTextureFiles[0]);
                     FilePathSource compiledFilePathSource {originalPath};
-                    compiledTextures[compiledFilePathSource] = options.general.outputPath / "textures" / outputFilename;
+                    compiledTextures[compiledFilePathSource] = texCompileResult.createdTextureFiles[0];
                 }
                 else
                 {
@@ -350,22 +360,21 @@ namespace compiler
         else // Assume its an embedded texture...
         {
             compiler::TextureCompiler texCompiler;
-            std::filesystem::path textureOutputDir = options.general.outputPath / "textures";
-            std::filesystem::create_directories(textureOutputDir);
 
             int i = 0;
 
             for (const auto& [key, source] : uniqueTextureSources)
             {
-                CompilerOptions texOpts;
-                texOpts.general.outputPath = textureOutputDir;
-                texOpts.texture = options.texture;
+                CompilerOptions texOpts = options;
+                //texOpts.general.outputPath = textureOutputDir;
+                //texOpts.texture = options.texture;
 
                 EmbeddedTextureSource embdeddedSource = std::get<EmbeddedTextureSource>(source);
 
                 bool success = false;
                 std::string textureFilename;
 
+                // Fix internal texture name (the name inside the glb file)
                 if (!embdeddedSource.name.empty())
                 {
                     textureFilename = std::filesystem::path(embdeddedSource.name).stem().string();
@@ -402,13 +411,13 @@ namespace compiler
                 }
 
 
-                success = texCompiler.CompileFromMemory(embdeddedSource, texOpts);
+                auto texCompileResult = texCompiler.CompileFromMemory(embdeddedSource, texOpts);
 
-                if (success)
+                if (result.errors.empty())
                 {
                     std::string outputFilename = textureFilename + ".ktx2";
-                    result.createdTextureFiles.push_back(textureOutputDir / outputFilename);
-                    compiledTextures[source] = textureOutputDir / outputFilename;
+                    result.createdTextureFiles.push_back(texCompileResult.createdTextureFiles[0]);
+                    compiledTextures[source] = texCompileResult.createdTextureFiles[0];
                 }
             }
         }
@@ -608,9 +617,13 @@ namespace compiler
 
 
 		// Writing to file timeu~~ :3
-        std::filesystem::path meshOutputDir = options.general.outputPath / "meshes";
-        std::filesystem::create_directories(meshOutputDir);
-		std::filesystem::path outFilePath = options.general.outputPath / (options.general.inputPath.stem().string() + ".mesh");
+        std::filesystem::path relativeDir = std::filesystem::relative(options.general.inputPath.parent_path(), options.general.assetsRoot);
+        std::filesystem::path assetOutputDir = options.general.outputPath / relativeDir;
+        std::filesystem::create_directories(assetOutputDir);
+        
+        //std::filesystem::path meshOutputDir = options.general.outputPath / "meshes";
+        //std::filesystem::create_directories(meshOutputDir);
+		std::filesystem::path outFilePath = assetOutputDir / (options.general.inputPath.stem().string() + ".mesh");
 		std::ofstream outFile(outFilePath, std::ios::binary);
 
         // Mesh data
@@ -637,8 +650,8 @@ namespace compiler
 
     void SceneCompiler::SaveMaterialData(const Scene& scene, CompilationResult& result, std::map<TextureDataSource, std::filesystem::path> savedTexturesMap)
     {
-        std::filesystem::path materialOutputDir = options.general.outputPath / "materials";
-        std::filesystem::create_directories(materialOutputDir);
+        //std::filesystem::path materialOutputDir = options.general.outputPath / "materials";
+        //std::filesystem::create_directories(materialOutputDir);
 
         for (const ProcessedMaterialSlot& materialSlot : scene.materials)
         {
@@ -699,11 +712,12 @@ namespace compiler
                     auto mapIt = savedTexturesMap.find(it->second);
                     if (mapIt != savedTexturesMap.end())
                     {
-                        std::string filename = mapIt->second.filename().string();
-                        valueStr = "compiledassets/textures/" + filename;
+                        std::filesystem::path relativeDir = std::filesystem::relative(mapIt->second, options.general.assetsRoot);
+                        //std::filesystem::path assetOutputDir = options.general.outputPath / relativeDir;
+                        valueStr = relativeDir.string();
+                        //std::string filename = mapIt->second.filename().string();
+                        //valueStr = "compiledassets/textures/" + filename;
                     }
-                    //std::string filename = it->second.stem().string() + ".ktx2";    
-                    //valueStr = "compiledassets/textures/" + filename;
                 }
 
                 textureEntry.AddMember("value", rapidjson::Value(valueStr.c_str(), allocator), allocator);
@@ -717,7 +731,12 @@ namespace compiler
             //std::string safeFilename = materialSlot.name;
             //std::replace(safeFilename.begin(), safeFilename.end(), ' ', '_');
             //std::filesystem::path outFilePath = materialOutputDir / (safeFilename + ".material");
-            std::filesystem::path outFilePath = materialOutputDir / (materialSlot.name + ".material");
+            std::filesystem::path relativeDir = std::filesystem::relative(options.general.inputPath.parent_path(), options.general.assetsRoot);
+            std::filesystem::path assetOutputDir = options.general.outputPath / relativeDir;
+            std::filesystem::create_directories(assetOutputDir);
+
+            std::filesystem::path outFilePath = assetOutputDir / (materialSlot.name + ".material");
+            //std::filesystem::path outFilePath = materialOutputDir / (materialSlot.name + ".material");
 
             std::ofstream outFile(outFilePath);
             rapidjson::OStreamWrapper osw(outFile);
@@ -737,8 +756,13 @@ namespace compiler
         {
             return; // No animations to save
         }
-        std::filesystem::path animOutputDir = options.general.outputPath / "meshanimations";
-        std::filesystem::create_directories(animOutputDir);
+
+        std::filesystem::path relativeDir = std::filesystem::relative(options.general.inputPath.parent_path(), options.general.assetsRoot);
+        std::filesystem::path assetOutputDir = options.general.outputPath / relativeDir;
+        std::filesystem::create_directories(assetOutputDir);
+
+        //std::filesystem::path animOutputDir = options.general.outputPath / "meshanimations";
+        //std::filesystem::create_directories(animOutputDir);
 
         std::string stem = options.general.inputPath.stem().string();
 
@@ -895,7 +919,7 @@ namespace compiler
 
             // --- 4. Write to Disk ---
             std::string animFilename = stem + animToSave.name + ".anim";
-            std::filesystem::path outFilePath = animOutputDir / animFilename;
+            std::filesystem::path outFilePath = assetOutputDir / animFilename;
 
             std::ofstream outFile(outFilePath, std::ios::binary);
             if (!outFile.is_open())
