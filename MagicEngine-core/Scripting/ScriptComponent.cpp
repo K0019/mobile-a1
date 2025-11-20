@@ -61,6 +61,18 @@ LuaScriptWithMeta::LuaScriptWithMeta(const std::string& scriptName)
 {
 }
 
+LuaScriptWithMeta::LuaScriptWithMeta(const LuaScriptWithMeta& other)
+	: LuaScript{ other.scriptName, LuaCpp::StateProxy{ {} } }
+	, valid{ other.valid }
+	, availableFunctions{ other.availableFunctions }
+	, markedAsCalledFunctions{ 0 }
+{
+	if (auto scriptInstance{ ST<LuaScripting>::Get()->GetScript(other.scriptName) })
+		code = std::move(scriptInstance.value().code);
+	else
+		valid = false;
+}
+
 LuaScriptWithMeta::LuaScriptWithMeta()
 	: LuaScript{}
 	, valid{}

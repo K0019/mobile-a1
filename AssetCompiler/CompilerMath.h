@@ -32,6 +32,7 @@ using glm::mat4;
 using glm::vec2;
 using glm::vec3;
 using glm::vec4;
+using glm::quat;
 
 namespace compiler
 {
@@ -42,6 +43,10 @@ namespace compiler
         vec3 normal;
         float uv_y;
         vec4 tangent; // xyz = tangent direction, w = bitangent handedness
+
+        //uint8_t  bone_indices[4] = { 0 };
+        //uint8_t  bone_weights[4] = { 0 };
+
         Vertex() = default;
 
         Vertex(const vec3& pos, const vec3& n, const vec2& uv) : position(pos), uv_x(uv.x), normal(n), uv_y(uv.y), tangent(0.0f, 0.0f, 0.0f, 1.0f) {}
@@ -62,5 +67,25 @@ namespace compiler
             uv_x = u;
             uv_y = v;
         }
+    };
+
+
+    // ----- Skeletal Animation structs ----- //
+    struct PositionKey
+    {
+        float time; // Timestamp in ticks
+        vec3  value{ 0.0f };
+    };
+
+    struct RotationKey
+    {
+        float time;
+        quat  value{ 1.0f, 0.0f, 0.0f, 0.0f };
+    };
+
+    struct ScaleKey
+    {
+        float time;
+        vec3  value{ 0.0f };
     };
 }

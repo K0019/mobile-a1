@@ -7,7 +7,7 @@
                     "resourceType": 16443744738808614340,
                     "resourceEntries": [
                         {
-                            "hash": 181509579392460051,
+                            "hash": 192215523585672263,
                             "name": "_010"
                         }
                     ]
@@ -21,7 +21,7 @@
                     "resourceType": 16443744738808614340,
                     "resourceEntries": [
                         {
-                            "hash": 195305151786165525,
+                            "hash": 203561384072692809,
                             "name": "_040"
                         }
                     ]
@@ -35,7 +35,7 @@
                     "resourceType": 645030769166885040,
                     "resourceEntries": [
                         {
-                            "hash": 289444237844718891,
+                            "hash": 299566341363582057,
                             "name": "n00_000_00_body_00_skin (instance)0"
                         }
                     ]
@@ -49,7 +49,7 @@
                     "resourceType": 16443744738808614340,
                     "resourceEntries": [
                         {
-                            "hash": 251904711849190685,
+                            "hash": 260684311670539351,
                             "name": "_170"
                         }
                     ]
@@ -63,7 +63,7 @@
                     "resourceType": 645030769166885040,
                     "resourceEntries": [
                         {
-                            "hash": 325720424979932477,
+                            "hash": 336578101777777791,
                             "name": "n00_007_01_tops_01_cloth_02 (instance)0"
                         }
                     ]
@@ -77,7 +77,7 @@
                     "resourceType": 16443744738808614340,
                     "resourceEntries": [
                         {
-                            "hash": 166370403789612305,
+                            "hash": 175224770401649733,
                             "name": "n00_000_00_hairback_00_nml0"
                         }
                     ]
@@ -91,7 +91,7 @@
                     "resourceType": 645030769166885040,
                     "resourceEntries": [
                         {
-                            "hash": 296511898588063021,
+                            "hash": 302277737037677677,
                             "name": "n00_007_01_tops_01_cloth_01 (instance)0"
                         }
                     ]
@@ -105,7 +105,7 @@
                     "resourceType": 645030769166885040,
                     "resourceEntries": [
                         {
-                            "hash": 376182511136712019,
+                            "hash": 385536056027759767,
                             "name": "n00_000_00_faceeyeline_00_face (instance)0"
                         }
                     ]
@@ -119,7 +119,7 @@
                     "resourceType": 16443744738808614340,
                     "resourceEntries": [
                         {
-                            "hash": 170483676789122321,
+                            "hash": 176587065308464197,
                             "name": "n00_000_hair_00_nml0"
                         }
                     ]
@@ -133,7 +133,7 @@
                     "resourceType": 645030769166885040,
                     "resourceEntries": [
                         {
-                            "hash": 309434458749314355,
+                            "hash": 319514780826322035,
                             "name": "n00_008_01_shoes_01_cloth_02 (instance)0"
                         }
                     ]
@@ -147,7 +147,7 @@
                     "resourceType": 645030769166885040,
                     "resourceEntries": [
                         {
-                            "hash": 306110635098547505,
+                            "hash": 313615900943303793,
                             "name": "n00_008_01_shoes_01_cloth_01 (instance)0"
                         }
                     ]
@@ -161,7 +161,7 @@
                     "resourceType": 6209910166724260588,
                     "resourceEntries": [
                         {
-                            "hash": 391631749018628039,
+                            "hash": 169436941192905929,
                             "name": "cone0"
                         }
                     ]
@@ -175,7 +175,7 @@
                     "resourceType": 16443744738808614340,
                     "resourceEntries": [
                         {
-                            "hash": 221354781271434521,
+                            "hash": 231333948278686801,
                             "name": "_110"
                         }
                     ]
@@ -189,7 +189,7 @@
                     "resourceType": 645030769166885040,
                     "resourceEntries": [
                         {
-                            "hash": 331522547839706431,
+                            "hash": 340152614079677569,
                             "name": "n00_002_03_tops_01_cloth_02 (instance)0"
                         }
                     ]
@@ -203,8 +203,22 @@
                     "resourceType": 16443744738808614340,
                     "resourceEntries": [
                         {
-                            "hash": 172141740323808529,
+                            "hash": 182908157656548423,
                             "name": "shader_noneblack0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/meshanimations/cesiummananim_0.anim",
+            "resources": [
+                {
+                    "resourceType": 7232515681596383213,
+                    "resourceEntries": [
+                        {
+                            "hash": 177963654405000807,
+                            "name": "cesiummananim_00"
                         }
                     ]
                 }
@@ -217,7 +231,7 @@
                     "resourceType": 16443744738808614340,
                     "resourceEntries": [
                         {
-                            "hash": 229404305898382617,
+                            "hash": 234456561301570643,
                             "name": "_120"
                         }
                     ]
@@ -231,7 +245,7 @@
                     "resourceType": 6209910166724260588,
                     "resourceEntries": [
                         {
-                            "hash": 161595224790399665,
+                            "hash": 400736804281799239,
                             "name": "hatchback-sports0"
                         }
                     ]
@@ -245,7 +259,7 @@
                     "resourceType": 16443744738808614340,
                     "resourceEntries": [
                         {
-                            "hash": 240818336106325275,
+                            "hash": 249665006136968275,
                             "name": "_150"
                         }
                     ]
@@ -259,7 +273,7 @@
                     "resourceType": 645030769166885040,
                     "resourceEntries": [
                         {
-                            "hash": 353055383558071625,
+                            "hash": 362883917472318605,
                             "name": "n00_000_00_eyeiris_00_eye (instance)0"
                         }
                     ]
@@ -273,7 +287,7 @@
                     "resourceType": 645030769166885040,
                     "resourceEntries": [
                         {
-                            "hash": 365327032835679567,
+                            "hash": 375417250517337235,
                             "name": "n00_000_00_eyewhite_00_eye (instance)0"
                         }
                     ]
@@ -287,8 +301,36 @@
                     "resourceType": 16443744738808614340,
                     "resourceEntries": [
                         {
-                            "hash": 231828729037628699,
+                            "hash": 239440647510279251,
                             "name": "_130"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "sounds/kalimba.mp3",
+            "resources": [
+                {
+                    "resourceType": 16184316770661419113,
+                    "resourceEntries": [
+                        {
+                            "hash": 3396394154554478828,
+                            "name": "kalimba0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/textures/cesiumman2146822282649598438.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 162188961081298529,
+                            "name": "cesiumman21468222826495984380"
                         }
                     ]
                 }
@@ -301,8 +343,22 @@
                     "resourceType": 16443744738808614340,
                     "resourceEntries": [
                         {
-                            "hash": 201087483436639509,
+                            "hash": 208238706537251915,
                             "name": "_050"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/materials/material_1.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 173633777614818917,
+                            "name": "material_10"
                         }
                     ]
                 }
@@ -315,7 +371,7 @@
                     "resourceType": 16443744738808614340,
                     "resourceEntries": [
                         {
-                            "hash": 177183001137161491,
+                            "hash": 184839999586550855,
                             "name": "shader_nonenormal0"
                         }
                     ]
@@ -329,8 +385,22 @@
                     "resourceType": 16443744738808614340,
                     "resourceEntries": [
                         {
-                            "hash": 218189287295067415,
+                            "hash": 226147551930467407,
                             "name": "_100"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/cesiumman.mesh",
+            "resources": [
+                {
+                    "resourceType": 6209910166724260588,
+                    "resourceEntries": [
+                        {
+                            "hash": 183637134404324973,
+                            "name": "cesiumman0"
                         }
                     ]
                 }
@@ -343,7 +413,7 @@
                     "resourceType": 16443744738808614340,
                     "resourceEntries": [
                         {
-                            "hash": 214951225551267095,
+                            "hash": 221253625675236427,
                             "name": "_090"
                         }
                     ]
@@ -357,7 +427,7 @@
                     "resourceType": 16443744738808614340,
                     "resourceEntries": [
                         {
-                            "hash": 206277178319742229,
+                            "hash": 212426746327450699,
                             "name": "_060"
                         }
                     ]
@@ -371,7 +441,7 @@
                     "resourceType": 645030769166885040,
                     "resourceEntries": [
                         {
-                            "hash": 335684199350838593,
+                            "hash": 345229059265119365,
                             "name": "n00_002_03_tops_01_cloth_03 (instance)0"
                         }
                     ]
@@ -385,8 +455,22 @@
                     "resourceType": 16443744738808614340,
                     "resourceEntries": [
                         {
-                            "hash": 271358371079431461,
+                            "hash": 280797677877445729,
                             "name": "_220"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/materials/cesium_man-effect.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 169869049801313893,
+                            "name": "cesium_man-effect0"
                         }
                     ]
                 }
@@ -399,7 +483,7 @@
                     "resourceType": 16443744738808614340,
                     "resourceEntries": [
                         {
-                            "hash": 208859931133388053,
+                            "hash": 217471305675686987,
                             "name": "_070"
                         }
                     ]
@@ -413,7 +497,7 @@
                     "resourceType": 16443744738808614340,
                     "resourceEntries": [
                         {
-                            "hash": 235230618013967643,
+                            "hash": 245612206276985939,
                             "name": "_140"
                         }
                     ]
@@ -427,7 +511,7 @@
                     "resourceType": 6209910166724260588,
                     "resourceEntries": [
                         {
-                            "hash": 158010816883595619,
+                            "hash": 165955887379318537,
                             "name": "box0"
                         }
                     ]
@@ -441,7 +525,7 @@
                     "resourceType": 16443744738808614340,
                     "resourceEntries": [
                         {
-                            "hash": 264829471033697571,
+                            "hash": 272413901715653725,
                             "name": "_200"
                         }
                     ]
@@ -455,7 +539,7 @@
                     "resourceType": 645030769166885040,
                     "resourceEntries": [
                         {
-                            "hash": 339340075513193795,
+                            "hash": 350021830450594951,
                             "name": "n00_002_03_tops_01_cloth_04 (instance)0"
                         }
                     ]
@@ -469,7 +553,7 @@
                     "resourceType": 645030769166885040,
                     "resourceEntries": [
                         {
-                            "hash": 321917214259455291,
+                            "hash": 328779265801962619,
                             "name": "n00_002_03_tops_01_cloth_01 (instance)0"
                         }
                     ]
@@ -483,7 +567,7 @@
                     "resourceType": 6209910166724260588,
                     "resourceEntries": [
                         {
-                            "hash": 385509668275135841,
+                            "hash": 391814267422360829,
                             "name": "aji0"
                         }
                     ]
@@ -497,7 +581,7 @@
                     "resourceType": 645030769166885040,
                     "resourceEntries": [
                         {
-                            "hash": 299577337006302511,
+                            "hash": 310351450920436847,
                             "name": "n00_000_00_hairback_00_hair (instance)0"
                         }
                     ]
@@ -511,7 +595,7 @@
                     "resourceType": 645030769166885040,
                     "resourceEntries": [
                         {
-                            "hash": 162632064255066865,
+                            "hash": 161694180310058757,
                             "name": "colormap0"
                         }
                     ]
@@ -525,7 +609,7 @@
                     "resourceType": 645030769166885040,
                     "resourceEntries": [
                         {
-                            "hash": 348684824837662025,
+                            "hash": 358705773286769803,
                             "name": "n00_000_00_facemouth_00_face (instance)0"
                         }
                     ]
@@ -539,7 +623,7 @@
                     "resourceType": 16443744738808614340,
                     "resourceEntries": [
                         {
-                            "hash": 259127403732051233,
+                            "hash": 268043342995244123,
                             "name": "_190"
                         }
                     ]
@@ -553,7 +637,7 @@
                     "resourceType": 16443744738808614340,
                     "resourceEntries": [
                         {
-                            "hash": 269404538916873509,
+                            "hash": 278477708342838367,
                             "name": "_210"
                         }
                     ]
@@ -567,7 +651,7 @@
                     "resourceType": 16443744738808614340,
                     "resourceEntries": [
                         {
-                            "hash": 160263716208837359,
+                            "hash": 154212003683043075,
                             "name": "colormap0"
                         }
                     ]
@@ -581,7 +665,7 @@
                     "resourceType": 645030769166885040,
                     "resourceEntries": [
                         {
-                            "hash": 380172638833911123,
+                            "hash": 389680115352847513,
                             "name": "n00_000_hair_00_hair (instance)0"
                         }
                     ]
@@ -595,7 +679,7 @@
                     "resourceType": 16443744738808614340,
                     "resourceEntries": [
                         {
-                            "hash": 184855393275782419,
+                            "hash": 194895033422562375,
                             "name": "_020"
                         }
                     ]
@@ -609,7 +693,7 @@
                     "resourceType": 16443744738808614340,
                     "resourceEntries": [
                         {
-                            "hash": 284771313426670889,
+                            "hash": 296063297317487717,
                             "name": "_250"
                         }
                     ]
@@ -623,7 +707,7 @@
                     "resourceType": 645030769166885040,
                     "resourceEntries": [
                         {
-                            "hash": 364536483975308621,
+                            "hash": 369407319959913617,
                             "name": "n00_000_00_face_00_skin (instance)0"
                         }
                     ]
@@ -637,7 +721,7 @@
                     "resourceType": 645030769166885040,
                     "resourceEntries": [
                         {
-                            "hash": 359993301929338187,
+                            "hash": 365820713030108303,
                             "name": "n00_000_00_eyehighlight_00_eye (instance)0"
                         }
                     ]
@@ -651,7 +735,7 @@
                     "resourceType": 16443744738808614340,
                     "resourceEntries": [
                         {
-                            "hash": 244124567571047709,
+                            "hash": 254958055113081941,
                             "name": "_160"
                         }
                     ]
@@ -665,7 +749,7 @@
                     "resourceType": 16443744738808614340,
                     "resourceEntries": [
                         {
-                            "hash": 276662415171822887,
+                            "hash": 287637739713840227,
                             "name": "_230"
                         }
                     ]
@@ -679,7 +763,7 @@
                     "resourceType": 645030769166885040,
                     "resourceEntries": [
                         {
-                            "hash": 346555070814659911,
+                            "hash": 355209326310442121,
                             "name": "n00_002_03_tops_01_cloth_05 (instance)0"
                         }
                     ]
@@ -693,7 +777,7 @@
                     "resourceType": 645030769166885040,
                     "resourceEntries": [
                         {
-                            "hash": 372586008602256721,
+                            "hash": 382222127981642901,
                             "name": "n00_000_00_facebrow_00_face (instance)0"
                         }
                     ]
@@ -707,7 +791,7 @@
                     "resourceType": 645030769166885040,
                     "resourceEntries": [
                         {
-                            "hash": 310970476493317429,
+                            "hash": 322886982988711029,
                             "name": "n00_010_01_onepiece_00_cloth_01 (instance)0"
                         }
                     ]
@@ -721,7 +805,7 @@
                     "resourceType": 16443744738808614340,
                     "resourceEntries": [
                         {
-                            "hash": 253984987848942879,
+                            "hash": 261858590089004121,
                             "name": "_180"
                         }
                     ]
@@ -735,7 +819,7 @@
                     "resourceType": 645030769166885040,
                     "resourceEntries": [
                         {
-                            "hash": 316792390562391353,
+                            "hash": 328151444662502519,
                             "name": "n00_010_01_onepiece_00_cloth_02 (instance)0"
                         }
                     ]
@@ -749,7 +833,7 @@
                     "resourceType": 16443744738808614340,
                     "resourceEntries": [
                         {
-                            "hash": 280950510520149287,
+                            "hash": 289855454667064421,
                             "name": "_240"
                         }
                     ]
@@ -763,7 +847,7 @@
                     "resourceType": 16443744738808614340,
                     "resourceEntries": [
                         {
-                            "hash": 192210026553976083,
+                            "hash": 201839548863595593,
                             "name": "_030"
                         }
                     ]

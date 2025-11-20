@@ -30,7 +30,7 @@ class RenderComponent
     , public IEditorComponent<RenderComponent>
 {
 public:
-    const ResourceMesh* GetMesh();
+    const ResourceMesh* GetMesh() const;
     const std::vector<UserResourceHandle<ResourceMaterial>>& GetMaterialsList() const;
 
     void EditorDraw() override;

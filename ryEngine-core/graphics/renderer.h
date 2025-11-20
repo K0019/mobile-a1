@@ -5,7 +5,6 @@
 #include <string>
 #include <thread>
 #include <variant>
-
 #include "interface.h"
 #include "i_renderer.h"
 #include "renderer_resources.h"
@@ -13,81 +12,93 @@
 
 class Renderer : public IRenderer
 {
-  public:
-    Renderer();
+public:
+  Renderer();
 
-    void initialize();
-    // Lifecycle - all called from main thread
-    void startup();
+  void initialize();
 
-    void shutdown();
+  // Lifecycle - all called from main thread
+  void startup();
 
-    // Frame processing - all on main thread
-    void beginFrame();
+  void shutdown();
 
-    void render(FrameData& frameData);
+  // Frame processing - all on main thread
+  void beginFrame();
 
-    void endFrame();
+  void render(FrameData& frameData);
 
-    void onWindowResized(int width, int height);
+  void endFrame();
 
-    // Surface lifecycle management (for Android)
-    void handleSurfaceCreated();
-    void handleSurfaceDestroyed();
+  void onWindowResized(int width, int height);
 
-    // Feature system interface (simplified)
-    void DestroyFeature(uint64_t feature_handle) override;
+  // Surface lifecycle management (for Android)
+  void handleSurfaceCreated();
 
-    void* GetFeatureParameterBlockPtr(uint64_t feature_handle) override;
+  void handleSurfaceDestroyed();
 
-    GPUBuffers& getGPUBuffers() { return *m_gpuBuffers; }
+  // Feature system interface (simplified)
+  void DestroyFeature(uint64_t feature_handle) override;
 
-    const GPUBuffers& getGPUBuffers() const { return *m_gpuBuffers; }
+  void* GetFeatureParameterBlockPtr(uint64_t feature_handle) override;
 
-    const ToneMappingSettings& GetToneMappingSettings() const;
-
-    void UpdateToneMappingSettings(const ToneMappingSettings& newSettings) const;
-
-    bool isWindowReadyForShow() const { return m_windowReadyForShow; }
-
-    void AddTransientResourceObserver(internal::ITransientResourceObserver* observer) const;
-
-    void RemoveTransientResourceObserver(internal::ITransientResourceObserver* observer) const;
-
-  private:
-    uint64_t DoCreateFeature(std::function<std::unique_ptr<IRenderFeature>()> factory) override;
-
-    // Frame-in-flight management (simplified)
-    static constexpr uint32_t MAX_FRAMES_IN_FLIGHT = 2;
-
-    struct PerFrameResources
+  template <typename TFeature>
+  TFeature* GetFeature(uint64_t feature_handle)
+  {
+    auto it = m_features.find(feature_handle);
+    if (it == m_features.end() || !it->second.feature)
     {
-      FrameData frameData;
-      // Each feature manages its own per-frame data via double-buffering
-    };
+      return nullptr;
+    }
+    return dynamic_cast<TFeature*>(it->second.feature.get());
+  }
 
-    std::array<PerFrameResources, MAX_FRAMES_IN_FLIGHT> m_frameResources;
-    std::array<vk::SubmitHandle, MAX_FRAMES_IN_FLIGHT> m_frameSubmitHandles;
-    uint32_t m_currentFrame = 0;
+  GPUBuffers& getGPUBuffers() { return *m_gpuBuffers; }
 
-    struct FeatureInfo
+  const GPUBuffers& getGPUBuffers() const { return *m_gpuBuffers; }
+
+  const ToneMappingSettings& GetToneMappingSettings() const;
+
+  void UpdateToneMappingSettings(const ToneMappingSettings& newSettings) const;
+
+  bool isWindowReadyForShow() const { return m_windowReadyForShow; }
+
+  void AddTransientResourceObserver(internal::ITransientResourceObserver* observer) const;
+
+  void RemoveTransientResourceObserver(internal::ITransientResourceObserver* observer) const;
+
+private:
+  uint64_t DoCreateFeature(std::function<std::unique_ptr<IRenderFeature>()> factory) override;
+
+  // Frame-in-flight management (simplified)
+  static constexpr uint32_t MAX_FRAMES_IN_FLIGHT = 2;
+
+  struct PerFrameResources
+  {
+    FrameData frameData;
+    // Each feature manages its own per-frame data via double-buffering
+  };
+
+  std::array<PerFrameResources, MAX_FRAMES_IN_FLIGHT> m_frameResources;
+  std::array<vk::SubmitHandle, MAX_FRAMES_IN_FLIGHT> m_frameSubmitHandles;
+  uint32_t m_currentFrame = 0;
+
+  struct FeatureInfo
+  {
+    std::unique_ptr<IRenderFeature> feature;
+    uint64_t handle;
+
+    explicit FeatureInfo(std::unique_ptr<IRenderFeature> feat, uint64_t h) : feature(std::move(feat)), handle(h)
     {
-      std::unique_ptr<IRenderFeature> feature;
-      uint64_t handle;
+    }
+  };
 
-      explicit FeatureInfo(std::unique_ptr<IRenderFeature> feat, uint64_t h) : feature(std::move(feat)), handle(h) {}
-    };
-
-    std::unordered_map<uint64_t, FeatureInfo> m_features;
-    std::atomic<uint64_t> m_nextFeatureHandle{1};
-
-    // Core systems
-    std::unique_ptr<vk::IContext> m_vkContext;
-    std::unique_ptr<RenderGraph> m_renderGraph;
-    std::unique_ptr<GPUBuffers> m_gpuBuffers;
-
-
-    int m_framesRendered = 0;
-    bool m_windowReadyForShow = false;
-    const int MIN_FRAMES_BEFORE_SHOW = 3;
+  std::unordered_map<uint64_t, FeatureInfo> m_features;
+  std::atomic<uint64_t> m_nextFeatureHandle{1};
+  // Core systems
+  std::unique_ptr<vk::IContext> m_vkContext;
+  std::unique_ptr<RenderGraph> m_renderGraph;
+  std::unique_ptr<GPUBuffers> m_gpuBuffers;
+  int m_framesRendered = 0;
+  bool m_windowReadyForShow = false;
+  const int MIN_FRAMES_BEFORE_SHOW = 3;
 };

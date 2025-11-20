@@ -92,6 +92,28 @@ property_begin(AudioSourceComponent)
 }
 property_vend_h(AudioSourceComponent)
 
+// Listener is more of a tag component than anything. It just indicates this entity is the listener
+class AudioListenerComponent
+	: public IRegisteredComponent<AudioListenerComponent>
+	, public IEditorComponent<AudioListenerComponent>
+{
+public:
+	/*****************************************************************//*!
+	\brief
+		Default constructor.
+	*//******************************************************************/
+	AudioListenerComponent();
+
+private:
+	virtual void EditorDraw() override;
+
+	property_vtable()
+};
+property_begin(AudioListenerComponent)
+{
+}
+property_vend_h(AudioListenerComponent)
+
 /*****************************************************************//*!
 \class AudioSystem
 \brief

@@ -23,6 +23,8 @@ All rights reserved.
 #include "Utilities/GameTime.h"
 #include <imgui.h>
 
+#include "Graphics/CameraController.h"
+
 namespace physics {
 	JoltPhysics::JoltPhysics()
 		: tempAllocator{ 10 * 1024 * 1024 }
@@ -579,5 +581,19 @@ namespace physics {
 		// If you have your own custom shape types you probably need to register their handlers with the CollisionDispatch before calling this function.
 		// If you implement your own default material (PhysicsMaterial::sDefault) make sure to initialize it before this function or else this function will create one for you.
 		JPH::RegisterTypes();
+	}
+
+	void JoltPhysics::DebugDraw()
+	{
+#if defined(JPH_DEBUG_RENDERER)
+		Vec3 v = ST<CameraController>::Get()->GetCameraData().position;
+		joltDebugger.SetCameraPos(JPH::RVec3(v.x, v.y, v.z));
+
+		JPH::BodyManager::DrawSettings settings;
+		settings.mDrawShape = true;
+		settings.mDrawShapeWireframe = true;
+
+		physicsSystem.DrawBodies(settings, &joltDebugger);
+#endif
 	}
 }
