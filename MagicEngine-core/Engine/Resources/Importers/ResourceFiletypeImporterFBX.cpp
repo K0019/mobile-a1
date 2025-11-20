@@ -24,7 +24,7 @@ All rights reserved.
 // We then delegate the importing of these .mesh and .ktx2 files to those respective importers.
 // Therefore, we need to call the resource importer again to process those files.
 #ifdef GLFW
-#include "SceneCompiler.h"
+//#include "SceneCompiler.h"
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
@@ -201,6 +201,7 @@ namespace internal {
 
 bool ResourceFiletypeImporterFBX::Import([[maybe_unused]] const std::string& assetRelativeFilepath)
 {
+#if 0
 #ifdef GLFW
     // Set up compile options
     compiler::SceneCompiler compiler;
@@ -237,4 +238,6 @@ bool ResourceFiletypeImporterFBX::Import([[maybe_unused]] const std::string& ass
 	CONSOLE_LOG_UNIMPLEMENTED() << "Importing FBX files is not implemented for this platform.";
     return false;
 #endif
+#endif
+    return false;
 }

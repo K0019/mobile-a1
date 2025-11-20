@@ -241,9 +241,15 @@ endif()
 
 # MagicEngine
 add_subdirectory(MagicEngine-core)
+
+#set BUILD_ASSET_COMPILER = OFF manually in cmake for school pc
 if (NOT ANDROID)
+    option(BUILD_ASSET_COMPILER "Build the asset compiler tool" ON)
+    if(BUILD_ASSET_COMPILER)
+            add_subdirectory(AssetCompiler)
+    endif()
+
     add_subdirectory(EngineScripting)
-    add_subdirectory(AssetCompiler)
 endif()
 
 # Dont want to link with assetcompiler and tools on android
@@ -253,7 +259,6 @@ if (NOT ANDROID)
         ryEngine-Core
         ryEngine-ImGui
         MagicEngine-Core
-        AssetCompiler
 	    EngineScripting
         # Someone is silently loading fmod, suspicious, but ok.
     )
