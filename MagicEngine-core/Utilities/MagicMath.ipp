@@ -178,7 +178,12 @@ inline constexpr Vec2::Vec2(const glm::vec2& other)
 }
 
 inline constexpr Vec2::Vec2(glm::vec2&& other)
-	: glm::vec2{ std::move(other) }
+	: glm::vec2{ std::forward<glm::vec2>(other) }
+{
+}
+
+inline constexpr Vec2::Vec2(Vec3&& other)
+	: glm::vec2{ other.x, other.y }
 {
 }
 
