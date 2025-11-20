@@ -151,14 +151,13 @@ void PlayerMovementComponentSystem::UpdatePlayerMovementComponent(PlayerMovement
 		characterComp->Attack();
 
 	// Test opening the door
-	//if (inputInstance->GetIsPressed(KEY::O))
-	//{
-	//	if (auto scriptComp{ comp.testReference->GetComp<ScriptComponent>() })
-	//	{
-	//		scriptComp->CallScriptFunction("open");
-	//		//scriptComp->ForEachAttachedScript([](LuaScriptWithMeta& lswm) {lswm.});
-	//	}
-	//}
+	if (inputInstance->GetIsPressed(KEY::O))
+	{
+		if (auto scriptComp{ comp.testReference->GetComp<ScriptComponent>() })
+		{
+			scriptComp->CallScriptFunction("toggle");
+		}
+	}
 
 	characterComp->SetMovementVector(movement);
 

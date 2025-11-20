@@ -1,9 +1,10 @@
 local opening = true
 local moving = true
-local openingDistance = 70.0
-local openSpeed = 35
+local openingDistance = 0.6
+local openSpeed = 0.3
 local currentOpeningDistance = 0.0
-
+local openingDoorEntity
+local closingDoorEntity
 function open()
     opening = true
     moving = true
@@ -21,16 +22,26 @@ function toggle()
 end
 
 function start(entity)
-    local transform = entity.transform
-    local localPos = transform.worldPosition
 
-    Magic.AudioManager.PlaySound("kalimba",localPos)
+    local entityContainer = entity:GetEntityReferenceHolderComponent()
+
+    if entityContainer:Exists() then
+        Magic.Log(Magic.LogLevel.info, "Yay?")
+        openingDoorEntity = entityContainer:GetEntityReference(0)
+        closingDoorEntity = entityContainer:GetEntityReference(1)
+    else
+        Magic.Log(Magic.LogLevel.info, "NO COMPONENT ATTACHED!!!")
+    end
+
+    -- Audio plays, direction TBD
+    -- Magic.AudioManager.PlaySound("kalimba",localPos)
 end
 
 function update(entity)
     local prevOpenDistance = currentOpeningDistance;
-    local transform = entity.transform
+    local transform = openingDoorEntity.transform
     local localPos = transform.localPosition
+
     if(moving) then
         if(opening) then
                 currentOpeningDistance = currentOpeningDistance + Magic.DeltaTime() * openSpeed

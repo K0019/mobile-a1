@@ -15,6 +15,34 @@
             ]
         },
         {
+            "filepath": "compiledassets/textures/image_15.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 731494091199527651,
+                            "name": "image_150"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/materials/standardsurface1_1012.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 784546626751360037,
+                            "name": "standardsurface1_10120"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/textures/_04.ktx2",
             "resources": [
                 {
@@ -93,6 +121,20 @@
                         {
                             "hash": 175224770401649733,
                             "name": "n00_000_00_hairback_00_nml0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/textures/image_8.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 718733159247542359,
+                            "name": "image_80"
                         }
                     ]
                 }
@@ -267,6 +309,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/textures/image_6.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 709429091853301837,
+                            "name": "image_60"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/materials/n00_002_03_tops_01_cloth_02 (instance).material",
             "resources": [
                 {
@@ -337,6 +393,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/materials/standardsurface1_1013.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 725019067223537767,
+                            "name": "standardsurface1_10130"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/hatchback-sports.mesh",
             "resources": [
                 {
@@ -373,6 +443,20 @@
                         {
                             "hash": 362883917472318605,
                             "name": "n00_000_00_eyeiris_00_eye (instance)0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/textures/image_13.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 763682294102682611,
+                            "name": "image_130"
                         }
                     ]
                 }
@@ -505,6 +589,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/textures/image_4.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 768269456613764089,
+                            "name": "image_40"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/textures/shader_nonenormal.ktx2",
             "resources": [
                 {
@@ -541,6 +639,20 @@
                         {
                             "hash": 226147551930467407,
                             "name": "_100"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/textures/image_12.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 755087411708357609,
+                            "name": "image_120"
                         }
                     ]
                 }
@@ -603,6 +715,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/wall_doors_tex.mesh",
+            "resources": [
+                {
+                    "resourceType": 6209910166724260588,
+                    "resourceEntries": [
+                        {
+                            "hash": 749519484825287455,
+                            "name": "wall_doors_tex0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/wall_window.mesh",
             "resources": [
                 {
@@ -645,6 +771,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/materials/standardsurface1_1011.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 707637987411583325,
+                            "name": "standardsurface1_10110"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/materials/n00_002_03_tops_01_cloth_03 (instance).material",
             "resources": [
                 {
@@ -667,6 +807,20 @@
                         {
                             "hash": 280797677877445729,
                             "name": "_220"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/materials/wall_1012.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 779930876937956375,
+                            "name": "wall_10120"
                         }
                     ]
                 }
@@ -709,6 +863,20 @@
                         {
                             "hash": 217471305675686987,
                             "name": "_070"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/textures/image_3.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 757522829963881453,
+                            "name": "image_30"
                         }
                     ]
                 }
@@ -799,6 +967,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/door_classroom_tex.mesh",
+            "resources": [
+                {
+                    "resourceType": 6209910166724260588,
+                    "resourceEntries": [
+                        {
+                            "hash": 725499553804875883,
+                            "name": "door_classroom_tex0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/materials/n00_002_03_tops_01_cloth_04 (instance).material",
             "resources": [
                 {
@@ -863,6 +1045,20 @@
                         {
                             "hash": 161694180310058757,
                             "name": "colormap0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/textures/image_14.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 772044080031919101,
+                            "name": "image_140"
                         }
                     ]
                 }
@@ -953,6 +1149,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/wall_window_tex.mesh",
+            "resources": [
+                {
+                    "resourceType": 6209910166724260588,
+                    "resourceEntries": [
+                        {
+                            "hash": 790882012750605355,
+                            "name": "wall_window_tex0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/materials/n00_000_hair_00_hair (instance).material",
             "resources": [
                 {
@@ -975,6 +1185,34 @@
                         {
                             "hash": 2280285961226467817,
                             "name": "image_20"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/textures/image_16.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 735414949664176877,
+                            "name": "image_160"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/floor_tex.mesh",
+            "resources": [
+                {
+                    "resourceType": 6209910166724260588,
+                    "resourceEntries": [
+                        {
+                            "hash": 714541820922388835,
+                            "name": "floor_tex0"
                         }
                     ]
                 }
@@ -1051,6 +1289,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/textures/image_5.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 775794514194263043,
+                            "name": "image_50"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/textures/_23.ktx2",
             "resources": [
                 {
@@ -1079,6 +1331,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/textures/image_17.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 741886675105266423,
+                            "name": "image_170"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/materials/woodlight.material",
             "resources": [
                 {
@@ -1101,6 +1367,20 @@
                         {
                             "hash": 382222127981642901,
                             "name": "n00_000_00_facebrow_00_face (instance)0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/textures/image_7.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 715987678712985681,
+                            "name": "image_70"
                         }
                     ]
                 }
@@ -1227,6 +1507,20 @@
                         {
                             "hash": 201839548863595593,
                             "name": "_030"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/materials/wall_1013.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 743891084802702091,
+                            "name": "wall_10130"
                         }
                     ]
                 }

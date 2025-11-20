@@ -213,11 +213,11 @@ SCRIPT_GENERATE_COMP_WRAPPER_END()
 
 // EntityReferenceHolderComponent
 SCRIPT_GENERATE_COMP_WRAPPER_BEGIN(EntityReferenceHolderComponent)
-EntityReference GetEntity(int index)
+ecs::EntityHandle GetEntityReference(int index)
 {
 	return GetHandle()->GetEntity(index);
 }
-void SetEntity(int index, EntityReference entity)
+void SetEntityReference(int index, ecs::EntityHandle entity)
 {
 	GetHandle()->SetEntity(index, entity);
 }
@@ -319,6 +319,7 @@ void RegisterCppStuffToLua(luabridge::Namespace baseTable)
 		SCRIPT_REGISTER_COMP_GETTER(GrabbableItemComponent)
 		SCRIPT_REGISTER_COMP_GETTER(HealthComponent)
 		SCRIPT_REGISTER_COMP_GETTER(EntityLayerComponent)
+		SCRIPT_REGISTER_COMP_GETTER(EntityReferenceHolderComponent)
 		//=========================================== END REGISTER GETTER ================================================================================
 
 		.endClass()
@@ -462,8 +463,8 @@ void RegisterCppStuffToLua(luabridge::Namespace baseTable)
 
 		// GrabbableItemComponent
 		SCRIPT_REGISTER_COMP_BEGIN(EntityReferenceHolderComponent)
-			.addFunction("GetEntity", &LuaWrapperComp_EntityReferenceHolderComponent::GetEntity)
-			.addFunction("SetEntity", &LuaWrapperComp_EntityReferenceHolderComponent::SetEntity)
+			.addFunction("GetEntityReference", &LuaWrapperComp_EntityReferenceHolderComponent::GetEntityReference)
+			.addFunction("SetEntityReference", &LuaWrapperComp_EntityReferenceHolderComponent::SetEntityReference)
 			//.addProperty("GetEntityReference", [](const EntityReferenceHolderComponent* comp) -> EntityReference { return comp->GetEntity() })
 		SCRIPT_REGISTER_COMP_END()
 
