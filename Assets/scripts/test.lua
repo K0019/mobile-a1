@@ -195,3 +195,27 @@ end
     --Magic.TestFunction(entity);
     --print(entity.transform.localPosition.x)
 end
+
+function OnTriggerEnter(entity)
+    Magic.Log(Magic.LogLevel.info, "Contact Added")
+end
+
+function OnTriggerStay(entity)
+    Magic.Log(Magic.LogLevel.info, "Contact Staying")
+end
+
+function OnTriggerExit(entity)
+    Magic.Log(Magic.LogLevel.info, "Contact Exited")
+end
+
+function OnCollisionEnter(entity)
+    Magic.Log(Magic.LogLevel.info, "Contact Added")
+end
+
+function OnCollisionStay(entity)
+    Magic.Log(Magic.LogLevel.info, "Contact Staying")
+end
+
+function OnCollisionExit(entity)
+    Magic.Log(Magic.LogLevel.info, "Contact Exited")
+end

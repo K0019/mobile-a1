@@ -2,6 +2,16 @@
 
 namespace math {
 
+	namespace internal {
+		constexpr void ConstexprMemCpy(void* dst, const void* src, size_t size)
+		{
+			for (std::size_t i{}; i < size; ++i)
+				reinterpret_cast<uint8_t*>(dst)[i] = reinterpret_cast<const uint8_t*>(src)[i];
+		}
+		constexpr float __int_as_float(int32_t a) { float r; ConstexprMemCpy(&r, &a, sizeof(r)); return r; }
+		constexpr int32_t __float_as_int(float a) { int32_t r; ConstexprMemCpy(&r, &a, sizeof(r)); return r; }
+	}
+
 	constexpr float ToRadians(float degrees)
 	{
 		return degrees / 180.0f * PI_f;
@@ -15,6 +25,27 @@ namespace math {
 	constexpr float PowSqr(float x)
 	{
 		return x * x;
+	}
+
+	inline float FastLog(float x)
+	{
+		// https://stackoverflow.com/questions/39821367/very-fast-approximate-logarithm-natural-log-function-in-c
+		float m, r, s, t, i, f;
+		int32_t e;
+
+		e = (internal::__float_as_int(x) - 0x3f2aaaab) & 0xff800000;
+		m = internal::__int_as_float(internal::__float_as_int(x) - e);
+		i = (float)e * 1.19209290e-7f; // 0x1.0p-23
+		/* m in [2/3, 4/3] */
+		f = m - 1.0f;
+		s = f * f;
+		/* Compute log1p(f) for f in [-1/3, 1/3] */
+		r = std::fmaf(0.230836749f, f, -0.279208571f); // 0x1.d8c0f0p-3, -0x1.1de8dap-2
+		t = std::fmaf(0.331826031f, f, -0.498910338f); // 0x1.53ca34p-2, -0x1.fee25ap-2
+		r = std::fmaf(r, s, t);
+		r = std::fmaf(r, s, f);
+		r = std::fmaf(i, 0.693147182f, r); // 0x1.62e430p-1 // log(2) 
+		return r;
 	}
 
 	inline Mat4 EulerAnglesToRotationMatrix(const Vec3& angles)
@@ -147,7 +178,12 @@ inline constexpr Vec2::Vec2(const glm::vec2& other)
 }
 
 inline constexpr Vec2::Vec2(glm::vec2&& other)
-	: glm::vec2{ std::move(other) }
+	: glm::vec2{ std::forward<glm::vec2>(other) }
+{
+}
+
+inline constexpr Vec2::Vec2(Vec3&& other)
+	: glm::vec2{ other.x, other.y }
 {
 }
 

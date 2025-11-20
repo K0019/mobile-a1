@@ -62,6 +62,16 @@ namespace math {
 
 	/*!***********************************************************************
 	\brief
+		Calculates the natural logarithm with a faster but less accurate method.
+	\param x
+		The number to take the natural logarithm of.
+	\return
+		The natural logarithm of the number.
+	*************************************************************************/
+	inline float FastLog(float x);
+
+	/*!***********************************************************************
+	\brief
 		Wraps a value around a range.
 	\tparam T
 		The type of the value.
@@ -173,6 +183,7 @@ struct Vec2 : public glm::vec2
 	constexpr Vec2(float x, float y);
 	constexpr Vec2(const glm::vec2& other);
 	constexpr Vec2(glm::vec2&& other);
+	constexpr Vec2(Vec3&& other);
 	Vec2& operator=(const glm::vec2& other);
 	Vec2& operator=(glm::vec2&& other);
 

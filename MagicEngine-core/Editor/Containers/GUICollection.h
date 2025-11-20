@@ -272,6 +272,34 @@ namespace gui {
 	X(SEPARATOR_TEXT_TEXT_PADDING, ImGuiStyleVar_SeparatorTextPadding) \
 	X_DEPEND_DOCKING(DOCKING_SEPARATOR_SIZE, ImGuiStyleVar_DockingSeparatorSize)
 
+	//! ImGuiColorEditFlags
+#define GUICOLLECTION_FLAG_COLOR_EDIT \
+	X(NONE, ImGuiColorEditFlags_None) \
+	X(NO_ALPHA, ImGuiColorEditFlags_NoAlpha) \
+	X(NO_PICKER, ImGuiColorEditFlags_NoPicker) \
+	X(NO_OPTIONS, ImGuiColorEditFlags_NoOptions) \
+	X(NO_SMALL_PREVIEW, ImGuiColorEditFlags_NoSmallPreview) \
+	X(NO_INPUTS, ImGuiColorEditFlags_NoInputs) \
+	X(NO_TOOLTIP, ImGuiColorEditFlags_NoTooltip) \
+	X(NO_LABEL, ImGuiColorEditFlags_NoLabel) \
+	X(NO_SIDE_PREVIEW, ImGuiColorEditFlags_NoSidePreview) \
+	X(NO_DRAG_DROP, ImGuiColorEditFlags_NoDragDrop) \
+	X(NO_BORDER, ImGuiColorEditFlags_NoBorder) \
+	X(NO_ALPHA_OPAQUE, ImGuiColorEditFlags_AlphaOpaque) \
+	X(NO_ALPHA_BACKGROUND, ImGuiColorEditFlags_AlphaNoBg) \
+	X(ALPHA_PREVIEW_HALF, ImGuiColorEditFlags_AlphaPreviewHalf) \
+	X(ALPHA_BAR, ImGuiColorEditFlags_AlphaBar) \
+	X(DISPLAY_HDR, ImGuiColorEditFlags_HDR) \
+	X(DISPLAY_RGB, ImGuiColorEditFlags_DisplayRGB) \
+	X(DISPLAY_HSV, ImGuiColorEditFlags_DisplayHSV) \
+	X(DISPLAY_HEX, ImGuiColorEditFlags_DisplayHex) \
+	X(UINT8, ImGuiColorEditFlags_Uint8) \
+	X(FLOAT, ImGuiColorEditFlags_Float) \
+	X(PICKER_HUE_BAR, ImGuiColorEditFlags_PickerHueBar) \
+	X(PICKER_HUE_WHEEL, ImGuiColorEditFlags_PickerHueWheel) \
+	X(INPUT_RGB, ImGuiColorEditFlags_InputRGB) \
+	X(INPUT_HSV, ImGuiColorEditFlags_InputHSV)
+
 	//! ImGuiCond
 #define GUICOLLECTION_FLAG_COND \
 	X(NONE, ImGuiCond_None) \
@@ -449,6 +477,16 @@ namespace gui {
 		GUICOLLECTION_FLAG_STYLE_VAR
 	};
 	// No bitwise operators for this flag as they aren't supposed to be combined (these aren't binary flags)
+
+	/*****************************************************************//*!
+	\enum class FLAG_COLOR_EDIT
+	\brief
+		ImGuiColorEditFlags
+	*//******************************************************************/
+	enum class FLAG_COLOR_EDIT : int {
+		GUICOLLECTION_FLAG_COLOR_EDIT
+	};
+	GENERATE_ENUM_CLASS_BITWISE_OPERATORS(FLAG_COLOR_EDIT)
 
 	/*****************************************************************//*!
 	\enum class FLAG_COND
@@ -1143,9 +1181,11 @@ namespace gui {
 
 	//! ImGui::DragInt, etc.
 	bool VarDrag(const char* label, int* v, float speed = 1.0f, int min = 0, int max = 0);
+	bool VarDrag(const char* label, unsigned int* v, float speed = 1.0f, unsigned int min = 0, unsigned int max = std::numeric_limits<int>::max());
 	bool VarDrag(const char* label, float* v, float speed = 1.0f, float min = 0.0f, float max = 0.0f, const char* format = "%.2f");
 	bool VarDrag(const char* label, ::Vec2* v, float speed = 1.0f, ::Vec2 min = {}, ::Vec2 max = {}, const char* format = "%.2f");
 	bool VarDrag(const char* label, ::Vec3* v, float speed = 1.0f, ::Vec3 min = {}, ::Vec3 max = {}, const char* format = "%.2f");
+	bool VarDrag(const char* label, ::Vec4* v, float speed = 1.0f, ::Vec4 min = {}, ::Vec4 max = {}, const char* format = "%.1f");
 
 	//! ImGui::InputInt, etc.
 	bool VarInput(const char* label, int* v, int step = 1);
@@ -1156,6 +1196,10 @@ namespace gui {
 	bool VarInput(const char* label, ::Vec2* v);
 	bool VarInput(const char* label, ::Vec3* v);
 	bool VarInput(const char* label, ::Vec4* v);
+
+	//! ImGui::ColorEdit
+	bool VarColor(const char* label, ::Vec3* v, FLAG_COLOR_EDIT flags = FLAG_COLOR_EDIT::NONE);
+	bool VarColor(const char* label, ::Vec4* v, FLAG_COLOR_EDIT flags = FLAG_COLOR_EDIT::NONE);
 
 	//! ImGui::SliderInt, etc.
 	template <typename T>
