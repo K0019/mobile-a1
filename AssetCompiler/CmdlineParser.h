@@ -236,6 +236,23 @@ namespace compiler
         }
 
         template<>
+        inline std::optional<int> ConvertValue<int>(const std::string& value, std::string flag, size_t argIndex) const
+        {
+            try
+            {
+                size_t pos;
+                int result = std::stoi(value, &pos);
+                if (pos != value.length())
+                    return std::nullopt; // Not fully converted
+                return result;
+            }
+            catch (...)
+            {
+                return std::nullopt;
+            }
+        }
+
+        template<>
         inline std::optional<double> ConvertValue<double>(const std::string& value, std::string flag, size_t argIndex) const
         {
             try

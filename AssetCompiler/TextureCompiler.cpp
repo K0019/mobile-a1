@@ -171,6 +171,7 @@ namespace compiler
             stbi_image_free(srcTexture.pData);
             free(destTexture.pData);
             result.errors.push_back("Texture compression failure: " + options.general.inputPath.string());
+            result.success = false;
             return result;
         }
 
@@ -182,6 +183,7 @@ namespace compiler
             stbi_image_free(srcTexture.pData);
             free(destTexture.pData);
             result.errors.push_back("Texture saving failure: " + options.general.inputPath.string());
+            result.success = false;
             return result;
         }
 
