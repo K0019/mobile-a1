@@ -33,12 +33,15 @@ All rights reserved.
 #include <Jolt/Physics/Collision/Shape/SphereShape.h>
 
 namespace physics {
+	class BoxColliderComp;
+
 	/*****************************************************************//*!
 	\brief
 		Enums that differentiates flags within the collider component.
 	*//******************************************************************/
 #define D_COLLIDER_COMP_FLAG \
-X(ENABLED, "Enabled")
+X(ENABLED, "Enabled") \
+X(IS_TRIGGER, "Is Trigger")
 
 #define X(name, str) name,
 	enum class COLLIDER_COMP_FLAG : int
@@ -47,6 +50,13 @@ X(ENABLED, "Enabled")
 
 		TOTAL,
 		ALL = TOTAL
+	};
+
+	enum class ContactTiming
+	{
+		ENTER,
+		STAY,
+		EXIT
 	};
 
 	/*****************************************************************//*!
@@ -137,8 +147,13 @@ X(ENABLED, "Enabled")
 	{
 	public:
 		virtual void OnContactAdded(const JPH::Body& inBody1, const JPH::Body& inBody2, const JPH::ContactManifold& inManifold, JPH::ContactSettings& ioSettings) override;
-
+		virtual void OnContactPersisted(const JPH::Body& inBody1, const JPH::Body& inBody2, const JPH::ContactManifold& inManifold, JPH::ContactSettings& ioSettings) override;
 		virtual void OnContactRemoved(const JPH::SubShapeIDPair& inSubShapePair) override;
+
+		static void ClearContactPair();
+		static void CallContactFunc();
+	private:
+		static std::vector<std::pair<std::pair<JPH::BodyID, JPH::BodyID>, ContactTiming>> contactPair;
 	};
 
 	using ColliderCompFlag = MaskTemplate<COLLIDER_COMP_FLAG>;
@@ -162,6 +177,8 @@ X(ENABLED, "Enabled")
 		Vec3 center;
 		// size difference from the object's scale.
 		Vec3 size;
+
+		std::array<std::function<void()>, 6> contactFunctions;
 
 	public:
 		/*****************************************************************//*!
