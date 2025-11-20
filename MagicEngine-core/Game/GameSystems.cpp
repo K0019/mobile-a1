@@ -65,7 +65,7 @@ void GameState_Common::OnEnter()
     ecs::AddSystem(ECS_LAYER::AUDIO, AudioSystem{});
 
     ecs::AddSystem(ECS_LAYER::RENDER_UI_0, TextSystem{});
-    ecs::AddSystem(ECS_LAYER::RENDER_UI_0, CircleSystem{});
+    ecs::AddSystem(ECS_LAYER::RENDER_UI_0, SpriteRenderSystem{});
 }
 
 void GameState_Editor::OnEnter()
