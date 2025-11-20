@@ -88,6 +88,7 @@ public:
 	float m_volumeSFX = 1.0f; // 0.0f - 1.0f
 
 	int m_logLevel = 0;			// 0=DEBUG 1=INFO 2=WARNING 3=ERROR 4=FATAL
+	bool m_physicsDebugDraw = false; // Whether to draw physics debug visualization
 	int m_maxFPS = 0;			//<=0 is infinite, else max is this
 	float m_targetFixedDt = 0.01666666667f;	// Fixed dt of the application. If 0 or less, fixed delta time is equal to delta time.
 	int m_fullscreenMode = 1;	//0 is windowed, 1 is Fullscreen, 2 is borderless
@@ -123,6 +124,7 @@ property_begin(GameSettings)
 		property_var(m_volumeSFX),
 
 		property_var(m_logLevel),
+		property_var(m_physicsDebugDraw),
 		property_var(m_maxFPS),
 		property_var(m_targetFixedDt),
 		property_var(m_fullscreenMode),

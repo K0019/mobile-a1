@@ -79,7 +79,6 @@ namespace editor {
         {
             Transform& tr = sel->GetTransform();
             tr.SetMat4ToWorld(&M);
-            std::cout << sel->GetComp<NameComponent>()->GetName() << std::endl;
             ImGuizmo::SetID((int)(intptr_t)sel);
         }
         float model[16];
