@@ -395,6 +395,7 @@ void MagicEngine::ExecuteUpdateSystems()
 
 void MagicEngine::ExecuteRenderSystems()
 {
+	// 3D world
 	ecs::RunSystemsInLayers(ECS_LAYER::CUTOFF_POST_PHYSICS_SCRIPTS, ECS_LAYER::CUTOFF_RENDER);
 
 	ecs::RunSystems(ECS_LAYER::PERMANENT_RENDER);
