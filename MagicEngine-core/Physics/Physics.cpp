@@ -245,8 +245,12 @@ namespace physics {
 		for (auto compIter{ ecs::GetCompsActiveBegin<JoltBodyComp>() }, endIter{ ecs::GetCompsEnd<JoltBodyComp>() }; compIter != endIter; ++compIter)
 			compIter->UpdateBody();
 
+		MyContactListener::ClearContactPair();
+
 		// Update all the bodies.
 		ST<JoltPhysics>::Get()->UpdatePhysicsSystem();
+
+		MyContactListener::CallContactFunc();
 
 		for (auto compIter{ ecs::GetCompsActiveBegin<JoltBodyComp>() }, endIter{ ecs::GetCompsEnd<JoltBodyComp>() }; compIter != endIter; ++compIter)
 			compIter->UpdateEntity();

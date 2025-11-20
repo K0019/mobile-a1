@@ -28,6 +28,7 @@ All rights reserved.
 #include <Jolt/Core/JobSystemThreadPool.h>
 #include <Jolt/Physics/PhysicsSettings.h>
 #include <Jolt/Physics/PhysicsSystem.h>
+#include <Jolt/Physics/Body/BodyInterface.h>
 #include <Jolt/Physics/Collision/Shape/Shape.h>
 #include <Jolt/Physics/Collision/Shape/EmptyShape.h>
 #include <Jolt/Physics/Collision/Shape/BoxShape.h>
@@ -306,6 +307,14 @@ namespace physics {
 
 		/*****************************************************************//*!
 		\brief
+			Check if the body is a trigger or not.
+		\return
+			true if the sensor is true, else false.
+		*//******************************************************************/
+		bool IsTrigger() const;
+
+		/*****************************************************************//*!
+		\brief
 			Set the motion type of the body. DYNAMIC, KINEMATIC, STATIC
 		\param type
 			motion type value.
@@ -411,10 +420,19 @@ namespace physics {
 		/*****************************************************************//*!
 		\brief
 			Set the degree of freedom to the body
-		\param dof
+		\param val
 			degree of freedom value.
 		*//******************************************************************/
 		void SetDOF(JPH::EAllowedDOFs val);
+
+
+		/*****************************************************************//*!
+		\brief
+			Set the is trigger value to the body.
+		\param val
+			trigger value.
+		*//******************************************************************/
+		void SetIsTrigger(bool val);
 
 		/*****************************************************************//*!
 		\brief
