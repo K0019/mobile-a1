@@ -15,6 +15,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/materials/n00_000_00_eyewhite_00_eye__instance_.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2139455014453923699,
+                            "name": "n00_000_00_eyewhite_00_eye__instance_0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/textures/image_15.ktx2",
             "resources": [
                 {
@@ -71,6 +85,48 @@
             ]
         },
         {
+            "filepath": "compiledassets/materials/n00_000_00_facemouth_00_face__instance_.001.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2316311459781719125,
+                            "name": "n00_000_00_facemouth_00_face__instance_.0010"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/materials/n00_008_01_shoes_01_cloth_01__instance_.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2079186384089010001,
+                            "name": "n00_008_01_shoes_01_cloth_01__instance_0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/materials/n00_010_01_onepiece_00_cloth_02__instance_.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2093651559064031065,
+                            "name": "n00_010_01_onepiece_00_cloth_02__instance_0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/materials/darkmetal.001.material",
             "resources": [
                 {
@@ -85,6 +141,48 @@
             ]
         },
         {
+            "filepath": "compiledassets/materials/n00_000_00_facebrow_00_face__instance_.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2146192821708935029,
+                            "name": "n00_000_00_facebrow_00_face__instance_0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/materials/n00_000_00_body_00_skin__instance_.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2066018632834764617,
+                            "name": "n00_000_00_body_00_skin__instance_0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/materials/n00_002_03_tops_01_cloth_05__instance_.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2118799589014523753,
+                            "name": "n00_002_03_tops_01_cloth_05__instance_0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/textures/_17.ktx2",
             "resources": [
                 {
@@ -93,6 +191,34 @@
                         {
                             "hash": 260684311670539351,
                             "name": "_170"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/meshanimations/player_idle_mixamoplayer_dodge_mixamo.anim",
+            "resources": [
+                {
+                    "resourceType": 7232515681596383213,
+                    "resourceEntries": [
+                        {
+                            "hash": 2179418963588697981,
+                            "name": "player_idle_mixamoplayer_dodge_mixamo0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/materials/material_42.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2354246809963246693,
+                            "name": "material_420"
                         }
                     ]
                 }
@@ -141,6 +267,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/materials/n00_002_03_tops_01_cloth_03__instance_.001.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2305206392341181515,
+                            "name": "n00_002_03_tops_01_cloth_03__instance_.0010"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/materials/n00_007_01_tops_01_cloth_01 (instance).material",
             "resources": [
                 {
@@ -163,6 +303,34 @@
                         {
                             "hash": 373268804738410323,
                             "name": "wood0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/meshanimations/player_idle_mixamoplayer_martellokick_mixamo.anim",
+            "resources": [
+                {
+                    "resourceType": 7232515681596383213,
+                    "resourceEntries": [
+                        {
+                            "hash": 2207963384957390721,
+                            "name": "player_idle_mixamoplayer_martellokick_mixamo0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/materials/n00_000_00_facemouth_00_face__instance_.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2123432931013971819,
+                            "name": "n00_000_00_facemouth_00_face__instance_0"
                         }
                     ]
                 }
@@ -239,6 +407,34 @@
             ]
         },
         {
+            "filepath": "compiledassets/player_punching_mixamo.mesh",
+            "resources": [
+                {
+                    "resourceType": 6209910166724260588,
+                    "resourceEntries": [
+                        {
+                            "hash": 2367158375008220311,
+                            "name": "player_punching_mixamo0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/materials/n00_002_03_tops_01_cloth_05__instance_.001.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2312452173968225363,
+                            "name": "n00_002_03_tops_01_cloth_05__instance_.0010"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/unitbox.mesh",
             "resources": [
                 {
@@ -267,6 +463,34 @@
             ]
         },
         {
+            "filepath": "compiledassets/materials/n00_000_00_eyeiris_00_eye__instance_.001.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2322310395222864983,
+                            "name": "n00_000_00_eyeiris_00_eye__instance_.0010"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/meshanimations/player_idle_mixamoplayer_weapon atk 3_mixamo.anim",
+            "resources": [
+                {
+                    "resourceType": 7232515681596383213,
+                    "resourceEntries": [
+                        {
+                            "hash": 2248998258417618825,
+                            "name": "player_idle_mixamoplayer_weapon atk 3_mixamo0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/materials/n00_008_01_shoes_01_cloth_01 (instance).material",
             "resources": [
                 {
@@ -275,6 +499,20 @@
                         {
                             "hash": 313615900943303793,
                             "name": "n00_008_01_shoes_01_cloth_01 (instance)0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/meshanimations/player_running_mixamoplayer_running_mixamo.anim",
+            "resources": [
+                {
+                    "resourceType": 7232515681596383213,
+                    "resourceEntries": [
+                        {
+                            "hash": 2370177633938117279,
+                            "name": "player_running_mixamoplayer_running_mixamo0"
                         }
                     ]
                 }
@@ -351,6 +589,34 @@
             ]
         },
         {
+            "filepath": "compiledassets/materials/n00_000_hair_00_hair__instance_.001.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2347659635801240677,
+                            "name": "n00_000_hair_00_hair__instance_.0010"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/player_idle_mixamo.mesh",
+            "resources": [
+                {
+                    "resourceType": 6209910166724260588,
+                    "resourceEntries": [
+                        {
+                            "hash": 2252849847649718195,
+                            "name": "player_idle_mixamo0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/shelf.mesh",
             "resources": [
                 {
@@ -359,6 +625,20 @@
                         {
                             "hash": 384621262295197531,
                             "name": "shelf0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/materials/material_21.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2159334184684113787,
+                            "name": "material_210"
                         }
                     ]
                 }
@@ -387,6 +667,20 @@
                         {
                             "hash": 234456561301570643,
                             "name": "_120"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/meshanimations/player_idle_mixamoplayer_punch 2_mixamo.anim",
+            "resources": [
+                {
+                    "resourceType": 7232515681596383213,
+                    "resourceEntries": [
+                        {
+                            "hash": 2212386720235933571,
+                            "name": "player_idle_mixamoplayer_punch 2_mixamo0"
                         }
                     ]
                 }
@@ -449,6 +743,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/meshanimations/player_idle_mixamoplayer_idle_mixamo.anim",
+            "resources": [
+                {
+                    "resourceType": 7232515681596383213,
+                    "resourceEntries": [
+                        {
+                            "hash": 2180183124170002303,
+                            "name": "player_idle_mixamoplayer_idle_mixamo0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/textures/image_13.ktx2",
             "resources": [
                 {
@@ -457,6 +765,34 @@
                         {
                             "hash": 763682294102682611,
                             "name": "image_130"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/materials/n00_002_03_tops_01_cloth_03__instance_.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2111818789689773923,
+                            "name": "n00_002_03_tops_01_cloth_03__instance_0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/materials/n00_000_00_faceeyeline_00_face__instance_.001.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2346254459940942947,
+                            "name": "n00_000_00_faceeyeline_00_face__instance_.0010"
                         }
                     ]
                 }
@@ -533,6 +869,34 @@
             ]
         },
         {
+            "filepath": "compiledassets/meshanimations/player_idle_mixamoplayer_blocking_mixamo.anim",
+            "resources": [
+                {
+                    "resourceType": 7232515681596383213,
+                    "resourceEntries": [
+                        {
+                            "hash": 2169911486543318909,
+                            "name": "player_idle_mixamoplayer_blocking_mixamo0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/materials/n00_007_01_tops_01_cloth_01__instance_.001.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2261277604276646959,
+                            "name": "n00_007_01_tops_01_cloth_01__instance_.0010"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/materials/standardsurface1_1002.001.material",
             "resources": [
                 {
@@ -589,6 +953,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/materials/n00_008_01_shoes_01_cloth_02__instance_.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2081450278530600787,
+                            "name": "n00_008_01_shoes_01_cloth_02__instance_0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/textures/image_4.ktx2",
             "resources": [
                 {
@@ -597,6 +975,48 @@
                         {
                             "hash": 768269456613764089,
                             "name": "image_40"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/materials/n00_002_03_tops_01_cloth_01__instance_.001.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2292213463435752511,
+                            "name": "n00_002_03_tops_01_cloth_01__instance_.0010"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/materials/n00_002_03_tops_01_cloth_04__instance_.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2116413648782249829,
+                            "name": "n00_002_03_tops_01_cloth_04__instance_0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/materials/n00_000_00_hairback_00_hair__instance_.001.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2268040700299097137,
+                            "name": "n00_000_00_hairback_00_hair__instance_.0010"
                         }
                     ]
                 }
@@ -687,6 +1107,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/materials/n00_000_hair_00_hair__instance_.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2152916335312785273,
+                            "name": "n00_000_hair_00_hair__instance_0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/textures/_09.ktx2",
             "resources": [
                 {
@@ -743,6 +1177,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/meshanimations/player_idle_mixamoplayer_sword ulti_.anim",
+            "resources": [
+                {
+                    "resourceType": 7232515681596383213,
+                    "resourceEntries": [
+                        {
+                            "hash": 2233174087070666629,
+                            "name": "player_idle_mixamoplayer_sword ulti_0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/textures/_06.ktx2",
             "resources": [
                 {
@@ -765,6 +1213,20 @@
                         {
                             "hash": 2289518560364902911,
                             "name": "deskplain0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/meshanimations/player_idle_mixamoplayer_katar atk 1.anim",
+            "resources": [
+                {
+                    "resourceType": 7232515681596383213,
+                    "resourceEntries": [
+                        {
+                            "hash": 2190783515773390719,
+                            "name": "player_idle_mixamoplayer_katar atk 10"
                         }
                     ]
                 }
@@ -813,6 +1275,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/materials/n00_000_00_face_00_skin__instance_.001.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2331936619524043867,
+                            "name": "n00_000_00_face_00_skin__instance_.0010"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/materials/wall_1012.material",
             "resources": [
                 {
@@ -827,6 +1303,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/materials/n00_002_03_tops_01_cloth_01__instance_.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2094548760552296283,
+                            "name": "n00_002_03_tops_01_cloth_01__instance_0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/materials/cesium_man-effect.material",
             "resources": [
                 {
@@ -835,6 +1325,20 @@
                         {
                             "hash": 169869049801313893,
                             "name": "cesium_man-effect0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/materials/n00_010_01_onepiece_00_cloth_01__instance_.001.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2281171068157998137,
+                            "name": "n00_010_01_onepiece_00_cloth_01__instance_.0010"
                         }
                     ]
                 }
@@ -897,6 +1401,48 @@
             ]
         },
         {
+            "filepath": "compiledassets/materials/n00_002_03_tops_01_cloth_02__instance_.001.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2297669240132777031,
+                            "name": "n00_002_03_tops_01_cloth_02__instance_.0010"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/player_running_mixamo.mesh",
+            "resources": [
+                {
+                    "resourceType": 6209910166724260588,
+                    "resourceEntries": [
+                        {
+                            "hash": 2378082023030198971,
+                            "name": "player_running_mixamo0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/materials/n00_010_01_onepiece_00_cloth_02__instance_.001.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2284659818552931389,
+                            "name": "n00_010_01_onepiece_00_cloth_02__instance_.0010"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/materials/material.001.material",
             "resources": [
                 {
@@ -905,6 +1451,34 @@
                         {
                             "hash": 157414880993324893,
                             "name": "material.0010"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/materials/n00_007_01_tops_01_cloth_02__instance_.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2101693387109584733,
+                            "name": "n00_007_01_tops_01_cloth_02__instance_0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/meshanimations/player_idle_mixamoplayer_punching_mixamo.anim",
+            "resources": [
+                {
+                    "resourceType": 7232515681596383213,
+                    "resourceEntries": [
+                        {
+                            "hash": 2220080003095482243,
+                            "name": "player_idle_mixamoplayer_punching_mixamo0"
                         }
                     ]
                 }
@@ -939,6 +1513,48 @@
             ]
         },
         {
+            "filepath": "compiledassets/materials/n00_002_03_tops_01_cloth_02__instance_.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2107168955015909217,
+                            "name": "n00_002_03_tops_01_cloth_02__instance_0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/materials/n00_000_00_eyeiris_00_eye__instance_.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2126338940246183789,
+                            "name": "n00_000_00_eyeiris_00_eye__instance_0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/meshanimations/player_punching_mixamoplayer_punching_mixamo.anim",
+            "resources": [
+                {
+                    "resourceType": 7232515681596383213,
+                    "resourceEntries": [
+                        {
+                            "hash": 2355515646381700197,
+                            "name": "player_punching_mixamoplayer_punching_mixamo0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/box.mesh",
             "resources": [
                 {
@@ -947,6 +1563,34 @@
                         {
                             "hash": 165955887379318537,
                             "name": "box0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/meshanimations/player_idle_mixamoplayer_running_mixamo.anim",
+            "resources": [
+                {
+                    "resourceType": 7232515681596383213,
+                    "resourceEntries": [
+                        {
+                            "hash": 2223441210141593475,
+                            "name": "player_idle_mixamoplayer_running_mixamo0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/meshanimations/player_idle_mixamoplayer_throw_mixamo.anim",
+            "resources": [
+                {
+                    "resourceType": 7232515681596383213,
+                    "resourceEntries": [
+                        {
+                            "hash": 2236701320372572039,
+                            "name": "player_idle_mixamoplayer_throw_mixamo0"
                         }
                     ]
                 }
@@ -1009,6 +1653,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/materials/n00_000_00_eyehighlight_00_eye__instance_.001.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2323958563152901209,
+                            "name": "n00_000_00_eyehighlight_00_eye__instance_.0010"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/aji.mesh",
             "resources": [
                 {
@@ -1051,6 +1709,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/meshanimations/player_running_mixamoplayer_running_mixamo.001.anim",
+            "resources": [
+                {
+                    "resourceType": 7232515681596383213,
+                    "resourceEntries": [
+                        {
+                            "hash": 2374386564449243809,
+                            "name": "player_running_mixamoplayer_running_mixamo.0010"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/textures/image_14.ktx2",
             "resources": [
                 {
@@ -1059,6 +1731,20 @@
                         {
                             "hash": 772044080031919101,
                             "name": "image_140"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/materials/n00_000_00_face_00_skin__instance_.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2138932746430730097,
+                            "name": "n00_000_00_face_00_skin__instance_0"
                         }
                     ]
                 }
@@ -1107,6 +1793,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/meshanimations/player_idle_mixamoplayer_crecent kick_mixamo.anim",
+            "resources": [
+                {
+                    "resourceType": 7232515681596383213,
+                    "resourceEntries": [
+                        {
+                            "hash": 2172853779659247485,
+                            "name": "player_idle_mixamoplayer_crecent kick_mixamo0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/textures/_21.ktx2",
             "resources": [
                 {
@@ -1129,6 +1829,20 @@
                         {
                             "hash": 154212003683043075,
                             "name": "colormap0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/materials/n00_010_01_onepiece_00_cloth_01__instance_.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2088955544901799765,
+                            "name": "n00_010_01_onepiece_00_cloth_01__instance_0"
                         }
                     ]
                 }
@@ -1163,6 +1877,48 @@
             ]
         },
         {
+            "filepath": "compiledassets/materials/n00_002_03_tops_01_cloth_04__instance_.001.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2309738579270874191,
+                            "name": "n00_002_03_tops_01_cloth_04__instance_.0010"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/meshanimations/player_punching_mixamoplayer_punching_mixamo.001.anim",
+            "resources": [
+                {
+                    "resourceType": 7232515681596383213,
+                    "resourceEntries": [
+                        {
+                            "hash": 2364069846845797479,
+                            "name": "player_punching_mixamoplayer_punching_mixamo.0010"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/meshanimations/player_idle_mixamoplayer_stomp_miaxmo.anim",
+            "resources": [
+                {
+                    "resourceType": 7232515681596383213,
+                    "resourceEntries": [
+                        {
+                            "hash": 2228502262164246405,
+                            "name": "player_idle_mixamoplayer_stomp_miaxmo0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/materials/n00_000_hair_00_hair (instance).material",
             "resources": [
                 {
@@ -1185,6 +1941,20 @@
                         {
                             "hash": 2280285961226467817,
                             "name": "image_20"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/meshanimations/player_idle_mixamoplayer_jump_miaxmo.anim",
+            "resources": [
+                {
+                    "resourceType": 7232515681596383213,
+                    "resourceEntries": [
+                        {
+                            "hash": 2184270008890445695,
+                            "name": "player_idle_mixamoplayer_jump_miaxmo0"
                         }
                     ]
                 }
@@ -1247,6 +2017,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/meshanimations/player_idle_mixamodamagetaken_mixamo.anim",
+            "resources": [
+                {
+                    "resourceType": 7232515681596383213,
+                    "resourceEntries": [
+                        {
+                            "hash": 2163277033381318523,
+                            "name": "player_idle_mixamodamagetaken_mixamo0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/materials/n00_000_00_face_00_skin (instance).material",
             "resources": [
                 {
@@ -1255,6 +2039,20 @@
                         {
                             "hash": 369407319959913617,
                             "name": "n00_000_00_face_00_skin (instance)0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/meshanimations/player_idle_mixamoplayer_weapon atk 2_mixamo.anim",
+            "resources": [
+                {
+                    "resourceType": 7232515681596383213,
+                    "resourceEntries": [
+                        {
+                            "hash": 2243140060464828297,
+                            "name": "player_idle_mixamoplayer_weapon atk 2_mixamo0"
                         }
                     ]
                 }
@@ -1359,6 +2157,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/meshanimations/player_idle_mixamoplayer_weapon atk 1_mixamo.anim",
+            "resources": [
+                {
+                    "resourceType": 7232515681596383213,
+                    "resourceEntries": [
+                        {
+                            "hash": 2240070224000077705,
+                            "name": "player_idle_mixamoplayer_weapon atk 1_mixamo0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/materials/n00_000_00_facebrow_00_face (instance).material",
             "resources": [
                 {
@@ -1387,6 +2199,34 @@
             ]
         },
         {
+            "filepath": "compiledassets/materials/n00_008_01_shoes_01_cloth_02__instance_.001.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2276289236530672695,
+                            "name": "n00_008_01_shoes_01_cloth_02__instance_.0010"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/meshanimations/player_idle_mixamoplayer_katar_ult.anim",
+            "resources": [
+                {
+                    "resourceType": 7232515681596383213,
+                    "resourceEntries": [
+                        {
+                            "hash": 2206382287236648833,
+                            "name": "player_idle_mixamoplayer_katar_ult0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/materials/n00_010_01_onepiece_00_cloth_01 (instance).material",
             "resources": [
                 {
@@ -1395,6 +2235,20 @@
                         {
                             "hash": 322886982988711029,
                             "name": "n00_010_01_onepiece_00_cloth_01 (instance)0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/materials/n00_007_01_tops_01_cloth_01__instance_.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2071445822229466957,
+                            "name": "n00_007_01_tops_01_cloth_01__instance_0"
                         }
                     ]
                 }
@@ -1415,6 +2269,34 @@
             ]
         },
         {
+            "filepath": "compiledassets/materials/n00_000_00_hairback_00_hair__instance_.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2074502464554684239,
+                            "name": "n00_000_00_hairback_00_hair__instance_0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/materials/n00_007_01_tops_01_cloth_02__instance_.001.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2294598304156398661,
+                            "name": "n00_007_01_tops_01_cloth_02__instance_.0010"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/materials/material_3.material",
             "resources": [
                 {
@@ -1429,6 +2311,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/materials/n00_000_00_eyewhite_00_eye__instance_.001.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2335676058570110045,
+                            "name": "n00_000_00_eyewhite_00_eye__instance_.0010"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/textures/_18.ktx2",
             "resources": [
                 {
@@ -1437,6 +2333,20 @@
                         {
                             "hash": 261858590089004121,
                             "name": "_180"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/meshanimations/player_idle_mixamoplayer_katar atk 3.anim",
+            "resources": [
+                {
+                    "resourceType": 7232515681596383213,
+                    "resourceEntries": [
+                        {
+                            "hash": 2202062306051116929,
+                            "name": "player_idle_mixamoplayer_katar atk 30"
                         }
                     ]
                 }
@@ -1485,6 +2395,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/materials/n00_000_00_eyehighlight_00_eye__instance_.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2134131179152232303,
+                            "name": "n00_000_00_eyehighlight_00_eye__instance_0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/door_classroom.mesh",
             "resources": [
                 {
@@ -1493,6 +2417,34 @@
                         {
                             "hash": 569100621740440249,
                             "name": "door_classroom0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/materials/n00_008_01_shoes_01_cloth_01__instance_.001.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2272210048391623733,
+                            "name": "n00_008_01_shoes_01_cloth_01__instance_.0010"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/meshanimations/player_idle_mixamoplayer_katar atk 2.anim",
+            "resources": [
+                {
+                    "resourceType": 7232515681596383213,
+                    "resourceEntries": [
+                        {
+                            "hash": 2194831917586861953,
+                            "name": "player_idle_mixamoplayer_katar atk 20"
                         }
                     ]
                 }
@@ -1513,6 +2465,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/materials/n00_000_00_faceeyeline_00_face__instance_.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2150961403638599543,
+                            "name": "n00_000_00_faceeyeline_00_face__instance_0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/materials/wall_1013.material",
             "resources": [
                 {
@@ -1521,6 +2487,34 @@
                         {
                             "hash": 743891084802702091,
                             "name": "wall_10130"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/materials/n00_000_00_body_00_skin__instance_.001.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2257266585858520109,
+                            "name": "n00_000_00_body_00_skin__instance_.0010"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/materials/n00_000_00_facebrow_00_face__instance_.001.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2341418807801984097,
+                            "name": "n00_000_00_facebrow_00_face__instance_.0010"
                         }
                     ]
                 }
