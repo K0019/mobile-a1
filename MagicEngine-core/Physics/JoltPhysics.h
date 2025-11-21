@@ -36,15 +36,16 @@ All rights reserved.
 #include <Jolt/Physics/Collision/Shape/SphereShape.h>
 #include <Jolt/Physics/Body/BodyCreationSettings.h>
 #include <Jolt/Physics/Body/BodyActivationListener.h>
-#include <Jolt/Renderer/DebugRenderer.h>
 
 #include "ECS/ECS.h"
 #include "Editor/IEditorComponent.h"
 #include "Game/IGameComponentCallbacks.h"
 #include "Physics/Collision.h"
 
+#if defined(JPH_DEBUG_RENDERER)
 // YC: For debugging
 #include "Physics/JoltDebugRenderer.h"
+#endif
 JPH_SUPPRESS_WARNINGS
 
 namespace physics {
@@ -178,7 +179,9 @@ namespace physics {
 		// Body manager that allows certain bodies to change the scale.
 		JPH::BodyManager bodyManager;
 
+#if defined(JPH_DEBUG_RENDERER)
 		JoltDebugRenderer joltDebugger;
+#endif
 	};
 
 	struct TransformValues
