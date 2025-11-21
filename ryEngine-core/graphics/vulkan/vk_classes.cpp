@@ -6986,7 +6986,14 @@ vk::BufferHandle vk::VulkanContext::createBuffer(VkDeviceSize bufferSize, VkBuff
 
   vmaAllocInfo.usage = VMA_MEMORY_USAGE_AUTO;
 
-  vmaCreateBufferWithAlignment((VmaAllocator)getVmaAllocator(), &ci, &vmaAllocInfo, 16, &buf.vkBuffer_, &buf.vmaAllocation_, nullptr);
+  VkResult vmaResult = vmaCreateBufferWithAlignment((VmaAllocator)getVmaAllocator(), &ci, &vmaAllocInfo, 16, &buf.vkBuffer_, &buf.vmaAllocation_, nullptr);
+
+  if (vmaResult != VK_SUCCESS)
+  {
+    LOG_ERROR("vmaCreateBufferWithAlignment failed with error: {}, size: {}, usage: {}, name: {}", static_cast<int>(vmaResult), bufferSize, usageFlags, debugName ? debugName : "unnamed");
+    Result::setResult(outResult, Result(Result::Code::RuntimeError, "vmaCreateBufferWithAlignment failed"));
+    return {};
+  }
 
   // handle memory-mapped buffers
   if (memFlags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT)
