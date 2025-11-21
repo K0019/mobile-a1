@@ -50,9 +50,13 @@ void RectTransformComponent::SetRotation(float newRot)
 {
 	ecs::GetEntityTransform(this).SetLocalRotation(Vec3{ newRot, 0.0f, 0.0f });
 }
-Vec2 RectTransformComponent::GetScale() const
+Vec2 RectTransformComponent::GetLocalScale() const
 {
 	return Vec2{ ecs::GetEntityTransform(this).GetLocalScale() };
+}
+Vec2 RectTransformComponent::GetWorldScale() const
+{
+	return Vec2{ ecs::GetEntityTransform(this).GetWorldScale() };
 }
 void RectTransformComponent::SetScale(Vec2 newScale)
 {
@@ -70,7 +74,7 @@ void RectTransformComponent::EditorDraw()
 	float f{ GetRotation() };
 	if (gui::VarDrag("Rotation", &f))
 		SetRotation(f);
-	vec = GetScale();
+	vec = GetLocalScale();
 	if (gui::VarDrag("Scale", &vec))
 		SetScale(vec);
 }
