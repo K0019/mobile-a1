@@ -119,7 +119,7 @@ void Primitive2DImage::EditorDraw()
 }
 
 SpriteComponent::SpriteComponent()
-	: primitive{ Primitive2DCircle{} }
+	: primitive{ Primitive2DImage{} }
 	, color{ 1.0f, 1.0f, 1.0f, 1.0f }
 {
 }
