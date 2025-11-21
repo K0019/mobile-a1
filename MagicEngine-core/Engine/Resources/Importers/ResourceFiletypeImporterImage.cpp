@@ -1,8 +1,10 @@
 #include "Engine/Resources/Importers/ResourceFiletypeImporterImage.h"
 // Image files are compiled to .ktx2, so we need to pass that new file back to ResourceImporter to fully import.
 #ifdef GLFW
+#include "Engine/Resources/AssetCompilerInterface.h"
 //#include "TextureCompiler.h"
 #endif
+
 #include "Engine/Resources/ResourceImporter.h"
 #include "FilepathConstants.h"
 

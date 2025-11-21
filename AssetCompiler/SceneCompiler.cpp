@@ -197,9 +197,9 @@ namespace compiler
 
         // Set filepaths for saving compiled asssets
         // For now, i guess ill just append internal filename to the sourcefile name, along with proper subdirectories...
-        std::filesystem::path relativeDir = std::filesystem::relative(options.general.inputPath.parent_path(), options.general.assetsRoot);
-        std::filesystem::path assetOutputDir = options.general.outputPath / relativeDir;
-        std::filesystem::create_directories(assetOutputDir);
+        //std::filesystem::path relativeDir = std::filesystem::relative(options.general.inputPath.parent_path(), options.general.assetsRoot);
+        //std::filesystem::path assetOutputDir = options.general.outputPath / relativeDir;
+        //std::filesystem::create_directories(assetOutputDir);
 
 
         // Save the data

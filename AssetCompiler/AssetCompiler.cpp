@@ -55,7 +55,7 @@ void WriteManifest(const CompilationResult& result, bool crashed = false)
     auto WritePathArray = [&](const char* key, const std::vector<std::filesystem::path>& paths) {
         writer.Key(key);
         writer.StartArray();
-        for (const auto& p : paths) writer.String(p.string().c_str());
+        for (const auto& p : paths) writer.String(p.generic_string().c_str());
         writer.EndArray();
     };
 
@@ -151,16 +151,21 @@ int main(int argc, char* argv[])
     }
 
 #pragma region Parsing Options
-    auto rootStr = parser.GetOption<std::string>("root");
-    auto inputStr = parser.GetOption<std::string>("input");
-    auto outputStr = parser.GetOption<std::string>("output");
+    std::string rootRaw = parser.GetOption<std::string>("root").value();
+    std::string inputRaw = parser.GetOption<std::string>("input").value();
+    std::string outputRaw = parser.GetOption<std::string>("output").value();
+
+    std::filesystem::path rootAbs = std::filesystem::absolute(rootRaw).lexically_normal();
+    std::filesystem::path inputAbs = std::filesystem::absolute(inputRaw).lexically_normal();
+    std::filesystem::path outputAbs = std::filesystem::absolute(outputRaw).lexically_normal();
+
 
     CompilerOptions options;
 
     // General options
-    options.general.assetsRoot = rootStr.value();
-    options.general.inputPath = inputStr.value();
-    options.general.outputPath = outputStr.value();
+    options.general.assetsRoot = rootAbs;
+    options.general.inputPath = inputAbs;
+    options.general.outputPath = outputAbs;
 
     options.mesh.optimize = !parser.HasOption("no-opt");
     options.mesh.generateTangents = !parser.HasOption("no-tangents");
@@ -218,7 +223,8 @@ int main(int argc, char* argv[])
     std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
 
 
-    g_ManifestPath = options.general.assetsRoot / "CompileResult.json";
+    //g_ManifestPath = options.general.assetsRoot / "CompileResult.json";
+    g_ManifestPath = argv[0];
     g_InputPath = options.general.inputPath;
 
     CompilationResult finalResult;

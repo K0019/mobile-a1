@@ -25,6 +25,11 @@ std::string VFS::NormalizePath(const std::string& path)
     // Also replace backslashes with forward slashes for consistency
     std::replace(lowerPath.begin(), lowerPath.end(), '\\', '/');
 
+    // collapse "//" to "/"
+    auto newEnd = std::unique(lowerPath.begin(), lowerPath.end(),
+        [](char a, char b) { return a == '/' && b == '/'; });
+    lowerPath.erase(newEnd, lowerPath.end());
+
     return lowerPath;
 }
 
