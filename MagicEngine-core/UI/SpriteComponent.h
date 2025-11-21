@@ -64,22 +64,9 @@ property_vend_h(Primitive2DCircle)
 class Primitive2DRect : public Primitive2DBase
 {
 public:
-	Primitive2DRect();
-
 	void Render(const RectTransformComponent& transform, const Vec4& color) const override;
 	void EditorDraw() override;
-
-private:
-	Vec2 halfDimensions;
-
-public:
-	property_vtable()
 };
-property_begin(Primitive2DRect)
-{
-	property_var(halfDimensions)
-}
-property_vend_h(Primitive2DRect)
 
 class Primitive2DImage : public Primitive2DBase
 {

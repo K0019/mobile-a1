@@ -75,34 +75,17 @@ int Primitive2DCircle::GetNumSegmentsForSmoothCircle(float radius)
 	return static_cast<int>(std::ceilf(2.0f * math::PI_f / th) + 0.5f);
 }
 
-Primitive2DRect::Primitive2DRect()
-	: halfDimensions{ 5.0f, 5.0f }
-{
-}
-
-Vec2 Primitive2DRect::GetDimensions() const
-{
-	return halfDimensions * 2.0f;
-}
-
-void Primitive2DRect::SetDimensions(Vec2 newDimensions)
-{
-	halfDimensions = newDimensions * 0.5f;
-}
-
 void Primitive2DRect::Render(const RectTransformComponent& transform, const Vec4& color) const
 {
 	Vec2 worldPos{ transform.GetWorldPosition() };
+	Vec2 halfScale{ transform.GetWorldScale() * 0.5f };
 	ui::DrawOptions drawOptions;
 	drawOptions.layer = static_cast<uint16_t>(transform.GetLayer());
-	ST<GraphicsMain>::Get()->GetImmediateGui().addSolidRect(worldPos - halfDimensions, worldPos + halfDimensions, color, drawOptions);
+	ST<GraphicsMain>::Get()->GetImmediateGui().addSolidRect(worldPos - halfScale, worldPos + halfScale, color, drawOptions);
 }
 
 void Primitive2DRect::EditorDraw()
 {
-	Vec2 dimensions{ GetDimensions() };
-	if (gui::VarDrag("Dimensions", &dimensions))
-		SetDimensions(dimensions);
 }
 
 void Primitive2DImage::SetImage(size_t textureHash)
