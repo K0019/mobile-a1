@@ -66,6 +66,10 @@ public:
 
   void RemoveTransientResourceObserver(internal::ITransientResourceObserver* observer) const;
 
+#if defined(__ANDROID__)
+  SurfaceTransform getSwapchainPreTransform() const;
+#endif
+
 private:
   uint64_t DoCreateFeature(std::function<std::unique_ptr<IRenderFeature>()> factory) override;
 

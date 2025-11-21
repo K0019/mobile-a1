@@ -29,7 +29,12 @@
     },
 	  {
       "name": "joltphysics",
-      "features": ["debugrenderer"]
+      "features": ["debugrenderer"],
+      "platform": "!android"
+    },
+    {
+      "name": "joltphysics",
+      "platform": "android"
     },
     {
       "name": "imgui",
