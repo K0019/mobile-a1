@@ -68,3 +68,16 @@ namespace AndroidInputBridge {
 	void PublishVirtualStick(const Vec2& v);  // called by your component
 	Vec2  ReadVirtualStick();                  // used by Input system
 }
+
+// --- Exclusive touch capture -----------------------------------------------
+enum class TouchOwner { NoOwner = 0, Joystick, UI, Camera };
+
+// Returns current owner (for read-only checks).
+TouchOwner Owner();
+
+// Try to acquire exclusive touch ownership for this frame sequence.
+// Returns true if granted (or already owned by the same owner).
+bool TryCapture(TouchOwner who);
+
+// Release if the caller currently owns the capture (no-op otherwise).
+void Release(TouchOwner who);

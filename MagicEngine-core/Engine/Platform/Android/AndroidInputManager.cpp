@@ -156,11 +156,14 @@ void AndroidInputComp::Update() {
         if (dynamicCenter) {
             // Accept only if starting inside the activation rectangle
             if (inRect(tp, dynZoneMin, dynZoneMax)) {
-                m_center = tp;             // dynamic center under the finger
-                m_active = true;
-                CONSOLE_LOG(LEVEL_INFO)
-                    << "[AIC] DOWN (dynamic-center) @ (" << tp.x << "," << tp.y
-                    << "), center=(" << m_center.x << "," << m_center.y << ")";
+                if (AndroidInputBridge::TryCapture(TouchOwner::Joystick)) {
+
+                    m_center = tp;             // dynamic center under the finger
+                    m_active = true;
+                    CONSOLE_LOG(LEVEL_INFO)
+                        << "[AIC] DOWN (dynamic-center) @ (" << tp.x << "," << tp.y
+                        << "), center=(" << m_center.x << "," << m_center.y << ")";
+                }
             }
             else {
                 // ignore presses outside the zone
@@ -172,9 +175,11 @@ void AndroidInputComp::Update() {
         }
         else {
             // Fixed-center mode: take control immediately
-            m_active = true;
-            CONSOLE_LOG(LEVEL_INFO)
-                << "[AIC] DOWN (fixed-center) @ (" << tp.x << "," << tp.y << ")";
+            if (AndroidInputBridge::TryCapture(TouchOwner::Joystick)) {
+                m_active = true;
+                CONSOLE_LOG(LEVEL_INFO)
+                    << "[AIC] DOWN (fixed-center) @ (" << tp.x << "," << tp.y << ")";
+            }
         }
     }
 
@@ -220,8 +225,14 @@ void AndroidInputComp::Update() {
 
     // ---- release edge -------------------------------------------------------
     if (t.justUp) {
-        if (m_active)
-            CONSOLE_LOG(LEVEL_DEBUG) << "[AIC] UP @ (" << tp.x << ", " << tp.y << ")";
+        if (m_active) {
+            CONSOLE_LOG(LEVEL_DEBUG)
+                << "[AIC] UP @ (" << tp.x << ", " << tp.y << ")";
+
+            // Give up exclusive ownership so camera/UI can use the next touch
+            AndroidInputBridge::Release(AndroidInputBridge::TouchOwner::Joystick);
+        }
+
 
         m_active = false;
         m_captured = false;
