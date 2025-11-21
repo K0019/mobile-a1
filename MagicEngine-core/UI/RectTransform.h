@@ -34,7 +34,8 @@ public:
 	Vec2 GetWorldPosition() const;
 	float GetRotation() const;
 	void SetRotation(float newRot);
-	Vec2 GetScale() const;
+	Vec2 GetLocalScale() const;
+	Vec2 GetWorldScale() const;
 	void SetScale(Vec2 newScale);
 
 	void EditorDraw();

@@ -105,6 +105,36 @@ void Primitive2DRect::EditorDraw()
 		SetDimensions(dimensions);
 }
 
+void Primitive2DImage::SetImage(size_t textureHash)
+{
+	texture = textureHash;
+}
+
+void Primitive2DImage::Render(const RectTransformComponent& transform, const Vec4& color) const
+{
+	const auto textureResource{ texture.GetResource() };
+	if (!textureResource)
+		return;
+
+	Vec2 worldPos{ transform.GetWorldPosition() };
+	Vec2 halfScale{ transform.GetWorldScale() * 0.5f };
+	ui::DrawOptions drawOptions;
+	drawOptions.layer = static_cast<uint16_t>(transform.GetLayer());
+	ST<GraphicsMain>::Get()->GetImmediateGui().addImage(textureResource->handle, worldPos - halfScale, worldPos + halfScale, Vec2{0.0f, 0.0f}, Vec2{1.0f, 1.0f}, color, ui::SamplerMode::Linear, drawOptions);
+}
+
+void Primitive2DImage::EditorDraw()
+{
+	std::string textureName{ "None" };
+	if (const auto textureResource{ texture.GetResource() })
+		if (const auto resourceName{ ST<MagicResourceManager>::Get()->Editor_GetName(texture.GetHash()) })
+			textureName = *resourceName;
+	gui::TextBoxReadOnly("Image", textureName);
+	gui::PayloadTarget<size_t>("TEXTURE_HASH", [this](size_t hash) -> void {
+		texture = hash;
+	});
+}
+
 SpriteComponent::SpriteComponent()
 	: primitive{ Primitive2DCircle{} }
 	, color{ 1.0f, 1.0f, 1.0f, 1.0f }
