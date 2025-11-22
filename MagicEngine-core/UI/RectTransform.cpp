@@ -83,7 +83,7 @@ void RectTransformComponent::OnAttached()
 {
 	Transform& transform{ ecs::GetEntityTransform(this) };
 	transform.SetLocal(
-		Vec3{ transform.GetLocalPosition().x, transform.GetLocalPosition().y, 0.0f },
+		transform.GetLocalPosition(),
 		Vec3{ transform.GetLocalScale().x, transform.GetLocalScale().y, 0.0f },
 		Vec3{ transform.GetLocalRotation().x, 0.0f, 0.0f }
 	);
