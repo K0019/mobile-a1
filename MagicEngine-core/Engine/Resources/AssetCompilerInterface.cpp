@@ -36,19 +36,25 @@ bool CompileAndImportAsset(const std::string& assetRelativeFilepath)
 
     ProcessResult result = RunProcess(cmd);
 
+    CONSOLE_LOG(LEVEL_INFO) << "----- Asset Compiler Logs START -----";
+
     if (result.exitCode != 0)
     {
-        CONSOLE_LOG(LEVEL_ERROR) << "Asset Compilation failed: " << result.output;
+        CONSOLE_LOG(LEVEL_ERROR) << "Asset Compilation failed ";
+        CONSOLE_LOG(LEVEL_ERROR) << result.output;
     }
     else
     {
-        CONSOLE_LOG(LEVEL_INFO) << "Asset Compilation succeeded. Logs: " << result.output;
+        CONSOLE_LOG(LEVEL_INFO) << "Asset Compilation succeeded ";
+        CONSOLE_LOG(LEVEL_INFO) << result.output;
     }
+
+    CONSOLE_LOG(LEVEL_INFO) << "----- Asset Compiler Logs END   -----";
 
     // Compiler hardcodes result information in same directory as the exe
     if (!std::filesystem::exists(Filepaths::compileManifest))
     {
-        CONSOLE_LOG(LEVEL_ERROR) << "Compile finished, but CompileResult.json is missing!";
+        CONSOLE_LOG(LEVEL_ERROR) << "Compile finished, but CompileResult.json is missing! Skipping importing.";
         return false;
     }
     
@@ -74,23 +80,23 @@ bool CompileAndImportAsset(const std::string& assetRelativeFilepath)
 
     if (!warnings.empty())
     {
-        CONSOLE_LOG(LEVEL_WARNING) << "Compile Warnings    ----- START -----";
+        CONSOLE_LOG(LEVEL_WARNING) << "----- Compile Warnings START -----";
         for (const auto& warning : warnings)
         {
             CONSOLE_LOG(LEVEL_WARNING) << warning;
         }
-        CONSOLE_LOG(LEVEL_WARNING) << "Compile Warnings    -----  END  -----";
+        CONSOLE_LOG(LEVEL_WARNING) << "----- Compile Warnings END -----";
     }
 
     if (!errors.empty())
     {
-        CONSOLE_LOG(LEVEL_ERROR) << "Errors found when compiling    ----- START -----";
+        CONSOLE_LOG(LEVEL_ERROR) << "----- Compile Errors START -----";
         for (const auto& error : errors)
         {
             CONSOLE_LOG(LEVEL_ERROR) << error;
         }
-        CONSOLE_LOG(LEVEL_ERROR) << "Errors found when compiling    -----  END  -----";
         CONSOLE_LOG(LEVEL_ERROR) << "Importing of assets aborted.";
+        CONSOLE_LOG(LEVEL_ERROR) << "----- Compile Errors END -----";
         return false;
     }
 
