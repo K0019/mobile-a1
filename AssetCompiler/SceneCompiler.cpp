@@ -366,8 +366,6 @@ namespace compiler
             for (const auto& [key, source] : uniqueTextureSources)
             {
                 CompilerOptions texOpts = options;
-                //texOpts.general.outputPath = textureOutputDir;
-                //texOpts.texture = options.texture;
 
                 EmbeddedTextureSource embdeddedSource = std::get<EmbeddedTextureSource>(source);
 
@@ -410,6 +408,12 @@ namespace compiler
                     texOpts.texture.channelFormat = TextureChannelFormat::RGBA_8888;
                 }
 
+                // Fix output filepath
+                std::filesystem::path relativeDir = std::filesystem::relative(options.general.inputPath.parent_path(), options.general.assetsRoot);
+                std::filesystem::path assetContainerName = options.general.inputPath.stem();
+                std::filesystem::path assetOutputDir = options.general.outputPath / relativeDir / assetContainerName;
+                texOpts.general.inputPath = "";
+                texOpts.general.outputPath = assetOutputDir;
 
                 auto texCompileResult = texCompiler.CompileFromMemory(embdeddedSource, texOpts);
 
@@ -618,7 +622,8 @@ namespace compiler
 
 		// Writing to file timeu~~ :3
         std::filesystem::path relativeDir = std::filesystem::relative(options.general.inputPath.parent_path(), options.general.assetsRoot);
-        std::filesystem::path assetOutputDir = options.general.outputPath / relativeDir;
+        std::filesystem::path assetContainerName = options.general.inputPath.stem();
+        std::filesystem::path assetOutputDir = options.general.outputPath / relativeDir / assetContainerName;
         std::filesystem::create_directories(assetOutputDir);
         
         //std::filesystem::path meshOutputDir = options.general.outputPath / "meshes";
@@ -731,8 +736,10 @@ namespace compiler
             //std::string safeFilename = materialSlot.name;
             //std::replace(safeFilename.begin(), safeFilename.end(), ' ', '_');
             //std::filesystem::path outFilePath = materialOutputDir / (safeFilename + ".material");
+
             std::filesystem::path relativeDir = std::filesystem::relative(options.general.inputPath.parent_path(), options.general.assetsRoot);
-            std::filesystem::path assetOutputDir = options.general.outputPath / relativeDir;
+            std::filesystem::path assetContainerName = options.general.inputPath.stem();
+            std::filesystem::path assetOutputDir = options.general.outputPath / relativeDir / assetContainerName;
             std::filesystem::create_directories(assetOutputDir);
 
             std::filesystem::path outFilePath = assetOutputDir / (materialSlot.name + ".material");
@@ -758,7 +765,8 @@ namespace compiler
         }
 
         std::filesystem::path relativeDir = std::filesystem::relative(options.general.inputPath.parent_path(), options.general.assetsRoot);
-        std::filesystem::path assetOutputDir = options.general.outputPath / relativeDir;
+        std::filesystem::path assetContainerName = options.general.inputPath.stem();
+        std::filesystem::path assetOutputDir = options.general.outputPath / relativeDir / assetContainerName;
         std::filesystem::create_directories(assetOutputDir);
 
         //std::filesystem::path animOutputDir = options.general.outputPath / "meshanimations";
@@ -917,7 +925,7 @@ namespace compiler
             currentOffset += morphWeightBuffer.size() * sizeof(float);
 
 
-            // --- 4. Write to Disk ---
+            // --- Write to Disk ---
             std::string animFilename = stem + animToSave.name + ".anim";
             std::filesystem::path outFilePath = assetOutputDir / animFilename;
 

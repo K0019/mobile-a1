@@ -224,7 +224,7 @@ int main(int argc, char* argv[])
 
 
     //g_ManifestPath = options.general.assetsRoot / "CompileResult.json";
-    g_ManifestPath = argv[0];
+    g_ManifestPath = std::filesystem::path(argv[0]).parent_path() / "CompileResult.json";
     g_InputPath = options.general.inputPath;
 
     CompilationResult finalResult;

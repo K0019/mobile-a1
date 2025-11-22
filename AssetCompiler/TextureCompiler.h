@@ -51,6 +51,12 @@ namespace compiler
 }
 
 //SELF NOTES:
+// regarding options
+// options.general.inputPath should be set to the image's filepath, duh
+//			      .outputPath should be the directory to save it to.
+//			for a standalone texture, name is the same as the input. for embedded textures(glb), name is provided from the caller, passed in the EmbeddedTextureSource struct.
+
+
 
 	// Key to format types 0xFnbC
 	// C = 0 is uncompressed C > 0 is compressed

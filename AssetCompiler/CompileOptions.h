@@ -113,7 +113,7 @@ namespace compiler
     // Options
     struct GeneralOptions
     {
-        std::filesystem::path assetsRoot;   // our case would usually be ../../Assets (in editor)
+        std::filesystem::path assetsRoot;   // our case would usually be ../../../Assets (in editor)
         std::filesystem::path inputPath;
         std::filesystem::path outputPath;
     };

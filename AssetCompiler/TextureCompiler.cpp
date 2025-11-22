@@ -175,9 +175,6 @@ namespace compiler
             return result;
         }
 
-        // Hijack options to insert correct filename to save as
-        //options.general.inputPath = std::filesystem::path(source.name).stem();
-
         if (!SaveAsKTX2(destTexture, result, source.name))
         {
             stbi_image_free(srcTexture.pData);
@@ -303,9 +300,9 @@ namespace compiler
             dst.pData, dst.dwDataSize
         );
 
-        std::filesystem::path relativeDir = std::filesystem::relative(options.general.inputPath.parent_path(), options.general.assetsRoot);
-        std::filesystem::path assetOutputDir = options.general.outputPath / relativeDir;
-        std::filesystem::create_directories(assetOutputDir);
+        //std::filesystem::path relativeDir = std::filesystem::relative(options.general.inputPath.parent_path(), options.general.assetsRoot);
+        //std::filesystem::path assetOutputDir = options.general.outputPath / relativeDir;
+        //std::filesystem::create_directories(assetOutputDir);
 
         std::string outputFilename = options.general.inputPath.stem().string() + ".ktx2";
         if (!filename.empty())
@@ -313,7 +310,8 @@ namespace compiler
             outputFilename = filename + ".ktx2";
         }
 
-        std::filesystem::path outputPath = assetOutputDir / outputFilename;
+        std::filesystem::path outputPath = options.general.outputPath / outputFilename;
+        //std::filesystem::path outputPath = assetOutputDir / outputFilename;
 
         ktx_error_code_e writeResult = ktxTexture_WriteToNamedFile(reinterpret_cast<ktxTexture*>(kTexture), outputPath.string().c_str());
 
