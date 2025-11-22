@@ -53,7 +53,7 @@ namespace editor {
 
                 if (ImGui::Button("##scene", ImVec2(THUMBNAIL_SIZE, THUMBNAIL_SIZE)))
                 {
-                    ST<SceneManager>::Get()->LoadScene(entry);
+                    ST<SceneManager>::Get()->LoadScene(VFS::JoinPath(Filepaths::scenesSave, entry));
                 }
 
                 // Name label
