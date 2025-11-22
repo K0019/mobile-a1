@@ -32,8 +32,10 @@ GameCameraControllerComponent::GameCameraControllerComponent()
 	, playerEntity{ nullptr }
 	, cameraPitch{ 0.0f }
 	, cameraYaw{ 0.0f }
+	, minPitch{ 0.0f }
+	, maxPitch{ 0.0f }
 	, cameraSensitivity{ 1.0f }
-	, currentCameraDistance{ 20.0f }
+	, currentCameraDistance{ 5.0f }
 {
 }
 
@@ -45,14 +47,24 @@ void GameCameraControllerComponent::Serialize(Serializer& writer) const
 {
 	writer.Serialize("cameraEntity", cameraEntity);
 	writer.Serialize("playerEntity", playerEntity);
-	//.Serialize(writer);
-	//playerEntity.Serialize(writer);
+
+	writer.Serialize("maxPitch", maxPitch);
+	writer.Serialize("minPitch", minPitch);
+		   
+	writer.Serialize("cameraSensitivity", cameraSensitivity);
 }
 
 void GameCameraControllerComponent::Deserialize(Deserializer& reader)
 {
 	reader.Deserialize("cameraEntity", &cameraEntity);
 	reader.Deserialize("playerEntity", &playerEntity);
+
+	reader.DeserializeVar("maxPitch", &maxPitch);
+	reader.DeserializeVar("minPitch", &minPitch);
+
+	reader.DeserializeVar("cameraSensitivity", &cameraSensitivity);
+
+
 	//cameraEntity.Deserialize(reader);
 	//playerEntity.Deserialize(reader);
 }
@@ -63,6 +75,10 @@ void GameCameraControllerComponent::EditorDraw()
 	playerEntity.EditorDraw("Player");
 	gui::TextBoxReadOnly("Yaw", std::to_string(cameraYaw));
 	gui::TextBoxReadOnly("Pitch", std::to_string(cameraPitch));
+
+	gui::VarInput("Max Pitch", &maxPitch);
+	gui::VarInput("Min Pitch", &minPitch);
+
 	gui::VarDrag("Sensitivity", &cameraSensitivity, 0.05f, 0.05f, 1.0f);
 }
 
@@ -94,10 +110,10 @@ void GameCameraControllerSystem::UpdateGameCameraController(GameCameraController
 			yaw -= 360.0f;
 
 		// Clamp pitch
-		if (pitch < -25.0f)
-			pitch = -25.0f;
-		if (pitch > 1.0f)
-			pitch = 1.0f;
+		if (pitch < comp.minPitch)
+			pitch = comp.minPitch;
+		if (pitch > comp.maxPitch)
+			pitch = comp.maxPitch;
 
 		comp.cameraPitch = pitch;
 		comp.cameraYaw = yaw;

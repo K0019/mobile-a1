@@ -26,6 +26,7 @@ All rights reserved.
 #pragma warning(pop)
 #include "LuaTypesECS.h"
 #include "Components/NameComponent.h"
+#include "Components/EntityReferenceHolder.h"
 #include "Engine/Audio.h"
 #include "Graphics/CameraComponent.h"
 #include "Graphics/LightComponent.h"
@@ -37,6 +38,8 @@ All rights reserved.
 #include "Game/GrabbableItem.h"
 #include "Game/Health.h"
 #include "Engine/EntityLayers.h"
+#include "Managers/AudioManager.h"
+#include "Engine/Input.h"
 
 //=========================================== START REGISTERING COMPONENTS ================================================================================
 // This section is unfortunately required. This registers what functions are available in a component.
@@ -208,6 +211,21 @@ void SetLayerLua(int v)
 }
 SCRIPT_GENERATE_COMP_WRAPPER_END()
 
+// EntityReferenceHolderComponent
+SCRIPT_GENERATE_COMP_WRAPPER_BEGIN(EntityReferenceHolderComponent)
+ecs::EntityHandle GetEntityReference(int index)
+{
+	return GetHandle()->GetEntity(index);
+}
+void SetEntityReference(int index, ecs::EntityHandle entity)
+{
+	GetHandle()->SetEntity(index, entity);
+}
+SCRIPT_GENERATE_COMP_WRAPPER_END()
+
+
+
+
 //=========================================== END REGISTERING COMPONENTS ================================================================================
 
 void Lua_Log(int level, std::string message)
@@ -223,6 +241,30 @@ void Lua_Log(int level, std::string message)
 	}
 }
 
+bool GetButtonDown(std::string name)
+{
+	if (auto action{ ST<MagicInput>::Get()->GetAction<bool>(name) })
+		return action->GetValue();
+}
+
+float GetAxis(std::string name)
+{
+	if (auto action{ ST<MagicInput>::Get()->GetAction<float>(name) })
+		return action->GetValue();
+}
+
+Vec2 Get2DAxis(std::string name)
+{
+	if (auto action{ ST<MagicInput>::Get()->GetAction<Vec2>(name) })
+		return action->GetValue();
+}
+
+void Lua_PlayAudio(std::string name, Vec3 position)
+{
+	//ST<AudioManager>::Get()->PlaySound(name, false, AudioType::SFX);
+	ST<AudioManager>::Get()->PlaySound3D(util::GenHash(name), false, position);
+}
+
 void RegisterCppStuffToLua(luabridge::Namespace baseTable)
 {
 	// Reference for how to do stuff: https://kunitoki.github.io/LuaBridge3/Manual
@@ -233,6 +275,9 @@ void RegisterCppStuffToLua(luabridge::Namespace baseTable)
 			.addConstructor<void(*)(float, float)>()
 			.addProperty("x", [](const Vec2* v) -> float { return v->x; }, [](Vec2* v, float x) { v->x = x; })
 			.addProperty("y", [](const Vec2* v) -> float { return v->y; }, [](Vec2* v, float y) { v->y = y; })
+			.addFunction("Normalized", [](const Vec2* v) -> Vec2 {return v->Normalized(); })
+			.addFunction("Length", [](const Vec2* v) -> float {return v->Length(); })
+			.addFunction("LengthSqr", [](const Vec2* v) -> float {return v->LengthSqr(); })
 		.endClass()
 
 		.beginClass<Vec3>("Vec3")
@@ -240,18 +285,22 @@ void RegisterCppStuffToLua(luabridge::Namespace baseTable)
 			.addProperty("x", [](const Vec3* v) -> float { return v->x; }, [](Vec3* v, float x) { v->x = x; })
 			.addProperty("y", [](const Vec3* v) -> float { return v->y; }, [](Vec3* v, float y) { v->y = y; })
 			.addProperty("z", [](const Vec3* v) -> float { return v->z; }, [](Vec3* v, float z) { v->z = z; })
+			.addFunction("Normalized", [](const Vec3* v) -> Vec3 {return v->Normalized(); })
+			.addFunction("Length", [](const Vec3* v) -> float {return v->Length(); })
+			.addFunction("LengthSqr", [](const Vec3* v) -> float {return v->LengthSqr(); })
 		.endClass()
 		.beginClass<Transform>("Transform")
-			.addProperty("localPosition", &Transform::GetLocalPosition, &Transform::SetLocalPosition)
-			.addProperty("localRotation", &Transform::GetLocalRotation, &Transform::SetLocalRotation)
-			.addProperty("localScale",	  &Transform::GetLocalScale   , &Transform::SetLocalScale   )
-			.addProperty("worldPosition", &Transform::GetWorldPosition, &Transform::SetWorldPosition)
-			.addProperty("worldRotation", &Transform::GetWorldRotation, &Transform::SetWorldRotation)
-			.addProperty("worldScale",	  &Transform::GetWorldScale   , &Transform::SetWorldScale   )
+			.addProperty("localPosition", [](const Transform* t) -> Vec3 { return t->GetLocalPosition(); }, [](Transform* t, Vec3 v) { t->SetLocalPosition(v); })
+			.addProperty("localRotation", [](const Transform* t) -> Vec3 { return t->GetLocalRotation(); }, [](Transform* t, Vec3 v) { t->SetLocalRotation(v); })
+			.addProperty("localScale", [](const Transform* t) -> Vec3 { return t->GetLocalScale();    }, [](Transform* t, Vec3 v) { t->SetLocalScale(v);    })
+			.addProperty("worldPosition", [](const Transform* t) -> Vec3 { return t->GetWorldPosition(); }, [](Transform* t, Vec3 v) { t->SetWorldPosition(v); })
+			.addProperty("worldRotation", [](const Transform* t) -> Vec3 { return t->GetWorldRotation(); }, [](Transform* t, Vec3 v) { t->SetWorldRotation(v); })
+			.addProperty("worldScale", [](const Transform* t) -> Vec3 { return t->GetWorldScale();    }, [](Transform* t, Vec3 v) { t->SetWorldScale(v);    })			// Parent
+			// Child
 		.endClass()
 		.beginClass<ecs::Entity>("Entity")
 			.addProperty("transform", [](ecs::EntityHandle entity) -> Transform* { return &entity->GetTransform(); })
-
+		
 		//=========================================== START REGISTER GETTER ================================================================================
 
 		// This section allows lua to get components
@@ -270,6 +319,7 @@ void RegisterCppStuffToLua(luabridge::Namespace baseTable)
 		SCRIPT_REGISTER_COMP_GETTER(GrabbableItemComponent)
 		SCRIPT_REGISTER_COMP_GETTER(HealthComponent)
 		SCRIPT_REGISTER_COMP_GETTER(EntityLayerComponent)
+		SCRIPT_REGISTER_COMP_GETTER(EntityReferenceHolderComponent)
 		//=========================================== END REGISTER GETTER ================================================================================
 
 		.endClass()
@@ -410,8 +460,21 @@ void RegisterCppStuffToLua(luabridge::Namespace baseTable)
 		SCRIPT_REGISTER_COMP_BEGIN(EntityLayerComponent)
 		SCRIPT_REGISTER_COMP_PROPERTY(EntityLayerComponent,"layer", GetLayerLua, SetLayerLua)
 		SCRIPT_REGISTER_COMP_END()
+
+		// GrabbableItemComponent
+		SCRIPT_REGISTER_COMP_BEGIN(EntityReferenceHolderComponent)
+			.addFunction("GetEntityReference", &LuaWrapperComp_EntityReferenceHolderComponent::GetEntityReference)
+			.addFunction("SetEntityReference", &LuaWrapperComp_EntityReferenceHolderComponent::SetEntityReference)
+			//.addProperty("GetEntityReference", [](const EntityReferenceHolderComponent* comp) -> EntityReference { return comp->GetEntity() })
+		SCRIPT_REGISTER_COMP_END()
+
 		// ----- GLOBAL FUNCTIONS -----
 		.addFunction("Log", Lua_Log)
+		.addFunction("DeltaTime", []() -> float { return GameTime::Dt(); })
+
+		.beginNamespace("AudioManager")
+			.addFunction("PlaySound", Lua_PlayAudio)
+		.endNamespace()
 
 		// ----- GLOBAL VARIABLES -----
 		.beginNamespace("LogLevel")
@@ -436,4 +499,6 @@ void RegisterCppStuffToLua(luabridge::Namespace baseTable)
 			.addVariable("Player", static_cast<int>(ENTITY_LAYER::PLAYER))
 			.addVariable("Enemy", static_cast<int>(ENTITY_LAYER::ENEMY))
 		.endNamespace();
+
+	
 }

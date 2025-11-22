@@ -15,6 +15,48 @@
             ]
         },
         {
+            "filepath": "compiledassets/materials/n00_000_00_eyewhite_00_eye__instance_.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2139455014453923699,
+                            "name": "n00_000_00_eyewhite_00_eye__instance_0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/textures/image_15.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 731494091199527651,
+                            "name": "image_150"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/materials/standardsurface1_1012.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 784546626751360037,
+                            "name": "standardsurface1_10120"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/textures/_04.ktx2",
             "resources": [
                 {
@@ -43,6 +85,146 @@
             ]
         },
         {
+            "filepath": "compiledassets/materials/n00_000_00_facemouth_00_face__instance_.001.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2316311459781719125,
+                            "name": "n00_000_00_facemouth_00_face__instance_.0010"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/materials/n00_008_01_shoes_01_cloth_01__instance_.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2079186384089010001,
+                            "name": "n00_008_01_shoes_01_cloth_01__instance_0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/textures/outdoor bleachers13315073533790444232.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 840988956678919567,
+                            "name": "outdoor bleachers133150735337904442320"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/materials/standardsurface1_1001.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 747541463434222579,
+                            "name": "standardsurface1_10010"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/materials/n00_010_01_onepiece_00_cloth_02__instance_.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2093651559064031065,
+                            "name": "n00_010_01_onepiece_00_cloth_02__instance_0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/materials/darkmetal.001.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 669955524822524005,
+                            "name": "darkmetal.0010"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/materials/n00_000_00_facebrow_00_face__instance_.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2146192821708935029,
+                            "name": "n00_000_00_facebrow_00_face__instance_0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/materials/n00_000_00_body_00_skin__instance_.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2066018632834764617,
+                            "name": "n00_000_00_body_00_skin__instance_0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/textures/outdoor bleachers7585462050813353136.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 833875116447208845,
+                            "name": "outdoor bleachers75854620508133531360"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/materials/n00_002_03_tops_01_cloth_05__instance_.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2118799589014523753,
+                            "name": "n00_002_03_tops_01_cloth_05__instance_0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/textures/_17.ktx2",
             "resources": [
                 {
@@ -51,6 +233,34 @@
                         {
                             "hash": 260684311670539351,
                             "name": "_170"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/meshanimations/player_idle_mixamoplayer_dodge_mixamo.anim",
+            "resources": [
+                {
+                    "resourceType": 7232515681596383213,
+                    "resourceEntries": [
+                        {
+                            "hash": 2179418963588697981,
+                            "name": "player_idle_mixamoplayer_dodge_mixamo0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/materials/material_42.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2354246809963246693,
+                            "name": "material_420"
                         }
                     ]
                 }
@@ -85,6 +295,34 @@
             ]
         },
         {
+            "filepath": "compiledassets/textures/image_8.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 718733159247542359,
+                            "name": "image_80"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/materials/n00_002_03_tops_01_cloth_03__instance_.001.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2305206392341181515,
+                            "name": "n00_002_03_tops_01_cloth_03__instance_.0010"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/materials/n00_007_01_tops_01_cloth_01 (instance).material",
             "resources": [
                 {
@@ -93,6 +331,48 @@
                         {
                             "hash": 302277737037677677,
                             "name": "n00_007_01_tops_01_cloth_01 (instance)0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/materials/wood.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 373268804738410323,
+                            "name": "wood0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/meshanimations/player_idle_mixamoplayer_martellokick_mixamo.anim",
+            "resources": [
+                {
+                    "resourceType": 7232515681596383213,
+                    "resourceEntries": [
+                        {
+                            "hash": 2207963384957390721,
+                            "name": "player_idle_mixamoplayer_martellokick_mixamo0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/materials/n00_000_00_facemouth_00_face__instance_.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2123432931013971819,
+                            "name": "n00_000_00_facemouth_00_face__instance_0"
                         }
                     ]
                 }
@@ -127,6 +407,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/textures/dugout6563481416728337116.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 728592480041130985,
+                            "name": "dugout65634814167283371160"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/materials/n00_008_01_shoes_01_cloth_02 (instance).material",
             "resources": [
                 {
@@ -141,6 +435,132 @@
             ]
         },
         {
+            "filepath": "compiledassets/materials/darkmetal.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 556717921788425205,
+                            "name": "darkmetal0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/chair.mesh",
+            "resources": [
+                {
+                    "resourceType": 6209910166724260588,
+                    "resourceEntries": [
+                        {
+                            "hash": 161358829201315781,
+                            "name": "chair0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/player_punching_mixamo.mesh",
+            "resources": [
+                {
+                    "resourceType": 6209910166724260588,
+                    "resourceEntries": [
+                        {
+                            "hash": 2367158375008220311,
+                            "name": "player_punching_mixamo0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/materials/n00_002_03_tops_01_cloth_05__instance_.001.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2312452173968225363,
+                            "name": "n00_002_03_tops_01_cloth_05__instance_.0010"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/unitbox.mesh",
+            "resources": [
+                {
+                    "resourceType": 6209910166724260588,
+                    "resourceEntries": [
+                        {
+                            "hash": 394651007363811311,
+                            "name": "unitbox0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/materials/lambert3_1001.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 858941782537246111,
+                            "name": "lambert3_10010"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/materials/standardsurface1.001.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 155322510364825539,
+                            "name": "standardsurface1.0010"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/materials/n00_000_00_eyeiris_00_eye__instance_.001.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2322310395222864983,
+                            "name": "n00_000_00_eyeiris_00_eye__instance_.0010"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/meshanimations/player_idle_mixamoplayer_weapon atk 3_mixamo.anim",
+            "resources": [
+                {
+                    "resourceType": 7232515681596383213,
+                    "resourceEntries": [
+                        {
+                            "hash": 2248998258417618825,
+                            "name": "player_idle_mixamoplayer_weapon atk 3_mixamo0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/materials/n00_008_01_shoes_01_cloth_01 (instance).material",
             "resources": [
                 {
@@ -149,6 +569,20 @@
                         {
                             "hash": 313615900943303793,
                             "name": "n00_008_01_shoes_01_cloth_01 (instance)0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/meshanimations/player_running_mixamoplayer_running_mixamo.anim",
+            "resources": [
+                {
+                    "resourceType": 7232515681596383213,
+                    "resourceEntries": [
+                        {
+                            "hash": 2370177633938117279,
+                            "name": "player_running_mixamoplayer_running_mixamo0"
                         }
                     ]
                 }
@@ -183,6 +617,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/textures/image_6.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 709429091853301837,
+                            "name": "image_60"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/materials/n00_002_03_tops_01_cloth_02 (instance).material",
             "resources": [
                 {
@@ -205,6 +653,76 @@
                         {
                             "hash": 182908157656548423,
                             "name": "shader_noneblack0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/materials/n00_000_hair_00_hair__instance_.001.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2347659635801240677,
+                            "name": "n00_000_hair_00_hair__instance_.0010"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/player_idle_mixamo.mesh",
+            "resources": [
+                {
+                    "resourceType": 6209910166724260588,
+                    "resourceEntries": [
+                        {
+                            "hash": 2252849847649718195,
+                            "name": "player_idle_mixamo0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/textures/dugout10109019457168489768.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 740457310016461805,
+                            "name": "dugout101090194571684897680"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/shelf.mesh",
+            "resources": [
+                {
+                    "resourceType": 6209910166724260588,
+                    "resourceEntries": [
+                        {
+                            "hash": 384621262295197531,
+                            "name": "shelf0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/materials/material_21.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2159334184684113787,
+                            "name": "material_210"
                         }
                     ]
                 }
@@ -239,6 +757,48 @@
             ]
         },
         {
+            "filepath": "compiledassets/meshanimations/player_idle_mixamoplayer_punch 2_mixamo.anim",
+            "resources": [
+                {
+                    "resourceType": 7232515681596383213,
+                    "resourceEntries": [
+                        {
+                            "hash": 2212386720235933571,
+                            "name": "player_idle_mixamoplayer_punch 2_mixamo0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/materials/standardsurface1_1013.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 725019067223537767,
+                            "name": "standardsurface1_10130"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/materials/transparent_1001.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 748296827922504697,
+                            "name": "transparent_10010"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/hatchback-sports.mesh",
             "resources": [
                 {
@@ -247,6 +807,20 @@
                         {
                             "hash": 400736804281799239,
                             "name": "hatchback-sports0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/dugout.mesh",
+            "resources": [
+                {
+                    "resourceType": 6209910166724260588,
+                    "resourceEntries": [
+                        {
+                            "hash": 752837810945219583,
+                            "name": "dugout0"
                         }
                     ]
                 }
@@ -267,6 +841,48 @@
             ]
         },
         {
+            "filepath": "compiledassets/lights.mesh",
+            "resources": [
+                {
+                    "resourceType": 6209910166724260588,
+                    "resourceEntries": [
+                        {
+                            "hash": 820419293146481367,
+                            "name": "lights0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/textures/outdoor bleachers17541868562539041575.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 843477151492576657,
+                            "name": "outdoor bleachers175418685625390415750"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/textures/storage room2013909477565681000.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 900235041230009765,
+                            "name": "storage room20139094775656810000"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/materials/n00_000_00_eyeiris_00_eye (instance).material",
             "resources": [
                 {
@@ -275,6 +891,90 @@
                         {
                             "hash": 362883917472318605,
                             "name": "n00_000_00_eyeiris_00_eye (instance)0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/meshanimations/player_idle_mixamoplayer_idle_mixamo.anim",
+            "resources": [
+                {
+                    "resourceType": 7232515681596383213,
+                    "resourceEntries": [
+                        {
+                            "hash": 2180183124170002303,
+                            "name": "player_idle_mixamoplayer_idle_mixamo0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/textures/image_13.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 763682294102682611,
+                            "name": "image_130"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/materials/n00_002_03_tops_01_cloth_03__instance_.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2111818789689773923,
+                            "name": "n00_002_03_tops_01_cloth_03__instance_0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/textures/outdoor bleachers3131286683386155078.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 849956573515060627,
+                            "name": "outdoor bleachers31312866833861550780"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/textures/storage room17541868562539041575.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 888839702719739297,
+                            "name": "storage room175418685625390415750"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/materials/n00_000_00_faceeyeline_00_face__instance_.001.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2346254459940942947,
+                            "name": "n00_000_00_faceeyeline_00_face__instance_.0010"
                         }
                     ]
                 }
@@ -295,6 +995,48 @@
             ]
         },
         {
+            "filepath": "compiledassets/textures/dugout14377039275265999768.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 737136784900578285,
+                            "name": "dugout143770392752659997680"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/textures/fence14709142800244381938.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 762107793479003631,
+                            "name": "fence147091428002443819380"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/textures/fence1593598741369728920.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 765826341804142065,
+                            "name": "fence15935987413697289200"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/textures/_13.ktx2",
             "resources": [
                 {
@@ -309,14 +1051,28 @@
             ]
         },
         {
-            "filepath": "sounds/kalimba.mp3",
+            "filepath": "compiledassets/materials/material_2.material",
             "resources": [
                 {
-                    "resourceType": 16184316770661419113,
+                    "resourceType": 645030769166885040,
                     "resourceEntries": [
                         {
-                            "hash": 3396394154554478828,
-                            "name": "kalimba0"
+                            "hash": 161618313946312541,
+                            "name": "material_20"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/fence.mesh",
+            "resources": [
+                {
+                    "resourceType": 6209910166724260588,
+                    "resourceEntries": [
+                        {
+                            "hash": 785698914964565505,
+                            "name": "fence0"
                         }
                     ]
                 }
@@ -351,6 +1107,48 @@
             ]
         },
         {
+            "filepath": "compiledassets/meshanimations/player_idle_mixamoplayer_blocking_mixamo.anim",
+            "resources": [
+                {
+                    "resourceType": 7232515681596383213,
+                    "resourceEntries": [
+                        {
+                            "hash": 2169911486543318909,
+                            "name": "player_idle_mixamoplayer_blocking_mixamo0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/materials/n00_007_01_tops_01_cloth_01__instance_.001.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2261277604276646959,
+                            "name": "n00_007_01_tops_01_cloth_01__instance_.0010"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/materials/standardsurface1_1002.001.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2295582366992094053,
+                            "name": "standardsurface1_1002.0010"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/materials/material_1.material",
             "resources": [
                 {
@@ -359,6 +1157,104 @@
                         {
                             "hash": 173633777614818917,
                             "name": "material_10"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/materials/material_4.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 676256825961308265,
+                            "name": "material_40"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/shelf_small.mesh",
+            "resources": [
+                {
+                    "resourceType": 6209910166724260588,
+                    "resourceEntries": [
+                        {
+                            "hash": 435224085941127225,
+                            "name": "shelf_small0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/materials/n00_008_01_shoes_01_cloth_02__instance_.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2081450278530600787,
+                            "name": "n00_008_01_shoes_01_cloth_02__instance_0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/textures/image_4.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 768269456613764089,
+                            "name": "image_40"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/materials/n00_002_03_tops_01_cloth_01__instance_.001.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2292213463435752511,
+                            "name": "n00_002_03_tops_01_cloth_01__instance_.0010"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/materials/n00_002_03_tops_01_cloth_04__instance_.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2116413648782249829,
+                            "name": "n00_002_03_tops_01_cloth_04__instance_0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/materials/n00_000_00_hairback_00_hair__instance_.001.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2268040700299097137,
+                            "name": "n00_000_00_hairback_00_hair__instance_.0010"
                         }
                     ]
                 }
@@ -379,6 +1275,34 @@
             ]
         },
         {
+            "filepath": "compiledassets/textures/dugout7057225690629401265.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 716992632368094181,
+                            "name": "dugout70572256906294012650"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/textures/image_1.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 2275549265134008805,
+                            "name": "image_10"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/textures/_10.ktx2",
             "resources": [
                 {
@@ -387,6 +1311,34 @@
                         {
                             "hash": 226147551930467407,
                             "name": "_100"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/textures/image_12.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 755087411708357609,
+                            "name": "image_120"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/textures/lights14179648975753951601.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 813239482217104075,
+                            "name": "lights141796489757539516010"
                         }
                     ]
                 }
@@ -407,6 +1359,34 @@
             ]
         },
         {
+            "filepath": "compiledassets/materials/wooddark.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 368945525017995089,
+                            "name": "wooddark0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/materials/n00_000_hair_00_hair__instance_.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2152916335312785273,
+                            "name": "n00_000_hair_00_hair__instance_0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/textures/_09.ktx2",
             "resources": [
                 {
@@ -415,6 +1395,76 @@
                         {
                             "hash": 221253625675236427,
                             "name": "_090"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/desktextured.mesh",
+            "resources": [
+                {
+                    "resourceType": 6209910166724260588,
+                    "resourceEntries": [
+                        {
+                            "hash": 2298014486712734571,
+                            "name": "desktextured0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/textures/outdoor bleachers15335471277183181708.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 827939952680473993,
+                            "name": "outdoor bleachers153354712771831817080"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/wall_doors_tex.mesh",
+            "resources": [
+                {
+                    "resourceType": 6209910166724260588,
+                    "resourceEntries": [
+                        {
+                            "hash": 749519484825287455,
+                            "name": "wall_doors_tex0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/wall_window.mesh",
+            "resources": [
+                {
+                    "resourceType": 6209910166724260588,
+                    "resourceEntries": [
+                        {
+                            "hash": 566947777973253117,
+                            "name": "wall_window0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/meshanimations/player_idle_mixamoplayer_sword ulti_.anim",
+            "resources": [
+                {
+                    "resourceType": 7232515681596383213,
+                    "resourceEntries": [
+                        {
+                            "hash": 2233174087070666629,
+                            "name": "player_idle_mixamoplayer_sword ulti_0"
                         }
                     ]
                 }
@@ -435,6 +1485,76 @@
             ]
         },
         {
+            "filepath": "compiledassets/deskplain.mesh",
+            "resources": [
+                {
+                    "resourceType": 6209910166724260588,
+                    "resourceEntries": [
+                        {
+                            "hash": 2289518560364902911,
+                            "name": "deskplain0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/textures/storage room3567323986476668321.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 895481852463134115,
+                            "name": "storage room35673239864766683210"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/meshanimations/player_idle_mixamoplayer_katar atk 1.anim",
+            "resources": [
+                {
+                    "resourceType": 7232515681596383213,
+                    "resourceEntries": [
+                        {
+                            "hash": 2190783515773390719,
+                            "name": "player_idle_mixamoplayer_katar atk 10"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/materials/standardsurface1_1011.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 707637987411583325,
+                            "name": "standardsurface1_10110"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/field.mesh",
+            "resources": [
+                {
+                    "resourceType": 6209910166724260588,
+                    "resourceEntries": [
+                        {
+                            "hash": 805172365404108849,
+                            "name": "field0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/materials/n00_002_03_tops_01_cloth_03 (instance).material",
             "resources": [
                 {
@@ -443,6 +1563,20 @@
                         {
                             "hash": 345229059265119365,
                             "name": "n00_002_03_tops_01_cloth_03 (instance)0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/textures/field7732551140988198768.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 795027171614619687,
+                            "name": "field77325511409881987680"
                         }
                     ]
                 }
@@ -463,6 +1597,48 @@
             ]
         },
         {
+            "filepath": "compiledassets/materials/n00_000_00_face_00_skin__instance_.001.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2331936619524043867,
+                            "name": "n00_000_00_face_00_skin__instance_.0010"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/materials/wall_1012.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 779930876937956375,
+                            "name": "wall_10120"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/materials/n00_002_03_tops_01_cloth_01__instance_.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2094548760552296283,
+                            "name": "n00_002_03_tops_01_cloth_01__instance_0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/materials/cesium_man-effect.material",
             "resources": [
                 {
@@ -471,6 +1647,48 @@
                         {
                             "hash": 169869049801313893,
                             "name": "cesium_man-effect0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/textures/outdoor bleachers17192450218599241778.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 829253869075666315,
+                            "name": "outdoor bleachers171924502185992417780"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/materials/n00_010_01_onepiece_00_cloth_01__instance_.001.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2281171068157998137,
+                            "name": "n00_010_01_onepiece_00_cloth_01__instance_.0010"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/table.mesh",
+            "resources": [
+                {
+                    "resourceType": 6209910166724260588,
+                    "resourceEntries": [
+                        {
+                            "hash": 362711294088504259,
+                            "name": "table0"
                         }
                     ]
                 }
@@ -491,6 +1709,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/textures/image_3.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 757522829963881453,
+                            "name": "image_30"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/textures/_14.ktx2",
             "resources": [
                 {
@@ -499,6 +1731,202 @@
                         {
                             "hash": 245612206276985939,
                             "name": "_140"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/materials/n00_002_03_tops_01_cloth_02__instance_.001.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2297669240132777031,
+                            "name": "n00_002_03_tops_01_cloth_02__instance_.0010"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/player_running_mixamo.mesh",
+            "resources": [
+                {
+                    "resourceType": 6209910166724260588,
+                    "resourceEntries": [
+                        {
+                            "hash": 2378082023030198971,
+                            "name": "player_running_mixamo0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/materials/n00_010_01_onepiece_00_cloth_02__instance_.001.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2284659818552931389,
+                            "name": "n00_010_01_onepiece_00_cloth_02__instance_.0010"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/materials/material.001.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 157414880993324893,
+                            "name": "material.0010"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/materials/n00_007_01_tops_01_cloth_02__instance_.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2101693387109584733,
+                            "name": "n00_007_01_tops_01_cloth_02__instance_0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/textures/lights6717148718183343745.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 815345046984295115,
+                            "name": "lights67171487181833437450"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/textures/storage room12911167446975257857.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 867015496420013463,
+                            "name": "storage room129111674469752578570"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/outdoor bleachers.mesh",
+            "resources": [
+                {
+                    "resourceType": 6209910166724260588,
+                    "resourceEntries": [
+                        {
+                            "hash": 862331576885679525,
+                            "name": "outdoor bleachers0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/meshanimations/player_idle_mixamoplayer_punching_mixamo.anim",
+            "resources": [
+                {
+                    "resourceType": 7232515681596383213,
+                    "resourceEntries": [
+                        {
+                            "hash": 2220080003095482243,
+                            "name": "player_idle_mixamoplayer_punching_mixamo0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/materials/material.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 388567409527326701,
+                            "name": "material0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/textures/image_0.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 2273508571552856543,
+                            "name": "image_00"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/materials/n00_002_03_tops_01_cloth_02__instance_.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2107168955015909217,
+                            "name": "n00_002_03_tops_01_cloth_02__instance_0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/materials/n00_000_00_eyeiris_00_eye__instance_.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2126338940246183789,
+                            "name": "n00_000_00_eyeiris_00_eye__instance_0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/meshanimations/player_punching_mixamoplayer_punching_mixamo.anim",
+            "resources": [
+                {
+                    "resourceType": 7232515681596383213,
+                    "resourceEntries": [
+                        {
+                            "hash": 2355515646381700197,
+                            "name": "player_punching_mixamoplayer_punching_mixamo0"
                         }
                     ]
                 }
@@ -519,6 +1947,34 @@
             ]
         },
         {
+            "filepath": "compiledassets/meshanimations/player_idle_mixamoplayer_running_mixamo.anim",
+            "resources": [
+                {
+                    "resourceType": 7232515681596383213,
+                    "resourceEntries": [
+                        {
+                            "hash": 2223441210141593475,
+                            "name": "player_idle_mixamoplayer_running_mixamo0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/meshanimations/player_idle_mixamoplayer_throw_mixamo.anim",
+            "resources": [
+                {
+                    "resourceType": 7232515681596383213,
+                    "resourceEntries": [
+                        {
+                            "hash": 2236701320372572039,
+                            "name": "player_idle_mixamoplayer_throw_mixamo0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/textures/_20.ktx2",
             "resources": [
                 {
@@ -527,6 +1983,34 @@
                         {
                             "hash": 272413901715653725,
                             "name": "_200"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/textures/field413754577327418317.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 789826481615239203,
+                            "name": "field4137545773274183170"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/door_classroom_tex.mesh",
+            "resources": [
+                {
+                    "resourceType": 6209910166724260588,
+                    "resourceEntries": [
+                        {
+                            "hash": 725499553804875883,
+                            "name": "door_classroom_tex0"
                         }
                     ]
                 }
@@ -561,6 +2045,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/materials/n00_000_00_eyehighlight_00_eye__instance_.001.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2323958563152901209,
+                            "name": "n00_000_00_eyehighlight_00_eye__instance_.0010"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/aji.mesh",
             "resources": [
                 {
@@ -569,6 +2067,20 @@
                         {
                             "hash": 391814267422360829,
                             "name": "aji0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/textures/lights5590563140978458161.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 806365335520248521,
+                            "name": "lights55905631409784581610"
                         }
                     ]
                 }
@@ -603,6 +2115,62 @@
             ]
         },
         {
+            "filepath": "compiledassets/meshanimations/player_running_mixamoplayer_running_mixamo.001.anim",
+            "resources": [
+                {
+                    "resourceType": 7232515681596383213,
+                    "resourceEntries": [
+                        {
+                            "hash": 2374386564449243809,
+                            "name": "player_running_mixamoplayer_running_mixamo.0010"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/textures/image_14.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 772044080031919101,
+                            "name": "image_140"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/materials/n00_000_00_face_00_skin__instance_.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2138932746430730097,
+                            "name": "n00_000_00_face_00_skin__instance_0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/materials/concrete.001.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 671988521822281831,
+                            "name": "concrete.0010"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/materials/n00_000_00_facemouth_00_face (instance).material",
             "resources": [
                 {
@@ -625,6 +2193,20 @@
                         {
                             "hash": 268043342995244123,
                             "name": "_190"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/meshanimations/player_idle_mixamoplayer_crecent kick_mixamo.anim",
+            "resources": [
+                {
+                    "resourceType": 7232515681596383213,
+                    "resourceEntries": [
+                        {
+                            "hash": 2172853779659247485,
+                            "name": "player_idle_mixamoplayer_crecent kick_mixamo0"
                         }
                     ]
                 }
@@ -659,6 +2241,160 @@
             ]
         },
         {
+            "filepath": "compiledassets/materials/transparent_1002.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 907466529205892531,
+                            "name": "transparent_10020"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/materials/n00_010_01_onepiece_00_cloth_01__instance_.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2088955544901799765,
+                            "name": "n00_010_01_onepiece_00_cloth_01__instance_0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/materials/standardsurface1_1002.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2286680720853613049,
+                            "name": "standardsurface1_10020"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/wall_window_tex.mesh",
+            "resources": [
+                {
+                    "resourceType": 6209910166724260588,
+                    "resourceEntries": [
+                        {
+                            "hash": 790882012750605355,
+                            "name": "wall_window_tex0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/materials/n00_002_03_tops_01_cloth_04__instance_.001.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2309738579270874191,
+                            "name": "n00_002_03_tops_01_cloth_04__instance_.0010"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/meshanimations/player_punching_mixamoplayer_punching_mixamo.001.anim",
+            "resources": [
+                {
+                    "resourceType": 7232515681596383213,
+                    "resourceEntries": [
+                        {
+                            "hash": 2364069846845797479,
+                            "name": "player_punching_mixamoplayer_punching_mixamo.0010"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/storage room.mesh",
+            "resources": [
+                {
+                    "resourceType": 6209910166724260588,
+                    "resourceEntries": [
+                        {
+                            "hash": 913566619716793785,
+                            "name": "storage room0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/textures/storage room9292766229431643409.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 879423485139465629,
+                            "name": "storage room92927662294316434090"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/textures/storage room13315073533790444232.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 904970637810840999,
+                            "name": "storage room133150735337904442320"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/meshanimations/player_idle_mixamoplayer_stomp_miaxmo.anim",
+            "resources": [
+                {
+                    "resourceType": 7232515681596383213,
+                    "resourceEntries": [
+                        {
+                            "hash": 2228502262164246405,
+                            "name": "player_idle_mixamoplayer_stomp_miaxmo0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/textures/dugout14709142800244381938.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 720762857739738087,
+                            "name": "dugout147091428002443819380"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/materials/n00_000_hair_00_hair (instance).material",
             "resources": [
                 {
@@ -667,6 +2403,76 @@
                         {
                             "hash": 389680115352847513,
                             "name": "n00_000_hair_00_hair (instance)0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/textures/image_2.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 2280285961226467817,
+                            "name": "image_20"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/textures/storage room9921014921328147259.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 885172831441106335,
+                            "name": "storage room99210149213281472590"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/meshanimations/player_idle_mixamoplayer_jump_miaxmo.anim",
+            "resources": [
+                {
+                    "resourceType": 7232515681596383213,
+                    "resourceEntries": [
+                        {
+                            "hash": 2184270008890445695,
+                            "name": "player_idle_mixamoplayer_jump_miaxmo0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/textures/image_16.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 735414949664176877,
+                            "name": "image_160"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/floor_tex.mesh",
+            "resources": [
+                {
+                    "resourceType": 6209910166724260588,
+                    "resourceEntries": [
+                        {
+                            "hash": 714541820922388835,
+                            "name": "floor_tex0"
                         }
                     ]
                 }
@@ -701,6 +2507,48 @@
             ]
         },
         {
+            "filepath": "compiledassets/textures/fence2832200078203273826.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 775827499570392565,
+                            "name": "fence28322000782032738260"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/meshanimations/player_idle_mixamodamagetaken_mixamo.anim",
+            "resources": [
+                {
+                    "resourceType": 7232515681596383213,
+                    "resourceEntries": [
+                        {
+                            "hash": 2163277033381318523,
+                            "name": "player_idle_mixamodamagetaken_mixamo0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/textures/dugout6647418950732403459.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 730550710250200043,
+                            "name": "dugout66474189507324034590"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/materials/n00_000_00_face_00_skin (instance).material",
             "resources": [
                 {
@@ -709,6 +2557,48 @@
                         {
                             "hash": 369407319959913617,
                             "name": "n00_000_00_face_00_skin (instance)0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/textures/fence7732551140988198768.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 772851121594002931,
+                            "name": "fence77325511409881987680"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/textures/fence6586682644271773772.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 782277234778926583,
+                            "name": "fence65866826442717737720"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/meshanimations/player_idle_mixamoplayer_weapon atk 2_mixamo.anim",
+            "resources": [
+                {
+                    "resourceType": 7232515681596383213,
+                    "resourceEntries": [
+                        {
+                            "hash": 2243140060464828297,
+                            "name": "player_idle_mixamoplayer_weapon atk 2_mixamo0"
                         }
                     ]
                 }
@@ -743,6 +2633,34 @@
             ]
         },
         {
+            "filepath": "compiledassets/textures/storage room3351040909626443882.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 877024350767658395,
+                            "name": "storage room33510409096264438820"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/textures/image_5.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 775794514194263043,
+                            "name": "image_50"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/textures/_23.ktx2",
             "resources": [
                 {
@@ -771,6 +2689,48 @@
             ]
         },
         {
+            "filepath": "compiledassets/textures/image_17.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 741886675105266423,
+                            "name": "image_170"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/materials/woodlight.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 373935108784842579,
+                            "name": "woodlight0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/meshanimations/player_idle_mixamoplayer_weapon atk 1_mixamo.anim",
+            "resources": [
+                {
+                    "resourceType": 7232515681596383213,
+                    "resourceEntries": [
+                        {
+                            "hash": 2240070224000077705,
+                            "name": "player_idle_mixamoplayer_weapon atk 1_mixamo0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/materials/n00_000_00_facebrow_00_face (instance).material",
             "resources": [
                 {
@@ -779,6 +2739,48 @@
                         {
                             "hash": 382222127981642901,
                             "name": "n00_000_00_facebrow_00_face (instance)0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/textures/image_7.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 715987678712985681,
+                            "name": "image_70"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/materials/n00_008_01_shoes_01_cloth_02__instance_.001.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2276289236530672695,
+                            "name": "n00_008_01_shoes_01_cloth_02__instance_.0010"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/meshanimations/player_idle_mixamoplayer_katar_ult.anim",
+            "resources": [
+                {
+                    "resourceType": 7232515681596383213,
+                    "resourceEntries": [
+                        {
+                            "hash": 2206382287236648833,
+                            "name": "player_idle_mixamoplayer_katar_ult0"
                         }
                     ]
                 }
@@ -799,6 +2801,90 @@
             ]
         },
         {
+            "filepath": "compiledassets/materials/n00_007_01_tops_01_cloth_01__instance_.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2071445822229466957,
+                            "name": "n00_007_01_tops_01_cloth_01__instance_0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/wall_doors.mesh",
+            "resources": [
+                {
+                    "resourceType": 6209910166724260588,
+                    "resourceEntries": [
+                        {
+                            "hash": 576378289204928147,
+                            "name": "wall_doors0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/materials/n00_000_00_hairback_00_hair__instance_.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2074502464554684239,
+                            "name": "n00_000_00_hairback_00_hair__instance_0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/materials/n00_007_01_tops_01_cloth_02__instance_.001.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2294598304156398661,
+                            "name": "n00_007_01_tops_01_cloth_02__instance_.0010"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/materials/material_3.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 380003313458538325,
+                            "name": "material_30"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/materials/n00_000_00_eyewhite_00_eye__instance_.001.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2335676058570110045,
+                            "name": "n00_000_00_eyewhite_00_eye__instance_.0010"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/textures/_18.ktx2",
             "resources": [
                 {
@@ -807,6 +2893,48 @@
                         {
                             "hash": 261858590089004121,
                             "name": "_180"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/meshanimations/player_idle_mixamoplayer_katar atk 3.anim",
+            "resources": [
+                {
+                    "resourceType": 7232515681596383213,
+                    "resourceEntries": [
+                        {
+                            "hash": 2202062306051116929,
+                            "name": "player_idle_mixamoplayer_katar atk 30"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/textures/field10176860669464466862.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 800960136358098985,
+                            "name": "field101768606694644668620"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/materials/concrete.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 559371043346248697,
+                            "name": "concrete0"
                         }
                     ]
                 }
@@ -827,6 +2955,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/materials/lambert4_1001.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 855045113328407961,
+                            "name": "lambert4_10010"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/textures/_24.ktx2",
             "resources": [
                 {
@@ -841,6 +2983,76 @@
             ]
         },
         {
+            "filepath": "compiledassets/materials/n00_000_00_eyehighlight_00_eye__instance_.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2134131179152232303,
+                            "name": "n00_000_00_eyehighlight_00_eye__instance_0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/textures/fence13707767880246738486.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 760362868525723115,
+                            "name": "fence137077678802467384860"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/door_classroom.mesh",
+            "resources": [
+                {
+                    "resourceType": 6209910166724260588,
+                    "resourceEntries": [
+                        {
+                            "hash": 569100621740440249,
+                            "name": "door_classroom0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/materials/n00_008_01_shoes_01_cloth_01__instance_.001.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2272210048391623733,
+                            "name": "n00_008_01_shoes_01_cloth_01__instance_.0010"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/meshanimations/player_idle_mixamoplayer_katar atk 2.anim",
+            "resources": [
+                {
+                    "resourceType": 7232515681596383213,
+                    "resourceEntries": [
+                        {
+                            "hash": 2194831917586861953,
+                            "name": "player_idle_mixamoplayer_katar atk 20"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/textures/_03.ktx2",
             "resources": [
                 {
@@ -849,6 +3061,76 @@
                         {
                             "hash": 201839548863595593,
                             "name": "_030"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/materials/n00_000_00_faceeyeline_00_face__instance_.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2150961403638599543,
+                            "name": "n00_000_00_faceeyeline_00_face__instance_0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/materials/wall_1013.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 743891084802702091,
+                            "name": "wall_10130"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/textures/storage room5590563140978458161.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 869371749838337433,
+                            "name": "storage room55905631409784581610"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/materials/n00_000_00_body_00_skin__instance_.001.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2257266585858520109,
+                            "name": "n00_000_00_body_00_skin__instance_.0010"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/materials/n00_000_00_facebrow_00_face__instance_.001.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2341418807801984097,
+                            "name": "n00_000_00_facebrow_00_face__instance_.0010"
                         }
                     ]
                 }
