@@ -1,15 +1,17 @@
 // ProcessRunner.cpp
 #include "pch.h"
 #include "ProcessRunner.h"
-#include <windows.h>
 #include <string>
 #include <iostream>
-//#include "boost/process.hpp"
 
+#ifdef GLFW
+#include <windows.h>
+#endif
 
 ProcessResult RunProcess(const std::string& cmdLine)
 {
     ProcessResult result = { -1, "" };
+#ifdef GLFW
 
     // Create a Pipe to capture the child's output
     SECURITY_ATTRIBUTES saAttr;
@@ -84,5 +86,6 @@ ProcessResult RunProcess(const std::string& cmdLine)
     if (hChildStd_OUT_Rd) CloseHandle(hChildStd_OUT_Rd);
     if (hChildStd_OUT_Wr) CloseHandle(hChildStd_OUT_Wr); // Safety check
 
+#endif
     return result;
 }
