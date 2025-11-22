@@ -225,6 +225,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/textures/digipen_cmyk_red.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 55937654067787191,
+                            "name": "digipen_cmyk_red0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/textures/_17.ktx2",
             "resources": [
                 {
