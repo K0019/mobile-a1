@@ -139,20 +139,23 @@ void CharacterMovementComponent::Attack()
 	if (heldItem == nullptr)
 		return;
 
+	ecs::EntityHandle thisEntity = ecs::GetEntity(this);
+
 	// Hard-code a simple start point etc for now
-	Vec3 rotation = ecs::GetEntity(this)->GetTransform().GetWorldRotation();
-	Vec3 direction(sin(math::ToRadians(rotation.y+90)), 0, cos(math::ToRadians(rotation.y+90)));
-	Vec3 startPoint = ecs::GetEntity(this)->GetTransform().GetWorldPosition() + direction*2.5f;
-	
-	if(hitDebugObject!=nullptr)
+	Vec3 rotation = thisEntity->GetTransform().GetWorldRotation();
+	Vec3 direction(sin(math::ToRadians(rotation.y + 90)), 0, cos(math::ToRadians(rotation.y + 90)));
+	Vec3 startPoint = thisEntity->GetTransform().GetWorldPosition() + direction * 2.5f;
+
+	if (hitDebugObject != nullptr)
 	{
 		hitDebugObject->GetTransform().SetWorldPosition(startPoint);
-		hitDebugObject->GetTransform().SetWorldRotation(Vec3(0.0f, math::ToDegrees(atan2(direction.x,direction.z)), 0.0f));
+		hitDebugObject->GetTransform().SetWorldRotation(Vec3(0.0f, math::ToDegrees(atan2(direction.x, direction.z)), 0.0f));
 	}
 
 	// Get the animation component
-	//ecs::CompHandle<AnimationComponent> animComp = characterEntity->GetComp<AnimationComponent>();
-
+	ecs::CompHandle<AnimationComponent> animComp = thisEntity->GetComp<AnimationComponent>();
+	animComp->animHandleA = animations[ATTACK];
+	isAttacking = true;
 
 	// Call Attack from the GrabbableItem component
 	heldItem->GetComp<GrabbableItemComponent>()->Attack(startPoint, direction);
@@ -299,12 +302,25 @@ void CharacterMovementComponentSystem::UpdateCharacterMovementComponent(Characte
 	// Normalize the move vector if it's over 1.0f in length
 	if (movement.LengthSqr() > 0.0f)
 	{
+		if(comp.isAttacking)
+
+		animComp->animHandleB = comp.animations[WALK];
+		else
 		animComp->animHandleA = comp.animations[WALK];
 	}
 	else
 	{
+		if (!comp.isAttacking)
 		animComp->animHandleA = comp.animations[IDLE];
 	}
+
+	if(comp.isAttacking)
+	{
+		animComp->loop = false;
+		//if
+	}
+	
+
 	if (movement.LengthSqr() > 1.0f)
 		movement = movement.Normalized();
 
