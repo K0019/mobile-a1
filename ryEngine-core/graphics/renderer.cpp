@@ -69,6 +69,17 @@ void Renderer::shutdown()
   LOG_INFO("Renderer shutdown complete");
 }
 
+#if defined(__ANDROID__)
+SurfaceTransform Renderer::getSwapchainPreTransform() const
+{
+  if (m_vkContext)
+  {
+    return m_vkContext->getSwapchainPreTransform();
+  }
+  return SurfaceTransform::Identity;
+}
+#endif
+
 void Renderer::beginFrame()
 {
   PROFILER_FUNCTION();

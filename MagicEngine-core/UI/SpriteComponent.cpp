@@ -75,38 +75,51 @@ int Primitive2DCircle::GetNumSegmentsForSmoothCircle(float radius)
 	return static_cast<int>(std::ceilf(2.0f * math::PI_f / th) + 0.5f);
 }
 
-Primitive2DRect::Primitive2DRect()
-	: halfDimensions{ 5.0f, 5.0f }
-{
-}
-
-Vec2 Primitive2DRect::GetDimensions() const
-{
-	return halfDimensions * 2.0f;
-}
-
-void Primitive2DRect::SetDimensions(Vec2 newDimensions)
-{
-	halfDimensions = newDimensions * 0.5f;
-}
-
 void Primitive2DRect::Render(const RectTransformComponent& transform, const Vec4& color) const
 {
 	Vec2 worldPos{ transform.GetWorldPosition() };
+	Vec2 halfScale{ transform.GetWorldScale() * 0.5f };
 	ui::DrawOptions drawOptions;
 	drawOptions.layer = static_cast<uint16_t>(transform.GetLayer());
-	ST<GraphicsMain>::Get()->GetImmediateGui().addSolidRect(worldPos - halfDimensions, worldPos + halfDimensions, color, drawOptions);
+	ST<GraphicsMain>::Get()->GetImmediateGui().addSolidRect(worldPos - halfScale, worldPos + halfScale, color, drawOptions);
 }
 
 void Primitive2DRect::EditorDraw()
 {
-	Vec2 dimensions{ GetDimensions() };
-	if (gui::VarDrag("Dimensions", &dimensions))
-		SetDimensions(dimensions);
+}
+
+void Primitive2DImage::SetImage(size_t textureHash)
+{
+	texture = textureHash;
+}
+
+void Primitive2DImage::Render(const RectTransformComponent& transform, const Vec4& color) const
+{
+	const auto textureResource{ texture.GetResource() };
+	if (!textureResource)
+		return;
+
+	Vec2 worldPos{ transform.GetWorldPosition() };
+	Vec2 halfScale{ transform.GetWorldScale() * 0.5f };
+	ui::DrawOptions drawOptions;
+	drawOptions.layer = static_cast<uint16_t>(transform.GetLayer());
+	ST<GraphicsMain>::Get()->GetImmediateGui().addImage(textureResource->handle, worldPos - halfScale, worldPos + halfScale, Vec2{0.0f, 0.0f}, Vec2{1.0f, 1.0f}, color, ui::SamplerMode::Linear, drawOptions);
+}
+
+void Primitive2DImage::EditorDraw()
+{
+	std::string textureName{ "None" };
+	if (const auto textureResource{ texture.GetResource() })
+		if (const auto resourceName{ ST<MagicResourceManager>::Get()->Editor_GetName(texture.GetHash()) })
+			textureName = *resourceName;
+	gui::TextBoxReadOnly("Image", textureName);
+	gui::PayloadTarget<size_t>("TEXTURE_HASH", [this](size_t hash) -> void {
+		texture = hash;
+	});
 }
 
 SpriteComponent::SpriteComponent()
-	: primitive{ Primitive2DCircle{} }
+	: primitive{ Primitive2DImage{} }
 	, color{ 1.0f, 1.0f, 1.0f, 1.0f }
 {
 }

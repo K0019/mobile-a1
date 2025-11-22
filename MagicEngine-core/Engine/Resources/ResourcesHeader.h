@@ -28,6 +28,10 @@ class UserResourceHandle : public ISerializeable
 {
 public:
     UserResourceHandle(size_t hash = 1);
+    UserResourceHandle(const UserResourceHandle&) = default;
+    UserResourceHandle(UserResourceHandle&&) = default;
+    UserResourceHandle<ResourceType>& operator=(const UserResourceHandle&) = default;
+    UserResourceHandle<ResourceType>& operator=(UserResourceHandle&&) = default;
 
     size_t GetHash() const;
     const ResourceType* GetResource() const;
