@@ -1,5 +1,8 @@
 #pragma once
 #include <Jolt/Jolt.h>
+
+#if defined(JPH_DEBUG_RENDERER)
+
 #include <Jolt/Renderer/DebugRendererSimple.h>
 #include <im3d.h>
 
@@ -24,16 +27,18 @@ public:
     }
     
     void DrawText3D(JPH::RVec3Arg pos, const std::string_view& str,
-                   JPH::ColorArg color, float height) override 
+                   JPH::ColorArg color, float height) override
     {
         Im3d::Text(
-            Im3d::Vec3(static_cast<float>(pos.GetX()), 
-                      static_cast<float>(pos.GetY()), 
+            Im3d::Vec3(static_cast<float>(pos.GetX()),
+                      static_cast<float>(pos.GetY()),
                       static_cast<float>(pos.GetZ())),
             height,
             Im3d::Color(color.r, color.g, color.b, 1.0f),
-            Im3d::TextFlags_Default, 
+            Im3d::TextFlags_Default,
             str.data()
         );
     }
 };
+
+#endif // JPH_DEBUG_RENDERER

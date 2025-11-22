@@ -72,7 +72,7 @@ namespace ecs {
 	template<typename T>
 	bool Entity::RemoveCompNow()
 	{
-		return RemoveCompNow(ecs::internal::GetCompHash<T>());
+		return RemoveCompByHashNow(ecs::internal::GetCompHash<T>());
 	}
 
 	template<typename T>

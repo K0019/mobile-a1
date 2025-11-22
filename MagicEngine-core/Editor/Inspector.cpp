@@ -33,9 +33,9 @@ All rights reserved.
 #include "Engine/EntityLayers.h"
 #include "Engine/PrefabManager.h"
 
-namespace editor {
+#include "Utilities/AndroidMacros.h"
 
-#ifdef IMGUI_ENABLED
+namespace editor {
 
 	//for imgui gizmo
 
@@ -241,7 +241,7 @@ namespace editor {
 				if(gui::Button deleteButton{ "Confirm Delete", buttonSize })
 				{
 					RegisteredComponents::GetData(compIter.GetCompHash())->SaveHistory_CompRemove(selectedEntity, compIter.GetComp<void>());
-					selectedEntity->RemoveCompNow(compIter.GetCompHash());
+					selectedEntity->RemoveCompByHashNow(compIter.GetCompHash());
 					deleteConfirmation = false;
 				}
 
@@ -319,7 +319,7 @@ namespace editor {
 			if(gui::IsKeyPressed(gui::KEY::DOWN))
 				++selectedIndex;
 			const bool selectedByKeyboard{ gui::IsKeyPressed(gui::KEY::ENTER) };
-			const bool selectedByMouse{ ImGui::IsMouseClicked(ImGuiMouseButton_Left) };
+			const bool selectedByMouse{ gui::IsMouseClicked(gui::MOUSE_BUTTON::LEFT) };
 			bool anyItemHovered = false;
 
 			// Search input (fixed at top)
@@ -359,7 +359,7 @@ namespace editor {
 				gui::Selectable(registeredData.name.c_str(), isSelected);
 
 				// use hovering logic to track if the mouse is within the popup or not, because otherwise only tracking if left mouse button is clicked causes it to work no matter where the mouse is.
-				bool thisItemHovered = ImGui::IsItemHovered();
+				bool thisItemHovered = gui::IsItemHovered();
 				if(thisItemHovered) {
 					anyItemHovered = true;
 					selectedIndex = index;
@@ -423,7 +423,5 @@ namespace editor {
 				deleteConfirmation = false;
 		}
 	}
-
-#endif
 
 }

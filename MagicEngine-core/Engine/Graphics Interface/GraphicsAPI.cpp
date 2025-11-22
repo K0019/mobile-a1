@@ -394,6 +394,32 @@ void GraphicsMain::UploadToPipeline(FrameData* outFrameData)
 	outFrameData->viewMatrix = frameData.viewMatrix;
 	outFrameData->projMatrix = glm::perspective(45.0f, width / height, 0.1f, 1000.0f);
 
+#if defined(__ANDROID__)
+	// Apply pre-rotation for Android landscape mode
+	if (context.renderer)
+	{
+		SurfaceTransform transform = context.renderer->getSwapchainPreTransform();
+		glm::mat4 preRotation = glm::mat4(1.0f);
+
+		switch (transform)
+		{
+		case SurfaceTransform::Rotate90:
+			preRotation = glm::rotate(glm::mat4(1.0f), glm::radians(-90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+			break;
+		case SurfaceTransform::Rotate180:
+			preRotation = glm::rotate(glm::mat4(1.0f), glm::radians(-180.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+			break;
+		case SurfaceTransform::Rotate270:
+			preRotation = glm::rotate(glm::mat4(1.0f), glm::radians(-270.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+			break;
+		default:
+			break;
+		}
+
+		outFrameData->projMatrix = preRotation * outFrameData->projMatrix;
+	}
+#endif
+
 	EditorCam_Publish(outFrameData->viewMatrix, outFrameData->projMatrix, false);
 
 	// 2D UI pass
