@@ -230,7 +230,7 @@ void AndroidInputComp::Update() {
                 << "[AIC] UP @ (" << tp.x << ", " << tp.y << ")";
 
             // Give up exclusive ownership so camera/UI can use the next touch
-            AndroidInputBridge::Release(AndroidInputBridge::TouchOwner::Joystick);
+            AndroidInputBridge::Release(TouchOwner::Joystick);
         }
 
 
