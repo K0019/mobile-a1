@@ -1,3 +1,4 @@
+variable = 2
 function start(entity)
     local nameComp = entity:GetNameComponent();
     if nameComp:Exists() then

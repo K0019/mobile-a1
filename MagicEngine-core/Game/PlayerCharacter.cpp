@@ -26,6 +26,7 @@ All rights reserved.
 #include "Game/GameCameraController.h"
 #include "Physics/Physics.h"
 #include "Engine/Input.h"
+#include "Scripting//ScriptComponent.h"
 #include "Editor/Containers/GUICollection.h"
 
 PlayerMovementComponent::PlayerMovementComponent()
@@ -37,18 +38,21 @@ PlayerMovementComponent::PlayerMovementComponent()
 void PlayerMovementComponent::Serialize(Serializer& writer) const
 {
 	writer.Serialize("cameraReference", cameraReference);
+	writer.Serialize("testReference", testReference);
 	writer.Serialize("grabDistance", grabDistance);
 }
 
 void PlayerMovementComponent::Deserialize(Deserializer& reader)
 {
 	reader.Deserialize("cameraReference", &cameraReference);
+	reader.Deserialize("testReference", &testReference);
 	reader.DeserializeVar("grabDistance", &grabDistance);
 }
 
 void PlayerMovementComponent::EditorDraw()
 {
 	cameraReference.EditorDraw("Camera");
+	testReference.EditorDraw("Test");
 	gui::VarInput("Grab Distance", &grabDistance);
 }
 
@@ -143,9 +147,17 @@ void PlayerMovementComponentSystem::UpdatePlayerMovementComponent(PlayerMovement
 		characterComp->Throw(throwDirection);
 	}
 
-	// Doesn't seem to be working again
 	if (inputInstance->GetIsPressed(KEY::M1))
 		characterComp->Attack();
+
+	// Test opening the door
+	if (inputInstance->GetIsPressed(KEY::O))
+	{
+		if (auto scriptComp{ comp.testReference->GetComp<ScriptComponent>() })
+		{
+			scriptComp->CallScriptFunction("toggle");
+		}
+	}
 
 	characterComp->SetMovementVector(movement);
 

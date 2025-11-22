@@ -18,10 +18,19 @@ All content � 2025 DigiPen Institute of Technology Singapore.
 All rights reserved.
 */
 /******************************************************************************/
+#include "Components/NameComponent.h"
 #include "Game/Character.h"
 #include "Physics/Physics.h"
 #include "Engine/Input.h"
+#include "Graphics/AnimationComponent.h"
 #include "Editor/Containers/GUICollection.h"
+
+#define X(type, name) name,
+char const* animNames[] =
+{
+	ANIMATIONS
+};
+#undef X
 
 CharacterMovementComponent::CharacterMovementComponent()
 	: movementVector{ 0.0f,0.0f }
@@ -36,6 +45,7 @@ CharacterMovementComponent::CharacterMovementComponent()
 	, heldItem{ nullptr }
 	, currentStunTime{ 0.0f }
 	, currentDodgeTime{ 0.0f }
+	, isAttacking{ false }
 {
 }
 
@@ -106,7 +116,7 @@ void CharacterMovementComponent::Throw(Vec3 direction)
 	auto tmpItem = heldItem;
 	DropItem();
 
-	tmpItem->GetComp<physics::PhysicsComp>()->SetLinearVelocity(direction*10.0f);
+	tmpItem->GetComp<physics::PhysicsComp>()->SetLinearVelocity(direction);
 }
 
 void CharacterMovementComponent::GrabItem(ecs::CompHandle<GrabbableItemComponent> item)
@@ -121,7 +131,6 @@ void CharacterMovementComponent::GrabItem(ecs::CompHandle<GrabbableItemComponent
 
 	// Physics Comp related
 	heldItem->GetComp<physics::PhysicsComp>()->SetFlag(physics::PHYSICS_COMP_FLAG::ENABLED, false);
-
 }
 
 void CharacterMovementComponent::Attack()
@@ -141,6 +150,10 @@ void CharacterMovementComponent::Attack()
 		hitDebugObject->GetTransform().SetWorldRotation(Vec3(0.0f, math::ToDegrees(atan2(direction.x,direction.z)), 0.0f));
 	}
 
+	// Get the animation component
+	//ecs::CompHandle<AnimationComponent> animComp = characterEntity->GetComp<AnimationComponent>();
+
+
 	// Call Attack from the GrabbableItem component
 	heldItem->GetComp<GrabbableItemComponent>()->Attack(startPoint, direction);
 }
@@ -157,8 +170,20 @@ void CharacterMovementComponent::Serialize(Serializer& writer) const
 	writer.Serialize("dodgeSpeed", dodgeSpeed);
 
 
-	writer.Serialize("hitDebugObject",hitDebugObject);
-	writer.Serialize("heldItem",heldItem);
+	writer.Serialize("hitDebugObject", hitDebugObject);
+	writer.Serialize("heldItem", heldItem);
+
+	size_t maxArraySize = ANIM_TOTAL;
+
+	// Load all animations
+	writer.StartArray("animations");
+	for (size_t i = 0; i < maxArraySize; ++i)
+	{
+		writer.StartObject();
+		writer.Serialize(animations[i]);
+		writer.EndObject();
+	}
+	writer.EndArray();
 }
 
 void CharacterMovementComponent::Deserialize(Deserializer& reader)
@@ -175,6 +200,21 @@ void CharacterMovementComponent::Deserialize(Deserializer& reader)
 
 	reader.DeserializeVar("hitDebugObject", &hitDebugObject);
 	reader.DeserializeVar("heldItem", &heldItem);
+
+	// Load animations
+
+	if (reader.PushAccess("animations"))
+	{
+		for (size_t i = 0; i < ANIM_TOTAL; ++i)
+		{
+			if (reader.PushArrayElementAccess(i))
+			{
+				reader.Deserialize(&animations[i]);
+				reader.PopAccess();
+			}
+		}
+		reader.PopAccess();
+	}
 }
 
 void CharacterMovementComponent::EditorDraw()
@@ -190,6 +230,18 @@ void CharacterMovementComponent::EditorDraw()
 
 	hitDebugObject.EditorDraw("Hit Debug Object");
 	heldItem.EditorDraw("Held Item");
+
+	// Animation input
+	for(uint32_t animIndex = 0;animIndex< ANIM_TOTAL;++animIndex)
+	{
+		const std::string* clip1Name{ ST<MagicResourceManager>::Get()->Editor_GetName(animations[animIndex].GetHash()) };
+		gui::TextUnformatted(std::string(animNames[animIndex]));
+		gui::SameLine();
+		gui::TextBoxReadOnly(std::string("##AnimClip"+std::to_string(animIndex)).c_str(), clip1Name ? clip1Name->c_str() : "");
+		gui::PayloadTarget<size_t>("ANIMATION_HASH", [&](size_t hash) -> void {
+			animations[animIndex] = hash;
+			});
+	}
 }
 
 CharacterMovementComponentSystem::CharacterMovementComponentSystem()
@@ -204,6 +256,9 @@ void CharacterMovementComponentSystem::UpdateCharacterMovementComponent(Characte
 {
 	auto characterEntity = ecs::GetEntity(&comp);
 	Transform& characterTransform = characterEntity->GetTransform();
+
+	// Get the animation component
+	ecs::CompHandle<AnimationComponent> animComp = characterEntity->GetComp<AnimationComponent>();
 
 	// Update held item
 	if (auto heldItem{ comp.heldItem })
@@ -227,6 +282,12 @@ void CharacterMovementComponentSystem::UpdateCharacterMovementComponent(Characte
 		if (math::Abs(currVel.y) > 0.01f && comp.currentStunTime < 0.0f)
 			comp.currentStunTime = GameTime::Dt();
 
+		if (animComp->animHandleA.GetHash() != comp.animations[HURT].GetHash())
+		{
+			animComp->animHandleB = animComp->animHandleA;
+			animComp->animHandleA = comp.animations[HURT];
+		}
+		animComp->timeA = comp.currentStunTime / comp.stunTimePerHit;
 		comp.currentDodgeTime = 0.0f;
 		return;
 	}
@@ -236,6 +297,14 @@ void CharacterMovementComponentSystem::UpdateCharacterMovementComponent(Characte
 	Vec2 movement = comp.GetMovementVector();
 
 	// Normalize the move vector if it's over 1.0f in length
+	if (movement.LengthSqr() > 0.0f)
+	{
+		animComp->animHandleA = comp.animations[WALK];
+	}
+	else
+	{
+		animComp->animHandleA = comp.animations[IDLE];
+	}
 	if (movement.LengthSqr() > 1.0f)
 		movement = movement.Normalized();
 
@@ -259,6 +328,7 @@ void CharacterMovementComponentSystem::UpdateCharacterMovementComponent(Characte
 	{
 		comp.currentDodgeTime -= GameTime::Dt();
 		moveDir *= comp.dodgeSpeed;
+		animComp->animHandleA = comp.animations[DODGE];
 	}
 	else
 	{
@@ -274,18 +344,18 @@ void CharacterMovementComponentSystem::UpdateCharacterMovementComponent(Characte
 
 	// Handle dodge "animation"
 	// Lord forgive me for I have committed jank
-	auto children = characterTransform.GetChildren();
-	for (auto child : children)
-	{
-		Vec3 localRot = child->GetLocalRotation();
-		if (comp.currentDodgeTime > 0.0f)
-		{
-			localRot.x = 360.0f * (1.0f - (comp.currentDodgeTime / comp.dodgeDuration));
-		}
-		else
-		{
-			localRot.x = 0.0f;
-		}
-		child->SetLocalRotation(localRot);
-	}
+	//auto children = characterTransform.GetChildren();
+	//for (auto child : children)
+	//{
+	//	Vec3 localRot = child->GetLocalRotation();
+	//	if (comp.currentDodgeTime > 0.0f)
+	//	{
+	//		localRot.x = 360.0f * (1.0f - (comp.currentDodgeTime / comp.dodgeDuration));
+	//	}
+	//	else
+	//	{
+	//		localRot.x = 0.0f;
+	//	}
+	//	child->SetLocalRotation(localRot);
+	//}
 }
