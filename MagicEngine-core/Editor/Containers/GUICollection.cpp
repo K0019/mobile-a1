@@ -1057,6 +1057,15 @@ namespace gui {
 #endif
 	}
 
+	bool IsMouseClicked([[maybe_unused]] MOUSE_BUTTON button)
+	{
+#ifdef IMGUI_ENABLED
+		return ImGui::IsMouseClicked(+button);
+#else
+		return false;
+#endif
+	}
+
 	void SetScrollHereY([[maybe_unused]] float center_y_ratio)
 	{
 #ifdef IMGUI_ENABLED
