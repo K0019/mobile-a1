@@ -223,7 +223,7 @@ int main(int argc, char* argv[])
     std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
 
 
-    //g_ManifestPath = options.general.assetsRoot / "CompileResult.json";
+    // Write manifest to where this .exe is located
     g_ManifestPath = std::filesystem::path(argv[0]).parent_path() / "CompileResult.json";
     g_InputPath = options.general.inputPath;
 
@@ -236,7 +236,7 @@ int main(int argc, char* argv[])
         finalResult = sceneCompiler.Compile(options);
         WriteManifest(finalResult);
     }
-    else if (ext == ".png" || ext == ".jpg")
+    else if (ext == ".png" || ext == ".jpg" || ext == ".jpeg" || ext == ".bmp")
     {
         TextureCompiler textureCompiler;
         finalResult = textureCompiler.Compile(options);
@@ -245,8 +245,6 @@ int main(int argc, char* argv[])
     else
     {
         std::cerr << "[ERROR] Unsupported file extension: " << ext << std::endl;
-        //finalResult.errors.push_back("[ERROR] Unsupported file extension" + ext);
-        //WriteManifest(finalResult, false);
         return 1;
     }
 

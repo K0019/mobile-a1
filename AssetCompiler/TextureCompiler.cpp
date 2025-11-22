@@ -300,10 +300,6 @@ namespace compiler
             dst.pData, dst.dwDataSize
         );
 
-        //std::filesystem::path relativeDir = std::filesystem::relative(options.general.inputPath.parent_path(), options.general.assetsRoot);
-        //std::filesystem::path assetOutputDir = options.general.outputPath / relativeDir;
-        //std::filesystem::create_directories(assetOutputDir);
-
         std::string outputFilename = options.general.inputPath.stem().string() + ".ktx2";
         if (!filename.empty())
         {

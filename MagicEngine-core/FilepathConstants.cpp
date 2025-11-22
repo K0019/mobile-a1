@@ -43,7 +43,6 @@ const std::string Filepaths::soundFolder		= "Sounds";
 // Editor use only
 const std::string Filepaths::compilerExe		= Filepaths::workingDir + "/Tools/Debug/AssetCompiler.exe";
 const std::string Filepaths::compileManifest	= Filepaths::workingDir + "/Tools/Debug/CompileResult.json";
-//const std::string Filepaths::compileManifest	= "CompileResult.json";	// Expect this to be in assets/compilerresult.json always
 
 const std::string Filepaths::graphicsWindowIcon = Filepaths::assets + "/Icon_game.png";
 

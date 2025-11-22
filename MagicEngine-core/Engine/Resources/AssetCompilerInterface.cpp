@@ -19,7 +19,6 @@ std::string ReadFileToString(const std::filesystem::path path)
 
 bool CompileAndImportAsset(const std::string& assetRelativeFilepath)
 {
-
     if (!std::filesystem::exists(Filepaths::compilerExe))
     {
         CONSOLE_LOG(LEVEL_ERROR) << "Compiler not found: " << Filepaths::compilerExe;

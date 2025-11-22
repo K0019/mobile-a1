@@ -242,7 +242,7 @@ endif()
 # MagicEngine
 add_subdirectory(MagicEngine-core)
 
-#set BUILD_ASSET_COMPILER = OFF manually in cmake for school pc
+#set BUILD_ASSET_COMPILER = OFF inside the setup.bat file (for the school pc)
 if (NOT ANDROID)
     option(BUILD_ASSET_COMPILER "Build the asset compiler tool" ON)
     if(BUILD_ASSET_COMPILER)

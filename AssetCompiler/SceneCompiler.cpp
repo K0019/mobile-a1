@@ -195,13 +195,6 @@ namespace compiler
             result.warnings.insert(result.warnings.end(), sceneProcessResult.warnings.begin(), sceneProcessResult.warnings.end());
         }
 
-        // Set filepaths for saving compiled asssets
-        // For now, i guess ill just append internal filename to the sourcefile name, along with proper subdirectories...
-        //std::filesystem::path relativeDir = std::filesystem::relative(options.general.inputPath.parent_path(), options.general.assetsRoot);
-        //std::filesystem::path assetOutputDir = options.general.outputPath / relativeDir;
-        //std::filesystem::create_directories(assetOutputDir);
-
-
         // Save the data
         SaveMeshes(scene, result);
         auto savedTexturesMap = CompileTextures(scene, result);
@@ -271,9 +264,6 @@ namespace compiler
         std::map<TextureDataSource, std::filesystem::path> compiledTextures;
         std::set<std::pair<std::string, TextureDataSource>> uniqueTextureSources;
         
-
-        //std::filesystem::create_directories(assetOutputDir);
-
         for (const auto& material : scene.materials)
         {
             for (const auto& [type, source] : material.texturePaths)
@@ -315,7 +305,6 @@ namespace compiler
                 else
                 {
                     // Cannot find the file anywhere.
-                    //texturePathErrors.push_back("Failed to find texture: " + sourcePath.string() + ". " + pathResolution.warning);
                     texturePathErrors.push_back(pathResolution.warning);
                 }
             }
@@ -328,8 +317,6 @@ namespace compiler
             }
 
             compiler::TextureCompiler texCompiler;
-            //std::filesystem::path textureOutputDir = options.general.outputPath / "textures";
-            //std::filesystem::create_directories(textureOutputDir);
 
             for (const auto& [originalPath, resolvedPath] : resolvedTexturePaths)
             {
@@ -626,8 +613,6 @@ namespace compiler
         std::filesystem::path assetOutputDir = options.general.outputPath / relativeDir / assetContainerName;
         std::filesystem::create_directories(assetOutputDir);
         
-        //std::filesystem::path meshOutputDir = options.general.outputPath / "meshes";
-        //std::filesystem::create_directories(meshOutputDir);
 		std::filesystem::path outFilePath = assetOutputDir / (options.general.inputPath.stem().string() + ".mesh");
 		std::ofstream outFile(outFilePath, std::ios::binary);
 
@@ -655,9 +640,6 @@ namespace compiler
 
     void SceneCompiler::SaveMaterialData(const Scene& scene, CompilationResult& result, std::map<TextureDataSource, std::filesystem::path> savedTexturesMap)
     {
-        //std::filesystem::path materialOutputDir = options.general.outputPath / "materials";
-        //std::filesystem::create_directories(materialOutputDir);
-
         for (const ProcessedMaterialSlot& materialSlot : scene.materials)
         {
             rapidjson::Document doc;
@@ -718,10 +700,7 @@ namespace compiler
                     if (mapIt != savedTexturesMap.end())
                     {
                         std::filesystem::path relativeDir = std::filesystem::relative(mapIt->second, options.general.assetsRoot);
-                        //std::filesystem::path assetOutputDir = options.general.outputPath / relativeDir;
                         valueStr = relativeDir.string();
-                        //std::string filename = mapIt->second.filename().string();
-                        //valueStr = "compiledassets/textures/" + filename;
                     }
                 }
 
@@ -733,17 +712,12 @@ namespace compiler
             doc.AddMember("flags", materialSlot.flags, allocator);
 
             // Write to disk
-            //std::string safeFilename = materialSlot.name;
-            //std::replace(safeFilename.begin(), safeFilename.end(), ' ', '_');
-            //std::filesystem::path outFilePath = materialOutputDir / (safeFilename + ".material");
-
             std::filesystem::path relativeDir = std::filesystem::relative(options.general.inputPath.parent_path(), options.general.assetsRoot);
             std::filesystem::path assetContainerName = options.general.inputPath.stem();
             std::filesystem::path assetOutputDir = options.general.outputPath / relativeDir / assetContainerName;
             std::filesystem::create_directories(assetOutputDir);
 
             std::filesystem::path outFilePath = assetOutputDir / (materialSlot.name + ".material");
-            //std::filesystem::path outFilePath = materialOutputDir / (materialSlot.name + ".material");
 
             std::ofstream outFile(outFilePath);
             rapidjson::OStreamWrapper osw(outFile);
@@ -768,9 +742,6 @@ namespace compiler
         std::filesystem::path assetContainerName = options.general.inputPath.stem();
         std::filesystem::path assetOutputDir = options.general.outputPath / relativeDir / assetContainerName;
         std::filesystem::create_directories(assetOutputDir);
-
-        //std::filesystem::path animOutputDir = options.general.outputPath / "meshanimations";
-        //std::filesystem::create_directories(animOutputDir);
 
         std::string stem = options.general.inputPath.stem().string();
 

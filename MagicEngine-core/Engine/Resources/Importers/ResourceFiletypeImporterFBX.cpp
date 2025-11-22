@@ -206,7 +206,6 @@ bool ResourceFiletypeImporterFBX::Import([[maybe_unused]] const std::string& ass
 {
 #ifdef GLFW
     CompileAndImportAsset(assetRelativeFilepath);
-
 #else
 	CONSOLE_LOG_UNIMPLEMENTED() << "Importing FBX files is not implemented for this platform.";
     return false;

@@ -11,7 +11,7 @@ ProcessResult RunProcess(const std::string& cmdLine)
 {
     ProcessResult result = { -1, "" };
 
-    // 1. Create a Pipe to capture the child's output
+    // Create a Pipe to capture the child's output
     SECURITY_ATTRIBUTES saAttr;
     saAttr.nLength = sizeof(SECURITY_ATTRIBUTES);
     saAttr.bInheritHandle = TRUE;
@@ -27,7 +27,7 @@ ProcessResult RunProcess(const std::string& cmdLine)
     // Ensure the read handle to the pipe for STDOUT is not inherited
     SetHandleInformation(hChildStd_OUT_Rd, HANDLE_FLAG_INHERIT, 0);
 
-    // 2. Configure the Process
+    // Configure the Process
     STARTUPINFOA si;
     PROCESS_INFORMATION pi;
     ZeroMemory(&si, sizeof(si));
@@ -42,7 +42,6 @@ ProcessResult RunProcess(const std::string& cmdLine)
     // Create a mutable copy of the command line (CreateProcess requires this)
     std::string cmdCopy = cmdLine;
 
-    // 3. Launch
     BOOL success = CreateProcessA(
         NULL,
         const_cast<char*>(cmdCopy.c_str()),
@@ -57,7 +56,7 @@ ProcessResult RunProcess(const std::string& cmdLine)
         CloseHandle(hChildStd_OUT_Wr);
         hChildStd_OUT_Wr = NULL; // Mark as closed
 
-        // 4. Read Output while waiting
+        // Read Output while waiting
         DWORD dwRead;
         CHAR chBuf[4096];
         bool bSuccess = FALSE;
@@ -70,7 +69,7 @@ ProcessResult RunProcess(const std::string& cmdLine)
             result.output.append(chBuf, dwRead);
         }
 
-        // 5. Wait for exit
+        // Wait for exit
         WaitForSingleObject(pi.hProcess, INFINITE);
 
         DWORD exitCode = 0;
