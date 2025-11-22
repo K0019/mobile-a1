@@ -63,6 +63,11 @@ namespace gui {
 	X(ESC, ImGuiKey::ImGuiKey_Escape) \
 	X(GRAVE, ImGuiKey::ImGuiKey_GraveAccent)
 
+#define GUICOLLECTION_MOUSE_BUTTON \
+	X(LEFT, ImGuiMouseButton_Left) \
+	X(RIGHT, ImGuiMouseButton_Right) \
+	X(MIDDLE, ImGuiMouseButton_Middle)
+
 	//! ImGuiWindowFlags
 #define GUICOLLECTION_FLAG_WINDOW \
 	X(NONE, ImGuiWindowFlags_None) \
@@ -394,6 +399,16 @@ namespace gui {
 		GUICOLLECTION_KEY
 	};
 	GENERATE_ENUM_CLASS_ITERATION_OPERATORS(KEY)
+
+	/*****************************************************************//*!
+	\enum class MOUSE_BUTTON
+	\brief
+		ImGuiMouseButton
+	*//******************************************************************/
+	enum class MOUSE_BUTTON : int {
+		GUICOLLECTION_MOUSE_BUTTON
+	};
+	GENERATE_ENUM_CLASS_ITERATION_OPERATORS(MOUSE_BUTTON)
 
 	/*****************************************************************//*!
 	\enum class FLAG_WINDOW
@@ -1738,6 +1753,9 @@ namespace gui {
 	bool IsKeyPressed(KEY key, bool repeating = true);
 	//! ImGui::SetKeyboardFocusHere()
 	void SetKeyboardFocusHere(int offset = 0);
+
+	//! ImGui::IsMouseClicked()
+	bool IsMouseClicked(MOUSE_BUTTON button);
 
 	//! ImGui::SetScrollHereY()
 	void SetScrollHereY(float center_y_ratio = 0.5f);

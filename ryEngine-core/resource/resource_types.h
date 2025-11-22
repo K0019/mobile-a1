@@ -14,17 +14,27 @@
 
 namespace ResourceLimits
 {
+#ifdef __ANDROID__
+  // Reduced limits for Android to fit in mobile GPU memory
+  static constexpr size_t MAX_VERTICES = 2'000'000;  // 2M vertices
+  static constexpr size_t MAX_INDICES = 6'000'000;   // 6M indices
+  static constexpr size_t MAX_MATERIALS = 10'000;    // 10K materials
+  static constexpr size_t MAX_TEXTURES = 2'000;      // 2K textures
+  static constexpr size_t MAX_MESHES = 20'000;       // 20K meshes
+  static constexpr size_t MAX_MORPH_TARGET_VERTICES = MAX_VERTICES; // 1x multiplier for mobile
+#else
   static constexpr size_t MAX_VERTICES = 10'000'000; // 10M vertices
   static constexpr size_t MAX_INDICES = 30'000'000;  // 30M indices
   static constexpr size_t MAX_MATERIALS = 50'000;    // 50K materials
   static constexpr size_t MAX_TEXTURES = 10'000;     // 10K textures
   static constexpr size_t MAX_MESHES = 100'000;      // 100K meshes
+  static constexpr size_t MAX_MORPH_TARGET_VERTICES = MAX_VERTICES * 4;
+#endif
 
   static constexpr size_t VERTEX_BUFFER_SIZE = MAX_VERTICES * sizeof(CompressedVertex);
   static constexpr size_t INDEX_BUFFER_SIZE = MAX_INDICES * sizeof(uint32_t);
   static constexpr size_t MATERIAL_BUFFER_SIZE = MAX_MATERIALS * sizeof(MaterialData);
   static constexpr size_t MESH_DECOMPRESSION_BUFFER_SIZE = MAX_MESHES * sizeof(MeshDecompressionData);
-  static constexpr size_t MAX_MORPH_TARGET_VERTICES = MAX_VERTICES * 4;
   static constexpr size_t SKINNING_BUFFER_SIZE = MAX_VERTICES * sizeof(GPUSkinningData);
   static constexpr size_t MORPH_DELTA_BUFFER_SIZE = MAX_MORPH_TARGET_VERTICES * sizeof(GPUMorphDelta);
   static constexpr size_t MORPH_VERTEX_BASE_BUFFER_SIZE = MAX_VERTICES * sizeof(uint32_t);
