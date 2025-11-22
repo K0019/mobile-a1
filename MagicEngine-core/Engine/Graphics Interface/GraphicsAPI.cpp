@@ -424,6 +424,7 @@ void GraphicsMain::UploadToPipeline(FrameData* outFrameData)
 
 	// 2D UI pass
 	overlayGui->begin(ui2dFontHandle);
+	overlayGui->setViewport(width, height);
 	ecs::RunSystemsInLayers(ECS_LAYER::CUTOFF_RENDER, ECS_LAYER::CUTOFF_RENDER_UI);
 	overlayGui->end();
 
