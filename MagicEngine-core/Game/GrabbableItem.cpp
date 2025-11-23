@@ -29,6 +29,7 @@ All rights reserved.
 #include "Editor/Containers/GUICollection.h"
 #include "Game/PlayerCharacter.h"
 #include "Game/EnemyCharacter.h"
+#include "Game/Delusion.h"
 
 void GrabbableItemComponent::Attack(Vec3 origin, Vec3 direction)
 {
@@ -51,6 +52,26 @@ void GrabbableItemComponent::Attack(Vec3 origin, Vec3 direction)
 		{
 			// Deal damage to it
 			healthComp->TakeDamage(damage,direction);
+
+			//damage taken tied to delusion for now
+			//if owner is enemy
+			if (owner->GetComp<EnemyComponent>())
+			{
+				//hit player lose delusion
+				if (ecs::CompHandle<DelusionComponent> delusionComp{ hitEntity->GetComp<DelusionComponent>() })
+				{
+					delusionComp->LoseDelusion(damage * 0.2f);
+				}
+			}
+			// if owner is player
+			else 
+			{
+				//owner player gain delusion
+				if (ecs::CompHandle<DelusionComponent> delusionComp{ owner->GetComp<DelusionComponent>() })
+				{
+					delusionComp->AddDelusion(damage * 0.2f);
+				}
+			}
 		}
 	}
 }
@@ -85,4 +106,18 @@ GrabbableItemComponentSystem::GrabbableItemComponentSystem()
 
 void GrabbableItemComponentSystem::UpdateGrabbableItemComponent(GrabbableItemComponent& comp)
 {
+	ecs::EntityHandle itemEntity = ecs::GetEntity(&comp);
+	ecs::CompHandle<physics::PhysicsComp> physicsComp = itemEntity->GetComp<physics::PhysicsComp>();
+	ecs::CompHandle<physics::BoxColliderComp> colliderComp = itemEntity->GetComp<physics::BoxColliderComp>();
+
+	physicsComp->SetFlag(physics::PHYSICS_COMP_FLAG::ENABLED, !comp.isHeld);
+	physicsComp->SetFlag(physics::PHYSICS_COMP_FLAG::USE_GRAVITY, !comp.isHeld);
+	physicsComp->SetFlag(physics::PHYSICS_COMP_FLAG::IS_KINEMATIC, comp.isHeld);
+	colliderComp->SetFlag(physics::COLLIDER_COMP_FLAG::ENABLED, !comp.isHeld);
+
+	if (comp.isHeld)
+	{
+		physicsComp->SetAngularVelocity(Vec3{ 0 });
+		physicsComp->SetLinearVelocity(Vec3{ 0 });
+	}
 }

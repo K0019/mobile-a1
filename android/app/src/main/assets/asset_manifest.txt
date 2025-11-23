@@ -12,59 +12,197 @@ compiledassets/aji.mesh
 compiledassets/ambulance.mesh
 compiledassets/box.mesh
 compiledassets/cesiumman.mesh
+compiledassets/chair.mesh
+compiledassets/classroom_level2.mesh
 compiledassets/cone.mesh
+compiledassets/corridor_level2.mesh
+compiledassets/deskplain.mesh
+compiledassets/desktextured.mesh
+compiledassets/door_classroom.mesh
+compiledassets/door_classroom_tex.mesh
+compiledassets/dugout.mesh
+compiledassets/enemy_female.mesh
+compiledassets/enemy_male.mesh
+compiledassets/fence.mesh
+compiledassets/field.mesh
+compiledassets/floor.mesh
+compiledassets/floor_tex.mesh
 compiledassets/garbage-truck.mesh
 compiledassets/hatchback-sports.mesh
+compiledassets/lights.mesh
+compiledassets/locker.mesh
+compiledassets/outdoor bleachers.mesh
+compiledassets/player_idle_mixamo.mesh
+compiledassets/player_punching_mixamo.mesh
+compiledassets/player_running_mixamo.mesh
 compiledassets/sedan.mesh
+compiledassets/shelf.mesh
+compiledassets/shelf_small.mesh
+compiledassets/storage room.mesh
+compiledassets/sword_prototype.mesh
+compiledassets/table.mesh
 compiledassets/taxi.mesh
 compiledassets/unitbox.mesh
+compiledassets/vending machine.mesh
+compiledassets/wall_doors.mesh
+compiledassets/wall_doors_tex.mesh
+compiledassets/wall_window.mesh
+compiledassets/wall_window_tex.mesh
 compiledassets/materials/cesium_man-effect.material
+compiledassets/materials/circlewing_lambert.material
 compiledassets/materials/colormap.material
+compiledassets/materials/concrete.001.material
+compiledassets/materials/concrete.material
+compiledassets/materials/darkmetal.001.material
+compiledassets/materials/darkmetal.material
+compiledassets/materials/handle_base_lambert.material
+compiledassets/materials/handle_lambert.material
+compiledassets/materials/jewel_lambert.material
+compiledassets/materials/lambert2.material
+compiledassets/materials/lambert3_1001.material
+compiledassets/materials/lambert4_1001.material
+compiledassets/materials/material.001.material
 compiledassets/materials/material.material
 compiledassets/materials/material_1.material
+compiledassets/materials/material_2.material
+compiledassets/materials/material_21.material
+compiledassets/materials/material_3.material
+compiledassets/materials/material_4.material
+compiledassets/materials/material_42.material
+compiledassets/materials/metallic.material
 compiledassets/materials/n00_000_00_body_00_skin (instance).material
 compiledassets/materials/n00_000_00_body_00_skin_(instance).material
+compiledassets/materials/n00_000_00_body_00_skin__instance_.001.material
+compiledassets/materials/n00_000_00_body_00_skin__instance_.material
 compiledassets/materials/n00_000_00_eyehighlight_00_eye (instance).material
 compiledassets/materials/n00_000_00_eyehighlight_00_eye_(instance).material
+compiledassets/materials/n00_000_00_eyehighlight_00_eye__instance_.001.material
+compiledassets/materials/n00_000_00_eyehighlight_00_eye__instance_.material
 compiledassets/materials/n00_000_00_eyeiris_00_eye (instance).material
 compiledassets/materials/n00_000_00_eyeiris_00_eye_(instance).material
+compiledassets/materials/n00_000_00_eyeiris_00_eye__instance_.001.material
+compiledassets/materials/n00_000_00_eyeiris_00_eye__instance_.material
 compiledassets/materials/n00_000_00_eyewhite_00_eye (instance).material
 compiledassets/materials/n00_000_00_eyewhite_00_eye_(instance).material
+compiledassets/materials/n00_000_00_eyewhite_00_eye__instance_.001.material
+compiledassets/materials/n00_000_00_eyewhite_00_eye__instance_.material
 compiledassets/materials/n00_000_00_face_00_skin (instance).material
 compiledassets/materials/n00_000_00_face_00_skin_(instance).material
+compiledassets/materials/n00_000_00_face_00_skin__instance_.001.material
+compiledassets/materials/n00_000_00_face_00_skin__instance_.material
 compiledassets/materials/n00_000_00_facebrow_00_face (instance).material
 compiledassets/materials/n00_000_00_facebrow_00_face_(instance).material
+compiledassets/materials/n00_000_00_facebrow_00_face__instance_.001.material
+compiledassets/materials/n00_000_00_facebrow_00_face__instance_.material
+compiledassets/materials/n00_000_00_faceeyelash_00_face (instance).material
 compiledassets/materials/n00_000_00_faceeyeline_00_face (instance).material
 compiledassets/materials/n00_000_00_faceeyeline_00_face_(instance).material
+compiledassets/materials/n00_000_00_faceeyeline_00_face__instance_.001.material
+compiledassets/materials/n00_000_00_faceeyeline_00_face__instance_.material
 compiledassets/materials/n00_000_00_facemouth_00_face (instance).material
 compiledassets/materials/n00_000_00_facemouth_00_face_(instance).material
+compiledassets/materials/n00_000_00_facemouth_00_face__instance_.001.material
+compiledassets/materials/n00_000_00_facemouth_00_face__instance_.material
 compiledassets/materials/n00_000_00_hairback_00_hair (instance).material
 compiledassets/materials/n00_000_00_hairback_00_hair_(instance).material
+compiledassets/materials/n00_000_00_hairback_00_hair__instance_.001.material
+compiledassets/materials/n00_000_00_hairback_00_hair__instance_.material
 compiledassets/materials/n00_000_hair_00_hair (instance).material
 compiledassets/materials/n00_000_hair_00_hair_(instance).material
+compiledassets/materials/n00_000_hair_00_hair__instance_.001.material
+compiledassets/materials/n00_000_hair_00_hair__instance_.material
+compiledassets/materials/n00_001_01_bottoms_01_cloth (instance).material
+compiledassets/materials/n00_001_01_shoes_01_cloth (instance).material
+compiledassets/materials/n00_001_01_tops_01_cloth (instance).material
+compiledassets/materials/n00_001_02_accessory_tie_01_cloth (instance).material
+compiledassets/materials/n00_001_03_bottoms_01_cloth (instance).material
 compiledassets/materials/n00_002_03_tops_01_cloth_01 (instance).material
 compiledassets/materials/n00_002_03_tops_01_cloth_01_(instance).material
+compiledassets/materials/n00_002_03_tops_01_cloth_01__instance_.001.material
+compiledassets/materials/n00_002_03_tops_01_cloth_01__instance_.material
 compiledassets/materials/n00_002_03_tops_01_cloth_02 (instance).material
 compiledassets/materials/n00_002_03_tops_01_cloth_02_(instance).material
+compiledassets/materials/n00_002_03_tops_01_cloth_02__instance_.001.material
+compiledassets/materials/n00_002_03_tops_01_cloth_02__instance_.material
 compiledassets/materials/n00_002_03_tops_01_cloth_03 (instance).material
 compiledassets/materials/n00_002_03_tops_01_cloth_03_(instance).material
+compiledassets/materials/n00_002_03_tops_01_cloth_03__instance_.001.material
+compiledassets/materials/n00_002_03_tops_01_cloth_03__instance_.material
 compiledassets/materials/n00_002_03_tops_01_cloth_04 (instance).material
 compiledassets/materials/n00_002_03_tops_01_cloth_04_(instance).material
+compiledassets/materials/n00_002_03_tops_01_cloth_04__instance_.001.material
+compiledassets/materials/n00_002_03_tops_01_cloth_04__instance_.material
 compiledassets/materials/n00_002_03_tops_01_cloth_05 (instance).material
 compiledassets/materials/n00_002_03_tops_01_cloth_05_(instance).material
+compiledassets/materials/n00_002_03_tops_01_cloth_05__instance_.001.material
+compiledassets/materials/n00_002_03_tops_01_cloth_05__instance_.material
 compiledassets/materials/n00_007_01_tops_01_cloth_01 (instance).material
 compiledassets/materials/n00_007_01_tops_01_cloth_01_(instance).material
+compiledassets/materials/n00_007_01_tops_01_cloth_01__instance_.001.material
+compiledassets/materials/n00_007_01_tops_01_cloth_01__instance_.material
 compiledassets/materials/n00_007_01_tops_01_cloth_02 (instance).material
 compiledassets/materials/n00_007_01_tops_01_cloth_02_(instance).material
+compiledassets/materials/n00_007_01_tops_01_cloth_02__instance_.001.material
+compiledassets/materials/n00_007_01_tops_01_cloth_02__instance_.material
+compiledassets/materials/n00_007_02_tops_01_cloth (instance).material
 compiledassets/materials/n00_008_01_shoes_01_cloth_01 (instance).material
 compiledassets/materials/n00_008_01_shoes_01_cloth_01_(instance).material
+compiledassets/materials/n00_008_01_shoes_01_cloth_01__instance_.001.material
+compiledassets/materials/n00_008_01_shoes_01_cloth_01__instance_.material
 compiledassets/materials/n00_008_01_shoes_01_cloth_02 (instance).material
 compiledassets/materials/n00_008_01_shoes_01_cloth_02_(instance).material
+compiledassets/materials/n00_008_01_shoes_01_cloth_02__instance_.001.material
+compiledassets/materials/n00_008_01_shoes_01_cloth_02__instance_.material
 compiledassets/materials/n00_010_01_onepiece_00_cloth_01 (instance).material
 compiledassets/materials/n00_010_01_onepiece_00_cloth_01_(instance).material
+compiledassets/materials/n00_010_01_onepiece_00_cloth_01__instance_.001.material
+compiledassets/materials/n00_010_01_onepiece_00_cloth_01__instance_.material
 compiledassets/materials/n00_010_01_onepiece_00_cloth_02 (instance).material
 compiledassets/materials/n00_010_01_onepiece_00_cloth_02_(instance).material
+compiledassets/materials/n00_010_01_onepiece_00_cloth_02__instance_.001.material
+compiledassets/materials/n00_010_01_onepiece_00_cloth_02__instance_.material
+compiledassets/materials/openpbr_shader1.material
+compiledassets/materials/spike_lambert.material
+compiledassets/materials/standardsurface1.001.material
+compiledassets/materials/standardsurface1.material
+compiledassets/materials/standardsurface1_1001.material
+compiledassets/materials/standardsurface1_1002.001.material
+compiledassets/materials/standardsurface1_1002.material
+compiledassets/materials/standardsurface1_1011.material
+compiledassets/materials/standardsurface1_1012.material
+compiledassets/materials/standardsurface1_1013.material
+compiledassets/materials/transparent_1001.material
+compiledassets/materials/transparent_1002.material
+compiledassets/materials/wall_1012.material
+compiledassets/materials/wall_1013.material
+compiledassets/materials/wood.material
+compiledassets/materials/wooddark.material
+compiledassets/materials/woodlight.material
 compiledassets/meshanimations/cesiummananim_0.anim
+compiledassets/meshanimations/player_idle_mixamodamagetaken_mixamo.anim
+compiledassets/meshanimations/player_idle_mixamoplayer_blocking_mixamo.anim
+compiledassets/meshanimations/player_idle_mixamoplayer_crecent kick_mixamo.anim
+compiledassets/meshanimations/player_idle_mixamoplayer_dodge_mixamo.anim
+compiledassets/meshanimations/player_idle_mixamoplayer_idle_mixamo.anim
+compiledassets/meshanimations/player_idle_mixamoplayer_jump_miaxmo.anim
+compiledassets/meshanimations/player_idle_mixamoplayer_katar atk 1.anim
+compiledassets/meshanimations/player_idle_mixamoplayer_katar atk 2.anim
+compiledassets/meshanimations/player_idle_mixamoplayer_katar atk 3.anim
+compiledassets/meshanimations/player_idle_mixamoplayer_katar_ult.anim
+compiledassets/meshanimations/player_idle_mixamoplayer_martellokick_mixamo.anim
+compiledassets/meshanimations/player_idle_mixamoplayer_punch 2_mixamo.anim
+compiledassets/meshanimations/player_idle_mixamoplayer_punching_mixamo.anim
+compiledassets/meshanimations/player_idle_mixamoplayer_running_mixamo.anim
+compiledassets/meshanimations/player_idle_mixamoplayer_stomp_miaxmo.anim
+compiledassets/meshanimations/player_idle_mixamoplayer_sword ulti_.anim
+compiledassets/meshanimations/player_idle_mixamoplayer_throw_mixamo.anim
+compiledassets/meshanimations/player_idle_mixamoplayer_weapon atk 1_mixamo.anim
+compiledassets/meshanimations/player_idle_mixamoplayer_weapon atk 2_mixamo.anim
+compiledassets/meshanimations/player_idle_mixamoplayer_weapon atk 3_mixamo.anim
+compiledassets/meshanimations/player_punching_mixamoplayer_punching_mixamo.001.anim
+compiledassets/meshanimations/player_punching_mixamoplayer_punching_mixamo.anim
+compiledassets/meshanimations/player_running_mixamoplayer_running_mixamo.001.anim
+compiledassets/meshanimations/player_running_mixamoplayer_running_mixamo.anim
 compiledassets/textures/_01.ktx2
 compiledassets/textures/_02.ktx2
 compiledassets/textures/_03.ktx2
@@ -91,10 +229,58 @@ compiledassets/textures/_24.ktx2
 compiledassets/textures/_25.ktx2
 compiledassets/textures/cesiumman2146822282649598438.ktx2
 compiledassets/textures/colormap.ktx2
+compiledassets/textures/dugout10109019457168489768.ktx2
+compiledassets/textures/dugout14377039275265999768.ktx2
+compiledassets/textures/dugout14709142800244381938.ktx2
+compiledassets/textures/dugout6563481416728337116.ktx2
+compiledassets/textures/dugout6647418950732403459.ktx2
+compiledassets/textures/dugout7057225690629401265.ktx2
+compiledassets/textures/fence13707767880246738486.ktx2
+compiledassets/textures/fence14709142800244381938.ktx2
+compiledassets/textures/fence1593598741369728920.ktx2
+compiledassets/textures/fence2832200078203273826.ktx2
+compiledassets/textures/fence6586682644271773772.ktx2
+compiledassets/textures/fence7732551140988198768.ktx2
+compiledassets/textures/field10176860669464466862.ktx2
+compiledassets/textures/field413754577327418317.ktx2
+compiledassets/textures/field7732551140988198768.ktx2
+compiledassets/textures/image_0.ktx2
+compiledassets/textures/image_1.ktx2
+compiledassets/textures/image_12.ktx2
+compiledassets/textures/image_13.ktx2
+compiledassets/textures/image_14.ktx2
+compiledassets/textures/image_15.ktx2
+compiledassets/textures/image_16.ktx2
+compiledassets/textures/image_17.ktx2
+compiledassets/textures/image_2.ktx2
+compiledassets/textures/image_3.ktx2
+compiledassets/textures/image_4.ktx2
+compiledassets/textures/image_5.ktx2
+compiledassets/textures/image_6.ktx2
+compiledassets/textures/image_7.ktx2
+compiledassets/textures/image_8.ktx2
+compiledassets/textures/lights14179648975753951601.ktx2
+compiledassets/textures/lights5590563140978458161.ktx2
+compiledassets/textures/lights6717148718183343745.ktx2
 compiledassets/textures/n00_000_00_hairback_00_nml.ktx2
 compiledassets/textures/n00_000_hair_00_nml.ktx2
+compiledassets/textures/outdoor bleachers13315073533790444232.ktx2
+compiledassets/textures/outdoor bleachers15335471277183181708.ktx2
+compiledassets/textures/outdoor bleachers17192450218599241778.ktx2
+compiledassets/textures/outdoor bleachers17541868562539041575.ktx2
+compiledassets/textures/outdoor bleachers3131286683386155078.ktx2
+compiledassets/textures/outdoor bleachers7585462050813353136.ktx2
 compiledassets/textures/shader_noneblack.ktx2
 compiledassets/textures/shader_nonenormal.ktx2
+compiledassets/textures/storage room12911167446975257857.ktx2
+compiledassets/textures/storage room13315073533790444232.ktx2
+compiledassets/textures/storage room17541868562539041575.ktx2
+compiledassets/textures/storage room2013909477565681000.ktx2
+compiledassets/textures/storage room3351040909626443882.ktx2
+compiledassets/textures/storage room3567323986476668321.ktx2
+compiledassets/textures/storage room5590563140978458161.ktx2
+compiledassets/textures/storage room9292766229431643409.ktx2
+compiledassets/textures/storage room9921014921328147259.ktx2
 fbxcars/ambulance.fbx
 fbxcars/box.fbx
 fbxcars/cone-flat.fbx
@@ -190,15 +376,98 @@ models/aji/aji.vrm1.textures/n00_000_hair_00_nml.png
 models/aji/aji.vrm1.textures/shader_noneblack.png
 models/aji/aji.vrm1.textures/shader_nonenormal.png
 models/aji/aji.vrm1.textures/thumbnail__vrm10.png
+models/fbx/characters/enemies/default_enemies/enemy_female.fbx
+models/fbx/characters/enemies/default_enemies/enemy_male.fbx
+models/fbx/characters/main_character/aji.fbx
+models/fbx/edited/chair.fbx
+models/fbx/edited/door_classroom.fbx
+models/fbx/edited/floor.fbx
+models/fbx/edited/shelf.fbx
+models/fbx/edited/shelf_small.fbx
+models/fbx/edited/table.fbx
+models/fbx/edited/wall_doors.fbx
+models/fbx/edited/wall_window.fbx
+models/fbx/environment/classroom_entities/classroom_level1.fbx
+models/fbx/environment/classroom_entities/classroom_level2.fbx
+models/fbx/environment/kitchen_entities/field_bench.fbx
+models/fbx/environment/kitchen_entities/field_dugout.fbx
+models/fbx/environment/kitchen_entities/field_fence.fbx
+models/fbx/environment/kitchen_entities/field_light.fbx
+models/fbx/environment/kitchen_entities/field_storage.fbx
+models/fbx/environment/kitchen_entities/kitchen_bowl.fbx
+models/fbx/environment/kitchen_entities/kitchen_bowl_alt.fbx
+models/fbx/environment/kitchen_entities/kitchen_cabinet.fbx
+models/fbx/environment/kitchen_entities/kitchen_chair.fbx
+models/fbx/environment/kitchen_entities/kitchen_cuttingcounter.fbx
+models/fbx/environment/kitchen_entities/kitchen_fryingpan.fbx
+models/fbx/environment/kitchen_entities/kitchen_microwave.fbx
+models/fbx/environment/kitchen_entities/kitchen_plate.fbx
+models/fbx/environment/kitchen_entities/kitchen_pot.fbx
+models/fbx/environment/kitchen_entities/kitchen_shelf.fbx
+models/fbx/environment/kitchen_entities/kitchen_table.fbx
+models/fbx/environment/school_corridor_entities/corridor_level1.fbx
+models/fbx/environment/school_corridor_entities/corridor_level2.fbx
+models/fbx/environment/school_corridor_entities/corridor_level2_bridge.fbx
+models/fbx/environment/school_prop_entities/bin 1.fbx
+models/fbx/environment/school_prop_entities/bin 2.fbx
+models/fbx/environment/school_prop_entities/bin 3.fbx
+models/fbx/environment/school_prop_entities/light.fbx
+models/fbx/environment/school_prop_entities/locker.fbx
+models/fbx/environment/school_prop_entities/vending machine.fbx
+models/fbx/environment/school_stairwell_entities/school_wall.fbx
+models/fbx/environment/school_stairwell_entities/stairwell_left.fbx
+models/fbx/environment/school_stairwell_entities/stairwell_right.fbx
+models/fbx/props/pick_ups/bbt.fbx
+models/fbx/props/weapons/katar_single.fbx
+models/fbx/props/weapons/sword_prototype.fbx
+models/glb/aji/player_idle_mixamo.glb
+models/glb/aji/player_punching_mixamo.glb
+models/glb/aji/player_running_mixamo.glb
+models/glb/baseball_field/dugout.glb
+models/glb/baseball_field/fence.glb
+models/glb/baseball_field/field.glb
+models/glb/baseball_field/lights.glb
+models/glb/baseball_field/outdoor bleachers.glb
+models/glb/baseball_field/storage room.glb
+models/glb/classroom_exported/chair.glb
+models/glb/classroom_exported/deskplain.glb
+models/glb/classroom_exported/desktextured.glb
+models/glb/classroom_exported/door_classroom.glb
+models/glb/classroom_exported/door_classroom_tex.glb
+models/glb/classroom_exported/floor.glb
+models/glb/classroom_exported/floor_tex.glb
+models/glb/classroom_exported/shelf.glb
+models/glb/classroom_exported/shelf_small.glb
+models/glb/classroom_exported/table.glb
+models/glb/classroom_exported/wall_doors.glb
+models/glb/classroom_exported/wall_doors_tex.glb
+models/glb/classroom_exported/wall_window.glb
+models/glb/classroom_exported/wall_window_tex.glb
 models/misc/animatedmorphcube.glb
 models/misc/cesiumman.glb
 models/misc/damagedhelmet.glb
+navmeshdata/navmesh.navmesh
+navmeshdata/navmesh1.navmesh
+navmeshdata/navmesh2.navmesh
 prefab/deletewhenthere'ssomething.txt
+prefabs/chair.prefab
+prefabs/classroom.prefab
+prefabs/collider.prefab
+prefabs/door_classroom.prefab
 prefabs/enemy.prefab
 prefabs/player.prefab
+prefabs/shelf.prefab
+prefabs/shelf_small.prefab
+prefabs/table.prefab
+prefabs/vending machine.prefab
+prefabs/wall.prefab
+prefabs/wall_doors.prefab
+prefabs/wall_window.prefab
 scenes/defaultscene.scene
 scenes/defaultscene_backup.scene
 scenes/openscenes.json
+scripts/character.lua
+scripts/classroomdoor.lua
 scripts/test - copy.lua
 scripts/test.lua
 shaders/bloom_compose.frag

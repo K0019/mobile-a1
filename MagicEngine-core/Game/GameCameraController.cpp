@@ -27,13 +27,20 @@ All rights reserved.
 #include "Editor/Containers/GUICollection.h"
 #include "Engine/Input.h"
 
+#if defined(__ANDROID__)
+#include "Engine/Platform/Android/AndroidInputBridge.h"
+#endif
+
+
 GameCameraControllerComponent::GameCameraControllerComponent()
 	: cameraEntity{ nullptr }
 	, playerEntity{ nullptr }
 	, cameraPitch{ 0.0f }
 	, cameraYaw{ 0.0f }
+	, minPitch{ 0.0f }
+	, maxPitch{ 0.0f }
 	, cameraSensitivity{ 1.0f }
-	, currentCameraDistance{ 20.0f }
+	, currentCameraDistance{ 5.0f }
 {
 }
 
@@ -45,14 +52,24 @@ void GameCameraControllerComponent::Serialize(Serializer& writer) const
 {
 	writer.Serialize("cameraEntity", cameraEntity);
 	writer.Serialize("playerEntity", playerEntity);
-	//.Serialize(writer);
-	//playerEntity.Serialize(writer);
+
+	writer.Serialize("maxPitch", maxPitch);
+	writer.Serialize("minPitch", minPitch);
+		   
+	writer.Serialize("cameraSensitivity", cameraSensitivity);
 }
 
 void GameCameraControllerComponent::Deserialize(Deserializer& reader)
 {
 	reader.Deserialize("cameraEntity", &cameraEntity);
 	reader.Deserialize("playerEntity", &playerEntity);
+
+	reader.DeserializeVar("maxPitch", &maxPitch);
+	reader.DeserializeVar("minPitch", &minPitch);
+
+	reader.DeserializeVar("cameraSensitivity", &cameraSensitivity);
+
+
 	//cameraEntity.Deserialize(reader);
 	//playerEntity.Deserialize(reader);
 }
@@ -63,6 +80,10 @@ void GameCameraControllerComponent::EditorDraw()
 	playerEntity.EditorDraw("Player");
 	gui::TextBoxReadOnly("Yaw", std::to_string(cameraYaw));
 	gui::TextBoxReadOnly("Pitch", std::to_string(cameraPitch));
+
+	gui::VarInput("Max Pitch", &maxPitch);
+	gui::VarInput("Min Pitch", &minPitch);
+
 	gui::VarDrag("Sensitivity", &cameraSensitivity, 0.05f, 0.05f, 1.0f);
 }
 
@@ -73,51 +94,54 @@ GameCameraControllerSystem::GameCameraControllerSystem()
 
 void GameCameraControllerSystem::UpdateGameCameraController(GameCameraControllerComponent& comp)
 {
-	//comp.cameraYaw += GameTime::Dt() *180.0f;
-	//float pitch = 45.0f;
-	
-	// Mouse look
-	float yaw = comp.cameraYaw;
-	float pitch = comp.cameraPitch;
-	Vec2 currPos = ST<KeyboardMouseInput>::Get()->GetMousePos();
-	if (prevPos.x > 0)
-	{
-		Vec2 mouseDelta = currPos - prevPos;
+    // Mouse look
+    float yaw = comp.cameraYaw;
+    float pitch = comp.cameraPitch;
 
-		yaw -= mouseDelta.x * comp.cameraSensitivity;
-		pitch -= mouseDelta.y * comp.cameraSensitivity;
+    Vec2 currPos = ST<KeyboardMouseInput>::Get()->GetMousePos();
 
-		// Wrap yaw
-		if (yaw < 0.0f)
-			yaw += 360.0f;
-		if (yaw > 360.0f)
-			yaw -= 360.0f;
+    // --- ANDROID: only allow camera look if touch isn't owned by joystick/buttons ---
+#if defined(__ANDROID__)
+    const auto owner = AndroidInputBridge::Owner();
+    const bool cameraAllowed = (owner == TouchOwner::NoOwner || owner == TouchOwner::Camera);
+#else
+    const bool cameraAllowed = true; // desktop unaffected
+#endif
+    // -------------------------------------------------------------------------------
 
-		// Clamp pitch
-		if (pitch < -25.0f)
-			pitch = -25.0f;
-		if (pitch > 1.0f)
-			pitch = 1.0f;
+    if (prevPos.x > 0)
+    {
+        if (cameraAllowed)
+        {
+            Vec2 mouseDelta = currPos - prevPos;
 
-		comp.cameraPitch = pitch;
-		comp.cameraYaw = yaw;
-	}
+            yaw -= mouseDelta.x * comp.cameraSensitivity;
+            pitch -= mouseDelta.y * comp.cameraSensitivity;
 
-	prevPos = currPos;
+            // Wrap yaw
+            if (yaw < 0.0f)   yaw += 360.0f;
+            if (yaw > 360.0f) yaw -= 360.0f;
 
-	// Set camera rotation
-	Vec3 eulerAngles{ pitch, yaw, 0.0f };
-	ecs::GetEntityTransform(&comp).SetWorldRotation(eulerAngles);
+            // Clamp pitch
+            if (pitch < comp.minPitch) pitch = comp.minPitch;
+            if (pitch > comp.maxPitch) pitch = comp.maxPitch;
 
-	// If no player, we skip the tracking portion
-	if (!comp.playerEntity)
-		return;
+            comp.cameraPitch = pitch;
+            comp.cameraYaw = yaw;
+        }
+    }
+    prevPos = currPos;
 
-	// Create a look vector
-	Vec3 forward = comp.currentCameraDistance * math::EulerAnglesToVector(eulerAngles.x, eulerAngles.y);
+    // Apply camera transform
+    Vec3 eulerAngles{ pitch, yaw, 0.0f };
+    ecs::GetEntityTransform(&comp).SetWorldRotation(eulerAngles);
 
-	// Calculate camera position
-	Vec3 playerPos = comp.playerEntity->GetTransform().GetWorldPosition();
-	Vec3 cameraPos = playerPos - forward;
-	ecs::GetEntityTransform(&comp).SetWorldPosition(cameraPos);
+    // If no player, skip following logic
+    if (!comp.playerEntity) return;
+
+    // Follow player at current distance
+    Vec3 forward = comp.currentCameraDistance * math::EulerAnglesToVector(eulerAngles.x, eulerAngles.y);
+    Vec3 playerPos = comp.playerEntity->GetTransform().GetWorldPosition();
+    Vec3 cameraPos = playerPos - forward;
+    ecs::GetEntityTransform(&comp).SetWorldPosition(cameraPos);
 }

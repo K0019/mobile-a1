@@ -13,14 +13,14 @@
         1.0
     ],
     "emissiveFactor": [
-        0.5017006397247314,
-        0.5215222835540771,
-        0.5649566650390625
+        0.8588235378265381,
+        0.5411764979362488,
+        0.23137255012989044
     ],
     "textures": [
         {
             "key": "baseColor",
-            "value": "compiledassets/textures/_24.ktx2"
+            "value": "compiledassets/textures/_17.ktx2"
         },
         {
             "key": "metallicRoughness",
@@ -32,7 +32,7 @@
         },
         {
             "key": "emissive",
-            "value": "compiledassets/textures/_25.ktx2"
+            "value": "compiledassets/textures/_18.ktx2"
         },
         {
             "key": "occlusion",
