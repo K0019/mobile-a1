@@ -127,6 +127,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/materials/wall_1011.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 1374930494977276773,
+                            "name": "wall_10110"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/materials/standardsurface1_1001.material",
             "resources": [
                 {
@@ -555,6 +569,20 @@
                         {
                             "hash": 2248998258417618825,
                             "name": "player_idle_mixamoplayer_weapon atk 3_mixamo0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/textures/image_9.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 1360425737583655709,
+                            "name": "image_90"
                         }
                     ]
                 }
@@ -1247,6 +1275,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/corridor.mesh",
+            "resources": [
+                {
+                    "resourceType": 6209910166724260588,
+                    "resourceEntries": [
+                        {
+                            "hash": 1380181762511534957,
+                            "name": "corridor0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/materials/n00_000_00_hairback_00_hair__instance_.001.material",
             "resources": [
                 {
@@ -1835,6 +1877,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/textures/image_10.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 1366539022234090277,
+                            "name": "image_100"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/outdoor bleachers.mesh",
             "resources": [
                 {
@@ -2025,6 +2081,20 @@
                         {
                             "hash": 350021830450594951,
                             "name": "n00_002_03_tops_01_cloth_04 (instance)0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/textures/image_11.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 1372985458907740979,
+                            "name": "image_110"
                         }
                     ]
                 }
@@ -2745,6 +2815,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/corridor_bridge.mesh",
+            "resources": [
+                {
+                    "resourceType": 6209910166724260588,
+                    "resourceEntries": [
+                        {
+                            "hash": 15089627211392254377,
+                            "name": "corridor_bridge0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/textures/image_7.ktx2",
             "resources": [
                 {
@@ -3131,6 +3215,20 @@
                         {
                             "hash": 2341418807801984097,
                             "name": "n00_000_00_facebrow_00_face__instance_.0010"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/stairs_left.mesh",
+            "resources": [
+                {
+                    "resourceType": 6209910166724260588,
+                    "resourceEntries": [
+                        {
+                            "hash": 3686029169775864251,
+                            "name": "stairs_left0"
                         }
                     ]
                 }

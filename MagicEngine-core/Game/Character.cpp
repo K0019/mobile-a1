@@ -317,7 +317,11 @@ void CharacterMovementComponentSystem::UpdateCharacterMovementComponent(Characte
 	if(comp.isAttacking)
 	{
 		animComp->loop = false;
-		//if
+		if (animComp->timeA >= animComp->GetClipDuration(animComp->GetAnimationClipA()))
+		{
+			comp.isAttacking = false;
+			animComp->loop = true;
+		}
 	}
 	
 

@@ -22,6 +22,14 @@ function toggle()
 end
 
 function start(entity)
+    -- We decide whether the door starts open if the name has "Open"
+    local nameComp = entity:GetNameComponent()
+    Magic.Log(Magic.LogLevel.info, nameComp.name)
+    if(nameComp.name == "Door_Classroom_Open") then
+        opening = true
+    else
+        opening = false
+    end
 
     local entityContainer = entity:GetEntityReferenceHolderComponent()
 

@@ -34,15 +34,14 @@ public:
     float timeA = 0.0f;
     float timeB = 0.0f;
 
-    float durationA = 0.0f;
-    float durationB = 0.0f;
-
     uint16_t jointCount = 0;
     uint16_t morphCount = 0;
     std::vector<int16_t> jointRemap;
     std::vector<mat4> invBindMatrices;
     std::vector<mat4> skinMatrices;
     std::vector<float> morphWeights;
+
+    float GetClipDuration(const ResourceAnimation* animationClip);
 
 public:
     property_vtable()

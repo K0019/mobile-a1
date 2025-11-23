@@ -40,6 +40,8 @@ All rights reserved.
 #include "Engine/EntityLayers.h"
 #include "Managers/AudioManager.h"
 #include "Engine/Input.h"
+#include "ScriptComponent.h"
+#include "Graphics/RenderComponent.h"
 
 //=========================================== START REGISTERING COMPONENTS ================================================================================
 // This section is unfortunately required. This registers what functions are available in a component.
@@ -139,6 +141,7 @@ SCRIPT_GENERATE_COMP_WRAPPER_END()
 
 // CharacterMovementComponent
 SCRIPT_GENERATE_COMP_WRAPPER_BEGIN(CharacterMovementComponent)
+
 // Properties
 SCRIPT_GENERATE_PROPERTY_FUNCS(Vec2, GetMovementVector, SetMovementVector)
 SCRIPT_GENERATE_PROPERTY_FUNCS(float, GetMoveSpeed, SetMoveSpeed)
@@ -151,6 +154,7 @@ SCRIPT_GENERATE_PROPERTY_FUNCS(float, GetDodgeSpeed, SetDodgeSpeed)
 SCRIPT_GENERATE_PROPERTY_FUNCS(float, GetCurrentStunTime, SetCurrentStunTime)
 SCRIPT_GENERATE_PROPERTY_FUNCS(float, GetCurrentDodgeTime, SetCurrentDodgeTime)
 SCRIPT_GENERATE_PROPERTY_FUNCS(float, GetCurrentDodgeCooldown, SetCurrentDodgeCooldown)
+
 //functions
 void Dodge(const Vec2& v) { GetHandle()->Dodge(v); }
 void RotateTowards(const Vec2& v) { GetHandle()->RotateTowards(v); }
@@ -221,6 +225,16 @@ void SetEntityReference(int index, ecs::EntityHandle entity)
 {
 	GetHandle()->SetEntity(index, entity);
 }
+SCRIPT_GENERATE_COMP_WRAPPER_END()
+
+SCRIPT_GENERATE_COMP_WRAPPER_BEGIN(ScriptComponent)
+void CallScriptFunction(std::string funcName)
+{
+	GetHandle()->CallScriptFunction(funcName);
+}
+SCRIPT_GENERATE_COMP_WRAPPER_END()
+
+SCRIPT_GENERATE_COMP_WRAPPER_BEGIN(RenderComponent)
 SCRIPT_GENERATE_COMP_WRAPPER_END()
 
 
@@ -320,6 +334,8 @@ void RegisterCppStuffToLua(luabridge::Namespace baseTable)
 		SCRIPT_REGISTER_COMP_GETTER(HealthComponent)
 		SCRIPT_REGISTER_COMP_GETTER(EntityLayerComponent)
 		SCRIPT_REGISTER_COMP_GETTER(EntityReferenceHolderComponent)
+		SCRIPT_REGISTER_COMP_GETTER(ScriptComponent)
+		SCRIPT_REGISTER_COMP_GETTER(RenderComponent)
 		//=========================================== END REGISTER GETTER ================================================================================
 
 		.endClass()
@@ -461,11 +477,19 @@ void RegisterCppStuffToLua(luabridge::Namespace baseTable)
 		SCRIPT_REGISTER_COMP_PROPERTY(EntityLayerComponent,"layer", GetLayerLua, SetLayerLua)
 		SCRIPT_REGISTER_COMP_END()
 
-		// GrabbableItemComponent
+		// EntityReferenceHolderComponent
 		SCRIPT_REGISTER_COMP_BEGIN(EntityReferenceHolderComponent)
 			.addFunction("GetEntityReference", &LuaWrapperComp_EntityReferenceHolderComponent::GetEntityReference)
 			.addFunction("SetEntityReference", &LuaWrapperComp_EntityReferenceHolderComponent::SetEntityReference)
 			//.addProperty("GetEntityReference", [](const EntityReferenceHolderComponent* comp) -> EntityReference { return comp->GetEntity() })
+		SCRIPT_REGISTER_COMP_END()
+
+		// ScriptComponent
+		SCRIPT_REGISTER_COMP_BEGIN(ScriptComponent)
+			.addFunction("CallScriptFunction", &LuaWrapperComp_ScriptComponent::CallScriptFunction)
+		SCRIPT_REGISTER_COMP_END()
+
+		SCRIPT_REGISTER_COMP_BEGIN(RenderComponent)
 		SCRIPT_REGISTER_COMP_END()
 
 		// ----- GLOBAL FUNCTIONS -----
