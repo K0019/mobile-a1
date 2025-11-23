@@ -1,34 +1,46 @@
-#include "Boss_LeafInvincibility.h"
-#include "../BehaviourTreeFactory.h"
+#include "Boss_LeafDetention.h"
+#include "../../BehaviourTreeFactory.h"
 #include "Game/EnemyCharacter.h"
 #include "Game/Character.h"
 #include "Game/Health.h"
 
-// Set boss invinc time here, based on Canva values rn so change as balancing requires
-float L_Boss_Prefect_Invincibility::invincibilityTime = 1.5f;
+int L_Boss_Prefect_Detention::burstCount = 3;
+float L_Boss_Prefect_Detention::burstDelay = 0.5f;
 
-void L_Boss_Prefect_Invincibility::OnInitialize()
+float L_Boss_Prefect_Detention::triggerDistance = 3.0f;
+
+float L_Boss_Prefect_Detention::triggerDistanceSqr = L_Boss_Prefect_Detention::triggerDistance * L_Boss_Prefect_Detention::triggerDistance;
+
+void L_Boss_Prefect_Detention::OnInitialize()
 {
-    //reset pos
-    currentInvincinilityTime = invincibilityTime;
+    currentBurstDelay = 0.0f;
+    currentBurstCount = 0;
 }
 
-NODE_STATUS L_Boss_Prefect_Invincibility::OnUpdate([[maybe_unused]] ecs::EntityHandle entity)
+NODE_STATUS L_Boss_Prefect_Detention::OnUpdate([[maybe_unused]] ecs::EntityHandle entity)
 {
     if (auto characterComp{ entity->GetComp<CharacterMovementComponent>() })
     {
-        characterComp->SetMovementVector(Vec2{ 0.0f });
-    }
-    if (auto healthComp{ entity->GetComp<HealthComponent>() })
-    {
-        healthComp->SetIsInvincible(true);
-        currentInvincinilityTime -= GameTime::Dt();
-
-        if (currentInvincinilityTime <= 0.0f)
+        if (auto enemyComp{ entity->GetComp<EnemyComponent>() })
         {
-            healthComp->SetIsInvincible(false);
-            return NODE_STATUS::SUCCESS;
+            Vec3 dir = enemyComp->playerReference->GetTransform().GetWorldPosition() - entity->GetTransform().GetWorldPosition();
+            dir.y = 0.0f;
+            characterComp->SetMovementVector(Vec2{ dir.x,dir.z });
+        
+            if (dir.LengthSqr() < triggerDistanceSqr)
+            {
+                if (currentBurstDelay < 0.0f)
+                {
+                    ++currentBurstCount;
+
+                    // TODO: DO BURST SPAWN HERE
+
+                    if (currentBurstCount == burstCount)
+                        return NODE_STATUS::SUCCESS;
+                }
+            }
         }
     }
+    currentBurstDelay -= GameTime::Dt();
     return NODE_STATUS::RUNNING;
 }

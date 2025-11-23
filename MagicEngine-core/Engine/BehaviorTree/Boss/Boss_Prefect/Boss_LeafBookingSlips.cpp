@@ -1,19 +1,19 @@
-#include "Boss_LeafInvincibility.h"
-#include "../BehaviourTreeFactory.h"
+#include "Boss_LeafBookingSlips.h"
+#include "../../BehaviourTreeFactory.h"
 #include "Game/EnemyCharacter.h"
 #include "Game/Character.h"
 #include "Game/Health.h"
 
-// Set boss invinc time here, based on Canva values rn so change as balancing requires
-float L_Boss_Prefect_Invincibility::invincibilityTime = 1.5f;
+int L_Boss_Prefect_BookingSlips::burstCount = 3;
+float L_Boss_Prefect_BookingSlips::burstDelay = 0.25f;
 
-void L_Boss_Prefect_Invincibility::OnInitialize()
+void L_Boss_Prefect_BookingSlips::OnInitialize()
 {
     //reset pos
     currentInvincinilityTime = invincibilityTime;
 }
 
-NODE_STATUS L_Boss_Prefect_Invincibility::OnUpdate([[maybe_unused]] ecs::EntityHandle entity)
+NODE_STATUS L_Boss_Prefect_BookingSlips::OnUpdate([[maybe_unused]] ecs::EntityHandle entity)
 {
     if (auto characterComp{ entity->GetComp<CharacterMovementComponent>() })
     {

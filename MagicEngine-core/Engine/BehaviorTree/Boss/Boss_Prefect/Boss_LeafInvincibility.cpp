@@ -1,5 +1,5 @@
 #include "Boss_LeafInvincibility.h"
-#include "../BehaviourTreeFactory.h"
+#include "../../BehaviourTreeFactory.h"
 #include "Game/EnemyCharacter.h"
 #include "Game/Character.h"
 #include "Game/Health.h"
@@ -9,7 +9,6 @@ float L_Boss_Prefect_Invincibility::invincibilityTime = 1.5f;
 
 void L_Boss_Prefect_Invincibility::OnInitialize()
 {
-    //reset pos
     currentInvincinilityTime = invincibilityTime;
 }
 

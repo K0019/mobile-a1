@@ -46,6 +46,12 @@ HealthComponent::HealthType HealthComponent::GetCurrHealth() const
 	return currHealth;
 }
 
+float HealthComponent::GetCurrHealthNormalized() const
+{
+	// Cast in case we change the health type
+	return (float)currHealth/(float)maxHealth;
+}
+
 bool HealthComponent::IsDead() const
 {
 	return currHealth <= 0;

@@ -55,6 +55,14 @@ public:
 
 	/*****************************************************************//*!
 	\brief
+		Gets the current health.
+	\return
+		The current health.
+	*//******************************************************************/
+	float GetCurrHealthNormalized() const;
+
+	/*****************************************************************//*!
+	\brief
 		Gets whether this entity is dead based on their current health.
 	\return
 		True if the entity is dead. False otherwise.
