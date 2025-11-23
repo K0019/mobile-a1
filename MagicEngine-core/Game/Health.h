@@ -102,6 +102,9 @@ public:
 	void SetMaxHealth(HealthType newMaxAmount);
 
 	float GetHealthFraction();
+
+	bool GetIsInvincible() const;
+	void SetIsInvincible(bool invincible);
 private:
 	/*****************************************************************//*!
 	\brief
@@ -114,6 +117,7 @@ private:
 private:
 	HealthType maxHealth;
 	HealthType currHealth;
+	bool isInvincible;
 
 	static constexpr HealthType defaultMax{ 100 };
 	property_vtable()

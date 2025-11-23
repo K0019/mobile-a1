@@ -66,6 +66,10 @@ void HealthComponent::AddHealth(HealthType amount)
 
 void HealthComponent::TakeDamage(HealthComponent::HealthType amount, Vec3 direction)
 {
+	// If the healthComp is already invincible, we can't do anything to the health
+	if (isInvincible)
+		return;
+
 	if (currHealth > maxHealth)
 		currHealth = maxHealth;
 	currHealth -= amount;
@@ -127,7 +131,18 @@ float HealthComponent::GetHealthFraction()
 	return (float)currHealth/(float)maxHealth;
 }
 
+bool HealthComponent::GetIsInvincible() const
+{
+	return isInvincible;
+}
+
+void HealthComponent::SetIsInvincible(bool invincible)
+{
+	isInvincible = invincible;
+}
+
 void HealthComponent::EditorDraw()
 {
 	gui::VarInput("Max Health", &maxHealth);
+	gui::VarDefault("Is Invincible", &isInvincible);
 }

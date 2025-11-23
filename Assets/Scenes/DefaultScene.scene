@@ -54,7 +54,7 @@
             "position": {
                 "x": 0.0,
                 "y": 1.0,
-                "z": 0.0
+                "z": -10.0
             },
             "rotation": {
                 "x": 0.0,
@@ -1401,6 +1401,82 @@
         {
             "parentIndex": 6,
             "position": {
+                "x": -5.1349568367004395,
+                "y": 0.5060950517654419,
+                "z": -14.108383178710938
+            },
+            "rotation": {
+                "x": 0.0,
+                "y": 90.0,
+                "z": 0.0
+            },
+            "scale": {
+                "x": 0.8551138639450073,
+                "y": 2.828688383102417,
+                "z": 2.1293251514434814
+            },
+            "components": {
+                "5352011725353660904": {
+                    "_active": true,
+                    "meshHandle": {
+                        "hash": 394651007363811311
+                    },
+                    "materials": [
+                        {
+                            "hash": 388567409527326701
+                        }
+                    ]
+                },
+                "6766054303456732338": {
+                    "_active": true,
+                    "layer": 0
+                },
+                "7205334411763290517": {
+                    "_active": true,
+                    "name": "DoorTrigger_Close"
+                },
+                "8426725214831635516": {
+                    "_active": true,
+                    "entityReferences": [
+                        {
+                            "entityUid": 1469080575970170870
+                        }
+                    ]
+                },
+                "9315785795257285655": {
+                    "_active": true,
+                    "uid": 1813951194387380399
+                },
+                "18236831197208900764": {
+                    "_active": true,
+                    "center": {
+                        "x": 0.0,
+                        "y": 0.0,
+                        "z": 0.0
+                    },
+                    "size": {
+                        "x": 1.0,
+                        "y": 1.0,
+                        "z": 1.0
+                    },
+                    "flags": {
+                        "_majorityTrue": true,
+                        "_except": []
+                    }
+                },
+                "18288371625365795113": {
+                    "_active": true,
+                    "scripts": [
+                        {
+                            "scriptName": "roomdoortrigger.lua"
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "parentIndex": 6,
+            "position": {
                 "x": 0.0,
                 "y": 0.0,
                 "z": 0.0
@@ -1615,7 +1691,7 @@
             }
         },
         {
-            "parentIndex": 20,
+            "parentIndex": 21,
             "position": {
                 "x": -5.150000095367432,
                 "y": 1.4800000190734863,
@@ -1898,7 +1974,7 @@
             "position": {
                 "x": -4.800000190734863,
                 "y": 0.5098649859428406,
-                "z": 0.0
+                "z": 2.178936004638672
             },
             "rotation": {
                 "x": 0.0,
@@ -2046,7 +2122,7 @@
                 },
                 "7205334411763290517": {
                     "_active": true,
-                    "name": "Door_Classroom"
+                    "name": "Door_Classroom_Open"
                 },
                 "8426725214831635516": {
                     "_active": true,
@@ -2146,11 +2222,11 @@
             "position": {
                 "x": -5.731337070465088,
                 "y": 0.5098649859428406,
-                "z": 0.0
+                "z": 2.451005458831787
             },
             "rotation": {
                 "x": 0.0,
-                "y": 0.0,
+                "y": 56.143959045410156,
                 "z": 0.0
             },
             "scale": {
@@ -2192,7 +2268,7 @@
             "position": {
                 "x": -4.050000190734863,
                 "y": 0.5098649859428406,
-                "z": 0.0
+                "z": 1.8931169509887695
             },
             "rotation": {
                 "x": 0.0,
@@ -2234,7 +2310,7 @@
             }
         },
         {
-            "parentIndex": 18,
+            "parentIndex": 19,
             "position": {
                 "x": -1.6377699375152588,
                 "y": 0.4899139106273651,
@@ -2280,7 +2356,7 @@
             }
         },
         {
-            "parentIndex": 18,
+            "parentIndex": 19,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -2323,7 +2399,7 @@
             }
         },
         {
-            "parentIndex": 18,
+            "parentIndex": 19,
             "position": {
                 "x": 0.4009009599685669,
                 "y": 0.512028694152832,
@@ -2372,7 +2448,7 @@
             }
         },
         {
-            "parentIndex": 18,
+            "parentIndex": 19,
             "position": {
                 "x": 0.0,
                 "y": 1.399999976158142,
@@ -2434,7 +2510,7 @@
             }
         },
         {
-            "parentIndex": 18,
+            "parentIndex": 19,
             "position": {
                 "x": -2.867177963256836,
                 "y": 0.864890456199646,
@@ -2477,7 +2553,7 @@
             }
         },
         {
-            "parentIndex": 18,
+            "parentIndex": 19,
             "position": {
                 "x": -10.0,
                 "y": 0.5098649859428406,
@@ -2523,7 +2599,7 @@
             }
         },
         {
-            "parentIndex": 18,
+            "parentIndex": 19,
             "position": {
                 "x": -3.6011104583740234,
                 "y": 1.0,
@@ -2555,7 +2631,7 @@
             }
         },
         {
-            "parentIndex": 20,
+            "parentIndex": 21,
             "position": {
                 "x": -5.150000095367432,
                 "y": 1.4800000190734863,
@@ -2604,7 +2680,7 @@
             }
         },
         {
-            "parentIndex": 18,
+            "parentIndex": 19,
             "position": {
                 "x": -3.650015115737915,
                 "y": 1.399999976158142,
@@ -2650,7 +2726,7 @@
             }
         },
         {
-            "parentIndex": 18,
+            "parentIndex": 19,
             "position": {
                 "x": 2.956951141357422,
                 "y": 0.8435628414154053,
@@ -2693,7 +2769,7 @@
             }
         },
         {
-            "parentIndex": 18,
+            "parentIndex": 19,
             "position": {
                 "x": -2.6400487422943115,
                 "y": 0.5098649859428406,
@@ -2739,7 +2815,7 @@
             }
         },
         {
-            "parentIndex": 18,
+            "parentIndex": 19,
             "position": {
                 "x": 10.0,
                 "y": 0.0,
@@ -2771,7 +2847,7 @@
             }
         },
         {
-            "parentIndex": 18,
+            "parentIndex": 19,
             "position": {
                 "x": -3.0,
                 "y": 1.399999976158142,
@@ -2833,7 +2909,7 @@
             }
         },
         {
-            "parentIndex": 18,
+            "parentIndex": 19,
             "position": {
                 "x": -3.6011104583740234,
                 "y": 1.0,
@@ -2890,7 +2966,7 @@
             }
         },
         {
-            "parentIndex": 18,
+            "parentIndex": 19,
             "position": {
                 "x": 3.6500000953674316,
                 "y": 1.399999976158142,
@@ -2936,7 +3012,7 @@
             }
         },
         {
-            "parentIndex": 18,
+            "parentIndex": 19,
             "position": {
                 "x": 0.0,
                 "y": 1.399999976158142,
@@ -3346,7 +3422,7 @@
             }
         },
         {
-            "parentIndex": 20,
+            "parentIndex": 21,
             "position": {
                 "x": -5.148462295532227,
                 "y": 1.4800000190734863,
@@ -3395,7 +3471,7 @@
             }
         },
         {
-            "parentIndex": 20,
+            "parentIndex": 21,
             "position": {
                 "x": -1.4872987270355225,
                 "y": -0.5250318050384521,
@@ -3447,7 +3523,7 @@
             }
         },
         {
-            "parentIndex": 23,
+            "parentIndex": 24,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -3498,7 +3574,7 @@
             }
         },
         {
-            "parentIndex": 24,
+            "parentIndex": 25,
             "position": {
                 "x": 0.0,
                 "y": -0.0038910508155822754,
@@ -3549,7 +3625,7 @@
             }
         },
         {
-            "parentIndex": 26,
+            "parentIndex": 27,
             "position": {
                 "x": 0.01342153549194336,
                 "y": 0.9769220352172852,
@@ -3600,7 +3676,7 @@
             }
         },
         {
-            "parentIndex": 25,
+            "parentIndex": 26,
             "position": {
                 "x": 0.0007220208644866943,
                 "y": 0.0,
@@ -3651,7 +3727,7 @@
             }
         },
         {
-            "parentIndex": 26,
+            "parentIndex": 27,
             "position": {
                 "x": 0.01342153549194336,
                 "y": 0.0,
@@ -3702,7 +3778,7 @@
             }
         },
         {
-            "parentIndex": 26,
+            "parentIndex": 27,
             "position": {
                 "x": 0.01342153549194336,
                 "y": 0.0,
@@ -3753,7 +3829,7 @@
             }
         },
         {
-            "parentIndex": 26,
+            "parentIndex": 27,
             "position": {
                 "x": 0.01342153549194336,
                 "y": 0.0,
@@ -3804,7 +3880,7 @@
             }
         },
         {
-            "parentIndex": 27,
+            "parentIndex": 28,
             "position": {
                 "x": 0.013421773910522461,
                 "y": 0.0,
@@ -3855,7 +3931,7 @@
             }
         },
         {
-            "parentIndex": 28,
+            "parentIndex": 29,
             "position": {
                 "x": 0.0,
                 "y": -0.0038910508155822754,
@@ -3906,7 +3982,7 @@
             }
         },
         {
-            "parentIndex": 29,
+            "parentIndex": 30,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -3949,7 +4025,7 @@
             }
         },
         {
-            "parentIndex": 29,
+            "parentIndex": 30,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -3992,7 +4068,7 @@
             }
         },
         {
-            "parentIndex": 30,
+            "parentIndex": 31,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -4035,7 +4111,7 @@
             }
         },
         {
-            "parentIndex": 30,
+            "parentIndex": 31,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -4078,7 +4154,7 @@
             }
         },
         {
-            "parentIndex": 31,
+            "parentIndex": 32,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -4121,7 +4197,7 @@
             }
         },
         {
-            "parentIndex": 31,
+            "parentIndex": 32,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -4164,7 +4240,7 @@
             }
         },
         {
-            "parentIndex": 22,
+            "parentIndex": 23,
             "position": {
                 "x": 0.0,
                 "y": -1.8507726192474365,
@@ -4215,7 +4291,7 @@
             }
         },
         {
-            "parentIndex": 33,
+            "parentIndex": 34,
             "position": {
                 "x": 0.0,
                 "y": -0.0038910508155822754,
@@ -4266,7 +4342,7 @@
             }
         },
         {
-            "parentIndex": 34,
+            "parentIndex": 35,
             "position": {
                 "x": 0.0,
                 "y": -0.0038910508155822754,
@@ -4317,7 +4393,7 @@
             }
         },
         {
-            "parentIndex": 35,
+            "parentIndex": 36,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -4368,7 +4444,7 @@
             }
         },
         {
-            "parentIndex": 36,
+            "parentIndex": 37,
             "position": {
                 "x": 0.0,
                 "y": -0.3732050061225891,
@@ -4419,7 +4495,7 @@
             }
         },
         {
-            "parentIndex": 37,
+            "parentIndex": 38,
             "position": {
                 "x": 0.0,
                 "y": -0.0038910508155822754,
@@ -4470,7 +4546,7 @@
             }
         },
         {
-            "parentIndex": 39,
+            "parentIndex": 40,
             "position": {
                 "x": 0.0007219314575195313,
                 "y": 0.0,
@@ -4521,7 +4597,7 @@
             }
         },
         {
-            "parentIndex": 40,
+            "parentIndex": 41,
             "position": {
                 "x": 0.0,
                 "y": -0.0038910508155822754,
@@ -4572,7 +4648,7 @@
             }
         },
         {
-            "parentIndex": 41,
+            "parentIndex": 42,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -4615,7 +4691,7 @@
             }
         },
         {
-            "parentIndex": 41,
+            "parentIndex": 42,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -4658,7 +4734,7 @@
             }
         },
         {
-            "parentIndex": 42,
+            "parentIndex": 43,
             "position": {
                 "x": -1.2487144470214844,
                 "y": -0.037741899490356445,
@@ -4709,7 +4785,7 @@
             }
         },
         {
-            "parentIndex": 42,
+            "parentIndex": 43,
             "position": {
                 "x": 0.0,
                 "y": -1.8507726192474365,
@@ -4760,7 +4836,7 @@
             }
         },
         {
-            "parentIndex": 43,
+            "parentIndex": 44,
             "position": {
                 "x": 0.01342153549194336,
                 "y": 0.0,
@@ -4811,7 +4887,7 @@
             }
         },
         {
-            "parentIndex": 43,
+            "parentIndex": 44,
             "position": {
                 "x": 0.01342153549194336,
                 "y": 0.0,
@@ -4862,7 +4938,7 @@
             }
         },
         {
-            "parentIndex": 42,
+            "parentIndex": 43,
             "position": {
                 "x": 1.266754150390625,
                 "y": -0.037741899490356445,
@@ -4913,7 +4989,7 @@
             }
         },
         {
-            "parentIndex": 43,
+            "parentIndex": 44,
             "position": {
                 "x": 0.01342153549194336,
                 "y": 0.9769221544265747,
@@ -4964,7 +5040,7 @@
             }
         },
         {
-            "parentIndex": 59,
+            "parentIndex": 60,
             "position": {
                 "x": 2.5,
                 "y": 0.13423000276088715,
@@ -5015,7 +5091,7 @@
             }
         },
         {
-            "parentIndex": 59,
+            "parentIndex": 60,
             "position": {
                 "x": -1.4655447006225586,
                 "y": -2.5860800743103027,
@@ -5066,7 +5142,7 @@
             }
         },
         {
-            "parentIndex": 43,
+            "parentIndex": 44,
             "position": {
                 "x": 0.01342153549194336,
                 "y": 0.0,
@@ -5117,7 +5193,7 @@
             }
         },
         {
-            "parentIndex": 59,
+            "parentIndex": 60,
             "position": {
                 "x": -3.9433178901672363,
                 "y": -1.7716667652130127,
@@ -5168,7 +5244,7 @@
             }
         },
         {
-            "parentIndex": 44,
+            "parentIndex": 45,
             "position": {
                 "x": 0.0007219314575195313,
                 "y": 0.0,
@@ -5219,7 +5295,7 @@
             }
         },
         {
-            "parentIndex": 45,
+            "parentIndex": 46,
             "position": {
                 "x": 0.0,
                 "y": -0.0038910508155822754,
@@ -5270,7 +5346,7 @@
             }
         },
         {
-            "parentIndex": 46,
+            "parentIndex": 47,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -5313,7 +5389,7 @@
             }
         },
         {
-            "parentIndex": 46,
+            "parentIndex": 47,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -5356,7 +5432,7 @@
             }
         },
         {
-            "parentIndex": 48,
+            "parentIndex": 49,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -5399,7 +5475,7 @@
             }
         },
         {
-            "parentIndex": 48,
+            "parentIndex": 49,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -5442,7 +5518,7 @@
             }
         },
         {
-            "parentIndex": 49,
+            "parentIndex": 50,
             "position": {
                 "x": 0.013421773910522461,
                 "y": 0.0,
@@ -5493,7 +5569,7 @@
             }
         },
         {
-            "parentIndex": 51,
+            "parentIndex": 52,
             "position": {
                 "x": 0.0,
                 "y": -0.3732050061225891,
@@ -5544,7 +5620,7 @@
             }
         },
         {
-            "parentIndex": 59,
+            "parentIndex": 60,
             "position": {
                 "x": -1.5319647789001465,
                 "y": -1.144227147102356,
@@ -5595,7 +5671,7 @@
             }
         },
         {
-            "parentIndex": 54,
+            "parentIndex": 55,
             "position": {
                 "x": 0.0007220208644866943,
                 "y": 0.0,
@@ -5646,7 +5722,7 @@
             }
         },
         {
-            "parentIndex": 59,
+            "parentIndex": 60,
             "position": {
                 "x": 0.0,
                 "y": -3.847890615463257,
@@ -5697,7 +5773,7 @@
             }
         },
         {
-            "parentIndex": 59,
+            "parentIndex": 60,
             "position": {
                 "x": -1.434356451034546,
                 "y": -0.2591911554336548,
@@ -5759,7 +5835,7 @@
             }
         },
         {
-            "parentIndex": 59,
+            "parentIndex": 60,
             "position": {
                 "x": -5.14547061920166,
                 "y": -0.25910282135009766,
@@ -5810,7 +5886,7 @@
             }
         },
         {
-            "parentIndex": 59,
+            "parentIndex": 60,
             "position": {
                 "x": 0.03788566589355469,
                 "y": 1.0363554954528809,
@@ -5861,7 +5937,7 @@
             }
         },
         {
-            "parentIndex": 59,
+            "parentIndex": 60,
             "position": {
                 "x": -0.028458118438720703,
                 "y": -0.2591911554336548,
@@ -5912,7 +5988,7 @@
             }
         },
         {
-            "parentIndex": 55,
+            "parentIndex": 56,
             "position": {
                 "x": 0.0,
                 "y": -0.0038910508155822754,
@@ -5963,7 +6039,7 @@
             }
         },
         {
-            "parentIndex": 56,
+            "parentIndex": 57,
             "position": {
                 "x": 0.0,
                 "y": -0.0038910508155822754,
@@ -6014,7 +6090,7 @@
             }
         },
         {
-            "parentIndex": 57,
+            "parentIndex": 58,
             "position": {
                 "x": 0.0,
                 "y": -0.0038911104202270508,
@@ -6065,7 +6141,7 @@
             }
         },
         {
-            "parentIndex": 22,
+            "parentIndex": 23,
             "position": {
                 "x": 1.266754150390625,
                 "y": -0.037741899490356445,
@@ -6116,7 +6192,7 @@
             }
         },
         {
-            "parentIndex": 58,
+            "parentIndex": 59,
             "position": {
                 "x": 0.0,
                 "y": -1.8507726192474365,
@@ -6167,7 +6243,7 @@
             }
         },
         {
-            "parentIndex": 58,
+            "parentIndex": 59,
             "position": {
                 "x": 1.266754150390625,
                 "y": -0.037741899490356445,
@@ -6218,7 +6294,7 @@
             }
         },
         {
-            "parentIndex": 59,
+            "parentIndex": 60,
             "position": {
                 "x": 0.0,
                 "y": -3.847951650619507,
@@ -6269,7 +6345,7 @@
             }
         },
         {
-            "parentIndex": 59,
+            "parentIndex": 60,
             "position": {
                 "x": 4.951006889343262,
                 "y": 1.859483003616333,
@@ -6320,7 +6396,7 @@
             }
         },
         {
-            "parentIndex": 59,
+            "parentIndex": 60,
             "position": {
                 "x": -1.7166036367416382,
                 "y": -0.60188889503479,
@@ -6371,7 +6447,7 @@
             }
         },
         {
-            "parentIndex": 70,
+            "parentIndex": 71,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -6433,7 +6509,7 @@
             }
         },
         {
-            "parentIndex": 69,
+            "parentIndex": 70,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -6495,7 +6571,7 @@
             }
         },
         {
-            "parentIndex": 71,
+            "parentIndex": 72,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -6546,7 +6622,7 @@
             }
         },
         {
-            "parentIndex": 72,
+            "parentIndex": 73,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -6597,7 +6673,7 @@
             }
         },
         {
-            "parentIndex": 73,
+            "parentIndex": 74,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -6648,7 +6724,7 @@
             }
         },
         {
-            "parentIndex": 74,
+            "parentIndex": 75,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -6699,7 +6775,7 @@
             }
         },
         {
-            "parentIndex": 83,
+            "parentIndex": 84,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -6750,7 +6826,7 @@
             }
         },
         {
-            "parentIndex": 84,
+            "parentIndex": 85,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -6801,7 +6877,7 @@
             }
         },
         {
-            "parentIndex": 97,
+            "parentIndex": 98,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -6863,7 +6939,7 @@
             }
         },
         {
-            "parentIndex": 98,
+            "parentIndex": 99,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -6925,7 +7001,7 @@
             }
         },
         {
-            "parentIndex": 99,
+            "parentIndex": 100,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -6976,7 +7052,7 @@
             }
         },
         {
-            "parentIndex": 100,
+            "parentIndex": 101,
             "position": {
                 "x": 0.0,
                 "y": 0.0,

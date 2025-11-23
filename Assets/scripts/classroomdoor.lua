@@ -1,7 +1,7 @@
 local opening = true
 local moving = true
 local openingDistance = 0.6
-local openSpeed = 0.3
+local openSpeed = 2.4
 local currentOpeningDistance = 0.0
 local openingDoorEntity
 local closingDoorEntity

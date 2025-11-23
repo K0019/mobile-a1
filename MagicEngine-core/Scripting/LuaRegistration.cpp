@@ -156,11 +156,11 @@ SCRIPT_GENERATE_PROPERTY_FUNCS(float, GetCurrentDodgeTime, SetCurrentDodgeTime)
 SCRIPT_GENERATE_PROPERTY_FUNCS(float, GetCurrentDodgeCooldown, SetCurrentDodgeCooldown)
 
 //functions
-void Dodge(const Vec2& v) { GetHandle()->Dodge(v); }
-void RotateTowards(const Vec2& v) { GetHandle()->RotateTowards(v); }
-void SetMovementVectorLua(const Vec2& v) { GetHandle()->SetMovementVector(v); }
+void Dodge(const Vec2 v) { GetHandle()->Dodge(v); }
+void RotateTowards(const Vec2 v) { GetHandle()->RotateTowards(v); }
+void SetMovementVectorLua(const Vec2 v) { GetHandle()->SetMovementVector(v); }
 void DropItem() { GetHandle()->DropItem(); }
-void Throw(const Vec3& dir) { GetHandle()->Throw(dir); }
+void Throw(const Vec3 dir) { GetHandle()->Throw(dir); }
 void Attack() { GetHandle()->Attack(); }
 SCRIPT_GENERATE_COMP_WRAPPER_END()
 
