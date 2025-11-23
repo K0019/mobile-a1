@@ -295,7 +295,8 @@ namespace internal
             std::string materialname = { materialNamesBuffer.data() + meshInfo.materialNameIndex };
             to_lower(materialname);
 
-            std::string constructedPathToMaterial = "compiledassets/materials/" + materialname + ".material";
+            //std::string constructedPathToMaterial = filepath + "/" + materialname + ".material";
+            std::string constructedPathToMaterial = VFS::JoinPath(VFS::GetParentPath(filepath), materialname + ".material");
             size_t materialHash { 0 };
             const auto& fpManager = ST<MagicResourceManager>::Get()->INTERNAL_GetFilepathsManager();
             auto materialEntry = fpManager.GetFileEntry(constructedPathToMaterial);

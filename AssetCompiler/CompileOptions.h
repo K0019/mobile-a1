@@ -27,6 +27,20 @@ All rights reserved.
 
 namespace compiler
 {
+    struct CompilationResult
+    {
+        bool success = true;
+
+        // Paths to the newly created files.
+        std::vector<std::filesystem::path> createdMeshFiles;
+        std::vector<std::filesystem::path> createdMaterialFiles;
+        std::vector<std::filesystem::path> createdTextureFiles;
+        std::vector<std::filesystem::path> createdAnimationFiles;
+
+        std::vector<std::string> warnings;
+        std::vector<std::string> errors;
+    };
+
     // This entire section is useless right now.
     // Thank you for the inspiration though xtexture.plugin  \o LIONant o/
     enum BUILD_PLATFORM : std::uint8_t
@@ -99,6 +113,7 @@ namespace compiler
     // Options
     struct GeneralOptions
     {
+        std::filesystem::path assetsRoot;   // our case would usually be ../../../Assets (in editor)
         std::filesystem::path inputPath;
         std::filesystem::path outputPath;
     };
@@ -124,7 +139,7 @@ namespace compiler
 
         float quality = 0.05f; // 0.0f-1.0f
 
-        bool generateMipmaps;
+        bool generateMipmaps = false;
         int mipCount = 1;
 
         // Tiling and Wrapping requires their own settings
