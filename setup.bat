@@ -10,6 +10,7 @@ REM Configuration - set defaults
 if "%BUILD_TYPE%"=="" set BUILD_TYPE=Release
 if "%ANDROID_PLATFORM%"=="" set ANDROID_PLATFORM=30
 if "%ANDROID_ABIS%"=="" set ANDROID_ABIS=arm64-v8a,x86_64
+set "COMPILE_ASSETS=ON"
 
 REM Parse command line arguments
 set "TARGET="
@@ -118,6 +119,7 @@ echo   3) Windows (Desktop) - RelWithDebInfo
 echo   4) Android - Debug
 echo   5) Android - Release
 echo   6) Android - RelWithDebInfo
+echo   8) School PC Lmao (Windows Debug - No Asset Compiler)
 echo   7) Exit
 echo.
 set /p "choice=Enter choice (1-7): "
@@ -155,6 +157,12 @@ if "%choice%"=="6" (
 if "%choice%"=="7" (
     echo Exiting...
     exit /b 0
+)
+if "%choice%"=="8" (
+    set "TARGET=windows"
+    set "BUILD_TYPE=Debug"
+    set "COMPILE_ASSETS=OFF"
+    goto :eof
 )
 echo Invalid choice. Please enter 1-7.
 goto :show_menu
@@ -204,7 +212,7 @@ echo [INFO] Building engine for Windows (%BUILD_TYPE%)...
 if not exist "build" mkdir build
 cd build
 
-cmake .. -DCMAKE_BUILD_TYPE=%BUILD_TYPE% -DCMAKE_TOOLCHAIN_FILE="%CD%\..\extern\vcpkg\scripts\buildsystems\vcpkg.cmake"
+cmake .. -DCMAKE_BUILD_TYPE=%BUILD_TYPE% -DBUILD_ASSET_COMPILER=%COMPILE_ASSETS% -DCMAKE_TOOLCHAIN_FILE="%CD%\..\extern\vcpkg\scripts\buildsystems\vcpkg.cmake"
 if errorlevel 1 (
     echo [ERROR] CMake configuration failed
     cd ..

@@ -7,7 +7,9 @@ set_target_properties(compressonator PROPERTIES
 )
 
 # ----- AssetCompiler Target -----
-add_library(AssetCompiler)
+#add_library(AssetCompiler)
+# Oh no!!! school pc cannot work with compressonator for some reason!!! make the compiler an .exe instead!
+add_executable(AssetCompiler)
 
 file(GLOB_RECURSE ASSET_COMPILER_IMPLEMENTATION_FILES CONFIGURE_DEPENDS "*.cpp")
 file(GLOB_RECURSE ASSET_COMPILER_HEADER_FILES CONFIGURE_DEPENDS "*.h")
@@ -35,10 +37,11 @@ target_link_libraries(AssetCompiler PRIVATE
 )
 
 install(TARGETS AssetCompiler 
-    EXPORT MagicEngineTargets
-    ARCHIVE DESTINATION lib
-    LIBRARY DESTINATION lib
     RUNTIME DESTINATION bin
+)
+
+set_target_properties(AssetCompiler PROPERTIES 
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/Tools"
 )
 
 engine_set_source_groups(AssetCompiler)

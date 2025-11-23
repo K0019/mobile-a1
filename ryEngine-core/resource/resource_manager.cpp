@@ -1171,8 +1171,25 @@ namespace Resource
   std::string ResourceManager::generateMaterialCacheKey(const ProcessedMaterial& material)
   {
     size_t hash = std::hash<std::string>{}(material.name);
-    hash ^= std::hash<float>{}(material.metallicFactor) + 0x9e3779b9 + (hash << 6) + (hash >> 2);
-    hash ^= std::hash<float>{}(material.roughnessFactor) + 0x9e3779b9 + (hash << 6) + (hash >> 2);
+    
+    auto hash_combine = [&hash](size_t new_hash) {
+        hash ^= new_hash + 0x9e3779b9 + (hash << 6) + (hash >> 2);
+    };
+
+    auto hash_texture_slot = [&](const MaterialTexture& matTex) {
+        std::string key = TextureCacheKeyGenerator::generateKey(matTex.source);
+        hash_combine(std::hash<std::string>{}(key));
+    };
+
+    hash_combine(std::hash<float>{}(material.metallicFactor));
+    hash_combine(std::hash<float>{}(material.roughnessFactor));
+
+    hash_texture_slot(material.baseColorTexture);
+    hash_texture_slot(material.metallicRoughnessTexture);
+    hash_texture_slot(material.normalTexture);
+    hash_texture_slot(material.emissiveTexture);
+    hash_texture_slot(material.occlusionTexture);
+
     return material.name + "_" + std::to_string(hash);
   }
 

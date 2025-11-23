@@ -24,13 +24,16 @@ All rights reserved.
 // We then delegate the importing of these .mesh and .ktx2 files to those respective importers.
 // Therefore, we need to call the resource importer again to process those files.
 #ifdef GLFW
-#include "SceneCompiler.h"
+//#include "SceneCompiler.h"
+#include "Engine/Resources/AssetCompilerInterface.h"
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
 #endif
+
 #include "FilepathConstants.h"
 #include "Engine/Resources/ResourceImporter.h"
+#include "Engine/Resources/AssetCompilerInterface.h"
 
 #include "tools/assets/io/import_config.h"
 #include "tools/assets/io/material_loader.h"
@@ -202,39 +205,47 @@ namespace internal {
 bool ResourceFiletypeImporterFBX::Import([[maybe_unused]] const std::string& assetRelativeFilepath)
 {
 #ifdef GLFW
-    // Set up compile options
-    compiler::SceneCompiler compiler;
-    compiler::CompilerOptions options;
-    options.general.inputPath = VFS::ConvertVirtualToPhysical(assetRelativeFilepath);
-    options.general.outputPath = VFS::ConvertVirtualToPhysical("CompiledAssets");
-
-    // Ask the compiler to compile the .fbx into .mesh and .ktx2
-    compiler::CompilationResult result = compiler.Compile(options);
-    if (!result.success)
-        return false;
-
-    // CompilationResult holds physical paths. Convert them back to virtual paths before
-    // passing them to the ResourceImporter to comply with VFS
-    // Delegate importing of the created files to their respective importers
-    for (const auto& path : result.createdTextureFiles)
-    {
-        ResourceImporter::Import(VFS::ConvertPhysicalToVirtual(path.string()));
-    }
-    for (const auto& path : result.createdMaterialFiles)
-    {
-        ResourceImporter::Import(VFS::ConvertPhysicalToVirtual(path.string()));
-    }
-    for (const auto& path : result.createdAnimationFiles)
-    {
-        ResourceImporter::Import(VFS::ConvertPhysicalToVirtual(path.string()));
-    }
-    for (const auto& path : result.createdMeshFiles)
-    {
-        ResourceImporter::Import(VFS::ConvertPhysicalToVirtual(path.string()));
-    }
-    return true;
+    CompileAndImportAsset(assetRelativeFilepath);
 #else
 	CONSOLE_LOG_UNIMPLEMENTED() << "Importing FBX files is not implemented for this platform.";
     return false;
 #endif
+    return false;
 }
+
+
+
+#if 0
+// Set up compile options
+compiler::SceneCompiler compiler;
+compiler::CompilerOptions options;
+options.general.assetsRoot = std::filesystem::path(Filepaths::assets);
+options.general.inputPath = VFS::ConvertVirtualToPhysical(assetRelativeFilepath);
+options.general.outputPath = VFS::ConvertVirtualToPhysical("CompiledAssets");
+
+// Ask the compiler to compile the .fbx into .mesh and .ktx2
+compiler::CompilationResult result = compiler.Compile(options);
+if (!result.success)
+return false;
+
+// CompilationResult holds physical paths. Convert them back to virtual paths before
+// passing them to the ResourceImporter to comply with VFS
+// Delegate importing of the created files to their respective importers
+for (const auto& path : result.createdTextureFiles)
+{
+    ResourceImporter::Import(VFS::ConvertPhysicalToVirtual(path.string()));
+}
+for (const auto& path : result.createdMaterialFiles)
+{
+    ResourceImporter::Import(VFS::ConvertPhysicalToVirtual(path.string()));
+}
+for (const auto& path : result.createdAnimationFiles)
+{
+    ResourceImporter::Import(VFS::ConvertPhysicalToVirtual(path.string()));
+}
+for (const auto& path : result.createdMeshFiles)
+{
+    ResourceImporter::Import(VFS::ConvertPhysicalToVirtual(path.string()));
+}
+return true;
+#endif
