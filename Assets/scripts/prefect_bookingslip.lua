@@ -26,6 +26,11 @@ function update(entity)
     local worldRot = transform.worldRotation
 
     worldRot.y = worldRot.y + rotationSpeed * Magic:DeltaTime()
+
+    if(worldRot.y >= 360.0) then
+        worldRot.y = worldRot.y - 360.0  
+    end
+
     transform.worldRotation = worldRot
 
     local targetTransform = targetEntity.transform
@@ -66,10 +71,10 @@ function update(entity)
     transform.worldPosition = worldPos
 end
 
-function OnTriggerEnter(entity)
+function OnTriggerStay(entity)
     local nameComp = entity:GetNameComponent();
     if nameComp:Exists() then
-        if(nameComp.name == "Player") then
+        if nameComp.name == "Player" or lifeTime<=0.0 then
             local newExplosion = Magic.PrefabManager.LoadPrefab("explosion")
             
             local explosionTransform = newExplosion.transform

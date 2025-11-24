@@ -31,9 +31,9 @@ NODE_STATUS L_Boss_Prefect_BookingSlips::OnUpdate([[maybe_unused]] ecs::EntityHa
             
                 // Spawn the booking slip and set the entity reference
                 ST<Scheduler>::Get()->Add([enemyComp, entity]() {
-                    ecs::EntityHandle spawnedSlip = ST<PrefabManager>::Get()->LoadPrefab("explosion"); 
-                    //ecs::EntityHandle spawnedSlip = ST<PrefabManager>::Get()->LoadPrefab("prefect_bookingslip"); 
-                    //spawnedSlip->GetComp<EntityReferenceHolderComponent>()->SetEntity(0, enemyComp->playerReference);
+                    //ecs::EntityHandle spawnedSlip = ST<PrefabManager>::Get()->LoadPrefab("explosion"); 
+                    ecs::EntityHandle spawnedSlip = ST<PrefabManager>::Get()->LoadPrefab("prefect_bookingslip"); 
+                    spawnedSlip->GetComp<EntityReferenceHolderComponent>()->SetEntity(0, enemyComp->playerReference);
 
                     spawnedSlip->GetTransform().SetWorldPosition(entity->GetTransform().GetWorldPosition());
                     });
