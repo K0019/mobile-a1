@@ -5,6 +5,7 @@
 #include "Game/Health.h"
 #include "Boss_Prefect_Util.h"
 #include "Engine/PrefabManager.h"
+#include "Components/EntityReferenceHolder.h"
 
 int L_Boss_Prefect_BookingSlips::burstCount = 3;
 float L_Boss_Prefect_BookingSlips::burstDelay = 0.25f;
@@ -28,8 +29,14 @@ NODE_STATUS L_Boss_Prefect_BookingSlips::OnUpdate([[maybe_unused]] ecs::EntityHa
                 ++currentBurstCount;
                 currentBurstDelay = burstDelay;
             
-                // TODO: DO BURST SPAWN HERE
-                ecs::EntityHandle spawnedSlip = ST<PrefabManager>::Get()->LoadPrefab("prefect_bookingslip");
+                // Spawn the booking slip and set the entity reference
+                ST<Scheduler>::Get()->Add([enemyComp, entity]() {
+                    ecs::EntityHandle spawnedSlip = ST<PrefabManager>::Get()->LoadPrefab("explosion"); 
+                    //ecs::EntityHandle spawnedSlip = ST<PrefabManager>::Get()->LoadPrefab("prefect_bookingslip"); 
+                    //spawnedSlip->GetComp<EntityReferenceHolderComponent>()->SetEntity(0, enemyComp->playerReference);
+
+                    spawnedSlip->GetTransform().SetWorldPosition(entity->GetTransform().GetWorldPosition());
+                    });
 
             
                 if (currentBurstCount >= burstCount)
