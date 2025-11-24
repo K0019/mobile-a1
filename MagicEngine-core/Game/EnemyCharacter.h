@@ -45,6 +45,7 @@ public:
 	//~EnemyComponent();
 
 	EntityReference playerReference;
+	float combatRange;
 
 	void Serialize(Serializer& writer) const override;
 	void Deserialize(Deserializer& reader) override;
@@ -63,6 +64,7 @@ private:
 
 property_begin(EnemyComponent)
 {
+	property_var(combatRange)
 }
 property_vend_h(EnemyComponent)
 

@@ -29,6 +29,7 @@ All rights reserved.
 #include "FollowPlayerUsingNavMesh.h"
 #include "LeafLookForPlayer.h"
 #include "LeafAttackPlayer.h"
+#include "DecoWantToMove.h"
 #include "BehaviourTreeFactory.h"
 #include "Engine/Input.h"
 
@@ -46,7 +47,7 @@ BT_REGISTER_NODE(L_MoveTowardsPlayer, "L_MoveTowardsPlayer")
 BT_REGISTER_NODE(L_LookForPlayer, "L_LookForPlayer")
 BT_REGISTER_NODE(L_AttackPlayer, "L_AttackPlayer")
 BT_REGISTER_NODE(L_FollowPlayerUsingNavMesh, "L_FollowPlayerUsingNavMesh")
-
+BT_REGISTER_NODE(D_WantToMove, "D_WantToMove")
 
 BehaviorNode::BehaviorNode()
     : status{ NODE_STATUS::READY }

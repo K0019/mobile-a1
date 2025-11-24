@@ -6,16 +6,12 @@
             "nodeLevel": 0
         },
         {
-            "nodeType": "L_LookForPlayer",
+            "nodeType": "D_WantToMove",
             "nodeLevel": 1
         },
         {
-            "nodeType": "L_MoveTowardsPlayer",
-            "nodeLevel": 1
-        },
-        {
-            "nodeType": "L_AttackPlayer",
-            "nodeLevel": 1
+            "nodeType": "L_FollowPlayerUsingNavMesh",
+            "nodeLevel": 2
         }
     ]
 }

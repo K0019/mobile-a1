@@ -32,16 +32,19 @@ EnemyComponent::EnemyComponent()
 
 void EnemyComponent::Serialize(Serializer& writer) const
 {
+	ISerializeable::Serialize(writer);
 	writer.Serialize("playerReference", playerReference);
 }
 
 void EnemyComponent::Deserialize(Deserializer& reader)
 {
+	ISerializeable::Deserialize(reader);
 	reader.Deserialize("playerReference", &playerReference);
 }
 
 void EnemyComponent::EditorDraw()
 {
+	gui::VarDefault("Combat Range", &combatRange);
 	playerReference.EditorDraw("Player");
 }
 

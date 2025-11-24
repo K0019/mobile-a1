@@ -20,7 +20,6 @@ NODE_STATUS L_FollowPlayerUsingNavMesh::OnUpdate([[maybe_unused]] ecs::EntityHan
     if (!characterComp)
         return NODE_STATUS::FAILURE;
 
-
     ecs::EntityHandle player = enemyComp->playerReference;// ecs::FindEntityByName("Player");
     if (!player)
         return NODE_STATUS::FAILURE;
@@ -35,18 +34,8 @@ NODE_STATUS L_FollowPlayerUsingNavMesh::OnUpdate([[maybe_unused]] ecs::EntityHan
     // move towards player
     agentComp->SetTargetPos(playerPos);
 
-    agentComp->SetActive(true);
-
-    auto path{ agentComp->FindPath() };
-    if (path.corners.size() > 0)
-    {
-        Vec3 dir = path.corners[0] - enemyPos;
-        dir.y = 0.0f;
-
-        // move towards player
-        characterComp->SetMovementVector(Vec2(dir.x, dir.z));
-
-    }
+    //Rotate towards player
+    characterComp->RotateTowards(Vec2(playerPos.x - enemyPos.x, playerPos.z - enemyPos.z));
     
     return NODE_STATUS::SUCCESS;
 }

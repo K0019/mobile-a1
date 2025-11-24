@@ -133,7 +133,9 @@
                     },
                     "flags": {
                         "_majorityTrue": true,
-                        "_except": []
+                        "_except": [
+                            "Is Trigger"
+                        ]
                     }
                 }
             }
@@ -292,15 +294,15 @@
                             "angle": 10.0
                         },
                         "speed": 1.7999999523162842,
-                        "acceleration": 0.0,
-                        "baseOffset": 0.0,
-                        "active": true
+                        "acceleration": 1000.0,
+                        "baseOffset": -0.20000000298023224,
+                        "active": false
                     }
                 },
                 "5725819782531291880": {
                     "_active": true,
                     "behaviorTree": {
-                        "btName": "followplayerusingnavmesh"
+                        "btName": "enemybase"
                     }
                 },
                 "6766054303456732338": {
@@ -331,13 +333,14 @@
                 },
                 "16763493199777387366": {
                     "_active": true,
+                    "combatRange": 1.0,
                     "playerReference": {
                         "entityUid": 51797992787031769
                     }
                 },
                 "17579205194823809952": {
                     "_active": true,
-                    "moveSpeed": 1.7999999523162842,
+                    "moveSpeed": 0.0,
                     "rotateSpeed": 14400.0,
                     "stunTimePerHit": 1.0,
                     "groundFriction": 0.75,
@@ -365,7 +368,9 @@
                     },
                     "flags": {
                         "_majorityTrue": true,
-                        "_except": []
+                        "_except": [
+                            "Is Trigger"
+                        ]
                     }
                 }
             }
@@ -762,7 +767,9 @@
                     },
                     "flags": {
                         "_majorityTrue": true,
-                        "_except": []
+                        "_except": [
+                            "Is Trigger"
+                        ]
                     }
                 }
             }
@@ -1282,6 +1289,7 @@
                 },
                 "16763493199777387366": {
                     "_active": true,
+                    "combatRange": -118948757504.0,
                     "playerReference": {
                         "entityUid": 0
                     }
@@ -1397,7 +1405,9 @@
                     },
                     "flags": {
                         "_majorityTrue": true,
-                        "_except": []
+                        "_except": [
+                            "Is Trigger"
+                        ]
                     }
                 }
             }
@@ -1457,7 +1467,9 @@
                     },
                     "flags": {
                         "_majorityTrue": true,
-                        "_except": []
+                        "_except": [
+                            "Is Trigger"
+                        ]
                     }
                 }
             }
@@ -1549,7 +1561,9 @@
                     },
                     "flags": {
                         "_majorityTrue": true,
-                        "_except": []
+                        "_except": [
+                            "Is Trigger"
+                        ]
                     }
                 }
             }
@@ -1598,7 +1612,9 @@
                     },
                     "flags": {
                         "_majorityTrue": true,
-                        "_except": []
+                        "_except": [
+                            "Is Trigger"
+                        ]
                     }
                 }
             }
@@ -1647,7 +1663,9 @@
                     },
                     "flags": {
                         "_majorityTrue": true,
-                        "_except": []
+                        "_except": [
+                            "Is Trigger"
+                        ]
                     }
                 }
             }
@@ -1696,7 +1714,9 @@
                     },
                     "flags": {
                         "_majorityTrue": true,
-                        "_except": []
+                        "_except": [
+                            "Is Trigger"
+                        ]
                     }
                 }
             }
@@ -1745,7 +1765,9 @@
                     },
                     "flags": {
                         "_majorityTrue": true,
-                        "_except": []
+                        "_except": [
+                            "Is Trigger"
+                        ]
                     }
                 }
             }
@@ -1794,7 +1816,9 @@
                     },
                     "flags": {
                         "_majorityTrue": true,
-                        "_except": []
+                        "_except": [
+                            "Is Trigger"
+                        ]
                     }
                 }
             }
@@ -1843,7 +1867,9 @@
                     },
                     "flags": {
                         "_majorityTrue": true,
-                        "_except": []
+                        "_except": [
+                            "Is Trigger"
+                        ]
                     }
                 }
             }
@@ -1892,7 +1918,9 @@
                     },
                     "flags": {
                         "_majorityTrue": true,
-                        "_except": []
+                        "_except": [
+                            "Is Trigger"
+                        ]
                     }
                 }
             }
@@ -2199,7 +2227,9 @@
                     },
                     "flags": {
                         "_majorityTrue": true,
-                        "_except": []
+                        "_except": [
+                            "Is Trigger"
+                        ]
                     }
                 }
             }
@@ -2248,7 +2278,9 @@
                     },
                     "flags": {
                         "_majorityTrue": true,
-                        "_except": []
+                        "_except": [
+                            "Is Trigger"
+                        ]
                     }
                 }
             }
@@ -2297,7 +2329,9 @@
                     },
                     "flags": {
                         "_majorityTrue": true,
-                        "_except": []
+                        "_except": [
+                            "Is Trigger"
+                        ]
                     }
                 }
             }
@@ -2466,7 +2500,9 @@
                     },
                     "flags": {
                         "_majorityTrue": true,
-                        "_except": []
+                        "_except": [
+                            "Is Trigger"
+                        ]
                     }
                 }
             }
@@ -2515,7 +2551,9 @@
                     },
                     "flags": {
                         "_majorityTrue": true,
-                        "_except": []
+                        "_except": [
+                            "Is Trigger"
+                        ]
                     }
                 }
             }
@@ -2564,7 +2602,9 @@
                     },
                     "flags": {
                         "_majorityTrue": true,
-                        "_except": []
+                        "_except": [
+                            "Is Trigger"
+                        ]
                     }
                 }
             }
@@ -2613,7 +2653,9 @@
                     },
                     "flags": {
                         "_majorityTrue": true,
-                        "_except": []
+                        "_except": [
+                            "Is Trigger"
+                        ]
                     }
                 }
             }

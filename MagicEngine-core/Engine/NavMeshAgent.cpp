@@ -189,11 +189,13 @@ namespace navmesh
 	{
 		agentData.active = val;
 		dtCrowdAgentParams params{};
+		if (agent)
+			params = agent->params;
 
 		params.radius = agentData.param.radius;
 		params.height = agentData.param.height;
 		params.maxSpeed = val ? agentData.speed : 0.f;
-		params.maxAcceleration = val ? agentData.acceleration : 0.f;
+		params.maxAcceleration = agentData.acceleration;
 
 		params.updateFlags = DT_CROWD_ANTICIPATE_TURNS | DT_CROWD_SEPARATION | DT_CROWD_OBSTACLE_AVOIDANCE;
 		SetAgentParam(params);
@@ -225,6 +227,8 @@ namespace navmesh
 			return;
 
 		dtCrowdAgentParams params{};
+		if (agent)
+			params = agent->params;
 
 		params.radius = agentData.param.radius;
 		params.height = agentData.param.height;
@@ -234,6 +238,7 @@ namespace navmesh
 		params.updateFlags = DT_CROWD_ANTICIPATE_TURNS | DT_CROWD_SEPARATION | DT_CROWD_OBSTACLE_AVOIDANCE;
 
 		crowdSystem->updateAgentParameters(agentID, &params);
+
 	}
 
 	void NavMeshAgentComp::SetAgentParam(dtCrowdAgentParams const& param)
@@ -242,7 +247,7 @@ namespace navmesh
 		if (!agentSystem)
 			return;
 
-		auto crowdSystem{ agentSystem->GetCrowdSystem() };
+		dtCrowd* crowdSystem{ agentSystem->GetCrowdSystem() };
 		if (!crowdSystem)
 			return;
 
@@ -292,16 +297,15 @@ namespace navmesh
 			
 			params.radius = compIter->GetRadius();
 			params.height = compIter->GetHeight();
+			params.maxAcceleration = compIter->GetMaxAcceleration();
 
 			if (compIter->IsActive())
 			{
 				params.maxSpeed = compIter->GetMaxSpeed();
-				params.maxAcceleration = compIter->GetMaxAcceleration();
 			}
 			else
 			{
 				params.maxSpeed = 0.f;
-				params.maxAcceleration = 0.f;
 			}
 
 			params.updateFlags = DT_CROWD_ANTICIPATE_TURNS | DT_CROWD_SEPARATION | DT_CROWD_OBSTACLE_AVOIDANCE;
@@ -346,7 +350,7 @@ namespace navmesh
 		{
 			if (!compIter->GetAgent())
 				continue;
-
+			CONSOLE_LOG(LEVEL_DEBUG) << compIter->GetAgent()->params.maxSpeed;
 			Vec3 pos{ compIter->GetAgent()->npos[0], compIter->GetAgent()->npos[1] + compIter->GetBaseOffset(), compIter->GetAgent()->npos[2]};
 			compIter.GetEntity()->GetTransform().SetWorldPosition(pos);
 		}
