@@ -54,64 +54,60 @@ struct PushConstants {
 namespace Lighting
 {
     static constexpr uint32_t CLUSTER_DIM_X = 16;
-    static constexpr uint32_t CLUSTER_DIM_Y = 9; 
+    static constexpr uint32_t CLUSTER_DIM_Y = 8;
     static constexpr uint32_t CLUSTER_DIM_Z = 24;
     static constexpr uint32_t TOTAL_CLUSTERS = CLUSTER_DIM_X * CLUSTER_DIM_Y * CLUSTER_DIM_Z;
-    static constexpr uint32_t MAX_LIGHTS_PER_CLUSTER = 32; // Reduced from 1024
-    
-    // Reasonable buffer sizing
-    static constexpr uint32_t MAX_TOTAL_LIGHT_INDICES = 16384;
-  // GPU light structure - 32 bytes aligned
-  struct GPULight
-  {
-    vec3 position;      // World space position
-    float range;        // Light range (converted from attenuation)
-    vec3 color;         // RGB color * intensity  
-    uint32_t type;      // LightType enum value
-    vec3 direction;     // Normalized direction (spot/directional)
-    float spotAngle;    // Cos of outer cone angle for spots
-    // Total: 32 bytes
-  };
+    static constexpr uint32_t MAX_ITEMS_PER_CLUSTER = 256;
+    static constexpr uint32_t MAX_TOTAL_ITEMS = 65536;
 
-  // 3D cluster bounds in view space
-  struct ClusterBounds
-  {
-    vec3 minBounds;
-    float pad0;
-    vec3 maxBounds; 
-    float pad1;
-  };
+    // GPU light structure - 32 bytes aligned
+    struct GPULight
+    {
+        vec3 position; // World space position
+        float range; // Light range (converted from attenuation)
+        vec3 color; // RGB color * intensity
+        uint32_t type; // LightType enum value
+        vec3 direction; // Normalized direction (spot/directional)
+        float spotAngle; // Cos of outer cone angle for spots
+        // Total: 32 bytes
+    };
 
-  // Per-cluster light list
-  struct LightList
-  {
-    uint32_t offset;    // Start index in light indices buffer
-    uint32_t count;     // Number of lights affecting this cluster
-  };
+    // 3D cluster bounds in view space
+    struct ClusterBounds
+    {
+        vec3 minBounds;
+        float pad0;
+        vec3 maxBounds;
+        float pad1;
+    };
 
-  // Packed lighting buffer structure (following OIT pattern)
-  struct LightingBuffer
-  {
-    uint64_t bufferLights;           // GPULight array buffer address
-    uint64_t bufferClusterBounds;    // ClusterBounds array buffer address  
-    uint64_t bufferLightIndices;     // Light indices buffer address
-    uint64_t bufferLightLists;       // LightList array buffer address
-    uint32_t totalLightCount;        // Number of active lights
-    uint32_t clusterDimX;            // Cluster grid dimensions
-    uint32_t clusterDimY;
-    uint32_t clusterDimZ;
-    float zNear;                     // Camera near/far planes
-    float zFar;
-    vec2 screenDims;                 // Screen dimensions
-    uint32_t pad0, pad1;             // Align to 64 bytes
-    mat4 viewMatrix;
-  };
+    // Per-cluster item list entry
+    struct Cluster
+    {
+        uint32_t offset; // Start index in the global item list buffer
+        uint32_t count; // Number of items affecting this cluster
+    };
 
-  constexpr const char* LIGHT_BUFFER = "LightBuffer";
-  constexpr const char* CLUSTER_BOUNDS = "ClusterBounds";
-  constexpr const char* LIGHT_INDICES = "LightIndices";
-  constexpr const char* LIGHT_LISTS = "LightLists";
-  constexpr const char* LIGHTING_BUFFER = "Lighting_Buffer";
+    // Packed lighting buffer structure (following OIT pattern)
+    struct LightingBuffer
+    {
+        uint64_t bufferLights; // GPULight array buffer address
+        uint64_t bufferClusterBounds; // ClusterBounds array buffer address
+        uint64_t bufferItemList; // Unified item list buffer address
+        uint64_t bufferClusters; // Per-cluster offsets/counts
+        vec2 screenDims; // Screen dimensions
+        float zNear; // Camera near/far planes
+        float zFar;
+        uint32_t totalLightCount; // Number of active lights
+        uint32_t pad0 = 0, pad1 = 0, pad2 = 0; // Align view matrix
+        mat4 viewMatrix;
+    };
+
+    constexpr const char* LIGHT_BUFFER = "LightBuffer";
+    constexpr const char* CLUSTER_BOUNDS = "ClusterBounds";
+    constexpr const char* ITEM_LIST = "ItemList";
+    constexpr const char* CLUSTER_DATA = "ClusterData";
+    constexpr const char* LIGHTING_BUFFER = "Lighting_Buffer";
 } // namespace Lighting
 
 struct SceneRenderParams

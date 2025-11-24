@@ -340,88 +340,57 @@ void SceneRenderFeature::SetupPasses(internal::RenderPassBuilder& passBuilder)
     ExecuteCullingPass(ctx);
   });
 
-  passBuilder.CreatePass().
-    UseResource(Lighting::CLUSTER_BOUNDS, AccessType::Write).
-    UseResource(Lighting::LIGHTING_BUFFER, AccessType::Read).
-    UseResource(RenderResources::SCENE_COLOR, AccessType::Read).
-    SetPriority(
-      internal::RenderPassBuilder::PassPriority::LightCulling).
-    AddGenericPass(
-      "ClusterBoundsGeneration",
-      [this](internal::ExecutionContext& ctx)
-  {
-    executeClusterBoundsGeneration(ctx);
-  });
-
+  passBuilder.CreatePass().UseResource(Lighting::CLUSTER_BOUNDS, AccessType::Write).
+      UseResource(Lighting::LIGHTING_BUFFER, AccessType::Read).
+      UseResource(RenderResources::SCENE_COLOR, AccessType::Read).SetPriority(
+          internal::RenderPassBuilder::PassPriority::LightCulling).AddGenericPass(
+              "ClusterBoundsGeneration", [this](internal::ExecutionContext& ctx)
+              {
+                  executeClusterBoundsGeneration(ctx);
+              });
   // Light Culling Pass
   passBuilder.CreatePass().UseResource(Lighting::LIGHT_BUFFER, AccessType::Read).
-    UseResource(Lighting::CLUSTER_BOUNDS, AccessType::Read).
-    UseResource(Lighting::LIGHT_INDICES, AccessType::Write).
-    UseResource(Lighting::LIGHT_LISTS, AccessType::Write).SetPriority(
-      internal::RenderPassBuilder::PassPriority::LightCulling).
-    AddGenericPass(
-      "LightCulling",
-      [this](internal::ExecutionContext& ctx)
-  {
-    executeLightCulling(ctx);
-  });
-  // Calculate lighting buffer sizes
-  uint32_t lightBufferSize = Parameters::MAX_LIGHTS * sizeof(
-    Lighting::GPULight);
-  uint32_t clusterBoundsSize = Lighting::TOTAL_CLUSTERS * sizeof(
-    Lighting::ClusterBounds);
-  uint32_t lightIndicesSize = sizeof(uint32_t) +
-    Lighting::MAX_TOTAL_LIGHT_INDICES * sizeof(uint32_t);
-  uint32_t lightListsSize = Lighting::TOTAL_CLUSTERS * sizeof(
-    Lighting::LightList);
-
-  // Lighting Setup Pass - initialize lighting data
-  passBuilder.CreatePass().
-    UseResource(RenderResources::SCENE_COLOR, AccessType::Read).
-    DeclareTransientResource(
-      Lighting::LIGHT_BUFFER,
-      vk::BufferDesc
-      {
-        .usage = vk::BufferUsageBits_Storage,
-        .storage = vk::StorageType::HostVisible,
-        .size = lightBufferSize }).
-        DeclareTransientResource(
-          Lighting::CLUSTER_BOUNDS,
-          vk::BufferDesc
-          {
-            .usage = vk::BufferUsageBits_Storage,
-            .storage = vk::StorageType::Device,
-            .size = clusterBoundsSize }).
-            DeclareTransientResource(
-              Lighting::LIGHT_INDICES,
-              vk::BufferDesc
+      UseResource(Lighting::CLUSTER_BOUNDS, AccessType::Read).
+      UseResource(Lighting::ITEM_LIST, AccessType::Write).
+      UseResource(Lighting::CLUSTER_DATA, AccessType::Write).SetPriority(
+          internal::RenderPassBuilder::PassPriority::LightCulling).AddGenericPass(
+              "LightCulling", [this](internal::ExecutionContext& ctx)
               {
-                .usage = vk::BufferUsageBits_Storage,
-                .storage = vk::StorageType::Device,
-                .size = lightIndicesSize }).
-                DeclareTransientResource(
-                  Lighting::LIGHT_LISTS,
+                  executeLightCulling(ctx);
+              });
+  // Calculate lighting buffer sizes
+  uint32_t lightBufferSize = Parameters::MAX_LIGHTS * sizeof(Lighting::GPULight);
+  uint32_t clusterBoundsSize = Lighting::TOTAL_CLUSTERS * sizeof(Lighting::ClusterBounds);
+  uint32_t itemListSize = sizeof(uint32_t) + Lighting::MAX_TOTAL_ITEMS * sizeof(uint32_t);
+  uint32_t clusterDataSize = Lighting::TOTAL_CLUSTERS * sizeof(Lighting::Cluster);
+  // Lighting Setup Pass - initialize lighting data
+  passBuilder.CreatePass().UseResource(RenderResources::SCENE_COLOR, AccessType::Read).
+      DeclareTransientResource(Lighting::LIGHT_BUFFER, vk::BufferDesc{
+                                 .usage = vk::BufferUsageBits_Storage, .storage = vk::StorageType::HostVisible,
+                                 .size = lightBufferSize
+          }).DeclareTransientResource(Lighting::CLUSTER_BOUNDS, vk::BufferDesc{
+                                        .usage = vk::BufferUsageBits_Storage,
+                                        .storage = vk::StorageType::Device,
+                                        .size = clusterBoundsSize
+              }).DeclareTransientResource(
+                  Lighting::ITEM_LIST,
                   vk::BufferDesc
-                  {
-                    .usage = vk::BufferUsageBits_Storage,
-                    .storage = vk::StorageType::Device,
-                    .size = lightListsSize }).DeclareTransientResource(
-                      Lighting::LIGHTING_BUFFER,
-                      vk::BufferDesc{
-                        .usage = vk::BufferUsageBits_Storage,
-                        .storage = vk::StorageType::HostVisible,
-                        .size = sizeof(Lighting::LightingBuffer) }).UseResource(
-                          Lighting::LIGHT_BUFFER,
-                          AccessType::Write).UseResource(
-                            Lighting::LIGHTING_BUFFER,
-                            AccessType::Write).SetPriority(
-                              internal::RenderPassBuilder::PassPriority::EarlySetup).
-    AddGenericPass(
-      "LightingSetup",
-      [this](internal::ExecutionContext& ctx)
-  {
-    executeLightingSetup(ctx);
-  });
+                  { .usage = vk::BufferUsageBits_Storage, .storage = vk::StorageType::Device, .size = itemListSize }).
+      DeclareTransientResource(Lighting::CLUSTER_DATA, vk::BufferDesc{
+                                 .usage = vk::BufferUsageBits_Storage, .storage = vk::StorageType::Device,
+                                 .size = clusterDataSize
+          }).DeclareTransientResource(Lighting::LIGHTING_BUFFER, vk::BufferDesc{
+                                        .usage = vk::BufferUsageBits_Storage,
+                                        .storage = vk::StorageType::HostVisible,
+                                        .size = sizeof(Lighting::LightingBuffer)
+              }).UseResource(
+                  Lighting::LIGHT_BUFFER,
+                  AccessType::Write).UseResource(Lighting::LIGHTING_BUFFER, AccessType::Write).SetPriority(
+                      internal::RenderPassBuilder::PassPriority::EarlySetup).AddGenericPass(
+                          "LightingSetup", [this](internal::ExecutionContext& ctx)
+                          {
+                              executeLightingSetup(ctx);
+                          });
 
   {
     PassDeclarationInfo depthPrepassInfo;
@@ -1056,186 +1025,124 @@ void SceneRenderFeature::ExecuteTransparentPass(internal::ExecutionContext& ctx)
 
 void SceneRenderFeature::executeLightingSetup(internal::ExecutionContext& ctx)
 {
-  const auto& frameData = ctx.GetFrameData();
-  const auto& params = *static_cast<const SceneRenderParams*>(
-    GetParameterBlock_RT());
-
-  // Get all the lighting buffers
-  vk::BufferHandle lightBuffer = ctx.GetBuffer(Lighting::LIGHT_BUFFER);
-  vk::BufferHandle clusterBounds = ctx.GetBuffer(Lighting::CLUSTER_BOUNDS);
-  vk::BufferHandle lightIndices = ctx.GetBuffer(Lighting::LIGHT_INDICES);
-  vk::BufferHandle lightLists = ctx.GetBuffer(Lighting::LIGHT_LISTS);
-  vk::BufferHandle lightingBuffer = ctx.GetBuffer(Lighting::LIGHTING_BUFFER);
-
-  if(params.activeLightCount > 0)
-  {
-    void* mapped = ctx.GetvkContext().getMappedPtr(lightBuffer);
-    std::memcpy(
-      mapped,
-      params.lights.data(),
-      params.activeLightCount * sizeof(Lighting::GPULight));
-    ctx.GetvkContext().flushMappedMemory(
-      lightBuffer,
-      0,
-      params.activeLightCount * sizeof(Lighting::GPULight));
-  }
-
-  // Calculate screen dimensions and camera parameters
-  vk::TextureHandle sceneColor = ctx.GetTexture(RenderResources::SCENE_COLOR);
-  vk::Dimensions screenDims = ctx.GetvkContext().getDimensions(sceneColor);
-
-  // Create lighting metadata buffer
-  Lighting::LightingBuffer lightingData = {
-    .bufferLights = ctx.GetvkContext().gpuAddress(lightBuffer),
-    .bufferClusterBounds = ctx.GetvkContext().gpuAddress(clusterBounds),
-    .bufferLightIndices = ctx.GetvkContext().gpuAddress(lightIndices),
-    .bufferLightLists = ctx.GetvkContext().gpuAddress(lightLists),
-    .totalLightCount = params.activeLightCount,
-    .clusterDimX = Lighting::CLUSTER_DIM_X,
-    .clusterDimY = Lighting::CLUSTER_DIM_Y,
-    .clusterDimZ = Lighting::CLUSTER_DIM_Z,
-    .zNear = frameData.zNear,
-    .zFar = frameData.zFar,
-    .screenDims = vec2(
-      static_cast<float>(screenDims.width),
-      static_cast<float>(screenDims.height)),
-    .pad0 = 0,
-    .pad1 = 0,
-    .viewMatrix = frameData.viewMatrix
-  };
-
-  // Upload lighting metadata
-  void* mapped = ctx.GetvkContext().getMappedPtr(lightingBuffer);
-  std::memcpy(mapped, &lightingData, sizeof(Lighting::LightingBuffer));
-  ctx.GetvkContext().flushMappedMemory(
-    lightingBuffer,
-    0,
-    sizeof(Lighting::LightingBuffer));
+    const auto& frameData = ctx.GetFrameData();
+    const auto& params = *static_cast<const SceneRenderParams*>(GetParameterBlock_RT());
+    // Get all the lighting buffers
+    vk::BufferHandle lightBuffer = ctx.GetBuffer(Lighting::LIGHT_BUFFER);
+    vk::BufferHandle clusterBounds = ctx.GetBuffer(Lighting::CLUSTER_BOUNDS);
+    vk::BufferHandle itemList = ctx.GetBuffer(Lighting::ITEM_LIST);
+    vk::BufferHandle clusterData = ctx.GetBuffer(Lighting::CLUSTER_DATA);
+    vk::BufferHandle lightingBuffer = ctx.GetBuffer(Lighting::LIGHTING_BUFFER);
+    if (params.activeLightCount > 0)
+    {
+        void* mapped = ctx.GetvkContext().getMappedPtr(lightBuffer);
+        std::memcpy(mapped, params.lights.data(), params.activeLightCount * sizeof(Lighting::GPULight));
+        ctx.GetvkContext().flushMappedMemory(lightBuffer, 0, params.activeLightCount * sizeof(Lighting::GPULight));
+    }
+    // Create lighting metadata buffer
+    Lighting::LightingBuffer lightingData = {
+      .bufferLights = ctx.GetvkContext().gpuAddress(lightBuffer),
+      .bufferClusterBounds = ctx.GetvkContext().gpuAddress(clusterBounds),
+      .bufferItemList = ctx.GetvkContext().gpuAddress(itemList),
+      .bufferClusters = ctx.GetvkContext().gpuAddress(clusterData),
+      .screenDims = vec2(static_cast<float>(frameData.screenWidth),
+                         static_cast<float>(frameData.screenHeight)),
+      .zNear = frameData.zNear, .zFar = frameData.zFar,
+      .totalLightCount = params.activeLightCount,
+      .viewMatrix = frameData.viewMatrix
+    };
+    // Upload lighting metadata
+    void* mapped = ctx.GetvkContext().getMappedPtr(lightingBuffer);
+    std::memcpy(mapped, &lightingData, sizeof(Lighting::LightingBuffer));
+    ctx.GetvkContext().flushMappedMemory(lightingBuffer, 0, sizeof(Lighting::LightingBuffer));
 }
+
 
 // Add to scene_feature.cpp
-
-void SceneRenderFeature::executeClusterBoundsGeneration(
-  internal::ExecutionContext& ctx
-)
+void SceneRenderFeature::executeClusterBoundsGeneration(internal::ExecutionContext& ctx)
 {
-  EnsureLightingPipelines(ctx);
-
-  const auto& frameData = ctx.GetFrameData();
-  auto& cmd = ctx.GetvkCommandBuffer();
-
-  float fovRadians = glm::radians(frameData.fovY);
-  float tanHalfFovY = tan(fovRadians * 0.5f);
-
-  vk::TextureHandle sceneColor = ctx.GetTexture(RenderResources::SCENE_COLOR);
-  vk::Dimensions screenDims = ctx.GetvkContext().getDimensions(sceneColor);
-
-  // FIX: Match the GLSL layout exactly
-  struct ClusterBoundsPushConstants
-  {
-    uint64_t clusterBounds;
-    uint32_t clusterDimX, clusterDimY, clusterDimZ;
-    // These will be read as uvec3
-    float screenWidth, screenHeight;
-    float zNear, zFar;
-    float tanHalfFovY;
-    uint32_t pad[3]; // Ensure 16-byte alignment
-  } pushConstants = {
-      .clusterBounds = ctx.GetvkContext().
-                           gpuAddress(ctx.GetBuffer(Lighting::CLUSTER_BOUNDS)),
-      .clusterDimX = Lighting::CLUSTER_DIM_X,
-      .clusterDimY = Lighting::CLUSTER_DIM_Y,
-      .clusterDimZ = Lighting::CLUSTER_DIM_Z,
-      .screenWidth = static_cast<float>(screenDims.width),
-      .screenHeight = static_cast<float>(screenDims.height),
-      .zNear = frameData.zNear,
-      .zFar = frameData.zFar,
-      .tanHalfFovY = tanHalfFovY,
-      .pad = {0, 0, 0} };
-
-  cmd.cmdBindComputePipeline(m_clusterBoundsPipeline);
-  cmd.cmdPushConstants(pushConstants);
-
-  uint32_t groupsX = (Lighting::CLUSTER_DIM_X + 3) / 4;
-  uint32_t groupsY = (Lighting::CLUSTER_DIM_Y + 3) / 4;
-  uint32_t groupsZ = (Lighting::CLUSTER_DIM_Z + 3) / 4;
-  cmd.cmdDispatchThreadGroups({ groupsX, groupsY, groupsZ });
+    const auto& params = *static_cast<const SceneRenderParams*>(GetParameterBlock_RT());
+    if (params.activeLightCount == 0) return;
+    EnsureLightingPipelines(ctx);
+    const auto& frameData = ctx.GetFrameData();
+    auto& cmd = ctx.GetvkCommandBuffer();
+    float fovRadians = glm::radians(frameData.fovY);
+    float tanHalfFovY = tan(fovRadians * 0.5f);
+    struct ClusterBoundsPushConstants
+    {
+        uint64_t clusterBounds;
+        float screenWidth, screenHeight;
+        float zNear;
+        float zFar;
+        float tanHalfFovY;
+    } pushConstants = {
+        .clusterBounds = ctx.GetvkContext().gpuAddress(ctx.GetBuffer(Lighting::CLUSTER_BOUNDS)),
+        .screenWidth = static_cast<float>(frameData.screenWidth),
+        .screenHeight = static_cast<float>(frameData.screenHeight),
+        .zNear = frameData.zNear, .zFar = frameData.zFar,
+        .tanHalfFovY = tanHalfFovY
+    };
+    static_assert(sizeof(ClusterBoundsPushConstants) == 32, "ClusterBounds push constants must match GLSL layout");
+    cmd.cmdBindComputePipeline(m_clusterBoundsPipeline);
+    cmd.cmdPushConstants(pushConstants);
+    uint32_t groupsX = (Lighting::CLUSTER_DIM_X + 3) / 4;
+    uint32_t groupsY = (Lighting::CLUSTER_DIM_Y + 3) / 4;
+    uint32_t groupsZ = (Lighting::CLUSTER_DIM_Z + 3) / 4;
+    cmd.cmdDispatchThreadGroups({ groupsX, groupsY, groupsZ });
 }
+
 
 void SceneRenderFeature::executeLightCulling(internal::ExecutionContext& ctx)
 {
-  EnsureLightingPipelines(ctx);
-
-  const auto& frameData = ctx.GetFrameData();
-  const auto& params = *static_cast<const SceneRenderParams*>(
-    GetParameterBlock_RT());
-  auto& cmd = ctx.GetvkCommandBuffer();
-
-  // Reset atomic counter
-  vk::BufferHandle lightIndices = ctx.GetBuffer(Lighting::LIGHT_INDICES);
-  cmd.cmdFillBuffer(lightIndices, 0, sizeof(uint32_t), 0);
-
-  struct LightCullingPushConstants
-  {
-    uint64_t lights;
-    uint64_t clusterBounds;
-    uint64_t lightIndices;
-    uint64_t lightLists;
-    mat4 viewMatrix;
-    uint32_t totalLightCount;
-    uint32_t totalClusters;
-    uint32_t clusterDim[3];
-    uint32_t pad; // Ensure 16-byte alignment
-  } pushConstants = {
-      .lights = ctx.GetvkContext().
-                    gpuAddress(ctx.GetBuffer(Lighting::LIGHT_BUFFER)),
-      .clusterBounds = ctx.GetvkContext().
-                           gpuAddress(ctx.GetBuffer(Lighting::CLUSTER_BOUNDS)),
-      .lightIndices = ctx.GetvkContext().gpuAddress(lightIndices),
-      .lightLists = ctx.GetvkContext().
-                        gpuAddress(ctx.GetBuffer(Lighting::LIGHT_LISTS)),
-      .viewMatrix = frameData.viewMatrix,
-      .totalLightCount = params.activeLightCount,
-      .totalClusters = Lighting::TOTAL_CLUSTERS,
-      .clusterDim = {
-        Lighting::CLUSTER_DIM_X,
-        Lighting::CLUSTER_DIM_Y,
-        Lighting::CLUSTER_DIM_Z} };
-
-  cmd.cmdBindComputePipeline(m_lightCullingPipeline);
-  cmd.cmdPushConstants(pushConstants);
-
-  // One thread per cluster (following your culling.comp pattern)
-  uint32_t groupsX = (Lighting::CLUSTER_DIM_X + 3) / 4;
-  uint32_t groupsY = (Lighting::CLUSTER_DIM_Y + 3) / 4;
-  uint32_t groupsZ = (Lighting::CLUSTER_DIM_Z + 3) / 4;
-  cmd.cmdDispatchThreadGroups({ groupsX, groupsY, groupsZ });
+    const auto& params = *static_cast<const SceneRenderParams*>(GetParameterBlock_RT());
+    if (params.activeLightCount == 0) return;
+    EnsureLightingPipelines(ctx);
+    const auto& frameData = ctx.GetFrameData();
+    auto& cmd = ctx.GetvkCommandBuffer();
+    // Reset atomic counter
+    vk::BufferHandle itemList = ctx.GetBuffer(Lighting::ITEM_LIST);
+    cmd.cmdFillBuffer(itemList, 0, sizeof(uint32_t), 0);
+    struct alignas(16) LightCullingPushConstants
+    {
+        uint64_t lights;
+        uint64_t clusterBounds;
+        uint64_t itemList;
+        uint64_t clusters;
+        mat4 viewMatrix;
+        uint32_t totalLightCount;
+    } pushConstants = {
+        .lights = ctx.GetvkContext().gpuAddress(ctx.GetBuffer(Lighting::LIGHT_BUFFER)),
+        .clusterBounds = ctx.GetvkContext().gpuAddress(ctx.GetBuffer(Lighting::CLUSTER_BOUNDS)),
+        .itemList = ctx.GetvkContext().gpuAddress(itemList),
+        .clusters = ctx.GetvkContext().gpuAddress(ctx.GetBuffer(Lighting::CLUSTER_DATA)),
+        .viewMatrix = frameData.viewMatrix,
+        .totalLightCount = params.activeLightCount
+    };
+    static_assert(sizeof(LightCullingPushConstants) == 112, "LightCulling push constants must match GLSL layout");
+    cmd.cmdBindComputePipeline(m_lightCullingPipeline);
+    cmd.cmdPushConstants(pushConstants);
+    // One thread per cluster
+    uint32_t groupsX = (Lighting::CLUSTER_DIM_X + 3) / 4;
+    uint32_t groupsY = (Lighting::CLUSTER_DIM_Y + 3) / 4;
+    uint32_t groupsZ = (Lighting::CLUSTER_DIM_Z + 3) / 4;
+    cmd.cmdDispatchThreadGroups({ groupsX, groupsY, groupsZ });
 }
 
-void SceneRenderFeature::EnsureLightingPipelines(internal::ExecutionContext& ctx
-)
-{
-  if(m_clusterBoundsPipeline.empty())
-  {
-    m_clusterBoundsShader = loadShaderModule(
-      ctx.GetvkContext(),
-      "shaders/cluster_bounds.comp");
-    vk::ComputePipelineDesc desc = {
-      .smComp = m_clusterBoundsShader,
-      .debugName = "ClusterBoundsPipeline" };
-    m_clusterBoundsPipeline = ctx.GetvkContext().createComputePipeline(desc);
-  }
 
-  if(m_lightCullingPipeline.empty())
-  {
-    m_lightCullingShader = loadShaderModule(
-      ctx.GetvkContext(),
-      "shaders/light_culling.comp");
-    vk::ComputePipelineDesc desc = {
-      .smComp = m_lightCullingShader,
-      .debugName = "LightCullingPipeline" };
-    m_lightCullingPipeline = ctx.GetvkContext().createComputePipeline(desc);
-  }
+void SceneRenderFeature::EnsureLightingPipelines(internal::ExecutionContext& ctx)
+{
+    if (m_clusterBoundsPipeline.empty())
+    {
+        m_clusterBoundsShader = loadShaderModule(ctx.GetvkContext(), "shaders/cluster_bounds.comp");
+        vk::ComputePipelineDesc desc = { .smComp = m_clusterBoundsShader, .debugName = "ClusterBoundsPipeline" };
+        m_clusterBoundsPipeline = ctx.GetvkContext().createComputePipeline(desc);
+    }
+    if (m_lightCullingPipeline.empty())
+    {
+        m_lightCullingShader = loadShaderModule(ctx.GetvkContext(), "shaders/light_culling.comp");
+        vk::ComputePipelineDesc desc = { .smComp = m_lightCullingShader, .debugName = "LightCullingPipeline" };
+        m_lightCullingPipeline = ctx.GetvkContext().createComputePipeline(desc);
+    }
 }
 
 void SceneRenderFeature::ExecuteSkyboxPass(internal::ExecutionContext& ctx)
