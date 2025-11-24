@@ -3,32 +3,38 @@
 #include "Game/EnemyCharacter.h"
 #include "Game/Character.h"
 #include "Game/Health.h"
+#include "Boss_Prefect_Util.h"
 
 int L_Boss_Prefect_BookingSlips::burstCount = 3;
 float L_Boss_Prefect_BookingSlips::burstDelay = 0.25f;
 
 void L_Boss_Prefect_BookingSlips::OnInitialize()
 {
-    //reset pos
-    currentInvincinilityTime = invincibilityTime;
+
 }
 
 NODE_STATUS L_Boss_Prefect_BookingSlips::OnUpdate([[maybe_unused]] ecs::EntityHandle entity)
 {
     if (auto characterComp{ entity->GetComp<CharacterMovementComponent>() })
     {
-        characterComp->SetMovementVector(Vec2{ 0.0f });
-    }
-    if (auto healthComp{ entity->GetComp<HealthComponent>() })
-    {
-        healthComp->SetIsInvincible(true);
-        currentInvincinilityTime -= GameTime::Dt();
-
-        if (currentInvincinilityTime <= 0.0f)
+        if (auto enemyComp{ entity->GetComp<EnemyComponent>() })
         {
-            healthComp->SetIsInvincible(false);
-            return NODE_STATUS::SUCCESS;
+            // Use orbiting movement here
+            characterComp->SetMovementVector(Boss_Prefect_Util::GetMovementDirection(entity->GetTransform().GetWorldPosition(), enemyComp->playerReference->GetTransform().GetWorldPosition()));
+
+                if (currentBurstDelay < 0.0f)
+                {
+                    ++currentBurstCount;
+                    currentBurstDelay = burstDelay;
+            
+                    // TODO: DO BURST SPAWN HERE
+            
+                    if (currentBurstCount == burstCount)
+                        return NODE_STATUS::SUCCESS;
+                }
+            
         }
     }
+    currentBurstDelay -= GameTime::Dt();
     return NODE_STATUS::RUNNING;
 }

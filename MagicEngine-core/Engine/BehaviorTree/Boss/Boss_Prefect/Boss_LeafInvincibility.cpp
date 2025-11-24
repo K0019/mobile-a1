@@ -16,6 +16,7 @@ NODE_STATUS L_Boss_Prefect_Invincibility::OnUpdate([[maybe_unused]] ecs::EntityH
 {
     if (auto characterComp{ entity->GetComp<CharacterMovementComponent>() })
     {
+        // Don't move here
         characterComp->SetMovementVector(Vec2{ 0.0f });
     }
     if (auto healthComp{ entity->GetComp<HealthComponent>() })
