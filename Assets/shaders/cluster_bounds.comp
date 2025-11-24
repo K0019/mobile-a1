@@ -1,5 +1,9 @@
 layout(local_size_x = 4, local_size_y = 4, local_size_z = 4) in;
 
+#define CLUSTER_DIM_X 16
+#define CLUSTER_DIM_Y 8
+#define CLUSTER_DIM_Z 24
+
 struct ClusterBounds {
     vec3 minBounds;
     float pad0;
@@ -13,60 +17,59 @@ layout(buffer_reference, std430) writeonly buffer ClusterBoundsBuffer {
 
 layout(push_constant) uniform ClusterData {
     ClusterBoundsBuffer clusterBounds;
-    uint clusterDimX, clusterDimY, clusterDimZ;  // Match C++ exactly
     float screenWidth, screenHeight;
     float zNear;
     float zFar;
     float tanHalfFovY;
 } pc;
 
+vec3 ndcToView(vec2 ndc, float depth, float aspect) {
+    float sx = pc.tanHalfFovY * aspect * (-depth);
+    float sy = pc.tanHalfFovY * (-depth);
+    return vec3(ndc.x * sx, ndc.y * sy, depth);
+}
+
 void main() {
     uvec3 clusterID = gl_GlobalInvocationID;
-    uvec3 clusterDims = uvec3(pc.clusterDimX, pc.clusterDimY, pc.clusterDimZ);
-    
-    // Early exit if outside cluster grid
+    const uvec3 clusterDims = uvec3(CLUSTER_DIM_X, CLUSTER_DIM_Y, CLUSTER_DIM_Z);
+
     if (any(greaterThanEqual(clusterID, clusterDims))) {
         return;
     }
-    
-    uint clusterIndex = clusterID.z * (clusterDims.x * clusterDims.y) + 
+
+    uint clusterIndex = clusterID.z * (clusterDims.x * clusterDims.y) +
                        clusterID.y * clusterDims.x + clusterID.x;
-    
-    // Calculate tile bounds in screen space
-    vec2 screenDims = vec2(pc.screenWidth, pc.screenHeight);
-    vec2 tileSize = screenDims / vec2(clusterDims.xy);
-    vec2 minTile = vec2(clusterID.xy) * tileSize;
-    vec2 maxTile = vec2(clusterID.xy + 1u) * tileSize;
-    
-    // Convert to NDC
-    vec2 minNDC = (minTile / screenDims) * 2.0 - 1.0;
-    vec2 maxNDC = (maxTile / screenDims) * 2.0 - 1.0;
-    
-    // Calculate depth slices (exponential distribution)
+
+    vec2 stepSize = 2.0 / vec2(clusterDims.xy);
+    vec2 minNDC = vec2(clusterID.xy) * stepSize - 1.0;
+    vec2 maxNDC = vec2(clusterID.xy + 1u) * stepSize - 1.0;
+
     float nearK = float(clusterID.z) / float(clusterDims.z);
     float farK = float(clusterID.z + 1) / float(clusterDims.z);
-    
+
     float sliceNear = -pc.zNear * pow(pc.zFar / pc.zNear, nearK);
     float sliceFar = -pc.zNear * pow(pc.zFar / pc.zNear, farK);
-    
-    // Calculate view space bounds
-    float aspectRatio = screenDims.x / screenDims.y;
-    
-    vec3 minBounds = vec3(
-        minNDC.x * pc.tanHalfFovY * aspectRatio * (-sliceNear),
-        minNDC.y * pc.tanHalfFovY * (-sliceNear),
-        sliceNear
-    );
-    
-    vec3 maxBounds = vec3(
-        maxNDC.x * pc.tanHalfFovY * aspectRatio * (-sliceFar),
-        maxNDC.y * pc.tanHalfFovY * (-sliceFar),
-        sliceFar
-    );
-    
-    // Store bounds - add bounds checking
-    if (clusterIndex < clusterDims.x * clusterDims.y * clusterDims.z) {
-        pc.clusterBounds.bounds[clusterIndex].minBounds = min(minBounds, maxBounds);
-        pc.clusterBounds.bounds[clusterIndex].maxBounds = max(minBounds, maxBounds);
+
+    float aspectRatio = pc.screenWidth / pc.screenHeight;
+
+    vec3 nearMin = ndcToView(vec2(minNDC.x, minNDC.y), sliceNear, aspectRatio);
+    vec3 nearMaxX = ndcToView(vec2(maxNDC.x, minNDC.y), sliceNear, aspectRatio);
+    vec3 nearMaxY = ndcToView(vec2(minNDC.x, maxNDC.y), sliceNear, aspectRatio);
+    vec3 nearMax = ndcToView(vec2(maxNDC.x, maxNDC.y), sliceNear, aspectRatio);
+
+    vec3 farMin = ndcToView(vec2(minNDC.x, minNDC.y), sliceFar, aspectRatio);
+    vec3 farMaxX = ndcToView(vec2(maxNDC.x, minNDC.y), sliceFar, aspectRatio);
+    vec3 farMaxY = ndcToView(vec2(minNDC.x, maxNDC.y), sliceFar, aspectRatio);
+    vec3 farMax = ndcToView(vec2(maxNDC.x, maxNDC.y), sliceFar, aspectRatio);
+
+    vec3 minBounds = nearMin;
+    vec3 maxBounds = nearMin;
+    vec3 corners[7] = {nearMaxX, nearMaxY, nearMax, farMin, farMaxX, farMaxY, farMax};
+    for (int i = 0; i < 7; ++i) {
+        minBounds = min(minBounds, corners[i]);
+        maxBounds = max(maxBounds, corners[i]);
     }
+
+    pc.clusterBounds.bounds[clusterIndex].minBounds = minBounds;
+    pc.clusterBounds.bounds[clusterIndex].maxBounds = maxBounds;
 }
