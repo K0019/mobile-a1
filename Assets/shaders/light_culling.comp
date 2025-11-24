@@ -1,5 +1,11 @@
 layout(local_size_x = 4, local_size_y = 4, local_size_z = 4) in;
 
+#define CLUSTER_DIM_X 16
+#define CLUSTER_DIM_Y 8
+#define CLUSTER_DIM_Z 24
+#define MAX_ITEMS_PER_CLUSTER 256
+const uint MAX_TOTAL_ITEMS = 65536u; // Keep in sync with Lighting::MAX_TOTAL_ITEMS
+
 struct GPULight {
     vec3 position;
     float range;
@@ -16,7 +22,7 @@ struct ClusterBounds {
     float pad1;
 };
 
-struct LightList {
+struct Cluster {
     uint offset;
     uint count;
 };
@@ -29,86 +35,81 @@ layout(buffer_reference, std430) readonly buffer ClusterBoundsBuffer {
     ClusterBounds bounds[];
 };
 
-layout(buffer_reference, std430) buffer LightIndicesBuffer {
+layout(buffer_reference, std430) buffer ItemListBuffer {
     uint counter;
-    uint indices[];
+    uint items[];
 };
 
-layout(buffer_reference, std430) writeonly buffer LightListsBuffer {
-    LightList lists[];
+layout(buffer_reference, std430) buffer ClusterDataBuffer {
+    Cluster clusters[];
 };
 
 layout(push_constant) uniform LightCullingData {
     LightBuffer lights;
     ClusterBoundsBuffer clusterBounds;
-    LightIndicesBuffer lightIndices;
-    LightListsBuffer lightLists;
+    ItemListBuffer itemList;
+    ClusterDataBuffer clusters;
     mat4 viewMatrix;
     uint totalLightCount;
-    uint totalClusters;
-    uint clusterDimX, clusterDimY, clusterDimZ;
 } pc;
 
-// Constants
-const uint MAX_LIGHTS_PER_CLUSTER = 32;
+uint packItem(uint index, uint type) {
+    return (type << 12) | (index & 0xFFFu);
+};
 
-// Simple sphere-AABB intersection test
 bool sphereIntersectsAABB(vec3 center, float radius, vec3 aabbMin, vec3 aabbMax) {
     vec3 closest = clamp(center, aabbMin, aabbMax);
     return distance(center, closest) <= radius;
-}
+};
 
 void main() {
     uvec3 clusterID = gl_GlobalInvocationID;
-    
-    // Early exit for out-of-bounds
-    if (any(greaterThanEqual(clusterID, uvec3(pc.clusterDimX, pc.clusterDimY, pc.clusterDimZ)))) {
+    const uvec3 clusterDims = uvec3(CLUSTER_DIM_X, CLUSTER_DIM_Y, CLUSTER_DIM_Z);
+
+    if (any(greaterThanEqual(clusterID, clusterDims))) {
         return;
     }
-    
-    uint clusterIndex = clusterID.z * (pc.clusterDimX * pc.clusterDimY) + 
-                       clusterID.y * pc.clusterDimX + clusterID.x;
-    
+
+    uint clusterIndex = clusterID.z * (clusterDims.x * clusterDims.y) +
+                       clusterID.y * clusterDims.x + clusterID.x;
+
     ClusterBounds cluster = pc.clusterBounds.bounds[clusterIndex];
-    uint lightCount = 0;
-    uint lightIndices[MAX_LIGHTS_PER_CLUSTER];
-    
-    // Test each light against this cluster
+    uint visibleCount = 0;
+    uint tempItems[MAX_ITEMS_PER_CLUSTER];
+
     for (uint lightIndex = 0; lightIndex < pc.totalLightCount; ++lightIndex) {
         GPULight light = pc.lights.lights[lightIndex];
-        
-        // Transform light to view space
         vec4 lightPosView = pc.viewMatrix * vec4(light.position, 1.0);
-        
-        // Test intersection using simple sphere-AABB test
-        if (sphereIntersectsAABB(lightPosView.xyz, light.range, 
-                                cluster.minBounds, cluster.maxBounds)) {
-            
-            if (lightCount < MAX_LIGHTS_PER_CLUSTER) {
-                lightIndices[lightCount] = lightIndex;
-                lightCount++;
-            } else {
-                // Cluster is full, stop adding lights
-                break;
+
+        if (sphereIntersectsAABB(lightPosView.xyz, light.range, cluster.minBounds, cluster.maxBounds)) {
+            if (visibleCount < MAX_ITEMS_PER_CLUSTER) {
+                tempItems[visibleCount++] = packItem(lightIndex, 0u);
             }
         }
     }
-    
-    // Allocate space in global light indices buffer
-    if (lightCount > 0) {
-        uint globalOffset = atomicAdd(pc.lightIndices.counter, lightCount);
-        
-        // Store light list metadata
-        pc.lightLists.lists[clusterIndex].offset = globalOffset + 1; // +1 to skip counter
-        pc.lightLists.lists[clusterIndex].count = lightCount;
-        
-        // Copy light indices to global buffer
-        for (uint i = 0; i < lightCount; ++i) {
-            pc.lightIndices.indices[globalOffset + 1 + i] = lightIndices[i];
+
+    uint clampedCount = visibleCount;
+    uint baseOffset = 0u;
+
+    if (clampedCount > 0u) {
+        uint startOffset = atomicAdd(pc.itemList.counter, clampedCount);
+        if (startOffset < MAX_TOTAL_ITEMS) {
+            clampedCount = min(clampedCount, MAX_TOTAL_ITEMS - startOffset);
+            baseOffset = startOffset;
+
+            pc.clusters.clusters[clusterIndex].offset = baseOffset;
+            pc.clusters.clusters[clusterIndex].count = clampedCount;
+
+            for (uint i = 0; i < clampedCount; ++i) {
+                pc.itemList.items[baseOffset + i] = tempItems[i];
+            }
+        } else {
+            clampedCount = 0u;
         }
-    } else {
-        // No lights in this cluster
-        pc.lightLists.lists[clusterIndex].offset = 0;
-        pc.lightLists.lists[clusterIndex].count = 0;
+    }
+
+    if (clampedCount == 0u) {
+        pc.clusters.clusters[clusterIndex].offset = 0u;
+        pc.clusters.clusters[clusterIndex].count = 0u;
     }
 }

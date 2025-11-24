@@ -18,18 +18,19 @@ layout(push_constant) uniform PerFrameData {
 } pc;
 
 uint getClusterIndex(vec3 fragCoord, vec3 viewPos) {
-    uvec2 clusterXY = uvec2(fragCoord.xy / pc.lighting.screenDims *
-                           vec2(pc.lighting.clusterDimX, pc.lighting.clusterDimY));
+    vec2 screenUV = fragCoord.xy / pc.lighting.screenDims;
+    uvec3 gridCoords;
+    gridCoords.x = uint(screenUV.x * float(CLUSTER_DIM_X));
+    gridCoords.y = uint(screenUV.y * float(CLUSTER_DIM_Y));
+    gridCoords.x = min(gridCoords.x, uint(CLUSTER_DIM_X - 1));
+    gridCoords.y = min(gridCoords.y, uint(CLUSTER_DIM_Y - 1));
 
     float viewZ = -viewPos.z;
     float zSlice = log(viewZ / pc.lighting.zNear) / log(pc.lighting.zFar / pc.lighting.zNear);
-    uint clusterZ = uint(clamp(zSlice * float(pc.lighting.clusterDimZ), 0.0,
-                              float(pc.lighting.clusterDimZ - 1)));
+    gridCoords.z = uint(clamp(zSlice * float(CLUSTER_DIM_Z), 0.0, float(CLUSTER_DIM_Z - 1)));
 
-    clusterXY = min(clusterXY, uvec2(pc.lighting.clusterDimX - 1, pc.lighting.clusterDimY - 1));
-
-    return clusterZ * (pc.lighting.clusterDimX * pc.lighting.clusterDimY) +
-           clusterXY.y * pc.lighting.clusterDimX + clusterXY.x;
+    return gridCoords.z * (CLUSTER_DIM_X * CLUSTER_DIM_Y) +
+           gridCoords.y * CLUSTER_DIM_X + gridCoords.x;
 }
 
 vec3 perturbNormal(vec3 normalSample, mat3 TBN) {
@@ -68,21 +69,21 @@ float distributionGGX(vec3 N, vec3 H, float roughness) {
     float a2 = a * a;
     float NdotH = max(dot(N, H), 0.0);
     float NdotH2 = NdotH * NdotH;
-    
+
     float num = a2;
     float denom = (NdotH2 * (a2 - 1.0) + 1.0);
     denom = 3.14159265359 * denom * denom;
-    
+
     return num / denom;
 }
 
 float geometrySchlickGGX(float NdotV, float roughness) {
     float r = (roughness + 1.0);
     float k = (r * r) / 8.0;
-    
+
     float num = NdotV;
     float denom = NdotV * (1.0 - k) + k;
-    
+
     return num / denom;
 }
 
@@ -91,7 +92,7 @@ float geometrySmith(vec3 N, vec3 V, vec3 L, float roughness) {
     float NdotL = max(dot(N, L), 0.0);
     float ggx2 = geometrySchlickGGX(NdotV, roughness);
     float ggx1 = geometrySchlickGGX(NdotL, roughness);
-    
+
     return ggx1 * ggx2;
 }
 
@@ -109,20 +110,28 @@ vec3 calculateLighting(vec3 worldPos, vec3 normal, vec3 albedo, float metallic, 
     vec3 viewPos = viewPos4.xyz;
 
     // Get cluster index
-    uint clusterIndex = getClusterIndex(gl_FragCoord.xyz, viewPos);
-    LightList lightList = pc.lighting.lightLists.lists[clusterIndex];
+    uint clusterIndex = min(getClusterIndex(gl_FragCoord.xyz, viewPos),
+                            uint(CLUSTER_DIM_X * CLUSTER_DIM_Y * CLUSTER_DIM_Z - 1));
+    Cluster cluster = pc.lighting.clusters.clusters[clusterIndex];
 
     // ===== DIRECT LIGHTING =====
     vec3 Lo = vec3(0.0);
 
     // Process each light affecting this cluster
-    for (uint i = 0; i < lightList.count && i < 64; ++i) {
-        uint lightIndex = pc.lighting.lightIndices.indices[lightList.offset + i];
-        if (lightIndex >= pc.lighting.totalLightCount) continue;
+    for (uint i = 0; i < cluster.count && i < MAX_ITEMS_PER_CLUSTER; ++i) {
+        uint itemData = pc.lighting.itemList.items[cluster.offset + i];
+        uint itemType = (itemData >> 12) & 0xFu;
+        uint lightIndex = itemData & 0xFFFu;
+        if (itemType != 0u || lightIndex >= pc.lighting.totalLightCount) continue;
 
         GPULight light = pc.lighting.lights.lights[lightIndex];
 
+        if (light.type != 0u) {
+            if (distance(worldPos, light.position) > light.range) continue;
+        }
+
         vec3 L;
+
         float attenuation = 1.0;
 
         // Calculate light direction and attenuation
@@ -220,8 +229,9 @@ vec3 calculateLighting(vec3 worldPos, vec3 normal, vec3 albedo, float metallic, 
     vec3 viewPos = viewPos4.xyz;
 
     // Get cluster index
-    uint clusterIndex = getClusterIndex(gl_FragCoord.xyz, viewPos);
-    LightList lightList = pc.lighting.lightLists.lists[clusterIndex];
+    uint clusterIndex = min(getClusterIndex(gl_FragCoord.xyz, viewPos),
+                            uint(CLUSTER_DIM_X * CLUSTER_DIM_Y * CLUSTER_DIM_Z - 1));
+    Cluster cluster = pc.lighting.clusters.clusters[clusterIndex];
 
     // Material properties for Blinn-Phong
     vec3 ambient = albedo * 0.1; // Simple ambient term
@@ -231,12 +241,19 @@ vec3 calculateLighting(vec3 worldPos, vec3 normal, vec3 albedo, float metallic, 
 
     vec3 result = ambient * occlusion;
 
-    // Process each light affecting this cluster
-    for (uint i = 0; i < lightList.count && i < 64; ++i) {
-        uint lightIndex = pc.lighting.lightIndices.indices[lightList.offset + i];
-        if (lightIndex >= pc.lighting.totalLightCount) continue;
+    // Process each item affecting this cluster
+    for (uint i = 0; i < cluster.count && i < MAX_ITEMS_PER_CLUSTER; ++i) {
+        uint itemData = pc.lighting.itemList.items[cluster.offset + i];
+        uint itemType = (itemData >> 12) & 0xFu;
+        uint lightIndex = itemData & 0xFFFu;
+        if (itemType != 0u || lightIndex >= pc.lighting.totalLightCount) continue;
 
         GPULight light = pc.lighting.lights.lights[lightIndex];
+
+        // Precise per-pixel light test to avoid leaking across coarse clusters
+        if (light.type != 0u) {
+            if (distance(worldPos, light.position) > light.range) continue;
+        }
 
         vec3 L;
         float attenuation = 1.0;
@@ -248,17 +265,17 @@ vec3 calculateLighting(vec3 worldPos, vec3 normal, vec3 albedo, float metallic, 
         }
         else if (light.type == 1) { // Point Light
             vec3 lightToFragment = worldPos - light.position;
-            float distance = length(lightToFragment);
+            float distanceToLight = length(lightToFragment);
             L = normalize(-lightToFragment);
-            attenuation = max(0.0, 1.0 - (distance / light.range));
+            attenuation = max(0.0, 1.0 - (distanceToLight / light.range));
             attenuation *= attenuation; // Quadratic falloff
         }
         else if (light.type == 2) { // Spot Light
             vec3 lightToFragment = worldPos - light.position;
-            float distance = length(lightToFragment);
+            float distanceToLight = length(lightToFragment);
             L = normalize(-lightToFragment);
 
-            attenuation = max(0.0, 1.0 - (distance / light.range));
+            attenuation = max(0.0, 1.0 - (distanceToLight / light.range));
             attenuation *= attenuation;
 
             float spotFactor = dot(normalize(lightToFragment), light.direction);
@@ -268,6 +285,8 @@ vec3 calculateLighting(vec3 worldPos, vec3 normal, vec3 albedo, float metallic, 
             } else {
                 attenuation = 0.0;
             }
+        } else {
+            continue;
         }
 
         if (attenuation > 0.0) {

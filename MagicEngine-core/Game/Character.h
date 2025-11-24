@@ -22,6 +22,24 @@ All rights reserved.
 #include "ECS/EntityUID.h"
 #include "Editor/IEditorComponent.h"
 #include "Game/GrabbableItem.h"
+#include "Engine/Resources/ResourcesHeader.h"
+#include "Engine/Resources/Types/ResourceTypesGraphics.h"
+
+#define ANIMATIONS \
+X(IDLE,     "Idle")\
+X(WALK,     "Walk")\
+X(ATTACK,   "Attack")\
+X(HURT,   "Hurt")\
+X(DODGE,   "Dodge")\
+
+#define X(type, name) type,
+enum ANIMATION_TYPES:size_t
+{
+	ANIMATIONS
+	ANIM_TOTAL
+};
+#undef X
+
 
 /*****************************************************************//*!
 \class CharacterMovementComponent
@@ -35,6 +53,7 @@ class CharacterMovementComponent
 private:
 	Vec2 movementVector;
 public:
+	UserResourceHandle<ResourceAnimation> animations[ANIMATION_TYPES::ANIM_TOTAL];
 
 	EntityReference hitDebugObject;
 	EntityReference heldItem;
@@ -50,6 +69,7 @@ public:
 	float currentStunTime;
 	float currentDodgeTime;
 	float currentDodgeCooldown;
+	bool isAttacking;
 
 	/*****************************************************************//*!
 	\brief

@@ -233,7 +233,8 @@ void MagicEngine::ExecuteFrame(FrameData& frameData)
 
 	ST<GraphicsMain>::Get()->BeginFrame();
 
-	ST<physics::JoltPhysics>::Get()->DebugDraw();
+	if (ST<GameSettings>::Get()->m_physicsDebugDraw)
+		ST<physics::JoltPhysics>::Get()->DebugDraw();
 
 #ifdef IMGUI_ENABLED
 	ST<GraphicsMain>::Get()->BeginImGuiFrame();

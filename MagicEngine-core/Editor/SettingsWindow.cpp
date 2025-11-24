@@ -134,6 +134,7 @@ namespace editor {
 		gui::TextUnformatted("Debugging");
 		gui::Separator();
 		gui::Combo consoleLogLevelCombo{ "Console Log Level", logLevelsText, std::size(logLevelsText), &settings->m_logLevel };
+		gui::Checkbox("Physics Debug Draw", &settings->m_physicsDebugDraw);
 		gui::Separator();
 
 		// Other windows

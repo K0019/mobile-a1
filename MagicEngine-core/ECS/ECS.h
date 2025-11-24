@@ -239,7 +239,7 @@ namespace ecs {
 			True if the component was successfully removed from this entity.
 			False if the component doesn't exist on this entity, the component is already pending removal, or ecs::DeleteEntity() was already called on this entity.
 		*//******************************************************************/
-		bool RemoveCompNow(ecs::CompHash compHash);
+		bool RemoveCompByHashNow(ecs::CompHash compHash);
 
 		/*****************************************************************//*!
 		\brief

@@ -60,3 +60,6 @@ Assets/UserAssembly.dll
 /android/local.properties
 /android/install
 *repomix*
+
+# Asset compiler stuff
+Tools/Debug/CompileResult.json

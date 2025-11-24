@@ -35,8 +35,8 @@ namespace compiler
 		TextureCompiler() = default;
 		~TextureCompiler() = default;
 
-		bool Compile(const CompilerOptions& compileOptions);
-		bool CompileFromMemory(const EmbeddedTextureSource& source, const CompilerOptions& compileOptions);
+		CompilationResult Compile(const CompilerOptions& compileOptions);
+		CompilationResult CompileFromMemory(const EmbeddedTextureSource& source, const CompilerOptions& compileOptions);
 
 	private:
 		bool LoadSourceTexture(CMP_Texture& outTex);
@@ -44,13 +44,19 @@ namespace compiler
 		ktxTextureCreateInfo SetupKtxCreateInfo(const CMP_Texture& dest);
 		CMP_CompressOptions SetupCompressionOptions();
 		bool CompressTexture(CMP_Texture& src, CMP_Texture& dst, const CMP_CompressOptions& opts);
-		bool SaveAsKTX2(const CMP_Texture& dst);
+		bool SaveAsKTX2(const CMP_Texture& dst, CompilationResult& compilationResult, const std::string& filename = {});
 
 		CompilerOptions options;
 	};
 }
 
 //SELF NOTES:
+// regarding options
+// options.general.inputPath should be set to the image's filepath, duh
+//			      .outputPath should be the directory to save it to.
+//			for a standalone texture, name is the same as the input. for embedded textures(glb), name is provided from the caller, passed in the EmbeddedTextureSource struct.
+
+
 
 	// Key to format types 0xFnbC
 	// C = 0 is uncompressed C > 0 is compressed

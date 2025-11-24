@@ -22,6 +22,8 @@ All rights reserved.
 #include "Editor/IEditorComponent.h"
 #include "UI/IUIComponent.h"
 #include "UI/RectTransform.h"
+#include "Engine/Resources/ResourcesHeader.h"
+#include "Engine/Resources/Types/ResourceTypesGraphics.h"
 
 class Primitive2DBase : public ISerializeable
 {
@@ -62,32 +64,37 @@ property_vend_h(Primitive2DCircle)
 class Primitive2DRect : public Primitive2DBase
 {
 public:
-	Primitive2DRect();
+	void Render(const RectTransformComponent& transform, const Vec4& color) const override;
+	void EditorDraw() override;
+};
 
-	Vec2 GetDimensions() const;
-	void SetDimensions(Vec2 newDimensions);
+class Primitive2DImage : public Primitive2DBase
+{
+public:
+	void SetImage(size_t textureHash);
 
 	void Render(const RectTransformComponent& transform, const Vec4& color) const override;
 	void EditorDraw() override;
 
 private:
-	Vec2 halfDimensions;
+	UserResourceHandle<ResourceTexture> texture;
 
 public:
 	property_vtable()
 };
-property_begin(Primitive2DRect)
+property_begin(Primitive2DImage)
 {
-	property_var(halfDimensions)
+	property_var(texture)
 }
-property_vend_h(Primitive2DRect)
+property_vend_h(Primitive2DImage)
 
-using Primitive2D = std::variant<Primitive2DCircle, Primitive2DRect>;
+using Primitive2D = std::variant<Primitive2DCircle, Primitive2DRect, Primitive2DImage>;
 
 // THE ORDER OF TYPES BELOW MUST EQUAL THE ORDER OF CLASS TYPES IN THE ABOVE VARIANT
 #define PRIMITIVE2D_TYPE_ENUM \
 X(CIRCLE, "Circle") \
-X(RECT, "Rectangle")
+X(RECT, "Rectangle") \
+X(IMAGE, "Image")
 #define X(enumType, name) enumType,
 enum class PRIMITIVE2D_TYPE // Note: Unused, except for "TOTAL". This is just to easily count the number of types
 {

@@ -173,6 +173,12 @@ layout(std430, buffer_reference) buffer OIT {
     uint maxOITFragments;
 };
 
+// Frustum-locked clustered lighting configuration
+#define CLUSTER_DIM_X 16
+#define CLUSTER_DIM_Y 8
+#define CLUSTER_DIM_Z 24
+#define MAX_ITEMS_PER_CLUSTER 256
+
 struct GPULight {
     vec3 position;
     float range;
@@ -189,7 +195,7 @@ struct ClusterBounds {
     float pad1;
 };
 
-struct LightList {
+struct Cluster {
     uint offset;
     uint count;
 };
@@ -202,24 +208,25 @@ layout(buffer_reference, std430) readonly buffer ClusterBoundsBuffer {
     ClusterBounds bounds[];
 };
 
-layout(buffer_reference, std430) buffer LightIndicesBuffer {
+layout(buffer_reference, std430) buffer ItemListBuffer {
     uint counter;
-    uint indices[];
+    uint items[];
 };
 
-layout(buffer_reference, std430) readonly buffer LightListsBuffer {
-    LightList lists[];
+layout(buffer_reference, std430) buffer ClusterDataBuffer {
+    Cluster clusters[];
 };
 
 layout(std430, buffer_reference) buffer LightingData {
     LightBuffer lights;
     ClusterBoundsBuffer clusterBounds;
-    LightIndicesBuffer lightIndices;
-    LightListsBuffer lightLists;
-    uint totalLightCount;
-    uint clusterDimX, clusterDimY, clusterDimZ;
-    float zNear, zFar;
+    ItemListBuffer itemList;
+    ClusterDataBuffer clusters;
     vec2 screenDims;
-    uint pad0, pad1;
+    float zNear;
+    float zFar;
+    uint totalLightCount;
+    uint pad0, pad1, pad2;
     mat4 viewMatrix;
 };
+

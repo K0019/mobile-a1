@@ -28,7 +28,6 @@ namespace editor {
 
 	class Inspector : public WindowBase<Inspector>
 	{
-#ifdef IMGUI_ENABLED
 	public:
 		Inspector();
 
@@ -64,7 +63,6 @@ namespace editor {
 		*//******************************************************************/
 		void DrawEntityActionsButton(ecs::EntityHandle selectedEntity);
 
-#endif
 	};
 
 }

@@ -5,6 +5,7 @@
     "volumeBGM": 1.0,
     "volumeSFX": 1.0,
     "logLevel": 0,
+    "physicsDebugDraw": false,
     "maxFPS": 60,
     "targetFixedDt": 0.01666666753590107,
     "fullscreenMode": 0,

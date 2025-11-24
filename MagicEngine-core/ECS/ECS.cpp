@@ -93,7 +93,7 @@ namespace ecs {
 		return true;
 	}
 
-	bool Entity::RemoveCompNow(ecs::CompHash compHash)
+	bool Entity::RemoveCompByHashNow(ecs::CompHash compHash)
 	{
 		internal::EntCompMapType::iterator compIndexIter;
 		if (!CheckCanRemoveComp(compHash, compIndexIter))

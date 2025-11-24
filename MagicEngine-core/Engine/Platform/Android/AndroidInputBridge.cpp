@@ -24,6 +24,8 @@ All rights reserved.
 #include "core/platform/android/ry_android_input_api.h"
 static TouchState s_touch;
 static Vec2 s_virtualStick{ 0.f, 0.f };
+static TouchOwner s_owner = TouchOwner::NoOwner;
+
 #if defined(__ANDROID__)
 
 
@@ -66,6 +68,22 @@ static void OnTouchFromRy(float x, float y, int /*id*/, ry_touch_action_t action
     }
 }
 
+TouchOwner AndroidInputBridge::Owner() {
+    return s_owner;
+}
+
+bool AndroidInputBridge::TryCapture(TouchOwner who) {
+    if (s_owner == TouchOwner::NoOwner || s_owner == who) {
+        s_owner = who;
+        return true;
+    }
+    return false;
+}
+
+void AndroidInputBridge::Release(TouchOwner who) {
+    if (s_owner == who) s_owner = TouchOwner::NoOwner;
+}
+
 namespace AndroidInputBridge {
     void Initialize() { 
         ry_set_touch_callback(&OnTouchFromRy);
@@ -87,5 +105,17 @@ namespace AndroidInputBridge {
 
     void PublishVirtualStick(const Vec2& v) { s_virtualStick = v; }
     Vec2 ReadVirtualStick() { return s_virtualStick; }
+
+    TouchOwner Owner() {
+        return TouchOwner::NoOwner;
+    }
+    bool TryCapture(TouchOwner who) {
+        return false;
+    }
+
+    void AndroidInputBridge::Release(TouchOwner who) {
+        return;
+    }
+
 }
 #endif

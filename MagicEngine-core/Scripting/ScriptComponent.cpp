@@ -124,10 +124,6 @@ void ScriptComponent::EditorDraw()
 			gui::UnsetStyleColor unsetTextColor{ (scriptIter->valid ? 0u : 1u) };
 			gui::SetStyleColor buttonColor{ gui::FLAG_STYLE_COLOR::BUTTON, gui::Vec4{ 0.8f, 0.1f, 0.1f, 1.0f } };
 			gui::SetStyleColor buttonHoveredColor{ gui::FLAG_STYLE_COLOR::BUTTON_HOVERED, gui::Vec4{ 1.0f, 0.1f, 0.1f, 1.0f } };
-			
-
-			//lua_getglobal(, "foo"); // get foo on the stack
-			//lua_Number foo_in_c = lua_tonumber(L, -1); // foo is on top of the stack, use -1
 			if (gui::Button deleteButton{ "Delete", { gui::GetAvailableContentRegion().x, 0.0f } })
 			{
 				scriptIter = scripts.erase(scriptIter);

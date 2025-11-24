@@ -70,9 +70,9 @@ if(ANDROID)
 endif()
 
 # link asset compiler to engine for resource building
-if(NOT ANDROID)
-    target_link_libraries(MagicEngine-Core PRIVATE AssetCompiler EngineScripting)
-endif()
+# if(NOT ANDROID)
+#     target_link_libraries(MagicEngine-Core PRIVATE AssetCompiler EngineScripting)
+# endif()
 
 # Install for later linking to the whole solution
 engine_configure_platform(MagicEngine-Core)
