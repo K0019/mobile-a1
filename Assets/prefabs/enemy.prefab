@@ -223,7 +223,7 @@
                     "_active": true,
                     "moveSpeed": 1.7999999523162842,
                     "rotateSpeed": 14400.0,
-                    "stunTimePerHit": 1.0,
+                    "stunTimePerHit": 0.5,
                     "groundFriction": 0.75,
                     "dodgeCooldown": 0.0,
                     "dodgeDuration": 0.15000000596046448,

@@ -7,9 +7,9 @@
 #include "Scripting/ScriptComponent.h"
 
 const int L_Boss_Prefect_Detention::burstCount = 3;
-const float L_Boss_Prefect_Detention::burstDelay = 0.5f;
+const float L_Boss_Prefect_Detention::burstDelay = 3.0f;
 
-const float L_Boss_Prefect_Detention::triggerDistance = 3.0f;
+const float L_Boss_Prefect_Detention::triggerDistance = 5.0f;
 
 float L_Boss_Prefect_Detention::triggerDistanceSqr = L_Boss_Prefect_Detention::triggerDistance * L_Boss_Prefect_Detention::triggerDistance;
 
@@ -20,8 +20,8 @@ void L_Boss_Prefect_Detention::OnInitialize()
 
     // Init explosion sizes here
     explosionSizes[0] = 1.5f;
-    explosionSizes[0] = 2.5f;
-    explosionSizes[0] = 3.5f;
+    explosionSizes[1] = 2.5f;
+    explosionSizes[2] = 3.5f;
 
     currentBurstDelay = 0.0f;
     currentBurstCount = 0;
@@ -42,18 +42,22 @@ NODE_STATUS L_Boss_Prefect_Detention::OnUpdate([[maybe_unused]] ecs::EntityHandl
             {
                 if (currentBurstDelay < 0.0f)
                 {
-                    ++currentBurstCount;
-                    currentBurstDelay = burstDelay;
+                    ecs::EntityHandle spawnedExplosion = ST<PrefabManager>::Get()->LoadPrefab("explosion");
 
-                    // TODO: DO BURST SPAWN HERE
-                    ecs::EntityHandle spawnedExplosion = ST<PrefabManager>::Get()->LoadPrefab("EnemyExplosion");
-
-                    if (auto scriptComp{ spawnedExplosion->GetComp<ScriptComponent>() })
+                    if(spawnedExplosion)
                     {
-                        scriptComp->CallScriptFunction("setSize", );
-                    }
+                        if (auto scriptComp{ spawnedExplosion->GetComp<ScriptComponent>() })
+                        {
+                            float size = explosionSizes[currentBurstCount];
+                            ST<Scheduler>::Get()->Add([size, scriptComp]() {scriptComp->CallScriptFunction("setSize", size); });
+                        }
 
-                    spawnedExplosion->GetTransform().SetWorldPosition(entity->GetTransform().GetWorldPosition());
+                        spawnedExplosion->GetTransform().SetWorldPosition(entity->GetTransform().GetWorldPosition());
+
+                        // Reset burst delay and update count
+                        currentBurstDelay = burstDelay;
+                        ++currentBurstCount;
+                    }
 
                     if (currentBurstCount == burstCount)
                         return NODE_STATUS::SUCCESS;

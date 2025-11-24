@@ -149,6 +149,7 @@ void HealthComponent::SetIsInvincible(bool invincible)
 
 void HealthComponent::EditorDraw()
 {
+	gui::VarInput("Curr Health", &currHealth);
 	gui::VarInput("Max Health", &maxHealth);
 	gui::VarDefault("Is Invincible", &isInvincible);
 }

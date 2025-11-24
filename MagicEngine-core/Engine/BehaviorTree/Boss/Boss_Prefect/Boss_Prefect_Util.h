@@ -23,17 +23,17 @@ public:
 		if (direction.LengthSqr() < minFollowDistance)
 		{
 			// Walk away
-			outputVector -= directionNorm;
+			outputVector = outputVector - directionNorm;
 		}
 		// Too far, we walk closer
 		else if (direction.LengthSqr() > maxFollowDistance)
 		{
 			// Walk closer
-			outputVector += directionNorm;
+			outputVector = outputVector + directionNorm;
 		}
 
 		// Add perp. for orbiting motion
-		outputVector += directionPerpendicular;
+		outputVector = outputVector + directionPerpendicular;
 
 		return outputVector;
 	}

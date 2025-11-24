@@ -589,6 +589,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/items/bookingslip/material_1.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2269354617041426685,
+                            "name": "material_10"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/materials/n00_008_01_shoes_01_cloth_01 (instance).material",
             "resources": [
                 {
@@ -877,6 +891,20 @@
                         {
                             "hash": 820419293146481367,
                             "name": "lights0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/items/bookingslip/bookingslip.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 2256450748577847543,
+                            "name": "bookingslip0"
                         }
                     ]
                 }
@@ -2227,6 +2255,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/items/bookingslip/bookingslip.mesh",
+            "resources": [
+                {
+                    "resourceType": 6209910166724260588,
+                    "resourceEntries": [
+                        {
+                            "hash": 2271024775204018431,
+                            "name": "bookingslip0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/materials/concrete.001.material",
             "resources": [
                 {
@@ -2465,6 +2507,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/debug/unitsphere/unitsphere.mesh",
+            "resources": [
+                {
+                    "resourceType": 6209910166724260588,
+                    "resourceEntries": [
+                        {
+                            "hash": 4016702893937890531,
+                            "name": "unitsphere0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/materials/n00_000_hair_00_hair (instance).material",
             "resources": [
                 {
@@ -2613,6 +2669,20 @@
                         {
                             "hash": 730550710250200043,
                             "name": "dugout66474189507324034590"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/debug/unitsphere/material_0.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 4010155302194484447,
+                            "name": "material_00"
                         }
                     ]
                 }
@@ -3075,6 +3145,20 @@
                         {
                             "hash": 2134131179152232303,
                             "name": "n00_000_00_eyehighlight_00_eye__instance_0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/items/bookingslip/paper.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2264719076018723067,
+                            "name": "paper0"
                         }
                     ]
                 }

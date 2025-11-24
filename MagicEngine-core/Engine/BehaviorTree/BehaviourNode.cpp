@@ -32,6 +32,13 @@ All rights reserved.
 #include "BehaviourTreeFactory.h"
 #include "Engine/Input.h"
 
+#include "Boss/Boss_Prefect/Boss_LeafDetention.h"
+#include "Boss/Boss_Prefect/Boss_LeafBookingSlips.h"
+#include "Boss/Boss_Prefect/Boss_LeafInvincibility.h"
+
+#include "Boss/Common/Selector_BossHealthPhases.h"
+ 
+
 BT_REGISTER_NODE(Sequence, "Sequence")
 BT_REGISTER_NODE(Selector, "Selector")
 
@@ -46,6 +53,11 @@ BT_REGISTER_NODE(L_MoveTowardsPlayer, "L_MoveTowardsPlayer")
 BT_REGISTER_NODE(L_LookForPlayer, "L_LookForPlayer")
 BT_REGISTER_NODE(L_AttackPlayer, "L_AttackPlayer")
 BT_REGISTER_NODE(L_FollowPlayerUsingNavMesh, "L_FollowPlayerUsingNavMesh")
+
+BT_REGISTER_NODE(L_Boss_Prefect_Detention, "L_Boss_Prefect_Detention")
+BT_REGISTER_NODE(L_Boss_Prefect_BookingSlips, "L_Boss_Prefect_BookingSlips")
+BT_REGISTER_NODE(L_Boss_Prefect_Invincibility, "L_Boss_Prefect_Invincibility")
+BT_REGISTER_NODE(S_Boss_HealthPhases, "S_Boss_HealthPhases")
 
 
 BehaviorNode::BehaviorNode()

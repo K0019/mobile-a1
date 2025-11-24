@@ -42,6 +42,7 @@ All rights reserved.
 #include "Engine/Input.h"
 #include "ScriptComponent.h"
 #include "Graphics/RenderComponent.h"
+#include "Engine/PrefabManager.h"
 
 //=========================================== START REGISTERING COMPONENTS ================================================================================
 // This section is unfortunately required. This registers what functions are available in a component.
@@ -275,8 +276,11 @@ Vec2 Get2DAxis(std::string name)
 
 void Lua_PlayAudio(std::string name, Vec3 position)
 {
-	//ST<AudioManager>::Get()->PlaySound(name, false, AudioType::SFX);
 	ST<AudioManager>::Get()->PlaySound3D(util::GenHash(name), false, position);
+}
+ecs::EntityHandle Lua_LoadPrefab(std::string name)
+{
+	return ST<PrefabManager>::Get()->LoadPrefab(name);
 }
 
 void RegisterCppStuffToLua(luabridge::Namespace baseTable)
@@ -302,6 +306,9 @@ void RegisterCppStuffToLua(luabridge::Namespace baseTable)
 			.addFunction("Normalized", [](const Vec3* v) -> Vec3 {return v->Normalized(); })
 			.addFunction("Length", [](const Vec3* v) -> float {return v->Length(); })
 			.addFunction("LengthSqr", [](const Vec3* v) -> float {return v->LengthSqr(); })
+		.addFunction("Direction", [](const Vec3* a, const Vec3* b) -> Vec3 { return (*b) - (*a);	})
+		//.addFunction("Scale", [](const Vec3* a, const float* s) -> Vec3 { return (*a) * (*s);	})
+			//.addFunction("DirectionEntities", [](const ecs::EntityHandle a, const ecs::EntityHandle b) -> Vec3 { if (!a||!b) return Vec3{ 0 };  return  b->GetTransform().GetWorldPosition() - a->GetTransform().GetWorldPosition() ;	})
 		.endClass()
 		.beginClass<Transform>("Transform")
 			.addProperty("localPosition", [](const Transform* t) -> Vec3 { return t->GetLocalPosition(); }, [](Transform* t, Vec3 v) { t->SetLocalPosition(v); })
@@ -314,6 +321,7 @@ void RegisterCppStuffToLua(luabridge::Namespace baseTable)
 		.endClass()
 		.beginClass<ecs::Entity>("Entity")
 			.addProperty("transform", [](ecs::EntityHandle entity) -> Transform* { return &entity->GetTransform(); })
+			.addFunction("Destroy", [](ecs::EntityHandle entity) -> void { ecs::DeleteEntity(entity); })
 		
 		//=========================================== START REGISTER GETTER ================================================================================
 
@@ -498,6 +506,10 @@ void RegisterCppStuffToLua(luabridge::Namespace baseTable)
 
 		.beginNamespace("AudioManager")
 			.addFunction("PlaySound", Lua_PlayAudio)
+		.endNamespace()
+
+		.beginNamespace("PrefabManager")
+			.addFunction("LoadPrefab", Lua_LoadPrefab)
 		.endNamespace()
 
 		// ----- GLOBAL VARIABLES -----
