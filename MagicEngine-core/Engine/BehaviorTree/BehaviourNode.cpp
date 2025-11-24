@@ -35,6 +35,9 @@ All rights reserved.
 #include "Boss/Boss_Prefect/Boss_LeafDetention.h"
 #include "Boss/Boss_Prefect/Boss_LeafBookingSlips.h"
 #include "Boss/Boss_Prefect/Boss_LeafInvincibility.h"
+#include "Boss/Boss_Prefect/Boss_LeafLashOut.h"
+#include "Boss/Boss_Prefect/Boss_LeafDontRun.h"
+#include "Boss/Boss_Prefect/Boss_LeafDisciplinaryAction.h"
 
 #include "Boss/Common/Selector_BossHealthPhases.h"
  
@@ -57,6 +60,9 @@ BT_REGISTER_NODE(L_FollowPlayerUsingNavMesh, "L_FollowPlayerUsingNavMesh")
 BT_REGISTER_NODE(L_Boss_Prefect_Detention, "L_Boss_Prefect_Detention")
 BT_REGISTER_NODE(L_Boss_Prefect_BookingSlips, "L_Boss_Prefect_BookingSlips")
 BT_REGISTER_NODE(L_Boss_Prefect_Invincibility, "L_Boss_Prefect_Invincibility")
+BT_REGISTER_NODE(L_Boss_Prefect_LashOut, "L_Boss_Prefect_LashOut")
+BT_REGISTER_NODE(L_Boss_Prefect_DontRun, "L_Boss_Prefect_DontRun")
+BT_REGISTER_NODE(L_Boss_Prefect_DisciplinaryAction, "L_Boss_Prefect_DisciplinaryAction")
 BT_REGISTER_NODE(S_Boss_HealthPhases, "S_Boss_HealthPhases")
 
 
