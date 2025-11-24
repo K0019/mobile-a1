@@ -229,20 +229,23 @@ namespace physics {
 	{
 		//If the entity has the physics component, get the body pointer of the physics component.
 		//If not, create a body.
-		if (ecs::GetEntity(this)->HasComp<PhysicsComp>())
-		{
-			auto bodyCompPtr{ ecs::GetEntity(this)->GetComp<JoltBodyComp>() };
-			if (!bodyCompPtr || bodyCompPtr->GetBodyID().IsInvalid())
+		ST<Scheduler>::Get()->Add(0.0f, [entity = ecs::GetEntity(this)]() {
+			if (!ecs::IsEntityHandleValid(entity))
 				return;
 
-			bodyCompPtr->SetShapeType(ShapeType::BOX);
-		}
-		else
-		{
-			ecs::GetEntity(this)->AddCompNow<JoltBodyComp>(JoltBodyComp{ JPH::EMotionType::Static, ShapeType::BOX, Layers::NON_MOVING });
-		}
+			if (entity->HasComp<PhysicsComp>())
+			{
+				auto bodyCompPtr{ entity->GetComp<JoltBodyComp>() };
+				if (!bodyCompPtr || bodyCompPtr->GetBodyID().IsInvalid())
+					return;
 
-		ST<Scheduler>::Get()->Add(0.0f, [entity = ecs::GetEntity(this)]() {
+				bodyCompPtr->SetShapeType(ShapeType::BOX);
+			}
+			else
+			{
+				entity->AddCompNow<JoltBodyComp>(JoltBodyComp{ JPH::EMotionType::Static, ShapeType::BOX, Layers::NON_MOVING });
+			}
+
 			auto compPtr{ entity->GetComp<BoxColliderComp>() };
 			entity->GetComp<JoltBodyComp>()->SetPosition(entity->GetTransform().GetWorldPosition() + compPtr->GetCenter());
 			entity->GetComp<JoltBodyComp>()->SetScale(entity->GetTransform().GetWorldScale() * compPtr->GetSize());
@@ -257,7 +260,7 @@ namespace physics {
 
 			entity->GetComp<JoltBodyComp>()->SetIsTrigger(compPtr->GetFlag(COLLIDER_COMP_FLAG::IS_TRIGGER));
 
-			});
+		});
 	}
 
 	void BoxColliderComp::OnDetached()
