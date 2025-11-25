@@ -40,6 +40,9 @@ All rights reserved.
 #include "Engine/EntityLayers.h"
 #include "Managers/AudioManager.h"
 #include "Engine/Input.h"
+#include "ScriptComponent.h"
+#include "Graphics/RenderComponent.h"
+#include "Engine/PrefabManager.h"
 
 //=========================================== START REGISTERING COMPONENTS ================================================================================
 // This section is unfortunately required. This registers what functions are available in a component.
@@ -139,6 +142,7 @@ SCRIPT_GENERATE_COMP_WRAPPER_END()
 
 // CharacterMovementComponent
 SCRIPT_GENERATE_COMP_WRAPPER_BEGIN(CharacterMovementComponent)
+
 // Properties
 SCRIPT_GENERATE_PROPERTY_FUNCS(Vec2, GetMovementVector, SetMovementVector)
 SCRIPT_GENERATE_PROPERTY_FUNCS(float, GetMoveSpeed, SetMoveSpeed)
@@ -151,12 +155,13 @@ SCRIPT_GENERATE_PROPERTY_FUNCS(float, GetDodgeSpeed, SetDodgeSpeed)
 SCRIPT_GENERATE_PROPERTY_FUNCS(float, GetCurrentStunTime, SetCurrentStunTime)
 SCRIPT_GENERATE_PROPERTY_FUNCS(float, GetCurrentDodgeTime, SetCurrentDodgeTime)
 SCRIPT_GENERATE_PROPERTY_FUNCS(float, GetCurrentDodgeCooldown, SetCurrentDodgeCooldown)
+
 //functions
-void Dodge(const Vec2& v) { GetHandle()->Dodge(v); }
-void RotateTowards(const Vec2& v) { GetHandle()->RotateTowards(v); }
-void SetMovementVectorLua(const Vec2& v) { GetHandle()->SetMovementVector(v); }
+void Dodge(const Vec2 v) { GetHandle()->Dodge(v); }
+void RotateTowards(const Vec2 v) { GetHandle()->RotateTowards(v); }
+void SetMovementVectorLua(const Vec2 v) { GetHandle()->SetMovementVector(v); }
 void DropItem() { GetHandle()->DropItem(); }
-void Throw(const Vec3& dir) { GetHandle()->Throw(dir); }
+void Throw(const Vec3 dir) { GetHandle()->Throw(dir); }
 void Attack() { GetHandle()->Attack(); }
 SCRIPT_GENERATE_COMP_WRAPPER_END()
 
@@ -223,6 +228,16 @@ void SetEntityReference(int index, ecs::EntityHandle entity)
 }
 SCRIPT_GENERATE_COMP_WRAPPER_END()
 
+SCRIPT_GENERATE_COMP_WRAPPER_BEGIN(ScriptComponent)
+void CallScriptFunction(std::string funcName)
+{
+	GetHandle()->CallScriptFunction(funcName);
+}
+SCRIPT_GENERATE_COMP_WRAPPER_END()
+
+SCRIPT_GENERATE_COMP_WRAPPER_BEGIN(RenderComponent)
+SCRIPT_GENERATE_COMP_WRAPPER_END()
+
 
 
 
@@ -261,8 +276,11 @@ Vec2 Get2DAxis(std::string name)
 
 void Lua_PlayAudio(std::string name, Vec3 position)
 {
-	//ST<AudioManager>::Get()->PlaySound(name, false, AudioType::SFX);
 	ST<AudioManager>::Get()->PlaySound3D(util::GenHash(name), false, position);
+}
+ecs::EntityHandle Lua_LoadPrefab(std::string name)
+{
+	return ST<PrefabManager>::Get()->LoadPrefab(name);
 }
 
 void RegisterCppStuffToLua(luabridge::Namespace baseTable)
@@ -272,34 +290,38 @@ void RegisterCppStuffToLua(luabridge::Namespace baseTable)
 	baseTable
 		// ----- CLASSES -----
 		.beginClass<Vec2>("Vec2")
-			.addConstructor<void(*)(float, float)>()
-			.addProperty("x", [](const Vec2* v) -> float { return v->x; }, [](Vec2* v, float x) { v->x = x; })
-			.addProperty("y", [](const Vec2* v) -> float { return v->y; }, [](Vec2* v, float y) { v->y = y; })
-			.addFunction("Normalized", [](const Vec2* v) -> Vec2 {return v->Normalized(); })
-			.addFunction("Length", [](const Vec2* v) -> float {return v->Length(); })
-			.addFunction("LengthSqr", [](const Vec2* v) -> float {return v->LengthSqr(); })
+		.addConstructor<void(*)(float, float)>()
+		.addProperty("x", [](const Vec2* v) -> float { return v->x; }, [](Vec2* v, float x) { v->x = x; })
+		.addProperty("y", [](const Vec2* v) -> float { return v->y; }, [](Vec2* v, float y) { v->y = y; })
+		.addFunction("Normalized", [](const Vec2* v) -> Vec2 {return v->Normalized(); })
+		.addFunction("Length", [](const Vec2* v) -> float {return v->Length(); })
+		.addFunction("LengthSqr", [](const Vec2* v) -> float {return v->LengthSqr(); })
 		.endClass()
 
 		.beginClass<Vec3>("Vec3")
-			.addConstructor<void(*)(float, float, float)>()
-			.addProperty("x", [](const Vec3* v) -> float { return v->x; }, [](Vec3* v, float x) { v->x = x; })
-			.addProperty("y", [](const Vec3* v) -> float { return v->y; }, [](Vec3* v, float y) { v->y = y; })
-			.addProperty("z", [](const Vec3* v) -> float { return v->z; }, [](Vec3* v, float z) { v->z = z; })
-			.addFunction("Normalized", [](const Vec3* v) -> Vec3 {return v->Normalized(); })
-			.addFunction("Length", [](const Vec3* v) -> float {return v->Length(); })
-			.addFunction("LengthSqr", [](const Vec3* v) -> float {return v->LengthSqr(); })
+		.addConstructor<void(*)(float, float, float)>()
+		.addProperty("x", [](const Vec3* v) -> float { return v->x; }, [](Vec3* v, float x) { v->x = x; })
+		.addProperty("y", [](const Vec3* v) -> float { return v->y; }, [](Vec3* v, float y) { v->y = y; })
+		.addProperty("z", [](const Vec3* v) -> float { return v->z; }, [](Vec3* v, float z) { v->z = z; })
+		.addFunction("Normalized", [](const Vec3* v) -> Vec3 {return v->Normalized(); })
+		.addFunction("Length", [](const Vec3* v) -> float {return v->Length(); })
+		.addFunction("LengthSqr", [](const Vec3* v) -> float {return v->LengthSqr(); })
+		.addFunction("Direction", [](const Vec3* a, const Vec3* b) -> Vec3 { return (*b) - (*a);	})
+		//.addFunction("Scale", [](const Vec3* a, const float* s) -> Vec3 { return (*a) * (*s);	})
+			//.addFunction("DirectionEntities", [](const ecs::EntityHandle a, const ecs::EntityHandle b) -> Vec3 { if (!a||!b) return Vec3{ 0 };  return  b->GetTransform().GetWorldPosition() - a->GetTransform().GetWorldPosition() ;	})
 		.endClass()
 		.beginClass<Transform>("Transform")
-			.addProperty("localPosition", [](const Transform* t) -> Vec3 { return t->GetLocalPosition(); }, [](Transform* t, Vec3 v) { t->SetLocalPosition(v); })
-			.addProperty("localRotation", [](const Transform* t) -> Vec3 { return t->GetLocalRotation(); }, [](Transform* t, Vec3 v) { t->SetLocalRotation(v); })
-			.addProperty("localScale", [](const Transform* t) -> Vec3 { return t->GetLocalScale();    }, [](Transform* t, Vec3 v) { t->SetLocalScale(v);    })
-			.addProperty("worldPosition", [](const Transform* t) -> Vec3 { return t->GetWorldPosition(); }, [](Transform* t, Vec3 v) { t->SetWorldPosition(v); })
-			.addProperty("worldRotation", [](const Transform* t) -> Vec3 { return t->GetWorldRotation(); }, [](Transform* t, Vec3 v) { t->SetWorldRotation(v); })
-			.addProperty("worldScale", [](const Transform* t) -> Vec3 { return t->GetWorldScale();    }, [](Transform* t, Vec3 v) { t->SetWorldScale(v);    })			// Parent
-			// Child
+		.addProperty("localPosition", [](const Transform* t) -> Vec3 { return t->GetLocalPosition(); }, [](Transform* t, Vec3 v) { t->SetLocalPosition(v); })
+		.addProperty("localRotation", [](const Transform* t) -> Vec3 { return t->GetLocalRotation(); }, [](Transform* t, Vec3 v) { t->SetLocalRotation(v); })
+		.addProperty("localScale", [](const Transform* t) -> Vec3 { return t->GetLocalScale();    }, [](Transform* t, Vec3 v) { t->SetLocalScale(v);    })
+		.addProperty("worldPosition", [](const Transform* t) -> Vec3 { return t->GetWorldPosition(); }, [](Transform* t, Vec3 v) { t->SetWorldPosition(v); })
+		.addProperty("worldRotation", [](const Transform* t) -> Vec3 { return t->GetWorldRotation(); }, [](Transform* t, Vec3 v) { t->SetWorldRotation(v); })
+		.addProperty("worldScale", [](const Transform* t) -> Vec3 { return t->GetWorldScale();    }, [](Transform* t, Vec3 v) { t->SetWorldScale(v);    })			// Parent
+		// Child
 		.endClass()
 		.beginClass<ecs::Entity>("Entity")
-			.addProperty("transform", [](ecs::EntityHandle entity) -> Transform* { return &entity->GetTransform(); })
+		.addProperty("transform", [](ecs::EntityHandle entity) -> Transform* { return &entity->GetTransform(); })
+		.addFunction("Destroy", [](ecs::EntityHandle entity) -> void { ST<Scheduler>::Get()->Add([entity]() {ecs::DeleteEntity(entity); }); })
 		
 		//=========================================== START REGISTER GETTER ================================================================================
 
@@ -320,6 +342,8 @@ void RegisterCppStuffToLua(luabridge::Namespace baseTable)
 		SCRIPT_REGISTER_COMP_GETTER(HealthComponent)
 		SCRIPT_REGISTER_COMP_GETTER(EntityLayerComponent)
 		SCRIPT_REGISTER_COMP_GETTER(EntityReferenceHolderComponent)
+		SCRIPT_REGISTER_COMP_GETTER(ScriptComponent)
+		SCRIPT_REGISTER_COMP_GETTER(RenderComponent)
 		//=========================================== END REGISTER GETTER ================================================================================
 
 		.endClass()
@@ -461,11 +485,19 @@ void RegisterCppStuffToLua(luabridge::Namespace baseTable)
 		SCRIPT_REGISTER_COMP_PROPERTY(EntityLayerComponent,"layer", GetLayerLua, SetLayerLua)
 		SCRIPT_REGISTER_COMP_END()
 
-		// GrabbableItemComponent
+		// EntityReferenceHolderComponent
 		SCRIPT_REGISTER_COMP_BEGIN(EntityReferenceHolderComponent)
 			.addFunction("GetEntityReference", &LuaWrapperComp_EntityReferenceHolderComponent::GetEntityReference)
 			.addFunction("SetEntityReference", &LuaWrapperComp_EntityReferenceHolderComponent::SetEntityReference)
 			//.addProperty("GetEntityReference", [](const EntityReferenceHolderComponent* comp) -> EntityReference { return comp->GetEntity() })
+		SCRIPT_REGISTER_COMP_END()
+
+		// ScriptComponent
+		SCRIPT_REGISTER_COMP_BEGIN(ScriptComponent)
+			.addFunction("CallScriptFunction", &LuaWrapperComp_ScriptComponent::CallScriptFunction)
+		SCRIPT_REGISTER_COMP_END()
+
+		SCRIPT_REGISTER_COMP_BEGIN(RenderComponent)
 		SCRIPT_REGISTER_COMP_END()
 
 		// ----- GLOBAL FUNCTIONS -----
@@ -474,6 +506,10 @@ void RegisterCppStuffToLua(luabridge::Namespace baseTable)
 
 		.beginNamespace("AudioManager")
 			.addFunction("PlaySound", Lua_PlayAudio)
+		.endNamespace()
+
+		.beginNamespace("PrefabManager")
+			.addFunction("LoadPrefab", Lua_LoadPrefab)
 		.endNamespace()
 
 		// ----- GLOBAL VARIABLES -----

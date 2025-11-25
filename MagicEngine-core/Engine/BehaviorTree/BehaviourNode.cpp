@@ -19,7 +19,7 @@
       in the behavior tree. It also contains the definition of the Decorator 
       base class, and definition of sequence and selector nodes.
 
-All content © 2025 DigiPen Institute of Technology Singapore.
+All content ï¿½ 2025 DigiPen Institute of Technology Singapore.
 All rights reserved.
 */
 /******************************************************************************/
@@ -37,6 +37,16 @@ All rights reserved.
 #include "LeafRotateTowardsTarget.h"
 #include "BehaviourTreeFactory.h"
 #include "Engine/Input.h"
+
+#include "Boss/Boss_Prefect/Boss_LeafDetention.h"
+#include "Boss/Boss_Prefect/Boss_LeafBookingSlips.h"
+#include "Boss/Boss_Prefect/Boss_LeafInvincibility.h"
+#include "Boss/Boss_Prefect/Boss_LeafLashOut.h"
+#include "Boss/Boss_Prefect/Boss_LeafDontRun.h"
+#include "Boss/Boss_Prefect/Boss_LeafDisciplinaryAction.h"
+
+#include "Boss/Common/Selector_BossHealthPhases.h"
+ 
 
 BT_REGISTER_NODE(Sequence, "Sequence")
 BT_REGISTER_NODE(Selector, "Selector")
@@ -58,6 +68,15 @@ BT_REGISTER_NODE(L_WindUp, "L_WindUp")
 BT_REGISTER_NODE(L_MeleeAttack, "L_MeleeAttack")
 BT_REGISTER_NODE(L_RotateTowardsTarget, "L_RotateTowardsTarget")
 BT_REGISTER_NODE(L_FollowThrough, "L_FollowThrough")
+
+BT_REGISTER_NODE(L_Boss_Prefect_Detention, "L_Boss_Prefect_Detention")
+BT_REGISTER_NODE(L_Boss_Prefect_BookingSlips, "L_Boss_Prefect_BookingSlips")
+BT_REGISTER_NODE(L_Boss_Prefect_Invincibility, "L_Boss_Prefect_Invincibility")
+BT_REGISTER_NODE(L_Boss_Prefect_LashOut, "L_Boss_Prefect_LashOut")
+BT_REGISTER_NODE(L_Boss_Prefect_DontRun, "L_Boss_Prefect_DontRun")
+BT_REGISTER_NODE(L_Boss_Prefect_DisciplinaryAction, "L_Boss_Prefect_DisciplinaryAction")
+BT_REGISTER_NODE(S_Boss_HealthPhases, "S_Boss_HealthPhases")
+
 
 BehaviorNode::BehaviorNode()
     : status{ NODE_STATUS::READY }

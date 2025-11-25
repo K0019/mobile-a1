@@ -6,8 +6,16 @@
             "nodeLevel": 0
         },
         {
-            "nodeType": "L_FollowPlayerUsingNavMesh",
+            "nodeType": "Selector",
             "nodeLevel": 1
+        },
+        {
+            "nodeType": "L_FollowPlayerUsingNavMesh",
+            "nodeLevel": 2
+        },
+        {
+            "nodeType": "L_AttackPlayer",
+            "nodeLevel": 2
         }
     ]
 }

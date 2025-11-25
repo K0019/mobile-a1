@@ -127,6 +127,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/materials/wall_1011.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 1374930494977276773,
+                            "name": "wall_10110"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/materials/standardsurface1_1001.material",
             "resources": [
                 {
@@ -561,6 +575,34 @@
             ]
         },
         {
+            "filepath": "compiledassets/textures/image_9.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 1360425737583655709,
+                            "name": "image_90"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/items/bookingslip/material_1.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2269354617041426685,
+                            "name": "material_10"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/materials/n00_008_01_shoes_01_cloth_01 (instance).material",
             "resources": [
                 {
@@ -849,6 +891,20 @@
                         {
                             "hash": 820419293146481367,
                             "name": "lights0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/items/bookingslip/bookingslip.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 2256450748577847543,
+                            "name": "bookingslip0"
                         }
                     ]
                 }
@@ -1241,6 +1297,20 @@
                         {
                             "hash": 2116413648782249829,
                             "name": "n00_002_03_tops_01_cloth_04__instance_0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/corridor.mesh",
+            "resources": [
+                {
+                    "resourceType": 6209910166724260588,
+                    "resourceEntries": [
+                        {
+                            "hash": 1380181762511534957,
+                            "name": "corridor0"
                         }
                     ]
                 }
@@ -1835,6 +1905,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/textures/image_10.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 1366539022234090277,
+                            "name": "image_100"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/outdoor bleachers.mesh",
             "resources": [
                 {
@@ -2031,6 +2115,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/textures/image_11.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 1372985458907740979,
+                            "name": "image_110"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/materials/n00_002_03_tops_01_cloth_01 (instance).material",
             "resources": [
                 {
@@ -2151,6 +2249,20 @@
                         {
                             "hash": 2138932746430730097,
                             "name": "n00_000_00_face_00_skin__instance_0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/items/bookingslip/bookingslip.mesh",
+            "resources": [
+                {
+                    "resourceType": 6209910166724260588,
+                    "resourceEntries": [
+                        {
+                            "hash": 2271024775204018431,
+                            "name": "bookingslip0"
                         }
                     ]
                 }
@@ -2395,6 +2507,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/debug/unitsphere/unitsphere.mesh",
+            "resources": [
+                {
+                    "resourceType": 6209910166724260588,
+                    "resourceEntries": [
+                        {
+                            "hash": 4016702893937890531,
+                            "name": "unitsphere0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/materials/n00_000_hair_00_hair (instance).material",
             "resources": [
                 {
@@ -2543,6 +2669,20 @@
                         {
                             "hash": 730550710250200043,
                             "name": "dugout66474189507324034590"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/debug/unitsphere/material_0.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 4010155302194484447,
+                            "name": "material_00"
                         }
                     ]
                 }
@@ -2739,6 +2879,20 @@
                         {
                             "hash": 382222127981642901,
                             "name": "n00_000_00_facebrow_00_face (instance)0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/corridor_bridge.mesh",
+            "resources": [
+                {
+                    "resourceType": 6209910166724260588,
+                    "resourceEntries": [
+                        {
+                            "hash": 15089627211392254377,
+                            "name": "corridor_bridge0"
                         }
                     ]
                 }
@@ -2997,6 +3151,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/items/bookingslip/paper.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2264719076018723067,
+                            "name": "paper0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/textures/fence13707767880246738486.ktx2",
             "resources": [
                 {
@@ -3131,6 +3299,20 @@
                         {
                             "hash": 2341418807801984097,
                             "name": "n00_000_00_facebrow_00_face__instance_.0010"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/stairs_left.mesh",
+            "resources": [
+                {
+                    "resourceType": 6209910166724260588,
+                    "resourceEntries": [
+                        {
+                            "hash": 3686029169775864251,
+                            "name": "stairs_left0"
                         }
                     ]
                 }
