@@ -59,8 +59,16 @@ function update(entity)
         worldPos.y = worldPos.y - diveSpeed*Magic:DeltaTime()
     end
     -- Auto destroy if it's been falling for too long, prevent potential excess entities
-    if(lifeTime < -10.0)then
-    
+    if(lifeTime < -0.8/diveSpeed)then
+        local newExplosion = Magic.PrefabManager.LoadPrefab("explosion")
+        
+        local explosionTransform = newExplosion.transform
+        
+        local transform = entity.transform
+        local worldPos = transform.worldPosition
+        
+        explosionTransform.worldPosition = worldPos
+
         entity:Destroy()
     end
 
@@ -74,17 +82,8 @@ end
 function OnTriggerStay(entity)
     local nameComp = entity:GetNameComponent();
     if nameComp:Exists() then
-        if nameComp.name == "Player" or lifeTime<=0.0 then
-            local newExplosion = Magic.PrefabManager.LoadPrefab("explosion")
-            
-            local explosionTransform = newExplosion.transform
-            
-            local transform = entity.transform
-            local worldPos = transform.worldPosition
-            
-            explosionTransform.worldPosition = worldPos
-
-            thisEntity:Destroy()
+        if nameComp.name == "Player" then
+            lifeTime=0.0
         end
     end
 end

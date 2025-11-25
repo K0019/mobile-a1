@@ -20,6 +20,22 @@
         {
             "nodeType": "L_Boss_Prefect_Invincibility",
             "nodeLevel": 2
+        },
+        {
+            "nodeType": "Sequence",
+            "nodeLevel": 1
+        },
+        {
+            "nodeType": "L_Boss_Prefect_DisciplinaryAction",
+            "nodeLevel": 2
+        },
+        {
+            "nodeType": "L_Boss_Prefect_LashOut",
+            "nodeLevel": 2
+        },
+        {
+            "nodeType": "L_Boss_Prefect_DontRun",
+            "nodeLevel": 2
         }
     ]
 }

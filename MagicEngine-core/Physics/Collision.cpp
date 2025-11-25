@@ -100,6 +100,11 @@ namespace physics {
 
 	std::vector<std::pair<std::pair<JPH::BodyID, JPH::BodyID>, ContactTiming>> MyContactListener::contactPair{};
 
+	void MyContactListener::Init()
+	{
+		contactPair.reserve(1000);
+	}
+
 	void MyContactListener::OnContactAdded(const JPH::Body& inBody1, const JPH::Body& inBody2, const JPH::ContactManifold& inManifold, JPH::ContactSettings& ioSettings)
 	{
 		auto bodyIDPair{ std::make_pair(inBody1.GetID(), inBody2.GetID()) };
@@ -277,7 +282,7 @@ namespace physics {
 			return;
 
 		if (!ecs::GetEntity(this)->HasComp<PhysicsComp>())
-			ecs::GetEntity(this)->RemoveCompNow<JoltBodyComp>();
+			ecs::GetEntity(this)->RemoveComp<JoltBodyComp>();
 		else
 		{
 			JoltBodyComp* bodyCompPtr{ ecs::GetEntity(this)->GetComp<JoltBodyComp>() };

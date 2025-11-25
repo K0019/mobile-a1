@@ -133,9 +133,13 @@ void CharacterMovementComponent::GrabItem(ecs::CompHandle<GrabbableItemComponent
 	heldItem->GetComp<physics::PhysicsComp>()->SetFlag(physics::PHYSICS_COMP_FLAG::ENABLED, false);
 }
 
-void CharacterMovementComponent::Attack()
+bool CharacterMovementComponent::Attack()
 {
 	ecs::EntityHandle attackItem{ heldItem };
+
+	// If already in attack animation, skip
+	if (isAttacking)
+		return false;
 
 	// If not holding an item, we fallback to the character's entity itself
 	if (attackItem == nullptr && ecs::GetEntity(this)->GetComp<GrabbableItemComponent>())
@@ -145,7 +149,7 @@ void CharacterMovementComponent::Attack()
 
 	// If the entity doesn't have a GI comp, then it has no unarmed attack.
 	else if (attackItem == nullptr)
-		return;
+		return false;
 
 	ecs::EntityHandle thisEntity = ecs::GetEntity(this);
 
@@ -167,6 +171,8 @@ void CharacterMovementComponent::Attack()
 
 	// Call Attack from the GrabbableItem component
 	attackItem->GetComp<GrabbableItemComponent>()->Attack(startPoint, direction);
+
+	return true;
 }
 
 void CharacterMovementComponent::Serialize(Serializer& writer) const
@@ -257,7 +263,6 @@ void CharacterMovementComponent::EditorDraw()
 
 CharacterMovementComponentSystem::CharacterMovementComponentSystem()
 	: System_Internal{ &CharacterMovementComponentSystem::UpdateCharacterMovementComponent }
-
 {
 }
 

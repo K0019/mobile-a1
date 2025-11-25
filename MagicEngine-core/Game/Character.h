@@ -85,7 +85,7 @@ public:
 	void DropItem();
 	void Throw(Vec3 direction);
 	void GrabItem(ecs::CompHandle<GrabbableItemComponent> item);
-	void Attack();
+	bool Attack();
 
 	void Serialize(Serializer& writer) const override;
 	void Deserialize(Deserializer& reader) override;

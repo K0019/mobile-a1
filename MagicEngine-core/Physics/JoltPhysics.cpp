@@ -49,6 +49,7 @@ namespace physics {
 		physicsSystem.Init(cMaxBodies, cNumBodyMutexes, cMaxBodyPairs, cMaxContactConstraints, broadPhaseLayerInterface, objectVsBroadphaseLayerFilter, objectVsObjectLayerFilter);
 
 		//Set contact listener.
+		contactListener.Init();
 		physicsSystem.SetContactListener(&contactListener);
 
 		//Initialize the body manager.

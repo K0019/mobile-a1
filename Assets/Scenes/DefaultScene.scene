@@ -222,7 +222,8 @@
                 "7930599578754533802": {
                     "_active": true,
                     "maxHealth": 200.0,
-                    "currHealth": 100.0
+                    "currHealth": 100.0,
+                    "isInvincible": false
                 },
                 "9315785795257285655": {
                     "_active": true,
@@ -634,7 +635,8 @@
                 "7930599578754533802": {
                     "_active": true,
                     "maxHealth": 1000.0,
-                    "currHealth": 100.0
+                    "currHealth": 100.0,
+                    "isInvincible": true
                 },
                 "9315785795257285655": {
                     "_active": true,
@@ -1057,7 +1059,8 @@
                 "7930599578754533802": {
                     "_active": true,
                     "maxHealth": 1000.0,
-                    "currHealth": 100.0
+                    "currHealth": 100.0,
+                    "isInvincible": true
                 },
                 "9315785795257285655": {
                     "_active": true,
@@ -1508,7 +1511,8 @@
                 "7930599578754533802": {
                     "_active": true,
                     "maxHealth": 1000.0,
-                    "currHealth": 100.0
+                    "currHealth": 100.0,
+                    "isInvincible": true
                 },
                 "9315785795257285655": {
                     "_active": true,

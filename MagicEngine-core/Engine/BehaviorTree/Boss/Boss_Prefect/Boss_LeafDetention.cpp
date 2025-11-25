@@ -49,7 +49,7 @@ NODE_STATUS L_Boss_Prefect_Detention::OnUpdate([[maybe_unused]] ecs::EntityHandl
                         if (auto scriptComp{ spawnedExplosion->GetComp<ScriptComponent>() })
                         {
                             float size = explosionSizes[currentBurstCount];
-                            ST<Scheduler>::Get()->Add([size, scriptComp]() {scriptComp->CallScriptFunction("setSize", size); });
+                           scriptComp->CallScriptFunction("setSize", size); 
                         }
 
                         spawnedExplosion->GetTransform().SetWorldPosition(entity->GetTransform().GetWorldPosition());

@@ -134,5 +134,6 @@ property_begin(HealthComponent)
 {
 	property_var(maxHealth),
 	property_var(currHealth),
+	property_var(isInvincible),
 }
 property_vend_h(HealthComponent)

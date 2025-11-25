@@ -7,12 +7,13 @@
 #include "Engine/PrefabManager.h"
 #include "Components/EntityReferenceHolder.h"
 
-int L_Boss_Prefect_BookingSlips::burstCount = 3;
-float L_Boss_Prefect_BookingSlips::burstDelay = 0.25f;
+int L_Boss_Prefect_BookingSlips::burstCount = 30;
+float L_Boss_Prefect_BookingSlips::burstDelay = 0.025f;
 
 void L_Boss_Prefect_BookingSlips::OnInitialize()
 {
     currentBurstDelay = burstDelay;
+    currentBurstCount = 0;
 }
 
 NODE_STATUS L_Boss_Prefect_BookingSlips::OnUpdate([[maybe_unused]] ecs::EntityHandle entity)

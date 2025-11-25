@@ -72,6 +72,9 @@ void HealthComponent::AddHealth(HealthType amount)
 
 void HealthComponent::TakeDamage(HealthComponent::HealthType amount, Vec3 direction)
 {
+	if (IsDead())
+		return;
+
 	// If the healthComp is already invincible, we can't do anything to the health
 	if (isInvincible)
 		return;
