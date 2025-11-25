@@ -234,7 +234,7 @@ vec3 calculateLighting(vec3 worldPos, vec3 normal, vec3 albedo, float metallic, 
     Cluster cluster = pc.lighting.clusters.clusters[clusterIndex];
 
     // Material properties for Blinn-Phong
-    vec3 ambient = albedo * 0.1; // Simple ambient term
+    vec3 ambient = albedo * 0.5; // Simple ambient term
     vec3 diffuseColor = albedo;
     vec3 specularColor = mix(vec3(0.04), albedo, metallic); // Use metallic to blend specular color
     float shininess = mix(32.0, 128.0, 1.0 - roughness); // Convert roughness to shininess
