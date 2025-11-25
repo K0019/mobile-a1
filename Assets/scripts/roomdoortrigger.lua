@@ -33,12 +33,17 @@ function OnTriggerEnter(entity)
                 else
                     scriptComp:CallScriptFunction("close")
                 end
-
             -- Call relevant functions on enemy wave spawner etc here!
+                local spawnerEntity = entityContainer:GetEntityReference(1)
 
-            else
-                Magic.Log(Magic.LogLevel.info, "NO COMPONENT ATTACHED!!!")
-            end
+                if spawnerEntity:Exists() then
+                local spawnerScriptComp = spawnerEntity:GetScriptComponent()
+                end
+
+                if spawnerScriptComp:Exists() then
+                Magic.Log(Magic.LogLevel.info, "It's spawnin time")
+                spawnerScriptComp:CallScriptFunction("wavespawn")
+                end
         end
     end
 
