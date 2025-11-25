@@ -43,10 +43,12 @@ namespace physics {
 		{
 			auto bodyCompPtr{ ecs::GetEntity(this)->GetComp<JoltBodyComp>() };
 			if (!bodyCompPtr || bodyCompPtr->GetBodyID().IsInvalid())
-				return;
-
-			bodyCompPtr->SetCollisionLayer(colCompPtr->GetFlag(COLLIDER_COMP_FLAG::ENABLED) ? Layers::MOVING : Layers::NON_COLLIDABLE);
-			bodyCompPtr->SetGravityFactor(GetFlag(PHYSICS_COMP_FLAG::USE_GRAVITY) ? 1.f : 0.f);
+				ecs::GetEntity(this)->AddCompNow<JoltBodyComp>(JoltBodyComp{ JPH::EMotionType::Dynamic, ShapeType::BOX, Layers::MOVING });
+			else
+			{
+				bodyCompPtr->SetCollisionLayer(colCompPtr->GetFlag(COLLIDER_COMP_FLAG::ENABLED) ? Layers::MOVING : Layers::NON_COLLIDABLE);
+				bodyCompPtr->SetGravityFactor(GetFlag(PHYSICS_COMP_FLAG::USE_GRAVITY) ? 1.f : 0.f);
+			}
 		}
 		else
 		{

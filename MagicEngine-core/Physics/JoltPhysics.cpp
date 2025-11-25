@@ -231,6 +231,7 @@ namespace physics {
 		JPH::BodyCreationSettings bodySettings{ scaleShape, position, rotation, motionType, +collisionLayer };
 		bodySettings.mAllowDynamicOrKinematic = true;
 		bodySettings.mUserData = ecs::GetEntity(this)->GetHash();
+		bodySettings.mGravityFactor = 0.f;
 
 		bodyID = ST<JoltPhysics>::Get()->GetBodyInterface().CreateAndAddBody(bodySettings, JPH::EActivation::Activate);
 
@@ -244,10 +245,6 @@ namespace physics {
 		}
 		SetScale(scale);
 
-		if (auto physicsCompPtr{ ecs::GetEntity(this)->GetComp<PhysicsComp>() })
-		{
-			SetGravityFactor(physicsCompPtr->GetFlag(PHYSICS_COMP_FLAG::USE_GRAVITY) ? 1.f : 0.f);
-		}
 		if (ecs::GetEntity(this)->HasComp<BoxColliderComp>())
 		{
 			SetShapeType(ShapeType::BOX);
