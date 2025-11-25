@@ -283,6 +283,22 @@ ecs::EntityHandle Lua_LoadPrefab(std::string name)
 	return ST<PrefabManager>::Get()->LoadPrefab(name);
 }
 
+float Lua_RandomRangeFloat(float min, float max)
+{
+	return randomFloat(min, max);
+}
+Vec3 Lua_RandomRangeVec(Vec3 min, Vec3 max)
+{
+	return randomVec(min, max);
+}
+
+bool Lua_NumberedDiceRoll(int sides)
+{
+	if (sides <= 0)
+		return true;
+	return randomRange(0, sides)==0;
+}
+
 void RegisterCppStuffToLua(luabridge::Namespace baseTable)
 {
 	// Reference for how to do stuff: https://kunitoki.github.io/LuaBridge3/Manual
@@ -296,6 +312,11 @@ void RegisterCppStuffToLua(luabridge::Namespace baseTable)
 		.addFunction("Normalized", [](const Vec2* v) -> Vec2 {return v->Normalized(); })
 		.addFunction("Length", [](const Vec2* v) -> float {return v->Length(); })
 		.addFunction("LengthSqr", [](const Vec2* v) -> float {return v->LengthSqr(); })
+		.addFunction("Direction", [](const Vec2* a, const Vec2* b) -> Vec2 { return (*b) - (*a);	})
+		.addFunction("Add", [](const Vec2* a, const Vec2* b) -> Vec2 { return (*a) + (*b);	})
+		.addFunction("Subtract", [](const Vec2* a, const Vec2* b) -> Vec2 { return (*a) - (*b);	})
+		.addFunction("Dot", [](const Vec2* a, const Vec2* b) -> float { return a->Dot(*b);	})
+		.addFunction("Cross", [](const Vec2* a, const Vec2* b) -> Vec2 { return (*a) * (*b);	})
 		.endClass()
 
 		.beginClass<Vec3>("Vec3")
@@ -307,6 +328,10 @@ void RegisterCppStuffToLua(luabridge::Namespace baseTable)
 		.addFunction("Length", [](const Vec3* v) -> float {return v->Length(); })
 		.addFunction("LengthSqr", [](const Vec3* v) -> float {return v->LengthSqr(); })
 		.addFunction("Direction", [](const Vec3* a, const Vec3* b) -> Vec3 { return (*b) - (*a);	})
+		.addFunction("Add", [](const Vec3* a, const Vec3* b) -> Vec3 { return (*a) + (*b);	})
+		.addFunction("Subtract", [](const Vec3* a, const Vec3* b) -> Vec3 { return (*a) - (*b);	})
+		.addFunction("Dot", [](const Vec3* a, const Vec3* b) -> float { return a->Dot(*b);	})
+		.addFunction("Cross", [](const Vec3* a, const Vec3* b) -> Vec3 { return (*a)*(*b);	})
 		//.addFunction("Scale", [](const Vec3* a, const float* s) -> Vec3 { return (*a) * (*s);	})
 			//.addFunction("DirectionEntities", [](const ecs::EntityHandle a, const ecs::EntityHandle b) -> Vec3 { if (!a||!b) return Vec3{ 0 };  return  b->GetTransform().GetWorldPosition() - a->GetTransform().GetWorldPosition() ;	})
 		.endClass()
@@ -511,6 +536,13 @@ void RegisterCppStuffToLua(luabridge::Namespace baseTable)
 		.beginNamespace("PrefabManager")
 			.addFunction("LoadPrefab", Lua_LoadPrefab)
 		.endNamespace()
+
+		.beginNamespace("Random")
+			.addFunction("Range", Lua_RandomRangeFloat)
+			.addFunction("DiceRoll", Lua_NumberedDiceRoll)
+			.addFunction("RangeVec3", Lua_RandomRangeVec)
+		.endNamespace()
+
 
 		// ----- GLOBAL VARIABLES -----
 		.beginNamespace("LogLevel")

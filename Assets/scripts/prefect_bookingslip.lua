@@ -86,7 +86,7 @@ end
 function OnTriggerStay(entity)
     local nameComp = entity:GetNameComponent();
     if nameComp:Exists() then
-        if not (nameComp.name == "Prefect_BookingSlip") and (notnameComp.name ==  "Prefect") then
+        if not (nameComp.name == "Prefect_BookingSlip") and (not nameComp.name ==  "Prefect") then
             lifeTime=-10.0
         end
 
