@@ -350,7 +350,7 @@ namespace navmesh
 		{
 			if (!compIter->GetAgent())
 				continue;
-			CONSOLE_LOG(LEVEL_DEBUG) << compIter->GetAgent()->params.maxSpeed;
+
 			Vec3 pos{ compIter->GetAgent()->npos[0], compIter->GetAgent()->npos[1] + compIter->GetBaseOffset(), compIter->GetAgent()->npos[2]};
 			compIter.GetEntity()->GetTransform().SetWorldPosition(pos);
 		}

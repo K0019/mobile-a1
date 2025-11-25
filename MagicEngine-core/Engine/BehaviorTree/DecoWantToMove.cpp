@@ -3,20 +3,22 @@
 #include "BehaviourTreeFactory.h"
 #include "Game/EnemyCharacter.h"
 #include "Game/Character.h"
+#include "Graphics/AnimationComponent.h"
 
 NODE_STATUS D_WantToMove::OnUpdate(ecs::EntityHandle entity)
 {
     ecs::CompHandle<EnemyComponent> enemyComp = entity->GetComp< EnemyComponent>();
-    if (!enemyComp)
-        return NODE_STATUS::FAILURE;
-
     auto agentComp{ entity->GetComp<navmesh::NavMeshAgentComp>() };
-    if (!agentComp)
+    auto animComp{ entity->GetComp<AnimationComponent>() };
+    auto characterComp{ entity->GetComp<CharacterMovementComponent>() };
+    if (!enemyComp || !agentComp || !animComp || !characterComp || characterComp->currentStunTime > 0.f)
         return NODE_STATUS::FAILURE;
 
     ecs::EntityHandle player = enemyComp->playerReference;// ecs::FindEntityByName("Player");
     if (!player)
         return NODE_STATUS::FAILURE;
+
+    enemyComp->currAttackCoolDown += GameTime::Dt();
 
     Vec3 enemyPos = entity->GetTransform().GetWorldPosition();
     Vec3 playerPos = player->GetTransform().GetWorldPosition();

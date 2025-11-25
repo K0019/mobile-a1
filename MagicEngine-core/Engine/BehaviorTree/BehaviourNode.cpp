@@ -30,6 +30,11 @@ All rights reserved.
 #include "LeafLookForPlayer.h"
 #include "LeafAttackPlayer.h"
 #include "DecoWantToMove.h"
+#include "DecoAttackCoolDown.h"
+#include "LeafWindUp.h"
+#include "LeafMeleeAttack.h"
+#include "LeafFollowThrough.h"
+#include "LeafRotateTowardsTarget.h"
 #include "BehaviourTreeFactory.h"
 #include "Engine/Input.h"
 
@@ -48,6 +53,11 @@ BT_REGISTER_NODE(L_LookForPlayer, "L_LookForPlayer")
 BT_REGISTER_NODE(L_AttackPlayer, "L_AttackPlayer")
 BT_REGISTER_NODE(L_FollowPlayerUsingNavMesh, "L_FollowPlayerUsingNavMesh")
 BT_REGISTER_NODE(D_WantToMove, "D_WantToMove")
+BT_REGISTER_NODE(D_AttackCoolDown, "D_AttactCoolDown")
+BT_REGISTER_NODE(L_WindUp, "L_WindUp")
+BT_REGISTER_NODE(L_MeleeAttack, "L_MeleeAttack")
+BT_REGISTER_NODE(L_RotateTowardsTarget, "L_RotateTowardsTarget")
+BT_REGISTER_NODE(L_FollowThrough, "L_FollowThrough")
 
 BehaviorNode::BehaviorNode()
     : status{ NODE_STATUS::READY }

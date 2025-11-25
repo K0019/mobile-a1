@@ -45,7 +45,13 @@ public:
 	//~EnemyComponent();
 
 	EntityReference playerReference;
+	EntityReference attackCollider;
 	float combatRange;
+	float windUpTime;
+	float attackTime;
+	float attackCoolDownTime;
+	float currAttackCoolDown;
+	float followThroughTime;
 
 	void Serialize(Serializer& writer) const override;
 	void Deserialize(Deserializer& reader) override;
@@ -64,7 +70,11 @@ private:
 
 property_begin(EnemyComponent)
 {
-	property_var(combatRange)
+	property_var(combatRange),
+	property_var(windUpTime),
+	property_var(attackTime),
+	property_var(followThroughTime),
+	property_var(attackCoolDownTime),
 }
 property_vend_h(EnemyComponent)
 

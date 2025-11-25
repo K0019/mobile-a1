@@ -27,6 +27,13 @@ All rights reserved.
 
 EnemyComponent::EnemyComponent()
 	: playerReference{nullptr}
+	, attackCollider{nullptr}
+	, combatRange{}
+	, windUpTime{}
+	, attackTime{}
+	, attackCoolDownTime{}
+	, currAttackCoolDown{std::numeric_limits<float>::max()}
+	, followThroughTime{}
 {
 }
 
@@ -34,18 +41,25 @@ void EnemyComponent::Serialize(Serializer& writer) const
 {
 	ISerializeable::Serialize(writer);
 	writer.Serialize("playerReference", playerReference);
+	writer.Serialize("attackCollider", attackCollider);
 }
 
 void EnemyComponent::Deserialize(Deserializer& reader)
 {
 	ISerializeable::Deserialize(reader);
 	reader.Deserialize("playerReference", &playerReference);
+	reader.Deserialize("attackCollider", &attackCollider);
 }
 
 void EnemyComponent::EditorDraw()
 {
 	gui::VarDefault("Combat Range", &combatRange);
+	gui::VarDefault("WindUp Time", &windUpTime);
+	gui::VarDefault("Attack Time", &attackTime);
+	gui::VarDefault("Attack CoolDownTime", &attackCoolDownTime);
+	gui::VarDefault("Follow Through Time", &followThroughTime);
 	playerReference.EditorDraw("Player");
+	attackCollider.EditorDraw("Attack Collider");
 }
 
 EnemyMovementComponentSystem::EnemyMovementComponentSystem()

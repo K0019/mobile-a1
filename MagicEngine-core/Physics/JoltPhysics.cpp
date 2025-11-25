@@ -229,6 +229,7 @@ namespace physics {
 
 		JPH::BodyCreationSettings bodySettings{ scaleShape, position, rotation, motionType, +collisionLayer };
 		bodySettings.mAllowDynamicOrKinematic = true;
+		bodySettings.mAllowSleeping = false;
 		bodySettings.mUserData = ecs::GetEntity(this)->GetHash();
 
 		bodyID = ST<JoltPhysics>::Get()->GetBodyInterface().CreateAndAddBody(bodySettings, JPH::EActivation::Activate);
