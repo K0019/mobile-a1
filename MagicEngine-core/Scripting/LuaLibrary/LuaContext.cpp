@@ -157,7 +157,12 @@ StateProxy LuaContext::CreateStateFor(const std::string & inName, std::optional<
 bool StateProxy::PushGlobalFunction(const char* funcName)
 {
 	lua_getglobal(*state_, funcName);
-	return lua_isfunction(*state_, -1);
+	if (!lua_isfunction(*state_, -1))
+	{
+		Pop();
+		return false;
+	}
+	return true;
 }
 
 void StateProxy::RunWithEnvironment(const LuaEnvironment &env) {
