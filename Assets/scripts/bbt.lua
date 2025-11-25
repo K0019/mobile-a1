@@ -20,12 +20,13 @@ function OnCollisionEnter(entity)
 
                 -- Heal a bit
                 healthComp:AddHealth(healAmount)
-                Magic.Log(Magic.LogLevel.info,
-                    "after AddHealth(10) -> health = " .. tostring(health.health))
             end
 
+            -- Play the healing sound "Globally" since the player is the one healing here :)
+            Magic.AudioManager.PlaySound("heal",false)
+
             -- Delete self
-            entity:Destroy()
+            thisEntity:Destroy()
         end
     end
 end

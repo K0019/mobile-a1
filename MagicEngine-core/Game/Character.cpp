@@ -24,6 +24,8 @@ All rights reserved.
 #include "Engine/Input.h"
 #include "Graphics/AnimationComponent.h"
 #include "Editor/Containers/GUICollection.h"
+#include "Engine/Audio.h"
+#include "Managers\AudioManager.h"
 
 #define X(type, name) name,
 char const* animNames[] =
@@ -131,6 +133,9 @@ void CharacterMovementComponent::GrabItem(ecs::CompHandle<GrabbableItemComponent
 
 	// Physics Comp related
 	heldItem->GetComp<physics::PhysicsComp>()->SetFlag(physics::PHYSICS_COMP_FLAG::ENABLED, false);
+
+	// Play Audio
+	ST<AudioManager>::Get()->PlaySound3D("weapon pickup "+std::to_string(randomRange<int>(1,4)), false, ecs::GetEntity(this)->GetTransform().GetWorldPosition());
 }
 
 bool CharacterMovementComponent::Attack()
@@ -152,7 +157,13 @@ bool CharacterMovementComponent::Attack()
 		return false;
 
 	// Audio plays here
-	//ST<Audio
+	//if (auto audioSourceComp{ ecs::GetEntity(this)->GetComp<AudioSourceComponent>() })
+	//{
+	//	//audioSourceComp->Set
+	//}
+
+	// I shall perform a hackery
+	ST<AudioManager>::Get()->PlaySound3D("Attack", false, ecs::GetEntity(this)->GetTransform().GetWorldPosition());
 
 	ecs::EntityHandle thisEntity = ecs::GetEntity(this);
 

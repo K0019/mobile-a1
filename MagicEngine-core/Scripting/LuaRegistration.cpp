@@ -274,9 +274,13 @@ Vec2 Get2DAxis(std::string name)
 		return action->GetValue();
 }
 
-void Lua_PlayAudio(std::string name, Vec3 position)
+void Lua_PlayAudio(std::string name,bool looping)
 {
-	ST<AudioManager>::Get()->PlaySound3D(util::GenHash(name), false, position);
+	ST<AudioManager>::Get()->PlaySound(util::GenHash(name), looping);
+}
+void Lua_PlayAudio3D(std::string name, bool looping, Vec3 position)
+{
+	ST<AudioManager>::Get()->PlaySound3D(util::GenHash(name), looping, position);
 }
 ecs::EntityHandle Lua_LoadPrefab(std::string name)
 {
@@ -531,6 +535,7 @@ void RegisterCppStuffToLua(luabridge::Namespace baseTable)
 
 		.beginNamespace("AudioManager")
 			.addFunction("PlaySound", Lua_PlayAudio)
+			.addFunction("PlaySound3D", Lua_PlayAudio3D)
 		.endNamespace()
 
 		.beginNamespace("PrefabManager")
