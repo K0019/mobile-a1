@@ -154,13 +154,18 @@ void AndroidInputComp::Update() {
     const auto& t = AndroidInputBridge::State();
     const Vec2  tp = PhoneToScreen({ t.x, t.y });   // rotated to screen coords
 
+    auto* entity = ecs::GetEntity(this);
+    if (!entity) return;
+    auto& tf = entity->GetTransform();
+
     // ---- PRESS EDGE ----------------------------------------------------------
     if (t.justDown) {
+
         if (dynamicCenter) {
             // Accept only if starting inside the activation rectangle
             if (inRect(tp, dynZoneMin, dynZoneMax)) {
                 if (AndroidInputBridge::TryCapture(TouchOwner::Joystick)) {
-
+                    m_anchorWorld = tf.GetWorldPosition();
                     m_center = tp;             // dynamic center under the finger
                     m_active = true;
                     CONSOLE_LOG(LEVEL_INFO)
@@ -179,6 +184,7 @@ void AndroidInputComp::Update() {
         else {
             // Fixed-center mode: take control immediately
             if (AndroidInputBridge::TryCapture(TouchOwner::Joystick)) {
+                m_anchorWorld = tf.GetWorldPosition();
                 m_active = true;
                 CONSOLE_LOG(LEVEL_INFO)
                     << "[AIC] DOWN (fixed-center) @ (" << tp.x << "," << tp.y << ")";
@@ -210,12 +216,23 @@ void AndroidInputComp::Update() {
                 //  - normalize direction and (optionally) swap axes to match labels
                 const float clamped = clampf(len, 0.f, r);
                 const float usable = (clamped - dz) / (r - dz);   // [0..1]
+
                 const Vec2  dirPhone = Vec2{ d.x / len, d.y / len };   // unit direction from touch
                 // Swap X/Y to align with your screen orientation so W=up, D=right
-                const Vec2  dirScreen = Vec2{ dirPhone.y, dirPhone.x }; 
+                const Vec2  dirScreen = Vec2{ dirPhone.y, dirPhone.x };
                 m_value = Vec2{ dirScreen.x * usable, dirScreen.y * usable };
             }
         }
+
+        // Build a small world offset from joystick vector:
+        // apply small follow offset in world
+        auto& tf = entity->GetTransform();
+        Vec3  pos = tf.GetWorldPosition();
+        const float dt = (float)GameTime::Dt();
+        const float speed = std::max(0.0f, this->followWorld);
+
+        Vec3 delta = Vec3{ m_value.x, m_value.y, 0.f };
+        tf.SetWorldPosition(pos - delta * (speed * dt));
 
         // Map to W/A/S/D label (with diagonals) and print only on change
         const std::string cur = labelFromValue(m_value, dirDead);
@@ -229,9 +246,12 @@ void AndroidInputComp::Update() {
     // ---- release edge -------------------------------------------------------
     if (t.justUp) {
         if (m_active) {
-            CONSOLE_LOG(LEVEL_DEBUG)
-                << "[AIC] UP @ (" << tp.x << ", " << tp.y << ")";
+            CONSOLE_LOG(LEVEL_DEBUG) << "[AIC] UP @ (" << tp.x << ", " << tp.y << ")";
 
+            if (recenterOnRelease) {
+                // Return to anchor so the object doesn't drift permanently
+                tf.SetWorldPosition(m_anchorWorld); // snap back
+            }
             // Give up exclusive ownership so camera/UI can use the next touch
             AndroidInputBridge::Release(TouchOwner::Joystick);
         }
