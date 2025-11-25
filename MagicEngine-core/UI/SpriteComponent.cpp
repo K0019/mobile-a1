@@ -46,6 +46,11 @@ float Primitive2DCircle::GetNumSegments() const
 	return numSegments;
 }
 
+bool Primitive2DCircle::IsClicked(const RectTransformComponent& transform, Vec2 clickPos) const
+{
+	return ((clickPos - transform.GetWorldPosition()).LengthSqr() < radius * radius);
+}
+
 void Primitive2DCircle::Render(const RectTransformComponent& transform, const Vec4& color) const
 {
 	ui::DrawOptions drawOptions;
@@ -75,6 +80,14 @@ int Primitive2DCircle::GetNumSegmentsForSmoothCircle(float radius)
 	return static_cast<int>(std::ceilf(2.0f * math::PI_f / th) + 0.5f);
 }
 
+bool Primitive2DRect::IsClicked(const RectTransformComponent& transform, Vec2 clickPos) const
+{
+	Vec2 rectPos{ transform.GetWorldPosition() }, rectHalfScale{ transform.GetWorldScale() * 0.5f };
+	return
+		clickPos.x >= rectPos.x - rectHalfScale.x && clickPos.x <= rectPos.x + rectHalfScale.x &&
+		clickPos.y >= rectPos.y - rectHalfScale.y && clickPos.y <= rectPos.y + rectHalfScale.y;
+}
+
 void Primitive2DRect::Render(const RectTransformComponent& transform, const Vec4& color) const
 {
 	Vec2 worldPos{ transform.GetWorldPosition() };
@@ -91,6 +104,15 @@ void Primitive2DRect::EditorDraw()
 void Primitive2DImage::SetImage(size_t textureHash)
 {
 	texture = textureHash;
+}
+
+bool Primitive2DImage::IsClicked(const RectTransformComponent& transform, Vec2 clickPos) const
+{
+	// TODO: Maybe provide different hit detection algos to the user
+	Vec2 rectPos{ transform.GetWorldPosition() }, rectHalfScale{ transform.GetWorldScale() * 0.5f };
+	return
+		clickPos.x >= rectPos.x - rectHalfScale.x && clickPos.x <= rectPos.x + rectHalfScale.x &&
+		clickPos.y >= rectPos.y - rectHalfScale.y && clickPos.y <= rectPos.y + rectHalfScale.y;
 }
 
 void Primitive2DImage::Render(const RectTransformComponent& transform, const Vec4& color) const

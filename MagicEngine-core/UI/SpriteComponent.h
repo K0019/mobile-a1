@@ -28,6 +28,7 @@ All rights reserved.
 class Primitive2DBase : public ISerializeable
 {
 public:
+	virtual bool IsClicked(const RectTransformComponent& transform, Vec2 clickPos) const = 0;
 	virtual void Render(const RectTransformComponent& transform, const Vec4& color) const = 0;
 	virtual void EditorDraw() = 0;
 };
@@ -41,6 +42,7 @@ public:
 	void SetRadius(float newRadius);
 	float GetNumSegments() const;
 
+	bool IsClicked(const RectTransformComponent& transform, Vec2 clickPos) const override;
 	void Render(const RectTransformComponent& transform, const Vec4& color) const override;
 	void EditorDraw() override;
 	void Deserialize(Deserializer& reader) override;
@@ -64,6 +66,7 @@ property_vend_h(Primitive2DCircle)
 class Primitive2DRect : public Primitive2DBase
 {
 public:
+	bool IsClicked(const RectTransformComponent& transform, Vec2 clickPos) const override;
 	void Render(const RectTransformComponent& transform, const Vec4& color) const override;
 	void EditorDraw() override;
 };
@@ -73,6 +76,7 @@ class Primitive2DImage : public Primitive2DBase
 public:
 	void SetImage(size_t textureHash);
 
+	bool IsClicked(const RectTransformComponent& transform, Vec2 clickPos) const override;
 	void Render(const RectTransformComponent& transform, const Vec4& color) const override;
 	void EditorDraw() override;
 
