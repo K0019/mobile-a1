@@ -253,9 +253,9 @@ namespace physics {
 			{
 				auto bodyCompPtr{ entity->GetComp<JoltBodyComp>() };
 				if (!bodyCompPtr || bodyCompPtr->GetBodyID().IsInvalid())
-					return;
-
-				bodyCompPtr->SetShapeType(ShapeType::BOX);
+					entity->AddCompNow<JoltBodyComp>(JoltBodyComp{ JPH::EMotionType::Dynamic, ShapeType::BOX, Layers::MOVING });
+				else
+					bodyCompPtr->SetShapeType(ShapeType::BOX);
 			}
 			else
 			{
