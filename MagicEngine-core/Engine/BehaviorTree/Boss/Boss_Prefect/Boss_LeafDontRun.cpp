@@ -1,33 +1,24 @@
 #include "Boss_LeafDontRun.h"
+#include "Boss_Prefect_Util.h"
 #include "../../BehaviourTreeFactory.h"
 #include "Game/EnemyCharacter.h"
 #include "Game/Character.h"
 #include "Game/Health.h"
 
-// Set boss invinc time here, based on Canva values rn so change as balancing requires
-float L_Boss_Prefect_DontRun::invincibilityTime = 1.5f;
-
 void L_Boss_Prefect_DontRun::OnInitialize()
 {
-    currentInvincinilityTime = invincibilityTime;
 }
 
 NODE_STATUS L_Boss_Prefect_DontRun::OnUpdate([[maybe_unused]] ecs::EntityHandle entity)
 {
     if (auto characterComp{ entity->GetComp<CharacterMovementComponent>() })
     {
-        // Don't move here
-        characterComp->SetMovementVector(Vec2{ 0.0f });
-    }
-    if (auto healthComp{ entity->GetComp<HealthComponent>() })
-    {
-        healthComp->SetIsInvincible(true);
-        currentInvincinilityTime -= GameTime::Dt();
-
-        if (currentInvincinilityTime <= 0.0f)
+        if (auto enemyComp{ entity->GetComp<EnemyComponent>() })
         {
-            healthComp->SetIsInvincible(false);
-            return NODE_STATUS::SUCCESS;
+            Vec2 dir = Boss_Prefect_Util::GetMovementTowards(entity->GetTransform().GetWorldPosition(), enemyComp->playerReference->GetTransform().GetWorldPosition());
+            // Don't move here
+            characterComp->SetMovementVector(dir);
+            characterComp->Dodge(dir);
         }
     }
     return NODE_STATUS::RUNNING;

@@ -37,6 +37,10 @@ public:
 
 		return outputVector;
 	}
+	static Vec2 GetMovementTowards(Vec3 currentPos, Vec3 targetPos)
+	{
+		return { targetPos.x - currentPos.x,targetPos.z - currentPos.z };
+	}
 };
 
 // Init values here, square them early to save some processing

@@ -135,8 +135,16 @@ void CharacterMovementComponent::GrabItem(ecs::CompHandle<GrabbableItemComponent
 
 void CharacterMovementComponent::Attack()
 {
-	// No item, no attack (again different from the proto but we can change it later
-	if (heldItem == nullptr)
+	ecs::EntityHandle attackItem{ heldItem };
+
+	// If not holding an item, we fallback to the character's entity itself
+	if (attackItem == nullptr && ecs::GetEntity(this)->GetComp<GrabbableItemComponent>())
+	{
+		attackItem = ecs::GetEntity(this);
+	}
+
+	// If the entity doesn't have a GI comp, then it has no unarmed attack.
+	else if (attackItem == nullptr)
 		return;
 
 	ecs::EntityHandle thisEntity = ecs::GetEntity(this);
@@ -158,7 +166,7 @@ void CharacterMovementComponent::Attack()
 	isAttacking = true;
 
 	// Call Attack from the GrabbableItem component
-	heldItem->GetComp<GrabbableItemComponent>()->Attack(startPoint, direction);
+	attackItem->GetComp<GrabbableItemComponent>()->Attack(startPoint, direction);
 }
 
 void CharacterMovementComponent::Serialize(Serializer& writer) const

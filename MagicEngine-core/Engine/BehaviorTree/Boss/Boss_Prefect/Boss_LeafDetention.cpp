@@ -1,4 +1,5 @@
 #include "Boss_LeafDetention.h"
+#include "Boss_Prefect_Util.h"
 #include "../../BehaviourTreeFactory.h"
 #include "Game/EnemyCharacter.h"
 #include "Game/Character.h"
@@ -34,9 +35,8 @@ NODE_STATUS L_Boss_Prefect_Detention::OnUpdate([[maybe_unused]] ecs::EntityHandl
         if (auto enemyComp{ entity->GetComp<EnemyComponent>() })
         {
             // Directly follow player here, since this is an AoE around the boss
-            Vec3 dir = enemyComp->playerReference->GetTransform().GetWorldPosition() - entity->GetTransform().GetWorldPosition();
-            dir.y = 0.0f;
-            characterComp->SetMovementVector(Vec2{ dir.x,dir.z });
+            Vec2 dir = Boss_Prefect_Util::GetMovementTowards(entity->GetTransform().GetWorldPosition(), enemyComp->playerReference->GetTransform().GetWorldPosition());
+            characterComp->SetMovementVector(dir);
         
             if (dir.LengthSqr() < triggerDistanceSqr)
             {

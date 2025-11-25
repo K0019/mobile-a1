@@ -9,7 +9,7 @@ float L_Boss_Prefect_Invincibility::invincibilityTime = 1.5f;
 
 void L_Boss_Prefect_Invincibility::OnInitialize()
 {
-    currentInvincinilityTime = invincibilityTime;
+    currentInvincibilityTime = invincibilityTime;
 }
 
 NODE_STATUS L_Boss_Prefect_Invincibility::OnUpdate([[maybe_unused]] ecs::EntityHandle entity)
@@ -22,9 +22,9 @@ NODE_STATUS L_Boss_Prefect_Invincibility::OnUpdate([[maybe_unused]] ecs::EntityH
     if (auto healthComp{ entity->GetComp<HealthComponent>() })
     {
         healthComp->SetIsInvincible(true);
-        currentInvincinilityTime -= GameTime::Dt();
+        currentInvincibilityTime -= GameTime::Dt();
 
-        if (currentInvincinilityTime <= 0.0f)
+        if (currentInvincibilityTime <= 0.0f)
         {
             healthComp->SetIsInvincible(false);
             return NODE_STATUS::SUCCESS;

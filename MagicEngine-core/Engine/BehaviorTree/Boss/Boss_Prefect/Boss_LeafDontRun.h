@@ -7,7 +7,5 @@ public:
     void OnInitialize() override;
     NODE_STATUS OnUpdate(ecs::EntityHandle entity) override;
 
-private:
-    float currentInvincinilityTime;
-    static float invincibilityTime;
+
 };

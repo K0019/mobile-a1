@@ -5,6 +5,7 @@ local openSpeed = 2.4
 local currentOpeningDistance = 0.0
 local openingDoorEntity
 local closingDoorEntity
+
 function open()
     opening = true
     moving = true
