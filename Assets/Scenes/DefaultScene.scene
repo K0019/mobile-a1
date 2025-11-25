@@ -67,6 +67,10 @@
                 "z": 1.0
             },
             "components": {
+                "137465014557233347": {
+                    "_active": true,
+                    "damage": 20.0
+                },
                 "2263953158229251792": {
                     "_active": true,
                     "cameraReference": {
@@ -222,7 +226,7 @@
                 "7930599578754533802": {
                     "_active": true,
                     "maxHealth": 200.0,
-                    "currHealth": 100.0,
+                    "currHealth": 2.0,
                     "isInvincible": false
                 },
                 "9315785795257285655": {
@@ -236,6 +240,13 @@
                         "_except": [
                             "Is Kinematic"
                         ]
+                    }
+                },
+                "10866432406532598116": {
+                    "_active": true,
+                    "flashTime": 0.25,
+                    "flashMaterial": {
+                        "hash": 1903056716174195867
                     }
                 },
                 "15371168105777251288": {
@@ -262,7 +273,7 @@
                     "dodgeDuration": 0.20000000298023224,
                     "dodgeSpeed": 6.0,
                     "hitDebugObject": {
-                        "entityUid": 378152835290477126
+                        "entityUid": 349141121578451334
                     },
                     "heldItem": {
                         "entityUid": 0
@@ -651,6 +662,13 @@
                         ]
                     }
                 },
+                "10866432406532598116": {
+                    "_active": true,
+                    "flashTime": 0.25,
+                    "flashMaterial": {
+                        "hash": 1903056716174195867
+                    }
+                },
                 "15371168105777251288": {
                     "_active": true,
                     "animHandleA": {
@@ -744,7 +762,7 @@
             },
             "components": {
                 "5352011725353660904": {
-                    "_active": true,
+                    "_active": false,
                     "meshHandle": {
                         "hash": 2298014486712734571
                     },
@@ -755,15 +773,15 @@
                     ]
                 },
                 "6766054303456732338": {
-                    "_active": true,
+                    "_active": false,
                     "layer": 0
                 },
                 "7205334411763290517": {
-                    "_active": true,
+                    "_active": false,
                     "name": "Table"
                 },
                 "9315785795257285655": {
-                    "_active": true,
+                    "_active": false,
                     "uid": 349141121578451334
                 }
             }
@@ -851,7 +869,7 @@
             },
             "components": {
                 "5352011725353660904": {
-                    "_active": true,
+                    "_active": false,
                     "meshHandle": {
                         "hash": 2298014486712734571
                     },
@@ -862,15 +880,15 @@
                     ]
                 },
                 "6766054303456732338": {
-                    "_active": true,
+                    "_active": false,
                     "layer": 0
                 },
                 "7205334411763290517": {
-                    "_active": true,
+                    "_active": false,
                     "name": "Table"
                 },
                 "9315785795257285655": {
-                    "_active": true,
+                    "_active": false,
                     "uid": 2331238429569339310
                 }
             }
@@ -1075,6 +1093,13 @@
                         ]
                     }
                 },
+                "10866432406532598116": {
+                    "_active": true,
+                    "flashTime": 0.25,
+                    "flashMaterial": {
+                        "hash": 1903056716174195867
+                    }
+                },
                 "15371168105777251288": {
                     "_active": true,
                     "animHandleA": {
@@ -1162,13 +1187,13 @@
                 "z": 0.0
             },
             "scale": {
-                "x": 1.0,
-                "y": 1.0,
-                "z": 1.0
+                "x": 0.4000000059604645,
+                "y": 0.4000000059604645,
+                "z": 0.4000000059604645
             },
             "components": {
                 "5352011725353660904": {
-                    "_active": true,
+                    "_active": false,
                     "meshHandle": {
                         "hash": 2271024775204018431
                     },
@@ -1179,15 +1204,15 @@
                     ]
                 },
                 "6766054303456732338": {
-                    "_active": true,
+                    "_active": false,
                     "layer": 0
                 },
                 "7205334411763290517": {
-                    "_active": true,
+                    "_active": false,
                     "name": "Prefect_BookingSlip"
                 },
                 "8426725214831635516": {
-                    "_active": true,
+                    "_active": false,
                     "entityReferences": [
                         {
                             "entityUid": 51797992787031769
@@ -1195,11 +1220,11 @@
                     ]
                 },
                 "9315785795257285655": {
-                    "_active": true,
-                    "uid": 4007620927892343595
+                    "_active": false,
+                    "uid": 4344622341204501000
                 },
                 "18236831197208900764": {
-                    "_active": true,
+                    "_active": false,
                     "center": {
                         "x": 0.0,
                         "y": 0.0,
@@ -1216,7 +1241,7 @@
                     }
                 },
                 "18288371625365795113": {
-                    "_active": true,
+                    "_active": false,
                     "scripts": [
                         {
                             "scriptName": "prefect_bookingslip.lua"
@@ -1244,7 +1269,7 @@
             },
             "components": {
                 "4057566390273757802": {
-                    "_active": false,
+                    "_active": true,
                     "type": 1,
                     "direction": {
                         "x": -0.05002763867378235,
@@ -1270,15 +1295,15 @@
                     }
                 },
                 "6766054303456732338": {
-                    "_active": false,
+                    "_active": true,
                     "layer": 0
                 },
                 "7205334411763290517": {
-                    "_active": false,
+                    "_active": true,
                     "name": "Light"
                 },
                 "9315785795257285655": {
-                    "_active": false,
+                    "_active": true,
                     "uid": 5297628442319496968
                 }
             }
@@ -1525,6 +1550,13 @@
                         "_except": [
                             "Use Gravity"
                         ]
+                    }
+                },
+                "10866432406532598116": {
+                    "_active": true,
+                    "flashTime": 0.25,
+                    "flashMaterial": {
+                        "hash": 1903056716174195867
                     }
                 },
                 "15371168105777251288": {
@@ -3358,7 +3390,7 @@
             },
             "components": {
                 "5352011725353660904": {
-                    "_active": true,
+                    "_active": false,
                     "meshHandle": {
                         "hash": 362711294088504259
                     },
@@ -3372,15 +3404,15 @@
                     ]
                 },
                 "6766054303456732338": {
-                    "_active": true,
+                    "_active": false,
                     "layer": 0
                 },
                 "7205334411763290517": {
-                    "_active": true,
+                    "_active": false,
                     "name": "Table"
                 },
                 "9315785795257285655": {
-                    "_active": true,
+                    "_active": false,
                     "uid": 3640245505583862638
                 }
             }
@@ -5402,19 +5434,19 @@
             },
             "components": {
                 "6766054303456732338": {
-                    "_active": true,
+                    "_active": false,
                     "layer": 0
                 },
                 "7205334411763290517": {
-                    "_active": true,
+                    "_active": false,
                     "name": "Collider"
                 },
                 "9315785795257285655": {
-                    "_active": true,
+                    "_active": false,
                     "uid": 3650812911838417774
                 },
                 "18236831197208900764": {
-                    "_active": true,
+                    "_active": false,
                     "center": {
                         "x": 0.0,
                         "y": 0.0,

@@ -27,6 +27,7 @@ All rights reserved.
 #include "Health.h"
 #include "Character.h"
 #include "PlayerCharacter.h"
+#include "FlashComponent.h"
 #include "Physics//Physics.h"
 #include "math/utils_math.h"
 #include "Editor/Containers/GUICollection.h"
@@ -113,6 +114,12 @@ void HealthComponent::TakeDamage(HealthComponent::HealthType amount, Vec3 direct
 			// Disabled: Causes flying???
 			//physicsComp->SetLinearVelocity(direction * amount + Vec3{ 0.0f,amount,0.0f });
 		}
+	}
+
+	// Trigger a flash
+	if (auto flashComp{ ecs::GetEntity(this)->GetComp< FlashComponent >() })
+	{
+		flashComp->Flash();
 	}
 }
 

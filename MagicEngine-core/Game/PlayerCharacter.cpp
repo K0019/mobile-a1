@@ -108,13 +108,16 @@ void PlayerMovementComponentSystem::UpdatePlayerMovementComponent(PlayerMovement
 	{
 		if (characterComp->heldItem == nullptr)
 		{
-
 			float closestDistance = comp.grabDistance * comp.grabDistance;
 			ecs::CompHandle< GrabbableItemComponent> closestItem = nullptr;
 			for (auto itemComp = ecs::GetCompsBegin<GrabbableItemComponent>(); itemComp != ecs::GetCompsEnd<GrabbableItemComponent>(); ++itemComp)
 			{
 				// Just in case, this shouldn't happen
 				if (itemComp.GetEntity() == nullptr)
+					continue;
+
+				// Don't grab self
+				if (itemComp.GetEntity() == playerEntity)
 					continue;
 
 				// Can't pick up other held items

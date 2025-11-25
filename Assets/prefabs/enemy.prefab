@@ -184,7 +184,8 @@
                 "7930599578754533802": {
                     "_active": true,
                     "maxHealth": 1000.0,
-                    "currHealth": 100.0
+                    "currHealth": 100.0,
+                    "isInvincible": true
                 },
                 "9315785795257285655": {
                     "_active": true,
@@ -197,6 +198,13 @@
                         "_except": [
                             "Use Gravity"
                         ]
+                    }
+                },
+                "10866432406532598116": {
+                    "_active": true,
+                    "flashTime": 0.25,
+                    "flashMaterial": {
+                        "hash": 1903056716174195867
                     }
                 },
                 "15371168105777251288": {

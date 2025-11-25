@@ -561,6 +561,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/white.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 1900106726476864689,
+                            "name": "white0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/meshanimations/player_idle_mixamoplayer_weapon atk 3_mixamo.anim",
             "resources": [
                 {
@@ -2179,6 +2193,20 @@
                         {
                             "hash": 806365335520248521,
                             "name": "lights55905631409784581610"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/materials/Red.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 1903056716174195867,
+                            "name": "red0"
                         }
                     ]
                 }

@@ -245,6 +245,9 @@ namespace physics {
 		ST<Scheduler>::Get()->Add(0.0f, [entity = ecs::GetEntity(this)]() {
 			if (!ecs::IsEntityHandleValid(entity))
 				return;
+			auto compPtr{ entity->GetComp<BoxColliderComp>() };
+			if (!compPtr)
+				return;
 
 			if (entity->HasComp<PhysicsComp>())
 			{
@@ -259,7 +262,6 @@ namespace physics {
 				entity->AddCompNow<JoltBodyComp>(JoltBodyComp{ JPH::EMotionType::Static, ShapeType::BOX, Layers::NON_MOVING });
 			}
 
-			auto compPtr{ entity->GetComp<BoxColliderComp>() };
 			entity->GetComp<JoltBodyComp>()->SetPosition(entity->GetTransform().GetWorldPosition() + compPtr->GetCenter());
 			entity->GetComp<JoltBodyComp>()->SetScale(entity->GetTransform().GetWorldScale() * compPtr->GetSize());
 			Layers layer{};

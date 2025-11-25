@@ -39,6 +39,7 @@ All rights reserved.
 #include "Game/GameCameraController.h"
 #include "Game/GrabbableItem.h"
 #include "Game/PlayerCharacter.h"
+#include "Game/FlashComponent.h"
 #include "Game/Character.h"
 #include "Engine/Audio.h"
 #include "Game/PrefabSpawner.h"
@@ -89,6 +90,7 @@ void GameState_Game::OnEnter()
 
     ecs::AddSystem(ECS_LAYER::POST_PHYSICS_0, GameCameraControllerSystem{});
     ecs::AddSystem(ECS_LAYER::INPUT_0, PlayerMovementComponentSystem{});
+    ecs::AddSystem(ECS_LAYER::INPUT_0, FlashComponentSystem{});
     ecs::AddSystem(ECS_LAYER::PRE_PHYSICS_0, CharacterMovementComponentSystem{});
     ecs::AddSystem(ECS_LAYER::PRE_PHYSICS_0, GrabbableItemComponentSystem{});
     ecs::AddSystem(ECS_LAYER::TWEENING, TweenSystem{});

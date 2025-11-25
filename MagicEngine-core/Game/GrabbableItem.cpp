@@ -44,6 +44,10 @@ void GrabbableItemComponent::Attack(Vec3 origin, Vec3 direction)
 		if (hitEntity == owner || hitEntity == ecs::GetEntity(this))
 			continue;
 
+		// If there's no owner, set the owner to itself
+		if (!owner)
+			owner = ecs::GetEntity(this);
+
 		// Enemies can't hit each other
 		if (owner->GetComp<EnemyComponent>() && hitEntity->GetComp<EnemyComponent>())
 			continue;

@@ -7,8 +7,8 @@
 #include "Engine/PrefabManager.h"
 #include "Components/EntityReferenceHolder.h"
 
-int L_Boss_Prefect_BookingSlips::burstCount = 30;
-float L_Boss_Prefect_BookingSlips::burstDelay = 0.025f;
+int L_Boss_Prefect_BookingSlips::burstCount = 5;
+float L_Boss_Prefect_BookingSlips::burstDelay = 0.5f;
 
 void L_Boss_Prefect_BookingSlips::OnInitialize()
 {
@@ -37,6 +37,7 @@ NODE_STATUS L_Boss_Prefect_BookingSlips::OnUpdate([[maybe_unused]] ecs::EntityHa
                     spawnedSlip->GetComp<EntityReferenceHolderComponent>()->SetEntity(0, enemyComp->playerReference);
 
                     spawnedSlip->GetTransform().SetWorldPosition(entity->GetTransform().GetWorldPosition());
+                    spawnedSlip->GetTransform().SetWorldScale(Vec3{ 0.4f });
                     });
 
             

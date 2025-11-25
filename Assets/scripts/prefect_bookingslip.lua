@@ -1,13 +1,15 @@
 -- How rapidly the booking slip spins as it flies
 local rotationSpeed = 360.0
 -- How close to the target before it switches to "Dive" phase
-local diveDistance = 1.5 * 1.5
+local diveDistance = 1.1 * 1.1
 -- How fast it moves
-local moveSpeed = 3.0
+local moveSpeed = 6.0
 -- How fast it dives
 local diveSpeed = 3.0
 -- How long to chase for befor automatically diving
 local lifeTime = 3.0
+-- How long to chase for befor automatically diving
+local diving = false
 
 local thisEntity;
 local targetEntity;
@@ -44,7 +46,7 @@ function update(entity)
     local distanceSqr = moveDirection:LengthSqr() 
 
     -- Instantly drop the booking slip if it's close to the player
-    if (distanceSqr < diveDistance) then
+    if (distanceSqr < diveDistance and not diving) then
         lifeTime = 0.0
     end
 
@@ -54,9 +56,9 @@ function update(entity)
     lifeTime = lifeTime - Magic:DeltaTime()
 
     -- If no more lifetime, auto dive
-    if(lifeTime< 0.0)   then
-    
+    if(lifeTime <= 0.0)   then
         worldPos.y = worldPos.y - diveSpeed*Magic:DeltaTime()
+        diving = true
     end
     -- Auto destroy if it's been falling for too long, prevent potential excess entities
     if(lifeTime < -0.8/diveSpeed)then
@@ -72,9 +74,11 @@ function update(entity)
         entity:Destroy()
     end
 
-    worldPos.x = worldPos.x + (moveDirection.x * moveSpeed * Magic:DeltaTime())
-    worldPos.y = worldPos.y + (moveDirection.y * moveSpeed * Magic:DeltaTime())
-    worldPos.z = worldPos.z + (moveDirection.z * moveSpeed * Magic:DeltaTime())
+    if(not diving) then
+        worldPos.x = worldPos.x + (moveDirection.x * moveSpeed * Magic:DeltaTime())
+        worldPos.y = worldPos.y + (moveDirection.y * moveSpeed * Magic:DeltaTime())
+        worldPos.z = worldPos.z + (moveDirection.z * moveSpeed * Magic:DeltaTime())
+    end
 
     transform.worldPosition = worldPos
 end
@@ -82,8 +86,9 @@ end
 function OnTriggerStay(entity)
     local nameComp = entity:GetNameComponent();
     if nameComp:Exists() then
-        if nameComp.name == "Player" then
-            lifeTime=0.0
+        if not (nameComp.name == "Prefect_BookingSlip") and (notnameComp.name ==  "Prefect") then
+            lifeTime=-10.0
         end
+
     end
 end
