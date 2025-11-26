@@ -8,7 +8,7 @@
 #include "Components/EntityReferenceHolder.h"
 
 int L_Boss_Prefect_BookingSlips::burstCount = 5;
-float L_Boss_Prefect_BookingSlips::burstDelay = 0.005f;
+float L_Boss_Prefect_BookingSlips::burstDelay = 0.5f;
 
 void L_Boss_Prefect_BookingSlips::OnInitialize()
 {
