@@ -1,77 +1,67 @@
-local opening = true
-local moving = true
-local openingDistance = 0.6
-local openSpeed = 2.4
-local currentOpeningDistance = 0.0
-local openingDoorEntity
-local closingDoorEntity
+local thisEntity
 
-function open()
-    opening = true
-    moving = true
-
-end
-
-function close()
-    opening = false
-    moving = true
-end
-
-function toggle()
-    opening = not opening
-    moving = true
-end
+EnemySpawner = {
+    aliveEnemies = 0
+}
 
 function start(entity)
-    -- We decide whether the door starts open if the name has "Open"
-    local nameComp = entity:GetNameComponent()
-    Magic.Log(Magic.LogLevel.info, nameComp.name)
-    if(nameComp.name == "Door_Classroom_Open") then
-        opening = true
-    else
-        opening = false
+    -- Delete the debug RenderComp on this entity, makes it invis?
+    local renderComp = entity:GetRenderComponent()
+    if(renderComp:Exists()) then
+        renderComp:Remove() 
     end
 
-    local entityContainer = entity:GetEntityReferenceHolderComponent()
-
-    if entityContainer:Exists() then
-        Magic.Log(Magic.LogLevel.info, "Yay?")
-        openingDoorEntity = entityContainer:GetEntityReference(0)
-        closingDoorEntity = entityContainer:GetEntityReference(1)
-    else
-        Magic.Log(Magic.LogLevel.info, "NO COMPONENT ATTACHED!!!")
-    end
-
-    -- Audio plays, direction TBD
-    -- Magic.AudioManager.PlaySound("kalimba",localPos)
+	thisEntity = entity;
+    
+    wavespawn()
 end
 
-function update(entity)
-    local prevOpenDistance = currentOpeningDistance;
-    local transform = openingDoorEntity.transform
-    local localPos = transform.localPosition
+function proceed()
+    local entityContainer = thisEntity:GetEntityReferenceHolderComponent()
 
-    if(moving) then
-        if(opening) then
-                currentOpeningDistance = currentOpeningDistance + Magic.DeltaTime() * openSpeed
+    if entityContainer:Exists() then
+    local nextObjective = entityContainer:GetEntityReference(0)
 
-                if(currentOpeningDistance > openingDistance) then
-                    currentOpeningDistance = openingDistance
-                moving = false
-            end
-        else
-            currentOpeningDistance = currentOpeningDistance - Magic.DeltaTime() * openSpeed
+    if nextObjective:Exists() then
+        local scriptComp = nextObjective:GetScriptComponent()
 
-            if(currentOpeningDistance < 0) then
-                currentOpeningDistance = 0
-                moving = false
-            end
+    if scriptComp:Exists() then
+        Magic.Log(Magic.LogLevel.info, "It's spawnin time")
+        scriptComp:CallScriptFunction("wavespawn")
+
+    else --open door or end game
+end
+end
+end
+end
+
+function enemydeath(entity)
+    EnemySpawner.aliveEnemies = EnemySpawner.aliveEnemies - 1
+    Magic.Log(Magic.LogLevel.info, "Enemy died. Remaining = "..EnemySpawner.aliveEnemies)
+    
+    if EnemySpawner.aliveEnemies == 0 then 
+    proceed()
+    end
+end
+
+function wavespawn()
+    local entityContainer = thisEntity:GetEntityReferenceHolderComponent()
+
+    if entityContainer:Exists() then
+        local numToSpawn = 2--entityContainer:GetSize();
+
+    for i = 1, numToSpawn - 1 do 
+        Magic.Log(Magic.LogLevel.info, "Spawn Pos")
+        local spawnPosEntity = entityContainer:GetEntityReference(i)
+
+        if spawnPosEntity:Exists() then
+        --local worldPos = spawnPosEntity.worldPosition
+        
+        local newEnemy = Magic.PrefabManager.LoadPrefab("enemy")
+        --newEnemy.transform.worldPosition = worldPos
+        --EnemySpawner.aliveEnemies = EnemySpawner.aliveEnemies + 1
+    --end
+        end
         end
     end
-
-    localPos.z = localPos.z + (currentOpeningDistance - prevOpenDistance)
-    
-    transform.localPosition = localPos
-
-
 end
