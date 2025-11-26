@@ -1161,7 +1161,7 @@
                     "rotateSpeed": 14400.0,
                     "stunTimePerHit": 0.5,
                     "groundFriction": 1.5,
-                    "dodgeCooldown": 1.0,
+                    "dodgeCooldown": 2.5,
                     "dodgeDuration": 1.0,
                     "dodgeSpeed": 8.0,
                     "hitDebugObject": {
