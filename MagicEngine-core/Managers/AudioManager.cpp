@@ -160,6 +160,10 @@ uint32_t AudioManager::PlaySound(size_t audioResourceHash, bool loop, AudioType 
 
 	return channelManager.RegisterChannel(channel);
 }
+uint32_t AudioManager::PlaySound3D(const std::string& filename, bool loop, Vec3 position, AudioType category, std::pair<float, float> rolloff)
+{
+	return PlaySound3D(util::GenHash(filename), loop,position, category,rolloff);
+}
 
 uint32_t AudioManager::PlaySound3D(size_t audioResourceHash, bool loop, Vec3 position, AudioType category, std::pair<float, float> rolloff)
 {

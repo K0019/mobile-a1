@@ -24,6 +24,8 @@ All rights reserved.
 #include "Engine/Input.h"
 #include "Graphics/AnimationComponent.h"
 #include "Editor/Containers/GUICollection.h"
+#include "Engine/Audio.h"
+#include "Managers\AudioManager.h"
 
 #define X(type, name) name,
 char const* animNames[] =
@@ -131,31 +133,69 @@ void CharacterMovementComponent::GrabItem(ecs::CompHandle<GrabbableItemComponent
 
 	// Physics Comp related
 	heldItem->GetComp<physics::PhysicsComp>()->SetFlag(physics::PHYSICS_COMP_FLAG::ENABLED, false);
+
+	// Play Audio
+	ST<AudioManager>::Get()->PlaySound3D("weapon pickup "+std::to_string(randomRange<int>(1,4)), false, ecs::GetEntity(this)->GetTransform().GetWorldPosition());
 }
 
-void CharacterMovementComponent::Attack()
+bool CharacterMovementComponent::Attack()
 {
-	// No item, no attack (again different from the proto but we can change it later
-	if (heldItem == nullptr)
-		return;
+	ecs::EntityHandle attackItem{ heldItem };
 
-	// Hard-code a simple start point etc for now
-	Vec3 rotation = ecs::GetEntity(this)->GetTransform().GetWorldRotation();
-	Vec3 direction(sin(math::ToRadians(rotation.y+90)), 0, cos(math::ToRadians(rotation.y+90)));
-	Vec3 startPoint = ecs::GetEntity(this)->GetTransform().GetWorldPosition() + direction*2.5f;
-	
-	if(hitDebugObject!=nullptr)
+	// If already in attack animation, skip
+	if (isAttacking)
+		return false;
+
+	// If not holding an item, we fallback to the character's entity itself
+	if (attackItem == nullptr && ecs::GetEntity(this)->GetComp<GrabbableItemComponent>())
 	{
-		hitDebugObject->GetTransform().SetWorldPosition(startPoint);
-		hitDebugObject->GetTransform().SetWorldRotation(Vec3(0.0f, math::ToDegrees(atan2(direction.x,direction.z)), 0.0f));
+		attackItem = ecs::GetEntity(this);
 	}
 
-	// Get the animation component
-	//ecs::CompHandle<AnimationComponent> animComp = characterEntity->GetComp<AnimationComponent>();
+	// If the entity doesn't have a GI comp, then it has no unarmed attack.
+	else if (attackItem == nullptr)
+		return false;
+
+	// Audio plays here
+	//if (auto audioSourceComp{ ecs::GetEntity(this)->GetComp<AudioSourceComponent>() })
+	//{
+	//	//audioSourceComp->Set
+	//}
+
+	// I shall perform a hackery
+	ST<AudioManager>::Get()->PlaySound3D("Attack", false, ecs::GetEntity(this)->GetTransform().GetWorldPosition());
+
+	ecs::EntityHandle thisEntity = ecs::GetEntity(this);
+
+	ST<Scheduler>::Get()->Add(attackItem->GetComp<GrabbableItemComponent>()->attackDelay, [attackItem, thisEntity, thisComp = this]() {
+
+		// If the attack animation was cancelled, we cancel this task as well
+		if (!thisComp->isAttacking)
+			return;
+
+	// Hard-code a simple start point etc for now
+	Vec3 rotation = thisEntity->GetTransform().GetWorldRotation();
+	Vec3 direction(sin(math::ToRadians(rotation.y + 90)), 0, cos(math::ToRadians(rotation.y + 90)));
+	Vec3 startPoint = thisEntity->GetTransform().GetWorldPosition() + direction;
+
+	auto hitDebugObject = thisComp->hitDebugObject;
+	if (hitDebugObject != nullptr)
+	{
+		hitDebugObject->GetTransform().SetWorldPosition(startPoint);
+		hitDebugObject->GetTransform().SetWorldRotation(Vec3(0.0f, math::ToDegrees(atan2(direction.x, direction.z)), 0.0f));
+		hitDebugObject->GetTransform().SetWorldScale(attackItem->GetComp<GrabbableItemComponent>()->attackBox);
+	}
 
 
 	// Call Attack from the GrabbableItem component
-	heldItem->GetComp<GrabbableItemComponent>()->Attack(startPoint, direction);
+	attackItem->GetComp<GrabbableItemComponent>()->Attack(startPoint, direction); });
+	
+	// Get the animation component
+	ecs::CompHandle<AnimationComponent> animComp = thisEntity->GetComp<AnimationComponent>();
+	animComp->animHandleA = animations[ATTACK];
+	isAttacking = true;
+
+	return true;
 }
 
 void CharacterMovementComponent::Serialize(Serializer& writer) const
@@ -246,7 +286,6 @@ void CharacterMovementComponent::EditorDraw()
 
 CharacterMovementComponentSystem::CharacterMovementComponentSystem()
 	: System_Internal{ &CharacterMovementComponentSystem::UpdateCharacterMovementComponent }
-
 {
 }
 
@@ -299,12 +338,29 @@ void CharacterMovementComponentSystem::UpdateCharacterMovementComponent(Characte
 	// Normalize the move vector if it's over 1.0f in length
 	if (movement.LengthSqr() > 0.0f)
 	{
+		if(comp.isAttacking)
+
+		animComp->animHandleB = comp.animations[WALK];
+		else
 		animComp->animHandleA = comp.animations[WALK];
 	}
 	else
 	{
+		if (!comp.isAttacking)
 		animComp->animHandleA = comp.animations[IDLE];
 	}
+
+	if(comp.isAttacking)
+	{
+		animComp->loop = false;
+		if (animComp->timeA >= animComp->GetClipDuration(animComp->GetAnimationClipA()))
+		{
+			comp.isAttacking = false;
+			animComp->loop = true;
+		}
+	}
+	
+
 	if (movement.LengthSqr() > 1.0f)
 		movement = movement.Normalized();
 

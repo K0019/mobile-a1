@@ -146,6 +146,8 @@ X(IS_TRIGGER, "Is Trigger")
 	class MyContactListener : public JPH::ContactListener
 	{
 	public:
+		static void Init();
+
 		virtual void OnContactAdded(const JPH::Body& inBody1, const JPH::Body& inBody2, const JPH::ContactManifold& inManifold, JPH::ContactSettings& ioSettings) override;
 		virtual void OnContactPersisted(const JPH::Body& inBody1, const JPH::Body& inBody2, const JPH::ContactManifold& inManifold, JPH::ContactSettings& ioSettings) override;
 		virtual void OnContactRemoved(const JPH::SubShapeIDPair& inSubShapePair) override;

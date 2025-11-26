@@ -1,0 +1,41 @@
+{
+    "name": "boss_prefect",
+    "nodes": [
+        {
+            "nodeType": "S_Boss_HealthPhases",
+            "nodeLevel": 0
+        },
+        {
+            "nodeType": "Sequence",
+            "nodeLevel": 1
+        },
+        {
+            "nodeType": "L_Boss_Prefect_BookingSlips",
+            "nodeLevel": 2
+        },
+        {
+            "nodeType": "L_Boss_Prefect_Detention",
+            "nodeLevel": 2
+        },
+        {
+            "nodeType": "L_Boss_Prefect_Invincibility",
+            "nodeLevel": 2
+        },
+        {
+            "nodeType": "Sequence",
+            "nodeLevel": 1
+        },
+        {
+            "nodeType": "L_Boss_Prefect_DisciplinaryAction",
+            "nodeLevel": 2
+        },
+        {
+            "nodeType": "L_Boss_Prefect_LashOut",
+            "nodeLevel": 2
+        },
+        {
+            "nodeType": "L_Boss_Prefect_DontRun",
+            "nodeLevel": 2
+        }
+    ]
+}

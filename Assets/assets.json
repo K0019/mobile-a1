@@ -43,6 +43,34 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/items/bbt/lambert3.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 1990729574588790501,
+                            "name": "lambert30"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/items/bbt/bbt.mesh",
+            "resources": [
+                {
+                    "resourceType": 6209910166724260588,
+                    "resourceEntries": [
+                        {
+                            "hash": 2003547681145403119,
+                            "name": "bbt0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/materials/standardsurface1_1012.material",
             "resources": [
                 {
@@ -51,6 +79,20 @@
                         {
                             "hash": 784546626751360037,
                             "name": "standardsurface1_10120"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/items/bbt/lambert5.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 1989122088588981987,
+                            "name": "lambert50"
                         }
                     ]
                 }
@@ -121,6 +163,34 @@
                         {
                             "hash": 840988956678919567,
                             "name": "outdoor bleachers133150735337904442320"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/materials/wall_1011.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 1374930494977276773,
+                            "name": "wall_10110"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/items/sword/material_6.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 1945734260237723387,
+                            "name": "material_60"
                         }
                     ]
                 }
@@ -261,6 +331,34 @@
                         {
                             "hash": 2354246809963246693,
                             "name": "material_420"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/baseball_field/field/image_1.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 1926827058285717005,
+                            "name": "image_10"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/items/sword/spike_lambert.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 1940135547029087991,
+                            "name": "spike_lambert0"
                         }
                     ]
                 }
@@ -547,6 +645,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/white.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 1900106726476864689,
+                            "name": "white0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/meshanimations/player_idle_mixamoplayer_weapon atk 3_mixamo.anim",
             "resources": [
                 {
@@ -555,6 +667,48 @@
                         {
                             "hash": 2248998258417618825,
                             "name": "player_idle_mixamoplayer_weapon atk 3_mixamo0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/items/bbt/fakeboba.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 1980443643310946017,
+                            "name": "fakeboba0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/textures/image_9.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 1360425737583655709,
+                            "name": "image_90"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/items/bookingslip/material_1.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2269354617041426685,
+                            "name": "material_10"
                         }
                     ]
                 }
@@ -603,6 +757,20 @@
             ]
         },
         {
+            "filepath": "sounds/sfx/jump/jump 3.wav",
+            "resources": [
+                {
+                    "resourceType": 16184316770661419113,
+                    "resourceEntries": [
+                        {
+                            "hash": 9178907816460827212,
+                            "name": "jump 30"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/textures/_11.ktx2",
             "resources": [
                 {
@@ -639,6 +807,20 @@
                         {
                             "hash": 340152614079677569,
                             "name": "n00_002_03_tops_01_cloth_02 (instance)0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/items/sword/lambert2.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 1921992505659156209,
+                            "name": "lambert20"
                         }
                     ]
                 }
@@ -701,6 +883,20 @@
             ]
         },
         {
+            "filepath": "sounds/sfx/weapon pickup/weapon pickup 3.wav",
+            "resources": [
+                {
+                    "resourceType": 16184316770661419113,
+                    "resourceEntries": [
+                        {
+                            "hash": 4836861497999165782,
+                            "name": "weapon pickup 30"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/shelf.mesh",
             "resources": [
                 {
@@ -723,6 +919,20 @@
                         {
                             "hash": 2159334184684113787,
                             "name": "material_210"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/baseball_field/field/field.mesh",
+            "resources": [
+                {
+                    "resourceType": 6209910166724260588,
+                    "resourceEntries": [
+                        {
+                            "hash": 1942819454911718937,
+                            "name": "field0"
                         }
                     ]
                 }
@@ -849,6 +1059,20 @@
                         {
                             "hash": 820419293146481367,
                             "name": "lights0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/items/bookingslip/bookingslip.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 2256450748577847543,
+                            "name": "bookingslip0"
                         }
                     ]
                 }
@@ -1191,6 +1415,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/items/bbt/fake_boba.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 1976919708543923933,
+                            "name": "fake_boba0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/materials/n00_008_01_shoes_01_cloth_02__instance_.material",
             "resources": [
                 {
@@ -1241,6 +1479,34 @@
                         {
                             "hash": 2116413648782249829,
                             "name": "n00_002_03_tops_01_cloth_04__instance_0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/corridor.mesh",
+            "resources": [
+                {
+                    "resourceType": 6209910166724260588,
+                    "resourceEntries": [
+                        {
+                            "hash": 1380181762511534957,
+                            "name": "corridor0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/items/sword/handle_base_lambert.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 1928658844658362101,
+                            "name": "handle_base_lambert0"
                         }
                     ]
                 }
@@ -1381,6 +1647,20 @@
                         {
                             "hash": 2152916335312785273,
                             "name": "n00_000_hair_00_hair__instance_0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/items/sword/handle_lambert.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 1935195441285490423,
+                            "name": "handle_lambert0"
                         }
                     ]
                 }
@@ -1549,6 +1829,34 @@
                         {
                             "hash": 805172365404108849,
                             "name": "field0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "sounds/sfx/rank increase.wav",
+            "resources": [
+                {
+                    "resourceType": 16184316770661419113,
+                    "resourceEntries": [
+                        {
+                            "hash": 13206751511390027437,
+                            "name": "rank increase0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "sounds/sfx/weapon pickup/weapon pickup 2.wav",
+            "resources": [
+                {
+                    "resourceType": 16184316770661419113,
+                    "resourceEntries": [
+                        {
+                            "hash": 4836862597510793993,
+                            "name": "weapon pickup 20"
                         }
                     ]
                 }
@@ -1835,6 +2143,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/textures/image_10.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 1366539022234090277,
+                            "name": "image_100"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/outdoor bleachers.mesh",
             "resources": [
                 {
@@ -1843,6 +2165,20 @@
                         {
                             "hash": 862331576885679525,
                             "name": "outdoor bleachers0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/items/sword/circlewing_lambert.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 1942202628889306873,
+                            "name": "circlewing_lambert0"
                         }
                     ]
                 }
@@ -1961,6 +2297,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/baseball_field/field/grass.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 1936113533493913107,
+                            "name": "grass0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/meshanimations/player_idle_mixamoplayer_throw_mixamo.anim",
             "resources": [
                 {
@@ -2031,6 +2381,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/textures/image_11.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 1372985458907740979,
+                            "name": "image_110"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/materials/n00_002_03_tops_01_cloth_01 (instance).material",
             "resources": [
                 {
@@ -2081,6 +2445,20 @@
                         {
                             "hash": 806365335520248521,
                             "name": "lights55905631409784581610"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/materials/Red.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 1903056716174195867,
+                            "name": "red0"
                         }
                     ]
                 }
@@ -2143,6 +2521,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/baseball_field/field/material_1.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 1937294408982144533,
+                            "name": "material_10"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/materials/n00_000_00_face_00_skin__instance_.material",
             "resources": [
                 {
@@ -2151,6 +2543,20 @@
                         {
                             "hash": 2138932746430730097,
                             "name": "n00_000_00_face_00_skin__instance_0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/items/bookingslip/bookingslip.mesh",
+            "resources": [
+                {
+                    "resourceType": 6209910166724260588,
+                    "resourceEntries": [
+                        {
+                            "hash": 2271024775204018431,
+                            "name": "bookingslip0"
                         }
                     ]
                 }
@@ -2325,6 +2731,20 @@
             ]
         },
         {
+            "filepath": "sounds/sfx/jump/jump 1.wav",
+            "resources": [
+                {
+                    "resourceType": 16184316770661419113,
+                    "resourceEntries": [
+                        {
+                            "hash": 9178910015484083634,
+                            "name": "jump 10"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/storage room.mesh",
             "resources": [
                 {
@@ -2395,6 +2815,34 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/debug/unitsphere/unitsphere.mesh",
+            "resources": [
+                {
+                    "resourceType": 6209910166724260588,
+                    "resourceEntries": [
+                        {
+                            "hash": 4016702893937890531,
+                            "name": "unitsphere0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/baseball_field/field/image_0.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 1919488917681939979,
+                            "name": "image_00"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/materials/n00_000_hair_00_hair (instance).material",
             "resources": [
                 {
@@ -2431,6 +2879,20 @@
                         {
                             "hash": 885172831441106335,
                             "name": "storage room99210149213281472590"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "sounds/sfx/rank decrease.wav",
+            "resources": [
+                {
+                    "resourceType": 16184316770661419113,
+                    "resourceEntries": [
+                        {
+                            "hash": 16268902492588633441,
+                            "name": "rank decrease0"
                         }
                     ]
                 }
@@ -2543,6 +3005,20 @@
                         {
                             "hash": 730550710250200043,
                             "name": "dugout66474189507324034590"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/debug/unitsphere/material_0.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 4010155302194484447,
+                            "name": "material_00"
                         }
                     ]
                 }
@@ -2675,6 +3151,48 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/items/sword/jewel_lambert.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 1925183288402962163,
+                            "name": "jewel_lambert0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "sounds/sfx/jump/jump 2.wav",
+            "resources": [
+                {
+                    "resourceType": 16184316770661419113,
+                    "resourceEntries": [
+                        {
+                            "hash": 9178908915972455423,
+                            "name": "jump 20"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "sounds/sfx/heal.wav",
+            "resources": [
+                {
+                    "resourceType": 16184316770661419113,
+                    "resourceEntries": [
+                        {
+                            "hash": 760856327128488347,
+                            "name": "heal0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/materials/n00_002_03_tops_01_cloth_05 (instance).material",
             "resources": [
                 {
@@ -2745,6 +3263,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/corridor_bridge.mesh",
+            "resources": [
+                {
+                    "resourceType": 6209910166724260588,
+                    "resourceEntries": [
+                        {
+                            "hash": 15089627211392254377,
+                            "name": "corridor_bridge0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/textures/image_7.ktx2",
             "resources": [
                 {
@@ -2767,6 +3299,20 @@
                         {
                             "hash": 2276289236530672695,
                             "name": "n00_008_01_shoes_01_cloth_02__instance_.0010"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "sounds/sfx/ultimate activation.wav",
+            "resources": [
+                {
+                    "resourceType": 16184316770661419113,
+                    "resourceEntries": [
+                        {
+                            "hash": 16372099457333151010,
+                            "name": "ultimate activation0"
                         }
                     ]
                 }
@@ -2843,6 +3389,34 @@
             ]
         },
         {
+            "filepath": "sounds/sfx/weapon pickup/weapon pickup 1.wav",
+            "resources": [
+                {
+                    "resourceType": 16184316770661419113,
+                    "resourceEntries": [
+                        {
+                            "hash": 4836859298975909360,
+                            "name": "weapon pickup 10"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/baseball_field/field/image_2.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 1931365842285176335,
+                            "name": "image_20"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/materials/n00_007_01_tops_01_cloth_02__instance_.001.material",
             "resources": [
                 {
@@ -2879,6 +3453,20 @@
                         {
                             "hash": 2335676058570110045,
                             "name": "n00_000_00_eyewhite_00_eye__instance_.0010"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/items/bbt/straw.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 1983500285636163297,
+                            "name": "straw0"
                         }
                     ]
                 }
@@ -2955,6 +3543,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/items/bbt/material_4.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 1997508063774029543,
+                            "name": "material_40"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/materials/lambert4_1001.material",
             "resources": [
                 {
@@ -2997,6 +3599,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/items/bookingslip/paper.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2264719076018723067,
+                            "name": "paper0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/textures/fence13707767880246738486.ktx2",
             "resources": [
                 {
@@ -3033,6 +3649,20 @@
                         {
                             "hash": 2272210048391623733,
                             "name": "n00_008_01_shoes_01_cloth_01__instance_.0010"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/items/sword/sword.mesh",
+            "resources": [
+                {
+                    "resourceType": 6209910166724260588,
+                    "resourceEntries": [
+                        {
+                            "hash": 1952953653585700607,
+                            "name": "sword0"
                         }
                     ]
                 }
@@ -3131,6 +3761,20 @@
                         {
                             "hash": 2341418807801984097,
                             "name": "n00_000_00_facebrow_00_face__instance_.0010"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/stairs_left.mesh",
+            "resources": [
+                {
+                    "resourceType": 6209910166724260588,
+                    "resourceEntries": [
+                        {
+                            "hash": 3686029169775864251,
+                            "name": "stairs_left0"
                         }
                     ]
                 }

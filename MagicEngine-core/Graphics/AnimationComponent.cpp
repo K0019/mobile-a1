@@ -245,6 +245,18 @@ void AnimationComponent::EditorDraw()
     gui::VarDrag("##timeA", &timeA);
 }
 
+float AnimationComponent::GetClipDuration(const ResourceAnimation* animationClip)
+{
+    auto& graphicsAssetSystem{ ST<GraphicsMain>::Get()->GetAssetSystem() };
+
+    const Resource::AnimationClip* clip = animationClip && animationClip->handle != Resource::INVALID_CLIP_ID
+        ? &graphicsAssetSystem.Clip(animationClip->handle) : nullptr;
+
+    if (clip)
+        return clip->duration();
+    return -1.0f;
+}
+
 
 
 AnimationSystem::AnimationSystem() :

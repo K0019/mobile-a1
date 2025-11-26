@@ -34,7 +34,7 @@ All rights reserved.
 void GrabbableItemComponent::Attack(Vec3 origin, Vec3 direction)
 {
 	std::vector<physics::BoxColliderComp*> colliders;
-	physics::OverlapBox(colliders, origin, Vec3(2,1,2), direction);
+	physics::OverlapBox(colliders, origin, attackBox, direction);
 
 	for (auto collider : colliders)
 	{
@@ -43,6 +43,10 @@ void GrabbableItemComponent::Attack(Vec3 origin, Vec3 direction)
 		// Can't hit self or owner
 		if (hitEntity == owner || hitEntity == ecs::GetEntity(this))
 			continue;
+
+		// If there's no owner, set the owner to itself
+		if (!owner)
+			owner = ecs::GetEntity(this);
 
 		// Enemies can't hit each other
 		if (owner->GetComp<EnemyComponent>() && hitEntity->GetComp<EnemyComponent>())
@@ -79,28 +83,31 @@ void GrabbableItemComponent::Attack(Vec3 origin, Vec3 direction)
 GrabbableItemComponent::GrabbableItemComponent() :
 	damage{ 1.0f },
 	isHeld{ false },
-	owner(nullptr)
+	owner(nullptr),
+	attackBox{},
+	attackDelay{ 0.0f }
 {
 }
 
 void GrabbableItemComponent::Serialize(Serializer& writer) const
 {
-	writer.Serialize("damage",damage);
+	this->IRegisteredComponent::Serialize(writer);
 }
 
 void GrabbableItemComponent::Deserialize(Deserializer& reader)
 {
-	reader.DeserializeVar("damage", &damage);
+	this->IRegisteredComponent::Deserialize(reader);
 }
 
 void GrabbableItemComponent::EditorDraw()
 {
 	gui::VarInput("Damage", &damage);
+	gui::VarInput("Attack Box", &attackBox);
+	gui::VarInput("Attack Delay", &attackDelay);
 }
 
 GrabbableItemComponentSystem::GrabbableItemComponentSystem()
 	: System_Internal{ &GrabbableItemComponentSystem::UpdateGrabbableItemComponent }
-
 {
 }
 

@@ -55,6 +55,14 @@ public:
 
 	/*****************************************************************//*!
 	\brief
+		Gets the current health.
+	\return
+		The current health.
+	*//******************************************************************/
+	float GetCurrHealthNormalized() const;
+
+	/*****************************************************************//*!
+	\brief
 		Gets whether this entity is dead based on their current health.
 	\return
 		True if the entity is dead. False otherwise.
@@ -102,6 +110,9 @@ public:
 	void SetMaxHealth(HealthType newMaxAmount);
 
 	float GetHealthFraction();
+
+	bool GetIsInvincible() const;
+	void SetIsInvincible(bool invincible);
 private:
 	/*****************************************************************//*!
 	\brief
@@ -114,6 +125,7 @@ private:
 private:
 	HealthType maxHealth;
 	HealthType currHealth;
+	bool isInvincible;
 
 	static constexpr HealthType defaultMax{ 100 };
 	property_vtable()
@@ -122,5 +134,6 @@ property_begin(HealthComponent)
 {
 	property_var(maxHealth),
 	property_var(currHealth),
+	property_var(isInvincible),
 }
 property_vend_h(HealthComponent)

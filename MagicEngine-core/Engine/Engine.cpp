@@ -276,6 +276,7 @@ void MagicEngine::ExecuteFrame(FrameData& frameData)
 	// -----------------
 	ST<GameSystemsManager>::Get()->UpdateState(); // Update which ecs systems are active
 	ExecuteUpdateSystems(); // Run ecs systems that update the world
+	ecs::FlushChanges();
 	ST<Scheduler>::Get()->Update(GameTime::FixedDt() * static_cast<float>(GameTime::NumFixedFrames()));
 
 	// render

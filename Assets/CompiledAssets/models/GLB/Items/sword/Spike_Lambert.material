@@ -1,0 +1,43 @@
+{
+    "name": "Spike_Lambert",
+    "alphaMode": "Opaque",
+    "alphaCutoff": 0.5,
+    "metallicFactor": 0.0,
+    "roughnessFactor": 0.5527864098548889,
+    "normalScale": 1.0,
+    "occlusionStrength": 1.0,
+    "baseColorFactor": [
+        0.296999990940094,
+        0.05524199455976486,
+        0.05524199455976486,
+        0.4523809552192688
+    ],
+    "emissiveFactor": [
+        0.08659999817609787,
+        0.0066999997943639755,
+        0.0066999997943639755
+    ],
+    "textures": [
+        {
+            "key": "baseColor",
+            "value": ""
+        },
+        {
+            "key": "metallicRoughness",
+            "value": ""
+        },
+        {
+            "key": "normal",
+            "value": ""
+        },
+        {
+            "key": "emissive",
+            "value": ""
+        },
+        {
+            "key": "occlusion",
+            "value": ""
+        }
+    ],
+    "flags": 4
+}

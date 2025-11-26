@@ -48,10 +48,12 @@ EntityReference EntityReferenceHolderComponent::GetEntity(int index)
 }
 void EntityReferenceHolderComponent::SetEntity(int index, EntityReference entity)
 {
-	if (index < 0 || index >= entityReferences.size())
-	{
+	if (index < 0)
 		return;
-	}
+
+	while (index >= entityReferences.size())
+		entityReferences.push_back(nullptr);
+
 	entityReferences[index] = entity;
 }
 

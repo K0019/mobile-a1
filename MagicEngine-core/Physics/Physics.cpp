@@ -43,10 +43,12 @@ namespace physics {
 		{
 			auto bodyCompPtr{ ecs::GetEntity(this)->GetComp<JoltBodyComp>() };
 			if (!bodyCompPtr || bodyCompPtr->GetBodyID().IsInvalid())
-				return;
-
-			bodyCompPtr->SetCollisionLayer(colCompPtr->GetFlag(COLLIDER_COMP_FLAG::ENABLED) ? Layers::MOVING : Layers::NON_COLLIDABLE);
-			bodyCompPtr->SetGravityFactor(GetFlag(PHYSICS_COMP_FLAG::USE_GRAVITY) ? 1.f : 0.f);
+				ecs::GetEntity(this)->AddCompNow<JoltBodyComp>(JoltBodyComp{ JPH::EMotionType::Dynamic, ShapeType::BOX, Layers::MOVING });
+			else
+			{
+				bodyCompPtr->SetCollisionLayer(colCompPtr->GetFlag(COLLIDER_COMP_FLAG::ENABLED) ? Layers::MOVING : Layers::NON_COLLIDABLE);
+				bodyCompPtr->SetGravityFactor(GetFlag(PHYSICS_COMP_FLAG::USE_GRAVITY) ? 1.f : 0.f);
+			}
 		}
 		else
 		{
@@ -54,6 +56,9 @@ namespace physics {
 		}
 
 		ST<Scheduler>::Get()->Add(0.0f, [entity = ecs::GetEntity(this)]() {
+			if (!ecs::IsEntityHandleValid(entity))
+				return;
+
 			JPH::EMotionType type{};
 			auto compPtr{ entity->GetComp<PhysicsComp>() };
 			if (!compPtr->GetFlag(PHYSICS_COMP_FLAG::ENABLED))
@@ -288,6 +293,10 @@ namespace physics {
 
 		for (auto compIter{ ecs::GetCompsActiveBegin<BoxColliderComp>() }, endIter{ ecs::GetCompsEnd<BoxColliderComp>() }; compIter != endIter; ++compIter)
 		{
+			auto joltBodyComp{ compIter.GetEntity()->GetComp<JoltBodyComp>() };
+			if (!joltBodyComp)
+				continue;
+
 			if (!layers.TestMaskAll())
 			{
 				if (auto layerComp{ compIter.GetEntity()->GetComp<EntityLayerComponent>() })
@@ -299,8 +308,8 @@ namespace physics {
 					continue;
 			}
 
-			Vec3 pos{ compIter.GetEntity()->GetComp<JoltBodyComp>()->GetPosition() };
-			Vec3 scale{ compIter.GetEntity()->GetComp<JoltBodyComp>()->GetScale() / 2.f };
+			Vec3 pos{ joltBodyComp->GetPosition() };
+			Vec3 scale{ joltBodyComp->GetScale() / 2.f };
 			Vec3 min{ pos - scale }, max{ pos + scale };
 			JPH::AABox colliderAABB{ JPH::Vec3{min.x, min.y, min.z}, JPH::Vec3{max.x, max.y, max.z} };
 			if (box.Overlaps(colliderAABB))
