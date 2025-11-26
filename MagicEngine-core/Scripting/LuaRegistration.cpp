@@ -70,7 +70,7 @@ SCRIPT_GENERATE_PROPERTY_FUNCS(bool, GetActive, SetActiveLua)
 SCRIPT_GENERATE_PROPERTY_FUNCS(float, GetZoom, SetZoom)
 SCRIPT_GENERATE_COMP_WRAPPER_END()
 
-// AnchorToCameraComponent ñ no properties, but we still generate a wrapper type
+// AnchorToCameraComponent ÅEno properties, but we still generate a wrapper type
 SCRIPT_GENERATE_COMP_WRAPPER_BEGIN(AnchorToCameraComponent)
 SCRIPT_GENERATE_COMP_WRAPPER_END()
 
@@ -350,7 +350,7 @@ void RegisterCppStuffToLua(luabridge::Namespace baseTable)
 		.endClass()
 		.beginClass<ecs::Entity>("Entity")
 		.addProperty("transform", [](ecs::EntityHandle entity) -> Transform* { return &entity->GetTransform(); })
-		.addFunction("Destroy", [](ecs::EntityHandle entity) -> void { ST<Scheduler>::Get()->Add([entity]() {ecs::DeleteEntity(entity); }); })
+		.addFunction("Destroy", [](ecs::EntityHandle entity) -> void { ecs::DeleteEntity(entity); })
 		
 		//=========================================== START REGISTER GETTER ================================================================================
 
