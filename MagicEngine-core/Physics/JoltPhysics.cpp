@@ -20,6 +20,7 @@ All rights reserved.
 
 #include "Physics/JoltPhysics.h"
 #include "Physics/Physics.h"
+#include "Engine/EntityEvents.h"
 #include "Utilities/GameTime.h"
 #include <imgui.h>
 
@@ -249,6 +250,8 @@ namespace physics {
 		{
 			SetShapeType(ShapeType::BOX);
 		}
+
+		ecs::GetEntity(this)->GetComp<EntityEventsComponent>()->BroadcastAll("JoltBodyCompAttached", this);
 	}
 
 	void JoltBodyComp::OnDetached()

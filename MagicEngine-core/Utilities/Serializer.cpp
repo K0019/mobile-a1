@@ -559,7 +559,7 @@ bool Deserializer::Deserialize(ecs::EntityHandle entity)
             continue;
         }
 
-        void* compHandle{ registeredData->ConstructDefaultAndAttachNowTo(entity) };
+        void* compHandle{ registeredData->ConstructDefaultAndAttachTo(entity) };
         if (!compHandle)
             // The component is already attached to the entity.
             compHandle = entity->GetCompByHash(compHash);

@@ -119,6 +119,7 @@ void PlayerMovementComponentSystem::UpdatePlayerMovementComponent(PlayerMovement
 				// Don't grab self
 				if (itemComp.GetEntity() == playerEntity)
 					continue;
+				assert(ecs::IsEntityHandleValid(itemComp.GetEntity()));
 
 				// Can't pick up other held items
 				if (itemComp->isHeld == true)

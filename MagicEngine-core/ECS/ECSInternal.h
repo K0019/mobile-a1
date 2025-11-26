@@ -694,7 +694,7 @@ namespace ecs {
 			\return
 				The index of the component.
 			*//******************************************************************/
-			uint32_t GetCompIndex(CompHash compHash) const;
+			uint32_t GetCompIndexUnclean(CompHash compHash) const;
 
 			/*****************************************************************//*!
 			\brief
@@ -755,7 +755,7 @@ namespace ecs {
 				The index to the added component within this buffer class.
 			*//******************************************************************/
 			template <typename T>
-			uint32_t AddComp(InternalEntityHandle entity, T&& comp);
+			uint32_t AddComp(InternalEntityHandle entity, T&& comp, bool isInactive);
 
 			/*****************************************************************//*!
 			\brief
@@ -786,19 +786,19 @@ namespace ecs {
 			\param index
 				The component's index within the compArr within this buffer class.
 			*//******************************************************************/
-			void RemoveCompBufferedForAddition(CompHash compType, uint32_t index);
+			bool RemoveCompBufferedForAddition(CompHash compType, uint32_t index);
 
 			/*****************************************************************//*!
 			\brief
 				Buffers setting whether a component is active or inactive.
 			\param entity
 				The entity that holds the component.
-			\param compType
+			\param compPtr
 				The component type's hash.
 			\param isInactive
 				Whether to set the component to inactive or active.
 			*//******************************************************************/
-			void ChangeCompActiveness(InternalEntityHandle entity, CompHash compType, bool isInactive);
+			void ChangeCompActiveness(InternalEntityHandle entity, RawData* compPtr, bool isInactive);
 
 			/*****************************************************************//*!
 			\brief
@@ -859,6 +859,24 @@ namespace ecs {
 				Creates it if it doesn't exist yet.
 			*//******************************************************************/
 			CompIndexSetType<CompModifyTask>& GetModifySet(CompHash compType);
+
+			/*****************************************************************//*!
+			\brief
+				Flushes pending modify tasks.
+			*//******************************************************************/
+			void FlushModifyTasks();
+
+			/*****************************************************************//*!
+			\brief
+				Flushes pending entity deletions.
+			*//******************************************************************/
+			void FlushEntityDeletion();
+
+			/*****************************************************************//*!
+			\brief
+				Flushes pending comp additions.
+			*//******************************************************************/
+			void FlushCompAdditions();
 			
 		private:
 			//! A map of component type hashes to compArrs that store components buffered for addition into ECSPool.
@@ -2503,7 +2521,7 @@ namespace ecs {
 			A reference to the CompArr that stores the specified component type.
 		*//******************************************************************/
 		template <typename T>
-		CompArr& GetCompArr();
+		CompArr* GetCompArr();
 
 		/*****************************************************************//*!
 		\brief
@@ -2519,7 +2537,7 @@ namespace ecs {
 			A reference to the CompArr that stores the specified component type.
 		*//******************************************************************/
 		template <typename T, bool DoComponentCallbacks = true>
-		CompArr& GetCompArr(CompArrMapType& compArrPool);
+		CompArr* GetCompArr(CompArrMapType& compArrPool);
 
 		/*****************************************************************//*!
 		\brief
@@ -2531,7 +2549,7 @@ namespace ecs {
 		\throws CompArrNotFoundException
 			Thrown if the requested CompArr does not exist in the default pool.
 		*//******************************************************************/
-		CompArr& GetCompArr(CompHash compType);
+		CompArr* GetCompArr(CompHash compType);
 
 		/*****************************************************************//*!
 		\brief
@@ -2545,7 +2563,7 @@ namespace ecs {
 		\throws CompArrNotFoundException
 			Thrown if the requested CompArr does not exist in the specified pool.
 		*//******************************************************************/
-		CompArr& GetCompArr(CompArrMapType& compArrPool, CompHash compType);
+		CompArr* GetCompArr(CompArrMapType& compArrPool, CompHash compType);
 
 		/*****************************************************************//*!
 		\brief
@@ -2559,7 +2577,7 @@ namespace ecs {
 		\return
 			A reference to the CompArr that stores the requested component type.
 		*//******************************************************************/
-		CompArr& GetCompArr(CompArrMapType& compArrPool, const CompArr& refCompArr);
+		CompArr* GetCompArr(CompArrMapType& compArrPool, const CompArr& refCompArr);
 
 
 		/*****************************************************************//*!
