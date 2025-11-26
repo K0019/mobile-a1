@@ -150,11 +150,7 @@ void BehaviorTreeComp::OnAttached()
 
 void BehaviorTreeComp::OnStart()
 {
-    ST<Scheduler>::Get()->Add(0.0f, [entity = ecs::GetEntity(this)]() -> void {
-        if (ecs::IsEntityHandleValid(entity))
-            if (auto comp{ entity->GetComp<BehaviorTreeComp>() })
-                comp->behaviorTree.Set(entity);
-    });
+    behaviorTree.Set(ecs::GetEntity(this));
 }
 
 void BehaviorTreeComp::OnDetached()
