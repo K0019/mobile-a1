@@ -70,6 +70,7 @@ public:
 	float currentDodgeTime;
 	float currentDodgeCooldown;
 	bool isAttacking;
+	float speedMultiplier;
 
 	/*****************************************************************//*!
 	\brief
@@ -90,6 +91,9 @@ public:
 
 	void Serialize(Serializer& writer) const override;
 	void Deserialize(Deserializer& reader) override;
+
+	void SetSpeedMultiplier(float mult);
+	void ResetSpeedMultiplier();
 
 	property_vtable()
 
@@ -132,6 +136,7 @@ private:
 		component's values to be edited. Disabled when IMGui is disabled.
 	*//******************************************************************/
 	virtual void EditorDraw() override;
+
 };
 
 property_begin(CharacterMovementComponent)

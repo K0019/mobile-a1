@@ -28,6 +28,9 @@ NODE_STATUS L_Boss_Prefect_DisciplinaryAction::OnUpdate([[maybe_unused]] ecs::En
                     if(Boss_Prefect_Util::SpawnExplosion(entity,explosionSize))
                     {
                         hasExploded = true;
+                        --currentLungeCount;
+                        if (currentLungeCount == 0)
+                            return NODE_STATUS::SUCCESS;
                     }
                 }
 

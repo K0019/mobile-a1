@@ -48,6 +48,7 @@ CharacterMovementComponent::CharacterMovementComponent()
 	, currentStunTime{ 0.0f }
 	, currentDodgeTime{ 0.0f }
 	, isAttacking{ false }
+	, speedMultiplier{ 1.0f }
 {
 }
 
@@ -276,6 +277,16 @@ void CharacterMovementComponent::Deserialize(Deserializer& reader)
 	}
 }
 
+void CharacterMovementComponent::SetSpeedMultiplier(float mult)
+{
+	speedMultiplier = mult;
+}
+
+void CharacterMovementComponent::ResetSpeedMultiplier()
+{
+	speedMultiplier = 1.0f;
+}
+
 void CharacterMovementComponent::EditorDraw()
 {
 	gui::VarInput("Move Speed", &moveSpeed);
@@ -407,7 +418,7 @@ void CharacterMovementComponentSystem::UpdateCharacterMovementComponent(Characte
 	}
 	else
 	{
-		moveDir *= comp.moveSpeed;
+		moveDir *= comp.moveSpeed * comp.speedMultiplier;
 	}
 
 	physicsComp->AddLinearVelocity(moveDir);
