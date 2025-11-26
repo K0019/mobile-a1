@@ -56,19 +56,21 @@ const Vec2 CharacterMovementComponent::GetMovementVector()
 	return movementVector;
 }
 
-void CharacterMovementComponent::Dodge(Vec2 vector)
+bool CharacterMovementComponent::Dodge(Vec2 vector)
 {
 	// Don't allow dodging if still on cooldown
 	if (currentDodgeCooldown > 0.0f)
-		return;
+		return false;
 
 	// Don't dodge nowhere
 	if (vector.LengthSqr() == 0.0f)
-		return;	
+		return false;
 
 	SetMovementVector(vector.Normalized());
 	currentDodgeTime = dodgeDuration;
 	currentDodgeCooldown = dodgeCooldown;
+
+	return true;
 }
 
 void CharacterMovementComponent::SetMovementVector(Vec2 vector)
@@ -196,6 +198,11 @@ bool CharacterMovementComponent::Attack()
 	isAttacking = true;
 
 	return true;
+}
+
+bool CharacterMovementComponent::IsDodging()
+{
+	return currentDodgeTime>0.0f;
 }
 
 void CharacterMovementComponent::Serialize(Serializer& writer) const

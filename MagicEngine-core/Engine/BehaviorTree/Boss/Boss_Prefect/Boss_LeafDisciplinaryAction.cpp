@@ -3,31 +3,41 @@
 #include "Game/EnemyCharacter.h"
 #include "Game/Character.h"
 #include "Game/Health.h"
-
-// Set boss invinc time here, based on Canva values rn so change as balancing requires
-float L_Boss_Prefect_DisciplinaryAction::invincibilityTime = 1.5f;
+#include "Boss_Prefect_Util.h"
+int L_Boss_Prefect_DisciplinaryAction::lungeCount = 5;
+float L_Boss_Prefect_DisciplinaryAction::explosionSize = 5.0f;
 
 void L_Boss_Prefect_DisciplinaryAction::OnInitialize()
 {
-    currentInvincinilityTime = invincibilityTime;
+    hasExploded = true;
+    currentLungeCount = lungeCount;
 }
 
 NODE_STATUS L_Boss_Prefect_DisciplinaryAction::OnUpdate([[maybe_unused]] ecs::EntityHandle entity)
 {
     if (auto characterComp{ entity->GetComp<CharacterMovementComponent>() })
     {
-        // Don't move here
-        characterComp->SetMovementVector(Vec2{ 0.0f });
-    }
-    if (auto healthComp{ entity->GetComp<HealthComponent>() })
-    {
-        healthComp->SetIsInvincible(true);
-        currentInvincinilityTime -= GameTime::Dt();
-
-        if (currentInvincinilityTime <= 0.0f)
+        if (auto enemyComp{ entity->GetComp<EnemyComponent>() })
         {
-            healthComp->SetIsInvincible(false);
-            return NODE_STATUS::SUCCESS;
+            Vec2 dir = Boss_Prefect_Util::GetMovementTowards(entity->GetTransform().GetWorldPosition(), enemyComp->playerReference->GetTransform().GetWorldPosition());
+            if (!characterComp->IsDodging())
+            {
+                // Send out an explosion if we aren't dodging and *haven't* done so alr
+                if (!hasExploded)
+                {
+                    if(Boss_Prefect_Util::SpawnExplosion(entity,explosionSize))
+                    {
+                        hasExploded = true;
+                    }
+                }
+
+                // Keep trying to dodge
+                if (characterComp->Dodge(dir))
+                {
+                    // Once dodge succeeded, we get ready to explode again
+                    hasExploded = false;
+                }
+            }
         }
     }
     return NODE_STATUS::RUNNING;

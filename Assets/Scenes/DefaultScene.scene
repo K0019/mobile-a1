@@ -52,9 +52,9 @@
         {
             "parentIndex": -1,
             "position": {
-                "x": 0.0,
+                "x": -20.0,
                 "y": 0.99993896484375,
-                "z": 0.0
+                "z": -10.0
             },
             "rotation": {
                 "x": 0.0,
@@ -1111,9 +1111,9 @@
                 },
                 "7930599578754533802": {
                     "_active": true,
-                    "maxHealth": 1000.0,
-                    "currHealth": 100.0,
-                    "isInvincible": true
+                    "maxHealth": 200.0,
+                    "currHealth": 200.0,
+                    "isInvincible": false
                 },
                 "9315785795257285655": {
                     "_active": true,
@@ -1161,9 +1161,9 @@
                     "rotateSpeed": 14400.0,
                     "stunTimePerHit": 0.5,
                     "groundFriction": 1.5,
-                    "dodgeCooldown": 0.0,
-                    "dodgeDuration": 0.15000000596046448,
-                    "dodgeSpeed": 4.0,
+                    "dodgeCooldown": 1.0,
+                    "dodgeDuration": 1.0,
+                    "dodgeSpeed": 8.0,
                     "hitDebugObject": {
                         "entityUid": 0
                     },
