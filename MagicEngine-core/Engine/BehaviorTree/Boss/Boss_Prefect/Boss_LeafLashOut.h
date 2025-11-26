@@ -8,6 +8,6 @@ public:
     NODE_STATUS OnUpdate(ecs::EntityHandle entity) override;
 
 private:
-    float currentInvincinilityTime;
+    float currentAttackCooldown;
     static float invincibilityTime;
 };

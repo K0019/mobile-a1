@@ -200,7 +200,13 @@ bool CharacterMovementComponent::Attack()
 	
 	// Get the animation component
 	ecs::CompHandle<AnimationComponent> animComp = thisEntity->GetComp<AnimationComponent>();
+
+	// Attempt to use animation pulled from the item, if nonexistent then use the fallback anim on the Character
+	animComp->animHandleA = attackItem->GetComp<GrabbableItemComponent>()->lightAttackAnimation;
+	if(!animComp->GetAnimationClipA())
 	animComp->animHandleA = animations[ATTACK];
+
+
 	isAttacking = true;
 
 	return true;
