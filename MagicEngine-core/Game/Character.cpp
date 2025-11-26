@@ -169,28 +169,34 @@ bool CharacterMovementComponent::Attack()
 
 	ecs::EntityHandle thisEntity = ecs::GetEntity(this);
 
-	ST<Scheduler>::Get()->Add(attackItem->GetComp<GrabbableItemComponent>()->attackDelay, [attackItem, thisEntity, thisComp = this]() {
+	ST<Scheduler>::Get()->Add(attackItem->GetComp<GrabbableItemComponent>()->attackDelay, [attackItem, thisEntity]() {
+		if (!ecs::IsEntityHandleValid(thisEntity))
+			return;
+		ecs::CompHandle<CharacterMovementComponent> thisComp{ thisEntity->GetComp<CharacterMovementComponent>() };
+		if (!thisComp)
+			return;
 
 		// If the attack animation was cancelled, we cancel this task as well
 		if (!thisComp->isAttacking)
 			return;
 
-	// Hard-code a simple start point etc for now
-	Vec3 rotation = thisEntity->GetTransform().GetWorldRotation();
-	Vec3 direction(sin(math::ToRadians(rotation.y + 90)), 0, cos(math::ToRadians(rotation.y + 90)));
-	Vec3 startPoint = thisEntity->GetTransform().GetWorldPosition() + direction;
+		// Hard-code a simple start point etc for now
+		Vec3 rotation = thisEntity->GetTransform().GetWorldRotation();
+		Vec3 direction(sin(math::ToRadians(rotation.y + 90)), 0, cos(math::ToRadians(rotation.y + 90)));
+		Vec3 startPoint = thisEntity->GetTransform().GetWorldPosition() + direction;
 
-	auto hitDebugObject = thisComp->hitDebugObject;
-	if (hitDebugObject != nullptr)
-	{
-		hitDebugObject->GetTransform().SetWorldPosition(startPoint);
-		hitDebugObject->GetTransform().SetWorldRotation(Vec3(0.0f, math::ToDegrees(atan2(direction.x, direction.z)), 0.0f));
-		hitDebugObject->GetTransform().SetWorldScale(attackItem->GetComp<GrabbableItemComponent>()->attackBox);
-	}
+		auto hitDebugObject = thisComp->hitDebugObject;
+		if (hitDebugObject != nullptr)
+		{
+			hitDebugObject->GetTransform().SetWorldPosition(startPoint);
+			hitDebugObject->GetTransform().SetWorldRotation(Vec3(0.0f, math::ToDegrees(atan2(direction.x, direction.z)), 0.0f));
+			hitDebugObject->GetTransform().SetWorldScale(attackItem->GetComp<GrabbableItemComponent>()->attackBox);
+		}
 
 
-	// Call Attack from the GrabbableItem component
-	attackItem->GetComp<GrabbableItemComponent>()->Attack(startPoint, direction); });
+		// Call Attack from the GrabbableItem component
+		attackItem->GetComp<GrabbableItemComponent>()->Attack(startPoint, direction); 
+	});
 	
 	// Get the animation component
 	ecs::CompHandle<AnimationComponent> animComp = thisEntity->GetComp<AnimationComponent>();

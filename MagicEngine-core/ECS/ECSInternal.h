@@ -870,7 +870,7 @@ namespace ecs {
 			\brief
 				Flushes pending entity deletions.
 			*//******************************************************************/
-			void FlushEntityDeletion();
+			static void FlushEntityDeletion(RemoveEntContType& entitiesToRemove);
 
 			/*****************************************************************//*!
 			\brief

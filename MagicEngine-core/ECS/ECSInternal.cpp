@@ -553,10 +553,15 @@ namespace ecs {
 			// Remove/Delete components
 			FlushModifyTasks();
 
+			// We don't delete entities before calling callbacks as components will expect their entities to still exist.
+			// However, component callbacks could also request for entity removals, so if we don't separate the entities to remove buffer,
+			// these requested entities will be deleted before their component callbacks are even queued.
+			// Therefore, we need to buffer the entities that will be deleted separately.
+			RemoveEntContType prevEntitiesToRemove{ std::move(entitiesToRemove) };
 			FlushComponentCallbacks();
 
 			// Delete entities
-			FlushEntityDeletion();
+			FlushEntityDeletion(prevEntitiesToRemove);
 		}
 
 		void CompChangesBuffer::FlushComponentCallbacks()
@@ -638,7 +643,7 @@ namespace ecs {
 			compsToModify.clear();
 		}
 
-		void CompChangesBuffer::FlushEntityDeletion()
+		void CompChangesBuffer::FlushEntityDeletion(RemoveEntContType& entitiesToRemove)
 		{
 			if (entitiesToRemove.empty())
 				return;
@@ -847,9 +852,6 @@ namespace ecs {
 				// Which index to modify will depend on whether the component we're moving is inactive or active.
 				uint32_t destIndex{ (srcIndex < other.numInactive ? insertIndexes.second++ : insertIndexes.first++) };
 
-				// Inform component of detach
-				other.callInformDetachedFunc(compIter.GetEntity());
-
 				InternalEntityHandle entity{ compIter.GetEntity() };
 				SetEntityPtr(destIndex, entity);
 				callMoveFunc(compIter.GetCompHandle(), GetComp(destIndex));
@@ -857,9 +859,7 @@ namespace ecs {
 				// note: this is assuming that we're transfering components from a buffer (this) to a pool (other).
 				entity->INTERNAL_ChangeCompIndex(compHash, destIndex, true);
 
-				// Inform component of attach, immediately since the vector storing components could reallocate
-				// TODO: The above reason is now invalid since we've already expanded the vector. This could potentially be deferred? But also need to be careful of behavior...
-				callInformAttachedFunc(entity);
+				CurrentPool::ChangesBuffer().AddComponentCallback(callInformAttachedFunc, entity);
 			}
 
 			other.arrRaw.clear();
