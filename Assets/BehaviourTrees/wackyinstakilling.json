@@ -1,0 +1,21 @@
+{
+    "name": "wackyinstakilling",
+    "nodes": [
+        {
+            "nodeType": "Sequence",
+            "nodeLevel": 0
+        },
+        {
+            "nodeType": "L_Boss_Prefect_BookingSlips",
+            "nodeLevel": 1
+        },
+        {
+            "nodeType": "L_Boss_Prefect_BookingSlips",
+            "nodeLevel": 1
+        },
+        {
+            "nodeType": "L_Boss_Prefect_BookingSlips",
+            "nodeLevel": 1
+        }
+    ]
+}
