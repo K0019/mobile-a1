@@ -58,6 +58,8 @@ public:
 
     float followWorld = 100.25f;   // how far to nudge at full deflection 
     bool  recenterOnRelease = true; // snap back to anchor on release
+    bool  invertX = false;    // flip horizontal if needed
+    bool  invertY = false;     // screen Y often inverted; start with true
 
     // ============================ Rotation / coordinate fixups (only used by PhoneToScreen()) ========================
     enum class TouchRot { Rot0, Rot90CW, Rot90CCW };

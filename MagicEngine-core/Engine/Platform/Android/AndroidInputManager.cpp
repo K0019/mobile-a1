@@ -224,15 +224,22 @@ void AndroidInputComp::Update() {
             }
         }
 
-        // Build a small world offset from joystick vector:
-        // apply small follow offset in world
-        auto& tf = entity->GetTransform();
-        Vec3  pos = tf.GetWorldPosition();
-        const float dt = (float)GameTime::Dt();
-        const float speed = std::max(0.0f, this->followWorld);
+        //=====Start joystick Design ============================================================
+        Vec3  pos = tf.GetWorldPosition();   // keep pos.z unchanged
 
-        Vec3 delta = Vec3{ m_value.x, m_value.y, 0.f };
-        tf.SetWorldPosition(pos - delta * (speed * dt));
+        // sign flips if axis feels reversed
+        const float sx = invertX ? -1.f : 1.f;
+        const float sy = invertY ? -1.f : 1.f;
+
+        // Build target within a circle of radius followWorld centered at anchor
+        Vec2  offset = Vec2{ sx * m_value.x, sy * m_value.y } *followWorld;
+        Vec2 m_anchorXY = Vec2{ m_anchorWorld.x , m_anchorWorld.y };
+        Vec2  targetXY = m_anchorXY + offset;
+
+        // Snap (hard clamp):
+        tf.SetWorldPosition(Vec3{ targetXY.y,targetXY.x, pos.z });
+        //=====End joystick Design ============================================================
+
 
         // Map to W/A/S/D label (with diagonals) and print only on change
         const std::string cur = labelFromValue(m_value, dirDead);
