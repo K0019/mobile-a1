@@ -46,15 +46,18 @@
                     "maxPitch": -10.0,
                     "minPitch": -80.0,
                     "cameraSensitivity": 0.30000001192092896
+                },
+                "16545074682855863160": {
+                    "_active": true
                 }
             }
         },
         {
             "parentIndex": -1,
             "position": {
-                "x": -20.0,
+                "x": 0.5,
                 "y": 0.99993896484375,
-                "z": -10.0
+                "z": 0.0
             },
             "rotation": {
                 "x": 0.0,
@@ -236,8 +239,8 @@
                 "7930599578754533802": {
                     "_active": true,
                     "maxHealth": 200.0,
-                    "currHealth": 150.0,
-                    "isInvincible": true
+                    "currHealth": 200.0,
+                    "isInvincible": false
                 },
                 "9315785795257285655": {
                     "_active": true,
@@ -324,6 +327,17 @@
                             "Is Trigger"
                         ]
                     }
+                },
+                "18288371625365795113": {
+                    "_active": true,
+                    "scripts": [
+                        {
+                            "scriptName": "footstepssoundhandler.lua"
+                        },
+                        {
+                            "scriptName": "playerdamagehandler.lua"
+                        }
+                    ]
                 }
             }
         },
@@ -680,6 +694,9 @@
                     "scripts": [
                         {
                             "scriptName": "enemydeath.lua"
+                        },
+                        {
+                            "scriptName": "footstepssoundhandler.lua"
                         }
                     ]
                 }
@@ -1056,7 +1073,7 @@
             },
             "components": {
                 "2042496555980785": {
-                    "_active": true,
+                    "_active": false,
                     "agentData": {
                         "param": {
                             "radius": 0.30000001192092896,
@@ -1071,7 +1088,7 @@
                     }
                 },
                 "137465014557233347": {
-                    "_active": true,
+                    "_active": false,
                     "damage": 1.0,
                     "attackBox": {
                         "x": 0.0,
@@ -1085,7 +1102,7 @@
                     "hash": 1
                 },
                 "5352011725353660904": {
-                    "_active": true,
+                    "_active": false,
                     "meshHandle": {
                         "hash": 2367158375008220311
                     },
@@ -1219,31 +1236,31 @@
                     ]
                 },
                 "5725819782531291880": {
-                    "_active": true,
+                    "_active": false,
                     "behaviorTree": {
                         "btName": "boss_prefect"
                     }
                 },
                 "6766054303456732338": {
-                    "_active": true,
+                    "_active": false,
                     "layer": 0
                 },
                 "7205334411763290517": {
-                    "_active": true,
+                    "_active": false,
                     "name": "Prefect"
                 },
                 "7930599578754533802": {
-                    "_active": true,
+                    "_active": false,
                     "maxHealth": 200.0,
                     "currHealth": 200.0,
                     "isInvincible": false
                 },
                 "9315785795257285655": {
-                    "_active": true,
+                    "_active": false,
                     "uid": 3640987676109191562
                 },
                 "9501525575059265452": {
-                    "_active": true,
+                    "_active": false,
                     "flags": {
                         "_majorityTrue": true,
                         "_except": [
@@ -1252,14 +1269,14 @@
                     }
                 },
                 "10866432406532598116": {
-                    "_active": true,
+                    "_active": false,
                     "flashTime": 0.25,
                     "flashMaterial": {
                         "hash": 1903056716174195867
                     }
                 },
                 "15371168105777251288": {
-                    "_active": true,
+                    "_active": false,
                     "animHandleA": {
                         "hash": 2163277033381318523
                     },
@@ -1273,13 +1290,13 @@
                     "speed": 1.0
                 },
                 "16763493199777387366": {
-                    "_active": true,
+                    "_active": false,
                     "playerReference": {
                         "entityUid": 51797992787031769
                     }
                 },
                 "17579205194823809952": {
-                    "_active": true,
+                    "_active": false,
                     "moveSpeed": 3.0,
                     "rotateSpeed": 14400.0,
                     "stunTimePerHit": 0.5,
@@ -1312,7 +1329,7 @@
                     ]
                 },
                 "18236831197208900764": {
-                    "_active": true,
+                    "_active": false,
                     "center": {
                         "x": 0.0,
                         "y": 0.800000011920929,
@@ -1771,7 +1788,7 @@
             "components": {
                 "137465014557233347": {
                     "_active": true,
-                    "damage": 20000.0,
+                    "damage": 2.0,
                     "attackBox": {
                         "x": 1.0,
                         "y": 1.0,

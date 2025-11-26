@@ -291,6 +291,10 @@ float Lua_RandomRangeFloat(float min, float max)
 {
 	return randomFloat(min, max);
 }
+int Lua_RandomRangeInt(int min, int max)
+{
+	return randomRange(min, max);
+}
 Vec3 Lua_RandomRangeVec(Vec3 min, Vec3 max)
 {
 	return randomVec(min, max);
@@ -544,7 +548,8 @@ void RegisterCppStuffToLua(luabridge::Namespace baseTable)
 		.endNamespace()
 
 		.beginNamespace("Random")
-			.addFunction("Range", Lua_RandomRangeFloat)
+			.addFunction("RangeFloat", Lua_RandomRangeFloat)
+			.addFunction("RangeInt", Lua_RandomRangeInt)
 			.addFunction("DiceRoll", Lua_NumberedDiceRoll)
 			.addFunction("RangeVec3", Lua_RandomRangeVec)
 		.endNamespace()

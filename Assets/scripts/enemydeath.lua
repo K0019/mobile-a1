@@ -11,6 +11,10 @@ function start(entity)
 end
 
 function OnHealthDepleted()
+    -- Play death sound
+    Magic.AudioManager.PlaySound3D("enemy female death "..(Magic.Random.RangeInt(0,3)+1),false,thisEntity.transform.worldPosition)
+
+    -- Randomly drop a BBT
     if Magic.Random.DiceRoll(randomChance) then
         local newBBT = Magic.PrefabManager.LoadPrefab("bbt")
 
@@ -25,11 +29,16 @@ function OnHealthDepleted()
         bbtTransform.worldPosition = spawnPos;
 
         -- Add a random kick to the boba
-        -- local physicsComp = newBBT:GetPhysicsComp();
-        -- if physicsComp:Exists() then
-        --     local randomVelocity = Magic.Random.RangeVec3(minRandomVelocity,maxRandomVelocity)
-        --     physicsComp:AddLinearVelocity(randomVelocity)
-        -- end
+        local physicsComp = newBBT:GetPhysicsComp();
+        if physicsComp:Exists() then
+            local randomVelocity = Magic.Random.RangeVec3(minRandomVelocity,maxRandomVelocity)
+            physicsComp:AddLinearVelocity(randomVelocity)
+        end
 
     end
+end
+
+function OnDamaged(amount,direction)
+    -- Play death sound
+    Magic.AudioManager.PlaySound3D("enemy female hurt "..(Magic.Random.RangeInt(0,4)+1),false,thisEntity.transform.worldPosition)
 end
