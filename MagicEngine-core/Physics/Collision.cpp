@@ -131,105 +131,103 @@ namespace physics {
 
 	void MyContactListener::CallContactFunc()
 	{
-		ST<Scheduler>::Get()->Add([]() {
-			//Get the body interface.
-			JPH::BodyInterface& bodyInterface{ ST<JoltPhysics>::Get()->GetBodyInterface() };
+		//Get the body interface.
+		JPH::BodyInterface& bodyInterface{ ST<JoltPhysics>::Get()->GetBodyInterface() };
 
-			//Loop through all the contact occured.
-			for (auto& contactBodyPair : contactPair)
+		//Loop through all the contact occured.
+		for (auto& contactBodyPair : contactPair)
+		{
+			//Get the entity hash of the contact objects.
+			ecs::EntityHash entityHash1{ bodyInterface.GetUserData(contactBodyPair.first.first) };
+			ecs::EntityHash entityHash2{ bodyInterface.GetUserData(contactBodyPair.first.second) };
+			if (!entityHash1 || !entityHash2)
+				continue;
+			auto scriptComp1{ ecs::GetEntity(entityHash1)->GetComp<ScriptComponent>() };
+			auto colliderComp1{ ecs::GetEntity(entityHash1)->GetComp<BoxColliderComp>() };
+			if (scriptComp1 && colliderComp1 && colliderComp1->GetFlag(COLLIDER_COMP_FLAG::ENABLED))
 			{
-				//Get the entity hash of the contact objects.
-				ecs::EntityHash entityHash1{ bodyInterface.GetUserData(contactBodyPair.first.first) };
-				ecs::EntityHash entityHash2{ bodyInterface.GetUserData(contactBodyPair.first.second) };
-				if (!entityHash1 || !entityHash2)
-					continue;
-				auto scriptComp1{ ecs::GetEntity(entityHash1)->GetComp<ScriptComponent>() };
-				auto colliderComp1{ ecs::GetEntity(entityHash1)->GetComp<BoxColliderComp>() };
-				if (scriptComp1 && colliderComp1 && colliderComp1->GetFlag(COLLIDER_COMP_FLAG::ENABLED))
+				std::string funcName{};
+				ecs::EntityHandle entity2 = ecs::GetEntity(entityHash2);
+				if (ecs::IsEntityHandleValid(entity2))
 				{
-					std::string funcName{};
-					ecs::EntityHandle entity2 = ecs::GetEntity(entityHash2);
-					if (ecs::IsEntityHandleValid(entity2))
+					if (colliderComp1->GetFlag(COLLIDER_COMP_FLAG::IS_TRIGGER))
 					{
-						if (colliderComp1->GetFlag(COLLIDER_COMP_FLAG::IS_TRIGGER))
+						switch (contactBodyPair.second)
 						{
-							switch (contactBodyPair.second)
-							{
-							case ContactTiming::ENTER:
-								funcName = "OnTriggerEnter";
-								break;
-							case ContactTiming::STAY:
-								funcName = "OnTriggerStay";
-								break;
-							case ContactTiming::EXIT:
-								funcName = "OnTriggerExit";
-								break;
-							}
-							scriptComp1->CallScriptFunction(funcName, entity2);
+						case ContactTiming::ENTER:
+							funcName = "OnTriggerEnter";
+							break;
+						case ContactTiming::STAY:
+							funcName = "OnTriggerStay";
+							break;
+						case ContactTiming::EXIT:
+							funcName = "OnTriggerExit";
+							break;
 						}
-						else
-						{
-							switch (contactBodyPair.second)
-							{
-							case ContactTiming::ENTER:
-								funcName = "OnCollisionEnter";
-								break;
-							case ContactTiming::STAY:
-								funcName = "OnCollisionStay";
-								break;
-							case ContactTiming::EXIT:
-								funcName = "OnCollisionExit";
-								break;
-							}
-							scriptComp1->CallScriptFunction(funcName, entity2);
-						}
+						scriptComp1->CallScriptFunction(funcName, entity2);
 					}
-				}
-
-				auto scriptComp2{ ecs::GetEntity(entityHash2)->GetComp<ScriptComponent>() };
-				auto colliderComp2{ ecs::GetEntity(entityHash2)->GetComp<BoxColliderComp>() };
-				if (scriptComp2 && colliderComp2 && colliderComp2->GetFlag(COLLIDER_COMP_FLAG::ENABLED))
-				{
-					std::string funcName{};
-					ecs::EntityHandle entity1 = ecs::GetEntity(entityHash1);
-					if (ecs::IsEntityHandleValid(entity1))
+					else
 					{
-						if (colliderComp2->GetFlag(COLLIDER_COMP_FLAG::IS_TRIGGER))
+						switch (contactBodyPair.second)
 						{
-							switch (contactBodyPair.second)
-							{
-							case ContactTiming::ENTER:
-								funcName = "OnTriggerEnter";
-								break;
-							case ContactTiming::STAY:
-								funcName = "OnTriggerStay";
-								break;
-							case ContactTiming::EXIT:
-								funcName = "OnTriggerExit";
-								break;
-							}
-							scriptComp2->CallScriptFunction(funcName, entity1);
+						case ContactTiming::ENTER:
+							funcName = "OnCollisionEnter";
+							break;
+						case ContactTiming::STAY:
+							funcName = "OnCollisionStay";
+							break;
+						case ContactTiming::EXIT:
+							funcName = "OnCollisionExit";
+							break;
 						}
-						else
-						{
-							switch (contactBodyPair.second)
-							{
-							case ContactTiming::ENTER:
-								funcName = "OnCollisionEnter";
-								break;
-							case ContactTiming::STAY:
-								funcName = "OnCollisionStay";
-								break;
-							case ContactTiming::EXIT:
-								funcName = "OnCollisionExit";
-								break;
-							}
-							scriptComp2->CallScriptFunction(funcName, entity1);
-						}
+						scriptComp1->CallScriptFunction(funcName, entity2);
 					}
 				}
 			}
-			});
+
+			auto scriptComp2{ ecs::GetEntity(entityHash2)->GetComp<ScriptComponent>() };
+			auto colliderComp2{ ecs::GetEntity(entityHash2)->GetComp<BoxColliderComp>() };
+			if (scriptComp2 && colliderComp2 && colliderComp2->GetFlag(COLLIDER_COMP_FLAG::ENABLED))
+			{
+				std::string funcName{};
+				ecs::EntityHandle entity1 = ecs::GetEntity(entityHash1);
+				if (ecs::IsEntityHandleValid(entity1))
+				{
+					if (colliderComp2->GetFlag(COLLIDER_COMP_FLAG::IS_TRIGGER))
+					{
+						switch (contactBodyPair.second)
+						{
+						case ContactTiming::ENTER:
+							funcName = "OnTriggerEnter";
+							break;
+						case ContactTiming::STAY:
+							funcName = "OnTriggerStay";
+							break;
+						case ContactTiming::EXIT:
+							funcName = "OnTriggerExit";
+							break;
+						}
+						scriptComp2->CallScriptFunction(funcName, entity1);
+					}
+					else
+					{
+						switch (contactBodyPair.second)
+						{
+						case ContactTiming::ENTER:
+							funcName = "OnCollisionEnter";
+							break;
+						case ContactTiming::STAY:
+							funcName = "OnCollisionStay";
+							break;
+						case ContactTiming::EXIT:
+							funcName = "OnCollisionExit";
+							break;
+						}
+						scriptComp2->CallScriptFunction(funcName, entity1);
+					}
+				}
+			}
+		}
 	}
 
 	BoxColliderComp::BoxColliderComp()
