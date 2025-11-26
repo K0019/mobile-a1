@@ -326,27 +326,39 @@ namespace ecs {
 			return components.find(compHash) != components.end();
 		}
 
-		uint32_t Entity_Internal::INTERNAL_GetCompIndex(CompHash compHash) const
+		uint32_t Entity_Internal::INTERNAL_GetCompIndexUnclean(CompHash compHash) const
 		{
 			internal::EntCompMapType::const_iterator compIndexIter{ components.find(compHash) };
 			if (compIndexIter == components.end())
 				// This component type does not exist on this entity
 				return std::numeric_limits<uint32_t>::max();
 
+			return compIndexIter->second;
+		}
+
+		uint32_t Entity_Internal::INTERNAL_GetCompIndex(CompHash compHash) const
+		{
+			uint32_t index{ INTERNAL_GetCompIndexUnclean(compHash) };
+
 			// Ensure the component is attached to us
-			if (compIndexIter->second & COMP_STATUS_TO_ADD)
+			if (index & COMP_STATUS_TO_ADD)
 				return std::numeric_limits<uint32_t>::max();
 
-			return compIndexIter->second & COMP_STATUS_UNUSED_BITS;
+			return index & COMP_STATUS_UNUSED_BITS;
 		}
 
 		RawData* Entity_Internal::INTERNAL_GetCompRaw(CompHash compHash) const
 		{
-			uint32_t compIndex{ INTERNAL_GetCompIndex(compHash) };
+			uint32_t compIndex{ INTERNAL_GetCompIndexUnclean(compHash) };
 			if (compIndex == std::numeric_limits<uint32_t>::max())
 				return nullptr;
 
 			try {
+				// If pending addition, look for it in the changes buffer.
+				if (compIndex & COMP_STATUS_TO_ADD)
+					return internal::CurrentPool::ChangesBuffer().GetCompBufferedForAddition(compHash, compIndex & COMP_STATUS_UNUSED_BITS);
+
+				// Otherwise, the global pool.
 				internal::CompArr& compArr{ internal::GetCompArr(compHash) };
 				return compArr.GetComp(compIndex);
 			}
@@ -429,6 +441,11 @@ namespace ecs {
 				auto& compTask{ *emplaceResult.first };
 				const_cast<CompModifyTask&>(compTask).SetType(CompModifyTask::TYPE::REMOVE);
 			}
+		}
+
+		RawData* CompChangesBuffer::GetCompBufferedForAddition(CompHash compType, uint32_t index)
+		{
+			return GetCompArr(compsToAdd, compType).GetComp(index);
 		}
 
 		void CompChangesBuffer::RemoveCompBufferedForAddition(CompHash compType, uint32_t index)

@@ -288,12 +288,23 @@ namespace ecs {
 
 			/*****************************************************************//*!
 			\brief
+				Gets the index of a component attached to this entity alongside its
+				status bits.
+			\param compHash
+				The component type.
+			\return
+				The index of the component alongside its status bits.
+			*//******************************************************************/
+			uint32_t INTERNAL_GetCompIndexUnclean(CompHash compHash) const;
+
+			/*****************************************************************//*!
+			\brief
 				Gets the index of a component attached to this entity.
 				If the component doesn't exist, or has a status, returns max value of uint32_t.
 			\param compHash
 				The component type.
 			\return
-				A pointer to the component as RawData. If the component doesn't exist, or has a status (not fully attached), returns nullptr.
+				The index of the component. If the component doesn't exist, or has a status (not fully attached), returns max value of uint32_t.
 			*//******************************************************************/
 			uint32_t INTERNAL_GetCompIndex(CompHash compHash) const;
 
@@ -755,6 +766,16 @@ namespace ecs {
 				The component type's hash.
 			*//******************************************************************/
 			void RemoveComp(InternalEntityHandle entity, CompHash compType);
+
+			/*****************************************************************//*!
+			\brief
+				Gets a component buffered for addition.
+			\param compType
+				The component type's hash.
+			\param index
+				The component's index within the compArr within this buffer class.
+			*//******************************************************************/
+			RawData* GetCompBufferedForAddition(CompHash compType, uint32_t index);
 
 			/*****************************************************************//*!
 			\brief
