@@ -226,6 +226,10 @@ void SetEntityReference(int index, ecs::EntityHandle entity)
 {
 	GetHandle()->SetEntity(index, entity);
 }
+int GetSize()
+{
+	return GetHandle()->GetSize();
+}
 SCRIPT_GENERATE_COMP_WRAPPER_END()
 
 SCRIPT_GENERATE_COMP_WRAPPER_BEGIN(ScriptComponent)
@@ -489,6 +493,7 @@ void RegisterCppStuffToLua(luabridge::Namespace baseTable)
 		SCRIPT_REGISTER_COMP_BEGIN(EntityReferenceHolderComponent)
 			.addFunction("GetEntityReference", &LuaWrapperComp_EntityReferenceHolderComponent::GetEntityReference)
 			.addFunction("SetEntityReference", &LuaWrapperComp_EntityReferenceHolderComponent::SetEntityReference)
+			.addFunction("GetSize", &LuaWrapperComp_EntityReferenceHolderComponent::GetSize)
 			//.addProperty("GetEntityReference", [](const EntityReferenceHolderComponent* comp) -> EntityReference { return comp->GetEntity() })
 		SCRIPT_REGISTER_COMP_END()
 
