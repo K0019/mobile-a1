@@ -53,8 +53,9 @@ namespace editor {
                     }
                     ImGui::EndPopup();
                 }
-
                 gui::PayloadSource payloadSource{ "MATERIAL_HASH", hash.get() };
+
+                gui::ShowSimpleHoverTooltip(materialName);
                 gui::ThumbnailLabel(materialName, THUMBNAIL_SIZE);
             }
 
