@@ -241,7 +241,7 @@ namespace ecs {
 					continue;
 
 				// Clone a copy of this component into the component addition buffer
-				uint32_t indexInBuffer{ CurrentPool::ChangesBuffer().CloneComp(GetCompArr(compIter->first), compIter->second, entity) };
+				uint32_t indexInBuffer{ CurrentPool::ChangesBuffer().CloneComp(*GetCompArr(compIter->first), compIter->second, entity) };
 
 				// Register the component to the entity
 				entity->components.emplace(compIter->first, indexInBuffer | COMP_STATUS_TO_ADD);
@@ -265,9 +265,9 @@ namespace ecs {
 					continue;
 
 				// Request CompArr to create a copy of this component, and add it to the provided pool immediately
-				CompArr& srcCompArr{ GetCompArr(srcCompArrMap, compIter->first) };
-				CompArr& destCompArr{ (srcAndDestCompArrIsSame ? srcCompArr : GetCompArr(destCompArrMap, srcCompArr)) };
-				uint32_t compIndex{ srcCompArr.CloneComp(compIter->second, entity, destCompArr) };
+				CompArr* srcCompArr{ GetCompArr(srcCompArrMap, compIter->first) };
+				CompArr* destCompArr{ (srcAndDestCompArrIsSame ? srcCompArr : GetCompArr(destCompArrMap, *srcCompArr)) };
+				uint32_t compIndex{ srcCompArr->CloneComp(compIter->second, entity, *destCompArr) };
 
 				// Register the component to the entity
 				entity->components.emplace(compIter->first, compIndex);
@@ -326,34 +326,43 @@ namespace ecs {
 			return components.find(compHash) != components.end();
 		}
 
-		uint32_t Entity_Internal::INTERNAL_GetCompIndex(CompHash compHash) const
+		uint32_t Entity_Internal::INTERNAL_GetCompIndexUnclean(CompHash compHash) const
 		{
 			internal::EntCompMapType::const_iterator compIndexIter{ components.find(compHash) };
 			if (compIndexIter == components.end())
 				// This component type does not exist on this entity
 				return std::numeric_limits<uint32_t>::max();
 
+			return compIndexIter->second;
+		}
+
+		uint32_t Entity_Internal::INTERNAL_GetCompIndex(CompHash compHash) const
+		{
+			uint32_t index{ INTERNAL_GetCompIndexUnclean(compHash) };
+
 			// Ensure the component is attached to us
-			if (compIndexIter->second & COMP_STATUS_TO_ADD)
+			if (index & COMP_STATUS_TO_ADD)
 				return std::numeric_limits<uint32_t>::max();
 
-			return compIndexIter->second & COMP_STATUS_UNUSED_BITS;
+			return index & COMP_STATUS_UNUSED_BITS;
 		}
 
 		RawData* Entity_Internal::INTERNAL_GetCompRaw(CompHash compHash) const
 		{
-			uint32_t compIndex{ INTERNAL_GetCompIndex(compHash) };
+			uint32_t compIndex{ INTERNAL_GetCompIndexUnclean(compHash) };
 			if (compIndex == std::numeric_limits<uint32_t>::max())
 				return nullptr;
 
-			try {
-				internal::CompArr& compArr{ internal::GetCompArr(compHash) };
-				return compArr.GetComp(compIndex);
-			}
-			// If this component type has never been added to ecs, we'll get this exception.
-			catch (const CompArrNotFoundException&) {
+			// If pending addition, look for it in the changes buffer.
+			if (compIndex & COMP_STATUS_TO_ADD)
+				return internal::CurrentPool::ChangesBuffer().GetCompBufferedForAddition(compHash, compIndex & COMP_STATUS_UNUSED_BITS);
+
+			// Otherwise, the global pool.
+			if (internal::CompArr* compArr{ internal::GetCompArr(compHash) })
+				return compArr->GetComp(compIndex);
+			else
+				// This component type has never been added to ecs.
 				return nullptr;
-			}
 		}
 
 		bool Entity_Internal::CheckCanAddComp(CompHash compHash)
@@ -399,9 +408,9 @@ namespace ecs {
 		{
 		}
 
-		uint32_t CompModifyTask::GetCompIndex(CompHash compHash) const
+		uint32_t CompModifyTask::GetCompIndexUnclean(CompHash compHash) const
 		{
-			return entity->INTERNAL_GetCompIndex(compHash);
+			return entity->INTERNAL_GetCompIndexUnclean(compHash);
 		}
 
 		CompModifyTask::TYPE CompModifyTask::GetType() const
@@ -431,16 +440,31 @@ namespace ecs {
 			}
 		}
 
-		void CompChangesBuffer::RemoveCompBufferedForAddition(CompHash compType, uint32_t index)
+		RawData* CompChangesBuffer::GetCompBufferedForAddition(CompHash compType, uint32_t index)
 		{
-			GetCompArr(compsToAdd, compType).RemoveComp(index, false);
+			return GetCompArr(compsToAdd, compType)->GetComp(index);
 		}
 
-		void CompChangesBuffer::ChangeCompActiveness(InternalEntityHandle entity, CompHash compType, bool isInactive)
+		bool CompChangesBuffer::RemoveCompBufferedForAddition(CompHash compType, uint32_t index)
 		{
+			// compsToAdd may be empty if components are being removed while processing OnAttached() callbacks. (see FlushChanges())
+			if (CompArr* bufferedAdditionCompArr{ GetCompArr(compsToAdd, compType) })
+			{
+				bufferedAdditionCompArr->RemoveComp(index, false);
+				return true;
+			}
+			else
+				return false;
+		}
+
+		void CompChangesBuffer::ChangeCompActiveness(InternalEntityHandle entity, RawData* compPtr, bool isInactive)
+		{
+			// Get the compArr containing this compPtr
+			auto compArr{ GetCompArrFromCompAddr(compPtr) };
+
 			// Check if this component is already queued for modification. If so, we can delete the task.
 			CompModifyTask task{ entity, (isInactive ? CompModifyTask::TYPE::SET_INACTIVE : CompModifyTask::TYPE::SET_ACTIVE) };
-			auto& modifySet{ GetModifySet(compType) };
+			auto& modifySet{ GetModifySet(compArr->GetCompHash()) };
 			auto existingTaskIter{ modifySet.find(task) };
 			if (existingTaskIter != modifySet.end())
 				switch (existingTaskIter->GetType())
@@ -461,28 +485,17 @@ namespace ecs {
 				}
 
 			// Check for no-op
-			if (GetCompArr(compType).GetIsCompActive(entity->INTERNAL_GetCompIndex(compType)) == !isInactive)
+			if (compArr->GetIsCompActive(compPtr) == !isInactive)
 				return;
 
 			// Add task
-			GetModifySet(compType).insert(std::move(task));
+			modifySet.insert(std::move(task));
 		}
 
 		uint32_t CompChangesBuffer::CloneComp(CompArr& srcArr, uint32_t index, InternalEntityHandle entityOwner)
 		{
 			// Get the destination CompArr
-			CompArr* destArr{};
-			try {
-				destArr = &GetCompArr(compsToAdd, srcArr.GetCompHash());
-			}
-			// Catch instances where the CompArr for this component type does not exist in our compsToAdd pool yet
-			catch (const CompArrNotFoundException&)
-			{
-				// Clone our version of this CompArr which should be identical to as if it was constructed via type information,
-				// and insert into our compsToAdd pool
-				std::pair<CompArrMapType::iterator, bool> insertResult{ srcArr.CloneWithoutCompDataIntoPool(compsToAdd) };
-				destArr = &insertResult.first->second;
-			}
+			CompArr* destArr{ GetCompArr(compsToAdd, srcArr) };
 
 			// Request srcArr to create a copy of this component, and add it to the destArr
 			return srcArr.CloneComp(index, entityOwner, *destArr);
@@ -497,10 +510,19 @@ namespace ecs {
 			for (EntCompMapType::const_iterator compIter{ entity->INTERNAL_CompsBegin() }, compEnd{ entity->INTERNAL_CompsEnd() }; compIter != compEnd; ++compIter)
 			{
 				// Remove components pending addition
+				bool removeFromMainCompArr{};
 				if (compIter->second & Entity_Internal::COMP_STATUS_TO_ADD)
-					RemoveCompBufferedForAddition(compIter->first, compIter->second & Entity_Internal::COMP_STATUS_UNUSED_BITS);
+				{
+					// If the comp is in the pending addition buffer, remove it and no further action needed.
+					if (RemoveCompBufferedForAddition(compIter->first, compIter->second & Entity_Internal::COMP_STATUS_UNUSED_BITS))
+						continue;
+					// This comp is in the temporary buffer in ecs::FlushChanges(). Need to buffer a removal task once the comp is attached.
+					else
+						removeFromMainCompArr = true;
+				}
+
 				// Buffer removal of components already attached to entity
-				else if (!(compIter->second & Entity_Internal::COMP_STATUS_TO_REMOVE))
+				if (!(compIter->second & Entity_Internal::COMP_STATUS_TO_REMOVE) || removeFromMainCompArr)
 				{
 					auto& modifySet{ GetModifySet(compIter->first) };
 					auto emplaceResult{ modifySet.emplace(entity, CompModifyTask::TYPE::REMOVE) };
@@ -526,73 +548,15 @@ namespace ecs {
 
 		void CompChangesBuffer::FlushChanges()
 		{
-			// Modify/Remove components
-			if (!compsToModify.empty())
-			{
-				for (ModifyCompSetType::iterator compSetIter{ compsToModify.begin() }, compSetEnd{ compsToModify.end() }; compSetIter != compSetEnd; ++compSetIter)
-				{
-					CompArr& compArr{ GetCompArr(compSetIter->first) };
-					for (CompIndexSetType<CompModifyTask>::iterator taskIter{ compSetIter->second.begin() }, taskEnd{ compSetIter->second.end() };
-						taskIter != taskEnd; ++taskIter)
-					{
-						uint32_t compIndex{ taskIter->GetCompIndex(compSetIter->first) };
-						switch (taskIter->GetType())
-						{
-						case CompModifyTask::TYPE::REMOVE:
-							// note: we can optimize the number of moves if the components to be removed are sequential.
-							//       this can be considered if performance is an issue here
-							compArr.RemoveComp(compIndex);
-							break;
-						case CompModifyTask::TYPE::SET_ACTIVE:
-							compArr.SetCompActiveness(compIndex, false);
-							break;
-						case CompModifyTask::TYPE::SET_INACTIVE:
-							compArr.SetCompActiveness(compIndex, true);
-							break;
-						default:
-							assert(false);
-						}
-					}
-				}
-
-				// TODO: this may be very expensive if we're making changes in a majority of frames.
-				//		 would be better to keep the memory of all CompArr loaded and keep a list of component types that are pending addition
-				compsToModify.clear();
-			}
-
-			// Delete entities
-			if (!entitiesToRemove.empty())
-			{
-				for (const InternalEntityHandle& entity : entitiesToRemove)
-					CurrentPool::Entities().EraseEntity(entity->INTERNAL_GetMapKey());
-				entitiesToRemove.clear();
-			}
-
 			// Add components
-			if (!compsToAdd.empty())
-			{
-				for (CompArrMapType::iterator compArrIter{ compsToAdd.begin() }, compArrEnd{ compsToAdd.end() }; compArrIter != compArrEnd; ++compArrIter)
-				{
-					try {
-						GetCompArr(compArrIter->first).TransferCompsFrom(compArrIter->second);
-					}
-					// Catch instances where the CompArr for this component type does not exist in the default pool yet
-					catch (const CompArrNotFoundException&)
-					{
-						// Clone our version of this CompArr which should be identical to as if it was constructed via type information,
-						// and insert into the default pool
-						std::pair<CompArrMapType::iterator, bool> insertResult{ compArrIter->second.CloneWithoutCompDataIntoPool(CurrentPool::Comps()) };
-						// Now we can transfer comps as usual. This should not throw.
-						insertResult.first->second.TransferCompsFrom(compArrIter->second);
-					}
-				}
-
-				// TODO: this may be very expensive if we're making changes in a majority of frames.
-				//		 would be better to keep the memory of all CompArr loaded and keep a list of component types that are pending addition
-				compsToAdd.clear();
-			}
+			FlushCompAdditions();
+			// Remove/Delete components
+			FlushModifyTasks();
 
 			FlushComponentCallbacks();
+
+			// Delete entities
+			FlushEntityDeletion();
 		}
 
 		void CompChangesBuffer::FlushComponentCallbacks()
@@ -633,6 +597,70 @@ namespace ecs {
 			}
 		}
 
+		void CompChangesBuffer::FlushModifyTasks()
+		{
+			if (compsToModify.empty())
+				return;
+
+			for (ModifyCompSetType::iterator compSetIter{ compsToModify.begin() }, compSetEnd{ compsToModify.end() }; compSetIter != compSetEnd; ++compSetIter)
+			{
+				CompArr* compArr{ GetCompArr(compSetIter->first) };
+				CompArr* pendingAdditionCompArr{ GetCompArr(compsToAdd, compSetIter->first) };
+
+				for (CompIndexSetType<CompModifyTask>::iterator taskIter{ compSetIter->second.begin() }, taskEnd{ compSetIter->second.end() };
+					taskIter != taskEnd; ++taskIter)
+				{
+					uint32_t compIndex{ taskIter->GetCompIndexUnclean(compSetIter->first) };
+					CompArr& compArrContainingComp{ (compIndex & Entity_Internal::COMP_STATUS_TO_ADD ? *pendingAdditionCompArr : *compArr) };
+					compIndex &= Entity_Internal::COMP_STATUS_UNUSED_BITS;
+
+					switch (taskIter->GetType())
+					{
+					case CompModifyTask::TYPE::REMOVE:
+						// note: we can optimize the number of moves if the components to be removed are sequential.
+						//       this can be considered if performance is an issue here
+						compArrContainingComp.RemoveComp(compIndex);
+						break;
+					case CompModifyTask::TYPE::SET_ACTIVE:
+						compArrContainingComp.SetCompActiveness(compIndex, false);
+						break;
+					case CompModifyTask::TYPE::SET_INACTIVE:
+						compArrContainingComp.SetCompActiveness(compIndex, true);
+						break;
+					default:
+						assert(false);
+					}
+				}
+			}
+
+			// TODO: this may be very expensive if we're making changes in a majority of frames.
+			//		 would be better to keep the memory of all CompArr loaded and keep a list of component types that are pending addition
+			compsToModify.clear();
+		}
+
+		void CompChangesBuffer::FlushEntityDeletion()
+		{
+			if (entitiesToRemove.empty())
+				return;
+
+			for (const InternalEntityHandle& entity : entitiesToRemove)
+				CurrentPool::Entities().EraseEntity(entity->INTERNAL_GetMapKey());
+			entitiesToRemove.clear();
+		}
+
+		void CompChangesBuffer::FlushCompAdditions()
+		{
+			if (compsToAdd.empty())
+				return;
+
+			// Avoids crashes if components add more components in comp callbacks.
+			CompArrMapType bufferedMap{ std::move(compsToAdd) };
+
+			// Transfer components from the addition buffer comp arr to the current pool's comp arr
+			for (CompArrMapType::iterator compArrIter{ bufferedMap.begin() }, compArrEnd{ bufferedMap.end() }; compArrIter != compArrEnd; ++compArrIter)
+				GetCompArr(CurrentPool::Comps(), compArrIter->second)->TransferCompsFrom(compArrIter->second);
+		}
+
 #pragma endregion // CompChangesBuffer
 
 #pragma region CompArr
@@ -663,28 +691,26 @@ namespace ecs {
 			RemoveAllComps();
 		}
 
-		CompArr& GetCompArr(CompHash compType)
+		CompArr* GetCompArr(CompHash compType)
 		{
 			return GetCompArr(CurrentPool::Comps(), compType);
 		}
-		CompArr& GetCompArr(CompArrMapType& compArrPool, CompHash compType)
+		CompArr* GetCompArr(CompArrMapType& compArrPool, CompHash compType)
 		{
 			auto iter = compArrPool.find(compType);
-#ifdef _DEBUG
 			if (iter == compArrPool.end())
-				// We can't construct it here since we don't have the type information. Our only option is throwing
-				throw CompArrNotFoundException{};
-#endif // _DEBUG
-			return iter->second;
+				// We can't construct it here since we don't have the type information.
+				return nullptr;
+			return &iter->second;
 		}
 
-		CompArr& GetCompArr(CompArrMapType& compArrPool, const CompArr& refCompArr)
+		CompArr* GetCompArr(CompArrMapType& compArrPool, const CompArr& refCompArr)
 		{
 			auto iter = compArrPool.find(refCompArr.GetCompHash());
 			if (iter == compArrPool.end())
-				return refCompArr.CloneWithoutCompDataIntoPool(compArrPool).first->second;
+				return &refCompArr.CloneWithoutCompDataIntoPool(compArrPool).first->second;
 			else
-				return iter->second;
+				return &iter->second;
 		}
 
 		uint32_t CompArr::AddComp(InternalEntityHandle entPtr, RawData* comp, bool isInactive)

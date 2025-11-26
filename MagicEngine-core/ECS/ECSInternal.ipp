@@ -55,13 +55,13 @@ namespace ecs {
 		template<typename CompType>
 		CompHandleType<CompType> Entity_Internal::EntityComps_IteratorBlueprint<CompHandleType, MapIterType, ValueType>::GetComp()
 		{
-			return reinterpret_cast<CompHandleType<CompType>>(GetCompArr(iter->first).GetComp(iter->second));
+			return reinterpret_cast<CompHandleType<CompType>>(GetCompArr(iter->first)->GetComp(iter->second));
 		}
 		template<template<typename> typename CompHandleType, typename MapIterType, typename ValueType>
 		template<typename CompType>
 		CompHandleType<const CompType> Entity_Internal::EntityComps_IteratorBlueprint<CompHandleType, MapIterType, ValueType>::GetComp() const
 		{
-			return reinterpret_cast<CompHandleType<const CompType>>(GetCompArr(iter->first).GetComp(iter->second));
+			return reinterpret_cast<CompHandleType<const CompType>>(GetCompArr(iter->first)->GetComp(iter->second));
 		}
 
 		template<template<typename> typename CompHandleType, typename MapIterType, typename ValueType>
@@ -157,10 +157,9 @@ namespace ecs {
 #pragma region CompChangesBuffer
 
 		template<typename T>
-		uint32_t CompChangesBuffer::AddComp(InternalEntityHandle entity, T&& comp)
+		uint32_t CompChangesBuffer::AddComp(InternalEntityHandle entity, T&& comp, bool isInactive)
 		{
-			// TODO: Account for inactive.
-			return GetCompArr<T, false>(compsToAdd).AddComp(entity, std::forward<T>(comp), true);
+			return GetCompArr<T, false>(compsToAdd)->AddComp(entity, std::forward<T>(comp), isInactive);
 		}
 
 #pragma endregion // CompChangesBuffer
@@ -594,24 +593,24 @@ namespace ecs {
 
 		// Get a component array when we know the component type
 		template <typename T>
-		CompArr& GetCompArr()
+		CompArr* GetCompArr()
 		{
 			return GetCompArr<T>(CurrentPool::Comps());
 		}
 		template<typename T, bool DoComponentCallbacks>
-		CompArr& GetCompArr(CompArrMapType& compArrPool)
+		CompArr* GetCompArr(CompArrMapType& compArrPool)
 		{
 			CompHash compHash{ GetCompHash<T>() };
 			auto iter = compArrPool.find(compHash);
 			if (iter != compArrPool.end())
-				return iter->second;
+				return &iter->second;
 
 			// Let's register this type since it seems like it's the first time we've seen it
 			CurrentPool::TypeMeta().RegisterCompType<T>();
 
 			bool doCompCallbacks{ DoComponentCallbacks && CurrentPool::HasCompCallbacksEnabled() };
 
-			return compArrPool.try_emplace(compHash, compHash, static_cast<uint32_t>(sizeof(T)),
+			return &compArrPool.try_emplace(compHash, compHash, static_cast<uint32_t>(sizeof(T)),
 				ComponentCopyMethod<T>, ComponentMoveMethod<T>, ComponentDestructorMethod<T>,
 				doCompCallbacks ? ComponentInformAttachedMethod<T> : [](InternalEntityHandle) -> void {},
 				doCompCallbacks ? ComponentInformDetachedMethod<T> : [](InternalEntityHandle) -> void {},
@@ -636,7 +635,7 @@ namespace ecs {
 		template<typename CompType>
 		void ReplaceIfFewerComps(uint32_t* compsCount, CompArr** arrToReplace)
 		{
-			CompArr* arr{ &GetCompArr<CompType>() };
+			CompArr* arr{ GetCompArr<CompType>() };
 
 			if (arr->GetNumComps() < *compsCount)
 			{

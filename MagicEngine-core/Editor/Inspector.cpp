@@ -369,7 +369,7 @@ namespace editor {
 				if((thisItemHovered && selectedByMouse) || (selectedByKeyboard && isSelected))
 				{
 					// Attach the component
-					registeredData.ConstructDefaultAndAttachNowTo(selectedEntity);
+					registeredData.ConstructDefaultAndAttachTo(selectedEntity);
 					registeredData.SaveHistory_CompAdd(selectedEntity);
 					textInput.Clear();
 					popup.Close();

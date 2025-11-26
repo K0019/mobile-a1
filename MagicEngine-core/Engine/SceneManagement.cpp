@@ -949,7 +949,7 @@ void SceneManager::RegisterEntity(ecs::EntityHandle entity)
 	// Otherwise, register all entities to the active scene.
 	ecs::CompHandle<SceneIndexComponent> sceneIndexComp{ entity->GetComp<SceneIndexComponent>() };
 	if (!sceneIndexComp)
-		sceneIndexComp = entity->AddCompNow(SceneIndexComponent{ 0 });
+		sceneIndexComp = entity->AddComp(SceneIndexComponent{ 0 });
 
 	ST<SceneManager>::Get()->GetActiveScene()->AddEntity(entity);
 }

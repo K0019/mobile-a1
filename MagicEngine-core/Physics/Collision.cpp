@@ -24,6 +24,7 @@ All rights reserved.
 #include "Physics/Physics.h"
 #include "Editor/Containers/GUICollection.h"
 #include "Scripting/ScriptComponent.h"
+#include "Engine/EntityEvents.h"
 
 #define X(name, str) str,
 static const char* colliderFlagNames[]{
@@ -238,53 +239,58 @@ namespace physics {
 	{
 	}
 
+	void BoxColliderComp::InitializeJoltBodyComp(JoltBodyComp* bodyCompPtr)
+	{
+		auto entity{ ecs::GetEntity(this) };
+		bodyCompPtr->SetPosition(entity->GetTransform().GetWorldPosition() + GetCenter());
+		bodyCompPtr->SetScale(entity->GetTransform().GetWorldScale() * GetSize());
+		Layers layer{};
+		if (!GetFlag(COLLIDER_COMP_FLAG::ENABLED))
+			layer = Layers::NON_COLLIDABLE;
+		else if (entity->HasComp<PhysicsComp>())
+			layer = Layers::MOVING;
+		else
+			layer = Layers::NON_MOVING;
+		bodyCompPtr->SetCollisionLayer(layer);
+
+		bodyCompPtr->SetIsTrigger(GetFlag(COLLIDER_COMP_FLAG::IS_TRIGGER));
+	}
+
 	void BoxColliderComp::OnAttached()
 	{
 		//If the entity has the physics component, get the body pointer of the physics component.
 		//If not, create a body.
-		ST<Scheduler>::Get()->Add(0.0f, [entity = ecs::GetEntity(this)]() {
-			if (!ecs::IsEntityHandleValid(entity))
-				return;
-			auto compPtr{ entity->GetComp<BoxColliderComp>() };
-			if (!compPtr)
-				return;
+		auto entity{ ecs::GetEntity(this) };
+		entity->GetComp<EntityEventsComponent>()->Subscribe("JoltBodyCompAttached", this, &BoxColliderComp::InitializeJoltBodyComp);
 
-			if (entity->HasComp<PhysicsComp>())
-			{
-				auto bodyCompPtr{ entity->GetComp<JoltBodyComp>() };
-				if (!bodyCompPtr || bodyCompPtr->GetBodyID().IsInvalid())
-					entity->AddCompNow<JoltBodyComp>(JoltBodyComp{ JPH::EMotionType::Dynamic, ShapeType::BOX, Layers::MOVING });
-				else
-					bodyCompPtr->SetShapeType(ShapeType::BOX);
-			}
+		auto bodyCompPtr{ entity->GetComp<JoltBodyComp>() };
+		if (entity->HasComp<PhysicsComp>())
+		{
+			if (!bodyCompPtr || bodyCompPtr->GetBodyID().IsInvalid())
+				bodyCompPtr = entity->AddComp<JoltBodyComp>(JoltBodyComp{ JPH::EMotionType::Dynamic, ShapeType::BOX, Layers::MOVING });
 			else
 			{
-				entity->AddCompNow<JoltBodyComp>(JoltBodyComp{ JPH::EMotionType::Static, ShapeType::BOX, Layers::NON_MOVING });
+				bodyCompPtr->SetShapeType(ShapeType::BOX);
+				InitializeJoltBodyComp(bodyCompPtr);
 			}
-
-			entity->GetComp<JoltBodyComp>()->SetPosition(entity->GetTransform().GetWorldPosition() + compPtr->GetCenter());
-			entity->GetComp<JoltBodyComp>()->SetScale(entity->GetTransform().GetWorldScale() * compPtr->GetSize());
-			Layers layer{};
-			if (!compPtr->GetFlag(COLLIDER_COMP_FLAG::ENABLED))
-				layer = Layers::NON_COLLIDABLE;
-			else if (entity->HasComp<PhysicsComp>())
-				layer = Layers::MOVING;
-			else
-				layer = Layers::NON_MOVING;
-			entity->GetComp<JoltBodyComp>()->SetCollisionLayer(layer);
-
-			entity->GetComp<JoltBodyComp>()->SetIsTrigger(compPtr->GetFlag(COLLIDER_COMP_FLAG::IS_TRIGGER));
-
-		});
+		}
+		else
+		{
+			bodyCompPtr = entity->AddComp<JoltBodyComp>(JoltBodyComp{ JPH::EMotionType::Static, ShapeType::BOX, Layers::NON_MOVING });
+		}
 	}
 
 	void BoxColliderComp::OnDetached()
 	{
-		if (!ecs::GetEntity(this)->HasComp<JoltBodyComp>())
+		auto entity{ ecs::GetEntity(this) };
+		if (auto eventsComp{ entity->GetComp<EntityEventsComponent>() })
+			eventsComp->Unsubscribe("JoltBodyCompAttached", this, &BoxColliderComp::InitializeJoltBodyComp);
+
+		if (!entity->HasComp<JoltBodyComp>())
 			return;
 
-		if (!ecs::GetEntity(this)->HasComp<PhysicsComp>())
-			ecs::GetEntity(this)->RemoveComp<JoltBodyComp>();
+		if (!entity->HasComp<PhysicsComp>())
+			entity->RemoveComp<JoltBodyComp>();
 		else
 		{
 			JoltBodyComp* bodyCompPtr{ ecs::GetEntity(this)->GetComp<JoltBodyComp>() };
