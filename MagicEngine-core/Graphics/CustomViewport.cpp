@@ -28,6 +28,8 @@ All rights reserved.
 #include "Engine/SceneManagement.h"
 #include "Editor/EditorHistory.h"
 #include "Engine/Graphics Interface/GraphicsAPI.h"
+#include "Engine/Events/EventsQueue.h"
+#include "Engine/Events/EventsTypeBasic.h"
 
 CustomViewport::CustomViewport(unsigned int width, unsigned int height)
 	: WindowBase{ "Viewport", { 1366, 768 }, gui::FLAG_WINDOW::NO_SCROLL_BAR | gui::FLAG_WINDOW::NO_SCROLL_WITH_MOUSE }
@@ -37,7 +39,27 @@ CustomViewport::CustomViewport(unsigned int width, unsigned int height)
 	, titleBarHeight{}
 	, name{ ICON_FA_GAMEPAD " Scene" }
 	, camera{ vec3(0.0f, 1.0f, -1.5f), vec3(0.0f, 0.5f, 0.0f), vec3(0.0f, 1.0f, 0.0f) }
+	, eventHandle_viewportMousePos{}
 {
+}
+
+void CustomViewport::OnAttached()
+{
+	// Using this pointer as we guarantee that there will only be 1 custom viewport ever...
+	eventHandle_viewportMousePos = ST<EventsQueue>::Get()->AddEventHandlerFunc<Getters::MousePosViewport>([this](const Getters::MousePosViewport&) -> Vec2 {
+		Vec2 mousePos{ ST<KeyboardMouseInput>::Get()->GetMousePos() };
+		Vec2 windowExtent{ static_cast<float>(Core::Display().GetWidth()), static_cast<float>(Core::Display().GetHeight()) };
+
+		return Vec2{
+			(mousePos.x - (windowPosAbsolute.x + contentMin.x)) / viewportRenderSize.x * windowExtent.x,
+			(mousePos.y - (windowPosAbsolute.y + contentMin.y)) / viewportRenderSize.y * windowExtent.y
+		};
+	});
+}
+
+void CustomViewport::OnDetached()
+{
+	ST<EventsQueue>::Get()->DeleteEventHandler(eventHandle_viewportMousePos);
 }
 
 void CustomViewport::DrawContainer(int id)
