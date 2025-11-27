@@ -221,6 +221,10 @@ namespace physics {
 		{
 			SetFlag(PHYSICS_COMP_FLAG::ROTATION_LOCKED_Z, lockZ);
 		}
+
+		if (auto bodyComp = ecs::GetEntity(this)->GetComp<JoltBodyComp>())
+			if (bodyComp->GetPrevTrans() != TransformValues{ ecs::GetEntityTransform(this) })
+				bodyComp->UpdateBody();
 	}
 
 	void PhysicsComp::Serialize(Serializer& writer) const

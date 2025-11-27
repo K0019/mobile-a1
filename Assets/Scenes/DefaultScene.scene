@@ -438,7 +438,7 @@
                             "angle": 10.0
                         },
                         "speed": 1.7999999523162842,
-                        "acceleration": 0.0,
+                        "acceleration": 22.0,
                         "baseOffset": 0.0,
                         "active": false
                     }
@@ -633,14 +633,22 @@
                 },
                 "16763493199777387366": {
                     "_active": true,
+                    "combatRange": 0.699999988079071,
+                    "windUpTime": 0.20000000298023224,
+                    "attackTime": 0.5,
+                    "followThroughTime": 0.30000001192092896,
+                    "attackCoolDownTime": 1.0,
                     "playerReference": {
                         "entityUid": 51797992787031769
+                    },
+                    "attackCollider": {
+                        "entityUid": 5884977658575926114
                     }
                 },
                 "17579205194823809952": {
                     "_active": true,
                     "moveSpeed": 1.7999999523162842,
-                    "rotateSpeed": 14400.0,
+                    "rotateSpeed": 200.0,
                     "stunTimePerHit": 0.5,
                     "groundFriction": 0.75,
                     "dodgeCooldown": 0.0,
@@ -1291,8 +1299,16 @@
                 },
                 "16763493199777387366": {
                     "_active": false,
+                    "combatRange": 0.0,
+                    "windUpTime": 0.0,
+                    "attackTime": 0.0,
+                    "followThroughTime": 0.0,
+                    "attackCoolDownTime": 0.0,
                     "playerReference": {
                         "entityUid": 51797992787031769
+                    },
+                    "attackCollider": {
+                        "entityUid": 0
                     }
                 },
                 "17579205194823809952": {
@@ -1634,7 +1650,7 @@
                         "filePath": "NavMeshData/navmesh3.navmesh"
                     },
                     "agentParam": {
-                        "radius": 0.4000000059604645,
+                        "radius": 0.05000000074505806,
                         "height": 1.600000023841858,
                         "climb": 0.05000000074505806,
                         "angle": 45.0
@@ -1646,7 +1662,7 @@
             "parentIndex": -1,
             "position": {
                 "x": 0.0,
-                "y": 1.139955759048462,
+                "y": -18.899999618530273,
                 "z": -1.4053997993469238
             },
             "rotation": {
@@ -2446,6 +2462,63 @@
                 "9315785795257285655": {
                     "_active": true,
                     "uid": 5205008881585946480
+                }
+            }
+        },
+        {
+            "parentIndex": 3,
+            "position": {
+                "x": 0.699999988079071,
+                "y": 1.0,
+                "z": 0.0
+            },
+            "rotation": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "scale": {
+                "x": 0.800000011920929,
+                "y": 0.30000001192092896,
+                "z": 0.4000000059604645
+            },
+            "components": {
+                "6766054303456732338": {
+                    "_active": true,
+                    "layer": 0
+                },
+                "7205334411763290517": {
+                    "_active": true,
+                    "name": "AttackRange"
+                },
+                "9315785795257285655": {
+                    "_active": true,
+                    "uid": 5884977658575926114
+                },
+                "18236831197208900764": {
+                    "_active": true,
+                    "center": {
+                        "x": 0.0,
+                        "y": 0.0,
+                        "z": 0.0
+                    },
+                    "size": {
+                        "x": 1.0,
+                        "y": 1.0,
+                        "z": 1.0
+                    },
+                    "flags": {
+                        "_majorityTrue": true,
+                        "_except": []
+                    }
+                },
+                "18288371625365795113": {
+                    "_active": true,
+                    "scripts": [
+                        {
+                            "scriptName": "enemyattack.lua"
+                        }
+                    ]
                 }
             }
         },
@@ -3276,7 +3349,15 @@
                 },
                 "16763493199777387366": {
                     "_active": true,
+                    "combatRange": 0.0,
+                    "windUpTime": 0.0,
+                    "attackTime": 0.0,
+                    "followThroughTime": 0.0,
+                    "attackCoolDownTime": 0.0,
                     "playerReference": {
+                        "entityUid": 0
+                    },
+                    "attackCollider": {
                         "entityUid": 0
                     }
                 },
@@ -4075,7 +4156,15 @@
                 },
                 "16763493199777387366": {
                     "_active": true,
+                    "combatRange": 0.0,
+                    "windUpTime": 0.0,
+                    "attackTime": 0.0,
+                    "followThroughTime": 0.0,
+                    "attackCoolDownTime": 0.0,
                     "playerReference": {
+                        "entityUid": 0
+                    },
+                    "attackCollider": {
                         "entityUid": 0
                     }
                 },
@@ -4647,7 +4736,7 @@
             }
         },
         {
-            "parentIndex": 35,
+            "parentIndex": 36,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -4698,7 +4787,7 @@
             }
         },
         {
-            "parentIndex": 36,
+            "parentIndex": 37,
             "position": {
                 "x": 0.0,
                 "y": -0.0038910508155822754,
@@ -4749,7 +4838,7 @@
             }
         },
         {
-            "parentIndex": 38,
+            "parentIndex": 39,
             "position": {
                 "x": 0.01342153549194336,
                 "y": 0.9769220352172852,
@@ -4800,7 +4889,7 @@
             }
         },
         {
-            "parentIndex": 37,
+            "parentIndex": 38,
             "position": {
                 "x": 0.0007220208644866943,
                 "y": 0.0,
@@ -4851,7 +4940,7 @@
             }
         },
         {
-            "parentIndex": 38,
+            "parentIndex": 39,
             "position": {
                 "x": 0.01342153549194336,
                 "y": 0.0,
@@ -4902,7 +4991,7 @@
             }
         },
         {
-            "parentIndex": 38,
+            "parentIndex": 39,
             "position": {
                 "x": 0.01342153549194336,
                 "y": 0.0,
@@ -4953,7 +5042,7 @@
             }
         },
         {
-            "parentIndex": 38,
+            "parentIndex": 39,
             "position": {
                 "x": 0.01342153549194336,
                 "y": 0.0,
@@ -5004,7 +5093,7 @@
             }
         },
         {
-            "parentIndex": 39,
+            "parentIndex": 40,
             "position": {
                 "x": 0.013421773910522461,
                 "y": 0.0,
@@ -5055,7 +5144,7 @@
             }
         },
         {
-            "parentIndex": 40,
+            "parentIndex": 41,
             "position": {
                 "x": 0.0,
                 "y": -0.0038910508155822754,
@@ -5106,7 +5195,7 @@
             }
         },
         {
-            "parentIndex": 41,
+            "parentIndex": 42,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -5149,7 +5238,7 @@
             }
         },
         {
-            "parentIndex": 41,
+            "parentIndex": 42,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -5192,7 +5281,7 @@
             }
         },
         {
-            "parentIndex": 42,
+            "parentIndex": 43,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -5235,7 +5324,7 @@
             }
         },
         {
-            "parentIndex": 42,
+            "parentIndex": 43,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -5278,7 +5367,7 @@
             }
         },
         {
-            "parentIndex": 43,
+            "parentIndex": 44,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -5321,7 +5410,7 @@
             }
         },
         {
-            "parentIndex": 43,
+            "parentIndex": 44,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -5364,7 +5453,7 @@
             }
         },
         {
-            "parentIndex": 34,
+            "parentIndex": 35,
             "position": {
                 "x": 0.0,
                 "y": -1.8507726192474365,
@@ -5415,7 +5504,7 @@
             }
         },
         {
-            "parentIndex": 45,
+            "parentIndex": 46,
             "position": {
                 "x": 0.0,
                 "y": -0.0038910508155822754,
@@ -5466,7 +5555,7 @@
             }
         },
         {
-            "parentIndex": 46,
+            "parentIndex": 47,
             "position": {
                 "x": 0.0,
                 "y": -0.0038910508155822754,
@@ -5517,7 +5606,7 @@
             }
         },
         {
-            "parentIndex": 47,
+            "parentIndex": 48,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -5568,7 +5657,7 @@
             }
         },
         {
-            "parentIndex": 48,
+            "parentIndex": 49,
             "position": {
                 "x": 0.0,
                 "y": -0.3732050061225891,
@@ -5619,7 +5708,7 @@
             }
         },
         {
-            "parentIndex": 49,
+            "parentIndex": 50,
             "position": {
                 "x": 0.0,
                 "y": -0.0038910508155822754,
@@ -5670,7 +5759,7 @@
             }
         },
         {
-            "parentIndex": 51,
+            "parentIndex": 52,
             "position": {
                 "x": 0.0007219314575195313,
                 "y": 0.0,
@@ -5721,7 +5810,7 @@
             }
         },
         {
-            "parentIndex": 52,
+            "parentIndex": 53,
             "position": {
                 "x": 0.0,
                 "y": -0.0038910508155822754,
@@ -5772,7 +5861,7 @@
             }
         },
         {
-            "parentIndex": 53,
+            "parentIndex": 54,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -5815,7 +5904,7 @@
             }
         },
         {
-            "parentIndex": 53,
+            "parentIndex": 54,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -5858,7 +5947,7 @@
             }
         },
         {
-            "parentIndex": 54,
+            "parentIndex": 55,
             "position": {
                 "x": -1.2487144470214844,
                 "y": -0.037741899490356445,
@@ -5909,7 +5998,7 @@
             }
         },
         {
-            "parentIndex": 54,
+            "parentIndex": 55,
             "position": {
                 "x": 0.0,
                 "y": -1.8507726192474365,
@@ -5960,7 +6049,7 @@
             }
         },
         {
-            "parentIndex": 55,
+            "parentIndex": 56,
             "position": {
                 "x": 0.01342153549194336,
                 "y": 0.0,
@@ -6011,7 +6100,7 @@
             }
         },
         {
-            "parentIndex": 55,
+            "parentIndex": 56,
             "position": {
                 "x": 0.01342153549194336,
                 "y": 0.0,
@@ -6062,7 +6151,7 @@
             }
         },
         {
-            "parentIndex": 54,
+            "parentIndex": 55,
             "position": {
                 "x": 1.266754150390625,
                 "y": -0.037741899490356445,
@@ -6113,7 +6202,7 @@
             }
         },
         {
-            "parentIndex": 55,
+            "parentIndex": 56,
             "position": {
                 "x": 0.01342153549194336,
                 "y": 0.9769221544265747,
@@ -6164,7 +6253,7 @@
             }
         },
         {
-            "parentIndex": 71,
+            "parentIndex": 72,
             "position": {
                 "x": 2.5,
                 "y": 0.13423000276088715,
@@ -6215,7 +6304,7 @@
             }
         },
         {
-            "parentIndex": 71,
+            "parentIndex": 72,
             "position": {
                 "x": -1.4655447006225586,
                 "y": -2.5860800743103027,
@@ -6266,7 +6355,7 @@
             }
         },
         {
-            "parentIndex": 55,
+            "parentIndex": 56,
             "position": {
                 "x": 0.01342153549194336,
                 "y": 0.0,
@@ -6317,7 +6406,7 @@
             }
         },
         {
-            "parentIndex": 71,
+            "parentIndex": 72,
             "position": {
                 "x": -3.9433178901672363,
                 "y": -1.7716667652130127,
@@ -6368,7 +6457,7 @@
             }
         },
         {
-            "parentIndex": 56,
+            "parentIndex": 57,
             "position": {
                 "x": 0.0007219314575195313,
                 "y": 0.0,
@@ -6419,7 +6508,7 @@
             }
         },
         {
-            "parentIndex": 57,
+            "parentIndex": 58,
             "position": {
                 "x": 0.0,
                 "y": -0.0038910508155822754,
@@ -6470,7 +6559,7 @@
             }
         },
         {
-            "parentIndex": 58,
+            "parentIndex": 59,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -6513,7 +6602,7 @@
             }
         },
         {
-            "parentIndex": 58,
+            "parentIndex": 59,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -6556,7 +6645,7 @@
             }
         },
         {
-            "parentIndex": 60,
+            "parentIndex": 61,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -6599,7 +6688,7 @@
             }
         },
         {
-            "parentIndex": 60,
+            "parentIndex": 61,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -6642,7 +6731,7 @@
             }
         },
         {
-            "parentIndex": 61,
+            "parentIndex": 62,
             "position": {
                 "x": 0.013421773910522461,
                 "y": 0.0,
@@ -6693,7 +6782,7 @@
             }
         },
         {
-            "parentIndex": 63,
+            "parentIndex": 64,
             "position": {
                 "x": 0.0,
                 "y": -0.3732050061225891,
@@ -6744,7 +6833,7 @@
             }
         },
         {
-            "parentIndex": 71,
+            "parentIndex": 72,
             "position": {
                 "x": -1.5319647789001465,
                 "y": -1.144227147102356,
@@ -6795,7 +6884,7 @@
             }
         },
         {
-            "parentIndex": 66,
+            "parentIndex": 67,
             "position": {
                 "x": 0.0007220208644866943,
                 "y": 0.0,
@@ -6846,7 +6935,7 @@
             }
         },
         {
-            "parentIndex": 71,
+            "parentIndex": 72,
             "position": {
                 "x": 0.0,
                 "y": -3.847890615463257,
@@ -6897,7 +6986,7 @@
             }
         },
         {
-            "parentIndex": 71,
+            "parentIndex": 72,
             "position": {
                 "x": -1.434356451034546,
                 "y": -0.2591911554336548,
@@ -6959,7 +7048,7 @@
             }
         },
         {
-            "parentIndex": 71,
+            "parentIndex": 72,
             "position": {
                 "x": -5.14547061920166,
                 "y": -0.25910282135009766,
@@ -7010,7 +7099,7 @@
             }
         },
         {
-            "parentIndex": 71,
+            "parentIndex": 72,
             "position": {
                 "x": 0.03788566589355469,
                 "y": 1.0363554954528809,
@@ -7061,7 +7150,7 @@
             }
         },
         {
-            "parentIndex": 71,
+            "parentIndex": 72,
             "position": {
                 "x": -0.028458118438720703,
                 "y": -0.2591911554336548,
@@ -7112,7 +7201,7 @@
             }
         },
         {
-            "parentIndex": 67,
+            "parentIndex": 68,
             "position": {
                 "x": 0.0,
                 "y": -0.0038910508155822754,
@@ -7163,7 +7252,7 @@
             }
         },
         {
-            "parentIndex": 68,
+            "parentIndex": 69,
             "position": {
                 "x": 0.0,
                 "y": -0.0038910508155822754,
@@ -7214,7 +7303,7 @@
             }
         },
         {
-            "parentIndex": 69,
+            "parentIndex": 70,
             "position": {
                 "x": 0.0,
                 "y": -0.0038911104202270508,
@@ -7265,7 +7354,7 @@
             }
         },
         {
-            "parentIndex": 34,
+            "parentIndex": 35,
             "position": {
                 "x": 1.266754150390625,
                 "y": -0.037741899490356445,
@@ -7316,7 +7405,7 @@
             }
         },
         {
-            "parentIndex": 70,
+            "parentIndex": 71,
             "position": {
                 "x": 0.0,
                 "y": -1.8507726192474365,
@@ -7367,7 +7456,7 @@
             }
         },
         {
-            "parentIndex": 70,
+            "parentIndex": 71,
             "position": {
                 "x": 1.266754150390625,
                 "y": -0.037741899490356445,
@@ -7418,7 +7507,7 @@
             }
         },
         {
-            "parentIndex": 71,
+            "parentIndex": 72,
             "position": {
                 "x": 0.0,
                 "y": -3.847951650619507,
@@ -7469,7 +7558,7 @@
             }
         },
         {
-            "parentIndex": 71,
+            "parentIndex": 72,
             "position": {
                 "x": 4.951006889343262,
                 "y": 1.859483003616333,
@@ -7520,7 +7609,7 @@
             }
         },
         {
-            "parentIndex": 71,
+            "parentIndex": 72,
             "position": {
                 "x": -1.7166036367416382,
                 "y": -0.60188889503479,
@@ -7571,7 +7660,7 @@
             }
         },
         {
-            "parentIndex": 82,
+            "parentIndex": 83,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -7633,7 +7722,7 @@
             }
         },
         {
-            "parentIndex": 81,
+            "parentIndex": 82,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -7695,7 +7784,7 @@
             }
         },
         {
-            "parentIndex": 83,
+            "parentIndex": 84,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -7746,7 +7835,7 @@
             }
         },
         {
-            "parentIndex": 84,
+            "parentIndex": 85,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -7797,7 +7886,7 @@
             }
         },
         {
-            "parentIndex": 85,
+            "parentIndex": 86,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -7848,7 +7937,7 @@
             }
         },
         {
-            "parentIndex": 86,
+            "parentIndex": 87,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -7899,7 +7988,7 @@
             }
         },
         {
-            "parentIndex": 95,
+            "parentIndex": 96,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -7950,7 +8039,7 @@
             }
         },
         {
-            "parentIndex": 96,
+            "parentIndex": 97,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -8001,7 +8090,7 @@
             }
         },
         {
-            "parentIndex": 109,
+            "parentIndex": 110,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -8063,7 +8152,7 @@
             }
         },
         {
-            "parentIndex": 110,
+            "parentIndex": 111,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -8125,7 +8214,7 @@
             }
         },
         {
-            "parentIndex": 111,
+            "parentIndex": 112,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -8176,7 +8265,7 @@
             }
         },
         {
-            "parentIndex": 112,
+            "parentIndex": 113,
             "position": {
                 "x": 0.0,
                 "y": 0.0,

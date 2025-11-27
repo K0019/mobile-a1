@@ -12,7 +12,7 @@ NODE_STATUS L_MeleeAttack::OnUpdate(ecs::EntityHandle entity)
 {
 	auto characterComp{ entity->GetComp<CharacterMovementComponent>() };
 	auto enemyComp{ entity->GetComp<EnemyComponent>() };
-	if (!enemyComp || !characterComp)
+	if (!enemyComp || !characterComp || !enemyComp->attackCollider)
 		return NODE_STATUS::FAILURE;
 
 
