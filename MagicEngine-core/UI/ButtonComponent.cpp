@@ -23,6 +23,7 @@ All rights reserved.
 #include "UI/SpriteComponent.h"
 #include "Engine/Events/EventsQueue.h"
 #include "Engine/Events/EventsTypeBasic.h"
+#include "Engine/EntityEvents.h"
 
 namespace internal {
 
@@ -37,7 +38,7 @@ namespace internal {
 
 void ButtonComponent::OnClicked()
 {
-	CONSOLE_LOG(LEVEL_INFO) << "CLICKED";
+	ecs::GetEntity(this)->GetComp<EntityEventsComponent>()->BroadcastAll("CallScriptFunc", std::string{ "OnButtonClicked" });
 }
 
 void ButtonComponent::OnAttached()
@@ -82,15 +83,13 @@ Vec2 ButtonInputSystem::RetrieveMousePos()
 
 void ButtonInputSystem::CheckButtonInput(ButtonComponent& buttonComp, SpriteComponent& spriteComp, RectTransformComponent& rectTransform)
 {
-	CONSOLE_LOG(LEVEL_INFO) << "Pos: " << pos.x << "," << pos.y;
-
 	// Test if the button was clicked
 	if (!TestClicked(rectTransform, spriteComp, pos))
 		return;
 
 	// TODO: Change sprite
 
-	// If released, execute button function
+	// If released, execute button click function
 	if (released)
 		buttonComp.OnClicked();
 }

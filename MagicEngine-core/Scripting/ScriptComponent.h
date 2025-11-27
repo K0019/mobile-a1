@@ -88,6 +88,10 @@ public:
 	// Attempts to call a function on each attached script
 	template <typename ...Args>
 	void CallScriptFunction(const std::string& funcName, const Args&... args);
+	void CallScriptFunctionPlain(const std::string& funcName);
+
+	void OnAttached() override;
+	void OnDetached() override;
 
 private:
 	std::vector<LuaScriptWithMeta> scripts;

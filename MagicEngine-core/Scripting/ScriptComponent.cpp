@@ -37,6 +37,7 @@ All rights reserved.
 #include "ECS/EntityUID.h"
 #include "Components/NameComponent.h"
 #include "Engine/PrefabManager.h"
+#include "Engine/EntityEvents.h"
 
 #define X(funcName, enumName) #funcName,
 const char* const scriptFunctionNames[]{
@@ -109,6 +110,22 @@ void ScriptComponent::RefreshScripts()
 			*scriptIter = LuaScriptWithMeta{ std::move(newScriptInstance.value()) };
 		else
 			scriptIter->valid = false;
+}
+
+void ScriptComponent::CallScriptFunctionPlain(const std::string& funcName)
+{
+	CallScriptFunction(funcName, ecs::GetEntity(this));
+}
+
+void ScriptComponent::OnAttached()
+{
+	ecs::GetEntity(this)->GetComp<EntityEventsComponent>()->Subscribe("CallScriptFunc", this, &ScriptComponent::CallScriptFunctionPlain);
+}
+
+void ScriptComponent::OnDetached()
+{
+	if (auto eventsComp{ ecs::GetEntity(this)->GetComp<EntityEventsComponent>() })
+		eventsComp->Unsubscribe("CallScriptFunc", this, &ScriptComponent::CallScriptFunctionPlain);
 }
 
 void ScriptComponent::EditorDraw()
