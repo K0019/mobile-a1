@@ -25,13 +25,16 @@ All rights reserved.
 
 class ButtonComponent
 	: public IUIComponent
-	, public IRegisteredComponent<SpriteComponent>
+	, public IRegisteredComponent<ButtonComponent>
+	, public IEditorComponent<ButtonComponent>
 {
 public:
 	void OnClicked();
 
 	// Forces attachment of a sprite component
 	void OnAttached() override;
+
+	void EditorDraw() override;
 
 private:
 

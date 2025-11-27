@@ -24,6 +24,7 @@ All rights reserved.
 #include "Engine/Events/EventsQueue.h"
 #include "Engine/Events/EventsTypeBasic.h"
 #include "Engine/EntityEvents.h"
+#include "Editor/Containers/GUICollection.h"
 
 namespace internal {
 
@@ -45,6 +46,15 @@ void ButtonComponent::OnAttached()
 {
 	ecs::GetEntity(this)->AddComp(SpriteComponent{});
 	IUIComponent::OnAttached();
+}
+
+void ButtonComponent::EditorDraw()
+{
+	if (!ecs::GetEntity(this)->HasComp<SpriteComponent>())
+	{
+		gui::SetStyleColor textColor{ gui::FLAG_STYLE_COLOR::TEXT, gui::Vec4{ 1.0f, 0.2f, 0.2f, 1.0f } };
+		gui::TextWrapped("SpriteComponent IS REQUIRED for button to work. Please attach a SpriteComponent.");
+	}
 }
 
 ButtonInputSystem::ButtonInputSystem()
