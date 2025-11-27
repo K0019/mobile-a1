@@ -69,8 +69,8 @@ public:
 
 	// Default FMOD System call
 	// 2D call to FMOD
-	uint32_t PlaySound(const std::string& filename, bool loop, AudioType category = AudioType::END);
-	uint32_t PlaySound(size_t audioResourceHash, bool loop, AudioType category = AudioType::END);
+	uint32_t PlaySound(const std::string& filename, bool loop, AudioType category = AudioType::END, float volumeModifier = 1.0f);
+	uint32_t PlaySound(size_t audioResourceHash, bool loop, AudioType category = AudioType::END, float volumeModifier = 1.0f);
 	void StopSound(uint32_t handle);
 	bool IsPlaying(uint32_t handle);
 	// This refers to the current playback position in milliseconds, not the 3D position
@@ -80,8 +80,8 @@ public:
 	void SetVolume(uint32_t handle, float vol);
 
 	// Default 3D Audio calls
-	uint32_t PlaySound3D(const std::string& filename, bool loop, Vec3 position, AudioType category = AudioType::END, std::pair<float, float> rolloff_minmax = { 2.f, 50.f });
-	uint32_t PlaySound3D(size_t audioResourceHash, bool loop, Vec3 position, AudioType category = AudioType::END, std::pair<float, float> rolloff_minmax = { 2.f, 50.f });
+	uint32_t PlaySound3D(const std::string& filename, bool loop, Vec3 position, AudioType category = AudioType::END, std::pair<float, float> rolloff_minmax = { 2.f, 50.f }, float volumeModifier = 1.0f);
+	uint32_t PlaySound3D(size_t audioResourceHash, bool loop, Vec3 position, AudioType category = AudioType::END, std::pair<float, float> rolloff_minmax = { 2.f, 50.f }, float volumeModifier = 1.0f);
 	void SetChannel3D(uint32_t handle, bool is3D);
 	bool IsChannel3D(uint32_t handle) const;
 	void SetChannel3DAttributes(uint32_t handle, const Vec3& pos, const Vec3& vel = Vec3());
