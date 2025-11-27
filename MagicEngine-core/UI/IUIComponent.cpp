@@ -18,12 +18,6 @@ All rights reserved.
 /******************************************************************************/
 
 #include "UI/IUIComponent.h"
-#include "UI/RectTransform.h"
-
-void IUIComponent::OnAttached()
-{
-	ecs::GetEntity(this)->AddComp(RectTransformComponent{});
-}
 
 //void IUIComponentWithInput::OnAttached()
 //{

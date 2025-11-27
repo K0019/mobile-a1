@@ -1,7 +1,5 @@
 {
     "scenes": [
-        "scenes/defaultscene.scene",
-        "scenes/SplashScene.scene",
-        "scenes/defaultscene_backup.scene"
+        "scenes/defaultscene.scene"
     ]
 }

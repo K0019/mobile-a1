@@ -421,6 +421,10 @@ namespace physics {
 		{
 			SetSize(tempVec);
 		}
+
+		if (auto bodyComp = ecs::GetEntity(this)->GetComp<JoltBodyComp>())
+			if (bodyComp->GetPrevTrans() != TransformValues{ ecs::GetEntityTransform(this) })
+				bodyComp->UpdateBody();
 	}
 
 }

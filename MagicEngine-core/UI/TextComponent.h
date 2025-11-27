@@ -23,9 +23,9 @@ All rights reserved.
 #include "UI/IUIComponent.h"
 
 class TextComponent
-	: public IUIComponent
-	, public IRegisteredComponent<TextComponent>
+	: public IRegisteredComponent<TextComponent>
 	, public IEditorComponent<TextComponent>
+	, public IUIComponent<TextComponent>
 {
 public:
 	TextComponent();
