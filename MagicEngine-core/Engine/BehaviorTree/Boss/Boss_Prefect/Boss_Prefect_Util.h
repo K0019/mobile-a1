@@ -2,6 +2,9 @@
 #include "Game/EnemyCharacter.h"
 #include "Game/Character.h"
 #include "Game/Health.h"
+#include "Engine/PrefabManager.h"
+#include "Scripting/ScriptComponent.h"
+
 // Utilities for Boss_Prefect
 
 
@@ -40,6 +43,26 @@ public:
 	static Vec2 GetMovementTowards(Vec3 currentPos, Vec3 targetPos)
 	{
 		return { targetPos.x - currentPos.x,targetPos.z - currentPos.z };
+	}
+	static bool SpawnExplosion(ecs::EntityHandle entity, float size)
+	{
+		ecs::EntityHandle spawnedExplosion = ST<PrefabManager>::Get()->LoadPrefab("explosion");
+
+		// Sanityyyyy
+		if (spawnedExplosion)
+		{
+			// Set the size in the LUA script
+			if (auto scriptComp{ spawnedExplosion->GetComp<ScriptComponent>() })
+			{
+				scriptComp->CallScriptFunction("setSize", size);
+			}
+
+			spawnedExplosion->GetTransform().SetWorldPosition(entity->GetTransform().GetWorldPosition());
+			return true;
+		}
+
+		// This is a failsafe in case we want to check whether the prefab spawned
+		return false;
 	}
 };
 

@@ -39,7 +39,8 @@ namespace editor {
 
                 gui::Button{ "Mesh", thumbnailSizeVec2 };
                 gui::PayloadSource{ "MESH_HASH", hash.get() };
-
+                
+                gui::ShowSimpleHoverTooltip(meshName);
                 gui::ThumbnailLabel(meshName, THUMBNAIL_SIZE);
             }
 

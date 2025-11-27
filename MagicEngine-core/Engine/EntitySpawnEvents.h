@@ -126,6 +126,6 @@ EntitySpawnEvents::CallbackFuncSig EntitySpawnEvents::GenerateAttachFunc()
 	return [](ecs::EntityHandle entity) -> void {
 		// In case the entity was cloned, in which case the component is already attached.
 		if (!entity->GetComp<T>())
-			entity->AddCompNow(T{});
+			entity->AddComp(T{});
 	};
 }

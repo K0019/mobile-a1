@@ -31,6 +31,7 @@ All rights reserved.
 #include "math/utils_math.h"
 #include "Editor/Containers/GUICollection.h"
 #include "Engine/SceneManagement.h"
+#include "Managers/AudioManager.h"
 
 std::string DelusionComponent::to_string()
 {
@@ -122,6 +123,9 @@ void DelusionComponent::UpdateDelusionTier()
 		DelusionTiers::DT_F;
 
 	if (currTier == prevTier) return;
+
+	// Audio plays here
+	ST<AudioManager>::Get()->PlaySound(currTier > prevTier ? "rank increase" : "rank decrease", false);
 
 	//buffs and debuffs, as of yet unimplemented due to it being hard to see interactions, but ill throw in the pseudo code
 	if (currTier == DelusionTiers::DT_F)

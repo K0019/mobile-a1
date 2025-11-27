@@ -40,6 +40,7 @@ namespace editor
                 gui::Button{ "Anim", thumbnailSizeVec2 };
                 gui::PayloadSource{ "ANIMATION_HASH", hash.get() };
 
+                gui::ShowSimpleHoverTooltip(animName);
                 gui::ThumbnailLabel(animName, THUMBNAIL_SIZE);
             }
 

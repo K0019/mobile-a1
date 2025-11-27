@@ -1,0 +1,13 @@
+{
+    "name": "wackyinstakilling",
+    "nodes": [
+        {
+            "nodeType": "Sequence",
+            "nodeLevel": 0
+        },
+        {
+            "nodeType": "L_Boss_Prefect_DontRun",
+            "nodeLevel": 1
+        }
+    ]
+}

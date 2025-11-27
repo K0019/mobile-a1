@@ -27,3 +27,10 @@ namespace Events {
 	struct LuaScriptsReloaded {};
 
 }
+
+namespace Getters {
+
+	// Provided by: CustomViewport
+	struct MousePosViewport {};
+
+}

@@ -32,6 +32,7 @@ class RenderComponent
 public:
     const ResourceMesh* GetMesh() const;
     const std::vector<UserResourceHandle<ResourceMaterial>>& GetMaterialsList() const;
+    std::vector<UserResourceHandle<ResourceMaterial>>& GetMaterialsList();
 
     void EditorDraw() override;
 

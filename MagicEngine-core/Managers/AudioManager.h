@@ -80,6 +80,7 @@ public:
 	void SetVolume(uint32_t handle, float vol);
 
 	// Default 3D Audio calls
+	uint32_t PlaySound3D(const std::string& filename, bool loop, Vec3 position, AudioType category = AudioType::END, std::pair<float, float> rolloff_minmax = { 2.f, 50.f });
 	uint32_t PlaySound3D(size_t audioResourceHash, bool loop, Vec3 position, AudioType category = AudioType::END, std::pair<float, float> rolloff_minmax = { 2.f, 50.f });
 	void SetChannel3D(uint32_t handle, bool is3D);
 	bool IsChannel3D(uint32_t handle) const;

@@ -80,15 +80,7 @@ private:
 	\param entity
 		The entity to attach the component to.
 	*//******************************************************************/
-	static void ConstructDefaultAndAttachTo(ecs::EntityHandle entity);
-
-	/*****************************************************************//*!
-	\brief
-		Default constructs this component type and attaches it immediately to the specified entity.
-	\param entity
-		The entity to attach the component to.
-	*//******************************************************************/
-	static void* ConstructDefaultAndAttachNowTo(ecs::EntityHandle entity);
+	static void* ConstructDefaultAndAttachTo(ecs::EntityHandle entity);
 
 	/*****************************************************************//*!
 	\brief
@@ -126,9 +118,7 @@ public:
 	bool isEditorHidden;
 
 	//! Default construct the component and attach it to the specified entity.
-	void (*ConstructDefaultAndAttachTo)(ecs::EntityHandle entity);
-	//! Default construct the component and attach it immediately to the specified entity.
-	void* (*ConstructDefaultAndAttachNowTo)(ecs::EntityHandle entity);
+	void* (*ConstructDefaultAndAttachTo)(ecs::EntityHandle entity);
 
 	//! Save component add event to history
 	void (*SaveHistory_CompAdd)(ecs::EntityHandle entity);
@@ -223,7 +213,6 @@ bool IRegisteredComponent<CompType>::RegisterComponent()
 		.isEditorHidden = false,
 #endif
 		.ConstructDefaultAndAttachTo = IRegisteredComponent<CompType>::ConstructDefaultAndAttachTo,
-		.ConstructDefaultAndAttachNowTo = IRegisteredComponent<CompType>::ConstructDefaultAndAttachNowTo,
 		.SaveHistory_CompAdd = IRegisteredComponent<CompType>::SaveHistory_CompAdd,
 		.SaveHistory_CompRemove = IRegisteredComponent<CompType>::SaveHistory_CompRemove,
 		.SerializeFuncPtr = [](const void* compPtr, Serializer& writer) -> void {
@@ -244,15 +233,9 @@ const ecs::CompTypeMeta* IRegisteredComponent<CompType>::GetMetaData()
 }
 
 template<typename CompType>
-void IRegisteredComponent<CompType>::ConstructDefaultAndAttachTo(ecs::EntityHandle entity)
+void* IRegisteredComponent<CompType>::ConstructDefaultAndAttachTo(ecs::EntityHandle entity)
 {
-	entity->AddComp(CompType{});
-}
-
-template<typename CompType>
-void* IRegisteredComponent<CompType>::ConstructDefaultAndAttachNowTo(ecs::EntityHandle entity)
-{
-	return entity->AddCompNow(CompType{});
+	return entity->AddComp(CompType{});
 }
 
 template<typename CompType>

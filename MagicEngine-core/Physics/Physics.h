@@ -69,6 +69,9 @@ X(ENABLED, "Enabled")
 		// Physics component flags
 		PhysicsCompFlags flags;
 
+	private:
+		void InitializeJoltBodyComp(JoltBodyComp* comp);
+
 	public:
 
 		/*****************************************************************//*!
