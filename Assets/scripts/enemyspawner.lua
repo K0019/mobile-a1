@@ -31,7 +31,11 @@ function proceed()
     end
 end
 
-function enemydeath(entity)
+function enemydeath()
+    if EnemySpawner.aliveEnemies <= 0 then
+        return
+    end
+
     EnemySpawner.aliveEnemies = EnemySpawner.aliveEnemies - 1
     Magic.Log(Magic.LogLevel.info, "Enemy died. Remaining = "..EnemySpawner.aliveEnemies)
     
@@ -63,21 +67,15 @@ function wavespawn()
              local newEnemyTransform = newEnemy.transform
              Magic.Log(Magic.LogLevel.info, "Spawned "..nameComp.name)
 
-             local transform = spawnPosEntity.transform
-             local worldPos = transform.worldPosition
-             Magic.Log(Magic.LogLevel.info, "Spawn Pos"..worldPos)
+             --local transform = spawnPosEntity.transform
+             --local worldPos = transform.worldPosition
+             --Magic.Log(Magic.LogLevel.info, "Spawn Pos"..worldPos)
 
-             newEnemyTransform.worldPosition = worldPos
+             --newEnemyTransform.worldPosition = worldPos
 
              -- keep track of enemies spawned
             EnemySpawner.aliveEnemies = EnemySpawner.aliveEnemies + 1
-            
-            --local scriptComp = newEnemy:GetScriptComponent()
-            --if scriptComp:Exists then
-            --scriptComp.OnHealthDepleted = function()
-                    --enemydeath(newEnemy)
-            --end
-
+            Magic.Log(Magic.LogLevel.info, "Enemy spawned. Remaining = "..EnemySpawner.aliveEnemies)
         end
     else
         Magic.Log(Magic.LogLevel.info, "ENTITYCONTAINER IS NULL")
