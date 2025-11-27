@@ -547,20 +547,6 @@
             ]
         },
         {
-            "filepath": "compiledassets/textures/digipen_cmyk_red.ktx2",
-            "resources": [
-                {
-                    "resourceType": 16443744738808614340,
-                    "resourceEntries": [
-                        {
-                            "hash": 55937654067787191,
-                            "name": "digipen_cmyk_red0"
-                        }
-                    ]
-                }
-            ]
-        },
-        {
             "filepath": "sounds/sfx/mc/katar/katar #1/katar #1 1.wav",
             "resources": [
                 {
@@ -569,6 +555,20 @@
                         {
                             "hash": 3053083553861688579,
                             "name": "katar #1 10"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/textures/digipen_cmyk_red.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 55937654067787191,
+                            "name": "digipen_cmyk_red0"
                         }
                     ]
                 }

@@ -104,7 +104,7 @@ void PlayerMovementComponentSystem::UpdatePlayerMovementComponent(PlayerMovement
 		movement = movement.Normalized();
 
 	// Grabbing items
-	if (inputInstance->GetIsPressed(KEY::F))
+	if (inputInstance->GetIsPressed(KEY::E))
 	{
 		if (characterComp->heldItem == nullptr)
 		{
@@ -148,7 +148,7 @@ void PlayerMovementComponentSystem::UpdatePlayerMovementComponent(PlayerMovement
 	}
 
 	// Throw item
-	if (inputInstance->GetIsPressed(KEY::B))
+	if (inputInstance->GetIsPressed(KEY::Q))
 	{
 		// Look for the nearest enemy
 		Vec3 throwDirection{ camForward.x,1.0f,camForward.y  };
