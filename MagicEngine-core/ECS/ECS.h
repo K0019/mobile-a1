@@ -894,7 +894,7 @@ X(DEFAULT, true)		/* Default pool is ALWAYS 0 */ \
 X(PREFAB, false)		/* For prefab editor */ \
 X(PREFAB_CACHE, false)	/* For prefab caching */ \
 X(UNDO, false)			/* For the undo feature - deleted entities are stored within this pool. */ \
-X(EDITOR_GUI, false)	/* For the editor */
+X(EDITOR_GUI, true)		/* For the editor */
 
 #define X(name, callbacksEnabled) name,
 	enum class POOL : int

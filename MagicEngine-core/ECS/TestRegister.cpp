@@ -28,6 +28,7 @@
 #include "Game/GrabbableItem.h"
 #include "Game/Health.h"
 #include "UI/SpriteComponent.h"
+#include "UI/ButtonComponent.h"
 #include "UI/TextComponent.h"
 
 void RegisterShit()
@@ -59,5 +60,6 @@ void RegisterShit()
 	IRegisteredComponent<navmesh::NavMeshAgentComp>::RegisterComponent();
 	IRegisteredComponent<AudioListenerComponent>::RegisterComponent();
 	IRegisteredComponent<SpriteComponent>::RegisterComponent();
+	IRegisteredComponent<ButtonComponent>::RegisterComponent();
 	IRegisteredComponent<TextComponent>::RegisterComponent();
 }

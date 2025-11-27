@@ -15,6 +15,8 @@
 	  It helps track the touch state by getting ryEngine android input without needing
 	  android libraries here in MagicEngine
 
+	  TODO: Merge this into Input.h
+
 All content © 2025 DigiPen Institute of Technology Singapore.
 All rights reserved.
 */

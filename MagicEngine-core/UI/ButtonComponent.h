@@ -18,14 +18,38 @@ All rights reserved.
 /******************************************************************************/
 
 #pragma once
+#include "UI/SpriteComponent.h"
 #include "ECS/IRegisteredComponent.h"
 #include "Editor/IEditorComponent.h"
-#include "UI/IUIComponent.h"
+#include "Utilities/MaskTemplate.h"
 
 class ButtonComponent
+	: public IUIComponent
+	, public IRegisteredComponent<SpriteComponent>
 {
 public:
+	void OnClicked();
+
+	// Forces attachment of a sprite component
+	void OnAttached() override;
 
 private:
+
+};
+
+class ButtonInputSystem : public ecs::System<ButtonInputSystem, ButtonComponent, SpriteComponent, RectTransformComponent>
+{
+public:
+	ButtonInputSystem();
+	
+	bool PreRun() override;
+
+private:
+	Vec2 RetrieveMousePos();
+	void CheckButtonInput(ButtonComponent& buttonComp, SpriteComponent& spriteComp, RectTransformComponent& rectTransform);
+
+private:
+	bool pressed, released;
+	Vec2 pos;
 
 };
