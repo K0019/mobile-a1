@@ -65,6 +65,12 @@ public:
 	bool   IsPlaying()       const { return isPlaying; }
 	void   SetIsPlaying(bool b) { isPlaying = b; } // if you want Lua to control flag
 
+	float  GetVolumeModifier() const { return volumeModifier; }
+	void   SetVolumeModifier(float v) { volumeModifier = v; }
+
+	AudioType GetAudioCategory() const { return audioCategory; }
+	void   SetAudioCategory(AudioType category) { audioCategory = category; }
+
 private:
 	virtual void EditorDraw() override;
 
@@ -74,6 +80,8 @@ private:
 	float dopperScale;
 	float distanceFactor;
 	float rolloffScale;
+	float volumeModifier;
+	AudioType audioCategory;
 	size_t audioFile;
 	bool isPlaying;
 	uint32_t channelHandle;
@@ -87,6 +95,11 @@ property_begin(AudioSourceComponent)
 		property_var(dopperScale),
 		property_var(distanceFactor),
 		property_var(rolloffScale),
+		property_var(volumeModifier),
+		property_var_fnbegin("audioCategory", char)
+			if (isRead) InOut = static_cast<char>(Self.audioCategory);
+			else Self.audioCategory = static_cast<AudioType>(InOut);
+		property_var_fnend(),
 		property_var(audioFile),
 
 }

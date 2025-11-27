@@ -14,7 +14,7 @@
   This file contains the definitions of the class Hot Reloader, which reloads
   the and updates the scripts inside the User Assembly .dll inside the engine.
 
-All content © 2024 DigiPen Institute of Technology Singapore.
+All content ï¿½ 2024 DigiPen Institute of Technology Singapore.
 All rights reserved.
 */
 /******************************************************************************/
@@ -40,7 +40,10 @@ All rights reserved.
 #include "Engine/EntityLayers.h"
 #include "Managers/AudioManager.h"
 #include "Engine/Input.h"
-#include "ScriptComponent.h"
+#include "UI/SpriteComponent.h"
+#include "Engine/SceneManagement.h"
+#include "Utilities/Scheduler.h"
+#include "Scripting/ScriptComponent.h"
 #include "Graphics/RenderComponent.h"
 #include "Engine/PrefabManager.h"
 
@@ -70,7 +73,7 @@ SCRIPT_GENERATE_PROPERTY_FUNCS(bool, GetActive, SetActiveLua)
 SCRIPT_GENERATE_PROPERTY_FUNCS(float, GetZoom, SetZoom)
 SCRIPT_GENERATE_COMP_WRAPPER_END()
 
-// AnchorToCameraComponent Eno properties, but we still generate a wrapper type
+// AnchorToCameraComponent ï¿½ no properties, but we still generate a wrapper type
 SCRIPT_GENERATE_COMP_WRAPPER_BEGIN(AnchorToCameraComponent)
 SCRIPT_GENERATE_COMP_WRAPPER_END()
 
@@ -232,6 +235,12 @@ int GetSize()
 }
 SCRIPT_GENERATE_COMP_WRAPPER_END()
 
+// SpriteComponent
+SCRIPT_GENERATE_COMP_WRAPPER_BEGIN(SpriteComponent)
+	SCRIPT_GENERATE_PROPERTY_FUNCS(Vec4, GetColor, SetColor)
+SCRIPT_GENERATE_COMP_WRAPPER_END()
+
+// ScriptComponent
 SCRIPT_GENERATE_COMP_WRAPPER_BEGIN(ScriptComponent)
 void CallScriptFunction(std::string funcName)
 {
@@ -239,6 +248,7 @@ void CallScriptFunction(std::string funcName)
 }
 SCRIPT_GENERATE_COMP_WRAPPER_END()
 
+// RenderComponent
 SCRIPT_GENERATE_COMP_WRAPPER_BEGIN(RenderComponent)
 SCRIPT_GENERATE_COMP_WRAPPER_END()
 
@@ -348,6 +358,14 @@ void RegisterCppStuffToLua(luabridge::Namespace baseTable)
 		//.addFunction("Scale", [](const Vec3* a, const float* s) -> Vec3 { return (*a) * (*s);	})
 			//.addFunction("DirectionEntities", [](const ecs::EntityHandle a, const ecs::EntityHandle b) -> Vec3 { if (!a||!b) return Vec3{ 0 };  return  b->GetTransform().GetWorldPosition() - a->GetTransform().GetWorldPosition() ;	})
 		.endClass()
+
+		.beginClass<Vec4>("Vec4")
+			.addConstructor<void(*)(float, float, float, float)>()
+			.addProperty("x", [](const Vec4* v) -> float { return v->x; }, [](Vec4* v, float x) { v->x = x; })
+			.addProperty("y", [](const Vec4* v) -> float { return v->y; }, [](Vec4* v, float y) { v->y = y; })
+			.addProperty("z", [](const Vec4* v) -> float { return v->z; }, [](Vec4* v, float z) { v->z = z; })
+			.addProperty("w", [](const Vec4* v) -> float { return v->w; }, [](Vec4* v, float w) { v->w = w; })
+		.endClass()
 		.beginClass<Transform>("Transform")
 		.addProperty("localPosition", [](const Transform* t) -> Vec3 { return t->GetLocalPosition(); }, [](Transform* t, Vec3 v) { t->SetLocalPosition(v); })
 		.addProperty("localRotation", [](const Transform* t) -> Vec3 { return t->GetLocalRotation(); }, [](Transform* t, Vec3 v) { t->SetLocalRotation(v); })
@@ -380,6 +398,7 @@ void RegisterCppStuffToLua(luabridge::Namespace baseTable)
 		SCRIPT_REGISTER_COMP_GETTER(HealthComponent)
 		SCRIPT_REGISTER_COMP_GETTER(EntityLayerComponent)
 		SCRIPT_REGISTER_COMP_GETTER(EntityReferenceHolderComponent)
+		SCRIPT_REGISTER_COMP_GETTER(SpriteComponent)
 		SCRIPT_REGISTER_COMP_GETTER(ScriptComponent)
 		SCRIPT_REGISTER_COMP_GETTER(RenderComponent)
 		//=========================================== END REGISTER GETTER ================================================================================
@@ -531,17 +550,39 @@ void RegisterCppStuffToLua(luabridge::Namespace baseTable)
 			//.addProperty("GetEntityReference", [](const EntityReferenceHolderComponent* comp) -> EntityReference { return comp->GetEntity() })
 		SCRIPT_REGISTER_COMP_END()
 
+		// SpriteComponent
+		SCRIPT_REGISTER_COMP_BEGIN(SpriteComponent)
+			SCRIPT_REGISTER_COMP_PROPERTY(SpriteComponent, "color", GetColor, SetColor)
+		SCRIPT_REGISTER_COMP_END()
 		// ScriptComponent
 		SCRIPT_REGISTER_COMP_BEGIN(ScriptComponent)
 			.addFunction("CallScriptFunction", &LuaWrapperComp_ScriptComponent::CallScriptFunction)
 		SCRIPT_REGISTER_COMP_END()
-
+		// RenderComponent
 		SCRIPT_REGISTER_COMP_BEGIN(RenderComponent)
 		SCRIPT_REGISTER_COMP_END()
 
 		// ----- GLOBAL FUNCTIONS -----
 		.addFunction("Log", Lua_Log)
 		.addFunction("DeltaTime", []() -> float { return GameTime::Dt(); })
+		.addFunction("LoadScene", [](const std::string& scenePath) {
+			auto* sceneManager = ST<SceneManager>::Get();
+
+			// Get current scene index before loading new one
+			Scene* currentScene = sceneManager->GetActiveScene();
+			int oldSceneIndex = currentScene ? currentScene->GetIndex() : -1;
+
+			// Load new scene and set it as active
+			int newSceneIndex = sceneManager->LoadScene(scenePath, true);
+
+			// Defer unloading the old scene to avoid destroying the calling script mid-execution
+			if (oldSceneIndex >= 0 && newSceneIndex >= 0) {
+				ST<Scheduler>::Get()->Add([oldSceneIndex]() {
+					ST<SceneManager>::Get()->UnloadScene(oldSceneIndex);
+				});
+			}
+		})
+		.addFunction("GetButtonDown", GetButtonDown)
 
 		.beginNamespace("AudioManager")
 			.addFunction("PlaySound", Lua_PlayAudio)

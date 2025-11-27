@@ -9,6 +9,8 @@ AudioSourceComponent::AudioSourceComponent()
 	, dopperScale{ 1.0f }
 	, distanceFactor{ 0.01f }
 	, rolloffScale{ 0.1f }
+	, volumeModifier{ 1.0f }
+	, audioCategory{ AudioType::SFX }
 	, audioFile{ 0 }
 	, isPlaying{ false }
 	, channelHandle{}
@@ -17,16 +19,25 @@ AudioSourceComponent::AudioSourceComponent()
 
 void AudioSourceComponent::Play(AudioType a)
 {
-	channelHandle = ST<AudioManager>::Get()->PlaySound(audioFile, false, a);
+	// Use the provided parameter if not END, otherwise use the component's audioCategory
+	AudioType categoryToUse = (a != AudioType::END) ? a : audioCategory;
+	channelHandle = ST<AudioManager>::Get()->PlaySound(audioFile, false, categoryToUse, volumeModifier);
 }
 
 void AudioSourceComponent::EditorDraw()
 {
+	// Audio Category Dropdown
+	static const char* audioCategoryNames[] = { "BGM", "SFX", "Default" };
+	int categoryIndex = static_cast<int>(audioCategory);
+	gui::Combo{ "Audio Category", audioCategoryNames, 3, &categoryIndex };
+	audioCategory = static_cast<AudioType>(categoryIndex);
+
 	gui::VarDrag("Minimum Distance", &minDistance);
 	gui::VarDrag("Maximum Distance", &maxDistance);
 	gui::VarDrag("Doppler Scale", &dopperScale);
 	gui::VarDrag("Distance Factor", &distanceFactor);
 	gui::VarDrag("Rolloff Scale", &rolloffScale);
+	gui::VarDrag("Volume Modifier", &volumeModifier);
 
 	if (audioFile != 0) {
 
@@ -45,7 +56,7 @@ void AudioSourceComponent::EditorDraw()
 		if (gui::Button("Play Audio", gui::Vec2{ 100.0f, 30.0f })) {
 			if (!ST<AudioManager>::Get()->IsPlaying(channelHandle))
 			{
-				channelHandle = ST<AudioManager>::Get()->PlaySound(audioFile, false);
+				channelHandle = ST<AudioManager>::Get()->PlaySound(audioFile, false, audioCategory, volumeModifier);
 				isPlaying = true;
 			}
 		}

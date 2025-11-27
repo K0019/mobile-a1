@@ -214,8 +214,21 @@ void Ui2DRenderFeature::RenderUi(const internal::ExecutionContext& context)
       break;
     }
   }
-  for (const ui::PrimitiveDrawCommand& drawCmd : params.drawList.commands)
+  // Sort commands by layer, then by sortOrder
+  std::vector<const ui::PrimitiveDrawCommand*> sortedCommands;
+  sortedCommands.reserve(params.drawList.commands.size());
+  for (const auto& cmd : params.drawList.commands)
+    sortedCommands.push_back(&cmd);
+
+  std::sort(sortedCommands.begin(), sortedCommands.end(),
+    [](const ui::PrimitiveDrawCommand* a, const ui::PrimitiveDrawCommand* b) {
+      if (a->layer != b->layer) return a->layer < b->layer;
+      return a->sortOrder < b->sortOrder;
+    });
+
+  for (const ui::PrimitiveDrawCommand* drawCmdPtr : sortedCommands)
   {
+    const ui::PrimitiveDrawCommand& drawCmd = *drawCmdPtr;
     uint32_t textureId = drawCmd.textureId;
     if (textureId == std::numeric_limits<uint32_t>::max() && params.drawList.hasSolidFillFallback())
     {
