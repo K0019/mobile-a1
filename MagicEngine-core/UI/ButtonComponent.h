@@ -21,7 +21,8 @@ All rights reserved.
 #include "UI/SpriteComponent.h"
 #include "ECS/IRegisteredComponent.h"
 #include "Editor/IEditorComponent.h"
-#include "Utilities/MaskTemplate.h"
+#include "Engine/Resources/ResourcesHeader.h"
+#include "Engine/Resources/Types/ResourceTypesGraphics.h"
 
 class ButtonComponent
 	: public IUIComponent
@@ -29,14 +30,27 @@ class ButtonComponent
 	, public IEditorComponent<ButtonComponent>
 {
 public:
+	ButtonComponent();
+
+	void OnPressed();
+	bool GetIsPressed() const;
+	void ResetPressState();
+
 	void OnClicked();
 
 	// Forces attachment of a sprite component
 	void OnAttached() override;
 
 	void EditorDraw() override;
+	void Serialize(Serializer& writer) const override;
+	void Deserialize(Deserializer& reader) override;
 
 private:
+	void SwapPrimitive();
+
+private:
+	std::optional<Primitive2DHolder> otherPrimitive;
+	bool isPressed;
 
 };
 

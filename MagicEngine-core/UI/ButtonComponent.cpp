@@ -30,11 +30,36 @@ namespace internal {
 
 	bool TestClicked(RectTransformComponent& rectTransform, SpriteComponent& spriteComp, Vec2 mousePos)
 	{
-		return std::visit([&rectTransform, mousePos](auto& primitive) -> bool {
+		return spriteComp.template VisitPrimitive<bool>([&rectTransform, mousePos](auto& primitive) -> bool {
 			return primitive.IsClicked(rectTransform, mousePos);
-		}, spriteComp.GetPrimitive());
+		});
 	}
 
+}
+
+ButtonComponent::ButtonComponent()
+	: isPressed{}
+{
+}
+
+void ButtonComponent::OnPressed()
+{
+	isPressed = true;
+	SwapPrimitive();
+}
+
+bool ButtonComponent::GetIsPressed() const
+{
+	return isPressed;
+}
+
+void ButtonComponent::ResetPressState()
+{
+	if (!isPressed)
+		return;
+
+	isPressed = false;
+	SwapPrimitive();
 }
 
 void ButtonComponent::OnClicked()
@@ -54,6 +79,50 @@ void ButtonComponent::EditorDraw()
 	{
 		gui::SetStyleColor textColor{ gui::FLAG_STYLE_COLOR::TEXT, gui::Vec4{ 1.0f, 0.2f, 0.2f, 1.0f } };
 		gui::TextWrapped("SpriteComponent IS REQUIRED for button to work. Please attach a SpriteComponent.");
+		gui::Separator();
+	}
+
+	bool hasAlternatePrimitive{ otherPrimitive.has_value() };
+	if (gui::Checkbox("Change Sprite When Pressed", &hasAlternatePrimitive))
+	{
+		if (hasAlternatePrimitive)
+			otherPrimitive = Primitive2DHolder{};
+		else
+			otherPrimitive.reset();
+	}
+
+	if (otherPrimitive)
+		otherPrimitive->EditorDraw();
+}
+
+void ButtonComponent::Serialize(Serializer& writer) const
+{
+	writer.Serialize("hasPrimitive", otherPrimitive.has_value());
+	if (otherPrimitive)
+		otherPrimitive->Serialize(writer);
+}
+
+void ButtonComponent::Deserialize(Deserializer& reader)
+{
+	bool hasPrimitive{};
+	reader.DeserializeVar("hasPrimitive", &hasPrimitive);
+	if (!hasPrimitive)
+		return;
+
+	otherPrimitive = Primitive2DHolder{};
+	otherPrimitive->Deserialize(reader);
+}
+
+void ButtonComponent::SwapPrimitive()
+{
+	if (!otherPrimitive.has_value())
+		return;
+
+	if (auto spriteComp{ ecs::GetEntity(this)->GetComp<SpriteComponent>() })
+	{
+		Primitive2DHolder prevPrimitive{ spriteComp->GetPrimitive() };
+		spriteComp->SetPrimitive(*otherPrimitive);
+		otherPrimitive = std::move(prevPrimitive);
 	}
 }
 
@@ -93,13 +162,19 @@ Vec2 ButtonInputSystem::RetrieveMousePos()
 
 void ButtonInputSystem::CheckButtonInput(ButtonComponent& buttonComp, SpriteComponent& spriteComp, RectTransformComponent& rectTransform)
 {
-	// Test if the button was clicked
+	// Reset sprites on all buttons when released
+	bool wasPressed{ buttonComp.GetIsPressed() };
+	if (released)
+		buttonComp.ResetPressState();
+
+	// Test if the mouse position is within the button boundaries
 	if (!TestClicked(rectTransform, spriteComp, pos))
 		return;
 
-	// TODO: Change sprite
-
-	// If released, execute button click function
-	if (released)
+	// If pressed on button, change sprite
+	if (pressed)
+		buttonComp.OnPressed();
+	// If released on the button that was pressed, execute button click function
+	else if (released && wasPressed)
 		buttonComp.OnClicked();
 }
