@@ -11,6 +11,7 @@
 #include "Engine/Audio.h"
 #include "Engine/BehaviorTree/BehaviourTree.h"
 #include "Engine/Platform/Android/AndroidInputManager.h"
+#include "Engine/Platform/Android/AndroidUIDeleter.h"
 #include "Engine/EntityLayers.h"
 #include "Engine/NavMesh.h"
 #include "Engine/NavMeshAgent.h"
