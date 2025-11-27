@@ -130,9 +130,6 @@ void AndroidInputComp::OnStart()
     CONSOLE_LOG(LEVEL_DEBUG) << "OnStart of AndroidInputComp Running";
 #endif
 
-#ifndef __ANDROID__
-    ecs::DeleteEntity(ecs::GetEntity(this));
-#endif
 }
 
 void AndroidInputComp::OnDetached()
