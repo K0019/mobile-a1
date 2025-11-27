@@ -22,6 +22,7 @@ All rights reserved.
 #include "Editor/Containers/GUICollection.h"
 #include "FilepathConstants.h"
 #include "graphics/features/grid_feature.h"
+#include "graphics/render_feature.h"
 #include "Editor/EditorCameraBridge.h"
 #include "Graphics/RenderComponent.h"
 #include "Graphics/AnimationComponent.h"
@@ -35,6 +36,8 @@ All rights reserved.
 #include "VFS/VFS.h"
 
 #include "ECS/ECSSysLayers.h"
+#include "Utilities/Messaging.h"
+#include "Game/GameSystems.h"
 
 GraphicsMain::GraphicsMain()
 	: sceneFeatureHandle{}
@@ -44,6 +47,8 @@ GraphicsMain::GraphicsMain()
 
 GraphicsMain::~GraphicsMain()
 {
+	Messaging::Unsubscribe("EngineTogglePlayMode", OnTogglePlayMode);
+
 	if (context.renderer)
 	{
 		context.renderer->DestroyFeature(gridHandle);
@@ -68,6 +73,18 @@ void GraphicsMain::Init(Context inContext)
 
 	InitFont(fontsFile);
 	overlayGui = std::make_unique<ui::ImmediateGui>(*context.renderer, ui2dFeatureHandle, *context.resourceMngr);
+
+	// Subscribe to play mode toggle events
+	Messaging::Subscribe("EngineTogglePlayMode", OnTogglePlayMode);
+
+	// Initialize grid state based on current game mode
+	// In release builds, game starts in play mode, so grid should be disabled
+	auto* gameStateManager = ST<GameSystemsManager>::Get();
+	if (gameStateManager)
+	{
+		bool inEditorMode = (gameStateManager->GetState() == GAMESTATE::EDITOR);
+		SetGridEnabled(inEditorMode);
+	}
 }
 
 void GraphicsMain::BeginFrame()
@@ -983,6 +1000,31 @@ void GraphicsMain::SetViewCamera(const Camera& camera)
 {
 	frameData.cameraPos = camera.getPosition();
 	frameData.viewMatrix = camera.getViewMatrix();
+}
+
+void GraphicsMain::SetGridEnabled(bool enabled)
+{
+	// The render feature uses triple buffering - we need to set all buffers
+	// to ensure the change propagates immediately without flickering
+	auto* gridFeature = context.renderer->GetFeature<GridFeature>(gridHandle);
+	if (gridFeature)
+	{
+		// Write to all parameter buffers
+		for (int i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i)
+		{
+			gridFeature->param_[i].enabled = enabled;
+		}
+	}
+}
+
+void GraphicsMain::OnTogglePlayMode()
+{
+	auto* gameStateManager = ST<GameSystemsManager>::Get();
+	// When message is broadcast, state hasn't changed yet
+	// So if currently in EDITOR, we're about to go to IN_GAME (disable grid)
+	// If currently in IN_GAME/PAUSE, we're about to go to EDITOR (enable grid)
+	bool currentlyInEditor = (gameStateManager->GetState() == GAMESTATE::EDITOR);
+	ST<GraphicsMain>::Get()->SetGridEnabled(!currentlyInEditor);
 }
 
 FrameData& GraphicsMain::INTERNAL_GetFrameData()
