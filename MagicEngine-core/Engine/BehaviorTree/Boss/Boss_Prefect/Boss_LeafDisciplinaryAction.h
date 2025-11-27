@@ -10,6 +10,6 @@ private:
     static int lungeCount;
     static float explosionSize;
     
-    int currentLungeCount;
-    bool hasExploded;
+    int currentLungeCount=0;
+    bool hasExploded=false;
 };

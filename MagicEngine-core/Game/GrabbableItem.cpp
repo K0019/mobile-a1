@@ -92,11 +92,21 @@ GrabbableItemComponent::GrabbableItemComponent() :
 void GrabbableItemComponent::Serialize(Serializer& writer) const
 {
 	this->IRegisteredComponent::Serialize(writer);
+
+	writer.Serialize(lightAttackAnimation);
+	writer.Serialize(heavyAttackAnimation);
+	writer.Serialize(ultimAttackAnimation);
+	writer.Serialize(parryAnimation);
 }
 
 void GrabbableItemComponent::Deserialize(Deserializer& reader)
 {
 	this->IRegisteredComponent::Deserialize(reader);
+
+	reader.Deserialize(&lightAttackAnimation);
+	reader.Deserialize(&heavyAttackAnimation);
+	reader.Deserialize(&ultimAttackAnimation);
+	reader.Deserialize(&parryAnimation);
 }
 
 void GrabbableItemComponent::EditorDraw()
@@ -104,6 +114,36 @@ void GrabbableItemComponent::EditorDraw()
 	gui::VarInput("Damage", &damage);
 	gui::VarInput("Attack Box", &attackBox);
 	gui::VarInput("Attack Delay", &attackDelay);
+
+	// Animations
+	gui::TextUnformatted("Light Attack");
+	gui::SameLine();
+	std::string blankName = "";
+	gui::TextBoxReadOnly("##AnimClipLight", ST<MagicResourceManager>::Get()->Editor_GetName(lightAttackAnimation.GetHash()) ? (*ST<MagicResourceManager>::Get()->Editor_GetName(lightAttackAnimation.GetHash())) : blankName);
+	gui::PayloadTarget<size_t>("ANIMATION_HASH", [&](size_t hash) -> void {
+		lightAttackAnimation = hash;
+		});
+
+	gui::TextUnformatted("Heavy Attack");
+	gui::SameLine();
+	gui::TextBoxReadOnly("##AnimClipHeavy", ST<MagicResourceManager>::Get()->Editor_GetName(heavyAttackAnimation.GetHash()) ? (*ST<MagicResourceManager>::Get()->Editor_GetName(heavyAttackAnimation.GetHash())) : blankName);
+	gui::PayloadTarget<size_t>("ANIMATION_HASH", [&](size_t hash) -> void {
+		heavyAttackAnimation = hash;
+		});
+
+	gui::TextUnformatted("Ultimate");
+	gui::SameLine();
+	gui::TextBoxReadOnly("##AnimClipUltim", ST<MagicResourceManager>::Get()->Editor_GetName(ultimAttackAnimation.GetHash()) ? (*ST<MagicResourceManager>::Get()->Editor_GetName(ultimAttackAnimation.GetHash())) : blankName);
+	gui::PayloadTarget<size_t>("ANIMATION_HASH", [&](size_t hash) -> void {
+		ultimAttackAnimation = hash;
+		});
+
+	gui::TextUnformatted("Parry");
+	gui::SameLine();
+	gui::TextBoxReadOnly("##AnimClipParry", ST<MagicResourceManager>::Get()->Editor_GetName(parryAnimation.GetHash()) ? (*ST<MagicResourceManager>::Get()->Editor_GetName(parryAnimation.GetHash())) : blankName);
+	gui::PayloadTarget<size_t>("ANIMATION_HASH", [&](size_t hash) -> void {
+		parryAnimation = hash;
+		});
 }
 
 GrabbableItemComponentSystem::GrabbableItemComponentSystem()
@@ -117,10 +157,10 @@ void GrabbableItemComponentSystem::UpdateGrabbableItemComponent(GrabbableItemCom
 	ecs::CompHandle<physics::PhysicsComp> physicsComp = itemEntity->GetComp<physics::PhysicsComp>();
 	ecs::CompHandle<physics::BoxColliderComp> colliderComp = itemEntity->GetComp<physics::BoxColliderComp>();
 
-	physicsComp->SetFlag(physics::PHYSICS_COMP_FLAG::ENABLED, !comp.isHeld);
-	physicsComp->SetFlag(physics::PHYSICS_COMP_FLAG::USE_GRAVITY, !comp.isHeld);
-	physicsComp->SetFlag(physics::PHYSICS_COMP_FLAG::IS_KINEMATIC, comp.isHeld);
-	colliderComp->SetFlag(physics::COLLIDER_COMP_FLAG::ENABLED, !comp.isHeld);
+	//physicsComp->SetFlag(physics::PHYSICS_COMP_FLAG::ENABLED, !comp.isHeld);
+	//physicsComp->SetFlag(physics::PHYSICS_COMP_FLAG::USE_GRAVITY, !comp.isHeld);
+	//physicsComp->SetFlag(physics::PHYSICS_COMP_FLAG::IS_KINEMATIC, comp.isHeld);
+	//colliderComp->SetFlag(physics::COLLIDER_COMP_FLAG::ENABLED, !comp.isHeld);
 
 	if (comp.isHeld)
 	{

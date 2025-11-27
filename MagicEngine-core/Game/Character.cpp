@@ -48,6 +48,7 @@ CharacterMovementComponent::CharacterMovementComponent()
 	, currentStunTime{ 0.0f }
 	, currentDodgeTime{ 0.0f }
 	, isAttacking{ false }
+	, speedMultiplier{ 1.0f }
 {
 }
 
@@ -200,7 +201,13 @@ bool CharacterMovementComponent::Attack()
 	
 	// Get the animation component
 	ecs::CompHandle<AnimationComponent> animComp = thisEntity->GetComp<AnimationComponent>();
+
+	// Attempt to use animation pulled from the item, if nonexistent then use the fallback anim on the Character
+	animComp->animHandleA = attackItem->GetComp<GrabbableItemComponent>()->lightAttackAnimation;
+	if(!animComp->GetAnimationClipA())
 	animComp->animHandleA = animations[ATTACK];
+
+
 	isAttacking = true;
 
 	return true;
@@ -268,6 +275,16 @@ void CharacterMovementComponent::Deserialize(Deserializer& reader)
 		}
 		reader.PopAccess();
 	}
+}
+
+void CharacterMovementComponent::SetSpeedMultiplier(float mult)
+{
+	speedMultiplier = mult;
+}
+
+void CharacterMovementComponent::ResetSpeedMultiplier()
+{
+	speedMultiplier = 1.0f;
 }
 
 void CharacterMovementComponent::EditorDraw()
@@ -401,7 +418,7 @@ void CharacterMovementComponentSystem::UpdateCharacterMovementComponent(Characte
 	}
 	else
 	{
-		moveDir *= comp.moveSpeed;
+		moveDir *= comp.moveSpeed * comp.speedMultiplier;
 	}
 
 	physicsComp->AddLinearVelocity(moveDir);

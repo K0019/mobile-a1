@@ -21,6 +21,8 @@ All rights reserved.
 #pragma once
 #include "ECS/EntityUID.h"
 #include "Editor/IEditorComponent.h"
+#include "Engine/Resources/ResourcesHeader.h"
+#include "Engine/Resources/Types/ResourceTypesGraphics.h"
 
 /*****************************************************************//*!
 \class GrabbableItemComponent
@@ -32,6 +34,12 @@ class GrabbableItemComponent
 	, public IEditorComponent<GrabbableItemComponent>
 {
 public:
+	UserResourceHandle<ResourceAnimation> lightAttackAnimation;
+	UserResourceHandle<ResourceAnimation> heavyAttackAnimation;
+	UserResourceHandle<ResourceAnimation> ultimAttackAnimation;
+	UserResourceHandle<ResourceAnimation> parryAnimation;
+
+
 	void Attack(Vec3 origin, Vec3 direction);
 	/*****************************************************************//*!
 	\brief

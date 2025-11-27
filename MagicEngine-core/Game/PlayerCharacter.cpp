@@ -112,13 +112,18 @@ void PlayerMovementComponentSystem::UpdatePlayerMovementComponent(PlayerMovement
 			ecs::CompHandle< GrabbableItemComponent> closestItem = nullptr;
 			for (auto itemComp = ecs::GetCompsBegin<GrabbableItemComponent>(); itemComp != ecs::GetCompsEnd<GrabbableItemComponent>(); ++itemComp)
 			{
-				// Just in case, this shouldn't happen
+				// Just in case, don't grab nothing
 				if (itemComp.GetEntity() == nullptr)
 					continue;
 
 				// Don't grab self
 				if (itemComp.GetEntity() == playerEntity)
 					continue;
+
+				// Don't grab people
+				if (itemComp.GetEntity()->GetComp<CharacterMovementComponent>())
+					continue;
+
 				assert(ecs::IsEntityHandleValid(itemComp.GetEntity()));
 
 				// Can't pick up other held items

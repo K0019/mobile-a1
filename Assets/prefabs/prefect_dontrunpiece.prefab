@@ -1,0 +1,72 @@
+{
+    "entities": [
+        {
+            "parentIndex": -1,
+            "position": {
+                "x": -12.075304985046387,
+                "y": -4.440293788909912,
+                "z": -1.286287784576416
+            },
+            "rotation": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "scale": {
+                "x": 1.0,
+                "y": 2.0,
+                "z": 1.0
+            },
+            "components": {
+                "5352011725353660904": {
+                    "_active": true,
+                    "meshHandle": {
+                        "hash": 394651007363811311
+                    },
+                    "materials": [
+                        {
+                            "hash": 1903056716174195867
+                        }
+                    ]
+                },
+                "6766054303456732338": {
+                    "_active": true,
+                    "layer": 0
+                },
+                "7205334411763290517": {
+                    "_active": true,
+                    "name": "prefect_dontrunpiece"
+                },
+                "9315785795257285655": {
+                    "_active": true,
+                    "uid": 13880150127544408071
+                },
+                "18236831197208900764": {
+                    "_active": true,
+                    "center": {
+                        "x": 0.0,
+                        "y": 0.0,
+                        "z": 0.0
+                    },
+                    "size": {
+                        "x": 1.0,
+                        "y": 1.0,
+                        "z": 1.0
+                    },
+                    "flags": {
+                        "_majorityTrue": true,
+                        "_except": []
+                    }
+                },
+                "18288371625365795113": {
+                    "_active": true,
+                    "scripts": [
+                        {
+                            "scriptName": "prefect_dontrunpiece.lua"
+                        }
+                    ]
+                }
+            }
+        }
+    ]
+}

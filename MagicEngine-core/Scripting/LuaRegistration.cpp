@@ -291,6 +291,10 @@ float Lua_RandomRangeFloat(float min, float max)
 {
 	return randomFloat(min, max);
 }
+int Lua_RandomRangeInt(int min, int max)
+{
+	return randomRange(min, max);
+}
 Vec3 Lua_RandomRangeVec(Vec3 min, Vec3 max)
 {
 	return randomVec(min, max);
@@ -336,6 +340,7 @@ void RegisterCppStuffToLua(luabridge::Namespace baseTable)
 		.addFunction("Subtract", [](const Vec3* a, const Vec3* b) -> Vec3 { return (*a) - (*b);	})
 		.addFunction("Dot", [](const Vec3* a, const Vec3* b) -> float { return a->Dot(*b);	})
 		.addFunction("Cross", [](const Vec3* a, const Vec3* b) -> Vec3 { return (*a)*(*b);	})
+		.addFunction("Scale", [](const Vec3* a, const float b) -> Vec3 { return (*a)*b;	})
 		//.addFunction("Scale", [](const Vec3* a, const float* s) -> Vec3 { return (*a) * (*s);	})
 			//.addFunction("DirectionEntities", [](const ecs::EntityHandle a, const ecs::EntityHandle b) -> Vec3 { if (!a||!b) return Vec3{ 0 };  return  b->GetTransform().GetWorldPosition() - a->GetTransform().GetWorldPosition() ;	})
 		.endClass()
@@ -543,7 +548,8 @@ void RegisterCppStuffToLua(luabridge::Namespace baseTable)
 		.endNamespace()
 
 		.beginNamespace("Random")
-			.addFunction("Range", Lua_RandomRangeFloat)
+			.addFunction("RangeFloat", Lua_RandomRangeFloat)
+			.addFunction("RangeInt", Lua_RandomRangeInt)
 			.addFunction("DiceRoll", Lua_NumberedDiceRoll)
 			.addFunction("RangeVec3", Lua_RandomRangeVec)
 		.endNamespace()
