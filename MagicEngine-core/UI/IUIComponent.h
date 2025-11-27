@@ -19,13 +19,24 @@ All rights reserved.
 
 #pragma once
 #include "ECS/IRegisteredComponent.h"
+#include "UI/RectTransform.h"
 
-class IUIComponent
-	: public ecs::IComponentCallbacks
+class IUIComponentBase : public ecs::IComponentCallbacks
+{
+};
+
+template <typename T>
+class IUIComponent : public IUIComponentBase
 {
 public:
 	void OnAttached() override;
 };
+
+template <typename T>
+void IUIComponent<T>::OnAttached()
+{
+	ecs::GetEntity(static_cast<T*>(this))->AddComp(RectTransformComponent{});
+}
 
 //class IUIComponentWithInput
 //	: public IUIComponent

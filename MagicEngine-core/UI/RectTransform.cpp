@@ -36,11 +36,15 @@ Vec2 RectTransformComponent::GetLocalPosition() const
 }
 void RectTransformComponent::SetLocalPosition(Vec2 newPos)
 {
-	ecs::GetEntityTransform(this).SetLocalPosition(Vec3{ newPos, 0.0f });
+	ecs::GetEntityTransform(this).SetLocalPosition(Vec3{ newPos, ecs::GetEntityTransform(this).GetLocalPosition().z });
 }
 Vec2 RectTransformComponent::GetWorldPosition() const
 {
 	return Vec2{ ecs::GetEntityTransform(this).GetWorldPosition() };
+}
+void RectTransformComponent::SetWorldPosition(Vec2 newPos)
+{
+	ecs::GetEntityTransform(this).SetWorldPosition(Vec3{ newPos, ecs::GetEntityTransform(this).GetLocalPosition().z });
 }
 float RectTransformComponent::GetRotation() const
 {
@@ -58,9 +62,13 @@ Vec2 RectTransformComponent::GetWorldScale() const
 {
 	return Vec2{ ecs::GetEntityTransform(this).GetWorldScale() };
 }
-void RectTransformComponent::SetScale(Vec2 newScale)
+void RectTransformComponent::SetLocalScale(Vec2 newScale)
 {
-	ecs::GetEntityTransform(this).SetLocalScale(Vec3{ newScale, 0.0f });
+	ecs::GetEntityTransform(this).SetLocalScale(Vec3{ newScale, 1.0f });
+}
+void RectTransformComponent::SetWorldScale(Vec2 newScale)
+{
+	ecs::GetEntityTransform(this).SetWorldScale(Vec3{ newScale, 1.0f });
 }
 
 void RectTransformComponent::EditorDraw()
@@ -68,15 +76,15 @@ void RectTransformComponent::EditorDraw()
 	unsigned int layer{ GetLayer() };
 	if (gui::VarDrag("Layer", &layer))
 		SetLayer(static_cast<uint16_t>(layer));
-	Vec2 vec{ GetLocalPosition() };
+	Vec2 vec{ GetWorldPosition() };
 	if (gui::VarDrag("Position", &vec))
-		SetLocalPosition(vec);
+		SetWorldPosition(vec);
 	float f{ GetRotation() };
 	if (gui::VarDrag("Rotation", &f))
 		SetRotation(f);
-	vec = GetLocalScale();
+	vec = GetWorldScale();
 	if (gui::VarDrag("Scale", &vec))
-		SetScale(vec);
+		SetWorldScale(vec);
 }
 
 void RectTransformComponent::OnAttached()
@@ -84,7 +92,7 @@ void RectTransformComponent::OnAttached()
 	Transform& transform{ ecs::GetEntityTransform(this) };
 	transform.SetLocal(
 		transform.GetLocalPosition(),
-		Vec3{ transform.GetLocalScale().x, transform.GetLocalScale().y, 0.0f },
+		Vec3{ transform.GetLocalScale().x, transform.GetLocalScale().y, 1.0f },
 		Vec3{ transform.GetLocalRotation().x, 0.0f, 0.0f }
 	);
 }

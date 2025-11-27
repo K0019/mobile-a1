@@ -25,9 +25,9 @@ All rights reserved.
 #include "Engine/Resources/Types/ResourceTypesGraphics.h"
 
 class ButtonComponent
-	: public IUIComponent
-	, public IRegisteredComponent<ButtonComponent>
+	: public IRegisteredComponent<ButtonComponent>
 	, public IEditorComponent<ButtonComponent>
+	, public IUIComponent<ButtonComponent>
 {
 public:
 	ButtonComponent();
