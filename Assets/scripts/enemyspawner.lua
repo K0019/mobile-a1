@@ -69,7 +69,8 @@ function wavespawn()
 
              local transform = spawnPosEntity.transform
              local worldPos = transform.worldPosition
-             -Magic.Log(Magic.LogLevel.info, "Spawn Pos"..worldPos)
+            Magic.Log(Magic.LogLevel.info,string.format("linearVelocity (after) = (%.3f, %.3f, %.3f)", worldPos.x, worldPos.y, worldPos.z))
+
 
              newEnemyTransform.worldPosition = worldPos
 
@@ -80,6 +81,7 @@ function wavespawn()
             local scriptComp = newEnemy:GetScriptComponent()
             if scriptComp:Exists() then
             
+            end
 
         end
     else
