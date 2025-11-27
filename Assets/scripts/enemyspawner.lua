@@ -53,8 +53,6 @@ function wavespawn()
              local spawnPosEntity = entityContainer:GetEntityReference(i)
 
              -- spawn position based on referenced object 1 - however many
-             local worldPos = spawnPosEntity.worldPosition
-             Magic.Log(Magic.LogLevel.info, "Spawn Pos"..worldPos)
 
              -- spawn type of enemy based on referenced object name
              local nameComp = spawnPosEntity:GetNameComponent()
@@ -62,16 +60,23 @@ function wavespawn()
 
              -- load and spawn enemy based on assigned name and pos
              local newEnemy = Magic.PrefabManager.LoadPrefab(nameComp.name)
-             newEnemy.transform.worldPosition = worldPos
+             local newEnemyTransform = newEnemy.transform
+             Magic.Log(Magic.LogLevel.info, "Spawned "..nameComp.name)
+
+             local transform = spawnPosEntity.transform
+             local worldPos = transform.worldPosition
+             Magic.Log(Magic.LogLevel.info, "Spawn Pos"..worldPos)
+
+             newEnemyTransform.worldPosition = worldPos
 
              -- keep track of enemies spawned
             EnemySpawner.aliveEnemies = EnemySpawner.aliveEnemies + 1
             
-            local scriptComp = newEnemy:GetScriptComponent()
-            if scriptComp:Exists then
+            --local scriptComp = newEnemy:GetScriptComponent()
+            --if scriptComp:Exists then
             --scriptComp.OnHealthDepleted = function()
                     --enemydeath(newEnemy)
-            end
+            --end
 
         end
     else

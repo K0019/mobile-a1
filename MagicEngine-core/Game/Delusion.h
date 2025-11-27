@@ -48,7 +48,7 @@ class DelusionComponent
 {
 public:
 	using DelusionType = float;
-
+	EntityReference owner;
 
 
 	/*****************************************************************//*!
@@ -146,7 +146,6 @@ private:
 	DelusionType lossRate;
 	DelusionTiers prevTier;
 	DelusionTiers currTier;
-
 	static constexpr DelusionType defaultMax{ 100.0f };
 	property_vtable()
 };

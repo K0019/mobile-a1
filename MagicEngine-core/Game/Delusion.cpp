@@ -25,6 +25,7 @@ All rights reserved.
 /******************************************************************************/
 
 #include "Delusion.h"
+#include "Game/Health.h"
 #include "Character.h"
 #include "PlayerCharacter.h"
 #include "Physics//Physics.h"
@@ -54,6 +55,7 @@ DelusionComponent::DelusionComponent() :
 	, ultValue{ 90.0f }
 	, prevTier{DelusionTiers::DT_F}
 	, currTier{DelusionTiers::DT_F}
+    , owner {nullptr}
 {
 }
 
@@ -128,6 +130,7 @@ void DelusionComponent::UpdateDelusionTier()
 	ST<AudioManager>::Get()->PlaySound(currTier > prevTier ? "rank increase" : "rank decrease", false);
 
 	//buffs and debuffs, as of yet unimplemented due to it being hard to see interactions, but ill throw in the pseudo code
+    /*
     switch (currTier)
     {
     case DelusionTiers::DT_F:
@@ -144,7 +147,7 @@ void DelusionComponent::UpdateDelusionTier()
         }
 
         gainRate = 1.0f; // remove delusion gain increase
-        loseRate = 1.0f; // remove delusion lose decrease
+        lossRate = 1.0f; // remove delusion lose decrease
         break;
     }
 
@@ -163,7 +166,7 @@ void DelusionComponent::UpdateDelusionTier()
         }
 
         gainRate = 1.0f; // remove delusion gain increase
-        loseRate = 1.0f; // remove delusion lose decrease
+        lossRate = 1.0f; // remove delusion lose decrease
         break;
     }
 
@@ -182,7 +185,7 @@ void DelusionComponent::UpdateDelusionTier()
         }
 
         gainRate = 1.2f; // delusion gain up
-        loseRate = 1.0f; // remove delusion lose decrease
+        lossRate = 1.0f; // remove delusion lose decrease
         break;
     }
 
@@ -207,7 +210,7 @@ void DelusionComponent::UpdateDelusionTier()
             healthComp->AddHealth(20); // Health regen function not coded yet
         }
 
-        loseRate = 1.0f; // remove delusion lose decrease
+        lossRate = 1.0f; // remove delusion lose decrease
         break;
     }
 
@@ -226,7 +229,7 @@ void DelusionComponent::UpdateDelusionTier()
         }
 
         gainRate = 1.2f;
-        loseRate = 0.8f; // delusion loss down
+        lossRate = 0.8f; // delusion loss down
         break;
     }
 
@@ -245,7 +248,7 @@ void DelusionComponent::UpdateDelusionTier()
         }
 
         gainRate = 1.2f;
-        loseRate = 0.8f; 
+        lossRate = 0.8f;
         
         // ulti available
         break;
@@ -255,6 +258,7 @@ void DelusionComponent::UpdateDelusionTier()
         // Handle unexpected case (optional)
         break;
     }
+    */
 	prevTier = currTier;
 }
 
