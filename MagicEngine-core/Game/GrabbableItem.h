@@ -41,7 +41,9 @@ public:
 
 	// Serialized
 	float damage;
-	
+	Vec3 attackBox;
+	float attackDelay;
+
 	// Not serialized
 	bool isHeld;
 	EntityReference owner;
@@ -71,6 +73,9 @@ private:
 
 property_begin(GrabbableItemComponent)
 {
+	property_var(damage),
+	property_var(attackBox),
+	property_var(attackDelay),
 }
 property_vend_h(GrabbableItemComponent)
 

@@ -339,13 +339,29 @@ namespace editor {
             return false;
         }
 
+        bool isActive = ecs::GetCompActive(entity->GetComp<NameComponent>());
+
         // Apply color based on selection and search match
         if (isSelected) {
-            ImGui::PushStyleColor(ImGuiCol_Text, ImVec4{ 0.0f, 1.0f, 0.0f, 1.0f });
+            if (isActive)
+                ImGui::PushStyleColor(ImGuiCol_Text, ImVec4{ 0.0f, 1.0f, 0.0f, 1.0f });
+            else
+                ImGui::PushStyleColor(ImGuiCol_Text, ImVec4{ 0.0f, 1.0f, 0.0f, 1.0f });
         }
         else if (isFilterActive && matchesSearch) {
             // Highlight matching entities with a different color (yellow)
-            ImGui::PushStyleColor(ImGuiCol_Text, ImVec4{ 1.0f, 1.0f, 0.0f, 1.0f });
+            if (isActive)
+                ImGui::PushStyleColor(ImGuiCol_Text, ImVec4{ 1.0f, 1.0f, 0.0f, 1.0f });
+            else
+                ImGui::PushStyleColor(ImGuiCol_Text, ImVec4{ 0.5f, 0.5f, 0.0f, 1.0f });
+        }
+        else
+        {
+            if (isActive)
+                ImGui::PushStyleColor(ImGuiCol_Text, ImVec4{ 1.0f, 1.0f, 1.0f, 1.0f });
+            else
+                ImGui::PushStyleColor(ImGuiCol_Text, ImVec4{ 0.5f, 0.5f, 0.5f, 1.0f });
+
         }
 
         // Push ID to avoid ImGui ID conflicts
@@ -360,10 +376,7 @@ namespace editor {
             if (isRenamingEntity && entity == entityToRename)
             {
                 // Pop colour before renaming widget comes up
-                if (isSelected || (isFilterActive && matchesSearch))
-                {
-                    ImGui::PopStyleColor();
-                }
+                ImGui::PopStyleColor();
 
                 HandleEntityRenaming();
             }
@@ -373,10 +386,7 @@ namespace editor {
                 ImGui::Selectable(name.c_str(), false, ImGuiSelectableFlags_DontClosePopups);
 
                 // Pop colour after displaying
-                if (isSelected || (isFilterActive && matchesSearch))
-                {
-                    ImGui::PopStyleColor();
-                }
+                ImGui::PopStyleColor();
             }
 
             CheckSelection(entity);
@@ -407,10 +417,7 @@ namespace editor {
             if (isRenamingEntity && entity == entityToRename)
             {
                 // Pop colour before renaming widget comes up
-                if (isSelected || matchesSearch)
-                {
                     ImGui::PopStyleColor();
-                }
                 HandleEntityRenaming();
 
                 ImGui::PopID();
@@ -423,10 +430,7 @@ namespace editor {
             treeOpen = ImGui::TreeNodeEx(id.c_str(), ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_SpanAvailWidth, "%s", name.c_str());
 
             // Pop colour after displaying
-            if (isSelected || matchesSearch)
-            {
                 ImGui::PopStyleColor();
-            }
 
             // Check if we're hovering this entity during drag-and-drop
             HandleDragAndDrop(entity, name, targetSceneIndex);

@@ -34,6 +34,11 @@ const std::vector<UserResourceHandle<ResourceMaterial>>& RenderComponent::GetMat
     return materials;
 }
 
+std::vector<UserResourceHandle<ResourceMaterial>>& RenderComponent::GetMaterialsList() 
+{
+    return materials;
+}
+
 void RenderComponent::EditorDraw()
 {
     const std::string* meshText{ ST<MagicResourceManager>::Get()->Editor_GetName(meshHandle.GetHash()) };

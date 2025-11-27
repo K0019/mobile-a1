@@ -22,7 +22,7 @@ All rights reserved.
 
 void IUIComponent::OnAttached()
 {
-	ecs::GetEntity(this)->AddCompNow(RectTransformComponent{});
+	ecs::GetEntity(this)->AddComp(RectTransformComponent{});
 }
 
 //void IUIComponentWithInput::OnAttached()

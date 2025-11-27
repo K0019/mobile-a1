@@ -78,14 +78,15 @@ public:
 	CharacterMovementComponent();
 
 	const Vec2 GetMovementVector();
-	void Dodge(Vec2 vector);
+	bool Dodge(Vec2 vector);
 	void SetMovementVector(Vec2 vector);
 	void RotateTowards(Vec2 vector);
 
 	void DropItem();
 	void Throw(Vec3 direction);
 	void GrabItem(ecs::CompHandle<GrabbableItemComponent> item);
-	void Attack();
+	bool Attack();
+	bool IsDodging();
 
 	void Serialize(Serializer& writer) const override;
 	void Deserialize(Deserializer& reader) override;

@@ -90,8 +90,9 @@ void EntityUIDComponent::Deserialize(Deserializer& deserializer)
 	if (isDefaultPool)
 		ST<EntityUIDLookup>::Get()->UnregisterUID(uid);
 	deserializer.DeserializeVar("uid", &uid);
-	if (isDefaultPool)
-		ST<EntityUIDLookup>::Get()->RegisterUID(uid, ecs::GetEntity(this));
+	// OnAttached() will not have been called yet. Wait for OnAttached() to be called for registering.
+	/*if (isDefaultPool)
+		ST<EntityUIDLookup>::Get()->RegisterUID(uid, ecs::GetEntity(this));*/
 }
 
 EntityRefUID EntityUIDLookup::GenerateAndRegisterNewUID(ecs::EntityHandle entity)

@@ -144,9 +144,11 @@ namespace ecs {
 		\param comp
 			The component whose data will be moved and attached to this entity.
 			AFTER THIS CALL IT IS NOT SAFE TO MODIFY THE COMPONENT OBJECT THAT WAS PASSED IN!
+		\param isActive
+			Whether this component is active or inactive.
 		\return
-			True if the component was successfully registered to this entity.
-			False if another component of this type is already attached to this entity, or ecs::DeleteEntity() was already called on this entity, in which case no changes are made.
+			ecs::CompHandle<T> to the added component. This can be used to modify a component's data.
+			nullptr if another component of this type is already attached to this entity, or ecs::DeleteEntity() was already called on this entity, in which case no changes are made.
 		\code{.cpp}
 			// Example of adding a physics component to an entity.
 			entity->AddComp(PhysicsComponent{});
@@ -155,29 +157,7 @@ namespace ecs {
 		\endcode
 		*//******************************************************************/
 		template <typename T>
-		bool AddComp(T&& comp);
-
-		/*****************************************************************//*!
-		\brief
-			Add and attach a component immediately to this entity. This provides better performance than AddComp().
-			ENTITY COMPONENT ITERATORS AND COMPONENT ARRAY ITERATORS ITERATING THE ADDED COMPONENT TYPE WILL BE INVALIDATED! Use AddComp() instead if you are iterating the same component array type.
-		\tparam T
-			The type of component.
-		\param comp
-			The component whose data will be moved and attached to the entity.
-			AFTER THIS CALL IT IS NOT SAFE TO MODIFY THE COMPONENT OBJECT THAT WAS PASSED IN!
-		\param isActive
-			Whether this component is active or inactive.
-		\return
-			ecs::CompHandle<T> to the added component. This can be used to modify a component's data.
-			nullptr if another component of this type is already attached to this entity, or ecs::DeleteEntity() was already called on this entity, in which case no changes are made.
-		\code{.cpp}
-			// Example of adding a physics component to an entity.
-			entity->AddCompNow(PhysicsComponent{});
-		\endcode
-		*//******************************************************************/
-		template <typename T>
-		CompHandle<T> AddCompNow(T&& comp, bool isActive = true);
+		CompHandle<T> AddComp(T&& comp, bool isActive = true);
 
 		/*****************************************************************//*!
 		\brief

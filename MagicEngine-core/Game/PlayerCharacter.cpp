@@ -104,11 +104,10 @@ void PlayerMovementComponentSystem::UpdatePlayerMovementComponent(PlayerMovement
 		movement = movement.Normalized();
 
 	// Grabbing items
-	if (inputInstance->GetValue(INPUT_READ_TYPE::CURRENT, KEY::F))
+	if (inputInstance->GetIsPressed(KEY::F))
 	{
 		if (characterComp->heldItem == nullptr)
 		{
-
 			float closestDistance = comp.grabDistance * comp.grabDistance;
 			ecs::CompHandle< GrabbableItemComponent> closestItem = nullptr;
 			for (auto itemComp = ecs::GetCompsBegin<GrabbableItemComponent>(); itemComp != ecs::GetCompsEnd<GrabbableItemComponent>(); ++itemComp)
@@ -116,6 +115,11 @@ void PlayerMovementComponentSystem::UpdatePlayerMovementComponent(PlayerMovement
 				// Just in case, this shouldn't happen
 				if (itemComp.GetEntity() == nullptr)
 					continue;
+
+				// Don't grab self
+				if (itemComp.GetEntity() == playerEntity)
+					continue;
+				assert(ecs::IsEntityHandleValid(itemComp.GetEntity()));
 
 				// Can't pick up other held items
 				if (itemComp->isHeld == true)
@@ -139,7 +143,7 @@ void PlayerMovementComponentSystem::UpdatePlayerMovementComponent(PlayerMovement
 	}
 
 	// Throw item
-	if (inputInstance->GetValue(INPUT_READ_TYPE::CURRENT, KEY::B))
+	if (inputInstance->GetIsPressed(KEY::B))
 	{
 		// Look for the nearest enemy
 		Vec3 throwDirection{ camForward.x,1.0f,camForward.y  };
