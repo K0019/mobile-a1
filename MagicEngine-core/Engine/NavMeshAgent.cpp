@@ -201,6 +201,54 @@ namespace navmesh
 		SetAgentParam(params);
 	}
 
+	void NavMeshAgentComp::Deserialize(Deserializer& reader)
+	{
+		ISerializeable::Deserialize(reader);
+		if (auto agentSystem{ ecs::GetSystem<NavMeshAgentSystem>() })
+		{
+			dtCrowd* crowdSystem{ agentSystem->GetCrowdSystem() };
+			if (!crowdSystem)
+				return;
+
+			ST<Scheduler>::Get()->Add([entity = ecs::GetEntity(this), crowdSystem] {
+			//Get necessary data.
+			const Vec3& transPos{ entity->GetTransform().GetWorldPosition()};
+			float pos[3]{ transPos.x, transPos.y, transPos.z };
+			dtCrowdAgentParams params{};
+
+			auto agentComp{ entity->GetComp<NavMeshAgentComp>() };
+			if (!agentComp)
+				return;
+			params.radius = agentComp->GetRadius();
+			params.height = agentComp->GetHeight();
+			params.maxAcceleration = agentComp->GetMaxAcceleration();
+			params.maxSpeed = agentComp->IsActive() ? agentComp->GetMaxSpeed() : 0.f;
+			params.updateFlags = DT_CROWD_ANTICIPATE_TURNS | DT_CROWD_SEPARATION | DT_CROWD_OBSTACLE_AVOIDANCE;
+
+				int id{ -1 };
+				NavMeshHit hit{};
+				if (SamplePosition(transPos, hit, 100.f, +PolyFlags::WALKABLE))
+				{
+					//Create agent.
+					float nearestPos[3]{ hit.position.x, hit.position.y, hit.position.z };
+					id = crowdSystem->addAgent(nearestPos, &params);
+					agentComp->SetAgentID(id);
+					agentComp->SetAgent(crowdSystem->getEditableAgent(id));
+
+					//Update the entity transform.
+					nearestPos[1] += agentComp->GetBaseOffset();
+					entity->GetTransform().SetWorldPosition(Vec3{nearestPos[0], nearestPos[1], nearestPos[2]});
+				}
+
+				if (id == -1)
+				{
+					CONSOLE_LOG(LEVEL_ERROR) << "Couldn't add agent to the agent system.";
+					return;
+				}
+				});
+		}
+	}
+
 	void NavMeshAgentComp::SetAgentPos(Vec3 const& pos)
 	{
 		if (!agent)
@@ -298,16 +346,7 @@ namespace navmesh
 			params.radius = compIter->GetRadius();
 			params.height = compIter->GetHeight();
 			params.maxAcceleration = compIter->GetMaxAcceleration();
-
-			if (compIter->IsActive())
-			{
-				params.maxSpeed = compIter->GetMaxSpeed();
-			}
-			else
-			{
-				params.maxSpeed = 0.f;
-			}
-
+			params.maxSpeed = compIter->IsActive() ? compIter->GetMaxSpeed() : 0.f;
 			params.updateFlags = DT_CROWD_ANTICIPATE_TURNS | DT_CROWD_SEPARATION | DT_CROWD_OBSTACLE_AVOIDANCE;
 
 			int id{-1};

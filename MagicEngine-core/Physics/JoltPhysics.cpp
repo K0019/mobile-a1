@@ -96,7 +96,7 @@ namespace physics {
 		//JPH::AABox bound{ physicsSystem.GetBounds() };
 		//bound.mMin -= JPH::Vec3{ 1.f, 1.f, 1.f };
 		//bound.mMax += JPH::Vec3{ 1.f, 1.f, 1.f };
-		JPH::AABox bound{ JPH::Vec3{JPH::Vec3::sReplicate(-1000.f)}, JPH::Vec3{JPH::Vec3::sReplicate(1000.f)} };
+		JPH::AABox bound{ JPH::Vec3{JPH::Vec3::sReplicate(-100.f)}, JPH::Vec3{JPH::Vec3::sReplicate(100.f)} };
 
 		for (auto colCompIter{ ecs::GetCompsActiveBegin<physics::BoxColliderComp>() }, endIter{ ecs::GetCompsEnd<physics::BoxColliderComp>() }; colCompIter != endIter; ++colCompIter)
 		{

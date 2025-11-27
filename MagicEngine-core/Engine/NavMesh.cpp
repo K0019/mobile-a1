@@ -128,7 +128,6 @@ namespace navmesh
 
 	void NavMeshSurfaceComp::OnAttached()
 	{
-
 	}
 
 	void NavMeshSurfaceComp::OnDetached()
@@ -156,6 +155,36 @@ namespace navmesh
 	void NavMeshSurfaceComp::AddTileRef(const dtTileRef& tileRef)
 	{
 		tileRefs.push_back(tileRef);
+	}
+
+	void NavMeshSurfaceComp::Deserialize(Deserializer& reader)
+	{
+		ISerializeable::Deserialize(reader);
+		if (auto navMeshSystem{ ecs::GetSystem<NavMeshSystem>() })
+		{
+			dtNavMesh* navmesh{ navMeshSystem->GetNavMesh() };
+			if (!navmesh)
+				return;
+
+			std::vector<TileDataBuffer> const& allTileData{ navMeshData.LoadAllTileBuffers() };
+			if (allTileData.size() == 0)
+				return;
+
+			for (TileDataBuffer const& tileData : allTileData)
+			{
+				if (!tileData.second || tileData.first == 0)
+					continue;
+
+				dtTileRef tileRef{};
+				dtStatus status = navmesh->addTile(tileData.second, tileData.first, DT_TILE_FREE_DATA, 0, &tileRef);
+				if (dtStatusFailed(status))
+				{
+					CONSOLE_LOG(LEVEL_ERROR) << "Couldn't add a tile to the global navmesh.";
+					return;
+				}
+				AddTileRef(tileRef);
+			}
+		}
 	}
 
 	void NavMeshSurfaceComp::BakeNavMeshData()
