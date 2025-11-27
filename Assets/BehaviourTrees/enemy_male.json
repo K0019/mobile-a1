@@ -1,5 +1,5 @@
 {
-    "name": "enemybase",
+    "name": "enemy_male",
     "nodes": [
         {
             "nodeType": "Selector",
