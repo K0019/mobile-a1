@@ -55,9 +55,9 @@
         {
             "parentIndex": -1,
             "position": {
-                "x": 0.5,
+                "x": -4.938368320465088,
                 "y": 0.99993896484375,
-                "z": 0.0
+                "z": 2.925443649291992
             },
             "rotation": {
                 "x": 0.0,
@@ -416,9 +416,9 @@
         {
             "parentIndex": -1,
             "position": {
-                "x": -0.8312903046607971,
+                "x": 10.0,
                 "y": 0.10000000149011612,
-                "z": 1.826216697692871
+                "z": 5.0
             },
             "rotation": {
                 "x": 0.0,
@@ -432,7 +432,7 @@
             },
             "components": {
                 "2042496555980785": {
-                    "_active": true,
+                    "_active": false,
                     "agentData": {
                         "param": {
                             "radius": 0.30000001192092896,
@@ -447,7 +447,7 @@
                     }
                 },
                 "5352011725353660904": {
-                    "_active": true,
+                    "_active": false,
                     "meshHandle": {
                         "hash": 2367158375008220311
                     },
@@ -581,31 +581,31 @@
                     ]
                 },
                 "5725819782531291880": {
-                    "_active": true,
+                    "_active": false,
                     "behaviorTree": {
                         "btName": "enemy_female"
                     }
                 },
                 "6766054303456732338": {
-                    "_active": true,
+                    "_active": false,
                     "layer": 0
                 },
                 "7205334411763290517": {
-                    "_active": true,
-                    "name": "Enemy_Female"
+                    "_active": false,
+                    "name": "enemy"
                 },
                 "7930599578754533802": {
-                    "_active": true,
+                    "_active": false,
                     "maxHealth": 100.0,
                     "currHealth": 100.0,
                     "isInvincible": false
                 },
                 "9315785795257285655": {
-                    "_active": true,
+                    "_active": false,
                     "uid": 336609987718299699
                 },
                 "9501525575059265452": {
-                    "_active": true,
+                    "_active": false,
                     "flags": {
                         "_majorityTrue": true,
                         "_except": [
@@ -614,14 +614,14 @@
                     }
                 },
                 "10866432406532598116": {
-                    "_active": true,
+                    "_active": false,
                     "flashTime": 0.25,
                     "flashMaterial": {
                         "hash": 1903056716174195867
                     }
                 },
                 "15371168105777251288": {
-                    "_active": true,
+                    "_active": false,
                     "animHandleA": {
                         "hash": 1
                     },
@@ -635,7 +635,7 @@
                     "speed": 1.0
                 },
                 "16763493199777387366": {
-                    "_active": true,
+                    "_active": false,
                     "combatRange": 3.0,
                     "windUpTime": 0.10000000149011612,
                     "attackTime": 0.009999999776482582,
@@ -649,7 +649,7 @@
                     }
                 },
                 "17579205194823809952": {
-                    "_active": true,
+                    "_active": false,
                     "moveSpeed": 1.7999999523162842,
                     "rotateSpeed": 200.0,
                     "stunTimePerHit": 0.5,
@@ -682,7 +682,7 @@
                     ]
                 },
                 "18236831197208900764": {
-                    "_active": true,
+                    "_active": false,
                     "center": {
                         "x": 0.0,
                         "y": 0.800000011920929,
@@ -701,7 +701,7 @@
                     }
                 },
                 "18288371625365795113": {
-                    "_active": true,
+                    "_active": false,
                     "scripts": [
                         {
                             "scriptName": "enemydeath.lua"
@@ -1114,6 +1114,57 @@
                             "Is Trigger"
                         ]
                     }
+                }
+            }
+        },
+        {
+            "parentIndex": -1,
+            "position": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "rotation": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "scale": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0
+            },
+            "components": {
+                "6766054303456732338": {
+                    "_active": true,
+                    "layer": 0
+                },
+                "7205334411763290517": {
+                    "_active": true,
+                    "name": "Enemy Spawner 1"
+                },
+                "8426725214831635516": {
+                    "_active": true,
+                    "entityReferences": [
+                        {
+                            "entityUid": 3837990472816120687
+                        },
+                        {
+                            "entityUid": 8664467187713744558
+                        }
+                    ]
+                },
+                "9315785795257285655": {
+                    "_active": true,
+                    "uid": 2492536786075458154
+                },
+                "18288371625365795113": {
+                    "_active": true,
+                    "scripts": [
+                        {
+                            "scriptName": "enemyspawner.lua"
+                        }
+                    ]
                 }
             }
         },
@@ -1876,7 +1927,7 @@
         {
             "parentIndex": -1,
             "position": {
-                "x": 1.0,
+                "x": 10.0,
                 "y": 0.10000000149011612,
                 "z": 1.826216697692871
             },
@@ -1892,7 +1943,7 @@
             },
             "components": {
                 "2042496555980785": {
-                    "_active": true,
+                    "_active": false,
                     "agentData": {
                         "param": {
                             "radius": 0.30000001192092896,
@@ -1907,7 +1958,7 @@
                     }
                 },
                 "5352011725353660904": {
-                    "_active": true,
+                    "_active": false,
                     "meshHandle": {
                         "hash": 2367158375008220311
                     },
@@ -2041,31 +2092,35 @@
                     ]
                 },
                 "5725819782531291880": {
-                    "_active": true,
+                    "_active": false,
                     "behaviorTree": {
                         "btName": "enemy_male"
                     }
                 },
                 "6766054303456732338": {
-                    "_active": true,
+                    "_active": false,
                     "layer": 0
                 },
                 "7205334411763290517": {
-                    "_active": true,
-                    "name": "Enemy_Male"
+                    "_active": false,
+                    "name": "enemy"
                 },
                 "7930599578754533802": {
-                    "_active": true,
+                    "_active": false,
                     "maxHealth": 100.0,
                     "currHealth": 100.0,
                     "isInvincible": false
                 },
+                "8426725214831635516": {
+                    "_active": false,
+                    "entityReferences": []
+                },
                 "9315785795257285655": {
-                    "_active": true,
+                    "_active": false,
                     "uid": 10317088139428132266
                 },
                 "9501525575059265452": {
-                    "_active": true,
+                    "_active": false,
                     "flags": {
                         "_majorityTrue": true,
                         "_except": [
@@ -2074,14 +2129,14 @@
                     }
                 },
                 "10866432406532598116": {
-                    "_active": true,
+                    "_active": false,
                     "flashTime": 0.25,
                     "flashMaterial": {
                         "hash": 1903056716174195867
                     }
                 },
                 "15371168105777251288": {
-                    "_active": true,
+                    "_active": false,
                     "animHandleA": {
                         "hash": 1
                     },
@@ -2095,7 +2150,7 @@
                     "speed": 1.0
                 },
                 "16763493199777387366": {
-                    "_active": true,
+                    "_active": false,
                     "combatRange": 0.699999988079071,
                     "windUpTime": 0.20000000298023224,
                     "attackTime": 0.5,
@@ -2109,7 +2164,7 @@
                     }
                 },
                 "17579205194823809952": {
-                    "_active": true,
+                    "_active": false,
                     "moveSpeed": 1.7999999523162842,
                     "rotateSpeed": 200.0,
                     "stunTimePerHit": 0.5,
@@ -2142,7 +2197,7 @@
                     ]
                 },
                 "18236831197208900764": {
-                    "_active": true,
+                    "_active": false,
                     "center": {
                         "x": 0.0,
                         "y": 0.800000011920929,
@@ -2161,7 +2216,7 @@
                     }
                 },
                 "18288371625365795113": {
-                    "_active": true,
+                    "_active": false,
                     "scripts": [
                         {
                             "scriptName": "enemydeath.lua"
@@ -2250,7 +2305,7 @@
             },
             "components": {
                 "137465014557233347": {
-                    "_active": true,
+                    "_active": false,
                     "damage": 2.0,
                     "attackBox": {
                         "x": 1.0,
@@ -2264,7 +2319,7 @@
                     "hash": 2190783515773390719
                 },
                 "5352011725353660904": {
-                    "_active": true,
+                    "_active": false,
                     "meshHandle": {
                         "hash": 1952953653585700607
                     },
@@ -2290,19 +2345,19 @@
                     ]
                 },
                 "6766054303456732338": {
-                    "_active": true,
+                    "_active": false,
                     "layer": 0
                 },
                 "7205334411763290517": {
-                    "_active": true,
+                    "_active": false,
                     "name": "sword"
                 },
                 "9315785795257285655": {
-                    "_active": true,
+                    "_active": false,
                     "uid": 133438930379527913
                 },
                 "9501525575059265452": {
-                    "_active": true,
+                    "_active": false,
                     "flags": {
                         "_majorityTrue": false,
                         "_except": [
@@ -2312,7 +2367,7 @@
                     }
                 },
                 "18236831197208900764": {
-                    "_active": true,
+                    "_active": false,
                     "center": {
                         "x": 0.0,
                         "y": 0.0,
@@ -2775,41 +2830,9 @@
         {
             "parentIndex": 5,
             "position": {
-                "x": 0.0,
-                "y": 0.0,
-                "z": 0.0
-            },
-            "rotation": {
-                "x": 0.0,
-                "y": 0.0,
-                "z": 0.0
-            },
-            "scale": {
-                "x": 1.0,
-                "y": 1.0,
-                "z": 1.0
-            },
-            "components": {
-                "6766054303456732338": {
-                    "_active": true,
-                    "layer": 0
-                },
-                "7205334411763290517": {
-                    "_active": true,
-                    "name": "Classroom"
-                },
-                "9315785795257285655": {
-                    "_active": true,
-                    "uid": 3553013551570998126
-                }
-            }
-        },
-        {
-            "parentIndex": 5,
-            "position": {
-                "x": -5.0,
-                "y": 0.5059739351272583,
-                "z": -4.452697277069092
+                "x": -2.245828151702881,
+                "y": 0.5060335397720337,
+                "z": -12.486613273620605
             },
             "rotation": {
                 "x": 0.0,
@@ -2846,6 +2869,117 @@
                     "entityReferences": [
                         {
                             "entityUid": 1414007138046402671
+                        }
+                    ]
+                },
+                "9315785795257285655": {
+                    "_active": true,
+                    "uid": 2501611055539907733
+                },
+                "18236831197208900764": {
+                    "_active": true,
+                    "center": {
+                        "x": 0.0,
+                        "y": 0.0,
+                        "z": 0.0
+                    },
+                    "size": {
+                        "x": 1.0,
+                        "y": 1.0,
+                        "z": 1.0
+                    },
+                    "flags": {
+                        "_majorityTrue": true,
+                        "_except": []
+                    }
+                },
+                "18288371625365795113": {
+                    "_active": true,
+                    "scripts": [
+                        {
+                            "scriptName": "roomdoortrigger.lua"
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "parentIndex": 5,
+            "position": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "rotation": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "scale": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0
+            },
+            "components": {
+                "6766054303456732338": {
+                    "_active": true,
+                    "layer": 0
+                },
+                "7205334411763290517": {
+                    "_active": true,
+                    "name": "Classroom"
+                },
+                "9315785795257285655": {
+                    "_active": true,
+                    "uid": 3553013551570998126
+                }
+            }
+        },
+        {
+            "parentIndex": 5,
+            "position": {
+                "x": -2.7750589847564697,
+                "y": 0.5060345530509949,
+                "z": 3.0806524753570557
+            },
+            "rotation": {
+                "x": 0.0,
+                "y": -89.99994659423828,
+                "z": 0.0
+            },
+            "scale": {
+                "x": 2.353257417678833,
+                "y": 2.828688383102417,
+                "z": 1.1840837001800537
+            },
+            "components": {
+                "5352011725353660904": {
+                    "_active": true,
+                    "meshHandle": {
+                        "hash": 394651007363811311
+                    },
+                    "materials": [
+                        {
+                            "hash": 388567409527326701
+                        }
+                    ]
+                },
+                "6766054303456732338": {
+                    "_active": true,
+                    "layer": 0
+                },
+                "7205334411763290517": {
+                    "_active": true,
+                    "name": "DoorTrigger_Close"
+                },
+                "8426725214831635516": {
+                    "_active": true,
+                    "entityReferences": [
+                        {
+                            "entityUid": 3658786570163049327
+                        },
+                        {
+                            "entityUid": 2492536786075458154
                         }
                     ]
                 },
@@ -3213,7 +3347,39 @@
             }
         },
         {
-            "parentIndex": 18,
+            "parentIndex": 11,
+            "position": {
+                "x": 2.0,
+                "y": 0.0,
+                "z": -3.0
+            },
+            "rotation": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "scale": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0
+            },
+            "components": {
+                "6766054303456732338": {
+                    "_active": true,
+                    "layer": 0
+                },
+                "7205334411763290517": {
+                    "_active": true,
+                    "name": "enemy"
+                },
+                "9315785795257285655": {
+                    "_active": true,
+                    "uid": 8664467187713744558
+                }
+            }
+        },
+        {
+            "parentIndex": 19,
             "position": {
                 "x": 1.8312902450561523,
                 "y": 0.7395662665367126,
@@ -3231,7 +3397,7 @@
             },
             "components": {
                 "137465014557233347": {
-                    "_active": true,
+                    "_active": false,
                     "damage": 2.0,
                     "attackBox": {
                         "x": 1.0,
@@ -3245,7 +3411,7 @@
                     "hash": 2190783515773390719
                 },
                 "5352011725353660904": {
-                    "_active": true,
+                    "_active": false,
                     "meshHandle": {
                         "hash": 1952953653585700607
                     },
@@ -3271,19 +3437,19 @@
                     ]
                 },
                 "6766054303456732338": {
-                    "_active": true,
+                    "_active": false,
                     "layer": 0
                 },
                 "7205334411763290517": {
-                    "_active": true,
+                    "_active": false,
                     "name": "sword"
                 },
                 "9315785795257285655": {
-                    "_active": true,
+                    "_active": false,
                     "uid": 10323857832520349100
                 },
                 "9501525575059265452": {
-                    "_active": true,
+                    "_active": false,
                     "flags": {
                         "_majorityTrue": false,
                         "_except": [
@@ -3293,7 +3459,7 @@
                     }
                 },
                 "18236831197208900764": {
-                    "_active": true,
+                    "_active": false,
                     "center": {
                         "x": 0.0,
                         "y": 0.0,
@@ -3314,7 +3480,7 @@
             }
         },
         {
-            "parentIndex": 18,
+            "parentIndex": 19,
             "position": {
                 "x": 0.699999988079071,
                 "y": 1.0,
@@ -3332,19 +3498,19 @@
             },
             "components": {
                 "6766054303456732338": {
-                    "_active": true,
+                    "_active": false,
                     "layer": 0
                 },
                 "7205334411763290517": {
-                    "_active": true,
+                    "_active": false,
                     "name": "AttackRange"
                 },
                 "9315785795257285655": {
-                    "_active": true,
+                    "_active": false,
                     "uid": 10335163011077141933
                 },
                 "18236831197208900764": {
-                    "_active": true,
+                    "_active": false,
                     "center": {
                         "x": 0.0,
                         "y": 0.0,
@@ -3361,7 +3527,7 @@
                     }
                 },
                 "18288371625365795113": {
-                    "_active": true,
+                    "_active": false,
                     "scripts": [
                         {
                             "scriptName": "enemyattack.lua"
@@ -3447,7 +3613,83 @@
             }
         },
         {
-            "parentIndex": 30,
+            "parentIndex": 5,
+            "position": {
+                "x": -5.0,
+                "y": 0.5059739351272583,
+                "z": -4.452697277069092
+            },
+            "rotation": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "scale": {
+                "x": 2.353257417678833,
+                "y": 2.828688383102417,
+                "z": 1.1840837001800537
+            },
+            "components": {
+                "5352011725353660904": {
+                    "_active": true,
+                    "meshHandle": {
+                        "hash": 394651007363811311
+                    },
+                    "materials": [
+                        {
+                            "hash": 388567409527326701
+                        }
+                    ]
+                },
+                "6766054303456732338": {
+                    "_active": true,
+                    "layer": 0
+                },
+                "7205334411763290517": {
+                    "_active": true,
+                    "name": "DoorTrigger_Open"
+                },
+                "8426725214831635516": {
+                    "_active": true,
+                    "entityReferences": [
+                        {
+                            "entityUid": 1414007138046402671
+                        }
+                    ]
+                },
+                "9315785795257285655": {
+                    "_active": true,
+                    "uid": 17435884969972129984
+                },
+                "18236831197208900764": {
+                    "_active": true,
+                    "center": {
+                        "x": 0.0,
+                        "y": 0.0,
+                        "z": 0.0
+                    },
+                    "size": {
+                        "x": 1.0,
+                        "y": 1.0,
+                        "z": 1.0
+                    },
+                    "flags": {
+                        "_majorityTrue": true,
+                        "_except": []
+                    }
+                },
+                "18288371625365795113": {
+                    "_active": true,
+                    "scripts": [
+                        {
+                            "scriptName": "roomdoortrigger.lua"
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "parentIndex": 32,
             "position": {
                 "x": -5.150000095367432,
                 "y": 1.4800000190734863,
@@ -3496,7 +3738,7 @@
             }
         },
         {
-            "parentIndex": 26,
+            "parentIndex": 27,
             "position": {
                 "x": -1.6377699375152588,
                 "y": 0.4899139106273651,
@@ -3542,7 +3784,7 @@
             }
         },
         {
-            "parentIndex": 26,
+            "parentIndex": 27,
             "position": {
                 "x": 0.4009009599685669,
                 "y": 0.512028694152832,
@@ -3591,7 +3833,7 @@
             }
         },
         {
-            "parentIndex": 26,
+            "parentIndex": 27,
             "position": {
                 "x": 2.956951141357422,
                 "y": 0.8435628414154053,
@@ -3634,7 +3876,7 @@
             }
         },
         {
-            "parentIndex": 26,
+            "parentIndex": 27,
             "position": {
                 "x": -3.650015115737915,
                 "y": 1.399999976158142,
@@ -3680,7 +3922,7 @@
             }
         },
         {
-            "parentIndex": 26,
+            "parentIndex": 27,
             "position": {
                 "x": 3.6500000953674316,
                 "y": 1.399999976158142,
@@ -3726,7 +3968,7 @@
             }
         },
         {
-            "parentIndex": 26,
+            "parentIndex": 27,
             "position": {
                 "x": -4.800000190734863,
                 "y": 0.5098649859428406,
@@ -3772,7 +4014,7 @@
             }
         },
         {
-            "parentIndex": 26,
+            "parentIndex": 27,
             "position": {
                 "x": 10.0,
                 "y": 0.0,
@@ -3804,7 +4046,7 @@
             }
         },
         {
-            "parentIndex": 26,
+            "parentIndex": 27,
             "position": {
                 "x": -3.6011104583740234,
                 "y": 1.0,
@@ -3855,7 +4097,7 @@
             }
         },
         {
-            "parentIndex": 26,
+            "parentIndex": 27,
             "position": {
                 "x": -3.6011104583740234,
                 "y": 1.0,
@@ -3920,7 +4162,7 @@
             }
         },
         {
-            "parentIndex": 22,
+            "parentIndex": 23,
             "position": {
                 "x": 49.524993896484375,
                 "y": -0.3849830627441406,
@@ -3971,7 +4213,7 @@
             }
         },
         {
-            "parentIndex": 26,
+            "parentIndex": 27,
             "position": {
                 "x": -5.731337070465088,
                 "y": 0.5098649859428406,
@@ -4017,7 +4259,7 @@
             }
         },
         {
-            "parentIndex": 26,
+            "parentIndex": 27,
             "position": {
                 "x": -4.050000190734863,
                 "y": 0.5098649859428406,
@@ -4063,7 +4305,7 @@
             }
         },
         {
-            "parentIndex": 28,
+            "parentIndex": 30,
             "position": {
                 "x": -1.6377699375152588,
                 "y": 0.4899139106273651,
@@ -4109,7 +4351,7 @@
             }
         },
         {
-            "parentIndex": 28,
+            "parentIndex": 30,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -4152,7 +4394,7 @@
             }
         },
         {
-            "parentIndex": 28,
+            "parentIndex": 30,
             "position": {
                 "x": 0.4009009599685669,
                 "y": 0.512028694152832,
@@ -4201,7 +4443,7 @@
             }
         },
         {
-            "parentIndex": 28,
+            "parentIndex": 30,
             "position": {
                 "x": 0.0,
                 "y": 1.399999976158142,
@@ -4263,21 +4505,21 @@
             }
         },
         {
-            "parentIndex": 28,
+            "parentIndex": 30,
             "position": {
-                "x": -2.867177963256836,
-                "y": 0.864890456199646,
-                "z": -4.16717004776001
+                "x": -4.915039539337158,
+                "y": 0.7457373142242432,
+                "z": 1.6927119493484497
             },
             "rotation": {
-                "x": 0.0,
-                "y": 90.0,
+                "x": -90.0,
+                "y": 81.80033874511719,
                 "z": 0.0
             },
             "scale": {
-                "x": 1.0,
-                "y": 1.0,
-                "z": 1.0
+                "x": 1.559999942779541,
+                "y": 1.559999942779541,
+                "z": 1.559999942779541
             },
             "components": {
                 "5352011725353660904": {
@@ -4306,7 +4548,7 @@
             }
         },
         {
-            "parentIndex": 28,
+            "parentIndex": 30,
             "position": {
                 "x": -10.0,
                 "y": 0.5098649859428406,
@@ -4352,7 +4594,7 @@
             }
         },
         {
-            "parentIndex": 28,
+            "parentIndex": 30,
             "position": {
                 "x": -3.6011104583740234,
                 "y": 1.0,
@@ -4375,16 +4617,35 @@
                 },
                 "7205334411763290517": {
                     "_active": true,
-                    "name": "Door_Classroom"
+                    "name": "Door_Classroom_Open"
+                },
+                "8426725214831635516": {
+                    "_active": true,
+                    "entityReferences": [
+                        {
+                            "entityUid": 3685281501857567599
+                        },
+                        {
+                            "entityUid": 3667408940348068719
+                        }
+                    ]
                 },
                 "9315785795257285655": {
                     "_active": true,
                     "uid": 3658786570163049327
+                },
+                "18288371625365795113": {
+                    "_active": true,
+                    "scripts": [
+                        {
+                            "scriptName": "classroomdoor.lua"
+                        }
+                    ]
                 }
             }
         },
         {
-            "parentIndex": 30,
+            "parentIndex": 32,
             "position": {
                 "x": -5.150000095367432,
                 "y": 1.4800000190734863,
@@ -4433,7 +4694,7 @@
             }
         },
         {
-            "parentIndex": 28,
+            "parentIndex": 30,
             "position": {
                 "x": -3.650015115737915,
                 "y": 1.399999976158142,
@@ -4479,7 +4740,7 @@
             }
         },
         {
-            "parentIndex": 28,
+            "parentIndex": 30,
             "position": {
                 "x": 2.956951141357422,
                 "y": 0.8435628414154053,
@@ -4522,7 +4783,7 @@
             }
         },
         {
-            "parentIndex": 28,
+            "parentIndex": 30,
             "position": {
                 "x": -2.6400487422943115,
                 "y": 0.5098649859428406,
@@ -4568,7 +4829,7 @@
             }
         },
         {
-            "parentIndex": 28,
+            "parentIndex": 30,
             "position": {
                 "x": 10.0,
                 "y": 0.0,
@@ -4600,7 +4861,7 @@
             }
         },
         {
-            "parentIndex": 28,
+            "parentIndex": 30,
             "position": {
                 "x": -3.0,
                 "y": 1.399999976158142,
@@ -4662,7 +4923,7 @@
             }
         },
         {
-            "parentIndex": 28,
+            "parentIndex": 30,
             "position": {
                 "x": -3.6011104583740234,
                 "y": 1.0,
@@ -4727,7 +4988,7 @@
             }
         },
         {
-            "parentIndex": 28,
+            "parentIndex": 30,
             "position": {
                 "x": 3.6500000953674316,
                 "y": 1.399999976158142,
@@ -4773,7 +5034,50 @@
             }
         },
         {
-            "parentIndex": 28,
+            "parentIndex": 30,
+            "position": {
+                "x": -2.8671932220458984,
+                "y": 0.864890456199646,
+                "z": -4.16717004776001
+            },
+            "rotation": {
+                "x": 0.0,
+                "y": 90.0,
+                "z": 0.0
+            },
+            "scale": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0
+            },
+            "components": {
+                "5352011725353660904": {
+                    "_active": true,
+                    "meshHandle": {
+                        "hash": 435224085941127225
+                    },
+                    "materials": [
+                        {
+                            "hash": 373935108784842579
+                        }
+                    ]
+                },
+                "6766054303456732338": {
+                    "_active": true,
+                    "layer": 0
+                },
+                "7205334411763290517": {
+                    "_active": true,
+                    "name": "Shelf_Small"
+                },
+                "9315785795257285655": {
+                    "_active": true,
+                    "uid": 4539412921111973605
+                }
+            }
+        },
+        {
+            "parentIndex": 30,
             "position": {
                 "x": 0.0,
                 "y": 1.399999976158142,
@@ -4835,7 +5139,7 @@
             }
         },
         {
-            "parentIndex": 26,
+            "parentIndex": 27,
             "position": {
                 "x": 1.1920928955078125e-7,
                 "y": 0.0,
@@ -4878,7 +5182,7 @@
             }
         },
         {
-            "parentIndex": 26,
+            "parentIndex": 27,
             "position": {
                 "x": 0.0,
                 "y": 1.399999976158142,
@@ -4940,7 +5244,7 @@
             }
         },
         {
-            "parentIndex": 26,
+            "parentIndex": 27,
             "position": {
                 "x": 0.0,
                 "y": 1.399999976158142,
@@ -5002,7 +5306,7 @@
             }
         },
         {
-            "parentIndex": 26,
+            "parentIndex": 27,
             "position": {
                 "x": -2.867177963256836,
                 "y": 0.864890456199646,
@@ -5045,7 +5349,7 @@
             }
         },
         {
-            "parentIndex": 26,
+            "parentIndex": 27,
             "position": {
                 "x": -4.245174884796143,
                 "y": 0.5098605751991272,
@@ -5091,7 +5395,7 @@
             }
         },
         {
-            "parentIndex": 26,
+            "parentIndex": 27,
             "position": {
                 "x": -5.900000095367432,
                 "y": 0.5099248290061951,
@@ -5137,7 +5441,7 @@
             }
         },
         {
-            "parentIndex": 26,
+            "parentIndex": 27,
             "position": {
                 "x": -5.065890789031982,
                 "y": 0.5099248290061951,
@@ -5183,7 +5487,7 @@
             }
         },
         {
-            "parentIndex": 30,
+            "parentIndex": 32,
             "position": {
                 "x": -5.148462295532227,
                 "y": 1.4800000190734863,
@@ -5232,7 +5536,7 @@
             }
         },
         {
-            "parentIndex": 30,
+            "parentIndex": 32,
             "position": {
                 "x": -1.4872987270355225,
                 "y": -0.5362609028816223,
@@ -5284,7 +5588,7 @@
             }
         },
         {
-            "parentIndex": 40,
+            "parentIndex": 44,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -5335,7 +5639,7 @@
             }
         },
         {
-            "parentIndex": 41,
+            "parentIndex": 45,
             "position": {
                 "x": 0.0,
                 "y": -0.0038910508155822754,
@@ -5386,7 +5690,7 @@
             }
         },
         {
-            "parentIndex": 43,
+            "parentIndex": 47,
             "position": {
                 "x": 0.01342153549194336,
                 "y": 0.9769220352172852,
@@ -5437,7 +5741,7 @@
             }
         },
         {
-            "parentIndex": 42,
+            "parentIndex": 46,
             "position": {
                 "x": 0.0007220208644866943,
                 "y": 0.0,
@@ -5488,7 +5792,7 @@
             }
         },
         {
-            "parentIndex": 43,
+            "parentIndex": 47,
             "position": {
                 "x": 0.01342153549194336,
                 "y": 0.0,
@@ -5539,7 +5843,7 @@
             }
         },
         {
-            "parentIndex": 43,
+            "parentIndex": 47,
             "position": {
                 "x": 0.01342153549194336,
                 "y": 0.0,
@@ -5590,7 +5894,7 @@
             }
         },
         {
-            "parentIndex": 43,
+            "parentIndex": 47,
             "position": {
                 "x": 0.01342153549194336,
                 "y": 0.0,
@@ -5641,7 +5945,7 @@
             }
         },
         {
-            "parentIndex": 44,
+            "parentIndex": 48,
             "position": {
                 "x": 0.013421773910522461,
                 "y": 0.0,
@@ -5692,7 +5996,7 @@
             }
         },
         {
-            "parentIndex": 45,
+            "parentIndex": 49,
             "position": {
                 "x": 0.0,
                 "y": -0.0038910508155822754,
@@ -5743,7 +6047,7 @@
             }
         },
         {
-            "parentIndex": 46,
+            "parentIndex": 50,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -5786,7 +6090,7 @@
             }
         },
         {
-            "parentIndex": 46,
+            "parentIndex": 50,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -5829,7 +6133,7 @@
             }
         },
         {
-            "parentIndex": 47,
+            "parentIndex": 51,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -5872,7 +6176,7 @@
             }
         },
         {
-            "parentIndex": 47,
+            "parentIndex": 51,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -5915,7 +6219,7 @@
             }
         },
         {
-            "parentIndex": 48,
+            "parentIndex": 52,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -5958,7 +6262,7 @@
             }
         },
         {
-            "parentIndex": 48,
+            "parentIndex": 52,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -6001,7 +6305,7 @@
             }
         },
         {
-            "parentIndex": 39,
+            "parentIndex": 43,
             "position": {
                 "x": 0.0,
                 "y": -1.8507726192474365,
@@ -6052,7 +6356,7 @@
             }
         },
         {
-            "parentIndex": 50,
+            "parentIndex": 54,
             "position": {
                 "x": 0.0,
                 "y": -0.0038910508155822754,
@@ -6103,7 +6407,7 @@
             }
         },
         {
-            "parentIndex": 51,
+            "parentIndex": 55,
             "position": {
                 "x": 0.0,
                 "y": -0.0038910508155822754,
@@ -6154,7 +6458,7 @@
             }
         },
         {
-            "parentIndex": 52,
+            "parentIndex": 56,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -6205,7 +6509,7 @@
             }
         },
         {
-            "parentIndex": 53,
+            "parentIndex": 57,
             "position": {
                 "x": 0.0,
                 "y": -0.3732050061225891,
@@ -6256,7 +6560,7 @@
             }
         },
         {
-            "parentIndex": 54,
+            "parentIndex": 58,
             "position": {
                 "x": 0.0,
                 "y": -0.0038910508155822754,
@@ -6307,7 +6611,7 @@
             }
         },
         {
-            "parentIndex": 56,
+            "parentIndex": 60,
             "position": {
                 "x": 0.0007219314575195313,
                 "y": 0.0,
@@ -6358,7 +6662,7 @@
             }
         },
         {
-            "parentIndex": 57,
+            "parentIndex": 61,
             "position": {
                 "x": 0.0,
                 "y": -0.0038910508155822754,
@@ -6409,7 +6713,7 @@
             }
         },
         {
-            "parentIndex": 58,
+            "parentIndex": 62,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -6452,7 +6756,7 @@
             }
         },
         {
-            "parentIndex": 58,
+            "parentIndex": 62,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -6495,7 +6799,7 @@
             }
         },
         {
-            "parentIndex": 59,
+            "parentIndex": 63,
             "position": {
                 "x": -1.2487144470214844,
                 "y": -0.037741899490356445,
@@ -6546,7 +6850,7 @@
             }
         },
         {
-            "parentIndex": 59,
+            "parentIndex": 63,
             "position": {
                 "x": 0.0,
                 "y": -1.8507726192474365,
@@ -6597,7 +6901,7 @@
             }
         },
         {
-            "parentIndex": 60,
+            "parentIndex": 64,
             "position": {
                 "x": 0.01342153549194336,
                 "y": 0.0,
@@ -6648,7 +6952,7 @@
             }
         },
         {
-            "parentIndex": 60,
+            "parentIndex": 64,
             "position": {
                 "x": 0.01342153549194336,
                 "y": 0.0,
@@ -6699,7 +7003,7 @@
             }
         },
         {
-            "parentIndex": 59,
+            "parentIndex": 63,
             "position": {
                 "x": 1.266754150390625,
                 "y": -0.037741899490356445,
@@ -6750,7 +7054,7 @@
             }
         },
         {
-            "parentIndex": 60,
+            "parentIndex": 64,
             "position": {
                 "x": 0.01342153549194336,
                 "y": 0.9769221544265747,
@@ -6801,7 +7105,7 @@
             }
         },
         {
-            "parentIndex": 76,
+            "parentIndex": 81,
             "position": {
                 "x": 2.5,
                 "y": 0.13423000276088715,
@@ -6852,7 +7156,7 @@
             }
         },
         {
-            "parentIndex": 76,
+            "parentIndex": 81,
             "position": {
                 "x": -1.4655447006225586,
                 "y": -2.5860800743103027,
@@ -6903,7 +7207,7 @@
             }
         },
         {
-            "parentIndex": 60,
+            "parentIndex": 64,
             "position": {
                 "x": 0.01342153549194336,
                 "y": 0.0,
@@ -6954,7 +7258,7 @@
             }
         },
         {
-            "parentIndex": 76,
+            "parentIndex": 81,
             "position": {
                 "x": -3.9433178901672363,
                 "y": -1.7716667652130127,
@@ -7005,7 +7309,7 @@
             }
         },
         {
-            "parentIndex": 61,
+            "parentIndex": 65,
             "position": {
                 "x": 0.0007219314575195313,
                 "y": 0.0,
@@ -7056,7 +7360,7 @@
             }
         },
         {
-            "parentIndex": 62,
+            "parentIndex": 66,
             "position": {
                 "x": 0.0,
                 "y": -0.0038910508155822754,
@@ -7107,7 +7411,7 @@
             }
         },
         {
-            "parentIndex": 63,
+            "parentIndex": 67,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -7150,7 +7454,7 @@
             }
         },
         {
-            "parentIndex": 63,
+            "parentIndex": 67,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -7193,7 +7497,7 @@
             }
         },
         {
-            "parentIndex": 65,
+            "parentIndex": 69,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -7236,7 +7540,7 @@
             }
         },
         {
-            "parentIndex": 65,
+            "parentIndex": 69,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -7279,7 +7583,7 @@
             }
         },
         {
-            "parentIndex": 66,
+            "parentIndex": 70,
             "position": {
                 "x": 0.013421773910522461,
                 "y": 0.0,
@@ -7330,7 +7634,58 @@
             }
         },
         {
-            "parentIndex": 68,
+            "parentIndex": 71,
+            "position": {
+                "x": 0.0007219314575195313,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "rotation": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "scale": {
+                "x": 0.2723645269870758,
+                "y": 1.4560399055480957,
+                "z": 0.8026585578918457
+            },
+            "components": {
+                "6766054303456732338": {
+                    "_active": true,
+                    "layer": 0
+                },
+                "7205334411763290517": {
+                    "_active": true,
+                    "name": "Collider"
+                },
+                "9315785795257285655": {
+                    "_active": true,
+                    "uid": 4547974818157465317
+                },
+                "18236831197208900764": {
+                    "_active": true,
+                    "center": {
+                        "x": 0.0,
+                        "y": 0.0,
+                        "z": 0.0
+                    },
+                    "size": {
+                        "x": 1.0,
+                        "y": 1.0,
+                        "z": 1.0
+                    },
+                    "flags": {
+                        "_majorityTrue": true,
+                        "_except": [
+                            "Is Trigger"
+                        ]
+                    }
+                }
+            }
+        },
+        {
+            "parentIndex": 73,
             "position": {
                 "x": 0.0,
                 "y": -0.3732050061225891,
@@ -7381,7 +7736,7 @@
             }
         },
         {
-            "parentIndex": 76,
+            "parentIndex": 81,
             "position": {
                 "x": -1.5319647789001465,
                 "y": -1.144227147102356,
@@ -7432,7 +7787,7 @@
             }
         },
         {
-            "parentIndex": 71,
+            "parentIndex": 76,
             "position": {
                 "x": 0.0007220208644866943,
                 "y": 0.0,
@@ -7483,7 +7838,7 @@
             }
         },
         {
-            "parentIndex": 76,
+            "parentIndex": 81,
             "position": {
                 "x": 0.0,
                 "y": -3.847890615463257,
@@ -7534,7 +7889,7 @@
             }
         },
         {
-            "parentIndex": 76,
+            "parentIndex": 81,
             "position": {
                 "x": -1.434356451034546,
                 "y": -0.2591911554336548,
@@ -7596,7 +7951,7 @@
             }
         },
         {
-            "parentIndex": 76,
+            "parentIndex": 81,
             "position": {
                 "x": -5.14547061920166,
                 "y": -0.25910282135009766,
@@ -7647,7 +8002,7 @@
             }
         },
         {
-            "parentIndex": 76,
+            "parentIndex": 81,
             "position": {
                 "x": 0.03788566589355469,
                 "y": 1.0363554954528809,
@@ -7698,7 +8053,7 @@
             }
         },
         {
-            "parentIndex": 76,
+            "parentIndex": 81,
             "position": {
                 "x": -0.028458118438720703,
                 "y": -0.2591911554336548,
@@ -7749,7 +8104,7 @@
             }
         },
         {
-            "parentIndex": 72,
+            "parentIndex": 77,
             "position": {
                 "x": 0.0,
                 "y": -0.0038910508155822754,
@@ -7800,7 +8155,7 @@
             }
         },
         {
-            "parentIndex": 73,
+            "parentIndex": 78,
             "position": {
                 "x": 0.0,
                 "y": -0.0038910508155822754,
@@ -7851,7 +8206,7 @@
             }
         },
         {
-            "parentIndex": 74,
+            "parentIndex": 79,
             "position": {
                 "x": 0.0,
                 "y": -0.0038911104202270508,
@@ -7902,7 +8257,7 @@
             }
         },
         {
-            "parentIndex": 39,
+            "parentIndex": 43,
             "position": {
                 "x": 1.266754150390625,
                 "y": -0.037741899490356445,
@@ -7953,7 +8308,7 @@
             }
         },
         {
-            "parentIndex": 75,
+            "parentIndex": 80,
             "position": {
                 "x": 0.0,
                 "y": -1.8507726192474365,
@@ -8004,7 +8359,7 @@
             }
         },
         {
-            "parentIndex": 75,
+            "parentIndex": 80,
             "position": {
                 "x": 1.266754150390625,
                 "y": -0.037741899490356445,
@@ -8055,7 +8410,7 @@
             }
         },
         {
-            "parentIndex": 76,
+            "parentIndex": 81,
             "position": {
                 "x": 0.0,
                 "y": -3.847951650619507,
@@ -8106,7 +8461,7 @@
             }
         },
         {
-            "parentIndex": 76,
+            "parentIndex": 81,
             "position": {
                 "x": 4.951006889343262,
                 "y": 1.859483003616333,
@@ -8157,7 +8512,7 @@
             }
         },
         {
-            "parentIndex": 76,
+            "parentIndex": 81,
             "position": {
                 "x": -1.7166036367416382,
                 "y": -0.60188889503479,
@@ -8208,7 +8563,7 @@
             }
         },
         {
-            "parentIndex": 87,
+            "parentIndex": 92,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -8270,7 +8625,7 @@
             }
         },
         {
-            "parentIndex": 86,
+            "parentIndex": 91,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -8332,7 +8687,7 @@
             }
         },
         {
-            "parentIndex": 88,
+            "parentIndex": 93,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -8383,7 +8738,7 @@
             }
         },
         {
-            "parentIndex": 89,
+            "parentIndex": 94,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -8434,7 +8789,7 @@
             }
         },
         {
-            "parentIndex": 90,
+            "parentIndex": 95,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -8485,7 +8840,7 @@
             }
         },
         {
-            "parentIndex": 91,
+            "parentIndex": 96,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -8536,7 +8891,7 @@
             }
         },
         {
-            "parentIndex": 100,
+            "parentIndex": 105,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -8587,7 +8942,7 @@
             }
         },
         {
-            "parentIndex": 101,
+            "parentIndex": 106,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -8638,7 +8993,7 @@
             }
         },
         {
-            "parentIndex": 114,
+            "parentIndex": 119,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -8700,7 +9055,7 @@
             }
         },
         {
-            "parentIndex": 115,
+            "parentIndex": 120,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -8762,7 +9117,7 @@
             }
         },
         {
-            "parentIndex": 116,
+            "parentIndex": 121,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -8813,7 +9168,7 @@
             }
         },
         {
-            "parentIndex": 117,
+            "parentIndex": 122,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
