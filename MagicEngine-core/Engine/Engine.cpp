@@ -278,6 +278,7 @@ void MagicEngine::ExecuteFrame(FrameData& frameData)
 	ExecuteUpdateSystems(); // Run ecs systems that update the world
 	ecs::FlushChanges();
 	ST<Scheduler>::Get()->Update(GameTime::FixedDt() * static_cast<float>(GameTime::NumFixedFrames()));
+	ecs::FlushChanges();
 
 	// render
 	// ------

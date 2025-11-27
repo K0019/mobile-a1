@@ -7,8 +7,8 @@
 #include "Engine/PrefabManager.h"
 #include "Components/EntityReferenceHolder.h"
 
-int L_Boss_Prefect_BookingSlips::burstCount = 30;
-float L_Boss_Prefect_BookingSlips::burstDelay = 0.025f;
+int L_Boss_Prefect_BookingSlips::burstCount = 5;
+float L_Boss_Prefect_BookingSlips::burstDelay = 0.5f;
 
 void L_Boss_Prefect_BookingSlips::OnInitialize()
 {
@@ -31,13 +31,14 @@ NODE_STATUS L_Boss_Prefect_BookingSlips::OnUpdate([[maybe_unused]] ecs::EntityHa
                 currentBurstDelay = burstDelay;
             
                 // Spawn the booking slip and set the entity reference
-                ST<Scheduler>::Get()->Add([enemyComp, entity]() {
+                ST<Scheduler>::Get()->Add([enemyComp, spawnPos = entity->GetTransform().GetWorldPosition()]() {
                     //ecs::EntityHandle spawnedSlip = ST<PrefabManager>::Get()->LoadPrefab("explosion"); 
                     ecs::EntityHandle spawnedSlip = ST<PrefabManager>::Get()->LoadPrefab("prefect_bookingslip"); 
                     spawnedSlip->GetComp<EntityReferenceHolderComponent>()->SetEntity(0, enemyComp->playerReference);
 
-                    spawnedSlip->GetTransform().SetWorldPosition(entity->GetTransform().GetWorldPosition());
-                    });
+                    spawnedSlip->GetTransform().SetWorldPosition(spawnPos);
+                    spawnedSlip->GetTransform().SetWorldScale(Vec3{ 0.4f });
+                });
 
             
                 if (currentBurstCount >= burstCount)

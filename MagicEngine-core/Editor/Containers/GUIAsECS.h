@@ -234,7 +234,7 @@ namespace editor {
 				return;
 			}
 
-		::ecs::CreateEntity()->AddCompNow(WindowType{ std::forward<Args>(windowConstructorParams)... });
+		::ecs::CreateEntity()->AddComp(WindowType{ std::forward<Args>(windowConstructorParams)... });
 		::ecs::SwitchToPool(originalPool);
 	}
 

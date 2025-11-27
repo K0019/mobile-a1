@@ -8,7 +8,10 @@ public:
     NODE_STATUS OnUpdate(ecs::EntityHandle entity) override;
 private:
     static float attackDistance;
+    static float attackCooldown;
     static float dodgeDistance;
     static int attackCount;
+
+    float currentAttackCooldown;
     int currentAttackCount;
 };

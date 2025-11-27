@@ -34,6 +34,7 @@ All rights reserved.
 
 namespace physics {
 	class BoxColliderComp;
+	class JoltBodyComp;
 
 	/*****************************************************************//*!
 	\brief
@@ -181,6 +182,9 @@ X(IS_TRIGGER, "Is Trigger")
 		Vec3 size;
 
 		std::array<std::function<void()>, 6> contactFunctions;
+
+	private:
+		void InitializeJoltBodyComp(JoltBodyComp* comp);
 
 	public:
 		/*****************************************************************//*!

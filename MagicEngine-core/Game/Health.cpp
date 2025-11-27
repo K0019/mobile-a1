@@ -27,10 +27,12 @@ All rights reserved.
 #include "Health.h"
 #include "Character.h"
 #include "PlayerCharacter.h"
+#include "FlashComponent.h"
 #include "Physics//Physics.h"
 #include "math/utils_math.h"
 #include "Editor/Containers/GUICollection.h"
 #include "Engine/SceneManagement.h"
+#include "Scripting/ScriptComponent.h"
 
 HealthComponent::HealthType cheatState = 0;
 bool cheatActive = false; ///THis is so the healthbar colour wont keep updating
@@ -68,6 +70,9 @@ void HealthComponent::AddHealth(HealthType amount)
 	currHealth += amount;
 	if (currHealth > maxHealth)
 		currHealth = maxHealth;
+
+	if (auto scriptComp{ ecs::GetEntity(this)->GetComp<ScriptComponent>() })
+		scriptComp->CallScriptFunction("OnHealed", amount);
 }
 
 void HealthComponent::TakeDamage(HealthComponent::HealthType amount, Vec3 direction)
@@ -83,24 +88,29 @@ void HealthComponent::TakeDamage(HealthComponent::HealthType amount, Vec3 direct
 		currHealth = maxHealth;
 	currHealth -= amount;
 
-
+	auto thisEntity = ecs::GetEntity(this);
 	// We don't need to flash if the entity is already dead,
 	// or this health component is invulnerable.
 	if (IsDead())
 	{
-		if (auto playerComp{ ecs::GetEntity(this)->GetComp< PlayerMovementComponent >() })
+		if (auto playerComp{ thisEntity->GetComp< PlayerMovementComponent >() })
 		{
 			ST<Scheduler>::Get()->Add([]() {ST<SceneManager>::Get()->ReloadScene(0); });
 		}
 		else
 		{
-			ecs::DeleteEntity(ecs::GetEntity(this));
+			if (auto scriptComp{ thisEntity->GetComp<ScriptComponent>() })
+				scriptComp->CallScriptFunction("OnHealthDepleted");
+			ecs::DeleteEntity(thisEntity);
 		}
 		return;
 	}
+	if (auto scriptComp{ thisEntity->GetComp<ScriptComponent>() })
+		scriptComp->CallScriptFunction("OnDamaged", amount, direction);
+
 
 	// Stun the character
-	if (auto characterComp{ ecs::GetEntity(this)->GetComp< CharacterMovementComponent >() })
+	if (auto characterComp{ thisEntity->GetComp< CharacterMovementComponent >() })
 	{
 		characterComp->currentStunTime = characterComp->stunTimePerHit;
 	}
@@ -108,11 +118,19 @@ void HealthComponent::TakeDamage(HealthComponent::HealthType amount, Vec3 direct
 	// Add the force
 	if (direction.LengthSqr() > 0.0f)
 	{
-		if (auto physicsComp{ ecs::GetEntity(this)->GetComp< physics::PhysicsComp >() })
+		if (auto physicsComp{ thisEntity->GetComp< physics::PhysicsComp >() })
 		{
 			// Disabled: Causes flying???
-			//physicsComp->SetLinearVelocity(direction * amount + Vec3{ 0.0f,amount,0.0f });
+			Vec3 impulse = direction * amount;// +Vec3{ 0.0f,amount,0.0f };
+			impulse = impulse *0.1f;
+			physicsComp->SetLinearVelocity(impulse);
 		}
+	}
+
+	// Trigger a flash
+	if (auto flashComp{ thisEntity->GetComp< FlashComponent >() })
+	{
+		flashComp->Flash();
 	}
 }
 

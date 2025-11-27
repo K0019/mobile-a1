@@ -105,9 +105,9 @@ namespace ecs {
 		else
 		{
 			// Remove component from CompArr
-			internal::CompArr& compArr{ internal::GetCompArr(compHash) };
+			internal::CompArr* compArr{ internal::GetCompArr(compHash) };
 			// We already have a handle to the component to remove. Don't make CompArr search for us to remove the component from us.
-			compArr.RemoveComp(compIndexIter->second, false);
+			compArr->RemoveComp(compIndexIter->second, false);
 		}
 
 		// Unregister component from this entity
@@ -154,7 +154,7 @@ namespace ecs {
 		// TODO: Track which components were originally inactive. Also track whether the whole entity is set to be inactive, independent of the components' activeness.
 
 		for (const auto& compIndexIter : components)
-			internal::CurrentPool::ChangesBuffer().ChangeCompActiveness(this, compIndexIter.first, !active);
+			internal::CurrentPool::ChangesBuffer().ChangeCompActiveness(this, INTERNAL_GetCompRaw(compIndexIter.first), !active);
 
 		// Design wise, this should be recursive
 		for (Transform* child : GetTransform().GetChildren())
@@ -339,7 +339,7 @@ namespace ecs {
 	{
 		internal::CurrentPool::ChangesBuffer().ChangeCompActiveness(
 			reinterpret_cast<internal::InternalEntityHandle>(GetEntity(component)),
-			internal::GetCompArrFromCompAddr(component)->GetCompHash(),
+			reinterpret_cast<internal::RawData*>(component),
 			!isActive
 		);
 	}

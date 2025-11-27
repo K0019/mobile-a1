@@ -465,6 +465,6 @@ template<typename CompType>
 HistoryEventBase* HistoryEvent_CompRemove<CompType>::DoUndoAction()
 {
 	auto targetEntity{ HistoryEventECSBase<HistoryEvent_CompRemove<CompType>>::targetEntity }; // For some reason the compiler cannot see targetEntity without this??
-	targetEntity->AddCompNow(std::move(backupComp));
+	targetEntity->AddComp(std::move(backupComp));
 	return new HistoryEvent_CompAdd<CompType>{ targetEntity };
 }

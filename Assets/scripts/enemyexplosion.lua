@@ -1,5 +1,5 @@
 -- The amount of time it takes for the explosion to reach max size, then disappear
-local explosionGrowthTime = 1.0
+local explosionGrowthTime = 0.6
 local currentExplosionGrowthTime = explosionGrowthTime
 local thisEntity;
 -- Impt stats

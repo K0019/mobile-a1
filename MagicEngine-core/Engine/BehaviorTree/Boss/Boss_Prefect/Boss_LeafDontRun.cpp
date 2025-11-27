@@ -4,13 +4,15 @@
 #include "Game/EnemyCharacter.h"
 #include "Game/Character.h"
 #include "Game/Health.h"
-float L_Boss_Prefect_DontRun::attackDistance = 2.0f*2.0f;
-float L_Boss_Prefect_DontRun::dodgeDistance = 5.0f*5.0f;
+float L_Boss_Prefect_DontRun::attackDistance = 6.0f*6.0f;
+float L_Boss_Prefect_DontRun::attackCooldown = 3.0f;
+float L_Boss_Prefect_DontRun::dodgeDistance = 9.0f*9.0f;
 int L_Boss_Prefect_DontRun::attackCount = 4;
 
 void L_Boss_Prefect_DontRun::OnInitialize()
 {
     currentAttackCount = attackCount;
+    currentAttackCooldown = attackCooldown;
 }
 
 NODE_STATUS L_Boss_Prefect_DontRun::OnUpdate([[maybe_unused]] ecs::EntityHandle entity)
@@ -28,8 +30,29 @@ NODE_STATUS L_Boss_Prefect_DontRun::OnUpdate([[maybe_unused]] ecs::EntityHandle 
             else
             {
                 characterComp->RotateTowards(dir);
-                if (characterComp->Attack())
+                characterComp->SetMovementVector(Vec2{0.0f});
+                characterComp->ResetSpeedMultiplier();
+                if (currentAttackCooldown<=0.0f)
                 {
+                    ecs::EntityHandle spawnedSpawner = ST<PrefabManager>::Get()->LoadPrefab("prefect_dontrunspawner");
+
+                    // Sanityyyyy
+                    if (spawnedSpawner)
+                    {
+                        // Set the size in the LUA script
+                        if (auto scriptComp{ spawnedSpawner->GetComp<ScriptComponent>() })
+                        {
+                            Vec3 tmpDir = enemyComp->playerReference->GetTransform().GetWorldPosition() - entity->GetTransform().GetWorldPosition();
+                            scriptComp->CallScriptFunction("setDirection", tmpDir);
+                            //scriptComp->CallScriptFunction("setDirection", tmpDir.x, tmpDir.y, tmpDir.z);
+                        }
+
+                        spawnedSpawner->GetTransform().SetWorldPosition(entity->GetTransform().GetWorldPosition());
+                        spawnedSpawner->GetTransform().SetWorldRotation(entity->GetTransform().GetWorldRotation());
+                    }
+
+                    currentAttackCooldown = attackCooldown;
+
                     ++currentAttackCount;
                     if (currentAttackCount >= attackCount)
                         return NODE_STATUS::SUCCESS;
@@ -39,7 +62,9 @@ NODE_STATUS L_Boss_Prefect_DontRun::OnUpdate([[maybe_unused]] ecs::EntityHandle 
             if (dir.LengthSqr() > dodgeDistance)
             {
                 characterComp->Dodge(dir);
+                characterComp->SetSpeedMultiplier(1.5f);
             }
+            currentAttackCooldown -= GameTime::Dt();
         }
     }
     return NODE_STATUS::RUNNING;

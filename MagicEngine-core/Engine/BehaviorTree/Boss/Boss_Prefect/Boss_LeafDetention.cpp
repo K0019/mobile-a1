@@ -4,8 +4,6 @@
 #include "Game/EnemyCharacter.h"
 #include "Game/Character.h"
 #include "Game/Health.h"
-#include "Engine/PrefabManager.h"
-#include "Scripting/ScriptComponent.h"
 
 const int L_Boss_Prefect_Detention::burstCount = 3;
 const float L_Boss_Prefect_Detention::burstDelay = 3.0f;
@@ -20,9 +18,9 @@ void L_Boss_Prefect_Detention::OnInitialize()
     explosionSizes.resize(L_Boss_Prefect_Detention::burstCount);
 
     // Init explosion sizes here
-    explosionSizes[0] = 1.5f;
-    explosionSizes[1] = 2.5f;
-    explosionSizes[2] = 3.5f;
+    explosionSizes[0] = 2.5f;
+    explosionSizes[1] = 4.5f;
+    explosionSizes[2] = 6.5f;
 
     currentBurstDelay = 0.0f;
     currentBurstCount = 0;
@@ -44,16 +42,8 @@ NODE_STATUS L_Boss_Prefect_Detention::OnUpdate([[maybe_unused]] ecs::EntityHandl
                 {
                     ecs::EntityHandle spawnedExplosion = ST<PrefabManager>::Get()->LoadPrefab("explosion");
 
-                    if(spawnedExplosion)
+                    if(Boss_Prefect_Util::SpawnExplosion(entity, explosionSizes[currentBurstCount]))
                     {
-                        if (auto scriptComp{ spawnedExplosion->GetComp<ScriptComponent>() })
-                        {
-                            float size = explosionSizes[currentBurstCount];
-                           scriptComp->CallScriptFunction("setSize", size); 
-                        }
-
-                        spawnedExplosion->GetTransform().SetWorldPosition(entity->GetTransform().GetWorldPosition());
-
                         // Reset burst delay and update count
                         currentBurstDelay = burstDelay;
                         ++currentBurstCount;

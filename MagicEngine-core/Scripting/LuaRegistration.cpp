@@ -70,7 +70,7 @@ SCRIPT_GENERATE_PROPERTY_FUNCS(bool, GetActive, SetActiveLua)
 SCRIPT_GENERATE_PROPERTY_FUNCS(float, GetZoom, SetZoom)
 SCRIPT_GENERATE_COMP_WRAPPER_END()
 
-// AnchorToCameraComponent – no properties, but we still generate a wrapper type
+// AnchorToCameraComponent Eno properties, but we still generate a wrapper type
 SCRIPT_GENERATE_COMP_WRAPPER_BEGIN(AnchorToCameraComponent)
 SCRIPT_GENERATE_COMP_WRAPPER_END()
 
@@ -274,13 +274,37 @@ Vec2 Get2DAxis(std::string name)
 		return action->GetValue();
 }
 
-void Lua_PlayAudio(std::string name, Vec3 position)
+void Lua_PlayAudio(std::string name,bool looping)
 {
-	ST<AudioManager>::Get()->PlaySound3D(util::GenHash(name), false, position);
+	ST<AudioManager>::Get()->PlaySound(util::GenHash(name), looping);
+}
+void Lua_PlayAudio3D(std::string name, bool looping, Vec3 position)
+{
+	ST<AudioManager>::Get()->PlaySound3D(util::GenHash(name), looping, position);
 }
 ecs::EntityHandle Lua_LoadPrefab(std::string name)
 {
 	return ST<PrefabManager>::Get()->LoadPrefab(name);
+}
+
+float Lua_RandomRangeFloat(float min, float max)
+{
+	return randomFloat(min, max);
+}
+int Lua_RandomRangeInt(int min, int max)
+{
+	return randomRange(min, max);
+}
+Vec3 Lua_RandomRangeVec(Vec3 min, Vec3 max)
+{
+	return randomVec(min, max);
+}
+
+bool Lua_NumberedDiceRoll(int sides)
+{
+	if (sides <= 0)
+		return true;
+	return randomRange(0, sides)==0;
 }
 
 void RegisterCppStuffToLua(luabridge::Namespace baseTable)
@@ -296,6 +320,11 @@ void RegisterCppStuffToLua(luabridge::Namespace baseTable)
 		.addFunction("Normalized", [](const Vec2* v) -> Vec2 {return v->Normalized(); })
 		.addFunction("Length", [](const Vec2* v) -> float {return v->Length(); })
 		.addFunction("LengthSqr", [](const Vec2* v) -> float {return v->LengthSqr(); })
+		.addFunction("Direction", [](const Vec2* a, const Vec2* b) -> Vec2 { return (*b) - (*a);	})
+		.addFunction("Add", [](const Vec2* a, const Vec2* b) -> Vec2 { return (*a) + (*b);	})
+		.addFunction("Subtract", [](const Vec2* a, const Vec2* b) -> Vec2 { return (*a) - (*b);	})
+		.addFunction("Dot", [](const Vec2* a, const Vec2* b) -> float { return a->Dot(*b);	})
+		.addFunction("Cross", [](const Vec2* a, const Vec2* b) -> Vec2 { return (*a) * (*b);	})
 		.endClass()
 
 		.beginClass<Vec3>("Vec3")
@@ -307,6 +336,11 @@ void RegisterCppStuffToLua(luabridge::Namespace baseTable)
 		.addFunction("Length", [](const Vec3* v) -> float {return v->Length(); })
 		.addFunction("LengthSqr", [](const Vec3* v) -> float {return v->LengthSqr(); })
 		.addFunction("Direction", [](const Vec3* a, const Vec3* b) -> Vec3 { return (*b) - (*a);	})
+		.addFunction("Add", [](const Vec3* a, const Vec3* b) -> Vec3 { return (*a) + (*b);	})
+		.addFunction("Subtract", [](const Vec3* a, const Vec3* b) -> Vec3 { return (*a) - (*b);	})
+		.addFunction("Dot", [](const Vec3* a, const Vec3* b) -> float { return a->Dot(*b);	})
+		.addFunction("Cross", [](const Vec3* a, const Vec3* b) -> Vec3 { return (*a)*(*b);	})
+		.addFunction("Scale", [](const Vec3* a, const float b) -> Vec3 { return (*a)*b;	})
 		//.addFunction("Scale", [](const Vec3* a, const float* s) -> Vec3 { return (*a) * (*s);	})
 			//.addFunction("DirectionEntities", [](const ecs::EntityHandle a, const ecs::EntityHandle b) -> Vec3 { if (!a||!b) return Vec3{ 0 };  return  b->GetTransform().GetWorldPosition() - a->GetTransform().GetWorldPosition() ;	})
 		.endClass()
@@ -321,7 +355,7 @@ void RegisterCppStuffToLua(luabridge::Namespace baseTable)
 		.endClass()
 		.beginClass<ecs::Entity>("Entity")
 		.addProperty("transform", [](ecs::EntityHandle entity) -> Transform* { return &entity->GetTransform(); })
-		.addFunction("Destroy", [](ecs::EntityHandle entity) -> void { ST<Scheduler>::Get()->Add([entity]() {ecs::DeleteEntity(entity); }); })
+		.addFunction("Destroy", [](ecs::EntityHandle entity) -> void { ecs::DeleteEntity(entity); })
 		
 		//=========================================== START REGISTER GETTER ================================================================================
 
@@ -506,11 +540,20 @@ void RegisterCppStuffToLua(luabridge::Namespace baseTable)
 
 		.beginNamespace("AudioManager")
 			.addFunction("PlaySound", Lua_PlayAudio)
+			.addFunction("PlaySound3D", Lua_PlayAudio3D)
 		.endNamespace()
 
 		.beginNamespace("PrefabManager")
 			.addFunction("LoadPrefab", Lua_LoadPrefab)
 		.endNamespace()
+
+		.beginNamespace("Random")
+			.addFunction("RangeFloat", Lua_RandomRangeFloat)
+			.addFunction("RangeInt", Lua_RandomRangeInt)
+			.addFunction("DiceRoll", Lua_NumberedDiceRoll)
+			.addFunction("RangeVec3", Lua_RandomRangeVec)
+		.endNamespace()
+
 
 		// ----- GLOBAL VARIABLES -----
 		.beginNamespace("LogLevel")
