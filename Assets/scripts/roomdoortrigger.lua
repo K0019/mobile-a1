@@ -35,10 +35,7 @@ function OnTriggerEnter(entity)
                 end
             -- Call relevant functions on enemy wave spawner etc here!
                 --local spawnerEntity = entityContainer:GetEntityReference(1)
-
-                --if spawnerEntity:Exists() then
                 --local spawnerScriptComp = spawnerEntity:GetScriptComponent()
-                --end
 
                 --if spawnerScriptComp:Exists() then
                 --Magic.Log(Magic.LogLevel.info, "It's spawnin time")
