@@ -11,6 +11,22 @@ function start(entity)
 end
 
 function OnHealthDepleted()
+
+    -- Notify spawner
+    local entityContainer = thisEntity:GetEntityReferenceHolderComponent()
+    
+    Magic.Log(Magic.LogLevel.info, "IM DEAD")
+    if entityContainer:Exists() then
+    local spawner = entityContainer:GetEntityReference(0)
+    local scriptComp = spawner:GetScriptComponent()
+    if scriptComp:Exists() then
+        scriptComp:CallScriptFunction("enemydeath")
+    end
+    else
+        Magic.Log(Magic.LogLevel.info, "ENTITYCONTAINER IS NULL")
+
+    end
+
     -- Play death sound
     Magic.AudioManager.PlaySound3D("enemy female death "..(Magic.Random.RangeInt(0,3)+1),false,thisEntity.transform.worldPosition)
 

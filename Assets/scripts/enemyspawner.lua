@@ -13,7 +13,11 @@ function start(entity)
 
 	thisEntity = entity;
     
+    local nameComp = thisEntity:GetNameComponent()
+    Magic.Log(Magic.LogLevel.info, nameComp.name)
+    if nameComp.name == "startspawner" then
     wavespawn()
+    end
 end
 
 function proceed()
@@ -21,14 +25,34 @@ function proceed()
 
     if entityContainer:Exists() then
     local nextObjective = entityContainer:GetEntityReference(0)
+    
+    Magic.Log(Magic.LogLevel.info, "proceed")
+
+    -- spawn type of enemy based on referenced object name
+    local nameComp = nextObjective:GetNameComponent()
+    Magic.Log(Magic.LogLevel.info, nameComp.name)
+
     local scriptComp = nextObjective:GetScriptComponent()
-          if scriptComp:Exists() then
-          Magic.Log(Magic.LogLevel.info, "It's spawnin time")
-          scriptComp:CallScriptFunction("wavespawn")
+    
+    if scriptComp:Exists() then
+    
+    if nameComp.name == "enemyspawner" then
+        Magic.Log(Magic.LogLevel.info, "It's spawnin time")
+        scriptComp:CallScriptFunction("wavespawn")
           
-          else --open door or end game
-          end
+    elseif nameComp.name == "Door_Classroom" then
+        Magic.Log(Magic.LogLevel.info, "Open sesame")
+        scriptComp:CallScriptFunction("open")
+
+    elseif nameComp.name == "winscreen" then
+        Magic.Log(Magic.LogLevel.info, "I win")
+        --scriptComp:CallScriptFunction("wingame")
     end
+
+    end
+
+end
+
 end
 
 function enemydeath()
@@ -40,6 +64,7 @@ function enemydeath()
     Magic.Log(Magic.LogLevel.info, "Enemy died. Remaining = "..EnemySpawner.aliveEnemies)
     
     if EnemySpawner.aliveEnemies == 0 then 
+    Magic.Log(Magic.LogLevel.info, "proceed")
     proceed()
     end
 end
@@ -69,8 +94,7 @@ function wavespawn()
 
              local transform = spawnPosEntity.transform
              local worldPos = transform.worldPosition
-            Magic.Log(Magic.LogLevel.info,string.format("linearVelocity (after) = (%.3f, %.3f, %.3f)", worldPos.x, worldPos.y, worldPos.z))
-
+             --Magic.Log(Magic.LogLevel.info,string.format("linearVelocity (after) = (%.3f, %.3f, %.3f)", worldPos.x, worldPos.y, worldPos.z))
 
              newEnemyTransform.worldPosition = worldPos
 
@@ -78,11 +102,10 @@ function wavespawn()
             EnemySpawner.aliveEnemies = EnemySpawner.aliveEnemies + 1
             Magic.Log(Magic.LogLevel.info, "Enemy spawned. Remaining = "..EnemySpawner.aliveEnemies)
 
-            local scriptComp = newEnemy:GetScriptComponent()
-            if scriptComp:Exists() then
-            
+            local selfref = newEnemy:GetEntityReferenceHolderComponent()
+            if selfref:Exists() then
+                selfref:SetEntityReference(0, thisEntity)
             end
-
         end
     else
         Magic.Log(Magic.LogLevel.info, "ENTITYCONTAINER IS NULL")
