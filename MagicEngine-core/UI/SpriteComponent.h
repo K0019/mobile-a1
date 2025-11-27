@@ -107,16 +107,43 @@ enum class PRIMITIVE2D_TYPE // Note: Unused, except for "TOTAL". This is just to
 };
 #undef X
 
+// Exists so that primitive management functions can be reused at other places.
+class Primitive2DHolder
+{
+public:
+	Primitive2DHolder(const Primitive2D& primitive = Primitive2DImage{});
+
+	const Primitive2D& GetPrimitive() const;
+	template <typename FuncReturnType = void>
+	FuncReturnType VisitPrimitive(auto func);
+
+	const Vec4& GetColor() const;
+	void SetColor(const Vec4& newColor);
+
+	void EditorDraw();
+	void Serialize(Serializer& writer) const;
+	void Deserialize(Deserializer& reader);
+
+private:
+	void UpdatePrimitive(size_t typeIndex);
+
+private:
+	Primitive2D primitive;
+	Vec4 color;
+
+	static const std::array<const char*, +PRIMITIVE2D_TYPE::TOTAL> primitiveNames;
+};
+
 class SpriteComponent
 	: public IUIComponent
 	, public IRegisteredComponent<SpriteComponent>
 	, public IEditorComponent<SpriteComponent>
 {
 public:
-	SpriteComponent();
-
-	const Primitive2D& GetPrimitive() const;
-	void VisitPrimitive(auto func);
+	const Primitive2DHolder& GetPrimitive() const;
+	template <typename FuncReturnType = void>
+	FuncReturnType VisitPrimitive(auto func);
+	void SetPrimitive(const Primitive2DHolder& newPrimitive);
 
 	const Vec4& GetColor() const;
 	void SetColor(const Vec4& color);
@@ -127,13 +154,7 @@ public:
 	void Deserialize(Deserializer& reader) override;
 
 private:
-	void UpdatePrimitive(size_t type);
-
-private:
-	Primitive2D primitive;
-	Vec4 color;
-
-	static const std::array<const char*, +PRIMITIVE2D_TYPE::TOTAL> primitiveNames;
+	Primitive2DHolder primitive;
 };
 
 class SpriteRenderSystem : public ecs::System<SpriteRenderSystem, SpriteComponent>
@@ -144,3 +165,15 @@ public:
 private:
 	void RenderSprite(SpriteComponent& comp);
 };
+
+template <typename FuncReturnType>
+FuncReturnType Primitive2DHolder::VisitPrimitive(auto func)
+{
+	return std::visit(func, primitive);
+}
+
+template <typename FuncReturnType>
+FuncReturnType SpriteComponent::VisitPrimitive(auto func)
+{
+	return primitive.VisitPrimitive<FuncReturnType>(func);
+}
