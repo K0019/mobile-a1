@@ -142,7 +142,9 @@ void CustomViewport::DrawWindow()
 		ImGui::Image(*sceneColorID, renderSize, ImVec2(0, 0), ImVec2(1, 1));
 	}
 
-	// Left click to pick objects (when not dragging camera with right mouse)
+	if (ST<GameSystemsManager>::Get()->GetState() != GAMESTATE::IN_GAME && ST<GameSystemsManager>::Get()->GetState() != GAMESTATE::PAUSE)
+	{
+		// Left click to pick objects (when not dragging camera with right mouse)
 	static bool wasLeftMouseDown = false;
 	bool isLeftMouseDown = Input::GetMouseButton(MouseButton::Left);
 	bool leftClickJustPressed = isLeftMouseDown && !wasLeftMouseDown;
@@ -196,12 +198,12 @@ void CustomViewport::DrawWindow()
 			}
 		}
 
-		// Check for pick rsult from previous frame
-		ecs::EntityHandle pickedEntity = ST<GraphicsMain>::Get()->PreviousPick();
-		if (pickedEntity)
-		{
-			ST<EventsQueue>::Get()->AddEventForNextFrame(Events::EditorSelectEntity{ pickedEntity });
-		}
+	// Check for pick rsult from previous frame
+	ecs::EntityHandle pickedEntity = ST<GraphicsMain>::Get()->PreviousPick();
+	if (pickedEntity)
+	{
+		ST<EventsQueue>::Get()->AddEventForNextFrame(Events::EditorSelectEntity{ pickedEntity });
+	}
 
 
 	m_gizmo.Draw(ST<EventsQueue>::Get()->RequestValueFromEventHandlers<ecs::EntityHandle>(Getters::EditorSelectedEntity{}).value_or(nullptr));
@@ -214,6 +216,7 @@ void CustomViewport::DrawWindow()
 		entity->GetTransform().SetWorldPosition(camera->getPosition());
 		ST<EventsQueue>::Get()->AddEventForNextFrame(Events::EditorSelectEntity{ entity });
 	});
+	}
 #endif
 }
 
