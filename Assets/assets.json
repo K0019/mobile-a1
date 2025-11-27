@@ -547,20 +547,6 @@
             ]
         },
         {
-            "filepath": "compiledassets/textures/digipen_cmyk_red.ktx2",
-            "resources": [
-                {
-                    "resourceType": 16443744738808614340,
-                    "resourceEntries": [
-                        {
-                            "hash": 55937654067787191,
-                            "name": "digipen_cmyk_red0"
-                        }
-                    ]
-                }
-            ]
-        },
-        {
             "filepath": "sounds/sfx/mc/katar/katar #1/katar #1 1.wav",
             "resources": [
                 {
@@ -569,6 +555,20 @@
                         {
                             "hash": 3053083553861688579,
                             "name": "katar #1 10"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/textures/digipen_cmyk_red.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 55937654067787191,
+                            "name": "digipen_cmyk_red0"
                         }
                     ]
                 }
@@ -681,6 +681,20 @@
                         {
                             "hash": 1940135547029087991,
                             "name": "spike_lambert0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/main menu bg.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 97470606385473683,
+                            "name": "main menu bg0"
                         }
                     ]
                 }
@@ -1129,6 +1143,20 @@
                         {
                             "hash": 394651007363811311,
                             "name": "unitbox0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/controls button.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 119112293755005063,
+                            "name": "controls button0"
                         }
                     ]
                 }
@@ -2319,6 +2347,20 @@
                         {
                             "hash": 2295582366992094053,
                             "name": "standardsurface1_1002.0010"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/exit button.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 113166134871989379,
+                            "name": "exit button0"
                         }
                     ]
                 }
@@ -3529,6 +3571,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/start button.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 112346998709293195,
+                            "name": "start button0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "sounds/sfx/mc/death/mc death 1.wav",
             "resources": [
                 {
@@ -4481,6 +4537,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/main menu header.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 99909323175884485,
+                            "name": "main menu header0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/models/glb/baseball_field/field/image_0.ktx2",
             "resources": [
                 {
@@ -5217,6 +5287,20 @@
                         {
                             "hash": 4836859298975909360,
                             "name": "weapon pickup 10"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/controls.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 104717487524154023,
+                            "name": "controls0"
                         }
                     ]
                 }

@@ -47,6 +47,12 @@ All rights reserved.
 #include "Graphics/RenderComponent.h"
 #include "Engine/PrefabManager.h"
 
+#include "core/platform/platform.h"
+// Thanks microsoft
+#ifdef CreateDirectory
+#undef CreateDirectory
+#endif
+
 //=========================================== START REGISTERING COMPONENTS ================================================================================
 // This section is unfortunately required. This registers what functions are available in a component.
 
@@ -559,6 +565,7 @@ void RegisterCppStuffToLua(luabridge::Namespace baseTable)
 
 		// ----- GLOBAL FUNCTIONS -----
 		.addFunction("Log", Lua_Log)
+		.addFunction("EngineShutdown", []() -> void { Core::Platform::Get().GetLifecycle().RequestExit(); })
 		.addFunction("DeltaTime", []() -> float { return GameTime::Dt(); })
 		.addFunction("LoadScene", [](const std::string& scenePath) {
 			auto* sceneManager = ST<SceneManager>::Get();
