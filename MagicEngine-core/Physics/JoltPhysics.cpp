@@ -93,9 +93,10 @@ namespace physics {
 		OptimizeBroadPhase();
 		std::unordered_map<JPH::Float3, int> vert2Index{};
 		int highestIndex{};
-		JPH::AABox bound{ physicsSystem.GetBounds() };
-		bound.mMin -= JPH::Vec3{ 1.f, 1.f, 1.f };
-		bound.mMax += JPH::Vec3{ 1.f, 1.f, 1.f };
+		//JPH::AABox bound{ physicsSystem.GetBounds() };
+		//bound.mMin -= JPH::Vec3{ 1.f, 1.f, 1.f };
+		//bound.mMax += JPH::Vec3{ 1.f, 1.f, 1.f };
+		JPH::AABox bound{ JPH::Vec3{JPH::Vec3::sReplicate(-100.f)}, JPH::Vec3{JPH::Vec3::sReplicate(100.f)} };
 
 		for (auto colCompIter{ ecs::GetCompsActiveBegin<physics::BoxColliderComp>() }, endIter{ ecs::GetCompsEnd<physics::BoxColliderComp>() }; colCompIter != endIter; ++colCompIter)
 		{
@@ -103,7 +104,9 @@ namespace physics {
 			colCompIter.GetEntity()->GetComp<JoltBodyComp>()->UpdateBody();
 
 			// If the collider is not enabled or if it has a physics component, it's not a static object so go to the next collider.
-			if (!colCompIter->GetFlag(physics::COLLIDER_COMP_FLAG::ENABLED) || colCompIter.GetEntity()->HasComp<physics::PhysicsComp>())
+			if (!colCompIter->GetFlag(COLLIDER_COMP_FLAG::ENABLED) || 
+				 colCompIter.GetEntity()->HasComp<physics::PhysicsComp>() || 
+				 colCompIter->GetFlag(COLLIDER_COMP_FLAG::IS_TRIGGER))
 				continue;
 
 			auto bodyCompPtr{ colCompIter.GetEntity()->GetComp<physics::JoltBodyComp>() };
@@ -159,12 +162,34 @@ namespace physics {
 		return bound;
 	}
 
+	TransformValues::TransformValues()
+	{
+		pos = scale = rot = Vec3{};
+	}
+
+	TransformValues::TransformValues(Transform& trans)
+	{
+		pos = trans.GetWorldPosition();
+		scale = trans.GetWorldScale();
+		rot = trans.GetWorldRotation();
+	}
+
 	TransformValues& TransformValues::operator=(Transform& trans)
 	{
 		pos = trans.GetWorldPosition();
 		scale = trans.GetWorldScale();
 		rot = trans.GetWorldRotation();
 		return *this;
+	}
+
+	bool operator==(TransformValues const& lhs, TransformValues const& rhs)
+	{
+		return lhs.pos == rhs.pos && lhs.scale == rhs.scale && lhs.rot == rhs.rot;
+	}
+
+	bool operator!=(TransformValues const& lhs, TransformValues const& rhs)
+	{
+		return !(lhs == rhs);
 	}
 
 	JoltPhysics::~JoltPhysics()
@@ -231,6 +256,7 @@ namespace physics {
 
 		JPH::BodyCreationSettings bodySettings{ scaleShape, position, rotation, motionType, +collisionLayer };
 		bodySettings.mAllowDynamicOrKinematic = true;
+		bodySettings.mAllowSleeping = false;
 		bodySettings.mUserData = ecs::GetEntity(this)->GetHash();
 		bodySettings.mGravityFactor = 0.f;
 
@@ -312,6 +338,11 @@ namespace physics {
 	{
 		JPH::Vec3 vec{ ST<JoltPhysics>::Get()->GetBodyInterface().GetAngularVelocity(bodyID) };
 		return Vec3{ vec.GetX(), vec.GetY(), vec.GetZ() };
+	}
+
+	const TransformValues& JoltBodyComp::GetPrevTrans()
+	{
+		return prevTrans;
 	}
 
 	bool JoltBodyComp::IsTrigger() const
@@ -438,6 +469,11 @@ namespace physics {
 		ST<JoltPhysics>::Get()->GetBodyInterface().SetAngularVelocity(bodyID, joltVel);
 	}
 
+	void JoltBodyComp::SetPrevTrans(const TransformValues& val)
+	{
+		prevTrans = val;
+	}
+
 	void JoltBodyComp::SetLockRotationX(bool val)
 	{
 		val ? dof &= ~JPH::EAllowedDOFs::RotationX : dof |= JPH::EAllowedDOFs::RotationX;
@@ -472,6 +508,12 @@ namespace physics {
 		if (invMass > 0.f)
 			massProp.ScaleToMass(1.f / invMass);
 		property->SetMassProperties(val, massProp);
+	}
+
+	void JoltBodyComp::MoveTo(const Vec3& pos, float time)
+	{
+		JPH::Vec3 joltPos{ pos.x, pos.y, pos.z };
+		ST<JoltPhysics>::Get()->GetBodyInterface().MoveKinematic(bodyID, joltPos, GetRotation(), time);
 	}
 
 	void JoltBodyComp::SetIsTrigger(bool val)
@@ -552,6 +594,19 @@ namespace physics {
 
 		prevTrans = ecs::GetEntityTransform(this);
 	}
+
+	//void JoltBodyComp::EditorDraw()
+	//{
+	//	std::string motion{ motionType == JPH::EMotionType::Static ? "Static" : (motionType == JPH::EMotionType::Dynamic ? "Dynamic" : "Kinematic") };
+	//	std::string shape{ shapeType == ShapeType::BOX ? "Box" : "Empty" };
+	//	std::string col{ collisionLayer == Layers::MOVING ? "Moving" : (collisionLayer == Layers::NON_COLLIDABLE ? "Non Collidable" : "Non Moving") };
+	//	std::string gravity{ std::to_string(ST<JoltPhysics>::Get()->GetBodyInterface().GetGravityFactor(bodyID)) };
+
+	//	ImGui::Text((std::string{ "MotionType = " } + motion).c_str());
+	//	ImGui::Text((std::string{ "ShapeType  = " } + shape).c_str());
+	//	ImGui::Text((std::string{ "Collision  = " } + col).c_str());
+	//	ImGui::Text((std::string{ "VelocityY  = " } + std::to_string(GetLinearVelocity().y)).c_str());
+	//}
 
 	// Callback for traces, connect this to your own trace function if you have one
 	static void TraceImpl(const char* inFMT, ...)

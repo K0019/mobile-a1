@@ -189,14 +189,64 @@ namespace navmesh
 	{
 		agentData.active = val;
 		dtCrowdAgentParams params{};
+		if (agent)
+			params = agent->params;
 
 		params.radius = agentData.param.radius;
 		params.height = agentData.param.height;
 		params.maxSpeed = val ? agentData.speed : 0.f;
-		params.maxAcceleration = val ? agentData.acceleration : 0.f;
+		params.maxAcceleration = agentData.acceleration;
 
 		params.updateFlags = DT_CROWD_ANTICIPATE_TURNS | DT_CROWD_SEPARATION | DT_CROWD_OBSTACLE_AVOIDANCE;
 		SetAgentParam(params);
+	}
+
+	void NavMeshAgentComp::Deserialize(Deserializer& reader)
+	{
+		ISerializeable::Deserialize(reader);
+		if (auto agentSystem{ ecs::GetSystem<NavMeshAgentSystem>() })
+		{
+			dtCrowd* crowdSystem{ agentSystem->GetCrowdSystem() };
+			if (!crowdSystem)
+				return;
+
+			ST<Scheduler>::Get()->Add([entity = ecs::GetEntity(this), crowdSystem] {
+			//Get necessary data.
+			const Vec3& transPos{ entity->GetTransform().GetWorldPosition()};
+			float pos[3]{ transPos.x, transPos.y, transPos.z };
+			dtCrowdAgentParams params{};
+
+			auto agentComp{ entity->GetComp<NavMeshAgentComp>() };
+			if (!agentComp)
+				return;
+			params.radius = agentComp->GetRadius();
+			params.height = agentComp->GetHeight();
+			params.maxAcceleration = agentComp->GetMaxAcceleration();
+			params.maxSpeed = agentComp->IsActive() ? agentComp->GetMaxSpeed() : 0.f;
+			params.updateFlags = DT_CROWD_ANTICIPATE_TURNS | DT_CROWD_SEPARATION | DT_CROWD_OBSTACLE_AVOIDANCE;
+
+				int id{ -1 };
+				NavMeshHit hit{};
+				if (SamplePosition(transPos, hit, 100.f, +PolyFlags::WALKABLE))
+				{
+					//Create agent.
+					float nearestPos[3]{ hit.position.x, hit.position.y, hit.position.z };
+					id = crowdSystem->addAgent(nearestPos, &params);
+					agentComp->SetAgentID(id);
+					agentComp->SetAgent(crowdSystem->getEditableAgent(id));
+
+					//Update the entity transform.
+					nearestPos[1] += agentComp->GetBaseOffset();
+					entity->GetTransform().SetWorldPosition(Vec3{nearestPos[0], nearestPos[1], nearestPos[2]});
+				}
+
+				if (id == -1)
+				{
+					CONSOLE_LOG(LEVEL_ERROR) << "Couldn't add agent to the agent system.";
+					return;
+				}
+				});
+		}
 	}
 
 	void NavMeshAgentComp::SetAgentPos(Vec3 const& pos)
@@ -225,6 +275,8 @@ namespace navmesh
 			return;
 
 		dtCrowdAgentParams params{};
+		if (agent)
+			params = agent->params;
 
 		params.radius = agentData.param.radius;
 		params.height = agentData.param.height;
@@ -234,6 +286,7 @@ namespace navmesh
 		params.updateFlags = DT_CROWD_ANTICIPATE_TURNS | DT_CROWD_SEPARATION | DT_CROWD_OBSTACLE_AVOIDANCE;
 
 		crowdSystem->updateAgentParameters(agentID, &params);
+
 	}
 
 	void NavMeshAgentComp::SetAgentParam(dtCrowdAgentParams const& param)
@@ -242,7 +295,7 @@ namespace navmesh
 		if (!agentSystem)
 			return;
 
-		auto crowdSystem{ agentSystem->GetCrowdSystem() };
+		dtCrowd* crowdSystem{ agentSystem->GetCrowdSystem() };
 		if (!crowdSystem)
 			return;
 
@@ -292,18 +345,8 @@ namespace navmesh
 			
 			params.radius = compIter->GetRadius();
 			params.height = compIter->GetHeight();
-
-			if (compIter->IsActive())
-			{
-				params.maxSpeed = compIter->GetMaxSpeed();
-				params.maxAcceleration = compIter->GetMaxAcceleration();
-			}
-			else
-			{
-				params.maxSpeed = 0.f;
-				params.maxAcceleration = 0.f;
-			}
-
+			params.maxAcceleration = compIter->GetMaxAcceleration();
+			params.maxSpeed = compIter->IsActive() ? compIter->GetMaxSpeed() : 0.f;
 			params.updateFlags = DT_CROWD_ANTICIPATE_TURNS | DT_CROWD_SEPARATION | DT_CROWD_OBSTACLE_AVOIDANCE;
 
 			int id{-1};

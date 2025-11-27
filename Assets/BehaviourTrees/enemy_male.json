@@ -1,0 +1,49 @@
+{
+    "name": "enemy_male",
+    "nodes": [
+        {
+            "nodeType": "Selector",
+            "nodeLevel": 0
+        },
+        {
+            "nodeType": "D_WantToMove",
+            "nodeLevel": 1
+        },
+        {
+            "nodeType": "Sequence",
+            "nodeLevel": 2
+        },
+        {
+            "nodeType": "L_FollowPlayerUsingNavMesh",
+            "nodeLevel": 3
+        },
+        {
+            "nodeType": "L_RotateTowardsTarget",
+            "nodeLevel": 3
+        },
+        {
+            "nodeType": "D_AttactCoolDown",
+            "nodeLevel": 1
+        },
+        {
+            "nodeType": "L_RotateTowardsTarget",
+            "nodeLevel": 2
+        },
+        {
+            "nodeType": "Sequence",
+            "nodeLevel": 1
+        },
+        {
+            "nodeType": "L_WindUp",
+            "nodeLevel": 2
+        },
+        {
+            "nodeType": "L_MeleeAttack",
+            "nodeLevel": 2
+        },
+        {
+            "nodeType": "L_FollowThrough",
+            "nodeLevel": 2
+        }
+    ]
+}

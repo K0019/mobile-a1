@@ -135,9 +135,9 @@ private:
 };
 
 class SpriteComponent
-	: public IUIComponent
-	, public IRegisteredComponent<SpriteComponent>
+	: public IRegisteredComponent<SpriteComponent>
 	, public IEditorComponent<SpriteComponent>
+	, public IUIComponent<SpriteComponent>
 {
 public:
 	const Primitive2DHolder& GetPrimitive() const;

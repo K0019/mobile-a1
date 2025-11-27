@@ -162,6 +162,8 @@ namespace navmesh
 		*//******************************************************************/
 		void AddTileRef(const dtTileRef& tileRef);
 
+		void Deserialize(Deserializer& reader) override;
+
 	private:
 		//Data baked by the component.
 		NavMeshData navMeshData;

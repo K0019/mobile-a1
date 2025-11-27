@@ -32,11 +32,13 @@ public:
 	Vec2 GetLocalPosition() const;
 	void SetLocalPosition(Vec2 newPos);
 	Vec2 GetWorldPosition() const;
+	void SetWorldPosition(Vec2 newPos);
 	float GetRotation() const;
 	void SetRotation(float newRot);
 	Vec2 GetLocalScale() const;
 	Vec2 GetWorldScale() const;
-	void SetScale(Vec2 newScale);
+	void SetLocalScale(Vec2 newScale);
+	void SetWorldScale(Vec2 newScale);
 
 	void EditorDraw();
 

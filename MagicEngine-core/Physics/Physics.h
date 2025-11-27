@@ -151,6 +151,8 @@ X(ENABLED, "Enabled")
 		*//******************************************************************/
 		void SetAngularVelocity(const Vec3& vel);
 
+		void MoveTo(const Vec3& pos, float time);
+
 		// ===== Lua helpers =====
 	public:
 		bool GetIsKinematic() const { return GetFlag(PHYSICS_COMP_FLAG::IS_KINEMATIC); }
