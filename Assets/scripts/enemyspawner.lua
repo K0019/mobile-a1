@@ -67,15 +67,20 @@ function wavespawn()
              local newEnemyTransform = newEnemy.transform
              Magic.Log(Magic.LogLevel.info, "Spawned "..nameComp.name)
 
-             --local transform = spawnPosEntity.transform
-             --local worldPos = transform.worldPosition
-             --Magic.Log(Magic.LogLevel.info, "Spawn Pos"..worldPos)
+             local transform = spawnPosEntity.transform
+             local worldPos = transform.worldPosition
+             -Magic.Log(Magic.LogLevel.info, "Spawn Pos"..worldPos)
 
-             --newEnemyTransform.worldPosition = worldPos
+             newEnemyTransform.worldPosition = worldPos
 
              -- keep track of enemies spawned
             EnemySpawner.aliveEnemies = EnemySpawner.aliveEnemies + 1
             Magic.Log(Magic.LogLevel.info, "Enemy spawned. Remaining = "..EnemySpawner.aliveEnemies)
+
+            local scriptComp = newEnemy:GetScriptComponent()
+            if scriptComp:Exists() then
+            
+
         end
     else
         Magic.Log(Magic.LogLevel.info, "ENTITYCONTAINER IS NULL")
