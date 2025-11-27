@@ -510,6 +510,12 @@ namespace physics {
 		property->SetMassProperties(val, massProp);
 	}
 
+	void JoltBodyComp::MoveTo(const Vec3& pos, float time)
+	{
+		JPH::Vec3 joltPos{ pos.x, pos.y, pos.z };
+		ST<JoltPhysics>::Get()->GetBodyInterface().MoveKinematic(bodyID, joltPos, GetRotation(), time);
+	}
+
 	void JoltBodyComp::SetIsTrigger(bool val)
 	{
 		JPH::BodyLockWrite lock(ST<JoltPhysics>::Get()->GetPhysicsSystem().GetBodyLockInterface(), bodyID);
@@ -589,18 +595,18 @@ namespace physics {
 		prevTrans = ecs::GetEntityTransform(this);
 	}
 
-	void JoltBodyComp::EditorDraw()
-	{
-		std::string motion{ motionType == JPH::EMotionType::Static ? "Static" : (motionType == JPH::EMotionType::Dynamic ? "Dynamic" : "Kinematic") };
-		std::string shape{ shapeType == ShapeType::BOX ? "Box" : "Empty" };
-		std::string col{ collisionLayer == Layers::MOVING ? "Moving" : (collisionLayer == Layers::NON_COLLIDABLE ? "Non Collidable" : "Non Moving") };
-		std::string gravity{ std::to_string(ST<JoltPhysics>::Get()->GetBodyInterface().GetGravityFactor(bodyID)) };
+	//void JoltBodyComp::EditorDraw()
+	//{
+	//	std::string motion{ motionType == JPH::EMotionType::Static ? "Static" : (motionType == JPH::EMotionType::Dynamic ? "Dynamic" : "Kinematic") };
+	//	std::string shape{ shapeType == ShapeType::BOX ? "Box" : "Empty" };
+	//	std::string col{ collisionLayer == Layers::MOVING ? "Moving" : (collisionLayer == Layers::NON_COLLIDABLE ? "Non Collidable" : "Non Moving") };
+	//	std::string gravity{ std::to_string(ST<JoltPhysics>::Get()->GetBodyInterface().GetGravityFactor(bodyID)) };
 
-		ImGui::Text((std::string{ "MotionType = " } + motion).c_str());
-		ImGui::Text((std::string{ "ShapeType  = " } + shape).c_str());
-		ImGui::Text((std::string{ "Collision  = " } + col).c_str());
-		ImGui::Text((std::string{ "VelocityY  = " } + std::to_string(GetLinearVelocity().y)).c_str());
-	}
+	//	ImGui::Text((std::string{ "MotionType = " } + motion).c_str());
+	//	ImGui::Text((std::string{ "ShapeType  = " } + shape).c_str());
+	//	ImGui::Text((std::string{ "Collision  = " } + col).c_str());
+	//	ImGui::Text((std::string{ "VelocityY  = " } + std::to_string(GetLinearVelocity().y)).c_str());
+	//}
 
 	// Callback for traces, connect this to your own trace function if you have one
 	static void TraceImpl(const char* inFMT, ...)

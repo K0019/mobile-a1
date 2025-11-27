@@ -200,8 +200,8 @@ namespace physics {
 
 	class JoltBodyComp
 		: public ecs::IComponentCallbacks
-		//, public IHiddenComponent<JoltBodyComp>
-		, public IEditorComponent<JoltBodyComp>
+		, public IHiddenComponent<JoltBodyComp>
+		//, public IEditorComponent<JoltBodyComp>
 	{
 	public:
 		/*****************************************************************//*!
@@ -450,7 +450,6 @@ namespace physics {
 		*//******************************************************************/
 		void SetDOF(JPH::EAllowedDOFs val);
 
-
 		/*****************************************************************//*!
 		\brief
 			Set the is trigger value to the body.
@@ -458,6 +457,8 @@ namespace physics {
 			trigger value.
 		*//******************************************************************/
 		void SetIsTrigger(bool val);
+
+		void MoveTo(const Vec3& pos, float time);
 
 		/*****************************************************************//*!
 		\brief
@@ -471,7 +472,7 @@ namespace physics {
 		*//******************************************************************/
 		void UpdateEntity();
 
-		void EditorDraw() override;
+		//void EditorDraw() override;
 	};
 
 	/*****************************************************************//*!

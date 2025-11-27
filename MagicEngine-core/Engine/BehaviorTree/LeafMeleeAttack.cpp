@@ -2,6 +2,7 @@
 #include "Game/EnemyCharacter.h"
 #include "Physics/Collision.h"
 #include "Game/Character.h"
+#include "graphics/AnimationComponent.h"
 
 void L_MeleeAttack::OnInitialize()
 {
@@ -12,7 +13,8 @@ NODE_STATUS L_MeleeAttack::OnUpdate(ecs::EntityHandle entity)
 {
 	auto characterComp{ entity->GetComp<CharacterMovementComponent>() };
 	auto enemyComp{ entity->GetComp<EnemyComponent>() };
-	if (!enemyComp || !characterComp || !enemyComp->attackCollider)
+	auto animComp{ entity->GetComp<AnimationComponent>() };
+	if (!enemyComp || !characterComp || !animComp || !enemyComp->attackCollider)
 		return NODE_STATUS::FAILURE;
 
 
@@ -22,6 +24,7 @@ NODE_STATUS L_MeleeAttack::OnUpdate(ecs::EntityHandle entity)
 
 	if (characterComp->currentStunTime > 0.f)
 	{
+		characterComp->isAttacking = false;
 		attackTrigger->SetFlag(physics::COLLIDER_COMP_FLAG::ENABLED, false);
 		return NODE_STATUS::FAILURE;
 	}

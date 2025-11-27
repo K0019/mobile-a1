@@ -12,13 +12,20 @@ NODE_STATUS L_FollowThrough::OnUpdate(ecs::EntityHandle entity)
 {
 	auto characterComp{ entity->GetComp<CharacterMovementComponent>() };
 	auto enemyComp{ entity->GetComp<EnemyComponent>() };
-	if (!enemyComp || !characterComp || characterComp->currentStunTime > 0.f)
+	if (!enemyComp || !characterComp)
 		return NODE_STATUS::FAILURE;
+
+	if (characterComp->currentStunTime > 0.f)
+	{
+		characterComp->isAttacking = false;
+		return NODE_STATUS::FAILURE;
+	}
 
 	currSpentTime += GameTime::Dt();
 
 	if (currSpentTime < enemyComp->followThroughTime)
 		return NODE_STATUS::RUNNING;
 
+	characterComp->isAttacking = false;
 	return NODE_STATUS::SUCCESS;
 }

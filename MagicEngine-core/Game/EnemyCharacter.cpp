@@ -32,7 +32,7 @@ EnemyComponent::EnemyComponent()
 	, windUpTime{}
 	, attackTime{}
 	, attackCoolDownTime{}
-	, currAttackCoolDown{std::numeric_limits<float>::max()}
+	, currAttackCoolDown{}
 	, followThroughTime{}
 {
 }

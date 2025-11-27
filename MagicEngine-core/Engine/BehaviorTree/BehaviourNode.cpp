@@ -35,6 +35,7 @@ All rights reserved.
 #include "LeafMeleeAttack.h"
 #include "LeafFollowThrough.h"
 #include "LeafRotateTowardsTarget.h"
+#include "LeafThrowAttack.h"
 #include "BehaviourTreeFactory.h"
 #include "Engine/Input.h"
 
@@ -66,6 +67,7 @@ BT_REGISTER_NODE(D_WantToMove, "D_WantToMove")
 BT_REGISTER_NODE(D_AttackCoolDown, "D_AttactCoolDown")
 BT_REGISTER_NODE(L_WindUp, "L_WindUp")
 BT_REGISTER_NODE(L_MeleeAttack, "L_MeleeAttack")
+BT_REGISTER_NODE(L_ThrowAttack, "L_ThrowAttack")
 BT_REGISTER_NODE(L_RotateTowardsTarget, "L_RotateTowardsTarget")
 BT_REGISTER_NODE(L_FollowThrough, "L_FollowThrough")
 
