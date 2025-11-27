@@ -1,5 +1,5 @@
 {
     "scenes": [
-        "scenes/mainmenu.scene"
+        "scenes/MainMenu.scene"
     ]
 }
