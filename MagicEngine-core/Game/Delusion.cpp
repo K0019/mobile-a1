@@ -55,7 +55,6 @@ DelusionComponent::DelusionComponent() :
 	, ultValue{ 90.0f }
 	, prevTier{DelusionTiers::DT_F}
 	, currTier{DelusionTiers::DT_F}
-    , owner {nullptr}
 {
 }
 
@@ -130,18 +129,18 @@ void DelusionComponent::UpdateDelusionTier()
 	ST<AudioManager>::Get()->PlaySound(currTier > prevTier ? "rank increase" : "rank decrease", false);
 
 	//buffs and debuffs, as of yet unimplemented due to it being hard to see interactions, but ill throw in the pseudo code
-    /*
+    
     switch (currTier)
     {
     case DelusionTiers::DT_F:
     {
         // Health and speed adjustments for DT_F
-        if (ecs::CompHandle<HealthComponent> healthComp{ owner->GetComp<HealthComponent>() })
+        if (ecs::CompHandle<HealthComponent> healthComp{ ecs::GetEntity(this)->GetComp<HealthComponent>() })
         {
             healthComp->SetMaxHealth(100);
         }
 
-        if (ecs::CompHandle<CharacterMovementComponent> characterComp{ owner->GetComp<CharacterMovementComponent>() })
+        if (ecs::CompHandle<CharacterMovementComponent> characterComp{ ecs::GetEntity(this)->GetComp<CharacterMovementComponent>() })
         {
             characterComp->ResetSpeedMultiplier();
         }
@@ -154,12 +153,12 @@ void DelusionComponent::UpdateDelusionTier()
     case DelusionTiers::DT_D:
     {
         // Health and speed adjustments for DT_D
-        if (ecs::CompHandle<HealthComponent> healthComp{ owner->GetComp<HealthComponent>() })
+        if (ecs::CompHandle<HealthComponent> healthComp{ ecs::GetEntity(this)->GetComp<HealthComponent>() })
         {
             healthComp->SetMaxHealth(80);
         }
 
-        if (ecs::CompHandle<CharacterMovementComponent> characterComp{ owner->GetComp<CharacterMovementComponent>() })
+        if (ecs::CompHandle<CharacterMovementComponent> characterComp{ ecs::GetEntity(this)->GetComp<CharacterMovementComponent>() })
         {
             characterComp->ResetSpeedMultiplier();
             characterComp->SetSpeedMultiplier(1.1f); // speed buff
@@ -173,12 +172,12 @@ void DelusionComponent::UpdateDelusionTier()
     case DelusionTiers::DT_C:
     {
         // Health and speed adjustments for DT_C
-        if (ecs::CompHandle<HealthComponent> healthComp{ owner->GetComp<HealthComponent>() })
+        if (ecs::CompHandle<HealthComponent> healthComp{ ecs::GetEntity(this)->GetComp<HealthComponent>() })
         {
             healthComp->SetMaxHealth(75);
         }
 
-        if (ecs::CompHandle<CharacterMovementComponent> characterComp{ owner->GetComp<CharacterMovementComponent>() })
+        if (ecs::CompHandle<CharacterMovementComponent> characterComp{ ecs::GetEntity(this)->GetComp<CharacterMovementComponent>() })
         {
             characterComp->ResetSpeedMultiplier();
             characterComp->SetSpeedMultiplier(1.1f); // speed buff
@@ -192,12 +191,12 @@ void DelusionComponent::UpdateDelusionTier()
     case DelusionTiers::DT_B:
     {
         // Health and speed adjustments for DT_B
-        if (ecs::CompHandle<HealthComponent> healthComp{ owner->GetComp<HealthComponent>() })
+        if (ecs::CompHandle<HealthComponent> healthComp{ ecs::GetEntity(this)->GetComp<HealthComponent>() })
         {
             healthComp->SetMaxHealth(50);
         }
 
-        if (ecs::CompHandle<CharacterMovementComponent> characterComp{ owner->GetComp<CharacterMovementComponent>() })
+        if (ecs::CompHandle<CharacterMovementComponent> characterComp{ ecs::GetEntity(this)->GetComp<CharacterMovementComponent>() })
         {
             characterComp->ResetSpeedMultiplier();
             characterComp->SetSpeedMultiplier(1.1f); // speed buff
@@ -205,7 +204,7 @@ void DelusionComponent::UpdateDelusionTier()
 
         gainRate = 1.2f;
 
-        if (ecs::CompHandle<HealthComponent> healthComp{ owner->GetComp<HealthComponent>() })
+        if (ecs::CompHandle<HealthComponent> healthComp{ ecs::GetEntity(this)->GetComp<HealthComponent>() })
         {
             healthComp->AddHealth(20); // Health regen function not coded yet
         }
@@ -217,12 +216,12 @@ void DelusionComponent::UpdateDelusionTier()
     case DelusionTiers::DT_A:
     {
         // Health and speed adjustments for DT_A
-        if (ecs::CompHandle<HealthComponent> healthComp{ owner->GetComp<HealthComponent>() })
+        if (ecs::CompHandle<HealthComponent> healthComp{ ecs::GetEntity(this)->GetComp<HealthComponent>() })
         {
             healthComp->SetMaxHealth(40);
         }
 
-        if (ecs::CompHandle<CharacterMovementComponent> characterComp{ owner->GetComp<CharacterMovementComponent>() })
+        if (ecs::CompHandle<CharacterMovementComponent> characterComp{ ecs::GetEntity(this)->GetComp<CharacterMovementComponent>() })
         {
             characterComp->ResetSpeedMultiplier();
             characterComp->SetSpeedMultiplier(1.1f); // speed buff
@@ -236,12 +235,12 @@ void DelusionComponent::UpdateDelusionTier()
     case DelusionTiers::DT_APLUS:
     {
         // Health and speed adjustments for DT_Aplus
-        if (ecs::CompHandle<HealthComponent> healthComp{ owner->GetComp<HealthComponent>() })
+        if (ecs::CompHandle<HealthComponent> healthComp{ ecs::GetEntity(this)->GetComp<HealthComponent>() })
         {
             healthComp->SetMaxHealth(30);
         }
 
-        if (ecs::CompHandle<CharacterMovementComponent> characterComp{ owner->GetComp<CharacterMovementComponent>() })
+        if (ecs::CompHandle<CharacterMovementComponent> characterComp{ ecs::GetEntity(this)->GetComp<CharacterMovementComponent>() })
         {
             characterComp->ResetSpeedMultiplier();
             characterComp->SetSpeedMultiplier(1.1f); // speed buff
@@ -258,7 +257,7 @@ void DelusionComponent::UpdateDelusionTier()
         // Handle unexpected case (optional)
         break;
     }
-    */
+    
 	prevTier = currTier;
 }
 

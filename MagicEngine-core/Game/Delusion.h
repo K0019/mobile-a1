@@ -48,7 +48,6 @@ class DelusionComponent
 {
 public:
 	using DelusionType = float;
-	EntityReference owner;
 
 
 	/*****************************************************************//*!

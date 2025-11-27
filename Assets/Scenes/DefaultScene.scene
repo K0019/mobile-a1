@@ -276,6 +276,14 @@
                     "blend": 0.0,
                     "speed": 1.0
                 },
+                "16735904824485644755": {
+                    "_active": true,
+                    "maxDelusion": 100.0,
+                    "gainRate": 1.0,
+                    "lossRate": 1.0,
+                    "ultValue": 90.0,
+                    "currDelusion": 0.0
+                },
                 "17579205194823809952": {
                     "_active": true,
                     "moveSpeed": 2.0,
