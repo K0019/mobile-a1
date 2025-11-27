@@ -561,6 +561,20 @@
             ]
         },
         {
+            "filepath": "sounds/sfx/mc/dodge/dodge 3.wav",
+            "resources": [
+                {
+                    "resourceType": 16184316770661419113,
+                    "resourceEntries": [
+                        {
+                            "hash": 11063358950747325337,
+                            "name": "dodge 30"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/textures/digipen_cmyk_red.ktx2",
             "resources": [
                 {
@@ -2927,6 +2941,20 @@
             ]
         },
         {
+            "filepath": "sounds/sfx/mc/dodge/dodge 2.wav",
+            "resources": [
+                {
+                    "resourceType": 16184316770661419113,
+                    "resourceEntries": [
+                        {
+                            "hash": 11063357851235697126,
+                            "name": "dodge 20"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/textures/storage room3567323986476668321.ktx2",
             "resources": [
                 {
@@ -3299,6 +3327,20 @@
                         {
                             "hash": 9754934060494427009,
                             "name": "enemy male attack 30"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "sounds/sfx/mc/dodge/dodge 1.wav",
+            "resources": [
+                {
+                    "resourceType": 16184316770661419113,
+                    "resourceEntries": [
+                        {
+                            "hash": 11063356751724068915,
+                            "name": "dodge 10"
                         }
                     ]
                 }
@@ -5231,6 +5273,20 @@
                         {
                             "hash": 4542401393621210817,
                             "name": "n00_000_00_face_00_skin__instance_0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/materials/translucent.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2303771530315194417,
+                            "name": "translucent0"
                         }
                     ]
                 }

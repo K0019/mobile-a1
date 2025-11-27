@@ -71,6 +71,9 @@ bool CharacterMovementComponent::Dodge(Vec2 vector)
 	currentDodgeTime = dodgeDuration;
 	currentDodgeCooldown = dodgeCooldown;
 
+	// Play Audio
+	ST<AudioManager>::Get()->PlaySound3D("dodge " + std::to_string(randomRange<int>(1, 3)), false, ecs::GetEntity(this)->GetTransform().GetWorldPosition());
+
 	return true;
 }
 

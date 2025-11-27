@@ -159,15 +159,6 @@ void PlayerMovementComponentSystem::UpdatePlayerMovementComponent(PlayerMovement
 	if (inputInstance->GetIsPressed(KEY::M1))
 		characterComp->Attack();
 
-	// Test opening the door
-	if (inputInstance->GetIsPressed(KEY::O))
-	{
-		if (auto scriptComp{ comp.testReference->GetComp<ScriptComponent>() })
-		{
-			scriptComp->CallScriptFunction("toggle");
-		}
-	}
-
 	characterComp->SetMovementVector(movement);
 
 	if (inputInstance->GetIsDown(KEY::LSHIFT))

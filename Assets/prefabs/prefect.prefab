@@ -35,17 +35,23 @@
                 },
                 "137465014557233347": {
                     "_active": true,
-                    "damage": 30.0,
+                    "damage": 1.0,
                     "attackBox": {
-                        "x": 1.0,
-                        "y": 1.0,
-                        "z": 1.0
+                        "x": 0.0,
+                        "y": 0.0,
+                        "z": 0.0
                     },
-                    "attackDelay": 0.5,
-                    "hash": 2233174087070666629,
-                    "hash": 2233174087070666629,
-                    "hash": 2233174087070666629,
-                    "hash": 2233174087070666629
+                    "attackDelay": 0.0,
+                    "hash": 1,
+                    "hash": 1,
+                    "hash": 1,
+                    "hash": 1
+                },
+                "2481176255561649761": {
+                    "_active": true,
+                    "swapMaterial": {
+                        "hash": 1903056716174195867
+                    }
                 },
                 "5352011725353660904": {
                     "_active": true,
@@ -210,7 +216,7 @@
                     "flags": {
                         "_majorityTrue": true,
                         "_except": [
-                            "Use Gravity"
+                            "Is Kinematic"
                         ]
                     }
                 },
@@ -237,8 +243,16 @@
                 },
                 "16763493199777387366": {
                     "_active": true,
+                    "combatRange": 0.0,
+                    "windUpTime": 0.0,
+                    "attackTime": 0.0,
+                    "followThroughTime": 0.0,
+                    "attackCoolDownTime": 0.0,
                     "playerReference": {
                         "entityUid": 51797992787031769
+                    },
+                    "attackCollider": {
+                        "entityUid": 0
                     }
                 },
                 "17579205194823809952": {

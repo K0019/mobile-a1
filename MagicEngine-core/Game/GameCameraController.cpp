@@ -22,10 +22,13 @@ All rights reserved.
 */
 /******************************************************************************/
 #include "Game/GameCameraController.h"
+#include "Game/FlashComponent.h"
+#include "Game/MaterialSwapper.h"
 #include "Tween/TweenManager.h"
 #include "Utilities/Messaging.h"
 #include "Editor/Containers/GUICollection.h"
 #include "Engine/Input.h"
+#include "Physics/Physics.h"
 
 #if defined(__ANDROID__)
 #include "Engine/Platform/Android/AndroidInputBridge.h"
@@ -143,5 +146,70 @@ void GameCameraControllerSystem::UpdateGameCameraController(GameCameraController
     Vec3 forward = comp.currentCameraDistance * math::EulerAnglesToVector(eulerAngles.x, eulerAngles.y);
     Vec3 playerPos = comp.playerEntity->GetTransform().GetWorldPosition();
     Vec3 cameraPos = playerPos - forward;
+
+    Vec3 direction(sin(math::ToRadians(yaw + 90)), 0, cos(math::ToRadians(yaw + 90)));
+
     ecs::GetEntityTransform(&comp).SetWorldPosition(cameraPos);
+
+    // Fake fading effect on environment objects
+    // I don't see a raycast option, so I'm doing a boxcast instead...
+    static std::vector<physics::BoxColliderComp*> previousColliders;
+    std::vector<physics::BoxColliderComp*> currentColliders;
+    //physics::OverlapSphere(currentColliders, playerPos - (forward * 0.5f), Vec3{ 1.0f,1.0f,comp.currentCameraDistance }, Vec3{ pitch, yaw, 0.0f });
+    
+
+    // We only want to swap materials that are in either vector. Not both
+    std::vector<physics::BoxColliderComp*> onlyInPrevious;
+    for (auto prevColl : previousColliders)
+    {
+        bool matchInBoth = false;
+        for (auto coll : currentColliders)
+        {
+            if (coll == prevColl)
+            {
+                matchInBoth = true;
+                break;
+            }
+        }
+        if (!matchInBoth)
+            onlyInPrevious.push_back(prevColl);
+    }
+    std::vector<physics::BoxColliderComp*> onlyInNext;
+    for (auto nextColl : currentColliders)
+    {
+        bool matchInBoth = false;
+        for (auto coll : previousColliders)
+        {
+            if (coll == nextColl)
+            {
+                matchInBoth = true;
+                break;
+            }
+        }
+        if (!matchInBoth)
+            onlyInNext.push_back(nextColl);
+    }
+
+    // Assign the materials
+    for (auto prevColl : onlyInPrevious)
+    {
+        ecs::EntityHandle colliderEntity{ ecs::GetEntity(prevColl) };
+        ecs::CompHandle<MaterialSwapperComponent> matSwapComp{ colliderEntity->GetComp<MaterialSwapperComponent>() };
+        if (matSwapComp && !colliderEntity->GetComp<FlashComponent>())
+        {
+            matSwapComp->ToggleMaterialSwap(false);
+        }
+    }
+    for (auto nextColl : onlyInNext)
+    {
+        ecs::EntityHandle colliderEntity{ ecs::GetEntity(nextColl) };
+        ecs::CompHandle<MaterialSwapperComponent> matSwapComp{ colliderEntity->GetComp<MaterialSwapperComponent>() };
+        if (matSwapComp && !colliderEntity->GetComp<FlashComponent>())
+        {
+            matSwapComp->ToggleMaterialSwap(true);
+        }
+    }
+
+
+    previousColliders = currentColliders;
 }

@@ -25,6 +25,7 @@ All rights reserved.
 #include "Graphics/RenderComponent.h"
 #include "Editor/Containers/GUICollection.h"
 #include "Utilities/GameTime.h"
+#include "Game/MaterialSwapper.h"
 
 FlashComponent::FlashComponent()
 	: flashTime{0.0f}
@@ -59,26 +60,16 @@ FlashComponentSystem::FlashComponentSystem()
 void FlashComponentSystem::UpdateFlashComponent(FlashComponent& comp)
 {
 	ecs::EntityHandle thisEntity{ ecs::GetEntity(&comp) };
-	if (ecs::CompHandle<RenderComponent> renderComp{ thisEntity->GetComp<RenderComponent>() })
+	bool currentFlashState = comp.currentFlashTime > 0.0f;
+	if (currentFlashState)
+		comp.currentFlashTime -= GameTime::Dt();
+	if (currentFlashState != comp.isFlashing)
 	{
-		bool currentFlashState = comp.currentFlashTime > 0.0f;
-		if (currentFlashState)
-			comp.currentFlashTime -= GameTime::Dt();
-		if (currentFlashState != comp.isFlashing)
+		if (ecs::CompHandle<MaterialSwapperComponent> matSwapComp{ thisEntity->GetComp<MaterialSwapperComponent>() })
 		{
-			if (comp.defaultMaterials.size() == 0)
-			{
-				for (auto material : renderComp->GetMaterialsList())
-					comp.defaultMaterials.push_back(material);
-			}
-
-			int matIndex = 0;
-			for (auto& material : renderComp->GetMaterialsList())
-			{
-				material = currentFlashState ? comp.flashMaterial : comp.defaultMaterials[matIndex];
-				++matIndex;
-			}
-			comp.isFlashing = currentFlashState;
+			matSwapComp->swapMaterial = comp.flashMaterial;
+			matSwapComp->ToggleMaterialSwap(currentFlashState);
 		}
+		comp.isFlashing = currentFlashState;
 	}
 }

@@ -59,7 +59,6 @@ public:
 public:
 	void Flash();
 
-	std::vector<UserResourceHandle<ResourceMaterial>> defaultMaterials;
 private:
 	/*****************************************************************//*!
 	\brief

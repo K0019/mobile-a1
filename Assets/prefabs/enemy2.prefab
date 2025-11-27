@@ -3,9 +3,9 @@
         {
             "parentIndex": -1,
             "position": {
-                "x": -0.8312903046607971,
+                "x": 10.0,
                 "y": 0.10000000149011612,
-                "z": 1.826216697692871
+                "z": 5.0
             },
             "rotation": {
                 "x": 0.0,
@@ -28,9 +28,15 @@
                             "angle": 10.0
                         },
                         "speed": 1.7999999523162842,
-                        "acceleration": 0.0,
+                        "acceleration": 22.0,
                         "baseOffset": 0.0,
                         "active": false
+                    }
+                },
+                "2481176255561649761": {
+                    "_active": true,
+                    "swapMaterial": {
+                        "hash": 1903056716174195867
                     }
                 },
                 "5352011725353660904": {
@@ -170,7 +176,7 @@
                 "5725819782531291880": {
                     "_active": true,
                     "behaviorTree": {
-                        "btName": "enemybase"
+                        "btName": "enemy_female"
                     }
                 },
                 "6766054303456732338": {
@@ -186,14 +192,6 @@
                     "maxHealth": 100.0,
                     "currHealth": 100.0,
                     "isInvincible": false
-                },
-                "8426725214831635516": {
-                    "_active": true,
-                    "entityReferences": [
-                        {
-                            "entityUid": 0
-                        }
-                    ]
                 },
                 "9315785795257285655": {
                     "_active": true,
@@ -231,14 +229,22 @@
                 },
                 "16763493199777387366": {
                     "_active": true,
+                    "combatRange": 3.0,
+                    "windUpTime": 0.10000000149011612,
+                    "attackTime": 0.009999999776482582,
+                    "followThroughTime": 0.30000001192092896,
+                    "attackCoolDownTime": 2.0,
                     "playerReference": {
                         "entityUid": 51797992787031769
+                    },
+                    "attackCollider": {
+                        "entityUid": 5884977658575926114
                     }
                 },
                 "17579205194823809952": {
                     "_active": true,
                     "moveSpeed": 1.7999999523162842,
-                    "rotateSpeed": 14400.0,
+                    "rotateSpeed": 200.0,
                     "stunTimePerHit": 0.5,
                     "groundFriction": 0.75,
                     "dodgeCooldown": 0.0,
