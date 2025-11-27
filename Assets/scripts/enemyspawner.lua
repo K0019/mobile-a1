@@ -36,19 +36,18 @@ function proceed()
     
     if scriptComp:Exists() then
     
-    if nameComp.name == "enemyspawner" then
-        Magic.Log(Magic.LogLevel.info, "It's spawnin time")
-        scriptComp:CallScriptFunction("wavespawn")
-          
-    elseif nameComp.name == "Door_Classroom" then
-        Magic.Log(Magic.LogLevel.info, "Open sesame")
-        scriptComp:CallScriptFunction("open")
+        if nameComp.name == "enemyspawner" then
+            Magic.Log(Magic.LogLevel.info, "It's spawnin time")
+            scriptComp:CallScriptFunction("wavespawn")
+            
+        elseif nameComp.name == "Door_Classroom" then
+            Magic.Log(Magic.LogLevel.info, "Open sesame")
+            scriptComp:CallScriptFunction("open")
 
-    elseif nameComp.name == "winscreen" then
-        Magic.Log(Magic.LogLevel.info, "I win")
-        --scriptComp:CallScriptFunction("wingame")
-    end
-
+        elseif nameComp.name == "winscreen" then
+            Magic.Log(Magic.LogLevel.info, "I win")
+            --scriptComp:CallScriptFunction("wingame")
+        end
     end
 
 end
