@@ -251,6 +251,8 @@ namespace navmesh
 		*//******************************************************************/
 		void SetActive(bool val);
 
+		void Deserialize(Deserializer& reader) override;
+
 	private:
 		//data of the agent.
 		NavMeshAgentData agentData;

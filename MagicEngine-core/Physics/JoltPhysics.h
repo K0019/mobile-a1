@@ -190,12 +190,18 @@ namespace physics {
 		Vec3 rot;
 		Vec3 scale;
 
+		TransformValues();
+		TransformValues(Transform& trans);
 		TransformValues& operator=(Transform& trans);
 	};
+
+	bool operator==(TransformValues const& lhs, TransformValues const& rhs);
+	bool operator!=(TransformValues const& lhs, TransformValues const& rhs);
 
 	class JoltBodyComp
 		: public ecs::IComponentCallbacks
 		, public IHiddenComponent<JoltBodyComp>
+		//, public IEditorComponent<JoltBodyComp>
 	{
 	public:
 		/*****************************************************************//*!
@@ -310,6 +316,14 @@ namespace physics {
 
 		/*****************************************************************//*!
 		\brief
+			Get the previous transform of the body.
+		\return
+			previous transform value.
+		*//******************************************************************/
+		const TransformValues& GetPrevTrans();
+
+		/*****************************************************************//*!
+		\brief
 			Check if the body is a trigger or not.
 		\return
 			true if the sensor is true, else false.
@@ -398,6 +412,14 @@ namespace physics {
 
 		/*****************************************************************//*!
 		\brief
+			Set the previous transform of the body.
+		\param val
+			previous transform value.
+		*//******************************************************************/
+		void SetPrevTrans(const TransformValues& val);
+
+		/*****************************************************************//*!
+		\brief
 			Set the degree of freedom on the X axis.
 		\param vel
 			true if lock, false if unlock
@@ -428,7 +450,6 @@ namespace physics {
 		*//******************************************************************/
 		void SetDOF(JPH::EAllowedDOFs val);
 
-
 		/*****************************************************************//*!
 		\brief
 			Set the is trigger value to the body.
@@ -436,6 +457,8 @@ namespace physics {
 			trigger value.
 		*//******************************************************************/
 		void SetIsTrigger(bool val);
+
+		void MoveTo(const Vec3& pos, float time);
 
 		/*****************************************************************//*!
 		\brief
@@ -448,6 +471,8 @@ namespace physics {
 			Update the entity's transform after the physics update.
 		*//******************************************************************/
 		void UpdateEntity();
+
+		//void EditorDraw() override;
 	};
 
 	/*****************************************************************//*!
