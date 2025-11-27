@@ -29,8 +29,8 @@ namespace editor {
         int count{};
         for (const auto& [hash, texture] : ST<MagicResourceManager>::Get()->Editor_GetContainer<ResourceTexture>().Editor_GetAllResources())
         {
-            const std::string& materialName{ *ST<MagicResourceManager>::Get()->Editor_GetName(hash) };
-            if (!filter.PassFilter(materialName))
+            const std::string& textureName{ *ST<MagicResourceManager>::Get()->Editor_GetName(hash) };
+            if (!filter.PassFilter(textureName))
                 continue;
 
             {
@@ -40,7 +40,8 @@ namespace editor {
                 gui::Button{ "Texture", thumbnailSizeVec2 };
                 gui::PayloadSource{ "TEXTURE_HASH", hash.get() };
 
-                gui::ThumbnailLabel(materialName, THUMBNAIL_SIZE);
+                gui::ShowSimpleHoverTooltip(textureName);
+                gui::ThumbnailLabel(textureName, THUMBNAIL_SIZE);
             }
 
             grid.NextItem();

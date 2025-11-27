@@ -22,7 +22,7 @@ All rights reserved.
 #include "Engine/Graphics Interface/GraphicsAPI.h"
 
 #define X(enumType, name) name,
-const std::array<const char*, +PRIMITIVE2D_TYPE::TOTAL> SpriteComponent::primitiveNames{
+const std::array<const char*, +PRIMITIVE2D_TYPE::TOTAL> Primitive2DHolder::primitiveNames{
 	PRIMITIVE2D_TYPE_ENUM
 };
 
@@ -44,6 +44,11 @@ void Primitive2DCircle::SetRadius(float newRadius)
 float Primitive2DCircle::GetNumSegments() const
 {
 	return numSegments;
+}
+
+bool Primitive2DCircle::IsClicked(const RectTransformComponent& transform, Vec2 clickPos) const
+{
+	return ((clickPos - transform.GetWorldPosition()).LengthSqr() < radius * radius);
 }
 
 void Primitive2DCircle::Render(const RectTransformComponent& transform, const Vec4& color) const
@@ -75,6 +80,14 @@ int Primitive2DCircle::GetNumSegmentsForSmoothCircle(float radius)
 	return static_cast<int>(std::ceilf(2.0f * math::PI_f / th) + 0.5f);
 }
 
+bool Primitive2DRect::IsClicked(const RectTransformComponent& transform, Vec2 clickPos) const
+{
+	Vec2 rectPos{ transform.GetWorldPosition() }, rectHalfScale{ transform.GetWorldScale() * 0.5f };
+	return
+		clickPos.x >= rectPos.x - rectHalfScale.x && clickPos.x <= rectPos.x + rectHalfScale.x &&
+		clickPos.y >= rectPos.y - rectHalfScale.y && clickPos.y <= rectPos.y + rectHalfScale.y;
+}
+
 void Primitive2DRect::Render(const RectTransformComponent& transform, const Vec4& color) const
 {
 	Vec2 worldPos{ transform.GetWorldPosition() };
@@ -91,6 +104,15 @@ void Primitive2DRect::EditorDraw()
 void Primitive2DImage::SetImage(size_t textureHash)
 {
 	texture = textureHash;
+}
+
+bool Primitive2DImage::IsClicked(const RectTransformComponent& transform, Vec2 clickPos) const
+{
+	// TODO: Maybe provide different hit detection algos to the user
+	Vec2 rectPos{ transform.GetWorldPosition() }, rectHalfScale{ transform.GetWorldScale() * 0.5f };
+	return
+		clickPos.x >= rectPos.x - rectHalfScale.x && clickPos.x <= rectPos.x + rectHalfScale.x &&
+		clickPos.y >= rectPos.y - rectHalfScale.y && clickPos.y <= rectPos.y + rectHalfScale.y;
 }
 
 void Primitive2DImage::Render(const RectTransformComponent& transform, const Vec4& color) const
@@ -118,32 +140,28 @@ void Primitive2DImage::EditorDraw()
 	});
 }
 
-SpriteComponent::SpriteComponent()
-	: primitive{ Primitive2DImage{} }
+Primitive2DHolder::Primitive2DHolder(const Primitive2D& primitive)
+	: primitive{ primitive }
 	, color{ 1.0f, 1.0f, 1.0f, 1.0f }
 {
 }
 
-const Primitive2D& SpriteComponent::GetPrimitive() const
+const Primitive2D& Primitive2DHolder::GetPrimitive() const
 {
 	return primitive;
 }
 
-void SpriteComponent::VisitPrimitive(auto func)
-{
-	std::visit(func, primitive);
-}
-
-const Vec4& SpriteComponent::GetColor() const
+const Vec4& Primitive2DHolder::GetColor() const
 {
 	return color;
 }
-void SpriteComponent::SetColor(const Vec4& newColor)
+
+void Primitive2DHolder::SetColor(const Vec4& newColor)
 {
 	color = newColor;
 }
 
-void SpriteComponent::EditorDraw()
+void Primitive2DHolder::EditorDraw()
 {
 	int type{ static_cast<int>(primitive.index()) };
 	if (gui::Combo{ "Type", primitiveNames, &type })
@@ -156,18 +174,18 @@ void SpriteComponent::EditorDraw()
 	gui::VarColor("Color", &color);
 }
 
-void SpriteComponent::Serialize(Serializer& writer) const
+void Primitive2DHolder::Serialize(Serializer& writer) const
 {
 	writer.Serialize("type", primitive.index());
 	writer.StartObject("primitive");
 	std::visit([&writer](auto& primitive) -> void {
 		primitive.Serialize(writer);
-	}, primitive);
+		}, primitive);
 	writer.EndObject();
 	writer.Serialize("color", color);
 }
 
-void SpriteComponent::Deserialize(Deserializer& reader)
+void Primitive2DHolder::Deserialize(Deserializer& reader)
 {
 	size_t type{};
 	reader.DeserializeVar("type", &type);
@@ -176,17 +194,51 @@ void SpriteComponent::Deserialize(Deserializer& reader)
 	{
 		std::visit([&reader](auto& primitive) -> void {
 			primitive.Deserialize(reader);
-		}, primitive);
+			}, primitive);
 		reader.PopAccess();
 	}
 	reader.DeserializeVar("color", &color);
 }
 
-void SpriteComponent::UpdatePrimitive(size_t typeIndex)
+void Primitive2DHolder::UpdatePrimitive(size_t typeIndex)
 {
 	if (primitive.index() == typeIndex)
 		return;
 	primitive = util::VariantFromIndex<Primitive2D>(typeIndex);
+}
+
+const Primitive2DHolder& SpriteComponent::GetPrimitive() const
+{
+	return primitive;
+}
+
+void SpriteComponent::SetPrimitive(const Primitive2DHolder& newPrimitive)
+{
+	primitive = newPrimitive;
+}
+
+const Vec4& SpriteComponent::GetColor() const
+{
+	return primitive.GetColor();
+}
+void SpriteComponent::SetColor(const Vec4& newColor)
+{
+	primitive.SetColor(newColor);
+}
+
+void SpriteComponent::EditorDraw()
+{
+	primitive.EditorDraw();
+}
+
+void SpriteComponent::Serialize(Serializer& writer) const
+{
+	primitive.Serialize(writer);
+}
+
+void SpriteComponent::Deserialize(Deserializer& reader)
+{
+	primitive.Deserialize(reader);
 }
 
 SpriteRenderSystem::SpriteRenderSystem()

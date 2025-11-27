@@ -493,7 +493,7 @@ bool ScenePool::UnloadScene(int index, bool doCheckOrCreateDefault)
 	// Need to unselect entity if it is under the scene that we're unloading
 #if defined(IMGUI_ENABLED) && defined(HAS_EVENTS_TYPE_EDITOR)
 	if (ecs::EntityHandle selectedEntity{ ST<EventsQueue>::Get()->RequestValueFromEventHandlers<ecs::EntityHandle>(Getters::EditorSelectedEntity{}).value_or(nullptr) })
-		if (selectedEntity->GetComp<SceneIndexComponent>()->GetSceneIndex() == index)
+		if (ecs::IsEntityHandleValid(selectedEntity) && selectedEntity->GetComp<SceneIndexComponent>()->GetSceneIndex() == index)
 			ST<EventsQueue>::Get()->AddEventForNextFrame(Events::EditorSelectEntity{ nullptr });
 #endif
 	bool isActiveSceneBeingUnloaded{ activeScene->GetIndex() == index };
@@ -949,7 +949,7 @@ void SceneManager::RegisterEntity(ecs::EntityHandle entity)
 	// Otherwise, register all entities to the active scene.
 	ecs::CompHandle<SceneIndexComponent> sceneIndexComp{ entity->GetComp<SceneIndexComponent>() };
 	if (!sceneIndexComp)
-		sceneIndexComp = entity->AddCompNow(SceneIndexComponent{ 0 });
+		sceneIndexComp = entity->AddComp(SceneIndexComponent{ 0 });
 
 	ST<SceneManager>::Get()->GetActiveScene()->AddEntity(entity);
 }

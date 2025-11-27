@@ -15,6 +15,8 @@
 	  It helps track the touch state by getting ryEngine android input without needing
 	  android libraries here in MagicEngine
 
+	  TODO: Merge this into Input.h
+
 All content © 2025 DigiPen Institute of Technology Singapore.
 All rights reserved.
 */
@@ -29,6 +31,9 @@ All rights reserved.
 		  Discrete touch action used by the internal callback layer.
  *//******************************************************************/
 enum class TouchAction { Down = 0, Move = 1, Up = 2 };
+
+// --- Exclusive touch capture -----------------------------------------------
+enum class TouchOwner { NoOwner = 0, Joystick, UI, Camera };
 
 /*****************************************************************//*!
 \brief
@@ -67,4 +72,17 @@ namespace AndroidInputBridge {
 namespace AndroidInputBridge {
 	void PublishVirtualStick(const Vec2& v);  // called by your component
 	Vec2  ReadVirtualStick();                  // used by Input system
+
+
+
+	// Returns current owner (for read-only checks).
+	TouchOwner Owner();
+
+	// Try to acquire exclusive touch ownership for this frame sequence.
+	// Returns true if granted (or already owned by the same owner).
+	bool TryCapture(TouchOwner who);
+
+	// Release if the caller currently owns the capture (no-op otherwise).
+	void Release(TouchOwner who);
 }
+

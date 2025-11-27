@@ -34,7 +34,7 @@ All rights reserved.
 void GrabbableItemComponent::Attack(Vec3 origin, Vec3 direction)
 {
 	std::vector<physics::BoxColliderComp*> colliders;
-	physics::OverlapBox(colliders, origin, Vec3(2,1,2), direction);
+	physics::OverlapBox(colliders, origin, attackBox, direction);
 
 	for (auto collider : colliders)
 	{
@@ -43,6 +43,10 @@ void GrabbableItemComponent::Attack(Vec3 origin, Vec3 direction)
 		// Can't hit self or owner
 		if (hitEntity == owner || hitEntity == ecs::GetEntity(this))
 			continue;
+
+		// If there's no owner, set the owner to itself
+		if (!owner)
+			owner = ecs::GetEntity(this);
 
 		// Enemies can't hit each other
 		if (owner->GetComp<EnemyComponent>() && hitEntity->GetComp<EnemyComponent>())
@@ -79,28 +83,71 @@ void GrabbableItemComponent::Attack(Vec3 origin, Vec3 direction)
 GrabbableItemComponent::GrabbableItemComponent() :
 	damage{ 1.0f },
 	isHeld{ false },
-	owner(nullptr)
+	owner(nullptr),
+	attackBox{},
+	attackDelay{ 0.0f }
 {
 }
 
 void GrabbableItemComponent::Serialize(Serializer& writer) const
 {
-	writer.Serialize("damage",damage);
+	this->IRegisteredComponent::Serialize(writer);
+
+	writer.Serialize(lightAttackAnimation);
+	writer.Serialize(heavyAttackAnimation);
+	writer.Serialize(ultimAttackAnimation);
+	writer.Serialize(parryAnimation);
 }
 
 void GrabbableItemComponent::Deserialize(Deserializer& reader)
 {
-	reader.DeserializeVar("damage", &damage);
+	this->IRegisteredComponent::Deserialize(reader);
+
+	reader.Deserialize(&lightAttackAnimation);
+	reader.Deserialize(&heavyAttackAnimation);
+	reader.Deserialize(&ultimAttackAnimation);
+	reader.Deserialize(&parryAnimation);
 }
 
 void GrabbableItemComponent::EditorDraw()
 {
 	gui::VarInput("Damage", &damage);
+	gui::VarInput("Attack Box", &attackBox);
+	gui::VarInput("Attack Delay", &attackDelay);
+
+	// Animations
+	gui::TextUnformatted("Light Attack");
+	gui::SameLine();
+	std::string blankName = "";
+	gui::TextBoxReadOnly("##AnimClipLight", ST<MagicResourceManager>::Get()->Editor_GetName(lightAttackAnimation.GetHash()) ? (*ST<MagicResourceManager>::Get()->Editor_GetName(lightAttackAnimation.GetHash())) : blankName);
+	gui::PayloadTarget<size_t>("ANIMATION_HASH", [&](size_t hash) -> void {
+		lightAttackAnimation = hash;
+		});
+
+	gui::TextUnformatted("Heavy Attack");
+	gui::SameLine();
+	gui::TextBoxReadOnly("##AnimClipHeavy", ST<MagicResourceManager>::Get()->Editor_GetName(heavyAttackAnimation.GetHash()) ? (*ST<MagicResourceManager>::Get()->Editor_GetName(heavyAttackAnimation.GetHash())) : blankName);
+	gui::PayloadTarget<size_t>("ANIMATION_HASH", [&](size_t hash) -> void {
+		heavyAttackAnimation = hash;
+		});
+
+	gui::TextUnformatted("Ultimate");
+	gui::SameLine();
+	gui::TextBoxReadOnly("##AnimClipUltim", ST<MagicResourceManager>::Get()->Editor_GetName(ultimAttackAnimation.GetHash()) ? (*ST<MagicResourceManager>::Get()->Editor_GetName(ultimAttackAnimation.GetHash())) : blankName);
+	gui::PayloadTarget<size_t>("ANIMATION_HASH", [&](size_t hash) -> void {
+		ultimAttackAnimation = hash;
+		});
+
+	gui::TextUnformatted("Parry");
+	gui::SameLine();
+	gui::TextBoxReadOnly("##AnimClipParry", ST<MagicResourceManager>::Get()->Editor_GetName(parryAnimation.GetHash()) ? (*ST<MagicResourceManager>::Get()->Editor_GetName(parryAnimation.GetHash())) : blankName);
+	gui::PayloadTarget<size_t>("ANIMATION_HASH", [&](size_t hash) -> void {
+		parryAnimation = hash;
+		});
 }
 
 GrabbableItemComponentSystem::GrabbableItemComponentSystem()
 	: System_Internal{ &GrabbableItemComponentSystem::UpdateGrabbableItemComponent }
-
 {
 }
 
@@ -110,10 +157,10 @@ void GrabbableItemComponentSystem::UpdateGrabbableItemComponent(GrabbableItemCom
 	ecs::CompHandle<physics::PhysicsComp> physicsComp = itemEntity->GetComp<physics::PhysicsComp>();
 	ecs::CompHandle<physics::BoxColliderComp> colliderComp = itemEntity->GetComp<physics::BoxColliderComp>();
 
-	physicsComp->SetFlag(physics::PHYSICS_COMP_FLAG::ENABLED, !comp.isHeld);
-	physicsComp->SetFlag(physics::PHYSICS_COMP_FLAG::USE_GRAVITY, !comp.isHeld);
-	physicsComp->SetFlag(physics::PHYSICS_COMP_FLAG::IS_KINEMATIC, comp.isHeld);
-	colliderComp->SetFlag(physics::COLLIDER_COMP_FLAG::ENABLED, !comp.isHeld);
+	//physicsComp->SetFlag(physics::PHYSICS_COMP_FLAG::ENABLED, !comp.isHeld);
+	//physicsComp->SetFlag(physics::PHYSICS_COMP_FLAG::USE_GRAVITY, !comp.isHeld);
+	//physicsComp->SetFlag(physics::PHYSICS_COMP_FLAG::IS_KINEMATIC, comp.isHeld);
+	//colliderComp->SetFlag(physics::COLLIDER_COMP_FLAG::ENABLED, !comp.isHeld);
 
 	if (comp.isHeld)
 	{

@@ -37,6 +37,10 @@ public:
 	static const std::string assets;
 	static const std::string assetsJson;
 
+	// Compilation stuff
+	static const std::string compilerExe;
+	static const std::string compileManifest;
+
 	// Assets subfolders
 	static const std::string shadersSave;
 	static const std::string fontsSave;

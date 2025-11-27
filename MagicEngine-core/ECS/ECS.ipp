@@ -27,40 +27,23 @@ namespace ecs {
 #pragma region Entities
 
 	template<typename T>
-	bool Entity::AddComp(T&& comp)
-	{
-		if (!CheckCanAddComp(internal::GetCompHash<T>()))
-			return false;
-
-		// Add component to add buffer
-		uint32_t indexInBuffer{ internal::CurrentPool::ChangesBuffer().AddComp(GetHandle(), std::forward<T>(comp)) };
-
-		// Modify indexInBuffer with status flag
-		indexInBuffer |= COMP_STATUS_TO_ADD;
-
-		// Register component as pending addition in this entity
-		components.emplace(internal::GetCompHash<T>(), indexInBuffer);
-
-		return true;
-	}
-
-	template<typename T>
-	CompHandle<T> Entity::AddCompNow(T&& comp, bool isActive)
+	CompHandle<T> Entity::AddComp(T&& comp, bool isActive)
 	{
 		if (!CheckCanAddComp(internal::GetCompHash<T>()))
 			return nullptr;
 
-		// Add component to CompArr
-		internal::CompArr& compArr{ internal::GetCompArr<T>() };
-		uint32_t compIndex{ compArr.AddComp(GetHandle(), std::forward<T>(comp), !isActive) };
+		// TODO: See if there's any way to resolve this extra lookup each time a comp is added
+		// Initialize the global compArrPool with this component type
+		internal::GetCompArr<T>();
 
-		// Register component in this entity
-		components.emplace(internal::GetCompHash<T>(), compIndex);
+		// Add component to add buffer
+		uint32_t indexInBuffer{ internal::CurrentPool::ChangesBuffer().AddComp(GetHandle(), std::forward<T>(comp), !isActive) };
 
-		// Flush component callbacks
-		internal::CurrentPool::ChangesBuffer().FlushComponentCallbacks();
-		
-		return reinterpret_cast<CompHandle<T>>(compArr.GetComp(compIndex));
+		// Register component as pending addition in this entity
+		components.emplace(internal::GetCompHash<T>(), indexInBuffer | COMP_STATUS_TO_ADD);
+
+		// Return the component within the addition buffer
+		return reinterpret_cast<CompHandle<T>>(internal::CurrentPool::ChangesBuffer().GetCompBufferedForAddition(internal::GetCompHash<T>(), indexInBuffer));
 	}
 
 	template<typename T>
@@ -158,54 +141,54 @@ namespace ecs {
 	template<typename CompType>
 	CompIterator<CompType> GetCompsBegin()
 	{
-		return internal::GetCompArr<CompType>().template User_Begin<CompType, EntityHandle>();
+		return internal::GetCompArr<CompType>()->template User_Begin<CompType, EntityHandle>();
 	}
 	template<typename CompType>
 	ConstCompIterator<CompType> GetCompsBeginConst()
 	{
-		return internal::GetCompArr<CompType>().template User_Begin<const CompType, ConstEntityHandle>();
+		return internal::GetCompArr<CompType>()->template User_Begin<const CompType, ConstEntityHandle>();
 	}
 
 	template<typename CompType>
 	CompIterator<CompType> GetCompsActiveBegin()
 	{
-		return internal::GetCompArr<CompType>().template User_Begin_Active<CompType, EntityHandle>();
+		return internal::GetCompArr<CompType>()->template User_Begin_Active<CompType, EntityHandle>();
 	}
 
 	template<typename CompType>
 	ConstCompIterator<CompType> GetCompsActiveBeginConst()
 	{
-		return internal::GetCompArr<CompType>().template User_Begin_Active<const CompType, ConstEntityHandle>();
+		return internal::GetCompArr<CompType>()->template User_Begin_Active<const CompType, ConstEntityHandle>();
 	}
 
 	template<typename CompType>
 	CompIterator<CompType> GetCompsEnd()
 	{
-		return internal::GetCompArr<CompType>().template User_End<CompType, EntityHandle>();
+		return internal::GetCompArr<CompType>()->template User_End<CompType, EntityHandle>();
 	}
 	template<typename CompType>
 	ConstCompIterator<CompType> GetCompsEndConst()
 	{
-		return internal::GetCompArr<CompType>().template User_End<const CompType, ConstEntityHandle>();
+		return internal::GetCompArr<CompType>()->template User_End<const CompType, ConstEntityHandle>();
 	}
 
 	template<typename CompType>
 	CompIterator<CompType> GetCompsIter(CompHandle<CompType> comp)
 	{
-		return internal::GetCompArr<CompType>().template User_Custom<CompType, EntityHandle>(
+		return internal::GetCompArr<CompType>()->template User_Custom<CompType, EntityHandle>(
 			reinterpret_cast<internal::InternalEntityHandle>(reinterpret_cast<internal::RawData*>(comp) - internal::CompArr::EntPtrSize));
 	}
 
 	template<typename CompType>
 	size_t GetCompsCount()
 	{
-		return internal::GetCompArr<CompType>().GetNumComps();
+		return internal::GetCompArr<CompType>()->GetNumComps();
 	}
 
 	template<typename CompType>
 	size_t GetCompsActiveCount()
 	{
-		return internal::GetCompArr<CompType>().GetNumActiveComps();
+		return internal::GetCompArr<CompType>()->GetNumActiveComps();
 	}
 
 	template<typename CompType>

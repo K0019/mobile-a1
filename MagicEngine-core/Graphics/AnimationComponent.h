@@ -41,6 +41,8 @@ public:
     std::vector<mat4> skinMatrices;
     std::vector<float> morphWeights;
 
+    float GetClipDuration(const ResourceAnimation* animationClip);
+
 public:
     property_vtable()
 };

@@ -34,6 +34,7 @@ public:
 	operator ecs::CompHandle<CompType>();
 
 	bool Valid() const;
+	bool Remove() const;
 
 protected:
 	inline ecs::CompHandle<CompType> GetHandle() const;
@@ -57,6 +58,17 @@ template<typename CompType>
 bool LuaWrapperComp<CompType>::Valid() const
 {
 	return compPtrRaw;
+}
+
+template<typename CompType>
+bool LuaWrapperComp<CompType>::Remove() const
+{
+	// Don't continue if the handle isn't valid
+	if (!Valid())
+		return false;
+
+	auto entity = ecs::GetEntity(GetHandle());
+	entity->RemoveComp<CompType>();
 }
 
 template<typename CompType>
@@ -86,7 +98,8 @@ public: \
 
 #define SCRIPT_REGISTER_COMP_BEGIN(compType) \
 	.beginClass<LuaWrapperComp_##compType>(#compType) \
-		.addFunction("Exists", &LuaWrapperComp_##compType::Valid)
+		.addFunction("Exists", &LuaWrapperComp_##compType::Valid) \
+		.addFunction("Remove", &LuaWrapperComp_##compType::Remove)
 
 #define SCRIPT_REGISTER_COMP_PROPERTY(compType, propertyName, Getter, Setter) \
 		.addProperty(propertyName, &LuaWrapperComp_##compType::Getter, &LuaWrapperComp_##compType::Setter)

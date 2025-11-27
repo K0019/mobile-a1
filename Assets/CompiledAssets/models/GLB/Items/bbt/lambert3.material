@@ -1,0 +1,43 @@
+{
+    "name": "lambert3",
+    "alphaMode": "Opaque",
+    "alphaCutoff": 0.5,
+    "metallicFactor": 0.0,
+    "roughnessFactor": 0.5527864098548889,
+    "normalScale": 1.0,
+    "occlusionStrength": 1.0,
+    "baseColorFactor": [
+        0.33399999141693115,
+        0.15530000627040863,
+        0.05339999869465828,
+        0.523809552192688
+    ],
+    "emissiveFactor": [
+        0.0,
+        0.0,
+        0.0
+    ],
+    "textures": [
+        {
+            "key": "baseColor",
+            "value": ""
+        },
+        {
+            "key": "metallicRoughness",
+            "value": ""
+        },
+        {
+            "key": "normal",
+            "value": ""
+        },
+        {
+            "key": "emissive",
+            "value": ""
+        },
+        {
+            "key": "occlusion",
+            "value": ""
+        }
+    ],
+    "flags": 4
+}

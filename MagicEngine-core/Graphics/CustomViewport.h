@@ -24,14 +24,20 @@ All rights reserved.
 #include "ImGui/ImguiHeader.h"
 #include "Editor/Gizmo.h"
 #include "math/camera.h"
+#include "Engine/Events/EventsQueue.h"
 
 /**
  * @brief The CustomViewport class represents a custom viewport for rendering graphics.
  */
-class CustomViewport : public editor::WindowBase<CustomViewport, false>
+class CustomViewport
+    : public editor::WindowBase<CustomViewport, false>
+    , public ecs::IComponentCallbacks
 {
 public:
     CustomViewport(unsigned int width, unsigned int height);
+
+    void OnAttached() override;
+    void OnDetached() override;
 
     void DrawContainer(int id) override;
     void DrawWindow() override;
@@ -101,6 +107,8 @@ private:
     editor::Gizmo m_gizmo;
 #endif
     CameraPositioner_FirstPerson camera;
+
+    EventHandlerHandle eventHandle_viewportMousePos;
 
 };
 
