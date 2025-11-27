@@ -40,6 +40,7 @@ enum class ECS_LAYER : int
 
 	//! The input layer, for systems that run at player input.
 	INPUT_0,
+	INPUT_1,
 
 	CUTOFF_INPUT, // --- UNUSED
 

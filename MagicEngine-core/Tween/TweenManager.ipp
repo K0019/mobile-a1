@@ -53,7 +53,7 @@ void TweenManager::StartTween(
 	TweenComponent* tmp = entity->GetComp<TweenComponent>();
 	if (tmp == nullptr)
 	{
-		tmp = entity->AddCompNow(TweenComponent{});
+		tmp = entity->AddComp(TweenComponent{});
 	}
 	tmp->StartTween(setter, vStart, vEnd, duration, type);
 }

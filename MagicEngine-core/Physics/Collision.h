@@ -34,6 +34,7 @@ All rights reserved.
 
 namespace physics {
 	class BoxColliderComp;
+	class JoltBodyComp;
 
 	/*****************************************************************//*!
 	\brief
@@ -146,6 +147,8 @@ X(IS_TRIGGER, "Is Trigger")
 	class MyContactListener : public JPH::ContactListener
 	{
 	public:
+		static void Init();
+
 		virtual void OnContactAdded(const JPH::Body& inBody1, const JPH::Body& inBody2, const JPH::ContactManifold& inManifold, JPH::ContactSettings& ioSettings) override;
 		virtual void OnContactPersisted(const JPH::Body& inBody1, const JPH::Body& inBody2, const JPH::ContactManifold& inManifold, JPH::ContactSettings& ioSettings) override;
 		virtual void OnContactRemoved(const JPH::SubShapeIDPair& inSubShapePair) override;
@@ -179,6 +182,9 @@ X(IS_TRIGGER, "Is Trigger")
 		Vec3 size;
 
 		std::array<std::function<void()>, 6> contactFunctions;
+
+	private:
+		void InitializeJoltBodyComp(JoltBodyComp* comp);
 
 	public:
 		/*****************************************************************//*!

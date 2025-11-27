@@ -81,7 +81,7 @@ private:
         {".fbx", "importable"},
         {".glb", "importable"},
         {".ktx", "importable"},
-        {".wav", "audio"},
+        {".wav", "importable"},
         {".mp3", "importable"},
         {".ogg", "audio"},
         {".ttf", "font"},

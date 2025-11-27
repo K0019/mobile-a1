@@ -33,12 +33,14 @@ All rights reserved.
 
 #include "UI/TextComponent.h"
 #include "UI/SpriteComponent.h"
+#include "UI/ButtonComponent.h"
 
 #include "Graphics/CameraSystem.h"
 #include "Tween/TweenECS.h"
 #include "Game/GameCameraController.h"
 #include "Game/GrabbableItem.h"
 #include "Game/PlayerCharacter.h"
+#include "Game/FlashComponent.h"
 #include "Game/Character.h"
 #include "Engine/Audio.h"
 #include "Game/PrefabSpawner.h"
@@ -86,9 +88,11 @@ void GameState_Game::OnEnter()
     ecs::AddSystem(ECS_LAYER::PRE_UPDATE_0, UndoShakeSystem{});
 
     ecs::AddSystem(ECS_LAYER::INPUT_0, AndroidInputSystem{});
+    ecs::AddSystem(ECS_LAYER::INPUT_1, ButtonInputSystem{});
 
     ecs::AddSystem(ECS_LAYER::POST_PHYSICS_0, GameCameraControllerSystem{});
-    ecs::AddSystem(ECS_LAYER::INPUT_0, PlayerMovementComponentSystem{});
+    ecs::AddSystem(ECS_LAYER::INPUT_1, PlayerMovementComponentSystem{});
+    ecs::AddSystem(ECS_LAYER::INPUT_1, FlashComponentSystem{});
     ecs::AddSystem(ECS_LAYER::PRE_PHYSICS_0, CharacterMovementComponentSystem{});
     ecs::AddSystem(ECS_LAYER::PRE_PHYSICS_0, GrabbableItemComponentSystem{});
     ecs::AddSystem(ECS_LAYER::TWEENING, TweenSystem{});

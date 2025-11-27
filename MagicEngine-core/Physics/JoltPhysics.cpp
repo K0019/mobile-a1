@@ -20,6 +20,7 @@ All rights reserved.
 
 #include "Physics/JoltPhysics.h"
 #include "Physics/Physics.h"
+#include "Engine/EntityEvents.h"
 #include "Utilities/GameTime.h"
 #include <imgui.h>
 
@@ -49,6 +50,7 @@ namespace physics {
 		physicsSystem.Init(cMaxBodies, cNumBodyMutexes, cMaxBodyPairs, cMaxContactConstraints, broadPhaseLayerInterface, objectVsBroadphaseLayerFilter, objectVsObjectLayerFilter);
 
 		//Set contact listener.
+		contactListener.Init();
 		physicsSystem.SetContactListener(&contactListener);
 
 		//Initialize the body manager.
@@ -230,6 +232,7 @@ namespace physics {
 		JPH::BodyCreationSettings bodySettings{ scaleShape, position, rotation, motionType, +collisionLayer };
 		bodySettings.mAllowDynamicOrKinematic = true;
 		bodySettings.mUserData = ecs::GetEntity(this)->GetHash();
+		bodySettings.mGravityFactor = 0.f;
 
 		bodyID = ST<JoltPhysics>::Get()->GetBodyInterface().CreateAndAddBody(bodySettings, JPH::EActivation::Activate);
 
@@ -243,14 +246,12 @@ namespace physics {
 		}
 		SetScale(scale);
 
-		if (auto physicsCompPtr{ ecs::GetEntity(this)->GetComp<PhysicsComp>() })
-		{
-			SetGravityFactor(physicsCompPtr->GetFlag(PHYSICS_COMP_FLAG::USE_GRAVITY) ? 1.f : 0.f);
-		}
 		if (ecs::GetEntity(this)->HasComp<BoxColliderComp>())
 		{
 			SetShapeType(ShapeType::BOX);
 		}
+
+		ecs::GetEntity(this)->GetComp<EntityEventsComponent>()->BroadcastAll("JoltBodyCompAttached", this);
 	}
 
 	void JoltBodyComp::OnDetached()

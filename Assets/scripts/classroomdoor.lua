@@ -1,10 +1,11 @@
 local opening = true
 local moving = true
 local openingDistance = 0.6
-local openSpeed = 0.3
+local openSpeed = 2.4
 local currentOpeningDistance = 0.0
 local openingDoorEntity
 local closingDoorEntity
+
 function open()
     opening = true
     moving = true
@@ -22,6 +23,14 @@ function toggle()
 end
 
 function start(entity)
+    -- We decide whether the door starts open if the name has "Open"
+    local nameComp = entity:GetNameComponent()
+    Magic.Log(Magic.LogLevel.info, nameComp.name)
+    if(nameComp.name == "Door_Classroom_Open") then
+        opening = true
+    else
+        opening = false
+    end
 
     local entityContainer = entity:GetEntityReferenceHolderComponent()
 
