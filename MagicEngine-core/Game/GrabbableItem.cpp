@@ -30,6 +30,7 @@ All rights reserved.
 #include "Game/PlayerCharacter.h"
 #include "Game/EnemyCharacter.h"
 #include "Game/Delusion.h"
+#include "Managers\AudioManager.h"
 
 void GrabbableItemComponent::Attack(Vec3 origin, Vec3 direction)
 {
@@ -144,6 +145,12 @@ void GrabbableItemComponent::EditorDraw()
 	gui::PayloadTarget<size_t>("ANIMATION_HASH", [&](size_t hash) -> void {
 		parryAnimation = hash;
 		});
+
+	// TODO: Editor Draw
+	gui::VarDefault("Audio Name", &audioName);
+
+	gui::VarInput("Audio Start Index", &audioStartIndex);
+	gui::VarInput("Audio End Index", &audioEndIndex);
 }
 
 GrabbableItemComponentSystem::GrabbableItemComponentSystem()

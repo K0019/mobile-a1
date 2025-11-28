@@ -1,19 +1,41 @@
 local musicVolume = 0.1
 local ambienceVolume = 0.15
 
-function start(entity)
+local musicHandle
+local ambienceHandle
 
-    
-    if _G.musicHandle == nil then
-        Magic.Log(Magic.LogLevel.info, "Music Handle is NULL!")
-    else
-        Magic.Log(Magic.LogLevel.info, "Music Handle At Delete: ".._G.musicHandle)
-        Magic.AudioManager.StopSound(_G.musicHandle)
-        Magic.AudioManager.StopSound(_G.ambienceHandle)
+local musicSwitchCountdown = 3.0
+local switchingMusic = false
+local switchedMusic = false
+function start(entity)
+    musicHandle = Magic.AudioManager.PlaySoundWithVolume("purrfectputt-music-gameplayloop1",true,musicVolume)
+    ambienceHandle = Magic.AudioManager.PlaySoundWithVolume("school ambience heavy voices_loop",true,ambienceVolume)
+
+    Magic.Log(Magic.LogLevel.info, "Music Handle: "..musicHandle)
+end
+
+function onDestroy(entity)
+    Magic.AudioManager.StopSound(musicHandle)
+    Magic.AudioManager.StopSound(ambienceHandle)
+end
+
+function setBossMusic()
+    Magic.Log(Magic.LogLevel.info, "SET MUSIC MESSAGE RECEIVED!!!")
+
+    Magic.AudioManager.FadeOutSound(musicHandle,2.0)
+    switchingMusic =true
+end
+
+function update(entity)
+    if switchedMusic then
+        return
     end
 
-    _G.musicHandle = Magic.AudioManager.PlaySoundWithVolume("purrfectputt-music-gameplayloop1",true,musicVolume)
-    _G.ambienceHandle = Magic.AudioManager.PlaySoundWithVolume("school ambience heavy voices_loop",true,ambienceVolume)
-
-    Magic.Log(Magic.LogLevel.info, "Music Handle: ".._G.musicHandle)
+    if switchingMusic then
+        musicSwitchCountdown = musicSwitchCountdown - Magic.DeltaTime()
+        if musicSwitchCountdown <= 0.0 then
+            musicHandle = Magic.AudioManager.PlaySoundWithVolume("cut&pastemenumusic",true,musicVolume)
+            switchedMusic = true
+        end
+    end
 end

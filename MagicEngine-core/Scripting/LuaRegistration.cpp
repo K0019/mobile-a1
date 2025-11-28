@@ -317,10 +317,9 @@ void Lua_StopAudio(uint32_t handle)
 {
 	ST<AudioManager>::Get()->StopSound(handle);
 }
-void Lua_FadeOutAudio(std::string name, float duration)
+void Lua_FadeOutAudio(uint32_t handle, float duration)
 {
-	float decremental = 0.01f;
-//	ST<AudioManager>::Get()->StopSound(util::GenHash(name));
+	ST<AudioManager>::Get()->FadeoutAudio(handle, duration);
 }
 ecs::EntityHandle Lua_LoadPrefab(std::string name)
 {
@@ -620,6 +619,7 @@ void RegisterCppStuffToLua(luabridge::Namespace baseTable)
 		.beginNamespace("AudioManager")
 			.addFunction("PlaySound", Lua_PlayAudio)
 			.addFunction("StopSound", Lua_StopAudio)
+			.addFunction("FadeOutSound", Lua_FadeOutAudio)
 			.addFunction("PlaySound3D", Lua_PlayAudio3D)
 			.addFunction("PlaySoundWithVolume", Lua_PlayAudioWithVolume)
 			.addFunction("PlaySound3DWithVolume", Lua_PlayAudio3DWithVolume)
