@@ -2661,6 +2661,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/materials/Boss_Top_Prefect.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 5594908899487728647,
+                            "name": "boss_top_prefect0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/materials/n00_000_00_eyeiris_00_eye (instance).material",
             "resources": [
                 {
@@ -4279,6 +4293,20 @@
                         {
                             "hash": 5820117468142541565,
                             "name": "material_150"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/boss_top.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 5586651567163093599,
+                            "name": "boss_top0"
                         }
                     ]
                 }

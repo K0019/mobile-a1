@@ -172,12 +172,13 @@ void GameCameraControllerSystem::UpdateGameCameraController(GameCameraController
     std::vector<ecs::EntityHandle> currentColliders;
     //physics::OverlapSphere(currentColliders, playerPos - (forward * 0.5f), Vec3{ 1.0f,1.0f,comp.currentCameraDistance }, Vec3{ pitch, yaw, 0.0f });
     
-    physics::RaycastHit hit;
+    std::vector<physics::RaycastHit> hits;
 
 
-    if (physics::Raycast(playerPos - forward * 0.1f, -forward, hit, comp.currentCameraDistance))
+    if (physics::RaycastAll(playerPos - forward * 0.1f, -forward, hits, comp.currentCameraDistance))
     {
-        currentColliders.push_back(hit.entityHit);
+        for (auto hit : hits)
+            currentColliders.push_back(hit.entityHit);
     }
 
     // We only want to swap materials that are in either vector. Not both
