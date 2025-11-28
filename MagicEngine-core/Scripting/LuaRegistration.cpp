@@ -46,6 +46,8 @@ All rights reserved.
 #include "Scripting/ScriptComponent.h"
 #include "Graphics/RenderComponent.h"
 #include "Engine/PrefabManager.h"
+#include "Engine/Events/EventsQueue.h"
+#include "Engine/Events/EventsTypeBasic.h"
 
 #include "core/platform/platform.h"
 // Thanks microsoft
@@ -327,6 +329,12 @@ bool Lua_NumberedDiceRoll(int sides)
 	return randomRange(0, sides)==0;
 }
 
+template <typename EventType>
+void Lua_SimpleQueueEventNextFrame()
+{
+	ST<EventsQueue>::Get()->AddEventForNextFrame(EventType{});
+}
+
 void RegisterCppStuffToLua(luabridge::Namespace baseTable)
 {
 	// Reference for how to do stuff: https://kunitoki.github.io/LuaBridge3/Manual
@@ -605,6 +613,13 @@ void RegisterCppStuffToLua(luabridge::Namespace baseTable)
 			.addFunction("RangeInt", Lua_RandomRangeInt)
 			.addFunction("DiceRoll", Lua_NumberedDiceRoll)
 			.addFunction("RangeVec3", Lua_RandomRangeVec)
+		.endNamespace()
+
+		.beginNamespace("PlayerActions")
+			.addFunction("GrabItem", Lua_SimpleQueueEventNextFrame<Events::GameActionGrabItem>)
+			.addFunction("ThrowItem", Lua_SimpleQueueEventNextFrame<Events::GameActionThrowItem>)
+			.addFunction("Attack", Lua_SimpleQueueEventNextFrame<Events::GameActionAttack>)
+			.addFunction("Dodge", Lua_SimpleQueueEventNextFrame<Events::GameActionDodge>)
 		.endNamespace()
 
 

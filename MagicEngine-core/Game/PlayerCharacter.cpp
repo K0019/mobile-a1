@@ -28,6 +28,8 @@ All rights reserved.
 #include "Engine/Input.h"
 #include "Scripting//ScriptComponent.h"
 #include "Editor/Containers/GUICollection.h"
+#include "Engine/Events/EventsQueue.h"
+#include "Engine/Events/EventsTypeBasic.h"
 
 PlayerMovementComponent::PlayerMovementComponent()
 	: grabDistance{ 0.0f }
@@ -104,7 +106,7 @@ void PlayerMovementComponentSystem::UpdatePlayerMovementComponent(PlayerMovement
 		movement = movement.Normalized();
 
 	// Grabbing items
-	if (inputInstance->GetIsPressed(KEY::E))
+	if (inputInstance->GetIsPressed(KEY::E) || EventsReader<Events::GameActionGrabItem>{}.ExtractEvent())
 	{
 		if (characterComp->heldItem == nullptr)
 		{
@@ -148,7 +150,7 @@ void PlayerMovementComponentSystem::UpdatePlayerMovementComponent(PlayerMovement
 	}
 
 	// Throw item
-	if (inputInstance->GetIsPressed(KEY::Q))
+	if (inputInstance->GetIsPressed(KEY::Q) || EventsReader<Events::GameActionThrowItem>{}.ExtractEvent())
 	{
 		// Look for the nearest enemy
 		Vec3 throwDirection{ camForward.x,1.0f,camForward.y  };
@@ -156,11 +158,11 @@ void PlayerMovementComponentSystem::UpdatePlayerMovementComponent(PlayerMovement
 		characterComp->Throw(throwDirection);
 	}
 
-	if (inputInstance->GetIsPressed(KEY::M1))
+	if (inputInstance->GetIsPressed(KEY::M1) || EventsReader<Events::GameActionAttack>{}.ExtractEvent())
 		characterComp->Attack();
 
 	characterComp->SetMovementVector(movement);
 
-	if (inputInstance->GetIsDown(KEY::LSHIFT))
+	if (inputInstance->GetIsDown(KEY::LSHIFT) || EventsReader<Events::GameActionDodge>{}.ExtractEvent())
 		characterComp->Dodge(movement);
 }
