@@ -353,6 +353,10 @@ class SceneRenderFeature final : public RenderFeatureBase<SceneRenderParams>
     vk::Holder<vk::ShaderModuleHandle> m_pointShadowVertShader;
     vk::Holder<vk::ShaderModuleHandle> m_pointShadowFragShader;
     vk::Holder<vk::RenderPipelineHandle> m_pointShadowPipeline;
+    
+    // Point light shadow mapping (skinned/animated)
+    vk::Holder<vk::ShaderModuleHandle> m_pointShadowSkinnedVertShader;
+    vk::Holder<vk::RenderPipelineHandle> m_pointShadowSkinnedPipeline;
 
     void EnsureDepthPrepassPipeline(internal::ExecutionContext& ctx);
     void ExecuteDepthPrepass(internal::ExecutionContext& ctx);

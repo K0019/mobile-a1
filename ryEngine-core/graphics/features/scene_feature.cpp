@@ -478,14 +478,19 @@ void SceneRenderFeature::SetupPasses(internal::RenderPassBuilder& passBuilder)
           .UseResource(shadowColorNames[i], AccessType::Write)
           .UseResource(shadowDepthNames[i], AccessType::Write)
           .UseResource(RenderResources::VERTEX_BUFFER, AccessType::Read)
+          .UseResource(RenderResources::SKINNED_VERTEX_BUFFER, AccessType::Read)
           .UseResource(RenderResources::INDEX_BUFFER, AccessType::Read)
           .UseResource("ObjectTransforms", AccessType::Read)
           .UseResource("DrawDataBuffer", AccessType::Read)
           .UseResource("IndirectBufferOpaqueStatic", AccessType::Read)
+          .UseResource("IndirectBufferOpaqueAnimated", AccessType::Read)
+          .UseResource("IndirectBufferTransparentStatic", AccessType::Read)
+          .UseResource("IndirectBufferTransparentAnimated", AccessType::Read)
           .UseResource(RenderResources::MESH_DECOMPRESSION_BUFFER, AccessType::Read)
           .UseResource(Lighting::POINT_SHADOW_BUFFER, AccessType::Read)
           .SetPriority(internal::RenderPassBuilder::PassPriority::ShadowMap)
           .ExecuteAfter("LightingSetup")
+          .ExecuteAfter("MeshDeformation")
           .AddGraphicsPass(
               (std::string("PointShadowPass") + std::to_string(i)).c_str(),
               shadowPassInfo,
@@ -1746,51 +1751,100 @@ const char* SceneRenderFeature::GetName() const
 
 void SceneRenderFeature::EnsurePointShadowPipeline(internal::ExecutionContext& ctx)
 {
-    if (m_pointShadowPipeline.valid())
+    if (m_pointShadowPipeline.valid() && m_pointShadowSkinnedPipeline.valid())
         return;
 
-    m_pointShadowVertShader = loadShaderModule(ctx.GetvkContext(), "shaders/point_shadow.vert");
-    m_pointShadowFragShader = loadShaderModule(ctx.GetvkContext(), "shaders/point_shadow.frag");
+    // Load shaders if not already loaded
+    if (!m_pointShadowVertShader.valid())
+        m_pointShadowVertShader = loadShaderModule(ctx.GetvkContext(), "shaders/point_shadow.vert");
+    if (!m_pointShadowFragShader.valid())
+        m_pointShadowFragShader = loadShaderModule(ctx.GetvkContext(), "shaders/point_shadow.frag");
+    if (!m_pointShadowSkinnedVertShader.valid())
+        m_pointShadowSkinnedVertShader = loadShaderModule(ctx.GetvkContext(), "shaders/point_shadow_skinned.vert");
 
     if (!m_pointShadowVertShader.valid() || !m_pointShadowFragShader.valid())
         return;
 
-    // Vertex input layout matching compressed vertex format (same as EnsureRenderPipelines)
-    vk::VertexInput vertexInput;
-    vertexInput.attributes[0] = {
+    // Static mesh vertex input layout (compressed format)
+    vk::VertexInput staticVertexInput;
+    staticVertexInput.attributes[0] = {
         .location = 0,
         .binding = 0,
         .format = vk::VertexFormat::Short3Norm,
         .offset = offsetof(CompressedVertex, pos_x) };
-    vertexInput.attributes[1] = {
+    staticVertexInput.attributes[1] = {
         .location = 1,
         .binding = 0,
         .format = vk::VertexFormat::Short1Norm,
         .offset = offsetof(CompressedVertex, normal_x) };
-    vertexInput.attributes[2] = {
+    staticVertexInput.attributes[2] = {
         .location = 2,
         .binding = 0,
         .format = vk::VertexFormat::R10G10B10A2_SNORM,
         .offset = offsetof(CompressedVertex, packed) };
-    vertexInput.attributes[3] = {
+    staticVertexInput.attributes[3] = {
         .location = 3,
         .binding = 0,
         .format = vk::VertexFormat::UShort2Norm,
         .offset = offsetof(CompressedVertex, uv_x) };
-    vertexInput.inputBindings[0].stride = sizeof(CompressedVertex);
+    staticVertexInput.inputBindings[0].stride = sizeof(CompressedVertex);
 
-    vk::RenderPipelineDesc pipelineDesc{};
-    pipelineDesc.topology = vk::Topology::Triangle;
-    pipelineDesc.vertexInput = vertexInput;
-    pipelineDesc.smVert = m_pointShadowVertShader;
-    pipelineDesc.smFrag = m_pointShadowFragShader;
-    pipelineDesc.color[0].format = vk::Format::R_F16;  // R16F for linear depth
-    pipelineDesc.depthFormat = vk::Format::Z_F32;
-    pipelineDesc.cullMode = vk::CullMode::None;  // Disable culling for shadow pass
-    pipelineDesc.frontFaceWinding = vk::WindingMode::CCW;
-    pipelineDesc.debugName = "PointShadowPipeline";
+    // Create static mesh shadow pipeline
+    if (!m_pointShadowPipeline.valid())
+    {
+        vk::RenderPipelineDesc pipelineDesc{};
+        pipelineDesc.topology = vk::Topology::Triangle;
+        pipelineDesc.vertexInput = staticVertexInput;
+        pipelineDesc.smVert = m_pointShadowVertShader;
+        pipelineDesc.smFrag = m_pointShadowFragShader;
+        pipelineDesc.color[0].format = vk::Format::R_F16;  // R16F for linear depth
+        pipelineDesc.depthFormat = vk::Format::Z_F32;
+        pipelineDesc.cullMode = vk::CullMode::None;  // Disable culling for shadow pass
+        pipelineDesc.frontFaceWinding = vk::WindingMode::CCW;
+        pipelineDesc.debugName = "PointShadowPipeline";
 
-    m_pointShadowPipeline = ctx.GetvkContext().createRenderPipeline(pipelineDesc);
+        m_pointShadowPipeline = ctx.GetvkContext().createRenderPipeline(pipelineDesc);
+    }
+
+    // Skinned mesh vertex input layout (uncompressed format)
+    if (!m_pointShadowSkinnedPipeline.valid() && m_pointShadowSkinnedVertShader.valid())
+    {
+        vk::VertexInput skinnedVertexInput;
+        skinnedVertexInput.attributes[0] = {
+            .location = 0,
+            .binding = 0,
+            .format = vk::VertexFormat::Float3,
+            .offset = offsetof(SkinnedVertex, position) };
+        skinnedVertexInput.attributes[1] = {
+            .location = 1,
+            .binding = 0,
+            .format = vk::VertexFormat::UInt1,
+            .offset = offsetof(SkinnedVertex, uvPacked) };
+        skinnedVertexInput.attributes[2] = {
+            .location = 2,
+            .binding = 0,
+            .format = vk::VertexFormat::UInt1,
+            .offset = offsetof(SkinnedVertex, normalPacked) };
+        skinnedVertexInput.attributes[3] = {
+            .location = 3,
+            .binding = 0,
+            .format = vk::VertexFormat::UInt1,
+            .offset = offsetof(SkinnedVertex, tangentPacked) };
+        skinnedVertexInput.inputBindings[0].stride = sizeof(SkinnedVertex);
+
+        vk::RenderPipelineDesc pipelineDesc{};
+        pipelineDesc.topology = vk::Topology::Triangle;
+        pipelineDesc.vertexInput = skinnedVertexInput;
+        pipelineDesc.smVert = m_pointShadowSkinnedVertShader;
+        pipelineDesc.smFrag = m_pointShadowFragShader;  // Reuse same fragment shader
+        pipelineDesc.color[0].format = vk::Format::R_F16;
+        pipelineDesc.depthFormat = vk::Format::Z_F32;
+        pipelineDesc.cullMode = vk::CullMode::None;
+        pipelineDesc.frontFaceWinding = vk::WindingMode::CCW;
+        pipelineDesc.debugName = "PointShadowSkinnedPipeline";
+
+        m_pointShadowSkinnedPipeline = ctx.GetvkContext().createRenderPipeline(pipelineDesc);
+    }
 }
 
 void SceneRenderFeature::ExecutePointShadowPass(internal::ExecutionContext& ctx, uint32_t shadowLightIndex)
@@ -1801,8 +1855,12 @@ void SceneRenderFeature::ExecutePointShadowPass(internal::ExecutionContext& ctx,
     if (shadowLightIndex >= params.shadowPointLightCount)
         return;
 
-    // Skip if no opaque geometry
-    if (params.opaqueStaticCount == 0)
+    // Skip if no geometry to render
+    const uint32_t animatedOpaqueCount = params.opaqueAnimatedCount;
+    const uint32_t animatedTransparentCount = params.transparentAnimatedCount;
+    const uint32_t staticTransparentCount = params.transparentStaticCount;
+    if (params.opaqueStaticCount == 0 && animatedOpaqueCount == 0 && 
+        staticTransparentCount == 0 && animatedTransparentCount == 0)
         return;
 
     EnsurePointShadowPipeline(ctx);
@@ -1811,9 +1869,6 @@ void SceneRenderFeature::ExecutePointShadowPass(internal::ExecutionContext& ctx,
 
     auto& cmd = ctx.GetvkCommandBuffer();
 
-
-    // Create a temporary buffer for shadow frame constants
-    // In production, this would be part of the transient resource system
     vk::BufferHandle pointShadowBuffer = ctx.GetBuffer(Lighting::POINT_SHADOW_BUFFER);
 
     // Push constants layout matches the shadow vertex/fragment shaders
@@ -1838,11 +1893,6 @@ void SceneRenderFeature::ExecutePointShadowPass(internal::ExecutionContext& ctx,
         .unused3 = 0,
     };
 
-    cmd.cmdBindRenderPipeline(m_pointShadowPipeline);
-    cmd.cmdBindVertexBuffer(0, ctx.GetBuffer(RenderResources::VERTEX_BUFFER));
-    cmd.cmdBindIndexBuffer(ctx.GetBuffer(RenderResources::INDEX_BUFFER), vk::IndexFormat::UI32);
-    cmd.cmdBindDepthState({.compareOp = vk::CompareOp::Less, .isDepthWriteEnabled = true});
-
     // Set viewport and scissor for shadow map size
     vk::Viewport viewport = {
         .x = 0.0f, .y = 0.0f,
@@ -1857,17 +1907,72 @@ void SceneRenderFeature::ExecutePointShadowPass(internal::ExecutionContext& ctx,
     };
     cmd.cmdBindViewport(viewport);
     cmd.cmdBindScissorRect(scissor);
+    cmd.cmdBindDepthState({.compareOp = vk::CompareOp::Less, .isDepthWriteEnabled = true});
+    cmd.cmdBindIndexBuffer(ctx.GetBuffer(RenderResources::INDEX_BUFFER), vk::IndexFormat::UI32);
 
-    cmd.cmdPushConstants(pushConstants);
+    // Draw static opaque geometry
+    if (params.opaqueStaticCount > 0)
+    {
+        cmd.cmdBindRenderPipeline(m_pointShadowPipeline);
+        cmd.cmdBindVertexBuffer(0, ctx.GetBuffer(RenderResources::VERTEX_BUFFER));
+        cmd.cmdPushConstants(pushConstants);
 
-    // Draw all opaque static geometry using indirect draw
-    cmd.cmdDrawIndexedIndirectCount(
-        ctx.GetBuffer("IndirectBufferOpaqueStatic"),
-        sizeof(uint32_t),
-        ctx.GetBuffer("IndirectBufferOpaqueStatic"),
-        0,
-        params.opaqueStaticCount,
-        sizeof(DrawIndexedIndirectCommand));
+        cmd.cmdDrawIndexedIndirectCount(
+            ctx.GetBuffer("IndirectBufferOpaqueStatic"),
+            sizeof(uint32_t),
+            ctx.GetBuffer("IndirectBufferOpaqueStatic"),
+            0,
+            params.opaqueStaticCount,
+            sizeof(DrawIndexedIndirectCommand));
+    }
+
+    // Draw static transparent geometry (for meshes incorrectly marked as transparent)
+    if (staticTransparentCount > 0)
+    {
+        cmd.cmdBindRenderPipeline(m_pointShadowPipeline);
+        cmd.cmdBindVertexBuffer(0, ctx.GetBuffer(RenderResources::VERTEX_BUFFER));
+        cmd.cmdPushConstants(pushConstants);
+
+        cmd.cmdDrawIndexedIndirectCount(
+            ctx.GetBuffer("IndirectBufferTransparentStatic"),
+            sizeof(uint32_t),
+            ctx.GetBuffer("IndirectBufferTransparentStatic"),
+            0,
+            staticTransparentCount,
+            sizeof(DrawIndexedIndirectCommand));
+    }
+
+    // Draw animated/skinned opaque geometry
+    if (animatedOpaqueCount > 0 && m_pointShadowSkinnedPipeline.valid())
+    {
+        cmd.cmdBindRenderPipeline(m_pointShadowSkinnedPipeline);
+        cmd.cmdBindVertexBuffer(0, ctx.GetBuffer(RenderResources::SKINNED_VERTEX_BUFFER));
+        cmd.cmdPushConstants(pushConstants);
+
+        cmd.cmdDrawIndexedIndirectCount(
+            ctx.GetBuffer("IndirectBufferOpaqueAnimated"),
+            sizeof(uint32_t),
+            ctx.GetBuffer("IndirectBufferOpaqueAnimated"),
+            0,
+            animatedOpaqueCount,
+            sizeof(DrawIndexedIndirectCommand));
+    }
+
+    // Draw animated/skinned transparent geometry
+    if (animatedTransparentCount > 0 && m_pointShadowSkinnedPipeline.valid())
+    {
+        cmd.cmdBindRenderPipeline(m_pointShadowSkinnedPipeline);
+        cmd.cmdBindVertexBuffer(0, ctx.GetBuffer(RenderResources::SKINNED_VERTEX_BUFFER));
+        cmd.cmdPushConstants(pushConstants);
+
+        cmd.cmdDrawIndexedIndirectCount(
+            ctx.GetBuffer("IndirectBufferTransparentAnimated"),
+            sizeof(uint32_t),
+            ctx.GetBuffer("IndirectBufferTransparentAnimated"),
+            0,
+            animatedTransparentCount,
+            sizeof(DrawIndexedIndirectCommand));
+    }
 }
 
 void SceneRenderFeature::RequestObjectPick(int screenX, int screenY)

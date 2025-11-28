@@ -1106,8 +1106,6 @@ VkImageView vk::VulkanImage::getOrCreateVkImageViewForFramebufferMultiview(Vulka
   char debugNameImageView[320] = {0};
   snprintf(debugNameImageView, sizeof(debugNameImageView) - 1, "Image View: '%s' multiview[%u] layers=%u", debugName_, level, layerCount);
 
-  LOG_INFO("Creating multiview image view: {} baseLayer={} layerCount={}", debugNameImageView, baseLayer, layerCount);
-
   // Use VK_IMAGE_VIEW_TYPE_2D_ARRAY for multiview rendering
   return createImageView(ctx.getVkDevice(), VK_IMAGE_VIEW_TYPE_2D_ARRAY, vkImageFormat_, getImageAspectFlags(), level, 1u, baseLayer, layerCount, {}, nullptr, debugNameImageView);
 }
@@ -2668,10 +2666,6 @@ void vk::CommandBuffer::cmdBeginRendering(const RenderPass& renderPass, const Fr
   // Check if multiview is enabled
   const bool isMultiview = renderPass.viewMask != 0;
   const uint32_t multiviewLayerCount = isMultiview ? renderPass.layerCount : 1;
-  
-  if (isMultiview) {
-    LOG_INFO("cmdBeginRendering: MULTIVIEW enabled viewMask=0b{:b} layerCount={}", renderPass.viewMask, renderPass.layerCount);
-  }
 
   VkRenderingAttachmentInfo colorAttachments[MAX_COLOR_ATTACHMENTS];
 
