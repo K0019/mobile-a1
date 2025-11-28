@@ -1267,7 +1267,8 @@
                     "flags": {
                         "_majorityTrue": true,
                         "_except": [
-                            "Is Kinematic"
+                            "Is Kinematic",
+                            "Use Gravity"
                         ]
                     }
                 },
