@@ -14,8 +14,7 @@ function start(entity)
 	thisEntity = entity;
     
     local nameComp = thisEntity:GetNameComponent()
-    Magic.Log(Magic.LogLevel.info, nameComp.name)
-    if nameComp.name == "startspawner" then
+    if (nameComp.name == "start_spawner") then
     wavespawn()
     end
 end
@@ -25,8 +24,6 @@ function proceed()
 
     if entityContainer:Exists() then
     local nextObjective = entityContainer:GetEntityReference(0)
-    
-    Magic.Log(Magic.LogLevel.info, "proceed")
 
     -- spawn type of enemy based on referenced object name
     local nameComp = nextObjective:GetNameComponent()
@@ -36,15 +33,15 @@ function proceed()
     
     if scriptComp:Exists() then
     
-        if nameComp.name == "enemyspawner" then
+        if (nameComp.name == "enemy_spawner") or nameComp.name == ("prefect_spawner") then
             Magic.Log(Magic.LogLevel.info, "It's spawnin time")
             scriptComp:CallScriptFunction("wavespawn")
             
-        elseif nameComp.name == "Door_Classroom" then
+        elseif (nameComp.name == "Door_Classroom") or (nameComp.name == "Door_Classroom_Open") or (nameComp.name == "Door_Classroom_Closed") then
             Magic.Log(Magic.LogLevel.info, "Open sesame")
             scriptComp:CallScriptFunction("open")
 
-        elseif nameComp.name == "winscreen" then
+        elseif (nameComp.name == "winscreen") then
             Magic.Log(Magic.LogLevel.info, "I win")
             --scriptComp:CallScriptFunction("wingame")
         end
@@ -62,8 +59,7 @@ function enemydeath()
     EnemySpawner.aliveEnemies = EnemySpawner.aliveEnemies - 1
     Magic.Log(Magic.LogLevel.info, "Enemy died. Remaining = "..EnemySpawner.aliveEnemies)
     
-    if EnemySpawner.aliveEnemies == 0 then 
-    Magic.Log(Magic.LogLevel.info, "proceed")
+    if EnemySpawner.aliveEnemies == 0 then
     proceed()
     end
 end
