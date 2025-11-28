@@ -174,18 +174,24 @@ namespace VertexCompression {
         return static_cast<uint16_t>(value * 65535.0f);
     }
 
-    inline uint32_t packNormalTangentSigns(float ny, float tx, float ty, float nz_sign, float handedness)
+    inline uint32_t packNormalTangentSigns(float ny, float tx, float ty, float nx_sign, float handedness)
     {
-        // RGB are true SNORM values decoded directly by the vertex fetch hardware.
-        uint32_t packed = glm::packSnorm3x10_1x2(glm::vec4(ny, tx, ty, 0.0f));
+        // Remap from [-1,1] to [0,1] for UNORM storage
+        float ny_unorm = ny * 0.5f + 0.5f;
+        float tx_unorm = tx * 0.5f + 0.5f;
+        float ty_unorm = ty * 0.5f + 0.5f;
 
-        // Alpha still encodes two boolean flags inside the 2 SNORM bits.
-        uint32_t nz_bit = (nz_sign < 0.0f) ? 1u : 0u;
+        // Pack as UNORM10 values
+        uint32_t ny_bits = static_cast<uint32_t>(glm::clamp(ny_unorm, 0.0f, 1.0f) * 1023.0f + 0.5f) & 0x3FFu;
+        uint32_t tx_bits = static_cast<uint32_t>(glm::clamp(tx_unorm, 0.0f, 1.0f) * 1023.0f + 0.5f) & 0x3FFu;
+        uint32_t ty_bits = static_cast<uint32_t>(glm::clamp(ty_unorm, 0.0f, 1.0f) * 1023.0f + 0.5f) & 0x3FFu;
+
+        // Alpha encodes nx_sign (bit 1) and handedness (bit 0)
+        uint32_t nx_sign_bit = (nx_sign < 0.0f) ? 1u : 0u;
         uint32_t handedness_bit = (handedness < 0.0f) ? 1u : 0u;
-        uint32_t alpha_bits = (nz_bit << 1) | handedness_bit;
+        uint32_t alpha_bits = (nx_sign_bit << 1) | handedness_bit;
 
-        packed &= 0x3FFFFFFFu;
-        packed |= (alpha_bits << 30);
+        uint32_t packed = ny_bits | (tx_bits << 10) | (ty_bits << 20) | (alpha_bits << 30);
         return packed;
     }
 
@@ -241,7 +247,15 @@ namespace VertexCompression {
 
         // Normal
         vec3 n = glm::normalize(v.normal);
-        cv.normal_x = encodeSnorm16(n.x);
+        
+        // Store |nx| in normal_x, with nz_sign encoded in its sign bit
+        float nx_magnitude = glm::abs(n.x);
+        float nx_sign = (n.x < 0.0f) ? -1.0f : 1.0f;
+        float nz_sign = (n.z < 0.0f) ? -1.0f : 1.0f;
+        
+        // Encode: magnitude with nz_sign in the sign bit
+        float nx_with_nz_sign = nx_magnitude * nz_sign;
+        cv.normal_x = encodeSnorm16(nx_with_nz_sign);
 
         // Tangent: flip entire tangent if tz < 0 to force tz positive
         vec3 t = glm::normalize(vec3(v.tangent));
@@ -252,8 +266,8 @@ namespace VertexCompression {
             handedness = -handedness;  // Also flip handedness to maintain TBN consistency
         }
 
-        // Now tz is guaranteed positive, so we can use bit 0 for handedness
-        cv.packed = packNormalTangentSigns(n.y, t.x, t.y, n.z, handedness);
+        // Pack ny, tx, ty as UNORM, with nx_sign and handedness in alpha bits
+        cv.packed = packNormalTangentSigns(n.y, t.x, t.y, nx_sign, handedness);
 
         // UV
         vec2 uv = v.getUV();
@@ -335,17 +349,26 @@ inline bool validateCompression(
             all_valid = false;
         }
 
-        float nx = decodeSnorm16(comp.normal_x);
+        float nx_encoded = decodeSnorm16(comp.normal_x);
 
-        glm::vec4 packedVec = glm::unpackSnorm3x10_1x2(comp.packed);
-        float ny = packedVec.x;
+        // Decode UNORM10 values and remap from [0,1] to [-1,1]
+        float ny_unorm = static_cast<float>(comp.packed & 0x3FFu) / 1023.0f;
+        float ny = ny_unorm * 2.0f - 1.0f;
 
         uint32_t alpha_bits = (comp.packed >> 30) & 0x3u;
-        bool nz_negative = (alpha_bits & 2u) != 0u;
-        float nz = glm::sqrt(glm::max(VERTEX_EPSILON, 1.0f - nx * nx - ny * ny));
-        if (nz_negative) {
-            nz = -nz;
-        }
+        
+        // Extract nx_sign from alpha bit 1
+        bool nx_negative = (alpha_bits & 2u) != 0u;
+        float nx_sign = nx_negative ? -1.0f : 1.0f;
+        
+        // Extract nz_sign from the sign of the encoded normal_x
+        float nz_sign = (nx_encoded < 0.0f) ? -1.0f : 1.0f;
+        
+        // Reconstruct nx: magnitude from |nx_encoded|, sign from nx_sign
+        float nx_magnitude = glm::abs(nx_encoded);
+        float nx = nx_magnitude * nx_sign;
+        
+        float nz = glm::sqrt(glm::max(VERTEX_EPSILON, 1.0f - nx * nx - ny * ny)) * nz_sign;
 
         vec3 decompressed_normal = glm::normalize(vec3(nx, ny, nz));
         vec3 original_normal = glm::normalize(orig.normal);
@@ -363,8 +386,11 @@ inline bool validateCompression(
             all_valid = false;
         }
 
-        float tx = packedVec.y;
-        float ty = packedVec.z;
+        // Decode UNORM10 values and remap from [0,1] to [-1,1]
+        float tx_unorm = static_cast<float>((comp.packed >> 10) & 0x3FFu) / 1023.0f;
+        float ty_unorm = static_cast<float>((comp.packed >> 20) & 0x3FFu) / 1023.0f;
+        float tx = tx_unorm * 2.0f - 1.0f;
+        float ty = ty_unorm * 2.0f - 1.0f;
         float tz = glm::sqrt(glm::max(VERTEX_EPSILON, 1.0f - tx * tx - ty * ty));
 
         vec3 decompressed_tangent = glm::normalize(vec3(tx, ty, tz));

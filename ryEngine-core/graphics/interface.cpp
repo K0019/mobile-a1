@@ -129,6 +129,8 @@ uint32_t vk::getVertexFormatSize(VertexFormat format)
   SIZE4(HalfFloat, uint16_t);
   case VertexFormat::R10G10B10A2_SNORM:
     return sizeof(uint32_t);
+  case VertexFormat::R10G10B10A2_UNORM:
+    return sizeof(uint32_t);
   default: assert(false);
     return 0;
   }

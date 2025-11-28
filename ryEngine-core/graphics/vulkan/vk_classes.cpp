@@ -554,6 +554,8 @@ namespace
         return VK_FORMAT_R16G16B16A16_SFLOAT;
       case VertexFormat::R10G10B10A2_SNORM:
         return VK_FORMAT_A2B10G10R10_SNORM_PACK32;
+      case VertexFormat::R10G10B10A2_UNORM:
+        return VK_FORMAT_A2B10G10R10_UNORM_PACK32;
     }
     ASSERT(false);
     return VK_FORMAT_UNDEFINED;

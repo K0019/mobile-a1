@@ -523,6 +523,7 @@ namespace vk
     HalfFloat4,
 
     R10G10B10A2_SNORM,
+    R10G10B10A2_UNORM,
   };
 
   enum class Format : uint8_t

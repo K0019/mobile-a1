@@ -1470,7 +1470,7 @@ void SceneRenderFeature::EnsureDepthPrepassPipeline(internal::ExecutionContext& 
     staticInput.attributes[2] = {
     .location = 2,
     .binding = 0,
-    .format = vk::VertexFormat::R10G10B10A2_SNORM,
+    .format = vk::VertexFormat::R10G10B10A2_UNORM,
         .offset = offsetof(CompressedVertex, packed)
     };
     staticInput.attributes[3] = {
@@ -1599,7 +1599,7 @@ void SceneRenderFeature::EnsureRenderPipelines(internal::ExecutionContext& ctx)
   staticInput.attributes[2] = {
     .location = 2,
     .binding = 0,
-    .format = vk::VertexFormat::R10G10B10A2_SNORM,
+    .format = vk::VertexFormat::R10G10B10A2_UNORM,
     .offset = offsetof(CompressedVertex, packed) };
   staticInput.attributes[3] = {
     .location = 3,
@@ -1780,7 +1780,7 @@ void SceneRenderFeature::EnsurePointShadowPipeline(internal::ExecutionContext& c
     staticVertexInput.attributes[2] = {
         .location = 2,
         .binding = 0,
-        .format = vk::VertexFormat::R10G10B10A2_SNORM,
+        .format = vk::VertexFormat::R10G10B10A2_UNORM,
         .offset = offsetof(CompressedVertex, packed) };
     staticVertexInput.attributes[3] = {
         .location = 3,
