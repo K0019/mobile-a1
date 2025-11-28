@@ -39,11 +39,13 @@ All rights reserved.
 #include <Jolt/Physics/Collision/BroadPhase/BroadPhaseLayer.h>
 #include <Jolt/Physics/Collision/RayCast.h>
 #include <Jolt/Physics/Collision/CastResult.h>
+#include <Jolt/Physics/Collision/CollisionCollectorImpl.h>
 
 #include "ECS/ECS.h"
 #include "Editor/IEditorComponent.h"
 #include "Game/IGameComponentCallbacks.h"
 #include "Physics/Collision.h"
+#include "Engine/EntityLayers.h"
 
 #if defined(JPH_DEBUG_RENDERER)
 // YC: For debugging
@@ -135,7 +137,8 @@ namespace physics {
 
 		JPH::AABox CollectAllTriangles(std::vector<float>& outVertices, std::vector<int>& outTriIndex);
 
-		bool Raycast(const Vec3& origin, const Vec3& direction, RaycastHit& hitInfo, float maxDistance);
+		bool Raycast(const Vec3& origin, const Vec3& direction, RaycastHit& hitInfo, float maxDistance, EntityLayersMask layerMask);
+		bool RaycastAll(const Vec3& origin, const Vec3& direction, std::vector<RaycastHit>& allHitInfo, float maxDistance, EntityLayersMask layerMask);
 	private:
 		// We need a temp allocator for temporary allocations during the physics update. We're
 		// pre-allocating 10 MB to avoid having to do allocations during the physics update.
