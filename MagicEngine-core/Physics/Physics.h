@@ -230,6 +230,22 @@ X(ENABLED, "Enabled")
 		true if there is an overlap. False if not.
 	*//******************************************************************/
 	bool OverlapBox(std::vector<BoxColliderComp*>& outColliders, const Vec3& origin, const Vec3& halfExtent, const Vec3& orientation = Vec3{}, EntityLayersMask layers = EntityLayersMask{});
+
+	/*****************************************************************//*!
+	\brief
+		Cast a ray and check if a body hits the ray or not.
+	\param origin
+		starting point of the ray
+	\param direction
+		direction of the ray.
+	\param hitInfo
+		information of the entity that first hit the ray.
+	\param maxDistance
+		distance of the ray.
+	\return
+		true if there is a hit. False if not.
+	*//******************************************************************/
+	bool Raycast(const Vec3& origin, const Vec3& direction, RaycastHit& hitInfo, float maxDistance);
 } 
 property_begin(physics::PhysicsComp)
 {

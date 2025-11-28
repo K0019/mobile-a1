@@ -338,4 +338,9 @@ namespace physics {
 
 		return result;
 	}
+
+	bool Raycast(const Vec3& origin, const Vec3& direction, RaycastHit& hitInfo, float maxDistance)
+	{
+		return ST<JoltPhysics>::Get()->Raycast(origin, direction, hitInfo, maxDistance);
+	}
 }
