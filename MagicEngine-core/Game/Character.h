@@ -31,6 +31,7 @@ X(WALK,     "Walk")\
 X(ATTACK,   "Attack")\
 X(HURT,   "Hurt")\
 X(DODGE,   "Dodge")\
+X(THROW,   "Throw")\
 
 #define X(type, name) type,
 enum ANIMATION_TYPES:size_t

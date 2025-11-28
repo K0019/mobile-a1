@@ -1,0 +1,43 @@
+{
+    "name": "N00_000_00_HairBack_00_HAIR (Instance)",
+    "alphaMode": "Opaque",
+    "alphaCutoff": 0.5,
+    "metallicFactor": 0.0,
+    "roughnessFactor": 0.5,
+    "normalScale": 1.0,
+    "occlusionStrength": 1.0,
+    "baseColorFactor": [
+        1.0,
+        1.0,
+        1.0,
+        1.0
+    ],
+    "emissiveFactor": [
+        1.0,
+        1.0,
+        1.0
+    ],
+    "textures": [
+        {
+            "key": "baseColor",
+            "value": "CompiledAssets\\models\\GLB\\enemy_female_animated\\_15.ktx2"
+        },
+        {
+            "key": "metallicRoughness",
+            "value": ""
+        },
+        {
+            "key": "normal",
+            "value": "CompiledAssets\\models\\GLB\\enemy_female_animated\\N00_000_00_HairBack_00_nml.ktx2"
+        },
+        {
+            "key": "emissive",
+            "value": "CompiledAssets\\models\\GLB\\enemy_female_animated\\Shader_NoneBlack.ktx2"
+        },
+        {
+            "key": "occlusion",
+            "value": ""
+        }
+    ],
+    "flags": 0
+}

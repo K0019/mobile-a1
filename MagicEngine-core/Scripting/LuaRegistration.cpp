@@ -46,6 +46,8 @@ All rights reserved.
 #include "Scripting/ScriptComponent.h"
 #include "Graphics/RenderComponent.h"
 #include "Engine/PrefabManager.h"
+#include "Engine/Events/EventsQueue.h"
+#include "Engine/Events/EventsTypeBasic.h"
 
 #include "core/platform/platform.h"
 // Thanks microsoft
@@ -294,13 +296,30 @@ Vec2 Get2DAxis(std::string name)
 		return action->GetValue();
 }
 
-void Lua_PlayAudio(std::string name,bool looping)
+uint32_t Lua_PlayAudio(std::string name,bool looping)
 {
-	ST<AudioManager>::Get()->PlaySound(util::GenHash(name), looping);
+	return ST<AudioManager>::Get()->PlaySound(util::GenHash(name), looping);
 }
-void Lua_PlayAudio3D(std::string name, bool looping, Vec3 position)
+uint32_t Lua_PlayAudio3D(std::string name, bool looping, Vec3 position)
 {
-	ST<AudioManager>::Get()->PlaySound3D(util::GenHash(name), looping, position);
+	return ST<AudioManager>::Get()->PlaySound3D(util::GenHash(name), looping, position);
+}
+
+uint32_t Lua_PlayAudioWithVolume(std::string name,bool looping, float volume )
+{
+	return ST<AudioManager>::Get()->PlaySound(util::GenHash(name), looping,AudioType::END,volume);
+}
+uint32_t Lua_PlayAudio3DWithVolume(std::string name, bool looping, Vec3 position, float volume )
+{
+	return ST<AudioManager>::Get()->PlaySound3D(util::GenHash(name), looping, position, AudioType::END, std::pair<float, float>{2.0f,50.0f},volume);
+}
+void Lua_StopAudio(uint32_t handle)
+{
+	ST<AudioManager>::Get()->StopSound(handle);
+}
+void Lua_FadeOutAudio(uint32_t handle, float duration)
+{
+	ST<AudioManager>::Get()->FadeoutAudio(handle, duration);
 }
 ecs::EntityHandle Lua_LoadPrefab(std::string name)
 {
@@ -325,6 +344,12 @@ bool Lua_NumberedDiceRoll(int sides)
 	if (sides <= 0)
 		return true;
 	return randomRange(0, sides)==0;
+}
+
+template <typename EventType>
+void Lua_SimpleQueueEventNextFrame()
+{
+	ST<EventsQueue>::Get()->AddEventForNextFrame(EventType{});
 }
 
 void RegisterCppStuffToLua(luabridge::Namespace baseTable)
@@ -593,7 +618,11 @@ void RegisterCppStuffToLua(luabridge::Namespace baseTable)
 
 		.beginNamespace("AudioManager")
 			.addFunction("PlaySound", Lua_PlayAudio)
+			.addFunction("StopSound", Lua_StopAudio)
+			.addFunction("FadeOutSound", Lua_FadeOutAudio)
 			.addFunction("PlaySound3D", Lua_PlayAudio3D)
+			.addFunction("PlaySoundWithVolume", Lua_PlayAudioWithVolume)
+			.addFunction("PlaySound3DWithVolume", Lua_PlayAudio3DWithVolume)
 		.endNamespace()
 
 		.beginNamespace("PrefabManager")
@@ -605,6 +634,13 @@ void RegisterCppStuffToLua(luabridge::Namespace baseTable)
 			.addFunction("RangeInt", Lua_RandomRangeInt)
 			.addFunction("DiceRoll", Lua_NumberedDiceRoll)
 			.addFunction("RangeVec3", Lua_RandomRangeVec)
+		.endNamespace()
+
+		.beginNamespace("PlayerActions")
+			.addFunction("GrabItem", Lua_SimpleQueueEventNextFrame<Events::GameActionGrabItem>)
+			.addFunction("ThrowItem", Lua_SimpleQueueEventNextFrame<Events::GameActionThrowItem>)
+			.addFunction("Attack", Lua_SimpleQueueEventNextFrame<Events::GameActionAttack>)
+			.addFunction("Dodge", Lua_SimpleQueueEventNextFrame<Events::GameActionDodge>)
 		.endNamespace()
 
 

@@ -23,11 +23,12 @@ namespace ResourceLimits
   static constexpr size_t MAX_MESHES = 20'000;       // 20K meshes
   static constexpr size_t MAX_MORPH_TARGET_VERTICES = MAX_VERTICES; // 1x multiplier for mobile
 #else
-  static constexpr size_t MAX_VERTICES = 10'000'000; // 10M vertices
-  static constexpr size_t MAX_INDICES = 30'000'000;  // 30M indices
-  static constexpr size_t MAX_MATERIALS = 50'000;    // 50K materials
-  static constexpr size_t MAX_TEXTURES = 10'000;     // 10K textures
-  static constexpr size_t MAX_MESHES = 100'000;      // 100K meshes
+  // lower the budget slightly.
+  static constexpr size_t MAX_VERTICES = 5'000'000; // 10M vertices
+  static constexpr size_t MAX_INDICES = 12'000'000;  // 30M indices
+  static constexpr size_t MAX_MATERIALS = 10'000;    // 50K materials
+  static constexpr size_t MAX_TEXTURES = 2'000;     // 10K textures
+  static constexpr size_t MAX_MESHES = 30'000;      // 100K meshes
   static constexpr size_t MAX_MORPH_TARGET_VERTICES = MAX_VERTICES * 4;
 #endif
 

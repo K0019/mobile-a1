@@ -29,6 +29,11 @@ consteval uint32_t fnv1a_32(const char* str)
 */
 namespace RenderResources
 {
+  // Fixed internal render resolution - avoids recompilation on window resize
+  constexpr uint32_t INTERNAL_WIDTH = 1920;
+  constexpr uint32_t INTERNAL_HEIGHT = 1080;
+  constexpr vk::Dimensions INTERNAL_RESOLUTION = {INTERNAL_WIDTH, INTERNAL_HEIGHT, 1};
+
   constexpr const char* SWAPCHAIN_IMAGE = "SwapchainImage";
   constexpr const char* SCENE_COLOR = "SceneColor";
   constexpr const char* SCENE_DEPTH = "SceneDepth";
@@ -137,6 +142,8 @@ struct ResourceProperties
   ResourceType type;
   bool persistent = false;
   static constexpr vk::Dimensions SWAPCHAIN_RELATIVE_DIMENSIONS = {0, 0};
+  // Fixed internal resolution - use this for scene rendering to avoid recompilation on resize
+  static constexpr vk::Dimensions INTERNAL_RESOLUTION_DIMENSIONS = RenderResources::INTERNAL_RESOLUTION;
 
   static ResourceProperties FromDesc(const vk::TextureDesc& textureDesc, bool isPersistent = false);
 
@@ -502,6 +509,15 @@ private:
   bool m_compilationDeferred = false; // Track deferred state
   uint32_t m_currentFrameIndex = 0;
   vk::Dimensions m_lastCompileDimensions = {0, 0};
+
+  // Blit pipeline for scaling fixed-resolution scene to swapchain
+  vk::Holder<vk::ShaderModuleHandle> m_blitVertShader;
+  vk::Holder<vk::ShaderModuleHandle> m_blitFragShader;
+  vk::Holder<vk::RenderPipelineHandle> m_blitPipeline;
+  vk::Holder<vk::SamplerHandle> m_blitSampler;
+  bool m_blitPipelineCreated = false;
+
+  void EnsureBlitPipelineCreated();
   // String interning - optimized with sorted vector for better cache locality
   std::deque<std::string> m_stringStorage;
   std::vector<std::pair<std::string_view, internal::NameID>> m_nameRegistry;

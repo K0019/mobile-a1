@@ -3,6 +3,8 @@ local opensDoor = false
 local enemySpawnDelay = 3.0
 local spawnIncoming = false
 function start(entity)
+    thisEntity = entity;
+
     local nameComp = entity:GetNameComponent()
 
     if(nameComp.name == "DoorTrigger_Open") then
@@ -15,7 +17,6 @@ function start(entity)
         renderComp:Remove() 
     end
 
-	thisEntity = entity;
 end
 
 function OnTriggerEnter(entity)

@@ -72,7 +72,7 @@ bool CharacterMovementComponent::Dodge(Vec2 vector)
 	currentDodgeCooldown = dodgeCooldown;
 
 	// Play Audio
-	ST<AudioManager>::Get()->PlaySound3D("dodge " + std::to_string(randomRange<int>(1, 3)), false, ecs::GetEntity(this)->GetTransform().GetWorldPosition());
+	ST<AudioManager>::Get()->PlaySound3D("dodge " + std::to_string(randomRange<int>(1, 3)), false, ecs::GetEntity(this)->GetTransform().GetWorldPosition(),AudioType::END,std::pair<float,float>{2.0f,50.0f}, 0.6f);
 
 	return true;
 }
@@ -141,7 +141,7 @@ void CharacterMovementComponent::GrabItem(ecs::CompHandle<GrabbableItemComponent
 	heldItem->GetComp<physics::PhysicsComp>()->SetFlag(physics::PHYSICS_COMP_FLAG::ENABLED, false);
 
 	// Play Audio
-	ST<AudioManager>::Get()->PlaySound3D("weapon pickup "+std::to_string(randomRange<int>(1,4)), false, ecs::GetEntity(this)->GetTransform().GetWorldPosition());
+	ST<AudioManager>::Get()->PlaySound3D("weapon pickup "+std::to_string(randomRange<int>(1,4)), false, ecs::GetEntity(this)->GetTransform().GetWorldPosition(), AudioType::END, std::pair<float, float>{2.0f, 50.0f}, 0.6f);
 }
 
 bool CharacterMovementComponent::Attack()
@@ -169,9 +169,6 @@ bool CharacterMovementComponent::Attack()
 	//	//audioSourceComp->Set
 	//}
 
-	// I shall perform a hackery
-	ST<AudioManager>::Get()->PlaySound3D("light attack #1 1", false, ecs::GetEntity(this)->GetTransform().GetWorldPosition());
-
 	ecs::EntityHandle thisEntity = ecs::GetEntity(this);
 
 	// Get the animation component
@@ -182,7 +179,14 @@ bool CharacterMovementComponent::Attack()
 	if (!animComp->GetAnimationClipA())
 		animComp->animHandleA = animations[ATTACK];
 
+	animComp->timeA = 0.0f;
 
+	auto grabbableComp = attackItem->GetComp<GrabbableItemComponent>();
+
+	std::string tmpName = grabbableComp->audioName + std::to_string(randomRange(grabbableComp->audioStartIndex, grabbableComp->audioEndIndex + 1));
+
+	//if (randomRange(0, 2) == 0)
+	ST<AudioManager>::Get()->PlaySound3D(tmpName, false, ecs::GetEntity(this)->GetTransform().GetWorldPosition());
 
 	ST<Scheduler>::Get()->Add(attackItem->GetComp<GrabbableItemComponent>()->attackDelay, [attackItem, thisEntity]() {
 		if (!ecs::IsEntityHandleValid(thisEntity))

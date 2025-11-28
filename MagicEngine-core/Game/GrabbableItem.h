@@ -51,6 +51,9 @@ public:
 	float damage;
 	Vec3 attackBox;
 	float attackDelay;
+	std::string audioName;
+	int audioStartIndex;
+	int audioEndIndex;
 
 	// Not serialized
 	bool isHeld;
@@ -84,6 +87,9 @@ property_begin(GrabbableItemComponent)
 	property_var(damage),
 	property_var(attackBox),
 	property_var(attackDelay),
+	property_var(audioName),
+	property_var(audioStartIndex),
+	property_var(audioEndIndex),
 }
 property_vend_h(GrabbableItemComponent)
 
