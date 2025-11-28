@@ -19,28 +19,18 @@ All rights reserved.
 
 #pragma once
 #include "ECS/IRegisteredComponent.h"
-#include "UI/RectTransform.h"
+#include "UI/IUIComponent.h"
+#include "Game/IGameComponentCallbacks.h"
 
-class IUIComponentBase : public virtual ecs::IComponentCallbacks
-{
-};
-
-template <typename T>
-class IUIComponent : public IUIComponentBase
+class BarComponent
+	: public IRegisteredComponent<BarComponent>
+	, public IUIComponent<BarComponent>
 {
 public:
+	void SetPercentageFilled(float percent);
+
 	void OnAttached() override;
+
+private:
+
 };
-
-template <typename T>
-void IUIComponent<T>::OnAttached()
-{
-	ecs::GetEntity(static_cast<T*>(this))->AddComp(RectTransformComponent{});
-}
-
-//class IUIComponentWithInput
-//	: public IUIComponent
-//{
-//public:
-//	void OnAttached() override;
-//};

@@ -245,7 +245,23 @@ X(ENABLED, "Enabled")
 	\return
 		true if there is a hit. False if not.
 	*//******************************************************************/
-	bool Raycast(const Vec3& origin, const Vec3& direction, RaycastHit& hitInfo, float maxDistance);
+	bool Raycast(const Vec3& origin, const Vec3& direction, RaycastHit& hitInfo, float maxDistance, EntityLayersMask mask = EntityLayersMask{});
+
+	/*****************************************************************//*!
+	\brief
+		Collect all the colliders that hit with the given ray.
+	\param origin
+		starting point of the ray
+	\param direction
+		direction of the ray.
+	\param allHitInfo
+		informations of the entity that hit the ray.
+	\param maxDistance
+		distance of the ray.
+	\return
+		true if there is a hit. False if not.
+	*//******************************************************************/
+	bool RaycastAll(const Vec3& origin, const Vec3& direction, std::vector<RaycastHit>& allHitInfo, float maxDistance, EntityLayersMask mask = EntityLayersMask{});
 } 
 property_begin(physics::PhysicsComp)
 {

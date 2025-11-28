@@ -33,12 +33,13 @@ All rights reserved.
 #include "Editor/Containers/GUICollection.h"
 #include "Engine/SceneManagement.h"
 #include "Scripting/ScriptComponent.h"
+#include "Engine/EntityEvents.h"
 
 HealthComponent::HealthType cheatState = 0;
 bool cheatActive = false; ///THis is so the healthbar colour wont keep updating
 
-HealthComponent::HealthComponent() :
-	maxHealth(defaultMax)
+HealthComponent::HealthComponent()
+	: maxHealth(defaultMax)
 	, currHealth(maxHealth)
 {
 }
@@ -71,6 +72,8 @@ void HealthComponent::AddHealth(HealthType amount)
 	if (currHealth > maxHealth)
 		currHealth = maxHealth;
 
+	ecs::GetEntity(this)->GetComp<EntityEventsComponent>()->BroadcastAll("OnHealthChanged", GetHealthFraction());
+
 	if (auto scriptComp{ ecs::GetEntity(this)->GetComp<ScriptComponent>() })
 		scriptComp->CallScriptFunction("OnHealed", amount);
 }
@@ -89,6 +92,8 @@ void HealthComponent::TakeDamage(HealthComponent::HealthType amount, Vec3 direct
 	currHealth -= amount;
 
 	auto thisEntity = ecs::GetEntity(this);
+	thisEntity->GetComp<EntityEventsComponent>()->BroadcastAll("OnHealthChanged", GetHealthFraction());
+
 	// We don't need to flash if the entity is already dead,
 	// or this health component is invulnerable.
 	if (IsDead())
@@ -143,6 +148,8 @@ void HealthComponent::SetHealth(HealthType newValue)
 
 	// Set and update values
 	currHealth = newValue;
+
+	ecs::GetEntity(this)->GetComp<EntityEventsComponent>()->BroadcastAll("OnHealthChanged", GetHealthFraction());
 }
 
 void HealthComponent::SetMaxHealth(HealthType newMaxAmount)
@@ -150,6 +157,8 @@ void HealthComponent::SetMaxHealth(HealthType newMaxAmount)
 	maxHealth = newMaxAmount;
 	if (currHealth > maxHealth)
 		currHealth = maxHealth;
+
+	ecs::GetEntity(this)->GetComp<EntityEventsComponent>()->BroadcastAll("OnHealthChanged", GetHealthFraction());
 }
 
 

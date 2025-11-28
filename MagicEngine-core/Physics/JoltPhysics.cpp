@@ -162,7 +162,19 @@ namespace physics {
 		return bound;
 	}
 
-	bool JoltPhysics::Raycast(const Vec3& origin, const Vec3& direction, RaycastHit& hitInfo, float maxDistance)
+	bool JoltPhysics::Raycast(const Vec3& origin, const Vec3& direction, RaycastHit& hitInfo, float maxDistance, EntityLayersMask mask)
+	{
+		std::vector<RaycastHit> allHitInfo{};
+		if (RaycastAll(origin, direction, allHitInfo, maxDistance, mask))
+		{
+			hitInfo = allHitInfo[0];
+			return true;
+		}
+
+		return false;
+	}
+
+	bool JoltPhysics::RaycastAll(const Vec3& origin, const Vec3& direction, std::vector<RaycastHit>& allHitInfo, float maxDistance, EntityLayersMask mask)
 	{
 		//Create the ray.
 		JPH::Vec3 joltOrigin{ origin.x, origin.y, origin.z };
@@ -171,29 +183,49 @@ namespace physics {
 		joltDirection *= maxDistance;
 		JPH::RRayCast ray{ joltOrigin, joltDirection };
 
-		//Jolt's hit result
-		JPH::RayCastResult result{};
+		//Set the settings of the raycast.
+		JPH::RayCastSettings setting{};
+		setting.mBackFaceModeTriangles = JPH::EBackFaceMode::IgnoreBackFaces;
+		setting.mTreatConvexAsSolid = true;
 
-		//Cast
-		if (physicsSystem.GetNarrowPhaseQuery().CastRay(ray, result))
+		//Collector for the objects that hit the ray.
+		JPH::AllHitCollisionCollector<JPH::CastRayCollector> collector{};
+
+		physicsSystem.GetNarrowPhaseQuery().CastRay(ray, setting, collector);
+		if (collector.mHits.empty())
+			return false;
+
+		allHitInfo.reserve(collector.mHits.size());
+		for (const JPH::RayCastResult& result : collector.mHits)
 		{
+			RaycastHit hitInfo{};
 			JPH::Vec3 joltPoint{ ray.GetPointOnRay(result.GetEarlyOutFraction()) };
 			hitInfo.point = Vec3{ joltPoint.GetX(), joltPoint.GetY(), joltPoint.GetZ() };
 			hitInfo.distance = maxDistance * result.GetEarlyOutFraction();
 			hitInfo.entityHit = ecs::GetEntity(bodyInterface.GetUserData(result.mBodyID));
+
+			//If the entity doesn't have the layer inside the mask, don't add it to the hit list.
+			if (auto layerComp{ hitInfo.entityHit->GetComp<EntityLayerComponent>() })
+			{
+				if (!mask.TestMaskAll() && !mask.TestMask(layerComp->GetLayer()))
+					continue;
+			}
+			else
+				continue;
 
 			JPH::BodyLockRead lock{ physicsSystem.GetBodyLockInterface(), result.mBodyID };
 			if (lock.Succeeded())
 			{
 				JPH::Vec3 joltNormal{ lock.GetBody().GetWorldSpaceSurfaceNormal(result.mSubShapeID2, joltPoint) };
 				hitInfo.normal = Vec3{ joltNormal.GetX(), joltNormal.GetY(), joltNormal.GetZ() };
-				return true;
+				allHitInfo.push_back(hitInfo);
 			}
 			else
 				CONSOLE_LOG(LEVEL_ERROR) << "Unable to lock the body to get the normal.";
 		}
-
-		return false;
+		if (allHitInfo.empty())
+			return false;
+		return true;
 	}
 
 	TransformValues::TransformValues()
