@@ -413,7 +413,8 @@ void SceneRenderFeature::SetupPasses(internal::RenderPassBuilder& passBuilder)
             vk::TextureDesc{
                 .type = vk::TextureType::Tex2D,
                 .format = vk::Format::R_UI32,
-                .dimensions = ResourceProperties::SWAPCHAIN_RELATIVE_DIMENSIONS,
+                // Use fixed internal resolution to avoid recompilation on window resize
+                .dimensions = ResourceProperties::INTERNAL_RESOLUTION_DIMENSIONS,
                 .usage = vk::TextureUsageBits_Attachment | vk::TextureUsageBits_Sampled
             })
         .UseResource("ObjectTransforms", AccessType::Read)

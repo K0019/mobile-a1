@@ -65,10 +65,11 @@ void LinearColorSystem::RegisterLinearColorResources(RenderGraph& renderGraph)
   ensureInitialized();
   if (m_requiresLinearWorkflow)
   {
-    // Linear workflow: Use HDR intermediate format
+    // Linear workflow: Use HDR intermediate format at fixed internal resolution
+    // This avoids recompilation on window resize - only swapchain resources change
     vk::TextureDesc hdrSceneColorDesc{
       .type = vk::TextureType::Tex2D, .format = LinearColor::HDR_SCENE_FORMAT,
-      .dimensions = ResourceProperties::SWAPCHAIN_RELATIVE_DIMENSIONS, .usage = LinearColor::HDR_SCENE_USAGE,
+      .dimensions = ResourceProperties::INTERNAL_RESOLUTION_DIMENSIONS, .usage = LinearColor::HDR_SCENE_USAGE,
       .debugName = "HDR Scene Color"
     };
     // Register HDR scene color - this replaces the basic SCENE_COLOR
@@ -76,10 +77,10 @@ void LinearColorSystem::RegisterLinearColorResources(RenderGraph& renderGraph)
   }
   else
   {
-    // Direct rendering: Use swapchain-compatible format
+    // Direct rendering: Use swapchain-compatible format at fixed internal resolution
     vk::TextureDesc directSceneColorDesc{
       .type = vk::TextureType::Tex2D, .format = m_context.getSwapchainFormat(),
-      .dimensions = ResourceProperties::SWAPCHAIN_RELATIVE_DIMENSIONS,
+      .dimensions = ResourceProperties::INTERNAL_RESOLUTION_DIMENSIONS,
       .usage = vk::TextureUsageBits_Attachment | vk::TextureUsageBits_Sampled, .debugName = "Direct Scene Color"
     };
     renderGraph.RegisterTransientResource(RenderResources::SCENE_COLOR, directSceneColorDesc);

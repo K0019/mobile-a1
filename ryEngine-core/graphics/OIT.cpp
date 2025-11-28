@@ -9,19 +9,18 @@ OITSystem::OITSystem(vk::IContext& context)
 
 void OITSystem::SetupPasses(internal::RenderPassBuilder& passBuilder)
 {
-  // Get current swapchain dimensions for resource sizing
-  vk::TextureHandle swapchainTexture = m_context.getCurrentSwapchainTexture();
-  vk::Dimensions screenDims = m_context.getDimensions(swapchainTexture);
-  // Calculate fragment buffer size based on screen dimensions
+  // Use fixed internal resolution for resource sizing to avoid recompilation on window resize
+  vk::Dimensions screenDims = RenderResources::INTERNAL_RESOLUTION;
+  // Calculate fragment buffer size based on internal resolution
   uint32_t maxFragments = screenDims.width * screenDims.height * m_settings.fragmentsPerPixel;
   vk::BufferDesc fragmentBufferDesc{
     .usage = vk::BufferUsageBits_Storage, .storage = vk::StorageType::Device,
     .size = sizeof(OIT::TransparentFragment) * maxFragments, .debugName = "Buffer: transparency lists"
   };
-  // Head texture
+  // Head texture - use fixed internal resolution to avoid recompilation on window resize
   vk::TextureDesc headTextureDesc{
     .type = vk::TextureType::Tex2D, .format = vk::Format::R_UI32,
-    .dimensions = ResourceProperties::SWAPCHAIN_RELATIVE_DIMENSIONS, .usage = vk::TextureUsageBits_Storage,
+    .dimensions = ResourceProperties::INTERNAL_RESOLUTION_DIMENSIONS, .usage = vk::TextureUsageBits_Storage,
     .debugName = "oitHeads"
   };
   // Atomic counter
