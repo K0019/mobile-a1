@@ -24,6 +24,8 @@ All rights reserved.
 #pragma once
 #include "ECS/EntityUID.h"
 #include "Editor/IEditorComponent.h"
+#include "Engine/Resources/ResourcesHeader.h"
+#include "Engine/Resources/Types/ResourceTypesGraphics.h"
 
 /*****************************************************************//*!
 \class GameCameraControllerComponent
@@ -49,6 +51,11 @@ public:
 	Vec3 offsetPosition = Vec3(0.5f, 1.2f, 0);
 
 	float cameraSensitivity;
+
+	// Serialized
+	UserResourceHandle<ResourceMaterial> translucentMaterial;
+
+	std::vector<ecs::EntityHandle> currentColliders;
 
 
 	/*****************************************************************//*!
