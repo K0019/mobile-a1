@@ -34,6 +34,9 @@
 #include "UI/HealthBarComponent.h"
 #include "Engine/Platform/Android/AndroidUIDeleter.h"
 #include "Engine/Platform/Desktop/DesktopUIDeleter.h"
+#include "Game/FlashComponent.h"
+#include "Game/MaterialSwapper.h"
+#include "UI/RectTransform.h"
 
 void RegisterShit()
 {
@@ -70,4 +73,7 @@ void RegisterShit()
 	IRegisteredComponent<HealthBarComponent>::RegisterComponent();
 	IRegisteredComponent<AndroidUIDeleterComp>::RegisterComponent();
 	IRegisteredComponent<DesktopUIDeleterComp>::RegisterComponent();
+	IRegisteredComponent<FlashComponent>::RegisterComponent();
+	IRegisteredComponent<MaterialSwapperComponent>::RegisterComponent();
+	IRegisteredComponent<RectTransformComponent>::RegisterComponent();
 }
