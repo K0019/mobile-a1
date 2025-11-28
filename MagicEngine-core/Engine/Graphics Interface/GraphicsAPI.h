@@ -48,6 +48,9 @@ public:
     // Graphics scene interface - for camera uploads
     void SetViewCamera(const Camera& camera);
 
+    // Grid control
+    void SetGridEnabled(bool enabled);
+
 public:
     FrameData& INTERNAL_GetFrameData();
     bool RequestObjPick(int mouseX, int mouseY);
@@ -60,6 +63,8 @@ private:
 #endif
     void InitFont(const std::string& fontfile);
     void UploadToPipeline(FrameData* outFrameData);
+
+    static void OnTogglePlayMode();
 
 public:
     // For compatibility with whatever old graphics interfaces are still here
