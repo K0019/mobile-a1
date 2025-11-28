@@ -1,0 +1,43 @@
+{
+    "name": "N00_010_01_Onepiece_00_CLOTH_02 (Instance)",
+    "alphaMode": "Opaque",
+    "alphaCutoff": 0.5,
+    "metallicFactor": 0.0,
+    "roughnessFactor": 0.5,
+    "normalScale": 1.0,
+    "occlusionStrength": 1.0,
+    "baseColorFactor": [
+        1.0,
+        1.0,
+        1.0,
+        1.0
+    ],
+    "emissiveFactor": [
+        1.0,
+        1.0,
+        1.0
+    ],
+    "textures": [
+        {
+            "key": "baseColor",
+            "value": "compiledassets\\models\\GLB\\enemy_male_animated\\_16.ktx2"
+        },
+        {
+            "key": "metallicRoughness",
+            "value": ""
+        },
+        {
+            "key": "normal",
+            "value": "compiledassets\\models\\GLB\\enemy_male_animated\\Shader_NoneNormal.ktx2"
+        },
+        {
+            "key": "emissive",
+            "value": "compiledassets\\models\\GLB\\enemy_male_animated\\Shader_NoneBlack.ktx2"
+        },
+        {
+            "key": "occlusion",
+            "value": ""
+        }
+    ],
+    "flags": 4
+}
