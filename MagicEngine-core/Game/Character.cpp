@@ -179,6 +179,7 @@ bool CharacterMovementComponent::Attack()
 	if (!animComp->GetAnimationClipA())
 		animComp->animHandleA = animations[ATTACK];
 
+	animComp->timeA = 0.0f;
 
 	auto grabbableComp = attackItem->GetComp<GrabbableItemComponent>();
 
