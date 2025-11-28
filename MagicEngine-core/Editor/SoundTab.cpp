@@ -141,6 +141,16 @@ namespace editor {
             }
         }
 
+        // Test audio fadeout
+        if (ImGui::Checkbox("Fade", &queueFade))
+        {
+            if (queueFade)
+            {
+                ST<AudioManager>::Get()->FadeoutAudio(currentPreviewSound, 2.0f); // 2 second fadeout
+                queueFade = !queueFade;
+			}
+        }
+
         ImGui::Text("Sound Position (Assumes listener is at origin)");
         if (ImGui::DragFloat3("Position", (float*)&pos, 0.1f))
         {
