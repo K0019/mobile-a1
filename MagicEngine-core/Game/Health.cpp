@@ -87,11 +87,17 @@ void HealthComponent::TakeDamage(HealthComponent::HealthType amount, Vec3 direct
 	if (isInvincible)
 		return;
 
+	auto thisEntity = ecs::GetEntity(this);
+
+	//Parry
+	if (auto playerComp{ thisEntity->GetComp<PlayerMovementComponent>() })
+		if (playerComp->IsParrying())
+			return;
+
 	if (currHealth > maxHealth)
 		currHealth = maxHealth;
 	currHealth -= amount;
 
-	auto thisEntity = ecs::GetEntity(this);
 	thisEntity->GetComp<EntityEventsComponent>()->BroadcastAll("OnHealthChanged", GetHealthFraction());
 
 	// We don't need to flash if the entity is already dead,

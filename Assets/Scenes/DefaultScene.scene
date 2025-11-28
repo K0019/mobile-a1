@@ -69,9 +69,9 @@
         {
             "parentIndex": -1,
             "position": {
-                "x": -4.2790093421936035,
+                "x": -1.676501750946045,
                 "y": 0.9998903870582581,
-                "z": -24.918537139892578
+                "z": -3.035811185836792
             },
             "rotation": {
                 "x": 0.0,
@@ -100,6 +100,10 @@
                 },
                 "2263953158229251792": {
                     "_active": true,
+                    "grabDistance": 10.0,
+                    "parryTime": 1.0,
+                    "ultimateAttackDamage": 1000.0,
+                    "parryDelution": 5.0,
                     "cameraReference": {
                         "entityUid": 51380178370257494
                     },
@@ -232,6 +236,14 @@
                     "crossfade": true,
                     "blend": 0.0,
                     "speed": 1.0
+                },
+                "16735904824485644755": {
+                    "_active": true,
+                    "maxDelusion": 100.0,
+                    "gainRate": 1.0,
+                    "lossRate": 1.0,
+                    "ultValue": 90.0,
+                    "currDelusion": 90.0
                 },
                 "17579205194823809952": {
                     "_active": true,

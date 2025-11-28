@@ -33,6 +33,11 @@ All rights reserved.
 
 void GrabbableItemComponent::Attack(Vec3 origin, Vec3 direction)
 {
+	//Add the damage if the attack is an ultimate attack.
+	if (auto playerComp{ ecs::GetEntity(this)->GetComp<PlayerMovementComponent>() })
+		if (playerComp->isUltimateAttack)
+			damage += playerComp->ultimateAttackDamage;
+
 	std::vector<physics::BoxColliderComp*> colliders;
 	physics::OverlapBox(colliders, origin, attackBox, direction);
 
