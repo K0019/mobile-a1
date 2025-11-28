@@ -144,7 +144,7 @@ void CustomViewport::DrawWindow()
 
 	// Left click to pick objects (when not dragging camera with right mouse)
 	static bool wasLeftMouseDown = false;
-	bool isLeftMouseDown = Input::GetMouseButton(MouseButton::Left);
+	bool isLeftMouseDown = Input::GetMouseButtonUp(MouseButton::Left);
 	bool leftClickJustPressed = isLeftMouseDown && !wasLeftMouseDown;
 	wasLeftMouseDown = isLeftMouseDown;
 
