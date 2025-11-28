@@ -124,6 +124,8 @@ void ScriptComponent::OnAttached()
 
 void ScriptComponent::OnDetached()
 {
+	CallScriptFunction("onDestroy", ecs::GetEntity(this));
+
 	if (auto eventsComp{ ecs::GetEntity(this)->GetComp<EntityEventsComponent>() })
 		eventsComp->Unsubscribe("CallScriptFunc", this, &ScriptComponent::CallScriptFunctionPlain);
 }

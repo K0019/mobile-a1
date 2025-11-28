@@ -575,6 +575,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/light attack icon.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 90707510464671513,
+                            "name": "light attack icon0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/models/glb/aji/player_idle_mixamo/_09.ktx2",
             "resources": [
                 {
@@ -6273,6 +6287,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/dodge icon.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 82355620140082399,
+                            "name": "dodge icon0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/textures/dugout14709142800244381938.ktx2",
             "resources": [
                 {
@@ -8059,6 +8087,20 @@
                         {
                             "hash": 2504851316354755187,
                             "name": "n00_000_hair_00_hair_03 (instance)0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/interact icon.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 85753111069911585,
+                            "name": "interact icon0"
                         }
                     ]
                 }
