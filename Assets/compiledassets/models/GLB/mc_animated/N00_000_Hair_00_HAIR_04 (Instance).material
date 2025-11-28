@@ -20,7 +20,7 @@
     "textures": [
         {
             "key": "baseColor",
-            "value": "compiledassets\\models\\GLB\\mc_animated\\_25.ktx2"
+            "value": "CompiledAssets\\models\\GLB\\mc_animated\\_25.ktx2"
         },
         {
             "key": "metallicRoughness",
@@ -28,11 +28,11 @@
         },
         {
             "key": "normal",
-            "value": "compiledassets\\models\\GLB\\mc_animated\\N00_000_Hair_00_nml_04.ktx2"
+            "value": "CompiledAssets\\models\\GLB\\mc_animated\\N00_000_Hair_00_nml_04.ktx2"
         },
         {
             "key": "emissive",
-            "value": "compiledassets\\models\\GLB\\mc_animated\\_26.ktx2"
+            "value": "CompiledAssets\\models\\GLB\\mc_animated\\_26.ktx2"
         },
         {
             "key": "occlusion",

@@ -93,7 +93,7 @@ void CharacterMovementComponent::RotateTowards(Vec2 vector)
 
 	Vec3 currentRotation = characterTransform.GetWorldRotation();
 
-	float targetAngle = math::ToDegrees(atan2(-vector.y, vector.x));
+	float targetAngle = math::ToDegrees(atan2(-vector.y, vector.x))+90;
 	float newAngle = math::MoveTowardsAngle(currentRotation.y, targetAngle, rotateSpeed * GameTime::Dt());
 	currentRotation.y = newAngle;
 
