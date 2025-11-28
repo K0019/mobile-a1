@@ -905,7 +905,7 @@ namespace editor {
 
             if (ImGui::MenuItem("Unload Scene", nullptr, false, ST<SceneManager>::Get()->CheckCanUnloadScene(sceneIndex)))
             {
-                ST<SceneManager>::Get()->UnloadScene(sceneIndex);
+                ST<Scheduler>::Get()->Add([sceneIndex]() -> void { ST<SceneManager>::Get()->UnloadScene(sceneIndex); });
                 wasSceneRemoved = true;
             }
 

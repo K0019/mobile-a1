@@ -39,6 +39,10 @@ public:
             onLowMemory();
         }
     }
+
+    void RequestExit() {
+        m_shouldQuit = true;
+    }
     
     std::function<void(AppState, AppState)> onStateChange;
     std::function<void()> onLowMemory;
