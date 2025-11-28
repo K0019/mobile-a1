@@ -569,9 +569,10 @@ namespace ecs {
 			if (componentCallbacksQueue.empty())
 				return;
 
-			for (auto& callbackPair : componentCallbacksQueue)
+			// Buffer component callbacks in case components do stuff that queue more callbacks (e.g. AddComp).
+			decltype(componentCallbacksQueue) tempQueue{ std::move(componentCallbacksQueue) };
+			for (auto& callbackPair : tempQueue)
 				callbackPair.first(callbackPair.second);
-			componentCallbacksQueue.clear();
 		}
 
 		void CompChangesBuffer::ClearAndReset()
