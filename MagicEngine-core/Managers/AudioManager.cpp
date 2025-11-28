@@ -356,6 +356,20 @@ void AudioManager::ChannelManager::ClearAllChannels()
 	channelMap.clear();
 }
 
+void AudioManager::FadeoutAudio(uint32_t handle, float seconds)
+{
+	unsigned long long dspclock = 0;
+	int rate;
+
+	auto* channel = channelManager.GetChannel(handle);
+	channel->getSystemObject(&system);
+	system->getSoftwareFormat(&rate, nullptr, nullptr);
+	channel->getDSPClock(nullptr, &dspclock);
+	channel->addFadePoint(dspclock, 1.0f);  // Current volume
+	channel->addFadePoint(dspclock + (rate * 5), 0.0f);  // 0 volume after 5 seconds
+	channel->setDelay(0, dspclock + (rate * 5), true);  // Stop channel after fade
+}
+
 
 #ifdef __ANDROID__
 // FMOD's FileOpen Callback

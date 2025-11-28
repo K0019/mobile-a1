@@ -85,6 +85,7 @@ public:
 	void SetChannel3D(uint32_t handle, bool is3D);
 	bool IsChannel3D(uint32_t handle) const;
 	void SetChannel3DAttributes(uint32_t handle, const Vec3& pos, const Vec3& vel = Vec3());
+	void FadeoutAudio(uint32_t handle, float seconds);
 
 	// FMOD Studio Call
 	// void CreateEvent(const std::string& name); // tbc: fmod studio

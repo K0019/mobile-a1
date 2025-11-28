@@ -17,6 +17,7 @@ namespace editor {
 		uint32_t currentPreviewSound = 0; /**< Current preview sound channel */
 		size_t lastPreviewAudioHash; /**< Current preview audio information */
 		bool use3DMode = false;
+		bool queueFade = false;
 	};
 
 }
