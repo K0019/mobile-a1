@@ -1,6 +1,6 @@
 /******************************************************************************/
 /*!
-\file   EventsQueue.h
+\file   EventsQueue.cpp
 \par    Project: Kuro Mahou
 \par    Course: CSD3401
 \date   10/19/2025
@@ -17,30 +17,19 @@ All rights reserved.
 */
 /******************************************************************************/
 
-#pragma once
-#include "ECS/IRegisteredComponent.h"
-#include "UI/RectTransform.h"
+#include "UI/BarComponent.h"
 
-class IUIComponentBase : public virtual ecs::IComponentCallbacks
+void BarComponent::OnAttached()
 {
-};
-
-template <typename T>
-class IUIComponent : public IUIComponentBase
-{
-public:
-	void OnAttached() override;
-};
-
-template <typename T>
-void IUIComponent<T>::OnAttached()
-{
-	ecs::GetEntity(static_cast<T*>(this))->AddComp(RectTransformComponent{});
+	IUIComponent::OnAttached();
+	SetPercentageFilled(1.0f);
 }
 
-//class IUIComponentWithInput
-//	: public IUIComponent
-//{
-//public:
-//	void OnAttached() override;
-//};
+void BarComponent::SetPercentageFilled(float percent)
+{
+	percent = std::clamp(percent, 0.0f, 1.0f);
+
+	ecs::CompHandle<RectTransformComponent> rectTransform{ ecs::GetEntity(this)->GetComp<RectTransformComponent>() };
+	rectTransform->SetLocalPosition(Vec2{ (percent - 1.0f) * 0.5f, 0.0f });
+	rectTransform->SetLocalScale(Vec2{ percent, 1.0f });
+}

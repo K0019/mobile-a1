@@ -30,6 +30,8 @@
 #include "UI/SpriteComponent.h"
 #include "UI/ButtonComponent.h"
 #include "UI/TextComponent.h"
+#include "UI/BarComponent.h"
+#include "UI/HealthBarComponent.h"
 
 void RegisterShit()
 {
@@ -62,4 +64,6 @@ void RegisterShit()
 	IRegisteredComponent<SpriteComponent>::RegisterComponent();
 	IRegisteredComponent<ButtonComponent>::RegisterComponent();
 	IRegisteredComponent<TextComponent>::RegisterComponent();
+	IRegisteredComponent<BarComponent>::RegisterComponent();
+	IRegisteredComponent<HealthBarComponent>::RegisterComponent();
 }

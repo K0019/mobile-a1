@@ -78,17 +78,18 @@ namespace ecs {
 	template<typename T>
 	CompHandle<T> Entity::GetCompInParents(int maxIterations)
 	{
-		if (maxIterations <= 0)
-			return nullptr;
-
+		CompHandle<T> comp{};
 		Transform* parentTransform{ GetTransform().GetParent() };
-		if (!parentTransform)
-			return nullptr;
+		while (parentTransform && maxIterations)
+		{
+			comp = parentTransform->GetEntity()->GetComp<T>();
+			if (comp)
+				return comp;
 
-		if (CompHandle<T> comp{ parentTransform->GetEntity()->GetComp<T>() })
-			return comp;
-		else
-			return parentTransform->GetEntity()->GetCompInParents<T>(maxIterations - 1);
+			parentTransform = parentTransform->GetParent();
+			--maxIterations;
+		}
+		return nullptr;
 	}
 
 	template<typename T>
