@@ -338,4 +338,14 @@ namespace physics {
 
 		return result;
 	}
+
+	bool Raycast(const Vec3& origin, const Vec3& direction, RaycastHit& hitInfo, float maxDistance, EntityLayersMask mask)
+	{
+		return ST<JoltPhysics>::Get()->Raycast(origin, direction, hitInfo, maxDistance, mask);
+	}
+
+	bool RaycastAll(const Vec3& origin, const Vec3& direction, std::vector<RaycastHit>& allHitInfo, float maxDistance, EntityLayersMask mask)
+	{
+		return ST<JoltPhysics>::Get()->RaycastAll(origin, direction, allHitInfo, maxDistance, mask);
+	}
 }
