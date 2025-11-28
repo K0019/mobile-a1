@@ -869,11 +869,12 @@ void RenderGraph::Compile()
                        m_gpu_buffers.GetMorphVertexBaseBufferDesc());
   ImportExternalBuffer(RenderResources::MORPH_VERTEX_COUNT_BUFFER, m_gpu_buffers.GetMorphVertexCountBuffer(),
                        m_gpu_buffers.GetMorphVertexCountBufferDesc());
-  // Register standard render targets
+  // Register standard render targets at fixed internal resolution
+  // This avoids recompilation on window resize - only swapchain resources change
   linearColorSystem.RegisterLinearColorResources(*this);
   RegisterTransientResource(RenderResources::SCENE_DEPTH, vk::TextureDesc{
                               .type = vk::TextureType::Tex2D, .format = vk::Format::Z_F32,
-                              .dimensions = ResourceProperties::SWAPCHAIN_RELATIVE_DIMENSIONS,
+                              .dimensions = ResourceProperties::INTERNAL_RESOLUTION_DIMENSIONS,
                               .usage = vk::TextureUsageBits_Attachment
                             });
   for (IRenderFeature* feature : m_features)
@@ -905,7 +906,9 @@ void RenderGraph::Compile()
       {InternName(RenderResources::SCENE_COLOR), AccessType::Read},
       {InternName(RenderResources::SWAPCHAIN_IMAGE), AccessType::Write}
     },
-    .priority = internal::RenderPassBuilder::PassPriority::Present, .featureOwner = nullptr
+    // Priority 550: After PostProcess (500) but before UI (600)
+    // This ensures the scene is blitted to swapchain before ImGui renders on top
+    .priority = static_cast<internal::RenderPassBuilder::PassPriority>(550), .featureOwner = nullptr
   };
   ExecuteLambda finalBlitLambda = [this](internal::ExecutionContext& ctx)
   {
@@ -1092,20 +1095,117 @@ void RenderGraph::RegisterPass(PassExecutionData&& execData, PassMetadata&& meta
   m_passMetadata.push_back(std::move(metadata));
 }
 
+// Blit shader for scaling fixed-resolution scene to swapchain
+static const char* kBlitVertexShader = R"(
+layout (location=0) out vec2 uv;
+
+void main() {
+  uv = vec2((gl_VertexIndex << 1) & 2, gl_VertexIndex & 2);
+  gl_Position = vec4(uv * vec2(2, -2) + vec2(-1, 1), 0.0, 1.0);
+}
+)";
+
+static const char* kBlitFragmentShader = R"(
+layout(location = 0) in vec2 uv;
+layout(location = 0) out vec4 outColor;
+
+layout(push_constant) uniform BlitData {
+    uint sourceTextureIndex;
+    uint samplerIndex;
+} pc;
+
+void main() {
+    outColor = texture(nonuniformEXT(sampler2D(kTextures2D[pc.sourceTextureIndex], kSamplers[pc.samplerIndex])), uv);
+}
+)";
+
+void RenderGraph::EnsureBlitPipelineCreated()
+{
+  if (m_blitPipelineCreated) return;
+
+  m_blitVertShader = m_vkContext.createShaderModule({kBlitVertexShader, vk::ShaderStage::Vert, "Blit Vertex Shader"});
+  m_blitFragShader = m_vkContext.createShaderModule({kBlitFragmentShader, vk::ShaderStage::Frag, "Blit Fragment Shader"});
+  m_blitSampler = m_vkContext.createSampler({
+    .minFilter = vk::SamplerFilter::Linear,
+    .magFilter = vk::SamplerFilter::Linear,
+    .wrapU = vk::SamplerWrap::Clamp,
+    .wrapV = vk::SamplerWrap::Clamp,
+    .wrapW = vk::SamplerWrap::Clamp,
+    .debugName = "Blit Sampler"
+  });
+
+  m_blitPipeline = m_vkContext.createRenderPipeline({
+    .smVert = m_blitVertShader,
+    .smFrag = m_blitFragShader,
+    .color = {{.format = m_vkContext.getSwapchainFormat()}},
+    .debugName = "Final Blit Pipeline"
+  }, nullptr);
+
+  m_blitPipelineCreated = true;
+}
+
 void RenderGraph::ExecuteFinalBlit(const internal::ExecutionContext& ctx)
 {
   vk::TextureHandle sceneColor = ctx.GetTexture(RenderResources::SCENE_COLOR);
   vk::TextureHandle swapchainImage = ctx.GetTexture(RenderResources::SWAPCHAIN_IMAGE);
   if (!sceneColor.valid() || !swapchainImage.valid()) return;
+
   auto& cmd = ctx.GetvkCommandBuffer();
   vk::Dimensions sceneDims = m_vkContext.getDimensions(sceneColor);
   vk::Dimensions swapchainDims = m_vkContext.getDimensions(swapchainImage);
-  vk::Dimensions copyExtent = {
-    .width = std::min(sceneDims.width, swapchainDims.width), .height = std::min(sceneDims.height, swapchainDims.height),
-    .depth = 1
+
+  // If dimensions match exactly, use fast copy path
+  if (sceneDims.width == swapchainDims.width && sceneDims.height == swapchainDims.height)
+  {
+    cmd.cmdCopyImage(sceneColor, swapchainImage, sceneDims, vk::Offset3D{0, 0, 0}, vk::Offset3D{0, 0, 0},
+                     vk::TextureLayers{0, 0, 1}, vk::TextureLayers{0, 0, 1});
+    return;
+  }
+
+  // Use shader-based blit to scale from fixed internal resolution to swapchain size
+  this->EnsureBlitPipelineCreated();
+
+  // Begin rendering to swapchain
+  vk::RenderPass renderPassInfo{};
+  renderPassInfo.color[0] = {
+    .loadOp = vk::LoadOp::DontCare,
+    .storeOp = vk::StoreOp::Store
   };
-  cmd.cmdCopyImage(sceneColor, swapchainImage, copyExtent, vk::Offset3D{0, 0, 0}, vk::Offset3D{0, 0, 0},
-                   vk::TextureLayers{0, 0, 1}, vk::TextureLayers{0, 0, 1});
+
+  vk::Framebuffer framebuffer{};
+  framebuffer.color[0] = {.texture = swapchainImage};
+
+  vk::Dependencies deps{};
+  deps.textures[0] = sceneColor;
+
+  cmd.cmdBeginRendering(renderPassInfo, framebuffer, deps);
+
+  cmd.cmdBindRenderPipeline(m_blitPipeline);
+  cmd.cmdBindViewport({
+    .x = 0.0f,
+    .y = 0.0f,
+    .width = static_cast<float>(swapchainDims.width),
+    .height = static_cast<float>(swapchainDims.height)
+  });
+  cmd.cmdBindScissorRect({
+    .x = 0,
+    .y = 0,
+    .width = swapchainDims.width,
+    .height = swapchainDims.height
+  });
+
+  struct BlitPushConstants {
+    uint32_t sourceTextureIndex;
+    uint32_t samplerIndex;
+  } pc = {
+    .sourceTextureIndex = sceneColor.index(),
+    .samplerIndex = m_blitSampler.index()
+  };
+  cmd.cmdPushConstants(pc);
+  cmd.cmdBindDepthState({.compareOp = vk::CompareOp::Always, .isDepthWriteEnabled = false});
+  cmd.cmdDraw(3);
+
+  cmd.cmdEndRendering();
 }
 
 ResourceHandle RenderGraph::GetResolvedHandle(internal::NameID id) const
@@ -1274,19 +1374,10 @@ void RenderGraph::Execute(vk::ICommandBuffer& vkCommandBuffer, const FrameData& 
       return;
     }
   }
-  // Check for swapchain resize
-  if (m_isCompiled && m_vkContext.hasSwapchain())
-  {
-    vk::TextureHandle currentSwapchain = m_vkContext.getCurrentSwapchainTexture();
-    if (currentSwapchain.valid())
-    {
-      vk::Dimensions currentDims = m_vkContext.getDimensions(currentSwapchain);
-      if (currentDims.width != m_lastCompileDimensions.width || currentDims.height != m_lastCompileDimensions.height)
-      {
-        Invalidate();
-      }
-    }
-  }
+  // NOTE: We no longer invalidate on swapchain resize because:
+  // - Internal render resolution is fixed at INTERNAL_RESOLUTION (1920x1080)
+  // - Only the final blit pass scales to swapchain size
+  // - This avoids transient buffer reallocation issues on resize
   // Early exit if can't compile
   if (!canCompile())
   {

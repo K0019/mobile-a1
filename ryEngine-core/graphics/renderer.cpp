@@ -121,9 +121,10 @@ void Renderer::render(FrameData& frameData)
   {
     return; // Swapchain not ready
   }
-  auto dims = m_vkContext->getDimensions(currentTexture);
-  m_frameResources[m_currentFrame].frameData.screenWidth = dims.width;
-  m_frameResources[m_currentFrame].frameData.screenHeight = dims.height;
+  // Use fixed internal resolution for scene rendering to avoid recompilation on window resize
+  // The final blit pass will scale from internal resolution to swapchain size
+  m_frameResources[m_currentFrame].frameData.screenWidth = RenderResources::INTERNAL_WIDTH;
+  m_frameResources[m_currentFrame].frameData.screenHeight = RenderResources::INTERNAL_HEIGHT;
   // Execute render graph
   vk::ICommandBuffer& cmdBuffer = m_vkContext->acquireCommandBuffer();
   m_renderGraph->Execute(cmdBuffer, m_frameResources[m_currentFrame].frameData);

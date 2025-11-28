@@ -137,7 +137,7 @@ void DelusionComponent::UpdateDelusionTier()
         // Health and speed adjustments for DT_F
         if (ecs::CompHandle<HealthComponent> healthComp{ ecs::GetEntity(this)->GetComp<HealthComponent>() })
         {
-            healthComp->SetMaxHealth(100);
+            healthComp->SetMaxHealth(30);
         }
 
         if (ecs::CompHandle<CharacterMovementComponent> characterComp{ ecs::GetEntity(this)->GetComp<CharacterMovementComponent>() })
@@ -155,7 +155,7 @@ void DelusionComponent::UpdateDelusionTier()
         // Health and speed adjustments for DT_D
         if (ecs::CompHandle<HealthComponent> healthComp{ ecs::GetEntity(this)->GetComp<HealthComponent>() })
         {
-            healthComp->SetMaxHealth(80);
+            healthComp->SetMaxHealth(50);
         }
 
         if (ecs::CompHandle<CharacterMovementComponent> characterComp{ ecs::GetEntity(this)->GetComp<CharacterMovementComponent>() })
@@ -193,7 +193,7 @@ void DelusionComponent::UpdateDelusionTier()
         // Health and speed adjustments for DT_B
         if (ecs::CompHandle<HealthComponent> healthComp{ ecs::GetEntity(this)->GetComp<HealthComponent>() })
         {
-            healthComp->SetMaxHealth(50);
+            healthComp->SetMaxHealth(100);
         }
 
         if (ecs::CompHandle<CharacterMovementComponent> characterComp{ ecs::GetEntity(this)->GetComp<CharacterMovementComponent>() })
@@ -218,7 +218,7 @@ void DelusionComponent::UpdateDelusionTier()
         // Health and speed adjustments for DT_A
         if (ecs::CompHandle<HealthComponent> healthComp{ ecs::GetEntity(this)->GetComp<HealthComponent>() })
         {
-            healthComp->SetMaxHealth(40);
+            healthComp->SetMaxHealth(120);
         }
 
         if (ecs::CompHandle<CharacterMovementComponent> characterComp{ ecs::GetEntity(this)->GetComp<CharacterMovementComponent>() })
@@ -237,7 +237,7 @@ void DelusionComponent::UpdateDelusionTier()
         // Health and speed adjustments for DT_Aplus
         if (ecs::CompHandle<HealthComponent> healthComp{ ecs::GetEntity(this)->GetComp<HealthComponent>() })
         {
-            healthComp->SetMaxHealth(30);
+            healthComp->SetMaxHealth(150);
         }
 
         if (ecs::CompHandle<CharacterMovementComponent> characterComp{ ecs::GetEntity(this)->GetComp<CharacterMovementComponent>() })

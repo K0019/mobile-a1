@@ -79,14 +79,21 @@ void main() {
     vk::BufferDesc indexDesc{
       .usage = vk::BufferUsageBits_Index, .storage = vk::StorageType::HostVisible, .size = 32 * 1024,
     };
+
+    // ImGui renders directly to swapchain, so use swapchain image as render target
+    // This avoids the need to recompile the render graph on window resize
+    // since ImGui vertex/index buffers are independent of scene rendering
     PassDeclarationInfo passInfo;
     passInfo.framebufferDebugName = "ImGuiOverlay";
     passInfo.colorAttachments[0] = {
-      .textureName = RenderResources::SCENE_COLOR, .loadOp = vk::LoadOp::Load, .storeOp = vk::StoreOp::Store,
+      .textureName = RenderResources::SWAPCHAIN_IMAGE, .loadOp = vk::LoadOp::Load, .storeOp = vk::StoreOp::Store,
     };
+
+    // Copy scene color to a view texture at fixed internal resolution for ImGui scene viewports
+    // This uses the fixed internal resolution, not swapchain-relative
     passBuilder.CreatePass().DeclareTransientResource("ImGuiSceneView", vk::TextureDesc{
                                                         .type = vk::TextureType::Tex2D, .format = vk::Format::Invalid,
-                                                        .dimensions = ResourceProperties::SWAPCHAIN_RELATIVE_DIMENSIONS,
+                                                        .dimensions = ResourceProperties::INTERNAL_RESOLUTION_DIMENSIONS,
                                                         .usage = vk::TextureUsageBits_Sampled
                                                       }).UseResource(RenderResources::SCENE_COLOR, AccessType::Read).
                 UseResource("ImGuiSceneView", AccessType::Write).SetPriority(
@@ -95,12 +102,16 @@ void main() {
                 {
                   CopySceneForImGuiView(context);
                 });
+
+    // ImGui rendering pass - renders directly to swapchain at swapchain resolution
+    // This pass comes after FinalBlit (which scales scene to swapchain) and draws UI on top
     passBuilder.CreatePass().DeclareTransientResource("ImGuiVertexBuffer", vertexDesc).
                 DeclareTransientResource("ImGuiIndexBuffer", indexDesc).
-                UseResource(RenderResources::SCENE_COLOR, AccessType::ReadWrite).
+                UseResource(RenderResources::SWAPCHAIN_IMAGE, AccessType::ReadWrite).
                 UseResource("ImGuiVertexBuffer", AccessType::ReadWrite).
                 UseResource("ImGuiIndexBuffer", AccessType::ReadWrite).
                 SetPriority(internal::RenderPassBuilder::PassPriority::UI).ExecuteAfter("CopySceneForImGui").
+                ExecuteAfter("FinalBlit").
                 AddGraphicsPass("ImGuiRender", passInfo, [this](const internal::ExecutionContext& context)
                 {
                   RenderImGui(context);
@@ -166,10 +177,9 @@ void main() {
       vkContext.flushMappedMemory(vertexBuffer, 0, requiredVertexSize);
       vkContext.flushMappedMemory(indexBuffer, 0, requiredIndexSize);
     }
-    // Create pipeline if needed - same as before
+    // Create pipeline if needed - using swapchain format since we render directly to swapchain
     if (pipeline_.empty())
     {
-      vk::TextureHandle sceneColor = context.GetTexture(RenderResources::SCENE_COLOR);
       const bool needsLinearColorSpace = vkContext.getSwapchainColorSpace() == vk::ColorSpace::SRGB_LINEAR;
       const uint32_t linearColorSpaceFlag = needsLinearColorSpace ? 1u : 0u;
       pipeline_ = vkContext.createRenderPipeline({
@@ -183,7 +193,8 @@ void main() {
                                                    },
                                                    .color = {
                                                      {
-                                                       .format = vkContext.getFormat(sceneColor), .blendEnabled = true,
+                                                       // Use swapchain format since we render directly to swapchain
+                                                       .format = vkContext.getSwapchainFormat(), .blendEnabled = true,
                                                        .srcRGBBlendFactor = vk::BlendFactor::SrcAlpha,
                                                        .dstRGBBlendFactor = vk::BlendFactor::OneMinusSrcAlpha,
                                                      }
@@ -256,6 +267,7 @@ void main() {
     vk::IContext& vkContext = context.GetvkContext();
     vk::Dimensions sceneDims = vkContext.getDimensions(sceneColor);
     vk::Dimensions viewDims = vkContext.getDimensions(sceneView);
+    // Both should be at internal resolution now
     vk::Dimensions copyExtent = {
       .width = std::min(sceneDims.width, viewDims.width), .height = std::min(sceneDims.height, viewDims.height),
       .depth = 1

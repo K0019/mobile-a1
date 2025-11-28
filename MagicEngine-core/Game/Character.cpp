@@ -169,10 +169,6 @@ bool CharacterMovementComponent::Attack()
 	//	//audioSourceComp->Set
 	//}
 
-	// I shall perform a hackery
-	if(randomRange(0,2)==0)
-		ST<AudioManager>::Get()->PlaySound3D("light attack #1 "+std::to_string(randomRange(1,4)), false, ecs::GetEntity(this)->GetTransform().GetWorldPosition());
-
 	ecs::EntityHandle thisEntity = ecs::GetEntity(this);
 
 	// Get the animation component
@@ -183,7 +179,14 @@ bool CharacterMovementComponent::Attack()
 	if (!animComp->GetAnimationClipA())
 		animComp->animHandleA = animations[ATTACK];
 
+	animComp->timeA = 0.0f;
 
+	auto grabbableComp = attackItem->GetComp<GrabbableItemComponent>();
+
+	std::string tmpName = grabbableComp->audioName + std::to_string(randomRange(grabbableComp->audioStartIndex, grabbableComp->audioEndIndex + 1));
+
+	//if (randomRange(0, 2) == 0)
+	ST<AudioManager>::Get()->PlaySound3D(tmpName, false, ecs::GetEntity(this)->GetTransform().GetWorldPosition());
 
 	ST<Scheduler>::Get()->Add(attackItem->GetComp<GrabbableItemComponent>()->attackDelay, [attackItem, thisEntity]() {
 		if (!ecs::IsEntityHandleValid(thisEntity))

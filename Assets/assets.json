@@ -2661,6 +2661,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/materials/Boss_Top_Prefect.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 5594908899487728647,
+                            "name": "boss_top_prefect0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/materials/n00_000_00_eyeiris_00_eye (instance).material",
             "resources": [
                 {
@@ -2711,6 +2725,20 @@
                         {
                             "hash": 2307886975704003677,
                             "name": "purrfectputt-music-gameplayloop10"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/items/katar/katar.mesh",
+            "resources": [
+                {
+                    "resourceType": 6209910166724260588,
+                    "resourceEntries": [
+                        {
+                            "hash": 5759153946440816121,
+                            "name": "katar0"
                         }
                     ]
                 }
@@ -3487,6 +3515,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/items/katar/phonge2.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 5743190137117136313,
+                            "name": "phonge20"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/materials/n00_002_03_tops_01_cloth_04__instance_.material",
             "resources": [
                 {
@@ -3733,6 +3775,20 @@
                         {
                             "hash": 5145774892182004129,
                             "name": "enemy_male_animatedrange single  attack0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/items/katar/phonge1.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 5748368836883961275,
+                            "name": "phonge10"
                         }
                     ]
                 }
@@ -4237,6 +4293,20 @@
                         {
                             "hash": 5820117468142541565,
                             "name": "material_150"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/boss_top.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 5586651567163093599,
+                            "name": "boss_top0"
                         }
                     ]
                 }
@@ -4853,6 +4923,20 @@
                         {
                             "hash": 16083927926477675317,
                             "name": "ui button0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/items/katar/blinn1.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 5737239580187612597,
+                            "name": "blinn10"
                         }
                     ]
                 }
@@ -5629,6 +5713,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/items/katar/material_4.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 5754709720441345469,
+                            "name": "material_40"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/meshanimations/player_running_mixamoplayer_running_mixamo.001.anim",
             "resources": [
                 {
@@ -6295,6 +6393,20 @@
                         {
                             "hash": 82355620140082399,
                             "name": "dodge icon0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/items/katar/lambert9.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 5738450142489793975,
+                            "name": "lambert90"
                         }
                     ]
                 }
