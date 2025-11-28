@@ -27,6 +27,7 @@ namespace render_feature_internal
 {
   struct Grid_Parameters
   {
+    bool enabled = true;
     Axis axis = Axis::Y; // Default to Y (XZ plane)
     int majorGridDivisions = 10;
     vec3 originOffset;
@@ -44,6 +45,9 @@ public:
   [[nodiscard]] const char* GetName() const override;
 
   void SetupPasses(internal::RenderPassBuilder& passBuilder) override;
+
+  // Allow direct access to parameter buffers for immediate updates
+  using RenderFeatureBase<render_feature_internal::Grid_Parameters>::param_;
 
 private:
   void EnsurePipelineCreated(const internal::ExecutionContext& context);;

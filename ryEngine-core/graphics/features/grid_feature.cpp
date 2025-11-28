@@ -194,9 +194,13 @@ void GridFeature::SetupPasses(internal::RenderPassBuilder& passBuilder)
              .AddGraphicsPass("GridDraw", gPassInfo, [this](const internal::ExecutionContext& context)
              {
                // Get target properties for pipeline creation
+               const Parameters& params_ = *static_cast<const Parameters*>(GetParameterBlock_RT());
+               if (!params_.enabled)
+               {
+                 return;
+               }
                auto& cmd = context.GetvkCommandBuffer();
                EnsurePipelineCreated(context);
-               const Parameters& params_ = *static_cast<const Parameters*>(GetParameterBlock_RT());
                if (!pipeline_.valid())
                {
                  return;
