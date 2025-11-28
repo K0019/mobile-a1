@@ -14,6 +14,9 @@ NODE_STATUS L_MeleeAttack::OnUpdate(ecs::EntityHandle entity)
 	auto characterComp{ entity->GetComp<CharacterMovementComponent>() };
 	auto enemyComp{ entity->GetComp<EnemyComponent>() };
 	auto animComp{ entity->GetComp<AnimationComponent>() };
+	
+	characterComp->Attack();
+
 	if (!enemyComp || !characterComp || !animComp || !enemyComp->attackCollider)
 		return NODE_STATUS::FAILURE;
 
@@ -24,7 +27,6 @@ NODE_STATUS L_MeleeAttack::OnUpdate(ecs::EntityHandle entity)
 
 	if (characterComp->currentStunTime > 0.f)
 	{
-		characterComp->isAttacking = false;
 		attackTrigger->SetFlag(physics::COLLIDER_COMP_FLAG::ENABLED, false);
 		return NODE_STATUS::FAILURE;
 	}

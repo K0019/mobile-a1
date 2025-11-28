@@ -151,6 +151,7 @@ bool CharacterMovementComponent::Attack()
 	// If already in attack animation, skip
 	if (isAttacking)
 		return false;
+	isAttacking = true;
 
 	// If not holding an item, we fallback to the character's entity itself
 	if (attackItem == nullptr && ecs::GetEntity(this)->GetComp<GrabbableItemComponent>())
@@ -169,9 +170,19 @@ bool CharacterMovementComponent::Attack()
 	//}
 
 	// I shall perform a hackery
-	ST<AudioManager>::Get()->PlaySound3D("Attack", false, ecs::GetEntity(this)->GetTransform().GetWorldPosition());
+	ST<AudioManager>::Get()->PlaySound3D("light attack #1 1", false, ecs::GetEntity(this)->GetTransform().GetWorldPosition());
 
 	ecs::EntityHandle thisEntity = ecs::GetEntity(this);
+
+	// Get the animation component
+	ecs::CompHandle<AnimationComponent> animComp = thisEntity->GetComp<AnimationComponent>();
+
+	// Attempt to use animation pulled from the item, if nonexistent then use the fallback anim on the Character
+	animComp->animHandleA = attackItem->GetComp<GrabbableItemComponent>()->lightAttackAnimation;
+	if (!animComp->GetAnimationClipA())
+		animComp->animHandleA = animations[ATTACK];
+
+
 
 	ST<Scheduler>::Get()->Add(attackItem->GetComp<GrabbableItemComponent>()->attackDelay, [attackItem, thisEntity]() {
 		if (!ecs::IsEntityHandleValid(thisEntity))
@@ -186,7 +197,7 @@ bool CharacterMovementComponent::Attack()
 
 		// Hard-code a simple start point etc for now
 		Vec3 rotation = thisEntity->GetTransform().GetWorldRotation();
-		Vec3 direction(sin(math::ToRadians(rotation.y + 90)), 0, cos(math::ToRadians(rotation.y + 90)));
+		Vec3 direction(sin(math::ToRadians(rotation.y)), 0, cos(math::ToRadians(rotation.y)));
 		Vec3 startPoint = thisEntity->GetTransform().GetWorldPosition() + direction;
 
 		auto hitDebugObject = thisComp->hitDebugObject;
@@ -197,21 +208,13 @@ bool CharacterMovementComponent::Attack()
 			hitDebugObject->GetTransform().SetWorldScale(attackItem->GetComp<GrabbableItemComponent>()->attackBox);
 		}
 
-
 		// Call Attack from the GrabbableItem component
 		attackItem->GetComp<GrabbableItemComponent>()->Attack(startPoint, direction); 
+
+		//thisComp->isAttacking = false;
 	});
 	
-	// Get the animation component
-	ecs::CompHandle<AnimationComponent> animComp = thisEntity->GetComp<AnimationComponent>();
 
-	// Attempt to use animation pulled from the item, if nonexistent then use the fallback anim on the Character
-	animComp->animHandleA = attackItem->GetComp<GrabbableItemComponent>()->lightAttackAnimation;
-	if(!animComp->GetAnimationClipA())
-	animComp->animHandleA = animations[ATTACK];
-
-
-	isAttacking = true;
 
 	return true;
 }
@@ -389,9 +392,10 @@ void CharacterMovementComponentSystem::UpdateCharacterMovementComponent(Characte
 		if (animComp->timeA >= animComp->GetClipDuration(animComp->GetAnimationClipA()))
 		{
 			comp.isAttacking = false;
-			animComp->loop = true;
 		}
 	}
+
+	animComp->loop = !comp.isAttacking;
 	
 
 	if (movement.LengthSqr() > 1.0f)
