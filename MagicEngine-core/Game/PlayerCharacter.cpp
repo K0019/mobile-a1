@@ -209,8 +209,6 @@ void PlayerMovementComponentSystem::UpdatePlayerMovementComponent(PlayerMovement
 
 	if (inputInstance->GetIsPressed(KEY::R))
 		comp.UltimateAttack();
-	else if (comp.isUltimateAttack)
-		comp.isUltimateAttack = false;
 
 	characterComp->SetMovementVector(movement);
 
