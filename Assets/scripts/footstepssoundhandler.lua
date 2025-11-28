@@ -1,5 +1,5 @@
 -- How often to play the sound
-local footstepInterval = 0.5
+local footstepInterval = 0.35
 
 -- How often to play the sound
 local velocityThreshold = 0.25
@@ -41,9 +41,9 @@ function update(entity)
         if(velocity:LengthSqr()>0.5) then
             currentFootstepInterval = footstepInterval
             if footstepState == "indoors" then
-                Magic.AudioManager.PlaySound3D("indoor footsteps "..(Magic.Random.RangeInt(0,5)+1),false,entity.transform.worldPosition)
+                Magic.AudioManager.PlaySound3DWithVolume("indoor footsteps "..(Magic.Random.RangeInt(0,5)+1),false,entity.transform.worldPosition,0.2)
             elseif footstepState == "outdoors" then
-                Magic.AudioManager.PlaySound3D("outdoor footsteps "..(Magic.Random.RangeInt(0,5)+1),false,entity.transform.worldPosition)
+                Magic.AudioManager.PlaySound3DWithVolume("outdoor footsteps "..(Magic.Random.RangeInt(0,5)+1),false,entity.transform.worldPosition,0.3)
             end
         end
     end

@@ -17,18 +17,19 @@ function OnHealthDepleted()
     
     Magic.Log(Magic.LogLevel.info, "IM DEAD")
     if entityContainer:Exists() then
-    local spawner = entityContainer:GetEntityReference(0)
-    local scriptComp = spawner:GetScriptComponent()
-    if scriptComp:Exists() then
-        scriptComp:CallScriptFunction("enemydeath")
-    end
+        local spawner = entityContainer:GetEntityReference(0)
+        local scriptComp = spawner:GetScriptComponent()
+        if scriptComp:Exists() then
+            scriptComp:CallScriptFunction("enemydeath")
+        else
+            Magic.Log(Magic.LogLevel.info, "SCRIPTCOMPONENT IS NULL")
+        end
     else
         Magic.Log(Magic.LogLevel.info, "ENTITYCONTAINER IS NULL")
-
     end
 
     -- Play death sound
-    Magic.AudioManager.PlaySound3D("enemy female death "..(Magic.Random.RangeInt(0,3)+1),false,thisEntity.transform.worldPosition)
+    Magic.AudioManager.PlaySound3D("enemy male death "..(Magic.Random.RangeInt(0,3)+1),false,thisEntity.transform.worldPosition)
 
     -- Randomly drop a BBT
     if Magic.Random.DiceRoll(randomChance) then
@@ -56,5 +57,7 @@ end
 
 function OnDamaged(amount,direction)
     -- Play death sound
-    Magic.AudioManager.PlaySound3D("enemy female hurt "..(Magic.Random.RangeInt(0,4)+1),false,thisEntity.transform.worldPosition)
+    if Magic.Random.DiceRoll(2) then
+        Magic.AudioManager.PlaySound3DWithVolume("enemy male hurt "..(Magic.Random.RangeInt(0,4)+1),false,thisEntity.transform.worldPosition,0.6)
+    end
 end

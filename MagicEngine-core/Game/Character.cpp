@@ -72,7 +72,7 @@ bool CharacterMovementComponent::Dodge(Vec2 vector)
 	currentDodgeCooldown = dodgeCooldown;
 
 	// Play Audio
-	ST<AudioManager>::Get()->PlaySound3D("dodge " + std::to_string(randomRange<int>(1, 3)), false, ecs::GetEntity(this)->GetTransform().GetWorldPosition());
+	ST<AudioManager>::Get()->PlaySound3D("dodge " + std::to_string(randomRange<int>(1, 3)), false, ecs::GetEntity(this)->GetTransform().GetWorldPosition(),AudioType::END,std::pair<float,float>{2.0f,50.0f}, 0.6f);
 
 	return true;
 }
@@ -141,7 +141,7 @@ void CharacterMovementComponent::GrabItem(ecs::CompHandle<GrabbableItemComponent
 	heldItem->GetComp<physics::PhysicsComp>()->SetFlag(physics::PHYSICS_COMP_FLAG::ENABLED, false);
 
 	// Play Audio
-	ST<AudioManager>::Get()->PlaySound3D("weapon pickup "+std::to_string(randomRange<int>(1,4)), false, ecs::GetEntity(this)->GetTransform().GetWorldPosition());
+	ST<AudioManager>::Get()->PlaySound3D("weapon pickup "+std::to_string(randomRange<int>(1,4)), false, ecs::GetEntity(this)->GetTransform().GetWorldPosition(), AudioType::END, std::pair<float, float>{2.0f, 50.0f}, 0.6f);
 }
 
 bool CharacterMovementComponent::Attack()
@@ -170,7 +170,8 @@ bool CharacterMovementComponent::Attack()
 	//}
 
 	// I shall perform a hackery
-	ST<AudioManager>::Get()->PlaySound3D("light attack #1 1", false, ecs::GetEntity(this)->GetTransform().GetWorldPosition());
+	if(randomRange(0,2)==0)
+		ST<AudioManager>::Get()->PlaySound3D("light attack #1 "+std::to_string(randomRange(1,4)), false, ecs::GetEntity(this)->GetTransform().GetWorldPosition());
 
 	ecs::EntityHandle thisEntity = ecs::GetEntity(this);
 

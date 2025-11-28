@@ -226,6 +226,14 @@
                             "Is Trigger"
                         ]
                     }
+                },
+                "18288371625365795113": {
+                    "_active": true,
+                    "scripts": [
+                        {
+                            "scriptName": "enemydeath.lua"
+                        }
+                    ]
                 }
             }
         }

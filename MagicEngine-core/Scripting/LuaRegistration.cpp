@@ -294,13 +294,31 @@ Vec2 Get2DAxis(std::string name)
 		return action->GetValue();
 }
 
-void Lua_PlayAudio(std::string name,bool looping)
+uint32_t Lua_PlayAudio(std::string name,bool looping)
 {
-	ST<AudioManager>::Get()->PlaySound(util::GenHash(name), looping);
+	return ST<AudioManager>::Get()->PlaySound(util::GenHash(name), looping);
 }
-void Lua_PlayAudio3D(std::string name, bool looping, Vec3 position)
+uint32_t Lua_PlayAudio3D(std::string name, bool looping, Vec3 position)
 {
-	ST<AudioManager>::Get()->PlaySound3D(util::GenHash(name), looping, position);
+	return ST<AudioManager>::Get()->PlaySound3D(util::GenHash(name), looping, position);
+}
+
+uint32_t Lua_PlayAudioWithVolume(std::string name,bool looping, float volume )
+{
+	return ST<AudioManager>::Get()->PlaySound(util::GenHash(name), looping,AudioType::END,volume);
+}
+uint32_t Lua_PlayAudio3DWithVolume(std::string name, bool looping, Vec3 position, float volume )
+{
+	return ST<AudioManager>::Get()->PlaySound3D(util::GenHash(name), looping, position, AudioType::END, std::pair<float, float>{2.0f,50.0f},volume);
+}
+void Lua_StopAudio(uint32_t handle)
+{
+	ST<AudioManager>::Get()->StopSound(handle);
+}
+void Lua_FadeOutAudio(std::string name, float duration)
+{
+	float decremental = 0.01f;
+//	ST<AudioManager>::Get()->StopSound(util::GenHash(name));
 }
 ecs::EntityHandle Lua_LoadPrefab(std::string name)
 {
@@ -593,7 +611,10 @@ void RegisterCppStuffToLua(luabridge::Namespace baseTable)
 
 		.beginNamespace("AudioManager")
 			.addFunction("PlaySound", Lua_PlayAudio)
+			.addFunction("StopSound", Lua_StopAudio)
 			.addFunction("PlaySound3D", Lua_PlayAudio3D)
+			.addFunction("PlaySoundWithVolume", Lua_PlayAudioWithVolume)
+			.addFunction("PlaySound3DWithVolume", Lua_PlayAudio3DWithVolume)
 		.endNamespace()
 
 		.beginNamespace("PrefabManager")
