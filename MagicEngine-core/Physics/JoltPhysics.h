@@ -36,6 +36,9 @@ All rights reserved.
 #include <Jolt/Physics/Collision/Shape/SphereShape.h>
 #include <Jolt/Physics/Body/BodyCreationSettings.h>
 #include <Jolt/Physics/Body/BodyActivationListener.h>
+#include <Jolt/Physics/Collision/BroadPhase/BroadPhaseLayer.h>
+#include <Jolt/Physics/Collision/RayCast.h>
+#include <Jolt/Physics/Collision/CastResult.h>
 
 #include "ECS/ECS.h"
 #include "Editor/IEditorComponent.h"
@@ -53,6 +56,14 @@ namespace physics {
 	{
 		EMPTY,
 		BOX
+	};
+
+	struct RaycastHit
+	{
+		Vec3 point;
+		Vec3 normal;
+		ecs::EntityHandle entityHit;
+		float distance;
 	};
 
 	class JoltPhysics
@@ -124,6 +135,7 @@ namespace physics {
 
 		JPH::AABox CollectAllTriangles(std::vector<float>& outVertices, std::vector<int>& outTriIndex);
 
+		bool Raycast(const Vec3& origin, const Vec3& direction, RaycastHit& hitInfo, float maxDistance);
 	private:
 		// We need a temp allocator for temporary allocations during the physics update. We're
 		// pre-allocating 10 MB to avoid having to do allocations during the physics update.

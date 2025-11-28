@@ -162,6 +162,40 @@ namespace physics {
 		return bound;
 	}
 
+	bool JoltPhysics::Raycast(const Vec3& origin, const Vec3& direction, RaycastHit& hitInfo, float maxDistance)
+	{
+		//Create the ray.
+		JPH::Vec3 joltOrigin{ origin.x, origin.y, origin.z };
+		JPH::Vec3 joltDirection{ direction.x, direction.y, direction.z };
+		joltDirection = joltDirection.Normalized();
+		joltDirection *= maxDistance;
+		JPH::RRayCast ray{ joltOrigin, joltDirection };
+
+		//Jolt's hit result
+		JPH::RayCastResult result{};
+
+		//Cast
+		if (physicsSystem.GetNarrowPhaseQuery().CastRay(ray, result))
+		{
+			JPH::Vec3 joltPoint{ ray.GetPointOnRay(result.GetEarlyOutFraction()) };
+			hitInfo.point = Vec3{ joltPoint.GetX(), joltPoint.GetY(), joltPoint.GetZ() };
+			hitInfo.distance = maxDistance * result.GetEarlyOutFraction();
+			hitInfo.entityHit = ecs::GetEntity(bodyInterface.GetUserData(result.mBodyID));
+
+			JPH::BodyLockRead lock{ physicsSystem.GetBodyLockInterface(), result.mBodyID };
+			if (lock.Succeeded())
+			{
+				JPH::Vec3 joltNormal{ lock.GetBody().GetWorldSpaceSurfaceNormal(result.mSubShapeID2, joltPoint) };
+				hitInfo.normal = Vec3{ joltNormal.GetX(), joltNormal.GetY(), joltNormal.GetZ() };
+				return true;
+			}
+			else
+				CONSOLE_LOG(LEVEL_ERROR) << "Unable to lock the body to get the normal.";
+		}
+
+		return false;
+	}
+
 	TransformValues::TransformValues()
 	{
 		pos = scale = rot = Vec3{};
