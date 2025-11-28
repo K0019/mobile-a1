@@ -91,6 +91,9 @@ bool RenderGraph::AreGraphicsDeclarationsEqual(const GraphicsPassDeclaration& de
 void RenderGraph::FillVkRenderPassFromDeclaration(const GraphicsPassDeclaration& graphDecl, vk::RenderPass& vkRp)
 {
   vkRp = {};
+  // Copy multiview settings
+  vkRp.layerCount = graphDecl.layerCount;
+  vkRp.viewMask = graphDecl.viewMask;
   // Unroll loop for better performance
   for (unsigned i = 0; i < vk::MAX_COLOR_ATTACHMENTS; ++i)
   {
@@ -599,6 +602,9 @@ namespace internal
     }
     convertAttachment(declaration.depthAttachment, declWithIDs.depthAttachment);
     convertAttachment(declaration.stencilAttachment, declWithIDs.stencilAttachment);
+    // Copy multiview settings
+    declWithIDs.layerCount = declaration.layerCount;
+    declWithIDs.viewMask = declaration.viewMask;
     if (declaration.framebufferDebugName)
     {
       declWithIDs.framebufferDebugName = declaration.framebufferDebugName;
@@ -753,6 +759,7 @@ void RenderGraph::BuildAdjacencyListAndSort()
   // Check for cycles
   if (m_compiledPassOrder.size() != numPasses)
   {
+    LOG_ERROR("Cycle detected in render graph! Only {} of {} passes compiled.", m_compiledPassOrder.size(), numPasses);
     m_compiledPassOrder.clear();
   }
 }

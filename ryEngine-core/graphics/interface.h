@@ -823,6 +823,10 @@ namespace vk
     AttachmentDesc depth = {.loadOp = LoadOp::DontCare, .storeOp = StoreOp::DontCare};
     AttachmentDesc stencil = {.loadOp = LoadOp::Invalid, .storeOp = StoreOp::DontCare};
 
+    // Multiview rendering support
+    uint32_t layerCount = 1;  // Number of layers to render (1 = standard, 6 = cube map)
+    uint32_t viewMask = 0;    // Bitmask of views to render (0 = no multiview, 0b111111 = 6 views)
+
     [[nodiscard]] uint32_t getNumColorAttachments() const
     {
       uint32_t n = 0;

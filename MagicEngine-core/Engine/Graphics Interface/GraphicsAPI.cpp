@@ -28,6 +28,8 @@ All rights reserved.
 #include "Graphics/LightComponent.h"
 #include "Engine/Resources/ResourceManager.h"
 
+#include <algorithm>
+
 #include "fa.h"
 #include "graphics/im3d_helper.h"
 #include "graphics/features/im3d_feature.h"
@@ -380,6 +382,104 @@ void GraphicsMain::UploadToPipeline(FrameData* outFrameData)
 	}
 
 	params->activeLightCount = static_cast<uint32_t>(params->lights.size());
+
+	// Select shadow-casting point lights and build shadow matrices
+	params->pointLightShadows.clear();
+	params->shadowPointLightIndices.clear();
+	params->shadowPointLightCount = 0;
+
+	// Collect point lights with their distances to camera
+	struct LightCandidate {
+		uint32_t lightIndex;
+		float distanceToCamera;
+	};
+	std::vector<LightCandidate> candidates;
+
+	for (uint32_t i = 0; i < params->activeLightCount; i++)
+	{
+		const auto& light = params->lights[i];
+		// Only consider point lights (type == 1)
+		if (light.type == 1)
+		{
+			float dist = glm::length(light.position - frameData.cameraPos);
+			candidates.push_back({i, dist});
+		}
+	}
+
+	// Sort by distance (closest first)
+	std::sort(candidates.begin(), candidates.end(),
+		[](const LightCandidate& a, const LightCandidate& b) {
+			return a.distanceToCamera < b.distanceToCamera;
+		});
+
+	// Select up to MAX_SHADOW_POINT_LIGHTS closest point lights
+	uint32_t numShadowLights = std::min(static_cast<uint32_t>(candidates.size()),
+		Lighting::MAX_SHADOW_POINT_LIGHTS);
+
+	params->pointLightShadows.resize(numShadowLights);
+	params->shadowPointLightIndices.resize(numShadowLights);
+
+	// 90 degree FOV for cube face
+	const float fov = glm::radians(90.0f);
+
+	for (uint32_t i = 0; i < numShadowLights; i++)
+	{
+		uint32_t lightIndex = candidates[i].lightIndex;
+		const auto& light = params->lights[lightIndex];
+
+		params->shadowPointLightIndices[i] = lightIndex;
+
+		// Initialize shadow data
+		auto& shadow = params->pointLightShadows[i];
+		shadow.lightIndex = lightIndex;
+		shadow.shadowMapIndex = 0;  // Will be set in LightingSetup pass
+
+		// Build shadow matrices with appropriate near/far planes
+		float nearPlane = 0.1f;
+		float farPlane = light.range;
+
+		// Build view-projection matrices for each cube face
+		glm::mat4 proj = glm::perspective(fov, 1.0f, nearPlane, farPlane);
+
+		const glm::vec3 lightPos = light.position;
+		// Cube map face view directions - must match Vulkan/OpenGL cube map sampling convention
+		// Face 0 (+X): look in +X direction
+		// Face 1 (-X): look in -X direction  
+		// Face 2 (+Y): look in -Y direction (inverted for cube map convention)
+		// Face 3 (-Y): look in +Y direction (inverted for cube map convention)
+		// Face 4 (+Z): look in +Z direction
+		// Face 5 (-Z): look in -Z direction
+		const glm::vec3 targets[6] = {
+			lightPos + glm::vec3(+1.0f, 0.0f, 0.0f),  // Face 0: +X
+			lightPos + glm::vec3(-1.0f, 0.0f, 0.0f),  // Face 1: -X
+			lightPos + glm::vec3(0.0f, -1.0f, 0.0f),  // Face 2: +Y (look -Y)
+			lightPos + glm::vec3(0.0f, +1.0f, 0.0f),  // Face 3: -Y (look +Y)
+			lightPos + glm::vec3(0.0f, 0.0f, +1.0f),  // Face 4: +Z
+			lightPos + glm::vec3(0.0f, 0.0f, -1.0f),  // Face 5: -Z
+		};
+
+		// Up vectors for each face
+		const glm::vec3 ups[6] = {
+			glm::vec3(0.0f, -1.0f, 0.0f),  // +X
+			glm::vec3(0.0f, -1.0f, 0.0f),  // -X
+			glm::vec3(0.0f, 0.0f, -1.0f),  // +Y
+			glm::vec3(0.0f, 0.0f, +1.0f),  // -Y
+			glm::vec3(0.0f, -1.0f, 0.0f),  // +Z
+			glm::vec3(0.0f, -1.0f, 0.0f),  // -Z
+		};
+
+		for (int face = 0; face < 6; face++)
+		{
+			glm::mat4 view = glm::lookAt(lightPos, targets[face], ups[face]);
+			shadow.viewProj[face] = proj * view;
+		}
+
+		shadow.lightPos = glm::vec4(lightPos, 1.0f);
+		shadow.shadowNear = nearPlane;
+		shadow.shadowFar = farPlane;
+	}
+
+	params->shadowPointLightCount = numShadowLights;
 
 	// Set environment parameters
 	params->irradianceTexture = 0;

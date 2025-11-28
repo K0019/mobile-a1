@@ -4,6 +4,7 @@
 #include "graphics/shader.h"
 #include "resource/resource_manager.h"
 #include "graphics/gpu_data.h"
+#include <algorithm>
 
 SceneRenderFeature::SceneRenderFeature(bool enableObjectPicking)
   : m_enableObjectPicking(enableObjectPicking)
@@ -203,6 +204,11 @@ void SceneRenderFeature::UpdateScene(uint64_t renderFeatureID,
   }
 
   params->activeLightCount = static_cast<uint32_t>(params->lights.size());
+
+  // NOTE: Shadow-casting point light selection is done in GraphicsAPI.cpp::UploadToPipeline
+  // after lights are populated from the ECS. The shadowPointLightCount, pointLightShadows,
+  // and shadowPointLightIndices are set there.
+  
   /*LOG_INFO("SceneRenderFeature: Updated {} objects ({} opaque, {} transparent)",
          params->getObjectCount(),
          params->getOpaqueCount(),
@@ -363,7 +369,27 @@ void SceneRenderFeature::SetupPasses(internal::RenderPassBuilder& passBuilder)
   uint32_t clusterBoundsSize = Lighting::TOTAL_CLUSTERS * sizeof(Lighting::ClusterBounds);
   uint32_t itemListSize = sizeof(uint32_t) + Lighting::MAX_TOTAL_ITEMS * sizeof(uint32_t);
   uint32_t clusterDataSize = Lighting::TOTAL_CLUSTERS * sizeof(Lighting::Cluster);
-  // Lighting Setup Pass - initialize lighting data
+  uint32_t pointShadowBufferSize = Lighting::MAX_SHADOW_POINT_LIGHTS * sizeof(Lighting::GPUPointLightShadow);
+
+  // Point light shadow cube map texture descriptors
+  vk::TextureDesc shadowCubeColorDesc{
+      .type = vk::TextureType::TexCube,
+      .format = vk::Format::R_F16,  // Linear depth in R16F
+      .dimensions = {Lighting::SHADOW_MAP_SIZE, Lighting::SHADOW_MAP_SIZE, 1},
+      .numLayers = 6,
+      .usage = vk::TextureUsageBits_Attachment | vk::TextureUsageBits_Sampled,
+  };
+
+  vk::TextureDesc shadowCubeDepthDesc{
+      .type = vk::TextureType::TexCube,
+      .format = vk::Format::Z_F32,
+      .dimensions = {Lighting::SHADOW_MAP_SIZE, Lighting::SHADOW_MAP_SIZE, 1},
+      .numLayers = 6,
+      .usage = vk::TextureUsageBits_Attachment,
+  };
+
+  // Lighting Setup Pass - initialize lighting data and declare shadow cube maps
+  // Shadow cube maps are declared here so LightingSetup can read their bindless indices
   passBuilder.CreatePass().UseResource(RenderResources::SCENE_COLOR, AccessType::Read).
       DeclareTransientResource(Lighting::LIGHT_BUFFER, vk::BufferDesc{
                                  .usage = vk::BufferUsageBits_Storage, .storage = vk::StorageType::HostVisible,
@@ -383,14 +409,90 @@ void SceneRenderFeature::SetupPasses(internal::RenderPassBuilder& passBuilder)
                                         .usage = vk::BufferUsageBits_Storage,
                                         .storage = vk::StorageType::HostVisible,
                                         .size = sizeof(Lighting::LightingBuffer)
-              }).UseResource(
-                  Lighting::LIGHT_BUFFER,
-                  AccessType::Write).UseResource(Lighting::LIGHTING_BUFFER, AccessType::Write).SetPriority(
-                      internal::RenderPassBuilder::PassPriority::EarlySetup).AddGenericPass(
-                          "LightingSetup", [this](internal::ExecutionContext& ctx)
-                          {
-                              executeLightingSetup(ctx);
-                          });
+              }).DeclareTransientResource(Lighting::POINT_SHADOW_BUFFER, vk::BufferDesc{
+                                        .usage = vk::BufferUsageBits_Storage,
+                                        .storage = vk::StorageType::HostVisible,
+                                        .size = pointShadowBufferSize
+              })
+              // Declare shadow cube map textures here so they're allocated before shadow passes
+              .DeclareTransientResource(RenderResources::POINT_SHADOW_CUBE_COLOR_0, shadowCubeColorDesc)
+              .DeclareTransientResource(RenderResources::POINT_SHADOW_CUBE_COLOR_1, shadowCubeColorDesc)
+              .DeclareTransientResource(RenderResources::POINT_SHADOW_CUBE_COLOR_2, shadowCubeColorDesc)
+              .DeclareTransientResource(RenderResources::POINT_SHADOW_CUBE_COLOR_3, shadowCubeColorDesc)
+              .DeclareTransientResource(RenderResources::POINT_SHADOW_CUBE_DEPTH_0, shadowCubeDepthDesc)
+              .DeclareTransientResource(RenderResources::POINT_SHADOW_CUBE_DEPTH_1, shadowCubeDepthDesc)
+              .DeclareTransientResource(RenderResources::POINT_SHADOW_CUBE_DEPTH_2, shadowCubeDepthDesc)
+              .DeclareTransientResource(RenderResources::POINT_SHADOW_CUBE_DEPTH_3, shadowCubeDepthDesc)
+              .UseResource(Lighting::LIGHT_BUFFER, AccessType::Write)
+              .UseResource(Lighting::LIGHTING_BUFFER, AccessType::Write)
+              .UseResource(Lighting::POINT_SHADOW_BUFFER, AccessType::Write)
+              // Read shadow cube textures to get their bindless indices for shadowMapIndex
+              .UseResource(RenderResources::POINT_SHADOW_CUBE_COLOR_0, AccessType::Read)
+              .UseResource(RenderResources::POINT_SHADOW_CUBE_COLOR_1, AccessType::Read)
+              .UseResource(RenderResources::POINT_SHADOW_CUBE_COLOR_2, AccessType::Read)
+              .UseResource(RenderResources::POINT_SHADOW_CUBE_COLOR_3, AccessType::Read)
+              .SetPriority(internal::RenderPassBuilder::PassPriority::EarlySetup)
+              .AddGenericPass(
+                  "LightingSetup", [this](internal::ExecutionContext& ctx)
+                  {
+                      executeLightingSetup(ctx);
+                  });
+
+  // Shadow cube map resource names (must match RenderResources constants)
+  const char* shadowColorNames[Lighting::MAX_SHADOW_POINT_LIGHTS] = {
+      RenderResources::POINT_SHADOW_CUBE_COLOR_0,
+      RenderResources::POINT_SHADOW_CUBE_COLOR_1,
+      RenderResources::POINT_SHADOW_CUBE_COLOR_2,
+      RenderResources::POINT_SHADOW_CUBE_COLOR_3,
+  };
+  const char* shadowDepthNames[Lighting::MAX_SHADOW_POINT_LIGHTS] = {
+      RenderResources::POINT_SHADOW_CUBE_DEPTH_0,
+      RenderResources::POINT_SHADOW_CUBE_DEPTH_1,
+      RenderResources::POINT_SHADOW_CUBE_DEPTH_2,
+      RenderResources::POINT_SHADOW_CUBE_DEPTH_3,
+  };
+
+  // Create shadow passes for each potential shadow-casting point light
+  for (uint32_t i = 0; i < Lighting::MAX_SHADOW_POINT_LIGHTS; i++)
+  {
+      PassDeclarationInfo shadowPassInfo;
+      shadowPassInfo.framebufferDebugName = "PointShadowPass";
+      shadowPassInfo.colorAttachments[0] = {
+          .textureName = shadowColorNames[i],
+          .loadOp = vk::LoadOp::Clear,
+          .storeOp = vk::StoreOp::Store,
+          .clearColor = {1000.0f, 1000.0f, 1000.0f, 1000.0f},  // Large value = no occluder
+      };
+      shadowPassInfo.depthAttachment = {
+          .textureName = shadowDepthNames[i],
+          .loadOp = vk::LoadOp::Clear,
+          .storeOp = vk::StoreOp::DontCare,
+          .clearDepth = 1.0f,
+      };
+      // Enable multiview rendering - all 6 cube faces in one draw
+      shadowPassInfo.layerCount = 6;
+      shadowPassInfo.viewMask = 0b111111;  // All 6 views active
+
+      passBuilder.CreatePass()
+          // Resources already declared in LightingSetup, just use them
+          .UseResource(shadowColorNames[i], AccessType::Write)
+          .UseResource(shadowDepthNames[i], AccessType::Write)
+          .UseResource(RenderResources::VERTEX_BUFFER, AccessType::Read)
+          .UseResource(RenderResources::INDEX_BUFFER, AccessType::Read)
+          .UseResource("ObjectTransforms", AccessType::Read)
+          .UseResource("DrawDataBuffer", AccessType::Read)
+          .UseResource("IndirectBufferOpaqueStatic", AccessType::Read)
+          .UseResource(RenderResources::MESH_DECOMPRESSION_BUFFER, AccessType::Read)
+          .UseResource(Lighting::POINT_SHADOW_BUFFER, AccessType::Read)
+          .SetPriority(internal::RenderPassBuilder::PassPriority::ShadowMap)
+          .ExecuteAfter("LightingSetup")
+          .AddGraphicsPass(
+              (std::string("PointShadowPass") + std::to_string(i)).c_str(),
+              shadowPassInfo,
+              [this, i](internal::ExecutionContext& ctx) {
+                  ExecutePointShadowPass(ctx, i);
+              });
+  }
 
   {
     PassDeclarationInfo depthPrepassInfo;
@@ -480,6 +582,11 @@ void SceneRenderFeature::SetupPasses(internal::RenderPassBuilder& passBuilder)
     UseResource(RenderResources::SCENE_COLOR, AccessType::Write).
     UseResource(RenderResources::SCENE_DEPTH, AccessType::ReadWrite).
     UseResource("VisibilityBuffer", AccessType::Read).
+    // Point light shadow cube maps - creates dependency so shadow passes aren't culled
+    UseResource(RenderResources::POINT_SHADOW_CUBE_COLOR_0, AccessType::Read).
+    UseResource(RenderResources::POINT_SHADOW_CUBE_COLOR_1, AccessType::Read).
+    UseResource(RenderResources::POINT_SHADOW_CUBE_COLOR_2, AccessType::Read).
+    UseResource(RenderResources::POINT_SHADOW_CUBE_COLOR_3, AccessType::Read).
     SetPriority(internal::RenderPassBuilder::PassPriority::Opaque).
     ExecuteAfter("DepthPrepass").
     AddGraphicsPass(
@@ -1027,29 +1134,62 @@ void SceneRenderFeature::ExecuteTransparentPass(internal::ExecutionContext& ctx)
 void SceneRenderFeature::executeLightingSetup(internal::ExecutionContext& ctx)
 {
     const auto& frameData = ctx.GetFrameData();
-    const auto& params = *static_cast<const SceneRenderParams*>(GetParameterBlock_RT());
+    auto& params = *const_cast<SceneRenderParams*>(static_cast<const SceneRenderParams*>(GetParameterBlock_RT()));
     // Get all the lighting buffers
     vk::BufferHandle lightBuffer = ctx.GetBuffer(Lighting::LIGHT_BUFFER);
     vk::BufferHandle clusterBounds = ctx.GetBuffer(Lighting::CLUSTER_BOUNDS);
     vk::BufferHandle itemList = ctx.GetBuffer(Lighting::ITEM_LIST);
     vk::BufferHandle clusterData = ctx.GetBuffer(Lighting::CLUSTER_DATA);
     vk::BufferHandle lightingBuffer = ctx.GetBuffer(Lighting::LIGHTING_BUFFER);
+    vk::BufferHandle pointShadowBuffer = ctx.GetBuffer(Lighting::POINT_SHADOW_BUFFER);
+
     if (params.activeLightCount > 0)
     {
         void* mapped = ctx.GetvkContext().getMappedPtr(lightBuffer);
         std::memcpy(mapped, params.lights.data(), params.activeLightCount * sizeof(Lighting::GPULight));
         ctx.GetvkContext().flushMappedMemory(lightBuffer, 0, params.activeLightCount * sizeof(Lighting::GPULight));
     }
+
+    // Upload point light shadow data - first update shadowMapIndex with actual bindless indices
+    if (params.shadowPointLightCount > 0)
+    {
+        // Shadow cube map resource names
+        const char* shadowColorNames[Lighting::MAX_SHADOW_POINT_LIGHTS] = {
+            RenderResources::POINT_SHADOW_CUBE_COLOR_0,
+            RenderResources::POINT_SHADOW_CUBE_COLOR_1,
+            RenderResources::POINT_SHADOW_CUBE_COLOR_2,
+            RenderResources::POINT_SHADOW_CUBE_COLOR_3,
+        };
+
+        // Update shadowMapIndex with actual bindless texture indices
+        for (uint32_t i = 0; i < params.shadowPointLightCount; i++)
+        {
+            vk::TextureHandle shadowTex = ctx.GetTexture(shadowColorNames[i]);
+            if (shadowTex.valid())
+            {
+                params.pointLightShadows[i].shadowMapIndex = shadowTex.index();
+            }
+        }
+
+        void* mapped = ctx.GetvkContext().getMappedPtr(pointShadowBuffer);
+        std::memcpy(mapped, params.pointLightShadows.data(), 
+                    params.shadowPointLightCount * sizeof(Lighting::GPUPointLightShadow));
+        ctx.GetvkContext().flushMappedMemory(pointShadowBuffer, 0, 
+                    params.shadowPointLightCount * sizeof(Lighting::GPUPointLightShadow));
+    }
+
     // Create lighting metadata buffer
     Lighting::LightingBuffer lightingData = {
       .bufferLights = ctx.GetvkContext().gpuAddress(lightBuffer),
       .bufferClusterBounds = ctx.GetvkContext().gpuAddress(clusterBounds),
       .bufferItemList = ctx.GetvkContext().gpuAddress(itemList),
       .bufferClusters = ctx.GetvkContext().gpuAddress(clusterData),
+      .bufferPointShadows = ctx.GetvkContext().gpuAddress(pointShadowBuffer),
       .screenDims = vec2(static_cast<float>(frameData.screenWidth),
                          static_cast<float>(frameData.screenHeight)),
       .zNear = frameData.zNear, .zFar = frameData.zFar,
       .totalLightCount = params.activeLightCount,
+      .shadowPointLightCount = params.shadowPointLightCount,
       .viewMatrix = frameData.viewMatrix
     };
     // Upload lighting metadata
@@ -1598,6 +1738,136 @@ void SceneRenderFeature::EnsureDeformationPipeline(internal::ExecutionContext& c
 const char* SceneRenderFeature::GetName() const
 {
   return "SceneRenderFeature";
+}
+
+// ============================================================================
+// Point Light Shadow Mapping Implementation
+// ============================================================================
+
+void SceneRenderFeature::EnsurePointShadowPipeline(internal::ExecutionContext& ctx)
+{
+    if (m_pointShadowPipeline.valid())
+        return;
+
+    m_pointShadowVertShader = loadShaderModule(ctx.GetvkContext(), "shaders/point_shadow.vert");
+    m_pointShadowFragShader = loadShaderModule(ctx.GetvkContext(), "shaders/point_shadow.frag");
+
+    if (!m_pointShadowVertShader.valid() || !m_pointShadowFragShader.valid())
+        return;
+
+    // Vertex input layout matching compressed vertex format (same as EnsureRenderPipelines)
+    vk::VertexInput vertexInput;
+    vertexInput.attributes[0] = {
+        .location = 0,
+        .binding = 0,
+        .format = vk::VertexFormat::Short3Norm,
+        .offset = offsetof(CompressedVertex, pos_x) };
+    vertexInput.attributes[1] = {
+        .location = 1,
+        .binding = 0,
+        .format = vk::VertexFormat::Short1Norm,
+        .offset = offsetof(CompressedVertex, normal_x) };
+    vertexInput.attributes[2] = {
+        .location = 2,
+        .binding = 0,
+        .format = vk::VertexFormat::R10G10B10A2_SNORM,
+        .offset = offsetof(CompressedVertex, packed) };
+    vertexInput.attributes[3] = {
+        .location = 3,
+        .binding = 0,
+        .format = vk::VertexFormat::UShort2Norm,
+        .offset = offsetof(CompressedVertex, uv_x) };
+    vertexInput.inputBindings[0].stride = sizeof(CompressedVertex);
+
+    vk::RenderPipelineDesc pipelineDesc{};
+    pipelineDesc.topology = vk::Topology::Triangle;
+    pipelineDesc.vertexInput = vertexInput;
+    pipelineDesc.smVert = m_pointShadowVertShader;
+    pipelineDesc.smFrag = m_pointShadowFragShader;
+    pipelineDesc.color[0].format = vk::Format::R_F16;  // R16F for linear depth
+    pipelineDesc.depthFormat = vk::Format::Z_F32;
+    pipelineDesc.cullMode = vk::CullMode::None;  // Disable culling for shadow pass
+    pipelineDesc.frontFaceWinding = vk::WindingMode::CCW;
+    pipelineDesc.debugName = "PointShadowPipeline";
+
+    m_pointShadowPipeline = ctx.GetvkContext().createRenderPipeline(pipelineDesc);
+}
+
+void SceneRenderFeature::ExecutePointShadowPass(internal::ExecutionContext& ctx, uint32_t shadowLightIndex)
+{
+    const auto& params = *static_cast<const SceneRenderParams*>(GetParameterBlock_RT());
+
+    // Skip if this shadow light index is not active
+    if (shadowLightIndex >= params.shadowPointLightCount)
+        return;
+
+    // Skip if no opaque geometry
+    if (params.opaqueStaticCount == 0)
+        return;
+
+    EnsurePointShadowPipeline(ctx);
+    if (!m_pointShadowPipeline.valid())
+        return;
+
+    auto& cmd = ctx.GetvkCommandBuffer();
+
+
+    // Create a temporary buffer for shadow frame constants
+    // In production, this would be part of the transient resource system
+    vk::BufferHandle pointShadowBuffer = ctx.GetBuffer(Lighting::POINT_SHADOW_BUFFER);
+
+    // Push constants layout matches the shadow vertex/fragment shaders
+    struct ShadowPushConstants {
+        uint64_t shadowFrameConstants;
+        uint64_t transforms;
+        uint64_t drawData;
+        uint64_t unused0;
+        uint64_t meshDecomp;
+        uint64_t unused1;
+        uint64_t unused2;
+        uint64_t unused3;
+    } pushConstants = {
+        .shadowFrameConstants = ctx.GetvkContext().gpuAddress(pointShadowBuffer) + 
+                                shadowLightIndex * sizeof(Lighting::GPUPointLightShadow),
+        .transforms = ctx.GetvkContext().gpuAddress(ctx.GetBuffer("ObjectTransforms")),
+        .drawData = ctx.GetvkContext().gpuAddress(ctx.GetBuffer("DrawDataBuffer")),
+        .unused0 = 0,
+        .meshDecomp = ctx.GetvkContext().gpuAddress(ctx.GetBuffer(RenderResources::MESH_DECOMPRESSION_BUFFER)),
+        .unused1 = 0,
+        .unused2 = 0,
+        .unused3 = 0,
+    };
+
+    cmd.cmdBindRenderPipeline(m_pointShadowPipeline);
+    cmd.cmdBindVertexBuffer(0, ctx.GetBuffer(RenderResources::VERTEX_BUFFER));
+    cmd.cmdBindIndexBuffer(ctx.GetBuffer(RenderResources::INDEX_BUFFER), vk::IndexFormat::UI32);
+    cmd.cmdBindDepthState({.compareOp = vk::CompareOp::Less, .isDepthWriteEnabled = true});
+
+    // Set viewport and scissor for shadow map size
+    vk::Viewport viewport = {
+        .x = 0.0f, .y = 0.0f,
+        .width = static_cast<float>(Lighting::SHADOW_MAP_SIZE),
+        .height = static_cast<float>(Lighting::SHADOW_MAP_SIZE),
+        .minDepth = 0.0f, .maxDepth = 1.0f
+    };
+    vk::ScissorRect scissor = {
+        .x = 0, .y = 0,
+        .width = Lighting::SHADOW_MAP_SIZE,
+        .height = Lighting::SHADOW_MAP_SIZE
+    };
+    cmd.cmdBindViewport(viewport);
+    cmd.cmdBindScissorRect(scissor);
+
+    cmd.cmdPushConstants(pushConstants);
+
+    // Draw all opaque static geometry using indirect draw
+    cmd.cmdDrawIndexedIndirectCount(
+        ctx.GetBuffer("IndirectBufferOpaqueStatic"),
+        sizeof(uint32_t),
+        ctx.GetBuffer("IndirectBufferOpaqueStatic"),
+        0,
+        params.opaqueStaticCount,
+        sizeof(DrawIndexedIndirectCommand));
 }
 
 void SceneRenderFeature::RequestObjectPick(int screenX, int screenY)

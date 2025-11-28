@@ -60,6 +60,10 @@ namespace Lighting
     static constexpr uint32_t MAX_ITEMS_PER_CLUSTER = 256;
     static constexpr uint32_t MAX_TOTAL_ITEMS = 65536;
 
+    // Point light shadow mapping constants
+    static constexpr uint32_t MAX_SHADOW_POINT_LIGHTS = 4;
+    static constexpr uint32_t SHADOW_MAP_SIZE = 1024;
+
     // GPU light structure - 32 bytes aligned
     struct GPULight
     {
@@ -71,6 +75,18 @@ namespace Lighting
         float spotAngle; // Cos of outer cone angle for spots
         // Total: 32 bytes
     };
+
+    // Per-shadow-casting point light data for GPU - 416 bytes
+    struct GPUPointLightShadow
+    {
+        mat4 viewProj[6];      // View-projection matrices for each cube face (384 bytes)
+        vec4 lightPos;         // xyz = position, w = unused (16 bytes)
+        float shadowNear;      // Near plane for shadow projection
+        float shadowFar;       // Far plane for shadow projection  
+        uint32_t shadowMapIndex; // Bindless cube texture index
+        uint32_t lightIndex;   // Index into GPULight array
+    };
+    static_assert(sizeof(GPUPointLightShadow) == 416, "GPUPointLightShadow must be 416 bytes");
 
     // 3D cluster bounds in view space
     struct ClusterBounds
@@ -95,11 +111,13 @@ namespace Lighting
         uint64_t bufferClusterBounds; // ClusterBounds array buffer address
         uint64_t bufferItemList; // Unified item list buffer address
         uint64_t bufferClusters; // Per-cluster offsets/counts
+        uint64_t bufferPointShadows; // GPUPointLightShadow array buffer address
         vec2 screenDims; // Screen dimensions
         float zNear; // Camera near/far planes
         float zFar;
         uint32_t totalLightCount; // Number of active lights
-        uint32_t pad0 = 0, pad1 = 0, pad2 = 0; // Align view matrix
+        uint32_t shadowPointLightCount; // Number of shadow-casting point lights
+        uint32_t pad0 = 0, pad1 = 0; // Align view matrix
         mat4 viewMatrix;
     };
 
@@ -108,6 +126,7 @@ namespace Lighting
     constexpr const char* ITEM_LIST = "ItemList";
     constexpr const char* CLUSTER_DATA = "ClusterData";
     constexpr const char* LIGHTING_BUFFER = "Lighting_Buffer";
+    constexpr const char* POINT_SHADOW_BUFFER = "PointShadowBuffer";
 } // namespace Lighting
 
 struct SceneRenderParams
@@ -165,6 +184,11 @@ struct SceneRenderParams
   std::vector<Lighting::GPULight> lights;
   uint32_t activeLightCount = 0;
 
+  // Point light shadow data
+  std::vector<Lighting::GPUPointLightShadow> pointLightShadows;
+  std::vector<uint32_t> shadowPointLightIndices; // Which lights cast shadows
+  uint32_t shadowPointLightCount = 0;
+
   uint32_t irradianceTexture;
   uint32_t prefilterTexture;
   uint32_t brdfLUT;
@@ -207,6 +231,9 @@ struct SceneRenderParams
     transparentAnimatedCount = 0;
     lights.clear();
     activeLightCount = 0;
+    pointLightShadows.clear();
+    shadowPointLightIndices.clear();
+    shadowPointLightCount = 0;
     boneMatrices.clear();
     morphWeights.clear();
     animatedInstances.clear();
@@ -270,6 +297,10 @@ class SceneRenderFeature final : public RenderFeatureBase<SceneRenderParams>
 
     void ExecuteTransparentPass(internal::ExecutionContext& ctx);
 
+    void ExecutePointShadowPass(internal::ExecutionContext& ctx, uint32_t shadowLightIndex);
+
+    void EnsurePointShadowPipeline(internal::ExecutionContext& ctx);
+
     void executeLightingSetup(internal::ExecutionContext& ctx);
 
     void executeClusterBoundsGeneration(internal::ExecutionContext& ctx);
@@ -317,6 +348,11 @@ class SceneRenderFeature final : public RenderFeatureBase<SceneRenderParams>
     vk::Holder<vk::ShaderModuleHandle> m_depthPrepassVertShader;
     vk::Holder<vk::ShaderModuleHandle> m_depthPrepassSkinnedVertShader;
     vk::Holder<vk::ShaderModuleHandle> m_depthPrepassFragShader;
+
+    // Point light shadow mapping
+    vk::Holder<vk::ShaderModuleHandle> m_pointShadowVertShader;
+    vk::Holder<vk::ShaderModuleHandle> m_pointShadowFragShader;
+    vk::Holder<vk::RenderPipelineHandle> m_pointShadowPipeline;
 
     void EnsureDepthPrepassPipeline(internal::ExecutionContext& ctx);
     void ExecuteDepthPrepass(internal::ExecutionContext& ctx);
