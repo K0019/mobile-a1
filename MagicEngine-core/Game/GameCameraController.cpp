@@ -44,6 +44,7 @@ GameCameraControllerComponent::GameCameraControllerComponent()
 	, maxPitch{ 0.0f }
 	, cameraSensitivity{ 1.0f }
 	, currentCameraDistance{ 5.0f }
+    , currentColliders{}
 {
 }
 
@@ -53,6 +54,7 @@ GameCameraControllerComponent::GameCameraControllerComponent()
 
 void GameCameraControllerComponent::Serialize(Serializer& writer) const
 {
+    IRegisteredComponent::Serialize(writer);
 	writer.Serialize("cameraEntity", cameraEntity);
 	writer.Serialize("playerEntity", playerEntity);
 
@@ -60,10 +62,13 @@ void GameCameraControllerComponent::Serialize(Serializer& writer) const
 	writer.Serialize("minPitch", minPitch);
 		   
 	writer.Serialize("cameraSensitivity", cameraSensitivity);
+
+    writer.Serialize("translucentMaterial", translucentMaterial);
 }
 
 void GameCameraControllerComponent::Deserialize(Deserializer& reader)
 {
+    IRegisteredComponent::Deserialize(reader);
 	reader.Deserialize("cameraEntity", &cameraEntity);
 	reader.Deserialize("playerEntity", &playerEntity);
 
@@ -71,6 +76,8 @@ void GameCameraControllerComponent::Deserialize(Deserializer& reader)
 	reader.DeserializeVar("minPitch", &minPitch);
 
 	reader.DeserializeVar("cameraSensitivity", &cameraSensitivity);
+
+	reader.DeserializeVar("translucentMaterial", &translucentMaterial);
 
 
 	//cameraEntity.Deserialize(reader);
@@ -88,6 +95,15 @@ void GameCameraControllerComponent::EditorDraw()
 	gui::VarInput("Min Pitch", &minPitch);
 
 	gui::VarDrag("Sensitivity", &cameraSensitivity, 0.05f, 0.05f, 1.0f);
+
+    const std::string* materialText{ ST<MagicResourceManager>::Get()->Editor_GetName(translucentMaterial.GetHash()) };
+    gui::TextUnformatted("Material");
+    gui::TextBoxReadOnly("##", materialText ? materialText->c_str() : "");
+    gui::PayloadTarget<size_t>("MATERIAL_HASH", [&](size_t hash) -> void {
+        translucentMaterial = hash;
+        });
+
+
 }
 
 GameCameraControllerSystem::GameCameraControllerSystem()
@@ -153,14 +169,20 @@ void GameCameraControllerSystem::UpdateGameCameraController(GameCameraController
 
     // Fake fading effect on environment objects
     // I don't see a raycast option, so I'm doing a boxcast instead...
-    static std::vector<physics::BoxColliderComp*> previousColliders;
-    std::vector<physics::BoxColliderComp*> currentColliders;
+    std::vector<ecs::EntityHandle> currentColliders;
     //physics::OverlapSphere(currentColliders, playerPos - (forward * 0.5f), Vec3{ 1.0f,1.0f,comp.currentCameraDistance }, Vec3{ pitch, yaw, 0.0f });
     
+    physics::RaycastHit hit;
+
+
+    if (physics::Raycast(playerPos - forward * 0.1f, -forward, hit, comp.currentCameraDistance))
+    {
+        currentColliders.push_back(hit.entityHit);
+    }
 
     // We only want to swap materials that are in either vector. Not both
-    std::vector<physics::BoxColliderComp*> onlyInPrevious;
-    for (auto prevColl : previousColliders)
+    std::vector<ecs::EntityHandle> onlyInPrevious;
+    for (auto prevColl : comp.currentColliders)
     {
         bool matchInBoth = false;
         for (auto coll : currentColliders)
@@ -174,11 +196,11 @@ void GameCameraControllerSystem::UpdateGameCameraController(GameCameraController
         if (!matchInBoth)
             onlyInPrevious.push_back(prevColl);
     }
-    std::vector<physics::BoxColliderComp*> onlyInNext;
+    std::vector<ecs::EntityHandle> onlyInNext;
     for (auto nextColl : currentColliders)
     {
         bool matchInBoth = false;
-        for (auto coll : previousColliders)
+        for (auto coll : comp.currentColliders)
         {
             if (coll == nextColl)
             {
@@ -191,25 +213,40 @@ void GameCameraControllerSystem::UpdateGameCameraController(GameCameraController
     }
 
     // Assign the materials
-    for (auto prevColl : onlyInPrevious)
+    for (auto colliderEntity : onlyInPrevious)
     {
-        ecs::EntityHandle colliderEntity{ ecs::GetEntity(prevColl) };
-        ecs::CompHandle<MaterialSwapperComponent> matSwapComp{ colliderEntity->GetComp<MaterialSwapperComponent>() };
-        if (matSwapComp && !colliderEntity->GetComp<FlashComponent>())
+        if(ecs::IsEntityHandleValid(colliderEntity))
         {
-            matSwapComp->ToggleMaterialSwap(false);
+            ecs::CompHandle<MaterialSwapperComponent> matSwapComp{ colliderEntity->GetComp<MaterialSwapperComponent>() };
+            if (matSwapComp && !colliderEntity->GetComp<FlashComponent>())
+            {
+                matSwapComp->ToggleMaterialSwap(false);
+            }
         }
     }
-    for (auto nextColl : onlyInNext)
+    for (auto colliderEntity : onlyInNext)
     {
-        ecs::EntityHandle colliderEntity{ ecs::GetEntity(nextColl) };
-        ecs::CompHandle<MaterialSwapperComponent> matSwapComp{ colliderEntity->GetComp<MaterialSwapperComponent>() };
-        if (matSwapComp && !colliderEntity->GetComp<FlashComponent>())
+        if (ecs::IsEntityHandleValid(colliderEntity))
         {
-            matSwapComp->ToggleMaterialSwap(true);
+            ecs::CompHandle<MaterialSwapperComponent> matSwapComp{ colliderEntity->GetComp<MaterialSwapperComponent>() };
+
+            if (!matSwapComp && !colliderEntity->GetComp<FlashComponent>())
+            {
+                if (colliderEntity->GetComp<EntityLayerComponent>()->GetLayer() == ENTITY_LAYER::ENVIRONMENT)
+                {
+                    matSwapComp = colliderEntity->AddComp(MaterialSwapperComponent{});
+                    matSwapComp->swapMaterial = comp.translucentMaterial;
+                }
+            }
+
+
+            if (matSwapComp && !colliderEntity->GetComp<FlashComponent>())
+            {
+                matSwapComp->ToggleMaterialSwap(true);
+            }
         }
     }
 
 
-    previousColliders = currentColliders;
+    comp.currentColliders = currentColliders;
 }
