@@ -11,7 +11,6 @@
 #include "Engine/Audio.h"
 #include "Engine/BehaviorTree/BehaviourTree.h"
 #include "Engine/Platform/Android/AndroidInputManager.h"
-#include "Engine/Platform/Android/AndroidUIDeleter.h"
 #include "Engine/EntityLayers.h"
 #include "Engine/NavMesh.h"
 #include "Engine/NavMeshAgent.h"
@@ -33,6 +32,8 @@
 #include "UI/TextComponent.h"
 #include "UI/BarComponent.h"
 #include "UI/HealthBarComponent.h"
+#include "Engine/Platform/Android/AndroidUIDeleter.h"
+#include "Engine/Platform/Desktop/DesktopUIDeleter.h"
 
 void RegisterShit()
 {
@@ -67,4 +68,6 @@ void RegisterShit()
 	IRegisteredComponent<TextComponent>::RegisterComponent();
 	IRegisteredComponent<BarComponent>::RegisterComponent();
 	IRegisteredComponent<HealthBarComponent>::RegisterComponent();
+	IRegisteredComponent<AndroidUIDeleterComp>::RegisterComponent();
+	IRegisteredComponent<DesktopUIDeleterComp>::RegisterComponent();
 }
