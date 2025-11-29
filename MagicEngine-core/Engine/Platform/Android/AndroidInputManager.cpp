@@ -104,6 +104,18 @@ Vec2 AndroidInputComp::PhoneToScreen(Vec2 p) const {
     return p;
 }
 
+Vec2 AndroidInputComp::ScreenToPhone(Vec2 s) const {
+    const float W = (float)Core::Platform::Get().GetDisplay().GetWidth();
+    const float H = (float)Core::Platform::Get().GetDisplay().GetHeight();
+
+    switch (touchRotation) {
+    case TouchRot::Rot0:      return { s.x, s.y };
+    case TouchRot::Rot90CW:   return { s.y, H - s.x };
+    case TouchRot::Rot90CCW:  return { W - s.y, s.x };
+    }
+    return s;
+}
+
 AndroidInputComp::AndroidInputComp()
 {
 }
@@ -126,6 +138,9 @@ void AndroidInputComp::OnStart()
         m_value = Vec2{ 0.f, 0.f };
     }
     m_active = false;
+    auto* tempEntity = ecs::GetEntity(this);
+    m_OriginalWorld = tempEntity->GetTransform().GetWorldPosition();
+
 #if defined(__ANDROID__)
     CONSOLE_LOG(LEVEL_DEBUG) << "OnStart of AndroidInputComp Running";
 #endif
@@ -162,6 +177,8 @@ void AndroidInputComp::Update() {
             // Accept only if starting inside the activation rectangle
             if (inRect(tp, dynZoneMin, dynZoneMax)) {
                 if (AndroidInputBridge::TryCapture(TouchOwner::Joystick)) {
+                    Vec2 phoneVec = ScreenToPhone(tp);
+                    tf.SetWorldPosition(Vec3{ phoneVec.x * 0.85f,phoneVec.y , tf.GetWorldPosition().z }); //abit hack
                     m_anchorWorld = tf.GetWorldPosition();
                     m_center = tp;             // dynamic center under the finger
                     m_active = true;
@@ -254,7 +271,7 @@ void AndroidInputComp::Update() {
 
             if (recenterOnRelease) {
                 // Return to anchor so the object doesn't drift permanently
-                tf.SetWorldPosition(m_anchorWorld); // snap back
+                tf.SetWorldPosition(m_OriginalWorld); // snap back
             }
             // Give up exclusive ownership so camera/UI can use the next touch
             AndroidInputBridge::Release(TouchOwner::Joystick);

@@ -50,8 +50,11 @@ public:
     bool  dynamicCenter = true;                 // if true, first press can re-center joystick at touch
 
     // Touch must begin inside this rect to activate/capture the joystick (when dynamicCenter=true).
-    Vec2  dynZoneMin{ 120.f, 150.f };           
-    Vec2  dynZoneMax{ 350.f, 300.f };           
+    //Vec2  dynZoneMin{ 20.f, 450.f };   // left for X, top for Y        
+    //Vec2  dynZoneMax{ 550.f, 1000.f }; // right for X , bottom for Y  
+    Vec2  dynZoneMin{ 15.f, 20.0f };   // left for X, top for Y        
+    Vec2  dynZoneMax{ 500.f, 820.0f }; // right for X , bottom for Y  
+
     float radiusScale = 1.0f;        // global scale multiplier applied to baseRadius
     float captureRadiusMul = 1.0f;   // capture circle size, in multiples of EffectiveRadius()
     float dirDead = 0.30f;           // normalized threshold for mapping to W/A/S/D labels
@@ -71,6 +74,8 @@ public:
     bool  m_captured = false;        // true if press began within “capture” region
     std::string m_prevDir;           // last printed label ("W","WA",...)
     Vec3  m_anchorWorld{ 0.f, 0.f, 0.f };  // cached at press
+    Vec3  m_OriginalWorld{ 0.f, 0.f, 0.f };  // cached at press
+
     //==================================================================================
 
     //Joystick vector in normalized units; length in [0..1]
@@ -156,6 +161,8 @@ private:
     *//******************************************************************/
     Vec2 PhoneToScreen(Vec2 p) const;
     //==================================================================================
+
+    Vec2 ScreenToPhone(Vec2 s) const;
 
 };
 
