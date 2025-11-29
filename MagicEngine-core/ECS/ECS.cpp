@@ -417,7 +417,7 @@ namespace ecs {
 		internal::CurrentPool::DeletePool(static_cast<int>(id));
 	}
 
-	EntityHandle CloneEntityToPoolNow(EntityHandle entity, POOL id, bool recursive)
+	EntityHandle CloneEntityToPool(EntityHandle entity, POOL id, bool recursive)
 	{
 		// Create a new entity in the destination pool
 		POOL currID{ GetCurrentPoolId() };
@@ -428,10 +428,10 @@ namespace ecs {
 		entityClone->GetTransform().SetWorld(entity->GetTransform());
 
 		// Clone components
-		reinterpret_cast<internal::InternalEntityHandle>(entity)->INTERNAL_CloneCompsToEntityNow(
+		reinterpret_cast<internal::InternalEntityHandle>(entity)->INTERNAL_CloneCompsToEntity(
 			reinterpret_cast<internal::InternalEntityHandle>(entityClone),
 			internal::CurrentPool::Comps(static_cast<int>(currID)),
-			internal::CurrentPool::Comps() // current pool's component array
+			internal::CurrentPool::ChangesBuffer().GetCompsToAdd() // current pool's comp changes array
 		);
 
 		// Clone child entities
@@ -439,11 +439,10 @@ namespace ecs {
 		{
 			SwitchToPool(currID);
 			for (Transform* childTransform : entity->GetTransform().GetChildren())
-				CloneEntityToPoolNow(childTransform->GetEntity(), id, recursive)->GetTransform().SetParent(entityClone->GetTransform());
+				CloneEntityToPool(childTransform->GetEntity(), id, recursive)->GetTransform().SetParent(entityClone->GetTransform());
 			SwitchToPool(id);
 		}
 
-		internal::CurrentPool::ChangesBuffer().FlushComponentCallbacks();
 		BroadcastEntityCreated(entityClone);
 		SwitchToPool(currID);
 		return entityClone;

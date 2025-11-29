@@ -46,11 +46,12 @@ function OnHealthDepleted()
         bbtTransform.worldPosition = spawnPos;
 
         -- Add a random kick to the boba
-        local physicsComp = newBBT:GetPhysicsComp();
-        if physicsComp:Exists() then
-            local randomVelocity = Magic.Random.RangeVec3(minRandomVelocity,maxRandomVelocity)
-            physicsComp:AddLinearVelocity(randomVelocity)
-        end
+        -- Note by Kendrick: PhysicsComp depends on JoltBodyComp which doesn't exist yet. Can't fix easily so will disable for now
+        -- local physicsComp = newBBT:GetPhysicsComp();
+        -- if physicsComp:Exists() then
+        --     local randomVelocity = Magic.Random.RangeVec3(minRandomVelocity,maxRandomVelocity)
+        --     physicsComp:AddLinearVelocity(randomVelocity)
+        -- end
 
     end
 end
