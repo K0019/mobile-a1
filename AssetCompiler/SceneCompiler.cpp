@@ -348,15 +348,12 @@ namespace compiler
         {
             compiler::TextureCompiler texCompiler;
 
-            int i = 0;
-
             for (const auto& [key, source] : uniqueTextureSources)
             {
                 CompilerOptions texOpts = options;
 
                 EmbeddedTextureSource embdeddedSource = std::get<EmbeddedTextureSource>(source);
 
-                bool success = false;
                 std::string textureFilename;
 
                 // Fix internal texture name (the name inside the glb file)
@@ -891,7 +888,7 @@ namespace compiler
             header.morphIndexDataOffset = currentOffset;
             currentOffset += morphIndexBuffer.size() * sizeof(uint32_t);
 
-            header.morphWeightDataBufferSize = morphWeightBuffer.size() * sizeof(float);
+            header.morphWeightDataBufferSize = static_cast<uint32_t>(morphWeightBuffer.size() * sizeof(float));
             header.morphWeightDataOffset = currentOffset;
             currentOffset += morphWeightBuffer.size() * sizeof(float);
 

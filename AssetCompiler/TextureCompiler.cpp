@@ -208,7 +208,7 @@ namespace compiler
 
     bool TextureCompiler::LoadSourceTextureFromMemory(const EmbeddedTextureSource& source, CMP_Texture& outTex)
     {
-        int w, h, comp;
+        int w{}, h{}, comp{};
         unsigned char* pixels = nullptr;
 
         if (source.compressedData)

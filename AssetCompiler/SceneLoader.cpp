@@ -150,7 +150,7 @@ namespace compiler
                 // If bone is not in our map yet, add it
                 if (outScene.skeleton.boneNameToIndex.find(boneName) == outScene.skeleton.boneNameToIndex.end())
                 {
-                    uint32_t index = outScene.skeleton.bones.size();
+                    uint32_t index = static_cast<uint32_t>(outScene.skeleton.bones.size());
                     outScene.skeleton.boneNameToIndex[boneName] = index;
 
                     ProcessedBone bone;
@@ -335,7 +335,7 @@ namespace compiler
         if (pathStr.rfind('*', 0) == 0)
         {
             int textureIndex = std::stoi(pathStr.substr(1));
-            if (textureIndex < 0 || textureIndex >= scene->mNumTextures)
+            if (textureIndex < 0 || static_cast<unsigned int>(textureIndex) >= scene->mNumTextures)
             {
                 outSlot.texturePaths[key] = std::monostate{};
                 return false;
@@ -687,7 +687,7 @@ namespace compiler
                 target.name = aiAnimMesh->mName.length > 0 ? aiAnimMesh->mName.C_Str() : ("Morph_" + std::to_string(targetIdx));
                 target.deltas.resize(vertexCount);
 
-                const uint32_t limit = std::min<uint32_t>(vertexCount, aiAnimMesh->mNumVertices);
+                const uint32_t limit = std::min<uint32_t>(static_cast<uint32_t>(vertexCount), aiAnimMesh->mNumVertices);
                 for (uint32_t v = 0; v < limit; ++v)
                 {
                     auto& delta = target.deltas[v];
