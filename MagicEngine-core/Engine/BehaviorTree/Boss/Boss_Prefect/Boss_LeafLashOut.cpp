@@ -4,6 +4,7 @@
 #include "Game/Character.h"
 #include "Game/Health.h"
 #include "Boss_Prefect_Util.h"
+#include "Graphics/AnimationComponent.h"
 
 float L_Boss_Prefect_LashOut::attackCooldown = 3.0f;
 float L_Boss_Prefect_LashOut::attackDelay = 3.0f;
@@ -20,43 +21,50 @@ void L_Boss_Prefect_LashOut::OnInitialize()
 
 NODE_STATUS L_Boss_Prefect_LashOut::OnUpdate([[maybe_unused]] ecs::EntityHandle entity)
 {
-    if (auto characterComp{ entity->GetComp<CharacterMovementComponent>() })
-    {
-        characterComp->SetSpeedMultiplier(speedMultiplier);
+    //if (auto characterComp{ entity->GetComp<CharacterMovementComponent>() })
+    //{
+        //characterComp->SetSpeedMultiplier(speedMultiplier);
         if (auto enemyComp{ entity->GetComp<EnemyComponent>() })
         {
             Vec2 dir = Boss_Prefect_Util::GetMovementTowards(entity->GetTransform().GetWorldPosition(), enemyComp->playerReference->GetTransform().GetWorldPosition());
-
+            Boss_Prefect_Util::RotateTowards(entity, dir);
 
             if (dir.LengthSqr() <= attackDistance)
             {
                 if (currentAttackDelay <= 0.0f)
                 {
-                    characterComp->Attack();
+                    //characterComp->Attack();
                     currentAttackCooldown = attackCooldown;
 
                     --currentAttackCount;
                     if (currentAttackCount == 0)
                     {
-                        characterComp->ResetSpeedMultiplier();
+                        //characterComp->ResetSpeedMultiplier();
                         return NODE_STATUS::SUCCESS;
                     }
                 }
                 currentAttackDelay -= GameTime::Dt();
 
                 // Stop moving, it gives the player *some* time to get in a hit / ESCAPE
-                characterComp->SetMovementVector(Vec2{ 0.0f });
+				Boss_Prefect_Util::MoveInDirection(entity, Vec3{ dir.x, 0.0f, dir.y });
+                //characterComp->SetMovementVector(Vec2{ 0.0f });
+                auto animComp = entity->GetComp<AnimationComponent>();
+                if (animComp)
+                {
+                    animComp->TransitionTo(5858584981951944119, 0.1f);
+                    animComp->timeA = 0.0f;
+                }
             }
             else
             {
                 if (currentAttackCooldown <= 0.0f)
                 {
-                    characterComp->SetMovementVector(dir);
+                    //characterComp->SetMovementVector(dir);
                 }
             }
 
             currentAttackCooldown -= GameTime::Dt();
         }
-    }
+    //}
     return NODE_STATUS::RUNNING;
 }

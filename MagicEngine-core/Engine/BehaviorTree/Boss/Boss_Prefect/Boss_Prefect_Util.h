@@ -68,7 +68,7 @@ public:
 
 	static void MoveInDirection(ecs::EntityHandle entity, Vec3 direction)
 	{
-		entity->GetTransform().AddWorldPosition(direction);
+		entity->GetTransform().AddWorldPosition(direction * GameTime::Dt());
 	}
 	static void RotateTowards(ecs::EntityHandle entity, Vec2 direction)
 	{
@@ -76,7 +76,7 @@ public:
 
 		Vec3 currentRotation = characterTransform.GetWorldRotation();
 
-		float targetAngle = math::ToDegrees(atan2(-direction.y, direction.x)) + 90;
+		float targetAngle = math::ToDegrees(atan2(-direction.y, direction.x)) + 45.f;
 		float newAngle = math::MoveTowardsAngle(currentRotation.y, targetAngle, rotateSpeed * GameTime::Dt());
 		currentRotation.y = newAngle;
 
