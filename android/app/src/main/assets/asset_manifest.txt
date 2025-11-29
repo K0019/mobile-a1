@@ -2,42 +2,70 @@ assets.json
 icon_game.png
 settings.json
 userassembly.csproj
-behaviourtrees/enemybase.json
+behaviourtrees/boss_prefect1.json
+behaviourtrees/enemy_female.json
+behaviourtrees/enemy_male.json
 behaviourtrees/followplayerusingnavmesh.json
 behaviourtrees/movetest.json
 behaviourtrees/newtest.json
 behaviourtrees/testclick.json
 behaviourtrees/testnestednewtree.json
+behaviourtrees/wackyinstakilling.json
 compiledassets/aji.mesh
 compiledassets/ambulance.mesh
+compiledassets/boss_top.ktx2
 compiledassets/box.mesh
 compiledassets/cesiumman.mesh
 compiledassets/chair.mesh
 compiledassets/classroom_level2.mesh
 compiledassets/cone.mesh
+compiledassets/controls button.ktx2
+compiledassets/controls.ktx2
+compiledassets/corridor.mesh
+compiledassets/corridor_bridge.mesh
 compiledassets/corridor_level2.mesh
+compiledassets/delusion meter fill.ktx2
 compiledassets/deskplain.mesh
 compiledassets/desktextured.mesh
+compiledassets/dodge icon.ktx2
 compiledassets/door_classroom.mesh
 compiledassets/door_classroom_tex.mesh
 compiledassets/dugout.mesh
 compiledassets/enemy_female.mesh
 compiledassets/enemy_male.mesh
+compiledassets/exit button.ktx2
 compiledassets/fence.mesh
 compiledassets/field.mesh
 compiledassets/floor.mesh
 compiledassets/floor_tex.mesh
 compiledassets/garbage-truck.mesh
 compiledassets/hatchback-sports.mesh
+compiledassets/interact icon.ktx2
+compiledassets/itempickupui_bloodcalibur.ktx2
+compiledassets/itempickupui_katar.ktx2
+compiledassets/light attack icon.ktx2
 compiledassets/lights.mesh
 compiledassets/locker.mesh
+compiledassets/main menu bg.ktx2
+compiledassets/main menu header.ktx2
 compiledassets/outdoor bleachers.mesh
+compiledassets/player health and delusion meter.ktx2
+compiledassets/player health bg.ktx2
+compiledassets/player health fill.ktx2
 compiledassets/player_idle_mixamo.mesh
 compiledassets/player_punching_mixamo.mesh
 compiledassets/player_running_mixamo.mesh
+compiledassets/ranka+.ktx2
+compiledassets/ranka.ktx2
+compiledassets/rankb.ktx2
+compiledassets/rankc.ktx2
+compiledassets/rankd.ktx2
+compiledassets/rankf.ktx2
 compiledassets/sedan.mesh
 compiledassets/shelf.mesh
 compiledassets/shelf_small.mesh
+compiledassets/stairs_left.mesh
+compiledassets/start button.ktx2
 compiledassets/storage room.mesh
 compiledassets/sword_prototype.mesh
 compiledassets/table.mesh
@@ -48,6 +76,13 @@ compiledassets/wall_doors.mesh
 compiledassets/wall_doors_tex.mesh
 compiledassets/wall_window.mesh
 compiledassets/wall_window_tex.mesh
+compiledassets/white.ktx2
+compiledassets/fbxcars/unitsphere/concrete.material
+compiledassets/fbxcars/unitsphere/defaultmaterial.material
+compiledassets/fbxcars/unitsphere/standardsurface1_1012.material
+compiledassets/fbxcars/unitsphere/unitsphere.mesh
+compiledassets/fbxcars/unitsphere/wall_1011.material
+compiledassets/materials/boss_top_prefect.material
 compiledassets/materials/cesium_man-effect.material
 compiledassets/materials/circlewing_lambert.material
 compiledassets/materials/colormap.material
@@ -162,6 +197,7 @@ compiledassets/materials/n00_010_01_onepiece_00_cloth_02_(instance).material
 compiledassets/materials/n00_010_01_onepiece_00_cloth_02__instance_.001.material
 compiledassets/materials/n00_010_01_onepiece_00_cloth_02__instance_.material
 compiledassets/materials/openpbr_shader1.material
+compiledassets/materials/red.material
 compiledassets/materials/spike_lambert.material
 compiledassets/materials/standardsurface1.001.material
 compiledassets/materials/standardsurface1.material
@@ -171,38 +207,300 @@ compiledassets/materials/standardsurface1_1002.material
 compiledassets/materials/standardsurface1_1011.material
 compiledassets/materials/standardsurface1_1012.material
 compiledassets/materials/standardsurface1_1013.material
+compiledassets/materials/translucent.material
 compiledassets/materials/transparent_1001.material
 compiledassets/materials/transparent_1002.material
+compiledassets/materials/ui_pickup_bloodcalibur.material
+compiledassets/materials/ui_pickup_katar.material
+compiledassets/materials/wall_1011.material
 compiledassets/materials/wall_1012.material
 compiledassets/materials/wall_1013.material
 compiledassets/materials/wood.material
 compiledassets/materials/wooddark.material
 compiledassets/materials/woodlight.material
 compiledassets/meshanimations/cesiummananim_0.anim
-compiledassets/meshanimations/player_idle_mixamodamagetaken_mixamo.anim
-compiledassets/meshanimations/player_idle_mixamoplayer_blocking_mixamo.anim
-compiledassets/meshanimations/player_idle_mixamoplayer_crecent kick_mixamo.anim
-compiledassets/meshanimations/player_idle_mixamoplayer_dodge_mixamo.anim
-compiledassets/meshanimations/player_idle_mixamoplayer_idle_mixamo.anim
-compiledassets/meshanimations/player_idle_mixamoplayer_jump_miaxmo.anim
-compiledassets/meshanimations/player_idle_mixamoplayer_katar atk 1.anim
-compiledassets/meshanimations/player_idle_mixamoplayer_katar atk 2.anim
-compiledassets/meshanimations/player_idle_mixamoplayer_katar atk 3.anim
-compiledassets/meshanimations/player_idle_mixamoplayer_katar_ult.anim
-compiledassets/meshanimations/player_idle_mixamoplayer_martellokick_mixamo.anim
-compiledassets/meshanimations/player_idle_mixamoplayer_punch 2_mixamo.anim
-compiledassets/meshanimations/player_idle_mixamoplayer_punching_mixamo.anim
-compiledassets/meshanimations/player_idle_mixamoplayer_running_mixamo.anim
-compiledassets/meshanimations/player_idle_mixamoplayer_stomp_miaxmo.anim
-compiledassets/meshanimations/player_idle_mixamoplayer_sword ulti_.anim
-compiledassets/meshanimations/player_idle_mixamoplayer_throw_mixamo.anim
-compiledassets/meshanimations/player_idle_mixamoplayer_weapon atk 1_mixamo.anim
-compiledassets/meshanimations/player_idle_mixamoplayer_weapon atk 2_mixamo.anim
-compiledassets/meshanimations/player_idle_mixamoplayer_weapon atk 3_mixamo.anim
-compiledassets/meshanimations/player_punching_mixamoplayer_punching_mixamo.001.anim
-compiledassets/meshanimations/player_punching_mixamoplayer_punching_mixamo.anim
-compiledassets/meshanimations/player_running_mixamoplayer_running_mixamo.001.anim
-compiledassets/meshanimations/player_running_mixamoplayer_running_mixamo.anim
+compiledassets/models/glb/aji/player_idle_mixamo/_01.ktx2
+compiledassets/models/glb/aji/player_idle_mixamo/_02.ktx2
+compiledassets/models/glb/aji/player_idle_mixamo/_03.ktx2
+compiledassets/models/glb/aji/player_idle_mixamo/_04.ktx2
+compiledassets/models/glb/aji/player_idle_mixamo/_05.normal.ktx2
+compiledassets/models/glb/aji/player_idle_mixamo/_06.ktx2
+compiledassets/models/glb/aji/player_idle_mixamo/_07.ktx2
+compiledassets/models/glb/aji/player_idle_mixamo/_09.ktx2
+compiledassets/models/glb/aji/player_idle_mixamo/_10.ktx2
+compiledassets/models/glb/aji/player_idle_mixamo/_11.normal.ktx2
+compiledassets/models/glb/aji/player_idle_mixamo/_12.ktx2
+compiledassets/models/glb/aji/player_idle_mixamo/_13.ktx2
+compiledassets/models/glb/aji/player_idle_mixamo/_14.ktx2
+compiledassets/models/glb/aji/player_idle_mixamo/_15.ktx2
+compiledassets/models/glb/aji/player_idle_mixamo/_16.ktx2
+compiledassets/models/glb/aji/player_idle_mixamo/_17.ktx2
+compiledassets/models/glb/aji/player_idle_mixamo/_18.ktx2
+compiledassets/models/glb/aji/player_idle_mixamo/_19.ktx2
+compiledassets/models/glb/aji/player_idle_mixamo/_20.ktx2
+compiledassets/models/glb/aji/player_idle_mixamo/_21.ktx2
+compiledassets/models/glb/aji/player_idle_mixamo/_22.ktx2
+compiledassets/models/glb/aji/player_idle_mixamo/_23.ktx2
+compiledassets/models/glb/aji/player_idle_mixamo/_24.ktx2
+compiledassets/models/glb/aji/player_idle_mixamo/_25.ktx2
+compiledassets/models/glb/aji/player_idle_mixamo/material_21.material
+compiledassets/models/glb/aji/player_idle_mixamo/n00_000_00_body_00_skin__instance_.material
+compiledassets/models/glb/aji/player_idle_mixamo/n00_000_00_eyehighlight_00_eye__instance_.material
+compiledassets/models/glb/aji/player_idle_mixamo/n00_000_00_eyeiris_00_eye__instance_.material
+compiledassets/models/glb/aji/player_idle_mixamo/n00_000_00_eyewhite_00_eye__instance_.material
+compiledassets/models/glb/aji/player_idle_mixamo/n00_000_00_face_00_skin__instance_.material
+compiledassets/models/glb/aji/player_idle_mixamo/n00_000_00_facebrow_00_face__instance_.material
+compiledassets/models/glb/aji/player_idle_mixamo/n00_000_00_faceeyeline_00_face__instance_.material
+compiledassets/models/glb/aji/player_idle_mixamo/n00_000_00_facemouth_00_face__instance_.material
+compiledassets/models/glb/aji/player_idle_mixamo/n00_000_00_hairback_00_hair__instance_.material
+compiledassets/models/glb/aji/player_idle_mixamo/n00_000_00_hairback_00_nml.normal.ktx2
+compiledassets/models/glb/aji/player_idle_mixamo/n00_000_hair_00_hair__instance_.material
+compiledassets/models/glb/aji/player_idle_mixamo/n00_000_hair_00_nml.normal.ktx2
+compiledassets/models/glb/aji/player_idle_mixamo/n00_002_03_tops_01_cloth_01__instance_.material
+compiledassets/models/glb/aji/player_idle_mixamo/n00_002_03_tops_01_cloth_02__instance_.material
+compiledassets/models/glb/aji/player_idle_mixamo/n00_002_03_tops_01_cloth_03__instance_.material
+compiledassets/models/glb/aji/player_idle_mixamo/n00_002_03_tops_01_cloth_04__instance_.material
+compiledassets/models/glb/aji/player_idle_mixamo/n00_002_03_tops_01_cloth_05__instance_.material
+compiledassets/models/glb/aji/player_idle_mixamo/n00_007_01_tops_01_cloth_01__instance_.material
+compiledassets/models/glb/aji/player_idle_mixamo/n00_007_01_tops_01_cloth_02__instance_.material
+compiledassets/models/glb/aji/player_idle_mixamo/n00_008_01_shoes_01_cloth_01__instance_.material
+compiledassets/models/glb/aji/player_idle_mixamo/n00_008_01_shoes_01_cloth_02__instance_.material
+compiledassets/models/glb/aji/player_idle_mixamo/n00_010_01_onepiece_00_cloth_01__instance_.material
+compiledassets/models/glb/aji/player_idle_mixamo/n00_010_01_onepiece_00_cloth_02__instance_.material
+compiledassets/models/glb/aji/player_idle_mixamo/player_idle_mixamo.mesh
+compiledassets/models/glb/aji/player_idle_mixamo/player_idle_mixamodamagetaken_mixamo.anim
+compiledassets/models/glb/aji/player_idle_mixamo/player_idle_mixamoplayer_blocking_mixamo.anim
+compiledassets/models/glb/aji/player_idle_mixamo/player_idle_mixamoplayer_crecent kick_mixamo.anim
+compiledassets/models/glb/aji/player_idle_mixamo/player_idle_mixamoplayer_dodge_mixamo.anim
+compiledassets/models/glb/aji/player_idle_mixamo/player_idle_mixamoplayer_idle_mixamo.anim
+compiledassets/models/glb/aji/player_idle_mixamo/player_idle_mixamoplayer_jump_miaxmo.anim
+compiledassets/models/glb/aji/player_idle_mixamo/player_idle_mixamoplayer_katar atk 1.anim
+compiledassets/models/glb/aji/player_idle_mixamo/player_idle_mixamoplayer_katar atk 2.anim
+compiledassets/models/glb/aji/player_idle_mixamo/player_idle_mixamoplayer_katar atk 3.anim
+compiledassets/models/glb/aji/player_idle_mixamo/player_idle_mixamoplayer_katar_ult.anim
+compiledassets/models/glb/aji/player_idle_mixamo/player_idle_mixamoplayer_martellokick_mixamo.anim
+compiledassets/models/glb/aji/player_idle_mixamo/player_idle_mixamoplayer_punch 2_mixamo.anim
+compiledassets/models/glb/aji/player_idle_mixamo/player_idle_mixamoplayer_punching_mixamo.anim
+compiledassets/models/glb/aji/player_idle_mixamo/player_idle_mixamoplayer_running_mixamo.anim
+compiledassets/models/glb/aji/player_idle_mixamo/player_idle_mixamoplayer_stomp_miaxmo.anim
+compiledassets/models/glb/aji/player_idle_mixamo/player_idle_mixamoplayer_sword ulti_.anim
+compiledassets/models/glb/aji/player_idle_mixamo/player_idle_mixamoplayer_throw_mixamo.anim
+compiledassets/models/glb/aji/player_idle_mixamo/player_idle_mixamoplayer_weapon atk 1_mixamo.anim
+compiledassets/models/glb/aji/player_idle_mixamo/player_idle_mixamoplayer_weapon atk 2_mixamo.anim
+compiledassets/models/glb/aji/player_idle_mixamo/player_idle_mixamoplayer_weapon atk 3_mixamo.anim
+compiledassets/models/glb/aji/player_idle_mixamo/shader_noneblack.ktx2
+compiledassets/models/glb/aji/player_idle_mixamo/shader_nonenormal.normal.ktx2
+compiledassets/models/glb/baseball_field/field/field.mesh
+compiledassets/models/glb/baseball_field/field/grass.material
+compiledassets/models/glb/baseball_field/field/image_0.ktx2
+compiledassets/models/glb/baseball_field/field/image_1.ktx2
+compiledassets/models/glb/baseball_field/field/image_2.ktx2
+compiledassets/models/glb/baseball_field/field/material_1.material
+compiledassets/models/glb/debug/unitsphere/material_0.material
+compiledassets/models/glb/debug/unitsphere/unitsphere.mesh
+compiledassets/models/glb/enemy_female_animated/_01.ktx2
+compiledassets/models/glb/enemy_female_animated/_02.ktx2
+compiledassets/models/glb/enemy_female_animated/_03.ktx2
+compiledassets/models/glb/enemy_female_animated/_04.ktx2
+compiledassets/models/glb/enemy_female_animated/_05.ktx2
+compiledassets/models/glb/enemy_female_animated/_06.ktx2
+compiledassets/models/glb/enemy_female_animated/_07.ktx2
+compiledassets/models/glb/enemy_female_animated/_08.ktx2
+compiledassets/models/glb/enemy_female_animated/_09.ktx2
+compiledassets/models/glb/enemy_female_animated/_10.ktx2
+compiledassets/models/glb/enemy_female_animated/_11.ktx2
+compiledassets/models/glb/enemy_female_animated/_12.ktx2
+compiledassets/models/glb/enemy_female_animated/_13.ktx2
+compiledassets/models/glb/enemy_female_animated/_14.ktx2
+compiledassets/models/glb/enemy_female_animated/_15.ktx2
+compiledassets/models/glb/enemy_female_animated/_16.ktx2
+compiledassets/models/glb/enemy_female_animated/_17.ktx2
+compiledassets/models/glb/enemy_female_animated/_18.ktx2
+compiledassets/models/glb/enemy_female_animated/enemy_female_animated.mesh
+compiledassets/models/glb/enemy_female_animated/enemy_female_animatedidle.anim
+compiledassets/models/glb/enemy_female_animated/enemy_female_animatedt-pose.anim
+compiledassets/models/glb/enemy_female_animated/enemy_female_animatedthrow.anim
+compiledassets/models/glb/enemy_female_animated/enemy_female_animatedwalk.anim
+compiledassets/models/glb/enemy_female_animated/material_15.material
+compiledassets/models/glb/enemy_female_animated/n00_000_00_body_00_skin (instance).material
+compiledassets/models/glb/enemy_female_animated/n00_000_00_eyehighlight_00_eye (instance).material
+compiledassets/models/glb/enemy_female_animated/n00_000_00_eyeiris_00_eye (instance).material
+compiledassets/models/glb/enemy_female_animated/n00_000_00_eyewhite_00_eye (instance).material
+compiledassets/models/glb/enemy_female_animated/n00_000_00_face_00_skin (instance).material
+compiledassets/models/glb/enemy_female_animated/n00_000_00_facebrow_00_face (instance).material
+compiledassets/models/glb/enemy_female_animated/n00_000_00_faceeyelash_00_face (instance).material
+compiledassets/models/glb/enemy_female_animated/n00_000_00_faceeyeline_00_face (instance).material
+compiledassets/models/glb/enemy_female_animated/n00_000_00_facemouth_00_face (instance).material
+compiledassets/models/glb/enemy_female_animated/n00_000_00_hairback_00_hair (instance).material
+compiledassets/models/glb/enemy_female_animated/n00_000_00_hairback_00_nml.ktx2
+compiledassets/models/glb/enemy_female_animated/n00_000_hair_00_hair (instance).material
+compiledassets/models/glb/enemy_female_animated/n00_000_hair_00_nml.ktx2
+compiledassets/models/glb/enemy_female_animated/n00_001_01_shoes_01_cloth (instance).material
+compiledassets/models/glb/enemy_female_animated/n00_001_02_accessory_tie_01_cloth (instance).material
+compiledassets/models/glb/enemy_female_animated/n00_001_03_bottoms_01_cloth (instance).material
+compiledassets/models/glb/enemy_female_animated/n00_007_02_tops_01_cloth (instance).material
+compiledassets/models/glb/enemy_female_animated/shader_noneblack.ktx2
+compiledassets/models/glb/enemy_female_animated/shader_nonenormal.ktx2
+compiledassets/models/glb/enemy_male_animated/_01.ktx2
+compiledassets/models/glb/enemy_male_animated/_02.ktx2
+compiledassets/models/glb/enemy_male_animated/_03.ktx2
+compiledassets/models/glb/enemy_male_animated/_04.ktx2
+compiledassets/models/glb/enemy_male_animated/_05.ktx2
+compiledassets/models/glb/enemy_male_animated/_06.ktx2
+compiledassets/models/glb/enemy_male_animated/_07.ktx2
+compiledassets/models/glb/enemy_male_animated/_09.ktx2
+compiledassets/models/glb/enemy_male_animated/_10.ktx2
+compiledassets/models/glb/enemy_male_animated/_11.ktx2
+compiledassets/models/glb/enemy_male_animated/_12.ktx2
+compiledassets/models/glb/enemy_male_animated/_13.ktx2
+compiledassets/models/glb/enemy_male_animated/_14.ktx2
+compiledassets/models/glb/enemy_male_animated/_15.ktx2
+compiledassets/models/glb/enemy_male_animated/_16.ktx2
+compiledassets/models/glb/enemy_male_animated/_17.ktx2
+compiledassets/models/glb/enemy_male_animated/_18.ktx2
+compiledassets/models/glb/enemy_male_animated/_19.ktx2
+compiledassets/models/glb/enemy_male_animated/enemy_male_animated.mesh
+compiledassets/models/glb/enemy_male_animated/enemy_male_animatedattack.anim
+compiledassets/models/glb/enemy_male_animated/enemy_male_animateddefense.anim
+compiledassets/models/glb/enemy_male_animated/enemy_male_animatedgroundstrike.anim
+compiledassets/models/glb/enemy_male_animated/enemy_male_animatedhurt.anim
+compiledassets/models/glb/enemy_male_animated/enemy_male_animatedidle.anim
+compiledassets/models/glb/enemy_male_animated/enemy_male_animatedlashout.anim
+compiledassets/models/glb/enemy_male_animated/enemy_male_animatedlunge follow up.anim
+compiledassets/models/glb/enemy_male_animated/enemy_male_animatedlunge.anim
+compiledassets/models/glb/enemy_male_animated/enemy_male_animatedrange multi attack.anim
+compiledassets/models/glb/enemy_male_animated/enemy_male_animatedrange single  attack.anim
+compiledassets/models/glb/enemy_male_animated/enemy_male_animatedt-pose.001.anim
+compiledassets/models/glb/enemy_male_animated/enemy_male_animatedt-pose.anim
+compiledassets/models/glb/enemy_male_animated/enemy_male_animatedwalk.anim
+compiledassets/models/glb/enemy_male_animated/material_15.material
+compiledassets/models/glb/enemy_male_animated/n00_000_00_body_00_skin (instance).material
+compiledassets/models/glb/enemy_male_animated/n00_000_00_eyehighlight_00_eye (instance).material
+compiledassets/models/glb/enemy_male_animated/n00_000_00_eyeiris_00_eye (instance).material
+compiledassets/models/glb/enemy_male_animated/n00_000_00_eyewhite_00_eye (instance).material
+compiledassets/models/glb/enemy_male_animated/n00_000_00_face_00_skin (instance).material
+compiledassets/models/glb/enemy_male_animated/n00_000_00_facebrow_00_face (instance).material
+compiledassets/models/glb/enemy_male_animated/n00_000_00_faceeyeline_00_face (instance).material
+compiledassets/models/glb/enemy_male_animated/n00_000_00_facemouth_00_face (instance).material
+compiledassets/models/glb/enemy_male_animated/n00_000_00_hairback_00_hair (instance).material
+compiledassets/models/glb/enemy_male_animated/n00_000_00_hairback_00_nml.ktx2
+compiledassets/models/glb/enemy_male_animated/n00_000_hair_00_hair (instance).material
+compiledassets/models/glb/enemy_male_animated/n00_000_hair_00_nml.ktx2
+compiledassets/models/glb/enemy_male_animated/n00_001_01_bottoms_01_cloth (instance).material
+compiledassets/models/glb/enemy_male_animated/n00_001_01_shoes_01_cloth (instance).material
+compiledassets/models/glb/enemy_male_animated/n00_001_01_tops_01_cloth (instance).material
+compiledassets/models/glb/enemy_male_animated/n00_010_01_onepiece_00_cloth_01 (instance).material
+compiledassets/models/glb/enemy_male_animated/n00_010_01_onepiece_00_cloth_02 (instance).material
+compiledassets/models/glb/enemy_male_animated/shader_noneblack.ktx2
+compiledassets/models/glb/enemy_male_animated/shader_nonenormal.ktx2
+compiledassets/models/glb/items/bbt/bbt.mesh
+compiledassets/models/glb/items/bbt/fake_boba.ktx2
+compiledassets/models/glb/items/bbt/fakeboba.material
+compiledassets/models/glb/items/bbt/lambert3.material
+compiledassets/models/glb/items/bbt/lambert5.material
+compiledassets/models/glb/items/bbt/material_4.material
+compiledassets/models/glb/items/bbt/straw.material
+compiledassets/models/glb/items/bookingslip/bookingslip.ktx2
+compiledassets/models/glb/items/bookingslip/bookingslip.mesh
+compiledassets/models/glb/items/bookingslip/bookingslip_1001.material
+compiledassets/models/glb/items/bookingslip/image_0.ktx2
+compiledassets/models/glb/items/bookingslip/image_1.ktx2
+compiledassets/models/glb/items/bookingslip/image_2.ktx2
+compiledassets/models/glb/items/bookingslip/material_1.material
+compiledassets/models/glb/items/bookingslip/paper.material
+compiledassets/models/glb/items/katar/blinn1.material
+compiledassets/models/glb/items/katar/katar.mesh
+compiledassets/models/glb/items/katar/lambert9.material
+compiledassets/models/glb/items/katar/material_4.material
+compiledassets/models/glb/items/katar/phonge1.material
+compiledassets/models/glb/items/katar/phonge2.material
+compiledassets/models/glb/items/sword/circlewing_lambert.material
+compiledassets/models/glb/items/sword/handle_base_lambert.material
+compiledassets/models/glb/items/sword/handle_lambert.material
+compiledassets/models/glb/items/sword/jewel_lambert.material
+compiledassets/models/glb/items/sword/lambert2.material
+compiledassets/models/glb/items/sword/material_6.material
+compiledassets/models/glb/items/sword/spike_lambert.material
+compiledassets/models/glb/items/sword/sword.mesh
+compiledassets/models/glb/mc_animated/_01.ktx2
+compiledassets/models/glb/mc_animated/_02.ktx2
+compiledassets/models/glb/mc_animated/_03.ktx2
+compiledassets/models/glb/mc_animated/_04.ktx2
+compiledassets/models/glb/mc_animated/_05.ktx2
+compiledassets/models/glb/mc_animated/_06.ktx2
+compiledassets/models/glb/mc_animated/_07.ktx2
+compiledassets/models/glb/mc_animated/_08.ktx2
+compiledassets/models/glb/mc_animated/_09.ktx2
+compiledassets/models/glb/mc_animated/_10.ktx2
+compiledassets/models/glb/mc_animated/_11.ktx2
+compiledassets/models/glb/mc_animated/_12.ktx2
+compiledassets/models/glb/mc_animated/_13.ktx2
+compiledassets/models/glb/mc_animated/_14.ktx2
+compiledassets/models/glb/mc_animated/_15.ktx2
+compiledassets/models/glb/mc_animated/_16.ktx2
+compiledassets/models/glb/mc_animated/_17.ktx2
+compiledassets/models/glb/mc_animated/_18.ktx2
+compiledassets/models/glb/mc_animated/_19.ktx2
+compiledassets/models/glb/mc_animated/_20.ktx2
+compiledassets/models/glb/mc_animated/_21.ktx2
+compiledassets/models/glb/mc_animated/_22.ktx2
+compiledassets/models/glb/mc_animated/_23.ktx2
+compiledassets/models/glb/mc_animated/_24.ktx2
+compiledassets/models/glb/mc_animated/_25.ktx2
+compiledassets/models/glb/mc_animated/_26.ktx2
+compiledassets/models/glb/mc_animated/_27.ktx2
+compiledassets/models/glb/mc_animated/_28.ktx2
+compiledassets/models/glb/mc_animated/material_21.material
+compiledassets/models/glb/mc_animated/mc_animated.mesh
+compiledassets/models/glb/mc_animated/mc_animatedarmatureaction.anim
+compiledassets/models/glb/mc_animated/mc_animatedblock.anim
+compiledassets/models/glb/mc_animated/mc_animateddodge.anim
+compiledassets/models/glb/mc_animated/mc_animatedhurt.anim
+compiledassets/models/glb/mc_animated/mc_animatedidle.001.anim
+compiledassets/models/glb/mc_animated/mc_animatedidle.anim
+compiledassets/models/glb/mc_animated/mc_animatedkatar atk 1.anim
+compiledassets/models/glb/mc_animated/mc_animatedkatar atk 2.anim
+compiledassets/models/glb/mc_animated/mc_animatedkatar idle.anim
+compiledassets/models/glb/mc_animated/mc_animatedlight atk 1.anim
+compiledassets/models/glb/mc_animated/mc_animatedlight atk 2.anim
+compiledassets/models/glb/mc_animated/mc_animatedlight atk 3.anim
+compiledassets/models/glb/mc_animated/mc_animatedlight atk 4.anim
+compiledassets/models/glb/mc_animated/mc_animatedrun.anim
+compiledassets/models/glb/mc_animated/mc_animatedsword atk 1.anim
+compiledassets/models/glb/mc_animated/mc_animatedsword atk 2.anim
+compiledassets/models/glb/mc_animated/mc_animatedsword idle.anim
+compiledassets/models/glb/mc_animated/mc_animatedt-pose.anim
+compiledassets/models/glb/mc_animated/n00_000_00_body_00_skin (instance).material
+compiledassets/models/glb/mc_animated/n00_000_00_eyehighlight_00_eye (instance).material
+compiledassets/models/glb/mc_animated/n00_000_00_eyeiris_00_eye (instance).material
+compiledassets/models/glb/mc_animated/n00_000_00_eyewhite_00_eye (instance).material
+compiledassets/models/glb/mc_animated/n00_000_00_face_00_skin (instance).material
+compiledassets/models/glb/mc_animated/n00_000_00_facebrow_00_face (instance).material
+compiledassets/models/glb/mc_animated/n00_000_00_faceeyelash_00_face (instance).material
+compiledassets/models/glb/mc_animated/n00_000_00_faceeyeline_00_face (instance).material
+compiledassets/models/glb/mc_animated/n00_000_00_facemouth_00_face (instance).material
+compiledassets/models/glb/mc_animated/n00_000_00_hairback_00_hair (instance).material
+compiledassets/models/glb/mc_animated/n00_000_00_hairback_00_nml.ktx2
+compiledassets/models/glb/mc_animated/n00_000_hair_00_hair_01 (instance).material
+compiledassets/models/glb/mc_animated/n00_000_hair_00_hair_02 (instance).material
+compiledassets/models/glb/mc_animated/n00_000_hair_00_hair_03 (instance).material
+compiledassets/models/glb/mc_animated/n00_000_hair_00_hair_04 (instance).material
+compiledassets/models/glb/mc_animated/n00_000_hair_00_hair_05 (instance).material
+compiledassets/models/glb/mc_animated/n00_000_hair_00_nml_01.ktx2
+compiledassets/models/glb/mc_animated/n00_000_hair_00_nml_02.ktx2
+compiledassets/models/glb/mc_animated/n00_000_hair_00_nml_03.ktx2
+compiledassets/models/glb/mc_animated/n00_000_hair_00_nml_04.ktx2
+compiledassets/models/glb/mc_animated/n00_000_hair_00_nml_05.ktx2
+compiledassets/models/glb/mc_animated/n00_001_03_bottoms_01_cloth (instance).material
+compiledassets/models/glb/mc_animated/n00_002_03_tops_01_cloth (instance).material
+compiledassets/models/glb/mc_animated/n00_007_01_tops_01_cloth_01 (instance).material
+compiledassets/models/glb/mc_animated/n00_007_01_tops_01_cloth_02 (instance).material
+compiledassets/models/glb/mc_animated/n00_008_01_shoes_01_cloth (instance).material
+compiledassets/models/glb/mc_animated/n00_010_01_onepiece_00_cloth (instance).material
+compiledassets/models/glb/mc_animated/shader_noneblack.ktx2
+compiledassets/models/glb/mc_animated/shader_nonenormal.ktx2
+compiledassets/models/glb/primitives/vplane/material_0.material
+compiledassets/models/glb/primitives/vplane/vplane.mesh
 compiledassets/textures/_01.ktx2
 compiledassets/textures/_02.ktx2
 compiledassets/textures/_03.ktx2
@@ -229,6 +527,7 @@ compiledassets/textures/_24.ktx2
 compiledassets/textures/_25.ktx2
 compiledassets/textures/cesiumman2146822282649598438.ktx2
 compiledassets/textures/colormap.ktx2
+compiledassets/textures/digipen_cmyk_red.ktx2
 compiledassets/textures/dugout10109019457168489768.ktx2
 compiledassets/textures/dugout14377039275265999768.ktx2
 compiledassets/textures/dugout14709142800244381938.ktx2
@@ -246,6 +545,8 @@ compiledassets/textures/field413754577327418317.ktx2
 compiledassets/textures/field7732551140988198768.ktx2
 compiledassets/textures/image_0.ktx2
 compiledassets/textures/image_1.ktx2
+compiledassets/textures/image_10.ktx2
+compiledassets/textures/image_11.ktx2
 compiledassets/textures/image_12.ktx2
 compiledassets/textures/image_13.ktx2
 compiledassets/textures/image_14.ktx2
@@ -259,6 +560,7 @@ compiledassets/textures/image_5.ktx2
 compiledassets/textures/image_6.ktx2
 compiledassets/textures/image_7.ktx2
 compiledassets/textures/image_8.ktx2
+compiledassets/textures/image_9.ktx2
 compiledassets/textures/lights14179648975753951601.ktx2
 compiledassets/textures/lights5590563140978458161.ktx2
 compiledassets/textures/lights6717148718183343745.ktx2
@@ -318,6 +620,7 @@ fbxcars/tractor.fbx
 fbxcars/truck-flat.fbx
 fbxcars/truck.fbx
 fbxcars/unitbox.fbx
+fbxcars/unitsphere.fbx
 fbxcars/van.fbx
 fbxcars/wheel-dark.fbx
 fbxcars/wheel-default.fbx
@@ -342,8 +645,31 @@ fonts/slkscre-atlas.json
 fonts/slkscre-atlas.png
 fonts/slkscre.ttf
 fonts/tx-02-regular.ttf
+images/boss_top.png
+images/digipen_cmyk_red.png
 images/null.png
 images/white.png
+images/game/hud/delusion meter fill.png
+images/game/hud/dodge icon.png
+images/game/hud/interact icon.png
+images/game/hud/light attack icon.png
+images/game/hud/player health and delusion meter.png
+images/game/hud/player health bg.png
+images/game/hud/player health fill.png
+images/game/hud/ranka+.png
+images/game/hud/ranka.png
+images/game/hud/rankb.png
+images/game/hud/rankc.png
+images/game/hud/rankd.png
+images/game/hud/rankf.png
+images/game/items/itempickupui_bloodcalibur.png
+images/game/items/itempickupui_katar.png
+images/menu/controls button.png
+images/menu/controls.png
+images/menu/exit button.png
+images/menu/main menu bg.png
+images/menu/main menu header.png
+images/menu/start button.png
 models/aji/aji.fbx
 models/aji/aji.vrm1.textures/_01.png
 models/aji/aji.vrm1.textures/_02.png
@@ -420,6 +746,9 @@ models/fbx/environment/school_stairwell_entities/stairwell_right.fbx
 models/fbx/props/pick_ups/bbt.fbx
 models/fbx/props/weapons/katar_single.fbx
 models/fbx/props/weapons/sword_prototype.fbx
+models/glb/enemy_female_animated.glb
+models/glb/enemy_male_animated.glb
+models/glb/mc_animated.glb
 models/glb/aji/player_idle_mixamo.glb
 models/glb/aji/player_punching_mixamo.glb
 models/glb/aji/player_running_mixamo.glb
@@ -443,78 +772,205 @@ models/glb/classroom_exported/wall_doors.glb
 models/glb/classroom_exported/wall_doors_tex.glb
 models/glb/classroom_exported/wall_window.glb
 models/glb/classroom_exported/wall_window_tex.glb
+models/glb/corridor_exported/corridor.glb
+models/glb/corridor_exported/corridor_bridge.glb
+models/glb/corridor_exported/stairs_left.glb
+models/glb/debug/cubefittingsphere.glb
+models/glb/debug/unitsphere.glb
+models/glb/items/bbt.glb
+models/glb/items/bookingslip.glb
+models/glb/items/katar.glb
+models/glb/items/newmeshes.glb
+models/glb/items/sword.glb
+models/glb/primitives/vplane.glb
 models/misc/animatedmorphcube.glb
 models/misc/cesiumman.glb
 models/misc/damagedhelmet.glb
 navmeshdata/navmesh.navmesh
-navmeshdata/navmesh1.navmesh
-navmeshdata/navmesh2.navmesh
+navmeshdata/navmesh3.navmesh
 prefab/deletewhenthere'ssomething.txt
+prefabs/bbt.prefab
 prefabs/chair.prefab
 prefabs/classroom.prefab
 prefabs/collider.prefab
+prefabs/corridorbridgesection.prefab
+prefabs/corridorwallsection.prefab
 prefabs/door_classroom.prefab
+prefabs/doortrigger_close.prefab
 prefabs/enemy.prefab
+prefabs/enemy2.prefab
+prefabs/explosion.prefab
+prefabs/explosion_enemy.prefab
+prefabs/health bar.prefab
+prefabs/itempickupui.prefab
+prefabs/itemtest.prefab
+prefabs/katar.prefab
 prefabs/player.prefab
+prefabs/prefect.prefab
+prefabs/prefect_bookingslip.prefab
+prefabs/prefect_dontrunpiece.prefab
+prefabs/prefect_dontrunspawner.prefab
 prefabs/shelf.prefab
 prefabs/shelf_small.prefab
+prefabs/stairsleft.prefab
+prefabs/sword.prefab
 prefabs/table.prefab
+prefabs/throw.prefab
 prefabs/vending machine.prefab
 prefabs/wall.prefab
 prefabs/wall_doors.prefab
 prefabs/wall_window.prefab
+scenes/controlsmenu.scene
 scenes/defaultscene.scene
 scenes/defaultscene_backup.scene
+scenes/mainmenu.scene
 scenes/openscenes.json
+scenes/splashscene.scene
+scenes/temphud.scene
+scripts/bbt.lua
+scripts/bossmusictrigger.lua
 scripts/character.lua
 scripts/classroomdoor.lua
+scripts/enemyattack.lua
+scripts/enemydeath.lua
+scripts/enemyexplosion.lua
+scripts/enemyspawner.lua
+scripts/footstepssoundhandler.lua
+scripts/game_button_attack.lua
+scripts/game_button_dodge.lua
+scripts/game_button_grab.lua
+scripts/mainmenu_button_controls.lua
+scripts/mainmenu_button_quit.lua
+scripts/mainmenu_button_start.lua
+scripts/menu_button_tomainmenu.lua
+scripts/musicplayer.lua
+scripts/outdoortoggle.lua
+scripts/playerdamagehandler.lua
+scripts/prefect_bookingslip.lua
+scripts/prefect_dontrunpiece.lua
+scripts/prefect_dontrunspawner.lua
+scripts/roomdoortrigger.lua
+scripts/splashscreen.lua
 scripts/test - copy.lua
 scripts/test.lua
-shaders/bloom_compose.frag
-shaders/blur_horiz.frag
-shaders/blur_vert.frag
-shaders/bright.frag
+scripts/thrownobject.lua
+scripts/throwweapon.lua
 shaders/cluster_bounds.comp
-shaders/compile.bat
-shaders/compose.frag
-shaders/compose.vert
 shaders/culling.comp
-shaders/debug.frag
-shaders/debug.vert
 shaders/depth_prepass.frag
 shaders/depth_prepass.vert
 shaders/depth_prepass_skinned.vert
-shaders/emissive.frag
-shaders/emissive.vert
 shaders/fullscreen.vert
-shaders/glslangvalidator.exe
-shaders/glslc.exe
 shaders/im3d.frag
 shaders/im3d.vert
 shaders/im3d_lines.geom
 shaders/light_culling.comp
-shaders/lighting.frag
-shaders/lighting.vert
 shaders/object.vert
 shaders/object_skinned.vert
 shaders/oit_resolve.frag
 shaders/opaque.frag
-shaders/opaque.vert
-shaders/post-shadow.comp
+shaders/point_shadow.frag
+shaders/point_shadow.vert
+shaders/point_shadow_skinned.vert
 shaders/scene_common.sp
 shaders/scene_structures.sp
-shaders/shader.frag
-shaders/shader.vert
-shaders/shadow-gen.frag
-shaders/shadow-gen.vert
 shaders/skinning.comp
 shaders/skybox.frag
 shaders/skybox.vert
-shaders/text.frag
-shaders/text.vert
 shaders/tonemap.frag
 shaders/transparent.frag
 shaders/vertex_compression.sp
-shaders/vignette.frag
 sounds/gylia shanty (cinfras county).mp3
 sounds/kalimba.mp3
+sounds/music (bgm)/ambience/school ambience heavy voices_loop.wav
+sounds/music (bgm)/baseball field (boss fight)/cut&pastemenumusic.wav
+sounds/music (bgm)/classroom (main gameplay)/purrfectputt-music-gameplayloop1.wav
+sounds/sfx/heal.wav
+sounds/sfx/rank decrease.wav
+sounds/sfx/rank increase.wav
+sounds/sfx/ultimate activation.wav
+sounds/sfx/boss/burst of 3 throwing.wav
+sounds/sfx/boss/defence stance.wav
+sounds/sfx/boss/lunge.wav
+sounds/sfx/enemy/female/attack/enemy female throwing 1.wav
+sounds/sfx/enemy/female/attack/enemy female throwing 2.wav
+sounds/sfx/enemy/female/attack/enemy female throwing 3.wav
+sounds/sfx/enemy/female/attack/enemy female throwing 4.wav
+sounds/sfx/enemy/female/death/enemy female death 1.wav
+sounds/sfx/enemy/female/death/enemy female death 2.wav
+sounds/sfx/enemy/female/death/enemy female death 3.wav
+sounds/sfx/enemy/female/hurt/enemy female hurt 1.wav
+sounds/sfx/enemy/female/hurt/enemy female hurt 2.wav
+sounds/sfx/enemy/female/hurt/enemy female hurt 3.wav
+sounds/sfx/enemy/female/hurt/enemy female hurt 4.wav
+sounds/sfx/enemy/male/attack/enemy male attack 1.wav
+sounds/sfx/enemy/male/attack/enemy male attack 2.wav
+sounds/sfx/enemy/male/attack/enemy male attack 3.wav
+sounds/sfx/enemy/male/attack (throw)/enemy male throwing 1.wav
+sounds/sfx/enemy/male/attack (throw)/enemy male throwing 2.wav
+sounds/sfx/enemy/male/attack (throw)/enemy male throwing 3.wav
+sounds/sfx/enemy/male/death/enemy male death 1.wav
+sounds/sfx/enemy/male/death/enemy male death 2.wav
+sounds/sfx/enemy/male/death/enemy male death 3.wav
+sounds/sfx/enemy/male/death/enemy male death 4.wav
+sounds/sfx/enemy/male/hurt/enemy male hurt 1.wav
+sounds/sfx/enemy/male/hurt/enemy male hurt 2.wav
+sounds/sfx/enemy/male/hurt/enemy male hurt 3.wav
+sounds/sfx/environment/door open.wav
+sounds/sfx/jump/jump 1.wav
+sounds/sfx/jump/jump 2.wav
+sounds/sfx/jump/jump 3.wav
+sounds/sfx/mc/death/mc death 1.wav
+sounds/sfx/mc/death/mc death 2.wav
+sounds/sfx/mc/death/mc death 3.wav
+sounds/sfx/mc/death/mc death 4.wav
+sounds/sfx/mc/death/mc death 5.wav
+sounds/sfx/mc/dodge/dodge 1.wav
+sounds/sfx/mc/dodge/dodge 2.wav
+sounds/sfx/mc/dodge/dodge 3.wav
+sounds/sfx/mc/footsteps/indoor/indoor footsteps 1.wav
+sounds/sfx/mc/footsteps/indoor/indoor footsteps 2.wav
+sounds/sfx/mc/footsteps/indoor/indoor footsteps 3.wav
+sounds/sfx/mc/footsteps/indoor/indoor footsteps 4.wav
+sounds/sfx/mc/footsteps/indoor/indoor footsteps 5.wav
+sounds/sfx/mc/footsteps/outdoor/outdoor footsteps 1.wav
+sounds/sfx/mc/footsteps/outdoor/outdoor footsteps 2.wav
+sounds/sfx/mc/footsteps/outdoor/outdoor footsteps 3.wav
+sounds/sfx/mc/footsteps/outdoor/outdoor footsteps 4.wav
+sounds/sfx/mc/footsteps/outdoor/outdoor footsteps 5.wav
+sounds/sfx/mc/hurt/mc hurt 1.wav
+sounds/sfx/mc/hurt/mc hurt 2.wav
+sounds/sfx/mc/hurt/mc hurt 3.wav
+sounds/sfx/mc/hurt/mc hurt 4.wav
+sounds/sfx/mc/hurt/mc hurt 5.wav
+sounds/sfx/mc/jump/jump 1.wav
+sounds/sfx/mc/jump/jump 2.wav
+sounds/sfx/mc/jump/jump 3.wav
+sounds/sfx/mc/katar/katar #1/katar #1 1.wav
+sounds/sfx/mc/katar/katar #1/katar #1 2.wav
+sounds/sfx/mc/katar/katar #1/katar #1 3.wav
+sounds/sfx/mc/katar/katar #2/katar #2 1.wav
+sounds/sfx/mc/katar/katar #2/katar #2 2.wav
+sounds/sfx/mc/katar/katar #2/katar #2 3.wav
+sounds/sfx/mc/light attack/light attack #1/light attack #1 1.wav
+sounds/sfx/mc/light attack/light attack #1/light attack #1 2.wav
+sounds/sfx/mc/light attack/light attack #1/light attack #1 3.wav
+sounds/sfx/mc/light attack/light attack #2/light attack #2 1.wav
+sounds/sfx/mc/light attack/light attack #2/light attack #2 2.wav
+sounds/sfx/mc/parry- block/parry.wav
+sounds/sfx/mc/sword/sword 1.wav
+sounds/sfx/mc/sword/sword 2.wav
+sounds/sfx/mc/sword/sword 3.wav
+sounds/sfx/mc/sword/sword 4.wav
+sounds/sfx/mc/weapon pickup/weapon pickup 1.wav
+sounds/sfx/mc/weapon pickup/weapon pickup 2.wav
+sounds/sfx/mc/weapon pickup/weapon pickup 3.wav
+sounds/sfx/ui/heal.wav
+sounds/sfx/ui/rank decrease.wav
+sounds/sfx/ui/rank increase.wav
+sounds/sfx/ui/ui button.wav
+sounds/sfx/ui/ultimate activation.wav
+sounds/sfx/ui/ultimate ready.wav
+sounds/sfx/weapon pickup/weapon pickup 1.wav
+sounds/sfx/weapon pickup/weapon pickup 2.wav
+sounds/sfx/weapon pickup/weapon pickup 3.wav

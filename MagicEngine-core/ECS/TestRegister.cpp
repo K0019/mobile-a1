@@ -40,6 +40,8 @@
 #include "Game/MaterialSwapper.h"
 #include "UI/RectTransform.h"
 #include "3DUI/BillboardComponent.h"
+#include "Game/Delusion.h"
+#include "Graphics/BoneAttachment.h"
 
 void RegisterShit()
 {
@@ -82,4 +84,6 @@ void RegisterShit()
 	IRegisteredComponent<MaterialSwapperComponent>::RegisterComponent();
 	IRegisteredComponent<RectTransformComponent>::RegisterComponent();
 	IRegisteredComponent<BillboardComponent>::RegisterComponent();
+	IRegisteredComponent<DelusionComponent>::RegisterComponent();
+	IRegisteredComponent<BoneAttachment>::RegisterComponent();
 }
