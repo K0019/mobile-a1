@@ -110,6 +110,7 @@ void CharacterMovementComponent::DropItem()
 
 	// Physics Comp related
 	heldItem->GetComp<physics::PhysicsComp>()->SetFlag(physics::PHYSICS_COMP_FLAG::ENABLED, true);
+	heldItem->GetComp<physics::PhysicsComp>()->SetFlag(physics::PHYSICS_COMP_FLAG::IS_KINEMATIC, false);
 	heldItem->GetComp<GrabbableItemComponent>()->isHeld = false;
 
 	// Transform related

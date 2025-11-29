@@ -194,7 +194,7 @@
                 },
                 "6766054303456732338": {
                     "_active": true,
-                    "layer": 0
+                    "layer": 2
                 },
                 "7205334411763290517": {
                     "_active": true,
@@ -508,7 +508,7 @@
                 },
                 "6766054303456732338": {
                     "_active": false,
-                    "layer": 0
+                    "layer": 3
                 },
                 "7205334411763290517": {
                     "_active": false,
@@ -909,9 +909,9 @@
         {
             "parentIndex": -1,
             "position": {
-                "x": 1.0,
-                "y": 0.8395662903785706,
-                "z": 0.0
+                "x": -1.2008898258209229,
+                "y": 0.3771880269050598,
+                "z": -0.19154638051986694
             },
             "rotation": {
                 "x": 0.0,
@@ -982,10 +982,11 @@
                 "9501525575059265452": {
                     "_active": true,
                     "flags": {
-                        "_majorityTrue": false,
+                        "_majorityTrue": true,
                         "_except": [
-                            "Use Gravity",
-                            "Enabled"
+                            "Lock Rotation X",
+                            "Lock Rotation Y",
+                            "Lock Rotation Z"
                         ]
                     }
                 },
@@ -993,7 +994,7 @@
                     "_active": true,
                     "center": {
                         "x": 0.0,
-                        "y": 0.0,
+                        "y": 0.5,
                         "z": 0.0
                     },
                     "size": {
@@ -1007,6 +1008,14 @@
                             "Is Trigger"
                         ]
                     }
+                },
+                "18288371625365795113": {
+                    "_active": true,
+                    "scripts": [
+                        {
+                            "scriptName": "throwweapon.lua"
+                        }
+                    ]
                 }
             }
         },
@@ -1781,9 +1790,9 @@
         {
             "parentIndex": -1,
             "position": {
-                "x": 0.6198292970657349,
+                "x": 2.0612618923187256,
                 "y": 0.8395662903785706,
-                "z": 0.0
+                "z": 0.026808112859725952
             },
             "rotation": {
                 "x": 0.0,
@@ -1851,10 +1860,11 @@
                 "9501525575059265452": {
                     "_active": true,
                     "flags": {
-                        "_majorityTrue": false,
+                        "_majorityTrue": true,
                         "_except": [
-                            "Use Gravity",
-                            "Enabled"
+                            "Lock Rotation X",
+                            "Lock Rotation Y",
+                            "Lock Rotation Z"
                         ]
                     }
                 },
@@ -1876,6 +1886,14 @@
                             "Is Trigger"
                         ]
                     }
+                },
+                "18288371625365795113": {
+                    "_active": true,
+                    "scripts": [
+                        {
+                            "scriptName": "throwweapon.lua"
+                        }
+                    ]
                 }
             }
         },
@@ -2215,7 +2233,7 @@
                 },
                 "6766054303456732338": {
                     "_active": false,
-                    "layer": 0
+                    "layer": 3
                 },
                 "7205334411763290517": {
                     "_active": false,
@@ -5865,7 +5883,7 @@
         {
             "parentIndex": 46,
             "position": {
-                "x": 2.0,
+                "x": 2.076749563217163,
                 "y": 0.5098649859428406,
                 "z": 1.4901161193847656e-8
             },
