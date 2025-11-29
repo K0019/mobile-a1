@@ -50,7 +50,6 @@ CharacterMovementComponent::CharacterMovementComponent()
 	, heldItem{ nullptr }
 	, currentStunTime{ 0.0f }
 	, currentDodgeTime{ 0.0f }
-	, currentDodgeCooldown{ 0.0f }
 	, isAttacking{ false }
 	, speedMultiplier{ 1.0f }
 	, throwPower{0.0f}
@@ -150,9 +149,6 @@ void CharacterMovementComponent::Throw(Vec3 direction)
 	auto tmpItem = heldItem;
 	DropItem();
 
-	auto pos{ tmpItem->GetTransform().GetWorldPosition() };
-	pos.y += 1.f;
-	tmpItem->GetTransform().SetWorldPosition(pos);
 	tmpItem->GetComp<physics::PhysicsComp>()->AddImpulse(direction, throwPower);
 }
 
@@ -171,6 +167,7 @@ void CharacterMovementComponent::GrabItem(ecs::CompHandle<GrabbableItemComponent
 	{
 		physicsComp->SetFlag(physics::PHYSICS_COMP_FLAG::ENABLED, false);
 		physicsComp->SetFlag(physics::PHYSICS_COMP_FLAG::USE_GRAVITY, false);
+		physicsComp->SetFlag(physics::PHYSICS_COMP_FLAG::IS_KINEMATIC, false);
 	}
 	if (auto colliderComp{ heldItem->GetComp<physics::BoxColliderComp>() })
 	{
