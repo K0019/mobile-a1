@@ -37,7 +37,7 @@ if(NOT ANDROID)
         # Add any desktop-specific dependencies here if needed
     )
 	list(APPEND CORE_DEFINITIONS
-		TRACY_ENABLE
+		# TRACY_ENABLE
 		)
 endif()
 
