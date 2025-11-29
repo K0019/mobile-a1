@@ -33,6 +33,8 @@ All rights reserved.
 #include "Game/Delusion.h"
 #include "Managers\AudioManager.h"
 
+#include "Engine/Events/EventsQueue.h"
+#include "Engine/Events/EventsTypeBasic.h"
 #include "Engine/PrefabManager.h"
 #include "Graphics/RenderComponent.h"
 
@@ -187,13 +189,13 @@ GrabbableItemPickupUISystem::GrabbableItemPickupUISystem()
 
 bool GrabbableItemPickupUISystem::PreRun()
 {
-	// If a UI entity we're tracking isn't valid anymore, highly likely that the scene has reset. If so, purge the UI entities.
-	if (!(inactiveUIEntities.empty() || ecs::IsEntityHandleValid(inactiveUIEntities.front())) &&
-		!(activeUIEntities.empty() || ecs::IsEntityHandleValid(activeUIEntities.begin()->second)))
-	{
-		inactiveUIEntities.clear();
-		activeUIEntities.clear();
-	}
+	// If the game scene reloaded, the entities we're tracking don't exist anymore
+	if (auto sceneUnloadEvent{ EventsReader<Events::SceneUnloaded>{}.ExtractEvent() })
+		if (sceneUnloadEvent->index == 0)
+		{
+			inactiveUIEntities.clear();
+			activeUIEntities.clear();
+		}
 
 	// If player doesn't exist, skip execution
 	auto playerCompIter{ ecs::GetCompsActiveBeginConst<PlayerMovementComponent>() };

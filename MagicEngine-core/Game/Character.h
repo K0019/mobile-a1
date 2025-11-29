@@ -73,6 +73,10 @@ public:
 	float currParryCoolDown;
 	float currParryTime;
 
+	std::string dodgeSound;
+	std::string attackSound;
+	std::string hurtSound;
+
 	// Not serialized
 	float currentStunTime;
 	float currentDodgeTime;
@@ -158,6 +162,9 @@ property_begin(CharacterMovementComponent)
 	property_var(parryCoolDownTime),
 	property_var(parryTime),
 	property_var(parryDelusion),
+	property_var(dodgeSound),
+	property_var(attackSound),
+	property_var(hurtSound),
 }
 property_vend_h(CharacterMovementComponent)
 

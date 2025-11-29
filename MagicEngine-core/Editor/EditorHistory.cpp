@@ -141,7 +141,7 @@ HistoryEventBase* HistoryEvent_EntityDelete::Undo()
 ecs::EntityHandle HistoryEvent_EntityDelete::SaveEntity(ecs::EntityHandle entity)
 {
 	// Clone the entity (without children) and save the new/original handle pair
-	ecs::EntityHandle clonedEntity{ ecs::CloneEntityToPoolNow(entity, ecs::POOL::UNDO, false) };
+	ecs::EntityHandle clonedEntity{ ecs::CloneEntityToPool(entity, ecs::POOL::UNDO, false) };
 	savedToOriginalEntityMap.try_emplace(clonedEntity, entity);
 
 	// Do the same for children, and parent them to the cloned entity
@@ -156,7 +156,7 @@ ecs::EntityHandle HistoryEvent_EntityDelete::RestoreEntity(ecs::EntityHandle ent
 	// Clone the entity (without children) back into the default pool
 	ecs::POOL prevID{ ecs::GetCurrentPoolId() };
 	ecs::SwitchToPool(ecs::POOL::UNDO);
-	ecs::EntityHandle restoredEntity{ ecs::CloneEntityToPoolNow(entity, ecs::POOL::DEFAULT, false) };
+	ecs::EntityHandle restoredEntity{ ecs::CloneEntityToPool(entity, ecs::POOL::DEFAULT, false) };
 	ecs::SwitchToPool(prevID);
 
 	// Do the same for children and parent them to the cloned entity

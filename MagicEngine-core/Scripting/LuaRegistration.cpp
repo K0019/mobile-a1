@@ -604,21 +604,24 @@ void RegisterCppStuffToLua(luabridge::Namespace baseTable)
 		.addFunction("EngineShutdown", []() -> void { Core::Platform::Get().GetLifecycle().RequestExit(); })
 		.addFunction("DeltaTime", []() -> float { return GameTime::Dt(); })
 		.addFunction("LoadScene", [](const std::string& scenePath) {
-			auto* sceneManager = ST<SceneManager>::Get();
+			// Kendrick: Quick fix for UID shenanigans - reload the scene
+			//auto* sceneManager = ST<SceneManager>::Get();
 
-			// Get current scene index before loading new one
-			Scene* currentScene = sceneManager->GetActiveScene();
-			int oldSceneIndex = currentScene ? currentScene->GetIndex() : -1;
+			//// Get current scene index before loading new one
+			//Scene* currentScene = sceneManager->GetActiveScene();
+			//int oldSceneIndex = currentScene ? currentScene->GetIndex() : -1;
 
-			// Load new scene and set it as active
-			int newSceneIndex = sceneManager->LoadScene(scenePath, true);
+			//// Load new scene and set it as active
+			//int newSceneIndex = sceneManager->LoadScene(scenePath, true);
 
-			// Defer unloading the old scene to avoid destroying the calling script mid-execution
-			if (oldSceneIndex >= 0 && newSceneIndex >= 0) {
-				ST<Scheduler>::Get()->Add([oldSceneIndex]() {
-					ST<SceneManager>::Get()->UnloadScene(oldSceneIndex);
-				});
-			}
+			//// Defer unloading the old scene to avoid destroying the calling script mid-execution
+			//if (oldSceneIndex >= 0 && newSceneIndex >= 0) {
+			//	ST<Scheduler>::Get()->Add([oldSceneIndex]() {
+			//		ST<SceneManager>::Get()->UnloadScene(oldSceneIndex);
+			//	});
+			//}
+
+			ST<Scheduler>::Get()->Add([]() -> void { ST<SceneManager>::Get()->ReloadAllScenes(); });
 		})
 		.addFunction("GetButtonDown", GetButtonDown)
 

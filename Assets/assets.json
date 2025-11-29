@@ -4523,6 +4523,20 @@
             ]
         },
         {
+            "filepath": "sounds/sfx/environment/door open.wav",
+            "resources": [
+                {
+                    "resourceType": 16184316770661419113,
+                    "resourceEntries": [
+                        {
+                            "hash": 8224691455082620087,
+                            "name": "door open0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/materials/wall_1012.material",
             "resources": [
                 {
