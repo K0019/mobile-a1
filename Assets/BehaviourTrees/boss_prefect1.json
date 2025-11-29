@@ -18,6 +18,10 @@
             "nodeLevel": 2
         },
         {
+            "nodeType": "L_Boss_Prefect_Detention",
+            "nodeLevel": 2
+        },
+        {
             "nodeType": "Sequence",
             "nodeLevel": 1
         },

@@ -150,7 +150,6 @@
                     "flags": {
                         "_majorityTrue": true,
                         "_except": [
-                            "Is Kinematic",
                             "Use Gravity"
                         ]
                     }
@@ -186,6 +185,54 @@
                         "entityUid": 0
                     }
                 },
+                "17579205194823809952": {
+                    "_active": true,
+                    "moveSpeed": 3.0,
+                    "rotateSpeed": 14400.0,
+                    "throwPower": 0.0,
+                    "parryCoolDownTime": 0.0,
+                    "parryTime": 0.0,
+                    "parryDelusion": 0.0,
+                    "dodgeSound": "",
+                    "attackSound": "",
+                    "hurtSound": "",
+                    "moveSpeed": 3.0,
+                    "rotateSpeed": 14400.0,
+                    "stunTimePerHit": 0.5,
+                    "groundFriction": 1.5,
+                    "dodgeCooldown": 2.5,
+                    "dodgeDuration": 1.0,
+                    "dodgeSpeed": 8.0,
+                    "hitDebugObject": {
+                        "entityUid": 0
+                    },
+                    "heldItem": {
+                        "entityUid": 0
+                    },
+                    "animations": [
+                        {
+                            "hash": 5847024716697507243
+                        },
+                        {
+                            "hash": 5160141111110525347
+                        },
+                        {
+                            "hash": 5142979933624197533
+                        },
+                        {
+                            "hash": 5130634617067528603
+                        },
+                        {
+                            "hash": 5860832383719118265
+                        },
+                        {
+                            "hash": 1
+                        },
+                        {
+                            "hash": 1
+                        }
+                    ]
+                },
                 "18236831197208900764": {
                     "_active": true,
                     "center": {
@@ -200,9 +247,7 @@
                     },
                     "flags": {
                         "_majorityTrue": true,
-                        "_except": [
-                            "Is Trigger"
-                        ]
+                        "_except": []
                     }
                 },
                 "18288371625365795113": {

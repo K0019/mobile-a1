@@ -6,7 +6,7 @@
 #include "Boss_Prefect_Util.h"
 #include "Graphics/AnimationComponent.h"
 
-int L_Boss_Prefect_DisciplinaryAction::lungeCount = 5;
+int L_Boss_Prefect_DisciplinaryAction::lungeCount = 1;
 float L_Boss_Prefect_DisciplinaryAction::explosionSize = 5.0f;
 
 void L_Boss_Prefect_DisciplinaryAction::OnInitialize()

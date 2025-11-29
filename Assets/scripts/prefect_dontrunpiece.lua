@@ -1,5 +1,5 @@
 -- Damage dealt (per section)
-local damage = 10
+local damage = 1
 -- How fast it rises
 local riseSpeed = 3.0
 -- How fast it rises

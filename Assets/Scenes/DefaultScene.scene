@@ -69,9 +69,9 @@
         {
             "parentIndex": -1,
             "position": {
-                "x": -0.1539604663848877,
-                "y": 1.0000016689300537,
-                "z": -0.07921111583709717
+                "x": -5.054757118225098,
+                "y": 1.0000015497207642,
+                "z": 2.532221794128418
             },
             "rotation": {
                 "x": 0.0,
@@ -114,7 +114,7 @@
                 },
                 "2263953158229251792": {
                     "_active": true,
-                    "grabDistance": 10.0,
+                    "grabDistance": 1.5,
                     "ultimateAttackDamage": 1000.0,
                     "cameraReference": {
                         "entityUid": 51380178370257494
@@ -122,7 +122,7 @@
                     "testReference": {
                         "entityUid": 3837990472816120687
                     },
-                    "grabDistance": 10.0
+                    "grabDistance": 1.5
                 },
                 "2481176255561649761": {
                     "_active": true,
@@ -460,12 +460,12 @@
                         "y": 0.20000000298023224,
                         "z": 1.0
                     },
-                    "attackDelay": 0.25,
+                    "attackDelay": 1.2000000476837158,
                     "audioName": "",
                     "audioStartIndex": 0,
                     "audioEndIndex": 0,
                     "lightAttackAnimation": {
-                        "hash": 1
+                        "hash": 5128037570602721689
                     },
                     "heavyAttackAnimation": {
                         "hash": 1
@@ -591,7 +591,7 @@
                 "15371168105777251288": {
                     "_active": false,
                     "animHandleA": {
-                        "hash": 2459018174152793319
+                        "hash": 5128037570602721689
                     },
                     "isPlaying": true,
                     "loop": true,
@@ -1118,7 +1118,7 @@
                 },
                 "7205334411763290517": {
                     "_active": true,
-                    "name": "start_spawner"
+                    "name": "at_spawner"
                 },
                 "8426725214831635516": {
                     "_active": true,
@@ -1553,7 +1553,7 @@
                 "5725819782531291880": {
                     "_active": false,
                     "behaviorTree": {
-                        "btName": "boss_prefect"
+                        "btName": "boss_prefect1"
                     }
                 },
                 "6766054303456732338": {
@@ -1579,7 +1579,6 @@
                     "flags": {
                         "_majorityTrue": true,
                         "_except": [
-                            "Is Kinematic",
                             "Use Gravity"
                         ]
                     }
@@ -1677,9 +1676,7 @@
                     },
                     "flags": {
                         "_majorityTrue": true,
-                        "_except": [
-                            "Is Trigger"
-                        ]
+                        "_except": []
                     }
                 },
                 "18288371625365795113": {
@@ -1803,6 +1800,12 @@
                         },
                         {
                             "entityUid": 4791810213319580451
+                        },
+                        {
+                            "entityUid": 4907974716469208011
+                        },
+                        {
+                            "entityUid": 4897659098377407049
                         }
                     ]
                 },
@@ -1881,9 +1884,9 @@
         {
             "parentIndex": -1,
             "position": {
-                "x": -2.642317056655884,
-                "y": 0.8659429550170898,
-                "z": 0.12284905463457108
+                "x": -4.846477031707764,
+                "y": 0.8658631443977356,
+                "z": -4.321004390716553
             },
             "rotation": {
                 "x": 0.0,
@@ -2179,6 +2182,38 @@
         {
             "parentIndex": -1,
             "position": {
+                "x": 11.03754711151123,
+                "y": 0.00006103515625,
+                "z": -1.5701367855072021
+            },
+            "rotation": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "scale": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0
+            },
+            "components": {
+                "6766054303456732338": {
+                    "_active": true,
+                    "layer": 0
+                },
+                "7205334411763290517": {
+                    "_active": true,
+                    "name": "TablePair"
+                },
+                "9315785795257285655": {
+                    "_active": true,
+                    "uid": 6984321061665454937
+                }
+            }
+        },
+        {
+            "parentIndex": -1,
+            "position": {
                 "x": 0.0,
                 "y": 0.0,
                 "z": 0.0
@@ -2278,7 +2313,7 @@
                         "y": 0.5,
                         "z": 1.0
                     },
-                    "attackDelay": 0.0,
+                    "attackDelay": 0.5,
                     "audioName": "",
                     "audioStartIndex": 0,
                     "audioEndIndex": 0,
@@ -2691,19 +2726,19 @@
             },
             "components": {
                 "6766054303456732338": {
-                    "_active": false,
+                    "_active": true,
                     "layer": 0
                 },
                 "7205334411763290517": {
-                    "_active": false,
+                    "_active": true,
                     "name": "Music Manager"
                 },
                 "9315785795257285655": {
-                    "_active": false,
+                    "_active": true,
                     "uid": 10354184562719982194
                 },
                 "18288371625365795113": {
-                    "_active": false,
+                    "_active": true,
                     "scripts": [
                         {
                             "scriptName": "musicplayer.lua"
@@ -2828,6 +2863,147 @@
                 "9315785795257285655": {
                     "_active": true,
                     "uid": 12140450053435031399
+                }
+            }
+        },
+        {
+            "parentIndex": -1,
+            "position": {
+                "x": -9.243097305297852,
+                "y": 0.8394525647163391,
+                "z": -12.542588233947754
+            },
+            "rotation": {
+                "x": 0.0,
+                "y": -0.0,
+                "z": 89.99974822998047
+            },
+            "scale": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0
+            },
+            "components": {
+                "137465014557233347": {
+                    "_active": true,
+                    "damage": 45.0,
+                    "attackBox": {
+                        "x": 1.0,
+                        "y": 1.0,
+                        "z": 0.75
+                    },
+                    "attackDelay": 0.20000000298023224,
+                    "audioName": "sword ",
+                    "audioStartIndex": 1,
+                    "audioEndIndex": 4,
+                    "lightAttackAnimation": {
+                        "hash": 2582954025322195705
+                    },
+                    "heavyAttackAnimation": {
+                        "hash": 2589189355763313403
+                    },
+                    "ultimAttackAnimation": {
+                        "hash": 4641994057353533167
+                    },
+                    "parryAnimation": {
+                        "hash": 2593603894948834043
+                    },
+                    "pickupUI": {
+                        "hash": 2578814363255955407
+                    }
+                },
+                "5352011725353660904": {
+                    "_active": true,
+                    "meshHandle": {
+                        "hash": 1952953653585700607
+                    },
+                    "materials": [
+                        {
+                            "hash": 1921992505659156209
+                        },
+                        {
+                            "hash": 1925183288402962163
+                        },
+                        {
+                            "hash": 1928658844658362101
+                        },
+                        {
+                            "hash": 1935195441285490423
+                        },
+                        {
+                            "hash": 1940135547029087991
+                        },
+                        {
+                            "hash": 1942202628889306873
+                        }
+                    ],
+                    "castShadowOverride": -1
+                },
+                "6766054303456732338": {
+                    "_active": true,
+                    "layer": 0
+                },
+                "7205334411763290517": {
+                    "_active": true,
+                    "name": "sword"
+                },
+                "9315785795257285655": {
+                    "_active": true,
+                    "uid": 13364940969275615628
+                },
+                "9501525575059265452": {
+                    "_active": true,
+                    "flags": {
+                        "_majorityTrue": false,
+                        "_except": [
+                            "Use Gravity",
+                            "Enabled"
+                        ]
+                    }
+                },
+                "16607109609690958986": {
+                    "_active": true,
+                    "targetEntity": {
+                        "entityUid": 0
+                    },
+                    "boneName": "",
+                    "localOffset": {
+                        "x": 0.0,
+                        "y": 0.0,
+                        "z": 0.0
+                    },
+                    "localRotation": {
+                        "x": 0.0,
+                        "y": 0.0,
+                        "z": 180.0
+                    }
+                },
+                "18236831197208900764": {
+                    "_active": true,
+                    "center": {
+                        "x": 0.0,
+                        "y": 0.0,
+                        "z": 0.0
+                    },
+                    "size": {
+                        "x": 0.10000000149011612,
+                        "y": 0.5,
+                        "z": 0.10000000149011612
+                    },
+                    "flags": {
+                        "_majorityTrue": true,
+                        "_except": [
+                            "Is Trigger"
+                        ]
+                    }
+                },
+                "18288371625365795113": {
+                    "_active": true,
+                    "scripts": [
+                        {
+                            "scriptName": "throwweapon.lua"
+                        }
+                    ]
                 }
             }
         },
@@ -3549,7 +3725,7 @@
             }
         },
         {
-            "parentIndex": 30,
+            "parentIndex": 32,
             "position": {
                 "x": 0.0,
                 "y": 0.00006103515625,
@@ -4241,11 +4417,75 @@
                 },
                 "7205334411763290517": {
                     "_active": true,
-                    "name": "prefect"
+                    "name": "enemy"
                 },
                 "9315785795257285655": {
                     "_active": true,
                     "uid": 4791810213319580451
+                }
+            }
+        },
+        {
+            "parentIndex": 18,
+            "position": {
+                "x": -0.12378120422363281,
+                "y": -2.384185791015625e-7,
+                "z": 2.5790271759033203
+            },
+            "rotation": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "scale": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0
+            },
+            "components": {
+                "6766054303456732338": {
+                    "_active": true,
+                    "layer": 0
+                },
+                "7205334411763290517": {
+                    "_active": true,
+                    "name": "prefect"
+                },
+                "9315785795257285655": {
+                    "_active": true,
+                    "uid": 4897659098377407049
+                }
+            }
+        },
+        {
+            "parentIndex": 18,
+            "position": {
+                "x": -0.12378120422363281,
+                "y": -2.384185791015625e-7,
+                "z": -2.974529266357422
+            },
+            "rotation": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "scale": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0
+            },
+            "components": {
+                "6766054303456732338": {
+                    "_active": true,
+                    "layer": 0
+                },
+                "7205334411763290517": {
+                    "_active": true,
+                    "name": "enemy2"
+                },
+                "9315785795257285655": {
+                    "_active": true,
+                    "uid": 4907974716469208011
                 }
             }
         },
@@ -4267,28 +4507,16 @@
                 "z": 1.1840837001800537
             },
             "components": {
-                "5352011725353660904": {
-                    "_active": false,
-                    "meshHandle": {
-                        "hash": 394651007363811311
-                    },
-                    "materials": [
-                        {
-                            "hash": 388567409527326701
-                        }
-                    ],
-                    "castShadowOverride": -1
-                },
                 "6766054303456732338": {
-                    "_active": false,
+                    "_active": true,
                     "layer": 0
                 },
                 "7205334411763290517": {
-                    "_active": false,
+                    "_active": true,
                     "name": "DoorTrigger_Close"
                 },
                 "8426725214831635516": {
-                    "_active": false,
+                    "_active": true,
                     "entityReferences": [
                         {
                             "entityUid": 3658786570163049327
@@ -4299,11 +4527,11 @@
                     ]
                 },
                 "9315785795257285655": {
-                    "_active": false,
+                    "_active": true,
                     "uid": 4921859348748285467
                 },
                 "18236831197208900764": {
-                    "_active": false,
+                    "_active": true,
                     "center": {
                         "x": 0.0,
                         "y": 0.0,
@@ -4320,7 +4548,7 @@
                     }
                 },
                 "18288371625365795113": {
-                    "_active": false,
+                    "_active": true,
                     "scripts": [
                         {
                             "scriptName": "roomdoortrigger.lua"
@@ -4379,18 +4607,6 @@
                 "z": 1.0
             },
             "components": {
-                "5352011725353660904": {
-                    "_active": true,
-                    "meshHandle": {
-                        "hash": 394651007363811311
-                    },
-                    "materials": [
-                        {
-                            "hash": 388567409527326701
-                        }
-                    ],
-                    "castShadowOverride": -1
-                },
                 "6766054303456732338": {
                     "_active": true,
                     "layer": 0
@@ -4417,7 +4633,9 @@
                     },
                     "flags": {
                         "_majorityTrue": true,
-                        "_except": []
+                        "_except": [
+                            "Is Trigger"
+                        ]
                     }
                 }
             }
@@ -4440,18 +4658,6 @@
                 "z": 1.0
             },
             "components": {
-                "5352011725353660904": {
-                    "_active": true,
-                    "meshHandle": {
-                        "hash": 394651007363811311
-                    },
-                    "materials": [
-                        {
-                            "hash": 388567409527326701
-                        }
-                    ],
-                    "castShadowOverride": -1
-                },
                 "6766054303456732338": {
                     "_active": true,
                     "layer": 0
@@ -4478,7 +4684,9 @@
                     },
                     "flags": {
                         "_majorityTrue": true,
-                        "_except": []
+                        "_except": [
+                            "Is Trigger"
+                        ]
                     }
                 }
             }
@@ -4501,18 +4709,6 @@
                 "z": 1.0
             },
             "components": {
-                "5352011725353660904": {
-                    "_active": true,
-                    "meshHandle": {
-                        "hash": 394651007363811311
-                    },
-                    "materials": [
-                        {
-                            "hash": 388567409527326701
-                        }
-                    ],
-                    "castShadowOverride": -1
-                },
                 "6766054303456732338": {
                     "_active": true,
                     "layer": 0
@@ -4539,7 +4735,9 @@
                     },
                     "flags": {
                         "_majorityTrue": true,
-                        "_except": []
+                        "_except": [
+                            "Is Trigger"
+                        ]
                     }
                 }
             }
@@ -4562,18 +4760,6 @@
                 "z": 1.0
             },
             "components": {
-                "5352011725353660904": {
-                    "_active": true,
-                    "meshHandle": {
-                        "hash": 394651007363811311
-                    },
-                    "materials": [
-                        {
-                            "hash": 388567409527326701
-                        }
-                    ],
-                    "castShadowOverride": -1
-                },
                 "6766054303456732338": {
                     "_active": true,
                     "layer": 0
@@ -4600,7 +4786,9 @@
                     },
                     "flags": {
                         "_majorityTrue": true,
-                        "_except": []
+                        "_except": [
+                            "Is Trigger"
+                        ]
                     }
                 }
             }
@@ -4623,18 +4811,6 @@
                 "z": 1.0
             },
             "components": {
-                "5352011725353660904": {
-                    "_active": true,
-                    "meshHandle": {
-                        "hash": 394651007363811311
-                    },
-                    "materials": [
-                        {
-                            "hash": 388567409527326701
-                        }
-                    ],
-                    "castShadowOverride": -1
-                },
                 "6766054303456732338": {
                     "_active": true,
                     "layer": 0
@@ -4661,13 +4837,15 @@
                     },
                     "flags": {
                         "_majorityTrue": true,
-                        "_except": []
+                        "_except": [
+                            "Is Trigger"
+                        ]
                     }
                 }
             }
         },
         {
-            "parentIndex": 24,
+            "parentIndex": 25,
             "position": {
                 "x": 0.6999998092651367,
                 "y": 1.0,
@@ -4793,7 +4971,7 @@
             "position": {
                 "x": -3.0999999046325684,
                 "y": 0.5059739351272583,
-                "z": -6.048630237579346
+                "z": -6.574934959411621
             },
             "rotation": {
                 "x": 0.0,
@@ -4922,7 +5100,7 @@
             }
         },
         {
-            "parentIndex": 30,
+            "parentIndex": 32,
             "position": {
                 "x": -1.3617205619812012,
                 "y": 0.0,
@@ -4954,7 +5132,7 @@
             }
         },
         {
-            "parentIndex": 30,
+            "parentIndex": 32,
             "position": {
                 "x": 0.5,
                 "y": 0.00006103515625,
@@ -4986,7 +5164,7 @@
             }
         },
         {
-            "parentIndex": 30,
+            "parentIndex": 32,
             "position": {
                 "x": 2.0,
                 "y": 0.0,
@@ -5018,7 +5196,7 @@
             }
         },
         {
-            "parentIndex": 31,
+            "parentIndex": 33,
             "position": {
                 "x": -1.3617205619812012,
                 "y": 0.0,
@@ -5050,7 +5228,7 @@
             }
         },
         {
-            "parentIndex": 31,
+            "parentIndex": 33,
             "position": {
                 "x": 2.456272602081299,
                 "y": 0.00006103515625,
@@ -5082,7 +5260,7 @@
             }
         },
         {
-            "parentIndex": 58,
+            "parentIndex": 62,
             "position": {
                 "x": -5.150000095367432,
                 "y": 1.4800000190734863,
@@ -5149,7 +5327,7 @@
             }
         },
         {
-            "parentIndex": 37,
+            "parentIndex": 39,
             "position": {
                 "x": -1.6377699375152588,
                 "y": 0.4899139106273651,
@@ -5196,7 +5374,7 @@
             }
         },
         {
-            "parentIndex": 37,
+            "parentIndex": 39,
             "position": {
                 "x": 0.4009009599685669,
                 "y": 0.512028694152832,
@@ -5246,7 +5424,7 @@
             }
         },
         {
-            "parentIndex": 37,
+            "parentIndex": 39,
             "position": {
                 "x": 2.956951141357422,
                 "y": 0.8435628414154053,
@@ -5290,7 +5468,7 @@
             }
         },
         {
-            "parentIndex": 37,
+            "parentIndex": 39,
             "position": {
                 "x": -3.650015115737915,
                 "y": 1.399999976158142,
@@ -5354,7 +5532,7 @@
             }
         },
         {
-            "parentIndex": 37,
+            "parentIndex": 39,
             "position": {
                 "x": 3.6500000953674316,
                 "y": 1.399999976158142,
@@ -5420,7 +5598,7 @@
             }
         },
         {
-            "parentIndex": 37,
+            "parentIndex": 39,
             "position": {
                 "x": -4.800000190734863,
                 "y": 0.5098649859428406,
@@ -5467,7 +5645,7 @@
             }
         },
         {
-            "parentIndex": 37,
+            "parentIndex": 39,
             "position": {
                 "x": 10.0,
                 "y": 0.0,
@@ -5499,7 +5677,7 @@
             }
         },
         {
-            "parentIndex": 37,
+            "parentIndex": 39,
             "position": {
                 "x": -3.6011104583740234,
                 "y": 1.0,
@@ -5550,7 +5728,7 @@
             }
         },
         {
-            "parentIndex": 37,
+            "parentIndex": 39,
             "position": {
                 "x": -3.6011104583740234,
                 "y": 1.0,
@@ -5615,7 +5793,7 @@
             }
         },
         {
-            "parentIndex": 33,
+            "parentIndex": 35,
             "position": {
                 "x": 49.524993896484375,
                 "y": -0.3849830627441406,
@@ -5674,7 +5852,7 @@
             }
         },
         {
-            "parentIndex": 46,
+            "parentIndex": 48,
             "position": {
                 "x": -1.7734768390655518,
                 "y": 0.5098680853843689,
@@ -5721,7 +5899,39 @@
             }
         },
         {
-            "parentIndex": 37,
+            "parentIndex": 48,
+            "position": {
+                "x": 0.4424646496772766,
+                "y": 0.5098736882209778,
+                "z": -6.359772682189941
+            },
+            "rotation": {
+                "x": 0.0,
+                "y": 58.0,
+                "z": 0.0
+            },
+            "scale": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0
+            },
+            "components": {
+                "6766054303456732338": {
+                    "_active": true,
+                    "layer": 0
+                },
+                "7205334411763290517": {
+                    "_active": true,
+                    "name": "Table Group"
+                },
+                "9315785795257285655": {
+                    "_active": true,
+                    "uid": 3150514231120818762
+                }
+            }
+        },
+        {
+            "parentIndex": 39,
             "position": {
                 "x": -5.731337070465088,
                 "y": 0.5098649859428406,
@@ -5768,7 +5978,7 @@
             }
         },
         {
-            "parentIndex": 37,
+            "parentIndex": 39,
             "position": {
                 "x": -4.050000190734863,
                 "y": 0.5098649859428406,
@@ -5815,16 +6025,48 @@
             }
         },
         {
-            "parentIndex": 46,
+            "parentIndex": 48,
             "position": {
-                "x": -0.5895340442657471,
-                "y": 1.2015676498413086,
-                "z": -2.4824020862579346
+                "x": -1.3966305255889893,
+                "y": 0.5099331736564636,
+                "z": -6.2510905265808105
             },
             "rotation": {
                 "x": 0.0,
-                "y": 82.0,
-                "z": 0.0008305715746246278
+                "y": 58.0,
+                "z": 0.0
+            },
+            "scale": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0
+            },
+            "components": {
+                "6766054303456732338": {
+                    "_active": true,
+                    "layer": 0
+                },
+                "7205334411763290517": {
+                    "_active": true,
+                    "name": "Table Group"
+                },
+                "9315785795257285655": {
+                    "_active": true,
+                    "uid": 3250075009015951927
+                }
+            }
+        },
+        {
+            "parentIndex": 48,
+            "position": {
+                "x": 2.0,
+                "y": 0.5098649859428406,
+                "z": 1.4901161193847656e-8
+            },
+            "rotation": {
+                "x": 0.0,
+                "y": -37.848609924316406,
+                "z": 0.0
             },
             "scale": {
                 "x": 1.0,
@@ -5835,7 +6077,7 @@
                 "5352011725353660904": {
                     "_active": true,
                     "meshHandle": {
-                        "hash": 161358829201315781
+                        "hash": 362711294088504259
                     },
                     "materials": [
                         {
@@ -5853,16 +6095,16 @@
                 },
                 "7205334411763290517": {
                     "_active": true,
-                    "name": "Chair"
+                    "name": "Table"
                 },
                 "9315785795257285655": {
                     "_active": true,
-                    "uid": 3558032822151795566
+                    "uid": 3485225361826394720
                 }
             }
         },
         {
-            "parentIndex": 47,
+            "parentIndex": 49,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -5924,7 +6166,7 @@
             }
         },
         {
-            "parentIndex": 46,
+            "parentIndex": 48,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -5968,7 +6210,7 @@
             }
         },
         {
-            "parentIndex": 48,
+            "parentIndex": 50,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -6030,7 +6272,7 @@
             }
         },
         {
-            "parentIndex": 46,
+            "parentIndex": 48,
             "position": {
                 "x": 0.4009009599685669,
                 "y": 0.512028694152832,
@@ -6080,7 +6322,7 @@
             }
         },
         {
-            "parentIndex": 49,
+            "parentIndex": 51,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -6138,7 +6380,7 @@
             }
         },
         {
-            "parentIndex": 46,
+            "parentIndex": 48,
             "position": {
                 "x": 0.0,
                 "y": 1.399999976158142,
@@ -6201,7 +6443,7 @@
             }
         },
         {
-            "parentIndex": 50,
+            "parentIndex": 52,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -6259,15 +6501,15 @@
             }
         },
         {
-            "parentIndex": 46,
+            "parentIndex": 48,
             "position": {
-                "x": -4.915039539337158,
-                "y": 0.7457373142242432,
-                "z": 1.6927119493484497
+                "x": -5.217335224151611,
+                "y": 0.7457377314567566,
+                "z": 2.006963014602661
             },
             "rotation": {
                 "x": -90.0,
-                "y": 81.80033874511719,
+                "y": 128.8000030517578,
                 "z": 0.0
             },
             "scale": {
@@ -6299,11 +6541,19 @@
                 "9315785795257285655": {
                     "_active": true,
                     "uid": 3623614292702122862
+                },
+                "18288371625365795113": {
+                    "_active": true,
+                    "scripts": [
+                        {
+                            "scriptName": "shelfscream.lua"
+                        }
+                    ]
                 }
             }
         },
         {
-            "parentIndex": 46,
+            "parentIndex": 48,
             "position": {
                 "x": -10.0,
                 "y": 0.5098649859428406,
@@ -6350,7 +6600,7 @@
             }
         },
         {
-            "parentIndex": 51,
+            "parentIndex": 53,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -6408,7 +6658,7 @@
             }
         },
         {
-            "parentIndex": 46,
+            "parentIndex": 48,
             "position": {
                 "x": -3.6011104583740234,
                 "y": 1.0,
@@ -6459,7 +6709,7 @@
             }
         },
         {
-            "parentIndex": 53,
+            "parentIndex": 55,
             "position": {
                 "x": 9.5367431640625e-7,
                 "y": 0.0,
@@ -6517,7 +6767,7 @@
             }
         },
         {
-            "parentIndex": 58,
+            "parentIndex": 62,
             "position": {
                 "x": -5.150000095367432,
                 "y": 1.4800000190734863,
@@ -6584,7 +6834,7 @@
             }
         },
         {
-            "parentIndex": 46,
+            "parentIndex": 48,
             "position": {
                 "x": -3.650015115737915,
                 "y": 1.399999976158142,
@@ -6654,7 +6904,7 @@
             }
         },
         {
-            "parentIndex": 46,
+            "parentIndex": 48,
             "position": {
                 "x": 2.956951141357422,
                 "y": 0.8435628414154053,
@@ -6698,54 +6948,7 @@
             }
         },
         {
-            "parentIndex": 46,
-            "position": {
-                "x": 2.0,
-                "y": 0.5098649859428406,
-                "z": 1.4901161193847656e-8
-            },
-            "rotation": {
-                "x": 0.0,
-                "y": -37.848609924316406,
-                "z": 0.0
-            },
-            "scale": {
-                "x": 1.0,
-                "y": 1.0,
-                "z": 1.0
-            },
-            "components": {
-                "5352011725353660904": {
-                    "_active": true,
-                    "meshHandle": {
-                        "hash": 362711294088504259
-                    },
-                    "materials": [
-                        {
-                            "hash": 155322510364825539
-                        },
-                        {
-                            "hash": 157414880993324893
-                        }
-                    ],
-                    "castShadowOverride": -1
-                },
-                "6766054303456732338": {
-                    "_active": true,
-                    "layer": 0
-                },
-                "7205334411763290517": {
-                    "_active": true,
-                    "name": "Table"
-                },
-                "9315785795257285655": {
-                    "_active": true,
-                    "uid": 3768035145010500463
-                }
-            }
-        },
-        {
-            "parentIndex": 46,
+            "parentIndex": 48,
             "position": {
                 "x": 10.0,
                 "y": 0.0,
@@ -6777,7 +6980,7 @@
             }
         },
         {
-            "parentIndex": 46,
+            "parentIndex": 48,
             "position": {
                 "x": -3.6011104583740234,
                 "y": 1.0,
@@ -6842,7 +7045,7 @@
             }
         },
         {
-            "parentIndex": 46,
+            "parentIndex": 48,
             "position": {
                 "x": 3.6500000953674316,
                 "y": 1.399999976158142,
@@ -6908,7 +7111,7 @@
             }
         },
         {
-            "parentIndex": 46,
+            "parentIndex": 48,
             "position": {
                 "x": -2.8671932220458984,
                 "y": 0.864890456199646,
@@ -6952,7 +7155,7 @@
             }
         },
         {
-            "parentIndex": 46,
+            "parentIndex": 48,
             "position": {
                 "x": -5.085008144378662,
                 "y": 1.399999976158142,
@@ -7015,7 +7218,7 @@
             }
         },
         {
-            "parentIndex": 54,
+            "parentIndex": 56,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -7059,7 +7262,7 @@
             }
         },
         {
-            "parentIndex": 54,
+            "parentIndex": 56,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -7103,7 +7306,7 @@
             }
         },
         {
-            "parentIndex": 46,
+            "parentIndex": 48,
             "position": {
                 "x": 0.0,
                 "y": 1.399999976158142,
@@ -7166,7 +7369,7 @@
             }
         },
         {
-            "parentIndex": 37,
+            "parentIndex": 39,
             "position": {
                 "x": 1.1920928955078125e-7,
                 "y": 0.0,
@@ -7210,7 +7413,7 @@
             }
         },
         {
-            "parentIndex": 37,
+            "parentIndex": 39,
             "position": {
                 "x": 0.0,
                 "y": 1.399999976158142,
@@ -7273,7 +7476,7 @@
             }
         },
         {
-            "parentIndex": 37,
+            "parentIndex": 39,
             "position": {
                 "x": 0.0,
                 "y": 1.399999976158142,
@@ -7336,7 +7539,111 @@
             }
         },
         {
-            "parentIndex": 46,
+            "parentIndex": 39,
+            "position": {
+                "x": -5.866755485534668,
+                "y": 0.5099178552627563,
+                "z": 7.925033092498779
+            },
+            "rotation": {
+                "x": 0.0,
+                "y": -81.69999694824219,
+                "z": 0.0
+            },
+            "scale": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0
+            },
+            "components": {
+                "5352011725353660904": {
+                    "_active": true,
+                    "meshHandle": {
+                        "hash": 362711294088504259
+                    },
+                    "materials": [
+                        {
+                            "hash": 155322510364825539
+                        },
+                        {
+                            "hash": 157414880993324893
+                        }
+                    ],
+                    "castShadowOverride": -1
+                },
+                "6766054303456732338": {
+                    "_active": true,
+                    "layer": 0
+                },
+                "7205334411763290517": {
+                    "_active": true,
+                    "name": "Table"
+                },
+                "9315785795257285655": {
+                    "_active": true,
+                    "uid": 5439329103756004987
+                }
+            }
+        },
+        {
+            "parentIndex": 39,
+            "position": {
+                "x": -5.915558815002441,
+                "y": 0.5060267448425293,
+                "z": 7.93215274810791
+            },
+            "rotation": {
+                "x": 0.0,
+                "y": -81.69999694824219,
+                "z": 0.0
+            },
+            "scale": {
+                "x": 0.8551139235496521,
+                "y": 0.6222162842750549,
+                "z": 0.4913094639778137
+            },
+            "components": {
+                "6766054303456732338": {
+                    "_active": true,
+                    "layer": 0
+                },
+                "7205334411763290517": {
+                    "_active": true,
+                    "name": "Collider"
+                },
+                "9315785795257285655": {
+                    "_active": true,
+                    "uid": 5445914078894755451
+                },
+                "18236831197208900764": {
+                    "_active": true,
+                    "center": {
+                        "x": 0.0,
+                        "y": 0.0,
+                        "z": 0.0
+                    },
+                    "size": {
+                        "x": 1.0,
+                        "y": 1.0,
+                        "z": 1.0
+                    },
+                    "flags": {
+                        "_majorityTrue": true,
+                        "_except": []
+                    }
+                },
+                "18288371625365795113": {
+                    "_active": true,
+                    "scripts": [
+                        {
+                            "scriptName": "cheatyteleport.lua"
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "parentIndex": 48,
             "position": {
                 "x": -0.8827802538871765,
                 "y": 0.5099262595176697,
@@ -7368,7 +7675,7 @@
             }
         },
         {
-            "parentIndex": 46,
+            "parentIndex": 48,
             "position": {
                 "x": 0.5236010551452637,
                 "y": 0.5098665356636047,
@@ -7400,7 +7707,7 @@
             }
         },
         {
-            "parentIndex": 37,
+            "parentIndex": 39,
             "position": {
                 "x": -2.867177963256836,
                 "y": 0.864890456199646,
@@ -7444,7 +7751,7 @@
             }
         },
         {
-            "parentIndex": 46,
+            "parentIndex": 48,
             "position": {
                 "x": -0.36450958251953125,
                 "y": 0.5098742842674255,
@@ -7476,7 +7783,7 @@
             }
         },
         {
-            "parentIndex": 46,
+            "parentIndex": 48,
             "position": {
                 "x": 1.1951980590820313,
                 "y": 1.2016370296478271,
@@ -7523,7 +7830,7 @@
             }
         },
         {
-            "parentIndex": 46,
+            "parentIndex": 48,
             "position": {
                 "x": -1.4919569492340088,
                 "y": 0.9411354064941406,
@@ -7570,7 +7877,7 @@
             }
         },
         {
-            "parentIndex": 37,
+            "parentIndex": 39,
             "position": {
                 "x": -4.245174884796143,
                 "y": 0.5098605751991272,
@@ -7617,7 +7924,7 @@
             }
         },
         {
-            "parentIndex": 37,
+            "parentIndex": 39,
             "position": {
                 "x": -5.900000095367432,
                 "y": 0.5099248290061951,
@@ -7664,15 +7971,15 @@
             }
         },
         {
-            "parentIndex": 37,
+            "parentIndex": 39,
             "position": {
-                "x": -5.065890789031982,
-                "y": 0.5099248290061951,
-                "z": 6.727170944213867
+                "x": -5.061739921569824,
+                "y": 0.5099229216575623,
+                "z": 6.872520923614502
             },
             "rotation": {
                 "x": 0.0,
-                "y": -47.69915771484375,
+                "y": -9.699999809265137,
                 "z": 0.0
             },
             "scale": {
@@ -7711,7 +8018,7 @@
             }
         },
         {
-            "parentIndex": 58,
+            "parentIndex": 62,
             "position": {
                 "x": -5.148462295532227,
                 "y": 1.4800000190734863,
@@ -7752,7 +8059,7 @@
                 },
                 "7205334411763290517": {
                     "_active": true,
-                    "name": "CorridorWallSection"
+                    "name": "CheatTrigger"
                 },
                 "9315785795257285655": {
                     "_active": true,
@@ -7778,7 +8085,7 @@
             }
         },
         {
-            "parentIndex": 58,
+            "parentIndex": 62,
             "position": {
                 "x": -1.4872987270355225,
                 "y": -0.5362609028816223,
@@ -7848,7 +8155,7 @@
             }
         },
         {
-            "parentIndex": 74,
+            "parentIndex": 78,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -7899,7 +8206,7 @@
             }
         },
         {
-            "parentIndex": 75,
+            "parentIndex": 79,
             "position": {
                 "x": 0.0,
                 "y": -0.0038910508155822754,
@@ -7950,7 +8257,7 @@
             }
         },
         {
-            "parentIndex": 77,
+            "parentIndex": 81,
             "position": {
                 "x": 0.01342153549194336,
                 "y": 0.9769220352172852,
@@ -8001,7 +8308,7 @@
             }
         },
         {
-            "parentIndex": 76,
+            "parentIndex": 80,
             "position": {
                 "x": 0.0007220208644866943,
                 "y": 0.0,
@@ -8052,7 +8359,7 @@
             }
         },
         {
-            "parentIndex": 77,
+            "parentIndex": 81,
             "position": {
                 "x": 0.01342153549194336,
                 "y": 0.0,
@@ -8103,7 +8410,7 @@
             }
         },
         {
-            "parentIndex": 77,
+            "parentIndex": 81,
             "position": {
                 "x": 0.01342153549194336,
                 "y": 0.0,
@@ -8154,7 +8461,7 @@
             }
         },
         {
-            "parentIndex": 77,
+            "parentIndex": 81,
             "position": {
                 "x": 0.01342153549194336,
                 "y": 0.0,
@@ -8205,7 +8512,7 @@
             }
         },
         {
-            "parentIndex": 79,
+            "parentIndex": 83,
             "position": {
                 "x": 0.0,
                 "y": -0.0038910508155822754,
@@ -8256,7 +8563,7 @@
             }
         },
         {
-            "parentIndex": 80,
+            "parentIndex": 84,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -8300,7 +8607,7 @@
             }
         },
         {
-            "parentIndex": 80,
+            "parentIndex": 84,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -8344,7 +8651,7 @@
             }
         },
         {
-            "parentIndex": 81,
+            "parentIndex": 85,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -8388,7 +8695,7 @@
             }
         },
         {
-            "parentIndex": 81,
+            "parentIndex": 85,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -8432,7 +8739,7 @@
             }
         },
         {
-            "parentIndex": 82,
+            "parentIndex": 86,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -8476,7 +8783,7 @@
             }
         },
         {
-            "parentIndex": 82,
+            "parentIndex": 86,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -8520,7 +8827,7 @@
             }
         },
         {
-            "parentIndex": 73,
+            "parentIndex": 77,
             "position": {
                 "x": 0.0,
                 "y": -1.8507726192474365,
@@ -8571,7 +8878,7 @@
             }
         },
         {
-            "parentIndex": 84,
+            "parentIndex": 88,
             "position": {
                 "x": 0.0,
                 "y": -0.0038910508155822754,
@@ -8622,7 +8929,242 @@
             }
         },
         {
-            "parentIndex": 85,
+            "parentIndex": 89,
+            "position": {
+                "x": -0.22502446174621582,
+                "y": 0.6916933655738831,
+                "z": 0.9361848831176758
+            },
+            "rotation": {
+                "x": 0.0,
+                "y": 82.0,
+                "z": 0.0008305715746246278
+            },
+            "scale": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0
+            },
+            "components": {
+                "5352011725353660904": {
+                    "_active": true,
+                    "meshHandle": {
+                        "hash": 161358829201315781
+                    },
+                    "materials": [
+                        {
+                            "hash": 155322510364825539
+                        },
+                        {
+                            "hash": 157414880993324893
+                        }
+                    ],
+                    "castShadowOverride": -1
+                },
+                "6766054303456732338": {
+                    "_active": true,
+                    "layer": 0
+                },
+                "7205334411763290517": {
+                    "_active": true,
+                    "name": "Chair"
+                },
+                "9315785795257285655": {
+                    "_active": true,
+                    "uid": 3157425761213018698
+                }
+            }
+        },
+        {
+            "parentIndex": 89,
+            "position": {
+                "x": -0.7320950031280518,
+                "y": 0.00005429983139038086,
+                "z": -0.006238698959350586
+            },
+            "rotation": {
+                "x": 0.0,
+                "y": -17.538251876831055,
+                "z": 0.0
+            },
+            "scale": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0
+            },
+            "components": {
+                "5352011725353660904": {
+                    "_active": true,
+                    "meshHandle": {
+                        "hash": 362711294088504259
+                    },
+                    "materials": [
+                        {
+                            "hash": 155322510364825539
+                        },
+                        {
+                            "hash": 157414880993324893
+                        }
+                    ],
+                    "castShadowOverride": -1
+                },
+                "6766054303456732338": {
+                    "_active": true,
+                    "layer": 0
+                },
+                "7205334411763290517": {
+                    "_active": true,
+                    "name": "Table"
+                },
+                "9315785795257285655": {
+                    "_active": true,
+                    "uid": 3178569369815151178
+                }
+            }
+        },
+        {
+            "parentIndex": 89,
+            "position": {
+                "x": -0.11776286363601685,
+                "y": -0.00005549192428588867,
+                "z": 0.8327102661132813
+            },
+            "rotation": {
+                "x": 0.0,
+                "y": 15.420537948608398,
+                "z": 0.0
+            },
+            "scale": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0
+            },
+            "components": {
+                "5352011725353660904": {
+                    "_active": true,
+                    "meshHandle": {
+                        "hash": 362711294088504259
+                    },
+                    "materials": [
+                        {
+                            "hash": 155322510364825539
+                        },
+                        {
+                            "hash": 157414880993324893
+                        }
+                    ],
+                    "castShadowOverride": -1
+                },
+                "6766054303456732338": {
+                    "_active": true,
+                    "layer": 0
+                },
+                "7205334411763290517": {
+                    "_active": true,
+                    "name": "Table"
+                },
+                "9315785795257285655": {
+                    "_active": true,
+                    "uid": 3197084046115271242
+                }
+            }
+        },
+        {
+            "parentIndex": 89,
+            "position": {
+                "x": 0.06576824188232422,
+                "y": 0.00006157159805297852,
+                "z": 0.11289715766906738
+            },
+            "rotation": {
+                "x": 0.0,
+                "y": 59.644256591796875,
+                "z": 0.0
+            },
+            "scale": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0
+            },
+            "components": {
+                "5352011725353660904": {
+                    "_active": true,
+                    "meshHandle": {
+                        "hash": 362711294088504259
+                    },
+                    "materials": [
+                        {
+                            "hash": 155322510364825539
+                        },
+                        {
+                            "hash": 157414880993324893
+                        }
+                    ],
+                    "castShadowOverride": -1
+                },
+                "6766054303456732338": {
+                    "_active": true,
+                    "layer": 0
+                },
+                "7205334411763290517": {
+                    "_active": true,
+                    "name": "Table"
+                },
+                "9315785795257285655": {
+                    "_active": true,
+                    "uid": 3214308995276010058
+                }
+            }
+        },
+        {
+            "parentIndex": 89,
+            "position": {
+                "x": -0.26861530542373657,
+                "y": 0.5284355282783508,
+                "z": 0.4208028316497803
+            },
+            "rotation": {
+                "x": -97.0,
+                "y": -0.4000000059604645,
+                "z": 0.0
+            },
+            "scale": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0
+            },
+            "components": {
+                "5352011725353660904": {
+                    "_active": true,
+                    "meshHandle": {
+                        "hash": 362711294088504259
+                    },
+                    "materials": [
+                        {
+                            "hash": 155322510364825539
+                        },
+                        {
+                            "hash": 157414880993324893
+                        }
+                    ],
+                    "castShadowOverride": -1
+                },
+                "6766054303456732338": {
+                    "_active": true,
+                    "layer": 0
+                },
+                "7205334411763290517": {
+                    "_active": true,
+                    "name": "Table"
+                },
+                "9315785795257285655": {
+                    "_active": true,
+                    "uid": 3230280501181084234
+                }
+            }
+        },
+        {
+            "parentIndex": 90,
             "position": {
                 "x": 0.0,
                 "y": -0.0038910508155822754,
@@ -8673,7 +9215,7 @@
             }
         },
         {
-            "parentIndex": 86,
+            "parentIndex": 91,
             "position": {
                 "x": 0.0,
                 "y": -0.0038910508155822754,
@@ -8724,11 +9266,246 @@
             }
         },
         {
-            "parentIndex": 87,
+            "parentIndex": 92,
+            "position": {
+                "x": -0.7320947647094727,
+                "y": 0.00005429983139038086,
+                "z": -0.006238698959350586
+            },
+            "rotation": {
+                "x": 0.0,
+                "y": -17.538253784179688,
+                "z": 0.0
+            },
+            "scale": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0
+            },
+            "components": {
+                "5352011725353660904": {
+                    "_active": true,
+                    "meshHandle": {
+                        "hash": 362711294088504259
+                    },
+                    "materials": [
+                        {
+                            "hash": 155322510364825539
+                        },
+                        {
+                            "hash": 157414880993324893
+                        }
+                    ],
+                    "castShadowOverride": -1
+                },
+                "6766054303456732338": {
+                    "_active": true,
+                    "layer": 0
+                },
+                "7205334411763290517": {
+                    "_active": true,
+                    "name": "Table"
+                },
+                "9315785795257285655": {
+                    "_active": true,
+                    "uid": 3259257030619509303
+                }
+            }
+        },
+        {
+            "parentIndex": 92,
+            "position": {
+                "x": 0.06576824188232422,
+                "y": 0.00006157159805297852,
+                "z": 0.11289715766906738
+            },
+            "rotation": {
+                "x": 0.0,
+                "y": 59.644256591796875,
+                "z": 0.0
+            },
+            "scale": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0
+            },
+            "components": {
+                "5352011725353660904": {
+                    "_active": true,
+                    "meshHandle": {
+                        "hash": 362711294088504259
+                    },
+                    "materials": [
+                        {
+                            "hash": 155322510364825539
+                        },
+                        {
+                            "hash": 157414880993324893
+                        }
+                    ],
+                    "castShadowOverride": -1
+                },
+                "6766054303456732338": {
+                    "_active": true,
+                    "layer": 0
+                },
+                "7205334411763290517": {
+                    "_active": true,
+                    "name": "Table"
+                },
+                "9315785795257285655": {
+                    "_active": true,
+                    "uid": 3277010844873208375
+                }
+            }
+        },
+        {
+            "parentIndex": 92,
+            "position": {
+                "x": -0.11776304244995117,
+                "y": -0.00005549192428588867,
+                "z": 0.8327102661132813
+            },
+            "rotation": {
+                "x": 0.0,
+                "y": 15.420539855957031,
+                "z": 0.0
+            },
+            "scale": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0
+            },
+            "components": {
+                "5352011725353660904": {
+                    "_active": true,
+                    "meshHandle": {
+                        "hash": 362711294088504259
+                    },
+                    "materials": [
+                        {
+                            "hash": 155322510364825539
+                        },
+                        {
+                            "hash": 157414880993324893
+                        }
+                    ],
+                    "castShadowOverride": -1
+                },
+                "6766054303456732338": {
+                    "_active": true,
+                    "layer": 0
+                },
+                "7205334411763290517": {
+                    "_active": true,
+                    "name": "Table"
+                },
+                "9315785795257285655": {
+                    "_active": true,
+                    "uid": 3293897144452592183
+                }
+            }
+        },
+        {
+            "parentIndex": 92,
+            "position": {
+                "x": -0.2686152458190918,
+                "y": 0.5284355282783508,
+                "z": 0.4208028316497803
+            },
+            "rotation": {
+                "x": -97.0,
+                "y": -0.40000152587890625,
+                "z": 0.0
+            },
+            "scale": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0
+            },
+            "components": {
+                "5352011725353660904": {
+                    "_active": true,
+                    "meshHandle": {
+                        "hash": 362711294088504259
+                    },
+                    "materials": [
+                        {
+                            "hash": 155322510364825539
+                        },
+                        {
+                            "hash": 157414880993324893
+                        }
+                    ],
+                    "castShadowOverride": -1
+                },
+                "6766054303456732338": {
+                    "_active": true,
+                    "layer": 0
+                },
+                "7205334411763290517": {
+                    "_active": true,
+                    "name": "Table"
+                },
+                "9315785795257285655": {
+                    "_active": true,
+                    "uid": 3310381022776209975
+                }
+            }
+        },
+        {
+            "parentIndex": 92,
+            "position": {
+                "x": -0.22502422332763672,
+                "y": 0.6916933655738831,
+                "z": 0.9361848831176758
+            },
+            "rotation": {
+                "x": 0.0,
+                "y": 82.0,
+                "z": 0.0008305715746246278
+            },
+            "scale": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0
+            },
+            "components": {
+                "5352011725353660904": {
+                    "_active": true,
+                    "meshHandle": {
+                        "hash": 161358829201315781
+                    },
+                    "materials": [
+                        {
+                            "hash": 155322510364825539
+                        },
+                        {
+                            "hash": 157414880993324893
+                        }
+                    ],
+                    "castShadowOverride": -1
+                },
+                "6766054303456732338": {
+                    "_active": true,
+                    "layer": 0
+                },
+                "7205334411763290517": {
+                    "_active": true,
+                    "name": "Chair"
+                },
+                "9315785795257285655": {
+                    "_active": true,
+                    "uid": 3331224464703959607
+                }
+            }
+        },
+        {
+            "parentIndex": 93,
             "position": {
                 "x": 0.0,
-                "y": 0.0,
-                "z": 0.0
+                "y": -0.0038910508155822754,
+                "z": 0.04931926727294922
             },
             "rotation": {
                 "x": 0.0,
@@ -8736,9 +9513,9 @@
                 "z": 0.0
             },
             "scale": {
-                "x": 0.3959948420524597,
-                "y": 0.7444257140159607,
-                "z": 0.3782336711883545
+                "x": 0.8551139235496521,
+                "y": 0.6222162842750549,
+                "z": 0.4913094639778137
             },
             "components": {
                 "6766054303456732338": {
@@ -8751,7 +9528,7 @@
                 },
                 "9315785795257285655": {
                     "_active": true,
-                    "uid": 3568341843173823342
+                    "uid": 3491670698988417632
                 },
                 "18236831197208900764": {
                     "_active": true,
@@ -8775,7 +9552,54 @@
             }
         },
         {
-            "parentIndex": 89,
+            "parentIndex": 125,
+            "position": {
+                "x": -0.22502446174621582,
+                "y": 0.6916933655738831,
+                "z": 0.9361848831176758
+            },
+            "rotation": {
+                "x": 0.0,
+                "y": 82.0,
+                "z": 0.0008305715746246278
+            },
+            "scale": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0
+            },
+            "components": {
+                "5352011725353660904": {
+                    "_active": true,
+                    "meshHandle": {
+                        "hash": 161358829201315781
+                    },
+                    "materials": [
+                        {
+                            "hash": 155322510364825539
+                        },
+                        {
+                            "hash": 157414880993324893
+                        }
+                    ],
+                    "castShadowOverride": -1
+                },
+                "6766054303456732338": {
+                    "_active": true,
+                    "layer": 0
+                },
+                "7205334411763290517": {
+                    "_active": true,
+                    "name": "Chair"
+                },
+                "9315785795257285655": {
+                    "_active": true,
+                    "uid": 3558032822151795566
+                }
+            }
+        },
+        {
+            "parentIndex": 95,
             "position": {
                 "x": 0.0,
                 "y": -0.3732050061225891,
@@ -8826,7 +9650,7 @@
             }
         },
         {
-            "parentIndex": 91,
+            "parentIndex": 97,
             "position": {
                 "x": 0.0,
                 "y": -0.0038910508155822754,
@@ -8877,7 +9701,7 @@
             }
         },
         {
-            "parentIndex": 95,
+            "parentIndex": 101,
             "position": {
                 "x": 0.0007219314575195313,
                 "y": 0.0,
@@ -8928,7 +9752,7 @@
             }
         },
         {
-            "parentIndex": 96,
+            "parentIndex": 102,
             "position": {
                 "x": 0.0,
                 "y": -0.0038910508155822754,
@@ -8979,7 +9803,7 @@
             }
         },
         {
-            "parentIndex": 98,
+            "parentIndex": 104,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -9023,7 +9847,7 @@
             }
         },
         {
-            "parentIndex": 98,
+            "parentIndex": 104,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -9067,7 +9891,7 @@
             }
         },
         {
-            "parentIndex": 100,
+            "parentIndex": 106,
             "position": {
                 "x": -1.2487144470214844,
                 "y": -0.037741899490356445,
@@ -9118,7 +9942,7 @@
             }
         },
         {
-            "parentIndex": 100,
+            "parentIndex": 106,
             "position": {
                 "x": 0.0,
                 "y": -1.8507726192474365,
@@ -9169,7 +9993,7 @@
             }
         },
         {
-            "parentIndex": 101,
+            "parentIndex": 107,
             "position": {
                 "x": 0.01342153549194336,
                 "y": 0.0,
@@ -9220,7 +10044,7 @@
             }
         },
         {
-            "parentIndex": 101,
+            "parentIndex": 107,
             "position": {
                 "x": 0.01342153549194336,
                 "y": 0.0,
@@ -9271,7 +10095,7 @@
             }
         },
         {
-            "parentIndex": 100,
+            "parentIndex": 106,
             "position": {
                 "x": 1.266754150390625,
                 "y": -0.037741899490356445,
@@ -9322,7 +10146,7 @@
             }
         },
         {
-            "parentIndex": 101,
+            "parentIndex": 107,
             "position": {
                 "x": 0.01342153549194336,
                 "y": 0.9769221544265747,
@@ -9373,7 +10197,7 @@
             }
         },
         {
-            "parentIndex": 125,
+            "parentIndex": 132,
             "position": {
                 "x": 2.5,
                 "y": 0.13423000276088715,
@@ -9424,7 +10248,7 @@
             }
         },
         {
-            "parentIndex": 125,
+            "parentIndex": 132,
             "position": {
                 "x": -1.4655447006225586,
                 "y": -2.5860800743103027,
@@ -9475,7 +10299,7 @@
             }
         },
         {
-            "parentIndex": 101,
+            "parentIndex": 107,
             "position": {
                 "x": 0.01342153549194336,
                 "y": 0.0,
@@ -9526,7 +10350,7 @@
             }
         },
         {
-            "parentIndex": 125,
+            "parentIndex": 132,
             "position": {
                 "x": -3.9433178901672363,
                 "y": -1.7716667652130127,
@@ -9577,7 +10401,7 @@
             }
         },
         {
-            "parentIndex": 102,
+            "parentIndex": 108,
             "position": {
                 "x": 0.0007219314575195313,
                 "y": 0.0,
@@ -9628,58 +10452,7 @@
             }
         },
         {
-            "parentIndex": 103,
-            "position": {
-                "x": 0.0,
-                "y": -0.0038910508155822754,
-                "z": 0.04931920766830444
-            },
-            "rotation": {
-                "x": 0.0,
-                "y": 0.0,
-                "z": 0.0
-            },
-            "scale": {
-                "x": 0.8551139235496521,
-                "y": 0.6222162842750549,
-                "z": 0.4913094639778137
-            },
-            "components": {
-                "6766054303456732338": {
-                    "_active": true,
-                    "layer": 0
-                },
-                "7205334411763290517": {
-                    "_active": true,
-                    "name": "Collider"
-                },
-                "9315785795257285655": {
-                    "_active": true,
-                    "uid": 3775655860102615919
-                },
-                "18236831197208900764": {
-                    "_active": true,
-                    "center": {
-                        "x": 0.0,
-                        "y": 0.0,
-                        "z": 0.0
-                    },
-                    "size": {
-                        "x": 1.0,
-                        "y": 1.0,
-                        "z": 1.0
-                    },
-                    "flags": {
-                        "_majorityTrue": true,
-                        "_except": [
-                            "Is Trigger"
-                        ]
-                    }
-                }
-            }
-        },
-        {
-            "parentIndex": 104,
+            "parentIndex": 109,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -9723,7 +10496,7 @@
             }
         },
         {
-            "parentIndex": 104,
+            "parentIndex": 109,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -9767,7 +10540,7 @@
             }
         },
         {
-            "parentIndex": 105,
+            "parentIndex": 110,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -9811,7 +10584,7 @@
             }
         },
         {
-            "parentIndex": 105,
+            "parentIndex": 110,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -9855,7 +10628,7 @@
             }
         },
         {
-            "parentIndex": 107,
+            "parentIndex": 112,
             "position": {
                 "x": 0.0007219314575195313,
                 "y": 0.0,
@@ -9906,7 +10679,7 @@
             }
         },
         {
-            "parentIndex": 125,
+            "parentIndex": 132,
             "position": {
                 "x": -1.434356451034546,
                 "y": -0.2591911554336548,
@@ -9969,7 +10742,7 @@
             }
         },
         {
-            "parentIndex": 109,
+            "parentIndex": 114,
             "position": {
                 "x": 2.384185791015625e-7,
                 "y": 0.0,
@@ -10020,7 +10793,7 @@
             }
         },
         {
-            "parentIndex": 110,
+            "parentIndex": 115,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -10071,7 +10844,7 @@
             }
         },
         {
-            "parentIndex": 125,
+            "parentIndex": 132,
             "position": {
                 "x": 4.7543206214904785,
                 "y": -0.5206276774406433,
@@ -10134,7 +10907,7 @@
             }
         },
         {
-            "parentIndex": 125,
+            "parentIndex": 132,
             "position": {
                 "x": 4.7543206214904785,
                 "y": -3.1836631298065186,
@@ -10197,7 +10970,7 @@
             }
         },
         {
-            "parentIndex": 125,
+            "parentIndex": 132,
             "position": {
                 "x": 4.75432014465332,
                 "y": -3.298680543899536,
@@ -10260,7 +11033,7 @@
             }
         },
         {
-            "parentIndex": 112,
+            "parentIndex": 117,
             "position": {
                 "x": 0.0,
                 "y": -0.3732050061225891,
@@ -10311,7 +11084,7 @@
             }
         },
         {
-            "parentIndex": 125,
+            "parentIndex": 132,
             "position": {
                 "x": -1.5319647789001465,
                 "y": -1.144227147102356,
@@ -10362,7 +11135,7 @@
             }
         },
         {
-            "parentIndex": 115,
+            "parentIndex": 122,
             "position": {
                 "x": 0.06576824188232422,
                 "y": 0.00006157159805297852,
@@ -10409,7 +11182,7 @@
             }
         },
         {
-            "parentIndex": 115,
+            "parentIndex": 122,
             "position": {
                 "x": -0.26861530542373657,
                 "y": 0.5284355282783508,
@@ -10456,7 +11229,7 @@
             }
         },
         {
-            "parentIndex": 115,
+            "parentIndex": 122,
             "position": {
                 "x": -0.11776286363601685,
                 "y": -0.00005549192428588867,
@@ -10503,7 +11276,7 @@
             }
         },
         {
-            "parentIndex": 116,
+            "parentIndex": 123,
             "position": {
                 "x": -0.37543225288391113,
                 "y": 0.5620075464248657,
@@ -10550,7 +11323,7 @@
             }
         },
         {
-            "parentIndex": 116,
+            "parentIndex": 123,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -10597,7 +11370,7 @@
             }
         },
         {
-            "parentIndex": 116,
+            "parentIndex": 123,
             "position": {
                 "x": -0.11776286363601685,
                 "y": -0.00005549192428588867,
@@ -10644,7 +11417,7 @@
             }
         },
         {
-            "parentIndex": 115,
+            "parentIndex": 122,
             "position": {
                 "x": 1.431032657623291,
                 "y": -0.0000027418136596679688,
@@ -10691,7 +11464,7 @@
             }
         },
         {
-            "parentIndex": 117,
+            "parentIndex": 124,
             "position": {
                 "x": 0.0007220208644866943,
                 "y": 0.0,
@@ -10742,7 +11515,7 @@
             }
         },
         {
-            "parentIndex": 125,
+            "parentIndex": 132,
             "position": {
                 "x": 0.0,
                 "y": -3.847890615463257,
@@ -10793,7 +11566,7 @@
             }
         },
         {
-            "parentIndex": 125,
+            "parentIndex": 132,
             "position": {
                 "x": 1.206485390663147,
                 "y": -3.258364200592041,
@@ -10824,7 +11597,7 @@
                 },
                 "6766054303456732338": {
                     "_active": true,
-                    "layer": 0
+                    "layer": 1
                 },
                 "7205334411763290517": {
                     "_active": true,
@@ -10856,7 +11629,7 @@
             }
         },
         {
-            "parentIndex": 125,
+            "parentIndex": 132,
             "position": {
                 "x": -5.14547061920166,
                 "y": -0.25910282135009766,
@@ -10907,7 +11680,7 @@
             }
         },
         {
-            "parentIndex": 125,
+            "parentIndex": 132,
             "position": {
                 "x": 0.03788566589355469,
                 "y": 1.0363554954528809,
@@ -10958,7 +11731,7 @@
             }
         },
         {
-            "parentIndex": 125,
+            "parentIndex": 132,
             "position": {
                 "x": -0.028458118438720703,
                 "y": -0.2591911554336548,
@@ -11009,7 +11782,7 @@
             }
         },
         {
-            "parentIndex": 118,
+            "parentIndex": 125,
             "position": {
                 "x": -0.7320950031280518,
                 "y": 0.00005429983139038086,
@@ -11056,7 +11829,7 @@
             }
         },
         {
-            "parentIndex": 118,
+            "parentIndex": 125,
             "position": {
                 "x": -0.26861530542373657,
                 "y": 0.5284355282783508,
@@ -11103,7 +11876,7 @@
             }
         },
         {
-            "parentIndex": 118,
+            "parentIndex": 125,
             "position": {
                 "x": -0.11776286363601685,
                 "y": -0.00005549192428588867,
@@ -11150,7 +11923,7 @@
             }
         },
         {
-            "parentIndex": 118,
+            "parentIndex": 125,
             "position": {
                 "x": 0.06576824188232422,
                 "y": 0.00006157159805297852,
@@ -11197,7 +11970,7 @@
             }
         },
         {
-            "parentIndex": 119,
+            "parentIndex": 126,
             "position": {
                 "x": 2.384185791015625e-7,
                 "y": -1.1920928955078125e-7,
@@ -11248,7 +12021,7 @@
             }
         },
         {
-            "parentIndex": 120,
+            "parentIndex": 127,
             "position": {
                 "x": 2.384185791015625e-7,
                 "y": -1.1920928955078125e-7,
@@ -11299,7 +12072,7 @@
             }
         },
         {
-            "parentIndex": 121,
+            "parentIndex": 128,
             "position": {
                 "x": 0.0,
                 "y": -0.0038910508155822754,
@@ -11350,7 +12123,7 @@
             }
         },
         {
-            "parentIndex": 122,
+            "parentIndex": 129,
             "position": {
                 "x": 0.0,
                 "y": -0.0038910508155822754,
@@ -11401,7 +12174,7 @@
             }
         },
         {
-            "parentIndex": 123,
+            "parentIndex": 130,
             "position": {
                 "x": 0.0,
                 "y": -0.0038911104202270508,
@@ -11452,7 +12225,7 @@
             }
         },
         {
-            "parentIndex": 73,
+            "parentIndex": 77,
             "position": {
                 "x": 1.266754150390625,
                 "y": -0.037741899490356445,
@@ -11503,7 +12276,7 @@
             }
         },
         {
-            "parentIndex": 124,
+            "parentIndex": 131,
             "position": {
                 "x": 0.0,
                 "y": -1.8507726192474365,
@@ -11554,7 +12327,7 @@
             }
         },
         {
-            "parentIndex": 124,
+            "parentIndex": 131,
             "position": {
                 "x": 1.266754150390625,
                 "y": -0.037741899490356445,
@@ -11605,7 +12378,7 @@
             }
         },
         {
-            "parentIndex": 125,
+            "parentIndex": 132,
             "position": {
                 "x": 0.0,
                 "y": -3.847951650619507,
@@ -11656,7 +12429,7 @@
             }
         },
         {
-            "parentIndex": 125,
+            "parentIndex": 132,
             "position": {
                 "x": 4.951006889343262,
                 "y": 1.859483003616333,
@@ -11707,7 +12480,7 @@
             }
         },
         {
-            "parentIndex": 125,
+            "parentIndex": 132,
             "position": {
                 "x": -1.7166036367416382,
                 "y": -0.60188889503479,
@@ -11758,7 +12531,7 @@
             }
         },
         {
-            "parentIndex": 135,
+            "parentIndex": 142,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -11821,7 +12594,7 @@
             }
         },
         {
-            "parentIndex": 134,
+            "parentIndex": 141,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -11884,7 +12657,7 @@
             }
         },
         {
-            "parentIndex": 136,
+            "parentIndex": 143,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -11935,7 +12708,7 @@
             }
         },
         {
-            "parentIndex": 137,
+            "parentIndex": 144,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -11986,7 +12759,7 @@
             }
         },
         {
-            "parentIndex": 138,
+            "parentIndex": 145,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -12037,7 +12810,7 @@
             }
         },
         {
-            "parentIndex": 139,
+            "parentIndex": 146,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -12090,6 +12863,567 @@
         {
             "parentIndex": 149,
             "position": {
+                "x": 2.384185791015625e-7,
+                "y": -1.1920928955078125e-7,
+                "z": 0.0
+            },
+            "rotation": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "scale": {
+                "x": 0.3959948420524597,
+                "y": 0.7444257140159607,
+                "z": 0.3782336711883545
+            },
+            "components": {
+                "6766054303456732338": {
+                    "_active": true,
+                    "layer": 0
+                },
+                "7205334411763290517": {
+                    "_active": true,
+                    "name": "Collider"
+                },
+                "9315785795257285655": {
+                    "_active": true,
+                    "uid": 3166754017863070282
+                },
+                "18236831197208900764": {
+                    "_active": true,
+                    "center": {
+                        "x": 0.0,
+                        "y": 0.0,
+                        "z": 0.0
+                    },
+                    "size": {
+                        "x": 1.0,
+                        "y": 1.0,
+                        "z": 1.0
+                    },
+                    "flags": {
+                        "_majorityTrue": true,
+                        "_except": [
+                            "Is Trigger"
+                        ]
+                    }
+                }
+            }
+        },
+        {
+            "parentIndex": 150,
+            "position": {
+                "x": 2.384185791015625e-7,
+                "y": -0.0038909912109375,
+                "z": 0.04931950569152832
+            },
+            "rotation": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "scale": {
+                "x": 0.8551139235496521,
+                "y": 0.6222162842750549,
+                "z": 0.4913094639778137
+            },
+            "components": {
+                "6766054303456732338": {
+                    "_active": true,
+                    "layer": 0
+                },
+                "7205334411763290517": {
+                    "_active": true,
+                    "name": "Collider"
+                },
+                "9315785795257285655": {
+                    "_active": true,
+                    "uid": 3185236808325984842
+                },
+                "18236831197208900764": {
+                    "_active": true,
+                    "center": {
+                        "x": 0.0,
+                        "y": 0.0,
+                        "z": 0.0
+                    },
+                    "size": {
+                        "x": 1.0,
+                        "y": 1.0,
+                        "z": 1.0
+                    },
+                    "flags": {
+                        "_majorityTrue": true,
+                        "_except": [
+                            "Is Trigger"
+                        ]
+                    }
+                }
+            }
+        },
+        {
+            "parentIndex": 151,
+            "position": {
+                "x": -8.940696716308594e-8,
+                "y": -0.0038910508155822754,
+                "z": 0.04931950569152832
+            },
+            "rotation": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "scale": {
+                "x": 0.8551139235496521,
+                "y": 0.6222162842750549,
+                "z": 0.4913094639778137
+            },
+            "components": {
+                "6766054303456732338": {
+                    "_active": true,
+                    "layer": 0
+                },
+                "7205334411763290517": {
+                    "_active": true,
+                    "name": "Collider"
+                },
+                "9315785795257285655": {
+                    "_active": true,
+                    "uid": 3204366111626031690
+                },
+                "18236831197208900764": {
+                    "_active": true,
+                    "center": {
+                        "x": 0.0,
+                        "y": 0.0,
+                        "z": 0.0
+                    },
+                    "size": {
+                        "x": 1.0,
+                        "y": 1.0,
+                        "z": 1.0
+                    },
+                    "flags": {
+                        "_majorityTrue": true,
+                        "_except": [
+                            "Is Trigger"
+                        ]
+                    }
+                }
+            }
+        },
+        {
+            "parentIndex": 152,
+            "position": {
+                "x": 0.0,
+                "y": -0.0038910508155822754,
+                "z": 0.04931914806365967
+            },
+            "rotation": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "scale": {
+                "x": 0.8551139235496521,
+                "y": 0.6222162842750549,
+                "z": 0.4913094639778137
+            },
+            "components": {
+                "6766054303456732338": {
+                    "_active": true,
+                    "layer": 0
+                },
+                "7205334411763290517": {
+                    "_active": true,
+                    "name": "Collider"
+                },
+                "9315785795257285655": {
+                    "_active": true,
+                    "uid": 3221123768344965706
+                },
+                "18236831197208900764": {
+                    "_active": true,
+                    "center": {
+                        "x": 0.0,
+                        "y": 0.0,
+                        "z": 0.0
+                    },
+                    "size": {
+                        "x": 1.0,
+                        "y": 1.0,
+                        "z": 1.0
+                    },
+                    "flags": {
+                        "_majorityTrue": true,
+                        "_except": [
+                            "Is Trigger"
+                        ]
+                    }
+                }
+            }
+        },
+        {
+            "parentIndex": 153,
+            "position": {
+                "x": 4.172325134277344e-7,
+                "y": -0.0038909912109375,
+                "z": 0.04931926727294922
+            },
+            "rotation": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "scale": {
+                "x": 0.8551139235496521,
+                "y": 0.6222162842750549,
+                "z": 0.4913094639778137
+            },
+            "components": {
+                "6766054303456732338": {
+                    "_active": true,
+                    "layer": 0
+                },
+                "7205334411763290517": {
+                    "_active": true,
+                    "name": "Collider"
+                },
+                "9315785795257285655": {
+                    "_active": true,
+                    "uid": 3240100239528751690
+                },
+                "18236831197208900764": {
+                    "_active": true,
+                    "center": {
+                        "x": 0.0,
+                        "y": 0.0,
+                        "z": 0.0
+                    },
+                    "size": {
+                        "x": 1.0,
+                        "y": 1.0,
+                        "z": 1.0
+                    },
+                    "flags": {
+                        "_majorityTrue": true,
+                        "_except": [
+                            "Is Trigger"
+                        ]
+                    }
+                }
+            }
+        },
+        {
+            "parentIndex": 156,
+            "position": {
+                "x": 2.384185791015625e-7,
+                "y": -0.0038909912109375,
+                "z": 0.049320220947265625
+            },
+            "rotation": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "scale": {
+                "x": 0.8551139235496521,
+                "y": 0.6222162842750549,
+                "z": 0.4913094639778137
+            },
+            "components": {
+                "6766054303456732338": {
+                    "_active": true,
+                    "layer": 0
+                },
+                "7205334411763290517": {
+                    "_active": true,
+                    "name": "Collider"
+                },
+                "9315785795257285655": {
+                    "_active": true,
+                    "uid": 3268621571153277495
+                },
+                "18236831197208900764": {
+                    "_active": true,
+                    "center": {
+                        "x": 0.0,
+                        "y": 0.0,
+                        "z": 0.0
+                    },
+                    "size": {
+                        "x": 1.0,
+                        "y": 1.0,
+                        "z": 1.0
+                    },
+                    "flags": {
+                        "_majorityTrue": true,
+                        "_except": [
+                            "Is Trigger"
+                        ]
+                    }
+                }
+            }
+        },
+        {
+            "parentIndex": 157,
+            "position": {
+                "x": 0.0,
+                "y": -0.0038911104202270508,
+                "z": 0.049318790435791016
+            },
+            "rotation": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "scale": {
+                "x": 0.8551139235496521,
+                "y": 0.6222162842750549,
+                "z": 0.4913094639778137
+            },
+            "components": {
+                "6766054303456732338": {
+                    "_active": true,
+                    "layer": 0
+                },
+                "7205334411763290517": {
+                    "_active": true,
+                    "name": "Collider"
+                },
+                "9315785795257285655": {
+                    "_active": true,
+                    "uid": 3285176917732700727
+                },
+                "18236831197208900764": {
+                    "_active": true,
+                    "center": {
+                        "x": 0.0,
+                        "y": 0.0,
+                        "z": 0.0
+                    },
+                    "size": {
+                        "x": 1.0,
+                        "y": 1.0,
+                        "z": 1.0
+                    },
+                    "flags": {
+                        "_majorityTrue": true,
+                        "_except": [
+                            "Is Trigger"
+                        ]
+                    }
+                }
+            }
+        },
+        {
+            "parentIndex": 158,
+            "position": {
+                "x": 0.0,
+                "y": -0.0038910508155822754,
+                "z": 0.04931938648223877
+            },
+            "rotation": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "scale": {
+                "x": 0.8551139235496521,
+                "y": 0.6222162842750549,
+                "z": 0.4913094639778137
+            },
+            "components": {
+                "6766054303456732338": {
+                    "_active": true,
+                    "layer": 0
+                },
+                "7205334411763290517": {
+                    "_active": true,
+                    "name": "Collider"
+                },
+                "9315785795257285655": {
+                    "_active": true,
+                    "uid": 3301624512172601911
+                },
+                "18236831197208900764": {
+                    "_active": true,
+                    "center": {
+                        "x": 0.0,
+                        "y": 0.0,
+                        "z": 0.0
+                    },
+                    "size": {
+                        "x": 1.0,
+                        "y": 1.0,
+                        "z": 1.0
+                    },
+                    "flags": {
+                        "_majorityTrue": true,
+                        "_except": [
+                            "Is Trigger"
+                        ]
+                    }
+                }
+            }
+        },
+        {
+            "parentIndex": 159,
+            "position": {
+                "x": 0.0,
+                "y": -0.003891468048095703,
+                "z": 0.04931914806365967
+            },
+            "rotation": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "scale": {
+                "x": 0.8551139235496521,
+                "y": 0.6222162842750549,
+                "z": 0.4913094639778137
+            },
+            "components": {
+                "6766054303456732338": {
+                    "_active": true,
+                    "layer": 0
+                },
+                "7205334411763290517": {
+                    "_active": true,
+                    "name": "Collider"
+                },
+                "9315785795257285655": {
+                    "_active": true,
+                    "uid": 3323621341797888567
+                },
+                "18236831197208900764": {
+                    "_active": true,
+                    "center": {
+                        "x": 0.0,
+                        "y": 0.0,
+                        "z": 0.0
+                    },
+                    "size": {
+                        "x": 1.0,
+                        "y": 1.0,
+                        "z": 1.0
+                    },
+                    "flags": {
+                        "_majorityTrue": true,
+                        "_except": [
+                            "Is Trigger"
+                        ]
+                    }
+                }
+            }
+        },
+        {
+            "parentIndex": 160,
+            "position": {
+                "x": 0.0,
+                "y": -2.384185791015625e-7,
+                "z": 0.0
+            },
+            "rotation": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "scale": {
+                "x": 0.3959948420524597,
+                "y": 0.7444257140159607,
+                "z": 0.3782336711883545
+            },
+            "components": {
+                "6766054303456732338": {
+                    "_active": true,
+                    "layer": 0
+                },
+                "7205334411763290517": {
+                    "_active": true,
+                    "name": "Collider"
+                },
+                "9315785795257285655": {
+                    "_active": true,
+                    "uid": 3337280574749749815
+                },
+                "18236831197208900764": {
+                    "_active": true,
+                    "center": {
+                        "x": 0.0,
+                        "y": 0.0,
+                        "z": 0.0
+                    },
+                    "size": {
+                        "x": 1.0,
+                        "y": 1.0,
+                        "z": 1.0
+                    },
+                    "flags": {
+                        "_majorityTrue": true,
+                        "_except": [
+                            "Is Trigger"
+                        ]
+                    }
+                }
+            }
+        },
+        {
+            "parentIndex": 162,
+            "position": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "rotation": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "scale": {
+                "x": 0.3959948420524597,
+                "y": 0.7444257140159607,
+                "z": 0.3782336711883545
+            },
+            "components": {
+                "6766054303456732338": {
+                    "_active": true,
+                    "layer": 0
+                },
+                "7205334411763290517": {
+                    "_active": true,
+                    "name": "Collider"
+                },
+                "9315785795257285655": {
+                    "_active": true,
+                    "uid": 3568341843173823342
+                },
+                "18236831197208900764": {
+                    "_active": true,
+                    "center": {
+                        "x": 0.0,
+                        "y": 0.0,
+                        "z": 0.0
+                    },
+                    "size": {
+                        "x": 1.0,
+                        "y": 1.0,
+                        "z": 1.0
+                    },
+                    "flags": {
+                        "_majorityTrue": true,
+                        "_except": [
+                            "Is Trigger"
+                        ]
+                    }
+                }
+            }
+        },
+        {
+            "parentIndex": 167,
+            "position": {
                 "x": 0.0,
                 "y": 0.0,
                 "z": -0.40000009536743164
@@ -12139,7 +13473,7 @@
             }
         },
         {
-            "parentIndex": 150,
+            "parentIndex": 168,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -12190,7 +13524,7 @@
             }
         },
         {
-            "parentIndex": 163,
+            "parentIndex": 180,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -12253,7 +13587,7 @@
             }
         },
         {
-            "parentIndex": 164,
+            "parentIndex": 181,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -12316,7 +13650,7 @@
             }
         },
         {
-            "parentIndex": 165,
+            "parentIndex": 182,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -12367,7 +13701,7 @@
             }
         },
         {
-            "parentIndex": 166,
+            "parentIndex": 183,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -12418,7 +13752,7 @@
             }
         },
         {
-            "parentIndex": 176,
+            "parentIndex": 193,
             "position": {
                 "x": 0.0,
                 "y": -0.0038910508155822754,
@@ -12469,7 +13803,7 @@
             }
         },
         {
-            "parentIndex": 177,
+            "parentIndex": 194,
             "position": {
                 "x": 2.384185791015625e-7,
                 "y": -0.0038910508155822754,
@@ -12520,7 +13854,7 @@
             }
         },
         {
-            "parentIndex": 178,
+            "parentIndex": 195,
             "position": {
                 "x": 0.0,
                 "y": -0.0038910508155822754,
@@ -12571,7 +13905,7 @@
             }
         },
         {
-            "parentIndex": 179,
+            "parentIndex": 196,
             "position": {
                 "x": 4.76837158203125e-7,
                 "y": -0.0038908720016479492,
@@ -12622,7 +13956,7 @@
             }
         },
         {
-            "parentIndex": 180,
+            "parentIndex": 197,
             "position": {
                 "x": 2.384185791015625e-7,
                 "y": -0.0038910508155822754,
@@ -12673,7 +14007,7 @@
             }
         },
         {
-            "parentIndex": 181,
+            "parentIndex": 198,
             "position": {
                 "x": -1.1920928955078125e-7,
                 "y": -0.0038910508155822754,
@@ -12724,7 +14058,7 @@
             }
         },
         {
-            "parentIndex": 182,
+            "parentIndex": 199,
             "position": {
                 "x": 2.384185791015625e-7,
                 "y": -0.0038910508155822754,
@@ -12775,7 +14109,7 @@
             }
         },
         {
-            "parentIndex": 189,
+            "parentIndex": 206,
             "position": {
                 "x": 3.5762786865234375e-7,
                 "y": -0.0038910508155822754,
@@ -12826,7 +14160,7 @@
             }
         },
         {
-            "parentIndex": 190,
+            "parentIndex": 207,
             "position": {
                 "x": 3.5762786865234375e-7,
                 "y": -0.0038909912109375,
@@ -12877,7 +14211,7 @@
             }
         },
         {
-            "parentIndex": 191,
+            "parentIndex": 208,
             "position": {
                 "x": -1.1920928955078125e-7,
                 "y": -0.0038910508155822754,
@@ -12928,7 +14262,7 @@
             }
         },
         {
-            "parentIndex": 192,
+            "parentIndex": 209,
             "position": {
                 "x": 0.0,
                 "y": -0.0038910508155822754,
