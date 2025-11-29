@@ -153,6 +153,7 @@ property_begin(CharacterMovementComponent)
 {
 	property_var(moveSpeed),
 	property_var(rotateSpeed),
+	property_var(parryCoolDownTime),
 	property_var(parryTime),
 	property_var(parryDelusion),
 }

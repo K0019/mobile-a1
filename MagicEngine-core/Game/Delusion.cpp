@@ -62,6 +62,11 @@ DelusionComponent::DelusionType DelusionComponent::GetCurrDelusion() const
 	return currDelusion;
 }
 
+DELUSION_TIER DelusionComponent::GetCurrDelusionTier() const
+{
+	return currTier;
+}
+
 bool DelusionComponent::IsUltReady() const
 {
 	return currDelusion >= ultValue;

@@ -79,6 +79,8 @@ public:
 	*//******************************************************************/
 	DelusionType GetCurrDelusion() const;
 
+	DELUSION_TIER GetCurrDelusionTier() const;
+
 	/*****************************************************************//*!
 	\brief
 		Gets whether this entity is dead based on their current Delusion.

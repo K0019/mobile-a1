@@ -75,7 +75,7 @@ void PlayerMovementComponent::UltimateAttack()
 {
 	auto delutionComp{ ecs::GetEntity(this)->GetComp<DelusionComponent>() };
 	auto characterComp{ ecs::GetEntity(this)->GetComp<CharacterMovementComponent>() };
-	if (!delutionComp || !characterComp || delutionComp->to_string() != "A+")
+	if (!delutionComp || !characterComp ||delutionComp->GetCurrDelusionTier() != DELUSION_TIER::APLUS)
 		return;
 
 	isUltimateAttack = true;

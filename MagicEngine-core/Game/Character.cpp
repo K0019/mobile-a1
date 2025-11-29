@@ -259,6 +259,7 @@ bool CharacterMovementComponent::IsDodging()
 
 void CharacterMovementComponent::Serialize(Serializer& writer) const
 {
+	IRegisteredComponent::Serialize(writer);
 	writer.Serialize("moveSpeed", moveSpeed);
 	writer.Serialize("rotateSpeed", rotateSpeed);
 	writer.Serialize("stunTimePerHit", stunTimePerHit);
@@ -287,6 +288,8 @@ void CharacterMovementComponent::Serialize(Serializer& writer) const
 
 void CharacterMovementComponent::Deserialize(Deserializer& reader)
 {
+	IRegisteredComponent::Deserialize(reader);
+
 	reader.DeserializeVar("moveSpeed", &moveSpeed);
 	reader.DeserializeVar("rotateSpeed", &rotateSpeed);
 	reader.DeserializeVar("stunTimePerHit", &stunTimePerHit);
@@ -433,8 +436,10 @@ void CharacterMovementComponentSystem::UpdateCharacterMovementComponent(Characte
 		{
 			animComp->timeA = 0.0f;
 		}
+		comp.currParryTime -= GameTime::Dt();
 		return;
 	}
+		comp.currParryCoolDown -= GameTime::Dt();
 	// Get inputs
 	Vec2 movement = comp.GetMovementVector();
 
