@@ -14,7 +14,7 @@ public:
         Im3d::DrawLine(
             Im3d::Vec3(inFrom.GetX(), inFrom.GetY(), inFrom.GetZ()),
             Im3d::Vec3(inTo.GetX(), inTo.GetY(), inTo.GetZ()),
-            0.02,
+            0.02f,
             Im3d::Color(inColor.r, inColor.g, inColor.b, 1.0f) //fk this lmaoo
         );
     }

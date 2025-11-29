@@ -176,6 +176,11 @@ namespace physics {
 		ecs::GetEntity(this)->GetComp<JoltBodyComp>()->SetAngularVelocity(vel);
 	}
 
+	void PhysicsComp::AddImpulse(const Vec3& dir, float power)
+	{
+		ecs::GetEntity(this)->GetComp<JoltBodyComp>()->AddImpulse(dir, power);
+	}
+
 	void PhysicsComp::MoveTo(const Vec3& pos, float time)
 	{
 		ecs::GetEntity(this)->GetComp<JoltBodyComp>()->MoveTo(pos, time);
@@ -311,7 +316,7 @@ namespace physics {
 		for (auto compIter{ ecs::GetCompsActiveBegin<BoxColliderComp>() }, endIter{ ecs::GetCompsEnd<BoxColliderComp>() }; compIter != endIter; ++compIter)
 		{
 			auto joltBodyComp{ compIter.GetEntity()->GetComp<JoltBodyComp>() };
-			if (!joltBodyComp)
+			if (!joltBodyComp || joltBodyComp->GetBodyID().IsInvalid())
 				continue;
 
 			if (!layers.TestMaskAll())

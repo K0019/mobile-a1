@@ -46,6 +46,8 @@ All rights reserved.
 #include "Scripting/ScriptComponent.h"
 #include "Graphics/RenderComponent.h"
 #include "Engine/PrefabManager.h"
+#include "Engine/Events/EventsQueue.h"
+#include "Engine/Events/EventsTypeBasic.h"
 
 #include "core/platform/platform.h"
 // Thanks microsoft
@@ -235,6 +237,10 @@ void SetEntityReference(int index, ecs::EntityHandle entity)
 {
 	GetHandle()->SetEntity(index, entity);
 }
+int GetSize()
+{
+	return GetHandle()->GetSize();
+}
 SCRIPT_GENERATE_COMP_WRAPPER_END()
 
 // SpriteComponent
@@ -276,27 +282,50 @@ bool GetButtonDown(std::string name)
 {
 	if (auto action{ ST<MagicInput>::Get()->GetAction<bool>(name) })
 		return action->GetValue();
+	else
+		return false;
 }
 
 float GetAxis(std::string name)
 {
 	if (auto action{ ST<MagicInput>::Get()->GetAction<float>(name) })
 		return action->GetValue();
+	else
+		return 0.0f;
 }
 
 Vec2 Get2DAxis(std::string name)
 {
 	if (auto action{ ST<MagicInput>::Get()->GetAction<Vec2>(name) })
 		return action->GetValue();
+	else
+		return Vec2{};
 }
 
-void Lua_PlayAudio(std::string name,bool looping)
+uint32_t Lua_PlayAudio(std::string name,bool looping)
 {
-	ST<AudioManager>::Get()->PlaySound(util::GenHash(name), looping);
+	return ST<AudioManager>::Get()->PlaySound(util::GenHash(name), looping);
 }
-void Lua_PlayAudio3D(std::string name, bool looping, Vec3 position)
+uint32_t Lua_PlayAudio3D(std::string name, bool looping, Vec3 position)
 {
-	ST<AudioManager>::Get()->PlaySound3D(util::GenHash(name), looping, position);
+	return ST<AudioManager>::Get()->PlaySound3D(util::GenHash(name), looping, position);
+}
+
+uint32_t Lua_PlayAudioWithVolume(std::string name,bool looping, float volume )
+{
+	return ST<AudioManager>::Get()->PlaySound(util::GenHash(name), looping,AudioType::END,volume);
+}
+uint32_t Lua_PlayAudio3DWithVolume(std::string name, bool looping, Vec3 position, float volume )
+{
+	return ST<AudioManager>::Get()->PlaySound3D(util::GenHash(name), looping, position, AudioType::END, std::pair<float, float>{2.0f,50.0f},volume);
+}
+void Lua_StopAudio(uint32_t handle)
+{
+	ST<AudioManager>::Get()->StopSound(handle);
+}
+void Lua_FadeOutAudio(uint32_t handle, float duration)
+{
+	ST<AudioManager>::Get()->FadeoutAudio(handle, duration);
 }
 ecs::EntityHandle Lua_LoadPrefab(std::string name)
 {
@@ -321,6 +350,12 @@ bool Lua_NumberedDiceRoll(int sides)
 	if (sides <= 0)
 		return true;
 	return randomRange(0, sides)==0;
+}
+
+template <typename EventType>
+void Lua_SimpleQueueEventNextFrame()
+{
+	ST<EventsQueue>::Get()->AddEventForNextFrame(EventType{});
 }
 
 void RegisterCppStuffToLua(luabridge::Namespace baseTable)
@@ -548,6 +583,7 @@ void RegisterCppStuffToLua(luabridge::Namespace baseTable)
 		SCRIPT_REGISTER_COMP_BEGIN(EntityReferenceHolderComponent)
 			.addFunction("GetEntityReference", &LuaWrapperComp_EntityReferenceHolderComponent::GetEntityReference)
 			.addFunction("SetEntityReference", &LuaWrapperComp_EntityReferenceHolderComponent::SetEntityReference)
+			.addFunction("GetSize", &LuaWrapperComp_EntityReferenceHolderComponent::GetSize)
 			//.addProperty("GetEntityReference", [](const EntityReferenceHolderComponent* comp) -> EntityReference { return comp->GetEntity() })
 		SCRIPT_REGISTER_COMP_END()
 
@@ -568,27 +604,22 @@ void RegisterCppStuffToLua(luabridge::Namespace baseTable)
 		.addFunction("EngineShutdown", []() -> void { Core::Platform::Get().GetLifecycle().RequestExit(); })
 		.addFunction("DeltaTime", []() -> float { return GameTime::Dt(); })
 		.addFunction("LoadScene", [](const std::string& scenePath) {
-			auto* sceneManager = ST<SceneManager>::Get();
+			ST<Scheduler>::Get()->Add([scenePath]() -> void {
+				auto* sceneManager = ST<SceneManager>::Get();
 
-			// Get current scene index before loading new one
-			Scene* currentScene = sceneManager->GetActiveScene();
-			int oldSceneIndex = currentScene ? currentScene->GetIndex() : -1;
-
-			// Load new scene and set it as active
-			int newSceneIndex = sceneManager->LoadScene(scenePath, true);
-
-			// Defer unloading the old scene to avoid destroying the calling script mid-execution
-			if (oldSceneIndex >= 0 && newSceneIndex >= 0) {
-				ST<Scheduler>::Get()->Add([oldSceneIndex]() {
-					ST<SceneManager>::Get()->UnloadScene(oldSceneIndex);
-				});
-			}
+				// Load new scene
+				ST<SceneManager>::Get()->UnloadAllScenes(scenePath);
+			});
 		})
 		.addFunction("GetButtonDown", GetButtonDown)
 
 		.beginNamespace("AudioManager")
 			.addFunction("PlaySound", Lua_PlayAudio)
+			.addFunction("StopSound", Lua_StopAudio)
+			.addFunction("FadeOutSound", Lua_FadeOutAudio)
 			.addFunction("PlaySound3D", Lua_PlayAudio3D)
+			.addFunction("PlaySoundWithVolume", Lua_PlayAudioWithVolume)
+			.addFunction("PlaySound3DWithVolume", Lua_PlayAudio3DWithVolume)
 		.endNamespace()
 
 		.beginNamespace("PrefabManager")
@@ -600,6 +631,13 @@ void RegisterCppStuffToLua(luabridge::Namespace baseTable)
 			.addFunction("RangeInt", Lua_RandomRangeInt)
 			.addFunction("DiceRoll", Lua_NumberedDiceRoll)
 			.addFunction("RangeVec3", Lua_RandomRangeVec)
+		.endNamespace()
+
+		.beginNamespace("PlayerActions")
+			.addFunction("GrabItem", Lua_SimpleQueueEventNextFrame<Events::GameActionGrabItem>)
+			.addFunction("ThrowItem", Lua_SimpleQueueEventNextFrame<Events::GameActionThrowItem>)
+			.addFunction("Attack", Lua_SimpleQueueEventNextFrame<Events::GameActionAttack>)
+			.addFunction("Dodge", Lua_SimpleQueueEventNextFrame<Events::GameActionDodge>)
 		.endNamespace()
 
 

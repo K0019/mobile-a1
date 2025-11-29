@@ -32,6 +32,16 @@
 #include "UI/TextComponent.h"
 #include "UI/BarComponent.h"
 #include "UI/HealthBarComponent.h"
+#include "UI/DelusionBarComponent.h"
+#include "UI/DelusionRankComponent.h"
+#include "Engine/Platform/Android/AndroidUIDeleter.h"
+#include "Engine/Platform/Desktop/DesktopUIDeleter.h"
+#include "Game/FlashComponent.h"
+#include "Game/MaterialSwapper.h"
+#include "UI/RectTransform.h"
+#include "3DUI/BillboardComponent.h"
+#include "Game/Delusion.h"
+#include "Graphics/BoneAttachment.h"
 
 void RegisterShit()
 {
@@ -66,4 +76,14 @@ void RegisterShit()
 	IRegisteredComponent<TextComponent>::RegisterComponent();
 	IRegisteredComponent<BarComponent>::RegisterComponent();
 	IRegisteredComponent<HealthBarComponent>::RegisterComponent();
+	IRegisteredComponent<DelusionBarComponent>::RegisterComponent();
+	IRegisteredComponent<DelusionRankComponent>::RegisterComponent();
+	IRegisteredComponent<AndroidUIDeleterComp>::RegisterComponent();
+	IRegisteredComponent<DesktopUIDeleterComp>::RegisterComponent();
+	IRegisteredComponent<FlashComponent>::RegisterComponent();
+	IRegisteredComponent<MaterialSwapperComponent>::RegisterComponent();
+	IRegisteredComponent<RectTransformComponent>::RegisterComponent();
+	IRegisteredComponent<BillboardComponent>::RegisterComponent();
+	IRegisteredComponent<DelusionComponent>::RegisterComponent();
+	IRegisteredComponent<BoneAttachment>::RegisterComponent();
 }

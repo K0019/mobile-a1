@@ -4,8 +4,10 @@
 #include "Game/Character.h"
 #include "Game/Health.h"
 #include "Boss_Prefect_Util.h"
+#include "Graphics/AnimationComponent.h"
 
 float L_Boss_Prefect_LashOut::attackCooldown = 3.0f;
+float L_Boss_Prefect_LashOut::attackDelay = 0.5f;
 float L_Boss_Prefect_LashOut::attackDistance = 2.0f * 2.0f;
 float L_Boss_Prefect_LashOut::speedMultiplier = 3.0f;
 int L_Boss_Prefect_LashOut::attackCount = 4;
@@ -14,45 +16,55 @@ void L_Boss_Prefect_LashOut::OnInitialize()
 {
     currentAttackCooldown = attackCooldown;
     currentAttackCount = attackCount;
+    currentAttackDelay = attackDelay;
 }
 
 NODE_STATUS L_Boss_Prefect_LashOut::OnUpdate([[maybe_unused]] ecs::EntityHandle entity)
 {
-    if (auto characterComp{ entity->GetComp<CharacterMovementComponent>() })
+    //if (auto characterComp{ entity->GetComp<CharacterMovementComponent>() })
+    //{
+        //characterComp->SetSpeedMultiplier(speedMultiplier);
+    if (auto enemyComp{ entity->GetComp<EnemyComponent>() })
     {
-        characterComp->SetSpeedMultiplier(speedMultiplier);
-        if (auto enemyComp{ entity->GetComp<EnemyComponent>() })
+        Vec2 dir = Boss_Prefect_Util::GetMovementTowards(entity->GetTransform().GetWorldPosition(), enemyComp->playerReference->GetTransform().GetWorldPosition());
+
+        if (dir.LengthSqr() <= attackDistance || impendingAttack)
         {
-            Vec2 dir = Boss_Prefect_Util::GetMovementTowards(entity->GetTransform().GetWorldPosition(), enemyComp->playerReference->GetTransform().GetWorldPosition());
-
-
-            if (dir.LengthSqr() <= attackDistance)
+            if (currentAttackDelay <= 0.0f)
             {
-                if (currentAttackCooldown <= 0.0f)
+                auto animComp = entity->GetComp<AnimationComponent>();
+                if (animComp)
                 {
-                    characterComp->Attack();
-                    currentAttackCooldown = attackCooldown;
-
-                    --currentAttackCount;
-                    if (currentAttackCount == 0)
-                    {
-                        characterComp->ResetSpeedMultiplier();
-                        return NODE_STATUS::SUCCESS;
-                    }
+                    entity->GetComp<GrabbableItemComponent>()->Attack(entity->GetTransform().GetWorldPosition(), Vec3{ dir.x, 0.0f, dir.y });
+                    animComp->TransitionTo(5858584981951944119, 0.1f);
+                    animComp->timeA = 0.0f;
                 }
-                    // Stop moving, it gives the player *some* time to get in a hit / ESCAPE
-                    characterComp->SetMovementVector(Vec2{ 0.0f });
-            }
-            else
-            {
-                if (currentAttackCooldown <= 0.0f)
+                currentAttackDelay = attackDelay;
+
+                impendingAttack = false;
+
+                --currentAttackCount;
+                if (currentAttackCount == 0)
                 {
-                    characterComp->SetMovementVector(dir);
+                    //characterComp->ResetSpeedMultiplier();
+                    return NODE_STATUS::SUCCESS;
                 }
             }
+            currentAttackDelay -= GameTime::Dt();
+            currentAttackCooldown = attackCooldown;
 
-            currentAttackCooldown -= GameTime::Dt();
+            // Stop moving, it gives the player *some* time to get in a hit / ESCAPE
+            //characterComp->SetMovementVector(Vec2{ 0.0f });
         }
+        else
+        {
+            currentAttackDelay = attackDelay;
+            Boss_Prefect_Util::MoveInDirection(entity, Vec3{ dir.x, 0.0f, dir.y }*3);
+            Boss_Prefect_Util::RotateTowards(entity, dir);
+        }
+
+        currentAttackCooldown -= GameTime::Dt();
     }
+    //}
     return NODE_STATUS::RUNNING;
 }

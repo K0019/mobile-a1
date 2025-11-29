@@ -20,12 +20,15 @@ All rights reserved.
 /******************************************************************************/
 #include "Components/NameComponent.h"
 #include "Game/Character.h"
+#include "Game/Delusion.h"
 #include "Physics/Physics.h"
 #include "Engine/Input.h"
 #include "Graphics/AnimationComponent.h"
 #include "Editor/Containers/GUICollection.h"
 #include "Engine/Audio.h"
 #include "Managers\AudioManager.h"
+#include "Graphics/BoneAttachment.h"
+#include "Engine/BehaviorTree/BehaviourTree.h"
 
 #define X(type, name) name,
 char const* animNames[] =
@@ -44,11 +47,19 @@ CharacterMovementComponent::CharacterMovementComponent()
 	, dodgeCooldown{ 0.0f }
 	, dodgeDuration{ 0.0f }
 	, dodgeSpeed{ 0.0f }
+	, currentDodgeCooldown{ 0.0f }
 	, heldItem{ nullptr }
 	, currentStunTime{ 0.0f }
 	, currentDodgeTime{ 0.0f }
 	, isAttacking{ false }
 	, speedMultiplier{ 1.0f }
+	, throwPower{0.0f}
+	, parryTime{}
+	, parryCoolDownTime{}
+	, parryDelusion{}
+	, currParryCoolDown{}
+	, currParryTime{}
+
 {
 }
 
@@ -63,13 +74,27 @@ bool CharacterMovementComponent::Dodge(Vec2 vector)
 	if (currentDodgeCooldown > 0.0f)
 		return false;
 
-	// Don't dodge nowhere
 	if (vector.LengthSqr() == 0.0f)
-		return false;
+	{
+		auto characterEntity = ecs::GetEntity(this);
+		Transform& characterTransform = characterEntity->GetTransform();
+		Vec3 rotation = characterTransform.GetWorldRotation();
+
+
+		vector = Vec2(sin(math::ToRadians(rotation.y)), cos(math::ToRadians(rotation.y)));
+	}
+
+	/// jk
+	//// Don't dodge nowhere
+	//if (vector.LengthSqr() == 0.0f)
+	//	return false;
 
 	SetMovementVector(vector.Normalized());
 	currentDodgeTime = dodgeDuration;
 	currentDodgeCooldown = dodgeCooldown;
+
+	// Play Audio
+	ST<AudioManager>::Get()->PlaySound3D("dodge " + std::to_string(randomRange<int>(1, 3)), false, ecs::GetEntity(this)->GetTransform().GetWorldPosition(),AudioType::END,std::pair<float,float>{2.0f,50.0f}, 0.6f);
 
 	return true;
 }
@@ -90,7 +115,7 @@ void CharacterMovementComponent::RotateTowards(Vec2 vector)
 
 	Vec3 currentRotation = characterTransform.GetWorldRotation();
 
-	float targetAngle = math::ToDegrees(atan2(-vector.y, vector.x));
+	float targetAngle = math::ToDegrees(atan2(-vector.y, vector.x))+90;
 	float newAngle = math::MoveTowardsAngle(currentRotation.y, targetAngle, rotateSpeed * GameTime::Dt());
 	currentRotation.y = newAngle;
 
@@ -104,11 +129,26 @@ void CharacterMovementComponent::DropItem()
 		return;
 
 	// Physics Comp related
-	heldItem->GetComp<physics::PhysicsComp>()->SetFlag(physics::PHYSICS_COMP_FLAG::ENABLED, true);
+	if (auto physicsComp{ heldItem->GetComp<physics::PhysicsComp>() })
+	{
+		physicsComp->SetFlag(physics::PHYSICS_COMP_FLAG::ENABLED, true);
+		physicsComp->SetFlag(physics::PHYSICS_COMP_FLAG::USE_GRAVITY, true);
+	}
+	if (auto colliderComp{ heldItem->GetComp<physics::BoxColliderComp>() })
+	{
+		colliderComp->SetFlag(physics::COLLIDER_COMP_FLAG::ENABLED, true);
+	}
+
 	heldItem->GetComp<GrabbableItemComponent>()->isHeld = false;
 
 	// Transform related
 	heldItem->GetTransform().SetParent(nullptr);
+
+	if (auto boneAttachComp{ heldItem->GetComp<BoneAttachment>() })
+	{
+		boneAttachComp->targetEntity = nullptr;
+	}
+
 
 	heldItem = nullptr;
 }
@@ -121,7 +161,7 @@ void CharacterMovementComponent::Throw(Vec3 direction)
 	auto tmpItem = heldItem;
 	DropItem();
 
-	tmpItem->GetComp<physics::PhysicsComp>()->SetLinearVelocity(direction);
+	tmpItem->GetComp<physics::PhysicsComp>()->AddImpulse(direction, throwPower);
 }
 
 void CharacterMovementComponent::GrabItem(ecs::CompHandle<GrabbableItemComponent> item)
@@ -135,20 +175,29 @@ void CharacterMovementComponent::GrabItem(ecs::CompHandle<GrabbableItemComponent
 	heldItem = ecs::GetEntity(item);
 
 	// Physics Comp related
-	heldItem->GetComp<physics::PhysicsComp>()->SetFlag(physics::PHYSICS_COMP_FLAG::ENABLED, false);
+	if(auto physicsComp{ heldItem->GetComp<physics::PhysicsComp>() })
+	{
+		physicsComp->SetFlag(physics::PHYSICS_COMP_FLAG::ENABLED, false);
+		physicsComp->SetFlag(physics::PHYSICS_COMP_FLAG::USE_GRAVITY, false);
+		physicsComp->SetFlag(physics::PHYSICS_COMP_FLAG::IS_KINEMATIC, false);
+	}
+	if (auto colliderComp{ heldItem->GetComp<physics::BoxColliderComp>() })
+	{
+		colliderComp->SetFlag(physics::COLLIDER_COMP_FLAG::ENABLED, false);
+	}
 
 	// Play Audio
-	ST<AudioManager>::Get()->PlaySound3D("weapon pickup "+std::to_string(randomRange<int>(1,4)), false, ecs::GetEntity(this)->GetTransform().GetWorldPosition());
+	ST<AudioManager>::Get()->PlaySound3D("weapon pickup "+std::to_string(randomRange<int>(1,4)), false, ecs::GetEntity(this)->GetTransform().GetWorldPosition(), AudioType::END, std::pair<float, float>{2.0f, 50.0f}, 0.6f);
 }
 
 bool CharacterMovementComponent::Attack()
 {
-	ecs::EntityHandle attackItem{ heldItem };
-
 	// If already in attack animation, skip
 	if (isAttacking)
 		return false;
+	isAttacking = true;
 
+	ecs::EntityHandle attackItem{ heldItem };
 	// If not holding an item, we fallback to the character's entity itself
 	if (attackItem == nullptr && ecs::GetEntity(this)->GetComp<GrabbableItemComponent>())
 	{
@@ -165,12 +214,40 @@ bool CharacterMovementComponent::Attack()
 	//	//audioSourceComp->Set
 	//}
 
-	// I shall perform a hackery
-	ST<AudioManager>::Get()->PlaySound3D("Attack", false, ecs::GetEntity(this)->GetTransform().GetWorldPosition());
-
 	ecs::EntityHandle thisEntity = ecs::GetEntity(this);
 
-	ST<Scheduler>::Get()->Add(attackItem->GetComp<GrabbableItemComponent>()->attackDelay, [attackItem, thisEntity]() {
+	// Get the animation component
+	ecs::CompHandle<AnimationComponent> animComp = thisEntity->GetComp<AnimationComponent>();
+
+	// Attempt to use animation pulled from the item, if nonexistent then use the fallback anim on the Character
+	size_t attackAnimHash = attackItem->GetComp<GrabbableItemComponent>()->lightAttackAnimation.GetHash();
+	if (attackAnimHash == 0)
+		attackAnimHash = animations[ATTACK].GetHash();
+	
+	// Use transition for attack animation (quick transition)
+	animComp->TransitionTo(attackAnimHash, 0.1f);
+	//animComp->timeA = 0.0f;
+
+
+
+    std::string tmpName;
+	auto grabbableComp = attackItem->GetComp<GrabbableItemComponent>();
+    if (grabbableComp->audioStartIndex > grabbableComp->audioEndIndex + 1)
+        tmpName = grabbableComp->audioName + std::to_string(randomRange(grabbableComp->audioEndIndex + 1, grabbableComp->audioStartIndex));
+	else
+        tmpName = grabbableComp->audioName + std::to_string(randomRange(grabbableComp->audioStartIndex, grabbableComp->audioEndIndex + 1));
+
+	//if (randomRange(0, 2) == 0)
+	ST<AudioManager>::Get()->PlaySound3D(tmpName, false, ecs::GetEntity(this)->GetTransform().GetWorldPosition());
+
+	// Handle next attack delay
+	float nextAttackDelay = grabbableComp->attackDelay;
+	if (auto clip{ animComp->GetAnimationClipA() })
+	{
+		nextAttackDelay = animComp->GetClipDuration(clip);
+	}
+
+	ST<Scheduler>::Get()->Add(grabbableComp->attackDelay, [attackItem, thisEntity]() {
 		if (!ecs::IsEntityHandleValid(thisEntity))
 			return;
 		ecs::CompHandle<CharacterMovementComponent> thisComp{ thisEntity->GetComp<CharacterMovementComponent>() };
@@ -181,10 +258,13 @@ bool CharacterMovementComponent::Attack()
 		if (!thisComp->isAttacking)
 			return;
 
+		auto grabbableComp = attackItem->GetComp<GrabbableItemComponent>();
+
 		// Hard-code a simple start point etc for now
 		Vec3 rotation = thisEntity->GetTransform().GetWorldRotation();
-		Vec3 direction(sin(math::ToRadians(rotation.y + 90)), 0, cos(math::ToRadians(rotation.y + 90)));
-		Vec3 startPoint = thisEntity->GetTransform().GetWorldPosition() + direction;
+		Vec3 direction(sin(math::ToRadians(rotation.y)), 0, cos(math::ToRadians(rotation.y)));
+		Vec3 startPoint = thisEntity->GetTransform().GetWorldPosition() + direction * 0.5f * grabbableComp->attackBox.z;
+		startPoint.y += 0.8f;
 
 		auto hitDebugObject = thisComp->hitDebugObject;
 		if (hitDebugObject != nullptr)
@@ -194,32 +274,50 @@ bool CharacterMovementComponent::Attack()
 			hitDebugObject->GetTransform().SetWorldScale(attackItem->GetComp<GrabbableItemComponent>()->attackBox);
 		}
 
-
 		// Call Attack from the GrabbableItem component
 		attackItem->GetComp<GrabbableItemComponent>()->Attack(startPoint, direction); 
 	});
-	
-	// Get the animation component
-	ecs::CompHandle<AnimationComponent> animComp = thisEntity->GetComp<AnimationComponent>();
+	ST<Scheduler>::Get()->Add(nextAttackDelay, [attackItem, thisEntity]() {
+		if (!ecs::IsEntityHandleValid(thisEntity))
+			return;
+		ecs::CompHandle<CharacterMovementComponent> thisComp{ thisEntity->GetComp<CharacterMovementComponent>() };
+		if (!thisComp)
+			return;
 
-	// Attempt to use animation pulled from the item, if nonexistent then use the fallback anim on the Character
-	animComp->animHandleA = attackItem->GetComp<GrabbableItemComponent>()->lightAttackAnimation;
-	if(!animComp->GetAnimationClipA())
-	animComp->animHandleA = animations[ATTACK];
-
-
-	isAttacking = true;
+		thisComp->isAttacking = false;
+	});
 
 	return true;
 }
 
+bool CharacterMovementComponent::IsParrying()
+{
+	return currParryTime > 0.f;
+}
+void CharacterMovementComponent::OnParrySuccess()
+{
+	if (auto delusionComp{ ecs::GetEntity(this)->GetComp<DelusionComponent>() })
+		delusionComp->AddDelusion(parryDelusion);
+
+	CONSOLE_LOG(LEVEL_INFO) << "Parried.";
+}
+void CharacterMovementComponent::Parry()
+{
+	if(currParryCoolDown <= 0.f)
+	{
+		currParryTime = parryTime;
+		currParryCoolDown = parryCoolDownTime;
+	}
+}
+
 bool CharacterMovementComponent::IsDodging()
 {
-	return currentDodgeTime>0.0f;
+	return currentDodgeTime > 0.0f;
 }
 
 void CharacterMovementComponent::Serialize(Serializer& writer) const
 {
+	IRegisteredComponent::Serialize(writer);
 	writer.Serialize("moveSpeed", moveSpeed);
 	writer.Serialize("rotateSpeed", rotateSpeed);
 	writer.Serialize("stunTimePerHit", stunTimePerHit);
@@ -248,6 +346,8 @@ void CharacterMovementComponent::Serialize(Serializer& writer) const
 
 void CharacterMovementComponent::Deserialize(Deserializer& reader)
 {
+	IRegisteredComponent::Deserialize(reader);
+
 	reader.DeserializeVar("moveSpeed", &moveSpeed);
 	reader.DeserializeVar("rotateSpeed", &rotateSpeed);
 	reader.DeserializeVar("stunTimePerHit", &stunTimePerHit);
@@ -256,7 +356,6 @@ void CharacterMovementComponent::Deserialize(Deserializer& reader)
 	reader.DeserializeVar("dodgeCooldown", &dodgeCooldown);
 	reader.DeserializeVar("dodgeDuration", &dodgeDuration);
 	reader.DeserializeVar("dodgeSpeed", &dodgeSpeed);
-
 
 	reader.DeserializeVar("hitDebugObject", &hitDebugObject);
 	reader.DeserializeVar("heldItem", &heldItem);
@@ -297,6 +396,11 @@ void CharacterMovementComponent::EditorDraw()
 	gui::VarInput("Dodge Cooldown", &dodgeCooldown);
 	gui::VarInput("Dodge Duration", &dodgeDuration);
 	gui::VarInput("Dodge Speed", &dodgeSpeed);
+	gui::VarInput("Throw Power", &throwPower);
+
+	gui::VarInput("Parry Time Period", &parryTime);
+	gui::VarInput("Parry Cool Down time", &parryCoolDownTime);
+	gui::VarInput("Parry Delusion", &parryDelusion);
 
 	hitDebugObject.EditorDraw("Hit Debug Object");
 	heldItem.EditorDraw("Held Item");
@@ -330,14 +434,25 @@ void CharacterMovementComponentSystem::UpdateCharacterMovementComponent(Characte
 	ecs::CompHandle<AnimationComponent> animComp = characterEntity->GetComp<AnimationComponent>();
 
 	// Update held item
-	if (auto heldItem{ comp.heldItem })
+	ecs::EntityHandle attackItem{ comp.heldItem };
+	if (attackItem)
 	{
 		// Transform related
-		heldItem->GetTransform().SetParent(characterTransform);
-		heldItem->GetTransform().SetLocalPosition(Vec3{ 0,0,1 });
-		heldItem->GetTransform().SetLocalRotation(Vec3{ 0,5,10 });
-		heldItem->GetComp<GrabbableItemComponent>()->owner = characterEntity;
-		heldItem->GetComp<GrabbableItemComponent>()->isHeld = true;
+		attackItem->GetTransform().SetParent(characterTransform);
+		attackItem->GetComp<GrabbableItemComponent>()->owner = characterEntity;
+		attackItem->GetComp<GrabbableItemComponent>()->isHeld = true;
+
+		if (auto boneAttachComp{ attackItem->GetComp<BoneAttachment>() })
+		{
+			boneAttachComp->targetEntity = characterEntity;
+			boneAttachComp->boneName = "J_Bip_R_Hand";
+		}
+	}
+
+	// If not holding an item, we fallback to the character's entity itself
+	if (attackItem == nullptr && characterEntity->GetComp<GrabbableItemComponent>())
+	{
+		attackItem = characterEntity;
 	}
 
 	// Perform stun check
@@ -353,14 +468,46 @@ void CharacterMovementComponentSystem::UpdateCharacterMovementComponent(Characte
 
 		if (animComp->animHandleA.GetHash() != comp.animations[HURT].GetHash())
 		{
-			animComp->animHandleB = animComp->animHandleA;
-			animComp->animHandleA = comp.animations[HURT];
+			animComp->TransitionTo(comp.animations[HURT].GetHash(), 0.1f);
+
+			//comp.animations[]
 		}
 		animComp->timeA = comp.currentStunTime / comp.stunTimePerHit;
 		comp.currentDodgeTime = 0.0f;
 		return;
 	}
 
+	ecs::CompHandle<GrabbableItemComponent> itemComp = nullptr;
+
+	if (attackItem)
+		itemComp = attackItem->GetComp<GrabbableItemComponent>();
+
+	if (comp.IsParrying())
+	{
+		// Get parry animation - prefer item's parry animation, fallback to character's
+		size_t parryAnimHash = 0;
+		if (itemComp && itemComp->parryAnimation.GetHash() != 0)
+			parryAnimHash = itemComp->parryAnimation.GetHash();
+		else
+			parryAnimHash = comp.animations[PARRY].GetHash();
+
+		// Transition to parry animation if not already playing it
+		if (animComp->animHandleA.GetHash() != parryAnimHash)
+			animComp->TransitionTo(parryAnimHash, 0.05f);
+
+		if (auto clip{ animComp->GetAnimationClipA() })
+		{
+			float duration = animComp->GetClipDuration(clip);
+			animComp->timeA = duration * (1.0f - (comp.currParryTime / comp.parryTime));
+		}
+		else
+		{
+			animComp->timeA = 0.0f;
+		}
+		comp.currParryTime -= GameTime::Dt();
+		return;
+	}
+	comp.currParryCoolDown -= GameTime::Dt();
 
 	// Get inputs
 	Vec2 movement = comp.GetMovementVector();
@@ -368,28 +515,32 @@ void CharacterMovementComponentSystem::UpdateCharacterMovementComponent(Characte
 	// Normalize the move vector if it's over 1.0f in length
 	if (movement.LengthSqr() > 0.0f)
 	{
-		if(comp.isAttacking)
-
-		animComp->animHandleB = comp.animations[WALK];
-		else
-		animComp->animHandleA = comp.animations[WALK];
+		// Walking - only change animation if not attacking
+		if (!comp.isAttacking && animComp->animHandleA.GetHash() != comp.animations[WALK].GetHash())
+		{
+			animComp->TransitionTo(comp.animations[WALK].GetHash(), 0.15f);
+		}
 	}
 	else
 	{
-		if (!comp.isAttacking)
-		animComp->animHandleA = comp.animations[IDLE];
-	}
-
-	if(comp.isAttacking)
-	{
-		animComp->loop = false;
-		if (animComp->timeA >= animComp->GetClipDuration(animComp->GetAnimationClipA()))
+		// Idle - only change animation if not attacking
+		if (!comp.isAttacking && animComp->animHandleA.GetHash() != comp.animations[IDLE].GetHash())
 		{
-			comp.isAttacking = false;
-			animComp->loop = true;
+			animComp->TransitionTo(comp.animations[IDLE].GetHash(), 0.15f);
 		}
 	}
-	
+
+	///if (comp.isAttacking)
+	///{
+	///	animComp->loop = false;
+	///	if (animComp->timeA >= animComp->GetClipDuration(animComp->GetAnimationClipA()))
+	///	{
+	///		comp.isAttacking = false;
+	///	}
+	///}
+
+	//animComp->loop = !comp.isAttacking;
+
 
 	if (movement.LengthSqr() > 1.0f)
 		movement = movement.Normalized();
@@ -414,7 +565,8 @@ void CharacterMovementComponentSystem::UpdateCharacterMovementComponent(Characte
 	{
 		comp.currentDodgeTime -= GameTime::Dt();
 		moveDir *= comp.dodgeSpeed;
-		animComp->animHandleA = comp.animations[DODGE];
+		if (animComp->animHandleA.GetHash() != comp.animations[DODGE].GetHash())
+			animComp->TransitionTo(comp.animations[DODGE].GetHash(), 0.05f);
 	}
 	else
 	{
@@ -428,20 +580,9 @@ void CharacterMovementComponentSystem::UpdateCharacterMovementComponent(Characte
 	if (movement.LengthSqr() > 0.0f)
 		comp.RotateTowards(movement);
 
-	// Handle dodge "animation"
-	// Lord forgive me for I have committed jank
-	//auto children = characterTransform.GetChildren();
-	//for (auto child : children)
-	//{
-	//	Vec3 localRot = child->GetLocalRotation();
-	//	if (comp.currentDodgeTime > 0.0f)
-	//	{
-	//		localRot.x = 360.0f * (1.0f - (comp.currentDodgeTime / comp.dodgeDuration));
-	//	}
-	//	else
-	//	{
-	//		localRot.x = 0.0f;
-	//	}
-	//	child->SetLocalRotation(localRot);
-	//}
+	// Handle parry time/cooldown
+	if (comp.currParryTime > 0.f)
+		comp.currParryTime -= GameTime::Dt();
+	if (comp.currParryCoolDown > 0.f)
+		comp.currParryCoolDown -= GameTime::Dt();
 }

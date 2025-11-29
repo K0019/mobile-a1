@@ -38,6 +38,11 @@ void EntityReferenceHolderComponent::Deserialize(Deserializer& reader)
 	reader.DeserializeVar("entityReferences", &entityReferences);
 }
 
+const int EntityReferenceHolderComponent::GetSize()
+{
+	return entityReferences.size();
+}
+
 EntityReference EntityReferenceHolderComponent::GetEntity(int index)
 {
 	if (index < 0 || index >= entityReferences.size())

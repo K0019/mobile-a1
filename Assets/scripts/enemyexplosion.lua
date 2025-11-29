@@ -4,7 +4,7 @@ local currentExplosionGrowthTime = explosionGrowthTime
 local thisEntity;
 -- Impt stats
 local maxExplosionSize = 4.0
-local damage = 20.0
+local damage = 5.0
 
 function setSize(size)
     maxExplosionSize=size  

@@ -318,7 +318,6 @@ void MagicEngine::shutdown()
 	ST<MagicResourceManager>::Destroy();
 	//ResourceManagerOld::Clear();
 	// Singletons
-	ST<AudioManager>::Destroy();
 	ST<TweenManager>::Destroy();
 	ST<PerformanceProfiler>::Destroy();
 	
@@ -332,6 +331,7 @@ void MagicEngine::shutdown()
 	ecs::Shutdown();
 
 	ST<LuaScripting>::Destroy();
+	ST<AudioManager>::Destroy();
 	ST<physics::JoltPhysics>::Destroy();
 
 	ST<GameSettings>::Destroy();

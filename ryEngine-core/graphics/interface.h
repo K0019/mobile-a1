@@ -523,6 +523,7 @@ namespace vk
     HalfFloat4,
 
     R10G10B10A2_SNORM,
+    R10G10B10A2_UNORM,
   };
 
   enum class Format : uint8_t
@@ -822,6 +823,10 @@ namespace vk
     AttachmentDesc color[MAX_COLOR_ATTACHMENTS] = {};
     AttachmentDesc depth = {.loadOp = LoadOp::DontCare, .storeOp = StoreOp::DontCare};
     AttachmentDesc stencil = {.loadOp = LoadOp::Invalid, .storeOp = StoreOp::DontCare};
+
+    // Multiview rendering support
+    uint32_t layerCount = 1;  // Number of layers to render (1 = standard, 6 = cube map)
+    uint32_t viewMask = 0;    // Bitmask of views to render (0 = no multiview, 0b111111 = 6 views)
 
     [[nodiscard]] uint32_t getNumColorAttachments() const
     {

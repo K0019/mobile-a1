@@ -48,9 +48,14 @@ public:
 	EntityReference cameraReference;
 	EntityReference testReference;
 	float grabDistance;
+	float ultimateAttackDamage;
+	bool isUltimateAttack;
 
 	void Serialize(Serializer& writer) const override;
 	void Deserialize(Deserializer& reader) override;
+
+	void Parry();
+	void UltimateAttack();
 
 	property_vtable()
 
@@ -70,7 +75,8 @@ private:
 
 property_begin(PlayerMovementComponent)
 {
-	property_var(grabDistance)
+	property_var(grabDistance),
+	property_var(ultimateAttackDamage),
 }
 property_vend_h(PlayerMovementComponent)
 

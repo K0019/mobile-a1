@@ -57,6 +57,16 @@ uint encodeSnorm2(float value) {
     return 0u;
 }
 
+// UNORM10 encoding/decoding for the new compression scheme
+uint encodeUnorm10(float value) {
+    float clamped = clamp(value, 0.0, 1.0);
+    return uint(round(clamped * 1023.0)) & 0x3FFu;
+}
+
+float decodeUnorm10(uint value) {
+    return float(value & 0x3FFu) / 1023.0;
+}
+
 int signExtend10(uint value) {
     int signedValue = int(value);
     if((signedValue & 0x200) != 0)
@@ -84,6 +94,26 @@ uint packSnorm3x10_1x2(vec4 value) {
     packed |= encodeSnorm10(vec.y) << 10;
     packed |= encodeSnorm10(vec.z) << 20;
     packed |= encodeSnorm2(value.w) << 30;
+    return packed;
+}
+
+// Pack ny, tx, ty as UNORM with nx_sign and handedness in alpha bits
+uint packNormalTangentUnorm(float ny, float tx, float ty, float nx_sign, float handedness) {
+    // Remap from [-1,1] to [0,1] for UNORM storage
+    float ny_unorm = ny * 0.5 + 0.5;
+    float tx_unorm = tx * 0.5 + 0.5;
+    float ty_unorm = ty * 0.5 + 0.5;
+
+    uint packed = encodeUnorm10(ny_unorm);
+    packed |= encodeUnorm10(tx_unorm) << 10;
+    packed |= encodeUnorm10(ty_unorm) << 20;
+
+    // Alpha encodes nx_sign (bit 1) and handedness (bit 0)
+    uint nx_sign_bit = (nx_sign < 0.0) ? 1u : 0u;
+    uint handedness_bit = (handedness < 0.0) ? 1u : 0u;
+    uint alpha_bits = (nx_sign_bit << 1) | handedness_bit;
+    packed |= alpha_bits << 30;
+
     return packed;
 }
 
@@ -126,13 +156,23 @@ vec3 decompressPosition(uvec4 vertexData, MeshDecompressionData decomp) {
 
 // Decompress normal from compressed vertex data
 vec3 decompressNormal(uvec4 vertexData) {
-    float nx = extractInt16Snorm(vertexData[1], 16);  // normal_x (upper 16 bits)
-    vec4 nt = unpackSnorm3x10_1x2(vertexData[2]);
+    float nx_encoded = extractInt16Snorm(vertexData[1], 16);  // |nx| with nz_sign in sign bit
     uint alpha_bits = (vertexData[2] >> 30) & 0x3u;
 
-    float ny = nt.r;
-    bool nz_negative = (alpha_bits & 2u) != 0u;
-    float nz_sign = nz_negative ? -1.0 : 1.0;
+    // Extract nx_sign from alpha bit 1
+    bool nx_negative = (alpha_bits & 2u) != 0u;
+    float nx_sign = nx_negative ? -1.0 : 1.0;
+
+    // Extract nz_sign from the sign of the encoded normal_x
+    float nz_sign = (nx_encoded < 0.0) ? -1.0 : 1.0;
+
+    // Reconstruct nx: magnitude from |nx_encoded|, sign from nx_sign
+    float nx = abs(nx_encoded) * nx_sign;
+
+    // Decode ny from UNORM and remap from [0,1] to [-1,1]
+    float ny_unorm = decodeUnorm10(vertexData[2] & 0x3FFu);
+    float ny = ny_unorm * 2.0 - 1.0;
+
     float nz = sqrt(max(0.001, 1.0 - nx * nx - ny * ny)) * nz_sign;
 
     return normalize(vec3(nx, ny, nz));
@@ -149,10 +189,11 @@ vec2 decompressUV(uvec4 vertexData, MeshDecompressionData decomp) {
 
 // Decompress tangent from compressed vertex data
 vec3 decompressTangent(uvec4 vertexData) {
-    vec4 nt = unpackSnorm3x10_1x2(vertexData[2]);
-
-    float tx = nt.g;
-    float ty = nt.b;
+    // Decode tx, ty from UNORM and remap from [0,1] to [-1,1]
+    float tx_unorm = decodeUnorm10((vertexData[2] >> 10) & 0x3FFu);
+    float ty_unorm = decodeUnorm10((vertexData[2] >> 20) & 0x3FFu);
+    float tx = tx_unorm * 2.0 - 1.0;
+    float ty = ty_unorm * 2.0 - 1.0;
     float tz = sqrt(max(0.001, 1.0 - tx*tx - ty*ty));  // Always positive
 
     return normalize(vec3(tx, ty, tz));
@@ -161,6 +202,7 @@ vec3 decompressTangent(uvec4 vertexData) {
 // Get tangent handedness from compressed vertex data
 float getTangentHandedness(uvec4 vertexData) {
     uint alpha_bits = (vertexData[2] >> 30) & 0x3u;
+    // Handedness is in bit 0
     bool handedness_negative = (alpha_bits & 1u) != 0u;
     return handedness_negative ? -1.0 : 1.0;
 }
@@ -181,17 +223,9 @@ uint encodeUnorm16(float value) {
     return uint(value * 65535.0);
 }
 
-// Pack normal.y, tangent.xy, and sign bits into RGB10A2
-uint packNormalTangentSigns(float ny, float tx, float ty, float nz_sign, float handedness) {
-    uint packed = packSnorm3x10_1x2(vec4(ny, tx, ty, 0.0));
-
-    uint nz_bit = (nz_sign < 0.0) ? 1u : 0u;
-    uint handedness_bit = (handedness < 0.0) ? 1u : 0u;
-    uint alpha_bits = (nz_bit << 1) | handedness_bit;
-
-    packed &= 0x3FFFFFFFu;
-    packed |= (alpha_bits << 30);
-    return packed;
+// Pack normal.y, tangent.xy, and sign bits into RGB10A2 UNORM
+uint packNormalTangentSigns(float ny, float tx, float ty, float nx_sign, float handedness) {
+    return packNormalTangentUnorm(ny, tx, ty, nx_sign, handedness);
 }
 
 // Compress a full vertex back to CompressedVertex format
@@ -208,7 +242,13 @@ uvec4 compressVertex(vec3 position, vec3 normal, vec4 tangent, vec2 uv, MeshDeco
 
     // Normalize normal
     vec3 n = normalize(normal);
-    int normal_x = encodeSnorm16(n.x);
+
+    // Store |nx| in normal_x, with nz_sign encoded in its sign bit
+    float nx_magnitude = abs(n.x);
+    float nx_sign = (n.x < 0.0) ? -1.0 : 1.0;
+    float nz_sign = (n.z < 0.0) ? -1.0 : 1.0;
+    float nx_with_nz_sign = nx_magnitude * nz_sign;
+    int normal_x = encodeSnorm16(nx_with_nz_sign);
 
     // Normalize tangent and handle handedness
     vec3 t = normalize(tangent.xyz);
@@ -220,8 +260,8 @@ uvec4 compressVertex(vec3 position, vec3 normal, vec4 tangent, vec2 uv, MeshDeco
         handedness = -handedness;
     }
 
-    // Pack normal.y, tangent.xy, and signs
-    uint packed = packNormalTangentSigns(n.y, t.x, t.y, n.z, handedness);
+    // Pack ny, tx, ty as UNORM, with nx_sign and handedness in alpha bits
+    uint packed = packNormalTangentSigns(n.y, t.x, t.y, nx_sign, handedness);
 
     // Compress UV to mesh-local space
     vec2 uv_local = (uv - decomp.uv_min) / decomp.uv_scale;

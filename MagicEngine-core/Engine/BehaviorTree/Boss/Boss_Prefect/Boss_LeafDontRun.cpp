@@ -4,9 +4,11 @@
 #include "Game/EnemyCharacter.h"
 #include "Game/Character.h"
 #include "Game/Health.h"
-float L_Boss_Prefect_DontRun::attackDistance = 6.0f*6.0f;
+#include "Graphics/AnimationComponent.h"
+
+float L_Boss_Prefect_DontRun::attackDistance = 20.0f*20.0f;
 float L_Boss_Prefect_DontRun::attackCooldown = 3.0f;
-float L_Boss_Prefect_DontRun::dodgeDistance = 9.0f*9.0f;
+float L_Boss_Prefect_DontRun::dodgeDistance = 25.0f*25.0f;
 int L_Boss_Prefect_DontRun::attackCount = 4;
 
 void L_Boss_Prefect_DontRun::OnInitialize()
@@ -17,21 +19,27 @@ void L_Boss_Prefect_DontRun::OnInitialize()
 
 NODE_STATUS L_Boss_Prefect_DontRun::OnUpdate([[maybe_unused]] ecs::EntityHandle entity)
 {
-    if (auto characterComp{ entity->GetComp<CharacterMovementComponent>() })
-    {
+   // if (auto characterComp{ entity->GetComp<CharacterMovementComponent>() })
+    //{
         if (auto enemyComp{ entity->GetComp<EnemyComponent>() })
         {
             Vec2 dir = Boss_Prefect_Util::GetMovementTowards(entity->GetTransform().GetWorldPosition(), enemyComp->playerReference->GetTransform().GetWorldPosition());
 
             if (dir.LengthSqr() > attackDistance)
             {
-                characterComp->SetMovementVector(dir);
+                //characterComp->SetMovementVector(dir);
+				Boss_Prefect_Util::MoveInDirection(entity, Vec3{ dir.x, 0.0f, dir.y });
             }
             else
             {
-                characterComp->RotateTowards(dir);
-                characterComp->SetMovementVector(Vec2{0.0f});
-                characterComp->ResetSpeedMultiplier();
+				Boss_Prefect_Util::RotateTowards(entity, dir);
+                
+                auto animComp = entity->GetComp<AnimationComponent>();
+                if (animComp)
+                {
+                    animComp->TransitionTo(5852846630766581163, 0.1f);
+                    animComp->timeA = 0.0f;
+                }
                 if (currentAttackCooldown<=0.0f)
                 {
                     ecs::EntityHandle spawnedSpawner = ST<PrefabManager>::Get()->LoadPrefab("prefect_dontrunspawner");
@@ -47,6 +55,7 @@ NODE_STATUS L_Boss_Prefect_DontRun::OnUpdate([[maybe_unused]] ecs::EntityHandle 
                             //scriptComp->CallScriptFunction("setDirection", tmpDir.x, tmpDir.y, tmpDir.z);
                         }
 
+
                         spawnedSpawner->GetTransform().SetWorldPosition(entity->GetTransform().GetWorldPosition());
                         spawnedSpawner->GetTransform().SetWorldRotation(entity->GetTransform().GetWorldRotation());
                     }
@@ -58,14 +67,8 @@ NODE_STATUS L_Boss_Prefect_DontRun::OnUpdate([[maybe_unused]] ecs::EntityHandle 
                         return NODE_STATUS::SUCCESS;
                 }
             }
-
-            if (dir.LengthSqr() > dodgeDistance)
-            {
-                characterComp->Dodge(dir);
-                characterComp->SetSpeedMultiplier(1.5f);
-            }
             currentAttackCooldown -= GameTime::Dt();
         }
-    }
+    //}
     return NODE_STATUS::RUNNING;
 }

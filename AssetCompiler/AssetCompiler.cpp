@@ -86,7 +86,7 @@ void WriteManifest(const CompilationResult& result, bool crashed = false)
     file << sb.GetString();
 }
 
-LONG WINAPI UnhandledException(PEXCEPTION_POINTERS pExceptionInfo)
+LONG WINAPI UnhandledException([[maybe_unused]] PEXCEPTION_POINTERS pExceptionInfo)
 {
     std::cerr << "[CRITICAL] Unhandled Exception caught! Writing panic manifest...\n";
 

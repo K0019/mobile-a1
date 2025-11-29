@@ -39,6 +39,8 @@ public:
 	UserResourceHandle<ResourceAnimation> ultimAttackAnimation;
 	UserResourceHandle<ResourceAnimation> parryAnimation;
 
+	UserResourceHandle<ResourceMaterial> pickupUI;
+
 
 	void Attack(Vec3 origin, Vec3 direction);
 	/*****************************************************************//*!
@@ -51,13 +53,13 @@ public:
 	float damage;
 	Vec3 attackBox;
 	float attackDelay;
+	std::string audioName;
+	int audioStartIndex;
+	int audioEndIndex;
 
 	// Not serialized
 	bool isHeld;
 	EntityReference owner;
-
-	void Serialize(Serializer& writer) const override;
-	void Deserialize(Deserializer& reader) override;
 
 	property_vtable()
 
@@ -84,6 +86,14 @@ property_begin(GrabbableItemComponent)
 	property_var(damage),
 	property_var(attackBox),
 	property_var(attackDelay),
+	property_var(audioName),
+	property_var(audioStartIndex),
+	property_var(audioEndIndex),
+	property_var(lightAttackAnimation),
+	property_var(heavyAttackAnimation),
+	property_var(ultimAttackAnimation),
+	property_var(parryAnimation),
+	property_var(pickupUI)
 }
 property_vend_h(GrabbableItemComponent)
 
@@ -104,4 +114,26 @@ private:
 		The GrabbableItemComponent to update.
 	*//******************************************************************/
 	void UpdateGrabbableItemComponent(GrabbableItemComponent& comp);
+};
+
+class GrabbableItemPickupUISystem : public ecs::System<GrabbableItemPickupUISystem, GrabbableItemComponent>
+{
+public:
+	GrabbableItemPickupUISystem();
+
+	bool PreRun() override;
+	void PostRun() override;
+
+private:
+	void UpdateItemCompUI(GrabbableItemComponent& itemComp);
+
+	void HideUI(ecs::EntityHandle itemEntity);
+	void ShowUI(ecs::EntityHandle itemEntity, UserResourceHandle<ResourceMaterial> uiMaterial);
+	ecs::EntityHandle GetInactiveUIEntity();
+
+private:
+	Vec3 playerPos;
+
+	std::unordered_map<ecs::EntityHandle, ecs::EntityHandle> activeUIEntities;
+	std::vector<ecs::EntityHandle> inactiveUIEntities;
 };

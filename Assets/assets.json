@@ -85,6 +85,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/buff bg icon (timer).ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 3008096688990008155,
+                            "name": "buff bg icon (timer)0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/materials/standardsurface1_1012.material",
             "resources": [
                 {
@@ -197,6 +211,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/mc_animated/mc_animatedblock.anim",
+            "resources": [
+                {
+                    "resourceType": 7232515681596383213,
+                    "resourceEntries": [
+                        {
+                            "hash": 2531389129002756825,
+                            "name": "mc_animatedblock0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "sounds/sfx/mc/hurt/mc hurt 2.wav",
             "resources": [
                 {
@@ -225,6 +253,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/enemy_male_animated/_10.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 4984181867271020811,
+                            "name": "_100"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "sounds/sfx/mc/death/mc death 2.wav",
             "resources": [
                 {
@@ -233,6 +275,20 @@
                         {
                             "hash": 12213368293645575765,
                             "name": "mc death 20"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/mc_animated/n00_002_03_tops_01_cloth (instance).material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2449725101872949829,
+                            "name": "n00_002_03_tops_01_cloth (instance)0"
                         }
                     ]
                 }
@@ -295,6 +351,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/mc_animated/n00_000_hair_00_hair_05 (instance).material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2517394545004423801,
+                            "name": "n00_000_hair_00_hair_05 (instance)0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/models/glb/aji/player_idle_mixamo/player_idle_mixamoplayer_sword ulti_.anim",
             "resources": [
                 {
@@ -317,6 +387,20 @@
                         {
                             "hash": 1945734260237723387,
                             "name": "material_60"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/mc_animated/shader_nonenormal.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 2412187774900677145,
+                            "name": "shader_nonenormal0"
                         }
                     ]
                 }
@@ -365,6 +449,34 @@
             ]
         },
         {
+            "filepath": "compiledassets/ranka.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 2613227977692009447,
+                            "name": "ranka0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/enemy_female_animated/_04.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 5666243014858545759,
+                            "name": "_040"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/materials/darkmetal.001.material",
             "resources": [
                 {
@@ -393,6 +505,34 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/enemy_male_animated/n00_000_00_facemouth_00_face (instance).material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 5082440823398850871,
+                            "name": "n00_000_00_facemouth_00_face (instance)0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/enemy_male_animated/enemy_male_animatedhurt.anim",
+            "resources": [
+                {
+                    "resourceType": 7232515681596383213,
+                    "resourceEntries": [
+                        {
+                            "hash": 5130634617067528603,
+                            "name": "enemy_male_animatedhurt0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "sounds/sfx/enemy/female/death/enemy female death 1.wav",
             "resources": [
                 {
@@ -401,6 +541,34 @@
                         {
                             "hash": 7668526940953868880,
                             "name": "enemy female death 10"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/items/bookingslip/image_0.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 12163502414551158495,
+                            "name": "image_00"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/mc_animated/_24.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 2371326624277637651,
+                            "name": "_240"
                         }
                     ]
                 }
@@ -421,6 +589,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/player health bg.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 5552354500126963349,
+                            "name": "player health bg0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "sounds/sfx/enemy/male/attack/enemy male attack 1.wav",
             "resources": [
                 {
@@ -429,6 +611,34 @@
                         {
                             "hash": 9754931861471170587,
                             "name": "enemy male attack 10"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/mc_animated/_20.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 2363534385371589137,
+                            "name": "_200"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/light attack icon.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 90707510464671513,
+                            "name": "light attack icon0"
                         }
                     ]
                 }
@@ -491,6 +701,48 @@
             ]
         },
         {
+            "filepath": "compiledassets/player health and delusion meter.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 77506773920114087,
+                            "name": "player health and delusion meter0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/mc_animated/_12.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 2303210779425286635,
+                            "name": "_120"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/enemy_female_animated/_09.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 5687374528832772711,
+                            "name": "_090"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/models/glb/aji/player_idle_mixamo/n00_000_00_facemouth_00_face__instance_.material",
             "resources": [
                 {
@@ -513,6 +765,20 @@
                         {
                             "hash": 833875116447208845,
                             "name": "outdoor bleachers75854620508133531360"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/mc_animated/_21.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 2337507845630503437,
+                            "name": "_210"
                         }
                     ]
                 }
@@ -561,6 +827,20 @@
             ]
         },
         {
+            "filepath": "sounds/sfx/mc/dodge/dodge 3.wav",
+            "resources": [
+                {
+                    "resourceType": 16184316770661419113,
+                    "resourceEntries": [
+                        {
+                            "hash": 11063358950747325337,
+                            "name": "dodge 30"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/textures/digipen_cmyk_red.ktx2",
             "resources": [
                 {
@@ -583,6 +863,20 @@
                         {
                             "hash": 12213361696575806499,
                             "name": "mc death 40"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/mc_animated/_13.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 2308371887006067183,
+                            "name": "_130"
                         }
                     ]
                 }
@@ -625,6 +919,20 @@
                         {
                             "hash": 4383151427989018219,
                             "name": "_130"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/enemy_male_animated/material_15.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 5117238167394705739,
+                            "name": "material_150"
                         }
                     ]
                 }
@@ -687,6 +995,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/enemy_female_animated/n00_001_01_shoes_01_cloth (instance).material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 5761337576521636521,
+                            "name": "n00_001_01_shoes_01_cloth (instance)0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/main menu bg.ktx2",
             "resources": [
                 {
@@ -695,6 +1017,34 @@
                         {
                             "hash": 97470606385473683,
                             "name": "main menu bg0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/mc_animated/_01.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 2263674540313717209,
+                            "name": "_010"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/enemy_female_animated/_05.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 5742808606570355337,
+                            "name": "_050"
                         }
                     ]
                 }
@@ -869,6 +1219,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/mc_animated/n00_000_00_face_00_skin (instance).material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2474677418753698401,
+                            "name": "n00_000_00_face_00_skin (instance)0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/materials/n00_000_00_facemouth_00_face__instance_.material",
             "resources": [
                 {
@@ -877,6 +1241,20 @@
                         {
                             "hash": 2123432931013971819,
                             "name": "n00_000_00_facemouth_00_face__instance_0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/mc_animated/mc_animatedlight atk 4.anim",
+            "resources": [
+                {
+                    "resourceType": 7232515681596383213,
+                    "resourceEntries": [
+                        {
+                            "hash": 5872848946299131223,
+                            "name": "mc_animatedlight atk 40"
                         }
                     ]
                 }
@@ -925,6 +1303,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/enemy_male_animated/n00_000_00_hairback_00_hair (instance).material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 5055237806216044835,
+                            "name": "n00_000_00_hairback_00_hair (instance)0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/textures/dugout6563481416728337116.ktx2",
             "resources": [
                 {
@@ -967,6 +1359,34 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/enemy_female_animated/_10.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 5689960580181301865,
+                            "name": "_100"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/mc_animated/n00_000_00_facemouth_00_face (instance).material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2462240842731924055,
+                            "name": "n00_000_00_facemouth_00_face (instance)0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "sounds/sfx/mc/hurt/mc hurt 1.wav",
             "resources": [
                 {
@@ -989,6 +1409,34 @@
                         {
                             "hash": 12213360597064178288,
                             "name": "mc death 50"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/enemy_male_animated/_12.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 4988512843572830475,
+                            "name": "_120"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/mc_animated/_07.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 2287697769868995041,
+                            "name": "_070"
                         }
                     ]
                 }
@@ -1045,6 +1493,20 @@
                         {
                             "hash": 4654142561328830193,
                             "name": "player_idle_mixamoplayer_weapon atk 2_mixamo0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/attack speed icon.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 2997218120944789645,
+                            "name": "attack speed icon0"
                         }
                     ]
                 }
@@ -1121,6 +1583,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/enemy_female_animated/_15.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 5709547280318503539,
+                            "name": "_150"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/materials/n00_002_03_tops_01_cloth_05__instance_.001.material",
             "resources": [
                 {
@@ -1143,6 +1619,34 @@
                         {
                             "hash": 394651007363811311,
                             "name": "unitbox0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/enemy_female_animated/n00_001_02_accessory_tie_01_cloth (instance).material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 5777191434682538697,
+                            "name": "n00_001_02_accessory_tie_01_cloth (instance)0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/enemy_female_animated/shader_noneblack.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 5722461044386732677,
+                            "name": "shader_noneblack0"
                         }
                     ]
                 }
@@ -1205,6 +1709,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/rankf.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 2631693175968883765,
+                            "name": "rankf0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "sounds/sfx/mc/footsteps/outdoor/outdoor footsteps 4.wav",
             "resources": [
                 {
@@ -1241,6 +1759,20 @@
                         {
                             "hash": 4416029024682776187,
                             "name": "_200"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/mc_animated/_23.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 2342298417792723469,
+                            "name": "_230"
                         }
                     ]
                 }
@@ -1303,6 +1835,34 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/enemy_male_animated/_13.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 4990236877805183245,
+                            "name": "_130"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/player health fill.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 5546447923662549515,
+                            "name": "player health fill0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/meshanimations/player_idle_mixamoplayer_weapon atk 3_mixamo.anim",
             "resources": [
                 {
@@ -1359,6 +1919,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/enemy_male_animated/_04.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 4964550087157080325,
+                            "name": "_040"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/models/glb/aji/player_idle_mixamo/_21.ktx2",
             "resources": [
                 {
@@ -1367,6 +1941,20 @@
                         {
                             "hash": 4419777259821864573,
                             "name": "_210"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/mc_animated/mc_animatedkatar idle.anim",
+            "resources": [
+                {
+                    "resourceType": 7232515681596383213,
+                    "resourceEntries": [
+                        {
+                            "hash": 2565889604859112173,
+                            "name": "mc_animatedkatar idle0"
                         }
                     ]
                 }
@@ -1443,6 +2031,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/enemy_male_animated/n00_000_00_body_00_skin (instance).material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 5050032718170153249,
+                            "name": "n00_000_00_body_00_skin (instance)0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "sounds/sfx/jump/jump 3.wav",
             "resources": [
                 {
@@ -1465,6 +2067,20 @@
                         {
                             "hash": 231333948278686801,
                             "name": "_110"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/mc_animated/n00_000_00_faceeyeline_00_face (instance).material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2490923802565716587,
+                            "name": "n00_000_00_faceeyeline_00_face (instance)0"
                         }
                     ]
                 }
@@ -1527,6 +2143,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/enemy_female_animated/n00_000_00_eyeiris_00_eye (instance).material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 5786380053355862743,
+                            "name": "n00_000_00_eyeiris_00_eye (instance)0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/models/glb/aji/player_idle_mixamo/_18.ktx2",
             "resources": [
                 {
@@ -1569,6 +2199,34 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/mc_animated/n00_000_hair_00_hair_04 (instance).material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2511684781121383031,
+                            "name": "n00_000_hair_00_hair_04 (instance)0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/delusion meter fill.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 82850400431107463,
+                            "name": "delusion meter fill0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/textures/shader_noneblack.ktx2",
             "resources": [
                 {
@@ -1577,6 +2235,20 @@
                         {
                             "hash": 182908157656548423,
                             "name": "shader_noneblack0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/enemy_female_animated/n00_000_00_hairback_00_hair (instance).material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 5771208991915809473,
+                            "name": "n00_000_00_hairback_00_hair (instance)0"
                         }
                     ]
                 }
@@ -1653,6 +2325,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/debuff bg icon.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 3026146271871584017,
+                            "name": "debuff bg icon0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "sounds/sfx/weapon pickup/weapon pickup 3.wav",
             "resources": [
                 {
@@ -1661,6 +2347,20 @@
                         {
                             "hash": 4836861497999165782,
                             "name": "weapon pickup 30"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/mc_animated/n00_007_01_tops_01_cloth_02 (instance).material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2453365584872516173,
+                            "name": "n00_007_01_tops_01_cloth_02 (instance)0"
                         }
                     ]
                 }
@@ -1751,6 +2451,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/enemy_male_animated/enemy_male_animatedattack.anim",
+            "resources": [
+                {
+                    "resourceType": 7232515681596383213,
+                    "resourceEntries": [
+                        {
+                            "hash": 5128037570602721689,
+                            "name": "enemy_male_animatedattack0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/meshanimations/player_idle_mixamoplayer_punch 2_mixamo.anim",
             "resources": [
                 {
@@ -1779,6 +2493,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/mc_animated/_22.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 2368719682208180755,
+                            "name": "_220"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/materials/standardsurface1_1013.material",
             "resources": [
                 {
@@ -1787,6 +2515,48 @@
                         {
                             "hash": 725019067223537767,
                             "name": "standardsurface1_10130"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/enemy_female_animated/_17.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 5715518727968955009,
+                            "name": "_170"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/enemy_female_animated/enemy_female_animated.mesh",
+            "resources": [
+                {
+                    "resourceType": 6209910166724260588,
+                    "resourceEntries": [
+                        {
+                            "hash": 5824722222839667575,
+                            "name": "enemy_female_animated0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/health icon.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 3031216119987261849,
+                            "name": "health icon0"
                         }
                     ]
                 }
@@ -1849,6 +2619,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/enemy_male_animated/_03.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 4961954140203901189,
+                            "name": "_030"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/textures/_15.ktx2",
             "resources": [
                 {
@@ -1885,6 +2669,20 @@
                         {
                             "hash": 2256450748577847543,
                             "name": "bookingslip0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/enemy_female_animated/n00_007_02_tops_01_cloth (instance).material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 5767169386195360441,
+                            "name": "n00_007_02_tops_01_cloth (instance)0"
                         }
                     ]
                 }
@@ -1947,6 +2745,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/mc_animated/n00_000_hair_00_nml_05.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 2408745203994110489,
+                            "name": "n00_000_hair_00_nml_050"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/textures/storage room2013909477565681000.ktx2",
             "resources": [
                 {
@@ -1955,6 +2767,34 @@
                         {
                             "hash": 900235041230009765,
                             "name": "storage room20139094775656810000"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/mc_animated/mc_animatedkatar atk 2.anim",
+            "resources": [
+                {
+                    "resourceType": 7232515681596383213,
+                    "resourceEntries": [
+                        {
+                            "hash": 2559702652929616615,
+                            "name": "mc_animatedkatar atk 20"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/mc_animated/mc_animatedidle.anim",
+            "resources": [
+                {
+                    "resourceType": 7232515681596383213,
+                    "resourceEntries": [
+                        {
+                            "hash": 2548081914535652063,
+                            "name": "mc_animatedidle0"
                         }
                     ]
                 }
@@ -1975,6 +2815,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/materials/Boss_Top_Prefect.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 5594908899487728647,
+                            "name": "boss_top_prefect0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/materials/n00_000_00_eyeiris_00_eye (instance).material",
             "resources": [
                 {
@@ -1983,6 +2837,20 @@
                         {
                             "hash": 362883917472318605,
                             "name": "n00_000_00_eyeiris_00_eye (instance)0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/enemy_male_animated/n00_000_00_faceeyeline_00_face (instance).material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 5108368407093436743,
+                            "name": "n00_000_00_faceeyeline_00_face (instance)0"
                         }
                     ]
                 }
@@ -2003,6 +2871,48 @@
             ]
         },
         {
+            "filepath": "compiledassets/movement speed icon.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 3042608159962651947,
+                            "name": "movement speed icon0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "sounds/music (bgm)/classroom (main gameplay)/purrfectputt-music-gameplayloop1.wav",
+            "resources": [
+                {
+                    "resourceType": 16184316770661419113,
+                    "resourceEntries": [
+                        {
+                            "hash": 2307886975704003677,
+                            "name": "purrfectputt-music-gameplayloop10"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/items/katar/katar.mesh",
+            "resources": [
+                {
+                    "resourceType": 6209910166724260588,
+                    "resourceEntries": [
+                        {
+                            "hash": 5759153946440816121,
+                            "name": "katar0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/textures/image_13.ktx2",
             "resources": [
                 {
@@ -2011,6 +2921,34 @@
                         {
                             "hash": 763682294102682611,
                             "name": "image_130"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/enemy_male_animated/enemy_male_animateddefense.anim",
+            "resources": [
+                {
+                    "resourceType": 7232515681596383213,
+                    "resourceEntries": [
+                        {
+                            "hash": 5847024716697507243,
+                            "name": "enemy_male_animateddefense0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/rankd.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 2627949338876305497,
+                            "name": "rankd0"
                         }
                     ]
                 }
@@ -2073,6 +3011,48 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/enemy_female_animated/_08.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 5683256857786751589,
+                            "name": "_080"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/enemy_female_animated/_14.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 5705819935900342897,
+                            "name": "_140"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/mc_animated/n00_000_hair_00_hair_01 (instance).material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2498559910820620911,
+                            "name": "n00_000_hair_00_hair_01 (instance)0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "sounds/sfx/mc/weapon pickup/weapon pickup 3.wav",
             "resources": [
                 {
@@ -2129,6 +3109,48 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/primitives/vplane/vplane.mesh",
+            "resources": [
+                {
+                    "resourceType": 6209910166724260588,
+                    "resourceEntries": [
+                        {
+                            "hash": 2558573453700021325,
+                            "name": "vplane0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/itempickupui_katar.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 2567177132187557019,
+                            "name": "itempickupui_katar0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/mc_animated/mc_animatedlight atk 1.anim",
+            "resources": [
+                {
+                    "resourceType": 7232515681596383213,
+                    "resourceEntries": [
+                        {
+                            "hash": 2571380565928225517,
+                            "name": "mc_animatedlight atk 10"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/materials/n00_000_00_eyewhite_00_eye (instance).material",
             "resources": [
                 {
@@ -2137,6 +3159,20 @@
                         {
                             "hash": 375417250517337235,
                             "name": "n00_000_00_eyewhite_00_eye (instance)0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/buff bg icon.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 3010739914943182859,
+                            "name": "buff bg icon0"
                         }
                     ]
                 }
@@ -2171,6 +3207,34 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/enemy_male_animated/n00_000_00_eyehighlight_00_eye (instance).material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 5091784473211691323,
+                            "name": "n00_000_00_eyehighlight_00_eye (instance)0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/enemy_male_animated/n00_001_01_shoes_01_cloth (instance).material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 5065417084865995051,
+                            "name": "n00_001_01_shoes_01_cloth (instance)0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/textures/fence14709142800244381938.ktx2",
             "resources": [
                 {
@@ -2199,6 +3263,34 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/enemy_female_animated/shader_nonenormal.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 5740127997221837449,
+                            "name": "shader_nonenormal0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/winlose_exit.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 95062675841825407,
+                            "name": "winlose_exit0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/textures/_13.ktx2",
             "resources": [
                 {
@@ -2221,6 +3313,20 @@
                         {
                             "hash": 17086298234433483655,
                             "name": "indoor footsteps 20"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/enemy_male_animated/_11.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 5045048631961444635,
+                            "name": "_110"
                         }
                     ]
                 }
@@ -2325,6 +3431,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/materials/UI_Pickup_Bloodcalibur.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2578814363255955407,
+                            "name": "ui_pickup_bloodcalibur0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/materials/n00_007_01_tops_01_cloth_01__instance_.001.material",
             "resources": [
                 {
@@ -2333,6 +3453,48 @@
                         {
                             "hash": 2261277604276646959,
                             "name": "n00_007_01_tops_01_cloth_01__instance_.0010"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/buff bg.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 3017153366268001653,
+                            "name": "buff bg0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/enemy_female_animated/n00_000_00_facemouth_00_face (instance).material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 5780287659426355917,
+                            "name": "n00_000_00_facemouth_00_face (instance)0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/winlose_restart.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 111734570653796579,
+                            "name": "winlose_restart0"
                         }
                     ]
                 }
@@ -2361,6 +3523,34 @@
                         {
                             "hash": 113166134871989379,
                             "name": "exit button0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/mc_animated/mc_animatedsword idle.anim",
+            "resources": [
+                {
+                    "resourceType": 7232515681596383213,
+                    "resourceEntries": [
+                        {
+                            "hash": 2593603894948834043,
+                            "name": "mc_animatedsword idle0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/ranka+.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 2608381330436771473,
+                            "name": "ranka+0"
                         }
                     ]
                 }
@@ -2437,6 +3627,90 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/enemy_male_animated/enemy_male_animatedt-pose.001.anim",
+            "resources": [
+                {
+                    "resourceType": 7232515681596383213,
+                    "resourceEntries": [
+                        {
+                            "hash": 5154222440018207139,
+                            "name": "enemy_male_animatedt-pose.0010"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/enemy_male_animated/enemy_male_animatedidle.anim",
+            "resources": [
+                {
+                    "resourceType": 7232515681596383213,
+                    "resourceEntries": [
+                        {
+                            "hash": 5134835850997260701,
+                            "name": "enemy_male_animatedidle0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/enemy_female_animated/n00_000_00_faceeyeline_00_face (instance).material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 5810366999027423989,
+                            "name": "n00_000_00_faceeyeline_00_face (instance)0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/enemy_female_animated/_18.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 5725270296595700357,
+                            "name": "_180"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/enemy_female_animated/n00_000_00_eyehighlight_00_eye (instance).material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 5788360273797487321,
+                            "name": "n00_000_00_eyehighlight_00_eye (instance)0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/mc_animated/n00_000_00_eyeiris_00_eye (instance).material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2466697163359300185,
+                            "name": "n00_000_00_eyeiris_00_eye (instance)0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/shelf_small.mesh",
             "resources": [
                 {
@@ -2465,6 +3739,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/enemy_male_animated/n00_000_00_eyewhite_00_eye (instance).material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 5100979688954782017,
+                            "name": "n00_000_00_eyewhite_00_eye (instance)0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/materials/n00_008_01_shoes_01_cloth_02__instance_.material",
             "resources": [
                 {
@@ -2473,6 +3761,20 @@
                         {
                             "hash": 2081450278530600787,
                             "name": "n00_008_01_shoes_01_cloth_02__instance_0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/enemy_female_animated/n00_000_00_body_00_skin (instance).material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 5753005477406349975,
+                            "name": "n00_000_00_body_00_skin (instance)0"
                         }
                     ]
                 }
@@ -2507,6 +3809,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/items/katar/phonge2.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 5743190137117136313,
+                            "name": "phonge20"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/materials/n00_002_03_tops_01_cloth_04__instance_.material",
             "resources": [
                 {
@@ -2529,6 +3845,20 @@
                         {
                             "hash": 1380181762511534957,
                             "name": "corridor0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/mc_animated/_16.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 2321884884911434235,
+                            "name": "_160"
                         }
                     ]
                 }
@@ -2577,6 +3907,34 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/enemy_female_animated/n00_000_00_facebrow_00_face (instance).material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 5802652825446947561,
+                            "name": "n00_000_00_facebrow_00_face (instance)0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/mc_animated/n00_000_00_body_00_skin (instance).material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2423412689108642351,
+                            "name": "n00_000_00_body_00_skin (instance)0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/materials/n00_000_00_hairback_00_hair__instance_.001.material",
             "resources": [
                 {
@@ -2585,6 +3943,20 @@
                         {
                             "hash": 2268040700299097137,
                             "name": "n00_000_00_hairback_00_hair__instance_.0010"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/mc_animated/n00_008_01_shoes_01_cloth (instance).material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2444372679268936255,
+                            "name": "n00_008_01_shoes_01_cloth (instance)0"
                         }
                     ]
                 }
@@ -2605,6 +3977,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/enemy_male_animated/n00_000_hair_00_nml.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 5031742342242099481,
+                            "name": "n00_000_hair_00_nml0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "sounds/sfx/mc/footsteps/outdoor/outdoor footsteps 3.wav",
             "resources": [
                 {
@@ -2613,6 +3999,20 @@
                         {
                             "hash": 11530555819903483337,
                             "name": "outdoor footsteps 30"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/mc_animated/mc_animatedlight atk 3.anim",
+            "resources": [
+                {
+                    "resourceType": 7232515681596383213,
+                    "resourceEntries": [
+                        {
+                            "hash": 5869936339997152597,
+                            "name": "mc_animatedlight atk 30"
                         }
                     ]
                 }
@@ -2655,6 +4055,34 @@
                         {
                             "hash": 226147551930467407,
                             "name": "_100"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/enemy_male_animated/enemy_male_animatedrange single  attack.anim",
+            "resources": [
+                {
+                    "resourceType": 7232515681596383213,
+                    "resourceEntries": [
+                        {
+                            "hash": 5145774892182004129,
+                            "name": "enemy_male_animatedrange single  attack0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/items/katar/phonge1.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 5748368836883961275,
+                            "name": "phonge10"
                         }
                     ]
                 }
@@ -2745,6 +4173,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/mc_animated/_15.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 2319005263958288885,
+                            "name": "_150"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/models/glb/items/sword/handle_lambert.material",
             "resources": [
                 {
@@ -2753,6 +4195,20 @@
                         {
                             "hash": 1935195441285490423,
                             "name": "handle_lambert0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/winlose_mainmenu.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 102675694352547705,
+                            "name": "winlose_mainmenu0"
                         }
                     ]
                 }
@@ -2829,6 +4285,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/enemy_female_animated/enemy_female_animatedwalk.anim",
+            "resources": [
+                {
+                    "resourceType": 7232515681596383213,
+                    "resourceEntries": [
+                        {
+                            "hash": 5841992251977145237,
+                            "name": "enemy_female_animatedwalk0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/wall_doors_tex.mesh",
             "resources": [
                 {
@@ -2899,6 +4369,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/enemy_male_animated/n00_000_00_facebrow_00_face (instance).material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 5104984110303142211,
+                            "name": "n00_000_00_facebrow_00_face (instance)0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/textures/_06.ktx2",
             "resources": [
                 {
@@ -2907,6 +4391,20 @@
                         {
                             "hash": 212426746327450699,
                             "name": "_060"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/mc_animated/mc_animatedidle.001.anim",
+            "resources": [
+                {
+                    "resourceType": 7232515681596383213,
+                    "resourceEntries": [
+                        {
+                            "hash": 2553307893302471395,
+                            "name": "mc_animatedidle.0010"
                         }
                     ]
                 }
@@ -2927,6 +4425,20 @@
             ]
         },
         {
+            "filepath": "sounds/sfx/mc/dodge/dodge 2.wav",
+            "resources": [
+                {
+                    "resourceType": 16184316770661419113,
+                    "resourceEntries": [
+                        {
+                            "hash": 11063357851235697126,
+                            "name": "dodge 20"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/textures/storage room3567323986476668321.ktx2",
             "resources": [
                 {
@@ -2941,6 +4453,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/enemy_female_animated/_02.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 5657188536603810397,
+                            "name": "_020"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/meshanimations/player_idle_mixamoplayer_katar atk 1.anim",
             "resources": [
                 {
@@ -2949,6 +4475,20 @@
                         {
                             "hash": 2190783515773390719,
                             "name": "player_idle_mixamoplayer_katar atk 10"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "sounds/music (bgm)/ambience/school ambience heavy voices_loop.wav",
+            "resources": [
+                {
+                    "resourceType": 16184316770661419113,
+                    "resourceEntries": [
+                        {
+                            "hash": 7363086786779162002,
+                            "name": "school ambience heavy voices_loop0"
                         }
                     ]
                 }
@@ -3025,6 +4565,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/enemy_female_animated/_16.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 5713214151597136509,
+                            "name": "_160"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/textures/field7732551140988198768.ktx2",
             "resources": [
                 {
@@ -3033,6 +4587,34 @@
                         {
                             "hash": 795027171614619687,
                             "name": "field77325511409881987680"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/enemy_female_animated/material_15.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 5820117468142541565,
+                            "name": "material_150"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/boss_top.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 5586651567163093599,
+                            "name": "boss_top0"
                         }
                     ]
                 }
@@ -3075,6 +4657,20 @@
                         {
                             "hash": 6527073765713914097,
                             "name": "enemy male death 10"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "sounds/sfx/environment/door open.wav",
+            "resources": [
+                {
+                    "resourceType": 16184316770661419113,
+                    "resourceEntries": [
+                        {
+                            "hash": 8224691455082620087,
+                            "name": "door open0"
                         }
                     ]
                 }
@@ -3151,6 +4747,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/enemy_male_animated/enemy_male_animatedlashout.anim",
+            "resources": [
+                {
+                    "resourceType": 7232515681596383213,
+                    "resourceEntries": [
+                        {
+                            "hash": 5858584981951944119,
+                            "name": "enemy_male_animatedlashout0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/materials/n00_010_01_onepiece_00_cloth_01__instance_.001.material",
             "resources": [
                 {
@@ -3159,6 +4769,20 @@
                         {
                             "hash": 2281171068157998137,
                             "name": "n00_010_01_onepiece_00_cloth_01__instance_.0010"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/mc_animated/mc_animated.mesh",
+            "resources": [
+                {
+                    "resourceType": 6209910166724260588,
+                    "resourceEntries": [
+                        {
+                            "hash": 2524908607468645077,
+                            "name": "mc_animated0"
                         }
                     ]
                 }
@@ -3207,6 +4831,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/enemy_female_animated/_11.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 5748749267895229071,
+                            "name": "_110"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/models/glb/aji/player_idle_mixamo/_17.ktx2",
             "resources": [
                 {
@@ -3215,6 +4853,20 @@
                         {
                             "hash": 4400986606103172727,
                             "name": "_170"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/enemy_male_animated/_19.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 5024245871963922711,
+                            "name": "_190"
                         }
                     ]
                 }
@@ -3263,6 +4915,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/mc_animated/_03.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 2270457427545467355,
+                            "name": "_030"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/textures/_14.ktx2",
             "resources": [
                 {
@@ -3291,6 +4957,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/enemy_female_animated/_01.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 5652855361278745181,
+                            "name": "_010"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "sounds/sfx/enemy/male/attack/enemy male attack 3.wav",
             "resources": [
                 {
@@ -3299,6 +4979,20 @@
                         {
                             "hash": 9754934060494427009,
                             "name": "enemy male attack 30"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "sounds/sfx/mc/dodge/dodge 1.wav",
+            "resources": [
+                {
+                    "resourceType": 16184316770661419113,
+                    "resourceEntries": [
+                        {
+                            "hash": 11063356751724068915,
+                            "name": "dodge 10"
                         }
                     ]
                 }
@@ -3361,6 +5055,62 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/enemy_male_animated/enemy_male_animated.mesh",
+            "resources": [
+                {
+                    "resourceType": 6209910166724260588,
+                    "resourceEntries": [
+                        {
+                            "hash": 5120963312789610903,
+                            "name": "enemy_male_animated0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/enemy_male_animated/shader_noneblack.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 5017929177662349591,
+                            "name": "shader_noneblack0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/enemy_male_animated/_09.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 4980094982550577417,
+                            "name": "_090"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/mc_animated/n00_000_hair_00_hair_02 (instance).material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2500813909657561713,
+                            "name": "n00_000_hair_00_hair_02 (instance)0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/materials/material.001.material",
             "resources": [
                 {
@@ -3383,6 +5133,20 @@
                         {
                             "hash": 2101693387109584733,
                             "name": "n00_007_01_tops_01_cloth_02__instance_0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/enemy_male_animated/n00_001_01_bottoms_01_cloth (instance).material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 5075884435562422581,
+                            "name": "n00_001_01_bottoms_01_cloth (instance)0"
                         }
                     ]
                 }
@@ -3431,6 +5195,34 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/enemy_female_animated/_03.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 5663249044696111711,
+                            "name": "_030"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/enemy_female_animated/_13.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 5698503785529121389,
+                            "name": "_130"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/textures/storage room12911167446975257857.ktx2",
             "resources": [
                 {
@@ -3459,6 +5251,34 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/items/katar/blinn1.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 5737239580187612597,
+                            "name": "blinn10"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/enemy_female_animated/_06.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 5672646570578713185,
+                            "name": "_060"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/textures/image_10.ktx2",
             "resources": [
                 {
@@ -3467,6 +5287,20 @@
                         {
                             "hash": 1366539022234090277,
                             "name": "image_100"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/items/bookingslip/image_2.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 12172700928829132521,
+                            "name": "image_20"
                         }
                     ]
                 }
@@ -3501,6 +5335,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/mc_animated/mc_animatedlight atk 2.anim",
+            "resources": [
+                {
+                    "resourceType": 7232515681596383213,
+                    "resourceEntries": [
+                        {
+                            "hash": 2574716484206897903,
+                            "name": "mc_animatedlight atk 20"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/models/glb/items/sword/circlewing_lambert.material",
             "resources": [
                 {
@@ -3509,6 +5357,20 @@
                         {
                             "hash": 1942202628889306873,
                             "name": "circlewing_lambert0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/mc_animated/_28.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 2377908300881504789,
+                            "name": "_280"
                         }
                     ]
                 }
@@ -3585,6 +5447,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/mc_animated/_11.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 2419793096830003745,
+                            "name": "_110"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "sounds/sfx/mc/death/mc death 1.wav",
             "resources": [
                 {
@@ -3599,6 +5475,34 @@
             ]
         },
         {
+            "filepath": "compiledassets/delusion decay icon.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 3026900536848239949,
+                            "name": "delusion decay icon0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/enemy_female_animated/n00_000_00_faceeyelash_00_face (instance).material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 5809157536236870381,
+                            "name": "n00_000_00_faceeyelash_00_face (instance)0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/materials/n00_002_03_tops_01_cloth_02__instance_.material",
             "resources": [
                 {
@@ -3607,6 +5511,20 @@
                         {
                             "hash": 2107168955015909217,
                             "name": "n00_002_03_tops_01_cloth_02__instance_0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/mc_animated/_14.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 2311539580005689845,
+                            "name": "_140"
                         }
                     ]
                 }
@@ -3655,6 +5573,34 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/mc_animated/_17.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 2327338462585203203,
+                            "name": "_170"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/win menu bg.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 6539792907445282495,
+                            "name": "win menu bg0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/box.mesh",
             "resources": [
                 {
@@ -3663,6 +5609,34 @@
                         {
                             "hash": 165955887379318537,
                             "name": "box0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/enemy_male_animated/enemy_male_animatedgroundstrike.anim",
+            "resources": [
+                {
+                    "resourceType": 7232515681596383213,
+                    "resourceEntries": [
+                        {
+                            "hash": 5852846630766581163,
+                            "name": "enemy_male_animatedgroundstrike0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/mc_animated/n00_000_00_facebrow_00_face (instance).material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2482058440310958695,
+                            "name": "n00_000_00_facebrow_00_face (instance)0"
                         }
                     ]
                 }
@@ -3781,6 +5755,48 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/items/bookingslip/image_1.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 12166631624643808995,
+                            "name": "image_10"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/enemy_male_animated/_05.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 5041768788775788825,
+                            "name": "_050"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/enemy_male_animated/_17.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 5010028087105151251,
+                            "name": "_170"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/textures/field413754577327418317.ktx2",
             "resources": [
                 {
@@ -3809,6 +5825,34 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/enemy_male_animated/enemy_male_animatedlunge.anim",
+            "resources": [
+                {
+                    "resourceType": 7232515681596383213,
+                    "resourceEntries": [
+                        {
+                            "hash": 5860832383719118265,
+                            "name": "enemy_male_animatedlunge0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/enemy_female_animated/n00_000_00_hairback_00_nml.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 5729690333339359879,
+                            "name": "n00_000_00_hairback_00_nml0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/materials/n00_002_03_tops_01_cloth_04 (instance).material",
             "resources": [
                 {
@@ -3817,6 +5861,34 @@
                         {
                             "hash": 350021830450594951,
                             "name": "n00_002_03_tops_01_cloth_04 (instance)0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/health regen icon.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 3037314011474909181,
+                            "name": "health regen icon0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/enemy_female_animated/enemy_female_animatedt-pose.anim",
+            "resources": [
+                {
+                    "resourceType": 7232515681596383213,
+                    "resourceEntries": [
+                        {
+                            "hash": 5836650824489409407,
+                            "name": "enemy_female_animatedt-pose0"
                         }
                     ]
                 }
@@ -3887,6 +5959,34 @@
                         {
                             "hash": 391814267422360829,
                             "name": "aji0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/mc_animated/n00_000_00_hairback_00_hair (instance).material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2430346209433397811,
+                            "name": "n00_000_00_hairback_00_hair (instance)0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/mc_animated/n00_000_hair_00_nml_03.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 2397072788553640471,
+                            "name": "n00_000_hair_00_nml_030"
                         }
                     ]
                 }
@@ -4005,6 +6105,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/items/katar/material_4.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 5754709720441345469,
+                            "name": "material_40"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/meshanimations/player_running_mixamoplayer_running_mixamo.001.anim",
             "resources": [
                 {
@@ -4019,6 +6133,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/enemy_female_animated/n00_000_00_eyewhite_00_eye (instance).material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 5797571982214994661,
+                            "name": "n00_000_00_eyewhite_00_eye (instance)0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/textures/image_14.ktx2",
             "resources": [
                 {
@@ -4027,6 +6155,20 @@
                         {
                             "hash": 772044080031919101,
                             "name": "image_140"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/items/bookingslip/bookingslip_1001.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 12175155038782328561,
+                            "name": "bookingslip_10010"
                         }
                     ]
                 }
@@ -4103,6 +6245,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/mc_animated/_10.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 2300916098658118121,
+                            "name": "_100"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/textures/_19.ktx2",
             "resources": [
                 {
@@ -4111,6 +6267,34 @@
                         {
                             "hash": 268043342995244123,
                             "name": "_190"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/mc_animated/n00_007_01_tops_01_cloth_01 (instance).material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2436473787734993467,
+                            "name": "n00_007_01_tops_01_cloth_01 (instance)0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/enemy_male_animated/_06.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 4968585294831018247,
+                            "name": "_060"
                         }
                     ]
                 }
@@ -4173,6 +6357,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/mc_animated/_26.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 2373913775137794579,
+                            "name": "_260"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/materials/transparent_1002.material",
             "resources": [
                 {
@@ -4215,6 +6413,34 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/mc_animated/n00_000_hair_00_nml_04.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 2403468647692413465,
+                            "name": "n00_000_hair_00_nml_040"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/mc_animated/_06.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 2280461883846601183,
+                            "name": "_060"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "sounds/sfx/enemy/female/death/enemy female death 2.wav",
             "resources": [
                 {
@@ -4251,6 +6477,34 @@
                         {
                             "hash": 790882012750605355,
                             "name": "wall_window_tex0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/mc_animated/n00_000_00_eyehighlight_00_eye (instance).material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2469611968684534365,
+                            "name": "n00_000_00_eyehighlight_00_eye (instance)0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/mc_animated/n00_001_03_bottoms_01_cloth (instance).material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2435522710176967221,
+                            "name": "n00_001_03_bottoms_01_cloth (instance)0"
                         }
                     ]
                 }
@@ -4321,6 +6575,20 @@
                         {
                             "hash": 2002811523967157740,
                             "name": "light attack #2 20"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/enemy_male_animated/enemy_male_animatedlunge follow up.anim",
+            "resources": [
+                {
+                    "resourceType": 7232515681596383213,
+                    "resourceEntries": [
+                        {
+                            "hash": 5863931906997818811,
+                            "name": "enemy_male_animatedlunge follow up0"
                         }
                     ]
                 }
@@ -4509,6 +6777,48 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/mc_animated/material_21.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2519890436399475323,
+                            "name": "material_210"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/dodge icon.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 82355620140082399,
+                            "name": "dodge icon0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/items/katar/lambert9.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 5738450142489793975,
+                            "name": "lambert90"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/textures/dugout14709142800244381938.ktx2",
             "resources": [
                 {
@@ -4517,6 +6827,20 @@
                         {
                             "hash": 720762857739738087,
                             "name": "dugout147091428002443819380"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/enemy_male_animated/n00_000_00_hairback_00_nml.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 5028334955707621655,
+                            "name": "n00_000_00_hairback_00_nml0"
                         }
                     ]
                 }
@@ -4537,6 +6861,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/mc_animated/_09.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 2293939697379879395,
+                            "name": "_090"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/main menu header.ktx2",
             "resources": [
                 {
@@ -4551,6 +6889,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/mc_animated/n00_000_hair_00_nml_02.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 2392230539344914967,
+                            "name": "n00_000_hair_00_nml_020"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/models/glb/baseball_field/field/image_0.ktx2",
             "resources": [
                 {
@@ -4559,6 +6911,20 @@
                         {
                             "hash": 1919488917681939979,
                             "name": "image_00"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/mc_animated/n00_000_00_hairback_00_nml.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 2386178827345635861,
+                            "name": "n00_000_00_hairback_00_nml0"
                         }
                     ]
                 }
@@ -4587,6 +6953,20 @@
                         {
                             "hash": 4626378793215858415,
                             "name": "player_idle_mixamoplayer_punching_mixamo0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/mc_animated/mc_animatedarmatureaction.anim",
+            "resources": [
+                {
+                    "resourceType": 7232515681596383213,
+                    "resourceEntries": [
+                        {
+                            "hash": 2528615061165877975,
+                            "name": "mc_animatedarmatureaction0"
                         }
                     ]
                 }
@@ -4663,6 +7043,48 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/enemy_male_animated/_16.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 5007636649314738451,
+                            "name": "_160"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/mc_animated/n00_000_hair_00_nml_01.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 2389457571019663893,
+                            "name": "n00_000_hair_00_nml_010"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/mc_animated/_04.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 2276635583381940701,
+                            "name": "_040"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/textures/image_16.ktx2",
             "resources": [
                 {
@@ -4719,6 +7141,34 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/mc_animated/_18.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 2330831611026647561,
+                            "name": "_180"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/enemy_male_animated/n00_000_hair_00_hair (instance).material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 5115524028767002953,
+                            "name": "n00_000_hair_00_hair (instance)0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/textures/fence2832200078203273826.ktx2",
             "resources": [
                 {
@@ -4761,6 +7211,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/mc_animated/mc_animatedsword atk 1.anim",
+            "resources": [
+                {
+                    "resourceType": 7232515681596383213,
+                    "resourceEntries": [
+                        {
+                            "hash": 2582954025322195705,
+                            "name": "mc_animatedsword atk 10"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/textures/dugout6647418950732403459.ktx2",
             "resources": [
                 {
@@ -4769,6 +7233,34 @@
                         {
                             "hash": 730550710250200043,
                             "name": "dugout66474189507324034590"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/enemy_female_animated/enemy_female_animatedthrow.anim",
+            "resources": [
+                {
+                    "resourceType": 7232515681596383213,
+                    "resourceEntries": [
+                        {
+                            "hash": 5836776168814975891,
+                            "name": "enemy_female_animatedthrow0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/enemy_male_animated/n00_000_00_eyeiris_00_eye (instance).material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 5087828430374953273,
+                            "name": "n00_000_00_eyeiris_00_eye (instance)0"
                         }
                     ]
                 }
@@ -4817,6 +7309,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/enemy_male_animated/enemy_male_animatedt-pose.anim",
+            "resources": [
+                {
+                    "resourceType": 7232515681596383213,
+                    "resourceEntries": [
+                        {
+                            "hash": 5149578102902481313,
+                            "name": "enemy_male_animatedt-pose0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/textures/fence7732551140988198768.ktx2",
             "resources": [
                 {
@@ -4831,6 +7337,34 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/enemy_male_animated/shader_nonenormal.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 5035820430869520665,
+                            "name": "shader_nonenormal0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/mc_animated/mc_animateddodge.anim",
+            "resources": [
+                {
+                    "resourceType": 7232515681596383213,
+                    "resourceEntries": [
+                        {
+                            "hash": 2535997182234766043,
+                            "name": "mc_animateddodge0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/models/glb/aji/player_idle_mixamo/_22.ktx2",
             "resources": [
                 {
@@ -4839,6 +7373,20 @@
                         {
                             "hash": 4423137367356348031,
                             "name": "_220"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/mc_animated/_02.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 2267980227848088027,
+                            "name": "_020"
                         }
                     ]
                 }
@@ -4887,6 +7435,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/mc_animated/mc_animatedkatar atk 1.anim",
+            "resources": [
+                {
+                    "resourceType": 7232515681596383213,
+                    "resourceEntries": [
+                        {
+                            "hash": 2556570144302082789,
+                            "name": "mc_animatedkatar atk 10"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/textures/_16.ktx2",
             "resources": [
                 {
@@ -4895,6 +7457,20 @@
                         {
                             "hash": 254958055113081941,
                             "name": "_160"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/mc_animated/_08.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 2289612019612953057,
+                            "name": "_080"
                         }
                     ]
                 }
@@ -4943,6 +7519,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/mc_animated/n00_000_00_faceeyelash_00_face (instance).material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2487066715775478377,
+                            "name": "n00_000_00_faceeyelash_00_face (instance)0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/models/glb/items/sword/jewel_lambert.material",
             "resources": [
                 {
@@ -4951,6 +7541,34 @@
                         {
                             "hash": 1925183288402962163,
                             "name": "jewel_lambert0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/enemy_female_animated/n00_001_03_bottoms_01_cloth (instance).material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 5755743261359512223,
+                            "name": "n00_001_03_bottoms_01_cloth (instance)0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/enemy_male_animated/n00_010_01_onepiece_00_cloth_02 (instance).material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 5075312689515979057,
+                            "name": "n00_010_01_onepiece_00_cloth_02 (instance)0"
                         }
                     ]
                 }
@@ -5013,6 +7631,34 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/enemy_male_animated/n00_000_00_face_00_skin (instance).material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 5093885639932371261,
+                            "name": "n00_000_00_face_00_skin (instance)0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/itempickupui_bloodcalibur.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 2574108453489058335,
+                            "name": "itempickupui_bloodcalibur0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "sounds/sfx/mc/sword/sword 1.wav",
             "resources": [
                 {
@@ -5035,6 +7681,34 @@
                         {
                             "hash": 741886675105266423,
                             "name": "image_170"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/lose menu bg.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 6544882546770260189,
+                            "name": "lose menu bg0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/mc_animated/mc_animatedhurt.anim",
+            "resources": [
+                {
+                    "resourceType": 7232515681596383213,
+                    "resourceEntries": [
+                        {
+                            "hash": 2540099460117998301,
+                            "name": "mc_animatedhurt0"
                         }
                     ]
                 }
@@ -5111,6 +7785,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/enemy_male_animated/_02.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 4954746841483829507,
+                            "name": "_020"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/corridor_bridge.mesh",
             "resources": [
                 {
@@ -5119,6 +7807,34 @@
                         {
                             "hash": 15089627211392254377,
                             "name": "corridor_bridge0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/enemy_male_animated/_07.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 4973960807179215111,
+                            "name": "_070"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/mc_animated/_27.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 2353504640303016463,
+                            "name": "_270"
                         }
                     ]
                 }
@@ -5139,6 +7855,34 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/mc_animated/mc_animatedsword atk 2.anim",
+            "resources": [
+                {
+                    "resourceType": 7232515681596383213,
+                    "resourceEntries": [
+                        {
+                            "hash": 2589189355763313403,
+                            "name": "mc_animatedsword atk 20"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/mc_animated/n00_010_01_onepiece_00_cloth (instance).material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2455669061732706901,
+                            "name": "n00_010_01_onepiece_00_cloth (instance)0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/materials/n00_008_01_shoes_01_cloth_02__instance_.001.material",
             "resources": [
                 {
@@ -5147,6 +7891,20 @@
                         {
                             "hash": 2276289236530672695,
                             "name": "n00_008_01_shoes_01_cloth_02__instance_.0010"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/rankb.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 2620714552365537457,
+                            "name": "rankb0"
                         }
                     ]
                 }
@@ -5167,6 +7925,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/mc_animated/_19.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 2336336865746921995,
+                            "name": "_190"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/models/glb/aji/player_idle_mixamo/n00_000_00_hairback_00_nml.normal.ktx2",
             "resources": [
                 {
@@ -5175,6 +7947,34 @@
                         {
                             "hash": 4449183698306733699,
                             "name": "n00_000_00_hairback_00_nml.normal0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/enemy_female_animated/n00_000_hair_00_nml.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 5735809115547933319,
+                            "name": "n00_000_hair_00_nml0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/primitives/vplane/material_0.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2554652595235372107,
+                            "name": "material_00"
                         }
                     ]
                 }
@@ -5209,6 +8009,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/materials/ui_pickup_katar.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2613129021653915515,
+                            "name": "ui_pickup_katar0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/materials/n00_010_01_onepiece_00_cloth_01 (instance).material",
             "resources": [
                 {
@@ -5223,6 +8037,34 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/enemy_female_animated/enemy_female_animatedidle.anim",
+            "resources": [
+                {
+                    "resourceType": 7232515681596383213,
+                    "resourceEntries": [
+                        {
+                            "hash": 5831036718117985147,
+                            "name": "enemy_female_animatedidle0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/enemy_male_animated/enemy_male_animatedwalk.anim",
+            "resources": [
+                {
+                    "resourceType": 7232515681596383213,
+                    "resourceEntries": [
+                        {
+                            "hash": 5160141111110525347,
+                            "name": "enemy_male_animatedwalk0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/models/glb/aji/player_idle_mixamo/n00_000_00_face_00_skin__instance_.material",
             "resources": [
                 {
@@ -5231,6 +8073,20 @@
                         {
                             "hash": 4542401393621210817,
                             "name": "n00_000_00_face_00_skin__instance_0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/materials/translucent.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2303771530315194417,
+                            "name": "translucent0"
                         }
                     ]
                 }
@@ -5307,6 +8163,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/mc_animated/mc_animatedrun.anim",
+            "resources": [
+                {
+                    "resourceType": 7232515681596383213,
+                    "resourceEntries": [
+                        {
+                            "hash": 2579901781043489521,
+                            "name": "mc_animatedrun0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/models/glb/aji/player_idle_mixamo/_02.ktx2",
             "resources": [
                 {
@@ -5343,6 +8213,20 @@
                         {
                             "hash": 2294598304156398661,
                             "name": "n00_007_01_tops_01_cloth_02__instance_.0010"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/buff fg .ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 3020690495174558259,
+                            "name": "buff fg 0"
                         }
                     ]
                 }
@@ -5391,6 +8275,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/rankc.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 2621543584132881557,
+                            "name": "rankc0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/materials/n00_000_00_eyewhite_00_eye__instance_.001.material",
             "resources": [
                 {
@@ -5433,6 +8331,34 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/enemy_female_animated/_07.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 5676835709880539745,
+                            "name": "_070"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/mc_animated/n00_000_00_eyewhite_00_eye (instance).material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2480574099613461093,
+                            "name": "n00_000_00_eyewhite_00_eye (instance)0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "sounds/sfx/mc/katar/katar #1/katar #1 3.wav",
             "resources": [
                 {
@@ -5441,6 +8367,20 @@
                         {
                             "hash": 3053085752884945001,
                             "name": "katar #1 30"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/enemy_male_animated/_14.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 4997763034897309965,
+                            "name": "_140"
                         }
                     ]
                 }
@@ -5475,6 +8415,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/enemy_female_animated/_12.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 5695827574227114603,
+                            "name": "_120"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/textures/field10176860669464466862.ktx2",
             "resources": [
                 {
@@ -5483,6 +8437,20 @@
                         {
                             "hash": 800960136358098985,
                             "name": "field101768606694644668620"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/mc_animated/mc_animatedt-pose.anim",
+            "resources": [
+                {
+                    "resourceType": 7232515681596383213,
+                    "resourceEntries": [
+                        {
+                            "hash": 2595931561064835837,
+                            "name": "mc_animatedt-pose0"
                         }
                     ]
                 }
@@ -5531,6 +8499,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/enemy_male_animated/n00_001_01_tops_01_cloth (instance).material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 5060485775215419689,
+                            "name": "n00_001_01_tops_01_cloth (instance)0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/models/glb/items/bbt/material_4.material",
             "resources": [
                 {
@@ -5539,6 +8521,20 @@
                         {
                             "hash": 1997508063774029543,
                             "name": "material_40"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/enemy_male_animated/enemy_male_animatedrange multi attack.anim",
+            "resources": [
+                {
+                    "resourceType": 7232515681596383213,
+                    "resourceEntries": [
+                        {
+                            "hash": 5142979933624197533,
+                            "name": "enemy_male_animatedrange multi attack0"
                         }
                     ]
                 }
@@ -5581,6 +8577,34 @@
                         {
                             "hash": 289855454667064421,
                             "name": "_240"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/enemy_male_animated/_18.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 5012622934546702613,
+                            "name": "_180"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/buff arrow icon.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 2999852550804942361,
+                            "name": "buff arrow icon0"
                         }
                     ]
                 }
@@ -5685,6 +8709,48 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/mc_animated/n00_000_hair_00_hair_03 (instance).material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2504851316354755187,
+                            "name": "n00_000_hair_00_hair_03 (instance)0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/winlose_nextlevel.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 105142998445278217,
+                            "name": "winlose_nextlevel0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/interact icon.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 85753111069911585,
+                            "name": "interact icon0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/models/glb/aji/player_idle_mixamo/_06.ktx2",
             "resources": [
                 {
@@ -5693,6 +8759,48 @@
                         {
                             "hash": 4362404743084512869,
                             "name": "_060"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/enemy_male_animated/_01.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 4950694041623847171,
+                            "name": "_010"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/enemy_female_animated/n00_000_00_face_00_skin (instance).material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 5794485653075827423,
+                            "name": "n00_000_00_face_00_skin (instance)0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/enemy_female_animated/n00_000_hair_00_hair (instance).material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 5818040490677672695,
+                            "name": "n00_000_hair_00_hair (instance)0"
                         }
                     ]
                 }
@@ -5713,6 +8821,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/mc_animated/_25.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 2348487568745474575,
+                            "name": "_250"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/meshanimations/player_idle_mixamoplayer_katar atk 2.anim",
             "resources": [
                 {
@@ -5721,6 +8843,20 @@
                         {
                             "hash": 2194831917586861953,
                             "name": "player_idle_mixamoplayer_katar atk 20"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/enemy_male_animated/n00_010_01_onepiece_00_cloth_01 (instance).material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 5069002592284172589,
+                            "name": "n00_010_01_onepiece_00_cloth_01 (instance)0"
                         }
                     ]
                 }
@@ -5783,6 +8919,34 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/mc_animated/shader_noneblack.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 2356249021325945361,
+                            "name": "shader_noneblack0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "sounds/music (bgm)/baseball field (boss fight)/cut&pastemenumusic.wav",
+            "resources": [
+                {
+                    "resourceType": 16184316770661419113,
+                    "resourceEntries": [
+                        {
+                            "hash": 14074269616086420740,
+                            "name": "cut&pastemenumusic0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/materials/n00_000_00_body_00_skin__instance_.001.material",
             "resources": [
                 {
@@ -5825,6 +8989,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/mc_animated/_05.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 2414836498411989531,
+                            "name": "_050"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "sounds/sfx/mc/hurt/mc hurt 5.wav",
             "resources": [
                 {
@@ -5833,6 +9011,20 @@
                         {
                             "hash": 16532543654372776673,
                             "name": "mc hurt 50"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/enemy_male_animated/_15.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 5001717978222420239,
+                            "name": "_150"
                         }
                     ]
                 }

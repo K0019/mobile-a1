@@ -383,7 +383,7 @@ namespace navmesh
 		for (int i = 0; i < pMesh->npolys; ++i)
 		{
 			if (pMesh->areas[i] == RC_WALKABLE_AREA)
-				pMesh->flags[i] = +PolyFlags::WALKABLE;
+				pMesh->flags[i] = static_cast<unsigned short>(+PolyFlags::WALKABLE);
 		}
 
 		dtNavMeshCreateParams params{};

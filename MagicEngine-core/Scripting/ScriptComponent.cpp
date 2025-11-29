@@ -39,6 +39,8 @@ All rights reserved.
 #include "Engine/PrefabManager.h"
 #include "Engine/EntityEvents.h"
 
+#include "core/platform/platform.h"
+
 #define X(funcName, enumName) #funcName,
 const char* const scriptFunctionNames[]{
 	SCRIPT_FUNCTIONS
@@ -124,6 +126,12 @@ void ScriptComponent::OnAttached()
 
 void ScriptComponent::OnDetached()
 {
+	// Hack: Don't call scripts when program is closing - for fixing a memory leak within lua.
+	if (Core::Platform::Get().GetLifecycle().ShouldQuit())
+		return;
+
+	CallScriptFunction("onDestroy", ecs::GetEntity(this));
+
 	if (auto eventsComp{ ecs::GetEntity(this)->GetComp<EntityEventsComponent>() })
 		eventsComp->Unsubscribe("CallScriptFunc", this, &ScriptComponent::CallScriptFunctionPlain);
 }

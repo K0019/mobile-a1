@@ -554,6 +554,8 @@ namespace
         return VK_FORMAT_R16G16B16A16_SFLOAT;
       case VertexFormat::R10G10B10A2_SNORM:
         return VK_FORMAT_A2B10G10R10_SNORM_PACK32;
+      case VertexFormat::R10G10B10A2_UNORM:
+        return VK_FORMAT_A2B10G10R10_UNORM_PACK32;
     }
     ASSERT(false);
     return VK_FORMAT_UNDEFINED;
@@ -1089,6 +1091,25 @@ VkImageView vk::VulkanImage::getOrCreateVkImageViewForFramebuffer(VulkanContext&
   imageViewForFramebuffer_[level][layer] = createImageView(ctx.getVkDevice(), VK_IMAGE_VIEW_TYPE_2D, vkImageFormat_, getImageAspectFlags(), level, 1u, layer, 1u, {}, nullptr, debugNameImageView);
 
   return imageViewForFramebuffer_[level][layer];
+}
+
+VkImageView vk::VulkanImage::getOrCreateVkImageViewForFramebufferMultiview(VulkanContext& ctx, uint8_t level, uint16_t baseLayer, uint16_t layerCount)
+{
+  ASSERT(level < MAX_MIP_LEVELS);
+  ASSERT(baseLayer < std::size(imageViewForFramebuffer_[0]));
+  
+  // For multiview, we use a special slot (baseLayer) but with all layers
+  // This assumes multiview always starts from baseLayer=0 for simplicity
+  if (level >= MAX_MIP_LEVELS || baseLayer >= std::size(imageViewForFramebuffer_[0]))
+  {
+    return VK_NULL_HANDLE;
+  }
+
+  char debugNameImageView[320] = {0};
+  snprintf(debugNameImageView, sizeof(debugNameImageView) - 1, "Image View: '%s' multiview[%u] layers=%u", debugName_, level, layerCount);
+
+  // Use VK_IMAGE_VIEW_TYPE_2D_ARRAY for multiview rendering
+  return createImageView(ctx.getVkDevice(), VK_IMAGE_VIEW_TYPE_2D_ARRAY, vkImageFormat_, getImageAspectFlags(), level, 1u, baseLayer, layerCount, {}, nullptr, debugNameImageView);
 }
 
 vk::VulkanSwapchain::~VulkanSwapchain()
@@ -2258,6 +2279,11 @@ vk::VulkanPipelineBuilder& vk::VulkanPipelineBuilder::vertexInputState(const VkP
   return *this;
 }
 
+vk::VulkanPipelineBuilder& vk::VulkanPipelineBuilder::viewMask(uint32_t mask) {
+    viewMask_ = mask;
+    return *this;
+}
+
 vk::VulkanPipelineBuilder& vk::VulkanPipelineBuilder::colorAttachments(const VkPipelineColorBlendAttachmentState* states, const VkFormat* formats, uint32_t numColorAttachments)
 {
   ASSERT(states);
@@ -2352,7 +2378,7 @@ VkResult vk::VulkanPipelineBuilder::build(VkDevice device, VkPipelineCache pipel
   // https://www.khronos.org/registry/vulkan/specs/1.3-extensions/man/html/VkPipelineViewportStateCreateInfo.html
   const VkPipelineViewportStateCreateInfo viewportState = {.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO, .viewportCount = 1, .pViewports = nullptr, .scissorCount = 1, .pScissors = nullptr,};
   const VkPipelineColorBlendStateCreateInfo colorBlendState = {.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO, .logicOpEnable = VK_FALSE, .logicOp = VK_LOGIC_OP_COPY, .attachmentCount = numColorAttachments_, .pAttachments = colorBlendAttachmentStates_,};
-  const VkPipelineRenderingCreateInfo renderingInfo = {.sType = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO_KHR, .pNext = nullptr, .colorAttachmentCount = numColorAttachments_, .pColorAttachmentFormats = colorAttachmentFormats_, .depthAttachmentFormat = depthAttachmentFormat_, .stencilAttachmentFormat = stencilAttachmentFormat_,};
+  const VkPipelineRenderingCreateInfo renderingInfo = {.sType = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO_KHR, .pNext = nullptr, .viewMask = viewMask_, .colorAttachmentCount = numColorAttachments_, .pColorAttachmentFormats = colorAttachmentFormats_, .depthAttachmentFormat = depthAttachmentFormat_, .stencilAttachmentFormat = stencilAttachmentFormat_,};
 
   const VkGraphicsPipelineCreateInfo ci = {.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO, .pNext = &renderingInfo, .flags = 0, .stageCount = numShaderStages_, .pStages = shaderStages_, .pVertexInputState = &vertexInputState_, .pInputAssemblyState = &inputAssembly_, .pTessellationState = &tessellationState_, .pViewportState = &viewportState, .pRasterizationState = &rasterizationState_, .pMultisampleState = &multisampleState_, .pDepthStencilState = &depthStencilState_, .pColorBlendState = &colorBlendState, .pDynamicState = &dynamicState, .layout = pipelineLayout, .renderPass = VK_NULL_HANDLE, .subpass = 0, .basePipelineHandle = VK_NULL_HANDLE, .basePipelineIndex = -1,};
 
@@ -2638,6 +2664,10 @@ void vk::CommandBuffer::cmdBeginRendering(const RenderPass& renderPass, const Fr
   uint32_t mipLevel = 0;
   uint32_t fbWidth = 0;
   uint32_t fbHeight = 0;
+  
+  // Check if multiview is enabled
+  const bool isMultiview = renderPass.viewMask != 0;
+  const uint32_t multiviewLayerCount = isMultiview ? renderPass.layerCount : 1;
 
   VkRenderingAttachmentInfo colorAttachments[MAX_COLOR_ATTACHMENTS];
 
@@ -2665,7 +2695,13 @@ void vk::CommandBuffer::cmdBeginRendering(const RenderPass& renderPass, const Fr
     fbWidth = dim.width;
     fbHeight = dim.height;
     samples = colorTexture.vkSamples_;
-    colorAttachments[i] = {.sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO, .pNext = nullptr, .imageView = colorTexture.getOrCreateVkImageViewForFramebuffer(*ctx_, descColor.level, descColor.layer), .imageLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, .resolveMode = (samples > 1) ? VK_RESOLVE_MODE_AVERAGE_BIT : VK_RESOLVE_MODE_NONE, .resolveImageView = VK_NULL_HANDLE, .resolveImageLayout = VK_IMAGE_LAYOUT_UNDEFINED, .loadOp = loadOpToVkAttachmentLoadOp(descColor.loadOp), .storeOp = storeOpToVkAttachmentStoreOp(descColor.storeOp), .clearValue = {.color = {.float32 = {descColor.clearColor[0], descColor.clearColor[1], descColor.clearColor[2], descColor.clearColor[3]}}},};
+    
+    // Use multiview image view if viewMask is set
+    VkImageView imageView = isMultiview 
+        ? colorTexture.getOrCreateVkImageViewForFramebufferMultiview(*ctx_, descColor.level, descColor.layer, multiviewLayerCount)
+        : colorTexture.getOrCreateVkImageViewForFramebuffer(*ctx_, descColor.level, descColor.layer);
+    
+    colorAttachments[i] = {.sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO, .pNext = nullptr, .imageView = imageView, .imageLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, .resolveMode = (samples > 1) ? VK_RESOLVE_MODE_AVERAGE_BIT : VK_RESOLVE_MODE_NONE, .resolveImageView = VK_NULL_HANDLE, .resolveImageLayout = VK_IMAGE_LAYOUT_UNDEFINED, .loadOp = loadOpToVkAttachmentLoadOp(descColor.loadOp), .storeOp = storeOpToVkAttachmentStoreOp(descColor.storeOp), .clearValue = {.color = {.float32 = {descColor.clearColor[0], descColor.clearColor[1], descColor.clearColor[2], descColor.clearColor[3]}}},};
     // handle MSAA
     if (descColor.storeOp == StoreOp::MsaaResolve)
     {
@@ -2684,7 +2720,13 @@ void vk::CommandBuffer::cmdBeginRendering(const RenderPass& renderPass, const Fr
     VulkanImage& depthTexture = *ctx_->texturesPool_.get(fb.depthStencil.texture);
     const RenderPass::AttachmentDesc& descDepth = renderPass.depth;
     ASSERT_MSG(descDepth.level == mipLevel, "Depth attachment should have the same mip-level as color attachments");
-    depthAttachment = {.sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO, .pNext = nullptr, .imageView = depthTexture.getOrCreateVkImageViewForFramebuffer(*ctx_, descDepth.level, descDepth.layer), .imageLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, .resolveMode = VK_RESOLVE_MODE_NONE, .resolveImageView = VK_NULL_HANDLE, .resolveImageLayout = VK_IMAGE_LAYOUT_UNDEFINED, .loadOp = loadOpToVkAttachmentLoadOp(descDepth.loadOp), .storeOp = storeOpToVkAttachmentStoreOp(descDepth.storeOp), .clearValue = {.depthStencil = {.depth = descDepth.clearDepth, .stencil = descDepth.clearStencil}},};
+    
+    // Use multiview image view if viewMask is set
+    VkImageView depthImageView = isMultiview 
+        ? depthTexture.getOrCreateVkImageViewForFramebufferMultiview(*ctx_, descDepth.level, descDepth.layer, multiviewLayerCount)
+        : depthTexture.getOrCreateVkImageViewForFramebuffer(*ctx_, descDepth.level, descDepth.layer);
+    
+    depthAttachment = {.sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO, .pNext = nullptr, .imageView = depthImageView, .imageLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, .resolveMode = VK_RESOLVE_MODE_NONE, .resolveImageView = VK_NULL_HANDLE, .resolveImageLayout = VK_IMAGE_LAYOUT_UNDEFINED, .loadOp = loadOpToVkAttachmentLoadOp(descDepth.loadOp), .storeOp = storeOpToVkAttachmentStoreOp(descDepth.storeOp), .clearValue = {.depthStencil = {.depth = descDepth.clearDepth, .stencil = descDepth.clearStencil}},};
     // handle depth MSAA
     if (descDepth.storeOp == StoreOp::MsaaResolve)
     {
@@ -2719,7 +2761,12 @@ void vk::CommandBuffer::cmdBeginRendering(const RenderPass& renderPass, const Fr
 
   const bool isStencilFormat = renderPass.stencil.loadOp != LoadOp::Invalid;
 
-  const VkRenderingInfo renderingInfo = {.sType = VK_STRUCTURE_TYPE_RENDERING_INFO, .pNext = nullptr, .flags = 0, .renderArea = {VkOffset2D{(int32_t)scissor.x, (int32_t)scissor.y}, VkExtent2D{scissor.width, scissor.height}}, .layerCount = 1, .viewMask = 0, .colorAttachmentCount = numFbColorAttachments, .pColorAttachments = colorAttachments, .pDepthAttachment = depthTex ? &depthAttachment : nullptr, .pStencilAttachment = isStencilFormat ? &stencilAttachment : nullptr,};
+  // Use multiview settings from render pass (layerCount > 1 and viewMask != 0 enables multiview)
+  const uint32_t layerCount = renderPass.viewMask != 0 ? 1 : renderPass.layerCount;  // When using viewMask, layerCount must be 1
+  const uint32_t viewMask = renderPass.viewMask;
+  viewMask_ = viewMask;  // Store for pipeline compatibility checks
+
+  const VkRenderingInfo renderingInfo = {.sType = VK_STRUCTURE_TYPE_RENDERING_INFO, .pNext = nullptr, .flags = 0, .renderArea = {VkOffset2D{(int32_t)scissor.x, (int32_t)scissor.y}, VkExtent2D{scissor.width, scissor.height}}, .layerCount = layerCount, .viewMask = viewMask, .colorAttachmentCount = numFbColorAttachments, .pColorAttachments = colorAttachments, .pDepthAttachment = depthTex ? &depthAttachment : nullptr, .pStencilAttachment = isStencilFormat ? &stencilAttachment : nullptr,};
 
   cmdBindViewport(viewport);
   cmdBindScissorRect(scissor);
@@ -4167,16 +4214,17 @@ vk::Holder<vk::TextureHandle> vk::VulkanContext::createTexture(const TextureDesc
 
   const VkMemoryPropertyFlags memFlags = storageTypeToVkMemoryPropertyFlags(desc.storage);
 
-  const bool hasDebugName = desc.debugName && *desc.debugName;
+  // Kendrick: Removed due to desc.debugName sometimes being an invalid string
+  //const bool hasDebugName = desc.debugName && *desc.debugName;
 
-  char debugNameImage[256] = {0};
-  char debugNameImageView[256] = {0};
+  //char debugNameImage[256] = {0};
+  //char debugNameImageView[256] = {0};
 
-  if (hasDebugName)
-  {
-    snprintf(debugNameImage, sizeof(debugNameImage) - 1, "Image: %s", desc.debugName);
-    snprintf(debugNameImageView, sizeof(debugNameImageView) - 1, "Image View: %s", desc.debugName);
-  }
+  //if (hasDebugName)
+  //{
+  //  snprintf(debugNameImage, sizeof(debugNameImage) - 1, "Image: %s", desc.debugName);
+  //  snprintf(debugNameImageView, sizeof(debugNameImageView) - 1, "Image View: %s", desc.debugName);
+  //}
 
   VkImageCreateFlags vkCreateFlags = 0;
   VkImageViewType vkImageViewType;
@@ -4222,11 +4270,11 @@ vk::Holder<vk::TextureHandle> vk::VulkanContext::createTexture(const TextureDesc
 
   VulkanImage image = {.vkUsageFlags_ = usageFlags, .vkExtent_ = vkExtent, .vkType_ = vkImageType, .vkImageFormat_ = vkFormat, .vkSamples_ = vkSamples, .numLevels_ = numLevels, .numLayers_ = numLayers, .isDepthFormat_ = VulkanImage::isDepthFormat(vkFormat), .isStencilFormat_ = VulkanImage::isStencilFormat(vkFormat),};
 
-  if (hasDebugName)
-  {
-    // store debug name
-    snprintf(image.debugName_, sizeof(image.debugName_) - 1, "%s", desc.debugName);
-  }
+  //if (hasDebugName)
+  //{
+  //  // store debug name
+  //  snprintf(image.debugName_, sizeof(image.debugName_) - 1, "%s", desc.debugName);
+  //}
 
   const uint32_t numPlanes = getNumImagePlanes(desc.format);
   const bool isDisjoint = numPlanes > 1;
@@ -4263,7 +4311,7 @@ vk::Holder<vk::TextureHandle> vk::VulkanContext::createTexture(const TextureDesc
     }
   }
 
-  VK_ASSERT(vk::setDebugObjectName(vkDevice_, VK_OBJECT_TYPE_IMAGE, (uint64_t)image.vkImage_, debugNameImage));
+  //VK_ASSERT(vk::setDebugObjectName(vkDevice_, VK_OBJECT_TYPE_IMAGE, (uint64_t)image.vkImage_, debugNameImage));
 
   // Get physical device's properties for the image's format
   vkGetPhysicalDeviceFormatProperties(vkPhysicalDevice_, image.vkImageFormat_, &image.vkFormatProperties_);
@@ -4289,14 +4337,14 @@ vk::Holder<vk::TextureHandle> vk::VulkanContext::createTexture(const TextureDesc
 
   const VkSamplerYcbcrConversionInfo* ycbcrInfo = isDisjoint ? getOrCreateYcbcrConversionInfo(desc.format) : nullptr;
 
-  image.imageView_ = image.createImageView(vkDevice_, vkImageViewType, vkFormat, aspect, 0, VK_REMAINING_MIP_LEVELS, 0, numLayers, mapping, ycbcrInfo, debugNameImageView);
+  image.imageView_ = image.createImageView(vkDevice_, vkImageViewType, vkFormat, aspect, 0, VK_REMAINING_MIP_LEVELS, 0, numLayers, mapping, ycbcrInfo);
 
   if (image.vkUsageFlags_ & VK_IMAGE_USAGE_STORAGE_BIT)
   {
     if (!desc.swizzle.identity())
     {
       // use identity swizzle for storage images
-      image.imageViewStorage_ = image.createImageView(vkDevice_, vkImageViewType, vkFormat, aspect, 0, VK_REMAINING_MIP_LEVELS, 0, numLayers, {}, ycbcrInfo, debugNameImageView);
+      image.imageViewStorage_ = image.createImageView(vkDevice_, vkImageViewType, vkFormat, aspect, 0, VK_REMAINING_MIP_LEVELS, 0, numLayers, {}, ycbcrInfo);
       ASSERT(image.imageViewStorage_ != VK_NULL_HANDLE);
     }
   }
@@ -4565,6 +4613,7 @@ VkPipeline vk::VulkanContext::getVkPipeline(RenderPipelineHandle handle, uint32_
     }));
     rps->pipeline_ = VK_NULL_HANDLE;
     rps->lastVkDescriptorSetLayout_ = vkDSL_;
+    rps->viewMask_ = viewMask;  // Store the new viewMask
   }
 
   if (rps->pipeline_ != VK_NULL_HANDLE)
@@ -4669,7 +4718,7 @@ VkPipeline vk::VulkanContext::getVkPipeline(RenderPipelineHandle handle, uint32_
       // from Vulkan 1.3 or VK_EXT_extended_dynamic_state
      .dynamicState(VK_DYNAMIC_STATE_DEPTH_TEST_ENABLE).dynamicState(VK_DYNAMIC_STATE_DEPTH_WRITE_ENABLE).dynamicState(VK_DYNAMIC_STATE_DEPTH_COMPARE_OP)
       // from Vulkan 1.3 or VK_EXT_extended_dynamic_state2
-     .dynamicState(VK_DYNAMIC_STATE_DEPTH_BIAS_ENABLE).primitiveTopology(topologyToVkPrimitiveTopology(desc.topology)).rasterizationSamples(getVulkanSampleCountFlags(desc.samplesCount, getFramebufferMSAABitMask()), desc.minSampleShading).polygonMode(polygonModeToVkPolygonMode(desc.polygonMode)).stencilStateOps(VK_STENCIL_FACE_FRONT_BIT, stencilOpToVkStencilOp(desc.frontFaceStencil.stencilFailureOp), stencilOpToVkStencilOp(desc.frontFaceStencil.depthStencilPassOp), stencilOpToVkStencilOp(desc.frontFaceStencil.depthFailureOp), compareOpToVkCompareOp(desc.frontFaceStencil.stencilCompareOp)).stencilStateOps(VK_STENCIL_FACE_BACK_BIT, stencilOpToVkStencilOp(desc.backFaceStencil.stencilFailureOp), stencilOpToVkStencilOp(desc.backFaceStencil.depthStencilPassOp), stencilOpToVkStencilOp(desc.backFaceStencil.depthFailureOp), compareOpToVkCompareOp(desc.backFaceStencil.stencilCompareOp)).stencilMasks(VK_STENCIL_FACE_FRONT_BIT, 0xFF, desc.frontFaceStencil.writeMask, desc.frontFaceStencil.readMask).stencilMasks(VK_STENCIL_FACE_BACK_BIT, 0xFF, desc.backFaceStencil.writeMask, desc.backFaceStencil.readMask).shaderStage(taskModule ? getPipelineShaderStageCreateInfo(VK_SHADER_STAGE_TASK_BIT_EXT, taskModule->sm, desc.entryPointTask, &si) : VkPipelineShaderStageCreateInfo{.module = VK_NULL_HANDLE}).shaderStage(meshModule ? getPipelineShaderStageCreateInfo(VK_SHADER_STAGE_MESH_BIT_EXT, meshModule->sm, desc.entryPointMesh, &si) : getPipelineShaderStageCreateInfo(VK_SHADER_STAGE_VERTEX_BIT, vertModule->sm, desc.entryPointVert, &si)).shaderStage(getPipelineShaderStageCreateInfo(VK_SHADER_STAGE_FRAGMENT_BIT, fragModule->sm, desc.entryPointFrag, &si)).shaderStage(tescModule ? getPipelineShaderStageCreateInfo(VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT, tescModule->sm, desc.entryPointTesc, &si) : VkPipelineShaderStageCreateInfo{.module = VK_NULL_HANDLE}).shaderStage(teseModule ? getPipelineShaderStageCreateInfo(VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT, teseModule->sm, desc.entryPointTese, &si) : VkPipelineShaderStageCreateInfo{.module = VK_NULL_HANDLE}).shaderStage(geomModule ? getPipelineShaderStageCreateInfo(VK_SHADER_STAGE_GEOMETRY_BIT, geomModule->sm, desc.entryPointGeom, &si) : VkPipelineShaderStageCreateInfo{.module = VK_NULL_HANDLE}).cullMode(cullModeToVkCullMode(desc.cullMode)).frontFace(windingModeToVkFrontFace(desc.frontFaceWinding)).vertexInputState(ciVertexInputState).colorAttachments(colorBlendAttachmentStates, colorAttachmentFormats, numColorAttachments).depthAttachmentFormat(formatToVkFormat(desc.depthFormat)).stencilAttachmentFormat(formatToVkFormat(desc.stencilFormat)).patchControlPoints(desc.patchControlPoints).build(vkDevice_, pipelineCache_, layout, &pipeline, desc.debugName);
+     .dynamicState(VK_DYNAMIC_STATE_DEPTH_BIAS_ENABLE).primitiveTopology(topologyToVkPrimitiveTopology(desc.topology)).rasterizationSamples(getVulkanSampleCountFlags(desc.samplesCount, getFramebufferMSAABitMask()), desc.minSampleShading).polygonMode(polygonModeToVkPolygonMode(desc.polygonMode)).stencilStateOps(VK_STENCIL_FACE_FRONT_BIT, stencilOpToVkStencilOp(desc.frontFaceStencil.stencilFailureOp), stencilOpToVkStencilOp(desc.frontFaceStencil.depthStencilPassOp), stencilOpToVkStencilOp(desc.frontFaceStencil.depthFailureOp), compareOpToVkCompareOp(desc.frontFaceStencil.stencilCompareOp)).stencilStateOps(VK_STENCIL_FACE_BACK_BIT, stencilOpToVkStencilOp(desc.backFaceStencil.stencilFailureOp), stencilOpToVkStencilOp(desc.backFaceStencil.depthStencilPassOp), stencilOpToVkStencilOp(desc.backFaceStencil.depthFailureOp), compareOpToVkCompareOp(desc.backFaceStencil.stencilCompareOp)).stencilMasks(VK_STENCIL_FACE_FRONT_BIT, 0xFF, desc.frontFaceStencil.writeMask, desc.frontFaceStencil.readMask).stencilMasks(VK_STENCIL_FACE_BACK_BIT, 0xFF, desc.backFaceStencil.writeMask, desc.backFaceStencil.readMask).shaderStage(taskModule ? getPipelineShaderStageCreateInfo(VK_SHADER_STAGE_TASK_BIT_EXT, taskModule->sm, desc.entryPointTask, &si) : VkPipelineShaderStageCreateInfo{.module = VK_NULL_HANDLE}).shaderStage(meshModule ? getPipelineShaderStageCreateInfo(VK_SHADER_STAGE_MESH_BIT_EXT, meshModule->sm, desc.entryPointMesh, &si) : getPipelineShaderStageCreateInfo(VK_SHADER_STAGE_VERTEX_BIT, vertModule->sm, desc.entryPointVert, &si)).shaderStage(getPipelineShaderStageCreateInfo(VK_SHADER_STAGE_FRAGMENT_BIT, fragModule->sm, desc.entryPointFrag, &si)).shaderStage(tescModule ? getPipelineShaderStageCreateInfo(VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT, tescModule->sm, desc.entryPointTesc, &si) : VkPipelineShaderStageCreateInfo{.module = VK_NULL_HANDLE}).shaderStage(teseModule ? getPipelineShaderStageCreateInfo(VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT, teseModule->sm, desc.entryPointTese, &si) : VkPipelineShaderStageCreateInfo{.module = VK_NULL_HANDLE}).shaderStage(geomModule ? getPipelineShaderStageCreateInfo(VK_SHADER_STAGE_GEOMETRY_BIT, geomModule->sm, desc.entryPointGeom, &si) : VkPipelineShaderStageCreateInfo{.module = VK_NULL_HANDLE}).cullMode(cullModeToVkCullMode(desc.cullMode)).frontFace(windingModeToVkFrontFace(desc.frontFaceWinding)).vertexInputState(ciVertexInputState).colorAttachments(colorBlendAttachmentStates, colorAttachmentFormats, numColorAttachments).depthAttachmentFormat(formatToVkFormat(desc.depthFormat)).stencilAttachmentFormat(formatToVkFormat(desc.stencilFormat)).patchControlPoints(desc.patchControlPoints).viewMask(viewMask).build(vkDevice_, pipelineCache_, layout, &pipeline, desc.debugName);
 
   rps->pipeline_ = pipeline;
   rps->pipelineLayout_ = layout;

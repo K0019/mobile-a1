@@ -1,5 +1,5 @@
 {
     "scenes": [
-        "scenes/MainMenu.scene"
+        "scenes/defaultscene.scene"
     ]
 }

@@ -48,6 +48,9 @@ public:
     // Graphics scene interface - for camera uploads
     void SetViewCamera(const Camera& camera);
 
+    // Grid control
+    void SetGridEnabled(bool enabled);
+
 public:
     FrameData& INTERNAL_GetFrameData();
     bool RequestObjPick(int mouseX, int mouseY);
@@ -61,6 +64,8 @@ private:
     void InitFont(const std::string& fontfile);
     void UploadToPipeline(FrameData* outFrameData);
 
+    static void OnTogglePlayMode();
+
 public:
     // For compatibility with whatever old graphics interfaces are still here
     // Remove if possible once everything settles
@@ -73,6 +78,8 @@ public:
 private:
     friend ST<GraphicsMain>;
     GraphicsMain();
+
+    void InitDefaultSkybox();
 
 private:
 #ifdef IMGUI_ENABLED
@@ -91,6 +98,9 @@ private:
     UPtr<ui::ImmediateGui> overlayGui;
     uint64_t lastPickedObjectIndex;
     std::unordered_map<uint64_t, ecs::EntityHandle> mapIdxToId;
+
+    // Default skybox
+    uint32_t defaultSkyboxBindlessIndex = 0;
 
 };
 

@@ -22,11 +22,14 @@ All rights reserved.
 #include "Editor/Containers/GUICollection.h"
 #include "FilepathConstants.h"
 #include "graphics/features/grid_feature.h"
+#include "graphics/render_feature.h"
 #include "Editor/EditorCameraBridge.h"
 #include "Graphics/RenderComponent.h"
 #include "Graphics/AnimationComponent.h"
 #include "Graphics/LightComponent.h"
 #include "Engine/Resources/ResourceManager.h"
+
+#include <algorithm>
 
 #include "fa.h"
 #include "graphics/im3d_helper.h"
@@ -35,6 +38,12 @@ All rights reserved.
 #include "VFS/VFS.h"
 
 #include "ECS/ECSSysLayers.h"
+#include "Utilities/Messaging.h"
+#include "Game/GameSystems.h"
+
+#include "stb_image.h"
+#include "math/utils_cubemap.h"
+#include "resource/resource_types.h"
 
 GraphicsMain::GraphicsMain()
 	: sceneFeatureHandle{}
@@ -44,6 +53,8 @@ GraphicsMain::GraphicsMain()
 
 GraphicsMain::~GraphicsMain()
 {
+	Messaging::Unsubscribe("EngineTogglePlayMode", OnTogglePlayMode);
+
 	if (context.renderer)
 	{
 		context.renderer->DestroyFeature(gridHandle);
@@ -67,7 +78,20 @@ void GraphicsMain::Init(Context inContext)
 #endif
 
 	InitFont(fontsFile);
+	InitDefaultSkybox();
 	overlayGui = std::make_unique<ui::ImmediateGui>(*context.renderer, ui2dFeatureHandle, *context.resourceMngr);
+
+	// Subscribe to play mode toggle events
+	Messaging::Subscribe("EngineTogglePlayMode", OnTogglePlayMode);
+
+	// Initialize grid state based on current game mode
+	// In release builds, game starts in play mode, so grid should be disabled
+	auto* gameStateManager = ST<GameSystemsManager>::Get();
+	if (gameStateManager)
+	{
+		bool inEditorMode = (gameStateManager->GetState() == GAMESTATE::EDITOR);
+		SetGridEnabled(inEditorMode);
+	}
 }
 
 void GraphicsMain::BeginFrame()
@@ -136,6 +160,75 @@ void GraphicsMain::InitFont(const std::string& fontfile)
 	processed.sourceFile = fontfile;
 	processed.buildSettings.extraCodepoints.push_back(0x2026u); // Ellipsis
 	ui2dFontHandle = context.resourceMngr->createFont(processed);
+}
+
+void GraphicsMain::InitDefaultSkybox()
+{
+	const std::string skyboxPath = "images/skybox.png";
+
+	// Read the image file via VFS
+	std::vector<uint8_t> fileData;
+	if (!VFS::ReadFile(skyboxPath, fileData))
+	{
+		CONSOLE_LOG(LEVEL_WARNING) << "Failed to load default skybox: " << skyboxPath;
+		return;
+	}
+
+	// Decode using stb_image
+	int width, height, channels;
+	unsigned char* pixels = stbi_load_from_memory(fileData.data(), static_cast<int>(fileData.size()), &width, &height, &channels, 4);
+	if (!pixels)
+	{
+		CONSOLE_LOG(LEVEL_WARNING) << "Failed to decode skybox image: " << skyboxPath;
+		return;
+	}
+
+	// Convert to Bitmap for cubemap conversion
+	Bitmap equirect(width, height, 4, eBitmapFormat_UnsignedByte, pixels);
+	stbi_image_free(pixels);
+
+	// Convert equirectangular to cubemap faces
+	Bitmap cubemap = convertEquirectangularMapToCubeMapFaces(equirect);
+	if (cubemap.data_.empty())
+	{
+		CONSOLE_LOG(LEVEL_WARNING) << "Failed to convert skybox to cubemap";
+		return;
+	}
+
+	// Create ProcessedTexture for the cubemap
+	Resource::ProcessedTexture skyboxTexture;
+	skyboxTexture.name = "DefaultSkybox";
+	skyboxTexture.textureDesc.type = vk::TextureType::TexCube;
+	skyboxTexture.textureDesc.format = vk::Format::RGBA_UN8;
+	skyboxTexture.textureDesc.dimensions.width = static_cast<uint32_t>(cubemap.w_);
+	skyboxTexture.textureDesc.dimensions.height = static_cast<uint32_t>(cubemap.h_);
+	skyboxTexture.textureDesc.dimensions.depth = 1;
+	skyboxTexture.textureDesc.numLayers = 1;
+	skyboxTexture.textureDesc.numMipLevels = 1;
+	skyboxTexture.textureDesc.dataNumMipLevels = 1;
+	skyboxTexture.textureDesc.usage = vk::TextureUsageBits_Sampled;
+	skyboxTexture.data = std::move(cubemap.data_);
+	skyboxTexture.width = static_cast<uint32_t>(cubemap.w_);
+	skyboxTexture.height = static_cast<uint32_t>(cubemap.h_);
+	skyboxTexture.channels = 4;
+	skyboxTexture.sRGB = true;
+
+	// Set source for caching
+	FilePathSource source;
+	source.path = skyboxPath;
+	skyboxTexture.source = source;
+
+	// Create the texture via ResourceManager
+	TextureHandle handle = context.resourceMngr->createTexture(skyboxTexture);
+	if (handle.isValid())
+	{
+		defaultSkyboxBindlessIndex = context.resourceMngr->getTextureBindlessIndex(handle);
+		CONSOLE_LOG(LEVEL_INFO) << "Default skybox loaded (bindless index: " << defaultSkyboxBindlessIndex << ")";
+	}
+	else
+	{
+		CONSOLE_LOG(LEVEL_WARNING) << "Failed to create skybox texture";
+	}
 }
 
 void GraphicsMain::UploadToPipeline(FrameData* outFrameData)
@@ -226,11 +319,20 @@ void GraphicsMain::UploadToPipeline(FrameData* outFrameData)
 				.baseInstance = static_cast<uint32_t>(objectIndex)
 			};
 
+			// Encode shadow override in upper bits of objectId
+			// Bits 30-31: 0 = use material, 1 = force off, 2 = force on
+			uint32_t shadowOverrideBits = 0;
+			if (comp.castShadowOverride == 0)
+				shadowOverrideBits = 1u << 30; // Force off
+			else if (comp.castShadowOverride == 1)
+				shadowOverrideBits = 2u << 30; // Force on
+			// else 0 = use material setting
+
 			DrawData drawData = {
 				.transformId = static_cast<uint32_t>(objectIndex),
 				.materialId = context.resourceMngr->getMaterialIndex(materialHandle),
 				.meshDecompIndex = static_cast<uint32_t>(meshData->decompressionByteOffset / sizeof(MeshDecompressionData)),
-				.objectId = static_cast<uint32_t>(objectIndex)
+				.objectId = static_cast<uint32_t>(objectIndex) | shadowOverrideBits
 			};
 
 			uint32_t drawCommandIndex = static_cast<uint32_t>(params->drawCommands.size());
@@ -239,7 +341,6 @@ void GraphicsMain::UploadToPipeline(FrameData* outFrameData)
 
 			// Animation binding
 			const auto* meshMetadata = GetAssetSystem().getMeshMetadata(mesh->handles[i]);
-			const auto& skeleton = GetAssetSystem().Skeleton(meshMetadata->skeletonId);
 			uint32_t jointCount = GetAssetSystem().Skeleton(meshMetadata->skeletonId).jointCount();
 			uint32_t morphCount = GetAssetSystem().Morph(meshMetadata->morphSetId).count();
 			bool objectAnimated = (jointCount > 0) || (morphCount > 0);
@@ -381,9 +482,107 @@ void GraphicsMain::UploadToPipeline(FrameData* outFrameData)
 
 	params->activeLightCount = static_cast<uint32_t>(params->lights.size());
 
-	// Set environment parameters
+	// Select shadow-casting point lights and build shadow matrices
+	params->pointLightShadows.clear();
+	params->shadowPointLightIndices.clear();
+	params->shadowPointLightCount = 0;
+
+	// Collect point lights with their distances to camera
+	struct LightCandidate {
+		uint32_t lightIndex;
+		float distanceToCamera;
+	};
+	std::vector<LightCandidate> candidates;
+
+	for (uint32_t i = 0; i < params->activeLightCount; i++)
+	{
+		const auto& light = params->lights[i];
+		// Only consider point lights (type == 1)
+		if (light.type == 1)
+		{
+			float dist = glm::length(light.position - frameData.cameraPos);
+			candidates.push_back({i, dist});
+		}
+	}
+
+	// Sort by distance (closest first)
+	std::sort(candidates.begin(), candidates.end(),
+		[](const LightCandidate& a, const LightCandidate& b) {
+			return a.distanceToCamera < b.distanceToCamera;
+		});
+
+	// Select up to MAX_SHADOW_POINT_LIGHTS closest point lights
+	uint32_t numShadowLights = std::min(static_cast<uint32_t>(candidates.size()),
+		Lighting::MAX_SHADOW_POINT_LIGHTS);
+
+	params->pointLightShadows.resize(numShadowLights);
+	params->shadowPointLightIndices.resize(numShadowLights);
+
+	// 90 degree FOV for cube face
+	const float fov = glm::radians(90.0f);
+
+	for (uint32_t i = 0; i < numShadowLights; i++)
+	{
+		uint32_t lightIndex = candidates[i].lightIndex;
+		const auto& light = params->lights[lightIndex];
+
+		params->shadowPointLightIndices[i] = lightIndex;
+
+		// Initialize shadow data
+		auto& shadow = params->pointLightShadows[i];
+		shadow.lightIndex = lightIndex;
+		shadow.shadowMapIndex = 0;  // Will be set in LightingSetup pass
+
+		// Build shadow matrices with appropriate near/far planes
+		float nearPlane = 0.1f;
+		float farPlane = light.range;
+
+		// Build view-projection matrices for each cube face
+		glm::mat4 proj = glm::perspective(fov, 1.0f, nearPlane, farPlane);
+
+		const glm::vec3 lightPos = light.position;
+		// Cube map face view directions - must match Vulkan/OpenGL cube map sampling convention
+		// Face 0 (+X): look in +X direction
+		// Face 1 (-X): look in -X direction  
+		// Face 2 (+Y): look in -Y direction (inverted for cube map convention)
+		// Face 3 (-Y): look in +Y direction (inverted for cube map convention)
+		// Face 4 (+Z): look in +Z direction
+		// Face 5 (-Z): look in -Z direction
+		const glm::vec3 targets[6] = {
+			lightPos + glm::vec3(+1.0f, 0.0f, 0.0f),  // Face 0: +X
+			lightPos + glm::vec3(-1.0f, 0.0f, 0.0f),  // Face 1: -X
+			lightPos + glm::vec3(0.0f, -1.0f, 0.0f),  // Face 2: +Y (look -Y)
+			lightPos + glm::vec3(0.0f, +1.0f, 0.0f),  // Face 3: -Y (look +Y)
+			lightPos + glm::vec3(0.0f, 0.0f, +1.0f),  // Face 4: +Z
+			lightPos + glm::vec3(0.0f, 0.0f, -1.0f),  // Face 5: -Z
+		};
+
+		// Up vectors for each face
+		const glm::vec3 ups[6] = {
+			glm::vec3(0.0f, -1.0f, 0.0f),  // +X
+			glm::vec3(0.0f, -1.0f, 0.0f),  // -X
+			glm::vec3(0.0f, 0.0f, -1.0f),  // +Y
+			glm::vec3(0.0f, 0.0f, +1.0f),  // -Y
+			glm::vec3(0.0f, -1.0f, 0.0f),  // +Z
+			glm::vec3(0.0f, -1.0f, 0.0f),  // -Z
+		};
+
+		for (int face = 0; face < 6; face++)
+		{
+			glm::mat4 view = glm::lookAt(lightPos, targets[face], ups[face]);
+			shadow.viewProj[face] = proj * view;
+		}
+
+		shadow.lightPos = glm::vec4(lightPos, 1.0f);
+		shadow.shadowNear = nearPlane;
+		shadow.shadowFar = farPlane;
+	}
+
+	params->shadowPointLightCount = numShadowLights;
+
+	// Set environment parameters - use default skybox if loaded
 	params->irradianceTexture = 0;
-	params->prefilterTexture = 0;
+	params->prefilterTexture = defaultSkyboxBindlessIndex;
 	params->brdfLUT = 0;
 	params->environmentIntensity = 1.0f;
 
@@ -394,31 +593,9 @@ void GraphicsMain::UploadToPipeline(FrameData* outFrameData)
 	outFrameData->viewMatrix = frameData.viewMatrix;
 	outFrameData->projMatrix = glm::perspective(45.0f, width / height, 0.1f, 1000.0f);
 
-#if defined(__ANDROID__)
-	// Apply pre-rotation for Android landscape mode
-	if (context.renderer)
-	{
-		SurfaceTransform transform = context.renderer->getSwapchainPreTransform();
-		glm::mat4 preRotation = glm::mat4(1.0f);
-
-		switch (transform)
-		{
-		case SurfaceTransform::Rotate90:
-			preRotation = glm::rotate(glm::mat4(1.0f), glm::radians(-90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-			break;
-		case SurfaceTransform::Rotate180:
-			preRotation = glm::rotate(glm::mat4(1.0f), glm::radians(-180.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-			break;
-		case SurfaceTransform::Rotate270:
-			preRotation = glm::rotate(glm::mat4(1.0f), glm::radians(-270.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-			break;
-		default:
-			break;
-		}
-
-		outFrameData->projMatrix = preRotation * outFrameData->projMatrix;
-	}
-#endif
+	// NOTE: On Android, pre-rotation is now applied in the final blit pass (render_graph.cpp)
+	// instead of the projection matrix. This allows the scene to render at a fixed 1920x1080
+	// resolution without rotation, and the rotation is applied when blitting to the swapchain.
 
 	EditorCam_Publish(outFrameData->viewMatrix, outFrameData->projMatrix, false);
 
@@ -985,6 +1162,31 @@ void GraphicsMain::SetViewCamera(const Camera& camera)
 	frameData.viewMatrix = camera.getViewMatrix();
 }
 
+void GraphicsMain::SetGridEnabled(bool enabled)
+{
+	// The render feature uses triple buffering - we need to set all buffers
+	// to ensure the change propagates immediately without flickering
+	auto* gridFeature = context.renderer->GetFeature<GridFeature>(gridHandle);
+	if (gridFeature)
+	{
+		// Write to all parameter buffers
+		for (int i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i)
+		{
+			gridFeature->param_[i].enabled = enabled;
+		}
+	}
+}
+
+void GraphicsMain::OnTogglePlayMode()
+{
+	auto* gameStateManager = ST<GameSystemsManager>::Get();
+	// When message is broadcast, state hasn't changed yet
+	// So if currently in EDITOR, we're about to go to IN_GAME (disable grid)
+	// If currently in IN_GAME/PAUSE, we're about to go to EDITOR (enable grid)
+	bool currentlyInEditor = (gameStateManager->GetState() == GAMESTATE::EDITOR);
+	ST<GraphicsMain>::Get()->SetGridEnabled(!currentlyInEditor);
+}
+
 FrameData& GraphicsMain::INTERNAL_GetFrameData()
 {
 	return frameData;
@@ -1143,6 +1345,7 @@ bool GraphicsMain::RequestObjPick(int mouseX, int mouseY) {
 		sceneFeature->RequestObjectPick(mouseX, mouseY);
 		return true;
 	}
+	return false;
 }
 
 ecs::EntityHandle GraphicsMain::PreviousPick() {
@@ -1166,4 +1369,5 @@ ecs::EntityHandle GraphicsMain::PreviousPick() {
 		}
 		return pickedEntity;
 	}
+	return nullptr;
 }

@@ -5,6 +5,7 @@
 #include "Game/Character.h"
 #include "Engine/PrefabManager.h"
 #include "graphics/AnimationComponent.h"
+#include "Managers/AudioManager.h"
 
 void L_ThrowAttack::OnInitialize()
 {
@@ -21,7 +22,7 @@ NODE_STATUS L_ThrowAttack::OnUpdate(ecs::EntityHandle entity)
 
 	if (characterComp->currentStunTime > 0.f)
 	{
-		characterComp->isAttacking = false;
+		//characterComp->isAttacking = false;
 		return NODE_STATUS::FAILURE;
 	}
 
@@ -35,6 +36,7 @@ NODE_STATUS L_ThrowAttack::OnUpdate(ecs::EntityHandle entity)
 
 	ST<Scheduler>::Get()->Add([spawnPos, enemyComp]() {
 		ecs::EntityHandle attackObj = ST<PrefabManager>::Get()->LoadPrefab("throw");
+		ST<AudioManager>::Get()->PlaySound3D("enemy female throwing " + std::to_string(randomRange(1, 5)), false, spawnPos, AudioType::END, std::pair<float, float>{2.0f, 50.0f}, 1.0f);
 		attackObj->GetTransform().SetWorldPosition(spawnPos);
 	});
 	return NODE_STATUS::SUCCESS;

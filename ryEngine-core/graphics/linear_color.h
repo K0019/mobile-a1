@@ -45,11 +45,12 @@ struct ToneMappingSettings
     ACES = 3,
     KhronosPBR = 4,
     Uncharted2 = 5,
-    Unreal = 6
+    Unreal = 6,
+    Passthrough = 7  // No processing - preserves linear color exactly
   };
 
-  Mode mode = KhronosPBR;
-  float exposure = 0.95f;
+  Mode mode = Passthrough;
+  float exposure = 1.0f;
   float maxWhite = 1.0f; // Reinhard
   // Uchimura parameters
   float P = 1.0f; // max display brightness

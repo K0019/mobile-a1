@@ -27,7 +27,7 @@ android {
     }
 
     aaptOptions {
-        noCompress 'png', 'ktx', 'data', 'gltf', 'bin'
+        noCompress 'png', 'ktx', 'data', 'gltf', 'bin', 'lua'
     }
 
     buildTypes {

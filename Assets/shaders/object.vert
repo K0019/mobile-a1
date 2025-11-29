@@ -13,8 +13,8 @@ layout(push_constant) uniform PerFrameData {
 } pc;
 
 layout(location = 0) in vec3 in_position_snorm; // SNORM16 [3]
-layout(location = 1) in float in_normal_x; // SNORM16
-layout(location = 2) in vec4 in_nt; // SNORM RGB10A2 (normal.y, tangent.xy, flags)
+layout(location = 1) in float in_normal_x; // SNORM16 (|nx| with nz_sign in sign bit)
+layout(location = 2) in vec4 in_nt; // UNORM RGB10A2 (normal.y, tangent.xy remapped to [0,1], flags in alpha)
 layout(location = 3) in vec2 in_uv_unorm; // UNORM16 [2]
 
 layout(location = 0) out vec2 out_uv;
@@ -39,22 +39,30 @@ void main() {
   // Decompress position from compressed vertex buffer
   localPosition = in_position_snorm * decomp.bbox_half_extent + decomp.bbox_center;
 
-  // Decompress normal (hardware provided ny via in_nt.r)
-  float nx = in_normal_x;
-  float ny = in_nt.r;
-  bool nz_negative = (in_nt.a > 0.0);
-  float nz_sign = nz_negative ? -1.0 : 1.0;
+  // Decompress normal
+  // in_normal_x contains |nx| with nz_sign encoded in its sign bit
+  float nx_magnitude = abs(in_normal_x);
+  float nz_sign = (in_normal_x < 0.0) ? -1.0 : 1.0;
+
+  // Extract nx_sign from alpha bit 1 (a > 0.5 means nx is negative)
+  float nx_sign = (in_nt.a > 0.5) ? -1.0 : 1.0;
+  float nx = nx_magnitude * nx_sign;
+
+  // Remap ny from UNORM [0,1] to [-1,1]
+  float ny = in_nt.r * 2.0 - 1.0;
+
   float nz = sqrt(max(0.001, 1.0 - nx * nx - ny * ny)) * nz_sign;
   localNormal = normalize(vec3(nx, ny, nz));
 
-  // Decompress tangent using hardware-provided SNORM values.
-  float tx = in_nt.g;
-  float ty = in_nt.b;
+  // Decompress tangent - remap from UNORM [0,1] to [-1,1]
+  float tx = in_nt.g * 2.0 - 1.0;
+  float ty = in_nt.b * 2.0 - 1.0;
   float tz = sqrt(max(0.001, 1.0 - tx * tx - ty * ty)); // Always positive
   localTangent = normalize(vec3(tx, ty, tz));
 
-  // Extract handedness from alpha bits
-  bool handedness_negative = (abs(in_nt.a) < 0.5);
+  // Extract handedness from alpha bit 0
+  // When alpha is in range [0.25, 0.75], handedness is negative
+  bool handedness_negative = (abs(in_nt.a - 0.5) < 0.25);
   handedness = handedness_negative ? -1.0 : 1.0;
 
   // Transform to world space

@@ -28,12 +28,14 @@ All rights reserved.
 
 #include "Graphics/RenderComponent.h"
 #include "Graphics/AnimationComponent.h"
+#include "Graphics/BoneAttachment.h"
 #include "Graphics/CustomViewport.h"
 #include "Scripting/ScriptComponent.h"
 
 #include "UI/TextComponent.h"
 #include "UI/SpriteComponent.h"
 #include "UI/ButtonComponent.h"
+#include "3DUI/BillboardComponent.h"
 
 #include "Graphics/CameraSystem.h"
 #include "Tween/TweenECS.h"
@@ -64,6 +66,7 @@ void GameState_Common::OnEnter()
 {
     // RenderSystem and LightingSystem removed - GraphicsMain now reads directly from ECS components
     ecs::AddSystem(ECS_LAYER::RENDER_0, AnimationSystem{});
+    ecs::AddSystem(ECS_LAYER::RENDER_1, BoneAttachmentSystem{});
     ecs::AddSystem(ECS_LAYER::AUDIO, AudioSystem{});
 
     ecs::AddSystem(ECS_LAYER::RENDER_UI_0, TextSystem{});
@@ -115,6 +118,8 @@ void GameState_Game::OnEnter()
 
     ecs::AddSystem(ECS_LAYER::PHYSICS, physics::PhysicsSystem{});
 
+    ecs::AddSystem(ECS_LAYER::POST_PHYSICS_2, GrabbableItemPickupUISystem{});
+    ecs::AddSystem(ECS_LAYER::POST_PHYSICS_3, BillboardSystem{});
     // Override custom viewport camera
     ecs::AddSystem(ECS_LAYER::RENDER_1, CameraCompUploadSystem{});
     

@@ -21,10 +21,22 @@ All rights reserved.
 
 namespace Events {
 
+	// Consumed by: GrabbableItemPickupUISystem
+	struct SceneUnloaded
+	{
+		int index;
+	};
+
 	// Consumed by: LuaScripting
 	struct RequestReloadLuaScripts {};
 	// Consumed by: ScriptRefreshListenerSystem
 	struct LuaScriptsReloaded {};
+
+	// Consumed by: PlayerCharacter
+	struct GameActionGrabItem {};
+	struct GameActionThrowItem {};
+	struct GameActionAttack {};
+	struct GameActionDodge {};
 
 }
 

@@ -27,15 +27,22 @@ All rights reserved.
 #include "ECS/EntityUID.h"
 #include "Editor/IEditorComponent.h"
 
-enum class DelusionTiers
+#define DELUSION_TIER_ENUM \
+X(F, "F") \
+X(D, "D") \
+X(C, "C") \
+X(B, "B") \
+X(A, "A") \
+X(APLUS, "A+")
+
+#define X(enumName, str) enumName,
+enum class DELUSION_TIER
 {
-	DT_F,
-	DT_D,
-	DT_C,
-	DT_B,
-	DT_A,
-	DT_APLUS
+	DELUSION_TIER_ENUM
+	TOTAL
 };
+GENERATE_ENUM_CLASS_ITERATION_OPERATORS(DELUSION_TIER)
+#undef X
 
 /*****************************************************************//*!
 \class DelusionComponent
@@ -49,7 +56,10 @@ class DelusionComponent
 public:
 	using DelusionType = float;
 
-
+	EntityReference delusionBuff1;
+	EntityReference delusionBuff2;
+	EntityReference delusionBuff3;
+	EntityReference delusionBuff4;
 
 	/*****************************************************************//*!
 	\brief
@@ -63,7 +73,7 @@ public:
 		\return
 			string containing alphabet (string for A+)
 		*//******************************************************************/
-	std::string to_string();
+	static const std::string& TierToString(DELUSION_TIER tier);
 
 	/*****************************************************************//*!
 	\brief
@@ -72,6 +82,8 @@ public:
 		The current Delusion.
 	*//******************************************************************/
 	DelusionType GetCurrDelusion() const;
+
+	DELUSION_TIER GetCurrDelusionTier() const;
 
 	/*****************************************************************//*!
 	\brief
@@ -128,6 +140,11 @@ public:
 	void UpdateDelusionTier();
 
 	DelusionType GetDelusionFraction();
+
+	void Serialize(Serializer& writer) const override;
+	void Deserialize(Deserializer& reader) override;
+
+
 private:
 	/*****************************************************************//*!
 	\brief
@@ -144,9 +161,8 @@ private:
 
 	DelusionType gainRate;
 	DelusionType lossRate;
-	DelusionTiers prevTier;
-	DelusionTiers currTier;
-
+	DELUSION_TIER prevTier;
+	DELUSION_TIER currTier;
 	static constexpr DelusionType defaultMax{ 100.0f };
 	property_vtable()
 };

@@ -128,12 +128,12 @@ void AudioManager::FreeSound(FMOD::Sound* sound)
 		FMOD_ASSERT(sound->release());
 }
 
-uint32_t AudioManager::PlaySound(const std::string& filename, bool loop, AudioType category)
+uint32_t AudioManager::PlaySound(const std::string& filename, bool loop, AudioType category, float volumeModifier)
 {
-	return PlaySound(util::GenHash(filename), loop, category);
+	return PlaySound(util::GenHash(filename), loop, category, volumeModifier);
 }
 
-uint32_t AudioManager::PlaySound(size_t audioResourceHash, bool loop, AudioType category)
+uint32_t AudioManager::PlaySound(size_t audioResourceHash, bool loop, AudioType category, float volumeModifier)
 {
 	const auto* resource{ ST<MagicResourceManager>::Get()->GetContainer<ResourceAudio>().GetResource(audioResourceHash)};
 	if (!resource)
@@ -155,17 +155,19 @@ uint32_t AudioManager::PlaySound(size_t audioResourceHash, bool loop, AudioType 
 			break; // Bypass to universal play
 	}
 
-	if (loop) 
+	if (loop)
 		FMOD_ASSERT(channel->setMode(FMOD_LOOP_NORMAL));
+
+	FMOD_ASSERT(channel->setVolume(volumeModifier));
 
 	return channelManager.RegisterChannel(channel);
 }
-uint32_t AudioManager::PlaySound3D(const std::string& filename, bool loop, Vec3 position, AudioType category, std::pair<float, float> rolloff)
+uint32_t AudioManager::PlaySound3D(const std::string& filename, bool loop, Vec3 position, AudioType category, std::pair<float, float> rolloff, float volumeModifier)
 {
-	return PlaySound3D(util::GenHash(filename), loop,position, category,rolloff);
+	return PlaySound3D(util::GenHash(filename), loop, position, category, rolloff, volumeModifier);
 }
 
-uint32_t AudioManager::PlaySound3D(size_t audioResourceHash, bool loop, Vec3 position, AudioType category, std::pair<float, float> rolloff)
+uint32_t AudioManager::PlaySound3D(size_t audioResourceHash, bool loop, Vec3 position, AudioType category, std::pair<float, float> rolloff, float volumeModifier)
 {
 	const auto* resource{ ST<MagicResourceManager>::Get()->GetContainer<ResourceAudio>().GetResource(audioResourceHash) };
 	if (!resource)
@@ -190,7 +192,7 @@ uint32_t AudioManager::PlaySound3D(size_t audioResourceHash, bool loop, Vec3 pos
 	// Linear rolloff assumes complete silence at max distance - can potentially look at custom curves later/allowing user to define their own curves
 	FMOD_ASSERT(channel->setMode(FMOD_3D | FMOD_3D_LINEARROLLOFF));
 
-	if (loop) 
+	if (loop)
 		FMOD_ASSERT(channel->setMode(FMOD_LOOP_NORMAL));
 
 	FMOD_ASSERT(channel->set3DMinMaxDistance(rolloff.first, rolloff.second));
@@ -198,6 +200,8 @@ uint32_t AudioManager::PlaySound3D(size_t audioResourceHash, bool loop, Vec3 pos
 	FMOD_VECTOR initialVel = { 0.0f, 0.0f, 0.0f };
 	FMOD_VECTOR fmodVecPos = { position.x, position.y, position.z };
     FMOD_ASSERT(channel->set3DAttributes(&fmodVecPos, &initialVel));
+
+	FMOD_ASSERT(channel->setVolume(volumeModifier));
 
 	FMOD_ASSERT(channel->setPaused(false));
 
@@ -350,6 +354,20 @@ void AudioManager::ChannelManager::DeleteChannel(uint32_t handle)
 void AudioManager::ChannelManager::ClearAllChannels()
 {
 	channelMap.clear();
+}
+
+void AudioManager::FadeoutAudio(uint32_t handle, float seconds)
+{
+	unsigned long long dspclock = 0;
+	int rate;
+
+	auto* channel = channelManager.GetChannel(handle);
+	channel->getSystemObject(&system);
+	system->getSoftwareFormat(&rate, nullptr, nullptr);
+	channel->getDSPClock(nullptr, &dspclock);
+	channel->addFadePoint(dspclock, 1.0f);  // Current volume
+	channel->addFadePoint(dspclock + (rate * 5), 0.0f);  // 0 volume after 5 seconds
+	channel->setDelay(0, dspclock + (rate * 5), true);  // Stop channel after fade
 }
 
 

@@ -45,6 +45,7 @@ public:
 	void Deserialize(Deserializer& reader) override;
 
 	EntityReference GetEntity(int index);
+	const int GetSize();
 	void SetEntity(int index, EntityReference entity);
 
 private:

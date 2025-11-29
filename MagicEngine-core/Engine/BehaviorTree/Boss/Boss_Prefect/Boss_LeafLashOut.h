@@ -9,10 +9,14 @@ public:
 
 private:
     float currentAttackCooldown;
+    float currentAttackDelay;
     int currentAttackCount;
+
+    bool impendingAttack;
 
     static float speedMultiplier;
     static float attackCooldown;
+    static float attackDelay;
     static float attackDistance;
     static int attackCount;
 };

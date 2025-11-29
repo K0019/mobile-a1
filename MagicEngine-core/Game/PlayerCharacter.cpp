@@ -28,15 +28,21 @@ All rights reserved.
 #include "Engine/Input.h"
 #include "Scripting//ScriptComponent.h"
 #include "Editor/Containers/GUICollection.h"
+#include "Game/Delusion.h"
+#include "Engine/Events/EventsQueue.h"
+#include "Engine/Events/EventsTypeBasic.h"
 
 PlayerMovementComponent::PlayerMovementComponent()
 	: grabDistance{ 0.0f }
 	, cameraReference{nullptr}
+	, ultimateAttackDamage{}
+	, isUltimateAttack{false}
 {
 }
 
 void PlayerMovementComponent::Serialize(Serializer& writer) const
 {
+	ISerializeable::Serialize(writer);
 	writer.Serialize("cameraReference", cameraReference);
 	writer.Serialize("testReference", testReference);
 	writer.Serialize("grabDistance", grabDistance);
@@ -44,6 +50,7 @@ void PlayerMovementComponent::Serialize(Serializer& writer) const
 
 void PlayerMovementComponent::Deserialize(Deserializer& reader)
 {
+	ISerializeable::Deserialize(reader);
 	reader.Deserialize("cameraReference", &cameraReference);
 	reader.Deserialize("testReference", &testReference);
 	reader.DeserializeVar("grabDistance", &grabDistance);
@@ -54,6 +61,27 @@ void PlayerMovementComponent::EditorDraw()
 	cameraReference.EditorDraw("Camera");
 	testReference.EditorDraw("Test");
 	gui::VarInput("Grab Distance", &grabDistance);
+	gui::VarInput("Ultimate Attack Damage", &ultimateAttackDamage);
+}
+
+void PlayerMovementComponent::Parry()
+{
+	auto characterComp{ ecs::GetEntity(this)->GetComp<CharacterMovementComponent>() };
+	characterComp->Parry();
+}
+
+
+void PlayerMovementComponent::UltimateAttack()
+{
+	auto delutionComp{ ecs::GetEntity(this)->GetComp<DelusionComponent>() };
+	auto characterComp{ ecs::GetEntity(this)->GetComp<CharacterMovementComponent>() };
+	if (!delutionComp || !characterComp ||delutionComp->GetCurrDelusionTier() != DELUSION_TIER::APLUS)
+		return;
+
+	isUltimateAttack = true;
+	characterComp->Attack();
+	delutionComp->SetDelusion(0.f);
+	CONSOLE_LOG(LEVEL_INFO) << "Ultimate Attack.";
 }
 
 PlayerMovementComponentSystem::PlayerMovementComponentSystem()
@@ -77,14 +105,17 @@ void PlayerMovementComponentSystem::UpdatePlayerMovementComponent(PlayerMovement
 	Vec2 camForward = Vec2{ cos(yawRad),sin(yawRad) };
 	Vec2 camRight = Vec2{ -sin(yawRad),cos(yawRad) };
 
-	if (inputInstance->GetIsDown(KEY::W))
-		movement = movement + camForward;
-	if (inputInstance->GetIsDown(KEY::S))
-		movement = movement - camForward;
-	if (inputInstance->GetIsDown(KEY::D))
-		movement = movement + camRight;
-	if (inputInstance->GetIsDown(KEY::A))
-		movement = movement - camRight;
+	if (!characterComp->isAttacking)
+	{
+		if (inputInstance->GetIsDown(KEY::W))
+			movement = movement + camForward;
+		if (inputInstance->GetIsDown(KEY::S))
+			movement = movement - camForward;
+		if (inputInstance->GetIsDown(KEY::D))
+			movement = movement + camRight;
+		if (inputInstance->GetIsDown(KEY::A))
+			movement = movement - camRight;
+	}
 
 #ifdef __ANDROID__
 
@@ -104,72 +135,67 @@ void PlayerMovementComponentSystem::UpdatePlayerMovementComponent(PlayerMovement
 		movement = movement.Normalized();
 
 	// Grabbing items
-	if (inputInstance->GetIsPressed(KEY::F))
+	if (inputInstance->GetIsPressed(KEY::E) || EventsReader<Events::GameActionGrabItem>{}.ExtractEvent())
 	{
-		if (characterComp->heldItem == nullptr)
+		float closestDistance = comp.grabDistance * comp.grabDistance;
+		ecs::CompHandle< GrabbableItemComponent> closestItem = nullptr;
+		for (auto itemComp = ecs::GetCompsBegin<GrabbableItemComponent>(); itemComp != ecs::GetCompsEnd<GrabbableItemComponent>(); ++itemComp)
 		{
-			float closestDistance = comp.grabDistance * comp.grabDistance;
-			ecs::CompHandle< GrabbableItemComponent> closestItem = nullptr;
-			for (auto itemComp = ecs::GetCompsBegin<GrabbableItemComponent>(); itemComp != ecs::GetCompsEnd<GrabbableItemComponent>(); ++itemComp)
+			// Just in case, don't grab nothing
+			if (itemComp.GetEntity() == nullptr)
+				continue;
+
+			// Don't grab self
+			if (itemComp.GetEntity() == playerEntity)
+				continue;
+
+			// Don't grab people
+			if (itemComp.GetEntity()->GetComp<CharacterMovementComponent>())
+				continue;
+
+			assert(ecs::IsEntityHandleValid(itemComp.GetEntity()));
+
+			// Can't pick up other held items
+			if (itemComp->isHeld == true)
+				continue;
+
+			// Distance check
+			Vec3 direction = itemComp.GetEntity()->GetTransform().GetWorldPosition() - playerEntity->GetTransform().GetWorldPosition();
+			if (direction.LengthSqr() < closestDistance)
 			{
-				// Just in case, don't grab nothing
-				if (itemComp.GetEntity() == nullptr)
-					continue;
-
-				// Don't grab self
-				if (itemComp.GetEntity() == playerEntity)
-					continue;
-
-				// Don't grab people
-				if (itemComp.GetEntity()->GetComp<CharacterMovementComponent>())
-					continue;
-
-				assert(ecs::IsEntityHandleValid(itemComp.GetEntity()));
-
-				// Can't pick up other held items
-				if (itemComp->isHeld == true)
-					continue;
-
-				// Distance check
-				Vec3 direction = itemComp.GetEntity()->GetTransform().GetWorldPosition() - playerEntity->GetTransform().GetWorldPosition();
-				if (direction.LengthSqr() < closestDistance)
-				{
-					closestItem = itemComp.GetCompHandle();
-					closestDistance = direction.LengthSqr();
-				}
+				closestItem = itemComp.GetCompHandle();
+				closestDistance = direction.LengthSqr();
 			}
+		}
 
-			if (closestItem != nullptr)
-			{
-				characterComp->DropItem();
-				characterComp->GrabItem(closestItem);
-			}
+		if (closestItem != nullptr)
+		{
+			characterComp->DropItem();
+			characterComp->GrabItem(closestItem);
 		}
 	}
 
 	// Throw item
-	if (inputInstance->GetIsPressed(KEY::B))
+	if (inputInstance->GetIsPressed(KEY::Q) || EventsReader<Events::GameActionThrowItem>{}.ExtractEvent())
 	{
 		// Look for the nearest enemy
-		Vec3 throwDirection{ camForward.x,1.0f,camForward.y  };
+		Vec3 throwDirection{ camForward.x,0.f,camForward.y  };
 
 		characterComp->Throw(throwDirection);
 	}
 
-	if (inputInstance->GetIsPressed(KEY::M1))
+	if (inputInstance->GetIsPressed(KEY::M1) || EventsReader<Events::GameActionAttack>{}.ExtractEvent())
 		characterComp->Attack();
 
-	// Test opening the door
-	if (inputInstance->GetIsPressed(KEY::O))
-	{
-		if (auto scriptComp{ comp.testReference->GetComp<ScriptComponent>() })
-		{
-			scriptComp->CallScriptFunction("toggle");
-		}
-	}
+	if (inputInstance->GetIsPressed(KEY::R))
+		comp.UltimateAttack();
 
 	characterComp->SetMovementVector(movement);
 
-	if (inputInstance->GetIsDown(KEY::LSHIFT))
+	if (inputInstance->GetIsDown(KEY::LSHIFT) || EventsReader<Events::GameActionDodge>{}.ExtractEvent())
 		characterComp->Dodge(movement);
+
+
+	if (inputInstance->GetIsPressed(KEY::LCTRL))
+		comp.Parry();
 }

@@ -19,11 +19,9 @@ NODE_STATUS L_WindUp::OnUpdate(ecs::EntityHandle entity)
 
 	if (characterComp->currentStunTime > 0.f)
 	{
-		characterComp->isAttacking = false;
 		return NODE_STATUS::FAILURE;
 	}
 
-	characterComp->isAttacking = true;
 	animComp->animHandleA = characterComp->animations[ATTACK];
 	currSpentTime += GameTime::Dt();
 

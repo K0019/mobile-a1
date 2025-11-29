@@ -74,7 +74,9 @@ public:
 class Primitive2DImage : public Primitive2DBase
 {
 public:
+	Primitive2DImage();
 	void SetImage(size_t textureHash);
+	void SetUV(Vec2 min, Vec2 max);
 
 	bool IsClicked(const RectTransformComponent& transform, Vec2 clickPos) const override;
 	void Render(const RectTransformComponent& transform, const Vec4& color) const override;
@@ -82,13 +84,16 @@ public:
 
 private:
 	UserResourceHandle<ResourceTexture> texture;
+	Vec2 uvMin, uvMax;
 
 public:
 	property_vtable()
 };
 property_begin(Primitive2DImage)
 {
-	property_var(texture)
+	property_var(texture),
+	property_var(uvMin),
+	property_var(uvMax)
 }
 property_vend_h(Primitive2DImage)
 

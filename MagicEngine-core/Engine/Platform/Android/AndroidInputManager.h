@@ -56,10 +56,10 @@ public:
     float captureRadiusMul = 1.0f;   // capture circle size, in multiples of EffectiveRadius()
     float dirDead = 0.30f;           // normalized threshold for mapping to W/A/S/D labels
 
-    float followWorld = 100.25f;   // how far to nudge at full deflection 
+    float followWorld = 60.0f;   // how far to nudge at full deflection 
     bool  recenterOnRelease = true; // snap back to anchor on release
     bool  invertX = false;    // flip horizontal if needed
-    bool  invertY = false;     // screen Y often inverted; start with true
+    bool  invertY = true;     // screen Y often inverted; start with true
 
     // ============================ Rotation / coordinate fixups (only used by PhoneToScreen()) ========================
     enum class TouchRot { Rot0, Rot90CW, Rot90CCW };

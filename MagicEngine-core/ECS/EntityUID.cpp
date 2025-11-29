@@ -90,9 +90,8 @@ void EntityUIDComponent::Deserialize(Deserializer& deserializer)
 	if (isDefaultPool)
 		ST<EntityUIDLookup>::Get()->UnregisterUID(uid);
 	deserializer.DeserializeVar("uid", &uid);
-	// OnAttached() will not have been called yet. Wait for OnAttached() to be called for registering.
-	/*if (isDefaultPool)
-		ST<EntityUIDLookup>::Get()->RegisterUID(uid, ecs::GetEntity(this));*/
+	if (isDefaultPool)
+		ST<EntityUIDLookup>::Get()->RegisterUID(uid, ecs::GetEntity(this));
 }
 
 EntityRefUID EntityUIDLookup::GenerateAndRegisterNewUID(ecs::EntityHandle entity)
@@ -111,7 +110,7 @@ void EntityUIDLookup::RegisterUID(EntityRefUID uid, ecs::EntityHandle entity)
 {
 	ecs::EntityHandle& valRef{ uidToEntity[uid] };
 	// If there's already an entity registered to this UID, there might be something wrong...
-	if (valRef)
+	if (valRef && valRef != entity)
 		CONSOLE_LOG(LEVEL_WARNING) << "UID CLASH DETECTED! \"" << uid << "\". If entity reference issues occur, please try manually modifying this UID in the scene file.";
 
 	// Replace the entity in the map

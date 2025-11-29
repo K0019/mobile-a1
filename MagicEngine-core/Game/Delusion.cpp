@@ -25,6 +25,7 @@ All rights reserved.
 /******************************************************************************/
 
 #include "Delusion.h"
+#include "Game/Health.h"
 #include "Character.h"
 #include "PlayerCharacter.h"
 #include "Physics//Physics.h"
@@ -32,34 +33,38 @@ All rights reserved.
 #include "Editor/Containers/GUICollection.h"
 #include "Engine/SceneManagement.h"
 #include "Managers/AudioManager.h"
+#include "Engine/EntityEvents.h"
 
-std::string DelusionComponent::to_string()
+#define X(enumName, str) str,
+const std::array<std::string, +DELUSION_TIER::TOTAL> tierNames{
+    DELUSION_TIER_ENUM
+};
+
+const std::string& DelusionComponent::TierToString(DELUSION_TIER tier)
 {
-	//map tier to alphabet
-	static const std::map<DelusionTiers, std::string> names = {
-		{DelusionTiers::DT_F, "F"}, {DelusionTiers::DT_D, "D"},
-		{DelusionTiers::DT_C, "C"}, {DelusionTiers::DT_B, "B"},
-		{DelusionTiers::DT_A, "A"}, {DelusionTiers::DT_APLUS, "A+"}
-	};
-
-	//returns alphabet name as std::string
-	return names.at(currTier);
+    assert(tier != DELUSION_TIER::TOTAL);
+    return tierNames[+tier];
 }
 
 DelusionComponent::DelusionComponent() :
 	maxDelusion(defaultMax)
 	, currDelusion{ 0.0f }
-	, lossRate{ 0.0f }
-	, gainRate{ 0.0f }
-	, ultValue{ 0.0f }
-	, prevTier{DelusionTiers::DT_F}
-	, currTier{DelusionTiers::DT_F}
+	, lossRate{ 1.0f }
+	, gainRate{ 1.0f }
+	, ultValue{ 90.0f }
+	, prevTier{DELUSION_TIER::F}
+	, currTier{DELUSION_TIER::F}
 {
 }
 
 DelusionComponent::DelusionType DelusionComponent::GetCurrDelusion() const
 {
 	return currDelusion;
+}
+
+DELUSION_TIER DelusionComponent::GetCurrDelusionTier() const
+{
+	return currTier;
 }
 
 bool DelusionComponent::IsUltReady() const
@@ -115,12 +120,13 @@ void DelusionComponent::UpdateDelusionTier()
 {
 	DelusionType ratio = GetDelusionFraction();
 	currTier =
-		(ratio >= 0.9f) ? DelusionTiers::DT_APLUS :
-		(ratio >= 0.8f) ? DelusionTiers::DT_A :
-		(ratio >= 0.6f) ? DelusionTiers::DT_B :
-		(ratio >= 0.4f) ? DelusionTiers::DT_C :
-		(ratio >= 0.2f) ? DelusionTiers::DT_D :
-		DelusionTiers::DT_F;
+		(ratio >= 0.9f) ? DELUSION_TIER::APLUS :
+		(ratio >= 0.8f) ? DELUSION_TIER::A :
+		(ratio >= 0.6f) ? DELUSION_TIER::B :
+		(ratio >= 0.4f) ? DELUSION_TIER::C :
+		(ratio >= 0.2f) ? DELUSION_TIER::D :
+		DELUSION_TIER::F;
+    ecs::GetEntity(this)->GetComp<EntityEventsComponent>()->BroadcastAll("OnDelusionChanged", ratio);
 
 	if (currTier == prevTier) return;
 
@@ -128,73 +134,170 @@ void DelusionComponent::UpdateDelusionTier()
 	ST<AudioManager>::Get()->PlaySound(currTier > prevTier ? "rank increase" : "rank decrease", false);
 
 	//buffs and debuffs, as of yet unimplemented due to it being hard to see interactions, but ill throw in the pseudo code
-	if (currTier == DelusionTiers::DT_F)
-	{
-		// comment: probably store reference to original health max from health component on awake, then get health component 
-		// if (ecs::CompHandle<HealthComponent> healthComp{ owner->GetComp<HealthComponent>() }), 
-		// comment: delusion and health should both be on player after all
-		// healthComp->SetMaxHealth(100);
-		// comment: hundred being hardcoded value, but it should be taking from the max health reference stored from on awake
-		// if (ecs::CompHandle<CharacterMovementComponent> characterComp{ owner->GetComp<CharacterMovementComponent>() }), 
-		// characterComp->moveSpeed = characterComp->baseMoveSpeed //comment: base ms doesn't exist but can store reference in delusion or add there
-		// comment: remove speed buff
-		// gainRate = 1.0f;
-		// comment: remove delusion gain increase
-		// turn off health regen if exists
-		//loseRate = 1.0f;
-		//comment: remove delusion lose decrease
-	}
-	else if (currTier == DelusionTiers::DT_D)
-	{
-		// comment: probably store reference to original health max from health component on awake, then get health component 
-		// if (ecs::CompHandle<HealthComponent> healthComp{ owner->GetComp<HealthComponent>() }), 
-		// comment: delusion and health should both be on player after all
-		// healthComp->SetMaxHealth(90);
-		// comment: hundred being hardcoded value, but it should be taking from the max health reference stored from on awake
-		// if (ecs::CompHandle<CharacterMovementComponent> characterComp{ owner->GetComp<CharacterMovementComponent>() }), 
-		// characterComp->moveSpeed = characterComp->baseMoveSpeed //comment: base ms doesn't exist but can store reference in delusion or add there
-		// comment: speed buff, moveSpeed from CharacterMovementComponent
-	}
-	else if (currTier == DelusionTiers::DT_C)
-	{
-		// comment: probably store reference to original health max from health component on awake, then get health component 
-		// if (ecs::CompHandle<HealthComponent> healthComp{ owner->GetComp<HealthComponent>() }), 
-		// comment: delusion and health should both be on player after all
-		// healthComp->SetMaxHealth(80);
-		// comment: hundred being hardcoded value, but it should be taking from the max health reference stored from on awake
-		// gainRate = 1.2f;
-	}
-	else if (currTier == DelusionTiers::DT_B)
-	{
-		// comment: probably store reference to original health max from health component on awake, then get health component 
-		// if (ecs::CompHandle<HealthComponent> healthComp{ owner->GetComp<HealthComponent>() }), 
-		// comment: delusion and health should both be on player after all
-		// healthComp->SetMaxHealth(70);
-		// comment: hundred being hardcoded value, but it should be taking from the max health reference stored from on awake
-		// if (ecs::CompHandle<HealthComponent> healthComp{ owner->GetComp<HealthComponent>() }), 
-		// comment: delusion and health should both be on player after all
-		// healthComp->AddHealth(20);
-		// comment: health regen function not coded, should be toggleable on and off and not a 1 time burst
-	}
-	else if (currTier == DelusionTiers::DT_A)
-	{
-		// comment: probably store reference to original health max from health component on awake, then get health component 
-		// if (ecs::CompHandle<HealthComponent> healthComp{ owner->GetComp<HealthComponent>() }), 
-		// comment: delusion and health should both be on player after all
-		// healthComp->SetMaxHealth(60);
-		// comment: hundred being hardcoded value, but it should be taking from the max health reference stored from on awake
-		// loseRate = 0.8f;
-	}
-	else if (currTier == DelusionTiers::DT_APLUS)
-	{
-		// comment: probably store reference to original health max from health component on awake, then get health component 
-		// if (ecs::CompHandle<HealthComponent> healthComp{ owner->GetComp<HealthComponent>() }), 
-		// comment: delusion and health should both be on player after all
-		// healthComp->SetMaxHealth(50);
-		// comment: hundred being hardcoded value, but it should be taking from the max health reference stored from on awake
-		// ulti available, no buff for now
-	}
+    
+    switch (currTier)
+    {
+    case DELUSION_TIER::F:
+    {
+        // Health and speed adjustments for DT_F
+        if (ecs::CompHandle<HealthComponent> healthComp{ ecs::GetEntity(this)->GetComp<HealthComponent>() })
+        {
+            healthComp->SetMaxHealth(30);
+        }
+
+        if (ecs::CompHandle<CharacterMovementComponent> characterComp{ ecs::GetEntity(this)->GetComp<CharacterMovementComponent>() })
+        {
+            characterComp->ResetSpeedMultiplier();
+        }
+
+        gainRate = 1.0f; // remove delusion gain increase
+        lossRate = 1.0f; // remove delusion lose decrease
+
+        // Hackerryyyyyyyyyyyyyyyyyyyyyyy
+        delusionBuff1->SetActive(false);
+        delusionBuff2->SetActive(false);
+        delusionBuff3->SetActive(false);
+        delusionBuff4->SetActive(false);
+        break;
+    }
+
+    case DELUSION_TIER::D:
+    {
+        // Health and speed adjustments for DT_D
+        if (ecs::CompHandle<HealthComponent> healthComp{ ecs::GetEntity(this)->GetComp<HealthComponent>() })
+        {
+            healthComp->SetMaxHealth(50);
+        }
+
+        if (ecs::CompHandle<CharacterMovementComponent> characterComp{ ecs::GetEntity(this)->GetComp<CharacterMovementComponent>() })
+        {
+            characterComp->ResetSpeedMultiplier();
+            characterComp->SetSpeedMultiplier(1.1f); // speed buff
+        }
+
+        gainRate = 1.0f; // remove delusion gain increase
+        lossRate = 1.0f; // remove delusion lose decrease
+
+        // Hackerryyyyyyyyyyyyyyyyyyyyyyy
+        delusionBuff1->SetActive(true);
+        delusionBuff2->SetActive(false);
+        delusionBuff3->SetActive(false);
+        delusionBuff4->SetActive(false);
+        break;
+    }
+
+    case DELUSION_TIER::C:
+    {
+        // Health and speed adjustments for DT_C
+        if (ecs::CompHandle<HealthComponent> healthComp{ ecs::GetEntity(this)->GetComp<HealthComponent>() })
+        {
+            healthComp->SetMaxHealth(75);
+        }
+
+        if (ecs::CompHandle<CharacterMovementComponent> characterComp{ ecs::GetEntity(this)->GetComp<CharacterMovementComponent>() })
+        {
+            characterComp->ResetSpeedMultiplier();
+            characterComp->SetSpeedMultiplier(1.1f); // speed buff
+        }
+
+        gainRate = 1.2f; // delusion gain up
+        lossRate = 1.0f; // remove delusion lose decrease
+        // Hackerryyyyyyyyyyyyyyyyyyyyyyy
+        delusionBuff1->SetActive(true);
+        delusionBuff2->SetActive(true);
+        delusionBuff3->SetActive(false);
+        delusionBuff4->SetActive(false);
+        break;
+    }
+
+    case DELUSION_TIER::B:
+    {
+        // Health and speed adjustments for DT_B
+        if (ecs::CompHandle<HealthComponent> healthComp{ ecs::GetEntity(this)->GetComp<HealthComponent>() })
+        {
+            healthComp->SetMaxHealth(100);
+        }
+
+        if (ecs::CompHandle<CharacterMovementComponent> characterComp{ ecs::GetEntity(this)->GetComp<CharacterMovementComponent>() })
+        {
+            characterComp->ResetSpeedMultiplier();
+            characterComp->SetSpeedMultiplier(1.1f); // speed buff
+        }
+
+        gainRate = 1.2f;
+
+        if (ecs::CompHandle<HealthComponent> healthComp{ ecs::GetEntity(this)->GetComp<HealthComponent>() })
+        {
+            healthComp->AddHealth(20); // Health regen function not coded yet
+        }
+
+        lossRate = 1.0f; // remove delusion lose decrease
+
+        // Hackerryyyyyyyyyyyyyyyyyyyyyyy
+        delusionBuff1->SetActive(true);
+        delusionBuff2->SetActive(true);
+        delusionBuff3->SetActive(true);
+        delusionBuff4->SetActive(false);
+        break;
+    }
+
+    case DELUSION_TIER::A:
+    {
+        // Health and speed adjustments for DT_A
+        if (ecs::CompHandle<HealthComponent> healthComp{ ecs::GetEntity(this)->GetComp<HealthComponent>() })
+        {
+            healthComp->SetMaxHealth(120);
+        }
+
+        if (ecs::CompHandle<CharacterMovementComponent> characterComp{ ecs::GetEntity(this)->GetComp<CharacterMovementComponent>() })
+        {
+            characterComp->ResetSpeedMultiplier();
+            characterComp->SetSpeedMultiplier(1.1f); // speed buff
+        }
+
+        gainRate = 1.2f;
+        lossRate = 0.8f; // delusion loss down
+
+        // Hackerryyyyyyyyyyyyyyyyyyyyyyy
+        delusionBuff1->SetActive(true);
+        delusionBuff2->SetActive(true);
+        delusionBuff3->SetActive(true);
+        delusionBuff4->SetActive(true);
+        break;
+    }
+
+    case DELUSION_TIER::APLUS:
+    {
+        // Health and speed adjustments for DT_Aplus
+        if (ecs::CompHandle<HealthComponent> healthComp{ ecs::GetEntity(this)->GetComp<HealthComponent>() })
+        {
+            healthComp->SetMaxHealth(150);
+        }
+
+        if (ecs::CompHandle<CharacterMovementComponent> characterComp{ ecs::GetEntity(this)->GetComp<CharacterMovementComponent>() })
+        {
+            characterComp->ResetSpeedMultiplier();
+            characterComp->SetSpeedMultiplier(1.1f); // speed buff
+        }
+
+        gainRate = 1.2f;
+        lossRate = 0.8f;
+        
+        // Hackerryyyyyyyyyyyyyyyyyyyyyyy
+        delusionBuff1->SetActive(true);
+        delusionBuff2->SetActive(true);
+        delusionBuff3->SetActive(true);
+        delusionBuff4->SetActive(true);
+        break;
+    }
+
+    default:
+        // Handle unexpected case (optional)
+        break;
+    }
+    
 	prevTier = currTier;
+    ecs::GetEntity(this)->GetComp<EntityEventsComponent>()->BroadcastAll("OnDelusionTierChanged", currTier);
 }
 
 DelusionComponent::DelusionType DelusionComponent::GetDelusionFraction()
@@ -202,12 +305,34 @@ DelusionComponent::DelusionType DelusionComponent::GetDelusionFraction()
 	return (DelusionType)currDelusion / (DelusionType)maxDelusion;
 }
 
+void DelusionComponent::Serialize(Serializer& writer) const
+{
+    IRegisteredComponent::Serialize(writer);
+    writer.Serialize("delusionBuff1", delusionBuff1);
+    writer.Serialize("delusionBuff2", delusionBuff2);
+    writer.Serialize("delusionBuff3", delusionBuff3);
+    writer.Serialize("delusionBuff4", delusionBuff4);
+}
+
+void DelusionComponent::Deserialize(Deserializer& reader)
+{
+    IRegisteredComponent::Deserialize(reader);
+    reader.Deserialize("delusionBuff1", &delusionBuff1);
+    reader.Deserialize("delusionBuff2", &delusionBuff2);
+    reader.Deserialize("delusionBuff3", &delusionBuff3);
+    reader.Deserialize("delusionBuff4", &delusionBuff4);
+}
+
 void DelusionComponent::EditorDraw()
 {
-	std::string to_print = to_string();
 	gui::VarInput("Max Delusion", &maxDelusion); //swap this out for one that prints to_print instead of &maxDelusion
 	gui::VarInput("Gain Rate", &gainRate); //swap this out for one that prints to_print instead of &maxDelusion
 	gui::VarInput("Loss Rate", &lossRate); //swap this out for one that prints to_print instead of &maxDelusion
 	gui::VarInput("Ult Value", &ultValue); //swap this out for one that prints to_print instead of &maxDelusion
 	gui::VarInput("Current Delusion", &currDelusion); //swap this out for one that prints to_print instead of &maxDelusion
+
+    delusionBuff1.EditorDraw("Delusion Buff 1");
+    delusionBuff2.EditorDraw("Delusion Buff 2");
+    delusionBuff3.EditorDraw("Delusion Buff 3");
+    delusionBuff4.EditorDraw("Delusion Buff 4");
 }

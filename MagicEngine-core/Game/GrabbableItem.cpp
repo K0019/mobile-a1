@@ -27,12 +27,30 @@ All rights reserved.
 #include "Physics/Physics.h"
 #include "Engine/Input.h"
 #include "Editor/Containers/GUICollection.h"
+#include "Editor/EditorUtilResource.h"
 #include "Game/PlayerCharacter.h"
 #include "Game/EnemyCharacter.h"
 #include "Game/Delusion.h"
+#include "Managers\AudioManager.h"
+
+#include "Engine/Events/EventsQueue.h"
+#include "Engine/Events/EventsTypeBasic.h"
+#include "Engine/PrefabManager.h"
+#include "Graphics/RenderComponent.h"
 
 void GrabbableItemComponent::Attack(Vec3 origin, Vec3 direction)
 {
+	//Add the damage if the attack is an ultimate attack.
+	float attackDamage{ damage };
+	if (auto playerComp{ ecs::GetEntity(this)->GetComp<PlayerMovementComponent>() })
+	{
+		if (playerComp->isUltimateAttack)
+		{
+			attackDamage += playerComp->ultimateAttackDamage;
+			playerComp->isUltimateAttack = false;
+		}
+	}
+
 	std::vector<physics::BoxColliderComp*> colliders;
 	physics::OverlapBox(colliders, origin, attackBox, direction);
 
@@ -54,9 +72,19 @@ void GrabbableItemComponent::Attack(Vec3 origin, Vec3 direction)
 
 		if (ecs::CompHandle<HealthComponent> healthComp{ hitEntity->GetComp<HealthComponent>() })
 		{
-			// Deal damage to it
-			healthComp->TakeDamage(damage,direction);
-
+			bool dealDamage = true;
+			// If the target is parrying, we don't deal damage to them
+			if(ecs::CompHandle<CharacterMovementComponent> characterComp{ hitEntity->GetComp<CharacterMovementComponent>() })
+			{
+				// Deal damage to it
+				if (characterComp->IsParrying())
+				{
+					dealDamage = false;
+					characterComp->OnParrySuccess();
+				}
+			}
+			if(dealDamage)
+				healthComp->TakeDamage(attackDamage, direction);
 			//damage taken tied to delusion for now
 			//if owner is enemy
 			if (owner->GetComp<EnemyComponent>())
@@ -64,7 +92,7 @@ void GrabbableItemComponent::Attack(Vec3 origin, Vec3 direction)
 				//hit player lose delusion
 				if (ecs::CompHandle<DelusionComponent> delusionComp{ hitEntity->GetComp<DelusionComponent>() })
 				{
-					delusionComp->LoseDelusion(damage * 0.2f);
+					delusionComp->LoseDelusion(attackDamage * 0.2f);
 				}
 			}
 			// if owner is player
@@ -73,9 +101,10 @@ void GrabbableItemComponent::Attack(Vec3 origin, Vec3 direction)
 				//owner player gain delusion
 				if (ecs::CompHandle<DelusionComponent> delusionComp{ owner->GetComp<DelusionComponent>() })
 				{
-					delusionComp->AddDelusion(damage * 0.2f);
+					delusionComp->AddDelusion(attackDamage * 0.2f);
 				}
 			}
+
 		}
 	}
 }
@@ -87,26 +116,6 @@ GrabbableItemComponent::GrabbableItemComponent() :
 	attackBox{},
 	attackDelay{ 0.0f }
 {
-}
-
-void GrabbableItemComponent::Serialize(Serializer& writer) const
-{
-	this->IRegisteredComponent::Serialize(writer);
-
-	writer.Serialize(lightAttackAnimation);
-	writer.Serialize(heavyAttackAnimation);
-	writer.Serialize(ultimAttackAnimation);
-	writer.Serialize(parryAnimation);
-}
-
-void GrabbableItemComponent::Deserialize(Deserializer& reader)
-{
-	this->IRegisteredComponent::Deserialize(reader);
-
-	reader.Deserialize(&lightAttackAnimation);
-	reader.Deserialize(&heavyAttackAnimation);
-	reader.Deserialize(&ultimAttackAnimation);
-	reader.Deserialize(&parryAnimation);
 }
 
 void GrabbableItemComponent::EditorDraw()
@@ -144,6 +153,14 @@ void GrabbableItemComponent::EditorDraw()
 	gui::PayloadTarget<size_t>("ANIMATION_HASH", [&](size_t hash) -> void {
 		parryAnimation = hash;
 		});
+
+	editor::EditorUtil_DrawResourceHandle("Pickup UI Material", pickupUI);
+
+	// TODO: Editor Draw
+	gui::VarDefault("Audio Name", &audioName);
+
+	gui::VarInput("Audio Start Index", &audioStartIndex);
+	gui::VarInput("Audio End Index", &audioEndIndex);
 }
 
 GrabbableItemComponentSystem::GrabbableItemComponentSystem()
@@ -157,14 +174,123 @@ void GrabbableItemComponentSystem::UpdateGrabbableItemComponent(GrabbableItemCom
 	ecs::CompHandle<physics::PhysicsComp> physicsComp = itemEntity->GetComp<physics::PhysicsComp>();
 	ecs::CompHandle<physics::BoxColliderComp> colliderComp = itemEntity->GetComp<physics::BoxColliderComp>();
 
-	//physicsComp->SetFlag(physics::PHYSICS_COMP_FLAG::ENABLED, !comp.isHeld);
-	//physicsComp->SetFlag(physics::PHYSICS_COMP_FLAG::USE_GRAVITY, !comp.isHeld);
-	//physicsComp->SetFlag(physics::PHYSICS_COMP_FLAG::IS_KINEMATIC, comp.isHeld);
-	//colliderComp->SetFlag(physics::COLLIDER_COMP_FLAG::ENABLED, !comp.isHeld);
 
 	if (comp.isHeld)
 	{
 		physicsComp->SetAngularVelocity(Vec3{ 0 });
 		physicsComp->SetLinearVelocity(Vec3{ 0 });
 	}
+}
+
+GrabbableItemPickupUISystem::GrabbableItemPickupUISystem()
+	: System_Internal{ &GrabbableItemPickupUISystem::UpdateItemCompUI }
+{
+}
+
+bool GrabbableItemPickupUISystem::PreRun()
+{
+	// If the game scene reloaded, the entities we're tracking don't exist anymore
+	if (auto sceneUnloadEvent{ EventsReader<Events::SceneUnloaded>{}.ExtractEvent() })
+		if (sceneUnloadEvent->index == 0)
+		{
+			inactiveUIEntities.clear();
+			activeUIEntities.clear();
+		}
+
+	// If player doesn't exist, skip execution
+	auto playerCompIter{ ecs::GetCompsActiveBeginConst<PlayerMovementComponent>() };
+	if (playerCompIter == ecs::GetCompsEndConst<PlayerMovementComponent>())
+		return false;
+
+	// Save player position for distance calculation
+	playerPos = playerCompIter.GetEntity()->GetTransform().GetWorldPosition();
+
+	return true;
+}
+
+void GrabbableItemPickupUISystem::PostRun()
+{
+	// Flushes BillboardComponent attachments to fix a 1 frame period where the UI isn't billboarded
+	ecs::FlushChanges();
+}
+
+void GrabbableItemPickupUISystem::UpdateItemCompUI(GrabbableItemComponent& itemComp)
+{
+	// Skip if the item doesn't have an associated UI material
+	if (itemComp.pickupUI.GetHash() == 1)
+		return;
+
+	ecs::EntityHandle itemEntity{ ecs::GetEntity(&itemComp) };
+
+	// If item is being held, hide UI
+	if (itemComp.isHeld)
+	{
+		HideUI(itemEntity);
+		return;
+	}
+
+	// Show/Hide UI based on distance check
+	constexpr float UI_APPEAR_DIST{ 2.5f };
+	Vec3 toPlayer{ playerPos - itemEntity->GetTransform().GetWorldPosition()};
+	if (toPlayer.LengthSqr() <= UI_APPEAR_DIST * UI_APPEAR_DIST)
+		ShowUI(itemEntity, itemComp.pickupUI);
+	else
+		HideUI(itemEntity);
+}
+
+void GrabbableItemPickupUISystem::HideUI(ecs::EntityHandle itemEntity)
+{
+	// Ignore if this item entity doesn't have an active UI
+	auto uiEntityIter{ activeUIEntities.find(itemEntity) };
+	if (uiEntityIter == activeUIEntities.end())
+		return;
+
+	// Deactivate and unparent the UI
+	ecs::EntityHandle uiEntity{ uiEntityIter->second };
+	uiEntity->SetActive(false);
+	
+	// Transfer UI entity to inactive pool
+	inactiveUIEntities.push_back(uiEntity);
+	activeUIEntities.erase(uiEntityIter);
+}
+
+void GrabbableItemPickupUISystem::ShowUI(ecs::EntityHandle itemEntity, UserResourceHandle<ResourceMaterial> uiMaterial)
+{
+	Transform& itemTransform{ itemEntity->GetTransform() };
+
+	// Assign a UI entity if this item doesn't have one yet
+	auto uiEntityIter{ activeUIEntities.find(itemEntity) };
+	if (uiEntityIter == activeUIEntities.end())
+	{
+		uiEntityIter = activeUIEntities.try_emplace(itemEntity, GetInactiveUIEntity()).first;
+		uiEntityIter->second->SetActive(true);
+		// Set texture (only works for single material mesh)
+		if (auto renderComp{ uiEntityIter->second->GetComp<RenderComponent>() })
+		{
+			if (!renderComp->GetMaterialsList().empty())
+				renderComp->GetMaterialsList()[0] = uiMaterial;
+			else
+				CONSOLE_LOG(LEVEL_ERROR) << "Item UI entity doesn't have a suitable mesh! Needs at least 1 material.";
+		}
+		else
+			CONSOLE_LOG(LEVEL_ERROR) << "Item UI entity doesn't have a RenderComponent!";
+	}
+
+	// Set UI transform to just above the item
+	Vec3 itemPos{ itemTransform.GetWorldPosition() };
+	itemPos.y += 1.5f;
+	uiEntityIter->second->GetTransform().SetWorldPosition(itemPos);
+}
+
+ecs::EntityHandle GrabbableItemPickupUISystem::GetInactiveUIEntity()
+{
+	if (!inactiveUIEntities.empty())
+	{
+		ecs::EntityHandle toReturn{ inactiveUIEntities.back() };
+		inactiveUIEntities.pop_back();
+		return toReturn;
+	}
+	
+	// Safe as long as the prefab doesn't contain GrabbableItemComponent
+	return ST<PrefabManager>::Get()->LoadPrefab("itempickupui");
 }
