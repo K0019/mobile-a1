@@ -95,6 +95,9 @@ namespace vk
 
     // framebuffers can render only into one level/layer
     [[nodiscard]] VkImageView getOrCreateVkImageViewForFramebuffer(VulkanContext& ctx, uint8_t level, uint16_t layer);
+    
+    // multiview framebuffer - renders to multiple layers at once
+    [[nodiscard]] VkImageView getOrCreateVkImageViewForFramebufferMultiview(VulkanContext& ctx, uint8_t level, uint16_t baseLayer, uint16_t layerCount);
 
     [[nodiscard]] static bool isDepthFormat(VkFormat format);
 

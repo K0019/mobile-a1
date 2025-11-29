@@ -178,6 +178,7 @@ layout(std430, buffer_reference) buffer OIT {
 #define CLUSTER_DIM_Y 8
 #define CLUSTER_DIM_Z 24
 #define MAX_ITEMS_PER_CLUSTER 256
+#define MAX_SHADOW_POINT_LIGHTS 4
 
 struct GPULight {
     vec3 position;
@@ -186,6 +187,20 @@ struct GPULight {
     uint type;
     vec3 direction;
     float spotAngle;
+};
+
+// Per-shadow-casting point light data - 416 bytes
+struct GPUPointLightShadow {
+    mat4 viewProj[6];      // View-projection matrices for each cube face (384 bytes)
+    vec4 lightPos;         // xyz = position, w = unused (16 bytes)
+    float shadowNear;      // Near plane for shadow projection
+    float shadowFar;       // Far plane for shadow projection
+    uint shadowMapIndex;   // Bindless cube texture index
+    uint lightIndex;       // Index into GPULight array
+};
+
+layout(buffer_reference, std430) readonly buffer PointLightShadowBuffer {
+    GPUPointLightShadow shadows[];
 };
 
 struct ClusterBounds {
@@ -222,11 +237,12 @@ layout(std430, buffer_reference) buffer LightingData {
     ClusterBoundsBuffer clusterBounds;
     ItemListBuffer itemList;
     ClusterDataBuffer clusters;
+    PointLightShadowBuffer pointShadows;  // Point light shadow data
     vec2 screenDims;
     float zNear;
     float zFar;
     uint totalLightCount;
-    uint pad0, pad1, pad2;
+    uint shadowPointLightCount;           // Number of shadow-casting point lights
+    uint pad0, pad1;
     mat4 viewMatrix;
 };
-
