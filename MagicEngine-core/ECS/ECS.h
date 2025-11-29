@@ -945,7 +945,7 @@ X(EDITOR_GUI, true)		/* For the editor */
 	\return
 		EntityHandle to the newly created cloned entity.
 	*//******************************************************************/
-	EntityHandle CloneEntityToPoolNow(EntityHandle entity, POOL id, bool recursive = false);
+	EntityHandle CloneEntityToPool(EntityHandle entity, POOL id, bool recursive = false);
 
 	// TODO: Make MoveEntityToPool - required to ensure entity UID is consistent in cases where this is desired
 

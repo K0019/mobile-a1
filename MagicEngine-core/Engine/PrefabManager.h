@@ -123,7 +123,7 @@ public:
 		ecs::POOL currentPool = ecs::GetCurrentPoolId();
 		ecs::SwitchToPool(ecs::POOL::PREFAB_CACHE);
 
-		ecs::EntityHandle clonedEntity = ecs::CloneEntityToPoolNow(prefabManager->_prefabPool[name], currentPool, true);
+		ecs::EntityHandle clonedEntity = ecs::CloneEntityToPool(prefabManager->_prefabPool[name], currentPool, true);
 
 		ecs::SwitchToPool(currentPool);
 

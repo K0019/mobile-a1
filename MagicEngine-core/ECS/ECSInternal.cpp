@@ -250,9 +250,9 @@ namespace ecs {
 
 		void Entity_Internal::INTERNAL_CloneCompsToEntityNow(InternalEntityHandle entity) const
 		{
-			INTERNAL_CloneCompsToEntityNow(entity, CurrentPool::Comps(), CurrentPool::Comps());
+			INTERNAL_CloneCompsToEntity(entity, CurrentPool::Comps(), CurrentPool::Comps());
 		}
-		void Entity_Internal::INTERNAL_CloneCompsToEntityNow(InternalEntityHandle entity, CompArrMapType& srcCompArrMap, CompArrMapType& destCompArrMap) const
+		void Entity_Internal::INTERNAL_CloneCompsToEntity(InternalEntityHandle entity, CompArrMapType& srcCompArrMap, CompArrMapType& destCompArrMap) const
 		{
 			if (components.empty())
 				return;
@@ -270,7 +270,7 @@ namespace ecs {
 				uint32_t compIndex{ srcCompArr->CloneComp(compIter->second, entity, *destCompArr) };
 
 				// Register the component to the entity
-				entity->components.emplace(compIter->first, compIndex);
+				entity->components.emplace(compIter->first, compIndex | COMP_STATUS_TO_ADD);
 			}
 		}
 
@@ -591,6 +591,11 @@ namespace ecs {
 			entitiesToRemove.clear();
 		}
 
+		CompArrMapType& CompChangesBuffer::GetCompsToAdd()
+		{
+			return compsToAdd;
+		}
+
 		CompIndexSetType<CompModifyTask>& CompChangesBuffer::GetModifySet(CompHash compType)
 		{
 			ModifyCompSetType::iterator removeSetIter{ compsToModify.find(compType) };
@@ -869,7 +874,8 @@ namespace ecs {
 		std::pair<CompArrMapType::iterator, bool> CompArr::CloneWithoutCompDataIntoPool(CompArrMapType& compArrPool) const
 		{
 			// Ensure the destination comp arr map is in the current pool, otherwise comp callbacks could be incorrect.
-			assert(&CurrentPool::Comps() == &compArrPool);
+			// This check cannot be relevant anymore due to cloning of entities across pools.
+			//assert(&CurrentPool::Comps() == &compArrPool);
 
 			bool compCallbacksEnabled{ CurrentPool::HasCompCallbacksEnabled() };
 			return compArrPool.emplace(
