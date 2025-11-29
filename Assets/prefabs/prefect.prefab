@@ -255,6 +255,9 @@
                     "scripts": [
                         {
                             "scriptName": "enemydeath.lua"
+                        },
+                        {
+                            "scriptName": "winonhealthdepleted.lua"
                         }
                     ]
                 }
