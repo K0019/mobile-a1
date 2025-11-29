@@ -266,7 +266,7 @@
                     "hurtSound": "",
                     "moveSpeed": 2.0,
                     "rotateSpeed": 1440.0,
-                    "stunTimePerHit": 0.10000000149011612,
+                    "stunTimePerHit": 0.05000000074505806,
                     "groundFriction": 0.5,
                     "dodgeCooldown": 1.0,
                     "dodgeDuration": 0.20000000298023224,
