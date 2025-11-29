@@ -787,7 +787,8 @@ namespace ecs {
 			callCopyFunc(GetComp(index), destArr.GetComp(compIndex));
 
 			// Inform component of attach event
-			CurrentPool::ChangesBuffer().AddComponentCallback(destArr.callInformAttachedFunc, entityOwner);
+			// Kendrick 29/11/2025: Not needed anymore. All cloning will go through the comp buffer which will add a call to OnAttached.
+			//CurrentPool::ChangesBuffer().AddComponentCallback(destArr.callInformAttachedFunc, entityOwner);
 
 			return compIndex;
 		}
