@@ -34,6 +34,8 @@ All rights reserved.
 #include "Engine/SceneManagement.h"
 #include "Scripting/ScriptComponent.h"
 #include "Engine/EntityEvents.h"
+#include "VFS/VFS.h"
+#include "FilepathConstants.h"
 
 HealthComponent::HealthType cheatState = 0;
 bool cheatActive = false; ///THis is so the healthbar colour wont keep updating
@@ -101,7 +103,7 @@ void HealthComponent::TakeDamage(HealthComponent::HealthType amount, Vec3 direct
 	{
 		if (auto playerComp{ thisEntity->GetComp< PlayerMovementComponent >() })
 		{
-			ST<Scheduler>::Get()->Add([]() {ST<SceneManager>::Get()->ReloadScene(0); });
+			ST<Scheduler>::Get()->Add([]() { ST<SceneManager>::Get()->UnloadAllScenes(VFS::JoinPath(Filepaths::scenesSave, "losemenu.scene")); });
 		}
 		else
 		{
