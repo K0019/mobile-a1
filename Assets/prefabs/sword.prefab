@@ -20,7 +20,7 @@
             "components": {
                 "137465014557233347": {
                     "_active": true,
-                    "damage": 20000.0,
+                    "damage": 45.0,
                     "attackBox": {
                         "x": 1.0,
                         "y": 1.0,
@@ -29,7 +29,7 @@
                     "attackDelay": 0.20000000298023224,
                     "audioName": "sword ",
                     "audioStartIndex": 1,
-                    "audioEndIndex": 5,
+                    "audioEndIndex": 4,
                     "hash": 2582954025322195705,
                     "hash": 2582954025322195705,
                     "hash": 2582954025322195705,
@@ -81,6 +81,23 @@
                             "Use Gravity",
                             "Enabled"
                         ]
+                    }
+                },
+                "16607109609690958986": {
+                    "_active": true,
+                    "targetEntity": {
+                        "entityUid": 0
+                    },
+                    "boneName": "",
+                    "localOffset": {
+                        "x": 0.0,
+                        "y": 0.0,
+                        "z": 0.0
+                    },
+                    "localRotation": {
+                        "x": 0.0,
+                        "y": 0.0,
+                        "z": 0.0
                     }
                 },
                 "18236831197208900764": {

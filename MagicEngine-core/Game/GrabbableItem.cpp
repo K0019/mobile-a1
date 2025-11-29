@@ -186,10 +186,6 @@ void GrabbableItemComponentSystem::UpdateGrabbableItemComponent(GrabbableItemCom
 	ecs::CompHandle<physics::PhysicsComp> physicsComp = itemEntity->GetComp<physics::PhysicsComp>();
 	ecs::CompHandle<physics::BoxColliderComp> colliderComp = itemEntity->GetComp<physics::BoxColliderComp>();
 
-	//physicsComp->SetFlag(physics::PHYSICS_COMP_FLAG::ENABLED, !comp.isHeld);
-	//physicsComp->SetFlag(physics::PHYSICS_COMP_FLAG::USE_GRAVITY, !comp.isHeld);
-	//physicsComp->SetFlag(physics::PHYSICS_COMP_FLAG::IS_KINEMATIC, comp.isHeld);
-	//colliderComp->SetFlag(physics::COLLIDER_COMP_FLAG::ENABLED, !comp.isHeld);
 
 	if (comp.isHeld)
 	{

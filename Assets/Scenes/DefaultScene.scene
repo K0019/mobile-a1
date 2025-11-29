@@ -997,6 +997,23 @@
                         ]
                     }
                 },
+                "16607109609690958986": {
+                    "_active": true,
+                    "targetEntity": {
+                        "entityUid": 0
+                    },
+                    "boneName": "",
+                    "localOffset": {
+                        "x": 0.0,
+                        "y": 0.0,
+                        "z": 0.0
+                    },
+                    "localRotation": {
+                        "x": 0.0,
+                        "y": 0.0,
+                        "z": 0.0
+                    }
+                },
                 "18236831197208900764": {
                     "_active": true,
                     "center": {
@@ -1792,8 +1809,8 @@
         {
             "parentIndex": -1,
             "position": {
-                "x": 0.6198292970657349,
-                "y": 0.8395662903785706,
+                "x": 0.0,
+                "y": 1.8618109226226807,
                 "z": 0.0
             },
             "rotation": {
@@ -1869,6 +1886,23 @@
                         ]
                     }
                 },
+                "16607109609690958986": {
+                    "_active": true,
+                    "targetEntity": {
+                        "entityUid": 0
+                    },
+                    "boneName": "J_Bip_R_Middle2",
+                    "localOffset": {
+                        "x": 0.0,
+                        "y": 0.0,
+                        "z": 0.0
+                    },
+                    "localRotation": {
+                        "x": 0.0,
+                        "y": 0.0,
+                        "z": 0.0
+                    }
+                },
                 "18236831197208900764": {
                     "_active": true,
                     "center": {
@@ -1909,7 +1943,7 @@
             },
             "components": {
                 "4057566390273757802": {
-                    "_active": true,
+                    "_active": false,
                     "type": 1,
                     "direction": {
                         "x": 0.0,
@@ -1935,7 +1969,7 @@
                     }
                 },
                 "5352011725353660904": {
-                    "_active": true,
+                    "_active": false,
                     "meshHandle": {
                         "hash": 2003547681145403119
                     },
@@ -1955,19 +1989,19 @@
                     ]
                 },
                 "6766054303456732338": {
-                    "_active": true,
+                    "_active": false,
                     "layer": 0
                 },
                 "7205334411763290517": {
-                    "_active": true,
+                    "_active": false,
                     "name": "BBT"
                 },
                 "9315785795257285655": {
-                    "_active": true,
+                    "_active": false,
                     "uid": 6430306838899339493
                 },
                 "9501525575059265452": {
-                    "_active": true,
+                    "_active": false,
                     "flags": {
                         "_majorityTrue": false,
                         "_except": [
@@ -1977,7 +2011,7 @@
                     }
                 },
                 "18236831197208900764": {
-                    "_active": true,
+                    "_active": false,
                     "center": {
                         "x": 0.0,
                         "y": 0.30000001192092896,
@@ -1996,7 +2030,7 @@
                     }
                 },
                 "18288371625365795113": {
-                    "_active": true,
+                    "_active": false,
                     "scripts": [
                         {
                             "scriptName": "bbt.lua"

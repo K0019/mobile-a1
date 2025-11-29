@@ -27,6 +27,7 @@ All rights reserved.
 #include "Editor/Containers/GUICollection.h"
 #include "Engine/Audio.h"
 #include "Managers\AudioManager.h"
+#include "Graphics/BoneAttachment.h"
 
 #define X(type, name) name,
 char const* animNames[] =
@@ -115,11 +116,26 @@ void CharacterMovementComponent::DropItem()
 		return;
 
 	// Physics Comp related
-	heldItem->GetComp<physics::PhysicsComp>()->SetFlag(physics::PHYSICS_COMP_FLAG::ENABLED, true);
+	if (auto physicsComp{ heldItem->GetComp<physics::PhysicsComp>() })
+	{
+		physicsComp->SetFlag(physics::PHYSICS_COMP_FLAG::ENABLED, true);
+		physicsComp->SetFlag(physics::PHYSICS_COMP_FLAG::USE_GRAVITY, true);
+	}
+	if (auto colliderComp{ heldItem->GetComp<physics::BoxColliderComp>() })
+	{
+		colliderComp->SetFlag(physics::COLLIDER_COMP_FLAG::ENABLED, true);
+	}
+
 	heldItem->GetComp<GrabbableItemComponent>()->isHeld = false;
 
 	// Transform related
 	heldItem->GetTransform().SetParent(nullptr);
+
+	if (auto boneAttachComp{ heldItem->GetComp<BoneAttachment>() })
+	{
+		boneAttachComp->targetEntity = nullptr;
+	}
+
 
 	heldItem = nullptr;
 }
@@ -146,7 +162,15 @@ void CharacterMovementComponent::GrabItem(ecs::CompHandle<GrabbableItemComponent
 	heldItem = ecs::GetEntity(item);
 
 	// Physics Comp related
-	heldItem->GetComp<physics::PhysicsComp>()->SetFlag(physics::PHYSICS_COMP_FLAG::ENABLED, false);
+	if(auto physicsComp{ heldItem->GetComp<physics::PhysicsComp>() })
+	{
+		physicsComp->SetFlag(physics::PHYSICS_COMP_FLAG::ENABLED, false);
+		physicsComp->SetFlag(physics::PHYSICS_COMP_FLAG::USE_GRAVITY, false);
+	}
+	if (auto colliderComp{ heldItem->GetComp<physics::BoxColliderComp>() })
+	{
+		colliderComp->SetFlag(physics::COLLIDER_COMP_FLAG::ENABLED, false);
+	}
 
 	// Play Audio
 	ST<AudioManager>::Get()->PlaySound3D("weapon pickup "+std::to_string(randomRange<int>(1,4)), false, ecs::GetEntity(this)->GetTransform().GetWorldPosition(), AudioType::END, std::pair<float, float>{2.0f, 50.0f}, 0.6f);
@@ -381,10 +405,16 @@ void CharacterMovementComponentSystem::UpdateCharacterMovementComponent(Characte
 	{
 		// Transform related
 		attackItem->GetTransform().SetParent(characterTransform);
-		attackItem->GetTransform().SetLocalPosition(Vec3{ 0,0,1 });
-		attackItem->GetTransform().SetLocalRotation(Vec3{ 0,5,10 });
 		attackItem->GetComp<GrabbableItemComponent>()->owner = characterEntity;
 		attackItem->GetComp<GrabbableItemComponent>()->isHeld = true;
+
+		if (auto boneAttachComp{ attackItem->GetComp<BoneAttachment>() })
+		{
+			boneAttachComp->targetEntity = characterEntity;
+			boneAttachComp->boneName = "J_Bip_R_Hand";
+		}
+		//attackItem->GetTransform().SetLocalPosition(Vec3{ 0,0,1 });
+		//attackItem->GetTransform().SetLocalRotation(Vec3{ 0,5,10 });
 	}
 
 	// If not holding an item, we fallback to the character's entity itself
