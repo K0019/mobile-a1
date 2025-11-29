@@ -131,7 +131,10 @@ void DelusionComponent::UpdateDelusionTier()
 	if (currTier == prevTier) return;
 
 	// Audio plays here
-	ST<AudioManager>::Get()->PlaySound(currTier > prevTier ? "rank increase" : "rank decrease", false);
+    if(currTier > prevTier)
+    ST<AudioManager>::Get()->PlaySound("rank increase", false, AudioType::END, 0.7f);
+    else
+    ST<AudioManager>::Get()->PlaySound("rank decrease", false, AudioType::END, 0.7f);
 
 	//buffs and debuffs, as of yet unimplemented due to it being hard to see interactions, but ill throw in the pseudo code
     
