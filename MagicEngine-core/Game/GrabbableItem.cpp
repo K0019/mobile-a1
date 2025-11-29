@@ -280,7 +280,7 @@ void GrabbableItemPickupUISystem::ShowUI(ecs::EntityHandle itemEntity, UserResou
 
 	// Set UI transform to just above the item
 	Vec3 itemPos{ itemTransform.GetWorldPosition() };
-	itemPos.y += 0.5f;
+	itemPos.y += 1.5f;
 	uiEntityIter->second->GetTransform().SetWorldPosition(itemPos);
 }
 
