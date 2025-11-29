@@ -69,9 +69,9 @@
         {
             "parentIndex": -1,
             "position": {
-                "x": -1.3328436613082886,
-                "y": 0.9998264312744141,
-                "z": -1.3157765865325928
+                "x": 0.06304383277893066,
+                "y": 0.9998800158500671,
+                "z": 0.11772263050079346
             },
             "rotation": {
                 "x": 0.0,
@@ -88,25 +88,25 @@
                     "_active": true,
                     "damage": 20.0,
                     "attackBox": {
-                        "x": 1.0,
-                        "y": 1.0,
-                        "z": 2.0
+                        "x": 0.20000000298023224,
+                        "y": 0.20000000298023224,
+                        "z": 1.0
                     },
                     "attackDelay": 0.3499999940395355,
                     "audioName": "light attack #1 ",
                     "audioStartIndex": 1,
                     "audioEndIndex": 3,
                     "lightAttackAnimation": {
-                        "hash": 1
+                        "hash": 2571380565928225517
                     },
                     "heavyAttackAnimation": {
-                        "hash": 1
+                        "hash": 5872848946299131223
                     },
                     "ultimAttackAnimation": {
                         "hash": 1
                     },
                     "parryAnimation": {
-                        "hash": 1
+                        "hash": 2531389129002756825
                     },
                     "pickupUI": {
                         "hash": 1
@@ -240,14 +240,10 @@
                     "animHandleA": {
                         "hash": 2559702652929616615
                     },
-                    "animHandleB": {
-                        "hash": 1
-                    },
                     "isPlaying": true,
                     "loop": true,
-                    "crossfade": true,
-                    "blend": 0.0,
-                    "speed": 1.0
+                    "speed": 1.0,
+                    "transitionDuration": 0.20000000298023224
                 },
                 "16735904824485644755": {
                     "_active": true,
@@ -265,9 +261,12 @@
                     "parryCoolDownTime": 0.10000000149011612,
                     "parryTime": 0.5,
                     "parryDelusion": 10.0,
+                    "dodgeSound": "",
+                    "attackSound": "",
+                    "hurtSound": "",
                     "moveSpeed": 2.0,
                     "rotateSpeed": 1440.0,
-                    "stunTimePerHit": 0.25,
+                    "stunTimePerHit": 0.05000000074505806,
                     "groundFriction": 0.5,
                     "dodgeCooldown": 1.0,
                     "dodgeDuration": 0.20000000298023224,
@@ -295,7 +294,7 @@
                             "hash": 2535997182234766043
                         },
                         {
-                            "hash": 1
+                            "hash": 2531389129002756825
                         },
                         {
                             "hash": 1
@@ -579,14 +578,10 @@
                     "animHandleA": {
                         "hash": 2459018174152793319
                     },
-                    "animHandleB": {
-                        "hash": 1
-                    },
                     "isPlaying": true,
                     "loop": true,
-                    "crossfade": false,
-                    "blend": 0.0,
-                    "speed": 1.0
+                    "speed": 1.0,
+                    "transitionDuration": 0.20000000298023224
                 },
                 "16763493199777387366": {
                     "_active": false,
@@ -610,6 +605,9 @@
                     "parryCoolDownTime": 0.0,
                     "parryTime": 0.0,
                     "parryDelusion": 0.0,
+                    "dodgeSound": "",
+                    "attackSound": "",
+                    "hurtSound": "",
                     "moveSpeed": 1.7999999523162842,
                     "rotateSpeed": 200.0,
                     "stunTimePerHit": 0.5,
@@ -941,14 +939,14 @@
         {
             "parentIndex": -1,
             "position": {
-                "x": 1.0,
-                "y": 0.8395662903785706,
-                "z": 0.0
+                "x": 2.451857805252075,
+                "y": 0.8394438028335571,
+                "z": 0.03857571631669998
             },
             "rotation": {
                 "x": 0.0,
-                "y": 0.0,
-                "z": 0.0
+                "y": -0.0,
+                "z": 89.99974822998047
             },
             "scale": {
                 "x": 1.0,
@@ -969,16 +967,16 @@
                     "audioStartIndex": 1,
                     "audioEndIndex": 4,
                     "lightAttackAnimation": {
-                        "hash": 1
+                        "hash": 2582954025322195705
                     },
                     "heavyAttackAnimation": {
-                        "hash": 1
+                        "hash": 2589189355763313403
                     },
                     "ultimAttackAnimation": {
-                        "hash": 1
+                        "hash": 4641994057353533167
                     },
                     "parryAnimation": {
-                        "hash": 1
+                        "hash": 2593603894948834043
                     },
                     "pickupUI": {
                         "hash": 2578814363255955407
@@ -1046,7 +1044,7 @@
                     "localRotation": {
                         "x": 0.0,
                         "y": 0.0,
-                        "z": 0.0
+                        "z": 180.0
                     }
                 },
                 "18236831197208900764": {
@@ -1579,14 +1577,10 @@
                     "animHandleA": {
                         "hash": 5872848946299131223
                     },
-                    "animHandleB": {
-                        "hash": 1
-                    },
                     "isPlaying": true,
                     "loop": true,
-                    "crossfade": false,
-                    "blend": 0.0,
-                    "speed": 1.0
+                    "speed": 1.0,
+                    "transitionDuration": 0.20000000298023224
                 },
                 "16763493199777387366": {
                     "_active": false,
@@ -1610,6 +1604,9 @@
                     "parryCoolDownTime": 0.0,
                     "parryTime": 0.0,
                     "parryDelusion": 0.0,
+                    "dodgeSound": "",
+                    "attackSound": "",
+                    "hurtSound": "",
                     "moveSpeed": 3.0,
                     "rotateSpeed": 14400.0,
                     "stunTimePerHit": 0.5,
@@ -1689,13 +1686,13 @@
                 "z": 0.0
             },
             "scale": {
-                "x": 1.0,
-                "y": 1.0,
-                "z": 1.0
+                "x": 2.0,
+                "y": 2.0,
+                "z": 2.0
             },
             "components": {
                 "5352011725353660904": {
-                    "_active": true,
+                    "_active": false,
                     "meshHandle": {
                         "hash": 2271024775204018431
                     },
@@ -1706,15 +1703,15 @@
                     ]
                 },
                 "6766054303456732338": {
-                    "_active": true,
+                    "_active": false,
                     "layer": 0
                 },
                 "7205334411763290517": {
-                    "_active": true,
+                    "_active": false,
                     "name": "Prefect_BookingSlip"
                 },
                 "8426725214831635516": {
-                    "_active": true,
+                    "_active": false,
                     "entityReferences": [
                         {
                             "entityUid": 51797992787031769
@@ -1722,11 +1719,11 @@
                     ]
                 },
                 "9315785795257285655": {
-                    "_active": true,
+                    "_active": false,
                     "uid": 4344622341204501000
                 },
                 "18236831197208900764": {
-                    "_active": true,
+                    "_active": false,
                     "center": {
                         "x": 0.0,
                         "y": 0.0,
@@ -1743,7 +1740,7 @@
                     }
                 },
                 "18288371625365795113": {
-                    "_active": true,
+                    "_active": false,
                     "scripts": [
                         {
                             "scriptName": "prefect_bookingslip.lua"
@@ -1864,9 +1861,9 @@
         {
             "parentIndex": -1,
             "position": {
-                "x": 0.0,
-                "y": 1.8618109226226807,
-                "z": 0.0
+                "x": -2.642317056655884,
+                "y": 0.8659429550170898,
+                "z": 0.12284905463457108
             },
             "rotation": {
                 "x": 0.0,
@@ -1892,13 +1889,13 @@
                     "audioStartIndex": 1,
                     "audioEndIndex": 3,
                     "lightAttackAnimation": {
-                        "hash": 1
+                        "hash": 2556570144302082789
                     },
                     "heavyAttackAnimation": {
                         "hash": 1
                     },
                     "ultimAttackAnimation": {
-                        "hash": 1
+                        "hash": 4613082399101163243
                     },
                     "parryAnimation": {
                         "hash": 1
@@ -2003,7 +2000,7 @@
             "position": {
                 "x": -4.820554733276367,
                 "y": 0.8395383358001709,
-                "z": -4.734145164489746
+                "z": -2.459285259246826
             },
             "rotation": {
                 "x": 0.0,
@@ -2390,14 +2387,10 @@
                     "animHandleA": {
                         "hash": 1
                     },
-                    "animHandleB": {
-                        "hash": 1
-                    },
                     "isPlaying": true,
                     "loop": true,
-                    "crossfade": false,
-                    "blend": 0.0,
-                    "speed": 1.0
+                    "speed": 1.0,
+                    "transitionDuration": 0.20000000298023224
                 },
                 "16763493199777387366": {
                     "_active": false,
@@ -2421,6 +2414,9 @@
                     "parryCoolDownTime": 0.0,
                     "parryTime": 0.0,
                     "parryDelusion": 0.0,
+                    "dodgeSound": "",
+                    "attackSound": "",
+                    "hurtSound": "",
                     "moveSpeed": 1.7999999523162842,
                     "rotateSpeed": 200.0,
                     "stunTimePerHit": 0.5,
@@ -9192,7 +9188,7 @@
                 },
                 "6766054303456732338": {
                     "_active": true,
-                    "layer": 0
+                    "layer": 1
                 },
                 "7205334411763290517": {
                     "_active": true,
@@ -9356,7 +9352,7 @@
                 },
                 "6766054303456732338": {
                     "_active": true,
-                    "layer": 0
+                    "layer": 1
                 },
                 "7205334411763290517": {
                     "_active": true,
@@ -9418,7 +9414,7 @@
                 },
                 "6766054303456732338": {
                     "_active": true,
-                    "layer": 0
+                    "layer": 1
                 },
                 "7205334411763290517": {
                     "_active": true,
@@ -9480,7 +9476,7 @@
                 },
                 "6766054303456732338": {
                     "_active": true,
-                    "layer": 0
+                    "layer": 1
                 },
                 "7205334411763290517": {
                     "_active": true,

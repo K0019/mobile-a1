@@ -188,6 +188,18 @@ namespace ecs {
 				The entity to copy components to.
 			*//******************************************************************/
 			void INTERNAL_CloneCompsToEntity(InternalEntityHandle entity) const;
+			/*****************************************************************//*!
+			\brief
+				Copies components that are fully attached to this entity to another entity whose components are stored in the
+				provided component array map. This is to facilitate copying entities between pools.
+			\param entity
+				The entity to copy components to.
+			\param srcCompArrMap
+				The map of component arrays that this entity stores its components in.
+			\param destCompArrMap
+				The map of component arrays that the provided entity stores its components in.
+			*//******************************************************************/
+			void INTERNAL_CloneCompsToEntity(InternalEntityHandle entity, CompArrMapType& srcCompArrMap, CompArrMapType& destCompArrMap) const;
 
 			/*****************************************************************//*!
 			\brief
@@ -851,6 +863,12 @@ namespace ecs {
 				For shutdown purposes: Clear and reset the buffer. Doesn't make any changes to outside pools, components or entities.
 			*//******************************************************************/
 			void ClearAndReset();
+
+			/*****************************************************************//*!
+			\brief
+				For cloning of entities across pools.
+			*//******************************************************************/
+			CompArrMapType& GetCompsToAdd();
 
 		private:
 			/*****************************************************************//*!

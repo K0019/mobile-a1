@@ -5,24 +5,36 @@ local openSpeed = 2.4
 local currentOpeningDistance = 0.0
 local openingDoorEntity
 local closingDoorEntity
+local thisEntity
+
+local isClosed = false
+local isOpen = false
 
 function open()
     opening = true
     moving = true
+    if not isOpen then
+        Magic.AudioManager.PlaySound3DWithVolume("door open",false,thisEntity.transform.worldPosition,1)
+    end
 
 end
 
 function close()
     opening = false
     moving = true
+    if not isClosed then
+        Magic.AudioManager.PlaySound3DWithVolume("door open",false,thisEntity.transform.worldPosition,1)
+    end
 end
 
 function toggle()
     opening = not opening
     moving = true
+    Magic.AudioManager.PlaySound3DWithVolume("door open",false,thisEntity.transform.worldPosition,1)
 end
 
 function start(entity)
+    thisEntity = entity
     -- We decide whether the door starts open if the name has "Open"
     local nameComp = entity:GetNameComponent()
     Magic.Log(Magic.LogLevel.info, nameComp.name)
@@ -52,12 +64,15 @@ function update(entity)
     local localPos = transform.localPosition
 
     if(moving) then
+        isOpen = false
+        isClosed=false
         if(opening) then
-                currentOpeningDistance = currentOpeningDistance + Magic.DeltaTime() * openSpeed
+            currentOpeningDistance = currentOpeningDistance + Magic.DeltaTime() * openSpeed
 
-                if(currentOpeningDistance > openingDistance) then
-                    currentOpeningDistance = openingDistance
+            if(currentOpeningDistance > openingDistance) then
+                currentOpeningDistance = openingDistance
                 moving = false
+                isOpen = true
             end
         else
             currentOpeningDistance = currentOpeningDistance - Magic.DeltaTime() * openSpeed
@@ -65,13 +80,10 @@ function update(entity)
             if(currentOpeningDistance < 0) then
                 currentOpeningDistance = 0
                 moving = false
+                isClosed=true
             end
         end
     end
-
     localPos.z = localPos.z + (currentOpeningDistance - prevOpenDistance)
-    
     transform.localPosition = localPos
-
-
 end
