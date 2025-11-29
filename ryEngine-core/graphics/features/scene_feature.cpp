@@ -482,6 +482,7 @@ void SceneRenderFeature::SetupPasses(internal::RenderPassBuilder& passBuilder)
           .UseResource(RenderResources::INDEX_BUFFER, AccessType::Read)
           .UseResource("ObjectTransforms", AccessType::Read)
           .UseResource("DrawDataBuffer", AccessType::Read)
+          .UseResource(RenderResources::MATERIAL_BUFFER, AccessType::Read)
           .UseResource("IndirectBufferOpaqueStatic", AccessType::Read)
           .UseResource("IndirectBufferOpaqueAnimated", AccessType::Read)
           .UseResource("IndirectBufferTransparentStatic", AccessType::Read)
@@ -1876,7 +1877,7 @@ void SceneRenderFeature::ExecutePointShadowPass(internal::ExecutionContext& ctx,
         uint64_t shadowFrameConstants;
         uint64_t transforms;
         uint64_t drawData;
-        uint64_t unused0;
+        uint64_t materials;
         uint64_t meshDecomp;
         uint64_t unused1;
         uint64_t unused2;
@@ -1886,7 +1887,7 @@ void SceneRenderFeature::ExecutePointShadowPass(internal::ExecutionContext& ctx,
                                 shadowLightIndex * sizeof(Lighting::GPUPointLightShadow),
         .transforms = ctx.GetvkContext().gpuAddress(ctx.GetBuffer("ObjectTransforms")),
         .drawData = ctx.GetvkContext().gpuAddress(ctx.GetBuffer("DrawDataBuffer")),
-        .unused0 = 0,
+        .materials = ctx.GetvkContext().gpuAddress(ctx.GetBuffer(RenderResources::MATERIAL_BUFFER)),
         .meshDecomp = ctx.GetvkContext().gpuAddress(ctx.GetBuffer(RenderResources::MESH_DECOMPRESSION_BUFFER)),
         .unused1 = 0,
         .unused2 = 0,

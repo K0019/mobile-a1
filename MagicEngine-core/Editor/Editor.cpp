@@ -73,7 +73,7 @@ namespace editor {
 		EventsReader<Events::EditorCloneSelectedEntity>::ForEach([this](const Events::EditorCloneSelectedEntity&) -> void {
 			if (!selectedEntity)
 				return;
-			selectedEntity = ecs::CloneEntityNow(selectedEntity, true);
+			selectedEntity = ecs::CloneEntity(selectedEntity, true);
 			ST<History>::Get()->OneEvent(HistoryEvent_EntityCreate{ selectedEntity });
 		});
 
