@@ -18,11 +18,23 @@ All rights reserved.
 /******************************************************************************/
 
 #include "UI/BarComponent.h"
+#include "UI/SpriteComponent.h"
+#include "Editor/Containers/GUICollection.h"
+
+BarComponent::BarComponent()
+	: modifyUV{ false }
+{
+}
 
 void BarComponent::OnAttached()
 {
 	IUIComponent::OnAttached();
 	SetPercentageFilled(1.0f);
+}
+
+void BarComponent::EditorDraw()
+{
+	gui::Checkbox("Modify UV", &modifyUV);
 }
 
 void BarComponent::SetPercentageFilled(float percent)
@@ -32,4 +44,12 @@ void BarComponent::SetPercentageFilled(float percent)
 	ecs::CompHandle<RectTransformComponent> rectTransform{ ecs::GetEntity(this)->GetComp<RectTransformComponent>() };
 	rectTransform->SetLocalPosition(Vec2{ (percent - 1.0f) * 0.5f, 0.0f });
 	rectTransform->SetLocalScale(Vec2{ percent, 1.0f });
+
+	if (modifyUV)
+		if (ecs::CompHandle<SpriteComponent> spriteComp{ ecs::GetEntity(this)->GetComp<SpriteComponent>() })
+			spriteComp->VisitPrimitive([percent]([[maybe_unused]] auto& primitive) -> void {
+				using T = std::decay_t<decltype(primitive)>;
+				if constexpr (std::is_same_v<T, Primitive2DImage>)
+					primitive.SetUV(Vec2{}, Vec2{ percent, 1.0f });
+			});
 }
