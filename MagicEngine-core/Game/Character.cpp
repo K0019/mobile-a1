@@ -452,11 +452,19 @@ void CharacterMovementComponentSystem::UpdateCharacterMovementComponent(Characte
 	if (comp.IsParrying())
 	{
 		animComp->animHandleA = 0;
-		if (itemComp)
+		if (itemComp) {
+			if (animComp->GetAnimationClipA()) {
+				animComp->animHandleB = animComp->animHandleA;
+			}
 			animComp->animHandleA = itemComp->parryAnimation;
+		}
 
 		if (!animComp->GetAnimationClipA())
 			animComp->animHandleA = comp.animations[PARRY];
+		else {
+			animComp->animHandleB = animComp->animHandleA;
+			animComp->animHandleA = comp.animations[PARRY];
+		}
 
 		if (auto clip{ animComp->GetAnimationClipA() })
 		{
@@ -485,8 +493,12 @@ void CharacterMovementComponentSystem::UpdateCharacterMovementComponent(Characte
 	}
 	else
 	{
-		if (!comp.isAttacking)
-		animComp->animHandleA = comp.animations[IDLE];
+		if (!comp.isAttacking) {
+			if (animComp->GetAnimationClipA()) {
+				animComp->animHandleB = animComp->animHandleA;
+			}
+			animComp->animHandleA = comp.animations[IDLE];
+		}
 	}
 
 	if(comp.isAttacking)
