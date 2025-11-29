@@ -43,7 +43,7 @@ GameCameraControllerComponent::GameCameraControllerComponent()
 	, minPitch{ 0.0f }
 	, maxPitch{ 0.0f }
 	, cameraSensitivity{ 1.0f }
-	, currentCameraDistance{ 5.0f }
+	, currentCameraDistance{ 2.5f }
     , currentColliders{}
 {
 }

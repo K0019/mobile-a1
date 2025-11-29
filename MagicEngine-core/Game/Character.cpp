@@ -226,7 +226,7 @@ bool CharacterMovementComponent::Attack()
 	//if (randomRange(0, 2) == 0)
 	ST<AudioManager>::Get()->PlaySound3D(tmpName, false, ecs::GetEntity(this)->GetTransform().GetWorldPosition());
 
-	ST<Scheduler>::Get()->Add(attackItem->GetComp<GrabbableItemComponent>()->attackDelay, [attackItem, thisEntity]() {
+	ST<Scheduler>::Get()->Add(grabbableComp->attackDelay, [attackItem, thisEntity]() {
 		if (!ecs::IsEntityHandleValid(thisEntity))
 			return;
 		ecs::CompHandle<CharacterMovementComponent> thisComp{ thisEntity->GetComp<CharacterMovementComponent>() };
@@ -237,10 +237,13 @@ bool CharacterMovementComponent::Attack()
 		if (!thisComp->isAttacking)
 			return;
 
+		auto grabbableComp = attackItem->GetComp<GrabbableItemComponent>();
+
 		// Hard-code a simple start point etc for now
 		Vec3 rotation = thisEntity->GetTransform().GetWorldRotation();
 		Vec3 direction(sin(math::ToRadians(rotation.y)), 0, cos(math::ToRadians(rotation.y)));
-		Vec3 startPoint = thisEntity->GetTransform().GetWorldPosition() + direction;
+		Vec3 startPoint = thisEntity->GetTransform().GetWorldPosition() + direction * 0.5f * grabbableComp->attackBox.z;
+		startPoint.y += 0.8f;
 
 		auto hitDebugObject = thisComp->hitDebugObject;
 		if (hitDebugObject != nullptr)

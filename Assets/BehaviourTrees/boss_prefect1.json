@@ -1,5 +1,5 @@
 {
-    "name": "boss_prefect",
+    "name": "boss_prefect1",
     "nodes": [
         {
             "nodeType": "S_Boss_HealthPhases",
@@ -11,10 +11,6 @@
         },
         {
             "nodeType": "L_Boss_Prefect_BookingSlips",
-            "nodeLevel": 2
-        },
-        {
-            "nodeType": "L_Boss_Prefect_Detention",
             "nodeLevel": 2
         },
         {
