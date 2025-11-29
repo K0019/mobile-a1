@@ -401,7 +401,10 @@ void CharacterMovementComponentSystem::UpdateCharacterMovementComponent(Characte
 
 	// Get the animation component
 	ecs::CompHandle<AnimationComponent> animComp = characterEntity->GetComp<AnimationComponent>();
-
+	//adding blend more than 0.5 causes animations to look weird
+	animComp->blend = 0.5f;
+	//not sure what cross fade does
+	animComp->crossfade = true;
 	// Update held item
 	ecs::EntityHandle attackItem{ comp.heldItem };
 	if (attackItem)
@@ -455,11 +458,19 @@ void CharacterMovementComponentSystem::UpdateCharacterMovementComponent(Characte
 	if (comp.IsParrying())
 	{
 		animComp->animHandleA = 0;
-		if (itemComp)
+		if (itemComp) {
+			if (animComp->GetAnimationClipA()) {
+				animComp->animHandleB = animComp->animHandleA;
+			}
 			animComp->animHandleA = itemComp->parryAnimation;
+		}
 
 		if (!animComp->GetAnimationClipA())
 			animComp->animHandleA = comp.animations[PARRY];
+		else {
+			animComp->animHandleB = animComp->animHandleA;
+			animComp->animHandleA = comp.animations[PARRY];
+		}
 
 		if (auto clip{ animComp->GetAnimationClipA() })
 		{
@@ -488,8 +499,12 @@ void CharacterMovementComponentSystem::UpdateCharacterMovementComponent(Characte
 	}
 	else
 	{
-		if (!comp.isAttacking)
-		animComp->animHandleA = comp.animations[IDLE];
+		if (!comp.isAttacking) {
+			if (animComp->GetAnimationClipA()) {
+				animComp->animHandleB = animComp->animHandleA;
+			}
+			animComp->animHandleA = comp.animations[IDLE];
+		}
 	}
 
 	if(comp.isAttacking)
