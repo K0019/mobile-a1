@@ -101,9 +101,22 @@ void Primitive2DRect::EditorDraw()
 {
 }
 
+Primitive2DImage::Primitive2DImage()
+	: uvMin{}
+	, uvMax{ 1.0f, 1.0f }
+{
+
+}
+
 void Primitive2DImage::SetImage(size_t textureHash)
 {
 	texture = textureHash;
+}
+
+void Primitive2DImage::SetUV(Vec2 min, Vec2 max)
+{
+	uvMin = min;
+	uvMax = max;
 }
 
 bool Primitive2DImage::IsClicked(const RectTransformComponent& transform, Vec2 clickPos) const
@@ -125,7 +138,7 @@ void Primitive2DImage::Render(const RectTransformComponent& transform, const Vec
 	Vec2 halfScale{ transform.GetWorldScale() * 0.5f };
 	ui::DrawOptions drawOptions;
 	drawOptions.layer = static_cast<uint16_t>(transform.GetLayer());
-	ST<GraphicsMain>::Get()->GetImmediateGui().addImage(textureResource->handle, worldPos - halfScale, worldPos + halfScale, Vec2{0.0f, 0.0f}, Vec2{1.0f, 1.0f}, color, ui::SamplerMode::Linear, drawOptions);
+	ST<GraphicsMain>::Get()->GetImmediateGui().addImage(textureResource->handle, worldPos - halfScale, worldPos + halfScale, uvMin, uvMax, color, ui::SamplerMode::Linear, drawOptions);
 }
 
 void Primitive2DImage::EditorDraw()
@@ -138,6 +151,9 @@ void Primitive2DImage::EditorDraw()
 	gui::PayloadTarget<size_t>("TEXTURE_HASH", [this](size_t hash) -> void {
 		texture = hash;
 	});
+
+	gui::VarDrag("UV Min", &uvMin, 1.0f, Vec2{}, uvMax);
+	gui::VarDrag("UV Max", &uvMax, 1.0f, uvMin, Vec2{ 1.0f, 1.0f });
 }
 
 Primitive2DHolder::Primitive2DHolder(const Primitive2D& primitive)

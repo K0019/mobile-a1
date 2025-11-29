@@ -186,9 +186,12 @@ bool CharacterMovementComponent::Attack()
 
 	animComp->timeA = 0.0f;
 
+    std::string tmpName;
 	auto grabbableComp = attackItem->GetComp<GrabbableItemComponent>();
-
-	std::string tmpName = grabbableComp->audioName + std::to_string(randomRange(grabbableComp->audioStartIndex, grabbableComp->audioEndIndex + 1));
+    if (grabbableComp->audioStartIndex > grabbableComp->audioEndIndex + 1)
+        tmpName = grabbableComp->audioName + std::to_string(randomRange(grabbableComp->audioEndIndex + 1, grabbableComp->audioStartIndex));
+	else
+        tmpName = grabbableComp->audioName + std::to_string(randomRange(grabbableComp->audioStartIndex, grabbableComp->audioEndIndex + 1));
 
 	//if (randomRange(0, 2) == 0)
 	ST<AudioManager>::Get()->PlaySound3D(tmpName, false, ecs::GetEntity(this)->GetTransform().GetWorldPosition());

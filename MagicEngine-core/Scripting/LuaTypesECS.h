@@ -69,6 +69,7 @@ bool LuaWrapperComp<CompType>::Remove() const
 
 	auto entity = ecs::GetEntity(GetHandle());
 	entity->RemoveComp<CompType>();
+	return true;
 }
 
 template<typename CompType>

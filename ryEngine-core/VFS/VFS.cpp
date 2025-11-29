@@ -18,6 +18,10 @@
 std::string VFS::NormalizePath(const std::string& path)
 {
     std::string lowerPath = path;
+
+    // This fixes issues when reading from CRLF files.
+    lowerPath.erase(std::remove(lowerPath.begin(), lowerPath.end(), '\r'), lowerPath.end());
+
     // Convert to lowercase
     std::transform(lowerPath.begin(), lowerPath.end(), lowerPath.begin(),
         [](unsigned char c) { return std::tolower(c); });

@@ -205,7 +205,7 @@ namespace compiler
 
 
         template<typename T>
-        std::optional<T> ConvertValue(const std::string& value, std::string flag, size_t argIndex) const
+        std::optional<T> ConvertValue([[maybe_unused]] const std::string& value, [[maybe_unused]] std::string flag, [[maybe_unused]] size_t argIndex) const
         {
             static_assert(sizeof(T) == 0, "Type conversion not implemented for this type");
             return std::nullopt;
@@ -213,13 +213,13 @@ namespace compiler
 
         // Type to get back must be specialized
         template<>
-        inline std::optional<std::string> ConvertValue<std::string>(const std::string& value, std::string flag, size_t argIndex) const
+        inline std::optional<std::string> ConvertValue<std::string>(const std::string& value, [[maybe_unused]] std::string flag, [[maybe_unused]] size_t argIndex) const
         {
             return value;
         }
 
         template<>
-        inline std::optional<int64_t> ConvertValue<int64_t>(const std::string& value, std::string flag, size_t argIndex) const
+        inline std::optional<int64_t> ConvertValue<int64_t>(const std::string& value, [[maybe_unused]] std::string flag, [[maybe_unused]] size_t argIndex) const
         {
             try
             {
@@ -236,7 +236,7 @@ namespace compiler
         }
 
         template<>
-        inline std::optional<int> ConvertValue<int>(const std::string& value, std::string flag, size_t argIndex) const
+        inline std::optional<int> ConvertValue<int>(const std::string& value, [[maybe_unused]] std::string flag, [[maybe_unused]] size_t argIndex) const
         {
             try
             {
@@ -253,7 +253,7 @@ namespace compiler
         }
 
         template<>
-        inline std::optional<double> ConvertValue<double>(const std::string& value, std::string flag, size_t argIndex) const
+        inline std::optional<double> ConvertValue<double>(const std::string& value, [[maybe_unused]] std::string flag, [[maybe_unused]] size_t argIndex) const
         {
             try
             {

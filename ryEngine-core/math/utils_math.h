@@ -119,7 +119,8 @@ T randomRange(T minInclusive, T maxExclusive)
     std::uniform_real_distribution<T> dist(minInclusive, maxExclusive);
     return dist(internal::globalRandomEngine);
   }
-  return {}; // avoid compile time warning
+  else
+    return {}; // avoid compile time warning
 }
 
 inline float random01() { return randomRange(0.0f, 1.0f); }

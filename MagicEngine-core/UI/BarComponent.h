@@ -19,18 +19,31 @@ All rights reserved.
 
 #pragma once
 #include "ECS/IRegisteredComponent.h"
+#include "Editor/IEditorComponent.h"
 #include "UI/IUIComponent.h"
 #include "Game/IGameComponentCallbacks.h"
 
 class BarComponent
 	: public IRegisteredComponent<BarComponent>
+	, public IEditorComponent<BarComponent>
 	, public IUIComponent<BarComponent>
 {
 public:
+	BarComponent();
+
 	void SetPercentageFilled(float percent);
 
 	void OnAttached() override;
+	void EditorDraw() override;
 
 private:
+	bool modifyUV;
 
+public:
+	property_vtable()
 };
+property_begin(BarComponent)
+{
+	property_var(modifyUV)
+}
+property_vend_h(BarComponent)

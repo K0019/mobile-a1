@@ -282,18 +282,24 @@ bool GetButtonDown(std::string name)
 {
 	if (auto action{ ST<MagicInput>::Get()->GetAction<bool>(name) })
 		return action->GetValue();
+	else
+		return false;
 }
 
 float GetAxis(std::string name)
 {
 	if (auto action{ ST<MagicInput>::Get()->GetAction<float>(name) })
 		return action->GetValue();
+	else
+		return 0.0f;
 }
 
 Vec2 Get2DAxis(std::string name)
 {
 	if (auto action{ ST<MagicInput>::Get()->GetAction<Vec2>(name) })
 		return action->GetValue();
+	else
+		return Vec2{};
 }
 
 uint32_t Lua_PlayAudio(std::string name,bool looping)
