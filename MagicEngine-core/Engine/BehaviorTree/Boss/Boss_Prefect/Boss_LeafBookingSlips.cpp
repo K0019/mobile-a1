@@ -6,6 +6,7 @@
 #include "Boss_Prefect_Util.h"
 #include "Engine/PrefabManager.h"
 #include "Components/EntityReferenceHolder.h"
+#include "Graphics/AnimationComponent.h"
 
 int L_Boss_Prefect_BookingSlips::burstCount = 5;
 float L_Boss_Prefect_BookingSlips::burstDelay = 0.5f;
@@ -29,7 +30,12 @@ NODE_STATUS L_Boss_Prefect_BookingSlips::OnUpdate([[maybe_unused]] ecs::EntityHa
             {
                 ++currentBurstCount;
                 currentBurstDelay = burstDelay;
-            
+                auto animComp = entity->GetComp<AnimationComponent>();
+                if (animComp)
+                {
+                    animComp->TransitionTo(5142979933624197533, 0.1f);
+                    animComp->timeA = 0.0f;
+				}
                 // Spawn the booking slip and set the entity reference
                 ST<Scheduler>::Get()->Add([enemyComp, spawnPos = entity->GetTransform().GetWorldPosition()]() {
                     //ecs::EntityHandle spawnedSlip = ST<PrefabManager>::Get()->LoadPrefab("explosion"); 

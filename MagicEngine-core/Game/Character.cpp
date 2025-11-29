@@ -404,167 +404,204 @@ void CharacterMovementComponentSystem::UpdateCharacterMovementComponent(Characte
 
 	// Get the animation component
 	ecs::CompHandle<AnimationComponent> animComp = characterEntity->GetComp<AnimationComponent>();
-	ecs::CompHandle<BehaviorTreeComp> btComp = characterEntity->GetComp<BehaviorTreeComp>();
-	if (btComp->GetBehaviorTree().GetName() == "boss_prefect") {
+	//ecs::CompHandle<BehaviorTreeComp> btComp = characterEntity->GetComp<BehaviorTreeComp>();
+	//if (ecs::GetCompActive(characterEntity->GetComp<NameComponent>()) && btComp && btComp->GetBehaviorTree().GetName() == "boss_prefect") {
+	//	//btComp->GetBehaviorTree();
+	//	Vec2 movement = comp.GetMovementVector();
+	//	ecs::CompHandle<physics::PhysicsComp> physicsComp = characterEntity->GetComp<physics::PhysicsComp>();
+	//	Vec3 currVel = physicsComp->GetLinearVelocity();
 
-	}
+	//	// Normalize the move vector if it's over 1.0f in length
+	//	if (movement.LengthSqr() > 0.0f)
+	//	{
+	//		// Walking - only change animation if not attacking
+	//		if (!comp.isAttacking && animComp->animHandleA.GetHash() != comp.animations[WALK].GetHash())
+	//		{
+	//			animComp->TransitionTo(comp.animations[WALK].GetHash(), 0.15f);
+	//		}
+	//	}
+	//	else
+	//	{
+	//		// Idle - only change animation if not attacking
+	//		if (!comp.isAttacking && animComp->animHandleA.GetHash() != comp.animations[IDLE].GetHash())
+	//		{
+	//			animComp->TransitionTo(comp.animations[IDLE].GetHash(), 0.15f);
+	//		}
+	//	}
 
-	// Update held item
-	ecs::EntityHandle attackItem{ comp.heldItem };
-	if (attackItem)
-	{
-		// Transform related
-		attackItem->GetTransform().SetParent(characterTransform);
-		attackItem->GetComp<GrabbableItemComponent>()->owner = characterEntity;
-		attackItem->GetComp<GrabbableItemComponent>()->isHeld = true;
+	//	if (movement.LengthSqr() > 1.0f)
+	//		movement = movement.Normalized();
 
-		if (auto boneAttachComp{ attackItem->GetComp<BoneAttachment>() })
+	//	// Apply friction
+	//	Vec3 drag{ -currVel.x,0.0f,-currVel.z };
+	//	float groundSpeed = drag.Length();
+	//	if (groundSpeed <= comp.groundFriction)
+	//	{
+	//		physicsComp->AddLinearVelocity(drag);
+	//	}
+	//	else
+	//	{
+	//		physicsComp->AddLinearVelocity(drag.Normalized() * comp.groundFriction * groundSpeed);
+	//	}
+	//	Vec3 moveDir = Vec3{ movement.x ,0.0f,movement.y };
+	//	moveDir *= comp.moveSpeed * comp.speedMultiplier;
+	//	physicsComp->AddLinearVelocity(moveDir);
+	//}
+	//else {
+
+		// Update held item
+		ecs::EntityHandle attackItem{ comp.heldItem };
+		if (attackItem)
 		{
-			boneAttachComp->targetEntity = characterEntity;
-			boneAttachComp->boneName = "J_Bip_R_Hand";
+			// Transform related
+			attackItem->GetTransform().SetParent(characterTransform);
+			attackItem->GetComp<GrabbableItemComponent>()->owner = characterEntity;
+			attackItem->GetComp<GrabbableItemComponent>()->isHeld = true;
+
+			if (auto boneAttachComp{ attackItem->GetComp<BoneAttachment>() })
+			{
+				boneAttachComp->targetEntity = characterEntity;
+				boneAttachComp->boneName = "J_Bip_R_Hand";
+			}
+			//attackItem->GetTransform().SetLocalPosition(Vec3{ 0,0,1 });
+			//attackItem->GetTransform().SetLocalRotation(Vec3{ 0,5,10 });
 		}
-		//attackItem->GetTransform().SetLocalPosition(Vec3{ 0,0,1 });
-		//attackItem->GetTransform().SetLocalRotation(Vec3{ 0,5,10 });
-	}
 
-	// If not holding an item, we fallback to the character's entity itself
-	if (attackItem == nullptr && characterEntity->GetComp<GrabbableItemComponent>())
-	{
-		attackItem = characterEntity;
-	}
-
-	// Perform stun check
-	ecs::CompHandle<physics::PhysicsComp> physicsComp = characterEntity->GetComp<physics::PhysicsComp>();
-	Vec3 currVel = physicsComp->GetLinearVelocity();
-	if (comp.currentStunTime > 0.0f)
-	{
-		comp.currentStunTime -= GameTime::Dt();
-
-		// Can only come out of stun when on the ground
-		if (math::Abs(currVel.y) > 0.01f && comp.currentStunTime < 0.0f)
-			comp.currentStunTime = GameTime::Dt();
-
-		if (animComp->animHandleA.GetHash() != comp.animations[HURT].GetHash())
+		// If not holding an item, we fallback to the character's entity itself
+		if (attackItem == nullptr && characterEntity->GetComp<GrabbableItemComponent>())
 		{
-			animComp->TransitionTo(comp.animations[HURT].GetHash(), 0.1f);
-			//defense
-			//range multi attack
-			//ground strike
-			//lash out
-			//	lunge
-			//comp.animations[]
+			attackItem = characterEntity;
 		}
-		animComp->timeA = comp.currentStunTime / comp.stunTimePerHit;
-		comp.currentDodgeTime = 0.0f;
-		return;
-	}
 
-	ecs::CompHandle<GrabbableItemComponent> itemComp = nullptr;
-
-	if (attackItem)
-		itemComp = attackItem->GetComp<GrabbableItemComponent>();
-
-	if (comp.IsParrying())
-	{
-		// Get parry animation - prefer item's parry animation, fallback to character's
-		size_t parryAnimHash = 0;
-		if (itemComp && itemComp->parryAnimation.GetHash() != 0)
-			parryAnimHash = itemComp->parryAnimation.GetHash();
-		else
-			parryAnimHash = comp.animations[PARRY].GetHash();
-
-		// Transition to parry animation if not already playing it
-		if (animComp->animHandleA.GetHash() != parryAnimHash)
-			animComp->TransitionTo(parryAnimHash, 0.05f);
-
-		if (auto clip{ animComp->GetAnimationClipA() })
+		// Perform stun check
+		ecs::CompHandle<physics::PhysicsComp> physicsComp = characterEntity->GetComp<physics::PhysicsComp>();
+		Vec3 currVel = physicsComp->GetLinearVelocity();
+		if (comp.currentStunTime > 0.0f)
 		{
-			float duration = animComp->GetClipDuration(clip);
-			animComp->timeA = duration * (1.0f - (comp.currParryTime / comp.parryTime));
+			comp.currentStunTime -= GameTime::Dt();
+
+			// Can only come out of stun when on the ground
+			if (math::Abs(currVel.y) > 0.01f && comp.currentStunTime < 0.0f)
+				comp.currentStunTime = GameTime::Dt();
+
+			if (animComp->animHandleA.GetHash() != comp.animations[HURT].GetHash())
+			{
+				animComp->TransitionTo(comp.animations[HURT].GetHash(), 0.1f);
+
+				//comp.animations[]
+			}
+			animComp->timeA = comp.currentStunTime / comp.stunTimePerHit;
+			comp.currentDodgeTime = 0.0f;
+			return;
 		}
-		else
+
+		ecs::CompHandle<GrabbableItemComponent> itemComp = nullptr;
+
+		if (attackItem)
+			itemComp = attackItem->GetComp<GrabbableItemComponent>();
+
+		if (comp.IsParrying())
 		{
-			animComp->timeA = 0.0f;
+			// Get parry animation - prefer item's parry animation, fallback to character's
+			size_t parryAnimHash = 0;
+			if (itemComp && itemComp->parryAnimation.GetHash() != 0)
+				parryAnimHash = itemComp->parryAnimation.GetHash();
+			else
+				parryAnimHash = comp.animations[PARRY].GetHash();
+
+			// Transition to parry animation if not already playing it
+			if (animComp->animHandleA.GetHash() != parryAnimHash)
+				animComp->TransitionTo(parryAnimHash, 0.05f);
+
+			if (auto clip{ animComp->GetAnimationClipA() })
+			{
+				float duration = animComp->GetClipDuration(clip);
+				animComp->timeA = duration * (1.0f - (comp.currParryTime / comp.parryTime));
+			}
+			else
+			{
+				animComp->timeA = 0.0f;
+			}
+			comp.currParryTime -= GameTime::Dt();
+			return;
 		}
-		comp.currParryTime -= GameTime::Dt();
-		return;
-	}
 		comp.currParryCoolDown -= GameTime::Dt();
-	// Get inputs
-	Vec2 movement = comp.GetMovementVector();
+		// Get inputs
+		Vec2 movement = comp.GetMovementVector();
 
-	// Normalize the move vector if it's over 1.0f in length
-	if (movement.LengthSqr() > 0.0f)
-	{
-		// Walking - only change animation if not attacking
-		if (!comp.isAttacking && animComp->animHandleA.GetHash() != comp.animations[WALK].GetHash())
+		// Normalize the move vector if it's over 1.0f in length
+		if (movement.LengthSqr() > 0.0f)
 		{
-			animComp->TransitionTo(comp.animations[WALK].GetHash(), 0.15f);
+			// Walking - only change animation if not attacking
+			if (!comp.isAttacking && animComp->animHandleA.GetHash() != comp.animations[WALK].GetHash())
+			{
+				animComp->TransitionTo(comp.animations[WALK].GetHash(), 0.15f);
+			}
 		}
-	}
-	else
-	{
-		// Idle - only change animation if not attacking
-		if (!comp.isAttacking && animComp->animHandleA.GetHash() != comp.animations[IDLE].GetHash())
+		else
 		{
-			animComp->TransitionTo(comp.animations[IDLE].GetHash(), 0.15f);
+			// Idle - only change animation if not attacking
+			if (!comp.isAttacking && animComp->animHandleA.GetHash() != comp.animations[IDLE].GetHash())
+			{
+				animComp->TransitionTo(comp.animations[IDLE].GetHash(), 0.15f);
+			}
 		}
-	}
 
-	if(comp.isAttacking)
-	{
-		animComp->loop = false;
-		if (animComp->timeA >= animComp->GetClipDuration(animComp->GetAnimationClipA()))
+		if (comp.isAttacking)
 		{
-			comp.isAttacking = false;
+			animComp->loop = false;
+			if (animComp->timeA >= animComp->GetClipDuration(animComp->GetAnimationClipA()))
+			{
+				comp.isAttacking = false;
+			}
 		}
-	}
 
-	animComp->loop = !comp.isAttacking;
-	
+		animComp->loop = !comp.isAttacking;
 
-	if (movement.LengthSqr() > 1.0f)
-		movement = movement.Normalized();
 
-	// Apply friction
-	Vec3 drag{ -currVel.x,0.0f,-currVel.z };
-	float groundSpeed = drag.Length();
-	if (groundSpeed <= comp.groundFriction)
-	{
-		physicsComp->AddLinearVelocity(drag);
-	}
-	else
-	{
-		physicsComp->AddLinearVelocity(drag.Normalized() * comp.groundFriction * groundSpeed);
-	}
+		if (movement.LengthSqr() > 1.0f)
+			movement = movement.Normalized();
 
-	// Apply input movement
-	Vec3 moveDir = Vec3{ movement.x ,0.0f,movement.y };
+		// Apply friction
+		Vec3 drag{ -currVel.x,0.0f,-currVel.z };
+		float groundSpeed = drag.Length();
+		if (groundSpeed <= comp.groundFriction)
+		{
+			physicsComp->AddLinearVelocity(drag);
+		}
+		else
+		{
+			physicsComp->AddLinearVelocity(drag.Normalized() * comp.groundFriction * groundSpeed);
+		}
 
-	// If dodging, move faster
-	if (comp.currentDodgeTime > 0.0f)
-	{
-		comp.currentDodgeTime -= GameTime::Dt();
-		moveDir *= comp.dodgeSpeed;
-		if (animComp->animHandleA.GetHash() != comp.animations[DODGE].GetHash())
-			animComp->TransitionTo(comp.animations[DODGE].GetHash(), 0.05f);
-	}
-	else
-	{
-		moveDir *= comp.moveSpeed * comp.speedMultiplier;
-	}
+		// Apply input movement
+		Vec3 moveDir = Vec3{ movement.x ,0.0f,movement.y };
 
-	physicsComp->AddLinearVelocity(moveDir);
+		// If dodging, move faster
+		if (comp.currentDodgeTime > 0.0f)
+		{
+			comp.currentDodgeTime -= GameTime::Dt();
+			moveDir *= comp.dodgeSpeed;
+			if (animComp->animHandleA.GetHash() != comp.animations[DODGE].GetHash())
+				animComp->TransitionTo(comp.animations[DODGE].GetHash(), 0.05f);
+		}
+		else
+		{
+			moveDir *= comp.moveSpeed * comp.speedMultiplier;
+		}
 
-	comp.currentDodgeCooldown -= GameTime::Dt();
+		physicsComp->AddLinearVelocity(moveDir);
 
-	if (movement.LengthSqr() > 0.0f)
-		comp.RotateTowards(movement);
+		comp.currentDodgeCooldown -= GameTime::Dt();
 
-	// Handle parry time/cooldown
-	if (comp.currParryTime > 0.f)
-		comp.currParryTime -= GameTime::Dt();
-	if (comp.currParryCoolDown > 0.f)
-		comp.currParryCoolDown -= GameTime::Dt();
+		if (movement.LengthSqr() > 0.0f)
+			comp.RotateTowards(movement);
+
+		// Handle parry time/cooldown
+		if (comp.currParryTime > 0.f)
+			comp.currParryTime -= GameTime::Dt();
+		if (comp.currParryCoolDown > 0.f)
+			comp.currParryCoolDown -= GameTime::Dt();
+	//}
 
 }

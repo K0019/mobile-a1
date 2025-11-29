@@ -10,6 +10,10 @@
             "nodeLevel": 1
         },
         {
+            "nodeType": "L_MoveTowardsPlayer",
+            "nodeLevel": 2
+        },
+        {
             "nodeType": "L_Boss_Prefect_BookingSlips",
             "nodeLevel": 2
         },
@@ -24,6 +28,10 @@
         {
             "nodeType": "Sequence",
             "nodeLevel": 1
+        },
+        {
+            "nodeType": "L_MoveTowardsPlayer",
+            "nodeLevel": 2
         },
         {
             "nodeType": "L_Boss_Prefect_DisciplinaryAction",

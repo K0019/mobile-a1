@@ -4,6 +4,8 @@
 #include "Game/Character.h"
 #include "Game/Health.h"
 #include "Boss_Prefect_Util.h"
+#include "Graphics/AnimationComponent.h"
+
 int L_Boss_Prefect_DisciplinaryAction::lungeCount = 5;
 float L_Boss_Prefect_DisciplinaryAction::explosionSize = 5.0f;
 
@@ -23,6 +25,12 @@ NODE_STATUS L_Boss_Prefect_DisciplinaryAction::OnUpdate([[maybe_unused]] ecs::En
             if (!characterComp->IsDodging())
             {
                 // Send out an explosion if we aren't dodging and *haven't* done so alr
+                auto animComp = entity->GetComp<AnimationComponent>();
+                if (animComp)
+                {
+                    animComp->TransitionTo(5860832383719118265, 0.1f);
+                    animComp->timeA = 0.0f;
+                }
                 if (!hasExploded)
                 {
                     if(Boss_Prefect_Util::SpawnExplosion(entity,explosionSize))

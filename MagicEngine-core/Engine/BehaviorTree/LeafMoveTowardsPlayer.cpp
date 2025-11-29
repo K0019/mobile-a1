@@ -2,6 +2,7 @@
 #include "BehaviourTreeFactory.h"
 #include "Game/EnemyCharacter.h"
 #include "Game/Character.h"
+#include "Graphics/AnimationComponent.h"
 
 
 void L_MoveTowardsPlayer::OnInitialize()
@@ -36,6 +37,12 @@ NODE_STATUS L_MoveTowardsPlayer::OnUpdate([[maybe_unused]] ecs::EntityHandle ent
         return NODE_STATUS::SUCCESS;
     }
 
+    auto animComp = entity->GetComp<AnimationComponent>();
+    if (animComp)
+    {
+        animComp->TransitionTo(5160141111110525347, 0.1f);
+        animComp->timeA = 0.0f;
+    }
 
     // move towards player
     characterComp->SetMovementVector(Vec2(dir.x, dir.z));

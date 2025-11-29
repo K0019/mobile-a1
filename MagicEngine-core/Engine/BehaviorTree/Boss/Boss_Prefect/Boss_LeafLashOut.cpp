@@ -4,6 +4,7 @@
 #include "Game/Character.h"
 #include "Game/Health.h"
 #include "Boss_Prefect_Util.h"
+#include "Graphics/AnimationComponent.h"
 
 float L_Boss_Prefect_LashOut::attackCooldown = 3.0f;
 float L_Boss_Prefect_LashOut::attackDelay = 3.0f;
@@ -46,6 +47,12 @@ NODE_STATUS L_Boss_Prefect_LashOut::OnUpdate([[maybe_unused]] ecs::EntityHandle 
 
                 // Stop moving, it gives the player *some* time to get in a hit / ESCAPE
                 characterComp->SetMovementVector(Vec2{ 0.0f });
+                auto animComp = entity->GetComp<AnimationComponent>();
+                if (animComp)
+                {
+                    animComp->TransitionTo(5858584981951944119, 0.1f);
+                    animComp->timeA = 0.0f;
+                }
             }
             else
             {
