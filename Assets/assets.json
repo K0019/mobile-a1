@@ -3193,6 +3193,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/winlose_exit.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 95062675841825407,
+                            "name": "winlose_exit0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/textures/_13.ktx2",
             "resources": [
                 {
@@ -3369,6 +3383,20 @@
                         {
                             "hash": 5780287659426355917,
                             "name": "n00_000_00_facemouth_00_face (instance)0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/winlose_restart.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 111734570653796579,
+                            "name": "winlose_restart0"
                         }
                     ]
                 }
@@ -4069,6 +4097,20 @@
                         {
                             "hash": 1935195441285490423,
                             "name": "handle_lambert0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/winlose_mainmenu.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 102675694352547705,
+                            "name": "winlose_mainmenu0"
                         }
                     ]
                 }
@@ -5427,6 +5469,20 @@
                         {
                             "hash": 2327338462585203203,
                             "name": "_170"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/win menu bg.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 6539792907445282495,
+                            "name": "win menu bg0"
                         }
                     ]
                 }
@@ -7505,6 +7561,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/lose menu bg.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 6544882546770260189,
+                            "name": "lose menu bg0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/models/glb/mc_animated/mc_animatedhurt.anim",
             "resources": [
                 {
@@ -8493,6 +8563,20 @@
                         {
                             "hash": 2504851316354755187,
                             "name": "n00_000_hair_00_hair_03 (instance)0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/winlose_nextlevel.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 105142998445278217,
+                            "name": "winlose_nextlevel0"
                         }
                     ]
                 }
