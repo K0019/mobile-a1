@@ -69,9 +69,9 @@
         {
             "parentIndex": -1,
             "position": {
-                "x": -13.988091468811035,
-                "y": 0.9998804926872253,
-                "z": -10.015103340148926
+                "x": 0.06304383277893066,
+                "y": 0.9998800158500671,
+                "z": 0.11772263050079346
             },
             "rotation": {
                 "x": 0.0,
@@ -88,8 +88,8 @@
                     "_active": true,
                     "damage": 20.0,
                     "attackBox": {
-                        "x": 0.10000000149011612,
-                        "y": 0.10000000149011612,
+                        "x": 0.20000000298023224,
+                        "y": 0.20000000298023224,
                         "z": 1.0
                     },
                     "attackDelay": 0.3499999940395355,
@@ -97,16 +97,16 @@
                     "audioStartIndex": 1,
                     "audioEndIndex": 3,
                     "lightAttackAnimation": {
-                        "hash": 1
+                        "hash": 2571380565928225517
                     },
                     "heavyAttackAnimation": {
-                        "hash": 1
+                        "hash": 5872848946299131223
                     },
                     "ultimAttackAnimation": {
                         "hash": 1
                     },
                     "parryAnimation": {
-                        "hash": 1
+                        "hash": 2531389129002756825
                     },
                     "pickupUI": {
                         "hash": 1
@@ -240,14 +240,10 @@
                     "animHandleA": {
                         "hash": 2559702652929616615
                     },
-                    "animHandleB": {
-                        "hash": 1
-                    },
                     "isPlaying": true,
                     "loop": true,
-                    "crossfade": true,
-                    "blend": 0.0,
-                    "speed": 1.0
+                    "speed": 1.0,
+                    "transitionDuration": 0.20000000298023224
                 },
                 "16735904824485644755": {
                     "_active": true,
@@ -582,14 +578,10 @@
                     "animHandleA": {
                         "hash": 2459018174152793319
                     },
-                    "animHandleB": {
-                        "hash": 1
-                    },
                     "isPlaying": true,
                     "loop": true,
-                    "crossfade": false,
-                    "blend": 0.0,
-                    "speed": 1.0
+                    "speed": 1.0,
+                    "transitionDuration": 0.20000000298023224
                 },
                 "16763493199777387366": {
                     "_active": false,
@@ -947,14 +939,14 @@
         {
             "parentIndex": -1,
             "position": {
-                "x": 1.0,
-                "y": 0.8395662903785706,
-                "z": 0.0
+                "x": 2.451857805252075,
+                "y": 0.8394438028335571,
+                "z": 0.03857571631669998
             },
             "rotation": {
                 "x": 0.0,
-                "y": 0.0,
-                "z": 0.0
+                "y": -0.0,
+                "z": 89.99974822998047
             },
             "scale": {
                 "x": 1.0,
@@ -975,16 +967,16 @@
                     "audioStartIndex": 1,
                     "audioEndIndex": 4,
                     "lightAttackAnimation": {
-                        "hash": 1
+                        "hash": 2582954025322195705
                     },
                     "heavyAttackAnimation": {
-                        "hash": 1
+                        "hash": 2589189355763313403
                     },
                     "ultimAttackAnimation": {
-                        "hash": 1
+                        "hash": 4641994057353533167
                     },
                     "parryAnimation": {
-                        "hash": 1
+                        "hash": 2593603894948834043
                     },
                     "pickupUI": {
                         "hash": 2578814363255955407
@@ -1052,7 +1044,7 @@
                     "localRotation": {
                         "x": 0.0,
                         "y": 0.0,
-                        "z": 0.0
+                        "z": 180.0
                     }
                 },
                 "18236831197208900764": {
@@ -1585,14 +1577,10 @@
                     "animHandleA": {
                         "hash": 5872848946299131223
                     },
-                    "animHandleB": {
-                        "hash": 1
-                    },
                     "isPlaying": true,
                     "loop": true,
-                    "crossfade": false,
-                    "blend": 0.0,
-                    "speed": 1.0
+                    "speed": 1.0,
+                    "transitionDuration": 0.20000000298023224
                 },
                 "16763493199777387366": {
                     "_active": false,
@@ -1873,9 +1861,9 @@
         {
             "parentIndex": -1,
             "position": {
-                "x": 0.0,
-                "y": 1.8618109226226807,
-                "z": 0.0
+                "x": -2.642317056655884,
+                "y": 0.8659429550170898,
+                "z": 0.12284905463457108
             },
             "rotation": {
                 "x": 0.0,
@@ -2399,14 +2387,10 @@
                     "animHandleA": {
                         "hash": 1
                     },
-                    "animHandleB": {
-                        "hash": 1
-                    },
                     "isPlaying": true,
                     "loop": true,
-                    "crossfade": false,
-                    "blend": 0.0,
-                    "speed": 1.0
+                    "speed": 1.0,
+                    "transitionDuration": 0.20000000298023224
                 },
                 "16763493199777387366": {
                     "_active": false,
@@ -9204,7 +9188,7 @@
                 },
                 "6766054303456732338": {
                     "_active": true,
-                    "layer": 0
+                    "layer": 1
                 },
                 "7205334411763290517": {
                     "_active": true,
@@ -9368,7 +9352,7 @@
                 },
                 "6766054303456732338": {
                     "_active": true,
-                    "layer": 0
+                    "layer": 1
                 },
                 "7205334411763290517": {
                     "_active": true,
@@ -9430,7 +9414,7 @@
                 },
                 "6766054303456732338": {
                     "_active": true,
-                    "layer": 0
+                    "layer": 1
                 },
                 "7205334411763290517": {
                     "_active": true,
@@ -9492,7 +9476,7 @@
                 },
                 "6766054303456732338": {
                     "_active": true,
-                    "layer": 0
+                    "layer": 1
                 },
                 "7205334411763290517": {
                     "_active": true,
