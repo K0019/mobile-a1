@@ -28,17 +28,26 @@ All rights reserved.
 #include "Engine/Input.h"
 #include "Scripting//ScriptComponent.h"
 #include "Editor/Containers/GUICollection.h"
+#include "Game/Delusion.h"
 #include "Engine/Events/EventsQueue.h"
 #include "Engine/Events/EventsTypeBasic.h"
 
 PlayerMovementComponent::PlayerMovementComponent()
 	: grabDistance{ 0.0f }
 	, cameraReference{nullptr}
+	, parryTime{}
+	, parryCoolDownTime{}
+	, parryDelution{}
+	, currParryCoolDown{}
+	, currParryTime{}
+	, ultimateAttackDamage{}
+	, isUltimateAttack{false}
 {
 }
 
 void PlayerMovementComponent::Serialize(Serializer& writer) const
 {
+	ISerializeable::Serialize(writer);
 	writer.Serialize("cameraReference", cameraReference);
 	writer.Serialize("testReference", testReference);
 	writer.Serialize("grabDistance", grabDistance);
@@ -46,6 +55,7 @@ void PlayerMovementComponent::Serialize(Serializer& writer) const
 
 void PlayerMovementComponent::Deserialize(Deserializer& reader)
 {
+	ISerializeable::Deserialize(reader);
 	reader.Deserialize("cameraReference", &cameraReference);
 	reader.Deserialize("testReference", &testReference);
 	reader.DeserializeVar("grabDistance", &grabDistance);
@@ -56,6 +66,42 @@ void PlayerMovementComponent::EditorDraw()
 	cameraReference.EditorDraw("Camera");
 	testReference.EditorDraw("Test");
 	gui::VarInput("Grab Distance", &grabDistance);
+	gui::VarInput("Parry Time Period", &parryTime);
+	gui::VarInput("Parry Cool Down time", &parryCoolDownTime);
+	gui::VarInput("Parry Delution", &parryDelution);
+	gui::VarInput("Ultimate Attack Damage", &ultimateAttackDamage);
+}
+
+void PlayerMovementComponent::Parry()
+{
+	currParryTime = parryTime;
+	currParryCoolDown = parryCoolDownTime;
+}
+
+bool PlayerMovementComponent::IsParrying()
+{
+	if (currParryTime <= 0.f)
+		return false;
+
+	auto delutionComp{ ecs::GetEntity(this)->GetComp<DelusionComponent>() };
+	if (!delutionComp)
+		return false;
+
+	delutionComp->AddDelusion(parryDelution);
+	CONSOLE_LOG(LEVEL_INFO) << "Parried.";
+}
+
+void PlayerMovementComponent::UltimateAttack()
+{
+	auto delutionComp{ ecs::GetEntity(this)->GetComp<DelusionComponent>() };
+	auto characterComp{ ecs::GetEntity(this)->GetComp<CharacterMovementComponent>() };
+	if (!delutionComp || !characterComp || delutionComp->to_string() != "A+")
+		return;
+
+	isUltimateAttack = true;
+	characterComp->Attack();
+	delutionComp->SetDelusion(0.f);
+	CONSOLE_LOG(LEVEL_INFO) << "Ultimate Attack.";
 }
 
 PlayerMovementComponentSystem::PlayerMovementComponentSystem()
@@ -161,8 +207,18 @@ void PlayerMovementComponentSystem::UpdatePlayerMovementComponent(PlayerMovement
 	if (inputInstance->GetIsPressed(KEY::M1) || EventsReader<Events::GameActionAttack>{}.ExtractEvent())
 		characterComp->Attack();
 
+	if (inputInstance->GetIsPressed(KEY::R))
+		comp.UltimateAttack();
+
 	characterComp->SetMovementVector(movement);
 
 	if (inputInstance->GetIsDown(KEY::LSHIFT) || EventsReader<Events::GameActionDodge>{}.ExtractEvent())
 		characterComp->Dodge(movement);
+
+	if (comp.currParryTime > 0.f)
+		comp.currParryTime -= GameTime::Dt();
+	if (comp.currParryCoolDown > 0.f)
+		comp.currParryCoolDown -= GameTime::Dt();
+	if (inputInstance->GetIsPressed(KEY::LCTRL) && comp.currParryCoolDown <= 0.f)
+		comp.Parry();
 }
