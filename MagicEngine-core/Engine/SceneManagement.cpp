@@ -26,6 +26,7 @@ All rights reserved.
 #include "ECS/EntityUID.h"
 
 #include "Engine/Events/EventsQueue.h"
+#include "Engine/Events/EventsTypeBasic.h"
 #if __has_include("Engine/Events/EventsTypeEditor.h")
 	#include "Engine/Events/EventsTypeEditor.h"
 	#define HAS_EVENTS_TYPE_EDITOR
@@ -516,6 +517,9 @@ bool ScenePool::UnloadScene(int index, bool doCheckOrCreateDefault)
 		else
 			activeScene = nullptr;
 	}
+
+	ST<EventsQueue>::Get()->AddEventForThisFrame(Events::SceneUnloaded{ index });
+	ST<EventsQueue>::Get()->AddEventForNextFrame(Events::SceneUnloaded{ index });
 
 	return true;
 }
