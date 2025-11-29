@@ -41,6 +41,9 @@ public:
     std::vector<mat4> skinMatrices;
     std::vector<float> morphWeights;
 
+    // World-space bone transforms (skeleton space) for bone attachment
+    std::vector<mat4> boneWorldTransforms;
+
     float GetClipDuration(const ResourceAnimation* animationClip);
 
 public:

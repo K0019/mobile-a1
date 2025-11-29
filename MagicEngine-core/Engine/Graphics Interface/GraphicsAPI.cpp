@@ -241,7 +241,6 @@ void GraphicsMain::UploadToPipeline(FrameData* outFrameData)
 
 			// Animation binding
 			const auto* meshMetadata = GetAssetSystem().getMeshMetadata(mesh->handles[i]);
-			const auto& skeleton = GetAssetSystem().Skeleton(meshMetadata->skeletonId);
 			uint32_t jointCount = GetAssetSystem().Skeleton(meshMetadata->skeletonId).jointCount();
 			uint32_t morphCount = GetAssetSystem().Morph(meshMetadata->morphSetId).count();
 			bool objectAnimated = (jointCount > 0) || (morphCount > 0);
@@ -494,31 +493,9 @@ void GraphicsMain::UploadToPipeline(FrameData* outFrameData)
 	outFrameData->viewMatrix = frameData.viewMatrix;
 	outFrameData->projMatrix = glm::perspective(45.0f, width / height, 0.1f, 1000.0f);
 
-#if defined(__ANDROID__)
-	// Apply pre-rotation for Android landscape mode
-	if (context.renderer)
-	{
-		SurfaceTransform transform = context.renderer->getSwapchainPreTransform();
-		glm::mat4 preRotation = glm::mat4(1.0f);
-
-		switch (transform)
-		{
-		case SurfaceTransform::Rotate90:
-			preRotation = glm::rotate(glm::mat4(1.0f), glm::radians(-90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-			break;
-		case SurfaceTransform::Rotate180:
-			preRotation = glm::rotate(glm::mat4(1.0f), glm::radians(-180.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-			break;
-		case SurfaceTransform::Rotate270:
-			preRotation = glm::rotate(glm::mat4(1.0f), glm::radians(-270.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-			break;
-		default:
-			break;
-		}
-
-		outFrameData->projMatrix = preRotation * outFrameData->projMatrix;
-	}
-#endif
+	// NOTE: On Android, pre-rotation is now applied in the final blit pass (render_graph.cpp)
+	// instead of the projection matrix. This allows the scene to render at a fixed 1920x1080
+	// resolution without rotation, and the rotation is applied when blitting to the swapchain.
 
 	EditorCam_Publish(outFrameData->viewMatrix, outFrameData->projMatrix, false);
 
@@ -1243,6 +1220,7 @@ bool GraphicsMain::RequestObjPick(int mouseX, int mouseY) {
 		sceneFeature->RequestObjectPick(mouseX, mouseY);
 		return true;
 	}
+	return false;
 }
 
 ecs::EntityHandle GraphicsMain::PreviousPick() {
@@ -1266,4 +1244,5 @@ ecs::EntityHandle GraphicsMain::PreviousPick() {
 		}
 		return pickedEntity;
 	}
+	return nullptr;
 }

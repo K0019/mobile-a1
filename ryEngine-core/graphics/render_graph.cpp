@@ -1119,10 +1119,28 @@ layout(location = 0) out vec4 outColor;
 layout(push_constant) uniform BlitData {
     uint sourceTextureIndex;
     uint samplerIndex;
+    uint preTransform; // 0=Identity, 1=Rotate90, 2=Rotate180, 3=Rotate270
+    uint padding;
 } pc;
 
+vec2 applyPreTransform(vec2 inUV) {
+    // Transform UV coordinates based on Android pre-rotation
+    // This rotates the source texture sampling to match device orientation
+    switch (pc.preTransform) {
+        case 1: // Rotate90 - device is 90 degrees CW from natural, so rotate UV 90 CCW
+            return vec2(inUV.y, 1.0 - inUV.x);
+        case 2: // Rotate180
+            return vec2(1.0 - inUV.x, 1.0 - inUV.y);
+        case 3: // Rotate270 - device is 270 degrees CW from natural, so rotate UV 270 CCW (= 90 CW)
+            return vec2(1.0 - inUV.y, inUV.x);
+        default: // Identity
+            return inUV;
+    }
+}
+
 void main() {
-    outColor = texture(nonuniformEXT(sampler2D(kTextures2D[pc.sourceTextureIndex], kSamplers[pc.samplerIndex])), uv);
+    vec2 transformedUV = applyPreTransform(uv);
+    outColor = texture(nonuniformEXT(sampler2D(kTextures2D[pc.sourceTextureIndex], kSamplers[pc.samplerIndex])), transformedUV);
 }
 )";
 
@@ -1161,8 +1179,29 @@ void RenderGraph::ExecuteFinalBlit(const internal::ExecutionContext& ctx)
   vk::Dimensions sceneDims = m_vkContext.getDimensions(sceneColor);
   vk::Dimensions swapchainDims = m_vkContext.getDimensions(swapchainImage);
 
-  // If dimensions match exactly, use fast copy path
-  if (sceneDims.width == swapchainDims.width && sceneDims.height == swapchainDims.height)
+  // Get pre-transform for Android
+  uint32_t preTransformValue = 0; // 0 = Identity
+#if defined(__ANDROID__)
+  SurfaceTransform transform = m_vkContext.getSwapchainPreTransform();
+  switch (transform)
+  {
+    case SurfaceTransform::Rotate90:
+      preTransformValue = 1;
+      break;
+    case SurfaceTransform::Rotate180:
+      preTransformValue = 2;
+      break;
+    case SurfaceTransform::Rotate270:
+      preTransformValue = 3;
+      break;
+    default:
+      preTransformValue = 0;
+      break;
+  }
+#endif
+
+  // On Android with no pre-transform needed, and if dimensions match exactly, use fast copy path
+  if (preTransformValue == 0 && sceneDims.width == swapchainDims.width && sceneDims.height == swapchainDims.height)
   {
     cmd.cmdCopyImage(sceneColor, swapchainImage, sceneDims, vk::Offset3D{0, 0, 0}, vk::Offset3D{0, 0, 0},
                      vk::TextureLayers{0, 0, 1}, vk::TextureLayers{0, 0, 1});
@@ -1170,6 +1209,7 @@ void RenderGraph::ExecuteFinalBlit(const internal::ExecutionContext& ctx)
   }
 
   // Use shader-based blit to scale from fixed internal resolution to swapchain size
+  // and apply pre-rotation on Android
   this->EnsureBlitPipelineCreated();
 
   // Begin rendering to swapchain
@@ -1204,9 +1244,13 @@ void RenderGraph::ExecuteFinalBlit(const internal::ExecutionContext& ctx)
   struct BlitPushConstants {
     uint32_t sourceTextureIndex;
     uint32_t samplerIndex;
+    uint32_t preTransform; // 0=Identity, 1=Rotate90, 2=Rotate180, 3=Rotate270
+    uint32_t padding;
   } pc = {
     .sourceTextureIndex = sceneColor.index(),
-    .samplerIndex = m_blitSampler.index()
+    .samplerIndex = m_blitSampler.index(),
+    .preTransform = preTransformValue,
+    .padding = 0
   };
   cmd.cmdPushConstants(pc);
   cmd.cmdBindDepthState({.compareOp = vk::CompareOp::Always, .isDepthWriteEnabled = false});

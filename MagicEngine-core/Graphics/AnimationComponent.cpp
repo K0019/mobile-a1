@@ -196,9 +196,9 @@ const ResourceAnimation* AnimationComponent::GetAnimationClipB() const
 
 void AnimationComponent::EditorDraw()
 {
-    // Animation input
+    // Animation clip input
     const std::string* clip1Name{ ST<MagicResourceManager>::Get()->Editor_GetName(animHandleA.GetHash()) };
-    gui::TextUnformatted(std::string("Clip 1"));
+    gui::TextUnformatted("Clip 1");
     gui::SameLine();
     gui::TextBoxReadOnly("##AnimClip1", clip1Name ? clip1Name->c_str() : "");
     gui::PayloadTarget<size_t>("ANIMATION_HASH", [&](size_t hash) -> void {
@@ -209,7 +209,7 @@ void AnimationComponent::EditorDraw()
     if (crossfade)
     {
         const std::string* clip2Name{ ST<MagicResourceManager>::Get()->Editor_GetName(animHandleB.GetHash()) };
-        gui::TextUnformatted(std::string("Clip 2"));
+        gui::TextUnformatted("Clip 2");
         gui::SameLine();
         gui::TextBoxReadOnly("##AnimClip2", clip2Name ? clip2Name->c_str() : "");
         gui::PayloadTarget<size_t>("ANIMATION_HASH", [&](size_t hash) -> void {
@@ -217,32 +217,39 @@ void AnimationComponent::EditorDraw()
             SetupAnimationBinding();
             });
 
-        gui::TextUnformatted(std::string("Blend"));
+        gui::TextUnformatted("Blend");
         gui::SameLine();
-        gui::VarDrag("##blend", &blend);
+        gui::Slider("##blend", &blend, 0.0f, 1.0f);
     }
 
-    gui::TextUnformatted(std::string("Is Playing"));
+    gui::Separator();
+
+    // Playback controls
+    gui::TextUnformatted("Playing");
     gui::SameLine();
     gui::Checkbox("##playing", &isPlaying);
 
-    gui::TextUnformatted(std::string("Looping"));
+    gui::TextUnformatted("Looping");
     gui::SameLine();
     gui::Checkbox("##looping", &loop);
 
-    gui::TextUnformatted(std::string("Playback Speed"));
-    gui::SameLine();
-    gui::VarDrag("##playbackspeed", &speed);
-
-
-    gui::TextUnformatted(std::string("Crossfade"));
+    gui::TextUnformatted("Crossfade");
     gui::SameLine();
     gui::Checkbox("##crossfade", &crossfade);
-    
 
-    gui::TextUnformatted(std::string("ClipA playback"));
+    gui::Separator();
+
+    gui::TextUnformatted("Speed");
     gui::SameLine();
-    gui::VarDrag("##timeA", &timeA);
+    gui::VarDrag("##playbackspeed", &speed, 0.01f, 0.0f, 10.0f);
+
+    gui::TextUnformatted("Time");
+    gui::SameLine();
+    float duration = GetClipDuration(GetAnimationClipA());
+    if (duration > 0.0f)
+        gui::Slider("##timeA", &timeA, 0.0f, duration);
+    else
+        gui::VarDrag("##timeA", &timeA, 0.01f, 0.0f, 0.0f);
 }
 
 float AnimationComponent::GetClipDuration(const ResourceAnimation* animationClip)
@@ -387,6 +394,9 @@ void AnimationSystem::ProcessComp(AnimationComponent & comp)
                     comp.skinMatrices[jMesh] = globalsSkel[jSkel] * comp.invBindMatrices[jMesh];
                 }
             }
+
+            // Store bone world transforms for bone attachment system
+            comp.boneWorldTransforms = std::move(globalsSkel);
         }
     }
 
