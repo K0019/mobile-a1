@@ -11,7 +11,7 @@ float L_Boss_Prefect_DisciplinaryAction::explosionSize = 5.0f;
 
 void L_Boss_Prefect_DisciplinaryAction::OnInitialize()
 {
-    hasExploded = true;
+    hasExploded = false;
     currentLungeCount = lungeCount;
 }
 
@@ -23,6 +23,7 @@ NODE_STATUS L_Boss_Prefect_DisciplinaryAction::OnUpdate([[maybe_unused]] ecs::En
         {
             Vec2 dir = Boss_Prefect_Util::GetMovementTowards(entity->GetTransform().GetWorldPosition(), enemyComp->playerReference->GetTransform().GetWorldPosition());
             Boss_Prefect_Util::RotateTowards(entity, dir);
+            Boss_Prefect_Util::MoveInDirection(entity, Vec3{ 3*dir.x, 0.0f, 3*dir.y });
             auto animComp = entity->GetComp<AnimationComponent>();
             if (animComp)
             {
@@ -37,6 +38,10 @@ NODE_STATUS L_Boss_Prefect_DisciplinaryAction::OnUpdate([[maybe_unused]] ecs::En
                     --currentLungeCount;
                     if (currentLungeCount == 0)
                         return NODE_STATUS::SUCCESS;
+                    else {
+						hasExploded = false;
+                        return NODE_STATUS::RUNNING;
+                    }
                 }
             }
             //if (!characterComp->IsDodging())

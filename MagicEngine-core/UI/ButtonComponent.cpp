@@ -26,6 +26,8 @@ All rights reserved.
 #include "Engine/EntityEvents.h"
 #include "Editor/Containers/GUICollection.h"
 
+
+
 namespace internal {
 
 	bool TestClicked(RectTransformComponent& rectTransform, SpriteComponent& spriteComp, Vec2 mousePos)
@@ -136,6 +138,7 @@ ButtonInputSystem::ButtonInputSystem()
 bool ButtonInputSystem::PreRun()
 {
 #ifdef __ANDROID__
+
 	pressed = AndroidInputBridge::State().justDown;
 	released = AndroidInputBridge::State().justUp;
 #else
@@ -162,18 +165,27 @@ Vec2 ButtonInputSystem::RetrieveMousePos()
 
 void ButtonInputSystem::CheckButtonInput(ButtonComponent& buttonComp, SpriteComponent& spriteComp, RectTransformComponent& rectTransform)
 {
+
+
 	// Reset sprites on all buttons when released
 	bool wasPressed{ buttonComp.GetIsPressed() };
-	if (released)
+	if (released) {
 		buttonComp.ResetPressState();
-
+		#if defined(__ANDROID__)
+		AndroidInputBridge::Release(TouchOwner::UI);
+		#endif
+	}
 	// Test if the mouse position is within the button boundaries
 	if (!TestClicked(rectTransform, spriteComp, pos))
 		return;
 
 	// If pressed on button, change sprite
-	if (pressed)
+	if (pressed) {
 		buttonComp.OnPressed();
+		#if defined(__ANDROID__)
+		AndroidInputBridge::TryCapture(TouchOwner::UI);
+		#endif
+	}
 	// If released on the button that was pressed, execute button click function
 	else if (released && wasPressed)
 		buttonComp.OnClicked();

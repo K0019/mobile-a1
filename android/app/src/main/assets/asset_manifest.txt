@@ -814,6 +814,7 @@ prefabs/shelf.prefab
 prefabs/shelf_small.prefab
 prefabs/stairsleft.prefab
 prefabs/sword.prefab
+prefabs/table group.prefab
 prefabs/table.prefab
 prefabs/throw.prefab
 prefabs/vending machine.prefab

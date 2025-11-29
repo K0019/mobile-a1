@@ -234,7 +234,7 @@ void AndroidInputComp::Update() {
         Vec2  targetXY = m_anchorXY + offset;
 
         // Snap (hard clamp):
-        tf.SetWorldPosition(Vec3{ targetXY.y,targetXY.x, pos.z });
+        tf.SetWorldPosition(Vec3{ targetXY.x,targetXY.y, pos.z });
         //=====End joystick Design ============================================================
 
 
