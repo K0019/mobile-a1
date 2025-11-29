@@ -35,6 +35,7 @@ All rights reserved.
 #include "UI/TextComponent.h"
 #include "UI/SpriteComponent.h"
 #include "UI/ButtonComponent.h"
+#include "3DUI/BillboardComponent.h"
 
 #include "Graphics/CameraSystem.h"
 #include "Tween/TweenECS.h"
@@ -117,6 +118,8 @@ void GameState_Game::OnEnter()
 
     ecs::AddSystem(ECS_LAYER::PHYSICS, physics::PhysicsSystem{});
 
+    ecs::AddSystem(ECS_LAYER::POST_PHYSICS_2, GrabbableItemPickupUISystem{});
+    ecs::AddSystem(ECS_LAYER::POST_PHYSICS_3, BillboardSystem{});
     // Override custom viewport camera
     ecs::AddSystem(ECS_LAYER::RENDER_1, CameraCompUploadSystem{});
     

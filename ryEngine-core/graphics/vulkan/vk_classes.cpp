@@ -4214,16 +4214,17 @@ vk::Holder<vk::TextureHandle> vk::VulkanContext::createTexture(const TextureDesc
 
   const VkMemoryPropertyFlags memFlags = storageTypeToVkMemoryPropertyFlags(desc.storage);
 
-  const bool hasDebugName = desc.debugName && *desc.debugName;
+  // Kendrick: Removed due to desc.debugName sometimes being an invalid string
+  //const bool hasDebugName = desc.debugName && *desc.debugName;
 
-  char debugNameImage[256] = {0};
-  char debugNameImageView[256] = {0};
+  //char debugNameImage[256] = {0};
+  //char debugNameImageView[256] = {0};
 
-  if (hasDebugName)
-  {
-    snprintf(debugNameImage, sizeof(debugNameImage) - 1, "Image: %s", desc.debugName);
-    snprintf(debugNameImageView, sizeof(debugNameImageView) - 1, "Image View: %s", desc.debugName);
-  }
+  //if (hasDebugName)
+  //{
+  //  snprintf(debugNameImage, sizeof(debugNameImage) - 1, "Image: %s", desc.debugName);
+  //  snprintf(debugNameImageView, sizeof(debugNameImageView) - 1, "Image View: %s", desc.debugName);
+  //}
 
   VkImageCreateFlags vkCreateFlags = 0;
   VkImageViewType vkImageViewType;
@@ -4269,11 +4270,11 @@ vk::Holder<vk::TextureHandle> vk::VulkanContext::createTexture(const TextureDesc
 
   VulkanImage image = {.vkUsageFlags_ = usageFlags, .vkExtent_ = vkExtent, .vkType_ = vkImageType, .vkImageFormat_ = vkFormat, .vkSamples_ = vkSamples, .numLevels_ = numLevels, .numLayers_ = numLayers, .isDepthFormat_ = VulkanImage::isDepthFormat(vkFormat), .isStencilFormat_ = VulkanImage::isStencilFormat(vkFormat),};
 
-  if (hasDebugName)
-  {
-    // store debug name
-    snprintf(image.debugName_, sizeof(image.debugName_) - 1, "%s", desc.debugName);
-  }
+  //if (hasDebugName)
+  //{
+  //  // store debug name
+  //  snprintf(image.debugName_, sizeof(image.debugName_) - 1, "%s", desc.debugName);
+  //}
 
   const uint32_t numPlanes = getNumImagePlanes(desc.format);
   const bool isDisjoint = numPlanes > 1;
@@ -4310,7 +4311,7 @@ vk::Holder<vk::TextureHandle> vk::VulkanContext::createTexture(const TextureDesc
     }
   }
 
-  VK_ASSERT(vk::setDebugObjectName(vkDevice_, VK_OBJECT_TYPE_IMAGE, (uint64_t)image.vkImage_, debugNameImage));
+  //VK_ASSERT(vk::setDebugObjectName(vkDevice_, VK_OBJECT_TYPE_IMAGE, (uint64_t)image.vkImage_, debugNameImage));
 
   // Get physical device's properties for the image's format
   vkGetPhysicalDeviceFormatProperties(vkPhysicalDevice_, image.vkImageFormat_, &image.vkFormatProperties_);
@@ -4336,14 +4337,14 @@ vk::Holder<vk::TextureHandle> vk::VulkanContext::createTexture(const TextureDesc
 
   const VkSamplerYcbcrConversionInfo* ycbcrInfo = isDisjoint ? getOrCreateYcbcrConversionInfo(desc.format) : nullptr;
 
-  image.imageView_ = image.createImageView(vkDevice_, vkImageViewType, vkFormat, aspect, 0, VK_REMAINING_MIP_LEVELS, 0, numLayers, mapping, ycbcrInfo, debugNameImageView);
+  image.imageView_ = image.createImageView(vkDevice_, vkImageViewType, vkFormat, aspect, 0, VK_REMAINING_MIP_LEVELS, 0, numLayers, mapping, ycbcrInfo);
 
   if (image.vkUsageFlags_ & VK_IMAGE_USAGE_STORAGE_BIT)
   {
     if (!desc.swizzle.identity())
     {
       // use identity swizzle for storage images
-      image.imageViewStorage_ = image.createImageView(vkDevice_, vkImageViewType, vkFormat, aspect, 0, VK_REMAINING_MIP_LEVELS, 0, numLayers, {}, ycbcrInfo, debugNameImageView);
+      image.imageViewStorage_ = image.createImageView(vkDevice_, vkImageViewType, vkFormat, aspect, 0, VK_REMAINING_MIP_LEVELS, 0, numLayers, {}, ycbcrInfo);
       ASSERT(image.imageViewStorage_ != VK_NULL_HANDLE);
     }
   }

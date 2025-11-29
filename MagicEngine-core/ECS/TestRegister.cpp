@@ -39,6 +39,7 @@
 #include "Game/FlashComponent.h"
 #include "Game/MaterialSwapper.h"
 #include "UI/RectTransform.h"
+#include "3DUI/BillboardComponent.h"
 
 void RegisterShit()
 {
@@ -80,4 +81,5 @@ void RegisterShit()
 	IRegisteredComponent<FlashComponent>::RegisterComponent();
 	IRegisteredComponent<MaterialSwapperComponent>::RegisterComponent();
 	IRegisteredComponent<RectTransformComponent>::RegisterComponent();
+	IRegisteredComponent<BillboardComponent>::RegisterComponent();
 }

@@ -3039,6 +3039,34 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/primitives/vplane/vplane.mesh",
+            "resources": [
+                {
+                    "resourceType": 6209910166724260588,
+                    "resourceEntries": [
+                        {
+                            "hash": 2558573453700021325,
+                            "name": "vplane0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/itempickupui_katar.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 2567177132187557019,
+                            "name": "itempickupui_katar0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/models/glb/mc_animated/mc_animatedlight atk 1.anim",
             "resources": [
                 {
@@ -3299,6 +3327,20 @@
                         {
                             "hash": 2169911486543318909,
                             "name": "player_idle_mixamoplayer_blocking_mixamo0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/materials/UI_Pickup_Bloodcalibur.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2578814363255955407,
+                            "name": "ui_pickup_bloodcalibur0"
                         }
                     ]
                 }
@@ -7407,6 +7449,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/itempickupui_bloodcalibur.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 2574108453489058335,
+                            "name": "itempickupui_bloodcalibur0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "sounds/sfx/mc/sword/sword 1.wav",
             "resources": [
                 {
@@ -7701,6 +7757,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/primitives/vplane/material_0.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2554652595235372107,
+                            "name": "material_00"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "sounds/sfx/ultimate activation.wav",
             "resources": [
                 {
@@ -7723,6 +7793,20 @@
                         {
                             "hash": 2206382287236648833,
                             "name": "player_idle_mixamoplayer_katar_ult0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/materials/ui_pickup_katar.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2613129021653915515,
+                            "name": "ui_pickup_katar0"
                         }
                     ]
                 }
