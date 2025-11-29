@@ -246,6 +246,12 @@ void main() {
     // Sample HDR color
     vec3 hdrColor = textureBindless2D(pc.hdrSceneColorIndex, 0, uv).rgb;
     
+    // Passthrough mode - no processing at all
+    if (pc.mode == 7) {
+        outColor = vec4(hdrColor, 1.0);
+        return;
+    }
+    
     // Apply exposure
     hdrColor *= pc.exposure;
     

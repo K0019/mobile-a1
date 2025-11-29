@@ -63,9 +63,7 @@ void RenderComponent::EditorDraw()
     // Cast Shadow override
     const char* shadowOptions[] = { "Use Material", "Off", "On" };
     int shadowIndex = castShadowOverride + 1; // -1->0, 0->1, 1->2
-    gui::TextUnformatted("Cast Shadow");
-    gui::SameLine();
-    if (ImGui::Combo("##CastShadow", &shadowIndex, shadowOptions, 3))
+    if (gui::Combo("CastShadow", shadowOptions, 3, &shadowIndex))
     {
         castShadowOverride = shadowIndex - 1;
     }
