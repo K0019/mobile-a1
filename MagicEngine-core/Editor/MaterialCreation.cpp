@@ -32,6 +32,8 @@ namespace editor {
 		// ----- Shading Model -----
 		gui::Checkbox("Unlit", &isUnlit);
 		gui::Checkbox("Double Sided", &isDoubleSided);
+		gui::Checkbox("Cast Shadow", &castShadow);
+		gui::Checkbox("Receive Shadow", &receiveShadow);
 		gui::Separator();
 
 		// ----- Core PBR properties -----
@@ -111,6 +113,10 @@ namespace editor {
 				materialProps.flags |= MaterialFlags::UNLIT;
 			if (isDoubleSided)
 				materialProps.flags |= MaterialFlags::DOUBLE_SIDED;
+			if (castShadow)
+				materialProps.flags |= MaterialFlags::CAST_SHADOW;
+			if (receiveShadow)
+				materialProps.flags |= MaterialFlags::RECEIVE_SHADOW;
 
 			materialProps.name = materialName;
 			
@@ -189,6 +195,12 @@ namespace editor {
 		loadTexture(2, materialProps.normalTexture.source);
 		loadTexture(3, materialProps.emissiveTexture.source);
 		loadTexture(4, materialProps.occlusionTexture.source);
+
+		// Load flags
+		isUnlit = (materialProps.flags & MaterialFlags::UNLIT) != 0;
+		isDoubleSided = (materialProps.flags & MaterialFlags::DOUBLE_SIDED) != 0;
+		castShadow = (materialProps.flags & MaterialFlags::CAST_SHADOW) != 0;
+		receiveShadow = (materialProps.flags & MaterialFlags::RECEIVE_SHADOW) != 0;
 	}
 
 	void MaterialEditWindow::DrawWindow()
@@ -201,6 +213,8 @@ namespace editor {
 		// ----- Shading Model -----
 		gui::Checkbox("Unlit", &isUnlit);
 		gui::Checkbox("Double Sided", &isDoubleSided);
+		gui::Checkbox("Cast Shadow", &castShadow);
+		gui::Checkbox("Receive Shadow", &receiveShadow);
 		gui::Separator();
 
 		// ----- Core PBR properties -----
@@ -280,6 +294,10 @@ namespace editor {
 				materialProps.flags |= MaterialFlags::UNLIT;
 			if (isDoubleSided)
 				materialProps.flags |= MaterialFlags::DOUBLE_SIDED;
+			if (castShadow)
+				materialProps.flags |= MaterialFlags::CAST_SHADOW;
+			if (receiveShadow)
+				materialProps.flags |= MaterialFlags::RECEIVE_SHADOW;
 
 			materialProps.name = materialName;
 

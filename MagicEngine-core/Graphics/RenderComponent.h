@@ -36,6 +36,9 @@ public:
 
     void EditorDraw() override;
 
+    // Shadow casting override (-1 = use material setting, 0 = off, 1 = on)
+    int castShadowOverride = -1;
+
 private:
     UserResourceHandle<ResourceMesh> meshHandle;
     std::vector<UserResourceHandle<ResourceMaterial>> materials;
@@ -46,7 +49,8 @@ public:
 property_begin(RenderComponent)
 {
     property_var(meshHandle),
-    property_var(materials)
+    property_var(materials),
+    property_var(castShadowOverride)
 }
 property_vend_h(RenderComponent)
 

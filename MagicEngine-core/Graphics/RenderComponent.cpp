@@ -23,6 +23,7 @@ All rights reserved.
 #include "Engine/Resources/ResourceManager.h"
 #include "Engine/Resources/Types/ResourceTypesGraphics.h"
 #include "Editor/Containers/GUICollection.h"
+#include <ImGui/ImguiHeader.h>
 
 const ResourceMesh* RenderComponent::GetMesh() const
 {
@@ -58,6 +59,16 @@ void RenderComponent::EditorDraw()
             materials[i] = newMesh->defaultMaterialHashes[i];
         }
     });
+
+    // Cast Shadow override
+    const char* shadowOptions[] = { "Use Material", "Off", "On" };
+    int shadowIndex = castShadowOverride + 1; // -1->0, 0->1, 1->2
+    gui::TextUnformatted("Cast Shadow");
+    gui::SameLine();
+    if (ImGui::Combo("##CastShadow", &shadowIndex, shadowOptions, 3))
+    {
+        castShadowOverride = shadowIndex - 1;
+    }
 
     auto mesh{ meshHandle.GetResource() };
 

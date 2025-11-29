@@ -245,11 +245,20 @@ void GraphicsMain::UploadToPipeline(FrameData* outFrameData)
 				.baseInstance = static_cast<uint32_t>(objectIndex)
 			};
 
+			// Encode shadow override in upper bits of objectId
+			// Bits 30-31: 0 = use material, 1 = force off, 2 = force on
+			uint32_t shadowOverrideBits = 0;
+			if (comp.castShadowOverride == 0)
+				shadowOverrideBits = 1u << 30; // Force off
+			else if (comp.castShadowOverride == 1)
+				shadowOverrideBits = 2u << 30; // Force on
+			// else 0 = use material setting
+
 			DrawData drawData = {
 				.transformId = static_cast<uint32_t>(objectIndex),
 				.materialId = context.resourceMngr->getMaterialIndex(materialHandle),
 				.meshDecompIndex = static_cast<uint32_t>(meshData->decompressionByteOffset / sizeof(MeshDecompressionData)),
-				.objectId = static_cast<uint32_t>(objectIndex)
+				.objectId = static_cast<uint32_t>(objectIndex) | shadowOverrideBits
 			};
 
 			uint32_t drawCommandIndex = static_cast<uint32_t>(params->drawCommands.size());
