@@ -7,8 +7,9 @@
 #include "Engine/PrefabManager.h"
 #include "Components/EntityReferenceHolder.h"
 #include "Graphics/AnimationComponent.h"
+#include "Managers/AudioManager.h"
 
-int L_Boss_Prefect_BookingSlips::burstCount = 5;
+int L_Boss_Prefect_BookingSlips::burstCount = 4;
 float L_Boss_Prefect_BookingSlips::burstDelay = 1.f;
 
 void L_Boss_Prefect_BookingSlips::OnInitialize()
@@ -47,7 +48,9 @@ NODE_STATUS L_Boss_Prefect_BookingSlips::OnUpdate([[maybe_unused]] ecs::EntityHa
 
                     spawnedSlip->GetTransform().SetWorldPosition(spawnPos);
                     spawnedSlip->GetTransform().SetWorldScale(Vec3{ 0.4f });
+
                 });
+                ST<AudioManager>::Get()->PlaySound3D("boss throw "+std::to_string(currentBurstCount), false, entity->GetTransform().GetWorldPosition(), AudioType::END, std::pair<float, float>{2.0f, 50.0f}, 0.6f);
 
             
                 if (currentBurstCount >= burstCount)

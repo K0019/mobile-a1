@@ -5,6 +5,7 @@
 #include "Game/Health.h"
 #include "Boss_Prefect_Util.h"
 #include "Graphics/AnimationComponent.h"
+#include "Managers/AudioManager.h"
 
 float L_Boss_Prefect_LashOut::attackCooldown = 3.0f;
 float L_Boss_Prefect_LashOut::attackDelay = 0.5f;
@@ -17,6 +18,7 @@ void L_Boss_Prefect_LashOut::OnInitialize()
     currentAttackCooldown = attackCooldown;
     currentAttackCount = attackCount;
     currentAttackDelay = attackDelay;
+    //ST<AudioManager>::Get()->PlaySound3D("boss lunge", false, entity->GetTransform().GetWorldPosition(), AudioType::END, std::pair<float, float>{2.0f, 50.0f}, 0.6f);
 }
 
 NODE_STATUS L_Boss_Prefect_LashOut::OnUpdate([[maybe_unused]] ecs::EntityHandle entity)
@@ -48,6 +50,10 @@ NODE_STATUS L_Boss_Prefect_LashOut::OnUpdate([[maybe_unused]] ecs::EntityHandle 
                 {
                     //characterComp->ResetSpeedMultiplier();
                     return NODE_STATUS::SUCCESS;
+                }
+                else
+                {
+                    //ST<AudioManager>::Get()->PlaySound3D("boss lunge", false, entity->GetTransform().GetWorldPosition(), AudioType::END, std::pair<float, float>{2.0f, 50.0f}, 0.6f);
                 }
             }
             currentAttackDelay -= GameTime::Dt();
