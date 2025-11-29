@@ -13,6 +13,7 @@ class Boss_Prefect_Util
 public:
 	static float minFollowDistance;
 	static float maxFollowDistance;
+	static float rotateSpeed;
 
 	static Vec2 GetMovementDirection(Vec3 currentPos, Vec3 targetPos)
 	{
@@ -63,6 +64,23 @@ public:
 
 		// This is a failsafe in case we want to check whether the prefab spawned
 		return false;
+	}
+
+	static void MoveInDirection(ecs::EntityHandle entity, Vec3 direction)
+	{
+		entity->GetTransform().AddWorldPosition(direction);
+	}
+	static void RotateTowards(ecs::EntityHandle entity, Vec2 direction)
+	{
+		Transform& characterTransform = entity->GetTransform();
+
+		Vec3 currentRotation = characterTransform.GetWorldRotation();
+
+		float targetAngle = math::ToDegrees(atan2(-direction.y, direction.x)) + 90;
+		float newAngle = math::MoveTowardsAngle(currentRotation.y, targetAngle, rotateSpeed * GameTime::Dt());
+		currentRotation.y = newAngle;
+
+		characterTransform.SetWorldRotation(currentRotation);
 	}
 };
 
