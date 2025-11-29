@@ -66,6 +66,7 @@ public:
 	float dodgeCooldown;
 	float dodgeDuration;
 	float dodgeSpeed;
+	float throwPower;
 	float parryTime;
 	float parryCoolDownTime;
 	float parryDelusion;
@@ -153,6 +154,7 @@ property_begin(CharacterMovementComponent)
 {
 	property_var(moveSpeed),
 	property_var(rotateSpeed),
+	property_var(throwPower),
 	property_var(parryCoolDownTime),
 	property_var(parryTime),
 	property_var(parryDelusion),

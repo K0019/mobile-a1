@@ -151,6 +151,8 @@ X(ENABLED, "Enabled")
 		*//******************************************************************/
 		void SetAngularVelocity(const Vec3& vel);
 
+		void AddImpulse(const Vec3& dir, float power);
+
 		void MoveTo(const Vec3& pos, float time);
 
 		// ===== Lua helpers =====

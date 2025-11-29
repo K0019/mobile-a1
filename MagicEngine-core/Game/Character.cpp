@@ -46,12 +46,14 @@ CharacterMovementComponent::CharacterMovementComponent()
 	, dodgeCooldown{ 0.0f }
 	, dodgeDuration{ 0.0f }
 	, dodgeSpeed{ 0.0f }
+	, currentDodgeCooldown{ 0.0f }
 	, heldItem{ nullptr }
 	, currentStunTime{ 0.0f }
 	, currentDodgeTime{ 0.0f }
 	, currentDodgeCooldown{ 0.0f }
 	, isAttacking{ false }
 	, speedMultiplier{ 1.0f }
+	, throwPower{0.0f}
 	, parryTime{}
 	, parryCoolDownTime{}
 	, parryDelusion{}
@@ -148,7 +150,10 @@ void CharacterMovementComponent::Throw(Vec3 direction)
 	auto tmpItem = heldItem;
 	DropItem();
 
-	tmpItem->GetComp<physics::PhysicsComp>()->SetLinearVelocity(direction);
+	auto pos{ tmpItem->GetTransform().GetWorldPosition() };
+	pos.y += 1.f;
+	tmpItem->GetTransform().SetWorldPosition(pos);
+	tmpItem->GetComp<physics::PhysicsComp>()->AddImpulse(direction, throwPower);
 }
 
 void CharacterMovementComponent::GrabItem(ecs::CompHandle<GrabbableItemComponent> item)
@@ -363,6 +368,7 @@ void CharacterMovementComponent::EditorDraw()
 	gui::VarInput("Dodge Cooldown", &dodgeCooldown);
 	gui::VarInput("Dodge Duration", &dodgeDuration);
 	gui::VarInput("Dodge Speed", &dodgeSpeed);
+	gui::VarInput("Throw Power", &throwPower);
 
 	gui::VarInput("Parry Time Period", &parryTime);
 	gui::VarInput("Parry Cool Down time", &parryCoolDownTime);

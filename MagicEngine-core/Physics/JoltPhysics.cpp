@@ -589,6 +589,14 @@ namespace physics {
 			lock.GetBody().SetIsSensor(val);
 	}
 
+	void JoltBodyComp::AddImpulse(const Vec3& dir, float power)
+	{
+		JPH::Vec3 impulse{ dir.x, dir.y, dir.z };
+		impulse = impulse.Normalized();
+		impulse *= power;
+		ST<JoltPhysics>::Get()->GetBodyInterface().AddImpulse(bodyID, impulse);
+	}
+
 	void JoltBodyComp::UpdateBody()
 	{
 		Transform const& trans{ ecs::GetEntityTransform(this) };
