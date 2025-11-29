@@ -208,10 +208,12 @@ bool CharacterMovementComponent::Attack()
 	ecs::CompHandle<AnimationComponent> animComp = thisEntity->GetComp<AnimationComponent>();
 
 	// Attempt to use animation pulled from the item, if nonexistent then use the fallback anim on the Character
-	animComp->animHandleA = attackItem->GetComp<GrabbableItemComponent>()->lightAttackAnimation;
-	if (!animComp->GetAnimationClipA())
-		animComp->animHandleA = animations[ATTACK];
-
+	size_t attackAnimHash = attackItem->GetComp<GrabbableItemComponent>()->lightAttackAnimation.GetHash();
+	if (attackAnimHash == 0)
+		attackAnimHash = animations[ATTACK].GetHash();
+	
+	// Use transition for attack animation (quick transition)
+	animComp->TransitionTo(attackAnimHash, 0.1f);
 	animComp->timeA = 0.0f;
 
     std::string tmpName;
@@ -401,10 +403,7 @@ void CharacterMovementComponentSystem::UpdateCharacterMovementComponent(Characte
 
 	// Get the animation component
 	ecs::CompHandle<AnimationComponent> animComp = characterEntity->GetComp<AnimationComponent>();
-	//adding blend more than 0.5 causes animations to look weird
-	animComp->blend = 0.5f;
-	//not sure what cross fade does
-	animComp->crossfade = true;
+
 	// Update held item
 	ecs::EntityHandle attackItem{ comp.heldItem };
 	if (attackItem)
@@ -442,8 +441,7 @@ void CharacterMovementComponentSystem::UpdateCharacterMovementComponent(Characte
 
 		if (animComp->animHandleA.GetHash() != comp.animations[HURT].GetHash())
 		{
-			animComp->animHandleB = animComp->animHandleA;
-			animComp->animHandleA = comp.animations[HURT];
+			animComp->TransitionTo(comp.animations[HURT].GetHash(), 0.1f);
 		}
 		animComp->timeA = comp.currentStunTime / comp.stunTimePerHit;
 		comp.currentDodgeTime = 0.0f;
@@ -457,20 +455,16 @@ void CharacterMovementComponentSystem::UpdateCharacterMovementComponent(Characte
 
 	if (comp.IsParrying())
 	{
-		animComp->animHandleA = 0;
-		if (itemComp) {
-			if (animComp->GetAnimationClipA()) {
-				animComp->animHandleB = animComp->animHandleA;
-			}
-			animComp->animHandleA = itemComp->parryAnimation;
-		}
+		// Get parry animation - prefer item's parry animation, fallback to character's
+		size_t parryAnimHash = 0;
+		if (itemComp && itemComp->parryAnimation.GetHash() != 0)
+			parryAnimHash = itemComp->parryAnimation.GetHash();
+		else
+			parryAnimHash = comp.animations[PARRY].GetHash();
 
-		if (!animComp->GetAnimationClipA())
-			animComp->animHandleA = comp.animations[PARRY];
-		else {
-			animComp->animHandleB = animComp->animHandleA;
-			animComp->animHandleA = comp.animations[PARRY];
-		}
+		// Transition to parry animation if not already playing it
+		if (animComp->animHandleA.GetHash() != parryAnimHash)
+			animComp->TransitionTo(parryAnimHash, 0.05f);
 
 		if (auto clip{ animComp->GetAnimationClipA() })
 		{
@@ -491,19 +485,18 @@ void CharacterMovementComponentSystem::UpdateCharacterMovementComponent(Characte
 	// Normalize the move vector if it's over 1.0f in length
 	if (movement.LengthSqr() > 0.0f)
 	{
-		if(comp.isAttacking)
-
-		animComp->animHandleB = comp.animations[WALK];
-		else
-		animComp->animHandleA = comp.animations[WALK];
+		// Walking - only change animation if not attacking
+		if (!comp.isAttacking && animComp->animHandleA.GetHash() != comp.animations[WALK].GetHash())
+		{
+			animComp->TransitionTo(comp.animations[WALK].GetHash(), 0.15f);
+		}
 	}
 	else
 	{
-		if (!comp.isAttacking) {
-			if (animComp->GetAnimationClipA()) {
-				animComp->animHandleB = animComp->animHandleA;
-			}
-			animComp->animHandleA = comp.animations[IDLE];
+		// Idle - only change animation if not attacking
+		if (!comp.isAttacking && animComp->animHandleA.GetHash() != comp.animations[IDLE].GetHash())
+		{
+			animComp->TransitionTo(comp.animations[IDLE].GetHash(), 0.15f);
 		}
 	}
 
@@ -542,7 +535,8 @@ void CharacterMovementComponentSystem::UpdateCharacterMovementComponent(Characte
 	{
 		comp.currentDodgeTime -= GameTime::Dt();
 		moveDir *= comp.dodgeSpeed;
-		animComp->animHandleA = comp.animations[DODGE];
+		if (animComp->animHandleA.GetHash() != comp.animations[DODGE].GetHash())
+			animComp->TransitionTo(comp.animations[DODGE].GetHash(), 0.05f);
 	}
 	else
 	{
