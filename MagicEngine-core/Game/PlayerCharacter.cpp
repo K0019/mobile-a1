@@ -35,11 +35,6 @@ All rights reserved.
 PlayerMovementComponent::PlayerMovementComponent()
 	: grabDistance{ 0.0f }
 	, cameraReference{nullptr}
-	, parryTime{}
-	, parryCoolDownTime{}
-	, parryDelution{}
-	, currParryCoolDown{}
-	, currParryTime{}
 	, ultimateAttackDamage{}
 	, isUltimateAttack{false}
 {
@@ -66,30 +61,15 @@ void PlayerMovementComponent::EditorDraw()
 	cameraReference.EditorDraw("Camera");
 	testReference.EditorDraw("Test");
 	gui::VarInput("Grab Distance", &grabDistance);
-	gui::VarInput("Parry Time Period", &parryTime);
-	gui::VarInput("Parry Cool Down time", &parryCoolDownTime);
-	gui::VarInput("Parry Delution", &parryDelution);
 	gui::VarInput("Ultimate Attack Damage", &ultimateAttackDamage);
 }
 
 void PlayerMovementComponent::Parry()
 {
-	currParryTime = parryTime;
-	currParryCoolDown = parryCoolDownTime;
+	auto characterComp{ ecs::GetEntity(this)->GetComp<CharacterMovementComponent>() };
+	characterComp->Parry();
 }
 
-bool PlayerMovementComponent::IsParrying()
-{
-	if (currParryTime <= 0.f)
-		return false;
-
-	auto delutionComp{ ecs::GetEntity(this)->GetComp<DelusionComponent>() };
-	if (!delutionComp)
-		return false;
-
-	delutionComp->AddDelusion(parryDelution);
-	CONSOLE_LOG(LEVEL_INFO) << "Parried.";
-}
 
 void PlayerMovementComponent::UltimateAttack()
 {
@@ -215,10 +195,7 @@ void PlayerMovementComponentSystem::UpdatePlayerMovementComponent(PlayerMovement
 	if (inputInstance->GetIsDown(KEY::LSHIFT) || EventsReader<Events::GameActionDodge>{}.ExtractEvent())
 		characterComp->Dodge(movement);
 
-	if (comp.currParryTime > 0.f)
-		comp.currParryTime -= GameTime::Dt();
-	if (comp.currParryCoolDown > 0.f)
-		comp.currParryCoolDown -= GameTime::Dt();
-	if (inputInstance->GetIsPressed(KEY::LCTRL) && comp.currParryCoolDown <= 0.f)
+
+	if (inputInstance->GetIsPressed(KEY::LCTRL))
 		comp.Parry();
 }
