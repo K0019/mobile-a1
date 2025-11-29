@@ -30,7 +30,7 @@ Transform::Transform()
 	, rotation{}
 	, scale{ 1.0f, 1.0f, 1.0f }
 	, isTransformDirty{ false }
-	, mat{}
+	, mat{ 1.0f }
 	, parent{ nullptr }
 	, children{}
 {
