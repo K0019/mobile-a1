@@ -398,7 +398,10 @@ void CharacterMovementComponentSystem::UpdateCharacterMovementComponent(Characte
 
 	// Get the animation component
 	ecs::CompHandle<AnimationComponent> animComp = characterEntity->GetComp<AnimationComponent>();
-
+	//adding blend more than 0.5 causes animations to look weird
+	animComp->blend = 0.5f;
+	//not sure what cross fade does
+	animComp->crossfade = true;
 	// Update held item
 	ecs::EntityHandle attackItem{ comp.heldItem };
 	if (attackItem)
