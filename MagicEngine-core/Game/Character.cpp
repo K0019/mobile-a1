@@ -44,11 +44,13 @@ CharacterMovementComponent::CharacterMovementComponent()
 	, dodgeCooldown{ 0.0f }
 	, dodgeDuration{ 0.0f }
 	, dodgeSpeed{ 0.0f }
+	, currentDodgeCooldown{ 0.0f }
 	, heldItem{ nullptr }
 	, currentStunTime{ 0.0f }
 	, currentDodgeTime{ 0.0f }
 	, isAttacking{ false }
 	, speedMultiplier{ 1.0f }
+	, throwPower{0.0f}
 {
 }
 
@@ -124,7 +126,10 @@ void CharacterMovementComponent::Throw(Vec3 direction)
 	auto tmpItem = heldItem;
 	DropItem();
 
-	tmpItem->GetComp<physics::PhysicsComp>()->SetLinearVelocity(direction);
+	auto pos{ tmpItem->GetTransform().GetWorldPosition() };
+	pos.y += 1.f;
+	tmpItem->GetTransform().SetWorldPosition(pos);
+	tmpItem->GetComp<physics::PhysicsComp>()->AddImpulse(direction, throwPower);
 }
 
 void CharacterMovementComponent::GrabItem(ecs::CompHandle<GrabbableItemComponent> item)
@@ -230,6 +235,7 @@ bool CharacterMovementComponent::IsDodging()
 
 void CharacterMovementComponent::Serialize(Serializer& writer) const
 {
+	ISerializeable::Serialize(writer);
 	writer.Serialize("moveSpeed", moveSpeed);
 	writer.Serialize("rotateSpeed", rotateSpeed);
 	writer.Serialize("stunTimePerHit", stunTimePerHit);
@@ -258,6 +264,7 @@ void CharacterMovementComponent::Serialize(Serializer& writer) const
 
 void CharacterMovementComponent::Deserialize(Deserializer& reader)
 {
+	ISerializeable::Deserialize(reader);
 	reader.DeserializeVar("moveSpeed", &moveSpeed);
 	reader.DeserializeVar("rotateSpeed", &rotateSpeed);
 	reader.DeserializeVar("stunTimePerHit", &stunTimePerHit);
@@ -307,6 +314,7 @@ void CharacterMovementComponent::EditorDraw()
 	gui::VarInput("Dodge Cooldown", &dodgeCooldown);
 	gui::VarInput("Dodge Duration", &dodgeDuration);
 	gui::VarInput("Dodge Speed", &dodgeSpeed);
+	gui::VarInput("Throw Power", &throwPower);
 
 	hitDebugObject.EditorDraw("Hit Debug Object");
 	heldItem.EditorDraw("Held Item");

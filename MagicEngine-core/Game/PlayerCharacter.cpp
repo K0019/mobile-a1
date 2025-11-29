@@ -125,14 +125,17 @@ void PlayerMovementComponentSystem::UpdatePlayerMovementComponent(PlayerMovement
 	Vec2 camForward = Vec2{ cos(yawRad),sin(yawRad) };
 	Vec2 camRight = Vec2{ -sin(yawRad),cos(yawRad) };
 
-	if (inputInstance->GetIsDown(KEY::W))
-		movement = movement + camForward;
-	if (inputInstance->GetIsDown(KEY::S))
-		movement = movement - camForward;
-	if (inputInstance->GetIsDown(KEY::D))
-		movement = movement + camRight;
-	if (inputInstance->GetIsDown(KEY::A))
-		movement = movement - camRight;
+	if (!characterComp->isAttacking)
+	{
+		if (inputInstance->GetIsDown(KEY::W))
+			movement = movement + camForward;
+		if (inputInstance->GetIsDown(KEY::S))
+			movement = movement - camForward;
+		if (inputInstance->GetIsDown(KEY::D))
+			movement = movement + camRight;
+		if (inputInstance->GetIsDown(KEY::A))
+			movement = movement - camRight;
+	}
 
 #ifdef __ANDROID__
 
@@ -199,7 +202,7 @@ void PlayerMovementComponentSystem::UpdatePlayerMovementComponent(PlayerMovement
 	if (inputInstance->GetIsPressed(KEY::Q) || EventsReader<Events::GameActionThrowItem>{}.ExtractEvent())
 	{
 		// Look for the nearest enemy
-		Vec3 throwDirection{ camForward.x,1.0f,camForward.y  };
+		Vec3 throwDirection{ camForward.x,0.f,camForward.y  };
 
 		characterComp->Throw(throwDirection);
 	}

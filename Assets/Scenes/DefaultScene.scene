@@ -252,6 +252,9 @@
                     "_active": true,
                     "moveSpeed": 2.0,
                     "rotateSpeed": 1440.0,
+                    "throwPower": 50.0,
+                    "moveSpeed": 2.0,
+                    "rotateSpeed": 1440.0,
                     "stunTimePerHit": 0.25,
                     "groundFriction": 0.5,
                     "dodgeCooldown": 1.0,
@@ -391,7 +394,7 @@
         {
             "parentIndex": -1,
             "position": {
-                "x": -0.008845627307891846,
+                "x": 5.872812271118164,
                 "y": 0.09999585151672363,
                 "z": 2.127816677093506
             },
@@ -575,6 +578,9 @@
                 },
                 "17579205194823809952": {
                     "_active": false,
+                    "moveSpeed": 1.7999999523162842,
+                    "rotateSpeed": 200.0,
+                    "throwPower": 0.0,
                     "moveSpeed": 1.7999999523162842,
                     "rotateSpeed": 200.0,
                     "stunTimePerHit": 0.5,
@@ -1487,6 +1493,9 @@
                     "_active": true,
                     "moveSpeed": 3.0,
                     "rotateSpeed": 14400.0,
+                    "throwPower": 0.0,
+                    "moveSpeed": 3.0,
+                    "rotateSpeed": 14400.0,
                     "stunTimePerHit": 0.5,
                     "groundFriction": 1.5,
                     "dodgeCooldown": 2.5,
@@ -2240,6 +2249,9 @@
                 },
                 "17579205194823809952": {
                     "_active": false,
+                    "moveSpeed": 1.7999999523162842,
+                    "rotateSpeed": 200.0,
+                    "throwPower": 0.0,
                     "moveSpeed": 1.7999999523162842,
                     "rotateSpeed": 200.0,
                     "stunTimePerHit": 0.5,

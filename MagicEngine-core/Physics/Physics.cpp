@@ -176,6 +176,11 @@ namespace physics {
 		ecs::GetEntity(this)->GetComp<JoltBodyComp>()->SetAngularVelocity(vel);
 	}
 
+	void PhysicsComp::AddImpulse(const Vec3& dir, float power)
+	{
+		ecs::GetEntity(this)->GetComp<JoltBodyComp>()->AddImpulse(dir, power);
+	}
+
 	void PhysicsComp::MoveTo(const Vec3& pos, float time)
 	{
 		ecs::GetEntity(this)->GetComp<JoltBodyComp>()->MoveTo(pos, time);

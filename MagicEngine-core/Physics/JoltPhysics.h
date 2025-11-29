@@ -473,6 +473,8 @@ namespace physics {
 		*//******************************************************************/
 		void SetIsTrigger(bool val);
 
+		void AddImpulse(const Vec3& dir, float power);
+
 		void MoveTo(const Vec3& pos, float time);
 
 		/*****************************************************************//*!

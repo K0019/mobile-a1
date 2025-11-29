@@ -65,6 +65,7 @@ public:
 	float dodgeCooldown;
 	float dodgeDuration;
 	float dodgeSpeed;
+	float throwPower;
 
 	// Not serialized
 	float currentStunTime;
@@ -143,7 +144,8 @@ private:
 property_begin(CharacterMovementComponent)
 {
 	property_var(moveSpeed),
-	property_var(rotateSpeed)
+	property_var(rotateSpeed),
+	property_var(throwPower),
 }
 property_vend_h(CharacterMovementComponent)
 
