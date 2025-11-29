@@ -338,7 +338,7 @@
             "parentIndex": -1,
             "position": {
                 "x": 230.0,
-                "y": 250.0,
+                "y": 850.0,
                 "z": 0.0
             },
             "rotation": {
@@ -792,7 +792,7 @@
             "parentIndex": -1,
             "position": {
                 "x": 230.0,
-                "y": 250.0,
+                "y": 850.0,
                 "z": 0.0
             },
             "rotation": {
