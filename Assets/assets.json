@@ -435,6 +435,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/ranka.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 2613227977692009447,
+                            "name": "ranka0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/models/glb/enemy_female_animated/_04.ktx2",
             "resources": [
                 {
@@ -1653,6 +1667,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/rankf.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 2631693175968883765,
+                            "name": "rankf0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "sounds/sfx/mc/footsteps/outdoor/outdoor footsteps 4.wav",
             "resources": [
                 {
@@ -2829,6 +2857,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/rankd.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 2627949338876305497,
+                            "name": "rankd0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "sounds/sfx/ui/rank decrease.wav",
             "resources": [
                 {
@@ -3313,6 +3355,20 @@
                         {
                             "hash": 2593603894948834043,
                             "name": "mc_animatedsword idle0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/ranka+.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 2608381330436771473,
+                            "name": "ranka+0"
                         }
                     ]
                 }
@@ -7519,6 +7575,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/rankb.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 2620714552365537457,
+                            "name": "rankb0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/models/glb/aji/player_idle_mixamo/n00_010_01_onepiece_00_cloth_01__instance_.material",
             "resources": [
                 {
@@ -7835,6 +7905,20 @@
                         {
                             "hash": 4497614986487010981,
                             "name": "n00_010_01_onepiece_00_cloth_02__instance_0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/rankc.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 2621543584132881557,
+                            "name": "rankc0"
                         }
                     ]
                 }
