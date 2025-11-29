@@ -96,10 +96,21 @@
                     "audioName": "light attack #1 ",
                     "audioStartIndex": 1,
                     "audioEndIndex": 3,
-                    "hash": 1,
-                    "hash": 1,
-                    "hash": 1,
-                    "hash": 1
+                    "lightAttackAnimation": {
+                        "hash": 1
+                    },
+                    "heavyAttackAnimation": {
+                        "hash": 1
+                    },
+                    "ultimAttackAnimation": {
+                        "hash": 1
+                    },
+                    "parryAnimation": {
+                        "hash": 1
+                    },
+                    "pickupUI": {
+                        "hash": 1
+                    }
                 },
                 "2263953158229251792": {
                     "_active": true,
@@ -439,10 +450,21 @@
                     "audioName": "",
                     "audioStartIndex": 0,
                     "audioEndIndex": 0,
-                    "hash": 5323304238624671639,
-                    "hash": 5323304238624671639,
-                    "hash": 5323304238624671639,
-                    "hash": 5323304238624671639
+                    "lightAttackAnimation": {
+                        "hash": 1
+                    },
+                    "heavyAttackAnimation": {
+                        "hash": 1
+                    },
+                    "ultimAttackAnimation": {
+                        "hash": 1
+                    },
+                    "parryAnimation": {
+                        "hash": 1
+                    },
+                    "pickupUI": {
+                        "hash": 1
+                    }
                 },
                 "2481176255561649761": {
                     "_active": false,
@@ -944,10 +966,21 @@
                     "audioName": "sword ",
                     "audioStartIndex": 1,
                     "audioEndIndex": 4,
-                    "hash": 2582954025322195705,
-                    "hash": 2582954025322195705,
-                    "hash": 2582954025322195705,
-                    "hash": 2582954025322195705
+                    "lightAttackAnimation": {
+                        "hash": 1
+                    },
+                    "heavyAttackAnimation": {
+                        "hash": 1
+                    },
+                    "ultimAttackAnimation": {
+                        "hash": 1
+                    },
+                    "parryAnimation": {
+                        "hash": 1
+                    },
+                    "pickupUI": {
+                        "hash": 2578814363255955407
+                    }
                 },
                 "5352011725353660904": {
                     "_active": true,
@@ -1398,10 +1431,21 @@
                     "audioName": "",
                     "audioStartIndex": 0,
                     "audioEndIndex": 0,
-                    "hash": 1,
-                    "hash": 1,
-                    "hash": 1,
-                    "hash": 1
+                    "lightAttackAnimation": {
+                        "hash": 1
+                    },
+                    "heavyAttackAnimation": {
+                        "hash": 1
+                    },
+                    "ultimAttackAnimation": {
+                        "hash": 1
+                    },
+                    "parryAnimation": {
+                        "hash": 1
+                    },
+                    "pickupUI": {
+                        "hash": 1
+                    }
                 },
                 "2481176255561649761": {
                     "_active": false,
@@ -1819,10 +1863,21 @@
                     "audioName": "katar #1 ",
                     "audioStartIndex": 1,
                     "audioEndIndex": 3,
-                    "hash": 2556570144302082789,
-                    "hash": 2556570144302082789,
-                    "hash": 2556570144302082789,
-                    "hash": 2556570144302082789
+                    "lightAttackAnimation": {
+                        "hash": 1
+                    },
+                    "heavyAttackAnimation": {
+                        "hash": 1
+                    },
+                    "ultimAttackAnimation": {
+                        "hash": 1
+                    },
+                    "parryAnimation": {
+                        "hash": 1
+                    },
+                    "pickupUI": {
+                        "hash": 2578814363255955407
+                    }
                 },
                 "5352011725353660904": {
                     "_active": true,
@@ -2154,10 +2209,21 @@
                     "audioName": "",
                     "audioStartIndex": 0,
                     "audioEndIndex": 0,
-                    "hash": 1,
-                    "hash": 1,
-                    "hash": 1,
-                    "hash": 1
+                    "lightAttackAnimation": {
+                        "hash": 1
+                    },
+                    "heavyAttackAnimation": {
+                        "hash": 1
+                    },
+                    "ultimAttackAnimation": {
+                        "hash": 1
+                    },
+                    "parryAnimation": {
+                        "hash": 1
+                    },
+                    "pickupUI": {
+                        "hash": 1
+                    }
                 },
                 "2481176255561649761": {
                     "_active": false,

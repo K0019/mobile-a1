@@ -27,6 +27,7 @@ All rights reserved.
 #include "Physics/Physics.h"
 #include "Engine/Input.h"
 #include "Editor/Containers/GUICollection.h"
+#include "Editor/EditorUtilResource.h"
 #include "Game/PlayerCharacter.h"
 #include "Game/EnemyCharacter.h"
 #include "Game/Delusion.h"
@@ -151,6 +152,8 @@ void GrabbableItemComponent::EditorDraw()
 		parryAnimation = hash;
 		});
 
+	editor::EditorUtil_DrawResourceHandle("Pickup UI Material", pickupUI);
+
 	// TODO: Editor Draw
 	gui::VarDefault("Audio Name", &audioName);
 
@@ -207,12 +210,29 @@ bool GrabbableItemPickupUISystem::PreRun()
 	return true;
 }
 
+void GrabbableItemPickupUISystem::PostRun()
+{
+	// Flushes BillboardComponent attachments to fix a 1 frame period where the UI isn't billboarded
+	ecs::FlushChanges();
+}
+
 void GrabbableItemPickupUISystem::UpdateItemCompUI(GrabbableItemComponent& itemComp)
 {
-	constexpr float UI_APPEAR_DIST{ 2.5f };
+	// Skip if the item doesn't have an associated UI material
+	if (itemComp.pickupUI.GetHash() == 1)
+		return;
+
 	ecs::EntityHandle itemEntity{ ecs::GetEntity(&itemComp) };
 
+	// If item is being held, hide UI
+	if (itemComp.isHeld)
+	{
+		HideUI(itemEntity);
+		return;
+	}
+
 	// Show/Hide UI based on distance check
+	constexpr float UI_APPEAR_DIST{ 2.5f };
 	Vec3 toPlayer{ playerPos - itemEntity->GetTransform().GetWorldPosition()};
 	if (toPlayer.LengthSqr() <= UI_APPEAR_DIST * UI_APPEAR_DIST)
 		ShowUI(itemEntity, itemComp.pickupUI);
@@ -274,5 +294,5 @@ ecs::EntityHandle GrabbableItemPickupUISystem::GetInactiveUIEntity()
 	}
 	
 	// Safe as long as the prefab doesn't contain GrabbableItemComponent
-	return ST<PrefabManager>::Get()->LoadPrefab("ItemPickupUI");
+	return ST<PrefabManager>::Get()->LoadPrefab("itempickupui");
 }

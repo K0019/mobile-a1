@@ -5,6 +5,7 @@
 #include "graphics/render_graph.h"
 #include "graphics/scene.h"
 #include "math/utils_math.h"
+#include <mutex>
 
 namespace Resource
 {

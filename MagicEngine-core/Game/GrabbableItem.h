@@ -122,6 +122,7 @@ public:
 	GrabbableItemPickupUISystem();
 
 	bool PreRun() override;
+	void PostRun() override;
 
 private:
 	void UpdateItemCompUI(GrabbableItemComponent& itemComp);
