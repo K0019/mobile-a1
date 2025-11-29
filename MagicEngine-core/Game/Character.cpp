@@ -74,9 +74,20 @@ bool CharacterMovementComponent::Dodge(Vec2 vector)
 	if (currentDodgeCooldown > 0.0f)
 		return false;
 
-	// Don't dodge nowhere
 	if (vector.LengthSqr() == 0.0f)
-		return false;
+	{
+		auto characterEntity = ecs::GetEntity(this);
+		Transform& characterTransform = characterEntity->GetTransform();
+		Vec3 rotation = characterTransform.GetWorldRotation();
+
+
+		vector = Vec2(sin(math::ToRadians(rotation.y)), cos(math::ToRadians(rotation.y)));
+	}
+
+	/// jk
+	//// Don't dodge nowhere
+	//if (vector.LengthSqr() == 0.0f)
+	//	return false;
 
 	SetMovementVector(vector.Normalized());
 	currentDodgeTime = dodgeDuration;
