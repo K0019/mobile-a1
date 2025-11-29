@@ -113,7 +113,7 @@
                     "testReference": {
                         "entityUid": 3837990472816120687
                     },
-                    "grabDistance": 10.0
+                    "grabDistance": 1.5
                 },
                 "2481176255561649761": {
                     "_active": true,

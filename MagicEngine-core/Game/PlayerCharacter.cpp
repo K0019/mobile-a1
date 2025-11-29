@@ -134,44 +134,41 @@ void PlayerMovementComponentSystem::UpdatePlayerMovementComponent(PlayerMovement
 	// Grabbing items
 	if (inputInstance->GetIsPressed(KEY::E) || EventsReader<Events::GameActionGrabItem>{}.ExtractEvent())
 	{
-		if (characterComp->heldItem == nullptr)
+		float closestDistance = comp.grabDistance * comp.grabDistance;
+		ecs::CompHandle< GrabbableItemComponent> closestItem = nullptr;
+		for (auto itemComp = ecs::GetCompsBegin<GrabbableItemComponent>(); itemComp != ecs::GetCompsEnd<GrabbableItemComponent>(); ++itemComp)
 		{
-			float closestDistance = comp.grabDistance * comp.grabDistance;
-			ecs::CompHandle< GrabbableItemComponent> closestItem = nullptr;
-			for (auto itemComp = ecs::GetCompsBegin<GrabbableItemComponent>(); itemComp != ecs::GetCompsEnd<GrabbableItemComponent>(); ++itemComp)
+			// Just in case, don't grab nothing
+			if (itemComp.GetEntity() == nullptr)
+				continue;
+
+			// Don't grab self
+			if (itemComp.GetEntity() == playerEntity)
+				continue;
+
+			// Don't grab people
+			if (itemComp.GetEntity()->GetComp<CharacterMovementComponent>())
+				continue;
+
+			assert(ecs::IsEntityHandleValid(itemComp.GetEntity()));
+
+			// Can't pick up other held items
+			if (itemComp->isHeld == true)
+				continue;
+
+			// Distance check
+			Vec3 direction = itemComp.GetEntity()->GetTransform().GetWorldPosition() - playerEntity->GetTransform().GetWorldPosition();
+			if (direction.LengthSqr() < closestDistance)
 			{
-				// Just in case, don't grab nothing
-				if (itemComp.GetEntity() == nullptr)
-					continue;
-
-				// Don't grab self
-				if (itemComp.GetEntity() == playerEntity)
-					continue;
-
-				// Don't grab people
-				if (itemComp.GetEntity()->GetComp<CharacterMovementComponent>())
-					continue;
-
-				assert(ecs::IsEntityHandleValid(itemComp.GetEntity()));
-
-				// Can't pick up other held items
-				if (itemComp->isHeld == true)
-					continue;
-
-				// Distance check
-				Vec3 direction = itemComp.GetEntity()->GetTransform().GetWorldPosition() - playerEntity->GetTransform().GetWorldPosition();
-				if (direction.LengthSqr() < closestDistance)
-				{
-					closestItem = itemComp.GetCompHandle();
-					closestDistance = direction.LengthSqr();
-				}
+				closestItem = itemComp.GetCompHandle();
+				closestDistance = direction.LengthSqr();
 			}
+		}
 
-			if (closestItem != nullptr)
-			{
-				characterComp->DropItem();
-				characterComp->GrabItem(closestItem);
-			}
+		if (closestItem != nullptr)
+		{
+			characterComp->DropItem();
+			characterComp->GrabItem(closestItem);
 		}
 	}
 
