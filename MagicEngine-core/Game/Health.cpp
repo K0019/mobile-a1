@@ -87,11 +87,12 @@ void HealthComponent::TakeDamage(HealthComponent::HealthType amount, Vec3 direct
 	if (isInvincible)
 		return;
 
+	auto thisEntity = ecs::GetEntity(this);
+
 	if (currHealth > maxHealth)
 		currHealth = maxHealth;
 	currHealth -= amount;
 
-	auto thisEntity = ecs::GetEntity(this);
 	thisEntity->GetComp<EntityEventsComponent>()->BroadcastAll("OnHealthChanged", GetHealthFraction());
 
 	// We don't need to flash if the entity is already dead,

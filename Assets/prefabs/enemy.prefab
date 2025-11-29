@@ -170,7 +170,7 @@
                 },
                 "16763493199777387366": {
                     "_active": true,
-                    "combatRange": 3.0,
+                    "combatRange": 1.0,
                     "windUpTime": 0.10000000149011612,
                     "attackTime": 0.009999999776482582,
                     "followThroughTime": 0.30000001192092896,

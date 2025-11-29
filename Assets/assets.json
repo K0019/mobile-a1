@@ -435,6 +435,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/ranka.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 2613227977692009447,
+                            "name": "ranka0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/models/glb/enemy_female_animated/_04.ktx2",
             "resources": [
                 {
@@ -513,6 +527,20 @@
                         {
                             "hash": 7668526940953868880,
                             "name": "enemy female death 10"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/items/bookingslip/image_0.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 12163502414551158495,
+                            "name": "image_00"
                         }
                     ]
                 }
@@ -653,6 +681,20 @@
                         {
                             "hash": 2066018632834764617,
                             "name": "n00_000_00_body_00_skin__instance_0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/player health and delusion meter.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 77506773920114087,
+                            "name": "player health and delusion meter0"
                         }
                     ]
                 }
@@ -1639,6 +1681,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/rankf.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 2631693175968883765,
+                            "name": "rankf0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "sounds/sfx/mc/footsteps/outdoor/outdoor footsteps 4.wav",
             "resources": [
                 {
@@ -2123,6 +2179,20 @@
                         {
                             "hash": 2511684781121383031,
                             "name": "n00_000_hair_00_hair_04 (instance)0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/delusion meter fill.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 82850400431107463,
+                            "name": "delusion meter fill0"
                         }
                     ]
                 }
@@ -2801,6 +2871,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/rankd.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 2627949338876305497,
+                            "name": "rankd0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "sounds/sfx/ui/rank decrease.wav",
             "resources": [
                 {
@@ -3327,6 +3411,20 @@
                         {
                             "hash": 2593603894948834043,
                             "name": "mc_animatedsword idle0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/ranka+.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 2608381330436771473,
+                            "name": "ranka+0"
                         }
                     ]
                 }
@@ -5041,6 +5139,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/items/bookingslip/image_2.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 12172700928829132521,
+                            "name": "image_20"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/models/glb/aji/player_idle_mixamo/n00_000_00_eyehighlight_00_eye__instance_.material",
             "resources": [
                 {
@@ -5461,6 +5573,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/items/bookingslip/image_1.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 12166631624643808995,
+                            "name": "image_10"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/models/glb/enemy_male_animated/_05.ktx2",
             "resources": [
                 {
@@ -5833,6 +5959,20 @@
                         {
                             "hash": 772044080031919101,
                             "name": "image_140"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/items/bookingslip/bookingslip_1001.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 12175155038782328561,
+                            "name": "bookingslip_10010"
                         }
                     ]
                 }
@@ -7547,6 +7687,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/rankb.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 2620714552365537457,
+                            "name": "rankb0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/models/glb/aji/player_idle_mixamo/n00_010_01_onepiece_00_cloth_01__instance_.material",
             "resources": [
                 {
@@ -7877,6 +8031,20 @@
                         {
                             "hash": 4497614986487010981,
                             "name": "n00_010_01_onepiece_00_cloth_02__instance_0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/rankc.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 2621543584132881557,
+                            "name": "rankc0"
                         }
                     ]
                 }

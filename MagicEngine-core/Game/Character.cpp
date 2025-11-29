@@ -20,6 +20,7 @@ All rights reserved.
 /******************************************************************************/
 #include "Components/NameComponent.h"
 #include "Game/Character.h"
+#include "Game/Delusion.h"
 #include "Physics/Physics.h"
 #include "Engine/Input.h"
 #include "Graphics/AnimationComponent.h"
@@ -47,8 +48,15 @@ CharacterMovementComponent::CharacterMovementComponent()
 	, heldItem{ nullptr }
 	, currentStunTime{ 0.0f }
 	, currentDodgeTime{ 0.0f }
+	, currentDodgeCooldown{ 0.0f }
 	, isAttacking{ false }
 	, speedMultiplier{ 1.0f }
+	, parryTime{}
+	, parryCoolDownTime{}
+	, parryDelusion{}
+	, currParryCoolDown{}
+	, currParryTime{}
+
 {
 }
 
@@ -146,13 +154,12 @@ void CharacterMovementComponent::GrabItem(ecs::CompHandle<GrabbableItemComponent
 
 bool CharacterMovementComponent::Attack()
 {
-	ecs::EntityHandle attackItem{ heldItem };
-
 	// If already in attack animation, skip
 	if (isAttacking)
 		return false;
 	isAttacking = true;
 
+	ecs::EntityHandle attackItem{ heldItem };
 	// If not holding an item, we fallback to the character's entity itself
 	if (attackItem == nullptr && ecs::GetEntity(this)->GetComp<GrabbableItemComponent>())
 	{
@@ -226,6 +233,26 @@ bool CharacterMovementComponent::Attack()
 	return true;
 }
 
+bool CharacterMovementComponent::IsParrying()
+{
+	return currParryTime > 0.f;
+}
+void CharacterMovementComponent::OnParrySuccess()
+{
+	if (auto delusionComp{ ecs::GetEntity(this)->GetComp<DelusionComponent>() })
+		delusionComp->AddDelusion(parryDelusion);
+
+	CONSOLE_LOG(LEVEL_INFO) << "Parried.";
+}
+void CharacterMovementComponent::Parry()
+{
+	if(currParryCoolDown <= 0.f)
+	{
+		currParryTime = parryTime;
+		currParryCoolDown = parryCoolDownTime;
+	}
+}
+
 bool CharacterMovementComponent::IsDodging()
 {
 	return currentDodgeTime>0.0f;
@@ -233,6 +260,7 @@ bool CharacterMovementComponent::IsDodging()
 
 void CharacterMovementComponent::Serialize(Serializer& writer) const
 {
+	IRegisteredComponent::Serialize(writer);
 	writer.Serialize("moveSpeed", moveSpeed);
 	writer.Serialize("rotateSpeed", rotateSpeed);
 	writer.Serialize("stunTimePerHit", stunTimePerHit);
@@ -261,6 +289,8 @@ void CharacterMovementComponent::Serialize(Serializer& writer) const
 
 void CharacterMovementComponent::Deserialize(Deserializer& reader)
 {
+	IRegisteredComponent::Deserialize(reader);
+
 	reader.DeserializeVar("moveSpeed", &moveSpeed);
 	reader.DeserializeVar("rotateSpeed", &rotateSpeed);
 	reader.DeserializeVar("stunTimePerHit", &stunTimePerHit);
@@ -269,7 +299,6 @@ void CharacterMovementComponent::Deserialize(Deserializer& reader)
 	reader.DeserializeVar("dodgeCooldown", &dodgeCooldown);
 	reader.DeserializeVar("dodgeDuration", &dodgeDuration);
 	reader.DeserializeVar("dodgeSpeed", &dodgeSpeed);
-
 
 	reader.DeserializeVar("hitDebugObject", &hitDebugObject);
 	reader.DeserializeVar("heldItem", &heldItem);
@@ -311,6 +340,10 @@ void CharacterMovementComponent::EditorDraw()
 	gui::VarInput("Dodge Duration", &dodgeDuration);
 	gui::VarInput("Dodge Speed", &dodgeSpeed);
 
+	gui::VarInput("Parry Time Period", &parryTime);
+	gui::VarInput("Parry Cool Down time", &parryCoolDownTime);
+	gui::VarInput("Parry Delusion", &parryDelusion);
+
 	hitDebugObject.EditorDraw("Hit Debug Object");
 	heldItem.EditorDraw("Held Item");
 
@@ -343,14 +376,21 @@ void CharacterMovementComponentSystem::UpdateCharacterMovementComponent(Characte
 	ecs::CompHandle<AnimationComponent> animComp = characterEntity->GetComp<AnimationComponent>();
 
 	// Update held item
-	if (auto heldItem{ comp.heldItem })
+	ecs::EntityHandle attackItem{ comp.heldItem };
+	if (attackItem)
 	{
 		// Transform related
-		heldItem->GetTransform().SetParent(characterTransform);
-		heldItem->GetTransform().SetLocalPosition(Vec3{ 0,0,1 });
-		heldItem->GetTransform().SetLocalRotation(Vec3{ 0,5,10 });
-		heldItem->GetComp<GrabbableItemComponent>()->owner = characterEntity;
-		heldItem->GetComp<GrabbableItemComponent>()->isHeld = true;
+		attackItem->GetTransform().SetParent(characterTransform);
+		attackItem->GetTransform().SetLocalPosition(Vec3{ 0,0,1 });
+		attackItem->GetTransform().SetLocalRotation(Vec3{ 0,5,10 });
+		attackItem->GetComp<GrabbableItemComponent>()->owner = characterEntity;
+		attackItem->GetComp<GrabbableItemComponent>()->isHeld = true;
+	}
+
+	// If not holding an item, we fallback to the character's entity itself
+	if (attackItem == nullptr && characterEntity->GetComp<GrabbableItemComponent>())
+	{
+		attackItem = characterEntity;
 	}
 
 	// Perform stun check
@@ -374,7 +414,33 @@ void CharacterMovementComponentSystem::UpdateCharacterMovementComponent(Characte
 		return;
 	}
 
+	ecs::CompHandle<GrabbableItemComponent> itemComp = nullptr;
 
+	if (attackItem)
+		itemComp = attackItem->GetComp<GrabbableItemComponent>();
+
+	if (comp.IsParrying())
+	{
+		animComp->animHandleA = 0;
+		if (itemComp)
+			animComp->animHandleA = itemComp->parryAnimation;
+
+		if (!animComp->GetAnimationClipA())
+			animComp->animHandleA = comp.animations[PARRY];
+
+		if (auto clip{ animComp->GetAnimationClipA() })
+		{
+			float duration = animComp->GetClipDuration(clip);
+			animComp->timeA = duration * (1.0f - (comp.currParryTime / comp.parryTime));
+		}
+		else
+		{
+			animComp->timeA = 0.0f;
+		}
+		comp.currParryTime -= GameTime::Dt();
+		return;
+	}
+		comp.currParryCoolDown -= GameTime::Dt();
 	// Get inputs
 	Vec2 movement = comp.GetMovementVector();
 
@@ -442,20 +508,10 @@ void CharacterMovementComponentSystem::UpdateCharacterMovementComponent(Characte
 	if (movement.LengthSqr() > 0.0f)
 		comp.RotateTowards(movement);
 
-	// Handle dodge "animation"
-	// Lord forgive me for I have committed jank
-	//auto children = characterTransform.GetChildren();
-	//for (auto child : children)
-	//{
-	//	Vec3 localRot = child->GetLocalRotation();
-	//	if (comp.currentDodgeTime > 0.0f)
-	//	{
-	//		localRot.x = 360.0f * (1.0f - (comp.currentDodgeTime / comp.dodgeDuration));
-	//	}
-	//	else
-	//	{
-	//		localRot.x = 0.0f;
-	//	}
-	//	child->SetLocalRotation(localRot);
-	//}
+	// Handle parry time/cooldown
+	if (comp.currParryTime > 0.f)
+		comp.currParryTime -= GameTime::Dt();
+	if (comp.currParryCoolDown > 0.f)
+		comp.currParryCoolDown -= GameTime::Dt();
+
 }

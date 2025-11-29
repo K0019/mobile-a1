@@ -219,9 +219,79 @@ vec3 calculateLighting(vec3 worldPos, vec3 normal, vec3 albedo, float metallic, 
 }
 */
 
+// ============================================================================
+// Point Light Shadow Sampling Functions
+// ============================================================================
+
+// Sample single point from shadow cube map
+float samplePointShadow(vec3 lightToFrag, uint shadowMapIndex, float shadowFar) {
+    // Skip if invalid shadow map index
+    if (shadowMapIndex == 0) return 1.0;
+    
+    // Direction from light to fragment for cube map lookup
+    // Flip Y to account for Vulkan's coordinate system
+    vec3 sampleDir = vec3(lightToFrag.x, -lightToFrag.y, lightToFrag.z);
+
+    // Sample stored linear depth from cube map (normalized to [0,1])
+    float storedDepth = shadowFar * textureBindlessCube(shadowMapIndex, 0, sampleDir).r;
+
+    // Current fragment distance from light
+    float currentDepth = length(lightToFrag);
+
+    // Bias to prevent shadow acne
+    float bias = 0.1;
+
+    // In shadow if current depth > stored depth (something closer is blocking the light)
+    // Return 0.0 if in shadow, 1.0 if lit
+    return (currentDepth - bias > storedDepth) ? 0.0 : 1.0;
+}
+
+// PCF (Percentage Closer Filtering) for softer shadows
+float samplePointShadowPCF(vec3 fragToLight, uint shadowMapIndex, float shadowFar) {
+    float factor = samplePointShadow(fragToLight, shadowMapIndex, shadowFar);
+
+    // Distance-based kernel size for distance-dependent penumbra
+    float k = length(fragToLight) * 0.002;
+
+    // 3x3x3 PCF sampling (27 samples + 1 center = 28 total)
+    for (int x = -1; x <= 1; x++) {
+        for (int y = -1; y <= 1; y++) {
+            for (int z = -1; z <= 1; z++) {
+                if (x == 0 && y == 0 && z == 0) continue;
+                factor += samplePointShadow(
+                    fragToLight + k * vec3(x, y, z),
+                    shadowMapIndex,
+                    shadowFar
+                );
+            }
+        }
+    }
+
+    return factor / 28.0;
+}
+
+// Get shadow factor for a point light by searching shadow data
+float getPointLightShadowFactor(uint lightIndex, vec3 worldPos) {
+    // Search for shadow data matching this light index
+    for (uint i = 0; i < pc.lighting.shadowPointLightCount; i++) {
+        GPUPointLightShadow shadow = pc.lighting.pointShadows.shadows[i];
+        if (shadow.lightIndex == lightIndex) {
+            // Direction from light to fragment (for cube map sampling)
+            vec3 lightToFrag = worldPos - shadow.lightPos.xyz;
+            return samplePointShadowPCF(lightToFrag, shadow.shadowMapIndex, shadow.shadowFar);
+        }
+    }
+    // No shadow data for this light = fully lit
+    return 1.0;
+}
+
+// ============================================================================
+// Lighting Calculation
+// ============================================================================
+
 // Simplified Blinn-Phong lighting calculation
 vec3 calculateLighting(vec3 worldPos, vec3 normal, vec3 albedo, float metallic, float roughness, vec3 viewDir, float occlusion) {
-    vec3 N = normalize(normal);
+    vec3 N = normalize(-normal); // Normals are inverted from vertex shader
     vec3 V = normalize(viewDir);
 
     // Transform world position to view space for clustering
@@ -269,6 +339,10 @@ vec3 calculateLighting(vec3 worldPos, vec3 normal, vec3 albedo, float metallic, 
             L = normalize(-lightToFragment);
             attenuation = max(0.0, 1.0 - (distanceToLight / light.range));
             attenuation *= attenuation; // Quadratic falloff
+
+            // Apply point light shadow factor
+            float shadowFactor = getPointLightShadowFactor(lightIndex, worldPos);
+            attenuation *= shadowFactor;
         }
         else if (light.type == 2) { // Spot Light
             vec3 lightToFragment = worldPos - light.position;

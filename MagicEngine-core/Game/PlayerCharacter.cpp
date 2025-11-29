@@ -28,17 +28,21 @@ All rights reserved.
 #include "Engine/Input.h"
 #include "Scripting//ScriptComponent.h"
 #include "Editor/Containers/GUICollection.h"
+#include "Game/Delusion.h"
 #include "Engine/Events/EventsQueue.h"
 #include "Engine/Events/EventsTypeBasic.h"
 
 PlayerMovementComponent::PlayerMovementComponent()
 	: grabDistance{ 0.0f }
 	, cameraReference{nullptr}
+	, ultimateAttackDamage{}
+	, isUltimateAttack{false}
 {
 }
 
 void PlayerMovementComponent::Serialize(Serializer& writer) const
 {
+	ISerializeable::Serialize(writer);
 	writer.Serialize("cameraReference", cameraReference);
 	writer.Serialize("testReference", testReference);
 	writer.Serialize("grabDistance", grabDistance);
@@ -46,6 +50,7 @@ void PlayerMovementComponent::Serialize(Serializer& writer) const
 
 void PlayerMovementComponent::Deserialize(Deserializer& reader)
 {
+	ISerializeable::Deserialize(reader);
 	reader.Deserialize("cameraReference", &cameraReference);
 	reader.Deserialize("testReference", &testReference);
 	reader.DeserializeVar("grabDistance", &grabDistance);
@@ -56,6 +61,27 @@ void PlayerMovementComponent::EditorDraw()
 	cameraReference.EditorDraw("Camera");
 	testReference.EditorDraw("Test");
 	gui::VarInput("Grab Distance", &grabDistance);
+	gui::VarInput("Ultimate Attack Damage", &ultimateAttackDamage);
+}
+
+void PlayerMovementComponent::Parry()
+{
+	auto characterComp{ ecs::GetEntity(this)->GetComp<CharacterMovementComponent>() };
+	characterComp->Parry();
+}
+
+
+void PlayerMovementComponent::UltimateAttack()
+{
+	auto delutionComp{ ecs::GetEntity(this)->GetComp<DelusionComponent>() };
+	auto characterComp{ ecs::GetEntity(this)->GetComp<CharacterMovementComponent>() };
+	if (!delutionComp || !characterComp ||delutionComp->GetCurrDelusionTier() != DELUSION_TIER::APLUS)
+		return;
+
+	isUltimateAttack = true;
+	characterComp->Attack();
+	delutionComp->SetDelusion(0.f);
+	CONSOLE_LOG(LEVEL_INFO) << "Ultimate Attack.";
 }
 
 PlayerMovementComponentSystem::PlayerMovementComponentSystem()
@@ -158,8 +184,15 @@ void PlayerMovementComponentSystem::UpdatePlayerMovementComponent(PlayerMovement
 	if (inputInstance->GetIsPressed(KEY::M1) || EventsReader<Events::GameActionAttack>{}.ExtractEvent())
 		characterComp->Attack();
 
+	if (inputInstance->GetIsPressed(KEY::R))
+		comp.UltimateAttack();
+
 	characterComp->SetMovementVector(movement);
 
 	if (inputInstance->GetIsDown(KEY::LSHIFT) || EventsReader<Events::GameActionDodge>{}.ExtractEvent())
 		characterComp->Dodge(movement);
+
+
+	if (inputInstance->GetIsPressed(KEY::LCTRL))
+		comp.Parry();
 }

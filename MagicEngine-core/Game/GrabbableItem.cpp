@@ -37,6 +37,17 @@ All rights reserved.
 
 void GrabbableItemComponent::Attack(Vec3 origin, Vec3 direction)
 {
+	//Add the damage if the attack is an ultimate attack.
+	float attackDamage{ damage };
+	if (auto playerComp{ ecs::GetEntity(this)->GetComp<PlayerMovementComponent>() })
+	{
+		if (playerComp->isUltimateAttack)
+		{
+			attackDamage += playerComp->ultimateAttackDamage;
+			playerComp->isUltimateAttack = false;
+		}
+	}
+
 	std::vector<physics::BoxColliderComp*> colliders;
 	physics::OverlapBox(colliders, origin, attackBox, direction);
 
@@ -58,9 +69,19 @@ void GrabbableItemComponent::Attack(Vec3 origin, Vec3 direction)
 
 		if (ecs::CompHandle<HealthComponent> healthComp{ hitEntity->GetComp<HealthComponent>() })
 		{
-			// Deal damage to it
-			healthComp->TakeDamage(damage,direction);
-
+			bool dealDamage = true;
+			// If the target is parrying, we don't deal damage to them
+			if(ecs::CompHandle<CharacterMovementComponent> characterComp{ hitEntity->GetComp<CharacterMovementComponent>() })
+			{
+				// Deal damage to it
+				if (characterComp->IsParrying())
+				{
+					dealDamage = false;
+					characterComp->OnParrySuccess();
+				}
+			}
+			if(dealDamage)
+				healthComp->TakeDamage(attackDamage, direction);
 			//damage taken tied to delusion for now
 			//if owner is enemy
 			if (owner->GetComp<EnemyComponent>())
@@ -68,7 +89,7 @@ void GrabbableItemComponent::Attack(Vec3 origin, Vec3 direction)
 				//hit player lose delusion
 				if (ecs::CompHandle<DelusionComponent> delusionComp{ hitEntity->GetComp<DelusionComponent>() })
 				{
-					delusionComp->LoseDelusion(damage * 0.2f);
+					delusionComp->LoseDelusion(attackDamage * 0.2f);
 				}
 			}
 			// if owner is player
@@ -77,9 +98,10 @@ void GrabbableItemComponent::Attack(Vec3 origin, Vec3 direction)
 				//owner player gain delusion
 				if (ecs::CompHandle<DelusionComponent> delusionComp{ owner->GetComp<DelusionComponent>() })
 				{
-					delusionComp->AddDelusion(damage * 0.2f);
+					delusionComp->AddDelusion(attackDamage * 0.2f);
 				}
 			}
+
 		}
 	}
 }

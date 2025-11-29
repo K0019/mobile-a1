@@ -50,6 +50,15 @@ namespace RenderResources
   constexpr const char* ANIM_BONE_BUFFER = "AnimationBoneBuffer";
   constexpr const char* ANIM_MORPH_BUFFER = "AnimationMorphBuffer";
   constexpr const char* ANIM_INSTANCE_BUFFER = "AnimationInstanceBuffer";
+  // Point light shadow map resources
+  constexpr const char* POINT_SHADOW_CUBE_COLOR_0 = "PointShadowCubeColor0";
+  constexpr const char* POINT_SHADOW_CUBE_COLOR_1 = "PointShadowCubeColor1";
+  constexpr const char* POINT_SHADOW_CUBE_COLOR_2 = "PointShadowCubeColor2";
+  constexpr const char* POINT_SHADOW_CUBE_COLOR_3 = "PointShadowCubeColor3";
+  constexpr const char* POINT_SHADOW_CUBE_DEPTH_0 = "PointShadowCubeDepth0";
+  constexpr const char* POINT_SHADOW_CUBE_DEPTH_1 = "PointShadowCubeDepth1";
+  constexpr const char* POINT_SHADOW_CUBE_DEPTH_2 = "PointShadowCubeDepth2";
+  constexpr const char* POINT_SHADOW_CUBE_DEPTH_3 = "PointShadowCubeDepth3";
   /*// Pre-computed hashes using compile-time function
   consteval uint32_t SWAPCHAIN_HASH = fnv1a_32(SWAPCHAIN_IMAGE);
   consteval uint32_t SCENE_COLOR_HASH = fnv1a_32(SCENE_COLOR);
