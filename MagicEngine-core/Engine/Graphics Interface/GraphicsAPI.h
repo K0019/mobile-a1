@@ -79,6 +79,8 @@ private:
     friend ST<GraphicsMain>;
     GraphicsMain();
 
+    void InitDefaultSkybox();
+
 private:
 #ifdef IMGUI_ENABLED
     UPtr<editor::ImGuiContext> imguiContext;
@@ -96,6 +98,9 @@ private:
     UPtr<ui::ImmediateGui> overlayGui;
     uint64_t lastPickedObjectIndex;
     std::unordered_map<uint64_t, ecs::EntityHandle> mapIdxToId;
+
+    // Default skybox
+    uint32_t defaultSkyboxBindlessIndex = 0;
 
 };
 

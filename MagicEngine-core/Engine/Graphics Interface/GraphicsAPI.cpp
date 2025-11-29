@@ -41,6 +41,10 @@ All rights reserved.
 #include "Utilities/Messaging.h"
 #include "Game/GameSystems.h"
 
+#include "stb_image.h"
+#include "math/utils_cubemap.h"
+#include "resource/resource_types.h"
+
 GraphicsMain::GraphicsMain()
 	: sceneFeatureHandle{}
 	, gridHandle{}
@@ -74,6 +78,7 @@ void GraphicsMain::Init(Context inContext)
 #endif
 
 	InitFont(fontsFile);
+	InitDefaultSkybox();
 	overlayGui = std::make_unique<ui::ImmediateGui>(*context.renderer, ui2dFeatureHandle, *context.resourceMngr);
 
 	// Subscribe to play mode toggle events
@@ -155,6 +160,75 @@ void GraphicsMain::InitFont(const std::string& fontfile)
 	processed.sourceFile = fontfile;
 	processed.buildSettings.extraCodepoints.push_back(0x2026u); // Ellipsis
 	ui2dFontHandle = context.resourceMngr->createFont(processed);
+}
+
+void GraphicsMain::InitDefaultSkybox()
+{
+	const std::string skyboxPath = "images/skybox.png";
+
+	// Read the image file via VFS
+	std::vector<uint8_t> fileData;
+	if (!VFS::ReadFile(skyboxPath, fileData))
+	{
+		CONSOLE_LOG(LEVEL_WARNING) << "Failed to load default skybox: " << skyboxPath;
+		return;
+	}
+
+	// Decode using stb_image
+	int width, height, channels;
+	unsigned char* pixels = stbi_load_from_memory(fileData.data(), static_cast<int>(fileData.size()), &width, &height, &channels, 4);
+	if (!pixels)
+	{
+		CONSOLE_LOG(LEVEL_WARNING) << "Failed to decode skybox image: " << skyboxPath;
+		return;
+	}
+
+	// Convert to Bitmap for cubemap conversion
+	Bitmap equirect(width, height, 4, eBitmapFormat_UnsignedByte, pixels);
+	stbi_image_free(pixels);
+
+	// Convert equirectangular to cubemap faces
+	Bitmap cubemap = convertEquirectangularMapToCubeMapFaces(equirect);
+	if (cubemap.data_.empty())
+	{
+		CONSOLE_LOG(LEVEL_WARNING) << "Failed to convert skybox to cubemap";
+		return;
+	}
+
+	// Create ProcessedTexture for the cubemap
+	Resource::ProcessedTexture skyboxTexture;
+	skyboxTexture.name = "DefaultSkybox";
+	skyboxTexture.textureDesc.type = vk::TextureType::TexCube;
+	skyboxTexture.textureDesc.format = vk::Format::RGBA_UN8;
+	skyboxTexture.textureDesc.dimensions.width = static_cast<uint32_t>(cubemap.w_);
+	skyboxTexture.textureDesc.dimensions.height = static_cast<uint32_t>(cubemap.h_);
+	skyboxTexture.textureDesc.dimensions.depth = 1;
+	skyboxTexture.textureDesc.numLayers = 1;
+	skyboxTexture.textureDesc.numMipLevels = 1;
+	skyboxTexture.textureDesc.dataNumMipLevels = 1;
+	skyboxTexture.textureDesc.usage = vk::TextureUsageBits_Sampled;
+	skyboxTexture.data = std::move(cubemap.data_);
+	skyboxTexture.width = static_cast<uint32_t>(cubemap.w_);
+	skyboxTexture.height = static_cast<uint32_t>(cubemap.h_);
+	skyboxTexture.channels = 4;
+	skyboxTexture.sRGB = true;
+
+	// Set source for caching
+	FilePathSource source;
+	source.path = skyboxPath;
+	skyboxTexture.source = source;
+
+	// Create the texture via ResourceManager
+	TextureHandle handle = context.resourceMngr->createTexture(skyboxTexture);
+	if (handle.isValid())
+	{
+		defaultSkyboxBindlessIndex = context.resourceMngr->getTextureBindlessIndex(handle);
+		CONSOLE_LOG(LEVEL_INFO) << "Default skybox loaded (bindless index: " << defaultSkyboxBindlessIndex << ")";
+	}
+	else
+	{
+		CONSOLE_LOG(LEVEL_WARNING) << "Failed to create skybox texture";
+	}
 }
 
 void GraphicsMain::UploadToPipeline(FrameData* outFrameData)
@@ -506,9 +580,9 @@ void GraphicsMain::UploadToPipeline(FrameData* outFrameData)
 
 	params->shadowPointLightCount = numShadowLights;
 
-	// Set environment parameters
+	// Set environment parameters - use default skybox if loaded
 	params->irradianceTexture = 0;
-	params->prefilterTexture = 0;
+	params->prefilterTexture = defaultSkyboxBindlessIndex;
 	params->brdfLUT = 0;
 	params->environmentIntensity = 1.0f;
 
