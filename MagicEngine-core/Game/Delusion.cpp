@@ -33,6 +33,7 @@ All rights reserved.
 #include "Editor/Containers/GUICollection.h"
 #include "Engine/SceneManagement.h"
 #include "Managers/AudioManager.h"
+#include "Engine/EntityEvents.h"
 
 std::string DelusionComponent::to_string()
 {
@@ -122,6 +123,7 @@ void DelusionComponent::UpdateDelusionTier()
 		(ratio >= 0.4f) ? DelusionTiers::DT_C :
 		(ratio >= 0.2f) ? DelusionTiers::DT_D :
 		DelusionTiers::DT_F;
+    ecs::GetEntity(this)->GetComp<EntityEventsComponent>()->BroadcastAll("OnDelusionChanged", ratio);
 
 	if (currTier == prevTier) return;
 

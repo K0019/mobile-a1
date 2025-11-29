@@ -32,6 +32,7 @@
 #include "UI/TextComponent.h"
 #include "UI/BarComponent.h"
 #include "UI/HealthBarComponent.h"
+#include "UI/DelusionBarComponent.h"
 #include "Engine/Platform/Android/AndroidUIDeleter.h"
 #include "Engine/Platform/Desktop/DesktopUIDeleter.h"
 #include "Game/FlashComponent.h"
@@ -71,6 +72,7 @@ void RegisterShit()
 	IRegisteredComponent<TextComponent>::RegisterComponent();
 	IRegisteredComponent<BarComponent>::RegisterComponent();
 	IRegisteredComponent<HealthBarComponent>::RegisterComponent();
+	IRegisteredComponent<DelusionBarComponent>::RegisterComponent();
 	IRegisteredComponent<AndroidUIDeleterComp>::RegisterComponent();
 	IRegisteredComponent<DesktopUIDeleterComp>::RegisterComponent();
 	IRegisteredComponent<FlashComponent>::RegisterComponent();

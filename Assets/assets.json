@@ -659,6 +659,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/player health and delusion meter.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 77506773920114087,
+                            "name": "player health and delusion meter0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/models/glb/mc_animated/_12.ktx2",
             "resources": [
                 {
@@ -2123,6 +2137,20 @@
                         {
                             "hash": 2511684781121383031,
                             "name": "n00_000_hair_00_hair_04 (instance)0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/delusion meter fill.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 82850400431107463,
+                            "name": "delusion meter fill0"
                         }
                     ]
                 }
