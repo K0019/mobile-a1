@@ -48,6 +48,7 @@ CharacterMovementComponent::CharacterMovementComponent()
 	, heldItem{ nullptr }
 	, currentStunTime{ 0.0f }
 	, currentDodgeTime{ 0.0f }
+	, currentDodgeCooldown{ 0.0f }
 	, isAttacking{ false }
 	, speedMultiplier{ 1.0f }
 	, parryTime{}

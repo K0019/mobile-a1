@@ -934,7 +934,7 @@
             "components": {
                 "137465014557233347": {
                     "_active": true,
-                    "damage": 20000.0,
+                    "damage": 45.0,
                     "attackBox": {
                         "x": 1.0,
                         "y": 1.0,
@@ -1809,7 +1809,7 @@
             "components": {
                 "137465014557233347": {
                     "_active": true,
-                    "damage": 20.0,
+                    "damage": 35.0,
                     "attackBox": {
                         "x": 0.75,
                         "y": 1.0,
@@ -2574,8 +2574,8 @@
             "parentIndex": -1,
             "position": {
                 "x": 0.0,
-                "y": 0.0,
-                "z": 0.0
+                "y": 0.002155900001525879,
+                "z": 0.0029802322387695313
             },
             "rotation": {
                 "x": 0.0,
@@ -2589,7 +2589,7 @@
             },
             "components": {
                 "5352011725353660904": {
-                    "_active": true,
+                    "_active": false,
                     "meshHandle": {
                         "hash": 394651007363811311
                     },
@@ -2600,19 +2600,19 @@
                     ]
                 },
                 "6766054303456732338": {
-                    "_active": true,
+                    "_active": false,
                     "layer": 0
                 },
                 "7205334411763290517": {
-                    "_active": true,
+                    "_active": false,
                     "name": "Collider"
                 },
                 "9315785795257285655": {
-                    "_active": true,
+                    "_active": false,
                     "uid": 11098519849874783897
                 },
                 "18236831197208900764": {
-                    "_active": true,
+                    "_active": false,
                     "center": {
                         "x": 0.0,
                         "y": 0.0,
