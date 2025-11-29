@@ -9,7 +9,7 @@
 #include "Graphics/AnimationComponent.h"
 
 int L_Boss_Prefect_BookingSlips::burstCount = 5;
-float L_Boss_Prefect_BookingSlips::burstDelay = 0.5f;
+float L_Boss_Prefect_BookingSlips::burstDelay = 1.f;
 
 void L_Boss_Prefect_BookingSlips::OnInitialize()
 {
@@ -19,13 +19,16 @@ void L_Boss_Prefect_BookingSlips::OnInitialize()
 
 NODE_STATUS L_Boss_Prefect_BookingSlips::OnUpdate([[maybe_unused]] ecs::EntityHandle entity)
 {
-    if (auto characterComp{ entity->GetComp<CharacterMovementComponent>() })
-    {
+    //if (auto characterComp{ entity->GetComp<CharacterMovementComponent>() })
+    //{
         if (auto enemyComp{ entity->GetComp<EnemyComponent>() })
         {
             // Use orbiting movement here
-            characterComp->SetMovementVector(Boss_Prefect_Util::GetMovementDirection(entity->GetTransform().GetWorldPosition(), enemyComp->playerReference->GetTransform().GetWorldPosition()));
-
+            //characterComp->SetMovementVector(Boss_Prefect_Util::GetMovementDirection(entity->GetTransform().GetWorldPosition(), enemyComp->playerReference->GetTransform().GetWorldPosition()));
+			Vec2 dir = Boss_Prefect_Util::GetMovementDirection(entity->GetTransform().GetWorldPosition(), enemyComp->playerReference->GetTransform().GetWorldPosition());
+			Vec3 movementDir3D{ dir.x, 0.0f, dir.y };
+            Boss_Prefect_Util::MoveInDirection(entity,movementDir3D);
+			Boss_Prefect_Util::RotateTowards(entity, dir);
             if (currentBurstDelay < 0.0f)
             {
                 ++currentBurstCount;
@@ -52,7 +55,7 @@ NODE_STATUS L_Boss_Prefect_BookingSlips::OnUpdate([[maybe_unused]] ecs::EntityHa
             }
             
         }
-    }
+    //}
     currentBurstDelay -= GameTime::Dt();
     return NODE_STATUS::RUNNING;
 }

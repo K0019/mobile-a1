@@ -19,21 +19,25 @@ void L_Boss_Prefect_DontRun::OnInitialize()
 
 NODE_STATUS L_Boss_Prefect_DontRun::OnUpdate([[maybe_unused]] ecs::EntityHandle entity)
 {
-    if (auto characterComp{ entity->GetComp<CharacterMovementComponent>() })
-    {
+   // if (auto characterComp{ entity->GetComp<CharacterMovementComponent>() })
+    //{
         if (auto enemyComp{ entity->GetComp<EnemyComponent>() })
         {
             Vec2 dir = Boss_Prefect_Util::GetMovementTowards(entity->GetTransform().GetWorldPosition(), enemyComp->playerReference->GetTransform().GetWorldPosition());
 
             if (dir.LengthSqr() > attackDistance)
             {
-                characterComp->SetMovementVector(dir);
+                //characterComp->SetMovementVector(dir);
+				Boss_Prefect_Util::MoveInDirection(entity, Vec3{ dir.x, 0.0f, dir.y });
             }
             else
             {
-                characterComp->RotateTowards(dir);
-                characterComp->SetMovementVector(Vec2{0.0f});
-                characterComp->ResetSpeedMultiplier();
+                //characterComp->RotateTowards(dir);
+				Boss_Prefect_Util::RotateTowards(entity, dir);
+                //characterComp->SetMovementVector(Vec2{0.0f});
+				Boss_Prefect_Util::MoveInDirection(entity, Vec3{ dir.x, 0.0f, dir.y });
+                //characterComp->ResetSpeedMultiplier();
+                
                 auto animComp = entity->GetComp<AnimationComponent>();
                 if (animComp)
                 {
@@ -70,11 +74,11 @@ NODE_STATUS L_Boss_Prefect_DontRun::OnUpdate([[maybe_unused]] ecs::EntityHandle 
 
             if (dir.LengthSqr() > dodgeDistance)
             {
-                characterComp->Dodge(dir);
-                characterComp->SetSpeedMultiplier(1.5f);
+                //characterComp->Dodge(dir);
+                //characterComp->SetSpeedMultiplier(1.5f);
             }
             currentAttackCooldown -= GameTime::Dt();
         }
-    }
+    //}
     return NODE_STATUS::RUNNING;
 }
