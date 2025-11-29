@@ -7799,6 +7799,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/materials/ui_pickup_katar.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2613129021653915515,
+                            "name": "ui_pickup_katar0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/materials/n00_010_01_onepiece_00_cloth_01 (instance).material",
             "resources": [
                 {
