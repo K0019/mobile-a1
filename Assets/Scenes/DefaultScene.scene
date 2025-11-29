@@ -69,9 +69,9 @@
         {
             "parentIndex": -1,
             "position": {
-                "x": -1.3328436613082886,
-                "y": 0.9998264312744141,
-                "z": -1.3157765865325928
+                "x": -13.988091468811035,
+                "y": 0.9998804926872253,
+                "z": -10.015103340148926
             },
             "rotation": {
                 "x": 0.0,
@@ -88,9 +88,9 @@
                     "_active": true,
                     "damage": 20.0,
                     "attackBox": {
-                        "x": 1.0,
-                        "y": 1.0,
-                        "z": 2.0
+                        "x": 0.10000000149011612,
+                        "y": 0.10000000149011612,
+                        "z": 1.0
                     },
                     "attackDelay": 0.3499999940395355,
                     "audioName": "light attack #1 ",
@@ -265,9 +265,12 @@
                     "parryCoolDownTime": 0.10000000149011612,
                     "parryTime": 0.5,
                     "parryDelusion": 10.0,
+                    "dodgeSound": "",
+                    "attackSound": "",
+                    "hurtSound": "",
                     "moveSpeed": 2.0,
                     "rotateSpeed": 1440.0,
-                    "stunTimePerHit": 0.25,
+                    "stunTimePerHit": 0.10000000149011612,
                     "groundFriction": 0.5,
                     "dodgeCooldown": 1.0,
                     "dodgeDuration": 0.20000000298023224,
@@ -295,7 +298,7 @@
                             "hash": 2535997182234766043
                         },
                         {
-                            "hash": 1
+                            "hash": 2531389129002756825
                         },
                         {
                             "hash": 1
@@ -610,6 +613,9 @@
                     "parryCoolDownTime": 0.0,
                     "parryTime": 0.0,
                     "parryDelusion": 0.0,
+                    "dodgeSound": "",
+                    "attackSound": "",
+                    "hurtSound": "",
                     "moveSpeed": 1.7999999523162842,
                     "rotateSpeed": 200.0,
                     "stunTimePerHit": 0.5,
@@ -1610,6 +1616,9 @@
                     "parryCoolDownTime": 0.0,
                     "parryTime": 0.0,
                     "parryDelusion": 0.0,
+                    "dodgeSound": "",
+                    "attackSound": "",
+                    "hurtSound": "",
                     "moveSpeed": 3.0,
                     "rotateSpeed": 14400.0,
                     "stunTimePerHit": 0.5,
@@ -1689,13 +1698,13 @@
                 "z": 0.0
             },
             "scale": {
-                "x": 1.0,
-                "y": 1.0,
-                "z": 1.0
+                "x": 2.0,
+                "y": 2.0,
+                "z": 2.0
             },
             "components": {
                 "5352011725353660904": {
-                    "_active": true,
+                    "_active": false,
                     "meshHandle": {
                         "hash": 2271024775204018431
                     },
@@ -1706,15 +1715,15 @@
                     ]
                 },
                 "6766054303456732338": {
-                    "_active": true,
+                    "_active": false,
                     "layer": 0
                 },
                 "7205334411763290517": {
-                    "_active": true,
+                    "_active": false,
                     "name": "Prefect_BookingSlip"
                 },
                 "8426725214831635516": {
-                    "_active": true,
+                    "_active": false,
                     "entityReferences": [
                         {
                             "entityUid": 51797992787031769
@@ -1722,11 +1731,11 @@
                     ]
                 },
                 "9315785795257285655": {
-                    "_active": true,
+                    "_active": false,
                     "uid": 4344622341204501000
                 },
                 "18236831197208900764": {
-                    "_active": true,
+                    "_active": false,
                     "center": {
                         "x": 0.0,
                         "y": 0.0,
@@ -1743,7 +1752,7 @@
                     }
                 },
                 "18288371625365795113": {
-                    "_active": true,
+                    "_active": false,
                     "scripts": [
                         {
                             "scriptName": "prefect_bookingslip.lua"
@@ -1892,13 +1901,13 @@
                     "audioStartIndex": 1,
                     "audioEndIndex": 3,
                     "lightAttackAnimation": {
-                        "hash": 1
+                        "hash": 2556570144302082789
                     },
                     "heavyAttackAnimation": {
                         "hash": 1
                     },
                     "ultimAttackAnimation": {
-                        "hash": 1
+                        "hash": 4613082399101163243
                     },
                     "parryAnimation": {
                         "hash": 1
@@ -2003,7 +2012,7 @@
             "position": {
                 "x": -4.820554733276367,
                 "y": 0.8395383358001709,
-                "z": -4.734145164489746
+                "z": -2.459285259246826
             },
             "rotation": {
                 "x": 0.0,
@@ -2421,6 +2430,9 @@
                     "parryCoolDownTime": 0.0,
                     "parryTime": 0.0,
                     "parryDelusion": 0.0,
+                    "dodgeSound": "",
+                    "attackSound": "",
+                    "hurtSound": "",
                     "moveSpeed": 1.7999999523162842,
                     "rotateSpeed": 200.0,
                     "stunTimePerHit": 0.5,

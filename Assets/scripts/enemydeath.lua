@@ -29,8 +29,14 @@ function OnHealthDepleted()
     end
 
     -- Play death sound
-    Magic.AudioManager.PlaySound3D("enemy male death "..(Magic.Random.RangeInt(0,3)+1),false,thisEntity.transform.worldPosition)
-
+    local nameComp = thisEntity:GetNameComponent();
+    if nameComp:Exists() then
+        if(nameComp.name == "enemy") then
+            Magic.AudioManager.PlaySound3D("enemy male death "..(Magic.Random.RangeInt(0,3)+1),false,thisEntity.transform.worldPosition)
+        else
+            Magic.AudioManager.PlaySound3D("enemy female death "..(Magic.Random.RangeInt(0,3)+1),false,thisEntity.transform.worldPosition)
+        end
+    end
     -- Randomly drop a BBT
     if Magic.Random.DiceRoll(randomChance) then
         local newBBT = Magic.PrefabManager.LoadPrefab("bbt")
@@ -58,6 +64,13 @@ end
 function OnDamaged(amount,direction)
     -- Play death sound
     if Magic.Random.DiceRoll(2) then
-        Magic.AudioManager.PlaySound3DWithVolume("enemy male hurt "..(Magic.Random.RangeInt(0,4)+1),false,thisEntity.transform.worldPosition,0.6)
+        local nameComp = thisEntity:GetNameComponent();
+        if nameComp:Exists() then
+            if(nameComp.name == "enemy") then
+                Magic.AudioManager.PlaySound3DWithVolume("enemy male hurt "..(Magic.Random.RangeInt(0,4)+1),false,thisEntity.transform.worldPosition,0.6)
+            else
+                Magic.AudioManager.PlaySound3DWithVolume("enemy female hurt "..(Magic.Random.RangeInt(0,4)+1),false,thisEntity.transform.worldPosition,0.6)
+            end
+        end
     end
 end

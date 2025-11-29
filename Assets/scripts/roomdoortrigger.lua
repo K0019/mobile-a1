@@ -13,9 +13,9 @@ function start(entity)
 
     -- Delete the debug RenderComp on this entity
     local renderComp = entity:GetRenderComponent()
-    --if(renderComp:Exists()) then
-    --    renderComp:Remove() 
-    --end
+    if(renderComp:Exists()) then
+        renderComp:Remove() 
+    end
 
 end
 
@@ -41,7 +41,6 @@ function OnTriggerEnter(entity)
             end
         end
     end
-
 end
 
 function update(entity)
