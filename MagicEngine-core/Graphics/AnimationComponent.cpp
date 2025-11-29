@@ -193,34 +193,39 @@ const ResourceAnimation* AnimationComponent::GetAnimationClipB() const
     return animHandleB.GetResource();
 }
 
+void AnimationComponent::TransitionTo(size_t newAnimHash, float duration)
+{
+    // Don't transition to the same animation
+    if (animHandleA.GetHash() == newAnimHash)
+        return;
+
+    // Store current animation as B (the "from" animation)
+    animHandleB = animHandleA.GetHash();
+    timeB = timeA;
+
+    // Set new animation as A (the "to" animation)
+    animHandleA = newAnimHash;
+    timeA = 0.0f;
+
+    // Start transition
+    isTransitioning = true;
+    transitionDuration = duration;
+    transitionTime = 0.0f;
+
+    SetupAnimationBinding();
+}
+
 
 void AnimationComponent::EditorDraw()
 {
     // Animation clip input
     const std::string* clip1Name{ ST<MagicResourceManager>::Get()->Editor_GetName(animHandleA.GetHash()) };
-    gui::TextUnformatted("Clip 1");
+    gui::TextUnformatted("Animation");
     gui::SameLine();
-    gui::TextBoxReadOnly("##AnimClip1", clip1Name ? clip1Name->c_str() : "");
+    gui::TextBoxReadOnly("##AnimClip", clip1Name ? clip1Name->c_str() : "");
     gui::PayloadTarget<size_t>("ANIMATION_HASH", [&](size_t hash) -> void {
-        animHandleA = hash;
-        SetupAnimationBinding();
+        TransitionTo(hash, transitionDuration);
         });
-
-    if (crossfade)
-    {
-        const std::string* clip2Name{ ST<MagicResourceManager>::Get()->Editor_GetName(animHandleB.GetHash()) };
-        gui::TextUnformatted("Clip 2");
-        gui::SameLine();
-        gui::TextBoxReadOnly("##AnimClip2", clip2Name ? clip2Name->c_str() : "");
-        gui::PayloadTarget<size_t>("ANIMATION_HASH", [&](size_t hash) -> void {
-            animHandleB = hash;
-            SetupAnimationBinding();
-            });
-
-        gui::TextUnformatted("Blend");
-        gui::SameLine();
-        gui::Slider("##blend", &blend, 0.0f, 1.0f);
-    }
 
     gui::Separator();
 
@@ -233,15 +238,15 @@ void AnimationComponent::EditorDraw()
     gui::SameLine();
     gui::Checkbox("##looping", &loop);
 
-    gui::TextUnformatted("Crossfade");
-    gui::SameLine();
-    gui::Checkbox("##crossfade", &crossfade);
-
     gui::Separator();
 
     gui::TextUnformatted("Speed");
     gui::SameLine();
     gui::VarDrag("##playbackspeed", &speed, 0.01f, 0.0f, 10.0f);
+
+    gui::TextUnformatted("Transition");
+    gui::SameLine();
+    gui::VarDrag("##transitionduration", &transitionDuration, 0.01f, 0.0f, 2.0f);
 
     gui::TextUnformatted("Time");
     gui::SameLine();
@@ -250,6 +255,12 @@ void AnimationComponent::EditorDraw()
         gui::Slider("##timeA", &timeA, 0.0f, duration);
     else
         gui::VarDrag("##timeA", &timeA, 0.01f, 0.0f, 0.0f);
+
+    // Show transition state
+    if (isTransitioning)
+    {
+        gui::TextDisabled("Transitioning: %.0f%%", (transitionTime / transitionDuration) * 100.0f);
+    }
 }
 
 float AnimationComponent::GetClipDuration(const ResourceAnimation* animationClip)
@@ -281,7 +292,6 @@ void AnimationSystem::ProcessComp(AnimationComponent & comp)
         return;
 
 
-    ecs::EntityHandle entity = ecs::GetEntity(&comp);
     RenderComponent* renderComp = ecs::GetEntity(&comp)->GetComp<RenderComponent>();
     if (!renderComp)
         return;
@@ -295,29 +305,42 @@ void AnimationSystem::ProcessComp(AnimationComponent & comp)
     auto& graphicsAssetSystem{ ST<GraphicsMain>::Get()->GetAssetSystem() };
     const Resource::AnimationClip* clipA = comp.GetAnimationClipA() && comp.GetAnimationClipA()->handle != Resource::INVALID_CLIP_ID
         ? &graphicsAssetSystem.Clip(comp.GetAnimationClipA()->handle) : nullptr;
-    const Resource::AnimationClip* clipB = comp.crossfade && comp.GetAnimationClipB() && comp.GetAnimationClipB()->handle != Resource::INVALID_CLIP_ID
+    const Resource::AnimationClip* clipB = comp.isTransitioning && comp.GetAnimationClipB() && comp.GetAnimationClipB()->handle != Resource::INVALID_CLIP_ID
         ? &graphicsAssetSystem.Clip(comp.GetAnimationClipB()->handle) : nullptr;
 
-
-    uint8_t flags = 0;
-    if (comp.isPlaying)  flags |= 1;
-    if (comp.loop)       flags |= 2;
-    if (comp.crossfade)  flags |= 4;
-    
+    // Update transition
+    float transitionBlend = 0.0f;
+    if (comp.isTransitioning)
+    {
+        comp.transitionTime += dt;
+        if (comp.transitionTime >= comp.transitionDuration)
+        {
+            // Transition complete
+            comp.isTransitioning = false;
+            comp.transitionTime = 0.0f;
+            transitionBlend = 1.0f;
+        }
+        else
+        {
+            // Smooth interpolation (ease in-out)
+            float t = comp.transitionTime / comp.transitionDuration;
+            transitionBlend = t * t * (3.0f - 2.0f * t); // smoothstep
+        }
+    }
 
     if (comp.isPlaying)
     {
         if (clipA)
         {
-            comp.timeA = advanceTime(comp.timeA, dt * comp.speed, clipA->duration(), (flags & SceneObject::AnimBinding::Loop) != 0);
+            comp.timeA = advanceTime(comp.timeA, dt * comp.speed, clipA->duration(), comp.loop);
         }
-        if (clipB)
+        // During transition, also advance the old animation (clipB) so it doesn't freeze
+        if (clipB && comp.isTransitioning)
         {
-            comp.timeB = advanceTime(comp.timeB, dt * comp.speed, clipB->duration(), (flags & SceneObject::AnimBinding::Loop) != 0);
+            comp.timeB = advanceTime(comp.timeB, dt * comp.speed, clipB->duration(), comp.loop);
         }
     }
 
-    //const auto* meshData = graphicsAssetSystem.getMesh(mesh->handles[0]);
     const auto* meshMetadata = graphicsAssetSystem.getMeshMetadata(mesh->handles[0]);
     if (!meshMetadata)
         return;
@@ -347,28 +370,32 @@ void AnimationSystem::ProcessComp(AnimationComponent & comp)
             // 1. First pass: compute global transforms in SKELETON space.
             std::vector<glm::mat4> globalsSkel(skeletonJointCount);
 
-            const float blend = clipB ? std::clamp(comp.blend, 0.0f, 1.0f) : 0.0f;
+            // During transition: blend from clipB (old) to clipA (new)
+            const float blend = transitionBlend;
 
             for (const uint32_t jSkel : topoOrder)
             {
                 const std::string& jointName = skeleton.jointName(jSkel);
 
-                // Sample pose from clip A, or use bind pose if channel is missing
+                // Sample pose from clip A (the new/target animation)
                 const int32_t channelIdxA = clipA->channelIndex(jointName);
-                auto pose = (channelIdxA >= 0)
+                auto poseA = (channelIdxA >= 0)
                     ? clipA->sampleChannel(channelIdxA, comp.timeA)
                     : skeleton.bindPoseTRS(jSkel);
 
-                if (clipB && blend > 0.0f)
+                // During transition, blend from old pose (B) to new pose (A)
+                auto pose = poseA;
+                if (clipB && blend < 1.0f)
                 {
                     const int32_t channelIdxB = clipB->channelIndex(jointName);
                     auto poseB = (channelIdxB >= 0)
                         ? clipB->sampleChannel(channelIdxB, comp.timeB)
                         : skeleton.bindPoseTRS(jSkel);
 
-                    pose.translation = glm::mix(pose.translation, poseB.translation, blend);
-                    pose.scale = glm::mix(pose.scale, poseB.scale, blend);
-                    pose.rotation = glm::normalize(glm::slerp(pose.rotation, poseB.rotation, blend));
+                    // blend=0 means 100% B (old), blend=1 means 100% A (new)
+                    pose.translation = glm::mix(poseB.translation, poseA.translation, blend);
+                    pose.scale = glm::mix(poseB.scale, poseA.scale, blend);
+                    pose.rotation = glm::normalize(glm::slerp(poseB.rotation, poseA.rotation, blend));
                 }
 
                 const glm::mat4 local = composeTRS(pose.translation, pose.rotation, pose.scale);
@@ -412,18 +439,14 @@ void AnimationSystem::ProcessComp(AnimationComponent & comp)
         std::fill(comp.morphWeights.begin(), comp.morphWeights.end(), 0.0f);
         if (clipA)
         {
-            const float blend = clipB ? std::clamp(comp.blend, 0.0f, 1.0f) : 0.0f;
-            const float primaryWeight = clipB ? (1.0f - blend) : 1.0f;
-            //accumulateMorphWeights(*clipA, obj, anim.timeA, primaryWeight, anim.morphWeights, rm);
+            // During transition: blend from old (B) to new (A)
+            const float blend = transitionBlend;
+            const float newWeight = comp.isTransitioning ? blend : 1.0f;
+            const float oldWeight = comp.isTransitioning ? (1.0f - blend) : 0.0f;
 
-            // object.name = node->mName.length > 0 ? node->mName.C_Str() : ("Object_" + std::to_string(objects.size()));
-            // regarding the "" passed into accumulateMorphWeights, the above line is the ryan's original line of what it should be
-            // but i dont have the concepts of nodes during runtime. its a fallback anyway. dont care.
-
-            accumulateMorphWeights(*clipA, comp.timeA, primaryWeight, graphicsAssetSystem, *renderComp, "", comp.morphWeights);
-            if (clipB && blend > 0.0f)
-                //accumulateMorphWeights(*clipB, obj, anim.timeB, blend, anim.morphWeights, rm);
-                accumulateMorphWeights(*clipB, comp.timeB, blend, graphicsAssetSystem, *renderComp, "", comp.morphWeights);
+            accumulateMorphWeights(*clipA, comp.timeA, newWeight, graphicsAssetSystem, *renderComp, "", comp.morphWeights);
+            if (clipB && oldWeight > 0.0f)
+                accumulateMorphWeights(*clipB, comp.timeB, oldWeight, graphicsAssetSystem, *renderComp, "", comp.morphWeights);
         }
     }
 }
