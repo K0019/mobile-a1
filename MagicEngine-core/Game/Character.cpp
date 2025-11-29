@@ -28,6 +28,7 @@ All rights reserved.
 #include "Engine/Audio.h"
 #include "Managers\AudioManager.h"
 #include "Graphics/BoneAttachment.h"
+#include "Engine/BehaviorTree/BehaviourTree.h"
 
 #define X(type, name) name,
 char const* animNames[] =
@@ -403,6 +404,10 @@ void CharacterMovementComponentSystem::UpdateCharacterMovementComponent(Characte
 
 	// Get the animation component
 	ecs::CompHandle<AnimationComponent> animComp = characterEntity->GetComp<AnimationComponent>();
+	ecs::CompHandle<BehaviorTreeComp> btComp = characterEntity->GetComp<BehaviorTreeComp>();
+	if (btComp->GetBehaviorTree().GetName() == "boss_prefect") {
+
+	}
 
 	// Update held item
 	ecs::EntityHandle attackItem{ comp.heldItem };
@@ -442,6 +447,12 @@ void CharacterMovementComponentSystem::UpdateCharacterMovementComponent(Characte
 		if (animComp->animHandleA.GetHash() != comp.animations[HURT].GetHash())
 		{
 			animComp->TransitionTo(comp.animations[HURT].GetHash(), 0.1f);
+			//defense
+			//range multi attack
+			//ground strike
+			//lash out
+			//	lunge
+			//comp.animations[]
 		}
 		animComp->timeA = comp.currentStunTime / comp.stunTimePerHit;
 		comp.currentDodgeTime = 0.0f;

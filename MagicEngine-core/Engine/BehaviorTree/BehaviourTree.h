@@ -149,6 +149,8 @@ public:
     *//******************************************************************/
     BehaviorTreeComp();
 
+	BehaviorTree& GetBehaviorTree() { return behaviorTree; }
+
 private:
     BehaviorTree behaviorTree;
 
