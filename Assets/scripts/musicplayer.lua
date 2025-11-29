@@ -21,6 +21,8 @@ end
 
 function setBossMusic()
     Magic.Log(Magic.LogLevel.info, "SET MUSIC MESSAGE RECEIVED!!!")
+    Magic.AudioManager.StopSound(ambienceHandle)
+    ambienceHandle=0
 
     Magic.AudioManager.FadeOutSound(musicHandle,2.0)
     switchingMusic =true
