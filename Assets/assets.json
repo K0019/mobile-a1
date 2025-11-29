@@ -85,6 +85,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/buff bg icon (timer).ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 3008096688990008155,
+                            "name": "buff bg icon (timer)0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/materials/standardsurface1_1012.material",
             "resources": [
                 {
@@ -1485,6 +1499,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/attack speed icon.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 2997218120944789645,
+                            "name": "attack speed icon0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/models/glb/aji/player_idle_mixamo/player_idle_mixamo.mesh",
             "resources": [
                 {
@@ -2297,6 +2325,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/debuff bg icon.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 3026146271871584017,
+                            "name": "debuff bg icon0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "sounds/sfx/weapon pickup/weapon pickup 3.wav",
             "resources": [
                 {
@@ -2501,6 +2543,20 @@
                         {
                             "hash": 5824722222839667575,
                             "name": "enemy_female_animated0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/health icon.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 3031216119987261849,
+                            "name": "health icon0"
                         }
                     ]
                 }
@@ -2815,6 +2871,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/movement speed icon.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 3042608159962651947,
+                            "name": "movement speed icon0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "sounds/music (bgm)/classroom (main gameplay)/purrfectputt-music-gameplayloop1.wav",
             "resources": [
                 {
@@ -3095,6 +3165,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/buff bg icon.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 3010739914943182859,
+                            "name": "buff bg icon0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/models/glb/aji/player_idle_mixamo/shader_nonenormal.normal.ktx2",
             "resources": [
                 {
@@ -3355,6 +3439,20 @@
                         {
                             "hash": 2261277604276646959,
                             "name": "n00_007_01_tops_01_cloth_01__instance_.0010"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/buff bg.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 3017153366268001653,
+                            "name": "buff bg0"
                         }
                     ]
                 }
@@ -5335,6 +5433,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/delusion decay icon.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 3026900536848239949,
+                            "name": "delusion decay icon0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/models/glb/enemy_female_animated/n00_000_00_faceeyelash_00_face (instance).material",
             "resources": [
                 {
@@ -5693,6 +5805,20 @@
                         {
                             "hash": 350021830450594951,
                             "name": "n00_002_03_tops_01_cloth_04 (instance)0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/health regen icon.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 3037314011474909181,
+                            "name": "health regen icon0"
                         }
                     ]
                 }
@@ -8023,6 +8149,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/buff fg .ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 3020690495174558259,
+                            "name": "buff fg 0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "sounds/sfx/enemy/female/hurt/enemy female hurt 1.wav",
             "resources": [
                 {
@@ -8381,6 +8521,20 @@
                         {
                             "hash": 5012622934546702613,
                             "name": "_180"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/buff arrow icon.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 2999852550804942361,
+                            "name": "buff arrow icon0"
                         }
                     ]
                 }
