@@ -35,11 +35,6 @@ All rights reserved.
 PlayerMovementComponent::PlayerMovementComponent()
 	: grabDistance{ 0.0f }
 	, cameraReference{nullptr}
-	, parryTime{}
-	, parryCoolDownTime{}
-	, parryDelution{}
-	, currParryCoolDown{}
-	, currParryTime{}
 	, ultimateAttackDamage{}
 	, isUltimateAttack{false}
 {
@@ -66,36 +61,21 @@ void PlayerMovementComponent::EditorDraw()
 	cameraReference.EditorDraw("Camera");
 	testReference.EditorDraw("Test");
 	gui::VarInput("Grab Distance", &grabDistance);
-	gui::VarInput("Parry Time Period", &parryTime);
-	gui::VarInput("Parry Cool Down time", &parryCoolDownTime);
-	gui::VarInput("Parry Delution", &parryDelution);
 	gui::VarInput("Ultimate Attack Damage", &ultimateAttackDamage);
 }
 
 void PlayerMovementComponent::Parry()
 {
-	currParryTime = parryTime;
-	currParryCoolDown = parryCoolDownTime;
+	auto characterComp{ ecs::GetEntity(this)->GetComp<CharacterMovementComponent>() };
+	characterComp->Parry();
 }
 
-bool PlayerMovementComponent::IsParrying()
-{
-	if (currParryTime <= 0.f)
-		return false;
-
-	auto delutionComp{ ecs::GetEntity(this)->GetComp<DelusionComponent>() };
-	if (!delutionComp)
-		return false;
-
-	delutionComp->AddDelusion(parryDelution);
-	CONSOLE_LOG(LEVEL_INFO) << "Parried.";
-}
 
 void PlayerMovementComponent::UltimateAttack()
 {
 	auto delutionComp{ ecs::GetEntity(this)->GetComp<DelusionComponent>() };
 	auto characterComp{ ecs::GetEntity(this)->GetComp<CharacterMovementComponent>() };
-	if (!delutionComp || !characterComp || delutionComp->to_string() != "A+")
+	if (!delutionComp || !characterComp ||delutionComp->GetCurrDelusionTier() != DELUSION_TIER::APLUS)
 		return;
 
 	isUltimateAttack = true;
@@ -157,44 +137,41 @@ void PlayerMovementComponentSystem::UpdatePlayerMovementComponent(PlayerMovement
 	// Grabbing items
 	if (inputInstance->GetIsPressed(KEY::E) || EventsReader<Events::GameActionGrabItem>{}.ExtractEvent())
 	{
-		if (characterComp->heldItem == nullptr)
+		float closestDistance = comp.grabDistance * comp.grabDistance;
+		ecs::CompHandle< GrabbableItemComponent> closestItem = nullptr;
+		for (auto itemComp = ecs::GetCompsBegin<GrabbableItemComponent>(); itemComp != ecs::GetCompsEnd<GrabbableItemComponent>(); ++itemComp)
 		{
-			float closestDistance = comp.grabDistance * comp.grabDistance;
-			ecs::CompHandle< GrabbableItemComponent> closestItem = nullptr;
-			for (auto itemComp = ecs::GetCompsBegin<GrabbableItemComponent>(); itemComp != ecs::GetCompsEnd<GrabbableItemComponent>(); ++itemComp)
+			// Just in case, don't grab nothing
+			if (itemComp.GetEntity() == nullptr)
+				continue;
+
+			// Don't grab self
+			if (itemComp.GetEntity() == playerEntity)
+				continue;
+
+			// Don't grab people
+			if (itemComp.GetEntity()->GetComp<CharacterMovementComponent>())
+				continue;
+
+			assert(ecs::IsEntityHandleValid(itemComp.GetEntity()));
+
+			// Can't pick up other held items
+			if (itemComp->isHeld == true)
+				continue;
+
+			// Distance check
+			Vec3 direction = itemComp.GetEntity()->GetTransform().GetWorldPosition() - playerEntity->GetTransform().GetWorldPosition();
+			if (direction.LengthSqr() < closestDistance)
 			{
-				// Just in case, don't grab nothing
-				if (itemComp.GetEntity() == nullptr)
-					continue;
-
-				// Don't grab self
-				if (itemComp.GetEntity() == playerEntity)
-					continue;
-
-				// Don't grab people
-				if (itemComp.GetEntity()->GetComp<CharacterMovementComponent>())
-					continue;
-
-				assert(ecs::IsEntityHandleValid(itemComp.GetEntity()));
-
-				// Can't pick up other held items
-				if (itemComp->isHeld == true)
-					continue;
-
-				// Distance check
-				Vec3 direction = itemComp.GetEntity()->GetTransform().GetWorldPosition() - playerEntity->GetTransform().GetWorldPosition();
-				if (direction.LengthSqr() < closestDistance)
-				{
-					closestItem = itemComp.GetCompHandle();
-					closestDistance = direction.LengthSqr();
-				}
+				closestItem = itemComp.GetCompHandle();
+				closestDistance = direction.LengthSqr();
 			}
+		}
 
-			if (closestItem != nullptr)
-			{
-				characterComp->DropItem();
-				characterComp->GrabItem(closestItem);
-			}
+		if (closestItem != nullptr)
+		{
+			characterComp->DropItem();
+			characterComp->GrabItem(closestItem);
 		}
 	}
 
@@ -218,10 +195,7 @@ void PlayerMovementComponentSystem::UpdatePlayerMovementComponent(PlayerMovement
 	if (inputInstance->GetIsDown(KEY::LSHIFT) || EventsReader<Events::GameActionDodge>{}.ExtractEvent())
 		characterComp->Dodge(movement);
 
-	if (comp.currParryTime > 0.f)
-		comp.currParryTime -= GameTime::Dt();
-	if (comp.currParryCoolDown > 0.f)
-		comp.currParryCoolDown -= GameTime::Dt();
-	if (inputInstance->GetIsPressed(KEY::LCTRL) && comp.currParryCoolDown <= 0.f)
+
+	if (inputInstance->GetIsPressed(KEY::LCTRL))
 		comp.Parry();
 }

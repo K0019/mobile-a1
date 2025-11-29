@@ -89,11 +89,6 @@ void HealthComponent::TakeDamage(HealthComponent::HealthType amount, Vec3 direct
 
 	auto thisEntity = ecs::GetEntity(this);
 
-	//Parry
-	if (auto playerComp{ thisEntity->GetComp<PlayerMovementComponent>() })
-		if (playerComp->IsParrying())
-			return;
-
 	if (currHealth > maxHealth)
 		currHealth = maxHealth;
 	currHealth -= amount;

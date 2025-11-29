@@ -66,9 +66,19 @@ void GrabbableItemComponent::Attack(Vec3 origin, Vec3 direction)
 
 		if (ecs::CompHandle<HealthComponent> healthComp{ hitEntity->GetComp<HealthComponent>() })
 		{
-			// Deal damage to it
-			healthComp->TakeDamage(attackDamage,direction);
-
+			bool dealDamage = true;
+			// If the target is parrying, we don't deal damage to them
+			if(ecs::CompHandle<CharacterMovementComponent> characterComp{ hitEntity->GetComp<CharacterMovementComponent>() })
+			{
+				// Deal damage to it
+				if (characterComp->IsParrying())
+				{
+					dealDamage = false;
+					characterComp->OnParrySuccess();
+				}
+			}
+			if(dealDamage)
+				healthComp->TakeDamage(attackDamage, direction);
 			//damage taken tied to delusion for now
 			//if owner is enemy
 			if (owner->GetComp<EnemyComponent>())
@@ -88,6 +98,7 @@ void GrabbableItemComponent::Attack(Vec3 origin, Vec3 direction)
 					delusionComp->AddDelusion(attackDamage * 0.2f);
 				}
 			}
+
 		}
 	}
 }

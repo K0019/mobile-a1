@@ -1,0 +1,43 @@
+{
+    "name": "BookingSlip_1001",
+    "alphaMode": "Opaque",
+    "alphaCutoff": 0.5,
+    "metallicFactor": 1.0,
+    "roughnessFactor": 1.0,
+    "normalScale": 1.0,
+    "occlusionStrength": 1.0,
+    "baseColorFactor": [
+        1.0,
+        1.0,
+        1.0,
+        1.0
+    ],
+    "emissiveFactor": [
+        0.0,
+        0.0,
+        0.0
+    ],
+    "textures": [
+        {
+            "key": "baseColor",
+            "value": "CompiledAssets\\models\\GLB\\Items\\bookingslip\\Image_0.ktx2"
+        },
+        {
+            "key": "metallicRoughness",
+            "value": "CompiledAssets\\models\\GLB\\Items\\bookingslip\\Image_1.ktx2"
+        },
+        {
+            "key": "normal",
+            "value": "CompiledAssets\\models\\GLB\\Items\\bookingslip\\Image_2.ktx2"
+        },
+        {
+            "key": "emissive",
+            "value": ""
+        },
+        {
+            "key": "occlusion",
+            "value": ""
+        }
+    ],
+    "flags": 0
+}

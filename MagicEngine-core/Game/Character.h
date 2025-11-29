@@ -31,6 +31,7 @@ X(WALK,     "Walk")\
 X(ATTACK,   "Attack")\
 X(HURT,   "Hurt")\
 X(DODGE,   "Dodge")\
+X(PARRY,   "Parry")\
 X(THROW,   "Throw")\
 
 #define X(type, name) type,
@@ -66,6 +67,11 @@ public:
 	float dodgeDuration;
 	float dodgeSpeed;
 	float throwPower;
+	float parryTime;
+	float parryCoolDownTime;
+	float parryDelusion;
+	float currParryCoolDown;
+	float currParryTime;
 
 	// Not serialized
 	float currentStunTime;
@@ -90,6 +96,9 @@ public:
 	void GrabItem(ecs::CompHandle<GrabbableItemComponent> item);
 	bool Attack();
 	bool IsDodging();
+	bool IsParrying();
+	void OnParrySuccess();
+	void Parry();
 
 	void Serialize(Serializer& writer) const override;
 	void Deserialize(Deserializer& reader) override;
@@ -146,6 +155,9 @@ property_begin(CharacterMovementComponent)
 	property_var(moveSpeed),
 	property_var(rotateSpeed),
 	property_var(throwPower),
+	property_var(parryCoolDownTime),
+	property_var(parryTime),
+	property_var(parryDelusion),
 }
 property_vend_h(CharacterMovementComponent)
 
