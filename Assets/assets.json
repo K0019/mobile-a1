@@ -547,6 +547,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/player health bg.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 5552354500126963349,
+                            "name": "player health bg0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "sounds/sfx/enemy/male/attack/enemy male attack 1.wav",
             "resources": [
                 {
@@ -1745,6 +1759,20 @@
                         {
                             "hash": 4990236877805183245,
                             "name": "_130"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/player health fill.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 5546447923662549515,
+                            "name": "player health fill0"
                         }
                     ]
                 }
