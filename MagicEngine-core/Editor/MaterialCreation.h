@@ -37,6 +37,8 @@ X(OCCLUSION_TEXTURE, "Occlusion")
 		Resource::ProcessedMaterial materialProps;
 		bool isUnlit = false;
 		bool isDoubleSided = false;
+		bool castShadow = true;
+		bool receiveShadow = true;
 	};
 
 	class MaterialEditWindow : public WindowBase<MaterialEditWindow, false>
@@ -58,6 +60,8 @@ X(OCCLUSION_TEXTURE, "Occlusion")
 		std::array<size_t, +MATERIAL_TEXTURE_INDEX::TOTAL> textures;
 		bool isUnlit = false;
 		bool isDoubleSided = false;
+		bool castShadow = true;
+		bool receiveShadow = true;
 	};
 
 }

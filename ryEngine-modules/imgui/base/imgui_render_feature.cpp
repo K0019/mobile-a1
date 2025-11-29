@@ -105,12 +105,13 @@ void main() {
 
     // ImGui rendering pass - renders directly to swapchain at swapchain resolution
     // This pass comes after FinalBlit (which scales scene to swapchain) and draws UI on top
+    // Priority 700 (Present) ensures it runs after FinalBlit (650)
     passBuilder.CreatePass().DeclareTransientResource("ImGuiVertexBuffer", vertexDesc).
                 DeclareTransientResource("ImGuiIndexBuffer", indexDesc).
                 UseResource(RenderResources::SWAPCHAIN_IMAGE, AccessType::ReadWrite).
                 UseResource("ImGuiVertexBuffer", AccessType::ReadWrite).
                 UseResource("ImGuiIndexBuffer", AccessType::ReadWrite).
-                SetPriority(internal::RenderPassBuilder::PassPriority::UI).ExecuteAfter("CopySceneForImGui").
+                SetPriority(internal::RenderPassBuilder::PassPriority::Present).ExecuteAfter("CopySceneForImGui").
                 ExecuteAfter("FinalBlit").
                 AddGraphicsPass("ImGuiRender", passInfo, [this](const internal::ExecutionContext& context)
                 {

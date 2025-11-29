@@ -913,9 +913,9 @@ void RenderGraph::Compile()
       {InternName(RenderResources::SCENE_COLOR), AccessType::Read},
       {InternName(RenderResources::SWAPCHAIN_IMAGE), AccessType::Write}
     },
-    // Priority 550: After PostProcess (500) but before UI (600)
-    // This ensures the scene is blitted to swapchain before ImGui renders on top
-    .priority = static_cast<internal::RenderPassBuilder::PassPriority>(550), .featureOwner = nullptr
+    // Priority 650: After UI (600) but before ImGui which renders directly to swapchain
+    // This ensures tone mapping and UI2D are applied to SCENE_COLOR before blitting to swapchain
+    .priority = static_cast<internal::RenderPassBuilder::PassPriority>(650), .featureOwner = nullptr
   };
   ExecuteLambda finalBlitLambda = [this](internal::ExecutionContext& ctx)
   {

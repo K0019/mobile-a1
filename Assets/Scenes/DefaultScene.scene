@@ -5986,6 +5986,14 @@
                 "9315785795257285655": {
                     "_active": true,
                     "uid": 3658786570163049327
+                },
+                "18288371625365795113": {
+                    "_active": true,
+                    "scripts": [
+                        {
+                            "scriptName": "classroomdoor.lua"
+                        }
+                    ]
                 }
             }
         },

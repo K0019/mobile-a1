@@ -27,12 +27,15 @@ layout(push_constant) uniform ShadowPushConstants {
   ShadowFrameConstantsBuffer shadowFrameConstants;
   TransformBuffer transforms;
   DrawDataBuffer drawData;
-  uvec2 unused0; // materials - not needed for shadow pass
+  MaterialBuffer materials;
   uvec2 unused1; // meshDecomp - not needed for skinned
   uvec2 unused2; // oit - not needed for shadow pass
   uvec2 unused3; // lighting - not needed for shadow pass
   uvec2 unused4; // textureIndices - not needed for shadow pass
 } pc;
+
+// Material flags (must match CPU-side MaterialFlags enum)
+const uint CAST_SHADOW_FLAG = 0x10;
 
 // Skinned vertex inputs (uncompressed format)
 layout(location = 0) in vec3 in_position;
@@ -46,6 +49,23 @@ layout(location = 0) out vec4 v_WorldPos;
 void main() {
   // Get draw data for this instance
   DrawData dd = pc.drawData.dd[gl_BaseInstance];
+
+  // Check shadow override in upper bits of objectId
+  // Bits 30-31: 0 = use material, 1 = force off, 2 = force on
+  uint shadowOverride = (dd.objectId >> 30) & 0x3;
+  
+  // Determine if this object casts shadows
+  uint effectiveFlags = pc.materials.material[dd.materialId & 0x7FFFFFFF].flags;
+  if (shadowOverride == 1) {
+    effectiveFlags &= ~CAST_SHADOW_FLAG; // Force off
+  } else if (shadowOverride == 2) {
+    effectiveFlags |= CAST_SHADOW_FLAG; // Force on
+  }
+
+  if ((effectiveFlags & CAST_SHADOW_FLAG) == 0) {
+    gl_Position = vec4(0.0, 0.0, -2.0, 1.0);
+    return;
+  }
 
   // Get model transform
   mat4 model = pc.transforms.model[dd.transformId];
