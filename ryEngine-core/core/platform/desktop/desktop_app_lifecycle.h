@@ -15,6 +15,11 @@ public:
         m_window = window;
         m_currentState = AppState::Running;
         m_shouldQuit = false;
+
+#ifdef NDEBUG
+		// Locks mouse on release builds
+		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+#endif
     }
     
     void Update() {

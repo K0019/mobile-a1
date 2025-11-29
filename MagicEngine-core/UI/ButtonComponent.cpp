@@ -26,7 +26,7 @@ All rights reserved.
 #include "Engine/EntityEvents.h"
 #include "Editor/Containers/GUICollection.h"
 
-
+#include "core/platform/platform.h"
 
 namespace internal {
 
@@ -148,6 +148,9 @@ bool ButtonInputSystem::PreRun()
 	if (!(pressed || released))
 		return false;
 	pos = RetrieveMousePos();
+	// pos returns window position. Compensate for wrong aspect ratios to fix click area not aligning with button rendering
+	pos.x = pos.x / static_cast<float>(Core::Display().GetWidth()) * 1920.0f;
+	pos.y = pos.y / static_cast<float>(Core::Display().GetHeight()) * 1080.0f;
 	return true;
 }
 
