@@ -41,7 +41,7 @@ void Primitive2DCircle::SetRadius(float newRadius)
 	radius = newRadius;
 	numSegments = GetNumSegmentsForSmoothCircle(radius);
 }
-float Primitive2DCircle::GetNumSegments() const
+int Primitive2DCircle::GetNumSegments() const
 {
 	return numSegments;
 }

@@ -709,6 +709,12 @@ void ScenePool::EnsureDefaultSceneExists()
 void ScenePool::UnloadAllScenes_NoDefaultScene()
 {
 	CONSOLE_LOG(LEVEL_DEBUG) << "Unloading all scenes...";
+	for (auto& scene : loadedScenes)
+	{
+		int index{ scene.first };
+		ST<EventsQueue>::Get()->AddEventForThisFrame(Events::SceneUnloaded{ index });
+		ST<EventsQueue>::Get()->AddEventForNextFrame(Events::SceneUnloaded{ index });
+	}
 
 	// Need to unselect entity if there is one selected since it will be deleted.
 #if defined(IMGUI_ENABLED) && defined(HAS_EVENTS_TYPE_EDITOR)

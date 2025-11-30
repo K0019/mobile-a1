@@ -356,7 +356,7 @@ void AudioManager::ChannelManager::ClearAllChannels()
 	channelMap.clear();
 }
 
-void AudioManager::FadeoutAudio(uint32_t handle, float seconds)
+void AudioManager::FadeoutAudio(uint32_t handle, [[maybe_unused]] float seconds)
 {
 	unsigned long long dspclock = 0;
 	int rate;

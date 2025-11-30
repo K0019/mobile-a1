@@ -317,7 +317,7 @@ namespace editor
     const float descent = std::floor(cpuData.descent);
     font->Ascent = ascent;
     font->Descent = descent;
-    font->FallbackChar = cpuData.buildSettings.fallbackCodepoint;
+    font->FallbackChar = static_cast<ImWchar>(cpuData.buildSettings.fallbackCodepoint);
     font->Scale = 1.0f;
     font->Glyphs.clear();
     font->IndexAdvanceX.clear();

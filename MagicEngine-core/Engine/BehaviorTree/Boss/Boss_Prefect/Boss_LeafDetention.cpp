@@ -39,7 +39,7 @@ NODE_STATUS L_Boss_Prefect_Detention::OnUpdate([[maybe_unused]] ecs::EntityHandl
         {
             if (currentBurstDelay < 0.0f)
             {
-                ecs::EntityHandle spawnedExplosion = ST<PrefabManager>::Get()->LoadPrefab("explosion");
+                ST<PrefabManager>::Get()->LoadPrefab("explosion");
                 //ST<AudioManager>::Get()->PlaySound3D("defence stance", false, entity->GetTransform().GetWorldPosition(), AudioType::END, std::pair<float, float>{2.0f, 50.0f}, 0.6f);
 
                 if(Boss_Prefect_Util::SpawnExplosion(entity, explosionSizes[currentBurstCount]))
