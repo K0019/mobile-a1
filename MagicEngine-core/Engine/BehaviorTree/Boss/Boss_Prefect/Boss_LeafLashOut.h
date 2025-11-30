@@ -12,6 +12,8 @@ private:
     float currentAttackDelay;
     int currentAttackCount;
 
+    bool impendingAttack;
+
     static float speedMultiplier;
     static float attackCooldown;
     static float attackDelay;

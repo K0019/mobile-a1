@@ -152,6 +152,12 @@ void DelusionComponent::UpdateDelusionTier()
 
         gainRate = 1.0f; // remove delusion gain increase
         lossRate = 1.0f; // remove delusion lose decrease
+
+        // Hackerryyyyyyyyyyyyyyyyyyyyyyy
+        delusionBuff1->SetActive(false);
+        delusionBuff2->SetActive(false);
+        delusionBuff3->SetActive(false);
+        delusionBuff4->SetActive(false);
         break;
     }
 
@@ -171,6 +177,12 @@ void DelusionComponent::UpdateDelusionTier()
 
         gainRate = 1.0f; // remove delusion gain increase
         lossRate = 1.0f; // remove delusion lose decrease
+
+        // Hackerryyyyyyyyyyyyyyyyyyyyyyy
+        delusionBuff1->SetActive(true);
+        delusionBuff2->SetActive(false);
+        delusionBuff3->SetActive(false);
+        delusionBuff4->SetActive(false);
         break;
     }
 
@@ -190,6 +202,11 @@ void DelusionComponent::UpdateDelusionTier()
 
         gainRate = 1.2f; // delusion gain up
         lossRate = 1.0f; // remove delusion lose decrease
+        // Hackerryyyyyyyyyyyyyyyyyyyyyyy
+        delusionBuff1->SetActive(true);
+        delusionBuff2->SetActive(true);
+        delusionBuff3->SetActive(false);
+        delusionBuff4->SetActive(false);
         break;
     }
 
@@ -215,6 +232,12 @@ void DelusionComponent::UpdateDelusionTier()
         }
 
         lossRate = 1.0f; // remove delusion lose decrease
+
+        // Hackerryyyyyyyyyyyyyyyyyyyyyyy
+        delusionBuff1->SetActive(true);
+        delusionBuff2->SetActive(true);
+        delusionBuff3->SetActive(true);
+        delusionBuff4->SetActive(false);
         break;
     }
 
@@ -234,6 +257,12 @@ void DelusionComponent::UpdateDelusionTier()
 
         gainRate = 1.2f;
         lossRate = 0.8f; // delusion loss down
+
+        // Hackerryyyyyyyyyyyyyyyyyyyyyyy
+        delusionBuff1->SetActive(true);
+        delusionBuff2->SetActive(true);
+        delusionBuff3->SetActive(true);
+        delusionBuff4->SetActive(true);
         break;
     }
 
@@ -254,7 +283,11 @@ void DelusionComponent::UpdateDelusionTier()
         gainRate = 1.2f;
         lossRate = 0.8f;
         
-        // ulti available
+        // Hackerryyyyyyyyyyyyyyyyyyyyyyy
+        delusionBuff1->SetActive(true);
+        delusionBuff2->SetActive(true);
+        delusionBuff3->SetActive(true);
+        delusionBuff4->SetActive(true);
         break;
     }
 
@@ -272,6 +305,24 @@ DelusionComponent::DelusionType DelusionComponent::GetDelusionFraction()
 	return (DelusionType)currDelusion / (DelusionType)maxDelusion;
 }
 
+void DelusionComponent::Serialize(Serializer& writer) const
+{
+    IRegisteredComponent::Serialize(writer);
+    writer.Serialize("delusionBuff1", delusionBuff1);
+    writer.Serialize("delusionBuff2", delusionBuff2);
+    writer.Serialize("delusionBuff3", delusionBuff3);
+    writer.Serialize("delusionBuff4", delusionBuff4);
+}
+
+void DelusionComponent::Deserialize(Deserializer& reader)
+{
+    IRegisteredComponent::Deserialize(reader);
+    reader.Deserialize("delusionBuff1", &delusionBuff1);
+    reader.Deserialize("delusionBuff2", &delusionBuff2);
+    reader.Deserialize("delusionBuff3", &delusionBuff3);
+    reader.Deserialize("delusionBuff4", &delusionBuff4);
+}
+
 void DelusionComponent::EditorDraw()
 {
 	gui::VarInput("Max Delusion", &maxDelusion); //swap this out for one that prints to_print instead of &maxDelusion
@@ -279,4 +330,9 @@ void DelusionComponent::EditorDraw()
 	gui::VarInput("Loss Rate", &lossRate); //swap this out for one that prints to_print instead of &maxDelusion
 	gui::VarInput("Ult Value", &ultValue); //swap this out for one that prints to_print instead of &maxDelusion
 	gui::VarInput("Current Delusion", &currDelusion); //swap this out for one that prints to_print instead of &maxDelusion
+
+    delusionBuff1.EditorDraw("Delusion Buff 1");
+    delusionBuff2.EditorDraw("Delusion Buff 2");
+    delusionBuff3.EditorDraw("Delusion Buff 3");
+    delusionBuff4.EditorDraw("Delusion Buff 4");
 }

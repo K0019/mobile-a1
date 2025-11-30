@@ -316,7 +316,7 @@ namespace physics {
 		for (auto compIter{ ecs::GetCompsActiveBegin<BoxColliderComp>() }, endIter{ ecs::GetCompsEnd<BoxColliderComp>() }; compIter != endIter; ++compIter)
 		{
 			auto joltBodyComp{ compIter.GetEntity()->GetComp<JoltBodyComp>() };
-			if (!joltBodyComp)
+			if (!joltBodyComp || joltBodyComp->GetBodyID().IsInvalid())
 				continue;
 
 			if (!layers.TestMaskAll())

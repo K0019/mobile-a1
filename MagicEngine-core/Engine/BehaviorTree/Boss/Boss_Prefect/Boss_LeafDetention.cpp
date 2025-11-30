@@ -28,33 +28,31 @@ void L_Boss_Prefect_Detention::OnInitialize()
 
 NODE_STATUS L_Boss_Prefect_Detention::OnUpdate([[maybe_unused]] ecs::EntityHandle entity)
 {
-    if (auto characterComp{ entity->GetComp<CharacterMovementComponent>() })
+    if (auto enemyComp{ entity->GetComp<EnemyComponent>() })
     {
-        if (auto enemyComp{ entity->GetComp<EnemyComponent>() })
-        {
-            // Directly follow player here, since this is an AoE around the boss
-            Vec2 dir = Boss_Prefect_Util::GetMovementTowards(entity->GetTransform().GetWorldPosition(), enemyComp->playerReference->GetTransform().GetWorldPosition());
-            characterComp->SetMovementVector(dir);
+        // Directly follow player here, since this is an AoE around the boss
+        Vec2 dir = Boss_Prefect_Util::GetMovementTowards(entity->GetTransform().GetWorldPosition(), enemyComp->playerReference->GetTransform().GetWorldPosition());
+        Boss_Prefect_Util::MoveInDirection(entity, Vec3(dir.x,0.0f,dir.y));
         
-            if (dir.LengthSqr() < triggerDistanceSqr)
+        if (dir.LengthSqr() < triggerDistanceSqr)
+        {
+            if (currentBurstDelay < 0.0f)
             {
-                if (currentBurstDelay < 0.0f)
+                ecs::EntityHandle spawnedExplosion = ST<PrefabManager>::Get()->LoadPrefab("explosion");
+
+                if(Boss_Prefect_Util::SpawnExplosion(entity, explosionSizes[currentBurstCount]))
                 {
-                    ecs::EntityHandle spawnedExplosion = ST<PrefabManager>::Get()->LoadPrefab("explosion");
-
-                    if(Boss_Prefect_Util::SpawnExplosion(entity, explosionSizes[currentBurstCount]))
-                    {
-                        // Reset burst delay and update count
-                        currentBurstDelay = burstDelay;
-                        ++currentBurstCount;
-                    }
-
-                    if (currentBurstCount == burstCount)
-                        return NODE_STATUS::SUCCESS;
+                    // Reset burst delay and update count
+                    currentBurstDelay = burstDelay;
+                    ++currentBurstCount;
                 }
+
+                if (currentBurstCount == burstCount)
+                    return NODE_STATUS::SUCCESS;
             }
         }
     }
+    
     currentBurstDelay -= GameTime::Dt();
     return NODE_STATUS::RUNNING;
 }

@@ -76,7 +76,7 @@ public:
 
 		Vec3 currentRotation = characterTransform.GetWorldRotation();
 
-		float targetAngle = math::ToDegrees(atan2(-direction.y, direction.x)) + 45.f;
+		float targetAngle = math::ToDegrees(atan2(-direction.y, direction.x))+90;
 		float newAngle = math::MoveTowardsAngle(currentRotation.y, targetAngle, rotateSpeed * GameTime::Dt());
 		currentRotation.y = newAngle;
 

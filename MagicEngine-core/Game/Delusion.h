@@ -56,6 +56,10 @@ class DelusionComponent
 public:
 	using DelusionType = float;
 
+	EntityReference delusionBuff1;
+	EntityReference delusionBuff2;
+	EntityReference delusionBuff3;
+	EntityReference delusionBuff4;
 
 	/*****************************************************************//*!
 	\brief
@@ -136,6 +140,11 @@ public:
 	void UpdateDelusionTier();
 
 	DelusionType GetDelusionFraction();
+
+	void Serialize(Serializer& writer) const override;
+	void Deserialize(Deserializer& reader) override;
+
+
 private:
 	/*****************************************************************//*!
 	\brief

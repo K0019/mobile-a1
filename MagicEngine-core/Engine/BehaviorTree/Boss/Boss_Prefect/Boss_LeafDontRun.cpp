@@ -6,9 +6,9 @@
 #include "Game/Health.h"
 #include "Graphics/AnimationComponent.h"
 
-float L_Boss_Prefect_DontRun::attackDistance = 6.0f*6.0f;
+float L_Boss_Prefect_DontRun::attackDistance = 20.0f*20.0f;
 float L_Boss_Prefect_DontRun::attackCooldown = 3.0f;
-float L_Boss_Prefect_DontRun::dodgeDistance = 9.0f*9.0f;
+float L_Boss_Prefect_DontRun::dodgeDistance = 25.0f*25.0f;
 int L_Boss_Prefect_DontRun::attackCount = 4;
 
 void L_Boss_Prefect_DontRun::OnInitialize()
@@ -32,11 +32,7 @@ NODE_STATUS L_Boss_Prefect_DontRun::OnUpdate([[maybe_unused]] ecs::EntityHandle 
             }
             else
             {
-                //characterComp->RotateTowards(dir);
 				Boss_Prefect_Util::RotateTowards(entity, dir);
-                //characterComp->SetMovementVector(Vec2{0.0f});
-				Boss_Prefect_Util::MoveInDirection(entity, Vec3{ dir.x, 0.0f, dir.y });
-                //characterComp->ResetSpeedMultiplier();
                 
                 auto animComp = entity->GetComp<AnimationComponent>();
                 if (animComp)
@@ -70,12 +66,6 @@ NODE_STATUS L_Boss_Prefect_DontRun::OnUpdate([[maybe_unused]] ecs::EntityHandle 
                     if (currentAttackCount >= attackCount)
                         return NODE_STATUS::SUCCESS;
                 }
-            }
-
-            if (dir.LengthSqr() > dodgeDistance)
-            {
-                //characterComp->Dodge(dir);
-                //characterComp->SetSpeedMultiplier(1.5f);
             }
             currentAttackCooldown -= GameTime::Dt();
         }

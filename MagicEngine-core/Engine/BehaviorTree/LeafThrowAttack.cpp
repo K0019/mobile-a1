@@ -22,7 +22,7 @@ NODE_STATUS L_ThrowAttack::OnUpdate(ecs::EntityHandle entity)
 
 	if (characterComp->currentStunTime > 0.f)
 	{
-		characterComp->isAttacking = false;
+		//characterComp->isAttacking = false;
 		return NODE_STATUS::FAILURE;
 	}
 
