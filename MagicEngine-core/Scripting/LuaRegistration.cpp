@@ -605,8 +605,6 @@ void RegisterCppStuffToLua(luabridge::Namespace baseTable)
 		.addFunction("DeltaTime", []() -> float { return GameTime::Dt(); })
 		.addFunction("LoadScene", [](const std::string& scenePath) {
 			ST<Scheduler>::Get()->Add([scenePath]() -> void {
-				auto* sceneManager = ST<SceneManager>::Get();
-
 				// Load new scene
 				ST<SceneManager>::Get()->UnloadAllScenes(scenePath);
 			});

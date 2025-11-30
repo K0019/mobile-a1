@@ -1,4 +1,6 @@
-#define NOMINMAX 
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
 #include "scene_loader.h"
 #include "assets/io/material_loader.h"
 #include "assets/io/mesh_loader.h"

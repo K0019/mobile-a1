@@ -254,7 +254,7 @@ namespace Resource::MeshLoading
         target.name = animMesh->mName.length > 0 ? animMesh->mName.C_Str() : ("Morph_" + std::to_string(targetIdx));
         target.deltas.resize(vertexCount);
 
-        const uint32_t limit = std::min<uint32_t>(vertexCount, animMesh->mNumVertices);
+        const uint32_t limit = std::min<uint32_t>(static_cast<uint32_t>(vertexCount), animMesh->mNumVertices);
         for(uint32_t v = 0; v < limit; ++v)
         {
           auto& delta = target.deltas[v];

@@ -157,7 +157,7 @@ void LineCanvas3D::render(vk::IContext& ctx, const vk::Framebuffer& desc, vk::IC
   {
     return;
   }
-  const uint32_t requiredSize = lines_.size() * sizeof(LineData);
+  const uint32_t requiredSize = static_cast<uint32_t>(lines_.size() * sizeof(LineData));
   if (currentBufferSize_[currentFrame_] < requiredSize)
   {
     linesBuffer_[currentFrame_] = ctx.createBuffer({

@@ -15,7 +15,7 @@ NODE_STATUS S_Boss_HealthPhases::OnUpdate([[maybe_unused]] ecs::EntityHandle ent
         if (auto healthComp{ entity->GetComp<HealthComponent>() })
         {
             float amt = (1.0f - healthComp->GetCurrHealthNormalized()) * (float)childrenPtr.size();
-            size_t childIndex = amt;
+            size_t childIndex = static_cast<size_t>(amt);
 
             // Account for edge case of this being maxed out
             if (childIndex >= childrenPtr.size())

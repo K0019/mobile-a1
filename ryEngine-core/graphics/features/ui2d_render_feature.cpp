@@ -217,8 +217,8 @@ void Ui2DRenderFeature::RenderUi(const internal::ExecutionContext& context)
   // Sort commands by layer, then by sortOrder
   std::vector<const ui::PrimitiveDrawCommand*> sortedCommands;
   sortedCommands.reserve(params.drawList.commands.size());
-  for (const auto& cmd : params.drawList.commands)
-    sortedCommands.push_back(&cmd);
+  for (const auto& drawCmd : params.drawList.commands)
+    sortedCommands.push_back(&drawCmd);
 
   std::sort(sortedCommands.begin(), sortedCommands.end(),
     [](const ui::PrimitiveDrawCommand* a, const ui::PrimitiveDrawCommand* b) {

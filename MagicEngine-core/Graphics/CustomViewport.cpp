@@ -153,8 +153,6 @@ void CustomViewport::DrawWindow()
 	if (leftClickJustPressed && !Input::GetMouseButton(MouseButton::Right))
 	{
 		ImVec2 mousePos = ImGui::GetMousePos();
-		int screenX = static_cast<int>(mousePos.x);
-		int screenY = static_cast<int>(mousePos.y);
 
 		// Convert to viewport-relative coordinates first
 		float viewportRelativeX = mousePos.x - (windowPosAbsolute.x + contentMin.x);
@@ -181,14 +179,14 @@ void CustomViewport::DrawWindow()
 				float normalizedX = viewportRelativeX / viewportRenderSize.x;
 				float normalizedY = viewportRelativeY / viewportRenderSize.y;
 
-				int screenX = static_cast<int>(normalizedX * renderTargetWidth);
-				int screenY = static_cast<int>(normalizedY * renderTargetHeight);
+				int renderX = static_cast<int>(normalizedX * renderTargetWidth);
+				int renderY = static_cast<int>(normalizedY * renderTargetHeight);
 
 				// Clamp to render target bounds
-				screenX = std::max(0, std::min(screenX, static_cast<int>(renderTargetWidth) - 1));
-				screenY = std::max(0, std::min(screenY, static_cast<int>(renderTargetHeight) - 1));
+				renderX = std::max(0, std::min(renderX, static_cast<int>(renderTargetWidth) - 1));
+				renderY = std::max(0, std::min(renderY, static_cast<int>(renderTargetHeight) - 1));
 
-				if (ST<GraphicsMain>::Get()->RequestObjPick(screenX, screenY))
+				if (ST<GraphicsMain>::Get()->RequestObjPick(renderX, renderY))
 				{
 					// Debug output
 					// std::cout << "Object pick requested at render target position (" << screenX << ", " << screenY << ")\n";

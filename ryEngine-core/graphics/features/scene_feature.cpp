@@ -25,7 +25,7 @@ void SceneRenderFeature::UpdateScene(uint64_t renderFeatureID,
 
   params->clear();
   params->reserve(gameScene.objects.size());
-  constexpr uint32_t INVALID_RANGE = SceneRenderParams::AnimatedInstanceParams::INVALID;
+  [[maybe_unused]] constexpr uint32_t INVALID_RANGE = SceneRenderParams::AnimatedInstanceParams::INVALID;
   uint32_t animatedVertexCursor = 0;
 
   // Build all scene data in one pass

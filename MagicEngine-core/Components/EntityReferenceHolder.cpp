@@ -40,7 +40,7 @@ void EntityReferenceHolderComponent::Deserialize(Deserializer& reader)
 
 const int EntityReferenceHolderComponent::GetSize()
 {
-	return entityReferences.size();
+	return static_cast<int>(entityReferences.size());
 }
 
 EntityReference EntityReferenceHolderComponent::GetEntity(int index)
