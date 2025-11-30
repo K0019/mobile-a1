@@ -22,6 +22,8 @@ All rights reserved.
 #include "Utilities/Serializer.h"
 #include "ECS/IRegisteredComponent.h"
 #include "Editor/IEditorComponent.h"
+#include "ECS/EntityUID.h"
+
 #include "Game/IGameComponentCallbacks.h"
 #include "core/platform/platform.h"
 
@@ -63,7 +65,7 @@ public:
     bool  recenterOnRelease = true; // snap back to anchor on release
     bool  invertX = false;    // flip horizontal if needed
     bool  invertY = true;     // screen Y often inverted; start with true
-
+    EntityReference entOuterAndroidJoystick;
     // ============================ Rotation / coordinate fixups (only used by PhoneToScreen()) ========================
     enum class TouchRot { Rot0, Rot90CW, Rot90CCW };
     TouchRot touchRotation = TouchRot::Rot90CW; // default to 90 CW to match current android build
@@ -117,6 +119,7 @@ public:
     void Update();
 
 private:
+    property_vtable()
 
     virtual void EditorDraw() override; // not in used
 
@@ -166,6 +169,12 @@ private:
 
 };
 
+property_begin(AndroidInputComp)
+{
+    property_var(entOuterAndroidJoystick)
+}
+property_vend_h(AndroidInputComp)
+
 /*****************************************************************//*!
 \brief
       ECS system responsible for updating all AndroidInputComp
@@ -190,3 +199,4 @@ private:
     void UpdateComp(AndroidInputComp& comp);
 };
 //=======================================================================
+

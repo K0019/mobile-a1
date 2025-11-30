@@ -415,7 +415,10 @@
                     "_active": true
                 },
                 "16331509531237472119": {
-                    "_active": true
+                    "_active": true,
+                    "entOuterAndroidJoystick": {
+                        "entityUid": 2145408870165833757
+                    }
                 }
             }
         },

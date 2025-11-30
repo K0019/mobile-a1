@@ -162,6 +162,7 @@ void AndroidInputComp::OnDetached()
 // IMPORTANT: elsewhere (e.g., Engine::ExecuteFrame), call AndroidInputBridge::ClearEdges()
 // ONCE per frame *after* all systems/components have consumed justDown/justUp.
 void AndroidInputComp::Update() {
+
 #if defined(__ANDROID__)
     const auto& t = AndroidInputBridge::State();
     const Vec2  tp = PhoneToScreen({ t.x, t.y });   // rotated to screen coords
@@ -179,6 +180,7 @@ void AndroidInputComp::Update() {
                 if (AndroidInputBridge::TryCapture(TouchOwner::Joystick)) {
                     Vec2 phoneVec = ScreenToPhone(tp);
                     tf.SetWorldPosition(Vec3{ phoneVec.x * 0.85f,phoneVec.y , tf.GetWorldPosition().z }); //abit hack
+                    entOuterAndroidJoystick->GetTransform().SetWorldPosition(Vec3{ phoneVec.x * 0.85f,phoneVec.y , tf.GetWorldPosition().z });
                     m_anchorWorld = tf.GetWorldPosition();
                     m_center = tp;             // dynamic center under the finger
                     m_active = true;
@@ -272,6 +274,8 @@ void AndroidInputComp::Update() {
             if (recenterOnRelease) {
                 // Return to anchor so the object doesn't drift permanently
                 tf.SetWorldPosition(m_OriginalWorld); // snap back
+                entOuterAndroidJoystick->GetTransform().SetWorldPosition(m_OriginalWorld);
+
             }
             // Give up exclusive ownership so camera/UI can use the next touch
             AndroidInputBridge::Release(TouchOwner::Joystick);
@@ -295,6 +299,7 @@ void AndroidInputComp::Update() {
 
 void AndroidInputComp::EditorDraw()
 {
+    entOuterAndroidJoystick.EditorDraw("Entity OuterJoystick");
 }
 
 AndroidInputSystem::AndroidInputSystem()
