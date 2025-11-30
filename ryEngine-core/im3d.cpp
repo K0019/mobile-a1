@@ -1198,8 +1198,8 @@ bool Im3d::GizmoScale(Id _id, float _scale_[3])
 	Vec3* outVec3 = (Vec3*)_scale_;
 	const AppData& appData = ctx.getAppData();
 
-	float planeSize = worldHeight * (0.5f * 0.5f);
-	float planeOffset = worldHeight * 0.5f;
+	[[maybe_unused]] float planeSize = worldHeight * (0.5f * 0.5f);
+	[[maybe_unused]] float planeOffset = worldHeight * 0.5f;
 	float worldSize = ctx.pixelsToWorldSize(origin, ctx.m_gizmoSizePixels);
 
 	struct AxisG { Id m_id; Vec3 m_axis; Color m_color; };
@@ -1242,7 +1242,7 @@ bool Im3d::GizmoScale(Id _id, float _scale_[3])
 		{
 			Sphere handle(origin, ctx.pixelsToWorldSize(origin, ctx.m_gizmoSizePixels * 4.0f));
 			float t0, t1;
-			bool intersects = Intersect(ray, handle, t0, t1);
+			bool rayIntersects = Intersect(ray, handle, t0, t1);
 			Vec3& storedScale = ctx.m_gizmoStateVec3;
 			Vec3& storedPosition = *((Vec3*)ctx.m_gizmoStateMat3.m);
 			if (uniformId == ctx.m_activeId)
@@ -1266,7 +1266,7 @@ bool Im3d::GizmoScale(Id _id, float _scale_[3])
 			}
 			else if (uniformId == ctx.m_hotId)
 			{
-				if (intersects)
+				if (rayIntersects)
 				{
 					if (ctx.isKeyDown(Action_Select))
 					{
@@ -2491,7 +2491,7 @@ bool Context::gizmoAxisTranslation_Behavior(Id _id, const Vec3& _origin, const V
 	return false;
 }
 
-void Context::gizmoAxisTranslation_Draw(Id _id, const Vec3& _origin, const Vec3& _axis, float _worldHeight, float _worldSize, Color _color)
+void Context::gizmoAxisTranslation_Draw(Id _id, const Vec3& _origin, const Vec3& _axis, float _worldHeight, [[maybe_unused]] float _worldSize, Color _color)
 {
 	Vec3 viewDir = m_appData.m_projOrtho
 		? m_appData.m_viewDirection
@@ -2658,7 +2658,7 @@ bool Context::gizmoAxislAngle_Behavior(Id _id, const Vec3& _origin, const Vec3& 
 
 	Vec3& storedVec = m_gizmoStateVec3;
 	float& storedAngle = m_gizmoStateFloat;
-	bool ret = false;
+	[[maybe_unused]] bool ret = false;
 
  // use a view-aligned plane intersection to generate the rotation delta
 	Plane viewPlane(viewDir, _origin);
@@ -2708,7 +2708,7 @@ bool Context::gizmoAxislAngle_Behavior(Id _id, const Vec3& _origin, const Vec3& 
 	}
 	return false;
 }
-void Context::gizmoAxislAngle_Draw(Id _id, const Vec3& _origin, const Vec3& _axis, float _worldRadius, float _angle, Color _color, float _minAlpha)
+void Context::gizmoAxislAngle_Draw(Id _id, const Vec3& _origin, const Vec3& _axis, float _worldRadius, [[maybe_unused]] float _angle, Color _color, float _minAlpha)
 {
 	Vec3 viewDir = m_appData.m_projOrtho
 		? m_appData.m_viewDirection
@@ -2716,7 +2716,7 @@ void Context::gizmoAxislAngle_Draw(Id _id, const Vec3& _origin, const Vec3& _axi
 		;
 	float aligned = fabs(Dot(_axis, viewDir));
 
-	Vec3& storedVec = m_gizmoStateVec3;
+	[[maybe_unused]] Vec3& storedVec = m_gizmoStateVec3;
 	Color color = _color;
 
 	if (_id == m_activeId)
@@ -2859,7 +2859,7 @@ bool Context::gizmoAxisScale_Behavior(Id _id, const Vec3& _origin, const Vec3& _
 
 	return false;
 }
-void Context::gizmoAxisScale_Draw(Id _id, const Vec3& _origin, const Vec3& _axis, float _worldHeight, float _worldSize, Color _color)
+void Context::gizmoAxisScale_Draw(Id _id, const Vec3& _origin, const Vec3& _axis, float _worldHeight, [[maybe_unused]] float _worldSize, Color _color)
 {
 	Vec3 viewDir = m_appData.m_projOrtho
 		? m_appData.m_viewDirection

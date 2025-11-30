@@ -409,7 +409,7 @@ namespace ui
     return true;
   }
 
-  bool AddImage(Resource::ResourceManager& resources, PrimitiveDrawList& list, uint32_t texture, const vec2& min,
+  bool AddImage([[maybe_unused]] Resource::ResourceManager& resources, PrimitiveDrawList& list, uint32_t texture, const vec2& min,
                 const vec2& max, const vec2& uvMin, const vec2& uvMax, uint32_t color, const vec4& clipRect,
                 SamplerMode samplerMode, uint16_t layer)
   {

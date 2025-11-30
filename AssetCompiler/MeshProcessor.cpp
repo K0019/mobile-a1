@@ -68,7 +68,7 @@ namespace compiler
             result.vertexCacheImprovement = std::max(0.0f, (originalACMR - optimizedACMR) / originalACMR);
             result.overdrawImprovement = 0.1f; // Conservative estimate
         }
-        catch (const std::exception& e)
+        catch (const std::exception&)
         {
             result.success = false;
             result.optimizedVertexCount = result.originalVertexCount;

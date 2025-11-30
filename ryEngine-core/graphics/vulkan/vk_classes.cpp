@@ -2698,7 +2698,7 @@ void vk::CommandBuffer::cmdBeginRendering(const RenderPass& renderPass, const Fr
     
     // Use multiview image view if viewMask is set
     VkImageView imageView = isMultiview 
-        ? colorTexture.getOrCreateVkImageViewForFramebufferMultiview(*ctx_, descColor.level, descColor.layer, multiviewLayerCount)
+        ? colorTexture.getOrCreateVkImageViewForFramebufferMultiview(*ctx_, descColor.level, descColor.layer, static_cast<uint16_t>(multiviewLayerCount))
         : colorTexture.getOrCreateVkImageViewForFramebuffer(*ctx_, descColor.level, descColor.layer);
     
     colorAttachments[i] = {.sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO, .pNext = nullptr, .imageView = imageView, .imageLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, .resolveMode = (samples > 1) ? VK_RESOLVE_MODE_AVERAGE_BIT : VK_RESOLVE_MODE_NONE, .resolveImageView = VK_NULL_HANDLE, .resolveImageLayout = VK_IMAGE_LAYOUT_UNDEFINED, .loadOp = loadOpToVkAttachmentLoadOp(descColor.loadOp), .storeOp = storeOpToVkAttachmentStoreOp(descColor.storeOp), .clearValue = {.color = {.float32 = {descColor.clearColor[0], descColor.clearColor[1], descColor.clearColor[2], descColor.clearColor[3]}}},};
@@ -2723,7 +2723,7 @@ void vk::CommandBuffer::cmdBeginRendering(const RenderPass& renderPass, const Fr
     
     // Use multiview image view if viewMask is set
     VkImageView depthImageView = isMultiview 
-        ? depthTexture.getOrCreateVkImageViewForFramebufferMultiview(*ctx_, descDepth.level, descDepth.layer, multiviewLayerCount)
+        ? depthTexture.getOrCreateVkImageViewForFramebufferMultiview(*ctx_, descDepth.level, descDepth.layer, static_cast<uint16_t>(multiviewLayerCount))
         : depthTexture.getOrCreateVkImageViewForFramebuffer(*ctx_, descDepth.level, descDepth.layer);
     
     depthAttachment = {.sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO, .pNext = nullptr, .imageView = depthImageView, .imageLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, .resolveMode = VK_RESOLVE_MODE_NONE, .resolveImageView = VK_NULL_HANDLE, .resolveImageLayout = VK_IMAGE_LAYOUT_UNDEFINED, .loadOp = loadOpToVkAttachmentLoadOp(descDepth.loadOp), .storeOp = storeOpToVkAttachmentStoreOp(descDepth.storeOp), .clearValue = {.depthStencil = {.depth = descDepth.clearDepth, .stencil = descDepth.clearStencil}},};
