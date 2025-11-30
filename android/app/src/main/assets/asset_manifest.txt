@@ -13,8 +13,14 @@ behaviourtrees/testnestednewtree.json
 behaviourtrees/wackyinstakilling.json
 compiledassets/aji.mesh
 compiledassets/ambulance.mesh
+compiledassets/attack speed icon.ktx2
 compiledassets/boss_top.ktx2
 compiledassets/box.mesh
+compiledassets/buff arrow icon.ktx2
+compiledassets/buff bg icon (timer).ktx2
+compiledassets/buff bg icon.ktx2
+compiledassets/buff bg.ktx2
+compiledassets/buff fg .ktx2
 compiledassets/cesiumman.mesh
 compiledassets/chair.mesh
 compiledassets/classroom_level2.mesh
@@ -24,6 +30,8 @@ compiledassets/controls.ktx2
 compiledassets/corridor.mesh
 compiledassets/corridor_bridge.mesh
 compiledassets/corridor_level2.mesh
+compiledassets/debuff bg icon.ktx2
+compiledassets/delusion decay icon.ktx2
 compiledassets/delusion meter fill.ktx2
 compiledassets/deskplain.mesh
 compiledassets/desktextured.mesh
@@ -40,14 +48,18 @@ compiledassets/floor.mesh
 compiledassets/floor_tex.mesh
 compiledassets/garbage-truck.mesh
 compiledassets/hatchback-sports.mesh
+compiledassets/health icon.ktx2
+compiledassets/health regen icon.ktx2
 compiledassets/interact icon.ktx2
 compiledassets/itempickupui_bloodcalibur.ktx2
 compiledassets/itempickupui_katar.ktx2
 compiledassets/light attack icon.ktx2
 compiledassets/lights.mesh
 compiledassets/locker.mesh
+compiledassets/lose menu bg.ktx2
 compiledassets/main menu bg.ktx2
 compiledassets/main menu header.ktx2
+compiledassets/movement speed icon.ktx2
 compiledassets/outdoor bleachers.mesh
 compiledassets/player health and delusion meter.ktx2
 compiledassets/player health bg.ktx2
@@ -77,6 +89,11 @@ compiledassets/wall_doors_tex.mesh
 compiledassets/wall_window.mesh
 compiledassets/wall_window_tex.mesh
 compiledassets/white.ktx2
+compiledassets/win menu bg.ktx2
+compiledassets/winlose_exit.ktx2
+compiledassets/winlose_mainmenu.ktx2
+compiledassets/winlose_nextlevel.ktx2
+compiledassets/winlose_restart.ktx2
 compiledassets/fbxcars/unitsphere/concrete.material
 compiledassets/fbxcars/unitsphere/defaultmaterial.material
 compiledassets/fbxcars/unitsphere/standardsurface1_1012.material
@@ -648,7 +665,19 @@ fonts/tx-02-regular.ttf
 images/boss_top.png
 images/digipen_cmyk_red.png
 images/null.png
+images/skybox.png
 images/white.png
+images/buff/attack speed icon.png
+images/buff/buff arrow icon.png
+images/buff/buff bg icon (timer).png
+images/buff/buff bg icon.png
+images/buff/buff bg.png
+images/buff/buff fg .png
+images/buff/debuff bg icon.png
+images/buff/delusion decay icon.png
+images/buff/health icon.png
+images/buff/health regen icon.png
+images/buff/movement speed icon.png
 images/game/hud/delusion meter fill.png
 images/game/hud/dodge icon.png
 images/game/hud/interact icon.png
@@ -664,12 +693,18 @@ images/game/hud/rankd.png
 images/game/hud/rankf.png
 images/game/items/itempickupui_bloodcalibur.png
 images/game/items/itempickupui_katar.png
-images/menu/controls button.png
-images/menu/controls.png
-images/menu/exit button.png
-images/menu/main menu bg.png
-images/menu/main menu header.png
-images/menu/start button.png
+images/menu/main/controls button.png
+images/menu/main/controls.png
+images/menu/main/exit button.png
+images/menu/main/main menu bg.png
+images/menu/main/main menu header.png
+images/menu/main/start button.png
+images/menu/winlose/lose menu bg.png
+images/menu/winlose/win menu bg.png
+images/menu/winlose/winlose_exit.png
+images/menu/winlose/winlose_mainmenu.png
+images/menu/winlose/winlose_nextlevel.png
+images/menu/winlose/winlose_restart.png
 models/aji/aji.fbx
 models/aji/aji.vrm1.textures/_01.png
 models/aji/aji.vrm1.textures/_02.png
@@ -801,6 +836,7 @@ prefabs/enemy.prefab
 prefabs/enemy2.prefab
 prefabs/explosion.prefab
 prefabs/explosion_enemy.prefab
+prefabs/health & delusion.prefab
 prefabs/health bar.prefab
 prefabs/itempickupui.prefab
 prefabs/itemtest.prefab
@@ -816,6 +852,7 @@ prefabs/stairsleft.prefab
 prefabs/sword.prefab
 prefabs/table group.prefab
 prefabs/table.prefab
+prefabs/tablepair.prefab
 prefabs/throw.prefab
 prefabs/vending machine.prefab
 prefabs/wall.prefab
@@ -824,13 +861,16 @@ prefabs/wall_window.prefab
 scenes/controlsmenu.scene
 scenes/defaultscene.scene
 scenes/defaultscene_backup.scene
+scenes/losemenu.scene
 scenes/mainmenu.scene
 scenes/openscenes.json
 scenes/splashscene.scene
 scenes/temphud.scene
+scenes/winmenu.scene
 scripts/bbt.lua
 scripts/bossmusictrigger.lua
 scripts/character.lua
+scripts/cheatyteleport.lua
 scripts/classroomdoor.lua
 scripts/enemyattack.lua
 scripts/enemydeath.lua
@@ -851,11 +891,13 @@ scripts/prefect_bookingslip.lua
 scripts/prefect_dontrunpiece.lua
 scripts/prefect_dontrunspawner.lua
 scripts/roomdoortrigger.lua
+scripts/shelfscream.lua
 scripts/splashscreen.lua
 scripts/test - copy.lua
 scripts/test.lua
 scripts/thrownobject.lua
 scripts/throwweapon.lua
+scripts/winonhealthdepleted.lua
 shaders/cluster_bounds.comp
 shaders/culling.comp
 shaders/depth_prepass.frag
@@ -890,9 +932,15 @@ sounds/sfx/heal.wav
 sounds/sfx/rank decrease.wav
 sounds/sfx/rank increase.wav
 sounds/sfx/ultimate activation.wav
+sounds/sfx/boss/boss ground strike.wav
+sounds/sfx/boss/boss slap.wav
 sounds/sfx/boss/burst of 3 throwing.wav
 sounds/sfx/boss/defence stance.wav
 sounds/sfx/boss/lunge.wav
+sounds/sfx/boss/throw (individual)/boss throw 1.wav
+sounds/sfx/boss/throw (individual)/boss throw 2.wav
+sounds/sfx/boss/throw (individual)/boss throw 3.wav
+sounds/sfx/boss/throw (individual)/boss throw 4.wav
 sounds/sfx/enemy/female/attack/enemy female throwing 1.wav
 sounds/sfx/enemy/female/attack/enemy female throwing 2.wav
 sounds/sfx/enemy/female/attack/enemy female throwing 3.wav
