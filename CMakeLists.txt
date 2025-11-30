@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.26)
+cmake_minimum_required(VERSION 3.23)
 
 include(cmake/EngineUtils.cmake)
 set(namespace "MagicEngine") # cannot remove this, must have a namespace for install_config
