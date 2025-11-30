@@ -238,7 +238,7 @@ bool CharacterMovementComponent::Attack()
         tmpName = grabbableComp->audioName + std::to_string(randomRange(grabbableComp->audioStartIndex, grabbableComp->audioEndIndex + 1));
 
 	//if (randomRange(0, 2) == 0)
-	ST<AudioManager>::Get()->PlaySound3D(tmpName, false, ecs::GetEntity(this)->GetTransform().GetWorldPosition());
+	ST<AudioManager>::Get()->PlaySound3D(tmpName, false, ecs::GetEntity(this)->GetTransform().GetWorldPosition(), AudioType::END, std::pair<float, float>{2.0f, 50.0f}, 0.6f);
 
 	// Handle next attack delay
 	float nextAttackDelay = grabbableComp->attackDelay;

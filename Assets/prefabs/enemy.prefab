@@ -42,9 +42,9 @@
                         "z": 1.0
                     },
                     "attackDelay": 1.2000000476837158,
-                    "audioName": "",
-                    "audioStartIndex": 0,
-                    "audioEndIndex": 0,
+                    "audioName": "enemy male attack ",
+                    "audioStartIndex": 1,
+                    "audioEndIndex": 3,
                     "lightAttackAnimation": {
                         "hash": 5128037570602721689
                     },

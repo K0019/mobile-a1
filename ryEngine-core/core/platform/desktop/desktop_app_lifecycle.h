@@ -18,7 +18,7 @@ public:
 
 #ifdef NDEBUG
 		// Locks mouse on release builds
-		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+		//glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 #endif
     }
     
