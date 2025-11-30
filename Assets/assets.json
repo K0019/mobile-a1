@@ -1527,6 +1527,20 @@
             ]
         },
         {
+            "filepath": "sounds/sfx/boss/throw (individual)/boss throw 1.wav",
+            "resources": [
+                {
+                    "resourceType": 16184316770661419113,
+                    "resourceEntries": [
+                        {
+                            "hash": 2504713301761804591,
+                            "name": "boss throw 10"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/models/glb/aji/player_idle_mixamo/n00_000_00_hairback_00_hair__instance_.material",
             "resources": [
                 {
@@ -2235,6 +2249,20 @@
                         {
                             "hash": 182908157656548423,
                             "name": "shader_noneblack0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "sounds/sfx/boss/boss ground strike.wav",
+            "resources": [
+                {
+                    "resourceType": 16184316770661419113,
+                    "resourceEntries": [
+                        {
+                            "hash": 10209928475346923615,
+                            "name": "boss ground strike0"
                         }
                     ]
                 }
@@ -4887,6 +4915,20 @@
             ]
         },
         {
+            "filepath": "sounds/sfx/boss/throw (individual)/boss throw 4.wav",
+            "resources": [
+                {
+                    "resourceType": 16184316770661419113,
+                    "resourceEntries": [
+                        {
+                            "hash": 2504707804203663536,
+                            "name": "boss throw 40"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/textures/image_3.ktx2",
             "resources": [
                 {
@@ -5839,6 +5881,20 @@
             ]
         },
         {
+            "filepath": "sounds/sfx/boss/throw (individual)/boss throw 3.wav",
+            "resources": [
+                {
+                    "resourceType": 16184316770661419113,
+                    "resourceEntries": [
+                        {
+                            "hash": 2504715500785061013,
+                            "name": "boss throw 30"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/models/glb/enemy_female_animated/n00_000_00_hairback_00_nml.ktx2",
             "resources": [
                 {
@@ -6483,6 +6539,20 @@
             ]
         },
         {
+            "filepath": "sounds/sfx/boss/lunge.wav",
+            "resources": [
+                {
+                    "resourceType": 16184316770661419113,
+                    "resourceEntries": [
+                        {
+                            "hash": 10936996725434159340,
+                            "name": "lunge0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/models/glb/mc_animated/n00_000_00_eyehighlight_00_eye (instance).material",
             "resources": [
                 {
@@ -6687,6 +6757,20 @@
                         {
                             "hash": 4611463917985076971,
                             "name": "player_idle_mixamoplayer_katar atk 30"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "sounds/sfx/boss/throw (individual)/boss throw 2.wav",
+            "resources": [
+                {
+                    "resourceType": 16184316770661419113,
+                    "resourceEntries": [
+                        {
+                            "hash": 2504714401273432802,
+                            "name": "boss throw 20"
                         }
                     ]
                 }
@@ -7701,6 +7785,20 @@
             ]
         },
         {
+            "filepath": "sounds/sfx/boss/boss slap.wav",
+            "resources": [
+                {
+                    "resourceType": 16184316770661419113,
+                    "resourceEntries": [
+                        {
+                            "hash": 4717122707485103194,
+                            "name": "boss slap0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/models/glb/mc_animated/mc_animatedhurt.anim",
             "resources": [
                 {
@@ -7877,6 +7975,20 @@
                         {
                             "hash": 2455669061732706901,
                             "name": "n00_010_01_onepiece_00_cloth (instance)0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "sounds/sfx/boss/defence stance.wav",
+            "resources": [
+                {
+                    "resourceType": 16184316770661419113,
+                    "resourceEntries": [
+                        {
+                            "hash": 11385137003890987793,
+                            "name": "defence stance0"
                         }
                     ]
                 }

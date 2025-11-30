@@ -5,6 +5,7 @@
 #include "Game/Character.h"
 #include "Game/Health.h"
 #include "Graphics/AnimationComponent.h"
+#include "Managers/AudioManager.h"
 
 float L_Boss_Prefect_DontRun::attackDistance = 20.0f*20.0f;
 float L_Boss_Prefect_DontRun::attackCooldown = 3.0f;
@@ -43,6 +44,7 @@ NODE_STATUS L_Boss_Prefect_DontRun::OnUpdate([[maybe_unused]] ecs::EntityHandle 
                 if (currentAttackCooldown<=0.0f)
                 {
                     ecs::EntityHandle spawnedSpawner = ST<PrefabManager>::Get()->LoadPrefab("prefect_dontrunspawner");
+                    //ST<AudioManager>::Get()->PlaySound3D("boss ground strike", false, entity->GetTransform().GetWorldPosition(), AudioType::END, std::pair<float, float>{2.0f, 50.0f}, 0.6f);
 
                     // Sanityyyyy
                     if (spawnedSpawner)
