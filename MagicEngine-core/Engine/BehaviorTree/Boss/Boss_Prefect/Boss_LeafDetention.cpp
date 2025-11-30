@@ -4,6 +4,7 @@
 #include "Game/EnemyCharacter.h"
 #include "Game/Character.h"
 #include "Game/Health.h"
+#include "Managers/AudioManager.h"
 
 const int L_Boss_Prefect_Detention::burstCount = 3;
 const float L_Boss_Prefect_Detention::burstDelay = 3.0f;
@@ -39,6 +40,7 @@ NODE_STATUS L_Boss_Prefect_Detention::OnUpdate([[maybe_unused]] ecs::EntityHandl
             if (currentBurstDelay < 0.0f)
             {
                 ecs::EntityHandle spawnedExplosion = ST<PrefabManager>::Get()->LoadPrefab("explosion");
+                //ST<AudioManager>::Get()->PlaySound3D("defence stance", false, entity->GetTransform().GetWorldPosition(), AudioType::END, std::pair<float, float>{2.0f, 50.0f}, 0.6f);
 
                 if(Boss_Prefect_Util::SpawnExplosion(entity, explosionSizes[currentBurstCount]))
                 {
