@@ -109,11 +109,11 @@ namespace AndroidInputBridge {
     TouchOwner Owner() {
         return TouchOwner::NoOwner;
     }
-    bool TryCapture(TouchOwner who) {
+    bool TryCapture([[maybe_unused]] TouchOwner who) {
         return false;
     }
 
-    void AndroidInputBridge::Release(TouchOwner who) {
+    void AndroidInputBridge::Release([[maybe_unused]] TouchOwner who) {
         return;
     }
 

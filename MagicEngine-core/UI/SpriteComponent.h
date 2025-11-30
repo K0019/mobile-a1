@@ -40,7 +40,7 @@ public:
 
 	float GetRadius() const;
 	void SetRadius(float newRadius);
-	float GetNumSegments() const;
+	int GetNumSegments() const;
 
 	bool IsClicked(const RectTransformComponent& transform, Vec2 clickPos) const override;
 	void Render(const RectTransformComponent& transform, const Vec4& color) const override;

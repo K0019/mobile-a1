@@ -9,12 +9,12 @@
 std::string ReadFileToString(const std::filesystem::path path)
 {
     std::ifstream file(path);
-    if (file.is_open())
-    {
-        std::stringstream buffer;
-        buffer << file.rdbuf();
-        return buffer.str();
-    }
+    if (!file.is_open())
+        return std::string{};
+
+    std::stringstream buffer;
+    buffer << file.rdbuf();
+    return buffer.str();
 }
 
 bool CompileAndImportAsset(const std::string& assetRelativeFilepath)

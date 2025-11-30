@@ -47,6 +47,7 @@ Assets/EngineScripting.pdb
 Assets/UserAssembly.dll
 *.spv
 .vs/
+/Tools
 
 # Android
 /assets/bistro 

@@ -172,7 +172,7 @@ void GrabbableItemComponentSystem::UpdateGrabbableItemComponent(GrabbableItemCom
 {
 	ecs::EntityHandle itemEntity = ecs::GetEntity(&comp);
 	ecs::CompHandle<physics::PhysicsComp> physicsComp = itemEntity->GetComp<physics::PhysicsComp>();
-	ecs::CompHandle<physics::BoxColliderComp> colliderComp = itemEntity->GetComp<physics::BoxColliderComp>();
+	//ecs::CompHandle<physics::BoxColliderComp> colliderComp = itemEntity->GetComp<physics::BoxColliderComp>();
 
 
 	if (comp.isHeld)

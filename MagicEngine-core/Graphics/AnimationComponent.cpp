@@ -174,7 +174,7 @@ void AnimationComponent::SetupAnimationBinding()
     if (meshCold->morphSetId != Resource::INVALID_MORPH_SET_ID)
     {
         const auto& morph = graphicsAssetSystem.Morph(meshCold->morphSetId);
-        morphCount = morph.count();
+        morphCount = static_cast<uint16_t>(morph.count());
         morphWeights.assign(morph.count(), 0.0f);
     }
     else
