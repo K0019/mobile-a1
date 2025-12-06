@@ -28,8 +28,6 @@ All rights reserved.
 
 #include "ECS/ECSInternal.h"
 
-class JoltBodyComp;
-
 namespace ecs {
 	namespace internal {
 		ECSPool* CurrentPool::activePool;
