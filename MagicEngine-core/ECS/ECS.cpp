@@ -243,22 +243,6 @@ namespace ecs {
 		BroadcastEntityCreated(entityClone);
 		return entityClone;
 	}
-	EntityHandle CloneEntityNow(EntityHandle entity, bool recursive)
-	{
-		EntityHandle entityClone{ CreateEntity_NoBroadcast(entity->GetTransform()) };
-		reinterpret_cast<internal::InternalEntityHandle>(entity)->INTERNAL_CloneCompsToEntityNow(
-			reinterpret_cast<internal::InternalEntityHandle>(entityClone));
-
-		// Flush here because the CompArr vector could reallocate after cloning children.
-		internal::CurrentPool::ChangesBuffer().FlushComponentCallbacks();
-
-		if (recursive)
-			for (Transform* childTransform : entity->GetTransform().GetChildren())
-				CloneEntityNow(childTransform->GetEntity(), recursive)->GetTransform().SetParent(entityClone->GetTransform());
-
-		BroadcastEntityCreated(entityClone);
-		return entityClone;
-	}
 
 	void DeleteEntity(EntityHandle entity, bool recursive)
 	{
@@ -407,6 +391,11 @@ namespace ecs {
 		return static_cast<POOL>(internal::CurrentPool::GetId());
 	}
 
+	bool IsCurrentPoolCallbacksEnabled()
+	{
+		return compCallbacksEnabledForPool[internal::CurrentPool::GetId()];
+	}
+
 	void DeletePool(POOL id)
 	{
 		Messaging::BroadcastAll("OnECSPoolDeletion", id);
@@ -431,7 +420,8 @@ namespace ecs {
 		reinterpret_cast<internal::InternalEntityHandle>(entity)->INTERNAL_CloneCompsToEntity(
 			reinterpret_cast<internal::InternalEntityHandle>(entityClone),
 			internal::CurrentPool::Comps(static_cast<int>(currID)),
-			internal::CurrentPool::ChangesBuffer().GetCompsToAdd() // current pool's comp changes array
+			internal::CurrentPool::ChangesBuffer().GetCompsToAdd(), // current pool's comp changes array
+			internal::CurrentPool::HasCompCallbacksEnabled()
 		);
 
 		// Clone child entities

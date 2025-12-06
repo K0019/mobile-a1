@@ -119,6 +119,8 @@ namespace ecs {
 		using CompMoveSig = void(*)(RawData* comp, RawData* dest);
 		// The signature of the function to call the destructor of a component
 		using CompDestroySig = void(*)(RawData* comp);
+		// The signature of the function to call when a component is added to the comp addition buffer
+		using CompInformCreationSig = void(*)(RawData* comp);
 		// The signature of the function to call when a component is attached to an entity
 		// Note: These function take the entity because the location of where the component is at may become different while buffering callbacks.
 		using CompInformAttachedSig = void(*)(InternalEntityHandle entity);
@@ -198,30 +200,11 @@ namespace ecs {
 				The map of component arrays that this entity stores its components in.
 			\param destCompArrMap
 				The map of component arrays that the provided entity stores its components in.
+			\param enableCreationFunc
+				In case the CompArr doesn't exist in the destination map, this dictates
+				whether to enable the CreationFunc callback when creating the CompArr.
 			*//******************************************************************/
-			void INTERNAL_CloneCompsToEntity(InternalEntityHandle entity, CompArrMapType& srcCompArrMap, CompArrMapType& destCompArrMap) const;
-
-			/*****************************************************************//*!
-			\brief
-				Copies components that are fully attached to this entity to another entity.
-				These components are attached immediately.
-			\param entity
-				The entity to copy components to.
-			*//******************************************************************/
-			void INTERNAL_CloneCompsToEntityNow(InternalEntityHandle entity) const;
-			/*****************************************************************//*!
-			\brief
-				Copies components that are fully attached to this entity to another entity whose components are stored in the
-				provided component array map. This is to facilitate copying entities between pools.
-				These components are attached immediately.
-			\param entity
-				The entity to copy components to.
-			\param srcCompArrMap
-				The map of component arrays that this entity stores its components in.
-			\param destCompArrMap
-				The map of component arrays that the provided entity stores its components in.
-			*//******************************************************************/
-			void INTERNAL_CloneCompsToEntityNow(InternalEntityHandle entity, CompArrMapType& srcCompArrMap, CompArrMapType& destCompArrMap) const;
+			void INTERNAL_CloneCompsToEntity(InternalEntityHandle entity, CompArrMapType& srcCompArrMap, CompArrMapType& destCompArrMap, bool enableCreationFunc) const;
 
 			/*****************************************************************//*!
 			\brief
@@ -661,13 +644,28 @@ namespace ecs {
 		public:
 			/*****************************************************************//*!
 			\brief
-				Called when the component is fully attached to an entity.
+				Called the moment the component is added to an entity, even before
+				ecs changes are flushed. Use this to initialize the entity by adding
+				additional comps that your comp requires so that they are available
+				immediately in scenarios such as loading prefabs. Note that there are no
+				guarantees that other components will be available at this point, such
+				as EntityEventsComponent.
+			*//******************************************************************/
+			virtual void OnCreation() {};
+
+			/*****************************************************************//*!
+			\brief
+				Called when the component is fully attached to an entity. It is
+				guaranteed that default components will be attached at this point,
+				such as EntityEventsComponent.
 			*//******************************************************************/
 			virtual void OnAttached() {};
 
 			/*****************************************************************//*!
 			\brief
 				Called when the component is about to be detached from an entity.
+				There are no guarantees that other components will be available at
+				this point, such as EntityEventsComponent.
 			*//******************************************************************/
 			virtual void OnDetached() {};
 		};
@@ -750,7 +748,7 @@ namespace ecs {
 		class CompChangesBuffer
 		{
 		public:
-			CompChangesBuffer() = default;
+			CompChangesBuffer(bool enableCreationFunc);
 			// Disallow copying of this buffer.
 			CompChangesBuffer(const CompChangesBuffer&) = delete;
 
@@ -908,6 +906,9 @@ namespace ecs {
 			//! Note: Assuming that we're only buffering attached component callbacks, since detached callbacks should run immediately before the component is destroyed
 			std::vector<std::pair<CompInformAttachedSig, InternalEntityHandle>> componentCallbacksQueue;
 
+			//! Whether calling CreationFunc on components is enabled in this comp changes buffer
+			bool enableCreationFunc;
+
 		};
 
 		/*****************************************************************//*!
@@ -945,8 +946,8 @@ namespace ecs {
 				Used for cloning a CompArr.
 			*//******************************************************************/
 			CompArr(CompHash compHash, uint32_t compSize, CompCopySig copyFunc, CompMoveSig moveFunc, CompDestroySig destroyFunc,
-				CompInformAttachedSig informAttachedFunc, CompInformDetachedSig informDetachedFunc,
-				CompInformAttachedSig trueInformAttachedFunc, CompInformDetachedSig trueInformDetachedFunc);
+				CompInformCreationSig informCreationFunc, CompInformAttachedSig informAttachedFunc, CompInformDetachedSig informDetachedFunc,
+				CompInformCreationSig trueInformCreationFunc, CompInformAttachedSig trueInformAttachedFunc, CompInformDetachedSig trueInformDetachedFunc);
 
 			/*****************************************************************//*!
 			\brief
@@ -1079,7 +1080,7 @@ namespace ecs {
 			\return
 				The result of unordered_map.emplace() into the CompArr map pool.
 			*//******************************************************************/
-			std::pair<CompArrMapType::iterator, bool> CloneWithoutCompDataIntoPool(CompArrMapType& compArrPool) const;
+			std::pair<CompArrMapType::iterator, bool> CloneWithoutCompDataIntoPool(CompArrMapType& compArrPool, bool enableCreationFunc) const;
 
 			/*****************************************************************//*!
 			\brief
@@ -1258,11 +1259,15 @@ namespace ecs {
 			const CompMoveSig callMoveFunc; // If we are moving components internally, remember to call the destructor!
 			//! The method to call the destructor of a component.
 			const CompDestroySig callDestructorFunc;
+			//! The method to inform a component that it can begin calling entity functions. May be empty if the pool does not have component callbacks disabled. (we only want to call this in the comp addition buffer)
+			const CompInformCreationSig callInformCreationFunc;
 			//! The method to inform a component that it was attached to an entity. May be empty if the pool has component callbacks disabled.
 			const CompInformAttachedSig callInformAttachedFunc;
 			//! The method to inform a component that it was detached from an entity. May be empty if the pool has component callbacks disabled.
 			const CompInformDetachedSig callInformDetachedFunc;
 
+			//! The method to inform a component that is can begin calling entity functions. Always calls the component callback. Used for cloning comp arr without data.
+			const CompInformCreationSig trueInformCreationFunc;
 			//! The method to inform a component that is was attached to an entity. Always calls the component callback. Used for cloning comp arr without data.
 			const CompInformAttachedSig trueInformAttachedFunc;
 			//! The method to inform a component that is was attached to an entity. Always calls the component callback. Used for cloning comp arr without data.
@@ -2506,6 +2511,17 @@ namespace ecs {
 
 		/*****************************************************************//*!
 		\brief
+			If the specified component type implements IComponentCallbacks, calls the OnCreation() function.
+		\tparam T
+			The component type.
+		\param comp
+			The component.
+		*//******************************************************************/
+		template <typename T>
+		void ComponentInformCreationMethod(RawData* comp);
+
+		/*****************************************************************//*!
+		\brief
 			If the specified component type implements IComponentCallbacks, calls the OnAttached() function.
 			This is used by CompArr to inform components of events.
 		\tparam T
@@ -2555,7 +2571,7 @@ namespace ecs {
 			A reference to the CompArr that stores the specified component type.
 		*//******************************************************************/
 		template <typename T, bool DoComponentCallbacks = true>
-		CompArr* GetCompArr(CompArrMapType& compArrPool);
+		CompArr* GetCompArr(CompArrMapType& compArrPool, bool enableCreationFunc);
 
 		/*****************************************************************//*!
 		\brief
@@ -2592,10 +2608,13 @@ namespace ecs {
 		\param refCompArr
 			An existing CompArr that stores the same component type. This will be used to create
 			a CompArr copy within the pool if it does not exist.
+		\param enableCreationFunc
+			If the CompArr does not exist, this determines whether the newly created CompArr
+			calls OnCreation() on its components.
 		\return
 			A reference to the CompArr that stores the requested component type.
 		*//******************************************************************/
-		CompArr* GetCompArr(CompArrMapType& compArrPool, const CompArr& refCompArr);
+		CompArr* GetCompArr(CompArrMapType& compArrPool, const CompArr& refCompArr, bool enableCreationFunc);
 
 
 		/*****************************************************************//*!

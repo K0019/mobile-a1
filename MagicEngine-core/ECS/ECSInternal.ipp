@@ -159,7 +159,7 @@ namespace ecs {
 		template<typename T>
 		uint32_t CompChangesBuffer::AddComp(InternalEntityHandle entity, T&& comp, bool isInactive)
 		{
-			return GetCompArr<T, false>(compsToAdd)->AddComp(entity, std::forward<T>(comp), isInactive);
+			return GetCompArr<T, false>(compsToAdd, enableCreationFunc)->AddComp(entity, std::forward<T>(comp), isInactive);
 		}
 
 #pragma endregion // CompChangesBuffer
@@ -578,6 +578,13 @@ namespace ecs {
 		}
 
 		template<typename T>
+		void ComponentInformCreationMethod(RawData* comp)
+		{
+			if constexpr (std::is_base_of_v<IComponentCallbacks, T>)
+				reinterpret_cast<T*>(comp)->OnCreation();
+		}
+
+		template<typename T>
 		void ComponentInformAttachedMethod(InternalEntityHandle entity)
 		{
 			if constexpr (std::is_base_of_v<IComponentCallbacks, T>)
@@ -595,10 +602,10 @@ namespace ecs {
 		template <typename T>
 		CompArr* GetCompArr()
 		{
-			return GetCompArr<T>(CurrentPool::Comps());
+			return GetCompArr<T>(CurrentPool::Comps(), false);
 		}
 		template<typename T, bool DoComponentCallbacks>
-		CompArr* GetCompArr(CompArrMapType& compArrPool)
+		CompArr* GetCompArr(CompArrMapType& compArrPool, bool enableCreationFunc)
 		{
 			CompHash compHash{ GetCompHash<T>() };
 			auto iter = compArrPool.find(compHash);
@@ -612,8 +619,10 @@ namespace ecs {
 
 			return &compArrPool.try_emplace(compHash, compHash, static_cast<uint32_t>(sizeof(T)),
 				ComponentCopyMethod<T>, ComponentMoveMethod<T>, ComponentDestructorMethod<T>,
+				enableCreationFunc ? ComponentInformCreationMethod<T> : [](RawData*) -> void {},
 				doCompCallbacks ? ComponentInformAttachedMethod<T> : [](InternalEntityHandle) -> void {},
 				doCompCallbacks ? ComponentInformDetachedMethod<T> : [](InternalEntityHandle) -> void {},
+				ComponentInformCreationMethod<T>,
 				ComponentInformAttachedMethod<T>,
 				ComponentInformDetachedMethod<T>
 				).first->second;

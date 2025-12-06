@@ -203,6 +203,7 @@ namespace physics {
 			hitInfo.point = Vec3{ joltPoint.GetX(), joltPoint.GetY(), joltPoint.GetZ() };
 			hitInfo.distance = maxDistance * result.GetEarlyOutFraction();
 			hitInfo.entityHit = ecs::GetEntity(bodyInterface.GetUserData(result.mBodyID));
+			assert(ecs::IsEntityHandleValid(hitInfo.entityHit));
 
 			//If the entity doesn't have the layer inside the mask, don't add it to the hit list.
 			if (auto layerComp{ hitInfo.entityHit->GetComp<EntityLayerComponent>() })
@@ -290,7 +291,7 @@ namespace physics {
 	{
 	}
 
-	void JoltBodyComp::OnAttached()
+	void JoltBodyComp::OnCreation()
 	{
 		JPH::ScaledShapeSettings scaleSetting{};
 		switch (shapeType)
@@ -342,8 +343,6 @@ namespace physics {
 		{
 			SetShapeType(ShapeType::BOX);
 		}
-
-		ecs::GetEntity(this)->GetComp<EntityEventsComponent>()->BroadcastAll("JoltBodyCompAttached", this);
 	}
 
 	void JoltBodyComp::OnDetached()

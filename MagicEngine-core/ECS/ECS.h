@@ -473,7 +473,6 @@ namespace ecs {
 		Clones an entity, creating a duplicate entity that contains the transform, all components and all data
 		of the original entity exactly how it is.
 		If the provided entity is parented to another entity, the new entity will also be parented to that entity.
-		ALL COMPONENTS IN THE NEW ENTITY WILL BE BUFFERED! ecs::Entity::GetComp() on the new entity will only work once ecs::FlushChanges() is called.
 	\param entity
 		The entity to be cloned.
 	\param recursive
@@ -482,21 +481,6 @@ namespace ecs {
 		EntityHandle to the newly created cloned entity.
 	*//******************************************************************/
 	EntityHandle CloneEntity(EntityHandle entity, bool recursive = false);
-
-	/*****************************************************************//*!
-	\brief
-		Clones an entity, creating a duplicate entity that contains the transform, all components and all data
-		of the original entity exactly how it is immediately. This provides better performance than ecs::CloneEntity().
-		If the provided entity is parented to another entity, the new entity will also be parented to that entity.
-		COMPONENT ITERATORS TO COMPONENT ARRAYS OF ANY OF THE CLONED ENTITY'S COMPONENTS WILL BE INVALIDATED! Use ecs::CloneEntity() if this is an issue.
-	\param entity
-		The entity to be cloned.
-	\param recursive
-		Whether to clone child entities as well.
-	\return
-		EntityHandle to the newly created cloned entity.
-	*//******************************************************************/
-	EntityHandle CloneEntityNow(EntityHandle entity, bool recursive = false);
 
 	/*****************************************************************//*!
 	\brief
@@ -919,6 +903,16 @@ X(EDITOR_GUI, true)		/* For the editor */
 		The id of the currently active ECS pool.
 	*//******************************************************************/
 	POOL GetCurrentPoolId();
+
+	/*****************************************************************//*!
+	\brief
+		Gets whether component callbacks are being called in the currently
+		active pool.
+	\return
+		True if component callbacks are being called in the currently
+		active pool. False otherwise.
+	*//******************************************************************/
+	bool IsCurrentPoolCallbacksEnabled();
 
 	/*****************************************************************//*!
 	\brief

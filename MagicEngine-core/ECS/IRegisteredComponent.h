@@ -221,7 +221,7 @@ bool IRegisteredComponent<CompType>::RegisterComponent()
 		.DeserializeFuncPtr = [](void* compPtr, Deserializer& reader) -> void {
 			reinterpret_cast<CompType*>(compPtr)->Deserialize(reader);
 		}
-		});
+	});
 
 	return true;
 }

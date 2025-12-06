@@ -37,9 +37,35 @@ namespace physics {
 	{
 	}
 
-	void PhysicsComp::InitializeJoltBodyComp(JoltBodyComp* comp)
+	void PhysicsComp::OnCreation()
 	{
 		auto entity{ ecs::GetEntity(this) };
+		auto colCompPtr{ entity->GetComp<BoxColliderComp>() };
+
+		// Note: If JoltBodyComp is crashing due to invalid body ID, try using this bool and reattaching the comp
+		// bodyCompPtr->GetBodyID().IsInvalid()
+
+		// If JoltBodyComp is missing, attach it.
+		auto bodyCompPtr{ entity->GetComp<JoltBodyComp>() };
+		if (!bodyCompPtr)
+		{
+			assert(!colCompPtr); // JoltBodyComp would exist if BoxColliderComp exists. If not, something's wrong with BoxColliderComp or OnCreation()...
+			entity->AddComp(JoltBodyComp{ JPH::EMotionType::Dynamic, ShapeType::EMPTY, Layers::NON_COLLIDABLE });
+		}
+		else
+		{
+			// JoltBodyComp already exists, perhaps because a BoxColliderComp was attached to this entity earlier.
+			// Update JoltBodyComp parameters to that where a physics comp is attached to the entity.
+			bodyCompPtr->SetCollisionLayer(colCompPtr && colCompPtr->GetFlag(COLLIDER_COMP_FLAG::ENABLED) ? Layers::MOVING : Layers::NON_COLLIDABLE);
+		}
+	}
+
+	void PhysicsComp::OnAttached()
+	{
+		auto bodyCompPtr{ ecs::GetEntity(this)->GetComp<JoltBodyComp>() };
+		assert(bodyCompPtr); // OnCreation() should've been called before OnAttached(). Something's very wrong within ecs if this assert fails.
+
+		// Initialize JoltBodyComp
 		JPH::EMotionType type{};
 		if (!GetFlag(PHYSICS_COMP_FLAG::ENABLED))
 			type = JPH::EMotionType::Static;
@@ -48,10 +74,6 @@ namespace physics {
 		else
 			type = JPH::EMotionType::Dynamic;
 
-		auto bodyCompPtr{ entity->GetComp<JoltBodyComp>() };
-		if (!bodyCompPtr)
-			return;
-
 		bodyCompPtr->SetMotionType(type);
 		bodyCompPtr->SetGravityFactor(GetFlag(PHYSICS_COMP_FLAG::USE_GRAVITY) ? 1.f : 0.f);
 		bodyCompPtr->SetLockRotationX(GetFlag(PHYSICS_COMP_FLAG::ROTATION_LOCKED_X));
@@ -59,34 +81,9 @@ namespace physics {
 		bodyCompPtr->SetLockRotationZ(GetFlag(PHYSICS_COMP_FLAG::ROTATION_LOCKED_Z));
 	}
 
-	void PhysicsComp::OnAttached()
-	{
-		auto entity{ ecs::GetEntity(this) };
-		entity->GetComp<EntityEventsComponent>()->Subscribe("JoltBodyCompAttached", this, &PhysicsComp::InitializeJoltBodyComp);
-
-		if (auto colCompPtr{ ecs::GetEntity(this)->GetComp<BoxColliderComp>() })
-		{
-			auto bodyCompPtr{ ecs::GetEntity(this)->GetComp<JoltBodyComp>() };
-			if (!bodyCompPtr || bodyCompPtr->GetBodyID().IsInvalid())
-				ecs::GetEntity(this)->AddComp<JoltBodyComp>(JoltBodyComp{ JPH::EMotionType::Dynamic, ShapeType::BOX, Layers::MOVING });
-			else
-			{
-				bodyCompPtr->SetCollisionLayer(colCompPtr->GetFlag(COLLIDER_COMP_FLAG::ENABLED) ? Layers::MOVING : Layers::NON_COLLIDABLE);
-				InitializeJoltBodyComp(bodyCompPtr);
-			}
-		}
-		else
-		{
-			ecs::GetEntity(this)->AddComp<JoltBodyComp>(JoltBodyComp{ JPH::EMotionType::Dynamic, ShapeType::EMPTY, Layers::NON_COLLIDABLE });
-		}
-	}
-
 	void PhysicsComp::OnDetached()
 	{
 		auto entity{ ecs::GetEntity(this) };
-		if (auto eventsComp{ entity->GetComp<EntityEventsComponent>() })
-			eventsComp->Unsubscribe("JoltBodyCompAttached", this, &PhysicsComp::InitializeJoltBodyComp);
-
 		if (!entity->HasComp<JoltBodyComp>())
 			return;
 

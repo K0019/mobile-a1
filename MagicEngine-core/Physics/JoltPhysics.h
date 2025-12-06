@@ -254,7 +254,7 @@ namespace physics {
 		JPH::EAllowedDOFs dof;
 
 	public:
-		void OnAttached() override;
+		void OnCreation() override;
 		void OnDetached() override;
 
 		/*****************************************************************//*!

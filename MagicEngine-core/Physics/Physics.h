@@ -69,16 +69,18 @@ X(ENABLED, "Enabled")
 		// Physics component flags
 		PhysicsCompFlags flags;
 
-	private:
-		void InitializeJoltBodyComp(JoltBodyComp* comp);
-
 	public:
+		/*****************************************************************//*!
+		\brief
+			Called when the component is created. Attaches a JoltBodyComp if
+			it doesn't yet exist on the entity.
+		*//******************************************************************/
+		void OnCreation() override;
 
 		/*****************************************************************//*!
 		\brief
-			Called when the component is attached. If the entity has a collider
-			component, get the body id of the body in the collider component.
-			If not, create a body.
+			Called when the component is attached. Initializes
+			the JoltBodyComp with the deserialized parameters.
 		*//******************************************************************/
 		void OnAttached() override;
 

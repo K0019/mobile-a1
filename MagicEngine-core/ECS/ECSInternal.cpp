@@ -28,6 +28,8 @@ All rights reserved.
 
 #include "ECS/ECSInternal.h"
 
+class JoltBodyComp;
+
 namespace ecs {
 	namespace internal {
 		ECSPool* CurrentPool::activePool;
@@ -39,6 +41,7 @@ namespace ecs {
 			: id{ id }
 			, compCallbacksEnabled{ compCallbacksEnabled }
 			, entitiesWrapper{ entities, validEntityHandles }
+			, changesBuffer{ compCallbacksEnabled }
 		{
 		}
 
@@ -240,6 +243,16 @@ namespace ecs {
 				if (compIter->second & COMP_STATUS_ANY)
 					continue;
 
+				// If the other entity already has our component, this means a previously cloned component attached one in OnCreation().
+				// Not much we can do currently... We'll ignore it for now, meaning this component on the cloned entity will not have the same data as the original entity.
+				// If this needs to be fixed, it will likely have to come in the form of a hint to ECS that certain components must be
+				// processed before other components via something like IRegisteredComponent's way of doing things.
+				if (entity->INTERNAL_GetHasComp(compIter->first))
+				{
+					CONSOLE_LOG(LEVEL_WARNING) << "Component " << compIter->first << " already exists on destination entity " << entity << " while cloning source entity " << this << ". Perhaps another component's OnCreation() added this component. Will ignore cloning this component - data will not be cloned.";
+					continue;
+				}
+
 				// Clone a copy of this component into the component addition buffer
 				uint32_t indexInBuffer{ CurrentPool::ChangesBuffer().CloneComp(*GetCompArr(compIter->first), compIter->second, entity) };
 
@@ -248,11 +261,7 @@ namespace ecs {
 			}
 		}
 
-		void Entity_Internal::INTERNAL_CloneCompsToEntityNow(InternalEntityHandle entity) const
-		{
-			INTERNAL_CloneCompsToEntity(entity, CurrentPool::Comps(), CurrentPool::Comps());
-		}
-		void Entity_Internal::INTERNAL_CloneCompsToEntity(InternalEntityHandle entity, CompArrMapType& srcCompArrMap, CompArrMapType& destCompArrMap) const
+		void Entity_Internal::INTERNAL_CloneCompsToEntity(InternalEntityHandle entity, CompArrMapType& srcCompArrMap, CompArrMapType& destCompArrMap, bool enableCreationFunc) const
 		{
 			if (components.empty())
 				return;
@@ -266,7 +275,7 @@ namespace ecs {
 
 				// Request CompArr to create a copy of this component, and add it to the provided pool immediately
 				CompArr* srcCompArr{ GetCompArr(srcCompArrMap, compIter->first) };
-				CompArr* destCompArr{ (srcAndDestCompArrIsSame ? srcCompArr : GetCompArr(destCompArrMap, *srcCompArr)) };
+				CompArr* destCompArr{ (srcAndDestCompArrIsSame ? srcCompArr : GetCompArr(destCompArrMap, *srcCompArr, enableCreationFunc)) };
 				uint32_t compIndex{ srcCompArr->CloneComp(compIter->second, entity, *destCompArr) };
 
 				// Register the component to the entity
@@ -428,6 +437,11 @@ namespace ecs {
 			return entity < other.entity;
 		}
 
+		CompChangesBuffer::CompChangesBuffer(bool enableCreationFunc)
+			: enableCreationFunc{ enableCreationFunc }
+		{
+		}
+
 		void CompChangesBuffer::RemoveComp(InternalEntityHandle entity, CompHash compType)
 		{
 			auto emplaceResult{ GetModifySet(compType).emplace(entity, CompModifyTask::TYPE::REMOVE) };
@@ -494,8 +508,10 @@ namespace ecs {
 
 		uint32_t CompChangesBuffer::CloneComp(CompArr& srcArr, uint32_t index, InternalEntityHandle entityOwner)
 		{
+			assert(&CurrentPool::ChangesBuffer() == this); // GetCompArr() requires enableCreationFunc, which we only want to activate on pools that have callbacks enabled.
+
 			// Get the destination CompArr
-			CompArr* destArr{ GetCompArr(compsToAdd, srcArr) };
+			CompArr* destArr{ GetCompArr(compsToAdd, srcArr, CurrentPool::HasCompCallbacksEnabled()) };
 
 			// Request srcArr to create a copy of this component, and add it to the destArr
 			return srcArr.CloneComp(index, entityOwner, *destArr);
@@ -669,7 +685,7 @@ namespace ecs {
 
 			// Transfer components from the addition buffer comp arr to the current pool's comp arr
 			for (CompArrMapType::iterator compArrIter{ bufferedMap.begin() }, compArrEnd{ bufferedMap.end() }; compArrIter != compArrEnd; ++compArrIter)
-				GetCompArr(CurrentPool::Comps(), compArrIter->second)->TransferCompsFrom(compArrIter->second);
+				GetCompArr(CurrentPool::Comps(), compArrIter->second, false)->TransferCompsFrom(compArrIter->second);
 		}
 
 #pragma endregion // CompChangesBuffer
@@ -677,8 +693,8 @@ namespace ecs {
 #pragma region CompArr
 
 		CompArr::CompArr(CompHash compHash, uint32_t compSize, CompCopySig copyFunc, CompMoveSig moveFunc, CompDestroySig destroyFunc,
-			CompInformAttachedSig informAttachedFunc, CompInformDetachedSig informDetachedFunc,
-			CompInformAttachedSig trueInformAttachedFunc, CompInformDetachedSig trueInformDetachedFunc)
+			CompInformCreationSig informCreationFunc, CompInformAttachedSig informAttachedFunc, CompInformDetachedSig informDetachedFunc,
+			CompInformCreationSig trueInformCreationFunc, CompInformAttachedSig trueInformAttachedFunc, CompInformDetachedSig trueInformDetachedFunc)
 			: compHash{ compHash }
 			, compSize{ compSize }
 			, compStepSize{ ReservedBytes + compSize }
@@ -687,8 +703,10 @@ namespace ecs {
 			, callCopyFunc{ copyFunc }
 			, callMoveFunc{ moveFunc }
 			, callDestructorFunc{ destroyFunc }
+			, callInformCreationFunc{ informCreationFunc }
 			, callInformAttachedFunc{ informAttachedFunc }
 			, callInformDetachedFunc{ informDetachedFunc }
+			, trueInformCreationFunc{ trueInformCreationFunc }
 			, trueInformAttachedFunc{ trueInformAttachedFunc }
 			, trueInformDetachedFunc{ trueInformDetachedFunc }
 			, tempCompSpace{ new RawData[compSize] }
@@ -715,11 +733,11 @@ namespace ecs {
 			return &iter->second;
 		}
 
-		CompArr* GetCompArr(CompArrMapType& compArrPool, const CompArr& refCompArr)
+		CompArr* GetCompArr(CompArrMapType& compArrPool, const CompArr& refCompArr, bool enableCreationFunc)
 		{
 			auto iter = compArrPool.find(refCompArr.GetCompHash());
 			if (iter == compArrPool.end())
-				return &refCompArr.CloneWithoutCompDataIntoPool(compArrPool).first->second;
+				return &refCompArr.CloneWithoutCompDataIntoPool(compArrPool, enableCreationFunc).first->second;
 			else
 				return &iter->second;
 		}
@@ -734,11 +752,13 @@ namespace ecs {
 
 			// Move the component into the expanded memory
 			size_t insertIndex{ compIndex * compStepSize + ReservedBytes };
-			callMoveFunc(comp, arrRaw.data() + insertIndex);
+			RawData* destPtr{ arrRaw.data() + insertIndex };
+			callMoveFunc(comp, destPtr);
 			// Destructor is not called as we assume this component came from outside,
 			// where the original object will be destroyed by going out of scope.
 
-			// Inform component of attach event
+			// Inform component of creation and attach event
+			callInformCreationFunc(destPtr);
 			CurrentPool::ChangesBuffer().AddComponentCallback(callInformAttachedFunc, entPtr);
 
 			return compIndex;
@@ -784,7 +804,11 @@ namespace ecs {
 			destArr.SetEntityPtr(compIndex, entityOwner);
 
 			// Copy the component into the expanded memory
-			callCopyFunc(GetComp(index), destArr.GetComp(compIndex));
+			RawData* destPtr{ destArr.GetComp(compIndex) };
+			callCopyFunc(GetComp(index), destPtr);
+
+			// Inform component of creation
+			destArr.callInformCreationFunc(destPtr);
 
 			// Inform component of attach event
 			// Kendrick 29/11/2025: Not needed anymore. All cloning will go through the comp buffer which will add a call to OnAttached.
@@ -872,7 +896,7 @@ namespace ecs {
 			other.arrRaw.clear();
 		}
 
-		std::pair<CompArrMapType::iterator, bool> CompArr::CloneWithoutCompDataIntoPool(CompArrMapType& compArrPool) const
+		std::pair<CompArrMapType::iterator, bool> CompArr::CloneWithoutCompDataIntoPool(CompArrMapType& compArrPool, bool enableCreationFunc) const
 		{
 			// Ensure the destination comp arr map is in the current pool, otherwise comp callbacks could be incorrect.
 			// This check cannot be relevant anymore due to cloning of entities across pools.
@@ -883,8 +907,10 @@ namespace ecs {
 				std::piecewise_construct, // Need to construct in place due to deleted copy/move constructor
 				std::make_tuple(compHash),
 				std::make_tuple(compHash, compSize, callCopyFunc, callMoveFunc, callDestructorFunc,
+				enableCreationFunc ? trueInformCreationFunc : [](RawData*) -> void {},
 				compCallbacksEnabled ? trueInformAttachedFunc : [](InternalEntityHandle) -> void {},
 				compCallbacksEnabled ? trueInformDetachedFunc : [](InternalEntityHandle) -> void {},
+				trueInformCreationFunc,
 				trueInformAttachedFunc,
 				trueInformDetachedFunc)
 			);

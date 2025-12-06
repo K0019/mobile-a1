@@ -183,15 +183,18 @@ X(IS_TRIGGER, "Is Trigger")
 
 		std::array<std::function<void()>, 6> contactFunctions;
 
-	private:
-		void InitializeJoltBodyComp(JoltBodyComp* comp);
-
 	public:
 		/*****************************************************************//*!
 		\brief
-			Called when the component is attached. It creates a body if the
-			entity doesn't have a physics compoenent and set the shape to
-			be a box.
+			Called when the component is created. Attaches a JoltBodyComp if
+			it doesn't yet exist on the entity.
+		*//******************************************************************/
+		void OnCreation() override;
+
+		/*****************************************************************//*!
+		\brief
+			Called when the component is attached. Initializes
+			the JoltBodyComp with the deserialized parameters.
 		*//******************************************************************/
 		void OnAttached() override;
 
