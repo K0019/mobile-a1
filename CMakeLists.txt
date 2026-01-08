@@ -232,49 +232,28 @@ if(ANDROID)
 endif()
 
 # ----- Subdirectories (Add Projects) -----
-# ryEngine
-add_subdirectory(ryEngine-core)
-add_subdirectory(ryEngine-modules/imgui)
+# Unified MagicEngine library
+add_subdirectory(MagicEngine)
+
+# Asset Compiler (desktop only)
 if(NOT ANDROID)
-    add_subdirectory(ryEngine-modules/tools)
-endif()
-
-# MagicEngine
-add_subdirectory(MagicEngine-core)
-
-#set BUILD_ASSET_COMPILER = OFF inside the setup.bat file (for the school pc)
-if (NOT ANDROID)
     option(BUILD_ASSET_COMPILER "Build the asset compiler tool" ON)
     if(BUILD_ASSET_COMPILER)
-            add_subdirectory(AssetCompiler)
+        add_subdirectory(AssetCompiler)
     endif()
-
-    add_subdirectory(EngineScripting)
 endif()
 
-# Dont want to link with assetcompiler and tools on android
-add_library(MagicEngine INTERFACE)
-if (NOT ANDROID)
-    target_link_libraries(MagicEngine INTERFACE 
-        ryEngine-Core
-        ryEngine-ImGui
-        MagicEngine-Core
-	    EngineScripting
-        # Someone is silently loading fmod, suspicious, but ok.
-    )
-else()
-    target_link_libraries(MagicEngine INTERFACE 
-        ryEngine-Core
-        ryEngine-ImGui
-        MagicEngine-Core
-        $<BUILD_INTERFACE:fmod_core>
-        $<BUILD_INTERFACE:fmod_studio>
-    )
-endif()
-
-# Application
+# Editor Application (desktop only)
 if(NOT ANDROID)
     add_subdirectory(editor)
+endif()
+
+# Game Application (desktop only, no editor)
+if(NOT ANDROID)
+    option(BUILD_GAME "Build the standalone game (no editor)" ON)
+    if(BUILD_GAME)
+        add_subdirectory(game)
+    endif()
 endif()
 
 # ----- Post Configuration Settings -----

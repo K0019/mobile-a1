@@ -1,0 +1,106 @@
+﻿/******************************************************************************/
+/*!
+\file   GraphicsAPI.h
+\par    Project: Kuro Mahou
+\par    Course: CSD3401
+\par    Software Engineering Project 5
+\date   09/19/2025
+
+\author Kendrick Sim Hean Guan (100%)
+\par    email: kendrickheanguan.s\@digipen.edu
+\par    DigiPen login: kendrickheanguan.s
+
+\brief
+Abstracts the interface to the graphics pipeline.
+
+All content © 2025 DigiPen Institute of Technology Singapore.
+All rights reserved.
+*/
+/******************************************************************************/
+
+#pragma once
+#include "renderer/renderer.h"
+#include "resource/resource_manager.h"
+#include "imgui/base/imgui_context.h"
+#include "Engine/Graphics Interface/GraphicsWindow.h"
+#include "renderer/features/scene_feature.h"
+#include "renderer/ui/ui_immediate.h"
+#include "resource/resource_types.h"
+#include "math/camera.h"
+
+class GraphicsMain
+{
+public:
+    ~GraphicsMain();
+
+    void Init(Context inContext);
+
+    void BeginFrame();
+#ifdef IMGUI_ENABLED
+    void BeginImGuiFrame();
+    void EndImGuiFrame();
+#endif
+    void EndFrame(FrameData* outFrameData);
+
+    void SetPendingShutdown();
+    bool GetIsPendingShutdown() const;
+
+    // Graphics scene interface - for camera uploads
+    void SetViewCamera(const Camera& camera);
+
+    // Grid control
+    void SetGridEnabled(bool enabled);
+
+public:
+    FrameData& INTERNAL_GetFrameData();
+    bool RequestObjPick(int mouseX, int mouseY);
+    ecs::EntityHandle PreviousPick();
+
+private:
+#ifdef IMGUI_ENABLED
+    void InitImGui(const std::string& fontfile);
+    void SetImGuiStyle();
+#endif
+    void InitFont(const std::string& fontfile);
+    void UploadToPipeline(FrameData* outFrameData);
+
+    static void OnTogglePlayMode();
+
+public:
+    // For compatibility with whatever old graphics interfaces are still here
+    // Remove if possible once everything settles
+#ifdef IMGUI_ENABLED
+    editor::ImGuiContext& GetImGuiContext();
+#endif
+    Resource::ResourceManager& GetAssetSystem();
+    ui::ImmediateGui& GetImmediateGui();
+
+private:
+    friend ST<GraphicsMain>;
+    GraphicsMain();
+
+    void InitDefaultSkybox();
+
+private:
+#ifdef IMGUI_ENABLED
+    UPtr<editor::ImGuiContext> imguiContext;
+#endif
+
+    Context context;
+
+    // Scene rendering
+    uint64_t sceneFeatureHandle;
+    uint64_t ui2dFeatureHandle;
+    FrameData frameData;
+    uint64_t gridHandle;
+    uint64_t im3dHandle;
+    FontHandle ui2dFontHandle;
+    UPtr<ui::ImmediateGui> overlayGui;
+    uint64_t lastPickedObjectIndex;
+    std::unordered_map<uint64_t, ecs::EntityHandle> mapIdxToId;
+
+    // Default skybox
+    uint32_t defaultSkyboxBindlessIndex = 0;
+
+};
+

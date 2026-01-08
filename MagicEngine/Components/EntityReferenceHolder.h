@@ -1,0 +1,61 @@
+﻿/******************************************************************************/
+/*!
+\file   EntityReferenceHolderComponent.h
+\par    Project: 7percent
+\par    Course: CSD2401
+\par    Section B
+\par    Software Engineering Project 3
+\date   11/02/2024
+
+\author Kendrick Sim Hean Guan (100%)
+\par    email: kendrickheanguan.s\@digipen.edu
+\par    DigiPen login: kendrickheanguan.s
+
+\brief
+  This is an interface file for the name component and an attacher class that
+  automatically attaches name components to new entities created.
+
+All content © 2024 DigiPen Institute of Technology Singapore.
+All rights reserved.
+*/
+/******************************************************************************/
+
+#pragma once
+#include "ECS/EntityUID.h"
+#include "ECS/IEditorComponent.h"
+
+/*****************************************************************//*!
+\class EntityReferenceHolderComponent
+\brief
+	Attaches a name string to help identify entities.
+*//******************************************************************/
+class EntityReferenceHolderComponent 
+	: public IRegisteredComponent<EntityReferenceHolderComponent>
+	, public IEditorComponent<EntityReferenceHolderComponent>
+{
+public:
+	/*****************************************************************//*!
+	\brief
+		Default constructs this component with the name "New Entity"
+	*//******************************************************************/
+	EntityReferenceHolderComponent();
+
+
+	void Serialize(Serializer& writer) const override;
+	void Deserialize(Deserializer& reader) override;
+
+	EntityReference GetEntity(int index);
+	const int GetSize();
+	void SetEntity(int index, EntityReference entity);
+
+private:
+	virtual void EditorDraw() override;
+
+	std::vector<EntityReference> entityReferences;
+	property_vtable()
+};
+property_begin(EntityReferenceHolderComponent)
+{
+}
+property_vend_h(EntityReferenceHolderComponent)
+

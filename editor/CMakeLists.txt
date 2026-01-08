@@ -19,15 +19,13 @@ target_sources(Editor PRIVATE
     ${SHADER_FILES}
 )
 
-# Link everything
+# Link unified engine library
 target_link_libraries(Editor PRIVATE
-    ryEngine-Core
-    ryEngine-ImGui
-    ryEngine-Tools
-    MagicEngine-Core
+    MagicEngine
 )
 
-target_precompile_headers(Editor PRIVATE pch.h)
+# Reuse MagicEngine's precompiled header
+target_precompile_headers(Editor REUSE_FROM MagicEngine)
 target_include_directories(Editor PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 
 # Organize shaders in IDE
