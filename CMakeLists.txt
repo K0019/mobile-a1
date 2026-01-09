@@ -40,7 +40,7 @@ endif()
 
 # ----- Solution -----
 if (NOT ANDROID)
-project(MagicEngine VERSION 0.1.0 LANGUAGES C CXX CSharp)
+project(MagicEngine VERSION 0.1.0 LANGUAGES C CXX)
 else()
 project(MagicEngine VERSION 0.1.0 LANGUAGES C CXX)
 endif()
