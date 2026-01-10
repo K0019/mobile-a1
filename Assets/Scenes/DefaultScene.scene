@@ -271,6 +271,7 @@
                     "moveSpeed": 2.0,
                     "rotateSpeed": 1440.0,
                     "throwPower": 60.0,
+                    "attackingMoveSpeedMultiplier": 0.5,
                     "parryCoolDownTime": 0.10000000149011612,
                     "parryTime": 0.5,
                     "parryDelusion": 10.0,
@@ -620,6 +621,7 @@
                     "moveSpeed": 1.7999999523162842,
                     "rotateSpeed": 200.0,
                     "throwPower": 0.0,
+                    "attackingMoveSpeedMultiplier": 2.4943112664981744e-43,
                     "parryCoolDownTime": 0.0,
                     "parryTime": 0.0,
                     "parryDelusion": 0.0,
@@ -774,9 +776,9 @@
         {
             "parentIndex": -1,
             "position": {
-                "x": -109.55000305175781,
+                "x": -58.182899475097656,
                 "y": -4.0,
-                "z": 0.0
+                "z": -16.74852752685547
             },
             "rotation": {
                 "x": 0.0,
@@ -1622,6 +1624,7 @@
                     "moveSpeed": 3.0,
                     "rotateSpeed": 14400.0,
                     "throwPower": 0.0,
+                    "attackingMoveSpeedMultiplier": 2.4943112664981744e-43,
                     "parryCoolDownTime": 0.0,
                     "parryTime": 0.0,
                     "parryDelusion": 0.0,
@@ -2473,6 +2476,7 @@
                     "moveSpeed": 1.7999999523162842,
                     "rotateSpeed": 200.0,
                     "throwPower": 0.0,
+                    "attackingMoveSpeedMultiplier": 2.4943112664981744e-43,
                     "parryCoolDownTime": 0.0,
                     "parryTime": 0.0,
                     "parryDelusion": 0.0,
@@ -3285,9 +3289,9 @@
                 "z": 0.0
             },
             "scale": {
-                "x": 1.0,
-                "y": 1.0,
-                "z": 1.0
+                "x": 0.5,
+                "y": 0.5,
+                "z": 0.5
             },
             "components": {
                 "5352011725353660904": {
@@ -3321,7 +3325,7 @@
             "position": {
                 "x": 0.0,
                 "y": 0.0,
-                "z": 0.0
+                "z": 7.460908889770508
             },
             "rotation": {
                 "x": 0.0,

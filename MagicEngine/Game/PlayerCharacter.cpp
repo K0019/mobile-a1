@@ -105,8 +105,6 @@ void PlayerMovementComponentSystem::UpdatePlayerMovementComponent(PlayerMovement
 	Vec2 camForward = Vec2{ cos(yawRad),sin(yawRad) };
 	Vec2 camRight = Vec2{ -sin(yawRad),cos(yawRad) };
 
-	if (!characterComp->isAttacking)
-	{
 		if (inputInstance->GetIsDown(KEY::W))
 			movement = movement + camForward;
 		if (inputInstance->GetIsDown(KEY::S))
@@ -115,7 +113,6 @@ void PlayerMovementComponentSystem::UpdatePlayerMovementComponent(PlayerMovement
 			movement = movement + camRight;
 		if (inputInstance->GetIsDown(KEY::A))
 			movement = movement - camRight;
-	}
 
 #ifdef __ANDROID__
 
@@ -133,6 +130,14 @@ void PlayerMovementComponentSystem::UpdatePlayerMovementComponent(PlayerMovement
 
 	if (movement.LengthSqr() > 0.0f)
 		movement = movement.Normalized();
+
+	float speedMult = 1.0f;
+	// If attacking, we apply the speed multiplier
+	if (characterComp->isAttacking)
+	{
+		speedMult = characterComp->attackingMoveSpeedMultiplier;
+	}
+	movement = movement * speedMult;
 
 	// Grabbing items
 	if (inputInstance->GetIsPressed(KEY::E) || EventsReader<Events::GameActionGrabItem>{}.ExtractEvent())

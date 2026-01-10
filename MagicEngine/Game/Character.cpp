@@ -398,6 +398,8 @@ void CharacterMovementComponent::EditorDraw()
 	gui::VarInput("Dodge Speed", &dodgeSpeed);
 	gui::VarInput("Throw Power", &throwPower);
 
+	gui::VarInput("Attacking Move Speed Multiplier", &attackingMoveSpeedMultiplier);
+
 	gui::VarInput("Parry Time Period", &parryTime);
 	gui::VarInput("Parry Cool Down time", &parryCoolDownTime);
 	gui::VarInput("Parry Delusion", &parryDelusion);
@@ -512,7 +514,6 @@ void CharacterMovementComponentSystem::UpdateCharacterMovementComponent(Characte
 	// Get inputs
 	Vec2 movement = comp.GetMovementVector();
 
-	// Normalize the move vector if it's over 1.0f in length
 	if (movement.LengthSqr() > 0.0f)
 	{
 		// Walking - only change animation if not attacking
@@ -542,6 +543,7 @@ void CharacterMovementComponentSystem::UpdateCharacterMovementComponent(Characte
 	//animComp->loop = !comp.isAttacking;
 
 
+	// Normalize the move vector if it's over 1.0f in length
 	if (movement.LengthSqr() > 1.0f)
 		movement = movement.Normalized();
 
