@@ -36,7 +36,6 @@ set(ENGINE_DEFINITIONS
 if(NOT ANDROID)
     list(APPEND ENGINE_DEFINITIONS
         GLFW
-        TRACY_ENABLE
     )
 endif()
 
