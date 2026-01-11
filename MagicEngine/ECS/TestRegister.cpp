@@ -8,6 +8,7 @@
 #include "Graphics/RenderComponent.h"
 #include "Graphics/AnimationComponent.h"
 #include "EntityUID.h"
+#include "Engine/SceneTransition.h"
 #include "Engine/Audio.h"
 #include "Engine/BehaviorTree/BehaviourTree.h"
 #include "Engine/Platform/Android/AndroidInputManager.h"
@@ -46,6 +47,7 @@
 void RegisterShit()
 {
 	IRegisteredComponent<EntityUIDComponent>::RegisterComponent();
+	IRegisteredComponent<SceneTransitionComponent>::RegisterComponent();
 	IRegisteredComponent<AudioSourceComponent>::RegisterComponent();
 	IRegisteredComponent<BehaviorTreeComp>::RegisterComponent();
 	IRegisteredComponent<AndroidInputComp>::RegisterComponent();
