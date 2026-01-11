@@ -47,6 +47,7 @@ All rights reserved.
 #include "Boss/Boss_Prefect/Boss_LeafDisciplinaryAction.h"
 
 #include "Boss/Common/Selector_BossHealthPhases.h"
+#include "Boss/Common/Selector_BossTransitionPhases.h"
  
 
 BT_REGISTER_NODE(Sequence, "Sequence")
@@ -78,6 +79,7 @@ BT_REGISTER_NODE(L_Boss_Prefect_LashOut, "L_Boss_Prefect_LashOut")
 BT_REGISTER_NODE(L_Boss_Prefect_DontRun, "L_Boss_Prefect_DontRun")
 BT_REGISTER_NODE(L_Boss_Prefect_DisciplinaryAction, "L_Boss_Prefect_DisciplinaryAction")
 BT_REGISTER_NODE(S_Boss_HealthPhases, "S_Boss_HealthPhases")
+BT_REGISTER_NODE(S_Boss_TransitionPhases, "S_Boss_TransitionPhases")
 
 
 BehaviorNode::BehaviorNode()
