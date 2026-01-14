@@ -114,27 +114,27 @@
 #define TAGS(...) QUILL_TAGS(__VA_ARGS__)
 #pragma region LOG
 #define LOG_TRACE_L3(fmt, ...) \
-    // do { QUILL_LOG_TRACE_L3(::LogBackend::getLogger(), fmt, ##__VA_ARGS__); } while(false)
+    do { QUILL_LOG_TRACE_L3(::LogBackend::getLogger(), fmt, ##__VA_ARGS__); } while(false)
 #define LOG_TRACE_L2(fmt, ...) \
-    // do { QUILL_LOG_TRACE_L2(::LogBackend::getLogger(), fmt, ##__VA_ARGS__); } while(false)
+    do { QUILL_LOG_TRACE_L2(::LogBackend::getLogger(), fmt, ##__VA_ARGS__); } while(false)
 #define LOG_TRACE_L1(fmt, ...) \
-    // do { QUILL_LOG_TRACE_L1(::LogBackend::getLogger(), fmt, ##__VA_ARGS__); } while(false)
+    do { QUILL_LOG_TRACE_L1(::LogBackend::getLogger(), fmt, ##__VA_ARGS__); } while(false)
 #define LOG_DEBUG(fmt, ...) \
-    // do { QUILL_LOG_DEBUG(::LogBackend::getLogger(), fmt, ##__VA_ARGS__); } while(false)
+    do { QUILL_LOG_DEBUG(::LogBackend::getLogger(), fmt, ##__VA_ARGS__); } while(false)
 #define LOG_INFO(fmt, ...) \
-    // do { QUILL_LOG_INFO(::LogBackend::getLogger(), fmt, ##__VA_ARGS__); } while(false)
+    do { QUILL_LOG_INFO(::LogBackend::getLogger(), fmt, ##__VA_ARGS__); } while(false)
 #define LOG_NOTICE(fmt, ...) \
-    // do { QUILL_LOG_NOTICE(::LogBackend::getLogger(), fmt, ##__VA_ARGS__); } while(false)
+    do { QUILL_LOG_NOTICE(::LogBackend::getLogger(), fmt, ##__VA_ARGS__); } while(false)
 #define LOG_WARNING(fmt, ...) \
-    // do { QUILL_LOG_WARNING(::LogBackend::getLogger(), fmt, ##__VA_ARGS__); } while(false)
+    do { QUILL_LOG_WARNING(::LogBackend::getLogger(), fmt, ##__VA_ARGS__); } while(false)
 #define LOG_ERROR(fmt, ...) \
-    // do { QUILL_LOG_ERROR(::LogBackend::getLogger(), fmt, ##__VA_ARGS__); } while(false)
+    do { QUILL_LOG_ERROR(::LogBackend::getLogger(), fmt, ##__VA_ARGS__); } while(false)
 #define LOG_CRITICAL(fmt, ...) \
-    // do { QUILL_LOG_CRITICAL(::LogBackend::getLogger(), fmt, ##__VA_ARGS__); } while(false)
+    do { QUILL_LOG_CRITICAL(::LogBackend::getLogger(), fmt, ##__VA_ARGS__); } while(false)
 #define LOG_BACKTRACE(fmt, ...) \
-    // do { QUILL_LOG_BACKTRACE(::LogBackend::getLogger(), fmt, ##__VA_ARGS__); } while(false)
+    do { QUILL_LOG_BACKTRACE(::LogBackend::getLogger(), fmt, ##__VA_ARGS__); } while(false)
 #define LOG_DYNAMIC(log_level, fmt, ...) \
-    // do { QUILL_LOG_DYNAMIC(::LogBackend::getLogger(), MapEngineLogLevelToQuill(log_level), fmt, ##__VA_ARGS__); } while(false)
+    do { QUILL_LOG_DYNAMIC(::LogBackend::getLogger(), MapEngineLogLevelToQuill(log_level), fmt, ##__VA_ARGS__); } while(false)
 #pragma endregion //LOG
 #pragma region LOG_LIMIT
 #define LOG_TRACE_L3_LIMIT(min_interval, fmt, ...) \

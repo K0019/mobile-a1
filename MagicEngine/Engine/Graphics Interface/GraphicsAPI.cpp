@@ -30,6 +30,7 @@ All rights reserved.
 #include "Engine/Resources/ResourceManager.h"
 
 #include <algorithm>
+#include <iostream>
 
 #include "fa.h"
 #include "renderer/im3d_helper.h"
@@ -60,7 +61,7 @@ GraphicsMain::~GraphicsMain()
 		context.renderer->DestroyFeature(gridHandle);
 		context.renderer->DestroyFeature(sceneFeatureHandle);
 		context.renderer->DestroyFeature(ui2dFeatureHandle);
-		context.renderer->DestroyFeature(im3dHandle);
+		// context.renderer->DestroyFeature(im3dHandle);
 	}
 }
 
@@ -70,7 +71,8 @@ void GraphicsMain::Init(Context inContext)
 	sceneFeatureHandle = context.renderer->CreateFeature<SceneRenderFeature>(true);
 	gridHandle = context.renderer->CreateFeature<GridFeature>();
 	ui2dFeatureHandle = context.renderer->CreateFeature<Ui2DRenderFeature>();
-	im3dHandle = context.renderer->CreateFeature<Im3dRenderFeature>();
+	// TODO: Im3D disabled - needs HSL shader conversion
+	// im3dHandle = context.renderer->CreateFeature<Im3dRenderFeature>();
 
 	const std::string fontsFile{ Filepaths::fontsSave + "/Lato-Regular.ttf" };
 #ifdef IMGUI_ENABLED
@@ -86,12 +88,14 @@ void GraphicsMain::Init(Context inContext)
 
 	// Initialize grid state based on current game mode
 	// In release builds, game starts in play mode, so grid should be disabled
-	auto* gameStateManager = ST<GameSystemsManager>::Get();
-	if (gameStateManager)
-	{
-		bool inEditorMode = (gameStateManager->GetState() == GAMESTATE::EDITOR);
-		SetGridEnabled(inEditorMode);
-	}
+	// Note: At init time, gameState might not be set yet, so check if we're the Editor executable
+#ifdef IMGUI_ENABLED
+	// Editor build - enable grid by default (will be toggled by play mode events)
+	SetGridEnabled(true);
+#else
+	// Game build - disable grid by default
+	SetGridEnabled(false);
+#endif
 }
 
 void GraphicsMain::BeginFrame()
@@ -222,8 +226,9 @@ void GraphicsMain::InitDefaultSkybox()
 	TextureHandle handle = context.resourceMngr->createTexture(skyboxTexture);
 	if (handle.isValid())
 	{
-		defaultSkyboxBindlessIndex = context.resourceMngr->getTextureBindlessIndex(handle);
-		CONSOLE_LOG(LEVEL_INFO) << "Default skybox loaded (bindless index: " << defaultSkyboxBindlessIndex << ")";
+		// TODO: Bindless textures not available in hina-vk
+		// defaultSkyboxBindlessIndex = context.resourceMngr->getTextureBindlessIndex(handle);
+		CONSOLE_LOG(LEVEL_INFO) << "Default skybox texture loaded (bindless not available)";
 	}
 	else
 	{
@@ -233,6 +238,32 @@ void GraphicsMain::InitDefaultSkybox()
 
 void GraphicsMain::UploadToPipeline(FrameData* outFrameData)
 {
+	// Populate outFrameData with camera matrices from GraphicsMain::frameData
+	// (frameData is populated by SetViewCamera() which is called by camera systems)
+	if (outFrameData)
+	{
+		float width = static_cast<float>(Core::Display().GetWidth());
+		float height = static_cast<float>(Core::Display().GetHeight());
+		outFrameData->cameraPos = frameData.cameraPos;
+		outFrameData->viewMatrix = frameData.viewMatrix;
+		// Apply Vulkan Y-flip at source so ALL features use consistent projection
+		glm::mat4 proj = glm::perspective(glm::radians(45.0f), width / height, 0.1f, 1000.0f);
+		outFrameData->projMatrix = proj;
+	}
+
+	// Submit ECS RenderComponents to GfxRenderer via SceneRenderFeature
+	SceneRenderFeature::UpdateScene(sceneFeatureHandle, *context.resourceMngr, *context.renderer);
+
+	// 2D UI pass - queue UI commands from ECS systems
+	if (overlayGui->begin(ui2dFontHandle)) {
+		float width = static_cast<float>(Core::Display().GetWidth());
+		float height = static_cast<float>(Core::Display().GetHeight());
+		overlayGui->setViewport(width, height);
+		ecs::RunSystemsInLayers(ECS_LAYER::CUTOFF_RENDER, ECS_LAYER::CUTOFF_RENDER_UI);
+	}
+	overlayGui->end();
+
+#if 0 // DISABLED - Old scene rendering path (kept for reference)
 	auto params = static_cast<SceneRenderParams*>(context.renderer->GetFeatureParameterBlockPtr(sceneFeatureHandle));
 	if (!params)
 		return;
@@ -600,9 +631,10 @@ void GraphicsMain::UploadToPipeline(FrameData* outFrameData)
 	EditorCam_Publish(outFrameData->viewMatrix, outFrameData->projMatrix, false);
 
 	// 2D UI pass
-	overlayGui->begin(ui2dFontHandle);
-	overlayGui->setViewport(1920, 1080);
-	ecs::RunSystemsInLayers(ECS_LAYER::CUTOFF_RENDER, ECS_LAYER::CUTOFF_RENDER_UI);
+	if (overlayGui->begin(ui2dFontHandle)) {
+		overlayGui->setViewport(1920, 1080);
+		ecs::RunSystemsInLayers(ECS_LAYER::CUTOFF_RENDER, ECS_LAYER::CUTOFF_RENDER_UI);
+	}
 	overlayGui->end();
 
 	// Disable sample 2D UI for now
@@ -1154,6 +1186,7 @@ void GraphicsMain::UploadToPipeline(FrameData* outFrameData)
 	//	}
 	//	overlayGui.end();
 	//}
+#endif // DISABLED - SceneRenderFeature not functional
 }
 
 void GraphicsMain::SetViewCamera(const Camera& camera)

@@ -11,8 +11,26 @@
  * Licensed under the MIT License. See LICENSE for more details.
  */
 
+// =============================================================================
+// DEPRECATED - This file contains the old vk:: abstraction layer
+//
+// The vk:: namespace (Handle<T>, Holder<T>, IContext, ICommandBuffer) is being
+// phased out in favor of direct hina-vk usage through gfx_interface.h.
+//
+// Still in use:
+// - vk::Format, vk::ColorSpace - used by HinaContext for swapchain queries
+//
+// For new code:
+// - Use gfx:: types from gfx_interface.h
+// - Use gfx::Holder<T> for RAII resource management
+// - Create pipelines directly with hina_make_pipeline_ex()
+//
+// See grid_feature.cpp and im3d_feature.cpp for migration examples.
+// =============================================================================
+
 #pragma once
 
+#include <cassert>
 #include <cstdarg>
 #include <cstddef>
 #include <cstdint>
@@ -54,6 +72,9 @@ enum class SurfaceTransform : uint8_t
     Inherit,
 };
 #endif
+
+// Forward declaration for hina-vk backend
+class HinaContext;
 
 namespace vk
 {
@@ -98,6 +119,9 @@ namespace vk
 
       template <typename ObjectType_, typename ImplObjectType>
       friend class Pool;
+
+      // Allow HinaContext to create handles for the hina-vk backend
+      friend class ::HinaContext;
 
       uint32_t index_ = 0;
       uint32_t gen_ = 0;
@@ -1217,8 +1241,6 @@ namespace vk
 
       virtual void destroy(Framebuffer& fb) = 0;
 
-      [[nodiscard]] virtual uint64_t gpuAddress(AccelStructHandle handle) const = 0;
-
 #pragma region Acceleration structure functions
       [[nodiscard]] virtual AccelStructSizes getAccelStructSizes(const AccelStructDesc& desc, Result* outResult = nullptr) const = 0;
 #pragma endregion
@@ -1229,8 +1251,6 @@ namespace vk
       virtual Result download(BufferHandle handle, void* data, size_t size, size_t offset) = 0;
 
       [[nodiscard]] virtual uint8_t* getMappedPtr(BufferHandle handle) const = 0;
-
-      [[nodiscard]] virtual uint64_t gpuAddress(BufferHandle handle, size_t offset = 0) const = 0;
 
       virtual void flushMappedMemory(BufferHandle handle, size_t offset, size_t size) const = 0;
 
@@ -1324,6 +1344,9 @@ namespace vk
 
   [[nodiscard]] uint32_t getVertexFormatSize(VertexFormat format);
 
+  // Convert Vulkan VkFormat to internal Format enum (for KTX loading)
+  [[nodiscard]] Format vkFormatToFormat(int vkFormat);
+
   void logShaderSource(const char* text);
 
   constexpr uint32_t calcNumMipLevels(uint32_t width, uint32_t height)
@@ -1336,11 +1359,4 @@ namespace vk
     return levels;
   }
 
-  // Create headless Vulkan context (no surface/swapchain)
-  std::unique_ptr<IContext> createContext(
-    const ContextConfig& cfg,
-    HWDeviceType preferredDeviceType = HWDeviceType::Discrete
-  );
-
-  std::unique_ptr<IContext> createVulkanContextWithSwapchain(window* window, uint32_t width, uint32_t height, const ContextConfig& cfg, HWDeviceType preferredDeviceType = HWDeviceType::Discrete);
 } // namespace vk

@@ -7,7 +7,6 @@
 #include <vector>
 #include <core/engine/engine.h>
 #include <resource/resource_types.h>
-#include "bindless_registry.h"
 
 struct ImGuiConfig
 {
@@ -39,8 +38,6 @@ struct ImGuiFontRequest
 
 namespace editor
 {
-  class TransientRegistry;
-
   class ImGuiContext
   {
   public:
@@ -74,8 +71,6 @@ namespace editor
 
     bool wantTextInput() const;
 
-    TransientRegistry& GetTransientRegistry();
-
   private:
     void setupImGuiContext(const ImGuiConfig& config);
 
@@ -95,7 +90,6 @@ namespace editor
 
     Context& context_;
     ImGuiConfig config_;
-    std::unique_ptr<TransientRegistry> m_transientRegistry{};
     uint64_t renderFeatureHandle_;
     TextureHandle fontTextureHandle_{};
     FontHandle sharedFontHandle_{};

@@ -116,6 +116,52 @@ namespace Resource
     std::vector<MorphTargetData> morphTargets;
   };
 
+  /**
+   * @brief Lightweight info about a submesh (for queries without full load)
+   */
+  struct SubmeshInfo
+  {
+    std::string name;
+    std::string materialName;
+    vec4 bounds{ 0, 0, 0, 1 };
+    uint32_t vertexCount = 0;
+    uint32_t indexCount = 0;
+  };
+
+  /**
+   * @brief Metadata about a mesh file without loading vertex data
+   */
+  struct MeshFileInfo
+  {
+    std::string sourcePath;
+    std::vector<SubmeshInfo> submeshes;
+    bool hasSkeleton = false;
+    bool hasMorphs = false;
+    uint32_t totalVertices = 0;
+    uint32_t totalIndices = 0;
+  };
+
+  /**
+   * @brief A submesh with its associated material path
+   */
+  struct ModelSubmesh
+  {
+    ProcessedMesh mesh;
+    std::string materialPath;  // Path to .material file (derived from embedded name)
+  };
+
+  /**
+   * @brief A complete model with all submeshes and shared skeleton
+   */
+  struct ProcessedModel
+  {
+    std::string sourcePath;
+    std::vector<ModelSubmesh> submeshes;
+    ProcessedSkeleton skeleton;  // Shared skeleton for all submeshes
+    bool hasSkeleton = false;
+    bool hasMorphs = false;
+  };
+
   struct ProcessedMaterial
   {
     std::string name;

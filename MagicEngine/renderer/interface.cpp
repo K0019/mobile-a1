@@ -12,31 +12,53 @@
  */
 #include "interface.h"
 #include <cassert>
-// Only include GLFW headers on desktop platforms
-#if !defined(__ANDROID__)
-#define GLFW_INCLUDE_NONE
-#ifdef _WIN32
-#  define GLFW_EXPOSE_NATIVE_WIN32
-#elif defined(__linux__)
-#  if defined(WAYLAND)
-#    define GLFW_EXPOSE_NATIVE_WAYLAND
-#  else
-#    define GLFW_EXPOSE_NATIVE_X11
-#  endif
-#elif __APPLE__
-#  define GLFW_EXPOSE_NATIVE_COCOA
-#else
-#  error "Unsupported OS for GLFW native access"
-#endif
-#include "GLFW/glfw3.h"
-#ifdef _WIN32
-#  include <windows.h>
-#  include "GLFW/glfw3native.h"
-#elif defined(__linux__)
-// to fix later
-#endif
-#endif // !defined(__ANDROID__)
-#include "renderer/vulkan/vk_classes.h"
+
+// VkFormat enum values from Vulkan spec (used for KTX format conversion)
+namespace VkFormatValues {
+  constexpr int VK_FORMAT_UNDEFINED = 0;
+  constexpr int VK_FORMAT_R8_UNORM = 9;
+  constexpr int VK_FORMAT_R16_UNORM = 70;
+  constexpr int VK_FORMAT_R16_UINT = 74;
+  constexpr int VK_FORMAT_R16_SFLOAT = 76;
+  constexpr int VK_FORMAT_R8G8_UNORM = 16;
+  constexpr int VK_FORMAT_R16G16_UNORM = 77;
+  constexpr int VK_FORMAT_R16G16_UINT = 81;
+  constexpr int VK_FORMAT_R16G16_SFLOAT = 83;
+  constexpr int VK_FORMAT_R32_SFLOAT = 100;
+  constexpr int VK_FORMAT_R32G32_SFLOAT = 103;
+  constexpr int VK_FORMAT_R8G8B8A8_UNORM = 37;
+  constexpr int VK_FORMAT_R8G8B8A8_SRGB = 43;
+  constexpr int VK_FORMAT_B8G8R8A8_UNORM = 44;
+  constexpr int VK_FORMAT_B8G8R8A8_SRGB = 50;
+  constexpr int VK_FORMAT_A2B10G10R10_UNORM_PACK32 = 64;
+  constexpr int VK_FORMAT_A2R10G10B10_UNORM_PACK32 = 58;
+  constexpr int VK_FORMAT_R16G16B16A16_SFLOAT = 97;
+  constexpr int VK_FORMAT_R32G32B32A32_UINT = 107;
+  constexpr int VK_FORMAT_R32G32B32A32_SFLOAT = 109;
+  constexpr int VK_FORMAT_ETC2_R8G8B8_UNORM_BLOCK = 147;
+  constexpr int VK_FORMAT_ETC2_R8G8B8_SRGB_BLOCK = 148;
+  constexpr int VK_FORMAT_BC1_RGB_UNORM_BLOCK = 131;
+  constexpr int VK_FORMAT_BC1_RGB_SRGB_BLOCK = 132;
+  constexpr int VK_FORMAT_BC1_RGBA_UNORM_BLOCK = 133;
+  constexpr int VK_FORMAT_BC1_RGBA_SRGB_BLOCK = 134;
+  constexpr int VK_FORMAT_BC2_UNORM_BLOCK = 135;
+  constexpr int VK_FORMAT_BC2_SRGB_BLOCK = 136;
+  constexpr int VK_FORMAT_BC3_UNORM_BLOCK = 137;
+  constexpr int VK_FORMAT_BC3_SRGB_BLOCK = 138;
+  constexpr int VK_FORMAT_BC4_UNORM_BLOCK = 139;
+  constexpr int VK_FORMAT_BC5_UNORM_BLOCK = 141;
+  constexpr int VK_FORMAT_BC6H_UFLOAT_BLOCK = 143;
+  constexpr int VK_FORMAT_BC6H_SFLOAT_BLOCK = 144;
+  constexpr int VK_FORMAT_BC7_UNORM_BLOCK = 145;
+  constexpr int VK_FORMAT_BC7_SRGB_BLOCK = 146;
+  constexpr int VK_FORMAT_D16_UNORM = 124;
+  constexpr int VK_FORMAT_X8_D24_UNORM_PACK32 = 125;
+  constexpr int VK_FORMAT_D24_UNORM_S8_UINT = 129;
+  constexpr int VK_FORMAT_D32_SFLOAT = 126;
+  constexpr int VK_FORMAT_D32_SFLOAT_S8_UINT = 130;
+  constexpr int VK_FORMAT_G8_B8R8_2PLANE_420_UNORM = 1000156003;
+  constexpr int VK_FORMAT_G8_B8_R8_3PLANE_420_UNORM = 1000156002;
+}
 
 namespace
 {
@@ -143,8 +165,6 @@ uint32_t vk::getTextureBytesPerLayer(uint32_t width, uint32_t height, Format for
   const uint32_t levelHeight = (std::max)(height >> level, 1u);
   const TextureFormatProperties props = properties[(uint8_t)format];
   if (!props.compressed) { return props.bytesPerBlock * levelWidth * levelHeight; }
-  //const uint32_t blockWidth = (std::max)((uint32_t)props.blockWidth, 1u);
-  //const uint32_t blockHeight = (std::max)((uint32_t)props.blockHeight, 1u);
   const uint32_t widthInBlocks = (levelWidth + props.blockWidth - 1) / props.blockWidth;
   const uint32_t heightInBlocks = (levelHeight + props.blockHeight - 1) / props.blockHeight;
   return widthInBlocks * heightInBlocks * props.bytesPerBlock;
@@ -165,23 +185,16 @@ uint32_t vk::getTextureBytesPerPlane(uint32_t width, uint32_t height, Format for
   return getTextureBytesPerLayer(width, height, format, 0);
 }
 
-void vk::destroy(IContext* ctx, ComputePipelineHandle handle) { if (ctx) { ctx->destroy(handle); } }
-
-void vk::destroy(IContext* ctx, RenderPipelineHandle handle) { if (ctx) { ctx->destroy(handle); } }
-
-void vk::destroy(IContext* ctx, RayTracingPipelineHandle handle) { if (ctx) { ctx->destroy(handle); } }
-
-void vk::destroy(IContext* ctx, ShaderModuleHandle handle) { if (ctx) { ctx->destroy(handle); } }
-
-void vk::destroy(IContext* ctx, SamplerHandle handle) { if (ctx) { ctx->destroy(handle); } }
-
-void vk::destroy(IContext* ctx, BufferHandle handle) { if (ctx) { ctx->destroy(handle); } }
-
-void vk::destroy(IContext* ctx, TextureHandle handle) { if (ctx) { ctx->destroy(handle); } }
-
-void vk::destroy(IContext* ctx, QueryPoolHandle handle) { if (ctx) { ctx->destroy(handle); } }
-
-void vk::destroy(IContext* ctx, AccelStructHandle handle) { if (ctx) { ctx->destroy(handle); } }
+// Destroy functions - forward to IContext destroy methods
+void vk::destroy(IContext* ctx, ComputePipelineHandle handle) { if (ctx) ctx->destroy(handle); }
+void vk::destroy(IContext* ctx, RenderPipelineHandle handle) { if (ctx) ctx->destroy(handle); }
+void vk::destroy(IContext* ctx, RayTracingPipelineHandle handle) { if (ctx) ctx->destroy(handle); }
+void vk::destroy(IContext* ctx, ShaderModuleHandle handle) { if (ctx) ctx->destroy(handle); }
+void vk::destroy(IContext* ctx, SamplerHandle handle) { if (ctx) ctx->destroy(handle); }
+void vk::destroy(IContext* ctx, BufferHandle handle) { if (ctx) ctx->destroy(handle); }
+void vk::destroy(IContext* ctx, TextureHandle handle) { if (ctx) ctx->destroy(handle); }
+void vk::destroy(IContext* ctx, QueryPoolHandle handle) { if (ctx) ctx->destroy(handle); }
+void vk::destroy(IContext* ctx, AccelStructHandle handle) { if (ctx) ctx->destroy(handle); }
 
 // Logs GLSL shaders with line numbers annotation
 void vk::logShaderSource(const char* text)
@@ -235,83 +248,58 @@ uint32_t vk::VertexInput::getVertexSize() const
   return vertexSize;
 }
 
-std::unique_ptr<vk::IContext> vk::createContext(const ContextConfig& cfg, HWDeviceType preferredDeviceType)
+// Convert Vulkan VkFormat to internal Format enum (for KTX texture loading)
+vk::Format vk::vkFormatToFormat(int vkFormat)
 {
-  // 1. Create headless context (Instance only - no surface)
-  auto ctx = std::make_unique<VulkanContext>(cfg);
-  // 2. Query and select physical device
-  HWDeviceDesc devices[8];
-  uint32_t numDevices = ctx->queryDevices(preferredDeviceType, devices, std::size(devices));
-  if (!numDevices)
+  using namespace VkFormatValues;
+  switch (vkFormat)
   {
-    if (preferredDeviceType == HWDeviceType::Discrete)
-    {
-      numDevices = ctx->queryDevices(HWDeviceType::Integrated, devices, std::size(devices));
-    }
-    else if (preferredDeviceType == HWDeviceType::Integrated)
-    {
-      numDevices = ctx->queryDevices(HWDeviceType::Discrete, devices, std::size(devices));
-    }
+    case VK_FORMAT_UNDEFINED:              return Format::Invalid;
+    case VK_FORMAT_R8_UNORM:               return Format::R_UN8;
+    case VK_FORMAT_R16_UNORM:              return Format::R_UN16;
+    case VK_FORMAT_R16_SFLOAT:             return Format::R_F16;
+    case VK_FORMAT_R16_UINT:               return Format::R_UI16;
+    case VK_FORMAT_R8G8_UNORM:             return Format::RG_UN8;
+    case VK_FORMAT_B8G8R8A8_UNORM:         return Format::BGRA_UN8;
+    case VK_FORMAT_R8G8B8A8_UNORM:         return Format::RGBA_UN8;
+    case VK_FORMAT_R8G8B8A8_SRGB:          return Format::RGBA_SRGB8;
+    case VK_FORMAT_B8G8R8A8_SRGB:          return Format::BGRA_SRGB8;
+    case VK_FORMAT_R16G16_UNORM:           return Format::RG_UN16;
+    case VK_FORMAT_R16G16_SFLOAT:          return Format::RG_F16;
+    case VK_FORMAT_R32G32_SFLOAT:          return Format::RG_F32;
+    case VK_FORMAT_R16G16_UINT:            return Format::RG_UI16;
+    case VK_FORMAT_R32_SFLOAT:             return Format::R_F32;
+    case VK_FORMAT_R16G16B16A16_SFLOAT:    return Format::RGBA_F16;
+    case VK_FORMAT_R32G32B32A32_UINT:      return Format::RGBA_UI32;
+    case VK_FORMAT_R32G32B32A32_SFLOAT:    return Format::RGBA_F32;
+    case VK_FORMAT_A2B10G10R10_UNORM_PACK32: return Format::A2B10G10R10_UN;
+    case VK_FORMAT_A2R10G10B10_UNORM_PACK32: return Format::A2R10G10B10_UN;
+    case VK_FORMAT_ETC2_R8G8B8_UNORM_BLOCK:  return Format::ETC2_RGB8;
+    case VK_FORMAT_ETC2_R8G8B8_SRGB_BLOCK:   return Format::ETC2_SRGB8;
+    case VK_FORMAT_D16_UNORM:              return Format::Z_UN16;
+    case VK_FORMAT_BC4_UNORM_BLOCK:        return Format::BC4_R;
+    case VK_FORMAT_BC5_UNORM_BLOCK:        return Format::BC5_RG;
+    case VK_FORMAT_BC1_RGB_UNORM_BLOCK:    return Format::BC1_RGB;
+    case VK_FORMAT_BC1_RGB_SRGB_BLOCK:     return Format::BC1_RGB_SRGB;
+    case VK_FORMAT_BC1_RGBA_UNORM_BLOCK:   return Format::BC1_RGBA;
+    case VK_FORMAT_BC1_RGBA_SRGB_BLOCK:    return Format::BC1_RGBA_SRGB;
+    case VK_FORMAT_BC2_UNORM_BLOCK:        return Format::BC2_RGBA;
+    case VK_FORMAT_BC2_SRGB_BLOCK:         return Format::BC2_RGBA_SRGB;
+    case VK_FORMAT_BC3_UNORM_BLOCK:        return Format::BC3_RGBA;
+    case VK_FORMAT_BC3_SRGB_BLOCK:         return Format::BC3_RGBA_SRGB;
+    case VK_FORMAT_BC6H_UFLOAT_BLOCK:      return Format::BC6H_RGB_UFLOAT;
+    case VK_FORMAT_BC6H_SFLOAT_BLOCK:      return Format::BC6H_RGB_SFLOAT;
+    case VK_FORMAT_BC7_SRGB_BLOCK:         return Format::BC7_RGBA_SRGB;
+    case VK_FORMAT_BC7_UNORM_BLOCK:        return Format::BC7_RGBA;
+    case VK_FORMAT_X8_D24_UNORM_PACK32:    return Format::Z_UN24;
+    case VK_FORMAT_D24_UNORM_S8_UINT:      return Format::Z_UN24_S_UI8;
+    case VK_FORMAT_D32_SFLOAT:             return Format::Z_F32;
+    case VK_FORMAT_D32_SFLOAT_S8_UINT:     return Format::Z_F32_S_UI8;
+    case VK_FORMAT_G8_B8R8_2PLANE_420_UNORM:  return Format::YUV_NV12;
+    case VK_FORMAT_G8_B8_R8_3PLANE_420_UNORM: return Format::YUV_420p;
+    default:
+      break;
   }
-  if (!numDevices)
-  {
-    LOG_ERROR("No suitable Vulkan devices found");
-    return nullptr;
-  }
-  // 3. Initialize device and queues (no swapchain)
-  Result result = ctx->initContext(devices[0]);
-  if (!result.isOk())
-  {
-    LOG_ERROR("Failed to initialize Vulkan context: {}", result.message);
-    return nullptr;
-  }
-  return ctx;
-}
-
-std::unique_ptr<vk::IContext> vk::createVulkanContextWithSwapchain(window* window, uint32_t width, uint32_t height,
-                                                                   const ContextConfig& cfg,
-                                                                   HWDeviceType preferredDeviceType)
-{
-  // Use new headless factory
-  auto ctx = createContext(cfg, preferredDeviceType);
-  if (!ctx)
-  {
-    return nullptr;
-  }
-  // Extract native window handle (platform-specific)
-  void* nativeWindow = nullptr;
-  void* display = nullptr;
-#if defined(_WIN32)
-  nativeWindow = (void*)glfwGetWin32Window(window);
-#elif defined(__ANDROID__)
-  nativeWindow = (void*)window;
-#elif defined(__linux__)
-#if defined(LVK_WITH_WAYLAND)
-  wl_surface* waylandWindow = glfwGetWaylandWindow(window); if (!waylandWindow)
-  {
-    ASSERT_MSG(false, "Wayland window not found");
-    return nullptr;
-  } nativeWindow = (void*)waylandWindow; display = (void*)glfwGetWaylandDisplay();
-#else
-  nativeWindow = (void*)glfwGetX11Window(window); display = (void*)glfwGetX11Display();
-#endif
-#elif defined(__APPLE__)
-  nativeWindow = createCocoaWindowView(window);
-#else
-#error Unsupported OS
-#endif
-  // Create surface through IContext interface
-  ctx->createSurface(nativeWindow, display);
-  // Initialize swapchain - need to cast to access initSwapchain which is not in IContext
-  auto* vkCtx = static_cast<VulkanContext*>(ctx.get());
-  if (width > 0 && height > 0)
-  {
-    Result result = vkCtx->initSwapchain(width, height);
-    if (!result.isOk())
-    {
-      LOG_ERROR("Failed to create swapchain: {}", result.message);
-      return nullptr;
-    }
-  }
-  return ctx;
+  ASSERT_MSG(false, "VkFormat value not handled: %d", vkFormat);
+  return Format::Invalid;
 }

@@ -210,6 +210,7 @@ if(MSVC)
     add_compile_options(
         /W4 # Warning level 4
         /MP # Enable parallel builds
+        /FS # Force synchronous PDB writes (prevents corruption with /MP)
         # $<$<CONFIG:Release>:/O2 /GL> # Optimization level for Release
         # $<$<CONFIG:Debug>:/Zi> # Or /Zi for debug info format
         /wd4828 # Illegal characters in current source character set
@@ -230,6 +231,38 @@ message(STATUS "Platform: ${CMAKE_SYSTEM_NAME}")
 if(ANDROID)
     message(STATUS "Android ABI: ${ANDROID_ABI}")
 endif()
+
+# ----- hina-vk Integration -----
+# hina-vk requires these targets with specific names. vcpkg provides them under different names.
+# Create alias targets for embedded mode compatibility.
+
+# glslang: vcpkg provides glslang::glslang, hina-vk expects 'glslang'
+if(NOT TARGET glslang AND TARGET glslang::glslang)
+    add_library(glslang ALIAS glslang::glslang)
+endif()
+if(NOT TARGET glslang-default-resource-limits AND TARGET glslang::glslang-default-resource-limits)
+    add_library(glslang-default-resource-limits ALIAS glslang::glslang-default-resource-limits)
+endif()
+
+# Tracy: vcpkg provides Tracy::TracyClient, hina-vk expects 'TracyClient'
+if(NOT ANDROID AND NOT TARGET TracyClient AND TARGET Tracy::TracyClient)
+    add_library(TracyClient ALIAS Tracy::TracyClient)
+endif()
+
+# Configure hina-vk options
+set(HINA_VK_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+set(HINA_VK_ENABLE_TRACY OFF CACHE BOOL "" FORCE)
+set(HINA_VK_ENABLE_SHADER_COMPILER ON CACHE BOOL "" FORCE)
+
+message(STATUS "Adding subdirectory: hina-vk")
+add_subdirectory(extern/hina-vk)
+
+# hina-vk in embedded mode needs header include paths from parent project
+target_include_directories(hina-vk PRIVATE
+    $<TARGET_PROPERTY:volk::volk_headers,INTERFACE_INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:GPUOpen::VulkanMemoryAllocator,INTERFACE_INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:Vulkan::Headers,INTERFACE_INCLUDE_DIRECTORIES>
+)
 
 # ----- Subdirectories (Add Projects) -----
 # Unified MagicEngine library
@@ -265,6 +298,6 @@ set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT E
 # This file overrides the intermediate output directory location to avoid this issue.
 file(COPY "${CMAKE_SOURCE_DIR}/Directory.Build.props" DESTINATION "${CMAKE_BINARY_DIR}")
 
-# Installation
-include(cmake/InstallConfig.cmake)
-install_config(MagicEngine)
+# Installation (disabled for now - hina-vk export issue)
+# include(cmake/InstallConfig.cmake)
+# install_config(MagicEngine)

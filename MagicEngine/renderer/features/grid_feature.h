@@ -1,5 +1,5 @@
 #pragma once
-#include "renderer/interface.h"
+#include "renderer/gfx_interface.h"
 #include "renderer/render_graph.h"
 
 enum class Axis : uint8_t
@@ -30,8 +30,8 @@ namespace render_feature_internal
     bool enabled = true;
     Axis axis = Axis::Y; // Default to Y (XZ plane)
     int majorGridDivisions = 10;
-    vec3 originOffset;
-    uint32_t pipelineSamples;
+    vec3 originOffset = vec3(0.0f);
+    uint32_t pipelineSamples = 1;
   };
 }
 
@@ -50,10 +50,8 @@ public:
   using RenderFeatureBase<render_feature_internal::Grid_Parameters>::param_;
 
 private:
-  void EnsurePipelineCreated(const internal::ExecutionContext& context);;
+  void EnsurePipelineCreated(const internal::ExecutionContext& context);
 
-  uint32_t cachedSamples_ = 1;
-  vk::Holder<vk::ShaderModuleHandle> vert_;
-  vk::Holder<vk::ShaderModuleHandle> frag_;
-  vk::Holder<vk::RenderPipelineHandle> pipeline_;
+  bool resourcesCreated_ = false;
+  gfx::Holder<gfx::Pipeline> pipeline_;
 };

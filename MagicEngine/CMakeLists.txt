@@ -63,6 +63,7 @@ set(ENGINE_PUBLIC_DEPS
 
 # Private dependencies
 set(ENGINE_PRIVATE_DEPS
+    hina-vk
     volk::volk_headers
     spirv-cross-core
     spirv-cross-glsl
@@ -118,6 +119,8 @@ target_include_directories(MagicEngine
         $<INSTALL_INTERFACE:${EXTERNAL_INCLUDES_INSTALL}>
         $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/extern/include/offset_allocator>
         $<INSTALL_INTERFACE:${EXTERNAL_INCLUDES_INSTALL}/offset_allocator>
+        $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/extern/hina-vk/include>
+        $<INSTALL_INTERFACE:${EXTERNAL_INCLUDES_INSTALL}/hina-vk>
 )
 
 # Add all subdirectories as include paths (for legacy include compatibility)

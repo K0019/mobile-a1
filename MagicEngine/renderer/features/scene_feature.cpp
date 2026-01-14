@@ -1,1744 +1,678 @@
+// =============================================================================
+// scene_feature.cpp - Scene G-Buffer Rendering Feature
+//
+// Owns G-buffer shader, pipeline, and rendering resources. Integrates with
+// RenderGraph for uniform allocation and GfxRenderer for mesh/material storage.
+// =============================================================================
+
 #include "scene_feature.h"
-#include "renderer/animation_update.h"
+#include "renderer/hina_context.h"
+#include "renderer/gfx_renderer.h"
+#include "renderer/gfx_mesh_storage.h"
+#include "renderer/gfx_material_system.h"
 #include "renderer/renderer.h"
-#include "renderer/shader.h"
+#include "renderer/render_graph.h"
+#include "renderer/linear_color.h"
 #include "resource/resource_manager.h"
-#include "renderer/gpu_data.h"
-#include <algorithm>
+#include "resource/resource_types.h"
+#include "Graphics/RenderComponent.h"
+#include "ECS/ECS.h"
+#include "logging/log.h"
+#include <cstring>
+
+// =============================================================================
+// G-Buffer Shader (embedded hina_sl)
+// =============================================================================
+
+// G-buffer shader - exact copy from GfxRenderer to verify compilation
+static const char* kGBufferShader = R"(#hina
+group Frame = 0;
+group Material = 1;
+
+bindings(Frame, start=0) {
+  uniform(std140) FrameUBO {
+    mat4 viewProj;
+  } frame;
+}
+
+bindings(Material, start=1) {
+  texture sampler2D u_albedo;
+  texture sampler2D u_normal;
+  texture sampler2D u_metallicRoughness;
+  texture sampler2D u_emissive;
+  texture sampler2D u_occlusion;
+}
+
+push_constant PushConstants {
+  mat4 model;
+  vec4 baseColor;
+} pc;
+
+// Split vertex streams (24 bytes total):
+// Buffer 0: Position stream (12 bytes)
+// Buffer 1: Attribute stream (12 bytes packed)
+struct VertexIn {
+  vec3 a_position;    // location 0, buffer 0: position
+  uint a_normalMatID; // location 1, buffer 1: RGB10A2 octahedral normal + 2-bit matID
+  uint a_tangentSign; // location 2, buffer 1: RGB10A2 octahedral tangent + sign
+  uint a_uv;          // location 3, buffer 1: RG16_UNORM UV
+};
+
+struct Varyings {
+  vec3 worldPos;
+  vec3 normal;
+  vec3 tangent;
+  float bitangentSign;
+  vec2 uv;
+};
+
+struct FragOut {
+  vec4 albedo;       // location 0
+  vec4 normal;       // location 1
+  vec4 materialData; // location 2
+};
+#hina_end
+
+#hina_stage vertex entry VSMain
+Varyings VSMain(VertexIn in) {
+    Varyings out;
+
+    // Position from stream 0
+    vec4 worldPos = pc.model * vec4(in.a_position, 1.0);
+    out.worldPos = worldPos.xyz;
+
+    // Inline octahedral decode helper
+    // Unpack normal from RGB10A2 octahedral encoding
+    float nx = float(in.a_normalMatID & 0x3FFu) / 1023.0;
+    float ny = float((in.a_normalMatID >> 10u) & 0x3FFu) / 1023.0;
+    vec2 nf = vec2(nx, ny) * 2.0 - 1.0;
+    vec3 localNormal = vec3(nf.xy, 1.0 - abs(nf.x) - abs(nf.y));
+    float nt = max(-localNormal.z, 0.0);
+    localNormal.x += (localNormal.x >= 0.0) ? -nt : nt;
+    localNormal.y += (localNormal.y >= 0.0) ? -nt : nt;
+    localNormal = normalize(localNormal);
+
+    // Unpack tangent from RGB10A2 octahedral encoding
+    float tx = float(in.a_tangentSign & 0x3FFu) / 1023.0;
+    float ty = float((in.a_tangentSign >> 10u) & 0x3FFu) / 1023.0;
+    vec2 tf = vec2(tx, ty) * 2.0 - 1.0;
+    vec3 localTangent = vec3(tf.xy, 1.0 - abs(tf.x) - abs(tf.y));
+    float tt = max(-localTangent.z, 0.0);
+    localTangent.x += (localTangent.x >= 0.0) ? -tt : tt;
+    localTangent.y += (localTangent.y >= 0.0) ? -tt : tt;
+    localTangent = normalize(localTangent);
+
+    // Extract sign bit for bitangent
+    uint signBit = (in.a_tangentSign >> 30u) & 0x3u;
+
+    mat3 normalMatrix = mat3(pc.model);
+    out.normal = normalMatrix * localNormal;
+    out.tangent = normalMatrix * localTangent;
+    out.bitangentSign = (signBit & 1u) != 0u ? -1.0 : 1.0;
+
+    // Unpack UV from RG16_UNORM
+    out.uv = unpackUnorm2x16(in.a_uv);
+
+    gl_Position = frame.viewProj * worldPos;
+    return out;
+}
+#hina_end
+
+#hina_stage fragment entry FSMain
+FragOut FSMain(Varyings in) {
+    FragOut out;
+
+    // Sample albedo texture
+    vec4 albedo = texture(u_albedo, in.uv) * pc.baseColor;
+
+    // Sample normal map and construct TBN
+    vec3 N = normalize(in.normal);
+    vec3 T = normalize(in.tangent);
+    vec3 B = cross(N, T) * in.bitangentSign;
+    mat3 TBN = mat3(T, B, N);
+
+    vec3 normalMap = texture(u_normal, in.uv).rgb * 2.0 - 1.0;
+    N = normalize(TBN * normalMap);
+
+    // Sample metallic/roughness (B=metallic, G=roughness in glTF convention)
+    vec2 mr = texture(u_metallicRoughness, in.uv).bg;
+    float metallic = mr.x;
+    float roughness = mr.y;
+
+    // Sample occlusion (R channel)
+    float ao = texture(u_occlusion, in.uv).r;
+
+    // Output albedo from material texture
+    out.albedo = albedo;
+
+    // Encode world-space normal to [0,1] range for storage
+    out.normal = vec4(N.xy * 0.5 + 0.5, 0.0, 1.0);
+
+    // Material data: roughness, metallic, ao, emissive intensity
+    out.materialData = vec4(roughness, metallic, ao, 0.0);
+
+    return out;
+}
+#hina_end
+)";
+
+// =============================================================================
+// Composite Shader (embedded hina_sl) - Deferred lighting pass
+// =============================================================================
+
+static const char* kCompositeShader = R"(#hina
+group Composite = 0;
+
+bindings(Composite, start=0) {
+  texture sampler2D u_albedo;
+  texture sampler2D u_normal;
+  texture sampler2D u_materialData;
+  texture sampler2D u_depth;
+}
+
+push_constant LightingParams {
+  vec4 lightDir;
+  vec4 lightColor;
+  vec4 ambientColor;
+  vec4 cameraPos;
+  mat4 invViewProj;
+} pc;
+
+struct VertexIn {
+  vec2 a_position;
+  vec2 a_uv;
+};
+
+struct Varyings {
+  vec2 uv;
+};
+
+struct FragOut {
+  vec4 color;
+};
+#hina_end
+
+#hina_stage vertex entry VSMain
+Varyings VSMain(VertexIn in) {
+    Varyings out;
+    out.uv = in.a_uv;
+    gl_Position = vec4(in.a_position, 0.0, 1.0);
+    return out;
+}
+#hina_end
+
+#hina_stage fragment entry FSMain
+FragOut FSMain(Varyings in) {
+    FragOut out;
+
+    // G-buffer is Y-flipped due to Vulkan projection flip - flip UV for all G-buffer samples
+    vec2 gbufferUV = vec2(in.uv.x, in.uv.y);
+
+    // Sample G-buffer with flipped UV
+    vec4 albedoSample = texture(u_albedo, gbufferUV);
+    vec2 encodedNormal = texture(u_normal, gbufferUV).xy;
+    vec4 matData = texture(u_materialData, gbufferUV);
+    float depth = texture(u_depth, gbufferUV).r;
+
+    // Early out for sky/background (depth == 1.0)
+    if (depth >= 1.0) {
+        out.color = vec4(0.1, 0.1, 0.15, 1.0);  // Sky color
+        return out;
+    }
+
+    // Decode normal from octahedral (simple encoding for now)
+    vec3 normal = vec3(encodedNormal * 2.0 - 1.0, 0.0);
+    normal.z = sqrt(max(0.0, 1.0 - dot(normal.xy, normal.xy)));
+    normal = normalize(normal);
+
+    // Extract material properties
+    float roughness = matData.r;
+    float metallic = matData.g;
+
+    // Reconstruct world position from depth
+    // Note: projMatrix already has Vulkan Y-flip applied, so no additional flip needed here
+    vec2 ndc = gbufferUV * 2.0 - 1.0;
+    vec4 clipPos = vec4(ndc, depth, 1.0);
+    vec4 worldPos4 = pc.invViewProj * clipPos;
+    vec3 worldPos = worldPos4.xyz / worldPos4.w;
+
+    // View direction
+    vec3 viewDir = normalize(pc.cameraPos.xyz - worldPos);
+
+    // Directional light
+    vec3 lightDir = normalize(pc.lightDir.xyz);
+    float lightIntensity = pc.lightDir.w;
+
+    // Diffuse lighting (Lambert)
+    float NdotL = max(dot(normal, lightDir), 0.0);
+    vec3 diffuse = pc.lightColor.rgb * NdotL * lightIntensity;
+
+    // Simple specular (Blinn-Phong)
+    vec3 halfVec = normalize(lightDir + viewDir);
+    float NdotH = max(dot(normal, halfVec), 0.0);
+    float specPower = mix(8.0, 128.0, 1.0 - roughness);
+    float spec = pow(NdotH, specPower) * (1.0 - roughness) * 0.5;
+    vec3 specular = pc.lightColor.rgb * spec * lightIntensity;
+
+    // Combine lighting
+    vec3 ambient = pc.ambientColor.rgb;
+    vec3 baseColor = albedoSample.rgb;  // Use albedo from G-buffer
+
+    vec3 finalColor = baseColor * (ambient + diffuse) + specular;
+
+    // Output HDR color - tone mapping handled by separate pass
+    out.color = vec4(finalColor, 1.0);
+
+    return out;
+}
+#hina_end
+)";
+
+// =============================================================================
+// SceneRenderFeature Implementation
+// =============================================================================
 
 SceneRenderFeature::SceneRenderFeature(bool enableObjectPicking)
   : m_enableObjectPicking(enableObjectPicking)
 {
+  LOG_INFO("[SceneRenderFeature] Created");
+}
+
+SceneRenderFeature::~SceneRenderFeature()
+{
+  Shutdown();
+}
+
+void SceneRenderFeature::Shutdown()
+{
+  // G-buffer resources
+  if (hina_bind_group_is_valid(m_sceneBindGroup)) {
+    hina_destroy_bind_group(m_sceneBindGroup);
+    m_sceneBindGroup = {};
+  }
+  if (hina_buffer_is_valid(m_frameUBO)) {
+    // Note: HOST_VISIBLE buffers are persistently mapped, don't need to unmap
+    hina_destroy_buffer(m_frameUBO);
+    m_frameUBO = {};
+  }
+  m_frameUBOMapped = nullptr;
+  m_gbufferPipeline.reset();
+  m_sceneLayout.reset();
+  m_pipelineCreated = false;
+
+  // Composite resources
+  if (hina_bind_group_is_valid(m_compositeBindGroup)) {
+    hina_destroy_bind_group(m_compositeBindGroup);
+    m_compositeBindGroup = {};
+  }
+  m_compositePipeline.reset();
+  m_compositeLayout.reset();
+  m_compositeSampler.reset();
+  if (hina_buffer_is_valid(m_fullscreenQuadVB)) {
+    hina_destroy_buffer(m_fullscreenQuadVB);
+    m_fullscreenQuadVB = {};
+  }
+  m_compositePipelineCreated = false;
+  m_lastGBufferWidth = 0;
+  m_lastGBufferHeight = 0;
+
+  m_drawList.clear();
+}
+
+bool SceneRenderFeature::EnsurePipelineCreated(GfxRenderer* gfxRenderer)
+{
+  if (m_pipelineCreated) {
+    return true;
+  }
+
+  if (!gfxRenderer) {
+    return false;
+  }
+
+  LOG_INFO("[SceneRenderFeature] Creating G-buffer pipeline...");
+
+  char* error = nullptr;
+  hina_hsl_module* module = hslc_compile_hsl_source(kGBufferShader, "scene_gbuffer", &error);
+  if (!module) {
+    LOG_ERROR("[SceneRenderFeature] Shader compilation failed: {}", error ? error : "unknown");
+    if (error) hslc_free_log(error);
+    return false;
+  }
+
+  // Verify we got valid SPIR-V data
+  LOG_INFO("[SceneRenderFeature] Module compiled - VS spirv: {} bytes, FS spirv: {} bytes",
+           module->vs.spirv_size, module->fs.spirv_size);
+  if (module->vs.spirv_size == 0 || module->fs.spirv_size == 0) {
+    LOG_ERROR("[SceneRenderFeature] Module has zero-size SPIR-V data!");
+    hslc_hsl_module_free(module);
+    return false;
+  }
+  if (!module->vs.spirv_data || !module->fs.spirv_data) {
+    LOG_ERROR("[SceneRenderFeature] Module has NULL SPIR-V data pointers!");
+    hslc_hsl_module_free(module);
+    return false;
+  }
+  // Check SPIR-V magic number
+  const uint32_t* vs_spirv = (const uint32_t*)module->vs.spirv_data;
+  const uint32_t* fs_spirv = (const uint32_t*)module->fs.spirv_data;
+  LOG_INFO("[SceneRenderFeature] VS SPIR-V magic: 0x{:08X}, FS SPIR-V magic: 0x{:08X}",
+           vs_spirv[0], fs_spirv[0]);
+  if (vs_spirv[0] != 0x07230203) {
+    LOG_ERROR("[SceneRenderFeature] VS SPIR-V has invalid magic number!");
+  }
+  if (fs_spirv[0] != 0x07230203) {
+    LOG_ERROR("[SceneRenderFeature] FS SPIR-V has invalid magic number!");
+  }
+
+  // Scene bind group layout (set 0: frame UBO)
+  hina_bind_group_layout_entry scene_entries[1] = {};
+  scene_entries[0].binding = 0;
+  scene_entries[0].type = HINA_DESC_TYPE_UNIFORM_BUFFER;
+  scene_entries[0].count = 1;
+  scene_entries[0].stage_flags = HINA_STAGE_VERTEX | HINA_STAGE_FRAGMENT;
+  scene_entries[0].flags = HINA_BINDING_FLAG_NONE;
+
+  hina_bind_group_layout_desc scene_layout_desc = {};
+  scene_layout_desc.entries = scene_entries;
+  scene_layout_desc.entry_count = 1;
+  scene_layout_desc.label = "scene_feature_frame_layout";
+
+  m_sceneLayout.reset(hina_create_bind_group_layout(&scene_layout_desc));
+  if (!hina_bind_group_layout_is_valid(m_sceneLayout.get())) {
+    LOG_ERROR("[SceneRenderFeature] Failed to create scene bind group layout");
+    hslc_hsl_module_free(module);
+    return false;
+  }
+
+  // Material layout from GfxRenderer
+  gfx::BindGroupLayout materialLayout = gfxRenderer->getMaterialLayout();
+
+  // Vertex layout for split streams
+  hina_vertex_layout vertex_layout = {};
+  vertex_layout.buffer_count = 2;
+  vertex_layout.buffer_strides[0] = sizeof(gfx::VertexPosition);
+  vertex_layout.input_rates[0] = HINA_VERTEX_INPUT_RATE_VERTEX;
+  vertex_layout.buffer_strides[1] = sizeof(gfx::VertexAttributes);
+  vertex_layout.input_rates[1] = HINA_VERTEX_INPUT_RATE_VERTEX;
+  vertex_layout.attr_count = 4;
+  vertex_layout.attrs[0] = { HINA_FORMAT_R32G32B32_SFLOAT, 0, 0, 0 };
+  vertex_layout.attrs[1] = { HINA_FORMAT_R32_UINT, 0, 1, 1 };
+  vertex_layout.attrs[2] = { HINA_FORMAT_R32_UINT, 4, 2, 1 };
+  vertex_layout.attrs[3] = { HINA_FORMAT_R32_UINT, 8, 3, 1 };
+
+  hina_hsl_pipeline_desc pip_desc = hina_hsl_pipeline_desc_default();
+  pip_desc.layout = vertex_layout;
+  pip_desc.cull_mode = HINA_CULL_MODE_BACK;
+  pip_desc.front_face = HINA_FRONT_FACE_CLOCKWISE;
+  pip_desc.depth.depth_test = true;
+  pip_desc.depth.depth_write = true;
+  pip_desc.depth.depth_compare = HINA_COMPARE_OP_LESS;
+  pip_desc.depth_format = HINA_FORMAT_D32_SFLOAT;
+  pip_desc.color_attachment_count = 3;
+  pip_desc.color_formats[0] = HINA_FORMAT_R8G8B8A8_SRGB;
+  pip_desc.color_formats[1] = HINA_FORMAT_R16G16_SFLOAT;
+  pip_desc.color_formats[2] = HINA_FORMAT_R8G8B8A8_UNORM;
+  pip_desc.bind_group_layouts[0] = m_sceneLayout.get();
+  pip_desc.bind_group_layouts[1] = materialLayout;
+  pip_desc.bind_group_layout_count = 2;
+
+  m_gbufferPipeline.reset(hina_make_pipeline_from_module(module, &pip_desc, nullptr));
+  hslc_hsl_module_free(module);
+
+  if (!hina_pipeline_is_valid(m_gbufferPipeline.get())) {
+    LOG_ERROR("[SceneRenderFeature] Pipeline creation failed");
+    return false;
+  }
+
+  // Create persistent frame UBO (viewProj matrix = 64 bytes)
+  hina_buffer_desc ubo_desc = {};
+  ubo_desc.size = sizeof(glm::mat4);
+  ubo_desc.flags = static_cast<hina_buffer_flags>(
+      HINA_BUFFER_UNIFORM_BIT | HINA_BUFFER_HOST_VISIBLE_BIT | HINA_BUFFER_HOST_COHERENT_BIT);
+  m_frameUBO = hina_make_buffer(&ubo_desc);
+  if (!hina_buffer_is_valid(m_frameUBO)) {
+    LOG_ERROR("[SceneRenderFeature] Failed to create frame UBO");
+    return false;
+  }
+
+  // Persistently map the UBO for fast per-frame updates
+  m_frameUBOMapped = hina_map_buffer(m_frameUBO);
+  if (!m_frameUBOMapped) {
+    LOG_ERROR("[SceneRenderFeature] Failed to map frame UBO");
+    return false;
+  }
+
+  // Create persistent bind group pointing to the frame UBO
+  hina_bind_group_entry scene_entry = {};
+  scene_entry.binding = 0;
+  scene_entry.type = HINA_DESC_TYPE_UNIFORM_BUFFER;
+  scene_entry.buffer.buffer = m_frameUBO;
+  scene_entry.buffer.offset = 0;
+  scene_entry.buffer.size = sizeof(glm::mat4);
+
+  hina_bind_group_desc scene_bg_desc = {};
+  scene_bg_desc.layout = m_sceneLayout.get();
+  scene_bg_desc.entries = &scene_entry;
+  scene_bg_desc.entry_count = 1;
+  scene_bg_desc.label = "scene_frame_bg";
+
+  m_sceneBindGroup = hina_create_bind_group(&scene_bg_desc);
+  if (!hina_bind_group_is_valid(m_sceneBindGroup)) {
+    LOG_ERROR("[SceneRenderFeature] Failed to create scene bind group");
+    return false;
+  }
+
+  m_pipelineCreated = true;
+  LOG_INFO("[SceneRenderFeature] G-buffer pipeline and resources created");
+  return true;
 }
 
 void SceneRenderFeature::UpdateScene(uint64_t renderFeatureID,
-                                     Resource::Scene& gameScene,
-                                     const Resource::ResourceManager&
-                                     asset_system,
-                                     Renderer& renderer)
+                                      const Resource::ResourceManager& resourceMngr,
+                                      Renderer& renderer)
 {
-  auto params = static_cast<SceneRenderParams*>(renderer.
-                                                GetFeatureParameterBlockPtr(renderFeatureID));
-
-  if(!params)
+  auto* feature = renderer.GetFeature<SceneRenderFeature>(renderFeatureID);
+  if (!feature) {
     return;
+  }
 
-  params->clear();
-  params->reserve(gameScene.objects.size());
-  [[maybe_unused]] constexpr uint32_t INVALID_RANGE = SceneRenderParams::AnimatedInstanceParams::INVALID;
-  uint32_t animatedVertexCursor = 0;
+  feature->m_drawList.clear();
 
-  // Build all scene data in one pass
-  for(size_t objectIndex = 0; objectIndex < gameScene.objects.size(); ++
-      objectIndex)
+  for (auto compIter = ecs::GetCompsActiveBegin<RenderComponent>();
+       compIter != ecs::GetCompsEnd<RenderComponent>();
+       ++compIter)
   {
-    const SceneObject& obj = gameScene.objects[objectIndex];
+    RenderComponent& comp = *compIter;
 
-    // Validate handles
-    if(!obj.mesh.isValid() || !obj.material.isValid())
-      continue;
+    const ResourceMesh* mesh = comp.GetMesh();
+    if (!mesh) continue;
 
-    const auto* meshData = asset_system.getMesh(obj.mesh);
-    if(!meshData)
-      continue;
+    auto* entity = ecs::GetEntity(&comp);
+    if (!entity) continue;
 
-    // Store object data
-    params->objectTransforms.push_back(obj.transform);
-    params->materialIndices.push_back(
-      asset_system.getMaterialIndex(obj.material));
+    glm::mat4 entityWorldMatrix;
+    entity->GetTransform().SetMat4ToWorld(&entityWorldMatrix);
 
-    // Transform mesh bounds to world space
-    auto center = vec3(
-      meshData->bounds.x,
-      meshData->bounds.y,
-      meshData->bounds.z);
-    float radius = meshData->bounds.w;
+    const auto& materialList = comp.GetMaterialsList();
+    const size_t materialCount = materialList.size();
 
-    // For meshes with morph targets, expand bounds to account for deformation
-    const bool hasMorphTargets = meshData->animation.morphDeltaByteOffset != UINT32_MAX;
-    if(hasMorphTargets)
+    for (size_t i = 0; i < mesh->handles.size(); ++i)
     {
-      constexpr float MORPH_BOUNDS_EXPANSION = 2.0f;
-      radius *= MORPH_BOUNDS_EXPANSION;
-    }
+      const MeshHandle& meshHandle = mesh->handles[i];
+      if (!meshHandle.isValid()) continue;
 
-    // Extract scale from transform matrix to properly scale the bounding radius
-    // Each basis vector's length gives the scale in that dimension
-    vec3 scale = vec3(
-      length(vec3(obj.transform[0])),
-      length(vec3(obj.transform[1])),
-      length(vec3(obj.transform[2]))
-    );
+      const MeshGPUData* meshData = resourceMngr.getMesh(meshHandle);
+      if (!meshData || !meshData->hasGfxMesh) continue;
 
-    // Use maximum scale for spherical bounds to ensure full coverage
-    float maxScale = std::max(std::max(scale.x, scale.y), scale.z);
+      DrawData draw;
+      draw.gfxMesh.index = static_cast<uint16_t>(meshData->gfxMeshIndex);
+      draw.gfxMesh.generation = static_cast<uint16_t>(meshData->gfxMeshGeneration);
+      draw.transform = entityWorldMatrix * mesh->transforms[i];
+      draw.baseColor = glm::vec4(0.8f, 0.8f, 0.8f, 1.0f);
 
-    // Transform center and scale radius to world space
-    auto worldCenter = vec3(obj.transform * vec4(center, 1.0f));
-    float worldRadius = radius * maxScale;
-
-    params->objectBounds.emplace_back(
-      worldCenter - vec3(worldRadius),
-      worldCenter + vec3(worldRadius));
-
-    // Build draw command
-    DrawIndexedIndirectCommand cmd = {
-      .count = meshData->indexCount,
-      .instanceCount = 1,
-      .firstIndex = static_cast<uint32_t>(meshData->indexByteOffset / sizeof(
-        uint32_t)),
-      .baseVertex = static_cast<int32_t>(meshData->vertexByteOffset / sizeof(
-        CompressedVertex)),
-      .baseInstance = static_cast<uint32_t>(objectIndex) };
-
-    DrawData drawData = {
-      .transformId = static_cast<uint32_t>(objectIndex),
-      .materialId = asset_system.getMaterialIndex(obj.material),
-      .meshDecompIndex = static_cast<uint32_t>(meshData->decompressionByteOffset / sizeof(MeshDecompressionData)),
-      .objectId = static_cast<uint32_t>(objectIndex) };
-
-    uint32_t drawCommandIndex = static_cast<uint32_t>(params->drawCommands.
-                                                      size());
-    params->drawCommands.push_back(cmd);
-    params->drawData.push_back(drawData);
-
-    const SceneObject::AnimBinding* animBinding = obj.anim.has_value() ? &obj.anim.value() : nullptr;
-    const bool objectAnimated = animBinding &&
-      ((animBinding->jointCount > 0 && !animBinding->skinMatrices.empty()) ||
-       (animBinding->morphCount > 0 && !animBinding->morphWeights.empty()));
-
-    params->drawIsAnimated.push_back(objectAnimated ? 1u : 0u);
-
-    if(objectAnimated)
-    {
-      SceneRenderParams::AnimatedInstanceParams instance{};
-      instance.drawIndex = drawCommandIndex;
-      instance.srcBaseVertex = static_cast<uint32_t>(meshData->vertexByteOffset / sizeof(CompressedVertex));
-      instance.dstBaseVertex = animatedVertexCursor;
-      instance.vertexCount = meshData->vertexCount;
-      instance.meshDecompIndex = drawData.meshDecompIndex;
-
-      if(meshData->animation.skinningByteOffset != UINT32_MAX)
-        instance.skinningOffset = meshData->animation.skinningByteOffset / sizeof(GPUSkinningData);
-
-      if(animBinding && animBinding->jointCount > 0 && !animBinding->skinMatrices.empty())
-      {
-        instance.boneMatrixOffset = static_cast<uint32_t>(params->boneMatrices.size());
-        instance.jointCount = animBinding->jointCount;
-        params->boneMatrices.insert(params->boneMatrices.end(),
-                                    animBinding->skinMatrices.begin(),
-                                    animBinding->skinMatrices.begin() + animBinding->jointCount);
+      const ResourceMaterial* material = nullptr;
+      if (i < materialCount) {
+        material = materialList[i].GetResource();
+      }
+      if (!material) {
+        material = MagicResourceManager::GetContainer<ResourceMaterial>().GetResource(
+            mesh->defaultMaterialHashes[i]);
       }
 
-      if(meshData->animation.morphDeltaByteOffset != UINT32_MAX)
-        instance.morphDeltaOffset = meshData->animation.morphDeltaByteOffset / sizeof(GPUMorphDelta);
-      instance.morphDeltaCount = meshData->animation.morphDeltaCount;
-
-      if(meshData->animation.morphVertexBaseOffset != UINT32_MAX)
-        instance.morphVertexBaseOffset = meshData->animation.morphVertexBaseOffset / sizeof(uint32_t);
-      if(meshData->animation.morphVertexCountOffset != UINT32_MAX)
-        instance.morphVertexCountOffset = meshData->animation.morphVertexCountOffset / sizeof(uint32_t);
-
-      if(animBinding && animBinding->morphCount > 0 && !animBinding->morphWeights.empty())
-      {
-        instance.morphStateOffset = static_cast<uint32_t>(params->morphWeights.size());
-        instance.morphTargetCount = animBinding->morphCount;
-        params->morphWeights.insert(params->morphWeights.end(),
-                                    animBinding->morphWeights.begin(),
-                                    animBinding->morphWeights.begin() + animBinding->morphCount);
+      if (material && material->handle.isValid()) {
+        const auto* matHotData = resourceMngr.getMaterialHotData(material->handle);
+        if (matHotData && matHotData->hasGfxMaterial) {
+          draw.gfxMaterial.index = static_cast<uint16_t>(matHotData->gfxMaterialIndex);
+          draw.gfxMaterial.generation = static_cast<uint16_t>(matHotData->gfxMaterialGeneration);
+          draw.hasMaterial = true;
+        }
       }
 
-      params->drawCommands[drawCommandIndex].baseVertex = static_cast<int32_t>(instance.dstBaseVertex);
-      params->animatedInstances.push_back(instance);
-      params->hasAnimatedInstances = true;
-      animatedVertexCursor += instance.vertexCount;
-    }
-
-    if(asset_system.isMaterialTransparent(obj.material))
-    {
-      params->transparentIndices.push_back(drawCommandIndex);
-      if(objectAnimated)
-        ++params->transparentAnimatedCount;
-      else
-        ++params->transparentStaticCount;
-    }
-    else
-    {
-      params->opaqueIndices.push_back(drawCommandIndex);
-      if(objectAnimated)
-        ++params->opaqueAnimatedCount;
-      else
-        ++params->opaqueStaticCount;
+      feature->m_drawList.push_back(draw);
     }
   }
-
-  if(params->animatedInstances.empty())
-  {
-    params->boneMatrices.clear();
-    params->morphWeights.clear();
-    params->hasAnimatedInstances = false;
-  }
-  else
-  {
-    params->hasAnimatedInstances = true;
-  }
-
-  params->usedAnimatedVertexBytes = animatedVertexCursor * sizeof(SkinnedVertex);
-
-  params->lights.clear();
-  params->lights.reserve(gameScene.lights.size());
-
-  for(const SceneLight& sceneLight : gameScene.lights)
-  {
-    // Skip disabled lights
-    if(sceneLight.intensity <= 0.0f)
-      continue;
-
-    // Skip lights with zero/invalid color
-    if(length(sceneLight.color) <= 0.0f)
-      continue;
-
-    Lighting::GPULight gpuLight;
-    convertSceneLight(sceneLight, gpuLight);
-    params->lights.push_back(gpuLight);
-  }
-
-  params->activeLightCount = static_cast<uint32_t>(params->lights.size());
-
-  // NOTE: Shadow-casting point light selection is done in GraphicsAPI.cpp::UploadToPipeline
-  // after lights are populated from the ECS. The shadowPointLightCount, pointLightShadows,
-  // and shadowPointLightIndices are set there.
-  
-  /*LOG_INFO("SceneRenderFeature: Updated {} objects ({} opaque, {} transparent)",
-         params->getObjectCount(),
-         params->getOpaqueCount(),
-         params->getTransparentCount());*/
 }
-
-
 
 void SceneRenderFeature::SetupPasses(internal::RenderPassBuilder& passBuilder)
 {
-  constexpr size_t kInitialObjectCapacity = 1024;
-
-  const vk::BufferDesc animBoneDesc{
-    .usage = vk::BufferUsageBits_Storage,
-    .storage = vk::StorageType::HostVisible,
-    .size = sizeof(mat4) * 16 };
-  const vk::BufferDesc animMorphDesc{
-    .usage = vk::BufferUsageBits_Storage,
-    .storage = vk::StorageType::HostVisible,
-    .size = sizeof(float) * 16 };
-  const vk::BufferDesc animInstanceDesc{
-    .usage = vk::BufferUsageBits_Storage,
-    .storage = vk::StorageType::HostVisible,
-    .size = sizeof(GPUAnimatedInstance) * 16 };
-  const vk::BufferDesc skinnedVertexBufferDesc{
-	.usage = vk::BufferUsageBits_Vertex | vk::BufferUsageBits_Storage, .storage = vk::StorageType::Device, .size = 1024 * 1024 };
-
-
+  // G-buffer pass - renders to G-buffer color textures (GfxRenderer) and SCENE_DEPTH (RenderGraph)
+  // SCENE_DEPTH is shared with Grid/Im3d/UI2D for depth testing
   passBuilder.CreatePass()
-    .UseResource(RenderResources::VERTEX_BUFFER, AccessType::Read)
-    .DeclareTransientResource(RenderResources::SKINNED_VERTEX_BUFFER, skinnedVertexBufferDesc)
-    .UseResource(RenderResources::SKINNED_VERTEX_BUFFER, AccessType::ReadWrite)
-    .UseResource(RenderResources::MESH_DECOMPRESSION_BUFFER, AccessType::Read)
-    .UseResource(RenderResources::SKINNING_BUFFER, AccessType::Read)
-    .UseResource(RenderResources::MORPH_DELTA_BUFFER, AccessType::Read)
-    .UseResource(RenderResources::MORPH_VERTEX_BASE_BUFFER, AccessType::Read)
-    .UseResource(RenderResources::MORPH_VERTEX_COUNT_BUFFER, AccessType::Read)
-    .DeclareTransientResource(RenderResources::ANIM_BONE_BUFFER, animBoneDesc)
-    .UseResource(RenderResources::ANIM_BONE_BUFFER, AccessType::Write)
-    .DeclareTransientResource(RenderResources::ANIM_MORPH_BUFFER, animMorphDesc)
-    .UseResource(RenderResources::ANIM_MORPH_BUFFER, AccessType::Write)
-    .DeclareTransientResource(RenderResources::ANIM_INSTANCE_BUFFER, animInstanceDesc)
-    .UseResource(RenderResources::ANIM_INSTANCE_BUFFER, AccessType::Write)
-    .SetPriority(internal::RenderPassBuilder::PassPriority::EarlySetup)
-    .AddGenericPass(
-      "MeshDeformation",
-      [this](internal::ExecutionContext& ctx)
-  {
-    ExecuteDeformationPass(ctx);
-  });
+    .SetPriority(internal::RenderPassBuilder::PassPriority::Opaque)
+    .UseResource(RenderResources::SCENE_DEPTH, AccessType::Write)
+    .AddGenericPass("SceneGBuffer", [this](internal::ExecutionContext& ctx) {
+      ExecuteGBufferPass(ctx);
+    });
 
-  // Culling pass
-  passBuilder.CreatePass().DeclareTransientResource(
-    RenderResources::FRAME_CONSTANTS,
-    vk::BufferDesc{
-      .usage = vk::BufferUsageBits_Storage,
-      .storage = vk::StorageType::HostVisible,
-      .size = sizeof(FrameConstantsGPU) }).
-    UseResource(RenderResources::FRAME_CONSTANTS, AccessType::Write).
-    DeclareTransientResource(
-    "ObjectTransforms",
-    vk::BufferDesc{
-      .usage = vk::BufferUsageBits_Storage,
-      .storage = vk::StorageType::HostVisible,
-      // Use initial capacity instead of MAX_OBJECTS
-      .size = kInitialObjectCapacity * sizeof(mat4) }).UseResource(
-        "ObjectTransforms",
-        AccessType::Write).DeclareTransientResource(
-          "ObjectBounds",
-          vk::BufferDesc{
-            .usage = vk::BufferUsageBits_Storage,
-            .storage = vk::StorageType::HostVisible,
-            // Use initial capacity
-            .size = kInitialObjectCapacity * sizeof(BoundingBox) }).
-            UseResource("ObjectBounds", AccessType::Write).
-    DeclareTransientResource(
-      "DrawDataBuffer",
-      vk::BufferDesc{
-        .usage = vk::BufferUsageBits_Storage,
-        .storage = vk::StorageType::HostVisible,
-        // Use initial capacity
-        .size = kInitialObjectCapacity * sizeof(DrawData) }).
-        UseResource("DrawDataBuffer", AccessType::Write).
-    DeclareTransientResource(
-      "IndirectBufferOpaqueStatic",
-      vk::BufferDesc{
-        .usage = vk::BufferUsageBits_Indirect |
-        vk::BufferUsageBits_Storage,
-        .storage = vk::StorageType::HostVisible,
-        .size = kInitialObjectCapacity * sizeof(DrawIndexedIndirectCommand) +
-        sizeof(uint32_t) }).
-    UseResource("IndirectBufferOpaqueStatic", AccessType::Write).
-    DeclareTransientResource(
-      "IndirectBufferOpaqueAnimated",
-      vk::BufferDesc{
-        .usage = vk::BufferUsageBits_Indirect |
-        vk::BufferUsageBits_Storage,
-        .storage = vk::StorageType::HostVisible,
-        .size = kInitialObjectCapacity * sizeof(DrawIndexedIndirectCommand) +
-        sizeof(uint32_t) }).
-    UseResource("IndirectBufferOpaqueAnimated", AccessType::Write).
-    DeclareTransientResource(
-      "IndirectBufferTransparentStatic",
-      vk::BufferDesc{
-        .usage = vk::BufferUsageBits_Indirect |
-        vk::BufferUsageBits_Storage,
-        .storage = vk::StorageType::HostVisible,
-        .size = kInitialObjectCapacity * sizeof(DrawIndexedIndirectCommand) +
-        sizeof(uint32_t) }).
-    UseResource("IndirectBufferTransparentStatic", AccessType::Write).
-    DeclareTransientResource(
-      "IndirectBufferTransparentAnimated",
-      vk::BufferDesc{
-        .usage = vk::BufferUsageBits_Indirect |
-        vk::BufferUsageBits_Storage,
-        .storage = vk::StorageType::HostVisible,
-        .size = kInitialObjectCapacity * sizeof(DrawIndexedIndirectCommand) +
-        sizeof(uint32_t) }).
-    UseResource("IndirectBufferTransparentAnimated", AccessType::Write).
-    DeclareTransientResource(
-      "CullingData",
-      vk::BufferDesc{
-        .usage = vk::BufferUsageBits_Storage,
-        .storage = vk::StorageType::HostVisible,
-        // This buffer is fixed-size, so no change is needed.
-        .size = sizeof(CullingData) }).UseResource(
-          "CullingData",
-          AccessType::Write)
-    .SetPriority(
-      internal::RenderPassBuilder::PassPriority::EarlySetup).
-    AddGenericPass(
-      "SceneCulling",
-      [this](internal::ExecutionContext& ctx)
-  {
-    ExecuteCullingPass(ctx);
-  });
-
-  passBuilder.CreatePass().UseResource(Lighting::CLUSTER_BOUNDS, AccessType::Write).
-      UseResource(Lighting::LIGHTING_BUFFER, AccessType::Read).
-      UseResource(RenderResources::SCENE_COLOR, AccessType::Read).SetPriority(
-          internal::RenderPassBuilder::PassPriority::LightCulling).AddGenericPass(
-              "ClusterBoundsGeneration", [this](internal::ExecutionContext& ctx)
-              {
-                  executeClusterBoundsGeneration(ctx);
-              });
-  // Light Culling Pass
-  passBuilder.CreatePass().UseResource(Lighting::LIGHT_BUFFER, AccessType::Read).
-      UseResource(Lighting::CLUSTER_BOUNDS, AccessType::Read).
-      UseResource(Lighting::ITEM_LIST, AccessType::Write).
-      UseResource(Lighting::CLUSTER_DATA, AccessType::Write).SetPriority(
-          internal::RenderPassBuilder::PassPriority::LightCulling).AddGenericPass(
-              "LightCulling", [this](internal::ExecutionContext& ctx)
-              {
-                  executeLightCulling(ctx);
-              });
-  // Calculate lighting buffer sizes
-  uint32_t lightBufferSize = Parameters::MAX_LIGHTS * sizeof(Lighting::GPULight);
-  uint32_t clusterBoundsSize = Lighting::TOTAL_CLUSTERS * sizeof(Lighting::ClusterBounds);
-  uint32_t itemListSize = sizeof(uint32_t) + Lighting::MAX_TOTAL_ITEMS * sizeof(uint32_t);
-  uint32_t clusterDataSize = Lighting::TOTAL_CLUSTERS * sizeof(Lighting::Cluster);
-  uint32_t pointShadowBufferSize = Lighting::MAX_SHADOW_POINT_LIGHTS * sizeof(Lighting::GPUPointLightShadow);
-
-  // Point light shadow cube map texture descriptors
-  vk::TextureDesc shadowCubeColorDesc{
-      .type = vk::TextureType::TexCube,
-      .format = vk::Format::R_F16,  // Linear depth in R16F
-      .dimensions = {Lighting::SHADOW_MAP_SIZE, Lighting::SHADOW_MAP_SIZE, 1},
-      .numLayers = 6,
-      .usage = vk::TextureUsageBits_Attachment | vk::TextureUsageBits_Sampled,
+  // Composite pass - renders deferred lighting to SCENE_COLOR (HDR)
+  // This is a proper RenderGraph pass that outputs to SCENE_COLOR
+  // NOTE: No depth attachment needed - composite is fullscreen quad, doesn't depth-test
+  PassDeclarationInfo compositePassInfo;
+  compositePassInfo.framebufferDebugName = "SceneComposite";
+  compositePassInfo.colorAttachments[0] = {
+    .textureName = RenderResources::SCENE_COLOR,
+    .loadOp = gfx::LoadOp::Clear,
+    .storeOp = gfx::StoreOp::Store,
+    .clearColor = {0.1f, 0.1f, 0.15f, 1.0f}  // Sky color as clear
   };
+  // No depth attachment - composite pipeline samples G-buffer depth as texture, doesn't test depth
 
-  vk::TextureDesc shadowCubeDepthDesc{
-      .type = vk::TextureType::TexCube,
-      .format = vk::Format::Z_F32,
-      .dimensions = {Lighting::SHADOW_MAP_SIZE, Lighting::SHADOW_MAP_SIZE, 1},
-      .numLayers = 6,
-      .usage = vk::TextureUsageBits_Attachment,
-  };
-
-  // Lighting Setup Pass - initialize lighting data and declare shadow cube maps
-  // Shadow cube maps are declared here so LightingSetup can read their bindless indices
-  passBuilder.CreatePass().UseResource(RenderResources::SCENE_COLOR, AccessType::Read).
-      DeclareTransientResource(Lighting::LIGHT_BUFFER, vk::BufferDesc{
-                                 .usage = vk::BufferUsageBits_Storage, .storage = vk::StorageType::HostVisible,
-                                 .size = lightBufferSize
-          }).DeclareTransientResource(Lighting::CLUSTER_BOUNDS, vk::BufferDesc{
-                                        .usage = vk::BufferUsageBits_Storage,
-                                        .storage = vk::StorageType::Device,
-                                        .size = clusterBoundsSize
-              }).DeclareTransientResource(
-                  Lighting::ITEM_LIST,
-                  vk::BufferDesc
-                  { .usage = vk::BufferUsageBits_Storage, .storage = vk::StorageType::Device, .size = itemListSize }).
-      DeclareTransientResource(Lighting::CLUSTER_DATA, vk::BufferDesc{
-                                 .usage = vk::BufferUsageBits_Storage, .storage = vk::StorageType::Device,
-                                 .size = clusterDataSize
-          }).DeclareTransientResource(Lighting::LIGHTING_BUFFER, vk::BufferDesc{
-                                        .usage = vk::BufferUsageBits_Storage,
-                                        .storage = vk::StorageType::HostVisible,
-                                        .size = sizeof(Lighting::LightingBuffer)
-              }).DeclareTransientResource(Lighting::POINT_SHADOW_BUFFER, vk::BufferDesc{
-                                        .usage = vk::BufferUsageBits_Storage,
-                                        .storage = vk::StorageType::HostVisible,
-                                        .size = pointShadowBufferSize
-              })
-              // Declare shadow cube map textures here so they're allocated before shadow passes
-              .DeclareTransientResource(RenderResources::POINT_SHADOW_CUBE_COLOR_0, shadowCubeColorDesc)
-              .DeclareTransientResource(RenderResources::POINT_SHADOW_CUBE_COLOR_1, shadowCubeColorDesc)
-              .DeclareTransientResource(RenderResources::POINT_SHADOW_CUBE_COLOR_2, shadowCubeColorDesc)
-              .DeclareTransientResource(RenderResources::POINT_SHADOW_CUBE_COLOR_3, shadowCubeColorDesc)
-              .DeclareTransientResource(RenderResources::POINT_SHADOW_CUBE_DEPTH_0, shadowCubeDepthDesc)
-              .DeclareTransientResource(RenderResources::POINT_SHADOW_CUBE_DEPTH_1, shadowCubeDepthDesc)
-              .DeclareTransientResource(RenderResources::POINT_SHADOW_CUBE_DEPTH_2, shadowCubeDepthDesc)
-              .DeclareTransientResource(RenderResources::POINT_SHADOW_CUBE_DEPTH_3, shadowCubeDepthDesc)
-              .UseResource(Lighting::LIGHT_BUFFER, AccessType::Write)
-              .UseResource(Lighting::LIGHTING_BUFFER, AccessType::Write)
-              .UseResource(Lighting::POINT_SHADOW_BUFFER, AccessType::Write)
-              // Read shadow cube textures to get their bindless indices for shadowMapIndex
-              .UseResource(RenderResources::POINT_SHADOW_CUBE_COLOR_0, AccessType::Read)
-              .UseResource(RenderResources::POINT_SHADOW_CUBE_COLOR_1, AccessType::Read)
-              .UseResource(RenderResources::POINT_SHADOW_CUBE_COLOR_2, AccessType::Read)
-              .UseResource(RenderResources::POINT_SHADOW_CUBE_COLOR_3, AccessType::Read)
-              .SetPriority(internal::RenderPassBuilder::PassPriority::EarlySetup)
-              .AddGenericPass(
-                  "LightingSetup", [this](internal::ExecutionContext& ctx)
-                  {
-                      executeLightingSetup(ctx);
-                  });
-
-  // Shadow cube map resource names (must match RenderResources constants)
-  const char* shadowColorNames[Lighting::MAX_SHADOW_POINT_LIGHTS] = {
-      RenderResources::POINT_SHADOW_CUBE_COLOR_0,
-      RenderResources::POINT_SHADOW_CUBE_COLOR_1,
-      RenderResources::POINT_SHADOW_CUBE_COLOR_2,
-      RenderResources::POINT_SHADOW_CUBE_COLOR_3,
-  };
-  const char* shadowDepthNames[Lighting::MAX_SHADOW_POINT_LIGHTS] = {
-      RenderResources::POINT_SHADOW_CUBE_DEPTH_0,
-      RenderResources::POINT_SHADOW_CUBE_DEPTH_1,
-      RenderResources::POINT_SHADOW_CUBE_DEPTH_2,
-      RenderResources::POINT_SHADOW_CUBE_DEPTH_3,
-  };
-
-  // Create shadow passes for each potential shadow-casting point light
-  for (uint32_t i = 0; i < Lighting::MAX_SHADOW_POINT_LIGHTS; i++)
-  {
-      PassDeclarationInfo shadowPassInfo;
-      shadowPassInfo.framebufferDebugName = "PointShadowPass";
-      shadowPassInfo.colorAttachments[0] = {
-          .textureName = shadowColorNames[i],
-          .loadOp = vk::LoadOp::Clear,
-          .storeOp = vk::StoreOp::Store,
-          .clearColor = {1000.0f, 1000.0f, 1000.0f, 1000.0f},  // Large value = no occluder
-      };
-      shadowPassInfo.depthAttachment = {
-          .textureName = shadowDepthNames[i],
-          .loadOp = vk::LoadOp::Clear,
-          .storeOp = vk::StoreOp::DontCare,
-          .clearDepth = 1.0f,
-      };
-      // Enable multiview rendering - all 6 cube faces in one draw
-      shadowPassInfo.layerCount = 6;
-      shadowPassInfo.viewMask = 0b111111;  // All 6 views active
-
-      passBuilder.CreatePass()
-          // Resources already declared in LightingSetup, just use them
-          .UseResource(shadowColorNames[i], AccessType::Write)
-          .UseResource(shadowDepthNames[i], AccessType::Write)
-          .UseResource(RenderResources::VERTEX_BUFFER, AccessType::Read)
-          .UseResource(RenderResources::SKINNED_VERTEX_BUFFER, AccessType::Read)
-          .UseResource(RenderResources::INDEX_BUFFER, AccessType::Read)
-          .UseResource("ObjectTransforms", AccessType::Read)
-          .UseResource("DrawDataBuffer", AccessType::Read)
-          .UseResource(RenderResources::MATERIAL_BUFFER, AccessType::Read)
-          .UseResource("IndirectBufferOpaqueStatic", AccessType::Read)
-          .UseResource("IndirectBufferOpaqueAnimated", AccessType::Read)
-          .UseResource("IndirectBufferTransparentStatic", AccessType::Read)
-          .UseResource("IndirectBufferTransparentAnimated", AccessType::Read)
-          .UseResource(RenderResources::MESH_DECOMPRESSION_BUFFER, AccessType::Read)
-          .UseResource(Lighting::POINT_SHADOW_BUFFER, AccessType::Read)
-          .SetPriority(internal::RenderPassBuilder::PassPriority::ShadowMap)
-          .ExecuteAfter("LightingSetup")
-          .ExecuteAfter("MeshDeformation")
-          .AddGraphicsPass(
-              (std::string("PointShadowPass") + std::to_string(i)).c_str(),
-              shadowPassInfo,
-              [this, i](internal::ExecutionContext& ctx) {
-                  ExecutePointShadowPass(ctx, i);
-              });
-  }
-
-  {
-    PassDeclarationInfo depthPrepassInfo;
-    depthPrepassInfo.framebufferDebugName = "DepthPrepass";
-    depthPrepassInfo.depthAttachment = {
-        .textureName = RenderResources::SCENE_DEPTH,
-        .loadOp = vk::LoadOp::Clear,
-        .storeOp = vk::StoreOp::Store,
-        .clearDepth = 1.0f
-    };
-    depthPrepassInfo.colorAttachments[0] = {
-        .textureName = "VisibilityBuffer",
-        .loadOp = vk::LoadOp::Clear,
-        .storeOp = vk::StoreOp::Store
-    };
-
-    passBuilder.CreatePass()
-        .DeclareTransientResource(
-            "VisibilityBuffer",
-            vk::TextureDesc{
-                .type = vk::TextureType::Tex2D,
-                .format = vk::Format::R_UI32,
-                // Use fixed internal resolution to avoid recompilation on window resize
-                .dimensions = ResourceProperties::INTERNAL_RESOLUTION_DIMENSIONS,
-                .usage = vk::TextureUsageBits_Attachment | vk::TextureUsageBits_Sampled
-            })
-        .UseResource("ObjectTransforms", AccessType::Read)
-        .UseResource("DrawDataBuffer", AccessType::Read)
-        .UseResource("IndirectBufferOpaqueStatic", AccessType::Read)
-        .UseResource("IndirectBufferOpaqueAnimated", AccessType::Read)
-        .UseResource(RenderResources::FRAME_CONSTANTS, AccessType::Read)
-        .UseResource(RenderResources::VERTEX_BUFFER, AccessType::Read)
-        .UseResource(RenderResources::SKINNED_VERTEX_BUFFER, AccessType::Read)
-        .UseResource(RenderResources::INDEX_BUFFER, AccessType::Read)
-        .UseResource(RenderResources::MESH_DECOMPRESSION_BUFFER, AccessType::Read)
-        .UseResource(RenderResources::SCENE_DEPTH, AccessType::Write)
-        .UseResource("VisibilityBuffer", AccessType::Write)
-        .SetPriority(static_cast<internal::RenderPassBuilder::PassPriority>(
-            static_cast<int>(internal::RenderPassBuilder::PassPriority::Opaque) - 1))
-        .ExecuteAfter("SceneCulling")
-        .AddGraphicsPass(
-            "DepthPrepass",
-            depthPrepassInfo,
-            [this](internal::ExecutionContext& ctx) {
-                ExecuteDepthPrepass(ctx);
-            });
-  }
-
-  // OBJECT PICKING READBACK PASS - only registered if object picking is enabled
-  if (m_enableObjectPicking)
-  {
-    passBuilder.CreatePass()
-        .UseResource("VisibilityBuffer", AccessType::Read)
-        .SetPriority(static_cast<internal::RenderPassBuilder::PassPriority>(
-            static_cast<int>(internal::RenderPassBuilder::PassPriority::Opaque) - 1))
-        .ExecuteAfter("DepthPrepass")
-        .AddGenericPass(
-            "ObjectPickingReadback",
-            [this](internal::ExecutionContext& ctx) {
-                ProcessPendingPick(ctx);
-            });
-  }
-
-  PassDeclarationInfo opaquePass;
-  opaquePass.framebufferDebugName = "OpaqueScene";
-  opaquePass.colorAttachments[0] = {
-      .textureName = RenderResources::SCENE_COLOR,
-      .loadOp = vk::LoadOp::Load,         // Changed from Clear
-      .storeOp = vk::StoreOp::Store
-  };
-  opaquePass.depthAttachment = {
-      .textureName = RenderResources::SCENE_DEPTH,
-      .loadOp = vk::LoadOp::Load,         // Changed from Clear
-      .storeOp = vk::StoreOp::Store
-  };
-  passBuilder.CreatePass().UseResource("ObjectTransforms", AccessType::Read).
-    UseResource("DrawDataBuffer", AccessType::Read).
-    UseResource("IndirectBufferOpaqueStatic", AccessType::Read).
-    UseResource("IndirectBufferOpaqueAnimated", AccessType::Read).
-    UseResource(RenderResources::FRAME_CONSTANTS, AccessType::Read).
-    UseResource(RenderResources::VERTEX_BUFFER, AccessType::Read).
-    UseResource(RenderResources::SKINNED_VERTEX_BUFFER, AccessType::Read).
-    UseResource(RenderResources::INDEX_BUFFER, AccessType::Read).
-    UseResource(RenderResources::MATERIAL_BUFFER, AccessType::Read).
-    UseResource(RenderResources::MESH_DECOMPRESSION_BUFFER, AccessType::Read).
-    UseResource(Lighting::LIGHTING_BUFFER, AccessType::Read).
-    UseResource(RenderResources::SCENE_COLOR, AccessType::Write).
-    UseResource(RenderResources::SCENE_DEPTH, AccessType::ReadWrite).
-    UseResource("VisibilityBuffer", AccessType::Read).
-    // Point light shadow cube maps - creates dependency so shadow passes aren't culled
-    UseResource(RenderResources::POINT_SHADOW_CUBE_COLOR_0, AccessType::Read).
-    UseResource(RenderResources::POINT_SHADOW_CUBE_COLOR_1, AccessType::Read).
-    UseResource(RenderResources::POINT_SHADOW_CUBE_COLOR_2, AccessType::Read).
-    UseResource(RenderResources::POINT_SHADOW_CUBE_COLOR_3, AccessType::Read).
-    SetPriority(internal::RenderPassBuilder::PassPriority::Opaque).
-    ExecuteAfter("DepthPrepass").
-    AddGraphicsPass(
-      "SceneOpaque",
-      opaquePass,
-      [this](internal::ExecutionContext& ctx)
-  {
-    ExecuteOpaquePass(ctx);
-  });
-  passBuilder.CreatePass().UseResource("ObjectTransforms", AccessType::Read)
-    .UseResource("DrawDataBuffer", AccessType::Read)
-    .UseResource("IndirectBufferTransparentStatic", AccessType::Read)
-    .UseResource("IndirectBufferTransparentAnimated", AccessType::Read)
-    .UseResource(RenderResources::FRAME_CONSTANTS, AccessType::Read)
-    .UseResource(RenderResources::VERTEX_BUFFER, AccessType::Read)
-    .UseResource(RenderResources::SKINNED_VERTEX_BUFFER, AccessType::Read)
-    .UseResource(RenderResources::INDEX_BUFFER, AccessType::Read)
-    .UseResource(RenderResources::MATERIAL_BUFFER, AccessType::Read)
-    .UseResource(RenderResources::MESH_DECOMPRESSION_BUFFER, AccessType::Read)
-    .UseResource(Lighting::LIGHTING_BUFFER, AccessType::Read)
-    .UseResource(RenderResources::SCENE_DEPTH, AccessType::Read)
-    // Read depth for testing
-    .UseResource(OITResources::HEAD_TEXTURE, AccessType::ReadWrite)
-    // OIT head pointers
-    .UseResource(OITResources::FRAGMENT_BUFFER, AccessType::Write)
-    // OIT fragment storage
-    .UseResource(OITResources::ATOMIC_COUNTER, AccessType::ReadWrite)
-    // Fragment allocation counter
-    .SetPriority(
-      internal::RenderPassBuilder::PassPriority::Transparent).
-    AddGraphicsPass(
-      "SceneTransparent",
-      PassDeclarationInfo{
-        .depthAttachment = {
-          .textureName = RenderResources::SCENE_DEPTH,
-          .loadOp = vk::LoadOp::Load,
-          .storeOp = vk::StoreOp::Store // Preserve for later passes
-        } },
-      [this](internal::ExecutionContext& context)
-  {
-    ExecuteTransparentPass(context);
-  });
-  PassDeclarationInfo skyboxPassInfo;
-  skyboxPassInfo.framebufferDebugName = "Skybox";
-  skyboxPassInfo.colorAttachments[0] = {
-      .textureName = RenderResources::SCENE_COLOR,
-      .loadOp = vk::LoadOp::Clear,        // Clear color here
-      .storeOp = vk::StoreOp::Store
-  };
-  skyboxPassInfo.depthAttachment = {
-      .textureName = RenderResources::SCENE_DEPTH,
-      .loadOp = vk::LoadOp::Clear,        // Clear depth here (before depth prepass)
-      .storeOp = vk::StoreOp::Store,
-      .clearDepth = 1.0f
-  };
   passBuilder.CreatePass()
     .UseResource(RenderResources::SCENE_COLOR, AccessType::Write)
-    .UseResource(RenderResources::SCENE_DEPTH, AccessType::Write) // Write depth
-    .SetPriority(static_cast<internal::RenderPassBuilder::PassPriority>(static_cast<int>(internal::RenderPassBuilder::PassPriority::Opaque) - 2)) // Before depth prepass
-    .AddGraphicsPass(
-      "Skybox",
-      skyboxPassInfo,
-      [this](internal::ExecutionContext& ctx) {
-    ExecuteSkyboxPass(ctx);
-  });
+    .UseResource(RenderResources::SCENE_DEPTH, AccessType::Read)  // Reads depth as texture, not attachment
+    .SetPriority(internal::RenderPassBuilder::PassPriority::PostProcess)
+    .ExecuteAfter("SceneGBuffer")
+    .AddGraphicsPass("SceneComposite", compositePassInfo, [this](const internal::ExecutionContext& ctx) {
+      // Const cast needed because ExecuteCompositePass modifies internal state
+      ExecuteCompositePass(const_cast<internal::ExecutionContext&>(ctx));
+    });
 
-};
-
-void SceneRenderFeature::ExecuteDeformationPass(internal::ExecutionContext& ctx)
-{
-  const auto& params = *static_cast<const SceneRenderParams*>(GetParameterBlock_RT());
-
-  if(params.animatedInstances.empty() || params.usedAnimatedVertexBytes == 0)
-    return;
-
-  auto& cmd = ctx.GetvkCommandBuffer();
-
-  const size_t requiredBytes = params.usedAnimatedVertexBytes;
-  if(ctx.GetBufferSize(RenderResources::SKINNED_VERTEX_BUFFER) < requiredBytes)
-    ctx.ResizeBuffer(RenderResources::SKINNED_VERTEX_BUFFER, requiredBytes);
-
-  EnsureDeformationPipeline(ctx);
-
-  const size_t boneMatrixSize = params.boneMatrices.size() * sizeof(mat4);
-  if(boneMatrixSize > 0)
-  {
-    if(boneMatrixSize > ctx.GetBufferSize(RenderResources::ANIM_BONE_BUFFER))
-      ctx.ResizeBuffer(RenderResources::ANIM_BONE_BUFFER, boneMatrixSize);
-
-    ctx.GetvkContext().upload(
-      ctx.GetBuffer(RenderResources::ANIM_BONE_BUFFER),
-      params.boneMatrices.data(),
-      boneMatrixSize);
-  }
-
-  const size_t morphWeightSize = params.morphWeights.size() * sizeof(float);
-  if(morphWeightSize > 0)
-  {
-    if(morphWeightSize > ctx.GetBufferSize(RenderResources::ANIM_MORPH_BUFFER))
-      ctx.ResizeBuffer(RenderResources::ANIM_MORPH_BUFFER, morphWeightSize);
-
-    ctx.GetvkContext().upload(
-      ctx.GetBuffer(RenderResources::ANIM_MORPH_BUFFER),
-      params.morphWeights.data(),
-      morphWeightSize);
-  }
-
-  std::vector<GPUAnimatedInstance> gpuInstances;
-  gpuInstances.reserve(params.animatedInstances.size());
-  for(const auto& instance : params.animatedInstances)
-  {
-    if(instance.vertexCount == 0)
-      continue;
-
-    GPUAnimatedInstance gpu{
-      .baseInfo = glm::uvec4(instance.srcBaseVertex,
-                             instance.dstBaseVertex,
-                             instance.vertexCount,
-                             instance.meshDecompIndex),
-      .skinningInfo = glm::uvec4(instance.skinningOffset,
-                                 instance.boneMatrixOffset,
-                                 instance.jointCount,
-                                 instance.morphStateOffset),
-      .morphInfo = glm::uvec4(instance.morphDeltaOffset,
-                              instance.morphVertexBaseOffset,
-                              instance.morphVertexCountOffset,
-                              packMorphCounts(instance.morphTargetCount, instance.morphDeltaCount)) };
-    gpuInstances.push_back(gpu);
-  }
-
-  if(gpuInstances.empty())
-    return;
-
-  const size_t instanceBufferSize = gpuInstances.size() * sizeof(GPUAnimatedInstance);
-  if(instanceBufferSize > ctx.GetBufferSize(RenderResources::ANIM_INSTANCE_BUFFER))
-    ctx.ResizeBuffer(RenderResources::ANIM_INSTANCE_BUFFER, instanceBufferSize);
-
-  ctx.GetvkContext().upload(
-    ctx.GetBuffer(RenderResources::ANIM_INSTANCE_BUFFER),
-    gpuInstances.data(),
-    instanceBufferSize);
-
-  struct DeformationPushConstants
-  {
-    uint64_t bindPose;
-    uint64_t skinned;
-    uint64_t skinning;
-    uint64_t morphDelta;
-    uint64_t morphBase;
-    uint64_t morphCount;
-    uint64_t morphWeights;
-    uint64_t boneMatrices;
-    uint64_t instanceBuffer;
-    uint64_t meshDecomp;
-    uint32_t instanceCount;
-    uint32_t padding;
-  } pushConstants = {
-    .bindPose = ctx.GetvkContext().gpuAddress(ctx.GetBuffer(RenderResources::VERTEX_BUFFER)),
-    .skinned = ctx.GetvkContext().gpuAddress(ctx.GetBuffer(RenderResources::SKINNED_VERTEX_BUFFER)),
-    .skinning = ctx.GetvkContext().gpuAddress(ctx.GetBuffer(RenderResources::SKINNING_BUFFER)),
-    .morphDelta = ctx.GetvkContext().gpuAddress(ctx.GetBuffer(RenderResources::MORPH_DELTA_BUFFER)),
-    .morphBase = ctx.GetvkContext().gpuAddress(ctx.GetBuffer(RenderResources::MORPH_VERTEX_BASE_BUFFER)),
-    .morphCount = ctx.GetvkContext().gpuAddress(ctx.GetBuffer(RenderResources::MORPH_VERTEX_COUNT_BUFFER)),
-    .morphWeights = morphWeightSize > 0 ? ctx.GetvkContext().gpuAddress(ctx.GetBuffer(RenderResources::ANIM_MORPH_BUFFER)) : 0ull,
-    .boneMatrices = boneMatrixSize > 0 ? ctx.GetvkContext().gpuAddress(ctx.GetBuffer(RenderResources::ANIM_BONE_BUFFER)) : 0ull,
-    .instanceBuffer = ctx.GetvkContext().gpuAddress(ctx.GetBuffer(RenderResources::ANIM_INSTANCE_BUFFER)),
-    .meshDecomp = ctx.GetvkContext().gpuAddress(ctx.GetBuffer(RenderResources::MESH_DECOMPRESSION_BUFFER)),
-    .instanceCount = static_cast<uint32_t>(gpuInstances.size()),
-    .padding = 0u
-  };
-
-  cmd.cmdBindComputePipeline(m_deformationPipeline);
-  cmd.cmdPushConstants(pushConstants);
-  cmd.cmdDispatchThreadGroups({ static_cast<uint32_t>(gpuInstances.size()), 1, 1 });
+  LOG_INFO("[SceneRenderFeature] SetupPasses - registered G-buffer and composite passes");
 }
 
-void SceneRenderFeature::ExecuteCullingPass(internal::ExecutionContext& ctx)
+void SceneRenderFeature::ExecuteGBufferPass(internal::ExecutionContext& ctx)
 {
-  const auto& params = *static_cast<const SceneRenderParams*>(
-    GetParameterBlock_RT());
-  EnsureComputePipeline(ctx);
+  GfxRenderer* gfxRenderer = ctx.GetGfxRenderer();
+  if (!gfxRenderer) return;
 
-  const size_t objectCount = params.getObjectCount();
-  const size_t drawCommandCount = params.getDrawCommandCount();
-  const uint32_t opaqueStaticCount = params.opaqueStaticCount;
-  const uint32_t opaqueAnimatedCount = params.opaqueAnimatedCount;
-  const uint32_t transparentStaticCount = params.transparentStaticCount;
-  const uint32_t transparentAnimatedCount = params.transparentAnimatedCount;
-  const uint32_t opaqueCount = opaqueStaticCount + opaqueAnimatedCount;
-  const uint32_t transparentCount = transparentStaticCount + transparentAnimatedCount;
+  // Ensure pipeline and persistent resources are created
+  if (!EnsurePipelineCreated(gfxRenderer)) return;
 
-  auto zeroIndirectBuffer = [&](const char* resourceName)
-  {
-    const uint32_t zero = 0;
-    ctx.GetvkContext().upload(ctx.GetBuffer(resourceName), &zero, sizeof(uint32_t));
-  };
+  gfx::Cmd* cmd = ctx.GetCmd();
 
-  if(objectCount == 0)
-  {
-    zeroIndirectBuffer("IndirectBufferOpaqueStatic");
-    zeroIndirectBuffer("IndirectBufferOpaqueAnimated");
-    zeroIndirectBuffer("IndirectBufferTransparentStatic");
-    zeroIndirectBuffer("IndirectBufferTransparentAnimated");
-    return;
-  }
+  // G-buffer color targets from GfxRenderer
+  const auto& gbuffer = gfxRenderer->getGBuffer();
 
-  const size_t requiredTransformsSize = objectCount * sizeof(mat4);
-  const size_t requiredBoundsSize = objectCount * sizeof(BoundingBox);
-  const size_t requiredDrawDataSize = drawCommandCount * sizeof(DrawData);
+  // Use SCENE_DEPTH from RenderGraph (shared with Grid/Im3d/UI2D)
+  gfx::Texture sceneDepth = ctx.GetTexture(RenderResources::SCENE_DEPTH);
+  gfx::TextureView sceneDepthView = hina_texture_get_default_view(sceneDepth);
 
-  auto ensureIndirectCapacity = [&](const char* resourceName, uint32_t count)
-  {
-    const size_t requiredSize = sizeof(uint32_t) +
-      static_cast<size_t>(count) * sizeof(DrawIndexedIndirectCommand);
-    if(requiredSize > ctx.GetBufferSize(resourceName))
-      ctx.ResizeBuffer(resourceName, requiredSize);
-  };
+  // Always clear the G-buffer to transition textures out of UNDEFINED layout
+  // This ensures the composite pass can sample them even if nothing is drawn
+  hina_pass_action pass = {};
+  pass.colors[0].image = gbuffer.albedoView;
+  pass.colors[0].load_op = HINA_LOAD_OP_CLEAR;
+  pass.colors[0].store_op = HINA_STORE_OP_STORE;
 
-  ensureIndirectCapacity("IndirectBufferOpaqueStatic", opaqueStaticCount);
-  ensureIndirectCapacity("IndirectBufferOpaqueAnimated", opaqueAnimatedCount);
-  ensureIndirectCapacity("IndirectBufferTransparentStatic", transparentStaticCount);
-  ensureIndirectCapacity("IndirectBufferTransparentAnimated", transparentAnimatedCount);
+  pass.colors[1].image = gbuffer.normalView;
+  pass.colors[1].load_op = HINA_LOAD_OP_CLEAR;
+  pass.colors[1].store_op = HINA_STORE_OP_STORE;
+  pass.colors[1].clear_color[0] = 0.5f;
+  pass.colors[1].clear_color[1] = 0.5f;
 
-  // Resize buffers if they are not large enough. The render graph handles the details.
-  if(requiredTransformsSize > ctx.GetBufferSize("ObjectTransforms"))
-    ctx.ResizeBuffer("ObjectTransforms", requiredTransformsSize);
-  if(requiredBoundsSize > ctx.GetBufferSize("ObjectBounds"))
-    ctx.ResizeBuffer("ObjectBounds", requiredBoundsSize);
-  if(requiredDrawDataSize > ctx.GetBufferSize("DrawDataBuffer"))
-    ctx.ResizeBuffer("DrawDataBuffer", requiredDrawDataSize);
+  pass.colors[2].image = gbuffer.materialDataView;
+  pass.colors[2].load_op = HINA_LOAD_OP_CLEAR;
+  pass.colors[2].store_op = HINA_STORE_OP_STORE;
 
-  auto& cmd = ctx.GetvkCommandBuffer();
+  // Use SCENE_DEPTH (RenderGraph transient) instead of gbuffer.depthView
+  // This way Grid/Im3d/UI2D can use the same depth for overlay rendering
+  pass.depth.image = sceneDepthView;
+  pass.depth.load_op = HINA_LOAD_OP_CLEAR;
+  pass.depth.store_op = HINA_STORE_OP_STORE;
+  pass.depth.depth_clear = 1.0f;
 
-  // Upload frame constants
+  hina_cmd_begin_pass(cmd, &pass);
+
+  // Update frame UBO via persistently mapped pointer (HOST_COHERENT, no flush needed)
+  // Use camera matrices from FrameData (populated by ECS camera system), NOT from SceneRenderParams
   const FrameData& frameData = ctx.GetFrameData();
-  FrameConstantsGPU frameConstants = {
-    .viewProj = frameData.projMatrix * frameData.viewMatrix,
-    .cameraPos = vec4(frameData.cameraPos, 1.0f),
-    .screenDims = vec2(frameData.screenWidth, frameData.screenHeight),
-    .zNear = frameData.zNear,
-    .zFar = frameData.zFar
-  };
-  ctx.GetvkContext().upload(
-    ctx.GetBuffer(RenderResources::FRAME_CONSTANTS),
-    &frameConstants,
-    sizeof(FrameConstantsGPU));
 
-  // The rest of the function remains the same, but now it operates on correctly-sized buffers.
-  ctx.GetvkContext().upload(
-    ctx.GetBuffer("ObjectTransforms"),
-    params.objectTransforms.data(),
-    requiredTransformsSize);
-  ctx.GetvkContext().upload(
-    ctx.GetBuffer("ObjectBounds"),
-    params.objectBounds.data(),
-    requiredBoundsSize);
-  ctx.GetvkContext().upload(
-    ctx.GetBuffer("DrawDataBuffer"),
-    params.drawData.data(),
-    requiredDrawDataSize);
+  // projMatrix already has Vulkan Y-flip applied at source (UploadToPipeline)
+  glm::mat4 viewProj = frameData.projMatrix * frameData.viewMatrix;
+  std::memcpy(m_frameUBOMapped, &viewProj, sizeof(glm::mat4));
 
-  auto uploadIndirectCommands = [&](const char* resourceName,
-                                    const std::vector<DrawIndexedIndirectCommand>& commands)
-  {
-    vk::BufferHandle buffer = ctx.GetBuffer(resourceName);
-    const uint32_t count = static_cast<uint32_t>(commands.size());
-    ctx.GetvkContext().upload(buffer, &count, sizeof(uint32_t));
-    if(count > 0)
-    {
-      ctx.GetvkContext().upload(
-        buffer,
-        commands.data(),
-        commands.size() * sizeof(DrawIndexedIndirectCommand),
-        sizeof(uint32_t));
-    }
-  };
+  // Bind pipeline and persistent frame bind group
+  hina_cmd_bind_pipeline(cmd, m_gbufferPipeline.get());
+  hina_cmd_bind_group(cmd, 0, m_sceneBindGroup);
 
-  std::vector<DrawIndexedIndirectCommand> opaqueStaticCommands;
-  std::vector<DrawIndexedIndirectCommand> opaqueAnimatedCommands;
-  opaqueStaticCommands.reserve(opaqueStaticCount);
-  opaqueAnimatedCommands.reserve(opaqueAnimatedCount);
+  // Draw submitted meshes
+  if (!m_drawList.empty()) {
+    struct { glm::mat4 model; glm::vec4 baseColor; } pushConstants;
 
-  for(uint32_t i = 0; i < opaqueCount; ++i)
-  {
-    const uint32_t drawIndex = params.opaqueIndices[i];
-    const DrawIndexedIndirectCommand& drawCmd = params.drawCommands[drawIndex];
-    if(params.drawIsAnimated[drawIndex] != 0)
-      opaqueAnimatedCommands.push_back(drawCmd);
-    else
-      opaqueStaticCommands.push_back(drawCmd);
-  }
+    auto& meshStorage = gfxRenderer->getMeshStorage();
+    auto& materialSystem = gfxRenderer->getMaterialSystem();
 
-  std::vector<DrawIndexedIndirectCommand> transparentStaticCommands;
-  std::vector<DrawIndexedIndirectCommand> transparentAnimatedCommands;
-  transparentStaticCommands.reserve(transparentStaticCount);
-  transparentAnimatedCommands.reserve(transparentAnimatedCount);
+    for (const auto& draw : m_drawList) {
+      const gfx::GpuMesh* gpuMesh = meshStorage.get(draw.gfxMesh);
+      if (!gpuMesh || !gpuMesh->valid) continue;
 
-  for(uint32_t i = 0; i < transparentCount; ++i)
-  {
-    const uint32_t drawIndex = params.transparentIndices[i];
-    const DrawIndexedIndirectCommand& drawCmd = params.drawCommands[drawIndex];
-    if(params.drawIsAnimated[drawIndex] != 0)
-      transparentAnimatedCommands.push_back(drawCmd);
-    else
-      transparentStaticCommands.push_back(drawCmd);
-  }
+      // Bind split vertex streams with offsets
+      hina_vertex_input meshInput = {};
+      meshInput.vertex_buffers[0] = gpuMesh->vertexBuffer;
+      meshInput.vertex_offsets[0] = gpuMesh->vertexOffset;
+      meshInput.vertex_buffers[1] = gpuMesh->attributeBuffer;
+      meshInput.vertex_offsets[1] = gpuMesh->attributeOffset;
+      meshInput.index_buffer = gpuMesh->indexBuffer;
+      meshInput.index_type = HINA_INDEX_UINT32;
 
-  uploadIndirectCommands("IndirectBufferOpaqueStatic", opaqueStaticCommands);
-  uploadIndirectCommands("IndirectBufferOpaqueAnimated", opaqueAnimatedCommands);
-  uploadIndirectCommands("IndirectBufferTransparentStatic", transparentStaticCommands);
-  uploadIndirectCommands("IndirectBufferTransparentAnimated", transparentAnimatedCommands);
+      hina_cmd_apply_vertex_input(cmd, &meshInput);
 
-  CullingData cullingData = {};
-  mat4 viewProj = frameData.projMatrix * frameData.viewMatrix;
-  getFrustumPlanes(viewProj, cullingData.frustumPlanes);
-  getFrustumCorners(viewProj, cullingData.frustumCorners);
-
-  const uint64_t drawDataAddress = ctx.GetvkContext().gpuAddress(ctx.GetBuffer("DrawDataBuffer"));
-  const uint64_t boundsAddress = ctx.GetvkContext().gpuAddress(ctx.GetBuffer("ObjectBounds"));
-
-  cmd.cmdBindComputePipeline(m_cullingPipeline);
-
-  auto dispatchCulling = [&](const char* resourceName, uint32_t commandCount)
-  {
-    if(commandCount == 0)
-      return;
-
-    cullingData.numMeshesToCull = commandCount;
-    cullingData.numVisibleMeshes = 0;
-    ctx.GetvkContext().upload(ctx.GetBuffer("CullingData"), &cullingData, sizeof(CullingData));
-    const uint64_t cullingAddress = ctx.GetvkContext().gpuAddress(ctx.GetBuffer("CullingData"));
-
-    struct
-    {
-      uint64_t commands;
-      uint64_t drawData;
-      uint64_t AABBs;
-      uint64_t frustum;
-    } pushConstants = {
-      .commands = ctx.GetvkContext().gpuAddress(ctx.GetBuffer(resourceName)),
-      .drawData = drawDataAddress,
-      .AABBs = boundsAddress,
-      .frustum = cullingAddress
-    };
-
-    cmd.cmdPushConstants(pushConstants);
-    const uint32_t numThreadGroups = (commandCount + 63) / 64;
-    cmd.cmdDispatchThreadGroups({ numThreadGroups });
-  };
-
-  dispatchCulling("IndirectBufferOpaqueStatic", opaqueStaticCount);
-  dispatchCulling("IndirectBufferOpaqueAnimated", opaqueAnimatedCount);
-  dispatchCulling("IndirectBufferTransparentStatic", transparentStaticCount);
-  dispatchCulling("IndirectBufferTransparentAnimated", transparentAnimatedCount);
-
-}
-
-void SceneRenderFeature::ExecuteDepthPrepass(internal::ExecutionContext& ctx)
-{
-    const auto& params = *static_cast<const SceneRenderParams*>(GetParameterBlock_RT());
-
-    EnsureDepthPrepassPipeline(ctx);
-
-    if (!m_depthPrepassPipeline.valid())
-        return;
-
-    const uint32_t staticCount = params.opaqueStaticCount;
-    const uint32_t animatedCount = params.opaqueAnimatedCount;
-    if(staticCount == 0 && animatedCount == 0)
-        return;
-    if(animatedCount > 0 && !m_depthPrepassAnimatedPipeline.valid())
-        return;
-
-    auto& cmd = ctx.GetvkCommandBuffer();
-
-    cmd.cmdBindIndexBuffer(ctx.GetBuffer(RenderResources::INDEX_BUFFER), vk::IndexFormat::UI32);
-    cmd.cmdBindRenderPipeline(m_depthPrepassPipeline);
-    cmd.cmdBindDepthState({
-        .compareOp = vk::CompareOp::Less,
-        .isDepthWriteEnabled = true
-    });
-
-    PushConstants pushConstants = {
-        .frameConstants = ctx.GetvkContext().gpuAddress(ctx.GetBuffer(RenderResources::FRAME_CONSTANTS)),
-        .bufferTransforms = ctx.GetvkContext().gpuAddress(ctx.GetBuffer("ObjectTransforms")),
-        .bufferDrawData = ctx.GetvkContext().gpuAddress(ctx.GetBuffer("DrawDataBuffer")),
-        .bufferMaterials = 0,  // Not used in depth prepass
-        .meshDecomp = ctx.GetvkContext().gpuAddress(ctx.GetBuffer(RenderResources::MESH_DECOMPRESSION_BUFFER)),
-        .oitBuffer = 0,
-        .lightingBuffer = 0,
-        .textureIndices = 0
-    };
-
-    if(staticCount > 0)
-    {
-      cmd.cmdPushConstants(pushConstants);
-      cmd.cmdBindVertexBuffer(0, ctx.GetBuffer(RenderResources::VERTEX_BUFFER));
-      cmd.cmdDrawIndexedIndirectCount(
-        ctx.GetBuffer("IndirectBufferOpaqueStatic"),
-        sizeof(uint32_t),
-        ctx.GetBuffer("IndirectBufferOpaqueStatic"),
-        0,
-        static_cast<uint32_t>(staticCount),
-        sizeof(DrawIndexedIndirectCommand));
-    }
-
-    if(animatedCount > 0)
-    {
-      cmd.cmdBindRenderPipeline(m_depthPrepassAnimatedPipeline);
-      cmd.cmdPushConstants(pushConstants);
-      cmd.cmdBindVertexBuffer(0, ctx.GetBuffer(RenderResources::SKINNED_VERTEX_BUFFER));
-      cmd.cmdDrawIndexedIndirectCount(
-        ctx.GetBuffer("IndirectBufferOpaqueAnimated"),
-        sizeof(uint32_t),
-        ctx.GetBuffer("IndirectBufferOpaqueAnimated"),
-        0,
-        static_cast<uint32_t>(animatedCount),
-        sizeof(DrawIndexedIndirectCommand));
-    }
-}
-
-void SceneRenderFeature::ExecuteOpaquePass(internal::ExecutionContext& ctx)
-{
-  const auto& params = *static_cast<const SceneRenderParams*>(
-    GetParameterBlock_RT());
-  EnsureRenderPipelines(ctx);
-  if(params.getOpaqueCount() == 0)
-    return;
-
-  const uint32_t staticCount = params.opaqueStaticCount;
-  const uint32_t animatedCount = params.opaqueAnimatedCount;
-
-  auto& cmd = ctx.GetvkCommandBuffer();
-
-  cmd.cmdBindIndexBuffer(
-    ctx.GetBuffer(RenderResources::INDEX_BUFFER),
-    vk::IndexFormat::UI32);
-  cmd.cmdBindDepthState(
-    { .compareOp = vk::CompareOp::LessEqual, .isDepthWriteEnabled = true });
-
-  PushConstants pushConstants = {
-    .frameConstants = ctx.GetvkContext().gpuAddress(ctx.GetBuffer(RenderResources::FRAME_CONSTANTS)),
-    .bufferTransforms = ctx.GetvkContext().gpuAddress(ctx.GetBuffer("ObjectTransforms")),
-    .bufferDrawData = ctx.GetvkContext().gpuAddress(ctx.GetBuffer("DrawDataBuffer")),
-    .bufferMaterials = ctx.GetvkContext().gpuAddress(ctx.GetBuffer(RenderResources::MATERIAL_BUFFER)),
-    .meshDecomp = ctx.GetvkContext().gpuAddress(ctx.GetBuffer(RenderResources::MESH_DECOMPRESSION_BUFFER)),
-    .oitBuffer = 0,  // Not used in opaque pass
-    .lightingBuffer = ctx.GetvkContext().gpuAddress(ctx.GetBuffer(Lighting::LIGHTING_BUFFER)),
-    .textureIndices = 0  // Reserved for future use
-  };
-
-  if(staticCount > 0)
-  {
-    cmd.cmdBindRenderPipeline(m_opaqueRenderPipeline);
-    cmd.cmdPushConstants(pushConstants);
-    cmd.cmdBindVertexBuffer(0, ctx.GetBuffer(RenderResources::VERTEX_BUFFER));
-    cmd.cmdDrawIndexedIndirectCount(
-      ctx.GetBuffer("IndirectBufferOpaqueStatic"),
-      sizeof(uint32_t),
-      ctx.GetBuffer("IndirectBufferOpaqueStatic"),
-      0,
-      staticCount,
-      sizeof(DrawIndexedIndirectCommand));
-  }
-
-  if(animatedCount > 0)
-  {
-    if(!m_opaqueAnimatedRenderPipeline.valid())
-      return;
-    cmd.cmdBindRenderPipeline(m_opaqueAnimatedRenderPipeline);
-    cmd.cmdPushConstants(pushConstants);
-    cmd.cmdBindVertexBuffer(0, ctx.GetBuffer(RenderResources::SKINNED_VERTEX_BUFFER));
-    cmd.cmdDrawIndexedIndirectCount(
-      ctx.GetBuffer("IndirectBufferOpaqueAnimated"),
-      sizeof(uint32_t),
-      ctx.GetBuffer("IndirectBufferOpaqueAnimated"),
-      0,
-      animatedCount,
-      sizeof(DrawIndexedIndirectCommand));
-  }
-}
-
-void SceneRenderFeature::ExecuteTransparentPass(internal::ExecutionContext& ctx)
-{
-  const auto& params = *static_cast<const SceneRenderParams*>(
-    GetParameterBlock_RT());
-  if(params.getTransparentCount() == 0)
-    return;
-
-  const uint32_t staticCount = params.transparentStaticCount;
-  const uint32_t animatedCount = params.transparentAnimatedCount;
-
-  auto& cmd = ctx.GetvkCommandBuffer();
-
-  cmd.cmdBindIndexBuffer(
-    ctx.GetBuffer(RenderResources::INDEX_BUFFER),
-    vk::IndexFormat::UI32);
-
-  cmd.cmdBindDepthState(
-    { .compareOp = vk::CompareOp::Less, .isDepthWriteEnabled = false });
-
-  // Same structure as opaque - OIT buffer contains all metadata
-  PushConstants pushConstants = {
-    .frameConstants = ctx.GetvkContext().gpuAddress(ctx.GetBuffer(RenderResources::FRAME_CONSTANTS)),
-    .bufferTransforms = ctx.GetvkContext().gpuAddress(ctx.GetBuffer("ObjectTransforms")),
-    .bufferDrawData = ctx.GetvkContext().gpuAddress(ctx.GetBuffer("DrawDataBuffer")),
-    .bufferMaterials = ctx.GetvkContext().gpuAddress(ctx.GetBuffer(RenderResources::MATERIAL_BUFFER)),
-    .meshDecomp = ctx.GetvkContext().gpuAddress(ctx.GetBuffer(RenderResources::MESH_DECOMPRESSION_BUFFER)),
-    .oitBuffer = ctx.GetvkContext().gpuAddress(ctx.GetBuffer(OITResources::OIT_BUFFER)),
-    .lightingBuffer = ctx.GetvkContext().gpuAddress(ctx.GetBuffer(Lighting::LIGHTING_BUFFER)),
-    .textureIndices = 0  // Reserved for future use
-  };
-
-  if(staticCount > 0)
-  {
-    cmd.cmdBindRenderPipeline(m_transparentRenderPipeline);
-    cmd.cmdPushConstants(pushConstants);
-    cmd.cmdBindVertexBuffer(0, ctx.GetBuffer(RenderResources::VERTEX_BUFFER));
-    cmd.cmdDrawIndexedIndirectCount(
-      ctx.GetBuffer("IndirectBufferTransparentStatic"),
-      sizeof(uint32_t),
-      ctx.GetBuffer("IndirectBufferTransparentStatic"),
-      0,
-      staticCount,
-      sizeof(DrawIndexedIndirectCommand));
-  }
-
-  if(animatedCount > 0)
-  {
-    if(!m_transparentAnimatedRenderPipeline.valid())
-      return;
-    cmd.cmdBindRenderPipeline(m_transparentAnimatedRenderPipeline);
-    cmd.cmdPushConstants(pushConstants);
-    cmd.cmdBindVertexBuffer(0, ctx.GetBuffer(RenderResources::SKINNED_VERTEX_BUFFER));
-    cmd.cmdDrawIndexedIndirectCount(
-      ctx.GetBuffer("IndirectBufferTransparentAnimated"),
-      sizeof(uint32_t),
-      ctx.GetBuffer("IndirectBufferTransparentAnimated"),
-      0,
-      animatedCount,
-      sizeof(DrawIndexedIndirectCommand));
-  }
-}
-
-void SceneRenderFeature::executeLightingSetup(internal::ExecutionContext& ctx)
-{
-    const auto& frameData = ctx.GetFrameData();
-    auto& params = *const_cast<SceneRenderParams*>(static_cast<const SceneRenderParams*>(GetParameterBlock_RT()));
-    // Get all the lighting buffers
-    vk::BufferHandle lightBuffer = ctx.GetBuffer(Lighting::LIGHT_BUFFER);
-    vk::BufferHandle clusterBounds = ctx.GetBuffer(Lighting::CLUSTER_BOUNDS);
-    vk::BufferHandle itemList = ctx.GetBuffer(Lighting::ITEM_LIST);
-    vk::BufferHandle clusterData = ctx.GetBuffer(Lighting::CLUSTER_DATA);
-    vk::BufferHandle lightingBuffer = ctx.GetBuffer(Lighting::LIGHTING_BUFFER);
-    vk::BufferHandle pointShadowBuffer = ctx.GetBuffer(Lighting::POINT_SHADOW_BUFFER);
-
-    if (params.activeLightCount > 0)
-    {
-        void* mapped = ctx.GetvkContext().getMappedPtr(lightBuffer);
-        std::memcpy(mapped, params.lights.data(), params.activeLightCount * sizeof(Lighting::GPULight));
-        ctx.GetvkContext().flushMappedMemory(lightBuffer, 0, params.activeLightCount * sizeof(Lighting::GPULight));
-    }
-
-    // Upload point light shadow data - first update shadowMapIndex with actual bindless indices
-    if (params.shadowPointLightCount > 0)
-    {
-        // Shadow cube map resource names
-        const char* shadowColorNames[Lighting::MAX_SHADOW_POINT_LIGHTS] = {
-            RenderResources::POINT_SHADOW_CUBE_COLOR_0,
-            RenderResources::POINT_SHADOW_CUBE_COLOR_1,
-            RenderResources::POINT_SHADOW_CUBE_COLOR_2,
-            RenderResources::POINT_SHADOW_CUBE_COLOR_3,
-        };
-
-        // Update shadowMapIndex with actual bindless texture indices
-        for (uint32_t i = 0; i < params.shadowPointLightCount; i++)
-        {
-            vk::TextureHandle shadowTex = ctx.GetTexture(shadowColorNames[i]);
-            if (shadowTex.valid())
-            {
-                params.pointLightShadows[i].shadowMapIndex = shadowTex.index();
-            }
+      // Bind material at Set 1 and get baseColor from material
+      gfx::BindGroup materialBG;
+      glm::vec4 baseColor = draw.baseColor;  // Default fallback
+      if (draw.hasMaterial && materialSystem.isMaterialValid(draw.gfxMaterial)) {
+        materialBG = materialSystem.getMaterialBindGroup(draw.gfxMaterial);
+        // Get actual baseColor from the material
+        const gfx::MaterialEntry* matEntry = materialSystem.getMaterial(draw.gfxMaterial);
+        if (matEntry) {
+          baseColor = matEntry->material.baseColor;
         }
-
-        void* mapped = ctx.GetvkContext().getMappedPtr(pointShadowBuffer);
-        std::memcpy(mapped, params.pointLightShadows.data(), 
-                    params.shadowPointLightCount * sizeof(Lighting::GPUPointLightShadow));
-        ctx.GetvkContext().flushMappedMemory(pointShadowBuffer, 0, 
-                    params.shadowPointLightCount * sizeof(Lighting::GPUPointLightShadow));
-    }
-
-    // Create lighting metadata buffer
-    Lighting::LightingBuffer lightingData = {
-      .bufferLights = ctx.GetvkContext().gpuAddress(lightBuffer),
-      .bufferClusterBounds = ctx.GetvkContext().gpuAddress(clusterBounds),
-      .bufferItemList = ctx.GetvkContext().gpuAddress(itemList),
-      .bufferClusters = ctx.GetvkContext().gpuAddress(clusterData),
-      .bufferPointShadows = ctx.GetvkContext().gpuAddress(pointShadowBuffer),
-      .screenDims = vec2(static_cast<float>(frameData.screenWidth),
-                         static_cast<float>(frameData.screenHeight)),
-      .zNear = frameData.zNear, .zFar = frameData.zFar,
-      .totalLightCount = params.activeLightCount,
-      .shadowPointLightCount = params.shadowPointLightCount,
-      .viewMatrix = frameData.viewMatrix
-    };
-    // Upload lighting metadata
-    void* mapped = ctx.GetvkContext().getMappedPtr(lightingBuffer);
-    std::memcpy(mapped, &lightingData, sizeof(Lighting::LightingBuffer));
-    ctx.GetvkContext().flushMappedMemory(lightingBuffer, 0, sizeof(Lighting::LightingBuffer));
-}
-
-
-// Add to scene_feature.cpp
-void SceneRenderFeature::executeClusterBoundsGeneration(internal::ExecutionContext& ctx)
-{
-    const auto& params = *static_cast<const SceneRenderParams*>(GetParameterBlock_RT());
-    if (params.activeLightCount == 0) return;
-    EnsureLightingPipelines(ctx);
-    const auto& frameData = ctx.GetFrameData();
-    auto& cmd = ctx.GetvkCommandBuffer();
-    float fovRadians = glm::radians(frameData.fovY);
-    float tanHalfFovY = tan(fovRadians * 0.5f);
-    struct ClusterBoundsPushConstants
-    {
-        uint64_t clusterBounds;
-        float screenWidth, screenHeight;
-        float zNear;
-        float zFar;
-        float tanHalfFovY;
-    } pushConstants = {
-        .clusterBounds = ctx.GetvkContext().gpuAddress(ctx.GetBuffer(Lighting::CLUSTER_BOUNDS)),
-        .screenWidth = static_cast<float>(frameData.screenWidth),
-        .screenHeight = static_cast<float>(frameData.screenHeight),
-        .zNear = frameData.zNear, .zFar = frameData.zFar,
-        .tanHalfFovY = tanHalfFovY
-    };
-    static_assert(sizeof(ClusterBoundsPushConstants) == 32, "ClusterBounds push constants must match GLSL layout");
-    cmd.cmdBindComputePipeline(m_clusterBoundsPipeline);
-    cmd.cmdPushConstants(pushConstants);
-    uint32_t groupsX = (Lighting::CLUSTER_DIM_X + 3) / 4;
-    uint32_t groupsY = (Lighting::CLUSTER_DIM_Y + 3) / 4;
-    uint32_t groupsZ = (Lighting::CLUSTER_DIM_Z + 3) / 4;
-    cmd.cmdDispatchThreadGroups({ groupsX, groupsY, groupsZ });
-}
-
-
-void SceneRenderFeature::executeLightCulling(internal::ExecutionContext& ctx)
-{
-    const auto& params = *static_cast<const SceneRenderParams*>(GetParameterBlock_RT());
-    if (params.activeLightCount == 0) return;
-    EnsureLightingPipelines(ctx);
-    const auto& frameData = ctx.GetFrameData();
-    auto& cmd = ctx.GetvkCommandBuffer();
-    // Reset atomic counter
-    vk::BufferHandle itemList = ctx.GetBuffer(Lighting::ITEM_LIST);
-    cmd.cmdFillBuffer(itemList, 0, sizeof(uint32_t), 0);
-    struct alignas(16) LightCullingPushConstants
-    {
-        uint64_t lights;
-        uint64_t clusterBounds;
-        uint64_t itemList;
-        uint64_t clusters;
-        mat4 viewMatrix;
-        uint32_t totalLightCount;
-    } pushConstants = {
-        .lights = ctx.GetvkContext().gpuAddress(ctx.GetBuffer(Lighting::LIGHT_BUFFER)),
-        .clusterBounds = ctx.GetvkContext().gpuAddress(ctx.GetBuffer(Lighting::CLUSTER_BOUNDS)),
-        .itemList = ctx.GetvkContext().gpuAddress(itemList),
-        .clusters = ctx.GetvkContext().gpuAddress(ctx.GetBuffer(Lighting::CLUSTER_DATA)),
-        .viewMatrix = frameData.viewMatrix,
-        .totalLightCount = params.activeLightCount
-    };
-    static_assert(sizeof(LightCullingPushConstants) == 112, "LightCulling push constants must match GLSL layout");
-    cmd.cmdBindComputePipeline(m_lightCullingPipeline);
-    cmd.cmdPushConstants(pushConstants);
-    // One thread per cluster
-    uint32_t groupsX = (Lighting::CLUSTER_DIM_X + 3) / 4;
-    uint32_t groupsY = (Lighting::CLUSTER_DIM_Y + 3) / 4;
-    uint32_t groupsZ = (Lighting::CLUSTER_DIM_Z + 3) / 4;
-    cmd.cmdDispatchThreadGroups({ groupsX, groupsY, groupsZ });
-}
-
-
-void SceneRenderFeature::EnsureLightingPipelines(internal::ExecutionContext& ctx)
-{
-    if (m_clusterBoundsPipeline.empty())
-    {
-        m_clusterBoundsShader = loadShaderModule(ctx.GetvkContext(), "shaders/cluster_bounds.comp");
-        vk::ComputePipelineDesc desc = { .smComp = m_clusterBoundsShader, .debugName = "ClusterBoundsPipeline" };
-        m_clusterBoundsPipeline = ctx.GetvkContext().createComputePipeline(desc);
-    }
-    if (m_lightCullingPipeline.empty())
-    {
-        m_lightCullingShader = loadShaderModule(ctx.GetvkContext(), "shaders/light_culling.comp");
-        vk::ComputePipelineDesc desc = { .smComp = m_lightCullingShader, .debugName = "LightCullingPipeline" };
-        m_lightCullingPipeline = ctx.GetvkContext().createComputePipeline(desc);
-    }
-}
-
-void SceneRenderFeature::ExecuteSkyboxPass(internal::ExecutionContext& ctx)
-{
-    const auto& params = *static_cast<const SceneRenderParams*>(GetParameterBlock_RT());
-
-    EnsureSkyboxPipeline(ctx);
-
-    const FrameData& frameData = ctx.GetFrameData();
-    auto& cmd = ctx.GetvkCommandBuffer();
-
-    cmd.cmdBindRenderPipeline(m_skyboxRenderPipeline);
-    cmd.cmdBindDepthState({
-        .compareOp = vk::CompareOp::LessEqual,  // Allow far plane
-        .isDepthWriteEnabled = false
-    });
-
-    // CRITICAL: Remove translation from view matrix
-    mat4 viewOnly = frameData.viewMatrix;
-    viewOnly[3][0] = 0.0f;  // Remove translation
-    viewOnly[3][1] = 0.0f;
-    viewOnly[3][2] = 0.0f;
-
-    // Precompute inverse on CPU
-    mat4 viewProj = frameData.projMatrix * viewOnly;
-    mat4 invViewProj = inverse(viewProj);
-
-    struct SkyboxPushConstants {
-        mat4 invViewProj;
-        vec4 cameraPos;
-        uint32_t environmentTexture;
-        float environmentIntensity;
-    } pushConstants = {
-        .invViewProj = invViewProj,
-        .cameraPos = vec4(frameData.cameraPos, 1.0f),
-        .environmentTexture = params.prefilterTexture,
-        .environmentIntensity = params.environmentIntensity
-    };
-
-    cmd.cmdPushConstants(pushConstants);
-    cmd.cmdDraw(3, 1, 0, 0); // 3 vertices for triangle
-}
-
-void SceneRenderFeature::convertSceneLight(const SceneLight& sceneLight,
-                                           Lighting::GPULight& gpuLight
-)
-{
-  // Convert position (already in world space)
-  gpuLight.position = sceneLight.position;
-
-  // Convert color and intensity
-  gpuLight.color = sceneLight.color * sceneLight.intensity;
-
-  // Convert type
-  gpuLight.type = static_cast<uint32_t>(sceneLight.type);
-
-  // Convert direction (normalize)
-  gpuLight.direction = normalize(sceneLight.direction);
-
-  // Calculate range based on attenuation
-  switch(sceneLight.type)
-  {
-    case LightType::Point:
-    case LightType::Spot:
-    {
-      // For point/spot lights, calculate range where light contribution becomes negligible
-      // Using the formula: range where attenuation drops to 1/256 of original intensity
-      const float minIntensity = 1.0f / 256.0f;
-      const float constant = sceneLight.attenuation.x;
-      const float linear = sceneLight.attenuation.y;
-      const float quadratic = sceneLight.attenuation.z;
-
-      if(quadratic > 0.0f)
-      {
-        // Solve quadratic equation: constant + linear*d + quadratic*d^2 = 1/minIntensity
-        float a = quadratic;
-        float b = linear;
-        float c = constant - (1.0f / minIntensity);
-        float discriminant = b * b - 4.0f * a * c;
-
-        if(discriminant >= 0.0f)
-          gpuLight.range = (-b + sqrt(discriminant)) / (2.0f * a);
-        else
-          gpuLight.range = 100.0f; // Fallback
+      } else {
+        materialBG = materialSystem.getMaterialBindGroup(materialSystem.getDefaultMaterial());
       }
-      else if(linear > 0.0f)
-      {
-        // Linear attenuation only
-        gpuLight.range = (1.0f / minIntensity - constant) / linear;
-      }
-      else
-      {
-        // Constant attenuation only - light never falls off
-        gpuLight.range = 1000.0f; // Large but finite range
-      }
+      hina_cmd_bind_group(cmd, 1, materialBG);
 
-      // Clamp to reasonable bounds
-      gpuLight.range = std::clamp(gpuLight.range, 0.1f, 1000.0f);
-      break;
+      // Update push constants for this draw
+      pushConstants.model = draw.transform;
+      pushConstants.baseColor = baseColor;  // Use material's baseColor if available
+      hina_cmd_push_constants(cmd, 0, sizeof(pushConstants), &pushConstants);
+
+      // Draw with index offset
+      hina_cmd_draw_indexed(cmd, gpuMesh->indexCount, 1, gpuMesh->indexOffset / sizeof(uint32_t), 0, 0);
     }
-
-    case LightType::Directional:
-      // Directional lights have infinite range
-      gpuLight.range = 10000.0f;
-      break;
-
-    case LightType::Area:
-      // Area lights - use a reasonable default for now
-      gpuLight.range = length(sceneLight.areaSize) * 10.0f;
-      break;
   }
 
-  // Convert spot light angle
-  if(sceneLight.type == LightType::Spot)
-    gpuLight.spotAngle = cos(sceneLight.outerConeAngle);
-  else
-    gpuLight.spotAngle = -1.0f; // Not a spot light
-}
-
-void SceneRenderFeature::EnsureSkyboxPipeline(internal::ExecutionContext& ctx) {
-    if (m_skyboxRenderPipeline.valid()) return;
-
-    m_skyboxVertShader = loadShaderModule(ctx.GetvkContext(), "shaders/skybox.vert");
-    m_skyboxFragShader = loadShaderModule(ctx.GetvkContext(), "shaders/skybox.frag");
-
-    vk::TextureHandle color = ctx.GetTexture(RenderResources::SCENE_COLOR);
-    vk::TextureHandle depth = ctx.GetTexture(RenderResources::SCENE_DEPTH);
-
-    vk::RenderPipelineDesc desc{
-        .vertexInput = {}, // No vertex input
-        .smVert = m_skyboxVertShader,
-        .smFrag = m_skyboxFragShader,
-        .color = {{
-            .format = ctx.GetvkContext().getFormat(color),
-            .blendEnabled = false
-        }},
-        .depthFormat = ctx.GetvkContext().getFormat(depth),
-        .cullMode = vk::CullMode::None,  // No culling for screen triangle
-        .samplesCount = sampleCount,
-        .debugName = "SkyboxPipeline"
-    };
-
-    m_skyboxRenderPipeline = ctx.GetvkContext().createRenderPipeline(desc);
-    if (!m_skyboxRenderPipeline.valid()) {
-        throw std::runtime_error("Failed to create skybox render pipeline");
-    }
-}
-
-void SceneRenderFeature::EnsureDepthPrepassPipeline(internal::ExecutionContext& ctx)
-{
-    if(m_depthPrepassPipeline.valid() && m_depthPrepassAnimatedPipeline.valid())
-        return;
-
-    auto& vkCtx = ctx.GetvkContext();
-
-    if(!m_depthPrepassVertShader.valid())
-        m_depthPrepassVertShader = loadShaderModule(vkCtx, "shaders/depth_prepass.vert");
-    if(!m_depthPrepassSkinnedVertShader.valid())
-        m_depthPrepassSkinnedVertShader = loadShaderModule(vkCtx, "shaders/depth_prepass_skinned.vert");
-    if(!m_depthPrepassFragShader.valid())
-        m_depthPrepassFragShader = loadShaderModule(vkCtx, "shaders/depth_prepass.frag");
-
-    if(!m_depthPrepassVertShader.valid() || !m_depthPrepassSkinnedVertShader.valid() || !m_depthPrepassFragShader.valid())
-        return;
-
-    vk::VertexInput staticInput;
-    staticInput.attributes[0] = {
-    .location = 0,
-    .binding = 0,
-    .format = vk::VertexFormat::Short3Norm,
-        .offset = offsetof(CompressedVertex, pos_x)
-    };
-    staticInput.attributes[1] = {
-    .location = 1,
-    .binding = 0,
-    .format = vk::VertexFormat::Short1Norm,
-        .offset = offsetof(CompressedVertex, normal_x)
-    };
-    staticInput.attributes[2] = {
-    .location = 2,
-    .binding = 0,
-    .format = vk::VertexFormat::R10G10B10A2_UNORM,
-        .offset = offsetof(CompressedVertex, packed)
-    };
-    staticInput.attributes[3] = {
-    .location = 3,
-    .binding = 0,
-    .format = vk::VertexFormat::UShort2Norm,
-        .offset = offsetof(CompressedVertex, uv_x)
-    };
-    staticInput.inputBindings[0].stride = sizeof(CompressedVertex);
-
-    vk::VertexInput skinnedInput;
-    skinnedInput.attributes[0] = {
-        .location = 0,
-        .binding = 0,
-        .format = vk::VertexFormat::Float3,
-        .offset = offsetof(SkinnedVertex, position)
-    };
-    skinnedInput.attributes[1] = {
-        .location = 1,
-        .binding = 0,
-        .format = vk::VertexFormat::UInt1,
-        .offset = offsetof(SkinnedVertex, uvPacked)
-    };
-    skinnedInput.attributes[2] = {
-        .location = 2,
-        .binding = 0,
-        .format = vk::VertexFormat::UInt1,
-        .offset = offsetof(SkinnedVertex, normalPacked)
-    };
-    skinnedInput.attributes[3] = {
-        .location = 3,
-        .binding = 0,
-        .format = vk::VertexFormat::UInt1,
-        .offset = offsetof(SkinnedVertex, tangentPacked)
-    };
-    skinnedInput.inputBindings[0].stride = sizeof(SkinnedVertex);
-
-    if(!m_depthPrepassPipeline.valid())
-    {
-        vk::RenderPipelineDesc desc = {
-            .vertexInput = staticInput,
-            .smVert = m_depthPrepassVertShader,
-            .smFrag = m_depthPrepassFragShader,
-            .color = {{
-                .format = vk::Format::R_UI32,
-                .blendEnabled = false
-            }},
-            .depthFormat = vk::Format::Z_F32,
-            .cullMode = vk::CullMode::Back,
-            .samplesCount = 1,
-            .minSampleShading = 0.0f,
-            .debugName = "DepthPrepassPipeline"
-        };
-
-        m_depthPrepassPipeline = vkCtx.createRenderPipeline(desc);
-        if(!m_depthPrepassPipeline.valid())
-            throw std::runtime_error("Failed to create depth prepass pipeline");
-    }
-
-    if(!m_depthPrepassAnimatedPipeline.valid())
-    {
-        vk::RenderPipelineDesc desc = {
-            .vertexInput = skinnedInput,
-            .smVert = m_depthPrepassSkinnedVertShader,
-            .smFrag = m_depthPrepassFragShader,
-            .color = {{
-                .format = vk::Format::R_UI32,
-                .blendEnabled = false
-            }},
-            .depthFormat = vk::Format::Z_F32,
-            .cullMode = vk::CullMode::Back,
-            .samplesCount = 1,
-            .minSampleShading = 0.0f,
-            .debugName = "DepthPrepassAnimatedPipeline"
-        };
-
-        m_depthPrepassAnimatedPipeline = vkCtx.createRenderPipeline(desc);
-        if(!m_depthPrepassAnimatedPipeline.valid())
-            throw std::runtime_error("Failed to create animated depth prepass pipeline");
-    }
-}
-
-void SceneRenderFeature::EnsureComputePipeline(internal::ExecutionContext& ctx)
-{
-  if(m_cullingPipeline.empty())
-  {
-    m_cullingShader = loadShaderModule(
-      ctx.GetvkContext(),
-      "shaders/culling.comp");
-    vk::ComputePipelineDesc desc = {
-      .smComp = m_cullingShader,
-      .debugName = "SceneCullingPipeline" };
-    m_cullingPipeline = ctx.GetvkContext().createComputePipeline(desc);
-    if(!m_cullingPipeline.valid())
-      throw std::runtime_error("Failed to create culling compute pipeline");
-  }
-}
-
-void SceneRenderFeature::EnsureRenderPipelines(internal::ExecutionContext& ctx)
-{
-  auto& vkCtx = ctx.GetvkContext();
-
-  if(!vertShader.valid())
-    vertShader = loadShaderModule(vkCtx, "shaders/object.vert");
-  if(!m_skinnedVertShader.valid())
-    m_skinnedVertShader = loadShaderModule(vkCtx, "shaders/object_skinned.vert");
-  if(!opaquefragShader.valid())
-    opaquefragShader = loadShaderModule(vkCtx, "shaders/opaque.frag");
-  if(!transparentfragShader.valid())
-    transparentfragShader = loadShaderModule(vkCtx, "shaders/transparent.frag");
-
-  vk::TextureHandle color = ctx.GetTexture(RenderResources::SCENE_COLOR);
-  vk::TextureHandle depth = ctx.GetTexture(RenderResources::SCENE_DEPTH);
-
-  vk::VertexInput staticInput;
-  staticInput.attributes[0] = {
-    .location = 0,
-    .binding = 0,
-    .format = vk::VertexFormat::Short3Norm,
-    .offset = offsetof(CompressedVertex, pos_x) };
-  staticInput.attributes[1] = {
-    .location = 1,
-    .binding = 0,
-    .format = vk::VertexFormat::Short1Norm,
-    .offset = offsetof(CompressedVertex, normal_x) };
-  staticInput.attributes[2] = {
-    .location = 2,
-    .binding = 0,
-    .format = vk::VertexFormat::R10G10B10A2_UNORM,
-    .offset = offsetof(CompressedVertex, packed) };
-  staticInput.attributes[3] = {
-    .location = 3,
-    .binding = 0,
-    .format = vk::VertexFormat::UShort2Norm,
-    .offset = offsetof(CompressedVertex, uv_x) };
-  staticInput.inputBindings[0].stride = sizeof(CompressedVertex);
-
-  vk::VertexInput animatedInput;
-  animatedInput.attributes[0] = {
-    .location = 0,
-    .binding = 0,
-    .format = vk::VertexFormat::Float3,
-    .offset = offsetof(SkinnedVertex, position) };
-  animatedInput.attributes[1] = {
-    .location = 1,
-    .binding = 0,
-    .format = vk::VertexFormat::UInt1,
-    .offset = offsetof(SkinnedVertex, uvPacked) };
-  animatedInput.attributes[2] = {
-    .location = 2,
-    .binding = 0,
-    .format = vk::VertexFormat::UInt1,
-    .offset = offsetof(SkinnedVertex, normalPacked) };
-  animatedInput.attributes[3] = {
-    .location = 3,
-    .binding = 0,
-    .format = vk::VertexFormat::UInt1,
-    .offset = offsetof(SkinnedVertex, tangentPacked) };
-  animatedInput.inputBindings[0].stride = sizeof(SkinnedVertex);
-
-  if(!m_opaqueRenderPipeline.valid())
-  {
-    vk::RenderPipelineDesc desc{};
-    desc.vertexInput = staticInput;
-    desc.smVert = vertShader;
-    desc.smFrag = opaquefragShader;
-    desc.color[0].format = color.valid() ? vkCtx.getFormat(color) : vk::Format::Invalid;
-    desc.depthFormat = depth.valid() ? vkCtx.getFormat(depth) : vk::Format::Invalid;
-    desc.cullMode = vk::CullMode::Back;
-    desc.samplesCount = sampleCount;
-    desc.minSampleShading = 0.0f;
-    desc.debugName = "SceneOpaquePipeline";
-
-    m_opaqueRenderPipeline = vkCtx.createRenderPipeline(desc);
-    if(!m_opaqueRenderPipeline.valid())
-      throw std::runtime_error("Failed to create opaque render pipeline");
-  }
-
-  if(!m_opaqueAnimatedRenderPipeline.valid())
-  {
-    vk::RenderPipelineDesc desc{};
-    desc.vertexInput = animatedInput;
-    desc.smVert = m_skinnedVertShader;
-    desc.smFrag = opaquefragShader;
-    desc.color[0].format = color.valid() ? vkCtx.getFormat(color) : vk::Format::Invalid;
-    desc.depthFormat = depth.valid() ? vkCtx.getFormat(depth) : vk::Format::Invalid;
-    desc.cullMode = vk::CullMode::Back;
-    desc.samplesCount = sampleCount;
-    desc.minSampleShading = 0.0f;
-    desc.debugName = "SceneOpaqueAnimatedPipeline";
-
-    m_opaqueAnimatedRenderPipeline = vkCtx.createRenderPipeline(desc);
-    if(!m_opaqueAnimatedRenderPipeline.valid())
-      throw std::runtime_error("Failed to create animated opaque pipeline");
-  }
-
-  if(!m_transparentRenderPipeline.valid())
-  {
-    vk::RenderPipelineDesc desc{};
-    desc.vertexInput = staticInput;
-    desc.smVert = vertShader;
-    desc.smFrag = transparentfragShader;
-    desc.depthFormat = depth.valid() ? vkCtx.getFormat(depth) : vk::Format::Invalid;
-    desc.cullMode = vk::CullMode::Back;
-    desc.samplesCount = sampleCount;
-    desc.minSampleShading = 0.0f;
-    if(color.valid())
-    {
-      desc.color[0].format = vkCtx.getFormat(color);
-      desc.color[0].blendEnabled = false;
-      desc.color[0].rgbBlendOp = vk::BlendOp::Add;
-      desc.color[0].alphaBlendOp = vk::BlendOp::Add;
-      desc.color[0].srcRGBBlendFactor = vk::BlendFactor::SrcAlpha;
-      desc.color[0].dstRGBBlendFactor = vk::BlendFactor::OneMinusSrcAlpha;
-      desc.color[0].srcAlphaBlendFactor = vk::BlendFactor::One;
-      desc.color[0].dstAlphaBlendFactor = vk::BlendFactor::OneMinusSrcAlpha;
-    }
-    desc.debugName = "SceneTransparentPipeline";
-
-    m_transparentRenderPipeline = vkCtx.createRenderPipeline(desc);
-    if(!m_transparentRenderPipeline.valid())
-      throw std::runtime_error("Failed to create transparent render pipeline");
-  }
-
-  if(!m_transparentAnimatedRenderPipeline.valid())
-  {
-    vk::RenderPipelineDesc desc{};
-    desc.vertexInput = animatedInput;
-    desc.smVert = m_skinnedVertShader;
-    desc.smFrag = transparentfragShader;
-    desc.depthFormat = depth.valid() ? vkCtx.getFormat(depth) : vk::Format::Invalid;
-    desc.cullMode = vk::CullMode::Back;
-    desc.samplesCount = sampleCount;
-    desc.minSampleShading = 0.0f;
-    if(color.valid())
-    {
-      desc.color[0].format = vkCtx.getFormat(color);
-      desc.color[0].blendEnabled = false;
-      desc.color[0].rgbBlendOp = vk::BlendOp::Add;
-      desc.color[0].alphaBlendOp = vk::BlendOp::Add;
-      desc.color[0].srcRGBBlendFactor = vk::BlendFactor::SrcAlpha;
-      desc.color[0].dstRGBBlendFactor = vk::BlendFactor::OneMinusSrcAlpha;
-      desc.color[0].srcAlphaBlendFactor = vk::BlendFactor::One;
-      desc.color[0].dstAlphaBlendFactor = vk::BlendFactor::OneMinusSrcAlpha;
-    }
-    desc.debugName = "SceneTransparentAnimatedPipeline";
-
-    m_transparentAnimatedRenderPipeline = vkCtx.createRenderPipeline(desc);
-    if(!m_transparentAnimatedRenderPipeline.valid())
-      throw std::runtime_error("Failed to create animated transparent render pipeline");
-  }
-}
-
-void SceneRenderFeature::EnsureDeformationPipeline(internal::ExecutionContext& ctx)
-{
-  if(m_deformationPipeline.empty())
-  {
-    m_deformationShader = loadShaderModule(
-      ctx.GetvkContext(),
-      "shaders/skinning.comp");
-    vk::ComputePipelineDesc desc = {
-      .smComp = m_deformationShader,
-      .debugName = "MeshDeformationPipeline" };
-    m_deformationPipeline = ctx.GetvkContext().createComputePipeline(desc);
-    if(!m_deformationPipeline.valid())
-      throw std::runtime_error("Failed to create deformation compute pipeline");
-  }
+  hina_cmd_end_pass(cmd);
 }
 
 const char* SceneRenderFeature::GetName() const
@@ -1746,335 +680,313 @@ const char* SceneRenderFeature::GetName() const
   return "SceneRenderFeature";
 }
 
-// ============================================================================
-// Point Light Shadow Mapping Implementation
-// ============================================================================
-
-void SceneRenderFeature::EnsurePointShadowPipeline(internal::ExecutionContext& ctx)
-{
-    if (m_pointShadowPipeline.valid() && m_pointShadowSkinnedPipeline.valid())
-        return;
-
-    // Load shaders if not already loaded
-    if (!m_pointShadowVertShader.valid())
-        m_pointShadowVertShader = loadShaderModule(ctx.GetvkContext(), "shaders/point_shadow.vert");
-    if (!m_pointShadowFragShader.valid())
-        m_pointShadowFragShader = loadShaderModule(ctx.GetvkContext(), "shaders/point_shadow.frag");
-    if (!m_pointShadowSkinnedVertShader.valid())
-        m_pointShadowSkinnedVertShader = loadShaderModule(ctx.GetvkContext(), "shaders/point_shadow_skinned.vert");
-
-    if (!m_pointShadowVertShader.valid() || !m_pointShadowFragShader.valid())
-        return;
-
-    // Static mesh vertex input layout (compressed format)
-    vk::VertexInput staticVertexInput;
-    staticVertexInput.attributes[0] = {
-        .location = 0,
-        .binding = 0,
-        .format = vk::VertexFormat::Short3Norm,
-        .offset = offsetof(CompressedVertex, pos_x) };
-    staticVertexInput.attributes[1] = {
-        .location = 1,
-        .binding = 0,
-        .format = vk::VertexFormat::Short1Norm,
-        .offset = offsetof(CompressedVertex, normal_x) };
-    staticVertexInput.attributes[2] = {
-        .location = 2,
-        .binding = 0,
-        .format = vk::VertexFormat::R10G10B10A2_UNORM,
-        .offset = offsetof(CompressedVertex, packed) };
-    staticVertexInput.attributes[3] = {
-        .location = 3,
-        .binding = 0,
-        .format = vk::VertexFormat::UShort2Norm,
-        .offset = offsetof(CompressedVertex, uv_x) };
-    staticVertexInput.inputBindings[0].stride = sizeof(CompressedVertex);
-
-    // Create static mesh shadow pipeline
-    if (!m_pointShadowPipeline.valid())
-    {
-        vk::RenderPipelineDesc pipelineDesc{};
-        pipelineDesc.topology = vk::Topology::Triangle;
-        pipelineDesc.vertexInput = staticVertexInput;
-        pipelineDesc.smVert = m_pointShadowVertShader;
-        pipelineDesc.smFrag = m_pointShadowFragShader;
-        pipelineDesc.color[0].format = vk::Format::R_F16;  // R16F for linear depth
-        pipelineDesc.depthFormat = vk::Format::Z_F32;
-        pipelineDesc.cullMode = vk::CullMode::None;  // Disable culling for shadow pass
-        pipelineDesc.frontFaceWinding = vk::WindingMode::CCW;
-        pipelineDesc.debugName = "PointShadowPipeline";
-
-        m_pointShadowPipeline = ctx.GetvkContext().createRenderPipeline(pipelineDesc);
-    }
-
-    // Skinned mesh vertex input layout (uncompressed format)
-    if (!m_pointShadowSkinnedPipeline.valid() && m_pointShadowSkinnedVertShader.valid())
-    {
-        vk::VertexInput skinnedVertexInput;
-        skinnedVertexInput.attributes[0] = {
-            .location = 0,
-            .binding = 0,
-            .format = vk::VertexFormat::Float3,
-            .offset = offsetof(SkinnedVertex, position) };
-        skinnedVertexInput.attributes[1] = {
-            .location = 1,
-            .binding = 0,
-            .format = vk::VertexFormat::UInt1,
-            .offset = offsetof(SkinnedVertex, uvPacked) };
-        skinnedVertexInput.attributes[2] = {
-            .location = 2,
-            .binding = 0,
-            .format = vk::VertexFormat::UInt1,
-            .offset = offsetof(SkinnedVertex, normalPacked) };
-        skinnedVertexInput.attributes[3] = {
-            .location = 3,
-            .binding = 0,
-            .format = vk::VertexFormat::UInt1,
-            .offset = offsetof(SkinnedVertex, tangentPacked) };
-        skinnedVertexInput.inputBindings[0].stride = sizeof(SkinnedVertex);
-
-        vk::RenderPipelineDesc pipelineDesc{};
-        pipelineDesc.topology = vk::Topology::Triangle;
-        pipelineDesc.vertexInput = skinnedVertexInput;
-        pipelineDesc.smVert = m_pointShadowSkinnedVertShader;
-        pipelineDesc.smFrag = m_pointShadowFragShader;  // Reuse same fragment shader
-        pipelineDesc.color[0].format = vk::Format::R_F16;
-        pipelineDesc.depthFormat = vk::Format::Z_F32;
-        pipelineDesc.cullMode = vk::CullMode::None;
-        pipelineDesc.frontFaceWinding = vk::WindingMode::CCW;
-        pipelineDesc.debugName = "PointShadowSkinnedPipeline";
-
-        m_pointShadowSkinnedPipeline = ctx.GetvkContext().createRenderPipeline(pipelineDesc);
-    }
-}
-
-void SceneRenderFeature::ExecutePointShadowPass(internal::ExecutionContext& ctx, uint32_t shadowLightIndex)
-{
-    const auto& params = *static_cast<const SceneRenderParams*>(GetParameterBlock_RT());
-
-    // Skip if this shadow light index is not active
-    if (shadowLightIndex >= params.shadowPointLightCount)
-        return;
-
-    // Skip if no geometry to render
-    const uint32_t animatedOpaqueCount = params.opaqueAnimatedCount;
-    const uint32_t animatedTransparentCount = params.transparentAnimatedCount;
-    const uint32_t staticTransparentCount = params.transparentStaticCount;
-    if (params.opaqueStaticCount == 0 && animatedOpaqueCount == 0 && 
-        staticTransparentCount == 0 && animatedTransparentCount == 0)
-        return;
-
-    EnsurePointShadowPipeline(ctx);
-    if (!m_pointShadowPipeline.valid())
-        return;
-
-    auto& cmd = ctx.GetvkCommandBuffer();
-
-    vk::BufferHandle pointShadowBuffer = ctx.GetBuffer(Lighting::POINT_SHADOW_BUFFER);
-
-    // Push constants layout matches the shadow vertex/fragment shaders
-    struct ShadowPushConstants {
-        uint64_t shadowFrameConstants;
-        uint64_t transforms;
-        uint64_t drawData;
-        uint64_t materials;
-        uint64_t meshDecomp;
-        uint64_t unused1;
-        uint64_t unused2;
-        uint64_t unused3;
-    } pushConstants = {
-        .shadowFrameConstants = ctx.GetvkContext().gpuAddress(pointShadowBuffer) + 
-                                shadowLightIndex * sizeof(Lighting::GPUPointLightShadow),
-        .transforms = ctx.GetvkContext().gpuAddress(ctx.GetBuffer("ObjectTransforms")),
-        .drawData = ctx.GetvkContext().gpuAddress(ctx.GetBuffer("DrawDataBuffer")),
-        .materials = ctx.GetvkContext().gpuAddress(ctx.GetBuffer(RenderResources::MATERIAL_BUFFER)),
-        .meshDecomp = ctx.GetvkContext().gpuAddress(ctx.GetBuffer(RenderResources::MESH_DECOMPRESSION_BUFFER)),
-        .unused1 = 0,
-        .unused2 = 0,
-        .unused3 = 0,
-    };
-
-    // Set viewport and scissor for shadow map size
-    vk::Viewport viewport = {
-        .x = 0.0f, .y = 0.0f,
-        .width = static_cast<float>(Lighting::SHADOW_MAP_SIZE),
-        .height = static_cast<float>(Lighting::SHADOW_MAP_SIZE),
-        .minDepth = 0.0f, .maxDepth = 1.0f
-    };
-    vk::ScissorRect scissor = {
-        .x = 0, .y = 0,
-        .width = Lighting::SHADOW_MAP_SIZE,
-        .height = Lighting::SHADOW_MAP_SIZE
-    };
-    cmd.cmdBindViewport(viewport);
-    cmd.cmdBindScissorRect(scissor);
-    cmd.cmdBindDepthState({.compareOp = vk::CompareOp::Less, .isDepthWriteEnabled = true});
-    cmd.cmdBindIndexBuffer(ctx.GetBuffer(RenderResources::INDEX_BUFFER), vk::IndexFormat::UI32);
-
-    // Draw static opaque geometry
-    if (params.opaqueStaticCount > 0)
-    {
-        cmd.cmdBindRenderPipeline(m_pointShadowPipeline);
-        cmd.cmdBindVertexBuffer(0, ctx.GetBuffer(RenderResources::VERTEX_BUFFER));
-        cmd.cmdPushConstants(pushConstants);
-
-        cmd.cmdDrawIndexedIndirectCount(
-            ctx.GetBuffer("IndirectBufferOpaqueStatic"),
-            sizeof(uint32_t),
-            ctx.GetBuffer("IndirectBufferOpaqueStatic"),
-            0,
-            params.opaqueStaticCount,
-            sizeof(DrawIndexedIndirectCommand));
-    }
-
-    // Draw static transparent geometry (for meshes incorrectly marked as transparent)
-    if (staticTransparentCount > 0)
-    {
-        cmd.cmdBindRenderPipeline(m_pointShadowPipeline);
-        cmd.cmdBindVertexBuffer(0, ctx.GetBuffer(RenderResources::VERTEX_BUFFER));
-        cmd.cmdPushConstants(pushConstants);
-
-        cmd.cmdDrawIndexedIndirectCount(
-            ctx.GetBuffer("IndirectBufferTransparentStatic"),
-            sizeof(uint32_t),
-            ctx.GetBuffer("IndirectBufferTransparentStatic"),
-            0,
-            staticTransparentCount,
-            sizeof(DrawIndexedIndirectCommand));
-    }
-
-    // Draw animated/skinned opaque geometry
-    if (animatedOpaqueCount > 0 && m_pointShadowSkinnedPipeline.valid())
-    {
-        cmd.cmdBindRenderPipeline(m_pointShadowSkinnedPipeline);
-        cmd.cmdBindVertexBuffer(0, ctx.GetBuffer(RenderResources::SKINNED_VERTEX_BUFFER));
-        cmd.cmdPushConstants(pushConstants);
-
-        cmd.cmdDrawIndexedIndirectCount(
-            ctx.GetBuffer("IndirectBufferOpaqueAnimated"),
-            sizeof(uint32_t),
-            ctx.GetBuffer("IndirectBufferOpaqueAnimated"),
-            0,
-            animatedOpaqueCount,
-            sizeof(DrawIndexedIndirectCommand));
-    }
-
-    // Draw animated/skinned transparent geometry
-    if (animatedTransparentCount > 0 && m_pointShadowSkinnedPipeline.valid())
-    {
-        cmd.cmdBindRenderPipeline(m_pointShadowSkinnedPipeline);
-        cmd.cmdBindVertexBuffer(0, ctx.GetBuffer(RenderResources::SKINNED_VERTEX_BUFFER));
-        cmd.cmdPushConstants(pushConstants);
-
-        cmd.cmdDrawIndexedIndirectCount(
-            ctx.GetBuffer("IndirectBufferTransparentAnimated"),
-            sizeof(uint32_t),
-            ctx.GetBuffer("IndirectBufferTransparentAnimated"),
-            0,
-            animatedTransparentCount,
-            sizeof(DrawIndexedIndirectCommand));
-    }
-}
-
 void SceneRenderFeature::RequestObjectPick(int screenX, int screenY)
 {
-    if (!m_enableObjectPicking)
-    {
-        LOG_ERROR("Object picking is not enabled for this SceneRenderFeature instance");
-        return;
-    }
-
-    m_pickRequest.screenX = screenX;
-    m_pickRequest.screenY = screenY;
-    m_pickRequest.pending = true;
+  std::lock_guard<std::mutex> lock(m_pickResultMutex);
+  m_pickRequest.screenX = screenX;
+  m_pickRequest.screenY = screenY;
+  m_pickRequest.pending = true;
 }
 
 SceneRenderFeature::PickResult SceneRenderFeature::GetLastPickResult() const
 {
-    if (!m_enableObjectPicking)
-    {
-        LOG_ERROR("Object picking is not enabled for this SceneRenderFeature instance");
-        return PickResult{}; // Return invalid result
-    }
-
-    std::lock_guard<std::mutex> lock(m_pickResultMutex);
-    return m_lastPickResult;
+  std::lock_guard<std::mutex> lock(m_pickResultMutex);
+  return m_lastPickResult;
 }
 
 void SceneRenderFeature::ClearPickResult()
 {
-    if (!m_enableObjectPicking)
-    {
-        return; // Silently ignore if picking is disabled
-    }
-
-    std::lock_guard<std::mutex> lock(m_pickResultMutex);
-    m_lastPickResult.valid = false;
+  std::lock_guard<std::mutex> lock(m_pickResultMutex);
+  m_lastPickResult = {};
 }
 
-void SceneRenderFeature::ProcessPendingPick(internal::ExecutionContext& ctx)
+// Stubbed pass implementations (to be implemented later)
+void SceneRenderFeature::ExecuteSceneSetup(internal::ExecutionContext& ctx) { (void)ctx; }
+void SceneRenderFeature::ExecuteDeformationPass(internal::ExecutionContext& ctx) { (void)ctx; }
+void SceneRenderFeature::ExecuteDepthDownsample(internal::ExecutionContext& ctx) { (void)ctx; }
+void SceneRenderFeature::ExecuteSSAO(internal::ExecutionContext& ctx) { (void)ctx; }
+void SceneRenderFeature::ExecuteSSAOBlur(internal::ExecutionContext& ctx) { (void)ctx; }
+void SceneRenderFeature::ExecuteShadowAtlasPass(internal::ExecutionContext& ctx) { (void)ctx; }
+void SceneRenderFeature::ExecuteDeferredLighting(internal::ExecutionContext& ctx) { (void)ctx; }
+void SceneRenderFeature::ExecuteSkyboxPass(internal::ExecutionContext& ctx) { (void)ctx; }
+void SceneRenderFeature::ExecuteWBOITAccumulation(internal::ExecutionContext& ctx) { (void)ctx; }
+void SceneRenderFeature::ExecuteWBOITResolve(internal::ExecutionContext& ctx) { (void)ctx; }
+void SceneRenderFeature::ProcessPendingPick(internal::ExecutionContext& ctx) { (void)ctx; }
+void SceneRenderFeature::ExecuteLightingSetup(internal::ExecutionContext& ctx) { (void)ctx; }
+
+void SceneRenderFeature::EnsureDeformationPipeline(internal::ExecutionContext& ctx) { (void)ctx; }
+void SceneRenderFeature::EnsureGBufferPipelines(internal::ExecutionContext& ctx) { (void)ctx; }
+void SceneRenderFeature::EnsureSSAOPipelines(internal::ExecutionContext& ctx) { (void)ctx; }
+void SceneRenderFeature::EnsureShadowPipelines(internal::ExecutionContext& ctx) { (void)ctx; }
+void SceneRenderFeature::EnsureDeferredLightingPipeline(internal::ExecutionContext& ctx) { (void)ctx; }
+void SceneRenderFeature::EnsureWBOITPipelines(internal::ExecutionContext& ctx) { (void)ctx; }
+void SceneRenderFeature::EnsureSkyboxPipeline(internal::ExecutionContext& ctx) { (void)ctx; }
+
+// =============================================================================
+// Composite Pipeline Creation and Execution
+// =============================================================================
+
+bool SceneRenderFeature::EnsureCompositePipelineCreated(GfxRenderer* gfxRenderer)
 {
-    if (!m_pickRequest.pending)
-        return;
+  if (m_compositePipelineCreated) {
+    return true;
+  }
 
-    m_pickRequest.pending = false;
+  if (!gfxRenderer) {
+    return false;
+  }
 
-    const auto& params = *static_cast<const SceneRenderParams*>(GetParameterBlock_RT());
+  LOG_INFO("[SceneRenderFeature] Creating composite pipeline...");
 
-    auto visibilityTexture = ctx.GetTexture("VisibilityBuffer");
-    if (!visibilityTexture.valid())
-    {
-        return;
-    }
+  // Create sampler for G-buffer sampling
+  {
+    gfx::SamplerDesc samplerDesc = gfx::samplerDescDefault();
+    samplerDesc.min_filter = HINA_FILTER_NEAREST;
+    samplerDesc.mag_filter = HINA_FILTER_NEAREST;
+    samplerDesc.address_u = HINA_ADDRESS_CLAMP_TO_EDGE;
+    samplerDesc.address_v = HINA_ADDRESS_CLAMP_TO_EDGE;
+    m_compositeSampler.reset(gfx::createSampler(samplerDesc));
+  }
 
-    auto& vkCtx = ctx.GetvkContext();
-
-    uint32_t visibilityValue = 0;
-
-    vk::TextureRangeDesc range = {
-        .offset = {
-            .x = static_cast<int32_t>(m_pickRequest.screenX),
-            .y = static_cast<int32_t>(m_pickRequest.screenY),
-            .z = 0
-        },
-        .dimensions = { .width = 1, .height = 1, .depth = 1 },
-        .layer = 0,
-        .numLayers = 1,
-        .mipLevel = 0,
-        .numMipLevels = 1
+  // Create fullscreen quad vertex buffer
+  {
+    // Fullscreen quad vertices: pos(2) + uv(2) = 16 bytes per vertex
+    const float quadVerts[] = {
+      // Triangle 1
+      -1.0f, -1.0f, 0.0f, 0.0f,  // bottom-left
+       1.0f, -1.0f, 1.0f, 0.0f,  // bottom-right
+       1.0f,  1.0f, 1.0f, 1.0f,  // top-right
+      // Triangle 2
+      -1.0f, -1.0f, 0.0f, 0.0f,  // bottom-left
+       1.0f,  1.0f, 1.0f, 1.0f,  // top-right
+      -1.0f,  1.0f, 0.0f, 1.0f   // top-left
     };
 
-    vk::Result result = vkCtx.download(visibilityTexture, range, &visibilityValue);
-
-    if (!result.isOk())
-    {
-        return;
+    hina_buffer_desc vb_desc = {};
+    vb_desc.size = sizeof(quadVerts);
+    vb_desc.flags = static_cast<hina_buffer_flags>(
+        HINA_BUFFER_VERTEX_BIT | HINA_BUFFER_HOST_VISIBLE_BIT | HINA_BUFFER_HOST_COHERENT_BIT);
+    m_fullscreenQuadVB = hina_make_buffer(&vb_desc);
+    if (!hina_buffer_is_valid(m_fullscreenQuadVB)) {
+      LOG_ERROR("[SceneRenderFeature] Failed to create fullscreen quad vertex buffer");
+      return false;
     }
+    void* mapped = hina_map_buffer(m_fullscreenQuadVB);
+    std::memcpy(mapped, quadVerts, sizeof(quadVerts));
+  }
 
-    if (visibilityValue == 0)
-    {
-        std::lock_guard<std::mutex> lock(m_pickResultMutex);
-        m_lastPickResult.valid = false;
-        return;
-    }
+  // Compile composite shader
+  char* error = nullptr;
+  hina_hsl_module* module = hslc_compile_hsl_source(kCompositeShader, "scene_composite", &error);
+  if (!module) {
+    LOG_ERROR("[SceneRenderFeature] Composite shader compilation failed: {}", error ? error : "unknown");
+    if (error) hslc_free_log(error);
+    return false;
+  }
 
-    uint32_t drawId, primitiveId;
-    VisibilityBuffer::Unpack(visibilityValue, drawId, primitiveId);
+  // Create bind group layout for G-buffer textures (set 0: 4 combined image samplers)
+  hina_bind_group_layout_entry layout_entries[4] = {};
+  for (int i = 0; i < 4; ++i) {
+    layout_entries[i].binding = static_cast<uint32_t>(i);
+    layout_entries[i].type = HINA_DESC_TYPE_COMBINED_IMAGE_SAMPLER;
+    layout_entries[i].count = 1;
+    layout_entries[i].stage_flags = HINA_STAGE_FRAGMENT;
+    layout_entries[i].flags = HINA_BINDING_FLAG_NONE;
+  }
 
-    if (drawId >= params.drawData.size())
-    {
-        std::lock_guard<std::mutex> lock(m_pickResultMutex);
-        m_lastPickResult.valid = false;
-        return;
-    }
+  hina_bind_group_layout_desc layout_desc = {};
+  layout_desc.entries = layout_entries;
+  layout_desc.entry_count = 4;
+  layout_desc.label = "scene_composite_layout";
 
-    uint32_t sceneObjectIndex = params.drawData[drawId].objectId;
+  m_compositeLayout.reset(hina_create_bind_group_layout(&layout_desc));
+  if (!hina_bind_group_layout_is_valid(m_compositeLayout.get())) {
+    LOG_ERROR("[SceneRenderFeature] Failed to create composite bind group layout");
+    hslc_hsl_module_free(module);
+    return false;
+  }
 
-    {
-        std::lock_guard<std::mutex> lock(m_pickResultMutex);
-        m_lastPickResult.valid = true;
-        m_lastPickResult.sceneObjectIndex = sceneObjectIndex;
-        m_lastPickResult.primitiveId = primitiveId;
-        m_lastPickResult.drawId = sceneObjectIndex;
-    }
+  // Fullscreen quad vertex layout: pos(2) + uv(2)
+  hina_vertex_layout vertex_layout = {};
+  vertex_layout.buffer_count = 1;
+  vertex_layout.buffer_strides[0] = sizeof(float) * 4;
+  vertex_layout.input_rates[0] = HINA_VERTEX_INPUT_RATE_VERTEX;
+  vertex_layout.attr_count = 2;
+  vertex_layout.attrs[0] = { HINA_FORMAT_R32G32_SFLOAT, 0, 0, 0 };  // position
+  vertex_layout.attrs[1] = { HINA_FORMAT_R32G32_SFLOAT, sizeof(float) * 2, 1, 0 };  // uv
+
+  // Pipeline descriptor - output to HDR SCENE_COLOR format
+  hina_hsl_pipeline_desc pip_desc = hina_hsl_pipeline_desc_default();
+  pip_desc.layout = vertex_layout;
+  pip_desc.cull_mode = HINA_CULL_MODE_NONE;
+  pip_desc.depth.depth_test = false;
+  pip_desc.depth.depth_write = false;
+  pip_desc.depth_format = HINA_FORMAT_UNDEFINED;
+  pip_desc.color_formats[0] = LinearColor::HDR_SCENE_FORMAT;  // R16G16B16A16_SFLOAT
+  pip_desc.color_attachment_count = 1;
+  pip_desc.bind_group_layouts[0] = m_compositeLayout.get();
+  pip_desc.bind_group_layout_count = 1;
+
+  m_compositePipeline.reset(hina_make_pipeline_from_module(module, &pip_desc, nullptr));
+  hslc_hsl_module_free(module);
+
+  if (!hina_pipeline_is_valid(m_compositePipeline.get())) {
+    LOG_ERROR("[SceneRenderFeature] Composite pipeline creation failed");
+    return false;
+  }
+
+  m_compositePipelineCreated = true;
+  LOG_INFO("[SceneRenderFeature] Composite pipeline created successfully");
+  return true;
 }
+
+bool SceneRenderFeature::EnsureCompositeBindGroup(GfxRenderer* gfxRenderer, gfx::Texture sceneDepth, gfx::TextureView sceneDepthView)
+{
+  if (!gfxRenderer) return false;
+
+  const auto& gbuffer = gfxRenderer->getGBuffer();
+
+  // Check if G-buffer dimensions changed (resize occurred) or depth texture changed
+  uint32_t gbufferWidth = 0, gbufferHeight = 0;
+  hina_get_texture_size(gbuffer.albedo, &gbufferWidth, &gbufferHeight);
+
+  bool needsRecreate = !hina_bind_group_is_valid(m_compositeBindGroup)
+                    || gbufferWidth != m_lastGBufferWidth
+                    || gbufferHeight != m_lastGBufferHeight
+                    || sceneDepth.id != m_lastSceneDepth.id;
+
+  if (!needsRecreate) {
+    return true;  // Existing bind group is still valid
+  }
+
+  // Destroy old bind group if it exists
+  if (hina_bind_group_is_valid(m_compositeBindGroup)) {
+    hina_destroy_bind_group(m_compositeBindGroup);
+    m_compositeBindGroup = {};
+  }
+
+  // Create new bind group with current G-buffer textures
+  hina_bind_group_entry entries[4] = {};
+  entries[0].binding = 0;  // albedo
+  entries[0].type = HINA_DESC_TYPE_COMBINED_IMAGE_SAMPLER;
+  entries[0].combined.view = gbuffer.albedoView;
+  entries[0].combined.sampler = m_compositeSampler.get();
+
+  entries[1].binding = 1;  // normal
+  entries[1].type = HINA_DESC_TYPE_COMBINED_IMAGE_SAMPLER;
+  entries[1].combined.view = gbuffer.normalView;
+  entries[1].combined.sampler = m_compositeSampler.get();
+
+  entries[2].binding = 2;  // materialData
+  entries[2].type = HINA_DESC_TYPE_COMBINED_IMAGE_SAMPLER;
+  entries[2].combined.view = gbuffer.materialDataView;
+  entries[2].combined.sampler = m_compositeSampler.get();
+
+  entries[3].binding = 3;  // depth (from SCENE_DEPTH)
+  entries[3].type = HINA_DESC_TYPE_COMBINED_IMAGE_SAMPLER;
+  entries[3].combined.view = sceneDepthView;
+  entries[3].combined.sampler = m_compositeSampler.get();
+
+  hina_bind_group_desc bg_desc = {};
+  bg_desc.layout = m_compositeLayout.get();
+  bg_desc.entries = entries;
+  bg_desc.entry_count = 4;
+  bg_desc.label = "scene_composite_bg";
+
+  m_compositeBindGroup = hina_create_bind_group(&bg_desc);
+  if (!hina_bind_group_is_valid(m_compositeBindGroup)) {
+    LOG_ERROR("[SceneRenderFeature] Failed to create composite bind group");
+    return false;
+  }
+
+  m_lastGBufferWidth = gbufferWidth;
+  m_lastGBufferHeight = gbufferHeight;
+  m_lastSceneDepth = sceneDepth;
+  LOG_INFO("[SceneRenderFeature] Composite bind group created ({}x{})", gbufferWidth, gbufferHeight);
+  return true;
+}
+
+void SceneRenderFeature::ExecuteCompositePass(internal::ExecutionContext& ctx)
+{
+  GfxRenderer* gfxRenderer = ctx.GetGfxRenderer();
+  if (!gfxRenderer) {
+    return;
+  }
+
+  if (!EnsureCompositePipelineCreated(gfxRenderer)) {
+    return;
+  }
+
+  gfx::Cmd* cmd = ctx.GetCmd();
+  const FrameData& frameData = ctx.GetFrameData();
+
+  // Get SCENE_COLOR and SCENE_DEPTH from RenderGraph
+  gfx::Texture sceneColor = ctx.GetTexture(RenderResources::SCENE_COLOR);
+  gfx::Texture sceneDepth = ctx.GetTexture(RenderResources::SCENE_DEPTH);
+  if (!gfx::isValid(sceneColor)) {
+    LOG_ERROR("[SceneRenderFeature] SCENE_COLOR texture not valid");
+    return;
+  }
+
+  // Get depth view for sampling
+  gfx::TextureView sceneDepthView = hina_texture_get_default_view(sceneDepth);
+
+  // Ensure composite bind group is created/updated
+  if (!EnsureCompositeBindGroup(gfxRenderer, sceneDepth, sceneDepthView)) {
+    return;
+  }
+
+  uint32_t width = RenderResources::INTERNAL_WIDTH;
+  uint32_t height = RenderResources::INTERNAL_HEIGHT;
+
+  // Set viewport and scissor
+  hina_viewport viewport = {};
+  viewport.width = static_cast<float>(width);
+  viewport.height = static_cast<float>(height);
+  viewport.min_depth = 0.0f;
+  viewport.max_depth = 1.0f;
+  hina_cmd_set_viewport(cmd, &viewport);
+
+  hina_scissor scissor = {};
+  scissor.width = width;
+  scissor.height = height;
+  hina_cmd_set_scissor(cmd, &scissor);
+
+  // Bind pipeline and persistent composite bind group
+  hina_cmd_bind_pipeline(cmd, m_compositePipeline.get());
+  hina_cmd_bind_group(cmd, 0, m_compositeBindGroup);
+
+  // Prepare lighting push constants
+  struct {
+    glm::vec4 lightDir;      // xyz = direction, w = intensity
+    glm::vec4 lightColor;    // rgb = color, a = unused
+    glm::vec4 ambientColor;  // rgb = ambient, a = unused
+    glm::vec4 cameraPos;     // xyz = camera position, w = unused
+    glm::mat4 invViewProj;   // For world position reconstruction
+  } lightingParams;
+
+  // Set up directional light (sun-like, coming from upper-right-front)
+  glm::vec3 lightDirection = glm::normalize(glm::vec3(0.5f, 0.8f, 0.3f));
+  lightingParams.lightDir = glm::vec4(lightDirection, 1.5f);  // intensity = 1.5
+  lightingParams.lightColor = glm::vec4(1.0f, 0.98f, 0.95f, 1.0f);  // warm white
+  lightingParams.ambientColor = glm::vec4(0.15f, 0.17f, 0.2f, 1.0f);  // cool ambient
+
+  // Camera position and inverse view-projection from FrameData
+  // projMatrix already has Vulkan Y-flip applied at source (UploadToPipeline)
+  lightingParams.cameraPos = glm::vec4(frameData.cameraPos, 1.0f);
+
+  glm::mat4 viewProj = frameData.projMatrix * frameData.viewMatrix;
+  lightingParams.invViewProj = glm::inverse(viewProj);
+
+  hina_cmd_push_constants(cmd, 0, sizeof(lightingParams), &lightingParams);
+
+  // Bind fullscreen quad vertex buffer
+  hina_vertex_input vertInput = {};
+  vertInput.vertex_buffers[0] = m_fullscreenQuadVB;
+  vertInput.vertex_offsets[0] = 0;
+  hina_cmd_apply_vertex_input(cmd, &vertInput);
+
+  // Draw fullscreen quad (6 vertices)
+  hina_cmd_draw(cmd, 6, 1, 0, 0);
+}
+

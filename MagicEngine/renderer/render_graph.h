@@ -6,14 +6,19 @@
 #include <bitset>
 #include <array>
 #include <string_view>
+#include <unordered_map>
 #include "frame_data.h"
-#include "interface.h"
-#include "i_graph_observer.h"
+#include "gfx_interface.h"
+#include "interface.h"  // TODO: Remove once vk:: migration complete
 #include "linear_color.h"
 #include "OIT.h"
 #include "renderer_resources.h"
 #include "render_feature.h"
 #include "math/utils_math.h"
+
+// Forward declaration for renderer access from features
+class GfxRenderer;
+
 /*
 // Compile-time string hashing
 consteval uint32_t fnv1a_32(const char* str)
@@ -32,11 +37,12 @@ namespace RenderResources
   // Fixed internal render resolution - avoids recompilation on window resize
   constexpr uint32_t INTERNAL_WIDTH = 1920;
   constexpr uint32_t INTERNAL_HEIGHT = 1080;
-  constexpr vk::Dimensions INTERNAL_RESOLUTION = {INTERNAL_WIDTH, INTERNAL_HEIGHT, 1};
+  constexpr gfx::Dimensions INTERNAL_RESOLUTION = {INTERNAL_WIDTH, INTERNAL_HEIGHT, 1};
 
   constexpr const char* SWAPCHAIN_IMAGE = "SwapchainImage";
   constexpr const char* SCENE_COLOR = "SceneColor";
   constexpr const char* SCENE_DEPTH = "SceneDepth";
+  constexpr const char* VIEW_OUTPUT = "ViewOutput";  // External texture for ImGui viewport display
   constexpr const char* MATERIAL_BUFFER = "MaterialBuffer";
   constexpr const char* VERTEX_BUFFER = "VertexBuffer";
   constexpr const char* SKINNED_VERTEX_BUFFER = "SkinnedVertexBuffer";
@@ -77,14 +83,15 @@ namespace internal
   class ExecutionContext;
 }
 
-// Hash specialization for vk::Handle
-template <typename ObjectType>
-struct std::hash<vk::Handle<ObjectType>>
-{
-  size_t operator()(const vk::Handle<ObjectType>& h) const
-  {
-    return std::hash<uint64_t>()((uint64_t(h.index()) << 32) | h.gen());
-  }
+// Hash specialization for gfx handle types (ID-based)
+template<>
+struct std::hash<gfx::Texture> {
+    size_t operator()(const gfx::Texture& t) const { return std::hash<uint32_t>()(t.id); }
+};
+
+template<>
+struct std::hash<gfx::Buffer> {
+    size_t operator()(const gfx::Buffer& b) const { return std::hash<uint32_t>()(b.id); }
 };
 
 class RenderGraph;
@@ -98,6 +105,14 @@ enum class AccessType : uint8_t
   ReadWrite = 2
 };
 
+// Output configuration for render graph execution
+// Contains external textures that the render graph will write to
+struct ViewOutputConfig
+{
+  gfx::Texture resolvedColor;  // LDR output texture for ImGui viewport display
+  gfx::Texture swapchainImage; // Optional swapchain image for presentation
+};
+
 enum class ResourceType : uint8_t
 {
   None = 0,
@@ -105,33 +120,33 @@ enum class ResourceType : uint8_t
   Buffer = 2
 };
 
-// Packed resource handle - 8 bytes
+// Packed resource handle - uses gfx types (opaque pointers)
 struct ResourceHandle
 {
   union
   {
-    vk::TextureHandle texture;
-    vk::BufferHandle buffer;
-    uint64_t packed;
+    gfx::Texture texture;
+    gfx::Buffer buffer;
+    void* packed;
   };
 
   ResourceType type;
 
-  ResourceHandle() : packed(0), type(ResourceType::None)
+  ResourceHandle() : packed(nullptr), type(ResourceType::None)
   {
   }
 
-  explicit ResourceHandle(vk::TextureHandle tex) : texture(tex), type(ResourceType::Texture)
+  explicit ResourceHandle(gfx::Texture tex) : texture(tex), type(ResourceType::Texture)
   {
   }
 
-  explicit ResourceHandle(vk::BufferHandle buf) : buffer(buf), type(ResourceType::Buffer)
+  explicit ResourceHandle(gfx::Buffer buf) : buffer(buf), type(ResourceType::Buffer)
   {
   }
 
   bool isValid() const
   {
-    return type != ResourceType::None && packed != 0;
+    return type != ResourceType::None && packed != nullptr;
   }
 
   bool operator==(const ResourceHandle& other) const
@@ -147,24 +162,24 @@ struct ResourceHandle
 
 struct ResourceProperties
 {
-  std::variant<vk::TextureDesc, vk::BufferDesc> desc;
+  std::variant<gfx::TextureDesc, gfx::BufferDesc> desc;
   ResourceType type;
   bool persistent = false;
-  static constexpr vk::Dimensions SWAPCHAIN_RELATIVE_DIMENSIONS = {0, 0};
+  static constexpr gfx::Dimensions SWAPCHAIN_RELATIVE_DIMENSIONS = {0, 0, 0};
   // Fixed internal resolution - use this for scene rendering to avoid recompilation on resize
-  static constexpr vk::Dimensions INTERNAL_RESOLUTION_DIMENSIONS = RenderResources::INTERNAL_RESOLUTION;
+  static constexpr gfx::Dimensions INTERNAL_RESOLUTION_DIMENSIONS = RenderResources::INTERNAL_RESOLUTION;
 
-  static ResourceProperties FromDesc(const vk::TextureDesc& textureDesc, bool isPersistent = false);
+  static ResourceProperties FromDesc(const gfx::TextureDesc& textureDesc, bool isPersistent = false);
 
-  static ResourceProperties FromDesc(const vk::BufferDesc& bufferDesc, bool isPersistent = false);
+  static ResourceProperties FromDesc(const gfx::BufferDesc& bufferDesc, bool isPersistent = false);
 };
 
 struct AttachmentDesc
 {
   const char* textureName = nullptr;
   const char* resolveTextureName = nullptr;
-  vk::LoadOp loadOp = vk::LoadOp::Invalid;
-  vk::StoreOp storeOp = vk::StoreOp::Store;
+  gfx::LoadOp loadOp = gfx::LoadOp::DontCare;  // DontCare = invalid/not specified
+  gfx::StoreOp storeOp = gfx::StoreOp::Store;
   uint8_t layer = 0;
   uint8_t level = 0;
   float clearColor[4] = {0.0f, 0.0f, 0.0f, 1.0f};
@@ -174,7 +189,7 @@ struct AttachmentDesc
 
 struct PassDeclarationInfo
 {
-  AttachmentDesc colorAttachments[vk::MAX_COLOR_ATTACHMENTS];
+  AttachmentDesc colorAttachments[gfx::MAX_COLOR_ATTACHMENTS];
   AttachmentDesc depthAttachment;
   AttachmentDesc stencilAttachment;
   uint32_t layerCount = 1;
@@ -187,17 +202,18 @@ struct GraphAttachmentDescription
 {
   internal::NameID textureNameID = internal::INVALID_NAME_ID;
   internal::NameID resolveTextureNameID = internal::INVALID_NAME_ID;
-  vk::LoadOp loadOp = vk::LoadOp::Invalid;
-  vk::StoreOp storeOp = vk::StoreOp::Store;
+  gfx::LoadOp loadOp = gfx::LoadOp::DontCare;  // DontCare = invalid/not specified
+  gfx::StoreOp storeOp = gfx::StoreOp::Store;
   uint8_t layer = 0;
   uint8_t level = 0;
   float clearColor[4] = {0.0f, 0.0f, 0.0f, 1.0f};
   float clearDepth = 1.0f;
   uint32_t clearStencil = 0;
 
+  // Helper to check if this attachment slot is used (has a valid texture and a load op other than DontCare)
   bool IsActive() const
   {
-    return textureNameID != internal::INVALID_NAME_ID && loadOp != vk::LoadOp::Invalid;
+    return textureNameID != internal::INVALID_NAME_ID;
   }
 
   bool operator==(const GraphAttachmentDescription& other) const;
@@ -205,7 +221,7 @@ struct GraphAttachmentDescription
 
 struct GraphicsPassDeclaration
 {
-  GraphAttachmentDescription colorAttachments[vk::MAX_COLOR_ATTACHMENTS];
+  GraphAttachmentDescription colorAttachments[gfx::MAX_COLOR_ATTACHMENTS];
   GraphAttachmentDescription depthAttachment;
   GraphAttachmentDescription stencilAttachment;
   uint32_t layerCount = 1;
@@ -244,9 +260,9 @@ namespace internal
     class PassBuilder
     {
     public:
-      PassBuilder& DeclareTransientResource(LogicalResourceName name, const vk::TextureDesc& desc);
+      PassBuilder& DeclareTransientResource(LogicalResourceName name, const gfx::TextureDesc& desc);
 
-      PassBuilder& DeclareTransientResource(LogicalResourceName name, const vk::BufferDesc& desc);
+      PassBuilder& DeclareTransientResource(LogicalResourceName name, const gfx::BufferDesc& desc);
 
       PassBuilder& UseResource(LogicalResourceName name, AccessType accessType);
 
@@ -305,11 +321,63 @@ struct PassMetadata
   internal::RenderPassBuilder::PassPriority priority;
   std::vector<internal::NameID> executeAfterTargets;
   GraphicsPassDeclaration graphicsDeclaration;
+  FeatureMask requiredFeatureMask = 0;  // Which features must be enabled for this pass
   IRenderFeature* featureOwner;
 };
 
 namespace internal
 {
+  // ============================================================================
+  // UniformRing - Triple-buffered uniform allocation for per-frame data
+  // ============================================================================
+
+  /**
+   * @brief Result of a uniform allocation from the ring buffer.
+   */
+  struct UniformAllocation
+  {
+    gfx::Buffer buffer;    // Buffer handle for binding
+    uint64_t offset;       // Offset within buffer (aligned)
+    void* mapped;          // Mapped pointer to write data
+
+    bool isValid() const { return mapped != nullptr; }
+  };
+
+  /**
+   * @brief Triple-buffered ring allocator for per-frame uniform data.
+   *
+   * Owned by RenderGraph, exposed to passes via ExecutionContext.
+   * Handles alignment automatically based on device limits.
+   */
+  class UniformRing
+  {
+  public:
+    static constexpr uint64_t DEFAULT_SIZE = 4 * 1024 * 1024; // 4MB per frame
+
+    bool init(uint64_t sizePerFrame = DEFAULT_SIZE);
+    void shutdown();
+
+    // Called by RenderGraph at frame start
+    void beginFrame(uint32_t frameIndex);
+
+    // Allocate space and return mapped pointer (does NOT copy data)
+    UniformAllocation allocate(uint64_t size);
+
+    // Allocate and copy data in one call
+    UniformAllocation write(const void* data, uint64_t size);
+
+    uint32_t getAlignment() const { return m_alignment; }
+
+  private:
+    std::array<gfx::Holder<gfx::Buffer>, MAX_FRAMES_IN_FLIGHT> m_buffers;
+    std::array<void*, MAX_FRAMES_IN_FLIGHT> m_mapped{};
+    uint64_t m_sizePerFrame = 0;
+    uint64_t m_currentOffset = 0;
+    uint32_t m_currentFrame = 0;
+    uint32_t m_alignment = 256; // Default, updated from device limits
+    bool m_initialized = false;
+  };
+
   // Fast resource cache with perfect hashing for small sets
   struct FastResourceCache
   {
@@ -334,36 +402,66 @@ namespace internal
   class ExecutionContext
   {
   public:
-    ExecutionContext(vk::ICommandBuffer& commandBuffer, const FrameData& frameData, RenderGraph* graph,
+    ExecutionContext(gfx::Cmd* cmd, const FrameData& frameData, RenderGraph* graph,
                      size_t passIndex);
 
-    vk::TextureHandle GetTexture(LogicalResourceName name) const;
+    gfx::Texture GetTexture(LogicalResourceName name) const;
 
-    vk::BufferHandle GetBuffer(LogicalResourceName name) const;
+    gfx::Buffer GetBuffer(LogicalResourceName name) const;
 
     void ResizeBuffer(LogicalResourceName name, uint64_t newSize) const;
 
     uint64_t GetBufferSize(LogicalResourceName name) const;
 
     // Fast indexed access
-    vk::TextureHandle GetTextureByIndex(size_t index) const;
+    gfx::Texture GetTextureByIndex(size_t index) const;
 
-    vk::BufferHandle GetBufferByIndex(size_t index) const;
+    gfx::Buffer GetBufferByIndex(size_t index) const;
 
-    vk::ICommandBuffer& GetvkCommandBuffer() const
-    {
-      return m_vkCommandBuffer;
-    }
+    // Get the raw command buffer pointer
+    gfx::Cmd* GetCmd() const { return m_cmd; }
 
-    vk::IContext& GetvkContext() const;
+    // Get command buffer wrapper
+    gfx::CommandBuffer& GetCommandBuffer() const { return const_cast<gfx::CommandBuffer&>(m_cmdWrapper); }
 
     const FrameData& GetFrameData() const
     {
       return m_frameData;
     }
 
+    // Get GfxRenderer for feature rendering
+    GfxRenderer* GetGfxRenderer() const;
+
+    // Get HinaContext directly (preferred for new code)
+    HinaContext* GetHinaContext() const;
+
+    // ========================================================================
+    // Uniform Allocation API
+    // ========================================================================
+
+    /**
+     * @brief Allocate uniform buffer space for this frame.
+     *
+     * Returns a mapped pointer where data can be written directly.
+     * The buffer and offset can be used for binding.
+     *
+     * @param size Size in bytes to allocate
+     * @return UniformAllocation with buffer, offset, and mapped pointer
+     */
+    UniformAllocation AllocateUniform(uint64_t size);
+
+    /**
+     * @brief Allocate and write uniform data in one call.
+     *
+     * @param data Pointer to data to copy
+     * @param size Size in bytes
+     * @return UniformAllocation with buffer, offset (mapped pointer points to copied data)
+     */
+    UniformAllocation WriteUniform(const void* data, uint64_t size);
+
   private:
-    vk::ICommandBuffer& m_vkCommandBuffer;
+    gfx::Cmd* m_cmd;
+    gfx::CommandBuffer m_cmdWrapper;
     const FrameData& m_frameData;
     RenderGraph* m_pGraph;
     size_t m_passIndex;
@@ -379,8 +477,8 @@ namespace internal
   {
     struct Entry
     {
-      std::array<vk::Holder<vk::BufferHandle>, MAX_FRAMES_IN_FLIGHT> buffers;
-      vk::BufferDesc desc;
+      std::array<gfx::Holder<gfx::Buffer>, MAX_FRAMES_IN_FLIGHT> buffers;
+      gfx::BufferDesc desc;
       uint64_t currentSize = 0;
       bool active = false;
     };
@@ -393,13 +491,13 @@ namespace internal
 
     Entry* GetEntry(NameID id);
 
-    vk::BufferHandle GetBuffer(NameID id, uint32_t frameIdx) const;
+    gfx::Buffer GetBuffer(NameID id, uint32_t frameIdx) const;
   };
 } // namespace internal
 class RenderGraph
 {
 public:
-  explicit RenderGraph(vk::IContext& vkContext, GPUBuffers& gpu_buffers);
+  explicit RenderGraph(GPUBuffers* gpu_buffers = nullptr);
 
   ~RenderGraph();
 
@@ -410,19 +508,26 @@ public:
 
   void ClearFeaturesAndPasses();
 
-  // External resource import
-  internal::NameID ImportExternalTexture(LogicalResourceName name, vk::TextureHandle textureHandle,
-                                         const vk::TextureDesc& desc);
+  // Feature mask system - assigns unique IDs to features and enables filtering
+  FeatureMask RegisterFeature(IRenderFeature* feature);
+  void UnregisterFeature(IRenderFeature* feature);
+  FeatureMask GetFeatureMask(IRenderFeature* feature) const;
+  FeatureMask GetActiveFeatureMask() const { return m_activeFeatureMask; }
 
-  internal::NameID ImportExternalBuffer(LogicalResourceName name, vk::BufferHandle bufferHandle,
-                                        const vk::BufferDesc& desc);
+  // External resource import
+  internal::NameID ImportExternalTexture(LogicalResourceName name, gfx::Texture textureHandle,
+                                         const gfx::TextureDesc& desc);
+
+  internal::NameID ImportExternalBuffer(LogicalResourceName name, gfx::Buffer bufferHandle,
+                                        const gfx::BufferDesc& desc);
 
   // Execution
-  void Execute(vk::ICommandBuffer& vkCommandBuffer, const FrameData& frameData);
+  void Execute(gfx::Cmd* cmd, const FrameData& frameData, const ViewOutputConfig& outputConfig);
 
   void BeginFrame()
   {
     m_currentFrameIndex = (m_currentFrameIndex + 1) % MAX_FRAMES_IN_FLIGHT;
+    m_uniformRing.beginFrame(m_currentFrameIndex);
   }
 
   uint32_t GetCurrentFrameIndex() const
@@ -449,14 +554,17 @@ public:
   // Attempt compilation, returns true if successful
   bool tryCompile();
 
-  void AddTransientObserver(internal::ITransientResourceObserver* observer);
-
-  void RemoveTransientObserver(internal::ITransientResourceObserver* observer);
-
   LinearColorSystem& GetLinearColorSystem()
   {
     return linearColorSystem;
   }
+
+  // GfxRenderer access for features
+  void SetGfxRenderer(GfxRenderer* renderer);
+  GfxRenderer* GetGfxRenderer() const { return m_gfxRenderer; }
+
+  // Uniform ring access (for ExecutionContext)
+  internal::UniformRing& GetUniformRing() { return m_uniformRing; }
 
 private:
   friend class internal::RenderPassBuilder;
@@ -466,9 +574,9 @@ private:
   // Batched execution step
   struct BatchedGraphicsPassExecution
   {
-    vk::RenderPass renderPassInfo;
-    vk::Dependencies accumulatedDependencies;
-    vk::Framebuffer framebuffer;
+    gfx::RenderPass renderPassInfo;
+    gfx::Dependencies accumulatedDependencies;
+    gfx::Framebuffer framebuffer;
     std::array<size_t, 8> passIndices; // Indices into m_passExecData
     uint8_t passCount = 0;
   };
@@ -510,20 +618,20 @@ private:
   };
 
   // Core state
-  vk::IContext& m_vkContext;
-  GPUBuffers& m_gpu_buffers;
+  GPUBuffers* m_gpu_buffers;
+  GfxRenderer* m_gfxRenderer = nullptr;
   OITSystem oit;
   LinearColorSystem linearColorSystem;
+  internal::UniformRing m_uniformRing;
   bool m_isCompiled = false;
   bool m_compilationDeferred = false; // Track deferred state
   uint32_t m_currentFrameIndex = 0;
-  vk::Dimensions m_lastCompileDimensions = {0, 0};
+  gfx::Dimensions m_lastCompileDimensions = {0, 0, 0};
 
   // Blit pipeline for scaling fixed-resolution scene to swapchain
-  vk::Holder<vk::ShaderModuleHandle> m_blitVertShader;
-  vk::Holder<vk::ShaderModuleHandle> m_blitFragShader;
-  vk::Holder<vk::RenderPipelineHandle> m_blitPipeline;
-  vk::Holder<vk::SamplerHandle> m_blitSampler;
+  gfx::Holder<gfx::Pipeline> m_blitPipeline;
+  gfx::Holder<gfx::Sampler> m_blitSampler;
+  gfx::Holder<gfx::BindGroupLayout> m_blitBindGroupLayout;
   bool m_blitPipelineCreated = false;
 
   void EnsureBlitPipelineCreated();
@@ -533,6 +641,13 @@ private:
   std::vector<std::string_view> m_idToStringMap; // Reverse lookup
   internal::NameID m_nextNameID = 1;
   internal::NameID m_swapchainID = internal::INVALID_NAME_ID;
+  internal::NameID m_viewOutputID = internal::INVALID_NAME_ID;
+
+  // Feature mask system
+  RenderFeatureId m_nextFeatureId = 0;
+  std::unordered_map<IRenderFeature*, RenderFeatureId> m_featureIdMap;
+  FeatureMask m_activeFeatureMask = ~FeatureMask(0);  // All features enabled by default
+
   // Features and passes - hot/cold split
   std::vector<IRenderFeature*> m_features;
   std::vector<PassExecutionData> m_passExecData;
@@ -546,10 +661,7 @@ private:
   // Resources - direct indexing instead of map
   std::vector<ResolvedResourceInfo> m_resolvedResourceInfo; // Indexed by NameID - 1
   internal::FrameBufferManager m_frameBuffers;
-  std::vector<vk::Holder<vk::TextureHandle>> m_storedTextures;
-  // Observers
-  std::vector<internal::ITransientResourceObserver*> m_transientObservers;
-
+  std::vector<gfx::Holder<gfx::Texture>> m_storedTextures;
   // Internal methods
   internal::NameID InternName(LogicalResourceName name);
 
@@ -559,13 +671,15 @@ private:
 
   void RegisterTransientResource(LogicalResourceName name, const ResourceProperties& properties);
 
-  void RegisterTransientResource(LogicalResourceName name, const vk::TextureDesc& desc);
+  void RegisterTransientResource(LogicalResourceName name, const gfx::TextureDesc& desc);
 
-  void RegisterTransientResource(LogicalResourceName name, const vk::BufferDesc& desc);
+  void RegisterTransientResource(LogicalResourceName name, const gfx::BufferDesc& desc);
 
   void RegisterPass(PassExecutionData&& execData, PassMetadata&& metadata, ExecuteLambda&& lambda);
 
   void ExecuteFinalBlit(const internal::ExecutionContext& ctx);
+  void ExecuteResolveViewOutput(const internal::ExecutionContext& ctx);
+  void UpdateViewOutputResource(gfx::Texture outputHandle);
 
   ResourceHandle GetResolvedHandle(internal::NameID id) const;
 
@@ -583,17 +697,15 @@ private:
 
   void UpdateSwapchainResource();
 
-  void NotifyTransientObservers();
-
   // Pass batching
   static bool AreGraphicsDeclarationsEqual(const GraphicsPassDeclaration& decl1, const GraphicsPassDeclaration& decl2);
 
-  static void FillVkRenderPassFromDeclaration(const GraphicsPassDeclaration& graphDecl, vk::RenderPass& vkRp);
+  static void FillRenderPassFromDeclaration(const GraphicsPassDeclaration& graphDecl, gfx::RenderPass& rp);
 
-  void FillVkFramebufferFromDeclaration(const GraphicsPassDeclaration& graphDecl, vk::Framebuffer& vkFb);
+  void FillFramebufferFromDeclaration(const GraphicsPassDeclaration& graphDecl, gfx::Framebuffer& fb);
 
-  void AggregateDependenciesForPass(size_t passIndex, std::vector<vk::TextureHandle>& textures,
-                                    std::vector<vk::BufferHandle>& buffers) const;
+  void AggregateDependenciesForPass(size_t passIndex, std::vector<gfx::Texture>& textures,
+                                    std::vector<gfx::Buffer>& buffers) const;
 
   void EnsureBufferCapacity(internal::FrameBufferManager::Entry& resource, uint64_t requiredSize);
 };

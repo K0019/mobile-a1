@@ -70,9 +70,13 @@ namespace Resource
 
     uint32_t getMaterialIndex(MaterialHandle handle) const;
 
-    uint32_t getTextureBindlessIndex(TextureHandle handle) const;
+    uint32_t getTextureUIId(TextureHandle handle) const;
+
+    const ResourceTraits<TextureAsset>::HotData* getTextureHotData(TextureHandle handle) const;
 
     const Material* getMaterialCPU(MaterialHandle handle) const;
+
+    const ResourceTraits<MaterialAsset>::HotData* getMaterialHotData(MaterialHandle handle) const;
 
     const ResourceTraits<FontAsset>::HotData* getFont(FontHandle handle) const;
 
@@ -80,7 +84,7 @@ namespace Resource
 
     const FontGlyph* getFontGlyph(FontHandle handle, uint32_t codepoint) const;
 
-    uint32_t getFontTextureBindlessIndex(FontHandle handle) const;
+    uint32_t getFontTextureUIId(FontHandle handle) const;
 
     FontHandle getDefaultUIFont() const;
 
@@ -181,10 +185,6 @@ namespace Resource
     SkeletonId registerSkeleton(const ProcessedSkeleton& skeleton);
 
     MorphSetId registerMorphSet(const std::vector<MeshMorphTargetInfo>& morphTargets);
-
-    template <typename Container, typename AllocSelector, typename DataSelector>
-    void uploadContiguousBatches(const Container& items, vk::BufferHandle targetBuffer, AllocSelector&& allocSelector,
-                                 DataSelector&& dataSelector);
 
     void deduplicateMaterialUploads(std::vector<PendingMaterialUpload>& materials);
 

@@ -126,6 +126,11 @@ struct ResourceTraits<MeshAsset>
       uint32_t jointCount = 0;
     } animation;
 
+    // GfxRenderer integration
+    bool hasGfxMesh = false;
+    uint32_t gfxMeshIndex = 0;
+    uint32_t gfxMeshGeneration = 0;
+
     HotData() = default;
 
     HotData(uint32_t vOffset, uint32_t iOffset, uint32_t vCount, uint32_t iCount, const vec4& b,
@@ -183,10 +188,16 @@ struct ResourceTraits<TextureAsset>
 {
   struct HotData
   {
-    uint32_t bindlessIndex{0}; // GPU bindless texture index
+    uint32_t uiTextureId{0}; // UI/ImGui texture ID for bind group lookup
+
+    // GfxRenderer integration
+    bool hasGfxTexture = false;
+    uint32_t gfxTextureIndex = 0;
+    uint32_t gfxTextureGeneration = 0;
+
     HotData() = default;
 
-    explicit HotData(uint32_t index) : bindlessIndex(index)
+    explicit HotData(uint32_t index) : uiTextureId(index)
     {
     }
   };
@@ -225,7 +236,7 @@ struct ResourceTraits<FontAsset>
   struct HotData
   {
     TextureHandle atlasTexture;
-    uint32_t bindlessIndex = 0;
+    uint32_t uiTextureId = 0;
     float ascent = 0.0f;
     float descent = 0.0f;
     float lineGap = 0.0f;
@@ -341,6 +352,11 @@ struct ResourceTraits<MaterialAsset>
   {
     uint32_t materialOffset;
     RenderQueue renderQueue = RenderQueue::Opaque;
+
+    // GfxRenderer integration
+    bool hasGfxMaterial = false;
+    uint32_t gfxMaterialIndex = 0;
+    uint32_t gfxMaterialGeneration = 0;
 
     HotData() = default;
 

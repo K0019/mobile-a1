@@ -1,18 +1,23 @@
 # editor/CMakeLists.txt
 
 # Create Editor executable (automatically globs all files in current directory)
-file(GLOB_RECURSE EDITOR_SOURCES CONFIGURE_DEPENDS 
-    "*.cpp" 
+file(GLOB_RECURSE EDITOR_SOURCES CONFIGURE_DEPENDS
+    "*.cpp"
     "*.h"
     "*.hpp"
 )
 
 # Include shaders for IDE organization
-file(GLOB_RECURSE SHADER_FILES CONFIGURE_DEPENDS 
+file(GLOB_RECURSE SHADER_FILES CONFIGURE_DEPENDS
     "${PROJECT_SOURCE_DIR}/Shaders/*"
 )
 
-add_executable(Editor WIN32)
+# Use console subsystem in Debug for stdout/stderr visibility
+# Use Windows subsystem in Release to hide console
+add_executable(Editor)
+set_target_properties(Editor PROPERTIES
+    WIN32_EXECUTABLE $<$<CONFIG:Release>:TRUE>
+)
 
 target_sources(Editor PRIVATE 
     ${EDITOR_SOURCES}

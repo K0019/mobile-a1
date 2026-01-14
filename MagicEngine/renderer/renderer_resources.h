@@ -1,35 +1,35 @@
 #pragma once
 #include "gpu_data.h"
-#include "interface.h"
+#include "gfx_interface.h"
+
 class GPUBuffers
 {
   private:
-    vk::IContext& m_context;
+    // Buffer descriptors using gfx types
+    gfx::BufferDesc m_vertexBufferDesc{};
+    gfx::BufferDesc m_indexBufferDesc{};
+    gfx::BufferDesc m_materialBufferDesc{};
+    gfx::BufferDesc m_meshDecompressionBufferDesc{};
+    gfx::BufferDesc m_skinningBufferDesc{};
+    gfx::BufferDesc m_morphDeltaBufferDesc{};
+    gfx::BufferDesc m_morphVertexBaseBufferDesc{};
+    gfx::BufferDesc m_morphVertexCountBufferDesc{};
 
-    vk::BufferDesc m_vertexBufferDesc{.usage = vk::BufferUsageBits_Vertex | vk::BufferUsageBits_Storage, .storage = vk::StorageType::Device, .size = 0,};
-    vk::BufferDesc m_indexBufferDesc{.usage = vk::BufferUsageBits_Index | vk::BufferUsageBits_Storage, .storage = vk::StorageType::Device, .size = 0,};
-    vk::BufferDesc m_materialBufferDesc{.usage = vk::BufferUsageBits_Storage, .storage = vk::StorageType::Device, .size = 0,};
-    vk::BufferDesc m_meshDecompressionBufferDesc{.usage = vk::BufferUsageBits_Storage, .storage = vk::StorageType::Device, .size = 0,};
-    vk::BufferDesc m_skinningBufferDesc{.usage = vk::BufferUsageBits_Storage, .storage = vk::StorageType::Device, .size = 0,};
-    vk::BufferDesc m_morphDeltaBufferDesc{.usage = vk::BufferUsageBits_Storage, .storage = vk::StorageType::Device, .size = 0,};
-    vk::BufferDesc m_morphVertexBaseBufferDesc{.usage = vk::BufferUsageBits_Storage, .storage = vk::StorageType::Device, .size = 0,};
-    vk::BufferDesc m_morphVertexCountBufferDesc{.usage = vk::BufferUsageBits_Storage, .storage = vk::StorageType::Device, .size = 0,};
-    // Fixed GPU buffers
-    vk::Holder<vk::BufferHandle> m_vertexBuffer;
-    vk::Holder<vk::BufferHandle> m_indexBuffer;
-    vk::Holder<vk::BufferHandle> m_materialBuffer;
-    vk::Holder<vk::BufferHandle> m_meshDecompressionBuffer;
-    vk::Holder<vk::BufferHandle> m_skinningBuffer;
-    vk::Holder<vk::BufferHandle> m_morphDeltaBuffer;
-    vk::Holder<vk::BufferHandle> m_morphVertexBaseBuffer;
-    vk::Holder<vk::BufferHandle> m_morphVertexCountBuffer;
+    // Fixed GPU buffers using gfx Holders
+    gfx::Holder<gfx::Buffer> m_vertexBuffer;
+    gfx::Holder<gfx::Buffer> m_indexBuffer;
+    gfx::Holder<gfx::Buffer> m_materialBuffer;
+    gfx::Holder<gfx::Buffer> m_meshDecompressionBuffer;
+    gfx::Holder<gfx::Buffer> m_skinningBuffer;
+    gfx::Holder<gfx::Buffer> m_morphDeltaBuffer;
+    gfx::Holder<gfx::Buffer> m_morphVertexBaseBuffer;
+    gfx::Holder<gfx::Buffer> m_morphVertexCountBuffer;
 
     // Simple texture ownership - no maps, just vector storage
-    std::vector<vk::Holder<vk::TextureHandle>> m_ownedTextures;
+    std::vector<gfx::Holder<gfx::Texture>> m_ownedTextures;
 
   public:
-    GPUBuffers(vk::IContext& context,
-               size_t vertexBufferSize,
+    GPUBuffers(size_t vertexBufferSize,
                size_t indexBufferSize,
                size_t materialBufferSize,
                size_t meshDecompressionBufferSize,
@@ -40,7 +40,7 @@ class GPUBuffers
 
     ~GPUBuffers();
 
-    bool uploadtoBuffer(vk::BufferHandle buffer, uint32_t byteOffset, const void* data, size_t dataSize);
+    bool uploadtoBuffer(gfx::Buffer buffer, uint32_t byteOffset, const void* data, size_t dataSize);
 
     bool uploadMesh(uint32_t vertexOffset, uint32_t indexOffset, const std::vector<Vertex>& vertices, const std::vector<uint32_t>& indices);
 
@@ -48,42 +48,42 @@ class GPUBuffers
 
     bool uploadMeshDecompression(uint32_t byteOffset, const MeshDecompressionData& data);
 
-    uint32_t uploadTexture(const vk::TextureDesc& desc, const std::vector<uint8_t>& data);
+    uint32_t uploadTexture(const gfx::TextureDesc& desc, const std::vector<uint8_t>& data);
 
-    void deleteTexture(uint32_t bindlessIndex);
+    void deleteTexture(uint32_t textureId);
 
     // Buffer accessors
-    vk::BufferHandle GetVertexBuffer() const;
+    gfx::Buffer GetVertexBuffer() const;
 
-    vk::BufferHandle GetIndexBuffer() const;
+    gfx::Buffer GetIndexBuffer() const;
 
-    vk::BufferHandle GetMaterialBuffer() const;
+    gfx::Buffer GetMaterialBuffer() const;
 
-    vk::BufferHandle GetMeshDecompressionBuffer() const;
+    gfx::Buffer GetMeshDecompressionBuffer() const;
 
-    vk::BufferHandle GetSkinningBuffer() const;
+    gfx::Buffer GetSkinningBuffer() const;
 
-    vk::BufferHandle GetMorphDeltaBuffer() const;
+    gfx::Buffer GetMorphDeltaBuffer() const;
 
-    vk::BufferHandle GetMorphVertexBaseBuffer() const;
+    gfx::Buffer GetMorphVertexBaseBuffer() const;
 
-    vk::BufferHandle GetMorphVertexCountBuffer() const;
+    gfx::Buffer GetMorphVertexCountBuffer() const;
 
-    vk::BufferDesc GetVertexBufferDesc() const;
+    gfx::BufferDesc GetVertexBufferDesc() const;
 
-    vk::BufferDesc GetIndexBufferDesc() const;
+    gfx::BufferDesc GetIndexBufferDesc() const;
 
-    vk::BufferDesc GetMaterialBufferDesc() const;
+    gfx::BufferDesc GetMaterialBufferDesc() const;
 
-    vk::BufferDesc GetMeshDecompressionBufferDesc() const;
+    gfx::BufferDesc GetMeshDecompressionBufferDesc() const;
 
-    vk::BufferDesc GetSkinningBufferDesc() const;
+    gfx::BufferDesc GetSkinningBufferDesc() const;
 
-    vk::BufferDesc GetMorphDeltaBufferDesc() const;
+    gfx::BufferDesc GetMorphDeltaBufferDesc() const;
 
-    vk::BufferDesc GetMorphVertexBaseBufferDesc() const;
+    gfx::BufferDesc GetMorphVertexBaseBufferDesc() const;
 
-    vk::BufferDesc GetMorphVertexCountBufferDesc() const;
+    gfx::BufferDesc GetMorphVertexCountBufferDesc() const;
 
     size_t GetOwnedTextureCount() const;
 

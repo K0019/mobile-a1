@@ -195,7 +195,7 @@ void LineCanvas3D::render(vk::IContext& ctx, const vk::Framebuffer& desc, vk::IC
   {
     mat4 mvp;
     uint64_t addr;
-  } pc{.mvp = mvp_, .addr = ctx.gpuAddress(linesBuffer_[currentFrame_]),};
+  } pc{.mvp = mvp_, .addr = 0,};  // TODO: refactor - gpuAddress removed
   buf.cmdBindRenderPipeline(pipeline_);
   buf.cmdPushConstants(pc);
   buf.cmdDraw((uint32_t)lines_.size());

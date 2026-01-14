@@ -15,11 +15,73 @@
 #include "renderer/ui/font_system.h"
 #include "VFS/VFS.h"
 
+// hina-vk integration
+#include "renderer/renderer.h"
+#include "renderer/gfx_renderer.h"
+#include "renderer/gfx_mesh_storage.h"
+#include "renderer/gfx_material_system.h"
+
 namespace
 {
   constexpr float MORPH_DELTA_EPSILON = 1e-6f;
   constexpr float MORPH_DELTA_EPSILON_SQ = MORPH_DELTA_EPSILON * MORPH_DELTA_EPSILON;
   constexpr const char* kDefaultUIFontPath = "assets/fonts/DefaultUI.ttf";
+
+  // Convert legacy vk::Format (interface.h) to hina_format for texture creation
+  hina_format legacyFormatToHinaFormat(vk::Format format, bool sRGB)
+  {
+    switch (format)
+    {
+      // Basic formats
+      case vk::Format::R_UN8:           return HINA_FORMAT_R8_UNORM;
+      case vk::Format::RG_UN8:          return HINA_FORMAT_R8G8_UNORM;
+      case vk::Format::RGBA_UN8:        return sRGB ? HINA_FORMAT_R8G8B8A8_SRGB : HINA_FORMAT_R8G8B8A8_UNORM;
+      case vk::Format::RGBA_SRGB8:      return HINA_FORMAT_R8G8B8A8_SRGB;
+      case vk::Format::BGRA_UN8:        return sRGB ? HINA_FORMAT_B8G8R8A8_SRGB : HINA_FORMAT_B8G8R8A8_UNORM;
+      case vk::Format::BGRA_SRGB8:      return HINA_FORMAT_B8G8R8A8_SRGB;
+
+      // Float formats
+      case vk::Format::R_F16:           return HINA_FORMAT_R16_SFLOAT;
+      case vk::Format::R_F32:           return HINA_FORMAT_R32_SFLOAT;
+      case vk::Format::RG_F16:          return HINA_FORMAT_R16G16_SFLOAT;
+      case vk::Format::RG_F32:          return HINA_FORMAT_R32G32_SFLOAT;
+      case vk::Format::RGBA_F16:        return HINA_FORMAT_R16G16B16A16_SFLOAT;
+      case vk::Format::RGBA_F32:        return HINA_FORMAT_R32G32B32A32_SFLOAT;
+
+      // Integer formats
+      case vk::Format::R_UI16:          return HINA_FORMAT_R16_UINT;
+      case vk::Format::R_UI32:          return HINA_FORMAT_R32_UINT;
+      case vk::Format::RG_UI16:         return HINA_FORMAT_R16G16_UINT;
+      case vk::Format::RGBA_UI32:       return HINA_FORMAT_R32G32B32A32_UINT;
+
+      // BC compressed formats
+      case vk::Format::BC1_RGB:         return HINA_FORMAT_BC1_RGB_UNORM_BLOCK;
+      case vk::Format::BC1_RGB_SRGB:    return HINA_FORMAT_BC1_RGB_SRGB_BLOCK;
+      case vk::Format::BC1_RGBA:        return HINA_FORMAT_BC1_RGBA_UNORM_BLOCK;
+      case vk::Format::BC1_RGBA_SRGB:   return HINA_FORMAT_BC1_RGBA_SRGB_BLOCK;
+      case vk::Format::BC2_RGBA:        return HINA_FORMAT_BC2_UNORM_BLOCK;
+      case vk::Format::BC2_RGBA_SRGB:   return HINA_FORMAT_BC2_SRGB_BLOCK;
+      case vk::Format::BC3_RGBA:        return HINA_FORMAT_BC3_UNORM_BLOCK;
+      case vk::Format::BC3_RGBA_SRGB:   return HINA_FORMAT_BC3_SRGB_BLOCK;
+      case vk::Format::BC4_R:           return HINA_FORMAT_BC4_UNORM_BLOCK;
+      case vk::Format::BC5_RG:          return HINA_FORMAT_BC5_UNORM_BLOCK;
+      case vk::Format::BC6H_RGB_UFLOAT: return HINA_FORMAT_BC6H_UFLOAT_BLOCK;
+      case vk::Format::BC6H_RGB_SFLOAT: return HINA_FORMAT_BC6H_SFLOAT_BLOCK;
+      case vk::Format::BC7_RGBA:        return HINA_FORMAT_BC7_UNORM_BLOCK;
+      case vk::Format::BC7_RGBA_SRGB:   return HINA_FORMAT_BC7_SRGB_BLOCK;
+
+      // Depth formats (shouldn't be used for textures, but include for completeness)
+      case vk::Format::Z_UN16:          return HINA_FORMAT_D16_UNORM;
+      case vk::Format::Z_UN24:          return HINA_FORMAT_X8_D24_UNORM_PACK32;
+      case vk::Format::Z_F32:           return HINA_FORMAT_D32_SFLOAT;
+      case vk::Format::Z_UN24_S_UI8:    return HINA_FORMAT_D24_UNORM_S8_UINT;
+      case vk::Format::Z_F32_S_UI8:     return HINA_FORMAT_D32_SFLOAT_S8_UINT;
+
+      default:
+        LOG_WARNING("Unhandled legacy format {}, defaulting to RGBA8", static_cast<int>(format));
+        return sRGB ? HINA_FORMAT_R8G8B8A8_SRGB : HINA_FORMAT_R8G8B8A8_UNORM;
+    }
+  }
 
   std::vector<uint8_t> LoadBinaryFile(const std::string& vfsPath)
   {
@@ -338,27 +400,40 @@ namespace Resource
       anim.morphVertexBaseOffset = morphBaseAlloc.isValid() ? morphBaseAlloc.offset : UINT32_MAX;
       anim.morphVertexCountOffset = morphCountAlloc.isValid() ? morphCountAlloc.offset : UINT32_MAX;
       anim.morphTargetCount = static_cast<uint32_t>(mesh.morphTargets.size());
-    }
 
-    // Queue upload
-    {
-      std::lock_guard pendingLock(m_pendingMeshesMutex);
-      PendingMeshUpload pending;
-      pending.compressedVertices = std::move(compressedVertices);
-      pending.indices = mesh.indices;
-      pending.skinningData = std::move(gpuSkinning);
-      pending.morphDeltas = std::move(gpuMorphDeltas);
-      pending.morphVertexStarts = std::move(morphVertexStarts);
-      pending.morphVertexCounts = std::move(morphVertexCounts);
-      pending.decompressionData = decompressionData;
-      pending.vertexAlloc = vertexAlloc;
-      pending.indexAlloc = indexAlloc;
-      pending.meshDecompAlloc = meshDecompAlloc;
-      pending.skinningAlloc = skinningAlloc;
-      pending.morphDeltaAlloc = morphDeltaAlloc;
-      pending.morphVertexStartAlloc = morphBaseAlloc;
-      pending.morphVertexCountAlloc = morphCountAlloc;
-      m_pendingMeshes.push_back(std::move(pending));
+      // Upload to GfxMeshStorage directly (hina-vk path)
+      if (m_context && m_context->renderer) {
+        if (auto* gfxRenderer = m_context->renderer->getGfxRenderer()) {
+          auto& meshStorage = gfxRenderer->getMeshStorage();
+          LOG_INFO("Uploading mesh '{}' to GfxMeshStorage ({} verts, {} indices)",
+                   mesh.name, mesh.vertices.size(), mesh.indices.size());
+
+          // Convert Vertex to gfx::FullVertex (they have matching layout)
+          static_assert(sizeof(Vertex) == sizeof(gfx::FullVertex), "Vertex layouts must match");
+          const auto* gfxVertices = reinterpret_cast<const gfx::FullVertex*>(mesh.vertices.data());
+
+          gfx::MeshHandle gfxMesh = meshStorage.upload(
+            gfxVertices,
+            static_cast<uint32_t>(mesh.vertices.size()),
+            mesh.indices.data(),
+            static_cast<uint32_t>(mesh.indices.size())
+          );
+
+          if (gfxMesh.isValid()) {
+            hot->hasGfxMesh = true;
+            hot->gfxMeshIndex = gfxMesh.index;
+            hot->gfxMeshGeneration = gfxMesh.generation;
+            LOG_INFO("Uploaded mesh '{}' to GfxMeshStorage: index={} gen={}",
+                      mesh.name, gfxMesh.index, gfxMesh.generation);
+          } else {
+            LOG_WARNING("Failed to upload mesh '{}' to GfxMeshStorage", mesh.name);
+          }
+        } else {
+          LOG_WARNING("GfxRenderer not available - mesh '{}' not uploaded to GPU", mesh.name);
+        }
+      } else {
+        LOG_WARNING("Renderer context not available - mesh '{}' not uploaded to GPU", mesh.name);
+      }
     }
 
     m_meshCache[cacheKey] = handle;
@@ -424,6 +499,85 @@ namespace Resource
       m_pendingMaterials.push_back({ gpuData, materialAlloc });
     }
 
+    // Upload to GfxMaterialSystem directly (hina-vk path)
+    if (m_context && m_context->renderer) {
+      if (auto* gfxRenderer = m_context->renderer->getGfxRenderer()) {
+        auto& materialSystem = gfxRenderer->getMaterialSystem();
+
+        // Convert Material to gfx::GfxMaterial
+        gfx::GfxMaterial gfxMat;
+        gfxMat.baseColor = mat.baseColorFactor;
+        gfxMat.roughness = mat.roughnessFactor;
+        gfxMat.metallic = mat.metallicFactor;
+        gfxMat.emissive = glm::length(mat.emissiveFactor) > 0.0f ? 1.0f : 0.0f;
+        gfxMat.ao = mat.occlusionStrength;
+        gfxMat.rim = 0.0f;
+
+        // Set alpha mode
+        switch (mat.alphaMode) {
+          case AlphaMode::Opaque:
+            gfxMat.alphaMode = gfx::GfxMaterial::AlphaMode::Opaque;
+            break;
+          case AlphaMode::Mask:
+            gfxMat.alphaMode = gfx::GfxMaterial::AlphaMode::Mask;
+            break;
+          case AlphaMode::Blend:
+            gfxMat.alphaMode = gfx::GfxMaterial::AlphaMode::Blend;
+            break;
+        }
+        gfxMat.alphaCutoff = mat.alphaCutoff;
+        gfxMat.doubleSided = (mat.flags & DOUBLE_SIDED) != 0;
+
+        // Helper to resolve gfx::TextureHandle from MaterialTexture
+        auto resolveGfxTexture = [this, &material](const MaterialTexture& matTex, const char* texType) -> gfx::TextureHandle {
+          if (!matTex.hasTexture()) return {};
+          std::string cacheKey = TextureCacheKeyGenerator::generateKey(matTex.source);
+          auto it = m_textureCache.find(cacheKey);
+          if (it != m_textureCache.end()) {
+            if (const auto* hot = m_texturePool.getHotData(it->second)) {
+              if (hot->hasGfxTexture) {
+                gfx::TextureHandle gfxTex;
+                gfxTex.index = hot->gfxTextureIndex;
+                gfxTex.generation = hot->gfxTextureGeneration;
+                return gfxTex;
+              } else {
+                LOG_WARNING("Material '{}' {} texture not in GfxMaterialSystem (key='{}')", material.name, texType, cacheKey);
+              }
+            }
+          } else {
+            LOG_WARNING("Material '{}' {} texture not in cache (key='{}')", material.name, texType, cacheKey);
+          }
+          return {};
+        };
+
+        // Look up texture handles
+        gfxMat.albedoTexture = resolveGfxTexture(mat.baseColorTexture, "albedo");
+        gfxMat.normalTexture = resolveGfxTexture(mat.normalTexture, "normal");
+        gfxMat.metallicRoughnessTexture = resolveGfxTexture(mat.metallicRoughnessTexture, "metallicRoughness");
+        gfxMat.emissiveTexture = resolveGfxTexture(mat.emissiveTexture, "emissive");
+        gfxMat.occlusionTexture = resolveGfxTexture(mat.occlusionTexture, "occlusion");
+
+        LOG_DEBUG("Material '{}' baseColor=({:.2f},{:.2f},{:.2f},{:.2f}), albedo={}:{}, normal={}:{}",
+            material.name, gfxMat.baseColor.r, gfxMat.baseColor.g, gfxMat.baseColor.b, gfxMat.baseColor.a,
+            gfxMat.albedoTexture.index, gfxMat.albedoTexture.generation,
+            gfxMat.normalTexture.index, gfxMat.normalTexture.generation);
+
+        gfx::MaterialHandle gfxMaterial = materialSystem.createMaterial(gfxMat);
+
+        if (auto* hotData = m_materialPool.getHotData(handle)) {
+          if (gfxMaterial.isValid()) {
+            hotData->hasGfxMaterial = true;
+            hotData->gfxMaterialIndex = gfxMaterial.index;
+            hotData->gfxMaterialGeneration = gfxMaterial.generation;
+            LOG_DEBUG("Uploaded material '{}' to GfxMaterialSystem: {}:{}",
+                      material.name, gfxMaterial.index, gfxMaterial.generation);
+          } else {
+            LOG_WARNING("Failed to upload material '{}' to GfxMaterialSystem", material.name);
+          }
+        }
+      }
+    }
+
     m_materialCache[cacheKey] = handle;
     return handle;
   }
@@ -432,7 +586,7 @@ namespace Resource
   {
     const std::string cacheKey = generateTextureCacheKey(texture);
 
-    // Check cache with shared lock first  
+    // Check cache with shared lock first
     {
       std::shared_lock lock(m_cacheMutex);
       if(auto it = m_textureCache.find(cacheKey); it != m_textureCache.end())
@@ -441,21 +595,10 @@ namespace Resource
       }
     }
 
-    // Upload texture to GPU immediately
-    uint32_t bindlessIndex = m_context->renderer->getGPUBuffers().uploadTexture(texture.textureDesc, texture.data);
-
-    if(bindlessIndex == 0)
-    {
-      LOG_ERROR("Failed to upload texture '{}'", texture.name);
-      return {};
-    }
-
     // Double-check pattern with unique lock
     std::unique_lock cacheLock(m_cacheMutex);
     if(auto it = m_textureCache.find(cacheKey); it != m_textureCache.end())
     {
-      // Another thread created this texture, clean up our upload
-      m_context->renderer->getGPUBuffers().deleteTexture(bindlessIndex);
       return it->second;
     }
 
@@ -466,10 +609,52 @@ namespace Resource
       cold->sourceFile = texture.name;
       cold->cacheKey = cacheKey;
       cold->textureDesc = texture.textureDesc;
+      cold->isSRGB = texture.sRGB;
     }
-    if(auto* hot = m_texturePool.getHotData(handle))
-    {
-      hot->bindlessIndex = bindlessIndex;
+
+    // Upload to GfxMaterialSystem directly (hina-vk path)
+    if (m_context && m_context->renderer && !texture.data.empty()) {
+      if (auto* gfxRenderer = m_context->renderer->getGfxRenderer()) {
+        auto& materialSystem = gfxRenderer->getMaterialSystem();
+
+        // Use actual format from texture descriptor (captured from KTX2 file)
+        hina_format format = legacyFormatToHinaFormat(texture.textureDesc.format, texture.sRGB);
+
+        LOG_INFO("Texture '{}' upload: legacyFmt={}, hinaFmt={}, size={}x{}, dataSize={}, sRGB={}",
+            texture.name, static_cast<int>(texture.textureDesc.format), static_cast<int>(format),
+            texture.width, texture.height, texture.data.size(), texture.sRGB);
+
+        gfx::TextureCreateInfo createInfo;
+        createInfo.data = texture.data.data();
+        createInfo.width = texture.width;
+        createInfo.height = texture.height;
+        createInfo.format = format;
+        createInfo.generateMips = false;  // TODO: Enable mip generation
+        createInfo.isSRGB = texture.sRGB;
+        createInfo.label = texture.name.c_str();  // Debug label for RenderDoc
+
+        gfx::TextureHandle gfxTexture = materialSystem.createTexture(createInfo);
+
+        if (auto* hotData = m_texturePool.getHotData(handle)) {
+          if (gfxTexture.isValid()) {
+            hotData->hasGfxTexture = true;
+            hotData->gfxTextureIndex = gfxTexture.index;
+            hotData->gfxTextureGeneration = gfxTexture.generation;
+
+            // Register texture for UI/ImGui use - now works early since UI support
+            // is initialized before ImGui, and bind groups come from material system
+            uint64_t uiTexId = gfxRenderer->registerUITexture(gfxTexture);
+            hotData->uiTextureId = static_cast<uint32_t>(uiTexId);
+
+            LOG_DEBUG("Uploaded texture '{}' to GfxMaterialSystem: {}:{} ({}x{}, fmt={}, {}) uiId={}",
+                      texture.name, gfxTexture.index, gfxTexture.generation,
+                      texture.width, texture.height, static_cast<int>(format), texture.sRGB ? "sRGB" : "linear",
+                      hotData->uiTextureId);
+          } else {
+            LOG_WARNING("Failed to upload texture '{}' to GfxMaterialSystem", texture.name);
+          }
+        }
+      }
     }
 
     m_textureCache[cacheKey] = handle;
@@ -477,7 +662,7 @@ namespace Resource
     // Resolve materials waiting for this texture
     resolveWaitingMaterials_nolock(cacheKey);
 
-    LOG_INFO("Texture '{}' created successfully (bindless: {})", texture.name, bindlessIndex);
+    LOG_INFO("Texture '{}' created successfully ({}x{})", texture.name, texture.width, texture.height);
     return handle;
   }
 
@@ -536,7 +721,7 @@ namespace Resource
 
     ResourceTraits<FontAsset>::HotData hot{
       .atlasTexture = textureHandle,
-      .bindlessIndex = getTextureBindlessIndex(textureHandle),
+      .uiTextureId = getTextureUIId(textureHandle),
       .ascent = cpuData.ascent,
       .descent = cpuData.descent,
       .lineGap = cpuData.lineGap,
@@ -677,10 +862,15 @@ namespace Resource
     return hot ? hot->materialOffset / sizeof(MaterialData) : 0;
   }
 
-  uint32_t ResourceManager::getTextureBindlessIndex(TextureHandle handle) const
+  uint32_t ResourceManager::getTextureUIId(TextureHandle handle) const
   {
     const auto* hot = m_texturePool.getHotData(handle);
-    return hot ? hot->bindlessIndex : 0;
+    return hot ? hot->uiTextureId : 0;
+  }
+
+  const ResourceTraits<TextureAsset>::HotData* ResourceManager::getTextureHotData(TextureHandle handle) const
+  {
+    return m_texturePool.getHotData(handle);
   }
 
   const ResourceTraits<FontAsset>::HotData* ResourceManager::getFont(FontHandle handle) const
@@ -701,10 +891,10 @@ namespace Resource
     return hot->cpuData.findGlyph(codepoint);
   }
 
-  uint32_t ResourceManager::getFontTextureBindlessIndex(FontHandle handle) const
+  uint32_t ResourceManager::getFontTextureUIId(FontHandle handle) const
   {
     const auto* hot = getFont(handle);
-    return hot ? hot->bindlessIndex : 0;
+    return hot ? hot->uiTextureId : 0;
   }
 
   FontHandle ResourceManager::getDefaultUIFont() const
@@ -721,6 +911,11 @@ namespace Resource
   {
     const auto* cold = m_materialPool.getColdData(handle);
     return cold ? &cold->material : nullptr;
+  }
+
+  const ResourceTraits<MaterialAsset>::HotData* ResourceManager::getMaterialHotData(MaterialHandle handle) const
+  {
+    return m_materialPool.getHotData(handle);
   }
 
   bool ResourceManager::isMaterialTransparent(MaterialHandle handle) const
@@ -748,6 +943,18 @@ namespace Resource
       morphCountAlloc = cold->morphVertexCountMetadata;
     }
 
+    // Destroy gfx mesh (hina-vk path)
+    if (const auto* hot = m_meshPool.getHotData(handle)) {
+      if (hot->hasGfxMesh && m_context && m_context->renderer) {
+        if (auto* gfxRenderer = m_context->renderer->getGfxRenderer()) {
+          gfx::MeshHandle gfxMesh;
+          gfxMesh.index = hot->gfxMeshIndex;
+          gfxMesh.generation = hot->gfxMeshGeneration;
+          gfxRenderer->getMeshStorage().destroy(gfxMesh);
+        }
+      }
+    }
+
     // Remove from cache
     {
       std::unique_lock lock(m_cacheMutex);
@@ -756,25 +963,6 @@ namespace Resource
       {
         return pair.second == handle;
       });
-    }
-
-    // Free GPU memory
-    {
-      std::lock_guard meshLock(m_meshAllocatorMutex);
-      if(vertexAlloc.isValid())
-        m_vertexAllocator.free(vertexAlloc);
-      if(indexAlloc.isValid())
-        m_indexAllocator.free(indexAlloc);
-      if(meshDecompAlloc.isValid())
-        m_meshDecompAllocator.free(meshDecompAlloc);
-      if(skinningAlloc.isValid())
-        m_skinningAllocator.free(skinningAlloc);
-      if(morphDeltaAlloc.isValid())
-        m_morphDeltaAllocator.free(morphDeltaAlloc);
-      if(morphBaseAlloc.isValid())
-        m_morphBaseAllocator.free(morphBaseAlloc);
-      if(morphCountAlloc.isValid())
-        m_morphCountAllocator.free(morphCountAlloc);
     }
 
     m_meshPool.destroy(handle);
@@ -813,6 +1001,20 @@ namespace Resource
       });
     }
 
+    // Destroy gfx material (hina-vk path)
+    if (const auto* hot = m_materialPool.getHotData(handle)) {
+      if (hot->hasGfxMaterial) {
+        if (m_context && m_context->renderer) {
+          if (auto* gfxRenderer = m_context->renderer->getGfxRenderer()) {
+            gfx::MaterialHandle gfxMaterial;
+            gfxMaterial.index = hot->gfxMaterialIndex;
+            gfxMaterial.generation = hot->gfxMaterialGeneration;
+            gfxRenderer->getMaterialSystem().destroyMaterial(gfxMaterial);
+          }
+        }
+      }
+    }
+
     // Free GPU memory
     {
       std::lock_guard materialLock(m_materialAllocatorMutex);
@@ -828,7 +1030,6 @@ namespace Resource
     if(!m_texturePool.isValid(handle))
       return;
 
-    uint32_t bindlessIndex = getTextureBindlessIndex(handle);
     std::string cacheKey;
 
     if(const auto* cold = m_texturePool.getColdData(handle))
@@ -836,10 +1037,18 @@ namespace Resource
       cacheKey = cold->cacheKey;
     }
 
-    // Free GPU texture
-    if(bindlessIndex != 0)
-    {
-      m_context->renderer->getGPUBuffers().deleteTexture(bindlessIndex);
+    // Destroy gfx texture (hina-vk path) - also cleans up UI bind groups
+    if (const auto* hot = m_texturePool.getHotData(handle)) {
+      if (hot->hasGfxTexture) {
+        if (m_context && m_context->renderer) {
+          if (auto* gfxRenderer = m_context->renderer->getGfxRenderer()) {
+            gfx::TextureHandle gfxTexture;
+            gfxTexture.index = hot->gfxTextureIndex;
+            gfxTexture.generation = hot->gfxTextureGeneration;
+            gfxRenderer->getMaterialSystem().destroyTexture(gfxTexture);
+          }
+        }
+      }
     }
 
     // Remove from cache and dependencies
@@ -966,7 +1175,7 @@ namespace Resource
     std::string cacheKey = TextureCacheKeyGenerator::generateKey(matTex.source);
     if(auto it = m_textureCache.find(cacheKey); it != m_textureCache.end())
     {
-      return getTextureBindlessIndex(it->second);
+      return getTextureUIId(it->second);
     }
     return 0;
   }
@@ -1020,7 +1229,7 @@ namespace Resource
 
     LOG_INFO("Resolving {} waiting materials for texture '{}'", waitingMaterials.size(), textureCacheKey);
 
-    // Re-generate GPU data and queue uploads
+    // Re-generate GPU data and queue uploads (legacy path)
     {
       std::lock_guard pendingLock(m_pendingMaterialsMutex);
       for(MaterialHandle materialHandle : waitingMaterials)
@@ -1032,111 +1241,85 @@ namespace Resource
         }
       }
     }
-  }
 
-  void ResourceManager::uploadMeshBatch(const std::vector<PendingMeshUpload>& meshes)
-  {
-    auto& gpuBuffers = m_context->renderer->getGPUBuffers();
+    // Update GfxMaterialSystem bind groups (hina-vk path)
+    if (m_context && m_context->renderer) {
+      if (auto* gfxRenderer = m_context->renderer->getGfxRenderer()) {
+        auto& materialSystem = gfxRenderer->getMaterialSystem();
 
-    // Upload compressed vertices
-    uploadContiguousBatches(meshes, gpuBuffers.GetVertexBuffer(), [](const PendingMeshUpload& mesh) { return mesh.vertexAlloc; }, [](const PendingMeshUpload& mesh) { return std::span(mesh.compressedVertices); });
+        // Helper to resolve gfx::TextureHandle from MaterialTexture
+        auto resolveGfxTexture = [this](const MaterialTexture& matTex) -> gfx::TextureHandle {
+          if (!matTex.hasTexture()) return {};
+          std::string cacheKey = TextureCacheKeyGenerator::generateKey(matTex.source);
+          auto it = m_textureCache.find(cacheKey);
+          if (it != m_textureCache.end()) {
+            if (const auto* hot = m_texturePool.getHotData(it->second)) {
+              if (hot->hasGfxTexture) {
+                gfx::TextureHandle gfxTex;
+                gfxTex.index = hot->gfxTextureIndex;
+                gfxTex.generation = hot->gfxTextureGeneration;
+                return gfxTex;
+              }
+            }
+          }
+          return {};
+        };
 
-    // Upload indices
-    uploadContiguousBatches(meshes, gpuBuffers.GetIndexBuffer(), [](const PendingMeshUpload& mesh) { return mesh.indexAlloc; }, [](const PendingMeshUpload& mesh) { return std::span(mesh.indices); });
-
-    // Upload mesh decompression data
-    uploadContiguousBatches(meshes, gpuBuffers.GetMeshDecompressionBuffer(), [](const PendingMeshUpload& mesh) { return mesh.meshDecompAlloc; }, [](const PendingMeshUpload& mesh) { return std::span(&mesh.decompressionData, 1); });
-
-    // Upload skinning data
-    uploadContiguousBatches(meshes, gpuBuffers.GetSkinningBuffer(), [](const PendingMeshUpload& mesh) { return mesh.skinningAlloc; }, [](const PendingMeshUpload& mesh) { return std::span(mesh.skinningData); });
-
-    // Upload morph deltas
-    uploadContiguousBatches(meshes, gpuBuffers.GetMorphDeltaBuffer(), [](const PendingMeshUpload& mesh) { return mesh.morphDeltaAlloc; }, [](const PendingMeshUpload& mesh) { return std::span(mesh.morphDeltas); });
-
-    // Upload morph vertex mapping (start offsets)
-    uploadContiguousBatches(meshes, gpuBuffers.GetMorphVertexBaseBuffer(), [](const PendingMeshUpload& mesh) { return mesh.morphVertexStartAlloc; }, [](const PendingMeshUpload& mesh) { return std::span(mesh.morphVertexStarts); });
-
-    // Upload morph vertex counts
-    uploadContiguousBatches(meshes, gpuBuffers.GetMorphVertexCountBuffer(), [](const PendingMeshUpload& mesh) { return mesh.morphVertexCountAlloc; }, [](const PendingMeshUpload& mesh) { return std::span(mesh.morphVertexCounts); });
-  }
-
-  void ResourceManager::uploadMaterialBatch(std::vector<PendingMaterialUpload>& materials)
-  {
-    auto& gpuBuffers = m_context->renderer->getGPUBuffers();
-
-    deduplicateMaterialUploads(materials);
-
-    uploadContiguousBatches(materials, gpuBuffers.GetMaterialBuffer(), [](const PendingMaterialUpload& mat) { return mat.materialAlloc; }, [](const PendingMaterialUpload& mat) { return std::span(&mat.data, 1); });
-  }
-
-  template <typename Container, typename AllocSelector, typename DataSelector>
-  void ResourceManager::uploadContiguousBatches(const Container& items, vk::BufferHandle targetBuffer, AllocSelector&& allocSelector, DataSelector&& dataSelector)
-  {
-    if(items.empty())
-      return;
-
-    using ItemType = typename Container::value_type;
-    std::vector<const ItemType*> validItems;
-    validItems.reserve(items.size());
-    for(const auto& item : items)
-    {
-      const auto alloc = allocSelector(item);
-      const auto data = dataSelector(item);
-      if(!alloc.isValid() || data.empty())
-        continue;
-      validItems.push_back(&item);
-    }
-
-    if(validItems.empty())
-      return;
-
-    std::sort(validItems.begin(), validItems.end(),
-              [&](const ItemType* a, const ItemType* b)
-    {
-      return allocSelector(*a).offset < allocSelector(*b).offset;
-    });
-
-    constexpr size_t MAX_BATCH_SIZE = 16 * 1024 * 1024; // 16MB
-    std::vector<uint8_t> batchBuffer;
-    batchBuffer.reserve(4 * 1024 * 1024);
-
-    auto& gpuBuffers = m_context->renderer->getGPUBuffers();
-    uint32_t batchStartOffset = 0;
-    bool batchActive = false;
-
-    auto flushBatch = [&]()
-    {
-      if(!batchBuffer.empty() && batchActive)
-      {
-        if(!gpuBuffers.uploadtoBuffer(targetBuffer, batchStartOffset, batchBuffer.data(), batchBuffer.size()))
+        for(MaterialHandle materialHandle : waitingMaterials)
         {
-          LOG_ERROR("Failed to upload batch at offset {}, size {}", batchStartOffset, batchBuffer.size());
+          auto* cold = m_materialPool.getColdData(materialHandle);
+          auto* hot = m_materialPool.getHotData(materialHandle);
+          if (!cold || !hot || !hot->hasGfxMaterial) continue;
+
+          const Material& mat = cold->material;
+
+          // Rebuild gfx::GfxMaterial with updated texture handles
+          gfx::GfxMaterial gfxMat;
+          gfxMat.baseColor = mat.baseColorFactor;
+          gfxMat.roughness = mat.roughnessFactor;
+          gfxMat.metallic = mat.metallicFactor;
+          gfxMat.emissive = glm::length(mat.emissiveFactor) > 0.0f ? 1.0f : 0.0f;
+          gfxMat.ao = mat.occlusionStrength;
+          gfxMat.rim = 0.0f;
+
+          switch (mat.alphaMode) {
+            case AlphaMode::Opaque: gfxMat.alphaMode = gfx::GfxMaterial::AlphaMode::Opaque; break;
+            case AlphaMode::Mask:   gfxMat.alphaMode = gfx::GfxMaterial::AlphaMode::Mask; break;
+            case AlphaMode::Blend:  gfxMat.alphaMode = gfx::GfxMaterial::AlphaMode::Blend; break;
+          }
+          gfxMat.alphaCutoff = mat.alphaCutoff;
+          gfxMat.doubleSided = (mat.flags & DOUBLE_SIDED) != 0;
+
+          // Re-resolve all texture handles (now includes newly loaded texture)
+          gfxMat.albedoTexture = resolveGfxTexture(mat.baseColorTexture);
+          gfxMat.normalTexture = resolveGfxTexture(mat.normalTexture);
+          gfxMat.metallicRoughnessTexture = resolveGfxTexture(mat.metallicRoughnessTexture);
+          gfxMat.emissiveTexture = resolveGfxTexture(mat.emissiveTexture);
+          gfxMat.occlusionTexture = resolveGfxTexture(mat.occlusionTexture);
+
+          // Update the material (this rebuilds the bind group)
+          gfx::MaterialHandle gfxHandle;
+          gfxHandle.index = hot->gfxMaterialIndex;
+          gfxHandle.generation = hot->gfxMaterialGeneration;
+          materialSystem.updateMaterial(gfxHandle, gfxMat);
+
+          LOG_DEBUG("Updated GfxMaterial {}:{} with resolved texture '{}'",
+                    gfxHandle.index, gfxHandle.generation, textureCacheKey);
         }
-        batchBuffer.clear();
-        batchActive = false;
       }
-    };
-
-    for(const ItemType* item : validItems)
-    {
-      const auto alloc = allocSelector(*item);
-      const auto data = dataSelector(*item);
-      const size_t dataSize = data.size_bytes();
-
-      const bool isContiguous = batchActive && (alloc.offset == batchStartOffset + batchBuffer.size());
-
-      if(!isContiguous || batchBuffer.size() + dataSize > MAX_BATCH_SIZE)
-      {
-        flushBatch();
-        batchStartOffset = alloc.offset;
-        batchActive = true;
-      }
-
-      const uint8_t* byteData = reinterpret_cast<const uint8_t*>(data.data());
-      batchBuffer.insert(batchBuffer.end(), byteData, byteData + dataSize);
     }
+  }
 
-    flushBatch();
+  void ResourceManager::uploadMeshBatch([[maybe_unused]] const std::vector<PendingMeshUpload>& meshes)
+  {
+    // Legacy batch upload - meshes now uploaded directly via GfxMeshStorage in loadMesh()
+    // This function is kept for compatibility but does nothing with hina-vk
+  }
+
+  void ResourceManager::uploadMaterialBatch([[maybe_unused]] std::vector<PendingMaterialUpload>& materials)
+  {
+    // TODO: Implement material upload via hina-vk when material system is complete
+    // For now, materials are tracked but not GPU-uploaded
   }
 
   void ResourceManager::deduplicateMaterialUploads(std::vector<PendingMaterialUpload>& materials)

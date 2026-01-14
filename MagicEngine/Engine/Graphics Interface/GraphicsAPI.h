@@ -20,6 +20,7 @@ All rights reserved.
 
 #pragma once
 #include "renderer/renderer.h"
+#include "renderer/gfx_renderer.h"
 #include "resource/resource_manager.h"
 #include "imgui/base/imgui_context.h"
 #include "Engine/Graphics Interface/GraphicsWindow.h"
@@ -50,6 +51,16 @@ public:
 
     // Grid control
     void SetGridEnabled(bool enabled);
+
+    // Scene view texture - returns ViewOutput texture ID for ImGui viewport display
+    uint64_t GetSceneViewTextureId() const {
+        if (context.renderer) {
+            if (GfxRenderer* gfx = context.renderer->getGfxRenderer()) {
+                return gfx->getViewOutputTextureId(ViewId::Scene);
+            }
+        }
+        return 0;
+    }
 
 public:
     FrameData& INTERNAL_GetFrameData();

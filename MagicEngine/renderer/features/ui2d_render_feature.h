@@ -28,11 +28,6 @@ private:
 
   void EnsurePipeline(const internal::ExecutionContext& context);
 
-  vk::Holder<vk::ShaderModuleHandle> vertShader_;
-  vk::Holder<vk::ShaderModuleHandle> fragShader_;
-  vk::Holder<vk::RenderPipelineHandle> pipeline_;
-  vk::Holder<vk::SamplerHandle> linearSampler_;
-  vk::Holder<vk::SamplerHandle> nearestSampler_;
-  vk::Holder<vk::SamplerHandle> textSampler_;
+  gfx::Holder<gfx::Pipeline> pipeline_;
   bool resourcesCreated_ = false;
 };

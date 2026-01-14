@@ -5,10 +5,29 @@
 #include <string>
 #include <thread>
 #include <variant>
-#include "interface.h"
+#include <unordered_map>
+#include <atomic>
+#include <functional>
 #include "i_renderer.h"
-#include "renderer_resources.h"
-#include "render_graph.h"
+#include "frame_data.h"
+#include "linear_color.h"
+#include "gfx_renderer.h"
+
+// Platform-specific surface transform (Android only)
+#if defined(__ANDROID__)
+enum class SurfaceTransform : uint8_t
+{
+    Identity = 0,
+    Rotate90,
+    Rotate180,
+    Rotate270,
+    HorizontalMirror,
+    HorizontalMirrorRotate90,
+    HorizontalMirrorRotate180,
+    HorizontalMirrorRotate270,
+    Inherit,
+};
+#endif
 
 class Renderer : public IRenderer
 {
@@ -25,7 +44,8 @@ public:
   // Frame processing - all on main thread
   void beginFrame();
 
-  void render(FrameData& frameData);
+  void render(FrameData& frameData);  // Single view (legacy)
+  void render(RenderFrameData& frameData);  // Multi-view (preferred)
 
   void endFrame();
 
@@ -52,19 +72,15 @@ public:
     return dynamic_cast<TFeature*>(it->second.feature.get());
   }
 
-  GPUBuffers& getGPUBuffers() { return *m_gpuBuffers; }
-
-  const GPUBuffers& getGPUBuffers() const { return *m_gpuBuffers; }
+  // hina-vk backend - use GfxRenderer for mesh/material/texture management
+  GfxRenderer* getGfxRenderer() { return m_gfxRenderer.get(); }
+  const GfxRenderer* getGfxRenderer() const { return m_gfxRenderer.get(); }
 
   const ToneMappingSettings& GetToneMappingSettings() const;
 
   void UpdateToneMappingSettings(const ToneMappingSettings& newSettings) const;
 
   bool isWindowReadyForShow() const { return m_windowReadyForShow; }
-
-  void AddTransientResourceObserver(internal::ITransientResourceObserver* observer) const;
-
-  void RemoveTransientResourceObserver(internal::ITransientResourceObserver* observer) const;
 
 #if defined(__ANDROID__)
   SurfaceTransform getSwapchainPreTransform() const;
@@ -83,7 +99,6 @@ private:
   };
 
   std::array<PerFrameResources, MAX_FRAMES_IN_FLIGHT> m_frameResources;
-  std::array<vk::SubmitHandle, MAX_FRAMES_IN_FLIGHT> m_frameSubmitHandles;
   uint32_t m_currentFrame = 0;
 
   struct FeatureInfo
@@ -98,10 +113,10 @@ private:
 
   std::unordered_map<uint64_t, FeatureInfo> m_features;
   std::atomic<uint64_t> m_nextFeatureHandle{1};
+
   // Core systems
-  std::unique_ptr<vk::IContext> m_vkContext;
-  std::unique_ptr<RenderGraph> m_renderGraph;
-  std::unique_ptr<GPUBuffers> m_gpuBuffers;
+  std::unique_ptr<GfxRenderer> m_gfxRenderer;
+
   int m_framesRendered = 0;
   bool m_windowReadyForShow = false;
   const int MIN_FRAMES_BEFORE_SHOW = 3;

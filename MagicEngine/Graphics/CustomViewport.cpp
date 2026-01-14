@@ -134,12 +134,12 @@ void CustomViewport::DrawWindow()
 	contentMax = ImVec2(padding.x + renderSize.x,
 		padding.y + renderSize.y + titleBarHeight + playControlsHeight);
 
-	// 1) Draw the scene texture first
+	// 1) Draw the scene texture first (from GfxRenderer's view output)
 	ImGui::SetCursorPos(ImVec2(padding.x, padding.y + titleBarHeight + playControlsHeight));
-	if (auto sceneColorID = ST<GraphicsMain>::Get()->GetImGuiContext()
-		.GetTransientRegistry().QueryBindlessID("ImGuiSceneView"))
+	uint64_t sceneTextureId = ST<GraphicsMain>::Get()->GetSceneViewTextureId();
+	if (sceneTextureId != 0)
 	{
-		ImGui::Image(*sceneColorID, renderSize, ImVec2(0, 0), ImVec2(1, 1));
+		ImGui::Image(static_cast<ImTextureID>(sceneTextureId), renderSize, ImVec2(0, 0), ImVec2(1, 1));
 	}
 
 	if (ST<GameSystemsManager>::Get()->GetState() != GAMESTATE::IN_GAME && ST<GameSystemsManager>::Get()->GetState() != GAMESTATE::PAUSE)
@@ -164,11 +164,6 @@ void CustomViewport::DrawWindow()
 
 			if (isInViewport)
 			{
-
-				// Get the actual render target dimensions
-				auto sceneColorID = ST<GraphicsMain>::Get()->GetImGuiContext()
-					.GetTransientRegistry().QueryBindlessID("ImGuiSceneView");
-
 				// Calculate the actual render target size
 				// You may need to get this from your graphics system
 				// For now, assuming it matches your configured width/height

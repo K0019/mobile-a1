@@ -1,9 +1,17 @@
+// Windows headers must come first on Windows for Vulkan
+#if defined(_WIN32)
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
+#include <Windows.h>
+#endif
+
 #include "VFS/VFS.h"
 #include "texture_loader.h"
 #include "logging/log.h"
 #include "core_utils/util.h"
 #include <FreeImage.h>
-#include <renderer/vulkan/vk_util.h>
+#include <vulkan/vulkan.h>
 #include <ktxvulkan.h>
 #include <assimp/scene.h>
 #include <algorithm>
@@ -249,28 +257,67 @@ namespace Resource::TextureLoading
 
         SCOPE_EXIT{ ktxTexture_Destroy(ktxTexture(ktxTex)); };
 
+        // Check if texture needs transcoding (Basis Universal compressed)
+        if (ktxTexture2_NeedsTranscoding(ktxTex))
+        {
+            // Transcode to BC7 (high quality, widely supported)
+            ktx_transcode_fmt_e targetFormat = KTX_TTF_BC7_RGBA;
+
+            result = ktxTexture2_TranscodeBasis(ktxTex, targetFormat, 0);
+            if (result != KTX_SUCCESS)
+            {
+                LOG_WARNING("Failed to transcode KTX2 file '{}'. KTX Error: {}", path.string(), ktxErrorString(result));
+                return false;
+            }
+
+            LOG_INFO("Transcoded KTX2 texture '{}' from Basis to BC7", path.string());
+        }
+
         // Extract texture properties
         texture.originalFileSize = std::filesystem::file_size(path);
         texture.width = ktxTex->baseWidth;
         texture.height = ktxTex->baseHeight;
         texture.channels = 4; // Most KTX textures are 4-channel
 
-        // Copy texture data
-        const size_t dataSize = ktxTexture_GetDataSize(ktxTexture(ktxTex));
-        texture.data.resize(dataSize);
-        std::memcpy(texture.data.data(), ktxTex->pData, dataSize);
+        // Get mip 0 offset and size for proper data extraction
+        ktx_size_t mip0Offset = 0;
+        result = ktxTexture_GetImageOffset(ktxTexture(ktxTex), 0, 0, 0, &mip0Offset);
+        if (result != KTX_SUCCESS)
+        {
+            LOG_WARNING("Failed to get mip 0 offset for '{}'. KTX Error: {}", path.string(), ktxErrorString(result));
+            return false;
+        }
 
-        // Create descriptor
+        ktx_size_t mip0Size = ktxTexture_GetImageSize(ktxTexture(ktxTex), 0);
+        ktx_size_t totalDataSize = ktxTexture_GetDataSize(ktxTexture(ktxTex));
+
+        LOG_INFO("KTX2 '{}': {}x{}, vkFormat={}, mips={}, mip0Offset={}, mip0Size={}, totalSize={}, supercompression={}",
+            path.string(), texture.width, texture.height, ktxTex->vkFormat,
+            ktxTex->numLevels, mip0Offset, mip0Size, totalDataSize, static_cast<int>(ktxTex->supercompressionScheme));
+
+        // Sanity check
+        if (mip0Offset + mip0Size > totalDataSize)
+        {
+            LOG_ERROR("KTX2 '{}': mip0 data exceeds buffer! offset={} + size={} > total={}",
+                path.string(), mip0Offset, mip0Size, totalDataSize);
+            return false;
+        }
+
+        // Copy only mip 0 data (hina-vk expects just the base level)
+        texture.data.resize(mip0Size);
+        std::memcpy(texture.data.data(), ktxTex->pData + mip0Offset, mip0Size);
+
+        // Create descriptor with format after potential transcoding
         texture.textureDesc = vk::TextureDesc{
             .type = type,
             .format = vk::vkFormatToFormat(static_cast<VkFormat>(ktxTex->vkFormat)),
             .dimensions = {texture.width, texture.height, 1},
             .usage = vk::TextureUsageBits_Sampled,
-            .numMipLevels = ktxTex->numLevels,
+            .numMipLevels = 1,  // Only uploading mip 0
             .debugName = path.string().c_str() };
 
-        LOG_DEBUG("Loaded KTX2 texture '{}' - {}x{}, {} mips",
-            path.string(), texture.width, texture.height, ktxTex->numLevels/*, vk::getFormatName(texture.textureDesc.format)*/);
+        LOG_INFO("Loaded KTX2 texture '{}' - {}x{}, format={}, mip0Size={}",
+            path.string(), texture.width, texture.height, ktxTex->vkFormat, mip0Size);
 
         return true;
     }
@@ -297,28 +344,68 @@ namespace Resource::TextureLoading
 
         SCOPE_EXIT{ ktxTexture_Destroy(ktxTexture(ktxTex)); };
 
+        // Check if texture needs transcoding (Basis Universal compressed)
+        if (ktxTexture2_NeedsTranscoding(ktxTex))
+        {
+            // Transcode to BC7 (high quality, widely supported)
+            // Use KTX_TTF_BC7_RGBA for color textures
+            ktx_transcode_fmt_e targetFormat = KTX_TTF_BC7_RGBA;
+
+            result = ktxTexture2_TranscodeBasis(ktxTex, targetFormat, 0);
+            if (result != KTX_SUCCESS)
+            {
+                LOG_WARNING("Failed to transcode KTX2 file '{}'. KTX Error: {}", path, ktxErrorString(result));
+                return false;
+            }
+
+            LOG_INFO("Transcoded KTX2 texture '{}' from Basis to BC7", path);
+        }
+
         // Extract texture properties
         texture.originalFileSize = size;
         texture.width = ktxTex->baseWidth;
         texture.height = ktxTex->baseHeight;
         texture.channels = 4; // Most KTX textures are 4-channel
 
-        // Copy texture data
-        const size_t dataSize = ktxTexture_GetDataSize(ktxTexture(ktxTex));
-        texture.data.resize(dataSize);
-        std::memcpy(texture.data.data(), ktxTex->pData, dataSize);
+        // Get mip 0 offset and size for proper data extraction
+        ktx_size_t mip0Offset = 0;
+        result = ktxTexture_GetImageOffset(ktxTexture(ktxTex), 0, 0, 0, &mip0Offset);
+        if (result != KTX_SUCCESS)
+        {
+            LOG_WARNING("Failed to get mip 0 offset for '{}'. KTX Error: {}", path, ktxErrorString(result));
+            return false;
+        }
 
-        // Create descriptor
+        ktx_size_t mip0Size = ktxTexture_GetImageSize(ktxTexture(ktxTex), 0);
+        ktx_size_t totalDataSize = ktxTexture_GetDataSize(ktxTexture(ktxTex));
+
+        LOG_INFO("KTX2 '{}': {}x{}, vkFormat={}, mips={}, mip0Offset={}, mip0Size={}, totalSize={}, supercompression={}",
+            path, texture.width, texture.height, ktxTex->vkFormat,
+            ktxTex->numLevels, mip0Offset, mip0Size, totalDataSize, static_cast<int>(ktxTex->supercompressionScheme));
+
+        // Sanity check
+        if (mip0Offset + mip0Size > totalDataSize)
+        {
+            LOG_ERROR("KTX2 '{}': mip0 data exceeds buffer! offset={} + size={} > total={}",
+                path, mip0Offset, mip0Size, totalDataSize);
+            return false;
+        }
+
+        // Copy only mip 0 data (hina-vk expects just the base level)
+        texture.data.resize(mip0Size);
+        std::memcpy(texture.data.data(), ktxTex->pData + mip0Offset, mip0Size);
+
+        // Create descriptor with format after potential transcoding
         texture.textureDesc = vk::TextureDesc{
             .type = type,
             .format = vk::vkFormatToFormat(static_cast<VkFormat>(ktxTex->vkFormat)),
             .dimensions = {texture.width, texture.height, 1},
             .usage = vk::TextureUsageBits_Sampled,
-            .numMipLevels = ktxTex->numLevels,
+            .numMipLevels = 1,  // Only uploading mip 0
             .debugName = path.c_str() };
 
-        LOG_DEBUG("Loaded KTX2 texture '{}' - {}x{}, {} mips",
-            path, texture.width, texture.height, ktxTex->numLevels/*, vk::getFormatName(texture.textureDesc.format)*/);
+        LOG_DEBUG("Loaded KTX2 texture '{}' - {}x{}, format={}, mip0Size={}",
+            path, texture.width, texture.height, ktxTex->vkFormat, mip0Size);
 
         return true;
     }

@@ -2,8 +2,7 @@
 
 #include "resource/resource_types.h"
 
-GPUBuffers::GPUBuffers(vk::IContext& context,
-                       size_t vertexBufferSize,
+GPUBuffers::GPUBuffers(size_t vertexBufferSize,
                        size_t indexBufferSize,
                        size_t materialBufferSize,
                        size_t meshDecompressionBufferSize,
@@ -11,21 +10,49 @@ GPUBuffers::GPUBuffers(vk::IContext& context,
                        size_t morphDeltaBufferSize,
                        size_t morphVertexBaseBufferSize,
                        size_t morphVertexCountBufferSize)
-  : m_context(context)
 {
   m_ownedTextures.reserve(ResourceLimits::MAX_TEXTURES);
 
-  m_indexBufferDesc.size = indexBufferSize;
-  m_vertexBufferDesc.size = vertexBufferSize;
-  m_materialBufferDesc.size = materialBufferSize;
-  m_meshDecompressionBufferDesc.size = meshDecompressionBufferSize;
-  m_skinningBufferDesc.size = skinningBufferSize;
-  m_morphDeltaBufferDesc.size = morphDeltaBufferSize;
-  m_morphVertexBaseBufferDesc.size = morphVertexBaseBufferSize;
-  m_morphVertexCountBufferDesc.size = morphVertexCountBufferSize;
+  // Set up buffer descriptors
+  m_vertexBufferDesc = {
+    .size = vertexBufferSize,
+    .flags = static_cast<hina_buffer_flags>(gfx::BufferUsage::Vertex | gfx::BufferUsage::Storage | gfx::BufferUsage::DeviceLocal | gfx::BufferUsage::TransferDst)
+  };
+  m_indexBufferDesc = {
+    .size = indexBufferSize,
+    .flags = static_cast<hina_buffer_flags>(gfx::BufferUsage::Index | gfx::BufferUsage::Storage | gfx::BufferUsage::DeviceLocal | gfx::BufferUsage::TransferDst)
+  };
+  m_materialBufferDesc = {
+    .size = materialBufferSize,
+    .flags = static_cast<hina_buffer_flags>(gfx::BufferUsage::Storage | gfx::BufferUsage::DeviceLocal | gfx::BufferUsage::TransferDst)
+  };
+  m_meshDecompressionBufferDesc = {
+    .size = meshDecompressionBufferSize,
+    .flags = static_cast<hina_buffer_flags>(gfx::BufferUsage::Storage | gfx::BufferUsage::DeviceLocal | gfx::BufferUsage::TransferDst)
+  };
+  m_skinningBufferDesc = {
+    .size = skinningBufferSize,
+    .flags = static_cast<hina_buffer_flags>(gfx::BufferUsage::Storage | gfx::BufferUsage::DeviceLocal | gfx::BufferUsage::TransferDst)
+  };
+  m_morphDeltaBufferDesc = {
+    .size = morphDeltaBufferSize,
+    .flags = static_cast<hina_buffer_flags>(gfx::BufferUsage::Storage | gfx::BufferUsage::DeviceLocal | gfx::BufferUsage::TransferDst)
+  };
+  m_morphVertexBaseBufferDesc = {
+    .size = morphVertexBaseBufferSize,
+    .flags = static_cast<hina_buffer_flags>(gfx::BufferUsage::Storage | gfx::BufferUsage::DeviceLocal | gfx::BufferUsage::TransferDst)
+  };
+  m_morphVertexCountBufferDesc = {
+    .size = morphVertexCountBufferSize,
+    .flags = static_cast<hina_buffer_flags>(gfx::BufferUsage::Storage | gfx::BufferUsage::DeviceLocal | gfx::BufferUsage::TransferDst)
+  };
+
   CreateFixedBuffers();
-  if(!m_vertexBuffer.valid()  || !m_indexBuffer.valid() || !m_materialBuffer.valid() || !m_meshDecompressionBuffer.valid() ||
-     !m_skinningBuffer.valid() || !m_morphDeltaBuffer.valid() || !m_morphVertexBaseBuffer.valid() || !m_morphVertexCountBuffer.valid())
+
+  if(!gfx::isValid(m_vertexBuffer.get()) || !gfx::isValid(m_indexBuffer.get()) ||
+     !gfx::isValid(m_materialBuffer.get()) || !gfx::isValid(m_meshDecompressionBuffer.get()) ||
+     !gfx::isValid(m_skinningBuffer.get()) || !gfx::isValid(m_morphDeltaBuffer.get()) ||
+     !gfx::isValid(m_morphVertexBaseBuffer.get()) || !gfx::isValid(m_morphVertexCountBuffer.get()))
   {
     throw std::runtime_error("Failed to create GPU buffers");
   }
@@ -33,15 +60,16 @@ GPUBuffers::GPUBuffers(vk::IContext& context,
 
 GPUBuffers::~GPUBuffers() = default;
 
-bool GPUBuffers::uploadtoBuffer(vk::BufferHandle buffer, uint32_t byteOffset, const void* data, size_t dataSize)
+bool GPUBuffers::uploadtoBuffer(gfx::Buffer buffer, uint32_t byteOffset, const void* data, size_t dataSize)
 {
-  if (!data || !buffer.valid())
+  if (!data || !gfx::isValid(buffer))
   {
     LOG_ERROR("Invalid upload");
     return false;
   }
   LOG_INFO("Uploading {} bytes to buffer at offset {}", dataSize, byteOffset);
-  return m_context.upload(buffer, data, dataSize, byteOffset).isOk();
+  hina_upload_buffer(buffer, data, dataSize, byteOffset);
+  return true;
 }
 
 bool GPUBuffers::uploadMesh(uint32_t vertexOffset, uint32_t indexOffset, const std::vector<Vertex>& vertices, const std::vector<uint32_t>& indices)
@@ -50,22 +78,12 @@ bool GPUBuffers::uploadMesh(uint32_t vertexOffset, uint32_t indexOffset, const s
 
   if (!vertices.empty())
   {
-    vk::Result result = m_context.upload(m_vertexBuffer, vertices.data(), vertices.size() * sizeof(Vertex), vertexOffset);
-    if (!result.isOk())
-    {
-      LOG_ERROR("Failed to upload vertex data: {}", result.message);
-      success = false;
-    }
+    hina_upload_buffer(m_vertexBuffer.get(), vertices.data(), vertices.size() * sizeof(Vertex), vertexOffset);
   }
 
   if (!indices.empty() && success)
   {
-    vk::Result result = m_context.upload(m_indexBuffer, indices.data(), indices.size() * sizeof(uint32_t), indexOffset);
-    if (!result.isOk())
-    {
-      LOG_ERROR("Failed to upload index data: {}", result.message);
-      success = false;
-    }
+    hina_upload_buffer(m_indexBuffer.get(), indices.data(), indices.size() * sizeof(uint32_t), indexOffset);
   }
 
   return success;
@@ -73,116 +91,94 @@ bool GPUBuffers::uploadMesh(uint32_t vertexOffset, uint32_t indexOffset, const s
 
 bool GPUBuffers::uploadMaterial(uint32_t byteOffset, const MaterialData& data)
 {
-  vk::Result result = m_context.upload(m_materialBuffer, &data, sizeof(MaterialData), byteOffset);
-
-  if (!result.isOk())
-  {
-    LOG_ERROR("Failed to upload material data: {}", result.message);
-    return false;
-  }
-
+  hina_upload_buffer(m_materialBuffer.get(), &data, sizeof(MaterialData), byteOffset);
   return true;
 }
 
 bool GPUBuffers::uploadMeshDecompression(uint32_t byteOffset, const MeshDecompressionData& data)
 {
-  vk::Result result = m_context.upload(m_meshDecompressionBuffer, &data, sizeof(MeshDecompressionData), byteOffset);
-
-  if (!result.isOk())
-  {
-    LOG_ERROR("Failed to upload mesh decompression data: {}", result.message);
-    return false;
-  }
-
+  hina_upload_buffer(m_meshDecompressionBuffer.get(), &data, sizeof(MeshDecompressionData), byteOffset);
   return true;
 }
 
-uint32_t GPUBuffers::uploadTexture(const vk::TextureDesc& desc, const std::vector<uint8_t>& data)
+uint32_t GPUBuffers::uploadTexture(const gfx::TextureDesc& desc, const std::vector<uint8_t>& data)
 {
-  vk::TextureDesc textureDesc = desc;
-  textureDesc.data = data.data();
+  gfx::TextureDesc textureDesc = desc;
+  textureDesc.initial_data = data.data();
 
-  vk::Holder<vk::TextureHandle> vkTexture = m_context.createTexture(textureDesc);
+  gfx::Texture texture = gfx::createTexture(textureDesc);
 
-  if (!vkTexture.valid())
+  if (!gfx::isValid(texture))
   {
     LOG_ERROR("Failed to create texture");
-    return 0; // Invalid bindless index
+    return 0; // Invalid texture ID
   }
 
-  uint32_t bindlessIndex = vkTexture.index();
+  uint32_t textureId = gfx_get_texture_id(texture);
 
   // Store texture for lifetime management
-  m_ownedTextures.emplace_back(std::move(vkTexture));
+  m_ownedTextures.emplace_back(texture);
 
-  LOG_DEBUG("Texture uploaded with bindless index {}", bindlessIndex);
-  return bindlessIndex;
+  LOG_DEBUG("Texture uploaded with ID {}", textureId);
+  return textureId;
 }
 
-void GPUBuffers::deleteTexture(uint32_t bindlessIndex)
+void GPUBuffers::deleteTexture(uint32_t textureId)
 {
-  // Find texture by bindless index and remove
+  // Find texture by ID and remove
   for (auto it = m_ownedTextures.begin(); it != m_ownedTextures.end(); ++it)
   {
-    if (it->index() == bindlessIndex)
+    if (gfx_get_texture_id(it->get()) == textureId)
     {
-      LOG_DEBUG("Destroying texture with bindless index {}", bindlessIndex);
+      LOG_DEBUG("Destroying texture with ID {}", textureId);
       m_ownedTextures.erase(it);
       break;
     }
   }
 }
 
-vk::BufferHandle GPUBuffers::GetVertexBuffer() const { return m_vertexBuffer; }
+gfx::Buffer GPUBuffers::GetVertexBuffer() const { return m_vertexBuffer.get(); }
 
-vk::BufferHandle GPUBuffers::GetIndexBuffer() const { return m_indexBuffer; }
+gfx::Buffer GPUBuffers::GetIndexBuffer() const { return m_indexBuffer.get(); }
 
-vk::BufferHandle GPUBuffers::GetMaterialBuffer() const { return m_materialBuffer; }
+gfx::Buffer GPUBuffers::GetMaterialBuffer() const { return m_materialBuffer.get(); }
 
-vk::BufferHandle GPUBuffers::GetMeshDecompressionBuffer() const { return m_meshDecompressionBuffer; }
+gfx::Buffer GPUBuffers::GetMeshDecompressionBuffer() const { return m_meshDecompressionBuffer.get(); }
 
-vk::BufferHandle GPUBuffers::GetSkinningBuffer() const { return m_skinningBuffer; }
+gfx::Buffer GPUBuffers::GetSkinningBuffer() const { return m_skinningBuffer.get(); }
 
-vk::BufferHandle GPUBuffers::GetMorphDeltaBuffer() const { return m_morphDeltaBuffer; }
+gfx::Buffer GPUBuffers::GetMorphDeltaBuffer() const { return m_morphDeltaBuffer.get(); }
 
-vk::BufferHandle GPUBuffers::GetMorphVertexBaseBuffer() const { return m_morphVertexBaseBuffer; }
+gfx::Buffer GPUBuffers::GetMorphVertexBaseBuffer() const { return m_morphVertexBaseBuffer.get(); }
 
-vk::BufferHandle GPUBuffers::GetMorphVertexCountBuffer() const { return m_morphVertexCountBuffer; }
+gfx::Buffer GPUBuffers::GetMorphVertexCountBuffer() const { return m_morphVertexCountBuffer.get(); }
 
-vk::BufferDesc GPUBuffers::GetVertexBufferDesc() const { return m_vertexBufferDesc; }
+gfx::BufferDesc GPUBuffers::GetVertexBufferDesc() const { return m_vertexBufferDesc; }
 
+gfx::BufferDesc GPUBuffers::GetIndexBufferDesc() const { return m_indexBufferDesc; }
 
-vk::BufferDesc GPUBuffers::GetIndexBufferDesc() const { return m_indexBufferDesc; }
+gfx::BufferDesc GPUBuffers::GetMaterialBufferDesc() const { return m_materialBufferDesc; }
 
-vk::BufferDesc GPUBuffers::GetMaterialBufferDesc() const { return m_materialBufferDesc; }
+gfx::BufferDesc GPUBuffers::GetMeshDecompressionBufferDesc() const { return m_meshDecompressionBufferDesc; }
 
-vk::BufferDesc GPUBuffers::GetMeshDecompressionBufferDesc() const { return m_meshDecompressionBufferDesc; }
+gfx::BufferDesc GPUBuffers::GetSkinningBufferDesc() const { return m_skinningBufferDesc; }
 
-vk::BufferDesc GPUBuffers::GetSkinningBufferDesc() const { return m_skinningBufferDesc; }
+gfx::BufferDesc GPUBuffers::GetMorphDeltaBufferDesc() const { return m_morphDeltaBufferDesc; }
 
-vk::BufferDesc GPUBuffers::GetMorphDeltaBufferDesc() const { return m_morphDeltaBufferDesc; }
+gfx::BufferDesc GPUBuffers::GetMorphVertexBaseBufferDesc() const { return m_morphVertexBaseBufferDesc; }
 
-vk::BufferDesc GPUBuffers::GetMorphVertexBaseBufferDesc() const { return m_morphVertexBaseBufferDesc; }
-
-vk::BufferDesc GPUBuffers::GetMorphVertexCountBufferDesc() const { return m_morphVertexCountBufferDesc; }
+gfx::BufferDesc GPUBuffers::GetMorphVertexCountBufferDesc() const { return m_morphVertexCountBufferDesc; }
 
 size_t GPUBuffers::GetOwnedTextureCount() const { return m_ownedTextures.size(); }
 
 void GPUBuffers::CreateFixedBuffers()
 {
-  m_vertexBuffer = m_context.createBuffer(m_vertexBufferDesc, "VertexBuffer");
-
-  m_indexBuffer = m_context.createBuffer(m_indexBufferDesc, "IndexBuffer");
-
-  m_materialBuffer = m_context.createBuffer(m_materialBufferDesc, "MaterialBuffer");
-
-  m_meshDecompressionBuffer = m_context.createBuffer(m_meshDecompressionBufferDesc, "MeshDecompressionBuffer");
-
-  m_skinningBuffer = m_context.createBuffer(m_skinningBufferDesc, "SkinningBuffer");
-
-  m_morphDeltaBuffer = m_context.createBuffer(m_morphDeltaBufferDesc, "MorphDeltaBuffer");
-
-  m_morphVertexBaseBuffer = m_context.createBuffer(m_morphVertexBaseBufferDesc, "MorphVertexBaseBuffer");
-
-  m_morphVertexCountBuffer = m_context.createBuffer(m_morphVertexCountBufferDesc, "MorphVertexCountBuffer");
+  m_vertexBuffer.reset(gfx::createBuffer(m_vertexBufferDesc));
+  m_indexBuffer.reset(gfx::createBuffer(m_indexBufferDesc));
+  m_materialBuffer.reset(gfx::createBuffer(m_materialBufferDesc));
+  m_meshDecompressionBuffer.reset(gfx::createBuffer(m_meshDecompressionBufferDesc));
+  m_skinningBuffer.reset(gfx::createBuffer(m_skinningBufferDesc));
+  m_morphDeltaBuffer.reset(gfx::createBuffer(m_morphDeltaBufferDesc));
+  m_morphVertexBaseBuffer.reset(gfx::createBuffer(m_morphVertexBaseBufferDesc));
+  m_morphVertexCountBuffer.reset(gfx::createBuffer(m_morphVertexCountBufferDesc));
 }
