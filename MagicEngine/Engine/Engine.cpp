@@ -39,6 +39,7 @@ All rights reserved.
 #include "Engine/Input.h"
 
 #include "Engine/SceneManagement.h"
+#include "Engine/SceneTransition.h"
 #include "Engine/EntitySpawnEvents.h"
 #include "Game/IGameComponentCallbacks.h"
 #include "Tween/TweenManager.h"
@@ -271,6 +272,8 @@ void MagicEngine::shutdown()
 
 void MagicEngine::LoadPermanentSystems()
 {
+	ecs::AddSystem(ECS_LAYER::PERMANENT_UPDATE, SceneTransitionSystem{});
+
 	// Editor systems are now registered by the editor executable (see editor/application.cpp)
 }
 

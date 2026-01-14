@@ -21,6 +21,11 @@ All rights reserved.
 
 namespace Events {
 
+	struct TransitionScene
+	{
+		std::string toScenePath;
+	};
+
 	// Consumed by: GrabbableItemPickupUISystem
 	struct SceneUnloaded
 	{

@@ -1,3 +1,3 @@
 function OnButtonClicked(entity)
-    Magic.LoadScene("scenes/DefaultScene.scene");
+    Magic.TransitionScene("scenes/DefaultScene.scene");
 end
