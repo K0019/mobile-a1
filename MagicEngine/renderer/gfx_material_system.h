@@ -92,6 +92,7 @@ struct GfxMaterial {
 struct MaterialEntry {
     GfxMaterial material;
     PackedMaterial gpuData;
+    Buffer constantsUBO;         // Per-material UBO (16 bytes, Set 1 binding 0)
     BindGroup bindGroup;         // Material bind group (Set 1)
     uint16_t generation = 0;
     bool inUse = false;

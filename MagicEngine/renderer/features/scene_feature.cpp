@@ -16,18 +16,22 @@
 #include "resource/resource_manager.h"
 #include "resource/resource_types.h"
 #include "Graphics/RenderComponent.h"
+#include "Graphics/LightComponent.h"
 #include "ECS/ECS.h"
 #include "logging/log.h"
 #include <cstring>
+#include <cmath>
 
 // =============================================================================
 // G-Buffer Shader (embedded hina_sl)
 // =============================================================================
 
-// G-buffer shader - exact copy from GfxRenderer to verify compilation
+// G-buffer shader - Uses UBOs instead of push constants for mobile optimization
+// Set 0: Frame UBO, Set 1: Material (constants UBO + textures), Set 2: Dynamic transform UBO
 static const char* kGBufferShader = R"(#hina
 group Frame = 0;
 group Material = 1;
+group Dynamic = 2;
 
 bindings(Frame, start=0) {
   uniform(std140) FrameUBO {
@@ -35,7 +39,11 @@ bindings(Frame, start=0) {
   } frame;
 }
 
-bindings(Material, start=1) {
+// Material bind group: binding 0 = packed constants, bindings 1-5 = textures
+bindings(Material, start=0) {
+  uniform(std140) MaterialConstants {
+    uvec4 packed;  // [0]: baseColor.rg (half2), [1]: baseColor.b,roughness (half2), [2]: metallic,emissive (half2), [3]: rim,ao (half2)
+  } material;
   texture sampler2D u_albedo;
   texture sampler2D u_normal;
   texture sampler2D u_metallicRoughness;
@@ -43,18 +51,20 @@ bindings(Material, start=1) {
   texture sampler2D u_occlusion;
 }
 
-push_constant PushConstants {
-  mat4 model;
-  vec4 baseColor;
-} pc;
+// Dynamic bind group: per-draw transform with dynamic offset
+bindings(Dynamic, start=0) {
+  uniform(std140) TransformUBO {
+    mat4 model;
+  } transform;
+}
 
 // Split vertex streams (24 bytes total):
 // Buffer 0: Position stream (12 bytes)
-// Buffer 1: Attribute stream (12 bytes packed)
+// Buffer 1: Attribute stream (12 bytes packed) - main branch CompressedVertex encoding
 struct VertexIn {
   vec3 a_position;    // location 0, buffer 0: position
-  uint a_normalMatID; // location 1, buffer 1: RGB10A2 octahedral normal + 2-bit matID
-  uint a_tangentSign; // location 2, buffer 1: RGB10A2 octahedral tangent + sign
+  uint a_normalX;     // location 1, buffer 1: lower 16 bits = SNORM16 |nx| * nz_sign
+  uint a_packed;      // location 2, buffer 1: RGB10A2 [ny, tx, ty, (nx_sign<<1)|handedness]
   uint a_uv;          // location 3, buffer 1: RG16_UNORM UV
 };
 
@@ -78,37 +88,42 @@ Varyings VSMain(VertexIn in) {
     Varyings out;
 
     // Position from stream 0
-    vec4 worldPos = pc.model * vec4(in.a_position, 1.0);
+    vec4 worldPos = transform.model * vec4(in.a_position, 1.0);
     out.worldPos = worldPos.xyz;
 
-    // Inline octahedral decode helper
-    // Unpack normal from RGB10A2 octahedral encoding
-    float nx = float(in.a_normalMatID & 0x3FFu) / 1023.0;
-    float ny = float((in.a_normalMatID >> 10u) & 0x3FFu) / 1023.0;
-    vec2 nf = vec2(nx, ny) * 2.0 - 1.0;
-    vec3 localNormal = vec3(nf.xy, 1.0 - abs(nf.x) - abs(nf.y));
-    float nt = max(-localNormal.z, 0.0);
-    localNormal.x += (localNormal.x >= 0.0) ? -nt : nt;
-    localNormal.y += (localNormal.y >= 0.0) ? -nt : nt;
-    localNormal = normalize(localNormal);
+    // Decode normal using main branch's CompressedVertex encoding
+    // a_normalX lower 16 bits = SNORM16: |nx| with nz_sign in sign bit
+    int normal_x_snorm = int(in.a_normalX & 0xFFFFu);
+    if (normal_x_snorm > 32767) normal_x_snorm -= 65536;  // Sign extend
+    float normal_x_float = float(normal_x_snorm) / 32767.0;
 
-    // Unpack tangent from RGB10A2 octahedral encoding
-    float tx = float(in.a_tangentSign & 0x3FFu) / 1023.0;
-    float ty = float((in.a_tangentSign >> 10u) & 0x3FFu) / 1023.0;
-    vec2 tf = vec2(tx, ty) * 2.0 - 1.0;
-    vec3 localTangent = vec3(tf.xy, 1.0 - abs(tf.x) - abs(tf.y));
-    float tt = max(-localTangent.z, 0.0);
-    localTangent.x += (localTangent.x >= 0.0) ? -tt : tt;
-    localTangent.y += (localTangent.y >= 0.0) ? -tt : tt;
-    localTangent = normalize(localTangent);
+    float nx_magnitude = abs(normal_x_float);
+    float nz_sign = normal_x_float < 0.0 ? -1.0 : 1.0;
 
-    // Extract sign bit for bitangent
-    uint signBit = (in.a_tangentSign >> 30u) & 0x3u;
+    // a_packed = RGB10A2: [ny(10), tx(10), ty(10), alpha(2)]
+    // alpha = (nx_sign_bit << 1) | handedness_bit
+    float ny = float(in.a_packed & 0x3FFu) / 1023.0 * 2.0 - 1.0;
+    float tx = float((in.a_packed >> 10u) & 0x3FFu) / 1023.0 * 2.0 - 1.0;
+    float ty = float((in.a_packed >> 20u) & 0x3FFu) / 1023.0 * 2.0 - 1.0;
+    uint alpha = (in.a_packed >> 30u) & 0x3u;
 
-    mat3 normalMatrix = mat3(pc.model);
-    out.normal = normalMatrix * localNormal;
-    out.tangent = normalMatrix * localTangent;
-    out.bitangentSign = (signBit & 1u) != 0u ? -1.0 : 1.0;
+    float nx_sign = ((alpha >> 1u) & 1u) != 0u ? -1.0 : 1.0;
+    float handedness = (alpha & 1u) != 0u ? -1.0 : 1.0;
+
+    float nx = nx_magnitude * nx_sign;
+    float nz = sqrt(max(0.001, 1.0 - nx * nx - ny * ny)) * nz_sign;
+    vec3 localNormal = normalize(vec3(nx, ny, nz));
+
+    // Tangent: tz is always positive (flipped during encoding if needed)
+    float tz = sqrt(max(0.001, 1.0 - tx * tx - ty * ty));
+    vec3 localTangent = normalize(vec3(tx, ty, tz));
+
+    // Proper normal matrix handles non-uniform scale
+    mat3 normalMatrix = transpose(inverse(mat3(transform.model)));
+    out.normal = normalize(normalMatrix * localNormal);
+    out.tangent = normalize(normalMatrix * localTangent);
+
+    out.bitangentSign = handedness;
 
     // Unpack UV from RG16_UNORM
     out.uv = unpackUnorm2x16(in.a_uv);
@@ -122,17 +137,31 @@ Varyings VSMain(VertexIn in) {
 FragOut FSMain(Varyings in) {
     FragOut out;
 
-    // Sample albedo texture
-    vec4 albedo = texture(u_albedo, in.uv) * pc.baseColor;
+    // Unpack base color from material constants (half-float packed in uvec4)
+    vec2 rg = unpackHalf2x16(material.packed.x);
+    vec2 bRoug = unpackHalf2x16(material.packed.y);
+    vec4 baseColor = vec4(rg.x, rg.y, bRoug.x, 1.0);
 
-    // Sample normal map and construct TBN
+    // Sample albedo texture and multiply by base color
+    vec4 albedo = texture(u_albedo, in.uv) * baseColor;
+
+    // Build TBN with original (non-negated) normal for correct normal mapping
     vec3 N = normalize(in.normal);
     vec3 T = normalize(in.tangent);
-    vec3 B = cross(N, T) * in.bitangentSign;
-    mat3 TBN = mat3(T, B, N);
+    vec3 B = normalize(cross(N, T) * in.bitangentSign);
 
-    vec3 normalMap = texture(u_normal, in.uv).rgb * 2.0 - 1.0;
-    N = normalize(TBN * normalMap);
+    // Check if normal map is non-flat (default flat normal is (0.5, 0.5, 1.0))
+    vec3 normalSample = texture(u_normal, in.uv).rgb;
+    bool hasNormalMap = abs(normalSample.z - 1.0) > 0.01 || abs(normalSample.x - 0.5) > 0.01 || abs(normalSample.y - 0.5) > 0.01;
+
+    if (hasNormalMap) {
+        mat3 TBN = mat3(T, B, N);
+        vec3 normalMap = normalSample * 2.0 - 1.0;
+        N = normalize(TBN * normalMap);
+    }
+
+    // Negate final normal after TBN transformation (matches main branch's calculateLighting)
+    N = -N;
 
     // Sample metallic/roughness (B=metallic, G=roughness in glTF convention)
     vec2 mr = texture(u_metallicRoughness, in.uv).bg;
@@ -145,8 +174,18 @@ FragOut FSMain(Varyings in) {
     // Output albedo from material texture
     out.albedo = albedo;
 
-    // Encode world-space normal to [0,1] range for storage
-    out.normal = vec4(N.xy * 0.5 + 0.5, 0.0, 1.0);
+    // Encode world-space normal using octahedral encoding (fits in RG16F)
+    // Project to octahedron
+    vec3 n = N / (abs(N.x) + abs(N.y) + abs(N.z));
+    // Fold lower hemisphere
+    if (n.z < 0.0) {
+        float nx = n.x;
+        float ny = n.y;
+        n.x = (1.0 - abs(ny)) * (nx >= 0.0 ? 1.0 : -1.0);
+        n.y = (1.0 - abs(nx)) * (ny >= 0.0 ? 1.0 : -1.0);
+    }
+    // Store in RG channels (SFLOAT, so keep in [-1,1] range)
+    out.normal = vec4(n.xy, 0.0, 1.0);
 
     // Material data: roughness, metallic, ao, emissive intensity
     out.materialData = vec4(roughness, metallic, ao, 0.0);
@@ -160,23 +199,35 @@ FragOut FSMain(Varyings in) {
 // Composite Shader (embedded hina_sl) - Deferred lighting pass
 // =============================================================================
 
+// Composite shader with multi-light support via UBO
+// Set 0: G-buffer textures
+// Set 1: Light UBO with all scene lights
 static const char* kCompositeShader = R"(#hina
-group Composite = 0;
+group GBuffer = 0;
+group Lights = 1;
 
-bindings(Composite, start=0) {
+bindings(GBuffer, start=0) {
   texture sampler2D u_albedo;
   texture sampler2D u_normal;
   texture sampler2D u_materialData;
   texture sampler2D u_depth;
 }
 
-push_constant LightingParams {
-  vec4 lightDir;
-  vec4 lightColor;
-  vec4 ambientColor;
-  vec4 cameraPos;
-  mat4 invViewProj;
-} pc;
+// Light UBO - each light is 4 vec4s:
+//   [0]: type, position.xyz (type: 0=dir, 1=point, 2=spot)
+//   [1]: direction.xyz, intensity
+//   [2]: color.rgb, radius
+//   [3]: attenuation.xyz, unused
+// Max 32 lights = 512 bytes for lights + 80 bytes header = 592 bytes
+bindings(Lights, start=0) {
+  uniform(std140) LightUBO {
+    vec4 ambientColor;   // rgb = ambient, a = unused
+    vec4 cameraPos;      // xyz = camera position, w = unused
+    mat4 invViewProj;    // For world position reconstruction
+    ivec4 lightCounts;   // x = numLights, yzw = unused
+    vec4 lights[128];    // 32 lights * 4 vec4s each
+  } ubo;
+}
 
 struct VertexIn {
   vec2 a_position;
@@ -205,64 +256,100 @@ Varyings VSMain(VertexIn in) {
 FragOut FSMain(Varyings in) {
     FragOut out;
 
-    // G-buffer is Y-flipped due to Vulkan projection flip - flip UV for all G-buffer samples
-    vec2 gbufferUV = vec2(in.uv.x, in.uv.y);
+    vec2 gbufferUV = in.uv;
 
-    // Sample G-buffer with flipped UV
+    // Sample G-buffer
     vec4 albedoSample = texture(u_albedo, gbufferUV);
-    vec2 encodedNormal = texture(u_normal, gbufferUV).xy;
+    vec3 normalSample = texture(u_normal, gbufferUV).xyz;
     vec4 matData = texture(u_materialData, gbufferUV);
     float depth = texture(u_depth, gbufferUV).r;
 
-    // Early out for sky/background (depth == 1.0)
+    // Early out for sky/background
     if (depth >= 1.0) {
-        out.color = vec4(0.1, 0.1, 0.15, 1.0);  // Sky color
+        out.color = vec4(0.1, 0.1, 0.15, 1.0);
         return out;
     }
 
-    // Decode normal from octahedral (simple encoding for now)
-    vec3 normal = vec3(encodedNormal * 2.0 - 1.0, 0.0);
-    normal.z = sqrt(max(0.0, 1.0 - dot(normal.xy, normal.xy)));
-    normal = normalize(normal);
+    // Decode normal from octahedral encoding (RG16F stores [-1,1] directly)
+    vec2 f = normalSample.xy;
+    vec3 normal = vec3(f.x, f.y, 1.0 - abs(f.x) - abs(f.y));
+    // Unfold lower hemisphere
+    float t = max(-normal.z, 0.0);
+    normal.x += (normal.x >= 0.0) ? -t : t;
+    normal.y += (normal.y >= 0.0) ? -t : t;
+    normal = normalize(normal);  // TEST: no negation
 
-    // Extract material properties
+    // Material properties
     float roughness = matData.r;
-    float metallic = matData.g;
 
     // Reconstruct world position from depth
-    // Note: projMatrix already has Vulkan Y-flip applied, so no additional flip needed here
     vec2 ndc = gbufferUV * 2.0 - 1.0;
     vec4 clipPos = vec4(ndc, depth, 1.0);
-    vec4 worldPos4 = pc.invViewProj * clipPos;
+    vec4 worldPos4 = ubo.invViewProj * clipPos;
     vec3 worldPos = worldPos4.xyz / worldPos4.w;
 
-    // View direction
-    vec3 viewDir = normalize(pc.cameraPos.xyz - worldPos);
-
-    // Directional light
-    vec3 lightDir = normalize(pc.lightDir.xyz);
-    float lightIntensity = pc.lightDir.w;
-
-    // Diffuse lighting (Lambert)
-    float NdotL = max(dot(normal, lightDir), 0.0);
-    vec3 diffuse = pc.lightColor.rgb * NdotL * lightIntensity;
-
-    // Simple specular (Blinn-Phong)
-    vec3 halfVec = normalize(lightDir + viewDir);
-    float NdotH = max(dot(normal, halfVec), 0.0);
+    vec3 viewDir = normalize(ubo.cameraPos.xyz - worldPos);
+    vec3 baseColor = albedoSample.rgb;
     float specPower = mix(8.0, 128.0, 1.0 - roughness);
-    float spec = pow(NdotH, specPower) * (1.0 - roughness) * 0.5;
-    vec3 specular = pc.lightColor.rgb * spec * lightIntensity;
 
-    // Combine lighting
-    vec3 ambient = pc.ambientColor.rgb;
-    vec3 baseColor = albedoSample.rgb;  // Use albedo from G-buffer
+    // Start with ambient
+    vec3 totalDiffuse = vec3(0.0);
+    vec3 totalSpecular = vec3(0.0);
 
-    vec3 finalColor = baseColor * (ambient + diffuse) + specular;
+    int numLights = ubo.lightCounts.x;
+    for (int i = 0; i < numLights && i < 32; ++i) {
+        int base = i * 4;
+        vec4 data0 = ubo.lights[base + 0];  // type, position.xyz
+        vec4 data1 = ubo.lights[base + 1];  // direction.xyz, intensity
+        vec4 data2 = ubo.lights[base + 2];  // color.rgb, radius
 
-    // Output HDR color - tone mapping handled by separate pass
+        int lightType = int(data0.x);
+        vec3 lightPos = data0.yzw;
+        vec3 lightDir = data1.xyz;
+        float intensity = data1.w;
+        vec3 lightColor = data2.rgb;
+        float radius = data2.a;
+
+        vec3 L;
+        float attenuation = 1.0;
+
+        if (lightType == 0) {
+            // Directional light - negate direction (lightDir points FROM light, L should point TO light)
+            L = -normalize(lightDir);
+        } else {
+            // Point light (type == 1) or spot light (type == 2)
+            vec3 toLight = lightPos - worldPos;
+            float dist = length(toLight);
+            L = toLight / max(dist, 0.001);
+
+            // Distance attenuation with smooth falloff
+            if (radius > 0.0) {
+                attenuation = 1.0 - smoothstep(0.0, radius, dist);
+                attenuation *= attenuation;
+            } else {
+                // Fallback inverse square
+                attenuation = 1.0 / (1.0 + dist * dist * 0.01);
+            }
+        }
+
+        // Standard one-sided diffuse (Lambert) - matches main branch
+        float NdotL = max(dot(normal, L), 0.0);
+        totalDiffuse += lightColor * NdotL * intensity * attenuation;
+
+        // Standard specular (Blinn-Phong)
+        vec3 halfVec = normalize(L + viewDir);
+        float NdotH = max(dot(normal, halfVec), 0.0);
+        float spec = pow(NdotH, specPower) * (1.0 - roughness) * 0.5;
+        totalSpecular += lightColor * spec * intensity * attenuation;
+    }
+
+    // Final color
+    vec3 ambient = ubo.ambientColor.rgb;
+    vec3 finalColor = baseColor * (ambient + totalDiffuse) + totalSpecular;
+
+    // DEBUG: Visualize normals as color (comment out for normal rendering)
+    //out.color = vec4(normal * 0.5 + 0.5, 1.0);
     out.color = vec4(finalColor, 1.0);
-
     return out;
 }
 #hina_end
@@ -316,7 +403,21 @@ void SceneRenderFeature::Shutdown()
   m_lastGBufferWidth = 0;
   m_lastGBufferHeight = 0;
 
+  // Light resources
+  if (hina_bind_group_is_valid(m_lightBindGroup)) {
+    hina_destroy_bind_group(m_lightBindGroup);
+    m_lightBindGroup = {};
+  }
+  m_lightLayout.reset();
+  if (hina_buffer_is_valid(m_lightUBO)) {
+    hina_destroy_buffer(m_lightUBO);
+    m_lightUBO = {};
+  }
+  m_lightUBOMapped = nullptr;
+  m_lightUBOCreated = false;
+
   m_drawList.clear();
+  m_lightList.clear();
 }
 
 bool SceneRenderFeature::EnsurePipelineCreated(GfxRenderer* gfxRenderer)
@@ -384,8 +485,10 @@ bool SceneRenderFeature::EnsurePipelineCreated(GfxRenderer* gfxRenderer)
     return false;
   }
 
-  // Material layout from GfxRenderer
+  // Material layout from GfxRenderer (Set 1: constants UBO + textures)
   gfx::BindGroupLayout materialLayout = gfxRenderer->getMaterialLayout();
+  // Dynamic layout from GfxRenderer (Set 2: transform UBO with dynamic offset)
+  gfx::BindGroupLayout dynamicLayout = gfxRenderer->getDynamicLayout();
 
   // Vertex layout for split streams
   hina_vertex_layout vertex_layout = {};
@@ -402,8 +505,8 @@ bool SceneRenderFeature::EnsurePipelineCreated(GfxRenderer* gfxRenderer)
 
   hina_hsl_pipeline_desc pip_desc = hina_hsl_pipeline_desc_default();
   pip_desc.layout = vertex_layout;
-  pip_desc.cull_mode = HINA_CULL_MODE_BACK;
-  pip_desc.front_face = HINA_FRONT_FACE_CLOCKWISE;
+  pip_desc.cull_mode = HINA_CULL_MODE_NONE;  // Disable culling - meshes have inconsistent winding
+  pip_desc.front_face = HINA_FRONT_FACE_CLOCKWISE;  // CW = front (matches objects)
   pip_desc.depth.depth_test = true;
   pip_desc.depth.depth_write = true;
   pip_desc.depth.depth_compare = HINA_COMPARE_OP_LESS;
@@ -412,9 +515,11 @@ bool SceneRenderFeature::EnsurePipelineCreated(GfxRenderer* gfxRenderer)
   pip_desc.color_formats[0] = HINA_FORMAT_R8G8B8A8_SRGB;
   pip_desc.color_formats[1] = HINA_FORMAT_R16G16_SFLOAT;
   pip_desc.color_formats[2] = HINA_FORMAT_R8G8B8A8_UNORM;
+  // Set 0: Frame UBO, Set 1: Material (constants UBO + textures), Set 2: Dynamic transform UBO
   pip_desc.bind_group_layouts[0] = m_sceneLayout.get();
   pip_desc.bind_group_layouts[1] = materialLayout;
-  pip_desc.bind_group_layout_count = 2;
+  pip_desc.bind_group_layouts[2] = dynamicLayout;
+  pip_desc.bind_group_layout_count = 3;
 
   m_gbufferPipeline.reset(hina_make_pipeline_from_module(module, &pip_desc, nullptr));
   hslc_hsl_module_free(module);
@@ -531,6 +636,50 @@ void SceneRenderFeature::UpdateScene(uint64_t renderFeatureID,
       feature->m_drawList.push_back(draw);
     }
   }
+
+  // =========================================================================
+  // Collect lights from ECS LightComponents
+  // =========================================================================
+  feature->m_lightList.clear();
+
+  for (auto compIter = ecs::GetCompsActiveBegin<LightComponent>();
+       compIter != ecs::GetCompsEnd<LightComponent>();
+       ++compIter)
+  {
+    LightComponent& lightComp = *compIter;
+
+    auto* entity = ecs::GetEntity(&lightComp);
+    if (!entity) continue;
+
+    const SceneLight& sceneLight = lightComp.light;
+
+    // Get world position and direction from entity transform
+    glm::mat4 entityWorldMatrix;
+    entity->GetTransform().SetMat4ToWorld(&entityWorldMatrix);
+
+    CollectedLight collected;
+    collected.type = sceneLight.type;
+    collected.position = glm::vec3(entityWorldMatrix[3]);  // Extract position from matrix
+    collected.direction = glm::normalize(glm::vec3(entityWorldMatrix * glm::vec4(sceneLight.direction, 0.0f)));
+    collected.color = sceneLight.color;
+    collected.attenuation = sceneLight.attenuation;
+    collected.intensity = sceneLight.intensity;
+    collected.innerConeAngle = sceneLight.innerConeAngle;
+    collected.outerConeAngle = sceneLight.outerConeAngle;
+
+    // Compute radius for culling (where attenuation reaches ~1% intensity)
+    // Using quadratic attenuation: 1/(c + l*d + q*d^2) = 0.01
+    // Simplified: radius = sqrt(100/quadratic) when quadratic > 0
+    float quadratic = sceneLight.attenuation.z;
+    if (quadratic > 0.001f) {
+      collected.radius = std::sqrt(100.0f / quadratic);
+    } else {
+      collected.radius = 100.0f;  // Very large fallback
+    }
+
+    feature->m_lightList.push_back(collected);
+  }
+
 }
 
 void SceneRenderFeature::SetupPasses(internal::RenderPassBuilder& passBuilder)
@@ -627,14 +776,33 @@ void SceneRenderFeature::ExecuteGBufferPass(internal::ExecutionContext& ctx)
 
   // Draw submitted meshes
   if (!m_drawList.empty()) {
-    struct { glm::mat4 model; glm::vec4 baseColor; } pushConstants;
-
     auto& meshStorage = gfxRenderer->getMeshStorage();
     auto& materialSystem = gfxRenderer->getMaterialSystem();
+
+    // Get frame resources for transform ring buffer
+    auto& frame = gfxRenderer->getCurrentFrameResources();
+
+    // Use persistently mapped pointer (mapped once during creation)
+    if (!frame.transformRingMapped) {
+      LOG_ERROR("[SceneRenderFeature] Transform ring buffer not mapped");
+      hina_cmd_end_pass(cmd);
+      return;
+    }
 
     for (const auto& draw : m_drawList) {
       const gfx::GpuMesh* gpuMesh = meshStorage.get(draw.gfxMesh);
       if (!gpuMesh || !gpuMesh->valid) continue;
+
+      // Check transform ring buffer overflow
+      if (frame.transformRingOffset >= TRANSFORM_UBO_SIZE) {
+        LOG_WARNING("[SceneRenderFeature] Transform ring buffer overflow, skipping remaining draws");
+        break;
+      }
+
+      // Write transform to ring buffer at current offset
+      glm::mat4* transformDst = reinterpret_cast<glm::mat4*>(
+          static_cast<uint8_t*>(frame.transformRingMapped) + frame.transformRingOffset);
+      *transformDst = draw.transform;
 
       // Bind split vertex streams with offsets
       hina_vertex_input meshInput = {};
@@ -647,29 +815,27 @@ void SceneRenderFeature::ExecuteGBufferPass(internal::ExecutionContext& ctx)
 
       hina_cmd_apply_vertex_input(cmd, &meshInput);
 
-      // Bind material at Set 1 and get baseColor from material
+      // Bind material at Set 1 (includes material constants UBO at binding 0)
       gfx::BindGroup materialBG;
-      glm::vec4 baseColor = draw.baseColor;  // Default fallback
       if (draw.hasMaterial && materialSystem.isMaterialValid(draw.gfxMaterial)) {
         materialBG = materialSystem.getMaterialBindGroup(draw.gfxMaterial);
-        // Get actual baseColor from the material
-        const gfx::MaterialEntry* matEntry = materialSystem.getMaterial(draw.gfxMaterial);
-        if (matEntry) {
-          baseColor = matEntry->material.baseColor;
-        }
       } else {
         materialBG = materialSystem.getMaterialBindGroup(materialSystem.getDefaultMaterial());
       }
       hina_cmd_bind_group(cmd, 1, materialBG);
 
-      // Update push constants for this draw
-      pushConstants.model = draw.transform;
-      pushConstants.baseColor = baseColor;  // Use material's baseColor if available
-      hina_cmd_push_constants(cmd, 0, sizeof(pushConstants), &pushConstants);
+      // Bind Set 2 (dynamic transform UBO) with dynamic offset
+      uint32_t dynamicOffsets[1] = { frame.transformRingOffset };
+      hina_cmd_bind_group_with_offsets(cmd, 2, frame.dynamicBindGroup, dynamicOffsets, 1);
+
+      // Advance transform ring offset (256-byte aligned for mobile compatibility)
+      frame.transformRingOffset += TRANSFORM_ALIGNMENT;
 
       // Draw with index offset
       hina_cmd_draw_indexed(cmd, gpuMesh->indexCount, 1, gpuMesh->indexOffset / sizeof(uint32_t), 0, 0);
     }
+
+    // No unmap needed for HOST_COHERENT persistently mapped buffers
   }
 
   hina_cmd_end_pass(cmd);
@@ -750,16 +916,13 @@ bool SceneRenderFeature::EnsureCompositePipelineCreated(GfxRenderer* gfxRenderer
 
   // Create fullscreen quad vertex buffer
   {
-    // Fullscreen quad vertices: pos(2) + uv(2) = 16 bytes per vertex
     const float quadVerts[] = {
-      // Triangle 1
-      -1.0f, -1.0f, 0.0f, 0.0f,  // bottom-left
-       1.0f, -1.0f, 1.0f, 0.0f,  // bottom-right
-       1.0f,  1.0f, 1.0f, 1.0f,  // top-right
-      // Triangle 2
-      -1.0f, -1.0f, 0.0f, 0.0f,  // bottom-left
-       1.0f,  1.0f, 1.0f, 1.0f,  // top-right
-      -1.0f,  1.0f, 0.0f, 1.0f   // top-left
+      -1.0f, -1.0f, 0.0f, 0.0f,
+       1.0f, -1.0f, 1.0f, 0.0f,
+       1.0f,  1.0f, 1.0f, 1.0f,
+      -1.0f, -1.0f, 0.0f, 0.0f,
+       1.0f,  1.0f, 1.0f, 1.0f,
+      -1.0f,  1.0f, 0.0f, 1.0f
     };
 
     hina_buffer_desc vb_desc = {};
@@ -784,29 +947,93 @@ bool SceneRenderFeature::EnsureCompositePipelineCreated(GfxRenderer* gfxRenderer
     return false;
   }
 
-  // Create bind group layout for G-buffer textures (set 0: 4 combined image samplers)
-  hina_bind_group_layout_entry layout_entries[4] = {};
+  // =========================================================================
+  // Set 0: G-buffer textures (4 combined image samplers)
+  // =========================================================================
+  hina_bind_group_layout_entry gbuffer_entries[4] = {};
   for (int i = 0; i < 4; ++i) {
-    layout_entries[i].binding = static_cast<uint32_t>(i);
-    layout_entries[i].type = HINA_DESC_TYPE_COMBINED_IMAGE_SAMPLER;
-    layout_entries[i].count = 1;
-    layout_entries[i].stage_flags = HINA_STAGE_FRAGMENT;
-    layout_entries[i].flags = HINA_BINDING_FLAG_NONE;
+    gbuffer_entries[i].binding = static_cast<uint32_t>(i);
+    gbuffer_entries[i].type = HINA_DESC_TYPE_COMBINED_IMAGE_SAMPLER;
+    gbuffer_entries[i].count = 1;
+    gbuffer_entries[i].stage_flags = HINA_STAGE_FRAGMENT;
+    gbuffer_entries[i].flags = HINA_BINDING_FLAG_NONE;
   }
 
-  hina_bind_group_layout_desc layout_desc = {};
-  layout_desc.entries = layout_entries;
-  layout_desc.entry_count = 4;
-  layout_desc.label = "scene_composite_layout";
+  hina_bind_group_layout_desc gbuffer_layout_desc = {};
+  gbuffer_layout_desc.entries = gbuffer_entries;
+  gbuffer_layout_desc.entry_count = 4;
+  gbuffer_layout_desc.label = "composite_gbuffer_layout";
 
-  m_compositeLayout.reset(hina_create_bind_group_layout(&layout_desc));
+  m_compositeLayout.reset(hina_create_bind_group_layout(&gbuffer_layout_desc));
   if (!hina_bind_group_layout_is_valid(m_compositeLayout.get())) {
-    LOG_ERROR("[SceneRenderFeature] Failed to create composite bind group layout");
+    LOG_ERROR("[SceneRenderFeature] Failed to create G-buffer bind group layout");
     hslc_hsl_module_free(module);
     return false;
   }
 
-  // Fullscreen quad vertex layout: pos(2) + uv(2)
+  // =========================================================================
+  // Set 1: Light UBO
+  // Layout: vec4 ambient, vec4 cameraPos, mat4 invViewProj, ivec4 lightCounts, vec4[128] lights
+  // Total: 16 + 16 + 64 + 16 + 2048 = 2160 bytes
+  // =========================================================================
+  hina_bind_group_layout_entry light_entries[1] = {};
+  light_entries[0].binding = 0;
+  light_entries[0].type = HINA_DESC_TYPE_UNIFORM_BUFFER;
+  light_entries[0].count = 1;
+  light_entries[0].stage_flags = HINA_STAGE_FRAGMENT;
+  light_entries[0].flags = HINA_BINDING_FLAG_NONE;
+
+  hina_bind_group_layout_desc light_layout_desc = {};
+  light_layout_desc.entries = light_entries;
+  light_layout_desc.entry_count = 1;
+  light_layout_desc.label = "composite_light_layout";
+
+  m_lightLayout.reset(hina_create_bind_group_layout(&light_layout_desc));
+  if (!hina_bind_group_layout_is_valid(m_lightLayout.get())) {
+    LOG_ERROR("[SceneRenderFeature] Failed to create light bind group layout");
+    hslc_hsl_module_free(module);
+    return false;
+  }
+
+  // Create light UBO buffer (2160 bytes, host visible for per-frame updates)
+  constexpr size_t kLightUBOSize = 16 + 16 + 64 + 16 + (128 * 16);  // 2160 bytes
+  hina_buffer_desc ubo_desc = {};
+  ubo_desc.size = kLightUBOSize;
+  ubo_desc.flags = static_cast<hina_buffer_flags>(
+      HINA_BUFFER_UNIFORM_BIT | HINA_BUFFER_HOST_VISIBLE_BIT | HINA_BUFFER_HOST_COHERENT_BIT);
+  m_lightUBO = hina_make_buffer(&ubo_desc);
+  if (!hina_buffer_is_valid(m_lightUBO)) {
+    LOG_ERROR("[SceneRenderFeature] Failed to create light UBO");
+    hslc_hsl_module_free(module);
+    return false;
+  }
+  m_lightUBOMapped = hina_map_buffer(m_lightUBO);
+
+  // Create light bind group
+  hina_bind_group_entry light_bg_entries[1] = {};
+  light_bg_entries[0].binding = 0;
+  light_bg_entries[0].type = HINA_DESC_TYPE_UNIFORM_BUFFER;
+  light_bg_entries[0].buffer.buffer = m_lightUBO;
+  light_bg_entries[0].buffer.offset = 0;
+  light_bg_entries[0].buffer.size = kLightUBOSize;
+
+  hina_bind_group_desc light_bg_desc = {};
+  light_bg_desc.layout = m_lightLayout.get();
+  light_bg_desc.entries = light_bg_entries;
+  light_bg_desc.entry_count = 1;
+  light_bg_desc.label = "composite_light_bg";
+
+  m_lightBindGroup = hina_create_bind_group(&light_bg_desc);
+  if (!hina_bind_group_is_valid(m_lightBindGroup)) {
+    LOG_ERROR("[SceneRenderFeature] Failed to create light bind group");
+    hslc_hsl_module_free(module);
+    return false;
+  }
+  m_lightUBOCreated = true;
+
+  // =========================================================================
+  // Create pipeline with both bind group layouts
+  // =========================================================================
   hina_vertex_layout vertex_layout = {};
   vertex_layout.buffer_count = 1;
   vertex_layout.buffer_strides[0] = sizeof(float) * 4;
@@ -815,17 +1042,17 @@ bool SceneRenderFeature::EnsureCompositePipelineCreated(GfxRenderer* gfxRenderer
   vertex_layout.attrs[0] = { HINA_FORMAT_R32G32_SFLOAT, 0, 0, 0 };  // position
   vertex_layout.attrs[1] = { HINA_FORMAT_R32G32_SFLOAT, sizeof(float) * 2, 1, 0 };  // uv
 
-  // Pipeline descriptor - output to HDR SCENE_COLOR format
   hina_hsl_pipeline_desc pip_desc = hina_hsl_pipeline_desc_default();
   pip_desc.layout = vertex_layout;
   pip_desc.cull_mode = HINA_CULL_MODE_NONE;
   pip_desc.depth.depth_test = false;
   pip_desc.depth.depth_write = false;
   pip_desc.depth_format = HINA_FORMAT_UNDEFINED;
-  pip_desc.color_formats[0] = LinearColor::HDR_SCENE_FORMAT;  // R16G16B16A16_SFLOAT
+  pip_desc.color_formats[0] = LinearColor::HDR_SCENE_FORMAT;
   pip_desc.color_attachment_count = 1;
   pip_desc.bind_group_layouts[0] = m_compositeLayout.get();
-  pip_desc.bind_group_layout_count = 1;
+  pip_desc.bind_group_layouts[1] = m_lightLayout.get();
+  pip_desc.bind_group_layout_count = 2;
 
   m_compositePipeline.reset(hina_make_pipeline_from_module(module, &pip_desc, nullptr));
   hslc_hsl_module_free(module);
@@ -836,7 +1063,7 @@ bool SceneRenderFeature::EnsureCompositePipelineCreated(GfxRenderer* gfxRenderer
   }
 
   m_compositePipelineCreated = true;
-  LOG_INFO("[SceneRenderFeature] Composite pipeline created successfully");
+  LOG_INFO("[SceneRenderFeature] Composite pipeline created successfully (with light UBO)");
   return true;
 }
 
@@ -936,6 +1163,73 @@ void SceneRenderFeature::ExecuteCompositePass(internal::ExecutionContext& ctx)
     return;
   }
 
+  // =========================================================================
+  // Fill Light UBO with all collected lights
+  // Layout (std140):
+  //   vec4 ambientColor    (16 bytes, offset 0)
+  //   vec4 cameraPos       (16 bytes, offset 16)
+  //   mat4 invViewProj     (64 bytes, offset 32)
+  //   ivec4 lightCounts    (16 bytes, offset 96)
+  //   vec4 lights[128]     (2048 bytes, offset 112)
+  // Each light uses 4 vec4s:
+  //   [0]: type, position.xyz
+  //   [1]: direction.xyz, intensity
+  //   [2]: color.rgb, radius
+  //   [3]: reserved (attenuation.xyz, unused)
+  // =========================================================================
+  if (m_lightUBOMapped) {
+    uint8_t* uboData = static_cast<uint8_t*>(m_lightUBOMapped);
+    size_t offset = 0;
+
+    // ambientColor (offset 0)
+    glm::vec4 ambient(0.15f, 0.17f, 0.2f, 1.0f);
+    std::memcpy(uboData + offset, &ambient, sizeof(glm::vec4));
+    offset += 16;
+
+    // cameraPos (offset 16)
+    glm::vec4 cameraPos(frameData.cameraPos, 1.0f);
+    std::memcpy(uboData + offset, &cameraPos, sizeof(glm::vec4));
+    offset += 16;
+
+    // invViewProj (offset 32)
+    glm::mat4 viewProj = frameData.projMatrix * frameData.viewMatrix;
+    glm::mat4 invViewProj = glm::inverse(viewProj);
+    std::memcpy(uboData + offset, &invViewProj, sizeof(glm::mat4));
+    offset += 64;
+
+    // lightCounts (offset 96)
+    int numLights = static_cast<int>(std::min(m_lightList.size(), size_t(32)));
+    glm::ivec4 lightCounts(numLights, 0, 0, 0);
+    std::memcpy(uboData + offset, &lightCounts, sizeof(glm::ivec4));
+    offset += 16;
+
+    // lights array (offset 112)
+    // Each light is 4 vec4s = 64 bytes
+    for (int i = 0; i < numLights; ++i) {
+      const CollectedLight& light = m_lightList[i];
+
+      // data0: type, position.xyz
+      glm::vec4 data0(static_cast<float>(light.type), light.position.x, light.position.y, light.position.z);
+      std::memcpy(uboData + offset, &data0, sizeof(glm::vec4));
+      offset += 16;
+
+      // data1: direction.xyz, intensity
+      glm::vec4 data1(light.direction.x, light.direction.y, light.direction.z, light.intensity);
+      std::memcpy(uboData + offset, &data1, sizeof(glm::vec4));
+      offset += 16;
+
+      // data2: color.rgb, radius
+      glm::vec4 data2(light.color.x, light.color.y, light.color.z, light.radius);
+      std::memcpy(uboData + offset, &data2, sizeof(glm::vec4));
+      offset += 16;
+
+      // data3: attenuation.xyz, unused (reserved for future use)
+      glm::vec4 data3(light.attenuation.x, light.attenuation.y, light.attenuation.z, 0.0f);
+      std::memcpy(uboData + offset, &data3, sizeof(glm::vec4));
+      offset += 16;
+    }
+  }
+
   uint32_t width = RenderResources::INTERNAL_WIDTH;
   uint32_t height = RenderResources::INTERNAL_HEIGHT;
 
@@ -952,33 +1246,12 @@ void SceneRenderFeature::ExecuteCompositePass(internal::ExecutionContext& ctx)
   scissor.height = height;
   hina_cmd_set_scissor(cmd, &scissor);
 
-  // Bind pipeline and persistent composite bind group
+  // Bind pipeline
   hina_cmd_bind_pipeline(cmd, m_compositePipeline.get());
+
+  // Bind both bind groups: set 0 = G-buffer textures, set 1 = light UBO
   hina_cmd_bind_group(cmd, 0, m_compositeBindGroup);
-
-  // Prepare lighting push constants
-  struct {
-    glm::vec4 lightDir;      // xyz = direction, w = intensity
-    glm::vec4 lightColor;    // rgb = color, a = unused
-    glm::vec4 ambientColor;  // rgb = ambient, a = unused
-    glm::vec4 cameraPos;     // xyz = camera position, w = unused
-    glm::mat4 invViewProj;   // For world position reconstruction
-  } lightingParams;
-
-  // Set up directional light (sun-like, coming from upper-right-front)
-  glm::vec3 lightDirection = glm::normalize(glm::vec3(0.5f, 0.8f, 0.3f));
-  lightingParams.lightDir = glm::vec4(lightDirection, 1.5f);  // intensity = 1.5
-  lightingParams.lightColor = glm::vec4(1.0f, 0.98f, 0.95f, 1.0f);  // warm white
-  lightingParams.ambientColor = glm::vec4(0.15f, 0.17f, 0.2f, 1.0f);  // cool ambient
-
-  // Camera position and inverse view-projection from FrameData
-  // projMatrix already has Vulkan Y-flip applied at source (UploadToPipeline)
-  lightingParams.cameraPos = glm::vec4(frameData.cameraPos, 1.0f);
-
-  glm::mat4 viewProj = frameData.projMatrix * frameData.viewMatrix;
-  lightingParams.invViewProj = glm::inverse(viewProj);
-
-  hina_cmd_push_constants(cmd, 0, sizeof(lightingParams), &lightingParams);
+  hina_cmd_bind_group(cmd, 1, m_lightBindGroup);
 
   // Bind fullscreen quad vertex buffer
   hina_vertex_input vertInput = {};

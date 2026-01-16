@@ -360,44 +360,12 @@ void GfxRenderer::shutdown() {
         }
     }
 
-    // Destroy composite pass resources
-    if (hina_bind_group_is_valid(m_compositeBindGroup)) {
-        hina_destroy_bind_group(m_compositeBindGroup);
-    }
+    // Destroy fullscreen quad (used by grid)
     if (hina_buffer_is_valid(m_fullscreenQuadVB)) {
         hina_destroy_buffer(m_fullscreenQuadVB);
     }
 
-    // Destroy G-buffer scene resources
-    if (hina_bind_group_is_valid(m_gbufferSceneBindGroup)) {
-        hina_destroy_bind_group(m_gbufferSceneBindGroup);
-    }
-    if (hina_buffer_is_valid(m_gbufferFrameUBO)) {
-        hina_destroy_buffer(m_gbufferFrameUBO);
-    }
-
-    // Destroy pipelines
-    if (hina_pipeline_is_valid(m_gbufferPipeline)) {
-        hina_destroy_pipeline(m_gbufferPipeline);
-    }
-    if (hina_pipeline_is_valid(m_compositePassPipeline)) {
-        hina_destroy_pipeline(m_compositePassPipeline);
-    }
-    if (hina_pipeline_is_valid(m_shadowPipeline)) {
-        hina_destroy_pipeline(m_shadowPipeline);
-    }
-    if (hina_pipeline_is_valid(m_lightingPipeline)) {
-        hina_destroy_pipeline(m_lightingPipeline);
-    }
-    if (hina_pipeline_is_valid(m_wboitAccumPipeline)) {
-        hina_destroy_pipeline(m_wboitAccumPipeline);
-    }
-    if (hina_pipeline_is_valid(m_wboitResolvePipeline)) {
-        hina_destroy_pipeline(m_wboitResolvePipeline);
-    }
-    if (hina_pipeline_is_valid(m_postProcessPipeline)) {
-        hina_destroy_pipeline(m_postProcessPipeline);
-    }
+    // Destroy pipelines (scene rendering moved to SceneRenderFeature)
     if (hina_pipeline_is_valid(m_gridPipeline)) {
         hina_destroy_pipeline(m_gridPipeline);
     }
@@ -519,9 +487,10 @@ bool GfxRenderer::createBindGroupLayouts() {
         LOG_DEBUG("[GfxRenderer] Created global layout (Set 0)");
     }
 
-    // Set 1: Material (textures only - material constants via push constants)
+    // Set 1: Material (constants UBO + textures)
     {
         hina_bind_group_layout_entry entries[] = {
+            { MaterialBindings::Constants, HINA_DESC_TYPE_UNIFORM_BUFFER, HINA_STAGE_VERTEX | HINA_STAGE_FRAGMENT, 1, HINA_BINDING_FLAG_NONE },
             { MaterialBindings::Albedo, HINA_DESC_TYPE_COMBINED_IMAGE_SAMPLER, HINA_STAGE_FRAGMENT, 1, HINA_BINDING_FLAG_NONE },
             { MaterialBindings::Normal, HINA_DESC_TYPE_COMBINED_IMAGE_SAMPLER, HINA_STAGE_FRAGMENT, 1, HINA_BINDING_FLAG_NONE },
             { MaterialBindings::MetallicRoughness, HINA_DESC_TYPE_COMBINED_IMAGE_SAMPLER, HINA_STAGE_FRAGMENT, 1, HINA_BINDING_FLAG_NONE },
@@ -539,14 +508,14 @@ bool GfxRenderer::createBindGroupLayouts() {
             LOG_ERROR("[GfxRenderer] Failed to create material bind group layout");
             return false;
         }
-        LOG_DEBUG("[GfxRenderer] Created material layout (Set 1)");
+        LOG_DEBUG("[GfxRenderer] Created material layout (Set 1) with constants UBO");
     }
 
     // Set 2: Dynamic (with dynamic offset flag for per-draw transforms)
+    // Only Transform binding - ObjectData removed as it's not used by the shader
     {
         hina_bind_group_layout_entry entries[] = {
             { DynamicBindings::Transform, HINA_DESC_TYPE_UNIFORM_BUFFER, HINA_STAGE_VERTEX, 1, HINA_BINDING_FLAG_DYNAMIC_OFFSET },
-            { DynamicBindings::ObjectData, HINA_DESC_TYPE_UNIFORM_BUFFER, HINA_STAGE_VERTEX | HINA_STAGE_FRAGMENT, 1, HINA_BINDING_FLAG_DYNAMIC_OFFSET },
         };
 
         hina_bind_group_layout_desc desc = {};
@@ -866,7 +835,7 @@ bool GfxRenderer::createFrameResources() {
             }
         }
 
-        // Transform ring buffer (dynamic offsets)
+        // Transform ring buffer (dynamic offsets) - persistently mapped
         {
             hina_buffer_desc desc = {};
             desc.size = TRANSFORM_UBO_SIZE;
@@ -875,6 +844,13 @@ bool GfxRenderer::createFrameResources() {
             frame.transformRingUBO = hina_make_buffer(&desc);
             if (!hina_buffer_is_valid(frame.transformRingUBO)) {
                 LOG_ERROR("[GfxRenderer] Failed to create transform ring UBO for frame {}", i);
+                return false;
+            }
+
+            // Persistently map the buffer once - no per-frame mapping needed
+            frame.transformRingMapped = hina_map_buffer(frame.transformRingUBO);
+            if (!frame.transformRingMapped) {
+                LOG_ERROR("[GfxRenderer] Failed to map transform ring UBO for frame {}", i);
                 return false;
             }
         }
@@ -888,6 +864,30 @@ bool GfxRenderer::createFrameResources() {
             frame.objectDataRingUBO = hina_make_buffer(&desc);
             if (!hina_buffer_is_valid(frame.objectDataRingUBO)) {
                 LOG_ERROR("[GfxRenderer] Failed to create object data ring UBO for frame {}", i);
+                return false;
+            }
+        }
+
+        // Create dynamic bind group (Set 2) with transform UBO only
+        // This bind group is used with dynamic offsets for per-draw transforms
+        {
+            hina_bind_group_entry entries[1] = {};
+
+            // Binding 0: Transform UBO (dynamic offset)
+            entries[0].binding = DynamicBindings::Transform;
+            entries[0].type = HINA_DESC_TYPE_UNIFORM_BUFFER;
+            entries[0].buffer.buffer = frame.transformRingUBO;
+            entries[0].buffer.offset = 0;
+            entries[0].buffer.size = TRANSFORM_ALIGNMENT;  // Single transform size
+
+            hina_bind_group_desc desc = {};
+            desc.layout = m_dynamicLayout;
+            desc.entries = entries;
+            desc.entry_count = 1;
+
+            frame.dynamicBindGroup = hina_create_bind_group(&desc);
+            if (!hina_bind_group_is_valid(frame.dynamicBindGroup)) {
+                LOG_ERROR("[GfxRenderer] Failed to create dynamic bind group for frame {}", i);
                 return false;
             }
         }
@@ -1137,9 +1137,6 @@ void GfxRenderer::endFrame() {
 
     hina_frame_end();
     m_currentFrame = (m_currentFrame + 1) % GFX_MAX_FRAMES;
-
-    // Clear draw queue at end of frame, ready for next frame's submissions
-    clearDrawQueue();
 }
 
 void GfxRenderer::onResize(uint32_t width, uint32_t height) {
@@ -1203,437 +1200,7 @@ void GfxRenderer::binLights(const FrameData& frameData) {
 bool GfxRenderer::createPipelines() {
     LOG_INFO("[GfxRenderer] Creating pipelines...");
 
-    // G-Buffer pipeline shader - viewProj in UBO, per-draw data in push constants
-    // Uses split vertex streams: Position (12 bytes) + Attributes (12 bytes packed)
-    // Set 0: Frame UBO, Set 1: Material textures
-    const char* gbuffer_shader = R"(
-#hina
-group Frame = 0;
-group Material = 1;
-
-bindings(Frame, start=0) {
-  uniform(std140) FrameUBO {
-    mat4 viewProj;
-  } frame;
-}
-
-bindings(Material, start=1) {
-  texture sampler2D u_albedo;
-  texture sampler2D u_normal;
-  texture sampler2D u_metallicRoughness;
-  texture sampler2D u_emissive;
-  texture sampler2D u_occlusion;
-}
-
-push_constant PushConstants {
-  mat4 model;
-  vec4 baseColor;
-} pc;
-
-// Split vertex streams (24 bytes total):
-// Buffer 0: Position stream (12 bytes)
-// Buffer 1: Attribute stream (12 bytes packed)
-struct VertexIn {
-  vec3 a_position;    // location 0, buffer 0: position
-  uint a_normalMatID; // location 1, buffer 1: RGB10A2 octahedral normal + 2-bit matID
-  uint a_tangentSign; // location 2, buffer 1: RGB10A2 octahedral tangent + sign
-  uint a_uv;          // location 3, buffer 1: RG16_UNORM UV
-};
-
-struct Varyings {
-  vec3 worldPos;
-  vec3 normal;
-  vec3 tangent;
-  float bitangentSign;
-  vec2 uv;
-};
-
-struct FragOut {
-  vec4 albedo;       // location 0
-  vec4 normal;       // location 1
-  vec4 materialData; // location 2
-};
-#hina_end
-
-#hina_stage vertex entry VSMain
-Varyings VSMain(VertexIn in) {
-    Varyings out;
-
-    // Position from stream 0
-    vec4 worldPos = pc.model * vec4(in.a_position, 1.0);
-    out.worldPos = worldPos.xyz;
-
-    // Inline octahedral decode helper
-    // Unpack normal from RGB10A2 octahedral encoding
-    float nx = float(in.a_normalMatID & 0x3FFu) / 1023.0;
-    float ny = float((in.a_normalMatID >> 10u) & 0x3FFu) / 1023.0;
-    vec2 nf = vec2(nx, ny) * 2.0 - 1.0;
-    vec3 localNormal = vec3(nf.xy, 1.0 - abs(nf.x) - abs(nf.y));
-    float nt = max(-localNormal.z, 0.0);
-    localNormal.x += (localNormal.x >= 0.0) ? -nt : nt;
-    localNormal.y += (localNormal.y >= 0.0) ? -nt : nt;
-    localNormal = normalize(localNormal);
-
-    // Unpack tangent from RGB10A2 octahedral encoding
-    float tx = float(in.a_tangentSign & 0x3FFu) / 1023.0;
-    float ty = float((in.a_tangentSign >> 10u) & 0x3FFu) / 1023.0;
-    vec2 tf = vec2(tx, ty) * 2.0 - 1.0;
-    vec3 localTangent = vec3(tf.xy, 1.0 - abs(tf.x) - abs(tf.y));
-    float tt = max(-localTangent.z, 0.0);
-    localTangent.x += (localTangent.x >= 0.0) ? -tt : tt;
-    localTangent.y += (localTangent.y >= 0.0) ? -tt : tt;
-    localTangent = normalize(localTangent);
-
-    // Extract sign bit for bitangent
-    uint signBit = (in.a_tangentSign >> 30u) & 0x3u;
-
-    mat3 normalMatrix = mat3(pc.model);
-    out.normal = normalMatrix * localNormal;
-    out.tangent = normalMatrix * localTangent;
-    out.bitangentSign = (signBit & 1u) != 0u ? -1.0 : 1.0;
-
-    // Unpack UV from RG16_UNORM
-    out.uv = unpackUnorm2x16(in.a_uv);
-
-    gl_Position = frame.viewProj * worldPos;
-    return out;
-}
-#hina_end
-
-#hina_stage fragment entry FSMain
-FragOut FSMain(Varyings in) {
-    FragOut out;
-
-    // Sample albedo texture
-    vec4 albedo = texture(u_albedo, in.uv) * pc.baseColor;
-
-    // Sample normal map and construct TBN
-    vec3 N = normalize(in.normal);
-    vec3 T = normalize(in.tangent);
-    vec3 B = cross(N, T) * in.bitangentSign;
-    mat3 TBN = mat3(T, B, N);
-
-    vec3 normalMap = texture(u_normal, in.uv).rgb * 2.0 - 1.0;
-    N = normalize(TBN * normalMap);
-
-    // Sample metallic/roughness (B=metallic, G=roughness in glTF convention)
-    vec2 mr = texture(u_metallicRoughness, in.uv).bg;
-    float metallic = mr.x;
-    float roughness = mr.y;
-
-    // Sample occlusion (R channel)
-    float ao = texture(u_occlusion, in.uv).r;
-
-    // Output albedo from material texture
-    out.albedo = albedo;
-
-    // Encode world-space normal to [0,1] range for storage
-    out.normal = vec4(N.xy * 0.5 + 0.5, 0.0, 1.0);
-
-    // Material data: roughness, metallic, ao, emissive intensity
-    out.materialData = vec4(roughness, metallic, ao, 0.0);
-
-    return out;
-}
-#hina_end
-)";
-
-    char* error = nullptr;
-    hina_hsl_module* module = hslc_compile_hsl_source(gbuffer_shader, "gbuffer_shader", &error);
-    if (!module) {
-        LOG_ERROR("[GfxRenderer] G-buffer shader compilation failed: {}", error ? error : "Unknown");
-        if (error) hslc_free_log(error);
-        return false;
-    }
-
-    // Create EXPLICIT bind group layout for G-buffer scene (set 0: UBO at binding 0)
-    // This bypasses reflection-based layout generation to avoid descriptor type mismatches
-    hina_bind_group_layout_entry gbuffer_layout_entries[1] = {};
-    gbuffer_layout_entries[0].binding = 0;
-    gbuffer_layout_entries[0].type = HINA_DESC_TYPE_UNIFORM_BUFFER;
-    gbuffer_layout_entries[0].count = 1;
-    gbuffer_layout_entries[0].stage_flags = HINA_STAGE_VERTEX | HINA_STAGE_FRAGMENT;
-    gbuffer_layout_entries[0].flags = HINA_BINDING_FLAG_NONE;
-
-    hina_bind_group_layout_desc gbuffer_layout_desc = {};
-    gbuffer_layout_desc.entries = gbuffer_layout_entries;
-    gbuffer_layout_desc.entry_count = 1;
-    gbuffer_layout_desc.label = "gbuffer_scene_layout";
-
-    m_gbufferSceneLayout = hina_create_bind_group_layout(&gbuffer_layout_desc);
-    if (!hina_bind_group_layout_is_valid(m_gbufferSceneLayout)) {
-        LOG_ERROR("[GfxRenderer] Failed to create G-buffer scene bind group layout");
-        hslc_hsl_module_free(module);
-        return false;
-    }
-
-    // Vertex layout for G-buffer pass - split streams (Position 12 bytes + Attributes 12 bytes)
-    hina_vertex_layout vertex_layout = {};
-    vertex_layout.buffer_count = 2;
-    // Buffer 0: Position stream (12 bytes stride)
-    vertex_layout.buffer_strides[0] = sizeof(gfx::VertexPosition); // 12 bytes
-    vertex_layout.input_rates[0] = HINA_VERTEX_INPUT_RATE_VERTEX;
-    // Buffer 1: Attribute stream (12 bytes stride)
-    vertex_layout.buffer_strides[1] = sizeof(gfx::VertexAttributes); // 12 bytes
-    vertex_layout.input_rates[1] = HINA_VERTEX_INPUT_RATE_VERTEX;
-    vertex_layout.attr_count = 4;
-    // Buffer 0 attributes
-    vertex_layout.attrs[0] = { HINA_FORMAT_R32G32B32_SFLOAT, 0, 0, 0 };  // position (vec3)
-    // Buffer 1 attributes (packed uint32s)
-    vertex_layout.attrs[1] = { HINA_FORMAT_R32_UINT, 0, 1, 1 };   // normalMatID (uint)
-    vertex_layout.attrs[2] = { HINA_FORMAT_R32_UINT, 4, 2, 1 };   // tangentSign (uint)
-    vertex_layout.attrs[3] = { HINA_FORMAT_R32_UINT, 8, 3, 1 };   // uv (uint)
-
-    hina_hsl_pipeline_desc pip_desc = hina_hsl_pipeline_desc_default();
-    pip_desc.layout = vertex_layout;
-    pip_desc.cull_mode = HINA_CULL_MODE_NONE;  // DEBUG: Disable culling to rule out winding issues
-    pip_desc.depth.depth_test = true;
-    pip_desc.depth.depth_write = true;
-    pip_desc.depth.depth_compare = HINA_COMPARE_OP_LESS;
-    pip_desc.depth_format = HINA_FORMAT_D32_SFLOAT;
-    pip_desc.color_attachment_count = 3;
-    pip_desc.color_formats[0] = HINA_FORMAT_R8G8B8A8_SRGB;   // albedo
-    pip_desc.color_formats[1] = HINA_FORMAT_R16G16_SFLOAT;   // normal
-    pip_desc.color_formats[2] = HINA_FORMAT_R8G8B8A8_UNORM;  // materialData
-    // Use explicit bind group layouts (production path)
-    // Set 0: Frame UBO, Set 1: Material textures
-    pip_desc.bind_group_layouts[0] = m_gbufferSceneLayout;
-    pip_desc.bind_group_layouts[1] = m_materialLayout;
-    pip_desc.bind_group_layout_count = 2;
-
-    m_gbufferPipeline = hina_make_pipeline_from_module(module, &pip_desc, nullptr);
-    hslc_hsl_module_free(module);
-
-    if (!hina_pipeline_is_valid(m_gbufferPipeline)) {
-        LOG_ERROR("[GfxRenderer] G-buffer pipeline creation failed");
-        return false;
-    }
-
-    // Create per-frame UBO for viewProj (64 bytes)
-    hina_buffer_desc ubo_desc = {};
-    ubo_desc.size = sizeof(glm::mat4);
-    ubo_desc.flags = (hina_buffer_flags)(HINA_BUFFER_UNIFORM_BIT | HINA_BUFFER_HOST_VISIBLE_BIT | HINA_BUFFER_HOST_COHERENT_BIT);
-    m_gbufferFrameUBO = hina_make_buffer(&ubo_desc);
-    if (!hina_buffer_is_valid(m_gbufferFrameUBO)) {
-        LOG_ERROR("[GfxRenderer] Failed to create G-buffer frame UBO");
-        return false;
-    }
-    m_gbufferFrameUBOMapped = hina_map_buffer(m_gbufferFrameUBO);
-    if (!m_gbufferFrameUBOMapped) {
-        LOG_ERROR("[GfxRenderer] Failed to map G-buffer frame UBO");
-        return false;
-    }
-
-    // Create persistent bind group for the frame UBO
-    hina_bind_group_entry scene_entry = {};
-    scene_entry.binding = 0;
-    scene_entry.type = HINA_DESC_TYPE_UNIFORM_BUFFER;
-    scene_entry.buffer.buffer = m_gbufferFrameUBO;
-    scene_entry.buffer.offset = 0;
-    scene_entry.buffer.size = sizeof(glm::mat4);
-
-    hina_bind_group_desc scene_bg_desc = {};
-    scene_bg_desc.layout = m_gbufferSceneLayout;
-    scene_bg_desc.entries = &scene_entry;
-    scene_bg_desc.entry_count = 1;
-    scene_bg_desc.label = "gbuffer_scene";
-
-    m_gbufferSceneBindGroup = hina_create_bind_group(&scene_bg_desc);
-    if (!hina_bind_group_is_valid(m_gbufferSceneBindGroup)) {
-        LOG_ERROR("[GfxRenderer] Failed to create G-buffer scene bind group");
-        return false;
-    }
-
-    LOG_INFO("[GfxRenderer] G-buffer pipeline created successfully");
-
-    // Deferred lighting/composite pass shader
-    const char* composite_shader = R"(
-#hina
-group Composite = 0;
-
-bindings(Composite, start=0) {
-  texture sampler2D u_albedo;
-  texture sampler2D u_normal;
-  texture sampler2D u_materialData;
-  texture sampler2D u_depth;
-}
-
-push_constant LightingParams {
-  vec4 lightDir;
-  vec4 lightColor;
-  vec4 ambientColor;
-  vec4 cameraPos;
-  mat4 invViewProj;
-} pc;
-
-struct VertexIn {
-  vec2 a_position;
-  vec2 a_uv;
-};
-
-struct Varyings {
-  vec2 uv;
-};
-
-struct FragOut {
-  vec4 color;
-};
-#hina_end
-
-#hina_stage vertex entry VSMain
-Varyings VSMain(VertexIn in) {
-    Varyings out;
-    out.uv = in.a_uv;
-    gl_Position = vec4(in.a_position, 0.0, 1.0);
-    return out;
-}
-#hina_end
-
-#hina_stage fragment entry FSMain
-FragOut FSMain(Varyings in) {
-    FragOut out;
-
-    // G-buffer is Y-flipped due to Vulkan projection flip - flip UV for all G-buffer samples
-    vec2 gbufferUV = vec2(in.uv.x, 1.0 - in.uv.y);
-
-    // Sample G-buffer with flipped UV
-    vec4 albedoSample = texture(u_albedo, gbufferUV);
-    vec2 encodedNormal = texture(u_normal, gbufferUV).xy;
-    vec4 matData = texture(u_materialData, gbufferUV);
-    float depth = texture(u_depth, gbufferUV).r;
-
-    // Early out for sky/background (depth == 1.0)
-    if (depth >= 1.0) {
-        out.color = vec4(0.1, 0.1, 0.15, 1.0);  // Sky color
-        return out;
-    }
-
-    // Decode normal from octahedral (simple encoding for now)
-    vec3 normal = vec3(encodedNormal * 2.0 - 1.0, 0.0);
-    normal.z = sqrt(max(0.0, 1.0 - dot(normal.xy, normal.xy)));
-    normal = normalize(normal);
-
-    // Extract material properties
-    float roughness = matData.r;
-    float metallic = matData.g;
-
-    // Reconstruct world position from depth (use flipped UV, then convert to NDC)
-    vec2 ndc = gbufferUV * 2.0 - 1.0;
-    ndc.y = -ndc.y;  // Vulkan NDC flip
-    vec4 clipPos = vec4(ndc, depth, 1.0);
-    vec4 worldPos4 = pc.invViewProj * clipPos;
-    vec3 worldPos = worldPos4.xyz / worldPos4.w;
-
-    // View direction
-    vec3 viewDir = normalize(pc.cameraPos.xyz - worldPos);
-
-    // Directional light
-    vec3 lightDir = normalize(pc.lightDir.xyz);
-    float lightIntensity = pc.lightDir.w;
-
-    // Diffuse lighting (Lambert)
-    float NdotL = max(dot(normal, lightDir), 0.0);
-    vec3 diffuse = pc.lightColor.rgb * NdotL * lightIntensity;
-
-    // Simple specular (Blinn-Phong)
-    vec3 halfVec = normalize(lightDir + viewDir);
-    float NdotH = max(dot(normal, halfVec), 0.0);
-    float specPower = mix(8.0, 128.0, 1.0 - roughness);
-    float spec = pow(NdotH, specPower) * (1.0 - roughness) * 0.5;
-    vec3 specular = pc.lightColor.rgb * spec * lightIntensity;
-
-    // Combine lighting
-    vec3 ambient = pc.ambientColor.rgb;
-    vec3 baseColor = albedoSample.rgb;  // Use albedo from G-buffer
-
-    vec3 finalColor = baseColor * (ambient + diffuse) + specular;
-
-    // No tonemapping/gamma here - will be handled in dedicated pass later
-    out.color = vec4(finalColor, 1.0);
-
-    return out;
-}
-#hina_end
-)";
-
-    module = hslc_compile_hsl_source(composite_shader, "composite_shader", &error);
-    if (!module) {
-        LOG_ERROR("[GfxRenderer] Composite shader compilation failed: {}", error ? error : "Unknown");
-        if (error) hslc_free_log(error);
-        return false;
-    }
-
-    // Create EXPLICIT bind group layout for composite pass (set 0: 4 textures)
-    hina_bind_group_layout_entry composite_layout_entries[4] = {};
-    composite_layout_entries[0].binding = 0;  // albedo
-    composite_layout_entries[0].type = HINA_DESC_TYPE_COMBINED_IMAGE_SAMPLER;
-    composite_layout_entries[0].count = 1;
-    composite_layout_entries[0].stage_flags = HINA_STAGE_FRAGMENT;
-    composite_layout_entries[0].flags = HINA_BINDING_FLAG_NONE;
-
-    composite_layout_entries[1].binding = 1;  // normal
-    composite_layout_entries[1].type = HINA_DESC_TYPE_COMBINED_IMAGE_SAMPLER;
-    composite_layout_entries[1].count = 1;
-    composite_layout_entries[1].stage_flags = HINA_STAGE_FRAGMENT;
-    composite_layout_entries[1].flags = HINA_BINDING_FLAG_NONE;
-
-    composite_layout_entries[2].binding = 2;  // materialData
-    composite_layout_entries[2].type = HINA_DESC_TYPE_COMBINED_IMAGE_SAMPLER;
-    composite_layout_entries[2].count = 1;
-    composite_layout_entries[2].stage_flags = HINA_STAGE_FRAGMENT;
-    composite_layout_entries[2].flags = HINA_BINDING_FLAG_NONE;
-
-    composite_layout_entries[3].binding = 3;  // depth
-    composite_layout_entries[3].type = HINA_DESC_TYPE_COMBINED_IMAGE_SAMPLER;
-    composite_layout_entries[3].count = 1;
-    composite_layout_entries[3].stage_flags = HINA_STAGE_FRAGMENT;
-    composite_layout_entries[3].flags = HINA_BINDING_FLAG_NONE;
-
-    hina_bind_group_layout_desc composite_layout_desc = {};
-    composite_layout_desc.entries = composite_layout_entries;
-    composite_layout_desc.entry_count = 4;
-    composite_layout_desc.label = "composite_layout";
-
-    m_compositeLayout = hina_create_bind_group_layout(&composite_layout_desc);
-    if (!hina_bind_group_layout_is_valid(m_compositeLayout)) {
-        LOG_ERROR("[GfxRenderer] Failed to create composite bind group layout");
-        hslc_hsl_module_free(module);
-        return false;
-    }
-
-    // Fullscreen quad vertex layout
-    hina_vertex_layout fs_vertex_layout = {};
-    fs_vertex_layout.buffer_count = 1;
-    fs_vertex_layout.buffer_strides[0] = sizeof(float) * 4; // pos(2) + uv(2)
-    fs_vertex_layout.input_rates[0] = HINA_VERTEX_INPUT_RATE_VERTEX;
-    fs_vertex_layout.attr_count = 2;
-    fs_vertex_layout.attrs[0] = { HINA_FORMAT_R32G32_SFLOAT, 0, 0, 0 };  // position
-    fs_vertex_layout.attrs[1] = { HINA_FORMAT_R32G32_SFLOAT, sizeof(float) * 2, 1, 0 };  // uv
-
-    hina_hsl_pipeline_desc composite_pip = hina_hsl_pipeline_desc_default();
-    composite_pip.layout = fs_vertex_layout;
-    composite_pip.cull_mode = HINA_CULL_MODE_NONE;
-    composite_pip.depth.depth_test = false;
-    composite_pip.depth.depth_write = false;
-    composite_pip.depth_format = HINA_FORMAT_UNDEFINED;
-    // Explicitly set color format to match view output texture (BGRA UNORM for manual gamma)
-    composite_pip.color_formats[0] = HINA_FORMAT_B8G8R8A8_UNORM;
-    composite_pip.color_attachment_count = 1;
-    // Use explicit bind group layout (production path)
-    composite_pip.bind_group_layouts[0] = m_compositeLayout;
-    composite_pip.bind_group_layout_count = 1;
-
-    m_compositePassPipeline = hina_make_pipeline_from_module(module, &composite_pip, nullptr);
-    hslc_hsl_module_free(module);
-
-    if (!hina_pipeline_is_valid(m_compositePassPipeline)) {
-        LOG_ERROR("[GfxRenderer] Composite pipeline creation failed");
-        return false;
-    }
-
-    LOG_INFO("[GfxRenderer] Composite pipeline created successfully");
-
-    // Create fullscreen quad vertex buffer
+    // Create fullscreen quad vertex buffer (shared by grid and other fullscreen passes)
     // Format: pos(2) + uv(2) = 4 floats per vertex
     static const float quadVertices[] = {
         // pos.x, pos.y, uv.x, uv.y
@@ -1659,39 +1226,13 @@ FragOut FSMain(Varyings in) {
     std::memcpy(quadData, quadVertices, sizeof(quadVertices));
     LOG_INFO("[GfxRenderer] Fullscreen quad created");
 
-    // Create composite bind group with G-buffer textures (albedo, normal, materialData, depth)
-    hina_bind_group_entry compositeEntries[4] = {};
-    compositeEntries[0].binding = 0;  // albedo
-    compositeEntries[0].type = HINA_DESC_TYPE_COMBINED_IMAGE_SAMPLER;
-    compositeEntries[0].combined.view = m_gbuffer.albedoView;
-    compositeEntries[0].combined.sampler = m_defaultSampler;
-
-    compositeEntries[1].binding = 1;  // normal
-    compositeEntries[1].type = HINA_DESC_TYPE_COMBINED_IMAGE_SAMPLER;
-    compositeEntries[1].combined.view = m_gbuffer.normalView;
-    compositeEntries[1].combined.sampler = m_defaultSampler;
-
-    compositeEntries[2].binding = 2;  // materialData
-    compositeEntries[2].type = HINA_DESC_TYPE_COMBINED_IMAGE_SAMPLER;
-    compositeEntries[2].combined.view = m_gbuffer.materialDataView;
-    compositeEntries[2].combined.sampler = m_defaultSampler;
-
-    compositeEntries[3].binding = 3;  // depth
-    compositeEntries[3].type = HINA_DESC_TYPE_COMBINED_IMAGE_SAMPLER;
-    compositeEntries[3].combined.view = m_gbuffer.depthView;
-    compositeEntries[3].combined.sampler = m_defaultSampler;
-
-    hina_bind_group_desc compositeBgDesc = {};
-    compositeBgDesc.layout = m_compositeLayout;
-    compositeBgDesc.entries = compositeEntries;
-    compositeBgDesc.entry_count = 4;
-
-    m_compositeBindGroup = hina_create_bind_group(&compositeBgDesc);
-    if (!hina_bind_group_is_valid(m_compositeBindGroup)) {
-        LOG_ERROR("[GfxRenderer] Failed to create composite bind group");
-        return false;
-    }
-    LOG_INFO("[GfxRenderer] Composite bind group created");
+    // ========================================================================
+    // Grid Pipeline (infinite grid for editor)
+    // Scene rendering (G-buffer, composite) moved to SceneRenderFeature
+    // ========================================================================
+    // NOTE: G-buffer and composite pipeline code was removed.
+    // Scene rendering is now handled by SceneRenderFeature which owns its own
+    // G-buffer pipeline, composite pipeline, and draw list.
 
     // ========================================================================
     // Grid Pipeline (infinite grid for editor)
@@ -1876,330 +1417,11 @@ FragOut FSMain(Varyings in) {
     return true;
 }
 
-void GfxRenderer::executeGBufferPass(gfx::Cmd* cmd) {
-    if (!cmd || !hina_pipeline_is_valid(m_gbufferPipeline)) {
-        return;
-    }
-
-    // G-buffer pass
-    // Note: width/height = 0 lets hina-vk infer from attachment dimensions
-    hina_pass_action pass = {};
-
-    // Color attachments: albedo, normal, materialData
-    pass.colors[0].image = m_gbuffer.albedoView;
-    pass.colors[0].load_op = HINA_LOAD_OP_CLEAR;
-    pass.colors[0].store_op = HINA_STORE_OP_STORE;
-    pass.colors[0].clear_color[0] = 0.0f;
-    pass.colors[0].clear_color[1] = 0.0f;
-    pass.colors[0].clear_color[2] = 0.0f;
-    pass.colors[0].clear_color[3] = 0.0f;
-
-    pass.colors[1].image = m_gbuffer.normalView;
-    pass.colors[1].load_op = HINA_LOAD_OP_CLEAR;
-    pass.colors[1].store_op = HINA_STORE_OP_STORE;
-    pass.colors[1].clear_color[0] = 0.5f;  // neutral normal X
-    pass.colors[1].clear_color[1] = 0.5f;  // neutral normal Y
-    pass.colors[1].clear_color[2] = 0.0f;
-    pass.colors[1].clear_color[3] = 0.0f;
-
-    pass.colors[2].image = m_gbuffer.materialDataView;
-    pass.colors[2].load_op = HINA_LOAD_OP_CLEAR;
-    pass.colors[2].store_op = HINA_STORE_OP_STORE;
-
-    // Depth attachment
-    pass.depth.image = m_gbuffer.depthView;
-    pass.depth.load_op = HINA_LOAD_OP_CLEAR;
-    pass.depth.store_op = HINA_STORE_OP_STORE;
-    pass.depth.depth_clear = 1.0f;
-
-    hina_cmd_begin_pass(cmd, &pass);
-
-    // Note: hina-vk sets default viewport/scissor based on pass dimensions
-    // (hina-vk deferred example doesn't call set_viewport/set_scissor)
-
-    // Bind pipeline
-    hina_cmd_bind_pipeline(cmd, m_gbufferPipeline);
-
-    // Bind frame UBO at set 0
-    hina_cmd_bind_group(cmd, 0, m_gbufferSceneBindGroup);
-
-    // Push constants: model + baseColor only (80 bytes, fits in 128 byte limit)
-    struct {
-        glm::mat4 model;
-        glm::vec4 baseColor;
-    } pushConstants;
-
-    // Draw submitted meshes from the queue
-    for (const auto& drawCall : m_drawQueue) {
-        const gfx::GpuMesh* gpuMesh = m_meshStorage.get(drawCall.mesh);
-        if (!gpuMesh || !gpuMesh->valid) {
-            continue;
-        }
-
-        // Bind split vertex streams with offsets (chunked storage shares buffers between meshes)
-        hina_vertex_input meshInput = {};
-        // Buffer 0: Position stream
-        meshInput.vertex_buffers[0] = gpuMesh->vertexBuffer;
-        meshInput.vertex_offsets[0] = gpuMesh->vertexOffset;
-        // Buffer 1: Attribute stream
-        meshInput.vertex_buffers[1] = gpuMesh->attributeBuffer;
-        meshInput.vertex_offsets[1] = gpuMesh->attributeOffset;
-        // Index buffer
-        meshInput.index_buffer = gpuMesh->indexBuffer;
-        meshInput.index_type = HINA_INDEX_UINT32;
-
-        hina_cmd_apply_vertex_input(cmd, &meshInput);
-
-        // Bind material at Set 1
-        gfx::BindGroup materialBG;
-        if (drawCall.useMaterial && m_materialSystem.isMaterialValid(drawCall.material)) {
-            materialBG = m_materialSystem.getMaterialBindGroup(drawCall.material);
-        } else {
-            // Use default material for objects without explicit materials
-            materialBG = m_materialSystem.getMaterialBindGroup(m_materialSystem.getDefaultMaterial());
-        }
-        if (hina_bind_group_is_valid(materialBG)) {
-            hina_cmd_bind_group(cmd, 1, materialBG);
-        }
-
-        // Update push constants for this draw
-        pushConstants.model = drawCall.transform;
-        if (drawCall.useMaterial && m_materialSystem.isMaterialValid(drawCall.material)) {
-            // Get base color from material
-            const gfx::MaterialEntry* matEntry = m_materialSystem.getMaterial(drawCall.material);
-            if (matEntry) {
-                pushConstants.baseColor = matEntry->material.baseColor;
-            } else {
-                pushConstants.baseColor = glm::vec4(0.8f, 0.8f, 0.8f, 1.0f);
-            }
-        } else {
-            pushConstants.baseColor = drawCall.baseColor;
-        }
-        hina_cmd_push_constants(cmd, 0, sizeof(pushConstants), &pushConstants);
-
-        // Draw with index offset (convert byte offset to index count)
-        uint32_t firstIndex = gpuMesh->indexOffset / sizeof(uint32_t);
-        hina_cmd_draw_indexed(cmd, gpuMesh->indexCount, 1, firstIndex, 0, 0);
-    }
-
-    hina_cmd_end_pass(cmd);
-}
-
-void GfxRenderer::renderGBuffer() {
-    if (!hina_pipeline_is_valid(m_gbufferPipeline)) {
-        return;
-    }
-
-    auto& frame = m_frames[m_currentFrame];
-
-    // Calculate viewProj matrix for this frame
-    glm::mat4 view, proj;
-
-    if (m_cameraMatricesSet) {
-        // Use externally-set camera matrices (from editor/game camera)
-        view = m_viewMatrix;
-        proj = m_projMatrix;
-    } else {
-        // Fallback test camera if no camera has been set
-        float aspect = static_cast<float>(m_width) / static_cast<float>(m_height);
-        view = glm::lookAt(glm::vec3(0.0f, 1.0f, 3.0f), glm::vec3(0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-        proj = glm::perspective(glm::radians(45.0f), aspect, 0.1f, 100.0f);
-        proj[1][1] *= -1.0f;  // Vulkan clip space correction
-    }
-
-    glm::mat4 viewProj = proj * view;
-
-    // Write viewProj to the per-frame UBO (persistently mapped, HOST_COHERENT)
-    std::memcpy(m_gbufferFrameUBOMapped, &viewProj, sizeof(glm::mat4));
-
-    // Execute the actual G-buffer rendering
-    executeGBufferPass(frame.cmd);
-}
-
-void GfxRenderer::executeCompositePass(gfx::Cmd* cmd) {
-    if (!cmd || !hina_pipeline_is_valid(m_compositePassPipeline)) {
-        return;
-    }
-    if (!hina_bind_group_is_valid(m_compositeBindGroup)) {
-        return;
-    }
-
-    // Get the active view output
-    auto& viewOutput = m_viewOutputs[static_cast<size_t>(m_activeViewId)];
-    if (!viewOutput.valid) {
-        return;
-    }
-
-    // Composite pass - render G-buffer to view output texture with deferred lighting
-    // Note: width/height = 0 lets hina-vk infer from attachment dimensions
-    hina_pass_action pass = {};
-    pass.colors[0].image = viewOutput.view;
-    pass.colors[0].load_op = HINA_LOAD_OP_CLEAR;
-    pass.colors[0].store_op = HINA_STORE_OP_STORE;
-    pass.colors[0].clear_color[0] = 0.1f;  // Dark gray background for visibility
-    pass.colors[0].clear_color[1] = 0.1f;
-    pass.colors[0].clear_color[2] = 0.1f;
-    pass.colors[0].clear_color[3] = 1.0f;
-
-    hina_cmd_begin_pass(cmd, &pass);
-
-    // Set viewport and scissor to match view output dimensions
-    hina_viewport viewport = {};
-    viewport.width = static_cast<float>(viewOutput.width);
-    viewport.height = static_cast<float>(viewOutput.height);
-    viewport.min_depth = 0.0f;
-    viewport.max_depth = 1.0f;
-    hina_cmd_set_viewport(cmd, &viewport);
-
-    hina_scissor scissor = {};
-    scissor.width = viewOutput.width;
-    scissor.height = viewOutput.height;
-    hina_cmd_set_scissor(cmd, &scissor);
-
-    // Bind pipeline
-    hina_cmd_bind_pipeline(cmd, m_compositePassPipeline);
-
-    // Bind G-buffer textures
-    hina_cmd_bind_group(cmd, 0, m_compositeBindGroup);
-
-    // Prepare lighting push constants
-    struct {
-        glm::vec4 lightDir;      // xyz = direction, w = intensity
-        glm::vec4 lightColor;    // rgb = color, a = unused
-        glm::vec4 ambientColor;  // rgb = ambient, a = unused
-        glm::vec4 cameraPos;     // xyz = camera position, w = unused
-        glm::mat4 invViewProj;   // For world position reconstruction
-    } lightingParams;
-
-    // Set up directional light (sun-like, coming from upper-right-front)
-    glm::vec3 lightDirection = glm::normalize(glm::vec3(0.5f, 0.8f, 0.3f));
-    lightingParams.lightDir = glm::vec4(lightDirection, 1.5f);  // intensity = 1.5
-    lightingParams.lightColor = glm::vec4(1.0f, 0.98f, 0.95f, 1.0f);  // warm white
-    lightingParams.ambientColor = glm::vec4(0.15f, 0.17f, 0.2f, 1.0f);  // cool ambient
-
-    // Camera position and inverse view-projection
-    if (m_currentFrameData) {
-        lightingParams.cameraPos = glm::vec4(m_currentFrameData->cameraPos, 1.0f);
-        glm::mat4 viewProj = m_currentFrameData->projMatrix * m_currentFrameData->viewMatrix;
-        lightingParams.invViewProj = glm::inverse(viewProj);
-    } else {
-        // Fallback for test mode
-        lightingParams.cameraPos = glm::vec4(0.0f, 1.0f, 3.0f, 1.0f);
-        float aspect = static_cast<float>(viewOutput.width) / static_cast<float>(viewOutput.height);
-        glm::mat4 view = glm::lookAt(glm::vec3(0.0f, 1.0f, 3.0f), glm::vec3(0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-        glm::mat4 proj = glm::perspective(glm::radians(45.0f), aspect, 0.1f, 100.0f);
-        proj[1][1] *= -1.0f;  // Vulkan clip space correction
-        lightingParams.invViewProj = glm::inverse(proj * view);
-    }
-
-    hina_cmd_push_constants(cmd, 0, sizeof(lightingParams), &lightingParams);
-
-    // Bind fullscreen quad vertex buffer
-    hina_vertex_input vertInput = {};
-    vertInput.vertex_buffers[0] = m_fullscreenQuadVB;
-    vertInput.vertex_offsets[0] = 0;
-    hina_cmd_apply_vertex_input(cmd, &vertInput);
-
-    // Draw fullscreen quad (6 vertices)
-    hina_cmd_draw(cmd, 6, 1, 0, 0);
-
-    hina_cmd_end_pass(cmd);
-}
-
-void GfxRenderer::renderComposite() {
-    executeCompositePass(m_frames[m_currentFrame].cmd);
-}
-
-void GfxRenderer::renderShadows() {
-    // TODO: Implement shadow rendering
-}
-
-void GfxRenderer::renderLighting() {
-    // TODO: Implement deferred lighting
-}
-
-void GfxRenderer::renderTransparency() {
-    auto& frame = m_frames[m_currentFrame];
-    if (!frame.cmd) return;
-
-    // Execute WBOIT if there are transparent objects in the queue
-    bool hasTransparent = false;
-    for (const auto& draw : m_drawQueue) {
-        if (draw.useMaterial && m_materialSystem.isMaterialValid(draw.material)) {
-            const auto* matEntry = m_materialSystem.getMaterial(draw.material);
-            if (matEntry && matEntry->material.alphaMode == gfx::GfxMaterial::AlphaMode::Blend) {
-                hasTransparent = true;
-                break;
-            }
-        }
-    }
-
-    if (hasTransparent) {
-        executeWBOITAccumulationPass(frame.cmd);
-    }
-}
-
-void GfxRenderer::executeWBOITAccumulationPass(gfx::Cmd* cmd) {
-    if (!cmd) return;
-
-    // WBOIT uses additive blending for accumulation, multiplicative for reveal
-    // Pipeline should be created lazily - for now just clear the targets
-
-    hina_pass_action pass = {};
-
-    // Accumulation target: RGBA16F, additive blend
-    pass.colors[0].image = m_wboit.accumulationView;
-    pass.colors[0].load_op = HINA_LOAD_OP_CLEAR;
-    pass.colors[0].store_op = HINA_STORE_OP_STORE;
-    pass.colors[0].clear_color[0] = 0.0f;
-    pass.colors[0].clear_color[1] = 0.0f;
-    pass.colors[0].clear_color[2] = 0.0f;
-    pass.colors[0].clear_color[3] = 0.0f;
-
-    // Reveal target: R8, initial = 1.0 (no objects)
-    pass.colors[1].image = m_wboit.revealView;
-    pass.colors[1].load_op = HINA_LOAD_OP_CLEAR;
-    pass.colors[1].store_op = HINA_STORE_OP_STORE;
-    pass.colors[1].clear_color[0] = 1.0f;
-
-    // Use G-buffer depth for depth testing (no write)
-    pass.depth.image = m_gbuffer.depthView;
-    pass.depth.load_op = HINA_LOAD_OP_LOAD;  // Keep G-buffer depth
-    pass.depth.store_op = HINA_STORE_OP_DONT_CARE;
-
-    hina_cmd_begin_pass(cmd, &pass);
-
-    // TODO: Bind WBOIT pipeline and render transparent objects
-    // For now, this is a placeholder that just clears the WBOIT targets
-    // The actual transparent object rendering will use a special shader that outputs:
-    //   accum.rgb = premultiplied_color * weight
-    //   accum.a = alpha * weight
-    //   reveal = 1.0 - alpha (multiplicative)
-
-    hina_cmd_end_pass(cmd);
-
-    LOG_DEBUG("[GfxRenderer] WBOIT accumulation pass executed (placeholder)");
-}
-
-void GfxRenderer::executeWBOITResolvePass(gfx::Cmd* cmd) {
-    if (!cmd) return;
-
-    auto& viewOutput = m_viewOutputs[static_cast<size_t>(m_activeViewId)];
-    if (!viewOutput.valid) return;
-
-    // TODO: Create WBOIT resolve pipeline that:
-    // 1. Samples accumulation and reveal buffers
-    // 2. Computes: color = accum.rgb / max(accum.a, epsilon)
-    // 3. Alpha = 1.0 - reveal
-    // 4. Blends over the view output with alpha blending
-
-    // For now, this is a placeholder
-    LOG_DEBUG("[GfxRenderer] WBOIT resolve pass executed (placeholder)");
-}
-
-void GfxRenderer::renderPostProcess() {
-    // TODO: Implement post-processing
-}
+// NOTE: Scene rendering functions removed - now handled by SceneRenderFeature:
+// - executeGBufferPass(), renderGBuffer()
+// - executeCompositePass(), renderComposite()
+// - renderShadows(), renderLighting(), renderTransparency(), renderPostProcess()
+// - executeWBOITAccumulationPass(), executeWBOITResolvePass()
 
 void GfxRenderer::executeGridPass(gfx::Cmd* cmd) {
     auto& viewOutput = m_viewOutputs[static_cast<size_t>(m_activeViewId)];
@@ -2276,24 +1498,7 @@ void GfxRenderer::renderGrid() {
     executeGridPass(m_frames[m_currentFrame].cmd);
 }
 
-void GfxRenderer::blitToSwapchain() {
-    auto& frame = m_frames[m_currentFrame];
-    auto& viewOutput = m_viewOutputs[static_cast<size_t>(m_activeViewId)];
-
-    if (!viewOutput.valid) {
-        return;
-    }
-
-    // Transition textures for blit
-    hina_cmd_transition_texture(frame.cmd, viewOutput.texture, HINA_TEXSTATE_SHADER_READ);
-    hina_cmd_transition_texture(frame.cmd, frame.swapchainImage.texture, HINA_TEXSTATE_COLOR_ATTACHMENT);
-
-    // Blit viewOutput to swapchain
-    hina_cmd_blit_texture(frame.cmd, viewOutput.texture, frame.swapchainImage.texture, 0, 0, HINA_FILTER_LINEAR);
-
-    // Transition swapchain for presentation
-    hina_cmd_transition_texture(frame.cmd, frame.swapchainImage.texture, HINA_TEXSTATE_PRESENT);
-}
+// NOTE: blitToSwapchain() removed - presentation handled by RenderGraph
 
 bool GfxRenderer::createDefaultResources() {
     LOG_INFO("[GfxRenderer] Creating default resources...");
@@ -2386,36 +1591,7 @@ bool GfxRenderer::createDefaultResources() {
     return true;
 }
 
-void GfxRenderer::renderClear() {
-    auto& frame = m_frames[m_currentFrame];
-
-    // Use swapchain view acquired in beginFrame
-    if (!hina_texture_view_is_valid(frame.swapchainView)) {
-        LOG_WARNING("[GfxRenderer] No swapchain view available");
-        return;
-    }
-
-    // Clear pass - just clear the swapchain to a solid color for testing
-    hina_pass_action pass = {};
-    pass.width = m_width;
-    pass.height = m_height;
-
-    // Color attachment: swapchain image, clear to cornflower blue
-    pass.colors[0].image = frame.swapchainView;
-    pass.colors[0].load_op = HINA_LOAD_OP_CLEAR;
-    pass.colors[0].store_op = HINA_STORE_OP_STORE;
-    pass.colors[0].clear_color[0] = 0.392f;  // R
-    pass.colors[0].clear_color[1] = 0.584f;  // G
-    pass.colors[0].clear_color[2] = 0.929f;  // B
-    pass.colors[0].clear_color[3] = 1.0f;    // A
-
-    // No depth for simple clear test
-    pass.depth = {};
-
-    hina_cmd_begin_pass(frame.cmd, &pass);
-    // No draw calls - just clearing
-    hina_cmd_end_pass(frame.cmd);
-}
+// NOTE: renderClear() removed - not needed with RenderGraph-based rendering
 
 // ============================================================================
 // ImGui Integration
@@ -3127,69 +2303,8 @@ void GfxRenderer::renderUI2D() {
 // ============================================================================
 // Draw Queue Implementation
 // ============================================================================
-
-void GfxRenderer::submitMesh(gfx::MeshHandle mesh, const glm::mat4& transform, gfx::MaterialHandle material) {
-    if (!m_meshStorage.isValid(mesh)) return;
-
-    DrawCall call;
-    call.mesh = mesh;
-    call.material = material;
-    call.transform = transform;
-    call.useMaterial = true;
-    m_drawQueue.push_back(call);
-}
-
-void GfxRenderer::submitMesh(gfx::MeshHandle mesh, const glm::mat4& transform, const glm::vec4& baseColor) {
-    if (!m_meshStorage.isValid(mesh)) {
-        LOG_WARNING("[GfxRenderer] submitMesh: invalid mesh handle {}:{}", mesh.index, mesh.generation);
-        return;
-    }
-
-    DrawCall call;
-    call.mesh = mesh;
-    call.transform = transform;
-    call.baseColor = baseColor;
-    call.useMaterial = false;
-    m_drawQueue.push_back(call);
-}
-
-void GfxRenderer::clearDrawQueue() {
-    m_drawQueue.clear();
-}
-
-void GfxRenderer::submitScene(const Resource::Scene& scene,
-                              const Resource::ResourceManager& resourceMngr) {
-    for (const auto& obj : scene.objects) {
-        // Only render mesh objects with valid handles
-        if (!obj.isRenderable()) continue;
-
-        // Get mesh GPU data to retrieve the gfx::MeshHandle
-        const ::MeshGPUData* meshData = resourceMngr.getMesh(obj.mesh);
-        if (!meshData || !meshData->hasGfxMesh) continue;
-
-        // Reconstruct gfx::MeshHandle from stored index/generation
-        gfx::MeshHandle gfxMesh;
-        gfxMesh.index = meshData->gfxMeshIndex;
-        gfxMesh.generation = meshData->gfxMeshGeneration;
-
-        // Try to get material handle
-        gfx::MaterialHandle gfxMaterial;
-        if (obj.material.isValid()) {
-            const auto* matHotData = resourceMngr.getMaterialHotData(obj.material);
-            if (matHotData && matHotData->hasGfxMaterial) {
-                gfxMaterial.index = matHotData->gfxMaterialIndex;
-                gfxMaterial.generation = matHotData->gfxMaterialGeneration;
-            }
-        }
-
-        // Submit with material if available, otherwise use default gray
-        if (gfxMaterial.isValid()) {
-            submitMesh(gfxMesh, obj.transform, gfxMaterial);
-        } else {
-            submitMesh(gfxMesh, obj.transform, glm::vec4(0.7f, 0.7f, 0.7f, 1.0f));
-        }
-    }
-}
+// NOTE: submitMesh(), clearDrawQueue(), submitScene() removed.
+// Draw submission is now handled by SceneRenderFeature which iterates the ECS.
 
 // EnTT integration disabled - using internal ECS
 // void GfxRenderer::submitEcsEntities(const entt::registry& registry,
@@ -3264,6 +2379,7 @@ void GfxRenderer::registerFeature(IRenderFeature* feature) {
         return;
     }
 
+    LOG_INFO("[GfxRenderer] Registering feature: {}", feature->GetName());
     m_registeredFeatures.push_back(feature);
 
     // Add to RenderGraph if available

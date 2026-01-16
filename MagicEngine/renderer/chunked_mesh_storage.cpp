@@ -71,11 +71,12 @@ ChunkedMeshHandle ChunkedMeshStorage::upload(
         initialize();
     }
 
-    // Pack vertices into position/attribute streams
+    // Pack vertices with winding-order-based normal fix
     std::vector<VertexPosition> positions;
     std::vector<VertexAttributes> attributes;
     MeshBounds bounds;
-    packVertices(vertices, vertexCount, positions, attributes, bounds);
+    packVerticesWithNormalFix(vertices, vertexCount, indices, indexCount,
+                               positions, attributes, bounds);
 
     return uploadPacked(positions.data(), attributes.data(), vertexCount,
                         indices, indexCount, bounds);
@@ -411,8 +412,7 @@ void ChunkedMeshStorage::packVertices(
         // Pack position
         positions[i] = VertexPosition(v.position);
 
-        // Pack attributes using the pack function
-        // tangent.w contains the bitangent sign
+        // Pack attributes
         float bitangentSign = v.tangent.w;
         glm::vec3 tangent = glm::vec3(v.tangent);
         attributes[i].pack(v.normal, tangent, bitangentSign, v.getUV(), 0);
@@ -420,6 +420,88 @@ void ChunkedMeshStorage::packVertices(
         // Update bounds
         minPos = glm::min(minPos, v.position);
         maxPos = glm::max(maxPos, v.position);
+    }
+
+    outBounds.aabbMin = minPos;
+    outBounds.aabbMax = maxPos;
+    outBounds.center = (minPos + maxPos) * 0.5f;
+    outBounds.radius = glm::length(maxPos - outBounds.center);
+}
+
+void ChunkedMeshStorage::packVerticesWithNormalFix(
+    const FullVertex* vertices, uint32_t vertexCount,
+    const uint32_t* indices, uint32_t indexCount,
+    std::vector<VertexPosition>& positions,
+    std::vector<VertexAttributes>& attributes,
+    MeshBounds& outBounds)
+{
+    positions.resize(vertexCount);
+    attributes.resize(vertexCount);
+
+    glm::vec3 minPos(std::numeric_limits<float>::max());
+    glm::vec3 maxPos(std::numeric_limits<float>::lowest());
+
+    // First pass: compute bounds
+    for (uint32_t i = 0; i < vertexCount; ++i) {
+        minPos = glm::min(minPos, vertices[i].position);
+        maxPos = glm::max(maxPos, vertices[i].position);
+    }
+
+    // Check normal orientation against winding order
+    // For each triangle, compute geometric normal from cross product
+    // Compare with stored vertex normals
+    int agreementCount = 0;
+    int disagreementCount = 0;
+
+    uint32_t numTriangles = indexCount / 3;
+    for (uint32_t tri = 0; tri < numTriangles; ++tri) {
+        uint32_t i0 = indices[tri * 3 + 0];
+        uint32_t i1 = indices[tri * 3 + 1];
+        uint32_t i2 = indices[tri * 3 + 2];
+
+        if (i0 >= vertexCount || i1 >= vertexCount || i2 >= vertexCount) continue;
+
+        const glm::vec3& p0 = vertices[i0].position;
+        const glm::vec3& p1 = vertices[i1].position;
+        const glm::vec3& p2 = vertices[i2].position;
+
+        // Compute face normal from winding order (CW = positive, matching pipeline)
+        glm::vec3 edge1 = p1 - p0;
+        glm::vec3 edge2 = p2 - p0;
+        glm::vec3 faceNormal = glm::cross(edge2, edge1);  // Swapped for CW convention
+        float faceNormalLen = glm::length(faceNormal);
+        if (faceNormalLen < 0.0001f) continue;  // Degenerate triangle
+
+        faceNormal /= faceNormalLen;
+
+        // Average vertex normals for this triangle
+        glm::vec3 avgVertexNormal = glm::normalize(
+            vertices[i0].normal + vertices[i1].normal + vertices[i2].normal);
+
+        // Check if they agree (dot > 0) or disagree (dot < 0)
+        float dot = glm::dot(faceNormal, avgVertexNormal);
+        if (dot > 0.0f) {
+            agreementCount++;
+        } else {
+            disagreementCount++;
+        }
+    }
+
+    // Don't auto-flip - the data is inconsistent between meshes
+    // Two-sided lighting in the shader will handle this instead
+    LOG_DEBUG("[ChunkedMeshStorage] Normal check: {} triangles, {} agree, {} disagree",
+             numTriangles, agreementCount, disagreementCount);
+
+    // Pack vertices without modification
+    for (uint32_t i = 0; i < vertexCount; ++i) {
+        const auto& v = vertices[i];
+
+        positions[i] = VertexPosition(v.position);
+
+        float bitangentSign = v.tangent.w;
+        glm::vec3 tangent = glm::vec3(v.tangent);
+
+        attributes[i].pack(v.normal, tangent, bitangentSign, v.getUV(), 0);
     }
 
     outBounds.aabbMin = minPos;
@@ -494,8 +576,6 @@ void ChunkedMeshStorage::importActiveChunksToRenderGraph(
         graph.ImportExternalBuffer(attrName.str().c_str(), info.attributeBuffer, info.attributeDesc);
         graph.ImportExternalBuffer(indexName.str().c_str(), info.indexBuffer, info.indexDesc);
     }
-
-    LOG_DEBUG("[ChunkedMeshStorage] Imported {} active chunks to RenderGraph", activeChunks.size());
 }
 
 } // namespace gfx

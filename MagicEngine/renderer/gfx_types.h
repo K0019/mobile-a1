@@ -164,30 +164,58 @@ static_assert(sizeof(VertexPosition) == 12, "VertexPosition must be 12 bytes");
 /**
  * @brief Attribute stream (12 bytes) - normals, tangents, UVs
  *
- * Layout:
- *   normalMatID:  RGB10A2 - octahedral normal (20 bits) + 2-bit local material ID
- *   tangentSign:  RGB10A2 - octahedral tangent (20 bits) + bitangent sign (2 bits)
- *   uv:           RG16_UNORM - UV scaled to [0,1] from mesh-local range
+ * Layout matches main branch's CompressedVertex encoding:
+ *   normalX:  lower 16 bits = SNORM16 |nx| with nz_sign in sign bit
+ *   packed:   RGB10A2 - ny(10), tx(10), ty(10), alpha(2) where alpha = (nx_sign<<1)|handedness
+ *   uv:       RG16_UNORM - UV scaled to [0,1] from mesh-local range
  */
 struct VertexAttributes {
-    uint32_t normalMatID;   // RGB10A2: octahedral normal + 2-bit material
-    uint32_t tangentSign;   // RGB10A2: octahedral tangent + bitangent sign
-    uint32_t uv;            // RG16_UNORM: UV
+    uint32_t normalX;   // lower 16 bits: SNORM16 |nx| * nz_sign
+    uint32_t packed;    // RGB10A2: ny, tx, ty, (nx_sign<<1)|handedness
+    uint32_t uv;        // RG16_UNORM: UV
 
     VertexAttributes() = default;
 
     /**
-     * @brief Pack vertex attributes
-     * @param normal Unit normal vector
-     * @param tangent Unit tangent vector
-     * @param bitangentSign Bitangent handedness (+1 or -1)
-     * @param texcoord UV coordinates in [0,1]
-     * @param localMaterialID 2-bit local material index (0-3)
+     * @brief Pack vertex attributes using main branch's CompressedVertex encoding
      */
     void pack(const glm::vec3& normal, const glm::vec3& tangent,
-              float bitangentSign, const glm::vec2& texcoord, uint32_t localMaterialID = 0) {
-        normalMatID = oct::encodeRGB10A2(normal, localMaterialID & 0x3);
-        tangentSign = oct::encodeRGB10A2(tangent, bitangentSign < 0.0f ? 1 : 0);
+              float handedness, const glm::vec2& texcoord, uint32_t /*localMaterialID*/ = 0) {
+        glm::vec3 n = glm::normalize(normal);
+        glm::vec3 t = glm::normalize(tangent);
+
+        // Store |nx| with nz_sign in sign bit (matches main branch)
+        float nx_magnitude = std::abs(n.x);
+        float nx_sign = (n.x < 0.0f) ? -1.0f : 1.0f;
+        float nz_sign = (n.z < 0.0f) ? -1.0f : 1.0f;
+        float nx_with_nz_sign = nx_magnitude * nz_sign;
+
+        // Encode as SNORM16 in lower 16 bits
+        int16_t normal_x_snorm = static_cast<int16_t>(glm::clamp(nx_with_nz_sign, -1.0f, 1.0f) * 32767.0f);
+        normalX = static_cast<uint32_t>(static_cast<uint16_t>(normal_x_snorm));
+
+        // Flip tangent if tz < 0 to force tz positive (matches main branch)
+        float h = handedness;
+        if (t.z < 0.0f) {
+            t = -t;
+            h = -h;
+        }
+
+        // Pack ny, tx, ty as UNORM10 (remap from [-1,1] to [0,1])
+        float ny_unorm = n.y * 0.5f + 0.5f;
+        float tx_unorm = t.x * 0.5f + 0.5f;
+        float ty_unorm = t.y * 0.5f + 0.5f;
+
+        uint32_t ny_bits = static_cast<uint32_t>(glm::clamp(ny_unorm, 0.0f, 1.0f) * 1023.0f + 0.5f) & 0x3FFu;
+        uint32_t tx_bits = static_cast<uint32_t>(glm::clamp(tx_unorm, 0.0f, 1.0f) * 1023.0f + 0.5f) & 0x3FFu;
+        uint32_t ty_bits = static_cast<uint32_t>(glm::clamp(ty_unorm, 0.0f, 1.0f) * 1023.0f + 0.5f) & 0x3FFu;
+
+        // Alpha: bit 1 = nx_sign negative, bit 0 = handedness negative
+        uint32_t nx_sign_bit = (nx_sign < 0.0f) ? 1u : 0u;
+        uint32_t handedness_bit = (h < 0.0f) ? 1u : 0u;
+        uint32_t alpha_bits = (nx_sign_bit << 1) | handedness_bit;
+
+        packed = ny_bits | (tx_bits << 10) | (ty_bits << 20) | (alpha_bits << 30);
         uv = glm::packUnorm2x16(texcoord);
     }
 
@@ -195,11 +223,30 @@ struct VertexAttributes {
      * @brief Unpack vertex attributes
      */
     void unpack(glm::vec3& normal, glm::vec3& tangent,
-                float& bitangentSign, glm::vec2& texcoord, uint32_t& localMaterialID) const {
-        normal = oct::decodeRGB10A2(normalMatID, &localMaterialID);
-        uint32_t signBit;
-        tangent = oct::decodeRGB10A2(tangentSign, &signBit);
-        bitangentSign = (signBit & 1) ? -1.0f : 1.0f;
+                float& handedness, glm::vec2& texcoord, uint32_t& /*localMaterialID*/) const {
+        // Decode normal_x from SNORM16
+        int16_t normal_x_snorm = static_cast<int16_t>(normalX & 0xFFFFu);
+        float normal_x_float = glm::clamp(static_cast<float>(normal_x_snorm) / 32767.0f, -1.0f, 1.0f);
+
+        float nx_magnitude = std::abs(normal_x_float);
+        float nz_sign = (normal_x_float < 0.0f) ? -1.0f : 1.0f;
+
+        // Decode packed RGB10A2
+        float ny = (static_cast<float>(packed & 0x3FFu) / 1023.0f) * 2.0f - 1.0f;
+        float tx = (static_cast<float>((packed >> 10) & 0x3FFu) / 1023.0f) * 2.0f - 1.0f;
+        float ty = (static_cast<float>((packed >> 20) & 0x3FFu) / 1023.0f) * 2.0f - 1.0f;
+        uint32_t alpha = (packed >> 30) & 0x3u;
+
+        float nx_sign = ((alpha >> 1) & 1u) ? -1.0f : 1.0f;
+        handedness = (alpha & 1u) ? -1.0f : 1.0f;
+
+        float nx = nx_magnitude * nx_sign;
+        float nz = std::sqrt(std::max(0.001f, 1.0f - nx * nx - ny * ny)) * nz_sign;
+        normal = glm::normalize(glm::vec3(nx, ny, nz));
+
+        float tz = std::sqrt(std::max(0.001f, 1.0f - tx * tx - ty * ty));
+        tangent = glm::normalize(glm::vec3(tx, ty, tz));
+
         texcoord = glm::unpackUnorm2x16(uv);
     }
 };
@@ -299,6 +346,22 @@ struct PackedInstance {
     }
 };
 static_assert(sizeof(PackedInstance) == 96, "PackedInstance must be 96 bytes");
+
+// ============================================================================
+// Aligned Transform for Dynamic UBO Offsets (256 bytes)
+// ============================================================================
+
+/**
+ * @brief Transform data aligned to 256 bytes for dynamic UBO offsets.
+ * minUniformBufferOffsetAlignment is typically 256 bytes on mobile GPUs.
+ * Contains mat4 model (64 bytes) with padding to reach 256-byte alignment.
+ */
+struct alignas(256) AlignedTransform {
+    glm::mat4 model = glm::mat4(1.0f);   // 64 bytes
+    uint32_t _pad[48] = {};               // 192 bytes padding to reach 256 total
+};
+static_assert(sizeof(AlignedTransform) == 256, "AlignedTransform must be 256 bytes");
+static_assert(alignof(AlignedTransform) == 256, "AlignedTransform must have 256-byte alignment");
 
 // ============================================================================
 // Frame Constants (bound once per frame in Set 0)

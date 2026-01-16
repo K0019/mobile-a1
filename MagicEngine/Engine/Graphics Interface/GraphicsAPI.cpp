@@ -48,7 +48,9 @@ All rights reserved.
 
 GraphicsMain::GraphicsMain()
 	: sceneFeatureHandle{}
+	, ui2dFeatureHandle{}
 	, gridHandle{}
+	, im3dHandle{}
 {
 }
 

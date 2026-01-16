@@ -63,6 +63,56 @@ struct CullingData
 };
 
 // ============================================================================
+// GPU Light Structures - for deferred lighting pass
+// Uses flat vec4 arrays for reliable std140 alignment (no nested structs)
+// ============================================================================
+
+static constexpr uint32_t MAX_DIRECTIONAL_LIGHTS = 4;
+static constexpr uint32_t MAX_POINT_LIGHTS = 16;
+static constexpr uint32_t MAX_SPOT_LIGHTS = 8;
+
+// GPU Light UBO layout (std140) - flat vec4 arrays for reliable alignment
+// Total size: 16 + 16 + (4*32) + (16*48) + (8*64) = 1432 bytes
+struct GpuLightUBO
+{
+  // Header (32 bytes)
+  glm::vec4 ambientColor;    // rgb = ambient, a = unused
+  glm::uvec4 lightCounts;    // x = numDir, y = numPoint, z = numSpot, w = unused
+
+  // Directional lights: 2 vec4s each (32 bytes per light)
+  // [i*2+0]: direction.xyz, intensity
+  // [i*2+1]: color.rgb, unused
+  glm::vec4 dirLights[MAX_DIRECTIONAL_LIGHTS * 2];  // 128 bytes
+
+  // Point lights: 3 vec4s each (48 bytes per light)
+  // [i*3+0]: position.xyz, radius
+  // [i*3+1]: color.rgb, intensity
+  // [i*3+2]: attenuation.xyz, unused
+  glm::vec4 pointLights[MAX_POINT_LIGHTS * 3];  // 768 bytes
+
+  // Spot lights: 4 vec4s each (64 bytes per light)
+  // [i*4+0]: position.xyz, radius
+  // [i*4+1]: direction.xyz, cos(innerAngle)
+  // [i*4+2]: color.rgb, intensity
+  // [i*4+3]: attenuation.xyz, cos(outerAngle)
+  glm::vec4 spotLights[MAX_SPOT_LIGHTS * 4];  // 512 bytes
+};
+
+// CPU-side collected light data (from ECS iteration)
+struct CollectedLight
+{
+  LightType type;
+  glm::vec3 position;
+  glm::vec3 direction;
+  glm::vec3 color;
+  glm::vec3 attenuation;
+  float intensity;
+  float innerConeAngle;
+  float outerConeAngle;
+  float radius;  // Computed from attenuation for culling
+};
+
+// ============================================================================
 // Scene Render Parameters - MINIMAL (SceneRenderFeature disabled)
 // ============================================================================
 
@@ -181,6 +231,18 @@ private:
 
   // Per-frame draw list (populated in UpdateScene)
   std::vector<DrawData> m_drawList;
+
+  // Per-frame light list (populated in UpdateScene)
+  std::vector<CollectedLight> m_lightList;
+
+  // ========================================================================
+  // Light UBO Resources (for deferred lighting pass)
+  // ========================================================================
+  gfx::Holder<gfx::BindGroupLayout> m_lightLayout;  // Set 1: Light UBO
+  gfx::BindGroup m_lightBindGroup = {};
+  gfx::Buffer m_lightUBO = {};
+  void* m_lightUBOMapped = nullptr;
+  bool m_lightUBOCreated = false;
 
   // Lazy pipeline creation
   bool EnsurePipelineCreated(GfxRenderer* gfxRenderer);

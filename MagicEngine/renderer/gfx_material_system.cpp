@@ -318,8 +318,14 @@ void GfxMaterialSystem::freeMaterialEntry(uint16_t index) {
         hina_destroy_bind_group(entry.bindGroup);
     }
 
+    // Destroy material constants UBO
+    if (hina_buffer_is_valid(entry.constantsUBO)) {
+        hina_destroy_buffer(entry.constantsUBO);
+    }
+
+    uint16_t nextGen = entry.generation + 1;
     entry = {};
-    entry.generation = m_materials[index].generation + 1;
+    entry.generation = nextGen;
 
     m_materialFreeList.push_back(index);
     m_materialCount--;
@@ -403,6 +409,26 @@ void GfxMaterialSystem::createMaterialBindGroup(MaterialEntry& entry) {
         hina_destroy_bind_group(entry.bindGroup);
     }
 
+    // Create or update material constants UBO (16 bytes)
+    if (!hina_buffer_is_valid(entry.constantsUBO)) {
+        hina_buffer_desc ubo_desc = {};
+        ubo_desc.size = sizeof(PackedMaterial);  // 16 bytes
+        ubo_desc.flags = static_cast<hina_buffer_flags>(
+            HINA_BUFFER_UNIFORM_BIT | HINA_BUFFER_HOST_VISIBLE_BIT | HINA_BUFFER_HOST_COHERENT_BIT);
+        entry.constantsUBO = hina_make_buffer(&ubo_desc);
+        if (!hina_buffer_is_valid(entry.constantsUBO)) {
+            LOG_ERROR("[GfxMaterialSystem] Failed to create material constants UBO");
+            return;
+        }
+    }
+
+    // Upload packed material data to UBO
+    void* mapped = hina_map_buffer(entry.constantsUBO);
+    if (mapped) {
+        std::memcpy(mapped, &entry.gpuData, sizeof(PackedMaterial));
+        // No unmap needed for HOST_COHERENT persistently mapped buffers
+    }
+
     // Get texture views (use defaults if not set)
     auto getView = [this](TextureHandle h, TextureHandle def) -> TextureView {
         if (isTextureValid(h)) {
@@ -421,39 +447,46 @@ void GfxMaterialSystem::createMaterialBindGroup(MaterialEntry& entry) {
     TextureView occlusionView = getView(entry.material.occlusionTexture, m_defaultWhiteHandle);
 
     // Create bind group entries
-    // Binding 0: Material constants UBO (we'll skip for now - use push constants instead)
+    // Binding 0: Material constants UBO (16 bytes packed material)
     // Bindings 1-5: Textures
-    hina_bind_group_entry entries[5] = {};
+    hina_bind_group_entry entries[6] = {};
 
-    entries[0].binding = 1;  // Albedo
-    entries[0].type = HINA_DESC_TYPE_COMBINED_IMAGE_SAMPLER;
-    entries[0].combined.view = albedoView;
-    entries[0].combined.sampler = m_defaultSampler;
+    // Binding 0: Material constants UBO
+    entries[0].binding = 0;
+    entries[0].type = HINA_DESC_TYPE_UNIFORM_BUFFER;
+    entries[0].buffer.buffer = entry.constantsUBO;
+    entries[0].buffer.offset = 0;
+    entries[0].buffer.size = sizeof(PackedMaterial);
 
-    entries[1].binding = 2;  // Normal
+    entries[1].binding = 1;  // Albedo
     entries[1].type = HINA_DESC_TYPE_COMBINED_IMAGE_SAMPLER;
-    entries[1].combined.view = normalView;
+    entries[1].combined.view = albedoView;
     entries[1].combined.sampler = m_defaultSampler;
 
-    entries[2].binding = 3;  // MetallicRoughness
+    entries[2].binding = 2;  // Normal
     entries[2].type = HINA_DESC_TYPE_COMBINED_IMAGE_SAMPLER;
-    entries[2].combined.view = mrView;
+    entries[2].combined.view = normalView;
     entries[2].combined.sampler = m_defaultSampler;
 
-    entries[3].binding = 4;  // Emissive
+    entries[3].binding = 3;  // MetallicRoughness
     entries[3].type = HINA_DESC_TYPE_COMBINED_IMAGE_SAMPLER;
-    entries[3].combined.view = emissiveView;
+    entries[3].combined.view = mrView;
     entries[3].combined.sampler = m_defaultSampler;
 
-    entries[4].binding = 5;  // Occlusion
+    entries[4].binding = 4;  // Emissive
     entries[4].type = HINA_DESC_TYPE_COMBINED_IMAGE_SAMPLER;
-    entries[4].combined.view = occlusionView;
+    entries[4].combined.view = emissiveView;
     entries[4].combined.sampler = m_defaultSampler;
+
+    entries[5].binding = 5;  // Occlusion
+    entries[5].type = HINA_DESC_TYPE_COMBINED_IMAGE_SAMPLER;
+    entries[5].combined.view = occlusionView;
+    entries[5].combined.sampler = m_defaultSampler;
 
     hina_bind_group_desc desc = {};
     desc.layout = m_materialLayout;
     desc.entries = entries;
-    desc.entry_count = 5;
+    desc.entry_count = 6;
 
     entry.bindGroup = hina_create_bind_group(&desc);
     if (!hina_bind_group_is_valid(entry.bindGroup)) {

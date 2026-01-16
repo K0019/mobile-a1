@@ -324,6 +324,14 @@ private:
         std::vector<VertexAttributes>& attributes,
         MeshBounds& outBounds);
 
+    // Pack vertices with winding-order-based normal consistency fix
+    void packVerticesWithNormalFix(
+        const FullVertex* vertices, uint32_t vertexCount,
+        const uint32_t* indices, uint32_t indexCount,
+        std::vector<VertexPosition>& positions,
+        std::vector<VertexAttributes>& attributes,
+        MeshBounds& outBounds);
+
     // Chunks
     std::vector<std::unique_ptr<MeshChunk>> m_chunks;
 

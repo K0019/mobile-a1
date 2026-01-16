@@ -50,8 +50,9 @@ constexpr uint32_t GFX_MAX_FRAMES = 3;
 constexpr uint32_t TILE_SIZE = 32;           // Light tile size in pixels
 constexpr uint32_t MAX_LIGHTS = 64;          // Max lights per frame (64-bit mask)
 constexpr uint32_t MAX_MATERIALS = 256;      // Max materials per frame
-constexpr uint32_t MAX_TRANSFORMS = 16384;   // Max draw calls per frame
-constexpr uint32_t TRANSFORM_UBO_SIZE = MAX_TRANSFORMS * sizeof(gfx::PackedInstance);
+constexpr uint32_t MAX_TRANSFORMS = 4096;    // Max draw calls per frame (reduced for 256-byte alignment)
+constexpr uint32_t TRANSFORM_ALIGNMENT = 256; // Dynamic UBO offset alignment (mobile requirement)
+constexpr uint32_t TRANSFORM_UBO_SIZE = MAX_TRANSFORMS * TRANSFORM_ALIGNMENT;
 
 // ============================================================================
 // View Output System
@@ -135,8 +136,9 @@ struct FrameResources {
     gfx::Buffer frameConstantsUBO;
     gfx::Buffer lightingDataUBO;
 
-    // Transform ring buffer (dynamic offsets)
+    // Transform ring buffer (dynamic offsets) - persistently mapped
     gfx::Buffer transformRingUBO;
+    void* transformRingMapped = nullptr;  // Persistently mapped pointer
     uint32_t transformRingOffset = 0;
 
     // Object data ring buffer
@@ -403,8 +405,11 @@ public:
     gfx::GfxMaterialSystem& getMaterialSystem() { return m_materialSystem; }
     const gfx::GfxMaterialSystem& getMaterialSystem() const { return m_materialSystem; }
 
-    // Material bind group layout (Set 1: textures) - for features that need to create compatible pipelines
+    // Material bind group layout (Set 1: constants UBO + textures) - for features that need to create compatible pipelines
     gfx::BindGroupLayout getMaterialLayout() const { return m_materialLayout; }
+
+    // Dynamic bind group layout (Set 2: transform UBO with dynamic offset) - for features that need to create compatible pipelines
+    gfx::BindGroupLayout getDynamicLayout() const { return m_dynamicLayout; }
 
     // Get default sampler for external use
     gfx::Sampler getDefaultSampler() const { return m_defaultSampler; }
@@ -413,65 +418,9 @@ public:
     gfx::TextureView getImGuiFontView() const { return m_imguiFontView; }
 
     // ========================================================================
-    // Draw Queue API - submit meshes for rendering during the frame
-    // ========================================================================
-
-    /**
-     * @brief Submit a mesh for rendering this frame.
-     * @param mesh Handle to the mesh (from GfxMeshStorage)
-     * @param transform World transform matrix
-     * @param material Handle to the material (from GfxMaterialSystem), or invalid for default
-     */
-    void submitMesh(gfx::MeshHandle mesh, const glm::mat4& transform, gfx::MaterialHandle material = {});
-
-    /**
-     * @brief Submit a mesh for rendering with base color override.
-     * Used for simple rendering without full material.
-     */
-    void submitMesh(gfx::MeshHandle mesh, const glm::mat4& transform, const glm::vec4& baseColor);
-
-    /**
-     * @brief Clear the draw queue. Called automatically at beginFrame().
-     */
-    void clearDrawQueue();
-
-    /**
-     * @brief Submit all meshes from a scene for rendering.
-     * @param scene The scene to render
-     * @param resourceMngr ResourceManager to look up mesh GPU data
-     */
-    void submitScene(const struct Resource::Scene& scene,
-                     const class Resource::ResourceManager& resourceMngr);
-
-    // EnTT integration disabled - using internal ECS
-    // /**
-    //  * @brief Submit all entities with MeshRendererComponent from an ECS registry.
-    //  * @param registry The EnTT registry containing entities
-    //  * @param resourceMngr ResourceManager to look up mesh GPU data
-    //  * @param resourceRegistry ResourceRegistry to resolve mesh names to handles
-    //  */
-    // void submitEcsEntities(const entt::registry& registry,
-    //                        const class Resource::ResourceManager& resourceMngr,
-    //                        const class Resource::ResourceRegistry& resourceRegistry);
-
-    // ========================================================================
     // Feature-invokable Render Passes
     // These methods can be called by IRenderFeature implementations
     // ========================================================================
-
-    /**
-     * @brief Execute G-buffer pass.
-     * Renders all opaque meshes in the draw queue to G-buffer targets.
-     * @param cmd Command buffer to record into
-     */
-    void executeGBufferPass(gfx::Cmd* cmd);
-
-    /**
-     * @brief Execute composite pass.
-     * Composites G-buffer to view output texture with basic lighting.
-     * @param cmd Command buffer to record into
-     */
-    void executeCompositePass(gfx::Cmd* cmd);
 
     /**
      * @brief Execute grid pass.
@@ -479,20 +428,6 @@ public:
      * @param cmd Command buffer to record into
      */
     void executeGridPass(gfx::Cmd* cmd);
-
-    /**
-     * @brief Execute WBOIT accumulation pass.
-     * Renders transparent objects to accumulation and reveal targets.
-     * @param cmd Command buffer to record into
-     */
-    void executeWBOITAccumulationPass(gfx::Cmd* cmd);
-
-    /**
-     * @brief Execute WBOIT resolve pass.
-     * Composites WBOIT result over the scene.
-     * @param cmd Command buffer to record into
-     */
-    void executeWBOITResolvePass(gfx::Cmd* cmd);
 
     /**
      * @brief Get current frame resources.
@@ -522,15 +457,7 @@ private:
     void updateFrameConstants(const FrameData& frameData);
     void cullScene(const FrameData& frameData);
     void binLights(const FrameData& frameData);
-    void renderGBuffer();
-    void renderShadows();
-    void renderLighting();
-    void renderTransparency();
-    void renderPostProcess();
-    void renderClear();  // Simple clear pass for initial testing
-    void renderComposite();  // Composite G-buffer to view output texture
     void renderGrid();   // Infinite grid for editor orientation
-    void blitToSwapchain();  // Blit view output to swapchain (for non-ImGui apps)
 
     // Core state
     bool m_initialized = false;
@@ -575,32 +502,15 @@ private:
     std::vector<gfx::VisibleObject> m_visibleOpaque;
     std::vector<gfx::VisibleObject> m_visibleTransparent;
 
-    // Pipelines (created at startup)
-    gfx::Pipeline m_gbufferPipeline;
-    gfx::Pipeline m_shadowPipeline;
-    gfx::Pipeline m_lightingPipeline;
-    gfx::Pipeline m_wboitAccumPipeline;
-    gfx::Pipeline m_wboitResolvePipeline;
-    gfx::Pipeline m_postProcessPipeline;
-    gfx::Pipeline m_compositePassPipeline;  // Composite G-buffer to swapchain
+    // Pipelines (created at startup) - most scene rendering moved to SceneRenderFeature
     gfx::Pipeline m_gridPipeline;            // Infinite grid for editor
-
-    // Composite pass resources
-    gfx::Buffer m_fullscreenQuadVB;
-    gfx::BindGroupLayout m_compositeLayout;
-    gfx::BindGroup m_compositeBindGroup;
-
-    // G-buffer pass per-frame UBO (viewProj matrix)
-    gfx::Buffer m_gbufferFrameUBO;
-    gfx::BindGroupLayout m_gbufferSceneLayout;
-    gfx::BindGroup m_gbufferSceneBindGroup;
-    void* m_gbufferFrameUBOMapped = nullptr;
 
     // Grid rendering resources
     gfx::BindGroupLayout m_gridLayout;
     gfx::BindGroup m_gridBindGroup;
     gfx::Buffer m_gridUBO;
     void* m_gridUBOMapped = nullptr;
+    gfx::Buffer m_fullscreenQuadVB;  // Shared fullscreen quad for grid and other fullscreen passes
 
     // Default resources
     gfx::Sampler m_defaultSampler;
@@ -618,18 +528,6 @@ private:
     // ========================================================================
     gfx::GfxMeshStorage m_meshStorage;
     gfx::GfxMaterialSystem m_materialSystem;
-
-    // ========================================================================
-    // Draw Queue (submitted meshes for this frame)
-    // ========================================================================
-    struct DrawCall {
-        gfx::MeshHandle mesh;
-        gfx::MaterialHandle material;
-        glm::mat4 transform;
-        glm::vec4 baseColor;
-        bool useMaterial = false;  // If false, use baseColor instead
-    };
-    std::vector<DrawCall> m_drawQueue;
 
     // ========================================================================
     // ImGui Resources
