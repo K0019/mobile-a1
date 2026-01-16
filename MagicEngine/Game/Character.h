@@ -24,23 +24,9 @@ All rights reserved.
 #include "Game/GrabbableItem.h"
 #include "Engine/Resources/ResourcesHeader.h"
 #include "Engine/Resources/Types/ResourceTypesGraphics.h"
+#include "Engine/AnimatorStateMachine.h"
 
-#define ANIMATIONS \
-X(IDLE,     "Idle")\
-X(WALK,     "Walk")\
-X(ATTACK,   "Attack")\
-X(HURT,   "Hurt")\
-X(DODGE,   "Dodge")\
-X(PARRY,   "Parry")\
-X(THROW,   "Throw")\
 
-#define X(type, name) type,
-enum ANIMATION_TYPES:size_t
-{
-	ANIMATIONS
-	ANIM_TOTAL
-};
-#undef X
 
 
 /*****************************************************************//*!

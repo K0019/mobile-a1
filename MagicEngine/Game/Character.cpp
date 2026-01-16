@@ -29,6 +29,7 @@ All rights reserved.
 #include "Managers\AudioManager.h"
 #include "Graphics/BoneAttachment.h"
 #include "Engine/BehaviorTree/BehaviourTree.h"
+#include "Graphics/AnimatorComponent.h"
 
 #define X(type, name) name,
 char const* animNames[] =
@@ -196,7 +197,10 @@ bool CharacterMovementComponent::Attack()
 	if (isAttacking)
 		return false;
 	isAttacking = true;
-
+	auto characterEntity = ecs::GetEntity(this);
+	AnimatorComponent* animatorComp = characterEntity->GetComp<AnimatorComponent>();
+	animatorComp->GetStateMachine()->ResetFlags();
+	animatorComp->GetStateMachine()->attack = true;
 	ecs::EntityHandle attackItem{ heldItem };
 	// If not holding an item, we fallback to the character's entity itself
 	if (attackItem == nullptr && ecs::GetEntity(this)->GetComp<GrabbableItemComponent>())
@@ -215,17 +219,18 @@ bool CharacterMovementComponent::Attack()
 	//}
 
 	ecs::EntityHandle thisEntity = ecs::GetEntity(this);
+	
 
 	// Get the animation component
-	ecs::CompHandle<AnimationComponent> animComp = thisEntity->GetComp<AnimationComponent>();
+	//ecs::CompHandle<AnimationComponent> animComp = thisEntity->GetComp<AnimationComponent>();
 
-	// Attempt to use animation pulled from the item, if nonexistent then use the fallback anim on the Character
-	size_t attackAnimHash = attackItem->GetComp<GrabbableItemComponent>()->lightAttackAnimation.GetHash();
-	if (attackAnimHash == 0)
-		attackAnimHash = animations[ATTACK].GetHash();
-	
-	// Use transition for attack animation (quick transition)
-	animComp->TransitionTo(attackAnimHash, 0.1f);
+	//// Attempt to use animation pulled from the item, if nonexistent then use the fallback anim on the Character
+	//size_t attackAnimHash = attackItem->GetComp<GrabbableItemComponent>()->lightAttackAnimation.GetHash();
+	//if (attackAnimHash == 0)
+	//	attackAnimHash = animations[ATTACK].GetHash();
+	//
+	//// Use transition for attack animation (quick transition)
+	//animComp->TransitionTo(attackAnimHash, 0.1f);
 	//animComp->timeA = 0.0f;
 
 
@@ -242,10 +247,10 @@ bool CharacterMovementComponent::Attack()
 
 	// Handle next attack delay
 	float nextAttackDelay = grabbableComp->attackDelay;
-	if (auto clip{ animComp->GetAnimationClipA() })
-	{
-		nextAttackDelay = animComp->GetClipDuration(clip);
-	}
+	//if (auto clip{ animComp->GetAnimationClipA() })
+	//{
+	//	nextAttackDelay = animComp->GetClipDuration(clip);
+	//}
 
 	ST<Scheduler>::Get()->Add(grabbableComp->attackDelay, [attackItem, thisEntity]() {
 		if (!ecs::IsEntityHandleValid(thisEntity))
@@ -286,7 +291,7 @@ bool CharacterMovementComponent::Attack()
 
 		thisComp->isAttacking = false;
 	});
-
+	
 	return true;
 }
 
@@ -414,6 +419,9 @@ void CharacterMovementComponent::EditorDraw()
 		gui::TextBoxReadOnly(std::string("##AnimClip"+std::to_string(animIndex)).c_str(), clip1Name ? clip1Name->c_str() : "");
 		gui::PayloadTarget<size_t>("ANIMATION_HASH", [&](size_t hash) -> void {
 			animations[animIndex] = hash;
+			auto characterEntity = ecs::GetEntity(this);
+			AnimatorComponent* animatorComp = characterEntity->GetComp<AnimatorComponent>();
+			animatorComp->GetStateMachine()->ChangAnim(animIndex, hash);
 			});
 	}
 }
@@ -432,6 +440,27 @@ void CharacterMovementComponentSystem::UpdateCharacterMovementComponent(Characte
 
 	// Get the animation component
 	ecs::CompHandle<AnimationComponent> animComp = characterEntity->GetComp<AnimationComponent>();
+	AnimatorComponent* animatorComp = characterEntity->GetComp<AnimatorComponent>();
+	if (!(animatorComp)) {
+		characterEntity->AddComp<AnimatorComponent>(AnimatorComponent{ new sm::AnimStateMachine(comp.moveSpeed,comp.rotateSpeed,comp.groundFriction,comp.dodgeDuration, comp.dodgeSpeed, comp.parryTime,comp.animations, new sm::IdleState()) });
+		animatorComp = ecs::GetEntity(&comp)->GetComp<AnimatorComponent>();
+	}
+	else {
+		animatorComp->GetStateMachine()->animations[IDLE] = comp.animations[IDLE];
+		animatorComp->GetStateMachine()->animations[ATTACK] = comp.animations[ATTACK];
+		animatorComp->GetStateMachine()->animations[WALK] = comp.animations[WALK];
+		animatorComp->GetStateMachine()->animations[PARRY] = comp.animations[PARRY];
+		animatorComp->GetStateMachine()->animations[HURT] = comp.animations[HURT];
+		animatorComp->GetStateMachine()->animations[DODGE] = comp.animations[DODGE];
+		animatorComp->GetStateMachine()->animations[THROW] = comp.animations[THROW];
+		animatorComp->GetStateMachine()->moveSpeed = comp.moveSpeed;
+		animatorComp->GetStateMachine()->rotateSpeed = comp.rotateSpeed;
+		animatorComp->GetStateMachine()->groundFriction = comp.groundFriction;
+		animatorComp->GetStateMachine()->dodgeDuration = comp.dodgeDuration;
+		animatorComp->GetStateMachine()->dodgeSpeed = comp.dodgeSpeed;
+	}
+
+
 
 	// Update held item
 	ecs::EntityHandle attackItem{ comp.heldItem };
@@ -516,18 +545,23 @@ void CharacterMovementComponentSystem::UpdateCharacterMovementComponent(Characte
 	if (movement.LengthSqr() > 0.0f)
 	{
 		// Walking - only change animation if not attacking
-		if (!comp.isAttacking && animComp->animHandleA.GetHash() != comp.animations[WALK].GetHash())
-		{
-			animComp->TransitionTo(comp.animations[WALK].GetHash(), 0.15f);
-		}
+		//if (!comp.isAttacking && animComp->animHandleA.GetHash() != comp.animations[WALK].GetHash())
+		//{
+		//	animComp->TransitionTo(comp.animations[WALK].GetHash(), 0.15f);
+		//}
+		animatorComp->GetStateMachine()->ResetFlags();
+		animatorComp->GetStateMachine()->walking = true;
+		
 	}
 	else
 	{
 		// Idle - only change animation if not attacking
-		if (!comp.isAttacking && animComp->animHandleA.GetHash() != comp.animations[IDLE].GetHash())
-		{
-			animComp->TransitionTo(comp.animations[IDLE].GetHash(), 0.15f);
-		}
+		//if (!comp.isAttacking && animComp->animHandleA.GetHash() != comp.animations[IDLE].GetHash())
+		//{
+		//	animComp->TransitionTo(comp.animations[IDLE].GetHash(), 0.15f);
+		//}
+		animatorComp->GetStateMachine()->ResetFlags();
+		animatorComp->GetStateMachine()->idle = true;
 	}
 
 	///if (comp.isAttacking)
@@ -576,6 +610,11 @@ void CharacterMovementComponentSystem::UpdateCharacterMovementComponent(Characte
 	physicsComp->AddLinearVelocity(moveDir);
 
 	comp.currentDodgeCooldown -= GameTime::Dt();
+
+	//if (animatorComp->GetStateMachine())
+	//{
+	//	animatorComp->GetStateMachine()->Update(characterEntity);
+	//}
 
 	if (movement.LengthSqr() > 0.0f)
 		comp.RotateTowards(movement);
