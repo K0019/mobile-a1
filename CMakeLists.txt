@@ -107,7 +107,7 @@ find_package(Freetype CONFIG REQUIRED)
 # Desktop-only dependencies
 if(NOT ANDROID)
     find_package(glfw3 CONFIG REQUIRED)
-    find_package(tracy CONFIG REQUIRED)
+    # find_package(tracy CONFIG REQUIRED)
     
     # Tools dependencies
     find_package(assimp CONFIG REQUIRED)
