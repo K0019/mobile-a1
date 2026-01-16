@@ -69,9 +69,9 @@
         {
             "parentIndex": -1,
             "position": {
-                "x": -7.407953262329102,
-                "y": 1.0000625848770142,
-                "z": -24.090742111206055
+                "x": -5.0457987785339355,
+                "y": 1.0001248121261597,
+                "z": 3.0964365005493164
             },
             "rotation": {
                 "x": 0.0,
@@ -116,6 +116,7 @@
                     "_active": true,
                     "grabDistance": 1.5,
                     "ultimateAttackDamage": 1000.0,
+                    "enemyTargetRange": 2.0,
                     "cameraReference": {
                         "entityUid": 51380178370257494
                     },
