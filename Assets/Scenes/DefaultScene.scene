@@ -69,9 +69,9 @@
         {
             "parentIndex": -1,
             "position": {
-                "x": -5.0457987785339355,
-                "y": 1.0001248121261597,
-                "z": 3.0964365005493164
+                "x": -7.226798057556152,
+                "y": 1.000185251235962,
+                "z": -24.95719337463379
             },
             "rotation": {
                 "x": 0.0,
@@ -215,7 +215,7 @@
                     "_active": true,
                     "maxHealth": 200.0,
                     "currHealth": 200.0,
-                    "isInvincible": false
+                    "isInvincible": true
                 },
                 "9315785795257285655": {
                     "_active": true,
@@ -2175,7 +2175,7 @@
                 "17194726475873209191": {
                     "_active": true,
                     "navMeshData": {
-                        "filePath": "NavMeshData/navmesh3.navmesh"
+                        "filePath": "NavMeshData/navmesh1.navmesh"
                     },
                     "agentParam": {
                         "radius": 0.05000000074505806,
@@ -3280,19 +3280,19 @@
         {
             "parentIndex": 6,
             "position": {
-                "x": 0.0,
+                "x": 51.61104965209961,
                 "y": 0.0,
                 "z": 0.0
             },
             "rotation": {
                 "x": 0.0,
-                "y": 0.0,
+                "y": 90.0,
                 "z": 0.0
             },
             "scale": {
-                "x": 0.5,
-                "y": 0.5,
-                "z": 0.5
+                "x": 0.25,
+                "y": 0.25,
+                "z": 0.25
             },
             "components": {
                 "5352011725353660904": {
