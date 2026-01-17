@@ -37,7 +37,7 @@ NODE_STATUS L_Boss_Prefect_BookingSlips::OnUpdate([[maybe_unused]] ecs::EntityHa
                 auto animComp = entity->GetComp<AnimationComponent>();
                 if (animComp)
                 {
-                    animComp->TransitionTo(5142979933624197533, 0.1f);
+                    animComp->TransitionTo(5142979933624197533, 0.5f);
                     animComp->timeA = 0.0f;
 				}
                 // Spawn the booking slip and set the entity reference
