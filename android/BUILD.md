@@ -1,5 +1,23 @@
 # Android Build Guide
 
+## Quick Start
+
+```powershell
+# PowerShell (Windows)
+cd android
+.\build_android.ps1 -Install
+```
+
+```bash
+# Bash (Linux/Mac/Git Bash)
+cd android
+./build_android.sh --install
+```
+
+The script handles asset copying, manifest generation, and APK building.
+
+---
+
 ## Prerequisites
 
 1. **Android Studio** (for SDK, NDK, and JBR)
@@ -7,7 +25,7 @@
 3. **Android NDK** (r25+ recommended)
 4. **ADB** in PATH for deployment
 
-## Build Steps
+## Manual Build Steps
 
 ### 1. Clone with submodules
 ```bash
