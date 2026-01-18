@@ -56,20 +56,29 @@ namespace sm {
 // States
 	class IdleState;
 	class WalkState;
-	class RunState;
 	class AttackState;
+	class HurtState;
+	class DodgeState;
+	class ParryState;
+	class ThrowState;
 
 	// Activities
 	class IdleActivity;
 	class WalkActivity;
-	class RunActivity;
 	class AttackActivity;
+	class HurtActivity;
+	class DodgeActivity;
+	class ParryActivity;
+	class ThrowActivity;
 
 	// Transitions
 	class ToIdleTransition;
 	class ToWalkTransition;
-	class ToRunTransition;
 	class ToAttackTransition;
+	class ToHurtTransition;
+	class ToDodgeTransition;
+	class ToParryTransition;
+	class ToThrowTransition;
 
 	
 
@@ -303,29 +312,44 @@ namespace sm {
 	{
 	public:
 		void OnEnter(sm::StateMachine* sm) override;
-		//void OnUpdate(sm::StateMachine* sm) override;
 	};
 
 	class WalkActivity : public sm::AnimActivityBase<WalkActivity>
 	{
 	public:
 		void OnEnter(sm::StateMachine* sm) override;
-		//void OnUpdate(sm::StateMachine* sm) override;
-	};
-
-	class RunActivity : public sm::AnimActivityBase<RunActivity>
-	{
-	public:
-		void OnEnter(sm::StateMachine* sm) override;
-		//void OnUpdate(sm::StateMachine* sm) override;
 	};
 
 	class AttackActivity : public sm::AnimActivityBase<AttackActivity>
 	{
 		public:
 		void OnEnter(sm::StateMachine* sm) override;
-		//void OnUpdate(sm::StateMachine* sm) override;
 	};
+
+	class HurtActivity : public sm::AnimActivityBase<HurtActivity>
+	{
+	public:
+		void OnEnter(sm::StateMachine* sm) override;
+	};
+
+	class DodgeActivity : public sm::AnimActivityBase<DodgeActivity>
+	{
+	public:
+		void OnEnter(sm::StateMachine* sm) override;
+	};
+
+	class ParryActivity : public sm::AnimActivityBase<ParryActivity>
+	{
+	public:
+		void OnEnter(sm::StateMachine* sm) override;
+	};
+
+	class ThrowActivity : public sm::AnimActivityBase<ThrowActivity>
+	{
+	public:
+		void OnEnter(sm::StateMachine* sm) override;
+	};
+	
 
 	//======================================================================
 	// TRANSITION DECLARATIONS
@@ -345,17 +369,39 @@ namespace sm {
 		bool Decide(sm::StateMachine* sm) override;
 	};
 
-	class ToRunTransition : public sm::AnimTransitionBase<ToRunTransition>
-	{
-	public:
-		ToRunTransition();
-		bool Decide(sm::StateMachine* sm) override;
-	};
 
 	class ToAttackTransition : public sm::AnimTransitionBase<ToAttackTransition>
 	{
 	public:
 		ToAttackTransition();
+		bool Decide(sm::StateMachine* sm) override;
+	};
+
+	class ToHurtTransition : public sm::AnimTransitionBase<ToHurtTransition>
+	{
+	public:
+		ToHurtTransition();
+		bool Decide(sm::StateMachine* sm) override;
+	};
+
+	class ToDodgeTransition : public sm::AnimTransitionBase<ToDodgeTransition>
+	{
+	public:
+		ToDodgeTransition();
+		bool Decide(sm::StateMachine* sm) override;
+	};
+
+	class ToParryTransition : public sm::AnimTransitionBase<ToParryTransition>
+	{
+	public:
+		ToParryTransition();
+		bool Decide(sm::StateMachine* sm) override;
+	};
+
+	class ToThrowTransition : public sm::AnimTransitionBase<ToThrowTransition>
+	{
+	public:
+		ToThrowTransition();
 		bool Decide(sm::StateMachine* sm) override;
 	};
 
@@ -375,16 +421,35 @@ namespace sm {
 		WalkState();
 	};
 
-	class RunState : public sm::State
-	{
-	public:
-		RunState();
-	};
 
 	class AttackState : public sm::State
 	{
 		public:
 		AttackState();
+	};
+
+	class HurtState : public sm::State
+	{
+	public:
+		HurtState();
+	};
+
+	class DodgeState : public sm::State
+	{
+	public:
+		DodgeState();
+	};
+
+	class ParryState : public sm::State
+	{
+	public:
+		ParryState();
+	};
+
+	class ThrowState : public sm::State
+	{
+	public:
+		ThrowState();
 	};
 
 }

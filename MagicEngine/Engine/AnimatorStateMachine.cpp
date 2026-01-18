@@ -129,26 +129,6 @@ namespace sm {
 
 	//}
 
-	void RunActivity::OnEnter(sm::StateMachine* sm)
-	{
-		sm::AnimStateMachine* animSM = CastSM(sm);
-		ecs::EntityHandle entity = animSM->GetEntity();
-		AnimationComponent* animComp = entity->GetComp<AnimationComponent>();
-		std::cout << "Entered Run Activity" << std::endl;
-		if (animComp)
-		{
-			// TODO: Set your actual run animation hash
-			if (animSM->animations[WALK].GetHash()) {
-				animComp->TransitionTo(animSM->animations[WALK].GetHash());
-				//animComp->animHandleA = 2370177633938117279;
-				animComp->isPlaying = true;
-				animComp->loop = true;
-				animComp->speed = 1.0f;
-				std::cout << "Set Run Animation" << std::endl;
-			}
-		}
-	}
-
 	void AttackActivity::OnEnter(sm::StateMachine* sm)
 	{
 		sm::AnimStateMachine* animSM = CastSM(sm);
@@ -167,12 +147,61 @@ namespace sm {
 		}
 	}
 
-	//void AttackActivity::OnUpdate(sm::StateMachine* sm)
-	//{
-	//	// Optionally implement any per-frame logic for the Idle activity here
-	//	sm::AnimStateMachine* animSM = CastSM(sm);
+	void HurtActivity::OnEnter(sm::StateMachine* sm)
+	{
+		sm::AnimStateMachine* animSM = CastSM(sm);
+		AnimationComponent* animComp = animSM->GetEntity()->GetComp<AnimationComponent>();
+		if (animComp && animSM->animations[HURT].GetHash())
+		{
+			animComp->TransitionTo(animSM->animations[HURT].GetHash());
+			animComp->isPlaying = true;
+			animComp->loop = false; // Usually hurt doesn't loop
+			animComp->speed = 1.0f;
+			std::cout << "Set Hurt Animation" << std::endl;
+		}
+	}
 
-	//}
+	void DodgeActivity::OnEnter(sm::StateMachine* sm)
+	{
+		sm::AnimStateMachine* animSM = CastSM(sm);
+		AnimationComponent* animComp = animSM->GetEntity()->GetComp<AnimationComponent>();
+		if (animComp && animSM->animations[DODGE].GetHash())
+		{
+			animComp->TransitionTo(animSM->animations[DODGE].GetHash());
+			animComp->isPlaying = true;
+			animComp->loop = false;
+			animComp->speed = 1.0f;
+			std::cout << "Set Dodge Animation" << std::endl;
+		}
+	}
+
+	void ParryActivity::OnEnter(sm::StateMachine* sm)
+	{
+		sm::AnimStateMachine* animSM = CastSM(sm);
+		AnimationComponent* animComp = animSM->GetEntity()->GetComp<AnimationComponent>();
+		if (animComp && animSM->animations[PARRY].GetHash())
+		{
+			animComp->TransitionTo(animSM->animations[PARRY].GetHash());
+			animComp->isPlaying = true;
+			animComp->loop = false;
+			animComp->speed = 1.0f;
+			std::cout << "Set Parry Animation" << std::endl;
+		}
+	}
+
+	void ThrowActivity::OnEnter(sm::StateMachine* sm)
+	{
+		sm::AnimStateMachine* animSM = CastSM(sm);
+		AnimationComponent* animComp = animSM->GetEntity()->GetComp<AnimationComponent>();
+		if (animComp && animSM->animations[THROW].GetHash())
+		{
+			animComp->TransitionTo(animSM->animations[THROW].GetHash());
+			animComp->isPlaying = true;
+			animComp->loop = false;
+			animComp->speed = 1.0f;
+			std::cout << "Set Throw Animation" << std::endl;
+		}
+	}
 
 	//======================================================================
 	// TRANSITION DEFINITIONS
@@ -209,22 +238,10 @@ namespace sm {
 			return true;
 		}
 		else {
-
+			animSM->walking = false;
 			return false;
 		}
 		//return animSM->walking;//speed > 0.1f && speed < 5.0f;
-	}
-
-	ToRunTransition::ToRunTransition()
-		: sm::AnimTransitionBase<ToRunTransition>(SET_NEXT_STATE(RunState))
-	{
-	}
-
-	bool ToRunTransition::Decide(sm::StateMachine* sm)
-	{
-		sm::AnimStateMachine* animSM = CastSM(sm);
-		Vec3 velo = GetEntityVelo(animSM->GetEntity());
-		return false;
 	}
 
 	ToAttackTransition::ToAttackTransition()
@@ -239,9 +256,66 @@ namespace sm {
 			return true;
 		}
 		else {
+			animSM->attack = false;
 			return false;
 		}
 		//return animSM->attack;
+	}
+
+	ToHurtTransition::ToHurtTransition() 
+		: sm::AnimTransitionBase<ToHurtTransition>(SET_NEXT_STATE(HurtState)) {}
+
+	bool ToHurtTransition::Decide(sm::StateMachine* sm) {
+		sm::AnimStateMachine* animSM = CastSM(sm);
+		if (animSM->hurt) {
+			return true;
+		}
+		else {
+			animSM->hurt = false;
+			return false;
+		}
+	}
+
+	ToDodgeTransition::ToDodgeTransition() 
+		: sm::AnimTransitionBase<ToDodgeTransition>(SET_NEXT_STATE(DodgeState)) {}
+
+	bool ToDodgeTransition::Decide(sm::StateMachine* sm) {
+		sm::AnimStateMachine* animSM = CastSM(sm);
+		if (animSM->dodge) {
+			return true;
+		}
+		else {
+			animSM->dodge = false;
+			return false;
+		}
+	}
+
+	ToParryTransition::ToParryTransition() 
+		: sm::AnimTransitionBase<ToParryTransition>(SET_NEXT_STATE(ParryState)) {}
+
+	bool ToParryTransition::Decide(sm::StateMachine* sm) {
+		sm::AnimStateMachine* animSM = CastSM(sm);
+		if (animSM->parry) {
+			return true;
+		}
+		else {
+			animSM->parry = false;
+			return false;
+		}
+	}
+
+	ToThrowTransition::ToThrowTransition() 
+		: sm::AnimTransitionBase<ToThrowTransition>(SET_NEXT_STATE(ThrowState)) {}
+
+	bool ToThrowTransition::Decide(sm::StateMachine* sm) {
+		sm::AnimStateMachine* animSM = CastSM(sm);
+		if (animSM->throwFlag) {
+			return true;
+		}
+		else {
+			animSM->throwFlag = false;
+			return false;
+		}
 	}
 
 
@@ -249,66 +323,45 @@ namespace sm {
 	// STATE DEFINITIONS
 	//======================================================================
 
-	IdleState::IdleState()
-		: sm::State(
-			{ new IdleActivity() },
-			{ new ToWalkTransition(), new ToAttackTransition()}
-		)
-	{
+	IdleState::IdleState() : sm::State(
+		{ new IdleActivity() },
+		{ new ToWalkTransition(), new ToAttackTransition(), new ToHurtTransition(), new ToDodgeTransition(), new ToParryTransition(), new ToThrowTransition() }
+	) {
 	}
 
-	WalkState::WalkState()
-		: sm::State(
-			{ new WalkActivity() },
-			{ new ToIdleTransition(), new ToAttackTransition()}
-		)
-	{
+	WalkState::WalkState() : sm::State(
+		{ new WalkActivity() },
+		{ new ToIdleTransition(), new ToAttackTransition(), new ToHurtTransition(), new ToDodgeTransition(), new ToParryTransition(), new ToThrowTransition() }
+	) {
 	}
 
-	RunState::RunState()
-		: sm::State(
-			{ new RunActivity() },
-			{ new ToIdleTransition(), new ToWalkTransition() }
-		)
-	{
+	AttackState::AttackState() : sm::State(
+		{ new AttackActivity() },
+		{ new ToIdleTransition(), new ToWalkTransition(), new ToHurtTransition() }
+	) {
 	}
 
-	AttackState::AttackState()
-		: sm::State(
-			{ new AttackActivity() },
-			{ new ToIdleTransition(), new ToWalkTransition()}
-		)
-	{
+	HurtState::HurtState() : sm::State(
+		{ new HurtActivity() },
+		{ new ToIdleTransition() , new ToAttackTransition} // Recover to Idle after being hurt
+	) {
 	}
 
-	//======================================================================
-	// USAGE EXAMPLE
-	//======================================================================
+	DodgeState::DodgeState() : sm::State(
+		{ new DodgeActivity() },
+		{ new ToIdleTransition(), new ToWalkTransition() }
+	) {
+	}
 
-	/*
-	// In your character component or system:
-	class CharacterController
-	{
-	public:
-		void Initialize()
-		{
-			// Create the animation state machine starting in idle state
-			animStateMachine = new sm::AnimStateMachine(new IdleState());
-		}
+	ParryState::ParryState() : sm::State(
+		{ new ParryActivity() },
+		{ new ToIdleTransition(), new ToAttackTransition() } // Can counter-attack from parry
+	) {
+	}
 
-		void Update(ecs::EntityHandle entity)
-		{
-			// Update the state machine with the character entity
-			animStateMachine->Update(entity);
-		}
-
-		~CharacterController()
-		{
-			delete animStateMachine;
-		}
-
-	private:
-		sm::AnimStateMachine* animStateMachine;
-	};
-	*/
+	ThrowState::ThrowState() : sm::State(
+		{ new ThrowActivity() },
+		{ new ToIdleTransition(), new ToWalkTransition() }
+	) {
+	}
 }
