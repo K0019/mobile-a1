@@ -1,79 +1,26 @@
 {
   "name": "magicengine",
   "version-string": "0.1.0",
+  "description": "Minimal vcpkg dependencies - complex libs only (desktop)",
   "dependencies": [
+    "boost-type-index",
     {
       "name": "assimp",
       "platform": "!android"
     },
-    "boost-type-index",
-	  "fmt",
     {
       "name": "freeimage",
       "platform": "!android"
     },
-    "freetype",
-    {
-      "name": "glfw3",
-      "platform": "!android"
-    },
-    "glm",
-    {
-      "name": "glslang",
-      "features": ["tools", "opt"],
-      "platform": "!android"
-    },
-    {
-      "name": "glslang",
-      "platform": "android"
-    },
-	  {
-      "name": "joltphysics",
-      "features": ["debugrenderer"],
-      "platform": "!android"
-    },
-    {
-      "name": "joltphysics",
-      "platform": "android"
-    },
-    {
-      "name": "imgui",
-      "features": ["glfw-binding", "freetype", "docking-experimental"],
-      "platform": "!android"
-    },
-    {
-      "name": "imgui",
-      "features": ["android-binding", "freetype"],
-      "platform": "android"
-    },
-	  "imguizmo",
-    "implot",
     {
       "name": "ktx",
       "features": ["vulkan"],
-	    "platform": "!android"
+      "platform": "!android"
     },
-    "lua",
-    "luabridge3",
-    "meshoptimizer",
     {
       "name": "mikktspace",
       "platform": "!android"
-    },
-	  "quill",
-    {
-      "name": "tracy",
-      "platform": "!android"
-    },
-    "rapidjson",
-    "recast",
-    "spirv-reflect",
-    "spirv-cross",
-    "stb",
-    "vulkan",
-    "vulkan-memory-allocator",
-	  "vulkan-utility-libraries",
-    "volk"
+    }
   ],
   "builtin-baseline": "120deac3062162151622ca4860575a33844ba10b"
 }

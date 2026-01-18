@@ -15,9 +15,9 @@ struct Context
   Resource::ResourceManager* resourceMngr = nullptr;
 };
 
-template <typename T>concept App = requires(T& app, Context& ctx, FrameData& data)
+template <typename T>concept App = requires(T& app, Context& ctx, RenderFrameData& frame)
 {
-  { app.Initialize(ctx) } -> std::same_as<void>; { app.Update(ctx, data) } -> std::same_as<void>; {
+  { app.Initialize(ctx) } -> std::same_as<void>; { app.Update(ctx, frame) } -> std::same_as<void>; {
     app.Shutdown(ctx)
   } -> std::same_as<void>;
 };
@@ -51,7 +51,7 @@ private:
   Core::Clock m_clock;
   Resource::ResourceManager m_assetSystem;
   Renderer m_renderer;
-  FrameData m_currentFrameData;
+  RenderFrameData m_currentFrameData;
   uint64_t m_frameCounter = 0;
   std::atomic<bool> m_initialized{false};
   std::atomic<bool> m_surfaceValid{false};
@@ -156,7 +156,25 @@ bool Engine<AppType>::ExecuteFrame()
     if (width > 0 && height > 0 && m_surfaceValid.load())
     {
       m_renderer.beginFrame();
-      m_currentFrameData.deltaTime = deltaTime;
+
+      // Update RenderFrameData with current frame info
+      m_currentFrameData.frameInfo.frameNumber = m_frameCounter;
+      m_currentFrameData.frameInfo.deltaTime = deltaTime;
+      m_currentFrameData.surface.presentWidth = static_cast<uint32_t>(width);
+      m_currentFrameData.surface.presentHeight = static_cast<uint32_t>(height);
+      m_currentFrameData.surface.renderWidth = static_cast<uint32_t>(width);
+      m_currentFrameData.surface.renderHeight = static_cast<uint32_t>(height);
+
+      // Ensure at least one view exists for the primary camera
+      // Application.Update should populate camera matrices via SetViewCamera -> GraphicsMain::frameData
+      FrameData& primaryView = EnsureView(m_currentFrameData, 0);
+      primaryView.viewportWidth = static_cast<float>(width);
+      primaryView.viewportHeight = static_cast<float>(height);
+      primaryView.screenWidth = static_cast<uint32_t>(width);
+      primaryView.screenHeight = static_cast<uint32_t>(height);
+      primaryView.deltaTime = deltaTime;
+      primaryView.frameNumber = m_frameCounter;
+
       {
         PROFILER_ZONE("Application Update", PROFILER_COLOR_CPU_LOGIC);
           m_application.Update(context, m_currentFrameData);

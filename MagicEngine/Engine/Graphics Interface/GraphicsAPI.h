@@ -28,6 +28,7 @@ All rights reserved.
 #include "renderer/ui/ui_immediate.h"
 #include "resource/resource_types.h"
 #include "math/camera.h"
+#include "renderer/frame_data.h"
 
 class GraphicsMain
 {
@@ -42,6 +43,7 @@ public:
     void EndImGuiFrame();
 #endif
     void EndFrame(FrameData* outFrameData);
+    void EndFrame(RenderFrameData* outRenderFrameData);  // Populates ALL views with camera matrices
 
     void SetPendingShutdown();
     bool GetIsPendingShutdown() const;
@@ -51,6 +53,24 @@ public:
 
     // Grid control
     void SetGridEnabled(bool enabled);
+
+    // Feature handle setters - called by Application after creating features
+    void SetSceneFeatureHandle(uint64_t handle) { sceneFeatureHandle = handle; }
+    void SetGridFeatureHandle(uint64_t handle) { gridHandle = handle; }
+    void SetUI2DFeatureHandle(uint64_t handle) { ui2dFeatureHandle = handle; }
+    void SetIm3DFeatureHandle(uint64_t handle) { im3dHandle = handle; }
+
+    // Feature handle getters - for code that needs to reference features
+    uint64_t GetSceneFeatureHandle() const { return sceneFeatureHandle; }
+    uint64_t GetGridFeatureHandle() const { return gridHandle; }
+    uint64_t GetUI2DFeatureHandle() const { return ui2dFeatureHandle; }
+    uint64_t GetIm3DFeatureHandle() const { return im3dHandle; }
+
+    // Initialize UI2D overlay (call after setting UI2D feature handle)
+    void InitializeUI2DOverlay();
+
+    // Initialize ImGui - call from Editor Application only (not for Game)
+    void InitializeImGui(const std::string& fontfile);
 
     // Scene view texture - returns ViewOutput texture ID for ImGui viewport display
     uint64_t GetSceneViewTextureId() const {

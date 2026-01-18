@@ -57,8 +57,8 @@ typedef struct GLFWwindow GLFWwindow;
   using window = GLFWwindow;
 #endif
 
-#if defined(__ANDROID__)
-// Platform-independent wrapper for Vulkan surface transform flags (Android only)
+// Platform-independent wrapper for Vulkan surface transform flags
+// Used on Android for display rotation handling, always Identity on desktop
 enum class SurfaceTransform : uint8_t
 {
     Identity = 0,
@@ -71,7 +71,6 @@ enum class SurfaceTransform : uint8_t
     HorizontalMirrorRotate270,
     Inherit,
 };
-#endif
 
 // Forward declaration for hina-vk backend
 class HinaContext;
@@ -582,6 +581,10 @@ namespace vk
 
     ETC2_RGB8,
     ETC2_SRGB8,
+    ETC2_RGBA1,      // 1-bit alpha
+    ETC2_RGBA1_SRGB,
+    ETC2_RGBA8,
+    ETC2_RGBA8_SRGB,
     BC1_RGB,
     BC1_RGB_SRGB,
     BC1_RGBA,
@@ -601,6 +604,36 @@ namespace vk
 
     BC7_RGBA_SRGB,
     BC7_RGBA,
+
+    // ASTC compressed formats (mobile/Android)
+    ASTC_4x4_RGBA,
+    ASTC_4x4_RGBA_SRGB,
+    ASTC_5x4_RGBA,
+    ASTC_5x4_RGBA_SRGB,
+    ASTC_5x5_RGBA,
+    ASTC_5x5_RGBA_SRGB,
+    ASTC_6x5_RGBA,
+    ASTC_6x5_RGBA_SRGB,
+    ASTC_6x6_RGBA,
+    ASTC_6x6_RGBA_SRGB,
+    ASTC_8x5_RGBA,
+    ASTC_8x5_RGBA_SRGB,
+    ASTC_8x6_RGBA,
+    ASTC_8x6_RGBA_SRGB,
+    ASTC_8x8_RGBA,
+    ASTC_8x8_RGBA_SRGB,
+    ASTC_10x5_RGBA,
+    ASTC_10x5_RGBA_SRGB,
+    ASTC_10x6_RGBA,
+    ASTC_10x6_RGBA_SRGB,
+    ASTC_10x8_RGBA,
+    ASTC_10x8_RGBA_SRGB,
+    ASTC_10x10_RGBA,
+    ASTC_10x10_RGBA_SRGB,
+    ASTC_12x10_RGBA,
+    ASTC_12x10_RGBA_SRGB,
+    ASTC_12x12_RGBA,
+    ASTC_12x12_RGBA_SRGB,
 
     Z_UN16,
     Z_UN24,

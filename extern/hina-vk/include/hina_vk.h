@@ -38,14 +38,21 @@
  * - **Resource Destruction**: `hina_destroy_buffer`, `hina_destroy_texture`, etc.
  *   (uses per-frame deferred destruction queues)
  * - **Immediate Submission**: `hina_submit_immediate`, `hina_wait_ticket`
- * - **Staging/Upload**: `hina_flush_staging`, `hina_generate_mips`, `hina_download_texture`
+ * - **Staging/Upload**: `hina_flush_uploads`, `hina_generate_mips`, `hina_download_texture`
  * - **Bind Groups**: `hina_create_bind_group`, `hina_destroy_bind_group`,
  *   `hina_alloc_transient_bind_group`
  *
  * ### Multi-Threaded Command Recording
  * For parallel command recording, create child contexts via `hina_create_thread_context()`.
- * Each thread context has its own command pools and can record independently.
+ * Each thread context has its own command pools, staging buffers, and can record independently.
  * Submit all command buffers from the main thread.
+ *
+ * ### Multi-Threaded Staging/Uploads
+ * Each context (`hina_context`) has its own staging command buffer and retired page list.
+ * When using thread contexts for parallel asset loading:
+ * - Call `hina_ctx_flush_uploads(thread_ctx)` to flush that context's staged uploads
+ * - The global staging page pool is shared and thread-safe
+ * - Ready-check APIs (`hina_buffer_is_ready`, etc.) are thread-safe for different resources
  *
  * ### Vulkan Synchronization Notes
  * - Resource creation (`vkCreate*`) is generally thread-safe in Vulkan
@@ -189,6 +196,51 @@ HINA_API bool hina_bind_group_layout_is_valid(hina_bind_group_layout layout);
 
 HINA_API bool hina_bind_group_is_valid(hina_bind_group group);
 
+// ---------------------------------------------------------------------------
+// Resource Upload Readiness
+// ---------------------------------------------------------------------------
+/**
+ * @brief Check if a buffer's initial upload has completed.
+ *
+ * Buffers created with initial_data are uploaded asynchronously via the staging
+ * system. This function returns true once the upload has been submitted and the
+ * GPU has completed (or will complete before any use).
+ *
+ * @note Most users don't need this - HinaVK automatically waits for uploads
+ *       when you bind or use a resource. This API is for advanced scenarios
+ *       where you want to poll upload status without blocking.
+ *
+ * @param b The buffer to check
+ * @return true if ready for GPU use, false if upload still pending
+ */
+HINA_API bool hina_buffer_is_ready(hina_buffer b);
+
+/**
+ * @brief Check if a texture's initial upload has completed.
+ * @see hina_buffer_is_ready for details
+ */
+HINA_API bool hina_texture_is_ready(hina_texture t);
+
+/**
+ * @brief Block until a buffer's initial upload has completed.
+ *
+ * If the buffer has pending upload work, this flushes staged uploads and waits
+ * for the GPU to complete. Returns immediately if already ready.
+ *
+ * @note Most users don't need this - HinaVK automatically waits for uploads
+ *       when you bind or use a resource. This API is for advanced scenarios
+ *       where you need explicit synchronization before accessing buffer data.
+ *
+ * @param b The buffer to wait for
+ */
+HINA_API void hina_wait_buffer(hina_buffer b);
+
+/**
+ * @brief Block until a texture's initial upload has completed.
+ * @see hina_wait_buffer for details
+ */
+HINA_API void hina_wait_texture(hina_texture t);
+
 /**
  * @brief Synchronization ticket for immediate/threadsafe submissions.
  *
@@ -204,6 +256,38 @@ HINA_API bool hina_bind_group_is_valid(hina_bind_group group);
 typedef uint64_t hina_ticket;
 typedef struct hina_context hina_context;
 typedef struct hina_cmd hina_cmd; // Opaque command buffer wrapper
+
+/**
+ * @brief Flush all staged uploads to the GPU.
+ *
+ * Resources created with initial_data are staged but not immediately submitted.
+ * Call this to explicitly submit all pending uploads to the GPU. Returns a ticket
+ * that can be waited on with hina_wait_ticket().
+ *
+ * @note Normally you don't need to call this - uploads are automatically flushed
+ *       at frame_end() or on-demand when resources are used. This API is for
+ *       power users who need explicit control over upload timing.
+ *
+ * @return Ticket for the flushed uploads, or 0 if nothing was staged
+ */
+HINA_API hina_ticket hina_flush_uploads(void);
+
+/**
+ * @brief Flush staged uploads for a specific context.
+ *
+ * Each context has its own staging command buffer and pending upload list.
+ * Use this when doing multi-threaded asset loading where each thread has
+ * its own context created via `hina_create_thread_context()`.
+ *
+ * @note The staging page pool is shared across all contexts (thread-safe),
+ *       but each context's staging command buffer is context-local.
+ *
+ * @param ctx Context whose staged uploads should be flushed
+ * @return Ticket for the flushed uploads, or 0 if nothing was staged
+ * @see hina_flush_uploads, hina_create_thread_context
+ */
+HINA_API hina_ticket hina_ctx_flush_uploads(hina_context* ctx);
+
 /**
  * @brief Queue type for command submission.
  * Selects which GPU queue family to use for command buffer recording and submission.
@@ -313,6 +397,47 @@ typedef enum
   HINA_FORMAT_BC6H_SFLOAT_BLOCK,
   HINA_FORMAT_BC7_UNORM_BLOCK,
   HINA_FORMAT_BC7_SRGB_BLOCK,
+  // ETC2 formats
+  HINA_FORMAT_ETC2_R8G8B8_UNORM_BLOCK,
+  HINA_FORMAT_ETC2_R8G8B8_SRGB_BLOCK,
+  HINA_FORMAT_ETC2_R8G8B8A1_UNORM_BLOCK,
+  HINA_FORMAT_ETC2_R8G8B8A1_SRGB_BLOCK,
+  HINA_FORMAT_ETC2_R8G8B8A8_UNORM_BLOCK,
+  HINA_FORMAT_ETC2_R8G8B8A8_SRGB_BLOCK,
+  // EAC formats
+  HINA_FORMAT_EAC_R11_UNORM_BLOCK,
+  HINA_FORMAT_EAC_R11_SNORM_BLOCK,
+  HINA_FORMAT_EAC_R11G11_UNORM_BLOCK,
+  HINA_FORMAT_EAC_R11G11_SNORM_BLOCK,
+  // ASTC LDR formats
+  HINA_FORMAT_ASTC_4x4_UNORM_BLOCK,
+  HINA_FORMAT_ASTC_4x4_SRGB_BLOCK,
+  HINA_FORMAT_ASTC_5x4_UNORM_BLOCK,
+  HINA_FORMAT_ASTC_5x4_SRGB_BLOCK,
+  HINA_FORMAT_ASTC_5x5_UNORM_BLOCK,
+  HINA_FORMAT_ASTC_5x5_SRGB_BLOCK,
+  HINA_FORMAT_ASTC_6x5_UNORM_BLOCK,
+  HINA_FORMAT_ASTC_6x5_SRGB_BLOCK,
+  HINA_FORMAT_ASTC_6x6_UNORM_BLOCK,
+  HINA_FORMAT_ASTC_6x6_SRGB_BLOCK,
+  HINA_FORMAT_ASTC_8x5_UNORM_BLOCK,
+  HINA_FORMAT_ASTC_8x5_SRGB_BLOCK,
+  HINA_FORMAT_ASTC_8x6_UNORM_BLOCK,
+  HINA_FORMAT_ASTC_8x6_SRGB_BLOCK,
+  HINA_FORMAT_ASTC_8x8_UNORM_BLOCK,
+  HINA_FORMAT_ASTC_8x8_SRGB_BLOCK,
+  HINA_FORMAT_ASTC_10x5_UNORM_BLOCK,
+  HINA_FORMAT_ASTC_10x5_SRGB_BLOCK,
+  HINA_FORMAT_ASTC_10x6_UNORM_BLOCK,
+  HINA_FORMAT_ASTC_10x6_SRGB_BLOCK,
+  HINA_FORMAT_ASTC_10x8_UNORM_BLOCK,
+  HINA_FORMAT_ASTC_10x8_SRGB_BLOCK,
+  HINA_FORMAT_ASTC_10x10_UNORM_BLOCK,
+  HINA_FORMAT_ASTC_10x10_SRGB_BLOCK,
+  HINA_FORMAT_ASTC_12x10_UNORM_BLOCK,
+  HINA_FORMAT_ASTC_12x10_SRGB_BLOCK,
+  HINA_FORMAT_ASTC_12x12_UNORM_BLOCK,
+  HINA_FORMAT_ASTC_12x12_SRGB_BLOCK,
   HINA_FORMAT_MAX_ENUM = 0x7FFFFFFF
 } hina_format;
 

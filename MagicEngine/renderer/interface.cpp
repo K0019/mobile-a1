@@ -37,6 +37,10 @@ namespace VkFormatValues {
   constexpr int VK_FORMAT_R32G32B32A32_SFLOAT = 109;
   constexpr int VK_FORMAT_ETC2_R8G8B8_UNORM_BLOCK = 147;
   constexpr int VK_FORMAT_ETC2_R8G8B8_SRGB_BLOCK = 148;
+  constexpr int VK_FORMAT_ETC2_R8G8B8A1_UNORM_BLOCK = 149;
+  constexpr int VK_FORMAT_ETC2_R8G8B8A1_SRGB_BLOCK = 150;
+  constexpr int VK_FORMAT_ETC2_R8G8B8A8_UNORM_BLOCK = 151;
+  constexpr int VK_FORMAT_ETC2_R8G8B8A8_SRGB_BLOCK = 152;
   constexpr int VK_FORMAT_BC1_RGB_UNORM_BLOCK = 131;
   constexpr int VK_FORMAT_BC1_RGB_SRGB_BLOCK = 132;
   constexpr int VK_FORMAT_BC1_RGBA_UNORM_BLOCK = 133;
@@ -51,6 +55,35 @@ namespace VkFormatValues {
   constexpr int VK_FORMAT_BC6H_SFLOAT_BLOCK = 144;
   constexpr int VK_FORMAT_BC7_UNORM_BLOCK = 145;
   constexpr int VK_FORMAT_BC7_SRGB_BLOCK = 146;
+  // ASTC compressed formats (mobile/Android)
+  constexpr int VK_FORMAT_ASTC_4x4_UNORM_BLOCK = 157;
+  constexpr int VK_FORMAT_ASTC_4x4_SRGB_BLOCK = 158;
+  constexpr int VK_FORMAT_ASTC_5x4_UNORM_BLOCK = 159;
+  constexpr int VK_FORMAT_ASTC_5x4_SRGB_BLOCK = 160;
+  constexpr int VK_FORMAT_ASTC_5x5_UNORM_BLOCK = 161;
+  constexpr int VK_FORMAT_ASTC_5x5_SRGB_BLOCK = 162;
+  constexpr int VK_FORMAT_ASTC_6x5_UNORM_BLOCK = 163;
+  constexpr int VK_FORMAT_ASTC_6x5_SRGB_BLOCK = 164;
+  constexpr int VK_FORMAT_ASTC_6x6_UNORM_BLOCK = 165;
+  constexpr int VK_FORMAT_ASTC_6x6_SRGB_BLOCK = 166;
+  constexpr int VK_FORMAT_ASTC_8x5_UNORM_BLOCK = 167;
+  constexpr int VK_FORMAT_ASTC_8x5_SRGB_BLOCK = 168;
+  constexpr int VK_FORMAT_ASTC_8x6_UNORM_BLOCK = 169;
+  constexpr int VK_FORMAT_ASTC_8x6_SRGB_BLOCK = 170;
+  constexpr int VK_FORMAT_ASTC_8x8_UNORM_BLOCK = 171;
+  constexpr int VK_FORMAT_ASTC_8x8_SRGB_BLOCK = 172;
+  constexpr int VK_FORMAT_ASTC_10x5_UNORM_BLOCK = 173;
+  constexpr int VK_FORMAT_ASTC_10x5_SRGB_BLOCK = 174;
+  constexpr int VK_FORMAT_ASTC_10x6_UNORM_BLOCK = 175;
+  constexpr int VK_FORMAT_ASTC_10x6_SRGB_BLOCK = 176;
+  constexpr int VK_FORMAT_ASTC_10x8_UNORM_BLOCK = 177;
+  constexpr int VK_FORMAT_ASTC_10x8_SRGB_BLOCK = 178;
+  constexpr int VK_FORMAT_ASTC_10x10_UNORM_BLOCK = 179;
+  constexpr int VK_FORMAT_ASTC_10x10_SRGB_BLOCK = 180;
+  constexpr int VK_FORMAT_ASTC_12x10_UNORM_BLOCK = 181;
+  constexpr int VK_FORMAT_ASTC_12x10_SRGB_BLOCK = 182;
+  constexpr int VK_FORMAT_ASTC_12x12_UNORM_BLOCK = 183;
+  constexpr int VK_FORMAT_ASTC_12x12_SRGB_BLOCK = 184;
   constexpr int VK_FORMAT_D16_UNORM = 124;
   constexpr int VK_FORMAT_X8_D24_UNORM_PACK32 = 125;
   constexpr int VK_FORMAT_D24_UNORM_S8_UINT = 129;
@@ -85,6 +118,10 @@ namespace
     PROPS(RGBA_SRGB8, 4), PROPS(BGRA_UN8, 4), PROPS(BGRA_SRGB8, 4), PROPS(A2B10G10R10_UN, 4), PROPS(A2R10G10B10_UN, 4),
     PROPS(ETC2_RGB8, 8, .blockWidth = 4, .blockHeight = 4, .compressed = true),
     PROPS(ETC2_SRGB8, 8, .blockWidth = 4, .blockHeight = 4, .compressed = true),
+    PROPS(ETC2_RGBA1, 8, .blockWidth = 4, .blockHeight = 4, .compressed = true),      // 1-bit alpha
+    PROPS(ETC2_RGBA1_SRGB, 8, .blockWidth = 4, .blockHeight = 4, .compressed = true),
+    PROPS(ETC2_RGBA8, 16, .blockWidth = 4, .blockHeight = 4, .compressed = true),
+    PROPS(ETC2_RGBA8_SRGB, 16, .blockWidth = 4, .blockHeight = 4, .compressed = true),
     PROPS(BC1_RGB, 8, .blockWidth = 4, .blockHeight = 4, .compressed = true),
     PROPS(BC1_RGB_SRGB, 8, .blockWidth = 4, .blockHeight = 4, .compressed = true),
     PROPS(BC1_RGBA, 8, .blockWidth = 4, .blockHeight = 4, .compressed = true), // 1-bit alpha
@@ -98,7 +135,37 @@ namespace
     PROPS(BC7_RGBA_SRGB, 16, .blockWidth = 4, .blockHeight = 4, .compressed = true),
     PROPS(BC4_R, 8, .blockWidth = 4, .blockHeight = 4, .compressed = true),
     PROPS(BC5_RG, 16, .blockWidth = 4, .blockHeight = 4, .compressed = true),
-    PROPS(BC7_RGBA, 16, .blockWidth = 4, .blockHeight = 4, .compressed = true), PROPS(Z_UN16, 2, .depth = true),
+    PROPS(BC7_RGBA, 16, .blockWidth = 4, .blockHeight = 4, .compressed = true),
+    // ASTC compressed formats (mobile/Android) - all 16 bytes per block
+    PROPS(ASTC_4x4_RGBA, 16, .blockWidth = 4, .blockHeight = 4, .compressed = true),
+    PROPS(ASTC_4x4_RGBA_SRGB, 16, .blockWidth = 4, .blockHeight = 4, .compressed = true),
+    PROPS(ASTC_5x4_RGBA, 16, .blockWidth = 5, .blockHeight = 4, .compressed = true),
+    PROPS(ASTC_5x4_RGBA_SRGB, 16, .blockWidth = 5, .blockHeight = 4, .compressed = true),
+    PROPS(ASTC_5x5_RGBA, 16, .blockWidth = 5, .blockHeight = 5, .compressed = true),
+    PROPS(ASTC_5x5_RGBA_SRGB, 16, .blockWidth = 5, .blockHeight = 5, .compressed = true),
+    PROPS(ASTC_6x5_RGBA, 16, .blockWidth = 6, .blockHeight = 5, .compressed = true),
+    PROPS(ASTC_6x5_RGBA_SRGB, 16, .blockWidth = 6, .blockHeight = 5, .compressed = true),
+    PROPS(ASTC_6x6_RGBA, 16, .blockWidth = 6, .blockHeight = 6, .compressed = true),
+    PROPS(ASTC_6x6_RGBA_SRGB, 16, .blockWidth = 6, .blockHeight = 6, .compressed = true),
+    PROPS(ASTC_8x5_RGBA, 16, .blockWidth = 8, .blockHeight = 5, .compressed = true),
+    PROPS(ASTC_8x5_RGBA_SRGB, 16, .blockWidth = 8, .blockHeight = 5, .compressed = true),
+    PROPS(ASTC_8x6_RGBA, 16, .blockWidth = 8, .blockHeight = 6, .compressed = true),
+    PROPS(ASTC_8x6_RGBA_SRGB, 16, .blockWidth = 8, .blockHeight = 6, .compressed = true),
+    PROPS(ASTC_8x8_RGBA, 16, .blockWidth = 8, .blockHeight = 8, .compressed = true),
+    PROPS(ASTC_8x8_RGBA_SRGB, 16, .blockWidth = 8, .blockHeight = 8, .compressed = true),
+    PROPS(ASTC_10x5_RGBA, 16, .blockWidth = 10, .blockHeight = 5, .compressed = true),
+    PROPS(ASTC_10x5_RGBA_SRGB, 16, .blockWidth = 10, .blockHeight = 5, .compressed = true),
+    PROPS(ASTC_10x6_RGBA, 16, .blockWidth = 10, .blockHeight = 6, .compressed = true),
+    PROPS(ASTC_10x6_RGBA_SRGB, 16, .blockWidth = 10, .blockHeight = 6, .compressed = true),
+    PROPS(ASTC_10x8_RGBA, 16, .blockWidth = 10, .blockHeight = 8, .compressed = true),
+    PROPS(ASTC_10x8_RGBA_SRGB, 16, .blockWidth = 10, .blockHeight = 8, .compressed = true),
+    PROPS(ASTC_10x10_RGBA, 16, .blockWidth = 10, .blockHeight = 10, .compressed = true),
+    PROPS(ASTC_10x10_RGBA_SRGB, 16, .blockWidth = 10, .blockHeight = 10, .compressed = true),
+    PROPS(ASTC_12x10_RGBA, 16, .blockWidth = 12, .blockHeight = 10, .compressed = true),
+    PROPS(ASTC_12x10_RGBA_SRGB, 16, .blockWidth = 12, .blockHeight = 10, .compressed = true),
+    PROPS(ASTC_12x12_RGBA, 16, .blockWidth = 12, .blockHeight = 12, .compressed = true),
+    PROPS(ASTC_12x12_RGBA_SRGB, 16, .blockWidth = 12, .blockHeight = 12, .compressed = true),
+    PROPS(Z_UN16, 2, .depth = true),
     PROPS(Z_UN24, 3, .depth = true), PROPS(Z_F32, 4, .depth = true),
     PROPS(Z_UN24_S_UI8, 4, .depth = true, .stencil = true), PROPS(Z_F32_S_UI8, 5, .depth = true, .stencil = true),
     PROPS(YUV_NV12, 24, .blockWidth = 4, .blockHeight = 4, .compressed = true, .numPlanes = 2),
@@ -274,8 +341,12 @@ vk::Format vk::vkFormatToFormat(int vkFormat)
     case VK_FORMAT_R32G32B32A32_SFLOAT:    return Format::RGBA_F32;
     case VK_FORMAT_A2B10G10R10_UNORM_PACK32: return Format::A2B10G10R10_UN;
     case VK_FORMAT_A2R10G10B10_UNORM_PACK32: return Format::A2R10G10B10_UN;
-    case VK_FORMAT_ETC2_R8G8B8_UNORM_BLOCK:  return Format::ETC2_RGB8;
-    case VK_FORMAT_ETC2_R8G8B8_SRGB_BLOCK:   return Format::ETC2_SRGB8;
+    case VK_FORMAT_ETC2_R8G8B8_UNORM_BLOCK:   return Format::ETC2_RGB8;
+    case VK_FORMAT_ETC2_R8G8B8_SRGB_BLOCK:    return Format::ETC2_SRGB8;
+    case VK_FORMAT_ETC2_R8G8B8A1_UNORM_BLOCK: return Format::ETC2_RGBA1;
+    case VK_FORMAT_ETC2_R8G8B8A1_SRGB_BLOCK:  return Format::ETC2_RGBA1_SRGB;
+    case VK_FORMAT_ETC2_R8G8B8A8_UNORM_BLOCK: return Format::ETC2_RGBA8;
+    case VK_FORMAT_ETC2_R8G8B8A8_SRGB_BLOCK:  return Format::ETC2_RGBA8_SRGB;
     case VK_FORMAT_D16_UNORM:              return Format::Z_UN16;
     case VK_FORMAT_BC4_UNORM_BLOCK:        return Format::BC4_R;
     case VK_FORMAT_BC5_UNORM_BLOCK:        return Format::BC5_RG;
@@ -291,6 +362,35 @@ vk::Format vk::vkFormatToFormat(int vkFormat)
     case VK_FORMAT_BC6H_SFLOAT_BLOCK:      return Format::BC6H_RGB_SFLOAT;
     case VK_FORMAT_BC7_SRGB_BLOCK:         return Format::BC7_RGBA_SRGB;
     case VK_FORMAT_BC7_UNORM_BLOCK:        return Format::BC7_RGBA;
+    // ASTC compressed formats (mobile/Android)
+    case VK_FORMAT_ASTC_4x4_UNORM_BLOCK:   return Format::ASTC_4x4_RGBA;
+    case VK_FORMAT_ASTC_4x4_SRGB_BLOCK:    return Format::ASTC_4x4_RGBA_SRGB;
+    case VK_FORMAT_ASTC_5x4_UNORM_BLOCK:   return Format::ASTC_5x4_RGBA;
+    case VK_FORMAT_ASTC_5x4_SRGB_BLOCK:    return Format::ASTC_5x4_RGBA_SRGB;
+    case VK_FORMAT_ASTC_5x5_UNORM_BLOCK:   return Format::ASTC_5x5_RGBA;
+    case VK_FORMAT_ASTC_5x5_SRGB_BLOCK:    return Format::ASTC_5x5_RGBA_SRGB;
+    case VK_FORMAT_ASTC_6x5_UNORM_BLOCK:   return Format::ASTC_6x5_RGBA;
+    case VK_FORMAT_ASTC_6x5_SRGB_BLOCK:    return Format::ASTC_6x5_RGBA_SRGB;
+    case VK_FORMAT_ASTC_6x6_UNORM_BLOCK:   return Format::ASTC_6x6_RGBA;
+    case VK_FORMAT_ASTC_6x6_SRGB_BLOCK:    return Format::ASTC_6x6_RGBA_SRGB;
+    case VK_FORMAT_ASTC_8x5_UNORM_BLOCK:   return Format::ASTC_8x5_RGBA;
+    case VK_FORMAT_ASTC_8x5_SRGB_BLOCK:    return Format::ASTC_8x5_RGBA_SRGB;
+    case VK_FORMAT_ASTC_8x6_UNORM_BLOCK:   return Format::ASTC_8x6_RGBA;
+    case VK_FORMAT_ASTC_8x6_SRGB_BLOCK:    return Format::ASTC_8x6_RGBA_SRGB;
+    case VK_FORMAT_ASTC_8x8_UNORM_BLOCK:   return Format::ASTC_8x8_RGBA;
+    case VK_FORMAT_ASTC_8x8_SRGB_BLOCK:    return Format::ASTC_8x8_RGBA_SRGB;
+    case VK_FORMAT_ASTC_10x5_UNORM_BLOCK:  return Format::ASTC_10x5_RGBA;
+    case VK_FORMAT_ASTC_10x5_SRGB_BLOCK:   return Format::ASTC_10x5_RGBA_SRGB;
+    case VK_FORMAT_ASTC_10x6_UNORM_BLOCK:  return Format::ASTC_10x6_RGBA;
+    case VK_FORMAT_ASTC_10x6_SRGB_BLOCK:   return Format::ASTC_10x6_RGBA_SRGB;
+    case VK_FORMAT_ASTC_10x8_UNORM_BLOCK:  return Format::ASTC_10x8_RGBA;
+    case VK_FORMAT_ASTC_10x8_SRGB_BLOCK:   return Format::ASTC_10x8_RGBA_SRGB;
+    case VK_FORMAT_ASTC_10x10_UNORM_BLOCK: return Format::ASTC_10x10_RGBA;
+    case VK_FORMAT_ASTC_10x10_SRGB_BLOCK:  return Format::ASTC_10x10_RGBA_SRGB;
+    case VK_FORMAT_ASTC_12x10_UNORM_BLOCK: return Format::ASTC_12x10_RGBA;
+    case VK_FORMAT_ASTC_12x10_SRGB_BLOCK:  return Format::ASTC_12x10_RGBA_SRGB;
+    case VK_FORMAT_ASTC_12x12_UNORM_BLOCK: return Format::ASTC_12x12_RGBA;
+    case VK_FORMAT_ASTC_12x12_SRGB_BLOCK:  return Format::ASTC_12x12_RGBA_SRGB;
     case VK_FORMAT_X8_D24_UNORM_PACK32:    return Format::Z_UN24;
     case VK_FORMAT_D24_UNORM_S8_UINT:      return Format::Z_UN24_S_UI8;
     case VK_FORMAT_D32_SFLOAT:             return Format::Z_F32;

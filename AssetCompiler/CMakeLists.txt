@@ -29,6 +29,8 @@ target_include_directories(AssetCompiler PUBLIC
 )
 
 target_link_libraries(AssetCompiler PRIVATE
+    glm::glm-header-only
+    Vulkan::Headers
     assimp::assimp
     meshoptimizer::meshoptimizer
     KTX::ktx

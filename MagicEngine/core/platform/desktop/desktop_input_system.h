@@ -2,6 +2,7 @@
 #pragma once
 
 #include "../platform_types.h"
+#include "desktop_display_surface.h"  // For GlfwWindowUserData
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
 #include <array>
@@ -12,11 +13,17 @@ namespace Core {
 class DesktopInputSystem {
 public:
     DesktopInputSystem() = default;
-    
+
     void Initialize(GLFWwindow* window) {
         m_window = window;
-        
-        glfwSetWindowUserPointer(m_window, this);
+
+        // Get the shared user data from the display surface (already set up)
+        // and register ourselves in it - don't overwrite the user pointer!
+        auto* userData = static_cast<GlfwWindowUserData*>(glfwGetWindowUserPointer(m_window));
+        if (userData) {
+            userData->inputSystem = this;
+        }
+
         glfwSetKeyCallback(m_window, KeyCallback);
         glfwSetMouseButtonCallback(m_window, MouseButtonCallback);
         glfwSetCursorPosCallback(m_window, CursorPosCallback);
@@ -113,9 +120,10 @@ private:
     int m_keyModifiers = 0;
     
     static void KeyCallback(GLFWwindow* window, int key, [[maybe_unused]] int scancode, int action, int mods) {
-        auto* input = static_cast<DesktopInputSystem*>(glfwGetWindowUserPointer(window));
-        if (!input) return;
-        
+        auto* userData = static_cast<GlfwWindowUserData*>(glfwGetWindowUserPointer(window));
+        if (!userData || !userData->inputSystem) return;
+        auto* input = userData->inputSystem;
+
         Key engineKey = GLFWKeyToEngineKey(key);
         size_t keyIndex = static_cast<size_t>(engineKey);
         if (keyIndex < MAX_KEYS) {
@@ -123,34 +131,37 @@ private:
             input->m_keyModifiers = GLFWModsToEngineMods(mods);
         }
     }
-    
+
     static void MouseButtonCallback(GLFWwindow* window, int button, int action, [[maybe_unused]] int mods) {
-        auto* input = static_cast<DesktopInputSystem*>(glfwGetWindowUserPointer(window));
-        if (!input) return;
-        
+        auto* userData = static_cast<GlfwWindowUserData*>(glfwGetWindowUserPointer(window));
+        if (!userData || !userData->inputSystem) return;
+        auto* input = userData->inputSystem;
+
         int pointerIndex = button;
         if (pointerIndex >= 0 && pointerIndex < MAX_POINTERS) {
             double xpos, ypos;
             glfwGetCursorPos(window, &xpos, &ypos);
-            
+
             input->m_pointers[pointerIndex].isDown = (action == GLFW_PRESS);
             input->m_pointers[pointerIndex].position = glm::vec2(static_cast<float>(xpos), static_cast<float>(ypos));
         }
     }
-    
+
     static void CursorPosCallback(GLFWwindow* window, double xpos, double ypos) {
-        auto* input = static_cast<DesktopInputSystem*>(glfwGetWindowUserPointer(window));
-        if (!input) return;
-        
+        auto* userData = static_cast<GlfwWindowUserData*>(glfwGetWindowUserPointer(window));
+        if (!userData || !userData->inputSystem) return;
+        auto* input = userData->inputSystem;
+
         glm::vec2 newPos(static_cast<float>(xpos), static_cast<float>(ypos));
         input->m_pointers[0].delta = newPos - input->m_pointers[0].position;
         input->m_pointers[0].position = newPos;
     }
-    
+
     static void ScrollCallback(GLFWwindow* window, double xoffset, double yoffset) {
-        auto* input = static_cast<DesktopInputSystem*>(glfwGetWindowUserPointer(window));
-        if (!input) return;
-        
+        auto* userData = static_cast<GlfwWindowUserData*>(glfwGetWindowUserPointer(window));
+        if (!userData || !userData->inputSystem) return;
+        auto* input = userData->inputSystem;
+
         input->m_scrollDelta = glm::vec2(static_cast<float>(xoffset), static_cast<float>(yoffset));
     }
     

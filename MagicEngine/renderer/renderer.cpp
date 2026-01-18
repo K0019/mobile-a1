@@ -4,6 +4,10 @@
 #include "logging/log.h"
 #include "logging/profiler.h"
 
+#ifdef __ANDROID__
+#include <hina_vk.h>  // For hina_recreate_surface
+#endif
+
 Renderer::Renderer() = default;
 
 void Renderer::initialize()
@@ -23,7 +27,13 @@ void Renderer::startup()
   // Create GfxRenderer (hina-vk backend)
   m_gfxRenderer = std::make_unique<GfxRenderer>();
 
-  // Get window handle for surface creation
+#ifdef __ANDROID__
+  // On Android, defer GfxRenderer initialization until window is available
+  // The window is not yet set when Engine::Initialize() calls startup()
+  // handleSurfaceCreated() will initialize GfxRenderer when the surface is ready
+  LOG_INFO("Renderer startup (Android) - deferring GfxRenderer init until surface created");
+#else
+  // Desktop: Window is available immediately, initialize now
   void* nativeWindow = Core::Display().GetVulkanWindowHandle();
   uint32_t width = Core::Display().GetWidth();
   uint32_t height = Core::Display().GetHeight();
@@ -34,6 +44,7 @@ void Renderer::startup()
     return;
   }
   LOG_INFO("Renderer startup complete (hina-vk backend)");
+#endif
 }
 
 void Renderer::shutdown()
@@ -164,26 +175,48 @@ void Renderer::onWindowResized(int width, int height)
 
 void Renderer::handleSurfaceCreated()
 {
-  // GfxRenderer creates surface during initialization
-  if (m_gfxRenderer && m_gfxRenderer->isInitialized())
-  {
-    // Already initialized - on desktop, do nothing (surface is stable)
-    // On Android, use hina_recreate_surface for lifecycle events
 #ifdef __ANDROID__
-    void* nativeWindow = Core::Display().GetVulkanWindowHandle();
+  void* nativeWindow = Core::Display().GetVulkanWindowHandle();
+  uint32_t width = Core::Display().GetWidth();
+  uint32_t height = Core::Display().GetHeight();
+
+  if (!m_gfxRenderer)
+  {
+    LOG_ERROR("handleSurfaceCreated: GfxRenderer not created!");
+    return;
+  }
+
+  if (!m_gfxRenderer->isInitialized())
+  {
+    // First time initialization on Android - this is where we actually initialize hina-vk
+    LOG_INFO("handleSurfaceCreated: Initializing GfxRenderer with window={}, size={}x{}",
+             nativeWindow, width, height);
+    if (!m_gfxRenderer->initialize(nativeWindow, width, height))
+    {
+      LOG_ERROR("Failed to initialize GfxRenderer on surface created");
+      return;
+    }
+    LOG_INFO("GfxRenderer initialized successfully on Android");
+  }
+  else
+  {
+    // Recreate surface after lifecycle event (app resumed from background)
+    LOG_INFO("handleSurfaceCreated: Recreating surface");
     if (!hina_recreate_surface(nativeWindow, nullptr))
     {
       LOG_ERROR("Failed to recreate surface");
       return;
     }
-    uint32_t width = Core::Display().GetWidth();
-    uint32_t height = Core::Display().GetHeight();
     m_gfxRenderer->onResize(width, height);
     LOG_INFO("Surface recreated: {}x{}", width, height);
-#else
-    LOG_INFO("handleSurfaceCreated: Already initialized, skipping on desktop");
-#endif
   }
+#else
+  // Desktop: Surface is stable, GfxRenderer was initialized in startup()
+  if (m_gfxRenderer && m_gfxRenderer->isInitialized())
+  {
+    LOG_INFO("handleSurfaceCreated: Already initialized on desktop, skipping");
+  }
+#endif
 }
 
 void Renderer::handleSurfaceDestroyed()
@@ -210,14 +243,17 @@ uint64_t Renderer::DoCreateFeature(std::function<std::unique_ptr<IRenderFeature>
   // Get raw pointer before moving into storage
   IRenderFeature* rawFeature = feature.get();
 
-  m_features.emplace(std::piecewise_construct, std::forward_as_tuple(handle),
-                     std::forward_as_tuple(std::move(feature), handle));
-
   // Register with GfxRenderer's RenderGraph - this will call SetupPasses during compilation
   if (m_gfxRenderer)
   {
     m_gfxRenderer->registerFeature(rawFeature);
   }
+
+  // Get the feature mask after registration
+  FeatureMask mask = m_gfxRenderer ? m_gfxRenderer->getFeatureMask(rawFeature) : 0;
+
+  m_features.emplace(std::piecewise_construct, std::forward_as_tuple(handle),
+                     std::forward_as_tuple(std::move(feature), handle, mask));
 
   return handle;
 }
@@ -257,6 +293,19 @@ void* Renderer::GetFeatureParameterBlockPtr(uint64_t feature_handle)
     return nullptr;
   }
   return it->second.feature->GetGTParameterBlock_RT();
+}
+
+FeatureMask Renderer::GetFeatureMask(uint64_t feature_handle) const
+{
+  auto it = m_features.find(feature_handle);
+  if (it == m_features.end()) return 0;
+  // Return cached mask, or query from GfxRenderer if not cached
+  if (it->second.mask != 0) return it->second.mask;
+  if (it->second.feature && m_gfxRenderer)
+  {
+    return m_gfxRenderer->getFeatureMask(it->second.feature.get());
+  }
+  return 0;
 }
 
 const ToneMappingSettings& Renderer::GetToneMappingSettings() const

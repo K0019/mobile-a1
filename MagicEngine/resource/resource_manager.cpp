@@ -70,6 +70,44 @@ namespace
       case vk::Format::BC7_RGBA:        return HINA_FORMAT_BC7_UNORM_BLOCK;
       case vk::Format::BC7_RGBA_SRGB:   return HINA_FORMAT_BC7_SRGB_BLOCK;
 
+      // ETC2 compressed formats (mobile/Android)
+      case vk::Format::ETC2_RGB8:        return HINA_FORMAT_ETC2_R8G8B8_UNORM_BLOCK;
+      case vk::Format::ETC2_SRGB8:       return HINA_FORMAT_ETC2_R8G8B8_SRGB_BLOCK;
+      case vk::Format::ETC2_RGBA1:       return HINA_FORMAT_ETC2_R8G8B8A1_UNORM_BLOCK;
+      case vk::Format::ETC2_RGBA1_SRGB:  return HINA_FORMAT_ETC2_R8G8B8A1_SRGB_BLOCK;
+      case vk::Format::ETC2_RGBA8:       return HINA_FORMAT_ETC2_R8G8B8A8_UNORM_BLOCK;
+      case vk::Format::ETC2_RGBA8_SRGB:  return HINA_FORMAT_ETC2_R8G8B8A8_SRGB_BLOCK;
+
+      // ASTC compressed formats (mobile/Android)
+      case vk::Format::ASTC_4x4_RGBA:       return HINA_FORMAT_ASTC_4x4_UNORM_BLOCK;
+      case vk::Format::ASTC_4x4_RGBA_SRGB:  return HINA_FORMAT_ASTC_4x4_SRGB_BLOCK;
+      case vk::Format::ASTC_5x4_RGBA:       return HINA_FORMAT_ASTC_5x4_UNORM_BLOCK;
+      case vk::Format::ASTC_5x4_RGBA_SRGB:  return HINA_FORMAT_ASTC_5x4_SRGB_BLOCK;
+      case vk::Format::ASTC_5x5_RGBA:       return HINA_FORMAT_ASTC_5x5_UNORM_BLOCK;
+      case vk::Format::ASTC_5x5_RGBA_SRGB:  return HINA_FORMAT_ASTC_5x5_SRGB_BLOCK;
+      case vk::Format::ASTC_6x5_RGBA:       return HINA_FORMAT_ASTC_6x5_UNORM_BLOCK;
+      case vk::Format::ASTC_6x5_RGBA_SRGB:  return HINA_FORMAT_ASTC_6x5_SRGB_BLOCK;
+      case vk::Format::ASTC_6x6_RGBA:       return HINA_FORMAT_ASTC_6x6_UNORM_BLOCK;
+      case vk::Format::ASTC_6x6_RGBA_SRGB:  return HINA_FORMAT_ASTC_6x6_SRGB_BLOCK;
+      case vk::Format::ASTC_8x5_RGBA:       return HINA_FORMAT_ASTC_8x5_UNORM_BLOCK;
+      case vk::Format::ASTC_8x5_RGBA_SRGB:  return HINA_FORMAT_ASTC_8x5_SRGB_BLOCK;
+      case vk::Format::ASTC_8x6_RGBA:       return HINA_FORMAT_ASTC_8x6_UNORM_BLOCK;
+      case vk::Format::ASTC_8x6_RGBA_SRGB:  return HINA_FORMAT_ASTC_8x6_SRGB_BLOCK;
+      case vk::Format::ASTC_8x8_RGBA:       return HINA_FORMAT_ASTC_8x8_UNORM_BLOCK;
+      case vk::Format::ASTC_8x8_RGBA_SRGB:  return HINA_FORMAT_ASTC_8x8_SRGB_BLOCK;
+      case vk::Format::ASTC_10x5_RGBA:      return HINA_FORMAT_ASTC_10x5_UNORM_BLOCK;
+      case vk::Format::ASTC_10x5_RGBA_SRGB: return HINA_FORMAT_ASTC_10x5_SRGB_BLOCK;
+      case vk::Format::ASTC_10x6_RGBA:      return HINA_FORMAT_ASTC_10x6_UNORM_BLOCK;
+      case vk::Format::ASTC_10x6_RGBA_SRGB: return HINA_FORMAT_ASTC_10x6_SRGB_BLOCK;
+      case vk::Format::ASTC_10x8_RGBA:      return HINA_FORMAT_ASTC_10x8_UNORM_BLOCK;
+      case vk::Format::ASTC_10x8_RGBA_SRGB: return HINA_FORMAT_ASTC_10x8_SRGB_BLOCK;
+      case vk::Format::ASTC_10x10_RGBA:     return HINA_FORMAT_ASTC_10x10_UNORM_BLOCK;
+      case vk::Format::ASTC_10x10_RGBA_SRGB:return HINA_FORMAT_ASTC_10x10_SRGB_BLOCK;
+      case vk::Format::ASTC_12x10_RGBA:     return HINA_FORMAT_ASTC_12x10_UNORM_BLOCK;
+      case vk::Format::ASTC_12x10_RGBA_SRGB:return HINA_FORMAT_ASTC_12x10_SRGB_BLOCK;
+      case vk::Format::ASTC_12x12_RGBA:     return HINA_FORMAT_ASTC_12x12_UNORM_BLOCK;
+      case vk::Format::ASTC_12x12_RGBA_SRGB:return HINA_FORMAT_ASTC_12x12_SRGB_BLOCK;
+
       // Depth formats (shouldn't be used for textures, but include for completeness)
       case vk::Format::Z_UN16:          return HINA_FORMAT_D16_UNORM;
       case vk::Format::Z_UN24:          return HINA_FORMAT_X8_D24_UNORM_PACK32;

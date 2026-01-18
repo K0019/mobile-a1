@@ -30,15 +30,15 @@ const std::string Filepaths::imguiJson			= Filepaths::workingDir + "/imgui.json"
 const std::string Filepaths::gameSettings		= "Settings.json";
 
 const std::string Filepaths::assetsJson			= "assets.json";
-const std::string Filepaths::shadersSave		= "Shaders";
-const std::string Filepaths::fontsSave			= "Fonts";
-const std::string Filepaths::prefabsSave		= "Prefabs";
-const std::string Filepaths::scenesSave			= "Scenes";
+const std::string Filepaths::shadersSave		= "shaders";
+const std::string Filepaths::fontsSave			= "fonts";
+const std::string Filepaths::prefabsSave		= "prefabs";
+const std::string Filepaths::scenesSave			= "scenes";
 const std::string Filepaths::scriptsSave		= "scripts";
-const std::string Filepaths::materialsSave		= "Materials";
+const std::string Filepaths::materialsSave		= "materials";
 const std::string Filepaths::behaviourTreeSave	= "behaviourtrees";
-const std::string Filepaths::navMeshDataSave	= "NavMeshData";
-const std::string Filepaths::soundFolder		= "Sounds";
+const std::string Filepaths::navMeshDataSave	= "navmeshdata";
+const std::string Filepaths::soundFolder		= "sounds";
 
 // Editor use only
 const std::string Filepaths::compilerExe		= Filepaths::workingDir + "/Tools/Debug/AssetCompiler.exe";

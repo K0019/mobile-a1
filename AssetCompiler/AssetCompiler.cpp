@@ -203,9 +203,10 @@ int main(int argc, char* argv[])
     }
     else
     {
-        // Defaults BC7 for windows and ETC for android if not specified
+        // Defaults BC7 for windows and ASTC for android if not specified
+        // ASTC is supported by all modern Android GPUs (Mali, Adreno, etc.)
         if (isAndroid)
-            options.texture.compressionFormat = TextureCompressionFormat::ETC;
+            options.texture.compressionFormat = TextureCompressionFormat::ASTC;
         else
             options.texture.compressionFormat = TextureCompressionFormat::BC7;
     }

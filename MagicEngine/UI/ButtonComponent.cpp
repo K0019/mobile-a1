@@ -25,6 +25,8 @@ All rights reserved.
 #include "Engine/Events/EventsTypeBasic.h"
 #include "Engine/EntityEvents.h"
 #include "Editor/Containers/GUICollection.h"
+#include "Utilities/Logging.h"
+#include <cstdio>
 
 #include "core/platform/platform.h"
 
@@ -145,12 +147,28 @@ bool ButtonInputSystem::PreRun()
 	pressed = ST<KeyboardMouseInput>::Get()->GetIsPressed(KEY::M_LEFT);
 	released = ST<KeyboardMouseInput>::Get()->GetIsReleased(KEY::M_LEFT);
 #endif
+
+	// DEBUG: Log input state for diagnosing game executable input issues
+	static int frameCounter = 0;
+	static bool lastPressed = false;
+	if (pressed != lastPressed || (frameCounter++ % 300 == 0)) {  // Log every 5 seconds or on change
+		Vec2 rawPos = ST<KeyboardMouseInput>::Get()->GetMousePos();
+		printf("[ButtonInput] pressed=%d released=%d rawMousePos=(%.1f, %.1f) displaySize=(%dx%d)\n",
+			pressed, released, rawPos.x, rawPos.y, Core::Display().GetWidth(), Core::Display().GetHeight());
+		fflush(stdout);
+		lastPressed = pressed;
+	}
+
 	if (!(pressed || released))
 		return false;
 	pos = RetrieveMousePos();
 	// pos returns window position. Compensate for wrong aspect ratios to fix click area not aligning with button rendering
 	pos.x = pos.x / static_cast<float>(Core::Display().GetWidth()) * 1920.0f;
 	pos.y = pos.y / static_cast<float>(Core::Display().GetHeight()) * 1080.0f;
+
+	printf("[ButtonInput] Click detected! scaledPos=(%.1f, %.1f)\n", pos.x, pos.y);
+	fflush(stdout);
+
 	return true;
 }
 
@@ -168,8 +186,6 @@ Vec2 ButtonInputSystem::RetrieveMousePos()
 
 void ButtonInputSystem::CheckButtonInput(ButtonComponent& buttonComp, SpriteComponent& spriteComp, RectTransformComponent& rectTransform)
 {
-
-
 	// Reset sprites on all buttons when released
 	bool wasPressed{ buttonComp.GetIsPressed() };
 	if (released) {
@@ -179,17 +195,32 @@ void ButtonInputSystem::CheckButtonInput(ButtonComponent& buttonComp, SpriteComp
 		#endif
 	}
 	// Test if the mouse position is within the button boundaries
-	if (!TestClicked(rectTransform, spriteComp, pos))
+	bool hitTest = internal::TestClicked(rectTransform, spriteComp, pos);
+
+	// DEBUG: Log button hit testing
+	static int buttonCheckCount = 0;
+	if (buttonCheckCount++ < 5 || (pressed && !hitTest)) {  // Log first few or missed clicks
+		printf("[ButtonInput] CheckButtonInput: pos=(%.1f, %.1f) hitTest=%d pressed=%d wasPressed=%d\n",
+			pos.x, pos.y, hitTest, pressed, wasPressed);
+		fflush(stdout);
+	}
+
+	if (!hitTest)
 		return;
 
 	// If pressed on button, change sprite
 	if (pressed) {
+		printf("[ButtonInput] Button pressed!\n");
+		fflush(stdout);
 		buttonComp.OnPressed();
 		#if defined(__ANDROID__)
 		AndroidInputBridge::TryCapture(TouchOwner::UI);
 		#endif
 	}
 	// If released on the button that was pressed, execute button click function
-	else if (released && wasPressed)
+	else if (released && wasPressed) {
+		printf("[ButtonInput] Button clicked! Triggering OnClicked()\n");
+		fflush(stdout);
 		buttonComp.OnClicked();
+	}
 }

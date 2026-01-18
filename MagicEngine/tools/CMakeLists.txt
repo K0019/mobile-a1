@@ -17,7 +17,6 @@ engine_add_module(ryEngine-Tools
         glslang::glslang
         glslang::glslang-default-resource-limits
         glslang::SPIRV
-        glslang::SPVRemapper
         # Profiling
         Tracy::TracyClient
     DEFINITIONS

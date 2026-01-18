@@ -21,6 +21,7 @@
 #include "logging/log.h"
 #include <cstring>
 #include <cmath>
+#include <cassert>
 
 // =============================================================================
 // G-Buffer Shader (embedded hina_sl)
@@ -727,6 +728,11 @@ void SceneRenderFeature::ExecuteGBufferPass(internal::ExecutionContext& ctx)
   // Ensure pipeline and persistent resources are created
   if (!EnsurePipelineCreated(gfxRenderer)) return;
 
+  // Assert camera matrices are valid - identity means camera wasn't set up
+  const FrameData& frameData = ctx.GetFrameData();
+  assert(frameData.projMatrix != glm::mat4(1.0f) && "projMatrix is identity! Camera projection not set.");
+  assert(frameData.viewMatrix != glm::mat4(1.0f) && "viewMatrix is identity! Camera view not set.");
+
   gfx::Cmd* cmd = ctx.GetCmd();
 
   // G-buffer color targets from GfxRenderer
@@ -764,7 +770,7 @@ void SceneRenderFeature::ExecuteGBufferPass(internal::ExecutionContext& ctx)
 
   // Update frame UBO via persistently mapped pointer (HOST_COHERENT, no flush needed)
   // Use camera matrices from FrameData (populated by ECS camera system), NOT from SceneRenderParams
-  const FrameData& frameData = ctx.GetFrameData();
+  // Note: frameData already retrieved at function start for assert checks
 
   // projMatrix already has Vulkan Y-flip applied at source (UploadToPipeline)
   glm::mat4 viewProj = frameData.projMatrix * frameData.viewMatrix;

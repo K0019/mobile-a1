@@ -252,7 +252,7 @@ namespace editor
     ImGuiIO& io = ImGui::GetIO();
     ImFontAtlas* atlas = io.Fonts;
     atlas->Clear();
-    atlas->Sources.clear();
+    atlas->ConfigData.clear();
     ImFontConfig resourceConfig{};
     applyRendererDefaults(resourceConfig);
     const int oversample = (std::max)(1, cpuData.buildSettings.oversample);
@@ -269,10 +269,10 @@ namespace editor
     {
       ImFormatString(resourceConfig.Name, IM_ARRAYSIZE(resourceConfig.Name), "ResourceFont");
     }
-    atlas->Sources.push_back(resourceConfig);
-    ImFontConfig* sourceEntry = atlas->Sources.empty() ? nullptr : &atlas->Sources.back();
+    atlas->ConfigData.push_back(resourceConfig);
+    ImFontConfig* sourceEntry = atlas->ConfigData.empty() ? nullptr : &atlas->ConfigData.back();
     if (!sourceEntry) return false;
-    atlas->TexID = static_cast<ImTextureID>(hot->uiTextureId);
+    atlas->TexID = (ImTextureID)(uintptr_t)(hot->uiTextureId);
     atlas->TexWidth = cpuData.atlasWidth;
     atlas->TexHeight = cpuData.atlasHeight;
     if (atlas->TexWidth > 0 && atlas->TexHeight > 0)
@@ -304,8 +304,8 @@ namespace editor
     ImFont* font = IM_NEW(ImFont);
     sourceEntry->DstFont = font;
     font->ContainerAtlas = atlas;
-    font->Sources = sourceEntry;
-    font->SourcesCount = 1;
+    font->ConfigData = sourceEntry;
+    font->ConfigDataCount = 1;
     font->FontSize = cpuData.buildSettings.pixelHeight;
     const float ascent = std::ceil(cpuData.ascent);
     const float descent = std::floor(cpuData.descent);
@@ -331,7 +331,7 @@ namespace editor
                      src.uvMax.x, src.uvMax.y, src.advancePx);
     }
     font->BuildLookupTable();
-    if (ImFontGlyph* fallback = font->FindGlyph(font->FallbackChar))
+    if (const ImFontGlyph* fallback = font->FindGlyph(font->FallbackChar))
     {
       font->FallbackGlyph = fallback;
       font->FallbackAdvanceX = fallback->AdvanceX;
@@ -344,7 +344,7 @@ namespace editor
                       atlas->TexUvWhitePixel.y);
     }
     io.FontDefault = font;
-    io.Fonts->TexID = static_cast<ImTextureID>(hot->uiTextureId);
+    io.Fonts->TexID = (ImTextureID)(uintptr_t)(hot->uiTextureId);
     fontTextureHandle_ = {};
     ownsFontTexture_ = false;
     return true;
@@ -377,6 +377,9 @@ namespace editor
     Resource::ProcessedTexture texture;
     texture.name = "ImGuiFontAtlas";
     texture.source = EmbeddedMemorySource{.identifier = "FontAtlas_" + fontHash, .scenePath = "ImGuiContext"};
+    texture.width = static_cast<uint32_t>(width);
+    texture.height = static_cast<uint32_t>(height);
+    texture.channels = 4;
     texture.textureDesc = {
       .type = vk::TextureType::Tex2D, .format = vk::Format::RGBA_UN8,
       .dimensions = {.width = static_cast<uint32_t>(width), .height = static_cast<uint32_t>(height)},

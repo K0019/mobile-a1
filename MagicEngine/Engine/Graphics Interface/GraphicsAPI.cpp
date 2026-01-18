@@ -58,46 +58,46 @@ GraphicsMain::~GraphicsMain()
 {
 	Messaging::Unsubscribe("EngineTogglePlayMode", OnTogglePlayMode);
 
-	if (context.renderer)
-	{
-		context.renderer->DestroyFeature(gridHandle);
-		context.renderer->DestroyFeature(sceneFeatureHandle);
-		context.renderer->DestroyFeature(ui2dFeatureHandle);
-		// context.renderer->DestroyFeature(im3dHandle);
-	}
+	// Features are now owned by the Application - it will destroy them
+	// We just need to clear our references
+	gridHandle = 0;
+	sceneFeatureHandle = 0;
+	ui2dFeatureHandle = 0;
+	im3dHandle = 0;
 }
 
 void GraphicsMain::Init(Context inContext)
 {
 	context = inContext;
-	sceneFeatureHandle = context.renderer->CreateFeature<SceneRenderFeature>(true);
-	gridHandle = context.renderer->CreateFeature<GridFeature>();
-	ui2dFeatureHandle = context.renderer->CreateFeature<Ui2DRenderFeature>();
-	// TODO: Im3D disabled - needs HSL shader conversion
-	// im3dHandle = context.renderer->CreateFeature<Im3dRenderFeature>();
+	// Features are now created by the Application layer
+	// Application will call SetSceneFeatureHandle(), SetGridFeatureHandle(), etc.
+	// ImGui is now Application-controlled - Editor calls InitializeImGui(), Game does not
 
-	const std::string fontsFile{ Filepaths::fontsSave + "/Lato-Regular.ttf" };
-#ifdef IMGUI_ENABLED
-	InitImGui(fontsFile);
-#endif
+	const std::string fontsFile{ Filepaths::fontsSave + "/lato-regular.ttf" };
 
 	InitFont(fontsFile);
 	InitDefaultSkybox();
-	overlayGui = std::make_unique<ui::ImmediateGui>(*context.renderer, ui2dFeatureHandle, *context.resourceMngr);
 
 	// Subscribe to play mode toggle events
 	Messaging::Subscribe("EngineTogglePlayMode", OnTogglePlayMode);
+}
 
-	// Initialize grid state based on current game mode
-	// In release builds, game starts in play mode, so grid should be disabled
-	// Note: At init time, gameState might not be set yet, so check if we're the Editor executable
+void GraphicsMain::InitializeImGui(const std::string& fontfile)
+{
 #ifdef IMGUI_ENABLED
-	// Editor build - enable grid by default (will be toggled by play mode events)
-	SetGridEnabled(true);
+	InitImGui(fontfile);
 #else
-	// Game build - disable grid by default
-	SetGridEnabled(false);
+	(void)fontfile;  // Suppress unused parameter warning
 #endif
+}
+
+void GraphicsMain::InitializeUI2DOverlay()
+{
+	// Called by Application after setting UI2D feature handle
+	if (ui2dFeatureHandle != 0 && context.renderer && context.resourceMngr)
+	{
+		overlayGui = std::make_unique<ui::ImmediateGui>(*context.renderer, ui2dFeatureHandle, *context.resourceMngr);
+	}
 }
 
 void GraphicsMain::BeginFrame()
@@ -108,6 +108,9 @@ void GraphicsMain::BeginFrame()
 #ifdef IMGUI_ENABLED
 void GraphicsMain::BeginImGuiFrame()
 {
+	// Skip if ImGui wasn't initialized (Game build doesn't call InitializeImGui)
+	if (!imguiContext) return;
+
 	imguiContext->beginFrame();
 
 	ImGuiIO& io = ImGui::GetIO();
@@ -134,6 +137,9 @@ void GraphicsMain::BeginImGuiFrame()
 
 void GraphicsMain::EndImGuiFrame()
 {
+	// Skip if ImGui wasn't initialized (Game build doesn't call InitializeImGui)
+	if (!imguiContext) return;
+
 	ImGuiIO& io = ImGui::GetIO();
 	if (io.ConfigFlags & ImGuiConfigFlags_DockingEnable)
 		ImGui::End();
@@ -145,6 +151,47 @@ void GraphicsMain::EndFrame(FrameData* outFrameData)
 {
 	Im3dHelper::EndFrame(im3dHandle, *context.renderer);
 	UploadToPipeline(outFrameData);
+}
+
+void GraphicsMain::EndFrame(RenderFrameData* outRenderFrameData)
+{
+	Im3dHelper::EndFrame(im3dHandle, *context.renderer);
+
+	// Ensure camera matrices are valid before populating views
+	// This handles the case where SetViewCamera hasn't been called yet (e.g., first frame)
+	if (frameData.viewMatrix == glm::mat4(1.0f) || frameData.viewMatrix == glm::mat4(0.0f))
+	{
+		// Default camera: looking down -Z axis from slightly behind origin
+		frameData.cameraPos = glm::vec3(0.0f, 0.0f, 10.0f);
+		frameData.viewMatrix = glm::lookAt(
+			frameData.cameraPos,           // eye position
+			glm::vec3(0.0f, 0.0f, 0.0f),   // look at origin
+			glm::vec3(0.0f, 1.0f, 0.0f)    // up vector
+		);
+	}
+
+	if (frameData.projMatrix == glm::mat4(1.0f) || frameData.projMatrix == glm::mat4(0.0f))
+	{
+		float width = static_cast<float>(Core::Display().GetWidth());
+		float height = static_cast<float>(Core::Display().GetHeight());
+		float aspect = (height > 0.0f) ? (width / height) : (16.0f / 9.0f);
+		frameData.projMatrix = glm::perspective(glm::radians(45.0f), aspect, 0.1f, 1000.0f);
+	}
+
+	// Populate ALL views with camera matrices from GraphicsMain::frameData
+	// This ensures every view that runs scene rendering has valid camera data
+	if (outRenderFrameData)
+	{
+		for (auto& view : outRenderFrameData->views)
+		{
+			view.cameraPos = frameData.cameraPos;
+			view.viewMatrix = frameData.viewMatrix;
+			view.projMatrix = frameData.projMatrix;
+		}
+	}
+
+	// Run UploadToPipeline without a single outFrameData (we already populated views above)
+	UploadToPipeline(nullptr);
 }
 
 void GraphicsMain::InitFont(const std::string& fontfile)
@@ -244,26 +291,22 @@ void GraphicsMain::UploadToPipeline(FrameData* outFrameData)
 	// (frameData is populated by SetViewCamera() which is called by camera systems)
 	if (outFrameData)
 	{
-		float width = static_cast<float>(Core::Display().GetWidth());
-		float height = static_cast<float>(Core::Display().GetHeight());
 		outFrameData->cameraPos = frameData.cameraPos;
 		outFrameData->viewMatrix = frameData.viewMatrix;
-		// Apply Vulkan Y-flip at source so ALL features use consistent projection
-		glm::mat4 proj = glm::perspective(glm::radians(45.0f), width / height, 0.1f, 1000.0f);
-		outFrameData->projMatrix = proj;
+		outFrameData->projMatrix = frameData.projMatrix;  // Now set by SetViewCamera
 	}
 
 	// Submit ECS RenderComponents to GfxRenderer via SceneRenderFeature
 	SceneRenderFeature::UpdateScene(sceneFeatureHandle, *context.resourceMngr, *context.renderer);
 
 	// 2D UI pass - queue UI commands from ECS systems
-	if (overlayGui->begin(ui2dFontHandle)) {
+	if (overlayGui && overlayGui->begin(ui2dFontHandle)) {
 		float width = static_cast<float>(Core::Display().GetWidth());
 		float height = static_cast<float>(Core::Display().GetHeight());
 		overlayGui->setViewport(width, height);
 		ecs::RunSystemsInLayers(ECS_LAYER::CUTOFF_RENDER, ECS_LAYER::CUTOFF_RENDER_UI);
+		overlayGui->end();
 	}
-	overlayGui->end();
 
 #if 0 // DISABLED - Old scene rendering path (kept for reference)
 	auto params = static_cast<SceneRenderParams*>(context.renderer->GetFeatureParameterBlockPtr(sceneFeatureHandle));
@@ -633,11 +676,11 @@ void GraphicsMain::UploadToPipeline(FrameData* outFrameData)
 	EditorCam_Publish(outFrameData->viewMatrix, outFrameData->projMatrix, false);
 
 	// 2D UI pass
-	if (overlayGui->begin(ui2dFontHandle)) {
+	if (overlayGui && overlayGui->begin(ui2dFontHandle)) {
 		overlayGui->setViewport(1920, 1080);
 		ecs::RunSystemsInLayers(ECS_LAYER::CUTOFF_RENDER, ECS_LAYER::CUTOFF_RENDER_UI);
+		overlayGui->end();
 	}
-	overlayGui->end();
 
 	// Disable sample 2D UI for now
 	//if (false && ui2dFeatureHandle != 0 && context.resourceMngr)
@@ -1195,6 +1238,22 @@ void GraphicsMain::SetViewCamera(const Camera& camera)
 {
 	frameData.cameraPos = camera.getPosition();
 	frameData.viewMatrix = camera.getViewMatrix();
+
+	// Use camera's projection if set, otherwise calculate default perspective
+	glm::mat4 camProj = camera.getProjMatrix();
+	if (camProj == glm::mat4(0.0f) || camProj == glm::mat4(1.0f)) {
+		// Camera projection not set - calculate default
+		float width = static_cast<float>(Core::Display().GetWidth());
+		float height = static_cast<float>(Core::Display().GetHeight());
+		if (height > 0.0f) {
+			frameData.projMatrix = glm::perspective(glm::radians(45.0f), width / height, 0.1f, 1000.0f);
+		} else {
+			// Fallback: use default 16:9 aspect ratio if display not ready
+			frameData.projMatrix = glm::perspective(glm::radians(45.0f), 16.0f / 9.0f, 0.1f, 1000.0f);
+		}
+	} else {
+		frameData.projMatrix = camProj;
+	}
 }
 
 void GraphicsMain::SetGridEnabled(bool enabled)
@@ -1239,13 +1298,15 @@ bool GraphicsMain::GetIsPendingShutdown() const
 #ifdef IMGUI_ENABLED
 void GraphicsMain::InitImGui(const std::string& fontfile)
 {
-	const std::string physicalFilepath{ VFS::ConvertVirtualToPhysical(fontfile) };
-
 	imguiContext = std::make_unique<editor::ImGuiContext>(context);
 	SetImGuiStyle();
 
 	ImGuiIO& io = ImGui::GetIO();
+#ifdef __ANDROID__
+	io.IniFilename = nullptr;  // Disable imgui.ini on Android (no writable path)
+#else
 	io.IniFilename = "imgui.ini";
+#endif
 	//io.Fonts->AddFontDefault();
 	io.Fonts->Clear(); // Clear existing fonts
 	constexpr float baseFontSize = 13.0f; // 13.0f is the size of the default font. Change to the font size you use.
@@ -1255,7 +1316,29 @@ void GraphicsMain::InitImGui(const std::string& fontfile)
 	icons_config.MergeMode = true; // Merge icon font to the previous font if you want to have both icons and text
 	icons_config.PixelSnapH = true;
 	icons_config.GlyphMinAdvanceX = iconFontSize;
+
+#ifdef __ANDROID__
+	// On Android, we must read fonts from assets into memory
+	std::vector<uint8_t> fontData;
+	if (VFS::ReadFile(fontfile, fontData) && !fontData.empty())
+	{
+		// ImGui takes ownership of the font data when using AddFontFromMemoryTTF
+		// so we need to allocate with IM_ALLOC
+		void* fontDataCopy = IM_ALLOC(fontData.size());
+		memcpy(fontDataCopy, fontData.data(), fontData.size());
+		io.Fonts->AddFontFromMemoryTTF(fontDataCopy, static_cast<int>(fontData.size()), baseFontSize);
+	}
+	else
+	{
+		// Fallback to default font if font file not found
+		LOG_WARNING("Could not load font '{}', using default", fontfile);
+		io.Fonts->AddFontDefault();
+	}
+#else
+	const std::string physicalFilepath{ VFS::ConvertVirtualToPhysical(fontfile) };
 	io.Fonts->AddFontFromFileTTF(physicalFilepath.c_str(), baseFontSize);
+#endif
+
 	io.Fonts->AddFontFromMemoryCompressedTTF(FA_compressed_data, FA_compressed_size, iconFontSize, &icons_config, icons_ranges);
 
 	imguiContext->rebuildFontAtlas();
@@ -1350,8 +1433,6 @@ void GraphicsMain::SetImGuiStyle()
 	style.TabRounding = 4.0f;
 	style.TabBorderSize = 0.0f;
 	style.TouchExtraPadding = ImVec2(0.00f, 0.00f);
-	style.TabCloseButtonMinWidthUnselected = 0.0f;
-	style.TabCloseButtonMinWidthSelected = 0.0f;
 	style.ColorButtonPosition = ImGuiDir_Right;
 	style.ButtonTextAlign = ImVec2(0.5f, 0.5f);
 	style.SelectableTextAlign = ImVec2(0.0f, 0.0f);

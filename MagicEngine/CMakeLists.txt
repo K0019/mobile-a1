@@ -17,6 +17,12 @@ file(GLOB_RECURSE ENGINE_SOURCES CONFIGURE_DEPENDS
     "${CMAKE_CURRENT_SOURCE_DIR}/*.ipp"
 )
 
+# Exclude desktop-only asset processing tools on Android
+# These use assimp, FreeImage, mikktspace which are not available on Android
+if(ANDROID)
+    list(FILTER ENGINE_SOURCES EXCLUDE REGEX ".*/tools/assets/.*")
+endif()
+
 # Create the unified static library
 add_library(MagicEngine STATIC)
 target_sources(MagicEngine PRIVATE
@@ -57,13 +63,14 @@ set(ENGINE_PUBLIC_DEPS
     RecastNavigation::DetourCrowd
     RecastNavigation::DetourTileCache
     RecastNavigation::DebugUtils
-    Boost::boost
+    rapidjson
     ${LUA_LIBRARIES}
 )
 
 # Private dependencies
 set(ENGINE_PRIVATE_DEPS
     hina-vk
+    Vulkan::Headers
     volk::volk_headers
     spirv-cross-core
     spirv-cross-glsl
@@ -72,6 +79,8 @@ set(ENGINE_PRIVATE_DEPS
     glslang::SPIRV
     glslang::glslang-default-resource-limits
     Freetype::Freetype
+    LuaBridge
+    stb
 )
 
 # Desktop-only dependencies
@@ -83,8 +92,12 @@ if(NOT ANDROID)
         KTX::ktx
         mikktspace::mikktspace
         meshoptimizer::meshoptimizer
-        glslang::SPVRemapper
+    )
+    # Tracy needs to be PUBLIC since profiler.h is in a public header
+    # Boost is for type_index (Android uses typeid fallback)
+    list(APPEND ENGINE_PUBLIC_DEPS
         Tracy::TracyClient
+        Boost::boost
     )
 
     # GLOB libs locations for FMOD etc
@@ -156,8 +169,12 @@ if(MSVC)
 endif()
 
 if(NOT ANDROID)
-    # Debug renderer for Jolt
-    target_compile_definitions(Jolt::Jolt INTERFACE JPH_DEBUG_RENDERER)
+    # Debug renderer for Jolt - use actual target name if it exists (submodule), else alias (vcpkg)
+    if(TARGET Jolt)
+        target_compile_definitions(Jolt INTERFACE JPH_DEBUG_RENDERER)
+    elseif(TARGET Jolt::Jolt)
+        # vcpkg provides this - can't modify alias, but vcpkg builds usually have it enabled
+    endif()
 
     # Check if a STATIC vcpkg triplet was used
     if(VCPKG_TARGET_TRIPLET MATCHES "-static")

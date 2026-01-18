@@ -632,12 +632,13 @@ bool GfxRenderer::createRenderTargets() {
     }
 
     // HDR Target (R16G16B16A16_SFLOAT = 64 bits)
+    // Needs TRANSFER_SRC for blitting to swapchain in non-ImGui apps
     {
         hina_texture_desc desc = {};
         desc.width = gbufferWidth;
         desc.height = gbufferHeight;
         desc.format = HINA_FORMAT_R16G16B16A16_SFLOAT;
-        desc.usage = rtUsage;
+        desc.usage = static_cast<hina_texture_usage_flags>(rtUsage | HINA_TEXTURE_TRANSFER_SRC_BIT);
 
         m_hdrTarget = hina_make_texture(&desc);
         if (!hina_texture_is_valid(m_hdrTarget)) {
@@ -729,9 +730,12 @@ bool GfxRenderer::createViewOutput(ViewId viewId, uint32_t width, uint32_t heigh
     hina_texture_desc desc = {};
     desc.width = width;
     desc.height = height;
-    desc.format = HINA_FORMAT_B8G8R8A8_UNORM;  // UNORM for manual gamma control in tonemapping
-    // ViewOutput is used both as render target (by legacy rendering code) and as sampled texture (by ImGui)
-    // Note: hina-vk only adds TRANSFER_DST for non-render-targets, so blit to ViewOutput requires a render pass
+    // Use swapchain format for compatibility with blit pipeline
+    // Fallback to SRGB which is more common on Android
+    desc.format = m_hinaContext ? static_cast<hina_format>(m_hinaContext->getSwapchainFormat())
+                                : HINA_FORMAT_B8G8R8A8_SRGB;
+    // ViewOutput is used both as render target (by FinalBlit) and as sampled texture (by ImGui)
+    // Note: hina-vk doesn't expose TRANSFER_DST, so blit is only used for swapchain destination
     desc.usage = static_cast<hina_texture_usage_flags>(
         HINA_TEXTURE_RENDER_TARGET_BIT | HINA_TEXTURE_SAMPLED_BIT | HINA_TEXTURE_TRANSFER_SRC_BIT);
 
@@ -986,6 +990,10 @@ void GfxRenderer::render(FrameData& frameData) {
             swapchainDesc
         );
 
+        // NOTE: SCENE_COLOR and SCENE_DEPTH are TRANSIENT resources managed by the RenderGraph.
+        // They are registered in RegisterBuiltInResources() during compilation.
+        // Do NOT import them as external - that would overwrite the correctly allocated transient textures.
+
         // Import active mesh chunks for RenderGraph resource tracking
         m_meshStorage.importChunksToRenderGraph(*m_renderGraph);
 
@@ -993,9 +1001,12 @@ void GfxRenderer::render(FrameData& frameData) {
         m_renderGraph->BeginFrame();
 
         // Pass the active ViewOutput to the RenderGraph so it can copy SCENE_COLOR to it
+        // When ImGui is not initialized, resolve directly to swapchain instead of intermediate texture
         const auto& activeViewOutput = m_viewOutputs[static_cast<size_t>(m_activeViewId)];
         ViewOutputConfig outputConfig{
-            .resolvedColor = activeViewOutput.valid ? activeViewOutput.texture : gfx::Texture{},
+            .resolvedColor = (m_imguiInitialized && activeViewOutput.valid)
+                ? activeViewOutput.texture
+                : frame.swapchainImage.texture,
             .swapchainImage = frame.swapchainImage.texture
         };
 
@@ -1017,10 +1028,8 @@ void GfxRenderer::render(FrameData& frameData) {
     // - RenderGraph: ResolveViewOutput (SCENE_COLOR -> VIEW_OUTPUT), FinalBlit (SCENE_COLOR -> swapchain)
     // - ImGuiRenderFeature: ImGui overlay on swapchain (samples VIEW_OUTPUT for viewport)
 
-    // Initialize UI systems if needed (deferred until first frame)
-    if (!m_imguiInitialized && ImGui::GetCurrentContext() != nullptr) {
-        initImGui();
-    }
+    // Initialize UI2D if needed (deferred until first frame)
+    // Note: ImGui initialization is now Application-controlled via ImGuiContext
     if (!m_ui2dInitialized) {
         initUI2D();
     }
@@ -1069,6 +1078,10 @@ void GfxRenderer::render(RenderFrameData& frameData) {
             swapchainDesc
         );
 
+        // NOTE: SCENE_COLOR and SCENE_DEPTH are TRANSIENT resources managed by the RenderGraph.
+        // They are registered in RegisterBuiltInResources() during compilation.
+        // Do NOT import them as external - that would overwrite the correctly allocated transient textures.
+
         // Import active mesh chunks for RenderGraph resource tracking
         m_meshStorage.importChunksToRenderGraph(*m_renderGraph);
 
@@ -1087,8 +1100,8 @@ void GfxRenderer::render(RenderFrameData& frameData) {
             }
 
             // Set up ViewOutputConfig for this view
-            // - resolvedColor: The view's output texture (for ImGui to sample)
-            // - swapchainImage: Only set for the presented view
+            // - resolvedColor: Always the per-view texture (scene rendered here, FinalBlit copies to swapchain)
+            // - swapchainImage: Only set for the presented view (FinalBlit copies VIEW_OUTPUT to swapchain)
             bool isPresentedView = (viewFrameData.viewId == frameData.presentedViewId);
             ViewOutputConfig outputConfig{
                 .resolvedColor = viewOutput.valid ? viewOutput.texture : gfx::Texture{},
@@ -1105,6 +1118,7 @@ void GfxRenderer::render(RenderFrameData& frameData) {
 
             // Execute RenderGraph with this view's feature mask
             // The RenderGraph will filter passes based on viewFrameData.featureMask
+            // SceneComposite clears SCENE_COLOR with sky color before rendering
             m_renderGraph->Execute(m_hinaContext->getCommandBuffer().getHinaCmd(), viewFrameData, outputConfig);
 
             // Store output info back to view for application to access
@@ -1114,16 +1128,16 @@ void GfxRenderer::render(RenderFrameData& frameData) {
         }
 
         // Transition swapchain to PRESENT layout after all views are rendered
+        // Note: For ImGui apps, ImGuiRenderFeature handles swapchain rendering
+        // For non-ImGui apps (Game.exe), a PresentFeature should handle swapchain presentation
         hina_cmd_transition_texture(frame.cmd, frame.swapchainImage.texture, HINA_TEXSTATE_PRESENT);
     }
 
     // Update any dirty material bind groups before rendering
     m_materialSystem.updateDirtyMaterials();
 
-    // Initialize UI systems if needed (deferred until first frame)
-    if (!m_imguiInitialized && ImGui::GetCurrentContext() != nullptr) {
-        initImGui();
-    }
+    // Initialize UI2D if needed (deferred until first frame)
+    // Note: ImGui initialization is now Application-controlled via ImGuiContext
     if (!m_ui2dInitialized) {
         initUI2D();
     }
@@ -1638,7 +1652,7 @@ bool GfxRenderer::initImGui() {
     m_imguiFontView = hina_texture_get_default_view(m_imguiFontTexture);
 
     // Set ImGui font texture ID to 0 (special marker for font texture)
-    io.Fonts->SetTexID(static_cast<ImTextureID>(IMGUI_FONT_TEXTURE_ID));
+    io.Fonts->SetTexID((ImTextureID)(uintptr_t)(IMGUI_FONT_TEXTURE_ID));
 
     // Create pipeline with embedded HSL shader
     const char* shader_source = R"(
@@ -1891,7 +1905,7 @@ void GfxRenderer::renderImGui(ImDrawData* drawData) {
             hina_cmd_set_scissor(frame.cmd, &scissor);
 
             // Determine texture view and sampler based on texture ID encoding
-            uint64_t texId = static_cast<uint64_t>(drawCmd.TextureId);
+            uint64_t texId = (uintptr_t)(drawCmd.TextureId);
             gfx::TextureView texView = {};
             gfx::Sampler sampler = m_imguiFontSampler;
 
@@ -2405,4 +2419,9 @@ void GfxRenderer::unregisterFeature(IRenderFeature* feature) {
 
         m_registeredFeatures.erase(it);
     }
+}
+
+FeatureMask GfxRenderer::getFeatureMask(IRenderFeature* feature) const {
+    if (!feature || !m_renderGraph) return 0;
+    return m_renderGraph->GetFeatureMask(feature);
 }

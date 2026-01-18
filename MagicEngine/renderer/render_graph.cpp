@@ -548,16 +548,19 @@ namespace internal
 
   ResourceHandle ExecutionContext::GetResourceCached(LogicalResourceName name) const
   {
-    // Special handling for swapchain (changes per frame)
-    if (name == RenderResources::SWAPCHAIN_IMAGE || std::strcmp(name, RenderResources::SWAPCHAIN_IMAGE) == 0)
+    NameID id = m_pGraph->FindNameID(name);
+    if (id == INVALID_NAME_ID) return ResourceHandle{};
+
+    // External resources (swapchain, SCENE_COLOR, SCENE_DEPTH, VIEW_OUTPUT) are updated per-frame
+    // via ImportExternalTexture/UpdateViewOutputResource. Always use the current resolved handle
+    // instead of stale cached handles from compilation.
+    const auto* info = m_pGraph->GetResolvedResource(id);
+    if (info && info->isExternal)
     {
-      NameID id = m_pGraph->FindNameID(name);
-      if (id != INVALID_NAME_ID)
-      {
-        return m_pGraph->GetResolvedHandle(id);
-      }
-      return ResourceHandle{};
+      return m_pGraph->GetResolvedHandle(id);
     }
+
+    // For transient resources, use the cached handle storage (populated during compilation)
     uint32_t hash = HashString(name);
     uint8_t cachedIdx = m_cache.Find(hash);
     if (cachedIdx != 0xFF)
@@ -565,8 +568,6 @@ namespace internal
       const auto& execData = m_pGraph->m_passExecData[m_passIndex];
       return m_pGraph->m_handleStorage[execData.handleOffset + cachedIdx];
     }
-    NameID id = m_pGraph->FindNameID(name);
-    if (id == INVALID_NAME_ID) return ResourceHandle{};
     const auto& execData = m_pGraph->m_passExecData[m_passIndex];
     const auto& metadata = m_pGraph->m_passMetadata[m_passIndex];
     for (uint8_t i = 0; i < execData.handleCount; ++i)
@@ -1050,7 +1051,7 @@ void RenderGraph::Compile()
     };
   }
 
-  // ResolveViewOutput pass - copies SCENE_COLOR (HDR) to VIEW_OUTPUT (LDR) for ImGui display
+  // ResolveViewOutput pass - copies SCENE_COLOR to VIEW_OUTPUT (per-view texture for ImGui to sample)
   PassExecutionData viewResolveExec{
     .passID = InternName("ResolveViewOutput"), .passType = 1,
     .handleCount = 2, .handleOffset = 0, .executeLambda = nullptr
@@ -1061,7 +1062,6 @@ void RenderGraph::Compile()
       {InternName(RenderResources::SCENE_COLOR), AccessType::Read},
       {m_viewOutputID, AccessType::Write}
     },
-    // Priority 640: After scene rendering and UI (600) but before FinalBlit (650)
     .priority = static_cast<internal::RenderPassBuilder::PassPriority>(640),
     .featureOwner = nullptr
   };
@@ -1071,9 +1071,27 @@ void RenderGraph::Compile()
   };
   RegisterPass(std::move(viewResolveExec), std::move(viewResolveMeta), std::move(viewResolveLambda));
 
-  // NOTE: FinalBlit is disabled - ImGui owns swapchain rendering directly
-  // ImGui clears the swapchain and displays scene via VIEW_OUTPUT texture in viewport
-  // This simplifies the pipeline: Scene → SCENE_COLOR → VIEW_OUTPUT → ImGui samples it
+  // FinalBlit pass - copies VIEW_OUTPUT to SWAPCHAIN_IMAGE for presentation
+  // VIEW_OUTPUT contains the composited scene + ImGui (if enabled)
+  // Only runs for the presented view (swapchainImage is only valid for that view)
+  PassExecutionData finalBlitExec{
+    .passID = InternName("FinalBlit"), .passType = 1,
+    .handleCount = 2, .handleOffset = 0, .executeLambda = nullptr
+  };
+  PassMetadata finalBlitMeta{
+    .debugName = "FinalBlit",
+    .declaredResourceAccesses = {
+      {m_viewOutputID, AccessType::Read},
+      {m_swapchainID, AccessType::Write}
+    },
+    .priority = internal::RenderPassBuilder::PassPriority::Present,
+    .featureOwner = nullptr
+  };
+  ExecuteLambda finalBlitLambda = [this](internal::ExecutionContext& ctx)
+  {
+    ExecuteFinalBlit(ctx);
+  };
+  RegisterPass(std::move(finalBlitExec), std::move(finalBlitMeta), std::move(finalBlitLambda));
 
   // Sort passes
   BuildAdjacencyListAndSort();
@@ -1357,8 +1375,9 @@ void RenderGraph::EnsureBlitPipelineCreated()
     pip_desc.depth.depth_write = false;
     pip_desc.depth_format = HINA_FORMAT_UNDEFINED;
 
-    // Color format for VIEW_OUTPUT (LDR format for ImGui display)
-    pip_desc.color_formats[0] = HINA_FORMAT_B8G8R8A8_UNORM;
+    // Color format - use swapchain format for both VIEW_OUTPUT and swapchain
+    // VIEW_OUTPUT is created with swapchain format, so this works for both
+    pip_desc.color_formats[0] = static_cast<hina_format>(hinaCtx->getSwapchainFormat());
     pip_desc.color_attachment_count = 1;
 
     // Use the blit bind group layout
@@ -1382,14 +1401,19 @@ void RenderGraph::EnsureBlitPipelineCreated()
 
 void RenderGraph::ExecuteFinalBlit(const internal::ExecutionContext& ctx)
 {
-  gfx::Texture sceneColor = ctx.GetTexture(RenderResources::SCENE_COLOR);
+  // Copy VIEW_OUTPUT (composited scene + ImGui) to swapchain
+  gfx::Texture viewOutput = ctx.GetTexture(RenderResources::VIEW_OUTPUT);
   gfx::Texture swapchainImage = ctx.GetTexture(RenderResources::SWAPCHAIN_IMAGE);
-  if (!gfx::isValid(sceneColor) || !gfx::isValid(swapchainImage)) return;
+  // Only run for the presented view (swapchain is only valid for that view)
+  if (!gfx::isValid(viewOutput) || !gfx::isValid(swapchainImage)) return;
+
+  // Skip if VIEW_OUTPUT == swapchain (non-ImGui case where ResolveViewOutput already wrote to swapchain)
+  if (viewOutput == swapchainImage) return;
 
   HinaContext* hinaCtx = m_gfxRenderer ? m_gfxRenderer->getHinaContext() : nullptr;
   if (!hinaCtx) return;
 
-  gfx::Dimensions sceneDims = hinaCtx->getDimensions(sceneColor);
+  gfx::Dimensions viewDims = hinaCtx->getDimensions(viewOutput);
   gfx::Dimensions swapchainDims = hinaCtx->getDimensions(swapchainImage);
 
   // Get pre-transform for Android
@@ -1413,11 +1437,11 @@ void RenderGraph::ExecuteFinalBlit(const internal::ExecutionContext& ctx)
   }
 #endif
 
-  // On Android with no pre-transform needed, and if dimensions match exactly, use fast copy path
-  if (preTransformValue == 0 && sceneDims.width == swapchainDims.width && sceneDims.height == swapchainDims.height)
+  // Fast blit path: for matching dimensions and no pre-transform
+  if (preTransformValue == 0 && viewDims.width == swapchainDims.width && viewDims.height == swapchainDims.height)
   {
-    // Use hina blit for copy
-    hina_cmd_blit_texture(ctx.GetCmd(), sceneColor, swapchainImage, 0, 0, HINA_FILTER_NEAREST);
+    // Use hina blit for copy to swapchain
+    hina_cmd_blit_texture(ctx.GetCmd(), viewOutput, swapchainImage, 0, 0, HINA_FILTER_NEAREST);
     return;
   }
 
@@ -1435,7 +1459,7 @@ void RenderGraph::ExecuteFinalBlit(const internal::ExecutionContext& ctx)
   framebuffer.color[0] = {.texture = swapchainImage};
 
   gfx::Dependencies deps{};
-  deps.textures[0] = sceneColor;
+  deps.textures[0] = viewOutput;
 
   gfxCmd.beginRendering(renderPassInfo, framebuffer, deps);
 
@@ -1455,7 +1479,7 @@ void RenderGraph::ExecuteFinalBlit(const internal::ExecutionContext& ctx)
   });
 
   // Create transient bind group for source texture using the stored layout
-  gfx::TextureView sourceView = hina_texture_get_default_view(sceneColor);
+  gfx::TextureView sourceView = hina_texture_get_default_view(viewOutput);
   hina_transient_bind_group tbg = hina_alloc_transient_bind_group(m_blitBindGroupLayout.get());
   hina_transient_write_combined_image(&tbg, 0, sourceView, m_blitSampler.get());
   hina_cmd_bind_transient_group(ctx.GetCmd(), 0, tbg);
@@ -1476,7 +1500,6 @@ void RenderGraph::ExecuteResolveViewOutput(const internal::ExecutionContext& ctx
   gfx::Texture sceneColor = ctx.GetTexture(RenderResources::SCENE_COLOR);
   gfx::Texture viewOutput = ctx.GetTexture(RenderResources::VIEW_OUTPUT);
 
-
   if (!gfx::isValid(sceneColor) || !gfx::isValid(viewOutput)) {
     return;
   }
@@ -1494,6 +1517,9 @@ void RenderGraph::ExecuteResolveViewOutput(const internal::ExecutionContext& ctx
 
   // Use fullscreen pass to copy SCENE_COLOR (HDR) to VIEW_OUTPUT (LDR) via direct hina calls
   gfx::Cmd* cmd = ctx.GetCmd();
+
+  // Transition sceneColor to shader read for sampling
+  hina_cmd_transition_texture(cmd, sceneColor, HINA_TEXSTATE_SHADER_READ);
 
   // Set up pass action directly
   hina_pass_action pass = {};
@@ -1804,9 +1830,20 @@ void RenderGraph::Execute(gfx::Cmd* cmd, const FrameData& frameData, const ViewO
       return;
     }
   }
-  else
+
+  // Always set swapchain correctly for this view (regardless of whether we just compiled or not)
+  // Only the presented view should have a valid swapchain so FinalBlit runs only once
+  if (gfx::isValid(outputConfig.swapchainImage))
   {
     UpdateSwapchainResource();
+  }
+  else
+  {
+    // Set swapchain to invalid for non-presented views so FinalBlit skips
+    if (auto* info = GetResolvedResource(m_swapchainID))
+    {
+      info->concreteHandle = ResourceHandle{};
+    }
   }
   // Update external output textures
   if (gfx::isValid(outputConfig.resolvedColor))

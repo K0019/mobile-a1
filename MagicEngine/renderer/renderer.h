@@ -12,22 +12,7 @@
 #include "frame_data.h"
 #include "linear_color.h"
 #include "gfx_renderer.h"
-
-// Platform-specific surface transform (Android only)
-#if defined(__ANDROID__)
-enum class SurfaceTransform : uint8_t
-{
-    Identity = 0,
-    Rotate90,
-    Rotate180,
-    Rotate270,
-    HorizontalMirror,
-    HorizontalMirrorRotate90,
-    HorizontalMirrorRotate180,
-    HorizontalMirrorRotate270,
-    Inherit,
-};
-#endif
+#include "interface.h"  // For SurfaceTransform (Android only)
 
 class Renderer : public IRenderer
 {
@@ -60,6 +45,9 @@ public:
   void DestroyFeature(uint64_t feature_handle) override;
 
   void* GetFeatureParameterBlockPtr(uint64_t feature_handle) override;
+
+  // Get the feature mask for a feature handle (for view configuration)
+  FeatureMask GetFeatureMask(uint64_t feature_handle) const;
 
   template <typename TFeature>
   TFeature* GetFeature(uint64_t feature_handle)
@@ -105,8 +93,10 @@ private:
   {
     std::unique_ptr<IRenderFeature> feature;
     uint64_t handle;
+    FeatureMask mask = 0;  // Cached feature mask from RenderGraph
 
-    explicit FeatureInfo(std::unique_ptr<IRenderFeature> feat, uint64_t h) : feature(std::move(feat)), handle(h)
+    explicit FeatureInfo(std::unique_ptr<IRenderFeature> feat, uint64_t h, FeatureMask m = 0)
+      : feature(std::move(feat)), handle(h), mask(m)
     {
     }
   };

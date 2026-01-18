@@ -1475,6 +1475,14 @@ typedef struct HINA_ALIGN(128) hina_global_storage
 extern hina_global_storage g_storage;
 // Magic value for initialization check
 #define HINA_STORAGE_INITIALIZED 0x48494E41  // "HINA" in ASCII
+
+#define HINA_BUF_HOT(idx) ((hina_buffer_hot*)&g_storage.buffer_pool.slots[idx])
+#define HINA_TEX_HOT(idx) ((hina_texture_hot*)&g_storage.texture_pool.slots[idx])
+#define HINA_SAMPLER_ENTRY(idx) (&g_storage.sampler_pool.slots[idx])
+#define HINA_DESC_LAYOUT_ENTRY(idx) (&g_storage.desc_layout_pool.slots[idx])
+#define HINA_DESC_SET_ENTRY(idx) (&g_storage.desc_set_pool.slots[idx])
+#define HINA_PIPELINE_ENTRY(idx) (&g_storage.pipeline_pool.slots[idx])
+#define HINA_QUERY_ENTRY(idx) (&g_storage.query_pool.slots[idx])
 // Host memory allocation from persistent arena (TLSF-style allocator)
 // All allocations come from the VM-backed persistent arena in g_storage.
 // Thread-safe via spinlock, 16-byte aligned.
@@ -1728,6 +1736,13 @@ static uint16_t hina_pool_initial_commit(size_t slot_size, uint16_t capacity, ui
   if (initial_commit > capacity) initial_commit = capacity;
   return initial_commit;
 }
+
+static uint64_t hina_lane_completed_value(hina_context* ctx, uint8_t lane_idx);
+static bool hina_ticket_is_complete(hina_context* ctx, hina_ticket ticket);
+static bool hina_buffer_upload_ready(hina_context* ctx, uint16_t idx);
+static bool hina_texture_upload_ready(hina_context* ctx, uint16_t idx);
+
+
 
 static void hina_pool_vm_init(hina_pool_meta* meta, hina_vm_region* slots_vm, size_t slot_size,
                               hina_vm_region* hot_vm, size_t hot_size, uint16_t capacity,
@@ -2048,13 +2063,6 @@ static HINA_INLINE bool hina_query_slot_valid(hina_query_pool h)
   return HINA_LIKELY(slot->generation == gen && slot->pool != VK_NULL_HANDLE);
 }
 
-#define HINA_BUF_HOT(idx) ((hina_buffer_hot*)&g_storage.buffer_pool.slots[idx])
-#define HINA_TEX_HOT(idx) ((hina_texture_hot*)&g_storage.texture_pool.slots[idx])
-#define HINA_SAMPLER_ENTRY(idx) (&g_storage.sampler_pool.slots[idx])
-#define HINA_DESC_LAYOUT_ENTRY(idx) (&g_storage.desc_layout_pool.slots[idx])
-#define HINA_DESC_SET_ENTRY(idx) (&g_storage.desc_set_pool.slots[idx])
-#define HINA_PIPELINE_ENTRY(idx) (&g_storage.pipeline_pool.slots[idx])
-#define HINA_QUERY_ENTRY(idx) (&g_storage.query_pool.slots[idx])
 #define HINA_TICKET_PENDING         UINT64_MAX
 typedef struct hina_caps
 {
@@ -2278,12 +2286,15 @@ typedef struct hina_buffer_hot
   } config;
 } hina_buffer_hot;
 
-// Helper macros for buffer config.flags_packed (owning_family in bits 24-31)
+// Helper macros for buffer config.flags_packed (owning_family in bits 24-31, upload_ready in bit 16)
 #define HINA_BUFFER_FLAGS_MASK         0x0000FFFFu
 #define HINA_BUFFER_OWNER_SHIFT        24
 #define HINA_BUFFER_GET_OWNER(packed)  ((uint8_t)((packed) >> HINA_BUFFER_OWNER_SHIFT))
 #define HINA_BUFFER_SET_OWNER(packed, family) \
     (((packed) & HINA_BUFFER_FLAGS_MASK) | ((uint32_t)(family) << HINA_BUFFER_OWNER_SHIFT))
+// Upload ready bit (fast-path check to skip atomic load when already ready)
+#define HINA_BUFFER_UPLOAD_READY_BIT   (1u << 16)
+#define HINA_BUFFER_IS_UPLOAD_READY(packed)    (((packed) & HINA_BUFFER_UPLOAD_READY_BIT) != 0)
 HINA_STATIC_ASSERT(sizeof(hina_buffer_hot) == 40, hina_buffer_hot_size_must_be_40_bytes);
 
 // Texture dimension type
@@ -2337,6 +2348,12 @@ typedef struct hina_texture_hot
 } hina_texture_hot;
 
 HINA_STATIC_ASSERT(sizeof(hina_texture_hot) == 64, hina_texture_hot_size_must_be_64_bytes);
+
+// Helper macros for texture_dim field (bits 0-1 = dimension, bit 7 = upload_ready)
+#define HINA_TEXTURE_DIM_MASK          0x03u
+#define HINA_TEXTURE_UPLOAD_READY_BIT  0x80u
+#define HINA_TEXTURE_GET_DIM(dim_byte)         ((dim_byte) & HINA_TEXTURE_DIM_MASK)
+#define HINA_TEXTURE_IS_UPLOAD_READY(dim_byte) (((dim_byte) & HINA_TEXTURE_UPLOAD_READY_BIT) != 0)
 
 // Deferred payload for deferred resource destruction
 typedef union hina_deferred_payload
@@ -2534,6 +2551,18 @@ typedef struct hina_staging_page_pool
 
 // Inline capacity for retired pages - covers typical frame without heap alloc
 #define HINA_STAGING_RETIRED_INLINE 4u
+
+// Maximum resources that can be staged before requiring a flush
+// Covers typical frame workloads without overflow
+#define HINA_MAX_STAGED_PER_FLUSH 256u
+
+// Staged resource tracking for batched auto-flush
+typedef struct hina_staged_list
+{
+  uint16_t indices[HINA_MAX_STAGED_PER_FLUSH];
+  uint16_t count;
+} hina_staged_list;
+
 // CONTEXT: Staging context (semantic grouping)
 // NOTE: Staging has its own dedicated command pool, decoupled from per-frame graphics pools.
 // This prevents frame boundary resets from invalidating in-flight staging commands.
@@ -2559,6 +2588,11 @@ typedef struct hina_staging_context
     uint32_t capacity;
     bool using_inline;
   } retired;
+
+  // Staged resource tracking (resources copied to staging but not yet submitted)
+  // Cleared when staging is flushed, used to batch STAGED→PENDING transitions
+  hina_staged_list staged_buffers;
+  hina_staged_list staged_textures;
 
   // Dedicated command pool for staging (decoupled from frame-based graphics pools)
   VkCommandPool cmd_pool;
@@ -3827,6 +3861,9 @@ static void hina_storage_init(void)
     g_storage.persistent_vm.committed_size = commit_bytes;
   }
   hina_oa_reset(&g_storage.persistent_alloc, HINA_PERSISTENT_ARENA_SIZE);
+  // Mark initialized BEFORE any hina_alloc_host() calls - the allocator is ready now,
+  // and hina_alloc_host_base() checks this flag to avoid recursive hina_storage_init()
+  g_storage.initialized = HINA_STORAGE_INITIALIZED;
 #ifdef HINA_DEBUG
   g_storage.persistent_bytes_in_use = 0;
   g_storage.persistent_bytes_peak = 0;
@@ -3835,7 +3872,6 @@ static void hina_storage_init(void)
 #endif
   // Initialize validation level to default (WARN in debug, NONE in release)
   g_storage.validation_level = HINA_DEFAULT_VALIDATION_LEVEL;
-  g_storage.initialized = HINA_STORAGE_INITIALIZED;
 }
 
 #undef HINA_INIT_POOL
@@ -3850,6 +3886,95 @@ static void hina_storage_init(void)
     (pool)->hot = NULL; \
     (pool)->meta.committed = 0; \
   } while(0)
+
+// Cleanup any remaining user resources before VMA is destroyed.
+// This prevents VMA from complaining about leaked allocations.
+static void hina_cleanup_leaked_resources(hina_device* dev)
+{
+  if (!dev || !dev->core.device || !dev->allocator.vma) return;
+  VkDevice vk_dev = dev->core.device;
+  VmaAllocator vma = dev->allocator.vma;
+  uint32_t leaked_buffers = 0, leaked_textures = 0, leaked_views = 0;
+  uint32_t leaked_samplers = 0, leaked_pipelines = 0, leaked_layouts = 0;
+  // Buffers: use hot array for in_use check
+  for (uint32_t i = 0; i < g_storage.buffer_pool.meta.committed; ++i)
+  {
+    if (g_storage.buffer_pool.hot[i].in_use)
+    {
+      hina_buffer_slot* slot = &g_storage.buffer_pool.slots[i];
+      if (slot->vk.buffer)
+      {
+        vmaDestroyBuffer(vma, slot->vk.buffer, slot->vk.allocation);
+        leaked_buffers++;
+      }
+    }
+  }
+  // Textures: check vk.image and owns_image (no hot array)
+  for (uint32_t i = 0; i < g_storage.texture_pool.meta.committed; ++i)
+  {
+    hina_texture_slot* slot = &g_storage.texture_pool.slots[i];
+    if (slot->vk.image && slot->owns_image)
+    {
+      if (slot->vk.default_view)
+        vkDestroyImageView(vk_dev, slot->vk.default_view, NULL);
+      vmaDestroyImage(vma, slot->vk.image, slot->vk.allocation);
+      leaked_textures++;
+    }
+  }
+  // Texture views: use slot.in_use (skip default views - owned by texture)
+  for (uint32_t i = 0; i < g_storage.texture_view_pool.meta.committed; ++i)
+  {
+    hina_texture_view_slot* slot = &g_storage.texture_view_pool.slots[i];
+    if (slot->in_use && !slot->is_default && slot->view)
+    {
+      vkDestroyImageView(vk_dev, slot->view, NULL);
+      leaked_views++;
+    }
+  }
+  // Samplers: use slot.in_use
+  for (uint32_t i = 0; i < g_storage.sampler_pool.meta.committed; ++i)
+  {
+    hina_sampler_slot* slot = &g_storage.sampler_pool.slots[i];
+    if (slot->in_use && slot->sampler)
+    {
+      vkDestroySampler(vk_dev, slot->sampler, NULL);
+      leaked_samplers++;
+    }
+  }
+  // Pipelines: use hot array for in_use check
+  for (uint32_t i = 0; i < g_storage.pipeline_pool.meta.committed; ++i)
+  {
+    if (g_storage.pipeline_pool.hot[i].in_use)
+    {
+      hina_pipeline_slot* slot = &g_storage.pipeline_pool.slots[i];
+      if (slot->pipeline)
+        vkDestroyPipeline(vk_dev, slot->pipeline, NULL);
+      if (slot->layout)
+        vkDestroyPipelineLayout(vk_dev, slot->layout, NULL);
+      leaked_pipelines++;
+    }
+  }
+  // Descriptor set layouts: use slot.in_use (skip borrowed layouts)
+  for (uint32_t i = 0; i < g_storage.desc_layout_pool.meta.committed; ++i)
+  {
+    hina_desc_layout_slot* slot = &g_storage.desc_layout_pool.slots[i];
+    if (slot->in_use && !slot->borrowed && slot->layout)
+    {
+      vkDestroyDescriptorSetLayout(vk_dev, slot->layout, NULL);
+      leaked_layouts++;
+    }
+  }
+#ifdef HINA_DEBUG
+  if (leaked_buffers || leaked_textures || leaked_views || leaked_samplers || leaked_pipelines || leaked_layouts)
+  {
+    HINA_LOGW(&g_hina_ctx, "Leaked resources at shutdown: %u buffers, %u textures, %u views, %u samplers, %u pipelines, %u layouts",
+              leaked_buffers, leaked_textures, leaked_views, leaked_samplers, leaked_pipelines, leaked_layouts);
+  }
+#else
+  (void)leaked_buffers; (void)leaked_textures; (void)leaked_views;
+  (void)leaked_samplers; (void)leaked_pipelines; (void)leaked_layouts;
+#endif
+}
 
 static void hina_storage_shutdown(void)
 {
@@ -4513,7 +4638,7 @@ void hina_set_profiler_hooks(const hina_profiler_hooks* hooks)
   hina_ctx_set_profiler_hooks(&g_hina_ctx, hooks);
 }
 
-static const VkFormat g_hina_to_vk_format[HINA_FORMAT_BC7_SRGB_BLOCK + 1] = {
+static const VkFormat g_hina_to_vk_format[HINA_FORMAT_ASTC_12x12_SRGB_BLOCK + 1] = {
   [HINA_FORMAT_UNDEFINED] = VK_FORMAT_UNDEFINED, [HINA_FORMAT_R8_UNORM] = VK_FORMAT_R8_UNORM,
   [HINA_FORMAT_R8_SNORM] = VK_FORMAT_R8_SNORM, [HINA_FORMAT_R8_UINT] = VK_FORMAT_R8_UINT,
   [HINA_FORMAT_R8_SINT] = VK_FORMAT_R8_SINT, [HINA_FORMAT_R8G8_UNORM] = VK_FORMAT_R8G8_UNORM,
@@ -4559,6 +4684,47 @@ static const VkFormat g_hina_to_vk_format[HINA_FORMAT_BC7_SRGB_BLOCK + 1] = {
   [HINA_FORMAT_BC6H_UFLOAT_BLOCK] = VK_FORMAT_BC6H_UFLOAT_BLOCK,
   [HINA_FORMAT_BC6H_SFLOAT_BLOCK] = VK_FORMAT_BC6H_SFLOAT_BLOCK,
   [HINA_FORMAT_BC7_UNORM_BLOCK] = VK_FORMAT_BC7_UNORM_BLOCK, [HINA_FORMAT_BC7_SRGB_BLOCK] = VK_FORMAT_BC7_SRGB_BLOCK,
+  // ETC2
+  [HINA_FORMAT_ETC2_R8G8B8_UNORM_BLOCK] = VK_FORMAT_ETC2_R8G8B8_UNORM_BLOCK,
+  [HINA_FORMAT_ETC2_R8G8B8_SRGB_BLOCK] = VK_FORMAT_ETC2_R8G8B8_SRGB_BLOCK,
+  [HINA_FORMAT_ETC2_R8G8B8A1_UNORM_BLOCK] = VK_FORMAT_ETC2_R8G8B8A1_UNORM_BLOCK,
+  [HINA_FORMAT_ETC2_R8G8B8A1_SRGB_BLOCK] = VK_FORMAT_ETC2_R8G8B8A1_SRGB_BLOCK,
+  [HINA_FORMAT_ETC2_R8G8B8A8_UNORM_BLOCK] = VK_FORMAT_ETC2_R8G8B8A8_UNORM_BLOCK,
+  [HINA_FORMAT_ETC2_R8G8B8A8_SRGB_BLOCK] = VK_FORMAT_ETC2_R8G8B8A8_SRGB_BLOCK,
+  // EAC
+  [HINA_FORMAT_EAC_R11_UNORM_BLOCK] = VK_FORMAT_EAC_R11_UNORM_BLOCK,
+  [HINA_FORMAT_EAC_R11_SNORM_BLOCK] = VK_FORMAT_EAC_R11_SNORM_BLOCK,
+  [HINA_FORMAT_EAC_R11G11_UNORM_BLOCK] = VK_FORMAT_EAC_R11G11_UNORM_BLOCK,
+  [HINA_FORMAT_EAC_R11G11_SNORM_BLOCK] = VK_FORMAT_EAC_R11G11_SNORM_BLOCK,
+  // ASTC LDR
+  [HINA_FORMAT_ASTC_4x4_UNORM_BLOCK] = VK_FORMAT_ASTC_4x4_UNORM_BLOCK,
+  [HINA_FORMAT_ASTC_4x4_SRGB_BLOCK] = VK_FORMAT_ASTC_4x4_SRGB_BLOCK,
+  [HINA_FORMAT_ASTC_5x4_UNORM_BLOCK] = VK_FORMAT_ASTC_5x4_UNORM_BLOCK,
+  [HINA_FORMAT_ASTC_5x4_SRGB_BLOCK] = VK_FORMAT_ASTC_5x4_SRGB_BLOCK,
+  [HINA_FORMAT_ASTC_5x5_UNORM_BLOCK] = VK_FORMAT_ASTC_5x5_UNORM_BLOCK,
+  [HINA_FORMAT_ASTC_5x5_SRGB_BLOCK] = VK_FORMAT_ASTC_5x5_SRGB_BLOCK,
+  [HINA_FORMAT_ASTC_6x5_UNORM_BLOCK] = VK_FORMAT_ASTC_6x5_UNORM_BLOCK,
+  [HINA_FORMAT_ASTC_6x5_SRGB_BLOCK] = VK_FORMAT_ASTC_6x5_SRGB_BLOCK,
+  [HINA_FORMAT_ASTC_6x6_UNORM_BLOCK] = VK_FORMAT_ASTC_6x6_UNORM_BLOCK,
+  [HINA_FORMAT_ASTC_6x6_SRGB_BLOCK] = VK_FORMAT_ASTC_6x6_SRGB_BLOCK,
+  [HINA_FORMAT_ASTC_8x5_UNORM_BLOCK] = VK_FORMAT_ASTC_8x5_UNORM_BLOCK,
+  [HINA_FORMAT_ASTC_8x5_SRGB_BLOCK] = VK_FORMAT_ASTC_8x5_SRGB_BLOCK,
+  [HINA_FORMAT_ASTC_8x6_UNORM_BLOCK] = VK_FORMAT_ASTC_8x6_UNORM_BLOCK,
+  [HINA_FORMAT_ASTC_8x6_SRGB_BLOCK] = VK_FORMAT_ASTC_8x6_SRGB_BLOCK,
+  [HINA_FORMAT_ASTC_8x8_UNORM_BLOCK] = VK_FORMAT_ASTC_8x8_UNORM_BLOCK,
+  [HINA_FORMAT_ASTC_8x8_SRGB_BLOCK] = VK_FORMAT_ASTC_8x8_SRGB_BLOCK,
+  [HINA_FORMAT_ASTC_10x5_UNORM_BLOCK] = VK_FORMAT_ASTC_10x5_UNORM_BLOCK,
+  [HINA_FORMAT_ASTC_10x5_SRGB_BLOCK] = VK_FORMAT_ASTC_10x5_SRGB_BLOCK,
+  [HINA_FORMAT_ASTC_10x6_UNORM_BLOCK] = VK_FORMAT_ASTC_10x6_UNORM_BLOCK,
+  [HINA_FORMAT_ASTC_10x6_SRGB_BLOCK] = VK_FORMAT_ASTC_10x6_SRGB_BLOCK,
+  [HINA_FORMAT_ASTC_10x8_UNORM_BLOCK] = VK_FORMAT_ASTC_10x8_UNORM_BLOCK,
+  [HINA_FORMAT_ASTC_10x8_SRGB_BLOCK] = VK_FORMAT_ASTC_10x8_SRGB_BLOCK,
+  [HINA_FORMAT_ASTC_10x10_UNORM_BLOCK] = VK_FORMAT_ASTC_10x10_UNORM_BLOCK,
+  [HINA_FORMAT_ASTC_10x10_SRGB_BLOCK] = VK_FORMAT_ASTC_10x10_SRGB_BLOCK,
+  [HINA_FORMAT_ASTC_12x10_UNORM_BLOCK] = VK_FORMAT_ASTC_12x10_UNORM_BLOCK,
+  [HINA_FORMAT_ASTC_12x10_SRGB_BLOCK] = VK_FORMAT_ASTC_12x10_SRGB_BLOCK,
+  [HINA_FORMAT_ASTC_12x12_UNORM_BLOCK] = VK_FORMAT_ASTC_12x12_UNORM_BLOCK,
+  [HINA_FORMAT_ASTC_12x12_SRGB_BLOCK] = VK_FORMAT_ASTC_12x12_SRGB_BLOCK,
 };
 
 static VkFormat hina_format_to_vk(hina_format fmt)
@@ -4567,7 +4733,7 @@ static VkFormat hina_format_to_vk(hina_format fmt)
   return g_hina_to_vk_format[fmt];
 }
 
-static const uint8_t g_hina_format_size[HINA_FORMAT_BC7_SRGB_BLOCK + 1] = {
+static const uint8_t g_hina_format_size[HINA_FORMAT_ASTC_12x12_SRGB_BLOCK + 1] = {
   [HINA_FORMAT_R8_UNORM] = 1, [HINA_FORMAT_R8_SNORM] = 1, [HINA_FORMAT_R8_UINT] = 1, [HINA_FORMAT_R8_SINT] = 1,
   [HINA_FORMAT_S8_UINT] = 1, [HINA_FORMAT_R8G8_UNORM] = 2, [HINA_FORMAT_R8G8_SNORM] = 2, [HINA_FORMAT_R8G8_UINT] = 2,
   [HINA_FORMAT_R8G8_SINT] = 2, [HINA_FORMAT_R16_UNORM] = 2, [HINA_FORMAT_R16_SNORM] = 2, [HINA_FORMAT_R16_UINT] = 2,
@@ -4628,6 +4794,103 @@ static bool hina_format_block_info(hina_format fmt, hina_block_format_info* out)
   case HINA_FORMAT_BC6H_SFLOAT_BLOCK:
   case HINA_FORMAT_BC7_UNORM_BLOCK:
   case HINA_FORMAT_BC7_SRGB_BLOCK:
+  // ETC2/EAC 16-byte blocks (4×4)
+  case HINA_FORMAT_ETC2_R8G8B8A8_UNORM_BLOCK:
+  case HINA_FORMAT_ETC2_R8G8B8A8_SRGB_BLOCK:
+  case HINA_FORMAT_EAC_R11G11_UNORM_BLOCK:
+  case HINA_FORMAT_EAC_R11G11_SNORM_BLOCK:
+    out->block_bytes = 16;
+    return true;
+  // ETC2/EAC 8-byte blocks (4×4)
+  case HINA_FORMAT_ETC2_R8G8B8_UNORM_BLOCK:
+  case HINA_FORMAT_ETC2_R8G8B8_SRGB_BLOCK:
+  case HINA_FORMAT_ETC2_R8G8B8A1_UNORM_BLOCK:
+  case HINA_FORMAT_ETC2_R8G8B8A1_SRGB_BLOCK:
+  case HINA_FORMAT_EAC_R11_UNORM_BLOCK:
+  case HINA_FORMAT_EAC_R11_SNORM_BLOCK:
+    out->block_bytes = 8;
+    return true;
+  // ASTC 4x4
+  case HINA_FORMAT_ASTC_4x4_UNORM_BLOCK:
+  case HINA_FORMAT_ASTC_4x4_SRGB_BLOCK:
+    out->block_bytes = 16;
+    return true;
+  // ASTC 5x4
+  case HINA_FORMAT_ASTC_5x4_UNORM_BLOCK:
+  case HINA_FORMAT_ASTC_5x4_SRGB_BLOCK:
+    out->block_w = 5; out->block_h = 4;
+    out->block_bytes = 16;
+    return true;
+  // ASTC 5x5
+  case HINA_FORMAT_ASTC_5x5_UNORM_BLOCK:
+  case HINA_FORMAT_ASTC_5x5_SRGB_BLOCK:
+    out->block_w = 5; out->block_h = 5;
+    out->block_bytes = 16;
+    return true;
+  // ASTC 6x5
+  case HINA_FORMAT_ASTC_6x5_UNORM_BLOCK:
+  case HINA_FORMAT_ASTC_6x5_SRGB_BLOCK:
+    out->block_w = 6; out->block_h = 5;
+    out->block_bytes = 16;
+    return true;
+  // ASTC 6x6
+  case HINA_FORMAT_ASTC_6x6_UNORM_BLOCK:
+  case HINA_FORMAT_ASTC_6x6_SRGB_BLOCK:
+    out->block_w = 6; out->block_h = 6;
+    out->block_bytes = 16;
+    return true;
+  // ASTC 8x5
+  case HINA_FORMAT_ASTC_8x5_UNORM_BLOCK:
+  case HINA_FORMAT_ASTC_8x5_SRGB_BLOCK:
+    out->block_w = 8; out->block_h = 5;
+    out->block_bytes = 16;
+    return true;
+  // ASTC 8x6
+  case HINA_FORMAT_ASTC_8x6_UNORM_BLOCK:
+  case HINA_FORMAT_ASTC_8x6_SRGB_BLOCK:
+    out->block_w = 8; out->block_h = 6;
+    out->block_bytes = 16;
+    return true;
+  // ASTC 8x8
+  case HINA_FORMAT_ASTC_8x8_UNORM_BLOCK:
+  case HINA_FORMAT_ASTC_8x8_SRGB_BLOCK:
+    out->block_w = 8; out->block_h = 8;
+    out->block_bytes = 16;
+    return true;
+  // ASTC 10x5
+  case HINA_FORMAT_ASTC_10x5_UNORM_BLOCK:
+  case HINA_FORMAT_ASTC_10x5_SRGB_BLOCK:
+    out->block_w = 10; out->block_h = 5;
+    out->block_bytes = 16;
+    return true;
+  // ASTC 10x6
+  case HINA_FORMAT_ASTC_10x6_UNORM_BLOCK:
+  case HINA_FORMAT_ASTC_10x6_SRGB_BLOCK:
+    out->block_w = 10; out->block_h = 6;
+    out->block_bytes = 16;
+    return true;
+  // ASTC 10x8
+  case HINA_FORMAT_ASTC_10x8_UNORM_BLOCK:
+  case HINA_FORMAT_ASTC_10x8_SRGB_BLOCK:
+    out->block_w = 10; out->block_h = 8;
+    out->block_bytes = 16;
+    return true;
+  // ASTC 10x10
+  case HINA_FORMAT_ASTC_10x10_UNORM_BLOCK:
+  case HINA_FORMAT_ASTC_10x10_SRGB_BLOCK:
+    out->block_w = 10; out->block_h = 10;
+    out->block_bytes = 16;
+    return true;
+  // ASTC 12x10
+  case HINA_FORMAT_ASTC_12x10_UNORM_BLOCK:
+  case HINA_FORMAT_ASTC_12x10_SRGB_BLOCK:
+    out->block_w = 12; out->block_h = 10;
+    out->block_bytes = 16;
+    return true;
+  // ASTC 12x12
+  case HINA_FORMAT_ASTC_12x12_UNORM_BLOCK:
+  case HINA_FORMAT_ASTC_12x12_SRGB_BLOCK:
+    out->block_w = 12; out->block_h = 12;
     out->block_bytes = 16;
     return true;
   default:
@@ -6827,6 +7090,7 @@ static bool hina_create_device(hina_context* ctx, const hina_desc* desc)
   const bool is_vk13_plus = g_device_caps.vk_version >= HINA_VK_VERSION_1_3;
   const bool is_vk12 = g_device_caps.vk_version == HINA_VK_VERSION_1_2;
   const bool is_vk11 = g_device_caps.vk_version == HINA_VK_VERSION_1_1;
+  const bool is_vk10 = g_device_caps.vk_version == HINA_VK_VERSION_1_0;
   if (desc->device_exts && desc->device_ext_count)
   {
     dev_exts = desc->device_exts;
@@ -7023,50 +7287,71 @@ static bool hina_create_device(hina_context* ctx, const hina_desc* desc)
     .dynamicRenderingUnusedAttachments = g_device_caps.has_dynamic_rendering_unused_attachments ? VK_TRUE : VK_FALSE
   };
   // Build pNext chain conditionally based on Vulkan version
-  // For 1.3+, VkPhysicalDeviceVulkan13Features contains dynamicRendering and synchronization2
-  // so we skip the individual feature structs to avoid conflicts
+  // - Vulkan 1.0: No pNext chaining, use pEnabledFeatures instead
+  // - VkPhysicalDeviceVulkan12Features is only valid for 1.2+
+  // - VkPhysicalDeviceVulkan13Features is only valid for 1.3+
+  void** last_pNext = NULL;
   if (is_vk13_plus)
   {
-    feats2.pNext = &dyn2; // Skip dyn (dynamicRendering in vk13)
+    feats2.pNext = &dyn2; // Skip dyn (dynamicRendering is in vk13)
     dyn2.pNext = &vk12;
     vk12.pNext = &vk13;
     vk13.pNext = &fault_feat;
+    last_pNext = &fault_feat.pNext;
   }
-  else
+  else if (is_vk12)
   {
+    // 1.2: chain vk12 (provides timelineSemaphore, hostQueryReset)
     feats2.pNext = &dyn;
     dyn.pNext = &dyn2;
     dyn2.pNext = &vk12;
     vk12.pNext = &fault_feat;
+    last_pNext = &fault_feat.pNext;
   }
-  // Chain internal extension feature structs conditionally:
+  else if (is_vk11)
+  {
+    // 1.1: don't chain vk12 (not valid for this API version)
+    feats2.pNext = &dyn;
+    dyn.pNext = &dyn2;
+    dyn2.pNext = &fault_feat;
+    last_pNext = &fault_feat.pNext;
+  }
+  // 1.0: No pNext chain - VkPhysicalDeviceFeatures2 requires 1.1+
+  // Chain internal extension feature structs conditionally (1.1+ only):
   // - sync2_feat: Only on Vulkan 1.1/1.2 (1.3+ has it in VkPhysicalDeviceVulkan13Features via core)
   // - timeline_feat: Only on Vulkan 1.1 (1.2+ has it in VkPhysicalDeviceVulkan12Features)
   // - dyn_local_read_feat: If dynamic_rendering_local_read is enabled
-  void** last_pNext = &fault_feat.pNext;
-  if (!is_vk13_plus && g_debug_caps.has_synchronization2)
+  if (last_pNext && !is_vk13_plus && g_debug_caps.has_synchronization2)
   {
     *last_pNext = &sync2_feat;
     last_pNext = &sync2_feat.pNext;
   }
-  if (is_vk11 && g_device_caps.has_timeline_semaphore)
+  if (last_pNext && is_vk11 && g_device_caps.has_timeline_semaphore)
   {
     *last_pNext = &timeline_feat;
     last_pNext = &timeline_feat.pNext;
   }
-  if (g_device_caps.has_dynamic_rendering_local_read)
+  if (last_pNext && g_device_caps.has_dynamic_rendering_local_read)
   {
     *last_pNext = &dyn_local_read_feat;
     last_pNext = &dyn_local_read_feat.pNext;
   }
-  if (g_device_caps.has_dynamic_rendering_unused_attachments)
+  if (last_pNext && g_device_caps.has_dynamic_rendering_unused_attachments)
   {
     *last_pNext = &dyn_unused_attach_feat;
     last_pNext = &dyn_unused_attach_feat.pNext;
   }
   VkDeviceCreateInfo dci = {0};
   dci.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
-  dci.pNext = &feats2;
+  if (is_vk10)
+  {
+    // Vulkan 1.0: Use legacy pEnabledFeatures (VkPhysicalDeviceFeatures2 requires 1.1+)
+    dci.pEnabledFeatures = &feats2.features;
+  }
+  else
+  {
+    dci.pNext = &feats2;
+  }
   VkDeviceQueueCreateInfo qcis[4];
   uint32_t qci_count = 0;
   uint32_t families[4] = {
@@ -7671,6 +7956,9 @@ static bool hina_init_context_resources(hina_context* ctx)
     HINA_LOGW(ctx, "Failed to initialize staging context - uploads may fail");
   }
   ctx->stats.gpu_time_pool = VK_NULL_HANDLE;
+  // GPU timestamp query pool requires vkResetQueryPool (core 1.2+, or VK_EXT_host_query_reset on 1.1)
+  // Skip if not available to avoid crash
+  if (vkResetQueryPool)
   {
     uint32_t qf_count = 0;
     vkGetPhysicalDeviceQueueFamilyProperties(ctx->core.device->core.phys, &qf_count, NULL);
@@ -8627,6 +8915,9 @@ static void* hina_staging_ctx_alloc(hina_context* ctx, uint32_t size, uint32_t a
   if (!sc->active_page)
   {
     HINA_LOGW(ctx, "staging pool exhausted, flushing and waiting for GPU...");
+    // Save whether command buffers were recording before flush
+    bool was_xfer_recording = sc->pending_cmd != NULL;
+    bool was_gfx_recording = sc->gfx_pending_cmd != NULL;
     hina_ticket flush_ticket = hina_staging_ctx_flush(ctx);
     hina_staging_ctx_wait(ctx, flush_ticket);
     hina_staging_ctx_process_retired(ctx);
@@ -8635,6 +8926,23 @@ static void* hina_staging_ctx_alloc(hina_context* ctx, uint32_t size, uint32_t a
     {
       HINA_LOGE(ctx, "staging pool still exhausted after flush/wait - increase pool size");
       return NULL;
+    }
+    // Re-acquire command buffers to restart recording (callers hold the same VkCommandBuffer handles)
+    if (was_xfer_recording)
+    {
+      if (!hina_staging_ctx_acquire_cmd(ctx))
+      {
+        HINA_LOGE(ctx, "failed to re-begin staging command buffer after pool recovery");
+        return NULL;
+      }
+    }
+    if (was_gfx_recording)
+    {
+      if (!hina_staging_ctx_acquire_gfx_cmd(ctx))
+      {
+        HINA_LOGE(ctx, "failed to re-begin staging gfx command buffer after pool recovery");
+        return NULL;
+      }
     }
     HINA_LOGI(ctx, "staging pool recovered after flush/wait");
   }
@@ -8924,6 +9232,63 @@ static void hina_staging_ctx_wait(hina_context* ctx, hina_ticket ticket)
   {
     vkWaitForFences(ctx->core.device->core.device, 1, &ctx->core.device->sync.fence.staging, VK_TRUE, UINT64_MAX);
     hina_atomic_store32(&ctx->core.device->sync.fence.staging_busy, 0);
+  }
+}
+
+// Auto-flush staged uploads: batches all STAGED resources and submits them
+// Called at frame boundary, on demand (bind group), or when staging buffer pressure is high
+// Returns the ticket for the flushed work, or 0 if nothing was staged
+static hina_ticket hina_auto_flush_staged(hina_context* ctx)
+{
+  hina_staging_context* sc = &ctx->staging;
+  // Early out if nothing staged
+  if (sc->staged_buffers.count == 0 && sc->staged_textures.count == 0)
+  {
+    return 0;
+  }
+
+  // Flush the staging context to submit all pending copies
+  hina_ticket ticket = hina_staging_ctx_flush(ctx);
+  // Clear the staged lists (upload readiness tracked via last_submit_ticket + ready bit)
+  sc->staged_buffers.count = 0;
+  sc->staged_textures.count = 0;
+
+  return ticket;
+}
+
+// Add a buffer to the staged list (called when staging data, before flush)
+static HINA_INLINE void hina_staging_add_buffer(hina_context* ctx, uint16_t idx)
+{
+  hina_staging_context* sc = &ctx->staging;
+  if (sc->staged_buffers.count >= HINA_MAX_STAGED_PER_FLUSH)
+  {
+    // Buffer pressure: flush to make room
+    hina_auto_flush_staged(ctx);
+  }
+  if (sc->staged_buffers.count < HINA_MAX_STAGED_PER_FLUSH)
+  {
+    sc->staged_buffers.indices[sc->staged_buffers.count++] = idx;
+    // Clear upload_ready bit - will be set when upload completes
+    hina_buffer_hot* hot = HINA_BUF_HOT(idx);
+    hot->config.flags_packed &= ~HINA_BUFFER_UPLOAD_READY_BIT;
+  }
+}
+
+// Add a texture to the staged list (called when staging data, before flush)
+static HINA_INLINE void hina_staging_add_texture(hina_context* ctx, uint16_t idx)
+{
+  hina_staging_context* sc = &ctx->staging;
+  if (sc->staged_textures.count >= HINA_MAX_STAGED_PER_FLUSH)
+  {
+    // Buffer pressure: flush to make room
+    hina_auto_flush_staged(ctx);
+  }
+  if (sc->staged_textures.count < HINA_MAX_STAGED_PER_FLUSH)
+  {
+    sc->staged_textures.indices[sc->staged_textures.count++] = idx;
+    // Clear upload_ready bit - will be set when upload completes
+    hina_texture_hot* hot = HINA_TEX_HOT(idx);
+    hot->texture_dim &= ~HINA_TEXTURE_UPLOAD_READY_BIT;
   }
 }
 
@@ -9540,6 +9905,8 @@ void hina_shutdown(void)
   }
   // Destroy queue lane sync resources (semaphores/fences) before device
   hina_destroy_queue_lanes(dev);
+  // Cleanup any leaked user resources before destroying VMA
+  hina_cleanup_leaked_resources(dev);
   if (dev->allocator.vma)
   {
     vmaDestroyAllocator(dev->allocator.vma);
@@ -9795,13 +10162,20 @@ hina_buffer hina_ctx_make_buffer(hina_context* ctx, const hina_buffer_desc* desc
     {
       vmaFlushAllocation(ctx->core.device->allocator.vma, hot->vk.allocation, 0, desc->size);
     }
+    // Directly mapped - no upload needed, mark ready
+    hot->config.flags_packed |= HINA_BUFFER_UPLOAD_READY_BIT;
     return handle;
   }
   // Staging path - use chunked upload for any size
+  // Data is copied to staging buffer but NOT submitted yet (deferred/batched)
   if (!hina_staging_upload_chunked(ctx, hot->vk.buffer, 0, desc->initial_data, desc->size))
   {
     HINA_LOGW(ctx, "failed to stage buffer data (%" PRIu64 " bytes)", (uint64_t)desc->size);
+    // Staging failed - leave ready bit cleared (it's 0 by default)
+    return handle;
   }
+  // Add to staged list - flush will happen at frame boundary or on demand
+  hina_staging_add_buffer(ctx, idx);
   return handle;
 }
 
@@ -10699,35 +11073,23 @@ hina_texture hina_ctx_make_texture(hina_context* ctx, const hina_texture_desc* d
   view_slot->aspect = (uint8_t)HINA_TEXTURE_ASPECT_ALL;
   hot->default_view_idx = view_idx;
   // Upload initial data first (if provided) - this transitions image to correct layout
+  // Data is staged but NOT submitted yet (deferred/batched for efficiency)
   bool upload_succeeded = false;
   if (desc->initial_data)
   {
     upload_succeeded = hina_upload_texture_initial(ctx, hot, desc);
     if (upload_succeeded)
     {
-      // Flush staging and wait synchronously (following lightweightvk pattern)
-      // This ensures image is in SHADER_READ_ONLY_OPTIMAL before bindless registration
-      hina_ticket ticket = hina_staging_ctx_flush(ctx);
-      if (ticket)
-      {
-        hina_ctx_wait_ticket(ctx, ticket);
-        // NOW update the layout state - GPU work is confirmed complete
-        hot->state.layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-        hot->state.access = VK_ACCESS_SHADER_READ_BIT;
-        hot->state.stages = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT | VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
-      }
-      else
-      {
-        // Flush returned 0 - no ticket, commands may not have been submitted
-        upload_succeeded = false;
-        HINA_LOGW(ctx, "staging flush failed, transitioning to SHADER_READ_ONLY (will sample black)");
-        // Same fallback as upload failure
-        goto transition_fallback;
-      }
+      // Add to staged list - flush will happen at frame boundary or on demand
+      // Update layout state optimistically (will be correct after flush)
+      hina_staging_add_texture(ctx, idx);
+      hot->state.layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+      hot->state.access = VK_ACCESS_SHADER_READ_BIT;
+      hot->state.stages = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT | VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
     }
-    else
+    if (!upload_succeeded)
     {
-    transition_fallback: HINA_LOGW(ctx, "texture upload failed, transitioning to SHADER_READ_ONLY (will sample black)");
+      HINA_LOGW(ctx, "texture upload failed, transitioning to SHADER_READ_ONLY (will sample black)");
       // Fallback: transition to SHADER_READ_ONLY_OPTIMAL so the texture is at least usable
       // (will sample zeros/undefined content, but avoids validation errors)
       hina_cmd* fallback_cmd = hina_ctx_cmd_begin_ex(ctx, HINA_QUEUE_GRAPHICS);
@@ -10740,11 +11102,18 @@ hina_texture hina_ctx_make_texture(hina_context* ctx, const hina_texture_desc* d
                            ((VkImageSubresourceRange){VK_IMAGE_ASPECT_COLOR_BIT, 0, hot->mip_levels, 0, hot->layers}));
         hina_cmd_end(fallback_cmd);
         hina_ticket t = hina_ctx_submit_immediate(ctx, fallback_cmd);
-        hina_ctx_wait_ticket(ctx, t);
+        if (t)
+        {
+          // Wait immediately for the fallback transition since this is an error recovery path
+          hina_ctx_wait_ticket(ctx, t);
+          hot->texture_dim |= HINA_TEXTURE_UPLOAD_READY_BIT;
+        }
+        // If submit failed, leave ready bit cleared (will block on first use)
         hot->state.layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
         hot->state.access = VK_ACCESS_SHADER_READ_BIT;
         hot->state.stages = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT | VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
       }
+      // If cmd allocation failed, leave ready bit cleared (will block on first use)
     }
   }
   (void)format; // Suppress unused warning
@@ -11449,6 +11818,53 @@ bool hina_bind_group_is_valid(hina_bind_group group)
   return hina_desc_set_slot_valid((hina_desc_set){group.id});
 }
 
+bool hina_buffer_is_ready(hina_buffer b)
+{
+  if (!hina_buffer_slot_valid(b)) return false;
+  uint16_t idx = hina_id_index(b.id);
+  return hina_buffer_upload_ready(&g_hina_ctx, idx);
+}
+
+bool hina_texture_is_ready(hina_texture t)
+{
+  if (!hina_texture_slot_valid(t)) return false;
+  uint16_t idx = hina_id_index(t.id);
+  return hina_texture_upload_ready(&g_hina_ctx, idx);
+}
+
+void hina_wait_buffer(hina_buffer b)
+{
+  if (!hina_buffer_slot_valid(b)) return;
+  uint16_t idx = hina_id_index(b.id);
+  hina_buffer_hot* hot = HINA_BUF_HOT(idx);
+  // Fast path: already marked ready
+  if (HINA_BUFFER_IS_UPLOAD_READY(hot->config.flags_packed)) return;
+  // Slow path: flush any staged uploads and wait for completion
+  hina_buffer_upload_ready(&g_hina_ctx, idx);
+}
+
+void hina_wait_texture(hina_texture t)
+{
+  if (!hina_texture_slot_valid(t)) return;
+  uint16_t idx = hina_id_index(t.id);
+  hina_texture_hot* hot = HINA_TEX_HOT(idx);
+  // Fast path: already marked ready
+  if (HINA_TEXTURE_IS_UPLOAD_READY(hot->texture_dim)) return;
+  // Slow path: flush any staged uploads and wait for completion
+  hina_texture_upload_ready(&g_hina_ctx, idx);
+}
+
+// Public API: Explicitly flush all staged uploads
+hina_ticket hina_ctx_flush_uploads(hina_context* ctx)
+{
+  return hina_auto_flush_staged(ctx);
+}
+
+hina_ticket hina_flush_uploads(void)
+{
+  return hina_ctx_flush_uploads(&g_hina_ctx);
+}
+
 // Bind Groups (WebGPU-style descriptor management)
 // Note: hina_desc_type_to_vk() is defined earlier in this file (unified type system)
 // Bind Group Layout Creation
@@ -11814,11 +12230,17 @@ static hina_bind_group hina_ctx_create_bind_group_internal(hina_context* ctx, co
             continue;
           }
           uint16_t buf_slot_idx = hina_id_index(e->buffer.buffer.id);
+          hina_buffer_hot* bhot = HINA_BUF_HOT(buf_slot_idx);
+          // Fast-path: skip atomic check if already marked ready in hot struct
+          if (!HINA_BUFFER_IS_UPLOAD_READY(bhot->config.flags_packed))
+          {
+            hina_buffer_upload_ready(ctx, buf_slot_idx);
+          }
 #ifdef HINA_DEBUG
           hina_debug_validate_buffer_binding(ctx, e->type, e->buffer.buffer, e->buffer.offset, e->buffer.size,
                                              "hina_create_bind_group");
 #endif
-          buffer_infos[buf_idx].buffer = HINA_BUF_HOT(buf_slot_idx)->vk.buffer;
+          buffer_infos[buf_idx].buffer = bhot->vk.buffer;
           buffer_infos[buf_idx].offset = e->buffer.offset;
           buffer_infos[buf_idx].range = e->buffer.size ? e->buffer.size : VK_WHOLE_SIZE;
           w->pBufferInfo = &buffer_infos[buf_idx];
@@ -11835,6 +12257,12 @@ static hina_bind_group hina_ctx_create_bind_group_internal(hina_context* ctx, co
           }
           uint16_t view_idx = hina_id_index(e->view.id);
           hina_texture_view_slot* view_slot = hina_texture_view_slot_get(view_idx);
+          hina_texture_hot* thot = HINA_TEX_HOT(view_slot->parent_idx);
+          // Fast-path: skip atomic check if already marked ready in hot struct
+          if (!HINA_TEXTURE_IS_UPLOAD_READY(thot->texture_dim))
+          {
+            hina_texture_upload_ready(ctx, view_slot->parent_idx);
+          }
           image_infos[img_idx].imageView = view_slot->view;
           image_infos[img_idx].imageLayout = e->type == HINA_DESC_TYPE_STORAGE_IMAGE
                                                ? VK_IMAGE_LAYOUT_GENERAL
@@ -11874,6 +12302,12 @@ static hina_bind_group hina_ctx_create_bind_group_internal(hina_context* ctx, co
           uint16_t view_idx = hina_id_index(e->combined.view.id);
           uint16_t samp_idx = hina_id_index(e->combined.sampler.id);
           hina_texture_view_slot* view_slot = hina_texture_view_slot_get(view_idx);
+          hina_texture_hot* thot = HINA_TEX_HOT(view_slot->parent_idx);
+          // Fast-path: skip atomic check if already marked ready in hot struct
+          if (!HINA_TEXTURE_IS_UPLOAD_READY(thot->texture_dim))
+          {
+            hina_texture_upload_ready(ctx, view_slot->parent_idx);
+          }
           image_infos[img_idx].imageView = view_slot->view;
           image_infos[img_idx].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
           image_infos[img_idx].sampler = HINA_SAMPLER_ENTRY(samp_idx)->sampler;
@@ -11890,6 +12324,12 @@ static hina_bind_group hina_ctx_create_bind_group_internal(hina_context* ctx, co
           }
           uint16_t view_idx = hina_id_index(e->view.id);
           hina_texture_view_slot* view_slot = hina_texture_view_slot_get(view_idx);
+          hina_texture_hot* thot = HINA_TEX_HOT(view_slot->parent_idx);
+          // Fast-path: skip atomic check if already marked ready in hot struct
+          if (!HINA_TEXTURE_IS_UPLOAD_READY(thot->texture_dim))
+          {
+            hina_texture_upload_ready(ctx, view_slot->parent_idx);
+          }
           image_infos[img_idx].imageView = view_slot->view;
           // Use RENDERING_LOCAL_READ for dynamic rendering local read path
           image_infos[img_idx].imageLayout = g_device_caps.has_dynamic_rendering_local_read
@@ -16744,6 +17184,13 @@ void hina_cmd_bind_buffer(hina_cmd* cmd, uint32_t slot, hina_buffer buf, size_t 
   {
     uint16_t idx = hina_id_index(buf.id);
     hina_buffer_hot* bhot = HINA_BUF_HOT(idx);
+#ifdef HINA_DEBUG
+    if (!hina_buffer_upload_ready(cmd->ctx, idx))
+    {
+      HINA_LOGW(cmd->ctx, "hina_cmd_bind_buffer: buffer upload not ready (slot %u)", idx);
+      return;
+    }
+#endif
     HINA_ASSERTF(HINA_BUFFER_GET_OWNER(bhot->config.flags_packed) == cmd->family_idx,
                  "hina_cmd_bind_buffer: buffer owned by queue family %u but used on queue family %u - use hina_cmd_acquire_buffer",
                  HINA_BUFFER_GET_OWNER(bhot->config.flags_packed), cmd->family_idx);
@@ -16779,6 +17226,13 @@ void hina_cmd_bind_storage_image(hina_cmd* cmd, uint32_t slot, hina_texture_view
     uint16_t view_idx = hina_id_index(view.id);
     hina_texture_view_slot* vs = hina_texture_view_slot_get(view_idx);
     hina_texture_hot* thot = HINA_TEX_HOT(vs->parent_idx);
+#ifdef HINA_DEBUG
+    if (!hina_texture_upload_ready(cmd->ctx, vs->parent_idx))
+    {
+      HINA_LOGW(cmd->ctx, "hina_cmd_bind_storage_image: texture upload not ready (slot %u)", vs->parent_idx);
+      return;
+    }
+#endif
     HINA_ASSERTF(thot->owning_family == cmd->family_idx,
                  "hina_cmd_bind_storage_image: texture owned by queue family %u but used on queue family %u - use hina_cmd_acquire_texture",
                  thot->owning_family, cmd->family_idx);
@@ -17977,6 +18431,11 @@ void hina_cmd_apply_vertex_input(hina_cmd* cmd, const hina_vertex_input* b)
       {
         uint16_t idx = hina_id_index(b->vertex_buffers[i].id);
         hina_buffer_hot* bhot = HINA_BUF_HOT(idx);
+        // Fast-path: skip atomic check if already marked ready in hot struct
+        if (!HINA_BUFFER_IS_UPLOAD_READY(bhot->config.flags_packed))
+        {
+          hina_buffer_upload_ready(cmd->ctx, idx);
+        }
         // Assert vertex buffer has VERTEX_BUFFER usage flag
         HINA_ASSERTF((bhot->config.usage & VK_BUFFER_USAGE_VERTEX_BUFFER_BIT) != 0,
                      "hina_cmd_apply_vertex_input: vertex_buffers[%u] lacks VERTEX_BUFFER usage flag - create with HINA_BUFFER_USAGE_VERTEX_BIT",
@@ -17999,6 +18458,11 @@ void hina_cmd_apply_vertex_input(hina_cmd* cmd, const hina_vertex_input* b)
     {
       uint16_t idx = hina_id_index(b->index_buffer.id);
       hina_buffer_hot* bhot = HINA_BUF_HOT(idx);
+      // Fast-path: skip atomic check if already marked ready in hot struct
+      if (!HINA_BUFFER_IS_UPLOAD_READY(bhot->config.flags_packed))
+      {
+        hina_buffer_upload_ready(cmd->ctx, idx);
+      }
       // Assert index buffer has INDEX_BUFFER usage flag
       HINA_ASSERTF((bhot->config.usage & VK_BUFFER_USAGE_INDEX_BUFFER_BIT) != 0,
                    "hina_cmd_apply_vertex_input: index_buffer lacks INDEX_BUFFER usage flag - create with HINA_BUFFER_USAGE_INDEX_BIT")
@@ -18092,11 +18556,18 @@ void hina_cmd_draw_indexed_indirect(hina_cmd* cmd, hina_buffer indirect_buf, uin
   // Validate and get buffer in one operation (avoids double index extraction)
   hina_buffer_slot* buf_slot = hina_buffer_slot_get_valid(indirect_buf);
   HINA_ASSERT(buf_slot);
+  uint16_t buf_idx = hina_id_index(indirect_buf.id);
+  hina_buffer_hot* bhot = HINA_BUF_HOT(buf_idx);
+  // Fast-path: skip atomic check if already marked ready in hot struct
+  if (!HINA_BUFFER_IS_UPLOAD_READY(bhot->config.flags_packed))
+  {
+    hina_buffer_upload_ready(cmd->ctx, buf_idx);
+  }
   // Assert queue ownership (exclusive sharing mode)
   // Also allow pending acquire (deferred ownership update for multi-threaded recording)
   HINA_ASSERTF(
     HINA_BUFFER_GET_OWNER(buf_slot->config.flags_packed) == cmd->family_idx || hina_debug_has_pending_acquire(cmd,
-      hina_id_index(indirect_buf.id)),
+      buf_idx),
     "hina_cmd_draw_indexed_indirect: indirect buffer owned by queue family %u but used on queue family %u - use hina_cmd_acquire_buffer",
     HINA_BUFFER_GET_OWNER(buf_slot->config.flags_packed), cmd->family_idx);
   hina_validate_bindings(cmd, "hina_cmd_draw_indexed_indirect");
@@ -18220,11 +18691,18 @@ void hina_cmd_dispatch_indirect(hina_cmd* cmd, hina_buffer indirect_buf, uint64_
   // Validate and get buffer in one operation (avoids double index extraction)
   hina_buffer_slot* buf_slot = hina_buffer_slot_get_valid(indirect_buf);
   HINA_ASSERT(buf_slot);
+  uint16_t buf_idx = hina_id_index(indirect_buf.id);
+  hina_buffer_hot* bhot = HINA_BUF_HOT(buf_idx);
+  // Fast-path: skip atomic check if already marked ready in hot struct
+  if (!HINA_BUFFER_IS_UPLOAD_READY(bhot->config.flags_packed))
+  {
+    hina_buffer_upload_ready(cmd->ctx, buf_idx);
+  }
   // Assert queue ownership (exclusive sharing mode)
   // Also allow pending acquire (deferred ownership update for multi-threaded recording)
   HINA_ASSERTF(
     HINA_BUFFER_GET_OWNER(buf_slot->config.flags_packed) == cmd->family_idx || hina_debug_has_pending_acquire(cmd,
-      hina_id_index(indirect_buf.id)),
+      buf_idx),
     "hina_cmd_dispatch_indirect: indirect buffer owned by queue family %u but used on queue family %u - use hina_cmd_acquire_buffer",
     HINA_BUFFER_GET_OWNER(buf_slot->config.flags_packed), cmd->family_idx);
   hina_validate_bindings(cmd, "hina_cmd_dispatch_indirect");
@@ -18503,6 +18981,119 @@ static void hina_poll_lane_completions(hina_context* ctx)
       hina_lane_fence_poll(ctx, &lanes->lanes[i]);
     }
   }
+}
+
+static bool hina_ticket_is_complete(hina_context* ctx, hina_ticket ticket)
+{
+  if (!ticket) return true;
+  hina_poll_lane_completions(ctx);
+  if (vkWaitSemaphores)
+  {
+    // Timeline path: tickets are encoded with lane index
+    uint8_t lane_idx = hina_ticket_lane(ticket);
+    uint64_t value = hina_ticket_value(ticket);
+    if (lane_idx >= ctx->core.device->queue.lanes.lane_count) return false;
+    return hina_lane_completed_value(ctx, lane_idx) >= value;
+  }
+  // Non-timeline path: also poll staging fence to update last_completed_ticket
+  hina_staging_context* sc = &ctx->staging;
+  if (sc->last_submit_ticket > 0 && hina_atomic_load32(&ctx->core.device->sync.fence.staging_busy))
+  {
+    VkResult status = vkGetFenceStatus(ctx->core.device->core.device, ctx->core.device->sync.fence.staging);
+    if (status == VK_SUCCESS)
+    {
+      hina_atomic_store32(&ctx->core.device->sync.fence.staging_busy, 0);
+      uint64_t prev = (uint64_t)hina_atomic_load64(&ctx->core.device->sync.last_completed_ticket);
+      if (sc->last_submit_ticket > prev)
+      {
+        hina_atomic_store64(&ctx->core.device->sync.last_completed_ticket, (int64_t)sc->last_submit_ticket);
+      }
+    }
+  }
+  uint64_t completed = (uint64_t)hina_atomic_load64(&ctx->core.device->sync.last_completed_ticket);
+  return ticket <= completed;
+}
+
+// Simplified upload ready logic: just check bit, flush, wait for global ticket, set bit
+// No per-resource state tracking - uses global last_submit_ticket from staging context
+static bool hina_buffer_upload_ready(hina_context* ctx, uint16_t idx)
+{
+  hina_buffer_hot* hot = HINA_BUF_HOT(idx);
+
+  // Fast path: already marked ready
+  if (HINA_BUFFER_IS_UPLOAD_READY(hot->config.flags_packed))
+  {
+    return true;
+  }
+
+  // Slow path: flush any pending staged uploads
+  // IMPORTANT: Don't flush if we're currently recording (pending_cmd != NULL)
+  // as that would end the command buffer mid-recording and cause validation errors
+  hina_staging_context* sc = &ctx->staging;
+  bool has_staged = sc->staged_buffers.count > 0 || sc->staged_textures.count > 0;
+  bool is_recording = sc->pending_cmd != NULL || sc->gfx_pending_cmd != NULL;
+  if (has_staged && !is_recording)
+  {
+    hina_auto_flush_staged(ctx);
+  }
+
+  // Wait for all pending uploads to complete (both transfer and graphics queues)
+  // Only wait if not currently recording (can't wait on ourselves)
+  if (!is_recording)
+  {
+    if (sc->last_submit_ticket > 0)
+    {
+      hina_staging_ctx_wait(ctx, sc->last_submit_ticket);
+    }
+    if (sc->last_gfx_submit_ticket > 0)
+    {
+      hina_staging_ctx_wait(ctx, sc->last_gfx_submit_ticket);
+    }
+    // Mark as ready only if we actually waited
+    hot->config.flags_packed |= HINA_BUFFER_UPLOAD_READY_BIT;
+  }
+  // If still recording, the resource isn't ready yet but will be after frame submit
+  return !is_recording;
+}
+
+static bool hina_texture_upload_ready(hina_context* ctx, uint16_t idx)
+{
+  hina_texture_hot* hot = HINA_TEX_HOT(idx);
+
+  // Fast path: already marked ready
+  if (HINA_TEXTURE_IS_UPLOAD_READY(hot->texture_dim))
+  {
+    return true;
+  }
+
+  // Slow path: flush any pending staged uploads
+  // IMPORTANT: Don't flush if we're currently recording (pending_cmd != NULL)
+  // as that would end the command buffer mid-recording and cause validation errors
+  hina_staging_context* sc = &ctx->staging;
+  bool has_staged = sc->staged_buffers.count > 0 || sc->staged_textures.count > 0;
+  bool is_recording = sc->pending_cmd != NULL || sc->gfx_pending_cmd != NULL;
+  if (has_staged && !is_recording)
+  {
+    hina_auto_flush_staged(ctx);
+  }
+
+  // Wait for all pending uploads to complete (both transfer and graphics queues)
+  // Only wait if not currently recording (can't wait on ourselves)
+  if (!is_recording)
+  {
+    if (sc->last_submit_ticket > 0)
+    {
+      hina_staging_ctx_wait(ctx, sc->last_submit_ticket);
+    }
+    if (sc->last_gfx_submit_ticket > 0)
+    {
+      hina_staging_ctx_wait(ctx, sc->last_gfx_submit_ticket);
+    }
+    // Mark as ready only if we actually waited
+    hot->texture_dim |= HINA_TEXTURE_UPLOAD_READY_BIT;
+  }
+  // If still recording, the resource isn't ready yet but will be after frame submit
+  return !is_recording;
 }
 
 static void hina_flush_all_lane_zombies(hina_context* ctx)
@@ -19369,6 +19960,9 @@ void hina_ctx_frame_end(hina_context* ctx)
   HINA_ZONE_N("frame_end");
   HINA_ASSERTF(hina_atomic_load32(&ctx->frame.frame_in_progress) != 0 || !ctx->frame.explicit_frame_lifecycle,
                "hina_ctx_frame_end: called without matching hina_frame_begin");
+  // Auto-flush any staged uploads before frame submission
+  // This ensures all created resources are uploaded before rendering
+  hina_auto_flush_staged(ctx);
   hina_frame_state* fs = &ctx->submit;
   hina_device* dev = ctx->core.device;
   bool has_timeline = vkWaitSemaphores != NULL;

@@ -18,6 +18,8 @@ namespace Im3dHelper
   void EndFrame(uint64_t featureHandle, Renderer& renderer)
   {
     Im3d::EndFrame();
+    // Early return if feature handle is invalid (Im3D feature not created)
+    if (featureHandle == 0) return;
     const Im3d::DrawList* lists = Im3d::GetDrawLists();
     const uint32_t count = Im3d::GetDrawListCount();
     auto* p = static_cast<Im3dRenderFeature::Parameters*>(renderer.GetFeatureParameterBlockPtr(featureHandle));

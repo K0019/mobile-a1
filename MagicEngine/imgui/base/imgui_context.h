@@ -71,6 +71,9 @@ namespace editor
 
     bool wantTextInput() const;
 
+    // Get the render feature handle for the ImGui feature
+    uint64_t GetRenderFeatureHandle() const { return renderFeatureHandle_; }
+
   private:
     void setupImGuiContext(const ImGuiConfig& config);
 

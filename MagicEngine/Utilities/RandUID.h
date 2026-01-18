@@ -29,7 +29,13 @@ All rights reserved.
 #include <string>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#ifndef __ANDROID__
 #include <boost/type_index.hpp>
+#else
+#include <typeinfo>
+#include <cxxabi.h>  // For abi::__cxa_demangle
+#include <cstdlib>   // For free()
+#endif
 
 namespace util {
 
@@ -83,10 +89,26 @@ namespace util {
 	template<typename T>
 	uint64_t ConsistentHash()
 	{
+#ifndef __ANDROID__
 		std::string prettyName{ boost::typeindex::type_id<T>().pretty_name() };
 #ifdef GLFW
 		// MSVC appends a class/struct/whatever to the start. Remove it to get a consistent name
 		prettyName.erase(0, prettyName.find(' ') + 1);
+#endif
+#else
+		// On Android (Clang), demangle the type name to match Desktop format
+		// typeid(T).name() returns mangled names like "15SpriteComponent"
+		// We need demangled names like "SpriteComponent" to match Desktop hashes
+		int status = 0;
+		char* demangled = abi::__cxa_demangle(typeid(T).name(), nullptr, nullptr, &status);
+		std::string prettyName;
+		if (status == 0 && demangled) {
+			prettyName = demangled;
+			free(demangled);
+		} else {
+			// Fallback to mangled name if demangling fails
+			prettyName = typeid(T).name();
+		}
 #endif
 		return GenHash(prettyName);
 	}

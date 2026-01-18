@@ -14,7 +14,7 @@
 Compresses a texture with compressonator.
 The only output is .ktx2 right now.
 
-All content © 2025 DigiPen Institute of Technology Singapore.
+All content ï¿½ 2025 DigiPen Institute of Technology Singapore.
 All rights reserved.
 */
 /******************************************************************************/
@@ -48,6 +48,7 @@ namespace
     {
         switch (fmt)
         {
+        case compiler::TextureCompressionFormat::UNCOMPRESSED: return CMP_FORMAT_RGBA_8888;
         case compiler::TextureCompressionFormat::BC1: return CMP_FORMAT_BC1;
         case compiler::TextureCompressionFormat::BC3: return CMP_FORMAT_BC3;
         case compiler::TextureCompressionFormat::BC4: return CMP_FORMAT_BC4;
@@ -55,7 +56,6 @@ namespace
         case compiler::TextureCompressionFormat::BC7: return CMP_FORMAT_BC7;
         case compiler::TextureCompressionFormat::ASTC: return CMP_FORMAT_ASTC;
         case compiler::TextureCompressionFormat::ETC: return CMP_FORMAT_ETC_RGB;
-            //uncompressed?
         default: return CMP_FORMAT_BC7;
         }
     }
@@ -64,6 +64,8 @@ namespace
     {
         switch (fmt)
         {
+        case compiler::TextureCompressionFormat::UNCOMPRESSED: return isSRGB ? VK_FORMAT_R8G8B8A8_SRGB : VK_FORMAT_R8G8B8A8_UNORM;
+
         case compiler::TextureCompressionFormat::BC1: return isSRGB ? VK_FORMAT_BC1_RGB_SRGB_BLOCK : VK_FORMAT_BC1_RGB_UNORM_BLOCK;
 
         case compiler::TextureCompressionFormat::BC3: return isSRGB ? VK_FORMAT_BC3_SRGB_BLOCK : VK_FORMAT_BC3_UNORM_BLOCK;

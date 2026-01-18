@@ -33,15 +33,7 @@ private:
     gfx::Cmd* m_cmd = nullptr;
 };
 
-/**
- * @brief Surface pre-transform for mobile optimization.
- */
-enum class SurfaceTransform {
-    Identity = 0,
-    Rotate90 = 1,
-    Rotate180 = 2,
-    Rotate270 = 3,
-};
+// SurfaceTransform is defined in interface.h (included above)
 
 /**
  * @brief Minimal hina-vk context wrapper.

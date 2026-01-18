@@ -25,6 +25,7 @@ All rights reserved.
 */
 /******************************************************************************/
 #include "Engine/Engine.h"
+#include "renderer/frame_data.h"
 #include "Game/GameSystems.h"
 #include "Engine/Resources/ResourceManager.h"
 
@@ -67,7 +68,7 @@ All rights reserved.
 
 #include "ECS/TestRegister.h"
 
-void MagicEngine::Init(Context& context)
+void MagicEngine::Init(Context& context, bool startInGameMode)
 {
 	CrashHandler::SetupCrashHandler(); // DO NOT REMOVE THIS LINE EVER
 
@@ -134,13 +135,14 @@ void MagicEngine::Init(Context& context)
 
 	// Load ecs systems
 	LoadPermanentSystems();
-#ifdef IMGUI_ENABLED
-	ST<GameSystemsManager>::Get()->Init(GAMESTATE::EDITOR);
-#else
-	ST<GameSystemsManager>::Get()->Init(GAMESTATE::IN_GAME);
-	//ST<SceneManager>::Get()->LoadScene("scenes/defaultscene.scene");
-	ST<SceneManager>::Get()->ResetAndLoadPrevOpenScenes();
-#endif
+
+	// Initialize game state - application controls whether to start in game mode
+	if (startInGameMode) {
+		ST<GameSystemsManager>::Get()->Init(GAMESTATE::IN_GAME);
+		ST<SceneManager>::Get()->ResetAndLoadPrevOpenScenes();
+	} else {
+		ST<GameSystemsManager>::Get()->Init(GAMESTATE::EDITOR);
+	}
 
 	auto timeafterwindow = std::chrono::high_resolution_clock::now();
 	CONSOLE_LOG(LEVEL_INFO) << "Initialization: " << std::chrono::duration_cast<std::chrono::milliseconds>(timeafterwindow - windowCreate).count() << "ms";
@@ -155,14 +157,14 @@ void MagicEngine::Init(Context& context)
 
 }
 
-void MagicEngine::ExecuteFrame(FrameData& frameData)
+void MagicEngine::ExecuteFrame(RenderFrameData& frameData)
 {
 	// Update tracking of framerate and frametime
 	GameTime::WaitUntilNextFrame();
 
 	// Clear the events of the previous frame
 	ST<EventsQueue>::Get()->NewFrame();
-	
+
 	ST<MagicInput>::Get()->NewFrame();
 	//GamepadInput::PollInput();
 
@@ -219,6 +221,16 @@ void MagicEngine::ExecuteFrame(FrameData& frameData)
 	// Game window draw
 	if (!ST<GraphicsWindow>::Get()->GetIsWindowMinimized())
 		ExecuteRenderSystems(); // Run ecs systems that render the world to the graphics pipeline
+
+	// Ensure primary view exists and has basic frame info
+	FrameData& primaryView = EnsureView(frameData, 0);
+	primaryView.deltaTime = GameTime::FixedDt();
+	primaryView.screenWidth = static_cast<uint32_t>(Core::Display().GetWidth());
+	primaryView.screenHeight = static_cast<uint32_t>(Core::Display().GetHeight());
+	primaryView.viewportWidth = static_cast<float>(primaryView.screenWidth);
+	primaryView.viewportHeight = static_cast<float>(primaryView.screenHeight);
+
+	// EndFrame populates camera matrices for ALL views from GraphicsMain::frameData (set by SetViewCamera)
 	ST<GraphicsMain>::Get()->EndFrame(&frameData);
 
 #if defined(__ANDROID__)

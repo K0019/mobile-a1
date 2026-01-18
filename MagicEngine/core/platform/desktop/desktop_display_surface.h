@@ -5,7 +5,7 @@
 #ifdef _WIN32
 #  define GLFW_EXPOSE_NATIVE_WIN32
 #elif defined(__linux__)
-#  if defined(WAYLAND) 
+#  if defined(WAYLAND)
 #    define GLFW_EXPOSE_NATIVE_WAYLAND
 #  else
 #    define GLFW_EXPOSE_NATIVE_X11
@@ -26,6 +26,15 @@
 
 namespace Core {
 
+	// Forward declaration
+	class DesktopInputSystem;
+
+	// Shared user data for GLFW callbacks - prevents multiple systems from overwriting each other
+	struct GlfwWindowUserData {
+		class DesktopDisplaySurface* displaySurface = nullptr;
+		DesktopInputSystem* inputSystem = nullptr;
+	};
+
 	class DesktopDisplaySurface {
 	public:
 		DesktopDisplaySurface() = default;
@@ -45,11 +54,16 @@ namespace Core {
 			m_height = height;
 			m_isValid = true;
 
-			glfwSetWindowUserPointer(m_window, this);
+			// Use shared user data struct to allow multiple systems to coexist
+			m_userData.displaySurface = this;
+			glfwSetWindowUserPointer(m_window, &m_userData);
 			glfwSetFramebufferSizeCallback(m_window, FramebufferResizeCallback);
 
 			return true;
 		}
+
+		// Get the shared user data for other systems to register themselves
+		GlfwWindowUserData* GetUserData() { return &m_userData; }
 
 		void Shutdown() {
 			if (m_window) {
@@ -142,10 +156,12 @@ namespace Core {
 		int m_width = 0;
 		int m_height = 0;
 		bool m_isValid = false;
+		GlfwWindowUserData m_userData;
 
 		static void FramebufferResizeCallback(GLFWwindow* window, int width, int height) {
-			auto* surface = static_cast<DesktopDisplaySurface*>(glfwGetWindowUserPointer(window));
-			if (surface) {
+			auto* userData = static_cast<GlfwWindowUserData*>(glfwGetWindowUserPointer(window));
+			if (userData && userData->displaySurface) {
+				auto* surface = userData->displaySurface;
 				surface->m_width = width;
 				surface->m_height = height;
 

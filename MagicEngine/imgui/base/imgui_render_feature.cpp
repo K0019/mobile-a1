@@ -69,27 +69,27 @@ FragOut FSMain(Varyings in) {
       .flags = static_cast<hina_buffer_flags>(gfx::BufferUsage::Index | gfx::BufferUsage::HostVisible | gfx::BufferUsage::HostCoherent)
     };
 
-    // ImGui renders directly to swapchain - it OWNS the swapchain rendering
-    // Scene is displayed via VIEW_OUTPUT texture in an ImGui viewport
+    // ImGui renders to VIEW_OUTPUT (intermediate texture), then FinalBlit copies to swapchain
+    // ImGui draws the entire editor UI from scratch - it SAMPLES the scene's VIEW_OUTPUT for viewport windows
+    // The editor view's VIEW_OUTPUT is separate from the scene view's VIEW_OUTPUT
     PassDeclarationInfo passInfo;
     passInfo.framebufferDebugName = "ImGuiOverlay";
     passInfo.colorAttachments[0] = {
-      .textureName = RenderResources::SWAPCHAIN_IMAGE,
-      .loadOp = gfx::LoadOp::Clear,  // ImGui clears and owns the swapchain
+      .textureName = RenderResources::VIEW_OUTPUT,
+      .loadOp = gfx::LoadOp::Clear,  // Clear - ImGui draws entire UI from scratch
       .storeOp = gfx::StoreOp::Store,
-      .clearColor = {0.1f, 0.1f, 0.1f, 1.0f}  // Dark gray background
+      .clearColor = {0.1f, 0.1f, 0.1f, 1.0f}  // Dark gray background for editor
     };
 
-    // ImGui rendering pass - renders directly to swapchain
-    // Scene viewport display uses VIEW_OUTPUT texture populated by ResolveViewOutput pass
-    // Priority 700 (Present) ensures it runs after all scene rendering
+    // ImGui rendering pass - draws editor UI to VIEW_OUTPUT
+    // Scene viewports inside ImGui SAMPLE the scene view's VIEW_OUTPUT texture
+    // Priority 650 ensures it runs after scene's ResolveViewOutput (640) but before FinalBlit (700)
     passBuilder.CreatePass().DeclareTransientResource("ImGuiVertexBuffer", vertexDesc).
                 DeclareTransientResource("ImGuiIndexBuffer", indexDesc).
-                UseResource(RenderResources::SWAPCHAIN_IMAGE, AccessType::ReadWrite).
+                UseResource(RenderResources::VIEW_OUTPUT, AccessType::ReadWrite).
                 UseResource("ImGuiVertexBuffer", AccessType::ReadWrite).
                 UseResource("ImGuiIndexBuffer", AccessType::ReadWrite).
-                SetPriority(internal::RenderPassBuilder::PassPriority::Present).
-                ExecuteAfter("ResolveViewOutput").  // Run after scene is copied to VIEW_OUTPUT
+                SetPriority(static_cast<internal::RenderPassBuilder::PassPriority>(650)).
                 AddGraphicsPass("ImGuiRender", passInfo, [this](const internal::ExecutionContext& context)
                 {
                   RenderImGui(context);
@@ -290,6 +290,9 @@ FragOut FSMain(Varyings in) {
         else if (textureId & IMGUI_VIEWOUTPUT_BIT) {
           const ViewOutput* vo = reinterpret_cast<const ViewOutput*>(textureId & ~IMGUI_VIEWOUTPUT_BIT);
           if (vo && vo->valid) {
+            // Ensure the ViewOutput texture is in SHADER_READ layout before sampling
+            // This is needed because the texture may have been left in TRANSFER_SRC after ResolveViewOutput
+            hina_cmd_transition_texture(cmd.get(), vo->texture, HINA_TEXSTATE_SHADER_READ);
             texView = vo->view;
             sampler = vo->sampler;
           }
@@ -299,6 +302,7 @@ FragOut FSMain(Varyings in) {
           gfx::TextureHandle h;
           h.index = static_cast<uint16_t>(textureId & 0xFFFF);
           h.generation = static_cast<uint16_t>((textureId >> 16) & 0xFFFF);
+          // getTextureView automatically waits for texture upload to complete
           texView = gfxRenderer->getMaterialSystem().getTextureView(h);
         }
 

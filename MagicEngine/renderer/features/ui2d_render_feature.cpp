@@ -259,6 +259,7 @@ void Ui2DRenderFeature::RenderUi(const internal::ExecutionContext& context)
     gfx::TextureHandle h;
     h.index = static_cast<uint16_t>(textureId & 0xFFFF);
     h.generation = static_cast<uint16_t>((textureId >> 16) & 0xFFFF);
+    // getTextureView automatically waits for texture upload to complete
     texView = gfxRenderer->getMaterialSystem().getTextureView(h);
 
     // Fallback to default white texture if invalid

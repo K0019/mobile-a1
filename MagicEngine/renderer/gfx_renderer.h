@@ -395,6 +395,12 @@ public:
     void unregisterFeature(IRenderFeature* feature);
 
     /**
+     * @brief Get the feature mask for a registered feature.
+     * @return The feature's bit mask, or 0 if not registered.
+     */
+    FeatureMask getFeatureMask(IRenderFeature* feature) const;
+
+    /**
      * @brief Get access to the HinaContext for features that need vk::IContext.
      */
     HinaContext* getHinaContext() const { return m_hinaContext.get(); }

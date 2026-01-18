@@ -189,12 +189,73 @@ void GfxMaterialSystem::freeTextureEntry(uint16_t index) {
     m_textureCount--;
 }
 
+// Helper to check if format is mobile-only (ETC2/EAC/ASTC - not supported on desktop GPUs)
+static bool isMobileOnlyFormat(hina_format fmt) {
+    switch (fmt) {
+        // ETC2 formats
+        case HINA_FORMAT_ETC2_R8G8B8_UNORM_BLOCK:
+        case HINA_FORMAT_ETC2_R8G8B8_SRGB_BLOCK:
+        case HINA_FORMAT_ETC2_R8G8B8A1_UNORM_BLOCK:
+        case HINA_FORMAT_ETC2_R8G8B8A1_SRGB_BLOCK:
+        case HINA_FORMAT_ETC2_R8G8B8A8_UNORM_BLOCK:
+        case HINA_FORMAT_ETC2_R8G8B8A8_SRGB_BLOCK:
+        // EAC formats
+        case HINA_FORMAT_EAC_R11_UNORM_BLOCK:
+        case HINA_FORMAT_EAC_R11_SNORM_BLOCK:
+        case HINA_FORMAT_EAC_R11G11_UNORM_BLOCK:
+        case HINA_FORMAT_EAC_R11G11_SNORM_BLOCK:
+        // ASTC formats
+        case HINA_FORMAT_ASTC_4x4_UNORM_BLOCK:
+        case HINA_FORMAT_ASTC_4x4_SRGB_BLOCK:
+        case HINA_FORMAT_ASTC_5x4_UNORM_BLOCK:
+        case HINA_FORMAT_ASTC_5x4_SRGB_BLOCK:
+        case HINA_FORMAT_ASTC_5x5_UNORM_BLOCK:
+        case HINA_FORMAT_ASTC_5x5_SRGB_BLOCK:
+        case HINA_FORMAT_ASTC_6x5_UNORM_BLOCK:
+        case HINA_FORMAT_ASTC_6x5_SRGB_BLOCK:
+        case HINA_FORMAT_ASTC_6x6_UNORM_BLOCK:
+        case HINA_FORMAT_ASTC_6x6_SRGB_BLOCK:
+        case HINA_FORMAT_ASTC_8x5_UNORM_BLOCK:
+        case HINA_FORMAT_ASTC_8x5_SRGB_BLOCK:
+        case HINA_FORMAT_ASTC_8x6_UNORM_BLOCK:
+        case HINA_FORMAT_ASTC_8x6_SRGB_BLOCK:
+        case HINA_FORMAT_ASTC_8x8_UNORM_BLOCK:
+        case HINA_FORMAT_ASTC_8x8_SRGB_BLOCK:
+        case HINA_FORMAT_ASTC_10x5_UNORM_BLOCK:
+        case HINA_FORMAT_ASTC_10x5_SRGB_BLOCK:
+        case HINA_FORMAT_ASTC_10x6_UNORM_BLOCK:
+        case HINA_FORMAT_ASTC_10x6_SRGB_BLOCK:
+        case HINA_FORMAT_ASTC_10x8_UNORM_BLOCK:
+        case HINA_FORMAT_ASTC_10x8_SRGB_BLOCK:
+        case HINA_FORMAT_ASTC_10x10_UNORM_BLOCK:
+        case HINA_FORMAT_ASTC_10x10_SRGB_BLOCK:
+        case HINA_FORMAT_ASTC_12x10_UNORM_BLOCK:
+        case HINA_FORMAT_ASTC_12x10_SRGB_BLOCK:
+        case HINA_FORMAT_ASTC_12x12_UNORM_BLOCK:
+        case HINA_FORMAT_ASTC_12x12_SRGB_BLOCK:
+            return true;
+        default:
+            return false;
+    }
+}
+
 TextureHandle GfxMaterialSystem::createTexture(const TextureCreateInfo& info) {
     if (!info.data || info.width == 0 || info.height == 0) {
         LOG_ERROR("[GfxMaterialSystem] Invalid texture create info: data={}, width={}, height={}",
             info.data ? "valid" : "null", info.width, info.height);
         return TextureHandle{};
     }
+
+    // Check for mobile-only formats on desktop - these will crash the driver
+    // Note: __linux__ is also defined on Android, so we explicitly exclude __ANDROID__
+#if (defined(_WIN32) || defined(__linux__)) && !defined(__ANDROID__)
+    if (isMobileOnlyFormat(info.format)) {
+        LOG_WARNING("[GfxMaterialSystem] Mobile-only format {} not supported on desktop, using fallback",
+            static_cast<int>(info.format));
+        // Return invalid handle - caller should use default texture
+        return TextureHandle{};
+    }
+#endif
 
     TextureHandle handle = allocateTextureEntry();
     if (!handle.isValid()) {
@@ -278,7 +339,13 @@ TextureView GfxMaterialSystem::getTextureView(TextureHandle handle) const {
     if (!isTextureValid(handle)) {
         return {};
     }
-    return m_textures[handle.index].view;
+    const TextureEntry& entry = m_textures[handle.index];
+    // Always wait for texture upload to complete before returning the view
+    // This prevents using textures that are still in UNDEFINED layout
+    if (hina_texture_is_valid(entry.texture)) {
+        hina_wait_texture(entry.texture);
+    }
+    return entry.view;
 }
 
 // ============================================================================

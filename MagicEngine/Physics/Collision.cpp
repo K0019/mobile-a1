@@ -68,20 +68,16 @@ namespace physics {
 	}
 
 
-	// TODO could not get this to compile. need to revisit later.
-	/*const char* BPLayerInterfaceImpl::GetBroadPhaseLayerName(JPH::BroadPhaseLayer inLayer) const
+	const char* BPLayerInterfaceImpl::GetBroadPhaseLayerName(JPH::BroadPhaseLayer inLayer) const
 	{
-		switch (static_cast<JPH::BroadPhaseLayer::Type>(inLayer))
-		{
-		case static_cast<JPH::BroadPhaseLayer::Type>(BroadPhaseLayers::NON_MOVING):
+		if (inLayer == BroadPhaseLayers::NON_MOVING)
 			return "NON_MOVING";
-		case static_cast<JPH::BroadPhaseLayer::Type>(BroadPhaseLayers::MOVING):
+		if (inLayer == BroadPhaseLayers::MOVING)
 			return "MOVING";
-		default:
-			JPH_ASSERT(false);
-			return "INVALID";
-		}
-	}*/
+		if (inLayer == BroadPhaseLayers::NON_COLLIDABLE)
+			return "NON_COLLIDABLE";
+		return "UNKNOWN";
+	}
 
 	bool ObjectVsBroadPhaseLayerFilterImpl::ShouldCollide(JPH::ObjectLayer inLayer1, JPH::BroadPhaseLayer inLayer2) const
 	{

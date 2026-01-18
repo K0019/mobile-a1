@@ -274,12 +274,15 @@ endif()
 set_target_properties(hina-vk PROPERTIES LINKER_LANGUAGE CXX)
 
 # Enable LTO/IPO for Release builds when supported
-include(CheckIPOSupported)
-check_ipo_supported(RESULT HINA_IPO_SUPPORTED OUTPUT HINA_IPO_ERROR)
-if (HINA_IPO_SUPPORTED)
-    set_property(TARGET hina-vk PROPERTY INTERPROCEDURAL_OPTIMIZATION_RELEASE TRUE)
-else()
-    message(STATUS "LTO disabled: ${HINA_IPO_ERROR}")
+# Skip on Android - NDK doesn't have gold linker which check_ipo_supported requires
+if(NOT ANDROID)
+    include(CheckIPOSupported)
+    check_ipo_supported(RESULT HINA_IPO_SUPPORTED OUTPUT HINA_IPO_ERROR)
+    if (HINA_IPO_SUPPORTED)
+        set_property(TARGET hina-vk PROPERTY INTERPROCEDURAL_OPTIMIZATION_RELEASE TRUE)
+    else()
+        message(STATUS "LTO disabled: ${HINA_IPO_ERROR}")
+    endif()
 endif()
 
 target_compile_definitions(hina-vk PRIVATE VOLK_STATIC_DEFINES)
