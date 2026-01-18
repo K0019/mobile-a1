@@ -73,7 +73,7 @@ namespace navmesh
 		\return 
 			Data of the path.
 		*//******************************************************************/
-		NavMeshPath FindPath();
+		NavMeshPath FindPath(const Vec3& targetPos);
 
 		/*****************************************************************//*!
 		\brief

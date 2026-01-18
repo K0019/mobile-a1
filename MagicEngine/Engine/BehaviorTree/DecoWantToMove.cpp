@@ -26,6 +26,7 @@ NODE_STATUS D_WantToMove::OnUpdate(ecs::EntityHandle entity)
     Vec3 displacement{ playerPos.x - enemyPos.x, 0.f, playerPos.z - enemyPos.z };
     if (displacement.LengthSqr() <= enemyComp->combatRange * enemyComp->combatRange)
     {
+        characterComp->SetMovementVector(Vec2{ 0.f, 0.f });
         agentComp->SetActive(false);
         return NODE_STATUS::FAILURE;
     }

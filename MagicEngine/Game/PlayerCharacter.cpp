@@ -190,7 +190,9 @@ void PlayerMovementComponentSystem::UpdatePlayerMovementComponent(PlayerMovement
 	if (inputInstance->GetIsPressed(KEY::R))
 		comp.UltimateAttack();
 
+	float offset{ 3.f };
 	characterComp->SetMovementVector(movement);
+	characterComp->SetCenter(Vec3(movement.x / offset, characterComp->center.y, movement.y / offset));
 
 	if (inputInstance->GetIsDown(KEY::LSHIFT) || EventsReader<Events::GameActionDodge>{}.ExtractEvent())
 		characterComp->Dodge(movement);

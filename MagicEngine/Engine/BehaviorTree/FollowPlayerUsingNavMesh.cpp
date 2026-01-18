@@ -1,14 +1,16 @@
 #include "FollowPlayerUsingNavMesh.h"
 #include "BehaviourTreeFactory.h"
 #include "Game/EnemyCharacter.h"
-#include "Engine/NavMeshAgent.h"
 #include "Game/Character.h"
 #include "Graphics/AnimationComponent.h"
 
 
 void L_FollowPlayerUsingNavMesh::OnInitialize()
 {
-    //reset pos
+    //reset pos;
+    pathUpdateDuration = 0.05;
+    timer = pathUpdateDuration;
+    currentCornerIndex = 0;
 }
 
 NODE_STATUS L_FollowPlayerUsingNavMesh::OnUpdate([[maybe_unused]] ecs::EntityHandle entity)
@@ -28,7 +30,31 @@ NODE_STATUS L_FollowPlayerUsingNavMesh::OnUpdate([[maybe_unused]] ecs::EntityHan
     Vec3 playerPos = player->GetTransform().GetWorldPosition();
 
     // move towards player
-    agentComp->SetTargetPos(playerPos);
+    timer += GameTime::Dt();
+    if (timer >= pathUpdateDuration)
+    {
+        timer = 0.f;
+        path = agentComp->FindPath(playerPos);
+    }
+
+    if (path.status == navmesh::NavMeshPathStatus::PATH_COMPLETE && path.corners.size() > 0)
+    {
+        // Move towards the current corner
+        Vec3 currentTargetCorner = path.corners[std::min(currentCornerIndex + 1, path.corners.size() - 1)];
+        //transform.position = Vector3.MoveTowards(transform.position, currentTargetCorner, moveSpeed * Time.deltaTime);
+        Vec3 desiredDirection = currentTargetCorner - enemyPos;
+
+        characterComp->SetMovementVector(Vec2(desiredDirection.x, desiredDirection.z));
+
+        // Check if reached the current corner
+        if (desiredDirection.Length() < 0.1f)
+            currentCornerIndex++;
+    }
+    else
+    {
+        Vec3 desiredDirection = playerPos - enemyPos;
+        characterComp->SetMovementVector(Vec2(desiredDirection.x, desiredDirection.z));
+    }
     animComp->animHandleA = characterComp->animations[WALK];
     
     return NODE_STATUS::SUCCESS;
