@@ -29,8 +29,9 @@ std::unique_ptr<IFileStream> AndroidVFSImpl::OpenFile(const std::string& path, F
 
 bool AndroidVFSImpl::FileExists(const std::string& path) const
 {
-    // The NDK has no "exists" function. 
-    // Try to open the asset and see if it succeeds
+    // The NDK has no "exists" function.
+    // Try to open the asset and see if it succeeds.
+    // Note: AAssetManager is case-sensitive, so paths must match exactly.
     AAsset* assetHandle = AAssetManager_open(m_AssetManager, path.c_str(), AASSET_MODE_UNKNOWN);
     if (assetHandle)
     {

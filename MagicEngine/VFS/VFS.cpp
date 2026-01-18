@@ -22,9 +22,11 @@ std::string VFS::NormalizePath(const std::string& path)
     // This fixes issues when reading from CRLF files.
     lowerPath.erase(std::remove(lowerPath.begin(), lowerPath.end(), '\r'), lowerPath.end());
 
-    // Convert to lowercase
+    // Convert to lowercase - but NOT on Android since AAssetManager is case-sensitive
+#if !defined(__ANDROID__)
     std::transform(lowerPath.begin(), lowerPath.end(), lowerPath.begin(),
         [](unsigned char c) { return std::tolower(c); });
+#endif
 
     // Also replace backslashes with forward slashes for consistency
     std::replace(lowerPath.begin(), lowerPath.end(), '\\', '/');

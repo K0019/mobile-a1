@@ -79,7 +79,12 @@ public:
 	static const std::string GetOpenScenesJsonPath()
 	{
 		//return GetScenesFolder() + "/openScenes.json";
+		// Note: Android APK asset packaging lowercases filenames, so use lowercase on Android
+#if defined(__ANDROID__)
+		return VFS::JoinPath(GetScenesFolder(), "openscenes.json");
+#else
 		return VFS::JoinPath(GetScenesFolder(), "openScenes.json");
+#endif
 	}
 
 	/*****************************************************************//*!
