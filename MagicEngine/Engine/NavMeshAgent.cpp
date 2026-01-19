@@ -444,10 +444,10 @@ namespace navmesh
 			if (!compIter->GetAgent())
 				continue;
 
-			if (auto physicsComp{ compIter.GetEntity()->GetComp<physics::PhysicsComp>() })
+			if (auto charComp{ compIter.GetEntity()->GetComp<CharacterMovementComponent>() })
 			{
 				Vec3 vel{ compIter->GetAgent()->nvel[0], compIter->GetAgent()->nvel[1] + compIter->GetBaseOffset(), compIter->GetAgent()->nvel[2] };
-				physicsComp->SetLinearVelocity(vel);
+				charComp->SetMovementVector(Vec2{ vel.x, vel.z });
 			}
 			else
 			{

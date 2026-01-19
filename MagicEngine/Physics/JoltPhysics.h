@@ -40,8 +40,6 @@ All rights reserved.
 #include <Jolt/Physics/Collision/RayCast.h>
 #include <Jolt/Physics/Collision/CastResult.h>
 #include <Jolt/Physics/Collision/CollisionCollectorImpl.h>
-#include <Jolt/Physics/Character/CharacterVirtual.h>
-#include <Jolt/Physics/Collision/Shape/CapsuleShape.h>
 
 #include "ECS/ECS.h"
 #include "ECS/IEditorComponent.h"
@@ -123,8 +121,6 @@ namespace physics {
 		*//******************************************************************/
 		JPH::PhysicsSystem& GetPhysicsSystem();
 
-		JPH::TempAllocatorImpl& GetTempAllocator();
-
 		/*****************************************************************//*!
 		\brief
 			Update the Jolt Physics System.
@@ -137,13 +133,7 @@ namespace physics {
 		*//******************************************************************/
 		void OptimizeBroadPhase();
 
-
 		void DebugDraw();
-
-		void SetCharacterRadius(JPH::Ref<JPH::CharacterVirtual> character, float radius);
-		void SetCharacterHeight(JPH::Ref<JPH::CharacterVirtual> character, float height);
-		JPH::Ref<JPH::CharacterVirtual> CreateCharacterBody(ecs::EntityHash entityHash);
-		void UpdateCharacterBody(JPH::Ref<JPH::CharacterVirtual> character, const Vec3& velocity);
 
 		JPH::AABox CollectAllTriangles(std::vector<float>& outVertices, std::vector<int>& outTriIndex);
 

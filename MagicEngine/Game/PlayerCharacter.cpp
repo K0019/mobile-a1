@@ -190,9 +190,15 @@ void PlayerMovementComponentSystem::UpdatePlayerMovementComponent(PlayerMovement
 	if (inputInstance->GetIsPressed(KEY::R))
 		comp.UltimateAttack();
 
-	float offset{ 3.f };
 	characterComp->SetMovementVector(movement);
-	characterComp->SetCenter(Vec3(movement.x / offset, characterComp->center.y, movement.y / offset));
+	if (auto colliderComp{ playerEntity->GetComp<physics::BoxColliderComp>() })
+	{
+		float offset{ 3.f };
+		Vec3 center{ colliderComp->GetCenter() };
+		center = Vec3(0.f, center.y, 0.f);
+		center += Vec3(movement.x, 0.f, movement.y) / offset;
+		colliderComp->SetCenter(center);
+	}
 
 	if (inputInstance->GetIsDown(KEY::LSHIFT) || EventsReader<Events::GameActionDodge>{}.ExtractEvent())
 		characterComp->Dodge(movement);

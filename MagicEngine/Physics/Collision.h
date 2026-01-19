@@ -160,30 +160,6 @@ X(IS_TRIGGER, "Is Trigger")
 		static std::vector<std::pair<std::pair<JPH::BodyID, JPH::BodyID>, ContactTiming>> contactPair;
 	};
 
-	/*****************************************************************//*!
-	\brief
-		Contact Listener for the characters.
-	*//******************************************************************/
-	class MyCharacterContactListener : public JPH::CharacterContactListener
-	{
-	public:
-		static void Init();
-
-		virtual void OnContactAdded(const JPH::CharacterVirtual* inCharacter, const JPH::BodyID& inBodyID2, const JPH::SubShapeID& inSubShapeID2, JPH::RVec3Arg inContactPosition, JPH::Vec3Arg inContactNormal, JPH::CharacterContactSettings& ioSettings) override;
-		virtual void OnContactPersisted(const JPH::CharacterVirtual* inCharacter, const JPH::BodyID& inBodyID2, const JPH::SubShapeID& inSubShapeID2, JPH::RVec3Arg inContactPosition, JPH::Vec3Arg inContactNormal, JPH::CharacterContactSettings& ioSettings) override;
-		virtual void OnContactRemoved(const JPH::CharacterVirtual* inCharacter, const JPH::BodyID& inBodyID2, const JPH::SubShapeID& inSubShapeID2) override;
-		
-		virtual void OnCharacterContactAdded(const JPH::CharacterVirtual* inCharacter, const JPH::CharacterVirtual* inOtherCharacter, const JPH::SubShapeID& inSubShapeID2, JPH::RVec3Arg inContactPosition, JPH::Vec3Arg inContactNormal, JPH::CharacterContactSettings& ioSettings) override;
-		virtual void OnCharacterContactPersisted(const JPH::CharacterVirtual* inCharacter, const JPH::CharacterVirtual* inOtherCharacter, const JPH::SubShapeID& inSubShapeID2, JPH::RVec3Arg inContactPosition, JPH::Vec3Arg inContactNormal, JPH::CharacterContactSettings& ioSettings) override;
-		// virtual void OnCharacterContactRemoved(const JPH::CharacterVirtual* inCharacter, const JPH::CharacterID& inOtherCharacterID, const JPH::SubShapeID& inSubShapeID2) override;
-
-		static void ClearContactPair();
-		static void CallContactFunc();
-	private:
-		static std::vector<std::pair<std::pair<ecs::EntityHash, JPH::BodyID>, ContactTiming>> characterBodyContactPair;
-		static std::vector<std::pair<std::pair<ecs::EntityHash, ecs::EntityHash>, ContactTiming>> charCharContactPair;
-	};
-
 	using ColliderCompFlag = MaskTemplate<COLLIDER_COMP_FLAG>;
 
 	class BoxColliderComp

@@ -22,13 +22,9 @@ All rights reserved.
 #include "Physics/Physics.h"
 #include "Engine/EntityEvents.h"
 #include "Utilities/GameTime.h"
-#include "Game/Character.h"
 #include <imgui.h>
 
 #include "Graphics/CameraController.h"
-
-static JPH::Vec3 GRAVITY = JPH::Vec3(0.f, -9.8f, 0.f);
-static const float MINRADIUS{ 0.001f };
 
 namespace physics {
 	JoltPhysics::JoltPhysics()
@@ -82,11 +78,6 @@ namespace physics {
 		return physicsSystem;
 	}
 
-	JPH::TempAllocatorImpl& JoltPhysics::GetTempAllocator()
-	{
-		return tempAllocator;
-	}
-
 	void JoltPhysics::UpdatePhysicsSystem()
 	{
 		physicsSystem.Update((GameTime::IsFixedDtMode() ? GameTime::FixedDt() : GameTime::RealDt()), 1, &tempAllocator, &jobSystem);
@@ -95,109 +86,6 @@ namespace physics {
 	void JoltPhysics::OptimizeBroadPhase()
 	{
 		physicsSystem.OptimizeBroadPhase();
-	}
-
-	void JoltPhysics::SetCharacterRadius(JPH::Ref<JPH::CharacterVirtual> character, float radius)
-	{
-		if (radius < MINRADIUS)
-			radius = MINRADIUS;
-		const JPH::Shape* shape{ character->GetShape() };
-		const JPH::CapsuleShape* capsuleShapePtr{ static_cast<const JPH::CapsuleShape*>(shape) };
-		float height{capsuleShapePtr->GetHalfHeightOfCylinder()};
-		if (height < 0.f)
-			height = 0.f;
-		JPH::CapsuleShapeSettings shapeSetting{ height, radius };
-		shapeSetting.SetEmbedded();
-		JPH::ShapeSettings::ShapeResult shapeResult{ shapeSetting.Create() };
-		JPH::ShapeRefC newShape{ shapeResult.Get() };
-		character->SetShape(
-			newShape,
-			FLT_MAX,
-			physicsSystem.GetDefaultBroadPhaseLayerFilter(+Layers::MOVING),
-			physicsSystem.GetDefaultLayerFilter(+Layers::MOVING),
-			{ }, // Body Filter
-			{ }, // Shape Filter
-			tempAllocator);
-		character->SetInnerBodyShape(newShape);
-	}
-
-	void JoltPhysics::SetCharacterHeight(JPH::Ref<JPH::CharacterVirtual> character, float height)
-	{
-		height /= 2.f;
-		if (height < 0.f)
-			height = 0.f;
-		const JPH::Shape* shape{ character->GetShape() };
-		const JPH::CapsuleShape* capsuleShapePtr{ static_cast<const JPH::CapsuleShape*>(shape) };
-		float radius{ capsuleShapePtr->GetRadius() };
-
-		JPH::CapsuleShapeSettings shapeSetting{ height, radius };
-		shapeSetting.SetEmbedded();
-		JPH::ShapeSettings::ShapeResult shapeResult{ shapeSetting.Create() };
-		JPH::ShapeRefC newShape{ shapeResult.Get() };
-		character->SetShape(
-			newShape,
-			FLT_MAX,
-			physicsSystem.GetDefaultBroadPhaseLayerFilter(+Layers::MOVING),
-			physicsSystem.GetDefaultLayerFilter(+Layers::MOVING),
-			{ }, // Body Filter
-			{ }, // Shape Filter
-			tempAllocator);
-		character->SetInnerBodyShape(newShape);
-	}
-
-	JPH::Ref<JPH::CharacterVirtual> JoltPhysics::CreateCharacterBody(ecs::EntityHash entityHash)
-	{
-		//Start creating shape.
-		JPH::CapsuleShapeSettings shapeSetting{1.f, 1.f};
-
-		//Convert Vec3 to JPH::RVec3Arg
-		Transform const& trans{ ecs::GetEntity(entityHash)->GetTransform() };
-		Vec3 pos{ trans.GetWorldPosition() };
-		JPH::RVec3Arg position{ pos.x, pos.y, pos.z };
-
-		Vec3 rot{ trans.GetWorldRotation() };
-		JPH::QuatArg rotation{ JPH::Quat::sEulerAngles(JPH::Vec3{math::ToRadians(rot.x), math::ToRadians(rot.y), math::ToRadians(rot.z)}) };
-
-		// A ref counted object on the stack (base class RefTarget) should be marked as such to prevent it from being freed when its reference count goes to 0.
-		shapeSetting.SetEmbedded();
-
-		//Create the shape.
-		JPH::ShapeSettings::ShapeResult shapeResult{ shapeSetting.Create() };
-		JPH::ShapeRefC shape{ shapeResult.Get() };
-
-		JPH::CharacterVirtualSettings settings;
-		settings.mShape = shape; // Reuse the same shape
-		settings.mInnerBodyShape = shape; // Reuse the same shape
-		settings.mMaxSlopeAngle = JPH::DegreesToRadians(45.0f); // Auto-slide on steep slopes
-		settings.mMaxStrength = 100.0f; // Pushing force against other dynamic bodies
-		settings.mCharacterPadding = 0.02f; // Slight buffer to prevent stuck-in-wall issues
-		settings.mPenetrationRecoverySpeed = 1.0f;
-		settings.mPredictiveContactDistance = 0.1f;
-
-		// Initialize the Character
-		JPH::Ref<JPH::CharacterVirtual> myCharacter = new JPH::CharacterVirtual(
-			&settings, position, rotation, entityHash,
-			&physicsSystem // Just passes the system pointer, doesn't add itself to simulation yet
-		);
-
-		myCharacter->SetListener(new physics::MyCharacterContactListener());
-
-		return myCharacter;
-	}
-
-	void JoltPhysics::UpdateCharacterBody(JPH::Ref<JPH::CharacterVirtual> character, const Vec3& velocity)
-	{
-		character->UpdateGroundVelocity();
-		JPH::Vec3 currVel{ character->GetLinearVelocity() };
-		JPH::Vec3 vel{ velocity.x, currVel.GetY() , velocity.z};
-		vel += GRAVITY * GameTime::Dt();
-		character->SetLinearVelocity(vel);
-		character->Update(GameTime::Dt(), GRAVITY,
-			physicsSystem.GetDefaultBroadPhaseLayerFilter(+Layers::MOVING),
-			physicsSystem.GetDefaultLayerFilter(+Layers::MOVING),
-			{ }, // Body filter (ignore nothing specific)
-			{ }, // Shape filter
-			tempAllocator);
 	}
 
 	JPH::AABox JoltPhysics::CollectAllTriangles(std::vector<float>& outVertices, std::vector<int>& outTriIndex)
@@ -852,21 +740,6 @@ namespace physics {
 		settings.mDrawShapeWireframe = true;
 
 		physicsSystem.DrawBodies(settings, &joltDebugger);
-
-		for (auto compIter{ ecs::GetCompsActiveBegin<CharacterMovementComponent>() }, endIter{ ecs::GetCompsEnd<CharacterMovementComponent>() }; compIter != endIter; ++compIter)
-		{
-			JPH::Vec3 joltScale{1.f, 1.f, 1.f};
-			const JPH::Shape* shapePtr{ compIter->joltCharRef->GetShape() };
-			if (shapePtr->GetSubType() == JPH::EShapeSubType::Scaled)
-			{
-				const JPH::ScaledShape* scaledShapePtr{ static_cast<const JPH::ScaledShape*>(shapePtr) };
-				joltScale = scaledShapePtr->GetScale() * 2.f;
-			}
-			
-			JPH::RMat44 centerOfMass{ compIter->joltCharRef->GetCenterOfMassTransform() };
-			shapePtr->Draw(&joltDebugger, centerOfMass, joltScale, JPH::Color::sGreen, false, true);
-		}
-
 #endif
 	}
 }
