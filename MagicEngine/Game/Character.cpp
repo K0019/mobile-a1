@@ -79,6 +79,16 @@ void CharacterMovementComponent::OnAttached()
 	ST<physics::JoltPhysics>::Get()->SetCharacterRadius(joltCharRef, radius);
 }
 
+void CharacterMovementComponent::OnDetached()
+{
+	JPH::CharacterContactListener* listener = joltCharRef->GetListener();
+	if (listener != nullptr)
+	{
+		delete listener;
+		joltCharRef->SetListener(nullptr);
+	}
+}
+
 const Vec2 CharacterMovementComponent::GetMovementVector()
 {
 	return movementVector;
@@ -667,4 +677,15 @@ void CharacterMovementComponentSystem::UpdateCharacterMovementComponent(Characte
 		comp.currParryTime -= GameTime::Dt();
 	if (comp.currParryCoolDown > 0.f)
 		comp.currParryCoolDown -= GameTime::Dt();
+}
+
+bool CharacterMovementComponentSystem::PreRun()
+{
+	physics::MyCharacterContactListener::ClearContactPair();
+	return true;
+}
+
+void CharacterMovementComponentSystem::PostRun()
+{
+	physics::MyCharacterContactListener::CallContactFunc();
 }

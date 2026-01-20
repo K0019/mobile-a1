@@ -180,6 +180,8 @@ namespace physics {
 			&physicsSystem // Just passes the system pointer, doesn't add itself to simulation yet
 		);
 
+		myCharacter->SetListener(new physics::MyCharacterContactListener());
+
 		return myCharacter;
 	}
 

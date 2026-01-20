@@ -99,6 +99,7 @@ public:
 
 	void OnCreation() override;
 	void OnAttached() override;
+	void OnDetached() override;
 
 	const Vec2 GetMovementVector();
 	bool Dodge(Vec2 vector);
@@ -200,4 +201,8 @@ private:
 		The CharacterMovementComponent to update.
 	*//******************************************************************/
 	void UpdateCharacterMovementComponent(CharacterMovementComponent& comp);
+
+public:
+	bool PreRun() override;
+	void PostRun() override;
 };
