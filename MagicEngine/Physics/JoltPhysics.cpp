@@ -169,9 +169,9 @@ namespace physics {
 		settings.mShape = shape; // Reuse the same shape
 		settings.mInnerBodyShape = shape; // Reuse the same shape
 		settings.mMaxSlopeAngle = JPH::DegreesToRadians(45.0f); // Auto-slide on steep slopes
-		settings.mMaxStrength = 100.0f; // Pushing force against other dynamic bodies
+		settings.mMaxStrength = FLT_MAX; // Pushing force against other dynamic bodies
 		settings.mCharacterPadding = 0.02f; // Slight buffer to prevent stuck-in-wall issues
-		settings.mPenetrationRecoverySpeed = 1.0f;
+		settings.mPenetrationRecoverySpeed = 1.f;
 		settings.mPredictiveContactDistance = 0.1f;
 
 		// Initialize the Character

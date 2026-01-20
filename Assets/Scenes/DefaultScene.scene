@@ -448,7 +448,7 @@
             },
             "components": {
                 "2042496555980785": {
-                    "_active": true,
+                    "_active": false,
                     "agentData": {
                         "param": {
                             "radius": 0.30000001192092896,
@@ -463,7 +463,7 @@
                     }
                 },
                 "137465014557233347": {
-                    "_active": true,
+                    "_active": false,
                     "damage": 10.0,
                     "attackBox": {
                         "x": 0.20000000298023224,
@@ -491,13 +491,13 @@
                     }
                 },
                 "2481176255561649761": {
-                    "_active": true,
+                    "_active": false,
                     "swapMaterial": {
                         "hash": 1903056716174195867
                     }
                 },
                 "5352011725353660904": {
-                    "_active": true,
+                    "_active": false,
                     "meshHandle": {
                         "hash": 5120963312789610903
                     },
@@ -551,27 +551,27 @@
                     "castShadowOverride": -1
                 },
                 "5725819782531291880": {
-                    "_active": true,
+                    "_active": false,
                     "behaviorTree": {
                         "btName": "enemy_male"
                     }
                 },
                 "6766054303456732338": {
-                    "_active": true,
+                    "_active": false,
                     "layer": 0
                 },
                 "7205334411763290517": {
-                    "_active": true,
+                    "_active": false,
                     "name": "enemy"
                 },
                 "7930599578754533802": {
-                    "_active": true,
+                    "_active": false,
                     "maxHealth": 100.0,
                     "currHealth": 100.0,
                     "isInvincible": false
                 },
                 "8426725214831635516": {
-                    "_active": true,
+                    "_active": false,
                     "entityReferences": [
                         {
                             "entityUid": 0
@@ -579,11 +579,11 @@
                     ]
                 },
                 "9315785795257285655": {
-                    "_active": true,
+                    "_active": false,
                     "uid": 336609987718299699
                 },
                 "9501525575059265452": {
-                    "_active": true,
+                    "_active": false,
                     "flags": {
                         "_majorityTrue": true,
                         "_except": [
@@ -592,14 +592,14 @@
                     }
                 },
                 "10866432406532598116": {
-                    "_active": true,
+                    "_active": false,
                     "flashTime": 0.25,
                     "flashMaterial": {
                         "hash": 1903056716174195867
                     }
                 },
                 "15371168105777251288": {
-                    "_active": true,
+                    "_active": false,
                     "animHandleA": {
                         "hash": 5128037570602721689
                     },
@@ -609,7 +609,7 @@
                     "transitionDuration": 0.20000000298023224
                 },
                 "16763493199777387366": {
-                    "_active": true,
+                    "_active": false,
                     "combatRange": 1.0,
                     "windUpTime": 0.10000000149011612,
                     "attackTime": 0.009999999776482582,
@@ -623,7 +623,7 @@
                     }
                 },
                 "17579205194823809952": {
-                    "_active": true,
+                    "_active": false,
                     "center": {
                         "x": 0.0,
                         "y": 0.800000011920929,
@@ -678,7 +678,7 @@
                     ]
                 },
                 "18288371625365795113": {
-                    "_active": true,
+                    "_active": false,
                     "scripts": [
                         {
                             "scriptName": "enemydeath.lua"

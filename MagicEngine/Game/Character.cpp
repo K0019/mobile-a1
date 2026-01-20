@@ -541,13 +541,15 @@ void CharacterMovementComponentSystem::UpdateCharacterMovementComponent(Characte
 	else
 		currVel = physicsComp->GetLinearVelocity();
 
+	// Get inputs
+	Vec2 movement = comp.GetMovementVector();
 	if (comp.currentStunTime > 0.0f)
 	{
 		comp.currentStunTime -= GameTime::Dt();
 
 		// Can only come out of stun when on the ground
-		if (math::Abs(currVel.y) > 0.01f && comp.currentStunTime < 0.0f)
-			comp.currentStunTime = GameTime::Dt();
+		//if (math::Abs(currVel.y) > 0.01f && comp.currentStunTime < 0.0f)
+		//	comp.currentStunTime = GameTime::Dt();
 
 		if (animComp->animHandleA.GetHash() != comp.animations[HURT].GetHash())
 		{
@@ -557,6 +559,17 @@ void CharacterMovementComponentSystem::UpdateCharacterMovementComponent(Characte
 		}
 		animComp->timeA = comp.currentStunTime / comp.stunTimePerHit;
 		comp.currentDodgeTime = 0.0f;
+
+		if (!physicsComp->GetIsKinematic())
+			physicsComp->SetLinearVelocity(Vec3{ currVel.x, currVel.y, currVel.y });
+		else
+		{
+			Vec3 currPos{ characterTransform.GetWorldPosition() };
+			comp.joltCharRef->SetPosition(JPH::Vec3{ currPos.x, currPos.y, currPos.z });
+			ST<physics::JoltPhysics>::Get()->UpdateCharacterBody(comp.joltCharRef, Vec3{currVel.x, 0.f, currVel.y});
+			JPH::Vec3 joltPos{ comp.joltCharRef->GetPosition() };
+			characterTransform.SetWorldPosition(Vec3(joltPos.GetX(), joltPos.GetY(), joltPos.GetZ()));
+		}
 		return;
 	}
 
@@ -591,9 +604,6 @@ void CharacterMovementComponentSystem::UpdateCharacterMovementComponent(Characte
 		return;
 	}
 	comp.currParryCoolDown -= GameTime::Dt();
-
-	// Get inputs
-	Vec2 movement = comp.GetMovementVector();
 
 	// Normalize the move vector if it's over 1.0f in length
 	if (movement.LengthSqr() > 0.0f)

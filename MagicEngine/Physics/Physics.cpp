@@ -24,6 +24,7 @@ All rights reserved.
 #include "Physics/Physics.h"
 #include "Engine/EntityEvents.h"
 #include "Editor/Containers/GUICollection.h"
+#include "Game/Character.h"
 
 #define X(name, str) str,
 static const char* physicsFlagNames[]{
@@ -304,7 +305,7 @@ namespace physics {
 		return result;
 	}
 
-	bool OverlapBox(std::vector<BoxColliderComp*>& outColliders, const Vec3& origin, const Vec3& halfExtent, const Vec3& orientation, EntityLayersMask layers)
+	bool OverlapBox(std::vector<ecs::EntityHandle>& outEntities, const Vec3& origin, const Vec3& halfExtent, const Vec3& orientation, EntityLayersMask layers)
 	{
 		bool result{ false };
 		Vec3 boxMin{ origin - halfExtent }, boxMax{ origin + halfExtent };
@@ -334,7 +335,19 @@ namespace physics {
 			if (box.Overlaps(colliderAABB))
 			{
 				result = true;
-				outColliders.push_back(compIter.GetCompHandle());
+				outEntities.push_back(compIter.GetEntity());
+			}
+		}
+
+		for (auto compIter{ ecs::GetCompsActiveBegin<CharacterMovementComponent>() }, endIter{ ecs::GetCompsEnd<CharacterMovementComponent>() }; compIter != endIter; ++compIter)
+		{
+			const JPH::Shape* shape = compIter->joltCharRef->GetShape();
+			JPH::Mat44 transform = compIter->joltCharRef->GetCenterOfMassTransform();
+			JPH::AABox charBounds = shape->GetWorldSpaceBounds(transform, JPH::Vec3::sOne());
+			if (charBounds.Overlaps(box))
+			{
+				result = true;
+				outEntities.push_back(compIter.GetEntity());
 			}
 		}
 
