@@ -553,7 +553,7 @@
                 "5725819782531291880": {
                     "_active": false,
                     "behaviorTree": {
-                        "btName": "enemy_male"
+                        "btName": "meleeenemy"
                     }
                 },
                 "6766054303456732338": {
@@ -610,7 +610,7 @@
                 },
                 "16763493199777387366": {
                     "_active": false,
-                    "combatRange": 1.0,
+                    "combatRange": 3.0,
                     "windUpTime": 0.10000000149011612,
                     "attackTime": 0.009999999776482582,
                     "followThroughTime": 0.30000001192092896,

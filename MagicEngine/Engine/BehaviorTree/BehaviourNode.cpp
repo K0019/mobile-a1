@@ -39,6 +39,11 @@ All rights reserved.
 #include "BehaviourTreeFactory.h"
 #include "Engine/Input.h"
 
+#include "Melee/Melee_LeafCheckAttack.h"
+#include "Melee/Melee_DecoIsInCombatRange.h"
+#include "Melee/Melee_DecoIsInAttackRange.h"
+#include "Melee/Melee_DecoIsNotCurrentAttack.h"
+
 #include "Boss/Boss_Prefect/Boss_LeafDetention.h"
 #include "Boss/Boss_Prefect/Boss_LeafBookingSlips.h"
 #include "Boss/Boss_Prefect/Boss_LeafInvincibility.h"
@@ -70,6 +75,11 @@ BT_REGISTER_NODE(L_MeleeAttack, "L_MeleeAttack")
 BT_REGISTER_NODE(L_ThrowAttack, "L_ThrowAttack")
 BT_REGISTER_NODE(L_RotateTowardsTarget, "L_RotateTowardsTarget")
 BT_REGISTER_NODE(L_FollowThrough, "L_FollowThrough")
+
+BT_REGISTER_NODE(L_Melee_CheckAttack, "L_Melee_CheckAttack")
+BT_REGISTER_NODE(D_Melee_IsInCombatRange, "D_Melee_IsInCombatRange")
+BT_REGISTER_NODE(D_Melee_IsNotCurrentAttack, "D_Melee_IsNotCurrentAttack")
+BT_REGISTER_NODE(D_Melee_IsInAttackRange, "D_Melee_IsInAttackRange")
 
 BT_REGISTER_NODE(L_Boss_Prefect_Detention, "L_Boss_Prefect_Detention")
 BT_REGISTER_NODE(L_Boss_Prefect_BookingSlips, "L_Boss_Prefect_BookingSlips")

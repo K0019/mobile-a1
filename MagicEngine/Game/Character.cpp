@@ -687,6 +687,8 @@ void CharacterMovementComponentSystem::UpdateCharacterMovementComponent(Characte
 		comp.currParryTime -= GameTime::Dt();
 	if (comp.currParryCoolDown > 0.f)
 		comp.currParryCoolDown -= GameTime::Dt();
+
+	comp.SetMovementVector(Vec2{ 0.f, 0.f });
 }
 
 bool CharacterMovementComponentSystem::PreRun()

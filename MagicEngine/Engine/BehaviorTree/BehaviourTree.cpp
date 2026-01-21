@@ -28,6 +28,8 @@ All rights reserved.
 #include "BehaviourTreeFactory.h"
 #include "FilepathConstants.h"
 
+BlackBoard BehaviorTree::globalBlackBoard{};
+
 BehaviorTree::BehaviorTree()
     : entity{ nullptr }
     , rootNode{ nullptr }
@@ -136,6 +138,16 @@ void BehaviorTree::EditorDraw()
         ImGui::EndCombo();
     }
 #endif
+}
+
+BlackBoard::BlackBoard()
+{
+
+}
+
+bool BlackBoard::HasKey(const std::string& key)
+{
+    return data.find(key) != data.end();
 }
 
 BehaviorTreeComp::BehaviorTreeComp()

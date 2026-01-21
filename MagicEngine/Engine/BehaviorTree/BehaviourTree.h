@@ -29,6 +29,9 @@ All rights reserved.
 #include "ECS/IEditorComponent.h"
 #include "Game/IGameComponentCallbacks.h"
 
+
+class BlackBoard;
+
  /*****************************************************************//*!
      \brief
          Represents a behavior tree instance bound to an entity.
@@ -75,13 +78,51 @@ public:
     void SetName(std::string n) { btName = std::move(n); }
     const std::string& GetName() const { return btName; }
 
+    static BlackBoard globalBlackBoard;
 private:
     ecs::EntityHandle entity;   //entity the tree is bound to
     BehaviorNode* rootNode;     //starting node
     std::string btName;         //tree name
 
+
 public:
     property_vtable()
+};
+
+class BlackBoard
+{
+public:
+    BlackBoard();
+
+    template <typename T>
+    void SetValue(const std::string& key, const T& value)
+    {
+        data[key] = value;
+    }
+
+    template <typename T>
+    bool GetValue(const std::string& key, T& outValue)
+    {
+        auto it = data.find(key);
+        if (it != data.end())
+        {
+            try
+            {
+                outValue = std::any_cast<T>(it->second);
+                return true;
+            }
+            catch (const std::bad_any_cast& e)
+            {
+                return false;
+            }
+        }
+        return false;
+    }
+
+    bool HasKey(const std::string& key);
+
+private:
+    std::map<std::string, std::any> data;
 };
 
 //=======================================================================
