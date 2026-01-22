@@ -626,13 +626,21 @@ private:
   uint32_t m_currentFrameIndex = 0;
   gfx::Dimensions m_lastCompileDimensions = {0, 0, 0};
 
-  // Blit pipeline for scaling fixed-resolution scene to swapchain
+  // Blit pipeline for scaling fixed-resolution scene to swapchain (LDR to LDR)
   gfx::Holder<gfx::Pipeline> m_blitPipeline;
   gfx::Holder<gfx::Sampler> m_blitSampler;
   gfx::Holder<gfx::BindGroupLayout> m_blitBindGroupLayout;
   bool m_blitPipelineCreated = false;
 
   void EnsureBlitPipelineCreated();
+
+  // Resolve output pipeline for HDR to LDR tone mapping
+  gfx::Holder<gfx::Pipeline> m_resolveOutputPipeline;
+  gfx::Holder<gfx::Sampler> m_resolveOutputSampler;
+  gfx::Holder<gfx::BindGroupLayout> m_resolveOutputBindGroupLayout;
+  bool m_resolveOutputPipelineCreated = false;
+
+  void EnsureResolveOutputPipelineCreated();
   // String interning - optimized with sorted vector for better cache locality
   std::deque<std::string> m_stringStorage;
   std::vector<std::pair<std::string_view, internal::NameID>> m_nameRegistry;

@@ -476,6 +476,12 @@ public:
     gfx::GfxMaterialSystem& getMaterialSystem() { return m_materialSystem; }
     const gfx::GfxMaterialSystem& getMaterialSystem() const { return m_materialSystem; }
 
+    // Frustum culling interface
+    void setFrustum(const glm::mat4& viewProj) { m_culler.setFrustum(viewProj); }
+    bool isVisibleInFrustum(const glm::vec3& aabbMin, const glm::vec3& aabbMax) const {
+        return m_culler.isVisible(aabbMin, aabbMax);
+    }
+
     // Material bind group layout (Set 1: constants UBO + textures) - for features that need to create compatible pipelines
     gfx::BindGroupLayout getMaterialLayout() const { return m_materialLayout; }
 
@@ -509,6 +515,11 @@ public:
      * @brief Get G-buffer render targets.
      */
     const GBuffer& getGBuffer() const { return m_gbuffer; }
+
+    /**
+     * @brief Get WBOIT render targets.
+     */
+    const WBOITTargets& getWBOIT() const { return m_wboit; }
 
     /**
      * @brief Get view output for a specific view.

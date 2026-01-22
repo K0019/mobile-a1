@@ -1,12 +1,28 @@
 #include "render_graph.h"
 #include "gfx_renderer.h"  // For swapchain access
 #include "hina_context.h"  // For HinaContext
+#include "VFS/VFS.h"       // For shader file loading
 #include <map>
 #include <queue>
 #include <cstring>
 #include <algorithm>
 #include <numeric>
 #include <iostream>
+
+// Push constants for resolve output (HDR->LDR tone mapping)
+struct ResolveOutputPushConstants
+{
+  int32_t toneMappingMode;    // 0=None, 1=Reinhard, 2=Uchimura, 3=ACES, 4=KhronosPBR, 5=Uncharted2, 6=Unreal, 7=Passthrough
+  float exposure;
+  float maxWhite;             // Reinhard parameter
+  float P;                    // Uchimura parameters
+  float a;
+  float m;
+  float l;
+  float c;
+  float b;
+};
+static_assert(sizeof(ResolveOutputPushConstants) == 36, "ResolveOutputPushConstants must be 36 bytes");
 
 void RenderGraph::EnsureBufferCapacity(internal::FrameBufferManager::Entry& resource, uint64_t requiredSize)
 {
@@ -1372,6 +1388,90 @@ void RenderGraph::EnsureBlitPipelineCreated()
   m_blitPipelineCreated = true;
 }
 
+void RenderGraph::EnsureResolveOutputPipelineCreated()
+{
+  if (m_resolveOutputPipelineCreated) return;
+  if (!m_gfxRenderer) return;
+  HinaContext* hinaCtx = m_gfxRenderer->getHinaContext();
+  if (!hinaCtx) return;
+
+  // Load shader from file
+  std::string shaderSource;
+  if (!VFS::ReadFile("shaders/resolve_output.hina_sl", shaderSource)) {
+    LOG_ERROR("[RenderGraph] Failed to load resolve_output.hina_sl shader");
+    return;
+  }
+
+  // Compile HSL shader
+  char* error = nullptr;
+  hina_hsl_module* module = hslc_compile_hsl_source(shaderSource.c_str(), "resolve_output_shader", &error);
+  if (!module) {
+    LOG_ERROR("[RenderGraph] Resolve output shader compilation failed: {}", error ? error : "Unknown");
+    if (error) hslc_free_log(error);
+    return;
+  }
+
+  // Create sampler
+  {
+    gfx::SamplerDesc samplerDesc = gfx::samplerDescDefault();
+    samplerDesc.address_u = HINA_ADDRESS_CLAMP_TO_EDGE;
+    samplerDesc.address_v = HINA_ADDRESS_CLAMP_TO_EDGE;
+    samplerDesc.address_w = HINA_ADDRESS_CLAMP_TO_EDGE;
+    m_resolveOutputSampler.reset(gfx::createSampler(samplerDesc));
+  }
+
+  // Create bind group layout for HDR scene color texture
+  {
+    hina_bind_group_layout_entry layout_entries[1] = {};
+    layout_entries[0].binding = 0;
+    layout_entries[0].type = HINA_DESC_TYPE_COMBINED_IMAGE_SAMPLER;
+    layout_entries[0].stage_flags = HINA_STAGE_FRAGMENT;
+    layout_entries[0].count = 1;
+
+    hina_bind_group_layout_desc layout_desc = {};
+    layout_desc.entries = layout_entries;
+    layout_desc.entry_count = 1;
+
+    m_resolveOutputBindGroupLayout.reset(hina_create_bind_group_layout(&layout_desc));
+  }
+
+  // Create pipeline using HSL module
+  {
+    hina_hsl_pipeline_desc pip_desc = hina_hsl_pipeline_desc_default();
+    pip_desc.cull_mode = HINA_CULL_MODE_NONE;
+    pip_desc.depth.depth_test = false;
+    pip_desc.depth.depth_write = false;
+    pip_desc.depth_format = HINA_FORMAT_UNDEFINED;
+
+    // Output to VIEW_OUTPUT which uses the swapchain format
+    // Query actual format from HinaContext to ensure compatibility
+    hina_format viewOutputFormat = static_cast<hina_format>(hinaCtx->getSwapchainFormat());
+    if (viewOutputFormat == HINA_FORMAT_UNDEFINED) {
+      viewOutputFormat = HINA_FORMAT_B8G8R8A8_SRGB;  // Fallback
+    }
+    pip_desc.color_formats[0] = viewOutputFormat;
+    pip_desc.color_attachment_count = 1;
+
+    // Use the resolve output bind group layout
+    if (hina_bind_group_layout_is_valid(m_resolveOutputBindGroupLayout.get())) {
+      pip_desc.bind_group_layouts[0] = m_resolveOutputBindGroupLayout.get();
+      pip_desc.bind_group_layout_count = 1;
+    }
+
+    m_resolveOutputPipeline.reset(hina_make_pipeline_from_module(module, &pip_desc, nullptr));
+  }
+
+  hslc_hsl_module_free(module);
+
+  if (!hina_pipeline_is_valid(m_resolveOutputPipeline.get())) {
+    LOG_ERROR("[RenderGraph] Resolve output pipeline creation failed");
+    return;
+  }
+
+  LOG_INFO("[RenderGraph] Resolve output pipeline created successfully");
+  m_resolveOutputPipelineCreated = true;
+}
+
 void RenderGraph::ExecuteFinalBlit(const internal::ExecutionContext& ctx)
 {
   // Check swapchain validity before accessing resources
@@ -1490,15 +1590,17 @@ void RenderGraph::ExecuteResolveViewOutput(const internal::ExecutionContext& ctx
   HinaContext* hinaCtx = m_gfxRenderer ? m_gfxRenderer->getHinaContext() : nullptr;
   if (!hinaCtx) return;
 
-  // Ensure blit pipeline is created (reuse from FinalBlit)
-  this->EnsureBlitPipelineCreated();
-  if (!hina_pipeline_is_valid(m_blitPipeline.get())) {
-    return;
+  // Ensure resolve output pipeline with tone mapping is created
+  this->EnsureResolveOutputPipelineCreated();
+  if (!hina_pipeline_is_valid(m_resolveOutputPipeline.get())) {
+    // Fallback to blit pipeline if resolve pipeline failed
+    this->EnsureBlitPipelineCreated();
+    if (!hina_pipeline_is_valid(m_blitPipeline.get())) {
+      return;
+    }
   }
 
   gfx::Dimensions dstDims = hinaCtx->getDimensions(viewOutput);
-
-  // Use fullscreen pass to copy SCENE_COLOR (HDR) to VIEW_OUTPUT (LDR) via direct hina calls
   gfx::Cmd* cmd = ctx.GetCmd();
 
   // Transition sceneColor to shader read for sampling
@@ -1514,7 +1616,13 @@ void RenderGraph::ExecuteResolveViewOutput(const internal::ExecutionContext& ctx
 
   hina_cmd_begin_pass(cmd, &pass);
 
-  hina_cmd_bind_pipeline(cmd, m_blitPipeline.get());
+  // Use resolve output pipeline with tone mapping if available
+  bool useResolveOutput = hina_pipeline_is_valid(m_resolveOutputPipeline.get());
+  if (useResolveOutput) {
+    hina_cmd_bind_pipeline(cmd, m_resolveOutputPipeline.get());
+  } else {
+    hina_cmd_bind_pipeline(cmd, m_blitPipeline.get());
+  }
 
   hina_viewport viewport = {};
   viewport.x = 0.0f;
@@ -1534,15 +1642,36 @@ void RenderGraph::ExecuteResolveViewOutput(const internal::ExecutionContext& ctx
 
   // Create transient bind group for source texture
   gfx::TextureView sourceView = hina_texture_get_default_view(sceneColor);
-  hina_transient_bind_group tbg = hina_alloc_transient_bind_group(m_blitBindGroupLayout.get());
-  hina_transient_write_combined_image(&tbg, 0, sourceView, m_blitSampler.get());
-  hina_cmd_bind_transient_group(cmd, 0, tbg);
+  if (useResolveOutput) {
+    hina_transient_bind_group tbg = hina_alloc_transient_bind_group(m_resolveOutputBindGroupLayout.get());
+    hina_transient_write_combined_image(&tbg, 0, sourceView, m_resolveOutputSampler.get());
+    hina_cmd_bind_transient_group(cmd, 0, tbg);
 
-  // Push constants
-  struct BlitPushConstants {
-    uint32_t preTransform;
-  } pc = {.preTransform = 0};
-  hina_cmd_push_constants(cmd, 0, sizeof(pc), &pc);
+    // Get tone mapping settings from LinearColorSystem
+    const auto& settings = linearColorSystem.GetToneMappingSettings();
+    ResolveOutputPushConstants pc = {
+      .toneMappingMode = static_cast<int32_t>(settings.mode),
+      .exposure = settings.exposure,
+      .maxWhite = settings.maxWhite,
+      .P = settings.P,
+      .a = settings.a,
+      .m = settings.m,
+      .l = settings.l,
+      .c = settings.c,
+      .b = settings.b
+    };
+    hina_cmd_push_constants(cmd, 0, sizeof(pc), &pc);
+  } else {
+    // Fallback to blit pipeline
+    hina_transient_bind_group tbg = hina_alloc_transient_bind_group(m_blitBindGroupLayout.get());
+    hina_transient_write_combined_image(&tbg, 0, sourceView, m_blitSampler.get());
+    hina_cmd_bind_transient_group(cmd, 0, tbg);
+
+    struct BlitPushConstants {
+      uint32_t preTransform;
+    } pc = {.preTransform = 0};
+    hina_cmd_push_constants(cmd, 0, sizeof(pc), &pc);
+  }
 
   hina_cmd_draw(cmd, 3, 1, 0, 0);
 

@@ -259,20 +259,14 @@ namespace Resource::TextureLoading
 
         SCOPE_EXIT{ ktxTexture_Destroy(ktxTexture(ktxTex)); };
 
-        // Check if texture needs transcoding (Basis Universal compressed)
+        // Basis Universal textures require runtime transcoding - we don't support this.
+        // Use AssetCompiler with --platform flag to pre-compile to BC7 (Windows) or ASTC (Android).
         if (ktxTexture2_NeedsTranscoding(ktxTex))
         {
-            // Transcode to BC7 (high quality, widely supported)
-            ktx_transcode_fmt_e targetFormat = KTX_TTF_BC7_RGBA;
-
-            result = ktxTexture2_TranscodeBasis(ktxTex, targetFormat, 0);
-            if (result != KTX_SUCCESS)
-            {
-                LOG_WARNING("Failed to transcode KTX2 file '{}'. KTX Error: {}", path.string(), ktxErrorString(result));
-                return false;
-            }
-
-            LOG_INFO("Transcoded KTX2 texture '{}' from Basis to BC7", path.string());
+            LOG_ERROR("KTX2 file '{}' uses Basis Universal compression which requires runtime transcoding. "
+                      "Please re-compile with AssetCompiler using --platform windows (BC7) or --platform android (ASTC).",
+                      path.string());
+            return false;
         }
 
         // Extract texture properties
@@ -346,21 +340,14 @@ namespace Resource::TextureLoading
 
         SCOPE_EXIT{ ktxTexture_Destroy(ktxTexture(ktxTex)); };
 
-        // Check if texture needs transcoding (Basis Universal compressed)
+        // Basis Universal textures require runtime transcoding - we don't support this.
+        // Use AssetCompiler with --platform flag to pre-compile to BC7 (Windows) or ASTC (Android).
         if (ktxTexture2_NeedsTranscoding(ktxTex))
         {
-            // Transcode to BC7 (high quality, widely supported)
-            // Use KTX_TTF_BC7_RGBA for color textures
-            ktx_transcode_fmt_e targetFormat = KTX_TTF_BC7_RGBA;
-
-            result = ktxTexture2_TranscodeBasis(ktxTex, targetFormat, 0);
-            if (result != KTX_SUCCESS)
-            {
-                LOG_WARNING("Failed to transcode KTX2 file '{}'. KTX Error: {}", path, ktxErrorString(result));
-                return false;
-            }
-
-            LOG_INFO("Transcoded KTX2 texture '{}' from Basis to BC7", path);
+            LOG_ERROR("KTX2 file '{}' uses Basis Universal compression which requires runtime transcoding. "
+                      "Please re-compile with AssetCompiler using --platform windows (BC7) or --platform android (ASTC).",
+                      path);
+            return false;
         }
 
         // Extract texture properties

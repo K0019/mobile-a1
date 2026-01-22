@@ -235,8 +235,9 @@ private:
   uint32_t m_lastGBufferHeight = 0;
   gfx::Texture m_lastSceneDepth = {};                 // Track depth texture for rebind
 
-  // Per-frame draw list (populated in UpdateScene)
-  std::vector<DrawData> m_drawList;
+  // Per-frame draw lists (populated in UpdateScene)
+  std::vector<DrawData> m_drawList;           // Opaque objects
+  std::vector<DrawData> m_transparentDrawList; // Transparent objects (for WBOIT)
 
   // Per-frame light list (populated in UpdateScene)
   std::vector<CollectedLight> m_lightList;
@@ -249,6 +250,21 @@ private:
   gfx::Buffer m_lightUBO = {};
   void* m_lightUBOMapped = nullptr;
   bool m_lightUBOCreated = false;
+
+  // ========================================================================
+  // WBOIT Pipeline Resources (for transparent object rendering)
+  // ========================================================================
+  gfx::Holder<gfx::Pipeline> m_wboitAccumPipeline;    // Accumulation pass pipeline
+  gfx::Holder<gfx::Pipeline> m_wboitResolvePipeline;  // Resolve pass pipeline
+  gfx::Holder<gfx::BindGroupLayout> m_wboitFrameLayout;   // Set 0: Frame UBO with camera pos
+  gfx::Holder<gfx::BindGroupLayout> m_wboitResolveLayout; // Set 0: Accumulation texture
+  gfx::Holder<gfx::Sampler> m_wboitSampler;           // Linear sampler for resolve
+  gfx::Buffer m_wboitFrameUBO = {};                   // Frame UBO with viewProj + cameraPos
+  void* m_wboitFrameUBOMapped = nullptr;
+  gfx::BindGroup m_wboitFrameBindGroup = {};          // Set 0 for accum pass
+  gfx::BindGroup m_wboitResolveBindGroup = {};        // Set 0 for resolve pass
+  bool m_wboitPipelinesCreated = false;
+  gfx::Texture m_lastWboitAccum = {};                 // Track for rebind
 
   // Lazy pipeline creation
   bool EnsurePipelineCreated(GfxRenderer* gfxRenderer);

@@ -48,7 +48,7 @@ struct ToneMappingSettings
     Passthrough = 7  // No processing - preserves linear color exactly
   };
 
-  Mode mode = Passthrough;
+  Mode mode = ACES;  // Default to ACES - industry standard tone mapping
   float exposure = 1.0f;
   float maxWhite = 1.0f; // Reinhard
   // Uchimura parameters
@@ -91,11 +91,10 @@ private:
   bool m_requiresLinearWorkflow = false;
   ToneMappingSettings m_toneMappingSettings;
 
-  // Tone mapping pipeline resources
-  gfx::Holder<gfx::Pipeline> m_pipelineToneMap;
-  gfx::Holder<gfx::BindGroupLayout> m_toneMapBindGroupLayout;
-  gfx::Holder<gfx::Sampler> m_toneMapSampler;
+  // NOTE: Tone mapping pipeline was moved to RenderGraph::ExecuteResolveViewOutput()
+  // The old standalone tone mapping pass had a read/write conflict on SCENE_COLOR
+  // Now tone mapping is integrated into the ResolveViewOutput pass which reads
+  // from SCENE_COLOR (HDR) and writes to VIEW_OUTPUT (LDR)
 
-  void CreateToneMappingPipeline();
   void ensureInitialized();
 };

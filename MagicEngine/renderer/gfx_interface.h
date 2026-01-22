@@ -162,6 +162,35 @@ enum class Format : uint32_t {
     BC6H_SFloat = HINA_FORMAT_BC6H_SFLOAT_BLOCK,
     BC7_UNorm = HINA_FORMAT_BC7_UNORM_BLOCK,
     BC7_SRGB = HINA_FORMAT_BC7_SRGB_BLOCK,
+    // ASTC (Android/iOS)
+    ASTC_4x4_UNorm = HINA_FORMAT_ASTC_4x4_UNORM_BLOCK,
+    ASTC_4x4_SRGB = HINA_FORMAT_ASTC_4x4_SRGB_BLOCK,
+    ASTC_5x4_UNorm = HINA_FORMAT_ASTC_5x4_UNORM_BLOCK,
+    ASTC_5x4_SRGB = HINA_FORMAT_ASTC_5x4_SRGB_BLOCK,
+    ASTC_5x5_UNorm = HINA_FORMAT_ASTC_5x5_UNORM_BLOCK,
+    ASTC_5x5_SRGB = HINA_FORMAT_ASTC_5x5_SRGB_BLOCK,
+    ASTC_6x5_UNorm = HINA_FORMAT_ASTC_6x5_UNORM_BLOCK,
+    ASTC_6x5_SRGB = HINA_FORMAT_ASTC_6x5_SRGB_BLOCK,
+    ASTC_6x6_UNorm = HINA_FORMAT_ASTC_6x6_UNORM_BLOCK,
+    ASTC_6x6_SRGB = HINA_FORMAT_ASTC_6x6_SRGB_BLOCK,
+    ASTC_8x5_UNorm = HINA_FORMAT_ASTC_8x5_UNORM_BLOCK,
+    ASTC_8x5_SRGB = HINA_FORMAT_ASTC_8x5_SRGB_BLOCK,
+    ASTC_8x6_UNorm = HINA_FORMAT_ASTC_8x6_UNORM_BLOCK,
+    ASTC_8x6_SRGB = HINA_FORMAT_ASTC_8x6_SRGB_BLOCK,
+    ASTC_8x8_UNorm = HINA_FORMAT_ASTC_8x8_UNORM_BLOCK,
+    ASTC_8x8_SRGB = HINA_FORMAT_ASTC_8x8_SRGB_BLOCK,
+    ASTC_10x5_UNorm = HINA_FORMAT_ASTC_10x5_UNORM_BLOCK,
+    ASTC_10x5_SRGB = HINA_FORMAT_ASTC_10x5_SRGB_BLOCK,
+    ASTC_10x6_UNorm = HINA_FORMAT_ASTC_10x6_UNORM_BLOCK,
+    ASTC_10x6_SRGB = HINA_FORMAT_ASTC_10x6_SRGB_BLOCK,
+    ASTC_10x8_UNorm = HINA_FORMAT_ASTC_10x8_UNORM_BLOCK,
+    ASTC_10x8_SRGB = HINA_FORMAT_ASTC_10x8_SRGB_BLOCK,
+    ASTC_10x10_UNorm = HINA_FORMAT_ASTC_10x10_UNORM_BLOCK,
+    ASTC_10x10_SRGB = HINA_FORMAT_ASTC_10x10_SRGB_BLOCK,
+    ASTC_12x10_UNorm = HINA_FORMAT_ASTC_12x10_UNORM_BLOCK,
+    ASTC_12x10_SRGB = HINA_FORMAT_ASTC_12x10_SRGB_BLOCK,
+    ASTC_12x12_UNorm = HINA_FORMAT_ASTC_12x12_UNORM_BLOCK,
+    ASTC_12x12_SRGB = HINA_FORMAT_ASTC_12x12_SRGB_BLOCK,
 };
 
 // Convert VkFormat integer to gfx::Format
@@ -235,6 +264,35 @@ inline Format vkFormatToFormat(int vkFormat) {
         case 144: return Format::BC6H_SFloat;            // VK_FORMAT_BC6H_SFLOAT_BLOCK
         case 145: return Format::BC7_UNorm;              // VK_FORMAT_BC7_UNORM_BLOCK
         case 146: return Format::BC7_SRGB;               // VK_FORMAT_BC7_SRGB_BLOCK
+        // ASTC formats (VK_FORMAT_ASTC_*)
+        case 157: return Format::ASTC_4x4_UNorm;         // VK_FORMAT_ASTC_4x4_UNORM_BLOCK
+        case 158: return Format::ASTC_4x4_SRGB;          // VK_FORMAT_ASTC_4x4_SRGB_BLOCK
+        case 159: return Format::ASTC_5x4_UNorm;         // VK_FORMAT_ASTC_5x4_UNORM_BLOCK
+        case 160: return Format::ASTC_5x4_SRGB;          // VK_FORMAT_ASTC_5x4_SRGB_BLOCK
+        case 161: return Format::ASTC_5x5_UNorm;         // VK_FORMAT_ASTC_5x5_UNORM_BLOCK
+        case 162: return Format::ASTC_5x5_SRGB;          // VK_FORMAT_ASTC_5x5_SRGB_BLOCK
+        case 163: return Format::ASTC_6x5_UNorm;         // VK_FORMAT_ASTC_6x5_UNORM_BLOCK
+        case 164: return Format::ASTC_6x5_SRGB;          // VK_FORMAT_ASTC_6x5_SRGB_BLOCK
+        case 165: return Format::ASTC_6x6_UNorm;         // VK_FORMAT_ASTC_6x6_UNORM_BLOCK
+        case 166: return Format::ASTC_6x6_SRGB;          // VK_FORMAT_ASTC_6x6_SRGB_BLOCK
+        case 167: return Format::ASTC_8x5_UNorm;         // VK_FORMAT_ASTC_8x5_UNORM_BLOCK
+        case 168: return Format::ASTC_8x5_SRGB;          // VK_FORMAT_ASTC_8x5_SRGB_BLOCK
+        case 169: return Format::ASTC_8x6_UNorm;         // VK_FORMAT_ASTC_8x6_UNORM_BLOCK
+        case 170: return Format::ASTC_8x6_SRGB;          // VK_FORMAT_ASTC_8x6_SRGB_BLOCK
+        case 171: return Format::ASTC_8x8_UNorm;         // VK_FORMAT_ASTC_8x8_UNORM_BLOCK
+        case 172: return Format::ASTC_8x8_SRGB;          // VK_FORMAT_ASTC_8x8_SRGB_BLOCK
+        case 173: return Format::ASTC_10x5_UNorm;        // VK_FORMAT_ASTC_10x5_UNORM_BLOCK
+        case 174: return Format::ASTC_10x5_SRGB;         // VK_FORMAT_ASTC_10x5_SRGB_BLOCK
+        case 175: return Format::ASTC_10x6_UNorm;        // VK_FORMAT_ASTC_10x6_UNORM_BLOCK
+        case 176: return Format::ASTC_10x6_SRGB;         // VK_FORMAT_ASTC_10x6_SRGB_BLOCK
+        case 177: return Format::ASTC_10x8_UNorm;        // VK_FORMAT_ASTC_10x8_UNORM_BLOCK
+        case 178: return Format::ASTC_10x8_SRGB;         // VK_FORMAT_ASTC_10x8_SRGB_BLOCK
+        case 179: return Format::ASTC_10x10_UNorm;       // VK_FORMAT_ASTC_10x10_UNORM_BLOCK
+        case 180: return Format::ASTC_10x10_SRGB;        // VK_FORMAT_ASTC_10x10_SRGB_BLOCK
+        case 181: return Format::ASTC_12x10_UNorm;       // VK_FORMAT_ASTC_12x10_UNORM_BLOCK
+        case 182: return Format::ASTC_12x10_SRGB;        // VK_FORMAT_ASTC_12x10_SRGB_BLOCK
+        case 183: return Format::ASTC_12x12_UNorm;       // VK_FORMAT_ASTC_12x12_UNORM_BLOCK
+        case 184: return Format::ASTC_12x12_SRGB;        // VK_FORMAT_ASTC_12x12_SRGB_BLOCK
         default: return Format::Undefined;
     }
 }
@@ -256,6 +314,21 @@ inline Format convertFormatSRGB(Format format, bool toSRGB) {
             case Format::BC2_UNorm:       return Format::BC2_SRGB;
             case Format::BC3_UNorm:       return Format::BC3_SRGB;
             case Format::BC7_UNorm:       return Format::BC7_SRGB;
+            // ASTC formats
+            case Format::ASTC_4x4_UNorm:  return Format::ASTC_4x4_SRGB;
+            case Format::ASTC_5x4_UNorm:  return Format::ASTC_5x4_SRGB;
+            case Format::ASTC_5x5_UNorm:  return Format::ASTC_5x5_SRGB;
+            case Format::ASTC_6x5_UNorm:  return Format::ASTC_6x5_SRGB;
+            case Format::ASTC_6x6_UNorm:  return Format::ASTC_6x6_SRGB;
+            case Format::ASTC_8x5_UNorm:  return Format::ASTC_8x5_SRGB;
+            case Format::ASTC_8x6_UNorm:  return Format::ASTC_8x6_SRGB;
+            case Format::ASTC_8x8_UNorm:  return Format::ASTC_8x8_SRGB;
+            case Format::ASTC_10x5_UNorm: return Format::ASTC_10x5_SRGB;
+            case Format::ASTC_10x6_UNorm: return Format::ASTC_10x6_SRGB;
+            case Format::ASTC_10x8_UNorm: return Format::ASTC_10x8_SRGB;
+            case Format::ASTC_10x10_UNorm:return Format::ASTC_10x10_SRGB;
+            case Format::ASTC_12x10_UNorm:return Format::ASTC_12x10_SRGB;
+            case Format::ASTC_12x12_UNorm:return Format::ASTC_12x12_SRGB;
             default: return format;  // Already SRGB or no conversion available
         }
     } else {
@@ -268,6 +341,21 @@ inline Format convertFormatSRGB(Format format, bool toSRGB) {
             case Format::BC2_SRGB:        return Format::BC2_UNorm;
             case Format::BC3_SRGB:        return Format::BC3_UNorm;
             case Format::BC7_SRGB:        return Format::BC7_UNorm;
+            // ASTC formats
+            case Format::ASTC_4x4_SRGB:   return Format::ASTC_4x4_UNorm;
+            case Format::ASTC_5x4_SRGB:   return Format::ASTC_5x4_UNorm;
+            case Format::ASTC_5x5_SRGB:   return Format::ASTC_5x5_UNorm;
+            case Format::ASTC_6x5_SRGB:   return Format::ASTC_6x5_UNorm;
+            case Format::ASTC_6x6_SRGB:   return Format::ASTC_6x6_UNorm;
+            case Format::ASTC_8x5_SRGB:   return Format::ASTC_8x5_UNorm;
+            case Format::ASTC_8x6_SRGB:   return Format::ASTC_8x6_UNorm;
+            case Format::ASTC_8x8_SRGB:   return Format::ASTC_8x8_UNorm;
+            case Format::ASTC_10x5_SRGB:  return Format::ASTC_10x5_UNorm;
+            case Format::ASTC_10x6_SRGB:  return Format::ASTC_10x6_UNorm;
+            case Format::ASTC_10x8_SRGB:  return Format::ASTC_10x8_UNorm;
+            case Format::ASTC_10x10_SRGB: return Format::ASTC_10x10_UNorm;
+            case Format::ASTC_12x10_SRGB: return Format::ASTC_12x10_UNorm;
+            case Format::ASTC_12x12_SRGB: return Format::ASTC_12x12_UNorm;
             default: return format;  // Already UNORM or no conversion available
         }
     }
@@ -285,6 +373,21 @@ inline bool isFormatSRGB(Format format) {
         case Format::BC2_SRGB:
         case Format::BC3_SRGB:
         case Format::BC7_SRGB:
+        // ASTC SRGB formats
+        case Format::ASTC_4x4_SRGB:
+        case Format::ASTC_5x4_SRGB:
+        case Format::ASTC_5x5_SRGB:
+        case Format::ASTC_6x5_SRGB:
+        case Format::ASTC_6x6_SRGB:
+        case Format::ASTC_8x5_SRGB:
+        case Format::ASTC_8x6_SRGB:
+        case Format::ASTC_8x8_SRGB:
+        case Format::ASTC_10x5_SRGB:
+        case Format::ASTC_10x6_SRGB:
+        case Format::ASTC_10x8_SRGB:
+        case Format::ASTC_10x10_SRGB:
+        case Format::ASTC_12x10_SRGB:
+        case Format::ASTC_12x12_SRGB:
             return true;
         default:
             return false;

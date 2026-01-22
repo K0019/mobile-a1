@@ -1,0 +1,68 @@
+// WBOIT Resolve Shader - Composite transparent fragments over opaque scene
+// Reads accumulation buffer and reconstructs final color using weighted average
+#hina
+group Textures = 0;
+
+bindings(Textures, start=0) {
+  texture sampler2D u_accumulation;  // RGBA16F: weighted color (rgb), weighted alpha (a)
+}
+
+struct VertexIn {
+  vec2 a_position;
+  vec2 a_uv;
+};
+
+struct Varyings {
+  vec2 uv;
+};
+
+struct FragOut {
+  vec4 color;  // Blended over opaque scene via (ONE_MINUS_SRC_ALPHA, SRC_ALPHA)
+};
+#hina_end
+
+#hina_stage vertex entry VSMain
+Varyings VSMain(VertexIn in) {
+    Varyings out;
+    out.uv = in.a_uv;
+    gl_Position = vec4(in.a_position, 0.0, 1.0);
+    return out;
+}
+#hina_end
+
+#hina_stage fragment entry FSMain
+FragOut FSMain(Varyings in) {
+    FragOut out;
+
+    // Sample accumulation buffer
+    vec4 accum = texture(u_accumulation, in.uv);
+
+    // Early out if no transparent fragments at this pixel
+    // (accumulated weight near zero means nothing was drawn)
+    if (accum.a < 1e-4) {
+        discard;
+    }
+
+    // Reconstruct average color from weighted sum
+    // accumulation.rgb = sum(color_i * alpha_i * weight_i)
+    // accumulation.a = sum(alpha_i * weight_i)
+    // avgColor = accumulation.rgb / accumulation.a
+    vec3 avgColor = accum.rgb / max(accum.a, 1e-5);
+
+    // Estimate coverage/reveal from weighted alpha
+    // This is a simplified approximation since we don't have a separate reveal buffer
+    // For proper WBOIT, reveal = prod(1 - alpha_i), but we approximate from weighted alpha
+    // Using a heuristic: higher accumulated alpha = more opaque overall
+    float avgAlpha = clamp(accum.a / max(accum.a, 1.0), 0.0, 1.0);
+
+    // Output for blending over opaque scene
+    // Blend mode: src = ONE_MINUS_SRC_ALPHA, dst = SRC_ALPHA
+    // Final = avgColor * (1 - reveal) + opaque * reveal
+    // Where reveal approximates transparency
+    float reveal = clamp(1.0 - avgAlpha, 0.0, 1.0);
+
+    out.color = vec4(avgColor, reveal);
+
+    return out;
+}
+#hina_end

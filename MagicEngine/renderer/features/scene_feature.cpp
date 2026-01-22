@@ -18,524 +18,33 @@
 #include "Graphics/LightComponent.h"
 #include "Graphics/AnimationComponent.h"
 #include "ECS/ECS.h"
+#include "VFS/VFS.h"
 #include "logging/log.h"
+#include "math/utils_math.h"  // For BoundingBox (frustum culling)
 #include <cstring>
 #include <cmath>
 #include <cassert>
 
 // =============================================================================
-// G-Buffer Shader (embedded hina_sl)
+// Shader Loading Helper
 // =============================================================================
 
-// G-buffer shader - Uses UBOs instead of push constants for mobile optimization
-// Set 0: Frame UBO, Set 1: Material (constants UBO + textures), Set 2: Dynamic transform UBO
-static const char* kGBufferShader = R"(#hina
-group Frame = 0;
-group Material = 1;
-group Dynamic = 2;
-
-bindings(Frame, start=0) {
-  uniform(std140) FrameUBO {
-    mat4 viewProj;
-  } frame;
+static bool LoadShaderSource(const char* vfsPath, std::string& outSource)
+{
+  if (!VFS::ReadFile(vfsPath, outSource)) {
+    LOG_ERROR("[SceneRenderFeature] Failed to load shader: {}", vfsPath);
+    return false;
+  }
+  return true;
 }
 
-// Material bind group: binding 0 = packed constants, bindings 1-5 = textures
-bindings(Material, start=0) {
-  uniform(std140) MaterialConstants {
-    uvec4 packed;  // [0]: baseColor.rg (half2), [1]: baseColor.b,roughness (half2), [2]: metallic,emissive (half2), [3]: rim,ao (half2)
-  } material;
-  texture sampler2D u_albedo;
-  texture sampler2D u_normal;
-  texture sampler2D u_metallicRoughness;
-  texture sampler2D u_emissive;
-  texture sampler2D u_occlusion;
-}
+// Shader file paths (relative to VFS mount point, which maps "" -> "./Assets")
+static const char* kGBufferShaderPath = "shaders/gbuffer.hina_sl";
+static const char* kGBufferSkinnedShaderPath = "shaders/gbuffer_skinned.hina_sl";
+static const char* kCompositeShaderPath = "shaders/composite.hina_sl";
+static const char* kWBOITAccumShaderPath = "shaders/wboit_accum.hina_sl";
+static const char* kWBOITResolveShaderPath = "shaders/wboit_resolve.hina_sl";
 
-// Dynamic bind group: per-draw transform + bone matrices (both with dynamic offset)
-// Note: Bone matrices UBO is declared but not used by static shader - this ensures
-// both static and skinned pipelines share the same bind group layout
-bindings(Dynamic, start=0) {
-  uniform(std140) TransformUBO {
-    mat4 model;
-  } transform;
-  uniform(std140) BoneMatricesUBO {
-    mat4 bones[256];
-  } skin;
-}
-
-// Split vertex streams (24 bytes total):
-// Buffer 0: Position stream (12 bytes)
-// Buffer 1: Attribute stream (12 bytes packed) - main branch CompressedVertex encoding
-struct VertexIn {
-  vec3 a_position;    // location 0, buffer 0: position
-  uint a_normalX;     // location 1, buffer 1: lower 16 bits = SNORM16 |nx| * nz_sign
-  uint a_packed;      // location 2, buffer 1: RGB10A2 [ny, tx, ty, (nx_sign<<1)|handedness]
-  uint a_uv;          // location 3, buffer 1: RG16_UNORM UV
-};
-
-struct Varyings {
-  vec3 worldPos;
-  vec3 normal;
-  vec3 tangent;
-  float bitangentSign;
-  vec2 uv;
-};
-
-struct FragOut {
-  vec4 albedo;       // location 0
-  vec4 normal;       // location 1
-  vec4 materialData; // location 2
-};
-#hina_end
-
-#hina_stage vertex entry VSMain
-Varyings VSMain(VertexIn in) {
-    Varyings out;
-
-    // Position from stream 0
-    vec4 worldPos = transform.model * vec4(in.a_position, 1.0);
-    out.worldPos = worldPos.xyz;
-
-    // Decode normal using main branch's CompressedVertex encoding
-    // a_normalX lower 16 bits = SNORM16: |nx| with nz_sign in sign bit
-    int normal_x_snorm = int(in.a_normalX & 0xFFFFu);
-    if (normal_x_snorm > 32767) normal_x_snorm -= 65536;  // Sign extend
-    float normal_x_float = float(normal_x_snorm) / 32767.0;
-
-    float nx_magnitude = abs(normal_x_float);
-    float nz_sign = normal_x_float < 0.0 ? -1.0 : 1.0;
-
-    // a_packed = RGB10A2: [ny(10), tx(10), ty(10), alpha(2)]
-    // alpha = (nx_sign_bit << 1) | handedness_bit
-    float ny = float(in.a_packed & 0x3FFu) / 1023.0 * 2.0 - 1.0;
-    float tx = float((in.a_packed >> 10u) & 0x3FFu) / 1023.0 * 2.0 - 1.0;
-    float ty = float((in.a_packed >> 20u) & 0x3FFu) / 1023.0 * 2.0 - 1.0;
-    uint alpha = (in.a_packed >> 30u) & 0x3u;
-
-    float nx_sign = ((alpha >> 1u) & 1u) != 0u ? -1.0 : 1.0;
-    float handedness = (alpha & 1u) != 0u ? -1.0 : 1.0;
-
-    float nx = nx_magnitude * nx_sign;
-    float nz = sqrt(max(0.001, 1.0 - nx * nx - ny * ny)) * nz_sign;
-    vec3 localNormal = normalize(vec3(nx, ny, nz));
-
-    // Tangent: tz is always positive (flipped during encoding if needed)
-    float tz = sqrt(max(0.001, 1.0 - tx * tx - ty * ty));
-    vec3 localTangent = normalize(vec3(tx, ty, tz));
-
-    // Proper normal matrix handles non-uniform scale
-    mat3 normalMatrix = transpose(inverse(mat3(transform.model)));
-    out.normal = normalize(normalMatrix * localNormal);
-    out.tangent = normalize(normalMatrix * localTangent);
-
-    out.bitangentSign = handedness;
-
-    // Unpack UV from RG16_UNORM
-    out.uv = unpackUnorm2x16(in.a_uv);
-
-    gl_Position = frame.viewProj * worldPos;
-    return out;
-}
-#hina_end
-
-#hina_stage fragment entry FSMain
-FragOut FSMain(Varyings in) {
-    FragOut out;
-
-    // Unpack base color from material constants (half-float packed in uvec4)
-    vec2 rg = unpackHalf2x16(material.packed.x);
-    vec2 bRoug = unpackHalf2x16(material.packed.y);
-    vec4 baseColor = vec4(rg.x, rg.y, bRoug.x, 1.0);
-
-    // Sample albedo texture and multiply by base color
-    vec4 albedo = texture(u_albedo, in.uv) * baseColor;
-
-    // Build TBN with original (non-negated) normal for correct normal mapping
-    vec3 N = normalize(in.normal);
-    vec3 T = normalize(in.tangent);
-    vec3 B = normalize(cross(N, T) * in.bitangentSign);
-
-    // Check if normal map is non-flat (default flat normal is (0.5, 0.5, 1.0))
-    vec3 normalSample = texture(u_normal, in.uv).rgb;
-    bool hasNormalMap = abs(normalSample.z - 1.0) > 0.01 || abs(normalSample.x - 0.5) > 0.01 || abs(normalSample.y - 0.5) > 0.01;
-
-    if (hasNormalMap) {
-        mat3 TBN = mat3(T, B, N);
-        vec3 normalMap = normalSample * 2.0 - 1.0;
-        N = normalize(TBN * normalMap);
-    }
-
-    // Negate final normal after TBN transformation (matches main branch's calculateLighting)
-    N = -N;
-
-    // Sample metallic/roughness (B=metallic, G=roughness in glTF convention)
-    vec2 mr = texture(u_metallicRoughness, in.uv).bg;
-    float metallic = mr.x;
-    float roughness = mr.y;
-
-    // Sample occlusion (R channel)
-    float ao = texture(u_occlusion, in.uv).r;
-
-    // Output albedo from material texture
-    out.albedo = albedo;
-
-    // Encode world-space normal using octahedral encoding (fits in RG16F)
-    // Project to octahedron
-    vec3 n = N / (abs(N.x) + abs(N.y) + abs(N.z));
-    // Fold lower hemisphere
-    if (n.z < 0.0) {
-        float nx = n.x;
-        float ny = n.y;
-        n.x = (1.0 - abs(ny)) * (nx >= 0.0 ? 1.0 : -1.0);
-        n.y = (1.0 - abs(nx)) * (ny >= 0.0 ? 1.0 : -1.0);
-    }
-    // Store in RG channels (SFLOAT, so keep in [-1,1] range)
-    out.normal = vec4(n.xy, 0.0, 1.0);
-
-    // Material data: roughness, metallic, ao, emissive intensity
-    out.materialData = vec4(roughness, metallic, ao, 0.0);
-
-    return out;
-}
-#hina_end
-)";
-
-// =============================================================================
-// G-Buffer Skinned Shader (embedded hina_sl) - For skeletal animation
-// =============================================================================
-
-// Same as kGBufferShader but with skinning support:
-// - Adds BoneMatrices UBO at binding 1 in Dynamic group
-// - Adds skinning vertex attributes in buffer 2
-// - Applies bone matrix transformation in vertex shader
-static const char* kGBufferSkinnedShader = R"(#hina
-group Frame = 0;
-group Material = 1;
-group Dynamic = 2;
-
-bindings(Frame, start=0) {
-  uniform(std140) FrameUBO {
-    mat4 viewProj;
-  } frame;
-}
-
-// Material bind group: binding 0 = packed constants, bindings 1-5 = textures
-bindings(Material, start=0) {
-  uniform(std140) MaterialConstants {
-    uvec4 packed;  // [0]: baseColor.rg (half2), [1]: baseColor.b,roughness (half2), [2]: metallic,emissive (half2), [3]: rim,ao (half2)
-  } material;
-  texture sampler2D u_albedo;
-  texture sampler2D u_normal;
-  texture sampler2D u_metallicRoughness;
-  texture sampler2D u_emissive;
-  texture sampler2D u_occlusion;
-}
-
-// Dynamic bind group: per-draw transform + bone matrices (both with dynamic offsets)
-bindings(Dynamic, start=0) {
-  uniform(std140) TransformUBO {
-    mat4 model;
-  } transform;
-  uniform(std140) BoneMatricesUBO {
-    mat4 bones[256];
-  } skin;
-}
-
-// Split vertex streams (32 bytes total for skinned):
-// Buffer 0: Position stream (12 bytes)
-// Buffer 1: Attribute stream (12 bytes packed)
-// Buffer 2: Skinning stream (8 bytes) - R8G8B8A8_UINT indices + R8G8B8A8_UNORM weights
-struct VertexIn {
-  vec3 a_position;    // location 0, buffer 0: position
-  uint a_normalX;     // location 1, buffer 1: lower 16 bits = SNORM16 |nx| * nz_sign
-  uint a_packed;      // location 2, buffer 1: RGB10A2 [ny, tx, ty, (nx_sign<<1)|handedness]
-  uint a_uv;          // location 3, buffer 1: RG16_UNORM UV
-  uvec4 a_boneIndices; // location 4, buffer 2: R8G8B8A8_UINT bone indices
-  vec4 a_boneWeights;  // location 5, buffer 2: R8G8B8A8_UNORM bone weights
-};
-
-struct Varyings {
-  vec3 worldPos;
-  vec3 normal;
-  vec3 tangent;
-  float bitangentSign;
-  vec2 uv;
-};
-
-struct FragOut {
-  vec4 albedo;       // location 0
-  vec4 normal;       // location 1
-  vec4 materialData; // location 2
-};
-#hina_end
-
-#hina_stage vertex entry VSMain
-Varyings VSMain(VertexIn in) {
-    Varyings out;
-
-    // Apply bone skinning to local position and normal/tangent
-    mat4 skinMatrix =
-        skin.bones[in.a_boneIndices.x] * in.a_boneWeights.x +
-        skin.bones[in.a_boneIndices.y] * in.a_boneWeights.y +
-        skin.bones[in.a_boneIndices.z] * in.a_boneWeights.z +
-        skin.bones[in.a_boneIndices.w] * in.a_boneWeights.w;
-
-    vec3 skinnedPosition = (skinMatrix * vec4(in.a_position, 1.0)).xyz;
-    mat3 skinNormalMatrix = mat3(skinMatrix);
-
-    // Transform skinned position to world space
-    vec4 worldPos = transform.model * vec4(skinnedPosition, 1.0);
-    out.worldPos = worldPos.xyz;
-
-    // Decode normal using main branch's CompressedVertex encoding
-    int normal_x_snorm = int(in.a_normalX & 0xFFFFu);
-    if (normal_x_snorm > 32767) normal_x_snorm -= 65536;
-    float normal_x_float = float(normal_x_snorm) / 32767.0;
-
-    float nx_magnitude = abs(normal_x_float);
-    float nz_sign = normal_x_float < 0.0 ? -1.0 : 1.0;
-
-    float ny = float(in.a_packed & 0x3FFu) / 1023.0 * 2.0 - 1.0;
-    float tx = float((in.a_packed >> 10u) & 0x3FFu) / 1023.0 * 2.0 - 1.0;
-    float ty = float((in.a_packed >> 20u) & 0x3FFu) / 1023.0 * 2.0 - 1.0;
-    uint alpha = (in.a_packed >> 30u) & 0x3u;
-
-    float nx_sign = ((alpha >> 1u) & 1u) != 0u ? -1.0 : 1.0;
-    float handedness = (alpha & 1u) != 0u ? -1.0 : 1.0;
-
-    float nx = nx_magnitude * nx_sign;
-    float nz = sqrt(max(0.001, 1.0 - nx * nx - ny * ny)) * nz_sign;
-    vec3 localNormal = normalize(vec3(nx, ny, nz));
-
-    float tz = sqrt(max(0.001, 1.0 - tx * tx - ty * ty));
-    vec3 localTangent = normalize(vec3(tx, ty, tz));
-
-    // Apply skinning to normal and tangent
-    vec3 skinnedNormal = normalize(skinNormalMatrix * localNormal);
-    vec3 skinnedTangent = normalize(skinNormalMatrix * localTangent);
-
-    // Transform to world space
-    mat3 normalMatrix = transpose(inverse(mat3(transform.model)));
-    out.normal = normalize(normalMatrix * skinnedNormal);
-    out.tangent = normalize(normalMatrix * skinnedTangent);
-
-    out.bitangentSign = handedness;
-    out.uv = unpackUnorm2x16(in.a_uv);
-
-    gl_Position = frame.viewProj * worldPos;
-    return out;
-}
-#hina_end
-
-#hina_stage fragment entry FSMain
-FragOut FSMain(Varyings in) {
-    FragOut out;
-
-    // Unpack base color from material constants
-    vec2 rg = unpackHalf2x16(material.packed.x);
-    vec2 bRoug = unpackHalf2x16(material.packed.y);
-    vec4 baseColor = vec4(rg.x, rg.y, bRoug.x, 1.0);
-
-    vec4 albedo = texture(u_albedo, in.uv) * baseColor;
-
-    vec3 N = normalize(in.normal);
-    vec3 T = normalize(in.tangent);
-    vec3 B = normalize(cross(N, T) * in.bitangentSign);
-
-    vec3 normalSample = texture(u_normal, in.uv).rgb;
-    bool hasNormalMap = abs(normalSample.z - 1.0) > 0.01 || abs(normalSample.x - 0.5) > 0.01 || abs(normalSample.y - 0.5) > 0.01;
-
-    if (hasNormalMap) {
-        mat3 TBN = mat3(T, B, N);
-        vec3 normalMap = normalSample * 2.0 - 1.0;
-        N = normalize(TBN * normalMap);
-    }
-
-    N = -N;
-
-    vec2 mr = texture(u_metallicRoughness, in.uv).bg;
-    float metallic = mr.x;
-    float roughness = mr.y;
-    float ao = texture(u_occlusion, in.uv).r;
-
-    out.albedo = albedo;
-
-    vec3 n = N / (abs(N.x) + abs(N.y) + abs(N.z));
-    if (n.z < 0.0) {
-        float nx = n.x;
-        float ny = n.y;
-        n.x = (1.0 - abs(ny)) * (nx >= 0.0 ? 1.0 : -1.0);
-        n.y = (1.0 - abs(nx)) * (ny >= 0.0 ? 1.0 : -1.0);
-    }
-    out.normal = vec4(n.xy, 0.0, 1.0);
-
-    out.materialData = vec4(roughness, metallic, ao, 0.0);
-
-    return out;
-}
-#hina_end
-)";
-
-// =============================================================================
-// Composite Shader (embedded hina_sl) - Deferred lighting pass
-// =============================================================================
-
-// Composite shader with multi-light support via UBO
-// Set 0: G-buffer textures
-// Set 1: Light UBO with all scene lights
-static const char* kCompositeShader = R"(#hina
-group GBuffer = 0;
-group Lights = 1;
-
-bindings(GBuffer, start=0) {
-  texture sampler2D u_albedo;
-  texture sampler2D u_normal;
-  texture sampler2D u_materialData;
-  texture sampler2D u_depth;
-}
-
-// Light UBO - each light is 4 vec4s:
-//   [0]: type, position.xyz (type: 0=dir, 1=point, 2=spot)
-//   [1]: direction.xyz, intensity
-//   [2]: color.rgb, radius
-//   [3]: attenuation.xyz, unused
-// Max 32 lights = 512 bytes for lights + 80 bytes header = 592 bytes
-bindings(Lights, start=0) {
-  uniform(std140) LightUBO {
-    vec4 ambientColor;   // rgb = ambient, a = unused
-    vec4 cameraPos;      // xyz = camera position, w = unused
-    mat4 invViewProj;    // For world position reconstruction
-    ivec4 lightCounts;   // x = numLights, yzw = unused
-    vec4 lights[128];    // 32 lights * 4 vec4s each
-  } ubo;
-}
-
-struct VertexIn {
-  vec2 a_position;
-  vec2 a_uv;
-};
-
-struct Varyings {
-  vec2 uv;
-};
-
-struct FragOut {
-  vec4 color;
-};
-#hina_end
-
-#hina_stage vertex entry VSMain
-Varyings VSMain(VertexIn in) {
-    Varyings out;
-    out.uv = in.a_uv;
-    gl_Position = vec4(in.a_position, 0.0, 1.0);
-    return out;
-}
-#hina_end
-
-#hina_stage fragment entry FSMain
-FragOut FSMain(Varyings in) {
-    FragOut out;
-
-    vec2 gbufferUV = in.uv;
-
-    // Sample G-buffer
-    vec4 albedoSample = texture(u_albedo, gbufferUV);
-    vec3 normalSample = texture(u_normal, gbufferUV).xyz;
-    vec4 matData = texture(u_materialData, gbufferUV);
-    float depth = texture(u_depth, gbufferUV).r;
-
-    // Early out for sky/background
-    if (depth >= 1.0) {
-        out.color = vec4(0.1, 0.1, 0.15, 1.0);
-        return out;
-    }
-
-    // Decode normal from octahedral encoding (RG16F stores [-1,1] directly)
-    vec2 f = normalSample.xy;
-    vec3 normal = vec3(f.x, f.y, 1.0 - abs(f.x) - abs(f.y));
-    // Unfold lower hemisphere
-    float t = max(-normal.z, 0.0);
-    normal.x += (normal.x >= 0.0) ? -t : t;
-    normal.y += (normal.y >= 0.0) ? -t : t;
-    normal = normalize(normal);  // TEST: no negation
-
-    // Material properties
-    float roughness = matData.r;
-
-    // Reconstruct world position from depth
-    vec2 ndc = gbufferUV * 2.0 - 1.0;
-    vec4 clipPos = vec4(ndc, depth, 1.0);
-    vec4 worldPos4 = ubo.invViewProj * clipPos;
-    vec3 worldPos = worldPos4.xyz / worldPos4.w;
-
-    vec3 viewDir = normalize(ubo.cameraPos.xyz - worldPos);
-    vec3 baseColor = albedoSample.rgb;
-    float specPower = mix(8.0, 128.0, 1.0 - roughness);
-
-    // Start with ambient
-    vec3 totalDiffuse = vec3(0.0);
-    vec3 totalSpecular = vec3(0.0);
-
-    int numLights = ubo.lightCounts.x;
-    for (int i = 0; i < numLights && i < 32; ++i) {
-        int base = i * 4;
-        vec4 data0 = ubo.lights[base + 0];  // type, position.xyz
-        vec4 data1 = ubo.lights[base + 1];  // direction.xyz, intensity
-        vec4 data2 = ubo.lights[base + 2];  // color.rgb, radius
-
-        int lightType = int(data0.x);
-        vec3 lightPos = data0.yzw;
-        vec3 lightDir = data1.xyz;
-        float intensity = data1.w;
-        vec3 lightColor = data2.rgb;
-        float radius = data2.a;
-
-        vec3 L;
-        float attenuation = 1.0;
-
-        if (lightType == 0) {
-            // Directional light - negate direction (lightDir points FROM light, L should point TO light)
-            L = -normalize(lightDir);
-        } else {
-            // Point light (type == 1) or spot light (type == 2)
-            vec3 toLight = lightPos - worldPos;
-            float dist = length(toLight);
-            L = toLight / max(dist, 0.001);
-
-            // Distance attenuation with smooth falloff
-            if (radius > 0.0) {
-                attenuation = 1.0 - smoothstep(0.0, radius, dist);
-                attenuation *= attenuation;
-            } else {
-                // Fallback inverse square
-                attenuation = 1.0 / (1.0 + dist * dist * 0.01);
-            }
-        }
-
-        // Standard one-sided diffuse (Lambert) - matches main branch
-        float NdotL = max(dot(normal, L), 0.0);
-        totalDiffuse += lightColor * NdotL * intensity * attenuation;
-
-        // Standard specular (Blinn-Phong)
-        vec3 halfVec = normalize(L + viewDir);
-        float NdotH = max(dot(normal, halfVec), 0.0);
-        float spec = pow(NdotH, specPower) * (1.0 - roughness) * 0.5;
-        totalSpecular += lightColor * spec * intensity * attenuation;
-    }
-
-    // Final color
-    vec3 ambient = ubo.ambientColor.rgb;
-    vec3 finalColor = baseColor * (ambient + totalDiffuse) + totalSpecular;
-
-    // DEBUG: Visualize normals as color (comment out for normal rendering)
-    //out.color = vec4(normal * 0.5 + 0.5, 1.0);
-    out.color = vec4(finalColor, 1.0);
-    return out;
-}
-#hina_end
-)";
 
 // =============================================================================
 // SceneRenderFeature Implementation
@@ -599,7 +108,30 @@ void SceneRenderFeature::Shutdown()
   m_lightUBOMapped = nullptr;
   m_lightUBOCreated = false;
 
+  // WBOIT resources
+  if (hina_bind_group_is_valid(m_wboitFrameBindGroup)) {
+    hina_destroy_bind_group(m_wboitFrameBindGroup);
+    m_wboitFrameBindGroup = {};
+  }
+  if (hina_bind_group_is_valid(m_wboitResolveBindGroup)) {
+    hina_destroy_bind_group(m_wboitResolveBindGroup);
+    m_wboitResolveBindGroup = {};
+  }
+  if (hina_buffer_is_valid(m_wboitFrameUBO)) {
+    hina_destroy_buffer(m_wboitFrameUBO);
+    m_wboitFrameUBO = {};
+  }
+  m_wboitFrameUBOMapped = nullptr;
+  m_wboitAccumPipeline.reset();
+  m_wboitResolvePipeline.reset();
+  m_wboitFrameLayout.reset();
+  m_wboitResolveLayout.reset();
+  m_wboitSampler.reset();
+  m_wboitPipelinesCreated = false;
+  m_lastWboitAccum = {};
+
   m_drawList.clear();
+  m_transparentDrawList.clear();
   m_lightList.clear();
 }
 
@@ -615,8 +147,14 @@ bool SceneRenderFeature::EnsurePipelineCreated(GfxRenderer* gfxRenderer)
 
   // Pipeline creation (one-time)
 
+  // Load shader source from file
+  std::string shaderSource;
+  if (!LoadShaderSource(kGBufferShaderPath, shaderSource)) {
+    return false;
+  }
+
   char* error = nullptr;
-  hina_hsl_module* module = hslc_compile_hsl_source(kGBufferShader, "scene_gbuffer", &error);
+  hina_hsl_module* module = hslc_compile_hsl_source(shaderSource.c_str(), "scene_gbuffer", &error);
   if (!module) {
     LOG_ERROR("[SceneRenderFeature] Shader compilation failed: {}", error ? error : "unknown");
     if (error) hslc_free_log(error);
@@ -754,8 +292,14 @@ bool SceneRenderFeature::EnsureSkinnedPipelineCreated(GfxRenderer* gfxRenderer)
     }
   }
 
+  // Load shader source from file
+  std::string shaderSource;
+  if (!LoadShaderSource(kGBufferSkinnedShaderPath, shaderSource)) {
+    return false;
+  }
+
   char* error = nullptr;
-  hina_hsl_module* module = hslc_compile_hsl_source(kGBufferSkinnedShader, "scene_gbuffer_skinned", &error);
+  hina_hsl_module* module = hslc_compile_hsl_source(shaderSource.c_str(), "scene_gbuffer_skinned", &error);
   if (!module) {
     LOG_ERROR("[SceneRenderFeature] Skinned shader compilation failed: {}", error ? error : "unknown");
     if (error) hslc_free_log(error);
@@ -831,6 +375,7 @@ void SceneRenderFeature::UpdateScene(uint64_t renderFeatureID,
   }
 
   feature->m_drawList.clear();
+  feature->m_transparentDrawList.clear();
 
   for (auto compIter = ecs::GetCompsActiveBegin<RenderComponent>();
        compIter != ecs::GetCompsEnd<RenderComponent>();
@@ -863,6 +408,30 @@ void SceneRenderFeature::UpdateScene(uint64_t renderFeatureID,
       const MeshGPUData* meshData = resourceMngr.getMesh(meshHandle);
       if (!meshData || !meshData->hasGfxMesh) continue;
 
+      // Frustum culling - skip objects outside camera view
+      const gfx::GpuMesh* gpuMesh = renderer.getMeshStorage().get(
+          gfx::MeshHandle{static_cast<uint16_t>(meshData->gfxMeshIndex),
+                          static_cast<uint16_t>(meshData->gfxMeshGeneration)});
+      if (gpuMesh && gpuMesh->valid) {
+        // Transform AABB to world space
+        glm::mat4 worldTransform = entityWorldMatrix * mesh->transforms[i];
+        BoundingBox worldBounds(gpuMesh->bounds.aabbMin, gpuMesh->bounds.aabbMax);
+        worldBounds.transform(worldTransform);
+
+        // Inflate bounds for skinned meshes (1.5x) to accommodate animations
+        if (hasValidSkinning) {
+          vec3 center = worldBounds.getCenter();
+          vec3 halfSize = worldBounds.getSize() * 0.5f * 1.5f;
+          worldBounds.min_ = center - halfSize;
+          worldBounds.max_ = center + halfSize;
+        }
+
+        // Skip if not visible in frustum
+        if (!renderer.isVisibleInFrustum(worldBounds.min_, worldBounds.max_)) {
+          continue;
+        }
+      }
+
       DrawData draw;
       draw.gfxMesh.index = static_cast<uint16_t>(meshData->gfxMeshIndex);
       draw.gfxMesh.generation = static_cast<uint16_t>(meshData->gfxMeshGeneration);
@@ -886,16 +455,29 @@ void SceneRenderFeature::UpdateScene(uint64_t renderFeatureID,
             mesh->defaultMaterialHashes[i]);
       }
 
+      // Check material and determine if transparent
+      bool isTransparent = false;
       if (material && material->handle.isValid()) {
         const auto* matHotData = resourceMngr.getMaterialHotData(material->handle);
         if (matHotData && matHotData->hasGfxMaterial) {
           draw.gfxMaterial.index = static_cast<uint16_t>(matHotData->gfxMaterialIndex);
           draw.gfxMaterial.generation = static_cast<uint16_t>(matHotData->gfxMaterialGeneration);
           draw.hasMaterial = true;
+
+          // Check render queue for transparency routing
+          if (matHotData->renderQueue == RenderQueue::Transparent) {
+            isTransparent = true;
+          }
         }
       }
 
-      feature->m_drawList.push_back(draw);
+      // Route draw to appropriate list based on transparency
+      draw.isTransparent = isTransparent;
+      if (isTransparent) {
+        feature->m_transparentDrawList.push_back(draw);
+      } else {
+        feature->m_drawList.push_back(draw);
+      }
     }
   }
 
@@ -978,6 +560,30 @@ void SceneRenderFeature::SetupPasses(internal::RenderPassBuilder& passBuilder)
       ExecuteCompositePass(const_cast<internal::ExecutionContext&>(ctx));
     });
 
+  // =========================================================================
+  // WBOIT Passes (Order-Independent Transparency)
+  // =========================================================================
+  // WBOIT Accumulation pass - renders transparent objects with weighted blending
+  // Uses SCENE_DEPTH for depth testing (read-only), writes to WBOIT_Accumulation (owned by GfxRenderer)
+  // Priority 510: Must run AFTER SceneComposite (500) which writes the opaque scene to SCENE_COLOR
+  passBuilder.CreatePass()
+    .UseResource(RenderResources::SCENE_DEPTH, AccessType::Read)
+    .SetPriority(static_cast<internal::RenderPassBuilder::PassPriority>(510))
+    .ExecuteAfter("SceneComposite")
+    .AddGenericPass("WBOITAccumulation", [this](internal::ExecutionContext& ctx) {
+      ExecuteWBOITAccumulation(ctx);
+    });
+
+  // WBOIT Resolve pass - composites transparent result over SCENE_COLOR
+  // WBOIT accumulation texture is accessed directly from GfxRenderer (external to render graph)
+  // Priority 520: Must run AFTER WBOITAccumulation (510)
+  passBuilder.CreatePass()
+    .UseResource(RenderResources::SCENE_COLOR, AccessType::ReadWrite)
+    .SetPriority(static_cast<internal::RenderPassBuilder::PassPriority>(520))
+    .ExecuteAfter("WBOITAccumulation")
+    .AddGenericPass("WBOITResolve", [this](internal::ExecutionContext& ctx) {
+      ExecuteWBOITResolve(ctx);
+    });
 }
 
 void SceneRenderFeature::ExecuteGBufferPass(internal::ExecutionContext& ctx)
@@ -1247,8 +853,223 @@ void SceneRenderFeature::ExecuteSSAOBlur(internal::ExecutionContext& ctx) { (voi
 void SceneRenderFeature::ExecuteShadowAtlasPass(internal::ExecutionContext& ctx) { (void)ctx; }
 void SceneRenderFeature::ExecuteDeferredLighting(internal::ExecutionContext& ctx) { (void)ctx; }
 void SceneRenderFeature::ExecuteSkyboxPass(internal::ExecutionContext& ctx) { (void)ctx; }
-void SceneRenderFeature::ExecuteWBOITAccumulation(internal::ExecutionContext& ctx) { (void)ctx; }
-void SceneRenderFeature::ExecuteWBOITResolve(internal::ExecutionContext& ctx) { (void)ctx; }
+void SceneRenderFeature::ExecuteWBOITAccumulation(internal::ExecutionContext& ctx)
+{
+  // Skip if no transparent draws
+  if (m_transparentDrawList.empty()) {
+    return;
+  }
+
+  // Ensure pipelines are created (also creates light UBO if composite pipeline exists)
+  EnsureWBOITPipelines(ctx);
+  if (!m_wboitPipelinesCreated) {
+    return;
+  }
+
+  GfxRenderer* gfxRenderer = ctx.GetGfxRenderer();
+  if (!gfxRenderer) {
+    return;
+  }
+
+  const FrameData& frameData = ctx.GetFrameData();
+  gfx::Cmd* cmd = ctx.GetCmd();
+  const auto& meshStorage = gfxRenderer->getMeshStorage();
+  const auto& materialSystem = gfxRenderer->getMaterialSystem();
+  const auto& wboit = gfxRenderer->getWBOIT();
+  auto& frame = gfxRenderer->getCurrentFrameResources();
+
+  // Get scene depth for depth testing
+  gfx::Texture sceneDepth = ctx.GetTexture(RenderResources::SCENE_DEPTH);
+  gfx::TextureView sceneDepthView = hina_texture_get_default_view(sceneDepth);
+
+  // Begin WBOIT accumulation pass
+  hina_pass_action pass = {};
+  pass.colors[0].image = wboit.accumulationView;
+  pass.colors[0].load_op = HINA_LOAD_OP_CLEAR;
+  pass.colors[0].store_op = HINA_STORE_OP_STORE;
+  pass.colors[0].clear_color[0] = 0.0f;
+  pass.colors[0].clear_color[1] = 0.0f;
+  pass.colors[0].clear_color[2] = 0.0f;
+  pass.colors[0].clear_color[3] = 0.0f;
+
+  pass.depth.image = sceneDepthView;
+  pass.depth.load_op = HINA_LOAD_OP_LOAD;  // Preserve opaque depth
+  pass.depth.store_op = HINA_STORE_OP_STORE;
+
+  hina_cmd_begin_pass(cmd, &pass);
+
+  // Update WBOIT frame UBO (viewProj + cameraPos)
+  if (m_wboitFrameUBOMapped) {
+    glm::mat4 viewProj = frameData.projMatrix * frameData.viewMatrix;
+    glm::vec4 cameraPos(frameData.cameraPos, 0.0f);
+
+    std::memcpy(m_wboitFrameUBOMapped, &viewProj, sizeof(glm::mat4));
+    std::memcpy(static_cast<uint8_t*>(m_wboitFrameUBOMapped) + sizeof(glm::mat4), &cameraPos, sizeof(glm::vec4));
+  }
+
+  uint32_t width = RenderResources::INTERNAL_WIDTH;
+  uint32_t height = RenderResources::INTERNAL_HEIGHT;
+
+  hina_viewport viewport = {};
+  viewport.width = static_cast<float>(width);
+  viewport.height = static_cast<float>(height);
+  viewport.min_depth = 0.0f;
+  viewport.max_depth = 1.0f;
+  hina_cmd_set_viewport(cmd, &viewport);
+
+  hina_scissor scissor = {};
+  scissor.width = width;
+  scissor.height = height;
+  hina_cmd_set_scissor(cmd, &scissor);
+
+  // Bind accumulation pipeline
+  hina_cmd_bind_pipeline(cmd, m_wboitAccumPipeline.get());
+
+  // Bind frame bind group (set 0)
+  hina_cmd_bind_group(cmd, 0, m_wboitFrameBindGroup);
+
+  // Bind light bind group (set 3) - reuse from composite
+  if (hina_bind_group_is_valid(m_lightBindGroup)) {
+    hina_cmd_bind_group(cmd, 3, m_lightBindGroup);
+  }
+
+  // Render each transparent draw
+  for (const DrawData& draw : m_transparentDrawList) {
+    const gfx::GpuMesh* gpuMesh = meshStorage.get(draw.gfxMesh);
+    if (!gpuMesh || !gpuMesh->valid) continue;
+
+    // Check transform ring buffer overflow
+    if (frame.transformRingOffset >= TRANSFORM_UBO_SIZE) {
+      break;
+    }
+
+    // Write transform to ring buffer
+    glm::mat4* transformDst = reinterpret_cast<glm::mat4*>(
+        static_cast<uint8_t*>(frame.transformRingMapped) + frame.transformRingOffset);
+    *transformDst = draw.transform;
+
+    // Bind vertex streams
+    hina_vertex_input meshInput = {};
+    meshInput.vertex_buffers[0] = gpuMesh->vertexBuffer;
+    meshInput.vertex_offsets[0] = gpuMesh->vertexOffset;
+    meshInput.vertex_buffers[1] = gpuMesh->attributeBuffer;
+    meshInput.vertex_offsets[1] = gpuMesh->attributeOffset;
+    meshInput.index_buffer = gpuMesh->indexBuffer;
+    meshInput.index_type = HINA_INDEX_UINT32;
+
+    hina_cmd_apply_vertex_input(cmd, &meshInput);
+
+    // Bind material at Set 1
+    gfx::BindGroup materialBG;
+    if (draw.hasMaterial && materialSystem.isMaterialValid(draw.gfxMaterial)) {
+      materialBG = materialSystem.getMaterialBindGroup(draw.gfxMaterial);
+    } else {
+      materialBG = materialSystem.getMaterialBindGroup(materialSystem.getDefaultMaterial());
+    }
+    hina_cmd_bind_group(cmd, 1, materialBG);
+
+    // Bind Set 2 with dynamic offset
+    uint32_t dynamicOffsets[2] = { frame.transformRingOffset, 0 };
+    hina_cmd_bind_group_with_offsets(cmd, 2, frame.dynamicBindGroup, dynamicOffsets, 2);
+
+    // Advance transform ring offset
+    frame.transformRingOffset += TRANSFORM_ALIGNMENT;
+
+    // Draw
+    hina_cmd_draw_indexed(cmd, gpuMesh->indexCount, 1, gpuMesh->indexOffset / sizeof(uint32_t), 0, 0);
+  }
+
+  hina_cmd_end_pass(cmd);
+}
+void SceneRenderFeature::ExecuteWBOITResolve(internal::ExecutionContext& ctx)
+{
+  // Skip if no transparent draws or pipeline not created
+  if (m_transparentDrawList.empty() || !m_wboitPipelinesCreated) {
+    return;
+  }
+
+  GfxRenderer* gfxRenderer = ctx.GetGfxRenderer();
+  if (!gfxRenderer) {
+    return;
+  }
+
+  gfx::Cmd* cmd = ctx.GetCmd();
+  const auto& wboit = gfxRenderer->getWBOIT();
+
+  // Get HDR scene color to composite over
+  gfx::Texture sceneColor = ctx.GetTexture(RenderResources::SCENE_COLOR);
+  gfx::TextureView sceneColorView = hina_texture_get_default_view(sceneColor);
+
+  // Ensure resolve bind group is created/updated
+  bool needsRecreate = !hina_bind_group_is_valid(m_wboitResolveBindGroup)
+                    || wboit.accumulation.id != m_lastWboitAccum.id;
+
+  if (needsRecreate) {
+    if (hina_bind_group_is_valid(m_wboitResolveBindGroup)) {
+      hina_destroy_bind_group(m_wboitResolveBindGroup);
+      m_wboitResolveBindGroup = {};
+    }
+
+    hina_bind_group_entry entry = {};
+    entry.binding = 0;
+    entry.type = HINA_DESC_TYPE_COMBINED_IMAGE_SAMPLER;
+    entry.combined.view = wboit.accumulationView;
+    entry.combined.sampler = m_wboitSampler.get();
+
+    hina_bind_group_desc bg_desc = {};
+    bg_desc.layout = m_wboitResolveLayout.get();
+    bg_desc.entries = &entry;
+    bg_desc.entry_count = 1;
+    bg_desc.label = "wboit_resolve_bg";
+
+    m_wboitResolveBindGroup = hina_create_bind_group(&bg_desc);
+    m_lastWboitAccum = wboit.accumulation;
+  }
+
+  if (!hina_bind_group_is_valid(m_wboitResolveBindGroup)) {
+    return;
+  }
+
+  // Begin resolve pass (composite over SCENE_COLOR)
+  hina_pass_action pass = {};
+  pass.colors[0].image = sceneColorView;
+  pass.colors[0].load_op = HINA_LOAD_OP_LOAD;  // Preserve opaque scene
+  pass.colors[0].store_op = HINA_STORE_OP_STORE;
+
+  hina_cmd_begin_pass(cmd, &pass);
+
+  uint32_t width = RenderResources::INTERNAL_WIDTH;
+  uint32_t height = RenderResources::INTERNAL_HEIGHT;
+
+  hina_viewport viewport = {};
+  viewport.width = static_cast<float>(width);
+  viewport.height = static_cast<float>(height);
+  viewport.min_depth = 0.0f;
+  viewport.max_depth = 1.0f;
+  hina_cmd_set_viewport(cmd, &viewport);
+
+  hina_scissor scissor = {};
+  scissor.width = width;
+  scissor.height = height;
+  hina_cmd_set_scissor(cmd, &scissor);
+
+  // Bind resolve pipeline
+  hina_cmd_bind_pipeline(cmd, m_wboitResolvePipeline.get());
+
+  // Bind accumulation texture
+  hina_cmd_bind_group(cmd, 0, m_wboitResolveBindGroup);
+
+  // Bind fullscreen quad (reuse from composite)
+  hina_vertex_input vertInput = {};
+  vertInput.vertex_buffers[0] = m_fullscreenQuadVB;
+  vertInput.vertex_offsets[0] = 0;
+  hina_cmd_apply_vertex_input(cmd, &vertInput);
+
+  // Draw fullscreen quad
+  hina_cmd_draw(cmd, 6, 1, 0, 0);
+
+  hina_cmd_end_pass(cmd);
+}
 void SceneRenderFeature::ProcessPendingPick(internal::ExecutionContext& ctx) { (void)ctx; }
 void SceneRenderFeature::ExecuteLightingSetup(internal::ExecutionContext& ctx) { (void)ctx; }
 
@@ -1257,7 +1078,235 @@ void SceneRenderFeature::EnsureGBufferPipelines(internal::ExecutionContext& ctx)
 void SceneRenderFeature::EnsureSSAOPipelines(internal::ExecutionContext& ctx) { (void)ctx; }
 void SceneRenderFeature::EnsureShadowPipelines(internal::ExecutionContext& ctx) { (void)ctx; }
 void SceneRenderFeature::EnsureDeferredLightingPipeline(internal::ExecutionContext& ctx) { (void)ctx; }
-void SceneRenderFeature::EnsureWBOITPipelines(internal::ExecutionContext& ctx) { (void)ctx; }
+void SceneRenderFeature::EnsureWBOITPipelines(internal::ExecutionContext& ctx)
+{
+  if (m_wboitPipelinesCreated) {
+    return;
+  }
+
+  GfxRenderer* gfxRenderer = ctx.GetGfxRenderer();
+  if (!gfxRenderer) {
+    return;
+  }
+
+  // =========================================================================
+  // Create WBOIT Accumulation Pipeline
+  // =========================================================================
+
+  // Load accumulation shader
+  std::string accumShaderSource;
+  if (!LoadShaderSource(kWBOITAccumShaderPath, accumShaderSource)) {
+    LOG_ERROR("[SceneRenderFeature] Failed to load WBOIT accumulation shader");
+    return;
+  }
+
+  char* error = nullptr;
+  hina_hsl_module* accumModule = hslc_compile_hsl_source(accumShaderSource.c_str(), "wboit_accum", &error);
+  if (!accumModule) {
+    LOG_ERROR("[SceneRenderFeature] WBOIT accumulation shader compilation failed: {}", error ? error : "unknown");
+    if (error) hslc_free_log(error);
+    return;
+  }
+
+  // Set 0: Frame UBO (viewProj + cameraPos)
+  hina_bind_group_layout_entry frame_entries[1] = {};
+  frame_entries[0].binding = 0;
+  frame_entries[0].type = HINA_DESC_TYPE_UNIFORM_BUFFER;
+  frame_entries[0].count = 1;
+  frame_entries[0].stage_flags = HINA_STAGE_VERTEX | HINA_STAGE_FRAGMENT;
+  frame_entries[0].flags = HINA_BINDING_FLAG_NONE;
+
+  hina_bind_group_layout_desc frame_layout_desc = {};
+  frame_layout_desc.entries = frame_entries;
+  frame_layout_desc.entry_count = 1;
+  frame_layout_desc.label = "wboit_frame_layout";
+
+  m_wboitFrameLayout.reset(hina_create_bind_group_layout(&frame_layout_desc));
+  if (!hina_bind_group_layout_is_valid(m_wboitFrameLayout.get())) {
+    LOG_ERROR("[SceneRenderFeature] Failed to create WBOIT frame bind group layout");
+    hslc_hsl_module_free(accumModule);
+    return;
+  }
+
+  // Create Frame UBO (mat4 viewProj + vec4 cameraPos = 80 bytes)
+  constexpr size_t kWBOITFrameUBOSize = sizeof(glm::mat4) + sizeof(glm::vec4);
+  hina_buffer_desc ubo_desc = {};
+  ubo_desc.size = kWBOITFrameUBOSize;
+  ubo_desc.flags = static_cast<hina_buffer_flags>(
+      HINA_BUFFER_UNIFORM_BIT | HINA_BUFFER_HOST_VISIBLE_BIT | HINA_BUFFER_HOST_COHERENT_BIT);
+  m_wboitFrameUBO = hina_make_buffer(&ubo_desc);
+  if (!hina_buffer_is_valid(m_wboitFrameUBO)) {
+    LOG_ERROR("[SceneRenderFeature] Failed to create WBOIT frame UBO");
+    hslc_hsl_module_free(accumModule);
+    return;
+  }
+  m_wboitFrameUBOMapped = hina_map_buffer(m_wboitFrameUBO);
+
+  // Create frame bind group
+  hina_bind_group_entry frame_bg_entry = {};
+  frame_bg_entry.binding = 0;
+  frame_bg_entry.type = HINA_DESC_TYPE_UNIFORM_BUFFER;
+  frame_bg_entry.buffer.buffer = m_wboitFrameUBO;
+  frame_bg_entry.buffer.offset = 0;
+  frame_bg_entry.buffer.size = kWBOITFrameUBOSize;
+
+  hina_bind_group_desc frame_bg_desc = {};
+  frame_bg_desc.layout = m_wboitFrameLayout.get();
+  frame_bg_desc.entries = &frame_bg_entry;
+  frame_bg_desc.entry_count = 1;
+  frame_bg_desc.label = "wboit_frame_bg";
+
+  m_wboitFrameBindGroup = hina_create_bind_group(&frame_bg_desc);
+  if (!hina_bind_group_is_valid(m_wboitFrameBindGroup)) {
+    LOG_ERROR("[SceneRenderFeature] Failed to create WBOIT frame bind group");
+    hslc_hsl_module_free(accumModule);
+    return;
+  }
+
+  // Get material and dynamic layouts from GfxRenderer
+  gfx::BindGroupLayout materialLayout = gfxRenderer->getMaterialLayout();
+  gfx::BindGroupLayout dynamicLayout = gfxRenderer->getDynamicLayout();
+
+  // Vertex layout for split streams (same as gbuffer)
+  hina_vertex_layout vertex_layout = {};
+  vertex_layout.buffer_count = 2;
+  vertex_layout.buffer_strides[0] = sizeof(gfx::VertexPosition);
+  vertex_layout.input_rates[0] = HINA_VERTEX_INPUT_RATE_VERTEX;
+  vertex_layout.buffer_strides[1] = sizeof(gfx::VertexAttributes);
+  vertex_layout.input_rates[1] = HINA_VERTEX_INPUT_RATE_VERTEX;
+  vertex_layout.attr_count = 4;
+  vertex_layout.attrs[0] = { HINA_FORMAT_R32G32B32_SFLOAT, 0, 0, 0 };     // position
+  vertex_layout.attrs[1] = { HINA_FORMAT_R32_UINT, 0, 1, 1 };              // normalX
+  vertex_layout.attrs[2] = { HINA_FORMAT_R32_UINT, 4, 2, 1 };              // packed
+  vertex_layout.attrs[3] = { HINA_FORMAT_R32_UINT, 8, 3, 1 };              // uv
+
+  // Pipeline descriptor with additive blending
+  hina_hsl_pipeline_desc pip_desc = hina_hsl_pipeline_desc_default();
+  pip_desc.layout = vertex_layout;
+  pip_desc.cull_mode = HINA_CULL_MODE_NONE;
+  pip_desc.front_face = HINA_FRONT_FACE_CLOCKWISE;
+  pip_desc.depth.depth_test = true;   // Test against opaque depth
+  pip_desc.depth.depth_write = false; // Don't write depth for transparents
+  pip_desc.depth.depth_compare = HINA_COMPARE_OP_LESS;
+  pip_desc.depth_format = HINA_FORMAT_D32_SFLOAT;
+  pip_desc.color_attachment_count = 1;
+  pip_desc.color_formats[0] = HINA_FORMAT_R16G16B16A16_SFLOAT;  // Accumulation (RGBA16F)
+
+  // Additive blending: final = src * 1 + dst * 1
+  pip_desc.blend.enable = true;
+  pip_desc.blend.src_color = HINA_BLEND_FACTOR_ONE;
+  pip_desc.blend.dst_color = HINA_BLEND_FACTOR_ONE;
+  pip_desc.blend.color_op = HINA_BLEND_OP_ADD;
+  pip_desc.blend.src_alpha = HINA_BLEND_FACTOR_ONE;
+  pip_desc.blend.dst_alpha = HINA_BLEND_FACTOR_ONE;
+  pip_desc.blend.alpha_op = HINA_BLEND_OP_ADD;
+  pip_desc.blend.color_write_mask = HINA_COLOR_COMPONENT_ALL;
+
+  // Set 0: Frame, Set 1: Material, Set 2: Dynamic, Set 3: Lights
+  pip_desc.bind_group_layouts[0] = m_wboitFrameLayout.get();
+  pip_desc.bind_group_layouts[1] = materialLayout;
+  pip_desc.bind_group_layouts[2] = dynamicLayout;
+  pip_desc.bind_group_layouts[3] = m_lightLayout.get();  // Reuse from composite
+  pip_desc.bind_group_layout_count = 4;
+
+  m_wboitAccumPipeline.reset(hina_make_pipeline_from_module(accumModule, &pip_desc, nullptr));
+  hslc_hsl_module_free(accumModule);
+
+  if (!hina_pipeline_is_valid(m_wboitAccumPipeline.get())) {
+    LOG_ERROR("[SceneRenderFeature] WBOIT accumulation pipeline creation failed");
+    return;
+  }
+
+  // =========================================================================
+  // Create WBOIT Resolve Pipeline
+  // =========================================================================
+
+  std::string resolveShaderSource;
+  if (!LoadShaderSource(kWBOITResolveShaderPath, resolveShaderSource)) {
+    LOG_ERROR("[SceneRenderFeature] Failed to load WBOIT resolve shader");
+    return;
+  }
+
+  hina_hsl_module* resolveModule = hslc_compile_hsl_source(resolveShaderSource.c_str(), "wboit_resolve", &error);
+  if (!resolveModule) {
+    LOG_ERROR("[SceneRenderFeature] WBOIT resolve shader compilation failed: {}", error ? error : "unknown");
+    if (error) hslc_free_log(error);
+    return;
+  }
+
+  // Create sampler for resolve pass
+  gfx::SamplerDesc samplerDesc = gfx::samplerDescDefault();
+  samplerDesc.min_filter = HINA_FILTER_LINEAR;
+  samplerDesc.mag_filter = HINA_FILTER_LINEAR;
+  samplerDesc.address_u = HINA_ADDRESS_CLAMP_TO_EDGE;
+  samplerDesc.address_v = HINA_ADDRESS_CLAMP_TO_EDGE;
+  m_wboitSampler.reset(gfx::createSampler(samplerDesc));
+
+  // Set 0: Accumulation texture (combined image sampler)
+  hina_bind_group_layout_entry resolve_entries[1] = {};
+  resolve_entries[0].binding = 0;
+  resolve_entries[0].type = HINA_DESC_TYPE_COMBINED_IMAGE_SAMPLER;
+  resolve_entries[0].count = 1;
+  resolve_entries[0].stage_flags = HINA_STAGE_FRAGMENT;
+  resolve_entries[0].flags = HINA_BINDING_FLAG_NONE;
+
+  hina_bind_group_layout_desc resolve_layout_desc = {};
+  resolve_layout_desc.entries = resolve_entries;
+  resolve_layout_desc.entry_count = 1;
+  resolve_layout_desc.label = "wboit_resolve_layout";
+
+  m_wboitResolveLayout.reset(hina_create_bind_group_layout(&resolve_layout_desc));
+  if (!hina_bind_group_layout_is_valid(m_wboitResolveLayout.get())) {
+    LOG_ERROR("[SceneRenderFeature] Failed to create WBOIT resolve bind group layout");
+    hslc_hsl_module_free(resolveModule);
+    return;
+  }
+
+  // Fullscreen quad vertex layout
+  hina_vertex_layout resolve_vertex_layout = {};
+  resolve_vertex_layout.buffer_count = 1;
+  resolve_vertex_layout.buffer_strides[0] = sizeof(float) * 4;
+  resolve_vertex_layout.input_rates[0] = HINA_VERTEX_INPUT_RATE_VERTEX;
+  resolve_vertex_layout.attr_count = 2;
+  resolve_vertex_layout.attrs[0] = { HINA_FORMAT_R32G32_SFLOAT, 0, 0, 0 };              // position
+  resolve_vertex_layout.attrs[1] = { HINA_FORMAT_R32G32_SFLOAT, sizeof(float) * 2, 1, 0 }; // uv
+
+  // Resolve pipeline with compositing blend
+  // Blend: final = src * (1 - srcAlpha) + dst * srcAlpha
+  // This composites transparent over opaque: src = transparent result, srcAlpha = reveal
+  hina_hsl_pipeline_desc resolve_pip_desc = hina_hsl_pipeline_desc_default();
+  resolve_pip_desc.layout = resolve_vertex_layout;
+  resolve_pip_desc.cull_mode = HINA_CULL_MODE_NONE;
+  resolve_pip_desc.depth.depth_test = false;
+  resolve_pip_desc.depth.depth_write = false;
+  resolve_pip_desc.depth_format = HINA_FORMAT_UNDEFINED;
+  resolve_pip_desc.color_attachment_count = 1;
+  resolve_pip_desc.color_formats[0] = LinearColor::HDR_SCENE_FORMAT;
+
+  // Compositing blend: final = avgColor * (1 - reveal) + opaque * reveal
+  resolve_pip_desc.blend.enable = true;
+  resolve_pip_desc.blend.src_color = HINA_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+  resolve_pip_desc.blend.dst_color = HINA_BLEND_FACTOR_SRC_ALPHA;
+  resolve_pip_desc.blend.color_op = HINA_BLEND_OP_ADD;
+  resolve_pip_desc.blend.src_alpha = HINA_BLEND_FACTOR_ZERO;
+  resolve_pip_desc.blend.dst_alpha = HINA_BLEND_FACTOR_ONE;
+  resolve_pip_desc.blend.alpha_op = HINA_BLEND_OP_ADD;
+  resolve_pip_desc.blend.color_write_mask = HINA_COLOR_COMPONENT_ALL;
+
+  resolve_pip_desc.bind_group_layouts[0] = m_wboitResolveLayout.get();
+  resolve_pip_desc.bind_group_layout_count = 1;
+
+  m_wboitResolvePipeline.reset(hina_make_pipeline_from_module(resolveModule, &resolve_pip_desc, nullptr));
+  hslc_hsl_module_free(resolveModule);
+
+  if (!hina_pipeline_is_valid(m_wboitResolvePipeline.get())) {
+    LOG_ERROR("[SceneRenderFeature] WBOIT resolve pipeline creation failed");
+    return;
+  }
+
+  m_wboitPipelinesCreated = true;
+  LOG_DEBUG("[SceneRenderFeature] WBOIT pipelines created successfully");
+}
 void SceneRenderFeature::EnsureSkyboxPipeline(internal::ExecutionContext& ctx) { (void)ctx; }
 
 // =============================================================================
@@ -1310,9 +1359,14 @@ bool SceneRenderFeature::EnsureCompositePipelineCreated(GfxRenderer* gfxRenderer
     std::memcpy(mapped, quadVerts, sizeof(quadVerts));
   }
 
-  // Compile composite shader
+  // Load and compile composite shader
+  std::string shaderSource;
+  if (!LoadShaderSource(kCompositeShaderPath, shaderSource)) {
+    return false;
+  }
+
   char* error = nullptr;
-  hina_hsl_module* module = hslc_compile_hsl_source(kCompositeShader, "scene_composite", &error);
+  hina_hsl_module* module = hslc_compile_hsl_source(shaderSource.c_str(), "scene_composite", &error);
   if (!module) {
     LOG_ERROR("[SceneRenderFeature] Composite shader compilation failed: {}", error ? error : "unknown");
     if (error) hslc_free_log(error);

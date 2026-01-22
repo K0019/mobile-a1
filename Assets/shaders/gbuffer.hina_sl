@@ -1,0 +1,173 @@
+// G-Buffer Shader - Static meshes
+// Uses UBOs instead of push constants for mobile optimization
+// Set 0: Frame UBO, Set 1: Material (constants UBO + textures), Set 2: Dynamic transform UBO
+#hina
+group Frame = 0;
+group Material = 1;
+group Dynamic = 2;
+
+bindings(Frame, start=0) {
+  uniform(std140) FrameUBO {
+    mat4 viewProj;
+  } frame;
+}
+
+// Material bind group: binding 0 = packed constants, bindings 1-5 = textures
+bindings(Material, start=0) {
+  uniform(std140) MaterialConstants {
+    uvec4 packed;  // [0]: baseColor.rg (half2), [1]: baseColor.b,roughness (half2), [2]: metallic,emissive (half2), [3]: rim,ao (half2)
+  } material;
+  texture sampler2D u_albedo;
+  texture sampler2D u_normal;
+  texture sampler2D u_metallicRoughness;
+  texture sampler2D u_emissive;
+  texture sampler2D u_occlusion;
+}
+
+// Dynamic bind group: per-draw transform + bone matrices (both with dynamic offset)
+// Note: Bone matrices UBO is declared but not used by static shader - this ensures
+// both static and skinned pipelines share the same bind group layout
+bindings(Dynamic, start=0) {
+  uniform(std140) TransformUBO {
+    mat4 model;
+  } transform;
+  uniform(std140) BoneMatricesUBO {
+    mat4 bones[256];
+  } skin;
+}
+
+// Split vertex streams (24 bytes total):
+// Buffer 0: Position stream (12 bytes)
+// Buffer 1: Attribute stream (12 bytes packed) - main branch CompressedVertex encoding
+struct VertexIn {
+  vec3 a_position;    // location 0, buffer 0: position
+  uint a_normalX;     // location 1, buffer 1: lower 16 bits = SNORM16 |nx| * nz_sign
+  uint a_packed;      // location 2, buffer 1: RGB10A2 [ny, tx, ty, (nx_sign<<1)|handedness]
+  uint a_uv;          // location 3, buffer 1: RG16_UNORM UV
+};
+
+struct Varyings {
+  vec3 worldPos;
+  vec3 normal;
+  vec3 tangent;
+  float bitangentSign;
+  vec2 uv;
+};
+
+struct FragOut {
+  vec4 albedo;       // location 0
+  vec4 normal;       // location 1
+  vec4 materialData; // location 2
+};
+#hina_end
+
+#hina_stage vertex entry VSMain
+Varyings VSMain(VertexIn in) {
+    Varyings out;
+
+    // Position from stream 0
+    vec4 worldPos = transform.model * vec4(in.a_position, 1.0);
+    out.worldPos = worldPos.xyz;
+
+    // Decode normal using main branch's CompressedVertex encoding
+    // a_normalX lower 16 bits = SNORM16: |nx| with nz_sign in sign bit
+    int normal_x_snorm = int(in.a_normalX & 0xFFFFu);
+    if (normal_x_snorm > 32767) normal_x_snorm -= 65536;  // Sign extend
+    float normal_x_float = float(normal_x_snorm) / 32767.0;
+
+    float nx_magnitude = abs(normal_x_float);
+    float nz_sign = normal_x_float < 0.0 ? -1.0 : 1.0;
+
+    // a_packed = RGB10A2: [ny(10), tx(10), ty(10), alpha(2)]
+    // alpha = (nx_sign_bit << 1) | handedness_bit
+    float ny = float(in.a_packed & 0x3FFu) / 1023.0 * 2.0 - 1.0;
+    float tx = float((in.a_packed >> 10u) & 0x3FFu) / 1023.0 * 2.0 - 1.0;
+    float ty = float((in.a_packed >> 20u) & 0x3FFu) / 1023.0 * 2.0 - 1.0;
+    uint alpha = (in.a_packed >> 30u) & 0x3u;
+
+    float nx_sign = ((alpha >> 1u) & 1u) != 0u ? -1.0 : 1.0;
+    float handedness = (alpha & 1u) != 0u ? -1.0 : 1.0;
+
+    float nx = nx_magnitude * nx_sign;
+    float nz = sqrt(max(0.001, 1.0 - nx * nx - ny * ny)) * nz_sign;
+    vec3 localNormal = normalize(vec3(nx, ny, nz));
+
+    // Tangent: tz is always positive (flipped during encoding if needed)
+    float tz = sqrt(max(0.001, 1.0 - tx * tx - ty * ty));
+    vec3 localTangent = normalize(vec3(tx, ty, tz));
+
+    // Proper normal matrix handles non-uniform scale
+    mat3 normalMatrix = transpose(inverse(mat3(transform.model)));
+    out.normal = normalize(normalMatrix * localNormal);
+    out.tangent = normalize(normalMatrix * localTangent);
+
+    out.bitangentSign = handedness;
+
+    // Unpack UV from RG16_UNORM
+    out.uv = unpackUnorm2x16(in.a_uv);
+
+    gl_Position = frame.viewProj * worldPos;
+    return out;
+}
+#hina_end
+
+#hina_stage fragment entry FSMain
+FragOut FSMain(Varyings in) {
+    FragOut out;
+
+    // Unpack base color from material constants (half-float packed in uvec4)
+    vec2 rg = unpackHalf2x16(material.packed.x);
+    vec2 bRoug = unpackHalf2x16(material.packed.y);
+    vec4 baseColor = vec4(rg.x, rg.y, bRoug.x, 1.0);
+
+    // Sample albedo texture and multiply by base color
+    vec4 albedo = texture(u_albedo, in.uv) * baseColor;
+
+    // Build TBN with original (non-negated) normal for correct normal mapping
+    vec3 N = normalize(in.normal);
+    vec3 T = normalize(in.tangent);
+    vec3 B = normalize(cross(N, T) * in.bitangentSign);
+
+    // Check if normal map is non-flat (default flat normal is (0.5, 0.5, 1.0))
+    vec3 normalSample = texture(u_normal, in.uv).rgb;
+    bool hasNormalMap = abs(normalSample.z - 1.0) > 0.01 || abs(normalSample.x - 0.5) > 0.01 || abs(normalSample.y - 0.5) > 0.01;
+
+    if (hasNormalMap) {
+        mat3 TBN = mat3(T, B, N);
+        vec3 normalMap = normalSample * 2.0 - 1.0;
+        N = normalize(TBN * normalMap);
+    }
+
+    // Negate final normal after TBN transformation (matches main branch's calculateLighting)
+    N = -N;
+
+    // Sample metallic/roughness (B=metallic, G=roughness in glTF convention)
+    vec2 mr = texture(u_metallicRoughness, in.uv).bg;
+    float metallic = mr.x;
+    float roughness = mr.y;
+
+    // Sample occlusion (R channel)
+    float ao = texture(u_occlusion, in.uv).r;
+
+    // Output albedo from material texture
+    out.albedo = albedo;
+
+    // Encode world-space normal using octahedral encoding (fits in RG16F)
+    // Project to octahedron
+    vec3 n = N / (abs(N.x) + abs(N.y) + abs(N.z));
+    // Fold lower hemisphere
+    if (n.z < 0.0) {
+        float nx = n.x;
+        float ny = n.y;
+        n.x = (1.0 - abs(ny)) * (nx >= 0.0 ? 1.0 : -1.0);
+        n.y = (1.0 - abs(nx)) * (ny >= 0.0 ? 1.0 : -1.0);
+    }
+    // Store in RG channels (SFLOAT, so keep in [-1,1] range)
+    out.normal = vec4(n.xy, 0.0, 1.0);
+
+    // Material data: roughness, metallic, ao, emissive intensity
+    out.materialData = vec4(roughness, metallic, ao, 0.0);
+
+    return out;
+}
+#hina_end

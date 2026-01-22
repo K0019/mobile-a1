@@ -289,6 +289,10 @@ void GraphicsMain::UploadToPipeline(FrameData* outFrameData)
 		outFrameData->projMatrix = frameData.projMatrix;  // Now set by SetViewCamera
 	}
 
+	// Set up frustum planes for CPU culling
+	glm::mat4 viewProj = frameData.projMatrix * frameData.viewMatrix;
+	context.renderer->setFrustum(viewProj);
+
 	// Submit ECS RenderComponents to GfxRenderer via SceneRenderFeature
 	SceneRenderFeature::UpdateScene(sceneFeatureHandle, *context.resourceMngr, *context.renderer);
 
