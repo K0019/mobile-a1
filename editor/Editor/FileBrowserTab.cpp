@@ -1,6 +1,7 @@
 #include "Editor/FileBrowserTab.h"
 #include "Editor/AssetBrowser.h"
 #include "Engine/Resources/ResourceImporter.h"
+#include "VFS/VFS.h"
 #include "Editor/Import.h"
 #include "Editor/Containers/GUICollection.h"
 #include "Utilities/Logging.h"

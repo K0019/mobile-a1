@@ -16,7 +16,6 @@
 #include "VFS/VFS.h"
 
 // hina-vk integration
-#include "renderer/renderer.h"
 #include "renderer/gfx_renderer.h"
 #include "renderer/gfx_mesh_storage.h"
 #include "renderer/gfx_material_system.h"
@@ -27,98 +26,10 @@ namespace
   constexpr float MORPH_DELTA_EPSILON_SQ = MORPH_DELTA_EPSILON * MORPH_DELTA_EPSILON;
   constexpr const char* kDefaultUIFontPath = "assets/fonts/DefaultUI.ttf";
 
-  // Convert legacy vk::Format (interface.h) to hina_format for texture creation
-  hina_format legacyFormatToHinaFormat(vk::Format format, bool sRGB)
+  // gfx::Format values match hina_format values, so just cast
+  hina_format gfxFormatToHinaFormat(gfx::Format format)
   {
-    switch (format)
-    {
-      // Basic formats
-      case vk::Format::R_UN8:           return HINA_FORMAT_R8_UNORM;
-      case vk::Format::RG_UN8:          return HINA_FORMAT_R8G8_UNORM;
-      case vk::Format::RGBA_UN8:        return sRGB ? HINA_FORMAT_R8G8B8A8_SRGB : HINA_FORMAT_R8G8B8A8_UNORM;
-      case vk::Format::RGBA_SRGB8:      return HINA_FORMAT_R8G8B8A8_SRGB;
-      case vk::Format::BGRA_UN8:        return sRGB ? HINA_FORMAT_B8G8R8A8_SRGB : HINA_FORMAT_B8G8R8A8_UNORM;
-      case vk::Format::BGRA_SRGB8:      return HINA_FORMAT_B8G8R8A8_SRGB;
-
-      // Float formats
-      case vk::Format::R_F16:           return HINA_FORMAT_R16_SFLOAT;
-      case vk::Format::R_F32:           return HINA_FORMAT_R32_SFLOAT;
-      case vk::Format::RG_F16:          return HINA_FORMAT_R16G16_SFLOAT;
-      case vk::Format::RG_F32:          return HINA_FORMAT_R32G32_SFLOAT;
-      case vk::Format::RGBA_F16:        return HINA_FORMAT_R16G16B16A16_SFLOAT;
-      case vk::Format::RGBA_F32:        return HINA_FORMAT_R32G32B32A32_SFLOAT;
-
-      // Integer formats
-      case vk::Format::R_UI16:          return HINA_FORMAT_R16_UINT;
-      case vk::Format::R_UI32:          return HINA_FORMAT_R32_UINT;
-      case vk::Format::RG_UI16:         return HINA_FORMAT_R16G16_UINT;
-      case vk::Format::RGBA_UI32:       return HINA_FORMAT_R32G32B32A32_UINT;
-
-      // BC compressed formats
-      case vk::Format::BC1_RGB:         return HINA_FORMAT_BC1_RGB_UNORM_BLOCK;
-      case vk::Format::BC1_RGB_SRGB:    return HINA_FORMAT_BC1_RGB_SRGB_BLOCK;
-      case vk::Format::BC1_RGBA:        return HINA_FORMAT_BC1_RGBA_UNORM_BLOCK;
-      case vk::Format::BC1_RGBA_SRGB:   return HINA_FORMAT_BC1_RGBA_SRGB_BLOCK;
-      case vk::Format::BC2_RGBA:        return HINA_FORMAT_BC2_UNORM_BLOCK;
-      case vk::Format::BC2_RGBA_SRGB:   return HINA_FORMAT_BC2_SRGB_BLOCK;
-      case vk::Format::BC3_RGBA:        return HINA_FORMAT_BC3_UNORM_BLOCK;
-      case vk::Format::BC3_RGBA_SRGB:   return HINA_FORMAT_BC3_SRGB_BLOCK;
-      case vk::Format::BC4_R:           return HINA_FORMAT_BC4_UNORM_BLOCK;
-      case vk::Format::BC5_RG:          return HINA_FORMAT_BC5_UNORM_BLOCK;
-      case vk::Format::BC6H_RGB_UFLOAT: return HINA_FORMAT_BC6H_UFLOAT_BLOCK;
-      case vk::Format::BC6H_RGB_SFLOAT: return HINA_FORMAT_BC6H_SFLOAT_BLOCK;
-      case vk::Format::BC7_RGBA:        return HINA_FORMAT_BC7_UNORM_BLOCK;
-      case vk::Format::BC7_RGBA_SRGB:   return HINA_FORMAT_BC7_SRGB_BLOCK;
-
-      // ETC2 compressed formats (mobile/Android)
-      case vk::Format::ETC2_RGB8:        return HINA_FORMAT_ETC2_R8G8B8_UNORM_BLOCK;
-      case vk::Format::ETC2_SRGB8:       return HINA_FORMAT_ETC2_R8G8B8_SRGB_BLOCK;
-      case vk::Format::ETC2_RGBA1:       return HINA_FORMAT_ETC2_R8G8B8A1_UNORM_BLOCK;
-      case vk::Format::ETC2_RGBA1_SRGB:  return HINA_FORMAT_ETC2_R8G8B8A1_SRGB_BLOCK;
-      case vk::Format::ETC2_RGBA8:       return HINA_FORMAT_ETC2_R8G8B8A8_UNORM_BLOCK;
-      case vk::Format::ETC2_RGBA8_SRGB:  return HINA_FORMAT_ETC2_R8G8B8A8_SRGB_BLOCK;
-
-      // ASTC compressed formats (mobile/Android)
-      case vk::Format::ASTC_4x4_RGBA:       return HINA_FORMAT_ASTC_4x4_UNORM_BLOCK;
-      case vk::Format::ASTC_4x4_RGBA_SRGB:  return HINA_FORMAT_ASTC_4x4_SRGB_BLOCK;
-      case vk::Format::ASTC_5x4_RGBA:       return HINA_FORMAT_ASTC_5x4_UNORM_BLOCK;
-      case vk::Format::ASTC_5x4_RGBA_SRGB:  return HINA_FORMAT_ASTC_5x4_SRGB_BLOCK;
-      case vk::Format::ASTC_5x5_RGBA:       return HINA_FORMAT_ASTC_5x5_UNORM_BLOCK;
-      case vk::Format::ASTC_5x5_RGBA_SRGB:  return HINA_FORMAT_ASTC_5x5_SRGB_BLOCK;
-      case vk::Format::ASTC_6x5_RGBA:       return HINA_FORMAT_ASTC_6x5_UNORM_BLOCK;
-      case vk::Format::ASTC_6x5_RGBA_SRGB:  return HINA_FORMAT_ASTC_6x5_SRGB_BLOCK;
-      case vk::Format::ASTC_6x6_RGBA:       return HINA_FORMAT_ASTC_6x6_UNORM_BLOCK;
-      case vk::Format::ASTC_6x6_RGBA_SRGB:  return HINA_FORMAT_ASTC_6x6_SRGB_BLOCK;
-      case vk::Format::ASTC_8x5_RGBA:       return HINA_FORMAT_ASTC_8x5_UNORM_BLOCK;
-      case vk::Format::ASTC_8x5_RGBA_SRGB:  return HINA_FORMAT_ASTC_8x5_SRGB_BLOCK;
-      case vk::Format::ASTC_8x6_RGBA:       return HINA_FORMAT_ASTC_8x6_UNORM_BLOCK;
-      case vk::Format::ASTC_8x6_RGBA_SRGB:  return HINA_FORMAT_ASTC_8x6_SRGB_BLOCK;
-      case vk::Format::ASTC_8x8_RGBA:       return HINA_FORMAT_ASTC_8x8_UNORM_BLOCK;
-      case vk::Format::ASTC_8x8_RGBA_SRGB:  return HINA_FORMAT_ASTC_8x8_SRGB_BLOCK;
-      case vk::Format::ASTC_10x5_RGBA:      return HINA_FORMAT_ASTC_10x5_UNORM_BLOCK;
-      case vk::Format::ASTC_10x5_RGBA_SRGB: return HINA_FORMAT_ASTC_10x5_SRGB_BLOCK;
-      case vk::Format::ASTC_10x6_RGBA:      return HINA_FORMAT_ASTC_10x6_UNORM_BLOCK;
-      case vk::Format::ASTC_10x6_RGBA_SRGB: return HINA_FORMAT_ASTC_10x6_SRGB_BLOCK;
-      case vk::Format::ASTC_10x8_RGBA:      return HINA_FORMAT_ASTC_10x8_UNORM_BLOCK;
-      case vk::Format::ASTC_10x8_RGBA_SRGB: return HINA_FORMAT_ASTC_10x8_SRGB_BLOCK;
-      case vk::Format::ASTC_10x10_RGBA:     return HINA_FORMAT_ASTC_10x10_UNORM_BLOCK;
-      case vk::Format::ASTC_10x10_RGBA_SRGB:return HINA_FORMAT_ASTC_10x10_SRGB_BLOCK;
-      case vk::Format::ASTC_12x10_RGBA:     return HINA_FORMAT_ASTC_12x10_UNORM_BLOCK;
-      case vk::Format::ASTC_12x10_RGBA_SRGB:return HINA_FORMAT_ASTC_12x10_SRGB_BLOCK;
-      case vk::Format::ASTC_12x12_RGBA:     return HINA_FORMAT_ASTC_12x12_UNORM_BLOCK;
-      case vk::Format::ASTC_12x12_RGBA_SRGB:return HINA_FORMAT_ASTC_12x12_SRGB_BLOCK;
-
-      // Depth formats (shouldn't be used for textures, but include for completeness)
-      case vk::Format::Z_UN16:          return HINA_FORMAT_D16_UNORM;
-      case vk::Format::Z_UN24:          return HINA_FORMAT_X8_D24_UNORM_PACK32;
-      case vk::Format::Z_F32:           return HINA_FORMAT_D32_SFLOAT;
-      case vk::Format::Z_UN24_S_UI8:    return HINA_FORMAT_D24_UNORM_S8_UINT;
-      case vk::Format::Z_F32_S_UI8:     return HINA_FORMAT_D32_SFLOAT_S8_UINT;
-
-      default:
-        LOG_WARNING("Unhandled legacy format {}, defaulting to RGBA8", static_cast<int>(format));
-        return sRGB ? HINA_FORMAT_R8G8B8A8_SRGB : HINA_FORMAT_R8G8B8A8_UNORM;
-    }
+    return static_cast<hina_format>(format);
   }
 
   std::vector<uint8_t> LoadBinaryFile(const std::string& vfsPath)
@@ -441,7 +352,7 @@ namespace Resource
 
       // Upload to GfxMeshStorage directly (hina-vk path)
       if (m_context && m_context->renderer) {
-        if (auto* gfxRenderer = m_context->renderer->getGfxRenderer()) {
+        if (auto* gfxRenderer = m_context->renderer) {
           auto& meshStorage = gfxRenderer->getMeshStorage();
           LOG_INFO("Uploading mesh '{}' to GfxMeshStorage ({} verts, {} indices)",
                    mesh.name, mesh.vertices.size(), mesh.indices.size());
@@ -539,7 +450,7 @@ namespace Resource
 
     // Upload to GfxMaterialSystem directly (hina-vk path)
     if (m_context && m_context->renderer) {
-      if (auto* gfxRenderer = m_context->renderer->getGfxRenderer()) {
+      if (auto* gfxRenderer = m_context->renderer) {
         auto& materialSystem = gfxRenderer->getMaterialSystem();
 
         // Convert Material to gfx::GfxMaterial
@@ -652,14 +563,24 @@ namespace Resource
 
     // Upload to GfxMaterialSystem directly (hina-vk path)
     if (m_context && m_context->renderer && !texture.data.empty()) {
-      if (auto* gfxRenderer = m_context->renderer->getGfxRenderer()) {
+      if (auto* gfxRenderer = m_context->renderer) {
         auto& materialSystem = gfxRenderer->getMaterialSystem();
 
         // Use actual format from texture descriptor (captured from KTX2 file)
-        hina_format format = legacyFormatToHinaFormat(texture.textureDesc.format, texture.sRGB);
+        // Convert to sRGB format if needed (color textures like albedo/emissive need sRGB)
+        gfx::Format gfxFormat = texture.textureDesc.format;
+        if (texture.sRGB && !gfx::isFormatSRGB(gfxFormat)) {
+          gfx::Format srgbFormat = gfx::convertFormatSRGB(gfxFormat, true);
+          if (srgbFormat != gfxFormat) {
+            LOG_DEBUG("Texture '{}': Converting format {} -> {} (sRGB requested)",
+                texture.name, static_cast<int>(gfxFormat), static_cast<int>(srgbFormat));
+            gfxFormat = srgbFormat;
+          }
+        }
+        hina_format format = gfxFormatToHinaFormat(gfxFormat);
 
-        LOG_INFO("Texture '{}' upload: legacyFmt={}, hinaFmt={}, size={}x{}, dataSize={}, sRGB={}",
-            texture.name, static_cast<int>(texture.textureDesc.format), static_cast<int>(format),
+        LOG_INFO("Texture '{}' upload: gfxFmt={}, hinaFmt={}, size={}x{}, dataSize={}, sRGB={}",
+            texture.name, static_cast<int>(gfxFormat), static_cast<int>(format),
             texture.width, texture.height, texture.data.size(), texture.sRGB);
 
         gfx::TextureCreateInfo createInfo;
@@ -732,13 +653,13 @@ namespace Resource
 
     ProcessedTexture atlasTexture;
     atlasTexture.name = font.name + "_FontAtlas";
-    atlasTexture.textureDesc.type = vk::TextureType::Tex2D;
-    atlasTexture.textureDesc.format = vk::Format::RGBA_UN8;
+    atlasTexture.textureDesc.type = gfx::TextureType::Tex2D;
+    atlasTexture.textureDesc.format = gfx::Format::RGBA8_UNorm;
     atlasTexture.textureDesc.dimensions.width = cpuData.atlasWidth;
     atlasTexture.textureDesc.dimensions.height = cpuData.atlasHeight;
     atlasTexture.textureDesc.dimensions.depth = 1u;
     atlasTexture.textureDesc.numMipLevels = 1;
-    atlasTexture.textureDesc.usage = vk::TextureUsageBits_Sampled;
+    atlasTexture.textureDesc.usage = gfx::TextureUsage::Sampled;
     atlasTexture.data = cpuData.atlasPixelsRGBA;
     atlasTexture.width = cpuData.atlasWidth;
     atlasTexture.height = cpuData.atlasHeight;
@@ -984,7 +905,7 @@ namespace Resource
     // Destroy gfx mesh (hina-vk path)
     if (const auto* hot = m_meshPool.getHotData(handle)) {
       if (hot->hasGfxMesh && m_context && m_context->renderer) {
-        if (auto* gfxRenderer = m_context->renderer->getGfxRenderer()) {
+        if (auto* gfxRenderer = m_context->renderer) {
           gfx::MeshHandle gfxMesh;
           gfxMesh.index = hot->gfxMeshIndex;
           gfxMesh.generation = hot->gfxMeshGeneration;
@@ -1043,7 +964,7 @@ namespace Resource
     if (const auto* hot = m_materialPool.getHotData(handle)) {
       if (hot->hasGfxMaterial) {
         if (m_context && m_context->renderer) {
-          if (auto* gfxRenderer = m_context->renderer->getGfxRenderer()) {
+          if (auto* gfxRenderer = m_context->renderer) {
             gfx::MaterialHandle gfxMaterial;
             gfxMaterial.index = hot->gfxMaterialIndex;
             gfxMaterial.generation = hot->gfxMaterialGeneration;
@@ -1079,7 +1000,7 @@ namespace Resource
     if (const auto* hot = m_texturePool.getHotData(handle)) {
       if (hot->hasGfxTexture) {
         if (m_context && m_context->renderer) {
-          if (auto* gfxRenderer = m_context->renderer->getGfxRenderer()) {
+          if (auto* gfxRenderer = m_context->renderer) {
             gfx::TextureHandle gfxTexture;
             gfxTexture.index = hot->gfxTextureIndex;
             gfxTexture.generation = hot->gfxTextureGeneration;
@@ -1282,7 +1203,7 @@ namespace Resource
 
     // Update GfxMaterialSystem bind groups (hina-vk path)
     if (m_context && m_context->renderer) {
-      if (auto* gfxRenderer = m_context->renderer->getGfxRenderer()) {
+      if (auto* gfxRenderer = m_context->renderer) {
         auto& materialSystem = gfxRenderer->getMaterialSystem();
 
         // Helper to resolve gfx::TextureHandle from MaterialTexture

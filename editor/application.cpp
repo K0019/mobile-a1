@@ -3,13 +3,15 @@
 #include "Engine/Engine.h"
 #include "Engine/Graphics Interface/GraphicsAPI.h"
 #include "FilepathConstants.h"
+//#include "resource/asset_startup_service.h"
 #include "renderer/features/scene_feature.h"
 #include "renderer/features/grid_feature.h"
 #include "renderer/features/ui2d_render_feature.h"
-#include "renderer/renderer.h"
+#include "renderer/gfx_renderer.h"
+//#include "Editor/EditorAssetReloadManager.h"
 
 // Editor panel includes
-#ifdef IMGUI_ENABLED
+#include <imgui.h>
 #include "Editor/Editor.h"
 #include "Editor/MainMenuBar.h"
 #include "Editor/Popup.h"
@@ -58,10 +60,14 @@ namespace
         LoadWindowOpen.template operator()<editor::Hierarchy>("show_hierarchy");
     }
 }
-#endif
 
 void Application::Initialize(Context& context)
 {
+    // Scan for stale assets and start background recompilation
+
+    
+
+    // Initialize engine immediately - don't wait for compilation
     magicEngine.Init(context);
 
     // Create render features - Editor gets all features including grid
@@ -69,7 +75,6 @@ void Application::Initialize(Context& context)
 
     // Register editor-specific systems (must be done here since editor headers
     // are not available when MagicEngine is compiled)
-#ifdef IMGUI_ENABLED
     ecs::AddSystem(ECS_LAYER::PERMANENT_EDITOR, editor::EditorSystem{});
     ecs::AddSystem(ECS_LAYER::PERMANENT_EDITOR, editor::MainMenuBar{});
     ecs::AddSystem(ECS_LAYER::PERMANENT_EDITOR, editor::Popup{});
@@ -82,7 +87,9 @@ void Application::Initialize(Context& context)
     // Create default viewport
     auto worldExtents{ IntVec2{ 1920, 1080 } };
     editor::CreateGuiWindow<CustomViewport>(static_cast<unsigned int>(worldExtents.x), static_cast<unsigned int>(worldExtents.y));
-#endif
+
+    // Initialize editor-only asset hot-reload system
+    //editor::EditorAssetReloadManager::Initialize();
 }
 
 void Application::InitializeFeatures(Context& context)
@@ -133,6 +140,68 @@ void Application::Update(Context& context, RenderFrameData& frame)
 
     // Execute the MagicEngine frame (which handles ECS, ImGui, etc.)
     magicEngine.ExecuteFrame(frame);
+
+    // Check for completed asset recompilations and reload
+    //editor::EditorAssetReloadManager::Update();
+
+    // Render compilation progress overlay if recompiling
+    //if (assetCompilationStarted_ && Resource::AssetStartupService::IsRecompiling())
+    //{
+    //    auto progress = Resource::AssetStartupService::GetRecompilationProgress();
+
+    //    // Center the overlay window
+    //    ImGuiIO& io = ImGui::GetIO();
+    //    ImVec2 windowSize(400, 120);
+    //    ImVec2 windowPos((io.DisplaySize.x - windowSize.x) * 0.5f,
+    //                     (io.DisplaySize.y - windowSize.y) * 0.5f);
+    //    ImGui::SetNextWindowPos(windowPos, ImGuiCond_Always);
+    //    ImGui::SetNextWindowSize(windowSize, ImGuiCond_Always);
+
+    //    ImGuiWindowFlags flags = ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove |
+    //                             ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar;
+
+    //    if (ImGui::Begin("##AssetCompilation", nullptr, flags))
+    //    {
+    //        ImGui::Text("Recompiling Assets...");
+    //        ImGui::Separator();
+
+    //        // Progress bar
+    //        float fraction = (progress.totalCount > 0)
+    //            ? static_cast<float>(progress.currentIndex) / static_cast<float>(progress.totalCount)
+    //            : 0.0f;
+    //        char overlay[64];
+    //        snprintf(overlay, sizeof(overlay), "%u / %u", progress.currentIndex, progress.totalCount);
+    //        ImGui::ProgressBar(fraction, ImVec2(-1, 0), overlay);
+
+    //        // Current file
+    //        ImGui::TextWrapped("Current: %s", progress.currentFile);
+
+    //        // Status
+    //        const char* statusText = "Compiling";
+    //        if (progress.status == Resource::CompileProgressMessage::Scanning)
+    //            statusText = "Scanning";
+    //        else if (progress.status == Resource::CompileProgressMessage::Complete)
+    //            statusText = "Complete";
+    //        else if (progress.status == Resource::CompileProgressMessage::Error)
+    //            statusText = "Error";
+    //        ImGui::Text("Status: %s", statusText);
+    //    }
+    //    ImGui::End();
+    //}
+    //else if (assetCompilationStarted_ && Resource::AssetStartupService::IsRecompilationComplete())
+    //{
+    //    // Compilation finished - log and reset flag
+    //    auto progress = Resource::AssetStartupService::GetRecompilationProgress();
+    //    if (progress.status == Resource::CompileProgressMessage::Complete)
+    //    {
+    //        LOG_INFO("Asset recompilation complete: {} assets", progress.totalCount);
+    //    }
+    //    else
+    //    {
+    //        LOG_WARNING("Asset recompilation finished with errors");
+    //    }
+    //    assetCompilationStarted_ = false;
+    //}
 }
 
 void Application::updateViews(Context& context, RenderFrameData& frame, int width, int height)
@@ -141,16 +210,12 @@ void Application::updateViews(Context& context, RenderFrameData& frame, int widt
     if (!context.renderer)
         return;
 
-    const FeatureMask sceneMask = context.renderer->GetFeatureMask(sceneFeatureHandle_);
-    const FeatureMask gridMask = context.renderer->GetFeatureMask(gridFeatureHandle_);
-    const FeatureMask uiMask = context.renderer->GetFeatureMask(ui2dFeatureHandle_);
+    const FeatureMask sceneMask = context.renderer->GetFeatureMaskForHandle(sceneFeatureHandle_);
+    const FeatureMask gridMask = context.renderer->GetFeatureMaskForHandle(gridFeatureHandle_);
+    const FeatureMask uiMask = context.renderer->GetFeatureMaskForHandle(ui2dFeatureHandle_);
 
-#ifdef IMGUI_ENABLED
-    const FeatureMask imguiMask = context.renderer->GetFeatureMask(
+    const FeatureMask imguiMask = context.renderer->GetFeatureMaskForHandle(
         ST<GraphicsMain>::Get()->GetImGuiContext().GetRenderFeatureHandle());
-#else
-    const FeatureMask imguiMask = 0;
-#endif
 
     // Editor uses 3 views: game, scene, editor (following ryEngine pattern)
     frame.views.resize(3);
@@ -184,9 +249,12 @@ void Application::updateViews(Context& context, RenderFrameData& frame, int widt
 
 void Application::Shutdown([[maybe_unused]] Context& context)
 {
-#ifdef IMGUI_ENABLED
     saveEditorState("imgui.json");
-#endif
+    //editor::EditorAssetReloadManager::Shutdown();
+
+    //// Cleanup background compilation thread if still running
+    //Resource::AssetStartupService::Cleanup();
+
     DestroyFeatures(context);
     magicEngine.shutdown();
 }

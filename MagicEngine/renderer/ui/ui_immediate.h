@@ -11,7 +11,7 @@
 #include "renderer/features/ui2d_render_feature.h"
 #include "renderer/ui/ui_primitives.h"
 
-class Renderer;
+class GfxRenderer;
 namespace Resource
 {
   class ResourceManager;
@@ -30,7 +30,7 @@ namespace ui
   class ImmediateGui
   {
     public:
-      ImmediateGui(Renderer& renderer, uint64_t featureHandle, Resource::ResourceManager& resourceMngr);
+      ImmediateGui(GfxRenderer& renderer, uint64_t featureHandle, Resource::ResourceManager& resourceMngr);
 
       bool begin(FontHandle fontHandle = {});
       void setViewport(float width, float height);
@@ -97,7 +97,7 @@ namespace ui
       uint16_t resolveLayer(const DrawOptions& options) const;
       FontHandle resolveFont(FontHandle font) const;
 
-      Renderer& renderer_;
+      GfxRenderer& renderer_;
       uint64_t featureHandle_;
       Resource::ResourceManager& resourceMngr_;
       Ui2DRenderFeature::Parameters* params_ = nullptr;

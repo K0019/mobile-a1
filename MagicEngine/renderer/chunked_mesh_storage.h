@@ -16,7 +16,6 @@
 
 #include "gfx_interface.h"     // For gfx:: types including BufferDesc
 #include "mesh_types.h"        // For FullVertex, MeshBounds
-#include "interface.h"         // For vk types (historical dependency)
 #include <offset_allocator/offsetAllocator.hpp>
 #include <vector>
 #include <cstdint>

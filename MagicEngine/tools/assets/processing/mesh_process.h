@@ -1,8 +1,7 @@
 #pragma once
 #include <mikktspace.h>
 #include <vector>
-#include "renderer/gpu_data.h"
-#include <resource/processed_assets.h>
+#include "resource/processed_extraction.h"
 
 namespace Resource
 {

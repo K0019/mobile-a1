@@ -13,6 +13,7 @@
 #include "resource/resource_manager.h"
 #include "resource/resource_registry.h"
 #include "renderer/ui/ui_primitives.h"
+#include <hina_vk.h>  // For hina_recreate_surface
 // EnTT integration disabled - using internal ECS
 // #include "ecs/Components/Core.h"
 // #include <entt/entt.hpp>
@@ -313,9 +314,7 @@ bool GfxRenderer::initialize(void* nativeWindow, uint32_t width, uint32_t height
     LOG_INFO("[GfxRenderer] HinaContext initialized");
 
     // Create RenderGraph for pass management
-    // Note: We pass nullptr for GPUBuffers since we use GfxMeshStorage/GfxMaterialSystem
-    // for mesh/material storage, which are already integrated with ResourceManager
-    m_renderGraph = std::make_unique<RenderGraph>(nullptr);
+    m_renderGraph = std::make_unique<RenderGraph>();
     m_renderGraph->SetGfxRenderer(this);  // Allow features to access renderer resources
     LOG_INFO("[GfxRenderer] RenderGraph created");
 
@@ -1151,6 +1150,19 @@ void GfxRenderer::endFrame() {
 
     hina_frame_end();
     m_currentFrame = (m_currentFrame + 1) % GFX_MAX_FRAMES;
+
+    // Track frames for window ready state
+    m_framesRendered++;
+    if (!m_windowReadyForShow && m_framesRendered >= MIN_FRAMES_BEFORE_SHOW) {
+        m_windowReadyForShow = true;
+    }
+
+    // Swap buffers for features (double-buffering parameter blocks)
+    for (auto& [handle, info] : m_features) {
+        if (info.feature) {
+            info.feature->SwapBuffersForGT_RT();
+        }
+    }
 }
 
 void GfxRenderer::onResize(uint32_t width, uint32_t height) {
@@ -2424,4 +2436,109 @@ void GfxRenderer::unregisterFeature(IRenderFeature* feature) {
 FeatureMask GfxRenderer::getFeatureMask(IRenderFeature* feature) const {
     if (!feature || !m_renderGraph) return 0;
     return m_renderGraph->GetFeatureMask(feature);
+}
+
+// ============================================================================
+// IRenderer Interface Implementation
+// ============================================================================
+
+uint64_t GfxRenderer::DoCreateFeature(std::function<std::unique_ptr<IRenderFeature>()> factory) {
+    uint64_t handle = m_nextFeatureHandle.fetch_add(1, std::memory_order_relaxed);
+    auto feature = factory();
+    if (!feature) {
+        LOG_ERROR("[GfxRenderer] Feature factory returned null");
+        return 0; // Invalid handle
+    }
+    LOG_INFO("[GfxRenderer] Creating feature '{}' with handle {}", feature->GetName(), handle);
+
+    // Get raw pointer before moving into storage
+    IRenderFeature* rawFeature = feature.get();
+
+    // Register with RenderGraph - this will call SetupPasses during compilation
+    registerFeature(rawFeature);
+
+    // Get the feature mask after registration
+    FeatureMask mask = getFeatureMask(rawFeature);
+
+    m_features.emplace(std::piecewise_construct, std::forward_as_tuple(handle),
+                       std::forward_as_tuple(std::move(feature), handle, mask));
+
+    return handle;
+}
+
+void GfxRenderer::DestroyFeature(uint64_t feature_handle) {
+    auto it = m_features.find(feature_handle);
+    if (it == m_features.end()) {
+        LOG_WARNING("[GfxRenderer] Attempted to destroy non-existent feature handle {}", feature_handle);
+        return;
+    }
+    LOG_INFO("[GfxRenderer] Destroying feature '{}' with handle {}",
+             it->second.feature ? it->second.feature->GetName() : "unknown", feature_handle);
+
+    // Unregister from RenderGraph before destroying
+    if (it->second.feature) {
+        unregisterFeature(it->second.feature.get());
+    }
+
+    m_features.erase(it);
+}
+
+void* GfxRenderer::GetFeatureParameterBlockPtr(uint64_t feature_handle) {
+    auto it = m_features.find(feature_handle);
+    if (it == m_features.end()) {
+        LOG_WARNING("[GfxRenderer] Requested parameter block for non-existent feature handle {}", feature_handle);
+        return nullptr;
+    }
+    if (!it->second.feature) {
+        LOG_WARNING("[GfxRenderer] Feature handle {} has null feature pointer", feature_handle);
+        return nullptr;
+    }
+    return it->second.feature->GetGTParameterBlock_RT();
+}
+
+FeatureMask GfxRenderer::GetFeatureMask(uint64_t feature_handle) const {
+    auto it = m_features.find(feature_handle);
+    if (it == m_features.end()) return 0;
+    // Return cached mask, or query from RenderGraph if not cached
+    if (it->second.mask != 0) return it->second.mask;
+    if (it->second.feature && m_renderGraph) {
+        return m_renderGraph->GetFeatureMask(it->second.feature.get());
+    }
+    return 0;
+}
+
+const ToneMappingSettings& GfxRenderer::GetToneMappingSettings() const {
+    return m_toneMappingSettings;
+}
+
+void GfxRenderer::UpdateToneMappingSettings(const ToneMappingSettings& newSettings) {
+    m_toneMappingSettings = newSettings;
+}
+
+// ============================================================================
+// Surface Lifecycle Management
+// ============================================================================
+
+void GfxRenderer::handleSurfaceCreated(void* nativeWindow) {
+    if (!m_initialized) {
+        LOG_WARNING("[GfxRenderer] handleSurfaceCreated called but renderer not initialized");
+        return;
+    }
+
+    // Recreate surface after lifecycle event (Android resume from background)
+    LOG_INFO("[GfxRenderer] Recreating surface");
+    if (!hina_recreate_surface(nativeWindow, nullptr)) {
+        LOG_ERROR("[GfxRenderer] Failed to recreate surface");
+        return;
+    }
+
+    // Resize to current dimensions
+    onResize(m_width, m_height);
+    LOG_INFO("[GfxRenderer] Surface recreated: {}x{}", m_width, m_height);
+}
+
+void GfxRenderer::handleSurfaceDestroyed() {
+    LOG_INFO("[GfxRenderer] Surface destroyed - cleaning up swapchain resources");
+    // The hina-vk backend handles swapchain cleanup internally when surface is lost
+    // No explicit cleanup needed here as the swapchain will be recreated on next surface
 }

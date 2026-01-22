@@ -19,7 +19,6 @@ All rights reserved.
 /******************************************************************************/
 
 #pragma once
-#include "renderer/renderer.h"
 #include "renderer/gfx_renderer.h"
 #include "resource/resource_manager.h"
 #include "imgui/base/imgui_context.h"
@@ -38,10 +37,8 @@ public:
     void Init(Context inContext);
 
     void BeginFrame();
-#ifdef IMGUI_ENABLED
     void BeginImGuiFrame();
     void EndImGuiFrame();
-#endif
     void EndFrame(FrameData* outFrameData);
     void EndFrame(RenderFrameData* outRenderFrameData);  // Populates ALL views with camera matrices
 
@@ -75,9 +72,7 @@ public:
     // Scene view texture - returns ViewOutput texture ID for ImGui viewport display
     uint64_t GetSceneViewTextureId() const {
         if (context.renderer) {
-            if (GfxRenderer* gfx = context.renderer->getGfxRenderer()) {
-                return gfx->getViewOutputTextureId(ViewId::Scene);
-            }
+            return context.renderer->getViewOutputTextureId(ViewId::Scene);
         }
         return 0;
     }
@@ -88,10 +83,8 @@ public:
     ecs::EntityHandle PreviousPick();
 
 private:
-#ifdef IMGUI_ENABLED
     void InitImGui(const std::string& fontfile);
     void SetImGuiStyle();
-#endif
     void InitFont(const std::string& fontfile);
     void UploadToPipeline(FrameData* outFrameData);
 
@@ -100,9 +93,7 @@ private:
 public:
     // For compatibility with whatever old graphics interfaces are still here
     // Remove if possible once everything settles
-#ifdef IMGUI_ENABLED
     editor::ImGuiContext& GetImGuiContext();
-#endif
     Resource::ResourceManager& GetAssetSystem();
     ui::ImmediateGui& GetImmediateGui();
 
@@ -113,9 +104,7 @@ private:
     void InitDefaultSkybox();
 
 private:
-#ifdef IMGUI_ENABLED
     UPtr<editor::ImGuiContext> imguiContext;
-#endif
 
     Context context;
 

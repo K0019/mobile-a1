@@ -173,7 +173,6 @@ void MagicEngine::ExecuteFrame(RenderFrameData& frameData)
 	if (ST<GameSettings>::Get()->m_physicsDebugDraw)
 		ST<physics::JoltPhysics>::Get()->DebugDraw();
 
-#ifdef IMGUI_ENABLED
 	ST<GraphicsMain>::Get()->BeginImGuiFrame();
 
 	// Run permanent editor systems (not windows)
@@ -187,7 +186,6 @@ void MagicEngine::ExecuteFrame(RenderFrameData& frameData)
 	ecs::FlushChanges(); // For if any of the editor windows deleted an entity.
 
 	ST<GraphicsMain>::Get()->EndImGuiFrame();
-#endif
 
 
 	// manage user input

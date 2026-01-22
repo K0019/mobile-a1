@@ -1,5 +1,6 @@
 #include "imgui_render_feature.h"
 #include "renderer/gfx_renderer.h"
+#include "renderer/hina_context.h"
 #include "logging/log.h"
 #include <imgui.h>
 #include <cassert>
@@ -148,6 +149,14 @@ FragOut FSMain(Varyings in) {
 
     // Use shared UI bind group layout
     GfxRenderer* gfxRenderer = context.GetGfxRenderer();
+
+    // Explicitly set color format to match VIEW_OUTPUT texture (swapchain format)
+    // This prevents validation errors from format mismatch at bind time
+    HinaContext* hinaCtx = gfxRenderer ? gfxRenderer->getHinaContext() : nullptr;
+    if (hinaCtx) {
+      pip_desc.color_formats[0] = hinaCtx->getSwapchainFormat();
+      pip_desc.color_attachment_count = 1;
+    }
     gfx::BindGroupLayout uiLayout = gfxRenderer->getUIBindGroupLayout();
     if (hina_bind_group_layout_is_valid(uiLayout)) {
       pip_desc.bind_group_layouts[0] = uiLayout;

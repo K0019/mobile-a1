@@ -1,9 +1,8 @@
 #pragma once
 #include <vector>
 #include <span>
-#include <resource/processed_assets.h>
+#include "resource/processed_extraction.h"
 #include "import_config.h"
-#include "renderer/gpu_data.h"
 struct aiScene;
 struct aiMesh;
 

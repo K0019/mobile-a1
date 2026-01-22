@@ -7,7 +7,7 @@
 #include "resource_handle.h"
 #include "renderer/gpu_data.h"
 #include "math/utils_math.h"
-#include "renderer/interface.h"
+#include "renderer/gfx_interface.h"
 #include "renderer/render_feature.h"
 #include "resource/animation_ids.h"
 #include "resource/font_types.h"
@@ -204,7 +204,7 @@ struct ResourceTraits<TextureAsset>
 
   struct ColdData
   {
-    vk::TextureDesc textureDesc;
+    gfx::TextureMetadata textureDesc;
     // File properties
     std::string sourceFile; // Original file path or embedded identifier
     std::string cacheKey; // Unique key for caching
@@ -311,6 +311,7 @@ struct MaterialTexture
   uint32_t uvSet = 0;
   vec2 uvScale = vec2(1.0f);
   vec2 uvOffset = vec2(0.0f);
+  bool isSRGB = false;  // True for base color, emissive; false for normal, metallic-roughness, occlusion
 
   bool hasTexture() const
   {

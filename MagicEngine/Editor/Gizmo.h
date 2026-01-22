@@ -15,11 +15,10 @@
     Class that handles Gizmo operations for the editor. Implemented with Imguizmo.
 
 
-All content © 2025 DigiPen Institute of Technology Singapore.
+All content ï¿½ 2025 DigiPen Institute of Technology Singapore.
 All rights reserved.
 */
 /******************************************************************************/
-#ifdef IMGUI_ENABLED
 
 namespace editor {
 
@@ -27,7 +26,7 @@ namespace editor {
     \class Gizmo
     \brief
         Thin wrapper around ImGuizmo that can attach to a
-        Transform and draw a manipulator in the viewport’s draw list.
+        Transform and draw a manipulator in the viewportï¿½s draw list.
     *//******************************************************************/
     class Gizmo
     {
@@ -40,5 +39,3 @@ namespace editor {
     };
 
 }
-
-#endif

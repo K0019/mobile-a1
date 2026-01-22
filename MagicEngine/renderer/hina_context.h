@@ -14,7 +14,6 @@
 #pragma once
 
 #include "gfx_interface.h"
-#include "interface.h"  // For vk::Format, vk::ColorSpace
 #include <cstdint>
 
 /**
@@ -33,7 +32,6 @@ private:
     gfx::Cmd* m_cmd = nullptr;
 };
 
-// SurfaceTransform is defined in interface.h (included above)
 
 /**
  * @brief Minimal hina-vk context wrapper.
@@ -77,19 +75,19 @@ public:
     hina_format getSwapchainFormat() const { return m_swapchainFormat; }
 
     /**
-     * @brief Get swapchain format as vk::Format (for backward compat).
+     * @brief Get swapchain format as gfx::Format.
      */
-    vk::Format getSwapchainFormatVk() const;
+    gfx::Format getSwapchainFormatGfx() const;
 
     /**
      * @brief Get swapchain color space.
      */
-    vk::ColorSpace getSwapchainColorSpace() const;
+    gfx::ColorSpace getSwapchainColorSpace() const;
 
     /**
      * @brief Get pre-transform for mobile optimization.
      */
-    SurfaceTransform getSwapchainPreTransform() const { return m_preTransform; }
+    gfx::SurfaceTransform getSwapchainPreTransform() const { return m_preTransform; }
 
     // ========================================================================
     // Texture Helpers
@@ -144,5 +142,5 @@ private:
     // Swapchain state
     gfx::Texture m_swapchainTexture;
     hina_format m_swapchainFormat = HINA_FORMAT_B8G8R8A8_UNORM;
-    SurfaceTransform m_preTransform = SurfaceTransform::Identity;
+    gfx::SurfaceTransform m_preTransform = gfx::SurfaceTransform::Identity;
 };

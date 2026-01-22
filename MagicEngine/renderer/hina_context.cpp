@@ -4,7 +4,6 @@
  */
 
 #include "hina_context.h"
-#include "interface.h"  // For vk::Format, vk::ColorSpace definitions
 #include "logging/log.h"
 
 HinaContext::HinaContext() = default;
@@ -25,7 +24,7 @@ bool HinaContext::initialize(void* nativeWindow, uint32_t width, uint32_t height
     // For now, assume BGRA8 SRGB - this matches most desktop/mobile targets
     m_swapchainFormat = HINA_FORMAT_B8G8R8A8_SRGB;
     m_hasSwapchain = true;
-    m_preTransform = SurfaceTransform::Identity;
+    m_preTransform = gfx::SurfaceTransform::Identity;
 
     m_initialized = true;
     LOG_INFO("HinaContext initialized ({}x{})", width, height);
@@ -40,20 +39,14 @@ void HinaContext::shutdown() {
 
 // Frame data is set by GfxRenderer via setFrameData()
 
-vk::Format HinaContext::getSwapchainFormatVk() const {
-    // Map hina_format to vk::Format
-    switch (m_swapchainFormat) {
-        case HINA_FORMAT_B8G8R8A8_UNORM: return vk::Format::BGRA_UN8;
-        case HINA_FORMAT_B8G8R8A8_SRGB: return vk::Format::BGRA_SRGB8;
-        case HINA_FORMAT_R8G8B8A8_UNORM: return vk::Format::RGBA_UN8;
-        case HINA_FORMAT_R8G8B8A8_SRGB: return vk::Format::RGBA_SRGB8;
-        default: return vk::Format::BGRA_UN8;
-    }
+gfx::Format HinaContext::getSwapchainFormatGfx() const {
+    // gfx::Format values match hina_format, so just cast
+    return static_cast<gfx::Format>(m_swapchainFormat);
 }
 
-vk::ColorSpace HinaContext::getSwapchainColorSpace() const {
+gfx::ColorSpace HinaContext::getSwapchainColorSpace() const {
     // Assume sRGB non-linear (standard for most displays)
-    return vk::ColorSpace::SRGB_NONLINEAR;
+    return gfx::ColorSpace::SRGB_NONLINEAR;
 }
 
 gfx::Dimensions HinaContext::getDimensions(gfx::Texture tex) const {

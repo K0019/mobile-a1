@@ -19,8 +19,6 @@ namespace Resource
   struct Scene;
 }
 
-class Renderer;
-
 // ============================================================================
 // GPU Data Structures
 // ============================================================================
@@ -159,11 +157,11 @@ public:
    *
    * @param renderFeatureID Feature handle for parameter access
    * @param resourceMngr ResourceManager for mesh/material lookups
-   * @param renderer Main Renderer for access to GfxRenderer
+   * @param renderer GfxRenderer for mesh/material submission
    */
   static void UpdateScene(uint64_t renderFeatureID,
                           const Resource::ResourceManager& resourceMngr,
-                          Renderer& renderer);
+                          GfxRenderer& renderer);
 
   void SetupPasses(internal::RenderPassBuilder& passBuilder) override;
   const char* GetName() const override;

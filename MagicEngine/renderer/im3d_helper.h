@@ -40,7 +40,7 @@ namespace Im3dHelper
   void BeginFrame(const FrameData& frameData);
 
   // Finalize Im3d and submit to render feature (build packed buffer once on CPU)
-  void EndFrame(uint64_t featureHandle, Renderer& renderer);
+  void EndFrame(uint64_t featureHandle, GfxRenderer& renderer);
 
   // Visualization helpers (sizes in world units)
   void DrawSceneBones(const Resource::Scene& scene, const Resource::ResourceManager& resources,

@@ -723,8 +723,7 @@ namespace internal
     m_pRenderGraph->RegisterPass(std::move(execData), std::move(metadata), std::move(executeLambda));
   }
 } // namespace internal
-RenderGraph::RenderGraph(GPUBuffers* gpu_buffers) : m_gpu_buffers(gpu_buffers), oit(),
-                                                     linearColorSystem()
+RenderGraph::RenderGraph() : oit(), linearColorSystem()
 {
   // Pre-reserve capacity
   m_passExecData.reserve(32);
@@ -884,14 +883,8 @@ bool RenderGraph::canCompile() const
 
 bool RenderGraph::hasMinimumResources() const
 {
-  // If no GPUBuffers provided, we don't require them (features use their own storage)
-  if (!m_gpu_buffers) {
-    return true;
-  }
-  gfx::Buffer materialBuffer = m_gpu_buffers->GetMaterialBuffer();
-  gfx::Buffer vertexBuffer = m_gpu_buffers->GetVertexBuffer();
-  gfx::Buffer indexBuffer = m_gpu_buffers->GetIndexBuffer();
-  return gfx::isValid(materialBuffer) && gfx::isValid(vertexBuffer) && gfx::isValid(indexBuffer);
+  // Features use their own storage (GfxMeshStorage, GfxMaterialSystem)
+  return true;
 }
 
 bool RenderGraph::tryCompile()
@@ -975,26 +968,6 @@ void RenderGraph::Compile()
   };
   // Register external resources
   ImportExternalTexture(RenderResources::SWAPCHAIN_IMAGE, initialSwapchainTexture, swapchainDesc);
-
-  // Import GPU buffers if provided (optional - features may use their own storage)
-  if (m_gpu_buffers) {
-    ImportExternalBuffer(RenderResources::MATERIAL_BUFFER, m_gpu_buffers->GetMaterialBuffer(),
-                         m_gpu_buffers->GetMaterialBufferDesc());
-    ImportExternalBuffer(RenderResources::VERTEX_BUFFER, m_gpu_buffers->GetVertexBuffer(),
-                         m_gpu_buffers->GetVertexBufferDesc());
-    ImportExternalBuffer(RenderResources::INDEX_BUFFER, m_gpu_buffers->GetIndexBuffer(),
-                         m_gpu_buffers->GetIndexBufferDesc());
-    ImportExternalBuffer(RenderResources::MESH_DECOMPRESSION_BUFFER, m_gpu_buffers->GetMeshDecompressionBuffer(),
-                         m_gpu_buffers->GetMeshDecompressionBufferDesc());
-    ImportExternalBuffer(RenderResources::SKINNING_BUFFER, m_gpu_buffers->GetSkinningBuffer(),
-                         m_gpu_buffers->GetSkinningBufferDesc());
-    ImportExternalBuffer(RenderResources::MORPH_DELTA_BUFFER, m_gpu_buffers->GetMorphDeltaBuffer(),
-                         m_gpu_buffers->GetMorphDeltaBufferDesc());
-    ImportExternalBuffer(RenderResources::MORPH_VERTEX_BASE_BUFFER, m_gpu_buffers->GetMorphVertexBaseBuffer(),
-                         m_gpu_buffers->GetMorphVertexBaseBufferDesc());
-    ImportExternalBuffer(RenderResources::MORPH_VERTEX_COUNT_BUFFER, m_gpu_buffers->GetMorphVertexCountBuffer(),
-                         m_gpu_buffers->GetMorphVertexCountBufferDesc());
-  }
   // Register standard render targets at fixed internal resolution
   // This avoids recompilation on window resize - only swapchain resources change
   linearColorSystem.RegisterLinearColorResources(*this);
@@ -1401,10 +1374,20 @@ void RenderGraph::EnsureBlitPipelineCreated()
 
 void RenderGraph::ExecuteFinalBlit(const internal::ExecutionContext& ctx)
 {
+  // Check swapchain validity before accessing resources
+  // For non-presented views, swapchain is intentionally set invalid
+  if (auto* swapInfo = GetResolvedResource(m_swapchainID))
+  {
+    if (!swapInfo->concreteHandle.isValid()) return;
+  }
+  else
+  {
+    return;
+  }
+
   // Copy VIEW_OUTPUT (composited scene + ImGui) to swapchain
   gfx::Texture viewOutput = ctx.GetTexture(RenderResources::VIEW_OUTPUT);
   gfx::Texture swapchainImage = ctx.GetTexture(RenderResources::SWAPCHAIN_IMAGE);
-  // Only run for the presented view (swapchain is only valid for that view)
   if (!gfx::isValid(viewOutput) || !gfx::isValid(swapchainImage)) return;
 
   // Skip if VIEW_OUTPUT == swapchain (non-ImGui case where ResolveViewOutput already wrote to swapchain)
@@ -1419,16 +1402,16 @@ void RenderGraph::ExecuteFinalBlit(const internal::ExecutionContext& ctx)
   // Get pre-transform for Android
   uint32_t preTransformValue = 0; // 0 = Identity
 #if defined(__ANDROID__)
-  SurfaceTransform transform = hinaCtx->getSwapchainPreTransform();
+  gfx::SurfaceTransform transform = hinaCtx->getSwapchainPreTransform();
   switch (transform)
   {
-    case SurfaceTransform::Rotate90:
+    case gfx::SurfaceTransform::Rotate90:
       preTransformValue = 1;
       break;
-    case SurfaceTransform::Rotate180:
+    case gfx::SurfaceTransform::Rotate180:
       preTransformValue = 2;
       break;
-    case SurfaceTransform::Rotate270:
+    case gfx::SurfaceTransform::Rotate270:
       preTransformValue = 3;
       break;
     default:

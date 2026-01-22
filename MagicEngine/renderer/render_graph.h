@@ -9,10 +9,9 @@
 #include <unordered_map>
 #include "frame_data.h"
 #include "gfx_interface.h"
-#include "interface.h"  // TODO: Remove once vk:: migration complete
+#include "logging/log.h"
 #include "linear_color.h"
 #include "OIT.h"
-#include "renderer_resources.h"
 #include "render_feature.h"
 #include "math/utils_math.h"
 
@@ -497,7 +496,7 @@ namespace internal
 class RenderGraph
 {
 public:
-  explicit RenderGraph(GPUBuffers* gpu_buffers = nullptr);
+  RenderGraph();
 
   ~RenderGraph();
 
@@ -618,7 +617,6 @@ private:
   };
 
   // Core state
-  GPUBuffers* m_gpu_buffers;
   GfxRenderer* m_gfxRenderer = nullptr;
   OITSystem oit;
   LinearColorSystem linearColorSystem;

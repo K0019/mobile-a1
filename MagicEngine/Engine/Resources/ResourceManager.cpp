@@ -25,6 +25,7 @@ All rights reserved.
 #include "Engine/Resources/Types/ResourceTypesAudio.h"
 #include "Engine/Resources/Types/ResourceTypesGraphics.h"
 #include "FilepathConstants.h"
+#include "VFS/VFS.h"
 
 void MagicResourceManager::Init()
 {

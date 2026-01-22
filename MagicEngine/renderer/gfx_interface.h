@@ -164,6 +164,133 @@ enum class Format : uint32_t {
     BC7_SRGB = HINA_FORMAT_BC7_SRGB_BLOCK,
 };
 
+// Convert VkFormat integer to gfx::Format
+// Note: VkFormat and hina_format/gfx::Format use different numbering schemes
+inline Format vkFormatToFormat(int vkFormat) {
+    // Common VkFormat values mapped to gfx::Format (which uses hina_format values)
+    switch (vkFormat) {
+        case 0: return Format::Undefined;                // VK_FORMAT_UNDEFINED
+        case 9: return Format::R8_UNorm;                 // VK_FORMAT_R8_UNORM
+        case 10: return Format::R8_SNorm;                // VK_FORMAT_R8_SNORM
+        case 13: return Format::R8_UInt;                 // VK_FORMAT_R8_UINT
+        case 14: return Format::R8_SInt;                 // VK_FORMAT_R8_SINT
+        case 16: return Format::RG8_UNorm;               // VK_FORMAT_R8G8_UNORM
+        case 17: return Format::RG8_SNorm;               // VK_FORMAT_R8G8_SNORM
+        case 20: return Format::RG8_UInt;                // VK_FORMAT_R8G8_UINT
+        case 21: return Format::RG8_SInt;                // VK_FORMAT_R8G8_SINT
+        case 37: return Format::RGBA8_UNorm;             // VK_FORMAT_R8G8B8A8_UNORM
+        case 38: return Format::RGBA8_SNorm;             // VK_FORMAT_R8G8B8A8_SNORM
+        case 41: return Format::RGBA8_UInt;              // VK_FORMAT_R8G8B8A8_UINT
+        case 42: return Format::RGBA8_SInt;              // VK_FORMAT_R8G8B8A8_SINT
+        case 43: return Format::RGBA8_SRGB;              // VK_FORMAT_R8G8B8A8_SRGB
+        case 44: return Format::BGRA8_UNorm;             // VK_FORMAT_B8G8R8A8_UNORM
+        case 50: return Format::BGRA8_SRGB;              // VK_FORMAT_B8G8R8A8_SRGB
+        case 70: return Format::R16_UNorm;               // VK_FORMAT_R16_UNORM
+        case 71: return Format::R16_SNorm;               // VK_FORMAT_R16_SNORM
+        case 74: return Format::R16_UInt;                // VK_FORMAT_R16_UINT
+        case 75: return Format::R16_SInt;                // VK_FORMAT_R16_SINT
+        case 76: return Format::R16_Float;               // VK_FORMAT_R16_SFLOAT
+        case 77: return Format::RG16_UNorm;              // VK_FORMAT_R16G16_UNORM
+        case 78: return Format::RG16_SNorm;              // VK_FORMAT_R16G16_SNORM
+        case 81: return Format::RG16_UInt;               // VK_FORMAT_R16G16_UINT
+        case 82: return Format::RG16_SInt;               // VK_FORMAT_R16G16_SINT
+        case 83: return Format::RG16_Float;              // VK_FORMAT_R16G16_SFLOAT
+        case 91: return Format::RGBA16_UNorm;            // VK_FORMAT_R16G16B16A16_UNORM
+        case 92: return Format::RGBA16_SNorm;            // VK_FORMAT_R16G16B16A16_SNORM
+        case 95: return Format::RGBA16_UInt;             // VK_FORMAT_R16G16B16A16_UINT
+        case 96: return Format::RGBA16_SInt;             // VK_FORMAT_R16G16B16A16_SINT
+        case 97: return Format::RGBA16_Float;            // VK_FORMAT_R16G16B16A16_SFLOAT
+        case 98: return Format::R32_UInt;                // VK_FORMAT_R32_UINT
+        case 99: return Format::R32_SInt;                // VK_FORMAT_R32_SINT
+        case 100: return Format::R32_Float;              // VK_FORMAT_R32_SFLOAT
+        case 101: return Format::RG32_UInt;              // VK_FORMAT_R32G32_UINT
+        case 102: return Format::RG32_SInt;              // VK_FORMAT_R32G32_SINT
+        case 103: return Format::RG32_Float;             // VK_FORMAT_R32G32_SFLOAT
+        case 104: return Format::RGB32_UInt;             // VK_FORMAT_R32G32B32_UINT
+        case 105: return Format::RGB32_SInt;             // VK_FORMAT_R32G32B32_SINT
+        case 106: return Format::RGB32_Float;            // VK_FORMAT_R32G32B32_SFLOAT
+        case 107: return Format::RGBA32_UInt;            // VK_FORMAT_R32G32B32A32_UINT
+        case 108: return Format::RGBA32_SInt;            // VK_FORMAT_R32G32B32A32_SINT
+        case 109: return Format::RGBA32_Float;           // VK_FORMAT_R32G32B32A32_SFLOAT
+        case 124: return Format::D16_UNorm;              // VK_FORMAT_D16_UNORM
+        case 125: return Format::D24_UNorm_X8;           // VK_FORMAT_X8_D24_UNORM_PACK32
+        case 126: return Format::D32_Float;              // VK_FORMAT_D32_SFLOAT
+        case 127: return Format::S8_UInt;                // VK_FORMAT_S8_UINT
+        case 128: return Format::D16_UNorm_S8_UInt;      // VK_FORMAT_D16_UNORM_S8_UINT
+        case 129: return Format::D24_UNorm_S8_UInt;      // VK_FORMAT_D24_UNORM_S8_UINT
+        case 130: return Format::D32_Float_S8_UInt;      // VK_FORMAT_D32_SFLOAT_S8_UINT
+        case 131: return Format::BC1_RGB_UNorm;          // VK_FORMAT_BC1_RGB_UNORM_BLOCK
+        case 132: return Format::BC1_RGB_SRGB;           // VK_FORMAT_BC1_RGB_SRGB_BLOCK
+        case 133: return Format::BC1_RGBA_UNorm;         // VK_FORMAT_BC1_RGBA_UNORM_BLOCK
+        case 134: return Format::BC1_RGBA_SRGB;          // VK_FORMAT_BC1_RGBA_SRGB_BLOCK
+        case 135: return Format::BC2_UNorm;              // VK_FORMAT_BC2_UNORM_BLOCK
+        case 136: return Format::BC2_SRGB;               // VK_FORMAT_BC2_SRGB_BLOCK
+        case 137: return Format::BC3_UNorm;              // VK_FORMAT_BC3_UNORM_BLOCK
+        case 138: return Format::BC3_SRGB;               // VK_FORMAT_BC3_SRGB_BLOCK
+        case 139: return Format::BC4_UNorm;              // VK_FORMAT_BC4_UNORM_BLOCK
+        case 140: return Format::BC4_SNorm;              // VK_FORMAT_BC4_SNORM_BLOCK
+        case 141: return Format::BC5_UNorm;              // VK_FORMAT_BC5_UNORM_BLOCK
+        case 142: return Format::BC5_SNorm;              // VK_FORMAT_BC5_SNORM_BLOCK
+        case 143: return Format::BC6H_UFloat;            // VK_FORMAT_BC6H_UFLOAT_BLOCK
+        case 144: return Format::BC6H_SFloat;            // VK_FORMAT_BC6H_SFLOAT_BLOCK
+        case 145: return Format::BC7_UNorm;              // VK_FORMAT_BC7_UNORM_BLOCK
+        case 146: return Format::BC7_SRGB;               // VK_FORMAT_BC7_SRGB_BLOCK
+        default: return Format::Undefined;
+    }
+}
+
+/**
+ * @brief Convert a UNORM format to its SRGB equivalent.
+ * @param format The input format (may be UNORM or already SRGB)
+ * @param toSRGB If true, convert UNORM->SRGB; if false, convert SRGB->UNORM
+ * @return The converted format, or the original if no conversion exists
+ */
+inline Format convertFormatSRGB(Format format, bool toSRGB) {
+    if (toSRGB) {
+        // Convert UNORM -> SRGB
+        switch (format) {
+            case Format::RGBA8_UNorm:     return Format::RGBA8_SRGB;
+            case Format::BGRA8_UNorm:     return Format::BGRA8_SRGB;
+            case Format::BC1_RGB_UNorm:   return Format::BC1_RGB_SRGB;
+            case Format::BC1_RGBA_UNorm:  return Format::BC1_RGBA_SRGB;
+            case Format::BC2_UNorm:       return Format::BC2_SRGB;
+            case Format::BC3_UNorm:       return Format::BC3_SRGB;
+            case Format::BC7_UNorm:       return Format::BC7_SRGB;
+            default: return format;  // Already SRGB or no conversion available
+        }
+    } else {
+        // Convert SRGB -> UNORM
+        switch (format) {
+            case Format::RGBA8_SRGB:      return Format::RGBA8_UNorm;
+            case Format::BGRA8_SRGB:      return Format::BGRA8_UNorm;
+            case Format::BC1_RGB_SRGB:    return Format::BC1_RGB_UNorm;
+            case Format::BC1_RGBA_SRGB:   return Format::BC1_RGBA_UNorm;
+            case Format::BC2_SRGB:        return Format::BC2_UNorm;
+            case Format::BC3_SRGB:        return Format::BC3_UNorm;
+            case Format::BC7_SRGB:        return Format::BC7_UNorm;
+            default: return format;  // Already UNORM or no conversion available
+        }
+    }
+}
+
+/**
+ * @brief Check if a format is an SRGB format.
+ */
+inline bool isFormatSRGB(Format format) {
+    switch (format) {
+        case Format::RGBA8_SRGB:
+        case Format::BGRA8_SRGB:
+        case Format::BC1_RGB_SRGB:
+        case Format::BC1_RGBA_SRGB:
+        case Format::BC2_SRGB:
+        case Format::BC3_SRGB:
+        case Format::BC7_SRGB:
+            return true;
+        default:
+            return false;
+    }
+}
+
 enum class IndexType : uint32_t {
     UInt16 = HINA_INDEX_UINT16,
     UInt32 = HINA_INDEX_UINT32,
@@ -258,6 +385,23 @@ enum class SampleCount : uint32_t {
     x2 = HINA_SAMPLE_COUNT_2_BIT,
     x4 = HINA_SAMPLE_COUNT_4_BIT,
     x8 = HINA_SAMPLE_COUNT_8_BIT,
+};
+
+enum class ColorSpace : uint8_t {
+    SRGB_LINEAR,      // Linear sRGB (no gamma correction)
+    SRGB_NONLINEAR,   // sRGB with gamma correction (standard monitors)
+};
+
+enum class SurfaceTransform : uint8_t {
+    Identity = 0,
+    Rotate90,
+    Rotate180,
+    Rotate270,
+    HorizontalMirror,
+    HorizontalMirrorRotate90,
+    HorizontalMirrorRotate180,
+    HorizontalMirrorRotate270,
+    Inherit,
 };
 
 enum class LoadOp : uint32_t {
@@ -541,6 +685,17 @@ struct Dimensions {
     bool operator==(const Dimensions& other) const {
         return width == other.width && height == other.height && depth == other.depth;
     }
+};
+
+// Texture metadata for loaded textures (used by resource system)
+struct TextureMetadata {
+    TextureType type = TextureType::Tex2D;
+    Format format = Format::Undefined;
+    Dimensions dimensions = {1, 1, 1};
+    uint32_t numLayers = 1;
+    uint32_t numMipLevels = 1;
+    uint8_t usage = TextureUsage::Sampled;
+    const char* debugName = "";
 };
 
 // Render pass attachment description

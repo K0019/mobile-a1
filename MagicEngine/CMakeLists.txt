@@ -31,12 +31,14 @@ target_sources(MagicEngine PRIVATE
 )
 
 # ----- Compile Definitions -----
+# Note: IMGUI_ENABLED is always defined. It's still needed because extern/include/ImGui/ImguiHeader.h
+# uses it to conditionally include imgui.h. The #ifdef guards in our code have been removed.
 set(ENGINE_DEFINITIONS
     VK_NO_PROTOTYPES=1
     QUILL_DISABLE_NON_PREFIXED_MACROS
     QUILL_NO_EXCEPTIONS
     IMGUI_ENABLE_FREETYPE
-    $<$<CONFIG:Debug>:IMGUI_ENABLED>
+    IMGUI_ENABLED
 )
 
 if(NOT ANDROID)

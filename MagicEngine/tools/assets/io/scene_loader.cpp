@@ -158,9 +158,9 @@ namespace Resource
       auto textureSources = TextureLoading::collectUniqueTextures(processedMaterials);
       std::vector<ProcessedTexture> processedTextures;
       processedTextures.reserve(textureSources.size());
-      for (const auto& source : textureSources)
+      for (const auto& [source, isSRGB] : textureSources)
       {
-        processedTextures.push_back(TextureLoading::extractTexture(source, config));
+        processedTextures.push_back(TextureLoading::extractTexture(source, config, isSRGB));
       }
       // Step 5: Process meshes from Assimp data
       reportProgress(onProgress, 0.60f, "Processing meshes...");
@@ -296,8 +296,30 @@ namespace Resource
     importer.SetPropertyInteger(AI_CONFIG_PP_SLM_VERTEX_LIMIT, 1'000'000);
     importer.SetPropertyInteger(AI_CONFIG_PP_SBP_REMOVE, aiPrimitiveType_POINT | aiPrimitiveType_LINE);
     importer.SetPropertyFloat(AI_CONFIG_PP_GSN_MAX_SMOOTHING_ANGLE, 80.0f);
-    const uint32_t flags = aiProcess_Triangulate | aiProcess_JoinIdenticalVertices | aiProcess_GenSmoothNormals |
-      aiProcess_ImproveCacheLocality | aiProcess_ValidateDataStructure;
+
+    // Base flags for all formats
+    // CalcTangentSpace: compute tangents/bitangents from UVs (essential for normal mapping)
+    uint32_t flags = aiProcess_Triangulate | aiProcess_JoinIdenticalVertices | aiProcess_GenSmoothNormals |
+      aiProcess_CalcTangentSpace | aiProcess_ImproveCacheLocality | aiProcess_ValidateDataStructure;
+
+    // Check file extension for format-specific flags
+    std::string ext = path.extension().string();
+    std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
+    bool isFbx = (ext == ".fbx");
+
+    // SortByPType only for FBX (can cause issues with glTF)
+    if (isFbx)
+    {
+      flags |= aiProcess_SortByPType;
+    }
+
+    // FixInfacingNormals: DISABLED by default - can cause inconsistent normals
+    // Uncomment the next line to test WITH FixInfacingNormals:
+    // flags |= aiProcess_FixInfacingNormals;
+
+    LOG_INFO("[SceneLoader] Importing {} with flags: 0x{:X} (FBX={}, FixInfacingNormals=OFF)",
+             path.filename().string(), flags, isFbx);
+
     const aiScene* scene = importer.ReadFile(path.string(), flags);
     if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
     {

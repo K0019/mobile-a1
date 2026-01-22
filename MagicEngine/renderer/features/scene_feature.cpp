@@ -10,7 +10,6 @@
 #include "renderer/gfx_renderer.h"
 #include "renderer/gfx_mesh_storage.h"
 #include "renderer/gfx_material_system.h"
-#include "renderer/renderer.h"
 #include "renderer/render_graph.h"
 #include "renderer/linear_color.h"
 #include "resource/resource_manager.h"
@@ -575,7 +574,7 @@ bool SceneRenderFeature::EnsurePipelineCreated(GfxRenderer* gfxRenderer)
 
 void SceneRenderFeature::UpdateScene(uint64_t renderFeatureID,
                                       const Resource::ResourceManager& resourceMngr,
-                                      Renderer& renderer)
+                                      GfxRenderer& renderer)
 {
   auto* feature = renderer.GetFeature<SceneRenderFeature>(renderFeatureID);
   if (!feature) {

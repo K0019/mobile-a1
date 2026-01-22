@@ -2,7 +2,7 @@
 #include <android/log.h>
 #include "core/engine/engine.h"  // Engine<> template and Core::Platform
 #include "Engine.h"               // MagicEngine class
-#include "renderer/renderer.h"    // Renderer and RenderFrameData
+#include "renderer/gfx_renderer.h"  // GfxRenderer and RenderFrameData
 #include "renderer/features/scene_feature.h"
 #include "renderer/features/ui2d_render_feature.h"
 #include "math/camera.h"

@@ -5,7 +5,7 @@
 #include "asset_formats/anim_format.h"
 #include "VFS/VFS.h"
 #include "logging/log.h"
-#include "renderer/interface.h"
+#include "renderer/gfx_interface.h"
 #include "core_utils/util.h"
 
 #include "ktx.h"
@@ -85,12 +85,13 @@ ProcessedTexture AssetLoader::ParseKTX2(const std::vector<uint8_t>& fileData, co
     std::memcpy(texture.data.data(), ktxTex->pData, dataSize);
 
     // Create descriptor
-    texture.textureDesc = vk::TextureDesc{
-        .type = vk::TextureType::Tex2D,
-        .format = vk::vkFormatToFormat(static_cast<int>(ktxTex->vkFormat)),
+    texture.textureDesc = gfx::TextureMetadata{
+        .type = gfx::TextureType::Tex2D,
+        .format = gfx::vkFormatToFormat(static_cast<int>(ktxTex->vkFormat)),
         .dimensions = {texture.width, texture.height, 1},
-        .usage = vk::TextureUsageBits_Sampled,
+        .numLayers = 1,
         .numMipLevels = ktxTex->numLevels,
+        .usage = gfx::TextureUsage::Sampled,
         .debugName = name.c_str()
     };
 

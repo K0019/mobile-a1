@@ -13,13 +13,13 @@ target_sources(Game PRIVATE
     ${GAME_SOURCES}
 )
 
-# Link unified engine library (without IMGUI_ENABLED)
+# Link unified engine library
 target_link_libraries(Game PRIVATE
     MagicEngine
 )
 
-# Reuse MagicEngine's precompiled header
-target_precompile_headers(Game REUSE_FROM MagicEngine)
+# Use MagicEngine's pch.h but compile our own PCH (avoid definition mismatch)
+target_precompile_headers(Game PRIVATE ${CMAKE_SOURCE_DIR}/MagicEngine/pch.h)
 target_include_directories(Game PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 
 # Platform-specific configuration

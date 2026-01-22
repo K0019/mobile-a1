@@ -7,6 +7,7 @@
 #include "Engine/Events/EventsTypeEditor.h"
 #include "resource/resource_types.h"
 #include "FilepathConstants.h"
+#include "VFS/VFS.h"
 
 namespace editor {
 

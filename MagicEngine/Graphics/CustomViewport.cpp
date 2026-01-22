@@ -64,13 +64,11 @@ void CustomViewport::OnDetached()
 
 void CustomViewport::DrawContainer(int id)
 {
-#ifdef IMGUI_ENABLED
 	gui::SetStyleVar windowPadding{ gui::FLAG_STYLE_VAR::WINDOW_PADDING, gui::Vec2{ 0, 0 } };
 
 	// Set size constraints for undocked windows
 	if (!ImGui::GetCurrentWindow()->DockIsActive)
 		ImGui::SetNextWindowSizeConstraints(gui::Vec2{ 100, 100 }, gui::Vec2{ FLT_MAX, FLT_MAX }, MaintainAspectRatio, this);
-#endif
 
 	WindowBase::DrawContainer(id);
 }
@@ -89,8 +87,6 @@ void CustomViewport::DrawWindow()
 	// Camera upload (should also be moved...)
 	ST<GraphicsMain>::Get()->SetViewCamera(GetViewportCamera());
 
-
-#ifdef IMGUI_ENABLED
 	const float playControlsHeight = 22.0f; // Height of play controls bar
 	DrawPlayControls();
 
@@ -210,7 +206,6 @@ void CustomViewport::DrawWindow()
 		ST<EventsQueue>::Get()->AddEventForNextFrame(Events::EditorSelectEntity{ entity });
 	});
 	}
-#endif
 }
 
 void CustomViewport::Init(unsigned newWidth, unsigned newHeight)
@@ -257,8 +252,6 @@ void CustomViewport::UpdateCameraControl()
 
 	camera.update(GameTime::Dt(), mouse_delta, ST<KeyboardMouseInput>::Get()->GetIsDown(KEY::M_RIGHT));
 }
-
-#ifdef IMGUI_ENABLED
 
 void CustomViewport::DrawPlayControls() {
 	constexpr float TOOLBAR_HEIGHT = 22.0f;
@@ -397,16 +390,9 @@ void CustomViewport::MaintainAspectRatio(ImGuiSizeCallbackData* data) {
 	data->DesiredSize.y = availableHeight + titleBarHeight + playControlsHeight;
 }
 
-#endif
-
 Transform CustomViewport::WorldToWindowTransform([[maybe_unused]] const Transform& worldTransform) const {
 	Transform viewTransform;
-#ifdef IMGUI_ENABLED
 	auto WORLD = ST<GraphicsWindow>::Get()->GetViewportExtent();
-#else
-	auto WORLD = ST<GraphicsWindow>::Get()->GetWorldExtent();
-	auto WINDOW = ST<GraphicsWindow>::Get()->GetWindowExtent();
-#endif
 
 	CONSOLE_LOG_UNIMPLEMENTED() << "Viewport, world to window position conversion";
 
@@ -495,7 +481,6 @@ Vec3 CustomViewport::WindowToWorldPosition([[maybe_unused]] const Vec2& inWindow
 
 bool CustomViewport::IsMouseInViewport([[maybe_unused]] const Vec2& mousePos) const
 {
-#ifdef IMGUI_ENABLED
 	bool within_viewport = mousePos.x >= windowPosAbsolute.x + contentMin.x &&
 		mousePos.x < windowPosAbsolute.x + contentMin.x + viewportRenderSize.x &&
 		mousePos.y >= windowPosAbsolute.y + contentMin.y &&
@@ -518,7 +503,6 @@ bool CustomViewport::IsMouseInViewport([[maybe_unused]] const Vec2& mousePos) co
 			return false;
 		}
 	}
-#endif
 
 	// Check for any popups or modal windows that might be blocking
 	/*if(g.NavWindow && g.NavWindow->RootWindow != window->RootWindow) {

@@ -23,11 +23,11 @@ All rights reserved.
 
 #include "Engine/Graphics Interface/GraphicsAPI.h"
 #include "resource/resource_types.h"
+#include "renderer/gfx_interface.h"
 #ifdef GLFW
 #include "tools/assets/io/texture_loader.h"
 #else
 #include "ktx.h"
-#include <renderer/vulkan/vk_util.h>
 #endif
 
 bool ResourceFiletypeImporterKTX::Import(const std::string& assetRelativeFilepath)
@@ -110,12 +110,13 @@ Resource::ProcessedTexture ResourceFiletypeImporterKTX::ManualLoadTexture(const 
     std::memcpy(texture.data.data(), ktxTex->pData, dataSize);
 
     // Create descriptor
-    texture.textureDesc = vk::TextureDesc{
-        .type = vk::TextureType::Tex2D,
-        .format = vk::vkFormatToFormat(static_cast<VkFormat>(ktxTex->vkFormat)),
+    texture.textureDesc = gfx::TextureMetadata{
+        .type = gfx::TextureType::Tex2D,
+        .format = gfx::vkFormatToFormat(static_cast<int>(ktxTex->vkFormat)),
         .dimensions = {texture.width, texture.height, 1},
-        .usage = vk::TextureUsageBits_Sampled,
+        .numLayers = 1,
         .numMipLevels = ktxTex->numLevels,
+        .usage = gfx::TextureUsage::Sampled,
         .debugName = filepath.c_str() };
 
     CONSOLE_LOG(LEVEL_DEBUG) << "Loaded KTX2 texture " << filepath << " - " << texture.width << "x" << texture.height << ", " << ktxTex->numLevels << " mips";

@@ -177,6 +177,11 @@ void GfxMaterialSystem::freeTextureEntry(uint16_t index) {
     if (!entry.inUse) return;
 
     if (hina_texture_is_valid(entry.texture)) {
+        // Flush all pending staged uploads and wait for completion before destroying
+        // The staging command buffer is shared across all textures - destroying
+        // any texture with pending commands invalidates the entire batch
+        hina_ticket ticket = hina_flush_uploads();
+        hina_wait_ticket(ticket);
         hina_destroy_texture(entry.texture);
     }
 

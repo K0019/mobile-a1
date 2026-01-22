@@ -4,7 +4,7 @@
 #include "Engine/Graphics Interface/GraphicsAPI.h"
 #include "renderer/features/scene_feature.h"
 #include "renderer/features/ui2d_render_feature.h"
-#include "renderer/renderer.h"
+#include "renderer/gfx_renderer.h"
 #include "Utilities/Logging.h"
 #include "Game/GameSystems.h"
 #include <cstdio>
@@ -76,8 +76,8 @@ void GameApplication::updateViews(Context& context, RenderFrameData& frame, int 
     if (!context.renderer)
         return;
 
-    const FeatureMask sceneMask = context.renderer->GetFeatureMask(sceneFeatureHandle_);
-    const FeatureMask uiMask = context.renderer->GetFeatureMask(ui2dFeatureHandle_);
+    const FeatureMask sceneMask = context.renderer->GetFeatureMaskForHandle(sceneFeatureHandle_);
+    const FeatureMask uiMask = context.renderer->GetFeatureMaskForHandle(ui2dFeatureHandle_);
 
     // Game uses single view - direct render to swapchain
     frame.views.resize(1);

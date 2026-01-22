@@ -1,7 +1,7 @@
 // core/engine/engine.h
 #pragma once
 #include <atomic>
-#include "renderer/renderer.h"
+#include "renderer/gfx_renderer.h"
 #include "renderer/frame_data.h"
 #include "core/platform/platform.h"
 #include "core_utils/clock.h"
@@ -11,7 +11,7 @@
 
 struct Context
 {
-  Renderer* renderer = nullptr;
+  GfxRenderer* renderer = nullptr;
   Resource::ResourceManager* resourceMngr = nullptr;
 };
 
@@ -50,7 +50,7 @@ private:
   AppType m_application;
   Core::Clock m_clock;
   Resource::ResourceManager m_assetSystem;
-  Renderer m_renderer;
+  GfxRenderer m_renderer;
   RenderFrameData m_currentFrameData;
   uint64_t m_frameCounter = 0;
   std::atomic<bool> m_initialized{false};
@@ -97,7 +97,7 @@ void Engine<AppType>::Initialize()
   {
     if (m_surfaceValid.load())
     {
-      m_renderer.onWindowResized(width, height);
+      m_renderer.onResize(static_cast<uint32_t>(width), static_cast<uint32_t>(height));
     }
   };
   // Android-specific callbacks
@@ -221,12 +221,11 @@ void Engine<AppType>::InitializeCoreSystems()
 {
   m_assetSystem.initialize(&context);
   context.resourceMngr = &m_assetSystem;
-  // Initialize renderer (headless - no surface)
-  m_renderer.initialize();
-  m_renderer.startup();
+  // GfxRenderer is constructed but not initialized yet - needs window
+  // On desktop, initialize() is called in OnSurfaceCreated()
+  // On Android, initialize() is called in handleSurfaceCreated()
   context.renderer = &m_renderer;
   m_assetSystem.postRendererInitialize();
-  // DO NOT call CreateRenderSurface() here
   LOG_INFO("Core systems initialized (headless)");
 }
 
@@ -250,9 +249,23 @@ template <App AppType>
 void Engine<AppType>::OnSurfaceCreated()
 {
   LOG_INFO("Surface created callback");
-  // Create surface and swapchain
-  m_renderer.handleSurfaceCreated();
+  void* nativeWindow = Core::Display().GetVulkanWindowHandle();
+  uint32_t width = Core::Display().GetWidth();
+  uint32_t height = Core::Display().GetHeight();
+
+  // Initialize or recreate surface
+  if (!m_renderer.isInitialized()) {
+    // First time initialization
+    if (!m_renderer.initialize(nativeWindow, width, height)) {
+      LOG_ERROR("Failed to initialize GfxRenderer");
+      return;
+    }
+  } else {
+    // Recreate surface after lifecycle event (Android)
+    m_renderer.handleSurfaceCreated(nativeWindow);
+  }
   m_surfaceValid.store(true);
+
   // Android: Initialize app on first surface creation
 #if defined(__ANDROID__)
   if (!m_initialized.load())
@@ -268,7 +281,7 @@ void Engine<AppType>::OnSurfaceDestroyed()
 {
   LOG_INFO("Surface destroyed callback");
   m_surfaceValid.store(false);
-  // Destroy surface and swapchain (keeps Instance/Device alive)
+  // Destroy surface and swapchain
   m_renderer.handleSurfaceDestroyed();
 }
 

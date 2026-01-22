@@ -14,15 +14,33 @@
 Compiles an fbx scene into 3 individual files: 
 a .mesh, a .material, and a .ktx2 texture if texture can be found.
 
-All content © 2025 DigiPen Institute of Technology Singapore.
+All content ï¿½ 2025 DigiPen Institute of Technology Singapore.
 All rights reserved.
 */
 /******************************************************************************/
 #include "SceneCompiler.h"
-#include "MeshProcessor.h"
+#include "tools/assets/processing/mesh_process.h"  // Engine's MeshOptimizer
+#include "tools/assets/io/mesh_loader.h"           // Engine's calculateBounds
 #include "TextureCompiler.h"
-#include "MeshFileStructure.h"
-#include "AnimationFileStructure.h"
+#include "resource/asset_formats/mesh_format.h"    // Engine's mesh file format
+#include "resource/asset_formats/anim_format.h"    // Engine's animation file format
+#include "resource/asset_metadata.h"               // For writing .meta sidecar files
+
+// Use engine types
+using Resource::MeshOptimizer;
+using Resource::MeshFileHeader;
+using Resource::MeshNode;
+using Resource::MeshInfo;
+using Resource::MeshFile_Bone;
+using Resource::MeshFile_MorphTarget;
+using Resource::MeshFile_MorphDelta;
+using Resource::MESH_FILE_MAGIC;
+using Resource::AnimationFileHeader;
+using Resource::BoneAnimationChannel;
+using Resource::AnimationFile_MorphChannel;
+using Resource::AnimationFile_MorphKey;
+using Resource::ANIM_FILE_MAGIC;
+using Resource::MeshLoading::calculateBounds;
 
 #include <fstream>
 #include <set>
@@ -251,7 +269,7 @@ namespace compiler
 
             if (inOptions.calculateBounds)
             {
-                mesh.bounds = MeshOptimizer::calculateBounds(mesh.vertices, mesh.morphTargets.empty() ? nullptr : &mesh.morphTargets);
+                mesh.bounds = calculateBounds(mesh.vertices, mesh.morphTargets.empty() ? nullptr : &mesh.morphTargets);
             }
         }
         return processingResult;
@@ -335,7 +353,7 @@ namespace compiler
                     std::string outputFilename = originalPath.stem().string() + ".ktx2";
                     //result.createdTextureFiles.push_back(options.general.outputPath / "textures" / outputFilename);
                     result.createdTextureFiles.push_back(texCompileResult.createdTextureFiles[0]);
-                    FilePathSource compiledFilePathSource {originalPath};
+                    FilePathSource compiledFilePathSource {originalPath.string()};
                     compiledTextures[compiledFilePathSource] = texCompileResult.createdTextureFiles[0];
                 }
                 else
@@ -633,6 +651,17 @@ namespace compiler
 		outFile.close();
 
         result.createdMeshFiles.push_back(outFilePath);
+
+        // Write .meta sidecar file with source tracking
+        Resource::AssetMetadata meshMeta;
+        meshMeta.assetType = AssetFormat::AssetType::Mesh;
+        meshMeta.sourcePath = options.general.inputPath.string();
+        meshMeta.sourceTimestamp = static_cast<uint64_t>(
+            std::filesystem::last_write_time(options.general.inputPath).time_since_epoch().count());
+        meshMeta.compiledTimestamp = static_cast<uint64_t>(
+            std::chrono::system_clock::now().time_since_epoch().count());
+        meshMeta.formatVersion = MESH_FILE_MAGIC;  // Use magic as version identifier
+        meshMeta.saveToFile(Resource::AssetMetadata::getMetaPath(outFilePath));
     }
 
     void SceneCompiler::SaveMaterialData(const Scene& scene, CompilationResult& result, std::map<TextureDataSource, std::filesystem::path> savedTexturesMap)
@@ -725,6 +754,17 @@ namespace compiler
             outFile.close();
 
             result.createdMaterialFiles.push_back(outFilePath);
+
+            // Write .meta sidecar file with source tracking
+            Resource::AssetMetadata matMeta;
+            matMeta.assetType = AssetFormat::AssetType::Material;
+            matMeta.sourcePath = options.general.inputPath.string();
+            matMeta.sourceTimestamp = static_cast<uint64_t>(
+                std::filesystem::last_write_time(options.general.inputPath).time_since_epoch().count());
+            matMeta.compiledTimestamp = static_cast<uint64_t>(
+                std::chrono::system_clock::now().time_since_epoch().count());
+            matMeta.formatVersion = 1;  // Material format version
+            matMeta.saveToFile(Resource::AssetMetadata::getMetaPath(outFilePath));
         }
     }
 
@@ -920,6 +960,17 @@ namespace compiler
             outFile.close();
 
             result.createdAnimationFiles.push_back(outFilePath);
+
+            // Write .meta sidecar file with source tracking
+            Resource::AssetMetadata animMeta;
+            animMeta.assetType = AssetFormat::AssetType::Animation;
+            animMeta.sourcePath = options.general.inputPath.string();
+            animMeta.sourceTimestamp = static_cast<uint64_t>(
+                std::filesystem::last_write_time(options.general.inputPath).time_since_epoch().count());
+            animMeta.compiledTimestamp = static_cast<uint64_t>(
+                std::chrono::system_clock::now().time_since_epoch().count());
+            animMeta.formatVersion = ANIM_FILE_MAGIC;  // Use magic as version identifier
+            animMeta.saveToFile(Resource::AssetMetadata::getMetaPath(outFilePath));
         }
     }
 }

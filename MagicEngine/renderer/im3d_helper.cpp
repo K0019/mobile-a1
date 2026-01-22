@@ -1,5 +1,5 @@
 #include "im3d_helper.h"
-#include "renderer.h"
+#include "gfx_renderer.h"
 #include <glm/gtc/type_ptr.hpp>
 #include <im3d.h>
 
@@ -15,7 +15,7 @@ namespace Im3dHelper
     Im3d::NewFrame();
   }
 
-  void EndFrame(uint64_t featureHandle, Renderer& renderer)
+  void EndFrame(uint64_t featureHandle, GfxRenderer& renderer)
   {
     Im3d::EndFrame();
     // Early return if feature handle is invalid (Im3D feature not created)

@@ -61,7 +61,6 @@ public:
      * @brief Polls input and updates the viewport camera accordingly.
      */
     void UpdateCameraControl();
-#ifdef IMGUI_ENABLED
     void DrawPlayControls();
 
     /**
@@ -69,7 +68,6 @@ public:
      * @param data The ImGuiSizeCallbackData containing the size information.
      */
     static void MaintainAspectRatio(ImGuiSizeCallbackData* data);
-#endif
     /**
      * @brief WorldToWindowTransform converts a world transform to a window transform.
      * @param worldTransform The world transform to convert.
@@ -103,9 +101,7 @@ private:
     gui::Vec2 contentMin; /**< The minimum position of the content region. */
     gui::Vec2 contentMax; /**< The maximum position of the content region. */
     gui::Vec2 viewportRenderSize; /**< The render size of the viewport. */
-#ifdef IMGUI_ENABLED
     editor::Gizmo m_gizmo;
-#endif
     CameraPositioner_FirstPerson camera;
 
     EventHandlerHandle eventHandle_viewportMousePos;

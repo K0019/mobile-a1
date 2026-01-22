@@ -1,7 +1,6 @@
 #pragma once
 #include <vector>
-#include <resource/processed_assets.h>
-#include "resource/resource_types.h"
+#include "resource/processed_extraction.h"
 #include "import_config.h"
 struct aiScene;
 struct aiMaterial;

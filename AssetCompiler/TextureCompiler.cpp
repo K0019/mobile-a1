@@ -19,6 +19,7 @@ All rights reserved.
 */
 /******************************************************************************/
 #include "TextureCompiler.h"
+#include "resource/asset_metadata.h"  // For writing .meta sidecar files
 
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
@@ -27,6 +28,7 @@ All rights reserved.
 #include <cassert>
 #include <thread>
 #include <iostream>
+#include <chrono>
 
 namespace
 {
@@ -325,6 +327,21 @@ namespace compiler
             std::cout << "Successfully saved: " << outputPath << "\n";
         }
         compilationResult.createdTextureFiles.push_back(outputPath);
+
+        // Write .meta sidecar file with source tracking
+        Resource::AssetMetadata texMeta;
+        texMeta.assetType = AssetFormat::AssetType::Texture;
+        texMeta.sourcePath = options.general.inputPath.string();
+        // Only get source timestamp if the file actually exists (not for embedded textures)
+        if (std::filesystem::exists(options.general.inputPath))
+        {
+            texMeta.sourceTimestamp = static_cast<uint64_t>(
+                std::filesystem::last_write_time(options.general.inputPath).time_since_epoch().count());
+        }
+        texMeta.compiledTimestamp = static_cast<uint64_t>(
+            std::chrono::system_clock::now().time_since_epoch().count());
+        texMeta.formatVersion = 2;  // KTX2 format version
+        texMeta.saveToFile(Resource::AssetMetadata::getMetaPath(outputPath));
 
         return writeResult == KTX_SUCCESS;
     }

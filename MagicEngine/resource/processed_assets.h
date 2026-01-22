@@ -5,6 +5,7 @@
 #include "resource/animation_ids.h"
 #include "resource/font_types.h"
 #include "renderer/scene.h"
+#include "renderer/gfx_interface.h"
 #ifndef NOMINMAX
 #define NOMINMAX
 #endif
@@ -15,7 +16,7 @@ namespace Resource
     TextureDataSource source;
     std::string name;
     std::vector<uint8_t> data;
-    vk::TextureDesc textureDesc;
+    gfx::TextureMetadata textureDesc;
     uint32_t width = 0;
     uint32_t height = 0;
     uint32_t channels = 0;

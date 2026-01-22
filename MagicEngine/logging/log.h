@@ -1,4 +1,22 @@
 #pragma once
+
+// When building as part of AssetCompiler, use simple stub logging
+#ifdef ASSET_COMPILER_BUILD
+#include <iostream>
+#include <fmt/format.h>
+
+#define LOG_TRACE_L3(fmtstr, ...) ((void)0)
+#define LOG_TRACE_L2(fmtstr, ...) ((void)0)
+#define LOG_TRACE_L1(fmtstr, ...) ((void)0)
+#define LOG_DEBUG(fmtstr, ...) do { std::cout << "[DEBUG] " << fmt::format(fmtstr, ##__VA_ARGS__) << std::endl; } while(false)
+#define LOG_INFO(fmtstr, ...) do { std::cout << "[INFO] " << fmt::format(fmtstr, ##__VA_ARGS__) << std::endl; } while(false)
+#define LOG_NOTICE(fmtstr, ...) do { std::cout << "[NOTICE] " << fmt::format(fmtstr, ##__VA_ARGS__) << std::endl; } while(false)
+#define LOG_WARNING(fmtstr, ...) do { std::cerr << "[WARNING] " << fmt::format(fmtstr, ##__VA_ARGS__) << std::endl; } while(false)
+#define LOG_ERROR(fmtstr, ...) do { std::cerr << "[ERROR] " << fmt::format(fmtstr, ##__VA_ARGS__) << std::endl; } while(false)
+#define LOG_CRITICAL(fmtstr, ...) do { std::cerr << "[CRITICAL] " << fmt::format(fmtstr, ##__VA_ARGS__) << std::endl; } while(false)
+
+#else // Full Quill logging for MagicEngine
+
 #include "log_backend.h"
 /*
  * ==========================================
@@ -370,3 +388,5 @@
 #pragma endregion //LOGJ_TAGS
 #define LOG_RUNTIME_METADATA(log_level, file, line_number, function, fmt, ...) \
     // do { QUILL_LOG_RUNTIME_METADATA(::LogBackend::getLogger(), MapEngineLogLevelToQuill(log_level), file, line_number, function, fmt, ##__VA_ARGS__); } while(false)
+
+#endif // ASSET_COMPILER_BUILD

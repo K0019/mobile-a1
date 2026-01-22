@@ -2,6 +2,7 @@
     "files": [
         {
             "filepath": "compiledassets/textures/_01.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -16,6 +17,7 @@
         },
         {
             "filepath": "compiledassets/materials/n00_000_00_eyewhite_00_eye__instance_.material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -30,6 +32,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/aji/player_idle_mixamo/n00_000_00_eyeiris_00_eye__instance_.material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -44,6 +47,7 @@
         },
         {
             "filepath": "compiledassets/textures/image_15.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -58,6 +62,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/items/bbt/lambert3.material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -72,6 +77,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/items/bbt/bbt.mesh",
+            "assetType": "Mesh",
             "resources": [
                 {
                     "resourceType": 6209910166724260588,
@@ -86,6 +92,7 @@
         },
         {
             "filepath": "compiledassets/buff bg icon (timer).ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -100,6 +107,7 @@
         },
         {
             "filepath": "compiledassets/materials/standardsurface1_1012.material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -114,6 +122,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/items/bbt/lambert5.material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -128,6 +137,7 @@
         },
         {
             "filepath": "compiledassets/textures/_04.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -142,6 +152,7 @@
         },
         {
             "filepath": "sounds/sfx/enemy/female/hurt/enemy female hurt 2.wav",
+            "assetType": "Audio",
             "resources": [
                 {
                     "resourceType": 16184316770661419113,
@@ -156,6 +167,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/aji/player_idle_mixamo/n00_008_01_shoes_01_cloth_02__instance_.material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -170,6 +182,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/aji/player_idle_mixamo/player_idle_mixamoplayer_weapon atk 1_mixamo.anim",
+            "assetType": "Animation",
             "resources": [
                 {
                     "resourceType": 7232515681596383213,
@@ -184,6 +197,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/aji/player_idle_mixamo/player_idle_mixamodamagetaken_mixamo.anim",
+            "assetType": "Animation",
             "resources": [
                 {
                     "resourceType": 7232515681596383213,
@@ -198,6 +212,7 @@
         },
         {
             "filepath": "compiledassets/materials/n00_000_00_body_00_skin (instance).material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -212,6 +227,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/mc_animated/mc_animatedblock.anim",
+            "assetType": "Animation",
             "resources": [
                 {
                     "resourceType": 7232515681596383213,
@@ -226,6 +242,7 @@
         },
         {
             "filepath": "sounds/sfx/mc/hurt/mc hurt 2.wav",
+            "assetType": "Audio",
             "resources": [
                 {
                     "resourceType": 16184316770661419113,
@@ -240,6 +257,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/aji/player_idle_mixamo/_19.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -254,6 +272,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/enemy_male_animated/_10.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -268,6 +287,7 @@
         },
         {
             "filepath": "sounds/sfx/mc/death/mc death 2.wav",
+            "assetType": "Audio",
             "resources": [
                 {
                     "resourceType": 16184316770661419113,
@@ -282,6 +302,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/mc_animated/n00_002_03_tops_01_cloth (instance).material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -296,6 +317,7 @@
         },
         {
             "filepath": "compiledassets/materials/n00_000_00_facemouth_00_face__instance_.001.material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -310,6 +332,7 @@
         },
         {
             "filepath": "compiledassets/materials/n00_008_01_shoes_01_cloth_01__instance_.material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -324,6 +347,7 @@
         },
         {
             "filepath": "compiledassets/textures/outdoor bleachers13315073533790444232.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -338,6 +362,7 @@
         },
         {
             "filepath": "compiledassets/materials/wall_1011.material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -352,6 +377,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/mc_animated/n00_000_hair_00_hair_05 (instance).material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -366,6 +392,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/aji/player_idle_mixamo/player_idle_mixamoplayer_sword ulti_.anim",
+            "assetType": "Animation",
             "resources": [
                 {
                     "resourceType": 7232515681596383213,
@@ -380,6 +407,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/items/sword/material_6.material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -394,6 +422,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/mc_animated/shader_nonenormal.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -408,6 +437,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/aji/player_idle_mixamo/player_idle_mixamoplayer_blocking_mixamo.anim",
+            "assetType": "Animation",
             "resources": [
                 {
                     "resourceType": 7232515681596383213,
@@ -422,6 +452,7 @@
         },
         {
             "filepath": "compiledassets/materials/standardsurface1_1001.material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -436,6 +467,7 @@
         },
         {
             "filepath": "compiledassets/materials/n00_010_01_onepiece_00_cloth_02__instance_.material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -450,6 +482,7 @@
         },
         {
             "filepath": "compiledassets/ranka.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -464,6 +497,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/enemy_female_animated/_04.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -478,6 +512,7 @@
         },
         {
             "filepath": "compiledassets/materials/darkmetal.001.material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -492,6 +527,7 @@
         },
         {
             "filepath": "compiledassets/materials/n00_000_00_facebrow_00_face__instance_.material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -506,6 +542,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/enemy_male_animated/n00_000_00_facemouth_00_face (instance).material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -520,6 +557,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/enemy_male_animated/enemy_male_animatedhurt.anim",
+            "assetType": "Animation",
             "resources": [
                 {
                     "resourceType": 7232515681596383213,
@@ -534,6 +572,7 @@
         },
         {
             "filepath": "sounds/sfx/enemy/female/death/enemy female death 1.wav",
+            "assetType": "Audio",
             "resources": [
                 {
                     "resourceType": 16184316770661419113,
@@ -548,6 +587,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/items/bookingslip/image_0.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -562,6 +602,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/mc_animated/_24.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -576,6 +617,7 @@
         },
         {
             "filepath": "sounds/sfx/enemy/female/hurt/enemy female hurt 3.wav",
+            "assetType": "Audio",
             "resources": [
                 {
                     "resourceType": 16184316770661419113,
@@ -590,6 +632,7 @@
         },
         {
             "filepath": "compiledassets/player health bg.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -604,6 +647,7 @@
         },
         {
             "filepath": "sounds/sfx/enemy/male/attack/enemy male attack 1.wav",
+            "assetType": "Audio",
             "resources": [
                 {
                     "resourceType": 16184316770661419113,
@@ -618,6 +662,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/mc_animated/_20.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -632,6 +677,7 @@
         },
         {
             "filepath": "compiledassets/light attack icon.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -646,6 +692,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/aji/player_idle_mixamo/_09.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -660,6 +707,7 @@
         },
         {
             "filepath": "sounds/sfx/enemy/male/death/enemy male death 2.wav",
+            "assetType": "Audio",
             "resources": [
                 {
                     "resourceType": 16184316770661419113,
@@ -674,6 +722,7 @@
         },
         {
             "filepath": "sounds/sfx/mc/jump/jump 1.wav",
+            "assetType": "Audio",
             "resources": [
                 {
                     "resourceType": 16184316770661419113,
@@ -688,6 +737,7 @@
         },
         {
             "filepath": "compiledassets/materials/n00_000_00_body_00_skin__instance_.material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -702,6 +752,7 @@
         },
         {
             "filepath": "compiledassets/player health and delusion meter.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -716,6 +767,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/mc_animated/_12.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -730,6 +782,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/enemy_female_animated/_09.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -744,6 +797,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/aji/player_idle_mixamo/n00_000_00_facemouth_00_face__instance_.material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -758,6 +812,7 @@
         },
         {
             "filepath": "compiledassets/textures/outdoor bleachers7585462050813353136.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -772,6 +827,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/mc_animated/_21.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -786,6 +842,7 @@
         },
         {
             "filepath": "sounds/sfx/enemy/male/hurt/enemy male hurt 2.wav",
+            "assetType": "Audio",
             "resources": [
                 {
                     "resourceType": 16184316770661419113,
@@ -800,6 +857,7 @@
         },
         {
             "filepath": "compiledassets/materials/n00_002_03_tops_01_cloth_05__instance_.material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -814,6 +872,7 @@
         },
         {
             "filepath": "sounds/sfx/mc/katar/katar #1/katar #1 1.wav",
+            "assetType": "Audio",
             "resources": [
                 {
                     "resourceType": 16184316770661419113,
@@ -828,6 +887,7 @@
         },
         {
             "filepath": "sounds/sfx/mc/dodge/dodge 3.wav",
+            "assetType": "Audio",
             "resources": [
                 {
                     "resourceType": 16184316770661419113,
@@ -842,6 +902,7 @@
         },
         {
             "filepath": "compiledassets/textures/digipen_cmyk_red.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -856,6 +917,7 @@
         },
         {
             "filepath": "sounds/sfx/mc/death/mc death 4.wav",
+            "assetType": "Audio",
             "resources": [
                 {
                     "resourceType": 16184316770661419113,
@@ -870,6 +932,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/mc_animated/_13.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -884,6 +947,7 @@
         },
         {
             "filepath": "compiledassets/textures/_17.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -898,6 +962,7 @@
         },
         {
             "filepath": "compiledassets/meshanimations/player_idle_mixamoplayer_dodge_mixamo.anim",
+            "assetType": "Animation",
             "resources": [
                 {
                     "resourceType": 7232515681596383213,
@@ -912,6 +977,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/aji/player_idle_mixamo/_13.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -926,6 +992,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/enemy_male_animated/material_15.material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -940,6 +1007,7 @@
         },
         {
             "filepath": "compiledassets/materials/material_42.material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -954,6 +1022,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/baseball_field/field/image_1.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -968,6 +1037,7 @@
         },
         {
             "filepath": "sounds/sfx/ui/ultimate activation.wav",
+            "assetType": "Audio",
             "resources": [
                 {
                     "resourceType": 16184316770661419113,
@@ -982,6 +1052,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/items/sword/spike_lambert.material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -996,6 +1067,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/enemy_female_animated/n00_001_01_shoes_01_cloth (instance).material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -1010,6 +1082,7 @@
         },
         {
             "filepath": "compiledassets/main menu bg.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -1024,6 +1097,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/mc_animated/_01.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -1038,6 +1112,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/enemy_female_animated/_05.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -1052,6 +1127,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/aji/player_idle_mixamo/n00_002_03_tops_01_cloth_05__instance_.material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -1066,6 +1142,7 @@
         },
         {
             "filepath": "compiledassets/materials/n00_007_01_tops_01_cloth_02 (instance).material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -1080,6 +1157,7 @@
         },
         {
             "filepath": "compiledassets/textures/n00_000_00_hairback_00_nml.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -1094,6 +1172,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/aji/player_idle_mixamo/n00_007_01_tops_01_cloth_02__instance_.material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -1108,6 +1187,7 @@
         },
         {
             "filepath": "compiledassets/textures/image_8.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -1122,6 +1202,7 @@
         },
         {
             "filepath": "compiledassets/materials/n00_002_03_tops_01_cloth_03__instance_.001.material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -1136,6 +1217,7 @@
         },
         {
             "filepath": "compiledassets/materials/n00_007_01_tops_01_cloth_01 (instance).material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -1150,6 +1232,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/aji/player_idle_mixamo/_05.normal.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -1164,6 +1247,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/aji/player_idle_mixamo/n00_002_03_tops_01_cloth_04__instance_.material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -1178,6 +1262,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/aji/player_idle_mixamo/_03.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -1192,6 +1277,7 @@
         },
         {
             "filepath": "compiledassets/materials/wood.material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -1206,6 +1292,7 @@
         },
         {
             "filepath": "compiledassets/meshanimations/player_idle_mixamoplayer_martellokick_mixamo.anim",
+            "assetType": "Animation",
             "resources": [
                 {
                     "resourceType": 7232515681596383213,
@@ -1220,6 +1307,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/mc_animated/n00_000_00_face_00_skin (instance).material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -1234,6 +1322,7 @@
         },
         {
             "filepath": "compiledassets/materials/n00_000_00_facemouth_00_face__instance_.material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -1248,6 +1337,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/mc_animated/mc_animatedlight atk 4.anim",
+            "assetType": "Animation",
             "resources": [
                 {
                     "resourceType": 7232515681596383213,
@@ -1262,6 +1352,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/aji/player_idle_mixamo/player_idle_mixamoplayer_katar_ult.anim",
+            "assetType": "Animation",
             "resources": [
                 {
                     "resourceType": 7232515681596383213,
@@ -1276,6 +1367,7 @@
         },
         {
             "filepath": "compiledassets/materials/n00_000_00_faceeyeline_00_face (instance).material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -1290,6 +1382,7 @@
         },
         {
             "filepath": "compiledassets/textures/n00_000_hair_00_nml.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -1304,6 +1397,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/enemy_male_animated/n00_000_00_hairback_00_hair (instance).material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -1318,6 +1412,7 @@
         },
         {
             "filepath": "compiledassets/textures/dugout6563481416728337116.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -1332,6 +1427,7 @@
         },
         {
             "filepath": "compiledassets/materials/n00_008_01_shoes_01_cloth_02 (instance).material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -1346,6 +1442,7 @@
         },
         {
             "filepath": "compiledassets/materials/darkmetal.material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -1360,6 +1457,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/enemy_female_animated/_10.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -1374,6 +1472,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/mc_animated/n00_000_00_facemouth_00_face (instance).material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -1388,6 +1487,7 @@
         },
         {
             "filepath": "sounds/sfx/mc/hurt/mc hurt 1.wav",
+            "assetType": "Audio",
             "resources": [
                 {
                     "resourceType": 16184316770661419113,
@@ -1402,6 +1502,7 @@
         },
         {
             "filepath": "sounds/sfx/mc/death/mc death 5.wav",
+            "assetType": "Audio",
             "resources": [
                 {
                     "resourceType": 16184316770661419113,
@@ -1416,6 +1517,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/enemy_male_animated/_12.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -1430,6 +1532,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/mc_animated/_07.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -1444,6 +1547,7 @@
         },
         {
             "filepath": "compiledassets/chair.mesh",
+            "assetType": "Mesh",
             "resources": [
                 {
                     "resourceType": 6209910166724260588,
@@ -1458,6 +1562,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/aji/player_idle_mixamo/_14.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -1471,7 +1576,27 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/fbx/edited/shelf/shelf.mesh",
+            "assetType": "Mesh",
+            "sourcePath": "C:\\Users\\ryang\\Documents\\GitHub\\gam300-magic\\Assets\\models\\fbx\\edited\\shelf.fbx",
+            "sourceTimestamp": 134088159421951822,
+            "compiledTimestamp": 17690522369316775,
+            "formatVersion": 1296388936,
+            "resources": [
+                {
+                    "resourceType": 6209910166724260588,
+                    "resourceEntries": [
+                        {
+                            "hash": 4186418012797044019,
+                            "name": "shelf0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/models/glb/aji/player_idle_mixamo/n00_002_03_tops_01_cloth_03__instance_.material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -1486,6 +1611,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/aji/player_idle_mixamo/player_idle_mixamoplayer_weapon atk 2_mixamo.anim",
+            "assetType": "Animation",
             "resources": [
                 {
                     "resourceType": 7232515681596383213,
@@ -1500,6 +1626,7 @@
         },
         {
             "filepath": "compiledassets/attack speed icon.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -1514,6 +1641,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/aji/player_idle_mixamo/player_idle_mixamo.mesh",
+            "assetType": "Mesh",
             "resources": [
                 {
                     "resourceType": 6209910166724260588,
@@ -1528,6 +1656,7 @@
         },
         {
             "filepath": "sounds/sfx/boss/throw (individual)/boss throw 1.wav",
+            "assetType": "Audio",
             "resources": [
                 {
                     "resourceType": 16184316770661419113,
@@ -1542,6 +1671,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/aji/player_idle_mixamo/n00_000_00_hairback_00_hair__instance_.material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -1556,6 +1686,7 @@
         },
         {
             "filepath": "sounds/sfx/enemy/male/death/enemy male death 3.wav",
+            "assetType": "Audio",
             "resources": [
                 {
                     "resourceType": 16184316770661419113,
@@ -1570,6 +1701,7 @@
         },
         {
             "filepath": "compiledassets/player_punching_mixamo.mesh",
+            "assetType": "Mesh",
             "resources": [
                 {
                     "resourceType": 6209910166724260588,
@@ -1584,6 +1716,7 @@
         },
         {
             "filepath": "sounds/sfx/mc/light attack/light attack #2/light attack #2 1.wav",
+            "assetType": "Audio",
             "resources": [
                 {
                     "resourceType": 16184316770661419113,
@@ -1598,6 +1731,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/enemy_female_animated/_15.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -1612,6 +1746,7 @@
         },
         {
             "filepath": "compiledassets/materials/n00_002_03_tops_01_cloth_05__instance_.001.material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -1626,6 +1761,7 @@
         },
         {
             "filepath": "compiledassets/unitbox.mesh",
+            "assetType": "Mesh",
             "resources": [
                 {
                     "resourceType": 6209910166724260588,
@@ -1640,6 +1776,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/enemy_female_animated/n00_001_02_accessory_tie_01_cloth (instance).material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -1654,6 +1791,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/enemy_female_animated/shader_noneblack.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -1668,6 +1806,7 @@
         },
         {
             "filepath": "compiledassets/controls button.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -1682,6 +1821,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/aji/player_idle_mixamo/n00_000_hair_00_hair__instance_.material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -1696,6 +1836,7 @@
         },
         {
             "filepath": "sounds/sfx/enemy/female/hurt/enemy female hurt 4.wav",
+            "assetType": "Audio",
             "resources": [
                 {
                     "resourceType": 16184316770661419113,
@@ -1710,6 +1851,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/aji/player_idle_mixamo/player_idle_mixamoplayer_katar atk 1.anim",
+            "assetType": "Animation",
             "resources": [
                 {
                     "resourceType": 7232515681596383213,
@@ -1724,6 +1866,7 @@
         },
         {
             "filepath": "compiledassets/rankf.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -1738,6 +1881,7 @@
         },
         {
             "filepath": "sounds/sfx/mc/footsteps/outdoor/outdoor footsteps 4.wav",
+            "assetType": "Audio",
             "resources": [
                 {
                     "resourceType": 16184316770661419113,
@@ -1752,6 +1896,7 @@
         },
         {
             "filepath": "compiledassets/materials/lambert3_1001.material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -1766,6 +1911,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/aji/player_idle_mixamo/_20.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -1780,6 +1926,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/mc_animated/_23.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -1794,6 +1941,7 @@
         },
         {
             "filepath": "compiledassets/materials/standardsurface1.001.material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -1808,6 +1956,7 @@
         },
         {
             "filepath": "compiledassets/materials/n00_000_00_eyeiris_00_eye__instance_.001.material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -1822,6 +1971,7 @@
         },
         {
             "filepath": "sounds/sfx/mc/weapon pickup/weapon pickup 2.wav",
+            "assetType": "Audio",
             "resources": [
                 {
                     "resourceType": 16184316770661419113,
@@ -1836,6 +1986,7 @@
         },
         {
             "filepath": "compiledassets/white.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -1850,6 +2001,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/enemy_male_animated/_13.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -1864,6 +2016,7 @@
         },
         {
             "filepath": "compiledassets/player health fill.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -1878,6 +2031,7 @@
         },
         {
             "filepath": "compiledassets/meshanimations/player_idle_mixamoplayer_weapon atk 3_mixamo.anim",
+            "assetType": "Animation",
             "resources": [
                 {
                     "resourceType": 7232515681596383213,
@@ -1892,6 +2046,7 @@
         },
         {
             "filepath": "sounds/sfx/enemy/male/hurt/enemy male hurt 1.wav",
+            "assetType": "Audio",
             "resources": [
                 {
                     "resourceType": 16184316770661419113,
@@ -1906,6 +2061,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/items/bbt/fakeboba.material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -1920,6 +2076,7 @@
         },
         {
             "filepath": "compiledassets/textures/image_9.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -1934,6 +2091,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/enemy_male_animated/_04.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -1948,6 +2106,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/aji/player_idle_mixamo/_21.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -1962,6 +2121,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/mc_animated/mc_animatedkatar idle.anim",
+            "assetType": "Animation",
             "resources": [
                 {
                     "resourceType": 7232515681596383213,
@@ -1976,6 +2136,7 @@
         },
         {
             "filepath": "sounds/sfx/mc/sword/sword 3.wav",
+            "assetType": "Audio",
             "resources": [
                 {
                     "resourceType": 16184316770661419113,
@@ -1990,6 +2151,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/items/bookingslip/material_1.material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -2004,6 +2166,7 @@
         },
         {
             "filepath": "compiledassets/materials/n00_008_01_shoes_01_cloth_01 (instance).material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -2018,6 +2181,7 @@
         },
         {
             "filepath": "compiledassets/meshanimations/player_running_mixamoplayer_running_mixamo.anim",
+            "assetType": "Animation",
             "resources": [
                 {
                     "resourceType": 7232515681596383213,
@@ -2032,6 +2196,7 @@
         },
         {
             "filepath": "compiledassets/cone.mesh",
+            "assetType": "Mesh",
             "resources": [
                 {
                     "resourceType": 6209910166724260588,
@@ -2046,6 +2211,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/enemy_male_animated/n00_000_00_body_00_skin (instance).material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -2060,6 +2226,7 @@
         },
         {
             "filepath": "sounds/sfx/jump/jump 3.wav",
+            "assetType": "Audio",
             "resources": [
                 {
                     "resourceType": 16184316770661419113,
@@ -2074,6 +2241,7 @@
         },
         {
             "filepath": "compiledassets/textures/_11.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -2088,6 +2256,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/mc_animated/n00_000_00_faceeyeline_00_face (instance).material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -2102,6 +2271,7 @@
         },
         {
             "filepath": "compiledassets/textures/image_6.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -2116,6 +2286,7 @@
         },
         {
             "filepath": "sounds/sfx/mc/footsteps/outdoor/outdoor footsteps 2.wav",
+            "assetType": "Audio",
             "resources": [
                 {
                     "resourceType": 16184316770661419113,
@@ -2130,6 +2301,7 @@
         },
         {
             "filepath": "sounds/sfx/mc/jump/jump 3.wav",
+            "assetType": "Audio",
             "resources": [
                 {
                     "resourceType": 16184316770661419113,
@@ -2144,6 +2316,7 @@
         },
         {
             "filepath": "sounds/sfx/mc/footsteps/indoor/indoor footsteps 3.wav",
+            "assetType": "Audio",
             "resources": [
                 {
                     "resourceType": 16184316770661419113,
@@ -2158,6 +2331,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/enemy_female_animated/n00_000_00_eyeiris_00_eye (instance).material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -2172,6 +2346,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/aji/player_idle_mixamo/_18.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -2186,6 +2361,7 @@
         },
         {
             "filepath": "compiledassets/materials/n00_002_03_tops_01_cloth_02 (instance).material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -2200,6 +2376,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/items/sword/lambert2.material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -2214,6 +2391,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/mc_animated/n00_000_hair_00_hair_04 (instance).material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -2228,6 +2406,7 @@
         },
         {
             "filepath": "compiledassets/delusion meter fill.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -2242,6 +2421,7 @@
         },
         {
             "filepath": "compiledassets/textures/shader_noneblack.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -2256,6 +2436,7 @@
         },
         {
             "filepath": "sounds/sfx/boss/boss ground strike.wav",
+            "assetType": "Audio",
             "resources": [
                 {
                     "resourceType": 16184316770661419113,
@@ -2270,6 +2451,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/enemy_female_animated/n00_000_00_hairback_00_hair (instance).material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -2284,6 +2466,7 @@
         },
         {
             "filepath": "sounds/sfx/enemy/female/attack/enemy female throwing 1.wav",
+            "assetType": "Audio",
             "resources": [
                 {
                     "resourceType": 16184316770661419113,
@@ -2298,6 +2481,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/aji/player_idle_mixamo/player_idle_mixamoplayer_punch 2_mixamo.anim",
+            "assetType": "Animation",
             "resources": [
                 {
                     "resourceType": 7232515681596383213,
@@ -2312,6 +2496,7 @@
         },
         {
             "filepath": "compiledassets/materials/n00_000_hair_00_hair__instance_.001.material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -2326,6 +2511,7 @@
         },
         {
             "filepath": "compiledassets/player_idle_mixamo.mesh",
+            "assetType": "Mesh",
             "resources": [
                 {
                     "resourceType": 6209910166724260588,
@@ -2340,6 +2526,7 @@
         },
         {
             "filepath": "compiledassets/textures/dugout10109019457168489768.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -2354,6 +2541,7 @@
         },
         {
             "filepath": "compiledassets/debuff bg icon.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -2368,6 +2556,7 @@
         },
         {
             "filepath": "sounds/sfx/weapon pickup/weapon pickup 3.wav",
+            "assetType": "Audio",
             "resources": [
                 {
                     "resourceType": 16184316770661419113,
@@ -2382,6 +2571,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/mc_animated/n00_007_01_tops_01_cloth_02 (instance).material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -2396,6 +2586,7 @@
         },
         {
             "filepath": "compiledassets/shelf.mesh",
+            "assetType": "Mesh",
             "resources": [
                 {
                     "resourceType": 6209910166724260588,
@@ -2410,6 +2601,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/aji/player_idle_mixamo/_07.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -2424,6 +2616,7 @@
         },
         {
             "filepath": "compiledassets/materials/material_21.material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -2438,6 +2631,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/baseball_field/field/field.mesh",
+            "assetType": "Mesh",
             "resources": [
                 {
                     "resourceType": 6209910166724260588,
@@ -2452,6 +2646,7 @@
         },
         {
             "filepath": "compiledassets/meshanimations/cesiummananim_0.anim",
+            "assetType": "Animation",
             "resources": [
                 {
                     "resourceType": 7232515681596383213,
@@ -2466,6 +2661,7 @@
         },
         {
             "filepath": "compiledassets/textures/_12.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -2480,6 +2676,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/enemy_male_animated/enemy_male_animatedattack.anim",
+            "assetType": "Animation",
             "resources": [
                 {
                     "resourceType": 7232515681596383213,
@@ -2494,6 +2691,7 @@
         },
         {
             "filepath": "compiledassets/meshanimations/player_idle_mixamoplayer_punch 2_mixamo.anim",
+            "assetType": "Animation",
             "resources": [
                 {
                     "resourceType": 7232515681596383213,
@@ -2508,6 +2706,7 @@
         },
         {
             "filepath": "sounds/sfx/mc/footsteps/outdoor/outdoor footsteps 5.wav",
+            "assetType": "Audio",
             "resources": [
                 {
                     "resourceType": 16184316770661419113,
@@ -2522,6 +2721,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/mc_animated/_22.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -2536,6 +2736,7 @@
         },
         {
             "filepath": "compiledassets/materials/standardsurface1_1013.material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -2550,6 +2751,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/enemy_female_animated/_17.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -2564,6 +2766,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/enemy_female_animated/enemy_female_animated.mesh",
+            "assetType": "Mesh",
             "resources": [
                 {
                     "resourceType": 6209910166724260588,
@@ -2578,6 +2781,7 @@
         },
         {
             "filepath": "compiledassets/health icon.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -2592,6 +2796,7 @@
         },
         {
             "filepath": "compiledassets/materials/transparent_1001.material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -2606,6 +2811,7 @@
         },
         {
             "filepath": "compiledassets/hatchback-sports.mesh",
+            "assetType": "Mesh",
             "resources": [
                 {
                     "resourceType": 6209910166724260588,
@@ -2620,6 +2826,7 @@
         },
         {
             "filepath": "compiledassets/dugout.mesh",
+            "assetType": "Mesh",
             "resources": [
                 {
                     "resourceType": 6209910166724260588,
@@ -2634,6 +2841,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/aji/player_idle_mixamo/n00_000_00_body_00_skin__instance_.material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -2648,6 +2856,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/enemy_male_animated/_03.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -2662,6 +2871,7 @@
         },
         {
             "filepath": "compiledassets/textures/_15.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -2676,6 +2886,7 @@
         },
         {
             "filepath": "compiledassets/lights.mesh",
+            "assetType": "Mesh",
             "resources": [
                 {
                     "resourceType": 6209910166724260588,
@@ -2690,6 +2901,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/items/bookingslip/bookingslip.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -2704,6 +2916,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/enemy_female_animated/n00_007_02_tops_01_cloth (instance).material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -2718,6 +2931,7 @@
         },
         {
             "filepath": "compiledassets/textures/outdoor bleachers17541868562539041575.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -2732,6 +2946,7 @@
         },
         {
             "filepath": "sounds/sfx/mc/death/mc death 3.wav",
+            "assetType": "Audio",
             "resources": [
                 {
                     "resourceType": 16184316770661419113,
@@ -2746,6 +2961,7 @@
         },
         {
             "filepath": "sounds/sfx/mc/sword/sword 2.wav",
+            "assetType": "Audio",
             "resources": [
                 {
                     "resourceType": 16184316770661419113,
@@ -2760,6 +2976,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/aji/player_idle_mixamo/player_idle_mixamoplayer_katar atk 2.anim",
+            "assetType": "Animation",
             "resources": [
                 {
                     "resourceType": 7232515681596383213,
@@ -2774,6 +2991,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/mc_animated/n00_000_hair_00_nml_05.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -2788,6 +3006,7 @@
         },
         {
             "filepath": "compiledassets/textures/storage room2013909477565681000.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -2802,6 +3021,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/mc_animated/mc_animatedkatar atk 2.anim",
+            "assetType": "Animation",
             "resources": [
                 {
                     "resourceType": 7232515681596383213,
@@ -2816,6 +3036,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/mc_animated/mc_animatedidle.anim",
+            "assetType": "Animation",
             "resources": [
                 {
                     "resourceType": 7232515681596383213,
@@ -2830,6 +3051,7 @@
         },
         {
             "filepath": "sounds/sfx/mc/hurt/mc hurt 3.wav",
+            "assetType": "Audio",
             "resources": [
                 {
                     "resourceType": 16184316770661419113,
@@ -2844,6 +3066,7 @@
         },
         {
             "filepath": "compiledassets/materials/Boss_Top_Prefect.material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -2858,6 +3081,7 @@
         },
         {
             "filepath": "compiledassets/materials/n00_000_00_eyeiris_00_eye (instance).material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -2872,6 +3096,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/enemy_male_animated/n00_000_00_faceeyeline_00_face (instance).material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -2886,6 +3111,7 @@
         },
         {
             "filepath": "compiledassets/meshanimations/player_idle_mixamoplayer_idle_mixamo.anim",
+            "assetType": "Animation",
             "resources": [
                 {
                     "resourceType": 7232515681596383213,
@@ -2900,6 +3126,7 @@
         },
         {
             "filepath": "compiledassets/movement speed icon.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -2914,6 +3141,7 @@
         },
         {
             "filepath": "sounds/music (bgm)/classroom (main gameplay)/purrfectputt-music-gameplayloop1.wav",
+            "assetType": "Audio",
             "resources": [
                 {
                     "resourceType": 16184316770661419113,
@@ -2928,6 +3156,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/items/katar/katar.mesh",
+            "assetType": "Mesh",
             "resources": [
                 {
                     "resourceType": 6209910166724260588,
@@ -2942,6 +3171,7 @@
         },
         {
             "filepath": "compiledassets/textures/image_13.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -2956,6 +3186,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/enemy_male_animated/enemy_male_animateddefense.anim",
+            "assetType": "Animation",
             "resources": [
                 {
                     "resourceType": 7232515681596383213,
@@ -2970,6 +3201,7 @@
         },
         {
             "filepath": "compiledassets/rankd.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -2984,6 +3216,7 @@
         },
         {
             "filepath": "sounds/sfx/ui/rank decrease.wav",
+            "assetType": "Audio",
             "resources": [
                 {
                     "resourceType": 16184316770661419113,
@@ -2998,6 +3231,7 @@
         },
         {
             "filepath": "sounds/sfx/mc/footsteps/indoor/indoor footsteps 4.wav",
+            "assetType": "Audio",
             "resources": [
                 {
                     "resourceType": 16184316770661419113,
@@ -3012,6 +3246,7 @@
         },
         {
             "filepath": "compiledassets/materials/n00_002_03_tops_01_cloth_03__instance_.material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -3026,6 +3261,7 @@
         },
         {
             "filepath": "compiledassets/textures/outdoor bleachers3131286683386155078.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -3040,6 +3276,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/enemy_female_animated/_08.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -3054,6 +3291,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/enemy_female_animated/_14.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -3068,6 +3306,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/mc_animated/n00_000_hair_00_hair_01 (instance).material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -3082,6 +3321,7 @@
         },
         {
             "filepath": "sounds/sfx/mc/weapon pickup/weapon pickup 3.wav",
+            "assetType": "Audio",
             "resources": [
                 {
                     "resourceType": 16184316770661419113,
@@ -3096,6 +3336,7 @@
         },
         {
             "filepath": "compiledassets/textures/storage room17541868562539041575.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -3110,6 +3351,7 @@
         },
         {
             "filepath": "compiledassets/materials/n00_000_00_faceeyeline_00_face__instance_.001.material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -3124,6 +3366,7 @@
         },
         {
             "filepath": "sounds/sfx/mc/sword/sword 4.wav",
+            "assetType": "Audio",
             "resources": [
                 {
                     "resourceType": 16184316770661419113,
@@ -3138,6 +3381,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/primitives/vplane/vplane.mesh",
+            "assetType": "Mesh",
             "resources": [
                 {
                     "resourceType": 6209910166724260588,
@@ -3152,6 +3396,7 @@
         },
         {
             "filepath": "compiledassets/itempickupui_katar.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -3166,6 +3411,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/mc_animated/mc_animatedlight atk 1.anim",
+            "assetType": "Animation",
             "resources": [
                 {
                     "resourceType": 7232515681596383213,
@@ -3180,6 +3426,7 @@
         },
         {
             "filepath": "compiledassets/materials/n00_000_00_eyewhite_00_eye (instance).material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -3194,6 +3441,7 @@
         },
         {
             "filepath": "compiledassets/buff bg icon.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -3208,6 +3456,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/aji/player_idle_mixamo/shader_nonenormal.normal.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -3222,6 +3471,7 @@
         },
         {
             "filepath": "compiledassets/textures/dugout14377039275265999768.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -3236,6 +3486,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/enemy_male_animated/n00_000_00_eyehighlight_00_eye (instance).material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -3250,6 +3501,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/enemy_male_animated/n00_001_01_shoes_01_cloth (instance).material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -3264,6 +3516,7 @@
         },
         {
             "filepath": "compiledassets/textures/fence14709142800244381938.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -3278,6 +3531,7 @@
         },
         {
             "filepath": "compiledassets/textures/fence1593598741369728920.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -3292,6 +3546,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/enemy_female_animated/shader_nonenormal.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -3306,6 +3561,7 @@
         },
         {
             "filepath": "compiledassets/winlose_exit.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -3320,6 +3576,7 @@
         },
         {
             "filepath": "compiledassets/textures/_13.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -3334,6 +3591,7 @@
         },
         {
             "filepath": "sounds/sfx/mc/footsteps/indoor/indoor footsteps 2.wav",
+            "assetType": "Audio",
             "resources": [
                 {
                     "resourceType": 16184316770661419113,
@@ -3348,6 +3606,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/enemy_male_animated/_11.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -3362,6 +3621,7 @@
         },
         {
             "filepath": "compiledassets/materials/material_2.material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -3376,6 +3636,7 @@
         },
         {
             "filepath": "compiledassets/fence.mesh",
+            "assetType": "Mesh",
             "resources": [
                 {
                     "resourceType": 6209910166724260588,
@@ -3390,6 +3651,7 @@
         },
         {
             "filepath": "compiledassets/textures/cesiumman2146822282649598438.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -3404,6 +3666,7 @@
         },
         {
             "filepath": "compiledassets/textures/_05.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -3418,6 +3681,7 @@
         },
         {
             "filepath": "sounds/sfx/enemy/male/hurt/enemy male hurt 3.wav",
+            "assetType": "Audio",
             "resources": [
                 {
                     "resourceType": 16184316770661419113,
@@ -3432,6 +3696,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/aji/player_idle_mixamo/_11.normal.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -3446,6 +3711,7 @@
         },
         {
             "filepath": "compiledassets/meshanimations/player_idle_mixamoplayer_blocking_mixamo.anim",
+            "assetType": "Animation",
             "resources": [
                 {
                     "resourceType": 7232515681596383213,
@@ -3460,6 +3726,7 @@
         },
         {
             "filepath": "compiledassets/materials/UI_Pickup_Bloodcalibur.material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -3474,6 +3741,7 @@
         },
         {
             "filepath": "compiledassets/materials/n00_007_01_tops_01_cloth_01__instance_.001.material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -3488,6 +3756,7 @@
         },
         {
             "filepath": "compiledassets/buff bg.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -3502,6 +3771,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/enemy_female_animated/n00_000_00_facemouth_00_face (instance).material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -3516,6 +3786,7 @@
         },
         {
             "filepath": "compiledassets/winlose_restart.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -3530,6 +3801,7 @@
         },
         {
             "filepath": "compiledassets/materials/standardsurface1_1002.001.material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -3544,6 +3816,7 @@
         },
         {
             "filepath": "compiledassets/exit button.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -3558,6 +3831,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/mc_animated/mc_animatedsword idle.anim",
+            "assetType": "Animation",
             "resources": [
                 {
                     "resourceType": 7232515681596383213,
@@ -3572,6 +3846,7 @@
         },
         {
             "filepath": "compiledassets/ranka+.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -3586,6 +3861,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/aji/player_idle_mixamo/n00_002_03_tops_01_cloth_01__instance_.material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -3600,6 +3876,7 @@
         },
         {
             "filepath": "compiledassets/materials/material_1.material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -3614,6 +3891,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/aji/player_idle_mixamo/player_idle_mixamoplayer_running_mixamo.anim",
+            "assetType": "Animation",
             "resources": [
                 {
                     "resourceType": 7232515681596383213,
@@ -3628,6 +3906,7 @@
         },
         {
             "filepath": "compiledassets/materials/material_4.material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -3641,7 +3920,27 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/fbx/edited/shelf_small/shelf_small.mesh",
+            "assetType": "Mesh",
+            "sourcePath": "C:\\Users\\ryang\\Documents\\GitHub\\gam300-magic\\Assets\\models\\fbx\\edited\\shelf_small.fbx",
+            "sourceTimestamp": 134088159421961815,
+            "compiledTimestamp": 17690522380519628,
+            "formatVersion": 1296388936,
+            "resources": [
+                {
+                    "resourceType": 6209910166724260588,
+                    "resourceEntries": [
+                        {
+                            "hash": 4188648921889801683,
+                            "name": "shelf_small0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "sounds/sfx/mc/footsteps/indoor/indoor footsteps 5.wav",
+            "assetType": "Audio",
             "resources": [
                 {
                     "resourceType": 16184316770661419113,
@@ -3656,6 +3955,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/enemy_male_animated/enemy_male_animatedt-pose.001.anim",
+            "assetType": "Animation",
             "resources": [
                 {
                     "resourceType": 7232515681596383213,
@@ -3670,6 +3970,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/enemy_male_animated/enemy_male_animatedidle.anim",
+            "assetType": "Animation",
             "resources": [
                 {
                     "resourceType": 7232515681596383213,
@@ -3684,6 +3985,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/enemy_female_animated/n00_000_00_faceeyeline_00_face (instance).material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -3698,6 +4000,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/enemy_female_animated/_18.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -3712,6 +4015,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/enemy_female_animated/n00_000_00_eyehighlight_00_eye (instance).material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -3726,6 +4030,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/mc_animated/n00_000_00_eyeiris_00_eye (instance).material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -3740,6 +4045,7 @@
         },
         {
             "filepath": "compiledassets/shelf_small.mesh",
+            "assetType": "Mesh",
             "resources": [
                 {
                     "resourceType": 6209910166724260588,
@@ -3754,6 +4060,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/items/bbt/fake_boba.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -3768,6 +4075,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/enemy_male_animated/n00_000_00_eyewhite_00_eye (instance).material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -3782,6 +4090,7 @@
         },
         {
             "filepath": "compiledassets/materials/n00_008_01_shoes_01_cloth_02__instance_.material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -3796,6 +4105,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/enemy_female_animated/n00_000_00_body_00_skin (instance).material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -3810,6 +4120,7 @@
         },
         {
             "filepath": "compiledassets/textures/image_4.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -3824,6 +4135,7 @@
         },
         {
             "filepath": "compiledassets/materials/n00_002_03_tops_01_cloth_01__instance_.001.material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -3838,6 +4150,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/items/katar/phonge2.material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -3852,6 +4165,7 @@
         },
         {
             "filepath": "compiledassets/materials/n00_002_03_tops_01_cloth_04__instance_.material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -3866,6 +4180,7 @@
         },
         {
             "filepath": "compiledassets/corridor.mesh",
+            "assetType": "Mesh",
             "resources": [
                 {
                     "resourceType": 6209910166724260588,
@@ -3880,6 +4195,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/mc_animated/_16.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -3894,6 +4210,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/aji/player_idle_mixamo/_04.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -3908,6 +4225,7 @@
         },
         {
             "filepath": "sounds/sfx/mc/light attack/light attack #1/light attack #1 2.wav",
+            "assetType": "Audio",
             "resources": [
                 {
                     "resourceType": 16184316770661419113,
@@ -3922,6 +4240,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/items/sword/handle_base_lambert.material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -3936,6 +4255,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/enemy_female_animated/n00_000_00_facebrow_00_face (instance).material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -3950,6 +4270,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/mc_animated/n00_000_00_body_00_skin (instance).material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -3964,6 +4285,7 @@
         },
         {
             "filepath": "compiledassets/materials/n00_000_00_hairback_00_hair__instance_.001.material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -3978,6 +4300,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/mc_animated/n00_008_01_shoes_01_cloth (instance).material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -3992,6 +4315,7 @@
         },
         {
             "filepath": "compiledassets/textures/shader_nonenormal.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -4006,6 +4330,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/enemy_male_animated/n00_000_hair_00_nml.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -4020,6 +4345,7 @@
         },
         {
             "filepath": "sounds/sfx/mc/footsteps/outdoor/outdoor footsteps 3.wav",
+            "assetType": "Audio",
             "resources": [
                 {
                     "resourceType": 16184316770661419113,
@@ -4034,6 +4360,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/mc_animated/mc_animatedlight atk 3.anim",
+            "assetType": "Animation",
             "resources": [
                 {
                     "resourceType": 7232515681596383213,
@@ -4048,6 +4375,7 @@
         },
         {
             "filepath": "compiledassets/textures/dugout7057225690629401265.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -4062,6 +4390,7 @@
         },
         {
             "filepath": "compiledassets/textures/image_1.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -4076,6 +4405,7 @@
         },
         {
             "filepath": "compiledassets/textures/_10.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -4090,6 +4420,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/enemy_male_animated/enemy_male_animatedrange single  attack.anim",
+            "assetType": "Animation",
             "resources": [
                 {
                     "resourceType": 7232515681596383213,
@@ -4104,6 +4435,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/items/katar/phonge1.material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -4118,6 +4450,7 @@
         },
         {
             "filepath": "compiledassets/textures/image_12.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -4132,6 +4465,7 @@
         },
         {
             "filepath": "compiledassets/textures/lights14179648975753951601.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -4146,6 +4480,7 @@
         },
         {
             "filepath": "compiledassets/cesiumman.mesh",
+            "assetType": "Mesh",
             "resources": [
                 {
                     "resourceType": 6209910166724260588,
@@ -4160,6 +4495,7 @@
         },
         {
             "filepath": "compiledassets/materials/wooddark.material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -4174,6 +4510,7 @@
         },
         {
             "filepath": "compiledassets/materials/n00_000_hair_00_hair__instance_.material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -4188,6 +4525,7 @@
         },
         {
             "filepath": "sounds/sfx/enemy/male/death/enemy male death 4.wav",
+            "assetType": "Audio",
             "resources": [
                 {
                     "resourceType": 16184316770661419113,
@@ -4202,6 +4540,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/mc_animated/_15.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -4216,6 +4555,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/items/sword/handle_lambert.material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -4230,6 +4570,7 @@
         },
         {
             "filepath": "compiledassets/winlose_mainmenu.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -4244,6 +4585,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/aji/player_idle_mixamo/n00_000_00_faceeyeline_00_face__instance_.material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -4258,6 +4600,7 @@
         },
         {
             "filepath": "compiledassets/textures/_09.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -4272,6 +4615,7 @@
         },
         {
             "filepath": "sounds/sfx/mc/light attack/light attack #1/light attack #1 3.wav",
+            "assetType": "Audio",
             "resources": [
                 {
                     "resourceType": 16184316770661419113,
@@ -4286,6 +4630,7 @@
         },
         {
             "filepath": "compiledassets/desktextured.mesh",
+            "assetType": "Mesh",
             "resources": [
                 {
                     "resourceType": 6209910166724260588,
@@ -4300,6 +4645,7 @@
         },
         {
             "filepath": "compiledassets/textures/outdoor bleachers15335471277183181708.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -4314,6 +4660,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/enemy_female_animated/enemy_female_animatedwalk.anim",
+            "assetType": "Animation",
             "resources": [
                 {
                     "resourceType": 7232515681596383213,
@@ -4328,6 +4675,7 @@
         },
         {
             "filepath": "compiledassets/wall_doors_tex.mesh",
+            "assetType": "Mesh",
             "resources": [
                 {
                     "resourceType": 6209910166724260588,
@@ -4342,6 +4690,7 @@
         },
         {
             "filepath": "compiledassets/wall_window.mesh",
+            "assetType": "Mesh",
             "resources": [
                 {
                     "resourceType": 6209910166724260588,
@@ -4356,6 +4705,7 @@
         },
         {
             "filepath": "compiledassets/meshanimations/player_idle_mixamoplayer_sword ulti_.anim",
+            "assetType": "Animation",
             "resources": [
                 {
                     "resourceType": 7232515681596383213,
@@ -4370,6 +4720,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/aji/player_idle_mixamo/n00_000_00_facebrow_00_face__instance_.material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -4384,6 +4735,7 @@
         },
         {
             "filepath": "sounds/sfx/enemy/male/attack/enemy male attack 2.wav",
+            "assetType": "Audio",
             "resources": [
                 {
                     "resourceType": 16184316770661419113,
@@ -4398,6 +4750,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/enemy_male_animated/n00_000_00_facebrow_00_face (instance).material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -4412,6 +4765,7 @@
         },
         {
             "filepath": "compiledassets/textures/_06.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -4426,6 +4780,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/mc_animated/mc_animatedidle.001.anim",
+            "assetType": "Animation",
             "resources": [
                 {
                     "resourceType": 7232515681596383213,
@@ -4440,6 +4795,7 @@
         },
         {
             "filepath": "compiledassets/deskplain.mesh",
+            "assetType": "Mesh",
             "resources": [
                 {
                     "resourceType": 6209910166724260588,
@@ -4454,6 +4810,7 @@
         },
         {
             "filepath": "sounds/sfx/mc/dodge/dodge 2.wav",
+            "assetType": "Audio",
             "resources": [
                 {
                     "resourceType": 16184316770661419113,
@@ -4468,6 +4825,7 @@
         },
         {
             "filepath": "compiledassets/textures/storage room3567323986476668321.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -4482,6 +4840,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/enemy_female_animated/_02.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -4496,6 +4855,7 @@
         },
         {
             "filepath": "compiledassets/meshanimations/player_idle_mixamoplayer_katar atk 1.anim",
+            "assetType": "Animation",
             "resources": [
                 {
                     "resourceType": 7232515681596383213,
@@ -4510,6 +4870,7 @@
         },
         {
             "filepath": "sounds/music (bgm)/ambience/school ambience heavy voices_loop.wav",
+            "assetType": "Audio",
             "resources": [
                 {
                     "resourceType": 16184316770661419113,
@@ -4524,6 +4885,7 @@
         },
         {
             "filepath": "compiledassets/materials/standardsurface1_1011.material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -4538,6 +4900,7 @@
         },
         {
             "filepath": "compiledassets/field.mesh",
+            "assetType": "Mesh",
             "resources": [
                 {
                     "resourceType": 6209910166724260588,
@@ -4552,6 +4915,7 @@
         },
         {
             "filepath": "sounds/sfx/rank increase.wav",
+            "assetType": "Audio",
             "resources": [
                 {
                     "resourceType": 16184316770661419113,
@@ -4566,6 +4930,7 @@
         },
         {
             "filepath": "sounds/sfx/weapon pickup/weapon pickup 2.wav",
+            "assetType": "Audio",
             "resources": [
                 {
                     "resourceType": 16184316770661419113,
@@ -4580,6 +4945,7 @@
         },
         {
             "filepath": "compiledassets/materials/n00_002_03_tops_01_cloth_03 (instance).material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -4594,6 +4960,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/enemy_female_animated/_16.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -4608,6 +4975,7 @@
         },
         {
             "filepath": "compiledassets/textures/field7732551140988198768.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -4622,6 +4990,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/enemy_female_animated/material_15.material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -4636,6 +5005,7 @@
         },
         {
             "filepath": "compiledassets/boss_top.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -4650,6 +5020,7 @@
         },
         {
             "filepath": "compiledassets/textures/_22.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -4664,6 +5035,7 @@
         },
         {
             "filepath": "compiledassets/materials/n00_000_00_face_00_skin__instance_.001.material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -4678,6 +5050,7 @@
         },
         {
             "filepath": "sounds/sfx/enemy/male/death/enemy male death 1.wav",
+            "assetType": "Audio",
             "resources": [
                 {
                     "resourceType": 16184316770661419113,
@@ -4692,6 +5065,7 @@
         },
         {
             "filepath": "sounds/sfx/environment/door open.wav",
+            "assetType": "Audio",
             "resources": [
                 {
                     "resourceType": 16184316770661419113,
@@ -4706,6 +5080,7 @@
         },
         {
             "filepath": "compiledassets/materials/wall_1012.material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -4720,6 +5095,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/aji/player_idle_mixamo/player_idle_mixamoplayer_throw_mixamo.anim",
+            "assetType": "Animation",
             "resources": [
                 {
                     "resourceType": 7232515681596383213,
@@ -4734,6 +5110,7 @@
         },
         {
             "filepath": "compiledassets/materials/n00_002_03_tops_01_cloth_01__instance_.material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -4748,6 +5125,7 @@
         },
         {
             "filepath": "compiledassets/materials/cesium_man-effect.material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -4762,6 +5140,7 @@
         },
         {
             "filepath": "compiledassets/textures/outdoor bleachers17192450218599241778.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -4776,6 +5155,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/enemy_male_animated/enemy_male_animatedlashout.anim",
+            "assetType": "Animation",
             "resources": [
                 {
                     "resourceType": 7232515681596383213,
@@ -4790,6 +5170,7 @@
         },
         {
             "filepath": "compiledassets/materials/n00_010_01_onepiece_00_cloth_01__instance_.001.material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -4804,6 +5185,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/mc_animated/mc_animated.mesh",
+            "assetType": "Mesh",
             "resources": [
                 {
                     "resourceType": 6209910166724260588,
@@ -4818,6 +5200,7 @@
         },
         {
             "filepath": "compiledassets/table.mesh",
+            "assetType": "Mesh",
             "resources": [
                 {
                     "resourceType": 6209910166724260588,
@@ -4832,6 +5215,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/aji/player_idle_mixamo/_24.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -4846,6 +5230,7 @@
         },
         {
             "filepath": "compiledassets/textures/_07.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -4860,6 +5245,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/enemy_female_animated/_11.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -4874,6 +5260,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/aji/player_idle_mixamo/_17.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -4888,6 +5275,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/enemy_male_animated/_19.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -4902,6 +5290,7 @@
         },
         {
             "filepath": "sounds/sfx/mc/hurt/mc hurt 4.wav",
+            "assetType": "Audio",
             "resources": [
                 {
                     "resourceType": 16184316770661419113,
@@ -4916,6 +5305,7 @@
         },
         {
             "filepath": "sounds/sfx/boss/throw (individual)/boss throw 4.wav",
+            "assetType": "Audio",
             "resources": [
                 {
                     "resourceType": 16184316770661419113,
@@ -4930,6 +5320,7 @@
         },
         {
             "filepath": "compiledassets/textures/image_3.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -4944,6 +5335,7 @@
         },
         {
             "filepath": "sounds/sfx/mc/parry- block/parry.wav",
+            "assetType": "Audio",
             "resources": [
                 {
                     "resourceType": 16184316770661419113,
@@ -4958,6 +5350,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/mc_animated/_03.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -4972,6 +5365,7 @@
         },
         {
             "filepath": "compiledassets/textures/_14.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -4986,6 +5380,7 @@
         },
         {
             "filepath": "compiledassets/materials/n00_002_03_tops_01_cloth_02__instance_.001.material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -5000,6 +5395,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/enemy_female_animated/_01.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -5014,6 +5410,7 @@
         },
         {
             "filepath": "sounds/sfx/enemy/male/attack/enemy male attack 3.wav",
+            "assetType": "Audio",
             "resources": [
                 {
                     "resourceType": 16184316770661419113,
@@ -5028,6 +5425,7 @@
         },
         {
             "filepath": "sounds/sfx/mc/dodge/dodge 1.wav",
+            "assetType": "Audio",
             "resources": [
                 {
                     "resourceType": 16184316770661419113,
@@ -5042,6 +5440,7 @@
         },
         {
             "filepath": "compiledassets/player_running_mixamo.mesh",
+            "assetType": "Mesh",
             "resources": [
                 {
                     "resourceType": 6209910166724260588,
@@ -5056,6 +5455,7 @@
         },
         {
             "filepath": "compiledassets/materials/n00_010_01_onepiece_00_cloth_02__instance_.001.material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -5070,6 +5470,7 @@
         },
         {
             "filepath": "sounds/sfx/mc/katar/katar #1/katar #1 2.wav",
+            "assetType": "Audio",
             "resources": [
                 {
                     "resourceType": 16184316770661419113,
@@ -5084,6 +5485,7 @@
         },
         {
             "filepath": "sounds/sfx/ui/ultimate ready.wav",
+            "assetType": "Audio",
             "resources": [
                 {
                     "resourceType": 16184316770661419113,
@@ -5098,6 +5500,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/enemy_male_animated/enemy_male_animated.mesh",
+            "assetType": "Mesh",
             "resources": [
                 {
                     "resourceType": 6209910166724260588,
@@ -5112,6 +5515,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/enemy_male_animated/shader_noneblack.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -5126,6 +5530,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/enemy_male_animated/_09.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -5140,6 +5545,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/mc_animated/n00_000_hair_00_hair_02 (instance).material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -5154,6 +5560,7 @@
         },
         {
             "filepath": "compiledassets/materials/material.001.material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -5168,6 +5575,7 @@
         },
         {
             "filepath": "compiledassets/materials/n00_007_01_tops_01_cloth_02__instance_.material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -5182,6 +5590,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/enemy_male_animated/n00_001_01_bottoms_01_cloth (instance).material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -5196,6 +5605,7 @@
         },
         {
             "filepath": "sounds/sfx/enemy/female/death/enemy female death 3.wav",
+            "assetType": "Audio",
             "resources": [
                 {
                     "resourceType": 16184316770661419113,
@@ -5210,6 +5620,7 @@
         },
         {
             "filepath": "compiledassets/textures/lights6717148718183343745.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -5224,6 +5635,7 @@
         },
         {
             "filepath": "sounds/sfx/mc/footsteps/outdoor/outdoor footsteps 1.wav",
+            "assetType": "Audio",
             "resources": [
                 {
                     "resourceType": 16184316770661419113,
@@ -5238,6 +5650,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/enemy_female_animated/_03.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -5252,6 +5665,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/enemy_female_animated/_13.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -5266,6 +5680,7 @@
         },
         {
             "filepath": "compiledassets/textures/storage room12911167446975257857.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -5279,7 +5694,27 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/corridor_exported/stairs_left/stairs_left.mesh",
+            "assetType": "Mesh",
+            "sourcePath": "C:\\Users\\ryang\\Documents\\GitHub\\gam300-magic\\Assets\\models\\glb\\corridor_exported\\stairs_left.glb",
+            "sourceTimestamp": 134088159476890565,
+            "compiledTimestamp": 17690523568706128,
+            "formatVersion": 1296388936,
+            "resources": [
+                {
+                    "resourceType": 6209910166724260588,
+                    "resourceEntries": [
+                        {
+                            "hash": 4213411023258946625,
+                            "name": "stairs_left0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "sounds/sfx/ui/ui button.wav",
+            "assetType": "Audio",
             "resources": [
                 {
                     "resourceType": 16184316770661419113,
@@ -5294,6 +5729,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/items/katar/blinn1.material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -5308,6 +5744,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/enemy_female_animated/_06.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -5322,6 +5759,7 @@
         },
         {
             "filepath": "compiledassets/textures/image_10.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -5336,6 +5774,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/items/bookingslip/image_2.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -5350,6 +5789,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/aji/player_idle_mixamo/n00_000_00_eyehighlight_00_eye__instance_.material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -5364,6 +5804,7 @@
         },
         {
             "filepath": "compiledassets/outdoor bleachers.mesh",
+            "assetType": "Mesh",
             "resources": [
                 {
                     "resourceType": 6209910166724260588,
@@ -5378,6 +5819,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/mc_animated/mc_animatedlight atk 2.anim",
+            "assetType": "Animation",
             "resources": [
                 {
                     "resourceType": 7232515681596383213,
@@ -5392,6 +5834,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/items/sword/circlewing_lambert.material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -5406,6 +5849,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/mc_animated/_28.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -5420,6 +5864,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/aji/player_idle_mixamo/player_idle_mixamoplayer_jump_miaxmo.anim",
+            "assetType": "Animation",
             "resources": [
                 {
                     "resourceType": 7232515681596383213,
@@ -5434,6 +5879,7 @@
         },
         {
             "filepath": "compiledassets/meshanimations/player_idle_mixamoplayer_punching_mixamo.anim",
+            "assetType": "Animation",
             "resources": [
                 {
                     "resourceType": 7232515681596383213,
@@ -5448,6 +5894,7 @@
         },
         {
             "filepath": "compiledassets/materials/material.material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -5462,6 +5909,7 @@
         },
         {
             "filepath": "compiledassets/textures/image_0.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -5476,6 +5924,7 @@
         },
         {
             "filepath": "compiledassets/start button.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -5490,6 +5939,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/mc_animated/_11.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -5504,6 +5954,7 @@
         },
         {
             "filepath": "sounds/sfx/mc/death/mc death 1.wav",
+            "assetType": "Audio",
             "resources": [
                 {
                     "resourceType": 16184316770661419113,
@@ -5518,6 +5969,7 @@
         },
         {
             "filepath": "compiledassets/delusion decay icon.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -5532,6 +5984,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/enemy_female_animated/n00_000_00_faceeyelash_00_face (instance).material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -5546,6 +5999,7 @@
         },
         {
             "filepath": "compiledassets/materials/n00_002_03_tops_01_cloth_02__instance_.material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -5560,6 +6014,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/mc_animated/_14.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -5574,6 +6029,7 @@
         },
         {
             "filepath": "compiledassets/materials/n00_000_00_eyeiris_00_eye__instance_.material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -5588,6 +6044,7 @@
         },
         {
             "filepath": "compiledassets/meshanimations/player_punching_mixamoplayer_punching_mixamo.anim",
+            "assetType": "Animation",
             "resources": [
                 {
                     "resourceType": 7232515681596383213,
@@ -5602,6 +6059,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/aji/player_idle_mixamo/player_idle_mixamoplayer_stomp_miaxmo.anim",
+            "assetType": "Animation",
             "resources": [
                 {
                     "resourceType": 7232515681596383213,
@@ -5616,6 +6074,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/mc_animated/_17.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -5630,6 +6089,7 @@
         },
         {
             "filepath": "compiledassets/win menu bg.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -5644,6 +6104,7 @@
         },
         {
             "filepath": "compiledassets/box.mesh",
+            "assetType": "Mesh",
             "resources": [
                 {
                     "resourceType": 6209910166724260588,
@@ -5658,6 +6119,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/enemy_male_animated/enemy_male_animatedgroundstrike.anim",
+            "assetType": "Animation",
             "resources": [
                 {
                     "resourceType": 7232515681596383213,
@@ -5672,6 +6134,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/mc_animated/n00_000_00_facebrow_00_face (instance).material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -5686,6 +6149,7 @@
         },
         {
             "filepath": "sounds/sfx/mc/weapon pickup/weapon pickup 1.wav",
+            "assetType": "Audio",
             "resources": [
                 {
                     "resourceType": 16184316770661419113,
@@ -5700,6 +6164,7 @@
         },
         {
             "filepath": "compiledassets/meshanimations/player_idle_mixamoplayer_running_mixamo.anim",
+            "assetType": "Animation",
             "resources": [
                 {
                     "resourceType": 7232515681596383213,
@@ -5714,6 +6179,7 @@
         },
         {
             "filepath": "sounds/sfx/ui/rank increase.wav",
+            "assetType": "Audio",
             "resources": [
                 {
                     "resourceType": 16184316770661419113,
@@ -5728,6 +6194,7 @@
         },
         {
             "filepath": "sounds/sfx/enemy/female/attack/enemy female throwing 2.wav",
+            "assetType": "Audio",
             "resources": [
                 {
                     "resourceType": 16184316770661419113,
@@ -5742,6 +6209,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/baseball_field/field/grass.material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -5756,6 +6224,7 @@
         },
         {
             "filepath": "compiledassets/meshanimations/player_idle_mixamoplayer_throw_mixamo.anim",
+            "assetType": "Animation",
             "resources": [
                 {
                     "resourceType": 7232515681596383213,
@@ -5770,6 +6239,7 @@
         },
         {
             "filepath": "compiledassets/textures/_20.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -5784,6 +6254,7 @@
         },
         {
             "filepath": "sounds/sfx/mc/katar/katar #2/katar #2 3.wav",
+            "assetType": "Audio",
             "resources": [
                 {
                     "resourceType": 16184316770661419113,
@@ -5798,6 +6269,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/items/bookingslip/image_1.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -5812,6 +6284,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/enemy_male_animated/_05.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -5825,7 +6298,27 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/baseball_field/outdoor bleachers/outdoor bleachers.mesh",
+            "assetType": "Mesh",
+            "sourcePath": "C:\\Users\\ryang\\Documents\\GitHub\\gam300-magic\\Assets\\models\\glb\\baseball_field\\outdoor bleachers.glb",
+            "sourceTimestamp": 134088159423274476,
+            "compiledTimestamp": 17690523040920852,
+            "formatVersion": 1296388936,
+            "resources": [
+                {
+                    "resourceType": 6209910166724260588,
+                    "resourceEntries": [
+                        {
+                            "hash": 4219114190072221405,
+                            "name": "outdoor bleachers0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/models/glb/enemy_male_animated/_17.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -5840,6 +6333,7 @@
         },
         {
             "filepath": "compiledassets/textures/field413754577327418317.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -5854,6 +6348,7 @@
         },
         {
             "filepath": "compiledassets/door_classroom_tex.mesh",
+            "assetType": "Mesh",
             "resources": [
                 {
                     "resourceType": 6209910166724260588,
@@ -5868,6 +6363,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/enemy_male_animated/enemy_male_animatedlunge.anim",
+            "assetType": "Animation",
             "resources": [
                 {
                     "resourceType": 7232515681596383213,
@@ -5882,6 +6378,7 @@
         },
         {
             "filepath": "sounds/sfx/boss/throw (individual)/boss throw 3.wav",
+            "assetType": "Audio",
             "resources": [
                 {
                     "resourceType": 16184316770661419113,
@@ -5896,6 +6393,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/enemy_female_animated/n00_000_00_hairback_00_nml.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -5910,6 +6408,7 @@
         },
         {
             "filepath": "compiledassets/materials/n00_002_03_tops_01_cloth_04 (instance).material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -5924,6 +6423,7 @@
         },
         {
             "filepath": "compiledassets/health regen icon.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -5938,6 +6438,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/enemy_female_animated/enemy_female_animatedt-pose.anim",
+            "assetType": "Animation",
             "resources": [
                 {
                     "resourceType": 7232515681596383213,
@@ -5952,6 +6453,7 @@
         },
         {
             "filepath": "compiledassets/textures/image_11.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -5966,6 +6468,7 @@
         },
         {
             "filepath": "compiledassets/materials/n00_002_03_tops_01_cloth_01 (instance).material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -5980,6 +6483,7 @@
         },
         {
             "filepath": "sounds/sfx/mc/katar/katar #2/katar #2 1.wav",
+            "assetType": "Audio",
             "resources": [
                 {
                     "resourceType": 16184316770661419113,
@@ -5994,6 +6498,7 @@
         },
         {
             "filepath": "compiledassets/materials/n00_000_00_eyehighlight_00_eye__instance_.001.material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -6008,6 +6513,7 @@
         },
         {
             "filepath": "compiledassets/aji.mesh",
+            "assetType": "Mesh",
             "resources": [
                 {
                     "resourceType": 6209910166724260588,
@@ -6022,6 +6528,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/mc_animated/n00_000_00_hairback_00_hair (instance).material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -6036,6 +6543,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/mc_animated/n00_000_hair_00_nml_03.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -6050,6 +6558,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/aji/player_idle_mixamo/n00_007_01_tops_01_cloth_01__instance_.material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -6064,6 +6573,7 @@
         },
         {
             "filepath": "compiledassets/textures/lights5590563140978458161.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -6078,6 +6588,7 @@
         },
         {
             "filepath": "compiledassets/materials/Red.material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -6092,6 +6603,7 @@
         },
         {
             "filepath": "compiledassets/materials/n00_000_00_hairback_00_hair (instance).material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -6106,6 +6618,7 @@
         },
         {
             "filepath": "sounds/sfx/enemy/female/attack/enemy female throwing 4.wav",
+            "assetType": "Audio",
             "resources": [
                 {
                     "resourceType": 16184316770661419113,
@@ -6120,6 +6633,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/aji/player_idle_mixamo/shader_noneblack.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -6134,6 +6648,7 @@
         },
         {
             "filepath": "compiledassets/materials/colormap.material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -6148,6 +6663,7 @@
         },
         {
             "filepath": "sounds/sfx/mc/katar/katar #2/katar #2 2.wav",
+            "assetType": "Audio",
             "resources": [
                 {
                     "resourceType": 16184316770661419113,
@@ -6162,6 +6678,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/items/katar/material_4.material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -6176,6 +6693,7 @@
         },
         {
             "filepath": "compiledassets/meshanimations/player_running_mixamoplayer_running_mixamo.001.anim",
+            "assetType": "Animation",
             "resources": [
                 {
                     "resourceType": 7232515681596383213,
@@ -6190,6 +6708,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/enemy_female_animated/n00_000_00_eyewhite_00_eye (instance).material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -6204,6 +6723,7 @@
         },
         {
             "filepath": "compiledassets/textures/image_14.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -6218,6 +6738,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/items/bookingslip/bookingslip_1001.material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -6232,6 +6753,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/baseball_field/field/material_1.material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -6246,6 +6768,7 @@
         },
         {
             "filepath": "compiledassets/materials/n00_000_00_face_00_skin__instance_.material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -6260,6 +6783,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/items/bookingslip/bookingslip.mesh",
+            "assetType": "Mesh",
             "resources": [
                 {
                     "resourceType": 6209910166724260588,
@@ -6274,6 +6798,7 @@
         },
         {
             "filepath": "compiledassets/materials/concrete.001.material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -6288,6 +6813,7 @@
         },
         {
             "filepath": "compiledassets/materials/n00_000_00_facemouth_00_face (instance).material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -6302,6 +6828,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/mc_animated/_10.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -6316,6 +6843,7 @@
         },
         {
             "filepath": "compiledassets/textures/_19.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -6330,6 +6858,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/mc_animated/n00_007_01_tops_01_cloth_01 (instance).material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -6344,6 +6873,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/enemy_male_animated/_06.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -6358,6 +6888,7 @@
         },
         {
             "filepath": "compiledassets/meshanimations/player_idle_mixamoplayer_crecent kick_mixamo.anim",
+            "assetType": "Animation",
             "resources": [
                 {
                     "resourceType": 7232515681596383213,
@@ -6372,6 +6903,7 @@
         },
         {
             "filepath": "compiledassets/textures/_21.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -6385,7 +6917,27 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/fbx/edited/table/table.mesh",
+            "assetType": "Mesh",
+            "sourcePath": "C:\\Users\\ryang\\Documents\\GitHub\\gam300-magic\\Assets\\models\\fbx\\edited\\table.fbx",
+            "sourceTimestamp": 134088159421961815,
+            "compiledTimestamp": 17690522389588689,
+            "formatVersion": 1296388936,
+            "resources": [
+                {
+                    "resourceType": 6209910166724260588,
+                    "resourceEntries": [
+                        {
+                            "hash": 4204930490073909595,
+                            "name": "table0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/models/glb/aji/player_idle_mixamo/_12.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -6400,6 +6952,7 @@
         },
         {
             "filepath": "compiledassets/textures/colormap.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -6414,6 +6967,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/mc_animated/_26.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -6428,6 +6982,7 @@
         },
         {
             "filepath": "compiledassets/materials/transparent_1002.material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -6442,6 +6997,7 @@
         },
         {
             "filepath": "sounds/sfx/mc/footsteps/indoor/indoor footsteps 1.wav",
+            "assetType": "Audio",
             "resources": [
                 {
                     "resourceType": 16184316770661419113,
@@ -6456,6 +7012,7 @@
         },
         {
             "filepath": "compiledassets/materials/n00_010_01_onepiece_00_cloth_01__instance_.material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -6470,6 +7027,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/mc_animated/n00_000_hair_00_nml_04.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -6484,6 +7042,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/mc_animated/_06.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -6498,6 +7057,7 @@
         },
         {
             "filepath": "sounds/sfx/enemy/female/death/enemy female death 2.wav",
+            "assetType": "Audio",
             "resources": [
                 {
                     "resourceType": 16184316770661419113,
@@ -6512,6 +7072,7 @@
         },
         {
             "filepath": "compiledassets/materials/standardsurface1_1002.material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -6526,6 +7087,7 @@
         },
         {
             "filepath": "compiledassets/wall_window_tex.mesh",
+            "assetType": "Mesh",
             "resources": [
                 {
                     "resourceType": 6209910166724260588,
@@ -6540,6 +7102,7 @@
         },
         {
             "filepath": "sounds/sfx/boss/lunge.wav",
+            "assetType": "Audio",
             "resources": [
                 {
                     "resourceType": 16184316770661419113,
@@ -6554,6 +7117,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/mc_animated/n00_000_00_eyehighlight_00_eye (instance).material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -6568,6 +7132,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/mc_animated/n00_001_03_bottoms_01_cloth (instance).material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -6582,6 +7147,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/aji/player_idle_mixamo/_23.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -6596,6 +7162,7 @@
         },
         {
             "filepath": "sounds/sfx/enemy/female/attack/enemy female throwing 3.wav",
+            "assetType": "Audio",
             "resources": [
                 {
                     "resourceType": 16184316770661419113,
@@ -6610,6 +7177,7 @@
         },
         {
             "filepath": "compiledassets/materials/n00_002_03_tops_01_cloth_04__instance_.001.material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -6624,6 +7192,7 @@
         },
         {
             "filepath": "compiledassets/meshanimations/player_punching_mixamoplayer_punching_mixamo.001.anim",
+            "assetType": "Animation",
             "resources": [
                 {
                     "resourceType": 7232515681596383213,
@@ -6638,6 +7207,7 @@
         },
         {
             "filepath": "sounds/sfx/mc/light attack/light attack #2/light attack #2 2.wav",
+            "assetType": "Audio",
             "resources": [
                 {
                     "resourceType": 16184316770661419113,
@@ -6652,6 +7222,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/enemy_male_animated/enemy_male_animatedlunge follow up.anim",
+            "assetType": "Animation",
             "resources": [
                 {
                     "resourceType": 7232515681596383213,
@@ -6666,6 +7237,7 @@
         },
         {
             "filepath": "sounds/sfx/jump/jump 1.wav",
+            "assetType": "Audio",
             "resources": [
                 {
                     "resourceType": 16184316770661419113,
@@ -6680,6 +7252,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/aji/player_idle_mixamo/_15.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -6694,6 +7267,7 @@
         },
         {
             "filepath": "compiledassets/storage room.mesh",
+            "assetType": "Mesh",
             "resources": [
                 {
                     "resourceType": 6209910166724260588,
@@ -6708,6 +7282,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/aji/player_idle_mixamo/n00_000_hair_00_nml.normal.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -6722,6 +7297,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/aji/player_idle_mixamo/n00_000_00_eyewhite_00_eye__instance_.material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -6736,6 +7312,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/aji/player_idle_mixamo/player_idle_mixamoplayer_idle_mixamo.anim",
+            "assetType": "Animation",
             "resources": [
                 {
                     "resourceType": 7232515681596383213,
@@ -6750,6 +7327,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/aji/player_idle_mixamo/player_idle_mixamoplayer_katar atk 3.anim",
+            "assetType": "Animation",
             "resources": [
                 {
                     "resourceType": 7232515681596383213,
@@ -6764,6 +7342,7 @@
         },
         {
             "filepath": "sounds/sfx/boss/throw (individual)/boss throw 2.wav",
+            "assetType": "Audio",
             "resources": [
                 {
                     "resourceType": 16184316770661419113,
@@ -6778,6 +7357,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/aji/player_idle_mixamo/_25.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -6792,6 +7372,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/aji/player_idle_mixamo/_10.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -6806,6 +7387,7 @@
         },
         {
             "filepath": "compiledassets/textures/storage room9292766229431643409.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -6820,6 +7402,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/aji/player_idle_mixamo/material_21.material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -6834,6 +7417,7 @@
         },
         {
             "filepath": "compiledassets/textures/storage room13315073533790444232.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -6848,6 +7432,7 @@
         },
         {
             "filepath": "compiledassets/meshanimations/player_idle_mixamoplayer_stomp_miaxmo.anim",
+            "assetType": "Animation",
             "resources": [
                 {
                     "resourceType": 7232515681596383213,
@@ -6862,6 +7447,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/mc_animated/material_21.material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -6876,6 +7462,7 @@
         },
         {
             "filepath": "compiledassets/dodge icon.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -6889,7 +7476,27 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/baseball_field/storage room/storage room.mesh",
+            "assetType": "Mesh",
+            "sourcePath": "C:\\Users\\ryang\\Documents\\GitHub\\gam300-magic\\Assets\\models\\glb\\baseball_field\\storage room.glb",
+            "sourceTimestamp": 134088159423364450,
+            "compiledTimestamp": 17690523050249564,
+            "formatVersion": 1296388936,
+            "resources": [
+                {
+                    "resourceType": 6209910166724260588,
+                    "resourceEntries": [
+                        {
+                            "hash": 4179585647542043651,
+                            "name": "storage room0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/models/glb/items/katar/lambert9.material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -6904,6 +7511,7 @@
         },
         {
             "filepath": "compiledassets/textures/dugout14709142800244381938.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -6918,6 +7526,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/enemy_male_animated/n00_000_00_hairback_00_nml.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -6932,6 +7541,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/debug/unitsphere/unitsphere.mesh",
+            "assetType": "Mesh",
             "resources": [
                 {
                     "resourceType": 6209910166724260588,
@@ -6946,6 +7556,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/mc_animated/_09.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -6960,6 +7571,7 @@
         },
         {
             "filepath": "compiledassets/main menu header.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -6974,6 +7586,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/mc_animated/n00_000_hair_00_nml_02.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -6988,6 +7601,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/baseball_field/field/image_0.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -7002,6 +7616,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/mc_animated/n00_000_00_hairback_00_nml.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -7016,6 +7631,7 @@
         },
         {
             "filepath": "compiledassets/materials/n00_000_hair_00_hair (instance).material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -7030,6 +7646,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/aji/player_idle_mixamo/player_idle_mixamoplayer_punching_mixamo.anim",
+            "assetType": "Animation",
             "resources": [
                 {
                     "resourceType": 7232515681596383213,
@@ -7044,6 +7661,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/mc_animated/mc_animatedarmatureaction.anim",
+            "assetType": "Animation",
             "resources": [
                 {
                     "resourceType": 7232515681596383213,
@@ -7058,6 +7676,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/aji/player_idle_mixamo/_16.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -7072,6 +7691,7 @@
         },
         {
             "filepath": "compiledassets/textures/image_2.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -7086,6 +7706,7 @@
         },
         {
             "filepath": "compiledassets/textures/storage room9921014921328147259.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -7100,6 +7721,7 @@
         },
         {
             "filepath": "sounds/sfx/rank decrease.wav",
+            "assetType": "Audio",
             "resources": [
                 {
                     "resourceType": 16184316770661419113,
@@ -7114,6 +7736,7 @@
         },
         {
             "filepath": "compiledassets/meshanimations/player_idle_mixamoplayer_jump_miaxmo.anim",
+            "assetType": "Animation",
             "resources": [
                 {
                     "resourceType": 7232515681596383213,
@@ -7127,7 +7750,27 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/classroom_exported/wall_doors_tex/wall_doors_tex.mesh",
+            "assetType": "Mesh",
+            "sourcePath": "C:\\Users\\ryang\\Documents\\GitHub\\gam300-magic\\Assets\\models\\glb\\classroom_exported\\wall_doors_tex.glb",
+            "sourceTimestamp": 134088159424155163,
+            "compiledTimestamp": 17690523263790173,
+            "formatVersion": 1296388936,
+            "resources": [
+                {
+                    "resourceType": 6209910166724260588,
+                    "resourceEntries": [
+                        {
+                            "hash": 4194534607633286973,
+                            "name": "wall_doors_tex0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/models/glb/enemy_male_animated/_16.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -7142,6 +7785,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/mc_animated/n00_000_hair_00_nml_01.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -7156,6 +7800,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/mc_animated/_04.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -7170,6 +7815,7 @@
         },
         {
             "filepath": "compiledassets/textures/image_16.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -7184,6 +7830,7 @@
         },
         {
             "filepath": "compiledassets/floor_tex.mesh",
+            "assetType": "Mesh",
             "resources": [
                 {
                     "resourceType": 6209910166724260588,
@@ -7198,6 +7845,7 @@
         },
         {
             "filepath": "compiledassets/textures/_02.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -7212,6 +7860,7 @@
         },
         {
             "filepath": "compiledassets/textures/_25.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -7226,6 +7875,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/mc_animated/_18.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -7240,6 +7890,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/enemy_male_animated/n00_000_hair_00_hair (instance).material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -7254,6 +7905,7 @@
         },
         {
             "filepath": "compiledassets/textures/fence2832200078203273826.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -7268,6 +7920,7 @@
         },
         {
             "filepath": "compiledassets/meshanimations/player_idle_mixamodamagetaken_mixamo.anim",
+            "assetType": "Animation",
             "resources": [
                 {
                     "resourceType": 7232515681596383213,
@@ -7282,6 +7935,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/aji/player_idle_mixamo/player_idle_mixamoplayer_dodge_mixamo.anim",
+            "assetType": "Animation",
             "resources": [
                 {
                     "resourceType": 7232515681596383213,
@@ -7296,6 +7950,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/mc_animated/mc_animatedsword atk 1.anim",
+            "assetType": "Animation",
             "resources": [
                 {
                     "resourceType": 7232515681596383213,
@@ -7310,6 +7965,7 @@
         },
         {
             "filepath": "compiledassets/textures/dugout6647418950732403459.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -7324,6 +7980,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/enemy_female_animated/enemy_female_animatedthrow.anim",
+            "assetType": "Animation",
             "resources": [
                 {
                     "resourceType": 7232515681596383213,
@@ -7338,6 +7995,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/enemy_male_animated/n00_000_00_eyeiris_00_eye (instance).material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -7352,6 +8010,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/debug/unitsphere/material_0.material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -7366,6 +8025,7 @@
         },
         {
             "filepath": "compiledassets/materials/n00_000_00_face_00_skin (instance).material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -7380,6 +8040,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/aji/player_idle_mixamo/n00_008_01_shoes_01_cloth_01__instance_.material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -7394,6 +8055,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/enemy_male_animated/enemy_male_animatedt-pose.anim",
+            "assetType": "Animation",
             "resources": [
                 {
                     "resourceType": 7232515681596383213,
@@ -7408,6 +8070,7 @@
         },
         {
             "filepath": "compiledassets/textures/fence7732551140988198768.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -7422,6 +8085,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/enemy_male_animated/shader_nonenormal.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -7436,6 +8100,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/mc_animated/mc_animateddodge.anim",
+            "assetType": "Animation",
             "resources": [
                 {
                     "resourceType": 7232515681596383213,
@@ -7450,6 +8115,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/aji/player_idle_mixamo/_22.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -7464,6 +8130,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/mc_animated/_02.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -7478,6 +8145,7 @@
         },
         {
             "filepath": "compiledassets/textures/fence6586682644271773772.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -7492,6 +8160,7 @@
         },
         {
             "filepath": "compiledassets/meshanimations/player_idle_mixamoplayer_weapon atk 2_mixamo.anim",
+            "assetType": "Animation",
             "resources": [
                 {
                     "resourceType": 7232515681596383213,
@@ -7506,6 +8175,7 @@
         },
         {
             "filepath": "compiledassets/materials/n00_000_00_eyehighlight_00_eye (instance).material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -7520,6 +8190,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/mc_animated/mc_animatedkatar atk 1.anim",
+            "assetType": "Animation",
             "resources": [
                 {
                     "resourceType": 7232515681596383213,
@@ -7534,6 +8205,7 @@
         },
         {
             "filepath": "compiledassets/textures/_16.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -7548,6 +8220,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/mc_animated/_08.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -7562,6 +8235,7 @@
         },
         {
             "filepath": "compiledassets/textures/storage room3351040909626443882.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -7576,6 +8250,7 @@
         },
         {
             "filepath": "compiledassets/textures/image_5.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -7590,6 +8265,7 @@
         },
         {
             "filepath": "compiledassets/textures/_23.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -7604,6 +8280,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/mc_animated/n00_000_00_faceeyelash_00_face (instance).material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -7618,6 +8295,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/items/sword/jewel_lambert.material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -7632,6 +8310,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/enemy_female_animated/n00_001_03_bottoms_01_cloth (instance).material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -7646,6 +8325,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/enemy_male_animated/n00_010_01_onepiece_00_cloth_02 (instance).material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -7660,6 +8340,7 @@
         },
         {
             "filepath": "sounds/sfx/jump/jump 2.wav",
+            "assetType": "Audio",
             "resources": [
                 {
                     "resourceType": 16184316770661419113,
@@ -7674,6 +8355,7 @@
         },
         {
             "filepath": "sounds/sfx/heal.wav",
+            "assetType": "Audio",
             "resources": [
                 {
                     "resourceType": 16184316770661419113,
@@ -7688,6 +8370,7 @@
         },
         {
             "filepath": "sounds/sfx/mc/jump/jump 2.wav",
+            "assetType": "Audio",
             "resources": [
                 {
                     "resourceType": 16184316770661419113,
@@ -7702,6 +8385,7 @@
         },
         {
             "filepath": "compiledassets/materials/n00_002_03_tops_01_cloth_05 (instance).material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -7716,6 +8400,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/enemy_male_animated/n00_000_00_face_00_skin (instance).material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -7730,6 +8415,7 @@
         },
         {
             "filepath": "compiledassets/itempickupui_bloodcalibur.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -7744,6 +8430,7 @@
         },
         {
             "filepath": "sounds/sfx/mc/sword/sword 1.wav",
+            "assetType": "Audio",
             "resources": [
                 {
                     "resourceType": 16184316770661419113,
@@ -7758,6 +8445,7 @@
         },
         {
             "filepath": "compiledassets/textures/image_17.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -7772,6 +8460,7 @@
         },
         {
             "filepath": "compiledassets/lose menu bg.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -7785,7 +8474,27 @@
             ]
         },
         {
+            "filepath": "compiledassets/fbxcars/unitbox/unitbox.mesh",
+            "assetType": "Mesh",
+            "sourcePath": "C:\\Users\\ryang\\Documents\\GitHub\\gam300-magic\\Assets\\fbxcars\\unitbox.fbx",
+            "sourceTimestamp": 134058588309360221,
+            "compiledTimestamp": 17690522084535938,
+            "formatVersion": 1296388936,
+            "resources": [
+                {
+                    "resourceType": 6209910166724260588,
+                    "resourceEntries": [
+                        {
+                            "hash": 4206793062771362401,
+                            "name": "unitbox0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "sounds/sfx/boss/boss slap.wav",
+            "assetType": "Audio",
             "resources": [
                 {
                     "resourceType": 16184316770661419113,
@@ -7800,6 +8509,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/mc_animated/mc_animatedhurt.anim",
+            "assetType": "Animation",
             "resources": [
                 {
                     "resourceType": 7232515681596383213,
@@ -7814,6 +8524,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/aji/player_idle_mixamo/player_idle_mixamoplayer_martellokick_mixamo.anim",
+            "assetType": "Animation",
             "resources": [
                 {
                     "resourceType": 7232515681596383213,
@@ -7828,6 +8539,7 @@
         },
         {
             "filepath": "compiledassets/materials/woodlight.material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -7842,6 +8554,7 @@
         },
         {
             "filepath": "sounds/sfx/ui/heal.wav",
+            "assetType": "Audio",
             "resources": [
                 {
                     "resourceType": 16184316770661419113,
@@ -7856,6 +8569,7 @@
         },
         {
             "filepath": "compiledassets/meshanimations/player_idle_mixamoplayer_weapon atk 1_mixamo.anim",
+            "assetType": "Animation",
             "resources": [
                 {
                     "resourceType": 7232515681596383213,
@@ -7870,6 +8584,7 @@
         },
         {
             "filepath": "compiledassets/materials/n00_000_00_facebrow_00_face (instance).material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -7884,6 +8599,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/enemy_male_animated/_02.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -7898,6 +8614,7 @@
         },
         {
             "filepath": "compiledassets/corridor_bridge.mesh",
+            "assetType": "Mesh",
             "resources": [
                 {
                     "resourceType": 6209910166724260588,
@@ -7912,6 +8629,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/enemy_male_animated/_07.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -7926,6 +8644,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/mc_animated/_27.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -7940,6 +8659,7 @@
         },
         {
             "filepath": "compiledassets/textures/image_7.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -7954,6 +8674,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/mc_animated/mc_animatedsword atk 2.anim",
+            "assetType": "Animation",
             "resources": [
                 {
                     "resourceType": 7232515681596383213,
@@ -7968,6 +8689,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/mc_animated/n00_010_01_onepiece_00_cloth (instance).material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -7982,6 +8704,7 @@
         },
         {
             "filepath": "sounds/sfx/boss/defence stance.wav",
+            "assetType": "Audio",
             "resources": [
                 {
                     "resourceType": 16184316770661419113,
@@ -7996,6 +8719,7 @@
         },
         {
             "filepath": "compiledassets/materials/n00_008_01_shoes_01_cloth_02__instance_.001.material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -8010,6 +8734,7 @@
         },
         {
             "filepath": "compiledassets/rankb.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -8024,6 +8749,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/aji/player_idle_mixamo/n00_010_01_onepiece_00_cloth_01__instance_.material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -8038,6 +8764,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/mc_animated/_19.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -8052,6 +8779,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/aji/player_idle_mixamo/n00_000_00_hairback_00_nml.normal.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -8066,6 +8794,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/enemy_female_animated/n00_000_hair_00_nml.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -8080,6 +8809,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/primitives/vplane/material_0.material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -8094,6 +8824,7 @@
         },
         {
             "filepath": "sounds/sfx/ultimate activation.wav",
+            "assetType": "Audio",
             "resources": [
                 {
                     "resourceType": 16184316770661419113,
@@ -8108,6 +8839,7 @@
         },
         {
             "filepath": "compiledassets/meshanimations/player_idle_mixamoplayer_katar_ult.anim",
+            "assetType": "Animation",
             "resources": [
                 {
                     "resourceType": 7232515681596383213,
@@ -8122,6 +8854,7 @@
         },
         {
             "filepath": "compiledassets/materials/ui_pickup_katar.material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -8136,6 +8869,7 @@
         },
         {
             "filepath": "compiledassets/materials/n00_010_01_onepiece_00_cloth_01 (instance).material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -8150,6 +8884,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/enemy_female_animated/enemy_female_animatedidle.anim",
+            "assetType": "Animation",
             "resources": [
                 {
                     "resourceType": 7232515681596383213,
@@ -8164,6 +8899,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/enemy_male_animated/enemy_male_animatedwalk.anim",
+            "assetType": "Animation",
             "resources": [
                 {
                     "resourceType": 7232515681596383213,
@@ -8178,6 +8914,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/aji/player_idle_mixamo/n00_000_00_face_00_skin__instance_.material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -8192,6 +8929,7 @@
         },
         {
             "filepath": "compiledassets/materials/translucent.material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -8206,6 +8944,7 @@
         },
         {
             "filepath": "compiledassets/materials/n00_007_01_tops_01_cloth_01__instance_.material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -8220,6 +8959,7 @@
         },
         {
             "filepath": "compiledassets/wall_doors.mesh",
+            "assetType": "Mesh",
             "resources": [
                 {
                     "resourceType": 6209910166724260588,
@@ -8234,6 +8974,7 @@
         },
         {
             "filepath": "compiledassets/materials/n00_000_00_hairback_00_hair__instance_.material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -8248,6 +8989,7 @@
         },
         {
             "filepath": "sounds/sfx/weapon pickup/weapon pickup 1.wav",
+            "assetType": "Audio",
             "resources": [
                 {
                     "resourceType": 16184316770661419113,
@@ -8262,6 +9004,7 @@
         },
         {
             "filepath": "compiledassets/controls.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -8276,6 +9019,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/mc_animated/mc_animatedrun.anim",
+            "assetType": "Animation",
             "resources": [
                 {
                     "resourceType": 7232515681596383213,
@@ -8290,6 +9034,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/aji/player_idle_mixamo/_02.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -8304,6 +9049,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/baseball_field/field/image_2.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -8318,6 +9064,7 @@
         },
         {
             "filepath": "compiledassets/materials/n00_007_01_tops_01_cloth_02__instance_.001.material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -8332,6 +9079,7 @@
         },
         {
             "filepath": "compiledassets/buff fg .ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -8346,6 +9094,7 @@
         },
         {
             "filepath": "sounds/sfx/enemy/female/hurt/enemy female hurt 1.wav",
+            "assetType": "Audio",
             "resources": [
                 {
                     "resourceType": 16184316770661419113,
@@ -8360,6 +9109,7 @@
         },
         {
             "filepath": "compiledassets/materials/material_3.material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -8374,6 +9124,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/aji/player_idle_mixamo/n00_010_01_onepiece_00_cloth_02__instance_.material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -8388,6 +9139,7 @@
         },
         {
             "filepath": "compiledassets/rankc.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -8402,6 +9154,7 @@
         },
         {
             "filepath": "compiledassets/materials/n00_000_00_eyewhite_00_eye__instance_.001.material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -8415,7 +9168,27 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/classroom_exported/wall_window_tex/wall_window_tex.mesh",
+            "assetType": "Mesh",
+            "sourcePath": "C:\\Users\\ryang\\Documents\\GitHub\\gam300-magic\\Assets\\models\\glb\\classroom_exported\\wall_window_tex.glb",
+            "sourceTimestamp": 134088159424385188,
+            "compiledTimestamp": 17690523355365996,
+            "formatVersion": 1296388936,
+            "resources": [
+                {
+                    "resourceType": 6209910166724260588,
+                    "resourceEntries": [
+                        {
+                            "hash": 4200159709120989365,
+                            "name": "wall_window_tex0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/models/glb/items/bbt/straw.material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -8430,6 +9203,7 @@
         },
         {
             "filepath": "compiledassets/textures/_18.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -8444,6 +9218,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/enemy_female_animated/_07.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -8458,6 +9233,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/mc_animated/n00_000_00_eyewhite_00_eye (instance).material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -8472,6 +9248,7 @@
         },
         {
             "filepath": "sounds/sfx/mc/katar/katar #1/katar #1 3.wav",
+            "assetType": "Audio",
             "resources": [
                 {
                     "resourceType": 16184316770661419113,
@@ -8486,6 +9263,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/enemy_male_animated/_14.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -8500,6 +9278,7 @@
         },
         {
             "filepath": "compiledassets/meshanimations/player_idle_mixamoplayer_katar atk 3.anim",
+            "assetType": "Animation",
             "resources": [
                 {
                     "resourceType": 7232515681596383213,
@@ -8514,6 +9293,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/aji/player_idle_mixamo/player_idle_mixamoplayer_crecent kick_mixamo.anim",
+            "assetType": "Animation",
             "resources": [
                 {
                     "resourceType": 7232515681596383213,
@@ -8528,6 +9308,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/enemy_female_animated/_12.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -8542,6 +9323,7 @@
         },
         {
             "filepath": "compiledassets/textures/field10176860669464466862.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -8556,6 +9338,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/mc_animated/mc_animatedt-pose.anim",
+            "assetType": "Animation",
             "resources": [
                 {
                     "resourceType": 7232515681596383213,
@@ -8570,6 +9353,7 @@
         },
         {
             "filepath": "compiledassets/materials/concrete.material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -8584,6 +9368,7 @@
         },
         {
             "filepath": "compiledassets/materials/n00_010_01_onepiece_00_cloth_02 (instance).material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -8598,6 +9383,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/aji/player_idle_mixamo/_01.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -8612,6 +9398,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/enemy_male_animated/n00_001_01_tops_01_cloth (instance).material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -8626,6 +9413,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/items/bbt/material_4.material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -8640,6 +9428,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/enemy_male_animated/enemy_male_animatedrange multi attack.anim",
+            "assetType": "Animation",
             "resources": [
                 {
                     "resourceType": 7232515681596383213,
@@ -8654,6 +9443,7 @@
         },
         {
             "filepath": "compiledassets/materials/lambert4_1001.material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -8668,6 +9458,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/aji/player_idle_mixamo/n00_002_03_tops_01_cloth_02__instance_.material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -8682,6 +9473,7 @@
         },
         {
             "filepath": "compiledassets/textures/_24.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -8696,6 +9488,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/enemy_male_animated/_18.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -8710,6 +9503,7 @@
         },
         {
             "filepath": "compiledassets/buff arrow icon.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -8724,6 +9518,7 @@
         },
         {
             "filepath": "compiledassets/materials/n00_000_00_eyehighlight_00_eye__instance_.material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -8738,6 +9533,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/aji/player_idle_mixamo/player_idle_mixamoplayer_weapon atk 3_mixamo.anim",
+            "assetType": "Animation",
             "resources": [
                 {
                     "resourceType": 7232515681596383213,
@@ -8752,6 +9548,7 @@
         },
         {
             "filepath": "sounds/sfx/mc/light attack/light attack #1/light attack #1 1.wav",
+            "assetType": "Audio",
             "resources": [
                 {
                     "resourceType": 16184316770661419113,
@@ -8766,6 +9563,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/items/bookingslip/paper.material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -8780,6 +9578,7 @@
         },
         {
             "filepath": "compiledassets/textures/fence13707767880246738486.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -8794,6 +9593,7 @@
         },
         {
             "filepath": "compiledassets/door_classroom.mesh",
+            "assetType": "Mesh",
             "resources": [
                 {
                     "resourceType": 6209910166724260588,
@@ -8808,6 +9608,7 @@
         },
         {
             "filepath": "compiledassets/materials/n00_008_01_shoes_01_cloth_01__instance_.001.material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -8822,6 +9623,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/mc_animated/n00_000_hair_00_hair_03 (instance).material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -8836,6 +9638,7 @@
         },
         {
             "filepath": "compiledassets/winlose_nextlevel.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -8850,6 +9653,7 @@
         },
         {
             "filepath": "compiledassets/interact icon.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -8864,6 +9668,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/aji/player_idle_mixamo/_06.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -8878,6 +9683,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/enemy_male_animated/_01.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -8892,6 +9698,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/enemy_female_animated/n00_000_00_face_00_skin (instance).material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -8906,6 +9713,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/enemy_female_animated/n00_000_hair_00_hair (instance).material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -8920,6 +9728,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/items/sword/sword.mesh",
+            "assetType": "Mesh",
             "resources": [
                 {
                     "resourceType": 6209910166724260588,
@@ -8934,6 +9743,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/mc_animated/_25.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -8948,6 +9758,7 @@
         },
         {
             "filepath": "compiledassets/meshanimations/player_idle_mixamoplayer_katar atk 2.anim",
+            "assetType": "Animation",
             "resources": [
                 {
                     "resourceType": 7232515681596383213,
@@ -8962,6 +9773,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/enemy_male_animated/n00_010_01_onepiece_00_cloth_01 (instance).material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -8976,6 +9788,7 @@
         },
         {
             "filepath": "compiledassets/textures/_03.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -8990,6 +9803,7 @@
         },
         {
             "filepath": "compiledassets/materials/n00_000_00_faceeyeline_00_face__instance_.material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -9004,6 +9818,7 @@
         },
         {
             "filepath": "compiledassets/materials/wall_1013.material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -9018,6 +9833,7 @@
         },
         {
             "filepath": "compiledassets/textures/storage room5590563140978458161.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -9032,6 +9848,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/mc_animated/shader_noneblack.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -9046,6 +9863,7 @@
         },
         {
             "filepath": "sounds/music (bgm)/baseball field (boss fight)/cut&pastemenumusic.wav",
+            "assetType": "Audio",
             "resources": [
                 {
                     "resourceType": 16184316770661419113,
@@ -9060,6 +9878,7 @@
         },
         {
             "filepath": "compiledassets/materials/n00_000_00_body_00_skin__instance_.001.material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -9074,6 +9893,7 @@
         },
         {
             "filepath": "compiledassets/materials/n00_000_00_facebrow_00_face__instance_.001.material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -9088,6 +9908,7 @@
         },
         {
             "filepath": "compiledassets/stairs_left.mesh",
+            "assetType": "Mesh",
             "resources": [
                 {
                     "resourceType": 6209910166724260588,
@@ -9102,6 +9923,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/mc_animated/_05.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -9116,6 +9938,7 @@
         },
         {
             "filepath": "sounds/sfx/mc/hurt/mc hurt 5.wav",
+            "assetType": "Audio",
             "resources": [
                 {
                     "resourceType": 16184316770661419113,
@@ -9130,6 +9953,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/enemy_male_animated/_15.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,

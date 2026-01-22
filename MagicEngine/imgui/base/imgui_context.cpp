@@ -381,9 +381,12 @@ namespace editor
     texture.height = static_cast<uint32_t>(height);
     texture.channels = 4;
     texture.textureDesc = {
-      .type = vk::TextureType::Tex2D, .format = vk::Format::RGBA_UN8,
-      .dimensions = {.width = static_cast<uint32_t>(width), .height = static_cast<uint32_t>(height)},
-      .usage = vk::TextureUsageBits_Sampled
+      .type = gfx::TextureType::Tex2D,
+      .format = gfx::Format::RGBA8_UNorm,
+      .dimensions = {static_cast<uint32_t>(width), static_cast<uint32_t>(height), 1},
+      .numLayers = 1,
+      .numMipLevels = 1,
+      .usage = gfx::TextureUsage::Sampled
     };
     texture.data = std::vector(pixels, pixels + (width * height * 4));
     fontTextureHandle_ = context_.resourceMngr->createTexture(texture);

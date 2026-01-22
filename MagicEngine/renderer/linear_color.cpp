@@ -51,7 +51,7 @@ void LinearColorSystem::ensureInitialized()
   {
     // Check color space - sRGB non-linear requires gamma correction
     auto colorSpace = m_context->getSwapchainColorSpace();
-    m_requiresLinearWorkflow = (colorSpace == vk::ColorSpace::SRGB_NONLINEAR);
+    m_requiresLinearWorkflow = (colorSpace == gfx::ColorSpace::SRGB_NONLINEAR);
     LOG_INFO("LinearColorSystem: Linear workflow = {}", m_requiresLinearWorkflow);
   }
 

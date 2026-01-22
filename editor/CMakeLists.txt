@@ -29,8 +29,8 @@ target_link_libraries(Editor PRIVATE
     MagicEngine
 )
 
-# Reuse MagicEngine's precompiled header
-target_precompile_headers(Editor REUSE_FROM MagicEngine)
+# Use MagicEngine's pch.h but compile our own PCH (avoid definition mismatch)
+target_precompile_headers(Editor PRIVATE ${CMAKE_SOURCE_DIR}/MagicEngine/pch.h)
 target_include_directories(Editor PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 
 # Organize shaders in IDE

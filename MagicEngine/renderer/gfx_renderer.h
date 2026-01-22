@@ -17,10 +17,16 @@
 #include "gfx_types.h"
 #include "gfx_mesh_storage.h"
 #include "gfx_material_system.h"
+#include "i_renderer.h"
+#include "frame_data.h"
+#include "linear_color.h"
 #include "renderer/ui/ui_primitives.h"
 #include <memory>
 #include <vector>
 #include <array>
+#include <unordered_map>
+#include <atomic>
+#include <functional>
 
 // Forward declarations
 struct FrameData;
@@ -302,11 +308,12 @@ private:
 
 /**
  * @brief Main renderer class using hina-vk.
+ * Implements IRenderer for feature management.
  */
-class GfxRenderer {
+class GfxRenderer : public IRenderer {
 public:
     GfxRenderer();
-    ~GfxRenderer();
+    ~GfxRenderer() override;
 
     // Lifecycle
     bool initialize(void* nativeWindow, uint32_t width, uint32_t height);
@@ -317,6 +324,10 @@ public:
     void render(FrameData& frameData);  // Single view (legacy)
     void render(RenderFrameData& frameData);  // Multi-view (preferred)
     void endFrame();
+
+    // Surface lifecycle management (for Android)
+    void handleSurfaceCreated(void* nativeWindow);
+    void handleSurfaceDestroyed();
 
     // Window management
     void onResize(uint32_t width, uint32_t height);
@@ -379,6 +390,50 @@ public:
     // Resize a specific view's output (if different from main size)
     void resizeViewOutput(ViewId viewId, uint32_t width, uint32_t height);
 
+    // Window ready state (after minimum frames rendered)
+    bool isWindowReadyForShow() const { return m_windowReadyForShow; }
+
+    // Tone mapping settings
+    const ToneMappingSettings& GetToneMappingSettings() const;
+    void UpdateToneMappingSettings(const ToneMappingSettings& newSettings);
+
+    // ========================================================================
+    // IRenderer Interface (Feature System)
+    // ========================================================================
+
+    /**
+     * @brief Destroy a feature by handle.
+     */
+    void DestroyFeature(uint64_t feature_handle) override;
+
+    /**
+     * @brief Get the parameter block pointer for a feature.
+     */
+    void* GetFeatureParameterBlockPtr(uint64_t feature_handle) override;
+
+    /**
+     * @brief Get the feature mask for a feature handle.
+     */
+    FeatureMask GetFeatureMask(uint64_t feature_handle) const;
+
+    /**
+     * @brief Alias for GetFeatureMask (backward compatibility).
+     */
+    FeatureMask GetFeatureMaskForHandle(uint64_t feature_handle) const { return GetFeatureMask(feature_handle); }
+
+    /**
+     * @brief Get a feature by handle and cast to the expected type.
+     */
+    template <typename TFeature>
+    TFeature* GetFeature(uint64_t feature_handle)
+    {
+        auto it = m_features.find(feature_handle);
+        if (it == m_features.end() || !it->second.feature) {
+            return nullptr;
+        }
+        return dynamic_cast<TFeature*>(it->second.feature.get());
+    }
+
     // ========================================================================
     // Feature Registration (for RenderGraph integration)
     // ========================================================================
@@ -395,7 +450,7 @@ public:
     void unregisterFeature(IRenderFeature* feature);
 
     /**
-     * @brief Get the feature mask for a registered feature.
+     * @brief Get the feature mask for a registered feature pointer.
      * @return The feature's bit mask, or 0 if not registered.
      */
     FeatureMask getFeatureMask(IRenderFeature* feature) const;
@@ -451,6 +506,9 @@ public:
     const ViewOutput& getViewOutput(ViewId viewId) const { return m_viewOutputs[static_cast<size_t>(viewId)]; }
 
 private:
+    // IRenderer interface implementation
+    uint64_t DoCreateFeature(std::function<std::unique_ptr<IRenderFeature>()> factory) override;
+
     // Initialization helpers
     bool createBindGroupLayouts();
     bool createRenderTargets();
@@ -593,4 +651,29 @@ private:
     std::unique_ptr<HinaContext> m_hinaContext;
     std::unique_ptr<RenderGraph> m_renderGraph;
     std::vector<IRenderFeature*> m_registeredFeatures;
+
+    // ========================================================================
+    // Feature System (from IRenderer interface)
+    // ========================================================================
+    struct FeatureInfo {
+        std::unique_ptr<IRenderFeature> feature;
+        uint64_t handle;
+        FeatureMask mask = 0;  // Cached feature mask from RenderGraph
+
+        explicit FeatureInfo(std::unique_ptr<IRenderFeature> feat, uint64_t h, FeatureMask m = 0)
+            : feature(std::move(feat)), handle(h), mask(m) {}
+    };
+
+    std::unordered_map<uint64_t, FeatureInfo> m_features;
+    std::atomic<uint64_t> m_nextFeatureHandle{1};
+
+    // ========================================================================
+    // Frame Tracking
+    // ========================================================================
+    int m_framesRendered = 0;
+    bool m_windowReadyForShow = false;
+    static constexpr int MIN_FRAMES_BEFORE_SHOW = 3;
+
+    // Tone mapping settings
+    ToneMappingSettings m_toneMappingSettings{};
 };

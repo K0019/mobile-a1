@@ -10,7 +10,7 @@ namespace Resource
   class ResourceManager;
 }
 
-class Renderer;
+class GfxRenderer;
 
 enum class LightType : uint8_t
 {

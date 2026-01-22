@@ -13,7 +13,7 @@
 \brief
 Loads an fbx scene, and extracts the meshes, node hierarchy, materials, and referenced textures
 
-All content © 2025 DigiPen Institute of Technology Singapore.
+All content ï¿½ 2025 DigiPen Institute of Technology Singapore.
 All rights reserved.
 */
 /******************************************************************************/
@@ -369,11 +369,11 @@ namespace compiler
         std::filesystem::path texturePath(pathStr);
         if (texturePath.is_relative())
         {
-            fileSource.path = modelBasePath / texturePath;
+            fileSource.path = (modelBasePath / texturePath).string();
         }
         else
         {
-            fileSource.path = texturePath;
+            fileSource.path = texturePath.string();
         }
         outSlot.texturePaths[key] = fileSource;
         return true;
