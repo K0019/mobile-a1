@@ -31,9 +31,10 @@ namespace gfx {
 // Configuration
 // ============================================================================
 
-// Default chunk size: 16MB for vertices, 8MB for indices
+// Default chunk size: 16MB for vertices, 8MB for indices, 8MB for skinning
 constexpr size_t DEFAULT_VERTEX_CHUNK_SIZE = 16 * 1024 * 1024;
 constexpr size_t DEFAULT_INDEX_CHUNK_SIZE = 8 * 1024 * 1024;
+constexpr size_t DEFAULT_SKINNING_CHUNK_SIZE = 8 * 1024 * 1024;
 
 // Minimum allocation alignment (for buffer offsets)
 constexpr size_t MESH_ALLOCATION_ALIGNMENT = 16;
@@ -56,17 +57,20 @@ struct MeshChunk {
     Buffer vertexBuffer;      // Position stream
     Buffer attributeBuffer;   // Attribute stream (normals, UVs, tangents)
     Buffer indexBuffer;
+    Buffer skinningBuffer;    // Skinning stream (bone indices + weights, optional)
 
     // Sub-allocators (offset allocator for O(1) performance)
     std::unique_ptr<OffsetAllocator::Allocator> vertexAllocator;
     std::unique_ptr<OffsetAllocator::Allocator> attributeAllocator;
     std::unique_ptr<OffsetAllocator::Allocator> indexAllocator;
+    std::unique_ptr<OffsetAllocator::Allocator> skinningAllocator;
 
     // Chunk info
     uint32_t chunkIndex = 0;
     size_t vertexCapacity = 0;
     size_t attributeCapacity = 0;
     size_t indexCapacity = 0;
+    size_t skinningCapacity = 0;
 
     // Reference count (how many meshes are using this chunk)
     uint32_t meshCount = 0;
@@ -94,16 +98,19 @@ struct MeshAllocation {
     OffsetAllocator::Allocation vertexAlloc;
     OffsetAllocator::Allocation attributeAlloc;
     OffsetAllocator::Allocation indexAlloc;
+    OffsetAllocator::Allocation skinningAlloc;
 
     // Sizes (for stats and debugging)
     uint32_t vertexSize = 0;
     uint32_t attributeSize = 0;
     uint32_t indexSize = 0;
+    uint32_t skinningSize = 0;
 
     // Mesh data
     uint32_t vertexCount = 0;
     uint32_t indexCount = 0;
     MeshBounds bounds;
+    bool hasSkinning = false;
 
     bool isValid() const { return chunkIndex != UINT32_MAX; }
 
@@ -111,6 +118,7 @@ struct MeshAllocation {
     uint32_t vertexOffset() const { return vertexAlloc.offset; }
     uint32_t attributeOffset() const { return attributeAlloc.offset; }
     uint32_t indexOffset() const { return indexAlloc.offset; }
+    uint32_t skinningOffset() const { return skinningAlloc.offset; }
 };
 
 // ============================================================================
@@ -188,6 +196,17 @@ public:
         const MeshBounds& bounds);
 
     /**
+     * @brief Upload a skinned mesh with pre-packed vertex and skinning data.
+     */
+    ChunkedMeshHandle uploadPackedSkinned(
+        const VertexPosition* positions,
+        const VertexAttributes* attributes,
+        const VertexSkinning* skinning,
+        uint32_t vertexCount,
+        const uint32_t* indices, uint32_t indexCount,
+        const MeshBounds& bounds);
+
+    /**
      * @brief Destroy a mesh and free its allocation.
      */
     void destroy(ChunkedMeshHandle handle);
@@ -255,10 +274,13 @@ public:
         gfx::Buffer vertexBuffer;
         gfx::Buffer attributeBuffer;
         gfx::Buffer indexBuffer;
+        gfx::Buffer skinningBuffer;
         gfx::BufferDesc vertexDesc;
         gfx::BufferDesc attributeDesc;
         gfx::BufferDesc indexDesc;
+        gfx::BufferDesc skinningDesc;
         bool valid = false;
+        bool hasSkinning = false;
     };
 
     /**

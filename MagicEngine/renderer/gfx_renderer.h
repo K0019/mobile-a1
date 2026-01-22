@@ -60,6 +60,10 @@ constexpr uint32_t MAX_TRANSFORMS = 4096;    // Max draw calls per frame (reduce
 constexpr uint32_t TRANSFORM_ALIGNMENT = 256; // Dynamic UBO offset alignment (mobile requirement)
 constexpr uint32_t TRANSFORM_UBO_SIZE = MAX_TRANSFORMS * TRANSFORM_ALIGNMENT;
 
+// Skinning constants
+constexpr uint32_t MAX_SKINNED_DRAWS = 256;  // Max skinned objects per frame
+constexpr uint32_t BONE_MATRIX_UBO_SIZE = MAX_SKINNED_DRAWS * gfx::BONE_MATRICES_SIZE;  // 256 * 16KB = 4MB
+
 // ============================================================================
 // View Output System
 // ============================================================================
@@ -127,7 +131,8 @@ namespace MaterialBindings {
  */
 namespace DynamicBindings {
     constexpr uint32_t Transform = 0;        // UBO + DYNAMIC_OFFSET: instance data
-    constexpr uint32_t ObjectData = 1;       // UBO + DYNAMIC_OFFSET: tint, flags
+    constexpr uint32_t BoneMatrices = 1;     // UBO + DYNAMIC_OFFSET: bone matrices (for skinning)
+    constexpr uint32_t ObjectData = 2;       // UBO + DYNAMIC_OFFSET: tint, flags
 }
 
 // ============================================================================
@@ -146,6 +151,11 @@ struct FrameResources {
     gfx::Buffer transformRingUBO;
     void* transformRingMapped = nullptr;  // Persistently mapped pointer
     uint32_t transformRingOffset = 0;
+
+    // Bone matrix ring buffer (for skinned meshes) - persistently mapped
+    gfx::Buffer boneMatrixRingUBO;
+    void* boneMatrixRingMapped = nullptr;  // Persistently mapped pointer
+    uint32_t boneMatrixRingOffset = 0;
 
     // Object data ring buffer
     gfx::Buffer objectDataRingUBO;

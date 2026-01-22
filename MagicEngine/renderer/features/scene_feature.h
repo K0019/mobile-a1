@@ -50,6 +50,12 @@ struct DrawData
   glm::mat4 transform;
   glm::vec4 baseColor = glm::vec4(0.8f, 0.8f, 0.8f, 1.0f);
   bool hasMaterial = false;
+
+  // Skinning data (for skeletal animation)
+  bool isSkinned = false;
+  bool isTransparent = false;  // For WBOIT routing (future)
+  uint32_t jointCount = 0;     // Number of active bones (max 64)
+  const glm::mat4* skinMatrices = nullptr;  // Pointer to AnimationComponent::skinMatrices
 };
 
 struct CullingData
@@ -207,12 +213,14 @@ private:
   // ========================================================================
   // G-Buffer Pipeline Resources (owned by this feature)
   // ========================================================================
-  gfx::Holder<gfx::Pipeline> m_gbufferPipeline;
+  gfx::Holder<gfx::Pipeline> m_gbufferPipeline;         // Static mesh pipeline
+  gfx::Holder<gfx::Pipeline> m_gbufferSkinnedPipeline;  // Skinned mesh pipeline
   gfx::Holder<gfx::BindGroupLayout> m_sceneLayout;  // Set 0: Frame UBO
   gfx::Buffer m_frameUBO = {};                       // Persistently mapped frame UBO
   void* m_frameUBOMapped = nullptr;                  // Mapped pointer for fast updates
   gfx::BindGroup m_sceneBindGroup = {};              // Persistent bind group for frame data
   bool m_pipelineCreated = false;
+  bool m_skinnedPipelineCreated = false;
 
   // ========================================================================
   // Composite Pipeline Resources (owned by this feature)
@@ -244,6 +252,7 @@ private:
 
   // Lazy pipeline creation
   bool EnsurePipelineCreated(GfxRenderer* gfxRenderer);
+  bool EnsureSkinnedPipelineCreated(GfxRenderer* gfxRenderer);
   bool EnsureCompositePipelineCreated(GfxRenderer* gfxRenderer);
   bool EnsureCompositeBindGroup(GfxRenderer* gfxRenderer, gfx::Texture sceneDepth, gfx::TextureView sceneDepthView);
   void ExecuteCompositePass(internal::ExecutionContext& ctx);

@@ -97,6 +97,13 @@ GpuMesh GfxMeshStorage::buildGpuMesh(const ChunkedMeshHandle& chunkedHandle) con
     mesh.bounds = alloc->bounds;
     mesh.valid = true;
 
+    // Include skinning info if present
+    mesh.hasSkinning = alloc->hasSkinning;
+    if (mesh.hasSkinning && hina_buffer_is_valid(chunk->skinningBuffer)) {
+        mesh.skinningBuffer = chunk->skinningBuffer;
+        mesh.skinningOffset = alloc->skinningOffset();
+    }
+
     return mesh;
 }
 
@@ -180,6 +187,44 @@ MeshHandle GfxMeshStorage::upload16(
         indices32[i] = indices[i];
     }
     return upload(vertices, vertexCount, indices32.data(), indexCount);
+}
+
+MeshHandle GfxMeshStorage::uploadPackedSkinned(
+    const VertexPosition* positions,
+    const VertexAttributes* attributes,
+    const VertexSkinning* skinning,
+    uint32_t vertexCount,
+    const uint32_t* indices, uint32_t indexCount,
+    const MeshBounds& bounds)
+{
+    if (!positions || !skinning || vertexCount == 0 || !indices || indexCount == 0) {
+        LOG_ERROR("[GfxMeshStorage] Invalid skinned upload parameters");
+        return MeshHandle{};
+    }
+
+    // Allocate entry first
+    MeshHandle handle = allocateEntry();
+    if (!handle.isValid()) {
+        return handle;
+    }
+
+    // Upload to chunked storage
+    ChunkedMeshHandle chunkedHandle = m_chunkedStorage.uploadPackedSkinned(
+        positions, attributes, skinning, vertexCount, indices, indexCount, bounds);
+    if (!chunkedHandle.isValid()) {
+        LOG_ERROR("[GfxMeshStorage] ChunkedMeshStorage uploadPackedSkinned failed");
+        freeEntry(handle.index);
+        return MeshHandle{};
+    }
+
+    // Store the mapping
+    m_entries[handle.index].chunkedHandle = chunkedHandle;
+
+    const MeshAllocation* alloc = m_chunkedStorage.getAllocation(chunkedHandle);
+    LOG_DEBUG("[GfxMeshStorage] Uploaded skinned mesh: {} vertices, {} indices -> chunk {}",
+              vertexCount, indexCount, alloc ? alloc->chunkIndex : UINT32_MAX);
+
+    return handle;
 }
 
 void GfxMeshStorage::destroy(MeshHandle handle) {

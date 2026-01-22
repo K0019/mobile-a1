@@ -510,11 +510,12 @@ bool GfxRenderer::createBindGroupLayouts() {
         LOG_DEBUG("[GfxRenderer] Created material layout (Set 1) with constants UBO");
     }
 
-    // Set 2: Dynamic (with dynamic offset flag for per-draw transforms)
-    // Only Transform binding - ObjectData removed as it's not used by the shader
+    // Set 2: Dynamic (with dynamic offset flag for per-draw transforms and bone matrices)
+    // Transform and BoneMatrices bindings - both use dynamic offsets
     {
         hina_bind_group_layout_entry entries[] = {
             { DynamicBindings::Transform, HINA_DESC_TYPE_UNIFORM_BUFFER, HINA_STAGE_VERTEX, 1, HINA_BINDING_FLAG_DYNAMIC_OFFSET },
+            { DynamicBindings::BoneMatrices, HINA_DESC_TYPE_UNIFORM_BUFFER, HINA_STAGE_VERTEX, 1, HINA_BINDING_FLAG_DYNAMIC_OFFSET },
         };
 
         hina_bind_group_layout_desc desc = {};
@@ -527,7 +528,7 @@ bool GfxRenderer::createBindGroupLayouts() {
             LOG_ERROR("[GfxRenderer] Failed to create dynamic bind group layout");
             return false;
         }
-        LOG_DEBUG("[GfxRenderer] Created dynamic layout (Set 2)");
+        LOG_DEBUG("[GfxRenderer] Created dynamic layout (Set 2) with Transform and BoneMatrices");
     }
 
     LOG_INFO("[GfxRenderer] Bind group layouts created successfully");
@@ -858,6 +859,26 @@ bool GfxRenderer::createFrameResources() {
             }
         }
 
+        // Bone matrix ring buffer (for skinned meshes) - persistently mapped
+        {
+            hina_buffer_desc desc = {};
+            desc.size = BONE_MATRIX_UBO_SIZE;
+            desc.flags = uboFlags;
+
+            frame.boneMatrixRingUBO = hina_make_buffer(&desc);
+            if (!hina_buffer_is_valid(frame.boneMatrixRingUBO)) {
+                LOG_ERROR("[GfxRenderer] Failed to create bone matrix ring UBO for frame {}", i);
+                return false;
+            }
+
+            // Persistently map the buffer once - no per-frame mapping needed
+            frame.boneMatrixRingMapped = hina_map_buffer(frame.boneMatrixRingUBO);
+            if (!frame.boneMatrixRingMapped) {
+                LOG_ERROR("[GfxRenderer] Failed to map bone matrix ring UBO for frame {}", i);
+                return false;
+            }
+        }
+
         // Object data ring buffer
         {
             hina_buffer_desc desc = {};
@@ -871,10 +892,10 @@ bool GfxRenderer::createFrameResources() {
             }
         }
 
-        // Create dynamic bind group (Set 2) with transform UBO only
-        // This bind group is used with dynamic offsets for per-draw transforms
+        // Create dynamic bind group (Set 2) with transform and bone matrix UBOs
+        // This bind group is used with dynamic offsets for per-draw transforms and skinning
         {
-            hina_bind_group_entry entries[1] = {};
+            hina_bind_group_entry entries[2] = {};
 
             // Binding 0: Transform UBO (dynamic offset)
             entries[0].binding = DynamicBindings::Transform;
@@ -883,10 +904,17 @@ bool GfxRenderer::createFrameResources() {
             entries[0].buffer.offset = 0;
             entries[0].buffer.size = TRANSFORM_ALIGNMENT;  // Single transform size
 
+            // Binding 1: Bone Matrices UBO (dynamic offset)
+            entries[1].binding = DynamicBindings::BoneMatrices;
+            entries[1].type = HINA_DESC_TYPE_UNIFORM_BUFFER;
+            entries[1].buffer.buffer = frame.boneMatrixRingUBO;
+            entries[1].buffer.offset = 0;
+            entries[1].buffer.size = gfx::BONE_MATRICES_SIZE;  // 64 bones * 64 bytes = 4KB
+
             hina_bind_group_desc desc = {};
             desc.layout = m_dynamicLayout;
             desc.entries = entries;
-            desc.entry_count = 1;
+            desc.entry_count = 2;
 
             frame.dynamicBindGroup = hina_create_bind_group(&desc);
             if (!hina_bind_group_is_valid(frame.dynamicBindGroup)) {
@@ -917,6 +945,7 @@ bool GfxRenderer::beginFrame() {
     // Reset frame resources
     auto& frame = m_frames[m_currentFrame];
     frame.transformRingOffset = 0;
+    frame.boneMatrixRingOffset = 0;
     frame.objectDataRingOffset = 0;
 
     // Save swapchain image for this frame

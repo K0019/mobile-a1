@@ -52,6 +52,9 @@ void ChunkedMeshStorage::shutdown() {
             if (hina_buffer_is_valid(chunk->indexBuffer)) {
                 hina_destroy_buffer(chunk->indexBuffer);
             }
+            if (hina_buffer_is_valid(chunk->skinningBuffer)) {
+                hina_destroy_buffer(chunk->skinningBuffer);
+            }
         }
     }
     m_chunks.clear();
@@ -189,6 +192,157 @@ ChunkedMeshHandle ChunkedMeshStorage::uploadPacked(
     return handle;
 }
 
+ChunkedMeshHandle ChunkedMeshStorage::uploadPackedSkinned(
+    const VertexPosition* positions,
+    const VertexAttributes* attributes,
+    const VertexSkinning* skinning,
+    uint32_t vertexCount,
+    const uint32_t* indices, uint32_t indexCount,
+    const MeshBounds& bounds)
+{
+    if (!m_initialized) {
+        initialize();
+    }
+
+    if (!positions || !skinning || !indices || vertexCount == 0 || indexCount == 0) {
+        LOG_ERROR("[ChunkedMeshStorage] Invalid skinned mesh data");
+        return ChunkedMeshHandle{};
+    }
+
+    // Calculate sizes (aligned for offset allocator)
+    uint32_t vertexSize = static_cast<uint32_t>(vertexCount * sizeof(VertexPosition));
+    uint32_t attributeSize = attributes ? static_cast<uint32_t>(vertexCount * sizeof(VertexAttributes)) : 0;
+    uint32_t skinningSize = static_cast<uint32_t>(vertexCount * sizeof(VertexSkinning));
+    uint32_t indexSize = static_cast<uint32_t>(indexCount * sizeof(uint32_t));
+
+    // Align sizes up to MESH_ALLOCATION_ALIGNMENT
+    vertexSize = (vertexSize + MESH_ALLOCATION_ALIGNMENT - 1) & ~(MESH_ALLOCATION_ALIGNMENT - 1);
+    if (attributeSize > 0) {
+        attributeSize = (attributeSize + MESH_ALLOCATION_ALIGNMENT - 1) & ~(MESH_ALLOCATION_ALIGNMENT - 1);
+    }
+    skinningSize = (skinningSize + MESH_ALLOCATION_ALIGNMENT - 1) & ~(MESH_ALLOCATION_ALIGNMENT - 1);
+    indexSize = (indexSize + MESH_ALLOCATION_ALIGNMENT - 1) & ~(MESH_ALLOCATION_ALIGNMENT - 1);
+
+    // Find or create a chunk with enough space (including skinning)
+    uint32_t chunkIndex = findOrCreateChunk(vertexSize, attributeSize, indexSize);
+    if (chunkIndex == UINT32_MAX) {
+        LOG_ERROR("[ChunkedMeshStorage] Failed to allocate chunk for skinned mesh");
+        return ChunkedMeshHandle{};
+    }
+
+    auto& chunk = m_chunks[chunkIndex];
+
+    // Ensure skinning buffer exists for this chunk
+    if (!hina_buffer_is_valid(chunk->skinningBuffer)) {
+        // Create skinning buffer on demand
+        hina_buffer_desc skinDesc = {};
+        skinDesc.size = DEFAULT_SKINNING_CHUNK_SIZE;
+        skinDesc.flags = static_cast<hina_buffer_flags>(
+            HINA_BUFFER_VERTEX_BIT | HINA_BUFFER_TRANSFER_DST_BIT |
+            HINA_BUFFER_HOST_VISIBLE_BIT | HINA_BUFFER_HOST_COHERENT_BIT);
+        chunk->skinningBuffer = hina_make_buffer(&skinDesc);
+        chunk->skinningCapacity = DEFAULT_SKINNING_CHUNK_SIZE;
+        chunk->skinningAllocator = std::make_unique<OffsetAllocator::Allocator>(
+            static_cast<uint32_t>(DEFAULT_SKINNING_CHUNK_SIZE), MAX_ALLOCATIONS_PER_CHUNK);
+
+        if (!hina_buffer_is_valid(chunk->skinningBuffer)) {
+            LOG_ERROR("[ChunkedMeshStorage] Failed to create skinning buffer for chunk {}", chunkIndex);
+            return ChunkedMeshHandle{};
+        }
+        LOG_INFO("[ChunkedMeshStorage] Created skinning buffer for chunk {} ({} MB)",
+                 chunkIndex, DEFAULT_SKINNING_CHUNK_SIZE / (1024 * 1024));
+    }
+
+    // Check skinning buffer has enough space
+    auto skinningReport = chunk->skinningAllocator->storageReport();
+    if (skinningReport.largestFreeRegion < skinningSize) {
+        LOG_ERROR("[ChunkedMeshStorage] Not enough skinning space in chunk {} (need {}, have {})",
+                  chunkIndex, skinningSize, skinningReport.largestFreeRegion);
+        return ChunkedMeshHandle{};
+    }
+
+    // Allocate within the chunk using offset allocator
+    OffsetAllocator::Allocation vertexAlloc = chunk->vertexAllocator->allocate(vertexSize);
+    OffsetAllocator::Allocation attributeAlloc;
+    if (attributes) {
+        attributeAlloc = chunk->attributeAllocator->allocate(attributeSize);
+    }
+    OffsetAllocator::Allocation skinningAlloc = chunk->skinningAllocator->allocate(skinningSize);
+    OffsetAllocator::Allocation indexAlloc = chunk->indexAllocator->allocate(indexSize);
+
+    if (!vertexAlloc.isValid() || !skinningAlloc.isValid() || !indexAlloc.isValid() ||
+        (attributes && !attributeAlloc.isValid())) {
+        LOG_ERROR("[ChunkedMeshStorage] Sub-allocation failed for skinned mesh");
+        // Rollback
+        if (vertexAlloc.isValid()) chunk->vertexAllocator->free(vertexAlloc);
+        if (attributeAlloc.isValid()) chunk->attributeAllocator->free(attributeAlloc);
+        if (skinningAlloc.isValid()) chunk->skinningAllocator->free(skinningAlloc);
+        return ChunkedMeshHandle{};
+    }
+
+    // Upload data to GPU buffers (persistently mapped - no unmap needed)
+    void* vertexMapped = hina_map_buffer(chunk->vertexBuffer);
+    if (vertexMapped) {
+        std::memcpy(static_cast<uint8_t*>(vertexMapped) + vertexAlloc.offset,
+                    positions, vertexCount * sizeof(VertexPosition));
+    }
+
+    if (attributes && hina_buffer_is_valid(chunk->attributeBuffer)) {
+        void* attrMapped = hina_map_buffer(chunk->attributeBuffer);
+        if (attrMapped) {
+            std::memcpy(static_cast<uint8_t*>(attrMapped) + attributeAlloc.offset,
+                        attributes, vertexCount * sizeof(VertexAttributes));
+        }
+    }
+
+    void* skinningMapped = hina_map_buffer(chunk->skinningBuffer);
+    if (skinningMapped) {
+        std::memcpy(static_cast<uint8_t*>(skinningMapped) + skinningAlloc.offset,
+                    skinning, vertexCount * sizeof(VertexSkinning));
+    }
+
+    void* indexMapped = hina_map_buffer(chunk->indexBuffer);
+    if (indexMapped) {
+        std::memcpy(static_cast<uint8_t*>(indexMapped) + indexAlloc.offset,
+                    indices, indexCount * sizeof(uint32_t));
+    }
+
+    // Allocate mesh entry
+    ChunkedMeshHandle handle = allocateEntry();
+    if (!handle.isValid()) {
+        // Rollback allocations
+        chunk->vertexAllocator->free(vertexAlloc);
+        if (attributes) chunk->attributeAllocator->free(attributeAlloc);
+        chunk->skinningAllocator->free(skinningAlloc);
+        chunk->indexAllocator->free(indexAlloc);
+        return ChunkedMeshHandle{};
+    }
+
+    // Fill in allocation info
+    auto& entry = m_entries[handle.index];
+    entry.allocation.chunkIndex = chunkIndex;
+    entry.allocation.vertexAlloc = vertexAlloc;
+    entry.allocation.attributeAlloc = attributeAlloc;
+    entry.allocation.skinningAlloc = skinningAlloc;
+    entry.allocation.indexAlloc = indexAlloc;
+    entry.allocation.vertexSize = vertexSize;
+    entry.allocation.attributeSize = attributeSize;
+    entry.allocation.skinningSize = skinningSize;
+    entry.allocation.indexSize = indexSize;
+    entry.allocation.vertexCount = vertexCount;
+    entry.allocation.indexCount = indexCount;
+    entry.allocation.bounds = bounds;
+    entry.allocation.hasSkinning = true;
+
+    chunk->meshCount++;
+    m_meshCount++;
+
+    LOG_DEBUG("[ChunkedMeshStorage] Uploaded skinned mesh: {} vertices, {} indices, chunk {}",
+              vertexCount, indexCount, chunkIndex);
+
+    return handle;
+}
+
 void ChunkedMeshStorage::destroy(ChunkedMeshHandle handle) {
     if (!isValid(handle)) return;
 
@@ -202,6 +356,9 @@ void ChunkedMeshStorage::destroy(ChunkedMeshHandle handle) {
             chunk->vertexAllocator->free(alloc.vertexAlloc);
             if (alloc.attributeAlloc.isValid()) {
                 chunk->attributeAllocator->free(alloc.attributeAlloc);
+            }
+            if (alloc.hasSkinning && alloc.skinningAlloc.isValid() && chunk->skinningAllocator) {
+                chunk->skinningAllocator->free(alloc.skinningAlloc);
             }
             chunk->indexAllocator->free(alloc.indexAlloc);
             chunk->meshCount--;
@@ -548,6 +705,16 @@ ChunkedMeshStorage::ChunkBufferInfo ChunkedMeshStorage::getChunkBufferInfo(
     info.vertexBuffer = chunk->vertexBuffer;
     info.attributeBuffer = chunk->attributeBuffer;
     info.indexBuffer = chunk->indexBuffer;
+
+    // Include skinning buffer if available
+    info.hasSkinning = hina_buffer_is_valid(chunk->skinningBuffer);
+    if (info.hasSkinning) {
+        info.skinningBuffer = chunk->skinningBuffer;
+        info.skinningDesc = gfx::BufferDesc{
+            .size = chunk->skinningCapacity,
+            .flags = static_cast<hina_buffer_flags>(gfx::BufferUsage::Vertex | gfx::BufferUsage::HostVisible | gfx::BufferUsage::HostCoherent)
+        };
+    }
 
     info.valid = gfx::isValid(info.vertexBuffer) &&
                  gfx::isValid(info.attributeBuffer) &&

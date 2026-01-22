@@ -253,6 +253,50 @@ struct VertexAttributes {
 static_assert(sizeof(VertexAttributes) == 12, "VertexAttributes must be 12 bytes");
 
 // ============================================================================
+// Skinning Vertex Stream (8 bytes) - for skeletal animation
+// ============================================================================
+
+/**
+ * @brief Skinning stream (8 bytes) - bone indices and weights.
+ *
+ * Mobile-optimized: Uses R8G8B8A8_UINT for indices (max 255 bones per mesh)
+ * and R8G8B8A8_UNORM for weights (8-bit precision is sufficient for blending).
+ *
+ * This is 75% smaller than GPUSkinningData (32 bytes) for bandwidth reduction.
+ */
+struct VertexSkinning {
+    uint8_t boneIndices[4];  // 4 bytes - bone indices 0-255 (we limit to 64)
+    uint8_t weights[4];      // 4 bytes - weights as UNORM8 (0-255 maps to 0.0-1.0)
+
+    VertexSkinning() = default;
+
+    /**
+     * @brief Pack from full-precision skinning data to compact format.
+     * @param indices Bone indices (values clamped to 0-255)
+     * @param weightsIn Blend weights (values clamped to 0.0-1.0)
+     */
+    void pack(const uint32_t* indices, const float* weightsIn) {
+        for (int i = 0; i < 4; ++i) {
+            // Clamp index to 255 (though we limit to 64 bones)
+            boneIndices[i] = static_cast<uint8_t>(std::min(indices[i], 255u));
+            // Quantize weight to 8-bit UNORM
+            weights[i] = static_cast<uint8_t>(glm::clamp(weightsIn[i], 0.0f, 1.0f) * 255.0f + 0.5f);
+        }
+    }
+
+    /**
+     * @brief Unpack to full-precision for debugging/CPU use.
+     */
+    void unpack(uint32_t* indices, float* weightsOut) const {
+        for (int i = 0; i < 4; ++i) {
+            indices[i] = boneIndices[i];
+            weightsOut[i] = static_cast<float>(weights[i]) / 255.0f;
+        }
+    }
+};
+static_assert(sizeof(VertexSkinning) == 8, "VertexSkinning must be 8 bytes");
+
+// ============================================================================
 // Packed Material Data (16 bytes = 8x fp16)
 // ============================================================================
 
@@ -362,6 +406,26 @@ struct alignas(256) AlignedTransform {
 };
 static_assert(sizeof(AlignedTransform) == 256, "AlignedTransform must be 256 bytes");
 static_assert(alignof(AlignedTransform) == 256, "AlignedTransform must have 256-byte alignment");
+
+// ============================================================================
+// Aligned Bone Matrices for Skinning (4KB, 256-byte aligned)
+// ============================================================================
+
+/**
+ * @brief Per-instance bone matrix UBO for skinned meshes.
+ *
+ * 256 bones * mat4 (64 bytes each) = 16384 bytes (16 KB).
+ * This fits within the minimum guaranteed UBO size (16 KB on mobile, 64 KB on desktop).
+ * Aligned to 256 bytes for dynamic UBO offsets on mobile GPUs.
+ */
+constexpr uint32_t MAX_BONES_PER_MESH = 256;
+constexpr uint32_t BONE_MATRICES_SIZE = MAX_BONES_PER_MESH * sizeof(glm::mat4);  // 16384 bytes
+
+struct alignas(256) AlignedBoneMatrices {
+    glm::mat4 bones[MAX_BONES_PER_MESH];  // 16384 bytes total (256-byte aligned)
+};
+static_assert(sizeof(AlignedBoneMatrices) == 16384, "AlignedBoneMatrices must be 16KB");
+static_assert(alignof(AlignedBoneMatrices) == 256, "AlignedBoneMatrices must have 256-byte alignment");
 
 // ============================================================================
 // Frame Constants (bound once per frame in Set 0)

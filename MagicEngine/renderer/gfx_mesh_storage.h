@@ -36,13 +36,16 @@ struct GpuMesh {
     Buffer vertexBuffer;           // Position stream (may be shared chunk buffer)
     Buffer attributeBuffer;        // Attribute stream (may be shared chunk buffer)
     Buffer indexBuffer;            // Index buffer (may be shared chunk buffer)
+    Buffer skinningBuffer;         // Skinning stream (may be shared chunk buffer, optional)
     uint32_t vertexOffset = 0;     // Byte offset in vertex buffer
     uint32_t attributeOffset = 0;  // Byte offset in attribute buffer
     uint32_t indexOffset = 0;      // Byte offset in index buffer
+    uint32_t skinningOffset = 0;   // Byte offset in skinning buffer
     uint32_t indexCount = 0;
     uint32_t vertexCount = 0;
     MeshBounds bounds;
     bool valid = false;
+    bool hasSkinning = false;      // True if mesh has skinning data
 };
 
 /**
@@ -109,6 +112,25 @@ public:
     MeshHandle upload16(
         const FullVertex* vertices, uint32_t vertexCount,
         const uint16_t* indices, uint32_t indexCount);
+
+    /**
+     * @brief Upload a skinned mesh with pre-packed vertex and skinning data.
+     * @param positions Position stream (12 bytes per vertex)
+     * @param attributes Attribute stream (12 bytes per vertex)
+     * @param skinning Skinning stream (8 bytes per vertex)
+     * @param vertexCount Number of vertices
+     * @param indices Array of indices (32-bit)
+     * @param indexCount Number of indices
+     * @param bounds Pre-computed bounds
+     * @return Handle to the mesh, or invalid handle on failure
+     */
+    MeshHandle uploadPackedSkinned(
+        const VertexPosition* positions,
+        const VertexAttributes* attributes,
+        const VertexSkinning* skinning,
+        uint32_t vertexCount,
+        const uint32_t* indices, uint32_t indexCount,
+        const MeshBounds& bounds);
 
     /**
      * @brief Destroy a mesh and free its GPU resources.

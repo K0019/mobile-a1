@@ -16,6 +16,7 @@
 #include "resource/resource_types.h"
 #include "Graphics/RenderComponent.h"
 #include "Graphics/LightComponent.h"
+#include "Graphics/AnimationComponent.h"
 #include "ECS/ECS.h"
 #include "logging/log.h"
 #include <cstring>
@@ -51,11 +52,16 @@ bindings(Material, start=0) {
   texture sampler2D u_occlusion;
 }
 
-// Dynamic bind group: per-draw transform with dynamic offset
+// Dynamic bind group: per-draw transform + bone matrices (both with dynamic offset)
+// Note: Bone matrices UBO is declared but not used by static shader - this ensures
+// both static and skinned pipelines share the same bind group layout
 bindings(Dynamic, start=0) {
   uniform(std140) TransformUBO {
     mat4 model;
   } transform;
+  uniform(std140) BoneMatricesUBO {
+    mat4 bones[256];
+  } skin;
 }
 
 // Split vertex streams (24 bytes total):
@@ -188,6 +194,182 @@ FragOut FSMain(Varyings in) {
     out.normal = vec4(n.xy, 0.0, 1.0);
 
     // Material data: roughness, metallic, ao, emissive intensity
+    out.materialData = vec4(roughness, metallic, ao, 0.0);
+
+    return out;
+}
+#hina_end
+)";
+
+// =============================================================================
+// G-Buffer Skinned Shader (embedded hina_sl) - For skeletal animation
+// =============================================================================
+
+// Same as kGBufferShader but with skinning support:
+// - Adds BoneMatrices UBO at binding 1 in Dynamic group
+// - Adds skinning vertex attributes in buffer 2
+// - Applies bone matrix transformation in vertex shader
+static const char* kGBufferSkinnedShader = R"(#hina
+group Frame = 0;
+group Material = 1;
+group Dynamic = 2;
+
+bindings(Frame, start=0) {
+  uniform(std140) FrameUBO {
+    mat4 viewProj;
+  } frame;
+}
+
+// Material bind group: binding 0 = packed constants, bindings 1-5 = textures
+bindings(Material, start=0) {
+  uniform(std140) MaterialConstants {
+    uvec4 packed;  // [0]: baseColor.rg (half2), [1]: baseColor.b,roughness (half2), [2]: metallic,emissive (half2), [3]: rim,ao (half2)
+  } material;
+  texture sampler2D u_albedo;
+  texture sampler2D u_normal;
+  texture sampler2D u_metallicRoughness;
+  texture sampler2D u_emissive;
+  texture sampler2D u_occlusion;
+}
+
+// Dynamic bind group: per-draw transform + bone matrices (both with dynamic offsets)
+bindings(Dynamic, start=0) {
+  uniform(std140) TransformUBO {
+    mat4 model;
+  } transform;
+  uniform(std140) BoneMatricesUBO {
+    mat4 bones[256];
+  } skin;
+}
+
+// Split vertex streams (32 bytes total for skinned):
+// Buffer 0: Position stream (12 bytes)
+// Buffer 1: Attribute stream (12 bytes packed)
+// Buffer 2: Skinning stream (8 bytes) - R8G8B8A8_UINT indices + R8G8B8A8_UNORM weights
+struct VertexIn {
+  vec3 a_position;    // location 0, buffer 0: position
+  uint a_normalX;     // location 1, buffer 1: lower 16 bits = SNORM16 |nx| * nz_sign
+  uint a_packed;      // location 2, buffer 1: RGB10A2 [ny, tx, ty, (nx_sign<<1)|handedness]
+  uint a_uv;          // location 3, buffer 1: RG16_UNORM UV
+  uvec4 a_boneIndices; // location 4, buffer 2: R8G8B8A8_UINT bone indices
+  vec4 a_boneWeights;  // location 5, buffer 2: R8G8B8A8_UNORM bone weights
+};
+
+struct Varyings {
+  vec3 worldPos;
+  vec3 normal;
+  vec3 tangent;
+  float bitangentSign;
+  vec2 uv;
+};
+
+struct FragOut {
+  vec4 albedo;       // location 0
+  vec4 normal;       // location 1
+  vec4 materialData; // location 2
+};
+#hina_end
+
+#hina_stage vertex entry VSMain
+Varyings VSMain(VertexIn in) {
+    Varyings out;
+
+    // Apply bone skinning to local position and normal/tangent
+    mat4 skinMatrix =
+        skin.bones[in.a_boneIndices.x] * in.a_boneWeights.x +
+        skin.bones[in.a_boneIndices.y] * in.a_boneWeights.y +
+        skin.bones[in.a_boneIndices.z] * in.a_boneWeights.z +
+        skin.bones[in.a_boneIndices.w] * in.a_boneWeights.w;
+
+    vec3 skinnedPosition = (skinMatrix * vec4(in.a_position, 1.0)).xyz;
+    mat3 skinNormalMatrix = mat3(skinMatrix);
+
+    // Transform skinned position to world space
+    vec4 worldPos = transform.model * vec4(skinnedPosition, 1.0);
+    out.worldPos = worldPos.xyz;
+
+    // Decode normal using main branch's CompressedVertex encoding
+    int normal_x_snorm = int(in.a_normalX & 0xFFFFu);
+    if (normal_x_snorm > 32767) normal_x_snorm -= 65536;
+    float normal_x_float = float(normal_x_snorm) / 32767.0;
+
+    float nx_magnitude = abs(normal_x_float);
+    float nz_sign = normal_x_float < 0.0 ? -1.0 : 1.0;
+
+    float ny = float(in.a_packed & 0x3FFu) / 1023.0 * 2.0 - 1.0;
+    float tx = float((in.a_packed >> 10u) & 0x3FFu) / 1023.0 * 2.0 - 1.0;
+    float ty = float((in.a_packed >> 20u) & 0x3FFu) / 1023.0 * 2.0 - 1.0;
+    uint alpha = (in.a_packed >> 30u) & 0x3u;
+
+    float nx_sign = ((alpha >> 1u) & 1u) != 0u ? -1.0 : 1.0;
+    float handedness = (alpha & 1u) != 0u ? -1.0 : 1.0;
+
+    float nx = nx_magnitude * nx_sign;
+    float nz = sqrt(max(0.001, 1.0 - nx * nx - ny * ny)) * nz_sign;
+    vec3 localNormal = normalize(vec3(nx, ny, nz));
+
+    float tz = sqrt(max(0.001, 1.0 - tx * tx - ty * ty));
+    vec3 localTangent = normalize(vec3(tx, ty, tz));
+
+    // Apply skinning to normal and tangent
+    vec3 skinnedNormal = normalize(skinNormalMatrix * localNormal);
+    vec3 skinnedTangent = normalize(skinNormalMatrix * localTangent);
+
+    // Transform to world space
+    mat3 normalMatrix = transpose(inverse(mat3(transform.model)));
+    out.normal = normalize(normalMatrix * skinnedNormal);
+    out.tangent = normalize(normalMatrix * skinnedTangent);
+
+    out.bitangentSign = handedness;
+    out.uv = unpackUnorm2x16(in.a_uv);
+
+    gl_Position = frame.viewProj * worldPos;
+    return out;
+}
+#hina_end
+
+#hina_stage fragment entry FSMain
+FragOut FSMain(Varyings in) {
+    FragOut out;
+
+    // Unpack base color from material constants
+    vec2 rg = unpackHalf2x16(material.packed.x);
+    vec2 bRoug = unpackHalf2x16(material.packed.y);
+    vec4 baseColor = vec4(rg.x, rg.y, bRoug.x, 1.0);
+
+    vec4 albedo = texture(u_albedo, in.uv) * baseColor;
+
+    vec3 N = normalize(in.normal);
+    vec3 T = normalize(in.tangent);
+    vec3 B = normalize(cross(N, T) * in.bitangentSign);
+
+    vec3 normalSample = texture(u_normal, in.uv).rgb;
+    bool hasNormalMap = abs(normalSample.z - 1.0) > 0.01 || abs(normalSample.x - 0.5) > 0.01 || abs(normalSample.y - 0.5) > 0.01;
+
+    if (hasNormalMap) {
+        mat3 TBN = mat3(T, B, N);
+        vec3 normalMap = normalSample * 2.0 - 1.0;
+        N = normalize(TBN * normalMap);
+    }
+
+    N = -N;
+
+    vec2 mr = texture(u_metallicRoughness, in.uv).bg;
+    float metallic = mr.x;
+    float roughness = mr.y;
+    float ao = texture(u_occlusion, in.uv).r;
+
+    out.albedo = albedo;
+
+    vec3 n = N / (abs(N.x) + abs(N.y) + abs(N.z));
+    if (n.z < 0.0) {
+        float nx = n.x;
+        float ny = n.y;
+        n.x = (1.0 - abs(ny)) * (nx >= 0.0 ? 1.0 : -1.0);
+        n.y = (1.0 - abs(nx)) * (ny >= 0.0 ? 1.0 : -1.0);
+    }
+    out.normal = vec4(n.xy, 0.0, 1.0);
+
     out.materialData = vec4(roughness, metallic, ao, 0.0);
 
     return out;
@@ -362,7 +544,6 @@ FragOut FSMain(Varyings in) {
 SceneRenderFeature::SceneRenderFeature(bool enableObjectPicking)
   : m_enableObjectPicking(enableObjectPicking)
 {
-  LOG_INFO("[SceneRenderFeature] Created");
 }
 
 SceneRenderFeature::~SceneRenderFeature()
@@ -384,8 +565,10 @@ void SceneRenderFeature::Shutdown()
   }
   m_frameUBOMapped = nullptr;
   m_gbufferPipeline.reset();
+  m_gbufferSkinnedPipeline.reset();
   m_sceneLayout.reset();
   m_pipelineCreated = false;
+  m_skinnedPipelineCreated = false;
 
   // Composite resources
   if (hina_bind_group_is_valid(m_compositeBindGroup)) {
@@ -430,7 +613,7 @@ bool SceneRenderFeature::EnsurePipelineCreated(GfxRenderer* gfxRenderer)
     return false;
   }
 
-  LOG_INFO("[SceneRenderFeature] Creating G-buffer pipeline...");
+  // Pipeline creation (one-time)
 
   char* error = nullptr;
   hina_hsl_module* module = hslc_compile_hsl_source(kGBufferShader, "scene_gbuffer", &error);
@@ -441,8 +624,6 @@ bool SceneRenderFeature::EnsurePipelineCreated(GfxRenderer* gfxRenderer)
   }
 
   // Verify we got valid SPIR-V data
-  LOG_INFO("[SceneRenderFeature] Module compiled - VS spirv: {} bytes, FS spirv: {} bytes",
-           module->vs.spirv_size, module->fs.spirv_size);
   if (module->vs.spirv_size == 0 || module->fs.spirv_size == 0) {
     LOG_ERROR("[SceneRenderFeature] Module has zero-size SPIR-V data!");
     hslc_hsl_module_free(module);
@@ -452,17 +633,6 @@ bool SceneRenderFeature::EnsurePipelineCreated(GfxRenderer* gfxRenderer)
     LOG_ERROR("[SceneRenderFeature] Module has NULL SPIR-V data pointers!");
     hslc_hsl_module_free(module);
     return false;
-  }
-  // Check SPIR-V magic number
-  const uint32_t* vs_spirv = (const uint32_t*)module->vs.spirv_data;
-  const uint32_t* fs_spirv = (const uint32_t*)module->fs.spirv_data;
-  LOG_INFO("[SceneRenderFeature] VS SPIR-V magic: 0x{:08X}, FS SPIR-V magic: 0x{:08X}",
-           vs_spirv[0], fs_spirv[0]);
-  if (vs_spirv[0] != 0x07230203) {
-    LOG_ERROR("[SceneRenderFeature] VS SPIR-V has invalid magic number!");
-  }
-  if (fs_spirv[0] != 0x07230203) {
-    LOG_ERROR("[SceneRenderFeature] FS SPIR-V has invalid magic number!");
   }
 
   // Scene bind group layout (set 0: frame UBO)
@@ -568,7 +738,86 @@ bool SceneRenderFeature::EnsurePipelineCreated(GfxRenderer* gfxRenderer)
   }
 
   m_pipelineCreated = true;
-  LOG_INFO("[SceneRenderFeature] G-buffer pipeline and resources created");
+  return true;
+}
+
+bool SceneRenderFeature::EnsureSkinnedPipelineCreated(GfxRenderer* gfxRenderer)
+{
+  if (m_skinnedPipelineCreated) {
+    return true;
+  }
+
+  // Static pipeline must be created first (we reuse some resources)
+  if (!m_pipelineCreated) {
+    if (!EnsurePipelineCreated(gfxRenderer)) {
+      return false;
+    }
+  }
+
+  char* error = nullptr;
+  hina_hsl_module* module = hslc_compile_hsl_source(kGBufferSkinnedShader, "scene_gbuffer_skinned", &error);
+  if (!module) {
+    LOG_ERROR("[SceneRenderFeature] Skinned shader compilation failed: {}", error ? error : "unknown");
+    if (error) hslc_free_log(error);
+    return false;
+  }
+
+  // Material layout from GfxRenderer (Set 1: constants UBO + textures)
+  gfx::BindGroupLayout materialLayout = gfxRenderer->getMaterialLayout();
+  // Dynamic layout from GfxRenderer (Set 2: transform UBO + bone matrices with dynamic offsets)
+  gfx::BindGroupLayout dynamicLayout = gfxRenderer->getDynamicLayout();
+
+  // Vertex layout for split streams (3 buffers for skinned meshes)
+  hina_vertex_layout vertex_layout = {};
+  vertex_layout.buffer_count = 3;
+  // Buffer 0: Position stream (12 bytes)
+  vertex_layout.buffer_strides[0] = sizeof(gfx::VertexPosition);
+  vertex_layout.input_rates[0] = HINA_VERTEX_INPUT_RATE_VERTEX;
+  // Buffer 1: Attribute stream (12 bytes)
+  vertex_layout.buffer_strides[1] = sizeof(gfx::VertexAttributes);
+  vertex_layout.input_rates[1] = HINA_VERTEX_INPUT_RATE_VERTEX;
+  // Buffer 2: Skinning stream (8 bytes)
+  vertex_layout.buffer_strides[2] = sizeof(gfx::VertexSkinning);
+  vertex_layout.input_rates[2] = HINA_VERTEX_INPUT_RATE_VERTEX;
+
+  // 6 attributes total
+  vertex_layout.attr_count = 6;
+  // Buffer 0 attributes
+  vertex_layout.attrs[0] = { HINA_FORMAT_R32G32B32_SFLOAT, 0, 0, 0 };  // position
+  // Buffer 1 attributes
+  vertex_layout.attrs[1] = { HINA_FORMAT_R32_UINT, 0, 1, 1 };   // normalX
+  vertex_layout.attrs[2] = { HINA_FORMAT_R32_UINT, 4, 2, 1 };   // packed
+  vertex_layout.attrs[3] = { HINA_FORMAT_R32_UINT, 8, 3, 1 };   // uv
+  // Buffer 2 attributes (skinning)
+  vertex_layout.attrs[4] = { HINA_FORMAT_R8G8B8A8_UINT, 0, 4, 2 };    // boneIndices
+  vertex_layout.attrs[5] = { HINA_FORMAT_R8G8B8A8_UNORM, 4, 5, 2 };   // boneWeights
+
+  hina_hsl_pipeline_desc pip_desc = hina_hsl_pipeline_desc_default();
+  pip_desc.layout = vertex_layout;
+  pip_desc.cull_mode = HINA_CULL_MODE_NONE;
+  pip_desc.front_face = HINA_FRONT_FACE_CLOCKWISE;
+  pip_desc.depth.depth_test = true;
+  pip_desc.depth.depth_write = true;
+  pip_desc.depth.depth_compare = HINA_COMPARE_OP_LESS;
+  pip_desc.depth_format = HINA_FORMAT_D32_SFLOAT;
+  pip_desc.color_attachment_count = 3;
+  pip_desc.color_formats[0] = HINA_FORMAT_R8G8B8A8_SRGB;
+  pip_desc.color_formats[1] = HINA_FORMAT_R16G16_SFLOAT;
+  pip_desc.color_formats[2] = HINA_FORMAT_R8G8B8A8_UNORM;
+  pip_desc.bind_group_layouts[0] = m_sceneLayout.get();
+  pip_desc.bind_group_layouts[1] = materialLayout;
+  pip_desc.bind_group_layouts[2] = dynamicLayout;
+  pip_desc.bind_group_layout_count = 3;
+
+  m_gbufferSkinnedPipeline.reset(hina_make_pipeline_from_module(module, &pip_desc, nullptr));
+  hslc_hsl_module_free(module);
+
+  if (!hina_pipeline_is_valid(m_gbufferSkinnedPipeline.get())) {
+    LOG_ERROR("[SceneRenderFeature] Skinned pipeline creation failed");
+    return false;
+  }
+
+  m_skinnedPipelineCreated = true;
   return true;
 }
 
@@ -598,6 +847,11 @@ void SceneRenderFeature::UpdateScene(uint64_t renderFeatureID,
     glm::mat4 entityWorldMatrix;
     entity->GetTransform().SetMat4ToWorld(&entityWorldMatrix);
 
+    // Check for AnimationComponent for skeletal skinning
+    // Use skinMatrices.size() as authoritative count (AnimationComponent may resize it)
+    AnimationComponent* animComp = entity->GetComp<AnimationComponent>();
+    bool hasValidSkinning = animComp && !animComp->skinMatrices.empty();
+
     const auto& materialList = comp.GetMaterialsList();
     const size_t materialCount = materialList.size();
 
@@ -614,6 +868,14 @@ void SceneRenderFeature::UpdateScene(uint64_t renderFeatureID,
       draw.gfxMesh.generation = static_cast<uint16_t>(meshData->gfxMeshGeneration);
       draw.transform = entityWorldMatrix * mesh->transforms[i];
       draw.baseColor = glm::vec4(0.8f, 0.8f, 0.8f, 1.0f);
+
+      // Set skinning data if entity has valid animation
+      if (hasValidSkinning) {
+        draw.isSkinned = true;
+        // Use skinMatrices.size() as authoritative - AnimationComponent::ProcessComp may resize it
+        draw.jointCount = static_cast<uint32_t>(animComp->skinMatrices.size());
+        draw.skinMatrices = animComp->skinMatrices.data();
+      }
 
       const ResourceMaterial* material = nullptr;
       if (i < materialCount) {
@@ -716,7 +978,6 @@ void SceneRenderFeature::SetupPasses(internal::RenderPassBuilder& passBuilder)
       ExecuteCompositePass(const_cast<internal::ExecutionContext&>(ctx));
     });
 
-  LOG_INFO("[SceneRenderFeature] SetupPasses - registered G-buffer and composite passes");
 }
 
 void SceneRenderFeature::ExecuteGBufferPass(internal::ExecutionContext& ctx)
@@ -784,23 +1045,42 @@ void SceneRenderFeature::ExecuteGBufferPass(internal::ExecutionContext& ctx)
     auto& meshStorage = gfxRenderer->getMeshStorage();
     auto& materialSystem = gfxRenderer->getMaterialSystem();
 
-    // Get frame resources for transform ring buffer
+    // Get frame resources for transform and bone matrix ring buffers
     auto& frame = gfxRenderer->getCurrentFrameResources();
 
-    // Use persistently mapped pointer (mapped once during creation)
+    // Use persistently mapped pointers (mapped once during creation)
     if (!frame.transformRingMapped) {
-      LOG_ERROR("[SceneRenderFeature] Transform ring buffer not mapped");
       hina_cmd_end_pass(cmd);
       return;
     }
 
+    // Separate draws into static and skinned
+    std::vector<const DrawData*> staticDraws;
+    std::vector<const DrawData*> skinnedDraws;
+    staticDraws.reserve(m_drawList.size());
+    skinnedDraws.reserve(32);  // Typical skinned draw count
+
     for (const auto& draw : m_drawList) {
+      // Only classify as skinned if mesh also has skinning data
+      const gfx::GpuMesh* gpuMesh = meshStorage.get(draw.gfxMesh);
+      bool meshHasSkinning = gpuMesh && gpuMesh->valid && gpuMesh->hasSkinning;
+      if (draw.isSkinned && draw.skinMatrices && meshHasSkinning) {
+        skinnedDraws.push_back(&draw);
+      } else {
+        staticDraws.push_back(&draw);
+      }
+    }
+
+    // =========================================================================
+    // Pass 1: Render static meshes with m_gbufferPipeline
+    // =========================================================================
+    for (const DrawData* drawPtr : staticDraws) {
+      const DrawData& draw = *drawPtr;
       const gfx::GpuMesh* gpuMesh = meshStorage.get(draw.gfxMesh);
       if (!gpuMesh || !gpuMesh->valid) continue;
 
       // Check transform ring buffer overflow
       if (frame.transformRingOffset >= TRANSFORM_UBO_SIZE) {
-        LOG_WARNING("[SceneRenderFeature] Transform ring buffer overflow, skipping remaining draws");
         break;
       }
 
@@ -809,7 +1089,7 @@ void SceneRenderFeature::ExecuteGBufferPass(internal::ExecutionContext& ctx)
           static_cast<uint8_t*>(frame.transformRingMapped) + frame.transformRingOffset);
       *transformDst = draw.transform;
 
-      // Bind split vertex streams with offsets
+      // Bind split vertex streams with offsets (2 buffers for static)
       hina_vertex_input meshInput = {};
       meshInput.vertex_buffers[0] = gpuMesh->vertexBuffer;
       meshInput.vertex_offsets[0] = gpuMesh->vertexOffset;
@@ -820,7 +1100,7 @@ void SceneRenderFeature::ExecuteGBufferPass(internal::ExecutionContext& ctx)
 
       hina_cmd_apply_vertex_input(cmd, &meshInput);
 
-      // Bind material at Set 1 (includes material constants UBO at binding 0)
+      // Bind material at Set 1
       gfx::BindGroup materialBG;
       if (draw.hasMaterial && materialSystem.isMaterialValid(draw.gfxMaterial)) {
         materialBG = materialSystem.getMaterialBindGroup(draw.gfxMaterial);
@@ -829,15 +1109,102 @@ void SceneRenderFeature::ExecuteGBufferPass(internal::ExecutionContext& ctx)
       }
       hina_cmd_bind_group(cmd, 1, materialBG);
 
-      // Bind Set 2 (dynamic transform UBO) with dynamic offset
-      uint32_t dynamicOffsets[1] = { frame.transformRingOffset };
-      hina_cmd_bind_group_with_offsets(cmd, 2, frame.dynamicBindGroup, dynamicOffsets, 1);
+      // Bind Set 2 with 2 dynamic offsets (transform + dummy bone offset)
+      uint32_t dynamicOffsets[2] = { frame.transformRingOffset, 0 };
+      hina_cmd_bind_group_with_offsets(cmd, 2, frame.dynamicBindGroup, dynamicOffsets, 2);
 
-      // Advance transform ring offset (256-byte aligned for mobile compatibility)
+      // Advance transform ring offset
       frame.transformRingOffset += TRANSFORM_ALIGNMENT;
 
-      // Draw with index offset
+      // Draw
       hina_cmd_draw_indexed(cmd, gpuMesh->indexCount, 1, gpuMesh->indexOffset / sizeof(uint32_t), 0, 0);
+    }
+
+    // =========================================================================
+    // Pass 2: Render skinned meshes with m_gbufferSkinnedPipeline
+    // =========================================================================
+    if (!skinnedDraws.empty()) {
+      // Ensure skinned pipeline is created
+      if (!EnsureSkinnedPipelineCreated(gfxRenderer) || !frame.boneMatrixRingMapped) {
+        // Skip skinned draws if pipeline or bone buffer not available
+      } else {
+        // Switch to skinned pipeline
+        hina_cmd_bind_pipeline(cmd, m_gbufferSkinnedPipeline.get());
+        hina_cmd_bind_group(cmd, 0, m_sceneBindGroup);
+
+        for (const DrawData* drawPtr : skinnedDraws) {
+          const DrawData& draw = *drawPtr;
+          const gfx::GpuMesh* gpuMesh = meshStorage.get(draw.gfxMesh);
+          if (!gpuMesh || !gpuMesh->valid) continue;
+
+          // Check buffer overflow
+          if (frame.transformRingOffset >= TRANSFORM_UBO_SIZE ||
+              frame.boneMatrixRingOffset >= BONE_MATRIX_UBO_SIZE) {
+            break;
+          }
+
+          // Write transform to ring buffer
+          glm::mat4* transformDst = reinterpret_cast<glm::mat4*>(
+              static_cast<uint8_t*>(frame.transformRingMapped) + frame.transformRingOffset);
+          *transformDst = draw.transform;
+
+          // Write bone matrices to ring buffer (up to MAX_BONES_PER_MESH)
+          // Initialize all slots to identity first, then copy actual bones
+          uint32_t numBones = std::min(draw.jointCount, gfx::MAX_BONES_PER_MESH);
+          if (draw.jointCount > gfx::MAX_BONES_PER_MESH) {
+            static bool warnedOnce = false;
+            if (!warnedOnce) {
+              LOG_WARNING("[SceneRenderFeature] Mesh has {} bones but MAX_BONES_PER_MESH is {}. "
+                          "Bones beyond limit will use identity matrices. Consider bone remapping.",
+                          draw.jointCount, gfx::MAX_BONES_PER_MESH);
+              warnedOnce = true;
+            }
+          }
+          glm::mat4* bonesDst = reinterpret_cast<glm::mat4*>(
+              static_cast<uint8_t*>(frame.boneMatrixRingMapped) + frame.boneMatrixRingOffset);
+
+          // Fill all slots with identity matrices first (prevents garbage in unused slots)
+          static const glm::mat4 identity(1.0f);
+          for (uint32_t i = 0; i < gfx::MAX_BONES_PER_MESH; ++i) {
+            bonesDst[i] = identity;
+          }
+          // Copy actual bone matrices
+          std::memcpy(bonesDst, draw.skinMatrices, numBones * sizeof(glm::mat4));
+
+          // Bind split vertex streams (3 buffers for skinned)
+          hina_vertex_input meshInput = {};
+          meshInput.vertex_buffers[0] = gpuMesh->vertexBuffer;
+          meshInput.vertex_offsets[0] = gpuMesh->vertexOffset;
+          meshInput.vertex_buffers[1] = gpuMesh->attributeBuffer;
+          meshInput.vertex_offsets[1] = gpuMesh->attributeOffset;
+          meshInput.vertex_buffers[2] = gpuMesh->skinningBuffer;
+          meshInput.vertex_offsets[2] = gpuMesh->skinningOffset;
+          meshInput.index_buffer = gpuMesh->indexBuffer;
+          meshInput.index_type = HINA_INDEX_UINT32;
+
+          hina_cmd_apply_vertex_input(cmd, &meshInput);
+
+          // Bind material at Set 1
+          gfx::BindGroup materialBG;
+          if (draw.hasMaterial && materialSystem.isMaterialValid(draw.gfxMaterial)) {
+            materialBG = materialSystem.getMaterialBindGroup(draw.gfxMaterial);
+          } else {
+            materialBG = materialSystem.getMaterialBindGroup(materialSystem.getDefaultMaterial());
+          }
+          hina_cmd_bind_group(cmd, 1, materialBG);
+
+          // Bind Set 2 with 2 dynamic offsets (transform + bone matrices)
+          uint32_t dynamicOffsets[2] = { frame.transformRingOffset, frame.boneMatrixRingOffset };
+          hina_cmd_bind_group_with_offsets(cmd, 2, frame.dynamicBindGroup, dynamicOffsets, 2);
+
+          // Advance ring buffer offsets
+          frame.transformRingOffset += TRANSFORM_ALIGNMENT;
+          frame.boneMatrixRingOffset += gfx::BONE_MATRICES_SIZE;
+
+          // Draw
+          hina_cmd_draw_indexed(cmd, gpuMesh->indexCount, 1, gpuMesh->indexOffset / sizeof(uint32_t), 0, 0);
+        }
+      }
     }
 
     // No unmap needed for HOST_COHERENT persistently mapped buffers
@@ -907,7 +1274,7 @@ bool SceneRenderFeature::EnsureCompositePipelineCreated(GfxRenderer* gfxRenderer
     return false;
   }
 
-  LOG_INFO("[SceneRenderFeature] Creating composite pipeline...");
+  // Create composite pipeline (one-time)
 
   // Create sampler for G-buffer sampling
   {
@@ -1068,7 +1435,6 @@ bool SceneRenderFeature::EnsureCompositePipelineCreated(GfxRenderer* gfxRenderer
   }
 
   m_compositePipelineCreated = true;
-  LOG_INFO("[SceneRenderFeature] Composite pipeline created successfully (with light UBO)");
   return true;
 }
 
@@ -1134,7 +1500,6 @@ bool SceneRenderFeature::EnsureCompositeBindGroup(GfxRenderer* gfxRenderer, gfx:
   m_lastGBufferWidth = gbufferWidth;
   m_lastGBufferHeight = gbufferHeight;
   m_lastSceneDepth = sceneDepth;
-  LOG_INFO("[SceneRenderFeature] Composite bind group created ({}x{})", gbufferWidth, gbufferHeight);
   return true;
 }
 
@@ -1156,7 +1521,6 @@ void SceneRenderFeature::ExecuteCompositePass(internal::ExecutionContext& ctx)
   gfx::Texture sceneColor = ctx.GetTexture(RenderResources::SCENE_COLOR);
   gfx::Texture sceneDepth = ctx.GetTexture(RenderResources::SCENE_DEPTH);
   if (!gfx::isValid(sceneColor)) {
-    LOG_ERROR("[SceneRenderFeature] SCENE_COLOR texture not valid");
     return;
   }
 

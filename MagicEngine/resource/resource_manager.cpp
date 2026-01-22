@@ -65,6 +65,29 @@ namespace
     return result;
   }
 
+  // Convert GPUSkinningData (32 bytes) to VertexSkinning (8 bytes) for mobile-optimized rendering
+  std::vector<gfx::VertexSkinning> buildCompactSkinningBuffer(const std::vector<GPUSkinningData>& gpuSkinning)
+  {
+    std::vector<gfx::VertexSkinning> result;
+    result.reserve(gpuSkinning.size());
+    for (const auto& src : gpuSkinning)
+    {
+      gfx::VertexSkinning dst;
+      // Pack bone indices (clamp to 255, should be well under 64)
+      dst.boneIndices[0] = static_cast<uint8_t>(std::min(src.indices.x, 255u));
+      dst.boneIndices[1] = static_cast<uint8_t>(std::min(src.indices.y, 255u));
+      dst.boneIndices[2] = static_cast<uint8_t>(std::min(src.indices.z, 255u));
+      dst.boneIndices[3] = static_cast<uint8_t>(std::min(src.indices.w, 255u));
+      // Pack weights as UNORM8 (0.0-1.0 -> 0-255)
+      dst.weights[0] = static_cast<uint8_t>(std::clamp(src.weights.x * 255.0f + 0.5f, 0.0f, 255.0f));
+      dst.weights[1] = static_cast<uint8_t>(std::clamp(src.weights.y * 255.0f + 0.5f, 0.0f, 255.0f));
+      dst.weights[2] = static_cast<uint8_t>(std::clamp(src.weights.z * 255.0f + 0.5f, 0.0f, 255.0f));
+      dst.weights[3] = static_cast<uint8_t>(std::clamp(src.weights.w * 255.0f + 0.5f, 0.0f, 255.0f));
+      result.push_back(dst);
+    }
+    return result;
+  }
+
   void buildMorphBuffers(const Resource::ProcessedMesh& mesh,
                          std::vector<GPUMorphDelta>& outDeltas,
                          std::vector<uint32_t>& outStarts,
@@ -354,26 +377,74 @@ namespace Resource
       if (m_context && m_context->renderer) {
         if (auto* gfxRenderer = m_context->renderer) {
           auto& meshStorage = gfxRenderer->getMeshStorage();
-          LOG_INFO("Uploading mesh '{}' to GfxMeshStorage ({} verts, {} indices)",
-                   mesh.name, mesh.vertices.size(), mesh.indices.size());
 
           // Convert Vertex to gfx::FullVertex (they have matching layout)
           static_assert(sizeof(Vertex) == sizeof(gfx::FullVertex), "Vertex layouts must match");
           const auto* gfxVertices = reinterpret_cast<const gfx::FullVertex*>(mesh.vertices.data());
 
-          gfx::MeshHandle gfxMesh = meshStorage.upload(
-            gfxVertices,
-            static_cast<uint32_t>(mesh.vertices.size()),
-            mesh.indices.data(),
-            static_cast<uint32_t>(mesh.indices.size())
-          );
+          gfx::MeshHandle gfxMesh;
+
+          // Check if mesh has skinning data for skeletal animation
+          if (!gpuSkinning.empty()) {
+            // Convert to compact skinning format (8 bytes vs 32 bytes)
+            auto compactSkinning = buildCompactSkinningBuffer(gpuSkinning);
+
+            // Pack vertices into position/attribute streams
+            std::vector<gfx::VertexPosition> positions;
+            std::vector<gfx::VertexAttributes> attributes;
+            gfx::MeshBounds bounds;
+
+            positions.resize(mesh.vertices.size());
+            attributes.resize(mesh.vertices.size());
+            glm::vec3 minPos(std::numeric_limits<float>::max());
+            glm::vec3 maxPos(std::numeric_limits<float>::lowest());
+
+            for (size_t i = 0; i < mesh.vertices.size(); ++i) {
+              const auto& v = gfxVertices[i];
+              positions[i] = gfx::VertexPosition(v.position);
+              float bitangentSign = v.tangent.w;
+              glm::vec3 tangent = glm::vec3(v.tangent);
+              attributes[i].pack(v.normal, tangent, bitangentSign, v.getUV(), 0);
+              minPos = glm::min(minPos, v.position);
+              maxPos = glm::max(maxPos, v.position);
+            }
+
+            bounds.aabbMin = minPos;
+            bounds.aabbMax = maxPos;
+            bounds.center = (minPos + maxPos) * 0.5f;
+            bounds.radius = glm::length(maxPos - bounds.center);
+
+            LOG_INFO("Uploading skinned mesh '{}' to GfxMeshStorage ({} verts, {} indices, {} joints)",
+                     mesh.name, mesh.vertices.size(), mesh.indices.size(), hot->animation.jointCount);
+
+            gfxMesh = meshStorage.uploadPackedSkinned(
+              positions.data(),
+              attributes.data(),
+              compactSkinning.data(),
+              static_cast<uint32_t>(mesh.vertices.size()),
+              mesh.indices.data(),
+              static_cast<uint32_t>(mesh.indices.size()),
+              bounds
+            );
+          } else {
+            // Static mesh - use standard upload
+            LOG_INFO("Uploading static mesh '{}' to GfxMeshStorage ({} verts, {} indices)",
+                     mesh.name, mesh.vertices.size(), mesh.indices.size());
+
+            gfxMesh = meshStorage.upload(
+              gfxVertices,
+              static_cast<uint32_t>(mesh.vertices.size()),
+              mesh.indices.data(),
+              static_cast<uint32_t>(mesh.indices.size())
+            );
+          }
 
           if (gfxMesh.isValid()) {
             hot->hasGfxMesh = true;
             hot->gfxMeshIndex = gfxMesh.index;
             hot->gfxMeshGeneration = gfxMesh.generation;
-            LOG_INFO("Uploaded mesh '{}' to GfxMeshStorage: index={} gen={}",
-                      mesh.name, gfxMesh.index, gfxMesh.generation);
+            LOG_INFO("Uploaded mesh '{}' to GfxMeshStorage: index={} gen={} skinned={}",
+                      mesh.name, gfxMesh.index, gfxMesh.generation, !gpuSkinning.empty());
           } else {
             LOG_WARNING("Failed to upload mesh '{}' to GfxMeshStorage", mesh.name);
           }
