@@ -1,4 +1,4 @@
-﻿/******************************************************************************/
+/******************************************************************************/
 /*!
 \file   ResourceImporter.h
 \par    Project: Kuro Mahou
@@ -13,22 +13,25 @@
 \brief
 Provides importers for supported file types.
 
-All content © 2025 DigiPen Institute of Technology Singapore.
+All content (C) DigiPen Institute of Technology Singapore.
 All rights reserved.
 */
 /******************************************************************************/
 
 #pragma once
-#include "Engine/Resources/Importers/ResourceFiletypeImporterBase.h"
+#include <string>
+#include <unordered_map>
 
 class ResourceImporter
 {
 public:
+    // Function pointer type for import functions
+    using ImportFn = bool(*)(const std::string&);
+
     static bool Import(const std::string& filepath);
     static bool FiletypeSupported(const std::string& extension);
 
 private:
-    static std::unordered_map<std::string, SPtr<ResourceFiletypeImporterBase>> importers;
+    static std::unordered_map<std::string, ImportFn> importers;
 
 };
-
