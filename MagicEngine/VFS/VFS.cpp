@@ -2,6 +2,7 @@
 #include "VFS.h"
 #include "IVFSImpl.h"
 #include "IFileStream.h"
+#include "logging/log.h"
 
 #include "DirectoryVFSImpl.h"
 #include "PakFileVFSImpl.h"
@@ -10,6 +11,7 @@
 #endif
 
 #include <algorithm>
+#include <unordered_map>
 #include <utility>
 
 
@@ -492,4 +494,81 @@ std::string VFS::GetParentPath(const std::string& path)
     }
 
     return "";
+}
+
+// Cache for resolved paths - only populated once per unique path
+static std::unordered_map<std::string, std::string> s_ResolvedPathCache;
+
+std::string VFS::ResolveCompiledAssetPath(const std::string& path)
+{
+    std::string normPath = NormalizePath(path);
+
+    // Check cache first - O(1) lookup
+    auto it = s_ResolvedPathCache.find(normPath);
+    if (it != s_ResolvedPathCache.end())
+    {
+        return it->second;
+    }
+
+    // First time seeing this path - do the resolution once
+    const std::string compiledAssetsPrefix = "compiledassets/";
+
+    // Not a compiled asset path - cache and return as-is
+    if (normPath.find(compiledAssetsPrefix) != 0)
+    {
+        s_ResolvedPathCache[normPath] = normPath;
+        return normPath;
+    }
+
+    std::string relativePath = normPath.substr(compiledAssetsPrefix.length());
+
+    // Already has subdirectories (new folder format)
+    if (relativePath.find('/') != std::string::npos)
+    {
+        if (FileExists(normPath))
+        {
+            s_ResolvedPathCache[normPath] = normPath;
+            return normPath;
+        }
+        // Try flat fallback
+        std::string filename = GetFilename(relativePath);
+        std::string flatPath = compiledAssetsPrefix + filename;
+        if (FileExists(flatPath))
+        {
+            s_ResolvedPathCache[normPath] = flatPath;
+            return flatPath;
+        }
+        s_ResolvedPathCache[normPath] = normPath;
+        return normPath;
+    }
+
+    // Flat path - check if it exists
+    if (FileExists(normPath))
+    {
+        s_ResolvedPathCache[normPath] = normPath;
+        return normPath;
+    }
+
+    // Flat path doesn't exist - search folder structure once
+    std::string filename = GetFilename(relativePath);
+
+    // Simple folder search - check common locations instead of full recursive search
+    std::vector<std::string> searchPaths = {
+        compiledAssetsPrefix + "models/fbx/" + filename,
+        compiledAssetsPrefix + "textures/" + filename,
+        compiledAssetsPrefix + "materials/" + filename,
+    };
+
+    for (const auto& searchPath : searchPaths)
+    {
+        if (FileExists(searchPath))
+        {
+            s_ResolvedPathCache[normPath] = searchPath;
+            return searchPath;
+        }
+    }
+
+    // Not found - cache original path, caller will handle error
+    s_ResolvedPathCache[normPath] = normPath;
+    return normPath;
 }

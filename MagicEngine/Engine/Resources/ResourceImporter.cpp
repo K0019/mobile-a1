@@ -58,7 +58,6 @@ bool ResourceImporter::Import(const std::string& filepath)
     }
 
     // Get the importer for this filetype
-    //std::string filetype{ util::ToLowerStr(filepath.extension().string()) };
     std::string filetype{ util::ToLowerStr(VFS::GetExtension(filepath)) };
     auto filetypeImporterIter{ importers.find(filetype) };
     if (filetypeImporterIter == importers.end())

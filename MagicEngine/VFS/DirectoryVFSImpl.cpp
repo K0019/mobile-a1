@@ -94,9 +94,23 @@ std::vector<std::string> DirectoryVFSImpl::ListDirectory(const std::string& path
     std::vector<std::string> entries;
     std::filesystem::path fullPath = m_RootPath / path;
 
-    for (const auto& entry : std::filesystem::directory_iterator(fullPath))
+    try
     {
-        entries.push_back(entry.path().filename().string());
+        // Check if the path exists and is a directory before iterating
+        if (!std::filesystem::exists(fullPath) || !std::filesystem::is_directory(fullPath))
+        {
+            return entries;  // Return empty list for non-existent or non-directory paths
+        }
+
+        for (const auto& entry : std::filesystem::directory_iterator(fullPath))
+        {
+            entries.push_back(entry.path().filename().string());
+        }
+    }
+    catch (const std::filesystem::filesystem_error&)
+    {
+        // Return empty list on any filesystem error (permission denied, etc.)
+        return entries;
     }
     return entries;
 }

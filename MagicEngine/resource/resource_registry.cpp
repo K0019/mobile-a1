@@ -2,6 +2,7 @@
 #include "resource_registry.h"
 #include "resource_manager.h"
 #include "asset_loader.h"
+#include "VFS/VFS.h"
 #include "logging/log.h"
 
 #include <functional>
@@ -38,7 +39,6 @@ size_t ResourceRegistry::ImportTexture(const std::string& vfsPath)
     // Check if already imported
     if (auto it = m_pathToHash.find(vfsPath); it != m_pathToHash.end())
     {
-        LOG_DEBUG("Texture already imported: {}", vfsPath);
         return it->second;
     }
 
@@ -78,7 +78,6 @@ size_t ResourceRegistry::ImportMesh(const std::string& vfsPath)
     // Check if already imported
     if (auto it = m_pathToHash.find(vfsPath); it != m_pathToHash.end())
     {
-        LOG_DEBUG("Mesh already imported: {}", vfsPath);
         return it->second;
     }
 
@@ -114,7 +113,6 @@ size_t ResourceRegistry::ImportMaterial(const std::string& vfsPath)
     // Check if already imported
     if (auto it = m_pathToHash.find(vfsPath); it != m_pathToHash.end())
     {
-        LOG_DEBUG("Material already imported: {}", vfsPath);
         return it->second;
     }
 
@@ -165,7 +163,6 @@ size_t ResourceRegistry::ImportAnimation(const std::string& vfsPath)
     // Check if already imported
     if (auto it = m_pathToHash.find(vfsPath); it != m_pathToHash.end())
     {
-        LOG_DEBUG("Animation already imported: {}", vfsPath);
         return it->second;
     }
 
