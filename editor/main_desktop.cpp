@@ -89,3 +89,13 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
 
   return 0;
 }
+
+#if defined(_WIN32)
+int WINAPI WinMain([[maybe_unused]] HINSTANCE hInstance,
+                   [[maybe_unused]] HINSTANCE hPrevInstance,
+                   [[maybe_unused]] LPSTR lpCmdLine,
+                   [[maybe_unused]] int nCmdShow)
+{
+  return main(__argc, __argv);
+}
+#endif

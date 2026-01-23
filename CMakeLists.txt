@@ -109,7 +109,11 @@ set(REQUIRED_SUBMODULES
 
 set(MISSING_SUBMODULES "")
 foreach(SUBMOD ${REQUIRED_SUBMODULES})
-    if(NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/extern/${SUBMOD}/CMakeLists.txt")
+    set(SUBMOD_MARKER "CMakeLists.txt")
+    if(SUBMOD STREQUAL "imgui")
+        set(SUBMOD_MARKER "imgui.h")
+    endif()
+    if(NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/extern/${SUBMOD}/${SUBMOD_MARKER}")
         list(APPEND MISSING_SUBMODULES ${SUBMOD})
     endif()
 endforeach()

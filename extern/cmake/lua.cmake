@@ -2,6 +2,7 @@
 # Builds Lua as a static library from the official source
 
 set(LUA_DIR ${CMAKE_CURRENT_SOURCE_DIR}/extern/lua)
+set(LUA_WRAPPER_DIR ${CMAKE_CURRENT_SOURCE_DIR}/extern)
 
 set(LUA_SOURCES
     ${LUA_DIR}/lapi.c
@@ -39,7 +40,7 @@ set(LUA_SOURCES
 )
 
 add_library(lua_static STATIC ${LUA_SOURCES})
-target_include_directories(lua_static PUBLIC ${LUA_DIR})
+target_include_directories(lua_static PUBLIC ${LUA_DIR} ${LUA_WRAPPER_DIR})
 
 # Platform-specific definitions
 if(UNIX AND NOT APPLE AND NOT ANDROID)
@@ -57,5 +58,5 @@ endif()
 add_library(Lua::Lua ALIAS lua_static)
 
 # Export variables for consumers
-set(LUA_INCLUDE_DIR ${LUA_DIR} CACHE PATH "Lua include directory")
+set(LUA_INCLUDE_DIR ${LUA_DIR};${LUA_WRAPPER_DIR} CACHE PATH "Lua include directory")
 set(LUA_LIBRARIES lua_static CACHE STRING "Lua library target")
