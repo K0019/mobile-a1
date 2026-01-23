@@ -43,6 +43,31 @@ const std::string Filepaths::soundFolder		= "sounds";
 // Editor use only
 const std::string Filepaths::compilerExe		= Filepaths::workingDir + "/Tools/Debug/AssetCompiler.exe";
 const std::string Filepaths::compileManifest	= Filepaths::workingDir + "/Tools/Debug/CompileResult.json";
+const std::string Filepaths::compiledAssets		= Filepaths::assets + "/CompiledAssets";
+const std::string Filepaths::compiledAssetsWindows = Filepaths::compiledAssets + "/windows";
+const std::string Filepaths::compiledAssetsAndroid = Filepaths::compiledAssets + "/android";
+
+std::filesystem::path Filepaths::GetAssetCompilerPath()
+{
+#ifdef _DEBUG
+	return std::filesystem::path(workingDir) / "Tools" / "Debug" / "AssetCompiler.exe";
+#else
+	// Try Release first, fall back to Debug
+	std::filesystem::path releasePath = std::filesystem::path(workingDir) / "Tools" / "Release" / "AssetCompiler.exe";
+	if (std::filesystem::exists(releasePath))
+		return releasePath;
+	return std::filesystem::path(workingDir) / "Tools" / "Debug" / "AssetCompiler.exe";
+#endif
+}
+
+const std::string& Filepaths::GetCompiledAssetsPath()
+{
+#ifdef __ANDROID__
+	return compiledAssetsAndroid;
+#else
+	return compiledAssetsWindows;
+#endif
+}
 
 const std::string Filepaths::graphicsWindowIcon = Filepaths::assets + "/Icon_game.png";
 

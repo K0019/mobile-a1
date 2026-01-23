@@ -499,6 +499,16 @@ std::string VFS::GetParentPath(const std::string& path)
 // Cache for resolved paths - only populated once per unique path
 static std::unordered_map<std::string, std::string> s_ResolvedPathCache;
 
+// Get platform-specific subfolder name
+static std::string GetPlatformSubfolder()
+{
+#ifdef __ANDROID__
+    return "android/";
+#else
+    return "windows/";
+#endif
+}
+
 std::string VFS::ResolveCompiledAssetPath(const std::string& path)
 {
     std::string normPath = NormalizePath(path);
@@ -512,6 +522,7 @@ std::string VFS::ResolveCompiledAssetPath(const std::string& path)
 
     // First time seeing this path - do the resolution once
     const std::string compiledAssetsPrefix = "compiledassets/";
+    const std::string platformSubfolder = GetPlatformSubfolder();
 
     // Not a compiled asset path - cache and return as-is
     if (normPath.find(compiledAssetsPrefix) != 0)
@@ -521,6 +532,20 @@ std::string VFS::ResolveCompiledAssetPath(const std::string& path)
     }
 
     std::string relativePath = normPath.substr(compiledAssetsPrefix.length());
+
+    // Check if path already includes platform folder (windows/ or android/)
+    bool hasPlatformFolder = (relativePath.find("windows/") == 0 || relativePath.find("android/") == 0);
+
+    // Try platform-specific path first (e.g., compiledassets/windows/models/...)
+    if (!hasPlatformFolder)
+    {
+        std::string platformPath = compiledAssetsPrefix + platformSubfolder + relativePath;
+        if (FileExists(platformPath))
+        {
+            s_ResolvedPathCache[normPath] = platformPath;
+            return platformPath;
+        }
+    }
 
     // Already has subdirectories (new folder format)
     if (relativePath.find('/') != std::string::npos)
@@ -552,8 +577,13 @@ std::string VFS::ResolveCompiledAssetPath(const std::string& path)
     // Flat path doesn't exist - search folder structure once
     std::string filename = GetFilename(relativePath);
 
-    // Simple folder search - check common locations instead of full recursive search
+    // Simple folder search - check common locations (platform-specific first, then legacy)
     std::vector<std::string> searchPaths = {
+        // Platform-specific paths
+        compiledAssetsPrefix + platformSubfolder + "models/fbx/" + filename,
+        compiledAssetsPrefix + platformSubfolder + "textures/" + filename,
+        compiledAssetsPrefix + platformSubfolder + "materials/" + filename,
+        // Legacy flat paths (for backwards compatibility)
         compiledAssetsPrefix + "models/fbx/" + filename,
         compiledAssetsPrefix + "textures/" + filename,
         compiledAssetsPrefix + "materials/" + filename,

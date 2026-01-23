@@ -22,6 +22,7 @@ All rights reserved.
 #include "tools/assets/processing/mesh_process.h"  // Engine's MeshOptimizer
 #include "tools/assets/io/mesh_loader.h"           // Engine's calculateBounds
 #include "TextureCompiler.h"
+#include "ProgressReporter.h"
 #include "resource/asset_formats/mesh_format.h"    // Engine's mesh file format
 #include "resource/asset_formats/anim_format.h"    // Engine's animation file format
 #include "resource/asset_metadata.h"               // For writing .meta sidecar files
@@ -69,6 +70,24 @@ namespace compiler
         return std::equal(suffix.rbegin(), suffix.rend(), str.rbegin());
     }
 
+    // ----- Platform-aware texture format helpers ----- //
+    // Get appropriate format for linear dual-channel data (normals, metallic-roughness)
+    static TextureCompressionFormat GetLinearTextureFormat(TextureCompressionFormat platformDefault)
+    {
+        // If platform is Android (ASTC), use ASTC for all textures
+        // If platform is Windows (BC7), use BC5 for dual-channel linear data
+        if (platformDefault == TextureCompressionFormat::ASTC)
+            return TextureCompressionFormat::ASTC;
+        return TextureCompressionFormat::BC5;
+    }
+
+    // Get appropriate format for single-channel data (occlusion)
+    static TextureCompressionFormat GetSingleChannelFormat(TextureCompressionFormat platformDefault)
+    {
+        if (platformDefault == TextureCompressionFormat::ASTC)
+            return TextureCompressionFormat::ASTC;
+        return TextureCompressionFormat::BC4;
+    }
 
     // ----- Texture / Filepath helpers ----- //
     struct PathResolutionResult
@@ -146,6 +165,7 @@ namespace compiler
         return result;
     }
     // Parse the filename to determine texture compilation options
+    // Uses platform-aware format selection and sets isSRGB based on texture type
     TextureOptions GetTextureOptionsForFile(const std::filesystem::path& resolvedPath, const TextureOptions& defaultOptions)
     {
         TextureOptions newOptions = defaultOptions;
@@ -155,30 +175,38 @@ namespace compiler
         // e.g: "N00_000_00_HairBack_00_nml.normal.png", "_11.normal.png"
         if (EndsWith(stem, "_n") || EndsWith(stem, "_nml") || EndsWith(stem, "_normal"))
         {
-            newOptions.compressionFormat = TextureCompressionFormat::BC5;
+            newOptions.compressionFormat = GetLinearTextureFormat(defaultOptions.compressionFormat);
             newOptions.channelFormat = TextureChannelFormat::RGBA_8888;
+            newOptions.isSRGB = false;  // Normal maps are linear data
             return newOptions;
         }
 
-        // Check for Specular/Roughness/Metallic/Mask
-        // e.g., "_roughness", "_metallic", "_s", "_r", "_m", "_mask"
+        // Check for Specular/Roughness/Metallic
+        // e.g., "_roughness", "_metallic", "_s", "_r", "_m"
         if (EndsWith(stem, "_s") || EndsWith(stem, "_specular") ||
             EndsWith(stem, "_r") || EndsWith(stem, "_roughness") ||
             EndsWith(stem, "_m") || EndsWith(stem, "_metallic"))
         {
-            newOptions.compressionFormat = TextureCompressionFormat::BC5;
+            newOptions.compressionFormat = GetLinearTextureFormat(defaultOptions.compressionFormat);
             newOptions.channelFormat = TextureChannelFormat::RGBA_8888;
+            newOptions.isSRGB = false;  // PBR data is linear
             return newOptions;
         }
-        if (EndsWith(stem, "_ao") || EndsWith(stem, "_mask"))
+
+        // Check for Occlusion/Mask (single channel data)
+        if (EndsWith(stem, "_ao") || EndsWith(stem, "_mask") || EndsWith(stem, "_occlusion"))
         {
-            newOptions.compressionFormat = TextureCompressionFormat::BC4;
+            newOptions.compressionFormat = GetSingleChannelFormat(defaultOptions.compressionFormat);
             newOptions.channelFormat = TextureChannelFormat::RGBA_8888;
+            newOptions.isSRGB = false;  // Occlusion is linear data
+            return newOptions;
         }
 
-        // Default: Assume Diffuse/Albedo
-        newOptions.compressionFormat = TextureCompressionFormat::BC7;
+        // Default: Assume Diffuse/Albedo (color texture)
+        // Uses platform default (BC7 for Windows, ASTC for Android)
+        newOptions.compressionFormat = defaultOptions.compressionFormat;
         newOptions.channelFormat = TextureChannelFormat::RGBA_8888;
+        newOptions.isSRGB = true;  // Color textures need sRGB gamma correction
         return newOptions;
     }
 
@@ -188,7 +216,9 @@ namespace compiler
     {
         options = compileOptions;
         CompilationResult result;
+        std::string filename = options.general.inputPath.filename().string();
 
+        ProgressReporter::ReportProgress(0.1f, "Loading scene", filename);
         SceneLoadData loadData = sceneLoader.loadScene(options.general.inputPath, options.mesh);
 
         if (!loadData.scene)
@@ -199,8 +229,9 @@ namespace compiler
         }
 
         Scene scene = std::move(*loadData.scene);
-        
+
         // Processing stage, meshopt is here
+        ProgressReporter::ReportProgress(0.2f, "Processing meshes", filename);
         auto sceneProcessResult = ProcessScene(scene, compileOptions.mesh);
 
         if (!sceneProcessResult.errors.empty())
@@ -214,9 +245,16 @@ namespace compiler
         }
 
         // Save the data
+        ProgressReporter::ReportProgress(0.4f, "Saving meshes", filename);
         SaveMeshes(scene, result);
+
+        ProgressReporter::ReportProgress(0.5f, "Compiling textures", filename);
         auto savedTexturesMap = CompileTextures(scene, result);
+
+        ProgressReporter::ReportProgress(0.8f, "Saving materials", filename);
         SaveMaterialData(scene, result, savedTexturesMap);
+
+        ProgressReporter::ReportProgress(0.9f, "Saving animations", filename);
         SaveAnimations(scene, result);
 
         if (!result.errors.empty())
@@ -343,9 +381,9 @@ namespace compiler
                 //texOpts.general.outputPath = textureOutputDir;
                 texOpts.texture = options.texture;
 
-                // Parse filename to set specific options - e.g: normal maps use BC5
-                //Disable parsing for now - ryans vk::Format vk::vkFormatToFormat(VkFormat format) doesn't support any BC5s and BC4s
-                //texOpts.texture = GetTextureOptionsForFile(resolvedPath, options.texture);
+                // Parse filename to set specific options and isSRGB based on texture type
+                // (e.g., normal maps use BC5/ASTC with linear, color textures use BC7/ASTC with sRGB)
+                texOpts.texture = GetTextureOptionsForFile(resolvedPath, options.texture);
 
                 auto texCompileResult = texCompiler.Compile(texOpts);
                 if (texCompileResult.errors.empty())
@@ -388,26 +426,35 @@ namespace compiler
                     embdeddedSource.name = textureFilename;
                 }
 
-                // Setup texture options
+                // Setup texture options based on texture type
+                // Uses platform-aware format selection (BC7/BC5/BC4 for Windows, ASTC for Android)
                 if (key == texturekeys::BASE_COLOR || key == texturekeys::EMISSIVE)
                 {
-                    texOpts.texture.compressionFormat = TextureCompressionFormat::BC7;
+                    // Color textures: use platform format (BC7/ASTC), enable sRGB
+                    texOpts.texture.compressionFormat = options.texture.compressionFormat;
                     texOpts.texture.channelFormat = TextureChannelFormat::RGBA_8888;
+                    texOpts.texture.isSRGB = true;  // Color data needs gamma correction
                 }
                 else if (key == texturekeys::NORMAL)
                 {
-                    texOpts.texture.compressionFormat = TextureCompressionFormat::BC5;
+                    // Normal maps: BC5 on desktop, ASTC on Android (linear)
+                    texOpts.texture.compressionFormat = GetLinearTextureFormat(options.texture.compressionFormat);
                     texOpts.texture.channelFormat = TextureChannelFormat::RGBA_8888;
+                    texOpts.texture.isSRGB = false;  // Normal maps are linear data
                 }
                 else if (key == texturekeys::METALLIC_ROUGHNESS)
                 {
-                    texOpts.texture.compressionFormat = TextureCompressionFormat::BC5;
+                    // Packed PBR data: BC5 on desktop, ASTC on Android (linear)
+                    texOpts.texture.compressionFormat = GetLinearTextureFormat(options.texture.compressionFormat);
                     texOpts.texture.channelFormat = TextureChannelFormat::RGBA_8888;
+                    texOpts.texture.isSRGB = false;  // PBR data is linear
                 }
                 else if (key == texturekeys::OCCLUSION)
                 {
-                    texOpts.texture.compressionFormat = TextureCompressionFormat::BC4;
+                    // Single channel data: BC4 on desktop, ASTC on Android (linear)
+                    texOpts.texture.compressionFormat = GetSingleChannelFormat(options.texture.compressionFormat);
                     texOpts.texture.channelFormat = TextureChannelFormat::RGBA_8888;
+                    texOpts.texture.isSRGB = false;  // Occlusion is linear data
                 }
 
                 // Fix output filepath

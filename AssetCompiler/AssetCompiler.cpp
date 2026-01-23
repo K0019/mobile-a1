@@ -2,6 +2,7 @@
 #include "SceneCompiler.h"
 #include "TextureCompiler.h"
 #include "CmdlineParser.h"
+#include "ProgressReporter.h"
 
 #include <rapidjson/document.h>
 #include <rapidjson/stringbuffer.h>
@@ -218,6 +219,7 @@ int main(int argc, char* argv[])
     if (!std::filesystem::exists(path))
     {
         std::cerr << "[ERROR] Input file does not exist: " << path << std::endl;
+        ProgressReporter::ReportComplete(false, "Input file does not exist");
         return 1;
     }
     std::string ext = path.extension().string();
@@ -228,17 +230,22 @@ int main(int argc, char* argv[])
     g_ManifestPath = std::filesystem::path(argv[0]).parent_path() / "CompileResult.json";
     g_InputPath = options.general.inputPath;
 
+    // Report starting compilation
+    ProgressReporter::ReportProgress(0.0f, "Starting compilation", path.filename().string());
+
     CompilationResult finalResult;
     finalResult.success = false;
 
     if (ext == ".fbx" || ext == ".glb")
     {
+        ProgressReporter::ReportProgress(0.1f, "Loading scene", path.filename().string());
         SceneCompiler sceneCompiler;
         finalResult = sceneCompiler.Compile(options);
         WriteManifest(finalResult);
     }
     else if (ext == ".png" || ext == ".jpg" || ext == ".jpeg" || ext == ".bmp")
     {
+        ProgressReporter::ReportProgress(0.1f, "Compressing texture", path.filename().string());
         TextureCompiler textureCompiler;
         finalResult = textureCompiler.Compile(options);
         WriteManifest(finalResult);
@@ -246,9 +253,15 @@ int main(int argc, char* argv[])
     else
     {
         std::cerr << "[ERROR] Unsupported file extension: " << ext << std::endl;
+        ProgressReporter::ReportComplete(false, "Unsupported file extension");
         return 1;
     }
 
     WriteManifest(finalResult, false);
+
+    // Report completion
+    ProgressReporter::ReportComplete(finalResult.success,
+        finalResult.success ? "Compilation successful" : "Compilation failed");
+
     return finalResult.success ? 0 : 1;
 }

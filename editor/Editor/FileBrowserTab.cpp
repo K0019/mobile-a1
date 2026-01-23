@@ -1,11 +1,13 @@
 #include "Editor/FileBrowserTab.h"
 #include "Editor/AssetBrowser.h"
+#include "Editor/AssetCompilerWindow.h"
 #include "Engine/Resources/ResourceImporter.h"
 #include "VFS/VFS.h"
 #include "Editor/Import.h"
 #include "Editor/Containers/GUICollection.h"
 #include "Utilities/Logging.h"
 #include "FilepathConstants.h"
+#include "resource/asset_compiler_interface.h"
 
 namespace editor {
 
@@ -263,6 +265,48 @@ namespace editor {
 
     void FileBrowserTab::RenderItemContextMenu(const FileSystem::FileEntry& entry)
     {
+        // Check if this file can be compiled
+        std::string ext = entry.fullPath.extension().string();
+        bool isCompilable = Resource::AssetCompilerInterface::IsCompilableExtension(ext);
+
+        if (isCompilable)
+        {
+            // Show recompile option with platform submenu
+            if (ImGui::BeginMenu(ICON_FA_HAMMER " Recompile"))
+            {
+                std::string vfsPath = VFS::ConvertPhysicalToVirtual(entry.fullPath.string());
+
+                if (ImGui::MenuItem("Windows (BC7)"))
+                {
+                    auto* compilerWindow = editor::AssetCompilerWindow::GetInstance();
+                    if (!compilerWindow)
+                    {
+                        editor::CreateGuiWindow<editor::AssetCompilerWindow>();
+                        compilerWindow = editor::AssetCompilerWindow::GetInstance();
+                    }
+                    if (compilerWindow)
+                    {
+                        compilerWindow->CompileAsset(vfsPath, "windows");
+                    }
+                }
+                if (ImGui::MenuItem("Android (ASTC)"))
+                {
+                    auto* compilerWindow = editor::AssetCompilerWindow::GetInstance();
+                    if (!compilerWindow)
+                    {
+                        editor::CreateGuiWindow<editor::AssetCompilerWindow>();
+                        compilerWindow = editor::AssetCompilerWindow::GetInstance();
+                    }
+                    if (compilerWindow)
+                    {
+                        compilerWindow->CompileAsset(vfsPath, "android");
+                    }
+                }
+                ImGui::EndMenu();
+            }
+            ImGui::Separator();
+        }
+
         if (entry.fileType == "texture")
         {
             if (ImGui::MenuItem(ICON_FA_FILE_IMPORT" Import as Sprite"))
