@@ -10,6 +10,7 @@ like Idle, Walk, Run, and Jump.
 
 #pragma once
 #include "Engine/AnimatorStateMachine.h"
+#include "Utilities/GameTime.h"
 #include "Physics/Physics.h"
 #include "Graphics/AnimationComponent.h"
 #include "Engine/Input.h"
@@ -22,8 +23,7 @@ namespace sm {
 
 	}
 
-	AnimStateMachine::AnimStateMachine(float inMS, float inRS, float inFric, float inDD, float inDS, float inPT, UserResourceHandle<ResourceAnimation> inAnim[7], State* startingState) :moveSpeed(inMS), rotateSpeed(inRS),
-										groundFriction(inFric), dodgeDuration(inDD), dodgeSpeed(inDS), parryTime(inPT), animations(*inAnim), StateMachine(startingState), entity(nullptr)
+	AnimStateMachine::AnimStateMachine(UserResourceHandle<ResourceAnimation> inAnim[7], State* startingState) : animations(*inAnim), StateMachine(startingState), entity(nullptr)
 	{
 
 	}
@@ -142,7 +142,24 @@ namespace sm {
 				animComp->isPlaying = true;
 				animComp->loop = true;
 				animComp->speed = 1.0f;
-				std::cout << "Set Run Animation" << std::endl;
+			}
+		}
+	}
+
+	void AttackActivity::OnUpdate(sm::StateMachine* sm)
+	{
+		// Optionally implement any per-frame logic for the Attack activity here
+		sm::AnimStateMachine* animSM = CastSM(sm);
+		float attackDelay = animSM->attackDelay;
+		if (attackDelay > 0.f) {
+			animSM->attackDelay -= GameTime::Dt();
+			if (animSM->attackDelay <= 0.f) {
+				animSM->attackDelay = 0.f;
+				animSM->attack = false;
+			}
+			else {
+				animSM->attack = true;
+				std::cout << "stay attacking" << std::endl;
 			}
 		}
 	}
@@ -157,7 +174,6 @@ namespace sm {
 			animComp->isPlaying = true;
 			animComp->loop = false; // Usually hurt doesn't loop
 			animComp->speed = 1.0f;
-			std::cout << "Set Hurt Animation" << std::endl;
 		}
 	}
 
@@ -171,7 +187,6 @@ namespace sm {
 			animComp->isPlaying = true;
 			animComp->loop = false;
 			animComp->speed = 1.0f;
-			std::cout << "Set Dodge Animation" << std::endl;
 		}
 	}
 
@@ -215,7 +230,7 @@ namespace sm {
 	bool ToIdleTransition::Decide(sm::StateMachine* sm)
 	{
 		sm::AnimStateMachine* animSM = CastSM(sm);
-		if (animSM->idle) {
+		if (animSM->idle && !animSM->attack) {
 			return true;
 		}
 		else {

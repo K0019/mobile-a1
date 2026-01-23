@@ -249,6 +249,8 @@ bool CharacterMovementComponent::Attack()
 
 	// Handle next attack delay
 	float nextAttackDelay = grabbableComp->attackDelay;
+	animatorComp->GetStateMachine()->attackDelay = nextAttackDelay;
+
 	//if (auto clip{ animComp->GetAnimationClipA() })
 	//{
 	//	nextAttackDelay = animComp->GetClipDuration(clip);
@@ -444,7 +446,7 @@ void CharacterMovementComponentSystem::UpdateCharacterMovementComponent(Characte
 	ecs::CompHandle<AnimationComponent> animComp = characterEntity->GetComp<AnimationComponent>();
 	AnimatorComponent* animatorComp = characterEntity->GetComp<AnimatorComponent>();
 	if (!(animatorComp)) {
-		characterEntity->AddComp<AnimatorComponent>(AnimatorComponent{ new sm::AnimStateMachine(comp.moveSpeed,comp.rotateSpeed,comp.groundFriction,comp.dodgeDuration, comp.dodgeSpeed, comp.parryTime,comp.animations, new sm::IdleState()) });
+		characterEntity->AddComp<AnimatorComponent>(AnimatorComponent{ new sm::AnimStateMachine(comp.animations, new sm::IdleState()) });
 		animatorComp = ecs::GetEntity(&comp)->GetComp<AnimatorComponent>();
 	}
 	else {
@@ -455,11 +457,6 @@ void CharacterMovementComponentSystem::UpdateCharacterMovementComponent(Characte
 		animatorComp->GetStateMachine()->animations[HURT] = comp.animations[HURT];
 		animatorComp->GetStateMachine()->animations[DODGE] = comp.animations[DODGE];
 		animatorComp->GetStateMachine()->animations[THROW] = comp.animations[THROW];
-		animatorComp->GetStateMachine()->moveSpeed = comp.moveSpeed;
-		animatorComp->GetStateMachine()->rotateSpeed = comp.rotateSpeed;
-		animatorComp->GetStateMachine()->groundFriction = comp.groundFriction;
-		animatorComp->GetStateMachine()->dodgeDuration = comp.dodgeDuration;
-		animatorComp->GetStateMachine()->dodgeSpeed = comp.dodgeSpeed;
 	}
 	animatorComp->GetStateMachine()->ResetFlags();
 
