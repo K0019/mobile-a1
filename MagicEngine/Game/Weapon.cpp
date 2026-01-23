@@ -12,7 +12,10 @@ void WeaponMoveInfo::EditorDraw()
 
 void WeaponInfo::EditorDraw()
 {
-	gui::VarContainer("Moves", &moves, [](WeaponMoveInfo& moveInfo) -> void { moveInfo.EditorDraw(); });
+	gui::VarContainer("Moves", &moves, [](WeaponMoveInfo& moveInfo) -> bool {
+		moveInfo.EditorDraw();
+		return false;
+	});
 	gui::VarDefault("Light DMG", &lightDamage);
 	gui::VarDefault("Heavy DMG", &heavyDamage);
 	gui::VarDefault("Parry DMG", &parryDamage);
