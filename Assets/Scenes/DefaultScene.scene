@@ -215,7 +215,7 @@
                     "_active": true,
                     "maxHealth": 200.0,
                     "currHealth": 200.0,
-                    "isInvincible": true
+                    "isInvincible": false
                 },
                 "9315785795257285655": {
                     "_active": true,
