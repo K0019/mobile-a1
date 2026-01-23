@@ -216,7 +216,7 @@ namespace sm {
 
 		AnimStateMachine(State* startingState);
 
-		AnimStateMachine(float inMS, float inRS, float inFric, float inDD, float inDS, float inPT, UserResourceHandle<ResourceAnimation> inAnim[7], State* startingState);
+		AnimStateMachine(UserResourceHandle<ResourceAnimation> inAnim[7], State* startingState);
 		/*****************************************************************//*!
 		\brief
 			Constructor.
@@ -259,13 +259,7 @@ namespace sm {
 		bool dodge = false;
 		bool parry = false;
 		bool throwFlag = false;
-		float moveSpeed;
-		float rotateSpeed;
-		float groundFriction;
-		float dodgeDuration;
-		float dodgeSpeed; 
-		float parryTime;
-		float currParryTime;
+		float attackDelay = 0.f;
 		UserResourceHandle<ResourceAnimation> animations[ANIMATION_TYPES::ANIM_TOTAL];
 
 		void ChangAnim(uint32_t anim, size_t hash);
@@ -324,6 +318,7 @@ namespace sm {
 	{
 		public:
 		void OnEnter(sm::StateMachine* sm) override;
+		void OnUpdate(sm::StateMachine* sm) override;
 	};
 
 	class HurtActivity : public sm::AnimActivityBase<HurtActivity>
