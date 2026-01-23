@@ -35,8 +35,10 @@ namespace editor {
         /*****************************************************************//*!
         \brief
              Draw the gizmo to match the scene viewport and allow dragging
+        \return
+            True if the user is dragging on the gizmos. False otherwise.
         *//******************************************************************/
-        void Draw(ecs::EntityHandle selectedEntity);
+        bool Draw(ecs::EntityHandle selectedEntity);
     };
 
 }

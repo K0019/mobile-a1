@@ -142,29 +142,28 @@ void CustomViewport::DrawWindow()
 		ImGui::Image(*sceneColorID, renderSize, ImVec2(0, 0), ImVec2(1, 1));
 	}
 
-	if (ST<GameSystemsManager>::Get()->GetState() != GAMESTATE::IN_GAME && ST<GameSystemsManager>::Get()->GetState() != GAMESTATE::PAUSE)
+	// Draw and update gizmo
+	bool isDraggingGizmo{ m_gizmo.Draw(ST<EventsQueue>::Get()->RequestValueFromEventHandlers<ecs::EntityHandle>(Getters::EditorSelectedEntity{}).value_or(nullptr)) };
+
+	// Behaviors only enabled in editor mode
+	bool isEditorMode{ ST<GameSystemsManager>::Get()->GetState() == GAMESTATE::EDITOR };
+	if (isEditorMode)
 	{
-		// Left click to pick objects (when not dragging camera with right mouse)
-	static bool wasLeftMouseDown = false;
-	bool isLeftMouseDown = Input::GetMouseButtonUp(MouseButton::Left);
-	bool leftClickJustPressed = isLeftMouseDown && !wasLeftMouseDown;
-	wasLeftMouseDown = isLeftMouseDown;
+		// Left click to pick objects (when not dragging gizmos or camera with right mouse)
+		if (!isDraggingGizmo && ST<KeyboardMouseInput>::Get()->GetIsPressed(KEY::M_LEFT) && !ST<KeyboardMouseInput>::Get()->GetIsDown(KEY::M_RIGHT))
+		{
+			ImVec2 mousePos = ImGui::GetMousePos();
 
-	if (leftClickJustPressed && !Input::GetMouseButton(MouseButton::Right))
-	{
-		ImVec2 mousePos = ImGui::GetMousePos();
+			// Convert to viewport-relative coordinates first
+			float viewportRelativeX = mousePos.x - (windowPosAbsolute.x + contentMin.x);
+			float viewportRelativeY = mousePos.y - (windowPosAbsolute.y + contentMin.y);
 
-		// Convert to viewport-relative coordinates first
-		float viewportRelativeX = mousePos.x - (windowPosAbsolute.x + contentMin.x);
-		float viewportRelativeY = mousePos.y - (windowPosAbsolute.y + contentMin.y);
-
-		// Check if mouse is within the viewport bounds
-		bool isInViewport = (viewportRelativeX >= 0 && viewportRelativeX < viewportRenderSize.x &&
-			viewportRelativeY >= 0 && viewportRelativeY < viewportRenderSize.y);
+			// Check if mouse is within the viewport bounds
+			bool isInViewport = (viewportRelativeX >= 0 && viewportRelativeX < viewportRenderSize.x &&
+				viewportRelativeY >= 0 && viewportRelativeY < viewportRenderSize.y);
 
 			if (isInViewport)
 			{
-
 				// Get the actual render target dimensions
 				auto sceneColorID = ST<GraphicsMain>::Get()->GetImGuiContext()
 					.GetTransientRegistry().QueryBindlessID("ImGuiSceneView");
@@ -186,34 +185,21 @@ void CustomViewport::DrawWindow()
 				renderX = std::max(0, std::min(renderX, static_cast<int>(renderTargetWidth) - 1));
 				renderY = std::max(0, std::min(renderY, static_cast<int>(renderTargetHeight) - 1));
 
-				if (ST<GraphicsMain>::Get()->RequestObjPick(renderX, renderY))
-				{
-					// Debug output
-					// std::cout << "Object pick requested at render target position (" << screenX << ", " << screenY << ")\n";
-					// std::cout << "  Viewport position: (" << viewportRelativeX << ", " << viewportRelativeY << ")\n";
-					// std::cout << "  Render target size: " << renderTargetWidth << "x" << renderTargetHeight << "\n";
-				}
+				ST<GraphicsMain>::Get()->RequestObjPick(renderX, renderY);
 			}
+
+			// Check for pick rsult from previous frame
+			if (ecs::EntityHandle pickedEntity{ ST<GraphicsMain>::Get()->PreviousPick() })
+				ST<EventsQueue>::Get()->AddEventForNextFrame(Events::EditorSelectEntity{ pickedEntity });
 		}
 
-	// Check for pick rsult from previous frame
-	ecs::EntityHandle pickedEntity = ST<GraphicsMain>::Get()->PreviousPick();
-	if (pickedEntity)
-	{
-		ST<EventsQueue>::Get()->AddEventForNextFrame(Events::EditorSelectEntity{ pickedEntity });
-	}
-
-
-	m_gizmo.Draw(ST<EventsQueue>::Get()->RequestValueFromEventHandlers<ecs::EntityHandle>(Getters::EditorSelectedEntity{}).value_or(nullptr));
-
-	//==========================
-
-	gui::PayloadTarget<std::string>("PREFAB", [camera = &camera](const std::string& prefabName) -> void {
-		ecs::EntityHandle entity{ PrefabManager::LoadPrefab(prefabName) };
-		ST<History>::Get()->OneEvent(HistoryEvent_EntityCreate{ entity });
-		entity->GetTransform().SetWorldPosition(camera->getPosition());
-		ST<EventsQueue>::Get()->AddEventForNextFrame(Events::EditorSelectEntity{ entity });
-	});
+		//==========================
+		gui::PayloadTarget<std::string>("PREFAB", [camera = &camera](const std::string& prefabName) -> void {
+			ecs::EntityHandle entity{ PrefabManager::LoadPrefab(prefabName) };
+			ST<History>::Get()->OneEvent(HistoryEvent_EntityCreate{ entity });
+			entity->GetTransform().SetWorldPosition(camera->getPosition());
+			ST<EventsQueue>::Get()->AddEventForNextFrame(Events::EditorSelectEntity{ entity });
+		});
 	}
 #endif
 }
