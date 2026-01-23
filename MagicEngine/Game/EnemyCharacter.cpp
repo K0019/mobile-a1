@@ -24,6 +24,7 @@ All rights reserved.
 #include "Physics/Physics.h"
 #include "Engine/Input.h"
 #include "Editor/Containers/GUICollection.h"
+#include "Graphics/AnimatorComponent.h"
 
 EnemyComponent::EnemyComponent()
 	: playerReference{nullptr}
@@ -70,4 +71,7 @@ EnemyMovementComponentSystem::EnemyMovementComponentSystem()
 
 void EnemyMovementComponentSystem::UpdateEnemyMovementComponent(EnemyComponent& comp)
 {
+	auto characterEntity = ecs::GetEntity(&comp);
+	AnimatorComponent* animatorComp = characterEntity->GetComp<AnimatorComponent>();
+	animatorComp->GetStateMachine()->Update(characterEntity);
 }

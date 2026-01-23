@@ -32,6 +32,7 @@ All rights reserved.
 #include "Game/Delusion.h"
 #include "Engine/Events/EventsQueue.h"
 #include "Engine/Events/EventsTypeBasic.h"
+#include "Graphics/AnimatorComponent.h"
 
 PlayerMovementComponent::PlayerMovementComponent()
 	: grabDistance{ 0.0f }
@@ -245,8 +246,11 @@ void PlayerMovementComponentSystem::UpdatePlayerMovementComponent(PlayerMovement
 		characterComp->Throw(throwDirection);
 	}
 
-	if (inputInstance->GetIsPressed(KEY::M1) || EventsReader<Events::GameActionAttack>{}.ExtractEvent())
-		comp.Attack();
+	if (inputInstance->GetIsPressed(KEY::M1) || EventsReader<Events::GameActionAttack>{}.ExtractEvent()) {
+		characterComp->Attack();
+
+	}
+
 
 	if (inputInstance->GetIsPressed(KEY::R))
 		comp.UltimateAttack();
@@ -259,4 +263,7 @@ void PlayerMovementComponentSystem::UpdatePlayerMovementComponent(PlayerMovement
 
 	if (inputInstance->GetIsPressed(KEY::LCTRL))
 		comp.Parry();
+	auto characterEntity = ecs::GetEntity(&comp);
+	AnimatorComponent* animatorComp = characterEntity->GetComp<AnimatorComponent>();
+	animatorComp->GetStateMachine()->Update(characterEntity);
 }
