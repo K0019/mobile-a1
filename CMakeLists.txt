@@ -94,6 +94,52 @@ endif()
 message(STATUS "")
 message(STATUS "=== Configuring Submodule Dependencies ===")
 
+# ----- Submodule Initialization Check -----
+# Check if critical submodules are initialized. If not, provide clear instructions.
+set(REQUIRED_SUBMODULES
+    Vulkan-Headers
+    volk
+    VulkanMemoryAllocator
+    glm
+    fmt
+    glslang
+    imgui
+    glfw
+)
+
+set(MISSING_SUBMODULES "")
+foreach(SUBMOD ${REQUIRED_SUBMODULES})
+    if(NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/extern/${SUBMOD}/CMakeLists.txt")
+        list(APPEND MISSING_SUBMODULES ${SUBMOD})
+    endif()
+endforeach()
+
+if(MISSING_SUBMODULES)
+    message(FATAL_ERROR
+        "\n"
+        "================================================================================\n"
+        "ERROR: Git submodules not initialized!\n"
+        "================================================================================\n"
+        "\n"
+        "This branch uses git submodules for dependencies.\n"
+        "Missing submodules: ${MISSING_SUBMODULES}\n"
+        "\n"
+        "To fix this, run in your terminal:\n"
+        "\n"
+        "    git submodule update --init --recursive\n"
+        "\n"
+        "If you get 'fatal: not a git repository' errors when switching branches,\n"
+        "run these commands instead:\n"
+        "\n"
+        "    git submodule deinit --all -f\n"
+        "    git submodule update --init --recursive\n"
+        "\n"
+        "Or on Windows, run: scripts\\setup_submodules.bat\n"
+        "\n"
+        "================================================================================\n"
+    )
+endif()
+
 # ----- Vulkan Headers (must be first) -----
 add_subdirectory(extern/Vulkan-Headers)
 

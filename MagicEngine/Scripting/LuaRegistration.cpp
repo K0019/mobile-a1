@@ -609,6 +609,9 @@ void RegisterCppStuffToLua(luabridge::Namespace baseTable)
 				ST<SceneManager>::Get()->UnloadAllScenes(scenePath);
 			});
 		})
+		.addFunction("TransitionScene", [](const std::string& scenePath) {
+			ST<EventsQueue>::Get()->AddEventForNextFrame(Events::TransitionScene{ scenePath });
+		})
 		.addFunction("GetButtonDown", GetButtonDown)
 
 		.beginNamespace("AudioManager")

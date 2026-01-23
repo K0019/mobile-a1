@@ -517,6 +517,19 @@ namespace gui {
 		return false;
 #endif
 	}
+	bool VarDrag([[maybe_unused]] const char* label, [[maybe_unused]] double* v, [[maybe_unused]] double speed, [[maybe_unused]] double min, [[maybe_unused]] double max, [[maybe_unused]] const char* format)
+	{
+#ifdef IMGUI_ENABLED
+		// why the fk does imgui support doubles for input but not for dragging??
+		float f{ static_cast<float>(*v) };
+		bool changed{ ImGui::DragFloat(label, &f, static_cast<float>(speed), static_cast<float>(min), static_cast<float>(max), format) };
+		if (changed)
+			*v = static_cast<double>(f);
+		return changed;
+#else
+		return false;
+#endif
+	}
 
 	namespace internal {
 		bool DrawFloatComponent(const char* text, const char* label, float* value, float min, float max, float speed, const Vec4& textColor, const char* format)
@@ -729,11 +742,11 @@ namespace gui {
 	}
 	bool VarDefault(const char* label, float* v)
 	{
-		return VarInput(label, v);
+		return VarDrag(label, v);
 	}
 	bool VarDefault(const char* label, double* v)
 	{
-		return VarInput(label, v);
+		return VarDrag(label, v);
 	}
 	bool VarDefault(const char* label, ::Vec2* v)
 	{
