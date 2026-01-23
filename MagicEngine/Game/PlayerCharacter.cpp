@@ -78,10 +78,10 @@ void PlayerMovementComponent::GetEnemyTarget()
 {
 	// Find the nearest enemy
 	targetEntity = nullptr;
+		float lowestDistSqr = enemyTargetRange * enemyTargetRange;
 	for (ecs::CompIterator<EnemyComponent> enemy = ecs::GetCompsActiveBegin<EnemyComponent>(); enemy != ecs::GetCompsEnd<EnemyComponent>(); ++enemy)
 	{
 		ecs::EntityHandle enemyEntity = enemy.GetEntity();
-		float lowestDistSqr = enemyTargetRange * enemyTargetRange;
 		float dist{ (enemyEntity->GetTransform().GetWorldPosition() - ecs::GetEntity(this)->GetTransform().GetWorldPosition()).LengthSqr() };
 		if (dist < lowestDistSqr)
 		{
