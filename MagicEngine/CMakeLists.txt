@@ -36,7 +36,7 @@ set(ENGINE_DEFINITIONS
 if(NOT ANDROID)
     list(APPEND ENGINE_DEFINITIONS
         GLFW
-        TRACY_ENABLE
+        # TRACY_ENABLED
     )
 endif()
 
@@ -83,7 +83,7 @@ if(NOT ANDROID)
         mikktspace::mikktspace
         meshoptimizer::meshoptimizer
         glslang::SPVRemapper
-        Tracy::TracyClient
+        # Tracy::TracyClient
     )
 
     # GLOB libs locations for FMOD etc
