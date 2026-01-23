@@ -149,6 +149,14 @@ namespace navmesh
 
 		/*****************************************************************//*!
 		\brief
+			Get the pointer to the agent.
+		\return
+			agent ID.
+		*//******************************************************************/
+		int GetAgentID() const;
+
+		/*****************************************************************//*!
+		\brief
 			Get the agent activeness.
 		\return
 			true if active, else false.

@@ -150,6 +150,11 @@ bool BlackBoard::HasKey(const std::string& key)
     return data.find(key) != data.end();
 }
 
+void BlackBoard::Clear()
+{
+    data.clear();
+}
+
 BehaviorTreeComp::BehaviorTreeComp()
 {
 
@@ -183,6 +188,11 @@ void BehaviorTreeComp::EditorDraw()
 BehaviorTreeSystem::BehaviorTreeSystem()
     : System_Internal{&BehaviorTreeSystem::UpdateComp}
 {
+}
+
+void BehaviorTreeSystem::OnAdded()
+{
+    BehaviorTree::globalBlackBoard.Clear();
 }
 
 void BehaviorTreeSystem::UpdateComp(BehaviorTreeComp& comp)

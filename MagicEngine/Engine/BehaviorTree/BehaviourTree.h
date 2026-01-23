@@ -121,6 +121,8 @@ public:
 
     bool HasKey(const std::string& key);
 
+    void Clear();
+
 private:
     std::map<std::string, std::any> data;
 };
@@ -241,6 +243,8 @@ public:
         Constructor
     *//******************************************************************/
     BehaviorTreeSystem();
+
+    void OnAdded() override;
 
 private:
     /*****************************************************************//*!

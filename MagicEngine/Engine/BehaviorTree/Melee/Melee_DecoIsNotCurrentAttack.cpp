@@ -24,8 +24,8 @@ NODE_STATUS D_Melee_IsNotCurrentAttack::OnUpdate(ecs::EntityHandle entity)
 		if (handle == entity)
 		{
 			charComp->moveSpeed = runSpeed;
-			NODE_STATUS status = childPtr->Tick(entity);
-			return NODE_STATUS::FAILURE;
+			NODE_STATUS status{ childPtr->Tick(entity) };
+			return status == NODE_STATUS::SUCCESS ? NODE_STATUS::FAILURE : status;
 		}
 	}
 

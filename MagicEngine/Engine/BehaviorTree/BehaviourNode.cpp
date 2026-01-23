@@ -39,7 +39,9 @@ All rights reserved.
 #include "BehaviourTreeFactory.h"
 #include "Engine/Input.h"
 
+#include "Melee/Melee_LeafAttack.h"
 #include "Melee/Melee_LeafCheckAttack.h"
+#include "Melee/Melee_LeafDodge.h"
 #include "Melee/Melee_DecoIsInCombatRange.h"
 #include "Melee/Melee_DecoIsInAttackRange.h"
 #include "Melee/Melee_DecoIsNotCurrentAttack.h"
@@ -76,6 +78,8 @@ BT_REGISTER_NODE(L_ThrowAttack, "L_ThrowAttack")
 BT_REGISTER_NODE(L_RotateTowardsTarget, "L_RotateTowardsTarget")
 BT_REGISTER_NODE(L_FollowThrough, "L_FollowThrough")
 
+BT_REGISTER_NODE(L_Melee_Dodge, "L_Melee_Dodge")
+BT_REGISTER_NODE(L_Melee_Attack, "L_Melee_Attack")
 BT_REGISTER_NODE(L_Melee_CheckAttack, "L_Melee_CheckAttack")
 BT_REGISTER_NODE(D_Melee_IsInCombatRange, "D_Melee_IsInCombatRange")
 BT_REGISTER_NODE(D_Melee_IsNotCurrentAttack, "D_Melee_IsNotCurrentAttack")

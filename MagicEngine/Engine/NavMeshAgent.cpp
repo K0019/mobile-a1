@@ -206,6 +206,11 @@ namespace navmesh
 		return agentData.baseOffset;
 	}
 
+	int NavMeshAgentComp::GetAgentID() const
+	{
+		return agentID;
+	}
+
 	bool NavMeshAgentComp::IsActive() const
 	{
 		return agentData.active;
@@ -454,6 +459,7 @@ namespace navmesh
 				Vec3 pos{ compIter->GetAgent()->npos[0], compIter->GetAgent()->npos[1] + compIter->GetBaseOffset(), compIter->GetAgent()->npos[2] };
 				compIter.GetEntity()->GetTransform().SetWorldPosition(pos);
 			}
+			crowdSystem->resetMoveTarget(compIter->GetAgentID());
 		}
 		return true;
 	}

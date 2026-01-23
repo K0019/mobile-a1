@@ -4,7 +4,7 @@
 
 void D_Melee_IsInAttackRange::OnInitialize()
 {
-	attackRange = 0.7f;
+	attackRange = 0.9f;
 }
 
 NODE_STATUS D_Melee_IsInAttackRange::OnUpdate(ecs::EntityHandle entity)
@@ -26,6 +26,6 @@ NODE_STATUS D_Melee_IsInAttackRange::OnUpdate(ecs::EntityHandle entity)
 	if (!charComp)
 		return NODE_STATUS::FAILURE;
 
-	NODE_STATUS status = childPtr->Tick(entity);
-	return NODE_STATUS::FAILURE;
+	NODE_STATUS status{ childPtr->Tick(entity) };
+	return status == NODE_STATUS::SUCCESS ? NODE_STATUS::FAILURE : status;
 }

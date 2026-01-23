@@ -28,6 +28,6 @@ NODE_STATUS D_Melee_IsInCombatRange::OnUpdate(ecs::EntityHandle entity)
 
 	//Set the move speed to run.
 	charComp->moveSpeed = runSpeed;
-	NODE_STATUS status = childPtr->Tick(entity);
-	return NODE_STATUS::FAILURE;
+	NODE_STATUS status{ childPtr->Tick(entity) };
+	return status == NODE_STATUS::SUCCESS ? NODE_STATUS::FAILURE : status;
 }

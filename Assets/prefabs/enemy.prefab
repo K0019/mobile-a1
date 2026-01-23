@@ -169,9 +169,6 @@
                         "hash": 1903056716174195867
                     }
                 },
-                "12349219328363051475": {
-                    "_active": true
-                },
                 "15371168105777251288": {
                     "_active": true,
                     "animHandleA": {
@@ -184,7 +181,7 @@
                 },
                 "16763493199777387366": {
                     "_active": true,
-                    "combatRange": 3.0,
+                    "combatRange": 4.0,
                     "windUpTime": 0.10000000149011612,
                     "attackTime": 0.009999999776482582,
                     "followThroughTime": 0.30000001192092896,
@@ -218,8 +215,8 @@
                     "rotateSpeed": 200.0,
                     "stunTimePerHit": 0.5,
                     "groundFriction": 0.75,
-                    "dodgeCooldown": 0.0,
-                    "dodgeDuration": 0.15000000596046448,
+                    "dodgeCooldown": 1.0,
+                    "dodgeDuration": 0.30000001192092896,
                     "dodgeSpeed": 4.0,
                     "hitDebugObject": {
                         "entityUid": 7216556609028990057

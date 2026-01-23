@@ -46,12 +46,20 @@
             "nodeLevel": 2
         },
         {
-            "nodeType": "L_MeleeAttack",
+            "nodeType": "L_Melee_Attack",
             "nodeLevel": 3
         },
         {
-            "nodeType": "L_MeleeAttack",
+            "nodeType": "Selector",
             "nodeLevel": 2
+        },
+        {
+            "nodeType": "L_Melee_Dodge",
+            "nodeLevel": 3
+        },
+        {
+            "nodeType": "L_Melee_Attack",
+            "nodeLevel": 3
         }
     ]
 }
