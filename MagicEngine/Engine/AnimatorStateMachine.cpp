@@ -84,7 +84,7 @@ namespace sm {
 		{
 			// TODO: Set your actual idle animation hash
 			if (animSM->animations[IDLE].GetHash()) {
-				animComp->TransitionTo(animSM->animations[IDLE].GetHash());
+				animComp->TransitionTo(animSM->animations[IDLE].GetHash(),0.15f);
 				//animComp->animHandleA = 1058861583856284945;
 				animComp->isPlaying = true;
 				animComp->loop = true;
@@ -113,7 +113,7 @@ namespace sm {
 		{
 			// TODO: Set your actual walk animation hash
 			if (animSM->animations[WALK].GetHash()) {
-				animComp->TransitionTo(animSM->animations[WALK].GetHash());
+				animComp->TransitionTo(animSM->animations[WALK].GetHash(),0.15f);
 				//animComp->animHandleA = 2370177633938117279;
 				animComp->isPlaying = true;
 				animComp->loop = true;
@@ -138,7 +138,7 @@ namespace sm {
 		{
 			// TODO: Set your actual run animation hash
 			if (animSM->animations[ATTACK].GetHash()) {
-				animComp->TransitionTo(animSM->animations[ATTACK].GetHash());
+				animComp->TransitionTo(animSM->animations[ATTACK].GetHash(),0.1f);
 				animComp->isPlaying = true;
 				animComp->loop = true;
 				animComp->speed = 1.0f;
@@ -153,7 +153,7 @@ namespace sm {
 		AnimationComponent* animComp = animSM->GetEntity()->GetComp<AnimationComponent>();
 		if (animComp && animSM->animations[HURT].GetHash())
 		{
-			animComp->TransitionTo(animSM->animations[HURT].GetHash());
+			animComp->TransitionTo(animSM->animations[HURT].GetHash(),0.1f);
 			animComp->isPlaying = true;
 			animComp->loop = false; // Usually hurt doesn't loop
 			animComp->speed = 1.0f;
@@ -167,7 +167,7 @@ namespace sm {
 		AnimationComponent* animComp = animSM->GetEntity()->GetComp<AnimationComponent>();
 		if (animComp && animSM->animations[DODGE].GetHash())
 		{
-			animComp->TransitionTo(animSM->animations[DODGE].GetHash());
+			animComp->TransitionTo(animSM->animations[DODGE].GetHash(),0.05f);
 			animComp->isPlaying = true;
 			animComp->loop = false;
 			animComp->speed = 1.0f;
@@ -181,7 +181,7 @@ namespace sm {
 		AnimationComponent* animComp = animSM->GetEntity()->GetComp<AnimationComponent>();
 		if (animComp && animSM->animations[PARRY].GetHash())
 		{
-			animComp->TransitionTo(animSM->animations[PARRY].GetHash());
+			animComp->TransitionTo(animSM->animations[PARRY].GetHash(),0.05f);
 			animComp->isPlaying = true;
 			animComp->loop = false;
 			animComp->speed = 1.0f;
