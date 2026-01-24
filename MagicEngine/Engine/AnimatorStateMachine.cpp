@@ -25,17 +25,47 @@ namespace sm {
 
 	AnimStateMachine::AnimStateMachine(UserResourceHandle<ResourceAnimation> inAnim[7], State* startingState) : animations(*inAnim), StateMachine(startingState), entity(nullptr)
 	{
-
+		animSwitch["IDLE"] = false;
+		animSwitch["ATTACK"] = false;
+		animSwitch["WALK"] = false;
+		animSwitch["PARRY"] = false;
+		animSwitch["HURT"] = false;
+		animSwitch["DODGE"] = false;
+		animSwitch["THROW"] = false;
+		animSpeeds["IDLE"] = 1.0f;
+		animSpeeds["ATTACK"] = 1.0f;
+		animSpeeds["WALK"] = 1.0f;
+		animSpeeds["PARRY"] = 1.0f;
+		animSpeeds["HURT"] = 1.0f;
+		animSpeeds["DODGE"] = 1.0f;
+		animSpeeds["THROW"] = 1.0f;
+		animDurations["IDLE"] = 0.15f;
+		animDurations["ATTACK"] = 0.1f;
+		animDurations["WALK"] = 0.15f;
+		animDurations["PARRY"] = 0.1f;
+		animDurations["HURT"] = 0.05f;
+		animDurations["DODGE"] = 0.05f;
+		animDurations["THROW"] = 0.1f;
 	}
 
 	void AnimStateMachine::ResetFlags() {
-		idle = false;
-		walking = false;
-		attack = false;
-		hurt = false;
-		dodge = false;
-		parry = false;
-		throwFlag = false;
+		animSwitch["IDLE"] = false;
+		animSwitch["ATTACK"] = false;
+		animSwitch["WALK"] = false;
+		animSwitch["PARRY"] = false;
+		animSwitch["HURT"] = false;
+		animSwitch["DODGE"] = false;
+		animSwitch["THROW"] = false;
+	}
+
+	void AnimStateMachine::TransferAnims(UserResourceHandle<ResourceAnimation> inAnim[7]) {
+		animations[IDLE] = inAnim[IDLE];
+		animations[ATTACK] = inAnim[ATTACK];
+		animations[WALK] = inAnim[WALK];
+		animations[PARRY] = inAnim[PARRY];
+		animations[HURT] = inAnim[HURT];
+		animations[DODGE] = inAnim[DODGE];
+		animations[THROW] = inAnim[THROW];
 	}
 
 	void AnimStateMachine::ChangAnim(uint32_t anim, size_t hash) {
@@ -84,12 +114,12 @@ namespace sm {
 		{
 			// TODO: Set your actual idle animation hash
 			if (animSM->animations[IDLE].GetHash()) {
-				animComp->TransitionTo(animSM->animations[IDLE].GetHash(),0.15f);
+				animComp->TransitionTo(animSM->animations[IDLE].GetHash(),animSM->animDurations["IDLE"]);
 				//animComp->animHandleA = 1058861583856284945;
 				animComp->isPlaying = true;
 				animComp->loop = true;
-				animComp->speed = 1.0f;
-				std::cout << "Set Idle Animation" << std::endl;
+				animComp->speed = animSM->animSpeeds["IDLE"];
+				//std::cout << "Set Idle Animation" << std::endl;
 			}
 		}
 	}
@@ -113,11 +143,11 @@ namespace sm {
 		{
 			// TODO: Set your actual walk animation hash
 			if (animSM->animations[WALK].GetHash()) {
-				animComp->TransitionTo(animSM->animations[WALK].GetHash(),0.15f);
+				animComp->TransitionTo(animSM->animations[WALK].GetHash(), animSM->animDurations["WALK"]);
 				//animComp->animHandleA = 2370177633938117279;
 				animComp->isPlaying = true;
 				animComp->loop = true;
-				animComp->speed = 1.0f;
+				animComp->speed = animSM->animSpeeds["WALK"];
 			}
 		}
 	}
@@ -138,10 +168,10 @@ namespace sm {
 		{
 			// TODO: Set your actual run animation hash
 			if (animSM->animations[ATTACK].GetHash()) {
-				animComp->TransitionTo(animSM->animations[ATTACK].GetHash(),0.1f);
+				animComp->TransitionTo(animSM->animations[ATTACK].GetHash(), animSM->animDurations["ATTACK"]);
 				animComp->isPlaying = true;
 				animComp->loop = true;
-				animComp->speed = 1.0f;
+				animComp->speed = animSM->animSpeeds["ATTACK"];
 			}
 		}
 	}
@@ -159,7 +189,7 @@ namespace sm {
 			}
 			else {
 				animSM->attack = true;
-				std::cout << "stay attacking" << std::endl;
+				//std::cout << "stay attacking" << std::endl;
 			}
 		}
 	}
@@ -170,10 +200,10 @@ namespace sm {
 		AnimationComponent* animComp = animSM->GetEntity()->GetComp<AnimationComponent>();
 		if (animComp && animSM->animations[HURT].GetHash())
 		{
-			animComp->TransitionTo(animSM->animations[HURT].GetHash(),0.1f);
+			animComp->TransitionTo(animSM->animations[HURT].GetHash(), animSM->animDurations["HURT"]);
 			animComp->isPlaying = true;
 			animComp->loop = false; // Usually hurt doesn't loop
-			animComp->speed = 1.0f;
+			animComp->speed = animSM->animSpeeds["HURT"];
 		}
 	}
 
@@ -183,10 +213,10 @@ namespace sm {
 		AnimationComponent* animComp = animSM->GetEntity()->GetComp<AnimationComponent>();
 		if (animComp && animSM->animations[DODGE].GetHash())
 		{
-			animComp->TransitionTo(animSM->animations[DODGE].GetHash(),0.05f);
+			animComp->TransitionTo(animSM->animations[DODGE].GetHash(), animSM->animDurations["DODGE"]);
 			animComp->isPlaying = true;
 			animComp->loop = false;
-			animComp->speed = 1.0f;
+			animComp->speed = animSM->animSpeeds["DODGE"];
 		}
 	}
 
@@ -196,10 +226,10 @@ namespace sm {
 		AnimationComponent* animComp = animSM->GetEntity()->GetComp<AnimationComponent>();
 		if (animComp && animSM->animations[PARRY].GetHash())
 		{
-			animComp->TransitionTo(animSM->animations[PARRY].GetHash(),0.05f);
+			animComp->TransitionTo(animSM->animations[PARRY].GetHash(), animSM->animDurations["PARRY"]);
 			animComp->isPlaying = true;
 			animComp->loop = false;
-			animComp->speed = 1.0f;
+			animComp->speed = animSM->animSpeeds["PARRY"];
 			std::cout << "Set Parry Animation" << std::endl;
 		}
 	}
@@ -210,10 +240,10 @@ namespace sm {
 		AnimationComponent* animComp = animSM->GetEntity()->GetComp<AnimationComponent>();
 		if (animComp && animSM->animations[THROW].GetHash())
 		{
-			animComp->TransitionTo(animSM->animations[THROW].GetHash());
+			animComp->TransitionTo(animSM->animations[THROW].GetHash(), animSM->animDurations["THROW"]);
 			animComp->isPlaying = true;
 			animComp->loop = false;
-			animComp->speed = 1.0f;
+			animComp->speed = animSM->animSpeeds["THROW"];
 			std::cout << "Set Throw Animation" << std::endl;
 		}
 	}

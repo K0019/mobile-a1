@@ -249,6 +249,8 @@ namespace sm {
 			AnimationComponent, Transform, etc.
 		*//******************************************************************/
 		ecs::EntityHandle GetEntity() const;
+
+		void TransferAnims(UserResourceHandle<ResourceAnimation> inAnim[7]);
 		
 		void ResetFlags();
 
@@ -260,6 +262,9 @@ namespace sm {
 		bool parry = false;
 		bool throwFlag = false;
 		float attackDelay = 0.f;
+		std::unordered_map<std::string, bool> animSwitch;
+		std::unordered_map<std::string, float> animSpeeds;
+		std::unordered_map<std::string, float> animDurations;
 		UserResourceHandle<ResourceAnimation> animations[ANIMATION_TYPES::ANIM_TOTAL];
 
 		void ChangAnim(uint32_t anim, size_t hash);
