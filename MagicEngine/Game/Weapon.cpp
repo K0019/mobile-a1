@@ -10,6 +10,11 @@ void WeaponMoveInfo::EditorDraw()
 	gui::VarDefault("Hit Delay", &hitDelay);
 }
 
+bool WeaponInfo::IsLoaded()
+{
+	return isLoaded;
+}
+
 void WeaponInfo::EditorDraw()
 {
 	gui::VarContainer("Moves", &moves, [](WeaponMoveInfo& moveInfo) -> bool {

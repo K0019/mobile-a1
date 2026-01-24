@@ -28,12 +28,19 @@ property_begin(WeaponMoveInfo)
 }
 property_vend_h(WeaponMoveInfo)
 
-struct WeaponInfo : public ISerializeable
+struct WeaponInfo
+	: public ISerializeableWithoutJsonObj
+	, public ResourceBase
 {
 	std::vector<WeaponMoveInfo> moves;
-	int lightDamage;
-	int heavyDamage;
-	int parryDamage;
+	int lightDamage = 0;
+	int heavyDamage = 0;
+	int parryDamage = 0;
+
+private:
+	bool isLoaded = false;
+public:
+	bool IsLoaded() override;
 
 	void EditorDraw();
 

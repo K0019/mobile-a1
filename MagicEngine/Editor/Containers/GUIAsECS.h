@@ -175,7 +175,11 @@ namespace editor {
 		if (!GetIsOpen())
 		{
 			UserOnOpenStateChanged();
+			// Ensure we are in the editor gui pool before deleting this entity
+			::ecs::POOL originalPool{ ::ecs::GetCurrentPoolId() };
+			::ecs::SwitchToPool(::ecs::POOL::EDITOR_GUI);
 			::ecs::DeleteEntity(::ecs::GetEntity(this));
+			::ecs::SwitchToPool(originalPool);
 		}
 	}
 
