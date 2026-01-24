@@ -31,6 +31,7 @@ All rights reserved.
 #include "Engine/Resources/Importers/ResourceFiletypeImporterImage.h"
 #include "Engine/Resources/Importers/ResourceFiletypeImporterAudio.h"
 #include "Engine/Resources/Importers/ResourceFiletypeImporterAnimationAsset.h"
+#include "Engine/Resources/Importers/ResourceFiletypeImporterGame.h"
 
 std::unordered_map<std::string, SPtr<ResourceFiletypeImporterBase>> ResourceImporter::importers{
     { std::string{ ".fbx" }, std::make_shared<ResourceFiletypeImporterFBX>() }, //compile
@@ -46,6 +47,7 @@ std::unordered_map<std::string, SPtr<ResourceFiletypeImporterBase>> ResourceImpo
     { std::string{ ".bmp" }, std::make_shared<ResourceFiletypeImporterImage>() },   //compile
     { std::string{ ".mp3" }, std::make_shared<ResourceFiletypeImporterAudio>() },   //load
     { std::string{ ".wav" }, std::make_shared<ResourceFiletypeImporterAudio>() },   //load
+    { std::string{ ".weapon" }, std::make_shared<ResourceFiletypeImporterGameWeapon>() }, //load
 };
 
 bool ResourceImporter::Import(const std::string& filepath)

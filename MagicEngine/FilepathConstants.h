@@ -64,6 +64,9 @@ public:
 	static const std::string engineScriptingDll;
 	static const std::string glmSharpDll;
 
+	// Game
+	static const std::string gameWeaponSave;
+
 	/*****************************************************************//*!
 	\brief
 		Adds the working directory to the target string.

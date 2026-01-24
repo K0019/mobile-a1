@@ -450,13 +450,11 @@ void CharacterMovementComponentSystem::UpdateCharacterMovementComponent(Characte
 		animatorComp = ecs::GetEntity(&comp)->GetComp<AnimatorComponent>();
 	}
 	else {
-		animatorComp->GetStateMachine()->animations[IDLE] = comp.animations[IDLE];
-		animatorComp->GetStateMachine()->animations[ATTACK] = comp.animations[ATTACK];
-		animatorComp->GetStateMachine()->animations[WALK] = comp.animations[WALK];
-		animatorComp->GetStateMachine()->animations[PARRY] = comp.animations[PARRY];
-		animatorComp->GetStateMachine()->animations[HURT] = comp.animations[HURT];
-		animatorComp->GetStateMachine()->animations[DODGE] = comp.animations[DODGE];
-		animatorComp->GetStateMachine()->animations[THROW] = comp.animations[THROW];
+		static bool firstTime = true;
+		if(firstTime) {
+			animatorComp->GetStateMachine()->TransferAnims(comp.animations);
+			firstTime = false;
+		}
 	}
 	animatorComp->GetStateMachine()->ResetFlags();
 

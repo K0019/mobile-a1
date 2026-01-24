@@ -72,10 +72,12 @@ namespace gui {
 	}
 
 	template<size_t BufferSize>
-	TextBoxWithBuffer<BufferSize>::TextBoxWithBuffer(const char* label)
+	TextBoxWithBuffer<BufferSize>::TextBoxWithBuffer(const char* label, const std::string& text)
 		: label{ label }
 		, buffer{}
 	{
+		if (!text.empty())
+			SetBuffer(text);
 	}
 
 	template<size_t BufferSize>
