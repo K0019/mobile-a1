@@ -26,6 +26,7 @@ All rights reserved.
 #pragma once
 #include "ECS/EntityUID.h"
 #include "ECS/IEditorComponent.h"
+#include "Game/IGameComponentCallbacks.h"
 
 /*****************************************************************//*!
 \class HealthComponent
@@ -34,10 +35,13 @@ All rights reserved.
 *//******************************************************************/
 class HealthComponent 
 	: public IRegisteredComponent<HealthComponent>
-	, public  IEditorComponent<HealthComponent>
+	, public IEditorComponent<HealthComponent>
+	, public IGameComponentCallbacks<HealthComponent>
 {
 public:
 	using HealthType = float;
+
+	void OnStart() override;
 
 	/*****************************************************************//*!
 	\brief

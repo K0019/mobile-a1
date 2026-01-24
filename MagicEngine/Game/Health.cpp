@@ -40,6 +40,13 @@ All rights reserved.
 HealthComponent::HealthType cheatState = 0;
 bool cheatActive = false; ///THis is so the healthbar colour wont keep updating
 
+void HealthComponent::OnStart()
+{
+	// Send this to force any attached objects to update
+	ST<Scheduler>::Get()->Add([thisComp = this] {	ecs::GetEntity(thisComp)->GetComp<EntityEventsComponent>()->BroadcastAll("OnHealthChanged", thisComp->GetHealthFraction());
+		});
+}
+
 HealthComponent::HealthComponent()
 	: maxHealth(defaultMax)
 	, currHealth(maxHealth)
