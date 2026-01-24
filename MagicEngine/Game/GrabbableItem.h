@@ -86,6 +86,7 @@ private:
 
 property_begin(GrabbableItemComponent)
 {
+	property_var(weaponInfo),
 	property_var(damage),
 	property_var(attackBox),
 	property_var(attackDelay),
