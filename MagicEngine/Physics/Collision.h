@@ -52,6 +52,7 @@ X(IS_TRIGGER, "Is Trigger")
 		TOTAL,
 		ALL = TOTAL
 	};
+#undef X
 
 	enum class ContactTiming
 	{
