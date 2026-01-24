@@ -14,6 +14,15 @@ like Idle, Walk, Run, and Jump.
 #include "Physics/Physics.h"
 #include "Graphics/AnimationComponent.h"
 #include "Engine/Input.h"
+#include "Game/Character.h"
+
+static constexpr float ANIM_TRANSITION_DURATION_IDLE = 0.15f;
+static constexpr float ANIM_TRANSITION_DURATION_ATTACK = 0.1f;
+static constexpr float ANIM_TRANSITION_DURATION_WALK = 0.15f;
+static constexpr float ANIM_TRANSITION_DURATION_PARRY = 0.1f;
+static constexpr float ANIM_TRANSITION_DURATION_HURT = 0.05f;
+static constexpr float ANIM_TRANSITION_DURATION_DODGE = 0.05f;
+static constexpr float ANIM_TRANSITION_DURATION_THROW = 0.1f;
 
 namespace sm {
 	AnimStateMachine::AnimStateMachine() : StateMachine(new IdleState), entity(nullptr) {
@@ -105,59 +114,45 @@ namespace sm {
 	// ACTIVITY DEFINITIONS
 	//======================================================================
 
-	void IdleActivity::OnEnter(sm::StateMachine* sm)
+	// Helper function for activities to transition into a new animation as described inside WeaponInfo
+	bool TransitionChracterIntoAnimation(sm::AnimStateMachine* sm, size_t animIndex, float animTransitionDuration)
 	{
-		sm::AnimStateMachine* animSM = CastSM(sm);
-		AnimationComponent* animComp = animSM->GetEntity()->GetComp<AnimationComponent>();
-		std::cout << "Entered Idle Activity" << std::endl;
-		if (animComp)
+		ecs::EntityHandle charEntity{ sm->GetEntity() };
+		auto charComp{ charEntity->GetComp<CharacterMovementComponent>() };
+		auto itemComp{ charComp ? charComp->GetHeldItem() : nullptr };
+		auto animComp{ charEntity->GetComp<AnimationComponent>() };
+		if (!(itemComp && animComp))
 		{
-			// TODO: Set your actual idle animation hash
-			if (animSM->animations[IDLE].GetHash()) {
-				animComp->TransitionTo(animSM->animations[IDLE].GetHash(),animSM->animDurations["IDLE"]);
-				//animComp->animHandleA = 1058861583856284945;
-				animComp->isPlaying = true;
-				animComp->loop = true;
-				animComp->speed = animSM->animSpeeds["IDLE"];
-				//std::cout << "Set Idle Animation" << std::endl;
-			}
+			CONSOLE_LOG(LEVEL_ERROR) << "AnimatorStateMachine cannot find CharacterMovementComponent, AnimationComponent, or character doesn't have a valid GrabbableItemComponent";
+			return false;
 		}
+		const WeaponInfo* weaponInfo{ itemComp->weaponInfo.GetResource() };
+		if (!weaponInfo)
+		{
+			CONSOLE_LOG(LEVEL_ERROR) << "GrabbableItemComponent doesn't have a valid WeaponInfo assigned, unable to determine animation to transition to";
+			return false;
+		}
+		if (animIndex >= weaponInfo->moves.size())
+		{
+			CONSOLE_LOG(LEVEL_ERROR) << "WeaponInfo doesn't have enough moves, unable to determine animation to transition to";
+			return false;
+		}
+
+		animComp->TransitionTo(weaponInfo->moves[animIndex].anim.GetHash(), animTransitionDuration);
+		animComp->isPlaying = true;
+		animComp->loop = true;
+		return true;
 	}
 
-	//void IdleActivity::OnUpdate(sm::StateMachine* sm)
-	//{
-	//	// Optionally implement any per-frame logic for the Idle activity here
-	//	sm::AnimStateMachine* animSM = CastSM(sm);
-	//	if (animSM->attack) {
-	//		
-	//	}
-
-	//}
+	void IdleActivity::OnEnter(sm::StateMachine* sm)
+	{
+		TransitionChracterIntoAnimation(CastSM(sm), 0, ANIM_TRANSITION_DURATION_IDLE);
+	}
 
 	void WalkActivity::OnEnter(sm::StateMachine* sm)
 	{
-		sm::AnimStateMachine* animSM = CastSM(sm);
-		AnimationComponent* animComp = animSM->GetEntity()->GetComp<AnimationComponent>();
-		std::cout << "Entered Walk Activity" << std::endl;
-		if (animComp)
-		{
-			// TODO: Set your actual walk animation hash
-			if (animSM->animations[WALK].GetHash()) {
-				animComp->TransitionTo(animSM->animations[WALK].GetHash(), animSM->animDurations["WALK"]);
-				//animComp->animHandleA = 2370177633938117279;
-				animComp->isPlaying = true;
-				animComp->loop = true;
-				animComp->speed = animSM->animSpeeds["WALK"];
-			}
-		}
+		TransitionChracterIntoAnimation(CastSM(sm), 1, ANIM_TRANSITION_DURATION_WALK);
 	}
-
-	//void WalkActivity::OnUpdate(sm::StateMachine* sm)
-	//{
-	//	// Optionally implement any per-frame logic for the Idle activity here
-	//	sm::AnimStateMachine* animSM = CastSM(sm);
-
-	//}
 
 	void AttackActivity::OnEnter(sm::StateMachine* sm)
 	{
@@ -260,14 +255,9 @@ namespace sm {
 	bool ToIdleTransition::Decide(sm::StateMachine* sm)
 	{
 		sm::AnimStateMachine* animSM = CastSM(sm);
-		if (animSM->idle && !animSM->attack) {
-			return true;
-		}
-		else {
-			animSM->idle = false;
-			return false;
-		}
-		//return animSM->idle;
+		Vec2 movement{ animSM->GetBlackboardVal<Vec2>("inputMovement") };
+
+		return movement.LengthSqr() < 0.01f && !animSM->attack;
 	}
 
 	ToWalkTransition::ToWalkTransition()
@@ -278,15 +268,9 @@ namespace sm {
 	bool ToWalkTransition::Decide(sm::StateMachine* sm)
 	{
 		sm::AnimStateMachine* animSM = CastSM(sm);
-		//float speed = GetEntitySpeed(animSM->GetEntity());
-		if (animSM->walking) {
-			return true;
-		}
-		else {
-			animSM->walking = false;
-			return false;
-		}
-		//return animSM->walking;//speed > 0.1f && speed < 5.0f;
+		Vec2 movement{ animSM->GetBlackboardVal<Vec2>("inputMovement") };
+
+		return movement.LengthSqr() >= 0.01f;
 	}
 
 	ToAttackTransition::ToAttackTransition()

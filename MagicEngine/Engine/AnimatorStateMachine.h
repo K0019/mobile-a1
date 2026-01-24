@@ -254,8 +254,11 @@ namespace sm {
 		
 		void ResetFlags();
 
-		bool idle = false;
-		bool walking = false;
+		std::unordered_map<std::string, std::any> blackboard;
+		template <typename T>
+		T GetBlackboardVal(const std::string& key) const;
+
+	public:
 		bool attack = false;
 		bool hurt = false;
 		bool dodge = false;
@@ -451,5 +454,23 @@ namespace sm {
 	public:
 		ThrowState();
 	};
+
+}
+
+namespace sm {
+
+	template<typename T>
+	T AnimStateMachine::GetBlackboardVal(const std::string& key) const
+	{
+		try {
+			return std::any_cast<T>(blackboard.at(key));
+		}
+		catch (const std::out_of_range&) {
+			return T{};
+		}
+		catch (const std::bad_any_cast&) {
+			return T{};
+		}
+	}
 
 }

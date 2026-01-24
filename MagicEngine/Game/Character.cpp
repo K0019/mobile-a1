@@ -324,6 +324,14 @@ bool CharacterMovementComponent::IsDodging()
 	return currentDodgeTime > 0.0f;
 }
 
+ecs::CompHandle<GrabbableItemComponent> CharacterMovementComponent::GetHeldItem()
+{
+	if (heldItem)
+		if (auto itemComp{ heldItem->GetComp<GrabbableItemComponent>() })
+			return itemComp;
+	return ecs::GetEntity(this)->GetComp<GrabbableItemComponent>();
+}
+
 void CharacterMovementComponent::Serialize(Serializer& writer) const
 {
 	IRegisteredComponent::Serialize(writer);
@@ -539,30 +547,10 @@ void CharacterMovementComponentSystem::UpdateCharacterMovementComponent(Characte
 	comp.currParryCoolDown -= GameTime::Dt();
 
 	// Get inputs
-	Vec2 movement = comp.GetMovementVector();
-
-	// Normalize the move vector if it's over 1.0f in length
-	if (movement.LengthSqr() > 0.0f)
-	{
-		// Walking - only change animation if not attacking
-		//if (!comp.isAttacking && animComp->animHandleA.GetHash() != comp.animations[WALK].GetHash())
-		//{
-		//	animComp->TransitionTo(comp.animations[WALK].GetHash(), 0.15f);
-		//}
-		animatorComp->GetStateMachine()->ResetFlags();
-		animatorComp->GetStateMachine()->walking = true;
-		
-	}
-	else
-	{
-		// Idle - only change animation if not attacking
-		//if (!comp.isAttacking && animComp->animHandleA.GetHash() != comp.animations[IDLE].GetHash())
-		//{
-		//	animComp->TransitionTo(comp.animations[IDLE].GetHash(), 0.15f);
-		//}
-		animatorComp->GetStateMachine()->ResetFlags();
-		animatorComp->GetStateMachine()->idle = true;
-	}
+	Vec2 movement{ comp.GetMovementVector() };
+	if (movement.LengthSqr() > 1.0f)
+		movement = movement.Normalized();
+	animatorComp->GetStateMachine()->blackboard["inputMovement"] = movement;
 
 	///if (comp.isAttacking)
 	///{

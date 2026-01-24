@@ -90,6 +90,9 @@ public:
 	void OnParrySuccess();
 	void Parry();
 
+	// Gets the GrabbableItem that this character is holding. If not holding anything, returns the GrabbableItem on the entity itself.
+	ecs::CompHandle<GrabbableItemComponent> GetHeldItem();
+
 	void Serialize(Serializer& writer) const override;
 	void Deserialize(Deserializer& reader) override;
 
