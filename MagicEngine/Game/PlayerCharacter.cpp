@@ -106,7 +106,7 @@ void PlayerMovementComponentSystem::UpdatePlayerMovementComponent(PlayerMovement
 	Vec2 camForward = Vec2{ cos(yawRad),sin(yawRad) };
 	Vec2 camRight = Vec2{ -sin(yawRad),cos(yawRad) };
 
-	if (!characterComp->isAttacking)
+	if (!characterComp->IsAttacking())
 	{
 		if (inputInstance->GetIsDown(KEY::W))
 			movement = movement + camForward;

@@ -67,7 +67,6 @@ public:
 	float currentStunTime;
 	float currentDodgeTime;
 	float currentDodgeCooldown;
-	bool isAttacking;
 	float speedMultiplier;
 
 	/*****************************************************************//*!
@@ -84,7 +83,8 @@ public:
 	void DropItem();
 	void Throw(Vec3 direction);
 	void GrabItem(ecs::CompHandle<GrabbableItemComponent> item);
-	bool Attack();
+	void Attack();
+	bool IsAttacking() const;
 	bool IsDodging();
 	bool IsParrying();
 	void OnParrySuccess();

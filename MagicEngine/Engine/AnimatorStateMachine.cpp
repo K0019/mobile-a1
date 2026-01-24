@@ -114,22 +114,24 @@ namespace sm {
 	// ACTIVITY DEFINITIONS
 	//======================================================================
 
-	// Helper function for activities to transition into a new animation as described inside WeaponInfo
-	bool TransitionChracterIntoAnimation(sm::AnimStateMachine* sm, size_t animIndex, float animTransitionDuration)
+	// Helper function to obtain the WeaponInfo of the character
+	const WeaponInfo* GetWeaponInfo(sm::AnimStateMachine* sm)
 	{
 		ecs::EntityHandle charEntity{ sm->GetEntity() };
-		auto charComp{ charEntity->GetComp<CharacterMovementComponent>() };
-		auto itemComp{ charComp ? charComp->GetHeldItem() : nullptr };
-		auto animComp{ charEntity->GetComp<AnimationComponent>() };
-		if (!(itemComp && animComp))
-		{
-			CONSOLE_LOG(LEVEL_ERROR) << "AnimatorStateMachine cannot find CharacterMovementComponent, AnimationComponent, or character doesn't have a valid GrabbableItemComponent";
-			return false;
-		}
-		const WeaponInfo* weaponInfo{ itemComp->weaponInfo.GetResource() };
+		if (auto charComp{ charEntity->GetComp<CharacterMovementComponent>() })
+			if (auto itemComp{ charComp->GetHeldItem() })
+				if (auto weaponInfo{ itemComp->weaponInfo.GetResource() })
+					return weaponInfo;
+		return nullptr;
+	}
+
+	// Helper function for activities to transition into a new animation as described inside WeaponInfo
+	bool TransitionChracterIntoAnimation(sm::AnimStateMachine* sm, size_t animIndex, float animTransitionDuration, bool loop = true)
+	{
+		const WeaponInfo* weaponInfo{ GetWeaponInfo(sm) };
 		if (!weaponInfo)
 		{
-			CONSOLE_LOG(LEVEL_ERROR) << "GrabbableItemComponent doesn't have a valid WeaponInfo assigned, unable to determine animation to transition to";
+			CONSOLE_LOG(LEVEL_ERROR) << "AnimatorStateMachine could not find WeaponInfo, or it is invalid";
 			return false;
 		}
 		if (animIndex >= weaponInfo->moves.size())
@@ -138,9 +140,17 @@ namespace sm {
 			return false;
 		}
 
+		ecs::EntityHandle charEntity{ sm->GetEntity() };
+		auto animComp{ charEntity->GetComp<AnimationComponent>() };
+		if (!animComp)
+		{
+			CONSOLE_LOG(LEVEL_ERROR) << "AnimatorStateMachine cannot find AnimationComponent";
+			return false;
+		}
+
 		animComp->TransitionTo(weaponInfo->moves[animIndex].anim.GetHash(), animTransitionDuration);
 		animComp->isPlaying = true;
-		animComp->loop = true;
+		animComp->loop = loop;
 		return true;
 	}
 
@@ -156,37 +166,79 @@ namespace sm {
 
 	void AttackActivity::OnEnter(sm::StateMachine* sm)
 	{
-		sm::AnimStateMachine* animSM = CastSM(sm);
-		AnimationComponent* animComp = animSM->GetEntity()->GetComp<AnimationComponent>();
-		std::cout << "Entered Attack Activity" << std::endl;
-		if (animComp)
-		{
-			// TODO: Set your actual run animation hash
-			if (animSM->animations[ATTACK].GetHash()) {
-				animComp->TransitionTo(animSM->animations[ATTACK].GetHash(), animSM->animDurations["ATTACK"]);
-				animComp->isPlaying = true;
-				animComp->loop = true;
-				animComp->speed = animSM->animSpeeds["ATTACK"];
-			}
-		}
-	}
+		auto animSM{ CastSM(sm) };
+		TransitionChracterIntoAnimation(animSM, 2, ANIM_TRANSITION_DURATION_ATTACK, false);
+		animSM->blackboard["inputAttack"] = false; // Consume input
+		animSM->blackboard["attacking"] = true; // Mark that we are currently attacking
 
+		// Use this to track whether we've already attacked while we're in the AttackActivity
+		animSM->blackboard["attacked"] = false;
+
+		// TODO: Play sound
+		//std::string tmpName;
+		//auto grabbableComp = attackItem->GetComp<GrabbableItemComponent>();
+		//if (grabbableComp->audioStartIndex > grabbableComp->audioEndIndex + 1)
+		//	tmpName = grabbableComp->audioName + std::to_string(randomRange(grabbableComp->audioEndIndex + 1, grabbableComp->audioStartIndex));
+		//else
+		//	tmpName = grabbableComp->audioName + std::to_string(randomRange(grabbableComp->audioStartIndex, grabbableComp->audioEndIndex + 1));
+
+		////if (randomRange(0, 2) == 0)
+		//ST<AudioManager>::Get()->PlaySound3D(tmpName, false, ecs::GetEntity(this)->GetTransform().GetWorldPosition(), AudioType::END, std::pair<float, float>{2.0f, 50.0f}, 0.6f);
+	}
 	void AttackActivity::OnUpdate(sm::StateMachine* sm)
 	{
-		// Optionally implement any per-frame logic for the Attack activity here
-		sm::AnimStateMachine* animSM = CastSM(sm);
-		float attackDelay = animSM->attackDelay;
-		if (attackDelay > 0.f) {
-			animSM->attackDelay -= GameTime::Dt();
-			if (animSM->attackDelay <= 0.f) {
-				animSM->attackDelay = 0.f;
-				animSM->attack = false;
-			}
-			else {
-				animSM->attack = true;
-				//std::cout << "stay attacking" << std::endl;
-			}
+		// Don't need to do anything if already applied hitbox attack
+		auto animSM{ CastSM(sm) };
+		if (animSM->GetBlackboardVal<bool>("attacked"))
+			return;
+
+		// We need the WeaponInfo to get the hit parameters
+		auto weaponInfo{ GetWeaponInfo(animSM) };
+		if (!weaponInfo || weaponInfo->moves.size() <= 2)
+		{
+			// No weapon valid?
+			CONSOLE_LOG(LEVEL_WARNING) << "Can't find WeaponInfo or WeaponInfo doesn't have a move at index 2, unable to apply attack hit logic";
+			return;
 		}
+		const auto& weaponMove{ weaponInfo->moves[2] };
+
+		// Check if it's time to do the hit
+		ecs::EntityHandle charEntity{ animSM->GetEntity() };
+		auto animComp{ charEntity->GetComp<AnimationComponent>() };
+		if (!animComp)
+		{
+			CONSOLE_LOG(LEVEL_ERROR) << "AnimatorStateMachine cannot find AnimationComponent";
+			return;
+		}
+		// timeA is the elapsed duration of the attack animation
+		if (animComp->timeA < weaponMove.hitDelay)
+			// Not time to hit yet
+			return;
+
+		// Do the attack
+		animSM->blackboard["attacked"] = true;
+
+		// Hard-code a simple start point etc for now
+		Vec3 rotation = charEntity->GetTransform().GetWorldRotation();
+		Vec3 direction(sin(math::ToRadians(rotation.y)), 0, cos(math::ToRadians(rotation.y)));
+		Vec3 startPoint = charEntity->GetTransform().GetWorldPosition() + direction * 0.5f * weaponMove.hitboxExtents.z;
+		startPoint.y += 0.8f;
+
+		/*auto hitDebugObject = thisComp->hitDebugObject;
+		if (hitDebugObject != nullptr)
+		{
+			hitDebugObject->GetTransform().SetWorldPosition(startPoint);
+			hitDebugObject->GetTransform().SetWorldRotation(Vec3(0.0f, math::ToDegrees(atan2(direction.x, direction.z)), 0.0f));
+			hitDebugObject->GetTransform().SetWorldScale(attackItem->GetComp<GrabbableItemComponent>()->attackBox);
+		}*/
+
+		// TODO: Refactor this function to use the WeaponMoveInfo's hitbox
+		charEntity->GetComp<CharacterMovementComponent>()->GetHeldItem()->Attack(startPoint, direction);
+	}
+
+	void AttackActivity::OnExit(sm::StateMachine* sm)
+	{
+		CastSM(sm)->blackboard["attacking"] = false;
 	}
 
 	void HurtActivity::OnEnter(sm::StateMachine* sm)
@@ -257,7 +309,21 @@ namespace sm {
 		sm::AnimStateMachine* animSM = CastSM(sm);
 		Vec2 movement{ animSM->GetBlackboardVal<Vec2>("inputMovement") };
 
-		return movement.LengthSqr() < 0.01f && !animSM->attack;
+		// If we're moving, return false
+		if (movement.LengthSqr() >= 0.01f)
+			return false;
+
+		// Additionally, if we're attacking, only transition once attack animation is completed
+		// So in turn, this check is if we're not attacking, in which case there are no more conditions to check and we are now idle
+		if (!animSM->GetBlackboardVal<bool>("attacking"))
+			return true;
+
+		// Transition only once attack animation is completed
+		if (auto animComp{ animSM->GetEntity()->GetComp<AnimationComponent>() })
+			return std::fabsf(animComp->timeA - animComp->GetClipDuration(animComp->GetAnimationClipA())) < 0.01f;
+		else
+			// No animation comp, assume no animation playing
+			return true;
 	}
 
 	ToWalkTransition::ToWalkTransition()
@@ -270,7 +336,21 @@ namespace sm {
 		sm::AnimStateMachine* animSM = CastSM(sm);
 		Vec2 movement{ animSM->GetBlackboardVal<Vec2>("inputMovement") };
 
-		return movement.LengthSqr() >= 0.01f;
+		// If we're not moving, return false
+		if (movement.LengthSqr() < 0.01f)
+			return false;
+
+		// Additionally, if we're attacking, only transition once attack animation is completed
+		// So in turn, this check is if we're not attacking, in which case there are no more conditions to check and we are now idle
+		if (!animSM->GetBlackboardVal<bool>("attacking"))
+			return true;
+
+		// Transition only once attack animation is completed
+		if (auto animComp{ animSM->GetEntity()->GetComp<AnimationComponent>() })
+			return std::fabsf(animComp->timeA - animComp->GetClipDuration(animComp->GetAnimationClipA())) < 0.01f;
+		else
+			// No animation comp, assume no animation playing
+			return true;
 	}
 
 	ToAttackTransition::ToAttackTransition()
@@ -280,15 +360,7 @@ namespace sm {
 
 	bool ToAttackTransition::Decide(sm::StateMachine* sm)
 	{
-		sm::AnimStateMachine* animSM = CastSM(sm);
-		if (animSM->attack) {
-			return true;
-		}
-		else {
-			animSM->attack = false;
-			return false;
-		}
-		//return animSM->attack;
+		return CastSM(sm)->GetBlackboardVal<bool>("inputAttack");
 	}
 
 	ToHurtTransition::ToHurtTransition() 

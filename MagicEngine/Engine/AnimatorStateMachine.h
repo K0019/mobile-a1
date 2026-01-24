@@ -259,12 +259,10 @@ namespace sm {
 		T GetBlackboardVal(const std::string& key) const;
 
 	public:
-		bool attack = false;
 		bool hurt = false;
 		bool dodge = false;
 		bool parry = false;
 		bool throwFlag = false;
-		float attackDelay = 0.f;
 		std::unordered_map<std::string, bool> animSwitch;
 		std::unordered_map<std::string, float> animSpeeds;
 		std::unordered_map<std::string, float> animDurations;
@@ -327,6 +325,7 @@ namespace sm {
 		public:
 		void OnEnter(sm::StateMachine* sm) override;
 		void OnUpdate(sm::StateMachine* sm) override;
+		void OnExit(sm::StateMachine* sm) override;
 	};
 
 	class HurtActivity : public sm::AnimActivityBase<HurtActivity>

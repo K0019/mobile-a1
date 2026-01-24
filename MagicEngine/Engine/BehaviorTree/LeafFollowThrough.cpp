@@ -17,7 +17,6 @@ NODE_STATUS L_FollowThrough::OnUpdate(ecs::EntityHandle entity)
 
 	if (characterComp->currentStunTime > 0.f)
 	{
-		characterComp->isAttacking = false;
 		return NODE_STATUS::FAILURE;
 	}
 
@@ -26,6 +25,5 @@ NODE_STATUS L_FollowThrough::OnUpdate(ecs::EntityHandle entity)
 	if (currSpentTime < enemyComp->followThroughTime)
 		return NODE_STATUS::RUNNING;
 
-	characterComp->isAttacking = false;
 	return NODE_STATUS::SUCCESS;
 }
