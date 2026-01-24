@@ -43,6 +43,7 @@ public:
 	bool IsLoaded() override;
 
 	void EditorDraw();
+	void Deserialize(Deserializer& reader) override;
 
 	property_vtable()
 };

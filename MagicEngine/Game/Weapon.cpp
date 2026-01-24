@@ -25,3 +25,9 @@ void WeaponInfo::EditorDraw()
 	gui::VarDefault("Heavy DMG", &heavyDamage);
 	gui::VarDefault("Parry DMG", &parryDamage);
 }
+
+void WeaponInfo::Deserialize(Deserializer& reader)
+{
+	ISerializeable::Deserialize(reader);
+	isLoaded = true;
+}

@@ -2,6 +2,7 @@
 #define EDITOR_UTIL_RESOURCE
 #include "Engine/Resources/ResourcesHeader.h"
 #include "Engine/Resources/Types/ResourceTypesGraphics.h"
+#include "Game/Weapon.h"
 
 namespace editor {
 
@@ -18,5 +19,6 @@ namespace editor {
 	template <> void EditorUtil_DrawResourceHandle(const char* label, UserResourceHandle<ResourceTexture>& resourceHandle);
 	template <> void EditorUtil_DrawResourceHandle(const char* label, UserResourceHandle<ResourceMaterial>& resourceHandle);
 	template <> void EditorUtil_DrawResourceHandle(const char* label, UserResourceHandle<ResourceAnimation>& resourceHandle);
+	template <> void EditorUtil_DrawResourceHandle(const char* label, UserResourceHandle<WeaponInfo>& resourceHandle);
 
 }

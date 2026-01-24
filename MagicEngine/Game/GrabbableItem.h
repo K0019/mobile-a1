@@ -23,6 +23,7 @@ All rights reserved.
 #include "ECS/IEditorComponent.h"
 #include "Engine/Resources/ResourcesHeader.h"
 #include "Engine/Resources/Types/ResourceTypesGraphics.h"
+#include "Game/Weapon.h"
 
 /*****************************************************************//*!
 \class GrabbableItemComponent
@@ -34,6 +35,8 @@ class GrabbableItemComponent
 	, public IEditorComponent<GrabbableItemComponent>
 {
 public:
+	UserResourceHandle<WeaponInfo> weaponInfo;
+	// TODO: Replace bottom with above weapon info handle...
 	UserResourceHandle<ResourceAnimation> lightAttackAnimation;
 	UserResourceHandle<ResourceAnimation> heavyAttackAnimation;
 	UserResourceHandle<ResourceAnimation> ultimAttackAnimation;

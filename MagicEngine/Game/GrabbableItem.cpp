@@ -120,6 +120,10 @@ GrabbableItemComponent::GrabbableItemComponent() :
 
 void GrabbableItemComponent::EditorDraw()
 {
+	editor::EditorUtil_DrawResourceHandle("Weapon", weaponInfo);
+
+	// TODO: Remove below variables until pickup UI. Above should be all that's needed..
+
 	gui::VarInput("Damage", &damage);
 	gui::VarInput("Attack Box", &attackBox);
 	gui::VarInput("Attack Delay", &attackDelay);

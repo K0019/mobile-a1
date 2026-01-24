@@ -33,5 +33,10 @@ namespace editor {
 	{
 		internal::DrawResourceHandle(label, resourceHandle, "ANIMATION_HASH");
 	}
+	template<>
+	void EditorUtil_DrawResourceHandle(const char* label, UserResourceHandle<WeaponInfo>& resourceHandle)
+	{
+		internal::DrawResourceHandle(label, resourceHandle, "GAME_WEAPON_HASH");
+	}
 
 }
