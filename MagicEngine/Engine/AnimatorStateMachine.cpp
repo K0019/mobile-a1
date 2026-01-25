@@ -25,11 +25,15 @@ static constexpr float ANIM_TRANSITION_DURATION_DODGE = 0.05f;
 static constexpr float ANIM_TRANSITION_DURATION_THROW = 0.1f;
 
 namespace sm {
-	AnimStateMachine::AnimStateMachine() : StateMachine(new IdleState), entity(nullptr) {
+	AnimStateMachine::AnimStateMachine() : StateMachine(new IdleState), entity(nullptr)
+	{
+		// Crash Fix: Without this character will receive index 0 which makes it think we're attacking with move 0
+		blackboard["outputApplyHitMove"] = -1;
 	}
 
-	AnimStateMachine::AnimStateMachine(State* startingState) : StateMachine(startingState), entity(nullptr){
-
+	AnimStateMachine::AnimStateMachine(State* startingState) : StateMachine(startingState), entity(nullptr)
+	{
+		blackboard["outputApplyHitMove"] = -1;
 	}
 
 	void AnimStateMachine::Update(ecs::EntityHandle thisEntity)
