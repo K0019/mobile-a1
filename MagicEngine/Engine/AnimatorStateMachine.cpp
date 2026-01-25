@@ -243,48 +243,30 @@ namespace sm {
 
 	void HurtActivity::OnEnter(sm::StateMachine* sm)
 	{
-		TransitionChracterIntoAnimation(CastSM(sm), 3, ANIM_TRANSITION_DURATION_HURT, false);
+		auto animSM{ CastSM(sm) };
+		TransitionChracterIntoAnimation(animSM, 3, ANIM_TRANSITION_DURATION_HURT, false);
+		animSM->blackboard["inputHurt"] = false; 
 	}
 
 	void DodgeActivity::OnEnter(sm::StateMachine* sm)
 	{
-		sm::AnimStateMachine* animSM = CastSM(sm);
-		AnimationComponent* animComp = animSM->GetEntity()->GetComp<AnimationComponent>();
-		if (animComp && animSM->animations[DODGE].GetHash())
-		{
-			animComp->TransitionTo(animSM->animations[DODGE].GetHash(), animSM->animDurations["DODGE"]);
-			animComp->isPlaying = true;
-			animComp->loop = false;
-			animComp->speed = animSM->animSpeeds["DODGE"];
-		}
+		auto animSM{ CastSM(sm) };
+		TransitionChracterIntoAnimation(animSM, 4, ANIM_TRANSITION_DURATION_DODGE, false);
+		animSM->blackboard["inputDodge"] = false;
 	}
 
 	void ParryActivity::OnEnter(sm::StateMachine* sm)
 	{
-		sm::AnimStateMachine* animSM = CastSM(sm);
-		AnimationComponent* animComp = animSM->GetEntity()->GetComp<AnimationComponent>();
-		if (animComp && animSM->animations[PARRY].GetHash())
-		{
-			animComp->TransitionTo(animSM->animations[PARRY].GetHash(), animSM->animDurations["PARRY"]);
-			animComp->isPlaying = true;
-			animComp->loop = false;
-			animComp->speed = animSM->animSpeeds["PARRY"];
-			std::cout << "Set Parry Animation" << std::endl;
-		}
+		auto animSM{ CastSM(sm) };
+		TransitionChracterIntoAnimation(animSM, 5, ANIM_TRANSITION_DURATION_PARRY, false);
+		animSM->blackboard["inputParry"] = false;
 	}
 
 	void ThrowActivity::OnEnter(sm::StateMachine* sm)
 	{
-		sm::AnimStateMachine* animSM = CastSM(sm);
-		AnimationComponent* animComp = animSM->GetEntity()->GetComp<AnimationComponent>();
-		if (animComp && animSM->animations[THROW].GetHash())
-		{
-			animComp->TransitionTo(animSM->animations[THROW].GetHash(), animSM->animDurations["THROW"]);
-			animComp->isPlaying = true;
-			animComp->loop = false;
-			animComp->speed = animSM->animSpeeds["THROW"];
-			std::cout << "Set Throw Animation" << std::endl;
-		}
+		auto animSM{ CastSM(sm) };
+		TransitionChracterIntoAnimation(animSM, 6, ANIM_TRANSITION_DURATION_THROW, false);
+		animSM->blackboard["inputThrow"] = false;
 	}
 
 	//======================================================================
@@ -359,49 +341,28 @@ namespace sm {
 		: sm::AnimTransitionBase<ToHurtTransition>(SET_NEXT_STATE(HurtState)) {}
 
 	bool ToHurtTransition::Decide(sm::StateMachine* sm) {
-		return CastSM(sm)->GetBlackboardVal<bool>("hurt");
+		return CastSM(sm)->GetBlackboardVal<bool>("inputHurt");
 	}
 
 	ToDodgeTransition::ToDodgeTransition() 
 		: sm::AnimTransitionBase<ToDodgeTransition>(SET_NEXT_STATE(DodgeState)) {}
 
 	bool ToDodgeTransition::Decide(sm::StateMachine* sm) {
-		sm::AnimStateMachine* animSM = CastSM(sm);
-		if (animSM->dodge) {
-			return true;
-		}
-		else {
-			animSM->dodge = false;
-			return false;
-		}
+		return CastSM(sm)->GetBlackboardVal<bool>("inputDodge");
 	}
 
 	ToParryTransition::ToParryTransition() 
 		: sm::AnimTransitionBase<ToParryTransition>(SET_NEXT_STATE(ParryState)) {}
 
 	bool ToParryTransition::Decide(sm::StateMachine* sm) {
-		sm::AnimStateMachine* animSM = CastSM(sm);
-		if (animSM->parry) {
-			return true;
-		}
-		else {
-			animSM->parry = false;
-			return false;
-		}
+		return CastSM(sm)->GetBlackboardVal<bool>("inputParry");
 	}
 
 	ToThrowTransition::ToThrowTransition() 
 		: sm::AnimTransitionBase<ToThrowTransition>(SET_NEXT_STATE(ThrowState)) {}
 
 	bool ToThrowTransition::Decide(sm::StateMachine* sm) {
-		sm::AnimStateMachine* animSM = CastSM(sm);
-		if (animSM->throwFlag) {
-			return true;
-		}
-		else {
-			animSM->throwFlag = false;
-			return false;
-		}
+		return CastSM(sm)->GetBlackboardVal<bool>("inputThrow");
 	}
 
 

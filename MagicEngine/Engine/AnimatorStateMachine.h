@@ -259,9 +259,6 @@ namespace sm {
 		T GetBlackboardVal(const std::string& key) const;
 
 	public:
-		bool dodge = false;
-		bool parry = false;
-		bool throwFlag = false;
 		std::unordered_map<std::string, bool> animSwitch;
 		std::unordered_map<std::string, float> animSpeeds;
 		std::unordered_map<std::string, float> animDurations;

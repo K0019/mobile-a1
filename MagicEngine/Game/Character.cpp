@@ -401,8 +401,7 @@ void CharacterMovementComponentSystem::UpdateCharacterMovementComponent(Characte
 		// Can only come out of stun when on the ground
 		if (math::Abs(currVel.y) > 0.01f && comp.currentStunTime < 0.0f)
 			comp.currentStunTime = GameTime::Dt();
-		animatorComp->GetStateMachine()->ResetFlags();
-		animatorComp->GetStateMachine()->dodge = true;
+		animatorComp->GetStateMachine()->blackboard["inputDodge"] = true;
 
 		//if (animComp->animHandleA.GetHash() != comp.animations[HURT].GetHash())
 		//{
@@ -428,8 +427,8 @@ void CharacterMovementComponentSystem::UpdateCharacterMovementComponent(Characte
 			animatorComp->GetStateMachine()->animations[PARRY] = itemComp->parryAnimation.GetHash();
 		else
 			animatorComp->GetStateMachine()->animations[PARRY] = comp.animations[PARRY].GetHash();
-		animatorComp->GetStateMachine()->ResetFlags();
-		animatorComp->GetStateMachine()->parry = true;
+
+		animatorComp->GetStateMachine()->blackboard["inputParry"] = true;
 		// Transition to parry animation if not already playing it
 		//if (animComp->animHandleA.GetHash() != parryAnimHash)
 		//	animComp->TransitionTo(parryAnimHash, 0.05f);
@@ -474,10 +473,8 @@ void CharacterMovementComponentSystem::UpdateCharacterMovementComponent(Characte
 	{
 		comp.currentDodgeTime -= GameTime::Dt();
 		moveDir *= comp.dodgeSpeed;
-		animatorComp->GetStateMachine()->ResetFlags();
-		animatorComp->GetStateMachine()->dodge = true;
-		/*if (animComp->animHandleA.GetHash() != comp.animations[DODGE].GetHash())
-			animComp->TransitionTo(comp.animations[DODGE].GetHash(), 0.05f);*/
+
+		animatorComp->GetStateMachine()->blackboard["inputDodge"] = true;
 	}
 	else
 	{
