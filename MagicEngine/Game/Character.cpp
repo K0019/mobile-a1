@@ -190,15 +190,21 @@ void CharacterMovementComponent::GrabItem(ecs::CompHandle<GrabbableItemComponent
 	ST<AudioManager>::Get()->PlaySound3D("weapon pickup "+std::to_string(randomRange<int>(1,4)), false, ecs::GetEntity(this)->GetTransform().GetWorldPosition(), AudioType::END, std::pair<float, float>{2.0f, 50.0f}, 0.6f);
 }
 
-void CharacterMovementComponent::Attack()
+void CharacterMovementComponent::LightAttack()
 {
 	// Defer to animation fsm
-	ecs::GetEntity(this)->GetComp<AnimatorComponent>()->GetStateMachine()->blackboard["inputAttack"] = true;
+	ecs::GetEntity(this)->GetComp<AnimatorComponent>()->GetStateMachine()->blackboard["inputLightAttack"] = true;
+}
+
+void CharacterMovementComponent::HeavyAttack()
+{
+	ecs::GetEntity(this)->GetComp<AnimatorComponent>()->GetStateMachine()->blackboard["inputHeavyAttack"] = true;
 }
 
 bool CharacterMovementComponent::IsAttacking() const
 {
-	return ecs::GetEntity(this)->GetComp<AnimatorComponent>()->GetStateMachine()->GetBlackboardVal<bool>("inputAttack");
+	auto animFSM{ ecs::GetEntity(this)->GetComp<AnimatorComponent>()->GetStateMachine() };
+	return animFSM->GetBlackboardVal<bool>("inputLightAttack") || animFSM->GetBlackboardVal<bool>("inputHeavyAttack");
 }
 
 bool CharacterMovementComponent::IsParrying()

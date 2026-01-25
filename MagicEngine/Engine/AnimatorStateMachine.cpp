@@ -287,13 +287,13 @@ namespace sm {
 
 	IdleState::IdleState() : sm::State(
 		{ new IdleActivity() },
-		{ new ToWalkTransition(), new ToAttackTransition<AttackState>{}, new ToHurtTransition(), new ToDodgeTransition(), new ToParryTransition(), new ToThrowTransition() }
+		{ new ToWalkTransition(), new ToAttackTransition<AttackState>{ ANIM_INPUT_TYPE::LIGHT_ATTACK }, new ToHurtTransition(), new ToDodgeTransition(), new ToParryTransition(), new ToThrowTransition() }
 	) {
 	}
 
 	WalkState::WalkState() : sm::State(
 		{ new WalkActivity() },
-		{ new ToIdleTransition(), new ToAttackTransition<AttackState>{}, new ToHurtTransition(), new ToDodgeTransition(), new ToParryTransition(), new ToThrowTransition() }
+		{ new ToIdleTransition(), new ToAttackTransition<AttackState>{ ANIM_INPUT_TYPE::LIGHT_ATTACK }, new ToHurtTransition(), new ToDodgeTransition(), new ToParryTransition(), new ToThrowTransition() }
 	) {
 	}
 
@@ -305,7 +305,7 @@ namespace sm {
 
 	HurtState::HurtState() : sm::State(
 		{ new HurtActivity() },
-		{ new NoOpWhileAnimatingTransition{}, new ToAttackTransition<AttackState>{}, new ToIdleTransition() } // Recover to Idle after being hurt
+		{ new NoOpWhileAnimatingTransition{}, new ToAttackTransition<AttackState>{ ANIM_INPUT_TYPE::LIGHT_ATTACK }, new ToIdleTransition() } // Recover to Idle after being hurt
 	) {
 	}
 
@@ -330,7 +330,7 @@ namespace sm {
 	LightAttackPlayer1::LightAttackPlayer1() : sm::State{
 		{ new AttackActivity{ 2 } },
 		{ new ToHurtTransition{}, new ToDodgeTransition{}, new NoOpBeforeAttackDamageTransition{}, // Allow getting hit or dodging out of the attack animation at any point in time
-		  new ToAttackTransition<LightAttackPlayer2>{}, new NoOpWhileAnimatingTransition{}, // Allow transitioning to the next attack combo at any point until the end of the current attack animation
+		  new ToAttackTransition<LightAttackPlayer2>{ ANIM_INPUT_TYPE::LIGHT_ATTACK }, new NoOpWhileAnimatingTransition{}, // Allow transitioning to the next attack combo at any point until the end of the current attack animation
 		  new ToIdleTransition{}, new ToWalkTransition{} } // No more attack inputs, return to idle/walk
 	} {
 	}

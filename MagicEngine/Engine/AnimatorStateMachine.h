@@ -45,6 +45,11 @@ enum ANIMATION_TYPES :size_t
 };
 #undef X
 
+enum class ANIM_INPUT_TYPE {
+	LIGHT_ATTACK,
+	HEAVY_ATTACK
+};
+
 namespace sm {
 
 #pragma region Interface
@@ -328,13 +333,15 @@ namespace sm {
 		ToWalkTransition();
 		bool Decide(sm::StateMachine* sm) override;
 	};
-
+	
 	template <typename ToState>
 	class ToAttackTransition : public sm::AnimTransitionBase<ToAttackTransition<ToState>>
 	{
 	public:
-		ToAttackTransition();
+		ToAttackTransition(ANIM_INPUT_TYPE attackType);
 		bool Decide(sm::StateMachine* sm) override;
+	private:
+		ANIM_INPUT_TYPE attackType;
 	};
 
 	class ToHurtTransition : public sm::AnimTransitionBase<ToHurtTransition>
@@ -435,13 +442,23 @@ namespace sm {
 	}
 
 	template <typename ToState>
-	ToAttackTransition<ToState>::ToAttackTransition()
-		: sm::AnimTransitionBase<ToAttackTransition>(SET_NEXT_STATE(ToState)) {}
+	ToAttackTransition<ToState>::ToAttackTransition(ANIM_INPUT_TYPE attackType)
+		: sm::AnimTransitionBase<ToAttackTransition>(SET_NEXT_STATE(ToState))
+		, attackType{ attackType }
+	{
+	}
 
 	template <typename ToState>
 	bool ToAttackTransition<ToState>::Decide(sm::StateMachine* sm)
 	{
-		return ToAttackTransition<ToState>::CastSM(sm)->GetBlackboardVal<bool>("inputAttack");
+		const char* key{};
+		switch (attackType)
+		{
+		case ANIM_INPUT_TYPE::LIGHT_ATTACK: key = "inputLightAttack"; break;
+		case ANIM_INPUT_TYPE::HEAVY_ATTACK: key = "inputHeavyAttack"; break;
+		default: CONSOLE_LOG(LEVEL_ERROR) << "Invalid ANIM_INPUT_TYPE passed to ToAttackTransition"; return false;
+		}
+		return ToAttackTransition<ToState>::CastSM(sm)->GetBlackboardVal<bool>(key);
 	}
 
 }
