@@ -304,6 +304,7 @@ namespace sm {
 	{
 	public:
 		void OnEnter(sm::StateMachine* sm) override;
+		void OnExit(sm::StateMachine* sm) override;
 	};
 
 	class DodgeActivity : public sm::AnimActivityBase<DodgeActivity>

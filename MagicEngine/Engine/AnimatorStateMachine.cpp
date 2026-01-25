@@ -161,11 +161,11 @@ namespace sm {
 			return;
 		}
 		// timeA is the elapsed duration of the attack animation
-		if (animComp->timeA >= weaponMove.hitDelay)
-		{
-			animSM->blackboard["outputApplyHitMove"] = 2; // Indicate to the code processing the hit which move index to access
-			animSM->blackboard["attacked"] = true;
-		}
+		if (animComp->timeA < weaponMove.hitDelay)
+			return;
+
+		animSM->blackboard["outputApplyHitMove"] = 2; // Indicate to the code processing the hit which move index to access
+		animSM->blackboard["attacked"] = true;
 
 		// Hard-code a simple start point etc for now
 		Vec3 rotation = charEntity->GetTransform().GetWorldRotation();
@@ -192,9 +192,13 @@ namespace sm {
 
 	void HurtActivity::OnEnter(sm::StateMachine* sm)
 	{
-		auto animSM{ CastSM(sm) };
-		TransitionChracterIntoAnimation(animSM, 3, ANIM_TRANSITION_DURATION_HURT, false);
-		animSM->blackboard["inputHurt"] = false; 
+		TransitionChracterIntoAnimation(CastSM(sm), 3, ANIM_TRANSITION_DURATION_HURT, false);
+	}
+
+	void HurtActivity::OnExit(sm::StateMachine* sm)
+	{
+		// Only disable hurt input after finishing animation to avoid stun lock via queuing up another hurt animation during a hurt animation
+		CastSM(sm)->blackboard["inputHurt"] = false;
 	}
 
 	void DodgeActivity::OnEnter(sm::StateMachine* sm)
@@ -228,7 +232,7 @@ namespace sm {
 	bool NoOpWhileAnimatingTransition::Decide(sm::StateMachine* sm)
 	{
 		// Stop locking transition only once animation is completed
-		if (auto animComp{ CastSM(sm)->GetEntity()->GetComp<AnimationComponent>()})
+		if (auto animComp{ CastSM(sm)->GetEntity()->GetComp<AnimationComponent>() })
 			return animComp->isPlaying;
 		else
 			// No animation comp, assume no animation playing
@@ -306,13 +310,13 @@ namespace sm {
 
 	AttackState::AttackState() : sm::State(
 		{ new AttackActivity() },
-		{ new NoOpWhileAnimatingTransition{}, new ToIdleTransition(), new ToWalkTransition(), new ToHurtTransition() }
+		{ new NoOpWhileAnimatingTransition{}, new ToHurtTransition{}, new ToAttackTransition{}, new ToIdleTransition(), new ToWalkTransition() }
 	) {
 	}
 
 	HurtState::HurtState() : sm::State(
 		{ new HurtActivity() },
-		{ new NoOpWhileAnimatingTransition{}, new ToIdleTransition() , new ToAttackTransition} // Recover to Idle after being hurt
+		{ new NoOpWhileAnimatingTransition{}, new ToAttackTransition{}, new ToIdleTransition() } // Recover to Idle after being hurt
 	) {
 	}
 
