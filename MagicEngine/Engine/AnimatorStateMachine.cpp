@@ -115,10 +115,15 @@ namespace sm {
 		TransitionChracterIntoAnimation(CastSM(sm), 1, ANIM_TRANSITION_DURATION_WALK);
 	}
 
+	AttackActivity::AttackActivity(size_t moveIndex)
+		: moveIndex{ moveIndex }
+	{
+	}
+
 	void AttackActivity::OnEnter(sm::StateMachine* sm)
 	{
 		auto animSM{ CastSM(sm) };
-		TransitionChracterIntoAnimation(animSM, 2, ANIM_TRANSITION_DURATION_ATTACK, false);
+		TransitionChracterIntoAnimation(animSM, moveIndex, ANIM_TRANSITION_DURATION_ATTACK, false);
 		animSM->blackboard["inputAttack"] = false; // Consume input
 		animSM->blackboard["attacking"] = true; // Mark that we are currently attacking
 
@@ -145,12 +150,12 @@ namespace sm {
 
 		// We need the WeaponInfo to get the hit parameters
 		auto weaponInfo{ GetWeaponInfo(animSM) };
-		if (!weaponInfo || weaponInfo->moves.size() <= 2)
+		if (!weaponInfo || weaponInfo->moves.size() <= moveIndex)
 		{
-			CONSOLE_LOG(LEVEL_WARNING) << "Can't find WeaponInfo or WeaponInfo doesn't have a move at index 2, unable to apply attack hit logic";
+			CONSOLE_LOG(LEVEL_WARNING) << "Can't find WeaponInfo or WeaponInfo doesn't have a move at index " << moveIndex << ", unable to apply attack hit logic";
 			return;
 		}
-		const auto& weaponMove{ weaponInfo->moves[2] };
+		const auto& weaponMove{ weaponInfo->moves[moveIndex] };
 
 		// Check if it's time to do the hit
 		ecs::EntityHandle charEntity{ animSM->GetEntity() };
@@ -164,7 +169,7 @@ namespace sm {
 		if (animComp->timeA < weaponMove.hitDelay)
 			return;
 
-		animSM->blackboard["outputApplyHitMove"] = 2; // Indicate to the code processing the hit which move index to access
+		animSM->blackboard["outputApplyHitMove"] = static_cast<int>(moveIndex); // Indicate to the code processing the hit which move index to access
 		animSM->blackboard["attacked"] = true;
 	}
 
@@ -222,6 +227,15 @@ namespace sm {
 			return false;
 	}
 
+	NoOpBeforeAttackDamageTransition::NoOpBeforeAttackDamageTransition()
+		: sm::AnimTransitionBase<NoOpBeforeAttackDamageTransition>{ SET_NEXT_STATE(std::nullptr_t) } {}
+
+	bool NoOpBeforeAttackDamageTransition::Decide(sm::StateMachine* sm)
+	{
+		return !CastSM(sm)->GetBlackboardVal<bool>("attacked");
+	}
+
+
 	ToIdleTransition::ToIdleTransition()
 		: sm::AnimTransitionBase<ToIdleTransition>(SET_NEXT_STATE(IdleState)) {}
 
@@ -236,14 +250,6 @@ namespace sm {
 	bool ToWalkTransition::Decide(sm::StateMachine* sm)
 	{
 		return CastSM(sm)->GetBlackboardVal<Vec2>("inputMovement").LengthSqr() >= 0.01f;
-	}
-
-	ToAttackTransition::ToAttackTransition()
-		: sm::AnimTransitionBase<ToAttackTransition>(SET_NEXT_STATE(AttackState)) {}
-
-	bool ToAttackTransition::Decide(sm::StateMachine* sm)
-	{
-		return CastSM(sm)->GetBlackboardVal<bool>("inputAttack");
 	}
 
 	ToHurtTransition::ToHurtTransition() 
@@ -281,25 +287,25 @@ namespace sm {
 
 	IdleState::IdleState() : sm::State(
 		{ new IdleActivity() },
-		{ new ToWalkTransition(), new ToAttackTransition(), new ToHurtTransition(), new ToDodgeTransition(), new ToParryTransition(), new ToThrowTransition() }
+		{ new ToWalkTransition(), new ToAttackTransition<AttackState>{}, new ToHurtTransition(), new ToDodgeTransition(), new ToParryTransition(), new ToThrowTransition() }
 	) {
 	}
 
 	WalkState::WalkState() : sm::State(
 		{ new WalkActivity() },
-		{ new ToIdleTransition(), new ToAttackTransition(), new ToHurtTransition(), new ToDodgeTransition(), new ToParryTransition(), new ToThrowTransition() }
+		{ new ToIdleTransition(), new ToAttackTransition<AttackState>{}, new ToHurtTransition(), new ToDodgeTransition(), new ToParryTransition(), new ToThrowTransition() }
 	) {
 	}
 
 	AttackState::AttackState() : sm::State(
-		{ new AttackActivity() },
-		{ new NoOpWhileAnimatingTransition{}, new ToHurtTransition{}, new ToAttackTransition{}, new ToIdleTransition(), new ToWalkTransition() }
+		{ new AttackActivity(2) },
+		{ new NoOpWhileAnimatingTransition{}, new ToHurtTransition{}, new ToAttackTransition<AttackState>{}, new ToIdleTransition(), new ToWalkTransition() }
 	) {
 	}
 
 	HurtState::HurtState() : sm::State(
 		{ new HurtActivity() },
-		{ new NoOpWhileAnimatingTransition{}, new ToAttackTransition{}, new ToIdleTransition() } // Recover to Idle after being hurt
+		{ new NoOpWhileAnimatingTransition{}, new ToAttackTransition<AttackState>{}, new ToIdleTransition() } // Recover to Idle after being hurt
 	) {
 	}
 
@@ -311,7 +317,7 @@ namespace sm {
 
 	ParryState::ParryState() : sm::State(
 		{ new ParryActivity() },
-		{ new NoOpWhileAnimatingTransition{}, new ToIdleTransition(), new ToAttackTransition() } // Can counter-attack from parry
+		{ new NoOpWhileAnimatingTransition{}, new ToIdleTransition(), new ToAttackTransition<AttackState>{} } // Can counter-attack from parry
 	) {
 	}
 
@@ -319,5 +325,20 @@ namespace sm {
 		{ new ThrowActivity() },
 		{ new NoOpWhileAnimatingTransition{}, new ToIdleTransition(), new ToWalkTransition() }
 	) {
+	}
+
+	LightAttackPlayer1::LightAttackPlayer1() : sm::State{
+		{ new AttackActivity{ 2 } },
+		{ new ToHurtTransition{}, new ToDodgeTransition{}, new NoOpBeforeAttackDamageTransition{}, // Allow getting hit or dodging out of the attack animation at any point in time
+		  new ToAttackTransition<LightAttackPlayer2>{}, new NoOpWhileAnimatingTransition{}, // Allow transitioning to the next attack combo at any point until the end of the current attack animation
+		  new ToIdleTransition{}, new ToWalkTransition{} } // No more attack inputs, return to idle/walk
+	} {
+	}
+	LightAttackPlayer2::LightAttackPlayer2() : sm::State{
+		{ new AttackActivity{ 3 } },
+		{ new ToHurtTransition{}, new ToDodgeTransition{}, new NoOpBeforeAttackDamageTransition{},
+		  new NoOpWhileAnimatingTransition{},
+		  new ToIdleTransition{}, new ToWalkTransition{} }
+	} {
 	}
 }

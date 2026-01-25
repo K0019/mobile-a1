@@ -47,41 +47,6 @@ enum ANIMATION_TYPES :size_t
 
 namespace sm {
 
-
-
-	//======================================================================
-// FORWARD DECLARATIONS - Declare everything first
-//======================================================================
-
-// States
-	class IdleState;
-	class WalkState;
-	class AttackState;
-	class HurtState;
-	class DodgeState;
-	class ParryState;
-	class ThrowState;
-
-	// Activities
-	class IdleActivity;
-	class WalkActivity;
-	class AttackActivity;
-	class HurtActivity;
-	class DodgeActivity;
-	class ParryActivity;
-	class ThrowActivity;
-
-	// Transitions
-	class ToIdleTransition;
-	class ToWalkTransition;
-	class ToAttackTransition;
-	class ToHurtTransition;
-	class ToDodgeTransition;
-	class ToParryTransition;
-	class ToThrowTransition;
-
-	
-
 #pragma region Interface
 
 	// Forward declaration
@@ -294,10 +259,15 @@ namespace sm {
 
 	class AttackActivity : public sm::AnimActivityBase<AttackActivity>
 	{
-		public:
+	public:
+		AttackActivity(size_t moveIndex);
+
 		void OnEnter(sm::StateMachine* sm) override;
 		void OnUpdate(sm::StateMachine* sm) override;
 		void OnExit(sm::StateMachine* sm) override;
+
+	private:
+		size_t moveIndex;
 	};
 
 	class HurtActivity : public sm::AnimActivityBase<HurtActivity>
@@ -337,6 +307,13 @@ namespace sm {
 		NoOpWhileAnimatingTransition();
 		bool Decide(sm::StateMachine* sm) override;
 	};
+	// Same thing but only until an attack is dealt (doesn't care about animation)
+	class NoOpBeforeAttackDamageTransition : public sm::AnimTransitionBase<NoOpBeforeAttackDamageTransition>
+	{
+	public:
+		NoOpBeforeAttackDamageTransition();
+		bool Decide(sm::StateMachine* sm) override;
+	};
 
 	class ToIdleTransition : public sm::AnimTransitionBase<ToIdleTransition>
 	{
@@ -352,8 +329,8 @@ namespace sm {
 		bool Decide(sm::StateMachine* sm) override;
 	};
 
-
-	class ToAttackTransition : public sm::AnimTransitionBase<ToAttackTransition>
+	template <typename ToState>
+	class ToAttackTransition : public sm::AnimTransitionBase<ToAttackTransition<ToState>>
 	{
 	public:
 		ToAttackTransition();
@@ -435,6 +412,10 @@ namespace sm {
 		ThrowState();
 	};
 
+
+	class LightAttackPlayer1 : public sm::State { public: LightAttackPlayer1(); };
+	class LightAttackPlayer2 : public sm::State { public: LightAttackPlayer2(); };
+
 }
 
 namespace sm {
@@ -451,6 +432,16 @@ namespace sm {
 		catch (const std::bad_any_cast&) {
 			return T{};
 		}
+	}
+
+	template <typename ToState>
+	ToAttackTransition<ToState>::ToAttackTransition()
+		: sm::AnimTransitionBase<ToAttackTransition>(SET_NEXT_STATE(ToState)) {}
+
+	template <typename ToState>
+	bool ToAttackTransition<ToState>::Decide(sm::StateMachine* sm)
+	{
+		return ToAttackTransition<ToState>::CastSM(sm)->GetBlackboardVal<bool>("inputAttack");
 	}
 
 }
