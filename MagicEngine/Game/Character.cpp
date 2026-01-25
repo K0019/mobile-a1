@@ -333,10 +333,7 @@ void CharacterMovementComponent::EditorDraw()
 		gui::TextBoxReadOnly(std::string("##AnimClip"+std::to_string(animIndex)).c_str(), clip1Name ? clip1Name->c_str() : "");
 		gui::PayloadTarget<size_t>("ANIMATION_HASH", [&](size_t hash) -> void {
 			animations[animIndex] = hash;
-			auto characterEntity = ecs::GetEntity(this);
-			AnimatorComponent* animatorComp = characterEntity->GetComp<AnimatorComponent>();
-			animatorComp->GetStateMachine()->ChangAnim(animIndex, hash);
-			});
+		});
 	}
 }
 
@@ -356,17 +353,8 @@ void CharacterMovementComponentSystem::UpdateCharacterMovementComponent(Characte
 	ecs::CompHandle<AnimationComponent> animComp = characterEntity->GetComp<AnimationComponent>();
 	AnimatorComponent* animatorComp = characterEntity->GetComp<AnimatorComponent>();
 	if (!(animatorComp)) {
-		characterEntity->AddComp<AnimatorComponent>(AnimatorComponent{ new sm::AnimStateMachine(comp.animations, new sm::IdleState()) });
-		animatorComp = ecs::GetEntity(&comp)->GetComp<AnimatorComponent>();
+		animatorComp = characterEntity->AddComp<AnimatorComponent>(AnimatorComponent{ new sm::AnimStateMachine(new sm::IdleState()) });
 	}
-	else {
-		static bool firstTime = true;
-		if(firstTime) {
-			animatorComp->GetStateMachine()->TransferAnims(comp.animations);
-			firstTime = false;
-		}
-	}
-	animatorComp->GetStateMachine()->ResetFlags();
 
 
 	// Update held item
@@ -421,17 +409,7 @@ void CharacterMovementComponentSystem::UpdateCharacterMovementComponent(Characte
 
 	if (comp.IsParrying())
 	{
-		// Get parry animation - prefer item's parry animation, fallback to character's
-		size_t parryAnimHash = 0;
-		if (itemComp && itemComp->parryAnimation.GetHash() != 0)
-			animatorComp->GetStateMachine()->animations[PARRY] = itemComp->parryAnimation.GetHash();
-		else
-			animatorComp->GetStateMachine()->animations[PARRY] = comp.animations[PARRY].GetHash();
-
 		animatorComp->GetStateMachine()->blackboard["inputParry"] = true;
-		// Transition to parry animation if not already playing it
-		//if (animComp->animHandleA.GetHash() != parryAnimHash)
-		//	animComp->TransitionTo(parryAnimHash, 0.05f);
 
 		//if (auto clip{ animComp->GetAnimationClipA() })
 		//{

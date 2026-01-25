@@ -32,55 +32,6 @@ namespace sm {
 
 	}
 
-	AnimStateMachine::AnimStateMachine(UserResourceHandle<ResourceAnimation> inAnim[7], State* startingState) : animations(*inAnim), StateMachine(startingState), entity(nullptr)
-	{
-		animSwitch["IDLE"] = false;
-		animSwitch["ATTACK"] = false;
-		animSwitch["WALK"] = false;
-		animSwitch["PARRY"] = false;
-		animSwitch["HURT"] = false;
-		animSwitch["DODGE"] = false;
-		animSwitch["THROW"] = false;
-		animSpeeds["IDLE"] = 1.0f;
-		animSpeeds["ATTACK"] = 1.0f;
-		animSpeeds["WALK"] = 1.0f;
-		animSpeeds["PARRY"] = 1.0f;
-		animSpeeds["HURT"] = 1.0f;
-		animSpeeds["DODGE"] = 1.0f;
-		animSpeeds["THROW"] = 1.0f;
-		animDurations["IDLE"] = 0.15f;
-		animDurations["ATTACK"] = 0.1f;
-		animDurations["WALK"] = 0.15f;
-		animDurations["PARRY"] = 0.1f;
-		animDurations["HURT"] = 0.05f;
-		animDurations["DODGE"] = 0.05f;
-		animDurations["THROW"] = 0.1f;
-	}
-
-	void AnimStateMachine::ResetFlags() {
-		animSwitch["IDLE"] = false;
-		animSwitch["ATTACK"] = false;
-		animSwitch["WALK"] = false;
-		animSwitch["PARRY"] = false;
-		animSwitch["HURT"] = false;
-		animSwitch["DODGE"] = false;
-		animSwitch["THROW"] = false;
-	}
-
-	void AnimStateMachine::TransferAnims(UserResourceHandle<ResourceAnimation> inAnim[7]) {
-		animations[IDLE] = inAnim[IDLE];
-		animations[ATTACK] = inAnim[ATTACK];
-		animations[WALK] = inAnim[WALK];
-		animations[PARRY] = inAnim[PARRY];
-		animations[HURT] = inAnim[HURT];
-		animations[DODGE] = inAnim[DODGE];
-		animations[THROW] = inAnim[THROW];
-	}
-
-	void AnimStateMachine::ChangAnim(uint32_t anim, size_t hash) {
-		animations[anim] = hash;
-	}
-
 	void AnimStateMachine::Update(ecs::EntityHandle thisEntity)
 	{
 		entity = thisEntity;

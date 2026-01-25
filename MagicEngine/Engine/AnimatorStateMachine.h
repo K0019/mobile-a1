@@ -213,19 +213,7 @@ namespace sm {
 	{
 	public:
 		AnimStateMachine();
-
 		AnimStateMachine(State* startingState);
-
-		AnimStateMachine(UserResourceHandle<ResourceAnimation> inAnim[7], State* startingState);
-		/*****************************************************************//*!
-		\brief
-			Constructor.
-
-		\param startingState
-			The initial state of this state machine.
-			Ownership is transferred to the state machine.
-		*//******************************************************************/
-		//AnimStateMachine(State* startingState);
 
 		/*****************************************************************//*!
 		\brief
@@ -250,21 +238,9 @@ namespace sm {
 		*//******************************************************************/
 		ecs::EntityHandle GetEntity() const;
 
-		void TransferAnims(UserResourceHandle<ResourceAnimation> inAnim[7]);
-		
-		void ResetFlags();
-
 		std::unordered_map<std::string, std::any> blackboard;
 		template <typename T>
 		T GetBlackboardVal(const std::string& key) const;
-
-	public:
-		std::unordered_map<std::string, bool> animSwitch;
-		std::unordered_map<std::string, float> animSpeeds;
-		std::unordered_map<std::string, float> animDurations;
-		UserResourceHandle<ResourceAnimation> animations[ANIMATION_TYPES::ANIM_TOTAL];
-
-		void ChangAnim(uint32_t anim, size_t hash);
 
 	private:
 		//! Hide base class update function to enforce entity parameter
