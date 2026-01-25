@@ -62,16 +62,3 @@ void EnemyComponent::EditorDraw()
 	playerReference.EditorDraw("Player");
 	attackCollider.EditorDraw("Attack Collider");
 }
-
-EnemyMovementComponentSystem::EnemyMovementComponentSystem()
-	: System_Internal{ &EnemyMovementComponentSystem::UpdateEnemyMovementComponent }
-
-{
-}
-
-void EnemyMovementComponentSystem::UpdateEnemyMovementComponent(EnemyComponent& comp)
-{
-	auto characterEntity = ecs::GetEntity(&comp);
-	AnimatorComponent* animatorComp = characterEntity->GetComp<AnimatorComponent>();
-	animatorComp->GetStateMachine()->Update(characterEntity);
-}

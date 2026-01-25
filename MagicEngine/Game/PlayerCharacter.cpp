@@ -202,7 +202,4 @@ void PlayerMovementComponentSystem::UpdatePlayerMovementComponent(PlayerMovement
 
 	if (inputInstance->GetIsPressed(KEY::LCTRL))
 		comp.Parry();
-	auto characterEntity = ecs::GetEntity(&comp);
-	AnimatorComponent* animatorComp = characterEntity->GetComp<AnimatorComponent>();
-	animatorComp->GetStateMachine()->Update(characterEntity);
 }

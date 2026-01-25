@@ -147,7 +147,6 @@ namespace sm {
 		auto weaponInfo{ GetWeaponInfo(animSM) };
 		if (!weaponInfo || weaponInfo->moves.size() <= 2)
 		{
-			// No weapon valid?
 			CONSOLE_LOG(LEVEL_WARNING) << "Can't find WeaponInfo or WeaponInfo doesn't have a move at index 2, unable to apply attack hit logic";
 			return;
 		}
@@ -162,12 +161,11 @@ namespace sm {
 			return;
 		}
 		// timeA is the elapsed duration of the attack animation
-		if (animComp->timeA < weaponMove.hitDelay)
-			// Not time to hit yet
-			return;
-
-		// Do the attack
-		animSM->blackboard["attacked"] = true;
+		if (animComp->timeA >= weaponMove.hitDelay)
+		{
+			animSM->blackboard["outputApplyHitMove"] = 2; // Indicate to the code processing the hit which move index to access
+			animSM->blackboard["attacked"] = true;
+		}
 
 		// Hard-code a simple start point etc for now
 		Vec3 rotation = charEntity->GetTransform().GetWorldRotation();

@@ -351,15 +351,13 @@ void CharacterMovementComponentSystem::UpdateCharacterMovementComponent(Characte
 
 	// Get the animation component
 	ecs::CompHandle<AnimationComponent> animComp = characterEntity->GetComp<AnimationComponent>();
-	AnimatorComponent* animatorComp = characterEntity->GetComp<AnimatorComponent>();
-	if (!(animatorComp)) {
+	ecs::CompHandle<AnimatorComponent> animatorComp = characterEntity->GetComp<AnimatorComponent>();
+	if (!animatorComp)
 		animatorComp = characterEntity->AddComp<AnimatorComponent>(AnimatorComponent{ new sm::AnimStateMachine(new sm::IdleState()) });
-	}
 
 
 	// Update held item
-	ecs::EntityHandle attackItem{ comp.heldItem };
-	if (attackItem)
+	if (ecs::EntityHandle attackItem{ comp.heldItem })
 	{
 		// Transform related
 		attackItem->GetTransform().SetParent(characterTransform);
@@ -371,12 +369,6 @@ void CharacterMovementComponentSystem::UpdateCharacterMovementComponent(Characte
 			boneAttachComp->targetEntity = characterEntity;
 			boneAttachComp->boneName = "J_Bip_R_Hand";
 		}
-	}
-
-	// If not holding an item, we fallback to the character's entity itself
-	if (attackItem == nullptr && characterEntity->GetComp<GrabbableItemComponent>())
-	{
-		attackItem = characterEntity;
 	}
 
 	// Perform stun check
@@ -402,11 +394,6 @@ void CharacterMovementComponentSystem::UpdateCharacterMovementComponent(Characte
 		return;
 	}
 
-	ecs::CompHandle<GrabbableItemComponent> itemComp = nullptr;
-
-	if (attackItem)
-		itemComp = attackItem->GetComp<GrabbableItemComponent>();
-
 	if (comp.IsParrying())
 	{
 		animatorComp->GetStateMachine()->blackboard["inputParry"] = true;
@@ -430,6 +417,9 @@ void CharacterMovementComponentSystem::UpdateCharacterMovementComponent(Characte
 	if (movement.LengthSqr() > 1.0f)
 		movement = movement.Normalized();
 	animatorComp->GetStateMachine()->blackboard["inputMovement"] = movement;
+
+	// Update animation
+	animatorComp->GetStateMachine()->Update(characterEntity);
 
 	// Apply friction
 	Vec3 drag{ -currVel.x,0.0f,-currVel.z };
