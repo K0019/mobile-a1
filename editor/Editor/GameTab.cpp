@@ -42,6 +42,11 @@ namespace editor {
 
                 gui::Button{ "Weapon", thumbnailSizeVec2 };
                 gui::PayloadSource{ "GAME_WEAPON_HASH", hash.get() };
+                if (gui::ItemContextMenu contextMenu{ "WeaponMenu" })
+                {
+                    if (gui::MenuItem("Edit"))
+                        editor::CreateGuiWindow<editor::WeaponCreationWindow>(weaponName.substr(0, weaponName.size() - 1), UserResourceHandle<WeaponInfo>{ hash }.GetResource());
+                }
 
                 gui::ShowSimpleHoverTooltip(weaponName);
                 gui::ThumbnailLabel(weaponName, THUMBNAIL_SIZE);
