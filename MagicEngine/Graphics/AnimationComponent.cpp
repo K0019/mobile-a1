@@ -197,7 +197,7 @@ const ResourceAnimation* AnimationComponent::GetAnimationClipB() const
 void AnimationComponent::TransitionTo(size_t newAnimHash, float duration)
 {
     // Don't transition to the same animation
-    // Kendrick: Why disallow playing the same animation again?
+    // Kendrick: Why disallow playing the same animation again? This causes the character to be unable to attack with the same animation immediately
     /*if (animHandleA.GetHash() == newAnimHash)
         return;*/
 
