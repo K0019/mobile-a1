@@ -418,17 +418,6 @@ void CharacterMovementComponentSystem::UpdateCharacterMovementComponent(Characte
 		movement = movement.Normalized();
 	animatorComp->GetStateMachine()->blackboard["inputMovement"] = movement;
 
-	// Update animation FSM
-	animatorComp->GetStateMachine()->Update(characterEntity);
-
-	// Check whether to apply an attack this frame
-	int attackMoveIndex{ animatorComp->GetStateMachine()->GetBlackboardVal<int>("outputApplyHitMove") };
-	if (attackMoveIndex >= 0)
-	{
-		ApplyAttack( static_cast<size_t>(attackMoveIndex), characterTransform, comp );
-		animatorComp->GetStateMachine()->blackboard["outputApplyHitMove"] = -1;
-	}
-
 	// Apply friction
 	Vec3 drag{ -currVel.x,0.0f,-currVel.z };
 	float groundSpeed = drag.Length();
@@ -461,11 +450,6 @@ void CharacterMovementComponentSystem::UpdateCharacterMovementComponent(Characte
 
 	comp.currentDodgeCooldown -= GameTime::Dt();
 
-	//if (animatorComp->GetStateMachine())
-	//{
-	//	animatorComp->GetStateMachine()->Update(characterEntity);
-	//}
-
 	if (movement.LengthSqr() > 0.0f)
 		comp.RotateTowards(movement);
 
@@ -474,6 +458,17 @@ void CharacterMovementComponentSystem::UpdateCharacterMovementComponent(Characte
 		comp.currParryTime -= GameTime::Dt();
 	if (comp.currParryCoolDown > 0.f)
 		comp.currParryCoolDown -= GameTime::Dt();
+
+	// Update animation FSM
+	animatorComp->GetStateMachine()->Update(characterEntity);
+
+	// Check whether to apply an attack this frame
+	int attackMoveIndex{ animatorComp->GetStateMachine()->GetBlackboardVal<int>("outputApplyHitMove") };
+	if (attackMoveIndex >= 0)
+	{
+		ApplyAttack(static_cast<size_t>(attackMoveIndex), characterTransform, comp);
+		animatorComp->GetStateMachine()->blackboard["outputApplyHitMove"] = -1;
+	}
 }
 
 void CharacterMovementComponentSystem::ApplyAttack(size_t moveIndex, const Transform& transform, CharacterMovementComponent& charComp)
