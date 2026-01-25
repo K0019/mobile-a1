@@ -350,6 +350,13 @@ void AnimationSystem::ProcessComp(AnimationComponent & comp)
         {
             comp.timeB = advanceTime(comp.timeB, dt * comp.speed, clipB->duration(), comp.loop);
         }
+
+        // If the animation doesn't loop, indicate that we've stopped playing once the animation finishes
+        if (!comp.loop &&
+            (!clipA || math::NearZero(clipA->duration() - comp.timeA)) &&
+            (!clipB || math::NearZero(clipB->duration() - comp.timeB))
+        )
+            comp.isPlaying = false;
     }
 
     const auto* meshMetadata = graphicsAssetSystem.getMeshMetadata(mesh->handles[0]);

@@ -243,15 +243,7 @@ namespace sm {
 
 	void HurtActivity::OnEnter(sm::StateMachine* sm)
 	{
-		sm::AnimStateMachine* animSM = CastSM(sm);
-		AnimationComponent* animComp = animSM->GetEntity()->GetComp<AnimationComponent>();
-		if (animComp && animSM->animations[HURT].GetHash())
-		{
-			animComp->TransitionTo(animSM->animations[HURT].GetHash(), animSM->animDurations["HURT"]);
-			animComp->isPlaying = true;
-			animComp->loop = false; // Usually hurt doesn't loop
-			animComp->speed = animSM->animSpeeds["HURT"];
-		}
+		TransitionChracterIntoAnimation(CastSM(sm), 3, ANIM_TRANSITION_DURATION_HURT, false);
 	}
 
 	void DodgeActivity::OnEnter(sm::StateMachine* sm)
@@ -320,7 +312,7 @@ namespace sm {
 
 		// Transition only once attack animation is completed
 		if (auto animComp{ animSM->GetEntity()->GetComp<AnimationComponent>() })
-			return std::fabsf(animComp->timeA - animComp->GetClipDuration(animComp->GetAnimationClipA())) < 0.01f;
+			return !animComp->isPlaying;
 		else
 			// No animation comp, assume no animation playing
 			return true;
@@ -347,7 +339,7 @@ namespace sm {
 
 		// Transition only once attack animation is completed
 		if (auto animComp{ animSM->GetEntity()->GetComp<AnimationComponent>() })
-			return std::fabsf(animComp->timeA - animComp->GetClipDuration(animComp->GetAnimationClipA())) < 0.01f;
+			return !animComp->isPlaying;
 		else
 			// No animation comp, assume no animation playing
 			return true;
@@ -367,14 +359,7 @@ namespace sm {
 		: sm::AnimTransitionBase<ToHurtTransition>(SET_NEXT_STATE(HurtState)) {}
 
 	bool ToHurtTransition::Decide(sm::StateMachine* sm) {
-		sm::AnimStateMachine* animSM = CastSM(sm);
-		if (animSM->hurt) {
-			return true;
-		}
-		else {
-			animSM->hurt = false;
-			return false;
-		}
+		return CastSM(sm)->GetBlackboardVal<bool>("hurt");
 	}
 
 	ToDodgeTransition::ToDodgeTransition() 

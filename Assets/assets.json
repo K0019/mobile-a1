@@ -1317,6 +1317,20 @@
             ]
         },
         {
+            "filepath": "Game/Weapons\\prefectmale.weapon",
+            "resources": [
+                {
+                    "resourceType": 9579558926714450681,
+                    "resourceEntries": [
+                        {
+                            "hash": 4768811728382449817,
+                            "name": "prefectmale0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/models/glb/enemy_male_animated/n00_000_00_hairback_00_hair (instance).material",
             "resources": [
                 {

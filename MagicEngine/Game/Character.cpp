@@ -454,21 +454,6 @@ void CharacterMovementComponentSystem::UpdateCharacterMovementComponent(Characte
 		movement = movement.Normalized();
 	animatorComp->GetStateMachine()->blackboard["inputMovement"] = movement;
 
-	///if (comp.isAttacking)
-	///{
-	///	animComp->loop = false;
-	///	if (animComp->timeA >= animComp->GetClipDuration(animComp->GetAnimationClipA()))
-	///	{
-	///		comp.isAttacking = false;
-	///	}
-	///}
-
-	//animComp->loop = !comp.isAttacking;
-
-
-	if (movement.LengthSqr() > 1.0f)
-		movement = movement.Normalized();
-
 	// Apply friction
 	Vec3 drag{ -currVel.x,0.0f,-currVel.z };
 	float groundSpeed = drag.Length();

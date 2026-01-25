@@ -119,6 +119,19 @@ namespace math {
 
 	/*!***********************************************************************
 	\brief
+		Determines if a value is near zero
+	\tparam T
+		The type of the floating point.
+	\param x
+		The value whose value is to be tested.
+	\return
+		True if value is equal or less than epsilon. False otherwise.
+	*************************************************************************/
+	template <std::floating_point T>
+	constexpr bool NearZero(T x);
+
+	/*!***********************************************************************
+	\brief
 		Creates a rotation matrix based on euler angles.
 	*************************************************************************/
 	Mat4 EulerAnglesToRotationMatrix(const Vec3& angles);

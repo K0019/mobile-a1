@@ -259,7 +259,6 @@ namespace sm {
 		T GetBlackboardVal(const std::string& key) const;
 
 	public:
-		bool hurt = false;
 		bool dodge = false;
 		bool parry = false;
 		bool throwFlag = false;
@@ -461,11 +460,11 @@ namespace sm {
 	template<typename T>
 	T AnimStateMachine::GetBlackboardVal(const std::string& key) const
 	{
-		try {
-			return std::any_cast<T>(blackboard.at(key));
-		}
-		catch (const std::out_of_range&) {
+		auto iter{ blackboard.find(key) };
+		if (iter == blackboard.end())
 			return T{};
+		try {
+			return std::any_cast<T>(iter->second);
 		}
 		catch (const std::bad_any_cast&) {
 			return T{};
