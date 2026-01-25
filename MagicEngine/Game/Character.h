@@ -174,4 +174,7 @@ private:
 		The CharacterMovementComponent to update.
 	*//******************************************************************/
 	void UpdateCharacterMovementComponent(CharacterMovementComponent& comp);
+
+	void ApplyAttack(size_t moveIndex, const Transform& transform, CharacterMovementComponent& charComp);
+
 };

@@ -166,23 +166,6 @@ namespace sm {
 
 		animSM->blackboard["outputApplyHitMove"] = 2; // Indicate to the code processing the hit which move index to access
 		animSM->blackboard["attacked"] = true;
-
-		// Hard-code a simple start point etc for now
-		Vec3 rotation = charEntity->GetTransform().GetWorldRotation();
-		Vec3 direction(sin(math::ToRadians(rotation.y)), 0, cos(math::ToRadians(rotation.y)));
-		Vec3 startPoint = charEntity->GetTransform().GetWorldPosition() + direction * 0.5f * weaponMove.hitboxExtents.z;
-		startPoint.y += 0.8f;
-
-		/*auto hitDebugObject = thisComp->hitDebugObject;
-		if (hitDebugObject != nullptr)
-		{
-			hitDebugObject->GetTransform().SetWorldPosition(startPoint);
-			hitDebugObject->GetTransform().SetWorldRotation(Vec3(0.0f, math::ToDegrees(atan2(direction.x, direction.z)), 0.0f));
-			hitDebugObject->GetTransform().SetWorldScale(attackItem->GetComp<GrabbableItemComponent>()->attackBox);
-		}*/
-
-		// TODO: Refactor this function to use the WeaponMoveInfo's hitbox
-		charEntity->GetComp<CharacterMovementComponent>()->GetHeldItem()->Attack(startPoint, direction);
 	}
 
 	void AttackActivity::OnExit(sm::StateMachine* sm)

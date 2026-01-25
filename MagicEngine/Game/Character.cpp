@@ -418,8 +418,16 @@ void CharacterMovementComponentSystem::UpdateCharacterMovementComponent(Characte
 		movement = movement.Normalized();
 	animatorComp->GetStateMachine()->blackboard["inputMovement"] = movement;
 
-	// Update animation
+	// Update animation FSM
 	animatorComp->GetStateMachine()->Update(characterEntity);
+
+	// Check whether to apply an attack this frame
+	int attackMoveIndex{ animatorComp->GetStateMachine()->GetBlackboardVal<int>("outputApplyHitMove") };
+	if (attackMoveIndex >= 0)
+	{
+		ApplyAttack( static_cast<size_t>(attackMoveIndex), characterTransform, comp );
+		animatorComp->GetStateMachine()->blackboard["outputApplyHitMove"] = -1;
+	}
 
 	// Apply friction
 	Vec3 drag{ -currVel.x,0.0f,-currVel.z };
@@ -466,4 +474,36 @@ void CharacterMovementComponentSystem::UpdateCharacterMovementComponent(Characte
 		comp.currParryTime -= GameTime::Dt();
 	if (comp.currParryCoolDown > 0.f)
 		comp.currParryCoolDown -= GameTime::Dt();
+}
+
+void CharacterMovementComponentSystem::ApplyAttack(size_t moveIndex, const Transform& transform, CharacterMovementComponent& charComp)
+{
+	auto heldItem{ charComp.GetHeldItem() };
+	auto weaponInfo{ heldItem->weaponInfo.GetResource() };
+	if (!weaponInfo || weaponInfo->moves.size() < moveIndex)
+	{
+		CONSOLE_LOG(LEVEL_ERROR) << "Character doesn't have WeaponInfo or WeaponInfo doesn't have a move at index " << moveIndex << ", unable to apply attack hit logic";
+		return;
+	}
+
+	const auto& weaponMove{ weaponInfo->moves[moveIndex] };
+
+	// TODO: Relook at this math to make sure we're using the move's parameters correctly
+	
+	// Hard-code a simple start point etc for now
+	Vec3 rotation = transform.GetWorldRotation();
+	Vec3 direction(sin(math::ToRadians(rotation.y)), 0, cos(math::ToRadians(rotation.y)));
+	Vec3 startPoint = transform.GetWorldPosition() + direction * 0.5f * weaponMove.hitboxExtents.z;
+	startPoint.y += 0.8f;
+
+	/*auto hitDebugObject = thisComp->hitDebugObject;
+	if (hitDebugObject != nullptr)
+	{
+		hitDebugObject->GetTransform().SetWorldPosition(startPoint);
+		hitDebugObject->GetTransform().SetWorldRotation(Vec3(0.0f, math::ToDegrees(atan2(direction.x, direction.z)), 0.0f));
+		hitDebugObject->GetTransform().SetWorldScale(attackItem->GetComp<GrabbableItemComponent>()->attackBox);
+	}*/
+
+	// TODO: Refactor this function to use the WeaponMoveInfo's hitbox
+	charComp.GetHeldItem()->Attack(startPoint, direction);
 }
