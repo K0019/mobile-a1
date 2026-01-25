@@ -199,7 +199,7 @@ namespace sm {
 		\tparam StateType
 			The state class to transition to when this transition returns true.
 		*//******************************************************************/
-		template <typename StateType> requires std::derived_from<StateType, State>
+		template <typename StateType> requires std::derived_from<StateType, State> || std::same_as<StateType, std::nullptr_t>
 		struct NextStateTypeStruct { };
 
 		/*****************************************************************//*!
@@ -350,16 +350,6 @@ namespace sm {
 		*//******************************************************************/
 		State* ExtractNextState();
 
-	protected:
-		/*****************************************************************//*!
-		\brief
-			Sets the next state pointer.
-		\tparam T
-			The next state's class type.
-		*//******************************************************************/
-		template <typename T> requires std::derived_from<T, State>
-		void SetNextState();
-
 	private:
 		//! The next state that the state machine should switch to.
 		State* nextState;
@@ -443,9 +433,12 @@ namespace sm {
 
 	template<typename StateType>
 	TransitionBase::TransitionBase(const NextStateTypeStruct<StateType>&)
-		: SetNextState{ [](State** outNextState) -> void {
-			*outNextState = new StateType{};
-		} }
+		: SetNextState{
+			[]([[maybe_unused]] State** outNextState) -> void {
+				if constexpr (!std::is_same_v<StateType, std::nullptr_t>)
+					*outNextState = new StateType{};
+			}
+		}
 	{
 	}
 
@@ -460,14 +453,6 @@ namespace sm {
 	TransitionBase* TransitionBaseTemplate<T>::Clone()
 	{
 		return new T{ static_cast<const T&>(*this) };
-	}
-
-	template<typename T> requires std::derived_from<T, State>
-	void State::SetNextState()
-	{
-		if (nextState)
-			delete nextState;
-		nextState = new T{};
 	}
 
 #pragma endregion // Definition
