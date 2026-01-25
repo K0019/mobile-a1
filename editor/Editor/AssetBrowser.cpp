@@ -43,6 +43,7 @@ All rights reserved.
 #include "Editor/SceneTab.h"
 #include "Editor/FileBrowserTab.h"
 #include "Editor/MiscAssetTabs.h"
+#include "Editor/GameTab.h"
 
 #include "Scripting/HotReloader.h"
 
@@ -64,6 +65,7 @@ namespace editor {
         assetCategories.push_back(std::make_shared<SoundTab>());
         assetCategories.push_back(std::make_shared<FontTab>());
         assetCategories.push_back(std::make_shared<ScriptTab>());
+        assetCategories.push_back(std::make_shared<GameTab>());
         assetCategories.push_back(std::make_shared<ShaderTab>());
 
         //FileSystem inside AssetBrowser or its own tab?
