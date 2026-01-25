@@ -299,7 +299,7 @@ namespace sm {
 
 	AttackState::AttackState() : sm::State(
 		{ new AttackActivity(2) },
-		{ new NoOpWhileAnimatingTransition{}, new ToHurtTransition{}, new ToAttackTransition<AttackState>{ ANIM_INPUT_TYPE::LIGHT_ATTACK }, new ToIdleTransition(), new ToWalkTransition() }
+		{ new ToHurtTransition{}, new NoOpBeforeAttackDamageTransition{}, new ToAttackTransition<AttackState>{ ANIM_INPUT_TYPE::LIGHT_ATTACK }, new NoOpWhileAnimatingTransition{}, new ToIdleTransition(), new ToWalkTransition() }
 	) {
 	}
 
