@@ -353,6 +353,14 @@ namespace sm {
 	// TRANSITION DECLARATIONS
 	//======================================================================
 
+	// Transition overrides all later transitions by doing nothing until the currently playing animation is finished
+	class NoOpWhileAnimatingTransition : public sm::AnimTransitionBase<NoOpWhileAnimatingTransition>
+	{
+	public:
+		NoOpWhileAnimatingTransition();
+		bool Decide(sm::StateMachine* sm) override;
+	};
+
 	class ToIdleTransition : public sm::AnimTransitionBase<ToIdleTransition>
 	{
 	public:

@@ -273,64 +273,37 @@ namespace sm {
 	// TRANSITION DEFINITIONS
 	//======================================================================
 
-	ToIdleTransition::ToIdleTransition()
-		: sm::AnimTransitionBase<ToIdleTransition>(SET_NEXT_STATE(IdleState))
+	NoOpWhileAnimatingTransition::NoOpWhileAnimatingTransition()
+		: sm::AnimTransitionBase<NoOpWhileAnimatingTransition>{ SET_NEXT_STATE(std::nullptr_t) } {}
+
+	bool NoOpWhileAnimatingTransition::Decide(sm::StateMachine* sm)
 	{
+		// Stop locking transition only once animation is completed
+		if (auto animComp{ CastSM(sm)->GetEntity()->GetComp<AnimationComponent>()})
+			return animComp->isPlaying;
+		else
+			// No animation comp, assume no animation playing
+			return false;
 	}
+
+	ToIdleTransition::ToIdleTransition()
+		: sm::AnimTransitionBase<ToIdleTransition>(SET_NEXT_STATE(IdleState)) {}
 
 	bool ToIdleTransition::Decide(sm::StateMachine* sm)
 	{
-		sm::AnimStateMachine* animSM = CastSM(sm);
-		Vec2 movement{ animSM->GetBlackboardVal<Vec2>("inputMovement") };
-
-		// If we're moving, return false
-		if (movement.LengthSqr() >= 0.01f)
-			return false;
-
-		// Additionally, if we're attacking, only transition once attack animation is completed
-		// So in turn, this check is if we're not attacking, in which case there are no more conditions to check and we are now idle
-		if (!animSM->GetBlackboardVal<bool>("attacking"))
-			return true;
-
-		// Transition only once attack animation is completed
-		if (auto animComp{ animSM->GetEntity()->GetComp<AnimationComponent>() })
-			return !animComp->isPlaying;
-		else
-			// No animation comp, assume no animation playing
-			return true;
+		return CastSM(sm)->GetBlackboardVal<Vec2>("inputMovement").LengthSqr() < 0.01f;
 	}
 
 	ToWalkTransition::ToWalkTransition()
-		: sm::AnimTransitionBase<ToWalkTransition>(SET_NEXT_STATE(WalkState))
-	{
-	}
+		: sm::AnimTransitionBase<ToWalkTransition>(SET_NEXT_STATE(WalkState)) {}
 
 	bool ToWalkTransition::Decide(sm::StateMachine* sm)
 	{
-		sm::AnimStateMachine* animSM = CastSM(sm);
-		Vec2 movement{ animSM->GetBlackboardVal<Vec2>("inputMovement") };
-
-		// If we're not moving, return false
-		if (movement.LengthSqr() < 0.01f)
-			return false;
-
-		// Additionally, if we're attacking, only transition once attack animation is completed
-		// So in turn, this check is if we're not attacking, in which case there are no more conditions to check and we are now idle
-		if (!animSM->GetBlackboardVal<bool>("attacking"))
-			return true;
-
-		// Transition only once attack animation is completed
-		if (auto animComp{ animSM->GetEntity()->GetComp<AnimationComponent>() })
-			return !animComp->isPlaying;
-		else
-			// No animation comp, assume no animation playing
-			return true;
+		return CastSM(sm)->GetBlackboardVal<Vec2>("inputMovement").LengthSqr() >= 0.01f;
 	}
 
 	ToAttackTransition::ToAttackTransition()
-		: sm::AnimTransitionBase<ToAttackTransition>(SET_NEXT_STATE(AttackState))
-	{
-	}
+		: sm::AnimTransitionBase<ToAttackTransition>(SET_NEXT_STATE(AttackState)) {}
 
 	bool ToAttackTransition::Decide(sm::StateMachine* sm)
 	{
@@ -384,31 +357,31 @@ namespace sm {
 
 	AttackState::AttackState() : sm::State(
 		{ new AttackActivity() },
-		{ new ToIdleTransition(), new ToWalkTransition(), new ToHurtTransition() }
+		{ new NoOpWhileAnimatingTransition{}, new ToIdleTransition(), new ToWalkTransition(), new ToHurtTransition() }
 	) {
 	}
 
 	HurtState::HurtState() : sm::State(
 		{ new HurtActivity() },
-		{ new ToIdleTransition() , new ToAttackTransition} // Recover to Idle after being hurt
+		{ new NoOpWhileAnimatingTransition{}, new ToIdleTransition() , new ToAttackTransition} // Recover to Idle after being hurt
 	) {
 	}
 
 	DodgeState::DodgeState() : sm::State(
 		{ new DodgeActivity() },
-		{ new ToIdleTransition(), new ToWalkTransition() }
+		{ new NoOpWhileAnimatingTransition{}, new ToIdleTransition(), new ToWalkTransition() }
 	) {
 	}
 
 	ParryState::ParryState() : sm::State(
 		{ new ParryActivity() },
-		{ new ToIdleTransition(), new ToAttackTransition() } // Can counter-attack from parry
+		{ new NoOpWhileAnimatingTransition{}, new ToIdleTransition(), new ToAttackTransition() } // Can counter-attack from parry
 	) {
 	}
 
 	ThrowState::ThrowState() : sm::State(
 		{ new ThrowActivity() },
-		{ new ToIdleTransition(), new ToWalkTransition() }
+		{ new NoOpWhileAnimatingTransition{}, new ToIdleTransition(), new ToWalkTransition() }
 	) {
 	}
 }
