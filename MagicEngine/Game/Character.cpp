@@ -450,7 +450,7 @@ void CharacterMovementComponentSystem::UpdateCharacterMovementComponent(Characte
 	}
 	else {
 		static bool firstTime = true;
-		if(firstTime) {
+		if (firstTime) {
 			animatorComp->GetStateMachine()->TransferAnims(comp.animations);
 			firstTime = false;
 		}
@@ -482,7 +482,9 @@ void CharacterMovementComponentSystem::UpdateCharacterMovementComponent(Characte
 
 	// Perform stun check
 	ecs::CompHandle<physics::PhysicsComp> physicsComp = characterEntity->GetComp<physics::PhysicsComp>();
-	Vec3 currVel = physicsComp->GetLinearVelocity();
+	Vec3 currVel{ 0.0f };
+	if (physicsComp)
+		currVel = physicsComp->GetLinearVelocity();
 	if (comp.currentStunTime > 0.0f)
 	{
 		comp.currentStunTime -= GameTime::Dt();
@@ -549,7 +551,7 @@ void CharacterMovementComponentSystem::UpdateCharacterMovementComponent(Characte
 		//}
 		animatorComp->GetStateMachine()->ResetFlags();
 		animatorComp->GetStateMachine()->walking = true;
-		
+
 	}
 	else
 	{
@@ -574,41 +576,45 @@ void CharacterMovementComponentSystem::UpdateCharacterMovementComponent(Characte
 	//animComp->loop = !comp.isAttacking;
 
 
-	// Normalize the move vector if it's over 1.0f in length
+		// Normalize the move vector if it's over 1.0f in length
 	if (movement.LengthSqr() > 1.0f)
 		movement = movement.Normalized();
 
-	// Apply friction
-	Vec3 drag{ -currVel.x,0.0f,-currVel.z };
-	float groundSpeed = drag.Length();
-	if (groundSpeed <= comp.groundFriction)
+	if (physicsComp)
 	{
-		physicsComp->AddLinearVelocity(drag);
-	}
-	else
-	{
-		physicsComp->AddLinearVelocity(drag.Normalized() * comp.groundFriction * groundSpeed);
-	}
+		// Apply friction
+		Vec3 drag{ -currVel.x,0.0f,-currVel.z };
+		float groundSpeed = drag.Length();
+		if (groundSpeed <= comp.groundFriction)
+		{
+			physicsComp->AddLinearVelocity(drag);
+		}
+		else
+		{
+			physicsComp->AddLinearVelocity(drag.Normalized() * comp.groundFriction * groundSpeed);
+		}
 
-	// Apply input movement
-	Vec3 moveDir = Vec3{ movement.x ,0.0f,movement.y };
 
-	// If dodging, move faster
-	if (comp.currentDodgeTime > 0.0f)
-	{
-		comp.currentDodgeTime -= GameTime::Dt();
-		moveDir *= comp.dodgeSpeed;
-		animatorComp->GetStateMachine()->ResetFlags();
-		animatorComp->GetStateMachine()->dodge = true;
-		/*if (animComp->animHandleA.GetHash() != comp.animations[DODGE].GetHash())
-			animComp->TransitionTo(comp.animations[DODGE].GetHash(), 0.05f);*/
-	}
-	else
-	{
-		moveDir *= comp.moveSpeed * comp.speedMultiplier;
-	}
+		// Apply input movement
+		Vec3 moveDir = Vec3{ movement.x ,0.0f,movement.y };
 
-	physicsComp->AddLinearVelocity(moveDir);
+		// If dodging, move faster
+		if (comp.currentDodgeTime > 0.0f)
+		{
+			comp.currentDodgeTime -= GameTime::Dt();
+			moveDir *= comp.dodgeSpeed;
+			animatorComp->GetStateMachine()->ResetFlags();
+			animatorComp->GetStateMachine()->dodge = true;
+			/*if (animComp->animHandleA.GetHash() != comp.animations[DODGE].GetHash())
+				animComp->TransitionTo(comp.animations[DODGE].GetHash(), 0.05f);*/
+		}
+		else
+		{
+			moveDir *= comp.moveSpeed * comp.speedMultiplier;
+		}
+
+		physicsComp->AddLinearVelocity(moveDir);
+	}
 
 	comp.currentDodgeCooldown -= GameTime::Dt();
 

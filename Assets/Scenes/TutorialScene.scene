@@ -69,9 +69,9 @@
         {
             "parentIndex": -1,
             "position": {
-                "x": 2.220024585723877,
-                "y": 1.0001853704452515,
-                "z": -30.328323364257813
+                "x": 0.8656575679779053,
+                "y": 1.0002456903457642,
+                "z": -27.754343032836914
             },
             "rotation": {
                 "x": 0.0,
@@ -86,6 +86,9 @@
             "components": {
                 "137465014557233347": {
                     "_active": true,
+                    "weaponInfo": {
+                        "hash": 1
+                    },
                     "damage": 20.0,
                     "attackBox": {
                         "x": 0.20000000298023224,
@@ -462,6 +465,9 @@
                 },
                 "137465014557233347": {
                     "_active": false,
+                    "weaponInfo": {
+                        "hash": 1
+                    },
                     "damage": 10.0,
                     "attackBox": {
                         "x": 0.20000000298023224,
@@ -748,6 +754,289 @@
         {
             "parentIndex": -1,
             "position": {
+                "x": -0.008845627307891846,
+                "y": 0.09999585151672363,
+                "z": 2.127816677093506
+            },
+            "rotation": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "scale": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0
+            },
+            "components": {
+                "2042496555980785": {
+                    "_active": false,
+                    "agentData": {
+                        "param": {
+                            "radius": 0.30000001192092896,
+                            "height": 1.600000023841858,
+                            "climb": 0.05000000074505806,
+                            "angle": 10.0
+                        },
+                        "speed": 1.7999999523162842,
+                        "acceleration": 22.0,
+                        "baseOffset": 0.0,
+                        "active": true
+                    }
+                },
+                "137465014557233347": {
+                    "_active": false,
+                    "weaponInfo": {
+                        "hash": 1
+                    },
+                    "damage": 0.0,
+                    "attackBox": {
+                        "x": 0.20000000298023224,
+                        "y": 0.20000000298023224,
+                        "z": 1.0
+                    },
+                    "attackDelay": 1.2000000476837158,
+                    "audioName": "enemy male attack ",
+                    "audioStartIndex": 1,
+                    "audioEndIndex": 3,
+                    "lightAttackAnimation": {
+                        "hash": 5128037570602721689
+                    },
+                    "heavyAttackAnimation": {
+                        "hash": 1
+                    },
+                    "ultimAttackAnimation": {
+                        "hash": 1
+                    },
+                    "parryAnimation": {
+                        "hash": 1
+                    },
+                    "pickupUI": {
+                        "hash": 1
+                    }
+                },
+                "2481176255561649761": {
+                    "_active": false,
+                    "swapMaterial": {
+                        "hash": 1903056716174195867
+                    }
+                },
+                "5352011725353660904": {
+                    "_active": false,
+                    "meshHandle": {
+                        "hash": 5120963312789610903
+                    },
+                    "materials": [
+                        {
+                            "hash": 5050032718170153249
+                        },
+                        {
+                            "hash": 5055237806216044835
+                        },
+                        {
+                            "hash": 5060485775215419689
+                        },
+                        {
+                            "hash": 5065417084865995051
+                        },
+                        {
+                            "hash": 5069002592284172589
+                        },
+                        {
+                            "hash": 5075312689515979057
+                        },
+                        {
+                            "hash": 5075884435562422581
+                        },
+                        {
+                            "hash": 5082440823398850871
+                        },
+                        {
+                            "hash": 5087828430374953273
+                        },
+                        {
+                            "hash": 5091784473211691323
+                        },
+                        {
+                            "hash": 5093885639932371261
+                        },
+                        {
+                            "hash": 5100979688954782017
+                        },
+                        {
+                            "hash": 5104984110303142211
+                        },
+                        {
+                            "hash": 5108368407093436743
+                        },
+                        {
+                            "hash": 5115524028767002953
+                        }
+                    ],
+                    "castShadowOverride": -1
+                },
+                "5725819782531291880": {
+                    "_active": false,
+                    "behaviorTree": {
+                        "btName": "enemy_male"
+                    }
+                },
+                "6766054303456732338": {
+                    "_active": false,
+                    "layer": 0
+                },
+                "7205334411763290517": {
+                    "_active": false,
+                    "name": "enemy_tutorial"
+                },
+                "7930599578754533802": {
+                    "_active": false,
+                    "maxHealth": 100.0,
+                    "currHealth": 1.0,
+                    "isInvincible": false
+                },
+                "8426725214831635516": {
+                    "_active": false,
+                    "entityReferences": [
+                        {
+                            "entityUid": 0
+                        }
+                    ]
+                },
+                "9315785795257285655": {
+                    "_active": false,
+                    "uid": 442155407559187648
+                },
+                "9501525575059265452": {
+                    "_active": false,
+                    "flags": {
+                        "_majorityTrue": true,
+                        "_except": [
+                            "Use Gravity"
+                        ]
+                    }
+                },
+                "10866432406532598116": {
+                    "_active": false,
+                    "flashTime": 0.25,
+                    "flashMaterial": {
+                        "hash": 1903056716174195867
+                    }
+                },
+                "12349219328363051475": {
+                    "_active": false
+                },
+                "15371168105777251288": {
+                    "_active": false,
+                    "animHandleA": {
+                        "hash": 5128037570602721689
+                    },
+                    "isPlaying": true,
+                    "loop": true,
+                    "speed": 1.0,
+                    "transitionDuration": 0.20000000298023224
+                },
+                "16763493199777387366": {
+                    "_active": false,
+                    "combatRange": 1.0,
+                    "windUpTime": 0.10000000149011612,
+                    "attackTime": 0.009999999776482582,
+                    "followThroughTime": 0.30000001192092896,
+                    "attackCoolDownTime": 2.0,
+                    "playerReference": {
+                        "entityUid": 51797992787031769
+                    },
+                    "attackCollider": {
+                        "entityUid": 5884977658575926114
+                    }
+                },
+                "17579205194823809952": {
+                    "_active": false,
+                    "moveSpeed": 0.0,
+                    "rotateSpeed": 200.0,
+                    "throwPower": 0.0,
+                    "attackingMoveSpeedMultiplier": 1.5834672646870433e-43,
+                    "parryCoolDownTime": 0.0,
+                    "parryTime": 0.0,
+                    "parryDelusion": 0.0,
+                    "dodgeSound": "",
+                    "attackSound": "",
+                    "hurtSound": "",
+                    "moveSpeed": 0.0,
+                    "rotateSpeed": 200.0,
+                    "stunTimePerHit": 0.5,
+                    "groundFriction": 0.75,
+                    "dodgeCooldown": 0.0,
+                    "dodgeDuration": 0.15000000596046448,
+                    "dodgeSpeed": 4.0,
+                    "hitDebugObject": {
+                        "entityUid": 0
+                    },
+                    "heldItem": {
+                        "entityUid": 133438930379527913
+                    },
+                    "animations": [
+                        {
+                            "hash": 5134835850997260701
+                        },
+                        {
+                            "hash": 5160141111110525347
+                        },
+                        {
+                            "hash": 5128037570602721689
+                        },
+                        {
+                            "hash": 5130634617067528603
+                        },
+                        {
+                            "hash": 5154222440018207139
+                        },
+                        {
+                            "hash": 1
+                        },
+                        {
+                            "hash": 1
+                        }
+                    ]
+                },
+                "18236831197208900764": {
+                    "_active": false,
+                    "center": {
+                        "x": 0.0,
+                        "y": 0.800000011920929,
+                        "z": 0.0
+                    },
+                    "size": {
+                        "x": 0.25,
+                        "y": 1.600000023841858,
+                        "z": 0.25
+                    },
+                    "flags": {
+                        "_majorityTrue": true,
+                        "_except": [
+                            "Is Trigger"
+                        ]
+                    }
+                },
+                "18288371625365795113": {
+                    "_active": false,
+                    "scripts": [
+                        {
+                            "scriptName": "enemydeath.lua"
+                        },
+                        {
+                            "scriptName": "footstepssoundhandler.lua"
+                        },
+                        {
+                            "scriptName": "winonhealthdepleted.lua"
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "parentIndex": -1,
+            "position": {
                 "x": 0.0,
                 "y": 0.0,
                 "z": 0.0
@@ -862,13 +1151,7 @@
                             "entityUid": 3837990472816120687
                         },
                         {
-                            "entityUid": 2320885428847768823
-                        },
-                        {
                             "entityUid": 2329904722730415351
-                        },
-                        {
-                            "entityUid": 2341055969659319543
                         }
                     ]
                 },
@@ -933,9 +1216,9 @@
         {
             "parentIndex": -1,
             "position": {
-                "x": 2.451857805252075,
-                "y": 0.8394438028335571,
-                "z": 0.03857571631669998
+                "x": 2.7015812397003174,
+                "y": 0.9224488139152527,
+                "z": -11.309049606323242
             },
             "rotation": {
                 "x": 0.0,
@@ -950,6 +1233,9 @@
             "components": {
                 "137465014557233347": {
                     "_active": true,
+                    "weaponInfo": {
+                        "hash": 1
+                    },
                     "damage": 45.0,
                     "attackBox": {
                         "x": 1.0,
@@ -1066,60 +1352,6 @@
                     "scripts": [
                         {
                             "scriptName": "throwweapon.lua"
-                        }
-                    ]
-                }
-            }
-        },
-        {
-            "parentIndex": -1,
-            "position": {
-                "x": 0.0,
-                "y": 0.0,
-                "z": 0.0
-            },
-            "rotation": {
-                "x": 0.0,
-                "y": 0.0,
-                "z": 0.0
-            },
-            "scale": {
-                "x": 1.0,
-                "y": 1.0,
-                "z": 1.0
-            },
-            "components": {
-                "6766054303456732338": {
-                    "_active": true,
-                    "layer": 0
-                },
-                "7205334411763290517": {
-                    "_active": true,
-                    "name": "at_spawner"
-                },
-                "8426725214831635516": {
-                    "_active": true,
-                    "entityReferences": [
-                        {
-                            "entityUid": 2312750142313854199
-                        },
-                        {
-                            "entityUid": 2301762722617469180
-                        },
-                        {
-                            "entityUid": 2294513642455535462
-                        }
-                    ]
-                },
-                "9315785795257285655": {
-                    "_active": true,
-                    "uid": 2492536786075458154
-                },
-                "18288371625365795113": {
-                    "_active": true,
-                    "scripts": [
-                        {
-                            "scriptName": "enemyspawner.lua"
                         }
                     ]
                 }
@@ -1347,6 +1579,214 @@
         {
             "parentIndex": -1,
             "position": {
+                "x": -0.008845627307891846,
+                "y": 0.09999585151672363,
+                "z": -7.710883617401123
+            },
+            "rotation": {
+                "x": 0.0,
+                "y": -180.0,
+                "z": 0.0
+            },
+            "scale": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0
+            },
+            "components": {
+                "2481176255561649761": {
+                    "_active": true,
+                    "swapMaterial": {
+                        "hash": 1903056716174195867
+                    }
+                },
+                "5352011725353660904": {
+                    "_active": true,
+                    "meshHandle": {
+                        "hash": 5120963312789610903
+                    },
+                    "materials": [
+                        {
+                            "hash": 373935108784842579
+                        },
+                        {
+                            "hash": 373935108784842579
+                        },
+                        {
+                            "hash": 373935108784842579
+                        },
+                        {
+                            "hash": 373935108784842579
+                        },
+                        {
+                            "hash": 373935108784842579
+                        },
+                        {
+                            "hash": 373935108784842579
+                        },
+                        {
+                            "hash": 373935108784842579
+                        },
+                        {
+                            "hash": 373935108784842579
+                        },
+                        {
+                            "hash": 373935108784842579
+                        },
+                        {
+                            "hash": 373935108784842579
+                        },
+                        {
+                            "hash": 373935108784842579
+                        },
+                        {
+                            "hash": 373935108784842579
+                        },
+                        {
+                            "hash": 373935108784842579
+                        },
+                        {
+                            "hash": 373935108784842579
+                        },
+                        {
+                            "hash": 373935108784842579
+                        }
+                    ],
+                    "castShadowOverride": -1
+                },
+                "6766054303456732338": {
+                    "_active": true,
+                    "layer": 0
+                },
+                "7205334411763290517": {
+                    "_active": true,
+                    "name": "training_dummy"
+                },
+                "7930599578754533802": {
+                    "_active": true,
+                    "maxHealth": 1000000.0,
+                    "currHealth": 1000000.0,
+                    "isInvincible": false
+                },
+                "8426725214831635516": {
+                    "_active": true,
+                    "entityReferences": [
+                        {
+                            "entityUid": 0
+                        }
+                    ]
+                },
+                "9315785795257285655": {
+                    "_active": true,
+                    "uid": 3486448018240816984
+                },
+                "10866432406532598116": {
+                    "_active": true,
+                    "flashTime": 0.25,
+                    "flashMaterial": {
+                        "hash": 1903056716174195867
+                    }
+                },
+                "12349219328363051475": {
+                    "_active": true
+                },
+                "15371168105777251288": {
+                    "_active": true,
+                    "animHandleA": {
+                        "hash": 5128037570602721689
+                    },
+                    "isPlaying": false,
+                    "loop": true,
+                    "speed": 1.0,
+                    "transitionDuration": 0.20000000298023224
+                },
+                "16763493199777387366": {
+                    "_active": true,
+                    "combatRange": 1.0,
+                    "windUpTime": 0.10000000149011612,
+                    "attackTime": 0.009999999776482582,
+                    "followThroughTime": 0.30000001192092896,
+                    "attackCoolDownTime": 2.0,
+                    "playerReference": {
+                        "entityUid": 51797992787031769
+                    },
+                    "attackCollider": {
+                        "entityUid": 5884977658575926114
+                    }
+                },
+                "17579205194823809952": {
+                    "_active": true,
+                    "moveSpeed": 0.0,
+                    "rotateSpeed": 200.0,
+                    "throwPower": 0.0,
+                    "attackingMoveSpeedMultiplier": 1.5834672646870433e-43,
+                    "parryCoolDownTime": 0.0,
+                    "parryTime": 0.0,
+                    "parryDelusion": 0.0,
+                    "dodgeSound": "",
+                    "attackSound": "",
+                    "hurtSound": "",
+                    "moveSpeed": 0.0,
+                    "rotateSpeed": 200.0,
+                    "stunTimePerHit": 0.5,
+                    "groundFriction": 0.75,
+                    "dodgeCooldown": 0.0,
+                    "dodgeDuration": 0.15000000596046448,
+                    "dodgeSpeed": 4.0,
+                    "hitDebugObject": {
+                        "entityUid": 0
+                    },
+                    "heldItem": {
+                        "entityUid": 133438930379527913
+                    },
+                    "animations": [
+                        {
+                            "hash": 5134835850997260701
+                        },
+                        {
+                            "hash": 5160141111110525347
+                        },
+                        {
+                            "hash": 5128037570602721689
+                        },
+                        {
+                            "hash": 5130634617067528603
+                        },
+                        {
+                            "hash": 5154222440018207139
+                        },
+                        {
+                            "hash": 1
+                        },
+                        {
+                            "hash": 1
+                        }
+                    ]
+                },
+                "18236831197208900764": {
+                    "_active": true,
+                    "center": {
+                        "x": 0.0,
+                        "y": 0.800000011920929,
+                        "z": 0.0
+                    },
+                    "size": {
+                        "x": 0.25,
+                        "y": 1.600000023841858,
+                        "z": 0.25
+                    },
+                    "flags": {
+                        "_majorityTrue": true,
+                        "_except": [
+                            "Is Trigger"
+                        ]
+                    }
+                }
+            }
+        },
+        {
+            "parentIndex": -1,
+            "position": {
                 "x": 272.0,
                 "y": 101.0,
                 "z": 0.0
@@ -1441,6 +1881,9 @@
                 },
                 "137465014557233347": {
                     "_active": false,
+                    "weaponInfo": {
+                        "hash": 1
+                    },
                     "damage": 1.0,
                     "attackBox": {
                         "x": 1.0,
@@ -1747,63 +2190,6 @@
         {
             "parentIndex": -1,
             "position": {
-                "x": -20.799999237060547,
-                "y": -3.906041145324707,
-                "z": -25.0
-            },
-            "rotation": {
-                "x": 0.0,
-                "y": 0.0,
-                "z": 0.0
-            },
-            "scale": {
-                "x": 1.0,
-                "y": 1.0,
-                "z": 1.0
-            },
-            "components": {
-                "6766054303456732338": {
-                    "_active": true,
-                    "layer": 0
-                },
-                "7205334411763290517": {
-                    "_active": true,
-                    "name": "prefect_spawner"
-                },
-                "8426725214831635516": {
-                    "_active": true,
-                    "entityReferences": [
-                        {
-                            "entityUid": 0
-                        },
-                        {
-                            "entityUid": 4791810213319580451
-                        },
-                        {
-                            "entityUid": 4907974716469208011
-                        },
-                        {
-                            "entityUid": 4897659098377407049
-                        }
-                    ]
-                },
-                "9315785795257285655": {
-                    "_active": true,
-                    "uid": 4800168700713992437
-                },
-                "18288371625365795113": {
-                    "_active": true,
-                    "scripts": [
-                        {
-                            "scriptName": "enemyspawner.lua"
-                        }
-                    ]
-                }
-            }
-        },
-        {
-            "parentIndex": -1,
-            "position": {
                 "x": -0.000030517578125,
                 "y": 3.122323751449585,
                 "z": 0.0
@@ -1856,96 +2242,6 @@
                 "9315785795257285655": {
                     "_active": true,
                     "uid": 5297628442319496968
-                }
-            }
-        },
-        {
-            "parentIndex": -1,
-            "position": {
-                "x": -5.009601593017578,
-                "y": 0.1790129393339157,
-                "z": -25.686153411865234
-            },
-            "rotation": {
-                "x": 0.0,
-                "y": 0.0,
-                "z": 0.0
-            },
-            "scale": {
-                "x": 3.0,
-                "y": 3.0,
-                "z": 3.0
-            },
-            "components": {
-                "5352011725353660904": {
-                    "_active": true,
-                    "meshHandle": {
-                        "hash": 2003547681145403119
-                    },
-                    "materials": [
-                        {
-                            "hash": 1980443643310946017
-                        },
-                        {
-                            "hash": 1983500285636163297
-                        },
-                        {
-                            "hash": 1989122088588981987
-                        },
-                        {
-                            "hash": 1990729574588790501
-                        }
-                    ],
-                    "castShadowOverride": -1
-                },
-                "6766054303456732338": {
-                    "_active": true,
-                    "layer": 0
-                },
-                "7205334411763290517": {
-                    "_active": true,
-                    "name": "BBT"
-                },
-                "9315785795257285655": {
-                    "_active": true,
-                    "uid": 6430306838899339493
-                },
-                "9501525575059265452": {
-                    "_active": true,
-                    "flags": {
-                        "_majorityTrue": false,
-                        "_except": [
-                            "Use Gravity",
-                            "Enabled"
-                        ]
-                    }
-                },
-                "18236831197208900764": {
-                    "_active": true,
-                    "center": {
-                        "x": 0.0,
-                        "y": 0.30000001192092896,
-                        "z": 0.0
-                    },
-                    "size": {
-                        "x": 0.20000000298023224,
-                        "y": 0.20000000298023224,
-                        "z": 0.20000000298023224
-                    },
-                    "flags": {
-                        "_majorityTrue": true,
-                        "_except": [
-                            "Is Trigger"
-                        ]
-                    }
-                },
-                "18288371625365795113": {
-                    "_active": true,
-                    "scripts": [
-                        {
-                            "scriptName": "bbt.lua"
-                        }
-                    ]
                 }
             }
         },
@@ -2121,6 +2417,9 @@
                 },
                 "137465014557233347": {
                     "_active": false,
+                    "weaponInfo": {
+                        "hash": 1
+                    },
                     "damage": 1.0,
                     "attackBox": {
                         "x": 0.5,
@@ -2740,121 +3039,7 @@
             }
         },
         {
-            "parentIndex": -1,
-            "position": {
-                "x": 0.0,
-                "y": 0.0,
-                "z": 0.0
-            },
-            "rotation": {
-                "x": 0.0,
-                "y": 0.0,
-                "z": 0.0
-            },
-            "scale": {
-                "x": 1.0,
-                "y": 1.0,
-                "z": 1.0
-            },
-            "components": {
-                "6766054303456732338": {
-                    "_active": true,
-                    "layer": 0
-                },
-                "7205334411763290517": {
-                    "_active": true,
-                    "name": "enemy_spawner"
-                },
-                "8426725214831635516": {
-                    "_active": true,
-                    "entityReferences": [
-                        {
-                            "entityUid": 1469080575970170870
-                        },
-                        {
-                            "entityUid": 2481837437430579914
-                        },
-                        {
-                            "entityUid": 17502256988383933866
-                        },
-                        {
-                            "entityUid": 17495142048640595370
-                        },
-                        {
-                            "entityUid": 17510309811545765290
-                        }
-                    ]
-                },
-                "9315785795257285655": {
-                    "_active": true,
-                    "uid": 17483260725990847912
-                },
-                "18288371625365795113": {
-                    "_active": true,
-                    "scripts": [
-                        {
-                            "scriptName": "enemyspawner.lua"
-                        }
-                    ]
-                }
-            }
-        },
-        {
-            "parentIndex": -1,
-            "position": {
-                "x": 0.0,
-                "y": 0.0,
-                "z": 0.0
-            },
-            "rotation": {
-                "x": 0.0,
-                "y": 0.0,
-                "z": 0.0
-            },
-            "scale": {
-                "x": 1.0,
-                "y": 1.0,
-                "z": 1.0
-            },
-            "components": {
-                "6766054303456732338": {
-                    "_active": true,
-                    "layer": 0
-                },
-                "7205334411763290517": {
-                    "_active": true,
-                    "name": "enemy_spawner"
-                },
-                "8426725214831635516": {
-                    "_active": true,
-                    "entityReferences": [
-                        {
-                            "entityUid": 17483260725990847912
-                        },
-                        {
-                            "entityUid": 17548346316797249142
-                        },
-                        {
-                            "entityUid": 17539060941100680822
-                        }
-                    ]
-                },
-                "9315785795257285655": {
-                    "_active": true,
-                    "uid": 17521054239172593268
-                },
-                "18288371625365795113": {
-                    "_active": true,
-                    "scripts": [
-                        {
-                            "scriptName": "enemyspawner.lua"
-                        }
-                    ]
-                }
-            }
-        },
-        {
-            "parentIndex": 5,
+            "parentIndex": 6,
             "position": {
                 "x": 2.1730029582977295,
                 "y": 0.5099352598190308,
@@ -2901,7 +3086,7 @@
             }
         },
         {
-            "parentIndex": 5,
+            "parentIndex": 6,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -2933,107 +3118,11 @@
             }
         },
         {
-            "parentIndex": 10,
-            "position": {
-                "x": -1.3617205619812012,
-                "y": 0.0,
-                "z": -1.7657597064971924
-            },
-            "rotation": {
-                "x": 0.0,
-                "y": 0.0,
-                "z": 0.0
-            },
-            "scale": {
-                "x": 1.0,
-                "y": 1.0,
-                "z": 1.0
-            },
-            "components": {
-                "6766054303456732338": {
-                    "_active": true,
-                    "layer": 0
-                },
-                "7205334411763290517": {
-                    "_active": true,
-                    "name": "enemy"
-                },
-                "9315785795257285655": {
-                    "_active": true,
-                    "uid": 2294513642455535462
-                }
-            }
-        },
-        {
-            "parentIndex": 10,
-            "position": {
-                "x": 2.456272602081299,
-                "y": 0.00006103515625,
-                "z": 2.8686068058013916
-            },
-            "rotation": {
-                "x": 0.0,
-                "y": 0.0,
-                "z": 0.0
-            },
-            "scale": {
-                "x": 1.0,
-                "y": 1.0,
-                "z": 1.0
-            },
-            "components": {
-                "6766054303456732338": {
-                    "_active": true,
-                    "layer": 0
-                },
-                "7205334411763290517": {
-                    "_active": true,
-                    "name": "enemy"
-                },
-                "9315785795257285655": {
-                    "_active": true,
-                    "uid": 2301762722617469180
-                }
-            }
-        },
-        {
-            "parentIndex": 7,
-            "position": {
-                "x": -2.5,
-                "y": 0.00006103515625,
-                "z": 2.8686068058013916
-            },
-            "rotation": {
-                "x": 0.0,
-                "y": 0.0,
-                "z": 0.0
-            },
-            "scale": {
-                "x": 1.0,
-                "y": 1.0,
-                "z": 1.0
-            },
-            "components": {
-                "6766054303456732338": {
-                    "_active": true,
-                    "layer": 0
-                },
-                "7205334411763290517": {
-                    "_active": true,
-                    "name": "enemy"
-                },
-                "9315785795257285655": {
-                    "_active": true,
-                    "uid": 2320885428847768823
-                }
-            }
-        },
-        {
-            "parentIndex": 7,
+            "parentIndex": 8,
             "position": {
                 "x": -0.4000000059604645,
                 "y": 0.0,
-                "z": -2.799999952316284
+                "z": 3.064347743988037
             },
             "rotation": {
                 "x": 0.0,
@@ -3052,7 +3141,7 @@
                 },
                 "7205334411763290517": {
                     "_active": true,
-                    "name": "enemy"
+                    "name": "enemy_tutorial"
                 },
                 "9315785795257285655": {
                     "_active": true,
@@ -3061,71 +3150,7 @@
             }
         },
         {
-            "parentIndex": 7,
-            "position": {
-                "x": 2.0,
-                "y": 0.0,
-                "z": -1.0
-            },
-            "rotation": {
-                "x": 0.0,
-                "y": 0.0,
-                "z": 0.0
-            },
-            "scale": {
-                "x": 1.0,
-                "y": 1.0,
-                "z": 1.0
-            },
-            "components": {
-                "6766054303456732338": {
-                    "_active": true,
-                    "layer": 0
-                },
-                "7205334411763290517": {
-                    "_active": true,
-                    "name": "enemy"
-                },
-                "9315785795257285655": {
-                    "_active": true,
-                    "uid": 2341055969659319543
-                }
-            }
-        },
-        {
-            "parentIndex": 30,
-            "position": {
-                "x": 0.0,
-                "y": 0.00006103515625,
-                "z": -9.100000381469727
-            },
-            "rotation": {
-                "x": 0.0,
-                "y": 0.0,
-                "z": 0.0
-            },
-            "scale": {
-                "x": 1.0,
-                "y": 1.0,
-                "z": 1.0
-            },
-            "components": {
-                "6766054303456732338": {
-                    "_active": true,
-                    "layer": 0
-                },
-                "7205334411763290517": {
-                    "_active": true,
-                    "name": "enemy"
-                },
-                "9315785795257285655": {
-                    "_active": true,
-                    "uid": 2481837437430579914
-                }
-            }
-        },
-        {
-            "parentIndex": 5,
+            "parentIndex": 6,
             "position": {
                 "x": -2.245828151702881,
                 "y": 0.5060335397720337,
@@ -3202,7 +3227,7 @@
             }
         },
         {
-            "parentIndex": 5,
+            "parentIndex": 6,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -3234,7 +3259,7 @@
             }
         },
         {
-            "parentIndex": 14,
+            "parentIndex": 15,
             "position": {
                 "x": -0.08250004053115845,
                 "y": -0.09500002861022949,
@@ -3275,7 +3300,7 @@
             }
         },
         {
-            "parentIndex": 5,
+            "parentIndex": 6,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -3307,7 +3332,7 @@
             }
         },
         {
-            "parentIndex": 14,
+            "parentIndex": 15,
             "position": {
                 "x": -0.10249996185302734,
                 "y": 0.08500003814697266,
@@ -3348,7 +3373,7 @@
             }
         },
         {
-            "parentIndex": 14,
+            "parentIndex": 15,
             "position": {
                 "x": -0.4300000071525574,
                 "y": 0.6449999809265137,
@@ -3406,7 +3431,7 @@
             }
         },
         {
-            "parentIndex": 14,
+            "parentIndex": 15,
             "position": {
                 "x": 0.11999988555908203,
                 "y": 0.6449999809265137,
@@ -3464,7 +3489,7 @@
             }
         },
         {
-            "parentIndex": 14,
+            "parentIndex": 15,
             "position": {
                 "x": 0.3949999213218689,
                 "y": 0.6449999809265137,
@@ -3522,7 +3547,7 @@
             }
         },
         {
-            "parentIndex": 14,
+            "parentIndex": 15,
             "position": {
                 "x": 0.35499995946884155,
                 "y": 0.004999995231628418,
@@ -3606,7 +3631,7 @@
             }
         },
         {
-            "parentIndex": 14,
+            "parentIndex": 15,
             "position": {
                 "x": -0.15500003099441528,
                 "y": 0.6449999809265137,
@@ -3664,7 +3689,7 @@
             }
         },
         {
-            "parentIndex": 5,
+            "parentIndex": 6,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -3696,7 +3721,7 @@
             }
         },
         {
-            "parentIndex": 5,
+            "parentIndex": 6,
             "position": {
                 "x": -5.1349568367004395,
                 "y": 0.5060950517654419,
@@ -3719,7 +3744,7 @@
                 },
                 "7205334411763290517": {
                     "_active": true,
-                    "name": "DoorTrigger_Close"
+                    "name": "DoorTrigger_Open"
                 },
                 "8426725214831635516": {
                     "_active": true,
@@ -3761,171 +3786,7 @@
             }
         },
         {
-            "parentIndex": 17,
-            "position": {
-                "x": 0.0,
-                "y": 0.0,
-                "z": 0.0
-            },
-            "rotation": {
-                "x": 0.0,
-                "y": 0.0,
-                "z": 0.0
-            },
-            "scale": {
-                "x": 1.0,
-                "y": 1.0,
-                "z": 1.0
-            },
-            "components": {
-                "6766054303456732338": {
-                    "_active": true,
-                    "layer": 0
-                },
-                "7205334411763290517": {
-                    "_active": true,
-                    "name": "enemy"
-                },
-                "9315785795257285655": {
-                    "_active": true,
-                    "uid": 4791810213319580451
-                }
-            }
-        },
-        {
-            "parentIndex": 17,
-            "position": {
-                "x": -0.12378120422363281,
-                "y": -2.384185791015625e-7,
-                "z": 2.5790271759033203
-            },
-            "rotation": {
-                "x": 0.0,
-                "y": 0.0,
-                "z": 0.0
-            },
-            "scale": {
-                "x": 1.0,
-                "y": 1.0,
-                "z": 1.0
-            },
-            "components": {
-                "6766054303456732338": {
-                    "_active": true,
-                    "layer": 0
-                },
-                "7205334411763290517": {
-                    "_active": true,
-                    "name": "prefect"
-                },
-                "9315785795257285655": {
-                    "_active": true,
-                    "uid": 4897659098377407049
-                }
-            }
-        },
-        {
-            "parentIndex": 17,
-            "position": {
-                "x": -0.12378120422363281,
-                "y": -2.384185791015625e-7,
-                "z": -2.974529266357422
-            },
-            "rotation": {
-                "x": 0.0,
-                "y": 0.0,
-                "z": 0.0
-            },
-            "scale": {
-                "x": 1.0,
-                "y": 1.0,
-                "z": 1.0
-            },
-            "components": {
-                "6766054303456732338": {
-                    "_active": true,
-                    "layer": 0
-                },
-                "7205334411763290517": {
-                    "_active": true,
-                    "name": "enemy2"
-                },
-                "9315785795257285655": {
-                    "_active": true,
-                    "uid": 4907974716469208011
-                }
-            }
-        },
-        {
-            "parentIndex": 5,
-            "position": {
-                "x": -2.7750589847564697,
-                "y": 0.5060345530509949,
-                "z": 3.0806524753570557
-            },
-            "rotation": {
-                "x": 0.0,
-                "y": -89.99994659423828,
-                "z": 0.0
-            },
-            "scale": {
-                "x": 2.353257417678833,
-                "y": 2.828688383102417,
-                "z": 1.1840837001800537
-            },
-            "components": {
-                "6766054303456732338": {
-                    "_active": true,
-                    "layer": 0
-                },
-                "7205334411763290517": {
-                    "_active": true,
-                    "name": "DoorTrigger_Close"
-                },
-                "8426725214831635516": {
-                    "_active": true,
-                    "entityReferences": [
-                        {
-                            "entityUid": 3658786570163049327
-                        },
-                        {
-                            "entityUid": 2492536786075458154
-                        }
-                    ]
-                },
-                "9315785795257285655": {
-                    "_active": true,
-                    "uid": 4921859348748285467
-                },
-                "18236831197208900764": {
-                    "_active": true,
-                    "center": {
-                        "x": 0.0,
-                        "y": 0.0,
-                        "z": 0.0
-                    },
-                    "size": {
-                        "x": 1.0,
-                        "y": 1.0,
-                        "z": 1.0
-                    },
-                    "flags": {
-                        "_majorityTrue": true,
-                        "_except": []
-                    }
-                },
-                "18288371625365795113": {
-                    "_active": true,
-                    "scripts": [
-                        {
-                            "scriptName": "roomdoortrigger.lua"
-                        }
-                    ]
-                }
-            }
-        },
-        {
-            "parentIndex": 5,
+            "parentIndex": 6,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -3957,7 +3818,7 @@
             }
         },
         {
-            "parentIndex": 5,
+            "parentIndex": 6,
             "position": {
                 "x": -60.0,
                 "y": -3.2473011016845703,
@@ -4008,7 +3869,7 @@
             }
         },
         {
-            "parentIndex": 23,
+            "parentIndex": 22,
             "position": {
                 "x": 0.6999998092651367,
                 "y": 1.0,
@@ -4065,7 +3926,7 @@
             }
         },
         {
-            "parentIndex": 5,
+            "parentIndex": 6,
             "position": {
                 "x": -4.15792179107666,
                 "y": 0.5059739351272583,
@@ -4130,11 +3991,11 @@
             }
         },
         {
-            "parentIndex": 5,
+            "parentIndex": 6,
             "position": {
-                "x": -3.0999999046325684,
-                "y": 0.5059739351272583,
-                "z": -6.574934959411621
+                "x": -3.2507076263427734,
+                "y": 0.5059736371040344,
+                "z": -6.133707523345947
             },
             "rotation": {
                 "x": 0.0,
@@ -4153,7 +4014,7 @@
                 },
                 "7205334411763290517": {
                     "_active": true,
-                    "name": "DoorTrigger_Close"
+                    "name": "DoorTrigger_Open"
                 },
                 "8426725214831635516": {
                     "_active": true,
@@ -4198,167 +4059,7 @@
             }
         },
         {
-            "parentIndex": 30,
-            "position": {
-                "x": -1.3617205619812012,
-                "y": 0.0,
-                "z": -11.800000190734863
-            },
-            "rotation": {
-                "x": 0.0,
-                "y": 0.0,
-                "z": 0.0
-            },
-            "scale": {
-                "x": 1.0,
-                "y": 1.0,
-                "z": 1.0
-            },
-            "components": {
-                "6766054303456732338": {
-                    "_active": true,
-                    "layer": 0
-                },
-                "7205334411763290517": {
-                    "_active": true,
-                    "name": "enemy2"
-                },
-                "9315785795257285655": {
-                    "_active": true,
-                    "uid": 17495142048640595370
-                }
-            }
-        },
-        {
-            "parentIndex": 30,
-            "position": {
-                "x": 0.5,
-                "y": 0.00006103515625,
-                "z": -7.099999904632568
-            },
-            "rotation": {
-                "x": 0.0,
-                "y": 0.0,
-                "z": 0.0
-            },
-            "scale": {
-                "x": 1.0,
-                "y": 1.0,
-                "z": 1.0
-            },
-            "components": {
-                "6766054303456732338": {
-                    "_active": true,
-                    "layer": 0
-                },
-                "7205334411763290517": {
-                    "_active": true,
-                    "name": "enemy2"
-                },
-                "9315785795257285655": {
-                    "_active": true,
-                    "uid": 17502256988383933866
-                }
-            }
-        },
-        {
-            "parentIndex": 30,
-            "position": {
-                "x": 2.0,
-                "y": 0.0,
-                "z": -12.0
-            },
-            "rotation": {
-                "x": 0.0,
-                "y": 0.0,
-                "z": 0.0
-            },
-            "scale": {
-                "x": 1.0,
-                "y": 1.0,
-                "z": 1.0
-            },
-            "components": {
-                "6766054303456732338": {
-                    "_active": true,
-                    "layer": 0
-                },
-                "7205334411763290517": {
-                    "_active": true,
-                    "name": "enemy2"
-                },
-                "9315785795257285655": {
-                    "_active": true,
-                    "uid": 17510309811545765290
-                }
-            }
-        },
-        {
-            "parentIndex": 31,
-            "position": {
-                "x": -1.3617205619812012,
-                "y": 0.0,
-                "z": -11.800000190734863
-            },
-            "rotation": {
-                "x": 0.0,
-                "y": 0.0,
-                "z": 0.0
-            },
-            "scale": {
-                "x": 1.0,
-                "y": 1.0,
-                "z": 1.0
-            },
-            "components": {
-                "6766054303456732338": {
-                    "_active": true,
-                    "layer": 0
-                },
-                "7205334411763290517": {
-                    "_active": true,
-                    "name": "enemy2"
-                },
-                "9315785795257285655": {
-                    "_active": true,
-                    "uid": 17539060941100680822
-                }
-            }
-        },
-        {
-            "parentIndex": 31,
-            "position": {
-                "x": 2.456272602081299,
-                "y": 0.00006103515625,
-                "z": -7.099999904632568
-            },
-            "rotation": {
-                "x": 0.0,
-                "y": 0.0,
-                "z": 0.0
-            },
-            "scale": {
-                "x": 1.0,
-                "y": 1.0,
-                "z": 1.0
-            },
-            "components": {
-                "6766054303456732338": {
-                    "_active": true,
-                    "layer": 0
-                },
-                "7205334411763290517": {
-                    "_active": true,
-                    "name": "enemy"
-                },
-                "9315785795257285655": {
-                    "_active": true,
-                    "uid": 17548346316797249142
-                }
-            }
-        },
-        {
-            "parentIndex": 56,
+            "parentIndex": 44,
             "position": {
                 "x": -5.150000095367432,
                 "y": 1.4800000190734863,
@@ -4425,7 +4126,7 @@
             }
         },
         {
-            "parentIndex": 33,
+            "parentIndex": 30,
             "position": {
                 "x": 2.874300956726074,
                 "y": 0.5226454734802246,
@@ -4472,7 +4173,7 @@
             }
         },
         {
-            "parentIndex": 32,
+            "parentIndex": 29,
             "position": {
                 "x": 4.76837158203125e-7,
                 "y": -0.003891170024871826,
@@ -4523,7 +4224,7 @@
             }
         },
         {
-            "parentIndex": 41,
+            "parentIndex": 33,
             "position": {
                 "x": 2.852942705154419,
                 "y": 0.0,
@@ -4555,7 +4256,7 @@
             }
         },
         {
-            "parentIndex": 33,
+            "parentIndex": 30,
             "position": {
                 "x": 2.8316218852996826,
                 "y": 1.1916385889053345,
@@ -4602,7 +4303,7 @@
             }
         },
         {
-            "parentIndex": 33,
+            "parentIndex": 30,
             "position": {
                 "x": 0.4009009599685669,
                 "y": 0.512028694152832,
@@ -4652,7 +4353,7 @@
             }
         },
         {
-            "parentIndex": 33,
+            "parentIndex": 30,
             "position": {
                 "x": 2.1070361137390137,
                 "y": 1.011669397354126,
@@ -4699,7 +4400,7 @@
             }
         },
         {
-            "parentIndex": 33,
+            "parentIndex": 30,
             "position": {
                 "x": 2.9808526039123535,
                 "y": 0.9812806844711304,
@@ -4746,7 +4447,7 @@
             }
         },
         {
-            "parentIndex": 33,
+            "parentIndex": 30,
             "position": {
                 "x": -0.9355596303939819,
                 "y": 1.0111325979232788,
@@ -4793,7 +4494,7 @@
             }
         },
         {
-            "parentIndex": 33,
+            "parentIndex": 30,
             "position": {
                 "x": -0.9438714385032654,
                 "y": 0.5107688903808594,
@@ -4840,7 +4541,7 @@
             }
         },
         {
-            "parentIndex": 33,
+            "parentIndex": 30,
             "position": {
                 "x": 2.956951141357422,
                 "y": 0.8435628414154053,
@@ -4884,7 +4585,7 @@
             }
         },
         {
-            "parentIndex": 33,
+            "parentIndex": 30,
             "position": {
                 "x": -3.650015115737915,
                 "y": 1.399999976158142,
@@ -4948,7 +4649,7 @@
             }
         },
         {
-            "parentIndex": 33,
+            "parentIndex": 30,
             "position": {
                 "x": 3.6500000953674316,
                 "y": 1.399999976158142,
@@ -5014,7 +4715,7 @@
             }
         },
         {
-            "parentIndex": 33,
+            "parentIndex": 30,
             "position": {
                 "x": -4.960761070251465,
                 "y": 0.5098650455474854,
@@ -5061,7 +4762,7 @@
             }
         },
         {
-            "parentIndex": 33,
+            "parentIndex": 30,
             "position": {
                 "x": 10.0,
                 "y": 0.0,
@@ -5093,7 +4794,7 @@
             }
         },
         {
-            "parentIndex": 33,
+            "parentIndex": 30,
             "position": {
                 "x": -3.6011104583740234,
                 "y": 1.0,
@@ -5144,7 +4845,7 @@
             }
         },
         {
-            "parentIndex": 33,
+            "parentIndex": 30,
             "position": {
                 "x": -3.6011104583740234,
                 "y": 1.0,
@@ -5195,7 +4896,7 @@
             }
         },
         {
-            "parentIndex": 41,
+            "parentIndex": 33,
             "position": {
                 "x": 0.4424646496772766,
                 "y": 0.5098736882209778,
@@ -5227,7 +4928,7 @@
             }
         },
         {
-            "parentIndex": 33,
+            "parentIndex": 30,
             "position": {
                 "x": -5.858641147613525,
                 "y": 0.5098649859428406,
@@ -5274,7 +4975,7 @@
             }
         },
         {
-            "parentIndex": 33,
+            "parentIndex": 30,
             "position": {
                 "x": -4.162052154541016,
                 "y": 0.5098636746406555,
@@ -5321,7 +5022,7 @@
             }
         },
         {
-            "parentIndex": 41,
+            "parentIndex": 33,
             "position": {
                 "x": -1.3966305255889893,
                 "y": 0.5099331736564636,
@@ -5353,7 +5054,7 @@
             }
         },
         {
-            "parentIndex": 42,
+            "parentIndex": 34,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -5415,7 +5116,7 @@
             }
         },
         {
-            "parentIndex": 42,
+            "parentIndex": 34,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -5473,7 +5174,7 @@
             }
         },
         {
-            "parentIndex": 43,
+            "parentIndex": 35,
             "position": {
                 "x": 0.0,
                 "y": 1.399999976158142,
@@ -5536,7 +5237,7 @@
             }
         },
         {
-            "parentIndex": 41,
+            "parentIndex": 33,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -5580,7 +5281,7 @@
             }
         },
         {
-            "parentIndex": 43,
+            "parentIndex": 35,
             "position": {
                 "x": 0.0,
                 "y": 1.399999976158142,
@@ -5643,7 +5344,7 @@
             }
         },
         {
-            "parentIndex": 44,
+            "parentIndex": 36,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -5705,7 +5406,7 @@
             }
         },
         {
-            "parentIndex": 41,
+            "parentIndex": 33,
             "position": {
                 "x": 0.4009009599685669,
                 "y": 0.512028694152832,
@@ -5755,7 +5456,7 @@
             }
         },
         {
-            "parentIndex": 45,
+            "parentIndex": 37,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -5813,7 +5514,7 @@
             }
         },
         {
-            "parentIndex": 41,
+            "parentIndex": 33,
             "position": {
                 "x": 0.0,
                 "y": 1.399999976158142,
@@ -5876,7 +5577,7 @@
             }
         },
         {
-            "parentIndex": 46,
+            "parentIndex": 38,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -5934,7 +5635,7 @@
             }
         },
         {
-            "parentIndex": 41,
+            "parentIndex": 33,
             "position": {
                 "x": -5.217335224151611,
                 "y": 0.7457377314567566,
@@ -5986,7 +5687,7 @@
             }
         },
         {
-            "parentIndex": 43,
+            "parentIndex": 35,
             "position": {
                 "x": -2.867177963256836,
                 "y": 0.864890456199646,
@@ -6030,7 +5731,7 @@
             }
         },
         {
-            "parentIndex": 41,
+            "parentIndex": 33,
             "position": {
                 "x": -10.0,
                 "y": 0.5098649859428406,
@@ -6077,7 +5778,7 @@
             }
         },
         {
-            "parentIndex": 47,
+            "parentIndex": 39,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -6135,7 +5836,7 @@
             }
         },
         {
-            "parentIndex": 41,
+            "parentIndex": 33,
             "position": {
                 "x": -3.6011104583740234,
                 "y": 1.0,
@@ -6186,7 +5887,7 @@
             }
         },
         {
-            "parentIndex": 43,
+            "parentIndex": 35,
             "position": {
                 "x": 1.1920928955078125e-7,
                 "y": 0.0,
@@ -6230,7 +5931,7 @@
             }
         },
         {
-            "parentIndex": 49,
+            "parentIndex": 41,
             "position": {
                 "x": 9.5367431640625e-7,
                 "y": 0.0,
@@ -6288,7 +5989,7 @@
             }
         },
         {
-            "parentIndex": 43,
+            "parentIndex": 35,
             "position": {
                 "x": -5.915558815002441,
                 "y": 0.5060267448425293,
@@ -6345,7 +6046,7 @@
             }
         },
         {
-            "parentIndex": 56,
+            "parentIndex": 44,
             "position": {
                 "x": -5.150000095367432,
                 "y": 1.4800000190734863,
@@ -6412,7 +6113,7 @@
             }
         },
         {
-            "parentIndex": 43,
+            "parentIndex": 35,
             "position": {
                 "x": 2.956951141357422,
                 "y": 0.8435628414154053,
@@ -6456,7 +6157,7 @@
             }
         },
         {
-            "parentIndex": 41,
+            "parentIndex": 33,
             "position": {
                 "x": -3.650015115737915,
                 "y": 1.399999976158142,
@@ -6526,9 +6227,9 @@
             }
         },
         {
-            "parentIndex": 43,
+            "parentIndex": 35,
             "position": {
-                "x": 1.0935851335525513,
+                "x": -0.2542765140533447,
                 "y": 0.511971652507782,
                 "z": -1.4320449829101563
             },
@@ -6576,7 +6277,7 @@
             }
         },
         {
-            "parentIndex": 41,
+            "parentIndex": 33,
             "position": {
                 "x": 2.956951141357422,
                 "y": 0.8435628414154053,
@@ -6620,7 +6321,7 @@
             }
         },
         {
-            "parentIndex": 41,
+            "parentIndex": 33,
             "position": {
                 "x": 10.0,
                 "y": 0.0,
@@ -6652,7 +6353,7 @@
             }
         },
         {
-            "parentIndex": 43,
+            "parentIndex": 35,
             "position": {
                 "x": -3.1285152435302734,
                 "y": 0.5099791884422302,
@@ -6699,7 +6400,7 @@
             }
         },
         {
-            "parentIndex": 43,
+            "parentIndex": 35,
             "position": {
                 "x": 10.0,
                 "y": 0.0,
@@ -6731,7 +6432,7 @@
             }
         },
         {
-            "parentIndex": 41,
+            "parentIndex": 33,
             "position": {
                 "x": -3.6011104583740234,
                 "y": 1.0,
@@ -6754,7 +6455,7 @@
                 },
                 "7205334411763290517": {
                     "_active": true,
-                    "name": "Door_Classroom"
+                    "name": "Door_Classroom_Open"
                 },
                 "8426725214831635516": {
                     "_active": true,
@@ -6796,7 +6497,7 @@
             }
         },
         {
-            "parentIndex": 41,
+            "parentIndex": 33,
             "position": {
                 "x": 3.6500000953674316,
                 "y": 1.399999976158142,
@@ -6862,7 +6563,7 @@
             }
         },
         {
-            "parentIndex": 43,
+            "parentIndex": 35,
             "position": {
                 "x": -3.650015115737915,
                 "y": 1.399999976158142,
@@ -6926,7 +6627,7 @@
             }
         },
         {
-            "parentIndex": 43,
+            "parentIndex": 35,
             "position": {
                 "x": 3.6500000953674316,
                 "y": 1.399999976158142,
@@ -6992,7 +6693,7 @@
             }
         },
         {
-            "parentIndex": 43,
+            "parentIndex": 35,
             "position": {
                 "x": -3.6011104583740234,
                 "y": 1.0,
@@ -7043,7 +6744,7 @@
             }
         },
         {
-            "parentIndex": 43,
+            "parentIndex": 35,
             "position": {
                 "x": -3.6011104583740234,
                 "y": 1.0,
@@ -7094,7 +6795,7 @@
             }
         },
         {
-            "parentIndex": 43,
+            "parentIndex": 35,
             "position": {
                 "x": -3.3343796730041504,
                 "y": 0.5098587274551392,
@@ -7141,7 +6842,7 @@
             }
         },
         {
-            "parentIndex": 50,
+            "parentIndex": 42,
             "position": {
                 "x": -5.150000095367432,
                 "y": 1.4800000190734863,
@@ -7208,7 +6909,7 @@
             }
         },
         {
-            "parentIndex": 50,
+            "parentIndex": 42,
             "position": {
                 "x": -5.148462295532227,
                 "y": 1.4800000190734863,
@@ -7275,7 +6976,7 @@
             }
         },
         {
-            "parentIndex": 41,
+            "parentIndex": 33,
             "position": {
                 "x": -2.8671932220458984,
                 "y": 0.864890456199646,
@@ -7319,7 +7020,7 @@
             }
         },
         {
-            "parentIndex": 41,
+            "parentIndex": 33,
             "position": {
                 "x": -5.085008144378662,
                 "y": 1.4002149105072021,
@@ -7382,7 +7083,7 @@
             }
         },
         {
-            "parentIndex": 41,
+            "parentIndex": 33,
             "position": {
                 "x": -5.085008144378662,
                 "y": 1.4002149105072021,
@@ -7445,7 +7146,7 @@
             }
         },
         {
-            "parentIndex": 33,
+            "parentIndex": 30,
             "position": {
                 "x": 2.6759541034698486,
                 "y": 0.49162280559539795,
@@ -7492,7 +7193,7 @@
             }
         },
         {
-            "parentIndex": 41,
+            "parentIndex": 33,
             "position": {
                 "x": -1.9508267641067505,
                 "y": 0.0,
@@ -7524,7 +7225,7 @@
             }
         },
         {
-            "parentIndex": 41,
+            "parentIndex": 33,
             "position": {
                 "x": 0.0,
                 "y": 1.399999976158142,
@@ -7587,7 +7288,7 @@
             }
         },
         {
-            "parentIndex": 33,
+            "parentIndex": 30,
             "position": {
                 "x": 1.1920928955078125e-7,
                 "y": 0.0,
@@ -7631,7 +7332,7 @@
             }
         },
         {
-            "parentIndex": 33,
+            "parentIndex": 30,
             "position": {
                 "x": 0.0,
                 "y": 1.399999976158142,
@@ -7694,7 +7395,7 @@
             }
         },
         {
-            "parentIndex": 33,
+            "parentIndex": 30,
             "position": {
                 "x": 0.0,
                 "y": 1.399999976158142,
@@ -7757,7 +7458,7 @@
             }
         },
         {
-            "parentIndex": 33,
+            "parentIndex": 30,
             "position": {
                 "x": -5.866755485534668,
                 "y": 0.5099178552627563,
@@ -7804,7 +7505,7 @@
             }
         },
         {
-            "parentIndex": 33,
+            "parentIndex": 30,
             "position": {
                 "x": -5.915558815002441,
                 "y": 0.5060267448425293,
@@ -7861,7 +7562,7 @@
             }
         },
         {
-            "parentIndex": 41,
+            "parentIndex": 33,
             "position": {
                 "x": -0.8827802538871765,
                 "y": 0.5099262595176697,
@@ -7893,7 +7594,7 @@
             }
         },
         {
-            "parentIndex": 41,
+            "parentIndex": 33,
             "position": {
                 "x": 0.5236010551452637,
                 "y": 0.5098665356636047,
@@ -7925,7 +7626,7 @@
             }
         },
         {
-            "parentIndex": 33,
+            "parentIndex": 30,
             "position": {
                 "x": -2.867177963256836,
                 "y": 0.864890456199646,
@@ -7969,7 +7670,7 @@
             }
         },
         {
-            "parentIndex": 44,
+            "parentIndex": 36,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -8027,7 +7728,7 @@
             }
         },
         {
-            "parentIndex": 41,
+            "parentIndex": 33,
             "position": {
                 "x": 1.8359074592590332,
                 "y": 0.662749171257019,
@@ -8059,7 +7760,7 @@
             }
         },
         {
-            "parentIndex": 41,
+            "parentIndex": 33,
             "position": {
                 "x": -0.36450958251953125,
                 "y": 0.5098742842674255,
@@ -8091,11 +7792,11 @@
             }
         },
         {
-            "parentIndex": 43,
+            "parentIndex": 35,
             "position": {
                 "x": 2.3679914474487305,
                 "y": 0.509915828704834,
-                "z": 1.2662124633789063
+                "z": 15.924263954162598
             },
             "rotation": {
                 "x": 0.0,
@@ -8138,7 +7839,7 @@
             }
         },
         {
-            "parentIndex": 33,
+            "parentIndex": 30,
             "position": {
                 "x": -4.245174884796143,
                 "y": 0.5098605751991272,
@@ -8185,7 +7886,7 @@
             }
         },
         {
-            "parentIndex": 33,
+            "parentIndex": 30,
             "position": {
                 "x": -5.900000095367432,
                 "y": 0.5099248290061951,
@@ -8232,7 +7933,7 @@
             }
         },
         {
-            "parentIndex": 33,
+            "parentIndex": 30,
             "position": {
                 "x": -5.061739921569824,
                 "y": 0.5099229216575623,
@@ -8279,7 +7980,7 @@
             }
         },
         {
-            "parentIndex": 33,
+            "parentIndex": 30,
             "position": {
                 "x": -4.100383281707764,
                 "y": 0.506034791469574,
@@ -8344,7 +8045,7 @@
             }
         },
         {
-            "parentIndex": 69,
+            "parentIndex": 52,
             "position": {
                 "x": 0.12966537475585938,
                 "y": 0.5099352598190308,
@@ -8391,7 +8092,7 @@
             }
         },
         {
-            "parentIndex": 69,
+            "parentIndex": 52,
             "position": {
                 "x": 0.12966609001159668,
                 "y": 0.5099352598190308,
@@ -8438,7 +8139,7 @@
             }
         },
         {
-            "parentIndex": 69,
+            "parentIndex": 52,
             "position": {
                 "x": 0.12967252731323242,
                 "y": 0.5099352598190308,
@@ -8485,7 +8186,7 @@
             }
         },
         {
-            "parentIndex": 67,
+            "parentIndex": 50,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -8536,7 +8237,7 @@
             }
         },
         {
-            "parentIndex": 69,
+            "parentIndex": 52,
             "position": {
                 "x": -0.7643170356750488,
                 "y": 0.5099352598190308,
@@ -8583,7 +8284,7 @@
             }
         },
         {
-            "parentIndex": 70,
+            "parentIndex": 53,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -8634,7 +8335,7 @@
             }
         },
         {
-            "parentIndex": 71,
+            "parentIndex": 54,
             "position": {
                 "x": 0.0,
                 "y": -0.0038910508155822754,
@@ -8685,7 +8386,7 @@
             }
         },
         {
-            "parentIndex": 72,
+            "parentIndex": 55,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -8736,7 +8437,7 @@
             }
         },
         {
-            "parentIndex": 73,
+            "parentIndex": 56,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -8787,7 +8488,7 @@
             }
         },
         {
-            "parentIndex": 74,
+            "parentIndex": 57,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -8838,7 +8539,7 @@
             }
         },
         {
-            "parentIndex": 75,
+            "parentIndex": 58,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -8889,7 +8590,7 @@
             }
         },
         {
-            "parentIndex": 77,
+            "parentIndex": 60,
             "position": {
                 "x": 0.01342153549194336,
                 "y": 0.9769220352172852,
@@ -8940,7 +8641,7 @@
             }
         },
         {
-            "parentIndex": 76,
+            "parentIndex": 59,
             "position": {
                 "x": 0.0007220208644866943,
                 "y": 0.0,
@@ -8991,7 +8692,7 @@
             }
         },
         {
-            "parentIndex": 77,
+            "parentIndex": 60,
             "position": {
                 "x": 0.01342153549194336,
                 "y": 0.0,
@@ -9042,7 +8743,7 @@
             }
         },
         {
-            "parentIndex": 77,
+            "parentIndex": 60,
             "position": {
                 "x": 0.01342153549194336,
                 "y": 0.0,
@@ -9093,7 +8794,7 @@
             }
         },
         {
-            "parentIndex": 77,
+            "parentIndex": 60,
             "position": {
                 "x": 0.01342153549194336,
                 "y": 0.0,
@@ -9144,7 +8845,7 @@
             }
         },
         {
-            "parentIndex": 79,
+            "parentIndex": 62,
             "position": {
                 "x": 0.0,
                 "y": -0.0038910508155822754,
@@ -9195,7 +8896,7 @@
             }
         },
         {
-            "parentIndex": 80,
+            "parentIndex": 63,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -9239,7 +8940,7 @@
             }
         },
         {
-            "parentIndex": 80,
+            "parentIndex": 63,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -9283,7 +8984,7 @@
             }
         },
         {
-            "parentIndex": 81,
+            "parentIndex": 64,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -9327,7 +9028,7 @@
             }
         },
         {
-            "parentIndex": 81,
+            "parentIndex": 64,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -9371,7 +9072,7 @@
             }
         },
         {
-            "parentIndex": 82,
+            "parentIndex": 65,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -9415,7 +9116,7 @@
             }
         },
         {
-            "parentIndex": 82,
+            "parentIndex": 65,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -9459,7 +9160,7 @@
             }
         },
         {
-            "parentIndex": 66,
+            "parentIndex": 49,
             "position": {
                 "x": 0.0,
                 "y": -1.8507726192474365,
@@ -9510,7 +9211,7 @@
             }
         },
         {
-            "parentIndex": 83,
+            "parentIndex": 66,
             "position": {
                 "x": -0.22502446174621582,
                 "y": 0.6916933655738831,
@@ -9557,7 +9258,7 @@
             }
         },
         {
-            "parentIndex": 83,
+            "parentIndex": 66,
             "position": {
                 "x": -0.7320950031280518,
                 "y": 0.00005429983139038086,
@@ -9604,7 +9305,7 @@
             }
         },
         {
-            "parentIndex": 83,
+            "parentIndex": 66,
             "position": {
                 "x": -0.11776286363601685,
                 "y": -0.00005549192428588867,
@@ -9651,7 +9352,7 @@
             }
         },
         {
-            "parentIndex": 83,
+            "parentIndex": 66,
             "position": {
                 "x": 0.06576824188232422,
                 "y": 0.00006157159805297852,
@@ -9698,7 +9399,7 @@
             }
         },
         {
-            "parentIndex": 83,
+            "parentIndex": 66,
             "position": {
                 "x": -0.26861530542373657,
                 "y": 0.5284355282783508,
@@ -9745,7 +9446,7 @@
             }
         },
         {
-            "parentIndex": 84,
+            "parentIndex": 67,
             "position": {
                 "x": 0.0,
                 "y": -0.0038910508155822754,
@@ -9796,7 +9497,7 @@
             }
         },
         {
-            "parentIndex": 85,
+            "parentIndex": 68,
             "position": {
                 "x": 0.0,
                 "y": -0.0038910508155822754,
@@ -9847,7 +9548,7 @@
             }
         },
         {
-            "parentIndex": 86,
+            "parentIndex": 69,
             "position": {
                 "x": -0.7320947647094727,
                 "y": 0.00005429983139038086,
@@ -9894,7 +9595,7 @@
             }
         },
         {
-            "parentIndex": 86,
+            "parentIndex": 69,
             "position": {
                 "x": 0.06576824188232422,
                 "y": 0.00006157159805297852,
@@ -9941,7 +9642,7 @@
             }
         },
         {
-            "parentIndex": 86,
+            "parentIndex": 69,
             "position": {
                 "x": -0.11776304244995117,
                 "y": -0.00005549192428588867,
@@ -9988,7 +9689,7 @@
             }
         },
         {
-            "parentIndex": 86,
+            "parentIndex": 69,
             "position": {
                 "x": -0.2686152458190918,
                 "y": 0.5284355282783508,
@@ -10035,7 +9736,7 @@
             }
         },
         {
-            "parentIndex": 86,
+            "parentIndex": 69,
             "position": {
                 "x": -0.22502422332763672,
                 "y": 0.6916933655738831,
@@ -10082,7 +9783,7 @@
             }
         },
         {
-            "parentIndex": 90,
+            "parentIndex": 73,
             "position": {
                 "x": 0.0,
                 "y": -0.3732050061225891,
@@ -10133,7 +9834,7 @@
             }
         },
         {
-            "parentIndex": 93,
+            "parentIndex": 76,
             "position": {
                 "x": 0.0,
                 "y": -0.0038910508155822754,
@@ -10184,7 +9885,7 @@
             }
         },
         {
-            "parentIndex": 97,
+            "parentIndex": 80,
             "position": {
                 "x": 0.0007219314575195313,
                 "y": 0.0,
@@ -10235,7 +9936,7 @@
             }
         },
         {
-            "parentIndex": 98,
+            "parentIndex": 81,
             "position": {
                 "x": 0.0007219314575195313,
                 "y": 0.0,
@@ -10286,7 +9987,7 @@
             }
         },
         {
-            "parentIndex": 99,
+            "parentIndex": 82,
             "position": {
                 "x": 0.0,
                 "y": -0.0038910508155822754,
@@ -10337,7 +10038,7 @@
             }
         },
         {
-            "parentIndex": 101,
+            "parentIndex": 84,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -10381,7 +10082,7 @@
             }
         },
         {
-            "parentIndex": 102,
+            "parentIndex": 85,
             "position": {
                 "x": 0.0,
                 "y": -0.3732050061225891,
@@ -10432,7 +10133,7 @@
             }
         },
         {
-            "parentIndex": 101,
+            "parentIndex": 84,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -10476,7 +10177,7 @@
             }
         },
         {
-            "parentIndex": 105,
+            "parentIndex": 88,
             "position": {
                 "x": -1.2487144470214844,
                 "y": -0.037741899490356445,
@@ -10527,7 +10228,7 @@
             }
         },
         {
-            "parentIndex": 106,
+            "parentIndex": 89,
             "position": {
                 "x": 0.0007219314575195313,
                 "y": 0.0,
@@ -10578,7 +10279,7 @@
             }
         },
         {
-            "parentIndex": 105,
+            "parentIndex": 88,
             "position": {
                 "x": 0.0,
                 "y": -1.8507726192474365,
@@ -10629,7 +10330,7 @@
             }
         },
         {
-            "parentIndex": 107,
+            "parentIndex": 90,
             "position": {
                 "x": 0.01342153549194336,
                 "y": 0.0,
@@ -10680,7 +10381,7 @@
             }
         },
         {
-            "parentIndex": 107,
+            "parentIndex": 90,
             "position": {
                 "x": 0.01342153549194336,
                 "y": 0.0,
@@ -10731,7 +10432,7 @@
             }
         },
         {
-            "parentIndex": 105,
+            "parentIndex": 88,
             "position": {
                 "x": 1.266754150390625,
                 "y": -0.037741899490356445,
@@ -10782,7 +10483,7 @@
             }
         },
         {
-            "parentIndex": 108,
+            "parentIndex": 91,
             "position": {
                 "x": 0.0,
                 "y": -0.0038910508155822754,
@@ -10833,7 +10534,7 @@
             }
         },
         {
-            "parentIndex": 107,
+            "parentIndex": 90,
             "position": {
                 "x": 0.01342153549194336,
                 "y": 0.9769221544265747,
@@ -10884,7 +10585,7 @@
             }
         },
         {
-            "parentIndex": 107,
+            "parentIndex": 90,
             "position": {
                 "x": 0.01342153549194336,
                 "y": 0.0,
@@ -10935,7 +10636,7 @@
             }
         },
         {
-            "parentIndex": 109,
+            "parentIndex": 92,
             "position": {
                 "x": 0.0007219314575195313,
                 "y": 0.0,
@@ -10986,7 +10687,7 @@
             }
         },
         {
-            "parentIndex": 110,
+            "parentIndex": 93,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -11030,7 +10731,7 @@
             }
         },
         {
-            "parentIndex": 111,
+            "parentIndex": 94,
             "position": {
                 "x": 0.0,
                 "y": -0.0038910508155822754,
@@ -11081,7 +10782,7 @@
             }
         },
         {
-            "parentIndex": 110,
+            "parentIndex": 93,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -11125,7 +10826,7 @@
             }
         },
         {
-            "parentIndex": 112,
+            "parentIndex": 95,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -11169,7 +10870,7 @@
             }
         },
         {
-            "parentIndex": 112,
+            "parentIndex": 95,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -11213,7 +10914,7 @@
             }
         },
         {
-            "parentIndex": 113,
+            "parentIndex": 96,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -11257,7 +10958,7 @@
             }
         },
         {
-            "parentIndex": 113,
+            "parentIndex": 96,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -11301,7 +11002,7 @@
             }
         },
         {
-            "parentIndex": 115,
+            "parentIndex": 98,
             "position": {
                 "x": 0.01342153549194336,
                 "y": 0.0,
@@ -11352,7 +11053,7 @@
             }
         },
         {
-            "parentIndex": 115,
+            "parentIndex": 98,
             "position": {
                 "x": 0.01342153549194336,
                 "y": 0.9769221544265747,
@@ -11403,7 +11104,7 @@
             }
         },
         {
-            "parentIndex": 115,
+            "parentIndex": 98,
             "position": {
                 "x": 0.01342153549194336,
                 "y": 0.0,
@@ -11454,7 +11155,7 @@
             }
         },
         {
-            "parentIndex": 115,
+            "parentIndex": 98,
             "position": {
                 "x": 0.01342153549194336,
                 "y": 0.0,
@@ -11505,7 +11206,7 @@
             }
         },
         {
-            "parentIndex": 117,
+            "parentIndex": 100,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -11549,7 +11250,7 @@
             }
         },
         {
-            "parentIndex": 117,
+            "parentIndex": 100,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -11593,7 +11294,7 @@
             }
         },
         {
-            "parentIndex": 118,
+            "parentIndex": 101,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -11637,7 +11338,7 @@
             }
         },
         {
-            "parentIndex": 118,
+            "parentIndex": 101,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -11681,7 +11382,7 @@
             }
         },
         {
-            "parentIndex": 119,
+            "parentIndex": 102,
             "position": {
                 "x": 0.0,
                 "y": -0.0038910508155822754,
@@ -11732,7 +11433,7 @@
             }
         },
         {
-            "parentIndex": 120,
+            "parentIndex": 103,
             "position": {
                 "x": 0.0,
                 "y": -1.8507726192474365,
@@ -11783,7 +11484,7 @@
             }
         },
         {
-            "parentIndex": 120,
+            "parentIndex": 103,
             "position": {
                 "x": 1.266754150390625,
                 "y": -0.037741899490356445,
@@ -11834,7 +11535,7 @@
             }
         },
         {
-            "parentIndex": 121,
+            "parentIndex": 104,
             "position": {
                 "x": 0.0,
                 "y": -1.8507726192474365,
@@ -11885,7 +11586,7 @@
             }
         },
         {
-            "parentIndex": 121,
+            "parentIndex": 104,
             "position": {
                 "x": 1.266754150390625,
                 "y": -0.037741899490356445,
@@ -11936,7 +11637,7 @@
             }
         },
         {
-            "parentIndex": 122,
+            "parentIndex": 105,
             "position": {
                 "x": 0.0007219314575195313,
                 "y": 0.0,
@@ -11987,7 +11688,7 @@
             }
         },
         {
-            "parentIndex": 125,
+            "parentIndex": 108,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -12038,7 +11739,7 @@
             }
         },
         {
-            "parentIndex": 126,
+            "parentIndex": 109,
             "position": {
                 "x": -1.017849326133728,
                 "y": 0.5099352598190308,
@@ -12085,7 +11786,75 @@
             }
         },
         {
-            "parentIndex": 126,
+            "parentIndex": 96,
+            "position": {
+                "x": 0.8260514736175537,
+                "y": -0.4939654469490051,
+                "z": -0.05943489074707031
+            },
+            "rotation": {
+                "x": 0.0,
+                "y": -89.99994659423828,
+                "z": 0.0
+            },
+            "scale": {
+                "x": 2.353257417678833,
+                "y": 2.828688383102417,
+                "z": 1.1840837001800537
+            },
+            "components": {
+                "6766054303456732338": {
+                    "_active": true,
+                    "layer": 0
+                },
+                "7205334411763290517": {
+                    "_active": true,
+                    "name": "DoorTrigger_Close"
+                },
+                "8426725214831635516": {
+                    "_active": true,
+                    "entityReferences": [
+                        {
+                            "entityUid": 3837990472816120687
+                        },
+                        {
+                            "entityUid": 2312750142313854199
+                        }
+                    ]
+                },
+                "9315785795257285655": {
+                    "_active": true,
+                    "uid": 4921859348748285467
+                },
+                "18236831197208900764": {
+                    "_active": true,
+                    "center": {
+                        "x": 0.0,
+                        "y": 0.0,
+                        "z": 0.0
+                    },
+                    "size": {
+                        "x": 1.0,
+                        "y": 1.0,
+                        "z": 1.0
+                    },
+                    "flags": {
+                        "_majorityTrue": true,
+                        "_except": []
+                    }
+                },
+                "18288371625365795113": {
+                    "_active": true,
+                    "scripts": [
+                        {
+                            "scriptName": "roomdoortrigger.lua"
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "parentIndex": 109,
             "position": {
                 "x": -1.1905328035354614,
                 "y": 0.5099352598190308,
@@ -12132,7 +11901,7 @@
             }
         },
         {
-            "parentIndex": 126,
+            "parentIndex": 109,
             "position": {
                 "x": -0.5762988328933716,
                 "y": 0.5099352598190308,
@@ -12179,7 +11948,7 @@
             }
         },
         {
-            "parentIndex": 126,
+            "parentIndex": 109,
             "position": {
                 "x": -4.626419544219971,
                 "y": 0.5098680853843689,
@@ -12226,7 +11995,7 @@
             }
         },
         {
-            "parentIndex": 128,
+            "parentIndex": 111,
             "position": {
                 "x": 0.0,
                 "y": -0.3732050061225891,
@@ -12277,7 +12046,7 @@
             }
         },
         {
-            "parentIndex": 135,
+            "parentIndex": 118,
             "position": {
                 "x": 0.0007220208644866943,
                 "y": 0.0,
@@ -12328,7 +12097,7 @@
             }
         },
         {
-            "parentIndex": 139,
+            "parentIndex": 122,
             "position": {
                 "x": 0.0,
                 "y": -0.0038910508155822754,
@@ -12379,7 +12148,7 @@
             }
         },
         {
-            "parentIndex": 140,
+            "parentIndex": 123,
             "position": {
                 "x": 0.0,
                 "y": -0.0038910508155822754,
@@ -12430,7 +12199,7 @@
             }
         },
         {
-            "parentIndex": 141,
+            "parentIndex": 124,
             "position": {
                 "x": 0.0,
                 "y": -0.0038910508155822754,
@@ -12481,7 +12250,7 @@
             }
         },
         {
-            "parentIndex": 142,
+            "parentIndex": 125,
             "position": {
                 "x": 0.0,
                 "y": -0.0038911104202270508,
@@ -12532,7 +12301,7 @@
             }
         },
         {
-            "parentIndex": 66,
+            "parentIndex": 49,
             "position": {
                 "x": 1.266754150390625,
                 "y": -0.037741899490356445,
@@ -12583,7 +12352,7 @@
             }
         },
         {
-            "parentIndex": 117,
+            "parentIndex": 100,
             "position": {
                 "x": 0.5105800628662109,
                 "y": -0.4940260648727417,
@@ -12648,7 +12417,62 @@
             }
         },
         {
-            "parentIndex": 126,
+            "parentIndex": 109,
+            "position": {
+                "x": 2.173602819442749,
+                "y": 0.5099384188652039,
+                "z": -2.7243385314941406
+            },
+            "rotation": {
+                "x": 0.0,
+                "y": 184.60000610351563,
+                "z": 0.0
+            },
+            "scale": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0
+            },
+            "components": {
+                "5352011725353660904": {
+                    "_active": true,
+                    "meshHandle": {
+                        "hash": 362711294088504259
+                    },
+                    "materials": [
+                        {
+                            "hash": 155322510364825539
+                        },
+                        {
+                            "hash": 157414880993324893
+                        }
+                    ],
+                    "castShadowOverride": -1
+                },
+                "6766054303456732338": {
+                    "_active": true,
+                    "layer": 0
+                },
+                "7205334411763290517": {
+                    "_active": true,
+                    "name": "BBT Spawner"
+                },
+                "9315785795257285655": {
+                    "_active": true,
+                    "uid": 17392404782308512554
+                },
+                "18288371625365795113": {
+                    "_active": true,
+                    "scripts": [
+                        {
+                            "scriptName": "bbtspawner.lua"
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "parentIndex": 109,
             "position": {
                 "x": -0.5478700399398804,
                 "y": 0.5099352598190308,
@@ -12680,7 +12504,7 @@
             }
         },
         {
-            "parentIndex": 144,
+            "parentIndex": 127,
             "position": {
                 "x": 0.0,
                 "y": -0.0038911104202270508,
@@ -12731,7 +12555,7 @@
             }
         },
         {
-            "parentIndex": 145,
+            "parentIndex": 128,
             "position": {
                 "x": 4.76837158203125e-7,
                 "y": -0.003891170024871826,
@@ -12782,7 +12606,7 @@
             }
         },
         {
-            "parentIndex": 146,
+            "parentIndex": 129,
             "position": {
                 "x": 4.76837158203125e-7,
                 "y": -0.003891170024871826,
@@ -12833,7 +12657,7 @@
             }
         },
         {
-            "parentIndex": 148,
+            "parentIndex": 131,
             "position": {
                 "x": 4.76837158203125e-7,
                 "y": -0.0038912296295166016,
@@ -12884,7 +12708,7 @@
             }
         },
         {
-            "parentIndex": 162,
+            "parentIndex": 145,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -12947,7 +12771,7 @@
             }
         },
         {
-            "parentIndex": 161,
+            "parentIndex": 144,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -13010,7 +12834,7 @@
             }
         },
         {
-            "parentIndex": 163,
+            "parentIndex": 146,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -13061,7 +12885,7 @@
             }
         },
         {
-            "parentIndex": 164,
+            "parentIndex": 147,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -13112,7 +12936,7 @@
             }
         },
         {
-            "parentIndex": 165,
+            "parentIndex": 148,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -13163,7 +12987,7 @@
             }
         },
         {
-            "parentIndex": 166,
+            "parentIndex": 149,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -13214,7 +13038,7 @@
             }
         },
         {
-            "parentIndex": 168,
+            "parentIndex": 151,
             "position": {
                 "x": 2.384185791015625e-7,
                 "y": -1.1920928955078125e-7,
@@ -13265,7 +13089,7 @@
             }
         },
         {
-            "parentIndex": 169,
+            "parentIndex": 152,
             "position": {
                 "x": 2.384185791015625e-7,
                 "y": -0.0038909912109375,
@@ -13316,7 +13140,7 @@
             }
         },
         {
-            "parentIndex": 170,
+            "parentIndex": 153,
             "position": {
                 "x": -8.940696716308594e-8,
                 "y": -0.0038910508155822754,
@@ -13367,7 +13191,7 @@
             }
         },
         {
-            "parentIndex": 171,
+            "parentIndex": 154,
             "position": {
                 "x": 0.0,
                 "y": -0.0038910508155822754,
@@ -13418,7 +13242,7 @@
             }
         },
         {
-            "parentIndex": 172,
+            "parentIndex": 155,
             "position": {
                 "x": 4.172325134277344e-7,
                 "y": -0.0038909912109375,
@@ -13469,7 +13293,7 @@
             }
         },
         {
-            "parentIndex": 175,
+            "parentIndex": 158,
             "position": {
                 "x": 2.384185791015625e-7,
                 "y": -0.0038909912109375,
@@ -13520,7 +13344,7 @@
             }
         },
         {
-            "parentIndex": 176,
+            "parentIndex": 159,
             "position": {
                 "x": 0.0,
                 "y": -0.0038911104202270508,
@@ -13571,7 +13395,7 @@
             }
         },
         {
-            "parentIndex": 177,
+            "parentIndex": 160,
             "position": {
                 "x": 0.0,
                 "y": -0.0038910508155822754,
@@ -13622,7 +13446,7 @@
             }
         },
         {
-            "parentIndex": 178,
+            "parentIndex": 161,
             "position": {
                 "x": 0.0,
                 "y": -0.003891468048095703,
@@ -13673,7 +13497,7 @@
             }
         },
         {
-            "parentIndex": 179,
+            "parentIndex": 162,
             "position": {
                 "x": 0.0,
                 "y": -2.384185791015625e-7,
@@ -13724,7 +13548,7 @@
             }
         },
         {
-            "parentIndex": 185,
+            "parentIndex": 168,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -13775,7 +13599,7 @@
             }
         },
         {
-            "parentIndex": 187,
+            "parentIndex": 170,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -13826,7 +13650,7 @@
             }
         },
         {
-            "parentIndex": 198,
+            "parentIndex": 181,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -13889,7 +13713,7 @@
             }
         },
         {
-            "parentIndex": 200,
+            "parentIndex": 183,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -13952,7 +13776,7 @@
             }
         },
         {
-            "parentIndex": 201,
+            "parentIndex": 184,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -14015,7 +13839,7 @@
             }
         },
         {
-            "parentIndex": 202,
+            "parentIndex": 185,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -14078,7 +13902,7 @@
             }
         },
         {
-            "parentIndex": 203,
+            "parentIndex": 186,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -14129,7 +13953,7 @@
             }
         },
         {
-            "parentIndex": 204,
+            "parentIndex": 187,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -14180,7 +14004,7 @@
             }
         },
         {
-            "parentIndex": 209,
+            "parentIndex": 192,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -14231,7 +14055,7 @@
             }
         },
         {
-            "parentIndex": 210,
+            "parentIndex": 193,
             "position": {
                 "x": 2.384185791015625e-7,
                 "y": 0.0,
@@ -14282,7 +14106,7 @@
             }
         },
         {
-            "parentIndex": 211,
+            "parentIndex": 194,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -14333,7 +14157,7 @@
             }
         },
         {
-            "parentIndex": 212,
+            "parentIndex": 195,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -14384,7 +14208,7 @@
             }
         },
         {
-            "parentIndex": 220,
+            "parentIndex": 203,
             "position": {
                 "x": 4.76837158203125e-7,
                 "y": -0.003891170024871826,
@@ -14435,7 +14259,7 @@
             }
         },
         {
-            "parentIndex": 221,
+            "parentIndex": 205,
             "position": {
                 "x": 4.76837158203125e-7,
                 "y": -0.003891289234161377,
@@ -14486,7 +14310,7 @@
             }
         },
         {
-            "parentIndex": 222,
+            "parentIndex": 206,
             "position": {
                 "x": 2.384185791015625e-7,
                 "y": -0.0038912296295166016,
@@ -14537,7 +14361,7 @@
             }
         },
         {
-            "parentIndex": 223,
+            "parentIndex": 207,
             "position": {
                 "x": 0.0,
                 "y": -0.0038910508155822754,
@@ -14588,7 +14412,58 @@
             }
         },
         {
-            "parentIndex": 232,
+            "parentIndex": 216,
+            "position": {
+                "x": 0.0,
+                "y": -0.003891289234161377,
+                "z": 0.04931831359863281
+            },
+            "rotation": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "scale": {
+                "x": 0.8551139235496521,
+                "y": 0.6222162842750549,
+                "z": 0.4913094639778137
+            },
+            "components": {
+                "6766054303456732338": {
+                    "_active": true,
+                    "layer": 0
+                },
+                "7205334411763290517": {
+                    "_active": true,
+                    "name": "Collider"
+                },
+                "9315785795257285655": {
+                    "_active": true,
+                    "uid": 17401253651888853802
+                },
+                "18236831197208900764": {
+                    "_active": true,
+                    "center": {
+                        "x": 0.0,
+                        "y": 0.0,
+                        "z": 0.0
+                    },
+                    "size": {
+                        "x": 1.0,
+                        "y": 1.0,
+                        "z": 1.0
+                    },
+                    "flags": {
+                        "_majorityTrue": true,
+                        "_except": [
+                            "Is Trigger"
+                        ]
+                    }
+                }
+            }
+        },
+        {
+            "parentIndex": 217,
             "position": {
                 "x": 9.5367431640625e-7,
                 "y": -0.003891289234161377,
