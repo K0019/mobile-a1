@@ -76,3 +76,6 @@
 [submodule "extern/SPIRV-Headers"]
 	path = extern/SPIRV-Headers
 	url = https://github.com/KhronosGroup/SPIRV-Headers.git
+[submodule "extern/astc-encoder"]
+	path = extern/astc-encoder
+	url = https://github.com/ARM-software/astc-encoder.git

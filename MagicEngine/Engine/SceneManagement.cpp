@@ -78,13 +78,8 @@ public:
 	*//******************************************************************/
 	static const std::string GetOpenScenesJsonPath()
 	{
-		//return GetScenesFolder() + "/openScenes.json";
-		// Note: Android APK asset packaging lowercases filenames, so use lowercase on Android
-#if defined(__ANDROID__)
-		return VFS::JoinPath(GetScenesFolder(), "openscenes.json");
-#else
+		// Note: Our build script (build_android.ps1) preserves case when copying assets
 		return VFS::JoinPath(GetScenesFolder(), "openScenes.json");
-#endif
 	}
 
 	/*****************************************************************//*!

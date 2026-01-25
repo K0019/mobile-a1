@@ -13,7 +13,7 @@
 \brief
 Options for compiling.
 
-All content © 2025 DigiPen Institute of Technology Singapore.
+All content ï¿½ 2025 DigiPen Institute of Technology Singapore.
 All rights reserved.
 */
 /******************************************************************************/
@@ -49,6 +49,25 @@ namespace compiler
         ANDROID,
         COUNT
     };
+
+    inline const char* GetPlatformName(BUILD_PLATFORM platform)
+    {
+        switch (platform)
+        {
+            case BUILD_PLATFORM::WINDOWS: return "windows";
+            case BUILD_PLATFORM::ANDROID: return "android";
+            default: return "unknown";
+        }
+    }
+
+    // Get relative path from assets root (for portable metadata)
+    inline std::string GetRelativeSourcePath(const std::filesystem::path& inputPath, const std::filesystem::path& assetsRoot)
+    {
+        // Use lexically_relative to get a portable relative path
+        auto relative = inputPath.lexically_relative(assetsRoot);
+        // Convert to forward slashes for cross-platform compatibility
+        return relative.generic_string();
+    }
 
     enum OPTIMIZATION_TYPE
     {
@@ -116,6 +135,7 @@ namespace compiler
         std::filesystem::path assetsRoot;   // our case would usually be ../../../Assets (in editor)
         std::filesystem::path inputPath;
         std::filesystem::path outputPath;
+        BUILD_PLATFORM platform = BUILD_PLATFORM::WINDOWS;  // Target platform for compilation
     };
 
     struct MeshOptions

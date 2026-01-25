@@ -29,12 +29,14 @@ target_include_directories(AssetCompiler PUBLIC
 )
 
 # Link MagicEngine - provides assimp, meshoptimizer, ktx, mikktspace, glm, and all asset processing code
-# Compressonator is compiler-specific (texture compression)
+# Compressonator is compiler-specific (texture compression for BC formats)
+# astcenc-avx2-static provides ASTC compression (ARM's official encoder)
 # Vulkan::Headers needed for VkFormat enums in texture compilation
 target_link_libraries(AssetCompiler PRIVATE
     MagicEngine
     Vulkan::Headers
     compressonator
+    astcenc-avx2-static
 )
 
 install(TARGETS AssetCompiler 

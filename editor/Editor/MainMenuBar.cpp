@@ -76,11 +76,44 @@ namespace editor {
 
 				// Check if Asset Compiler window exists and is compiling
 				auto* compilerWindow = editor::AssetCompilerWindow::GetInstance();
-				bool isCompiling = compilerWindow && compilerWindow->IsCompiling();
+				bool isCompiling = compilerWindow && (compilerWindow->IsCompiling() || compilerWindow->IsBatchCompiling());
 
 				if (isCompiling)
 				{
 					ImGui::TextColored(ImVec4(1.0f, 0.8f, 0.0f, 1.0f), ICON_FA_SPINNER " Compiling...");
+				}
+				else
+				{
+					// Compile All Assets button
+					std::string platformStr = (selectedPlatform == 0) ? "windows" : "android";
+
+					if (gui::MenuItem(ICON_FA_BOXES_STACKED " Compile All Assets"))
+					{
+						// Ensure compiler window exists
+						if (!compilerWindow)
+						{
+							editor::CreateGuiWindow<editor::AssetCompilerWindow>();
+							compilerWindow = editor::AssetCompilerWindow::GetInstance();
+						}
+						if (compilerWindow)
+						{
+							compilerWindow->CompileAllAssets(platformStr, false);
+						}
+					}
+
+					if (gui::MenuItem(ICON_FA_ROTATE " Force Recompile All"))
+					{
+						// Ensure compiler window exists
+						if (!compilerWindow)
+						{
+							editor::CreateGuiWindow<editor::AssetCompilerWindow>();
+							compilerWindow = editor::AssetCompilerWindow::GetInstance();
+						}
+						if (compilerWindow)
+						{
+							compilerWindow->CompileAllAssets(platformStr, true);
+						}
+					}
 				}
 			}
 

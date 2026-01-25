@@ -198,6 +198,9 @@ int main(int argc, char* argv[])
     std::string platform = parser.GetOption<std::string>("platform").value_or("windows");
     bool isAndroid = (platform == "android");
 
+    // Set platform in options for metadata tracking
+    options.general.platform = isAndroid ? BUILD_PLATFORM::ANDROID : BUILD_PLATFORM::WINDOWS;
+
     if (auto fmt = parser.GetOption<std::string>("format"))
     {
         options.texture.compressionFormat = ParseCompressionFormat(fmt.value());

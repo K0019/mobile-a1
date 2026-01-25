@@ -29,6 +29,14 @@ target_link_libraries(Editor PRIVATE
     MagicEngine
 )
 
+# Define source directory so Editor can find assets regardless of working directory
+# Use forward slashes to avoid escape sequence issues on Windows
+string(REPLACE "\\" "/" MAGIC_SOURCE_DIR_NORMALIZED "${CMAKE_SOURCE_DIR}")
+target_compile_definitions(Editor PRIVATE
+    MAGIC_IS_EDITOR=1
+    MAGIC_SOURCE_DIR="${MAGIC_SOURCE_DIR_NORMALIZED}"
+)
+
 # Use MagicEngine's pch.h but compile our own PCH (avoid definition mismatch)
 target_precompile_headers(Editor PRIVATE ${CMAKE_SOURCE_DIR}/MagicEngine/pch.h)
 target_include_directories(Editor PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})

@@ -23,6 +23,7 @@ namespace Resource
         // Data members
         AssetFormat::AssetType assetType = AssetFormat::AssetType::Unknown;
         std::string sourcePath;
+        std::string platform;  // Target platform (windows, android)
         uint64_t sourceTimestamp = 0;
         uint64_t compiledTimestamp = 0;
         uint32_t formatVersion = 0;
@@ -72,6 +73,8 @@ namespace Resource
                     assetType = parseAssetType(value.c_str());
                 else if (key == "sourcePath")
                     sourcePath = value;
+                else if (key == "platform")
+                    platform = value;
                 else if (key == "sourceTimestamp")
                     sourceTimestamp = std::stoull(value);
                 else if (key == "compiledTimestamp")
@@ -98,6 +101,8 @@ namespace Resource
             file << "assetType: " << AssetFormat::getAssetTypeName(assetType) << "\n";
             if (!sourcePath.empty())
                 file << "sourcePath: " << sourcePath << "\n";
+            if (!platform.empty())
+                file << "platform: " << platform << "\n";
             if (sourceTimestamp > 0)
                 file << "sourceTimestamp: " << sourceTimestamp << "\n";
             if (compiledTimestamp > 0)

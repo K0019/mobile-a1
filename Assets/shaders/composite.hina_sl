@@ -1,15 +1,21 @@
 // Composite Shader - Deferred lighting pass
 // Set 0: G-buffer textures
 // Set 1: Light UBO with all scene lights
+// Set 2: Skybox cubemap
 #hina
 group GBuffer = 0;
 group Lights = 1;
+group Skybox = 2;
 
 bindings(GBuffer, start=0) {
   texture sampler2D u_albedo;
   texture sampler2D u_normal;
   texture sampler2D u_materialData;
   texture sampler2D u_depth;
+}
+
+bindings(Skybox, start=0) {
+  texture samplerCube u_skybox;
 }
 
 // Light UBO - each light is 4 vec4s:
@@ -63,9 +69,18 @@ FragOut FSMain(Varyings in) {
     vec4 matData = texture(u_materialData, gbufferUV);
     float depth = texture(u_depth, gbufferUV).r;
 
-    // Early out for sky/background
+    // Early out for sky/background - sample skybox cubemap
     if (depth >= 1.0) {
-        out.color = vec4(0.1, 0.1, 0.15, 1.0);
+        // Calculate world-space view direction for skybox sampling
+        vec2 ndc = gbufferUV * 2.0 - 1.0;
+        vec4 clipPos = vec4(ndc, 1.0, 1.0);  // Use far plane depth
+        vec4 worldPos4 = ubo.invViewProj * clipPos;
+        vec3 worldPos = worldPos4.xyz / worldPos4.w;
+        vec3 viewDir = normalize(worldPos - ubo.cameraPos.xyz);
+
+        // Sample skybox with view direction
+        vec3 skyColor = texture(u_skybox, viewDir).rgb;
+        out.color = vec4(skyColor, 1.0);
         return out;
     }
 

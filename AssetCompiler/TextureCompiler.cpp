@@ -24,6 +24,9 @@ All rights reserved.
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
 
+// ARM's official ASTC encoder (much more reliable than Compressonator's ASTC)
+#include <astcenc.h>
+
 #include <filesystem>
 #include <cassert>
 #include <thread>
@@ -57,7 +60,8 @@ namespace
         case compiler::TextureCompressionFormat::BC5: return CMP_FORMAT_BC5;
         case compiler::TextureCompressionFormat::BC7: return CMP_FORMAT_BC7;
         case compiler::TextureCompressionFormat::ASTC: return CMP_FORMAT_ASTC;
-        case compiler::TextureCompressionFormat::ETC: return CMP_FORMAT_ETC_RGB;
+        // Use ETC2 RGBA for full alpha support on Android (supported on all OpenGL ES 3.0+ devices)
+        case compiler::TextureCompressionFormat::ETC: return CMP_FORMAT_ETC2_RGBA;
         default: return CMP_FORMAT_BC7;
         }
     }
@@ -254,15 +258,129 @@ namespace compiler
         opts.dwSize = sizeof(opts);
         opts.dwnumThreads = std::thread::hardware_concurrency();
         opts.fquality = options.texture.quality; // normalized
+
+        // Explicitly set source and destination formats for the encoder
+        // This is required for some codecs (like ASTC) to properly identify the conversion path
+        opts.SourceFormat = MapCMPFormat(options.texture.channelFormat);
+        opts.DestFormat = MapCMPFormat(options.texture.compressionFormat);
+
         return opts;
+    }
+
+    bool TextureCompiler::CompressTextureASTC(CMP_Texture& src, CMP_Texture& dst)
+    {
+        // Use ARM's official astc-encoder for ASTC compression
+        // This is much more reliable than Compressonator's ASTC implementation
+
+        constexpr unsigned int BLOCK_X = 4;
+        constexpr unsigned int BLOCK_Y = 4;
+        constexpr unsigned int BLOCK_Z = 1;
+
+        // Calculate output size: 16 bytes per block (128 bits)
+        unsigned int blocksX = (src.dwWidth + BLOCK_X - 1) / BLOCK_X;
+        unsigned int blocksY = (src.dwHeight + BLOCK_Y - 1) / BLOCK_Y;
+        size_t outputSize = blocksX * blocksY * 16;  // 16 bytes per ASTC block
+
+        // Setup destination texture
+        dst.dwSize = sizeof(dst);
+        dst.dwWidth = src.dwWidth;
+        dst.dwHeight = src.dwHeight;
+        dst.format = CMP_FORMAT_ASTC;
+        dst.nBlockWidth = BLOCK_X;
+        dst.nBlockHeight = BLOCK_Y;
+        dst.nBlockDepth = BLOCK_Z;
+        dst.dwDataSize = static_cast<CMP_DWORD>(outputSize);
+        dst.pData = (CMP_BYTE*)malloc(outputSize);
+
+        if (!dst.pData)
+        {
+            std::cout << "ASTC: Failed to allocate output buffer\n";
+            return false;
+        }
+
+        // Initialize ASTC encoder config
+        astcenc_config config{};
+        astcenc_profile profile = options.texture.isSRGB ? ASTCENC_PRF_LDR_SRGB : ASTCENC_PRF_LDR;
+
+        // Map quality (0-1) to ASTC preset
+        float quality = options.texture.quality;
+        float astcQuality;
+        if (quality < 0.2f)
+            astcQuality = ASTCENC_PRE_FASTEST;
+        else if (quality < 0.4f)
+            astcQuality = ASTCENC_PRE_FAST;
+        else if (quality < 0.7f)
+            astcQuality = ASTCENC_PRE_MEDIUM;
+        else if (quality < 0.9f)
+            astcQuality = ASTCENC_PRE_THOROUGH;
+        else
+            astcQuality = ASTCENC_PRE_EXHAUSTIVE;
+
+        astcenc_error status = astcenc_config_init(
+            profile, BLOCK_X, BLOCK_Y, BLOCK_Z,
+            astcQuality, 0, &config);
+
+        if (status != ASTCENC_SUCCESS)
+        {
+            std::cout << "ASTC config_init failed: " << status << "\n";
+            return false;
+        }
+
+        // Allocate compression context
+        astcenc_context* context = nullptr;
+        unsigned int threadCount = std::thread::hardware_concurrency();
+        if (threadCount == 0) threadCount = 1;
+
+        status = astcenc_context_alloc(&config, threadCount, &context);
+        if (status != ASTCENC_SUCCESS)
+        {
+            std::cout << "ASTC context_alloc failed: " << status << "\n";
+            return false;
+        }
+
+        // Setup input image (RGBA 8-bit)
+        astcenc_image image{};
+        image.dim_x = src.dwWidth;
+        image.dim_y = src.dwHeight;
+        image.dim_z = 1;
+        image.data_type = ASTCENC_TYPE_U8;
+
+        // astcenc_image expects an array of slice pointers
+        void* slicePtr = src.pData;
+        image.data = &slicePtr;
+
+        // Setup swizzle (RGBA -> RGBA)
+        astcenc_swizzle swizzle{ ASTCENC_SWZ_R, ASTCENC_SWZ_G, ASTCENC_SWZ_B, ASTCENC_SWZ_A };
+
+        // Compress
+        status = astcenc_compress_image(context, &image, &swizzle, dst.pData, outputSize, 0);
+
+        astcenc_context_free(context);
+
+        if (status != ASTCENC_SUCCESS)
+        {
+            std::cout << "ASTC compress_image failed: " << status << "\n";
+            return false;
+        }
+
+        std::cout << "ASTC compression successful (" << src.dwWidth << "x" << src.dwHeight << ")\n";
+        return true;
     }
 
     bool TextureCompiler::CompressTexture(CMP_Texture& src, CMP_Texture& dst, const CMP_CompressOptions& opts)
     {
+        // Use ARM's astc-encoder for ASTC (much more reliable than Compressonator)
+        if (options.texture.compressionFormat == TextureCompressionFormat::ASTC)
+        {
+            return CompressTextureASTC(src, dst);
+        }
+
+        // Use Compressonator for BC and ETC formats
         dst.dwSize = sizeof(dst);
         dst.dwWidth = src.dwWidth;
         dst.dwHeight = src.dwHeight;
         dst.format = MapCMPFormat(options.texture.compressionFormat);
+
         dst.dwDataSize = CMP_CalculateBufferSize(&dst);
         dst.pData = (CMP_BYTE*)malloc(dst.dwDataSize);
 
@@ -331,7 +449,8 @@ namespace compiler
         // Write .meta sidecar file with source tracking
         Resource::AssetMetadata texMeta;
         texMeta.assetType = AssetFormat::AssetType::Texture;
-        texMeta.sourcePath = options.general.inputPath.string();
+        texMeta.sourcePath = GetRelativeSourcePath(options.general.inputPath, options.general.assetsRoot);
+        texMeta.platform = GetPlatformName(options.general.platform);
         // Only get source timestamp if the file actually exists (not for embedded textures)
         if (std::filesystem::exists(options.general.inputPath))
         {

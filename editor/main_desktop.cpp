@@ -9,6 +9,7 @@
 #include "core/engine/engine.h"
 #include <stdexcept>
 #include <logging/log_backend.h>
+#include <filesystem>
 #ifdef _WIN32
 #undef APIENTRY
 #endif
@@ -57,6 +58,12 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
 {
 #ifdef _DEBUG
   setupDebugEnvironment();
+#endif
+
+  // Editor: Change working directory to source root so assets are found correctly
+  // MAGIC_SOURCE_DIR is defined in CMakeLists.txt as the source directory
+#if defined(MAGIC_SOURCE_DIR)
+  std::filesystem::current_path(MAGIC_SOURCE_DIR);
 #endif
 
   Core::Platform::Config platformConfig{

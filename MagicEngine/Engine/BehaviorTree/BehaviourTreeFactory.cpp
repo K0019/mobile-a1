@@ -17,7 +17,7 @@
 \brief
       This file defines the runtime behavior of the BTFactory
 
-All content © 2025 DigiPen Institute of Technology Singapore.
+All content ï¿½ 2025 DigiPen Institute of Technology Singapore.
 All rights reserved.
 */
 /******************************************************************************/
@@ -29,7 +29,10 @@ All rights reserved.
 BTFactory::BTFactory()
     : nodeTypes{}
 {
-    SetAllFilePath();
+    // NOTE: Do NOT call SetAllFilePath() here!
+    // On Android, the singleton may be constructed during System.loadLibrary()
+    // before VFS is mounted. Engine::Init() will call SetAllFilePath() after
+    // VFS is properly initialized.
 }
 
 BTFactory::~BTFactory()

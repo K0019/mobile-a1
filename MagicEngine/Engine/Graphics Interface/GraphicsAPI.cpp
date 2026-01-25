@@ -235,6 +235,7 @@ void GraphicsMain::InitDefaultSkybox()
 	stbi_image_free(pixels);
 
 	// Convert equirectangular to cubemap faces
+	// Output: cubemap.w_ = face width, cubemap.h_ = face height * 6 (stacked vertically)
 	Bitmap cubemap = convertEquirectangularMapToCubeMapFaces(equirect);
 	if (cubemap.data_.empty())
 	{
@@ -242,39 +243,52 @@ void GraphicsMain::InitDefaultSkybox()
 		return;
 	}
 
-	// Create ProcessedTexture for the cubemap
-	Resource::ProcessedTexture skyboxTexture;
-	skyboxTexture.name = "DefaultSkybox";
-	skyboxTexture.textureDesc.type = gfx::TextureType::TexCube;
-	skyboxTexture.textureDesc.format = gfx::Format::RGBA8_UNorm;
-	skyboxTexture.textureDesc.dimensions.width = static_cast<uint32_t>(cubemap.w_);
-	skyboxTexture.textureDesc.dimensions.height = static_cast<uint32_t>(cubemap.h_);
-	skyboxTexture.textureDesc.dimensions.depth = 1;
-	skyboxTexture.textureDesc.numLayers = 1;
-	skyboxTexture.textureDesc.numMipLevels = 1;
-	skyboxTexture.textureDesc.usage = gfx::TextureUsage::Sampled;
-	skyboxTexture.data = std::move(cubemap.data_);
-	skyboxTexture.width = static_cast<uint32_t>(cubemap.w_);
-	skyboxTexture.height = static_cast<uint32_t>(cubemap.h_);
-	skyboxTexture.channels = 4;
-	skyboxTexture.sRGB = true;
+	// The cubemap Bitmap has:
+	// - w_ = face width
+	// - h_ = face height (each face, NOT total height)
+	// - d_ = 6 (number of faces)
+	// Data is arranged as 6 contiguous faces
+	uint32_t faceWidth = static_cast<uint32_t>(cubemap.w_);
+	uint32_t faceHeight = static_cast<uint32_t>(cubemap.h_);
 
-	// Set source for caching
-	FilePathSource source;
-	source.path = skyboxPath;
-	skyboxTexture.source = source;
+	CONSOLE_LOG(LEVEL_INFO) << "Skybox cubemap: face size " << faceWidth << "x" << faceHeight
+	                        << ", total data size " << cubemap.data_.size() << " bytes";
 
-	// Create the texture via ResourceManager
-	TextureHandle handle = context.resourceMngr->createTexture(skyboxTexture);
-	if (handle.isValid())
+	// Create cubemap texture directly via hina-vk (bypasses ResourceManager which doesn't support cubemaps)
+	hina_texture_desc desc = hina_texture_desc_default();
+	desc.type = HINA_TEX_TYPE_CUBE;
+	desc.format = HINA_FORMAT_R8G8B8A8_SRGB;  // sRGB for color data
+	desc.width = faceWidth;
+	desc.height = faceHeight;
+	desc.depth = 1;
+	desc.layers = 6;  // Cubemap has 6 faces
+	desc.mip_levels = 1;
+	desc.samples = HINA_SAMPLE_COUNT_1_BIT;
+	desc.usage = HINA_TEXTURE_SAMPLED_BIT;
+	desc.initial_data = cubemap.data_.data();
+	desc.initial_stride = 0;  // Tight packing
+	desc.label = "DefaultSkyboxCubemap";
+
+	gfx::Texture skyboxTex = hina_make_texture(&desc);
+	if (!hina_texture_is_valid(skyboxTex))
 	{
-		// TODO: Bindless textures not available in hina-vk
-		// defaultSkyboxBindlessIndex = context.resourceMngr->getTextureBindlessIndex(handle);
-		CONSOLE_LOG(LEVEL_INFO) << "Default skybox texture loaded (bindless not available)";
+		CONSOLE_LOG(LEVEL_WARNING) << "Failed to create skybox cubemap texture via hina-vk";
+		return;
 	}
-	else
+
+	gfx::TextureView skyboxView = hina_texture_get_default_view(skyboxTex);
+	if (!hina_texture_view_is_valid(skyboxView))
 	{
-		CONSOLE_LOG(LEVEL_WARNING) << "Failed to create skybox texture";
+		CONSOLE_LOG(LEVEL_WARNING) << "Failed to get skybox texture view";
+		hina_destroy_texture(skyboxTex);
+		return;
+	}
+
+	// Set the skybox on the renderer for scene feature to use
+	if (context.renderer)
+	{
+		context.renderer->setSkyboxTexture(skyboxTex, skyboxView);
+		CONSOLE_LOG(LEVEL_INFO) << "Default skybox cubemap (" << faceWidth << "x" << faceHeight << ") loaded and set on renderer";
 	}
 }
 
@@ -547,11 +561,8 @@ ecs::EntityHandle GraphicsMain::PreviousPick() {
 		{
 			lastPickedObjectIndex = pickResult.sceneObjectIndex;
 
-			if (pickResult.sceneObjectIndex < mapIdxToId.size())
-			{
-				const auto& pickedObj = mapIdxToId[pickResult.sceneObjectIndex];
-				pickedEntity = pickedObj;
-			}
+			// Use SceneRenderFeature's entity handle tracking
+			pickedEntity = sceneFeature->GetEntityAtDrawIndex(pickResult.sceneObjectIndex);
 
 			// Clear so we don't process again next frame
 			sceneFeature->ClearPickResult();

@@ -266,6 +266,15 @@ if(NOT ANDROID)
     set(MESHOPT_BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
     add_subdirectory(extern/meshoptimizer)
 
+    # ARM astc-encoder (for ASTC texture compression)
+    set(ASTCENC_CLI OFF CACHE BOOL "" FORCE)           # Don't build command line tool
+    set(ASTCENC_UNITTEST OFF CACHE BOOL "" FORCE)      # Don't build unit tests
+    set(ASTCENC_WERROR OFF CACHE BOOL "" FORCE)        # Don't treat warnings as errors
+    set(ASTCENC_ISA_AVX2 ON CACHE BOOL "" FORCE)       # Enable AVX2 for best performance
+    set(ASTCENC_ISA_SSE41 OFF CACHE BOOL "" FORCE)     # Disable SSE4.1 (using AVX2)
+    set(ASTCENC_ISA_SSE2 OFF CACHE BOOL "" FORCE)      # Disable SSE2 (using AVX2)
+    add_subdirectory(extern/astc-encoder)
+
     # vcpkg dependencies (complex ones only)
     find_package(Boost CONFIG REQUIRED)
     find_package(assimp CONFIG REQUIRED)

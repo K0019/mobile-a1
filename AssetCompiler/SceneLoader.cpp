@@ -593,7 +593,7 @@ namespace compiler
             }
             else
             {
-                vertex.normal = AiToVec3(aiMesh->mNormals[i]);
+                vertex.normal = vec3(0.0f, 1.0f, 0.0f);  // Default up normal when mesh has no normals
             }
 
             if (aiMesh->mTextureCoords[0])
@@ -793,6 +793,10 @@ namespace compiler
         importer.SetPropertyInteger(AI_CONFIG_PP_SLM_VERTEX_LIMIT, 1'000'000);
         importer.SetPropertyInteger(AI_CONFIG_PP_SBP_REMOVE, aiPrimitiveType_POINT | aiPrimitiveType_LINE);
         importer.SetPropertyFloat(AI_CONFIG_PP_GSN_MAX_SMOOTHING_ANGLE, 80.0f);
+
+        // No automatic scale conversion - let files use their native units
+        // FBX files will be in whatever units the exporter used (often cm)
+        // GLB/glTF files are in meters per specification
 
         const uint32_t flags = aiProcess_Triangulate | aiProcess_JoinIdenticalVertices | aiProcess_GenSmoothNormals | aiProcess_ImproveCacheLocality | aiProcess_ValidateDataStructure;
 

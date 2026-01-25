@@ -2,6 +2,7 @@
 #if defined(__ANDROID__)
 
 #include "IVFSImpl.h"
+#include <unordered_map>
 
 struct AAssetManager;
 
@@ -26,6 +27,14 @@ public:
     std::string GetPhysicalRoot() const override;
 private:
     AAssetManager* m_AssetManager;
+
+    // Case-insensitive path resolution for Windows-authored content
+    mutable std::unordered_map<std::string, std::string> m_PathLookup;  // lowercase -> actual
+    mutable bool m_PathLookupBuilt = false;
+
+    void BuildPathLookup() const;
+    std::string ResolvePath(const std::string& path) const;
+    static std::string ToLower(const std::string& s);
 };
 
 #endif

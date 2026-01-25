@@ -63,10 +63,6 @@ namespace
 
 void Application::Initialize(Context& context)
 {
-    // Scan for stale assets and start background recompilation
-
-    
-
     // Initialize engine immediately - don't wait for compilation
     magicEngine.Init(context);
 
@@ -88,8 +84,6 @@ void Application::Initialize(Context& context)
     auto worldExtents{ IntVec2{ 1920, 1080 } };
     editor::CreateGuiWindow<CustomViewport>(static_cast<unsigned int>(worldExtents.x), static_cast<unsigned int>(worldExtents.y));
 
-    // Initialize editor-only asset hot-reload system
-    //editor::EditorAssetReloadManager::Initialize();
 }
 
 void Application::InitializeFeatures(Context& context)
@@ -133,75 +127,12 @@ void Application::DestroyFeatures(Context& context)
 
 void Application::Update(Context& context, RenderFrameData& frame)
 {
-    // Setup multi-view rendering before executing the frame
     const int width = static_cast<int>(frame.surface.presentWidth);
     const int height = static_cast<int>(frame.surface.presentHeight);
     updateViews(context, frame, width, height);
 
     // Execute the MagicEngine frame (which handles ECS, ImGui, etc.)
     magicEngine.ExecuteFrame(frame);
-
-    // Check for completed asset recompilations and reload
-    //editor::EditorAssetReloadManager::Update();
-
-    // Render compilation progress overlay if recompiling
-    //if (assetCompilationStarted_ && Resource::AssetStartupService::IsRecompiling())
-    //{
-    //    auto progress = Resource::AssetStartupService::GetRecompilationProgress();
-
-    //    // Center the overlay window
-    //    ImGuiIO& io = ImGui::GetIO();
-    //    ImVec2 windowSize(400, 120);
-    //    ImVec2 windowPos((io.DisplaySize.x - windowSize.x) * 0.5f,
-    //                     (io.DisplaySize.y - windowSize.y) * 0.5f);
-    //    ImGui::SetNextWindowPos(windowPos, ImGuiCond_Always);
-    //    ImGui::SetNextWindowSize(windowSize, ImGuiCond_Always);
-
-    //    ImGuiWindowFlags flags = ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove |
-    //                             ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar;
-
-    //    if (ImGui::Begin("##AssetCompilation", nullptr, flags))
-    //    {
-    //        ImGui::Text("Recompiling Assets...");
-    //        ImGui::Separator();
-
-    //        // Progress bar
-    //        float fraction = (progress.totalCount > 0)
-    //            ? static_cast<float>(progress.currentIndex) / static_cast<float>(progress.totalCount)
-    //            : 0.0f;
-    //        char overlay[64];
-    //        snprintf(overlay, sizeof(overlay), "%u / %u", progress.currentIndex, progress.totalCount);
-    //        ImGui::ProgressBar(fraction, ImVec2(-1, 0), overlay);
-
-    //        // Current file
-    //        ImGui::TextWrapped("Current: %s", progress.currentFile);
-
-    //        // Status
-    //        const char* statusText = "Compiling";
-    //        if (progress.status == Resource::CompileProgressMessage::Scanning)
-    //            statusText = "Scanning";
-    //        else if (progress.status == Resource::CompileProgressMessage::Complete)
-    //            statusText = "Complete";
-    //        else if (progress.status == Resource::CompileProgressMessage::Error)
-    //            statusText = "Error";
-    //        ImGui::Text("Status: %s", statusText);
-    //    }
-    //    ImGui::End();
-    //}
-    //else if (assetCompilationStarted_ && Resource::AssetStartupService::IsRecompilationComplete())
-    //{
-    //    // Compilation finished - log and reset flag
-    //    auto progress = Resource::AssetStartupService::GetRecompilationProgress();
-    //    if (progress.status == Resource::CompileProgressMessage::Complete)
-    //    {
-    //        LOG_INFO("Asset recompilation complete: {} assets", progress.totalCount);
-    //    }
-    //    else
-    //    {
-    //        LOG_WARNING("Asset recompilation finished with errors");
-    //    }
-    //    assetCompilationStarted_ = false;
-    //}
 }
 
 void Application::updateViews(Context& context, RenderFrameData& frame, int width, int height)
@@ -250,10 +181,6 @@ void Application::updateViews(Context& context, RenderFrameData& frame, int widt
 void Application::Shutdown([[maybe_unused]] Context& context)
 {
     saveEditorState("imgui.json");
-    //editor::EditorAssetReloadManager::Shutdown();
-
-    //// Cleanup background compilation thread if still running
-    //Resource::AssetStartupService::Cleanup();
 
     DestroyFeatures(context);
     magicEngine.shutdown();

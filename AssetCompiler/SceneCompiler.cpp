@@ -26,6 +26,7 @@ All rights reserved.
 #include "resource/asset_formats/mesh_format.h"    // Engine's mesh file format
 #include "resource/asset_formats/anim_format.h"    // Engine's animation file format
 #include "resource/asset_metadata.h"               // For writing .meta sidecar files
+#include <string_view>                             // For content-based hashing
 
 // Use engine types
 using Resource::MeshOptimizer;
@@ -419,10 +420,17 @@ namespace compiler
                 }
                 else
                 {
-                    // Create a hash based name if no name
-                    textureFilename = options.general.inputPath.stem().string() +
-                        std::to_string(std::hash<const uint8_t*>{}(embdeddedSource.compressedData ? embdeddedSource.compressedData : embdeddedSource.rawData));
+                    // Create a hash based name from the actual texture data content
+                    const uint8_t* dataPtr = embdeddedSource.compressedData ? embdeddedSource.compressedData : embdeddedSource.rawData;
+                    // Raw data size is width * height * 4 (RGBA)
+                    size_t dataSize = embdeddedSource.compressedData ? embdeddedSource.compressedSize
+                        : (static_cast<size_t>(embdeddedSource.width) * embdeddedSource.height * 4);
 
+                    // Hash the actual data content, not the pointer address
+                    std::string_view dataView(reinterpret_cast<const char*>(dataPtr), dataSize);
+                    size_t contentHash = std::hash<std::string_view>{}(dataView);
+
+                    textureFilename = options.general.inputPath.stem().string() + std::to_string(contentHash);
                     embdeddedSource.name = textureFilename;
                 }
 
@@ -498,7 +506,8 @@ namespace compiler
 		for (uint32_t i = 0; i < scene.materials.size(); ++i)
 		{
 			materialIndexToNameOffset[i] = currentNameOffset;
-			materialNames += scene.materials[i].name;
+			// Use lowercase material names for consistent lookup at runtime
+			materialNames += ToLower(scene.materials[i].name);
 			materialNames += '\0';
 			currentNameOffset = static_cast<uint32_t>(materialNames.size());
 		}
@@ -702,7 +711,8 @@ namespace compiler
         // Write .meta sidecar file with source tracking
         Resource::AssetMetadata meshMeta;
         meshMeta.assetType = AssetFormat::AssetType::Mesh;
-        meshMeta.sourcePath = options.general.inputPath.string();
+        meshMeta.sourcePath = GetRelativeSourcePath(options.general.inputPath, options.general.assetsRoot);
+        meshMeta.platform = GetPlatformName(options.general.platform);
         meshMeta.sourceTimestamp = static_cast<uint64_t>(
             std::filesystem::last_write_time(options.general.inputPath).time_since_epoch().count());
         meshMeta.compiledTimestamp = static_cast<uint64_t>(
@@ -773,7 +783,7 @@ namespace compiler
                     if (mapIt != savedTexturesMap.end())
                     {
                         std::filesystem::path relativeDir = std::filesystem::relative(mapIt->second, options.general.assetsRoot);
-                        valueStr = relativeDir.string();
+                        valueStr = relativeDir.generic_string(); // Use forward slashes for cross-platform compatibility
                     }
                 }
 
@@ -790,7 +800,8 @@ namespace compiler
             std::filesystem::path assetOutputDir = options.general.outputPath / relativeDir / assetContainerName;
             std::filesystem::create_directories(assetOutputDir);
 
-            std::filesystem::path outFilePath = assetOutputDir / (materialSlot.name + ".material");
+            // Use lowercase filename for consistent lookup at runtime
+            std::filesystem::path outFilePath = assetOutputDir / (ToLower(materialSlot.name) + ".material");
 
             std::ofstream outFile(outFilePath);
             rapidjson::OStreamWrapper osw(outFile);
@@ -805,7 +816,8 @@ namespace compiler
             // Write .meta sidecar file with source tracking
             Resource::AssetMetadata matMeta;
             matMeta.assetType = AssetFormat::AssetType::Material;
-            matMeta.sourcePath = options.general.inputPath.string();
+            matMeta.sourcePath = GetRelativeSourcePath(options.general.inputPath, options.general.assetsRoot);
+            matMeta.platform = GetPlatformName(options.general.platform);
             matMeta.sourceTimestamp = static_cast<uint64_t>(
                 std::filesystem::last_write_time(options.general.inputPath).time_since_epoch().count());
             matMeta.compiledTimestamp = static_cast<uint64_t>(
@@ -1011,7 +1023,8 @@ namespace compiler
             // Write .meta sidecar file with source tracking
             Resource::AssetMetadata animMeta;
             animMeta.assetType = AssetFormat::AssetType::Animation;
-            animMeta.sourcePath = options.general.inputPath.string();
+            animMeta.sourcePath = GetRelativeSourcePath(options.general.inputPath, options.general.assetsRoot);
+            animMeta.platform = GetPlatformName(options.general.platform);
             animMeta.sourceTimestamp = static_cast<uint64_t>(
                 std::filesystem::last_write_time(options.general.inputPath).time_since_epoch().count());
             animMeta.compiledTimestamp = static_cast<uint64_t>(

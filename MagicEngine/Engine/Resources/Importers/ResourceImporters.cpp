@@ -27,6 +27,7 @@ All rights reserved.
 #include "FilepathConstants.h"
 #include "GameSettings.h"
 #include "VFS/VFS.h"
+#include "core_utils/util.h"  // For SCOPE_EXIT
 
 #ifdef GLFW
 #include "tools/assets/io/texture_loader.h"

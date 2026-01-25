@@ -491,6 +491,14 @@ public:
     // Get default sampler for external use
     gfx::Sampler getDefaultSampler() const { return m_defaultSampler; }
 
+    // Skybox cubemap texture (set by GraphicsMain, used by scene feature)
+    void setSkyboxTexture(gfx::Texture texture, gfx::TextureView view) {
+        m_skyboxTexture = texture;
+        m_skyboxTextureView = view;
+    }
+    gfx::Texture getSkyboxTexture() const { return m_skyboxTexture; }
+    gfx::TextureView getSkyboxTextureView() const { return m_skyboxTextureView; }
+
     // Get ImGui font texture view for external rendering (e.g., ImGuiRenderFeature)
     gfx::TextureView getImGuiFontView() const { return m_imguiFontView; }
 
@@ -603,6 +611,10 @@ private:
     gfx::TextureView m_defaultWhiteTextureView;
     gfx::Texture m_defaultNormalTexture;
     gfx::TextureView m_defaultNormalTextureView;
+
+    // Skybox cubemap texture (set by GraphicsMain after loading)
+    gfx::Texture m_skyboxTexture;
+    gfx::TextureView m_skyboxTextureView;
 
     // Shared UI bind group layout (used by ImGui, UI2D, and material system for UI textures)
     // Created early in createDefaultResources() and shared across all UI rendering

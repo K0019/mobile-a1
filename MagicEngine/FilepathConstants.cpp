@@ -19,11 +19,8 @@ All rights reserved.
 
 #include "FilepathConstants.h"
 
-#ifdef _DEBUG
-const std::string Filepaths::workingDir = "../../..";
-#else
+// Working directory is "." - Editor changes current_path() at startup to source root
 const std::string Filepaths::workingDir = ".";
-#endif
 
 const std::string Filepaths::assets				= Filepaths::workingDir + "/Assets";
 const std::string Filepaths::imguiJson			= Filepaths::workingDir + "/imgui.json";	//Physical path. outside of assets directory
@@ -31,7 +28,7 @@ const std::string Filepaths::gameSettings		= "Settings.json";
 
 const std::string Filepaths::assetsJson			= "assets.json";
 const std::string Filepaths::shadersSave		= "shaders";
-const std::string Filepaths::fontsSave			= "fonts";
+const std::string Filepaths::fontsSave			= "Fonts";
 const std::string Filepaths::prefabsSave		= "prefabs";
 const std::string Filepaths::scenesSave			= "scenes";
 const std::string Filepaths::scriptsSave		= "scripts";

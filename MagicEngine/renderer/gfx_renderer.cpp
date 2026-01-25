@@ -615,12 +615,13 @@ bool GfxRenderer::createRenderTargets() {
     }
 
     // G-Buffer: Visibility ID (R32UI for picking)
+    // Needs TRANSFER_SRC for GPU->CPU readback via hina_download_texture
     {
         hina_texture_desc desc = {};
         desc.width = gbufferWidth;
         desc.height = gbufferHeight;
         desc.format = HINA_FORMAT_R32_UINT;
-        desc.usage = rtUsage;
+        desc.usage = static_cast<hina_texture_usage_flags>(rtUsage | HINA_TEXTURE_TRANSFER_SRC_BIT);
 
         m_gbuffer.visibilityID = hina_make_texture(&desc);
         if (!hina_texture_is_valid(m_gbuffer.visibilityID)) {

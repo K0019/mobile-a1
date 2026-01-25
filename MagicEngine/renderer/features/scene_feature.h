@@ -19,6 +19,12 @@ namespace Resource
   struct Scene;
 }
 
+namespace ecs
+{
+  class Entity;
+  using EntityHandle = Entity*;
+}
+
 // ============================================================================
 // GPU Data Structures
 // ============================================================================
@@ -56,6 +62,9 @@ struct DrawData
   bool isTransparent = false;  // For WBOIT routing (future)
   uint32_t jointCount = 0;     // Number of active bones (max 64)
   const glm::mat4* skinMatrices = nullptr;  // Pointer to AnimationComponent::skinMatrices
+
+  // Object picking - index into SceneRenderFeature::m_entityHandles
+  uint32_t objectId = 0xFFFFFFFF;  // Invalid by default
 };
 
 struct CullingData
@@ -185,6 +194,10 @@ public:
   PickResult GetLastPickResult() const;
   void ClearPickResult();
 
+  // Get entity handle at draw index (for picking result lookup)
+  // Returns nullptr if index is out of range
+  ecs::EntityHandle GetEntityAtDrawIndex(uint32_t drawIndex) const;
+
 private:
   // Pass implementations (all stubbed)
   void ExecuteSceneSetup(internal::ExecutionContext& ctx);
@@ -239,6 +252,11 @@ private:
   std::vector<DrawData> m_drawList;           // Opaque objects
   std::vector<DrawData> m_transparentDrawList; // Transparent objects (for WBOIT)
 
+  // Entity handle tracking for object picking (parallel to m_drawList + m_transparentDrawList)
+  // Index 0..m_drawList.size()-1 maps to opaque draws
+  // Index m_drawList.size()..total-1 maps to transparent draws
+  std::vector<ecs::EntityHandle> m_entityHandles;
+
   // Per-frame light list (populated in UpdateScene)
   std::vector<CollectedLight> m_lightList;
 
@@ -252,10 +270,22 @@ private:
   bool m_lightUBOCreated = false;
 
   // ========================================================================
+  // Skybox Resources (for background rendering in composite pass)
+  // ========================================================================
+  gfx::Holder<gfx::BindGroupLayout> m_skyboxLayout;  // Set 2: Skybox cubemap
+  gfx::BindGroup m_skyboxBindGroup = {};
+  gfx::Holder<gfx::Sampler> m_skyboxSampler;
+  gfx::Texture m_lastSkyboxTexture = {};  // Track for rebind
+  bool m_skyboxBindGroupCreated = false;
+  gfx::Texture m_fallbackSkyboxTexture = {};   // 1x1 fallback cubemap
+  gfx::TextureView m_fallbackSkyboxView = {};  // View for fallback
+
+  // ========================================================================
   // WBOIT Pipeline Resources (for transparent object rendering)
   // ========================================================================
-  gfx::Holder<gfx::Pipeline> m_wboitAccumPipeline;    // Accumulation pass pipeline
-  gfx::Holder<gfx::Pipeline> m_wboitResolvePipeline;  // Resolve pass pipeline
+  gfx::Holder<gfx::Pipeline> m_wboitAccumPipeline;        // Accumulation pass pipeline (static meshes)
+  gfx::Holder<gfx::Pipeline> m_wboitAccumSkinnedPipeline; // Accumulation pass pipeline (skinned meshes)
+  gfx::Holder<gfx::Pipeline> m_wboitResolvePipeline;      // Resolve pass pipeline
   gfx::Holder<gfx::BindGroupLayout> m_wboitFrameLayout;   // Set 0: Frame UBO with camera pos
   gfx::Holder<gfx::BindGroupLayout> m_wboitResolveLayout; // Set 0: Accumulation texture
   gfx::Holder<gfx::Sampler> m_wboitSampler;           // Linear sampler for resolve
@@ -266,11 +296,19 @@ private:
   bool m_wboitPipelinesCreated = false;
   gfx::Texture m_lastWboitAccum = {};                 // Track for rebind
 
+  // ========================================================================
+  // Object Picking Resources
+  // ========================================================================
+  gfx::Buffer m_pickStagingBuffer = {};     // Staging buffer for visibility readback
+  void* m_pickStagingMapped = nullptr;      // Mapped pointer for reading results
+  bool m_pickReadbackPending = false;       // True when waiting for GPU readback
+
   // Lazy pipeline creation
   bool EnsurePipelineCreated(GfxRenderer* gfxRenderer);
   bool EnsureSkinnedPipelineCreated(GfxRenderer* gfxRenderer);
   bool EnsureCompositePipelineCreated(GfxRenderer* gfxRenderer);
   bool EnsureCompositeBindGroup(GfxRenderer* gfxRenderer, gfx::Texture sceneDepth, gfx::TextureView sceneDepthView);
+  bool EnsureSkyboxBindGroup(GfxRenderer* gfxRenderer);
   void ExecuteCompositePass(internal::ExecutionContext& ctx);
 
   // State

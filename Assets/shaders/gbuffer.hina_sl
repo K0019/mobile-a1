@@ -30,6 +30,10 @@ bindings(Material, start=0) {
 bindings(Dynamic, start=0) {
   uniform(std140) TransformUBO {
     mat4 model;
+    uint objectId;  // For object picking
+    uint _pad0;     // Padding for std140 alignment
+    uint _pad1;
+    uint _pad2;
   } transform;
   uniform(std140) BoneMatricesUBO {
     mat4 bones[256];
@@ -52,12 +56,14 @@ struct Varyings {
   vec3 tangent;
   float bitangentSign;
   vec2 uv;
+  float objectIdF;  // For object picking (float to avoid flat requirement, convert back in FS)
 };
 
 struct FragOut {
   vec4 albedo;       // location 0
   vec4 normal;       // location 1
   vec4 materialData; // location 2
+  uint visibility;   // location 3 - object ID for picking
 };
 #hina_end
 
@@ -106,6 +112,9 @@ Varyings VSMain(VertexIn in) {
     // Unpack UV from RG16_UNORM
     out.uv = unpackUnorm2x16(in.a_uv);
 
+    // Pass objectId for picking (as float to avoid flat qualifier requirement)
+    out.objectIdF = float(transform.objectId);
+
     gl_Position = frame.viewProj * worldPos;
     return out;
 }
@@ -138,8 +147,8 @@ FragOut FSMain(Varyings in) {
         N = normalize(TBN * normalMap);
     }
 
-    // Negate final normal after TBN transformation (matches main branch's calculateLighting)
-    N = -N;
+    // Normal points outward from surface (standard convention)
+    // No negation - composite shader expects outward-facing normals
 
     // Sample metallic/roughness (B=metallic, G=roughness in glTF convention)
     vec2 mr = texture(u_metallicRoughness, in.uv).bg;
@@ -167,6 +176,10 @@ FragOut FSMain(Varyings in) {
 
     // Material data: roughness, metallic, ao, emissive intensity
     out.materialData = vec4(roughness, metallic, ao, 0.0);
+
+    // Object ID for picking (add 1 so that 0 = no object/background)
+    // Convert from float back to uint (rounded to nearest integer)
+    out.visibility = uint(in.objectIdF + 0.5) + 1u;
 
     return out;
 }

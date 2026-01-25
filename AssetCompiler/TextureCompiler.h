@@ -13,7 +13,7 @@
 \brief
 Options for compiling.
 
-All content © 2025 DigiPen Institute of Technology Singapore.
+All content ï¿½ 2025 DigiPen Institute of Technology Singapore.
 All rights reserved.
 */
 /******************************************************************************/
@@ -44,6 +44,7 @@ namespace compiler
 		ktxTextureCreateInfo SetupKtxCreateInfo(const CMP_Texture& dest);
 		CMP_CompressOptions SetupCompressionOptions();
 		bool CompressTexture(CMP_Texture& src, CMP_Texture& dst, const CMP_CompressOptions& opts);
+		bool CompressTextureASTC(CMP_Texture& src, CMP_Texture& dst);  // Uses ARM's astc-encoder
 		bool SaveAsKTX2(const CMP_Texture& dst, CompilationResult& compilationResult, const std::string& filename = {});
 
 		CompilerOptions options;

@@ -121,6 +121,11 @@ private:
 
     // Default skybox
     uint32_t defaultSkyboxBindlessIndex = 0;
+    TextureHandle defaultSkyboxHandle;
+
+public:
+    // Skybox texture access
+    TextureHandle GetDefaultSkyboxHandle() const { return defaultSkyboxHandle; }
 
 };
 
