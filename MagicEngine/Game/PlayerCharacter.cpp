@@ -80,7 +80,7 @@ void PlayerMovementComponent::UltimateAttack()
 		return;
 
 	isUltimateAttack = true;
-	characterComp->Attack();
+	characterComp->LightAttack();
 	delutionComp->SetDelusion(0.f);
 	CONSOLE_LOG(LEVEL_INFO) << "Ultimate Attack.";
 }
@@ -185,10 +185,10 @@ void PlayerMovementComponentSystem::UpdatePlayerMovementComponent(PlayerMovement
 		characterComp->Throw(throwDirection);
 	}
 
-	if (inputInstance->GetIsPressed(KEY::M1) || EventsReader<Events::GameActionAttack>{}.ExtractEvent()) {
-		characterComp->Attack();
-
-	}
+	if (inputInstance->GetIsPressed(KEY::M1) || EventsReader<Events::GameActionLightAttack>{}.ExtractEvent())
+		characterComp->LightAttack();
+	if (inputInstance->GetIsPressed(KEY::M2) || EventsReader<Events::GameActionHeavyAttack>{}.ExtractEvent())
+		characterComp->HeavyAttack();
 
 
 	if (inputInstance->GetIsPressed(KEY::R))

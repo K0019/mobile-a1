@@ -124,7 +124,7 @@ namespace sm {
 	{
 		auto animSM{ CastSM(sm) };
 		TransitionChracterIntoAnimation(animSM, moveIndex, ANIM_TRANSITION_DURATION_ATTACK, false);
-		animSM->blackboard["inputAttack"] = false; // Consume input
+		animSM->blackboard["inputLightAttack"] = false; // Consume input
 		animSM->blackboard["attacking"] = true; // Mark that we are currently attacking
 
 		// Use this to track whether we've already attacked while we're in the AttackActivity
@@ -299,7 +299,7 @@ namespace sm {
 
 	AttackState::AttackState() : sm::State(
 		{ new AttackActivity(2) },
-		{ new NoOpWhileAnimatingTransition{}, new ToHurtTransition{}, new ToAttackTransition<AttackState>{}, new ToIdleTransition(), new ToWalkTransition() }
+		{ new NoOpWhileAnimatingTransition{}, new ToHurtTransition{}, new ToAttackTransition<AttackState>{ ANIM_INPUT_TYPE::LIGHT_ATTACK }, new ToIdleTransition(), new ToWalkTransition() }
 	) {
 	}
 
@@ -317,7 +317,7 @@ namespace sm {
 
 	ParryState::ParryState() : sm::State(
 		{ new ParryActivity() },
-		{ new NoOpWhileAnimatingTransition{}, new ToIdleTransition(), new ToAttackTransition<AttackState>{} } // Can counter-attack from parry
+		{ new NoOpWhileAnimatingTransition{}, new ToIdleTransition(), new ToAttackTransition<AttackState>{ ANIM_INPUT_TYPE::LIGHT_ATTACK } } // Can counter-attack from parry
 	) {
 	}
 
@@ -330,15 +330,23 @@ namespace sm {
 	LightAttackPlayer1::LightAttackPlayer1() : sm::State{
 		{ new AttackActivity{ 2 } },
 		{ new ToHurtTransition{}, new ToDodgeTransition{}, new NoOpBeforeAttackDamageTransition{}, // Allow getting hit or dodging out of the attack animation at any point in time
-		  new ToAttackTransition<LightAttackPlayer2>{ ANIM_INPUT_TYPE::LIGHT_ATTACK }, new NoOpWhileAnimatingTransition{}, // Allow transitioning to the next attack combo at any point until the end of the current attack animation
+		  new ToAttackTransition<LightAttackPlayer2>{ ANIM_INPUT_TYPE::LIGHT_ATTACK }, new ToAttackTransition<HeavyAttackPlayer1>{ ANIM_INPUT_TYPE::HEAVY_ATTACK }, new NoOpWhileAnimatingTransition{}, // Allow transitioning to the next attack combo at any point until the end of the current attack animation
 		  new ToIdleTransition{}, new ToWalkTransition{} } // No more attack inputs, return to idle/walk
 	} {
 	}
 	LightAttackPlayer2::LightAttackPlayer2() : sm::State{
 		{ new AttackActivity{ 3 } },
 		{ new ToHurtTransition{}, new ToDodgeTransition{}, new NoOpBeforeAttackDamageTransition{},
-		  new NoOpWhileAnimatingTransition{},
+		  new ToAttackTransition<LightAttackPlayer1>{ ANIM_INPUT_TYPE::LIGHT_ATTACK }, new ToAttackTransition<HeavyAttackPlayer1>{ ANIM_INPUT_TYPE::HEAVY_ATTACK }, new NoOpWhileAnimatingTransition{},
 		  new ToIdleTransition{}, new ToWalkTransition{} }
+	} {
+	}
+
+	HeavyAttackPlayer1::HeavyAttackPlayer1() : sm::State{
+		{ new AttackActivity{ 4 } },
+		{ new ToHurtTransition{}, new NoOpBeforeAttackDamageTransition{}, // No dodging when doing heavy attacks until the attack hits
+		  new ToAttackTransition<LightAttackPlayer1>{ ANIM_INPUT_TYPE::LIGHT_ATTACK }, new ToAttackTransition<HeavyAttackPlayer1>{ ANIM_INPUT_TYPE::HEAVY_ATTACK }, new ToDodgeTransition{}, new NoOpWhileAnimatingTransition{}, // Only allow dodging after hitting the attack
+		  new ToIdleTransition{}, new ToWalkTransition{} } // No more attack inputs, return to idle/walk
 	} {
 	}
 }

@@ -423,6 +423,8 @@ namespace sm {
 	class LightAttackPlayer1 : public sm::State { public: LightAttackPlayer1(); };
 	class LightAttackPlayer2 : public sm::State { public: LightAttackPlayer2(); };
 
+	class HeavyAttackPlayer1 : public sm::State { public: HeavyAttackPlayer1(); };
+
 }
 
 namespace sm {
