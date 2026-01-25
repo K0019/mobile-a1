@@ -4649,6 +4649,20 @@
             ]
         },
         {
+            "filepath": "Game/Weapons\\prefectfemale.weapon",
+            "resources": [
+                {
+                    "resourceType": 9579558926714450681,
+                    "resourceEntries": [
+                        {
+                            "hash": 115309083751535805,
+                            "name": "prefectfemale0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/models/glb/enemy_female_animated/material_15.material",
             "resources": [
                 {
