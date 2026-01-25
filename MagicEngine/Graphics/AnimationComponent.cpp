@@ -197,8 +197,9 @@ const ResourceAnimation* AnimationComponent::GetAnimationClipB() const
 void AnimationComponent::TransitionTo(size_t newAnimHash, float duration)
 {
     // Don't transition to the same animation
-    if (animHandleA.GetHash() == newAnimHash)
-        return;
+    // Kendrick: Why disallow playing the same animation again?
+    /*if (animHandleA.GetHash() == newAnimHash)
+        return;*/
 
     // Store current animation as B (the "from" animation)
     animHandleB = animHandleA.GetHash();
