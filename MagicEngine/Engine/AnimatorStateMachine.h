@@ -213,19 +213,7 @@ namespace sm {
 	{
 	public:
 		AnimStateMachine();
-
 		AnimStateMachine(State* startingState);
-
-		AnimStateMachine(UserResourceHandle<ResourceAnimation> inAnim[7], State* startingState);
-		/*****************************************************************//*!
-		\brief
-			Constructor.
-
-		\param startingState
-			The initial state of this state machine.
-			Ownership is transferred to the state machine.
-		*//******************************************************************/
-		//AnimStateMachine(State* startingState);
 
 		/*****************************************************************//*!
 		\brief
@@ -250,24 +238,9 @@ namespace sm {
 		*//******************************************************************/
 		ecs::EntityHandle GetEntity() const;
 
-		void TransferAnims(UserResourceHandle<ResourceAnimation> inAnim[7]);
-		
-		void ResetFlags();
-
-		bool idle = false;
-		bool walking = false;
-		bool attack = false;
-		bool hurt = false;
-		bool dodge = false;
-		bool parry = false;
-		bool throwFlag = false;
-		float attackDelay = 0.f;
-		std::unordered_map<std::string, bool> animSwitch;
-		std::unordered_map<std::string, float> animSpeeds;
-		std::unordered_map<std::string, float> animDurations;
-		UserResourceHandle<ResourceAnimation> animations[ANIMATION_TYPES::ANIM_TOTAL];
-
-		void ChangAnim(uint32_t anim, size_t hash);
+		std::unordered_map<std::string, std::any> blackboard;
+		template <typename T>
+		T GetBlackboardVal(const std::string& key) const;
 
 	private:
 		//! Hide base class update function to enforce entity parameter
@@ -324,12 +297,14 @@ namespace sm {
 		public:
 		void OnEnter(sm::StateMachine* sm) override;
 		void OnUpdate(sm::StateMachine* sm) override;
+		void OnExit(sm::StateMachine* sm) override;
 	};
 
 	class HurtActivity : public sm::AnimActivityBase<HurtActivity>
 	{
 	public:
 		void OnEnter(sm::StateMachine* sm) override;
+		void OnExit(sm::StateMachine* sm) override;
 	};
 
 	class DodgeActivity : public sm::AnimActivityBase<DodgeActivity>
@@ -354,6 +329,14 @@ namespace sm {
 	//======================================================================
 	// TRANSITION DECLARATIONS
 	//======================================================================
+
+	// Transition overrides all later transitions by doing nothing until the currently playing animation is finished
+	class NoOpWhileAnimatingTransition : public sm::AnimTransitionBase<NoOpWhileAnimatingTransition>
+	{
+	public:
+		NoOpWhileAnimatingTransition();
+		bool Decide(sm::StateMachine* sm) override;
+	};
 
 	class ToIdleTransition : public sm::AnimTransitionBase<ToIdleTransition>
 	{
@@ -451,5 +434,23 @@ namespace sm {
 	public:
 		ThrowState();
 	};
+
+}
+
+namespace sm {
+
+	template<typename T>
+	T AnimStateMachine::GetBlackboardVal(const std::string& key) const
+	{
+		auto iter{ blackboard.find(key) };
+		if (iter == blackboard.end())
+			return T{};
+		try {
+			return std::any_cast<T>(iter->second);
+		}
+		catch (const std::bad_any_cast&) {
+			return T{};
+		}
+	}
 
 }

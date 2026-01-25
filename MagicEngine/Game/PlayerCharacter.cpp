@@ -151,14 +151,14 @@ void PlayerMovementComponentSystem::UpdatePlayerMovementComponent(PlayerMovement
 	Vec2 camForward = Vec2{ cos(yawRad),sin(yawRad) };
 	Vec2 camRight = Vec2{ -sin(yawRad),cos(yawRad) };
 
-		if (inputInstance->GetIsDown(KEY::W))
-			movement = movement + camForward;
-		if (inputInstance->GetIsDown(KEY::S))
-			movement = movement - camForward;
-		if (inputInstance->GetIsDown(KEY::D))
-			movement = movement + camRight;
-		if (inputInstance->GetIsDown(KEY::A))
-			movement = movement - camRight;
+	if (inputInstance->GetIsDown(KEY::W))
+		movement = movement + camForward;
+	if (inputInstance->GetIsDown(KEY::S))
+		movement = movement - camForward;
+	if (inputInstance->GetIsDown(KEY::D))
+		movement = movement + camRight;
+	if (inputInstance->GetIsDown(KEY::A))
+		movement = movement - camRight;
 
 #ifdef __ANDROID__
 
@@ -179,7 +179,8 @@ void PlayerMovementComponentSystem::UpdatePlayerMovementComponent(PlayerMovement
 
 	float speedMult = 1.0f;
 	// If attacking, we apply the speed multiplier
-	if (characterComp->isAttacking)
+	auto animatorComp{ playerEntity->GetComp<AnimatorComponent>() };
+	if (animatorComp->GetStateMachine()->GetBlackboardVal<bool>("attacking"))
 	{
 		speedMult = characterComp->attackingMoveSpeedMultiplier;
 	}
@@ -263,7 +264,4 @@ void PlayerMovementComponentSystem::UpdatePlayerMovementComponent(PlayerMovement
 
 	if (inputInstance->GetIsPressed(KEY::LCTRL))
 		comp.Parry();
-	auto characterEntity = ecs::GetEntity(&comp);
-	AnimatorComponent* animatorComp = characterEntity->GetComp<AnimatorComponent>();
-	animatorComp->GetStateMachine()->Update(characterEntity);
 }
