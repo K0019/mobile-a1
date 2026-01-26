@@ -47,7 +47,17 @@ namespace compiler
 		bool CompressTextureASTC(CMP_Texture& src, CMP_Texture& dst);  // Uses ARM's astc-encoder
 		bool SaveAsKTX2(const CMP_Texture& dst, CompilationResult& compilationResult, const std::string& filename = {});
 
+		// Thumbnail generation (64x64 preview for asset browser)
+		bool GenerateThumbnail(const CMP_Texture& srcTexture, CompilationResult& result, const std::string& filename = {});
+
+	public:
+		// Save raw RGBA pixels as KTX2 (for material/mesh thumbnails from headless renderer)
+		bool SaveThumbnailKTX2(const std::vector<uint8_t>& rgbaPixels, uint32_t size, const std::filesystem::path& outputPath);
+
+	private:
 		CompilerOptions options;
+		static constexpr uint32_t THUMBNAIL_SIZE = 64;
+		std::filesystem::path m_lastThumbnailPath;  // Thumbnail path from last GenerateThumbnail call
 	};
 }
 

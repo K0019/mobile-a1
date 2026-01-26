@@ -12547,6 +12547,20 @@ static void* hina_staging_ensure_download_buffer(hina_context* ctx, size_t requi
     .usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT,
     .sharingMode = VK_SHARING_MODE_EXCLUSIVE
   };
+  uint32_t family_indices[3];
+  uint32_t family_count = 0;
+  uint32_t gfx_family = ctx->core.device->queue.graphics_family;
+  uint32_t comp_family = ctx->core.device->queue.compute_family;
+  uint32_t xfer_family = ctx->core.device->queue.transfer_family;
+  family_indices[family_count++] = gfx_family;
+  if (comp_family != gfx_family) family_indices[family_count++] = comp_family;
+  if (xfer_family != gfx_family && xfer_family != comp_family) family_indices[family_count++] = xfer_family;
+  if (family_count > 1)
+  {
+    buf_info.sharingMode = VK_SHARING_MODE_CONCURRENT;
+    buf_info.queueFamilyIndexCount = family_count;
+    buf_info.pQueueFamilyIndices = family_indices;
+  }
   VmaAllocationCreateInfo alloc_info = {
     .usage = VMA_MEMORY_USAGE_AUTO,
     .flags = VMA_ALLOCATION_CREATE_MAPPED_BIT | VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT,
@@ -12602,70 +12616,24 @@ void hina_ctx_download_texture(hina_context* ctx, hina_texture src, uint32_t mip
   void* staging_mapped = hina_staging_ensure_download_buffer(ctx, required_size);
   HINA_ASSERTF(staging_mapped, "hina_ctx_download_texture: failed to allocate staging buffer");
   VkBuffer staging_buf = ctx->staging.download_staging_buf;
-  // Determine if we need split-path handling (dedicated transfer queue)
-  bool split = hina_staging_use_split(ctx, &ctx->staging);
-  uint32_t xfer_family = ctx->staging.queue_family;
-  uint32_t gfx_family = ctx->staging.gfx_queue_family;
-  bool needs_qfot = split && xfer_family != gfx_family;
-  // Acquire command buffers
-  VkCommandBuffer xfer_cmd = hina_staging_ctx_acquire_cmd(ctx);
-  HINA_ASSERTF(xfer_cmd, "hina_ctx_download_texture: failed to acquire staging command buffer");
-  VkCommandBuffer gfx_cmd = xfer_cmd; // Same buffer if not split
-  if (split)
-  {
-    gfx_cmd = hina_staging_ctx_acquire_gfx_cmd(ctx);
-    HINA_ASSERTF(gfx_cmd, "hina_ctx_download_texture: failed to acquire graphics command buffer");
-  }
+  uint32_t owner_family = (uint32_t)hot->owning_family;
+  VkCommandBuffer cmd = hina_staging_ctx_acquire_owner_cmd(ctx, owner_family);
+  HINA_ASSERTF(cmd, "hina_ctx_download_texture: failed to acquire staging command buffer");
   const VkImageAspectFlags aspect = hina_aspect_from_format(vk_format);
   VkImageSubresourceRange range = {aspect, mip, 1, layer, 1};
-  if (needs_qfot)
-  {
-    // Graphics queue: release ownership, transition to TRANSFER_SRC
-    HINA_IMAGE_BARRIER_QFOT(gfx_cmd, current_stages ? current_stages : VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
-                            VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, current_access, 0, current_layout,
-                            VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, gfx_family, xfer_family, vk_image, range);
-    HINA_DEBUG_ADD_BARRIERS(ctx, 1);
-    // Transfer queue: acquire ownership
-    HINA_IMAGE_BARRIER_QFOT(xfer_cmd, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, 0,
-                            VK_ACCESS_TRANSFER_READ_BIT, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
-                            VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, gfx_family, xfer_family, vk_image, range);
-    HINA_DEBUG_ADD_BARRIERS(ctx, 1);
-  }
-  else
-  {
-    // Non-split: simple transition on single queue
-    HINA_IMAGE_BARRIER(xfer_cmd, current_stages ? current_stages : VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
-                       VK_PIPELINE_STAGE_TRANSFER_BIT, current_access, VK_ACCESS_TRANSFER_READ_BIT, current_layout,
-                       VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, vk_image, range);
-    HINA_DEBUG_ADD_BARRIERS(ctx, 1);
-  }
-  // Copy image to buffer (always on transfer queue)
-  hina_copy_image_to_buffer(xfer_cmd, vk_image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, staging_buf, 0,
+  HINA_IMAGE_BARRIER(cmd, current_stages ? current_stages : VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
+                     VK_PIPELINE_STAGE_TRANSFER_BIT, current_access, VK_ACCESS_TRANSFER_READ_BIT, current_layout,
+                     VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, vk_image, range);
+  HINA_DEBUG_ADD_BARRIERS(ctx, 1);
+  // Copy image to buffer
+  hina_copy_image_to_buffer(cmd, vk_image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, staging_buf, 0,
                             (VkImageSubresourceLayers){aspect, mip, layer, 1}, (VkOffset3D){0, 0, 0},
                             (VkExtent3D){mip_width, mip_height, 1});
-  if (needs_qfot)
-  {
-    // Transfer queue: release ownership back to graphics
-    HINA_IMAGE_BARRIER_QFOT(xfer_cmd, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
-                            VK_ACCESS_TRANSFER_READ_BIT, 0, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, current_layout,
-                            xfer_family, gfx_family, vk_image, range);
-    HINA_DEBUG_ADD_BARRIERS(ctx, 1);
-    // Graphics queue: acquire ownership, restore original layout
-    HINA_IMAGE_BARRIER_QFOT(gfx_cmd, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
-                            current_stages ? current_stages : VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, 0, current_access,
-                            VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, current_layout, xfer_family, gfx_family, vk_image,
-                            range);
-    HINA_DEBUG_ADD_BARRIERS(ctx, 1);
-  }
-  else
-  {
-    // Non-split: simple transition back
-    HINA_IMAGE_BARRIER(xfer_cmd, VK_PIPELINE_STAGE_TRANSFER_BIT,
-                       current_stages ? current_stages : VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
-                       VK_ACCESS_TRANSFER_READ_BIT, current_access, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, current_layout,
-                       vk_image, range);
-    HINA_DEBUG_ADD_BARRIERS(ctx, 1);
-  }
+  HINA_IMAGE_BARRIER(cmd, VK_PIPELINE_STAGE_TRANSFER_BIT,
+                     current_stages ? current_stages : VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
+                     VK_ACCESS_TRANSFER_READ_BIT, current_access, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, current_layout,
+                     vk_image, range);
+  HINA_DEBUG_ADD_BARRIERS(ctx, 1);
   // Flush staging and wait synchronously
   hina_ticket ticket = hina_staging_ctx_flush(ctx);
   HINA_ASSERTF(ticket, "hina_ctx_download_texture: staging flush failed");
@@ -12717,70 +12685,24 @@ void hina_ctx_download_texture_3d(hina_context* ctx, hina_texture src, uint32_t 
   void* staging_mapped = hina_staging_ensure_download_buffer(ctx, required_size);
   HINA_ASSERTF(staging_mapped, "hina_ctx_download_texture_3d: failed to allocate staging buffer");
   VkBuffer staging_buf = ctx->staging.download_staging_buf;
-  // Determine if we need split-path handling (dedicated transfer queue)
-  bool split = hina_staging_use_split(ctx, &ctx->staging);
-  uint32_t xfer_family = ctx->staging.queue_family;
-  uint32_t gfx_family = ctx->staging.gfx_queue_family;
-  bool needs_qfot = split && xfer_family != gfx_family;
-  // Acquire command buffers
-  VkCommandBuffer xfer_cmd = hina_staging_ctx_acquire_cmd(ctx);
-  HINA_ASSERTF(xfer_cmd, "hina_ctx_download_texture_3d: failed to acquire staging command buffer");
-  VkCommandBuffer gfx_cmd = xfer_cmd; // Same buffer if not split
-  if (split)
-  {
-    gfx_cmd = hina_staging_ctx_acquire_gfx_cmd(ctx);
-    HINA_ASSERTF(gfx_cmd, "hina_ctx_download_texture_3d: failed to acquire graphics command buffer");
-  }
+  uint32_t owner_family = (uint32_t)hot->owning_family;
+  VkCommandBuffer cmd = hina_staging_ctx_acquire_owner_cmd(ctx, owner_family);
+  HINA_ASSERTF(cmd, "hina_ctx_download_texture_3d: failed to acquire staging command buffer");
   const VkImageAspectFlags aspect = hina_aspect_from_format(vk_format);
   VkImageSubresourceRange range = {aspect, mip, 1, 0, 1};
-  if (needs_qfot)
-  {
-    // Graphics queue: release ownership, transition to TRANSFER_SRC
-    HINA_IMAGE_BARRIER_QFOT(gfx_cmd, current_stages ? current_stages : VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
-                            VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, current_access, 0, current_layout,
-                            VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, gfx_family, xfer_family, vk_image, range);
-    HINA_DEBUG_ADD_BARRIERS(ctx, 1);
-    // Transfer queue: acquire ownership
-    HINA_IMAGE_BARRIER_QFOT(xfer_cmd, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, 0,
-                            VK_ACCESS_TRANSFER_READ_BIT, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
-                            VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, gfx_family, xfer_family, vk_image, range);
-    HINA_DEBUG_ADD_BARRIERS(ctx, 1);
-  }
-  else
-  {
-    // Non-split: simple transition on single queue
-    HINA_IMAGE_BARRIER(xfer_cmd, current_stages ? current_stages : VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
-                       VK_PIPELINE_STAGE_TRANSFER_BIT, current_access, VK_ACCESS_TRANSFER_READ_BIT, current_layout,
-                       VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, vk_image, range);
-    HINA_DEBUG_ADD_BARRIERS(ctx, 1);
-  }
-  // Copy image to buffer (always on transfer queue)
-  hina_copy_image_to_buffer(xfer_cmd, vk_image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, staging_buf, 0,
+  HINA_IMAGE_BARRIER(cmd, current_stages ? current_stages : VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
+                     VK_PIPELINE_STAGE_TRANSFER_BIT, current_access, VK_ACCESS_TRANSFER_READ_BIT, current_layout,
+                     VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, vk_image, range);
+  HINA_DEBUG_ADD_BARRIERS(ctx, 1);
+  // Copy image to buffer
+  hina_copy_image_to_buffer(cmd, vk_image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, staging_buf, 0,
                             (VkImageSubresourceLayers){aspect, mip, 0, 1}, (VkOffset3D){0, 0, (int32_t)z_offset},
                             (VkExtent3D){mip_width, mip_height, depth});
-  if (needs_qfot)
-  {
-    // Transfer queue: release ownership back to graphics
-    HINA_IMAGE_BARRIER_QFOT(xfer_cmd, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
-                            VK_ACCESS_TRANSFER_READ_BIT, 0, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, current_layout,
-                            xfer_family, gfx_family, vk_image, range);
-    HINA_DEBUG_ADD_BARRIERS(ctx, 1);
-    // Graphics queue: acquire ownership, restore original layout
-    HINA_IMAGE_BARRIER_QFOT(gfx_cmd, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
-                            current_stages ? current_stages : VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, 0, current_access,
-                            VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, current_layout, xfer_family, gfx_family, vk_image,
-                            range);
-    HINA_DEBUG_ADD_BARRIERS(ctx, 1);
-  }
-  else
-  {
-    // Non-split: simple transition back
-    HINA_IMAGE_BARRIER(xfer_cmd, VK_PIPELINE_STAGE_TRANSFER_BIT,
-                       current_stages ? current_stages : VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
-                       VK_ACCESS_TRANSFER_READ_BIT, current_access, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, current_layout,
-                       vk_image, range);
-    HINA_DEBUG_ADD_BARRIERS(ctx, 1);
-  }
+  HINA_IMAGE_BARRIER(cmd, VK_PIPELINE_STAGE_TRANSFER_BIT,
+                     current_stages ? current_stages : VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
+                     VK_ACCESS_TRANSFER_READ_BIT, current_access, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, current_layout,
+                     vk_image, range);
+  HINA_DEBUG_ADD_BARRIERS(ctx, 1);
   hina_ticket ticket = hina_staging_ctx_flush(ctx);
   HINA_ASSERTF(ticket, "hina_ctx_download_texture_3d: staging flush failed");
   hina_ctx_wait_ticket(ctx, ticket);
@@ -17969,7 +17891,22 @@ static void hina_end_tile_pass_dynamic(hina_cmd* cmd)
     }
     else
     {
-      hot->state.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+      // If color was in RENDERING_LOCAL_READ_KHR for tile input, transition back
+      const VkImageLayout target_layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+      if (hot->state.layout != target_layout)
+      {
+        barriers[barrier_count++] = (VkImageMemoryBarrier2){
+          .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER_2,
+          .srcStageMask = VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_2_FRAGMENT_SHADER_BIT,
+          .srcAccessMask = VK_ACCESS_2_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_2_INPUT_ATTACHMENT_READ_BIT,
+          .dstStageMask = VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT,
+          .dstAccessMask = VK_ACCESS_2_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_2_COLOR_ATTACHMENT_WRITE_BIT,
+          .oldLayout = hot->state.layout, .newLayout = target_layout,
+          .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED, .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+          .image = hot->vk.image, .subresourceRange = {VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1}
+        };
+      }
+      hot->state.layout = target_layout;
       hot->state.access = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_COLOR_ATTACHMENT_READ_BIT;
       hot->state.stages = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
     }
@@ -18001,7 +17938,22 @@ static void hina_end_tile_pass_dynamic(hina_cmd* cmd)
     }
     else
     {
-      hot->state.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+      // Resolve targets shouldn't be in LOCAL_READ (they're write-only), but handle consistently
+      const VkImageLayout target_layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+      if (hot->state.layout != target_layout)
+      {
+        barriers[barrier_count++] = (VkImageMemoryBarrier2){
+          .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER_2,
+          .srcStageMask = VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT,
+          .srcAccessMask = VK_ACCESS_2_COLOR_ATTACHMENT_WRITE_BIT,
+          .dstStageMask = VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT,
+          .dstAccessMask = VK_ACCESS_2_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_2_COLOR_ATTACHMENT_WRITE_BIT,
+          .oldLayout = hot->state.layout, .newLayout = target_layout,
+          .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED, .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+          .image = hot->vk.image, .subresourceRange = {VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1}
+        };
+      }
+      hot->state.layout = target_layout;
       hot->state.access = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_COLOR_ATTACHMENT_READ_BIT;
       hot->state.stages = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
     }

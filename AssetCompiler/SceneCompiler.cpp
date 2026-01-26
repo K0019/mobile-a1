@@ -22,6 +22,7 @@ All rights reserved.
 #include "tools/assets/processing/mesh_process.h"  // Engine's MeshOptimizer
 #include "tools/assets/io/mesh_loader.h"           // Engine's calculateBounds
 #include "TextureCompiler.h"
+#include "ThumbnailRenderer.h"
 #include "ProgressReporter.h"
 #include "resource/asset_formats/mesh_format.h"    // Engine's mesh file format
 #include "resource/asset_formats/anim_format.h"    // Engine's animation file format
@@ -813,6 +814,45 @@ namespace compiler
 
             result.createdMaterialFiles.push_back(outFilePath);
 
+            // Generate material thumbnail using headless rendering (do this before writing meta)
+            std::string thumbnailFilename;  // Will be set if thumbnail is generated
+            static AssetCompiler::ThumbnailRenderer* s_thumbnailRenderer = nullptr;
+            static bool s_thumbnailRendererInitAttempted = false;
+
+            if (!s_thumbnailRendererInitAttempted) {
+                s_thumbnailRendererInitAttempted = true;
+                s_thumbnailRenderer = new AssetCompiler::ThumbnailRenderer();
+                if (!s_thumbnailRenderer->Initialize()) {
+                    std::cerr << "Warning: Failed to initialize ThumbnailRenderer, material thumbnails will not be generated\n";
+                    delete s_thumbnailRenderer;
+                    s_thumbnailRenderer = nullptr;
+                }
+            }
+
+            if (s_thumbnailRenderer && s_thumbnailRenderer->IsInitialized()) {
+                float thumbBaseColor[4] = {
+                    materialSlot.baseColorFactor.x,
+                    materialSlot.baseColorFactor.y,
+                    materialSlot.baseColorFactor.z,
+                    materialSlot.baseColorFactor.w
+                };
+
+                std::vector<uint8_t> thumbnailPixels;
+                if (s_thumbnailRenderer->RenderMaterialPreview(thumbBaseColor, thumbnailPixels)) {
+                    // Save thumbnail using TextureCompiler
+                    thumbnailFilename = ToLower(materialSlot.name) + "_thumb.ktx2";
+                    std::filesystem::path thumbPath = assetOutputDir / thumbnailFilename;
+
+                    // Create a simple KTX2 file from RGBA pixels
+                    TextureCompiler texCompiler;
+                    if (texCompiler.SaveThumbnailKTX2(thumbnailPixels, AssetCompiler::ThumbnailRenderer::THUMBNAIL_SIZE, thumbPath)) {
+                        std::cout << "Generated material thumbnail: " << thumbPath.string() << "\n";
+                    } else {
+                        thumbnailFilename.clear();  // Failed, don't include in meta
+                    }
+                }
+            }
+
             // Write .meta sidecar file with source tracking
             Resource::AssetMetadata matMeta;
             matMeta.assetType = AssetFormat::AssetType::Material;
@@ -823,6 +863,7 @@ namespace compiler
             matMeta.compiledTimestamp = static_cast<uint64_t>(
                 std::chrono::system_clock::now().time_since_epoch().count());
             matMeta.formatVersion = 1;  // Material format version
+            matMeta.thumbnailPath = thumbnailFilename;  // Relative filename in same directory
             matMeta.saveToFile(Resource::AssetMetadata::getMetaPath(outFilePath));
         }
     }

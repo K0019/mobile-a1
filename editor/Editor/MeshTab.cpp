@@ -125,7 +125,7 @@ namespace editor {
 
         // Check if mesh is loaded (without triggering a load)
         auto& container = ST<MagicResourceManager>::Get()->INTERNAL_GetContainer<ResourceMesh>();
-        const ResourceMesh* mesh = static_cast<const ResourceMesh*>(container.GetResource(hash));
+        ResourceMesh* mesh = const_cast<ResourceMesh*>(static_cast<const ResourceMesh*>(container.GetResource(hash)));
 
         if (!mesh || !mesh->IsLoaded())
         {

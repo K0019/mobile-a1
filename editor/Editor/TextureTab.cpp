@@ -1,6 +1,7 @@
 #include "Editor/TextureTab.h"
 #include "Editor/AssetBrowser.h"
 #include "Editor/EditorGuiUtils.h"
+#include "Editor/ThumbnailCache.h"
 #include "Engine/Resources/Types/ResourceTypesGraphics.h"
 
 namespace editor {
@@ -62,7 +63,28 @@ namespace editor {
                     ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.26f, 0.59f, 0.98f, 0.6f));
                 }
 
-                if (gui::Button button{ ICON_FA_IMAGE, thumbnailSizeVec2 })
+                // Try to get thumbnail from cache
+                uint64_t thumbId = ThumbnailCache::Get().GetThumbnail(
+                    hash.get(), ThumbnailCache::AssetType::Texture, textureName);
+
+                bool clicked = false;
+                if (thumbId != 0)
+                {
+                    // Display actual thumbnail (ImTextureID is ImU64)
+                    clicked = ImGui::ImageButton(
+                        ("##tex" + std::to_string(count)).c_str(),
+                        static_cast<ImTextureID>(thumbId),
+                        ImVec2(THUMBNAIL_SIZE, THUMBNAIL_SIZE));
+                }
+                else
+                {
+                    // Fall back to icon
+                    clicked = ImGui::Button(
+                        (std::string(ICON_FA_IMAGE) + "##" + std::to_string(count)).c_str(),
+                        ImVec2(THUMBNAIL_SIZE, THUMBNAIL_SIZE));
+                }
+
+                if (clicked)
                 {
                     if (isSelected)
                         selectedTextureHash.reset();

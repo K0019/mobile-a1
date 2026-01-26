@@ -25,6 +25,7 @@ namespace Resource
         AssetFormat::AssetType assetType = AssetFormat::AssetType::Unknown;
         std::string sourcePath;
         std::string platform;  // Target platform (windows, android)
+        std::string thumbnailPath;  // Path to thumbnail preview (relative to compiled assets)
         uint64_t sourceTimestamp = 0;
         uint64_t compiledTimestamp = 0;
         uint32_t formatVersion = 0;
@@ -85,6 +86,8 @@ namespace Resource
                     formatVersion = static_cast<uint32_t>(std::stoul(value));
                 else if (key == "resourceHash")
                     resourceHash = std::stoull(value);
+                else if (key == "thumbnailPath")
+                    thumbnailPath = value;
             }
 
             return true;
@@ -115,6 +118,8 @@ namespace Resource
                 file << "formatVersion: " << formatVersion << "\n";
             if (resourceHash > 0)
                 file << "resourceHash: " << resourceHash << "\n";
+            if (!thumbnailPath.empty())
+                file << "thumbnailPath: " << thumbnailPath << "\n";
 
             return true;
         }

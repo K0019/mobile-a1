@@ -24,6 +24,9 @@ All rights reserved.
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
 
+#define STB_IMAGE_RESIZE_IMPLEMENTATION
+#include <stb_image_resize2.h>
+
 // ARM's official ASTC encoder (much more reliable than Compressonator's ASTC)
 #include <astcenc.h>
 
@@ -122,6 +125,11 @@ namespace compiler
         CMP_Texture destTexture = {};
         LoadSourceTexture(srcTexture);
 
+        //==========================
+        // Generate Thumbnail (64x64)
+        //==========================
+        GenerateThumbnail(srcTexture, result);
+
         //===================================
         // Initialize Compressed Destination
         // Set Compression Options
@@ -165,6 +173,11 @@ namespace compiler
         CMP_Texture srcTexture = {};
         CMP_Texture destTexture = {};
         LoadSourceTextureFromMemory(source, srcTexture);
+
+        //==========================
+        // Generate Thumbnail (64x64)
+        //==========================
+        GenerateThumbnail(srcTexture, result, source.name);
 
         //===================================
         // Initialize Compressed Destination
@@ -460,6 +473,12 @@ namespace compiler
         texMeta.compiledTimestamp = static_cast<uint64_t>(
             std::chrono::system_clock::now().time_since_epoch().count());
         texMeta.formatVersion = 2;  // KTX2 format version
+        // Set thumbnail path (relative filename only since it's in the same directory)
+        if (!m_lastThumbnailPath.empty())
+        {
+            texMeta.thumbnailPath = m_lastThumbnailPath.filename().string();
+            m_lastThumbnailPath.clear();  // Reset for next texture
+        }
         texMeta.saveToFile(Resource::AssetMetadata::getMetaPath(outputPath));
 
         return writeResult == KTX_SUCCESS;
@@ -479,5 +498,167 @@ namespace compiler
         info.isArray = KTX_FALSE;
         info.generateMipmaps = options.texture.generateMipmaps ? KTX_TRUE : KTX_FALSE;
         return info;
+    }
+
+    bool TextureCompiler::GenerateThumbnail(const CMP_Texture& srcTexture, CompilationResult& result, const std::string& filename)
+    {
+        // Skip if source is already smaller than thumbnail size
+        if (srcTexture.dwWidth <= THUMBNAIL_SIZE && srcTexture.dwHeight <= THUMBNAIL_SIZE)
+        {
+            std::cout << "Skipping thumbnail generation - source already small enough\n";
+            return true;
+        }
+
+        // Resize source to 64x64 thumbnail
+        std::vector<unsigned char> thumbPixels(THUMBNAIL_SIZE * THUMBNAIL_SIZE * 4);
+
+        // Use stb_image_resize2 for high-quality downsampling
+        stbir_resize_uint8_srgb(
+            static_cast<const unsigned char*>(srcTexture.pData),
+            static_cast<int>(srcTexture.dwWidth),
+            static_cast<int>(srcTexture.dwHeight),
+            static_cast<int>(srcTexture.dwPitch),
+            thumbPixels.data(),
+            THUMBNAIL_SIZE,
+            THUMBNAIL_SIZE,
+            THUMBNAIL_SIZE * 4,
+            STBIR_RGBA
+        );
+
+        // Create thumbnail CMP_Texture
+        CMP_Texture thumbSrc = {};
+        thumbSrc.dwSize = sizeof(thumbSrc);
+        thumbSrc.dwWidth = THUMBNAIL_SIZE;
+        thumbSrc.dwHeight = THUMBNAIL_SIZE;
+        thumbSrc.format = CMP_FORMAT_RGBA_8888;
+        thumbSrc.dwDataSize = THUMBNAIL_SIZE * THUMBNAIL_SIZE * 4;
+        thumbSrc.dwPitch = THUMBNAIL_SIZE * 4;
+        thumbSrc.pData = thumbPixels.data();
+
+        // Compress thumbnail (use same format as main texture)
+        CMP_Texture thumbDst = {};
+        CMP_CompressOptions cmpOptions = SetupCompressionOptions();
+
+        if (!CompressTexture(thumbSrc, thumbDst, cmpOptions))
+        {
+            std::cout << "Thumbnail compression failed\n";
+            return false;
+        }
+
+        // Save thumbnail as KTX2
+        std::string thumbFilename = options.general.inputPath.stem().string() + "_thumb";
+        if (!filename.empty())
+        {
+            thumbFilename = filename + "_thumb";
+        }
+
+        // Create KTX2 for thumbnail
+        ktxTextureCreateInfo createInfo{};
+        createInfo.vkFormat = MapVkFormat(options.texture.compressionFormat, options.texture.isSRGB);
+        createInfo.baseWidth = THUMBNAIL_SIZE;
+        createInfo.baseHeight = THUMBNAIL_SIZE;
+        createInfo.baseDepth = 1;
+        createInfo.numDimensions = 2;
+        createInfo.numLevels = 1;  // No mipmaps for thumbnails
+        createInfo.numLayers = 1;
+        createInfo.numFaces = 1;
+        createInfo.isArray = KTX_FALSE;
+        createInfo.generateMipmaps = KTX_FALSE;
+
+        ktxTexture2* kTexture;
+        ktx_error_code_e ktxResult = ktxTexture2_Create(&createInfo, KTX_TEXTURE_CREATE_ALLOC_STORAGE, &kTexture);
+        if (ktxResult != KTX_SUCCESS)
+        {
+            std::cout << "Thumbnail KTX2 Create ERROR: " << ktxResult << "\n";
+            free(thumbDst.pData);
+            return false;
+        }
+
+        ktxTexture_SetImageFromMemory(
+            reinterpret_cast<ktxTexture*>(kTexture),
+            0, 0, 0,
+            thumbDst.pData, thumbDst.dwDataSize
+        );
+
+        std::filesystem::path outputPath = options.general.outputPath / (thumbFilename + ".ktx2");
+        ktx_error_code_e writeResult = ktxTexture_WriteToNamedFile(
+            reinterpret_cast<ktxTexture*>(kTexture),
+            outputPath.string().c_str()
+        );
+
+        ktxTexture_Destroy(reinterpret_cast<ktxTexture*>(kTexture));
+        free(thumbDst.pData);
+
+        if (writeResult != KTX_SUCCESS)
+        {
+            std::cout << "Thumbnail KTX2 Saving ERROR: " << writeResult << "\n";
+            return false;
+        }
+
+        std::cout << "Generated thumbnail: " << outputPath << "\n";
+        result.createdTextureFiles.push_back(outputPath);
+        m_lastThumbnailPath = outputPath;  // Store for meta file
+        return true;
+    }
+
+    bool TextureCompiler::SaveThumbnailKTX2(const std::vector<uint8_t>& rgbaPixels, uint32_t size, const std::filesystem::path& outputPath)
+    {
+        if (rgbaPixels.size() < size * size * 4) {
+            std::cerr << "[TextureCompiler] SaveThumbnailKTX2: Invalid pixel data size\n";
+            return false;
+        }
+
+        // Create KTX2 texture info
+        ktxTextureCreateInfo createInfo = {};
+        createInfo.glInternalformat = 0;  // Not used for Vulkan
+        createInfo.vkFormat = VK_FORMAT_R8G8B8A8_UNORM;
+        createInfo.baseWidth = size;
+        createInfo.baseHeight = size;
+        createInfo.baseDepth = 1;
+        createInfo.numDimensions = 2;
+        createInfo.numLevels = 1;
+        createInfo.numLayers = 1;
+        createInfo.numFaces = 1;
+        createInfo.isArray = false;
+        createInfo.generateMipmaps = false;
+
+        ktxTexture2* kTexture = nullptr;
+        KTX_error_code result = ktxTexture2_Create(&createInfo, KTX_TEXTURE_CREATE_ALLOC_STORAGE, &kTexture);
+        if (result != KTX_SUCCESS) {
+            std::cerr << "[TextureCompiler] SaveThumbnailKTX2: Failed to create KTX texture: " << result << "\n";
+            return false;
+        }
+
+        // Copy pixel data
+        memcpy(kTexture->pData, rgbaPixels.data(), size * size * 4);
+
+        // Compress with BasisU for smaller file size (optional - can use uncompressed for simplicity)
+        ktx_uint32_t numThreads = std::thread::hardware_concurrency();
+        ktxBasisParams basisParams = {};
+        basisParams.structSize = sizeof(ktxBasisParams);
+        basisParams.threadCount = numThreads;
+        basisParams.uastc = KTX_TRUE;  // Use UASTC for quality
+        basisParams.qualityLevel = 128; // Medium quality for thumbnails
+
+        result = ktxTexture2_CompressBasisEx(kTexture, &basisParams);
+        if (result != KTX_SUCCESS) {
+            // If compression fails, save uncompressed
+            std::cerr << "[TextureCompiler] SaveThumbnailKTX2: BasisU compression failed, saving uncompressed\n";
+        }
+
+        // Write to file
+        result = ktxTexture_WriteToNamedFile(
+            reinterpret_cast<ktxTexture*>(kTexture),
+            outputPath.string().c_str()
+        );
+
+        ktxTexture_Destroy(reinterpret_cast<ktxTexture*>(kTexture));
+
+        if (result != KTX_SUCCESS) {
+            std::cerr << "[TextureCompiler] SaveThumbnailKTX2: Failed to write file: " << result << "\n";
+            return false;
+        }
+
+        return true;
     }
 }

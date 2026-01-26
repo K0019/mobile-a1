@@ -23,6 +23,7 @@
 #include "Editor/Containers/GUIAsECS.h"
 #include "Graphics/CustomViewport.h"
 #include "Utilities/Serializer.h"
+#include "Editor/ThumbnailCache.h"
 #include <fstream>
 #include <sstream>
 
@@ -68,6 +69,9 @@ void Application::Initialize(Context& context)
 
     // Create render features - Editor gets all features including grid
     InitializeFeatures(context);
+
+    // Initialize thumbnail cache for asset browser
+    editor::ThumbnailCache::Get().Initialize(context.renderer);
 
     // Register editor-specific systems (must be done here since editor headers
     // are not available when MagicEngine is compiled)
@@ -181,6 +185,9 @@ void Application::updateViews(Context& context, RenderFrameData& frame, int widt
 void Application::Shutdown([[maybe_unused]] Context& context)
 {
     saveEditorState("imgui.json");
+
+    // Shutdown thumbnail cache before destroying features
+    editor::ThumbnailCache::Get().Shutdown();
 
     DestroyFeatures(context);
     magicEngine.shutdown();
