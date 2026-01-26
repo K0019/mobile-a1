@@ -112,13 +112,17 @@ Varyings VSMain(VertexIn in) {
     vec3 localTangent = normalize(vec3(tx, ty, tz));
 
     // Apply skinning to normal and tangent
+    // Normals use the skin matrix directly (bones typically have uniform scale)
+    // For proper handling with non-uniform bone scale, would need transpose-inverse
     vec3 skinnedNormal = normalize(skinNormalMatrix * localNormal);
     vec3 skinnedTangent = normalize(skinNormalMatrix * localTangent);
 
     // Transform to world space
+    // Normal matrix (transpose-inverse) for normals, regular matrix for tangents
     mat3 normalMatrix = transpose(inverse(mat3(transform.model)));
+    mat3 modelMatrix3 = mat3(transform.model);
     out.normal = normalize(normalMatrix * skinnedNormal);
-    out.tangent = normalize(normalMatrix * skinnedTangent);
+    out.tangent = normalize(modelMatrix3 * skinnedTangent);
 
     out.bitangentSign = handedness;
     out.uv = unpackUnorm2x16(in.a_uv);

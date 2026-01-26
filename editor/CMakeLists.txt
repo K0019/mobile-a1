@@ -84,7 +84,6 @@ if(NOT ANDROID)
         COMMAND ${CMAKE_COMMAND} -E copy_directory_if_different
             "\"${EXTERNAL_LIBRARIES_WHOLE_DIRECTORIES}\""
             "\"$<TARGET_FILE_DIR:Editor>\""
-        COMMAND cmd.exe /c if "$(Configuration)" == "Release" "${CMAKE_COMMAND}" -E copy_directory_if_different "${CMAKE_SOURCE_DIR}/Assets" "$<TARGET_FILE_DIR:Editor>/Assets"
     )
 endif()
 

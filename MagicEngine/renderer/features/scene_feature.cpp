@@ -839,7 +839,7 @@ void SceneRenderFeature::ExecuteGBufferPass(internal::ExecutionContext& ctx)
   // Use camera matrices from FrameData (populated by ECS camera system), NOT from SceneRenderParams
   // Note: frameData already retrieved at function start for assert checks
 
-  // projMatrix already has Vulkan Y-flip applied at source (UploadToPipeline)
+  // projMatrix already has Vulkan Y-flip applied at source (SetViewCamera in GraphicsAPI.cpp)
   glm::mat4 viewProj = frameData.projMatrix * frameData.viewMatrix;
   std::memcpy(m_frameUBOMapped, &viewProj, sizeof(glm::mat4));
 

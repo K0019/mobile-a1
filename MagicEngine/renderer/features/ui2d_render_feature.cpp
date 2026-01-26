@@ -47,12 +47,13 @@ Varyings VSMain(VertexIn in) {
     float T = pc.LRTB.z;
     float B = pc.LRTB.w;
 
-    // Orthographic projection for Vulkan UI (Y flipped: Y=0 at top, Y=height at bottom)
+    // Orthographic projection for UI (standard Y: Y=0 at top, Y=height at bottom)
+    // No Y-flip here - the final ImGui viewport UV flip handles Vulkan coordinate conversion
     mat4 proj = mat4(
         2.0 / (R - L), 0.0, 0.0, 0.0,
-        0.0, 2.0 / (T - B), 0.0, 0.0,
+        0.0, 2.0 / (B - T), 0.0, 0.0,
         0.0, 0.0, -1.0, 0.0,
-        (R + L) / (L - R), (T + B) / (B - T), 0.0, 1.0
+        (R + L) / (L - R), (T + B) / (T - B), 0.0, 1.0
     );
 
     out.color = in.a_color;
@@ -65,7 +66,10 @@ Varyings VSMain(VertexIn in) {
 #hina_stage fragment entry FSMain
 FragOut FSMain(Varyings in) {
     FragOut out;
-    out.color = in.color * texture(uTexture, in.uv);
+    vec4 texColor = texture(uTexture, in.uv);
+    vec4 color = in.color * texColor;
+    // Premultiply alpha to avoid fringe artifacts from linear filtering
+    out.color = vec4(color.rgb * color.a, color.a);
     return out;
 }
 #hina_end
@@ -139,9 +143,9 @@ void Ui2DRenderFeature::EnsurePipeline(const internal::ExecutionContext& context
   pip_desc.polygon_mode = HINA_POLYGON_MODE_FILL;
   pip_desc.samples = HINA_SAMPLE_COUNT_1_BIT;
 
-  // Blend state for alpha blending
+  // Blend state for premultiplied alpha (eliminates fringe artifacts from linear filtering)
   pip_desc.blend[0].enable = true;
-  pip_desc.blend[0].src_color = HINA_BLEND_FACTOR_SRC_ALPHA;
+  pip_desc.blend[0].src_color = HINA_BLEND_FACTOR_ONE;  // Color already premultiplied in shader
   pip_desc.blend[0].dst_color = HINA_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
   pip_desc.blend[0].color_op = HINA_BLEND_OP_ADD;
   pip_desc.blend[0].src_alpha = HINA_BLEND_FACTOR_ONE;

@@ -135,7 +135,8 @@ void CustomViewport::DrawWindow()
 	uint64_t sceneTextureId = ST<GraphicsMain>::Get()->GetSceneViewTextureId();
 	if (sceneTextureId != 0)
 	{
-		ImGui::Image(static_cast<ImTextureID>(sceneTextureId), renderSize, ImVec2(0, 0), ImVec2(1, 1));
+		// UV flipped vertically: scene rendered with Vulkan Y-flip, so flip V to display right-side up
+		ImGui::Image(static_cast<ImTextureID>(sceneTextureId), renderSize, ImVec2(0, 1), ImVec2(1, 0));
 	}
 
 	if (ST<GameSystemsManager>::Get()->GetState() != GAMESTATE::IN_GAME && ST<GameSystemsManager>::Get()->GetState() != GAMESTATE::PAUSE)

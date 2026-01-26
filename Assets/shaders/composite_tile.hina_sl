@@ -96,7 +96,7 @@ FragOut FSMain(Varyings in) {
     float t = max(-normal.z, 0.0);
     normal.x += (normal.x >= 0.0) ? -t : t;
     normal.y += (normal.y >= 0.0) ? -t : t;
-    normal = normalize(normal);
+    normal = -normalize(normal);  // Negate to fix lighting direction
 
     // Material properties
     float roughness = matData.r;

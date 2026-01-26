@@ -343,6 +343,11 @@ void GraphicsMain::SetViewCamera(const Camera& camera)
 	} else {
 		frameData.projMatrix = camProj;
 	}
+
+	// Vulkan Y-flip: Vulkan NDC has Y pointing down (unlike OpenGL which points up).
+	// glm::perspective() produces OpenGL-style projection, so we flip Y to correct for Vulkan.
+	// This also preserves correct winding order for back-face culling.
+	frameData.projMatrix[1][1] *= -1.0f;
 }
 
 void GraphicsMain::SetGridEnabled(bool enabled)

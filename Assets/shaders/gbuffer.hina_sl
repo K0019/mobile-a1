@@ -102,10 +102,12 @@ Varyings VSMain(VertexIn in) {
     float tz = sqrt(max(0.001, 1.0 - tx * tx - ty * ty));
     vec3 localTangent = normalize(vec3(tx, ty, tz));
 
-    // Proper normal matrix handles non-uniform scale
+    // Normal matrix (transpose-inverse) handles non-uniform scale for normals
+    // Tangents are regular vectors and use the standard model matrix
     mat3 normalMatrix = transpose(inverse(mat3(transform.model)));
+    mat3 modelMatrix3 = mat3(transform.model);
     out.normal = normalize(normalMatrix * localNormal);
-    out.tangent = normalize(normalMatrix * localTangent);
+    out.tangent = normalize(modelMatrix3 * localTangent);
 
     out.bitangentSign = handedness;
 
