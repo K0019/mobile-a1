@@ -218,7 +218,7 @@
                     "_active": true,
                     "maxHealth": 200.0,
                     "currHealth": 200.0,
-                    "isInvincible": false
+                    "invincibleState": 0
                 },
                 "9315785795257285655": {
                     "_active": true,
@@ -572,7 +572,7 @@
                     "_active": false,
                     "maxHealth": 100.0,
                     "currHealth": 100.0,
-                    "isInvincible": false
+                    "invincibleState": 0
                 },
                 "8426725214831635516": {
                     "_active": false,
@@ -989,7 +989,7 @@
                 "137465014557233347": {
                     "_active": true,
                     "weaponInfo": {
-                        "hash": 1
+                        "hash": 8956332549044158285
                     },
                     "damage": 45.0,
                     "attackBox": {
@@ -1589,7 +1589,7 @@
                     "_active": false,
                     "maxHealth": 200.0,
                     "currHealth": 200.0,
-                    "isInvincible": false
+                    "invincibleState": 0
                 },
                 "9315785795257285655": {
                     "_active": false,
@@ -2439,7 +2439,7 @@
                     "_active": false,
                     "maxHealth": 100.0,
                     "currHealth": 100.0,
-                    "isInvincible": false
+                    "invincibleState": 0
                 },
                 "8426725214831635516": {
                     "_active": false,
