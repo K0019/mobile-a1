@@ -66,7 +66,6 @@ public:
 	float currentStunTime;
 	float currentDodgeTime;
 	float currentDodgeCooldown;
-	bool isAttacking;
 	float speedMultiplier;
 	float currParryCoolDown;
 	float currParryTime;
@@ -85,11 +84,15 @@ public:
 	void DropItem();
 	void Throw(Vec3 direction);
 	void GrabItem(ecs::CompHandle<GrabbableItemComponent> item);
-	bool Attack();
+	void Attack();
+	bool IsAttacking() const;
 	bool IsDodging();
 	bool IsParrying();
 	void OnParrySuccess();
 	void Parry();
+
+	// Gets the GrabbableItem that this character is holding. If not holding anything, returns the GrabbableItem on the entity itself.
+	ecs::CompHandle<GrabbableItemComponent> GetHeldItem();
 
 	void Serialize(Serializer& writer) const override;
 	void Deserialize(Deserializer& reader) override;
@@ -173,4 +176,7 @@ private:
 		The CharacterMovementComponent to update.
 	*//******************************************************************/
 	void UpdateCharacterMovementComponent(CharacterMovementComponent& comp);
+
+	void ApplyAttack(size_t moveIndex, const Transform& transform, CharacterMovementComponent& charComp);
+
 };

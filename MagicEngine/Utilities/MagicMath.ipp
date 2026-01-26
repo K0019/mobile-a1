@@ -109,6 +109,11 @@ namespace math {
 		else
 			return 1;
 	}
+	template<std::floating_point T>
+	constexpr bool NearZero(T x)
+	{
+		return std::fabs(x) <= std::numeric_limits<T>::epsilon();
+	}
 	template <std::floating_point T>
 	constexpr T Abs(T x)
 	{

@@ -86,6 +86,9 @@
             "components": {
                 "137465014557233347": {
                     "_active": true,
+                    "weaponInfo": {
+                        "hash": 8956332549044158285
+                    },
                     "damage": 20.0,
                     "attackBox": {
                         "x": 0.20000000298023224,
@@ -236,6 +239,9 @@
                     "flashMaterial": {
                         "hash": 1903056716174195867
                     }
+                },
+                "12349219328363051475": {
+                    "_active": true
                 },
                 "15371168105777251288": {
                     "_active": true,
@@ -459,6 +465,9 @@
                 },
                 "137465014557233347": {
                     "_active": false,
+                    "weaponInfo": {
+                        "hash": 1
+                    },
                     "damage": 10.0,
                     "attackBox": {
                         "x": 0.20000000298023224,
@@ -979,6 +988,9 @@
             "components": {
                 "137465014557233347": {
                     "_active": true,
+                    "weaponInfo": {
+                        "hash": 1
+                    },
                     "damage": 45.0,
                     "attackBox": {
                         "x": 1.0,
@@ -1470,6 +1482,9 @@
                 },
                 "137465014557233347": {
                     "_active": false,
+                    "weaponInfo": {
+                        "hash": 1
+                    },
                     "damage": 1.0,
                     "attackBox": {
                         "x": 1.0,
@@ -1908,6 +1923,9 @@
             "components": {
                 "137465014557233347": {
                     "_active": true,
+                    "weaponInfo": {
+                        "hash": 1
+                    },
                     "damage": 35.0,
                     "attackBox": {
                         "x": 0.75,
@@ -2314,6 +2332,9 @@
                 },
                 "137465014557233347": {
                     "_active": false,
+                    "weaponInfo": {
+                        "hash": 1
+                    },
                     "damage": 1.0,
                     "attackBox": {
                         "x": 0.5,
@@ -2894,6 +2915,9 @@
             "components": {
                 "137465014557233347": {
                     "_active": true,
+                    "weaponInfo": {
+                        "hash": 1
+                    },
                     "damage": 45.0,
                     "attackBox": {
                         "x": 1.0,

@@ -77,22 +77,3 @@ property_begin(EnemyComponent)
 	property_var(attackCoolDownTime),
 }
 property_vend_h(EnemyComponent)
-
-/*****************************************************************//*!
-\class EnemyMovementComponentSystem
-\brief
-	ECS System that acts on the relevant component.
-*//******************************************************************/
-class EnemyMovementComponentSystem : public ecs::System<EnemyMovementComponentSystem, EnemyComponent>
-{
-public:
-	EnemyMovementComponentSystem();
-private:
-	/*****************************************************************//*!
-	\brief
-		Updates EnemyComponent.
-	\param comp
-		The EnemyComponent to update.
-	*//******************************************************************/
-	void UpdateEnemyMovementComponent(EnemyComponent& comp);
-};
