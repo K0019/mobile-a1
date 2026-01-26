@@ -27,115 +27,6 @@
 using namespace gfx;
 
 // ============================================================================
-// LightTileBinner Implementation
-// ============================================================================
-
-void LightTileBinner::resize(uint32_t screenWidth, uint32_t screenHeight) {
-    m_screenWidth = screenWidth;
-    m_screenHeight = screenHeight;
-    m_tileCountX = (screenWidth + TILE_SIZE - 1) / TILE_SIZE;
-    m_tileCountY = (screenHeight + TILE_SIZE - 1) / TILE_SIZE;
-    m_tiles.resize(m_tileCountX * m_tileCountY);
-    clear();
-
-    LOG_INFO("[GfxRenderer] LightTileBinner resized: {}x{} tiles ({}x{} pixels)",
-             m_tileCountX, m_tileCountY, screenWidth, screenHeight);
-}
-
-void LightTileBinner::clear() {
-    for (auto& tile : m_tiles) {
-        tile.lightMask = 0;
-        tile.zMin = 1.0f;
-        tile.zMax = 0.0f;
-    }
-}
-
-void LightTileBinner::addLight(uint32_t lightIndex, const glm::vec4& screenBounds, float zMin, float zMax) {
-    if (lightIndex >= MAX_LIGHTS) return;
-
-    // Convert screen bounds to tile bounds
-    uint32_t minTileX = static_cast<uint32_t>(glm::max(0.0f, screenBounds.x)) / TILE_SIZE;
-    uint32_t minTileY = static_cast<uint32_t>(glm::max(0.0f, screenBounds.y)) / TILE_SIZE;
-    uint32_t maxTileX = glm::min(m_tileCountX - 1, static_cast<uint32_t>(screenBounds.z) / TILE_SIZE);
-    uint32_t maxTileY = glm::min(m_tileCountY - 1, static_cast<uint32_t>(screenBounds.w) / TILE_SIZE);
-
-    uint64_t lightBit = 1ULL << lightIndex;
-
-    for (uint32_t ty = minTileY; ty <= maxTileY; ++ty) {
-        for (uint32_t tx = minTileX; tx <= maxTileX; ++tx) {
-            auto& tile = m_tiles[ty * m_tileCountX + tx];
-            tile.lightMask |= lightBit;
-            tile.zMin = glm::min(tile.zMin, zMin);
-            tile.zMax = glm::max(tile.zMax, zMax);
-        }
-    }
-}
-
-uint64_t LightTileBinner::getTileMask(uint32_t tileX, uint32_t tileY) const {
-    if (tileX >= m_tileCountX || tileY >= m_tileCountY) return 0;
-    return m_tiles[tileY * m_tileCountX + tileX].lightMask;
-}
-
-// ============================================================================
-// ShadowAtlasAllocator Implementation
-// ============================================================================
-
-void ShadowAtlasAllocator::init(uint32_t atlasSize) {
-    m_atlasSize = atlasSize;
-    m_nextY = 0;
-    m_regions.clear();
-    LOG_INFO("[GfxRenderer] Shadow atlas initialized: {}x{}", atlasSize, atlasSize);
-}
-
-ShadowAtlasAllocator::Region ShadowAtlasAllocator::allocate(uint32_t size, uint32_t lightIndex, bool octahedral) {
-    // Simple row-based allocation (can be improved with more sophisticated packing)
-    Region region{};
-    region.lightIndex = lightIndex;
-    region.size = size;
-    region.isOctahedral = octahedral;
-
-    // Find space in current row or start new row
-    uint32_t x = 0;
-    for (const auto& existing : m_regions) {
-        if (existing.y == m_nextY) {
-            x = existing.x + existing.size;
-        }
-    }
-
-    if (x + size > m_atlasSize) {
-        // Start new row
-        m_nextY += size;
-        x = 0;
-    }
-
-    if (m_nextY + size > m_atlasSize) {
-        LOG_WARNING("[GfxRenderer] Shadow atlas full!");
-        return region;
-    }
-
-    region.x = x;
-    region.y = m_nextY;
-    m_regions.push_back(region);
-
-    LOG_DEBUG("[GfxRenderer] Allocated shadow region: light={}, pos=({},{}), size={}, octahedral={}",
-              lightIndex, region.x, region.y, size, octahedral);
-
-    return region;
-}
-
-void ShadowAtlasAllocator::free(uint32_t lightIndex) {
-    m_regions.erase(
-        std::remove_if(m_regions.begin(), m_regions.end(),
-            [lightIndex](const Region& r) { return r.lightIndex == lightIndex; }),
-        m_regions.end());
-}
-
-void ShadowAtlasAllocator::reset() {
-    m_regions.clear();
-    m_nextY = 0;
-}
-
-// ============================================================================
 // CPUCuller Implementation
 // ============================================================================
 
@@ -176,45 +67,11 @@ bool CPUCuller::isVisible(const glm::vec3& aabbMin, const glm::vec3& aabbMax) co
     return true;
 }
 
-std::vector<VisibleObject> CPUCuller::cullAndSort(
-    const std::vector<VisibleObject>& objects,
-    const glm::vec3& cameraPos,
-    bool frontToBack) const
-{
-    std::vector<VisibleObject> result;
-    result.reserve(objects.size());
-
-    // For now, just copy all objects (actual culling would need AABB data)
-    for (const auto& obj : objects) {
-        result.push_back(obj);
-    }
-
-    // Sort by sort key
-    if (frontToBack) {
-        std::sort(result.begin(), result.end(),
-            [](const VisibleObject& a, const VisibleObject& b) {
-                // Sort by PSO first (minimize state changes), then by distance
-                if (a.psoHandle != b.psoHandle) return a.psoHandle < b.psoHandle;
-                if (a.materialBGHandle != b.materialBGHandle) return a.materialBGHandle < b.materialBGHandle;
-                return a.sortKey < b.sortKey;
-            });
-    } else {
-        std::sort(result.begin(), result.end(),
-            [](const VisibleObject& a, const VisibleObject& b) {
-                return a.sortKey > b.sortKey;
-            });
-    }
-
-    return result;
-}
-
 // ============================================================================
 // hina-vk logging callback
 // ============================================================================
 
 static void hinaLogCallback(const char* msg) {
-    // Use both stderr (immediate) and LOG_INFO (file)
-    fprintf(stderr, "[GFX] %s\n", msg);
     LOG_INFO("[GFX] {}", msg);
 }
 
@@ -301,10 +158,6 @@ bool GfxRenderer::initialize(void* nativeWindow, uint32_t width, uint32_t height
         return false;
     }
 
-    // Initialize CPU systems
-    m_lightBinner.resize(width, height);
-    m_shadowAllocator.init(2048); // 2K shadow atlas
-
     // Initialize HinaContext for vk::IContext interface (used by RenderGraph/features)
     m_hinaContext = std::make_unique<HinaContext>();
     if (!m_hinaContext->initialize(nativeWindow, width, height)) {
@@ -347,9 +200,6 @@ void GfxRenderer::shutdown() {
     for (auto& frame : m_frames) {
         if (hina_buffer_is_valid(frame.frameConstantsUBO)) {
             hina_destroy_buffer(frame.frameConstantsUBO);
-        }
-        if (hina_buffer_is_valid(frame.lightingDataUBO)) {
-            hina_destroy_buffer(frame.lightingDataUBO);
         }
         if (hina_buffer_is_valid(frame.transformRingUBO)) {
             hina_destroy_buffer(frame.transformRingUBO);
@@ -541,9 +391,9 @@ bool GfxRenderer::createRenderTargets() {
     const uint32_t gbufferHeight = RenderResources::INTERNAL_HEIGHT;
     LOG_INFO("[GfxRenderer] Creating render targets at internal resolution {}x{}...", gbufferWidth, gbufferHeight);
 
-    // Common render target usage flags
+    // Common render target usage flags (with INPUT_ATTACHMENT for tile pass support)
     constexpr auto rtUsage = static_cast<hina_texture_usage_flags>(
-        HINA_TEXTURE_RENDER_TARGET_BIT | HINA_TEXTURE_SAMPLED_BIT);
+        HINA_TEXTURE_RENDER_TARGET_BIT | HINA_TEXTURE_SAMPLED_BIT | HINA_TEXTURE_INPUT_ATTACHMENT_BIT);
 
     // G-Buffer: Albedo (RGBA8_SRGB = 32 bits)
     {
@@ -808,17 +658,12 @@ bool GfxRenderer::createFrameResources() {
         auto& frame = m_frames[i];
         frame.frameIndex = i;
 
-        // Buffer flags for host-visible mapped UBOs
-        constexpr hina_buffer_flags uboFlags = static_cast<hina_buffer_flags>(
-            HINA_BUFFER_UNIFORM_BIT |
-            HINA_BUFFER_HOST_VISIBLE_BIT |
-            HINA_BUFFER_HOST_COHERENT_BIT);
-
         // Frame constants UBO
         {
             hina_buffer_desc desc = {};
             desc.size = sizeof(FrameConstants);
-            desc.flags = uboFlags;
+            desc.memory = HINA_BUFFER_CPU;
+            desc.usage = HINA_BUFFER_UNIFORM;
 
             frame.frameConstantsUBO = hina_make_buffer(&desc);
             if (!hina_buffer_is_valid(frame.frameConstantsUBO)) {
@@ -827,24 +672,12 @@ bool GfxRenderer::createFrameResources() {
             }
         }
 
-        // Lighting data UBO (64 lights * sizeof(TileLight) + tile data)
-        {
-            hina_buffer_desc desc = {};
-            desc.size = MAX_LIGHTS * sizeof(TileLight) + 4096; // Extra for tile data
-            desc.flags = uboFlags;
-
-            frame.lightingDataUBO = hina_make_buffer(&desc);
-            if (!hina_buffer_is_valid(frame.lightingDataUBO)) {
-                LOG_ERROR("[GfxRenderer] Failed to create lighting data UBO for frame {}", i);
-                return false;
-            }
-        }
-
         // Transform ring buffer (dynamic offsets) - persistently mapped
         {
             hina_buffer_desc desc = {};
             desc.size = TRANSFORM_UBO_SIZE;
-            desc.flags = uboFlags;
+            desc.memory = HINA_BUFFER_CPU;
+            desc.usage = HINA_BUFFER_UNIFORM;
 
             frame.transformRingUBO = hina_make_buffer(&desc);
             if (!hina_buffer_is_valid(frame.transformRingUBO)) {
@@ -853,7 +686,7 @@ bool GfxRenderer::createFrameResources() {
             }
 
             // Persistently map the buffer once - no per-frame mapping needed
-            frame.transformRingMapped = hina_map_buffer(frame.transformRingUBO);
+            frame.transformRingMapped = hina_mapped_buffer_ptr(frame.transformRingUBO);
             if (!frame.transformRingMapped) {
                 LOG_ERROR("[GfxRenderer] Failed to map transform ring UBO for frame {}", i);
                 return false;
@@ -864,7 +697,8 @@ bool GfxRenderer::createFrameResources() {
         {
             hina_buffer_desc desc = {};
             desc.size = BONE_MATRIX_UBO_SIZE;
-            desc.flags = uboFlags;
+            desc.memory = HINA_BUFFER_CPU;
+            desc.usage = HINA_BUFFER_UNIFORM;
 
             frame.boneMatrixRingUBO = hina_make_buffer(&desc);
             if (!hina_buffer_is_valid(frame.boneMatrixRingUBO)) {
@@ -873,7 +707,7 @@ bool GfxRenderer::createFrameResources() {
             }
 
             // Persistently map the buffer once - no per-frame mapping needed
-            frame.boneMatrixRingMapped = hina_map_buffer(frame.boneMatrixRingUBO);
+            frame.boneMatrixRingMapped = hina_mapped_buffer_ptr(frame.boneMatrixRingUBO);
             if (!frame.boneMatrixRingMapped) {
                 LOG_ERROR("[GfxRenderer] Failed to map bone matrix ring UBO for frame {}", i);
                 return false;
@@ -884,7 +718,8 @@ bool GfxRenderer::createFrameResources() {
         {
             hina_buffer_desc desc = {};
             desc.size = MAX_TRANSFORMS * 64; // 64 bytes per object data
-            desc.flags = uboFlags;
+            desc.memory = HINA_BUFFER_CPU;
+            desc.usage = HINA_BUFFER_UNIFORM;
 
             frame.objectDataRingUBO = hina_make_buffer(&desc);
             if (!hina_buffer_is_valid(frame.objectDataRingUBO)) {
@@ -949,16 +784,12 @@ bool GfxRenderer::beginFrame() {
     frame.boneMatrixRingOffset = 0;
     frame.objectDataRingOffset = 0;
 
+    // Reset upload statistics for this frame
+    m_uploadStats = {};
+
     // Save swapchain image for this frame
     frame.swapchainImage = swap;
     frame.swapchainView = hina_texture_get_default_view(swap.texture);
-
-    // Clear visible lists
-    m_visibleOpaque.clear();
-    m_visibleTransparent.clear();
-
-    // Reset light binner
-    m_lightBinner.clear();
 
     // Note: Draw queue is cleared at the END of the frame (in endFrame()),
     // not here, because submitMesh/submitEcsEntities may be called
@@ -972,6 +803,10 @@ void GfxRenderer::render(FrameData& frameData) {
         return;
     }
 
+    // Flush any pending mesh uploads before rendering
+    // This batches buffer copies: maps each buffer once, copies all data, unmaps once
+    flushPendingUploads();
+
     // Store frame data pointer for use in render passes
     m_currentFrameData = &frameData;
 
@@ -979,12 +814,6 @@ void GfxRenderer::render(FrameData& frameData) {
 
     // Update frame constants
     updateFrameConstants(frameData);
-
-    // CPU culling
-    cullScene(frameData);
-
-    // Light binning
-    binLights(frameData);
 
     // Begin command recording
     frame.cmd = hina_cmd_begin();
@@ -1072,6 +901,10 @@ void GfxRenderer::render(RenderFrameData& frameData) {
         return;
     }
 
+    // Flush any pending mesh uploads before rendering
+    // This batches buffer copies: maps each buffer once, copies all data, unmaps once
+    flushPendingUploads();
+
     auto& frame = m_frames[m_currentFrame];
 
     // Begin command recording
@@ -1141,10 +974,6 @@ void GfxRenderer::render(RenderFrameData& frameData) {
             m_currentFrameData = &viewFrameData;
             updateFrameConstants(viewFrameData);
 
-            // CPU culling and light binning for this view
-            cullScene(viewFrameData);
-            binLights(viewFrameData);
-
             // Execute RenderGraph with this view's feature mask
             // The RenderGraph will filter passes based on viewFrameData.featureMask
             // SceneComposite clears SCENE_COLOR with sky color before rendering
@@ -1195,23 +1024,57 @@ void GfxRenderer::endFrame() {
     }
 }
 
+// ============================================================================
+// Upload Batching (Phase 3)
+// ============================================================================
+
+void GfxRenderer::recordMeshUpload(uint32_t vertexCount, uint32_t indexCount, uint32_t totalBytes) {
+    m_uploadStats.meshUploadsThisFrame++;
+    m_uploadStats.verticesUploadedThisFrame += vertexCount;
+    m_uploadStats.indicesUploadedThisFrame += indexCount;
+    m_uploadStats.bytesUploadedThisFrame += totalBytes;
+}
+
+void GfxRenderer::flushPendingUploads() {
+    // Flush batched mesh uploads from ChunkedMeshStorage
+    // This executes all pending buffer copies, grouping by buffer to minimize
+    // map/unmap calls (map each buffer once, copy all data, unmap once)
+    auto& chunkedStorage = m_meshStorage.getChunkedStorage();
+    uint32_t copiesFlushed = chunkedStorage.flushPendingCopies();
+
+    // Log statistics if there were uploads this frame
+    if (copiesFlushed > 0 || m_uploadStats.meshUploadsThisFrame > 0) {
+        LOG_DEBUG("[GfxRenderer] Frame: {} meshes, {} buffer copies flushed ({} vertices, {} indices, {} bytes)",
+                  m_uploadStats.meshUploadsThisFrame,
+                  copiesFlushed,
+                  m_uploadStats.verticesUploadedThisFrame,
+                  m_uploadStats.indicesUploadedThisFrame,
+                  m_uploadStats.bytesUploadedThisFrame);
+    }
+}
+
 void GfxRenderer::onResize(uint32_t width, uint32_t height) {
     if (width == m_width && height == m_height) return;
 
     LOG_INFO("[GfxRenderer] Resizing from {}x{} to {}x{}", m_width, m_height, width, height);
 
-    // TODO: Need to wait for GPU - may need to call hina_frame_begin/end to sync
-    // or expose a wait function in hina-vk
+    // Destroy old render targets before recreating
+    // Note: hina_destroy_texture uses deferred destruction - safe while GPU may still be using them
+    if (hina_texture_is_valid(m_gbuffer.albedo)) hina_destroy_texture(m_gbuffer.albedo);
+    if (hina_texture_is_valid(m_gbuffer.normal)) hina_destroy_texture(m_gbuffer.normal);
+    if (hina_texture_is_valid(m_gbuffer.materialData)) hina_destroy_texture(m_gbuffer.materialData);
+    if (hina_texture_is_valid(m_gbuffer.depth)) hina_destroy_texture(m_gbuffer.depth);
+    if (hina_texture_is_valid(m_gbuffer.visibilityID)) hina_destroy_texture(m_gbuffer.visibilityID);
+    if (hina_texture_is_valid(m_wboit.accumulation)) hina_destroy_texture(m_wboit.accumulation);
+    if (hina_texture_is_valid(m_wboit.reveal)) hina_destroy_texture(m_wboit.reveal);
+    if (hina_texture_is_valid(m_hdrTarget)) hina_destroy_texture(m_hdrTarget);
+    if (hina_texture_is_valid(m_shadowAtlas)) hina_destroy_texture(m_shadowAtlas);
+    if (hina_texture_is_valid(m_ambientOctMap)) hina_destroy_texture(m_ambientOctMap);
 
     m_width = width;
     m_height = height;
 
-    // Recreate render targets
-    // TODO: Destroy old targets first
     createRenderTargets();
-
-    // Resize light binner
-    m_lightBinner.resize(width, height);
 }
 
 void GfxRenderer::updateFrameConstants(const FrameData& frameData) {
@@ -1234,23 +1097,13 @@ void GfxRenderer::updateFrameConstants(const FrameData& frameData) {
 
     // Upload to UBO - buffer is persistently mapped (HOST_VISIBLE + HOST_COHERENT)
     // No need to unmap - VMA persistently mapped buffers should stay mapped
-    void* mapped = hina_map_buffer(frame.frameConstantsUBO);
+    void* mapped = hina_mapped_buffer_ptr(frame.frameConstantsUBO);
     if (mapped) {
         std::memcpy(mapped, &constants, sizeof(constants));
         // Note: HOST_COHERENT means no flush needed, writes are visible to GPU
     } else {
         LOG_WARNING("[GfxRenderer] Failed to map frame constants buffer");
     }
-}
-
-void GfxRenderer::cullScene(const FrameData& frameData) {
-    // TODO: Implement actual scene culling
-    // For now, this is a stub
-}
-
-void GfxRenderer::binLights(const FrameData& frameData) {
-    // TODO: Implement light binning
-    // For now, this is a stub
 }
 
 bool GfxRenderer::createPipelines() {
@@ -1270,15 +1123,15 @@ bool GfxRenderer::createPipelines() {
 
     hina_buffer_desc quad_vb_desc = {};
     quad_vb_desc.size = sizeof(quadVertices);
-    quad_vb_desc.flags = static_cast<hina_buffer_flags>(
-        HINA_BUFFER_VERTEX_BIT | HINA_BUFFER_HOST_VISIBLE_BIT | HINA_BUFFER_HOST_COHERENT_BIT);
+    quad_vb_desc.memory = HINA_BUFFER_CPU;
+    quad_vb_desc.usage = HINA_BUFFER_VERTEX;
     m_fullscreenQuadVB = hina_make_buffer(&quad_vb_desc);
     if (!hina_buffer_is_valid(m_fullscreenQuadVB)) {
         LOG_ERROR("[GfxRenderer] Failed to create fullscreen quad vertex buffer");
         return false;
     }
 
-    void* quadData = hina_map_buffer(m_fullscreenQuadVB);
+    void* quadData = hina_mapped_buffer_ptr(m_fullscreenQuadVB);
     std::memcpy(quadData, quadVertices, sizeof(quadVertices));
     LOG_INFO("[GfxRenderer] Fullscreen quad created");
 
@@ -1418,17 +1271,15 @@ FragOut FSMain(Varyings in) {
             grid_pip_desc.depth.depth_write = true;
             grid_pip_desc.depth.depth_compare = HINA_COMPARE_OP_LESS_OR_EQUAL;
             grid_pip_desc.depth_format = HINA_FORMAT_D32_SFLOAT;
-            grid_pip_desc.color_attachment_count = 1;
             grid_pip_desc.color_formats[0] = HINA_FORMAT_B8G8R8A8_UNORM;  // Match ViewOutput format (manual gamma)
-            grid_pip_desc.blend.enable = true;
-            grid_pip_desc.blend.src_color = HINA_BLEND_FACTOR_SRC_ALPHA;
-            grid_pip_desc.blend.dst_color = HINA_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
-            grid_pip_desc.blend.color_op = HINA_BLEND_OP_ADD;
-            grid_pip_desc.blend.src_alpha = HINA_BLEND_FACTOR_ONE;
-            grid_pip_desc.blend.dst_alpha = HINA_BLEND_FACTOR_ZERO;
-            grid_pip_desc.blend.alpha_op = HINA_BLEND_OP_ADD;
+            grid_pip_desc.blend[0].enable = true;
+            grid_pip_desc.blend[0].src_color = HINA_BLEND_FACTOR_SRC_ALPHA;
+            grid_pip_desc.blend[0].dst_color = HINA_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+            grid_pip_desc.blend[0].color_op = HINA_BLEND_OP_ADD;
+            grid_pip_desc.blend[0].src_alpha = HINA_BLEND_FACTOR_ONE;
+            grid_pip_desc.blend[0].dst_alpha = HINA_BLEND_FACTOR_ZERO;
+            grid_pip_desc.blend[0].alpha_op = HINA_BLEND_OP_ADD;
             grid_pip_desc.bind_group_layouts[0] = m_gridLayout;
-            grid_pip_desc.bind_group_layout_count = 1;
 
             m_gridPipeline = hina_make_pipeline_from_module(grid_module, &grid_pip_desc, nullptr);
             hslc_hsl_module_free(grid_module);
@@ -1441,10 +1292,10 @@ FragOut FSMain(Varyings in) {
                 // Create grid UBO
                 hina_buffer_desc grid_ubo_desc = {};
                 grid_ubo_desc.size = sizeof(glm::mat4) * 3 + sizeof(glm::vec4);  // view, proj, invViewProj, cameraPos
-                grid_ubo_desc.flags = static_cast<hina_buffer_flags>(
-                    HINA_BUFFER_UNIFORM_BIT | HINA_BUFFER_HOST_VISIBLE_BIT | HINA_BUFFER_HOST_COHERENT_BIT);
+                grid_ubo_desc.memory = HINA_BUFFER_CPU;
+                grid_ubo_desc.usage = HINA_BUFFER_UNIFORM;
                 m_gridUBO = hina_make_buffer(&grid_ubo_desc);
-                m_gridUBOMapped = hina_map_buffer(m_gridUBO);
+                m_gridUBOMapped = hina_mapped_buffer_ptr(m_gridUBO);
 
                 // Create grid bind group
                 hina_bind_group_entry grid_entry = {};
@@ -1767,19 +1618,18 @@ FragOut FSMain(Varyings in) {
     pip_desc.cull_mode = HINA_CULL_MODE_NONE;
     pip_desc.depth.depth_test = false;
     pip_desc.depth.depth_write = false;
-    pip_desc.blend.enable = true;
-    pip_desc.blend.src_color = HINA_BLEND_FACTOR_SRC_ALPHA;
-    pip_desc.blend.dst_color = HINA_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
-    pip_desc.blend.color_op = HINA_BLEND_OP_ADD;
-    pip_desc.blend.src_alpha = HINA_BLEND_FACTOR_ONE;
-    pip_desc.blend.dst_alpha = HINA_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
-    pip_desc.blend.alpha_op = HINA_BLEND_OP_ADD;
+    pip_desc.blend[0].enable = true;
+    pip_desc.blend[0].src_color = HINA_BLEND_FACTOR_SRC_ALPHA;
+    pip_desc.blend[0].dst_color = HINA_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+    pip_desc.blend[0].color_op = HINA_BLEND_OP_ADD;
+    pip_desc.blend[0].src_alpha = HINA_BLEND_FACTOR_ONE;
+    pip_desc.blend[0].dst_alpha = HINA_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+    pip_desc.blend[0].alpha_op = HINA_BLEND_OP_ADD;
     pip_desc.depth_format = HINA_FORMAT_UNDEFINED;
 
     // Use the shared UI bind group layout - same layout for pipeline AND transient bind groups
     if (hina_bind_group_layout_is_valid(m_uiBindGroupLayout)) {
         pip_desc.bind_group_layouts[0] = m_uiBindGroupLayout;
-        pip_desc.bind_group_layout_count = 1;
     }
 
     m_imguiPipeline = hina_make_pipeline_from_module(module, &pip_desc, nullptr);
@@ -1794,17 +1644,17 @@ FragOut FSMain(Varyings in) {
     for (uint32_t i = 0; i < GFX_MAX_FRAMES; ++i) {
         hina_buffer_desc vb_desc = {};
         vb_desc.size = IMGUI_MAX_VERTEX_COUNT * sizeof(ImDrawVert);
-        vb_desc.flags = static_cast<hina_buffer_flags>(
-            HINA_BUFFER_VERTEX_BIT | HINA_BUFFER_HOST_VISIBLE_BIT | HINA_BUFFER_HOST_COHERENT_BIT);
+        vb_desc.memory = HINA_BUFFER_CPU;
+        vb_desc.usage = HINA_BUFFER_VERTEX;
         m_imguiFrames[i].vertexBuffer = hina_make_buffer(&vb_desc);
-        m_imguiFrames[i].vertexMapped = hina_map_buffer(m_imguiFrames[i].vertexBuffer);
+        m_imguiFrames[i].vertexMapped = hina_mapped_buffer_ptr(m_imguiFrames[i].vertexBuffer);
 
         hina_buffer_desc ib_desc = {};
         ib_desc.size = IMGUI_MAX_INDEX_COUNT * sizeof(ImDrawIdx);
-        ib_desc.flags = static_cast<hina_buffer_flags>(
-            HINA_BUFFER_INDEX_BIT | HINA_BUFFER_HOST_VISIBLE_BIT | HINA_BUFFER_HOST_COHERENT_BIT);
+        ib_desc.memory = HINA_BUFFER_CPU;
+        ib_desc.usage = HINA_BUFFER_INDEX;
         m_imguiFrames[i].indexBuffer = hina_make_buffer(&ib_desc);
-        m_imguiFrames[i].indexMapped = hina_map_buffer(m_imguiFrames[i].indexBuffer);
+        m_imguiFrames[i].indexMapped = hina_mapped_buffer_ptr(m_imguiFrames[i].indexBuffer);
 
         if (!m_imguiFrames[i].vertexMapped || !m_imguiFrames[i].indexMapped) {
             LOG_ERROR("[GfxRenderer] Failed to create/map ImGui frame buffers for frame {}", i);
@@ -2034,25 +1884,27 @@ bool GfxRenderer::initUI2D() {
 
         hina_buffer_desc vb_desc = {};
         vb_desc.size = UI2D_MAX_VERTEX_COUNT * sizeof(ui::PrimitiveVertex);
-        vb_desc.flags = static_cast<hina_buffer_flags>(HINA_BUFFER_VERTEX_BIT | HINA_BUFFER_HOST_VISIBLE_BIT);
+        vb_desc.memory = HINA_BUFFER_CPU;
+        vb_desc.usage = HINA_BUFFER_VERTEX;
 
         frame.vertexBuffer = hina_make_buffer(&vb_desc);
         if (!hina_buffer_is_valid(frame.vertexBuffer)) {
             LOG_ERROR("[GfxRenderer] Failed to create UI2D vertex buffer");
             return false;
         }
-        frame.vertexMapped = hina_map_buffer(frame.vertexBuffer);
+        frame.vertexMapped = hina_mapped_buffer_ptr(frame.vertexBuffer);
 
         hina_buffer_desc ib_desc = {};
         ib_desc.size = UI2D_MAX_INDEX_COUNT * sizeof(uint32_t);
-        ib_desc.flags = static_cast<hina_buffer_flags>(HINA_BUFFER_INDEX_BIT | HINA_BUFFER_HOST_VISIBLE_BIT);
+        ib_desc.memory = HINA_BUFFER_CPU;
+        ib_desc.usage = HINA_BUFFER_INDEX;
 
         frame.indexBuffer = hina_make_buffer(&ib_desc);
         if (!hina_buffer_is_valid(frame.indexBuffer)) {
             LOG_ERROR("[GfxRenderer] Failed to create UI2D index buffer");
             return false;
         }
-        frame.indexMapped = hina_map_buffer(frame.indexBuffer);
+        frame.indexMapped = hina_mapped_buffer_ptr(frame.indexBuffer);
     }
 
     // Create pipeline with embedded HSL shader
@@ -2142,19 +1994,19 @@ FragOut FSMain(Varyings in) {
     pip_desc.cull_mode = HINA_CULL_MODE_NONE;
     pip_desc.depth.depth_test = false;
     pip_desc.depth.depth_write = false;
-    pip_desc.blend.enable = true;
-    pip_desc.blend.src_color = HINA_BLEND_FACTOR_SRC_ALPHA;
-    pip_desc.blend.dst_color = HINA_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
-    pip_desc.blend.color_op = HINA_BLEND_OP_ADD;
-    pip_desc.blend.src_alpha = HINA_BLEND_FACTOR_ONE;
-    pip_desc.blend.dst_alpha = HINA_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
-    pip_desc.blend.alpha_op = HINA_BLEND_OP_ADD;
+    pip_desc.blend[0].enable = true;
+    pip_desc.blend[0].src_color = HINA_BLEND_FACTOR_SRC_ALPHA;
+    pip_desc.blend[0].dst_color = HINA_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+    pip_desc.blend[0].color_op = HINA_BLEND_OP_ADD;
+    pip_desc.blend[0].src_alpha = HINA_BLEND_FACTOR_ONE;
+    pip_desc.blend[0].dst_alpha = HINA_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+    pip_desc.blend[0].alpha_op = HINA_BLEND_OP_ADD;
+    pip_desc.color_formats[0] = hina_get_surface_format();  // Swapchain format for UI overlay
     pip_desc.depth_format = HINA_FORMAT_UNDEFINED;
 
     // Use the shared UI bind group layout - same layout for pipeline AND transient bind groups
     if (hina_bind_group_layout_is_valid(m_uiBindGroupLayout)) {
         pip_desc.bind_group_layouts[0] = m_uiBindGroupLayout;
-        pip_desc.bind_group_layout_count = 1;
     }
 
     m_ui2dPipeline = hina_make_pipeline_from_module(module, &pip_desc, nullptr);
@@ -2355,72 +2207,6 @@ void GfxRenderer::renderUI2D() {
 
     hina_cmd_end_pass(frame.cmd);
 }
-
-// ============================================================================
-// Draw Queue Implementation
-// ============================================================================
-// NOTE: submitMesh(), clearDrawQueue(), submitScene() removed.
-// Draw submission is now handled by SceneRenderFeature which iterates the ECS.
-
-// EnTT integration disabled - using internal ECS
-// void GfxRenderer::submitEcsEntities(const entt::registry& registry,
-//                                     const Resource::ResourceManager& resourceMngr,
-//                                     const Resource::ResourceRegistry& resourceRegistry) {
-//     // Iterate all entities with both TransformComponent and MeshRendererComponent
-//     auto view = registry.view<TransformComponent, MeshRendererComponent>();
-//
-//     for (auto entity : view) {
-//         const auto& transform = view.get<TransformComponent>(entity);
-//         const auto& meshRenderer = view.get<MeshRendererComponent>(entity);
-//
-//         // Skip invisible entities
-//         if (!meshRenderer.IsVisible()) continue;
-//
-//         // Compute world transform (includes parent hierarchy) - shared for all entries
-//         glm::mat4 worldMatrix = transform.GetWorldMatrix(registry, entity);
-//
-//         // Iterate over all mesh entries in this component
-//         for (const auto& entry : meshRenderer.GetEntries()) {
-//             // Get mesh name and look up handle
-//             const std::string& meshName = entry.meshName;
-//             if (meshName.empty()) continue;
-//
-//             // Look up mesh handle from resource registry
-//             ::MeshHandle resourceMesh = resourceRegistry.GetMeshByPath(meshName);
-//             if (!resourceMesh.isValid()) continue;
-//
-//             // Get mesh GPU data to retrieve the gfx::MeshHandle
-//             const ::MeshGPUData* meshData = resourceMngr.getMesh(resourceMesh);
-//             if (!meshData || !meshData->hasGfxMesh) continue;
-//
-//             // Reconstruct gfx::MeshHandle from stored index/generation
-//             gfx::MeshHandle gfxMesh;
-//             gfxMesh.index = meshData->gfxMeshIndex;
-//             gfxMesh.generation = meshData->gfxMeshGeneration;
-//
-//             // Try to get material handle
-//             gfx::MaterialHandle gfxMaterial;
-//             const std::string& materialName = entry.materialName;
-//             if (!materialName.empty()) {
-//                 ::MaterialHandle resourceMaterial = resourceRegistry.GetMaterialByPath(materialName);
-//                 if (resourceMaterial.isValid()) {
-//                     const auto* matHotData = resourceMngr.getMaterialHotData(resourceMaterial);
-//                     if (matHotData && matHotData->hasGfxMaterial) {
-//                         gfxMaterial.index = matHotData->gfxMaterialIndex;
-//                         gfxMaterial.generation = matHotData->gfxMaterialGeneration;
-//                     }
-//                 }
-//             }
-//
-//             // Submit with material if available, otherwise use base color from component
-//             if (gfxMaterial.isValid()) {
-//                 submitMesh(gfxMesh, worldMatrix, gfxMaterial);
-//             } else {
-//                 submitMesh(gfxMesh, worldMatrix, meshRenderer.GetBaseColor());
-//             }
-//         }
-//     }
-// }
 
 // ============================================================================
 // Feature Registration

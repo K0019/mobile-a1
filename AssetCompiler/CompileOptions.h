@@ -109,25 +109,9 @@ namespace compiler
         BC5,
         BC7,
 
-        //???????
         ASTC,
         ETC
     };
-    
-    //Still unused
-    enum TextureWrapMode
-    {
-        CLAMP_TO_EDGE,
-        WRAP,
-        MIRROR
-    };
-    enum TextureAlphaMode
-    {
-        NONE,
-        MASK,
-        BLEND
-    };
-
 
     // Options
     struct GeneralOptions
@@ -152,9 +136,6 @@ namespace compiler
     {
         TextureChannelFormat channelFormat = TextureChannelFormat::RGBA_8888;
         TextureCompressionFormat compressionFormat = TextureCompressionFormat::BC7;
-        TextureWrapMode wrapMode;
-        TextureAlphaMode alphaMode;
-
         bool isSRGB = false;
 
         float quality = 0.05f; // 0.0f-1.0f

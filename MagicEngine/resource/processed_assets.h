@@ -22,6 +22,8 @@ namespace Resource
     uint32_t channels = 0;
     bool sRGB = true;
     size_t originalFileSize = 0;
+
+    bool isValid() const { return !data.empty() && width > 0 && height > 0; }
   };
 
   static constexpr uint32_t INVALID_BONE_INDEX = static_cast<uint32_t>(-1);
@@ -103,6 +105,8 @@ namespace Resource
     float ticksPerSecond = 0.0f;
     std::vector<ProcessedAnimationChannel> skeletalChannels;
     std::vector<ProcessedMorphChannel> morphChannels;
+
+    bool isValid() const { return duration > 0.0f && ticksPerSecond > 0.0f; }
   };
 
   struct ProcessedMesh
@@ -115,6 +119,8 @@ namespace Resource
     std::vector<SkinningData> skinning;
     ProcessedSkeleton skeleton;
     std::vector<MorphTargetData> morphTargets;
+
+    bool isValid() const { return !vertices.empty(); }
   };
 
   /**
@@ -195,6 +201,16 @@ namespace Resource
     AlphaMode getAlphaModeFromFlags() const
     {
       return static_cast<AlphaMode>(flags & ALPHA_MODE_MASK);
+    }
+
+    bool isValid() const
+    {
+      // A material is valid if it has reasonable PBR values
+      return metallicFactor >= 0.0f && metallicFactor <= 1.0f &&
+             roughnessFactor >= 0.0f && roughnessFactor <= 1.0f &&
+             alphaCutoff >= 0.0f && alphaCutoff <= 1.0f &&
+             normalScale >= 0.0f &&
+             occlusionStrength >= 0.0f && occlusionStrength <= 1.0f;
     }
   };
 

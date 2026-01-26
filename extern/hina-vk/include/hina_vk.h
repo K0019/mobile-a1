@@ -1,6 +1,64 @@
 #ifndef HINA_VK_H
 #define HINA_VK_H
+/* https://www.pixiv.net/en/artworks/96356970
+                                                           :==:=+==                                     ::
+                                                        --     =----+-                             .=#*+
+                               .                      :-       : -=-=+-:::=+=:                   :****=
+                         =*+=+*#**#*=:                +:---:. .:  :-          -==.             :#****:
+                                 -*****#=              ==-----.+=:                =++-:      .*******
+                                    =*****%:       .=+-.   ::---                     :=-=*- -#*****#.
+                                     :#*****%: -*=.          ::       .----=-.          := =*******#
+                                      *********              .       .--:--------.            =*#**+
+                                      .#*******            .          :           .-:           =*#=
+                                       %****-             .             ::           :            =+
+                             -#%#:   ==***+                               .:                        =:
+                           .##***%=-=  **.                                  .                        .=
+                          :%#*****#-   +                                                               =:
+                         -%********* .*                                                                 .=
+                         ******#******:                         ::                                        =
+                          *%*********=               :         :  .                          ::            -:
+                          *::********               :         -     :                          =            :-
+                         :*    -##%#:              -        ::        -:                        +            .-
+                         =:     *%%*              :::      :.           :=                       =            :=
+                         *     .%%%=              =:::.   :-               =.                    .+            ::
+                        =-     *%%%              +  -:::..:                  :=                    :            =:
+                        *:    .%%%+             ::    -:::                      =:-                -             =
+                        *.    =%%%-   :         =:::    =          .:             .=-++:            -            .=
+                       .*     %%%%:  :.         =:-:::. .        ==                  ::  .::--:     :             +:
+                       :*    :%%%%   =          =  .::::.    :==.                       ::           .          - :=
+                       :=    ***#*  :-        .::::   :-:==:.                              ::        -          -. +
+                       :.    #****  =.       :::: :::.=                              :-=+*******+=:  -          -- -:
+                       -    :%#%%=  =        :: -  :. :      ..:::--:              .:*****#####**=:. :          -+ :-
+                       -    =%+::=  =        :: = .:.+=**######*#**=-.                    :::---::  .+          -+- =
+                       :    .   ::  =         :--::::+-*##****+:                           .:::::   .*          =-+.-
+                       =        =:  -        :::- ::-+***+-::::                             ::::::  .+.         =:-=
+                      +:        *: .-        :. :-.:- :. .::::                               :::::. .*.         + ::
+                     = :       *+= .-        :: .=::=    :::::             -===+=             ::::-  *.        :- +
+                    -:        :*-= .=         ::::: =   .::::.            =======+.           :::::  +         + .:
+                    :         *--+ .=            :+ =   :::::.           ==========.           :::: :=        =:
+                   -         ==--=  +             -+=   :::::.           +=========-           :::.:*:       =:
+                   =        -=----. =              +*.  .::::.          -==--------+           :::=*-       =-
+                  -.       -=--:---.=-              +*:  ::::.          :=---------=           -*=--.     .+:
+                  -       .=--------:=             ::=**=:::::           :=-------=        .=*=----:     .+.
+                  :       =----------=.              :=--=+**++:            ::::      .=#%%=-------.    .:=
+                  :      :=-----------=               :=--=-----*%%%%#*+==-    .::-#%%%#%##%%**=--:    .  =
+                  :      :=-----------=:             . :=--++*%%%###%#%#%%%=----=+%%%#%##%##%+----: :     -
+                  :     .:=------------+              . :=-=**%%%%%#%%%#***%%#==*#%#***%%%%#%%=---:-.      =
+                  -     : +-------------+              . .+*%%#%#%%%**********=*****#*****#%%%#*---:        -:
+                  :       -=-------------+                 +=-%%%***********+***************#%=----.          -
+                  :        +--------------*:                :*=**********************-=+******=---:             -
+                   =        +=-------------==                 -********#-+=*********=*    -+=:**---              :.
+                   ..  :     -=--------------+-:                **-:-++.  *+*+********=      =+*--:         =     .-
+                    :: :+:     ==--------------+=--        .     *:       =+*+*+*******      =***--        ...=    -
+                     .= =.==     .===------------         :    .:++=      =*****+*****+:    -****+=.      ::  .+   ::
+                     -=-==  :=+======----------:          ::::--=**::     +*****=+******    :****=+-    :-     +   =
+                    -=   :-=.   :------------=:    -      :--=+****+=     =******+******.   *****==-. -:      ==:-:
+                    =.   :     .-------------=    :::      =********=*    .**#******+***:  .*****+==:     :--:
+                    -    .     .--:::::::::---=  =:  .=-:   .+*******:-    *%####****++=:  =-..:=
+                                               .-:-      .:=====-:::==:                                                                                                                                                                                                                                                    .
+*/
 /**
+ *
  * @file hina_vk.h
  * @brief HinaVK - A lightweight, multi-threaded Vulkan abstraction layer.
  *
@@ -28,7 +86,7 @@
  * These functions only access thread-safe global pools or make thread-safe Vulkan calls:
  * - **Resource Creation**: `hina_make_buffer`, `hina_make_texture`, `hina_make_sampler`,
  *   `hina_make_pipeline_ex`, `hina_make_query_pool`, `hina_create_bind_group_layout`
- * - **Buffer Memory**: `hina_map_buffer`, `hina_unmap_buffer`, `hina_flush_buffer`
+ * - **Buffer Memory**: `hina_mapped_buffer_ptr`, `hina_flush_buffer`
  *   (thread-safe for different buffers; same buffer requires external sync)
  *
  * ### NOT Thread-Safe (main thread only)
@@ -59,6 +117,43 @@
  * - Resource destruction (`vkDestroy*`) requires external sync on the object handle
  * - Descriptor pools require external sync (library handles this internally)
  * - VMA allocation access requires external sync per-allocation (same buffer = sync needed)
+ *
+ * @section upload_sync Automatic Upload Synchronization
+ *
+ * When you create a buffer or texture with `initial_data`, HinaVK stages the upload
+ * asynchronously. **You do not need to wait for uploads to complete**—the library
+ * automatically ensures data is ready before GPU access in most paths.
+ *
+ * ### Automatic Sync Points
+ * The library automatically waits for pending uploads at these locations:
+ * - **Persistent bind groups**: `hina_create_bind_group()` waits for all referenced
+ *   buffers and textures before writing descriptors.
+ * - **Vertex/Index binding**: `hina_cmd_apply_vertex_input()` waits for vertex and
+ *   index buffers' uploads to complete.
+ * - **Indirect commands**: `hina_cmd_draw_indexed_indirect()` and
+ *   `hina_cmd_dispatch_indirect()` wait for the indirect buffer's upload.
+ *
+ * ### Paths Without Auto-Wait
+ * These paths do NOT auto-wait (resources must already be ready):
+ * - **Transient bind groups**: `hina_transient_write_buffer()`, `hina_transient_write_combined_image()`,
+ *   and similar functions write descriptors immediately without checking upload status.
+ * - **Slot-based bindings**: The demo path (`hina_cmd_bind_buffer()`, `hina_cmd_bind_storage_image()`)
+ *   only validates in debug builds.
+ *
+ * For these paths, either ensure resources are ready via `hina_wait_buffer()`/`hina_wait_texture()`,
+ * or create resources early enough that uploads complete before use.
+ *
+ * ### Performance
+ * The auto-wait uses a fast path: a per-resource `UPLOAD_READY` bit is checked first
+ * (no atomics, no locks). Only resources with pending uploads incur the wait cost,
+ * and only once—subsequent uses hit the fast path.
+ *
+ * ### When to Use Explicit Waits
+ * Use `hina_wait_buffer()` or `hina_wait_texture()` for:
+ * - **Transient bind groups**: When binding newly-created resources to transient descriptors
+ * - **CPU readback**: Reading back from a buffer after GPU write (staging download)
+ * - **Polling without blocking**: Use `hina_buffer_is_ready()` to check without waiting
+ * - **Explicit sync points**: When you need deterministic timing for profiling
  */
 #ifdef __cplusplus
 extern "C" {
@@ -320,9 +415,21 @@ typedef enum
   HINA_INDEX_UINT32 = 1
 } hina_index_type;
 
+/**
+ * @brief Texture and render target formats.
+ *
+ * @section special_values Special Values
+ * - **HINA_FORMAT_UNDEFINED (0)**: Indicates no attachment or unused slot.
+ *   In `color_formats[]` arrays, the first UNDEFINED terminates the list.
+ *   Sparse attachments (UNDEFINED between valid formats) are NOT supported.
+ *
+ * @section format_mapping Vulkan Mapping
+ * All other values map 1:1 to VkFormat via a lookup table. The enum values
+ * are stable and can be serialized. Adding new formats appends to the enum.
+ */
 typedef enum
 {
-  HINA_FORMAT_UNDEFINED = 0,
+  HINA_FORMAT_UNDEFINED = 0,  /**< No attachment / unused slot (terminates color_formats array) */
   HINA_FORMAT_R8_UNORM,
   HINA_FORMAT_R8_SNORM,
   HINA_FORMAT_R8_UINT,
@@ -589,7 +696,7 @@ typedef enum
   HINA_INIT_VALIDATION_BIT         = HINA_FLAG_BIT(1),
 
   // PREFER_INTEGRATED: Select integrated GPU over discrete if both are present.
-  // Useful for laptops to save power, or when discrete GPU is overkill.        
+  // Useful for laptops to save power, or when discrete GPU is overkill.
   HINA_INIT_PREFER_INTEGRATED_BIT  = HINA_FLAG_BIT(2),
   // CREATE_SWAPCHAIN: Create swapchain during hina_init() if a surface exists.
   // Non-fatal if creation fails (e.g., hidden/minimized window).
@@ -691,11 +798,9 @@ HINA_API bool hina_init(const hina_desc* desc);
  */
 HINA_API void hina_shutdown(void);
 
-// Global Context Access
-extern hina_context g_hina_ctx;
 // Thread Context Creation
 // HinaVK allows creating child contexts for multi-threaded command recording.
-HINA_API hina_context* hina_create_thread_context(hina_context* parent);
+HINA_API hina_context* hina_create_thread_context(void);
 
 HINA_API void hina_destroy_thread_context(hina_context* ctx);
 
@@ -732,6 +837,7 @@ typedef struct hina_device_caps
   // Feature flags - capabilities detected at init
   bool has_dynamic_rendering; // VK_KHR_dynamic_rendering or 1.3 core
   bool has_dynamic_rendering_local_read; // VK_KHR_dynamic_rendering_local_read for tile pass
+  bool has_dynamic_rendering_local_read_depth_stencil; // VK 1.4 property: depth/stencil input attachments
   bool has_dynamic_rendering_unused_attachments; // VK_EXT_dynamic_rendering_unused_attachments
   bool has_timeline_semaphore; // VK_KHR_timeline_semaphore or 1.2+ core
   bool has_dynamic_state2; // VK_EXT_extended_dynamic_state2
@@ -997,6 +1103,100 @@ HINA_API void hina_wait_ticket(hina_ticket ticket);
 HINA_API void hina_ctx_wait_ticket(hina_context* ctx, hina_ticket ticket);
 
 // ===========================================================================
+//  Swapchain & Presentation
+// ===========================================================================
+typedef enum
+{
+  HINA_PRESENT_MODE_FIFO = 0, // Vsync, always available (default)
+  HINA_PRESENT_MODE_MAILBOX, // No vsync, no tearing (falls back to FIFO)
+  HINA_PRESENT_MODE_IMMEDIATE, // Lowest latency, may tear (falls back to MAILBOX→FIFO)
+} hina_present_mode;
+
+typedef enum
+{
+  HINA_SWAPCHAIN_TRANSPARENT_BIT = HINA_FLAG_BIT(0), // Alpha compositing with desktop
+  HINA_SWAPCHAIN_PREROTATE_BIT   = HINA_FLAG_BIT(1), // Use surface preTransform (power saving on Android)
+} hina_swapchain_flags;
+
+typedef enum
+{
+  HINA_COLOR_SPACE_SRGB_NONLINEAR = 0,
+  HINA_COLOR_SPACE_DISPLAY_P3_NONLINEAR = 1000104001,
+  HINA_COLOR_SPACE_EXTENDED_SRGB_LINEAR = 1000104002,
+  HINA_COLOR_SPACE_DISPLAY_P3_LINEAR = 1000104003,
+  HINA_COLOR_SPACE_DCI_P3_NONLINEAR = 1000104004,
+  HINA_COLOR_SPACE_BT709_LINEAR = 1000104005,
+  HINA_COLOR_SPACE_BT709_NONLINEAR = 1000104006,
+  HINA_COLOR_SPACE_BT2020_LINEAR = 1000104007,
+  HINA_COLOR_SPACE_HDR10_ST2084 = 1000104008,
+  HINA_COLOR_SPACE_DOLBYVISION = 1000104009,
+  HINA_COLOR_SPACE_HDR10_HLG = 1000104010,
+  HINA_COLOR_SPACE_ADOBERGB_LINEAR = 1000104011,
+  HINA_COLOR_SPACE_ADOBERGB_NONLINEAR = 1000104012,
+  HINA_COLOR_SPACE_PASS_THROUGH = 1000104013,
+  HINA_COLOR_SPACE_EXTENDED_SRGB_NONLINEAR = 1000104014
+} hina_color_space;
+
+typedef struct hina_swapchain_desc
+{
+  hina_swapchain_flags flags;
+  hina_present_mode present_mode; // 0 = FIFO (vsync, default)
+  hina_format preferred_format; // HINA_FORMAT_UNDEFINED = auto
+  hina_color_space preferred_color_space; // 0 = SRGB_NONLINEAR (default)
+} hina_swapchain_desc;
+
+// Defaults: present_mode=FIFO, format/color_space=auto
+HINA_API hina_swapchain_desc hina_swapchain_desc_default(void);
+
+HINA_API void hina_configure_swapchain(const hina_swapchain_desc* desc);
+
+// Get swapchain prerotation angle in degrees (0, 90, 180, or 270).
+// Returns 0 unless HINA_SWAPCHAIN_PREROTATE_BIT was set.
+// When non-zero, apply rotation to projection matrix: proj = rotate_z(radians(angle)) * proj
+HINA_API float hina_get_swapchain_prerotation(void);
+
+/**
+ * @brief Get the preferred surface format for swapchain-compatible rendering.
+ *
+ * Returns the format that will be used for the swapchain. This is determined by
+ * querying surface capabilities when the surface is created.
+ *
+ * Use this to create intermediate textures (e.g., render targets, post-process buffers)
+ * that need to match the swapchain format for efficient blitting or compositing.
+ *
+ * @return The swapchain format, or HINA_FORMAT_UNDEFINED if swapchain doesn't exist yet.
+ *
+ * @note On Android, returns UNDEFINED until native window is provided and swapchain created.
+ *
+ * Example:
+ * @code
+ *   hina_format fmt = hina_get_surface_format();
+ *   if (fmt != HINA_FORMAT_UNDEFINED) {
+ *       texture_desc.format = fmt;  // Create texture matching swapchain
+ *       pipeline_desc.color_formats[0] = fmt;  // Pipeline for that texture
+ *   }
+ * @endcode
+ */
+HINA_API hina_format hina_get_surface_format(void);
+
+/**
+ * @brief Get the format of a texture.
+ *
+ * @param tex The texture handle
+ * @return The texture's format, or HINA_FORMAT_UNDEFINED if invalid handle.
+ */
+HINA_API hina_format hina_get_texture_format(hina_texture tex);
+
+// Surface lost state (for Android lifecycle handling)
+// Returns true if surface was lost and needs recreation via hina_recreate_surface()
+HINA_API bool hina_is_surface_lost(void);
+
+// Recreate Vulkan surface after it was lost (Android lifecycle, BufferQueue abandoned)
+// Call this when SDL provides a new native window (e.g., SDL_APP_DIDENTERFOREGROUND)
+// Returns true on success, false on failure
+HINA_API bool hina_recreate_surface(void* native_window, void* native_display);
+
+// ===========================================================================
 //  Frame Index Queries
 // ===========================================================================
 /**
@@ -1022,65 +1222,52 @@ HINA_API uint64_t hina_get_frame_index(void);
 HINA_API uint64_t hina_get_completed_frame_index(void);
 
 // ===========================================================================
-//  Diagnostics
-// ===========================================================================
-typedef struct hina_gpu_memory_stats
-{
-  uint64_t total_bytes;
-  uint64_t usage_bytes;
-} hina_gpu_memory_stats;
-
-/**
- * @brief Query device-local GPU memory usage.
- *
- * Returns false if no device is initialized.
- */
-HINA_API bool hina_get_gpu_memory_stats(hina_gpu_memory_stats* out_stats);
-
-// ===========================================================================
 //  Buffers
 // ===========================================================================
+
+// Memory placement - where the buffer lives (enum, not combinable)
 typedef enum
 {
-  // -------------------------------------------------------------------------
-  // Memory placement flags (bits 0-3)
-  // -------------------------------------------------------------------------
-  // HOST_VISIBLE: CPU can read/write this buffer directly via mapped pointer.
-  // The buffer is persistently mapped at creation - just write to the pointer
-  // returned by hina_map_buffer(). Do NOT call hina_unmap_buffer() on these
-  // buffers (it will assert). Good for: uniform buffers, staging buffers.
-  HINA_BUFFER_HOST_VISIBLE_BIT  = HINA_FLAG_BIT(0),
+  // GPU-optimal memory. Not intended to be mapped by CPU.
+  // On UMA/ReBAR systems, VMA may still return mappable memory - this is fine,
+  // but the API contract is: upload via staging or initial_data, don't assume mappability.
+  // Good for: static vertex/index data, GPU-only storage buffers.
+  HINA_BUFFER_GPU = 0,
 
-  // HOST_COHERENT: Writes are immediately visible to GPU without explicit flush.
-  // Only meaningful with HOST_VISIBLE. Without this flag, you must call
-  // hina_flush_buffer() after writing. Most HOST_VISIBLE memory is coherent
-  // on desktop, but mobile GPUs may not be.
-  HINA_BUFFER_HOST_COHERENT_BIT = HINA_FLAG_BIT(1),
-  // DEVICE_LOCAL: Buffer lives in fast GPU memory (VRAM on discrete GPUs).
-  // Cannot be mapped by CPU. Use with TRANSFER_DST and upload via staging
-  // buffer or initial_data. Good for: vertex/index buffers, textures.
-  HINA_BUFFER_DEVICE_LOCAL_BIT  = HINA_FLAG_BIT(2),
+  // CPU-accessible memory, persistently mapped at creation.
+  // GUARANTEED COHERENT: Writes are immediately visible to GPU, no flush needed.
+  // VMA picks the best available coherent memory (ReBAR if beneficial).
+  // Good for: uniform buffers, dynamic vertex data - the common case.
+  HINA_BUFFER_CPU,
 
-  // -------------------------------------------------------------------------
-  // Usage flags (bits 4-10) - what the buffer will be used for
-  // -------------------------------------------------------------------------
+  // CPU-accessible memory with explicit synchronization.
+  // May be non-coherent: user MUST call hina_flush_buffer() after CPU writes
+  // and hina_invalidate_buffer() before CPU reads after GPU writes.
+  // Only use this if you need fine-grained control (e.g., mobile optimization).
+  // Good for: advanced users who want to batch flushes for performance.
+  HINA_BUFFER_CPU_EXPLICIT,
+} hina_buffer_memory;
 
-  HINA_BUFFER_VERTEX_BIT        = HINA_FLAG_BIT(4),  // Vertex buffer
-  HINA_BUFFER_INDEX_BIT         = HINA_FLAG_BIT(5),  // Index buffer
-  HINA_BUFFER_UNIFORM_BIT       = HINA_FLAG_BIT(6),  // Uniform buffer (UBO)
-  HINA_BUFFER_STORAGE_BIT       = HINA_FLAG_BIT(7),  // Storage buffer (SSBO)
-  HINA_BUFFER_INDIRECT_BIT      = HINA_FLAG_BIT(8),  // Indirect draw/dispatch commands
-  HINA_BUFFER_TRANSFER_SRC_BIT  = HINA_FLAG_BIT(9),  // Source for copy operations
-  HINA_BUFFER_TRANSFER_DST_BIT  = HINA_FLAG_BIT(10)  // Destination for copy operations
-} hina_buffer_flags;
+// Usage flags - what the buffer will be used for (combinable bits)
+typedef enum
+{
+  HINA_BUFFER_VERTEX       = HINA_FLAG_BIT(0),  // Vertex buffer
+  HINA_BUFFER_INDEX        = HINA_FLAG_BIT(1),  // Index buffer
+  HINA_BUFFER_UNIFORM      = HINA_FLAG_BIT(2),  // Uniform buffer (UBO)
+  HINA_BUFFER_STORAGE      = HINA_FLAG_BIT(3),  // Storage buffer (SSBO)
+  HINA_BUFFER_INDIRECT     = HINA_FLAG_BIT(4),  // Indirect draw/dispatch commands
+  HINA_BUFFER_TRANSFER_SRC = HINA_FLAG_BIT(5),  // Source for copy operations
+  HINA_BUFFER_TRANSFER_DST = HINA_FLAG_BIT(6),  // Destination for copy operations
+} hina_buffer_usage;
 
 typedef struct hina_buffer_desc
 {
   size_t size;
-  hina_buffer_flags flags;
-  const void* initial_data; // If non-NULL, data is uploaded via staging buffer
-  hina_queue initial_owner; // Queue that initially owns this buffer (default: HINA_QUEUE_GRAPHICS)
-  const char* label; // Optional debug label (shows in RenderDoc, validation layers)
+  const void* initial_data;      // If non-NULL, data is uploaded via staging buffer
+  const char* label;             // Optional debug label (shows in RenderDoc, validation layers)
+  hina_buffer_memory memory;     // Where the buffer lives (default: HINA_BUFFER_GPU)
+  hina_buffer_usage usage;       // What the buffer is used for (combinable flags)
+  hina_queue initial_owner;      // Queue that initially owns this buffer (default: HINA_QUEUE_GRAPHICS)
 } hina_buffer_desc;
 
 // Zero-initialize hina_buffer_desc; all fields default to 0/NULL.
@@ -1091,11 +1278,22 @@ HINA_API hina_buffer hina_make_buffer(const hina_buffer_desc* desc);
 
 HINA_API void hina_destroy_buffer(hina_buffer buf);
 
-HINA_API void* hina_map_buffer(hina_buffer buf); // Returns persistent pointer for HOST_VISIBLE
+// Returns persistent mapped pointer for HINA_BUFFER_CPU or HINA_BUFFER_CPU_EXPLICIT buffers.
+HINA_API void* hina_mapped_buffer_ptr(hina_buffer buf);
 
-HINA_API void hina_unmap_buffer(hina_buffer buf); // Only for non-HOST_VISIBLE buffers
+// Flush CPU writes to make them visible to GPU.
+// Required for HINA_BUFFER_CPU_EXPLICIT after CPU writes, before GPU reads.
+// No-op for HINA_BUFFER_CPU (always coherent). Asserts on HINA_BUFFER_GPU.
+HINA_API void hina_flush_buffer(hina_buffer buf, size_t offset, size_t size);
 
-HINA_API void hina_flush_buffer(hina_buffer buf, size_t offset, size_t size); // Only needed without HOST_COHERENT
+// Invalidate CPU cache to see GPU writes.
+// Required for HINA_BUFFER_CPU_EXPLICIT before CPU reads, after GPU writes.
+// No-op for HINA_BUFFER_CPU (always coherent). Asserts on HINA_BUFFER_GPU.
+HINA_API void hina_invalidate_buffer(hina_buffer buf, size_t offset, size_t size);
+
+// One-shot GPU→CPU readback. Handles staging buffer and sync internally.
+// Source buffer must have HINA_BUFFER_TRANSFER_SRC usage.
+HINA_API void hina_download_buffer(hina_buffer src, size_t offset, size_t size, void* dst);
 
 HINA_API hina_ticket hina_flush_staging(void); // Flush internal staging buffers
 // Context API (for functions requiring per-context frame state)
@@ -1202,7 +1400,7 @@ typedef enum hina_texture_aspect
 /**
  * @brief Texture view description (separate from texture).
  *
- * Texture views provide a non-owning view over an existing texture, allowing:  
+ * Texture views provide a non-owning view over an existing texture, allowing:
  * - Access to a subset of mip levels or array layers
  * - Format reinterpretation (e.g., UNORM vs SRGB aliasing)
  *
@@ -1252,80 +1450,46 @@ HINA_API void hina_destroy_texture_view(hina_texture_view view);
 HINA_API bool hina_texture_view_is_valid(hina_texture_view view);
 
 // ---------------------------------------------------------------------------
-//  Pass Layout
-// ---------------------------------------------------------------------------
-/**
- * @brief Create a pass layout from attachment formats.
- *
- * @param color_formats Array of color attachment formats
- * @param color_count   Number of color attachments (0-4)
- * @param depth_format  Depth/stencil format (HINA_FORMAT_UNDEFINED if none)
- * @param samples       Sample count (1, 2, 4, 8)
- * @return Pass layout key
- */
-HINA_API hina_pass_layout hina_pass_layout_make(const hina_format* color_formats, uint32_t color_count,
-                                                hina_format depth_format, uint32_t samples);
-
-/**
- * @brief Get the color format at the specified index from a pass layout.
- */
-HINA_API hina_format hina_pass_layout_color_format(hina_pass_layout layout, uint32_t index);
-
-/**
- * @brief Get the depth/stencil format from a pass layout.
- */
-HINA_API hina_format hina_pass_layout_depth_format(hina_pass_layout layout);
-
-/**
- * @brief Get the sample count from a pass layout.
- */
-HINA_API uint32_t hina_pass_layout_samples(hina_pass_layout layout);
-
-/**
- * @brief Get the number of color attachments in a pass layout.
- */
-HINA_API uint32_t hina_pass_layout_color_count(hina_pass_layout layout);
-
-// ---------------------------------------------------------------------------
 //  Texture Download
 // ---------------------------------------------------------------------------
 /**
  * @brief Downloads texture data from GPU to CPU memory.
  *
- * This is a synchronous helper that:
- * 1. Creates a temporary staging buffer
+ * This is a synchronous operation that:
+ * 1. Uses a persistent internal staging buffer (grown as needed)
  * 2. Transitions the texture to TRANSFER_SRC layout
  * 3. Copies the specified mip/layer to the staging buffer
  * 4. Waits for GPU completion
  * 5. Copies data to the user-provided destination
  *
  * The texture must have been created with HINA_TEXTURE_TRANSFER_SRC_BIT usage.
+ * Asserts on invalid parameters (null dst, invalid handle, out-of-bounds mip/layer, insufficient dst_size).
  *
  * @param src       Source texture to download from
  * @param mip       Mip level to download (0 = base level)
  * @param layer     Array layer to download (0 = first layer)
  * @param dst       Destination buffer (must be large enough for the mip level)
  * @param dst_size  Size of destination buffer in bytes
- * @return true on success, false on failure
  */
-HINA_API bool hina_download_texture(hina_texture src, uint32_t mip, uint32_t layer, void* dst, size_t dst_size);
+HINA_API void hina_download_texture(hina_texture src, uint32_t mip, uint32_t layer, void* dst, size_t dst_size);
 
-HINA_API bool hina_ctx_download_texture(hina_context* ctx, hina_texture src, uint32_t mip, uint32_t layer, void* dst,
+HINA_API void hina_ctx_download_texture(hina_context* ctx, hina_texture src, uint32_t mip, uint32_t layer, void* dst,
                                         size_t dst_size);
 
-HINA_API bool hina_download_texture_3d(hina_texture src, uint32_t mip, uint32_t z_offset, uint32_t depth, void* dst,
+HINA_API void hina_download_texture_3d(hina_texture src, uint32_t mip, uint32_t z_offset, uint32_t depth, void* dst,
                                        size_t dst_size);
 
-HINA_API bool hina_ctx_download_texture_3d(hina_context* ctx, hina_texture src, uint32_t mip, uint32_t z_offset,
+HINA_API void hina_ctx_download_texture_3d(hina_context* ctx, hina_texture src, uint32_t mip, uint32_t z_offset,
                                            uint32_t depth, void* dst, size_t dst_size);
 
 /**
  * @brief Calculates the size in bytes needed to download a texture mip level.
  * For 3D textures, this includes the full mip depth.
+ * Asserts on invalid texture handle, out-of-bounds mip level, or unsupported format.
  *
  * @param tex   The texture to query
  * @param mip   The mip level to query
- * @return Size in bytes, or 0 if texture is invalid or format is unsupported
+ * @return Size in bytes
  */
 HINA_API size_t hina_texture_mip_size(hina_texture tex, uint32_t mip);
 
@@ -1386,6 +1550,42 @@ HINA_API hina_sampler hina_make_sampler(const hina_sampler_desc* desc);
 HINA_API void hina_destroy_sampler(hina_sampler samp);
 
 HINA_API void hina_ctx_destroy_sampler(hina_context* ctx, hina_sampler samp);
+
+// ===========================================================================
+//  Pass Layout
+// ===========================================================================
+// ---------------------------------------------------------------------------
+/**
+ * @brief Create a pass layout from attachment formats.
+ *
+ * @param color_formats Array of color attachment formats
+ * @param color_count   Number of color attachments (0-4)
+ * @param depth_format  Depth/stencil format (HINA_FORMAT_UNDEFINED if none)
+ * @param samples       Sample count (1, 2, 4, 8)
+ * @return Pass layout key
+ */
+HINA_API hina_pass_layout hina_pass_layout_make(const hina_format* color_formats, uint32_t color_count,
+                                                hina_format depth_format, uint32_t samples);
+
+/**
+ * @brief Get the color format at the specified index from a pass layout.
+ */
+HINA_API hina_format hina_pass_layout_color_format(hina_pass_layout layout, uint32_t index);
+
+/**
+ * @brief Get the depth/stencil format from a pass layout.
+ */
+HINA_API hina_format hina_pass_layout_depth_format(hina_pass_layout layout);
+
+/**
+ * @brief Get the sample count from a pass layout.
+ */
+HINA_API uint32_t hina_pass_layout_samples(hina_pass_layout layout);
+
+/**
+ * @brief Get the number of color attachments in a pass layout.
+ */
+HINA_API uint32_t hina_pass_layout_color_count(hina_pass_layout layout);
 
 // ===========================================================================
 //  Bind Groups (WebGPU-style descriptor management)
@@ -1491,10 +1691,12 @@ typedef struct hina_bind_group_entry
  */
 typedef struct hina_bind_group_desc
 {
-  hina_bind_group_layout layout; // Layout this group conforms to
+  // 8-byte aligned fields first
   const hina_bind_group_entry* entries;
-  uint32_t entry_count; // Must match layout's entry count
   const char* label; // Optional debug label
+  // 4-byte fields grouped together
+  hina_bind_group_layout layout; // Layout this group conforms to
+  uint32_t entry_count; // Must match layout's entry count
 } hina_bind_group_desc;
 
 // ---------------------------------------------------------------------------
@@ -1793,6 +1995,8 @@ HINA_API void hina_cmd_bind_transient_group(hina_cmd* cmd, uint32_t set, hina_tr
 //
 // The shader module is a standalone compilation library that can be used
 // independently of the Vulkan rendering module. It handles:
+// Threading: Shader compilation is not thread-safe. Call hslc_compile* from one
+// thread at a time.
 // - HSL (Hina Shader Language) preprocessing
 // - GLSL to SPIR-V compilation via glslang
 // - SPIR-V reflection via spirv-reflect
@@ -2061,7 +2265,7 @@ HINA_API void hslc_hsl_module_free_serialized(void* data);
  *   hina_hsl_module* module = hina_hsl_module_deserialize(data, size);
  *   my_free(data);  // Original buffer can be freed after deserialize
  *   hina_pipeline pip = hina_make_pipeline_from_module(module, &desc, NULL);
- *   hina_hsl_module_free_deserialized(module);  // Reclaims module allocation  
+ *   hina_hsl_module_free_deserialized(module);  // Reclaims module allocation
  *
  * @param data Pointer to serialized data (from hslc_hsl_module_serialize)
  * @param size Size of the data in bytes
@@ -2339,8 +2543,23 @@ typedef struct hina_specialization_constant
 typedef struct hina_tile_pass_layout hina_tile_pass_layout;
 /**
  * @brief Complete pipeline state descriptor.
+ *
  * HinaVK combines all state into a single immutable pipeline object.
  * Descriptor set layouts are automatically inferred from SPIR-V reflection.
+ *
+ * @section blend_state Per-Attachment Blend States
+ * The `blend[]` array provides independent blend states for each color attachment.
+ * - **blend[i]** corresponds to **color_formats[i]** (1:1 mapping)
+ * - If device supports `VkPhysicalDeviceFeatures::independentBlend`, each attachment
+ *   uses its own blend state from `blend[i]`
+ * - If device lacks independent blend, **blend[0] is used for ALL attachments**
+ *
+ * @section color_formats Color Attachment Formats
+ * The `color_formats[]` array specifies render target formats:
+ * - First HINA_FORMAT_UNDEFINED terminates the list (count derived automatically)
+ * - Use hina_get_surface_format() to get the swapchain format for swapchain rendering
+ * - Sparse attachments (UNDEFINED between valid formats) trigger debug assertion
+ * - Default: all color_formats = HINA_FORMAT_UNDEFINED (must be set explicitly)
  */
 typedef struct hina_pipeline_desc
 {
@@ -2350,15 +2569,13 @@ typedef struct hina_pipeline_desc
   hina_shader gs;
   hina_shader fs;
   hina_vertex_layout layout;
-  hina_blend_state blend;
+  hina_blend_state blend[HINA_MAX_COLOR_ATTACHMENTS];
   hina_depth_stencil_state depth;
   hina_depth_bias_state depth_bias;
   hina_primitive_topology primitive_topology;
   hina_polygon_mode polygon_mode;
   hina_cull_mode cull_mode;
   hina_front_face front_face;
-
-  // Stencil State
   struct
   {
     hina_stencil_op fail_op;
@@ -2370,10 +2587,13 @@ typedef struct hina_pipeline_desc
     uint32_t reference;
   } stencil_front, stencil_back;
 
-  // Render Target Formats (for dynamic rendering)
-  // HINA_FORMAT_UNDEFINED = use swapchain format for color, no depth/stencil
+  /**
+   * Render target formats for dynamic rendering.
+   * - HINA_FORMAT_UNDEFINED: No attachment (first UNDEFINED terminates list)
+   * - Use hina_get_surface_format() for swapchain-compatible pipelines
+   * - Count derived automatically; sparse attachments are not allowed
+   */
   hina_format color_formats[HINA_MAX_COLOR_ATTACHMENTS];
-  uint32_t color_attachment_count; // Default: 1; set to 0 for vertex-only pipelines
   hina_format depth_format;
   hina_format stencil_format;
   hina_sample_count samples; // MSAA sample count (0 or 1 = no MSAA)
@@ -2394,12 +2614,14 @@ typedef struct hina_pipeline_desc
   uint32_t gs_specialization_count;
   const hina_specialization_constant* fs_specializations;
   uint32_t fs_specialization_count;
-  // Explicit bind group layouts (optional)
-  // If bind_group_layout_count > 0, these layouts are used instead of reflection.
-  // Enables layout sharing across pipelines and decouples layout from shader.
-  // Debug builds validate that explicit layouts match shader reflection.
+  
+  /**
+   * Explicit bind group layouts (optional, production path).
+   * Count derived from array - first invalid handle terminates (zero-init = use reflection).
+   * When valid layouts provided, uses these instead of auto-generating from shader reflection.
+   * Debug builds validate that explicit layouts match shader reflection.
+   */
   hina_bind_group_layout bind_group_layouts[HINA_MAX_DESCRIPTOR_SETS];
-  uint32_t bind_group_layout_count; // 0 = use reflection (default)
   const char* label; // Optional debug label (shows in RenderDoc, validation layers)
 } hina_pipeline_desc;
 
@@ -2408,10 +2630,9 @@ typedef struct hina_pipeline_desc
 //           .cull_mode = HINA_CULL_MODE_BACK,
 //           .front_face = HINA_FRONT_FACE_COUNTER_CLOCKWISE,
 //           .samples = HINA_SAMPLE_COUNT_1_BIT,
-//           .blend = (see hina_blend_state defaults),
+//           .blend[0..3] = hina_blend_state_default() (per-attachment, 1:1 with color_formats)
 //           .depth = (see hina_depth_stencil_state defaults),
-//           .color_attachment_count = 1 (vertex-only pipelines must set to 0)
-//           .color_formats[] = HINA_FORMAT_UNDEFINED (uses swapchain format)
+//           .color_formats[0..3] = HINA_FORMAT_UNDEFINED (must set explicitly)
 HINA_API hina_pipeline_desc hina_pipeline_desc_default(void);
 
 typedef struct hina_compute_pipeline_desc
@@ -2419,9 +2640,11 @@ typedef struct hina_compute_pipeline_desc
   hina_shader cs;
   uint32_t push_constant_range_count;
   const hina_push_constant_range* push_constant_ranges;
-  // Explicit bind group layouts (optional)
+  /**
+   * Explicit bind group layouts (optional).
+   * Count derived from array - first invalid handle terminates (zero-init = use reflection).
+   */
   hina_bind_group_layout bind_group_layouts[HINA_MAX_DESCRIPTOR_SETS];
-  uint32_t bind_group_layout_count; // 0 = use reflection (default)
   const char* label; // Optional debug label (shows in RenderDoc, validation layers)
 } hina_compute_pipeline_desc;
 
@@ -2455,7 +2678,20 @@ HINA_API void hina_ctx_destroy_pipeline(hina_context* ctx, hina_pipeline pip);
 // ---------------------------------------------------------------------------
 /**
  * @brief HSL Pipeline Descriptor.
- * Creates a pipeline from a compiled HSL module.
+ *
+ * Creates a pipeline from a compiled HSL module. See hina_pipeline_desc for
+ * detailed documentation on blend states and color formats.
+ *
+ * @section blend_state Per-Attachment Blend States
+ * Same behavior as hina_pipeline_desc:
+ * - blend[i] corresponds to color_formats[i]
+ * - Falls back to blend[0] for all if device lacks independentBlend feature
+ *
+ * @section color_formats Color Attachment Formats
+ * Same behavior as hina_pipeline_desc:
+ * - First UNDEFINED terminates the list
+ * - Use hina_get_surface_format() for swapchain-compatible pipelines
+ * - Sparse attachments trigger debug assertion
  *
  * @note The library no longer compiles HSL at runtime. Use hina_shader
  *       to compile HSL into a module, then create a pipeline from it.
@@ -2464,7 +2700,12 @@ typedef struct hina_hsl_pipeline_desc
 {
   // Pipeline state (same fields as hina_pipeline_desc, minus shader handles)
   hina_vertex_layout layout;
-  hina_blend_state blend;
+
+  /**
+   * Per-attachment blend states (1:1 correspondence with color_formats).
+   * Falls back to blend[0] for all if device lacks independentBlend feature.
+   */
+  hina_blend_state blend[HINA_MAX_COLOR_ATTACHMENTS];
   hina_depth_stencil_state depth;
   hina_depth_bias_state depth_bias;
   hina_primitive_topology primitive_topology;
@@ -2483,10 +2724,13 @@ typedef struct hina_hsl_pipeline_desc
     uint32_t reference;
   } stencil_front, stencil_back;
 
-  // Render Target Formats (for dynamic rendering)
-  // HINA_FORMAT_UNDEFINED = use swapchain format for color, no depth/stencil
+  /**
+   * Render target formats for dynamic rendering.
+   * - First UNDEFINED terminates list (count derived automatically)
+   * - Use hina_get_surface_format() for swapchain-compatible pipelines
+   * - Sparse attachments trigger debug assertion
+   */
   hina_format color_formats[HINA_MAX_COLOR_ATTACHMENTS];
-  uint32_t color_attachment_count; // Default: 1; set to 0 for vertex-only pipelines
   hina_format depth_format;
   hina_format stencil_format;
   hina_sample_count samples; // MSAA sample count (0 or 1 = no MSAA)
@@ -2506,11 +2750,13 @@ typedef struct hina_hsl_pipeline_desc
   uint32_t gs_specialization_count;
   const hina_specialization_constant* fs_specializations;
   uint32_t fs_specialization_count;
-  // Explicit Bind Group Layouts (production path)
-  // When provided (bind_group_layout_count > 0), uses these instead of auto-generating
-  // from shader reflection. Debug builds validate module bindings match these layouts.
+  /**
+   * Explicit bind group layouts (optional, production path).
+   * Count derived from array - first invalid handle terminates (zero-init = use reflection).
+   * When valid layouts provided, uses these instead of auto-generating from shader reflection.
+   * Debug builds validate that module bindings match these layouts.
+   */
   hina_bind_group_layout bind_group_layouts[HINA_MAX_DESCRIPTOR_SETS];
-  uint32_t bind_group_layout_count;
   const char* label; // Optional debug label (shows in RenderDoc, validation layers)
 } hina_hsl_pipeline_desc;
 
@@ -2636,6 +2882,12 @@ typedef struct hina_depth_attachment
 /**
  * @brief Defines a dynamic render pass.
  * HinaVK uses dynamic rendering, so pass objects are transient structs, not created resources.
+ *
+ * @section color_attachments Color Attachments
+ * - First invalid handle (`.id == HINA_INVALID_HANDLE`) in colors[] terminates the list
+ * - Dynamic rendering backend (vkCmdBeginRendering): supports all HINA_MAX_COLOR_ATTACHMENTS
+ * - Legacy render pass backend: **only uses colors[0]** (colors[1..N] silently ignored)
+ *   Check hina_device_caps.has_dynamic_rendering to detect which backend is active.
  */
 typedef struct hina_pass_action
 {
@@ -2646,6 +2898,15 @@ typedef struct hina_pass_action
   uint32_t flags; // hina_pass_flags
 } hina_pass_action;
 
+/**
+ * @brief Begin a dynamic render pass.
+ *
+ * Starts rendering to the color/depth attachments specified in the action.
+ * Must be paired with hina_cmd_end_pass(). Cannot be nested.
+ *
+ * @param cmd   Command buffer (must be recording, not inside a pass)
+ * @param action Pass configuration (attachments, dimensions, clear values)
+ */
 HINA_API void hina_cmd_begin_pass(hina_cmd* cmd, const hina_pass_action* action);
 
 HINA_API void hina_cmd_end_pass(hina_cmd* cmd);
@@ -2672,31 +2933,37 @@ HINA_API void hina_cmd_end_pass(hina_cmd* cmd);
  */
 typedef struct hina_tile_input
 {
-  uint32_t subpass_output_index; // Source subpass that wrote this attachment  
-  uint32_t attachment_index; // Color attachment index in source subpass   
+  uint32_t subpass_output_index; // Source subpass that wrote this attachment
+  uint32_t attachment_index; // Color attachment index in source subpass
 } hina_tile_input;
 
 /** @brief Describes a single subpass within a tile pass */
 typedef struct hina_tile_subpass
 {
-  const char* label; // Debug label        
-  hina_color_attachment color[HINA_MAX_COLOR_ATTACHMENTS]; // Color outputs     
+  const char* label; // Debug label
+  hina_color_attachment color[HINA_MAX_COLOR_ATTACHMENTS]; // Color outputs
   uint32_t color_count; // Must be <= HINA_MAX_COLOR_ATTACHMENTS
   hina_tile_input tile_inputs[HINA_MAX_TILE_INPUTS]; // Input attachments to read
   uint32_t tile_input_count; // Must be <= HINA_MAX_TILE_INPUTS
   hina_depth_attachment depth;
   bool has_depth;
-  bool depth_read_only; // Preserve depth from previous subpass (read-only)    
+  bool depth_read_only; // Preserve depth from previous subpass (read-only)
+  bool depth_input;     // Read depth from prior subpass as input attachment
 } hina_tile_subpass;
 
-/** @brief Describes a complete tile pass with multiple subpasses */
+/**
+ * @brief Describes a complete tile pass with multiple subpasses.
+ *
+ * Subpass count is derived automatically - first empty subpass terminates.
+ * An empty subpass has: color_count == 0 && tile_input_count == 0 && has_depth == false.
+ * Zero-init produces no subpasses; at least one subpass with attachments is required.
+ */
 typedef struct hina_tile_pass_desc
 {
   const char* label;
   hina_tile_subpass subpasses[HINA_MAX_TILE_SUBPASSES];
-  uint32_t subpass_count; // Must be 1..HINA_MAX_TILE_SUBPASSES
-  uint32_t width; // Render area width (0 = use first attachment size)        
-  uint32_t height; // Render area height (0 = use first attachment size)       
+  uint32_t width; // Render area width (0 = use first attachment size)
+  uint32_t height; // Render area height (0 = use first attachment size)
 } hina_tile_pass_desc;
 
 HINA_API bool hina_begin_tile_pass(hina_cmd* cmd, const hina_tile_pass_desc* desc);
@@ -2729,15 +2996,21 @@ typedef struct hina_tile_subpass_layout
   uint32_t color_count; // Must be <= HINA_MAX_COLOR_ATTACHMENTS
   hina_format depth_format; // HINA_FORMAT_UNDEFINED = no depth (for other subpasses)
   bool depth_read_only; // Must match runtime for render pass compatibility
-  uint8_t pad[3]; // Padding for alignment
+  bool depth_input;     // Read depth from prior subpass as input attachment
   hina_tile_input tile_inputs[HINA_MAX_TILE_INPUTS]; // Input attachment mappings
   uint32_t input_count; // Must be <= HINA_MAX_TILE_INPUTS
 } hina_tile_subpass_layout;
 
+/**
+ * @brief Layout for tile passes (used in pipeline creation).
+ *
+ * Subpass count is derived automatically - first empty subpass terminates.
+ * An empty subpass has: color_count == 0 && input_count == 0 && depth_format == UNDEFINED.
+ * Zero-init produces no subpasses; pipelines using tile_layout require at least one subpass.
+ */
 typedef struct hina_tile_pass_layout
 {
   hina_tile_subpass_layout subpasses[HINA_MAX_TILE_SUBPASSES];
-  uint32_t subpass_count; // Must be <= HINA_MAX_TILE_SUBPASSES
   hina_sample_count samples; // Must be 0 or a single HINA_SAMPLE_COUNT_* value
 } hina_tile_pass_layout;
 
@@ -2954,62 +3227,6 @@ HINA_API void hina_cmd_acquire_texture(hina_cmd* cmd, hina_texture tex, hina_que
 HINA_API void hina_cmd_acquire_buffer(hina_cmd* cmd, hina_buffer buf, hina_queue src_queue);
 
 // ===========================================================================
-//  Swapchain & Presentation
-// ===========================================================================
-typedef enum
-{
-  HINA_PRESENT_MODE_FIFO = 0, // Vsync, always available (default)
-  HINA_PRESENT_MODE_MAILBOX, // No vsync, no tearing (falls back to FIFO)
-  HINA_PRESENT_MODE_IMMEDIATE, // Lowest latency, may tear (falls back to MAILBOX→FIFO)
-} hina_present_mode;
-
-typedef enum
-{
-  HINA_SWAPCHAIN_TRANSPARENT_BIT = HINA_FLAG_BIT(0), // Alpha compositing with desktop
-} hina_swapchain_flags;
-
-typedef enum
-{
-  HINA_COLOR_SPACE_SRGB_NONLINEAR = 0,
-  HINA_COLOR_SPACE_DISPLAY_P3_NONLINEAR = 1000104001,
-  HINA_COLOR_SPACE_EXTENDED_SRGB_LINEAR = 1000104002,
-  HINA_COLOR_SPACE_DISPLAY_P3_LINEAR = 1000104003,
-  HINA_COLOR_SPACE_DCI_P3_NONLINEAR = 1000104004,
-  HINA_COLOR_SPACE_BT709_LINEAR = 1000104005,
-  HINA_COLOR_SPACE_BT709_NONLINEAR = 1000104006,
-  HINA_COLOR_SPACE_BT2020_LINEAR = 1000104007,
-  HINA_COLOR_SPACE_HDR10_ST2084 = 1000104008,
-  HINA_COLOR_SPACE_DOLBYVISION = 1000104009,
-  HINA_COLOR_SPACE_HDR10_HLG = 1000104010,
-  HINA_COLOR_SPACE_ADOBERGB_LINEAR = 1000104011,
-  HINA_COLOR_SPACE_ADOBERGB_NONLINEAR = 1000104012,
-  HINA_COLOR_SPACE_PASS_THROUGH = 1000104013,
-  HINA_COLOR_SPACE_EXTENDED_SRGB_NONLINEAR = 1000104014
-} hina_color_space;
-
-typedef struct hina_swapchain_desc
-{
-  hina_swapchain_flags flags;
-  hina_present_mode present_mode; // 0 = FIFO (vsync, default)
-  hina_format preferred_format; // HINA_FORMAT_UNDEFINED = auto
-  hina_color_space preferred_color_space; // 0 = SRGB_NONLINEAR (default)
-} hina_swapchain_desc;
-
-// Defaults: present_mode=FIFO, format/color_space=auto
-HINA_API hina_swapchain_desc hina_swapchain_desc_default(void);
-
-HINA_API void hina_configure_swapchain(const hina_swapchain_desc* desc);
-
-// Surface lost state (for Android lifecycle handling)
-// Returns true if surface was lost and needs recreation via hina_recreate_surface()
-HINA_API bool hina_is_surface_lost(void);
-
-// Recreate Vulkan surface after it was lost (Android lifecycle, BufferQueue abandoned)
-// Call this when SDL provides a new native window (e.g., SDL_APP_DIDENTERFOREGROUND)
-// Returns true on success, false on failure
-HINA_API bool hina_recreate_surface(void* native_window, void* native_display);
-
-// ===========================================================================
 //  Query Pools & Profiling
 // ===========================================================================
 typedef enum
@@ -3044,20 +3261,21 @@ HINA_API bool hina_get_query_results(hina_query_pool pool, uint32_t first_query,
 
 double hina_timestamp_to_ns(uint64_t timestamp_delta);
 
-/**
- * @brief Profiler hooks for external profiling tools (e.g., Tracy, Optick, PIX).
- * The user_data field is passed to both callbacks, allowing stateful profiling.
- */
-typedef struct hina_profiler_hooks
+// ===========================================================================
+//  Diagnostics
+// ===========================================================================
+typedef struct hina_gpu_memory_stats
 {
-  void (*gpu_zone_begin)(hina_cmd* cmd, const char* name, void* user_data);
+  uint64_t total_bytes;
+  uint64_t usage_bytes;
+} hina_gpu_memory_stats;
 
-  void (*gpu_zone_end)(hina_cmd* cmd, void* user_data);
-
-  void* user_data;
-} hina_profiler_hooks;
-
-HINA_API void hina_set_profiler_hooks(const hina_profiler_hooks* hooks);
+/**
+ * @brief Query device-local GPU memory usage.
+ *
+ * Returns false if no device is initialized.
+ */
+HINA_API bool hina_get_gpu_memory_stats(hina_gpu_memory_stats* out_stats);
 
 // ===========================================================================
 //  Debug Utilities

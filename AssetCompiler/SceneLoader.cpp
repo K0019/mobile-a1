@@ -31,6 +31,71 @@ All rights reserved.
 
 namespace compiler
 {
+    // ----- Winding Order Diagnostic ----- //
+    // Analyzes mesh winding order by comparing geometric face normals with vertex normals
+    // CCW convention: cross(edge1, edge2) where edge1 = v1-v0, edge2 = v2-v0
+    void DiagnoseWindingOrder(const ProcessedMesh& mesh, const std::string& context)
+    {
+        if (mesh.vertices.empty() || mesh.indices.empty() || mesh.indices.size() % 3 != 0)
+            return;
+
+        int ccwAgree = 0;   // Face normal (CCW) agrees with vertex normal
+        int ccwDisagree = 0;
+        int degenerate = 0;
+
+        const uint32_t numTriangles = static_cast<uint32_t>(mesh.indices.size() / 3);
+
+        for (uint32_t tri = 0; tri < numTriangles; ++tri)
+        {
+            uint32_t i0 = mesh.indices[tri * 3 + 0];
+            uint32_t i1 = mesh.indices[tri * 3 + 1];
+            uint32_t i2 = mesh.indices[tri * 3 + 2];
+
+            if (i0 >= mesh.vertices.size() || i1 >= mesh.vertices.size() || i2 >= mesh.vertices.size())
+                continue;
+
+            const vec3& p0 = mesh.vertices[i0].position;
+            const vec3& p1 = mesh.vertices[i1].position;
+            const vec3& p2 = mesh.vertices[i2].position;
+
+            // Compute face normal using CCW convention: cross(v1-v0, v2-v0)
+            vec3 edge1 = p1 - p0;
+            vec3 edge2 = p2 - p0;
+            vec3 faceNormalCCW = glm::cross(edge1, edge2);
+
+            float len = glm::length(faceNormalCCW);
+            if (len < 0.0001f) {
+                degenerate++;
+                continue;
+            }
+            faceNormalCCW /= len;
+
+            // Average vertex normals
+            vec3 avgVertexNormal = glm::normalize(
+                mesh.vertices[i0].normal + mesh.vertices[i1].normal + mesh.vertices[i2].normal);
+
+            float dot = glm::dot(faceNormalCCW, avgVertexNormal);
+            if (dot > 0.0f)
+                ccwAgree++;
+            else
+                ccwDisagree++;
+        }
+
+        // Determine winding
+        const char* winding = "UNKNOWN";
+        if (ccwAgree > ccwDisagree * 2)
+            winding = "CCW (correct for Vulkan)";
+        else if (ccwDisagree > ccwAgree * 2)
+            winding = "CW (INVERTED for Vulkan - needs aiProcess_FlipWindingOrder)";
+        else
+            winding = "MIXED (inconsistent)";
+
+        std::cerr << "[WINDING DIAGNOSTIC] " << context << " - Mesh '" << mesh.name << "':\n"
+                  << "  Triangles: " << numTriangles << " (degenerate: " << degenerate << ")\n"
+                  << "  CCW agree: " << ccwAgree << ", CCW disagree: " << ccwDisagree << "\n"
+                  << "  Detected winding: " << winding << "\n" << std::flush;
+    }
+
     // ----- Helpers ----- //
     inline vec3 AiToVec3(const aiVector3D& v)
     {
@@ -706,6 +771,9 @@ namespace compiler
             }
         }
 
+        // Diagnostic: Check winding order before returning
+        DiagnoseWindingOrder(mesh, "After Assimp extraction");
+
         return mesh;
     }
 
@@ -794,9 +862,11 @@ namespace compiler
         importer.SetPropertyInteger(AI_CONFIG_PP_SBP_REMOVE, aiPrimitiveType_POINT | aiPrimitiveType_LINE);
         importer.SetPropertyFloat(AI_CONFIG_PP_GSN_MAX_SMOOTHING_ANGLE, 80.0f);
 
-        // No automatic scale conversion - let files use their native units
-        // FBX files will be in whatever units the exporter used (often cm)
-        // GLB/glTF files are in meters per specification
+        // Note: No automatic unit conversion. FBX/GLB files use whatever units the artist exported with.
+        // If scale issues occur, either:
+        // 1. Fix at export time in the 3D software
+        // 2. Add per-asset scale metadata
+        // 3. Apply scene-level scale in the engine
 
         const uint32_t flags = aiProcess_Triangulate | aiProcess_JoinIdenticalVertices | aiProcess_GenSmoothNormals | aiProcess_ImproveCacheLocality | aiProcess_ValidateDataStructure;
 

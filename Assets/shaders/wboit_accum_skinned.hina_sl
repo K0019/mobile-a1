@@ -17,7 +17,7 @@ bindings(Frame, start=0) {
 // Material bind group: binding 0 = packed constants, bindings 1-5 = textures
 bindings(Material, start=0) {
   uniform(std140) MaterialConstants {
-    uvec4 packed;  // [0]: baseColor.rg (half2), [1]: baseColor.b,roughness (half2), [2]: metallic,emissive (half2), [3]: rim,ao (half2)
+    uvec4 packed;  // [0]: baseColor.rg (half2), [1]: baseColor.ba (half2), [2]: roughness,metallic (half2), [3]: emissive,alphaCutoff (half2)
   } material;
   texture sampler2D u_albedo;
   texture sampler2D u_normal;
@@ -139,8 +139,8 @@ FragOut FSMain(Varyings in) {
 
     // Unpack base color from material constants
     vec2 rg = unpackHalf2x16(material.packed.x);
-    vec2 bRoug = unpackHalf2x16(material.packed.y);
-    vec4 baseColor = vec4(rg.x, rg.y, bRoug.x, 1.0);
+    vec2 ba = unpackHalf2x16(material.packed.y);
+    vec4 baseColor = vec4(rg.x, rg.y, ba.x, ba.y);
 
     // Sample albedo texture
     vec4 albedo = texture(u_albedo, in.uv) * baseColor;

@@ -488,9 +488,8 @@ namespace internal
     // Create triple-buffered uniform buffers
     hina_buffer_desc desc = {};
     desc.size = sizePerFrame;
-    desc.flags = (hina_buffer_flags)(HINA_BUFFER_UNIFORM_BIT |
-                                      HINA_BUFFER_HOST_VISIBLE_BIT |
-                                      HINA_BUFFER_HOST_COHERENT_BIT);
+    desc.memory = HINA_BUFFER_CPU;
+    desc.usage = HINA_BUFFER_UNIFORM;
 
     for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i) {
       gfx::Buffer buf = hina_make_buffer(&desc);
@@ -499,7 +498,7 @@ namespace internal
         return false;
       }
       m_buffers[i].reset(buf);
-      m_mapped[i] = hina_map_buffer(buf);
+      m_mapped[i] = hina_mapped_buffer_ptr(buf);
       if (!m_mapped[i]) {
         shutdown();
         return false;
@@ -739,7 +738,7 @@ namespace internal
     m_pRenderGraph->RegisterPass(std::move(execData), std::move(metadata), std::move(executeLambda));
   }
 } // namespace internal
-RenderGraph::RenderGraph() : oit(), linearColorSystem()
+RenderGraph::RenderGraph() : linearColorSystem()
 {
   // Pre-reserve capacity
   m_passExecData.reserve(32);
@@ -988,6 +987,7 @@ void RenderGraph::Compile()
   // This avoids recompilation on window resize - only swapchain resources change
   linearColorSystem.RegisterLinearColorResources(*this);
   // SCENE_DEPTH is the shared depth buffer - G-buffer pass writes to it directly
+  // InputAttachment is required for tile pass depth input (subpass reads depth from tile memory)
   RegisterTransientResource(RenderResources::SCENE_DEPTH, gfx::TextureDesc{
                               .type = HINA_TEX_TYPE_2D,
                               .format = HINA_FORMAT_D32_SFLOAT,
@@ -996,7 +996,7 @@ void RenderGraph::Compile()
                               .depth = 1,
                               .layers = 1,
                               .mip_levels = 1,
-                              .usage = static_cast<hina_texture_usage_flags>(gfx::TextureUsage::RenderTarget | gfx::TextureUsage::Sampled)
+                              .usage = static_cast<hina_texture_usage_flags>(gfx::TextureUsage::RenderTarget | gfx::TextureUsage::Sampled | gfx::TextureUsage::InputAttachment)
                             });
   for (IRenderFeature* feature : m_features)
   {
@@ -1006,10 +1006,6 @@ void RenderGraph::Compile()
   {
     internal::RenderPassBuilder builder(this, nullptr);
     linearColorSystem.RegisterToneMappingPass(builder);
-  }
-  {
-    internal::RenderPassBuilder builder(this, nullptr);
-    oit.SetupPasses(builder);
   }
   if (m_passExecData.empty())
   {
@@ -1021,11 +1017,15 @@ void RenderGraph::Compile()
   // This is a placeholder - the concrete handle is set in UpdateViewOutputResource()
   if (auto* info = GetResolvedResource(m_viewOutputID))
   {
+    // Get actual VIEW_OUTPUT format from GfxRenderer (matches swapchain format)
+    HinaContext* hinaCtx = m_gfxRenderer ? m_gfxRenderer->getHinaContext() : nullptr;
+    hina_format viewOutputFormat = hinaCtx ? static_cast<hina_format>(hinaCtx->getSwapchainFormat())
+                                           : HINA_FORMAT_B8G8R8A8_SRGB;
     *info = ResolvedResourceInfo{
       .concreteHandle = ResourceHandle{},  // Placeholder - set in Execute()
       .definition = ResourceProperties::FromDesc(gfx::TextureDesc{
         .type = HINA_TEX_TYPE_2D,
-        .format = HINA_FORMAT_B8G8R8A8_UNORM,  // LDR format for ImGui display
+        .format = viewOutputFormat,  // Must match actual VIEW_OUTPUT texture format
         .width = RenderResources::INTERNAL_WIDTH,
         .height = RenderResources::INTERNAL_HEIGHT,
         .depth = 1,
@@ -1364,15 +1364,15 @@ void RenderGraph::EnsureBlitPipelineCreated()
     pip_desc.depth.depth_write = false;
     pip_desc.depth_format = HINA_FORMAT_UNDEFINED;
 
-    // Color format - use swapchain format for both VIEW_OUTPUT and swapchain
-    // VIEW_OUTPUT is created with swapchain format, so this works for both
-    pip_desc.color_formats[0] = static_cast<hina_format>(hinaCtx->getSwapchainFormat());
-    pip_desc.color_attachment_count = 1;
+    // Color format - query actual surface format from hina-vk
+    hina_format surfaceFormat = hina_get_surface_format();
+    pip_desc.color_formats[0] = surfaceFormat != HINA_FORMAT_UNDEFINED
+                                  ? surfaceFormat
+                                  : HINA_FORMAT_B8G8R8A8_SRGB;
 
     // Use the blit bind group layout
     if (hina_bind_group_layout_is_valid(m_blitBindGroupLayout.get())) {
       pip_desc.bind_group_layouts[0] = m_blitBindGroupLayout.get();
-      pip_desc.bind_group_layout_count = 1;
     }
 
     m_blitPipeline.reset(hina_make_pipeline_from_module(module, &pip_desc, nullptr));
@@ -1443,19 +1443,17 @@ void RenderGraph::EnsureResolveOutputPipelineCreated()
     pip_desc.depth.depth_write = false;
     pip_desc.depth_format = HINA_FORMAT_UNDEFINED;
 
-    // Output to VIEW_OUTPUT which uses the swapchain format
-    // Query actual format from HinaContext to ensure compatibility
-    hina_format viewOutputFormat = static_cast<hina_format>(hinaCtx->getSwapchainFormat());
-    if (viewOutputFormat == HINA_FORMAT_UNDEFINED) {
-      viewOutputFormat = HINA_FORMAT_B8G8R8A8_SRGB;  // Fallback
-    }
-    pip_desc.color_formats[0] = viewOutputFormat;
-    pip_desc.color_attachment_count = 1;
+    // Output to VIEW_OUTPUT - use the actual swapchain format
+    // Note: VIEW_OUTPUT textures are created with the swapchain format in GfxRenderer
+    // We can't use HINA_FORMAT_SWAPCHAIN here because it may not resolve correctly
+    // if the swapchain isn't fully initialized when this pipeline is created
+    HinaContext* hinaCtx = m_gfxRenderer ? m_gfxRenderer->getHinaContext() : nullptr;
+    pip_desc.color_formats[0] = hinaCtx ? static_cast<hina_format>(hinaCtx->getSwapchainFormat())
+                                        : HINA_FORMAT_B8G8R8A8_SRGB;
 
     // Use the resolve output bind group layout
     if (hina_bind_group_layout_is_valid(m_resolveOutputBindGroupLayout.get())) {
       pip_desc.bind_group_layouts[0] = m_resolveOutputBindGroupLayout.get();
-      pip_desc.bind_group_layout_count = 1;
     }
 
     m_resolveOutputPipeline.reset(hina_make_pipeline_from_module(module, &pip_desc, nullptr));

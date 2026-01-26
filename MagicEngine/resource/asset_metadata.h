@@ -16,6 +16,7 @@ namespace Resource
      * - Original source file path
      * - Timestamps for incremental compilation
      * - Format version for compatibility checks
+     * - Resource hash for stable identification
      */
     class AssetMetadata
     {
@@ -27,6 +28,7 @@ namespace Resource
         uint64_t sourceTimestamp = 0;
         uint64_t compiledTimestamp = 0;
         uint32_t formatVersion = 0;
+        uint64_t resourceHash = 0;  // Stable resource identifier (0 = not yet assigned)
 
         /**
          * @brief Get the .meta file path for a given asset path.
@@ -81,6 +83,8 @@ namespace Resource
                     compiledTimestamp = std::stoull(value);
                 else if (key == "formatVersion")
                     formatVersion = static_cast<uint32_t>(std::stoul(value));
+                else if (key == "resourceHash")
+                    resourceHash = std::stoull(value);
             }
 
             return true;
@@ -109,6 +113,8 @@ namespace Resource
                 file << "compiledTimestamp: " << compiledTimestamp << "\n";
             if (formatVersion > 0)
                 file << "formatVersion: " << formatVersion << "\n";
+            if (resourceHash > 0)
+                file << "resourceHash: " << resourceHash << "\n";
 
             return true;
         }
@@ -147,6 +153,15 @@ namespace Resource
                 return AssetFormat::AssetType::Unknown;
 
             return AssetFormat::getAssetTypeFromExtension(filepath.substr(dotPos));
+        }
+
+        /**
+         * @brief Check if this metadata has a valid resource hash.
+         * @return true if resourceHash is non-zero (assigned)
+         */
+        bool hasResourceHash() const
+        {
+            return resourceHash != 0;
         }
     };
 

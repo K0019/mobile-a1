@@ -20,9 +20,16 @@ bool HinaContext::initialize(void* nativeWindow, uint32_t width, uint32_t height
     m_width = width;
     m_height = height;
 
-    // Query swapchain format from hina
-    // For now, assume BGRA8 SRGB - this matches most desktop/mobile targets
-    m_swapchainFormat = HINA_FORMAT_B8G8R8A8_SRGB;
+    // Query swapchain format from hina-vk
+    hina_format surfaceFormat = hina_get_surface_format();
+    if (surfaceFormat != HINA_FORMAT_UNDEFINED) {
+        m_swapchainFormat = surfaceFormat;
+        LOG_INFO("HinaContext: Using surface format from hina-vk: {}", static_cast<int>(surfaceFormat));
+    } else {
+        // Fallback if surface not ready yet (shouldn't happen on desktop)
+        m_swapchainFormat = HINA_FORMAT_B8G8R8A8_SRGB;
+        LOG_WARNING("HinaContext: Surface format not available, using fallback SRGB");
+    }
     m_hasSwapchain = true;
     m_preTransform = gfx::SurfaceTransform::Identity;
 
@@ -80,7 +87,7 @@ gfx::Holder<gfx::Texture> HinaContext::createTextureHolder(const gfx::TextureDes
 
 uint8_t* HinaContext::getMappedPtr(gfx::Buffer buf) const {
     if (!gfx::isValid(buf)) return nullptr;
-    return static_cast<uint8_t*>(hina_map_buffer(buf));
+    return static_cast<uint8_t*>(hina_mapped_buffer_ptr(buf));
 }
 
 void HinaContext::flushMappedMemory(gfx::Buffer buf, size_t offset, size_t size) const {
@@ -89,12 +96,9 @@ void HinaContext::flushMappedMemory(gfx::Buffer buf, size_t offset, size_t size)
 }
 
 gfx::Holder<gfx::Buffer> HinaContext::createBufferHolder(const gfx::BufferDesc& desc, const char* debugName) {
-    (void)debugName;
-
-    hina_buffer_desc hinaDesc{
-        .size = desc.size,
-        .flags = desc.flags
-    };
+    // gfx::BufferDesc is hina_buffer_desc, just add the label
+    hina_buffer_desc hinaDesc = desc;
+    hinaDesc.label = debugName;
 
     gfx::Buffer buffer = hina_make_buffer(&hinaDesc);
     if (!hina_buffer_is_valid(buffer)) {

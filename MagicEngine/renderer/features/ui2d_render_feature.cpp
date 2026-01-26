@@ -79,11 +79,13 @@ void Ui2DRenderFeature::SetupPasses(internal::RenderPassBuilder& passBuilder)
 {
   gfx::BufferDesc vertexDesc{
     .size = 64 * 1024,
-    .flags = static_cast<hina_buffer_flags>(gfx::BufferUsage::Vertex | gfx::BufferUsage::HostVisible | gfx::BufferUsage::HostCoherent)
+    .memory = gfx::BufferMemory::CPU,
+    .usage = gfx::BufferUsage::Vertex
   };
   gfx::BufferDesc indexDesc{
     .size = 32 * 1024,
-    .flags = static_cast<hina_buffer_flags>(gfx::BufferUsage::Index | gfx::BufferUsage::HostVisible | gfx::BufferUsage::HostCoherent)
+    .memory = gfx::BufferMemory::CPU,
+    .usage = gfx::BufferUsage::Index
   };
   PassDeclarationInfo passInfo;
   passInfo.framebufferDebugName = "Ui2DOverlay";
@@ -138,17 +140,16 @@ void Ui2DRenderFeature::EnsurePipeline(const internal::ExecutionContext& context
   pip_desc.samples = HINA_SAMPLE_COUNT_1_BIT;
 
   // Blend state for alpha blending
-  pip_desc.blend.enable = true;
-  pip_desc.blend.src_color = HINA_BLEND_FACTOR_SRC_ALPHA;
-  pip_desc.blend.dst_color = HINA_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
-  pip_desc.blend.color_op = HINA_BLEND_OP_ADD;
-  pip_desc.blend.src_alpha = HINA_BLEND_FACTOR_ONE;
-  pip_desc.blend.dst_alpha = HINA_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
-  pip_desc.blend.alpha_op = HINA_BLEND_OP_ADD;
+  pip_desc.blend[0].enable = true;
+  pip_desc.blend[0].src_color = HINA_BLEND_FACTOR_SRC_ALPHA;
+  pip_desc.blend[0].dst_color = HINA_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+  pip_desc.blend[0].color_op = HINA_BLEND_OP_ADD;
+  pip_desc.blend[0].src_alpha = HINA_BLEND_FACTOR_ONE;
+  pip_desc.blend[0].dst_alpha = HINA_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+  pip_desc.blend[0].alpha_op = HINA_BLEND_OP_ADD;
 
   // Color attachment format: use HDR scene format since we render to SCENE_COLOR
   pip_desc.color_formats[0] = LinearColor::HDR_SCENE_FORMAT;
-  pip_desc.color_attachment_count = 1;
 
   // No depth testing for UI
   pip_desc.depth.depth_test = false;
@@ -159,7 +160,6 @@ void Ui2DRenderFeature::EnsurePipeline(const internal::ExecutionContext& context
   gfx::BindGroupLayout uiLayout = gfxRenderer->getUIBindGroupLayout();
   if (hina_bind_group_layout_is_valid(uiLayout)) {
     pip_desc.bind_group_layouts[0] = uiLayout;
-    pip_desc.bind_group_layout_count = 1;
   }
 
   pipeline_.reset(hina_make_pipeline_from_module(module, &pip_desc, nullptr));

@@ -16,6 +16,7 @@
 
 #include "gfx_interface.h"     // For gfx:: types including BufferDesc
 #include "mesh_types.h"        // For FullVertex, MeshBounds
+#include "gpu_data.h"          // For GPUMorphDelta
 #include <offset_allocator/offsetAllocator.hpp>
 #include <vector>
 #include <cstdint>
@@ -31,10 +32,12 @@ namespace gfx {
 // Configuration
 // ============================================================================
 
-// Default chunk size: 16MB for vertices, 8MB for indices, 8MB for skinning
+// Default chunk size: 16MB for vertices, 8MB for indices, 8MB for skinning, 16MB for morphs
 constexpr size_t DEFAULT_VERTEX_CHUNK_SIZE = 16 * 1024 * 1024;
 constexpr size_t DEFAULT_INDEX_CHUNK_SIZE = 8 * 1024 * 1024;
 constexpr size_t DEFAULT_SKINNING_CHUNK_SIZE = 8 * 1024 * 1024;
+constexpr size_t DEFAULT_MORPH_DELTA_CHUNK_SIZE = 16 * 1024 * 1024;  // GPUMorphDelta is 64 bytes
+constexpr size_t DEFAULT_MORPH_INDIRECTION_CHUNK_SIZE = 4 * 1024 * 1024;  // uvec2 per vertex
 
 // Minimum allocation alignment (for buffer offsets)
 constexpr size_t MESH_ALLOCATION_ALIGNMENT = 16;
@@ -58,12 +61,16 @@ struct MeshChunk {
     Buffer attributeBuffer;   // Attribute stream (normals, UVs, tangents)
     Buffer indexBuffer;
     Buffer skinningBuffer;    // Skinning stream (bone indices + weights, optional)
+    Buffer morphDeltaBuffer;  // Morph delta stream (GPUMorphDelta[], optional)
+    Buffer morphIndirectionBuffer;  // Per-vertex morph indirection (uvec2 start/count)
 
     // Sub-allocators (offset allocator for O(1) performance)
     std::unique_ptr<OffsetAllocator::Allocator> vertexAllocator;
     std::unique_ptr<OffsetAllocator::Allocator> attributeAllocator;
     std::unique_ptr<OffsetAllocator::Allocator> indexAllocator;
     std::unique_ptr<OffsetAllocator::Allocator> skinningAllocator;
+    std::unique_ptr<OffsetAllocator::Allocator> morphDeltaAllocator;
+    std::unique_ptr<OffsetAllocator::Allocator> morphIndirectionAllocator;
 
     // Chunk info
     uint32_t chunkIndex = 0;
@@ -71,6 +78,8 @@ struct MeshChunk {
     size_t attributeCapacity = 0;
     size_t indexCapacity = 0;
     size_t skinningCapacity = 0;
+    size_t morphDeltaCapacity = 0;
+    size_t morphIndirectionCapacity = 0;
 
     // Reference count (how many meshes are using this chunk)
     uint32_t meshCount = 0;
@@ -99,18 +108,25 @@ struct MeshAllocation {
     OffsetAllocator::Allocation attributeAlloc;
     OffsetAllocator::Allocation indexAlloc;
     OffsetAllocator::Allocation skinningAlloc;
+    OffsetAllocator::Allocation morphDeltaAlloc;
+    OffsetAllocator::Allocation morphIndirectionAlloc;
 
     // Sizes (for stats and debugging)
     uint32_t vertexSize = 0;
     uint32_t attributeSize = 0;
     uint32_t indexSize = 0;
     uint32_t skinningSize = 0;
+    uint32_t morphDeltaSize = 0;
+    uint32_t morphIndirectionSize = 0;
 
     // Mesh data
     uint32_t vertexCount = 0;
     uint32_t indexCount = 0;
+    uint32_t morphDeltaCount = 0;
+    uint32_t morphTargetCount = 0;
     MeshBounds bounds;
     bool hasSkinning = false;
+    bool hasMorphs = false;
 
     bool isValid() const { return chunkIndex != UINT32_MAX; }
 
@@ -119,6 +135,8 @@ struct MeshAllocation {
     uint32_t attributeOffset() const { return attributeAlloc.offset; }
     uint32_t indexOffset() const { return indexAlloc.offset; }
     uint32_t skinningOffset() const { return skinningAlloc.offset; }
+    uint32_t morphDeltaOffset() const { return morphDeltaAlloc.offset; }
+    uint32_t morphIndirectionOffset() const { return morphIndirectionAlloc.offset; }
 };
 
 // ============================================================================
@@ -207,6 +225,24 @@ public:
         const MeshBounds& bounds);
 
     /**
+     * @brief Upload a skinned mesh with morph targets.
+     *
+     * Morph deltas are stored as GPUMorphDelta structs. Per-vertex indirection
+     * is stored as (start, count) pairs packed into uint32_t[2] per vertex.
+     * Morphs are applied BEFORE skinning in the vertex shader.
+     */
+    ChunkedMeshHandle uploadPackedSkinnedWithMorphs(
+        const VertexPosition* positions,
+        const VertexAttributes* attributes,
+        const VertexSkinning* skinning,
+        uint32_t vertexCount,
+        const uint32_t* indices, uint32_t indexCount,
+        const GPUMorphDelta* morphDeltas, uint32_t morphDeltaCount,
+        const uint32_t* morphIndirection,  // Packed uvec2 (start, count) per vertex
+        uint32_t morphTargetCount,
+        const MeshBounds& bounds);
+
+    /**
      * @brief Destroy a mesh and free its allocation.
      */
     void destroy(ChunkedMeshHandle handle);
@@ -275,12 +311,17 @@ public:
         gfx::Buffer attributeBuffer;
         gfx::Buffer indexBuffer;
         gfx::Buffer skinningBuffer;
+        gfx::Buffer morphDeltaBuffer;
+        gfx::Buffer morphIndirectionBuffer;
         gfx::BufferDesc vertexDesc;
         gfx::BufferDesc attributeDesc;
         gfx::BufferDesc indexDesc;
         gfx::BufferDesc skinningDesc;
+        gfx::BufferDesc morphDeltaDesc;
+        gfx::BufferDesc morphIndirectionDesc;
         bool valid = false;
         bool hasSkinning = false;
+        bool hasMorphs = false;
     };
 
     /**
@@ -317,6 +358,46 @@ public:
     };
 
     Stats getStats() const;
+
+    // ========================================================================
+    // Upload Batching
+    // ========================================================================
+
+    /**
+     * @brief Pending buffer copy for deferred upload.
+     *
+     * Instead of mapping/copying/unmapping for each mesh upload,
+     * we collect all copies and execute them in batch. This allows
+     * mapping each buffer once and performing all copies before unmapping.
+     */
+    struct PendingBufferCopy {
+        Buffer buffer;          // Target buffer
+        uint32_t offset = 0;    // Offset in target buffer
+        std::vector<uint8_t> data;  // Data to copy
+    };
+
+    /**
+     * @brief Flush all pending buffer copies.
+     *
+     * Groups copies by buffer and executes them efficiently:
+     * - Map each buffer once
+     * - Perform all copies for that buffer
+     * - Unmap once
+     *
+     * Call this at end of frame or before rendering.
+     * @return Number of copies executed
+     */
+    uint32_t flushPendingCopies();
+
+    /**
+     * @brief Get count of pending copies (for diagnostics).
+     */
+    uint32_t getPendingCopyCount() const { return static_cast<uint32_t>(m_pendingCopies.size()); }
+
+    /**
+     * @brief Check if there are pending copies.
+     */
+    bool hasPendingCopies() const { return !m_pendingCopies.empty(); }
 
 private:
     // Mesh entry with allocation and generation
@@ -366,6 +447,16 @@ private:
     size_t m_indexChunkSize = DEFAULT_INDEX_CHUNK_SIZE;
 
     bool m_initialized = false;
+
+    // ========================================================================
+    // Upload Batching
+    // ========================================================================
+
+    // Queue a buffer copy for deferred execution
+    void queueBufferCopy(Buffer buffer, uint32_t offset, const void* data, size_t size);
+
+    // Pending copies (flushed at end of frame)
+    std::vector<PendingBufferCopy> m_pendingCopies;
 };
 
 } // namespace gfx

@@ -151,19 +151,11 @@ namespace
 namespace Resource
 {
   ResourceManager::ResourceManager()
-    : m_vertexAllocator(ResourceLimits::VERTEX_BUFFER_SIZE),
-      m_indexAllocator(ResourceLimits::INDEX_BUFFER_SIZE),
-      m_materialAllocator(ResourceLimits::MATERIAL_BUFFER_SIZE),
-      m_meshDecompAllocator(ResourceLimits::MESH_DECOMPRESSION_BUFFER_SIZE),
-      m_skinningAllocator(ResourceLimits::SKINNING_BUFFER_SIZE),
-      m_morphDeltaAllocator(ResourceLimits::MORPH_DELTA_BUFFER_SIZE),
-      m_morphBaseAllocator(ResourceLimits::MORPH_VERTEX_BASE_BUFFER_SIZE),
-      m_morphCountAllocator(ResourceLimits::MORPH_VERTEX_COUNT_BUFFER_SIZE)
   {
     m_clips.emplace_back();
+    m_clipGenerations.push_back(1);  // Generation for reserved slot (index 0)
     m_skeletons.emplace_back();
     m_morphSets.emplace_back();
-
   }
 
   void ResourceManager::initialize(Context* context)
@@ -247,18 +239,6 @@ namespace Resource
       return it->second;
     }
 
-    // Compute decompression data and compress vertices on CPU
-    MeshDecompressionData decompressionData = VertexCompression::computeDecompressionData(mesh.vertices.data(), mesh.vertices.size());
-
-    std::vector<CompressedVertex> compressedVertices;
-    compressedVertices.reserve(mesh.vertices.size());
-    for(const auto& v : mesh.vertices)
-    {
-      compressedVertices.push_back(VertexCompression::compress(v, decompressionData));
-    }
-
-    //VertexCompression::validateCompression(mesh.vertices, compressedVertices, decompressionData);
-
     // Prepare animation GPU payloads
     std::vector<GPUSkinningData> gpuSkinning = buildSkinningBuffer(mesh.skinning);
     std::vector<GPUMorphDelta> gpuMorphDeltas;
@@ -275,102 +255,36 @@ namespace Resource
       morphVertexCounts.clear();
     }
 
-    // Allocate GPU memory
-    OffsetAllocator::Allocation vertexAlloc;
-    OffsetAllocator::Allocation indexAlloc;
-    OffsetAllocator::Allocation meshDecompAlloc;
-    OffsetAllocator::Allocation skinningAlloc;
-    OffsetAllocator::Allocation morphDeltaAlloc;
-    OffsetAllocator::Allocation morphBaseAlloc;
-    OffsetAllocator::Allocation morphCountAlloc;
-
-    auto releaseAllocations = [&]()
-    {
-      if(vertexAlloc.isValid())
-        m_vertexAllocator.free(vertexAlloc);
-      if(indexAlloc.isValid())
-        m_indexAllocator.free(indexAlloc);
-      if(meshDecompAlloc.isValid())
-        m_meshDecompAllocator.free(meshDecompAlloc);
-      if(skinningAlloc.isValid())
-        m_skinningAllocator.free(skinningAlloc);
-      if(morphDeltaAlloc.isValid())
-        m_morphDeltaAllocator.free(morphDeltaAlloc);
-      if(morphBaseAlloc.isValid())
-        m_morphBaseAllocator.free(morphBaseAlloc);
-      if(morphCountAlloc.isValid())
-        m_morphCountAllocator.free(morphCountAlloc);
-    };
-
-    {
-      std::lock_guard allocatorLock(m_meshAllocatorMutex);
-      vertexAlloc = m_vertexAllocator.allocate(static_cast<uint32_t>(compressedVertices.size() * sizeof(CompressedVertex)));
-      indexAlloc = m_indexAllocator.allocate(static_cast<uint32_t>(mesh.indices.size() * sizeof(uint32_t)));
-      meshDecompAlloc = m_meshDecompAllocator.allocate(sizeof(MeshDecompressionData));
-
-      if(!gpuSkinning.empty())
-      {
-        skinningAlloc = m_skinningAllocator.allocate(static_cast<uint32_t>(gpuSkinning.size() * sizeof(GPUSkinningData)));
-      }
-      if(!gpuMorphDeltas.empty())
-      {
-        morphDeltaAlloc = m_morphDeltaAllocator.allocate(static_cast<uint32_t>(gpuMorphDeltas.size() * sizeof(GPUMorphDelta)));
-        morphBaseAlloc = m_morphBaseAllocator.allocate(static_cast<uint32_t>(morphVertexStarts.size() * sizeof(uint32_t)));
-        morphCountAlloc = m_morphCountAllocator.allocate(static_cast<uint32_t>(morphVertexCounts.size() * sizeof(uint32_t)));
-      }
-    }
-
-      const bool allocationsOk =
-        vertexAlloc.isValid() &&
-        indexAlloc.isValid() &&
-        meshDecompAlloc.isValid() &&
-        (gpuSkinning.empty() || skinningAlloc.isValid()) &&
-        (gpuMorphDeltas.empty() || (morphDeltaAlloc.isValid() && morphBaseAlloc.isValid() && morphCountAlloc.isValid()));
-
-      if(!allocationsOk)
-      {
-        releaseAllocations();
-        LOG_ERROR("Out of GPU memory for mesh '{}'", mesh.name);
-        return {};
-      }
-    
-
     // Create handle and populate data
+    // Note: Vertex/index/skinning data is managed by GfxMeshStorage (chunked allocation)
+    // Morph data will be added to chunks in Phase 2
     MeshHandle handle = m_meshPool.create();
-      if(auto* cold = m_meshPool.getColdData(handle))
-      {
-        cold->meshName = mesh.name;
-        cold->vertexMetadata = vertexAlloc;
-        cold->indexMetadata = indexAlloc;
-      cold->meshDecompressionMetadata = meshDecompAlloc;
-      cold->skinningMetadata = skinningAlloc;
-      cold->morphDeltaMetadata = morphDeltaAlloc;
-      cold->morphVertexBaseMetadata = morphBaseAlloc;
-      cold->morphVertexCountMetadata = morphCountAlloc;
+    if(auto* cold = m_meshPool.getColdData(handle))
+    {
+      cold->meshName = mesh.name;
       cold->jointParentIndices = mesh.skeleton.parentIndices;
-        cold->jointInverseBindMatrices = mesh.skeleton.inverseBindMatrices;
-        cold->jointBindPoseMatrices = mesh.skeleton.bindPoseMatrices;
-        cold->jointNames = mesh.skeleton.jointNames;
-        cold->morphTargets = morphInfos;
-        cold->skeletonId = registerSkeleton(mesh.skeleton);
-        cold->morphSetId = registerMorphSet(morphInfos);
-      }
+      cold->jointInverseBindMatrices = mesh.skeleton.inverseBindMatrices;
+      cold->jointBindPoseMatrices = mesh.skeleton.bindPoseMatrices;
+      cold->jointNames = mesh.skeleton.jointNames;
+      cold->morphTargets = morphInfos;
+      cold->skeletonId = registerSkeleton(mesh.skeleton);
+      cold->morphSetId = registerMorphSet(morphInfos);
+    }
     if(auto* hot = m_meshPool.getHotData(handle))
     {
-      hot->vertexByteOffset = vertexAlloc.offset;
-      hot->indexByteOffset = indexAlloc.offset;
       hot->vertexCount = static_cast<uint32_t>(mesh.vertices.size());
       hot->indexCount = static_cast<uint32_t>(mesh.indices.size());
       hot->bounds = mesh.bounds;
-      hot->decompressionByteOffset = meshDecompAlloc.offset;
 
       auto& anim = hot->animation;
       anim.jointCount = static_cast<uint32_t>(mesh.skeleton.parentIndices.size());
-      anim.skinningByteOffset = skinningAlloc.isValid() ? skinningAlloc.offset : UINT32_MAX;
-      anim.morphDeltaByteOffset = morphDeltaAlloc.isValid() ? morphDeltaAlloc.offset : UINT32_MAX;
-      anim.morphDeltaCount = morphDeltaAlloc.isValid() ? static_cast<uint32_t>(gpuMorphDeltas.size()) : 0;
-      anim.morphVertexBaseOffset = morphBaseAlloc.isValid() ? morphBaseAlloc.offset : UINT32_MAX;
-      anim.morphVertexCountOffset = morphCountAlloc.isValid() ? morphCountAlloc.offset : UINT32_MAX;
+      // Skinning/morph data offsets are managed by GfxMeshStorage chunks, not ResourceManager allocators
+      // These legacy offsets are set to invalid; actual offsets come from GpuMesh
+      anim.skinningByteOffset = UINT32_MAX;
+      anim.morphDeltaByteOffset = UINT32_MAX;
+      anim.morphDeltaCount = static_cast<uint32_t>(gpuMorphDeltas.size());
+      anim.morphVertexBaseOffset = UINT32_MAX;
+      anim.morphVertexCountOffset = UINT32_MAX;
       anim.morphTargetCount = static_cast<uint32_t>(mesh.morphTargets.size());
 
       // Upload to GfxMeshStorage directly (hina-vk path)
@@ -445,6 +359,16 @@ namespace Resource
             hot->gfxMeshGeneration = gfxMesh.generation;
             LOG_INFO("Uploaded mesh '{}' to GfxMeshStorage: index={} gen={} skinned={}",
                       mesh.name, gfxMesh.index, gfxMesh.generation, !gpuSkinning.empty());
+
+            // Record upload statistics for batching optimization
+            uint32_t vertexCount = static_cast<uint32_t>(mesh.vertices.size());
+            uint32_t indexCount = static_cast<uint32_t>(mesh.indices.size());
+            uint32_t totalBytes = vertexCount * (sizeof(gfx::VertexPosition) + sizeof(gfx::VertexAttributes));
+            totalBytes += indexCount * sizeof(uint32_t);
+            if (!gpuSkinning.empty()) {
+              totalBytes += vertexCount * sizeof(gfx::VertexSkinning);
+            }
+            gfxRenderer->recordMeshUpload(vertexCount, indexCount, totalBytes);
           } else {
             LOG_WARNING("Failed to upload mesh '{}' to GfxMeshStorage", mesh.name);
           }
@@ -480,19 +404,8 @@ namespace Resource
       return it->second;
     }
 
-    // Allocate GPU memory
-    OffsetAllocator::Allocation materialAlloc;
-    {
-      std::lock_guard allocatorLock(m_materialAllocatorMutex);
-      materialAlloc = m_materialAllocator.allocate(sizeof(MaterialData));
-      if(!materialAlloc.isValid())
-      {
-        LOG_ERROR("Out of GPU memory for material '{}'", material.name);
-        return {};
-      }
-    }
-
     // Create handle and populate data
+    // Note: GPU memory is now managed by GfxMaterialSystem, not ResourceManager allocators
     Material mat = convertToStoredMaterial(material);
     MaterialHandle handle = m_materialPool.create();
 
@@ -501,11 +414,9 @@ namespace Resource
     if(auto* cold = m_materialPool.getColdData(handle))
     {
       cold->material = mat;
-      cold->metadata = materialAlloc;
     }
     if(auto* hot = m_materialPool.getHotData(handle))
     {
-      hot->materialOffset = materialAlloc.offset;
       hot->renderQueue = (alphaMode == ALPHA_MODE_BLEND)
         ? RenderQueue::Transparent
         : RenderQueue::Opaque;
@@ -513,11 +424,6 @@ namespace Resource
     // Generate GPU data and handle dependencies
     MaterialData gpuData = generateMaterialDataWithTextures_nolock(mat);
     updateMaterialTextureDependencies_nolock(handle, material);
-    // Queue upload
-    {
-      std::lock_guard pendingLock(m_pendingMaterialsMutex);
-      m_pendingMaterials.push_back({ gpuData, materialAlloc });
-    }
 
     // Upload to GfxMaterialSystem directly (hina-vk path)
     if (m_context && m_context->renderer) {
@@ -659,7 +565,13 @@ namespace Resource
         createInfo.width = texture.width;
         createInfo.height = texture.height;
         createInfo.format = format;
-        createInfo.generateMips = false;  // TODO: Enable mip generation
+        // TODO: Implement mip generation for uncompressed textures without pre-baked mips.
+        // Currently disabled because:
+        // - KTX2 textures already have mips baked in (texture.textureDesc.numMipLevels)
+        // - Compressed formats (BC/ASTC) cannot have mips generated at runtime
+        // - hina-vk mip generation (HINA_MIP_LEVELS_AUTO) requires uncompressed source data
+        // Future: Check texture.textureDesc.numMipLevels > 1 and format is uncompressed
+        createInfo.generateMips = false;
         createInfo.isSRGB = texture.sRGB;
         createInfo.label = texture.name.c_str();  // Debug label for RenderDoc
 
@@ -778,8 +690,44 @@ namespace Resource
 
   ClipId ResourceManager::createClip(const ProcessedAnimationClip& clip)
   {
+    if (!m_freeClipSlots.empty())
+    {
+      // Reuse a freed slot
+      uint32_t index = m_freeClipSlots.back();
+      m_freeClipSlots.pop_back();
+      m_clips[index] = AnimationClip(clip);  // Construct AnimationClip from ProcessedAnimationClip
+      return static_cast<ClipId>(index);
+    }
+
+    // Allocate new slot
     m_clips.emplace_back(clip);
+    m_clipGenerations.push_back(1);
     return static_cast<ClipId>(m_clips.size() - 1);
+  }
+
+  void ResourceManager::freeClip(ClipId id)
+  {
+    if (id == INVALID_CLIP_ID || id >= static_cast<ClipId>(m_clips.size()))
+      return;
+
+    // Check if already freed (avoid double-free)
+    for (uint32_t freeIdx : m_freeClipSlots)
+    {
+      if (freeIdx == id)
+        return;
+    }
+
+    // Clear the clip data
+    m_clips[id] = AnimationClip{};
+
+    // Increment generation (for future validation if needed)
+    if (++m_clipGenerations[id] == 0)
+      m_clipGenerations[id] = 1;
+
+    // Add to free list for reuse
+    m_freeClipSlots.push_back(id);
+
+    LOG_DEBUG("Freed animation clip at index {}", id);
   }
 
   const AnimationClip& ResourceManager::Clip(ClipId id) const
@@ -819,21 +767,6 @@ namespace Resource
     if(id == INVALID_MORPH_SET_ID || id >= static_cast<MorphSetId>(m_morphSets.size()))
       return m_morphSets.front();
     return m_morphSets[id];
-  }
-
-  size_t ResourceManager::getUsedVertexBytes() const
-  {
-      return m_vertexAllocator.storageReport().highWatermark;
-  }
-
-  uint32_t ResourceManager::getVertexBufferVersion() const
-  {
-    return m_vertexBufferVersion;
-  }
-
-  void ResourceManager::bumpVertexBufferVersion()
-  {
-    ++m_vertexBufferVersion;
   }
 
   std::vector<MeshHandle> ResourceManager::createMeshBatch(const std::vector<ProcessedMesh>& meshes)
@@ -884,12 +817,6 @@ namespace Resource
   const ResourceTraits<MeshAsset>::ColdData* ResourceManager::getMeshMetadata(MeshHandle handle) const
   {
     return m_meshPool.getColdData(handle);
-  }
-
-  uint32_t ResourceManager::getMaterialIndex(MaterialHandle handle) const
-  {
-    const auto* hot = m_materialPool.getHotData(handle);
-    return hot ? hot->materialOffset / sizeof(MaterialData) : 0;
   }
 
   uint32_t ResourceManager::getTextureUIId(TextureHandle handle) const
@@ -960,19 +887,6 @@ namespace Resource
     if(!m_meshPool.isValid(handle))
       return;
 
-    // Get allocation data before destroying handle
-    OffsetAllocator::Allocation vertexAlloc, indexAlloc, meshDecompAlloc, skinningAlloc, morphDeltaAlloc, morphBaseAlloc, morphCountAlloc;
-    if(const auto* cold = m_meshPool.getColdData(handle))
-    {
-      vertexAlloc = cold->vertexMetadata;
-      indexAlloc = cold->indexMetadata;
-      meshDecompAlloc = cold->meshDecompressionMetadata;
-      skinningAlloc = cold->skinningMetadata;
-      morphDeltaAlloc = cold->morphDeltaMetadata;
-      morphBaseAlloc = cold->morphVertexBaseMetadata;
-      morphCountAlloc = cold->morphVertexCountMetadata;
-    }
-
     // Destroy gfx mesh (hina-vk path)
     if (const auto* hot = m_meshPool.getHotData(handle)) {
       if (hot->hasGfxMesh && m_context && m_context->renderer) {
@@ -996,20 +910,12 @@ namespace Resource
     }
 
     m_meshPool.destroy(handle);
-    bumpVertexBufferVersion();
   }
 
   void ResourceManager::freeMaterial(MaterialHandle handle)
   {
     if(!m_materialPool.isValid(handle))
       return;
-
-    // Get allocation data before destroying handle
-    OffsetAllocator::Allocation materialAlloc;
-    if(const auto* cold = m_materialPool.getColdData(handle))
-    {
-      materialAlloc = cold->metadata;
-    }
 
     // Remove dependencies
     {
@@ -1043,13 +949,6 @@ namespace Resource
           }
         }
       }
-    }
-
-    // Free GPU memory
-    {
-      std::lock_guard materialLock(m_materialAllocatorMutex);
-      if(materialAlloc.isValid())
-        m_materialAllocator.free(materialAlloc);
     }
 
     m_materialPool.destroy(handle);
@@ -1139,42 +1038,6 @@ namespace Resource
     m_fontPool.destroy(handle);
   }
 
-  void ResourceManager::FlushUploads()
-  {
-    // Atomically acquire pending uploads
-    std::vector<PendingMeshUpload> meshesToUpload;
-    std::vector<PendingMaterialUpload> materialsToUpload;
-
-    {
-      std::lock_guard meshLock(m_pendingMeshesMutex);
-      meshesToUpload.swap(m_pendingMeshes);
-    }
-    {
-      std::lock_guard materialLock(m_pendingMaterialsMutex);
-      materialsToUpload.swap(m_pendingMaterials);
-    }
-
-    // Early exit if nothing to upload
-    if(meshesToUpload.empty() && materialsToUpload.empty())
-    {
-      return;
-    }
-
-    // Process uploads
-    if(!meshesToUpload.empty())
-    {
-      LOG_INFO("Flushing {} meshes...", meshesToUpload.size());
-      bumpVertexBufferVersion();
-      uploadMeshBatch(meshesToUpload);
-    }
-
-    if(!materialsToUpload.empty())
-    {
-      LOG_INFO("Flushing {} materials...", materialsToUpload.size());
-      uploadMaterialBatch(materialsToUpload);
-    }
-  }
-
   // Private helper methods
   MaterialData ResourceManager::generateMaterialDataWithTextures_nolock(const Material& material)
   {
@@ -1259,19 +1122,6 @@ namespace Resource
 
     LOG_INFO("Resolving {} waiting materials for texture '{}'", waitingMaterials.size(), textureCacheKey);
 
-    // Re-generate GPU data and queue uploads (legacy path)
-    {
-      std::lock_guard pendingLock(m_pendingMaterialsMutex);
-      for(MaterialHandle materialHandle : waitingMaterials)
-      {
-        if(auto* cold = m_materialPool.getColdData(materialHandle))
-        {
-          MaterialData newGpuData = generateMaterialDataWithTextures_nolock(cold->material);
-          m_pendingMaterials.push_back({ newGpuData, cold->metadata });
-        }
-      }
-    }
-
     // Update GfxMaterialSystem bind groups (hina-vk path)
     if (m_context && m_context->renderer) {
       if (auto* gfxRenderer = m_context->renderer) {
@@ -1338,38 +1188,6 @@ namespace Resource
         }
       }
     }
-  }
-
-  void ResourceManager::uploadMeshBatch([[maybe_unused]] const std::vector<PendingMeshUpload>& meshes)
-  {
-    // Legacy batch upload - meshes now uploaded directly via GfxMeshStorage in loadMesh()
-    // This function is kept for compatibility but does nothing with hina-vk
-  }
-
-  void ResourceManager::uploadMaterialBatch([[maybe_unused]] std::vector<PendingMaterialUpload>& materials)
-  {
-    // TODO: Implement material upload via hina-vk when material system is complete
-    // For now, materials are tracked but not GPU-uploaded
-  }
-
-  void ResourceManager::deduplicateMaterialUploads(std::vector<PendingMaterialUpload>& materials)
-  {
-    if(materials.size() <= 1)
-      return;
-
-    std::sort(materials.begin(), materials.end(),
-              [](const auto& a, const auto& b)
-    {
-      return a.materialAlloc.offset < b.materialAlloc.offset;
-    });
-
-    // Remove duplicates, keeping the last (most recent) update for each offset
-    auto newEnd = std::unique(materials.begin(), materials.end(),
-                              [](const auto& a, const auto& b)
-    {
-      return a.materialAlloc.offset == b.materialAlloc.offset;
-    });
-    materials.erase(newEnd, materials.end());
   }
 
   // Cache key generation

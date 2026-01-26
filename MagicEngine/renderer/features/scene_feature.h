@@ -60,8 +60,13 @@ struct DrawData
   // Skinning data (for skeletal animation)
   bool isSkinned = false;
   bool isTransparent = false;  // For WBOIT routing (future)
-  uint32_t jointCount = 0;     // Number of active bones (max 64)
+  uint32_t jointCount = 0;     // Number of active bones (max 256)
   const glm::mat4* skinMatrices = nullptr;  // Pointer to AnimationComponent::skinMatrices
+
+  // Morph target data (for blend shapes)
+  bool hasMorphs = false;
+  uint32_t morphCount = 0;     // Number of active morph targets (max 256)
+  const float* morphWeights = nullptr;  // Pointer to AnimationComponent::morphWeights
 
   // Object picking - index into SceneRenderFeature::m_entityHandles
   uint32_t objectId = 0xFFFFFFFF;  // Invalid by default
@@ -228,25 +233,28 @@ private:
   // ========================================================================
   gfx::Holder<gfx::Pipeline> m_gbufferPipeline;         // Static mesh pipeline
   gfx::Holder<gfx::Pipeline> m_gbufferSkinnedPipeline;  // Skinned mesh pipeline
+  gfx::Holder<gfx::Pipeline> m_gbufferMorphedPipeline;  // Skinned + morph target pipeline
   gfx::Holder<gfx::BindGroupLayout> m_sceneLayout;  // Set 0: Frame UBO
   gfx::Buffer m_frameUBO = {};                       // Persistently mapped frame UBO
   void* m_frameUBOMapped = nullptr;                  // Mapped pointer for fast updates
   gfx::BindGroup m_sceneBindGroup = {};              // Persistent bind group for frame data
   bool m_pipelineCreated = false;
   bool m_skinnedPipelineCreated = false;
+  bool m_morphedPipelineCreated = false;
 
   // ========================================================================
   // Composite Pipeline Resources (owned by this feature)
   // ========================================================================
   gfx::Holder<gfx::Pipeline> m_compositePipeline;
-  gfx::Holder<gfx::BindGroupLayout> m_compositeLayout;  // Set 0: G-buffer textures
+  gfx::Holder<gfx::BindGroupLayout> m_compositeLayout;       // Set 0: G-buffer tile inputs
+  gfx::Holder<gfx::BindGroupLayout> m_compositeTileLayout;   // Set for tile inputs (INPUT_ATTACHMENT)
   gfx::Holder<gfx::Sampler> m_compositeSampler;
   gfx::Buffer m_fullscreenQuadVB = {};
   gfx::BindGroup m_compositeBindGroup = {};           // Persistent bind group for G-buffer
+  gfx::BindGroup m_compositeTileBindGroup = {};       // Bind group for tile inputs (INPUT_ATTACHMENT)
   bool m_compositePipelineCreated = false;
   uint32_t m_lastGBufferWidth = 0;                    // Track G-buffer size for rebind
   uint32_t m_lastGBufferHeight = 0;
-  gfx::Texture m_lastSceneDepth = {};                 // Track depth texture for rebind
 
   // Per-frame draw lists (populated in UpdateScene)
   std::vector<DrawData> m_drawList;           // Opaque objects
@@ -306,10 +314,12 @@ private:
   // Lazy pipeline creation
   bool EnsurePipelineCreated(GfxRenderer* gfxRenderer);
   bool EnsureSkinnedPipelineCreated(GfxRenderer* gfxRenderer);
+  bool EnsureMorphedPipelineCreated(GfxRenderer* gfxRenderer);
   bool EnsureCompositePipelineCreated(GfxRenderer* gfxRenderer);
   bool EnsureCompositeBindGroup(GfxRenderer* gfxRenderer, gfx::Texture sceneDepth, gfx::TextureView sceneDepthView);
   bool EnsureSkyboxBindGroup(GfxRenderer* gfxRenderer);
   void ExecuteCompositePass(internal::ExecutionContext& ctx);
+  void ExecuteDeferredTilePass(internal::ExecutionContext& ctx);  // Combined G-buffer + composite as tile pass
 
   // State
   bool m_enableObjectPicking = false;

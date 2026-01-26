@@ -544,19 +544,19 @@ namespace ecs {
 
 	namespace internal {
 
-		// Gets the hash of a component type
+		// Gets the hash of a component type (cached per type)
 		template<typename T>
-		constexpr CompHash GetCompHash()
+		CompHash GetCompHash()
 		{
-			//return typeid(T).hash_code();
-			return util::ConsistentHash<T>();
+			static const CompHash cachedHash = util::ConsistentHash<T>();
+			return cachedHash;
 		}
-		// Gets the hash of a system type
+		// Gets the hash of a system type (cached per type)
 		template<typename T>
-		constexpr SysHash GetSysHash()
+		SysHash GetSysHash()
 		{
-			//return typeid(T).hash_code();
-			return util::ConsistentHash<T>();
+			static const SysHash cachedHash = util::ConsistentHash<T>();
+			return cachedHash;
 		}
 
 		template<typename T>

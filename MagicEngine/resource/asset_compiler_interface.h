@@ -75,18 +75,6 @@ public:
     static CompileResult CompileAsset(const std::string& vfsPath);
 
     /**
-     * @brief Compile and immediately import an asset.
-     *
-     * This is a convenience function that:
-     * 1. Compiles the raw asset
-     * 2. Imports all resulting compiled assets into ResourceManager
-     *
-     * @param vfsPath VFS path to the asset
-     * @return true if compilation and import succeeded
-     */
-    static bool CompileAndImport(const std::string& vfsPath);
-
-    /**
      * @brief Check if a file extension is supported for compilation.
      * @param extension File extension including dot (e.g., ".fbx")
      * @return true if the extension can be compiled

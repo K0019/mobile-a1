@@ -21,6 +21,8 @@ All rights reserved.
 
 #include "Engine/Resources/ResourceSerialization.h"
 #include "resource/asset_metadata.h"
+#include "VFS/VFS.h"
+#include <filesystem>
 
 void ResourceSerialization::Serialize(Serializer& writer, const ResourceFilepaths& filepaths, const ResourceNames& names)
 {
@@ -118,6 +120,11 @@ void ResourceSerialization::Deserialize(Deserializer& reader, ResourceFilepaths*
 		}
 		reader.PopAccess(); // resources
 
+		// Get the primary resource hash before moving resources
+		size_t primaryHash = 0;
+		if (!resources.empty() && !resources[0].hashes.empty())
+			primaryHash = resources[0].hashes[0];
+
 		// SetFilepath will load from .meta file if extended fields not in JSON
 		filepaths->SetFilepath(filepath, std::move(resources));
 
@@ -127,6 +134,39 @@ void ResourceSerialization::Deserialize(Deserializer& reader, ResourceFilepaths*
 			AssetFormat::AssetType assetType = Resource::AssetMetadata::parseAssetType(assetTypeStr.c_str());
 			filepaths->UpdateEntryMetadata(filepath, assetType, sourcePath,
 			                               sourceTimestamp, compiledTimestamp, formatVersion);
+		}
+
+		// Migration: backfill .meta file with hash from assets.json if needed
+		if (primaryHash != 0)
+		{
+			std::filesystem::path physicalPath = VFS::ConvertVirtualToPhysical(filepath);
+			std::filesystem::path metaPath = Resource::AssetMetadata::getMetaPath(physicalPath);
+
+			Resource::AssetMetadata meta;
+			meta.loadFromFile(metaPath);  // OK if file doesn't exist - we'll create it
+
+			// Only update if .meta is missing the hash
+			if (!meta.hasResourceHash())
+			{
+				meta.resourceHash = primaryHash;
+
+				// Also populate other fields if we have them from JSON
+				if (!assetTypeStr.empty())
+					meta.assetType = Resource::AssetMetadata::parseAssetType(assetTypeStr.c_str());
+				else if (meta.assetType == AssetFormat::AssetType::Unknown)
+					meta.assetType = Resource::AssetMetadata::inferFromPath(filepath);
+
+				if (!sourcePath.empty() && meta.sourcePath.empty())
+					meta.sourcePath = sourcePath;
+				if (sourceTimestamp > 0 && meta.sourceTimestamp == 0)
+					meta.sourceTimestamp = sourceTimestamp;
+				if (compiledTimestamp > 0 && meta.compiledTimestamp == 0)
+					meta.compiledTimestamp = compiledTimestamp;
+				if (formatVersion > 0 && meta.formatVersion == 0)
+					meta.formatVersion = formatVersion;
+
+				meta.saveToFile(metaPath);
+			}
 		}
 
 		reader.PopAccess(); // Element

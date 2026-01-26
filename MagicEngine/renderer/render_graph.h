@@ -11,7 +11,6 @@
 #include "gfx_interface.h"
 #include "logging/log.h"
 #include "linear_color.h"
-#include "OIT.h"
 #include "render_feature.h"
 #include "math/utils_math.h"
 
@@ -618,7 +617,6 @@ private:
 
   // Core state
   GfxRenderer* m_gfxRenderer = nullptr;
-  OITSystem oit;
   LinearColorSystem linearColorSystem;
   internal::UniformRing m_uniformRing;
   bool m_isCompiled = false;

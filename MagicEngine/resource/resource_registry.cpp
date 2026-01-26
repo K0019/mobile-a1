@@ -5,6 +5,7 @@
 #include "VFS/VFS.h"
 #include "logging/log.h"
 
+#include <algorithm>
 #include <functional>
 #include <fstream>
 #include <sstream>
@@ -118,7 +119,18 @@ size_t ResourceRegistry::ImportMaterial(const std::string& vfsPath)
 
     // Load material data
     ProcessedMaterial processedMaterial = AssetLoader::LoadMaterial(vfsPath);
-    // TODO: Validate material data
+
+    // Validate material data
+    if (!processedMaterial.isValid())
+    {
+        LOG_WARNING("Material '{}' has invalid PBR values - clamping to valid range", vfsPath);
+        // Clamp to valid ranges instead of rejecting
+        processedMaterial.metallicFactor = std::clamp(processedMaterial.metallicFactor, 0.0f, 1.0f);
+        processedMaterial.roughnessFactor = std::clamp(processedMaterial.roughnessFactor, 0.0f, 1.0f);
+        processedMaterial.alphaCutoff = std::clamp(processedMaterial.alphaCutoff, 0.0f, 1.0f);
+        processedMaterial.normalScale = std::max(processedMaterial.normalScale, 0.0f);
+        processedMaterial.occlusionStrength = std::clamp(processedMaterial.occlusionStrength, 0.0f, 1.0f);
+    }
 
     // Import all textures referenced by the material BEFORE creating the material
     // This ensures textures are in the cache when createMaterial tries to resolve them
@@ -469,9 +481,7 @@ bool ResourceRegistry::UnloadResource(size_t hash)
         m_resourceManager->freeMaterial(it->second.materialHandle);
         break;
     case ResourceType::Animation:
-        // TODO: Add ResourceManager::freeClip(ClipId) API
-        // For now, clips remain in memory until ResourceManager is destroyed
-        LOG_WARNING("Animation cleanup not yet implemented for: {}", it->second.filePath);
+        m_resourceManager->freeClip(it->second.clipId);
         break;
     }
 

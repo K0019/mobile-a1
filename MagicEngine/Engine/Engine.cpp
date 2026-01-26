@@ -119,8 +119,7 @@ void MagicEngine::Init(Context& context, bool startInGameMode)
 		Filepaths::fontsSave + "/Lato-Regular.ttf",
 		Filepaths::fontsSave + "/slkscre.ttf"
 	};
-	//std::for_each(fontsToLoad.begin(), fontsToLoad.end(), ResourceManagerOld::LoadFont);
-	
+
 	// initialize game
 	// ---------------
 	ecs::Initialize();
@@ -251,7 +250,6 @@ void MagicEngine::shutdown()
 	ST<EntitySpawnEvents>::Destroy();
 	ST<SceneManager>::Destroy();
 	ST<MagicResourceManager>::Destroy();
-	//ResourceManagerOld::Clear();
 	// Singletons
 	ST<TweenManager>::Destroy();
 

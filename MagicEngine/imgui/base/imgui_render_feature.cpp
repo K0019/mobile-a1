@@ -63,11 +63,13 @@ FragOut FSMain(Varyings in) {
   {
     gfx::BufferDesc vertexDesc{
       .size = 64 * 1024,
-      .flags = static_cast<hina_buffer_flags>(gfx::BufferUsage::Vertex | gfx::BufferUsage::HostVisible | gfx::BufferUsage::HostCoherent)
+      .memory = gfx::BufferMemory::CPU,
+      .usage = gfx::BufferUsage::Vertex
     };
     gfx::BufferDesc indexDesc{
       .size = 32 * 1024,
-      .flags = static_cast<hina_buffer_flags>(gfx::BufferUsage::Index | gfx::BufferUsage::HostVisible | gfx::BufferUsage::HostCoherent)
+      .memory = gfx::BufferMemory::CPU,
+      .usage = gfx::BufferUsage::Index
     };
 
     // ImGui renders to VIEW_OUTPUT (intermediate texture), then FinalBlit copies to swapchain
@@ -138,29 +140,26 @@ FragOut FSMain(Varyings in) {
     pip_desc.cull_mode = HINA_CULL_MODE_NONE;
     pip_desc.depth.depth_test = false;
     pip_desc.depth.depth_write = false;
-    pip_desc.blend.enable = true;
-    pip_desc.blend.src_color = HINA_BLEND_FACTOR_SRC_ALPHA;
-    pip_desc.blend.dst_color = HINA_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
-    pip_desc.blend.color_op = HINA_BLEND_OP_ADD;
-    pip_desc.blend.src_alpha = HINA_BLEND_FACTOR_ONE;
-    pip_desc.blend.dst_alpha = HINA_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
-    pip_desc.blend.alpha_op = HINA_BLEND_OP_ADD;
+    pip_desc.blend[0].enable = true;
+    pip_desc.blend[0].src_color = HINA_BLEND_FACTOR_SRC_ALPHA;
+    pip_desc.blend[0].dst_color = HINA_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+    pip_desc.blend[0].color_op = HINA_BLEND_OP_ADD;
+    pip_desc.blend[0].src_alpha = HINA_BLEND_FACTOR_ONE;
+    pip_desc.blend[0].dst_alpha = HINA_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+    pip_desc.blend[0].alpha_op = HINA_BLEND_OP_ADD;
     pip_desc.depth_format = HINA_FORMAT_UNDEFINED;
 
     // Use shared UI bind group layout
     GfxRenderer* gfxRenderer = context.GetGfxRenderer();
 
-    // Explicitly set color format to match VIEW_OUTPUT texture (swapchain format)
-    // This prevents validation errors from format mismatch at bind time
+    // Use actual swapchain format - VIEW_OUTPUT textures are created with this format
+    // Note: HINA_FORMAT_SWAPCHAIN may not resolve correctly if called before swapchain init
     HinaContext* hinaCtx = gfxRenderer ? gfxRenderer->getHinaContext() : nullptr;
-    if (hinaCtx) {
-      pip_desc.color_formats[0] = hinaCtx->getSwapchainFormat();
-      pip_desc.color_attachment_count = 1;
-    }
+    pip_desc.color_formats[0] = hinaCtx ? static_cast<hina_format>(hinaCtx->getSwapchainFormat())
+                                        : HINA_FORMAT_B8G8R8A8_SRGB;
     gfx::BindGroupLayout uiLayout = gfxRenderer->getUIBindGroupLayout();
     if (hina_bind_group_layout_is_valid(uiLayout)) {
       pip_desc.bind_group_layouts[0] = uiLayout;
-      pip_desc.bind_group_layout_count = 1;
     }
 
     pipeline_.reset(hina_make_pipeline_from_module(module, &pip_desc, nullptr));
@@ -213,8 +212,8 @@ FragOut FSMain(Varyings in) {
     // Upload data using hina buffer operations
     // Note: Buffers are HOST_COHERENT, so no flush is needed
     {
-      ImDrawVert* vtx = static_cast<ImDrawVert*>(hina_map_buffer(vertexBuffer));
-      uint16_t* idx = static_cast<uint16_t*>(hina_map_buffer(indexBuffer));
+      ImDrawVert* vtx = static_cast<ImDrawVert*>(hina_mapped_buffer_ptr(vertexBuffer));
+      uint16_t* idx = static_cast<uint16_t*>(hina_mapped_buffer_ptr(indexBuffer));
       for (int n = 0; n < drawData->CmdListsCount; n++)
       {
         const ImDrawList* cmdList = drawData->CmdLists[n];

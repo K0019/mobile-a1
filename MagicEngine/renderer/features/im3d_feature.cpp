@@ -262,7 +262,8 @@ void Im3dRenderFeature::SetupPasses(internal::RenderPassBuilder& passBuilder)
   // Single SSBO for all primitives
   gfx::BufferDesc ssboDesc{
     .size = 256 * 1024,
-    .flags = static_cast<hina_buffer_flags>(gfx::BufferUsage::Storage | gfx::BufferUsage::HostVisible | gfx::BufferUsage::HostCoherent)
+    .memory = gfx::BufferMemory::CPU,
+    .usage = gfx::BufferUsage::Storage
   };
   passBuilder.CreatePass().DeclareTransientResource("Im3dSSBO", ssboDesc).UseResource("Im3dSSBO", AccessType::Read).
               UseResource(RenderResources::SCENE_COLOR, AccessType::ReadWrite).
@@ -333,14 +334,13 @@ void Im3dRenderFeature::EnsurePipelinesCreated(const internal::ExecutionContext&
 
     // Color attachment with alpha blending
     pipDesc.color_formats[0] = colorFormat;
-    pipDesc.color_attachment_count = 1;
-    pipDesc.blend.enable = true;
-    pipDesc.blend.src_color = HINA_BLEND_FACTOR_SRC_ALPHA;
-    pipDesc.blend.dst_color = HINA_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
-    pipDesc.blend.src_alpha = HINA_BLEND_FACTOR_ONE;
-    pipDesc.blend.dst_alpha = HINA_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
-    pipDesc.blend.color_op = HINA_BLEND_OP_ADD;
-    pipDesc.blend.alpha_op = HINA_BLEND_OP_ADD;
+    pipDesc.blend[0].enable = true;
+    pipDesc.blend[0].src_color = HINA_BLEND_FACTOR_SRC_ALPHA;
+    pipDesc.blend[0].dst_color = HINA_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+    pipDesc.blend[0].src_alpha = HINA_BLEND_FACTOR_ONE;
+    pipDesc.blend[0].dst_alpha = HINA_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+    pipDesc.blend[0].color_op = HINA_BLEND_OP_ADD;
+    pipDesc.blend[0].alpha_op = HINA_BLEND_OP_ADD;
 
     // Depth (always pass, no write - for debug drawing)
     pipDesc.depth_format = depthFormat;

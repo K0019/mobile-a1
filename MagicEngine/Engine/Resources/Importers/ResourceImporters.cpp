@@ -28,6 +28,22 @@ All rights reserved.
 #include "GameSettings.h"
 #include "VFS/VFS.h"
 #include "core_utils/util.h"  // For SCOPE_EXIT
+#include "resource/asset_formats/mesh_format.h"
+#include "resource/asset_formats/anim_format.h"
+
+// Use engine's file format types
+using Resource::MESH_FILE_MAGIC;
+using Resource::MeshFileHeader;
+using Resource::MeshNode;
+using Resource::MeshInfo;
+using Resource::MeshFile_Bone;
+using Resource::MeshFile_MorphDelta;
+using Resource::MeshFile_MorphTarget;
+using Resource::ANIM_FILE_MAGIC;
+using Resource::AnimationFileHeader;
+using Resource::BoneAnimationChannel;
+using Resource::AnimationFile_MorphChannel;
+using Resource::AnimationFile_MorphKey;
 
 #ifdef GLFW
 #include "tools/assets/io/texture_loader.h"
@@ -128,8 +144,6 @@ bool ResourceImporters::ImportKTX(const std::string& assetRelativeFilepath)
     auto& graphicsAssetSystem{ ST<GraphicsMain>::Get()->GetAssetSystem() };
     TextureHandle textureHandle{ graphicsAssetSystem.createTexture(processedTexture) };
 
-    graphicsAssetSystem.FlushUploads();
-
     // Create resource entry
     const auto* fileEntry{ GenerateFileEntryForResources<ResourceTexture>(assetRelativeFilepath, 1) };
 
@@ -198,7 +212,6 @@ bool ResourceImporters::ImportMaterial(const std::string& relativeFilepath)
     // Create material handle
     auto& graphicsAssetSystem{ ST<GraphicsMain>::Get()->GetAssetSystem() };
     MaterialHandle materialHandle{ graphicsAssetSystem.createMaterial(material) };
-    graphicsAssetSystem.FlushUploads();
 
     // Create resource entry
     const auto* fileEntry{ GenerateFileEntryForResources<ResourceMaterial>(relativeFilepath, 1) };
@@ -231,8 +244,9 @@ bool ResourceImporters::ImportAudio(const std::string& assetRelativeFilepath)
     const ResourceFilepaths::FileEntry* fileentry{ ST<MagicResourceManager>::Get()->INTERNAL_GetFilepathsManager().GetFileEntry(assetRelativeFilepath) };
     if (!fileentry)
     {
+        static const size_t audioTypeHash = util::ConsistentHash<ResourceAudio>();  // Cache hash
         std::vector<AssociatedResourceHashes> resourceHashes{ 1 };
-        resourceHashes[0].resourceTypeHash = util::ConsistentHash<ResourceAudio>();
+        resourceHashes[0].resourceTypeHash = audioTypeHash;
         resourceHashes[0].hashes.push_back(util::GenHash(VFS::GetStem(VFS::NormalizePath(assetRelativeFilepath))));
         GenerateNamesForResources(resourceHashes, assetRelativeFilepath);
         fileentry = ST<MagicResourceManager>::Get()->INTERNAL_GetFilepathsManager().SetFilepath(assetRelativeFilepath, std::move(resourceHashes));
@@ -250,112 +264,6 @@ bool ResourceImporters::ImportAudio(const std::string& assetRelativeFilepath)
 // ============================================================================
 // Mesh Asset Importer
 // ============================================================================
-
-#pragma region Mesh File Structure
-// Just copy pasting definitions from assetcompiler/MeshFileStructure.h
-// To make engine not depend on assetcompiler project
-
-constexpr uint32_t MESH_FILE_MAGIC = { 'MESH' };
-
-#pragma pack(push, 1)
-// Header at the very start of the file
-struct MeshFileHeader
-{
-    uint32_t magic = MESH_FILE_MAGIC;
-
-    uint32_t numNodes;
-    uint32_t numMeshes;
-    uint32_t totalIndices;
-    uint32_t totalVertices;
-    uint32_t meshNameBufferSize;
-    uint32_t materialNameBufferSize;
-
-    // Skelaton
-    uint32_t hasSkeleton;
-    uint32_t numBones;
-    uint32_t boneNameBufferSize;
-
-    // Morphs
-    uint32_t hasMorphs;
-    uint32_t numMorphTargets;
-    uint32_t numMorphDeltas;
-    uint32_t morphTargetNameBufferSize;
-
-    // Bounds for the entire scene
-    vec3 sceneBoundsCenter;
-    float sceneBoundsRadius;
-    vec3 sceneBoundsMin;
-    vec3 sceneBoundsMax;
-
-    // Offsets to the start of each data block from the beginning of the file
-    uint64_t nodeDataOffset;
-    uint64_t meshInfoDataOffset;
-    uint64_t meshNamesOffset;
-    uint64_t materialNamesOffset;
-    uint64_t indexDataOffset;
-    uint64_t vertexDataOffset;
-
-    uint64_t skinningDataOffset;
-    uint64_t boneDataOffset;
-    uint64_t boneNameOffset;
-
-    uint64_t morphTargetDataOffset;
-    uint64_t morphDeltaDataOffset;
-    uint64_t morphTargetNameOffset;
-};
-
-// Information for each node inside fbx
-struct MeshNode
-{
-    mat4 transform;
-    int32_t parentIndex;
-    int32_t meshIndex;
-    char name[64];
-};
-
-// Describes how to get mesh data from the buffers
-struct MeshInfo
-{
-    uint32_t indexCount;
-    uint32_t firstIndex;
-    uint32_t firstVertex;
-    uint32_t nameOffset;
-    uint32_t materialNameIndex;
-
-    vec4 meshBounds;
-
-    uint32_t firstMorphTarget;
-    uint32_t morphTargetCount;
-};
-
-// Structure of bone data
-struct MeshFile_Bone
-{
-    mat4     inverseBindPose;
-    mat4     bindPose;
-    int32_t  parentIndex;
-    uint32_t nameOffset;
-};
-
-// Per-vertex morph delta
-struct MeshFile_MorphDelta
-{
-    uint32_t vertexIndex;
-    vec3     deltaPosition;
-    vec3     deltaNormal;
-    vec3     deltaTangent;
-};
-
-// One morph target
-struct MeshFile_MorphTarget
-{
-    uint32_t nameOffset;
-    uint32_t firstDelta;
-    uint32_t deltaCount;
-};
-
-#pragma pack(pop)
-#pragma endregion
 
 namespace {
     std::string to_lower_str(std::string& s)
@@ -526,6 +434,12 @@ namespace {
             size_t materialHash{ 0 };
             const auto& fpManager = ST<MagicResourceManager>::Get()->INTERNAL_GetFilepathsManager();
             auto materialEntry = fpManager.GetFileEntry(constructedPathToMaterial);
+            if (!materialEntry)
+            {
+                // Fallback: check materials/ subdirectory (for flat-copied meshes)
+                std::string fallbackPath = VFS::JoinPath("compiledassets/materials", materialname + ".material");
+                materialEntry = fpManager.GetFileEntry(fallbackPath);
+            }
             if (materialEntry)
             {
                 materialHash = materialEntry->associatedResources[0].hashes[0];
@@ -626,7 +540,6 @@ namespace {
         for (const auto& mesh : processedMeshes)
             outMeshHandles->push_back(graphicsAssetSystem.createMesh(mesh));
 
-        graphicsAssetSystem.FlushUploads();
         return true;
     }
 
@@ -669,69 +582,6 @@ bool ResourceImporters::ImportMeshAsset(const std::string& assetRelativeFilepath
 // ============================================================================
 // Animation Asset Importer
 // ============================================================================
-
-#pragma region Animation File Structure
-// Just copy pasting definitions from assetcompiler/MeshFileStructure.h
-
-constexpr uint32_t ANIM_FILE_MAGIC = { 'ANIM' };
-
-#pragma pack(push, 1)
-// Represents a morph keyframe
-struct AnimationFile_MorphKey
-{
-    float    time;
-    uint32_t numTargets;
-
-    uint64_t targetIndexOffset;
-    uint64_t weightOffset;
-};
-
-// One morph animation
-struct AnimationFile_MorphChannel
-{
-    uint32_t meshIndex;
-    uint32_t numKeys;
-
-    uint64_t keyOffset;
-};
-
-struct AnimationFileHeader
-{
-    uint32_t magic = ANIM_FILE_MAGIC;
-    float    duration;
-    float    ticksPerSecond;
-
-    // Skeletal Data
-    uint32_t numChannels;
-    uint64_t channelDataOffset;
-    uint64_t keyframeDataOffset;
-    uint32_t skeletalNameBufferSize;
-    uint64_t skeletalNameBufferOffset;
-
-    // Morph Data
-    uint32_t numMorphChannels;
-    uint64_t morphChannelDataOffset;
-    uint64_t morphKeyDataOffset;
-    uint64_t morphIndexDataOffset;
-    uint32_t morphWeightDataBufferSize;
-    uint64_t morphWeightDataOffset;
-};
-
-// One skeletal animation
-struct BoneAnimationChannel
-{
-    uint32_t nameOffset;
-
-    uint32_t numPositionKeys;
-    uint32_t numRotationKeys;
-    uint32_t numScaleKeys;
-
-    uint64_t positionKeyOffset;
-    uint64_t rotationKeyOffset;
-    uint64_t scaleKeyOffset;
-};
-#pragma pack(pop)
-#pragma endregion
 
 namespace {
     bool ImportAnimationAssetInternal(const std::string& filepath, Resource::ProcessedAnimationClip& outClip)

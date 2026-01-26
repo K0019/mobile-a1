@@ -277,6 +277,13 @@ TextureHandle GfxMaterialSystem::createTexture(const TextureCreateInfo& info) {
     desc.initial_data = info.data;
     desc.label = info.label;  // Debug label for RenderDoc
 
+    // Enable automatic mip generation if requested
+    // NOTE: Only works for uncompressed formats. KTX2/compressed textures have pre-baked mips.
+    // TODO: Implement engine-side or hina-vk mip generation for runtime-loaded uncompressed textures
+    if (info.generateMips) {
+        desc.mip_levels = HINA_MIP_LEVELS_AUTO;
+    }
+
     entry.texture = hina_make_texture(&desc);
     if (!hina_texture_is_valid(entry.texture)) {
         LOG_ERROR("[GfxMaterialSystem] Failed to create texture");
@@ -417,14 +424,13 @@ MaterialHandle GfxMaterialSystem::createMaterial(const GfxMaterial& material) {
     entry.material = material;
     entry.dirty = true;
 
-    // Pack GPU data
+    // Pack GPU data (baseColor includes alpha, alphaCutoff for alpha testing)
     entry.gpuData.pack(
         material.baseColor,
         material.roughness,
         material.metallic,
         material.emissive,
-        material.ao,
-        material.rim
+        material.alphaCutoff
     );
 
     // Create bind group if we have a valid layout
@@ -453,14 +459,13 @@ void GfxMaterialSystem::updateMaterial(MaterialHandle handle, const GfxMaterial&
     MaterialEntry& entry = m_materials[handle.index];
     entry.material = material;
 
-    // Update packed GPU data
+    // Update packed GPU data (baseColor includes alpha, alphaCutoff for alpha testing)
     entry.gpuData.pack(
         material.baseColor,
         material.roughness,
         material.metallic,
         material.emissive,
-        material.ao,
-        material.rim
+        material.alphaCutoff
     );
 
     // Immediately rebuild bind group since texture references may have changed
@@ -485,8 +490,8 @@ void GfxMaterialSystem::createMaterialBindGroup(MaterialEntry& entry) {
     if (!hina_buffer_is_valid(entry.constantsUBO)) {
         hina_buffer_desc ubo_desc = {};
         ubo_desc.size = sizeof(PackedMaterial);  // 16 bytes
-        ubo_desc.flags = static_cast<hina_buffer_flags>(
-            HINA_BUFFER_UNIFORM_BIT | HINA_BUFFER_HOST_VISIBLE_BIT | HINA_BUFFER_HOST_COHERENT_BIT);
+        ubo_desc.memory = HINA_BUFFER_CPU;
+        ubo_desc.usage = HINA_BUFFER_UNIFORM;
         entry.constantsUBO = hina_make_buffer(&ubo_desc);
         if (!hina_buffer_is_valid(entry.constantsUBO)) {
             LOG_ERROR("[GfxMaterialSystem] Failed to create material constants UBO");
@@ -495,7 +500,7 @@ void GfxMaterialSystem::createMaterialBindGroup(MaterialEntry& entry) {
     }
 
     // Upload packed material data to UBO
-    void* mapped = hina_map_buffer(entry.constantsUBO);
+    void* mapped = hina_mapped_buffer_ptr(entry.constantsUBO);
     if (mapped) {
         std::memcpy(mapped, &entry.gpuData, sizeof(PackedMaterial));
         // No unmap needed for HOST_COHERENT persistently mapped buffers

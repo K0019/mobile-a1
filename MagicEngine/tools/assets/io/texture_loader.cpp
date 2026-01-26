@@ -57,8 +57,7 @@ namespace Resource::TextureLoading
         }
         else if constexpr(std::is_same_v<T, EmbeddedMemorySource>)
         {
-          // TODO: Pass isSRGB to embedded texture loading
-          return Detail::loadFromEmbedded(src, texture);
+          return Detail::loadFromEmbedded(src, texture, isSRGB);
         }
       },
                                    source);
@@ -470,7 +469,7 @@ namespace Resource::TextureLoading
       return true;
     }
 
-    bool loadFromEmbedded(const EmbeddedMemorySource& src, ProcessedTexture& texture)
+    bool loadFromEmbedded(const EmbeddedMemorySource& src, ProcessedTexture& texture, bool isSRGB)
     {
       if(!src.scene || src.identifier.empty() || src.identifier[0] != '*') {
         return false;
@@ -500,16 +499,16 @@ namespace Resource::TextureLoading
       {
         // Compressed embedded texture
         const uint8_t* data = reinterpret_cast<const uint8_t*>(aiTex->pcData);
-        return loadFromMemory(data, aiTex->mWidth, texture, texture.name, true);
+        return loadFromMemory(data, aiTex->mWidth, texture, texture.name, isSRGB);
       }
       else
       {
         // Uncompressed RGBA data
-        return loadFromUncompressedEmbedded(aiTex, texture);
+        return loadFromUncompressedEmbedded(aiTex, texture, isSRGB);
       }
     }
 
-    bool loadFromUncompressedEmbedded(const aiTexture* aiTex, ProcessedTexture& texture)
+    bool loadFromUncompressedEmbedded(const aiTexture* aiTex, ProcessedTexture& texture, bool isSRGB)
     {
       const size_t dataSize = aiTex->mWidth * aiTex->mHeight * 4;
       const uint8_t* data = reinterpret_cast<const uint8_t*>(aiTex->pcData);
@@ -518,10 +517,13 @@ namespace Resource::TextureLoading
       texture.height = aiTex->mHeight;
       texture.channels = 4;
       texture.data.assign(data, data + dataSize);
-      texture.sRGB = true;
+      texture.sRGB = isSRGB;
       texture.originalFileSize = dataSize;
 
-      texture.textureDesc = gfx::TextureMetadata{ .type = gfx::TextureType::Tex2D, .format = gfx::Format::RGBA8_UNorm, .dimensions = {texture.width, texture.height, 1}, .numMipLevels = 1, .usage = gfx::TextureUsage::Sampled, .debugName = texture.name.c_str() };
+      // Select format based on color space
+      const gfx::Format format = isSRGB ? gfx::Format::RGBA8_SRGB : gfx::Format::RGBA8_UNorm;
+
+      texture.textureDesc = gfx::TextureMetadata{ .type = gfx::TextureType::Tex2D, .format = format, .dimensions = {texture.width, texture.height, 1}, .numMipLevels = 1, .usage = gfx::TextureUsage::Sampled, .debugName = texture.name.c_str() };
 
       return true;
     }

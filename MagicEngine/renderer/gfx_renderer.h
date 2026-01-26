@@ -145,7 +145,6 @@ namespace DynamicBindings {
 struct FrameResources {
     // Global UBOs
     gfx::Buffer frameConstantsUBO;
-    gfx::Buffer lightingDataUBO;
 
     // Transform ring buffer (dynamic offsets) - persistently mapped
     gfx::Buffer transformRingUBO;
@@ -214,78 +213,11 @@ struct WBOITTargets {
 };
 
 // ============================================================================
-// Light Tile Binner
-// ============================================================================
-
-/**
- * @brief CPU-side light tile binner (32x32 tiles, 64-bit masks)
- */
-class LightTileBinner {
-public:
-    void resize(uint32_t screenWidth, uint32_t screenHeight);
-    void clear();
-
-    /**
-     * @brief Add a light to the tile map
-     * @param lightIndex Index in the light array (0-63)
-     * @param screenBounds Screen-space AABB [minX, minY, maxX, maxY]
-     * @param zMin Minimum depth of light influence
-     * @param zMax Maximum depth of light influence
-     */
-    void addLight(uint32_t lightIndex, const glm::vec4& screenBounds, float zMin, float zMax);
-
-    /**
-     * @brief Get the light mask for a tile
-     */
-    uint64_t getTileMask(uint32_t tileX, uint32_t tileY) const;
-
-    /**
-     * @brief Get tile dimensions
-     */
-    uint32_t getTileCountX() const { return m_tileCountX; }
-    uint32_t getTileCountY() const { return m_tileCountY; }
-
-private:
-    std::vector<gfx::LightTile> m_tiles;
-    uint32_t m_tileCountX = 0;
-    uint32_t m_tileCountY = 0;
-    uint32_t m_screenWidth = 0;
-    uint32_t m_screenHeight = 0;
-};
-
-// ============================================================================
-// Shadow Atlas
-// ============================================================================
-
-/**
- * @brief Octahedral shadow atlas allocator
- */
-class ShadowAtlasAllocator {
-public:
-    struct Region {
-        uint32_t x, y;           // Position in atlas
-        uint32_t size;           // Size (square)
-        uint32_t lightIndex;     // Which light owns this
-        bool isOctahedral;       // Point light = octahedral, spot = standard
-    };
-
-    void init(uint32_t atlasSize);
-    Region allocate(uint32_t size, uint32_t lightIndex, bool octahedral);
-    void free(uint32_t lightIndex);
-    void reset();
-
-private:
-    std::vector<Region> m_regions;
-    uint32_t m_atlasSize = 0;
-    uint32_t m_nextY = 0;
-};
-
-// ============================================================================
 // CPU Culler
 // ============================================================================
 
 /**
- * @brief CPU-based frustum culling and sorting
+ * @brief CPU-based frustum culling
  */
 class CPUCuller {
 public:
@@ -295,18 +227,6 @@ public:
      * @brief Test if an AABB is visible
      */
     bool isVisible(const glm::vec3& aabbMin, const glm::vec3& aabbMax) const;
-
-    /**
-     * @brief Cull and sort objects
-     * @param objects Input objects to cull
-     * @param cameraPos Camera position for sorting
-     * @param frontToBack True for opaque (front-to-back), false for transparent (back-to-front)
-     * @return Sorted list of visible objects
-     */
-    std::vector<gfx::VisibleObject> cullAndSort(
-        const std::vector<gfx::VisibleObject>& objects,
-        const glm::vec3& cameraPos,
-        bool frontToBack = true) const;
 
 private:
     glm::vec4 m_frustumPlanes[6];
@@ -476,6 +396,37 @@ public:
     gfx::GfxMaterialSystem& getMaterialSystem() { return m_materialSystem; }
     const gfx::GfxMaterialSystem& getMaterialSystem() const { return m_materialSystem; }
 
+    // ========================================================================
+    // Upload Batching (Phase 3: Group same-frame uploads for efficiency)
+    // ========================================================================
+
+    /**
+     * @brief Upload statistics for the current frame.
+     */
+    struct UploadStats {
+        uint32_t meshUploadsThisFrame = 0;
+        uint32_t verticesUploadedThisFrame = 0;
+        uint32_t indicesUploadedThisFrame = 0;
+        uint32_t bytesUploadedThisFrame = 0;
+    };
+
+    /**
+     * @brief Get upload statistics for the current frame.
+     */
+    const UploadStats& getUploadStats() const { return m_uploadStats; }
+
+    /**
+     * @brief Record that a mesh upload occurred this frame (for statistics).
+     * Called by ResourceManager after uploading a mesh.
+     */
+    void recordMeshUpload(uint32_t vertexCount, uint32_t indexCount, uint32_t totalBytes);
+
+    /**
+     * @brief Flush any pending uploads at end of frame.
+     * Currently a no-op (uploads are immediate), but provides API for future batching.
+     */
+    void flushPendingUploads();
+
     // Frustum culling interface
     void setFrustum(const glm::mat4& viewProj) { m_culler.setFrustum(viewProj); }
     bool isVisibleInFrustum(const glm::vec3& aabbMin, const glm::vec3& aabbMax) const {
@@ -548,8 +499,6 @@ private:
 
     // Per-frame helpers
     void updateFrameConstants(const FrameData& frameData);
-    void cullScene(const FrameData& frameData);
-    void binLights(const FrameData& frameData);
     void renderGrid();   // Infinite grid for editor orientation
 
     // Core state
@@ -587,13 +536,7 @@ private:
     uint64_t m_featureMask = ~0ULL;         // All features enabled by default
 
     // CPU systems
-    LightTileBinner m_lightBinner;
-    ShadowAtlasAllocator m_shadowAllocator;
     CPUCuller m_culler;
-
-    // Visible objects (populated by culling)
-    std::vector<gfx::VisibleObject> m_visibleOpaque;
-    std::vector<gfx::VisibleObject> m_visibleTransparent;
 
     // Pipelines (created at startup) - most scene rendering moved to SceneRenderFeature
     gfx::Pipeline m_gridPipeline;            // Infinite grid for editor
@@ -625,6 +568,9 @@ private:
     // ========================================================================
     gfx::GfxMeshStorage m_meshStorage;
     gfx::GfxMaterialSystem m_materialSystem;
+
+    // Upload statistics (reset each frame)
+    UploadStats m_uploadStats;
 
     // ========================================================================
     // ImGui Resources

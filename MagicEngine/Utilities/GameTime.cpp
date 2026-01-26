@@ -22,9 +22,9 @@ All rights reserved.
 
 #include "Utilities/GameTime.h"
 
-float GameTime::targetRealFps{ 60 };
+float GameTime::targetRealFps{ 0 };  // 0 = unlimited FPS
 std::chrono::time_point<std::chrono::steady_clock> GameTime::lastFrameTimepoint{};
-std::chrono::nanoseconds GameTime::targetFrametime{ std::chrono::nanoseconds{ static_cast<int64_t>(1e9 / targetRealFps) } };
+std::chrono::nanoseconds GameTime::targetFrametime{ std::chrono::nanoseconds::zero() };  // No FPS cap
 std::chrono::time_point<std::chrono::steady_clock> GameTime::targetFrameTimepoint{ std::chrono::steady_clock::now() + GameTime::targetFrametime };
 float GameTime::fps{};
 bool GameTime::isUsingFixedDeltaTime{ true };

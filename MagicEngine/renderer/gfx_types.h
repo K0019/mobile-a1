@@ -306,37 +306,36 @@ static_assert(sizeof(VertexSkinning) == 8, "VertexSkinning must be 8 bytes");
  * Single indexed load on GPU (16 bytes = 1x uint4).
  * Layout:
  *   [0]: baseColor.r, baseColor.g  (half2)
- *   [1]: baseColor.b, roughness    (half2)
- *   [2]: metallic, emissive        (half2)
- *   [3]: rim, ao                   (half2)
+ *   [1]: baseColor.b, baseColor.a  (half2) - alpha for transparency
+ *   [2]: roughness, metallic       (half2)
+ *   [3]: emissive, alphaCutoff     (half2) - alphaCutoff for alpha testing
  */
 struct PackedMaterial {
     uint32_t data[4];
 
     PackedMaterial() { data[0] = data[1] = data[2] = data[3] = 0; }
 
-    void pack(const glm::vec4& baseColor, float roughness, float metallic, float emissive, float ao, float rim = 0.0f) {
+    void pack(const glm::vec4& baseColor, float roughness, float metallic, float emissive, float alphaCutoff) {
         // Clamp roughness to minimum 0.089 for fp16 precision (Filament recommendation)
         roughness = glm::max(roughness, 0.089f);
 
         data[0] = glm::packHalf2x16(glm::vec2(baseColor.r, baseColor.g));
-        data[1] = glm::packHalf2x16(glm::vec2(baseColor.b, roughness));
-        data[2] = glm::packHalf2x16(glm::vec2(metallic, emissive));
-        data[3] = glm::packHalf2x16(glm::vec2(rim, ao));
+        data[1] = glm::packHalf2x16(glm::vec2(baseColor.b, baseColor.a));
+        data[2] = glm::packHalf2x16(glm::vec2(roughness, metallic));
+        data[3] = glm::packHalf2x16(glm::vec2(emissive, alphaCutoff));
     }
 
-    void unpack(glm::vec4& baseColor, float& roughness, float& metallic, float& emissive, float& ao, float& rim) const {
+    void unpack(glm::vec4& baseColor, float& roughness, float& metallic, float& emissive, float& alphaCutoff) const {
         glm::vec2 rg = glm::unpackHalf2x16(data[0]);
-        glm::vec2 br = glm::unpackHalf2x16(data[1]);
-        glm::vec2 me = glm::unpackHalf2x16(data[2]);
-        glm::vec2 ra = glm::unpackHalf2x16(data[3]);
+        glm::vec2 ba = glm::unpackHalf2x16(data[1]);
+        glm::vec2 rm = glm::unpackHalf2x16(data[2]);
+        glm::vec2 ec = glm::unpackHalf2x16(data[3]);
 
-        baseColor = glm::vec4(rg.x, rg.y, br.x, 1.0f);
-        roughness = br.y;
-        metallic = me.x;
-        emissive = me.y;
-        rim = ra.x;
-        ao = ra.y;
+        baseColor = glm::vec4(rg.x, rg.y, ba.x, ba.y);
+        roughness = rm.x;
+        metallic = rm.y;
+        emissive = ec.x;
+        alphaCutoff = ec.y;
     }
 };
 static_assert(sizeof(PackedMaterial) == 16, "PackedMaterial must be 16 bytes");
@@ -474,46 +473,6 @@ struct DrawState {
                indexBuffer == other.indexBuffer &&
                vertexBuffer == other.vertexBuffer;
     }
-};
-
-/**
- * @brief Visible object after culling, ready for draw stream generation.
- */
-struct VisibleObject {
-    uint32_t psoHandle;
-    uint32_t materialBGHandle;
-    uint32_t meshHandle;
-    uint32_t transformOffset;
-    uint32_t indexCount;
-    uint32_t firstIndex;
-    int32_t  vertexOffset;
-    float    sortKey;  // for front-to-back or back-to-front sorting
-};
-
-// ============================================================================
-// Light Tile Binning (CPU-side, 32x32 tiles)
-// ============================================================================
-
-/**
- * @brief Per-tile light visibility mask.
- * 64 bits = max 64 lights per frame (HypeHype approach).
- */
-struct LightTile {
-    uint64_t lightMask;  // Bit N = light N affects this tile
-    float zMin;          // Min depth in tile (for early-out)
-    float zMax;          // Max depth in tile
-};
-
-/**
- * @brief Light data for CPU tile binning.
- */
-struct TileLight {
-    glm::vec3 position;
-    float radius;
-    glm::vec3 color;
-    float intensity;
-    glm::vec3 direction;  // For spot lights
-    float spotAngle;      // 0 = point light, >0 = spot light
 };
 
 } // namespace gfx

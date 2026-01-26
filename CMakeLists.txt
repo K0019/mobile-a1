@@ -137,9 +137,6 @@ if(MISSING_SUBMODULES)
         "\n"
         "    git submodule deinit --all -f\n"
         "    git submodule update --init --recursive\n"
-        "\n"
-        "Or on Windows, run: scripts\\setup_submodules.bat\n"
-        "\n"
         "================================================================================\n"
     )
 endif()
@@ -509,7 +506,4 @@ endif()
 # =============================================================================
 
 set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT Editor)
-# Copy Directory.Build.props if it exists (desktop only)
-if(EXISTS "${CMAKE_SOURCE_DIR}/Directory.Build.props")
-    file(COPY "${CMAKE_SOURCE_DIR}/Directory.Build.props" DESTINATION "${CMAKE_BINARY_DIR}")
-endif()
+

@@ -42,10 +42,51 @@ static bool LoadShaderSource(const char* vfsPath, std::string& outSource)
 // Shader file paths (relative to VFS mount point, which maps "" -> "./Assets")
 static const char* kGBufferShaderPath = "shaders/gbuffer.hina_sl";
 static const char* kGBufferSkinnedShaderPath = "shaders/gbuffer_skinned.hina_sl";
-static const char* kCompositeShaderPath = "shaders/composite.hina_sl";
+static const char* kGBufferMorphedShaderPath = "shaders/gbuffer_skinned_morphed.hina_sl";
+static const char* kCompositeTileShaderPath = "shaders/composite_tile.hina_sl";
 static const char* kWBOITAccumShaderPath = "shaders/wboit_accum.hina_sl";
 static const char* kWBOITAccumSkinnedShaderPath = "shaders/wboit_accum_skinned.hina_sl";
 static const char* kWBOITResolveShaderPath = "shaders/wboit_resolve.hina_sl";
+
+// =============================================================================
+// Tile Pass Layout for Deferred Rendering
+// =============================================================================
+// Describes the subpass structure for G-buffer + composite as a tile pass:
+//   Subpass 0: G-Buffer (4 color outputs + depth write)
+//   Subpass 1: Composite (1 color output, 3 tile inputs from subpass 0, depth read-only)
+// =============================================================================
+
+static hina_tile_pass_layout GetDeferredTilePassLayout()
+{
+  hina_tile_pass_layout layout = {};
+  layout.samples = HINA_SAMPLE_COUNT_1_BIT;
+
+  // Subpass 0: G-Buffer fill (4 color outputs + depth)
+  layout.subpasses[0].color_count = 4;
+  layout.subpasses[0].color_formats[0] = HINA_FORMAT_R8G8B8A8_SRGB;    // Albedo
+  layout.subpasses[0].color_formats[1] = HINA_FORMAT_R16G16_SFLOAT;     // Normal (octahedral)
+  layout.subpasses[0].color_formats[2] = HINA_FORMAT_R8G8B8A8_UNORM;    // Material data
+  layout.subpasses[0].color_formats[3] = HINA_FORMAT_R32_UINT;          // Visibility ID
+  layout.subpasses[0].depth_format = HINA_FORMAT_D32_SFLOAT;
+  layout.subpasses[0].depth_read_only = false;  // G-buffer writes depth
+  layout.subpasses[0].input_count = 0;
+
+  // Subpass 1: Composition (1 color output, 3 tile inputs from subpass 0, depth input)
+  layout.subpasses[1].color_count = 1;
+  layout.subpasses[1].color_formats[0] = HINA_FORMAT_R16G16B16A16_SFLOAT;  // HDR scene color
+  layout.subpasses[1].depth_format = HINA_FORMAT_D32_SFLOAT;
+  layout.subpasses[1].depth_read_only = true;  // Composite doesn't write depth
+  layout.subpasses[1].depth_input = true;      // Read depth as tile input for world pos reconstruction
+  layout.subpasses[1].input_count = 3;  // Albedo, normal, materialData from subpass 0
+  // Tile input mappings: source subpass and attachment index
+  layout.subpasses[1].tile_inputs[0] = {0, 0};  // Albedo from subpass 0, attachment 0
+  layout.subpasses[1].tile_inputs[1] = {0, 1};  // Normal from subpass 0, attachment 1
+  layout.subpasses[1].tile_inputs[2] = {0, 2};  // MaterialData from subpass 0, attachment 2
+  // Note: VisibilityID (attachment 3) is NOT a tile input - only used for picking
+  // Note: Depth is at tile_input index 3 (after color inputs) via depth_input flag
+
+  return layout;
+}
 
 
 // =============================================================================
@@ -77,9 +118,11 @@ void SceneRenderFeature::Shutdown()
   m_frameUBOMapped = nullptr;
   m_gbufferPipeline.reset();
   m_gbufferSkinnedPipeline.reset();
+  m_gbufferMorphedPipeline.reset();
   m_sceneLayout.reset();
   m_pipelineCreated = false;
   m_skinnedPipelineCreated = false;
+  m_morphedPipelineCreated = false;
 
   // Composite resources
   if (hina_bind_group_is_valid(m_compositeBindGroup)) {
@@ -239,24 +282,30 @@ bool SceneRenderFeature::EnsurePipelineCreated(GfxRenderer* gfxRenderer)
   vertex_layout.attrs[2] = { HINA_FORMAT_R32_UINT, 4, 2, 1 };
   vertex_layout.attrs[3] = { HINA_FORMAT_R32_UINT, 8, 3, 1 };
 
+  // Get tile pass layout for subpass 0 (G-buffer)
+  hina_tile_pass_layout tileLayout = GetDeferredTilePassLayout();
+
   hina_hsl_pipeline_desc pip_desc = hina_hsl_pipeline_desc_default();
   pip_desc.layout = vertex_layout;
-  pip_desc.cull_mode = HINA_CULL_MODE_NONE;  // Disable culling - meshes have inconsistent winding
-  pip_desc.front_face = HINA_FRONT_FACE_CLOCKWISE;  // CW = front (matches objects)
+  pip_desc.cull_mode = HINA_CULL_MODE_BACK;  // Back-face culling enabled
+  pip_desc.front_face = HINA_FRONT_FACE_COUNTER_CLOCKWISE;  // CCW = front (Vulkan/glTF standard)
   pip_desc.depth.depth_test = true;
   pip_desc.depth.depth_write = true;
   pip_desc.depth.depth_compare = HINA_COMPARE_OP_LESS;
   pip_desc.depth_format = HINA_FORMAT_D32_SFLOAT;
-  pip_desc.color_attachment_count = 4;
+  // Color formats - first UNDEFINED terminates the list
   pip_desc.color_formats[0] = HINA_FORMAT_R8G8B8A8_SRGB;
   pip_desc.color_formats[1] = HINA_FORMAT_R16G16_SFLOAT;
   pip_desc.color_formats[2] = HINA_FORMAT_R8G8B8A8_UNORM;
   pip_desc.color_formats[3] = HINA_FORMAT_R32_UINT;  // Visibility buffer for object picking
   // Set 0: Frame UBO, Set 1: Material (constants UBO + textures), Set 2: Dynamic transform UBO
+  // Bind group layouts - first invalid handle terminates the list
   pip_desc.bind_group_layouts[0] = m_sceneLayout.get();
   pip_desc.bind_group_layouts[1] = materialLayout;
   pip_desc.bind_group_layouts[2] = dynamicLayout;
-  pip_desc.bind_group_layout_count = 3;
+  // Tile pass layout for deferred rendering (subpass 0)
+  pip_desc.tile_layout = &tileLayout;
+  pip_desc.subpass_index = 0;
 
   m_gbufferPipeline.reset(hina_make_pipeline_from_module(module, &pip_desc, nullptr));
   hslc_hsl_module_free(module);
@@ -269,8 +318,8 @@ bool SceneRenderFeature::EnsurePipelineCreated(GfxRenderer* gfxRenderer)
   // Create persistent frame UBO (viewProj matrix = 64 bytes)
   hina_buffer_desc ubo_desc = {};
   ubo_desc.size = sizeof(glm::mat4);
-  ubo_desc.flags = static_cast<hina_buffer_flags>(
-      HINA_BUFFER_UNIFORM_BIT | HINA_BUFFER_HOST_VISIBLE_BIT | HINA_BUFFER_HOST_COHERENT_BIT);
+  ubo_desc.memory = HINA_BUFFER_CPU;
+  ubo_desc.usage = HINA_BUFFER_UNIFORM;
   m_frameUBO = hina_make_buffer(&ubo_desc);
   if (!hina_buffer_is_valid(m_frameUBO)) {
     LOG_ERROR("[SceneRenderFeature] Failed to create frame UBO");
@@ -278,7 +327,7 @@ bool SceneRenderFeature::EnsurePipelineCreated(GfxRenderer* gfxRenderer)
   }
 
   // Persistently map the UBO for fast per-frame updates
-  m_frameUBOMapped = hina_map_buffer(m_frameUBO);
+  m_frameUBOMapped = hina_mapped_buffer_ptr(m_frameUBO);
   if (!m_frameUBOMapped) {
     LOG_ERROR("[SceneRenderFeature] Failed to map frame UBO");
     return false;
@@ -365,23 +414,29 @@ bool SceneRenderFeature::EnsureSkinnedPipelineCreated(GfxRenderer* gfxRenderer)
   vertex_layout.attrs[4] = { HINA_FORMAT_R8G8B8A8_UINT, 0, 4, 2 };    // boneIndices
   vertex_layout.attrs[5] = { HINA_FORMAT_R8G8B8A8_UNORM, 4, 5, 2 };   // boneWeights
 
+  // Get tile pass layout for subpass 0 (G-buffer)
+  hina_tile_pass_layout tileLayout = GetDeferredTilePassLayout();
+
   hina_hsl_pipeline_desc pip_desc = hina_hsl_pipeline_desc_default();
   pip_desc.layout = vertex_layout;
-  pip_desc.cull_mode = HINA_CULL_MODE_NONE;
-  pip_desc.front_face = HINA_FRONT_FACE_CLOCKWISE;
+  pip_desc.cull_mode = HINA_CULL_MODE_BACK;  // Back-face culling enabled
+  pip_desc.front_face = HINA_FRONT_FACE_COUNTER_CLOCKWISE;  // CCW = front (Vulkan/glTF standard)
   pip_desc.depth.depth_test = true;
   pip_desc.depth.depth_write = true;
   pip_desc.depth.depth_compare = HINA_COMPARE_OP_LESS;
   pip_desc.depth_format = HINA_FORMAT_D32_SFLOAT;
-  pip_desc.color_attachment_count = 4;
+  // Color formats - first UNDEFINED terminates the list
   pip_desc.color_formats[0] = HINA_FORMAT_R8G8B8A8_SRGB;
   pip_desc.color_formats[1] = HINA_FORMAT_R16G16_SFLOAT;
   pip_desc.color_formats[2] = HINA_FORMAT_R8G8B8A8_UNORM;
   pip_desc.color_formats[3] = HINA_FORMAT_R32_UINT;  // Visibility buffer for object picking
+  // Bind group layouts - first invalid handle terminates the list
   pip_desc.bind_group_layouts[0] = m_sceneLayout.get();
   pip_desc.bind_group_layouts[1] = materialLayout;
   pip_desc.bind_group_layouts[2] = dynamicLayout;
-  pip_desc.bind_group_layout_count = 3;
+  // Tile pass layout for deferred rendering (subpass 0)
+  pip_desc.tile_layout = &tileLayout;
+  pip_desc.subpass_index = 0;
 
   m_gbufferSkinnedPipeline.reset(hina_make_pipeline_from_module(module, &pip_desc, nullptr));
   hslc_hsl_module_free(module);
@@ -392,6 +447,112 @@ bool SceneRenderFeature::EnsureSkinnedPipelineCreated(GfxRenderer* gfxRenderer)
   }
 
   m_skinnedPipelineCreated = true;
+  return true;
+}
+
+bool SceneRenderFeature::EnsureMorphedPipelineCreated(GfxRenderer* gfxRenderer)
+{
+  if (m_morphedPipelineCreated) {
+    return true;
+  }
+
+  // Skinned pipeline must be created first (morph extends skinned)
+  if (!m_skinnedPipelineCreated) {
+    if (!EnsureSkinnedPipelineCreated(gfxRenderer)) {
+      return false;
+    }
+  }
+
+  // Load shader source from file
+  std::string shaderSource;
+  if (!LoadShaderSource(kGBufferMorphedShaderPath, shaderSource)) {
+    LOG_WARNING("[SceneRenderFeature] Morphed shader not found, morphed meshes will use skinned pipeline");
+    // Fall back to skinned pipeline for morphed meshes
+    m_morphedPipelineCreated = true;  // Mark as "created" to avoid repeated attempts
+    return true;
+  }
+
+  char* error = nullptr;
+  hina_hsl_module* module = hslc_compile_hsl_source(shaderSource.c_str(), "scene_gbuffer_morphed", &error);
+  if (!module) {
+    LOG_WARNING("[SceneRenderFeature] Morphed shader compilation failed: {}, falling back to skinned",
+             error ? error : "unknown");
+    if (error) hslc_free_log(error);
+    m_morphedPipelineCreated = true;  // Mark as "created" to avoid repeated attempts
+    return true;
+  }
+
+  // Material layout from GfxRenderer (Set 1: constants UBO + textures)
+  gfx::BindGroupLayout materialLayout = gfxRenderer->getMaterialLayout();
+  // Dynamic layout from GfxRenderer (Set 2: transform UBO + bone matrices + morph weights)
+  gfx::BindGroupLayout dynamicLayout = gfxRenderer->getDynamicLayout();
+
+  // Vertex layout for split streams (4 buffers for morphed meshes)
+  // Note: Buffer 3 is for pre-blended morph deltas (CPU-computed)
+  hina_vertex_layout vertex_layout = {};
+  vertex_layout.buffer_count = 4;
+  // Buffer 0: Position stream (12 bytes)
+  vertex_layout.buffer_strides[0] = sizeof(gfx::VertexPosition);
+  vertex_layout.input_rates[0] = HINA_VERTEX_INPUT_RATE_VERTEX;
+  // Buffer 1: Attribute stream (12 bytes)
+  vertex_layout.buffer_strides[1] = sizeof(gfx::VertexAttributes);
+  vertex_layout.input_rates[1] = HINA_VERTEX_INPUT_RATE_VERTEX;
+  // Buffer 2: Skinning stream (8 bytes)
+  vertex_layout.buffer_strides[2] = sizeof(gfx::VertexSkinning);
+  vertex_layout.input_rates[2] = HINA_VERTEX_INPUT_RATE_VERTEX;
+  // Buffer 3: Morph delta stream (12 bytes - vec3)
+  vertex_layout.buffer_strides[3] = 12;  // sizeof(vec3)
+  vertex_layout.input_rates[3] = HINA_VERTEX_INPUT_RATE_VERTEX;
+
+  // 7 attributes total
+  vertex_layout.attr_count = 7;
+  // Buffer 0 attributes
+  vertex_layout.attrs[0] = { HINA_FORMAT_R32G32B32_SFLOAT, 0, 0, 0 };  // position
+  // Buffer 1 attributes
+  vertex_layout.attrs[1] = { HINA_FORMAT_R32_UINT, 0, 1, 1 };   // normalX
+  vertex_layout.attrs[2] = { HINA_FORMAT_R32_UINT, 4, 2, 1 };   // packed
+  vertex_layout.attrs[3] = { HINA_FORMAT_R32_UINT, 8, 3, 1 };   // uv
+  // Buffer 2 attributes (skinning)
+  vertex_layout.attrs[4] = { HINA_FORMAT_R8G8B8A8_UINT, 0, 4, 2 };    // boneIndices
+  vertex_layout.attrs[5] = { HINA_FORMAT_R8G8B8A8_UNORM, 4, 5, 2 };   // boneWeights
+  // Buffer 3 attributes (morph delta)
+  vertex_layout.attrs[6] = { HINA_FORMAT_R32G32B32_SFLOAT, 0, 6, 3 }; // morphDelta
+
+  // Get tile pass layout for subpass 0 (G-buffer)
+  hina_tile_pass_layout tileLayout = GetDeferredTilePassLayout();
+
+  hina_hsl_pipeline_desc pip_desc = hina_hsl_pipeline_desc_default();
+  pip_desc.layout = vertex_layout;
+  pip_desc.cull_mode = HINA_CULL_MODE_BACK;  // Back-face culling enabled
+  pip_desc.front_face = HINA_FRONT_FACE_COUNTER_CLOCKWISE;  // CCW = front (Vulkan/glTF standard)
+  pip_desc.depth.depth_test = true;
+  pip_desc.depth.depth_write = true;
+  pip_desc.depth.depth_compare = HINA_COMPARE_OP_LESS;
+  pip_desc.depth_format = HINA_FORMAT_D32_SFLOAT;
+  // Color formats - first UNDEFINED terminates the list
+  pip_desc.color_formats[0] = HINA_FORMAT_R8G8B8A8_SRGB;
+  pip_desc.color_formats[1] = HINA_FORMAT_R16G16_SFLOAT;
+  pip_desc.color_formats[2] = HINA_FORMAT_R8G8B8A8_UNORM;
+  pip_desc.color_formats[3] = HINA_FORMAT_R32_UINT;  // Visibility buffer for object picking
+  // Bind group layouts - first invalid handle terminates the list
+  pip_desc.bind_group_layouts[0] = m_sceneLayout.get();
+  pip_desc.bind_group_layouts[1] = materialLayout;
+  pip_desc.bind_group_layouts[2] = dynamicLayout;
+  // Tile pass layout for deferred rendering (subpass 0)
+  pip_desc.tile_layout = &tileLayout;
+  pip_desc.subpass_index = 0;
+
+  m_gbufferMorphedPipeline.reset(hina_make_pipeline_from_module(module, &pip_desc, nullptr));
+  hslc_hsl_module_free(module);
+
+  if (!hina_pipeline_is_valid(m_gbufferMorphedPipeline.get())) {
+    LOG_WARNING("[SceneRenderFeature] Morphed pipeline creation failed, falling back to skinned");
+    m_morphedPipelineCreated = true;  // Mark as "created" to avoid repeated attempts
+    return true;
+  }
+
+  LOG_INFO("[SceneRenderFeature] Morphed pipeline created successfully");
+  m_morphedPipelineCreated = true;
   return true;
 }
 
@@ -475,6 +636,13 @@ void SceneRenderFeature::UpdateScene(uint64_t renderFeatureID,
         // Use skinMatrices.size() as authoritative - AnimationComponent::ProcessComp may resize it
         draw.jointCount = static_cast<uint32_t>(animComp->skinMatrices.size());
         draw.skinMatrices = animComp->skinMatrices.data();
+
+        // Set morph data if entity has active morphs
+        if (animComp->morphCount > 0 && !animComp->morphWeights.empty()) {
+          draw.hasMorphs = true;
+          draw.morphCount = static_cast<uint32_t>(animComp->morphWeights.size());
+          draw.morphWeights = animComp->morphWeights.data();
+        }
       }
 
       const ResourceMaterial* material = nullptr;
@@ -563,45 +731,28 @@ void SceneRenderFeature::UpdateScene(uint64_t renderFeatureID,
 
 void SceneRenderFeature::SetupPasses(internal::RenderPassBuilder& passBuilder)
 {
-  // G-buffer pass - renders to G-buffer color textures (GfxRenderer) and SCENE_DEPTH (RenderGraph)
-  // SCENE_DEPTH is shared with Grid/Im3d/UI2D for depth testing
+  // =========================================================================
+  // Deferred Rendering with Tile Pass
+  // G-buffer and composite are combined into a single tile pass with subpasses.
+  // This is more efficient on tile-based GPUs (mobile).
+  // =========================================================================
+
+  // Combined tile pass: G-buffer (subpass 0) + Composite (subpass 1)
+  // This pass writes to both SCENE_DEPTH and SCENE_COLOR
   passBuilder.CreatePass()
     .SetPriority(internal::RenderPassBuilder::PassPriority::Opaque)
     .UseResource(RenderResources::SCENE_DEPTH, AccessType::Write)
-    .AddGenericPass("SceneGBuffer", [this](internal::ExecutionContext& ctx) {
-      ExecuteGBufferPass(ctx);
+    .UseResource(RenderResources::SCENE_COLOR, AccessType::Write)
+    .AddGenericPass("SceneDeferredTilePass", [this](internal::ExecutionContext& ctx) {
+      ExecuteDeferredTilePass(ctx);
     });
 
-  // Object picking pass - reads visibility buffer after G-buffer is complete
-  // This is a CPU-side operation (GPU texture download) so it needs to run after G-buffer
+  // Object picking pass - reads visibility buffer after tile pass is complete
   passBuilder.CreatePass()
-    .SetPriority(static_cast<internal::RenderPassBuilder::PassPriority>(110))  // After Opaque (100)
-    .ExecuteAfter("SceneGBuffer")
+    .SetPriority(static_cast<internal::RenderPassBuilder::PassPriority>(110))
+    .ExecuteAfter("SceneDeferredTilePass")
     .AddGenericPass("ObjectPicking", [this](internal::ExecutionContext& ctx) {
       ProcessPendingPick(ctx);
-    });
-
-  // Composite pass - renders deferred lighting to SCENE_COLOR (HDR)
-  // This is a proper RenderGraph pass that outputs to SCENE_COLOR
-  // NOTE: No depth attachment needed - composite is fullscreen quad, doesn't depth-test
-  PassDeclarationInfo compositePassInfo;
-  compositePassInfo.framebufferDebugName = "SceneComposite";
-  compositePassInfo.colorAttachments[0] = {
-    .textureName = RenderResources::SCENE_COLOR,
-    .loadOp = gfx::LoadOp::Clear,
-    .storeOp = gfx::StoreOp::Store,
-    .clearColor = {0.1f, 0.1f, 0.15f, 1.0f}  // Sky color as clear
-  };
-  // No depth attachment - composite pipeline samples G-buffer depth as texture, doesn't test depth
-
-  passBuilder.CreatePass()
-    .UseResource(RenderResources::SCENE_COLOR, AccessType::Write)
-    .UseResource(RenderResources::SCENE_DEPTH, AccessType::Read)  // Reads depth as texture, not attachment
-    .SetPriority(internal::RenderPassBuilder::PassPriority::PostProcess)
-    .ExecuteAfter("SceneGBuffer")
-    .AddGraphicsPass("SceneComposite", compositePassInfo, [this](const internal::ExecutionContext& ctx) {
-      // Const cast needed because ExecuteCompositePass modifies internal state
-      ExecuteCompositePass(const_cast<internal::ExecutionContext&>(ctx));
     });
 
   // =========================================================================
@@ -609,11 +760,11 @@ void SceneRenderFeature::SetupPasses(internal::RenderPassBuilder& passBuilder)
   // =========================================================================
   // WBOIT Accumulation pass - renders transparent objects with weighted blending
   // Uses SCENE_DEPTH for depth testing (read-only), writes to WBOIT_Accumulation (owned by GfxRenderer)
-  // Priority 510: Must run AFTER SceneComposite (500) which writes the opaque scene to SCENE_COLOR
+  // Priority 510: Must run AFTER deferred lighting is complete
   passBuilder.CreatePass()
     .UseResource(RenderResources::SCENE_DEPTH, AccessType::Read)
     .SetPriority(static_cast<internal::RenderPassBuilder::PassPriority>(510))
-    .ExecuteAfter("SceneComposite")
+    .ExecuteAfter("SceneDeferredTilePass")
     .AddGenericPass("WBOITAccumulation", [this](internal::ExecutionContext& ctx) {
       ExecuteWBOITAccumulation(ctx);
     });
@@ -710,18 +861,27 @@ void SceneRenderFeature::ExecuteGBufferPass(internal::ExecutionContext& ctx)
       return;
     }
 
-    // Separate draws into static and skinned
+    // Separate draws into static, skinned, and morphed
     std::vector<const DrawData*> staticDraws;
     std::vector<const DrawData*> skinnedDraws;
+    std::vector<const DrawData*> morphedDraws;
     staticDraws.reserve(m_drawList.size());
-    skinnedDraws.reserve(32);  // Typical skinned draw count
+    skinnedDraws.reserve(32);   // Typical skinned draw count
+    morphedDraws.reserve(16);   // Typical morphed draw count
 
     for (const auto& draw : m_drawList) {
       // Only classify as skinned if mesh also has skinning data
       const gfx::GpuMesh* gpuMesh = meshStorage.get(draw.gfxMesh);
       bool meshHasSkinning = gpuMesh && gpuMesh->valid && gpuMesh->hasSkinning;
+      bool meshHasMorphs = gpuMesh && gpuMesh->valid && gpuMesh->hasMorphs;
+
       if (draw.isSkinned && draw.skinMatrices && meshHasSkinning) {
-        skinnedDraws.push_back(&draw);
+        // Morphed meshes go to separate bucket (morphs + skinning)
+        if (draw.hasMorphs && draw.morphWeights && meshHasMorphs) {
+          morphedDraws.push_back(&draw);
+        } else {
+          skinnedDraws.push_back(&draw);
+        }
       } else {
         staticDraws.push_back(&draw);
       }
@@ -736,6 +896,7 @@ void SceneRenderFeature::ExecuteGBufferPass(internal::ExecutionContext& ctx)
     };
     std::sort(staticDraws.begin(), staticDraws.end(), sortByMaterial);
     std::sort(skinnedDraws.begin(), skinnedDraws.end(), sortByMaterial);
+    std::sort(morphedDraws.begin(), morphedDraws.end(), sortByMaterial);
 
     // =========================================================================
     // Pass 1: Render static meshes with m_gbufferPipeline
@@ -889,6 +1050,101 @@ void SceneRenderFeature::ExecuteGBufferPass(internal::ExecutionContext& ctx)
       }
     }
 
+    // =========================================================================
+    // Pass 3: Render morphed meshes (skinned + morph targets)
+    // NOTE: Currently uses skinned pipeline as fallback since morphed pipeline
+    //       requires CPU pre-blended morph deltas (per-frame vertex buffer).
+    //       Future work: Add morph weight UBO pool + morph delta ring buffer.
+    // =========================================================================
+    if (!morphedDraws.empty()) {
+      // Ensure skinned pipeline is available (morph pipeline falls back to skinned)
+      if (!EnsureSkinnedPipelineCreated(gfxRenderer) || !frame.boneMatrixRingMapped) {
+        // Skip morphed draws if pipeline or bone buffer not available
+      } else {
+        // Reset material tracking for pipeline (may have been set by skinned pass)
+        lastMaterialBG = {};
+        // Use skinned pipeline for now (morphed pipeline requires additional infrastructure)
+        // TODO: When morphed pipeline is ready, use m_gbufferMorphedPipeline and bind
+        //       morph weight UBO + pre-blended delta vertex buffer
+        hina_cmd_bind_pipeline(cmd, m_gbufferSkinnedPipeline.get());
+        hina_cmd_bind_group(cmd, 0, m_sceneBindGroup);
+
+        for (const DrawData* drawPtr : morphedDraws) {
+          const DrawData& draw = *drawPtr;
+          const gfx::GpuMesh* gpuMesh = meshStorage.get(draw.gfxMesh);
+          if (!gpuMesh || !gpuMesh->valid) continue;
+
+          // Check buffer overflow
+          if (frame.transformRingOffset >= TRANSFORM_UBO_SIZE ||
+              frame.boneMatrixRingOffset >= BONE_MATRIX_UBO_SIZE) {
+            break;
+          }
+
+          // Write transform and objectId to ring buffer
+          uint8_t* slotPtr = static_cast<uint8_t*>(frame.transformRingMapped) + frame.transformRingOffset;
+          glm::mat4* transformDst = reinterpret_cast<glm::mat4*>(slotPtr);
+          *transformDst = draw.transform;
+          uint32_t* objectIdDst = reinterpret_cast<uint32_t*>(slotPtr + sizeof(glm::mat4));
+          *objectIdDst = draw.objectId;
+
+          // Write bone matrices to ring buffer
+          uint32_t numBones = std::min(draw.jointCount, gfx::MAX_BONES_PER_MESH);
+          glm::mat4* bonesDst = reinterpret_cast<glm::mat4*>(
+              static_cast<uint8_t*>(frame.boneMatrixRingMapped) + frame.boneMatrixRingOffset);
+
+          static const glm::mat4 identity(1.0f);
+          for (uint32_t i = 0; i < gfx::MAX_BONES_PER_MESH; ++i) {
+            bonesDst[i] = identity;
+          }
+          if (draw.skinMatrices) {
+            std::memcpy(bonesDst, draw.skinMatrices, numBones * sizeof(glm::mat4));
+          }
+
+          // TODO: When morphed pipeline is ready:
+          // 1. Compute pre-blended morph deltas on CPU using draw.morphWeights
+          // 2. Upload to per-frame morph delta ring buffer
+          // 3. Bind buffer 3 with morph delta vertex buffer
+          // For now, morph weights are ignored (mesh renders without morphs)
+
+          // Bind split vertex streams (3 buffers - same as skinned, no morph delta)
+          hina_vertex_input meshInput = {};
+          meshInput.vertex_buffers[0] = gpuMesh->vertexBuffer;
+          meshInput.vertex_offsets[0] = gpuMesh->vertexOffset;
+          meshInput.vertex_buffers[1] = gpuMesh->attributeBuffer;
+          meshInput.vertex_offsets[1] = gpuMesh->attributeOffset;
+          meshInput.vertex_buffers[2] = gpuMesh->skinningBuffer;
+          meshInput.vertex_offsets[2] = gpuMesh->skinningOffset;
+          meshInput.index_buffer = gpuMesh->indexBuffer;
+          meshInput.index_type = HINA_INDEX_UINT32;
+
+          hina_cmd_apply_vertex_input(cmd, &meshInput);
+
+          // Bind material at Set 1
+          gfx::BindGroup materialBG;
+          if (draw.hasMaterial && materialSystem.isMaterialValid(draw.gfxMaterial)) {
+            materialBG = materialSystem.getMaterialBindGroup(draw.gfxMaterial);
+          } else {
+            materialBG = materialSystem.getMaterialBindGroup(materialSystem.getDefaultMaterial());
+          }
+          if (materialBG.id != lastMaterialBG.id) {
+            hina_cmd_bind_group(cmd, 1, materialBG);
+            lastMaterialBG = materialBG;
+          }
+
+          // Bind Set 2 with 2 dynamic offsets (transform + bone matrices)
+          uint32_t dynamicOffsets[2] = { frame.transformRingOffset, frame.boneMatrixRingOffset };
+          hina_cmd_bind_group_with_offsets(cmd, 2, frame.dynamicBindGroup, dynamicOffsets, 2);
+
+          // Advance ring buffer offsets
+          frame.transformRingOffset += TRANSFORM_ALIGNMENT;
+          frame.boneMatrixRingOffset += gfx::BONE_MATRICES_SIZE;
+
+          // Draw
+          hina_cmd_draw_indexed(cmd, gpuMesh->indexCount, 1, gpuMesh->indexOffset / sizeof(uint32_t), 0, 0);
+        }
+      }
+    }
+
     // No unmap needed for HOST_COHERENT persistently mapped buffers
   }
 
@@ -975,8 +1231,9 @@ void SceneRenderFeature::ExecuteWBOITAccumulation(internal::ExecutionContext& ct
   gfx::Texture sceneDepth = ctx.GetTexture(RenderResources::SCENE_DEPTH);
   gfx::TextureView sceneDepthView = hina_texture_get_default_view(sceneDepth);
 
-  // Begin WBOIT accumulation pass
+  // Begin WBOIT accumulation pass (single color target)
   hina_pass_action pass = {};
+  // Target 0: Accumulation (RGBA16F) - cleared to 0
   pass.colors[0].image = wboit.accumulationView;
   pass.colors[0].load_op = HINA_LOAD_OP_CLEAR;
   pass.colors[0].store_op = HINA_STORE_OP_STORE;
@@ -1138,7 +1395,7 @@ void SceneRenderFeature::ExecuteWBOITResolve(internal::ExecutionContext& ctx)
   gfx::Texture sceneColor = ctx.GetTexture(RenderResources::SCENE_COLOR);
   gfx::TextureView sceneColorView = hina_texture_get_default_view(sceneColor);
 
-  // Ensure resolve bind group is created/updated
+  // Ensure resolve bind group is created/updated (only needs accumulation texture)
   bool needsRecreate = !hina_bind_group_is_valid(m_wboitResolveBindGroup)
                     || wboit.accumulation.id != m_lastWboitAccum.id;
 
@@ -1148,15 +1405,16 @@ void SceneRenderFeature::ExecuteWBOITResolve(internal::ExecutionContext& ctx)
       m_wboitResolveBindGroup = {};
     }
 
-    hina_bind_group_entry entry = {};
-    entry.binding = 0;
-    entry.type = HINA_DESC_TYPE_COMBINED_IMAGE_SAMPLER;
-    entry.combined.view = wboit.accumulationView;
-    entry.combined.sampler = m_wboitSampler.get();
+    hina_bind_group_entry entries[1] = {};
+    // Binding 0: Accumulation texture
+    entries[0].binding = 0;
+    entries[0].type = HINA_DESC_TYPE_COMBINED_IMAGE_SAMPLER;
+    entries[0].combined.view = wboit.accumulationView;
+    entries[0].combined.sampler = m_wboitSampler.get();
 
     hina_bind_group_desc bg_desc = {};
     bg_desc.layout = m_wboitResolveLayout.get();
-    bg_desc.entries = &entry;
+    bg_desc.entries = entries;
     bg_desc.entry_count = 1;
     bg_desc.label = "wboit_resolve_bg";
 
@@ -1255,19 +1513,13 @@ void SceneRenderFeature::ProcessPendingPick(internal::ExecutionContext& ctx)
   size_t texSize = width * height * sizeof(uint32_t);
   std::vector<uint32_t> visibilityData(width * height);
 
-  bool success = hina_download_texture(
+  // hina_download_texture asserts on failure (API changed from returning bool)
+  hina_download_texture(
       gbuffer.visibilityID,
       0,  // mip level 0
       0,  // array layer 0
       visibilityData.data(),
       texSize);
-
-  if (!success) {
-    LOG_WARNING("[SceneRenderFeature] Failed to download visibility texture for picking");
-    std::lock_guard<std::mutex> lock(m_pickResultMutex);
-    m_lastPickResult.valid = false;
-    return;
-  }
 
   // Read the pixel at the pick location
   // Note: Y coordinate might need to be flipped depending on coordinate system
@@ -1353,15 +1605,15 @@ void SceneRenderFeature::EnsureWBOITPipelines(internal::ExecutionContext& ctx)
   constexpr size_t kWBOITFrameUBOSize = sizeof(glm::mat4) + sizeof(glm::vec4);
   hina_buffer_desc ubo_desc = {};
   ubo_desc.size = kWBOITFrameUBOSize;
-  ubo_desc.flags = static_cast<hina_buffer_flags>(
-      HINA_BUFFER_UNIFORM_BIT | HINA_BUFFER_HOST_VISIBLE_BIT | HINA_BUFFER_HOST_COHERENT_BIT);
+  ubo_desc.memory = HINA_BUFFER_CPU;
+  ubo_desc.usage = HINA_BUFFER_UNIFORM;
   m_wboitFrameUBO = hina_make_buffer(&ubo_desc);
   if (!hina_buffer_is_valid(m_wboitFrameUBO)) {
     LOG_ERROR("[SceneRenderFeature] Failed to create WBOIT frame UBO");
     hslc_hsl_module_free(accumModule);
     return;
   }
-  m_wboitFrameUBOMapped = hina_map_buffer(m_wboitFrameUBO);
+  m_wboitFrameUBOMapped = hina_mapped_buffer_ptr(m_wboitFrameUBO);
 
   // Create frame bind group
   hina_bind_group_entry frame_bg_entry = {};
@@ -1404,31 +1656,29 @@ void SceneRenderFeature::EnsureWBOITPipelines(internal::ExecutionContext& ctx)
   // Pipeline descriptor with additive blending
   hina_hsl_pipeline_desc pip_desc = hina_hsl_pipeline_desc_default();
   pip_desc.layout = vertex_layout;
-  pip_desc.cull_mode = HINA_CULL_MODE_NONE;
-  pip_desc.front_face = HINA_FRONT_FACE_CLOCKWISE;
+  pip_desc.cull_mode = HINA_CULL_MODE_NONE;  // No culling for transparent objects
+  pip_desc.front_face = HINA_FRONT_FACE_COUNTER_CLOCKWISE;  // CCW = front (Vulkan/glTF standard)
   pip_desc.depth.depth_test = true;   // Test against opaque depth
   pip_desc.depth.depth_write = false; // Don't write depth for transparents
   pip_desc.depth.depth_compare = HINA_COMPARE_OP_LESS;
   pip_desc.depth_format = HINA_FORMAT_D32_SFLOAT;
-  pip_desc.color_attachment_count = 1;
-  pip_desc.color_formats[0] = HINA_FORMAT_R16G16B16A16_SFLOAT;  // Accumulation (RGBA16F)
+  pip_desc.color_formats[0] = HINA_FORMAT_R16G16B16A16_SFLOAT;  // Accumulation (RGBA16F) - single output
 
-  // Additive blending: final = src * 1 + dst * 1
-  pip_desc.blend.enable = true;
-  pip_desc.blend.src_color = HINA_BLEND_FACTOR_ONE;
-  pip_desc.blend.dst_color = HINA_BLEND_FACTOR_ONE;
-  pip_desc.blend.color_op = HINA_BLEND_OP_ADD;
-  pip_desc.blend.src_alpha = HINA_BLEND_FACTOR_ONE;
-  pip_desc.blend.dst_alpha = HINA_BLEND_FACTOR_ONE;
-  pip_desc.blend.alpha_op = HINA_BLEND_OP_ADD;
-  pip_desc.blend.color_write_mask = HINA_COLOR_COMPONENT_ALL;
+  // Additive blending for accumulation - final = src * 1 + dst * 1
+  pip_desc.blend[0].enable = true;
+  pip_desc.blend[0].src_color = HINA_BLEND_FACTOR_ONE;
+  pip_desc.blend[0].dst_color = HINA_BLEND_FACTOR_ONE;
+  pip_desc.blend[0].color_op = HINA_BLEND_OP_ADD;
+  pip_desc.blend[0].src_alpha = HINA_BLEND_FACTOR_ONE;
+  pip_desc.blend[0].dst_alpha = HINA_BLEND_FACTOR_ONE;
+  pip_desc.blend[0].alpha_op = HINA_BLEND_OP_ADD;
+  pip_desc.blend[0].color_write_mask = HINA_COLOR_COMPONENT_ALL;
 
   // Set 0: Frame, Set 1: Material, Set 2: Dynamic, Set 3: Lights
   pip_desc.bind_group_layouts[0] = m_wboitFrameLayout.get();
   pip_desc.bind_group_layouts[1] = materialLayout;
   pip_desc.bind_group_layouts[2] = dynamicLayout;
   pip_desc.bind_group_layouts[3] = m_lightLayout.get();  // Reuse from composite
-  pip_desc.bind_group_layout_count = 4;
 
   m_wboitAccumPipeline.reset(hina_make_pipeline_from_module(accumModule, &pip_desc, nullptr));
   hslc_hsl_module_free(accumModule);
@@ -1481,30 +1731,28 @@ void SceneRenderFeature::EnsureWBOITPipelines(internal::ExecutionContext& ctx)
 
   hina_hsl_pipeline_desc skinned_pip_desc = hina_hsl_pipeline_desc_default();
   skinned_pip_desc.layout = skinned_vertex_layout;
-  skinned_pip_desc.cull_mode = HINA_CULL_MODE_NONE;
-  skinned_pip_desc.front_face = HINA_FRONT_FACE_CLOCKWISE;
+  skinned_pip_desc.cull_mode = HINA_CULL_MODE_NONE;  // No culling for transparent objects
+  skinned_pip_desc.front_face = HINA_FRONT_FACE_COUNTER_CLOCKWISE;  // CCW = front (Vulkan/glTF standard)
   skinned_pip_desc.depth.depth_test = true;
   skinned_pip_desc.depth.depth_write = false;
   skinned_pip_desc.depth.depth_compare = HINA_COMPARE_OP_LESS;
   skinned_pip_desc.depth_format = HINA_FORMAT_D32_SFLOAT;
-  skinned_pip_desc.color_attachment_count = 1;
-  skinned_pip_desc.color_formats[0] = HINA_FORMAT_R16G16B16A16_SFLOAT;
+  skinned_pip_desc.color_formats[0] = HINA_FORMAT_R16G16B16A16_SFLOAT;  // Accumulation (single output)
 
-  // Same additive blend as static WBOIT
-  skinned_pip_desc.blend.enable = true;
-  skinned_pip_desc.blend.src_color = HINA_BLEND_FACTOR_ONE;
-  skinned_pip_desc.blend.dst_color = HINA_BLEND_FACTOR_ONE;
-  skinned_pip_desc.blend.color_op = HINA_BLEND_OP_ADD;
-  skinned_pip_desc.blend.src_alpha = HINA_BLEND_FACTOR_ONE;
-  skinned_pip_desc.blend.dst_alpha = HINA_BLEND_FACTOR_ONE;
-  skinned_pip_desc.blend.alpha_op = HINA_BLEND_OP_ADD;
-  skinned_pip_desc.blend.color_write_mask = HINA_COLOR_COMPONENT_ALL;
+  // Additive blend for accumulation
+  skinned_pip_desc.blend[0].enable = true;
+  skinned_pip_desc.blend[0].src_color = HINA_BLEND_FACTOR_ONE;
+  skinned_pip_desc.blend[0].dst_color = HINA_BLEND_FACTOR_ONE;
+  skinned_pip_desc.blend[0].color_op = HINA_BLEND_OP_ADD;
+  skinned_pip_desc.blend[0].src_alpha = HINA_BLEND_FACTOR_ONE;
+  skinned_pip_desc.blend[0].dst_alpha = HINA_BLEND_FACTOR_ONE;
+  skinned_pip_desc.blend[0].alpha_op = HINA_BLEND_OP_ADD;
+  skinned_pip_desc.blend[0].color_write_mask = HINA_COLOR_COMPONENT_ALL;
 
   skinned_pip_desc.bind_group_layouts[0] = m_wboitFrameLayout.get();
   skinned_pip_desc.bind_group_layouts[1] = materialLayout;
   skinned_pip_desc.bind_group_layouts[2] = dynamicLayout;
   skinned_pip_desc.bind_group_layouts[3] = m_lightLayout.get();
-  skinned_pip_desc.bind_group_layout_count = 4;
 
   m_wboitAccumSkinnedPipeline.reset(hina_make_pipeline_from_module(accumSkinnedModule, &skinned_pip_desc, nullptr));
   hslc_hsl_module_free(accumSkinnedModule);
@@ -1539,7 +1787,7 @@ void SceneRenderFeature::EnsureWBOITPipelines(internal::ExecutionContext& ctx)
   samplerDesc.address_v = HINA_ADDRESS_CLAMP_TO_EDGE;
   m_wboitSampler.reset(gfx::createSampler(samplerDesc));
 
-  // Set 0: Accumulation texture (combined image sampler)
+  // Set 0: Accumulation texture only (simplified WBOIT without reveal buffer)
   hina_bind_group_layout_entry resolve_entries[1] = {};
   resolve_entries[0].binding = 0;
   resolve_entries[0].type = HINA_DESC_TYPE_COMBINED_IMAGE_SAMPLER;
@@ -1577,21 +1825,19 @@ void SceneRenderFeature::EnsureWBOITPipelines(internal::ExecutionContext& ctx)
   resolve_pip_desc.depth.depth_test = false;
   resolve_pip_desc.depth.depth_write = false;
   resolve_pip_desc.depth_format = HINA_FORMAT_UNDEFINED;
-  resolve_pip_desc.color_attachment_count = 1;
   resolve_pip_desc.color_formats[0] = LinearColor::HDR_SCENE_FORMAT;
 
   // Compositing blend: final = avgColor * (1 - reveal) + opaque * reveal
-  resolve_pip_desc.blend.enable = true;
-  resolve_pip_desc.blend.src_color = HINA_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
-  resolve_pip_desc.blend.dst_color = HINA_BLEND_FACTOR_SRC_ALPHA;
-  resolve_pip_desc.blend.color_op = HINA_BLEND_OP_ADD;
-  resolve_pip_desc.blend.src_alpha = HINA_BLEND_FACTOR_ZERO;
-  resolve_pip_desc.blend.dst_alpha = HINA_BLEND_FACTOR_ONE;
-  resolve_pip_desc.blend.alpha_op = HINA_BLEND_OP_ADD;
-  resolve_pip_desc.blend.color_write_mask = HINA_COLOR_COMPONENT_ALL;
+  resolve_pip_desc.blend[0].enable = true;
+  resolve_pip_desc.blend[0].src_color = HINA_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+  resolve_pip_desc.blend[0].dst_color = HINA_BLEND_FACTOR_SRC_ALPHA;
+  resolve_pip_desc.blend[0].color_op = HINA_BLEND_OP_ADD;
+  resolve_pip_desc.blend[0].src_alpha = HINA_BLEND_FACTOR_ZERO;
+  resolve_pip_desc.blend[0].dst_alpha = HINA_BLEND_FACTOR_ONE;
+  resolve_pip_desc.blend[0].alpha_op = HINA_BLEND_OP_ADD;
+  resolve_pip_desc.blend[0].color_write_mask = HINA_COLOR_COMPONENT_ALL;
 
   resolve_pip_desc.bind_group_layouts[0] = m_wboitResolveLayout.get();
-  resolve_pip_desc.bind_group_layout_count = 1;
 
   m_wboitResolvePipeline.reset(hina_make_pipeline_from_module(resolveModule, &resolve_pip_desc, nullptr));
   hslc_hsl_module_free(resolveModule);
@@ -1645,20 +1891,21 @@ bool SceneRenderFeature::EnsureCompositePipelineCreated(GfxRenderer* gfxRenderer
 
     hina_buffer_desc vb_desc = {};
     vb_desc.size = sizeof(quadVerts);
-    vb_desc.flags = static_cast<hina_buffer_flags>(
-        HINA_BUFFER_VERTEX_BIT | HINA_BUFFER_HOST_VISIBLE_BIT | HINA_BUFFER_HOST_COHERENT_BIT);
+    vb_desc.memory = HINA_BUFFER_CPU;
+    vb_desc.usage = HINA_BUFFER_VERTEX;
     m_fullscreenQuadVB = hina_make_buffer(&vb_desc);
     if (!hina_buffer_is_valid(m_fullscreenQuadVB)) {
       LOG_ERROR("[SceneRenderFeature] Failed to create fullscreen quad vertex buffer");
       return false;
     }
-    void* mapped = hina_map_buffer(m_fullscreenQuadVB);
+    void* mapped = hina_mapped_buffer_ptr(m_fullscreenQuadVB);
     std::memcpy(mapped, quadVerts, sizeof(quadVerts));
   }
 
-  // Load and compile composite shader
+  // Load and compile composite tile shader
   std::string shaderSource;
-  if (!LoadShaderSource(kCompositeShaderPath, shaderSource)) {
+  if (!LoadShaderSource(kCompositeTileShaderPath, shaderSource)) {
+    LOG_ERROR("[SceneRenderFeature] Failed to load composite tile shader");
     return false;
   }
 
@@ -1671,12 +1918,16 @@ bool SceneRenderFeature::EnsureCompositePipelineCreated(GfxRenderer* gfxRenderer
   }
 
   // =========================================================================
-  // Set 0: G-buffer textures (4 combined image samplers)
+  // Set 0: G-buffer textures (INPUT_ATTACHMENT for tile pass)
+  // 4 INPUT_ATTACHMENT: albedo, normal, materialData, depth
   // =========================================================================
   hina_bind_group_layout_entry gbuffer_entries[4] = {};
+  uint32_t gbufferEntryCount = 4;
+
+  // Tile pass: bindings 0-3 are INPUT_ATTACHMENT (3 color + 1 depth from depth_input)
   for (int i = 0; i < 4; ++i) {
     gbuffer_entries[i].binding = static_cast<uint32_t>(i);
-    gbuffer_entries[i].type = HINA_DESC_TYPE_COMBINED_IMAGE_SAMPLER;
+    gbuffer_entries[i].type = HINA_DESC_TYPE_INPUT_ATTACHMENT;
     gbuffer_entries[i].count = 1;
     gbuffer_entries[i].stage_flags = HINA_STAGE_FRAGMENT;
     gbuffer_entries[i].flags = HINA_BINDING_FLAG_NONE;
@@ -1684,8 +1935,8 @@ bool SceneRenderFeature::EnsureCompositePipelineCreated(GfxRenderer* gfxRenderer
 
   hina_bind_group_layout_desc gbuffer_layout_desc = {};
   gbuffer_layout_desc.entries = gbuffer_entries;
-  gbuffer_layout_desc.entry_count = 4;
-  gbuffer_layout_desc.label = "composite_gbuffer_layout";
+  gbuffer_layout_desc.entry_count = gbufferEntryCount;
+  gbuffer_layout_desc.label = "composite_tile_gbuffer_layout";
 
   m_compositeLayout.reset(hina_create_bind_group_layout(&gbuffer_layout_desc));
   if (!hina_bind_group_layout_is_valid(m_compositeLayout.get())) {
@@ -1722,15 +1973,15 @@ bool SceneRenderFeature::EnsureCompositePipelineCreated(GfxRenderer* gfxRenderer
   constexpr size_t kLightUBOSize = 16 + 16 + 64 + 16 + (128 * 16);  // 2160 bytes
   hina_buffer_desc ubo_desc = {};
   ubo_desc.size = kLightUBOSize;
-  ubo_desc.flags = static_cast<hina_buffer_flags>(
-      HINA_BUFFER_UNIFORM_BIT | HINA_BUFFER_HOST_VISIBLE_BIT | HINA_BUFFER_HOST_COHERENT_BIT);
+  ubo_desc.memory = HINA_BUFFER_CPU;
+  ubo_desc.usage = HINA_BUFFER_UNIFORM;
   m_lightUBO = hina_make_buffer(&ubo_desc);
   if (!hina_buffer_is_valid(m_lightUBO)) {
     LOG_ERROR("[SceneRenderFeature] Failed to create light UBO");
     hslc_hsl_module_free(module);
     return false;
   }
-  m_lightUBOMapped = hina_map_buffer(m_lightUBO);
+  m_lightUBOMapped = hina_mapped_buffer_ptr(m_lightUBO);
 
   // Create light bind group
   hina_bind_group_entry light_bg_entries[1] = {};
@@ -1822,26 +2073,29 @@ bool SceneRenderFeature::EnsureCompositePipelineCreated(GfxRenderer* gfxRenderer
   // =========================================================================
   // Create pipeline with all three bind group layouts
   // =========================================================================
+  // Tile pass: no vertex input - full-screen triangle from vertex ID
   hina_vertex_layout vertex_layout = {};
-  vertex_layout.buffer_count = 1;
-  vertex_layout.buffer_strides[0] = sizeof(float) * 4;
-  vertex_layout.input_rates[0] = HINA_VERTEX_INPUT_RATE_VERTEX;
-  vertex_layout.attr_count = 2;
-  vertex_layout.attrs[0] = { HINA_FORMAT_R32G32_SFLOAT, 0, 0, 0 };  // position
-  vertex_layout.attrs[1] = { HINA_FORMAT_R32G32_SFLOAT, sizeof(float) * 2, 1, 0 };  // uv
+  vertex_layout.buffer_count = 0;
+  vertex_layout.attr_count = 0;
+
+  // Get tile pass layout for subpass 1 (composite)
+  hina_tile_pass_layout tileLayout = GetDeferredTilePassLayout();
 
   hina_hsl_pipeline_desc pip_desc = hina_hsl_pipeline_desc_default();
   pip_desc.layout = vertex_layout;
   pip_desc.cull_mode = HINA_CULL_MODE_NONE;
   pip_desc.depth.depth_test = false;
   pip_desc.depth.depth_write = false;
-  pip_desc.depth_format = HINA_FORMAT_UNDEFINED;
   pip_desc.color_formats[0] = LinearColor::HDR_SCENE_FORMAT;
-  pip_desc.color_attachment_count = 1;
   pip_desc.bind_group_layouts[0] = m_compositeLayout.get();
   pip_desc.bind_group_layouts[1] = m_lightLayout.get();
   pip_desc.bind_group_layouts[2] = m_skyboxLayout.get();
-  pip_desc.bind_group_layout_count = 3;
+
+  // Tile pass: subpass 1, with depth read-only for potential depth testing
+  pip_desc.depth_format = HINA_FORMAT_D32_SFLOAT;
+  pip_desc.tile_layout = &tileLayout;
+  pip_desc.subpass_index = 1;
+  LOG_INFO("[SceneRenderFeature] Creating tile-based composite pipeline (subpass 1)");
 
   m_compositePipeline.reset(hina_make_pipeline_from_module(module, &pip_desc, nullptr));
   hslc_hsl_module_free(module);
@@ -1852,6 +2106,7 @@ bool SceneRenderFeature::EnsureCompositePipelineCreated(GfxRenderer* gfxRenderer
   }
 
   m_compositePipelineCreated = true;
+  LOG_INFO("[SceneRenderFeature] Composite pipeline created (tile_pass)");
   return true;
 }
 
@@ -1861,14 +2116,14 @@ bool SceneRenderFeature::EnsureCompositeBindGroup(GfxRenderer* gfxRenderer, gfx:
 
   const auto& gbuffer = gfxRenderer->getGBuffer();
 
-  // Check if G-buffer dimensions changed (resize occurred) or depth texture changed
+  // Check if G-buffer dimensions changed (resize occurred)
+  // In tile pass mode, we don't use depth texture so don't check sceneDepth.id
   uint32_t gbufferWidth = 0, gbufferHeight = 0;
   hina_get_texture_size(gbuffer.albedo, &gbufferWidth, &gbufferHeight);
 
   bool needsRecreate = !hina_bind_group_is_valid(m_compositeBindGroup)
                     || gbufferWidth != m_lastGBufferWidth
-                    || gbufferHeight != m_lastGBufferHeight
-                    || sceneDepth.id != m_lastSceneDepth.id;
+                    || gbufferHeight != m_lastGBufferHeight;
 
   if (!needsRecreate) {
     return true;  // Existing bind group is still valid
@@ -1881,32 +2136,32 @@ bool SceneRenderFeature::EnsureCompositeBindGroup(GfxRenderer* gfxRenderer, gfx:
   }
 
   // Create new bind group with current G-buffer textures
+  // Tile pass: bindings 0-3 are INPUT_ATTACHMENT (3 color + 1 depth)
   hina_bind_group_entry entries[4] = {};
-  entries[0].binding = 0;  // albedo
-  entries[0].type = HINA_DESC_TYPE_COMBINED_IMAGE_SAMPLER;
-  entries[0].combined.view = gbuffer.albedoView;
-  entries[0].combined.sampler = m_compositeSampler.get();
 
-  entries[1].binding = 1;  // normal
-  entries[1].type = HINA_DESC_TYPE_COMBINED_IMAGE_SAMPLER;
-  entries[1].combined.view = gbuffer.normalView;
-  entries[1].combined.sampler = m_compositeSampler.get();
+  entries[0].binding = 0;  // albedo (tile input)
+  entries[0].type = HINA_DESC_TYPE_INPUT_ATTACHMENT;
+  entries[0].view = gbuffer.albedoView;
 
-  entries[2].binding = 2;  // materialData
-  entries[2].type = HINA_DESC_TYPE_COMBINED_IMAGE_SAMPLER;
-  entries[2].combined.view = gbuffer.materialDataView;
-  entries[2].combined.sampler = m_compositeSampler.get();
+  entries[1].binding = 1;  // normal (tile input)
+  entries[1].type = HINA_DESC_TYPE_INPUT_ATTACHMENT;
+  entries[1].view = gbuffer.normalView;
 
-  entries[3].binding = 3;  // depth (from SCENE_DEPTH)
-  entries[3].type = HINA_DESC_TYPE_COMBINED_IMAGE_SAMPLER;
-  entries[3].combined.view = sceneDepthView;
-  entries[3].combined.sampler = m_compositeSampler.get();
+  entries[2].binding = 2;  // materialData (tile input)
+  entries[2].type = HINA_DESC_TYPE_INPUT_ATTACHMENT;
+  entries[2].view = gbuffer.materialDataView;
+
+  entries[3].binding = 3;  // depth (tile input from D32_SFLOAT)
+  entries[3].type = HINA_DESC_TYPE_INPUT_ATTACHMENT;
+  entries[3].view = sceneDepthView;
+
+  uint32_t entryCount = 4;
 
   hina_bind_group_desc bg_desc = {};
   bg_desc.layout = m_compositeLayout.get();
   bg_desc.entries = entries;
-  bg_desc.entry_count = 4;
-  bg_desc.label = "scene_composite_bg";
+  bg_desc.entry_count = entryCount;
+  bg_desc.label = "scene_composite_tile_bg";
 
   m_compositeBindGroup = hina_create_bind_group(&bg_desc);
   if (!hina_bind_group_is_valid(m_compositeBindGroup)) {
@@ -1916,7 +2171,6 @@ bool SceneRenderFeature::EnsureCompositeBindGroup(GfxRenderer* gfxRenderer, gfx:
 
   m_lastGBufferWidth = gbufferWidth;
   m_lastGBufferHeight = gbufferHeight;
-  m_lastSceneDepth = sceneDepth;
   return true;
 }
 
@@ -2103,13 +2357,392 @@ void SceneRenderFeature::ExecuteCompositePass(internal::ExecutionContext& ctx)
     hina_cmd_bind_group(cmd, 2, m_skyboxBindGroup);
   }
 
-  // Bind fullscreen quad vertex buffer
-  hina_vertex_input vertInput = {};
-  vertInput.vertex_buffers[0] = m_fullscreenQuadVB;
-  vertInput.vertex_offsets[0] = 0;
-  hina_cmd_apply_vertex_input(cmd, &vertInput);
+  // Tile pass: full-screen triangle from vertex ID (no vertex buffer)
+  hina_cmd_draw(cmd, 3, 1, 0, 0);
+}
 
-  // Draw fullscreen quad (6 vertices)
-  hina_cmd_draw(cmd, 6, 1, 0, 0);
+// =============================================================================
+// ExecuteDeferredTilePass - Combined G-buffer + Composite as single tile pass
+// =============================================================================
+
+void SceneRenderFeature::ExecuteDeferredTilePass(internal::ExecutionContext& ctx)
+{
+  GfxRenderer* gfxRenderer = ctx.GetGfxRenderer();
+  if (!gfxRenderer) return;
+
+  // Ensure all pipelines are created
+  if (!EnsurePipelineCreated(gfxRenderer)) return;
+  if (!EnsureCompositePipelineCreated(gfxRenderer)) return;
+
+  const FrameData& frameData = ctx.GetFrameData();
+  assert(frameData.projMatrix != glm::mat4(1.0f) && "projMatrix is identity!");
+  assert(frameData.viewMatrix != glm::mat4(1.0f) && "viewMatrix is identity!");
+
+  gfx::Cmd* cmd = ctx.GetCmd();
+  const auto& gbuffer = gfxRenderer->getGBuffer();
+  gfx::Texture sceneColor = ctx.GetTexture(RenderResources::SCENE_COLOR);
+  gfx::Texture sceneDepth = ctx.GetTexture(RenderResources::SCENE_DEPTH);
+  gfx::TextureView sceneDepthView = hina_texture_get_default_view(sceneDepth);
+  gfx::TextureView sceneColorView = hina_texture_get_default_view(sceneColor);
+
+  // =========================================================================
+  // Setup tile pass descriptor with 2 subpasses
+  // =========================================================================
+  hina_tile_pass_desc tilePass = {};
+  tilePass.label = "deferred_tile_pass";
+
+  // Subpass 0: G-Buffer fill (4 color outputs + depth)
+  tilePass.subpasses[0].label = "gbuffer";
+  tilePass.subpasses[0].color_count = 4;
+
+  tilePass.subpasses[0].color[0].image = gbuffer.albedoView;
+  tilePass.subpasses[0].color[0].load_op = HINA_LOAD_OP_CLEAR;
+  tilePass.subpasses[0].color[0].store_op = HINA_STORE_OP_STORE;
+
+  tilePass.subpasses[0].color[1].image = gbuffer.normalView;
+  tilePass.subpasses[0].color[1].load_op = HINA_LOAD_OP_CLEAR;
+  tilePass.subpasses[0].color[1].store_op = HINA_STORE_OP_STORE;
+  tilePass.subpasses[0].color[1].clear_color[0] = 0.5f;
+  tilePass.subpasses[0].color[1].clear_color[1] = 0.5f;
+
+  tilePass.subpasses[0].color[2].image = gbuffer.materialDataView;
+  tilePass.subpasses[0].color[2].load_op = HINA_LOAD_OP_CLEAR;
+  tilePass.subpasses[0].color[2].store_op = HINA_STORE_OP_STORE;
+
+  tilePass.subpasses[0].color[3].image = gbuffer.visibilityIDView;
+  tilePass.subpasses[0].color[3].load_op = HINA_LOAD_OP_CLEAR;
+  tilePass.subpasses[0].color[3].store_op = HINA_STORE_OP_STORE;
+
+  tilePass.subpasses[0].has_depth = true;
+  tilePass.subpasses[0].depth.image = sceneDepthView;
+  tilePass.subpasses[0].depth.load_op = HINA_LOAD_OP_CLEAR;
+  tilePass.subpasses[0].depth.store_op = HINA_STORE_OP_STORE;
+  tilePass.subpasses[0].depth.depth_clear = 1.0f;
+
+  // Subpass 1: Composition (HDR output, tile inputs from subpass 0)
+  tilePass.subpasses[1].label = "composite";
+  tilePass.subpasses[1].color_count = 1;
+  tilePass.subpasses[1].color[0].image = sceneColorView;
+  tilePass.subpasses[1].color[0].load_op = HINA_LOAD_OP_CLEAR;
+  tilePass.subpasses[1].color[0].store_op = HINA_STORE_OP_STORE;
+  tilePass.subpasses[1].color[0].clear_color[0] = 0.1f;
+  tilePass.subpasses[1].color[0].clear_color[1] = 0.1f;
+  tilePass.subpasses[1].color[0].clear_color[2] = 0.15f;
+  tilePass.subpasses[1].color[0].clear_color[3] = 1.0f;
+
+  // Tile inputs from subpass 0 (albedo, normal, materialData)
+  tilePass.subpasses[1].tile_input_count = 3;
+  tilePass.subpasses[1].tile_inputs[0] = {0, 0};  // albedo
+  tilePass.subpasses[1].tile_inputs[1] = {0, 1};  // normal
+  tilePass.subpasses[1].tile_inputs[2] = {0, 2};  // materialData
+
+  // Depth for depth testing (preserve from subpass 0) + read as tile input
+  tilePass.subpasses[1].has_depth = true;
+  tilePass.subpasses[1].depth.image = sceneDepthView;
+  tilePass.subpasses[1].depth.load_op = HINA_LOAD_OP_LOAD;
+  tilePass.subpasses[1].depth.store_op = HINA_STORE_OP_STORE;
+  tilePass.subpasses[1].depth_read_only = true;
+  tilePass.subpasses[1].depth_input = true;  // Read depth as tile input for world pos reconstruction
+
+  // =========================================================================
+  // Begin tile pass
+  // =========================================================================
+  if (!hina_begin_tile_pass(cmd, &tilePass)) {
+    LOG_ERROR("[SceneRenderFeature] Failed to begin tile pass");
+    return;
+  }
+
+  // =========================================================================
+  // SUBPASS 0: G-Buffer fill
+  // =========================================================================
+  glm::mat4 viewProj = frameData.projMatrix * frameData.viewMatrix;
+  std::memcpy(m_frameUBOMapped, &viewProj, sizeof(glm::mat4));
+
+  hina_cmd_bind_pipeline(cmd, m_gbufferPipeline.get());
+  hina_cmd_bind_group(cmd, 0, m_sceneBindGroup);
+
+  // Draw submitted meshes (same logic as ExecuteGBufferPass)
+  if (!m_drawList.empty()) {
+    auto& meshStorage = gfxRenderer->getMeshStorage();
+    auto& materialSystem = gfxRenderer->getMaterialSystem();
+    auto& frame = gfxRenderer->getCurrentFrameResources();
+
+    if (!frame.transformRingMapped) {
+      hina_end_tile_pass(cmd);
+      return;
+    }
+
+    // Separate draws into static, skinned, and morphed
+    std::vector<const DrawData*> staticDraws;
+    std::vector<const DrawData*> skinnedDraws;
+    std::vector<const DrawData*> morphedDraws;
+    staticDraws.reserve(m_drawList.size());
+    skinnedDraws.reserve(32);
+    morphedDraws.reserve(16);
+
+    for (const auto& draw : m_drawList) {
+      const gfx::GpuMesh* gpuMesh = meshStorage.get(draw.gfxMesh);
+      bool meshHasSkinning = gpuMesh && gpuMesh->valid && gpuMesh->hasSkinning;
+      bool meshHasMorphs = gpuMesh && gpuMesh->valid && gpuMesh->hasMorphs;
+
+      if (draw.isSkinned && draw.skinMatrices && meshHasSkinning) {
+        if (draw.hasMorphs && draw.morphWeights && meshHasMorphs) {
+          morphedDraws.push_back(&draw);
+        } else {
+          skinnedDraws.push_back(&draw);
+        }
+      } else {
+        staticDraws.push_back(&draw);
+      }
+    }
+
+    // Sort by material
+    auto sortByMaterial = [](const DrawData* a, const DrawData* b) {
+      if (a->gfxMaterial.index != b->gfxMaterial.index)
+        return a->gfxMaterial.index < b->gfxMaterial.index;
+      return a->gfxMaterial.generation < b->gfxMaterial.generation;
+    };
+    std::sort(staticDraws.begin(), staticDraws.end(), sortByMaterial);
+    std::sort(skinnedDraws.begin(), skinnedDraws.end(), sortByMaterial);
+    std::sort(morphedDraws.begin(), morphedDraws.end(), sortByMaterial);
+
+    // Draw static meshes
+    gfx::BindGroup lastMaterialBG = {};
+    for (const DrawData* drawPtr : staticDraws) {
+      const DrawData& draw = *drawPtr;
+      const gfx::GpuMesh* gpuMesh = meshStorage.get(draw.gfxMesh);
+      if (!gpuMesh || !gpuMesh->valid) continue;
+      if (frame.transformRingOffset >= TRANSFORM_UBO_SIZE) break;
+
+      uint8_t* slotPtr = static_cast<uint8_t*>(frame.transformRingMapped) + frame.transformRingOffset;
+      glm::mat4* transformDst = reinterpret_cast<glm::mat4*>(slotPtr);
+      *transformDst = draw.transform;
+      uint32_t* objectIdDst = reinterpret_cast<uint32_t*>(slotPtr + sizeof(glm::mat4));
+      *objectIdDst = draw.objectId;
+
+      hina_vertex_input meshInput = {};
+      meshInput.vertex_buffers[0] = gpuMesh->vertexBuffer;
+      meshInput.vertex_offsets[0] = gpuMesh->vertexOffset;
+      meshInput.vertex_buffers[1] = gpuMesh->attributeBuffer;
+      meshInput.vertex_offsets[1] = gpuMesh->attributeOffset;
+      meshInput.index_buffer = gpuMesh->indexBuffer;
+      meshInput.index_type = HINA_INDEX_UINT32;
+      hina_cmd_apply_vertex_input(cmd, &meshInput);
+
+      gfx::BindGroup materialBG;
+      if (draw.hasMaterial && materialSystem.isMaterialValid(draw.gfxMaterial)) {
+        materialBG = materialSystem.getMaterialBindGroup(draw.gfxMaterial);
+      } else {
+        materialBG = materialSystem.getMaterialBindGroup(materialSystem.getDefaultMaterial());
+      }
+      if (materialBG.id != lastMaterialBG.id) {
+        hina_cmd_bind_group(cmd, 1, materialBG);
+        lastMaterialBG = materialBG;
+      }
+
+      uint32_t dynamicOffsets[2] = { frame.transformRingOffset, 0 };
+      hina_cmd_bind_group_with_offsets(cmd, 2, frame.dynamicBindGroup, dynamicOffsets, 2);
+      frame.transformRingOffset += TRANSFORM_ALIGNMENT;
+
+      hina_cmd_draw_indexed(cmd, gpuMesh->indexCount, 1, gpuMesh->indexOffset / sizeof(uint32_t), 0, 0);
+    }
+
+    // Draw skinned meshes
+    if (!skinnedDraws.empty() && EnsureSkinnedPipelineCreated(gfxRenderer) && frame.boneMatrixRingMapped) {
+      lastMaterialBG = {};
+      hina_cmd_bind_pipeline(cmd, m_gbufferSkinnedPipeline.get());
+      hina_cmd_bind_group(cmd, 0, m_sceneBindGroup);
+
+      for (const DrawData* drawPtr : skinnedDraws) {
+        const DrawData& draw = *drawPtr;
+        const gfx::GpuMesh* gpuMesh = meshStorage.get(draw.gfxMesh);
+        if (!gpuMesh || !gpuMesh->valid) continue;
+        if (frame.transformRingOffset >= TRANSFORM_UBO_SIZE || frame.boneMatrixRingOffset >= BONE_MATRIX_UBO_SIZE) break;
+
+        uint8_t* slotPtr = static_cast<uint8_t*>(frame.transformRingMapped) + frame.transformRingOffset;
+        glm::mat4* transformDst = reinterpret_cast<glm::mat4*>(slotPtr);
+        *transformDst = draw.transform;
+        uint32_t* objectIdDst = reinterpret_cast<uint32_t*>(slotPtr + sizeof(glm::mat4));
+        *objectIdDst = draw.objectId;
+
+        uint32_t numBones = std::min(draw.jointCount, gfx::MAX_BONES_PER_MESH);
+        glm::mat4* bonesDst = reinterpret_cast<glm::mat4*>(
+            static_cast<uint8_t*>(frame.boneMatrixRingMapped) + frame.boneMatrixRingOffset);
+        static const glm::mat4 identity(1.0f);
+        for (uint32_t i = 0; i < gfx::MAX_BONES_PER_MESH; ++i) bonesDst[i] = identity;
+        std::memcpy(bonesDst, draw.skinMatrices, numBones * sizeof(glm::mat4));
+
+        hina_vertex_input meshInput = {};
+        meshInput.vertex_buffers[0] = gpuMesh->vertexBuffer;
+        meshInput.vertex_offsets[0] = gpuMesh->vertexOffset;
+        meshInput.vertex_buffers[1] = gpuMesh->attributeBuffer;
+        meshInput.vertex_offsets[1] = gpuMesh->attributeOffset;
+        meshInput.vertex_buffers[2] = gpuMesh->skinningBuffer;
+        meshInput.vertex_offsets[2] = gpuMesh->skinningOffset;
+        meshInput.index_buffer = gpuMesh->indexBuffer;
+        meshInput.index_type = HINA_INDEX_UINT32;
+        hina_cmd_apply_vertex_input(cmd, &meshInput);
+
+        gfx::BindGroup materialBG;
+        if (draw.hasMaterial && materialSystem.isMaterialValid(draw.gfxMaterial)) {
+          materialBG = materialSystem.getMaterialBindGroup(draw.gfxMaterial);
+        } else {
+          materialBG = materialSystem.getMaterialBindGroup(materialSystem.getDefaultMaterial());
+        }
+        if (materialBG.id != lastMaterialBG.id) {
+          hina_cmd_bind_group(cmd, 1, materialBG);
+          lastMaterialBG = materialBG;
+        }
+
+        uint32_t dynamicOffsets[2] = { frame.transformRingOffset, frame.boneMatrixRingOffset };
+        hina_cmd_bind_group_with_offsets(cmd, 2, frame.dynamicBindGroup, dynamicOffsets, 2);
+        frame.transformRingOffset += TRANSFORM_ALIGNMENT;
+        frame.boneMatrixRingOffset += gfx::BONE_MATRICES_SIZE;
+
+        hina_cmd_draw_indexed(cmd, gpuMesh->indexCount, 1, gpuMesh->indexOffset / sizeof(uint32_t), 0, 0);
+      }
+    }
+
+    // Draw morphed meshes (using skinned pipeline for now)
+    if (!morphedDraws.empty() && EnsureSkinnedPipelineCreated(gfxRenderer) && frame.boneMatrixRingMapped) {
+      lastMaterialBG = {};
+      hina_cmd_bind_pipeline(cmd, m_gbufferSkinnedPipeline.get());
+      hina_cmd_bind_group(cmd, 0, m_sceneBindGroup);
+
+      for (const DrawData* drawPtr : morphedDraws) {
+        const DrawData& draw = *drawPtr;
+        const gfx::GpuMesh* gpuMesh = meshStorage.get(draw.gfxMesh);
+        if (!gpuMesh || !gpuMesh->valid) continue;
+        if (frame.transformRingOffset >= TRANSFORM_UBO_SIZE || frame.boneMatrixRingOffset >= BONE_MATRIX_UBO_SIZE) break;
+
+        uint8_t* slotPtr = static_cast<uint8_t*>(frame.transformRingMapped) + frame.transformRingOffset;
+        glm::mat4* transformDst = reinterpret_cast<glm::mat4*>(slotPtr);
+        *transformDst = draw.transform;
+        uint32_t* objectIdDst = reinterpret_cast<uint32_t*>(slotPtr + sizeof(glm::mat4));
+        *objectIdDst = draw.objectId;
+
+        uint32_t numBones = std::min(draw.jointCount, gfx::MAX_BONES_PER_MESH);
+        glm::mat4* bonesDst = reinterpret_cast<glm::mat4*>(
+            static_cast<uint8_t*>(frame.boneMatrixRingMapped) + frame.boneMatrixRingOffset);
+        static const glm::mat4 identity(1.0f);
+        for (uint32_t i = 0; i < gfx::MAX_BONES_PER_MESH; ++i) bonesDst[i] = identity;
+        std::memcpy(bonesDst, draw.skinMatrices, numBones * sizeof(glm::mat4));
+
+        hina_vertex_input meshInput = {};
+        meshInput.vertex_buffers[0] = gpuMesh->vertexBuffer;
+        meshInput.vertex_offsets[0] = gpuMesh->vertexOffset;
+        meshInput.vertex_buffers[1] = gpuMesh->attributeBuffer;
+        meshInput.vertex_offsets[1] = gpuMesh->attributeOffset;
+        meshInput.vertex_buffers[2] = gpuMesh->skinningBuffer;
+        meshInput.vertex_offsets[2] = gpuMesh->skinningOffset;
+        meshInput.index_buffer = gpuMesh->indexBuffer;
+        meshInput.index_type = HINA_INDEX_UINT32;
+        hina_cmd_apply_vertex_input(cmd, &meshInput);
+
+        gfx::BindGroup materialBG;
+        if (draw.hasMaterial && materialSystem.isMaterialValid(draw.gfxMaterial)) {
+          materialBG = materialSystem.getMaterialBindGroup(draw.gfxMaterial);
+        } else {
+          materialBG = materialSystem.getMaterialBindGroup(materialSystem.getDefaultMaterial());
+        }
+        if (materialBG.id != lastMaterialBG.id) {
+          hina_cmd_bind_group(cmd, 1, materialBG);
+          lastMaterialBG = materialBG;
+        }
+
+        uint32_t dynamicOffsets[2] = { frame.transformRingOffset, frame.boneMatrixRingOffset };
+        hina_cmd_bind_group_with_offsets(cmd, 2, frame.dynamicBindGroup, dynamicOffsets, 2);
+        frame.transformRingOffset += TRANSFORM_ALIGNMENT;
+        frame.boneMatrixRingOffset += gfx::BONE_MATRICES_SIZE;
+
+        hina_cmd_draw_indexed(cmd, gpuMesh->indexCount, 1, gpuMesh->indexOffset / sizeof(uint32_t), 0, 0);
+      }
+    }
+  }
+
+  // =========================================================================
+  // Transition to SUBPASS 1: Composition
+  // =========================================================================
+  hina_tile_pass_next(cmd, &tilePass);
+
+  // Ensure composite bind group is valid
+  if (!EnsureCompositeBindGroup(gfxRenderer, sceneDepth, sceneDepthView)) {
+    hina_end_tile_pass(cmd);
+    return;
+  }
+
+  // Fill light UBO (same as ExecuteCompositePass)
+  if (m_lightUBOMapped) {
+    uint8_t* uboData = static_cast<uint8_t*>(m_lightUBOMapped);
+    size_t offset = 0;
+
+    glm::vec4 ambient(0.15f, 0.17f, 0.2f, 1.0f);
+    std::memcpy(uboData + offset, &ambient, sizeof(glm::vec4));
+    offset += 16;
+
+    glm::vec4 cameraPos(frameData.cameraPos, 1.0f);
+    std::memcpy(uboData + offset, &cameraPos, sizeof(glm::vec4));
+    offset += 16;
+
+    glm::mat4 invViewProj = glm::inverse(viewProj);
+    std::memcpy(uboData + offset, &invViewProj, sizeof(glm::mat4));
+    offset += 64;
+
+    int numLights = static_cast<int>(std::min(m_lightList.size(), size_t(32)));
+    glm::ivec4 lightCounts(numLights, 0, 0, 0);
+    std::memcpy(uboData + offset, &lightCounts, sizeof(glm::ivec4));
+    offset += 16;
+
+    for (int i = 0; i < numLights; ++i) {
+      const CollectedLight& light = m_lightList[i];
+
+      glm::vec4 data0(static_cast<float>(light.type), light.position.x, light.position.y, light.position.z);
+      std::memcpy(uboData + offset, &data0, sizeof(glm::vec4));
+      offset += 16;
+
+      glm::vec4 data1(light.direction.x, light.direction.y, light.direction.z, light.intensity);
+      std::memcpy(uboData + offset, &data1, sizeof(glm::vec4));
+      offset += 16;
+
+      glm::vec4 data2(light.color.x, light.color.y, light.color.z, light.radius);
+      std::memcpy(uboData + offset, &data2, sizeof(glm::vec4));
+      offset += 16;
+
+      glm::vec4 data3(light.attenuation.x, light.attenuation.y, light.attenuation.z, 0.0f);
+      std::memcpy(uboData + offset, &data3, sizeof(glm::vec4));
+      offset += 16;
+    }
+  }
+
+  uint32_t width = RenderResources::INTERNAL_WIDTH;
+  uint32_t height = RenderResources::INTERNAL_HEIGHT;
+
+  hina_viewport viewport = {};
+  viewport.width = static_cast<float>(width);
+  viewport.height = static_cast<float>(height);
+  viewport.min_depth = 0.0f;
+  viewport.max_depth = 1.0f;
+  hina_cmd_set_viewport(cmd, &viewport);
+
+  hina_scissor scissor = {};
+  scissor.width = width;
+  scissor.height = height;
+  hina_cmd_set_scissor(cmd, &scissor);
+
+  hina_cmd_bind_pipeline(cmd, m_compositePipeline.get());
+  hina_cmd_bind_group(cmd, 0, m_compositeBindGroup);
+  hina_cmd_bind_group(cmd, 1, m_lightBindGroup);
+
+  if (EnsureSkyboxBindGroup(gfxRenderer)) {
+    hina_cmd_bind_group(cmd, 2, m_skyboxBindGroup);
+  }
+
+  // Draw full-screen triangle (tile pass uses vertex ID)
+  hina_cmd_draw(cmd, 3, 1, 0, 0);
+
+  // =========================================================================
+  // End tile pass
+  // =========================================================================
+  hina_end_tile_pass(cmd);
 }
 

@@ -16,6 +16,7 @@
 #include "gfx_types.h"
 #include "mesh_types.h"           // For FullVertex, MeshBounds
 #include "chunked_mesh_storage.h" // For ChunkedMeshStorage, ChunkedMeshHandle
+#include "gpu_data.h"             // For GPUMorphDelta
 #include <vector>
 #include <cstdint>
 #include <memory>
@@ -33,19 +34,26 @@ namespace gfx {
  * Use the offset fields when binding buffers.
  */
 struct GpuMesh {
-    Buffer vertexBuffer;           // Position stream (may be shared chunk buffer)
-    Buffer attributeBuffer;        // Attribute stream (may be shared chunk buffer)
-    Buffer indexBuffer;            // Index buffer (may be shared chunk buffer)
-    Buffer skinningBuffer;         // Skinning stream (may be shared chunk buffer, optional)
-    uint32_t vertexOffset = 0;     // Byte offset in vertex buffer
-    uint32_t attributeOffset = 0;  // Byte offset in attribute buffer
-    uint32_t indexOffset = 0;      // Byte offset in index buffer
-    uint32_t skinningOffset = 0;   // Byte offset in skinning buffer
+    Buffer vertexBuffer;              // Position stream (may be shared chunk buffer)
+    Buffer attributeBuffer;           // Attribute stream (may be shared chunk buffer)
+    Buffer indexBuffer;               // Index buffer (may be shared chunk buffer)
+    Buffer skinningBuffer;            // Skinning stream (may be shared chunk buffer, optional)
+    Buffer morphDeltaBuffer;          // Morph delta SSBO (may be shared chunk buffer, optional)
+    Buffer morphIndirectionBuffer;    // Per-vertex morph indirection SSBO (optional)
+    uint32_t vertexOffset = 0;        // Byte offset in vertex buffer
+    uint32_t attributeOffset = 0;     // Byte offset in attribute buffer
+    uint32_t indexOffset = 0;         // Byte offset in index buffer
+    uint32_t skinningOffset = 0;      // Byte offset in skinning buffer
+    uint32_t morphDeltaOffset = 0;    // Byte offset in morph delta buffer
+    uint32_t morphIndirectionOffset = 0; // Byte offset in morph indirection buffer
     uint32_t indexCount = 0;
     uint32_t vertexCount = 0;
+    uint32_t morphDeltaCount = 0;     // Number of morph deltas
+    uint32_t morphTargetCount = 0;    // Number of morph targets
     MeshBounds bounds;
     bool valid = false;
-    bool hasSkinning = false;      // True if mesh has skinning data
+    bool hasSkinning = false;         // True if mesh has skinning data
+    bool hasMorphs = false;           // True if mesh has morph targets
 };
 
 /**
@@ -130,6 +138,32 @@ public:
         const VertexSkinning* skinning,
         uint32_t vertexCount,
         const uint32_t* indices, uint32_t indexCount,
+        const MeshBounds& bounds);
+
+    /**
+     * @brief Upload a skinned mesh with morph targets.
+     * @param positions Position stream (12 bytes per vertex)
+     * @param attributes Attribute stream (12 bytes per vertex)
+     * @param skinning Skinning stream (8 bytes per vertex)
+     * @param vertexCount Number of vertices
+     * @param indices Array of indices (32-bit)
+     * @param indexCount Number of indices
+     * @param morphDeltas Array of GPUMorphDelta structs
+     * @param morphDeltaCount Number of morph deltas
+     * @param morphIndirection Per-vertex (start, count) packed as uint32_t[2]
+     * @param morphTargetCount Number of morph targets
+     * @param bounds Pre-computed bounds
+     * @return Handle to the mesh, or invalid handle on failure
+     */
+    MeshHandle uploadPackedSkinnedWithMorphs(
+        const VertexPosition* positions,
+        const VertexAttributes* attributes,
+        const VertexSkinning* skinning,
+        uint32_t vertexCount,
+        const uint32_t* indices, uint32_t indexCount,
+        const GPUMorphDelta* morphDeltas, uint32_t morphDeltaCount,
+        const uint32_t* morphIndirection,
+        uint32_t morphTargetCount,
         const MeshBounds& bounds);
 
     /**

@@ -17,7 +17,7 @@ bindings(Frame, start=0) {
 // Material bind group: binding 0 = packed constants, bindings 1-5 = textures
 bindings(Material, start=0) {
   uniform(std140) MaterialConstants {
-    uvec4 packed;  // [0]: baseColor.rg (half2), [1]: baseColor.b,roughness (half2), [2]: metallic,emissive (half2), [3]: rim,ao (half2)
+    uvec4 packed;  // [0]: baseColor.rg (half2), [1]: baseColor.ba (half2), [2]: roughness,metallic (half2), [3]: emissive,alphaCutoff (half2)
   } material;
   texture sampler2D u_albedo;
   texture sampler2D u_normal;
@@ -135,12 +135,20 @@ Varyings VSMain(VertexIn in) {
 FragOut FSMain(Varyings in) {
     FragOut out;
 
-    // Unpack base color from material constants
+    // Unpack base color from material constants (half-float packed in uvec4)
+    // Layout: [0]: rg, [1]: ba, [2]: roughness+metallic, [3]: emissive+alphaCutoff
     vec2 rg = unpackHalf2x16(material.packed.x);
-    vec2 bRoug = unpackHalf2x16(material.packed.y);
-    vec4 baseColor = vec4(rg.x, rg.y, bRoug.x, 1.0);
+    vec2 ba = unpackHalf2x16(material.packed.y);
+    vec2 ec = unpackHalf2x16(material.packed.w);
+    vec4 baseColor = vec4(rg.x, rg.y, ba.x, ba.y);
+    float alphaCutoff = ec.y;
 
     vec4 albedo = texture(u_albedo, in.uv) * baseColor;
+
+    // Alpha cutoff testing for AlphaMode::Mask materials
+    if (albedo.a < alphaCutoff) {
+        discard;
+    }
 
     vec3 N = normalize(in.normal);
     vec3 T = normalize(in.tangent);

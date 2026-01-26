@@ -41,9 +41,9 @@ namespace Resource
 
       bool loadFromMemory(const uint8_t* data, size_t size, ProcessedTexture& texture, const std::string& name, bool sRGB);
 
-      bool loadFromEmbedded(const EmbeddedMemorySource& src, ProcessedTexture& texture);
+      bool loadFromEmbedded(const EmbeddedMemorySource& src, ProcessedTexture& texture, bool isSRGB);
 
-      bool loadFromUncompressedEmbedded(const aiTexture* aiTex, ProcessedTexture& texture);
+      bool loadFromUncompressedEmbedded(const aiTexture* aiTex, ProcessedTexture& texture, bool isSRGB);
     } // namespace Detail
   }   // namespace TextureLoading
 } // namespace AssetLoading

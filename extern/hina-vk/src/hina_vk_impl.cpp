@@ -84,3 +84,31 @@ void hina_tracy_vk_context_name(void* ctx, const char* name)
 }  // extern "C"
 
 #endif  // TRACY_ENABLE
+
+// ---------------------------------------------------------------------------
+// SPIRV Lint Stubs
+// ---------------------------------------------------------------------------
+// These functions are declared as extern in hina_vk.c but need implementations.
+// For now, provide stubs that effectively disable SPIRV linting.
+// TODO: Integrate SPIRV-Tools-lint for real validation.
+// ---------------------------------------------------------------------------
+extern "C" {
+
+bool hina_spirv_lint(const uint32_t* spirv_words, size_t word_count)
+{
+  (void)spirv_words;
+  (void)word_count;
+  return true;  // Always pass - no validation
+}
+
+const char* hina_spirv_lint_get_warnings(void)
+{
+  return nullptr;  // No warnings
+}
+
+void hina_spirv_lint_cleanup(void)
+{
+  // Nothing to clean up
+}
+
+}  // extern "C"

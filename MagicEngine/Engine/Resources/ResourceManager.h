@@ -76,7 +76,7 @@ const ResourceContainerBase<ResourceType>& MagicResourceManager::Editor_GetConta
 template<typename ResourceType>
 ResourceContainerBase<ResourceType>& MagicResourceManager::INTERNAL_GetContainer()
 {
-    size_t hash{ util::ConsistentHash<ResourceType>() };
+    static const size_t hash = util::ConsistentHash<ResourceType>();  // Cache hash per type
     auto containerIter{ resourceContainers.find(hash) };
     if (containerIter != resourceContainers.end())
         return static_cast<ResourceContainerBase<ResourceType>&>(*containerIter->second);

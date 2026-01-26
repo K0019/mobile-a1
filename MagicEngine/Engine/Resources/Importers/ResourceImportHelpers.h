@@ -18,10 +18,23 @@ All rights reserved.
 #include "VFS/VFS.h"
 #include "Engine/Resources/ResourceFilepaths.h"
 #include "Engine/Resources/ResourceManager.h"
+#include "resource/asset_metadata.h"
+#include <tuple>
 
 namespace ResourceImportHelpers {
 
     size_t GenerateNewHash();
+
+    /**
+     * @brief Get resource hash from .meta file or generate a new one.
+     *
+     * If a .meta file exists for the asset and has a resourceHash, returns it.
+     * Otherwise generates a new hash and saves it to the .meta file.
+     *
+     * @param assetRelativeFilepath VFS path to the compiled asset
+     * @return The resource hash (existing from .meta or newly generated)
+     */
+    size_t GetOrCreateResourceHash(const std::string& assetRelativeFilepath);
 
     std::filesystem::path GetExeRelativeFilepath(const std::filesystem::path& assetRelativeFilepath);
 
@@ -49,7 +62,8 @@ namespace ResourceImportHelpers {
 template <typename ResourceType>
 void ResourceImportHelpers::GenerateHashesForResourceType(AssociatedResourceHashes* resource, size_t numHashes)
 {
-    resource->resourceTypeHash = util::ConsistentHash<ResourceType>();
+    static const size_t typeHash = util::ConsistentHash<ResourceType>();  // Cache hash per type
+    resource->resourceTypeHash = typeHash;
     for (size_t i{}; i < numHashes; ++i)
         resource->hashes.push_back(GenerateNewHash());
 }
@@ -60,8 +74,27 @@ const ResourceFilepaths::FileEntry* ResourceImportHelpers::GenerateFileEntryForR
     if (const ResourceFilepaths::FileEntry* existingFileEntry{ ST<MagicResourceManager>::Get()->INTERNAL_GetFilepathsManager().GetFileEntry(assetRelativeFilepath)})
         return existingFileEntry;
 
-    std::vector<AssociatedResourceHashes> resourceHashes{ sizeof...(ResourceTypes) };
-    detail::GenerateHashForOneResourceType<ResourceTypes...>(resourceHashes.begin(), numResources...);
+    // For single-resource files (common case: .mesh, .ktx2, .material, .anim),
+    // try to use hash from .meta file to preserve identity across reimports
+    constexpr size_t numResourceTypes = sizeof...(ResourceTypes);
+    const size_t totalResources = (static_cast<size_t>(numResources) + ...);
+
+    std::vector<AssociatedResourceHashes> resourceHashes{ numResourceTypes };
+
+    if (numResourceTypes == 1 && totalResources == 1)
+    {
+        // Single resource case: use GetOrCreateResourceHash for .meta file support
+        using FirstResourceType = std::tuple_element_t<0, std::tuple<ResourceTypes...>>;
+        static const size_t typeHash = util::ConsistentHash<FirstResourceType>();
+        resourceHashes[0].resourceTypeHash = typeHash;
+        resourceHashes[0].hashes.push_back(GetOrCreateResourceHash(assetRelativeFilepath));
+    }
+    else
+    {
+        // Multiple resources: fall back to random hash generation
+        detail::GenerateHashForOneResourceType<ResourceTypes...>(resourceHashes.begin(), numResources...);
+    }
+
     GenerateNamesForResources(resourceHashes, assetRelativeFilepath);
     return ST<MagicResourceManager>::Get()->INTERNAL_GetFilepathsManager().SetFilepath(assetRelativeFilepath, std::move(resourceHashes));
 }

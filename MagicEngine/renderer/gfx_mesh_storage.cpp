@@ -104,6 +104,21 @@ GpuMesh GfxMeshStorage::buildGpuMesh(const ChunkedMeshHandle& chunkedHandle) con
         mesh.skinningOffset = alloc->skinningOffset();
     }
 
+    // Include morph info if present
+    mesh.hasMorphs = alloc->hasMorphs;
+    if (mesh.hasMorphs) {
+        if (hina_buffer_is_valid(chunk->morphDeltaBuffer)) {
+            mesh.morphDeltaBuffer = chunk->morphDeltaBuffer;
+            mesh.morphDeltaOffset = alloc->morphDeltaOffset();
+            mesh.morphDeltaCount = alloc->morphDeltaCount;
+        }
+        if (hina_buffer_is_valid(chunk->morphIndirectionBuffer)) {
+            mesh.morphIndirectionBuffer = chunk->morphIndirectionBuffer;
+            mesh.morphIndirectionOffset = alloc->morphIndirectionOffset();
+        }
+        mesh.morphTargetCount = alloc->morphTargetCount;
+    }
+
     return mesh;
 }
 
@@ -223,6 +238,53 @@ MeshHandle GfxMeshStorage::uploadPackedSkinned(
     const MeshAllocation* alloc = m_chunkedStorage.getAllocation(chunkedHandle);
     LOG_DEBUG("[GfxMeshStorage] Uploaded skinned mesh: {} vertices, {} indices -> chunk {}",
               vertexCount, indexCount, alloc ? alloc->chunkIndex : UINT32_MAX);
+
+    return handle;
+}
+
+MeshHandle GfxMeshStorage::uploadPackedSkinnedWithMorphs(
+    const VertexPosition* positions,
+    const VertexAttributes* attributes,
+    const VertexSkinning* skinning,
+    uint32_t vertexCount,
+    const uint32_t* indices, uint32_t indexCount,
+    const GPUMorphDelta* morphDeltas, uint32_t morphDeltaCount,
+    const uint32_t* morphIndirection,
+    uint32_t morphTargetCount,
+    const MeshBounds& bounds)
+{
+    if (!positions || !skinning || vertexCount == 0 || !indices || indexCount == 0) {
+        LOG_ERROR("[GfxMeshStorage] Invalid skinned+morphed upload parameters");
+        return MeshHandle{};
+    }
+
+    if (!morphDeltas || morphDeltaCount == 0 || !morphIndirection || morphTargetCount == 0) {
+        LOG_ERROR("[GfxMeshStorage] Invalid morph data - use uploadPackedSkinned instead");
+        return MeshHandle{};
+    }
+
+    // Allocate entry first
+    MeshHandle handle = allocateEntry();
+    if (!handle.isValid()) {
+        return handle;
+    }
+
+    // Upload to chunked storage
+    ChunkedMeshHandle chunkedHandle = m_chunkedStorage.uploadPackedSkinnedWithMorphs(
+        positions, attributes, skinning, vertexCount, indices, indexCount,
+        morphDeltas, morphDeltaCount, morphIndirection, morphTargetCount, bounds);
+    if (!chunkedHandle.isValid()) {
+        LOG_ERROR("[GfxMeshStorage] ChunkedMeshStorage uploadPackedSkinnedWithMorphs failed");
+        freeEntry(handle.index);
+        return MeshHandle{};
+    }
+
+    // Store the mapping
+    m_entries[handle.index].chunkedHandle = chunkedHandle;
+
+    const MeshAllocation* alloc = m_chunkedStorage.getAllocation(chunkedHandle);
+    LOG_DEBUG("[GfxMeshStorage] Uploaded skinned+morphed mesh: {} vertices, {} indices, {} deltas, {} targets -> chunk {}",
+              vertexCount, indexCount, morphDeltaCount, morphTargetCount, alloc ? alloc->chunkIndex : UINT32_MAX);
 
     return handle;
 }

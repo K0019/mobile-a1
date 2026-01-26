@@ -257,20 +257,16 @@ void GridFeature::EnsurePipelineCreated(const internal::ExecutionContext& contex
   pip_desc.samples = static_cast<hina_sample_count>(params_.pipelineSamples);
 
   // Color attachment with alpha blending
-  pip_desc.blend.enable = true;
-  pip_desc.blend.src_color = HINA_BLEND_FACTOR_SRC_ALPHA;
-  pip_desc.blend.dst_color = HINA_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
-  pip_desc.blend.src_alpha = HINA_BLEND_FACTOR_ZERO;
-  pip_desc.blend.dst_alpha = HINA_BLEND_FACTOR_ONE;
-  pip_desc.blend.color_op = HINA_BLEND_OP_ADD;
-  pip_desc.blend.alpha_op = HINA_BLEND_OP_ADD;
-
-  // No bind group layouts needed - using push constants only
-  pip_desc.bind_group_layout_count = 0;
+  pip_desc.blend[0].enable = true;
+  pip_desc.blend[0].src_color = HINA_BLEND_FACTOR_SRC_ALPHA;
+  pip_desc.blend[0].dst_color = HINA_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+  pip_desc.blend[0].src_alpha = HINA_BLEND_FACTOR_ZERO;
+  pip_desc.blend[0].dst_alpha = HINA_BLEND_FACTOR_ONE;
+  pip_desc.blend[0].color_op = HINA_BLEND_OP_ADD;
+  pip_desc.blend[0].alpha_op = HINA_BLEND_OP_ADD;
 
   // Color format must match render target (SCENE_COLOR)
   pip_desc.color_formats[0] = colorFormat;
-  pip_desc.color_attachment_count = 1;
 
   pipeline_.reset(hina_make_pipeline_from_module(module, &pip_desc, nullptr));
   hslc_hsl_module_free(module);

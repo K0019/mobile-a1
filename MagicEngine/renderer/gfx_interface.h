@@ -95,6 +95,7 @@ using PassLayout = hina_pass_layout;
 
 enum class Format : uint32_t {
     Undefined = HINA_FORMAT_UNDEFINED,
+    // Note: HINA_FORMAT_SWAPCHAIN was removed - use hina_get_surface_format() instead
     R8_UNorm = HINA_FORMAT_R8_UNORM,
     R8_SNorm = HINA_FORMAT_R8_SNORM,
     R8_UInt = HINA_FORMAT_R8_UINT,
@@ -534,17 +535,27 @@ using Queue = hina_queue;
 // Flags
 // ============================================================================
 
+// Buffer memory placement (enum, not combinable)
+namespace BufferMemory {
+    constexpr hina_buffer_memory GPU = HINA_BUFFER_GPU;           // GPU-only, upload via staging
+    constexpr hina_buffer_memory CPU = HINA_BUFFER_CPU;           // CPU-accessible, coherent, persistently mapped
+    constexpr hina_buffer_memory CPUExplicit = HINA_BUFFER_CPU_EXPLICIT; // CPU-accessible, requires flush/invalidate
+}
+
+// Buffer usage flags (combinable)
 namespace BufferUsage {
-    constexpr uint32_t HostVisible = HINA_BUFFER_HOST_VISIBLE_BIT;
-    constexpr uint32_t HostCoherent = HINA_BUFFER_HOST_COHERENT_BIT;
-    constexpr uint32_t DeviceLocal = HINA_BUFFER_DEVICE_LOCAL_BIT;
-    constexpr uint32_t Vertex = HINA_BUFFER_VERTEX_BIT;
-    constexpr uint32_t Index = HINA_BUFFER_INDEX_BIT;
-    constexpr uint32_t Uniform = HINA_BUFFER_UNIFORM_BIT;
-    constexpr uint32_t Storage = HINA_BUFFER_STORAGE_BIT;
-    constexpr uint32_t Indirect = HINA_BUFFER_INDIRECT_BIT;
-    constexpr uint32_t TransferSrc = HINA_BUFFER_TRANSFER_SRC_BIT;
-    constexpr uint32_t TransferDst = HINA_BUFFER_TRANSFER_DST_BIT;
+    constexpr hina_buffer_usage Vertex = HINA_BUFFER_VERTEX;
+    constexpr hina_buffer_usage Index = HINA_BUFFER_INDEX;
+    constexpr hina_buffer_usage Uniform = HINA_BUFFER_UNIFORM;
+    constexpr hina_buffer_usage Storage = HINA_BUFFER_STORAGE;
+    constexpr hina_buffer_usage Indirect = HINA_BUFFER_INDIRECT;
+    constexpr hina_buffer_usage TransferSrc = HINA_BUFFER_TRANSFER_SRC;
+    constexpr hina_buffer_usage TransferDst = HINA_BUFFER_TRANSFER_DST;
+
+    // Legacy combined flags for compatibility (deprecated - use BufferMemory + BufferUsage separately)
+    constexpr uint32_t HostVisible = 0;   // Use BufferMemory::CPU instead
+    constexpr uint32_t HostCoherent = 0;  // Use BufferMemory::CPU instead
+    constexpr uint32_t DeviceLocal = 0;   // Use BufferMemory::GPU instead
 }
 
 namespace TextureUsage {
@@ -553,6 +564,7 @@ namespace TextureUsage {
     constexpr uint32_t RenderTarget = HINA_TEXTURE_RENDER_TARGET_BIT;
     constexpr uint32_t TransferSrc = HINA_TEXTURE_TRANSFER_SRC_BIT;
     constexpr uint32_t Transient = HINA_TEXTURE_TRANSIENT_BIT;
+    constexpr uint32_t InputAttachment = HINA_TEXTURE_INPUT_ATTACHMENT_BIT;
 }
 
 namespace ShaderStage {
@@ -599,12 +611,10 @@ inline void destroyBuffer(Buffer buf) {
 }
 
 inline void* mapBuffer(Buffer buf) {
-    return hina_map_buffer(buf);
+    return hina_mapped_buffer_ptr(buf);
 }
 
-inline void unmapBuffer(Buffer buf) {
-    hina_unmap_buffer(buf);
-}
+// Note: unmapBuffer is no longer needed - CPU buffers are persistently mapped
 
 inline Texture createTexture(const TextureDesc& desc) {
     return hina_make_texture(&desc);
@@ -1095,10 +1105,10 @@ private:
 inline void hina_upload_buffer(gfx::Buffer buffer, const void* data, size_t size, size_t offset = 0) {
     if (!gfx::isValid(buffer) || !data || size == 0) return;
 
-    // Map the buffer, write, and unmap
-    // Note: This assumes HOST_VISIBLE buffers. For DEVICE_LOCAL buffers,
+    // Get persistent mapped pointer for CPU buffers
+    // Note: This assumes HINA_BUFFER_CPU buffers. For HINA_BUFFER_GPU buffers,
     // you should use staging buffers with hina_cmd_copy_buffer.
-    void* mapped = hina_map_buffer(buffer);
+    void* mapped = hina_mapped_buffer_ptr(buffer);
     if (mapped) {
         memcpy(static_cast<uint8_t*>(mapped) + offset, data, size);
         // No flush needed: All buffers are HOST_COHERENT
