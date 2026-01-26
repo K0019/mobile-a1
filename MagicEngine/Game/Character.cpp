@@ -56,7 +56,6 @@ CharacterMovementComponent::CharacterMovementComponent()
 	, heldItem{ nullptr }
 	, currentStunTime{ 0.0f }
 	, currentDodgeTime{ 0.0f }
-	, isAttacking{ false }
 	, speedMultiplier{ 1.0f }
 	, throwPower{0.0f}
 	, parryTime{}
@@ -217,112 +216,15 @@ void CharacterMovementComponent::GrabItem(ecs::CompHandle<GrabbableItemComponent
 	ST<AudioManager>::Get()->PlaySound3D("weapon pickup "+std::to_string(randomRange<int>(1,4)), false, ecs::GetEntity(this)->GetTransform().GetWorldPosition(), AudioType::END, std::pair<float, float>{2.0f, 50.0f}, 0.6f);
 }
 
-bool CharacterMovementComponent::Attack()
+void CharacterMovementComponent::Attack()
 {
-	// If already in attack animation, skip
-	if (isAttacking)
-		return false;
-	isAttacking = true;
-	auto characterEntity = ecs::GetEntity(this);
-	AnimatorComponent* animatorComp = characterEntity->GetComp<AnimatorComponent>();
-	animatorComp->GetStateMachine()->ResetFlags();
-	animatorComp->GetStateMachine()->attack = true;
+	// Defer to animation fsm
+	ecs::GetEntity(this)->GetComp<AnimatorComponent>()->GetStateMachine()->blackboard["inputAttack"] = true;
+}
 
-	ecs::EntityHandle attackItem{ heldItem };
-	// If not holding an item, we fallback to the character's entity itself
-	if (attackItem == nullptr && ecs::GetEntity(this)->GetComp<GrabbableItemComponent>())
-	{
-		attackItem = ecs::GetEntity(this);
-	}
-
-	// If the entity doesn't have a GI comp, then it has no unarmed attack.
-	else if (attackItem == nullptr)
-		return false;
-
-	animatorComp->GetStateMachine()->animations[ATTACK] = attackItem->GetComp<GrabbableItemComponent>()->lightAttackAnimation.GetHash();
-	if (animatorComp->GetStateMachine()->animations[ATTACK].GetHash() == 0)
-		animatorComp->GetStateMachine()->animations[ATTACK] = animations[ATTACK].GetHash();
-	// Audio plays here
-	//if (auto audioSourceComp{ ecs::GetEntity(this)->GetComp<AudioSourceComponent>() })
-	//{
-	//	//audioSourceComp->Set
-	//}
-
-	ecs::EntityHandle thisEntity = ecs::GetEntity(this);
-	
-
-	// Get the animation component
-	//ecs::CompHandle<AnimationComponent> animComp = thisEntity->GetComp<AnimationComponent>();
-
-	//// Attempt to use animation pulled from the item, if nonexistent then use the fallback anim on the Character
-
-	//
-	//// Use transition for attack animation (quick transition)
-	//animComp->TransitionTo(attackAnimHash, 0.1f);
-	//animComp->timeA = 0.0f;
-
-
-
-    std::string tmpName;
-	auto grabbableComp = attackItem->GetComp<GrabbableItemComponent>();
-    if (grabbableComp->audioStartIndex > grabbableComp->audioEndIndex + 1)
-        tmpName = grabbableComp->audioName + std::to_string(randomRange(grabbableComp->audioEndIndex + 1, grabbableComp->audioStartIndex));
-	else
-        tmpName = grabbableComp->audioName + std::to_string(randomRange(grabbableComp->audioStartIndex, grabbableComp->audioEndIndex + 1));
-
-	//if (randomRange(0, 2) == 0)
-	ST<AudioManager>::Get()->PlaySound3D(tmpName, false, ecs::GetEntity(this)->GetTransform().GetWorldPosition(), AudioType::END, std::pair<float, float>{2.0f, 50.0f}, 0.6f);
-
-	// Handle next attack delay
-	float nextAttackDelay = grabbableComp->attackDelay;
-	animatorComp->GetStateMachine()->attackDelay = nextAttackDelay;
-
-	//if (auto clip{ animComp->GetAnimationClipA() })
-	//{
-	//	nextAttackDelay = animComp->GetClipDuration(clip);
-	//}
-
-	ST<Scheduler>::Get()->Add(grabbableComp->attackDelay, [attackItem, thisEntity]() {
-		if (!ecs::IsEntityHandleValid(thisEntity))
-			return;
-		ecs::CompHandle<CharacterMovementComponent> thisComp{ thisEntity->GetComp<CharacterMovementComponent>() };
-		if (!thisComp)
-			return;
-
-		// If the attack animation was cancelled, we cancel this task as well
-		if (!thisComp->isAttacking)
-			return;
-
-		auto grabbableComp = attackItem->GetComp<GrabbableItemComponent>();
-
-		// Hard-code a simple start point etc for now
-		Vec3 rotation = thisEntity->GetTransform().GetWorldRotation();
-		Vec3 direction(sin(math::ToRadians(rotation.y)), 0, cos(math::ToRadians(rotation.y)));
-		Vec3 startPoint = thisEntity->GetTransform().GetWorldPosition() + direction * 0.5f * grabbableComp->attackBox.z;
-		startPoint.y += 0.8f;
-
-		auto hitDebugObject = thisComp->hitDebugObject;
-		if (hitDebugObject != nullptr)
-		{
-			hitDebugObject->GetTransform().SetWorldPosition(startPoint);
-			hitDebugObject->GetTransform().SetWorldRotation(Vec3(0.0f, math::ToDegrees(atan2(direction.x, direction.z)), 0.0f));
-			hitDebugObject->GetTransform().SetWorldScale(attackItem->GetComp<GrabbableItemComponent>()->attackBox);
-		}
-
-		// Call Attack from the GrabbableItem component
-		attackItem->GetComp<GrabbableItemComponent>()->Attack(startPoint, direction); 
-	});
-	ST<Scheduler>::Get()->Add(nextAttackDelay, [attackItem, thisEntity]() {
-		if (!ecs::IsEntityHandleValid(thisEntity))
-			return;
-		ecs::CompHandle<CharacterMovementComponent> thisComp{ thisEntity->GetComp<CharacterMovementComponent>() };
-		if (!thisComp)
-			return;
-
-		thisComp->isAttacking = false;
-	});
-	
-	return true;
+bool CharacterMovementComponent::IsAttacking() const
+{
+	return ecs::GetEntity(this)->GetComp<AnimatorComponent>()->GetStateMachine()->GetBlackboardVal<bool>("inputAttack");
 }
 
 bool CharacterMovementComponent::IsParrying()
@@ -348,6 +250,14 @@ void CharacterMovementComponent::Parry()
 bool CharacterMovementComponent::IsDodging()
 {
 	return currentDodgeTime > 0.0f;
+}
+
+ecs::CompHandle<GrabbableItemComponent> CharacterMovementComponent::GetHeldItem()
+{
+	if (heldItem)
+		if (auto itemComp{ heldItem->GetComp<GrabbableItemComponent>() })
+			return itemComp;
+	return ecs::GetEntity(this)->GetComp<GrabbableItemComponent>();
 }
 
 void CharacterMovementComponent::Serialize(Serializer& writer) const
@@ -498,10 +408,7 @@ void CharacterMovementComponent::EditorDraw()
 		gui::TextBoxReadOnly(std::string("##AnimClip"+std::to_string(animIndex)).c_str(), clip1Name ? clip1Name->c_str() : "");
 		gui::PayloadTarget<size_t>("ANIMATION_HASH", [&](size_t hash) -> void {
 			animations[animIndex] = hash;
-			auto characterEntity = ecs::GetEntity(this);
-			AnimatorComponent* animatorComp = characterEntity->GetComp<AnimatorComponent>();
-			animatorComp->GetStateMachine()->ChangAnim(animIndex, hash);
-			});
+		});
 	}
 }
 
@@ -519,26 +426,13 @@ void CharacterMovementComponentSystem::UpdateCharacterMovementComponent(Characte
 
 	// Get the animation component
 	ecs::CompHandle<AnimationComponent> animComp = characterEntity->GetComp<AnimationComponent>();
-	AnimatorComponent* animatorComp = characterEntity->GetComp<AnimatorComponent>();
-	if (!(animatorComp)) {
-		characterEntity->AddComp<AnimatorComponent>(AnimatorComponent{ new sm::AnimStateMachine(comp.animations, new sm::IdleState()) });
-		animatorComp = ecs::GetEntity(&comp)->GetComp<AnimatorComponent>();
-	}
-	else {
-		animatorComp->GetStateMachine()->animations[IDLE] = comp.animations[IDLE];
-		animatorComp->GetStateMachine()->animations[ATTACK] = comp.animations[ATTACK];
-		animatorComp->GetStateMachine()->animations[WALK] = comp.animations[WALK];
-		animatorComp->GetStateMachine()->animations[PARRY] = comp.animations[PARRY];
-		animatorComp->GetStateMachine()->animations[HURT] = comp.animations[HURT];
-		animatorComp->GetStateMachine()->animations[DODGE] = comp.animations[DODGE];
-		animatorComp->GetStateMachine()->animations[THROW] = comp.animations[THROW];
-	}
-	animatorComp->GetStateMachine()->ResetFlags();
+	ecs::CompHandle<AnimatorComponent> animatorComp = characterEntity->GetComp<AnimatorComponent>();
+	if (!animatorComp)
+		animatorComp = characterEntity->AddComp<AnimatorComponent>(AnimatorComponent{ new sm::AnimStateMachine(new sm::IdleState()) });
 
 
 	// Update held item
-	ecs::EntityHandle attackItem{ comp.heldItem };
-	if (attackItem)
+	if (ecs::EntityHandle attackItem{ comp.heldItem })
 	{
 		// Transform related
 		attackItem->GetTransform().SetParent(characterTransform);
@@ -550,12 +444,6 @@ void CharacterMovementComponentSystem::UpdateCharacterMovementComponent(Characte
 			boneAttachComp->targetEntity = characterEntity;
 			boneAttachComp->boneName = "J_Bip_R_Hand";
 		}
-	}
-
-	// If not holding an item, we fallback to the character's entity itself
-	if (attackItem == nullptr && characterEntity->GetComp<GrabbableItemComponent>())
-	{
-		attackItem = characterEntity;
 	}
 
 	// Perform stun check
@@ -576,11 +464,9 @@ void CharacterMovementComponentSystem::UpdateCharacterMovementComponent(Characte
 		comp.currentStunTime -= GameTime::Dt();
 
 		// Can only come out of stun when on the ground
-		//if (math::Abs(currVel.y) > 0.01f && comp.currentStunTime < 0.0f)
-		//	comp.currentStunTime = GameTime::Dt();
-
-		animatorComp->GetStateMachine()->ResetFlags();
-		animatorComp->GetStateMachine()->dodge = true;
+		// if (math::Abs(currVel.y) > 0.01f && comp.currentStunTime < 0.0f)
+		// 	comp.currentStunTime = GameTime::Dt();
+		animatorComp->GetStateMachine()->blackboard["inputHurt"] = true;
 
 		//if (animComp->animHandleA.GetHash() != comp.animations[HURT].GetHash())
 		//{
@@ -604,24 +490,9 @@ void CharacterMovementComponentSystem::UpdateCharacterMovementComponent(Characte
 		return;
 	}
 
-	ecs::CompHandle<GrabbableItemComponent> itemComp = nullptr;
-
-	if (attackItem)
-		itemComp = attackItem->GetComp<GrabbableItemComponent>();
-
 	if (comp.IsParrying())
 	{
-		// Get parry animation - prefer item's parry animation, fallback to character's
-		size_t parryAnimHash = 0;
-		if (itemComp && itemComp->parryAnimation.GetHash() != 0)
-			animatorComp->GetStateMachine()->animations[PARRY] = itemComp->parryAnimation.GetHash();
-		else
-			animatorComp->GetStateMachine()->animations[PARRY] = comp.animations[PARRY].GetHash();
-		animatorComp->GetStateMachine()->ResetFlags();
-		animatorComp->GetStateMachine()->parry = true;
-		// Transition to parry animation if not already playing it
-		//if (animComp->animHandleA.GetHash() != parryAnimHash)
-		//	animComp->TransitionTo(parryAnimHash, 0.05f);
+		animatorComp->GetStateMachine()->blackboard["inputParry"] = true;
 
 		//if (auto clip{ animComp->GetAnimationClipA() })
 		//{
@@ -637,43 +508,10 @@ void CharacterMovementComponentSystem::UpdateCharacterMovementComponent(Characte
 	}
 	comp.currParryCoolDown -= GameTime::Dt();
 
-	// Normalize the move vector if it's over 1.0f in length
-	if (movement.LengthSqr() > 0.0f)
-	{
-		// Walking - only change animation if not attacking
-		//if (!comp.isAttacking && animComp->animHandleA.GetHash() != comp.animations[WALK].GetHash())
-		//{
-		//	animComp->TransitionTo(comp.animations[WALK].GetHash(), 0.15f);
-		//}
-		animatorComp->GetStateMachine()->ResetFlags();
-		animatorComp->GetStateMachine()->walking = true;
-		
-	}
-	else
-	{
-		// Idle - only change animation if not attacking
-		//if (!comp.isAttacking && animComp->animHandleA.GetHash() != comp.animations[IDLE].GetHash())
-		//{
-		//	animComp->TransitionTo(comp.animations[IDLE].GetHash(), 0.15f);
-		//}
-		animatorComp->GetStateMachine()->ResetFlags();
-		animatorComp->GetStateMachine()->idle = true;
-	}
-
-	///if (comp.isAttacking)
-	///{
-	///	animComp->loop = false;
-	///	if (animComp->timeA >= animComp->GetClipDuration(animComp->GetAnimationClipA()))
-	///	{
-	///		comp.isAttacking = false;
-	///	}
-	///}
-
-	//animComp->loop = !comp.isAttacking;
-
-
+	// Get inputs
 	if (movement.LengthSqr() > 1.0f)
 		movement = movement.Normalized();
+	animatorComp->GetStateMachine()->blackboard["inputMovement"] = movement;
 
 	// Apply friction
 	//Vec3 drag{ -currVel.x,0.0f,-currVel.z };
@@ -695,10 +533,8 @@ void CharacterMovementComponentSystem::UpdateCharacterMovementComponent(Characte
 	{
 		comp.currentDodgeTime -= GameTime::Dt();
 		moveDir *= comp.dodgeSpeed;
-		animatorComp->GetStateMachine()->ResetFlags();
-		animatorComp->GetStateMachine()->dodge = true;
-		/*if (animComp->animHandleA.GetHash() != comp.animations[DODGE].GetHash())
-			animComp->TransitionTo(comp.animations[DODGE].GetHash(), 0.05f);*/
+
+		animatorComp->GetStateMachine()->blackboard["inputDodge"] = true;
 	}
 	else
 	{
@@ -718,11 +554,6 @@ void CharacterMovementComponentSystem::UpdateCharacterMovementComponent(Characte
 
 	comp.currentDodgeCooldown -= GameTime::Dt();
 
-	//if (animatorComp->GetStateMachine())
-	//{
-	//	animatorComp->GetStateMachine()->Update(characterEntity);
-	//}
-
 	if (movement.LengthSqr() > 0.0f)
 		comp.RotateTowards(movement);
 
@@ -731,6 +562,17 @@ void CharacterMovementComponentSystem::UpdateCharacterMovementComponent(Characte
 		comp.currParryTime -= GameTime::Dt();
 	if (comp.currParryCoolDown > 0.f)
 		comp.currParryCoolDown -= GameTime::Dt();
+
+	// Update animation FSM
+	animatorComp->GetStateMachine()->Update(characterEntity);
+
+	// Check whether to apply an attack this frame
+	int attackMoveIndex{ animatorComp->GetStateMachine()->GetBlackboardVal<int>("outputApplyHitMove") };
+	if (attackMoveIndex >= 0)
+	{
+		ApplyAttack(static_cast<size_t>(attackMoveIndex), characterTransform, comp);
+		animatorComp->GetStateMachine()->blackboard["outputApplyHitMove"] = -1;
+	}
 
 	comp.SetMovementVector(Vec2{ 0.f, 0.f });
 }
@@ -744,4 +586,36 @@ bool CharacterMovementComponentSystem::PreRun()
 void CharacterMovementComponentSystem::PostRun()
 {
 	physics::MyCharacterContactListener::CallContactFunc();
+}
+
+void CharacterMovementComponentSystem::ApplyAttack(size_t moveIndex, const Transform& transform, CharacterMovementComponent& charComp)
+{
+	auto heldItem{ charComp.GetHeldItem() };
+	auto weaponInfo{ heldItem->weaponInfo.GetResource() };
+	if (!weaponInfo || weaponInfo->moves.size() < moveIndex)
+	{
+		CONSOLE_LOG(LEVEL_ERROR) << "Character doesn't have WeaponInfo or WeaponInfo doesn't have a move at index " << moveIndex << ", unable to apply attack hit logic";
+		return;
+	}
+
+	const auto& weaponMove{ weaponInfo->moves[moveIndex] };
+
+	// TODO: Relook at this math to make sure we're using the move's parameters correctly
+	
+	// Hard-code a simple start point etc for now
+	Vec3 rotation = transform.GetWorldRotation();
+	Vec3 direction(sin(math::ToRadians(rotation.y)), 0, cos(math::ToRadians(rotation.y)));
+	Vec3 startPoint = transform.GetWorldPosition() + direction * 0.5f * weaponMove.hitboxExtents.z;
+	startPoint.y += 0.8f;
+
+	/*auto hitDebugObject = thisComp->hitDebugObject;
+	if (hitDebugObject != nullptr)
+	{
+		hitDebugObject->GetTransform().SetWorldPosition(startPoint);
+		hitDebugObject->GetTransform().SetWorldRotation(Vec3(0.0f, math::ToDegrees(atan2(direction.x, direction.z)), 0.0f));
+		hitDebugObject->GetTransform().SetWorldScale(attackItem->GetComp<GrabbableItemComponent>()->attackBox);
+	}*/
+
+	// TODO: Refactor this function to use the WeaponMoveInfo's hitbox
+	charComp.GetHeldItem()->Attack(startPoint, direction);
 }

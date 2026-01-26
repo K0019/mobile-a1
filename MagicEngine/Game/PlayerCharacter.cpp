@@ -106,7 +106,7 @@ void PlayerMovementComponentSystem::UpdatePlayerMovementComponent(PlayerMovement
 	Vec2 camForward = Vec2{ cos(yawRad),sin(yawRad) };
 	Vec2 camRight = Vec2{ -sin(yawRad),cos(yawRad) };
 
-	if (!characterComp->isAttacking)
+	if (!characterComp->IsAttacking())
 	{
 		if (inputInstance->GetIsDown(KEY::W))
 			movement = movement + camForward;
@@ -210,7 +210,4 @@ void PlayerMovementComponentSystem::UpdatePlayerMovementComponent(PlayerMovement
 
 	if (inputInstance->GetIsPressed(KEY::LCTRL))
 		comp.Parry();
-	auto characterEntity = ecs::GetEntity(&comp);
-	AnimatorComponent* animatorComp = characterEntity->GetComp<AnimatorComponent>();
-	animatorComp->GetStateMachine()->Update(characterEntity);
 }

@@ -743,6 +743,20 @@
             ]
         },
         {
+            "filepath": "Game/Weapons\\PlayerWeaponDefault.weapon",
+            "resources": [
+                {
+                    "resourceType": 9579558926714450681,
+                    "resourceEntries": [
+                        {
+                            "hash": 8956332549044158285,
+                            "name": "playerweapondefault0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/models/glb/aji/player_idle_mixamo/n00_000_00_facemouth_00_face__instance_.material",
             "resources": [
                 {
@@ -1297,6 +1311,20 @@
                         {
                             "hash": 176587065308464197,
                             "name": "n00_000_hair_00_nml0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "Game/Weapons\\prefectmale.weapon",
+            "resources": [
+                {
+                    "resourceType": 9579558926714450681,
+                    "resourceEntries": [
+                        {
+                            "hash": 4768811728382449817,
+                            "name": "prefectmale0"
                         }
                     ]
                 }
@@ -4615,6 +4643,20 @@
                         {
                             "hash": 795027171614619687,
                             "name": "field77325511409881987680"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "Game/Weapons\\prefectfemale.weapon",
+            "resources": [
+                {
+                    "resourceType": 9579558926714450681,
+                    "resourceEntries": [
+                        {
+                            "hash": 115309083751535805,
+                            "name": "prefectfemale0"
                         }
                     ]
                 }

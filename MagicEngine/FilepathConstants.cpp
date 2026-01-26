@@ -39,6 +39,7 @@ const std::string Filepaths::materialsSave		= "Materials";
 const std::string Filepaths::behaviourTreeSave	= "behaviourtrees";
 const std::string Filepaths::navMeshDataSave	= "NavMeshData";
 const std::string Filepaths::soundFolder		= "Sounds";
+const std::string Filepaths::gameWeaponSave		= "Game/Weapons";
 
 // Editor use only
 const std::string Filepaths::compilerExe		= Filepaths::workingDir + "/Tools/Debug/AssetCompiler.exe";

@@ -49,4 +49,3 @@ struct ResourceAudio : public ResourceBase
 	virtual bool IsLoaded() final;
 	~ResourceAudio();
 };
-using ResourceContainerAudio = ResourceContainerBase<ResourceAudio>;
