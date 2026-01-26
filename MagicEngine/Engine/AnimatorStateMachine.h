@@ -46,7 +46,8 @@ enum ANIMATION_TYPES :size_t
 
 #define ANIM_INPUT_TYPE_ENUM \
 X(LIGHT_ATTACK, "inputLightAttack")\
-X(HEAVY_ATTACK, "inputHeavyAttack")
+X(HEAVY_ATTACK, "inputHeavyAttack")\
+X(SKILL_ATTACK, "inputSkillAttack")
 
 enum class ANIM_INPUT_TYPE
 {
@@ -436,6 +437,8 @@ namespace sm {
 	class HeavyAttackPlayer1 : public sm::State { public: HeavyAttackPlayer1(); };
 	class HeavyAttackPlayer2 : public sm::State { public: HeavyAttackPlayer2(); };
 	class HeavyAttackPlayer3 : public sm::State { public: HeavyAttackPlayer3(); };
+
+	class SkillAttackPlayer1 : public sm::State { public: SkillAttackPlayer1(); };
 
 }
 

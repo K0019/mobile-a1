@@ -378,15 +378,23 @@ namespace sm {
 	HeavyAttackPlayer2::HeavyAttackPlayer2() : sm::State{
 		{ new AttackActivity{ 7, ANIM_INPUT_TYPE::HEAVY_ATTACK } },
 		{ new ToHurtTransition{}, new NoOpBeforeAttackDamageTransition{},
-		  new ToAttackTransition<LightAttackPlayer1>{ ANIM_INPUT_TYPE::LIGHT_ATTACK }, new ToAttackTransition<HeavyAttackPlayer3>{ ANIM_INPUT_TYPE::HEAVY_ATTACK }, new ToParryTransition{}, new ToDodgeTransition{}, new NoOpWhileAnimatingTransition{}, // Only allow dodging after hitting the attack
+		  new ToAttackTransition<LightAttackPlayer1>{ ANIM_INPUT_TYPE::LIGHT_ATTACK }, new ToAttackTransition<HeavyAttackPlayer3>{ ANIM_INPUT_TYPE::HEAVY_ATTACK }, new ToParryTransition{}, new ToDodgeTransition{}, new NoOpWhileAnimatingTransition{},
 		  new ToIdleTransition{}, new ToWalkTransition{} }
 	} {
 	}
 	HeavyAttackPlayer3::HeavyAttackPlayer3() : sm::State{
 		{ new AttackActivity{ 8, ANIM_INPUT_TYPE::HEAVY_ATTACK } },
 		{ new ToHurtTransition{}, new NoOpBeforeAttackDamageTransition{},
-		  new ToAttackTransition<LightAttackPlayer1>{ ANIM_INPUT_TYPE::LIGHT_ATTACK }, new ToAttackTransition<HeavyAttackPlayer1>{ ANIM_INPUT_TYPE::HEAVY_ATTACK }, new ToParryTransition{}, new ToDodgeTransition{}, new NoOpWhileAnimatingTransition{}, // Only allow dodging after hitting the attack
+		  new ToAttackTransition<LightAttackPlayer1>{ ANIM_INPUT_TYPE::LIGHT_ATTACK }, new ToAttackTransition<HeavyAttackPlayer1>{ ANIM_INPUT_TYPE::HEAVY_ATTACK }, new ToParryTransition{}, new ToDodgeTransition{}, new NoOpWhileAnimatingTransition{},
 		  new ToIdleTransition{}, new ToWalkTransition{} }
+	} {
+	}
+
+	SkillAttackPlayer1::SkillAttackPlayer1() : sm::State{
+		{ new AttackActivity{ 9, ANIM_INPUT_TYPE::SKILL_ATTACK } },
+		{ new NoOpBeforeAttackDamageTransition{},
+		  new NoOpWhileAnimatingTransition{},
+		  }
 	} {
 	}
 }
