@@ -308,6 +308,12 @@ namespace sm {
 	public:
 		void OnEnter(sm::StateMachine* sm) override;
 	};
+
+	class DecayDelusionActivity : public sm::AnimActivityBase<DecayDelusionActivity>
+	{
+	public:
+		void OnUpdate(sm::StateMachine* sm) override;
+	};
 	
 
 	//======================================================================
@@ -346,12 +352,24 @@ namespace sm {
 	template <typename ToState>
 	class ToAttackTransition : public sm::AnimTransitionBase<ToAttackTransition<ToState>>
 	{
-	public:
-		ToAttackTransition(ANIM_INPUT_TYPE attackType);
-		bool Decide(sm::StateMachine* sm) override;
 	private:
 		ANIM_INPUT_TYPE attackType;
+
+	public:
+		ToAttackTransition(ANIM_INPUT_TYPE attackType)
+			: sm::AnimTransitionBase<ToAttackTransition>(SET_NEXT_STATE(ToState))
+			, attackType{ attackType }
+		{
+		}
+
+		bool Decide(sm::StateMachine* sm) override
+		{
+			return ToAttackTransition<ToState>::CastSM(sm)->GetBlackboardVal<bool>(AnimInputTypeToKey(attackType));
+		}
 	};
+
+	// ToSkillAttackTransition defined below, because it needs the states to be defined first
+	class ToSkillAttackTransition;
 
 	class ToHurtTransition : public sm::AnimTransitionBase<ToHurtTransition>
 	{
@@ -378,6 +396,13 @@ namespace sm {
 	{
 	public:
 		ToThrowTransition();
+		bool Decide(sm::StateMachine* sm) override;
+	};
+
+	class OutOfDelusionTransition : public sm::AnimTransitionBase<OutOfDelusionTransition>
+	{
+	public:
+		OutOfDelusionTransition();
 		bool Decide(sm::StateMachine* sm) override;
 	};
 
@@ -444,6 +469,16 @@ namespace sm {
 
 namespace sm {
 
+	class ToSkillAttackTransition : ToAttackTransition<SkillAttackPlayer1>
+	{
+	public:
+		bool Decide(sm::StateMachine* sm) override;
+	};
+
+}
+
+namespace sm {
+
 	template<typename T>
 	T AnimStateMachine::GetBlackboardVal(const std::string& key) const
 	{
@@ -456,19 +491,6 @@ namespace sm {
 		catch (const std::bad_any_cast&) {
 			return T{};
 		}
-	}
-
-	template <typename ToState>
-	ToAttackTransition<ToState>::ToAttackTransition(ANIM_INPUT_TYPE attackType)
-		: sm::AnimTransitionBase<ToAttackTransition>(SET_NEXT_STATE(ToState))
-		, attackType{ attackType }
-	{
-	}
-
-	template <typename ToState>
-	bool ToAttackTransition<ToState>::Decide(sm::StateMachine* sm)
-	{
-		return ToAttackTransition<ToState>::CastSM(sm)->GetBlackboardVal<bool>(AnimInputTypeToKey(attackType));
 	}
 
 }

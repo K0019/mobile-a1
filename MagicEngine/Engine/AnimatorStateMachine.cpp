@@ -15,6 +15,7 @@ like Idle, Walk, Run, and Jump.
 #include "Graphics/AnimationComponent.h"
 #include "Engine/Input.h"
 #include "Game/Character.h"
+#include "Game/Delusion.h"
 
 static constexpr float ANIM_TRANSITION_DURATION_IDLE = 0.15f;
 static constexpr float ANIM_TRANSITION_DURATION_ATTACK = 0.1f;
@@ -222,6 +223,12 @@ namespace sm {
 		animSM->blackboard["inputThrow"] = false;
 	}
 
+	void DecayDelusionActivity::OnUpdate(sm::StateMachine* sm)
+	{
+		if (auto delusionComp{ CastSM(sm)->GetEntity()->GetComp<DelusionComponent>() })
+			delusionComp->LoseDelusion(GameTime::Dt());
+	}
+
 	//======================================================================
 	// TRANSITION DEFINITIONS
 	//======================================================================
@@ -292,6 +299,24 @@ namespace sm {
 		return CastSM(sm)->GetBlackboardVal<bool>("inputThrow");
 	}
 
+	bool ToSkillAttackTransition::Decide(sm::StateMachine* sm)
+	{
+		if (ToAttackTransition::Decide(sm))
+			if (auto delusionComp{ CastSM(sm)->GetEntity()->GetComp<DelusionComponent>() })
+				return delusionComp->GetDelusionFraction() >= 0.2f; // Random number for now, only allow activating skill if over 20% delusion
+		return false;
+	}
+
+	OutOfDelusionTransition::OutOfDelusionTransition()
+		: sm::AnimTransitionBase<OutOfDelusionTransition>{ SET_NEXT_STATE(IdleState) } // Might need an in-between state here if the animation transition is too abrupt
+	{
+	}
+
+	bool OutOfDelusionTransition::Decide(sm::StateMachine* sm)
+	{
+		if (auto delusionComp{ CastSM(sm)->GetEntity()->GetComp<DelusionComponent>() })
+			return delusionComp->GetCurrDelusion() <= 0.0f;
+	}
 
 	//======================================================================
 	// STATE DEFINITIONS
