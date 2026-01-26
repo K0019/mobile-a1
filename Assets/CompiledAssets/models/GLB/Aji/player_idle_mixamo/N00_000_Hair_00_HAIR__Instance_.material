@@ -20,7 +20,7 @@
     "textures": [
         {
             "key": "baseColor",
-            "value": "CompiledAssets\\models\\GLB\\Aji\\player_idle_mixamo\\_24.ktx2"
+            "value": "compiledassets/models/glb/aji/player_idle_mixamo/_24.ktx2"
         },
         {
             "key": "metallicRoughness",
@@ -28,11 +28,11 @@
         },
         {
             "key": "normal",
-            "value": "CompiledAssets\\models\\GLB\\Aji\\player_idle_mixamo\\N00_000_Hair_00_nml.normal.ktx2"
+            "value": "compiledassets/models/glb/aji/player_idle_mixamo/N00_000_Hair_00_nml.normal.ktx2"
         },
         {
             "key": "emissive",
-            "value": "CompiledAssets\\models\\GLB\\Aji\\player_idle_mixamo\\_25.ktx2"
+            "value": "compiledassets/models/glb/aji/player_idle_mixamo/_25.ktx2"
         },
         {
             "key": "occlusion",

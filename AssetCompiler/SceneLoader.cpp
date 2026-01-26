@@ -31,17 +31,17 @@ All rights reserved.
 
 namespace compiler
 {
-    // ----- Winding Order Diagnostic ----- //
+    // ----- Winding Order Detection and Fix ----- //
     // Analyzes mesh winding order by comparing geometric face normals with vertex normals
     // CCW convention: cross(edge1, edge2) where edge1 = v1-v0, edge2 = v2-v0
-    void DiagnoseWindingOrder(const ProcessedMesh& mesh, const std::string& context)
+    // Returns: 1 = CCW (correct), -1 = CW (inverted), 0 = mixed/unknown
+    int DetectWindingOrder(const ProcessedMesh& mesh)
     {
         if (mesh.vertices.empty() || mesh.indices.empty() || mesh.indices.size() % 3 != 0)
-            return;
+            return 0;
 
         int ccwAgree = 0;   // Face normal (CCW) agrees with vertex normal
         int ccwDisagree = 0;
-        int degenerate = 0;
 
         const uint32_t numTriangles = static_cast<uint32_t>(mesh.indices.size() / 3);
 
@@ -64,10 +64,9 @@ namespace compiler
             vec3 faceNormalCCW = glm::cross(edge1, edge2);
 
             float len = glm::length(faceNormalCCW);
-            if (len < 0.0001f) {
-                degenerate++;
-                continue;
-            }
+            if (len < 0.0001f)
+                continue; // Skip degenerate triangles
+
             faceNormalCCW /= len;
 
             // Average vertex normals
@@ -82,18 +81,121 @@ namespace compiler
         }
 
         // Determine winding
-        const char* winding = "UNKNOWN";
         if (ccwAgree > ccwDisagree * 2)
-            winding = "CCW (correct for Vulkan)";
+            return 1;  // CCW (correct for Vulkan)
         else if (ccwDisagree > ccwAgree * 2)
-            winding = "CW (INVERTED for Vulkan - needs aiProcess_FlipWindingOrder)";
+            return -1; // CW (inverted)
         else
-            winding = "MIXED (inconsistent)";
+            return 0;  // Mixed/unknown
+    }
 
+    // Fixes CW winding by reversing triangle indices to CCW
+    void FixWindingOrder(ProcessedMesh& mesh)
+    {
+        int winding = DetectWindingOrder(mesh);
+
+        if (winding == -1)
+        {
+            // CW winding detected - reverse each triangle's indices to make it CCW
+            const uint32_t numTriangles = static_cast<uint32_t>(mesh.indices.size() / 3);
+            for (uint32_t tri = 0; tri < numTriangles; ++tri)
+            {
+                // Swap indices 1 and 2 to reverse winding: (0,1,2) -> (0,2,1)
+                std::swap(mesh.indices[tri * 3 + 1], mesh.indices[tri * 3 + 2]);
+            }
+            std::cerr << "[WINDING FIX] Mesh '" << mesh.name << "': Reversed " << numTriangles
+                      << " triangles from CW to CCW\n" << std::flush;
+        }
+    }
+
+    void DiagnoseWindingOrder(const ProcessedMesh& mesh, const std::string& context)
+    {
+        if (mesh.vertices.empty() || mesh.indices.empty() || mesh.indices.size() % 3 != 0)
+            return;
+
+        int winding = DetectWindingOrder(mesh);
+        const char* windingStr = "UNKNOWN";
+        if (winding == 1)
+            windingStr = "CCW (correct for Vulkan)";
+        else if (winding == -1)
+            windingStr = "CW (INVERTED for Vulkan)";
+        else
+            windingStr = "MIXED (inconsistent)";
+
+        const uint32_t numTriangles = static_cast<uint32_t>(mesh.indices.size() / 3);
         std::cerr << "[WINDING DIAGNOSTIC] " << context << " - Mesh '" << mesh.name << "':\n"
-                  << "  Triangles: " << numTriangles << " (degenerate: " << degenerate << ")\n"
-                  << "  CCW agree: " << ccwAgree << ", CCW disagree: " << ccwDisagree << "\n"
-                  << "  Detected winding: " << winding << "\n" << std::flush;
+                  << "  Triangles: " << numTriangles << "\n"
+                  << "  Detected winding: " << windingStr << "\n" << std::flush;
+    }
+
+    // Fixes vertex normals for meshes with inconsistent normals by regenerating from geometry
+    // Uses area-weighted smooth normals (unnormalized cross product = 2x area)
+    void FixInconsistentNormals(ProcessedMesh& mesh)
+    {
+        int winding = DetectWindingOrder(mesh);
+        if (winding != 0) // Only fix MIXED meshes (winding == 0)
+            return;
+
+        if (mesh.vertices.empty() || mesh.indices.empty() || mesh.indices.size() % 3 != 0)
+            return;
+
+        std::cerr << "[NORMAL FIX] Mesh '" << mesh.name << "': Attempting to fix "
+                  << mesh.vertices.size() << " vertices, " << mesh.indices.size() / 3 << " triangles\n" << std::flush;
+
+        // Initialize all normals to zero
+        for (auto& v : mesh.vertices)
+            v.normal = vec3(0.0f);
+
+        const uint32_t numTriangles = static_cast<uint32_t>(mesh.indices.size() / 3);
+        int validTris = 0;
+
+        // Accumulate area-weighted face normals to each vertex
+        for (uint32_t tri = 0; tri < numTriangles; ++tri)
+        {
+            uint32_t i0 = mesh.indices[tri * 3 + 0];
+            uint32_t i1 = mesh.indices[tri * 3 + 1];
+            uint32_t i2 = mesh.indices[tri * 3 + 2];
+
+            if (i0 >= mesh.vertices.size() || i1 >= mesh.vertices.size() || i2 >= mesh.vertices.size())
+                continue;
+
+            const vec3& p0 = mesh.vertices[i0].position;
+            const vec3& p1 = mesh.vertices[i1].position;
+            const vec3& p2 = mesh.vertices[i2].position;
+
+            vec3 e1 = p1 - p0;
+            vec3 e2 = p2 - p0;
+            vec3 faceNormal = glm::cross(e1, e2); // Unnormalized = area-weighted
+
+            float area2 = glm::length(faceNormal);
+            if (area2 < 0.0000001f)
+                continue; // Skip degenerate triangles
+
+            validTris++;
+            // Add unnormalized (area-weighted) normal to each vertex
+            mesh.vertices[i0].normal += faceNormal;
+            mesh.vertices[i1].normal += faceNormal;
+            mesh.vertices[i2].normal += faceNormal;
+        }
+
+        // Normalize all vertex normals
+        int fixed = 0;
+        for (auto& v : mesh.vertices)
+        {
+            float len = glm::length(v.normal);
+            if (len > 0.0001f)
+            {
+                v.normal /= len;
+                fixed++;
+            }
+            else
+            {
+                v.normal = vec3(0.0f, 1.0f, 0.0f); // Fallback up normal
+            }
+        }
+
+        std::cerr << "[NORMAL FIX] Mesh '" << mesh.name << "': Regenerated " << fixed
+                  << " vertex normals from " << validTris << " valid triangles\n" << std::flush;
     }
 
     // ----- Helpers ----- //
@@ -771,8 +873,14 @@ namespace compiler
             }
         }
 
-        // Diagnostic: Check winding order before returning
-        DiagnoseWindingOrder(mesh, "After Assimp extraction");
+        // Fix winding order: Convert CW meshes to CCW for Vulkan
+        FixWindingOrder(mesh);
+
+        // Fix inconsistent normals: Regenerate normals for MIXED meshes
+        FixInconsistentNormals(mesh);
+
+        // Diagnostic: Check winding order after fixes
+        DiagnoseWindingOrder(mesh, "After fixes");
 
         return mesh;
     }

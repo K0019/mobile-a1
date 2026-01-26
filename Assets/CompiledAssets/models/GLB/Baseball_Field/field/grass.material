@@ -20,15 +20,15 @@
     "textures": [
         {
             "key": "baseColor",
-            "value": "CompiledAssets\\models\\GLB\\Baseball_Field\\field\\Image_0.ktx2"
+            "value": "compiledassets/models/glb/baseball_field/field/Image_0.ktx2"
         },
         {
             "key": "metallicRoughness",
-            "value": "CompiledAssets\\models\\GLB\\Baseball_Field\\field\\Image_1.ktx2"
+            "value": "compiledassets/models/glb/baseball_field/field/Image_1.ktx2"
         },
         {
             "key": "normal",
-            "value": "CompiledAssets\\models\\GLB\\Baseball_Field\\field\\Image_2.ktx2"
+            "value": "compiledassets/models/glb/baseball_field/field/Image_2.ktx2"
         },
         {
             "key": "emissive",

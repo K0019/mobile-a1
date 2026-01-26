@@ -30,6 +30,7 @@ All rights reserved.
 #include "Engine/Graphics Interface/GraphicsAPI.h"
 #include "Engine/Events/EventsQueue.h"
 #include "Engine/Events/EventsTypeBasic.h"
+#include "Editor/EditorCameraBridge.h"
 
 CustomViewport::CustomViewport(unsigned int width, unsigned int height)
 	: WindowBase{ "Viewport", { 1366, 768 }, gui::FLAG_WINDOW::NO_SCROLL_BAR | gui::FLAG_WINDOW::NO_SCROLL_WITH_MOUSE }
@@ -195,6 +196,12 @@ void CustomViewport::DrawWindow()
 		ST<EventsQueue>::Get()->AddEventForNextFrame(Events::EditorSelectEntity{ pickedEntity });
 	}
 
+
+	// Publish camera matrices for gizmo rendering (use frameData which has the computed projection)
+	FrameData& fd = ST<GraphicsMain>::Get()->INTERNAL_GetFrameData();
+	glm::mat4 projForGizmo = fd.projMatrix;
+	projForGizmo[1][1] *= -1.0f; // Undo Vulkan Y-flip for ImGuizmo (expects OpenGL-style projection)
+	EditorCam_Publish(fd.viewMatrix, projForGizmo, false);
 
 	m_gizmo.Draw(ST<EventsQueue>::Get()->RequestValueFromEventHandlers<ecs::EntityHandle>(Getters::EditorSelectedEntity{}).value_or(nullptr));
 

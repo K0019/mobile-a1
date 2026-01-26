@@ -3035,6 +3035,11 @@ struct hina_cmd
   // Cache line 2+: cold / large data
   hina_texture_view color_views[HINA_MAX_COLOR_ATTACHMENTS];
   hina_texture_view resolve_views[HINA_MAX_COLOR_ATTACHMENTS]; // MSAA resolve targets
+  // Tile pass: track ALL color attachments across all subpasses for end-of-pass tracking updates
+  // Inline array - cmd is already frame-temporary, so no point in separate allocation
+  // Without this, only the final subpass's attachments get their tracking updated (visibility buffer bug)
+  hina_texture_view tile_all_color_views[HINA_MAX_COLOR_ATTACHMENTS * HINA_MAX_TILE_SUBPASSES];
+  uint32_t tile_all_color_count;
   hina_cmd_legacy_bindings* legacy; // Optional legacy slot bindings (demo path only)
   // Cross-queue GPU dependencies (cold, rarely used)
   uint64_t cross_queue_wait_tickets[HINA_MAX_QUEUE_LANES];
@@ -9134,18 +9139,22 @@ static hina_staging_page* hina_page_pool_acquire(hina_context* ctx)
     HINA_LOGW(ctx, "staging page pool at max capacity (%u)", HINA_STAGING_PAGE_POOL_MAX);
     return NULL;
   }
+  pool->state.total_count++;
   uint32_t page_size = pool->page_size ? pool->page_size : HINA_STAGING_PAGE_SIZE;
   mtx_unlock(&pool->lock); // Release lock during allocation
   page = hina_page_pool_create_page(ctx, page_size);
-  if (page)
+  if (!page)
   {
     mtx_lock(&pool->lock);
-    // Link into all_pages for cleanup tracking
-    page->all_next = pool->pages.all_pages;
-    pool->pages.all_pages = page;
-    pool->state.total_count++;
+    pool->state.total_count--;
     mtx_unlock(&pool->lock);
+    return NULL;
   }
+  mtx_lock(&pool->lock);
+  // Link into all_pages for cleanup tracking
+  page->all_next = pool->pages.all_pages;
+  pool->pages.all_pages = page;
+  mtx_unlock(&pool->lock);
   return page;
 }
 
@@ -17565,10 +17574,42 @@ void hina_cmd_end_pass(hina_cmd* cmd)
 // Tile Pass System
 // Two backends: dynamic_local_read (VK 1.4+) or legacy_subpass (VK 1.0-1.3)
 
+// Collect all unique color attachment views from all subpasses for end-of-pass tracking
+// This fixes the bug where only the final subpass's attachments get tracking updates
+static void hina_tile_pass_collect_all_views(hina_cmd* cmd, const hina_tile_pass_desc* desc)
+{
+  const uint32_t subpass_count = hina_count_tile_subpasses_desc(desc);
+  cmd->tile_all_color_count = 0;
+  for (uint32_t sp = 0; sp < subpass_count; sp++)
+  {
+    const hina_tile_subpass* subpass = &desc->subpasses[sp];
+    for (uint32_t c = 0; c < subpass->color_count; c++)
+    {
+      hina_texture_view view = subpass->color[c].image;
+      if (!hina_texture_view_slot_valid(view)) continue;
+      // Check for duplicates (same texture might be used across multiple subpasses)
+      bool is_duplicate = false;
+      for (uint32_t i = 0; i < cmd->tile_all_color_count; i++)
+      {
+        if (cmd->tile_all_color_views[i].id == view.id)
+        {
+          is_duplicate = true;
+          break;
+        }
+      }
+      if (!is_duplicate)
+      {
+        cmd->tile_all_color_views[cmd->tile_all_color_count++] = view;
+      }
+    }
+  }
+}
+
 // Dynamic Rendering Local Read Backend (VK_KHR_dynamic_rendering_local_read)
 static bool hina_begin_tile_pass_dynamic(hina_cmd* cmd, const hina_tile_pass_desc* desc)
 {
   HINA_ZONE_N("tile_pass_begin");
+  hina_tile_pass_collect_all_views(cmd, desc);
   const uint32_t subpass_count = hina_count_tile_subpasses_desc(desc);
   bool uses_swapchain = false;
   const uint32_t last_sp = subpass_count - 1;
@@ -17892,13 +17933,16 @@ static void hina_end_tile_pass_dynamic(hina_cmd* cmd)
 {
   HINA_ZONE_N("tile_pass_end");
   vkCmdEndRendering(cmd->vk_cmd);
-  // Batch swapchain transitions
-  VkImageMemoryBarrier2 barriers[HINA_MAX_COLOR_ATTACHMENTS * 2 + 1]; // +1 for depth
+  // Batch swapchain transitions - size for all tile views + resolve views + depth
+  VkImageMemoryBarrier2 barriers[HINA_MAX_COLOR_ATTACHMENTS * HINA_MAX_TILE_SUBPASSES + HINA_MAX_COLOR_ATTACHMENTS + 1];
   uint32_t barrier_count = 0;
-  for (uint32_t i = 0; i < cmd->color_count; i++)
+  // Update tracking for ALL color attachments from ALL subpasses (not just the final subpass)
+  // This fixes the visibility buffer tracking bug where G-buffer attachments from subpass 0
+  // were not getting their tracking updated because cmd->color_views was overwritten by subpass 1
+  for (uint32_t i = 0; i < cmd->tile_all_color_count; i++)
   {
-    if (!hina_texture_view_slot_valid(cmd->color_views[i])) continue;
-    uint16_t view_idx = hina_id_index(cmd->color_views[i].id);
+    hina_texture_view view = cmd->tile_all_color_views[i];
+    uint16_t view_idx = hina_id_index(view.id);
     hina_texture_view_slot* view_slot = hina_texture_view_slot_get(view_idx);
     hina_texture_hot* hot = HINA_TEX_HOT(view_slot->parent_idx);
     // Swapchain needs PRESENT_SRC_KHR, owned images stay as-is
@@ -17996,16 +18040,20 @@ static void hina_end_tile_pass_dynamic(hina_cmd* cmd)
     };
     vkCmdPipelineBarrier2(cmd->vk_cmd, &dep);
   }
+  cmd->tile_all_color_count = 0;
   cmd->tile.active = false;
   cmd->tile.current_subpass = 0;
   cmd->tile.subpass_count = 0;
   cmd->color_count = 0;
+  cmd->depth_view = (hina_texture_view){HINA_INVALID_HANDLE};
   cmd->is_rendering = false;
+  HINA_ZONE_END();
 }
 
 // Legacy Subpass Backend (VkRenderPass with multiple subpasses)
 HINA_NOINLINE static bool hina_begin_tile_pass_legacy(hina_cmd* cmd, const hina_tile_pass_desc* desc)
 {
+  hina_tile_pass_collect_all_views(cmd, desc);
   hina_context* ctx = cmd->ctx;
   const uint32_t subpass_count = hina_count_tile_subpasses_desc(desc);
   bool uses_swapchain = false;
@@ -18165,11 +18213,13 @@ HINA_NOINLINE static void hina_tile_pass_next_legacy(hina_cmd* cmd, const hina_t
 HINA_NOINLINE static void hina_end_tile_pass_legacy(hina_cmd* cmd)
 {
   vkCmdEndRenderPass(cmd->vk_cmd);
-  // Update tracked layout state for color attachments
-  for (uint32_t i = 0; i < cmd->color_count; i++)
+  // Update tracked layout state for ALL color attachments from ALL subpasses
+  // This fixes the visibility buffer tracking bug where G-buffer attachments from subpass 0
+  // were not getting their tracking updated because cmd->color_views was overwritten by subpass 1
+  for (uint32_t i = 0; i < cmd->tile_all_color_count; i++)
   {
-    if (!hina_texture_view_slot_valid(cmd->color_views[i])) continue;
-    uint16_t view_idx = hina_id_index(cmd->color_views[i].id);
+    hina_texture_view view = cmd->tile_all_color_views[i];
+    uint16_t view_idx = hina_id_index(view.id);
     hina_texture_view_slot* view_slot = hina_texture_view_slot_get(view_idx);
     hina_texture_hot* hot = HINA_TEX_HOT(view_slot->parent_idx);
     if (hot->owns_image)
@@ -18214,10 +18264,12 @@ HINA_NOINLINE static void hina_end_tile_pass_legacy(hina_cmd* cmd)
     hot->state.access = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
     hot->state.stages = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
   }
+  cmd->tile_all_color_count = 0;
   cmd->tile.active = false;
   cmd->tile.current_subpass = 0;
   cmd->tile.subpass_count = 0;
   cmd->color_count = 0;
+  cmd->depth_view = (hina_texture_view){HINA_INVALID_HANDLE};
   cmd->is_rendering = false;
 }
 
@@ -23154,6 +23206,7 @@ typedef struct hsl_string_builder
   char* data;
   size_t length;
   size_t capacity;
+  bool oom;
 } hsl_string_builder;
 
 // Include stack entry for cycle detection
@@ -23196,7 +23249,8 @@ static void hslc_sb_init(hsl_string_builder* sb)
 {
   sb->data = (char*)shader_alloc(HINA_SB_INITIAL_CAPACITY);
   sb->length = 0;
-  sb->capacity = HINA_SB_INITIAL_CAPACITY;
+  sb->capacity = sb->data ? HINA_SB_INITIAL_CAPACITY : 0;
+  sb->oom = sb->data == NULL;
   if (sb->data) sb->data[0] = '\0';
 }
 
@@ -23209,37 +23263,62 @@ static void hslc_sb_free(hsl_string_builder* sb)
   }
   sb->length = 0;
   sb->capacity = 0;
+  sb->oom = false;
 }
 
-static void hslc_sb_ensure_capacity(hsl_string_builder* sb, size_t additional)
+static bool hslc_sb_ensure_capacity(hsl_string_builder* sb, size_t additional)
 {
+  if (!sb || sb->oom) return false;
+  if (additional > SIZE_MAX - sb->length - 1)
+  {
+    sb->oom = true;
+    return false;
+  }
   size_t required = sb->length + additional + 1;
-  if (required <= sb->capacity) return;
-  size_t new_capacity = sb->capacity * 2;
-  while (new_capacity < required) new_capacity *= 2;
-  char* new_data = shader_alloc(new_capacity);
-  if (new_data && sb->data)
+  if (required <= sb->capacity && sb->data) return true;
+  size_t new_capacity = sb->capacity ? sb->capacity * 2 : HINA_SB_INITIAL_CAPACITY;
+  while (new_capacity < required)
+  {
+    if (new_capacity > SIZE_MAX / 2)
+    {
+      sb->oom = true;
+      return false;
+    }
+    new_capacity *= 2;
+  }
+  char* new_data = (char*)shader_alloc(new_capacity);
+  if (!new_data)
+  {
+    sb->oom = true;
+    return false;
+  }
+  if (sb->data)
   {
     memcpy(new_data, sb->data, sb->length + 1);
     shader_free(sb->data);
   }
+  else
+  {
+    new_data[0] = '\0';
+  }
   sb->data = new_data;
   sb->capacity = new_capacity;
+  return true;
 }
 
 static void hslc_sb_append(hsl_string_builder* sb, const char* str)
 {
-  if (!str || !sb->data) return;
+  if (!str || !sb || sb->oom) return;
   size_t len = strlen(str);
-  hslc_sb_ensure_capacity(sb, len);
+  if (!hslc_sb_ensure_capacity(sb, len)) return;
   memcpy(sb->data + sb->length, str, len + 1);
   sb->length += len;
 }
 
 static void hslc_sb_append_len(hsl_string_builder* sb, const char* str, size_t len)
 {
-  if (!str || !sb->data || len == 0) return;
-  hslc_sb_ensure_capacity(sb, len);
+  if (!str || !sb || sb->oom || len == 0) return;
+  if (!hslc_sb_ensure_capacity(sb, len)) return;
   memcpy(sb->data + sb->length, str, len);
   sb->length += len;
   sb->data[sb->length] = '\0';
@@ -23247,13 +23326,13 @@ static void hslc_sb_append_len(hsl_string_builder* sb, const char* str, size_t l
 
 static void hslc_sb_appendf(hsl_string_builder* sb, const char* fmt, ...)
 {
-  if (!fmt || !sb->data) return;
+  if (!fmt || !sb || sb->oom) return;
   va_list args;
   va_start(args, fmt);
   int needed = vsnprintf(NULL, 0, fmt, args);
   va_end(args);
   if (needed < 0) return;
-  hslc_sb_ensure_capacity(sb, (size_t)needed);
+  if (!hslc_sb_ensure_capacity(sb, (size_t)needed)) return;
   va_start(args, fmt);
   vsnprintf(sb->data + sb->length, (size_t)needed + 1, fmt, args);
   va_end(args);
@@ -23262,6 +23341,17 @@ static void hslc_sb_appendf(hsl_string_builder* sb, const char* fmt, ...)
 
 static char* hslc_sb_to_string(hsl_string_builder* sb)
 {
+  if (!sb || sb->oom)
+  {
+    if (sb && sb->data) shader_free(sb->data);
+    if (sb)
+    {
+      sb->data = NULL;
+      sb->length = 0;
+      sb->capacity = 0;
+    }
+    return NULL;
+  }
   char* result = sb->data;
   sb->data = NULL;
   sb->length = 0;
@@ -23313,7 +23403,7 @@ static void hslc_include_ctx_init(hsl_include_context* ctx, hslc_load_include_fn
 {
   ctx->stack = (hsl_include_entry*)shader_alloc(sizeof(hsl_include_entry) * HINA_MAX_INCLUDE_DEPTH);
   ctx->stack_depth = 0;
-  ctx->stack_capacity = HINA_MAX_INCLUDE_DEPTH;
+  ctx->stack_capacity = ctx->stack ? HINA_MAX_INCLUDE_DEPTH : 0;
   ctx->load_fn = load_fn;
   ctx->user_data = user_data;
   ctx->error_msg = NULL;
@@ -26145,10 +26235,15 @@ static char* hslc_generate_glsl(hsl_module_ir* ir, hsl_stage* stage, const char*
   if (stage_body)
   {
     char* transformed = hslc_transform_reserved_keywords(stage_body);
+    if (!transformed)
+    {
+      hslc_sb_free(&sb);
+      return NULL;
+    }
     hslc_sb_append(&sb, "// --- User code ---\n");
-    hslc_sb_append(&sb, transformed ? transformed : stage_body);
+    hslc_sb_append(&sb, transformed);
     hslc_sb_append(&sb, "\n\n");
-    free(transformed);
+    shader_free(transformed);
   }
   // Generate main() that calls entry function
   hslc_sb_append(&sb, "void main() {\n");
@@ -26520,6 +26615,11 @@ static char* hslc_parse_include_directive(const char* line)
 static bool hslc_expand_includes_impl(hsl_include_context* ctx, hsl_string_builder* sb, const char* filename,
                                       const char* source)
 {
+  if (!ctx->stack)
+  {
+    hslc_set_error(ctx, "Out of memory (include stack)");
+    return false;
+  }
   // Check for circular includes
   if (hslc_is_in_include_stack(ctx, filename))
   {
@@ -26544,6 +26644,12 @@ static bool hslc_expand_includes_impl(hsl_include_context* ctx, hsl_string_build
   bool at_start = true;
   while (*line_start)
   {
+    if (sb->oom)
+    {
+      hslc_set_error(ctx, "Out of memory");
+      ctx->stack_depth--;
+      return false;
+    }
     // Find end of line
     const char* line_end = line_start;
     while (*line_end && *line_end != '\n' && *line_end != '\r') line_end++;
@@ -26625,12 +26731,20 @@ static char* hslc_expand_includes(hsl_include_context* ctx, const char* filename
 {
   hsl_string_builder sb;
   hslc_sb_init(&sb);
+  if (sb.oom)
+  {
+    hslc_set_error(ctx, "Out of memory");
+    hslc_sb_free(&sb);
+    return NULL;
+  }
   if (!hslc_expand_includes_impl(ctx, &sb, filename, source))
   {
     hslc_sb_free(&sb);
     return NULL;
   }
-  return hslc_sb_to_string(&sb);
+  char* result = hslc_sb_to_string(&sb);
+  if (!result && !ctx->error_msg) hslc_set_error(ctx, "Out of memory");
+  return result;
 }
 
 // GLSL Preamble
