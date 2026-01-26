@@ -24,7 +24,18 @@ static constexpr float ANIM_TRANSITION_DURATION_HURT = 0.05f;
 static constexpr float ANIM_TRANSITION_DURATION_DODGE = 0.05f;
 static constexpr float ANIM_TRANSITION_DURATION_THROW = 0.1f;
 
+#define X(type, name) name,
+static const char* const ANIM_INPUT_KEYS[]{
+	ANIM_INPUT_TYPE_ENUM
+};
+
 namespace sm {
+
+	constexpr const char* AnimInputTypeToKey(ANIM_INPUT_TYPE type)
+	{
+		return ANIM_INPUT_KEYS[+type];
+	}
+
 	AnimStateMachine::AnimStateMachine() : StateMachine(new IdleState), entity(nullptr) {
 	}
 
@@ -115,8 +126,9 @@ namespace sm {
 		TransitionChracterIntoAnimation(CastSM(sm), 1, ANIM_TRANSITION_DURATION_WALK);
 	}
 
-	AttackActivity::AttackActivity(size_t moveIndex)
+	AttackActivity::AttackActivity(size_t moveIndex, ANIM_INPUT_TYPE attackType)
 		: moveIndex{ moveIndex }
+		, attackType{ attackType }
 	{
 	}
 
@@ -124,7 +136,7 @@ namespace sm {
 	{
 		auto animSM{ CastSM(sm) };
 		TransitionChracterIntoAnimation(animSM, moveIndex, ANIM_TRANSITION_DURATION_ATTACK, false);
-		animSM->blackboard["inputLightAttack"] = false; // Consume input
+		animSM->blackboard[AnimInputTypeToKey(attackType)] = false; // Consume input
 		animSM->blackboard["attacking"] = true; // Mark that we are currently attacking
 
 		// Use this to track whether we've already attacked while we're in the AttackActivity
@@ -298,7 +310,7 @@ namespace sm {
 	}
 
 	AttackState::AttackState() : sm::State(
-		{ new AttackActivity(2) },
+		{ new AttackActivity{ 2, ANIM_INPUT_TYPE::LIGHT_ATTACK } },
 		{ new ToHurtTransition{}, new NoOpBeforeAttackDamageTransition{}, new ToAttackTransition<AttackState>{ ANIM_INPUT_TYPE::LIGHT_ATTACK }, new NoOpWhileAnimatingTransition{}, new ToIdleTransition(), new ToWalkTransition() }
 	) {
 	}
@@ -328,28 +340,28 @@ namespace sm {
 	}
 
 	LightAttackPlayer1::LightAttackPlayer1() : sm::State{
-		{ new AttackActivity{ 2 } },
+		{ new AttackActivity{ 2, ANIM_INPUT_TYPE::LIGHT_ATTACK } },
 		{ new ToHurtTransition{}, new ToParryTransition{}, new ToDodgeTransition{}, new NoOpBeforeAttackDamageTransition{}, // Allow getting hit or dodging out of the attack animation at any point in time
 		  new ToAttackTransition<LightAttackPlayer2>{ ANIM_INPUT_TYPE::LIGHT_ATTACK }, new ToAttackTransition<HeavyAttackPlayer1>{ ANIM_INPUT_TYPE::HEAVY_ATTACK }, new NoOpWhileAnimatingTransition{}, // Allow transitioning to the next attack combo at any point until the end of the current attack animation
 		  new ToIdleTransition{}, new ToWalkTransition{} } // No more attack inputs, return to idle/walk
 	} {
 	}
 	LightAttackPlayer2::LightAttackPlayer2() : sm::State{
-		{ new AttackActivity{ 3 } },
+		{ new AttackActivity{ 3, ANIM_INPUT_TYPE::LIGHT_ATTACK } },
 		{ new ToHurtTransition{}, new ToParryTransition{}, new ToDodgeTransition{}, new NoOpBeforeAttackDamageTransition{},
 		  new ToAttackTransition<LightAttackPlayer3>{ ANIM_INPUT_TYPE::LIGHT_ATTACK }, new ToAttackTransition<HeavyAttackPlayer3>{ ANIM_INPUT_TYPE::HEAVY_ATTACK }, new NoOpWhileAnimatingTransition{},
 		  new ToIdleTransition{}, new ToWalkTransition{} }
 	} {
 	}
 	LightAttackPlayer3::LightAttackPlayer3() : sm::State{
-		{ new AttackActivity{ 4 } },
+		{ new AttackActivity{ 4, ANIM_INPUT_TYPE::LIGHT_ATTACK } },
 		{ new ToHurtTransition{}, new ToParryTransition{}, new ToDodgeTransition{}, new NoOpBeforeAttackDamageTransition{},
 		  new ToAttackTransition<LightAttackPlayer4>{ ANIM_INPUT_TYPE::LIGHT_ATTACK }, new ToAttackTransition<HeavyAttackPlayer1>{ ANIM_INPUT_TYPE::HEAVY_ATTACK }, new NoOpWhileAnimatingTransition{},
 		  new ToIdleTransition{}, new ToWalkTransition{} }
 	} {
 	}
 	LightAttackPlayer4::LightAttackPlayer4() : sm::State{
-		{ new AttackActivity{ 5 } },
+		{ new AttackActivity{ 5, ANIM_INPUT_TYPE::LIGHT_ATTACK } },
 		{ new ToHurtTransition{}, new ToParryTransition{}, new ToDodgeTransition{}, new NoOpBeforeAttackDamageTransition{},
 		  new ToAttackTransition<LightAttackPlayer1>{ ANIM_INPUT_TYPE::LIGHT_ATTACK }, new ToAttackTransition<HeavyAttackPlayer1>{ ANIM_INPUT_TYPE::HEAVY_ATTACK }, new NoOpWhileAnimatingTransition{},
 		  new ToIdleTransition{}, new ToWalkTransition{} }
@@ -357,24 +369,24 @@ namespace sm {
 	}
 
 	HeavyAttackPlayer1::HeavyAttackPlayer1() : sm::State{
-		{ new AttackActivity{ 6 } },
+		{ new AttackActivity{ 6, ANIM_INPUT_TYPE::HEAVY_ATTACK } },
 		{ new ToHurtTransition{}, new NoOpBeforeAttackDamageTransition{}, // No dodging when doing heavy attacks until the attack hits
 		  new ToAttackTransition<LightAttackPlayer1>{ ANIM_INPUT_TYPE::LIGHT_ATTACK }, new ToAttackTransition<HeavyAttackPlayer2>{ ANIM_INPUT_TYPE::HEAVY_ATTACK }, new ToParryTransition{}, new ToDodgeTransition{}, new NoOpWhileAnimatingTransition{}, // Only allow dodging after hitting the attack
 		  new ToIdleTransition{}, new ToWalkTransition{} } // No more attack inputs, return to idle/walk
 	} {
 	}
 	HeavyAttackPlayer2::HeavyAttackPlayer2() : sm::State{
-		{ new AttackActivity{ 7 } },
-		{ new ToHurtTransition{}, new NoOpBeforeAttackDamageTransition{}, // No dodging when doing heavy attacks until the attack hits
+		{ new AttackActivity{ 7, ANIM_INPUT_TYPE::HEAVY_ATTACK } },
+		{ new ToHurtTransition{}, new NoOpBeforeAttackDamageTransition{},
 		  new ToAttackTransition<LightAttackPlayer1>{ ANIM_INPUT_TYPE::LIGHT_ATTACK }, new ToAttackTransition<HeavyAttackPlayer3>{ ANIM_INPUT_TYPE::HEAVY_ATTACK }, new ToParryTransition{}, new ToDodgeTransition{}, new NoOpWhileAnimatingTransition{}, // Only allow dodging after hitting the attack
-		  new ToIdleTransition{}, new ToWalkTransition{} } // No more attack inputs, return to idle/walk
+		  new ToIdleTransition{}, new ToWalkTransition{} }
 	} {
 	}
 	HeavyAttackPlayer3::HeavyAttackPlayer3() : sm::State{
-		{ new AttackActivity{ 8 } },
-		{ new ToHurtTransition{}, new NoOpBeforeAttackDamageTransition{}, // No dodging when doing heavy attacks until the attack hits
+		{ new AttackActivity{ 8, ANIM_INPUT_TYPE::HEAVY_ATTACK } },
+		{ new ToHurtTransition{}, new NoOpBeforeAttackDamageTransition{},
 		  new ToAttackTransition<LightAttackPlayer1>{ ANIM_INPUT_TYPE::LIGHT_ATTACK }, new ToAttackTransition<HeavyAttackPlayer1>{ ANIM_INPUT_TYPE::HEAVY_ATTACK }, new ToParryTransition{}, new ToDodgeTransition{}, new NoOpWhileAnimatingTransition{}, // Only allow dodging after hitting the attack
-		  new ToIdleTransition{}, new ToWalkTransition{} } // No more attack inputs, return to idle/walk
+		  new ToIdleTransition{}, new ToWalkTransition{} }
 	} {
 	}
 }
