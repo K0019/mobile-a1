@@ -309,7 +309,7 @@ namespace sm {
 		void OnEnter(sm::StateMachine* sm) override;
 	};
 
-	class DecayDelusionActivity : public sm::AnimActivityBase<DecayDelusionActivity>
+	class DecayDelusionIfEnhancedActivity : public sm::AnimActivityBase<DecayDelusionIfEnhancedActivity>
 	{
 	public:
 		void OnUpdate(sm::StateMachine* sm) override;
@@ -369,6 +369,7 @@ namespace sm {
 	};
 
 	// ToSkillAttackTransition defined below, because it needs the states to be defined first
+	// Side effect: Sets "enhanced" to true if transition is taken
 	class ToSkillAttackTransition;
 
 	class ToHurtTransition : public sm::AnimTransitionBase<ToHurtTransition>
@@ -399,6 +400,7 @@ namespace sm {
 		bool Decide(sm::StateMachine* sm) override;
 	};
 
+	// Side effect: Sets "enhanced" to false if transition is taken
 	class OutOfDelusionTransition : public sm::AnimTransitionBase<OutOfDelusionTransition>
 	{
 	public:
@@ -410,36 +412,15 @@ namespace sm {
 	// STATE DECLARATIONS
 	//======================================================================
 
-	class IdleState : public sm::State
-	{
-	public:
-		IdleState();
-	};
+	class IdleState : public sm::State { public: IdleState(); };
 
-	class WalkState : public sm::State
-	{
-	public:
-		WalkState();
-	};
+	class WalkState : public sm::State { public: WalkState(); };
 
+	class AttackState : public sm::State { public: AttackState(); };
 
-	class AttackState : public sm::State
-	{
-		public:
-		AttackState();
-	};
+	class HurtState : public sm::State { public: HurtState(); };
 
-	class HurtState : public sm::State
-	{
-	public:
-		HurtState();
-	};
-
-	class DodgeState : public sm::State
-	{
-	public:
-		DodgeState();
-	};
+	class DodgeState : public sm::State { public: DodgeState(); };
 
 	class ParryState : public sm::State
 	{
@@ -468,7 +449,8 @@ namespace sm {
 }
 
 namespace sm {
-
+	
+	// Side effect: Sets "enhanced" to true if transition is taken
 	class ToSkillAttackTransition : ToAttackTransition<SkillAttackPlayer1>
 	{
 	public:

@@ -40,7 +40,7 @@ namespace sm {
 	AnimStateMachine::AnimStateMachine() : StateMachine(new IdleState), entity(nullptr) {
 	}
 
-	AnimStateMachine::AnimStateMachine(State* startingState) : StateMachine(startingState), entity(nullptr){
+	AnimStateMachine::AnimStateMachine(State* startingState) : StateMachine(startingState), entity(nullptr) {
 
 	}
 
@@ -64,7 +64,6 @@ namespace sm {
 
 	inline Vec3 GetEntityVelo(ecs::EntityHandle entity)
 	{
-		
 		Vec3 entityVelo = entity->GetComp<physics::JoltBodyComp>()->GetLinearVelocity();
 		// TODO: Implement your speed calculation here
 		// Example: 
@@ -223,10 +222,12 @@ namespace sm {
 		animSM->blackboard["inputThrow"] = false;
 	}
 
-	void DecayDelusionActivity::OnUpdate(sm::StateMachine* sm)
+	void DecayDelusionIfEnhancedActivity::OnUpdate(sm::StateMachine* sm)
 	{
-		if (auto delusionComp{ CastSM(sm)->GetEntity()->GetComp<DelusionComponent>() })
-			delusionComp->LoseDelusion(GameTime::Dt());
+		auto animSM{ CastSM(sm) };
+		if (animSM->GetBlackboardVal<bool>("enhanced"))
+			if (auto delusionComp{ animSM->GetEntity()->GetComp<DelusionComponent>() })
+				delusionComp->LoseDelusion(GameTime::Dt());
 	}
 
 	//======================================================================
@@ -271,28 +272,28 @@ namespace sm {
 		return CastSM(sm)->GetBlackboardVal<Vec2>("inputMovement").LengthSqr() >= 0.01f;
 	}
 
-	ToHurtTransition::ToHurtTransition() 
+	ToHurtTransition::ToHurtTransition()
 		: sm::AnimTransitionBase<ToHurtTransition>(SET_NEXT_STATE(HurtState)) {}
 
 	bool ToHurtTransition::Decide(sm::StateMachine* sm) {
 		return CastSM(sm)->GetBlackboardVal<bool>("inputHurt");
 	}
 
-	ToDodgeTransition::ToDodgeTransition() 
+	ToDodgeTransition::ToDodgeTransition()
 		: sm::AnimTransitionBase<ToDodgeTransition>(SET_NEXT_STATE(DodgeState)) {}
 
 	bool ToDodgeTransition::Decide(sm::StateMachine* sm) {
 		return CastSM(sm)->GetBlackboardVal<bool>("inputDodge");
 	}
 
-	ToParryTransition::ToParryTransition() 
+	ToParryTransition::ToParryTransition()
 		: sm::AnimTransitionBase<ToParryTransition>(SET_NEXT_STATE(ParryState)) {}
 
 	bool ToParryTransition::Decide(sm::StateMachine* sm) {
 		return CastSM(sm)->GetBlackboardVal<bool>("inputParry");
 	}
 
-	ToThrowTransition::ToThrowTransition() 
+	ToThrowTransition::ToThrowTransition()
 		: sm::AnimTransitionBase<ToThrowTransition>(SET_NEXT_STATE(ThrowState)) {}
 
 	bool ToThrowTransition::Decide(sm::StateMachine* sm) {
@@ -303,7 +304,11 @@ namespace sm {
 	{
 		if (ToAttackTransition::Decide(sm))
 			if (auto delusionComp{ CastSM(sm)->GetEntity()->GetComp<DelusionComponent>() })
-				return delusionComp->GetDelusionFraction() >= 0.2f; // Random number for now, only allow activating skill if over 20% delusion
+				if (delusionComp->GetDelusionFraction() >= 0.2f) // Random number for now, only allow activating skill if over 20% delusion
+				{
+					CastSM(sm)->blackboard["enhanced"] = true;
+					return true;
+				}
 		return false;
 	}
 
@@ -314,8 +319,17 @@ namespace sm {
 
 	bool OutOfDelusionTransition::Decide(sm::StateMachine* sm)
 	{
-		if (auto delusionComp{ CastSM(sm)->GetEntity()->GetComp<DelusionComponent>() })
-			return delusionComp->GetCurrDelusion() <= 0.0f;
+		auto animSM{ CastSM(sm) };
+		if (auto delusionComp{ animSM->GetEntity()->GetComp<DelusionComponent>() })
+		{
+			if (delusionComp->GetCurrDelusion() <= 0.0f)
+			{
+				animSM->blackboard["enhanced"] = false;
+				return true;
+			}
+			else
+				return false;
+		}
 	}
 
 	//======================================================================
@@ -416,10 +430,10 @@ namespace sm {
 	}
 
 	SkillAttackPlayer1::SkillAttackPlayer1() : sm::State{
-		{ new AttackActivity{ 9, ANIM_INPUT_TYPE::SKILL_ATTACK } },
+		{ new AttackActivity{ 9, ANIM_INPUT_TYPE::SKILL_ATTACK }, new DecayDelusionIfEnhancedActivity{} },
 		{ new NoOpBeforeAttackDamageTransition{},
 		  new NoOpWhileAnimatingTransition{},
-		  }
+		  new OutOfDelusionTransition{} }
 	} {
 	}
 }
