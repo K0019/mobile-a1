@@ -81,7 +81,8 @@ private:
     friend class AsyncProcessRunner;
 
     std::future<AsyncProcessResult> m_future;
-    std::atomic<bool> m_cancelRequested{ false };
+    // Use shared_ptr so the cancel flag can be safely captured by value in async lambdas
+    std::shared_ptr<std::atomic<bool>> m_cancelRequested = std::make_shared<std::atomic<bool>>(false);
     std::atomic<bool> m_running{ false };
 
 #ifdef _WIN32

@@ -2,8 +2,11 @@
 #include "renderer/gfx_renderer.h"
 #include "logging/log.h"
 #include "Engine/Resources/ResourceManager.h"
+#include "Utilities/Singleton.h"
+#include "FilepathConstants.h"
 #include <fstream>
 #include <sstream>
+#include <algorithm>
 
 namespace editor
 {
@@ -27,6 +30,13 @@ namespace editor
     {
         if (!m_initialized) return;
 
+        // Cancel any running generation
+        if (m_currentGeneration)
+        {
+            m_currentGeneration->Cancel();
+            m_currentGeneration = nullptr;
+        }
+
         // Destroy all loaded textures
         if (m_renderer)
         {
@@ -42,6 +52,8 @@ namespace editor
 
         m_cache.clear();
         m_pendingSet.clear();
+        m_missingThumbnails.clear();
+        while (!m_generationQueue.empty()) m_generationQueue.pop();
         m_initialized = false;
 
         LOG_INFO("[ThumbnailCache] Shutdown");
@@ -49,7 +61,91 @@ namespace editor
 
     void ThumbnailCache::Update()
     {
-        // Reserved for future async generation
+        if (!m_autoGenerateEnabled || !m_initialized) return;
+
+        // Poll for async process callbacks
+        util::AsyncProcessRunner::PollCallbacks();
+
+        // Check if current generation completed
+        if (m_currentGeneration)
+        {
+            if (m_currentGeneration->IsReady())
+            {
+                auto result = m_currentGeneration->Wait();
+
+                LOG_INFO("[ThumbnailCache] Process completed - exitCode: {}, success: {}, cancelled: {}",
+                         result.exitCode, result.success, result.cancelled);
+
+                if (!result.output.empty())
+                {
+                    LOG_INFO("[ThumbnailCache] Process output:\n{}", result.output);
+                }
+
+                if (result.success)
+                {
+                    // Clear the failed cache entry so we can retry loading
+                    auto it = m_cache.find(m_currentGenerationHash);
+                    if (it != m_cache.end())
+                    {
+                        it->second.loadAttempted = false;
+                    }
+
+                    // Reload the thumbnail
+                    if (LoadThumbnailFromMeta(m_currentGenerationHash))
+                    {
+                        LOG_INFO("[ThumbnailCache] Generated and loaded thumbnail for hash {}", m_currentGenerationHash);
+                    }
+                    else
+                    {
+                        LOG_WARNING("[ThumbnailCache] Process succeeded but failed to load thumbnail for hash {}", m_currentGenerationHash);
+                    }
+                }
+                else
+                {
+                    LOG_WARNING("[ThumbnailCache] Thumbnail generation failed for hash {} (exitCode: {})",
+                                m_currentGenerationHash, result.exitCode);
+                }
+
+                m_pendingSet.erase(m_currentGenerationHash);
+                m_currentGeneration = nullptr;
+                m_currentGenerationHash = 0;
+            }
+        }
+
+        // Start next generation if idle and queue not empty
+        if (!m_currentGeneration && !m_generationQueue.empty())
+        {
+            size_t hash = m_generationQueue.front();
+            m_generationQueue.pop();
+
+            auto it = m_missingThumbnails.find(hash);
+            if (it != m_missingThumbnails.end())
+            {
+                StartThumbnailGeneration(it->second);
+                m_missingThumbnails.erase(it);
+            }
+        }
+
+        // Queue new missing thumbnails (rate limited to avoid overwhelming the system)
+        const size_t MAX_QUEUED = 10;
+        if (m_generationQueue.size() < MAX_QUEUED && !m_missingThumbnails.empty())
+        {
+            for (auto it = m_missingThumbnails.begin();
+                 it != m_missingThumbnails.end() && m_generationQueue.size() < MAX_QUEUED; )
+            {
+                size_t hash = it->first;
+
+                // Check if already queued or pending
+                if (m_pendingSet.count(hash) == 0)
+                {
+                    m_generationQueue.push(hash);
+                    LOG_INFO("[ThumbnailCache] Queued thumbnail generation for: {} (hash: {})",
+                             it->second.assetPath.filename().string(), hash);
+                }
+
+                ++it;
+            }
+        }
     }
 
     uint64_t ThumbnailCache::GetThumbnail(size_t assetHash, AssetType type, const std::string& assetName)
@@ -106,10 +202,18 @@ namespace editor
         }
 
         m_pendingSet.erase(assetHash);
+        m_missingThumbnails.erase(assetHash);
     }
 
     void ThumbnailCache::ClearAll()
     {
+        // Cancel any running generation
+        if (m_currentGeneration)
+        {
+            m_currentGeneration->Cancel();
+            m_currentGeneration = nullptr;
+        }
+
         if (m_renderer)
         {
             auto& matSystem = m_renderer->getMaterialSystem();
@@ -124,6 +228,9 @@ namespace editor
 
         m_cache.clear();
         m_pendingSet.clear();
+        m_missingThumbnails.clear();
+        while (!m_generationQueue.empty()) m_generationQueue.pop();
+        m_currentGenerationHash = 0;
     }
 
     bool ThumbnailCache::LoadThumbnailFromMeta(size_t hash)
@@ -156,6 +263,11 @@ namespace editor
         if (thumbnailFilename.empty())
         {
             LOG_DEBUG("[ThumbnailCache] No thumbnailPath in meta: {}", metaPath.string());
+            // Track for background generation if auto-generate is enabled
+            if (m_autoGenerateEnabled)
+            {
+                TrackMissingThumbnail(hash, assetPath, metaPath);
+            }
             return false;
         }
 
@@ -209,8 +321,8 @@ namespace editor
             return {};
         }
 
-        // The path is relative to compiled assets, prepend the directory
-        return m_compiledAssetsDir / fileEntry->path;
+        // The path is relative to Assets/ folder, prepend "Assets/"
+        return std::filesystem::path("Assets") / fileEntry->path;
     }
 
     std::string ThumbnailCache::ReadThumbnailPathFromMeta(const std::filesystem::path& metaPath) const
@@ -241,5 +353,93 @@ namespace editor
         }
 
         return {};
+    }
+
+    ThumbnailCache::AssetType ThumbnailCache::DetermineAssetType(const std::filesystem::path& path) const
+    {
+        std::string ext = path.extension().string();
+        std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
+
+        if (ext == ".ktx2" || ext == ".ktx" || ext == ".png" || ext == ".jpg" || ext == ".jpeg")
+        {
+            return AssetType::Texture;
+        }
+        else if (ext == ".material")
+        {
+            return AssetType::Material;
+        }
+        else if (ext == ".mesh")
+        {
+            return AssetType::Mesh;
+        }
+
+        return AssetType::Texture;  // Default to texture
+    }
+
+    void ThumbnailCache::TrackMissingThumbnail(size_t hash, const std::filesystem::path& assetPath,
+                                               const std::filesystem::path& metaPath)
+    {
+        // Don't track if already tracked or pending
+        if (m_missingThumbnails.count(hash) > 0 || m_pendingSet.count(hash) > 0)
+        {
+            return;
+        }
+
+        MissingThumbnailInfo info;
+        info.assetHash = hash;
+        info.assetPath = assetPath;
+        info.metaPath = metaPath;
+        info.type = DetermineAssetType(assetPath);
+
+        m_missingThumbnails[hash] = info;
+        LOG_INFO("[ThumbnailCache] Tracked missing thumbnail for: {} (hash: {}, total missing: {})",
+                 assetPath.filename().string(), hash, m_missingThumbnails.size());
+    }
+
+    void ThumbnailCache::StartThumbnailGeneration(const MissingThumbnailInfo& info)
+    {
+        // Get the asset compiler path
+        std::filesystem::path compilerPath = Filepaths::GetAssetCompilerPath();
+
+        // Resolve to absolute path for clearer logging
+        std::error_code ec;
+        std::filesystem::path absoluteCompilerPath = std::filesystem::absolute(compilerPath, ec);
+
+        LOG_INFO("[ThumbnailCache] Looking for AssetCompiler at: {}", absoluteCompilerPath.string());
+
+        if (!std::filesystem::exists(compilerPath))
+        {
+            LOG_ERROR("[ThumbnailCache] AssetCompiler.exe not found at: {}", absoluteCompilerPath.string());
+            LOG_ERROR("[ThumbnailCache] Current working directory: {}", std::filesystem::current_path().string());
+            return;
+        }
+
+        // Resolve input path to absolute as well
+        std::filesystem::path absoluteInputPath = std::filesystem::absolute(info.assetPath, ec);
+        std::filesystem::path absoluteOutputDir = absoluteInputPath.parent_path();
+
+        // Build command line for thumbnail-only mode
+        std::string cmdLine = "\"" + absoluteCompilerPath.string() + "\"";
+        cmdLine += " --thumbnail-only";
+        cmdLine += " --input \"" + absoluteInputPath.string() + "\"";
+        cmdLine += " --output \"" + absoluteOutputDir.string() + "\"";
+
+        LOG_INFO("[ThumbnailCache] Generating thumbnail for: {}", info.assetPath.filename().string());
+        LOG_INFO("[ThumbnailCache] Command: {}", cmdLine);
+
+        // Mark as pending
+        m_pendingSet.insert(info.assetHash);
+        m_currentGenerationHash = info.assetHash;
+
+        // Start async process
+        m_currentGeneration = std::make_shared<util::AsyncProcessHandle>(
+            util::AsyncProcessRunner::Start(
+                cmdLine,
+                nullptr,  // No progress callback needed for thumbnail generation
+                nullptr   // Completion handled in Update()
+            )
+        );
+
+        LOG_INFO("[ThumbnailCache] Async process started for hash {}", info.assetHash);
     }
 }

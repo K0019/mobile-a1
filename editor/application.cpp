@@ -135,6 +135,9 @@ void Application::Update(Context& context, RenderFrameData& frame)
     const int height = static_cast<int>(frame.surface.presentHeight);
     updateViews(context, frame, width, height);
 
+    // Update thumbnail cache (processes background thumbnail generation)
+    editor::ThumbnailCache::Get().Update();
+
     // Execute the MagicEngine frame (which handles ECS, ImGui, etc.)
     magicEngine.ExecuteFrame(frame);
 }

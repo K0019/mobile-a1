@@ -19,6 +19,7 @@ All rights reserved.
 */
 /******************************************************************************/
 #include "TextureCompiler.h"
+#include "ThumbnailRenderer.h"
 #include "resource/asset_metadata.h"  // For writing .meta sidecar files
 
 #define STB_IMAGE_IMPLEMENTATION
@@ -26,6 +27,9 @@ All rights reserved.
 
 #define STB_IMAGE_RESIZE_IMPLEMENTATION
 #include <stb_image_resize2.h>
+
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#include <stb_image_write.h>
 
 // ARM's official ASTC encoder (much more reliable than Compressonator's ASTC)
 #include <astcenc.h>
@@ -603,62 +607,182 @@ namespace compiler
 
     bool TextureCompiler::SaveThumbnailKTX2(const std::vector<uint8_t>& rgbaPixels, uint32_t size, const std::filesystem::path& outputPath)
     {
+        // Save as PNG instead of KTX2 - the editor can load PNG via stb_image
         if (rgbaPixels.size() < size * size * 4) {
-            std::cerr << "[TextureCompiler] SaveThumbnailKTX2: Invalid pixel data size\n";
+            std::cerr << "[TextureCompiler] SaveThumbnailPNG: Invalid pixel data size\n";
             return false;
         }
 
-        // Create KTX2 texture info
-        ktxTextureCreateInfo createInfo = {};
-        createInfo.glInternalformat = 0;  // Not used for Vulkan
-        createInfo.vkFormat = VK_FORMAT_R8G8B8A8_UNORM;
-        createInfo.baseWidth = size;
-        createInfo.baseHeight = size;
-        createInfo.baseDepth = 1;
-        createInfo.numDimensions = 2;
-        createInfo.numLevels = 1;
-        createInfo.numLayers = 1;
-        createInfo.numFaces = 1;
-        createInfo.isArray = false;
-        createInfo.generateMipmaps = false;
-
-        ktxTexture2* kTexture = nullptr;
-        KTX_error_code result = ktxTexture2_Create(&createInfo, KTX_TEXTURE_CREATE_ALLOC_STORAGE, &kTexture);
-        if (result != KTX_SUCCESS) {
-            std::cerr << "[TextureCompiler] SaveThumbnailKTX2: Failed to create KTX texture: " << result << "\n";
-            return false;
+        // Change extension from .ktx2 to .png if needed
+        std::filesystem::path pngPath = outputPath;
+        if (pngPath.extension() == ".ktx2") {
+            pngPath.replace_extension(".png");
         }
 
-        // Copy pixel data
-        memcpy(kTexture->pData, rgbaPixels.data(), size * size * 4);
-
-        // Compress with BasisU for smaller file size (optional - can use uncompressed for simplicity)
-        ktx_uint32_t numThreads = std::thread::hardware_concurrency();
-        ktxBasisParams basisParams = {};
-        basisParams.structSize = sizeof(ktxBasisParams);
-        basisParams.threadCount = numThreads;
-        basisParams.uastc = KTX_TRUE;  // Use UASTC for quality
-        basisParams.qualityLevel = 128; // Medium quality for thumbnails
-
-        result = ktxTexture2_CompressBasisEx(kTexture, &basisParams);
-        if (result != KTX_SUCCESS) {
-            // If compression fails, save uncompressed
-            std::cerr << "[TextureCompiler] SaveThumbnailKTX2: BasisU compression failed, saving uncompressed\n";
-        }
-
-        // Write to file
-        result = ktxTexture_WriteToNamedFile(
-            reinterpret_cast<ktxTexture*>(kTexture),
-            outputPath.string().c_str()
+        int result = stbi_write_png(
+            pngPath.string().c_str(),
+            static_cast<int>(size),
+            static_cast<int>(size),
+            4,  // RGBA
+            rgbaPixels.data(),
+            static_cast<int>(size * 4)  // stride
         );
 
-        ktxTexture_Destroy(reinterpret_cast<ktxTexture*>(kTexture));
-
-        if (result != KTX_SUCCESS) {
-            std::cerr << "[TextureCompiler] SaveThumbnailKTX2: Failed to write file: " << result << "\n";
+        if (!result) {
+            std::cerr << "[TextureCompiler] SaveThumbnailPNG: Failed to write file: " << pngPath << "\n";
             return false;
         }
 
+        std::cout << "[TextureCompiler] Saved thumbnail: " << pngPath << "\n";
+        return true;
+    }
+
+    bool TextureCompiler::GenerateThumbnailOnly(const std::filesystem::path& compiledKtx2Path, const std::filesystem::path& outputDir)
+    {
+        std::cout << "[TextureCompiler] GenerateThumbnailOnly: " << compiledKtx2Path << "\n";
+        std::cout.flush();
+
+        // Verify input file exists
+        if (!std::filesystem::exists(compiledKtx2Path)) {
+            std::cerr << "[TextureCompiler] Input file does not exist: " << compiledKtx2Path << "\n";
+            return false;
+        }
+
+        // 1. Load the compiled KTX2 file
+        std::cout << "[TextureCompiler] Loading KTX2 file...\n";
+        std::cout.flush();
+
+        ktxTexture2* ktxTex = nullptr;
+        KTX_error_code result = ktxTexture2_CreateFromNamedFile(
+            compiledKtx2Path.string().c_str(),
+            KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT,
+            &ktxTex
+        );
+
+        if (result != KTX_SUCCESS || !ktxTex) {
+            std::cerr << "[TextureCompiler] Failed to load KTX2 file: " << compiledKtx2Path
+                      << " (error: " << result << ")\n";
+            return false;
+        }
+
+        std::cout << "[TextureCompiler] KTX2 loaded: " << ktxTex->baseWidth << "x" << ktxTex->baseHeight
+                  << ", vkFormat=" << ktxTex->vkFormat << ", supercompression=" << ktxTex->supercompressionScheme << "\n";
+        std::cout.flush();
+
+        // 2. Check if it needs transcoding (BasisU compressed)
+        if (ktxTexture2_NeedsTranscoding(ktxTex)) {
+            std::cout << "[TextureCompiler] Transcoding BasisU texture to RGBA32...\n";
+            std::cout.flush();
+            result = ktxTexture2_TranscodeBasis(ktxTex, KTX_TTF_RGBA32, 0);
+            if (result != KTX_SUCCESS) {
+                std::cerr << "[TextureCompiler] Failed to transcode texture: " << result << "\n";
+                ktxTexture_Destroy(ktxTexture(ktxTex));
+                return false;
+            }
+            std::cout << "[TextureCompiler] Transcoding complete, new vkFormat=" << ktxTex->vkFormat << "\n";
+            std::cout.flush();
+        }
+
+        // 3. Get the texture data
+        // For block-compressed textures that aren't BasisU, we can't easily decode them
+        // Check if the format is uncompressed RGBA
+        VkFormat vkFormat = static_cast<VkFormat>(ktxTex->vkFormat);
+        std::cout << "[TextureCompiler] Checking format: vkFormat=" << vkFormat << "\n";
+        std::cout.flush();
+
+        bool isUncompressed = (vkFormat == VK_FORMAT_R8G8B8A8_UNORM ||
+                               vkFormat == VK_FORMAT_R8G8B8A8_SRGB ||
+                               vkFormat == VK_FORMAT_B8G8R8A8_UNORM ||
+                               vkFormat == VK_FORMAT_B8G8R8A8_SRGB);
+
+        if (!isUncompressed) {
+            // For block-compressed formats (BC7, ASTC, etc.) that aren't BasisU,
+            // use GPU rendering via ThumbnailRenderer to sample and downscale
+            ktxTexture_Destroy(ktxTexture(ktxTex));  // We'll reload in ThumbnailRenderer
+
+            std::cout << "[TextureCompiler] Using GPU rendering for block-compressed texture\n";
+            std::cout.flush();
+
+            AssetCompiler::ThumbnailRenderer renderer;
+            if (!renderer.Initialize()) {
+                std::cerr << "[TextureCompiler] Failed to initialize ThumbnailRenderer\n";
+                return false;
+            }
+
+            std::vector<uint8_t> thumbPixels;
+            if (!renderer.RenderTexturePreview(compiledKtx2Path.string(), thumbPixels)) {
+                std::cerr << "[TextureCompiler] GPU rendering failed\n";
+                renderer.Shutdown();
+                return false;
+            }
+
+            renderer.Shutdown();
+
+            // Save thumbnail
+            std::filesystem::path thumbPath = outputDir /
+                (compiledKtx2Path.stem().string() + "_thumb.png");
+
+            if (!SaveThumbnailKTX2(thumbPixels, THUMBNAIL_SIZE, thumbPath)) {
+                return false;
+            }
+
+            // Update meta file
+            std::filesystem::path metaPath = compiledKtx2Path.string() + ".meta";
+            Resource::AssetMetadata meta;
+            if (meta.loadFromFile(metaPath)) {
+                meta.thumbnailPath = thumbPath.filename().string();
+                meta.saveToFile(metaPath);
+            }
+
+            std::cout << "[TextureCompiler] Generated thumbnail via GPU: " << thumbPath << "\n";
+            return true;
+        }
+
+        // 4. Get mip 0 data for uncompressed textures
+        ktx_size_t offset;
+        result = ktxTexture_GetImageOffset(ktxTexture(ktxTex), 0, 0, 0, &offset);
+        if (result != KTX_SUCCESS) {
+            std::cerr << "[TextureCompiler] Failed to get image offset: " << result << "\n";
+            ktxTexture_Destroy(ktxTexture(ktxTex));
+            return false;
+        }
+
+        uint8_t* srcPixels = ktxTex->pData + offset;
+        uint32_t srcWidth = ktxTex->baseWidth;
+        uint32_t srcHeight = ktxTex->baseHeight;
+
+        // 5. Resize to 64x64
+        std::vector<uint8_t> thumbPixels(THUMBNAIL_SIZE * THUMBNAIL_SIZE * 4);
+        stbir_resize_uint8_srgb(
+            srcPixels, static_cast<int>(srcWidth), static_cast<int>(srcHeight), 0,
+            thumbPixels.data(), THUMBNAIL_SIZE, THUMBNAIL_SIZE, 0,
+            STBIR_RGBA
+        );
+
+        ktxTexture_Destroy(ktxTexture(ktxTex));
+
+        // 6. Save thumbnail
+        std::filesystem::path thumbPath = outputDir /
+            (compiledKtx2Path.stem().string() + "_thumb.png");
+
+        if (!SaveThumbnailKTX2(thumbPixels, THUMBNAIL_SIZE, thumbPath)) {
+            return false;
+        }
+
+        // 7. Update meta file
+        std::filesystem::path metaPath = compiledKtx2Path.string() + ".meta";
+        Resource::AssetMetadata meta;
+        if (meta.loadFromFile(metaPath)) {
+            meta.thumbnailPath = thumbPath.filename().string();
+            meta.saveToFile(metaPath);
+        } else {
+            // Create minimal meta file if it doesn't exist
+            meta.assetType = AssetFormat::AssetType::Texture;
+            meta.thumbnailPath = thumbPath.filename().string();
+            meta.saveToFile(metaPath);
+        }
+
+        std::cout << "[TextureCompiler] Generated thumbnail: " << thumbPath << "\n";
         return true;
     }
 }

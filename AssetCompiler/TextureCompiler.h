@@ -51,8 +51,13 @@ namespace compiler
 		bool GenerateThumbnail(const CMP_Texture& srcTexture, CompilationResult& result, const std::string& filename = {});
 
 	public:
-		// Save raw RGBA pixels as KTX2 (for material/mesh thumbnails from headless renderer)
+		// Save raw RGBA pixels as PNG (for material/mesh thumbnails from headless renderer)
+		// Note: Function name kept as SaveThumbnailKTX2 for compatibility, but saves as PNG
 		bool SaveThumbnailKTX2(const std::vector<uint8_t>& rgbaPixels, uint32_t size, const std::filesystem::path& outputPath);
+
+		// Generate thumbnail for an already-compiled KTX2 texture (thumbnail-only mode)
+		// Loads the KTX2, transcodes if needed, resizes to 64x64, saves as _thumb.png, updates meta file
+		bool GenerateThumbnailOnly(const std::filesystem::path& compiledKtx2Path, const std::filesystem::path& outputDir);
 
 	private:
 		CompilerOptions options;

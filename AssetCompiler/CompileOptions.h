@@ -91,6 +91,68 @@ namespace compiler
 
 
 
+    // Detected alpha mode from texture analysis (similar to Godot's Image::AlphaMode)
+    // Used to automatically determine material transparency from base color textures
+    enum class DetectedAlphaMode
+    {
+        None,      // No alpha channel or all pixels are fully opaque (alpha = 255)
+        Bit,       // Binary alpha - pixels are either fully opaque (255) or fully transparent (0)
+        Blend      // Gradient alpha - pixels have varying transparency values
+    };
+
+    // Analyze RGBA pixel data to detect what kind of alpha is present
+    // Returns DetectedAlphaMode based on the actual pixel values
+    inline DetectedAlphaMode DetectAlphaMode(const uint8_t* rgbaPixels, uint32_t width, uint32_t height)
+    {
+        if (!rgbaPixels || width == 0 || height == 0)
+            return DetectedAlphaMode::None;
+
+        bool hasTransparent = false;  // Any pixel with alpha < 255
+        bool hasOpaque = false;       // Any pixel with alpha = 255
+        bool hasPartial = false;      // Any pixel with 0 < alpha < 255
+
+        const uint32_t pixelCount = width * height;
+
+        // Sample pixels - for large textures, sample a subset for performance
+        // For small textures (< 256x256), check all pixels
+        const uint32_t sampleStride = (pixelCount > 65536) ? 4 : 1;
+
+        for (uint32_t i = 0; i < pixelCount; i += sampleStride)
+        {
+            uint8_t alpha = rgbaPixels[i * 4 + 3];
+
+            if (alpha == 255)
+            {
+                hasOpaque = true;
+            }
+            else if (alpha == 0)
+            {
+                hasTransparent = true;
+            }
+            else
+            {
+                // Partial transparency (0 < alpha < 255)
+                hasPartial = true;
+                // Early exit - if we found partial alpha, it's definitely Blend mode
+                return DetectedAlphaMode::Blend;
+            }
+        }
+
+        if (hasTransparent && hasOpaque)
+        {
+            // Binary alpha: pixels are either 0 or 255
+            return DetectedAlphaMode::Bit;
+        }
+        else if (hasTransparent && !hasOpaque)
+        {
+            // All transparent (unusual, but could happen)
+            return DetectedAlphaMode::Blend;
+        }
+
+        // All opaque
+        return DetectedAlphaMode::None;
+    }
+
     enum TextureChannelFormat
     {
         RGBA_8888,

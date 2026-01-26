@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <vector>
 #include <string>
+#include <filesystem>
 
 namespace AssetCompiler
 {
@@ -61,9 +62,19 @@ namespace AssetCompiler
                                const std::vector<uint32_t>& indices,
                                std::vector<uint8_t>& outPixels);
 
+        /**
+         * Render a texture preview (fullscreen quad).
+         * Supports BC7, ASTC, and uncompressed textures.
+         * @param ktx2Path Path to the KTX2 texture file
+         * @param outPixels Output pixel buffer (RGBA8, 64x64)
+         * @return true if rendering succeeded
+         */
+        bool RenderTexturePreview(const std::string& ktx2Path, std::vector<uint8_t>& outPixels);
+
     private:
         bool CreateRenderTarget();
         bool CreateShaderAndPipeline();
+        bool CreateTexturedPipeline();
         bool CreateSphereMesh();
         void DestroyResources();
 
@@ -88,5 +99,10 @@ namespace AssetCompiler
         // Uniform buffer
         hina_buffer m_uniformBuffer = {};
         void* m_uniformMapped = nullptr;
+
+        // Textured pipeline resources (for texture preview)
+        hina_pipeline m_texturedPipeline = {};
+        hina_bind_group_layout m_texturedBindGroupLayout = {};
+        hina_buffer m_quadVertexBuffer = {};
     };
 }

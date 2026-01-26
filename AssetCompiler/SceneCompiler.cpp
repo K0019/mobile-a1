@@ -51,6 +51,8 @@ using Resource::MeshLoading::calculateBounds;
 #include <span>
 #include <utility>
 
+#include <stb_image.h>  // For alpha detection (implementation in TextureCompiler.cpp)
+
 #include "rapidjson/document.h"
 #include "rapidjson/writer.h"
 #include "rapidjson/prettywriter.h"
@@ -251,10 +253,15 @@ namespace compiler
         SaveMeshes(scene, result);
 
         ProgressReporter::ReportProgress(0.5f, "Compiling textures", filename);
-        auto savedTexturesMap = CompileTextures(scene, result);
+        auto textureResults = CompileTextures(scene, result);
+
+        // Second pass: Refine material alpha modes based on texture analysis
+        // This implements Godot-style alpha detection for FBX/OBJ materials
+        ProgressReporter::ReportProgress(0.75f, "Refining alpha modes", filename);
+        RefineAlphaModes(scene, textureResults);
 
         ProgressReporter::ReportProgress(0.8f, "Saving materials", filename);
-        SaveMaterialData(scene, result, savedTexturesMap);
+        SaveMaterialData(scene, result, textureResults);
 
         ProgressReporter::ReportProgress(0.9f, "Saving animations", filename);
         SaveAnimations(scene, result);
@@ -317,9 +324,9 @@ namespace compiler
 
 
     // ----- Saving to disk ----- //
-    std::map<TextureDataSource, std::filesystem::path> SceneCompiler::CompileTextures(const Scene& scene, CompilationResult& result)
+    TextureCompilationResults SceneCompiler::CompileTextures(const Scene& scene, CompilationResult& result)
     {
-        std::map<TextureDataSource, std::filesystem::path> compiledTextures;
+        TextureCompilationResults textureResults;
         std::set<std::pair<std::string, TextureDataSource>> uniqueTextureSources;
         
         for (const auto& material : scene.materials)
@@ -335,7 +342,7 @@ namespace compiler
 
         if (uniqueTextureSources.empty())
         {
-            return compiledTextures;
+            return textureResults;
         }
 
         // We just assume that everything inside textureSources are filepaths if the first element is one, because why would it be anything else
@@ -371,7 +378,7 @@ namespace compiler
             {
                 result.errors.push_back("Texture path errors: Could not find one or more textures. Texture compilation aborted entirely.");
                 result.errors.insert(result.errors.end(), texturePathErrors.begin(), texturePathErrors.end());
-                return compiledTextures;
+                return textureResults;
             }
 
             compiler::TextureCompiler texCompiler;
@@ -391,10 +398,32 @@ namespace compiler
                 if (texCompileResult.errors.empty())
                 {
                     std::string outputFilename = originalPath.stem().string() + ".ktx2";
-                    //result.createdTextureFiles.push_back(options.general.outputPath / "textures" / outputFilename);
                     result.createdTextureFiles.push_back(texCompileResult.createdTextureFiles[0]);
                     FilePathSource compiledFilePathSource {originalPath.string()};
-                    compiledTextures[compiledFilePathSource] = texCompileResult.createdTextureFiles[0];
+                    textureResults.compiledPaths[compiledFilePathSource] = texCompileResult.createdTextureFiles[0];
+
+                    // Detect alpha mode for base color textures (Godot-style approach)
+                    // Find which texture type this is by checking the uniqueTextureSources
+                    for (const auto& [texType, texSource] : uniqueTextureSources)
+                    {
+                        if (std::holds_alternative<FilePathSource>(texSource))
+                        {
+                            const auto& fileSource = std::get<FilePathSource>(texSource);
+                            if (fileSource.path == originalPath.string() && texType == texturekeys::BASE_COLOR)
+                            {
+                                // Load image for alpha detection (stbi already loaded it, but we need to do it again)
+                                int w, h, comp;
+                                unsigned char* pixels = stbi_load(resolvedPath.string().c_str(), &w, &h, &comp, 4);
+                                if (pixels)
+                                {
+                                    DetectedAlphaMode alphaMode = DetectAlphaMode(pixels, w, h);
+                                    textureResults.detectedAlphaModes[compiledFilePathSource] = alphaMode;
+                                    stbi_image_free(pixels);
+                                }
+                                break;
+                            }
+                        }
+                    }
                 }
                 else
                 {
@@ -475,16 +504,47 @@ namespace compiler
 
                 auto texCompileResult = texCompiler.CompileFromMemory(embdeddedSource, texOpts);
 
-                if (result.errors.empty())
+                if (texCompileResult.errors.empty())
                 {
                     std::string outputFilename = textureFilename + ".ktx2";
                     result.createdTextureFiles.push_back(texCompileResult.createdTextureFiles[0]);
-                    compiledTextures[source] = texCompileResult.createdTextureFiles[0];
+                    textureResults.compiledPaths[source] = texCompileResult.createdTextureFiles[0];
+
+                    // Detect alpha mode for base color textures (embedded)
+                    if (key == texturekeys::BASE_COLOR)
+                    {
+                        // For embedded textures, we need to decode if compressed, or use raw data
+                        int w{}, h{}, comp{};
+                        unsigned char* pixels = nullptr;
+
+                        if (embdeddedSource.compressedData)
+                        {
+                            pixels = stbi_load_from_memory(
+                                embdeddedSource.compressedData,
+                                static_cast<int>(embdeddedSource.compressedSize),
+                                &w, &h, &comp, 4);
+                        }
+                        else if (embdeddedSource.rawData)
+                        {
+                            // Raw data is already RGBA, just use it directly
+                            w = embdeddedSource.width;
+                            h = embdeddedSource.height;
+                            DetectedAlphaMode alphaMode = DetectAlphaMode(embdeddedSource.rawData, w, h);
+                            textureResults.detectedAlphaModes[source] = alphaMode;
+                        }
+
+                        if (pixels)
+                        {
+                            DetectedAlphaMode alphaMode = DetectAlphaMode(pixels, w, h);
+                            textureResults.detectedAlphaModes[source] = alphaMode;
+                            stbi_image_free(pixels);
+                        }
+                    }
                 }
             }
         }
 
-        return compiledTextures;
+        return textureResults;
     }
 
     void SceneCompiler::SaveMeshes(const Scene& scene, CompilationResult& result)
@@ -722,7 +782,66 @@ namespace compiler
         meshMeta.saveToFile(Resource::AssetMetadata::getMetaPath(outFilePath));
     }
 
-    void SceneCompiler::SaveMaterialData(const Scene& scene, CompilationResult& result, std::map<TextureDataSource, std::filesystem::path> savedTexturesMap)
+    void SceneCompiler::RefineAlphaModes(Scene& scene, const TextureCompilationResults& textureResults)
+    {
+        // Second pass: Godot-style alpha detection from texture analysis
+        // This refines material alpha modes for FBX/OBJ materials that defaulted to Opaque
+        // because we couldn't trust AI_MATKEY_OPACITY values from assimp.
+        //
+        // The logic:
+        // - If material has a base color texture with detected alpha, update alpha mode
+        // - DetectedAlphaMode::None -> keep Opaque (texture is fully opaque)
+        // - DetectedAlphaMode::Bit -> use Mask (binary alpha, good for cutouts)
+        // - DetectedAlphaMode::Blend -> use Blend (gradient alpha, true transparency)
+        //
+        // We only modify materials that are currently Opaque - if a material was
+        // explicitly set to Mask or Blend (e.g., from glTF), we trust that.
+
+        for (ProcessedMaterialSlot& material : scene.materials)
+        {
+            // Only refine materials that are currently Opaque
+            // glTF materials with explicit alphaMode should not be changed
+            if (material.alphaMode != AlphaMode::Opaque)
+                continue;
+
+            // Find the base color texture for this material
+            auto baseColorIt = material.texturePaths.find(texturekeys::BASE_COLOR);
+            if (baseColorIt == material.texturePaths.end())
+                continue;
+
+            // Look up the detected alpha mode for this texture
+            auto alphaIt = textureResults.detectedAlphaModes.find(baseColorIt->second);
+            if (alphaIt == textureResults.detectedAlphaModes.end())
+                continue;
+
+            DetectedAlphaMode detectedAlpha = alphaIt->second;
+
+            // Apply the detected alpha mode
+            switch (detectedAlpha)
+            {
+            case DetectedAlphaMode::None:
+                // Texture is fully opaque, keep material as Opaque
+                break;
+
+            case DetectedAlphaMode::Bit:
+                // Binary alpha (0 or 255) - use alpha masking/cutout
+                material.alphaMode = AlphaMode::Mask;
+                // Set a sensible default cutoff if not already set
+                if (material.alphaCutoff < 0.01f)
+                    material.alphaCutoff = 0.5f;
+                std::cout << "  [Alpha] Material '" << material.name << "' -> Mask (binary alpha detected)\n";
+                break;
+
+            case DetectedAlphaMode::Blend:
+                // Gradient alpha - use blending
+                material.alphaMode = AlphaMode::Blend;
+                std::cout << "  [Alpha] Material '" << material.name << "' -> Blend (gradient alpha detected)\n";
+                break;
+            }
+        }
+    }
+
+    void SceneCompiler::SaveMaterialData(Scene& scene, CompilationResult& result, const TextureCompilationResults& textureResults)
     {
         for (const ProcessedMaterialSlot& materialSlot : scene.materials)
         {
@@ -780,8 +899,8 @@ namespace compiler
                 auto it = materialSlot.texturePaths.find(key);
                 if (it != materialSlot.texturePaths.end())
                 {
-                    auto mapIt = savedTexturesMap.find(it->second);
-                    if (mapIt != savedTexturesMap.end())
+                    auto mapIt = textureResults.compiledPaths.find(it->second);
+                    if (mapIt != textureResults.compiledPaths.end())
                     {
                         std::filesystem::path relativeDir = std::filesystem::relative(mapIt->second, options.general.assetsRoot);
                         valueStr = relativeDir.generic_string(); // Use forward slashes for cross-platform compatibility
@@ -839,8 +958,8 @@ namespace compiler
 
                 std::vector<uint8_t> thumbnailPixels;
                 if (s_thumbnailRenderer->RenderMaterialPreview(thumbBaseColor, thumbnailPixels)) {
-                    // Save thumbnail using TextureCompiler
-                    thumbnailFilename = ToLower(materialSlot.name) + "_thumb.ktx2";
+                    // Save thumbnail using TextureCompiler (PNG for compatibility with editor)
+                    thumbnailFilename = ToLower(materialSlot.name) + "_thumb.png";
                     std::filesystem::path thumbPath = assetOutputDir / thumbnailFilename;
 
                     // Create a simple KTX2 file from RGBA pixels

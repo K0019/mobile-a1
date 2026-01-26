@@ -1,5 +1,6 @@
 #include "ThumbnailRenderer.h"
 #include <hina_vk.h>
+#include <ktx.h>
 #include <cmath>
 #include <cstring>
 #include <iostream>
@@ -64,6 +65,47 @@ FragOut FSMain(Varyings in) {
 #hina_end
 )";
 
+    // Simple textured fullscreen quad shader for texture preview
+    static const char* kTexturedQuadShaderHSL = R"(
+#hina
+group Textures = 0;
+
+bindings(Textures, start=0) {
+    texture sampler2D texSampler;
+}
+
+struct VertexIn {
+    vec2 a_position;
+    vec2 a_uv;
+};
+
+struct Varyings {
+    vec2 uv;
+};
+
+struct FragOut {
+    vec4 color;
+};
+#hina_end
+
+#hina_stage vertex entry VSMain
+Varyings VSMain(VertexIn in) {
+    Varyings out;
+    gl_Position = vec4(in.a_position, 0.0, 1.0);
+    out.uv = in.a_uv;
+    return out;
+}
+#hina_end
+
+#hina_stage fragment entry FSMain
+FragOut FSMain(Varyings in) {
+    FragOut out;
+    out.color = texture(texSampler, in.uv);
+    return out;
+}
+#hina_end
+)";
+
     // UBO structure matching shader
     struct PreviewUBO {
         float viewProj[16];
@@ -111,6 +153,14 @@ FragOut FSMain(Varyings in) {
         // Create sphere mesh
         if (!CreateSphereMesh()) {
             std::cerr << "[ThumbnailRenderer] Failed to create sphere mesh\n";
+            DestroyResources();
+            hina_shutdown();
+            return false;
+        }
+
+        // Create textured pipeline for texture previews
+        if (!CreateTexturedPipeline()) {
+            std::cerr << "[ThumbnailRenderer] Failed to create textured pipeline\n";
             DestroyResources();
             hina_shutdown();
             return false;
@@ -350,6 +400,99 @@ FragOut FSMain(Varyings in) {
         return true;
     }
 
+    bool ThumbnailRenderer::CreateTexturedPipeline()
+    {
+        // Compile textured quad shader
+        char* error = nullptr;
+        hina_hsl_module* module = hslc_compile_hsl_source(kTexturedQuadShaderHSL, "textured_quad", &error);
+        if (!module) {
+            std::cerr << "[ThumbnailRenderer] Textured shader compilation failed: " << (error ? error : "unknown") << "\n";
+            if (error) hslc_free_log(error);
+            return false;
+        }
+
+        // Create bind group layout for combined image sampler
+        hina_bind_group_layout_entry layoutEntry = {};
+        layoutEntry.binding = 0;
+        layoutEntry.type = HINA_DESC_TYPE_COMBINED_IMAGE_SAMPLER;
+        layoutEntry.count = 1;
+        layoutEntry.stage_flags = HINA_STAGE_FRAGMENT;
+        layoutEntry.flags = HINA_BINDING_FLAG_NONE;
+
+        hina_bind_group_layout_desc layoutDesc = {};
+        layoutDesc.entries = &layoutEntry;
+        layoutDesc.entry_count = 1;
+        layoutDesc.label = "textured_layout";
+
+        m_texturedBindGroupLayout = hina_create_bind_group_layout(&layoutDesc);
+        if (!hina_bind_group_layout_is_valid(m_texturedBindGroupLayout)) {
+            std::cerr << "[ThumbnailRenderer] Failed to create textured bind group layout\n";
+            hslc_hsl_module_free(module);
+            return false;
+        }
+
+        // Vertex layout: position (vec2) + uv (vec2)
+        hina_vertex_layout vertexLayout = {};
+        vertexLayout.buffer_count = 1;
+        vertexLayout.buffer_strides[0] = sizeof(float) * 4;  // pos (2) + uv (2)
+        vertexLayout.input_rates[0] = HINA_VERTEX_INPUT_RATE_VERTEX;
+        vertexLayout.attr_count = 2;
+        vertexLayout.attrs[0] = { HINA_FORMAT_R32G32_SFLOAT, 0, 0, 0 };           // position
+        vertexLayout.attrs[1] = { HINA_FORMAT_R32G32_SFLOAT, sizeof(float) * 2, 1, 0 };  // uv
+
+        // Pipeline descriptor (no depth test for fullscreen quad)
+        hina_hsl_pipeline_desc pipDesc = hina_hsl_pipeline_desc_default();
+        pipDesc.layout = vertexLayout;
+        pipDesc.cull_mode = HINA_CULL_MODE_NONE;
+        pipDesc.depth.depth_test = false;
+        pipDesc.depth.depth_write = false;
+        pipDesc.depth_format = HINA_FORMAT_D32_SFLOAT;
+        pipDesc.color_formats[0] = HINA_FORMAT_R8G8B8A8_UNORM;
+        pipDesc.samples = HINA_SAMPLE_COUNT_1_BIT;
+        pipDesc.bind_group_layouts[0] = m_texturedBindGroupLayout;
+
+        m_texturedPipeline = hina_make_pipeline_from_module(module, &pipDesc, nullptr);
+        hslc_hsl_module_free(module);
+
+        if (!hina_pipeline_is_valid(m_texturedPipeline)) {
+            std::cerr << "[ThumbnailRenderer] Failed to create textured pipeline\n";
+            return false;
+        }
+
+        // Create fullscreen quad vertex buffer
+        // Positions in NDC, UVs flipped for Vulkan
+        float quadVertices[] = {
+            // pos       uv
+            -1.0f, -1.0f,  0.0f, 1.0f,  // bottom-left
+             1.0f, -1.0f,  1.0f, 1.0f,  // bottom-right
+            -1.0f,  1.0f,  0.0f, 0.0f,  // top-left
+             1.0f, -1.0f,  1.0f, 1.0f,  // bottom-right
+             1.0f,  1.0f,  1.0f, 0.0f,  // top-right
+            -1.0f,  1.0f,  0.0f, 0.0f,  // top-left
+        };
+
+        hina_buffer_desc vbDesc = {};
+        vbDesc.size = sizeof(quadVertices);
+        vbDesc.memory = HINA_BUFFER_GPU;
+        vbDesc.usage = HINA_BUFFER_VERTEX;
+        vbDesc.initial_data = quadVertices;
+        vbDesc.label = "quad_vb";
+
+        m_quadVertexBuffer = hina_make_buffer(&vbDesc);
+        if (!hina_buffer_is_valid(m_quadVertexBuffer)) {
+            std::cerr << "[ThumbnailRenderer] Failed to create quad vertex buffer\n";
+            return false;
+        }
+
+        // Flush uploads
+        hina_ticket ticket = hina_flush_uploads();
+        if (ticket != 0) {
+            hina_wait_ticket(ticket);
+        }
+
+        return true;
+    }
+
     void ThumbnailRenderer::DestroyResources()
     {
         if (hina_buffer_is_valid(m_uniformBuffer)) {
@@ -387,6 +530,19 @@ FragOut FSMain(Varyings in) {
         if (hina_texture_is_valid(m_depthTarget)) {
             hina_destroy_texture(m_depthTarget);
             m_depthTarget = {};
+        }
+        // Textured pipeline resources
+        if (hina_buffer_is_valid(m_quadVertexBuffer)) {
+            hina_destroy_buffer(m_quadVertexBuffer);
+            m_quadVertexBuffer = {};
+        }
+        if (hina_pipeline_is_valid(m_texturedPipeline)) {
+            hina_destroy_pipeline(m_texturedPipeline);
+            m_texturedPipeline = {};
+        }
+        if (hina_bind_group_layout_is_valid(m_texturedBindGroupLayout)) {
+            hina_destroy_bind_group_layout(m_texturedBindGroupLayout);
+            m_texturedBindGroupLayout = {};
         }
     }
 
@@ -491,6 +647,11 @@ FragOut FSMain(Varyings in) {
 
         // Download pixels
         size_t pixelSize = hina_texture_mip_size(m_colorTarget, 0);
+        if (pixelSize == 0) {
+            std::cerr << "[ThumbnailRenderer] Invalid pixel size from mip size query\n";
+            hina_destroy_bind_group(bindGroup);
+            return false;
+        }
         outPixels.resize(pixelSize);
         hina_download_texture(m_colorTarget, 0, 0, outPixels.data(), pixelSize);
 
@@ -670,6 +831,13 @@ FragOut FSMain(Varyings in) {
 
         // Download pixels
         size_t pixelSize = hina_texture_mip_size(m_colorTarget, 0);
+        if (pixelSize == 0) {
+            std::cerr << "[ThumbnailRenderer] Invalid pixel size from mip size query\n";
+            hina_destroy_bind_group(bindGroup);
+            hina_destroy_buffer(vb);
+            hina_destroy_buffer(ib);
+            return false;
+        }
         outPixels.resize(pixelSize);
         hina_download_texture(m_colorTarget, 0, 0, outPixels.data(), pixelSize);
 
@@ -678,6 +846,214 @@ FragOut FSMain(Varyings in) {
         hina_destroy_buffer(vb);
         hina_destroy_buffer(ib);
 
+        return true;
+    }
+
+    // Helper to map KTX2 VkFormat to hina_format
+    static hina_format MapVkFormatToHina(uint32_t vkFormat)
+    {
+        switch (vkFormat) {
+            // Uncompressed formats
+            case 37:  return HINA_FORMAT_R8G8B8A8_UNORM;      // VK_FORMAT_R8G8B8A8_UNORM
+            case 43:  return HINA_FORMAT_R8G8B8A8_SRGB;       // VK_FORMAT_R8G8B8A8_SRGB
+            case 44:  return HINA_FORMAT_B8G8R8A8_UNORM;      // VK_FORMAT_B8G8R8A8_UNORM
+            case 50:  return HINA_FORMAT_B8G8R8A8_SRGB;       // VK_FORMAT_B8G8R8A8_SRGB
+
+            // BC1 (DXT1)
+            case 131: return HINA_FORMAT_BC1_RGB_UNORM_BLOCK; // VK_FORMAT_BC1_RGB_UNORM_BLOCK
+            case 132: return HINA_FORMAT_BC1_RGB_SRGB_BLOCK;  // VK_FORMAT_BC1_RGB_SRGB_BLOCK
+            case 133: return HINA_FORMAT_BC1_RGBA_UNORM_BLOCK;// VK_FORMAT_BC1_RGBA_UNORM_BLOCK
+            case 134: return HINA_FORMAT_BC1_RGBA_SRGB_BLOCK; // VK_FORMAT_BC1_RGBA_SRGB_BLOCK
+
+            // BC2 (DXT3)
+            case 135: return HINA_FORMAT_BC2_UNORM_BLOCK;     // VK_FORMAT_BC2_UNORM_BLOCK
+            case 136: return HINA_FORMAT_BC2_SRGB_BLOCK;      // VK_FORMAT_BC2_SRGB_BLOCK
+
+            // BC3 (DXT5)
+            case 137: return HINA_FORMAT_BC3_UNORM_BLOCK;     // VK_FORMAT_BC3_UNORM_BLOCK
+            case 138: return HINA_FORMAT_BC3_SRGB_BLOCK;      // VK_FORMAT_BC3_SRGB_BLOCK
+
+            // BC4 (single channel)
+            case 139: return HINA_FORMAT_BC4_UNORM_BLOCK;     // VK_FORMAT_BC4_UNORM_BLOCK
+            case 140: return HINA_FORMAT_BC4_SNORM_BLOCK;     // VK_FORMAT_BC4_SNORM_BLOCK
+
+            // BC5 (two channel, used for normal maps)
+            case 141: return HINA_FORMAT_BC5_UNORM_BLOCK;     // VK_FORMAT_BC5_UNORM_BLOCK
+            case 142: return HINA_FORMAT_BC5_SNORM_BLOCK;     // VK_FORMAT_BC5_SNORM_BLOCK
+
+            // BC7 (high quality)
+            case 145: return HINA_FORMAT_BC7_UNORM_BLOCK;     // VK_FORMAT_BC7_UNORM_BLOCK
+            case 146: return HINA_FORMAT_BC7_SRGB_BLOCK;      // VK_FORMAT_BC7_SRGB_BLOCK
+
+            // ASTC
+            case 179: return HINA_FORMAT_ASTC_4x4_UNORM_BLOCK;// VK_FORMAT_ASTC_4x4_UNORM_BLOCK
+            case 180: return HINA_FORMAT_ASTC_4x4_SRGB_BLOCK; // VK_FORMAT_ASTC_4x4_SRGB_BLOCK
+
+            default:
+                std::cerr << "[ThumbnailRenderer] Unknown VkFormat: " << vkFormat << ", cannot create texture\n";
+                return HINA_FORMAT_UNDEFINED;  // Return undefined to signal error
+        }
+    }
+
+    bool ThumbnailRenderer::RenderTexturePreview(const std::string& ktx2Path, std::vector<uint8_t>& outPixels)
+    {
+        if (!m_initialized) {
+            std::cerr << "[ThumbnailRenderer] Not initialized\n";
+            return false;
+        }
+
+        // 1. Load KTX2 file
+        ktxTexture2* ktxTex = nullptr;
+        KTX_error_code result = ktxTexture2_CreateFromNamedFile(
+            ktx2Path.c_str(),
+            KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT,
+            &ktxTex
+        );
+
+        if (result != KTX_SUCCESS || !ktxTex) {
+            std::cerr << "[ThumbnailRenderer] Failed to load KTX2: " << ktx2Path << " (error: " << result << ")\n";
+            return false;
+        }
+
+        std::cout << "[ThumbnailRenderer] Loaded texture: " << ktxTex->baseWidth << "x" << ktxTex->baseHeight
+                  << ", vkFormat=" << ktxTex->vkFormat << "\n";
+
+        // 2. Create hina_texture from KTX data
+        hina_format hinaFormat = MapVkFormatToHina(ktxTex->vkFormat);
+        if (hinaFormat == HINA_FORMAT_UNDEFINED) {
+            std::cerr << "[ThumbnailRenderer] Unsupported texture format: " << ktxTex->vkFormat << "\n";
+            ktxTexture_Destroy(ktxTexture(ktxTex));
+            return false;
+        }
+
+        hina_texture_desc texDesc = hina_texture_desc_default();
+        texDesc.width = ktxTex->baseWidth;
+        texDesc.height = ktxTex->baseHeight;
+        texDesc.depth = 1;
+        texDesc.mip_levels = 1;  // Only load mip 0 for thumbnail
+        texDesc.layers = 1;
+        texDesc.format = hinaFormat;
+        texDesc.type = HINA_TEX_TYPE_2D;
+        texDesc.samples = HINA_SAMPLE_COUNT_1_BIT;
+        texDesc.usage = HINA_TEXTURE_SAMPLED_BIT;
+        texDesc.initial_data = ktxTex->pData;
+        texDesc.label = "ktx2_preview";
+
+        hina_texture previewTex = hina_make_texture(&texDesc);
+        if (!hina_texture_is_valid(previewTex)) {
+            std::cerr << "[ThumbnailRenderer] Failed to create preview texture\n";
+            ktxTexture_Destroy(ktxTexture(ktxTex));
+            return false;
+        }
+
+        // Done with KTX data
+        ktxTexture_Destroy(ktxTexture(ktxTex));
+
+        // Flush texture upload
+        hina_ticket uploadTicket = hina_flush_uploads();
+        if (uploadTicket != 0) {
+            hina_wait_ticket(uploadTicket);
+        }
+
+        // 3. Create sampler
+        hina_sampler_desc samplerDesc = hina_sampler_desc_default();
+        samplerDesc.min_filter = HINA_FILTER_LINEAR;
+        samplerDesc.mag_filter = HINA_FILTER_LINEAR;
+        samplerDesc.mipmap_filter = HINA_FILTER_NEAREST;
+        samplerDesc.address_u = HINA_ADDRESS_CLAMP_TO_EDGE;
+        samplerDesc.address_v = HINA_ADDRESS_CLAMP_TO_EDGE;
+        samplerDesc.address_w = HINA_ADDRESS_CLAMP_TO_EDGE;
+        samplerDesc.label = "preview_sampler";
+
+        hina_sampler sampler = hina_make_sampler(&samplerDesc);
+        if (!hina_sampler_is_valid(sampler)) {
+            std::cerr << "[ThumbnailRenderer] Failed to create sampler\n";
+            hina_destroy_texture(previewTex);
+            return false;
+        }
+
+        // 4. Create bind group with texture + sampler
+        hina_texture_view texView = hina_texture_get_default_view(previewTex);
+
+        hina_bind_group_entry entry = {};
+        entry.binding = 0;
+        entry.type = HINA_DESC_TYPE_COMBINED_IMAGE_SAMPLER;
+        entry.combined.view = texView;
+        entry.combined.sampler = sampler;
+
+        hina_bind_group_desc bgDesc = {};
+        bgDesc.layout = m_texturedBindGroupLayout;
+        bgDesc.entries = &entry;
+        bgDesc.entry_count = 1;
+        bgDesc.label = "texture_preview_bind_group";
+
+        hina_bind_group bindGroup = hina_create_bind_group(&bgDesc);
+        if (!hina_bind_group_is_valid(bindGroup)) {
+            std::cerr << "[ThumbnailRenderer] Failed to create bind group for texture preview\n";
+            hina_destroy_sampler(sampler);
+            hina_destroy_texture(previewTex);
+            return false;
+        }
+
+        // 5. Render fullscreen quad
+        hina_cmd* cmd = hina_cmd_begin();
+
+        hina_pass_action passAction = {};
+        passAction.colors[0].image = m_colorTargetView;
+        passAction.colors[0].load_op = HINA_LOAD_OP_CLEAR;
+        passAction.colors[0].store_op = HINA_STORE_OP_STORE;
+        passAction.colors[0].clear_color[0] = 0.1f;
+        passAction.colors[0].clear_color[1] = 0.1f;
+        passAction.colors[0].clear_color[2] = 0.1f;
+        passAction.colors[0].clear_color[3] = 1.0f;
+        passAction.depth.image = m_depthTargetView;
+        passAction.depth.load_op = HINA_LOAD_OP_CLEAR;
+        passAction.depth.store_op = HINA_STORE_OP_DONT_CARE;
+        passAction.depth.depth_clear = 1.0f;
+        passAction.width = THUMBNAIL_SIZE;
+        passAction.height = THUMBNAIL_SIZE;
+
+        hina_cmd_begin_pass(cmd, &passAction);
+
+        hina_viewport viewport = { 0.0f, 0.0f, (float)THUMBNAIL_SIZE, (float)THUMBNAIL_SIZE, 0.0f, 1.0f };
+        hina_scissor scissor = { 0, 0, THUMBNAIL_SIZE, THUMBNAIL_SIZE };
+        hina_cmd_set_viewport(cmd, &viewport);
+        hina_cmd_set_scissor(cmd, &scissor);
+
+        hina_cmd_bind_pipeline(cmd, m_texturedPipeline);
+        hina_cmd_bind_group(cmd, 0, bindGroup);
+
+        hina_vertex_input vertexInput = {};
+        vertexInput.vertex_buffers[0] = m_quadVertexBuffer;
+        vertexInput.vertex_offsets[0] = 0;
+
+        hina_cmd_apply_vertex_input(cmd, &vertexInput);
+        hina_cmd_draw(cmd, 6, 1, 0, 0);  // 6 vertices for fullscreen quad
+
+        hina_cmd_end_pass(cmd);
+
+        // Submit and wait
+        hina_ticket ticket = hina_submit_immediate(cmd);
+        hina_wait_ticket(ticket);
+
+        // 6. Download pixels
+        size_t pixelSize = hina_texture_mip_size(m_colorTarget, 0);
+        if (pixelSize == 0) {
+            std::cerr << "[ThumbnailRenderer] Invalid pixel size\n";
+            hina_destroy_bind_group(bindGroup);
+            hina_destroy_sampler(sampler);
+            hina_destroy_texture(previewTex);
+            return false;
+        }
+        outPixels.resize(pixelSize);
+        hina_download_texture(m_colorTarget, 0, 0, outPixels.data(), pixelSize);
+
+        // Cleanup
+        hina_destroy_bind_group(bindGroup);
+        hina_destroy_sampler(sampler);
+        hina_destroy_texture(previewTex);
+
+        std::cout << "[ThumbnailRenderer] Texture preview rendered successfully\n";
         return true;
     }
 }

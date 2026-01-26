@@ -7,9 +7,10 @@
 #include "logging/log.h"
 #include <cstring>
 
-// Optional: stb_image for texture loading (if available)
+// Enable stb_image for texture loading (needed for thumbnail PNGs)
+#define GFX_USE_STB_IMAGE
 #ifdef GFX_USE_STB_IMAGE
-#define STB_IMAGE_IMPLEMENTATION
+// Note: STB_IMAGE_IMPLEMENTATION is already defined in GraphicsWindow.cpp
 #include <stb_image.h>
 #endif
 

@@ -655,6 +655,7 @@ namespace compiler
         aiString alphaModeStr;
         if (aiMat->Get(AI_MATKEY_GLTF_ALPHAMODE, alphaModeStr) == AI_SUCCESS)
         {
+            // glTF has explicit alpha mode - trust it completely
             std::string mode = alphaModeStr.C_Str();
             if (mode == "OPAQUE")
             {
@@ -671,15 +672,35 @@ namespace compiler
         }
         else
         {
-            // Fallback: detect transparency from alpha value
-            if (slot.baseColorFactor.a < 0.99f)
+            // Non-glTF fallback (FBX, OBJ, etc.)
+            // Industry standard (Unity/Unreal): default to Opaque unless there's STRONG evidence
+            // of transparency. FBX opacity values are notoriously unreliable - different DCC tools
+            // use different semantics and may set opacity < 1.0 even for fully opaque materials.
+
+            slot.alphaMode = AlphaMode::Opaque; // Default like Unity/Unreal
+
+            // Check for opacity texture - strong evidence of intended transparency
+            aiString opacityTexPath;
+            bool hasOpacityTexture = (aiMat->GetTexture(aiTextureType_OPACITY, 0, &opacityTexPath) == AI_SUCCESS);
+
+            // Check for transparent color (non-black transparent color indicates transparency)
+            aiColor3D transparentColor(0.f, 0.f, 0.f);
+            bool hasTransparentColor = (aiMat->Get(AI_MATKEY_COLOR_TRANSPARENT, transparentColor) == AI_SUCCESS) &&
+                                       (transparentColor.r > 0.01f || transparentColor.g > 0.01f || transparentColor.b > 0.01f);
+
+            if (hasOpacityTexture || hasTransparentColor)
             {
+                // Has explicit transparency texture or color - use Blend
                 slot.alphaMode = AlphaMode::Blend;
             }
-            else
+            else if (slot.baseColorFactor.a < 0.1f)
             {
-                slot.alphaMode = AlphaMode::Opaque;
+                // Very low opacity (< 10%) - likely intentionally transparent
+                // This catches materials explicitly set to be see-through
+                slot.alphaMode = AlphaMode::Blend;
             }
+            // Otherwise keep Opaque - this matches Unity/Unreal behavior where
+            // FBX materials default to opaque and require manual transparency setup
         }
 
         // Alpha cutoff

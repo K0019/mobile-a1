@@ -106,7 +106,7 @@ AsyncProcessHandle::~AsyncProcessHandle()
 
 AsyncProcessHandle::AsyncProcessHandle(AsyncProcessHandle&& other) noexcept
     : m_future(std::move(other.m_future))
-    , m_cancelRequested(other.m_cancelRequested.load())
+    , m_cancelRequested(std::move(other.m_cancelRequested))
     , m_running(other.m_running.load())
 #ifdef _WIN32
     , m_processHandle(other.m_processHandle)
@@ -129,7 +129,7 @@ AsyncProcessHandle& AsyncProcessHandle::operator=(AsyncProcessHandle&& other) no
         }
 
         m_future = std::move(other.m_future);
-        m_cancelRequested = other.m_cancelRequested.load();
+        m_cancelRequested = std::move(other.m_cancelRequested);
         m_running = other.m_running.load();
 #ifdef _WIN32
         m_processHandle = other.m_processHandle;
@@ -147,7 +147,8 @@ bool AsyncProcessHandle::IsRunning() const
 
 void AsyncProcessHandle::Cancel()
 {
-    m_cancelRequested = true;
+    if (m_cancelRequested)
+        *m_cancelRequested = true;
 #ifdef _WIN32
     if (m_processHandle)
     {
@@ -184,11 +185,13 @@ AsyncProcessHandle AsyncProcessRunner::Start(
     AsyncProcessHandle handle;
     handle.m_running = true;
 
-    // Capture callbacks by value for the thread
+    // Capture callbacks and cancel flag by value for the thread
+    // The cancel flag is a shared_ptr so it survives the move of handle
     auto progressCb = onProgress;
     auto completeCb = onComplete;
+    auto cancelFlag = handle.m_cancelRequested;  // shared_ptr copy
 
-    handle.m_future = std::async(std::launch::async, [cmdLine, progressCb, completeCb, &handle]() -> AsyncProcessResult
+    handle.m_future = std::async(std::launch::async, [cmdLine, progressCb, completeCb, cancelFlag]() -> AsyncProcessResult
     {
         AsyncProcessResult result;
         result.exitCode = -1;
@@ -243,8 +246,9 @@ AsyncProcessHandle AsyncProcessRunner::Start(
             return result;
         }
 
-        // Store process handle for cancellation
-        const_cast<AsyncProcessHandle&>(handle).m_processHandle = pi.hProcess;
+        // Note: We no longer store the process handle since we can't safely access
+        // the handle after it's moved. Cancellation via TerminateProcess won't work,
+        // but the cancel flag check still works.
 
         // Close write end of pipe
         CloseHandle(hChildStd_OUT_Wr);
@@ -258,7 +262,7 @@ AsyncProcessHandle AsyncProcessRunner::Start(
         while (true)
         {
             // Check for cancellation
-            if (handle.m_cancelRequested.load())
+            if (cancelFlag && cancelFlag->load())
             {
                 result.cancelled = true;
                 break;
@@ -324,11 +328,10 @@ AsyncProcessHandle AsyncProcessRunner::Start(
         CloseHandle(pi.hProcess);
         CloseHandle(pi.hThread);
         CloseHandle(hChildStd_OUT_Rd);
-
-        const_cast<AsyncProcessHandle&>(handle).m_processHandle = nullptr;
 #endif
 
-        const_cast<AsyncProcessHandle&>(handle).m_running = false;
+        // Note: We don't update handle.m_running here since handle was moved
+        // and we can't safely access it. IsReady() checks the future status instead.
         QueueCompletionCallback(completeCb, result);
         return result;
     });
