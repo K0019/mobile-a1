@@ -233,7 +233,7 @@ X(ENABLED, "Enabled")
 	\return
 		true if there is an overlap. False if not.
 	*//******************************************************************/
-	bool OverlapBox(std::vector<BoxColliderComp*>& outColliders, const Vec3& origin, const Vec3& halfExtent, const Vec3& orientation = Vec3{}, EntityLayersMask layers = EntityLayersMask{});
+	bool OverlapBox(std::vector<ecs::EntityHandle>& outColliders, const Vec3& origin, const Vec3& halfExtent, const Vec3& orientation = Vec3{}, EntityLayersMask layers = EntityLayersMask{});
 
 	/*****************************************************************//*!
 	\brief

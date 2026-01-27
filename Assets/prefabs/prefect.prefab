@@ -187,6 +187,13 @@
                 },
                 "17579205194823809952": {
                     "_active": true,
+                    "center": {
+                        "x": 0.0,
+                        "y": 0.800000011920929,
+                        "z": 0.0
+                    },
+                    "radius": 0.30000001192092896,
+                    "height": 1.2000000476837158,
                     "moveSpeed": 3.0,
                     "rotateSpeed": 14400.0,
                     "throwPower": 0.0,
@@ -233,31 +240,11 @@
                         }
                     ]
                 },
-                "18236831197208900764": {
-                    "_active": true,
-                    "center": {
-                        "x": 0.0,
-                        "y": 0.800000011920929,
-                        "z": 0.0
-                    },
-                    "size": {
-                        "x": 0.25,
-                        "y": 1.600000023841858,
-                        "z": 0.25
-                    },
-                    "flags": {
-                        "_majorityTrue": true,
-                        "_except": []
-                    }
-                },
                 "18288371625365795113": {
                     "_active": true,
                     "scripts": [
                         {
                             "scriptName": "enemydeath.lua"
-                        },
-                        {
-                            "scriptName": "winonhealthdepleted.lua"
                         }
                     ]
                 }
