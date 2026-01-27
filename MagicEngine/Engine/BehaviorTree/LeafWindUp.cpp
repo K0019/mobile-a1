@@ -22,7 +22,6 @@ NODE_STATUS L_WindUp::OnUpdate(ecs::EntityHandle entity)
 		return NODE_STATUS::FAILURE;
 	}
 
-	animComp->animHandleA = characterComp->animations[ATTACK];
 	currSpentTime += GameTime::Dt();
 
 	if (currSpentTime < enemyComp->windUpTime)

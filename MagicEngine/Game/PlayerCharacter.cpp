@@ -31,6 +31,7 @@ All rights reserved.
 #include "Game/Delusion.h"
 #include "Engine/Events/EventsQueue.h"
 #include "Engine/Events/EventsTypeBasic.h"
+#include "Graphics/AnimatorComponent.h"
 
 PlayerMovementComponent::PlayerMovementComponent()
 	: grabDistance{ 0.0f }
@@ -105,7 +106,7 @@ void PlayerMovementComponentSystem::UpdatePlayerMovementComponent(PlayerMovement
 	Vec2 camForward = Vec2{ cos(yawRad),sin(yawRad) };
 	Vec2 camRight = Vec2{ -sin(yawRad),cos(yawRad) };
 
-	if (!characterComp->isAttacking)
+	if (!characterComp->IsAttacking())
 	{
 		if (inputInstance->GetIsDown(KEY::W))
 			movement = movement + camForward;
@@ -184,8 +185,11 @@ void PlayerMovementComponentSystem::UpdatePlayerMovementComponent(PlayerMovement
 		characterComp->Throw(throwDirection);
 	}
 
-	if (inputInstance->GetIsPressed(KEY::M1) || EventsReader<Events::GameActionAttack>{}.ExtractEvent())
+	if (inputInstance->GetIsPressed(KEY::M1) || EventsReader<Events::GameActionAttack>{}.ExtractEvent()) {
 		characterComp->Attack();
+
+	}
+
 
 	if (inputInstance->GetIsPressed(KEY::R))
 		comp.UltimateAttack();

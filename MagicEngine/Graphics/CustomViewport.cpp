@@ -141,7 +141,12 @@ void CustomViewport::DrawWindow()
 		ImGui::Image(static_cast<ImTextureID>(sceneTextureId), renderSize, ImVec2(0, 1), ImVec2(1, 0));
 	}
 
-	if (ST<GameSystemsManager>::Get()->GetState() != GAMESTATE::IN_GAME && ST<GameSystemsManager>::Get()->GetState() != GAMESTATE::PAUSE)
+	// Draw and update gizmo
+	bool isDraggingGizmo{ m_gizmo.Draw(ST<EventsQueue>::Get()->RequestValueFromEventHandlers<ecs::EntityHandle>(Getters::EditorSelectedEntity{}).value_or(nullptr)) };
+
+	// Behaviors only enabled in editor mode
+	bool isEditorMode{ ST<GameSystemsManager>::Get()->GetState() == GAMESTATE::EDITOR };
+	if (isEditorMode)
 	{
 		// Publish camera matrices for gizmo rendering (use frameData which has the computed projection)
 		FrameData& fd = ST<GraphicsMain>::Get()->INTERNAL_GetFrameData();
@@ -200,6 +205,10 @@ void CustomViewport::DrawWindow()
 
 				ST<GraphicsMain>::Get()->RequestObjPick(renderX, renderY);
 			}
+
+			// Check for pick rsult from previous frame
+			if (ecs::EntityHandle pickedEntity{ ST<GraphicsMain>::Get()->PreviousPick() })
+				ST<EventsQueue>::Get()->AddEventForNextFrame(Events::EditorSelectEntity{ pickedEntity });
 		}
 
 		// Update gizmo usage tracking for next frame

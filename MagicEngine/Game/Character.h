@@ -24,23 +24,9 @@ All rights reserved.
 #include "Game/GrabbableItem.h"
 #include "Engine/Resources/ResourcesHeader.h"
 #include "Engine/Resources/Types/ResourceTypesGraphics.h"
+#include "Engine/AnimatorStateMachine.h"
 
-#define ANIMATIONS \
-X(IDLE,     "Idle")\
-X(WALK,     "Walk")\
-X(ATTACK,   "Attack")\
-X(HURT,   "Hurt")\
-X(DODGE,   "Dodge")\
-X(PARRY,   "Parry")\
-X(THROW,   "Throw")\
 
-#define X(type, name) type,
-enum ANIMATION_TYPES:size_t
-{
-	ANIMATIONS
-	ANIM_TOTAL
-};
-#undef X
 
 
 /*****************************************************************//*!
@@ -81,7 +67,6 @@ public:
 	float currentStunTime;
 	float currentDodgeTime;
 	float currentDodgeCooldown;
-	bool isAttacking;
 	float speedMultiplier;
 
 	/*****************************************************************//*!
@@ -98,11 +83,15 @@ public:
 	void DropItem();
 	void Throw(Vec3 direction);
 	void GrabItem(ecs::CompHandle<GrabbableItemComponent> item);
-	bool Attack();
+	void Attack();
+	bool IsAttacking() const;
 	bool IsDodging();
 	bool IsParrying();
 	void OnParrySuccess();
 	void Parry();
+
+	// Gets the GrabbableItem that this character is holding. If not holding anything, returns the GrabbableItem on the entity itself.
+	ecs::CompHandle<GrabbableItemComponent> GetHeldItem();
 
 	void Serialize(Serializer& writer) const override;
 	void Deserialize(Deserializer& reader) override;
@@ -185,4 +174,7 @@ private:
 		The CharacterMovementComponent to update.
 	*//******************************************************************/
 	void UpdateCharacterMovementComponent(CharacterMovementComponent& comp);
+
+	void ApplyAttack(size_t moveIndex, const Transform& transform, CharacterMovementComponent& charComp);
+
 };

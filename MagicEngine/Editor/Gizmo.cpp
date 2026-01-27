@@ -33,13 +33,13 @@ All rights reserved.
 
 namespace editor {
 
-    void Gizmo::Draw(ecs::EntityHandle selectedEntity)
+    bool Gizmo::Draw(ecs::EntityHandle selectedEntity)
     {
         // Only enable drawing of the gizmos if there is a selected entity
         ImGuizmo::Enable(selectedEntity);
 
         if (!selectedEntity)
-            return;
+            return false;
 
         Transform& transform{ selectedEntity->GetTransform() };
 
@@ -64,7 +64,7 @@ namespace editor {
         glm::mat4 V(1.f), P(1.f);
         bool isOrtho = false;
         if (!EditorCam_TryGet(V, P, isOrtho))
-            return;
+            return false;
 
         ImGuizmo::SetOrthographic(isOrtho);
 
@@ -112,7 +112,8 @@ namespace editor {
         ImGuizmo::Manipulate(view, proj, op, md, model, nullptr, snapPtr);
 
         // === WRITE-BACK to Transform when dragging ===
-        if (ImGuizmo::IsUsing())
+        bool isUsing{ ImGuizmo::IsUsing() };
+        if (isUsing)
         {
             // Decompose the (possibly modified) model matrix
             float t[3], r[3], s[3];
@@ -155,6 +156,8 @@ namespace editor {
 
         if (ImGuizmo::IsOver())
             ImGui::SetTooltip("Gizmo: hover");
+
+        return isUsing;
     }
 
 }

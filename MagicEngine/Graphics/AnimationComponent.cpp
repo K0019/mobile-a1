@@ -2,6 +2,7 @@
 #include "Graphics/RenderComponent.h"
 #include "Engine/Resources/ResourceManager.h"
 #include "Editor/Containers/GUICollection.h"
+#include "Graphics/AnimatorComponent.h"
 #include "Graphics/AnimationComponent.h"
 #include "Engine/Graphics Interface/GraphicsAPI.h"
 
@@ -296,6 +297,16 @@ void AnimationSystem::ProcessComp(AnimationComponent & comp)
     if (!renderComp)
         return;
 
+    ecs::EntityHandle entity = ecs::GetEntity(&comp);
+    AnimatorComponent* animatorComp = entity->GetComp<AnimatorComponent>();
+    if (!(animatorComp)) {
+        entity->AddComp<AnimatorComponent>(AnimatorComponent{ new sm::AnimStateMachine(new sm::IdleState())});
+        animatorComp = ecs::GetEntity(&comp)->GetComp<AnimatorComponent>();
+    }
+    //AnimatorComponent* animatorComp = ecs::GetEntity(&comp)->GetComp<AnimatorComponent>();
+    if (!animatorComp)
+        return;
+
     const ResourceMesh* mesh = renderComp->GetMesh();
     if (!mesh || mesh->handles.empty())
         return;
@@ -339,6 +350,13 @@ void AnimationSystem::ProcessComp(AnimationComponent & comp)
         {
             comp.timeB = advanceTime(comp.timeB, dt * comp.speed, clipB->duration(), comp.loop);
         }
+
+        // If the animation doesn't loop, indicate that we've stopped playing once the animation finishes
+        if (!comp.loop &&
+            (!clipA || math::NearZero(clipA->duration() - comp.timeA)) &&
+            (!clipB || math::NearZero(clipB->duration() - comp.timeB))
+        )
+            comp.isPlaying = false;
     }
 
     const auto* meshMetadata = graphicsAssetSystem.getMeshMetadata(mesh->handles[0]);
