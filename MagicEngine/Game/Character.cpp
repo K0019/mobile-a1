@@ -463,8 +463,8 @@ void CharacterMovementComponentSystem::UpdateCharacterMovementComponent(Characte
 		comp.currentStunTime -= GameTime::Dt();
 
 		// Can only come out of stun when on the ground
-		if (math::Abs(currVel.y) > 0.01f && comp.currentStunTime < 0.0f)
-			comp.currentStunTime = GameTime::Dt();
+		//if (math::Abs(currVel.y) > 0.01f && comp.currentStunTime < 0.0f)
+			//comp.currentStunTime = GameTime::Dt();
 		animatorComp->GetStateMachine()->blackboard["inputHurt"] = true;
 
 		//if (animComp->animHandleA.GetHash() != comp.animations[HURT].GetHash())
