@@ -45,7 +45,7 @@ public:
 	UserResourceHandle<ResourceMaterial> pickupUI;
 
 
-	void Attack(Vec3 origin, Vec3 direction);
+	void Attack(Vec3 origin, Vec3 extents);
 	/*****************************************************************//*!
 	\brief
 		Default constructor.

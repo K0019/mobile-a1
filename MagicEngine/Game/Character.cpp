@@ -489,13 +489,11 @@ void CharacterMovementComponentSystem::ApplyAttack(size_t moveIndex, const Trans
 
 	const auto& weaponMove{ weaponInfo->moves[moveIndex] };
 
-	// TODO: Relook at this math to make sure we're using the move's parameters correctly
-	
-	// Hard-code a simple start point etc for now
-	Vec3 rotation = transform.GetWorldRotation();
-	Vec3 direction(sin(math::ToRadians(rotation.y)), 0, cos(math::ToRadians(rotation.y)));
-	Vec3 startPoint = transform.GetWorldPosition() + direction * 0.5f * weaponMove.hitboxExtents.z;
-	startPoint.y += 0.8f;
+	// Calculate the hitbox position based on current player's position and rotation
+	float yRot{ math::ToRadians(transform.GetWorldRotation().y) };
+	Vec3 rotatedOffset{ glm::rotateY(weaponMove.hitboxOffset, yRot) };
+	Vec3 hitboxOrigin{ transform.GetWorldPosition() + rotatedOffset };
+	hitboxOrigin.y += 0.8f; // Add a bit of moving of the hitbox up from the floor automatically, if not needed can compensate in moves struct
 
 	/*auto hitDebugObject = thisComp->hitDebugObject;
 	if (hitDebugObject != nullptr)
@@ -505,6 +503,5 @@ void CharacterMovementComponentSystem::ApplyAttack(size_t moveIndex, const Trans
 		hitDebugObject->GetTransform().SetWorldScale(attackItem->GetComp<GrabbableItemComponent>()->attackBox);
 	}*/
 
-	// TODO: Refactor this function to use the WeaponMoveInfo's hitbox
-	charComp.GetHeldItem()->Attack(startPoint, direction);
+	charComp.GetHeldItem()->Attack(hitboxOrigin, weaponMove.hitboxExtents);
 }
