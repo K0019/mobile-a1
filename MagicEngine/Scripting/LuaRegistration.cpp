@@ -185,8 +185,8 @@ SCRIPT_GENERATE_COMP_WRAPPER_END()
 SCRIPT_GENERATE_COMP_WRAPPER_BEGIN(GrabbableItemComponent)
 SCRIPT_GENERATE_PROPERTY_FUNCS(float, GetDamage, SetDamage)
 SCRIPT_GENERATE_PROPERTY_FUNCS(bool, GetIsHeld, SetIsHeld)
-void AttackLua(const Vec3& origin, const Vec3& direction)
-{ GetHandle()->Attack(origin, direction);}
+void AttackLua(const Vec3& origin, const Vec3& extents)
+{ GetHandle()->Attack(origin, extents);}
 SCRIPT_GENERATE_COMP_WRAPPER_END()
 
 // HealthComponent
