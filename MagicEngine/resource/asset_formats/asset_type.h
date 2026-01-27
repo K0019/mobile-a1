@@ -21,6 +21,7 @@ namespace AssetFormat
         Script,
         Shader,
         Font,
+        GameData,  // Game-specific data files (e.g., .weapon)
         Count
     };
 
@@ -44,6 +45,7 @@ namespace AssetFormat
             case AssetType::Script:    return "Script";
             case AssetType::Shader:    return "Shader";
             case AssetType::Font:      return "Font";
+            case AssetType::GameData:  return "GameData";
             default:                   return "Unknown";
         }
     }
@@ -106,6 +108,10 @@ namespace AssetFormat
         if (extension == "ttf" || extension == "otf")
             return AssetType::Font;
 
+        // Game data formats
+        if (extension == "weapon")
+            return AssetType::GameData;
+
         return AssetType::Unknown;
     }
 
@@ -142,6 +148,7 @@ namespace AssetFormat
         if (name == "Script")    return AssetType::Script;
         if (name == "Shader")    return AssetType::Shader;
         if (name == "Font")      return AssetType::Font;
+        if (name == "GameData")  return AssetType::GameData;
         return AssetType::Unknown;
     }
 

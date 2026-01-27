@@ -55,6 +55,7 @@ using Resource::AnimationFile_MorphKey;
 #endif
 
 #include "Engine/Resources/MaterialSerialization.h"
+#include "Game/Weapon.h"
 
 using namespace ResourceImportHelpers;
 
@@ -753,4 +754,25 @@ bool ResourceImporters::ImportImage([[maybe_unused]] const std::string& assetRel
     return false;
 #endif
     return false;
+}
+
+// ============================================================================
+// Game Weapon Importer
+// ============================================================================
+
+bool ResourceImporters::ImportGameWeapon(const std::string& assetRelativeFilepath)
+{
+    WeaponInfo weaponInfo{};
+    Deserializer reader{ assetRelativeFilepath };
+    if (!reader.IsValid())
+    {
+        CONSOLE_LOG(LEVEL_ERROR) << "Unable to read game weapon file: " << assetRelativeFilepath;
+        return false;
+    }
+    reader.Deserialize(&weaponInfo);
+
+    const auto fileEntry{ GenerateFileEntryForResources<WeaponInfo>(assetRelativeFilepath, 1) };
+    weaponInfo.hash = fileEntry->associatedResources[0].hashes[0];
+    *ST<MagicResourceManager>::Get()->INTERNAL_GetContainer<WeaponInfo>().INTERNAL_GetResource(weaponInfo.hash, true) = std::move(weaponInfo);
+    return true;
 }
