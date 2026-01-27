@@ -31,6 +31,7 @@ All rights reserved.
 #include "Engine/Events/EventsQueue.h"
 #include "Engine/Events/EventsTypeBasic.h"
 #include "Editor/EditorCameraBridge.h"
+#include "ImGuizmo.h"
 
 CustomViewport::CustomViewport(unsigned int width, unsigned int height)
 	: WindowBase{ "Viewport", { 1366, 768 }, gui::FLAG_WINDOW::NO_SCROLL_BAR | gui::FLAG_WINDOW::NO_SCROLL_WITH_MOUSE }
@@ -142,29 +143,47 @@ void CustomViewport::DrawWindow()
 
 	if (ST<GameSystemsManager>::Get()->GetState() != GAMESTATE::IN_GAME && ST<GameSystemsManager>::Get()->GetState() != GAMESTATE::PAUSE)
 	{
+		// Publish camera matrices for gizmo rendering (use frameData which has the computed projection)
+		FrameData& fd = ST<GraphicsMain>::Get()->INTERNAL_GetFrameData();
+		glm::mat4 projForGizmo = fd.projMatrix;
+		projForGizmo[1][1] *= -1.0f; // Undo Vulkan Y-flip for ImGuizmo (expects OpenGL-style projection)
+		EditorCam_Publish(fd.viewMatrix, projForGizmo, false);
+
+		// Draw gizmo BEFORE picking logic so we can check ImGuizmo state
+		m_gizmo.Draw(ST<EventsQueue>::Get()->RequestValueFromEventHandlers<ecs::EntityHandle>(Getters::EditorSelectedEntity{}).value_or(nullptr));
+
+		// Track if gizmo was being used this frame (for blocking picks after drag release)
+		static bool wasUsingGizmo = false;
+		bool gizmoInUse = ImGuizmo::IsUsing();
+		bool gizmoHovered = ImGuizmo::IsOver();
+
 		// Left click to pick objects (when not dragging camera with right mouse)
-	static bool wasLeftMouseDown = false;
-	bool isLeftMouseDown = Input::GetMouseButtonUp(MouseButton::Left);
-	bool leftClickJustPressed = isLeftMouseDown && !wasLeftMouseDown;
-	wasLeftMouseDown = isLeftMouseDown;
+		static bool wasLeftMouseDown = false;
+		bool isLeftMouseDown = Input::GetMouseButtonUp(MouseButton::Left);
+		bool leftClickJustPressed = isLeftMouseDown && !wasLeftMouseDown;
+		wasLeftMouseDown = isLeftMouseDown;
 
-	if (leftClickJustPressed && !Input::GetMouseButton(MouseButton::Right))
-	{
-		ImVec2 mousePos = ImGui::GetMousePos();
+		// Skip picking if:
+		// - Gizmo is currently being used (shouldn't happen on release frame, but safety check)
+		// - Gizmo was being used last frame (user just released after dragging)
+		// - Gizmo is being hovered (user clicked on gizmo)
+		bool blockPicking = gizmoInUse || wasUsingGizmo || gizmoHovered;
 
-		// Convert to viewport-relative coordinates first
-		float viewportRelativeX = mousePos.x - (windowPosAbsolute.x + contentMin.x);
-		float viewportRelativeY = mousePos.y - (windowPosAbsolute.y + contentMin.y);
+		if (leftClickJustPressed && !Input::GetMouseButton(MouseButton::Right) && !blockPicking)
+		{
+			ImVec2 mousePos = ImGui::GetMousePos();
 
-		// Check if mouse is within the viewport bounds
-		bool isInViewport = (viewportRelativeX >= 0 && viewportRelativeX < viewportRenderSize.x &&
-			viewportRelativeY >= 0 && viewportRelativeY < viewportRenderSize.y);
+			// Convert to viewport-relative coordinates first
+			float viewportRelativeX = mousePos.x - (windowPosAbsolute.x + contentMin.x);
+			float viewportRelativeY = mousePos.y - (windowPosAbsolute.y + contentMin.y);
+
+			// Check if mouse is within the viewport bounds
+			bool isInViewport = (viewportRelativeX >= 0 && viewportRelativeX < viewportRenderSize.x &&
+				viewportRelativeY >= 0 && viewportRelativeY < viewportRenderSize.y);
 
 			if (isInViewport)
 			{
 				// Calculate the actual render target size
-				// You may need to get this from your graphics system
-				// For now, assuming it matches your configured width/height
 				float renderTargetWidth = static_cast<float>(width);
 				float renderTargetHeight = static_cast<float>(height);
 
@@ -179,40 +198,28 @@ void CustomViewport::DrawWindow()
 				renderX = std::max(0, std::min(renderX, static_cast<int>(renderTargetWidth) - 1));
 				renderY = std::max(0, std::min(renderY, static_cast<int>(renderTargetHeight) - 1));
 
-				if (ST<GraphicsMain>::Get()->RequestObjPick(renderX, renderY))
-				{
-					// Debug output
-					// std::cout << "Object pick requested at render target position (" << screenX << ", " << screenY << ")\n";
-					// std::cout << "  Viewport position: (" << viewportRelativeX << ", " << viewportRelativeY << ")\n";
-					// std::cout << "  Render target size: " << renderTargetWidth << "x" << renderTargetHeight << "\n";
-				}
+				ST<GraphicsMain>::Get()->RequestObjPick(renderX, renderY);
 			}
 		}
 
-	// Check for pick rsult from previous frame
-	ecs::EntityHandle pickedEntity = ST<GraphicsMain>::Get()->PreviousPick();
-	if (pickedEntity)
-	{
-		ST<EventsQueue>::Get()->AddEventForNextFrame(Events::EditorSelectEntity{ pickedEntity });
-	}
+		// Update gizmo usage tracking for next frame
+		wasUsingGizmo = gizmoInUse;
 
+		// Check for pick result from previous frame
+		ecs::EntityHandle pickedEntity = ST<GraphicsMain>::Get()->PreviousPick();
+		if (pickedEntity)
+		{
+			ST<EventsQueue>::Get()->AddEventForNextFrame(Events::EditorSelectEntity{ pickedEntity });
+		}
 
-	// Publish camera matrices for gizmo rendering (use frameData which has the computed projection)
-	FrameData& fd = ST<GraphicsMain>::Get()->INTERNAL_GetFrameData();
-	glm::mat4 projForGizmo = fd.projMatrix;
-	projForGizmo[1][1] *= -1.0f; // Undo Vulkan Y-flip for ImGuizmo (expects OpenGL-style projection)
-	EditorCam_Publish(fd.viewMatrix, projForGizmo, false);
+		//==========================
 
-	m_gizmo.Draw(ST<EventsQueue>::Get()->RequestValueFromEventHandlers<ecs::EntityHandle>(Getters::EditorSelectedEntity{}).value_or(nullptr));
-
-	//==========================
-
-	gui::PayloadTarget<std::string>("PREFAB", [camera = &camera](const std::string& prefabName) -> void {
-		ecs::EntityHandle entity{ PrefabManager::LoadPrefab(prefabName) };
-		ST<History>::Get()->OneEvent(HistoryEvent_EntityCreate{ entity });
-		entity->GetTransform().SetWorldPosition(camera->getPosition());
-		ST<EventsQueue>::Get()->AddEventForNextFrame(Events::EditorSelectEntity{ entity });
-	});
+		gui::PayloadTarget<std::string>("PREFAB", [camera = &camera](const std::string& prefabName) -> void {
+			ecs::EntityHandle entity{ PrefabManager::LoadPrefab(prefabName) };
+			ST<History>::Get()->OneEvent(HistoryEvent_EntityCreate{ entity });
+			entity->GetTransform().SetWorldPosition(camera->getPosition());
+			ST<EventsQueue>::Get()->AddEventForNextFrame(Events::EditorSelectEntity{ entity });
+		});
 	}
 }
 
