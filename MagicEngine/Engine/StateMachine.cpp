@@ -60,10 +60,6 @@ namespace sm {
 
 #pragma region Full
 
-	void TransitionBase::OnTaken(StateMachine*)
-	{
-	}
-
 	State::State(const std::initializer_list<ActivityBase*>& activities, const std::initializer_list<TransitionBase*>& transitions)
 		: nextState{ nullptr }
 		, activities{ activities }

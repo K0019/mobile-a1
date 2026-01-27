@@ -314,6 +314,59 @@ namespace sm {
 	public:
 		void OnUpdate(sm::StateMachine* sm) override;
 	};
+
+
+	// Delusion versions of activities
+	class DelusionIdleActivity : public sm::AnimActivityBase<DelusionIdleActivity>
+	{
+	public:
+		void OnEnter(sm::StateMachine* sm) override;
+	};
+
+	class DelusionWalkActivity : public sm::AnimActivityBase<DelusionWalkActivity>
+	{
+	public:
+		void OnEnter(sm::StateMachine* sm) override;
+	};
+
+	class DelusionAttackActivity : public sm::AnimActivityBase<DelusionAttackActivity>
+	{
+	public:
+		DelusionAttackActivity(size_t moveIndex, ANIM_INPUT_TYPE attackType);
+
+		void OnEnter(sm::StateMachine* sm) override;
+		void OnUpdate(sm::StateMachine* sm) override;
+		void OnExit(sm::StateMachine* sm) override;
+
+	private:
+		size_t moveIndex;
+		ANIM_INPUT_TYPE attackType;
+	};
+
+	class DelusionHurtActivity : public sm::AnimActivityBase<DelusionHurtActivity>
+	{
+	public:
+		void OnEnter(sm::StateMachine* sm) override;
+		void OnExit(sm::StateMachine* sm) override;
+	};
+
+	class DelusionDodgeActivity : public sm::AnimActivityBase<DelusionDodgeActivity>
+	{
+	public:
+		void OnEnter(sm::StateMachine* sm) override;
+	};
+
+	class DelusionParryActivity : public sm::AnimActivityBase<DelusionParryActivity>
+	{
+	public:
+		void OnEnter(sm::StateMachine* sm) override;
+	};
+
+	class DelusionThrowActivity : public sm::AnimActivityBase<DelusionThrowActivity>
+	{
+	public:
+		void OnEnter(sm::StateMachine* sm) override;
+	};
 	
 
 	//======================================================================
@@ -408,6 +461,76 @@ namespace sm {
 		bool Decide(sm::StateMachine* sm) override;
 	};
 
+	class InToDelusionTransition : public sm::AnimTransitionBase<InToDelusionTransition>
+	{
+		public:
+		InToDelusionTransition();
+		bool Decide(sm::StateMachine* sm) override;
+	};
+
+
+	// Delusion versions of transitions
+	class ToDelusionIdleTransition : public sm::AnimTransitionBase<ToDelusionIdleTransition>
+	{
+	public:
+		ToDelusionIdleTransition();
+		bool Decide(sm::StateMachine* sm) override;
+	};
+
+	class ToDelusionWalkTransition : public sm::AnimTransitionBase<ToDelusionWalkTransition>
+	{
+	public:
+		ToDelusionWalkTransition();
+		bool Decide(sm::StateMachine* sm) override;
+	};
+
+	template <typename ToState>
+	class ToDelusionAttackTransition : public sm::AnimTransitionBase<ToDelusionAttackTransition<ToState>>
+	{
+	private:
+		ANIM_INPUT_TYPE attackType;
+
+	public:
+		ToDelusionAttackTransition(ANIM_INPUT_TYPE attackType)
+			: sm::AnimTransitionBase<ToDelusionAttackTransition>(SET_NEXT_STATE(ToState))
+			, attackType{ attackType }
+		{
+		}
+
+		bool Decide(sm::StateMachine* sm) override
+		{
+			return ToDelusionAttackTransition<ToState>::CastSM(sm)->GetBlackboardVal<bool>(AnimInputTypeToKey(attackType));
+		}
+	};
+
+	class ToDelusionHurtTransition : public sm::AnimTransitionBase<ToDelusionHurtTransition>
+	{
+	public:
+		ToDelusionHurtTransition();
+		bool Decide(sm::StateMachine* sm) override;
+	};
+
+	class ToDelusionDodgeTransition : public sm::AnimTransitionBase<ToDelusionDodgeTransition>
+	{
+	public:
+		ToDelusionDodgeTransition();
+		bool Decide(sm::StateMachine* sm) override;
+	};
+
+	class ToDelusionParryTransition : public sm::AnimTransitionBase<ToDelusionParryTransition>
+	{
+	public:
+		ToDelusionParryTransition();
+		bool Decide(sm::StateMachine* sm) override;
+	};
+
+	class ToDelusionThrowTransition : public sm::AnimTransitionBase<ToDelusionThrowTransition>
+	{
+	public:
+		ToDelusionThrowTransition();
+		bool Decide(sm::StateMachine* sm) override;
+	};
+
 	//======================================================================
 	// STATE DECLARATIONS
 	//======================================================================
@@ -422,6 +545,8 @@ namespace sm {
 
 	class DodgeState : public sm::State { public: DodgeState(); };
 
+
+
 	class ParryState : public sm::State
 	{
 	public:
@@ -435,6 +560,23 @@ namespace sm {
 	};
 
 
+
+	// Delusion versions of states
+	class DelusionIdleState : public sm::State { public: DelusionIdleState(); };
+
+	class DelusionWalkState : public sm::State { public: DelusionWalkState(); };
+
+	class DelusionAttackState : public sm::State { public: DelusionAttackState(); };
+
+	class DelusionHurtState : public sm::State { public: DelusionHurtState(); };
+
+	class DelusionDodgeState : public sm::State { public: DelusionDodgeState(); };
+
+	class DelusionParryState : public sm::State{public: DelusionParryState();};
+
+	class DelusionThrowState : public sm::State{public: DelusionThrowState();};
+
+	// Attacks
 	class LightAttackPlayer1 : public sm::State { public: LightAttackPlayer1(); };
 	class LightAttackPlayer2 : public sm::State { public: LightAttackPlayer2(); };
 	class LightAttackPlayer3 : public sm::State { public: LightAttackPlayer3(); };
