@@ -86,6 +86,8 @@ void GrabbableItemComponent::Attack(Vec3 origin, Vec3 extents)
 			if (dealDamage)
 			{
 				Vec3 knockbackDirection{ hitEntity->GetTransform().GetWorldPosition() - owner->GetTransform().GetWorldPosition() };
+				knockbackDirection.y = 0.0f;
+				knockbackDirection = knockbackDirection.Normalized();
 				healthComp->TakeDamage(attackDamage, knockbackDirection);
 			}
 			//damage taken tied to delusion for now
