@@ -12,6 +12,44 @@ namespace gui
 		void NextItem();
 	};
 
+	class GridItem
+	{
+	public:
+		GridItem(int id, bool doSameLine);
+		GridItem(const GridItem&) = delete;
+		~GridItem();
+
+	private:
+		// So Group dies before doing SameLine(), do a bit of hacking with memory so we control the lifetime ourselves
+		struct PerItemVars
+		{
+			gui::SetID id;
+			gui::Group group;
+		};
+		std::array<std::uint8_t, sizeof(PerItemVars)> varsMem;
+		bool doSameLine;
+	};
+
+	class NewGridHelper
+	{
+	private:
+		int itemCount;
+		int columnsCount;
+
+		gui::SetStyleVar itemSpacing;
+		gui::SetStyleVar framePadding;
+
+	public:
+		NewGridHelper(float thumbnailSize);
+
+		[[nodiscard]] inline GridItem Item()
+		{
+			++itemCount;
+			return GridItem{ itemCount, itemCount % columnsCount != 0 };
+		}
+
+	};
+
 	std::string TruncateText(const std::string& text, float maxWidth);
 	void ThumbnailLabel(const std::string& text, float thumbnailWidth);
 
