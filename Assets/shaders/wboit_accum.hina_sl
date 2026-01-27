@@ -31,13 +31,26 @@ bindings(Dynamic, start=0) {
   uniform(std140) TransformUBO {
     mat4 model;
     uint objectId;  // For object picking (unused in WBOIT but needed for layout compatibility)
-    uint _pad0;
+    uint flags;     // Bit 0: negative determinant (for mirrored transforms)
     uint _pad1;
     uint _pad2;
   } transform;
   uniform(std140) BoneMatricesUBO {
     mat4 bones[256];
   } skin;
+}
+
+// Adjoint matrix helper - computes the transpose of the cofactor matrix
+// Correctly transforms normals for ANY determinant (including negative/mirrored)
+// Faster than transpose(inverse()) - just 3 cross products
+snippet MathUtils {
+    mat3 adjoint(mat4 m) {
+        return mat3(
+            cross(m[1].xyz, m[2].xyz),
+            cross(m[2].xyz, m[0].xyz),
+            cross(m[0].xyz, m[1].xyz)
+        );
+    }
 }
 
 // Light UBO - each light is 4 vec4s (same as composite shader)
@@ -74,7 +87,7 @@ struct FragOut {
 };
 #hina_end
 
-#hina_stage vertex entry VSMain
+#hina_stage vertex entry VSMain use MathUtils
 Varyings VSMain(VertexIn in) {
     Varyings out;
 
@@ -104,9 +117,11 @@ Varyings VSMain(VertexIn in) {
     float tz = sqrt(max(0.001, 1.0 - tx * tx - ty * ty));
     vec3 localTangent = normalize(vec3(tx, ty, tz));
 
-    mat3 normalMatrix = transpose(inverse(mat3(transform.model)));
+    // Use adjoint matrix for normals - handles non-uniform scale AND negative determinant
+    mat3 normalMatrix = adjoint(transform.model);
+    mat3 modelMatrix3 = mat3(transform.model);
     out.normal = normalize(normalMatrix * localNormal);
-    out.tangent = normalize(normalMatrix * localTangent);
+    out.tangent = normalize(modelMatrix3 * localTangent);  // Tangents use regular matrix
     out.bitangentSign = handedness;
 
     out.uv = unpackUnorm2x16(in.a_uv);
@@ -148,7 +163,7 @@ FragOut FSMain(Varyings in) {
         vec3 normalMap = normalSample * 2.0 - 1.0;
         N = normalize(TBN * normalMap);
     }
-    N = -N;  // Match gbuffer convention
+    // Normal now consistent with gbuffer (no negation needed after adjoint fix)
 
     // Material properties
     vec2 mr = texture(u_metallicRoughness, in.uv).bg;

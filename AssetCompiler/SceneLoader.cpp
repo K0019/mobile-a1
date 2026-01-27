@@ -89,7 +89,7 @@ namespace compiler
             return 0;  // Mixed/unknown
     }
 
-    // Fixes CW winding by reversing triangle indices to CCW
+    // Fixes CW winding by reversing triangle indices to CCW and flipping normals
     void FixWindingOrder(ProcessedMesh& mesh)
     {
         int winding = DetectWindingOrder(mesh);
@@ -103,8 +103,16 @@ namespace compiler
                 // Swap indices 1 and 2 to reverse winding: (0,1,2) -> (0,2,1)
                 std::swap(mesh.indices[tri * 3 + 1], mesh.indices[tri * 3 + 2]);
             }
+
+            // Also flip all vertex normals since we reversed the geometric facing
+            // Without this, normals would point "into" the surface after winding fix
+            for (auto& v : mesh.vertices)
+            {
+                v.normal = -v.normal;
+            }
+
             std::cerr << "[WINDING FIX] Mesh '" << mesh.name << "': Reversed " << numTriangles
-                      << " triangles from CW to CCW\n" << std::flush;
+                      << " triangles from CW to CCW and flipped " << mesh.vertices.size() << " normals\n" << std::flush;
         }
     }
 
@@ -128,19 +136,23 @@ namespace compiler
                   << "  Detected winding: " << windingStr << "\n" << std::flush;
     }
 
-    // Fixes vertex normals for meshes with inconsistent normals by regenerating from geometry
+    // Fixes vertex normals for meshes with inconsistent or inverted normals by regenerating from geometry
     // Uses area-weighted smooth normals (unnormalized cross product = 2x area)
+    // Called AFTER FixWindingOrder, so winding should be CCW. Handles:
+    // - winding == 0 (MIXED): some normals point wrong way
+    // - winding == -1 (INVERTED): all normals point wrong way (can happen after winding fix)
     void FixInconsistentNormals(ProcessedMesh& mesh)
     {
         int winding = DetectWindingOrder(mesh);
-        if (winding != 0) // Only fix MIXED meshes (winding == 0)
+        if (winding == 1) // Only skip if normals are already correct (CCW agreement)
             return;
 
         if (mesh.vertices.empty() || mesh.indices.empty() || mesh.indices.size() % 3 != 0)
             return;
 
-        std::cerr << "[NORMAL FIX] Mesh '" << mesh.name << "': Attempting to fix "
-                  << mesh.vertices.size() << " vertices, " << mesh.indices.size() / 3 << " triangles\n" << std::flush;
+        const char* issueType = (winding == 0) ? "MIXED" : "INVERTED";
+        std::cerr << "[NORMAL FIX] Mesh '" << mesh.name << "': Detected " << issueType << " normals, regenerating from geometry ("
+                  << mesh.vertices.size() << " vertices, " << mesh.indices.size() / 3 << " triangles)\n" << std::flush;
 
         // Initialize all normals to zero
         for (auto& v : mesh.vertices)

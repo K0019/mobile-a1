@@ -31,13 +31,26 @@ bindings(Dynamic, start=0) {
   uniform(std140) TransformUBO {
     mat4 model;
     uint objectId;  // For object picking
-    uint _pad0;     // Padding for std140 alignment
+    uint flags;     // Bit 0: negative determinant (for mirrored transforms)
     uint _pad1;
     uint _pad2;
   } transform;
   uniform(std140) BoneMatricesUBO {
     mat4 bones[256];
   } skin;
+}
+
+// Adjoint matrix helper - computes the transpose of the cofactor matrix
+// Correctly transforms normals for ANY determinant (including negative/mirrored)
+// Faster than transpose(inverse()) - just 3 cross products
+snippet MathUtils {
+    mat3 adjoint(mat4 m) {
+        return mat3(
+            cross(m[1].xyz, m[2].xyz),
+            cross(m[2].xyz, m[0].xyz),
+            cross(m[0].xyz, m[1].xyz)
+        );
+    }
 }
 
 // Split vertex streams (24 bytes total):
@@ -67,7 +80,7 @@ struct FragOut {
 };
 #hina_end
 
-#hina_stage vertex entry VSMain
+#hina_stage vertex entry VSMain use MathUtils
 Varyings VSMain(VertexIn in) {
     Varyings out;
 
@@ -102,9 +115,9 @@ Varyings VSMain(VertexIn in) {
     float tz = sqrt(max(0.001, 1.0 - tx * tx - ty * ty));
     vec3 localTangent = normalize(vec3(tx, ty, tz));
 
-    // Normal matrix (transpose-inverse) handles non-uniform scale for normals
-    // Tangents are regular vectors and use the standard model matrix
-    mat3 normalMatrix = transpose(inverse(mat3(transform.model)));
+    // Use adjoint matrix for normals - handles non-uniform scale AND negative determinant
+    // Faster than transpose(inverse()) and automatically correct for mirrored transforms
+    mat3 normalMatrix = adjoint(transform.model);
     mat3 modelMatrix3 = mat3(transform.model);
     out.normal = normalize(normalMatrix * localNormal);
     out.tangent = normalize(modelMatrix3 * localTangent);

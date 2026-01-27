@@ -913,13 +913,17 @@ void SceneRenderFeature::ExecuteGBufferPass(internal::ExecutionContext& ctx)
         break;
       }
 
-      // Write transform and objectId to ring buffer at current offset
+      // Write transform, objectId, and flags to ring buffer at current offset
       uint8_t* slotPtr = static_cast<uint8_t*>(frame.transformRingMapped) + frame.transformRingOffset;
       glm::mat4* transformDst = reinterpret_cast<glm::mat4*>(slotPtr);
       *transformDst = draw.transform;
       // Write objectId at offset 64 (after mat4)
       uint32_t* objectIdDst = reinterpret_cast<uint32_t*>(slotPtr + sizeof(glm::mat4));
       *objectIdDst = draw.objectId;
+      // Write flags at offset 68 - bit 0 = negative determinant (for mirrored transforms)
+      uint32_t* flagsDst = reinterpret_cast<uint32_t*>(slotPtr + sizeof(glm::mat4) + sizeof(uint32_t));
+      float det = glm::determinant(draw.transform);
+      *flagsDst = (det < 0.0f) ? 1u : 0u;
 
       // Bind split vertex streams with offsets (2 buffers for static)
       hina_vertex_input meshInput = {};
@@ -980,13 +984,17 @@ void SceneRenderFeature::ExecuteGBufferPass(internal::ExecutionContext& ctx)
             break;
           }
 
-          // Write transform and objectId to ring buffer
+          // Write transform, objectId, and flags to ring buffer
           uint8_t* slotPtr = static_cast<uint8_t*>(frame.transformRingMapped) + frame.transformRingOffset;
           glm::mat4* transformDst = reinterpret_cast<glm::mat4*>(slotPtr);
           *transformDst = draw.transform;
           // Write objectId at offset 64 (after mat4)
           uint32_t* objectIdDst = reinterpret_cast<uint32_t*>(slotPtr + sizeof(glm::mat4));
           *objectIdDst = draw.objectId;
+          // Write flags at offset 68 - bit 0 = negative determinant
+          uint32_t* flagsDst = reinterpret_cast<uint32_t*>(slotPtr + sizeof(glm::mat4) + sizeof(uint32_t));
+          float det = glm::determinant(draw.transform);
+          *flagsDst = (det < 0.0f) ? 1u : 0u;
 
           // Write bone matrices to ring buffer (up to MAX_BONES_PER_MESH)
           // Initialize all slots to identity first, then copy actual bones
@@ -1080,12 +1088,16 @@ void SceneRenderFeature::ExecuteGBufferPass(internal::ExecutionContext& ctx)
             break;
           }
 
-          // Write transform and objectId to ring buffer
+          // Write transform, objectId, and flags to ring buffer
           uint8_t* slotPtr = static_cast<uint8_t*>(frame.transformRingMapped) + frame.transformRingOffset;
           glm::mat4* transformDst = reinterpret_cast<glm::mat4*>(slotPtr);
           *transformDst = draw.transform;
           uint32_t* objectIdDst = reinterpret_cast<uint32_t*>(slotPtr + sizeof(glm::mat4));
           *objectIdDst = draw.objectId;
+          // Write flags at offset 68 - bit 0 = negative determinant
+          uint32_t* flagsDst = reinterpret_cast<uint32_t*>(slotPtr + sizeof(glm::mat4) + sizeof(uint32_t));
+          float det = glm::determinant(draw.transform);
+          *flagsDst = (det < 0.0f) ? 1u : 0u;
 
           // Write bone matrices to ring buffer
           uint32_t numBones = std::min(draw.jointCount, gfx::MAX_BONES_PER_MESH);
@@ -1307,13 +1319,17 @@ void SceneRenderFeature::ExecuteWBOITAccumulation(internal::ExecutionContext& ct
       lastMaterialBG = {};
     }
 
-    // Write transform and objectId to ring buffer
+    // Write transform, objectId, and flags to ring buffer
     uint8_t* slotPtr = static_cast<uint8_t*>(frame.transformRingMapped) + frame.transformRingOffset;
     glm::mat4* transformDst = reinterpret_cast<glm::mat4*>(slotPtr);
     *transformDst = draw.transform;
     // Write objectId at offset 64 (after mat4) - for consistency with G-buffer shader UBO layout
     uint32_t* objectIdDst = reinterpret_cast<uint32_t*>(slotPtr + sizeof(glm::mat4));
     *objectIdDst = draw.objectId;
+    // Write flags at offset 68 - bit 0 = negative determinant
+    uint32_t* flagsDst = reinterpret_cast<uint32_t*>(slotPtr + sizeof(glm::mat4) + sizeof(uint32_t));
+    float det = glm::determinant(draw.transform);
+    *flagsDst = (det < 0.0f) ? 1u : 0u;
 
     // Handle bone matrices for skinned meshes
     uint32_t boneOffset = 0;
@@ -2519,6 +2535,10 @@ void SceneRenderFeature::ExecuteDeferredTilePass(internal::ExecutionContext& ctx
       *transformDst = draw.transform;
       uint32_t* objectIdDst = reinterpret_cast<uint32_t*>(slotPtr + sizeof(glm::mat4));
       *objectIdDst = draw.objectId;
+      // Write flags at offset 68 - bit 0 = negative determinant
+      uint32_t* flagsDst = reinterpret_cast<uint32_t*>(slotPtr + sizeof(glm::mat4) + sizeof(uint32_t));
+      float det = glm::determinant(draw.transform);
+      *flagsDst = (det < 0.0f) ? 1u : 0u;
 
       hina_vertex_input meshInput = {};
       meshInput.vertex_buffers[0] = gpuMesh->vertexBuffer;
@@ -2564,6 +2584,10 @@ void SceneRenderFeature::ExecuteDeferredTilePass(internal::ExecutionContext& ctx
         *transformDst = draw.transform;
         uint32_t* objectIdDst = reinterpret_cast<uint32_t*>(slotPtr + sizeof(glm::mat4));
         *objectIdDst = draw.objectId;
+        // Write flags at offset 68 - bit 0 = negative determinant
+        uint32_t* flagsDst = reinterpret_cast<uint32_t*>(slotPtr + sizeof(glm::mat4) + sizeof(uint32_t));
+        float det = glm::determinant(draw.transform);
+        *flagsDst = (det < 0.0f) ? 1u : 0u;
 
         uint32_t numBones = std::min(draw.jointCount, gfx::MAX_BONES_PER_MESH);
         glm::mat4* bonesDst = reinterpret_cast<glm::mat4*>(
@@ -2620,6 +2644,10 @@ void SceneRenderFeature::ExecuteDeferredTilePass(internal::ExecutionContext& ctx
         *transformDst = draw.transform;
         uint32_t* objectIdDst = reinterpret_cast<uint32_t*>(slotPtr + sizeof(glm::mat4));
         *objectIdDst = draw.objectId;
+        // Write flags at offset 68 - bit 0 = negative determinant
+        uint32_t* flagsDst = reinterpret_cast<uint32_t*>(slotPtr + sizeof(glm::mat4) + sizeof(uint32_t));
+        float det = glm::determinant(draw.transform);
+        *flagsDst = (det < 0.0f) ? 1u : 0u;
 
         uint32_t numBones = std::min(draw.jointCount, gfx::MAX_BONES_PER_MESH);
         glm::mat4* bonesDst = reinterpret_cast<glm::mat4*>(
