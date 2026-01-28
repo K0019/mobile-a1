@@ -159,6 +159,7 @@ void CharacterMovementComponent::DropItem()
 	{
 		physicsComp->SetFlag(physics::PHYSICS_COMP_FLAG::ENABLED, true);
 		physicsComp->SetFlag(physics::PHYSICS_COMP_FLAG::USE_GRAVITY, true);
+		physicsComp->SetFlag(physics::PHYSICS_COMP_FLAG::IS_KINEMATIC, false);
 	}
 	if (auto colliderComp{ heldItem->GetComp<physics::BoxColliderComp>() })
 	{

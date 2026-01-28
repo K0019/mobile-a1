@@ -3,9 +3,9 @@
         {
             "parentIndex": -1,
             "position": {
-                "x": 0.0,
-                "y": 1.0,
-                "z": -1.5
+                "x": 10.0,
+                "y": 0.10000000149011612,
+                "z": 1.826216697692871
             },
             "rotation": {
                 "x": 0.0,
@@ -36,7 +36,7 @@
                 "137465014557233347": {
                     "_active": true,
                     "weaponInfo": {
-                        "hash": 115309083751535805
+                        "hash": 1
                     },
                     "damage": 1.0,
                     "attackBox": {
@@ -127,7 +127,7 @@
                 "5725819782531291880": {
                     "_active": true,
                     "behaviorTree": {
-                        "btName": "enemy_female"
+                        "btName": "rangeenemy"
                     }
                 },
                 "6766054303456732338": {
@@ -154,7 +154,7 @@
                 },
                 "9315785795257285655": {
                     "_active": true,
-                    "uid": 9037289590268831299
+                    "uid": 8079712818205893791
                 },
                 "9501525575059265452": {
                     "_active": true,
@@ -184,7 +184,7 @@
                 },
                 "16763493199777387366": {
                     "_active": true,
-                    "combatRange": 3.0,
+                    "combatRange": 2.0,
                     "windUpTime": 0.20000000298023224,
                     "attackTime": 0.5,
                     "followThroughTime": 0.30000001192092896,
@@ -207,7 +207,7 @@
                     "height": 1.2000000476837158,
                     "moveSpeed": 1.7999999523162842,
                     "rotateSpeed": 200.0,
-                    "throwPower": 0.0,
+                    "throwPower": 5.0,
                     "parryCoolDownTime": 0.0,
                     "parryTime": 0.0,
                     "parryDelusion": 0.0,
@@ -225,7 +225,7 @@
                         "entityUid": 0
                     },
                     "heldItem": {
-                        "entityUid": 133438930379527913
+                        "entityUid": 0
                     },
                     "animations": [
                         {

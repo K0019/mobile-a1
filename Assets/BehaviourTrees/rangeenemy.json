@@ -1,0 +1,21 @@
+{
+    "name": "rangeenemy",
+    "nodes": [
+        {
+            "nodeType": "Sequence",
+            "nodeLevel": 0
+        },
+        {
+            "nodeType": "L_Range_CheckAttack",
+            "nodeLevel": 1
+        },
+        {
+            "nodeType": "D_Range_HasWeapon",
+            "nodeLevel": 1
+        },
+        {
+            "nodeType": "L_Range_MoveToWeapon",
+            "nodeLevel": 2
+        }
+    ]
+}
