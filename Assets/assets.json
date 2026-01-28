@@ -4649,6 +4649,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/lookaround_mobile.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 449029553677404281,
+                            "name": "lookaround_mobile0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/materials/standardsurface1_1011.material",
             "resources": [
                 {
@@ -5755,6 +5769,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/lookaround_pc.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 442856895399067291,
+                            "name": "lookaround_pc0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/models/glb/mc_animated/_14.ktx2",
             "resources": [
                 {
@@ -6057,6 +6085,20 @@
                         {
                             "hash": 789826481615239203,
                             "name": "field4137545773274183170"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/materials/t_lookaroundmobile.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 3548139416006224513,
+                            "name": "t_lookaroundmobile0"
                         }
                     ]
                 }
@@ -6805,6 +6847,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/materials/t_lookaroundpc.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 488107296440303187,
+                            "name": "t_lookaroundpc0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/models/glb/aji/player_idle_mixamo/_23.ktx2",
             "resources": [
                 {
@@ -7107,6 +7163,20 @@
                         {
                             "hash": 82355620140082399,
                             "name": "dodge icon0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/kickme.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 3060798479178107079,
+                            "name": "kickme0"
                         }
                     ]
                 }
@@ -8345,6 +8415,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/materials/ui_kickme.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 6745750127019234173,
+                            "name": "ui_kickme0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "sounds/sfx/ultimate activation.wav",
             "resources": [
                 {
@@ -9053,6 +9137,20 @@
                         {
                             "hash": 2264719076018723067,
                             "name": "paper0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/materials/kickme.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 3646119096178176623,
+                            "name": "kickme0"
                         }
                     ]
                 }
