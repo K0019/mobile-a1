@@ -1,6 +1,6 @@
 /******************************************************************************/
 /*!
-\file   AndroidUIDeleter.h
+\file   AndroidMaterialSwapper.h
 \par    Project: KuroMahou
 \par    Course: CSD3401
 \par    Software Engineering Project 5
@@ -11,8 +11,8 @@
 \par    DigiPen login: m.chan
 
 \brief
-      This is the header file that contains the declaration of the AndroidUIDeleter.
-      Its sole purpose is to delete the entity it is attached to if NOT on android.
+      This is the header file that contains the declaration of the AndroidMaterialSwapper.
+      Its sole purpose is to swap materials if on android.
 
 All content © 2025 DigiPen Institute of Technology Singapore.
 All rights reserved.
@@ -24,10 +24,10 @@ All rights reserved.
 #include "ECS/IEditorComponent.h"
 #include "Game/IGameComponentCallbacks.h"
 
-class AndroidUIDeleterComp
-    : public IRegisteredComponent<AndroidUIDeleterComp>
-    , public IEditorComponent<AndroidUIDeleterComp>
-    , public IGameComponentCallbacks<AndroidUIDeleterComp>
+class AndroidMaterialSwapperComp
+    : public IRegisteredComponent<AndroidMaterialSwapperComp>
+    , public IEditorComponent<AndroidMaterialSwapperComp>
+    , public IGameComponentCallbacks<AndroidMaterialSwapperComp>
 {
 public:
     /*****************************************************************//*!
@@ -41,7 +41,7 @@ public:
 
     property_vtable()
 };
-property_begin(AndroidUIDeleterComp)
+property_begin(AndroidMaterialSwapperComp)
 {
 }
-property_vend_h(AndroidUIDeleterComp)
+property_vend_h(AndroidMaterialSwapperComp)

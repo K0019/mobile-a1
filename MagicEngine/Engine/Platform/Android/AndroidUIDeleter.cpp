@@ -1,6 +1,6 @@
 /******************************************************************************/
 /*!
-\file   AndroidInputManager.cpp
+\file   AndroidUIDeleter.cpp
 \par    Project: KuroMahou
 \par    Course: CSD3401
 \par    Software Engineering Project 5
