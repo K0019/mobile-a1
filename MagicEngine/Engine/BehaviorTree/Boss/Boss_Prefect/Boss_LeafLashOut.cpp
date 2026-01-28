@@ -13,6 +13,8 @@ float L_Boss_Prefect_LashOut::attackDistance = 2.0f * 2.0f;
 float L_Boss_Prefect_LashOut::speedMultiplier = 3.0f;
 int L_Boss_Prefect_LashOut::attackCount = 4;
 
+#define SPEEDUP 1.3f // Speed up so we can land the hits
+
 void L_Boss_Prefect_LashOut::OnInitialize()
 {
     currentAttackCooldown = attackCooldown;
@@ -32,12 +34,15 @@ NODE_STATUS L_Boss_Prefect_LashOut::OnUpdate([[maybe_unused]] ecs::EntityHandle 
 
         if (dir.LengthSqr() <= attackDistance || impendingAttack)
         {
+            // Rotate towards player during attack
+            Boss_Prefect_Util::RotateTowards(entity, dir);
+
             if (currentAttackDelay <= 0.0f)
             {
                 auto animComp = entity->GetComp<AnimationComponent>();
                 if (animComp)
                 {
-                    entity->GetComp<GrabbableItemComponent>()->Attack(entity->GetTransform().GetWorldPosition(), Vec3{ dir.x, 0.0f, dir.y });
+                    entity->GetComp<GrabbableItemComponent>()->Attack(entity->GetTransform().GetWorldPosition(), Vec3{ dir.x, 0.0f, dir.y});
                     animComp->TransitionTo(5858584981951944119, 0.1f);
                     animComp->timeA = 0.0f;
                 }
@@ -65,7 +70,7 @@ NODE_STATUS L_Boss_Prefect_LashOut::OnUpdate([[maybe_unused]] ecs::EntityHandle 
         else
         {
             currentAttackDelay = attackDelay;
-            Boss_Prefect_Util::MoveInDirection(entity, Vec3{ dir.x, 0.0f, dir.y }*3);
+            Boss_Prefect_Util::MoveInDirection(entity, Vec3{ dir.x * SPEEDUP, 0.0f, dir.y * SPEEDUP }*3);
             Boss_Prefect_Util::RotateTowards(entity, dir);
         }
 

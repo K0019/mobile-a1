@@ -9,7 +9,7 @@
 const int L_Boss_Prefect_Detention::burstCount = 3;
 const float L_Boss_Prefect_Detention::burstDelay = 3.0f;
 
-const float L_Boss_Prefect_Detention::triggerDistance = 5.0f;
+const float L_Boss_Prefect_Detention::triggerDistance = 3.0f;
 
 float L_Boss_Prefect_Detention::triggerDistanceSqr = L_Boss_Prefect_Detention::triggerDistance * L_Boss_Prefect_Detention::triggerDistance;
 
@@ -29,11 +29,12 @@ void L_Boss_Prefect_Detention::OnInitialize()
 
 NODE_STATUS L_Boss_Prefect_Detention::OnUpdate([[maybe_unused]] ecs::EntityHandle entity)
 {
+    // This only functions as a get out of my bubble attack, we don't move and just explode on the spot
     if (auto enemyComp{ entity->GetComp<EnemyComponent>() })
     {
-        // Directly follow player here, since this is an AoE around the boss
         Vec2 dir = Boss_Prefect_Util::GetMovementTowards(entity->GetTransform().GetWorldPosition(), enemyComp->playerReference->GetTransform().GetWorldPosition());
-        Boss_Prefect_Util::MoveInDirection(entity, Vec3(dir.x,0.0f,dir.y));
+        // Boss_Prefect_Util::MoveInDirection(entity, Vec3(dir.x,0.0f,dir.y)); // We do not want to move during this attack
+        Boss_Prefect_Util::RotateTowards(entity, dir);
         
         if (dir.LengthSqr() < triggerDistanceSqr)
         {

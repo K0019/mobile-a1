@@ -30,6 +30,7 @@ NODE_STATUS L_Boss_Prefect_DontRun::OnUpdate([[maybe_unused]] ecs::EntityHandle 
             {
                 //characterComp->SetMovementVector(dir);
 				Boss_Prefect_Util::MoveInDirection(entity, Vec3{ dir.x, 0.0f, dir.y });
+                Boss_Prefect_Util::RotateTowards(entity, dir);
             }
             else
             {
