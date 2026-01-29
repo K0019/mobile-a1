@@ -2283,6 +2283,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/materials/t_PickDroppc.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2978933241526736149,
+                            "name": "t_pickdroppc0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/delusion meter fill.ktx2",
             "resources": [
                 {
@@ -3145,6 +3159,20 @@
                         {
                             "hash": 849956573515060627,
                             "name": "outdoor bleachers31312866833861550780"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/pickdrop_pc.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 2972316380550716175,
+                            "name": "pickdrop_pc0"
                         }
                     ]
                 }
@@ -4537,6 +4565,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/materials/t_PickDropmobile.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2982464872875163677,
+                            "name": "t_pickdropmobile0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/models/glb/enemy_female_animated/enemy_female_animatedwalk.anim",
             "resources": [
                 {
@@ -5343,6 +5385,20 @@
                         {
                             "hash": 9754934060494427009,
                             "name": "enemy male attack 30"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/pickdrop_mobile.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 2964697864481854647,
+                            "name": "pickdrop_mobile0"
                         }
                     ]
                 }
