@@ -3,6 +3,7 @@
 #include "Physics/Collision.h"
 #include "Game/Character.h"
 #include "Graphics/AnimationComponent.h"
+#include "Graphics/AnimatorComponent.h"
 
 void L_MeleeAttack::OnInitialize()
 {
@@ -13,15 +14,15 @@ NODE_STATUS L_MeleeAttack::OnUpdate(ecs::EntityHandle entity)
 {
 	auto characterComp{ entity->GetComp<CharacterMovementComponent>() };
 	auto enemyComp{ entity->GetComp<EnemyComponent>() };
-	auto animComp{ entity->GetComp<AnimationComponent>() };
+	auto animComp{ entity->GetComp<AnimatorComponent>() };
 	
-	characterComp->Attack();
-
-	if (!enemyComp || !characterComp || !animComp || !enemyComp->attackCollider)
+	if (!enemyComp || !characterComp || !animComp)
 		return NODE_STATUS::FAILURE;
 
+	characterComp->LightAttack();
+	return NODE_STATUS::SUCCESS;
 
-	auto attackTrigger{ enemyComp->attackCollider->GetComp<physics::BoxColliderComp>() };
+	/*auto attackTrigger{ enemyComp->attackCollider->GetComp<physics::BoxColliderComp>() };
 	if (!attackTrigger)
 		return NODE_STATUS::FAILURE;
 
@@ -40,5 +41,5 @@ NODE_STATUS L_MeleeAttack::OnUpdate(ecs::EntityHandle entity)
 		return NODE_STATUS::RUNNING;
 
 	attackTrigger->SetFlag(physics::COLLIDER_COMP_FLAG::ENABLED, false);
-	return NODE_STATUS::SUCCESS;
+	return NODE_STATUS::SUCCESS;*/
 }

@@ -1,0 +1,71 @@
+{
+    "moves": [
+        {
+            "anim": {
+                "hash": 5831036718117985147
+            },
+            "hitboxOffset": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "hitboxExtents": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "hitDelay": 0.10000000149011612
+        },
+        {
+            "anim": {
+                "hash": 5841992251977145237
+            },
+            "hitboxOffset": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "hitboxExtents": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "hitDelay": 0.10000000149011612
+        },
+        {
+            "anim": {
+                "hash": 5836776168814975891
+            },
+            "hitboxOffset": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.5
+            },
+            "hitboxExtents": {
+                "x": 0.5,
+                "y": 0.5,
+                "z": 1.0
+            },
+            "hitDelay": 0.4000000059604645
+        },
+        {
+            "anim": {
+                "hash": 5836650824489409407
+            },
+            "hitboxOffset": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "hitboxExtents": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "hitDelay": 0.10000000149011612
+        }
+    ],
+    "lightDamage": 10,
+    "heavyDamage": 0,
+    "parryDamage": 0
+}

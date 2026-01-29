@@ -73,7 +73,7 @@ namespace navmesh
 		\return 
 			Data of the path.
 		*//******************************************************************/
-		NavMeshPath FindPath();
+		NavMeshPath FindPath(const Vec3& targetPos);
 
 		/*****************************************************************//*!
 		\brief
@@ -146,6 +146,14 @@ namespace navmesh
 			agent base offset.
 		*//******************************************************************/
 		float GetBaseOffset() const;
+
+		/*****************************************************************//*!
+		\brief
+			Get the pointer to the agent.
+		\return
+			agent ID.
+		*//******************************************************************/
+		int GetAgentID() const;
 
 		/*****************************************************************//*!
 		\brief

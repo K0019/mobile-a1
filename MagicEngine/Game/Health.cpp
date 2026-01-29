@@ -118,7 +118,8 @@ void HealthComponent::TakeDamage(HealthComponent::HealthType amount, Vec3 direct
 
 
 	// Stun the character
-	if (auto characterComp{ thisEntity->GetComp< CharacterMovementComponent >() })
+	auto characterComp{ thisEntity->GetComp<CharacterMovementComponent >() };
+	if (characterComp)
 	{
 		characterComp->currentStunTime = characterComp->stunTimePerHit;
 	}
@@ -131,7 +132,8 @@ void HealthComponent::TakeDamage(HealthComponent::HealthType amount, Vec3 direct
 			// Disabled: Causes flying???
 			Vec3 impulse = direction * amount;// +Vec3{ 0.0f,amount,0.0f };
 			impulse = impulse *0.1f;
-			physicsComp->SetLinearVelocity(impulse);
+			JPH::Vec3 joltImpulse{ impulse.x, impulse.y, impulse.z };
+			physicsComp->GetIsKinematic() && characterComp ? characterComp->joltCharRef->SetLinearVelocity(joltImpulse) : physicsComp->SetLinearVelocity(impulse);
 		}
 	}
 

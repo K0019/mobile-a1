@@ -38,7 +38,7 @@ All rights reserved.
 #include "Engine/PrefabManager.h"
 #include "Graphics/RenderComponent.h"
 
-void GrabbableItemComponent::Attack(Vec3 origin, Vec3 direction)
+void GrabbableItemComponent::Attack(Vec3 origin, Vec3 extents)
 {
 	//Add the damage if the attack is an ultimate attack.
 	float attackDamage{ damage };
@@ -51,13 +51,11 @@ void GrabbableItemComponent::Attack(Vec3 origin, Vec3 direction)
 		}
 	}
 
-	std::vector<physics::BoxColliderComp*> colliders;
-	physics::OverlapBox(colliders, origin, attackBox, direction);
+	std::vector<ecs::EntityHandle> entities;
+	physics::OverlapBox(entities, origin, extents);
 
-	for (auto collider : colliders)
+	for (auto hitEntity : entities)
 	{
-		ecs::EntityHandle hitEntity = ecs::GetEntity(collider);
-
 		// Can't hit self or owner
 		if (hitEntity == owner || hitEntity == ecs::GetEntity(this))
 			continue;
@@ -83,8 +81,13 @@ void GrabbableItemComponent::Attack(Vec3 origin, Vec3 direction)
 					characterComp->OnParrySuccess();
 				}
 			}
-			if(dealDamage)
-				healthComp->TakeDamage(attackDamage, direction);
+			if (dealDamage)
+			{
+				Vec3 knockbackDirection{ hitEntity->GetTransform().GetWorldPosition() - owner->GetTransform().GetWorldPosition() };
+				knockbackDirection.y = 0.0f;
+				knockbackDirection = knockbackDirection.Normalized();
+				healthComp->TakeDamage(attackDamage, knockbackDirection);
+			}
 			//damage taken tied to delusion for now
 			//if owner is enemy
 			if (owner->GetComp<EnemyComponent>())
@@ -120,6 +123,10 @@ GrabbableItemComponent::GrabbableItemComponent() :
 
 void GrabbableItemComponent::EditorDraw()
 {
+	editor::EditorUtil_DrawResourceHandle("Weapon", weaponInfo);
+
+	// TODO: Remove below variables until pickup UI. Above should be all that's needed..
+
 	gui::VarInput("Damage", &damage);
 	gui::VarInput("Attack Box", &attackBox);
 	gui::VarInput("Attack Delay", &attackDelay);

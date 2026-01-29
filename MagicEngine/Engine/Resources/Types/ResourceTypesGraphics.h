@@ -31,7 +31,6 @@ struct ResourceMesh : public ResourceBase
 
     virtual bool IsLoaded() final;
 };
-using ResourceContainerMeshes = ResourceContainerBase<ResourceMesh>;
 
 struct ResourceMaterial : public ResourceBase
 {
@@ -39,7 +38,6 @@ struct ResourceMaterial : public ResourceBase
 
     virtual bool IsLoaded() final;
 };
-using ResourceContainerMaterials = ResourceContainerBase<ResourceMaterial>;
 
 struct ResourceTexture : public ResourceBase
 {
@@ -47,7 +45,6 @@ struct ResourceTexture : public ResourceBase
 
     virtual bool IsLoaded() final;
 };
-using ResourceContainerTextures = ResourceContainerBase<ResourceTexture>;
 
 struct ResourceAnimation : public ResourceBase
 {
@@ -55,4 +52,3 @@ struct ResourceAnimation : public ResourceBase
 
     virtual bool IsLoaded() final;
 };
-using ResourceContainerAnimations = ResourceContainerBase<ResourceAnimation>;

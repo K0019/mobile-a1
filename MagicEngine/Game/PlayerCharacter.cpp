@@ -31,6 +31,7 @@ All rights reserved.
 #include "Game/Delusion.h"
 #include "Engine/Events/EventsQueue.h"
 #include "Engine/Events/EventsTypeBasic.h"
+#include "Graphics/AnimatorComponent.h"
 
 PlayerMovementComponent::PlayerMovementComponent()
 	: grabDistance{ 0.0f }
@@ -79,7 +80,7 @@ void PlayerMovementComponent::UltimateAttack()
 		return;
 
 	isUltimateAttack = true;
-	characterComp->Attack();
+	characterComp->LightAttack();
 	delutionComp->SetDelusion(0.f);
 	CONSOLE_LOG(LEVEL_INFO) << "Ultimate Attack.";
 }
@@ -105,7 +106,7 @@ void PlayerMovementComponentSystem::UpdatePlayerMovementComponent(PlayerMovement
 	Vec2 camForward = Vec2{ cos(yawRad),sin(yawRad) };
 	Vec2 camRight = Vec2{ -sin(yawRad),cos(yawRad) };
 
-	if (!characterComp->isAttacking)
+	if (!characterComp->IsAttacking())
 	{
 		if (inputInstance->GetIsDown(KEY::W))
 			movement = movement + camForward;
@@ -184,13 +185,24 @@ void PlayerMovementComponentSystem::UpdatePlayerMovementComponent(PlayerMovement
 		characterComp->Throw(throwDirection);
 	}
 
-	if (inputInstance->GetIsPressed(KEY::M1) || EventsReader<Events::GameActionAttack>{}.ExtractEvent())
-		characterComp->Attack();
+	if (inputInstance->GetIsPressed(KEY::M1) || EventsReader<Events::GameActionLightAttack>{}.ExtractEvent())
+		characterComp->LightAttack();
+	if (inputInstance->GetIsPressed(KEY::M2) || EventsReader<Events::GameActionHeavyAttack>{}.ExtractEvent())
+		characterComp->HeavyAttack();
+
 
 	if (inputInstance->GetIsPressed(KEY::R))
 		comp.UltimateAttack();
 
 	characterComp->SetMovementVector(movement);
+	if (auto colliderComp{ playerEntity->GetComp<physics::BoxColliderComp>() })
+	{
+		float offset{ 3.f };
+		Vec3 center{ colliderComp->GetCenter() };
+		center = Vec3(0.f, center.y, 0.f);
+		center += Vec3(movement.x, 0.f, movement.y) / offset;
+		colliderComp->SetCenter(center);
+	}
 
 	if (inputInstance->GetIsDown(KEY::LSHIFT) || EventsReader<Events::GameActionDodge>{}.ExtractEvent())
 		characterComp->Dodge(movement);

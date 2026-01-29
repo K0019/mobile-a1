@@ -24,6 +24,7 @@ All rights reserved.
 
 #include "Engine/Resources/Types/ResourceTypesAudio.h"
 #include "Engine/Resources/Types/ResourceTypesGraphics.h"
+#include "Game/Weapon.h"
 #include "FilepathConstants.h"
 #include "VFS/VFS.h"
 
@@ -38,6 +39,7 @@ void MagicResourceManager::Init()
     INTERNAL_GetContainer<ResourceMaterial>();
     INTERNAL_GetContainer<ResourceTexture>();
     INTERNAL_GetContainer<ResourceAnimation>();
+    INTERNAL_GetContainer<WeaponInfo>();
 }
 void MagicResourceManager::Shutdown()
 {

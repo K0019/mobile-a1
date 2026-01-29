@@ -1051,8 +1051,10 @@ namespace gui {
 			Constructor.
 		\param label
 			The label of the text field.
+		\param text
+			The initial text within the text box.
 		*//******************************************************************/
-		TextBoxWithBuffer(const char* label);
+		TextBoxWithBuffer(const char* label, const std::string& text = "");
 
 		/*****************************************************************//*!
 		\brief

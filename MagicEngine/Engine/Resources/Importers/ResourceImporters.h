@@ -40,4 +40,7 @@ namespace ResourceImporters {
     // Import and compile an image file (png, jpg, etc.) to KTX2
     bool ImportImage(const std::string& assetRelativeFilepath);
 
+    // Import a game weapon file (.weapon)
+    bool ImportGameWeapon(const std::string& assetRelativeFilepath);
+
 } // namespace ResourceImporters

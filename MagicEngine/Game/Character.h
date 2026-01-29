@@ -19,29 +19,17 @@ All rights reserved.
 */
 /******************************************************************************/
 #pragma once
+#include "Physics/JoltPhysics.h"
 #include "ECS/EntityUID.h"
 #include "ECS/IEditorComponent.h"
 #include "Game/GrabbableItem.h"
 #include "Engine/Resources/ResourcesHeader.h"
 #include "Engine/Resources/Types/ResourceTypesGraphics.h"
+#include "Engine/AnimatorStateMachine.h"
 
-#define ANIMATIONS \
-X(IDLE,     "Idle")\
-X(WALK,     "Walk")\
-X(ATTACK,   "Attack")\
-X(HURT,   "Hurt")\
-X(DODGE,   "Dodge")\
-X(PARRY,   "Parry")\
-X(THROW,   "Throw")\
 
-#define X(type, name) type,
-enum ANIMATION_TYPES:size_t
-{
-	ANIMATIONS
-	ANIM_TOTAL
-};
-#undef X
 
+using CharacterRef = JPH::Ref<JPH::CharacterVirtual>;
 
 /*****************************************************************//*!
 \class CharacterMovementComponent
@@ -51,14 +39,19 @@ enum ANIMATION_TYPES:size_t
 class CharacterMovementComponent
 	: public IRegisteredComponent<CharacterMovementComponent>
 	, public IEditorComponent<CharacterMovementComponent>
+	, public ecs::IComponentCallbacks
 {
 private:
 	Vec2 movementVector;
 public:
 	UserResourceHandle<ResourceAnimation> animations[ANIMATION_TYPES::ANIM_TOTAL];
 
+	CharacterRef joltCharRef;
 	EntityReference hitDebugObject;
 	EntityReference heldItem;
+	Vec3 center;
+	float radius;
+	float height;
 	float moveSpeed;
 	float rotateSpeed;
 	float stunTimePerHit;
@@ -81,7 +74,6 @@ public:
 	float currentStunTime;
 	float currentDodgeTime;
 	float currentDodgeCooldown;
-	bool isAttacking;
 	float speedMultiplier;
 
 	/*****************************************************************//*!
@@ -89,6 +81,10 @@ public:
 		Default constructor.
 	*//******************************************************************/
 	CharacterMovementComponent();
+
+	void OnCreation() override;
+	void OnAttached() override;
+	void OnDetached() override;
 
 	const Vec2 GetMovementVector();
 	bool Dodge(Vec2 vector);
@@ -98,17 +94,24 @@ public:
 	void DropItem();
 	void Throw(Vec3 direction);
 	void GrabItem(ecs::CompHandle<GrabbableItemComponent> item);
-	bool Attack();
+	void LightAttack();
+	void HeavyAttack();
+	bool IsAttacking() const;
 	bool IsDodging();
 	bool IsParrying();
 	void OnParrySuccess();
 	void Parry();
+
+	// Gets the GrabbableItem that this character is holding. If not holding anything, returns the GrabbableItem on the entity itself.
+	ecs::CompHandle<GrabbableItemComponent> GetHeldItem();
 
 	void Serialize(Serializer& writer) const override;
 	void Deserialize(Deserializer& reader) override;
 
 	void SetSpeedMultiplier(float mult);
 	void ResetSpeedMultiplier();
+
+	void SetCenter(const Vec3& vec);
 
 	property_vtable()
 
@@ -156,6 +159,9 @@ private:
 
 property_begin(CharacterMovementComponent)
 {
+	property_var(center),
+	property_var(radius),
+	property_var(height),
 	property_var(moveSpeed),
 	property_var(rotateSpeed),
 	property_var(throwPower),
@@ -185,4 +191,10 @@ private:
 		The CharacterMovementComponent to update.
 	*//******************************************************************/
 	void UpdateCharacterMovementComponent(CharacterMovementComponent& comp);
+
+	void ApplyAttack(size_t moveIndex, const Transform& transform, CharacterMovementComponent& charComp);
+
+public:
+	bool PreRun() override;
+	void PostRun() override;
 };

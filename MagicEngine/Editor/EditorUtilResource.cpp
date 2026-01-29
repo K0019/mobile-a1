@@ -14,7 +14,7 @@ namespace editor {
 			gui::TextBoxReadOnly(label, resourceName);
 			gui::PayloadTarget<size_t>(payloadIdentifier, [&resourceHandle](size_t hash) -> void {
 				resourceHandle = hash;
-				});
+			});
 		}
 	}
 
@@ -27,6 +27,16 @@ namespace editor {
 	void EditorUtil_DrawResourceHandle(const char* label, UserResourceHandle<ResourceMaterial>& resourceHandle)
 	{
 		internal::DrawResourceHandle(label, resourceHandle, "MATERIAL_HASH");
+	}
+	template<>
+	void EditorUtil_DrawResourceHandle(const char* label, UserResourceHandle<ResourceAnimation>& resourceHandle)
+	{
+		internal::DrawResourceHandle(label, resourceHandle, "ANIMATION_HASH");
+	}
+	template<>
+	void EditorUtil_DrawResourceHandle(const char* label, UserResourceHandle<WeaponInfo>& resourceHandle)
+	{
+		internal::DrawResourceHandle(label, resourceHandle, "GAME_WEAPON_HASH");
 	}
 
 }

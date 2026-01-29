@@ -24,6 +24,7 @@ All rights reserved.
 #include "Physics/Physics.h"
 #include "Engine/Input.h"
 #include "Editor/Containers/GUICollection.h"
+#include "Graphics/AnimatorComponent.h"
 
 EnemyComponent::EnemyComponent()
 	: playerReference{nullptr}
@@ -60,14 +61,4 @@ void EnemyComponent::EditorDraw()
 	gui::VarDefault("Follow Through Time", &followThroughTime);
 	playerReference.EditorDraw("Player");
 	attackCollider.EditorDraw("Attack Collider");
-}
-
-EnemyMovementComponentSystem::EnemyMovementComponentSystem()
-	: System_Internal{ &EnemyMovementComponentSystem::UpdateEnemyMovementComponent }
-
-{
-}
-
-void EnemyMovementComponentSystem::UpdateEnemyMovementComponent(EnemyComponent& comp)
-{
 }
