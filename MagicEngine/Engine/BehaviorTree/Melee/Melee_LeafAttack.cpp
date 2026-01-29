@@ -23,7 +23,7 @@ NODE_STATUS L_Melee_Attack::OnUpdate(ecs::EntityHandle entity)
 	Vec3 enemyPos{ entity->GetTransform().GetWorldPosition()};
 
 	if (attackCoolDown == 0.5f)
-		charComp->Attack();
+		charComp->LightAttack();
 
 	attackCoolDown -= GameTime::Dt();
 	return attackCoolDown >= 0.f ? NODE_STATUS::RUNNING : NODE_STATUS::SUCCESS;
