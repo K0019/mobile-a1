@@ -43,44 +43,22 @@ enum ANIMATION_TYPES :size_t
 	ANIMATIONS
 	ANIM_TOTAL
 };
+
+#define ANIM_INPUT_TYPE_ENUM \
+X(LIGHT_ATTACK, "inputLightAttack")\
+X(HEAVY_ATTACK, "inputHeavyAttack")\
+X(SKILL_ATTACK, "inputSkillAttack")
+
+enum class ANIM_INPUT_TYPE
+{
+	ANIM_INPUT_TYPE_ENUM
+};
 #undef X
 
 namespace sm {
 
-
-
-	//======================================================================
-// FORWARD DECLARATIONS - Declare everything first
-//======================================================================
-
-// States
-	class IdleState;
-	class WalkState;
-	class AttackState;
-	class HurtState;
-	class DodgeState;
-	class ParryState;
-	class ThrowState;
-
-	// Activities
-	class IdleActivity;
-	class WalkActivity;
-	class AttackActivity;
-	class HurtActivity;
-	class DodgeActivity;
-	class ParryActivity;
-	class ThrowActivity;
-
-	// Transitions
-	class ToIdleTransition;
-	class ToWalkTransition;
-	class ToAttackTransition;
-	class ToHurtTransition;
-	class ToDodgeTransition;
-	class ToParryTransition;
-	class ToThrowTransition;
-
-	
+	// Helper function for button input types
+	constexpr const char* AnimInputTypeToKey(ANIM_INPUT_TYPE type);
 
 #pragma region Interface
 
@@ -294,10 +272,16 @@ namespace sm {
 
 	class AttackActivity : public sm::AnimActivityBase<AttackActivity>
 	{
-		public:
+	public:
+		AttackActivity(size_t moveIndex, ANIM_INPUT_TYPE attackType);
+
 		void OnEnter(sm::StateMachine* sm) override;
 		void OnUpdate(sm::StateMachine* sm) override;
 		void OnExit(sm::StateMachine* sm) override;
+
+	private:
+		size_t moveIndex;
+		ANIM_INPUT_TYPE attackType;
 	};
 
 	class HurtActivity : public sm::AnimActivityBase<HurtActivity>
@@ -324,6 +308,13 @@ namespace sm {
 	public:
 		void OnEnter(sm::StateMachine* sm) override;
 	};
+
+	class DecayDelusionIfEnhancedActivity : public sm::AnimActivityBase<DecayDelusionIfEnhancedActivity>
+	{
+	public:
+		void OnUpdate(sm::StateMachine* sm) override;
+	};
+
 	
 
 	//======================================================================
@@ -335,6 +326,13 @@ namespace sm {
 	{
 	public:
 		NoOpWhileAnimatingTransition();
+		bool Decide(sm::StateMachine* sm) override;
+	};
+	// Same thing but only until an attack is dealt (doesn't care about animation)
+	class NoOpBeforeAttackDamageTransition : public sm::AnimTransitionBase<NoOpBeforeAttackDamageTransition>
+	{
+	public:
+		NoOpBeforeAttackDamageTransition();
 		bool Decide(sm::StateMachine* sm) override;
 	};
 
@@ -351,14 +349,29 @@ namespace sm {
 		ToWalkTransition();
 		bool Decide(sm::StateMachine* sm) override;
 	};
-
-
-	class ToAttackTransition : public sm::AnimTransitionBase<ToAttackTransition>
+	
+	template <typename ToState>
+	class ToAttackTransition : public sm::AnimTransitionBase<ToAttackTransition<ToState>>
 	{
+	private:
+		ANIM_INPUT_TYPE attackType;
+
 	public:
-		ToAttackTransition();
-		bool Decide(sm::StateMachine* sm) override;
+		ToAttackTransition(ANIM_INPUT_TYPE attackType)
+			: sm::AnimTransitionBase<ToAttackTransition>(SET_NEXT_STATE(ToState))
+			, attackType{ attackType }
+		{
+		}
+
+		bool Decide(sm::StateMachine* sm) override
+		{
+			return ToAttackTransition<ToState>::CastSM(sm)->GetBlackboardVal<bool>(AnimInputTypeToKey(attackType));
+		}
 	};
+
+	// ToSkillAttackTransition defined below, because it needs the states to be defined first
+	// Side effect: Sets "enhanced" to true if transition is taken
+	class ToSkillAttackTransition;
 
 	class ToHurtTransition : public sm::AnimTransitionBase<ToHurtTransition>
 	{
@@ -388,40 +401,93 @@ namespace sm {
 		bool Decide(sm::StateMachine* sm) override;
 	};
 
+	// Side effect: Sets "enhanced" to false if transition is taken
+	class OutOfDelusionTransition : public sm::AnimTransitionBase<OutOfDelusionTransition>
+	{
+	public:
+		OutOfDelusionTransition();
+		bool Decide(sm::StateMachine* sm) override;
+	};
+
+
+
+	// Delusion versions of transitions
+	class ToDelusionIdleTransition : public sm::AnimTransitionBase<ToDelusionIdleTransition>
+	{
+	public:
+		ToDelusionIdleTransition();
+		bool Decide(sm::StateMachine* sm) override;
+	};
+
+	class ToDelusionWalkTransition : public sm::AnimTransitionBase<ToDelusionWalkTransition>
+	{
+	public:
+		ToDelusionWalkTransition();
+		bool Decide(sm::StateMachine* sm) override;
+	};
+
+	template <typename ToState>
+	class ToDelusionAttackTransition : public sm::AnimTransitionBase<ToDelusionAttackTransition<ToState>>
+	{
+	private:
+		ANIM_INPUT_TYPE attackType;
+
+	public:
+		ToDelusionAttackTransition(ANIM_INPUT_TYPE attackType)
+			: sm::AnimTransitionBase<ToDelusionAttackTransition>(SET_NEXT_STATE(ToState))
+			, attackType{ attackType }
+		{
+		}
+
+		bool Decide(sm::StateMachine* sm) override
+		{
+			return ToDelusionAttackTransition<ToState>::CastSM(sm)->GetBlackboardVal<bool>(AnimInputTypeToKey(attackType));
+		}
+	};
+
+	class ToDelusionHurtTransition : public sm::AnimTransitionBase<ToDelusionHurtTransition>
+	{
+	public:
+		ToDelusionHurtTransition();
+		bool Decide(sm::StateMachine* sm) override;
+	};
+
+	class ToDelusionDodgeTransition : public sm::AnimTransitionBase<ToDelusionDodgeTransition>
+	{
+	public:
+		ToDelusionDodgeTransition();
+		bool Decide(sm::StateMachine* sm) override;
+	};
+
+	class ToDelusionParryTransition : public sm::AnimTransitionBase<ToDelusionParryTransition>
+	{
+	public:
+		ToDelusionParryTransition();
+		bool Decide(sm::StateMachine* sm) override;
+	};
+
+	class ToDelusionThrowTransition : public sm::AnimTransitionBase<ToDelusionThrowTransition>
+	{
+	public:
+		ToDelusionThrowTransition();
+		bool Decide(sm::StateMachine* sm) override;
+	};
+
 	//======================================================================
 	// STATE DECLARATIONS
 	//======================================================================
 
-	class IdleState : public sm::State
-	{
-	public:
-		IdleState();
-	};
+	class IdleState : public sm::State { public: IdleState(); };
 
-	class WalkState : public sm::State
-	{
-	public:
-		WalkState();
-	};
+	class WalkState : public sm::State { public: WalkState(); };
+
+	class AttackState : public sm::State { public: AttackState(); };
+
+	class HurtState : public sm::State { public: HurtState(); };
+
+	class DodgeState : public sm::State { public: DodgeState(); };
 
 
-	class AttackState : public sm::State
-	{
-		public:
-		AttackState();
-	};
-
-	class HurtState : public sm::State
-	{
-	public:
-		HurtState();
-	};
-
-	class DodgeState : public sm::State
-	{
-	public:
-		DodgeState();
-	};
 
 	class ParryState : public sm::State
 	{
@@ -433,6 +499,55 @@ namespace sm {
 	{
 	public:
 		ThrowState();
+	};
+
+
+
+	// Delusion versions of states
+	class DelusionIdleState : public sm::State { public: DelusionIdleState(); };
+
+	class DelusionWalkState : public sm::State { public: DelusionWalkState(); };
+
+	class DelusionAttackState : public sm::State { public: DelusionAttackState(); };
+
+	class DelusionHurtState : public sm::State { public: DelusionHurtState(); };
+
+	class DelusionDodgeState : public sm::State { public: DelusionDodgeState(); };
+
+	class DelusionParryState : public sm::State{public: DelusionParryState();};
+
+	class DelusionThrowState : public sm::State{public: DelusionThrowState();};
+
+	// Attacks
+	class LightAttackPlayer1 : public sm::State { public: LightAttackPlayer1(); };
+	class LightAttackPlayer2 : public sm::State { public: LightAttackPlayer2(); };
+	class LightAttackPlayer3 : public sm::State { public: LightAttackPlayer3(); };
+	class LightAttackPlayer4 : public sm::State { public: LightAttackPlayer4(); };
+
+	class HeavyAttackPlayer1 : public sm::State { public: HeavyAttackPlayer1(); };
+	class HeavyAttackPlayer2 : public sm::State { public: HeavyAttackPlayer2(); };
+	class HeavyAttackPlayer3 : public sm::State { public: HeavyAttackPlayer3(); };
+
+	class SkillAttackPlayer1 : public sm::State { public: SkillAttackPlayer1(); };
+
+	//delusion attacks
+	class DelusionLightAttackPlayer1 : public sm::State { public: DelusionLightAttackPlayer1(); };
+	class DelusionLightAttackPlayer2 : public sm::State { public: DelusionLightAttackPlayer2(); };
+	class DelusionLightAttackPlayer3 : public sm::State { public: DelusionLightAttackPlayer3(); };
+	class DelusionLightAttackPlayer4 : public sm::State { public: DelusionLightAttackPlayer4(); };
+
+	class DelusionHeavyAttackPlayer1 : public sm::State { public: DelusionHeavyAttackPlayer1(); };
+	class DelusionHeavyAttackPlayer2 : public sm::State { public: DelusionHeavyAttackPlayer2(); };
+	class DelusionHeavyAttackPlayer3 : public sm::State { public: DelusionHeavyAttackPlayer3(); };
+}
+
+namespace sm {
+	
+	// Side effect: Sets "enhanced" to true if transition is taken
+	class ToSkillAttackTransition : ToAttackTransition<SkillAttackPlayer1>
+	{
+	public:
+		bool Decide(sm::StateMachine* sm) override;
 	};
 
 }

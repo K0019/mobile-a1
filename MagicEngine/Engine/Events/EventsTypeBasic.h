@@ -40,7 +40,8 @@ namespace Events {
 	// Consumed by: PlayerCharacter
 	struct GameActionGrabItem {};
 	struct GameActionThrowItem {};
-	struct GameActionAttack {};
+	struct GameActionLightAttack {};
+	struct GameActionHeavyAttack {};
 	struct GameActionDodge {};
 
 }
