@@ -314,6 +314,7 @@ namespace sm {
 	public:
 		void OnUpdate(sm::StateMachine* sm) override;
 	};
+
 	
 
 	//======================================================================
@@ -408,6 +409,70 @@ namespace sm {
 		bool Decide(sm::StateMachine* sm) override;
 	};
 
+
+
+	// Delusion versions of transitions
+	class ToDelusionIdleTransition : public sm::AnimTransitionBase<ToDelusionIdleTransition>
+	{
+	public:
+		ToDelusionIdleTransition();
+		bool Decide(sm::StateMachine* sm) override;
+	};
+
+	class ToDelusionWalkTransition : public sm::AnimTransitionBase<ToDelusionWalkTransition>
+	{
+	public:
+		ToDelusionWalkTransition();
+		bool Decide(sm::StateMachine* sm) override;
+	};
+
+	template <typename ToState>
+	class ToDelusionAttackTransition : public sm::AnimTransitionBase<ToDelusionAttackTransition<ToState>>
+	{
+	private:
+		ANIM_INPUT_TYPE attackType;
+
+	public:
+		ToDelusionAttackTransition(ANIM_INPUT_TYPE attackType)
+			: sm::AnimTransitionBase<ToDelusionAttackTransition>(SET_NEXT_STATE(ToState))
+			, attackType{ attackType }
+		{
+		}
+
+		bool Decide(sm::StateMachine* sm) override
+		{
+			return ToDelusionAttackTransition<ToState>::CastSM(sm)->GetBlackboardVal<bool>(AnimInputTypeToKey(attackType));
+		}
+	};
+
+	class ToDelusionHurtTransition : public sm::AnimTransitionBase<ToDelusionHurtTransition>
+	{
+	public:
+		ToDelusionHurtTransition();
+		bool Decide(sm::StateMachine* sm) override;
+	};
+
+	class ToDelusionDodgeTransition : public sm::AnimTransitionBase<ToDelusionDodgeTransition>
+	{
+	public:
+		ToDelusionDodgeTransition();
+		bool Decide(sm::StateMachine* sm) override;
+	};
+
+	class ToDelusionParryTransition : public sm::AnimTransitionBase<ToDelusionParryTransition>
+	{
+	public:
+		ToDelusionParryTransition();
+		bool Decide(sm::StateMachine* sm) override;
+	};
+
+	class ToDelusionThrowTransition : public sm::AnimTransitionBase<ToDelusionThrowTransition>
+	{
+	public:
+		ToDelusionThrowTransition();
+		bool Decide(sm::StateMachine* sm) override;
+	};
+
 	//======================================================================
 	// STATE DECLARATIONS
 	//======================================================================
@@ -422,6 +487,8 @@ namespace sm {
 
 	class DodgeState : public sm::State { public: DodgeState(); };
 
+
+
 	class ParryState : public sm::State
 	{
 	public:
@@ -435,6 +502,23 @@ namespace sm {
 	};
 
 
+
+	// Delusion versions of states
+	class DelusionIdleState : public sm::State { public: DelusionIdleState(); };
+
+	class DelusionWalkState : public sm::State { public: DelusionWalkState(); };
+
+	class DelusionAttackState : public sm::State { public: DelusionAttackState(); };
+
+	class DelusionHurtState : public sm::State { public: DelusionHurtState(); };
+
+	class DelusionDodgeState : public sm::State { public: DelusionDodgeState(); };
+
+	class DelusionParryState : public sm::State{public: DelusionParryState();};
+
+	class DelusionThrowState : public sm::State{public: DelusionThrowState();};
+
+	// Attacks
 	class LightAttackPlayer1 : public sm::State { public: LightAttackPlayer1(); };
 	class LightAttackPlayer2 : public sm::State { public: LightAttackPlayer2(); };
 	class LightAttackPlayer3 : public sm::State { public: LightAttackPlayer3(); };
@@ -446,6 +530,15 @@ namespace sm {
 
 	class SkillAttackPlayer1 : public sm::State { public: SkillAttackPlayer1(); };
 
+	//delusion attacks
+	class DelusionLightAttackPlayer1 : public sm::State { public: DelusionLightAttackPlayer1(); };
+	class DelusionLightAttackPlayer2 : public sm::State { public: DelusionLightAttackPlayer2(); };
+	class DelusionLightAttackPlayer3 : public sm::State { public: DelusionLightAttackPlayer3(); };
+	class DelusionLightAttackPlayer4 : public sm::State { public: DelusionLightAttackPlayer4(); };
+
+	class DelusionHeavyAttackPlayer1 : public sm::State { public: DelusionHeavyAttackPlayer1(); };
+	class DelusionHeavyAttackPlayer2 : public sm::State { public: DelusionHeavyAttackPlayer2(); };
+	class DelusionHeavyAttackPlayer3 : public sm::State { public: DelusionHeavyAttackPlayer3(); };
 }
 
 namespace sm {
