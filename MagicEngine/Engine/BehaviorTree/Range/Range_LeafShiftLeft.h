@@ -1,12 +1,8 @@
 #pragma once
 #include "Engine/BehaviorTree/BehaviourTree.h"
 
-class L_Range_Throw : public BehaviorNode
+class L_Range_ShiftLeft : public BehaviorNode
 {
 public:
-    void OnInitialize() override;
     NODE_STATUS OnUpdate(ecs::EntityHandle entity) override;
-
-private:
-    float waitTimer;
 };

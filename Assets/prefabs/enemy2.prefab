@@ -207,7 +207,7 @@
                     "height": 1.2000000476837158,
                     "moveSpeed": 1.7999999523162842,
                     "rotateSpeed": 200.0,
-                    "throwPower": 5.0,
+                    "throwPower": 100.0,
                     "parryCoolDownTime": 0.0,
                     "parryTime": 0.0,
                     "parryDelusion": 0.0,
