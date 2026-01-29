@@ -1,18 +1,23 @@
 # editor/CMakeLists.txt
 
 # Create Editor executable (automatically globs all files in current directory)
-file(GLOB_RECURSE EDITOR_SOURCES CONFIGURE_DEPENDS 
-    "*.cpp" 
+file(GLOB_RECURSE EDITOR_SOURCES CONFIGURE_DEPENDS
+    "*.cpp"
     "*.h"
     "*.hpp"
 )
 
 # Include shaders for IDE organization
-file(GLOB_RECURSE SHADER_FILES CONFIGURE_DEPENDS 
+file(GLOB_RECURSE SHADER_FILES CONFIGURE_DEPENDS
     "${PROJECT_SOURCE_DIR}/Shaders/*"
 )
 
-add_executable(Editor WIN32)
+# Use console subsystem in Debug for stdout/stderr visibility
+# Use Windows subsystem in Release to hide console
+add_executable(Editor)
+set_target_properties(Editor PROPERTIES
+    WIN32_EXECUTABLE $<$<CONFIG:Release>:TRUE>
+)
 
 target_sources(Editor PRIVATE 
     ${EDITOR_SOURCES}
@@ -24,8 +29,16 @@ target_link_libraries(Editor PRIVATE
     MagicEngine
 )
 
-# Reuse MagicEngine's precompiled header
-target_precompile_headers(Editor REUSE_FROM MagicEngine)
+# Define source directory so Editor can find assets regardless of working directory
+# Use forward slashes to avoid escape sequence issues on Windows
+string(REPLACE "\\" "/" MAGIC_SOURCE_DIR_NORMALIZED "${CMAKE_SOURCE_DIR}")
+target_compile_definitions(Editor PRIVATE
+    MAGIC_IS_EDITOR=1
+    MAGIC_SOURCE_DIR="${MAGIC_SOURCE_DIR_NORMALIZED}"
+)
+
+# Use MagicEngine's pch.h but compile our own PCH (avoid definition mismatch)
+target_precompile_headers(Editor PRIVATE ${CMAKE_SOURCE_DIR}/MagicEngine/pch.h)
 target_include_directories(Editor PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 
 # Organize shaders in IDE
@@ -51,7 +64,7 @@ if(MSVC)
             file(TO_NATIVE_PATH "${PORTABLE_LAYERS_PATH}" NATIVE_PORTABLE_LAYERS_PATH)
             message(STATUS "Configuring portable Vulkan layers: ${NATIVE_PORTABLE_LAYERS_PATH}")
             set_property(TARGET Editor PROPERTY VS_DEBUGGER_ENVIRONMENT
-                "VK_LAYER_PATH=${NATIVE_PORTABLE_LAYERS_PATH}\nVK_LOADER_DEBUG=all"
+                "VK_LAYER_PATH=${NATIVE_PORTABLE_LAYERS_PATH}"
             )
         endif()
 endif()
@@ -71,27 +84,7 @@ if(NOT ANDROID)
         COMMAND ${CMAKE_COMMAND} -E copy_directory_if_different
             "\"${EXTERNAL_LIBRARIES_WHOLE_DIRECTORIES}\""
             "\"$<TARGET_FILE_DIR:Editor>\""
-        COMMAND cmd.exe /c if "$(Configuration)" == "Release" "${CMAKE_COMMAND}" -E copy_directory_if_different "${CMAKE_SOURCE_DIR}/Assets" "$<TARGET_FILE_DIR:Editor>/Assets"
     )
-endif()
-
-# --- Setting up Vulkan validation layers ---
-if(WIN32 AND NOT ANDROID)
-	set(PORTABLE_LAYERS_PATH "${CMAKE_SOURCE_DIR}/extern/vulkan-debug-layer")
-
-        if(EXISTS "${PORTABLE_LAYERS_PATH}/VkLayer_khronos_validation.json")
-
-            file(TO_NATIVE_PATH "${PORTABLE_LAYERS_PATH}" NATIVE_PORTABLE_LAYERS_PATH)
-
-            message(STATUS "Configuring portable Vulkan layers: ${NATIVE_PORTABLE_LAYERS_PATH}")
-
-            set_property(TARGET Editor PROPERTY VS_DEBUGGER_ENVIRONMENT
-
-                "VK_LAYER_PATH=${NATIVE_PORTABLE_LAYERS_PATH}\nVK_LOADER_DEBUG=all"
-
-            )
-
-endif()
 endif()
 
 engine_set_folder(Editor "Editor")

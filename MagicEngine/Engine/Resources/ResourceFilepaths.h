@@ -12,6 +12,7 @@
 
 \brief
 Stores the associations of resource hashes with the files that will load them.
+Extended to support asset type queries and source tracking.
 
 All content © 2025 DigiPen Institute of Technology Singapore.
 All rights reserved.
@@ -19,6 +20,12 @@ All rights reserved.
 /******************************************************************************/
 
 #pragma once
+
+#include "resource/asset_formats/asset_type.h"
+#include <cstdint>
+#include <string>
+#include <vector>
+#include <unordered_map>
 
 struct AssociatedResourceHashes
 {
@@ -35,6 +42,13 @@ public:
         std::string path;
         //! The resources that can be loaded by loading this file
         std::vector<AssociatedResourceHashes> associatedResources;
+
+        // Extended fields (populated from .meta files or inferred)
+        AssetFormat::AssetType assetType = AssetFormat::AssetType::Unknown;
+        std::string sourcePath;           // Original source file (e.g., .fbx for .mesh)
+        uint64_t sourceTimestamp = 0;     // When source was last modified
+        uint64_t compiledTimestamp = 0;   // When this asset was compiled
+        uint32_t formatVersion = 0;       // Format version when compiled
     };
 
 public:
@@ -45,15 +59,32 @@ public:
     const FileEntry* GetFileEntry(const std::string& filepath) const;
     std::vector<const FileEntry*> GetFileEntries() const;
 
+    // Extended query methods
+    std::vector<const FileEntry*> GetFileEntriesByType(AssetFormat::AssetType type) const;
+    const FileEntry* GetFileEntryBySourcePath(const std::string& sourcePath) const;
+    std::vector<const FileEntry*> GetFileEntriesFromSource(const std::string& sourcePath) const;
+
     // Removes a resource hash from a file entry. Deletes the file entry if there are no remaining associated resources.
     void DisassociateResourceHash(size_t resourceHash, size_t resourceType);
 
+    // Metadata management
+    void LoadMetadataForEntry(FileEntry& entry);
+    void RefreshAllMetadata();
+
+    // Update extended fields for an entry
+    void UpdateEntryMetadata(const std::string& filepath, AssetFormat::AssetType type,
+                             const std::string& sourcePath, uint64_t sourceTs,
+                             uint64_t compiledTs, uint32_t version);
+
 private:
+    // Infer asset type from file extension if not set
+    static AssetFormat::AssetType InferAssetType(const std::string& filepath);
 
     //! Stores the filepath and its associated resource hashes
     std::unordered_map<size_t, FileEntry> fileEntries;
     //! Maps resource hashes to their FileEntry
     std::unordered_map<size_t, FileEntry*> hashToFileEntry;
-
+    //! Maps source paths to compiled file entries (for reverse lookup)
+    std::unordered_multimap<size_t, FileEntry*> sourceToFileEntries;
 };
 

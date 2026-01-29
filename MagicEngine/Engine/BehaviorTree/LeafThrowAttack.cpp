@@ -4,7 +4,7 @@
 #include "Physics/Physics.h"
 #include "Game/Character.h"
 #include "Engine/PrefabManager.h"
-#include "graphics/AnimationComponent.h"
+#include "Graphics/AnimationComponent.h"
 #include "Managers/AudioManager.h"
 
 void L_ThrowAttack::OnInitialize()

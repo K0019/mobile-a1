@@ -2,44 +2,28 @@
 #include <filesystem>
 #include <array>
 #include <vector>
-#include <offsetAllocator.hpp>
 #include <variant>
 #include "resource_handle.h"
 #include "renderer/gpu_data.h"
 #include "math/utils_math.h"
-#include "renderer/interface.h"
+#include "renderer/gfx_interface.h"
 #include "renderer/render_feature.h"
 #include "resource/animation_ids.h"
 #include "resource/font_types.h"
 
+// Resource limits for logging/sanity checks only
+// Actual memory is managed dynamically by ChunkedMeshStorage and GfxMaterialSystem
 namespace ResourceLimits
 {
 #ifdef __ANDROID__
-  // Reduced limits for Android to fit in mobile GPU memory
-  static constexpr size_t MAX_VERTICES = 2'000'000;  // 2M vertices
-  static constexpr size_t MAX_INDICES = 6'000'000;   // 6M indices
-  static constexpr size_t MAX_MATERIALS = 10'000;    // 10K materials
-  static constexpr size_t MAX_TEXTURES = 2'000;      // 2K textures
-  static constexpr size_t MAX_MESHES = 20'000;       // 20K meshes
-  static constexpr size_t MAX_MORPH_TARGET_VERTICES = MAX_VERTICES; // 1x multiplier for mobile
+  static constexpr size_t MAX_VERTICES = 2'000'000;
+  static constexpr size_t MAX_INDICES = 6'000'000;
+  static constexpr size_t MAX_MATERIALS = 10'000;
 #else
-  // lower the budget slightly.
-  static constexpr size_t MAX_VERTICES = 5'000'000; // 10M vertices
-  static constexpr size_t MAX_INDICES = 12'000'000;  // 30M indices
-  static constexpr size_t MAX_MATERIALS = 10'000;    // 50K materials
-  static constexpr size_t MAX_TEXTURES = 2'000;     // 10K textures
-  static constexpr size_t MAX_MESHES = 30'000;      // 100K meshes
-  static constexpr size_t MAX_MORPH_TARGET_VERTICES = MAX_VERTICES * 4;
+  static constexpr size_t MAX_VERTICES = 5'000'000;
+  static constexpr size_t MAX_INDICES = 12'000'000;
+  static constexpr size_t MAX_MATERIALS = 10'000;
 #endif
-
-  static constexpr size_t VERTEX_BUFFER_SIZE = MAX_VERTICES * sizeof(CompressedVertex);
-  static constexpr size_t INDEX_BUFFER_SIZE = MAX_INDICES * sizeof(uint32_t);
-  static constexpr size_t MATERIAL_BUFFER_SIZE = MAX_MATERIALS * sizeof(MaterialData);
-  static constexpr size_t MESH_DECOMPRESSION_BUFFER_SIZE = MAX_MESHES * sizeof(MeshDecompressionData);
-  static constexpr size_t SKINNING_BUFFER_SIZE = MAX_VERTICES * sizeof(GPUSkinningData);
-  static constexpr size_t MORPH_DELTA_BUFFER_SIZE = MAX_MORPH_TARGET_VERTICES * sizeof(GPUMorphDelta);
-  static constexpr size_t MORPH_VERTEX_BASE_BUFFER_SIZE = MAX_VERTICES * sizeof(uint32_t);
-  static constexpr size_t MORPH_VERTEX_COUNT_BUFFER_SIZE = MAX_VERTICES * sizeof(uint32_t);
 } // namespace ResourceLimits
 
 struct LoadOptions
@@ -109,12 +93,9 @@ struct ResourceTraits<MeshAsset>
 {
   struct HotData
   {
-    uint32_t vertexByteOffset; // GPU buffer offset
-    uint32_t indexByteOffset; // GPU buffer offset
     uint32_t vertexCount;
     uint32_t indexCount;
     vec4 bounds;
-    uint32_t decompressionByteOffset; // Offset into mesh decompression buffer
     struct AnimationOffsets
     {
       uint32_t skinningByteOffset = UINT32_MAX;
@@ -126,26 +107,21 @@ struct ResourceTraits<MeshAsset>
       uint32_t jointCount = 0;
     } animation;
 
+    // GfxRenderer integration
+    bool hasGfxMesh = false;
+    uint32_t gfxMeshIndex = 0;
+    uint32_t gfxMeshGeneration = 0;
+
     HotData() = default;
 
-    HotData(uint32_t vOffset, uint32_t iOffset, uint32_t vCount, uint32_t iCount, const vec4& b,
-            uint32_t decompOffset = 0)
-      : vertexByteOffset(vOffset), indexByteOffset(iOffset), vertexCount(vCount), indexCount(iCount), bounds(b),
-        decompressionByteOffset(decompOffset)
+    HotData(uint32_t vCount, uint32_t iCount, const vec4& b)
+      : vertexCount(vCount), indexCount(iCount), bounds(b)
     {
     }
   };
 
   struct ColdData
   {
-    // Loading metadata
-    OffsetAllocator::Allocation vertexMetadata;
-    OffsetAllocator::Allocation indexMetadata;
-    OffsetAllocator::Allocation meshDecompressionMetadata;
-    OffsetAllocator::Allocation skinningMetadata;
-    OffsetAllocator::Allocation morphDeltaMetadata;
-    OffsetAllocator::Allocation morphVertexBaseMetadata;
-    OffsetAllocator::Allocation morphVertexCountMetadata;
     std::string sourceFile;
     std::string meshName; // Name from file (e.g., "Cube.001")
     // Optimization results
@@ -183,17 +159,23 @@ struct ResourceTraits<TextureAsset>
 {
   struct HotData
   {
-    uint32_t bindlessIndex{0}; // GPU bindless texture index
+    uint32_t uiTextureId{0}; // UI/ImGui texture ID for bind group lookup
+
+    // GfxRenderer integration
+    bool hasGfxTexture = false;
+    uint32_t gfxTextureIndex = 0;
+    uint32_t gfxTextureGeneration = 0;
+
     HotData() = default;
 
-    explicit HotData(uint32_t index) : bindlessIndex(index)
+    explicit HotData(uint32_t index) : uiTextureId(index)
     {
     }
   };
 
   struct ColdData
   {
-    vk::TextureDesc textureDesc;
+    gfx::TextureMetadata textureDesc;
     // File properties
     std::string sourceFile; // Original file path or embedded identifier
     std::string cacheKey; // Unique key for caching
@@ -225,7 +207,7 @@ struct ResourceTraits<FontAsset>
   struct HotData
   {
     TextureHandle atlasTexture;
-    uint32_t bindlessIndex = 0;
+    uint32_t uiTextureId = 0;
     float ascent = 0.0f;
     float descent = 0.0f;
     float lineGap = 0.0f;
@@ -300,6 +282,7 @@ struct MaterialTexture
   uint32_t uvSet = 0;
   vec2 uvScale = vec2(1.0f);
   vec2 uvOffset = vec2(0.0f);
+  bool isSRGB = false;  // True for base color, emissive; false for normal, metallic-roughness, occlusion
 
   bool hasTexture() const
   {
@@ -339,13 +322,16 @@ struct ResourceTraits<MaterialAsset>
 {
   struct HotData
   {
-    uint32_t materialOffset;
     RenderQueue renderQueue = RenderQueue::Opaque;
+
+    // GfxRenderer integration
+    bool hasGfxMaterial = false;
+    uint32_t gfxMaterialIndex = 0;
+    uint32_t gfxMaterialGeneration = 0;
 
     HotData() = default;
 
-    explicit HotData(uint32_t offset, RenderQueue queue = RenderQueue::Opaque) : materialOffset(offset),
-                                                                                 renderQueue(queue)
+    explicit HotData(RenderQueue queue) : renderQueue(queue)
     {
     }
   };
@@ -353,7 +339,6 @@ struct ResourceTraits<MaterialAsset>
   struct ColdData
   {
     Material material;
-    OffsetAllocator::Allocation metadata;
     std::string sourceFile;
     size_t materialIndex = 0;
     bool wasLoadedFromFile = false;

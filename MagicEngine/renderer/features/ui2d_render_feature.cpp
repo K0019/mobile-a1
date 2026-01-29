@@ -1,84 +1,109 @@
 #include "renderer/features/ui2d_render_feature.h"
+#include "renderer/hina_context.h"
+#include "renderer/gfx_renderer.h"
+#include "renderer/linear_color.h"
 #include <algorithm>
 #include <cstddef>
 #include <cstring>
 #include <limits>
+#include <iostream>
 
 namespace
 {
-  constexpr const char* kUiVertexShader = R"(
-layout (location = 0) in vec2 in_pos;
-layout (location = 1) in vec2 in_uv;
-layout (location = 2) in uint in_color;
+  // HSL shader for UI2D rendering
+  static const char* kUi2DShaderHSL = R"(#hina
+group Ui2D = 0;
 
-layout (location = 0) out vec4 out_color;
-layout (location = 1) out vec2 out_uv;
+bindings(Ui2D, start=0) {
+  texture sampler2D uTexture;
+}
 
-layout(push_constant) uniform PushConstants {
-    vec4 LRTB;
-    uint textureId;
-    uint samplerId;
+push_constant PushConstants {
+  vec4 LRTB;
 } pc;
 
-void main() {
+struct VertexIn {
+  vec2 a_position;
+  vec2 a_uv;
+  vec4 a_color;
+};
+
+struct Varyings {
+  vec4 color;
+  vec2 uv;
+};
+
+struct FragOut {
+  vec4 color;
+};
+#hina_end
+
+#hina_stage vertex entry VSMain
+Varyings VSMain(VertexIn in) {
+    Varyings out;
+
     float L = pc.LRTB.x;
     float R = pc.LRTB.y;
     float T = pc.LRTB.z;
     float B = pc.LRTB.w;
 
+    // Orthographic projection for UI (standard Y: Y=0 at top, Y=height at bottom)
+    // No Y-flip here - the final ImGui viewport UV flip handles Vulkan coordinate conversion
     mat4 proj = mat4(
         2.0 / (R - L), 0.0, 0.0, 0.0,
-        0.0, 2.0 / (T - B), 0.0, 0.0,
+        0.0, 2.0 / (B - T), 0.0, 0.0,
         0.0, 0.0, -1.0, 0.0,
-        (R + L) / (L - R), (T + B) / (B - T), 0.0, 1.0
+        (R + L) / (L - R), (T + B) / (T - B), 0.0, 1.0
     );
 
-    out_color = unpackUnorm4x8(in_color);
-    out_uv = in_uv;
-    gl_Position = proj * vec4(in_pos, 0.0, 1.0);
+    out.color = in.a_color;
+    out.uv = in.a_uv;
+    gl_Position = proj * vec4(in.a_position, 0.0, 1.0);
+    return out;
 }
-)";
-  constexpr const char* kUiFragmentShader = R"(
-layout (location = 0) in vec4 in_color;
-layout (location = 1) in vec2 in_uv;
+#hina_end
 
-layout (location = 0) out vec4 out_color;
-
-layout (constant_id = 0) const bool kLinearColorSpace = false;
-
-layout(push_constant) uniform PushConstants {
-    vec4 LRTB;
-    uint textureId;
-    uint samplerId;
-} pc;
-
-void main() {
-    vec4 sampleColor = texture(nonuniformEXT(sampler2D(kTextures2D[pc.textureId], kSamplers[pc.samplerId])), in_uv);
-    vec4 c = in_color * sampleColor;
-    out_color = kLinearColorSpace ? vec4(pow(c.rgb, vec3(2.2)), c.a) : c;
+#hina_stage fragment entry FSMain
+FragOut FSMain(Varyings in) {
+    FragOut out;
+    vec4 texColor = texture(uTexture, in.uv);
+    vec4 color = in.color * texColor;
+    // Premultiply alpha to avoid fringe artifacts from linear filtering
+    out.color = vec4(color.rgb * color.a, color.a);
+    return out;
 }
+#hina_end
 )";
+
   constexpr const char* kVertexBufferName = "Ui2DVertexBuffer";
   constexpr const char* kIndexBufferName = "Ui2DIndexBuffer";
 } // namespace
+
 void Ui2DRenderFeature::SetupPasses(internal::RenderPassBuilder& passBuilder)
 {
-  vk::BufferDesc vertexDesc{.usage = vk::BufferUsageBits_Vertex, .storage = vk::StorageType::Device, .size = 64 * 1024};
-  vk::BufferDesc indexDesc{.usage = vk::BufferUsageBits_Index, .storage = vk::StorageType::Device, .size = 32 * 1024};
+  gfx::BufferDesc vertexDesc{
+    .size = 64 * 1024,
+    .memory = gfx::BufferMemory::CPU,
+    .usage = gfx::BufferUsage::Vertex
+  };
+  gfx::BufferDesc indexDesc{
+    .size = 32 * 1024,
+    .memory = gfx::BufferMemory::CPU,
+    .usage = gfx::BufferUsage::Index
+  };
   PassDeclarationInfo passInfo;
   passInfo.framebufferDebugName = "Ui2DOverlay";
   passInfo.colorAttachments[0] = {
-    .textureName = RenderResources::SCENE_COLOR, .loadOp = vk::LoadOp::Load, .storeOp = vk::StoreOp::Store,
+    .textureName = RenderResources::SCENE_COLOR, .loadOp = gfx::LoadOp::Load, .storeOp = gfx::StoreOp::Store,
   };
-  passInfo.depthAttachment = {
-    .textureName = RenderResources::SCENE_DEPTH, .loadOp = vk::LoadOp::Load, .storeOp = vk::StoreOp::Store,
-  };
+  // No depth attachment - UI2D pipeline doesn't use depth testing/writing
   passBuilder.CreatePass().DeclareTransientResource(kVertexBufferName, vertexDesc).
               DeclareTransientResource(kIndexBufferName, indexDesc).
               UseResource(RenderResources::SCENE_COLOR, AccessType::ReadWrite).
-              UseResource(RenderResources::SCENE_DEPTH, AccessType::ReadWrite).
               UseResource(kVertexBufferName, AccessType::ReadWrite).UseResource(kIndexBufferName, AccessType::ReadWrite)
-              .SetPriority(internal::RenderPassBuilder::PassPriority::UI).AddGraphicsPass(
+              .SetPriority(internal::RenderPassBuilder::PassPriority::UI)
+              .ExecuteAfter("SceneComposite")  // UI2D must run AFTER composite populates SCENE_COLOR
+              .AddGraphicsPass(
                 "Ui2DRender", passInfo, [this](const internal::ExecutionContext& context)
                 {
                   RenderUi(context);
@@ -88,23 +113,67 @@ void Ui2DRenderFeature::SetupPasses(internal::RenderPassBuilder& passBuilder)
 void Ui2DRenderFeature::EnsurePipeline(const internal::ExecutionContext& context)
 {
   if (resourcesCreated_) return;
-  vk::IContext& vkContext = context.GetvkContext();
-  vertShader_ = vkContext.createShaderModule({kUiVertexShader, vk::ShaderStage::Vert, "Ui2D Vertex Shader"});
-  fragShader_ = vkContext.createShaderModule({kUiFragmentShader, vk::ShaderStage::Frag, "Ui2D Fragment Shader"});
-  linearSampler_ = vkContext.createSampler({
-    .minFilter = vk::SamplerFilter::Linear, .magFilter = vk::SamplerFilter::Linear, .mipMap = vk::SamplerMip::Disabled,
-    .wrapU = vk::SamplerWrap::Clamp, .wrapV = vk::SamplerWrap::Clamp, .wrapW = vk::SamplerWrap::Clamp,
-    .debugName = "Ui2DLinearSampler"
-  });
-  nearestSampler_ = vkContext.createSampler({
-    .minFilter = vk::SamplerFilter::Nearest, .magFilter = vk::SamplerFilter::Nearest,
-    .mipMap = vk::SamplerMip::Disabled, .wrapU = vk::SamplerWrap::Clamp, .wrapV = vk::SamplerWrap::Clamp,
-    .wrapW = vk::SamplerWrap::Clamp, .debugName = "Ui2DNearestSampler"
-  });
-  textSampler_ = vkContext.createSampler({
-    .wrapU = vk::SamplerWrap::Clamp, .wrapV = vk::SamplerWrap::Clamp, .wrapW = vk::SamplerWrap::Clamp,
-    .debugName = "Ui2DTextSampler"
-  });
+
+  GfxRenderer* gfxRenderer = context.GetGfxRenderer();
+
+  // Compile HSL shader
+  char* error = nullptr;
+  hina_hsl_module* module = hslc_compile_hsl_source(kUi2DShaderHSL, "ui2d_feature_shader", &error);
+  if (!module) {
+    std::cerr << "[UI2D] Shader compilation failed: " << (error ? error : "Unknown") << std::endl;
+    if (error) hslc_free_log(error);
+    return;
+  }
+
+  // Vertex layout matching PrimitiveVertex: {float x, float y, float u, float v, uint32_t color}
+  hina_vertex_layout vertex_layout = {};
+  vertex_layout.buffer_count = 1;
+  vertex_layout.buffer_strides[0] = sizeof(ui::PrimitiveVertex);
+  vertex_layout.input_rates[0] = HINA_VERTEX_INPUT_RATE_VERTEX;
+  vertex_layout.attr_count = 3;
+  vertex_layout.attrs[0] = { HINA_FORMAT_R32G32_SFLOAT, offsetof(ui::PrimitiveVertex, x), 0, 0 };      // position
+  vertex_layout.attrs[1] = { HINA_FORMAT_R32G32_SFLOAT, offsetof(ui::PrimitiveVertex, u), 1, 0 };      // uv
+  vertex_layout.attrs[2] = { HINA_FORMAT_R8G8B8A8_UNORM, offsetof(ui::PrimitiveVertex, color), 2, 0 }; // color (auto-unpacked to vec4)
+
+  // Pipeline descriptor
+  hina_hsl_pipeline_desc pip_desc = hina_hsl_pipeline_desc_default();
+  pip_desc.layout = vertex_layout;
+  pip_desc.cull_mode = HINA_CULL_MODE_NONE;
+  pip_desc.primitive_topology = HINA_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+  pip_desc.polygon_mode = HINA_POLYGON_MODE_FILL;
+  pip_desc.samples = HINA_SAMPLE_COUNT_1_BIT;
+
+  // Blend state for premultiplied alpha (eliminates fringe artifacts from linear filtering)
+  pip_desc.blend[0].enable = true;
+  pip_desc.blend[0].src_color = HINA_BLEND_FACTOR_ONE;  // Color already premultiplied in shader
+  pip_desc.blend[0].dst_color = HINA_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+  pip_desc.blend[0].color_op = HINA_BLEND_OP_ADD;
+  pip_desc.blend[0].src_alpha = HINA_BLEND_FACTOR_ONE;
+  pip_desc.blend[0].dst_alpha = HINA_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+  pip_desc.blend[0].alpha_op = HINA_BLEND_OP_ADD;
+
+  // Color attachment format: use HDR scene format since we render to SCENE_COLOR
+  pip_desc.color_formats[0] = LinearColor::HDR_SCENE_FORMAT;
+
+  // No depth testing for UI
+  pip_desc.depth.depth_test = false;
+  pip_desc.depth.depth_write = false;
+  pip_desc.depth_format = HINA_FORMAT_UNDEFINED;
+
+  // Use the shared UI bind group layout
+  gfx::BindGroupLayout uiLayout = gfxRenderer->getUIBindGroupLayout();
+  if (hina_bind_group_layout_is_valid(uiLayout)) {
+    pip_desc.bind_group_layouts[0] = uiLayout;
+  }
+
+  pipeline_.reset(hina_make_pipeline_from_module(module, &pip_desc, nullptr));
+  hslc_hsl_module_free(module);
+
+  if (!hina_pipeline_is_valid(pipeline_.get())) {
+    std::cerr << "[UI2D] Pipeline creation failed" << std::endl;
+    return;
+  }
+
   resourcesCreated_ = true;
 }
 
@@ -115,7 +184,10 @@ void Ui2DRenderFeature::RenderUi(const internal::ExecutionContext& context)
   const size_t vertexCount = params.drawList.vertices.size();
   const size_t indexCount = params.drawList.indices.size();
   if (vertexCount == 0 || indexCount == 0) return;
+
   EnsurePipeline(context);
+  if (!hina_pipeline_is_valid(pipeline_.get())) return;
+
   const size_t vertexBytes = vertexCount * sizeof(ui::PrimitiveVertex);
   const size_t indexBytes = indexCount * sizeof(uint32_t);
   const auto ensureCapacity = [&](const char* bufferName, size_t requiredBytes, size_t minimumGrowth)
@@ -128,92 +200,32 @@ void Ui2DRenderFeature::RenderUi(const internal::ExecutionContext& context)
   };
   ensureCapacity(kVertexBufferName, vertexBytes, static_cast<size_t>(128u * 1024u));
   ensureCapacity(kIndexBufferName, indexBytes, static_cast<size_t>(64u * 1024u));
-  vk::BufferHandle vertexBuffer = context.GetBuffer(kVertexBufferName);
-  vk::BufferHandle indexBuffer = context.GetBuffer(kIndexBufferName);
-  vk::IContext& vkContext = context.GetvkContext();
-  vkContext.upload(vertexBuffer, params.drawList.vertices.data(), vertexBytes);
-  vkContext.upload(indexBuffer, params.drawList.indices.data(), indexBytes);
-  if (pipeline_.empty())
-  {
-    vk::TextureHandle sceneColor = context.GetTexture(RenderResources::SCENE_COLOR);
-    vk::TextureHandle sceneDepth = context.GetTexture(RenderResources::SCENE_DEPTH);
-    const vk::Format depthFormat = sceneDepth.valid() ? vkContext.getFormat(sceneDepth) : vk::Format::Invalid;
-    vk::VertexInput vertexInput{};
-    vertexInput.attributes[0] = {
-      .location = 0, .binding = 0, .format = vk::VertexFormat::Float2, .offset = offsetof(ui::PrimitiveVertex, x)
-    };
-    vertexInput.attributes[1] = {
-      .location = 1, .binding = 0, .format = vk::VertexFormat::Float2, .offset = offsetof(ui::PrimitiveVertex, u)
-    };
-    vertexInput.attributes[2] = {
-      .location = 2, .binding = 0, .format = vk::VertexFormat::UInt1, .offset = offsetof(ui::PrimitiveVertex, color)
-    };
-    vertexInput.inputBindings[0].stride = sizeof(ui::PrimitiveVertex);
-    const bool needsLinearColorSpace = vkContext.getSwapchainColorSpace() == vk::ColorSpace::SRGB_LINEAR;
-    const uint32_t linearColorSpaceFlag = needsLinearColorSpace ? 1u : 0u;
-    vk::RenderPipelineDesc pipelineDesc{};
-    pipelineDesc.vertexInput = vertexInput;
-    pipelineDesc.smVert = vertShader_;
-    pipelineDesc.smFrag = fragShader_;
-    pipelineDesc.specInfo.entries[0] = {.constantId = 0, .offset = 0, .size = sizeof(linearColorSpaceFlag)};
-    pipelineDesc.specInfo.data = &linearColorSpaceFlag;
-    pipelineDesc.specInfo.dataSize = sizeof(linearColorSpaceFlag);
-    pipelineDesc.color[0] = {
-      .format = vkContext.getFormat(sceneColor), .blendEnabled = true, .srcRGBBlendFactor = vk::BlendFactor::SrcAlpha,
-      .srcAlphaBlendFactor = vk::BlendFactor::One, .dstRGBBlendFactor = vk::BlendFactor::OneMinusSrcAlpha,
-      .dstAlphaBlendFactor = vk::BlendFactor::OneMinusSrcAlpha,
-    };
-    pipelineDesc.depthFormat = depthFormat;
-    pipelineDesc.cullMode = vk::CullMode::None;
-    pipelineDesc.debugName = "Ui2DRenderPipeline";
-    pipeline_ = vkContext.createRenderPipeline(pipelineDesc, nullptr);
-  }
-  vk::ICommandBuffer& cmd = context.GetvkCommandBuffer();
-  cmd.cmdBindVertexBuffer(0, vertexBuffer, 0);
-  cmd.cmdBindIndexBuffer(indexBuffer, vk::IndexFormat::UI32);
-  cmd.cmdBindRenderPipeline(pipeline_);
-  cmd.cmdBindDepthState({.compareOp = vk::CompareOp::Always, .isDepthWriteEnabled = false});
-  vk::TextureHandle sceneColor = context.GetTexture(RenderResources::SCENE_COLOR);
-  vk::Dimensions dims = vkContext.getDimensions(sceneColor);
+
+  gfx::Buffer vertexBuffer = context.GetBuffer(kVertexBufferName);
+  gfx::Buffer indexBuffer = context.GetBuffer(kIndexBufferName);
+  hina_upload_buffer(vertexBuffer, params.drawList.vertices.data(), vertexBytes);
+  hina_upload_buffer(indexBuffer, params.drawList.indices.data(), indexBytes);
+
+  gfx::CommandBuffer& cmd = context.GetCommandBuffer();
+  HinaContext* hinaCtx = context.GetHinaContext();
+  GfxRenderer* gfxRenderer = context.GetGfxRenderer();
+
+  gfx::Texture sceneColor = context.GetTexture(RenderResources::SCENE_COLOR);
+  gfx::Dimensions dims = hinaCtx->getDimensions(sceneColor);
   const float fbWidth = static_cast<float>(dims.width);
   const float fbHeight = static_cast<float>(dims.height);
-  cmd.cmdBindViewport({.x = 0.0f, .y = 0.0f, .width = fbWidth, .height = fbHeight});
-  struct PushConstants
-  {
-    float LRTB[4];
-    uint32_t textureId;
-    uint32_t samplerId;
-  };
-  struct FramePush
-  {
-    float LRTB[4];
-  };
-  struct DrawPush
-  {
-    uint32_t textureId;
-    uint32_t samplerId;
-  };
-  FramePush framePc{};
-  framePc.LRTB[0] = 0.0f;
-  framePc.LRTB[1] = fbWidth;
-  framePc.LRTB[2] = 0.0f;
-  framePc.LRTB[3] = fbHeight;
-  cmd.cmdPushConstants(framePc);
-  DrawPush drawPc{};
-  const uint32_t samplerLookup[] = {
-    linearSampler_.empty() ? 0u : linearSampler_.index(), nearestSampler_.empty() ? 0u : nearestSampler_.index(),
-    textSampler_.empty() ? 0u : textSampler_.index()
-  };
-  constexpr uint32_t samplerCount = sizeof(samplerLookup) / sizeof(samplerLookup[0]);
-  uint32_t samplerFallback = 0u;
-  for (uint32_t sampler : samplerLookup)
-  {
-    if (sampler != 0u)
-    {
-      samplerFallback = sampler;
-      break;
-    }
-  }
+
+  cmd.setViewport({.x = 0.0f, .y = 0.0f, .width = fbWidth, .height = fbHeight});
+  cmd.bindPipeline(pipeline_.get());
+
+  // Bind vertex and index buffers using hina_vertex_input
+  hina_vertex_input vertInput = {};
+  vertInput.vertex_buffers[0] = vertexBuffer;
+  vertInput.vertex_offsets[0] = 0;
+  vertInput.index_buffer = indexBuffer;
+  vertInput.index_type = HINA_INDEX_UINT32;
+  hina_cmd_apply_vertex_input(cmd.get(), &vertInput);
+
   // Sort commands by layer, then by sortOrder
   std::vector<const ui::PrimitiveDrawCommand*> sortedCommands;
   sortedCommands.reserve(params.drawList.commands.size());
@@ -226,6 +238,13 @@ void Ui2DRenderFeature::RenderUi(const internal::ExecutionContext& context)
       return a->sortOrder < b->sortOrder;
     });
 
+  struct Ui2DPushConstants
+  {
+    float LRTB[4];
+  } pushData = {
+    .LRTB = {0.0f, fbWidth, 0.0f, fbHeight},
+  };
+
   for (const ui::PrimitiveDrawCommand* drawCmdPtr : sortedCommands)
   {
     const ui::PrimitiveDrawCommand& drawCmd = *drawCmdPtr;
@@ -235,24 +254,44 @@ void Ui2DRenderFeature::RenderUi(const internal::ExecutionContext& context)
       textureId = params.drawList.solidFillTextureId;
     }
     if (textureId == std::numeric_limits<uint32_t>::max()) continue;
-    drawPc.textureId = textureId;
-    uint32_t samplerId = samplerFallback;
-    if (drawCmd.samplerIndex < samplerCount && samplerLookup[drawCmd.samplerIndex] != 0u)
-    {
-      samplerId = samplerLookup[drawCmd.samplerIndex];
+
+    // Decode texture handle and create transient bind group
+    gfx::TextureView texView = {};
+    gfx::Sampler sampler = gfxRenderer->getDefaultSampler();
+
+    // Decode TextureHandle from ID (index in low 16 bits, generation in high 16 bits)
+    gfx::TextureHandle h;
+    h.index = static_cast<uint16_t>(textureId & 0xFFFF);
+    h.generation = static_cast<uint16_t>((textureId >> 16) & 0xFFFF);
+    // getTextureView automatically waits for texture upload to complete
+    texView = gfxRenderer->getMaterialSystem().getTextureView(h);
+
+    // Fallback to default white texture if invalid
+    if (!hina_texture_view_is_valid(texView)) {
+      texView = gfxRenderer->getMaterialSystem().getTextureView(
+          gfxRenderer->getMaterialSystem().getDefaultWhiteTexture());
+      if (!hina_texture_view_is_valid(texView)) continue;
     }
-    drawPc.samplerId = samplerId;
-    cmd.cmdPushConstants(&drawPc, sizeof(drawPc), offsetof(PushConstants, textureId));
+
+    // Create transient bind group using the shared UI layout
+    hina_transient_bind_group tbg = hina_alloc_transient_bind_group(gfxRenderer->getUIBindGroupLayout());
+    hina_transient_write_combined_image(&tbg, 0, texView, sampler);
+    hina_cmd_bind_transient_group(cmd.get(), 0, tbg);
+
+    cmd.pushConstants(pushData);
+
     const float clipMinX = std::clamp(drawCmd.clipRect.x, 0.0f, fbWidth);
     const float clipMinY = std::clamp(drawCmd.clipRect.y, 0.0f, fbHeight);
     const float clipMaxX = std::clamp(drawCmd.clipRect.z, 0.0f, fbWidth);
     const float clipMaxY = std::clamp(drawCmd.clipRect.w, 0.0f, fbHeight);
     if (clipMaxX <= clipMinX || clipMaxY <= clipMinY) continue;
-    cmd.cmdBindScissorRect({
-      .x = static_cast<uint32_t>(clipMinX), .y = static_cast<uint32_t>(clipMinY),
+
+    cmd.setScissor({
+      .x = static_cast<int32_t>(clipMinX), .y = static_cast<int32_t>(clipMinY),
       .width = static_cast<uint32_t>(clipMaxX - clipMinX), .height = static_cast<uint32_t>(clipMaxY - clipMinY)
     });
+
     // Vertices/indices in the primitive list are absolute, so keep vertex offset at zero.
-    cmd.cmdDrawIndexed(drawCmd.indexCount, 1, drawCmd.indexOffset, 0, 0);
+    cmd.drawIndexed(drawCmd.indexCount, 1, drawCmd.indexOffset, 0, 0);
   }
 }

@@ -1,16 +1,24 @@
+// Windows headers must come first on Windows for Vulkan
+#if defined(_WIN32)
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
+#include <Windows.h>
+#endif
+
 #include "VFS/VFS.h"
 #include "texture_loader.h"
 #include "logging/log.h"
 #include "core_utils/util.h"
 #include <FreeImage.h>
-#include <renderer/vulkan/vk_util.h>
+#include <vulkan/vulkan.h>
 #include <ktxvulkan.h>
 #include <assimp/scene.h>
 #include <algorithm>
 
 namespace Resource::TextureLoading
 {
-  ProcessedTexture extractTexture(const TextureDataSource& source, [[maybe_unused]] const LoadingConfig& config)
+  ProcessedTexture extractTexture(const TextureDataSource& source, [[maybe_unused]] const LoadingConfig& config, bool isSRGB)
   {
     ProcessedTexture texture;
     texture.source = source;
@@ -36,6 +44,7 @@ namespace Resource::TextureLoading
     try
     {
       // Load texture data based on source type
+      // isSRGB is passed through for correct color space handling
       bool loadResult = std::visit([&](const auto& src) -> bool
       {
         using T = std::decay_t<decltype(src)>;
@@ -44,11 +53,11 @@ namespace Resource::TextureLoading
         }
         else if constexpr(std::is_same_v<T, FilePathSource>)
         {
-          return loadFromFile(src.path, texture, true);
+          return loadFromFile(src.path, texture, isSRGB);
         }
         else if constexpr(std::is_same_v<T, EmbeddedMemorySource>)
         {
-          return Detail::loadFromEmbedded(src, texture);
+          return Detail::loadFromEmbedded(src, texture, isSRGB);
         }
       },
                                    source);
@@ -66,10 +75,10 @@ namespace Resource::TextureLoading
     return texture;
   }
 
-  std::vector<TextureDataSource> collectUniqueTextures(const std::vector<ProcessedMaterial>& materials)
+  std::vector<std::pair<TextureDataSource, bool>> collectUniqueTextures(const std::vector<ProcessedMaterial>& materials)
   {
     std::unordered_set<std::string> seen;
-    std::vector<TextureDataSource> uniqueTextures;
+    std::vector<std::pair<TextureDataSource, bool>> uniqueTextures;
 
     for(const auto& material : materials)
     {
@@ -82,7 +91,7 @@ namespace Resource::TextureLoading
         if(!key.empty() && !seen.contains(key))
         {
           seen.insert(key);
-          uniqueTextures.push_back(matTex.source);
+          uniqueTextures.push_back({matTex.source, matTex.isSRGB});
         }
       };
 
@@ -103,9 +112,9 @@ namespace Resource::TextureLoading
 
   bool isValidTexture(const ProcessedTexture& texture)
   {
-    return !texture.data.empty() && texture.width > 0 && texture.height > 0 && texture.channels > 0 && texture.textureDesc.format != vk::Format::Invalid;
+    return !texture.data.empty() && texture.width > 0 && texture.height > 0 && texture.channels > 0 && texture.textureDesc.format != gfx::Format::Undefined;
   }
-  bool loadFromFile(const std::string& path, ProcessedTexture& texture, bool sRGB, vk::TextureType type)
+  bool loadFromFile(const std::string& path, ProcessedTexture& texture, bool sRGB, gfx::TextureType type)
   {
       //if(!exists(path))
       //{
@@ -141,7 +150,7 @@ namespace Resource::TextureLoading
 
       if (ext == ".ktx" || ext == ".KTX")
       {
-          ASSERT(type == vk::TextureType::Tex2D);
+          ASSERT(type == gfx::TextureType::Tex2D);
           return Detail::loadFromMemoryKTX(fileData.data(), fileData.size(), path, texture, type);
       }
       if (ext == ".ktx2" || ext == ".KTX2")
@@ -149,12 +158,12 @@ namespace Resource::TextureLoading
           return Detail::loadFromMemoryKTX2(fileData.data(), fileData.size(), path, texture, type);
       }
 
-      ASSERT(type == vk::TextureType::Tex2D);
+      ASSERT(type == gfx::TextureType::Tex2D);
       return Detail::loadFromMemory(fileData.data(), fileData.size(), texture, path, sRGB);
   }
   namespace Detail
   {
-    bool loadFromFileKTX(const std::filesystem::path& path, ProcessedTexture& texture, vk::TextureType
+    bool loadFromFileKTX(const std::filesystem::path& path, ProcessedTexture& texture, gfx::TextureType
                          type)
     {
       ktxTexture1* ktxTex = nullptr;
@@ -181,14 +190,14 @@ namespace Resource::TextureLoading
       std::memcpy(texture.data.data(), ktxTex->pData, dataSize);
 
       // Create descriptor
-      texture.textureDesc = vk::TextureDesc{ .type = type, .format = vk::vkFormatToFormat(ktxTexture1_GetVkFormat(ktxTex)), .dimensions = {texture.width, texture.height, 1}, .usage = vk::TextureUsageBits_Sampled, .numMipLevels = ktxTex->numLevels, .debugName = path.string().c_str() };
+      texture.textureDesc = gfx::TextureMetadata{ .type = type, .format = gfx::vkFormatToFormat(ktxTexture1_GetVkFormat(ktxTex)), .dimensions = {texture.width, texture.height, 1}, .numMipLevels = ktxTex->numLevels, .usage = gfx::TextureUsage::Sampled, .debugName = path.string().c_str() };
 
       LOG_DEBUG("Loaded KTX texture '{}' - {}x{}, {} mips", path.string(), texture.width, texture.height, ktxTex->numLevels);
 
       return true;
     }
 
-    bool loadFromMemoryKTX(const uint8_t* data, size_t size, const std::string& path, ProcessedTexture& texture, vk::TextureType type)
+    bool loadFromMemoryKTX(const uint8_t* data, size_t size, const std::string& path, ProcessedTexture& texture, gfx::TextureType type)
     {
         ktxTexture1* ktxTex = nullptr;
 
@@ -214,12 +223,12 @@ namespace Resource::TextureLoading
         std::memcpy(texture.data.data(), ktxTex->pData, dataSize);
 
         // Create descriptor
-        texture.textureDesc = vk::TextureDesc{ 
-            .type = type, 
-            .format = vk::vkFormatToFormat(ktxTexture1_GetVkFormat(ktxTex)), 
-            .dimensions = {texture.width, texture.height, 1}, 
-            .usage = vk::TextureUsageBits_Sampled, 
-            .numMipLevels = ktxTex->numLevels, 
+        texture.textureDesc = gfx::TextureMetadata{
+            .type = type,
+            .format = gfx::vkFormatToFormat(ktxTexture1_GetVkFormat(ktxTex)),
+            .dimensions = {texture.width, texture.height, 1},
+            .numMipLevels = ktxTex->numLevels,
+            .usage = gfx::TextureUsage::Sampled,
             .debugName = path.c_str() };
 
         LOG_DEBUG("Loaded KTX texture '{}' - {}x{}, {} mips", path, texture.width, texture.height, ktxTex->numLevels);
@@ -227,7 +236,7 @@ namespace Resource::TextureLoading
         return true;
     }
 
-    bool loadFromFileKTX2(const std::filesystem::path& path, ProcessedTexture& texture, vk::TextureType type)
+    bool loadFromFileKTX2(const std::filesystem::path& path, ProcessedTexture& texture, gfx::TextureType type)
     {
         ktxTexture2* ktxTex = nullptr;
 
@@ -249,33 +258,66 @@ namespace Resource::TextureLoading
 
         SCOPE_EXIT{ ktxTexture_Destroy(ktxTexture(ktxTex)); };
 
+        // Basis Universal textures require runtime transcoding - we don't support this.
+        // Use AssetCompiler with --platform flag to pre-compile to BC7 (Windows) or ASTC (Android).
+        if (ktxTexture2_NeedsTranscoding(ktxTex))
+        {
+            LOG_ERROR("KTX2 file '{}' uses Basis Universal compression which requires runtime transcoding. "
+                      "Please re-compile with AssetCompiler using --platform windows (BC7) or --platform android (ASTC).",
+                      path.string());
+            return false;
+        }
+
         // Extract texture properties
         texture.originalFileSize = std::filesystem::file_size(path);
         texture.width = ktxTex->baseWidth;
         texture.height = ktxTex->baseHeight;
         texture.channels = 4; // Most KTX textures are 4-channel
 
-        // Copy texture data
-        const size_t dataSize = ktxTexture_GetDataSize(ktxTexture(ktxTex));
-        texture.data.resize(dataSize);
-        std::memcpy(texture.data.data(), ktxTex->pData, dataSize);
+        // Get mip 0 offset and size for proper data extraction
+        ktx_size_t mip0Offset = 0;
+        result = ktxTexture_GetImageOffset(ktxTexture(ktxTex), 0, 0, 0, &mip0Offset);
+        if (result != KTX_SUCCESS)
+        {
+            LOG_WARNING("Failed to get mip 0 offset for '{}'. KTX Error: {}", path.string(), ktxErrorString(result));
+            return false;
+        }
 
-        // Create descriptor
-        texture.textureDesc = vk::TextureDesc{
+        ktx_size_t mip0Size = ktxTexture_GetImageSize(ktxTexture(ktxTex), 0);
+        ktx_size_t totalDataSize = ktxTexture_GetDataSize(ktxTexture(ktxTex));
+
+        LOG_INFO("KTX2 '{}': {}x{}, vkFormat={}, mips={}, mip0Offset={}, mip0Size={}, totalSize={}, supercompression={}",
+            path.string(), texture.width, texture.height, ktxTex->vkFormat,
+            ktxTex->numLevels, mip0Offset, mip0Size, totalDataSize, static_cast<int>(ktxTex->supercompressionScheme));
+
+        // Sanity check
+        if (mip0Offset + mip0Size > totalDataSize)
+        {
+            LOG_ERROR("KTX2 '{}': mip0 data exceeds buffer! offset={} + size={} > total={}",
+                path.string(), mip0Offset, mip0Size, totalDataSize);
+            return false;
+        }
+
+        // Copy only mip 0 data (hina-vk expects just the base level)
+        texture.data.resize(mip0Size);
+        std::memcpy(texture.data.data(), ktxTex->pData + mip0Offset, mip0Size);
+
+        // Create descriptor with format after potential transcoding
+        texture.textureDesc = gfx::TextureMetadata{
             .type = type,
-            .format = vk::vkFormatToFormat(static_cast<VkFormat>(ktxTex->vkFormat)),
+            .format = gfx::vkFormatToFormat(ktxTex->vkFormat),
             .dimensions = {texture.width, texture.height, 1},
-            .usage = vk::TextureUsageBits_Sampled,
-            .numMipLevels = ktxTex->numLevels,
+            .numMipLevels = 1,  // Only uploading mip 0
+            .usage = gfx::TextureUsage::Sampled,
             .debugName = path.string().c_str() };
 
-        LOG_DEBUG("Loaded KTX2 texture '{}' - {}x{}, {} mips",
-            path.string(), texture.width, texture.height, ktxTex->numLevels/*, vk::getFormatName(texture.textureDesc.format)*/);
+        LOG_INFO("Loaded KTX2 texture '{}' - {}x{}, format={}, mip0Size={}",
+            path.string(), texture.width, texture.height, ktxTex->vkFormat, mip0Size);
 
         return true;
     }
 
-    bool loadFromMemoryKTX2(const uint8_t* data, size_t size, const std::string& path, ProcessedTexture& texture, vk::TextureType type)
+    bool loadFromMemoryKTX2(const uint8_t* data, size_t size, const std::string& path, ProcessedTexture& texture, gfx::TextureType type)
     {
         ktxTexture2* ktxTex = nullptr;
 
@@ -297,28 +339,61 @@ namespace Resource::TextureLoading
 
         SCOPE_EXIT{ ktxTexture_Destroy(ktxTexture(ktxTex)); };
 
+        // Basis Universal textures require runtime transcoding - we don't support this.
+        // Use AssetCompiler with --platform flag to pre-compile to BC7 (Windows) or ASTC (Android).
+        if (ktxTexture2_NeedsTranscoding(ktxTex))
+        {
+            LOG_ERROR("KTX2 file '{}' uses Basis Universal compression which requires runtime transcoding. "
+                      "Please re-compile with AssetCompiler using --platform windows (BC7) or --platform android (ASTC).",
+                      path);
+            return false;
+        }
+
         // Extract texture properties
         texture.originalFileSize = size;
         texture.width = ktxTex->baseWidth;
         texture.height = ktxTex->baseHeight;
         texture.channels = 4; // Most KTX textures are 4-channel
 
-        // Copy texture data
-        const size_t dataSize = ktxTexture_GetDataSize(ktxTexture(ktxTex));
-        texture.data.resize(dataSize);
-        std::memcpy(texture.data.data(), ktxTex->pData, dataSize);
+        // Get mip 0 offset and size for proper data extraction
+        ktx_size_t mip0Offset = 0;
+        result = ktxTexture_GetImageOffset(ktxTexture(ktxTex), 0, 0, 0, &mip0Offset);
+        if (result != KTX_SUCCESS)
+        {
+            LOG_WARNING("Failed to get mip 0 offset for '{}'. KTX Error: {}", path, ktxErrorString(result));
+            return false;
+        }
 
-        // Create descriptor
-        texture.textureDesc = vk::TextureDesc{
+        ktx_size_t mip0Size = ktxTexture_GetImageSize(ktxTexture(ktxTex), 0);
+        ktx_size_t totalDataSize = ktxTexture_GetDataSize(ktxTexture(ktxTex));
+
+        LOG_INFO("KTX2 '{}': {}x{}, vkFormat={}, mips={}, mip0Offset={}, mip0Size={}, totalSize={}, supercompression={}",
+            path, texture.width, texture.height, ktxTex->vkFormat,
+            ktxTex->numLevels, mip0Offset, mip0Size, totalDataSize, static_cast<int>(ktxTex->supercompressionScheme));
+
+        // Sanity check
+        if (mip0Offset + mip0Size > totalDataSize)
+        {
+            LOG_ERROR("KTX2 '{}': mip0 data exceeds buffer! offset={} + size={} > total={}",
+                path, mip0Offset, mip0Size, totalDataSize);
+            return false;
+        }
+
+        // Copy only mip 0 data (hina-vk expects just the base level)
+        texture.data.resize(mip0Size);
+        std::memcpy(texture.data.data(), ktxTex->pData + mip0Offset, mip0Size);
+
+        // Create descriptor with format after potential transcoding
+        texture.textureDesc = gfx::TextureMetadata{
             .type = type,
-            .format = vk::vkFormatToFormat(static_cast<VkFormat>(ktxTex->vkFormat)),
+            .format = gfx::vkFormatToFormat(ktxTex->vkFormat),
             .dimensions = {texture.width, texture.height, 1},
-            .usage = vk::TextureUsageBits_Sampled,
-            .numMipLevels = ktxTex->numLevels,
+            .numMipLevels = 1,  // Only uploading mip 0
+            .usage = gfx::TextureUsage::Sampled,
             .debugName = path.c_str() };
 
-        LOG_DEBUG("Loaded KTX2 texture '{}' - {}x{}, {} mips",
-            path, texture.width, texture.height, ktxTex->numLevels/*, vk::getFormatName(texture.textureDesc.format)*/);
+        LOG_DEBUG("Loaded KTX2 texture '{}' - {}x{}, format={}, mip0Size={}",
+            path, texture.width, texture.height, ktxTex->vkFormat, mip0Size);
 
         return true;
     }
@@ -383,18 +458,18 @@ namespace Resource::TextureLoading
 
       // Create descriptor with correct format for FreeImage's BGRA order
 #if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
-      const vk::Format format = sRGB ? vk::Format::BGRA_SRGB8 : vk::Format::BGRA_UN8;
+      const gfx::Format format = sRGB ? gfx::Format::BGRA8_SRGB : gfx::Format::BGRA8_UNorm;
 #else
-      const vk::Format format = sRGB ? vk::Format::RGBA_SRGB8 : vk::Format::RGBA_UN8;
+      const gfx::Format format = sRGB ? gfx::Format::RGBA8_SRGB : gfx::Format::RGBA8_UNorm;
 #endif
 
-      texture.textureDesc = vk::TextureDesc{ .type = vk::TextureType::Tex2D, .format = format, .dimensions = {texture.width, texture.height, 1}, .usage = vk::TextureUsageBits_Sampled, .numMipLevels = 1, .debugName = path.string().c_str() };
+      texture.textureDesc = gfx::TextureMetadata{ .type = gfx::TextureType::Tex2D, .format = format, .dimensions = {texture.width, texture.height, 1}, .numMipLevels = 1, .usage = gfx::TextureUsage::Sampled, .debugName = path.string().c_str() };
 
       LOG_DEBUG("Loaded texture '{}' - {}x{}", path.string(), width, height);
       return true;
     }
 
-    bool loadFromEmbedded(const EmbeddedMemorySource& src, ProcessedTexture& texture)
+    bool loadFromEmbedded(const EmbeddedMemorySource& src, ProcessedTexture& texture, bool isSRGB)
     {
       if(!src.scene || src.identifier.empty() || src.identifier[0] != '*') {
         return false;
@@ -424,16 +499,16 @@ namespace Resource::TextureLoading
       {
         // Compressed embedded texture
         const uint8_t* data = reinterpret_cast<const uint8_t*>(aiTex->pcData);
-        return loadFromMemory(data, aiTex->mWidth, texture, texture.name, true);
+        return loadFromMemory(data, aiTex->mWidth, texture, texture.name, isSRGB);
       }
       else
       {
         // Uncompressed RGBA data
-        return loadFromUncompressedEmbedded(aiTex, texture);
+        return loadFromUncompressedEmbedded(aiTex, texture, isSRGB);
       }
     }
 
-    bool loadFromUncompressedEmbedded(const aiTexture* aiTex, ProcessedTexture& texture)
+    bool loadFromUncompressedEmbedded(const aiTexture* aiTex, ProcessedTexture& texture, bool isSRGB)
     {
       const size_t dataSize = aiTex->mWidth * aiTex->mHeight * 4;
       const uint8_t* data = reinterpret_cast<const uint8_t*>(aiTex->pcData);
@@ -442,10 +517,13 @@ namespace Resource::TextureLoading
       texture.height = aiTex->mHeight;
       texture.channels = 4;
       texture.data.assign(data, data + dataSize);
-      texture.sRGB = true;
+      texture.sRGB = isSRGB;
       texture.originalFileSize = dataSize;
 
-      texture.textureDesc = vk::TextureDesc{ .type = vk::TextureType::Tex2D, .format = vk::Format::RGBA_UN8, .dimensions = {texture.width, texture.height, 1}, .usage = vk::TextureUsageBits_Sampled, .numMipLevels = 1, .debugName = texture.name.c_str() };
+      // Select format based on color space
+      const gfx::Format format = isSRGB ? gfx::Format::RGBA8_SRGB : gfx::Format::RGBA8_UNorm;
+
+      texture.textureDesc = gfx::TextureMetadata{ .type = gfx::TextureType::Tex2D, .format = format, .dimensions = {texture.width, texture.height, 1}, .numMipLevels = 1, .usage = gfx::TextureUsage::Sampled, .debugName = texture.name.c_str() };
 
       return true;
     }
@@ -512,12 +590,12 @@ namespace Resource::TextureLoading
       std::memcpy(texture.data.data(), imgData, dataSize);
 
 #if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
-      const vk::Format format = sRGB ? vk::Format::BGRA_SRGB8 : vk::Format::BGRA_UN8;
+      const gfx::Format format = sRGB ? gfx::Format::BGRA8_SRGB : gfx::Format::BGRA8_UNorm;
 #else
-      const vk::Format format = sRGB ? vk::Format::RGBA_SRGB8 : vk::Format::RGBA_UN8;
+      const gfx::Format format = sRGB ? gfx::Format::RGBA8_SRGB : gfx::Format::RGBA8_UNorm;
 #endif
 
-      texture.textureDesc = vk::TextureDesc{ .type = vk::TextureType::Tex2D, .format = format, .dimensions = {texture.width, texture.height, 1}, .usage = vk::TextureUsageBits_Sampled, .numMipLevels = 1, .debugName = name.c_str() };
+      texture.textureDesc = gfx::TextureMetadata{ .type = gfx::TextureType::Tex2D, .format = format, .dimensions = {texture.width, texture.height, 1}, .numMipLevels = 1, .usage = gfx::TextureUsage::Sampled, .debugName = name.c_str() };
 
       LOG_DEBUG("Loaded embedded texture '{}' - {}x{}", name, width, height);
       return true;

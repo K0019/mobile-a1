@@ -2,6 +2,7 @@
 #include "Game/EnemyCharacter.h"
 #include "Physics/Collision.h"
 #include "Game/Character.h"
+#include "Graphics/AnimationComponent.h"
 #include "Graphics/AnimatorComponent.h"
 
 void L_MeleeAttack::OnInitialize()

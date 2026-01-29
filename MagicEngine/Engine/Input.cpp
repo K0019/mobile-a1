@@ -22,11 +22,7 @@ All rights reserved.
 #include "Engine/Input.h"
 #include "core/platform/platform.h"
 
-#ifdef IMGUI_ENABLED
 #include <ImGui/ImguiHeader.h>
-#else
-#include "Engine/Graphics Interface/GraphicsWindow.h"
-#endif
 //
 //const std::array<InputHardwareValueLink::FuncType_GetValue, +INPUT_DEVICE_TYPE::NUM_DEVICES> InputHardwareValueLink::GetValueFromDevice{
 //	[](int keyIdentifier, INPUT_READ_TYPE readType) -> InputHardwareValue {
@@ -360,19 +356,8 @@ void KeyboardMouseInput::GLFW_Callback_OnMouseClick([[maybe_unused]] GLFWwindow*
 
 void KeyboardMouseInput::GLFW_Callback_OnMouseMove([[maybe_unused]] GLFWwindow* window, [[maybe_unused]] double xpos, [[maybe_unused]] double ypos)
 {
-#ifdef IMGUI_ENABLED
 	auto pos = ImGui::GetMousePos();
 	ST<KeyboardMouseInput>::Get()->Callback_OnMouseMove(pos.x, pos.y);
-#else
-	// Clamp mouse position to window bounds
-	auto windowExtent{ ST<GraphicsWindow>::Get()->GetWindowExtent() };
-	double clampedXpos = std::clamp(xpos, 0.0, static_cast<double>(windowExtent.x));
-	double clampedYpos = std::clamp(ypos, 0.0, static_cast<double>(windowExtent.y));
-	if (clampedXpos != xpos || clampedYpos != ypos)
-		glfwSetCursorPos(window, clampedXpos, clampedYpos);
-
-	ST<KeyboardMouseInput>::Get()->Callback_OnMouseMove(clampedXpos, clampedYpos);
-#endif
 }
 
 void KeyboardMouseInput::GLFW_Callback_OnMouseScroll([[maybe_unused]] GLFWwindow* window, [[maybe_unused]] double xoffset, double yoffset)

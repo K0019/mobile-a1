@@ -14,7 +14,7 @@
 Compiles an fbx scene into 3 individual files: 
 a .mesh, a .material, and a .ktx2 texture if texture can be found.
 
-All content © 2025 DigiPen Institute of Technology Singapore.
+All content ï¿½ 2025 DigiPen Institute of Technology Singapore.
 All rights reserved.
 */
 /******************************************************************************/
@@ -35,6 +35,13 @@ namespace compiler
         std::vector<std::string> errors;
     };
 
+    // Results from texture compilation including alpha detection
+    struct TextureCompilationResults
+    {
+        std::map<TextureDataSource, std::filesystem::path> compiledPaths;
+        std::map<TextureDataSource, DetectedAlphaMode> detectedAlphaModes;  // Alpha mode per base color texture
+    };
+
 
     class SceneCompiler
     {
@@ -44,11 +51,14 @@ namespace compiler
     private:
         SceneProcessingResult ProcessScene(Scene& scene, const MeshOptions& options);
 
-        std::map<TextureDataSource, std::filesystem::path> CompileTextures(const Scene& scene, CompilationResult& result);
+        TextureCompilationResults CompileTextures(const Scene& scene, CompilationResult& result);
         void SaveMeshes(const Scene& scene, CompilationResult& result);
-        void SaveMaterialData(const Scene& scene, CompilationResult& result, std::map<TextureDataSource, std::filesystem::path> savedTexturesMap);
+        void SaveMaterialData(Scene& scene, CompilationResult& result, const TextureCompilationResults& textureResults);
         void SaveAnimations(const Scene& scene, CompilationResult& result);
-        //void SaveSkeleton(const Scene& scene, CompilationResult& result);
+
+        // Second pass: Refine material alpha modes based on detected texture alpha
+        // Only affects non-glTF materials that defaulted to Opaque
+        void RefineAlphaModes(Scene& scene, const TextureCompilationResults& textureResults);
 
         SceneLoader sceneLoader;
         CompilerOptions options;

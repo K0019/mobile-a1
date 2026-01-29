@@ -14,21 +14,44 @@
 Compiles an fbx scene into 3 individual files: 
 a .mesh, a .material, and a .ktx2 texture if texture can be found.
 
-All content © 2025 DigiPen Institute of Technology Singapore.
+All content ï¿½ 2025 DigiPen Institute of Technology Singapore.
 All rights reserved.
 */
 /******************************************************************************/
 #include "SceneCompiler.h"
-#include "MeshProcessor.h"
+#include "tools/assets/processing/mesh_process.h"  // Engine's MeshOptimizer
+#include "tools/assets/io/mesh_loader.h"           // Engine's calculateBounds
 #include "TextureCompiler.h"
-#include "MeshFileStructure.h"
-#include "AnimationFileStructure.h"
+#include "ThumbnailRenderer.h"
+#include "ProgressReporter.h"
+#include "resource/asset_formats/mesh_format.h"    // Engine's mesh file format
+#include "resource/asset_formats/anim_format.h"    // Engine's animation file format
+#include "resource/asset_metadata.h"               // For writing .meta sidecar files
+#include <string_view>                             // For content-based hashing
+
+// Use engine types
+using Resource::MeshOptimizer;
+using Resource::MeshFileHeader;
+using Resource::MeshNode;
+using Resource::MeshInfo;
+using Resource::MeshFile_Bone;
+using Resource::MeshFile_MorphTarget;
+using Resource::MeshFile_MorphDelta;
+using Resource::MESH_FILE_MAGIC;
+using Resource::AnimationFileHeader;
+using Resource::BoneAnimationChannel;
+using Resource::AnimationFile_MorphChannel;
+using Resource::AnimationFile_MorphKey;
+using Resource::ANIM_FILE_MAGIC;
+using Resource::MeshLoading::calculateBounds;
 
 #include <fstream>
 #include <set>
 #include <iostream>
 #include <span>
 #include <utility>
+
+#include <stb_image.h>  // For alpha detection (implementation in TextureCompiler.cpp)
 
 #include "rapidjson/document.h"
 #include "rapidjson/writer.h"
@@ -51,6 +74,24 @@ namespace compiler
         return std::equal(suffix.rbegin(), suffix.rend(), str.rbegin());
     }
 
+    // ----- Platform-aware texture format helpers ----- //
+    // Get appropriate format for linear dual-channel data (normals, metallic-roughness)
+    static TextureCompressionFormat GetLinearTextureFormat(TextureCompressionFormat platformDefault)
+    {
+        // If platform is Android (ASTC), use ASTC for all textures
+        // If platform is Windows (BC7), use BC5 for dual-channel linear data
+        if (platformDefault == TextureCompressionFormat::ASTC)
+            return TextureCompressionFormat::ASTC;
+        return TextureCompressionFormat::BC5;
+    }
+
+    // Get appropriate format for single-channel data (occlusion)
+    static TextureCompressionFormat GetSingleChannelFormat(TextureCompressionFormat platformDefault)
+    {
+        if (platformDefault == TextureCompressionFormat::ASTC)
+            return TextureCompressionFormat::ASTC;
+        return TextureCompressionFormat::BC4;
+    }
 
     // ----- Texture / Filepath helpers ----- //
     struct PathResolutionResult
@@ -128,6 +169,7 @@ namespace compiler
         return result;
     }
     // Parse the filename to determine texture compilation options
+    // Uses platform-aware format selection and sets isSRGB based on texture type
     TextureOptions GetTextureOptionsForFile(const std::filesystem::path& resolvedPath, const TextureOptions& defaultOptions)
     {
         TextureOptions newOptions = defaultOptions;
@@ -137,30 +179,38 @@ namespace compiler
         // e.g: "N00_000_00_HairBack_00_nml.normal.png", "_11.normal.png"
         if (EndsWith(stem, "_n") || EndsWith(stem, "_nml") || EndsWith(stem, "_normal"))
         {
-            newOptions.compressionFormat = TextureCompressionFormat::BC5;
+            newOptions.compressionFormat = GetLinearTextureFormat(defaultOptions.compressionFormat);
             newOptions.channelFormat = TextureChannelFormat::RGBA_8888;
+            newOptions.isSRGB = false;  // Normal maps are linear data
             return newOptions;
         }
 
-        // Check for Specular/Roughness/Metallic/Mask
-        // e.g., "_roughness", "_metallic", "_s", "_r", "_m", "_mask"
+        // Check for Specular/Roughness/Metallic
+        // e.g., "_roughness", "_metallic", "_s", "_r", "_m"
         if (EndsWith(stem, "_s") || EndsWith(stem, "_specular") ||
             EndsWith(stem, "_r") || EndsWith(stem, "_roughness") ||
             EndsWith(stem, "_m") || EndsWith(stem, "_metallic"))
         {
-            newOptions.compressionFormat = TextureCompressionFormat::BC5;
+            newOptions.compressionFormat = GetLinearTextureFormat(defaultOptions.compressionFormat);
             newOptions.channelFormat = TextureChannelFormat::RGBA_8888;
+            newOptions.isSRGB = false;  // PBR data is linear
             return newOptions;
         }
-        if (EndsWith(stem, "_ao") || EndsWith(stem, "_mask"))
+
+        // Check for Occlusion/Mask (single channel data)
+        if (EndsWith(stem, "_ao") || EndsWith(stem, "_mask") || EndsWith(stem, "_occlusion"))
         {
-            newOptions.compressionFormat = TextureCompressionFormat::BC4;
+            newOptions.compressionFormat = GetSingleChannelFormat(defaultOptions.compressionFormat);
             newOptions.channelFormat = TextureChannelFormat::RGBA_8888;
+            newOptions.isSRGB = false;  // Occlusion is linear data
+            return newOptions;
         }
 
-        // Default: Assume Diffuse/Albedo
-        newOptions.compressionFormat = TextureCompressionFormat::BC7;
+        // Default: Assume Diffuse/Albedo (color texture)
+        // Uses platform default (BC7 for Windows, ASTC for Android)
+        newOptions.compressionFormat = defaultOptions.compressionFormat;
         newOptions.channelFormat = TextureChannelFormat::RGBA_8888;
+        newOptions.isSRGB = true;  // Color textures need sRGB gamma correction
         return newOptions;
     }
 
@@ -170,7 +220,9 @@ namespace compiler
     {
         options = compileOptions;
         CompilationResult result;
+        std::string filename = options.general.inputPath.filename().string();
 
+        ProgressReporter::ReportProgress(0.1f, "Loading scene", filename);
         SceneLoadData loadData = sceneLoader.loadScene(options.general.inputPath, options.mesh);
 
         if (!loadData.scene)
@@ -181,8 +233,9 @@ namespace compiler
         }
 
         Scene scene = std::move(*loadData.scene);
-        
+
         // Processing stage, meshopt is here
+        ProgressReporter::ReportProgress(0.2f, "Processing meshes", filename);
         auto sceneProcessResult = ProcessScene(scene, compileOptions.mesh);
 
         if (!sceneProcessResult.errors.empty())
@@ -196,9 +249,21 @@ namespace compiler
         }
 
         // Save the data
+        ProgressReporter::ReportProgress(0.4f, "Saving meshes", filename);
         SaveMeshes(scene, result);
-        auto savedTexturesMap = CompileTextures(scene, result);
-        SaveMaterialData(scene, result, savedTexturesMap);
+
+        ProgressReporter::ReportProgress(0.5f, "Compiling textures", filename);
+        auto textureResults = CompileTextures(scene, result);
+
+        // Second pass: Refine material alpha modes based on texture analysis
+        // This implements Godot-style alpha detection for FBX/OBJ materials
+        ProgressReporter::ReportProgress(0.75f, "Refining alpha modes", filename);
+        RefineAlphaModes(scene, textureResults);
+
+        ProgressReporter::ReportProgress(0.8f, "Saving materials", filename);
+        SaveMaterialData(scene, result, textureResults);
+
+        ProgressReporter::ReportProgress(0.9f, "Saving animations", filename);
         SaveAnimations(scene, result);
 
         if (!result.errors.empty())
@@ -251,7 +316,7 @@ namespace compiler
 
             if (inOptions.calculateBounds)
             {
-                mesh.bounds = MeshOptimizer::calculateBounds(mesh.vertices, mesh.morphTargets.empty() ? nullptr : &mesh.morphTargets);
+                mesh.bounds = calculateBounds(mesh.vertices, mesh.morphTargets.empty() ? nullptr : &mesh.morphTargets);
             }
         }
         return processingResult;
@@ -259,9 +324,9 @@ namespace compiler
 
 
     // ----- Saving to disk ----- //
-    std::map<TextureDataSource, std::filesystem::path> SceneCompiler::CompileTextures(const Scene& scene, CompilationResult& result)
+    TextureCompilationResults SceneCompiler::CompileTextures(const Scene& scene, CompilationResult& result)
     {
-        std::map<TextureDataSource, std::filesystem::path> compiledTextures;
+        TextureCompilationResults textureResults;
         std::set<std::pair<std::string, TextureDataSource>> uniqueTextureSources;
         
         for (const auto& material : scene.materials)
@@ -277,7 +342,7 @@ namespace compiler
 
         if (uniqueTextureSources.empty())
         {
-            return compiledTextures;
+            return textureResults;
         }
 
         // We just assume that everything inside textureSources are filepaths if the first element is one, because why would it be anything else
@@ -313,7 +378,7 @@ namespace compiler
             {
                 result.errors.push_back("Texture path errors: Could not find one or more textures. Texture compilation aborted entirely.");
                 result.errors.insert(result.errors.end(), texturePathErrors.begin(), texturePathErrors.end());
-                return compiledTextures;
+                return textureResults;
             }
 
             compiler::TextureCompiler texCompiler;
@@ -325,18 +390,40 @@ namespace compiler
                 //texOpts.general.outputPath = textureOutputDir;
                 texOpts.texture = options.texture;
 
-                // Parse filename to set specific options - e.g: normal maps use BC5
-                //Disable parsing for now - ryans vk::Format vk::vkFormatToFormat(VkFormat format) doesn't support any BC5s and BC4s
-                //texOpts.texture = GetTextureOptionsForFile(resolvedPath, options.texture);
+                // Parse filename to set specific options and isSRGB based on texture type
+                // (e.g., normal maps use BC5/ASTC with linear, color textures use BC7/ASTC with sRGB)
+                texOpts.texture = GetTextureOptionsForFile(resolvedPath, options.texture);
 
                 auto texCompileResult = texCompiler.Compile(texOpts);
                 if (texCompileResult.errors.empty())
                 {
                     std::string outputFilename = originalPath.stem().string() + ".ktx2";
-                    //result.createdTextureFiles.push_back(options.general.outputPath / "textures" / outputFilename);
                     result.createdTextureFiles.push_back(texCompileResult.createdTextureFiles[0]);
-                    FilePathSource compiledFilePathSource {originalPath};
-                    compiledTextures[compiledFilePathSource] = texCompileResult.createdTextureFiles[0];
+                    FilePathSource compiledFilePathSource {originalPath.string()};
+                    textureResults.compiledPaths[compiledFilePathSource] = texCompileResult.createdTextureFiles[0];
+
+                    // Detect alpha mode for base color textures (Godot-style approach)
+                    // Find which texture type this is by checking the uniqueTextureSources
+                    for (const auto& [texType, texSource] : uniqueTextureSources)
+                    {
+                        if (std::holds_alternative<FilePathSource>(texSource))
+                        {
+                            const auto& fileSource = std::get<FilePathSource>(texSource);
+                            if (fileSource.path == originalPath.string() && texType == texturekeys::BASE_COLOR)
+                            {
+                                // Load image for alpha detection (stbi already loaded it, but we need to do it again)
+                                int w, h, comp;
+                                unsigned char* pixels = stbi_load(resolvedPath.string().c_str(), &w, &h, &comp, 4);
+                                if (pixels)
+                                {
+                                    DetectedAlphaMode alphaMode = DetectAlphaMode(pixels, w, h);
+                                    textureResults.detectedAlphaModes[compiledFilePathSource] = alphaMode;
+                                    stbi_image_free(pixels);
+                                }
+                                break;
+                            }
+                        }
+                    }
                 }
                 else
                 {
@@ -363,33 +450,49 @@ namespace compiler
                 }
                 else
                 {
-                    // Create a hash based name if no name
-                    textureFilename = options.general.inputPath.stem().string() +
-                        std::to_string(std::hash<const uint8_t*>{}(embdeddedSource.compressedData ? embdeddedSource.compressedData : embdeddedSource.rawData));
+                    // Create a hash based name from the actual texture data content
+                    const uint8_t* dataPtr = embdeddedSource.compressedData ? embdeddedSource.compressedData : embdeddedSource.rawData;
+                    // Raw data size is width * height * 4 (RGBA)
+                    size_t dataSize = embdeddedSource.compressedData ? embdeddedSource.compressedSize
+                        : (static_cast<size_t>(embdeddedSource.width) * embdeddedSource.height * 4);
 
+                    // Hash the actual data content, not the pointer address
+                    std::string_view dataView(reinterpret_cast<const char*>(dataPtr), dataSize);
+                    size_t contentHash = std::hash<std::string_view>{}(dataView);
+
+                    textureFilename = options.general.inputPath.stem().string() + std::to_string(contentHash);
                     embdeddedSource.name = textureFilename;
                 }
 
-                // Setup texture options
+                // Setup texture options based on texture type
+                // Uses platform-aware format selection (BC7/BC5/BC4 for Windows, ASTC for Android)
                 if (key == texturekeys::BASE_COLOR || key == texturekeys::EMISSIVE)
                 {
-                    texOpts.texture.compressionFormat = TextureCompressionFormat::BC7;
+                    // Color textures: use platform format (BC7/ASTC), enable sRGB
+                    texOpts.texture.compressionFormat = options.texture.compressionFormat;
                     texOpts.texture.channelFormat = TextureChannelFormat::RGBA_8888;
+                    texOpts.texture.isSRGB = true;  // Color data needs gamma correction
                 }
                 else if (key == texturekeys::NORMAL)
                 {
-                    texOpts.texture.compressionFormat = TextureCompressionFormat::BC5;
+                    // Normal maps: BC5 on desktop, ASTC on Android (linear)
+                    texOpts.texture.compressionFormat = GetLinearTextureFormat(options.texture.compressionFormat);
                     texOpts.texture.channelFormat = TextureChannelFormat::RGBA_8888;
+                    texOpts.texture.isSRGB = false;  // Normal maps are linear data
                 }
                 else if (key == texturekeys::METALLIC_ROUGHNESS)
                 {
-                    texOpts.texture.compressionFormat = TextureCompressionFormat::BC5;
+                    // Packed PBR data: BC5 on desktop, ASTC on Android (linear)
+                    texOpts.texture.compressionFormat = GetLinearTextureFormat(options.texture.compressionFormat);
                     texOpts.texture.channelFormat = TextureChannelFormat::RGBA_8888;
+                    texOpts.texture.isSRGB = false;  // PBR data is linear
                 }
                 else if (key == texturekeys::OCCLUSION)
                 {
-                    texOpts.texture.compressionFormat = TextureCompressionFormat::BC4;
+                    // Single channel data: BC4 on desktop, ASTC on Android (linear)
+                    texOpts.texture.compressionFormat = GetSingleChannelFormat(options.texture.compressionFormat);
                     texOpts.texture.channelFormat = TextureChannelFormat::RGBA_8888;
+                    texOpts.texture.isSRGB = false;  // Occlusion is linear data
                 }
 
                 // Fix output filepath
@@ -401,16 +504,47 @@ namespace compiler
 
                 auto texCompileResult = texCompiler.CompileFromMemory(embdeddedSource, texOpts);
 
-                if (result.errors.empty())
+                if (texCompileResult.errors.empty())
                 {
                     std::string outputFilename = textureFilename + ".ktx2";
                     result.createdTextureFiles.push_back(texCompileResult.createdTextureFiles[0]);
-                    compiledTextures[source] = texCompileResult.createdTextureFiles[0];
+                    textureResults.compiledPaths[source] = texCompileResult.createdTextureFiles[0];
+
+                    // Detect alpha mode for base color textures (embedded)
+                    if (key == texturekeys::BASE_COLOR)
+                    {
+                        // For embedded textures, we need to decode if compressed, or use raw data
+                        int w{}, h{}, comp{};
+                        unsigned char* pixels = nullptr;
+
+                        if (embdeddedSource.compressedData)
+                        {
+                            pixels = stbi_load_from_memory(
+                                embdeddedSource.compressedData,
+                                static_cast<int>(embdeddedSource.compressedSize),
+                                &w, &h, &comp, 4);
+                        }
+                        else if (embdeddedSource.rawData)
+                        {
+                            // Raw data is already RGBA, just use it directly
+                            w = embdeddedSource.width;
+                            h = embdeddedSource.height;
+                            DetectedAlphaMode alphaMode = DetectAlphaMode(embdeddedSource.rawData, w, h);
+                            textureResults.detectedAlphaModes[source] = alphaMode;
+                        }
+
+                        if (pixels)
+                        {
+                            DetectedAlphaMode alphaMode = DetectAlphaMode(pixels, w, h);
+                            textureResults.detectedAlphaModes[source] = alphaMode;
+                            stbi_image_free(pixels);
+                        }
+                    }
                 }
             }
         }
 
-        return compiledTextures;
+        return textureResults;
     }
 
     void SceneCompiler::SaveMeshes(const Scene& scene, CompilationResult& result)
@@ -433,7 +567,8 @@ namespace compiler
 		for (uint32_t i = 0; i < scene.materials.size(); ++i)
 		{
 			materialIndexToNameOffset[i] = currentNameOffset;
-			materialNames += scene.materials[i].name;
+			// Use lowercase material names for consistent lookup at runtime
+			materialNames += ToLower(scene.materials[i].name);
 			materialNames += '\0';
 			currentNameOffset = static_cast<uint32_t>(materialNames.size());
 		}
@@ -633,9 +768,80 @@ namespace compiler
 		outFile.close();
 
         result.createdMeshFiles.push_back(outFilePath);
+
+        // Write .meta sidecar file with source tracking
+        Resource::AssetMetadata meshMeta;
+        meshMeta.assetType = AssetFormat::AssetType::Mesh;
+        meshMeta.sourcePath = GetRelativeSourcePath(options.general.inputPath, options.general.assetsRoot);
+        meshMeta.platform = GetPlatformName(options.general.platform);
+        meshMeta.sourceTimestamp = static_cast<uint64_t>(
+            std::filesystem::last_write_time(options.general.inputPath).time_since_epoch().count());
+        meshMeta.compiledTimestamp = static_cast<uint64_t>(
+            std::chrono::system_clock::now().time_since_epoch().count());
+        meshMeta.formatVersion = MESH_FILE_MAGIC;  // Use magic as version identifier
+        meshMeta.saveToFile(Resource::AssetMetadata::getMetaPath(outFilePath));
     }
 
-    void SceneCompiler::SaveMaterialData(const Scene& scene, CompilationResult& result, std::map<TextureDataSource, std::filesystem::path> savedTexturesMap)
+    void SceneCompiler::RefineAlphaModes(Scene& scene, const TextureCompilationResults& textureResults)
+    {
+        // Second pass: Godot-style alpha detection from texture analysis
+        // This refines material alpha modes for FBX/OBJ materials that defaulted to Opaque
+        // because we couldn't trust AI_MATKEY_OPACITY values from assimp.
+        //
+        // The logic:
+        // - If material has a base color texture with detected alpha, update alpha mode
+        // - DetectedAlphaMode::None -> keep Opaque (texture is fully opaque)
+        // - DetectedAlphaMode::Bit -> use Mask (binary alpha, good for cutouts)
+        // - DetectedAlphaMode::Blend -> use Blend (gradient alpha, true transparency)
+        //
+        // We only modify materials that are currently Opaque - if a material was
+        // explicitly set to Mask or Blend (e.g., from glTF), we trust that.
+
+        for (ProcessedMaterialSlot& material : scene.materials)
+        {
+            // Only refine materials that are currently Opaque
+            // glTF materials with explicit alphaMode should not be changed
+            if (material.alphaMode != AlphaMode::Opaque)
+                continue;
+
+            // Find the base color texture for this material
+            auto baseColorIt = material.texturePaths.find(texturekeys::BASE_COLOR);
+            if (baseColorIt == material.texturePaths.end())
+                continue;
+
+            // Look up the detected alpha mode for this texture
+            auto alphaIt = textureResults.detectedAlphaModes.find(baseColorIt->second);
+            if (alphaIt == textureResults.detectedAlphaModes.end())
+                continue;
+
+            DetectedAlphaMode detectedAlpha = alphaIt->second;
+
+            // Apply the detected alpha mode
+            switch (detectedAlpha)
+            {
+            case DetectedAlphaMode::None:
+                // Texture is fully opaque, keep material as Opaque
+                break;
+
+            case DetectedAlphaMode::Bit:
+                // Binary alpha (0 or 255) - use alpha masking/cutout
+                material.alphaMode = AlphaMode::Mask;
+                // Set a sensible default cutoff if not already set
+                if (material.alphaCutoff < 0.01f)
+                    material.alphaCutoff = 0.5f;
+                std::cout << "  [Alpha] Material '" << material.name << "' -> Mask (binary alpha detected)\n";
+                break;
+
+            case DetectedAlphaMode::Blend:
+                // Gradient alpha - use blending
+                material.alphaMode = AlphaMode::Blend;
+                std::cout << "  [Alpha] Material '" << material.name << "' -> Blend (gradient alpha detected)\n";
+                break;
+            }
+        }
+    }
+
+    void SceneCompiler::SaveMaterialData(Scene& scene, CompilationResult& result, const TextureCompilationResults& textureResults)
     {
         for (const ProcessedMaterialSlot& materialSlot : scene.materials)
         {
@@ -693,11 +899,11 @@ namespace compiler
                 auto it = materialSlot.texturePaths.find(key);
                 if (it != materialSlot.texturePaths.end())
                 {
-                    auto mapIt = savedTexturesMap.find(it->second);
-                    if (mapIt != savedTexturesMap.end())
+                    auto mapIt = textureResults.compiledPaths.find(it->second);
+                    if (mapIt != textureResults.compiledPaths.end())
                     {
                         std::filesystem::path relativeDir = std::filesystem::relative(mapIt->second, options.general.assetsRoot);
-                        valueStr = relativeDir.string();
+                        valueStr = relativeDir.generic_string(); // Use forward slashes for cross-platform compatibility
                     }
                 }
 
@@ -714,7 +920,8 @@ namespace compiler
             std::filesystem::path assetOutputDir = options.general.outputPath / relativeDir / assetContainerName;
             std::filesystem::create_directories(assetOutputDir);
 
-            std::filesystem::path outFilePath = assetOutputDir / (materialSlot.name + ".material");
+            // Use lowercase filename for consistent lookup at runtime
+            std::filesystem::path outFilePath = assetOutputDir / (ToLower(materialSlot.name) + ".material");
 
             std::ofstream outFile(outFilePath);
             rapidjson::OStreamWrapper osw(outFile);
@@ -725,6 +932,58 @@ namespace compiler
             outFile.close();
 
             result.createdMaterialFiles.push_back(outFilePath);
+
+            // Generate material thumbnail using headless rendering (do this before writing meta)
+            std::string thumbnailFilename;  // Will be set if thumbnail is generated
+            static AssetCompiler::ThumbnailRenderer* s_thumbnailRenderer = nullptr;
+            static bool s_thumbnailRendererInitAttempted = false;
+
+            if (!s_thumbnailRendererInitAttempted) {
+                s_thumbnailRendererInitAttempted = true;
+                s_thumbnailRenderer = new AssetCompiler::ThumbnailRenderer();
+                if (!s_thumbnailRenderer->Initialize()) {
+                    std::cerr << "Warning: Failed to initialize ThumbnailRenderer, material thumbnails will not be generated\n";
+                    delete s_thumbnailRenderer;
+                    s_thumbnailRenderer = nullptr;
+                }
+            }
+
+            if (s_thumbnailRenderer && s_thumbnailRenderer->IsInitialized()) {
+                float thumbBaseColor[4] = {
+                    materialSlot.baseColorFactor.x,
+                    materialSlot.baseColorFactor.y,
+                    materialSlot.baseColorFactor.z,
+                    materialSlot.baseColorFactor.w
+                };
+
+                std::vector<uint8_t> thumbnailPixels;
+                if (s_thumbnailRenderer->RenderMaterialPreview(thumbBaseColor, thumbnailPixels)) {
+                    // Save thumbnail using TextureCompiler (PNG for compatibility with editor)
+                    thumbnailFilename = ToLower(materialSlot.name) + "_thumb.png";
+                    std::filesystem::path thumbPath = assetOutputDir / thumbnailFilename;
+
+                    // Create a simple KTX2 file from RGBA pixels
+                    TextureCompiler texCompiler;
+                    if (texCompiler.SaveThumbnailKTX2(thumbnailPixels, AssetCompiler::ThumbnailRenderer::THUMBNAIL_SIZE, thumbPath)) {
+                        std::cout << "Generated material thumbnail: " << thumbPath.string() << "\n";
+                    } else {
+                        thumbnailFilename.clear();  // Failed, don't include in meta
+                    }
+                }
+            }
+
+            // Write .meta sidecar file with source tracking
+            Resource::AssetMetadata matMeta;
+            matMeta.assetType = AssetFormat::AssetType::Material;
+            matMeta.sourcePath = GetRelativeSourcePath(options.general.inputPath, options.general.assetsRoot);
+            matMeta.platform = GetPlatformName(options.general.platform);
+            matMeta.sourceTimestamp = static_cast<uint64_t>(
+                std::filesystem::last_write_time(options.general.inputPath).time_since_epoch().count());
+            matMeta.compiledTimestamp = static_cast<uint64_t>(
+                std::chrono::system_clock::now().time_since_epoch().count());
+            matMeta.formatVersion = 1;  // Material format version
+            matMeta.thumbnailPath = thumbnailFilename;  // Relative filename in same directory
+            matMeta.saveToFile(Resource::AssetMetadata::getMetaPath(outFilePath));
         }
     }
 
@@ -920,6 +1179,18 @@ namespace compiler
             outFile.close();
 
             result.createdAnimationFiles.push_back(outFilePath);
+
+            // Write .meta sidecar file with source tracking
+            Resource::AssetMetadata animMeta;
+            animMeta.assetType = AssetFormat::AssetType::Animation;
+            animMeta.sourcePath = GetRelativeSourcePath(options.general.inputPath, options.general.assetsRoot);
+            animMeta.platform = GetPlatformName(options.general.platform);
+            animMeta.sourceTimestamp = static_cast<uint64_t>(
+                std::filesystem::last_write_time(options.general.inputPath).time_since_epoch().count());
+            animMeta.compiledTimestamp = static_cast<uint64_t>(
+                std::chrono::system_clock::now().time_since_epoch().count());
+            animMeta.formatVersion = ANIM_FILE_MAGIC;  // Use magic as version identifier
+            animMeta.saveToFile(Resource::AssetMetadata::getMetaPath(outFilePath));
         }
     }
 }

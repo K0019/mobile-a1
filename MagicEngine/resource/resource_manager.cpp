@@ -15,11 +15,22 @@
 #include "renderer/ui/font_system.h"
 #include "VFS/VFS.h"
 
+// hina-vk integration
+#include "renderer/gfx_renderer.h"
+#include "renderer/gfx_mesh_storage.h"
+#include "renderer/gfx_material_system.h"
+
 namespace
 {
   constexpr float MORPH_DELTA_EPSILON = 1e-6f;
   constexpr float MORPH_DELTA_EPSILON_SQ = MORPH_DELTA_EPSILON * MORPH_DELTA_EPSILON;
   constexpr const char* kDefaultUIFontPath = "assets/fonts/DefaultUI.ttf";
+
+  // gfx::Format values match hina_format values, so just cast
+  hina_format gfxFormatToHinaFormat(gfx::Format format)
+  {
+    return static_cast<hina_format>(format);
+  }
 
   std::vector<uint8_t> LoadBinaryFile(const std::string& vfsPath)
   {
@@ -49,6 +60,29 @@ namespace
       GPUSkinningData dst;
       dst.indices = glm::uvec4(src.boneIndices[0], src.boneIndices[1], src.boneIndices[2], src.boneIndices[3]);
       dst.weights = glm::vec4(src.weights[0], src.weights[1], src.weights[2], src.weights[3]);
+      result.push_back(dst);
+    }
+    return result;
+  }
+
+  // Convert GPUSkinningData (32 bytes) to VertexSkinning (8 bytes) for mobile-optimized rendering
+  std::vector<gfx::VertexSkinning> buildCompactSkinningBuffer(const std::vector<GPUSkinningData>& gpuSkinning)
+  {
+    std::vector<gfx::VertexSkinning> result;
+    result.reserve(gpuSkinning.size());
+    for (const auto& src : gpuSkinning)
+    {
+      gfx::VertexSkinning dst;
+      // Pack bone indices (clamp to 255, should be well under 64)
+      dst.boneIndices[0] = static_cast<uint8_t>(std::min(src.indices.x, 255u));
+      dst.boneIndices[1] = static_cast<uint8_t>(std::min(src.indices.y, 255u));
+      dst.boneIndices[2] = static_cast<uint8_t>(std::min(src.indices.z, 255u));
+      dst.boneIndices[3] = static_cast<uint8_t>(std::min(src.indices.w, 255u));
+      // Pack weights as UNORM8 (0.0-1.0 -> 0-255)
+      dst.weights[0] = static_cast<uint8_t>(std::clamp(src.weights.x * 255.0f + 0.5f, 0.0f, 255.0f));
+      dst.weights[1] = static_cast<uint8_t>(std::clamp(src.weights.y * 255.0f + 0.5f, 0.0f, 255.0f));
+      dst.weights[2] = static_cast<uint8_t>(std::clamp(src.weights.z * 255.0f + 0.5f, 0.0f, 255.0f));
+      dst.weights[3] = static_cast<uint8_t>(std::clamp(src.weights.w * 255.0f + 0.5f, 0.0f, 255.0f));
       result.push_back(dst);
     }
     return result;
@@ -117,19 +151,11 @@ namespace
 namespace Resource
 {
   ResourceManager::ResourceManager()
-    : m_vertexAllocator(ResourceLimits::VERTEX_BUFFER_SIZE),
-      m_indexAllocator(ResourceLimits::INDEX_BUFFER_SIZE),
-      m_materialAllocator(ResourceLimits::MATERIAL_BUFFER_SIZE),
-      m_meshDecompAllocator(ResourceLimits::MESH_DECOMPRESSION_BUFFER_SIZE),
-      m_skinningAllocator(ResourceLimits::SKINNING_BUFFER_SIZE),
-      m_morphDeltaAllocator(ResourceLimits::MORPH_DELTA_BUFFER_SIZE),
-      m_morphBaseAllocator(ResourceLimits::MORPH_VERTEX_BASE_BUFFER_SIZE),
-      m_morphCountAllocator(ResourceLimits::MORPH_VERTEX_COUNT_BUFFER_SIZE)
   {
     m_clips.emplace_back();
+    m_clipGenerations.push_back(1);  // Generation for reserved slot (index 0)
     m_skeletons.emplace_back();
     m_morphSets.emplace_back();
-
   }
 
   void ResourceManager::initialize(Context* context)
@@ -213,18 +239,6 @@ namespace Resource
       return it->second;
     }
 
-    // Compute decompression data and compress vertices on CPU
-    MeshDecompressionData decompressionData = VertexCompression::computeDecompressionData(mesh.vertices.data(), mesh.vertices.size());
-
-    std::vector<CompressedVertex> compressedVertices;
-    compressedVertices.reserve(mesh.vertices.size());
-    for(const auto& v : mesh.vertices)
-    {
-      compressedVertices.push_back(VertexCompression::compress(v, decompressionData));
-    }
-
-    //VertexCompression::validateCompression(mesh.vertices, compressedVertices, decompressionData);
-
     // Prepare animation GPU payloads
     std::vector<GPUSkinningData> gpuSkinning = buildSkinningBuffer(mesh.skinning);
     std::vector<GPUMorphDelta> gpuMorphDeltas;
@@ -241,124 +255,129 @@ namespace Resource
       morphVertexCounts.clear();
     }
 
-    // Allocate GPU memory
-    OffsetAllocator::Allocation vertexAlloc;
-    OffsetAllocator::Allocation indexAlloc;
-    OffsetAllocator::Allocation meshDecompAlloc;
-    OffsetAllocator::Allocation skinningAlloc;
-    OffsetAllocator::Allocation morphDeltaAlloc;
-    OffsetAllocator::Allocation morphBaseAlloc;
-    OffsetAllocator::Allocation morphCountAlloc;
-
-    auto releaseAllocations = [&]()
-    {
-      if(vertexAlloc.isValid())
-        m_vertexAllocator.free(vertexAlloc);
-      if(indexAlloc.isValid())
-        m_indexAllocator.free(indexAlloc);
-      if(meshDecompAlloc.isValid())
-        m_meshDecompAllocator.free(meshDecompAlloc);
-      if(skinningAlloc.isValid())
-        m_skinningAllocator.free(skinningAlloc);
-      if(morphDeltaAlloc.isValid())
-        m_morphDeltaAllocator.free(morphDeltaAlloc);
-      if(morphBaseAlloc.isValid())
-        m_morphBaseAllocator.free(morphBaseAlloc);
-      if(morphCountAlloc.isValid())
-        m_morphCountAllocator.free(morphCountAlloc);
-    };
-
-    {
-      std::lock_guard allocatorLock(m_meshAllocatorMutex);
-      vertexAlloc = m_vertexAllocator.allocate(static_cast<uint32_t>(compressedVertices.size() * sizeof(CompressedVertex)));
-      indexAlloc = m_indexAllocator.allocate(static_cast<uint32_t>(mesh.indices.size() * sizeof(uint32_t)));
-      meshDecompAlloc = m_meshDecompAllocator.allocate(sizeof(MeshDecompressionData));
-
-      if(!gpuSkinning.empty())
-      {
-        skinningAlloc = m_skinningAllocator.allocate(static_cast<uint32_t>(gpuSkinning.size() * sizeof(GPUSkinningData)));
-      }
-      if(!gpuMorphDeltas.empty())
-      {
-        morphDeltaAlloc = m_morphDeltaAllocator.allocate(static_cast<uint32_t>(gpuMorphDeltas.size() * sizeof(GPUMorphDelta)));
-        morphBaseAlloc = m_morphBaseAllocator.allocate(static_cast<uint32_t>(morphVertexStarts.size() * sizeof(uint32_t)));
-        morphCountAlloc = m_morphCountAllocator.allocate(static_cast<uint32_t>(morphVertexCounts.size() * sizeof(uint32_t)));
-      }
-    }
-
-      const bool allocationsOk =
-        vertexAlloc.isValid() &&
-        indexAlloc.isValid() &&
-        meshDecompAlloc.isValid() &&
-        (gpuSkinning.empty() || skinningAlloc.isValid()) &&
-        (gpuMorphDeltas.empty() || (morphDeltaAlloc.isValid() && morphBaseAlloc.isValid() && morphCountAlloc.isValid()));
-
-      if(!allocationsOk)
-      {
-        releaseAllocations();
-        LOG_ERROR("Out of GPU memory for mesh '{}'", mesh.name);
-        return {};
-      }
-    
-
     // Create handle and populate data
+    // Note: Vertex/index/skinning data is managed by GfxMeshStorage (chunked allocation)
+    // Morph data will be added to chunks in Phase 2
     MeshHandle handle = m_meshPool.create();
-      if(auto* cold = m_meshPool.getColdData(handle))
-      {
-        cold->meshName = mesh.name;
-        cold->vertexMetadata = vertexAlloc;
-        cold->indexMetadata = indexAlloc;
-      cold->meshDecompressionMetadata = meshDecompAlloc;
-      cold->skinningMetadata = skinningAlloc;
-      cold->morphDeltaMetadata = morphDeltaAlloc;
-      cold->morphVertexBaseMetadata = morphBaseAlloc;
-      cold->morphVertexCountMetadata = morphCountAlloc;
+    if(auto* cold = m_meshPool.getColdData(handle))
+    {
+      cold->meshName = mesh.name;
       cold->jointParentIndices = mesh.skeleton.parentIndices;
-        cold->jointInverseBindMatrices = mesh.skeleton.inverseBindMatrices;
-        cold->jointBindPoseMatrices = mesh.skeleton.bindPoseMatrices;
-        cold->jointNames = mesh.skeleton.jointNames;
-        cold->morphTargets = morphInfos;
-        cold->skeletonId = registerSkeleton(mesh.skeleton);
-        cold->morphSetId = registerMorphSet(morphInfos);
-      }
+      cold->jointInverseBindMatrices = mesh.skeleton.inverseBindMatrices;
+      cold->jointBindPoseMatrices = mesh.skeleton.bindPoseMatrices;
+      cold->jointNames = mesh.skeleton.jointNames;
+      cold->morphTargets = morphInfos;
+      cold->skeletonId = registerSkeleton(mesh.skeleton);
+      cold->morphSetId = registerMorphSet(morphInfos);
+    }
     if(auto* hot = m_meshPool.getHotData(handle))
     {
-      hot->vertexByteOffset = vertexAlloc.offset;
-      hot->indexByteOffset = indexAlloc.offset;
       hot->vertexCount = static_cast<uint32_t>(mesh.vertices.size());
       hot->indexCount = static_cast<uint32_t>(mesh.indices.size());
       hot->bounds = mesh.bounds;
-      hot->decompressionByteOffset = meshDecompAlloc.offset;
 
       auto& anim = hot->animation;
       anim.jointCount = static_cast<uint32_t>(mesh.skeleton.parentIndices.size());
-      anim.skinningByteOffset = skinningAlloc.isValid() ? skinningAlloc.offset : UINT32_MAX;
-      anim.morphDeltaByteOffset = morphDeltaAlloc.isValid() ? morphDeltaAlloc.offset : UINT32_MAX;
-      anim.morphDeltaCount = morphDeltaAlloc.isValid() ? static_cast<uint32_t>(gpuMorphDeltas.size()) : 0;
-      anim.morphVertexBaseOffset = morphBaseAlloc.isValid() ? morphBaseAlloc.offset : UINT32_MAX;
-      anim.morphVertexCountOffset = morphCountAlloc.isValid() ? morphCountAlloc.offset : UINT32_MAX;
+      // Skinning/morph data offsets are managed by GfxMeshStorage chunks, not ResourceManager allocators
+      // These legacy offsets are set to invalid; actual offsets come from GpuMesh
+      anim.skinningByteOffset = UINT32_MAX;
+      anim.morphDeltaByteOffset = UINT32_MAX;
+      anim.morphDeltaCount = static_cast<uint32_t>(gpuMorphDeltas.size());
+      anim.morphVertexBaseOffset = UINT32_MAX;
+      anim.morphVertexCountOffset = UINT32_MAX;
       anim.morphTargetCount = static_cast<uint32_t>(mesh.morphTargets.size());
-    }
 
-    // Queue upload
-    {
-      std::lock_guard pendingLock(m_pendingMeshesMutex);
-      PendingMeshUpload pending;
-      pending.compressedVertices = std::move(compressedVertices);
-      pending.indices = mesh.indices;
-      pending.skinningData = std::move(gpuSkinning);
-      pending.morphDeltas = std::move(gpuMorphDeltas);
-      pending.morphVertexStarts = std::move(morphVertexStarts);
-      pending.morphVertexCounts = std::move(morphVertexCounts);
-      pending.decompressionData = decompressionData;
-      pending.vertexAlloc = vertexAlloc;
-      pending.indexAlloc = indexAlloc;
-      pending.meshDecompAlloc = meshDecompAlloc;
-      pending.skinningAlloc = skinningAlloc;
-      pending.morphDeltaAlloc = morphDeltaAlloc;
-      pending.morphVertexStartAlloc = morphBaseAlloc;
-      pending.morphVertexCountAlloc = morphCountAlloc;
-      m_pendingMeshes.push_back(std::move(pending));
+      // Upload to GfxMeshStorage directly (hina-vk path)
+      if (m_context && m_context->renderer) {
+        if (auto* gfxRenderer = m_context->renderer) {
+          auto& meshStorage = gfxRenderer->getMeshStorage();
+
+          // Convert Vertex to gfx::FullVertex (they have matching layout)
+          static_assert(sizeof(Vertex) == sizeof(gfx::FullVertex), "Vertex layouts must match");
+          const auto* gfxVertices = reinterpret_cast<const gfx::FullVertex*>(mesh.vertices.data());
+
+          gfx::MeshHandle gfxMesh;
+
+          // Check if mesh has skinning data for skeletal animation
+          if (!gpuSkinning.empty()) {
+            // Convert to compact skinning format (8 bytes vs 32 bytes)
+            auto compactSkinning = buildCompactSkinningBuffer(gpuSkinning);
+
+            // Pack vertices into position/attribute streams
+            std::vector<gfx::VertexPosition> positions;
+            std::vector<gfx::VertexAttributes> attributes;
+            gfx::MeshBounds bounds;
+
+            positions.resize(mesh.vertices.size());
+            attributes.resize(mesh.vertices.size());
+            glm::vec3 minPos(std::numeric_limits<float>::max());
+            glm::vec3 maxPos(std::numeric_limits<float>::lowest());
+
+            for (size_t i = 0; i < mesh.vertices.size(); ++i) {
+              const auto& v = gfxVertices[i];
+              positions[i] = gfx::VertexPosition(v.position);
+              float bitangentSign = v.tangent.w;
+              glm::vec3 tangent = glm::vec3(v.tangent);
+              attributes[i].pack(v.normal, tangent, bitangentSign, v.getUV(), 0);
+              minPos = glm::min(minPos, v.position);
+              maxPos = glm::max(maxPos, v.position);
+            }
+
+            bounds.aabbMin = minPos;
+            bounds.aabbMax = maxPos;
+            bounds.center = (minPos + maxPos) * 0.5f;
+            bounds.radius = glm::length(maxPos - bounds.center);
+
+            LOG_INFO("Uploading skinned mesh '{}' to GfxMeshStorage ({} verts, {} indices, {} joints)",
+                     mesh.name, mesh.vertices.size(), mesh.indices.size(), hot->animation.jointCount);
+
+            gfxMesh = meshStorage.uploadPackedSkinned(
+              positions.data(),
+              attributes.data(),
+              compactSkinning.data(),
+              static_cast<uint32_t>(mesh.vertices.size()),
+              mesh.indices.data(),
+              static_cast<uint32_t>(mesh.indices.size()),
+              bounds
+            );
+          } else {
+            // Static mesh - use standard upload
+            LOG_INFO("Uploading static mesh '{}' to GfxMeshStorage ({} verts, {} indices)",
+                     mesh.name, mesh.vertices.size(), mesh.indices.size());
+
+            gfxMesh = meshStorage.upload(
+              gfxVertices,
+              static_cast<uint32_t>(mesh.vertices.size()),
+              mesh.indices.data(),
+              static_cast<uint32_t>(mesh.indices.size())
+            );
+          }
+
+          if (gfxMesh.isValid()) {
+            hot->hasGfxMesh = true;
+            hot->gfxMeshIndex = gfxMesh.index;
+            hot->gfxMeshGeneration = gfxMesh.generation;
+            LOG_INFO("Uploaded mesh '{}' to GfxMeshStorage: index={} gen={} skinned={}",
+                      mesh.name, gfxMesh.index, gfxMesh.generation, !gpuSkinning.empty());
+
+            // Record upload statistics for batching optimization
+            uint32_t vertexCount = static_cast<uint32_t>(mesh.vertices.size());
+            uint32_t indexCount = static_cast<uint32_t>(mesh.indices.size());
+            uint32_t totalBytes = vertexCount * (sizeof(gfx::VertexPosition) + sizeof(gfx::VertexAttributes));
+            totalBytes += indexCount * sizeof(uint32_t);
+            if (!gpuSkinning.empty()) {
+              totalBytes += vertexCount * sizeof(gfx::VertexSkinning);
+            }
+            gfxRenderer->recordMeshUpload(vertexCount, indexCount, totalBytes);
+          } else {
+            LOG_WARNING("Failed to upload mesh '{}' to GfxMeshStorage", mesh.name);
+          }
+        } else {
+          LOG_WARNING("GfxRenderer not available - mesh '{}' not uploaded to GPU", mesh.name);
+        }
+      } else {
+        LOG_WARNING("Renderer context not available - mesh '{}' not uploaded to GPU", mesh.name);
+      }
     }
 
     m_meshCache[cacheKey] = handle;
@@ -385,19 +404,8 @@ namespace Resource
       return it->second;
     }
 
-    // Allocate GPU memory
-    OffsetAllocator::Allocation materialAlloc;
-    {
-      std::lock_guard allocatorLock(m_materialAllocatorMutex);
-      materialAlloc = m_materialAllocator.allocate(sizeof(MaterialData));
-      if(!materialAlloc.isValid())
-      {
-        LOG_ERROR("Out of GPU memory for material '{}'", material.name);
-        return {};
-      }
-    }
-
     // Create handle and populate data
+    // Note: GPU memory is now managed by GfxMaterialSystem, not ResourceManager allocators
     Material mat = convertToStoredMaterial(material);
     MaterialHandle handle = m_materialPool.create();
 
@@ -406,11 +414,9 @@ namespace Resource
     if(auto* cold = m_materialPool.getColdData(handle))
     {
       cold->material = mat;
-      cold->metadata = materialAlloc;
     }
     if(auto* hot = m_materialPool.getHotData(handle))
     {
-      hot->materialOffset = materialAlloc.offset;
       hot->renderQueue = (alphaMode == ALPHA_MODE_BLEND)
         ? RenderQueue::Transparent
         : RenderQueue::Opaque;
@@ -418,10 +424,84 @@ namespace Resource
     // Generate GPU data and handle dependencies
     MaterialData gpuData = generateMaterialDataWithTextures_nolock(mat);
     updateMaterialTextureDependencies_nolock(handle, material);
-    // Queue upload
-    {
-      std::lock_guard pendingLock(m_pendingMaterialsMutex);
-      m_pendingMaterials.push_back({ gpuData, materialAlloc });
+
+    // Upload to GfxMaterialSystem directly (hina-vk path)
+    if (m_context && m_context->renderer) {
+      if (auto* gfxRenderer = m_context->renderer) {
+        auto& materialSystem = gfxRenderer->getMaterialSystem();
+
+        // Convert Material to gfx::GfxMaterial
+        gfx::GfxMaterial gfxMat;
+        gfxMat.baseColor = mat.baseColorFactor;
+        gfxMat.roughness = mat.roughnessFactor;
+        gfxMat.metallic = mat.metallicFactor;
+        gfxMat.emissive = glm::length(mat.emissiveFactor) > 0.0f ? 1.0f : 0.0f;
+        gfxMat.ao = mat.occlusionStrength;
+        gfxMat.rim = 0.0f;
+
+        // Set alpha mode
+        switch (mat.alphaMode) {
+          case AlphaMode::Opaque:
+            gfxMat.alphaMode = gfx::GfxMaterial::AlphaMode::Opaque;
+            break;
+          case AlphaMode::Mask:
+            gfxMat.alphaMode = gfx::GfxMaterial::AlphaMode::Mask;
+            break;
+          case AlphaMode::Blend:
+            gfxMat.alphaMode = gfx::GfxMaterial::AlphaMode::Blend;
+            break;
+        }
+        gfxMat.alphaCutoff = mat.alphaCutoff;
+        gfxMat.doubleSided = (mat.flags & DOUBLE_SIDED) != 0;
+
+        // Helper to resolve gfx::TextureHandle from MaterialTexture
+        auto resolveGfxTexture = [this, &material](const MaterialTexture& matTex, const char* texType) -> gfx::TextureHandle {
+          if (!matTex.hasTexture()) return {};
+          std::string cacheKey = TextureCacheKeyGenerator::generateKey(matTex.source);
+          auto it = m_textureCache.find(cacheKey);
+          if (it != m_textureCache.end()) {
+            if (const auto* hot = m_texturePool.getHotData(it->second)) {
+              if (hot->hasGfxTexture) {
+                gfx::TextureHandle gfxTex;
+                gfxTex.index = hot->gfxTextureIndex;
+                gfxTex.generation = hot->gfxTextureGeneration;
+                return gfxTex;
+              } else {
+                LOG_WARNING("Material '{}' {} texture not in GfxMaterialSystem (key='{}')", material.name, texType, cacheKey);
+              }
+            }
+          } else {
+            LOG_WARNING("Material '{}' {} texture not in cache (key='{}')", material.name, texType, cacheKey);
+          }
+          return {};
+        };
+
+        // Look up texture handles
+        gfxMat.albedoTexture = resolveGfxTexture(mat.baseColorTexture, "albedo");
+        gfxMat.normalTexture = resolveGfxTexture(mat.normalTexture, "normal");
+        gfxMat.metallicRoughnessTexture = resolveGfxTexture(mat.metallicRoughnessTexture, "metallicRoughness");
+        gfxMat.emissiveTexture = resolveGfxTexture(mat.emissiveTexture, "emissive");
+        gfxMat.occlusionTexture = resolveGfxTexture(mat.occlusionTexture, "occlusion");
+
+        LOG_DEBUG("Material '{}' baseColor=({:.2f},{:.2f},{:.2f},{:.2f}), albedo={}:{}, normal={}:{}",
+            material.name, gfxMat.baseColor.r, gfxMat.baseColor.g, gfxMat.baseColor.b, gfxMat.baseColor.a,
+            gfxMat.albedoTexture.index, gfxMat.albedoTexture.generation,
+            gfxMat.normalTexture.index, gfxMat.normalTexture.generation);
+
+        gfx::MaterialHandle gfxMaterial = materialSystem.createMaterial(gfxMat);
+
+        if (auto* hotData = m_materialPool.getHotData(handle)) {
+          if (gfxMaterial.isValid()) {
+            hotData->hasGfxMaterial = true;
+            hotData->gfxMaterialIndex = gfxMaterial.index;
+            hotData->gfxMaterialGeneration = gfxMaterial.generation;
+            LOG_DEBUG("Uploaded material '{}' to GfxMaterialSystem: {}:{}",
+                      material.name, gfxMaterial.index, gfxMaterial.generation);
+          } else {
+            LOG_WARNING("Failed to upload material '{}' to GfxMaterialSystem", material.name);
+          }
+        }
+      }
     }
 
     m_materialCache[cacheKey] = handle;
@@ -432,7 +512,7 @@ namespace Resource
   {
     const std::string cacheKey = generateTextureCacheKey(texture);
 
-    // Check cache with shared lock first  
+    // Check cache with shared lock first
     {
       std::shared_lock lock(m_cacheMutex);
       if(auto it = m_textureCache.find(cacheKey); it != m_textureCache.end())
@@ -441,21 +521,10 @@ namespace Resource
       }
     }
 
-    // Upload texture to GPU immediately
-    uint32_t bindlessIndex = m_context->renderer->getGPUBuffers().uploadTexture(texture.textureDesc, texture.data);
-
-    if(bindlessIndex == 0)
-    {
-      LOG_ERROR("Failed to upload texture '{}'", texture.name);
-      return {};
-    }
-
     // Double-check pattern with unique lock
     std::unique_lock cacheLock(m_cacheMutex);
     if(auto it = m_textureCache.find(cacheKey); it != m_textureCache.end())
     {
-      // Another thread created this texture, clean up our upload
-      m_context->renderer->getGPUBuffers().deleteTexture(bindlessIndex);
       return it->second;
     }
 
@@ -466,10 +535,68 @@ namespace Resource
       cold->sourceFile = texture.name;
       cold->cacheKey = cacheKey;
       cold->textureDesc = texture.textureDesc;
+      cold->isSRGB = texture.sRGB;
     }
-    if(auto* hot = m_texturePool.getHotData(handle))
-    {
-      hot->bindlessIndex = bindlessIndex;
+
+    // Upload to GfxMaterialSystem directly (hina-vk path)
+    if (m_context && m_context->renderer && !texture.data.empty()) {
+      if (auto* gfxRenderer = m_context->renderer) {
+        auto& materialSystem = gfxRenderer->getMaterialSystem();
+
+        // Use actual format from texture descriptor (captured from KTX2 file)
+        // Convert to sRGB format if needed (color textures like albedo/emissive need sRGB)
+        gfx::Format gfxFormat = texture.textureDesc.format;
+        if (texture.sRGB && !gfx::isFormatSRGB(gfxFormat)) {
+          gfx::Format srgbFormat = gfx::convertFormatSRGB(gfxFormat, true);
+          if (srgbFormat != gfxFormat) {
+            LOG_DEBUG("Texture '{}': Converting format {} -> {} (sRGB requested)",
+                texture.name, static_cast<int>(gfxFormat), static_cast<int>(srgbFormat));
+            gfxFormat = srgbFormat;
+          }
+        }
+        hina_format format = gfxFormatToHinaFormat(gfxFormat);
+
+        LOG_INFO("Texture '{}' upload: gfxFmt={}, hinaFmt={}, size={}x{}, dataSize={}, sRGB={}",
+            texture.name, static_cast<int>(gfxFormat), static_cast<int>(format),
+            texture.width, texture.height, texture.data.size(), texture.sRGB);
+
+        gfx::TextureCreateInfo createInfo;
+        createInfo.data = texture.data.data();
+        createInfo.width = texture.width;
+        createInfo.height = texture.height;
+        createInfo.format = format;
+        // TODO: Implement mip generation for uncompressed textures without pre-baked mips.
+        // Currently disabled because:
+        // - KTX2 textures already have mips baked in (texture.textureDesc.numMipLevels)
+        // - Compressed formats (BC/ASTC) cannot have mips generated at runtime
+        // - hina-vk mip generation (HINA_MIP_LEVELS_AUTO) requires uncompressed source data
+        // Future: Check texture.textureDesc.numMipLevels > 1 and format is uncompressed
+        createInfo.generateMips = false;
+        createInfo.isSRGB = texture.sRGB;
+        createInfo.label = texture.name.c_str();  // Debug label for RenderDoc
+
+        gfx::TextureHandle gfxTexture = materialSystem.createTexture(createInfo);
+
+        if (auto* hotData = m_texturePool.getHotData(handle)) {
+          if (gfxTexture.isValid()) {
+            hotData->hasGfxTexture = true;
+            hotData->gfxTextureIndex = gfxTexture.index;
+            hotData->gfxTextureGeneration = gfxTexture.generation;
+
+            // Register texture for UI/ImGui use - now works early since UI support
+            // is initialized before ImGui, and bind groups come from material system
+            uint64_t uiTexId = gfxRenderer->registerUITexture(gfxTexture);
+            hotData->uiTextureId = static_cast<uint32_t>(uiTexId);
+
+            LOG_DEBUG("Uploaded texture '{}' to GfxMaterialSystem: {}:{} ({}x{}, fmt={}, {}) uiId={}",
+                      texture.name, gfxTexture.index, gfxTexture.generation,
+                      texture.width, texture.height, static_cast<int>(format), texture.sRGB ? "sRGB" : "linear",
+                      hotData->uiTextureId);
+          } else {
+            LOG_WARNING("Failed to upload texture '{}' to GfxMaterialSystem", texture.name);
+          }
+        }
+      }
     }
 
     m_textureCache[cacheKey] = handle;
@@ -477,7 +604,7 @@ namespace Resource
     // Resolve materials waiting for this texture
     resolveWaitingMaterials_nolock(cacheKey);
 
-    LOG_INFO("Texture '{}' created successfully (bindless: {})", texture.name, bindlessIndex);
+    LOG_INFO("Texture '{}' created successfully ({}x{})", texture.name, texture.width, texture.height);
     return handle;
   }
 
@@ -509,13 +636,13 @@ namespace Resource
 
     ProcessedTexture atlasTexture;
     atlasTexture.name = font.name + "_FontAtlas";
-    atlasTexture.textureDesc.type = vk::TextureType::Tex2D;
-    atlasTexture.textureDesc.format = vk::Format::RGBA_UN8;
+    atlasTexture.textureDesc.type = gfx::TextureType::Tex2D;
+    atlasTexture.textureDesc.format = gfx::Format::RGBA8_UNorm;
     atlasTexture.textureDesc.dimensions.width = cpuData.atlasWidth;
     atlasTexture.textureDesc.dimensions.height = cpuData.atlasHeight;
     atlasTexture.textureDesc.dimensions.depth = 1u;
     atlasTexture.textureDesc.numMipLevels = 1;
-    atlasTexture.textureDesc.usage = vk::TextureUsageBits_Sampled;
+    atlasTexture.textureDesc.usage = gfx::TextureUsage::Sampled;
     atlasTexture.data = cpuData.atlasPixelsRGBA;
     atlasTexture.width = cpuData.atlasWidth;
     atlasTexture.height = cpuData.atlasHeight;
@@ -536,7 +663,7 @@ namespace Resource
 
     ResourceTraits<FontAsset>::HotData hot{
       .atlasTexture = textureHandle,
-      .bindlessIndex = getTextureBindlessIndex(textureHandle),
+      .uiTextureId = getTextureUIId(textureHandle),
       .ascent = cpuData.ascent,
       .descent = cpuData.descent,
       .lineGap = cpuData.lineGap,
@@ -563,8 +690,44 @@ namespace Resource
 
   ClipId ResourceManager::createClip(const ProcessedAnimationClip& clip)
   {
+    if (!m_freeClipSlots.empty())
+    {
+      // Reuse a freed slot
+      uint32_t index = m_freeClipSlots.back();
+      m_freeClipSlots.pop_back();
+      m_clips[index] = AnimationClip(clip);  // Construct AnimationClip from ProcessedAnimationClip
+      return static_cast<ClipId>(index);
+    }
+
+    // Allocate new slot
     m_clips.emplace_back(clip);
+    m_clipGenerations.push_back(1);
     return static_cast<ClipId>(m_clips.size() - 1);
+  }
+
+  void ResourceManager::freeClip(ClipId id)
+  {
+    if (id == INVALID_CLIP_ID || id >= static_cast<ClipId>(m_clips.size()))
+      return;
+
+    // Check if already freed (avoid double-free)
+    for (uint32_t freeIdx : m_freeClipSlots)
+    {
+      if (freeIdx == id)
+        return;
+    }
+
+    // Clear the clip data
+    m_clips[id] = AnimationClip{};
+
+    // Increment generation (for future validation if needed)
+    if (++m_clipGenerations[id] == 0)
+      m_clipGenerations[id] = 1;
+
+    // Add to free list for reuse
+    m_freeClipSlots.push_back(id);
+
+    LOG_DEBUG("Freed animation clip at index {}", id);
   }
 
   const AnimationClip& ResourceManager::Clip(ClipId id) const
@@ -604,21 +767,6 @@ namespace Resource
     if(id == INVALID_MORPH_SET_ID || id >= static_cast<MorphSetId>(m_morphSets.size()))
       return m_morphSets.front();
     return m_morphSets[id];
-  }
-
-  size_t ResourceManager::getUsedVertexBytes() const
-  {
-      return m_vertexAllocator.storageReport().highWatermark;
-  }
-
-  uint32_t ResourceManager::getVertexBufferVersion() const
-  {
-    return m_vertexBufferVersion;
-  }
-
-  void ResourceManager::bumpVertexBufferVersion()
-  {
-    ++m_vertexBufferVersion;
   }
 
   std::vector<MeshHandle> ResourceManager::createMeshBatch(const std::vector<ProcessedMesh>& meshes)
@@ -671,16 +819,15 @@ namespace Resource
     return m_meshPool.getColdData(handle);
   }
 
-  uint32_t ResourceManager::getMaterialIndex(MaterialHandle handle) const
-  {
-    const auto* hot = m_materialPool.getHotData(handle);
-    return hot ? hot->materialOffset / sizeof(MaterialData) : 0;
-  }
-
-  uint32_t ResourceManager::getTextureBindlessIndex(TextureHandle handle) const
+  uint32_t ResourceManager::getTextureUIId(TextureHandle handle) const
   {
     const auto* hot = m_texturePool.getHotData(handle);
-    return hot ? hot->bindlessIndex : 0;
+    return hot ? hot->uiTextureId : 0;
+  }
+
+  const ResourceTraits<TextureAsset>::HotData* ResourceManager::getTextureHotData(TextureHandle handle) const
+  {
+    return m_texturePool.getHotData(handle);
   }
 
   const ResourceTraits<FontAsset>::HotData* ResourceManager::getFont(FontHandle handle) const
@@ -701,10 +848,10 @@ namespace Resource
     return hot->cpuData.findGlyph(codepoint);
   }
 
-  uint32_t ResourceManager::getFontTextureBindlessIndex(FontHandle handle) const
+  uint32_t ResourceManager::getFontTextureUIId(FontHandle handle) const
   {
     const auto* hot = getFont(handle);
-    return hot ? hot->bindlessIndex : 0;
+    return hot ? hot->uiTextureId : 0;
   }
 
   FontHandle ResourceManager::getDefaultUIFont() const
@@ -723,6 +870,11 @@ namespace Resource
     return cold ? &cold->material : nullptr;
   }
 
+  const ResourceTraits<MaterialAsset>::HotData* ResourceManager::getMaterialHotData(MaterialHandle handle) const
+  {
+    return m_materialPool.getHotData(handle);
+  }
+
   bool ResourceManager::isMaterialTransparent(MaterialHandle handle) const
   {
     const auto* hot = m_materialPool.getHotData(handle);
@@ -735,17 +887,16 @@ namespace Resource
     if(!m_meshPool.isValid(handle))
       return;
 
-    // Get allocation data before destroying handle
-    OffsetAllocator::Allocation vertexAlloc, indexAlloc, meshDecompAlloc, skinningAlloc, morphDeltaAlloc, morphBaseAlloc, morphCountAlloc;
-    if(const auto* cold = m_meshPool.getColdData(handle))
-    {
-      vertexAlloc = cold->vertexMetadata;
-      indexAlloc = cold->indexMetadata;
-      meshDecompAlloc = cold->meshDecompressionMetadata;
-      skinningAlloc = cold->skinningMetadata;
-      morphDeltaAlloc = cold->morphDeltaMetadata;
-      morphBaseAlloc = cold->morphVertexBaseMetadata;
-      morphCountAlloc = cold->morphVertexCountMetadata;
+    // Destroy gfx mesh (hina-vk path)
+    if (const auto* hot = m_meshPool.getHotData(handle)) {
+      if (hot->hasGfxMesh && m_context && m_context->renderer) {
+        if (auto* gfxRenderer = m_context->renderer) {
+          gfx::MeshHandle gfxMesh;
+          gfxMesh.index = hot->gfxMeshIndex;
+          gfxMesh.generation = hot->gfxMeshGeneration;
+          gfxRenderer->getMeshStorage().destroy(gfxMesh);
+        }
+      }
     }
 
     // Remove from cache
@@ -758,40 +909,13 @@ namespace Resource
       });
     }
 
-    // Free GPU memory
-    {
-      std::lock_guard meshLock(m_meshAllocatorMutex);
-      if(vertexAlloc.isValid())
-        m_vertexAllocator.free(vertexAlloc);
-      if(indexAlloc.isValid())
-        m_indexAllocator.free(indexAlloc);
-      if(meshDecompAlloc.isValid())
-        m_meshDecompAllocator.free(meshDecompAlloc);
-      if(skinningAlloc.isValid())
-        m_skinningAllocator.free(skinningAlloc);
-      if(morphDeltaAlloc.isValid())
-        m_morphDeltaAllocator.free(morphDeltaAlloc);
-      if(morphBaseAlloc.isValid())
-        m_morphBaseAllocator.free(morphBaseAlloc);
-      if(morphCountAlloc.isValid())
-        m_morphCountAllocator.free(morphCountAlloc);
-    }
-
     m_meshPool.destroy(handle);
-    bumpVertexBufferVersion();
   }
 
   void ResourceManager::freeMaterial(MaterialHandle handle)
   {
     if(!m_materialPool.isValid(handle))
       return;
-
-    // Get allocation data before destroying handle
-    OffsetAllocator::Allocation materialAlloc;
-    if(const auto* cold = m_materialPool.getColdData(handle))
-    {
-      materialAlloc = cold->metadata;
-    }
 
     // Remove dependencies
     {
@@ -813,11 +937,18 @@ namespace Resource
       });
     }
 
-    // Free GPU memory
-    {
-      std::lock_guard materialLock(m_materialAllocatorMutex);
-      if(materialAlloc.isValid())
-        m_materialAllocator.free(materialAlloc);
+    // Destroy gfx material (hina-vk path)
+    if (const auto* hot = m_materialPool.getHotData(handle)) {
+      if (hot->hasGfxMaterial) {
+        if (m_context && m_context->renderer) {
+          if (auto* gfxRenderer = m_context->renderer) {
+            gfx::MaterialHandle gfxMaterial;
+            gfxMaterial.index = hot->gfxMaterialIndex;
+            gfxMaterial.generation = hot->gfxMaterialGeneration;
+            gfxRenderer->getMaterialSystem().destroyMaterial(gfxMaterial);
+          }
+        }
+      }
     }
 
     m_materialPool.destroy(handle);
@@ -828,7 +959,6 @@ namespace Resource
     if(!m_texturePool.isValid(handle))
       return;
 
-    uint32_t bindlessIndex = getTextureBindlessIndex(handle);
     std::string cacheKey;
 
     if(const auto* cold = m_texturePool.getColdData(handle))
@@ -836,10 +966,18 @@ namespace Resource
       cacheKey = cold->cacheKey;
     }
 
-    // Free GPU texture
-    if(bindlessIndex != 0)
-    {
-      m_context->renderer->getGPUBuffers().deleteTexture(bindlessIndex);
+    // Destroy gfx texture (hina-vk path) - also cleans up UI bind groups
+    if (const auto* hot = m_texturePool.getHotData(handle)) {
+      if (hot->hasGfxTexture) {
+        if (m_context && m_context->renderer) {
+          if (auto* gfxRenderer = m_context->renderer) {
+            gfx::TextureHandle gfxTexture;
+            gfxTexture.index = hot->gfxTextureIndex;
+            gfxTexture.generation = hot->gfxTextureGeneration;
+            gfxRenderer->getMaterialSystem().destroyTexture(gfxTexture);
+          }
+        }
+      }
     }
 
     // Remove from cache and dependencies
@@ -900,42 +1038,6 @@ namespace Resource
     m_fontPool.destroy(handle);
   }
 
-  void ResourceManager::FlushUploads()
-  {
-    // Atomically acquire pending uploads
-    std::vector<PendingMeshUpload> meshesToUpload;
-    std::vector<PendingMaterialUpload> materialsToUpload;
-
-    {
-      std::lock_guard meshLock(m_pendingMeshesMutex);
-      meshesToUpload.swap(m_pendingMeshes);
-    }
-    {
-      std::lock_guard materialLock(m_pendingMaterialsMutex);
-      materialsToUpload.swap(m_pendingMaterials);
-    }
-
-    // Early exit if nothing to upload
-    if(meshesToUpload.empty() && materialsToUpload.empty())
-    {
-      return;
-    }
-
-    // Process uploads
-    if(!meshesToUpload.empty())
-    {
-      LOG_INFO("Flushing {} meshes...", meshesToUpload.size());
-      bumpVertexBufferVersion();
-      uploadMeshBatch(meshesToUpload);
-    }
-
-    if(!materialsToUpload.empty())
-    {
-      LOG_INFO("Flushing {} materials...", materialsToUpload.size());
-      uploadMaterialBatch(materialsToUpload);
-    }
-  }
-
   // Private helper methods
   MaterialData ResourceManager::generateMaterialDataWithTextures_nolock(const Material& material)
   {
@@ -966,7 +1068,7 @@ namespace Resource
     std::string cacheKey = TextureCacheKeyGenerator::generateKey(matTex.source);
     if(auto it = m_textureCache.find(cacheKey); it != m_textureCache.end())
     {
-      return getTextureBindlessIndex(it->second);
+      return getTextureUIId(it->second);
     }
     return 0;
   }
@@ -1020,143 +1122,72 @@ namespace Resource
 
     LOG_INFO("Resolving {} waiting materials for texture '{}'", waitingMaterials.size(), textureCacheKey);
 
-    // Re-generate GPU data and queue uploads
-    {
-      std::lock_guard pendingLock(m_pendingMaterialsMutex);
-      for(MaterialHandle materialHandle : waitingMaterials)
-      {
-        if(auto* cold = m_materialPool.getColdData(materialHandle))
+    // Update GfxMaterialSystem bind groups (hina-vk path)
+    if (m_context && m_context->renderer) {
+      if (auto* gfxRenderer = m_context->renderer) {
+        auto& materialSystem = gfxRenderer->getMaterialSystem();
+
+        // Helper to resolve gfx::TextureHandle from MaterialTexture
+        auto resolveGfxTexture = [this](const MaterialTexture& matTex) -> gfx::TextureHandle {
+          if (!matTex.hasTexture()) return {};
+          std::string cacheKey = TextureCacheKeyGenerator::generateKey(matTex.source);
+          auto it = m_textureCache.find(cacheKey);
+          if (it != m_textureCache.end()) {
+            if (const auto* hot = m_texturePool.getHotData(it->second)) {
+              if (hot->hasGfxTexture) {
+                gfx::TextureHandle gfxTex;
+                gfxTex.index = hot->gfxTextureIndex;
+                gfxTex.generation = hot->gfxTextureGeneration;
+                return gfxTex;
+              }
+            }
+          }
+          return {};
+        };
+
+        for(MaterialHandle materialHandle : waitingMaterials)
         {
-          MaterialData newGpuData = generateMaterialDataWithTextures_nolock(cold->material);
-          m_pendingMaterials.push_back({ newGpuData, cold->metadata });
+          auto* cold = m_materialPool.getColdData(materialHandle);
+          auto* hot = m_materialPool.getHotData(materialHandle);
+          if (!cold || !hot || !hot->hasGfxMaterial) continue;
+
+          const Material& mat = cold->material;
+
+          // Rebuild gfx::GfxMaterial with updated texture handles
+          gfx::GfxMaterial gfxMat;
+          gfxMat.baseColor = mat.baseColorFactor;
+          gfxMat.roughness = mat.roughnessFactor;
+          gfxMat.metallic = mat.metallicFactor;
+          gfxMat.emissive = glm::length(mat.emissiveFactor) > 0.0f ? 1.0f : 0.0f;
+          gfxMat.ao = mat.occlusionStrength;
+          gfxMat.rim = 0.0f;
+
+          switch (mat.alphaMode) {
+            case AlphaMode::Opaque: gfxMat.alphaMode = gfx::GfxMaterial::AlphaMode::Opaque; break;
+            case AlphaMode::Mask:   gfxMat.alphaMode = gfx::GfxMaterial::AlphaMode::Mask; break;
+            case AlphaMode::Blend:  gfxMat.alphaMode = gfx::GfxMaterial::AlphaMode::Blend; break;
+          }
+          gfxMat.alphaCutoff = mat.alphaCutoff;
+          gfxMat.doubleSided = (mat.flags & DOUBLE_SIDED) != 0;
+
+          // Re-resolve all texture handles (now includes newly loaded texture)
+          gfxMat.albedoTexture = resolveGfxTexture(mat.baseColorTexture);
+          gfxMat.normalTexture = resolveGfxTexture(mat.normalTexture);
+          gfxMat.metallicRoughnessTexture = resolveGfxTexture(mat.metallicRoughnessTexture);
+          gfxMat.emissiveTexture = resolveGfxTexture(mat.emissiveTexture);
+          gfxMat.occlusionTexture = resolveGfxTexture(mat.occlusionTexture);
+
+          // Update the material (this rebuilds the bind group)
+          gfx::MaterialHandle gfxHandle;
+          gfxHandle.index = hot->gfxMaterialIndex;
+          gfxHandle.generation = hot->gfxMaterialGeneration;
+          materialSystem.updateMaterial(gfxHandle, gfxMat);
+
+          LOG_DEBUG("Updated GfxMaterial {}:{} with resolved texture '{}'",
+                    gfxHandle.index, gfxHandle.generation, textureCacheKey);
         }
       }
     }
-  }
-
-  void ResourceManager::uploadMeshBatch(const std::vector<PendingMeshUpload>& meshes)
-  {
-    auto& gpuBuffers = m_context->renderer->getGPUBuffers();
-
-    // Upload compressed vertices
-    uploadContiguousBatches(meshes, gpuBuffers.GetVertexBuffer(), [](const PendingMeshUpload& mesh) { return mesh.vertexAlloc; }, [](const PendingMeshUpload& mesh) { return std::span(mesh.compressedVertices); });
-
-    // Upload indices
-    uploadContiguousBatches(meshes, gpuBuffers.GetIndexBuffer(), [](const PendingMeshUpload& mesh) { return mesh.indexAlloc; }, [](const PendingMeshUpload& mesh) { return std::span(mesh.indices); });
-
-    // Upload mesh decompression data
-    uploadContiguousBatches(meshes, gpuBuffers.GetMeshDecompressionBuffer(), [](const PendingMeshUpload& mesh) { return mesh.meshDecompAlloc; }, [](const PendingMeshUpload& mesh) { return std::span(&mesh.decompressionData, 1); });
-
-    // Upload skinning data
-    uploadContiguousBatches(meshes, gpuBuffers.GetSkinningBuffer(), [](const PendingMeshUpload& mesh) { return mesh.skinningAlloc; }, [](const PendingMeshUpload& mesh) { return std::span(mesh.skinningData); });
-
-    // Upload morph deltas
-    uploadContiguousBatches(meshes, gpuBuffers.GetMorphDeltaBuffer(), [](const PendingMeshUpload& mesh) { return mesh.morphDeltaAlloc; }, [](const PendingMeshUpload& mesh) { return std::span(mesh.morphDeltas); });
-
-    // Upload morph vertex mapping (start offsets)
-    uploadContiguousBatches(meshes, gpuBuffers.GetMorphVertexBaseBuffer(), [](const PendingMeshUpload& mesh) { return mesh.morphVertexStartAlloc; }, [](const PendingMeshUpload& mesh) { return std::span(mesh.morphVertexStarts); });
-
-    // Upload morph vertex counts
-    uploadContiguousBatches(meshes, gpuBuffers.GetMorphVertexCountBuffer(), [](const PendingMeshUpload& mesh) { return mesh.morphVertexCountAlloc; }, [](const PendingMeshUpload& mesh) { return std::span(mesh.morphVertexCounts); });
-  }
-
-  void ResourceManager::uploadMaterialBatch(std::vector<PendingMaterialUpload>& materials)
-  {
-    auto& gpuBuffers = m_context->renderer->getGPUBuffers();
-
-    deduplicateMaterialUploads(materials);
-
-    uploadContiguousBatches(materials, gpuBuffers.GetMaterialBuffer(), [](const PendingMaterialUpload& mat) { return mat.materialAlloc; }, [](const PendingMaterialUpload& mat) { return std::span(&mat.data, 1); });
-  }
-
-  template <typename Container, typename AllocSelector, typename DataSelector>
-  void ResourceManager::uploadContiguousBatches(const Container& items, vk::BufferHandle targetBuffer, AllocSelector&& allocSelector, DataSelector&& dataSelector)
-  {
-    if(items.empty())
-      return;
-
-    using ItemType = typename Container::value_type;
-    std::vector<const ItemType*> validItems;
-    validItems.reserve(items.size());
-    for(const auto& item : items)
-    {
-      const auto alloc = allocSelector(item);
-      const auto data = dataSelector(item);
-      if(!alloc.isValid() || data.empty())
-        continue;
-      validItems.push_back(&item);
-    }
-
-    if(validItems.empty())
-      return;
-
-    std::sort(validItems.begin(), validItems.end(),
-              [&](const ItemType* a, const ItemType* b)
-    {
-      return allocSelector(*a).offset < allocSelector(*b).offset;
-    });
-
-    constexpr size_t MAX_BATCH_SIZE = 16 * 1024 * 1024; // 16MB
-    std::vector<uint8_t> batchBuffer;
-    batchBuffer.reserve(4 * 1024 * 1024);
-
-    auto& gpuBuffers = m_context->renderer->getGPUBuffers();
-    uint32_t batchStartOffset = 0;
-    bool batchActive = false;
-
-    auto flushBatch = [&]()
-    {
-      if(!batchBuffer.empty() && batchActive)
-      {
-        if(!gpuBuffers.uploadtoBuffer(targetBuffer, batchStartOffset, batchBuffer.data(), batchBuffer.size()))
-        {
-          LOG_ERROR("Failed to upload batch at offset {}, size {}", batchStartOffset, batchBuffer.size());
-        }
-        batchBuffer.clear();
-        batchActive = false;
-      }
-    };
-
-    for(const ItemType* item : validItems)
-    {
-      const auto alloc = allocSelector(*item);
-      const auto data = dataSelector(*item);
-      const size_t dataSize = data.size_bytes();
-
-      const bool isContiguous = batchActive && (alloc.offset == batchStartOffset + batchBuffer.size());
-
-      if(!isContiguous || batchBuffer.size() + dataSize > MAX_BATCH_SIZE)
-      {
-        flushBatch();
-        batchStartOffset = alloc.offset;
-        batchActive = true;
-      }
-
-      const uint8_t* byteData = reinterpret_cast<const uint8_t*>(data.data());
-      batchBuffer.insert(batchBuffer.end(), byteData, byteData + dataSize);
-    }
-
-    flushBatch();
-  }
-
-  void ResourceManager::deduplicateMaterialUploads(std::vector<PendingMaterialUpload>& materials)
-  {
-    if(materials.size() <= 1)
-      return;
-
-    std::sort(materials.begin(), materials.end(),
-              [](const auto& a, const auto& b)
-    {
-      return a.materialAlloc.offset < b.materialAlloc.offset;
-    });
-
-    // Remove duplicates, keeping the last (most recent) update for each offset
-    auto newEnd = std::unique(materials.begin(), materials.end(),
-                              [](const auto& a, const auto& b)
-    {
-      return a.materialAlloc.offset == b.materialAlloc.offset;
-    });
-    materials.erase(newEnd, materials.end());
   }
 
   // Cache key generation

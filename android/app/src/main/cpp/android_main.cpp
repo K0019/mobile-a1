@@ -1,13 +1,19 @@
 #include <android_native_app_glue.h>
 #include <android/log.h>
-#include "engine.h"
+#include "core/engine/engine.h"  // Engine<> template and Core::Platform
+#include "Engine.h"               // MagicEngine class
+#include "renderer/gfx_renderer.h"  // GfxRenderer and RenderFrameData
+#include "renderer/features/scene_feature.h"
+#include "renderer/features/ui2d_render_feature.h"
 #include "math/camera.h"
 #include "math/utils_math.h"
-#include <graphics/features/grid_feature.h>
-#include <base/imgui_context.h>
 #include "VFS/VFS.h"
-#include "MagicEngine/Engine/Engine.h"
 #include "core/platform/android/ry_android_input_api.h"
+// Include after Engine.h to get all dependencies for GraphicsAPI.h
+#include "Utilities/Utilities.h"
+#include "ECS/ECS.h"
+#include "Utilities/Singleton.h"
+#include "Engine/Graphics Interface/GraphicsAPI.h"
 
 #include <stdlib.h> // For using setenv to enable vulkan validation
 
@@ -17,14 +23,50 @@
 
 class AndroidApp {
     MagicEngine engine;
+    uint64_t sceneFeatureHandle_ = 0;
+    uint64_t ui2dFeatureHandle_ = 0;
 public:
     void Initialize(Context& context) {
-        engine.Init(context);
+        engine.Init(context, true);  // Start in game mode on Android
 
+        // Create render features for Android (similar to game - no editor features)
+        if (context.renderer)
+        {
+            sceneFeatureHandle_ = context.renderer->CreateFeature<SceneRenderFeature>(false);  // no object picking
+            ui2dFeatureHandle_ = context.renderer->CreateFeature<Ui2DRenderFeature>();
+            LOGI("Created render features: scene=%lu, ui2d=%lu",
+                 (unsigned long)sceneFeatureHandle_, (unsigned long)ui2dFeatureHandle_);
+
+            // Set feature handles on GraphicsMain so UI overlay works
+            if (ST<GraphicsMain>::IsInitialized())
+            {
+                ST<GraphicsMain>::Get()->SetSceneFeatureHandle(sceneFeatureHandle_);
+                ST<GraphicsMain>::Get()->SetUI2DFeatureHandle(ui2dFeatureHandle_);
+                ST<GraphicsMain>::Get()->InitializeUI2DOverlay();
+                LOGI("Initialized UI2D overlay on GraphicsMain");
+            }
+        }
     }
 
-    void Update(Context& context, FrameData& frame)
+    void Update(Context& context, RenderFrameData& frame)
     {
+        // Setup single-view rendering for Android game
+        const int width = static_cast<int>(frame.surface.presentWidth);
+        const int height = static_cast<int>(frame.surface.presentHeight);
+
+        if (context.renderer)
+        {
+            const FeatureMask sceneMask = context.renderer->GetFeatureMask(sceneFeatureHandle_);
+            const FeatureMask uiMask = context.renderer->GetFeatureMask(ui2dFeatureHandle_);
+
+            frame.views.resize(1);
+            FrameData& gameView = EnsureView(frame, 0);
+            gameView.featureMask = sceneMask | uiMask;
+            gameView.viewportWidth = static_cast<float>(width);
+            gameView.viewportHeight = static_cast<float>(height);
+            frame.presentedViewId = gameView.viewId;
+        }
+
         engine.ExecuteFrame(frame);
     }
 

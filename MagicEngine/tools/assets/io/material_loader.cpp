@@ -1,5 +1,4 @@
 #include "material_loader.h"
-#include "texture_loader.h"
 #include "logging/log.h"
 #include <assimp/scene.h>
 #include <assimp/GltfMaterial.h>
@@ -162,27 +161,40 @@ namespace Resource::MaterialLoading
     uint32_t alphaModeFlags = static_cast<uint32_t>(material.alphaMode) & MaterialFlags::ALPHA_MODE_MASK;
     material.flags = (material.flags & ~MaterialFlags::ALPHA_MODE_MASK) | alphaModeFlags;
     // Extract textures with robust fallback system
+    // Color textures (baseColor, emissive) use sRGB, data textures (normal, metallicRoughness, occlusion) use linear
     material.baseColorTexture = Detail::extractTextureWithTransform(aiMat, aiTextureType_BASE_COLOR, scenePath, baseDir,
                                                                     scene);
+    material.baseColorTexture.isSRGB = true;  // Color texture
+
     material.metallicRoughnessTexture = Detail::extractTextureWithTransform(
       aiMat, aiTextureType_METALNESS, scenePath, baseDir, scene);
+    material.metallicRoughnessTexture.isSRGB = false;  // Data texture (packed values)
+
     material.normalTexture = Detail::extractTextureWithTransform(aiMat, aiTextureType_NORMALS, scenePath, baseDir,
                                                                  scene);
+    material.normalTexture.isSRGB = false;  // Data texture (vectors, not colors)
+
     material.emissiveTexture = Detail::extractTextureWithTransform(aiMat, aiTextureType_EMISSIVE, scenePath, baseDir,
                                                                    scene);
+    material.emissiveTexture.isSRGB = true;  // Color texture
+
     material.occlusionTexture = Detail::extractTextureWithTransform(aiMat, aiTextureType_AMBIENT_OCCLUSION, scenePath,
                                                                     baseDir, scene);
+    material.occlusionTexture.isSRGB = false;  // Data texture (grayscale values)
+
     // Fallback for base color texture
     if (!material.baseColorTexture.hasTexture())
     {
       material.baseColorTexture = Detail::extractTextureWithTransform(aiMat, aiTextureType_DIFFUSE, scenePath, baseDir,
                                                                       scene);
+      material.baseColorTexture.isSRGB = true;  // Color texture
     }
     // Fallback for normal texture
     if (!material.normalTexture.hasTexture())
     {
       material.normalTexture = Detail::extractTextureWithTransform(aiMat, aiTextureType_HEIGHT, scenePath, baseDir,
                                                                    scene);
+      material.normalTexture.isSRGB = false;  // Data texture (vectors)
     }
     // Populate textures vector for texture loader
     Detail::populateTexturesVector(material);

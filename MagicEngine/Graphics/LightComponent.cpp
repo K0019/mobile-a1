@@ -43,7 +43,8 @@ void LightComponent::EditorDraw()
 
     // Name Input
     char nameBuffer[128];
-    strncpy_s(nameBuffer, light.name.c_str(), sizeof(nameBuffer));
+    strncpy(nameBuffer, light.name.c_str(), sizeof(nameBuffer) - 1);
+    nameBuffer[sizeof(nameBuffer) - 1] = '\0';
     if (ImGui::InputText("Name", nameBuffer, sizeof(nameBuffer)))
     {
         light.name = nameBuffer;

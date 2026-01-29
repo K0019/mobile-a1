@@ -289,8 +289,6 @@ namespace gui {
 	X(NO_SIDE_PREVIEW, ImGuiColorEditFlags_NoSidePreview) \
 	X(NO_DRAG_DROP, ImGuiColorEditFlags_NoDragDrop) \
 	X(NO_BORDER, ImGuiColorEditFlags_NoBorder) \
-	X(NO_ALPHA_OPAQUE, ImGuiColorEditFlags_AlphaOpaque) \
-	X(NO_ALPHA_BACKGROUND, ImGuiColorEditFlags_AlphaNoBg) \
 	X(ALPHA_PREVIEW_HALF, ImGuiColorEditFlags_AlphaPreviewHalf) \
 	X(ALPHA_BAR, ImGuiColorEditFlags_AlphaBar) \
 	X(DISPLAY_HDR, ImGuiColorEditFlags_HDR) \

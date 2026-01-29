@@ -13,7 +13,7 @@
 \brief
 Loads an fbx scene, and extracts the meshes, node hierarchy, materials, and referenced textures
 
-All content © 2025 DigiPen Institute of Technology Singapore.
+All content ï¿½ 2025 DigiPen Institute of Technology Singapore.
 All rights reserved.
 */
 /******************************************************************************/
@@ -31,6 +31,185 @@ All rights reserved.
 
 namespace compiler
 {
+    // ----- Winding Order Detection and Fix ----- //
+    // Analyzes mesh winding order by comparing geometric face normals with vertex normals
+    // CCW convention: cross(edge1, edge2) where edge1 = v1-v0, edge2 = v2-v0
+    // Returns: 1 = CCW (correct), -1 = CW (inverted), 0 = mixed/unknown
+    int DetectWindingOrder(const ProcessedMesh& mesh)
+    {
+        if (mesh.vertices.empty() || mesh.indices.empty() || mesh.indices.size() % 3 != 0)
+            return 0;
+
+        int ccwAgree = 0;   // Face normal (CCW) agrees with vertex normal
+        int ccwDisagree = 0;
+
+        const uint32_t numTriangles = static_cast<uint32_t>(mesh.indices.size() / 3);
+
+        for (uint32_t tri = 0; tri < numTriangles; ++tri)
+        {
+            uint32_t i0 = mesh.indices[tri * 3 + 0];
+            uint32_t i1 = mesh.indices[tri * 3 + 1];
+            uint32_t i2 = mesh.indices[tri * 3 + 2];
+
+            if (i0 >= mesh.vertices.size() || i1 >= mesh.vertices.size() || i2 >= mesh.vertices.size())
+                continue;
+
+            const vec3& p0 = mesh.vertices[i0].position;
+            const vec3& p1 = mesh.vertices[i1].position;
+            const vec3& p2 = mesh.vertices[i2].position;
+
+            // Compute face normal using CCW convention: cross(v1-v0, v2-v0)
+            vec3 edge1 = p1 - p0;
+            vec3 edge2 = p2 - p0;
+            vec3 faceNormalCCW = glm::cross(edge1, edge2);
+
+            float len = glm::length(faceNormalCCW);
+            if (len < 0.0001f)
+                continue; // Skip degenerate triangles
+
+            faceNormalCCW /= len;
+
+            // Average vertex normals
+            vec3 avgVertexNormal = glm::normalize(
+                mesh.vertices[i0].normal + mesh.vertices[i1].normal + mesh.vertices[i2].normal);
+
+            float dot = glm::dot(faceNormalCCW, avgVertexNormal);
+            if (dot > 0.0f)
+                ccwAgree++;
+            else
+                ccwDisagree++;
+        }
+
+        // Determine winding
+        if (ccwAgree > ccwDisagree * 2)
+            return 1;  // CCW (correct for Vulkan)
+        else if (ccwDisagree > ccwAgree * 2)
+            return -1; // CW (inverted)
+        else
+            return 0;  // Mixed/unknown
+    }
+
+    // Fixes CW winding by reversing triangle indices to CCW and flipping normals
+    void FixWindingOrder(ProcessedMesh& mesh)
+    {
+        int winding = DetectWindingOrder(mesh);
+
+        if (winding == -1)
+        {
+            // CW winding detected - reverse each triangle's indices to make it CCW
+            const uint32_t numTriangles = static_cast<uint32_t>(mesh.indices.size() / 3);
+            for (uint32_t tri = 0; tri < numTriangles; ++tri)
+            {
+                // Swap indices 1 and 2 to reverse winding: (0,1,2) -> (0,2,1)
+                std::swap(mesh.indices[tri * 3 + 1], mesh.indices[tri * 3 + 2]);
+            }
+
+            // Also flip all vertex normals since we reversed the geometric facing
+            // Without this, normals would point "into" the surface after winding fix
+            for (auto& v : mesh.vertices)
+            {
+                v.normal = -v.normal;
+            }
+
+            std::cerr << "[WINDING FIX] Mesh '" << mesh.name << "': Reversed " << numTriangles
+                      << " triangles from CW to CCW and flipped " << mesh.vertices.size() << " normals\n" << std::flush;
+        }
+    }
+
+    void DiagnoseWindingOrder(const ProcessedMesh& mesh, const std::string& context)
+    {
+        if (mesh.vertices.empty() || mesh.indices.empty() || mesh.indices.size() % 3 != 0)
+            return;
+
+        int winding = DetectWindingOrder(mesh);
+        const char* windingStr = "UNKNOWN";
+        if (winding == 1)
+            windingStr = "CCW (correct for Vulkan)";
+        else if (winding == -1)
+            windingStr = "CW (INVERTED for Vulkan)";
+        else
+            windingStr = "MIXED (inconsistent)";
+
+        const uint32_t numTriangles = static_cast<uint32_t>(mesh.indices.size() / 3);
+        std::cerr << "[WINDING DIAGNOSTIC] " << context << " - Mesh '" << mesh.name << "':\n"
+                  << "  Triangles: " << numTriangles << "\n"
+                  << "  Detected winding: " << windingStr << "\n" << std::flush;
+    }
+
+    // Fixes vertex normals for meshes with inconsistent or inverted normals by regenerating from geometry
+    // Uses area-weighted smooth normals (unnormalized cross product = 2x area)
+    // Called AFTER FixWindingOrder, so winding should be CCW. Handles:
+    // - winding == 0 (MIXED): some normals point wrong way
+    // - winding == -1 (INVERTED): all normals point wrong way (can happen after winding fix)
+    void FixInconsistentNormals(ProcessedMesh& mesh)
+    {
+        int winding = DetectWindingOrder(mesh);
+        if (winding == 1) // Only skip if normals are already correct (CCW agreement)
+            return;
+
+        if (mesh.vertices.empty() || mesh.indices.empty() || mesh.indices.size() % 3 != 0)
+            return;
+
+        const char* issueType = (winding == 0) ? "MIXED" : "INVERTED";
+        std::cerr << "[NORMAL FIX] Mesh '" << mesh.name << "': Detected " << issueType << " normals, regenerating from geometry ("
+                  << mesh.vertices.size() << " vertices, " << mesh.indices.size() / 3 << " triangles)\n" << std::flush;
+
+        // Initialize all normals to zero
+        for (auto& v : mesh.vertices)
+            v.normal = vec3(0.0f);
+
+        const uint32_t numTriangles = static_cast<uint32_t>(mesh.indices.size() / 3);
+        int validTris = 0;
+
+        // Accumulate area-weighted face normals to each vertex
+        for (uint32_t tri = 0; tri < numTriangles; ++tri)
+        {
+            uint32_t i0 = mesh.indices[tri * 3 + 0];
+            uint32_t i1 = mesh.indices[tri * 3 + 1];
+            uint32_t i2 = mesh.indices[tri * 3 + 2];
+
+            if (i0 >= mesh.vertices.size() || i1 >= mesh.vertices.size() || i2 >= mesh.vertices.size())
+                continue;
+
+            const vec3& p0 = mesh.vertices[i0].position;
+            const vec3& p1 = mesh.vertices[i1].position;
+            const vec3& p2 = mesh.vertices[i2].position;
+
+            vec3 e1 = p1 - p0;
+            vec3 e2 = p2 - p0;
+            vec3 faceNormal = glm::cross(e1, e2); // Unnormalized = area-weighted
+
+            float area2 = glm::length(faceNormal);
+            if (area2 < 0.0000001f)
+                continue; // Skip degenerate triangles
+
+            validTris++;
+            // Add unnormalized (area-weighted) normal to each vertex
+            mesh.vertices[i0].normal += faceNormal;
+            mesh.vertices[i1].normal += faceNormal;
+            mesh.vertices[i2].normal += faceNormal;
+        }
+
+        // Normalize all vertex normals
+        int fixed = 0;
+        for (auto& v : mesh.vertices)
+        {
+            float len = glm::length(v.normal);
+            if (len > 0.0001f)
+            {
+                v.normal /= len;
+                fixed++;
+            }
+            else
+            {
+                v.normal = vec3(0.0f, 1.0f, 0.0f); // Fallback up normal
+            }
+        }
+
+        std::cerr << "[NORMAL FIX] Mesh '" << mesh.name << "': Regenerated " << fixed
+                  << " vertex normals from " << validTris << " valid triangles\n" << std::flush;
+    }
+
     // ----- Helpers ----- //
     inline vec3 AiToVec3(const aiVector3D& v)
     {
@@ -369,11 +548,11 @@ namespace compiler
         std::filesystem::path texturePath(pathStr);
         if (texturePath.is_relative())
         {
-            fileSource.path = modelBasePath / texturePath;
+            fileSource.path = (modelBasePath / texturePath).string();
         }
         else
         {
-            fileSource.path = texturePath;
+            fileSource.path = texturePath.string();
         }
         outSlot.texturePaths[key] = fileSource;
         return true;
@@ -488,6 +667,7 @@ namespace compiler
         aiString alphaModeStr;
         if (aiMat->Get(AI_MATKEY_GLTF_ALPHAMODE, alphaModeStr) == AI_SUCCESS)
         {
+            // glTF has explicit alpha mode - trust it completely
             std::string mode = alphaModeStr.C_Str();
             if (mode == "OPAQUE")
             {
@@ -504,15 +684,35 @@ namespace compiler
         }
         else
         {
-            // Fallback: detect transparency from alpha value
-            if (slot.baseColorFactor.a < 0.99f)
+            // Non-glTF fallback (FBX, OBJ, etc.)
+            // Industry standard (Unity/Unreal): default to Opaque unless there's STRONG evidence
+            // of transparency. FBX opacity values are notoriously unreliable - different DCC tools
+            // use different semantics and may set opacity < 1.0 even for fully opaque materials.
+
+            slot.alphaMode = AlphaMode::Opaque; // Default like Unity/Unreal
+
+            // Check for opacity texture - strong evidence of intended transparency
+            aiString opacityTexPath;
+            bool hasOpacityTexture = (aiMat->GetTexture(aiTextureType_OPACITY, 0, &opacityTexPath) == AI_SUCCESS);
+
+            // Check for transparent color (non-black transparent color indicates transparency)
+            aiColor3D transparentColor(0.f, 0.f, 0.f);
+            bool hasTransparentColor = (aiMat->Get(AI_MATKEY_COLOR_TRANSPARENT, transparentColor) == AI_SUCCESS) &&
+                                       (transparentColor.r > 0.01f || transparentColor.g > 0.01f || transparentColor.b > 0.01f);
+
+            if (hasOpacityTexture || hasTransparentColor)
             {
+                // Has explicit transparency texture or color - use Blend
                 slot.alphaMode = AlphaMode::Blend;
             }
-            else
+            else if (slot.baseColorFactor.a < 0.1f)
             {
-                slot.alphaMode = AlphaMode::Opaque;
+                // Very low opacity (< 10%) - likely intentionally transparent
+                // This catches materials explicitly set to be see-through
+                slot.alphaMode = AlphaMode::Blend;
             }
+            // Otherwise keep Opaque - this matches Unity/Unreal behavior where
+            // FBX materials default to opaque and require manual transparency setup
         }
 
         // Alpha cutoff
@@ -593,7 +793,7 @@ namespace compiler
             }
             else
             {
-                vertex.normal = AiToVec3(aiMesh->mNormals[i]);
+                vertex.normal = vec3(0.0f, 1.0f, 0.0f);  // Default up normal when mesh has no normals
             }
 
             if (aiMesh->mTextureCoords[0])
@@ -706,6 +906,15 @@ namespace compiler
             }
         }
 
+        // Fix winding order: Convert CW meshes to CCW for Vulkan
+        FixWindingOrder(mesh);
+
+        // Fix inconsistent normals: Regenerate normals for MIXED meshes
+        FixInconsistentNormals(mesh);
+
+        // Diagnostic: Check winding order after fixes
+        DiagnoseWindingOrder(mesh, "After fixes");
+
         return mesh;
     }
 
@@ -793,6 +1002,12 @@ namespace compiler
         importer.SetPropertyInteger(AI_CONFIG_PP_SLM_VERTEX_LIMIT, 1'000'000);
         importer.SetPropertyInteger(AI_CONFIG_PP_SBP_REMOVE, aiPrimitiveType_POINT | aiPrimitiveType_LINE);
         importer.SetPropertyFloat(AI_CONFIG_PP_GSN_MAX_SMOOTHING_ANGLE, 80.0f);
+
+        // Note: No automatic unit conversion. FBX/GLB files use whatever units the artist exported with.
+        // If scale issues occur, either:
+        // 1. Fix at export time in the 3D software
+        // 2. Add per-asset scale metadata
+        // 3. Apply scene-level scale in the engine
 
         const uint32_t flags = aiProcess_Triangulate | aiProcess_JoinIdenticalVertices | aiProcess_GenSmoothNormals | aiProcess_ImproveCacheLocality | aiProcess_ValidateDataStructure;
 

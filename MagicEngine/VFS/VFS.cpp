@@ -2,6 +2,7 @@
 #include "VFS.h"
 #include "IVFSImpl.h"
 #include "IFileStream.h"
+#include "logging/log.h"
 
 #include "DirectoryVFSImpl.h"
 #include "PakFileVFSImpl.h"
@@ -10,6 +11,7 @@
 #endif
 
 #include <algorithm>
+#include <unordered_map>
 #include <utility>
 
 
@@ -22,9 +24,11 @@ std::string VFS::NormalizePath(const std::string& path)
     // This fixes issues when reading from CRLF files.
     lowerPath.erase(std::remove(lowerPath.begin(), lowerPath.end(), '\r'), lowerPath.end());
 
-    // Convert to lowercase
+    // Convert to lowercase - but NOT on Android since AAssetManager is case-sensitive
+#if !defined(__ANDROID__)
     std::transform(lowerPath.begin(), lowerPath.end(), lowerPath.begin(),
         [](unsigned char c) { return std::tolower(c); });
+#endif
 
     // Also replace backslashes with forward slashes for consistency
     std::replace(lowerPath.begin(), lowerPath.end(), '\\', '/');
@@ -490,4 +494,111 @@ std::string VFS::GetParentPath(const std::string& path)
     }
 
     return "";
+}
+
+// Cache for resolved paths - only populated once per unique path
+static std::unordered_map<std::string, std::string> s_ResolvedPathCache;
+
+// Get platform-specific subfolder name
+static std::string GetPlatformSubfolder()
+{
+#ifdef __ANDROID__
+    return "android/";
+#else
+    return "windows/";
+#endif
+}
+
+std::string VFS::ResolveCompiledAssetPath(const std::string& path)
+{
+    std::string normPath = NormalizePath(path);
+
+    // Check cache first - O(1) lookup
+    auto it = s_ResolvedPathCache.find(normPath);
+    if (it != s_ResolvedPathCache.end())
+    {
+        return it->second;
+    }
+
+    // First time seeing this path - do the resolution once
+    const std::string compiledAssetsPrefix = "compiledassets/";
+    const std::string platformSubfolder = GetPlatformSubfolder();
+
+    // Not a compiled asset path - cache and return as-is
+    if (normPath.find(compiledAssetsPrefix) != 0)
+    {
+        s_ResolvedPathCache[normPath] = normPath;
+        return normPath;
+    }
+
+    std::string relativePath = normPath.substr(compiledAssetsPrefix.length());
+
+    // Check if path already includes platform folder (windows/ or android/)
+    bool hasPlatformFolder = (relativePath.find("windows/") == 0 || relativePath.find("android/") == 0);
+
+    // Try platform-specific path first (e.g., compiledassets/windows/models/...)
+    if (!hasPlatformFolder)
+    {
+        std::string platformPath = compiledAssetsPrefix + platformSubfolder + relativePath;
+        if (FileExists(platformPath))
+        {
+            s_ResolvedPathCache[normPath] = platformPath;
+            return platformPath;
+        }
+    }
+
+    // Already has subdirectories (new folder format)
+    if (relativePath.find('/') != std::string::npos)
+    {
+        if (FileExists(normPath))
+        {
+            s_ResolvedPathCache[normPath] = normPath;
+            return normPath;
+        }
+        // Try flat fallback
+        std::string filename = GetFilename(relativePath);
+        std::string flatPath = compiledAssetsPrefix + filename;
+        if (FileExists(flatPath))
+        {
+            s_ResolvedPathCache[normPath] = flatPath;
+            return flatPath;
+        }
+        s_ResolvedPathCache[normPath] = normPath;
+        return normPath;
+    }
+
+    // Flat path - check if it exists
+    if (FileExists(normPath))
+    {
+        s_ResolvedPathCache[normPath] = normPath;
+        return normPath;
+    }
+
+    // Flat path doesn't exist - search folder structure once
+    std::string filename = GetFilename(relativePath);
+
+    // Simple folder search - check common locations (platform-specific first, then legacy)
+    std::vector<std::string> searchPaths = {
+        // Platform-specific paths
+        compiledAssetsPrefix + platformSubfolder + "models/fbx/" + filename,
+        compiledAssetsPrefix + platformSubfolder + "textures/" + filename,
+        compiledAssetsPrefix + platformSubfolder + "materials/" + filename,
+        // Legacy flat paths (for backwards compatibility)
+        compiledAssetsPrefix + "models/fbx/" + filename,
+        compiledAssetsPrefix + "textures/" + filename,
+        compiledAssetsPrefix + "materials/" + filename,
+    };
+
+    for (const auto& searchPath : searchPaths)
+    {
+        if (FileExists(searchPath))
+        {
+            s_ResolvedPathCache[normPath] = searchPath;
+            return searchPath;
+        }
+    }
+
+    // Not found - cache original path, caller will handle error
+    s_ResolvedPathCache[normPath] = normPath;
+    return normPath;
 }

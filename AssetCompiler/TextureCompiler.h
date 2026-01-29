@@ -13,7 +13,7 @@
 \brief
 Options for compiling.
 
-All content © 2025 DigiPen Institute of Technology Singapore.
+All content ï¿½ 2025 DigiPen Institute of Technology Singapore.
 All rights reserved.
 */
 /******************************************************************************/
@@ -44,9 +44,25 @@ namespace compiler
 		ktxTextureCreateInfo SetupKtxCreateInfo(const CMP_Texture& dest);
 		CMP_CompressOptions SetupCompressionOptions();
 		bool CompressTexture(CMP_Texture& src, CMP_Texture& dst, const CMP_CompressOptions& opts);
+		bool CompressTextureASTC(CMP_Texture& src, CMP_Texture& dst);  // Uses ARM's astc-encoder
 		bool SaveAsKTX2(const CMP_Texture& dst, CompilationResult& compilationResult, const std::string& filename = {});
 
+		// Thumbnail generation (64x64 preview for asset browser)
+		bool GenerateThumbnail(const CMP_Texture& srcTexture, CompilationResult& result, const std::string& filename = {});
+
+	public:
+		// Save raw RGBA pixels as PNG (for material/mesh thumbnails from headless renderer)
+		// Note: Function name kept as SaveThumbnailKTX2 for compatibility, but saves as PNG
+		bool SaveThumbnailKTX2(const std::vector<uint8_t>& rgbaPixels, uint32_t size, const std::filesystem::path& outputPath);
+
+		// Generate thumbnail for an already-compiled KTX2 texture (thumbnail-only mode)
+		// Loads the KTX2, transcodes if needed, resizes to 64x64, saves as _thumb.png, updates meta file
+		bool GenerateThumbnailOnly(const std::filesystem::path& compiledKtx2Path, const std::filesystem::path& outputDir);
+
+	private:
 		CompilerOptions options;
+		static constexpr uint32_t THUMBNAIL_SIZE = 64;
+		std::filesystem::path m_lastThumbnailPath;  // Thumbnail path from last GenerateThumbnail call
 	};
 }
 

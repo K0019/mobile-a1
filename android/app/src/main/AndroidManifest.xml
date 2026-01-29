@@ -16,7 +16,7 @@
         android:hasCode="true">
 
         <activity
-            android:name=".MainActivity"
+            android:name="com.magicengine.kurorekishi.MainActivity"
             android:exported="true"
             android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
             android:launchMode="singleTask"

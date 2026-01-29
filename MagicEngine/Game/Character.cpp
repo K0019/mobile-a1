@@ -22,6 +22,7 @@ All rights reserved.
 #include "Game/Character.h"
 #include "Game/Delusion.h"
 #include "Physics/Physics.h"
+#include "Physics/Collision.h"
 #include "Engine/Input.h"
 #include "Graphics/AnimationComponent.h"
 #include "Editor/Containers/GUICollection.h"
@@ -39,7 +40,10 @@ char const* animNames[] =
 #undef X
 
 CharacterMovementComponent::CharacterMovementComponent()
-	: movementVector{ 0.0f,0.0f }
+	: center{}
+	, radius{1.f}
+	, height{1.f}
+	, movementVector{ 0.0f,0.0f }
 	, hitDebugObject{ nullptr }
 	, moveSpeed{ 0.0f }
 	, rotateSpeed{ 0.0f }
@@ -61,6 +65,28 @@ CharacterMovementComponent::CharacterMovementComponent()
 	, currParryTime{}
 
 {
+}
+
+void CharacterMovementComponent::OnCreation()
+{
+	joltCharRef = ST<physics::JoltPhysics>::Get()->CreateCharacterBody(ecs::GetEntity(this)->GetHash());
+}
+
+void CharacterMovementComponent::OnAttached()
+{
+	joltCharRef->SetShapeOffset(JPH::Vec3{ center.x, center.y, center.z });
+	ST<physics::JoltPhysics>::Get()->SetCharacterHeight(joltCharRef, height);
+	ST<physics::JoltPhysics>::Get()->SetCharacterRadius(joltCharRef, radius);
+}
+
+void CharacterMovementComponent::OnDetached()
+{
+	JPH::CharacterContactListener* listener = joltCharRef->GetListener();
+	if (listener != nullptr)
+	{
+		delete listener;
+		joltCharRef->SetListener(nullptr);
+	}
 }
 
 const Vec2 CharacterMovementComponent::GetMovementVector()
@@ -311,8 +337,57 @@ void CharacterMovementComponent::ResetSpeedMultiplier()
 	speedMultiplier = 1.0f;
 }
 
+void CharacterMovementComponent::SetCenter(const Vec3& vec)
+{
+	center = vec;
+	joltCharRef->SetShapeOffset(JPH::Vec3{ vec.x, vec.y, vec.z });
+}
+
 void CharacterMovementComponent::EditorDraw()
 {
+
+	// TODO: This is copied from Transform.cpp. Should unify both implementations in GUICollection in the future.
+// Helper function for drawing the controls
+	const auto DrawVec3Control = [](const char* label, Vec3* values, float columnWidth, float speed, const char* format) -> bool {
+		bool modified = false;
+		if (gui::Table table{ label, 4, true, gui::FLAG_TABLE::HIDE_HEADER })
+		{
+			table.AddColumnHeader("##", gui::FLAG_TABLE_COLUMN::WIDTH_FIXED, columnWidth); // Set first column as fixed width. The rest will be stretch columns.
+			table.SubmitColumnHeaders();
+
+			gui::TextUnformatted(label);
+			table.NextColumn();
+
+			const auto DrawFloatComponent{ [&modified, speed, format](const char* text, const char* label, float* value, const gui::Vec4& textColor) -> void {
+				{
+					gui::SetStyleColor styleColText{ gui::FLAG_STYLE_COLOR::TEXT, textColor };
+					gui::TextUnformatted(text);
+				}
+				gui::SameLine();
+				gui::SetNextItemWidth(gui::GetAvailableContentRegion().x);
+				modified |= gui::VarDrag(label, value, speed, 0.0f, 0.0f, format);
+			} };
+
+			DrawFloatComponent("X", "##X", &values->x, gui::Vec4{ 1.0f, 0.4f, 0.4f, 1.0f });
+			table.NextColumn();
+			DrawFloatComponent("Y", "##Y", &values->y, gui::Vec4{ 0.4f, 1.0f, 0.4f, 1.0f });
+			table.NextColumn();
+			DrawFloatComponent("Z", "##Z", &values->z, gui::Vec4{ 0.4f, 0.4f, 1.0f, 1.0f });
+		}
+		return modified;
+		};
+
+	if (DrawVec3Control("Center", &center, 60.f, 1.f, "%.1f"))
+	{
+		JPH::Vec3 joltOffset{ center.x, center.y, center.z };
+		joltCharRef->SetShapeOffset(joltOffset);
+	}
+
+	if (gui::VarInput("Radius", &radius))
+		ST<physics::JoltPhysics>::Get()->SetCharacterRadius(joltCharRef, radius);
+	if (gui::VarInput("Height", &height))
+		ST<physics::JoltPhysics>::Get()->SetCharacterHeight(joltCharRef, height);
+	
 	gui::VarInput("Move Speed", &moveSpeed);
 	gui::VarInput("Rotation Speed", &rotateSpeed);
 	gui::VarInput("Stun Time Per Hit", &stunTimePerHit);
@@ -379,7 +454,16 @@ void CharacterMovementComponentSystem::UpdateCharacterMovementComponent(Characte
 
 	// Perform stun check
 	ecs::CompHandle<physics::PhysicsComp> physicsComp = characterEntity->GetComp<physics::PhysicsComp>();
-	Vec3 currVel = physicsComp->GetLinearVelocity();
+	Vec3 currVel{};
+	if (physicsComp->GetIsKinematic())
+	{
+		JPH::Vec3 joltCurrVel = comp.joltCharRef->GetLinearVelocity();
+		currVel = Vec3{ joltCurrVel.GetX(), joltCurrVel.GetY(), joltCurrVel.GetZ() };
+	}
+	else
+		currVel = physicsComp->GetLinearVelocity();
+
+	// Get inputs
 	if (comp.currentStunTime > 0.0f)
 	{
 		comp.currentStunTime -= GameTime::Dt();
@@ -394,6 +478,17 @@ void CharacterMovementComponentSystem::UpdateCharacterMovementComponent(Characte
 		//}
 		//animComp->timeA = comp.currentStunTime / comp.stunTimePerHit;
 		comp.currentDodgeTime = 0.0f;
+
+		if (!physicsComp->GetIsKinematic())
+			physicsComp->SetLinearVelocity(Vec3{ currVel.x, currVel.y, currVel.y });
+		else
+		{
+			Vec3 currPos{ characterTransform.GetWorldPosition() };
+			comp.joltCharRef->SetPosition(JPH::Vec3{ currPos.x, currPos.y, currPos.z });
+			ST<physics::JoltPhysics>::Get()->UpdateCharacterBody(comp.joltCharRef, Vec3{currVel.x, 0.f, currVel.y});
+			JPH::Vec3 joltPos{ comp.joltCharRef->GetPosition() };
+			characterTransform.SetWorldPosition(Vec3(joltPos.GetX(), joltPos.GetY(), joltPos.GetZ()));
+		}
 		return;
 	}
 
@@ -422,19 +517,19 @@ void CharacterMovementComponentSystem::UpdateCharacterMovementComponent(Characte
 	animatorComp->GetStateMachine()->blackboard["inputMovement"] = movement;
 
 	// Apply friction
-	Vec3 drag{ -currVel.x,0.0f,-currVel.z };
-	float groundSpeed = drag.Length();
-	if (groundSpeed <= comp.groundFriction)
-	{
-		physicsComp->AddLinearVelocity(drag);
-	}
-	else
-	{
-		physicsComp->AddLinearVelocity(drag.Normalized() * comp.groundFriction * groundSpeed);
-	}
+	//Vec3 drag{ -currVel.x,0.0f,-currVel.z };
+	//float groundSpeed = drag.Length();
+	//if (groundSpeed <= comp.groundFriction)
+	//{
+	//	physicsComp->AddLinearVelocity(drag);
+	//}
+	//else
+	//{
+	//	physicsComp->AddLinearVelocity(drag.Normalized() * comp.groundFriction * groundSpeed);
+	//}
 
 	// Apply input movement
-	Vec3 moveDir = Vec3{ movement.x ,0.0f,movement.y };
+	Vec3 moveDir = Vec3{ movement.x , (physicsComp->GetIsKinematic() ? 0.f : currVel.y), movement.y };
 
 	// If dodging, move faster
 	if (comp.currentDodgeTime > 0.0f)
@@ -449,7 +544,16 @@ void CharacterMovementComponentSystem::UpdateCharacterMovementComponent(Characte
 		moveDir *= comp.moveSpeed * comp.speedMultiplier;
 	}
 
-	physicsComp->AddLinearVelocity(moveDir);
+	if (!physicsComp->GetIsKinematic())
+		physicsComp->SetLinearVelocity(Vec3{ moveDir.x, currVel.y, moveDir.z });
+	else
+	{
+		Vec3 currPos{ characterTransform.GetWorldPosition() };
+		comp.joltCharRef->SetPosition(JPH::Vec3{ currPos.x, currPos.y, currPos.z });
+		ST<physics::JoltPhysics>::Get()->UpdateCharacterBody(comp.joltCharRef, moveDir);
+		JPH::Vec3 joltPos{ comp.joltCharRef->GetPosition() };
+		characterTransform.SetWorldPosition(Vec3(joltPos.GetX(), joltPos.GetY(), joltPos.GetZ()));
+	}
 
 	comp.currentDodgeCooldown -= GameTime::Dt();
 
@@ -472,6 +576,9 @@ void CharacterMovementComponentSystem::UpdateCharacterMovementComponent(Characte
 		ApplyAttack(static_cast<size_t>(attackMoveIndex), characterTransform, comp);
 		animatorComp->GetStateMachine()->blackboard["outputApplyHitMove"] = -1;
 	}
+
+	// Reset movement input
+	comp.SetMovementVector(Vec2{ 0.f, 0.f });
 }
 
 void CharacterMovementComponentSystem::ApplyAttack(size_t moveIndex, const Transform& transform, CharacterMovementComponent& charComp)
@@ -501,4 +608,15 @@ void CharacterMovementComponentSystem::ApplyAttack(size_t moveIndex, const Trans
 	}*/
 
 	charComp.GetHeldItem()->Attack(hitboxOrigin, weaponMove.hitboxExtents);
+}
+
+bool CharacterMovementComponentSystem::PreRun()
+{
+	physics::MyCharacterContactListener::ClearContactPair();
+	return true;
+}
+
+void CharacterMovementComponentSystem::PostRun()
+{
+	physics::MyCharacterContactListener::CallContactFunc();
 }

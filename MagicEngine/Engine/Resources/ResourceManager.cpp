@@ -26,6 +26,7 @@ All rights reserved.
 #include "Engine/Resources/Types/ResourceTypesGraphics.h"
 #include "Game/Weapon.h"
 #include "FilepathConstants.h"
+#include "VFS/VFS.h"
 
 void MagicResourceManager::Init()
 {

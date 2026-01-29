@@ -229,7 +229,7 @@ namespace ui
     if (!font.isValid()) return false;
     const auto* fontHot = resources.getFont(font);
     if (!fontHot) return false;
-    list.setSolidFillFallback(fontHot->bindlessIndex, fontHot->cpuData.whitePixelUV);
+    list.setSolidFillFallback(fontHot->uiTextureId, fontHot->cpuData.whitePixelUV);
     return true;
   }
 
@@ -386,11 +386,11 @@ namespace ui
                 SamplerMode samplerMode, uint16_t layer)
   {
     if (!texture.isValid()) return false;
-    const uint32_t bindless = resources.getTextureBindlessIndex(texture);
+    const uint32_t texId = resources.getTextureUIId(texture);
     const int32_t baseVertex = static_cast<int32_t>(list.vertices.size());
     const uint32_t baseIndex = static_cast<uint32_t>(list.indices.size());
     const uint32_t samplerIndex = SamplerModeToIndex(samplerMode);
-    PrimitiveDrawCommand& cmd = AcquireOrMergeCommand(list, bindless, samplerIndex, clipRect, layer, baseIndex,
+    PrimitiveDrawCommand& cmd = AcquireOrMergeCommand(list, texId, samplerIndex, clipRect, layer, baseIndex,
                                                       baseVertex);
     list.vertices.reserve(list.vertices.size() + 4);
     list.vertices.push_back({min.x, min.y, uvMin.x, uvMin.y, color});
@@ -409,15 +409,15 @@ namespace ui
     return true;
   }
 
-  bool AddImage([[maybe_unused]] Resource::ResourceManager& resources, PrimitiveDrawList& list, uint32_t texture, const vec2& min,
+  bool AddImage([[maybe_unused]] Resource::ResourceManager& resources, PrimitiveDrawList& list, uint32_t textureId, const vec2& min,
                 const vec2& max, const vec2& uvMin, const vec2& uvMax, uint32_t color, const vec4& clipRect,
                 SamplerMode samplerMode, uint16_t layer)
   {
-    const uint32_t bindless = texture;
+    const uint32_t texId = textureId;
     const int32_t baseVertex = static_cast<int32_t>(list.vertices.size());
     const uint32_t baseIndex = static_cast<uint32_t>(list.indices.size());
     const uint32_t samplerIndex = SamplerModeToIndex(samplerMode);
-    PrimitiveDrawCommand& cmd = AcquireOrMergeCommand(list, bindless, samplerIndex, clipRect, layer, baseIndex,
+    PrimitiveDrawCommand& cmd = AcquireOrMergeCommand(list, texId, samplerIndex, clipRect, layer, baseIndex,
                                                       baseVertex);
     list.vertices.reserve(list.vertices.size() + 4);
     list.vertices.push_back({min.x, min.y, uvMin.x, uvMin.y, color});
@@ -464,7 +464,7 @@ namespace ui
       return true;
     });
     if (!emittedGlyph) return false;
-    PrimitiveDrawCommand& cmd = AcquireOrMergeCommand(list, fontHot->bindlessIndex,
+    PrimitiveDrawCommand& cmd = AcquireOrMergeCommand(list, fontHot->uiTextureId,
                                                       SamplerModeToIndex(SamplerMode::Font), layout.clipRect, layer,
                                                       baseIndex, baseVertex);
     cmd.indexCount = static_cast<uint32_t>(list.indices.size()) - cmd.indexOffset;

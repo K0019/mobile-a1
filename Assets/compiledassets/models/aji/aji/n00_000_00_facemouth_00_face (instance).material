@@ -1,0 +1,43 @@
+{
+    "name": "N00_000_00_FaceMouth_00_FACE (Instance)",
+    "alphaMode": "Opaque",
+    "alphaCutoff": 0.5,
+    "metallicFactor": 1.0,
+    "roughnessFactor": 1.0,
+    "normalScale": 1.0,
+    "occlusionStrength": 1.0,
+    "baseColorFactor": [
+        1.0,
+        1.0,
+        1.0,
+        1.0
+    ],
+    "emissiveFactor": [
+        0.0,
+        0.0,
+        0.0
+    ],
+    "textures": [
+        {
+            "key": "baseColor",
+            "value": "CompiledAssets/_01.ktx2"
+        },
+        {
+            "key": "metallicRoughness",
+            "value": ""
+        },
+        {
+            "key": "normal",
+            "value": "CompiledAssets/Shader_NoneNormal.ktx2"
+        },
+        {
+            "key": "emissive",
+            "value": "CompiledAssets/Shader_NoneBlack.ktx2"
+        },
+        {
+            "key": "occlusion",
+            "value": ""
+        }
+    ],
+    "flags": 0
+}

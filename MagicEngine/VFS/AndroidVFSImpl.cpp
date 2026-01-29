@@ -7,9 +7,79 @@
 #include <android/log.h>
 
 #include <sstream>
+#include <algorithm>
+#include <cctype>
 
 AndroidVFSImpl::AndroidVFSImpl(AAssetManager* assetManager) : m_AssetManager(assetManager) {}
 
+// Convert string to lowercase for case-insensitive comparison
+std::string AndroidVFSImpl::ToLower(const std::string& s)
+{
+    std::string result = s;
+    std::transform(result.begin(), result.end(), result.begin(),
+                   [](unsigned char c) { return std::tolower(c); });
+    return result;
+}
+
+// Build lookup table from manifest (lowercase path -> actual path)
+void AndroidVFSImpl::BuildPathLookup() const
+{
+    if (m_PathLookupBuilt) return;
+
+    // Read manifest directly from asset manager to avoid recursion
+    AAsset* manifestAsset = AAssetManager_open(m_AssetManager, "asset_manifest.txt", AASSET_MODE_BUFFER);
+    if (!manifestAsset)
+    {
+        m_PathLookupBuilt = true;
+        return;
+    }
+
+    const char* data = static_cast<const char*>(AAsset_getBuffer(manifestAsset));
+    off_t size = AAsset_getLength(manifestAsset);
+    std::string manifestContent(data, size);
+    AAsset_close(manifestAsset);
+
+    std::stringstream ss(manifestContent);
+    std::string line;
+    while (std::getline(ss, line, '\n'))
+    {
+        // Trim whitespace
+        while (!line.empty() && (line.back() == '\r' || line.back() == ' ')) line.pop_back();
+        if (line.empty()) continue;
+
+        std::string lowerPath = ToLower(line);
+        m_PathLookup[lowerPath] = line;
+    }
+
+    m_PathLookupBuilt = true;
+    __android_log_print(ANDROID_LOG_INFO, "MagicEngine", "Built path lookup with %zu entries", m_PathLookup.size());
+}
+
+// Resolve a path case-insensitively
+std::string AndroidVFSImpl::ResolvePath(const std::string& path) const
+{
+    // First try exact match (fast path)
+    AAsset* asset = AAssetManager_open(m_AssetManager, path.c_str(), AASSET_MODE_UNKNOWN);
+    if (asset)
+    {
+        AAsset_close(asset);
+        return path;
+    }
+
+    // Build lookup if not already done
+    BuildPathLookup();
+
+    // Try case-insensitive lookup
+    std::string lowerPath = ToLower(path);
+    auto it = m_PathLookup.find(lowerPath);
+    if (it != m_PathLookup.end())
+    {
+        return it->second;
+    }
+
+    // Return original path (will fail, but preserves error reporting)
+    return path;
+}
 
 std::unique_ptr<IFileStream> AndroidVFSImpl::OpenFile(const std::string& path, FileMode mode)
 {
@@ -19,7 +89,8 @@ std::unique_ptr<IFileStream> AndroidVFSImpl::OpenFile(const std::string& path, F
         return nullptr;
     }
 
-    AAsset* assetHandle = AAssetManager_open(m_AssetManager, path.c_str(), AASSET_MODE_RANDOM);
+    std::string resolvedPath = ResolvePath(path);
+    AAsset* assetHandle = AAssetManager_open(m_AssetManager, resolvedPath.c_str(), AASSET_MODE_RANDOM);
     if (!assetHandle)
     {
         return nullptr;
@@ -29,45 +100,32 @@ std::unique_ptr<IFileStream> AndroidVFSImpl::OpenFile(const std::string& path, F
 
 bool AndroidVFSImpl::FileExists(const std::string& path) const
 {
-    // The NDK has no "exists" function. 
-    // Try to open the asset and see if it succeeds
-    AAsset* assetHandle = AAssetManager_open(m_AssetManager, path.c_str(), AASSET_MODE_UNKNOWN);
+    // Try case-insensitive file lookup first
+    std::string resolvedPath = ResolvePath(path);
+    AAsset* assetHandle = AAssetManager_open(m_AssetManager, resolvedPath.c_str(), AASSET_MODE_UNKNOWN);
     if (assetHandle)
     {
         AAsset_close(assetHandle);
         return true;
     }
 
-    // TODO: a proper isdirectory... 
-    // This fake way uses assetsmanifest to do so
-    std::string manifestContent;
+    // Check if it's a directory by looking for files under this path
+    BuildPathLookup();
 
-    if (!VFS::ReadFile("asset_manifest.txt", manifestContent))
+    std::string lowerDirPath = ToLower(path);
+    if (!lowerDirPath.empty() && lowerDirPath.back() != '/')
     {
-        // WHERE IS MY MANIFEST????!!!!.
-        return false;
+        lowerDirPath += '/';
     }
 
-    // Since this part searched for directories, we append / in case
-    std::string dirPath = path;
-    if (!dirPath.empty() && dirPath.back() != '/')
+    for (const auto& entry : m_PathLookup)
     {
-        dirPath += '/';
-    }
-
-    std::stringstream ss(manifestContent);
-    std::string line;
-
-    while (std::getline(ss, line, '\n'))
-    {
-        if (line.rfind(dirPath, 0) == 0)
+        if (entry.first.rfind(lowerDirPath, 0) == 0)
         {
-            // Found at least one file inside this path,
-            // so the directory exists.
+            // Found at least one file inside this path, so directory exists
             return true;
         }
     }
-
 
     return false;
 }

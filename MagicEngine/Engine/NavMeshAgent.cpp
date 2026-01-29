@@ -22,6 +22,7 @@ All rights reserved.
 #include "Engine/NavMeshAgent.h"
 #include "Game/EnemyCharacter.h"
 #include "Game/Character.h"
+#include "Physics/Physics.h"
 #include "Editor/Containers/GUICollection.h"
 
 namespace navmesh
@@ -100,20 +101,60 @@ namespace navmesh
 		crowdSystem->removeAgent(agentID);
 	}
 
-	NavMeshPath NavMeshAgentComp::FindPath()
+	NavMeshPath NavMeshAgentComp::FindPath(const Vec3& targetPos)
 	{
+		dtCrowd* crowdSystem{ ecs::GetSystem<NavMeshAgentSystem>()->GetCrowdSystem() };
 		NavMeshPath result{ std::vector<Vec3>{}, NavMeshPathStatus::PATH_INVALID };
-		if (!agent || agent->state == DT_CROWDAGENT_STATE_INVALID)
+		if (!agent || !crowdSystem)
 			return result;
 
-		if (agent->state == DT_CROWDAGENT_STATE_WALKING)
-			result.status = agent->partial ? NavMeshPathStatus::PATH_PARTIAL : NavMeshPathStatus::PATH_COMPLETE;
+		const dtNavMeshQuery* navQuery{ crowdSystem->getNavMeshQuery() };
+		if (!navQuery)
+			return result;
 
-		for (int count{}; count < agent->ncorners; ++count)
-		{
-			Vec3 corner{ agent->cornerVerts[3 * count], agent->cornerVerts[3 * count + 1], agent->cornerVerts[3 * count + 2] };
-			result.corners.push_back(corner);
-		}
+		Vec3 currPos{ ecs::GetEntityTransform(this).GetWorldPosition() };
+		dtPolyRef startPoly;
+		dtPolyRef endPoly;
+		float startPos[3]{};
+		float endPos[3]{};
+		float startPolyPos[3]{ currPos.x, currPos.y, currPos.z };
+		float endPolyPos[3]{ targetPos.x, targetPos.y, targetPos.z };
+		const float extent[3]{ 2.f, 4.f, 2.f };
+
+		dtQueryFilter filter;
+		filter.setIncludeFlags(static_cast<unsigned short>(+PolyFlags::WALKABLE));
+
+		navQuery->findNearestPoly(startPolyPos, extent, &filter, &startPoly, startPos);
+		navQuery->findNearestPoly(endPolyPos, extent, &filter, &endPoly, endPos);
+
+		if (!startPoly || !endPoly)
+			return result;
+
+		const int maxPolyCount{ 256 };
+		dtPolyRef pathPoly[maxPolyCount]{};
+		int pathCount{};
+
+		navQuery->findPath(startPoly, endPoly, startPos, endPos, &filter, pathPoly, &pathCount, maxPolyCount);
+
+		if (pathCount == 0)
+			return result;
+
+		const int maxCorners{ 256 };
+		float straightPath[3 * maxCorners]{};
+		unsigned char straightPathFlag[maxCorners]{};
+		dtPolyRef straightPathRefs[maxCorners]{};
+		int straightPathCount{};
+
+		navQuery->findStraightPath(startPos, endPos, pathPoly, pathCount, straightPath, straightPathFlag,
+			straightPathRefs, &straightPathCount, maxCorners);
+
+		for (int count{}; count < straightPathCount; ++count)
+			result.corners.push_back(Vec3(straightPath[3 * count], straightPath[3 * count + 1], straightPath[3 * count + 2]));
+
+		if (pathCount == maxPolyCount && !result.corners.empty())
+			result.status = NavMeshPathStatus::PATH_PARTIAL;
+		else
+			result.status = NavMeshPathStatus::PATH_COMPLETE;
 
 		return result;
 	}
@@ -163,6 +204,11 @@ namespace navmesh
 	float NavMeshAgentComp::GetBaseOffset() const
 	{
 		return agentData.baseOffset;
+	}
+
+	int NavMeshAgentComp::GetAgentID() const
+	{
+		return agentID;
 	}
 
 	bool NavMeshAgentComp::IsActive() const
@@ -403,8 +449,17 @@ namespace navmesh
 			if (!compIter->GetAgent())
 				continue;
 
-			Vec3 pos{ compIter->GetAgent()->npos[0], compIter->GetAgent()->npos[1] + compIter->GetBaseOffset(), compIter->GetAgent()->npos[2]};
-			compIter.GetEntity()->GetTransform().SetWorldPosition(pos);
+			if (auto charComp{ compIter.GetEntity()->GetComp<CharacterMovementComponent>() })
+			{
+				Vec3 vel{ compIter->GetAgent()->nvel[0], compIter->GetAgent()->nvel[1] + compIter->GetBaseOffset(), compIter->GetAgent()->nvel[2] };
+				charComp->SetMovementVector(Vec2{ vel.x, vel.z });
+			}
+			else
+			{
+				Vec3 pos{ compIter->GetAgent()->npos[0], compIter->GetAgent()->npos[1] + compIter->GetBaseOffset(), compIter->GetAgent()->npos[2] };
+				compIter.GetEntity()->GetTransform().SetWorldPosition(pos);
+			}
+			crowdSystem->resetMoveTarget(compIter->GetAgentID());
 		}
 		return true;
 	}

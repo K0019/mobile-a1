@@ -78,7 +78,7 @@ public:
 	*//******************************************************************/
 	static const std::string GetOpenScenesJsonPath()
 	{
-		//return GetScenesFolder() + "/openScenes.json";
+		// Note: Our build script (build_android.ps1) preserves case when copying assets
 		return VFS::JoinPath(GetScenesFolder(), "openScenes.json");
 	}
 

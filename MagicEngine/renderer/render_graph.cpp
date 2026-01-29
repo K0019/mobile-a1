@@ -1,14 +1,32 @@
 #include "render_graph.h"
+#include "gfx_renderer.h"  // For swapchain access
+#include "hina_context.h"  // For HinaContext
+#include "VFS/VFS.h"       // For shader file loading
 #include <map>
 #include <queue>
 #include <cstring>
 #include <algorithm>
 #include <numeric>
+#include <iostream>
+
+// Push constants for resolve output (HDR->LDR tone mapping)
+struct ResolveOutputPushConstants
+{
+  int32_t toneMappingMode;    // 0=None, 1=Reinhard, 2=Uchimura, 3=ACES, 4=KhronosPBR, 5=Uncharted2, 6=Unreal, 7=Passthrough
+  float exposure;
+  float maxWhite;             // Reinhard parameter
+  float P;                    // Uchimura parameters
+  float a;
+  float m;
+  float l;
+  float c;
+  float b;
+};
+static_assert(sizeof(ResolveOutputPushConstants) == 36, "ResolveOutputPushConstants must be 36 bytes");
 
 void RenderGraph::EnsureBufferCapacity(internal::FrameBufferManager::Entry& resource, uint64_t requiredSize)
 {
-  // ** ADDED DEBUG LOG **
-  if (resource.currentSize >= requiredSize && resource.buffers[0].valid())
+  if (resource.currentSize >= requiredSize && gfx::isValid(resource.buffers[0].get()))
   {
     return;
   }
@@ -21,8 +39,7 @@ void RenderGraph::EnsureBufferCapacity(internal::FrameBufferManager::Entry& reso
   // Recreate all frame buffers with new size
   for (uint32_t frame = 0; frame < MAX_FRAMES_IN_FLIGHT; ++frame)
   {
-    resource.buffers[frame] = m_vkContext.createBuffer(resource.desc,
-                                                       ("TransientBuffer_Frame" + std::to_string(frame)).c_str());
+    resource.buffers[frame].reset(gfx::createBuffer(resource.desc));
   }
 }
 
@@ -44,43 +61,6 @@ void RenderGraph::ResizeTransientBuffer(LogicalResourceName name, uint64_t newSi
   }
 }
 
-void RenderGraph::AddTransientObserver(internal::ITransientResourceObserver* observer)
-{
-  if (observer && std::find(m_transientObservers.begin(), m_transientObservers.end(), observer) == m_transientObservers.
-    end())
-  {
-    m_transientObservers.push_back(observer);
-  }
-}
-
-void RenderGraph::RemoveTransientObserver(internal::ITransientResourceObserver* observer)
-{
-  std::erase(m_transientObservers, observer);
-}
-
-void RenderGraph::NotifyTransientObservers()
-{
-  if (m_transientObservers.empty()) return;
-  std::unordered_map<std::string_view, uint32_t> bindlessMap;
-  bindlessMap.reserve(m_resolvedResourceInfo.size());
-  for (size_t i = 0; i < m_resolvedResourceInfo.size(); ++i)
-  {
-    const auto& resourceInfo = m_resolvedResourceInfo[i];
-    if (!resourceInfo.isExternal && resourceInfo.concreteHandle.isValid() && resourceInfo.concreteHandle.type ==
-      ResourceType::Texture)
-    {
-      internal::NameID id = static_cast<internal::NameID>(i + 1);
-      std::string_view resourceName = GetNameString(id);
-      uint32_t bindlessIndex = resourceInfo.concreteHandle.texture.index();
-      bindlessMap[resourceName] = bindlessIndex;
-    }
-  }
-  for (auto* observer : m_transientObservers)
-  {
-    observer->OnTransientResourcesUpdated(bindlessMap);
-  }
-}
-
 bool RenderGraph::AreGraphicsDeclarationsEqual(const GraphicsPassDeclaration& decl1,
                                                const GraphicsPassDeclaration& decl2)
 {
@@ -88,74 +68,74 @@ bool RenderGraph::AreGraphicsDeclarationsEqual(const GraphicsPassDeclaration& de
   return std::memcmp(&decl1, &decl2, sizeof(GraphicsPassDeclaration)) == 0;
 }
 
-void RenderGraph::FillVkRenderPassFromDeclaration(const GraphicsPassDeclaration& graphDecl, vk::RenderPass& vkRp)
+void RenderGraph::FillRenderPassFromDeclaration(const GraphicsPassDeclaration& graphDecl, gfx::RenderPass& rp)
 {
-  vkRp = {};
+  rp = {};
   // Copy multiview settings
-  vkRp.layerCount = graphDecl.layerCount;
-  vkRp.viewMask = graphDecl.viewMask;
+  rp.layerCount = graphDecl.layerCount;
+  rp.viewMask = graphDecl.viewMask;
   // Unroll loop for better performance
-  for (unsigned i = 0; i < vk::MAX_COLOR_ATTACHMENTS; ++i)
+  for (unsigned i = 0; i < gfx::MAX_COLOR_ATTACHMENTS; ++i)
   {
     const auto& graphAtt = graphDecl.colorAttachments[i];
     if (graphAtt.IsActive())
     {
-      vkRp.color[i].loadOp = graphAtt.loadOp;
-      vkRp.color[i].storeOp = graphAtt.storeOp;
-      vkRp.color[i].layer = graphAtt.layer;
-      vkRp.color[i].level = graphAtt.level;
-      std::memcpy(&vkRp.color[i].clearColor, &graphAtt.clearColor, sizeof(vkRp.color[i].clearColor));
+      rp.color[i].loadOp = graphAtt.loadOp;
+      rp.color[i].storeOp = graphAtt.storeOp;
+      rp.color[i].layer = graphAtt.layer;
+      rp.color[i].level = graphAtt.level;
+      std::memcpy(&rp.color[i].clearColor, &graphAtt.clearColor, sizeof(rp.color[i].clearColor));
     }
     else
     {
-      vkRp.color[i].loadOp = vk::LoadOp::Invalid;
+      rp.color[i].loadOp = gfx::LoadOp::DontCare;
     }
   }
   if (graphDecl.depthAttachment.IsActive())
   {
-    vkRp.depth.loadOp = graphDecl.depthAttachment.loadOp;
-    vkRp.depth.storeOp = graphDecl.depthAttachment.storeOp;
-    vkRp.depth.layer = graphDecl.depthAttachment.layer;
-    vkRp.depth.level = graphDecl.depthAttachment.level;
-    vkRp.depth.clearDepth = graphDecl.depthAttachment.clearDepth;
-    vkRp.depth.clearStencil = graphDecl.depthAttachment.clearStencil;
+    rp.depth.loadOp = graphDecl.depthAttachment.loadOp;
+    rp.depth.storeOp = graphDecl.depthAttachment.storeOp;
+    rp.depth.layer = graphDecl.depthAttachment.layer;
+    rp.depth.level = graphDecl.depthAttachment.level;
+    rp.depth.clearDepth = graphDecl.depthAttachment.clearDepth;
+    rp.depth.clearStencil = graphDecl.depthAttachment.clearStencil;
   }
   else
   {
-    vkRp.depth.loadOp = vk::LoadOp::Invalid;
+    rp.depth.loadOp = gfx::LoadOp::DontCare;
   }
   if (graphDecl.stencilAttachment.IsActive())
   {
     if (!graphDecl.depthAttachment.IsActive() || graphDecl.depthAttachment.textureNameID != graphDecl.stencilAttachment.
                                                                                                       textureNameID)
     {
-      vkRp.stencil.loadOp = graphDecl.stencilAttachment.loadOp;
-      vkRp.stencil.storeOp = graphDecl.stencilAttachment.storeOp;
-      vkRp.stencil.layer = graphDecl.stencilAttachment.layer;
-      vkRp.stencil.level = graphDecl.stencilAttachment.level;
-      vkRp.stencil.clearStencil = graphDecl.stencilAttachment.clearStencil;
+      rp.stencil.loadOp = graphDecl.stencilAttachment.loadOp;
+      rp.stencil.storeOp = graphDecl.stencilAttachment.storeOp;
+      rp.stencil.layer = graphDecl.stencilAttachment.layer;
+      rp.stencil.level = graphDecl.stencilAttachment.level;
+      rp.stencil.clearStencil = graphDecl.stencilAttachment.clearStencil;
     }
     else
     {
-      vkRp.depth.clearStencil = graphDecl.stencilAttachment.clearStencil;
+      rp.depth.clearStencil = graphDecl.stencilAttachment.clearStencil;
     }
   }
   else
   {
-    vkRp.stencil.loadOp = vk::LoadOp::Invalid;
+    rp.stencil.loadOp = gfx::LoadOp::DontCare;
   }
 }
 
-void RenderGraph::FillVkFramebufferFromDeclaration(const GraphicsPassDeclaration& graphDecl, vk::Framebuffer& vkFb)
+void RenderGraph::FillFramebufferFromDeclaration(const GraphicsPassDeclaration& graphDecl, gfx::Framebuffer& fb)
 {
-  vkFb = {};
-  vkFb.debugName = graphDecl.framebufferDebugName;
-  auto getTextureHandle = [this](internal::NameID nameID) -> vk::TextureHandle
+  fb = {};
+  fb.debugName = graphDecl.framebufferDebugName;
+  auto getTextureHandle = [this](internal::NameID nameID) -> gfx::Texture
   {
     if (nameID == internal::INVALID_NAME_ID)
     {
       LOG_ERROR("GetTexture: FAILED. No valid handle found");
-      return vk::TextureHandle{};
+      return gfx::Texture{0};
     }
     if (const auto* info = GetResolvedResource(nameID))
     {
@@ -165,28 +145,28 @@ void RenderGraph::FillVkFramebufferFromDeclaration(const GraphicsPassDeclaration
       }
     }
     LOG_ERROR("GetTexture: FAILED. No valid handle found");
-    return vk::TextureHandle{};
+    return gfx::Texture{0};
   };
   // Fill color attachments
-  for (unsigned i = 0; i < vk::MAX_COLOR_ATTACHMENTS; ++i)
+  for (unsigned i = 0; i < gfx::MAX_COLOR_ATTACHMENTS; ++i)
   {
     const auto& graphAtt = graphDecl.colorAttachments[i];
     if (graphAtt.IsActive())
     {
-      vkFb.color[i].texture = getTextureHandle(graphAtt.textureNameID);
+      fb.color[i].texture = getTextureHandle(graphAtt.textureNameID);
       if (graphAtt.resolveTextureNameID != internal::INVALID_NAME_ID)
       {
-        vkFb.color[i].resolveTexture = getTextureHandle(graphAtt.resolveTextureNameID);
+        fb.color[i].resolveTexture = getTextureHandle(graphAtt.resolveTextureNameID);
       }
     }
   }
   // Fill depth/stencil attachments
   if (graphDecl.depthAttachment.IsActive())
   {
-    vkFb.depthStencil.texture = getTextureHandle(graphDecl.depthAttachment.textureNameID);
+    fb.depthStencil.texture = getTextureHandle(graphDecl.depthAttachment.textureNameID);
     if (graphDecl.depthAttachment.resolveTextureNameID != internal::INVALID_NAME_ID)
     {
-      vkFb.depthStencil.resolveTexture = getTextureHandle(graphDecl.depthAttachment.resolveTextureNameID);
+      fb.depthStencil.resolveTexture = getTextureHandle(graphDecl.depthAttachment.resolveTextureNameID);
     }
   }
   if (graphDecl.stencilAttachment.IsActive())
@@ -194,17 +174,17 @@ void RenderGraph::FillVkFramebufferFromDeclaration(const GraphicsPassDeclaration
     if (!graphDecl.depthAttachment.IsActive() || graphDecl.depthAttachment.textureNameID != graphDecl.stencilAttachment.
                                                                                                       textureNameID)
     {
-      vkFb.depthStencil.texture = getTextureHandle(graphDecl.stencilAttachment.textureNameID);
+      fb.depthStencil.texture = getTextureHandle(graphDecl.stencilAttachment.textureNameID);
       if (graphDecl.stencilAttachment.resolveTextureNameID != internal::INVALID_NAME_ID)
       {
-        vkFb.depthStencil.resolveTexture = getTextureHandle(graphDecl.stencilAttachment.resolveTextureNameID);
+        fb.depthStencil.resolveTexture = getTextureHandle(graphDecl.stencilAttachment.resolveTextureNameID);
       }
     }
   }
 }
 
-void RenderGraph::AggregateDependenciesForPass(size_t passIndex, std::vector<vk::TextureHandle>& textures,
-                                               std::vector<vk::BufferHandle>& buffers) const
+void RenderGraph::AggregateDependenciesForPass(size_t passIndex, std::vector<gfx::Texture>& textures,
+                                               std::vector<gfx::Buffer>& buffers) const
 {
   const auto& execData = m_passExecData[passIndex];
   const auto& metadata = m_passMetadata[passIndex];
@@ -248,11 +228,11 @@ void RenderGraph::AggregateDependenciesForPass(size_t passIndex, std::vector<vk:
     {
       if (isOutputAttachment(usage.id)) continue;
       const ResourceHandle& handle = m_handleStorage[execData.handleOffset + i];
-      if (handle.type == ResourceType::Texture && handle.texture.valid())
+      if (handle.type == ResourceType::Texture && gfx::isValid(handle.texture))
       {
         textures.push_back(handle.texture);
       }
-      else if (handle.type == ResourceType::Buffer && handle.buffer.valid())
+      else if (handle.type == ResourceType::Buffer && gfx::isValid(handle.buffer))
       {
         buffers.push_back(handle.buffer);
       }
@@ -261,12 +241,12 @@ void RenderGraph::AggregateDependenciesForPass(size_t passIndex, std::vector<vk:
 }
 
 // ResourceProperties implementation
-ResourceProperties ResourceProperties::FromDesc(const vk::TextureDesc& textureDesc, bool isPersistent)
+ResourceProperties ResourceProperties::FromDesc(const gfx::TextureDesc& textureDesc, bool isPersistent)
 {
   return {.desc = textureDesc, .type = ResourceType::Texture, .persistent = isPersistent};
 }
 
-ResourceProperties ResourceProperties::FromDesc(const vk::BufferDesc& bufferDesc, bool isPersistent)
+ResourceProperties ResourceProperties::FromDesc(const gfx::BufferDesc& bufferDesc, bool isPersistent)
 {
   return {.desc = bufferDesc, .type = ResourceType::Buffer, .persistent = isPersistent};
 }
@@ -340,23 +320,22 @@ namespace internal
     return nullptr;
   }
 
-  vk::BufferHandle FrameBufferManager::GetBuffer(NameID id, uint32_t frameIdx) const
+  gfx::Buffer FrameBufferManager::GetBuffer(NameID id, uint32_t frameIdx) const
   {
     if (id < MAX_NAME_IDS)
     {
       uint16_t idx = m_nameToIndex[id];
       if (idx < MAX_RESOURCES && m_resources[idx].active)
       {
-        const auto& handle = m_resources[idx].buffers[frameIdx];
-        return handle;
+        return m_resources[idx].buffers[frameIdx].get();
       }
     }
     LOG_ERROR("FBM::GetBuffer: -> FAILED. Resource ID {} is out of bounds for lookup.", id);
-    return vk::BufferHandle{};
+    return gfx::Buffer{0};
   }
 
-  ExecutionContext::ExecutionContext(vk::ICommandBuffer& commandBuffer, const FrameData& frameData, RenderGraph* graph,
-                                     size_t passIndex) : m_vkCommandBuffer(commandBuffer), m_frameData(frameData),
+  ExecutionContext::ExecutionContext(gfx::Cmd* cmd, const FrameData& frameData, RenderGraph* graph,
+                                     size_t passIndex) : m_cmd(cmd), m_cmdWrapper(cmd), m_frameData(frameData),
                                                          m_pGraph(graph), m_passIndex(passIndex)
   {
   }
@@ -372,7 +351,7 @@ namespace internal
     return hash;
   }
 
-  vk::TextureHandle ExecutionContext::GetTexture(LogicalResourceName name) const
+  gfx::Texture ExecutionContext::GetTexture(LogicalResourceName name) const
   {
     ResourceHandle handle = GetResourceCached(name);
     if (handle.isValid() && handle.type == ResourceType::Texture)
@@ -380,22 +359,22 @@ namespace internal
       return handle.texture;
     }
     LOG_ERROR("GetTexture: FAILED. No valid texture handle found for '{}'.", name);
-    return vk::TextureHandle{};
+    return gfx::Texture{0};
   }
 
-  vk::BufferHandle ExecutionContext::GetBuffer(LogicalResourceName name) const
+  gfx::Buffer ExecutionContext::GetBuffer(LogicalResourceName name) const
   {
     NameID id = m_pGraph->FindNameID(name);
     if (id == INVALID_NAME_ID)
     {
       LOG_ERROR("GetBuffer: FAILED. Name '{}' not found in registry.", name);
-      return vk::BufferHandle{};
+      return gfx::Buffer{0};
     }
     const auto* info = m_pGraph->GetResolvedResource(id);
     if (!info || info->definition.type != ResourceType::Buffer)
     {
       LOG_ERROR("GetBuffer: FAILED. No valid buffer resource info found for ID {}.", id);
-      return vk::BufferHandle{};
+      return gfx::Buffer{0};
     }
     if (!info->isExternal && !info->definition.persistent)
     {
@@ -411,7 +390,7 @@ namespace internal
       }
     }
     LOG_ERROR("GetBuffer: FAILED. Lookup for '{}' (ID: {}) fell through without returning a valid handle.", name, id);
-    return vk::BufferHandle{};
+    return gfx::Buffer{0};
   }
 
   void ExecutionContext::ResizeBuffer(LogicalResourceName name, uint64_t newSize) const
@@ -433,7 +412,7 @@ namespace internal
     if (info->definition.type == ResourceType::Buffer && (info->isExternal || info->definition.persistent))
     {
       const auto desc = info->definition.desc;
-      return std::get<vk::BufferDesc>(desc).size;
+      return std::get<gfx::BufferDesc>(desc).size;
     }
     if (auto* entry = m_pGraph->m_frameBuffers.GetEntry(id))
     {
@@ -442,47 +421,161 @@ namespace internal
     return 0;
   }
 
-  vk::TextureHandle ExecutionContext::GetTextureByIndex(size_t index) const
+  gfx::Texture ExecutionContext::GetTextureByIndex(size_t index) const
   {
     const auto& execData = m_pGraph->m_passExecData[m_passIndex];
     if (index >= execData.handleCount)
     {
       LOG_ERROR("GetTexture: FAILED. No valid handle found at index {}", index);
-      return vk::TextureHandle{};
+      return gfx::Texture{0};
     }
     const ResourceHandle& handle = m_pGraph->m_handleStorage[execData.handleOffset + index];
-    return (handle.type == ResourceType::Texture) ? handle.texture : vk::TextureHandle{};
+    return (handle.type == ResourceType::Texture) ? handle.texture : gfx::Texture{0};
   }
 
-  vk::BufferHandle ExecutionContext::GetBufferByIndex(size_t index) const
+  gfx::Buffer ExecutionContext::GetBufferByIndex(size_t index) const
   {
     const auto& execData = m_pGraph->m_passExecData[m_passIndex];
     if (index >= execData.handleCount)
     {
       LOG_ERROR("GetTexture: FAILED. No valid handle found at index {}", index);
-      return vk::BufferHandle{};
+      return gfx::Buffer{0};
     }
     const ResourceHandle& handle = m_pGraph->m_handleStorage[execData.handleOffset + index];
-    return (handle.type == ResourceType::Buffer) ? handle.buffer : vk::BufferHandle{};
+    return (handle.type == ResourceType::Buffer) ? handle.buffer : gfx::Buffer{0};
   }
 
-  vk::IContext& ExecutionContext::GetvkContext() const
+  GfxRenderer* ExecutionContext::GetGfxRenderer() const
   {
-    return m_pGraph->m_vkContext;
+    return m_pGraph->m_gfxRenderer;
+  }
+
+  HinaContext* ExecutionContext::GetHinaContext() const
+  {
+    GfxRenderer* renderer = GetGfxRenderer();
+    return renderer ? renderer->getHinaContext() : nullptr;
+  }
+
+  UniformAllocation ExecutionContext::AllocateUniform(uint64_t size)
+  {
+    return m_pGraph->m_uniformRing.allocate(size);
+  }
+
+  UniformAllocation ExecutionContext::WriteUniform(const void* data, uint64_t size)
+  {
+    return m_pGraph->m_uniformRing.write(data, size);
+  }
+
+  // ============================================================================
+  // UniformRing Implementation
+  // ============================================================================
+
+  bool UniformRing::init(uint64_t sizePerFrame)
+  {
+    if (m_initialized) {
+      return true;
+    }
+
+    // Get alignment from device caps
+    const hina_device_caps* caps = hina_get_device_caps();
+    m_alignment = caps ? caps->min_uniform_buffer_alignment : 256;
+    if (m_alignment == 0) {
+      m_alignment = 256; // Safe fallback
+    }
+
+    m_sizePerFrame = sizePerFrame;
+
+    // Create triple-buffered uniform buffers
+    hina_buffer_desc desc = {};
+    desc.size = sizePerFrame;
+    desc.memory = HINA_BUFFER_CPU;
+    desc.usage = HINA_BUFFER_UNIFORM;
+
+    for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i) {
+      gfx::Buffer buf = hina_make_buffer(&desc);
+      if (!hina_buffer_is_valid(buf)) {
+        shutdown();
+        return false;
+      }
+      m_buffers[i].reset(buf);
+      m_mapped[i] = hina_mapped_buffer_ptr(buf);
+      if (!m_mapped[i]) {
+        shutdown();
+        return false;
+      }
+    }
+
+    m_initialized = true;
+    m_currentFrame = 0;
+    m_currentOffset = 0;
+    return true;
+  }
+
+  void UniformRing::shutdown()
+  {
+    for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i) {
+      // HOST_VISIBLE buffers are persistently mapped in hina-vk, don't unmap them
+      m_mapped[i] = nullptr;
+      m_buffers[i].reset();
+    }
+    m_initialized = false;
+  }
+
+  void UniformRing::beginFrame(uint32_t frameIndex)
+  {
+    m_currentFrame = frameIndex % MAX_FRAMES_IN_FLIGHT;
+    m_currentOffset = 0;
+  }
+
+  UniformAllocation UniformRing::allocate(uint64_t size)
+  {
+    UniformAllocation result = {};
+
+    if (!m_initialized || size == 0) {
+      return result;
+    }
+
+    // Align the current offset
+    uint64_t alignedOffset = (m_currentOffset + m_alignment - 1) & ~(uint64_t)(m_alignment - 1);
+
+    // Check if we have space
+    if (alignedOffset + size > m_sizePerFrame) {
+      // Out of space - this is a serious error in production
+      return result;
+    }
+
+    result.buffer = m_buffers[m_currentFrame].get();
+    result.offset = alignedOffset;
+    result.mapped = static_cast<uint8_t*>(m_mapped[m_currentFrame]) + alignedOffset;
+
+    m_currentOffset = alignedOffset + size;
+    return result;
+  }
+
+  UniformAllocation UniformRing::write(const void* data, uint64_t size)
+  {
+    UniformAllocation alloc = allocate(size);
+    if (alloc.isValid() && data) {
+      std::memcpy(alloc.mapped, data, size);
+    }
+    return alloc;
   }
 
   ResourceHandle ExecutionContext::GetResourceCached(LogicalResourceName name) const
   {
-    // Special handling for swapchain (changes per frame)
-    if (name == RenderResources::SWAPCHAIN_IMAGE || std::strcmp(name, RenderResources::SWAPCHAIN_IMAGE) == 0)
+    NameID id = m_pGraph->FindNameID(name);
+    if (id == INVALID_NAME_ID) return ResourceHandle{};
+
+    // External resources (swapchain, SCENE_COLOR, SCENE_DEPTH, VIEW_OUTPUT) are updated per-frame
+    // via ImportExternalTexture/UpdateViewOutputResource. Always use the current resolved handle
+    // instead of stale cached handles from compilation.
+    const auto* info = m_pGraph->GetResolvedResource(id);
+    if (info && info->isExternal)
     {
-      NameID id = m_pGraph->FindNameID(name);
-      if (id != INVALID_NAME_ID)
-      {
-        return m_pGraph->GetResolvedHandle(id);
-      }
-      return ResourceHandle{};
+      return m_pGraph->GetResolvedHandle(id);
     }
+
+    // For transient resources, use the cached handle storage (populated during compilation)
     uint32_t hash = HashString(name);
     uint8_t cachedIdx = m_cache.Find(hash);
     if (cachedIdx != 0xFF)
@@ -490,8 +583,6 @@ namespace internal
       const auto& execData = m_pGraph->m_passExecData[m_passIndex];
       return m_pGraph->m_handleStorage[execData.handleOffset + cachedIdx];
     }
-    NameID id = m_pGraph->FindNameID(name);
-    if (id == INVALID_NAME_ID) return ResourceHandle{};
     const auto& execData = m_pGraph->m_passExecData[m_passIndex];
     const auto& metadata = m_pGraph->m_passMetadata[m_passIndex];
     for (uint8_t i = 0; i < execData.handleCount; ++i)
@@ -511,14 +602,14 @@ namespace internal
   }
 
   RenderPassBuilder::PassBuilder& RenderPassBuilder::PassBuilder::DeclareTransientResource(
-    LogicalResourceName name, const vk::TextureDesc& desc)
+    LogicalResourceName name, const gfx::TextureDesc& desc)
   {
     m_parent->m_pRenderGraph->RegisterTransientResource(name, desc);
     return *this;
   }
 
   RenderPassBuilder::PassBuilder& RenderPassBuilder::PassBuilder::DeclareTransientResource(
-    LogicalResourceName name, const vk::BufferDesc& desc)
+    LogicalResourceName name, const gfx::BufferDesc& desc)
   {
     m_parent->m_pRenderGraph->RegisterTransientResource(name, desc);
     return *this;
@@ -596,7 +687,7 @@ namespace internal
       internalDesc.clearStencil = publicDesc.clearStencil;
     };
     // Convert color attachments
-    for (size_t i = 0; i < vk::MAX_COLOR_ATTACHMENTS; ++i)
+    for (size_t i = 0; i < gfx::MAX_COLOR_ATTACHMENTS; ++i)
     {
       convertAttachment(declaration.colorAttachments[i], declWithIDs.colorAttachments[i]);
     }
@@ -609,6 +700,9 @@ namespace internal
     {
       declWithIDs.framebufferDebugName = declaration.framebufferDebugName;
     }
+    // Get the feature mask for this feature (0 if not registered)
+    FeatureMask featureMask = m_pCurrentFeature ? m_pRenderGraph->GetFeatureMask(m_pCurrentFeature) : 0;
+
     PassExecutionData execData{
       .passID = passID, .passType = 0,
       // Graphics
@@ -618,7 +712,7 @@ namespace internal
     PassMetadata metadata{
       .debugName = passName, .declaredResourceAccesses = std::move(builder.m_resourceDeclarations),
       .priority = builder.m_priority, .executeAfterTargets = std::move(builder.m_executeAfterTargets),
-      .graphicsDeclaration = declWithIDs, .featureOwner = m_pCurrentFeature
+      .graphicsDeclaration = declWithIDs, .requiredFeatureMask = featureMask, .featureOwner = m_pCurrentFeature
     };
     m_pRenderGraph->RegisterPass(std::move(execData), std::move(metadata), std::move(executeLambda));
   }
@@ -626,6 +720,10 @@ namespace internal
   void RenderPassBuilder::SubmitGenericPass(PassBuilder& builder, const char* passName, ExecuteLambda&& executeLambda)
   {
     NameID passID = m_pRenderGraph->InternName(passName);
+
+    // Get the feature mask for this feature (0 if not registered)
+    FeatureMask featureMask = m_pCurrentFeature ? m_pRenderGraph->GetFeatureMask(m_pCurrentFeature) : 0;
+
     PassExecutionData execData{
       .passID = passID, .passType = 1,
       // Generic
@@ -635,14 +733,12 @@ namespace internal
     PassMetadata metadata{
       .debugName = passName, .declaredResourceAccesses = std::move(builder.m_resourceDeclarations),
       .priority = builder.m_priority, .executeAfterTargets = std::move(builder.m_executeAfterTargets),
-      .featureOwner = m_pCurrentFeature
+      .requiredFeatureMask = featureMask, .featureOwner = m_pCurrentFeature
     };
     m_pRenderGraph->RegisterPass(std::move(execData), std::move(metadata), std::move(executeLambda));
   }
 } // namespace internal
-RenderGraph::RenderGraph(vk::IContext& vkContext, GPUBuffers& gpu_buffers) : m_vkContext(vkContext),
-                                                                             m_gpu_buffers(gpu_buffers), oit(vkContext),
-                                                                             linearColorSystem(vkContext)
+RenderGraph::RenderGraph() : linearColorSystem()
 {
   // Pre-reserve capacity
   m_passExecData.reserve(32);
@@ -654,9 +750,29 @@ RenderGraph::RenderGraph(vk::IContext& vkContext, GPUBuffers& gpu_buffers) : m_v
   m_idToStringMap.reserve(64);
   m_nameRegistry.reserve(64);
   m_swapchainID = InternName(RenderResources::SWAPCHAIN_IMAGE);
+  m_viewOutputID = InternName(RenderResources::VIEW_OUTPUT);
 }
 
-RenderGraph::~RenderGraph() = default;
+RenderGraph::~RenderGraph()
+{
+  m_uniformRing.shutdown();
+}
+
+void RenderGraph::SetGfxRenderer(GfxRenderer* renderer)
+{
+  m_gfxRenderer = renderer;
+  // Initialize LinearColorSystem with the context
+  if (renderer) {
+    HinaContext* hinaCtx = renderer->getHinaContext();
+    if (hinaCtx) {
+      linearColorSystem.Initialize(hinaCtx);
+    }
+    // Initialize uniform ring buffer (requires hina to be initialized)
+    if (!m_uniformRing.init()) {
+      // Log error but continue - features won't be able to use uniform allocation
+    }
+  }
+}
 
 void RenderGraph::BuildAdjacencyListAndSort()
 {
@@ -766,32 +882,24 @@ void RenderGraph::BuildAdjacencyListAndSort()
 
 bool RenderGraph::canCompile() const
 {
-  // Check if context has swapchain
-  if (!m_vkContext.hasSwapchain())
-  {
-    return false;
-  }
-  // Verify we can get valid swapchain texture
-  vk::TextureHandle swapchainTex = m_vkContext.getCurrentSwapchainTexture();
-  if (!swapchainTex.valid())
-  {
-    return false;
-  }
+  // Check if we have a GfxRenderer and HinaContext
+  if (!m_gfxRenderer) return false;
+  HinaContext* hinaCtx = m_gfxRenderer->getHinaContext();
+  if (!hinaCtx) return false;
+  // Check if we have a swapchain
+  if (!hinaCtx->hasSwapchain()) return false;
+  gfx::Texture swapchainTex = hinaCtx->getCurrentSwapchainHinaTexture();
+  if (!gfx::isValid(swapchainTex)) return false;
   // Verify dimensions are valid
-  vk::Dimensions dims = m_vkContext.getDimensions(swapchainTex);
-  if (dims.width == 0 || dims.height == 0)
-  {
-    return false;
-  }
+  gfx::Dimensions dims = hinaCtx->getDimensions(swapchainTex);
+  if (dims.width == 0 || dims.height == 0) return false;
   return true;
 }
 
 bool RenderGraph::hasMinimumResources() const
 {
-  vk::BufferHandle materialBuffer = m_gpu_buffers.GetMaterialBuffer();
-  vk::BufferHandle vertexBuffer = m_gpu_buffers.GetVertexBuffer();
-  vk::BufferHandle indexBuffer = m_gpu_buffers.GetIndexBuffer();
-  return materialBuffer.valid() && vertexBuffer.valid() && indexBuffer.valid();
+  // Features use their own storage (GfxMeshStorage, GfxMaterialSystem)
+  return true;
 }
 
 bool RenderGraph::tryCompile()
@@ -832,57 +940,63 @@ void RenderGraph::Compile()
   m_idToStringMap.clear();
   m_nextNameID = 1;
   m_swapchainID = InternName(RenderResources::SWAPCHAIN_IMAGE);
+  m_viewOutputID = InternName(RenderResources::VIEW_OUTPUT);
+
+  // Get context from GfxRenderer
+  HinaContext* hinaCtx = m_gfxRenderer ? m_gfxRenderer->getHinaContext() : nullptr;
+  if (!hinaCtx) {
+    LOG_WARNING("Cannot compile RenderGraph - no HinaContext");
+    m_isCompiled = false;
+    return;
+  }
   // Validate swapchain availability
-  if (!m_vkContext.hasSwapchain())
+  if (!hinaCtx->hasSwapchain())
   {
     LOG_WARNING("Cannot compile RenderGraph - no swapchain");
     m_isCompiled = false;
     return;
   }
-  vk::TextureHandle initialSwapchainTexture = m_vkContext.getCurrentSwapchainTexture();
-  if (!initialSwapchainTexture.valid())
+  gfx::Texture initialSwapchainTexture = hinaCtx->getCurrentSwapchainHinaTexture();
+  if (!gfx::isValid(initialSwapchainTexture))
   {
     LOG_WARNING("Cannot compile RenderGraph - invalid swapchain texture");
     m_isCompiled = false;
     return;
   }
-  vk::Dimensions swapchainDims = m_vkContext.getDimensions(initialSwapchainTexture);
+  gfx::Dimensions swapchainDims = hinaCtx->getDimensions(initialSwapchainTexture);
   if (swapchainDims.width == 0 || swapchainDims.height == 0)
   {
     LOG_WARNING("Cannot compile RenderGraph - invalid dimensions");
     m_isCompiled = false;
     return;
   }
-  m_lastCompileDimensions = swapchainDims;
-  vk::TextureDesc swapchainDesc{
-    .type = vk::TextureType::Tex2D, .format = m_vkContext.getSwapchainFormat(), .dimensions = swapchainDims,
-    .usage = vk::TextureUsageBits_Attachment
+  m_lastCompileDimensions = {swapchainDims.width, swapchainDims.height, swapchainDims.depth};
+  gfx::TextureDesc swapchainDesc{
+    .type = HINA_TEX_TYPE_2D,
+    .format = static_cast<hina_format>(hinaCtx->getSwapchainFormat()),
+    .width = swapchainDims.width,
+    .height = swapchainDims.height,
+    .depth = 1,
+    .layers = 1,
+    .mip_levels = 1,
+    .usage = static_cast<hina_texture_usage_flags>(gfx::TextureUsage::RenderTarget)
   };
   // Register external resources
   ImportExternalTexture(RenderResources::SWAPCHAIN_IMAGE, initialSwapchainTexture, swapchainDesc);
-  ImportExternalBuffer(RenderResources::MATERIAL_BUFFER, m_gpu_buffers.GetMaterialBuffer(),
-                       m_gpu_buffers.GetMaterialBufferDesc());
-  ImportExternalBuffer(RenderResources::VERTEX_BUFFER, m_gpu_buffers.GetVertexBuffer(),
-                       m_gpu_buffers.GetVertexBufferDesc());
-  ImportExternalBuffer(RenderResources::INDEX_BUFFER, m_gpu_buffers.GetIndexBuffer(),
-                       m_gpu_buffers.GetIndexBufferDesc());
-  ImportExternalBuffer(RenderResources::MESH_DECOMPRESSION_BUFFER, m_gpu_buffers.GetMeshDecompressionBuffer(),
-                       m_gpu_buffers.GetMeshDecompressionBufferDesc());
-  ImportExternalBuffer(RenderResources::SKINNING_BUFFER, m_gpu_buffers.GetSkinningBuffer(),
-                       m_gpu_buffers.GetSkinningBufferDesc());
-  ImportExternalBuffer(RenderResources::MORPH_DELTA_BUFFER, m_gpu_buffers.GetMorphDeltaBuffer(),
-                       m_gpu_buffers.GetMorphDeltaBufferDesc());
-  ImportExternalBuffer(RenderResources::MORPH_VERTEX_BASE_BUFFER, m_gpu_buffers.GetMorphVertexBaseBuffer(),
-                       m_gpu_buffers.GetMorphVertexBaseBufferDesc());
-  ImportExternalBuffer(RenderResources::MORPH_VERTEX_COUNT_BUFFER, m_gpu_buffers.GetMorphVertexCountBuffer(),
-                       m_gpu_buffers.GetMorphVertexCountBufferDesc());
   // Register standard render targets at fixed internal resolution
   // This avoids recompilation on window resize - only swapchain resources change
   linearColorSystem.RegisterLinearColorResources(*this);
-  RegisterTransientResource(RenderResources::SCENE_DEPTH, vk::TextureDesc{
-                              .type = vk::TextureType::Tex2D, .format = vk::Format::Z_F32,
-                              .dimensions = ResourceProperties::INTERNAL_RESOLUTION_DIMENSIONS,
-                              .usage = vk::TextureUsageBits_Attachment
+  // SCENE_DEPTH is the shared depth buffer - G-buffer pass writes to it directly
+  // InputAttachment is required for tile pass depth input (subpass reads depth from tile memory)
+  RegisterTransientResource(RenderResources::SCENE_DEPTH, gfx::TextureDesc{
+                              .type = HINA_TEX_TYPE_2D,
+                              .format = HINA_FORMAT_D32_SFLOAT,
+                              .width = RenderResources::INTERNAL_WIDTH,
+                              .height = RenderResources::INTERNAL_HEIGHT,
+                              .depth = 1,
+                              .layers = 1,
+                              .mip_levels = 1,
+                              .usage = static_cast<hina_texture_usage_flags>(gfx::TextureUsage::RenderTarget | gfx::TextureUsage::Sampled | gfx::TextureUsage::InputAttachment)
                             });
   for (IRenderFeature* feature : m_features)
   {
@@ -893,35 +1007,81 @@ void RenderGraph::Compile()
     internal::RenderPassBuilder builder(this, nullptr);
     linearColorSystem.RegisterToneMappingPass(builder);
   }
-  {
-    internal::RenderPassBuilder builder(this, nullptr);
-    oit.SetupPasses(builder);
-  }
   if (m_passExecData.empty())
   {
     m_isCompiled = false;
     return;
   }
+
+  // Register VIEW_OUTPUT as external resource (will be updated per-Execute with actual texture)
+  // This is a placeholder - the concrete handle is set in UpdateViewOutputResource()
+  if (auto* info = GetResolvedResource(m_viewOutputID))
+  {
+    // Get actual VIEW_OUTPUT format from GfxRenderer (matches swapchain format)
+    HinaContext* hinaCtx = m_gfxRenderer ? m_gfxRenderer->getHinaContext() : nullptr;
+    hina_format viewOutputFormat = hinaCtx ? static_cast<hina_format>(hinaCtx->getSwapchainFormat())
+                                           : HINA_FORMAT_B8G8R8A8_SRGB;
+    *info = ResolvedResourceInfo{
+      .concreteHandle = ResourceHandle{},  // Placeholder - set in Execute()
+      .definition = ResourceProperties::FromDesc(gfx::TextureDesc{
+        .type = HINA_TEX_TYPE_2D,
+        .format = viewOutputFormat,  // Must match actual VIEW_OUTPUT texture format
+        .width = RenderResources::INTERNAL_WIDTH,
+        .height = RenderResources::INTERNAL_HEIGHT,
+        .depth = 1,
+        .layers = 1,
+        .mip_levels = 1,
+        // ViewOutput is a render target for the resolve pass (fullscreen tonemap) and sampled by ImGui
+        .usage = static_cast<hina_texture_usage_flags>(gfx::TextureUsage::RenderTarget | gfx::TextureUsage::Sampled | gfx::TextureUsage::TransferSrc)
+      }, true),
+      .isExternal = true,
+      .firstUsePassIndex = ~0u,
+      .lastUsePassIndex = 0
+    };
+  }
+
+  // ResolveViewOutput pass - copies SCENE_COLOR to VIEW_OUTPUT (per-view texture for ImGui to sample)
+  PassExecutionData viewResolveExec{
+    .passID = InternName("ResolveViewOutput"), .passType = 1,
+    .handleCount = 2, .handleOffset = 0, .executeLambda = nullptr
+  };
+  PassMetadata viewResolveMeta{
+    .debugName = "ResolveViewOutput",
+    .declaredResourceAccesses = {
+      {InternName(RenderResources::SCENE_COLOR), AccessType::Read},
+      {m_viewOutputID, AccessType::Write}
+    },
+    .priority = static_cast<internal::RenderPassBuilder::PassPriority>(640),
+    .featureOwner = nullptr
+  };
+  ExecuteLambda viewResolveLambda = [this](internal::ExecutionContext& ctx)
+  {
+    ExecuteResolveViewOutput(ctx);
+  };
+  RegisterPass(std::move(viewResolveExec), std::move(viewResolveMeta), std::move(viewResolveLambda));
+
+  // FinalBlit pass - copies VIEW_OUTPUT to SWAPCHAIN_IMAGE for presentation
+  // VIEW_OUTPUT contains the composited scene + ImGui (if enabled)
+  // Only runs for the presented view (swapchainImage is only valid for that view)
   PassExecutionData finalBlitExec{
     .passID = InternName("FinalBlit"), .passType = 1,
-    // Generic
     .handleCount = 2, .handleOffset = 0, .executeLambda = nullptr
   };
   PassMetadata finalBlitMeta{
     .debugName = "FinalBlit",
     .declaredResourceAccesses = {
-      {InternName(RenderResources::SCENE_COLOR), AccessType::Read},
-      {InternName(RenderResources::SWAPCHAIN_IMAGE), AccessType::Write}
+      {m_viewOutputID, AccessType::Read},
+      {m_swapchainID, AccessType::Write}
     },
-    // Priority 650: After UI (600) but before ImGui which renders directly to swapchain
-    // This ensures tone mapping and UI2D are applied to SCENE_COLOR before blitting to swapchain
-    .priority = static_cast<internal::RenderPassBuilder::PassPriority>(650), .featureOwner = nullptr
+    .priority = internal::RenderPassBuilder::PassPriority::Present,
+    .featureOwner = nullptr
   };
   ExecuteLambda finalBlitLambda = [this](internal::ExecutionContext& ctx)
   {
     ExecuteFinalBlit(ctx);
   };
   RegisterPass(std::move(finalBlitExec), std::move(finalBlitMeta), std::move(finalBlitLambda));
+
   // Sort passes
   BuildAdjacencyListAndSort();
   if (m_compiledPassOrder.empty())
@@ -959,16 +1119,23 @@ void RenderGraph::Compile()
     }
     if (info.definition.type == ResourceType::Texture)
     {
-      vk::TextureDesc actualDesc = std::get<vk::TextureDesc>(info.definition.desc);
-      if (actualDesc.dimensions == ResourceProperties::SWAPCHAIN_RELATIVE_DIMENSIONS)
-        actualDesc.dimensions = m_lastCompileDimensions;
-      if (actualDesc.format == vk::Format::Invalid) actualDesc.format = m_vkContext.getSwapchainFormat();
-      m_storedTextures.emplace_back(m_vkContext.createTexture(actualDesc));
-      info.concreteHandle = ResourceHandle(m_storedTextures.back());
+      gfx::TextureDesc actualDesc = std::get<gfx::TextureDesc>(info.definition.desc);
+      // Check for swapchain-relative dimensions (0,0,0)
+      if (actualDesc.width == 0 && actualDesc.height == 0) {
+        actualDesc.width = m_lastCompileDimensions.width;
+        actualDesc.height = m_lastCompileDimensions.height;
+        actualDesc.depth = 1;
+      }
+      // Check for undefined format - inherit from swapchain
+      if (actualDesc.format == HINA_FORMAT_UNDEFINED) {
+        actualDesc.format = static_cast<hina_format>(hinaCtx->getSwapchainFormat());
+      }
+      m_storedTextures.emplace_back(hinaCtx->createTextureHolder(actualDesc));
+      info.concreteHandle = ResourceHandle(m_storedTextures.back().get());
     }
     else if (info.definition.type == ResourceType::Buffer)
     {
-      const vk::BufferDesc& desc = std::get<vk::BufferDesc>(info.definition.desc);
+      const gfx::BufferDesc& desc = std::get<gfx::BufferDesc>(info.definition.desc);
       uint16_t entryIdx = m_frameBuffers.AllocateEntry(id);
       if (entryIdx >= internal::MAX_RESOURCES)
       {
@@ -1015,9 +1182,9 @@ void RenderGraph::Compile()
     // Start graphics batch
     BatchedGraphicsPassExecution batch{};
     const auto& firstMeta = m_passMetadata[passIdx];
-    FillVkRenderPassFromDeclaration(firstMeta.graphicsDeclaration, batch.renderPassInfo);
-    std::vector<vk::TextureHandle> textures;
-    std::vector<vk::BufferHandle> buffers;
+    FillRenderPassFromDeclaration(firstMeta.graphicsDeclaration, batch.renderPassInfo);
+    std::vector<gfx::Texture> textures;
+    std::vector<gfx::Buffer> buffers;
     batch.passIndices[0] = passIdx;
     batch.passCount = 1;
     AggregateDependenciesForPass(passIdx, textures, buffers);
@@ -1049,7 +1216,7 @@ void RenderGraph::Compile()
     int texIdx = 0;
     for (const auto& tex : textures)
     {
-      if (texIdx < vk::Dependencies::MAX_SUBMIT_DEPENDENCIES)
+      if (texIdx < gfx::MAX_SUBMIT_DEPENDENCIES)
       {
         batch.accumulatedDependencies.textures[texIdx++] = tex;
       }
@@ -1057,7 +1224,7 @@ void RenderGraph::Compile()
     int bufIdx = 0;
     for (const auto& buf : buffers)
     {
-      if (bufIdx < vk::Dependencies::MAX_SUBMIT_DEPENDENCIES)
+      if (bufIdx < gfx::MAX_SUBMIT_DEPENDENCIES)
       {
         batch.accumulatedDependencies.buffers[bufIdx++] = buf;
       }
@@ -1065,7 +1232,6 @@ void RenderGraph::Compile()
     m_executionSteps.emplace_back(std::move(batch));
     i = j;
   }
-  NotifyTransientObservers();
   m_isCompiled = true;
 }
 
@@ -1083,12 +1249,12 @@ void RenderGraph::RegisterTransientResource(LogicalResourceName name, const Reso
   }
 }
 
-void RenderGraph::RegisterTransientResource(LogicalResourceName name, const vk::TextureDesc& desc)
+void RenderGraph::RegisterTransientResource(LogicalResourceName name, const gfx::TextureDesc& desc)
 {
   RegisterTransientResource(name, ResourceProperties::FromDesc(desc, false));
 }
 
-void RenderGraph::RegisterTransientResource(LogicalResourceName name, const vk::BufferDesc& desc)
+void RenderGraph::RegisterTransientResource(LogicalResourceName name, const gfx::BufferDesc& desc)
 {
   RegisterTransientResource(name, ResourceProperties::FromDesc(desc, false));
 }
@@ -1102,96 +1268,248 @@ void RenderGraph::RegisterPass(PassExecutionData&& execData, PassMetadata&& meta
   m_passMetadata.push_back(std::move(metadata));
 }
 
-// Blit shader for scaling fixed-resolution scene to swapchain
-static const char* kBlitVertexShader = R"(
-layout (location=0) out vec2 uv;
+// Blit shader for scaling fixed-resolution scene to swapchain (HSL format)
+static const char* kBlitShader = R"(#hina
+group Blit = 0;
 
-void main() {
-  uv = vec2((gl_VertexIndex << 1) & 2, gl_VertexIndex & 2);
-  gl_Position = vec4(uv * vec2(2, -2) + vec2(-1, 1), 0.0, 1.0);
+bindings(Blit, start=0) {
+  texture sampler2D uSourceTexture;
 }
-)";
 
-static const char* kBlitFragmentShader = R"(
-layout(location = 0) in vec2 uv;
-layout(location = 0) out vec4 outColor;
-
-layout(push_constant) uniform BlitData {
-    uint sourceTextureIndex;
-    uint samplerIndex;
-    uint preTransform; // 0=Identity, 1=Rotate90, 2=Rotate180, 3=Rotate270
-    uint padding;
+push_constant BlitData {
+  uint preTransform; // 0=Identity, 1=Rotate90, 2=Rotate180, 3=Rotate270
 } pc;
 
-vec2 applyPreTransform(vec2 inUV) {
-    // Transform UV coordinates based on Android pre-rotation
-    // This rotates the source texture sampling to match device orientation
-    switch (pc.preTransform) {
-        case 1: // Rotate90 - device is 90 degrees CW from natural, so rotate UV 90 CCW
-            return vec2(inUV.y, 1.0 - inUV.x);
-        case 2: // Rotate180
-            return vec2(1.0 - inUV.x, 1.0 - inUV.y);
-        case 3: // Rotate270 - device is 270 degrees CW from natural, so rotate UV 270 CCW (= 90 CW)
-            return vec2(1.0 - inUV.y, inUV.x);
-        default: // Identity
-            return inUV;
-    }
-}
+struct Varyings {
+  vec2 uv;
+};
 
-void main() {
-    vec2 transformedUV = applyPreTransform(uv);
-    outColor = texture(nonuniformEXT(sampler2D(kTextures2D[pc.sourceTextureIndex], kSamplers[pc.samplerIndex])), transformedUV);
+struct FragOut {
+  vec4 color;
+};
+#hina_end
+
+#hina_stage vertex entry VSMain
+Varyings VSMain() {
+  Varyings out;
+  out.uv = vec2((gl_VertexIndex << 1) & 2, gl_VertexIndex & 2);
+  gl_Position = vec4(out.uv * vec2(2, -2) + vec2(-1, 1), 0.0, 1.0);
+  return out;
 }
+#hina_end
+
+#hina_stage fragment entry FSMain
+FragOut FSMain(Varyings in) {
+  FragOut out;
+  vec2 transformedUV = in.uv;
+  // Transform UV coordinates based on Android pre-rotation
+  if (pc.preTransform == 1u) { // Rotate90
+    transformedUV = vec2(in.uv.y, 1.0 - in.uv.x);
+  } else if (pc.preTransform == 2u) { // Rotate180
+    transformedUV = vec2(1.0 - in.uv.x, 1.0 - in.uv.y);
+  } else if (pc.preTransform == 3u) { // Rotate270
+    transformedUV = vec2(1.0 - in.uv.y, in.uv.x);
+  }
+  out.color = texture(uSourceTexture, transformedUV);
+  return out;
+}
+#hina_end
 )";
 
 void RenderGraph::EnsureBlitPipelineCreated()
 {
   if (m_blitPipelineCreated) return;
+  if (!m_gfxRenderer) return;
+  HinaContext* hinaCtx = m_gfxRenderer->getHinaContext();
+  if (!hinaCtx) return;
 
-  m_blitVertShader = m_vkContext.createShaderModule({kBlitVertexShader, vk::ShaderStage::Vert, "Blit Vertex Shader"});
-  m_blitFragShader = m_vkContext.createShaderModule({kBlitFragmentShader, vk::ShaderStage::Frag, "Blit Fragment Shader"});
-  m_blitSampler = m_vkContext.createSampler({
-    .minFilter = vk::SamplerFilter::Linear,
-    .magFilter = vk::SamplerFilter::Linear,
-    .wrapU = vk::SamplerWrap::Clamp,
-    .wrapV = vk::SamplerWrap::Clamp,
-    .wrapW = vk::SamplerWrap::Clamp,
-    .debugName = "Blit Sampler"
-  });
+  // Compile HSL shader
+  char* error = nullptr;
+  hina_hsl_module* module = hslc_compile_hsl_source(kBlitShader, "blit_shader", &error);
+  if (!module) {
+    LOG_ERROR("[RenderGraph] Blit shader compilation failed: {}", error ? error : "Unknown");
+    if (error) hslc_free_log(error);
+    return;
+  }
 
-  m_blitPipeline = m_vkContext.createRenderPipeline({
-    .smVert = m_blitVertShader,
-    .smFrag = m_blitFragShader,
-    .color = {{.format = m_vkContext.getSwapchainFormat()}},
-    .debugName = "Final Blit Pipeline"
-  }, nullptr);
+  // Create sampler
+  {
+    gfx::SamplerDesc samplerDesc = gfx::samplerDescDefault();
+    samplerDesc.address_u = HINA_ADDRESS_CLAMP_TO_EDGE;
+    samplerDesc.address_v = HINA_ADDRESS_CLAMP_TO_EDGE;
+    samplerDesc.address_w = HINA_ADDRESS_CLAMP_TO_EDGE;
+    m_blitSampler.reset(gfx::createSampler(samplerDesc));
+  }
+
+  // Create bind group layout for source texture
+  {
+    hina_bind_group_layout_entry layout_entries[1] = {};
+    layout_entries[0].binding = 0;
+    layout_entries[0].type = HINA_DESC_TYPE_COMBINED_IMAGE_SAMPLER;
+    layout_entries[0].stage_flags = HINA_STAGE_FRAGMENT;  // Must use bit flag, not enum
+    layout_entries[0].count = 1;
+
+    hina_bind_group_layout_desc layout_desc = {};
+    layout_desc.entries = layout_entries;
+    layout_desc.entry_count = 1;
+
+    m_blitBindGroupLayout.reset(hina_create_bind_group_layout(&layout_desc));
+  }
+
+  // Create pipeline using HSL module
+  {
+    hina_hsl_pipeline_desc pip_desc = hina_hsl_pipeline_desc_default();
+    pip_desc.cull_mode = HINA_CULL_MODE_NONE;
+    pip_desc.depth.depth_test = false;
+    pip_desc.depth.depth_write = false;
+    pip_desc.depth_format = HINA_FORMAT_UNDEFINED;
+
+    // Color format - query actual surface format from hina-vk
+    hina_format surfaceFormat = hina_get_surface_format();
+    pip_desc.color_formats[0] = surfaceFormat != HINA_FORMAT_UNDEFINED
+                                  ? surfaceFormat
+                                  : HINA_FORMAT_B8G8R8A8_SRGB;
+
+    // Use the blit bind group layout
+    if (hina_bind_group_layout_is_valid(m_blitBindGroupLayout.get())) {
+      pip_desc.bind_group_layouts[0] = m_blitBindGroupLayout.get();
+    }
+
+    m_blitPipeline.reset(hina_make_pipeline_from_module(module, &pip_desc, nullptr));
+  }
+
+  hslc_hsl_module_free(module);
+
+  if (!hina_pipeline_is_valid(m_blitPipeline.get())) {
+    LOG_ERROR("[RenderGraph] Blit pipeline creation failed");
+    return;
+  }
 
   m_blitPipelineCreated = true;
 }
 
+void RenderGraph::EnsureResolveOutputPipelineCreated()
+{
+  if (m_resolveOutputPipelineCreated) return;
+  if (!m_gfxRenderer) return;
+  HinaContext* hinaCtx = m_gfxRenderer->getHinaContext();
+  if (!hinaCtx) return;
+
+  // Load shader from file
+  std::string shaderSource;
+  if (!VFS::ReadFile("shaders/resolve_output.hina_sl", shaderSource)) {
+    LOG_ERROR("[RenderGraph] Failed to load resolve_output.hina_sl shader");
+    return;
+  }
+
+  // Compile HSL shader
+  char* error = nullptr;
+  hina_hsl_module* module = hslc_compile_hsl_source(shaderSource.c_str(), "resolve_output_shader", &error);
+  if (!module) {
+    LOG_ERROR("[RenderGraph] Resolve output shader compilation failed: {}", error ? error : "Unknown");
+    if (error) hslc_free_log(error);
+    return;
+  }
+
+  // Create sampler
+  {
+    gfx::SamplerDesc samplerDesc = gfx::samplerDescDefault();
+    samplerDesc.address_u = HINA_ADDRESS_CLAMP_TO_EDGE;
+    samplerDesc.address_v = HINA_ADDRESS_CLAMP_TO_EDGE;
+    samplerDesc.address_w = HINA_ADDRESS_CLAMP_TO_EDGE;
+    m_resolveOutputSampler.reset(gfx::createSampler(samplerDesc));
+  }
+
+  // Create bind group layout for HDR scene color texture
+  {
+    hina_bind_group_layout_entry layout_entries[1] = {};
+    layout_entries[0].binding = 0;
+    layout_entries[0].type = HINA_DESC_TYPE_COMBINED_IMAGE_SAMPLER;
+    layout_entries[0].stage_flags = HINA_STAGE_FRAGMENT;
+    layout_entries[0].count = 1;
+
+    hina_bind_group_layout_desc layout_desc = {};
+    layout_desc.entries = layout_entries;
+    layout_desc.entry_count = 1;
+
+    m_resolveOutputBindGroupLayout.reset(hina_create_bind_group_layout(&layout_desc));
+  }
+
+  // Create pipeline using HSL module
+  {
+    hina_hsl_pipeline_desc pip_desc = hina_hsl_pipeline_desc_default();
+    pip_desc.cull_mode = HINA_CULL_MODE_NONE;
+    pip_desc.depth.depth_test = false;
+    pip_desc.depth.depth_write = false;
+    pip_desc.depth_format = HINA_FORMAT_UNDEFINED;
+
+    // Output to VIEW_OUTPUT - use the actual swapchain format
+    // Note: VIEW_OUTPUT textures are created with the swapchain format in GfxRenderer
+    // We can't use HINA_FORMAT_SWAPCHAIN here because it may not resolve correctly
+    // if the swapchain isn't fully initialized when this pipeline is created
+    HinaContext* hinaCtx = m_gfxRenderer ? m_gfxRenderer->getHinaContext() : nullptr;
+    pip_desc.color_formats[0] = hinaCtx ? static_cast<hina_format>(hinaCtx->getSwapchainFormat())
+                                        : HINA_FORMAT_B8G8R8A8_SRGB;
+
+    // Use the resolve output bind group layout
+    if (hina_bind_group_layout_is_valid(m_resolveOutputBindGroupLayout.get())) {
+      pip_desc.bind_group_layouts[0] = m_resolveOutputBindGroupLayout.get();
+    }
+
+    m_resolveOutputPipeline.reset(hina_make_pipeline_from_module(module, &pip_desc, nullptr));
+  }
+
+  hslc_hsl_module_free(module);
+
+  if (!hina_pipeline_is_valid(m_resolveOutputPipeline.get())) {
+    LOG_ERROR("[RenderGraph] Resolve output pipeline creation failed");
+    return;
+  }
+
+  LOG_INFO("[RenderGraph] Resolve output pipeline created successfully");
+  m_resolveOutputPipelineCreated = true;
+}
+
 void RenderGraph::ExecuteFinalBlit(const internal::ExecutionContext& ctx)
 {
-  vk::TextureHandle sceneColor = ctx.GetTexture(RenderResources::SCENE_COLOR);
-  vk::TextureHandle swapchainImage = ctx.GetTexture(RenderResources::SWAPCHAIN_IMAGE);
-  if (!sceneColor.valid() || !swapchainImage.valid()) return;
+  // Check swapchain validity before accessing resources
+  // For non-presented views, swapchain is intentionally set invalid
+  if (auto* swapInfo = GetResolvedResource(m_swapchainID))
+  {
+    if (!swapInfo->concreteHandle.isValid()) return;
+  }
+  else
+  {
+    return;
+  }
 
-  auto& cmd = ctx.GetvkCommandBuffer();
-  vk::Dimensions sceneDims = m_vkContext.getDimensions(sceneColor);
-  vk::Dimensions swapchainDims = m_vkContext.getDimensions(swapchainImage);
+  // Copy VIEW_OUTPUT (composited scene + ImGui) to swapchain
+  gfx::Texture viewOutput = ctx.GetTexture(RenderResources::VIEW_OUTPUT);
+  gfx::Texture swapchainImage = ctx.GetTexture(RenderResources::SWAPCHAIN_IMAGE);
+  if (!gfx::isValid(viewOutput) || !gfx::isValid(swapchainImage)) return;
+
+  // Skip if VIEW_OUTPUT == swapchain (non-ImGui case where ResolveViewOutput already wrote to swapchain)
+  if (viewOutput == swapchainImage) return;
+
+  HinaContext* hinaCtx = m_gfxRenderer ? m_gfxRenderer->getHinaContext() : nullptr;
+  if (!hinaCtx) return;
+
+  gfx::Dimensions viewDims = hinaCtx->getDimensions(viewOutput);
+  gfx::Dimensions swapchainDims = hinaCtx->getDimensions(swapchainImage);
 
   // Get pre-transform for Android
   uint32_t preTransformValue = 0; // 0 = Identity
 #if defined(__ANDROID__)
-  SurfaceTransform transform = m_vkContext.getSwapchainPreTransform();
+  gfx::SurfaceTransform transform = hinaCtx->getSwapchainPreTransform();
   switch (transform)
   {
-    case SurfaceTransform::Rotate90:
+    case gfx::SurfaceTransform::Rotate90:
       preTransformValue = 1;
       break;
-    case SurfaceTransform::Rotate180:
+    case gfx::SurfaceTransform::Rotate180:
       preTransformValue = 2;
       break;
-    case SurfaceTransform::Rotate270:
+    case gfx::SurfaceTransform::Rotate270:
       preTransformValue = 3;
       break;
     default:
@@ -1200,11 +1518,11 @@ void RenderGraph::ExecuteFinalBlit(const internal::ExecutionContext& ctx)
   }
 #endif
 
-  // On Android with no pre-transform needed, and if dimensions match exactly, use fast copy path
-  if (preTransformValue == 0 && sceneDims.width == swapchainDims.width && sceneDims.height == swapchainDims.height)
+  // Fast blit path: for matching dimensions and no pre-transform
+  if (preTransformValue == 0 && viewDims.width == swapchainDims.width && viewDims.height == swapchainDims.height)
   {
-    cmd.cmdCopyImage(sceneColor, swapchainImage, sceneDims, vk::Offset3D{0, 0, 0}, vk::Offset3D{0, 0, 0},
-                     vk::TextureLayers{0, 0, 1}, vk::TextureLayers{0, 0, 1});
+    // Use hina blit for copy to swapchain
+    hina_cmd_blit_texture(ctx.GetCmd(), viewOutput, swapchainImage, 0, 0, HINA_FILTER_NEAREST);
     return;
   }
 
@@ -1212,51 +1530,183 @@ void RenderGraph::ExecuteFinalBlit(const internal::ExecutionContext& ctx)
   // and apply pre-rotation on Android
   this->EnsureBlitPipelineCreated();
 
-  // Begin rendering to swapchain
-  vk::RenderPass renderPassInfo{};
-  renderPassInfo.color[0] = {
-    .loadOp = vk::LoadOp::DontCare,
-    .storeOp = vk::StoreOp::Store
-  };
+  gfx::CommandBuffer& gfxCmd = ctx.GetCommandBuffer();
 
-  vk::Framebuffer framebuffer{};
+  // Begin rendering to swapchain
+  gfx::RenderPass renderPassInfo{};
+  renderPassInfo.color[0] = {.loadOp = gfx::LoadOp::DontCare, .storeOp = gfx::StoreOp::Store};
+
+  gfx::Framebuffer framebuffer{};
   framebuffer.color[0] = {.texture = swapchainImage};
 
-  vk::Dependencies deps{};
-  deps.textures[0] = sceneColor;
+  gfx::Dependencies deps{};
+  deps.textures[0] = viewOutput;
 
-  cmd.cmdBeginRendering(renderPassInfo, framebuffer, deps);
+  gfxCmd.beginRendering(renderPassInfo, framebuffer, deps);
 
-  cmd.cmdBindRenderPipeline(m_blitPipeline);
-  cmd.cmdBindViewport({
+  // Bind pipeline and set up rendering
+  gfxCmd.bindPipeline(m_blitPipeline.get());
+  gfxCmd.setViewport({
     .x = 0.0f,
     .y = 0.0f,
     .width = static_cast<float>(swapchainDims.width),
     .height = static_cast<float>(swapchainDims.height)
   });
-  cmd.cmdBindScissorRect({
+  gfxCmd.setScissor({
     .x = 0,
     .y = 0,
     .width = swapchainDims.width,
     .height = swapchainDims.height
   });
 
-  struct BlitPushConstants {
-    uint32_t sourceTextureIndex;
-    uint32_t samplerIndex;
-    uint32_t preTransform; // 0=Identity, 1=Rotate90, 2=Rotate180, 3=Rotate270
-    uint32_t padding;
-  } pc = {
-    .sourceTextureIndex = sceneColor.index(),
-    .samplerIndex = m_blitSampler.index(),
-    .preTransform = preTransformValue,
-    .padding = 0
-  };
-  cmd.cmdPushConstants(pc);
-  cmd.cmdBindDepthState({.compareOp = vk::CompareOp::Always, .isDepthWriteEnabled = false});
-  cmd.cmdDraw(3);
+  // Create transient bind group for source texture using the stored layout
+  gfx::TextureView sourceView = hina_texture_get_default_view(viewOutput);
+  hina_transient_bind_group tbg = hina_alloc_transient_bind_group(m_blitBindGroupLayout.get());
+  hina_transient_write_combined_image(&tbg, 0, sourceView, m_blitSampler.get());
+  hina_cmd_bind_transient_group(ctx.GetCmd(), 0, tbg);
 
-  cmd.cmdEndRendering();
+  struct BlitPushConstants {
+    uint32_t preTransform; // 0=Identity, 1=Rotate90, 2=Rotate180, 3=Rotate270
+  } pc = {
+    .preTransform = preTransformValue
+  };
+  gfxCmd.pushConstants(pc);
+  gfxCmd.draw(3);
+
+  gfxCmd.endRendering();
+}
+
+void RenderGraph::ExecuteResolveViewOutput(const internal::ExecutionContext& ctx)
+{
+  gfx::Texture sceneColor = ctx.GetTexture(RenderResources::SCENE_COLOR);
+  gfx::Texture viewOutput = ctx.GetTexture(RenderResources::VIEW_OUTPUT);
+
+  if (!gfx::isValid(sceneColor) || !gfx::isValid(viewOutput)) {
+    return;
+  }
+
+  HinaContext* hinaCtx = m_gfxRenderer ? m_gfxRenderer->getHinaContext() : nullptr;
+  if (!hinaCtx) return;
+
+  // Ensure resolve output pipeline with tone mapping is created
+  this->EnsureResolveOutputPipelineCreated();
+  if (!hina_pipeline_is_valid(m_resolveOutputPipeline.get())) {
+    // Fallback to blit pipeline if resolve pipeline failed
+    this->EnsureBlitPipelineCreated();
+    if (!hina_pipeline_is_valid(m_blitPipeline.get())) {
+      return;
+    }
+  }
+
+  gfx::Dimensions dstDims = hinaCtx->getDimensions(viewOutput);
+  gfx::Cmd* cmd = ctx.GetCmd();
+
+  // Transition sceneColor to shader read for sampling
+  hina_cmd_transition_texture(cmd, sceneColor, HINA_TEXSTATE_SHADER_READ);
+
+  // Set up pass action directly
+  hina_pass_action pass = {};
+  pass.width = dstDims.width;
+  pass.height = dstDims.height;
+  pass.colors[0].image = hina_texture_get_default_view(viewOutput);
+  pass.colors[0].load_op = HINA_LOAD_OP_DONT_CARE;
+  pass.colors[0].store_op = HINA_STORE_OP_STORE;
+
+  hina_cmd_begin_pass(cmd, &pass);
+
+  // Use resolve output pipeline with tone mapping if available
+  bool useResolveOutput = hina_pipeline_is_valid(m_resolveOutputPipeline.get());
+  if (useResolveOutput) {
+    hina_cmd_bind_pipeline(cmd, m_resolveOutputPipeline.get());
+  } else {
+    hina_cmd_bind_pipeline(cmd, m_blitPipeline.get());
+  }
+
+  hina_viewport viewport = {};
+  viewport.x = 0.0f;
+  viewport.y = 0.0f;
+  viewport.width = static_cast<float>(dstDims.width);
+  viewport.height = static_cast<float>(dstDims.height);
+  viewport.min_depth = 0.0f;
+  viewport.max_depth = 1.0f;
+  hina_cmd_set_viewport(cmd, &viewport);
+
+  hina_scissor scissor = {};
+  scissor.x = 0;
+  scissor.y = 0;
+  scissor.width = dstDims.width;
+  scissor.height = dstDims.height;
+  hina_cmd_set_scissor(cmd, &scissor);
+
+  // Create transient bind group for source texture
+  gfx::TextureView sourceView = hina_texture_get_default_view(sceneColor);
+  if (useResolveOutput) {
+    hina_transient_bind_group tbg = hina_alloc_transient_bind_group(m_resolveOutputBindGroupLayout.get());
+    hina_transient_write_combined_image(&tbg, 0, sourceView, m_resolveOutputSampler.get());
+    hina_cmd_bind_transient_group(cmd, 0, tbg);
+
+    // Get tone mapping settings from LinearColorSystem
+    const auto& settings = linearColorSystem.GetToneMappingSettings();
+    ResolveOutputPushConstants pc = {
+      .toneMappingMode = static_cast<int32_t>(settings.mode),
+      .exposure = settings.exposure,
+      .maxWhite = settings.maxWhite,
+      .P = settings.P,
+      .a = settings.a,
+      .m = settings.m,
+      .l = settings.l,
+      .c = settings.c,
+      .b = settings.b
+    };
+    hina_cmd_push_constants(cmd, 0, sizeof(pc), &pc);
+  } else {
+    // Fallback to blit pipeline
+    hina_transient_bind_group tbg = hina_alloc_transient_bind_group(m_blitBindGroupLayout.get());
+    hina_transient_write_combined_image(&tbg, 0, sourceView, m_blitSampler.get());
+    hina_cmd_bind_transient_group(cmd, 0, tbg);
+
+    struct BlitPushConstants {
+      uint32_t preTransform;
+    } pc = {.preTransform = 0};
+    hina_cmd_push_constants(cmd, 0, sizeof(pc), &pc);
+  }
+
+  hina_cmd_draw(cmd, 3, 1, 0, 0);
+
+  hina_cmd_end_pass(cmd);
+
+  // Explicitly transition VIEW_OUTPUT to SHADER_READ for ImGui to sample it
+  hina_cmd_transition_texture(ctx.GetCmd(), viewOutput, HINA_TEXSTATE_SHADER_READ);
+}
+
+void RenderGraph::UpdateViewOutputResource(gfx::Texture outputHandle)
+{
+  ResourceHandle newHandle = gfx::isValid(outputHandle) ? ResourceHandle(outputHandle) : ResourceHandle{};
+
+  if (auto* info = GetResolvedResource(m_viewOutputID))
+  {
+    info->concreteHandle = newHandle;
+  }
+  else
+  {
+    return;
+  }
+
+  // Also update handle storage for all passes that use VIEW_OUTPUT
+  // This is necessary because handle storage is populated during compilation
+  // and external resources like VIEW_OUTPUT are updated per-frame
+  for (size_t passIdx = 0; passIdx < m_passExecData.size(); ++passIdx)
+  {
+    const auto& execData = m_passExecData[passIdx];
+    const auto& metadata = m_passMetadata[passIdx];
+    for (uint8_t i = 0; i < execData.handleCount; ++i)
+    {
+      if (metadata.declaredResourceAccesses[i].id == m_viewOutputID)
+      {
+        m_handleStorage[execData.handleOffset + i] = newHandle;
+      }
+    }
+  }
 }
 
 ResourceHandle RenderGraph::GetResolvedHandle(internal::NameID id) const
@@ -1287,6 +1737,51 @@ void RenderGraph::RemoveFeature(IRenderFeature* feature)
   }
 }
 
+FeatureMask RenderGraph::RegisterFeature(IRenderFeature* feature)
+{
+  if (!feature) return 0;
+
+  // Check if already registered
+  auto it = m_featureIdMap.find(feature);
+  if (it != m_featureIdMap.end())
+  {
+    return FeatureBit(it->second);
+  }
+
+  // Assign new ID (max 64 features due to FeatureMask being uint64_t)
+  if (m_nextFeatureId >= 64)
+  {
+    LOG_ERROR("Too many features registered (max 64)");
+    return 0;
+  }
+
+  RenderFeatureId id = m_nextFeatureId++;
+  m_featureIdMap[feature] = id;
+  feature->SetFeatureId(id);
+
+  LOG_INFO("Registered feature '{}' with ID {} (mask: 0x{:X})", feature->GetName(), id, FeatureBit(id));
+
+  return FeatureBit(id);
+}
+
+void RenderGraph::UnregisterFeature(IRenderFeature* feature)
+{
+  if (!feature) return;
+  m_featureIdMap.erase(feature);
+  // Note: We don't recycle IDs to avoid mask confusion
+}
+
+FeatureMask RenderGraph::GetFeatureMask(IRenderFeature* feature) const
+{
+  if (!feature) return 0;
+  auto it = m_featureIdMap.find(feature);
+  if (it != m_featureIdMap.end())
+  {
+    return FeatureBit(it->second);
+  }
+  return 0;
+}
+
 void RenderGraph::ClearFeaturesAndPasses()
 {
   m_features.clear();
@@ -1305,6 +1800,7 @@ void RenderGraph::ClearFeaturesAndPasses()
   m_idToStringMap.clear();
   m_nextNameID = 1;
   m_swapchainID = InternName(RenderResources::SWAPCHAIN_IMAGE);
+  m_viewOutputID = InternName(RenderResources::VIEW_OUTPUT);
   Invalidate();
 }
 
@@ -1382,8 +1878,8 @@ const RenderGraph::ResolvedResourceInfo* RenderGraph::GetResolvedResource(intern
   return &m_resolvedResourceInfo[id - 1];
 }
 
-internal::NameID RenderGraph::ImportExternalTexture(LogicalResourceName name, vk::TextureHandle textureHandle,
-                                                    const vk::TextureDesc& desc)
+internal::NameID RenderGraph::ImportExternalTexture(LogicalResourceName name, gfx::Texture textureHandle,
+                                                    const gfx::TextureDesc& desc)
 {
   internal::NameID id = InternName(name);
   if (id == internal::INVALID_NAME_ID) return id;
@@ -1397,8 +1893,8 @@ internal::NameID RenderGraph::ImportExternalTexture(LogicalResourceName name, vk
   return id;
 }
 
-internal::NameID RenderGraph::ImportExternalBuffer(LogicalResourceName name, vk::BufferHandle bufferHandle,
-                                                   const vk::BufferDesc& desc)
+internal::NameID RenderGraph::ImportExternalBuffer(LogicalResourceName name, gfx::Buffer bufferHandle,
+                                                   const gfx::BufferDesc& desc)
 {
   internal::NameID id = InternName(name);
   if (id == internal::INVALID_NAME_ID) return id;
@@ -1412,9 +1908,11 @@ internal::NameID RenderGraph::ImportExternalBuffer(LogicalResourceName name, vk:
   return id;
 }
 
-void RenderGraph::Execute(vk::ICommandBuffer& vkCommandBuffer, const FrameData& frameData)
+void RenderGraph::Execute(gfx::Cmd* cmd, const FrameData& frameData, const ViewOutputConfig& outputConfig)
 {
-  BeginFrame();
+  // Note: BeginFrame() should be called explicitly by the caller before Execute()
+  // This allows multi-view rendering where Execute() is called multiple times per frame
+
   // Handle deferred compilation
   if (m_compilationDeferred && canCompile())
   {
@@ -1442,11 +1940,44 @@ void RenderGraph::Execute(vk::ICommandBuffer& vkCommandBuffer, const FrameData& 
       return;
     }
   }
-  else
+
+  // Always set swapchain correctly for this view (regardless of whether we just compiled or not)
+  // Only the presented view should have a valid swapchain so FinalBlit runs only once
+  if (gfx::isValid(outputConfig.swapchainImage))
   {
     UpdateSwapchainResource();
   }
-  if (!m_isCompiled || m_executionSteps.empty()) return;
+  else
+  {
+    // Set swapchain to invalid for non-presented views so FinalBlit skips
+    if (auto* info = GetResolvedResource(m_swapchainID))
+    {
+      info->concreteHandle = ResourceHandle{};
+    }
+  }
+  // Update external output textures
+  if (gfx::isValid(outputConfig.resolvedColor))
+  {
+    UpdateViewOutputResource(outputConfig.resolvedColor);
+  }
+  if (!m_isCompiled || m_executionSteps.empty()) {
+    LOG_WARNING("[RenderGraph] Cannot execute: compiled={}, steps={}", m_isCompiled, m_executionSteps.size());
+    return;
+  }
+
+  // Set the active feature mask from the view's featureMask
+  m_activeFeatureMask = frameData.featureMask;
+
+  // Helper lambda to check if a pass should execute based on feature mask
+  auto shouldExecutePass = [this](const PassMetadata& metadata) -> bool {
+    // Passes with no required feature mask (system passes) always execute
+    if (metadata.requiredFeatureMask == 0) return true;
+    // Check if any required feature is enabled in the active mask
+    return (metadata.requiredFeatureMask & m_activeFeatureMask) != 0;
+  };
+
+  gfx::CommandBuffer cmdWrapper(cmd);
+
   // Execute passes
   for (const auto& step : m_executionSteps)
   {
@@ -1455,50 +1986,77 @@ void RenderGraph::Execute(vk::ICommandBuffer& vkCommandBuffer, const FrameData& 
       size_t passIdx = step.genericPassIndex;
       const auto& execData = m_passExecData[passIdx];
       const auto& metadata = m_passMetadata[passIdx];
+
+      // Skip passes whose required features are not enabled
+      if (!shouldExecutePass(metadata)) continue;
+
       if (metadata.debugName && metadata.debugName[0])
       {
-        vkCommandBuffer.cmdPushDebugGroupLabel(metadata.debugName);
+        cmdWrapper.pushDebugLabel(metadata.debugName);
       }
-      internal::ExecutionContext context(vkCommandBuffer, frameData, this, passIdx);
+      internal::ExecutionContext context(cmd, frameData, this, passIdx);
       (*execData.executeLambda)(context);
       if (metadata.debugName && metadata.debugName[0])
       {
-        vkCommandBuffer.cmdPopDebugGroupLabel();
+        cmdWrapper.popDebugLabel();
       }
     }
     else
     {
       const auto& batch = step.graphicsBatch;
-      vk::Framebuffer framebuffer;
-      FillVkFramebufferFromDeclaration(m_passMetadata[batch.passIndices[0]].graphicsDeclaration, framebuffer);
-      vkCommandBuffer.cmdBeginRendering(batch.renderPassInfo, framebuffer, batch.accumulatedDependencies);
+
+      // For batched passes, check if ANY pass in the batch should execute
+      // (batch contains passes with compatible render targets)
+      bool shouldExecuteBatch = false;
+      for (uint8_t i = 0; i < batch.passCount; ++i)
+      {
+        if (shouldExecutePass(m_passMetadata[batch.passIndices[i]]))
+        {
+          shouldExecuteBatch = true;
+          break;
+        }
+      }
+      if (!shouldExecuteBatch) continue;
+
+      gfx::Framebuffer framebuffer;
+      FillFramebufferFromDeclaration(m_passMetadata[batch.passIndices[0]].graphicsDeclaration, framebuffer);
+      cmdWrapper.beginRendering(batch.renderPassInfo, framebuffer, batch.accumulatedDependencies);
       for (uint8_t i = 0; i < batch.passCount; ++i)
       {
         size_t passIdx = batch.passIndices[i];
         const auto& execData = m_passExecData[passIdx];
         const auto& metadata = m_passMetadata[passIdx];
+
+        // Still filter individual passes within the batch
+        if (!shouldExecutePass(metadata)) continue;
+
         if (metadata.debugName && metadata.debugName[0])
         {
-          vkCommandBuffer.cmdPushDebugGroupLabel(metadata.debugName);
+          cmdWrapper.pushDebugLabel(metadata.debugName);
         }
-        internal::ExecutionContext context(vkCommandBuffer, frameData, this, passIdx);
+        internal::ExecutionContext context(cmd, frameData, this, passIdx);
         (*execData.executeLambda)(context);
         if (metadata.debugName && metadata.debugName[0])
         {
-          vkCommandBuffer.cmdPopDebugGroupLabel();
+          cmdWrapper.popDebugLabel();
         }
       }
-      vkCommandBuffer.cmdEndRendering();
+      cmdWrapper.endRendering();
     }
   }
 }
 
 void RenderGraph::UpdateSwapchainResource()
 {
-  vk::TextureHandle swapchainHandle = m_vkContext.getCurrentSwapchainTexture();
+  HinaContext* hinaCtx = m_gfxRenderer ? m_gfxRenderer->getHinaContext() : nullptr;
+  if (!hinaCtx) {
+    Invalidate();
+    return;
+  }
+  gfx::Texture swapchainTexture = hinaCtx->getCurrentSwapchainHinaTexture();
   if (auto* info = GetResolvedResource(m_swapchainID))
   {
-    info->concreteHandle = ResourceHandle(swapchainHandle);
+    info->concreteHandle = ResourceHandle(swapchainTexture);
   }
   else
   {

@@ -332,11 +332,13 @@ void Serializer::Serialize(const std::string& key, const PropertiesSerializeable
 
 void Serializer::Serialize(const ISerializeable& obj)
 {
+    if (!IsOpen()) return;  // Guard against serializing to unopened file
     obj.Serialize(*this);
 }
 
 void Serializer::Serialize(const std::string& key, const ISerializeable& obj)
 {
+    if (!IsOpen()) return;  // Guard against serializing to unopened file
     StartObject(key);
     obj.Serialize(*this);
     EndObject();

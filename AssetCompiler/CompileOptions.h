@@ -13,7 +13,7 @@
 \brief
 Options for compiling.
 
-All content © 2025 DigiPen Institute of Technology Singapore.
+All content ï¿½ 2025 DigiPen Institute of Technology Singapore.
 All rights reserved.
 */
 /******************************************************************************/
@@ -50,6 +50,25 @@ namespace compiler
         COUNT
     };
 
+    inline const char* GetPlatformName(BUILD_PLATFORM platform)
+    {
+        switch (platform)
+        {
+            case BUILD_PLATFORM::WINDOWS: return "windows";
+            case BUILD_PLATFORM::ANDROID: return "android";
+            default: return "unknown";
+        }
+    }
+
+    // Get relative path from assets root (for portable metadata)
+    inline std::string GetRelativeSourcePath(const std::filesystem::path& inputPath, const std::filesystem::path& assetsRoot)
+    {
+        // Use lexically_relative to get a portable relative path
+        auto relative = inputPath.lexically_relative(assetsRoot);
+        // Convert to forward slashes for cross-platform compatibility
+        return relative.generic_string();
+    }
+
     enum OPTIMIZATION_TYPE
     {
         O0,                // Compiles the asset as fast as possible no real optimization
@@ -72,6 +91,68 @@ namespace compiler
 
 
 
+    // Detected alpha mode from texture analysis (similar to Godot's Image::AlphaMode)
+    // Used to automatically determine material transparency from base color textures
+    enum class DetectedAlphaMode
+    {
+        None,      // No alpha channel or all pixels are fully opaque (alpha = 255)
+        Bit,       // Binary alpha - pixels are either fully opaque (255) or fully transparent (0)
+        Blend      // Gradient alpha - pixels have varying transparency values
+    };
+
+    // Analyze RGBA pixel data to detect what kind of alpha is present
+    // Returns DetectedAlphaMode based on the actual pixel values
+    inline DetectedAlphaMode DetectAlphaMode(const uint8_t* rgbaPixels, uint32_t width, uint32_t height)
+    {
+        if (!rgbaPixels || width == 0 || height == 0)
+            return DetectedAlphaMode::None;
+
+        bool hasTransparent = false;  // Any pixel with alpha < 255
+        bool hasOpaque = false;       // Any pixel with alpha = 255
+        bool hasPartial = false;      // Any pixel with 0 < alpha < 255
+
+        const uint32_t pixelCount = width * height;
+
+        // Sample pixels - for large textures, sample a subset for performance
+        // For small textures (< 256x256), check all pixels
+        const uint32_t sampleStride = (pixelCount > 65536) ? 4 : 1;
+
+        for (uint32_t i = 0; i < pixelCount; i += sampleStride)
+        {
+            uint8_t alpha = rgbaPixels[i * 4 + 3];
+
+            if (alpha == 255)
+            {
+                hasOpaque = true;
+            }
+            else if (alpha == 0)
+            {
+                hasTransparent = true;
+            }
+            else
+            {
+                // Partial transparency (0 < alpha < 255)
+                hasPartial = true;
+                // Early exit - if we found partial alpha, it's definitely Blend mode
+                return DetectedAlphaMode::Blend;
+            }
+        }
+
+        if (hasTransparent && hasOpaque)
+        {
+            // Binary alpha: pixels are either 0 or 255
+            return DetectedAlphaMode::Bit;
+        }
+        else if (hasTransparent && !hasOpaque)
+        {
+            // All transparent (unusual, but could happen)
+            return DetectedAlphaMode::Blend;
+        }
+
+        // All opaque
+        return DetectedAlphaMode::None;
+    }
+
     enum TextureChannelFormat
     {
         RGBA_8888,
@@ -90,25 +171,9 @@ namespace compiler
         BC5,
         BC7,
 
-        //???????
         ASTC,
         ETC
     };
-    
-    //Still unused
-    enum TextureWrapMode
-    {
-        CLAMP_TO_EDGE,
-        WRAP,
-        MIRROR
-    };
-    enum TextureAlphaMode
-    {
-        NONE,
-        MASK,
-        BLEND
-    };
-
 
     // Options
     struct GeneralOptions
@@ -116,6 +181,7 @@ namespace compiler
         std::filesystem::path assetsRoot;   // our case would usually be ../../../Assets (in editor)
         std::filesystem::path inputPath;
         std::filesystem::path outputPath;
+        BUILD_PLATFORM platform = BUILD_PLATFORM::WINDOWS;  // Target platform for compilation
     };
 
     struct MeshOptions
@@ -132,9 +198,6 @@ namespace compiler
     {
         TextureChannelFormat channelFormat = TextureChannelFormat::RGBA_8888;
         TextureCompressionFormat compressionFormat = TextureCompressionFormat::BC7;
-        TextureWrapMode wrapMode;
-        TextureAlphaMode alphaMode;
-
         bool isSRGB = false;
 
         float quality = 0.05f; // 0.0f-1.0f

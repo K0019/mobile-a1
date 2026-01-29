@@ -6,6 +6,7 @@
 *.lo
 *.o
 *.obj
+Assets/compiledassets/*
 
 # Precompiled Headers
 *.gch
@@ -64,3 +65,28 @@ Assets/UserAssembly.dll
 
 # Asset compiler stuff
 Tools/Debug/CompileResult.json
+# Android build assets (copied from Assets/ during build)
+android/app/src/main/assets/Fonts/
+android/app/src/main/assets/behaviourtrees/
+android/app/src/main/assets/compiledassets/
+android/app/src/main/assets/images/
+android/app/src/main/assets/models/
+android/app/src/main/assets/navmeshdata/
+android/app/src/main/assets/prefabs/
+android/app/src/main/assets/scenes/
+android/app/src/main/assets/scripts/
+android/app/src/main/assets/sounds/
+
+# Log files
+*.log
+console_log.txt
+crash_log.txt
+engine_output.txt
+
+# IDE
+.idea/
+
+# Misc
+nul
+Assets/asset_manifest.txt
+imgui.ini

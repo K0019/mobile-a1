@@ -40,6 +40,15 @@ public:
 	// Compilation stuff
 	static const std::string compilerExe;
 	static const std::string compileManifest;
+	static const std::string compiledAssets;          // Base path: Assets/CompiledAssets
+	static const std::string compiledAssetsWindows;   // Assets/CompiledAssets/windows
+	static const std::string compiledAssetsAndroid;   // Assets/CompiledAssets/android
+
+	// Helper to get the asset compiler path (handles debug/release)
+	static std::filesystem::path GetAssetCompilerPath();
+
+	// Helper to get platform-specific compiled assets path
+	static const std::string& GetCompiledAssetsPath();
 
 	// Assets subfolders
 	static const std::string shadersSave;

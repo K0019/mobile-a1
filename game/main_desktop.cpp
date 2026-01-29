@@ -5,6 +5,7 @@
 #define WIN32_LEAN_AND_MEAN
 #endif
 #include <windows.h>
+#include <cstdio>
 #include "application.h"
 #include "core/engine/engine.h"
 #include <stdexcept>
@@ -13,9 +14,24 @@
 #undef APIENTRY
 #endif
 
+// Allocate a debug console for viewing log output
+static void AllocateDebugConsole() {
+    if (AllocConsole()) {
+        FILE* fp = nullptr;
+        freopen_s(&fp, "CONOUT$", "w", stdout);
+        freopen_s(&fp, "CONOUT$", "w", stderr);
+        freopen_s(&fp, "CONIN$", "r", stdin);
+        SetConsoleTitleA("MagicGame Debug Console");
+        printf("Debug console initialized\n");
+    }
+}
+
 int WINAPI WinMain([[maybe_unused]] HINSTANCE hInstance, [[maybe_unused]] HINSTANCE hPrevInstance, [[maybe_unused]] LPSTR lpCmdLine, [[maybe_unused]] int nCmdShow)
 {
     _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
+
+    // Enable debug console for troubleshooting
+    AllocateDebugConsole();
 
     Core::Platform::Config platformConfig{
         .displayWidth = 1920,
@@ -23,10 +39,10 @@ int WINAPI WinMain([[maybe_unused]] HINSTANCE hInstance, [[maybe_unused]] HINSTA
         .appName = "MagicGame",
         .enableValidation = false,  // Disable validation for game builds
         .logFilename = "game.log",
-        .logToConsole = false,
+        .logToConsole = true,   // Enable console logging for debug
         .logToFile = true,
         .overwriteLog = true,
-        .logLevel = Warning};
+        .logLevel = Trace};     // Show all log levels for debugging
 
     if(!Core::Platform::Get().Initialize(platformConfig)) {
         MessageBoxA(NULL, "Failed to initialize platform", "Initialization Error", MB_OK | MB_ICONERROR);

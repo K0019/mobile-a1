@@ -9,7 +9,6 @@
 #include <vector>
 #include "animation_clip.h"
 #include "morph_set.h"
-#include "offsetAllocator.hpp"
 #include "processed_assets.h"
 #include "renderer/gpu_data.h"
 #include "resource_pool.h"
@@ -41,12 +40,6 @@ namespace Resource
 
     FontHandle createFont(const ProcessedFont& font);
 
-    size_t getUsedVertexBytes() const;
-
-    uint32_t getVertexBufferVersion() const;
-
-    void bumpVertexBufferVersion();
-
     // Batch asset creation
     std::vector<MeshHandle> createMeshBatch(const std::vector<ProcessedMesh>& meshes);
 
@@ -56,6 +49,8 @@ namespace Resource
 
     // Animation assets
     ClipId createClip(const ProcessedAnimationClip& clip);
+
+    void freeClip(ClipId id);
 
     const AnimationClip& Clip(ClipId id) const;
 
@@ -68,11 +63,13 @@ namespace Resource
 
     const ResourceTraits<MeshAsset>::ColdData* getMeshMetadata(MeshHandle handle) const;
 
-    uint32_t getMaterialIndex(MaterialHandle handle) const;
+    uint32_t getTextureUIId(TextureHandle handle) const;
 
-    uint32_t getTextureBindlessIndex(TextureHandle handle) const;
+    const ResourceTraits<TextureAsset>::HotData* getTextureHotData(TextureHandle handle) const;
 
     const Material* getMaterialCPU(MaterialHandle handle) const;
+
+    const ResourceTraits<MaterialAsset>::HotData* getMaterialHotData(MaterialHandle handle) const;
 
     const ResourceTraits<FontAsset>::HotData* getFont(FontHandle handle) const;
 
@@ -80,7 +77,7 @@ namespace Resource
 
     const FontGlyph* getFontGlyph(FontHandle handle, uint32_t codepoint) const;
 
-    uint32_t getFontTextureBindlessIndex(FontHandle handle) const;
+    uint32_t getFontTextureUIId(FontHandle handle) const;
 
     FontHandle getDefaultUIFont() const;
 
@@ -97,9 +94,6 @@ namespace Resource
 
     void freeFont(FontHandle handle);
 
-    // Upload synchronization
-    void FlushUploads();
-
   private:
     // Core systems
     Context* m_context;
@@ -107,54 +101,11 @@ namespace Resource
 
     void loadDefaultUIFont();
 
-    uint32_t m_vertexBufferVersion = 1; // start at 1, 0 = uninitialized
     // Asset storage
     ResourcePool<MeshAsset> m_meshPool;
     ResourcePool<MaterialAsset> m_materialPool;
     ResourcePool<TextureAsset> m_texturePool;
     ResourcePool<FontAsset> m_fontPool;
-    // Memory allocators with mutexes  
-    mutable std::mutex m_meshAllocatorMutex;
-    mutable std::mutex m_materialAllocatorMutex;
-    OffsetAllocator::Allocator m_vertexAllocator;
-    OffsetAllocator::Allocator m_indexAllocator;
-    OffsetAllocator::Allocator m_materialAllocator;
-    OffsetAllocator::Allocator m_meshDecompAllocator;
-    OffsetAllocator::Allocator m_skinningAllocator;
-    OffsetAllocator::Allocator m_morphDeltaAllocator;
-    OffsetAllocator::Allocator m_morphBaseAllocator;
-    OffsetAllocator::Allocator m_morphCountAllocator;
-
-    // Pending upload structures
-    struct PendingMeshUpload
-    {
-      std::vector<CompressedVertex> compressedVertices; // Compressed on CPU
-      std::vector<uint32_t> indices;
-      std::vector<GPUSkinningData> skinningData;
-      std::vector<GPUMorphDelta> morphDeltas;
-      std::vector<uint32_t> morphVertexStarts;
-      std::vector<uint32_t> morphVertexCounts;
-      MeshDecompressionData decompressionData; // Decompression parameters
-      OffsetAllocator::Allocation vertexAlloc;
-      OffsetAllocator::Allocation indexAlloc;
-      OffsetAllocator::Allocation meshDecompAlloc; // Decompression data allocation
-      OffsetAllocator::Allocation skinningAlloc;
-      OffsetAllocator::Allocation morphDeltaAlloc;
-      OffsetAllocator::Allocation morphVertexStartAlloc;
-      OffsetAllocator::Allocation morphVertexCountAlloc;
-    };
-
-    struct PendingMaterialUpload
-    {
-      MaterialData data;
-      OffsetAllocator::Allocation materialAlloc;
-    };
-
-    // Pending upload queues
-    std::mutex m_pendingMeshesMutex;
-    std::vector<PendingMeshUpload> m_pendingMeshes;
-    std::mutex m_pendingMaterialsMutex;
-    std::vector<PendingMaterialUpload> m_pendingMaterials;
     // Asset caches
     mutable std::shared_mutex m_cacheMutex;
     std::unordered_map<std::string, MeshHandle> m_meshCache;
@@ -173,20 +124,9 @@ namespace Resource
 
     void resolveWaitingMaterials_nolock(const std::string& textureCacheKey);
 
-    // Upload batch processing
-    void uploadMeshBatch(const std::vector<PendingMeshUpload>& meshes);
-
-    void uploadMaterialBatch(std::vector<PendingMaterialUpload>& materials);
-
     SkeletonId registerSkeleton(const ProcessedSkeleton& skeleton);
 
     MorphSetId registerMorphSet(const std::vector<MeshMorphTargetInfo>& morphTargets);
-
-    template <typename Container, typename AllocSelector, typename DataSelector>
-    void uploadContiguousBatches(const Container& items, vk::BufferHandle targetBuffer, AllocSelector&& allocSelector,
-                                 DataSelector&& dataSelector);
-
-    void deduplicateMaterialUploads(std::vector<PendingMaterialUpload>& materials);
 
     // Cache key generation
     static std::string generateMeshCacheKey(const ProcessedMesh& mesh);
@@ -198,6 +138,8 @@ namespace Resource
     static std::string generateFontCacheKey(const ProcessedFont& font);
 
     std::vector<Resource::AnimationClip> m_clips;
+    std::vector<uint32_t> m_clipGenerations;  // Generation per slot for future validation
+    std::vector<uint32_t> m_freeClipSlots;    // Free slot indices for reuse
     std::vector<Resource::Skeleton> m_skeletons;
     std::vector<Resource::MorphSet> m_morphSets;
   };

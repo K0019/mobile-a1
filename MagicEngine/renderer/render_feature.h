@@ -1,5 +1,6 @@
 #pragma once
 #include <cstdint>
+#include "frame_data.h"  // For RenderFeatureId, FeatureMask
 constexpr uint32_t MAX_FRAMES_IN_FLIGHT = 3;
 
 namespace internal
@@ -12,6 +13,9 @@ class IRenderFeature
 {
 public:
   virtual ~IRenderFeature() = default;
+
+  virtual void SetFeatureId(RenderFeatureId id) { featureId_ = id; }
+  virtual RenderFeatureId GetFeatureId() const { return featureId_; }
 
   //DEFINE THESE
   virtual const char* GetName() const = 0;
@@ -27,8 +31,11 @@ public:
 
   //stores the buffer that the game thread wrote to for rendering,
   //and returns the new pointer to the game thread,
-  //IT IS THE RENDER THREAD'S JOB TO CALL THIS. 
+  //IT IS THE RENDER THREAD'S JOB TO CALL THIS.
   virtual void* SwapBuffersForGT_RT() = 0;
+
+protected:
+  RenderFeatureId featureId_ = 0;
 };
 
 template <typename Params, int BufferCount = MAX_FRAMES_IN_FLIGHT>

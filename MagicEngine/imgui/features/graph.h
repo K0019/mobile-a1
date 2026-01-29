@@ -1,5 +1,4 @@
 ﻿#pragma once
-#include "renderer/interface.h"
 #include <deque>
 #include <vector>
 #include "implot.h"

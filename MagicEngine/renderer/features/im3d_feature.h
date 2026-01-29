@@ -1,7 +1,7 @@
 #pragma once
-#include "renderer/interface.h"
+#include "renderer/gfx_interface.h"
 #include "renderer/render_graph.h"
-#include "im3d.h"
+#include <im3d.h>
 #include <vector>
 
 namespace render_feature_internal
@@ -37,14 +37,14 @@ private:
 
   uint32_t cachedSamples_ = 1;
   // Shader modules
-  vk::Holder<vk::ShaderModuleHandle> pointVS_;
-  vk::Holder<vk::ShaderModuleHandle> pointFS_;
-  vk::Holder<vk::ShaderModuleHandle> lineVS_;
-  vk::Holder<vk::ShaderModuleHandle> lineFS_;
-  vk::Holder<vk::ShaderModuleHandle> triVS_;
-  vk::Holder<vk::ShaderModuleHandle> triFS_;
+  gfx::Holder<gfx::Shader> pointVS_;
+  gfx::Holder<gfx::Shader> pointFS_;
+  gfx::Holder<gfx::Shader> lineVS_;
+  gfx::Holder<gfx::Shader> lineFS_;
+  gfx::Holder<gfx::Shader> triVS_;
+  gfx::Holder<gfx::Shader> triFS_;
   // Pipelines (fixed topology)
-  vk::Holder<vk::RenderPipelineHandle> pointPipeline_;
-  vk::Holder<vk::RenderPipelineHandle> linePipeline_;
-  vk::Holder<vk::RenderPipelineHandle> trianglePipeline_;
+  gfx::Holder<gfx::Pipeline> pointPipeline_;
+  gfx::Holder<gfx::Pipeline> linePipeline_;
+  gfx::Holder<gfx::Pipeline> trianglePipeline_;
 };

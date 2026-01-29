@@ -30,6 +30,8 @@ All rights reserved.
 #include "Engine/Graphics Interface/GraphicsAPI.h"
 #include "Engine/Events/EventsQueue.h"
 #include "Engine/Events/EventsTypeBasic.h"
+#include "Editor/EditorCameraBridge.h"
+#include "ImGuizmo.h"
 
 CustomViewport::CustomViewport(unsigned int width, unsigned int height)
 	: WindowBase{ "Viewport", { 1366, 768 }, gui::FLAG_WINDOW::NO_SCROLL_BAR | gui::FLAG_WINDOW::NO_SCROLL_WITH_MOUSE }
@@ -64,13 +66,11 @@ void CustomViewport::OnDetached()
 
 void CustomViewport::DrawContainer(int id)
 {
-#ifdef IMGUI_ENABLED
 	gui::SetStyleVar windowPadding{ gui::FLAG_STYLE_VAR::WINDOW_PADDING, gui::Vec2{ 0, 0 } };
 
 	// Set size constraints for undocked windows
 	if (!ImGui::GetCurrentWindow()->DockIsActive)
 		ImGui::SetNextWindowSizeConstraints(gui::Vec2{ 100, 100 }, gui::Vec2{ FLT_MAX, FLT_MAX }, MaintainAspectRatio, this);
-#endif
 
 	WindowBase::DrawContainer(id);
 }
@@ -89,8 +89,6 @@ void CustomViewport::DrawWindow()
 	// Camera upload (should also be moved...)
 	ST<GraphicsMain>::Get()->SetViewCamera(GetViewportCamera());
 
-
-#ifdef IMGUI_ENABLED
 	const float playControlsHeight = 22.0f; // Height of play controls bar
 	DrawPlayControls();
 
@@ -134,12 +132,13 @@ void CustomViewport::DrawWindow()
 	contentMax = ImVec2(padding.x + renderSize.x,
 		padding.y + renderSize.y + titleBarHeight + playControlsHeight);
 
-	// 1) Draw the scene texture first
+	// 1) Draw the scene texture first (from GfxRenderer's view output)
 	ImGui::SetCursorPos(ImVec2(padding.x, padding.y + titleBarHeight + playControlsHeight));
-	if (auto sceneColorID = ST<GraphicsMain>::Get()->GetImGuiContext()
-		.GetTransientRegistry().QueryBindlessID("ImGuiSceneView"))
+	uint64_t sceneTextureId = ST<GraphicsMain>::Get()->GetSceneViewTextureId();
+	if (sceneTextureId != 0)
 	{
-		ImGui::Image(*sceneColorID, renderSize, ImVec2(0, 0), ImVec2(1, 1));
+		// UV flipped vertically: scene rendered with Vulkan Y-flip, so flip V to display right-side up
+		ImGui::Image(static_cast<ImTextureID>(sceneTextureId), renderSize, ImVec2(0, 1), ImVec2(1, 0));
 	}
 
 	// Draw and update gizmo
@@ -149,8 +148,33 @@ void CustomViewport::DrawWindow()
 	bool isEditorMode{ ST<GameSystemsManager>::Get()->GetState() == GAMESTATE::EDITOR };
 	if (isEditorMode)
 	{
-		// Left click to pick objects (when not dragging gizmos or camera with right mouse)
-		if (!isDraggingGizmo && ST<KeyboardMouseInput>::Get()->GetIsPressed(KEY::M_LEFT) && !ST<KeyboardMouseInput>::Get()->GetIsDown(KEY::M_RIGHT))
+		// Publish camera matrices for gizmo rendering (use frameData which has the computed projection)
+		FrameData& fd = ST<GraphicsMain>::Get()->INTERNAL_GetFrameData();
+		glm::mat4 projForGizmo = fd.projMatrix;
+		projForGizmo[1][1] *= -1.0f; // Undo Vulkan Y-flip for ImGuizmo (expects OpenGL-style projection)
+		EditorCam_Publish(fd.viewMatrix, projForGizmo, false);
+
+		// Draw gizmo BEFORE picking logic so we can check ImGuizmo state
+		m_gizmo.Draw(ST<EventsQueue>::Get()->RequestValueFromEventHandlers<ecs::EntityHandle>(Getters::EditorSelectedEntity{}).value_or(nullptr));
+
+		// Track if gizmo was being used this frame (for blocking picks after drag release)
+		static bool wasUsingGizmo = false;
+		bool gizmoInUse = ImGuizmo::IsUsing();
+		bool gizmoHovered = ImGuizmo::IsOver();
+
+		// Left click to pick objects (when not dragging camera with right mouse)
+		static bool wasLeftMouseDown = false;
+		bool isLeftMouseDown = Input::GetMouseButtonUp(MouseButton::Left);
+		bool leftClickJustPressed = isLeftMouseDown && !wasLeftMouseDown;
+		wasLeftMouseDown = isLeftMouseDown;
+
+		// Skip picking if:
+		// - Gizmo is currently being used (shouldn't happen on release frame, but safety check)
+		// - Gizmo was being used last frame (user just released after dragging)
+		// - Gizmo is being hovered (user clicked on gizmo)
+		bool blockPicking = gizmoInUse || wasUsingGizmo || gizmoHovered;
+
+		if (leftClickJustPressed && !Input::GetMouseButton(MouseButton::Right) && !blockPicking)
 		{
 			ImVec2 mousePos = ImGui::GetMousePos();
 
@@ -164,13 +188,7 @@ void CustomViewport::DrawWindow()
 
 			if (isInViewport)
 			{
-				// Get the actual render target dimensions
-				auto sceneColorID = ST<GraphicsMain>::Get()->GetImGuiContext()
-					.GetTransientRegistry().QueryBindlessID("ImGuiSceneView");
-
 				// Calculate the actual render target size
-				// You may need to get this from your graphics system
-				// For now, assuming it matches your configured width/height
 				float renderTargetWidth = static_cast<float>(width);
 				float renderTargetHeight = static_cast<float>(height);
 
@@ -193,7 +211,18 @@ void CustomViewport::DrawWindow()
 				ST<EventsQueue>::Get()->AddEventForNextFrame(Events::EditorSelectEntity{ pickedEntity });
 		}
 
+		// Update gizmo usage tracking for next frame
+		wasUsingGizmo = gizmoInUse;
+
+		// Check for pick result from previous frame
+		ecs::EntityHandle pickedEntity = ST<GraphicsMain>::Get()->PreviousPick();
+		if (pickedEntity)
+		{
+			ST<EventsQueue>::Get()->AddEventForNextFrame(Events::EditorSelectEntity{ pickedEntity });
+		}
+
 		//==========================
+
 		gui::PayloadTarget<std::string>("PREFAB", [camera = &camera](const std::string& prefabName) -> void {
 			ecs::EntityHandle entity{ PrefabManager::LoadPrefab(prefabName) };
 			ST<History>::Get()->OneEvent(HistoryEvent_EntityCreate{ entity });
@@ -201,7 +230,6 @@ void CustomViewport::DrawWindow()
 			ST<EventsQueue>::Get()->AddEventForNextFrame(Events::EditorSelectEntity{ entity });
 		});
 	}
-#endif
 }
 
 void CustomViewport::Init(unsigned newWidth, unsigned newHeight)
@@ -248,8 +276,6 @@ void CustomViewport::UpdateCameraControl()
 
 	camera.update(GameTime::Dt(), mouse_delta, ST<KeyboardMouseInput>::Get()->GetIsDown(KEY::M_RIGHT));
 }
-
-#ifdef IMGUI_ENABLED
 
 void CustomViewport::DrawPlayControls() {
 	constexpr float TOOLBAR_HEIGHT = 22.0f;
@@ -388,16 +414,9 @@ void CustomViewport::MaintainAspectRatio(ImGuiSizeCallbackData* data) {
 	data->DesiredSize.y = availableHeight + titleBarHeight + playControlsHeight;
 }
 
-#endif
-
 Transform CustomViewport::WorldToWindowTransform([[maybe_unused]] const Transform& worldTransform) const {
 	Transform viewTransform;
-#ifdef IMGUI_ENABLED
 	auto WORLD = ST<GraphicsWindow>::Get()->GetViewportExtent();
-#else
-	auto WORLD = ST<GraphicsWindow>::Get()->GetWorldExtent();
-	auto WINDOW = ST<GraphicsWindow>::Get()->GetWindowExtent();
-#endif
 
 	CONSOLE_LOG_UNIMPLEMENTED() << "Viewport, world to window position conversion";
 
@@ -486,7 +505,6 @@ Vec3 CustomViewport::WindowToWorldPosition([[maybe_unused]] const Vec2& inWindow
 
 bool CustomViewport::IsMouseInViewport([[maybe_unused]] const Vec2& mousePos) const
 {
-#ifdef IMGUI_ENABLED
 	bool within_viewport = mousePos.x >= windowPosAbsolute.x + contentMin.x &&
 		mousePos.x < windowPosAbsolute.x + contentMin.x + viewportRenderSize.x &&
 		mousePos.y >= windowPosAbsolute.y + contentMin.y &&
@@ -509,7 +527,6 @@ bool CustomViewport::IsMouseInViewport([[maybe_unused]] const Vec2& mousePos) co
 			return false;
 		}
 	}
-#endif
 
 	// Check for any popups or modal windows that might be blocking
 	/*if(g.NavWindow && g.NavWindow->RootWindow != window->RootWindow) {

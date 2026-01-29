@@ -1,5 +1,5 @@
 #pragma once
-#include <renderer/interface.h>
+#include <renderer/gfx_interface.h>
 #include <renderer/render_graph.h>
 // Forward declaration
 struct ImDrawData;
@@ -38,10 +38,8 @@ namespace editor
 
     void EnsurePipelineCreated(const internal::ExecutionContext& context);
 
-    vk::Holder<vk::ShaderModuleHandle> vertShader_;
-    vk::Holder<vk::ShaderModuleHandle> fragShader_;
-    vk::Holder<vk::RenderPipelineHandle> pipeline_;
-    vk::Holder<vk::SamplerHandle> fontSampler_;
+    gfx::Holder<gfx::Pipeline> pipeline_;
+    gfx::Holder<gfx::Sampler> fontSampler_;
     bool resourcesCreated_ = false;
   };
 } // namespace editor

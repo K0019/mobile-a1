@@ -25,6 +25,7 @@ All rights reserved.
 
 struct Context;
 struct FrameData;
+struct RenderFrameData;
 
 /*****************************************************************//*!
 \class MagicEngine
@@ -44,8 +45,8 @@ public:
     MagicEngine(MagicEngine&&) = default;
     MagicEngine& operator=(MagicEngine&&) = default;
 
-    void Init(Context& context);
-    void ExecuteFrame(FrameData& frameData);
+    void Init(Context& context, bool startInGameMode = false);
+    void ExecuteFrame(RenderFrameData& frameData);
     void shutdown();
 
 private:

@@ -18,7 +18,6 @@ All content � 2025 DigiPen Institute of Technology Singapore.
 All rights reserved.
 */
 /******************************************************************************/
-#ifdef IMGUI_ENABLED
 #include <glm/ext.hpp>
 #include "Editor/Gizmo.h"
 #include "ImGui/ImguiHeader.h"
@@ -47,7 +46,7 @@ namespace editor {
         //MUST PUT to allow gizmo to overlap the Image
         ImGui::SetItemAllowOverlap();
 
-        //Compute the rect of the just-drawn Image 
+        //Compute the rect of the just-drawn Image
         ImVec2 imgMin = ImGui::GetItemRectMin();
         ImVec2 imgSize = ImGui::GetItemRectSize();
 
@@ -61,7 +60,7 @@ namespace editor {
         ImGuizmo::SetDrawlist(ImGui::GetWindowDrawList());
         ImGuizmo::SetRect(imgMin.x, imgMin.y, imgSize.x, imgSize.y);
 
-        // 5) View/Proj 
+        // 5) View/Proj
         glm::mat4 V(1.f), P(1.f);
         bool isOrtho = false;
         if (!EditorCam_TryGet(V, P, isOrtho))
@@ -73,7 +72,7 @@ namespace editor {
         std::memcpy(view, glm::value_ptr(V), sizeof(view));
         std::memcpy(proj, glm::value_ptr(P), sizeof(proj));
 
-        // 6) Object/world matrix of selected entity 
+        // 6) Object/world matrix of selected entity
         glm::mat4 M(1.f);
         if (auto sel = ST<EventsQueue>::Get()->RequestValueFromEventHandlers<ecs::EntityHandle>(Getters::EditorSelectedEntity{}).value_or(nullptr))
         {
@@ -162,5 +161,3 @@ namespace editor {
     }
 
 }
-
-#endif

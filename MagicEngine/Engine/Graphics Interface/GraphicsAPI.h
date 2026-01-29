@@ -19,7 +19,7 @@ All rights reserved.
 /******************************************************************************/
 
 #pragma once
-#include "renderer/renderer.h"
+#include "renderer/gfx_renderer.h"
 #include "resource/resource_manager.h"
 #include "imgui/base/imgui_context.h"
 #include "Engine/Graphics Interface/GraphicsWindow.h"
@@ -27,6 +27,7 @@ All rights reserved.
 #include "renderer/ui/ui_immediate.h"
 #include "resource/resource_types.h"
 #include "math/camera.h"
+#include "renderer/frame_data.h"
 
 class GraphicsMain
 {
@@ -36,11 +37,10 @@ public:
     void Init(Context inContext);
 
     void BeginFrame();
-#ifdef IMGUI_ENABLED
     void BeginImGuiFrame();
     void EndImGuiFrame();
-#endif
     void EndFrame(FrameData* outFrameData);
+    void EndFrame(RenderFrameData* outRenderFrameData);  // Populates ALL views with camera matrices
 
     void SetPendingShutdown();
     bool GetIsPendingShutdown() const;
@@ -51,16 +51,40 @@ public:
     // Grid control
     void SetGridEnabled(bool enabled);
 
+    // Feature handle setters - called by Application after creating features
+    void SetSceneFeatureHandle(uint64_t handle) { sceneFeatureHandle = handle; }
+    void SetGridFeatureHandle(uint64_t handle) { gridHandle = handle; }
+    void SetUI2DFeatureHandle(uint64_t handle) { ui2dFeatureHandle = handle; }
+    void SetIm3DFeatureHandle(uint64_t handle) { im3dHandle = handle; }
+
+    // Feature handle getters - for code that needs to reference features
+    uint64_t GetSceneFeatureHandle() const { return sceneFeatureHandle; }
+    uint64_t GetGridFeatureHandle() const { return gridHandle; }
+    uint64_t GetUI2DFeatureHandle() const { return ui2dFeatureHandle; }
+    uint64_t GetIm3DFeatureHandle() const { return im3dHandle; }
+
+    // Initialize UI2D overlay (call after setting UI2D feature handle)
+    void InitializeUI2DOverlay();
+
+    // Initialize ImGui - call from Editor Application only (not for Game)
+    void InitializeImGui(const std::string& fontfile);
+
+    // Scene view texture - returns ViewOutput texture ID for ImGui viewport display
+    uint64_t GetSceneViewTextureId() const {
+        if (context.renderer) {
+            return context.renderer->getViewOutputTextureId(ViewId::Scene);
+        }
+        return 0;
+    }
+
 public:
     FrameData& INTERNAL_GetFrameData();
     bool RequestObjPick(int mouseX, int mouseY);
     ecs::EntityHandle PreviousPick();
 
 private:
-#ifdef IMGUI_ENABLED
     void InitImGui(const std::string& fontfile);
     void SetImGuiStyle();
-#endif
     void InitFont(const std::string& fontfile);
     void UploadToPipeline(FrameData* outFrameData);
 
@@ -69,9 +93,7 @@ private:
 public:
     // For compatibility with whatever old graphics interfaces are still here
     // Remove if possible once everything settles
-#ifdef IMGUI_ENABLED
     editor::ImGuiContext& GetImGuiContext();
-#endif
     Resource::ResourceManager& GetAssetSystem();
     ui::ImmediateGui& GetImmediateGui();
 
@@ -82,9 +104,7 @@ private:
     void InitDefaultSkybox();
 
 private:
-#ifdef IMGUI_ENABLED
     UPtr<editor::ImGuiContext> imguiContext;
-#endif
 
     Context context;
 
@@ -101,6 +121,11 @@ private:
 
     // Default skybox
     uint32_t defaultSkyboxBindlessIndex = 0;
+    TextureHandle defaultSkyboxHandle;
+
+public:
+    // Skybox texture access
+    TextureHandle GetDefaultSkyboxHandle() const { return defaultSkyboxHandle; }
 
 };
 

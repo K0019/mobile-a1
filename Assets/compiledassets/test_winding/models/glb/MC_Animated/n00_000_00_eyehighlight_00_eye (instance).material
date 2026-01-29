@@ -1,0 +1,43 @@
+{
+    "name": "N00_000_00_EyeHighlight_00_EYE (Instance)",
+    "alphaMode": "Opaque",
+    "alphaCutoff": 0.5,
+    "metallicFactor": 0.0,
+    "roughnessFactor": 0.5,
+    "normalScale": 1.0,
+    "occlusionStrength": 1.0,
+    "baseColorFactor": [
+        1.0,
+        1.0,
+        1.0,
+        1.0
+    ],
+    "emissiveFactor": [
+        1.0,
+        1.0,
+        1.0
+    ],
+    "textures": [
+        {
+            "key": "baseColor",
+            "value": "compiledassets/test_winding/models/glb/MC_Animated/_03.ktx2"
+        },
+        {
+            "key": "metallicRoughness",
+            "value": ""
+        },
+        {
+            "key": "normal",
+            "value": "compiledassets/test_winding/models/glb/MC_Animated/Shader_NoneNormal.ktx2"
+        },
+        {
+            "key": "emissive",
+            "value": "compiledassets/test_winding/models/glb/MC_Animated/Shader_NoneBlack.ktx2"
+        },
+        {
+            "key": "occlusion",
+            "value": ""
+        }
+    ],
+    "flags": 4
+}

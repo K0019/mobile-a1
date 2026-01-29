@@ -5,6 +5,7 @@
 #include "resource/animation_ids.h"
 #include "resource/font_types.h"
 #include "renderer/scene.h"
+#include "renderer/gfx_interface.h"
 #ifndef NOMINMAX
 #define NOMINMAX
 #endif
@@ -15,12 +16,14 @@ namespace Resource
     TextureDataSource source;
     std::string name;
     std::vector<uint8_t> data;
-    vk::TextureDesc textureDesc;
+    gfx::TextureMetadata textureDesc;
     uint32_t width = 0;
     uint32_t height = 0;
     uint32_t channels = 0;
     bool sRGB = true;
     size_t originalFileSize = 0;
+
+    bool isValid() const { return !data.empty() && width > 0 && height > 0; }
   };
 
   static constexpr uint32_t INVALID_BONE_INDEX = static_cast<uint32_t>(-1);
@@ -102,6 +105,8 @@ namespace Resource
     float ticksPerSecond = 0.0f;
     std::vector<ProcessedAnimationChannel> skeletalChannels;
     std::vector<ProcessedMorphChannel> morphChannels;
+
+    bool isValid() const { return duration > 0.0f && ticksPerSecond > 0.0f; }
   };
 
   struct ProcessedMesh
@@ -114,6 +119,54 @@ namespace Resource
     std::vector<SkinningData> skinning;
     ProcessedSkeleton skeleton;
     std::vector<MorphTargetData> morphTargets;
+
+    bool isValid() const { return !vertices.empty(); }
+  };
+
+  /**
+   * @brief Lightweight info about a submesh (for queries without full load)
+   */
+  struct SubmeshInfo
+  {
+    std::string name;
+    std::string materialName;
+    vec4 bounds{ 0, 0, 0, 1 };
+    uint32_t vertexCount = 0;
+    uint32_t indexCount = 0;
+  };
+
+  /**
+   * @brief Metadata about a mesh file without loading vertex data
+   */
+  struct MeshFileInfo
+  {
+    std::string sourcePath;
+    std::vector<SubmeshInfo> submeshes;
+    bool hasSkeleton = false;
+    bool hasMorphs = false;
+    uint32_t totalVertices = 0;
+    uint32_t totalIndices = 0;
+  };
+
+  /**
+   * @brief A submesh with its associated material path
+   */
+  struct ModelSubmesh
+  {
+    ProcessedMesh mesh;
+    std::string materialPath;  // Path to .material file (derived from embedded name)
+  };
+
+  /**
+   * @brief A complete model with all submeshes and shared skeleton
+   */
+  struct ProcessedModel
+  {
+    std::string sourcePath;
+    std::vector<ModelSubmesh> submeshes;
+    ProcessedSkeleton skeleton;  // Shared skeleton for all submeshes
+    bool hasSkeleton = false;
+    bool hasMorphs = false;
   };
 
   struct ProcessedMaterial
@@ -148,6 +201,16 @@ namespace Resource
     AlphaMode getAlphaModeFromFlags() const
     {
       return static_cast<AlphaMode>(flags & ALPHA_MODE_MASK);
+    }
+
+    bool isValid() const
+    {
+      // A material is valid if it has reasonable PBR values
+      return metallicFactor >= 0.0f && metallicFactor <= 1.0f &&
+             roughnessFactor >= 0.0f && roughnessFactor <= 1.0f &&
+             alphaCutoff >= 0.0f && alphaCutoff <= 1.0f &&
+             normalScale >= 0.0f &&
+             occlusionStrength >= 0.0f && occlusionStrength <= 1.0f;
     }
   };
 

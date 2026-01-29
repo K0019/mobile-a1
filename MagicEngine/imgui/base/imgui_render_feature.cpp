@@ -1,118 +1,98 @@
 #include "imgui_render_feature.h"
+#include "renderer/gfx_renderer.h"
+#include "renderer/hina_context.h"
+#include "logging/log.h"
 #include <imgui.h>
 #include <cassert>
 #include <algorithm>
 #include <cstring>
 #include <utility>
+#include <iostream>
 
 namespace editor
 {
-  // ImGui shaders - corrected push constants
-  static const char* kVertexShader = R"(
-layout (location = 0) out vec4 out_color;
-layout (location = 1) out vec2 out_uv;
+  // ImGui shader in HSL format (matching GfxRenderer style)
+  static const char* kImGuiShader = R"(#hina
+group ImGui = 0;
 
-struct Vertex {
-    float x, y;
-    float u, v;
-    uint rgba;
-};
+bindings(ImGui, start=0) {
+  texture sampler2D u_texture;
+}
 
-layout(std430, buffer_reference) readonly buffer VertexBuffer {
-    Vertex vertices[];
-};
-
-layout(push_constant) uniform PushConstants {
-    vec4 LRTB;          // Left, Right, Top, Bottom for orthographic projection
-    VertexBuffer vb;        // Fixed: was VertexBuffer, now uint64_t for GPU address
-    uint textureId;
-    uint samplerId;
+push_constant PushConstants {
+  vec2 scale;
+  vec2 translate;
 } pc;
 
-void main() {
-    float L = pc.LRTB.x;
-    float R = pc.LRTB.y;
-    float T = pc.LRTB.z;
-    float B = pc.LRTB.w;
-    
-    // Orthographic projection matrix
-    mat4 proj = mat4(
-        2.0 / (R - L),                   0.0,  0.0, 0.0,
-        0.0,                   2.0 / (T - B),  0.0, 0.0,
-        0.0,                             0.0, -1.0, 0.0,
-        (R + L) / (L - R), (T + B) / (B - T),  0.0, 1.0
-    );
-    
-    VertexBuffer vb = VertexBuffer(pc.vb);  // Convert uint64_t to buffer reference
-    Vertex v = vb.vertices[gl_VertexIndex];
-    out_color = unpackUnorm4x8(v.rgba);
-    out_uv = vec2(v.u, v.v);
-    gl_Position = proj * vec4(v.x, v.y, 0, 1);
+struct VertexIn {
+  vec2 a_position;
+  vec2 a_uv;
+  vec4 a_color;
+};
+
+struct Varyings {
+  vec2 uv;
+  vec4 color;
+};
+
+struct FragOut {
+  vec4 color;
+};
+#hina_end
+
+#hina_stage vertex entry VSMain
+Varyings VSMain(VertexIn in) {
+    Varyings out;
+    out.uv = in.a_uv;
+    out.color = in.a_color;
+    gl_Position = vec4(in.a_position * pc.scale + pc.translate, 0.0, 1.0);
+    return out;
 }
-)";
-  static const char* kFragmentShader = R"(
-layout (location = 0) in vec4 in_color;
-layout (location = 1) in vec2 in_uv;
+#hina_end
 
-layout (location = 0) out vec4 out_color;
-
-layout (constant_id = 0) const bool kLinearColorSpace = false;
-
-layout(push_constant) uniform PushConstants {
-  vec4 LRTB;
-  vec2 vb;
-  uint textureId;
-  uint samplerId;
-} pc;
-
-void main() {
-    vec4 c = in_color * texture(nonuniformEXT(sampler2D(kTextures2D[pc.textureId], kSamplers[pc.samplerId])), in_uv);
-    out_color = kLinearColorSpace ? vec4(pow(c.rgb, vec3(2.2)), c.a) : c;
+#hina_stage fragment entry FSMain
+FragOut FSMain(Varyings in) {
+    FragOut out;
+    out.color = in.color * texture(u_texture, in.uv);
+    return out;
 }
+#hina_end
 )";
 
   void ImGuiRenderFeature::SetupPasses(internal::RenderPassBuilder& passBuilder)
   {
-    vk::BufferDesc vertexDesc{
-      .usage = vk::BufferUsageBits_Storage, .storage = vk::StorageType::HostVisible, .size = 64 * 1024,
+    gfx::BufferDesc vertexDesc{
+      .size = 64 * 1024,
+      .memory = gfx::BufferMemory::CPU,
+      .usage = gfx::BufferUsage::Vertex
     };
-    vk::BufferDesc indexDesc{
-      .usage = vk::BufferUsageBits_Index, .storage = vk::StorageType::HostVisible, .size = 32 * 1024,
+    gfx::BufferDesc indexDesc{
+      .size = 32 * 1024,
+      .memory = gfx::BufferMemory::CPU,
+      .usage = gfx::BufferUsage::Index
     };
 
-    // ImGui renders directly to swapchain, so use swapchain image as render target
-    // This avoids the need to recompile the render graph on window resize
-    // since ImGui vertex/index buffers are independent of scene rendering
+    // ImGui renders to VIEW_OUTPUT (intermediate texture), then FinalBlit copies to swapchain
+    // ImGui draws the entire editor UI from scratch - it SAMPLES the scene's VIEW_OUTPUT for viewport windows
+    // The editor view's VIEW_OUTPUT is separate from the scene view's VIEW_OUTPUT
     PassDeclarationInfo passInfo;
     passInfo.framebufferDebugName = "ImGuiOverlay";
     passInfo.colorAttachments[0] = {
-      .textureName = RenderResources::SWAPCHAIN_IMAGE, .loadOp = vk::LoadOp::Load, .storeOp = vk::StoreOp::Store,
+      .textureName = RenderResources::VIEW_OUTPUT,
+      .loadOp = gfx::LoadOp::Clear,  // Clear - ImGui draws entire UI from scratch
+      .storeOp = gfx::StoreOp::Store,
+      .clearColor = {0.1f, 0.1f, 0.1f, 1.0f}  // Dark gray background for editor
     };
 
-    // Copy scene color to a view texture at fixed internal resolution for ImGui scene viewports
-    // This uses the fixed internal resolution, not swapchain-relative
-    passBuilder.CreatePass().DeclareTransientResource("ImGuiSceneView", vk::TextureDesc{
-                                                        .type = vk::TextureType::Tex2D, .format = vk::Format::Invalid,
-                                                        .dimensions = ResourceProperties::INTERNAL_RESOLUTION_DIMENSIONS,
-                                                        .usage = vk::TextureUsageBits_Sampled
-                                                      }).UseResource(RenderResources::SCENE_COLOR, AccessType::Read).
-                UseResource("ImGuiSceneView", AccessType::Write).SetPriority(
-                  internal::RenderPassBuilder::PassPriority::UI).
-                AddGenericPass("CopySceneForImGui", [this](const internal::ExecutionContext& context)
-                {
-                  CopySceneForImGuiView(context);
-                });
-
-    // ImGui rendering pass - renders directly to swapchain at swapchain resolution
-    // This pass comes after FinalBlit (which scales scene to swapchain) and draws UI on top
-    // Priority 700 (Present) ensures it runs after FinalBlit (650)
+    // ImGui rendering pass - draws editor UI to VIEW_OUTPUT
+    // Scene viewports inside ImGui SAMPLE the scene view's VIEW_OUTPUT texture
+    // Priority 650 ensures it runs after scene's ResolveViewOutput (640) but before FinalBlit (700)
     passBuilder.CreatePass().DeclareTransientResource("ImGuiVertexBuffer", vertexDesc).
                 DeclareTransientResource("ImGuiIndexBuffer", indexDesc).
-                UseResource(RenderResources::SWAPCHAIN_IMAGE, AccessType::ReadWrite).
+                UseResource(RenderResources::VIEW_OUTPUT, AccessType::ReadWrite).
                 UseResource("ImGuiVertexBuffer", AccessType::ReadWrite).
                 UseResource("ImGuiIndexBuffer", AccessType::ReadWrite).
-                SetPriority(internal::RenderPassBuilder::PassPriority::Present).ExecuteAfter("CopySceneForImGui").
-                ExecuteAfter("FinalBlit").
+                SetPriority(static_cast<internal::RenderPassBuilder::PassPriority>(650)).
                 AddGraphicsPass("ImGuiRender", passInfo, [this](const internal::ExecutionContext& context)
                 {
                   RenderImGui(context);
@@ -122,13 +102,75 @@ void main() {
   void ImGuiRenderFeature::EnsurePipelineCreated(const internal::ExecutionContext& context)
   {
     if (resourcesCreated_) return;
-    vk::IContext& vkContext = context.GetvkContext();
-    vertShader_ = vkContext.createShaderModule({kVertexShader, vk::ShaderStage::Vert, "ImGui Vertex Shader"});
-    fragShader_ = vkContext.createShaderModule({kFragmentShader, vk::ShaderStage::Frag, "ImGui Fragment Shader"});
-    fontSampler_ = vkContext.createSampler({
-      .wrapU = vk::SamplerWrap::Clamp, .wrapV = vk::SamplerWrap::Clamp, .wrapW = vk::SamplerWrap::Clamp,
-      .debugName = "ImGui Font Sampler"
-    });
+
+    // Create sampler
+    {
+      gfx::SamplerDesc samplerDesc = gfx::samplerDescDefault();
+      samplerDesc.address_u = HINA_ADDRESS_CLAMP_TO_EDGE;
+      samplerDesc.address_v = HINA_ADDRESS_CLAMP_TO_EDGE;
+      samplerDesc.address_w = HINA_ADDRESS_CLAMP_TO_EDGE;
+      fontSampler_.reset(gfx::createSampler(samplerDesc));
+    }
+
+    std::cout << "[ImGuiRenderFeature] Creating pipeline..." << std::endl;
+
+    // Compile HSL shader
+    char* error = nullptr;
+    hina_hsl_module* module = hslc_compile_hsl_source(kImGuiShader, "imgui_feature_shader", &error);
+    if (!module) {
+      std::cout << "[ImGuiRenderFeature] Shader compilation failed: " << (error ? error : "Unknown") << std::endl;
+      if (error) hslc_free_log(error);
+      return;
+    }
+    std::cout << "[ImGuiRenderFeature] Shader compiled successfully" << std::endl;
+
+    // Vertex layout matching ImDrawVert
+    hina_vertex_layout vertex_layout = {};
+    vertex_layout.buffer_count = 1;
+    vertex_layout.buffer_strides[0] = sizeof(ImDrawVert);
+    vertex_layout.input_rates[0] = HINA_VERTEX_INPUT_RATE_VERTEX;
+    vertex_layout.attr_count = 3;
+    vertex_layout.attrs[0] = { HINA_FORMAT_R32G32_SFLOAT, offsetof(ImDrawVert, pos), 0, 0 };
+    vertex_layout.attrs[1] = { HINA_FORMAT_R32G32_SFLOAT, offsetof(ImDrawVert, uv), 1, 0 };
+    vertex_layout.attrs[2] = { HINA_FORMAT_R8G8B8A8_UNORM, offsetof(ImDrawVert, col), 2, 0 };
+
+    // Pipeline descriptor
+    hina_hsl_pipeline_desc pip_desc = hina_hsl_pipeline_desc_default();
+    pip_desc.layout = vertex_layout;
+    pip_desc.cull_mode = HINA_CULL_MODE_NONE;
+    pip_desc.depth.depth_test = false;
+    pip_desc.depth.depth_write = false;
+    pip_desc.blend[0].enable = true;
+    pip_desc.blend[0].src_color = HINA_BLEND_FACTOR_SRC_ALPHA;
+    pip_desc.blend[0].dst_color = HINA_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+    pip_desc.blend[0].color_op = HINA_BLEND_OP_ADD;
+    pip_desc.blend[0].src_alpha = HINA_BLEND_FACTOR_ONE;
+    pip_desc.blend[0].dst_alpha = HINA_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+    pip_desc.blend[0].alpha_op = HINA_BLEND_OP_ADD;
+    pip_desc.depth_format = HINA_FORMAT_UNDEFINED;
+
+    // Use shared UI bind group layout
+    GfxRenderer* gfxRenderer = context.GetGfxRenderer();
+
+    // Use actual swapchain format - VIEW_OUTPUT textures are created with this format
+    // Note: HINA_FORMAT_SWAPCHAIN may not resolve correctly if called before swapchain init
+    HinaContext* hinaCtx = gfxRenderer ? gfxRenderer->getHinaContext() : nullptr;
+    pip_desc.color_formats[0] = hinaCtx ? static_cast<hina_format>(hinaCtx->getSwapchainFormat())
+                                        : HINA_FORMAT_B8G8R8A8_SRGB;
+    gfx::BindGroupLayout uiLayout = gfxRenderer->getUIBindGroupLayout();
+    if (hina_bind_group_layout_is_valid(uiLayout)) {
+      pip_desc.bind_group_layouts[0] = uiLayout;
+    }
+
+    pipeline_.reset(hina_make_pipeline_from_module(module, &pip_desc, nullptr));
+    hslc_hsl_module_free(module);
+
+    if (!hina_pipeline_is_valid(pipeline_.get())) {
+      std::cout << "[ImGuiRenderFeature] Pipeline creation failed" << std::endl;
+      return;
+    }
+
+    std::cout << "[ImGuiRenderFeature] Pipeline created successfully" << std::endl;
     resourcesCreated_ = true;
   }
 
@@ -143,14 +185,16 @@ void main() {
     }
     static_assert(sizeof(ImDrawIdx) == 2, "ImDrawIdx must be 16-bit");
     EnsurePipelineCreated(context);
-    vk::ICommandBuffer& cmd = context.GetvkCommandBuffer();
-    vk::IContext& vkContext = context.GetvkContext();
+
+    gfx::CommandBuffer& cmd = context.GetCommandBuffer();
     const float fbWidth = drawData->DisplaySize.x * drawData->FramebufferScale.x;
     const float fbHeight = drawData->DisplaySize.y * drawData->FramebufferScale.y;
     if (fbWidth <= 0 || fbHeight <= 0) return;
+
     // Calculate required sizes
     const size_t requiredVertexSize = drawData->TotalVtxCount * sizeof(ImDrawVert);
     const size_t requiredIndexSize = drawData->TotalIdxCount * sizeof(ImDrawIdx);
+
     // Resize buffers if needed - render graph handles frame isolation automatically
     if (requiredVertexSize > context.GetBufferSize("ImGuiVertexBuffer"))
     {
@@ -160,13 +204,16 @@ void main() {
     {
       context.ResizeBuffer("ImGuiIndexBuffer", requiredIndexSize);
     }
+
     // Get automatically frame-buffered resources - no manual cycling needed
-    vk::BufferHandle vertexBuffer = context.GetBuffer("ImGuiVertexBuffer");
-    vk::BufferHandle indexBuffer = context.GetBuffer("ImGuiIndexBuffer");
-    // Upload data - same as before but using render graph buffers
+    gfx::Buffer vertexBuffer = context.GetBuffer("ImGuiVertexBuffer");
+    gfx::Buffer indexBuffer = context.GetBuffer("ImGuiIndexBuffer");
+
+    // Upload data using hina buffer operations
+    // Note: Buffers are HOST_COHERENT, so no flush is needed
     {
-      ImDrawVert* vtx = reinterpret_cast<ImDrawVert*>(vkContext.getMappedPtr(vertexBuffer));
-      uint16_t* idx = reinterpret_cast<uint16_t*>(vkContext.getMappedPtr(indexBuffer));
+      ImDrawVert* vtx = static_cast<ImDrawVert*>(hina_mapped_buffer_ptr(vertexBuffer));
+      uint16_t* idx = static_cast<uint16_t*>(hina_mapped_buffer_ptr(indexBuffer));
       for (int n = 0; n < drawData->CmdListsCount; n++)
       {
         const ImDrawList* cmdList = drawData->CmdLists[n];
@@ -175,49 +222,55 @@ void main() {
         vtx += cmdList->VtxBuffer.Size;
         idx += cmdList->IdxBuffer.Size;
       }
-      vkContext.flushMappedMemory(vertexBuffer, 0, requiredVertexSize);
-      vkContext.flushMappedMemory(indexBuffer, 0, requiredIndexSize);
     }
-    // Create pipeline if needed - using swapchain format since we render directly to swapchain
-    if (pipeline_.empty())
-    {
-      const bool needsLinearColorSpace = vkContext.getSwapchainColorSpace() == vk::ColorSpace::SRGB_LINEAR;
-      const uint32_t linearColorSpaceFlag = needsLinearColorSpace ? 1u : 0u;
-      pipeline_ = vkContext.createRenderPipeline({
-                                                   .smVert = vertShader_, .smFrag = fragShader_,
-                                                   .specInfo = {
-                                                     .entries = {
-                                                       {.constantId = 0, .size = sizeof(linearColorSpaceFlag)}
-                                                     },
-                                                     .data = &linearColorSpaceFlag,
-                                                     .dataSize = sizeof(linearColorSpaceFlag)
-                                                   },
-                                                   .color = {
-                                                     {
-                                                       // Use swapchain format since we render directly to swapchain
-                                                       .format = vkContext.getSwapchainFormat(), .blendEnabled = true,
-                                                       .srcRGBBlendFactor = vk::BlendFactor::SrcAlpha,
-                                                       .dstRGBBlendFactor = vk::BlendFactor::OneMinusSrcAlpha,
-                                                     }
-                                                   },
-                                                   .depthFormat = vk::Format::Invalid,
-                                                   .cullMode = vk::CullMode::None, .debugName = "ImGui Render Pipeline"
-                                                 }, nullptr);
+
+    // Check if pipeline was created successfully
+    if (!hina_pipeline_is_valid(pipeline_.get())) {
+      std::cout << "[ImGuiRenderFeature] Pipeline not valid, skipping render" << std::endl;
+      return;
     }
-    // Render setup and commands - unchanged except using render graph buffers
-    cmd.cmdBindDepthState({});
-    cmd.cmdBindViewport({.x = 0.0f, .y = 0.0f, .width = fbWidth, .height = fbHeight,});
+
+    // Calculate scale and translate for NDC projection
+    // These transform vertex positions from ImGui coordinates to NDC [-1, 1]
     const float L = drawData->DisplayPos.x;
     const float R = drawData->DisplayPos.x + drawData->DisplaySize.x;
     const float T = drawData->DisplayPos.y;
     const float B = drawData->DisplayPos.y + drawData->DisplaySize.y;
+
+    struct PushConstants {
+      float scale[2];
+      float translate[2];
+    } pushConstants = {
+      .scale = { 2.0f / (R - L), 2.0f / (B - T) },
+      .translate = { -(R + L) / (R - L), -(T + B) / (B - T) }
+    };
+
+    // Render setup and commands
+    cmd.setViewport({.x = 0.0f, .y = 0.0f, .width = fbWidth, .height = fbHeight});
     const ImVec2 clipOff = drawData->DisplayPos;
     const ImVec2 clipScale = drawData->FramebufferScale;
     uint32_t idxOffset = 0;
     uint32_t vtxOffset = 0;
-    cmd.cmdBindIndexBuffer(indexBuffer, vk::IndexFormat::UI16);
-    cmd.cmdBindRenderPipeline(pipeline_);
-    // Render commands - same as before
+
+    cmd.bindPipeline(pipeline_.get());
+
+    // Bind vertex and index buffers using hina_vertex_input
+    hina_vertex_input vertInput = {};
+    vertInput.vertex_buffers[0] = vertexBuffer;
+    vertInput.vertex_offsets[0] = 0;
+    vertInput.index_buffer = indexBuffer;
+    vertInput.index_type = HINA_INDEX_UINT16;
+    hina_cmd_apply_vertex_input(cmd.get(), &vertInput);
+
+    cmd.pushConstants(pushConstants);
+
+    GfxRenderer* gfxRenderer = context.GetGfxRenderer();
+
+    // Font texture: ID 0 (ImGui default)
+    constexpr uint64_t IMGUI_FONT_TEXTURE_ID = 0;
+    constexpr uint64_t IMGUI_VIEWOUTPUT_BIT = 1ULL << 63;
+
+    // Render commands
     for (int n = 0; n < drawData->CmdListsCount; n++)
     {
       const ImDrawList* cmdList = drawData->CmdLists[n];
@@ -232,24 +285,53 @@ void main() {
         clipMax.x = std::min(clipMax.x, fbWidth);
         clipMax.y = std::min(clipMax.y, fbHeight);
         if (clipMax.x <= clipMin.x || clipMax.y <= clipMin.y) continue;
-        struct VulkanImguiBindData
-        {
-          float LRTB[4];
-          uint64_t vb = 0;
-          uint32_t textureId = 0;
-          uint32_t samplerId = 0;
-        } bindData = {
-            .LRTB = {L, R, T, B}, .vb = vkContext.gpuAddress(vertexBuffer),
-            // Using render graph buffer
-            .textureId = static_cast<uint32_t>(drawCmd.TextureId), .samplerId = fontSampler_.index(),
-          };
-        cmd.cmdPushConstants(bindData);
-        cmd.cmdBindScissorRect({
-          .x = static_cast<uint32_t>(clipMin.x), .y = static_cast<uint32_t>(clipMin.y),
+
+        // Bind the texture for this draw call using transient bind groups
+        uint64_t textureId = static_cast<uint64_t>(reinterpret_cast<uintptr_t>((void*)drawCmd.TextureId));
+        gfx::TextureView texView = {};
+        gfx::Sampler sampler = fontSampler_.get();
+
+        if (textureId == IMGUI_FONT_TEXTURE_ID) {
+          texView = gfxRenderer->getImGuiFontView();
+        }
+        // ViewOutput pointer: high bit set
+        else if (textureId & IMGUI_VIEWOUTPUT_BIT) {
+          const ViewOutput* vo = reinterpret_cast<const ViewOutput*>(textureId & ~IMGUI_VIEWOUTPUT_BIT);
+          if (vo && vo->valid) {
+            // Ensure the ViewOutput texture is in SHADER_READ layout before sampling
+            // This is needed because the texture may have been left in TRANSFER_SRC after ResolveViewOutput
+            hina_cmd_transition_texture(cmd.get(), vo->texture, HINA_TEXSTATE_SHADER_READ);
+            texView = vo->view;
+            sampler = vo->sampler;
+          }
+        }
+        // Asset texture: encoded TextureHandle (index in low 16 bits, generation in high 16 bits)
+        else {
+          gfx::TextureHandle h;
+          h.index = static_cast<uint16_t>(textureId & 0xFFFF);
+          h.generation = static_cast<uint16_t>((textureId >> 16) & 0xFFFF);
+          // getTextureView automatically waits for texture upload to complete
+          texView = gfxRenderer->getMaterialSystem().getTextureView(h);
+        }
+
+        // Fallback to default white texture if invalid
+        if (!hina_texture_view_is_valid(texView)) {
+          texView = gfxRenderer->getMaterialSystem().getTextureView(
+              gfxRenderer->getMaterialSystem().getDefaultWhiteTexture());
+          if (!hina_texture_view_is_valid(texView)) continue;
+        }
+
+        // Create transient bind group using the shared UI layout
+        hina_transient_bind_group tbg = hina_alloc_transient_bind_group(gfxRenderer->getUIBindGroupLayout());
+        hina_transient_write_combined_image(&tbg, 0, texView, sampler);
+        hina_cmd_bind_transient_group(cmd.get(), 0, tbg);
+
+        cmd.setScissor({
+          .x = static_cast<int32_t>(clipMin.x), .y = static_cast<int32_t>(clipMin.y),
           .width = static_cast<uint32_t>(clipMax.x - clipMin.x), .height = static_cast<uint32_t>(clipMax.y - clipMin.y)
         });
-        cmd.cmdDrawIndexed(drawCmd.ElemCount, 1u, idxOffset + drawCmd.IdxOffset,
-                           static_cast<int32_t>(vtxOffset + drawCmd.VtxOffset));
+        cmd.drawIndexed(drawCmd.ElemCount, 1u, idxOffset + drawCmd.IdxOffset,
+                        static_cast<int32_t>(vtxOffset + drawCmd.VtxOffset));
       }
       idxOffset += cmdList->IdxBuffer.Size;
       vtxOffset += cmdList->VtxBuffer.Size;
@@ -258,22 +340,16 @@ void main() {
 
   void ImGuiRenderFeature::CopySceneForImGuiView(const internal::ExecutionContext& context)
   {
-    vk::TextureHandle sceneColor = context.GetTexture(RenderResources::SCENE_COLOR);
-    vk::TextureHandle sceneView = context.GetTexture("ImGuiSceneView");
-    if (!sceneColor.valid() || !sceneView.valid())
+    gfx::Texture sceneColor = context.GetTexture(RenderResources::SCENE_COLOR);
+    gfx::Texture sceneView = context.GetTexture("ImGuiSceneView");
+    if (!gfx::isValid(sceneColor) || !gfx::isValid(sceneView))
     {
       return;
     }
-    vk::ICommandBuffer& cmd = context.GetvkCommandBuffer();
-    vk::IContext& vkContext = context.GetvkContext();
-    vk::Dimensions sceneDims = vkContext.getDimensions(sceneColor);
-    vk::Dimensions viewDims = vkContext.getDimensions(sceneView);
-    // Both should be at internal resolution now
-    vk::Dimensions copyExtent = {
-      .width = std::min(sceneDims.width, viewDims.width), .height = std::min(sceneDims.height, viewDims.height),
-      .depth = 1
-    };
-    cmd.cmdCopyImage(sceneColor, sceneView, copyExtent, vk::Offset3D{0, 0, 0}, vk::Offset3D{0, 0, 0},
-                     vk::TextureLayers{0, 0, 1}, vk::TextureLayers{0, 0, 1});
+
+    gfx::Cmd* cmd = context.GetCmd();
+
+    // Blit the texture (copy with potential format conversion)
+    hina_cmd_blit_texture(cmd, sceneColor, sceneView, 0, 0, HINA_FILTER_LINEAR);
   }
 } // namespace editor

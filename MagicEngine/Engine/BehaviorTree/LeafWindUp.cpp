@@ -2,7 +2,7 @@
 #include "Utilities/GameTime.h"
 #include "Game/EnemyCharacter.h"
 #include "Game/Character.h"
-#include "graphics/AnimationComponent.h"
+#include "Graphics/AnimationComponent.h"
 
 void L_WindUp::OnInitialize()
 {

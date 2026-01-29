@@ -1,7 +1,9 @@
 // graphics/linear_color.h
 #pragma once
-#include "interface.h"
+#include "gfx_interface.h"
+
 class RenderGraph;
+class HinaContext;
 
 namespace internal
 {
@@ -11,12 +13,9 @@ namespace internal
 namespace LinearColor
 {
   // Standard linear color formats
-  constexpr vk::Format HDR_SCENE_FORMAT = vk::Format::RGBA_F16;
-  constexpr vk::Format LDR_FORMAT = vk::Format::RGBA_UN8;
-  // Texture usage recommendations
-  constexpr int HDR_SCENE_USAGE = vk::TextureUsageBits_Attachment | vk::TextureUsageBits_Sampled |
-    vk::TextureUsageBits_Storage;
-  constexpr int LDR_USAGE = vk::TextureUsageBits_Attachment | vk::TextureUsageBits_Sampled;
+  constexpr hina_format HDR_SCENE_FORMAT = HINA_FORMAT_R16G16B16A16_SFLOAT;
+  constexpr hina_format LDR_FORMAT = HINA_FORMAT_R8G8B8A8_UNORM;
+
   /**
    * Helper to determine if a texture format should use sRGB for automatic conversion
    * Returns true for albedo/diffuse textures, false for data textures
@@ -28,7 +27,7 @@ namespace LinearColor
    * @param isAlbedo - true for color/albedo textures, false for data textures
    * @param preferSRGB - whether to prefer sRGB formats when appropriate
    */
-  vk::Format GetTextureFormat(bool isAlbedo, bool preferSRGB = true);
+  hina_format GetTextureFormat(bool isAlbedo, bool preferSRGB = true);
 } // namespace LinearColor
 /**
  * Linear color pipeline manager
@@ -49,7 +48,7 @@ struct ToneMappingSettings
     Passthrough = 7  // No processing - preserves linear color exactly
   };
 
-  Mode mode = Passthrough;
+  Mode mode = ACES;  // Default to ACES - industry standard tone mapping
   float exposure = 1.0f;
   float maxWhite = 1.0f; // Reinhard
   // Uchimura parameters
@@ -64,9 +63,11 @@ struct ToneMappingSettings
 class LinearColorSystem
 {
 public:
-  explicit LinearColorSystem(vk::IContext& context);
-
+  LinearColorSystem() = default;
   ~LinearColorSystem() = default;
+
+  // Initialize with context - must be called before other methods
+  void Initialize(HinaContext* context) { m_context = context; }
 
   // Register linear color resources - automatically detects if linear workflow is needed
   void RegisterLinearColorResources(RenderGraph& renderGraph);
@@ -75,36 +76,25 @@ public:
   void RegisterToneMappingPass(internal::RenderPassBuilder& builder);
 
   // Query if linear workflow is active
-  bool IsLinearWorkflowActive() const
-  {
-    return m_requiresLinearWorkflow;
-  }
+  bool IsLinearWorkflowActive() const { return m_requiresLinearWorkflow; }
 
   // Get the scene color format that features should target
-  vk::Format GetSceneColorFormat() const;
+  hina_format GetSceneColorFormat() const;
 
-  // Settings access - should be accessed through Renderer interface
-  const ToneMappingSettings& GetToneMappingSettings() const
-  {
-    return m_toneMappingSettings;
-  }
-
-  void UpdateToneMappingSettings(const ToneMappingSettings& newSettings)
-  {
-    m_toneMappingSettings = newSettings;
-  }
+  // Settings access
+  const ToneMappingSettings& GetToneMappingSettings() const { return m_toneMappingSettings; }
+  void UpdateToneMappingSettings(const ToneMappingSettings& newSettings) { m_toneMappingSettings = newSettings; }
 
 private:
-  vk::IContext& m_context;
+  HinaContext* m_context = nullptr;
   bool m_initialized = false;
-  bool m_requiresLinearWorkflow = false; // Determined by swapchain color space
+  bool m_requiresLinearWorkflow = false;
   ToneMappingSettings m_toneMappingSettings;
-  // Tone mapping pipeline
-  vk::Holder<vk::ShaderModuleHandle> m_vertToneMap;
-  vk::Holder<vk::ShaderModuleHandle> m_fragToneMap;
-  vk::Holder<vk::RenderPipelineHandle> m_pipelineToneMap;
 
-  void CreateToneMappingPipeline();
+  // NOTE: Tone mapping pipeline was moved to RenderGraph::ExecuteResolveViewOutput()
+  // The old standalone tone mapping pass had a read/write conflict on SCENE_COLOR
+  // Now tone mapping is integrated into the ResolveViewOutput pass which reads
+  // from SCENE_COLOR (HDR) and writes to VIEW_OUTPUT (LDR)
 
   void ensureInitialized();
 };

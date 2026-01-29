@@ -14,7 +14,7 @@
 \brief
   ImGui popup that can display a variety of text to screen.
 
-All content © 2024 DigiPen Institute of Technology Singapore.
+All content ï¿½ 2024 DigiPen Institute of Technology Singapore.
 All rights reserved.
 */
 /******************************************************************************/
@@ -29,8 +29,10 @@ All rights reserved.
 #include "Editor/AssetBrowser.h"
 #include "Editor/Hierarchy.h"
 #include "Editor/BehaviourTreeWindow.h"
+#include "Editor/AssetCompilerWindow.h"
 
 #include "Engine/Graphics Interface/GraphicsAPI.h"
+#include "resource/asset_compiler_interface.h"
 
 namespace editor {
 
@@ -51,6 +53,68 @@ namespace editor {
 					editor::CreateGuiWindow<editor::SettingsWindow>();
 				if (gui::MenuItem("Exit"))
 					ST<GraphicsMain>::Get()->SetPendingShutdown();
+			}
+
+			if (gui::Menu assetsMenu{ "Assets" })
+			{
+				if (gui::MenuItem(ICON_FA_HAMMER " Asset Compiler"))
+				{
+					editor::CreateGuiWindow<editor::AssetCompilerWindow>();
+				}
+
+				ImGui::Separator();
+
+				// Platform selection for compilation
+				static int selectedPlatform = 0;
+				const char* platforms[] = { "Windows", "Android" };
+				ImGui::Text("Target Platform:");
+				ImGui::SameLine();
+				ImGui::SetNextItemWidth(100);
+				ImGui::Combo("##Platform", &selectedPlatform, platforms, 2);
+
+				ImGui::Separator();
+
+				// Check if Asset Compiler window exists and is compiling
+				auto* compilerWindow = editor::AssetCompilerWindow::GetInstance();
+				bool isCompiling = compilerWindow && (compilerWindow->IsCompiling() || compilerWindow->IsBatchCompiling());
+
+				if (isCompiling)
+				{
+					ImGui::TextColored(ImVec4(1.0f, 0.8f, 0.0f, 1.0f), ICON_FA_SPINNER " Compiling...");
+				}
+				else
+				{
+					// Compile All Assets button
+					std::string platformStr = (selectedPlatform == 0) ? "windows" : "android";
+
+					if (gui::MenuItem(ICON_FA_BOXES_STACKED " Compile All Assets"))
+					{
+						// Ensure compiler window exists
+						if (!compilerWindow)
+						{
+							editor::CreateGuiWindow<editor::AssetCompilerWindow>();
+							compilerWindow = editor::AssetCompilerWindow::GetInstance();
+						}
+						if (compilerWindow)
+						{
+							compilerWindow->CompileAllAssets(platformStr, false);
+						}
+					}
+
+					if (gui::MenuItem(ICON_FA_ROTATE " Force Recompile All"))
+					{
+						// Ensure compiler window exists
+						if (!compilerWindow)
+						{
+							editor::CreateGuiWindow<editor::AssetCompilerWindow>();
+							compilerWindow = editor::AssetCompilerWindow::GetInstance();
+						}
+						if (compilerWindow)
+						{
+							compilerWindow->CompileAllAssets(platformStr, true);
+						}
+					}
+				}
 			}
 
 			if (gui::Menu toolsMenu{ "Tools" })

@@ -13,7 +13,7 @@
 \brief
 	Provides an interface for lua scripting.
 
-All content © 2025 DigiPen Institute of Technology Singapore.
+All content ï¿½ 2025 DigiPen Institute of Technology Singapore.
 All rights reserved.
 */
 /******************************************************************************/
@@ -21,7 +21,7 @@ All rights reserved.
 #include "LuaLibrary/LuaCpp.hpp"
 #pragma warning(push)
 #pragma warning(disable : 4702) // unreachable code
-#include <luabridge3/LuaBridge/LuaBridge.h>
+#include <LuaBridge/LuaBridge.h>
 #pragma warning(pop)
 #include "Utilities/Serializer.h"
 #include "Engine/Events/EventsQueue.h"

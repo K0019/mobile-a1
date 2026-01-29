@@ -119,7 +119,10 @@ namespace gui {
 	void TextFormatted([[maybe_unused]] const char* fmt, [[maybe_unused]] const Args&... args)
 	{
 #ifdef IMGUI_ENABLED
-		ImGui::Text(fmt, args...);
+		if constexpr (sizeof...(args) == 0)
+			ImGui::TextUnformatted(fmt);
+		else
+			ImGui::Text(fmt, args...);
 #endif
 	}
 
@@ -127,7 +130,10 @@ namespace gui {
 	void TextColored([[maybe_unused]] const Vec4& color, [[maybe_unused]] const char* fmt, [[maybe_unused]] const Args&... args)
 	{
 #ifdef IMGUI_ENABLED
-		ImGui::TextColored(color, fmt, args...);
+		if constexpr (sizeof...(args) == 0)
+			ImGui::TextColored(color, "%s", fmt);
+		else
+			ImGui::TextColored(color, fmt, args...);
 #endif
 	}
 
@@ -135,7 +141,10 @@ namespace gui {
 	void TextWrapped([[maybe_unused]] const char* fmt, [[maybe_unused]] const Args&... args)
 	{
 #ifdef IMGUI_ENABLED
-		ImGui::TextWrapped(fmt, args...);
+		if constexpr (sizeof...(args) == 0)
+			ImGui::TextWrapped("%s", fmt);
+		else
+			ImGui::TextWrapped(fmt, args...);
 #endif
 	}
 
@@ -143,7 +152,10 @@ namespace gui {
 	void TextDisabled([[maybe_unused]] const char* format, [[maybe_unused]] const Args&... args)
 	{
 #ifdef IMGUI_ENABLED
-		ImGui::TextDisabled(format, args...);
+		if constexpr (sizeof...(args) == 0)
+			ImGui::TextDisabled("%s", format);
+		else
+			ImGui::TextDisabled(format, args...);
 #endif
 	}
 

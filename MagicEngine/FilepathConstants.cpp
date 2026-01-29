@@ -19,31 +19,53 @@ All rights reserved.
 
 #include "FilepathConstants.h"
 
-#ifdef _DEBUG
-const std::string Filepaths::workingDir = "../../..";
-#else
+// Working directory is "." - Editor changes current_path() at startup to source root
 const std::string Filepaths::workingDir = ".";
-#endif
 
 const std::string Filepaths::assets				= Filepaths::workingDir + "/Assets";
 const std::string Filepaths::imguiJson			= Filepaths::workingDir + "/imgui.json";	//Physical path. outside of assets directory
 const std::string Filepaths::gameSettings		= "Settings.json";
 
 const std::string Filepaths::assetsJson			= "assets.json";
-const std::string Filepaths::shadersSave		= "Shaders";
+const std::string Filepaths::shadersSave		= "shaders";
 const std::string Filepaths::fontsSave			= "Fonts";
-const std::string Filepaths::prefabsSave		= "Prefabs";
-const std::string Filepaths::scenesSave			= "Scenes";
+const std::string Filepaths::prefabsSave		= "prefabs";
+const std::string Filepaths::scenesSave			= "scenes";
 const std::string Filepaths::scriptsSave		= "scripts";
-const std::string Filepaths::materialsSave		= "Materials";
+const std::string Filepaths::materialsSave		= "materials";
 const std::string Filepaths::behaviourTreeSave	= "behaviourtrees";
-const std::string Filepaths::navMeshDataSave	= "NavMeshData";
-const std::string Filepaths::soundFolder		= "Sounds";
+const std::string Filepaths::navMeshDataSave	= "navmeshdata";
+const std::string Filepaths::soundFolder		= "sounds";
 const std::string Filepaths::gameWeaponSave		= "Game/Weapons";
 
 // Editor use only
 const std::string Filepaths::compilerExe		= Filepaths::workingDir + "/Tools/Debug/AssetCompiler.exe";
 const std::string Filepaths::compileManifest	= Filepaths::workingDir + "/Tools/Debug/CompileResult.json";
+const std::string Filepaths::compiledAssets		= Filepaths::assets + "/CompiledAssets";
+const std::string Filepaths::compiledAssetsWindows = Filepaths::compiledAssets + "/windows";
+const std::string Filepaths::compiledAssetsAndroid = Filepaths::compiledAssets + "/android";
+
+std::filesystem::path Filepaths::GetAssetCompilerPath()
+{
+#ifdef _DEBUG
+	return std::filesystem::path(workingDir) / "Tools" / "Debug" / "AssetCompiler.exe";
+#else
+	// Try Release first, fall back to Debug
+	std::filesystem::path releasePath = std::filesystem::path(workingDir) / "Tools" / "Release" / "AssetCompiler.exe";
+	if (std::filesystem::exists(releasePath))
+		return releasePath;
+	return std::filesystem::path(workingDir) / "Tools" / "Debug" / "AssetCompiler.exe";
+#endif
+}
+
+const std::string& Filepaths::GetCompiledAssetsPath()
+{
+#ifdef __ANDROID__
+	return compiledAssetsAndroid;
+#else
+	return compiledAssetsWindows;
+#endif
+}
 
 const std::string Filepaths::graphicsWindowIcon = Filepaths::assets + "/Icon_game.png";
 

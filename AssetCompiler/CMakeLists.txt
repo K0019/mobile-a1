@@ -23,17 +23,20 @@ target_sources(AssetCompiler PRIVATE
 
 target_include_directories(AssetCompiler PUBLIC
     $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/AssetCompiler>
-    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/engine>
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/MagicEngine>
     $<BUILD_INTERFACE:${EXTERNAL_INCLUDES}>
     $<INSTALL_INTERFACE:include>
 )
 
+# Link MagicEngine - provides assimp, meshoptimizer, ktx, mikktspace, glm, and all asset processing code
+# Compressonator is compiler-specific (texture compression for BC formats)
+# astcenc-avx2-static provides ASTC compression (ARM's official encoder)
+# Vulkan::Headers needed for VkFormat enums in texture compilation
 target_link_libraries(AssetCompiler PRIVATE
-    assimp::assimp
-    meshoptimizer::meshoptimizer
-    KTX::ktx
-	mikktspace::mikktspace
+    MagicEngine
+    Vulkan::Headers
     compressonator
+    astcenc-avx2-static
 )
 
 install(TARGETS AssetCompiler 

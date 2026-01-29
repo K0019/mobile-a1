@@ -22,7 +22,7 @@ All rights reserved.
 #include <lua.hpp>
 #pragma warning(push)
 #pragma warning(disable : 4702) // unreachable code
-#include <luabridge3/LuaBridge/LuaBridge.h>
+#include <LuaBridge/LuaBridge.h>
 #pragma warning(pop)
 #include "LuaTypesECS.h"
 #include "Components/NameComponent.h"

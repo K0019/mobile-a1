@@ -1,6 +1,10 @@
 #include "im3d_feature.h"
+#include "../hina_context.h"
+#include "../linear_color.h"
+#include <hina_vk.h>
 #include <cstring>   // memcpy
 #include <glm/glm.hpp>
+#include <iostream>
 // ============================================================================
 // Shaders (separate VS/FS per primitive; unified push constants)
 // ============================================================================
@@ -250,65 +254,116 @@ void Im3dRenderFeature::SetupPasses(internal::RenderPassBuilder& passBuilder)
   PassDeclarationInfo passInfo;
   passInfo.framebufferDebugName = "Im3dDraw";
   passInfo.colorAttachments[0] = {
-    .textureName = RenderResources::SCENE_COLOR, .loadOp = vk::LoadOp::Load, .storeOp = vk::StoreOp::Store
+    .textureName = RenderResources::SCENE_COLOR, .loadOp = gfx::LoadOp::Load, .storeOp = gfx::StoreOp::Store
   };
   passInfo.depthAttachment = {
-    .textureName = RenderResources::SCENE_DEPTH, .loadOp = vk::LoadOp::Load, .storeOp = vk::StoreOp::Store
+    .textureName = RenderResources::SCENE_DEPTH, .loadOp = gfx::LoadOp::Load, .storeOp = gfx::StoreOp::Store
   };
   // Single SSBO for all primitives
-  vk::BufferDesc ssboDesc{
-    .usage = vk::BufferUsageBits::BufferUsageBits_Storage, .storage = vk::StorageType::HostVisible, .size = 256 * 1024,
-    .debugName = "Im3dSSBO"
+  gfx::BufferDesc ssboDesc{
+    .size = 256 * 1024,
+    .memory = gfx::BufferMemory::CPU,
+    .usage = gfx::BufferUsage::Storage
   };
   passBuilder.CreatePass().DeclareTransientResource("Im3dSSBO", ssboDesc).UseResource("Im3dSSBO", AccessType::Read).
               UseResource(RenderResources::SCENE_COLOR, AccessType::ReadWrite).
               UseResource(RenderResources::SCENE_DEPTH, AccessType::ReadWrite).
-              SetPriority(internal::RenderPassBuilder::PassPriority::Transparent).AddGraphicsPass(
+              SetPriority(internal::RenderPassBuilder::PassPriority::Transparent).
+              ExecuteAfter("SceneComposite").  // Im3d must run AFTER composite populates SCENE_COLOR
+              AddGraphicsPass(
                 "Im3dDraw", passInfo, [this](const internal::ExecutionContext& ctx) { ExecuteDrawPass(ctx); });
 }
 
 void Im3dRenderFeature::EnsurePipelinesCreated(const internal::ExecutionContext& context)
 {
   const Parameters& params = *static_cast<const Parameters*>(GetParameterBlock_RT());
-  auto& ctx = context.GetvkContext();
+  HinaContext* hinaCtx = context.GetHinaContext();
+  if (!hinaCtx) return;
+
   auto colorHandle = context.GetTexture(RenderResources::SCENE_COLOR);
   auto depthHandle = context.GetTexture(RenderResources::SCENE_DEPTH);
-  if (pointPipeline_.valid() && linePipeline_.valid() && trianglePipeline_.valid() && cachedSamples_ == params.
-    pipelineSamples) return;
-  // Compile shaders
-  pointVS_ = ctx.createShaderModule({kPointVS, vk::ShaderStage::Vert, "Im3d Point VS"});
-  pointFS_ = ctx.createShaderModule({kPointFS, vk::ShaderStage::Frag, "Im3d Point FS"});
-  lineVS_ = ctx.createShaderModule({kLineVS, vk::ShaderStage::Vert, "Im3d Line VS"});
-  lineFS_ = ctx.createShaderModule({kLineFS, vk::ShaderStage::Frag, "Im3d Line FS"});
-  triVS_ = ctx.createShaderModule({kTriVS, vk::ShaderStage::Vert, "Im3d Tri VS"});
-  triFS_ = ctx.createShaderModule({kTriFS, vk::ShaderStage::Frag, "Im3d Tri FS"});
-  auto makeDesc = [&](vk::Topology topo, const char* name, vk::ShaderModuleHandle vs, vk::ShaderModuleHandle fs)
-  {
-    vk::RenderPipelineDesc d{};
-    d.smVert = vs;
-    d.smFrag = fs;
-    if (colorHandle.valid())
-    {
-      d.color[0].format = ctx.getFormat(colorHandle);
-      d.color[0].blendEnabled = true;
-      d.color[0].rgbBlendOp = vk::BlendOp::Add;
-      d.color[0].alphaBlendOp = vk::BlendOp::Add;
-      d.color[0].srcRGBBlendFactor = vk::BlendFactor::SrcAlpha;
-      d.color[0].dstRGBBlendFactor = vk::BlendFactor::OneMinusSrcAlpha;
-      d.color[0].srcAlphaBlendFactor = vk::BlendFactor::One;
-      d.color[0].dstAlphaBlendFactor = vk::BlendFactor::OneMinusSrcAlpha;
+
+  bool pointValid = gfx::isValid(pointPipeline_.get());
+  bool lineValid = gfx::isValid(linePipeline_.get());
+  bool triValid = gfx::isValid(trianglePipeline_.get());
+  bool samplesMatch = cachedSamples_ == params.pipelineSamples;
+
+  if (pointValid && lineValid && triValid && samplesMatch)
+    return;
+
+  std::cout << "[Im3D] Pipeline recreation triggered: point=" << pointValid
+            << " line=" << lineValid << " tri=" << triValid
+            << " samples=" << samplesMatch << std::endl;
+
+  // Helper to compile GLSL to shader
+  auto compileShader = [](const char* glsl, hina_shader_stage stage, const char* name) -> gfx::Shader {
+    uint32_t* spirvWords = nullptr;
+    size_t wordCount = 0;
+    gfx::Shader result = {};
+    if (hslc_compile_glsl(glsl, strlen(glsl), stage, "main", &spirvWords, &wordCount)) {
+      result = hina_make_shader(spirvWords, wordCount * sizeof(uint32_t));
+      hslc_free_spirv_words(spirvWords);
+      std::cout << "[Im3D] Shader " << name << " compiled OK" << std::endl;
+    } else {
+      std::cout << "[Im3D] Shader " << name << " FAILED to compile" << std::endl;
     }
-    d.depthFormat = depthHandle.valid() ? ctx.getFormat(depthHandle) : vk::Format::Invalid;
-    d.cullMode = vk::CullMode::None;
-    d.samplesCount = params.pipelineSamples;
-    d.topology = topo;
-    d.debugName = name;
-    return d;
+    return result;
   };
-  pointPipeline_ = ctx.createRenderPipeline(makeDesc(vk::Topology::Point, "Im3d Points", pointVS_, pointFS_));
-  linePipeline_ = ctx.createRenderPipeline(makeDesc(vk::Topology::Triangle, "Im3d Lines", lineVS_, lineFS_));
-  trianglePipeline_ = ctx.createRenderPipeline(makeDesc(vk::Topology::Triangle, "Im3d Triangles", triVS_, triFS_));
+
+  // Compile shaders
+  pointVS_.reset(compileShader(kPointVS, HINA_SHADER_STAGE_VERTEX, "pointVS"));
+  pointFS_.reset(compileShader(kPointFS, HINA_SHADER_STAGE_FRAGMENT, "pointFS"));
+  lineVS_.reset(compileShader(kLineVS, HINA_SHADER_STAGE_VERTEX, "lineVS"));
+  lineFS_.reset(compileShader(kLineFS, HINA_SHADER_STAGE_FRAGMENT, "lineFS"));
+  triVS_.reset(compileShader(kTriVS, HINA_SHADER_STAGE_VERTEX, "triVS"));
+  triFS_.reset(compileShader(kTriFS, HINA_SHADER_STAGE_FRAGMENT, "triFS"));
+
+  // Get formats - use HDR scene format since SCENE_COLOR uses linear workflow
+  hina_format colorFormat = LinearColor::HDR_SCENE_FORMAT;
+  hina_format depthFormat = gfx::isValid(depthHandle) ? HINA_FORMAT_D32_SFLOAT : HINA_FORMAT_UNDEFINED;
+
+  // Helper to create pipeline with given topology and shaders
+  auto makePipeline = [&](hina_primitive_topology topo, gfx::Shader vs, gfx::Shader fs) -> gfx::Pipeline {
+    hina_pipeline_desc pipDesc = hina_pipeline_desc_default();
+    pipDesc.vs = vs;
+    pipDesc.fs = fs;
+    pipDesc.cull_mode = HINA_CULL_MODE_NONE;
+    pipDesc.primitive_topology = topo;
+    pipDesc.polygon_mode = HINA_POLYGON_MODE_FILL;
+    pipDesc.samples = static_cast<hina_sample_count>(params.pipelineSamples);
+
+    // Color attachment with alpha blending
+    pipDesc.color_formats[0] = colorFormat;
+    pipDesc.blend[0].enable = true;
+    pipDesc.blend[0].src_color = HINA_BLEND_FACTOR_SRC_ALPHA;
+    pipDesc.blend[0].dst_color = HINA_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+    pipDesc.blend[0].src_alpha = HINA_BLEND_FACTOR_ONE;
+    pipDesc.blend[0].dst_alpha = HINA_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+    pipDesc.blend[0].color_op = HINA_BLEND_OP_ADD;
+    pipDesc.blend[0].alpha_op = HINA_BLEND_OP_ADD;
+
+    // Depth (always pass, no write - for debug drawing)
+    pipDesc.depth_format = depthFormat;
+    pipDesc.depth.depth_test = (depthFormat != HINA_FORMAT_UNDEFINED);
+    pipDesc.depth.depth_write = false;
+    pipDesc.depth.depth_compare = HINA_COMPARE_OP_ALWAYS;
+
+    hina_pipeline_desc_any anyDesc = {};
+    anyDesc.kind = HINA_PIPELINE_KIND_GRAPHICS;
+    anyDesc.desc.graphics = pipDesc;
+
+    auto result = hina_make_pipeline_ex(&anyDesc);
+    return result;
+  };
+
+  pointPipeline_.reset(makePipeline(HINA_PRIMITIVE_TOPOLOGY_POINT_LIST, pointVS_.get(), pointFS_.get()));
+  linePipeline_.reset(makePipeline(HINA_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST, lineVS_.get(), lineFS_.get()));
+  trianglePipeline_.reset(makePipeline(HINA_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST, triVS_.get(), triFS_.get()));
   cachedSamples_ = params.pipelineSamples;
+
+  std::cout << "[Im3D] Pipeline creation result: point=" << gfx::isValid(pointPipeline_.get())
+            << " line=" << gfx::isValid(linePipeline_.get())
+            << " tri=" << gfx::isValid(trianglePipeline_.get()) << std::endl;
 }
 
 void Im3dRenderFeature::ExecuteDrawPass(const internal::ExecutionContext& context)
@@ -316,10 +371,11 @@ void Im3dRenderFeature::ExecuteDrawPass(const internal::ExecutionContext& contex
   const Parameters& params = *static_cast<const Parameters*>(GetParameterBlock_RT());
   if (!params.enabled) return;
   EnsurePipelinesCreated(context);
-  if (!pointPipeline_.valid() || !linePipeline_.valid() || !trianglePipeline_.valid()) return;
+  if (!gfx::isValid(pointPipeline_.get()) || !gfx::isValid(linePipeline_.get()) ||
+      !gfx::isValid(trianglePipeline_.get()))
+    return;
   if (params.packed.empty()) return;
-  auto& cmd = context.GetvkCommandBuffer();
-  auto& vkCtx = context.GetvkContext();
+  auto& cmd = context.GetCommandBuffer();
   // Ensure SSBO capacity (grow x2 policy)
   const size_t total = params.packed.size();
   size_t current = context.GetBufferSize("Im3dSSBO");
@@ -329,12 +385,14 @@ void Im3dRenderFeature::ExecuteDrawPass(const internal::ExecutionContext& contex
     context.ResizeBuffer("Im3dSSBO", newSize);
   }
   auto ssbo = context.GetBuffer("Im3dSSBO");
+  HinaContext* hinaCtx = context.GetHinaContext();
+  if (!hinaCtx) return;
   // Single mapped write + flush
-  auto* dst = vkCtx.getMappedPtr(ssbo);
+  auto* dst = hinaCtx->getMappedPtr(ssbo);
   std::memcpy(dst, params.packed.data(), total);
-  vkCtx.flushMappedMemory(ssbo, 0, total);
-  // gpuAddress split to uvec2
-  const uint64_t baseAddr64 = vkCtx.gpuAddress(ssbo);
+  hinaCtx->flushMappedMemory(ssbo, 0, total);
+  // TODO: refactor - gpuAddress removed
+  const uint64_t baseAddr64 = 0;
   glm::uvec2 baseAddrSplit;
   std::memcpy(&baseAddrSplit, &baseAddr64, sizeof(baseAddrSplit));
   // Common push constants
@@ -357,27 +415,27 @@ void Im3dRenderFeature::ExecuteDrawPass(const internal::ExecutionContext& contex
   pc.offTris = params.offTris;
   // Common state
   const float w = float(fd.screenWidth), h = float(fd.screenHeight);
-  cmd.cmdBindViewport({.x = 0.f, .y = 0.f, .width = w, .height = h});
-  cmd.cmdBindScissorRect({.x = 0u, .y = 0u, .width = (uint32_t)w, .height = (uint32_t)h});
-  cmd.cmdBindDepthState({.compareOp = vk::CompareOp::Always, .isDepthWriteEnabled = false});
+  cmd.setViewport({.x = 0.f, .y = 0.f, .width = w, .height = h});
+  cmd.setScissor({.x = 0, .y = 0, .width = (uint32_t)w, .height = (uint32_t)h});
+  // Note: depth state is baked into pipelines (compare=Always, write=false)
   // Points
   if (params.numPoints)
   {
-    cmd.cmdBindRenderPipeline(pointPipeline_);
-    cmd.cmdPushConstants(pc);
-    cmd.cmdDraw(params.numPoints);
+    cmd.bindPipeline(pointPipeline_.get());
+    cmd.pushConstants(pc);
+    cmd.draw(params.numPoints);
   }
   if (params.numLines)
   {
-    cmd.cmdBindRenderPipeline(linePipeline_); // TriangleStrip pipeline
-    cmd.cmdPushConstants(pc);
-    cmd.cmdDraw(/*vertexCount=*/6, /*instanceCount=*/params.numLines);
+    cmd.bindPipeline(linePipeline_.get()); // TriangleList pipeline
+    cmd.pushConstants(pc);
+    cmd.draw(/*vertexCount=*/6, /*instanceCount=*/params.numLines);
   }
   // Triangles
   if (params.numTris)
   {
-    cmd.cmdBindRenderPipeline(trianglePipeline_);
-    cmd.cmdPushConstants(pc);
-    cmd.cmdDraw(params.numTris * 3);
+    cmd.bindPipeline(trianglePipeline_.get());
+    cmd.pushConstants(pc);
+    cmd.draw(params.numTris * 3);
   }
 }

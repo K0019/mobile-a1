@@ -1,10 +1,10 @@
 #include "renderer/ui/ui_immediate.h"
-#include "renderer/renderer.h"
+#include "renderer/gfx_renderer.h"
 #include "resource/resource_manager.h"
 
 namespace ui
 {
-  ImmediateGui::ImmediateGui(Renderer& renderer, uint64_t featureHandle, Resource::ResourceManager& resourceMngr)
+  ImmediateGui::ImmediateGui(GfxRenderer& renderer, uint64_t featureHandle, Resource::ResourceManager& resourceMngr)
     : renderer_(renderer), featureHandle_(featureHandle), resourceMngr_(resourceMngr)
   {
   }
