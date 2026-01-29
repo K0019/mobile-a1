@@ -1387,6 +1387,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/health.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 7806641408964174589,
+                            "name": "health0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/models/glb/enemy_female_animated/_10.ktx2",
             "resources": [
                 {
@@ -1521,6 +1535,20 @@
                         {
                             "hash": 4654142561328830193,
                             "name": "player_idle_mixamoplayer_weapon atk 2_mixamo0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/delusion.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 17312723174093266303,
+                            "name": "delusion0"
                         }
                     ]
                 }
@@ -3039,6 +3067,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/materials/t_Dodgepc.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2921651984248910669,
+                            "name": "t_dodgepc0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/rankd.ktx2",
             "resources": [
                 {
@@ -3383,6 +3425,20 @@
                         {
                             "hash": 4204621525481476257,
                             "name": "image_10"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/materials/t_Health.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 7813359425009912891,
+                            "name": "t_health0"
                         }
                     ]
                 }
@@ -3893,6 +3949,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/materials/t_Dodgemobile.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2923458481853355753,
+                            "name": "t_dodgemobile0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/models/glb/enemy_female_animated/n00_000_00_body_00_skin (instance).material",
             "resources": [
                 {
@@ -3957,6 +4027,20 @@
                         {
                             "hash": 2116413648782249829,
                             "name": "n00_002_03_tops_01_cloth_04__instance_0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/materials/t_Delusion.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 17328525355207731103,
+                            "name": "t_delusion0"
                         }
                     ]
                 }
@@ -4341,6 +4425,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/move_pc.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 2046716705952225145,
+                            "name": "move_pc0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/models/glb/items/sword/handle_lambert.material",
             "resources": [
                 {
@@ -4503,6 +4601,20 @@
                         {
                             "hash": 4552239823666550469,
                             "name": "n00_000_00_facebrow_00_face__instance_0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/move_mobile.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 2041364283348111881,
+                            "name": "move_mobile0"
                         }
                     ]
                 }
@@ -4789,6 +4901,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/dodge_pc.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 2909675004087517773,
+                            "name": "dodge_pc0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/models/glb/baseball_field/fence/standardsurface1_1001.material",
             "resources": [
                 {
@@ -4853,6 +4979,20 @@
                         {
                             "hash": 6527073765713914097,
                             "name": "enemy male death 10"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/materials/t_Arrow.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 12747482725847220551,
+                            "name": "t_arrow0"
                         }
                     ]
                 }
@@ -6889,6 +7029,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/dodge_mobile.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 2908373182320229337,
+                            "name": "dodge_mobile0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/materials/n00_002_03_tops_01_cloth_04__instance_.001.material",
             "resources": [
                 {
@@ -7911,6 +8065,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/materials/t_Movemobile.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2065146719857063461,
+                            "name": "t_movemobile0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/models/glb/items/sword/jewel_lambert.material",
             "resources": [
                 {
@@ -7933,6 +8101,20 @@
                         {
                             "hash": 5755743261359512223,
                             "name": "n00_001_03_bottoms_01_cloth (instance)0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/materials/t_Movepc.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2059560101276323823,
+                            "name": "t_movepc0"
                         }
                     ]
                 }
@@ -8339,6 +8521,20 @@
                         {
                             "hash": 4492374714069030561,
                             "name": "n00_010_01_onepiece_00_cloth_01__instance_0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/arrow.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 12743537678126716043,
+                            "name": "arrow0"
                         }
                     ]
                 }
