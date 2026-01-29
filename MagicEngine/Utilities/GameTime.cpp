@@ -23,6 +23,7 @@ All rights reserved.
 #include "Utilities/GameTime.h"
 
 float GameTime::targetRealFps{ 60 };
+std::chrono::time_point<std::chrono::steady_clock> GameTime::firstFrameTimepoint{};
 std::chrono::time_point<std::chrono::steady_clock> GameTime::lastFrameTimepoint{};
 std::chrono::nanoseconds GameTime::targetFrametime{ std::chrono::nanoseconds{ static_cast<int64_t>(1e9 / targetRealFps) } };
 std::chrono::time_point<std::chrono::steady_clock> GameTime::targetFrameTimepoint{ std::chrono::steady_clock::now() + GameTime::targetFrametime };
@@ -57,6 +58,11 @@ float GameTime::RealDt()
 int GameTime::RealNumFixedFrames()
 {
 	return realNumFixedFrames;
+}
+
+float GameTime::TimeSinceStart()
+{
+	return std::chrono::duration_cast<std::chrono::duration<float>>(lastFrameTimepoint - firstFrameTimepoint).count();
 }
 
 bool GameTime::IsFixedDtMode()
@@ -110,6 +116,8 @@ void GameTime::WaitUntilNextFrame()
 	realDeltaTime = chronoDeltaTime.count();
 	fps = 1.0f / realDeltaTime;
 	lastFrameTimepoint = chronoNow;
+	if (firstFrameTimepoint == std::chrono::time_point<std::chrono::steady_clock>::min())
+		firstFrameTimepoint = chronoNow;
 
 	deltaTime = realDeltaTime * timeScale;
 
