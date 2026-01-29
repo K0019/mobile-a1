@@ -2455,7 +2455,7 @@ namespace ecs {
 			The hash of the component type.
 		*//******************************************************************/
 		template <typename T>
-		CompHash GetCompHash();
+		constexpr CompHash GetCompHash();
 
 		/*****************************************************************//*!
 		\brief
@@ -2466,7 +2466,7 @@ namespace ecs {
 			The hash of the system type.
 		*//******************************************************************/
 		template <typename T>
-		SysHash GetSysHash();
+		constexpr SysHash GetSysHash();
 
 
 		/*****************************************************************//*!
