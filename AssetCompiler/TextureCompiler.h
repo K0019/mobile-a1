@@ -37,6 +37,8 @@ namespace compiler
 
 		CompilationResult Compile(const CompilerOptions& compileOptions);
 		CompilationResult CompileFromMemory(const EmbeddedTextureSource& source, const CompilerOptions& compileOptions);
+		// Recompress an existing compiled .ktx2 texture to the target platform format (e.g. BC7 -> ASTC for Android).
+		CompilationResult RecompressKTX2(const CompilerOptions& compileOptions);
 
 	private:
 		bool LoadSourceTexture(CMP_Texture& outTex);

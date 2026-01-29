@@ -1293,7 +1293,9 @@ struct FragOut {
 Varyings VSMain() {
   Varyings out;
   out.uv = vec2((gl_VertexIndex << 1) & 2, gl_VertexIndex & 2);
-  gl_Position = vec4(out.uv * vec2(2, -2) + vec2(-1, 1), 0.0, 1.0);
+  // Vulkan NDC (with a normal, positive-height viewport): y = -1 is top, y = +1 is bottom.
+  // Generate a fullscreen triangle that matches that convention (no implicit vertical flip).
+  gl_Position = vec4(out.uv * vec2(2, 2) + vec2(-1, -1), 0.0, 1.0);
   return out;
 }
 #hina_end

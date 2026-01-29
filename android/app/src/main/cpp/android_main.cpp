@@ -1,5 +1,7 @@
 #include <android_native_app_glue.h>
 #include <android/log.h>
+#include <android/asset_manager.h>
+#include <cstdint>
 #include "core/engine/engine.h"  // Engine<> template and Core::Platform
 #include "Engine.h"               // MagicEngine class
 #include "renderer/gfx_renderer.h"  // GfxRenderer and RenderFrameData
@@ -19,6 +21,9 @@
 
 #define LOGI(...) __android_log_print(ANDROID_LOG_INFO, "MagicEngine", __VA_ARGS__)
 #define LOGE(...) __android_log_print(ANDROID_LOG_ERROR, "MagicEngine", __VA_ARGS__)
+
+#define ASSET_LOGI(...) __android_log_print(ANDROID_LOG_INFO, "MagicEngineAssets", __VA_ARGS__)
+#define ASSET_LOGE(...) __android_log_print(ANDROID_LOG_ERROR, "MagicEngineAssets", __VA_ARGS__)
 
 
 class AndroidApp {
@@ -210,6 +215,51 @@ void android_main(android_app* app) {
     LOGI("Thread attached to JVM");
 
     AAssetManager* assetManager = app->activity->assetManager;
+
+    ASSET_LOGI("android_main: AssetManager=%p", assetManager);
+    if (assetManager)
+    {
+        // Quick sanity checks to confirm APK asset packaging.
+        // 1) Try opening the manifest that AndroidVFSImpl depends on for case-insensitive lookups.
+        AAsset* manifest = AAssetManager_open(assetManager, "asset_manifest.txt", AASSET_MODE_STREAMING);
+        if (manifest)
+        {
+            const off_t len = AAsset_getLength(manifest);
+            ASSET_LOGI("Sanity: opened asset_manifest.txt (len=%ld)", (long)len);
+            AAsset_close(manifest);
+        }
+        else
+        {
+            ASSET_LOGE("Sanity: FAILED to open asset_manifest.txt from APK assets");
+        }
+
+        // 2) List a few root assets (helps catch wrong sourceSets/assets.srcDirs).
+        AAssetDir* rootDir = AAssetManager_openDir(assetManager, "");
+        if (rootDir)
+        {
+            int count = 0;
+            const char* filename = nullptr;
+            while ((filename = AAssetDir_getNextFileName(rootDir)) != nullptr)
+            {
+                if (count < 25)
+                {
+                    ASSET_LOGI("Sanity: root asset[%d]=%s", count, filename);
+                }
+                ++count;
+            }
+            ASSET_LOGI("Sanity: root asset count=%d", count);
+            AAssetDir_close(rootDir);
+        }
+        else
+        {
+            ASSET_LOGE("Sanity: FAILED to open root asset dir");
+        }
+    }
+    else
+    {
+        ASSET_LOGE("android_main: app->activity->assetManager is NULL");
+    }
+
     VFS::Initialize();
     VFS::MountAndroidDirectory("", assetManager);
 
