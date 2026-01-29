@@ -315,58 +315,6 @@ namespace sm {
 		void OnUpdate(sm::StateMachine* sm) override;
 	};
 
-
-	// Delusion versions of activities
-	class DelusionIdleActivity : public sm::AnimActivityBase<DelusionIdleActivity>
-	{
-	public:
-		void OnEnter(sm::StateMachine* sm) override;
-	};
-
-	class DelusionWalkActivity : public sm::AnimActivityBase<DelusionWalkActivity>
-	{
-	public:
-		void OnEnter(sm::StateMachine* sm) override;
-	};
-
-	class DelusionAttackActivity : public sm::AnimActivityBase<DelusionAttackActivity>
-	{
-	public:
-		DelusionAttackActivity(size_t moveIndex, ANIM_INPUT_TYPE attackType);
-
-		void OnEnter(sm::StateMachine* sm) override;
-		void OnUpdate(sm::StateMachine* sm) override;
-		void OnExit(sm::StateMachine* sm) override;
-
-	private:
-		size_t moveIndex;
-		ANIM_INPUT_TYPE attackType;
-	};
-
-	class DelusionHurtActivity : public sm::AnimActivityBase<DelusionHurtActivity>
-	{
-	public:
-		void OnEnter(sm::StateMachine* sm) override;
-		void OnExit(sm::StateMachine* sm) override;
-	};
-
-	class DelusionDodgeActivity : public sm::AnimActivityBase<DelusionDodgeActivity>
-	{
-	public:
-		void OnEnter(sm::StateMachine* sm) override;
-	};
-
-	class DelusionParryActivity : public sm::AnimActivityBase<DelusionParryActivity>
-	{
-	public:
-		void OnEnter(sm::StateMachine* sm) override;
-	};
-
-	class DelusionThrowActivity : public sm::AnimActivityBase<DelusionThrowActivity>
-	{
-	public:
-		void OnEnter(sm::StateMachine* sm) override;
-	};
 	
 
 	//======================================================================
@@ -461,12 +409,6 @@ namespace sm {
 		bool Decide(sm::StateMachine* sm) override;
 	};
 
-	class InToDelusionTransition : public sm::AnimTransitionBase<InToDelusionTransition>
-	{
-		public:
-		InToDelusionTransition();
-		bool Decide(sm::StateMachine* sm) override;
-	};
 
 
 	// Delusion versions of transitions
@@ -588,6 +530,15 @@ namespace sm {
 
 	class SkillAttackPlayer1 : public sm::State { public: SkillAttackPlayer1(); };
 
+	//delusion attacks
+	class DelusionLightAttackPlayer1 : public sm::State { public: DelusionLightAttackPlayer1(); };
+	class DelusionLightAttackPlayer2 : public sm::State { public: DelusionLightAttackPlayer2(); };
+	class DelusionLightAttackPlayer3 : public sm::State { public: DelusionLightAttackPlayer3(); };
+	class DelusionLightAttackPlayer4 : public sm::State { public: DelusionLightAttackPlayer4(); };
+
+	class DelusionHeavyAttackPlayer1 : public sm::State { public: DelusionHeavyAttackPlayer1(); };
+	class DelusionHeavyAttackPlayer2 : public sm::State { public: DelusionHeavyAttackPlayer2(); };
+	class DelusionHeavyAttackPlayer3 : public sm::State { public: DelusionHeavyAttackPlayer3(); };
 }
 
 namespace sm {
