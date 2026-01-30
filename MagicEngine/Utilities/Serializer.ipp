@@ -44,6 +44,12 @@ void Serializer::Serialize(const std::string& key, const T& obj)
     EndObject();
 }
 
+template <util::EnumType T>
+void Serializer::Serialize(const std::string& key, const T& enumVal)
+{
+    Serialize(key, static_cast<std::underlying_type_t<T>>(enumVal));
+}
+
 template<typename T, size_t N>
 void Serializer::Serialize(const std::string& key, const std::array<T, N>& data)
 {

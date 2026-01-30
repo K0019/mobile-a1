@@ -30,6 +30,7 @@
 #include "Game/Health.h"
 #include "UI/SpriteComponent.h"
 #include "UI/ButtonComponent.h"
+#include "UI/SliderComponent.h"
 #include "UI/TextComponent.h"
 #include "UI/BarComponent.h"
 #include "UI/HealthBarComponent.h"
@@ -75,6 +76,7 @@ void RegisterShit()
 	IRegisteredComponent<AudioListenerComponent>::RegisterComponent();
 	IRegisteredComponent<SpriteComponent>::RegisterComponent();
 	IRegisteredComponent<ButtonComponent>::RegisterComponent();
+	IRegisteredComponent<SliderComponent>::RegisterComponent();
 	IRegisteredComponent<TextComponent>::RegisterComponent();
 	IRegisteredComponent<BarComponent>::RegisterComponent();
 	IRegisteredComponent<HealthBarComponent>::RegisterComponent();
