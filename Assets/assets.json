@@ -743,7 +743,7 @@
             ]
         },
         {
-            "filepath": "Game/Weapons\\PlayerWeaponDefault.weapon",
+            "filepath": "Game/Weapons\\playerweapondefault.weapon",
             "resources": [
                 {
                     "resourceType": 9579558926714450681,

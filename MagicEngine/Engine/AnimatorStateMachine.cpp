@@ -15,6 +15,7 @@ like Idle, Walk, Run, and Jump.
 #include "Graphics/AnimationComponent.h"
 #include "Engine/Input.h"
 #include "Game/Character.h"
+#include "Game/Delusion.h"
 
 static constexpr float ANIM_TRANSITION_DURATION_IDLE = 0.15f;
 static constexpr float ANIM_TRANSITION_DURATION_ATTACK = 0.1f;
@@ -24,16 +25,23 @@ static constexpr float ANIM_TRANSITION_DURATION_HURT = 0.05f;
 static constexpr float ANIM_TRANSITION_DURATION_DODGE = 0.05f;
 static constexpr float ANIM_TRANSITION_DURATION_THROW = 0.1f;
 
+#define X(type, name) name,
+static const char* const ANIM_INPUT_KEYS[]{
+	ANIM_INPUT_TYPE_ENUM
+};
+
 namespace sm {
-	AnimStateMachine::AnimStateMachine() : StateMachine(new IdleState), entity(nullptr)
+
+	constexpr const char* AnimInputTypeToKey(ANIM_INPUT_TYPE type)
 	{
-		// Crash Fix: Without this character will receive index 0 which makes it think we're attacking with move 0
-		blackboard["outputApplyHitMove"] = -1;
+		return ANIM_INPUT_KEYS[+type];
 	}
 
-	AnimStateMachine::AnimStateMachine(State* startingState) : StateMachine(startingState), entity(nullptr)
-	{
-		blackboard["outputApplyHitMove"] = -1;
+	AnimStateMachine::AnimStateMachine() : StateMachine(new IdleState), entity(nullptr) {
+	}
+
+	AnimStateMachine::AnimStateMachine(State* startingState) : StateMachine(startingState), entity(nullptr) {
+
 	}
 
 	void AnimStateMachine::Update(ecs::EntityHandle thisEntity)
@@ -56,7 +64,6 @@ namespace sm {
 
 	inline Vec3 GetEntityVelo(ecs::EntityHandle entity)
 	{
-		
 		Vec3 entityVelo = entity->GetComp<physics::JoltBodyComp>()->GetLinearVelocity();
 		// TODO: Implement your speed calculation here
 		// Example: 
@@ -119,11 +126,17 @@ namespace sm {
 		TransitionChracterIntoAnimation(CastSM(sm), 1, ANIM_TRANSITION_DURATION_WALK);
 	}
 
+	AttackActivity::AttackActivity(size_t moveIndex, ANIM_INPUT_TYPE attackType)
+		: moveIndex{ moveIndex }
+		, attackType{ attackType }
+	{
+	}
+
 	void AttackActivity::OnEnter(sm::StateMachine* sm)
 	{
 		auto animSM{ CastSM(sm) };
-		TransitionChracterIntoAnimation(animSM, 2, ANIM_TRANSITION_DURATION_ATTACK, false);
-		animSM->blackboard["inputAttack"] = false; // Consume input
+		TransitionChracterIntoAnimation(animSM, moveIndex, ANIM_TRANSITION_DURATION_ATTACK, false);
+		animSM->blackboard[AnimInputTypeToKey(attackType)] = false; // Consume input
 		animSM->blackboard["attacking"] = true; // Mark that we are currently attacking
 
 		// Use this to track whether we've already attacked while we're in the AttackActivity
@@ -149,12 +162,12 @@ namespace sm {
 
 		// We need the WeaponInfo to get the hit parameters
 		auto weaponInfo{ GetWeaponInfo(animSM) };
-		if (!weaponInfo || weaponInfo->moves.size() <= 2)
+		if (!weaponInfo || weaponInfo->moves.size() <= moveIndex)
 		{
-			CONSOLE_LOG(LEVEL_WARNING) << "Can't find WeaponInfo or WeaponInfo doesn't have a move at index 2, unable to apply attack hit logic";
+			CONSOLE_LOG(LEVEL_WARNING) << "Can't find WeaponInfo or WeaponInfo doesn't have a move at index " << moveIndex << ", unable to apply attack hit logic";
 			return;
 		}
-		const auto& weaponMove{ weaponInfo->moves[2] };
+		const auto& weaponMove{ weaponInfo->moves[moveIndex] };
 
 		// Check if it's time to do the hit
 		ecs::EntityHandle charEntity{ animSM->GetEntity() };
@@ -168,7 +181,7 @@ namespace sm {
 		if (animComp->timeA < weaponMove.hitDelay)
 			return;
 
-		animSM->blackboard["outputApplyHitMove"] = 2; // Indicate to the code processing the hit which move index to access
+		animSM->blackboard["outputApplyHitMove"] = static_cast<int>(moveIndex); // Indicate to the code processing the hit which move index to access
 		animSM->blackboard["attacked"] = true;
 	}
 
@@ -209,6 +222,17 @@ namespace sm {
 		animSM->blackboard["inputThrow"] = false;
 	}
 
+	void DecayDelusionIfEnhancedActivity::OnUpdate(sm::StateMachine* sm)
+	{
+		auto animSM{ CastSM(sm) };
+		if (animSM->GetBlackboardVal<bool>("enhanced"))
+			if (auto delusionComp{ animSM->GetEntity()->GetComp<DelusionComponent>() })
+				delusionComp->LoseDelusion(GameTime::Dt());
+	}
+
+
+
+
 	//======================================================================
 	// TRANSITION DEFINITIONS
 	//======================================================================
@@ -226,6 +250,15 @@ namespace sm {
 			return false;
 	}
 
+	NoOpBeforeAttackDamageTransition::NoOpBeforeAttackDamageTransition()
+		: sm::AnimTransitionBase<NoOpBeforeAttackDamageTransition>{ SET_NEXT_STATE(std::nullptr_t) } {}
+
+	bool NoOpBeforeAttackDamageTransition::Decide(sm::StateMachine* sm)
+	{
+		return !CastSM(sm)->GetBlackboardVal<bool>("attacked");
+	}
+
+
 	ToIdleTransition::ToIdleTransition()
 		: sm::AnimTransitionBase<ToIdleTransition>(SET_NEXT_STATE(IdleState)) {}
 
@@ -242,42 +275,110 @@ namespace sm {
 		return CastSM(sm)->GetBlackboardVal<Vec2>("inputMovement").LengthSqr() >= 0.01f;
 	}
 
-	ToAttackTransition::ToAttackTransition()
-		: sm::AnimTransitionBase<ToAttackTransition>(SET_NEXT_STATE(AttackState)) {}
-
-	bool ToAttackTransition::Decide(sm::StateMachine* sm)
-	{
-		return CastSM(sm)->GetBlackboardVal<bool>("inputAttack");
-	}
-
-	ToHurtTransition::ToHurtTransition() 
+	ToHurtTransition::ToHurtTransition()
 		: sm::AnimTransitionBase<ToHurtTransition>(SET_NEXT_STATE(HurtState)) {}
 
 	bool ToHurtTransition::Decide(sm::StateMachine* sm) {
 		return CastSM(sm)->GetBlackboardVal<bool>("inputHurt");
 	}
 
-	ToDodgeTransition::ToDodgeTransition() 
+	ToDodgeTransition::ToDodgeTransition()
 		: sm::AnimTransitionBase<ToDodgeTransition>(SET_NEXT_STATE(DodgeState)) {}
 
 	bool ToDodgeTransition::Decide(sm::StateMachine* sm) {
 		return CastSM(sm)->GetBlackboardVal<bool>("inputDodge");
 	}
 
-	ToParryTransition::ToParryTransition() 
+	ToParryTransition::ToParryTransition()
 		: sm::AnimTransitionBase<ToParryTransition>(SET_NEXT_STATE(ParryState)) {}
 
 	bool ToParryTransition::Decide(sm::StateMachine* sm) {
 		return CastSM(sm)->GetBlackboardVal<bool>("inputParry");
 	}
 
-	ToThrowTransition::ToThrowTransition() 
+	ToThrowTransition::ToThrowTransition()
 		: sm::AnimTransitionBase<ToThrowTransition>(SET_NEXT_STATE(ThrowState)) {}
 
 	bool ToThrowTransition::Decide(sm::StateMachine* sm) {
 		return CastSM(sm)->GetBlackboardVal<bool>("inputThrow");
 	}
 
+	bool ToSkillAttackTransition::Decide(sm::StateMachine* sm)
+	{
+		if (ToAttackTransition::Decide(sm))
+			if (auto delusionComp{ CastSM(sm)->GetEntity()->GetComp<DelusionComponent>() })
+				if (delusionComp->GetDelusionFraction() >= 0.2f) // Random number for now, only allow activating skill if over 20% delusion
+				{
+					CastSM(sm)->blackboard["enhanced"] = true;
+					return true;
+				}
+		return false;
+	}
+
+	ToDelusionIdleTransition::ToDelusionIdleTransition()
+		: sm::AnimTransitionBase<ToDelusionIdleTransition>(SET_NEXT_STATE(DelusionIdleState)) {}
+
+	bool ToDelusionIdleTransition::Decide(sm::StateMachine* sm)
+	{
+		return CastSM(sm)->GetBlackboardVal<Vec2>("inputMovement").LengthSqr() < 0.01f;
+	}
+
+	ToDelusionWalkTransition::ToDelusionWalkTransition()
+		: sm::AnimTransitionBase<ToDelusionWalkTransition>(SET_NEXT_STATE(DelusionWalkState)) {}
+
+	bool ToDelusionWalkTransition::Decide(sm::StateMachine* sm)
+	{
+		return CastSM(sm)->GetBlackboardVal<Vec2>("inputMovement").LengthSqr() >= 0.01f;
+	}
+
+	ToDelusionHurtTransition::ToDelusionHurtTransition()
+		: sm::AnimTransitionBase<ToDelusionHurtTransition>(SET_NEXT_STATE(DelusionHurtState)) {}
+
+	bool ToDelusionHurtTransition::Decide(sm::StateMachine* sm) {
+		return CastSM(sm)->GetBlackboardVal<bool>("inputHurt");
+	}
+
+	ToDelusionDodgeTransition::ToDelusionDodgeTransition()
+		: sm::AnimTransitionBase<ToDelusionDodgeTransition>(SET_NEXT_STATE(DelusionDodgeState)) {}
+
+	bool ToDelusionDodgeTransition::Decide(sm::StateMachine* sm) {
+		return CastSM(sm)->GetBlackboardVal<bool>("inputDodge");
+	}
+
+	ToDelusionParryTransition::ToDelusionParryTransition()
+		: sm::AnimTransitionBase<ToDelusionParryTransition>(SET_NEXT_STATE(DelusionParryState)) {}
+
+	bool ToDelusionParryTransition::Decide(sm::StateMachine* sm) {
+		return CastSM(sm)->GetBlackboardVal<bool>("inputParry");
+	}
+
+	ToDelusionThrowTransition::ToDelusionThrowTransition()
+		: sm::AnimTransitionBase<ToDelusionThrowTransition>(SET_NEXT_STATE(DelusionThrowState)) {}
+
+	bool ToDelusionThrowTransition::Decide(sm::StateMachine* sm) {
+		return CastSM(sm)->GetBlackboardVal<bool>("inputThrow");
+	}
+
+
+	OutOfDelusionTransition::OutOfDelusionTransition()
+		: sm::AnimTransitionBase<OutOfDelusionTransition>{ SET_NEXT_STATE(IdleState) } // Might need an in-between state here if the animation transition is too abrupt
+	{
+	}
+
+	bool OutOfDelusionTransition::Decide(sm::StateMachine* sm)
+	{
+		auto animSM{ CastSM(sm) };
+		if (auto delusionComp{ animSM->GetEntity()->GetComp<DelusionComponent>() })
+		{
+			if (delusionComp->GetCurrDelusion() <= 0.0f)
+			{
+				animSM->blackboard["enhanced"] = false;
+				return true;
+			}
+			else
+				return false;
+		}
+	}
 
 	//======================================================================
 	// STATE DEFINITIONS
@@ -285,25 +386,25 @@ namespace sm {
 
 	IdleState::IdleState() : sm::State(
 		{ new IdleActivity() },
-		{ new ToWalkTransition(), new ToAttackTransition(), new ToHurtTransition(), new ToDodgeTransition(), new ToParryTransition(), new ToThrowTransition() }
+		{ new ToWalkTransition(), new ToAttackTransition<AttackState>{ ANIM_INPUT_TYPE::LIGHT_ATTACK }, new ToHurtTransition(), new ToDodgeTransition(), new ToParryTransition(), new ToThrowTransition() }
 	) {
 	}
 
 	WalkState::WalkState() : sm::State(
 		{ new WalkActivity() },
-		{ new ToIdleTransition(), new ToAttackTransition(), new ToHurtTransition(), new ToDodgeTransition(), new ToParryTransition(), new ToThrowTransition() }
+		{ new ToIdleTransition(), new ToAttackTransition<AttackState>{ ANIM_INPUT_TYPE::LIGHT_ATTACK }, new ToHurtTransition(), new ToDodgeTransition(), new ToParryTransition(), new ToThrowTransition() }
 	) {
 	}
 
 	AttackState::AttackState() : sm::State(
-		{ new AttackActivity() },
-		{ new NoOpWhileAnimatingTransition{}, new ToHurtTransition{}, new ToAttackTransition{}, new ToIdleTransition(), new ToWalkTransition() }
+		{ new AttackActivity{ 2, ANIM_INPUT_TYPE::LIGHT_ATTACK } },
+		{ new ToHurtTransition{}, new NoOpBeforeAttackDamageTransition{}, new ToAttackTransition<AttackState>{ ANIM_INPUT_TYPE::LIGHT_ATTACK }, new NoOpWhileAnimatingTransition{}, new ToIdleTransition(), new ToWalkTransition() }
 	) {
 	}
 
 	HurtState::HurtState() : sm::State(
 		{ new HurtActivity() },
-		{ new NoOpWhileAnimatingTransition{}, new ToAttackTransition{}, new ToIdleTransition() } // Recover to Idle after being hurt
+		{ new NoOpWhileAnimatingTransition{}, new ToAttackTransition<AttackState>{ ANIM_INPUT_TYPE::LIGHT_ATTACK }, new ToIdleTransition() } // Recover to Idle after being hurt
 	) {
 	}
 
@@ -315,7 +416,7 @@ namespace sm {
 
 	ParryState::ParryState() : sm::State(
 		{ new ParryActivity() },
-		{ new NoOpWhileAnimatingTransition{}, new ToIdleTransition(), new ToAttackTransition() } // Can counter-attack from parry
+		{ new NoOpWhileAnimatingTransition{}, new ToIdleTransition(), new ToAttackTransition<AttackState>{ ANIM_INPUT_TYPE::LIGHT_ATTACK } } // Can counter-attack from parry
 	) {
 	}
 
@@ -323,5 +424,159 @@ namespace sm {
 		{ new ThrowActivity() },
 		{ new NoOpWhileAnimatingTransition{}, new ToIdleTransition(), new ToWalkTransition() }
 	) {
+	}
+
+	DelusionIdleState::DelusionIdleState() : sm::State(
+		{ new IdleActivity() , new DecayDelusionIfEnhancedActivity{} },
+		{ new ToDelusionWalkTransition(), new ToDelusionAttackTransition<AttackState>{ ANIM_INPUT_TYPE::LIGHT_ATTACK }, new ToDelusionHurtTransition(), new ToDelusionDodgeTransition(), new ToDelusionParryTransition(), new ToDelusionThrowTransition() }
+	) {
+	}
+
+	DelusionWalkState::DelusionWalkState() : sm::State(
+		{ new WalkActivity(), new DecayDelusionIfEnhancedActivity{} },
+		{ new ToDelusionIdleTransition(), new ToDelusionAttackTransition<AttackState>{ ANIM_INPUT_TYPE::LIGHT_ATTACK }, new ToDelusionHurtTransition(), new ToDelusionDodgeTransition(), new ToDelusionParryTransition(), new ToDelusionThrowTransition() }
+	) {
+	}
+
+	DelusionAttackState::DelusionAttackState() : sm::State(
+		{ new AttackActivity{ 2, ANIM_INPUT_TYPE::LIGHT_ATTACK }, new DecayDelusionIfEnhancedActivity{} },
+		{ new ToDelusionHurtTransition{}, new NoOpBeforeAttackDamageTransition{}, new ToDelusionAttackTransition<AttackState>{ ANIM_INPUT_TYPE::LIGHT_ATTACK }, new NoOpWhileAnimatingTransition{}, new ToDelusionIdleTransition(), new ToDelusionWalkTransition() }
+	) {
+	}
+
+	DelusionHurtState::DelusionHurtState() : sm::State(
+		{ new HurtActivity(), new DecayDelusionIfEnhancedActivity{} },
+		{ new NoOpWhileAnimatingTransition{}, new ToDelusionAttackTransition<AttackState>{ ANIM_INPUT_TYPE::LIGHT_ATTACK }, new ToIdleTransition() } // Recover to Idle after being hurt
+	) {
+	}
+
+	DelusionDodgeState::DelusionDodgeState() : sm::State(
+		{ new DodgeActivity(), new DecayDelusionIfEnhancedActivity{} },
+		{ new NoOpWhileAnimatingTransition{}, new ToDelusionIdleTransition(), new ToDelusionWalkTransition() }
+	) {
+	}
+
+	DelusionParryState::DelusionParryState() : sm::State(
+		{ new ParryActivity(), new DecayDelusionIfEnhancedActivity{} },
+		{ new NoOpWhileAnimatingTransition{}, new ToDelusionIdleTransition(), new ToDelusionAttackTransition<AttackState>{ ANIM_INPUT_TYPE::LIGHT_ATTACK } } // Can counter-attack from parry
+	) {
+	}
+
+	DelusionThrowState::DelusionThrowState() : sm::State(
+		{ new ThrowActivity(), new DecayDelusionIfEnhancedActivity{} },
+		{ new NoOpWhileAnimatingTransition{}, new ToDelusionIdleTransition(), new ToDelusionWalkTransition() }
+	) {
+	}
+
+
+	LightAttackPlayer1::LightAttackPlayer1() : sm::State{
+		{ new AttackActivity{ 2, ANIM_INPUT_TYPE::LIGHT_ATTACK } },
+		{ new ToHurtTransition{}, new ToParryTransition{}, new ToDodgeTransition{}, new NoOpBeforeAttackDamageTransition{}, // Allow getting hit or dodging out of the attack animation at any point in time
+		  new ToAttackTransition<LightAttackPlayer2>{ ANIM_INPUT_TYPE::LIGHT_ATTACK }, new ToAttackTransition<HeavyAttackPlayer1>{ ANIM_INPUT_TYPE::HEAVY_ATTACK }, new NoOpWhileAnimatingTransition{}, // Allow transitioning to the next attack combo at any point until the end of the current attack animation
+		  new ToIdleTransition{}, new ToWalkTransition{} } // No more attack inputs, return to idle/walk
+	} {
+	}
+	LightAttackPlayer2::LightAttackPlayer2() : sm::State{
+		{ new AttackActivity{ 3, ANIM_INPUT_TYPE::LIGHT_ATTACK } },
+		{ new ToHurtTransition{}, new ToParryTransition{}, new ToDodgeTransition{}, new NoOpBeforeAttackDamageTransition{},
+		  new ToAttackTransition<LightAttackPlayer3>{ ANIM_INPUT_TYPE::LIGHT_ATTACK }, new ToAttackTransition<HeavyAttackPlayer3>{ ANIM_INPUT_TYPE::HEAVY_ATTACK }, new NoOpWhileAnimatingTransition{},
+		  new ToIdleTransition{}, new ToWalkTransition{} }
+	} {
+	}
+	LightAttackPlayer3::LightAttackPlayer3() : sm::State{
+		{ new AttackActivity{ 4, ANIM_INPUT_TYPE::LIGHT_ATTACK } },
+		{ new ToHurtTransition{}, new ToParryTransition{}, new ToDodgeTransition{}, new NoOpBeforeAttackDamageTransition{},
+		  new ToAttackTransition<LightAttackPlayer4>{ ANIM_INPUT_TYPE::LIGHT_ATTACK }, new ToAttackTransition<HeavyAttackPlayer1>{ ANIM_INPUT_TYPE::HEAVY_ATTACK }, new NoOpWhileAnimatingTransition{},
+		  new ToIdleTransition{}, new ToWalkTransition{} }
+	} {
+	}
+	LightAttackPlayer4::LightAttackPlayer4() : sm::State{
+		{ new AttackActivity{ 5, ANIM_INPUT_TYPE::LIGHT_ATTACK } },
+		{ new ToHurtTransition{}, new ToParryTransition{}, new ToDodgeTransition{}, new NoOpBeforeAttackDamageTransition{},
+		  new ToAttackTransition<LightAttackPlayer1>{ ANIM_INPUT_TYPE::LIGHT_ATTACK }, new ToAttackTransition<HeavyAttackPlayer1>{ ANIM_INPUT_TYPE::HEAVY_ATTACK }, new NoOpWhileAnimatingTransition{},
+		  new ToIdleTransition{}, new ToWalkTransition{} }
+	} {
+	}
+
+	HeavyAttackPlayer1::HeavyAttackPlayer1() : sm::State{
+		{ new AttackActivity{ 6, ANIM_INPUT_TYPE::HEAVY_ATTACK } },
+		{ new ToHurtTransition{}, new NoOpBeforeAttackDamageTransition{}, // No dodging when doing heavy attacks until the attack hits
+		  new ToAttackTransition<LightAttackPlayer1>{ ANIM_INPUT_TYPE::LIGHT_ATTACK }, new ToAttackTransition<HeavyAttackPlayer2>{ ANIM_INPUT_TYPE::HEAVY_ATTACK }, new ToParryTransition{}, new ToDodgeTransition{}, new NoOpWhileAnimatingTransition{}, // Only allow dodging after hitting the attack
+		  new ToIdleTransition{}, new ToWalkTransition{} } // No more attack inputs, return to idle/walk
+	} {
+	}
+	HeavyAttackPlayer2::HeavyAttackPlayer2() : sm::State{
+		{ new AttackActivity{ 7, ANIM_INPUT_TYPE::HEAVY_ATTACK } },
+		{ new ToHurtTransition{}, new NoOpBeforeAttackDamageTransition{},
+		  new ToAttackTransition<LightAttackPlayer1>{ ANIM_INPUT_TYPE::LIGHT_ATTACK }, new ToAttackTransition<HeavyAttackPlayer3>{ ANIM_INPUT_TYPE::HEAVY_ATTACK }, new ToParryTransition{}, new ToDodgeTransition{}, new NoOpWhileAnimatingTransition{},
+		  new ToIdleTransition{}, new ToWalkTransition{} }
+	} {
+	}
+	HeavyAttackPlayer3::HeavyAttackPlayer3() : sm::State{
+		{ new AttackActivity{ 8, ANIM_INPUT_TYPE::HEAVY_ATTACK } },
+		{ new ToHurtTransition{}, new NoOpBeforeAttackDamageTransition{},
+		  new ToAttackTransition<LightAttackPlayer1>{ ANIM_INPUT_TYPE::LIGHT_ATTACK }, new ToAttackTransition<HeavyAttackPlayer1>{ ANIM_INPUT_TYPE::HEAVY_ATTACK }, new ToParryTransition{}, new ToDodgeTransition{}, new NoOpWhileAnimatingTransition{},
+		  new ToIdleTransition{}, new ToWalkTransition{} }
+	} {
+	}
+
+	SkillAttackPlayer1::SkillAttackPlayer1() : sm::State{
+		{ new AttackActivity{ 9, ANIM_INPUT_TYPE::SKILL_ATTACK }, new DecayDelusionIfEnhancedActivity{} },
+		{ new NoOpBeforeAttackDamageTransition{},
+		  new NoOpWhileAnimatingTransition{},
+		  new OutOfDelusionTransition{} }
+	} {
+	}
+
+	//delusion attacks
+	DelusionLightAttackPlayer1::DelusionLightAttackPlayer1() : sm::State{
+	{ new AttackActivity{ 10, ANIM_INPUT_TYPE::LIGHT_ATTACK } , new DecayDelusionIfEnhancedActivity{}},
+	{ new ToDelusionHurtTransition{}, new ToDelusionParryTransition{}, new ToDelusionDodgeTransition{}, new NoOpBeforeAttackDamageTransition{}, // Allow getting hit or dodging out of the attack animation at any point in time
+	  new ToDelusionAttackTransition<DelusionLightAttackPlayer2>{ ANIM_INPUT_TYPE::LIGHT_ATTACK }, new ToAttackTransition<DelusionHeavyAttackPlayer1>{ ANIM_INPUT_TYPE::HEAVY_ATTACK }, new NoOpWhileAnimatingTransition{}, // Allow transitioning to the next attack combo at any point until the end of the current attack animation
+	  new ToDelusionIdleTransition{}, new ToDelusionWalkTransition{} } // No more attack inputs, return to idle/walk
+	} {
+	}
+	DelusionLightAttackPlayer2::DelusionLightAttackPlayer2() : sm::State{
+		{ new AttackActivity{ 11, ANIM_INPUT_TYPE::LIGHT_ATTACK }, new DecayDelusionIfEnhancedActivity{} },
+		{ new ToDelusionHurtTransition{}, new ToDelusionParryTransition{}, new ToDelusionDodgeTransition{}, new NoOpBeforeAttackDamageTransition{},
+		  new ToDelusionAttackTransition<DelusionLightAttackPlayer3>{ ANIM_INPUT_TYPE::LIGHT_ATTACK }, new ToDelusionAttackTransition<DelusionHeavyAttackPlayer3>{ ANIM_INPUT_TYPE::HEAVY_ATTACK }, new NoOpWhileAnimatingTransition{},
+		  new ToDelusionIdleTransition{}, new ToDelusionWalkTransition{} }
+	} {
+	}
+	DelusionLightAttackPlayer3::DelusionLightAttackPlayer3() : sm::State{
+		{ new AttackActivity{ 12, ANIM_INPUT_TYPE::LIGHT_ATTACK }, new DecayDelusionIfEnhancedActivity{} },
+		{ new ToDelusionHurtTransition{}, new ToDelusionParryTransition{}, new ToDelusionDodgeTransition{}, new NoOpBeforeAttackDamageTransition{},
+		  new ToDelusionAttackTransition<DelusionLightAttackPlayer4>{ ANIM_INPUT_TYPE::LIGHT_ATTACK }, new ToDelusionAttackTransition<DelusionHeavyAttackPlayer1>{ ANIM_INPUT_TYPE::HEAVY_ATTACK }, new NoOpWhileAnimatingTransition{},
+		  new ToDelusionIdleTransition{}, new ToDelusionWalkTransition{} }
+	} {
+	}
+	DelusionLightAttackPlayer4::DelusionLightAttackPlayer4() : sm::State{
+		{ new AttackActivity{ 13, ANIM_INPUT_TYPE::LIGHT_ATTACK }, new DecayDelusionIfEnhancedActivity{} },
+		{ new ToDelusionHurtTransition{}, new ToDelusionParryTransition{}, new ToDelusionDodgeTransition{}, new NoOpBeforeAttackDamageTransition{},
+		  new ToDelusionAttackTransition<DelusionLightAttackPlayer1>{ ANIM_INPUT_TYPE::LIGHT_ATTACK }, new ToDelusionAttackTransition<DelusionHeavyAttackPlayer1>{ ANIM_INPUT_TYPE::HEAVY_ATTACK }, new NoOpWhileAnimatingTransition{},
+		  new ToDelusionIdleTransition{}, new ToDelusionWalkTransition{} }
+	} {
+	}
+
+	DelusionHeavyAttackPlayer1::DelusionHeavyAttackPlayer1() : sm::State{
+		{ new AttackActivity{ 14, ANIM_INPUT_TYPE::HEAVY_ATTACK }, new DecayDelusionIfEnhancedActivity{} },
+		{ new ToDelusionHurtTransition{}, new NoOpBeforeAttackDamageTransition{}, // No dodging when doing heavy attacks until the attack hits
+		  new ToDelusionAttackTransition<DelusionLightAttackPlayer1>{ ANIM_INPUT_TYPE::LIGHT_ATTACK }, new ToDelusionAttackTransition<DelusionHeavyAttackPlayer2>{ ANIM_INPUT_TYPE::HEAVY_ATTACK }, new ToDelusionParryTransition{}, new ToDelusionDodgeTransition{}, new NoOpWhileAnimatingTransition{}, // Only allow dodging after hitting the attack
+		  new ToDelusionIdleTransition{}, new ToDelusionWalkTransition{} } // No more attack inputs, return to idle/walk
+	} {
+	}
+	DelusionHeavyAttackPlayer2::DelusionHeavyAttackPlayer2() : sm::State{
+		{ new AttackActivity{ 15, ANIM_INPUT_TYPE::HEAVY_ATTACK }, new DecayDelusionIfEnhancedActivity{} },
+		{ new ToDelusionHurtTransition{}, new NoOpBeforeAttackDamageTransition{},
+		  new ToDelusionAttackTransition<DelusionLightAttackPlayer1>{ ANIM_INPUT_TYPE::LIGHT_ATTACK }, new ToDelusionAttackTransition<DelusionHeavyAttackPlayer3>{ ANIM_INPUT_TYPE::HEAVY_ATTACK }, new ToDelusionParryTransition{}, new ToDelusionDodgeTransition{}, new NoOpWhileAnimatingTransition{},
+		  new ToDelusionIdleTransition{}, new ToDelusionWalkTransition{} }
+	} {
+	}
+	DelusionHeavyAttackPlayer3::DelusionHeavyAttackPlayer3() : sm::State{
+		{ new AttackActivity{ 16, ANIM_INPUT_TYPE::HEAVY_ATTACK }, new DecayDelusionIfEnhancedActivity{} },
+		{ new ToDelusionHurtTransition{}, new NoOpBeforeAttackDamageTransition{},
+		  new ToDelusionAttackTransition<DelusionLightAttackPlayer1>{ ANIM_INPUT_TYPE::LIGHT_ATTACK }, new ToDelusionAttackTransition<DelusionHeavyAttackPlayer1>{ ANIM_INPUT_TYPE::HEAVY_ATTACK }, new ToDelusionParryTransition{}, new ToDelusionDodgeTransition{}, new NoOpWhileAnimatingTransition{},
+		  new ToDelusionIdleTransition{}, new ToDelusionWalkTransition{} }
+	} {
 	}
 }

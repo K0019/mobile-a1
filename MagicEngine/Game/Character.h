@@ -84,7 +84,8 @@ public:
 	void DropItem();
 	void Throw(Vec3 direction);
 	void GrabItem(ecs::CompHandle<GrabbableItemComponent> item);
-	void Attack();
+	void LightAttack();
+	void HeavyAttack();
 	bool IsAttacking() const;
 	bool IsDodging();
 	bool IsParrying();

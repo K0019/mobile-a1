@@ -173,7 +173,7 @@ void RotateTowards(const Vec2 v) { GetHandle()->RotateTowards(v); }
 void SetMovementVectorLua(const Vec2 v) { GetHandle()->SetMovementVector(v); }
 void DropItem() { GetHandle()->DropItem(); }
 void Throw(const Vec3 dir) { GetHandle()->Throw(dir); }
-void Attack() { GetHandle()->Attack(); }
+void Attack() { GetHandle()->LightAttack(); }
 SCRIPT_GENERATE_COMP_WRAPPER_END()
 
 // PlayerMovementComponent
@@ -185,8 +185,8 @@ SCRIPT_GENERATE_COMP_WRAPPER_END()
 SCRIPT_GENERATE_COMP_WRAPPER_BEGIN(GrabbableItemComponent)
 SCRIPT_GENERATE_PROPERTY_FUNCS(float, GetDamage, SetDamage)
 SCRIPT_GENERATE_PROPERTY_FUNCS(bool, GetIsHeld, SetIsHeld)
-void AttackLua(const Vec3& origin, const Vec3& direction)
-{ GetHandle()->Attack(origin, direction);}
+void AttackLua(const Vec3& origin, const Vec3& extents)
+{ GetHandle()->Attack(origin, extents);}
 SCRIPT_GENERATE_COMP_WRAPPER_END()
 
 // HealthComponent
@@ -638,7 +638,8 @@ void RegisterCppStuffToLua(luabridge::Namespace baseTable)
 		.beginNamespace("PlayerActions")
 			.addFunction("GrabItem", Lua_SimpleQueueEventNextFrame<Events::GameActionGrabItem>)
 			.addFunction("ThrowItem", Lua_SimpleQueueEventNextFrame<Events::GameActionThrowItem>)
-			.addFunction("Attack", Lua_SimpleQueueEventNextFrame<Events::GameActionAttack>)
+			.addFunction("LightAttack", Lua_SimpleQueueEventNextFrame<Events::GameActionLightAttack>)
+			.addFunction("HeavyAttack", Lua_SimpleQueueEventNextFrame<Events::GameActionHeavyAttack>)
 			.addFunction("Dodge", Lua_SimpleQueueEventNextFrame<Events::GameActionDodge>)
 		.endNamespace()
 

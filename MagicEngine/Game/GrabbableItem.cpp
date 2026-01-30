@@ -38,7 +38,7 @@ All rights reserved.
 #include "Engine/PrefabManager.h"
 #include "Graphics/RenderComponent.h"
 
-void GrabbableItemComponent::Attack(Vec3 origin, Vec3 direction)
+void GrabbableItemComponent::Attack(Vec3 origin, Vec3 extents)
 {
 	//Add the damage if the attack is an ultimate attack.
 	float attackDamage{ damage };
@@ -52,7 +52,7 @@ void GrabbableItemComponent::Attack(Vec3 origin, Vec3 direction)
 	}
 
 	std::vector<physics::BoxColliderComp*> colliders;
-	physics::OverlapBox(colliders, origin, attackBox, direction);
+	physics::OverlapBox(colliders, origin, extents);
 
 	for (auto collider : colliders)
 	{
@@ -83,8 +83,13 @@ void GrabbableItemComponent::Attack(Vec3 origin, Vec3 direction)
 					characterComp->OnParrySuccess();
 				}
 			}
-			if(dealDamage)
-				healthComp->TakeDamage(attackDamage, direction);
+			if (dealDamage)
+			{
+				Vec3 knockbackDirection{ hitEntity->GetTransform().GetWorldPosition() - owner->GetTransform().GetWorldPosition() };
+				knockbackDirection.y = 0.0f;
+				knockbackDirection = knockbackDirection.Normalized();
+				healthComp->TakeDamage(attackDamage, knockbackDirection);
+			}
 			//damage taken tied to delusion for now
 			//if owner is enemy
 			if (owner->GetComp<EnemyComponent>())
