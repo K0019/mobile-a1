@@ -7,7 +7,7 @@
 void L_Range_MoveToWeapon::OnInitialize()
 {
     //reset pos;
-    collectRange = 0.6;
+    collectRange = 1.f;
 }
 
 NODE_STATUS L_Range_MoveToWeapon::OnUpdate([[maybe_unused]] ecs::EntityHandle entity)

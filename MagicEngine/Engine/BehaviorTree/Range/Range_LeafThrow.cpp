@@ -1,7 +1,7 @@
 #include "Range_LeafThrow.h"
 #include "Game/Character.h"
 #include "Game/EnemyCharacter.h"
-
+#include "Scripting/ScriptComponent.h"
 void L_Range_Throw::OnInitialize()
 {
 	waitTimer = 1.f;
@@ -24,9 +24,15 @@ NODE_STATUS L_Range_Throw::OnUpdate(ecs::EntityHandle entity)
 		return NODE_STATUS::FAILURE;
 
 	Vec3 playerPos{ enemyComp->playerReference->GetTransform().GetWorldPosition() };
-	Vec3 weaponPos{ charComp->heldItem->GetTransform().GetWorldPosition() };
+	Vec3 enemyPos{ entity->GetTransform().GetWorldPosition() };
 
-	charComp->Throw(weaponPos - playerPos);
+	auto scriptComp{ charComp->heldItem->GetComp<ScriptComponent>() };
+	auto colliderComp{ charComp->heldItem->GetComp<physics::BoxColliderComp>() };
+	if (!colliderComp || !scriptComp)
+		return NODE_STATUS::FAILURE;
+
+	scriptComp->CallScriptFunction("throw", entity);
+	charComp->Throw(playerPos - enemyPos);
 	waitTimer -= GameTime::Dt();
 	return NODE_STATUS::RUNNING;
 }

@@ -121,6 +121,7 @@ SCRIPT_GENERATE_COMP_WRAPPER_BEGIN(BoxColliderComp)
 SCRIPT_GENERATE_PROPERTY_FUNCS(Vec3, GetCenter, SetCenter)
 SCRIPT_GENERATE_PROPERTY_FUNCS(Vec3, GetSize, SetSize)
 SCRIPT_GENERATE_PROPERTY_FUNCS(bool, GetEnabled, SetEnabled)
+SCRIPT_GENERATE_PROPERTY_FUNCS(bool, IsTrigger, SetIsTrigger)
 SCRIPT_GENERATE_COMP_WRAPPER_END()
 
 using PhysicsComp = physics::PhysicsComp;
@@ -505,6 +506,7 @@ void RegisterCppStuffToLua(luabridge::Namespace baseTable)
 		SCRIPT_REGISTER_COMP_PROPERTY(BoxColliderComp, "center", GetCenter, SetCenter)
 		SCRIPT_REGISTER_COMP_PROPERTY(BoxColliderComp, "size", GetSize, SetSize)
 		SCRIPT_REGISTER_COMP_PROPERTY(BoxColliderComp, "enabled", GetEnabled, SetEnabled)
+		SCRIPT_REGISTER_COMP_PROPERTY(BoxColliderComp, "isTrigger", IsTrigger, SetIsTrigger)
 		SCRIPT_REGISTER_COMP_END()
 
 		// PhysicsComp (Slightly different in how takumi use it in his component but is same functions)

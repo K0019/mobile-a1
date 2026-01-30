@@ -369,6 +369,7 @@ namespace physics {
 			else
 				layer = Layers::NON_MOVING;
 			ecs::GetEntity(this)->GetComp<JoltBodyComp>()->SetCollisionLayer(layer);
+			ecs::GetEntity(this)->GetComp<JoltBodyComp>()->SetIsTrigger(IsTrigger());
 			break;
 		case COLLIDER_COMP_FLAG::IS_TRIGGER:
 			ecs::GetEntity(this)->GetComp<JoltBodyComp>()->SetIsTrigger(val);
