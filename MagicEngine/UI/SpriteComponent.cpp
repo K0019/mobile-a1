@@ -82,10 +82,11 @@ int Primitive2DCircle::GetNumSegmentsForSmoothCircle(float radius)
 
 bool Primitive2DRect::IsClicked(const RectTransformComponent& transform, Vec2 clickPos) const
 {
-	Vec2 rectPos{ transform.GetWorldPosition() }, rectHalfScale{ transform.GetWorldScale() * 0.5f };
+	Vec2 toClickPos{ clickPos - transform.GetWorldPosition() }, rectHalfScale{ transform.GetWorldScale() * 0.5f };
+	toClickPos = glm::rotateZ(Vec3{ toClickPos, 0.0f }, -transform.GetRotation()); // Compensate for rotation
 	return
-		clickPos.x >= rectPos.x - rectHalfScale.x && clickPos.x <= rectPos.x + rectHalfScale.x &&
-		clickPos.y >= rectPos.y - rectHalfScale.y && clickPos.y <= rectPos.y + rectHalfScale.y;
+		toClickPos.x >= -rectHalfScale.x && toClickPos.x <= rectHalfScale.x &&
+		toClickPos.y >= -rectHalfScale.y && toClickPos.y <= rectHalfScale.y;
 }
 
 void Primitive2DRect::Render(const RectTransformComponent& transform, const Vec4& color) const
@@ -122,10 +123,11 @@ void Primitive2DImage::SetUV(Vec2 min, Vec2 max)
 bool Primitive2DImage::IsClicked(const RectTransformComponent& transform, Vec2 clickPos) const
 {
 	// TODO: Maybe provide different hit detection algos to the user
-	Vec2 rectPos{ transform.GetWorldPosition() }, rectHalfScale{ transform.GetWorldScale() * 0.5f };
+	Vec2 toClickPos{ clickPos - transform.GetWorldPosition() }, rectHalfScale{ transform.GetWorldScale() * 0.5f };
+	toClickPos = glm::rotateZ(Vec3{ toClickPos, 0.0f }, -transform.GetRotation()); // Compensate for rotation
 	return
-		clickPos.x >= rectPos.x - rectHalfScale.x && clickPos.x <= rectPos.x + rectHalfScale.x &&
-		clickPos.y >= rectPos.y - rectHalfScale.y && clickPos.y <= rectPos.y + rectHalfScale.y;
+		toClickPos.x >= -rectHalfScale.x && toClickPos.x <= rectHalfScale.x &&
+		toClickPos.y >= -rectHalfScale.y && toClickPos.y <= rectHalfScale.y;
 }
 
 void Primitive2DImage::Render(const RectTransformComponent& transform, const Vec4& color) const
