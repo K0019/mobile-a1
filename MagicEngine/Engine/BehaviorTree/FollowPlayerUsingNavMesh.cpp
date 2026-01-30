@@ -1,14 +1,16 @@
 #include "FollowPlayerUsingNavMesh.h"
 #include "BehaviourTreeFactory.h"
 #include "Game/EnemyCharacter.h"
-#include "Engine/NavMeshAgent.h"
 #include "Game/Character.h"
 #include "Graphics/AnimationComponent.h"
 
 
 void L_FollowPlayerUsingNavMesh::OnInitialize()
 {
-    //reset pos
+    //reset pos;
+    pathUpdateDuration = 0.25f;
+    timer = pathUpdateDuration;
+    currentCornerIndex = 0;
 }
 
 NODE_STATUS L_FollowPlayerUsingNavMesh::OnUpdate([[maybe_unused]] ecs::EntityHandle entity)
@@ -27,9 +29,8 @@ NODE_STATUS L_FollowPlayerUsingNavMesh::OnUpdate([[maybe_unused]] ecs::EntityHan
     Vec3 enemyPos = entity->GetTransform().GetWorldPosition();
     Vec3 playerPos = player->GetTransform().GetWorldPosition();
 
-    // move towards player
+    agentComp->SetActive(true);
     agentComp->SetTargetPos(playerPos);
-    animComp->animHandleA = characterComp->animations[WALK];
     
     return NODE_STATUS::SUCCESS;
 }

@@ -51,13 +51,11 @@ void GrabbableItemComponent::Attack(Vec3 origin, Vec3 extents)
 		}
 	}
 
-	std::vector<physics::BoxColliderComp*> colliders;
-	physics::OverlapBox(colliders, origin, extents);
+	std::vector<ecs::EntityHandle> entities;
+	physics::OverlapBox(entities, origin, extents);
 
-	for (auto collider : colliders)
+	for (auto hitEntity : entities)
 	{
-		ecs::EntityHandle hitEntity = ecs::GetEntity(collider);
-
 		// Can't hit self or owner
 		if (hitEntity == owner || hitEntity == ecs::GetEntity(this))
 			continue;

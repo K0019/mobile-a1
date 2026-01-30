@@ -100,6 +100,9 @@ namespace physics {
 	}
 
 	std::vector<std::pair<std::pair<JPH::BodyID, JPH::BodyID>, ContactTiming>> MyContactListener::contactPair{};
+	std::vector<std::pair<std::pair<ecs::EntityHash, JPH::BodyID>, ContactTiming>> MyCharacterContactListener::characterBodyContactPair{};
+	std::vector<std::pair<std::pair<ecs::EntityHash, ecs::EntityHash>, ContactTiming>> MyCharacterContactListener::charCharContactPair{};
+
 
 	void MyContactListener::Init()
 	{
@@ -129,6 +132,35 @@ namespace physics {
 		contactPair.clear();
 	}
 
+	std::string ContactFuncName(bool isTrigger, ContactTiming timing)
+	{
+		if (isTrigger)
+		{
+			switch (timing)
+			{
+			case ContactTiming::ENTER:
+				return "OnTriggerEnter";
+			case ContactTiming::STAY:
+				return "OnTriggerStay";
+			case ContactTiming::EXIT:
+				return "OnTriggerExit";
+			}
+		}
+		else
+		{
+			switch (timing)
+			{
+			case ContactTiming::ENTER:
+				return "OnCollisionEnter";
+			case ContactTiming::STAY:
+				return "OnCollisionStay";
+			case ContactTiming::EXIT:
+				return "OnCollisionExit";
+			}
+		}
+		return "";
+	}
+
 	void MyContactListener::CallContactFunc()
 	{
 		//Get the body interface.
@@ -150,80 +182,101 @@ namespace physics {
 			auto scriptComp1{ entity1->GetComp<ScriptComponent>() };
 			auto colliderComp1{ entity1->GetComp<BoxColliderComp>() };
 			if (scriptComp1 && colliderComp1 && colliderComp1->GetFlag(COLLIDER_COMP_FLAG::ENABLED))
-			{
-				std::string funcName{};
-				if (colliderComp1->GetFlag(COLLIDER_COMP_FLAG::IS_TRIGGER))
-				{
-					switch (contactBodyPair.second)
-					{
-					case ContactTiming::ENTER:
-						funcName = "OnTriggerEnter";
-						break;
-					case ContactTiming::STAY:
-						funcName = "OnTriggerStay";
-						break;
-					case ContactTiming::EXIT:
-						funcName = "OnTriggerExit";
-						break;
-					}
-					scriptComp1->CallScriptFunction(funcName, entity2);
-				}
-				else
-				{
-					switch (contactBodyPair.second)
-					{
-					case ContactTiming::ENTER:
-						funcName = "OnCollisionEnter";
-						break;
-					case ContactTiming::STAY:
-						funcName = "OnCollisionStay";
-						break;
-					case ContactTiming::EXIT:
-						funcName = "OnCollisionExit";
-						break;
-					}
-					scriptComp1->CallScriptFunction(funcName, entity2);
-				}
-			}
+				scriptComp1->CallScriptFunction(ContactFuncName(colliderComp1->GetFlag(COLLIDER_COMP_FLAG::IS_TRIGGER), contactBodyPair.second), entity2);
 
 			auto scriptComp2{ ecs::GetEntity(entityHash2)->GetComp<ScriptComponent>() };
 			auto colliderComp2{ ecs::GetEntity(entityHash2)->GetComp<BoxColliderComp>() };
 			if (scriptComp2 && colliderComp2 && colliderComp2->GetFlag(COLLIDER_COMP_FLAG::ENABLED))
-			{
-				std::string funcName{};
-				if (colliderComp2->GetFlag(COLLIDER_COMP_FLAG::IS_TRIGGER))
-				{
-					switch (contactBodyPair.second)
-					{
-					case ContactTiming::ENTER:
-						funcName = "OnTriggerEnter";
-						break;
-					case ContactTiming::STAY:
-						funcName = "OnTriggerStay";
-						break;
-					case ContactTiming::EXIT:
-						funcName = "OnTriggerExit";
-						break;
-					}
-					scriptComp2->CallScriptFunction(funcName, entity1);
-				}
-				else
-				{
-					switch (contactBodyPair.second)
-					{
-					case ContactTiming::ENTER:
-						funcName = "OnCollisionEnter";
-						break;
-					case ContactTiming::STAY:
-						funcName = "OnCollisionStay";
-						break;
-					case ContactTiming::EXIT:
-						funcName = "OnCollisionExit";
-						break;
-					}
-					scriptComp2->CallScriptFunction(funcName, entity1);
-				}
-			}
+				scriptComp2->CallScriptFunction(ContactFuncName(colliderComp2->GetFlag(COLLIDER_COMP_FLAG::IS_TRIGGER), contactBodyPair.second), entity1);
+		}
+	}
+
+	void MyCharacterContactListener::OnContactAdded(const JPH::CharacterVirtual* inCharacter, const JPH::BodyID& inBodyID2, const JPH::SubShapeID& inSubShapeID2, JPH::RVec3Arg inContactPosition, JPH::Vec3Arg inContactNormal, JPH::CharacterContactSettings& ioSettings)
+	{
+		auto pair{ std::make_pair(inCharacter->GetUserData(), inBodyID2)};
+		characterBodyContactPair.push_back(std::make_pair(pair, ContactTiming::ENTER));
+	}
+
+	void MyCharacterContactListener::OnContactPersisted(const JPH::CharacterVirtual* inCharacter, const JPH::BodyID& inBodyID2, const JPH::SubShapeID& inSubShapeID2, JPH::RVec3Arg inContactPosition, JPH::Vec3Arg inContactNormal, JPH::CharacterContactSettings& ioSettings)
+	{
+		auto pair{ std::make_pair(inCharacter->GetUserData(), inBodyID2) };
+		characterBodyContactPair.push_back(std::make_pair(pair, ContactTiming::STAY));
+	}
+
+	void MyCharacterContactListener::OnContactRemoved(const JPH::CharacterVirtual* inCharacter, const JPH::BodyID& inBodyID2, const JPH::SubShapeID& inSubShapeID2)
+	{
+		auto pair{ std::make_pair(inCharacter->GetUserData(), inBodyID2) };
+		characterBodyContactPair.push_back(std::make_pair(pair, ContactTiming::EXIT));
+	}
+
+	void MyCharacterContactListener::OnCharacterContactAdded(const JPH::CharacterVirtual* inCharacter, const JPH::CharacterVirtual* inOtherCharacter, const JPH::SubShapeID& inSubShapeID2, JPH::RVec3Arg inContactPosition, JPH::Vec3Arg inContactNormal, JPH::CharacterContactSettings& ioSettings)
+	{
+		auto pair{ std::make_pair(inCharacter->GetUserData(), inOtherCharacter->GetUserData()) };
+		charCharContactPair.push_back(std::make_pair(pair, ContactTiming::ENTER));
+	}
+
+	void MyCharacterContactListener::OnCharacterContactPersisted(const JPH::CharacterVirtual* inCharacter, const JPH::CharacterVirtual* inOtherCharacter, const JPH::SubShapeID& inSubShapeID2, JPH::RVec3Arg inContactPosition, JPH::Vec3Arg inContactNormal, JPH::CharacterContactSettings& ioSettings)
+	{
+		auto pair{ std::make_pair(inCharacter->GetUserData(), inOtherCharacter->GetUserData()) };
+		charCharContactPair.push_back(std::make_pair(pair, ContactTiming::STAY));
+	}
+
+	//void MyCharacterContactListener::OnCharacterContactRemoved(const JPH::CharacterVirtual* inCharacter, const JPH::CharacterID& inOtherCharacterID, const JPH::SubShapeID& inSubShapeID2)
+	//{
+	//	auto pair{ std::make_pair(inCharacter->GetUserData(), inOtherCharacter->GetUserData()) };
+	//	charCharContactPair.push_back(std::make_pair(pair, ContactTiming::EXIT));
+	//}
+
+	void MyCharacterContactListener::ClearContactPair()
+	{
+		characterBodyContactPair.clear();
+		charCharContactPair.clear();
+	}
+
+	void MyCharacterContactListener::CallContactFunc()
+	{
+		//Get the body interface.
+		JPH::BodyInterface& bodyInterface{ ST<JoltPhysics>::Get()->GetBodyInterface() };
+
+		//Loop through all the character vs body contact occured.
+		for (auto& contactBodyPair : characterBodyContactPair)
+		{
+			//Get the entity hash of the contact objects.
+			ecs::EntityHash entityHash1{ contactBodyPair.first.first };
+			ecs::EntityHash entityHash2{ bodyInterface.GetUserData(contactBodyPair.first.second) };
+			if (!entityHash1 || !entityHash2)
+				continue;
+			ecs::EntityHandle entity1{ ecs::GetEntity(entityHash1) };
+			ecs::EntityHandle entity2{ ecs::GetEntity(entityHash2) };
+			if (!ecs::IsEntityHandleValid(entity1) || !ecs::IsEntityHandleValid(entity2))
+				continue;
+
+			auto scriptComp1{ entity1->GetComp<ScriptComponent>() };
+			if (scriptComp1)
+				scriptComp1->CallScriptFunction(ContactFuncName(false, contactBodyPair.second), entity2);
+
+			auto scriptComp2{ ecs::GetEntity(entityHash2)->GetComp<ScriptComponent>() };
+			auto colliderComp2{ ecs::GetEntity(entityHash2)->GetComp<BoxColliderComp>() };
+			if (scriptComp2 && colliderComp2 && colliderComp2->GetFlag(COLLIDER_COMP_FLAG::ENABLED))
+				scriptComp2->CallScriptFunction(ContactFuncName(colliderComp2->GetFlag(COLLIDER_COMP_FLAG::IS_TRIGGER), contactBodyPair.second), entity1);
+		}
+
+		//Loop through all the character vs character contact occured.
+		for (auto& contactPair : charCharContactPair)
+		{
+			//Get the entity hash of the contact objects.
+			ecs::EntityHash entityHash1{ contactPair.first.first };
+			ecs::EntityHash entityHash2{ contactPair.first.second };
+			if (!entityHash1 || !entityHash2)
+				continue;
+			ecs::EntityHandle entity1{ ecs::GetEntity(entityHash1) };
+			ecs::EntityHandle entity2{ ecs::GetEntity(entityHash2) };
+			if (!ecs::IsEntityHandleValid(entity1) || !ecs::IsEntityHandleValid(entity2))
+				continue;
+
+			auto scriptComp1{ entity1->GetComp<ScriptComponent>() };
+			if (scriptComp1)
+				scriptComp1->CallScriptFunction(ContactFuncName(false, contactPair.second), entity2);
 		}
 	}
 
@@ -316,6 +369,7 @@ namespace physics {
 			else
 				layer = Layers::NON_MOVING;
 			ecs::GetEntity(this)->GetComp<JoltBodyComp>()->SetCollisionLayer(layer);
+			ecs::GetEntity(this)->GetComp<JoltBodyComp>()->SetIsTrigger(IsTrigger());
 			break;
 		case COLLIDER_COMP_FLAG::IS_TRIGGER:
 			ecs::GetEntity(this)->GetComp<JoltBodyComp>()->SetIsTrigger(val);

@@ -94,8 +94,11 @@ function wavespawn()
              newEnemyTransform.worldPosition = worldPos
 
              -- keep track of enemies spawned
-            EnemySpawner.aliveEnemies = EnemySpawner.aliveEnemies + 1
-            Magic.Log(Magic.LogLevel.info, "Enemy spawned. Remaining = "..EnemySpawner.aliveEnemies)
+            local charComp = newEnemy:GetCharacterMovementComponent()
+            if charComp:Exists() then
+                EnemySpawner.aliveEnemies = EnemySpawner.aliveEnemies + 1;
+                Magic.Log(Magic.LogLevel.info, "Enemy spawned. Remaining = "..EnemySpawner.aliveEnemies)
+            end
 
             local selfref = newEnemy:GetEntityReferenceHolderComponent()
             if selfref:Exists() then
