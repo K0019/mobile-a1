@@ -18,7 +18,7 @@ NODE_STATUS L_MeleeAttack::OnUpdate(ecs::EntityHandle entity)
 	if (!enemyComp || !characterComp || !animComp)
 		return NODE_STATUS::FAILURE;
 
-	characterComp->Attack();
+	characterComp->LightAttack();
 	return NODE_STATUS::SUCCESS;
 
 	/*auto attackTrigger{ enemyComp->attackCollider->GetComp<physics::BoxColliderComp>() };
