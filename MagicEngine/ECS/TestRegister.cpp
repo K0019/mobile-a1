@@ -43,6 +43,7 @@
 #include "3DUI/BillboardComponent.h"
 #include "Game/Delusion.h"
 #include "Graphics/BoneAttachment.h"
+#include "Graphics/AnimatorComponent.h"
 
 void RegisterShit()
 {
@@ -88,4 +89,5 @@ void RegisterShit()
 	IRegisteredComponent<BillboardComponent>::RegisterComponent();
 	IRegisteredComponent<DelusionComponent>::RegisterComponent();
 	IRegisteredComponent<BoneAttachment>::RegisterComponent();
+	IRegisteredComponent<AnimatorComponent>::RegisterComponent();
 }

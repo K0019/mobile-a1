@@ -365,7 +365,7 @@ namespace sm {
 
 		bool Decide(sm::StateMachine* sm) override
 		{
-			return ToAttackTransition<ToState>::CastSM(sm)->GetBlackboardVal<bool>(AnimInputTypeToKey(attackType));
+			return ToAttackTransition<ToState>::CastSM(sm)->template GetBlackboardVal<bool>(AnimInputTypeToKey(attackType));
 		}
 	};
 
@@ -441,7 +441,7 @@ namespace sm {
 
 		bool Decide(sm::StateMachine* sm) override
 		{
-			return ToDelusionAttackTransition<ToState>::CastSM(sm)->GetBlackboardVal<bool>(AnimInputTypeToKey(attackType));
+			return ToDelusionAttackTransition<ToState>::CastSM(sm)->template GetBlackboardVal<bool>(AnimInputTypeToKey(attackType));
 		}
 	};
 
