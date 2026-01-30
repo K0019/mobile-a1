@@ -27,3 +27,9 @@ public:
     virtual bool Import(const std::string& assetRelativeFilepath) override;
 };
 
+class ResourceFiletypeImporterAudioGroup : public ResourceFiletypeImporterBase
+{
+public:
+    virtual bool Import(const std::string& assetRelativeFilepath) override;
+};
+

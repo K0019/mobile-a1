@@ -32,3 +32,8 @@ ResourceAudio::~ResourceAudio()
 		// Note: This stops all sounds...
 		ST<AudioManager>::Get()->FreeSound(sound);
 }
+
+bool ResourceAudioGroup::IsLoaded()
+{
+	return !audio.empty();
+}
