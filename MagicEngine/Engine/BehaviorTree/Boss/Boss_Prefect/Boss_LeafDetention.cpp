@@ -25,6 +25,7 @@ void L_Boss_Prefect_Detention::OnInitialize()
 
     currentBurstDelay = 0.0f;
     currentBurstCount = 0;
+    hasTriggered = false;  // Track if attack sequence has started
 }
 
 NODE_STATUS L_Boss_Prefect_Detention::OnUpdate([[maybe_unused]] ecs::EntityHandle entity)
@@ -35,27 +36,46 @@ NODE_STATUS L_Boss_Prefect_Detention::OnUpdate([[maybe_unused]] ecs::EntityHandl
         Vec2 dir = Boss_Prefect_Util::GetMovementTowards(entity->GetTransform().GetWorldPosition(), enemyComp->playerReference->GetTransform().GetWorldPosition());
         // Boss_Prefect_Util::MoveInDirection(entity, Vec3(dir.x,0.0f,dir.y)); // We do not want to move during this attack
         Boss_Prefect_Util::RotateTowards(entity, dir);
-        
-        if (dir.LengthSqr() < triggerDistanceSqr)
+
+        // Check if attack has already started
+        if (hasTriggered)
         {
-            if (currentBurstDelay < 0.0f)
+            // Attack sequence in progress - continue firing all bursts regardless of distance
+            if (currentBurstDelay <= 0.0f)
             {
                 ST<PrefabManager>::Get()->LoadPrefab("explosion");
                 //ST<AudioManager>::Get()->PlaySound3D("defence stance", false, entity->GetTransform().GetWorldPosition(), AudioType::END, std::pair<float, float>{2.0f, 50.0f}, 0.6f);
 
-                if(Boss_Prefect_Util::SpawnExplosion(entity, explosionSizes[currentBurstCount]))
+                if (Boss_Prefect_Util::SpawnExplosion(entity, explosionSizes[currentBurstCount]))
                 {
                     // Reset burst delay and update count
                     currentBurstDelay = burstDelay;
                     ++currentBurstCount;
                 }
 
-                if (currentBurstCount == burstCount)
+                if (currentBurstCount >= burstCount)
                     return NODE_STATUS::SUCCESS;
+            }
+
+            currentBurstDelay -= GameTime::Dt();
+            return NODE_STATUS::RUNNING;
+        }
+        else
+        {
+            // Attack not started yet - check if player is in range to trigger
+            if (dir.LengthSqr() < triggerDistanceSqr)
+            {
+                hasTriggered = true;  // Start the attack sequence
+                // First burst fires immediately (currentBurstDelay is already 0)
+                return NODE_STATUS::RUNNING;
+            }
+            else
+            {
+                // Player not in range, fail so BT can try next node
+                return NODE_STATUS::FAILURE;
             }
         }
     }
     
-    currentBurstDelay -= GameTime::Dt();
-    return NODE_STATUS::RUNNING;
+    return NODE_STATUS::FAILURE;
 }

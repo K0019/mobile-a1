@@ -14,6 +14,7 @@ private:
 
     float currentBurstDelay;
     int currentBurstCount;
+    bool hasTriggered;  // Track if the attack sequence has started
 
     std::vector<float> explosionSizes;
 };
