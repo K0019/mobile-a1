@@ -70,4 +70,5 @@ template<typename ResourceType>
 void UserResourceHandle<ResourceType>::Deserialize(Deserializer& reader)
 {
 	reader.DeserializeVar("hash", &hashOrPtr);
+	hashOrPtr |= 1; // Legacy fix for non-odd hashes
 }
