@@ -83,7 +83,7 @@ int Primitive2DCircle::GetNumSegmentsForSmoothCircle(float radius)
 bool Primitive2DRect::IsClicked(const RectTransformComponent& transform, Vec2 clickPos) const
 {
 	Vec2 toClickPos{ clickPos - transform.GetWorldPosition() }, rectHalfScale{ transform.GetWorldScale() * 0.5f };
-	toClickPos = glm::rotateZ(Vec3{ toClickPos, 0.0f }, -transform.GetRotation()); // Compensate for rotation
+	toClickPos = glm::rotateZ(Vec3{ toClickPos, 0.0f }, -math::ToRadians(transform.GetRotation())); // Compensate for rotation
 	return
 		toClickPos.x >= -rectHalfScale.x && toClickPos.x <= rectHalfScale.x &&
 		toClickPos.y >= -rectHalfScale.y && toClickPos.y <= rectHalfScale.y;
@@ -124,7 +124,7 @@ bool Primitive2DImage::IsClicked(const RectTransformComponent& transform, Vec2 c
 {
 	// TODO: Maybe provide different hit detection algos to the user
 	Vec2 toClickPos{ clickPos - transform.GetWorldPosition() }, rectHalfScale{ transform.GetWorldScale() * 0.5f };
-	toClickPos = glm::rotateZ(Vec3{ toClickPos, 0.0f }, -transform.GetRotation()); // Compensate for rotation
+	toClickPos = glm::rotateZ(Vec3{ toClickPos, 0.0f }, -math::ToRadians(transform.GetRotation())); // Compensate for rotation
 	return
 		toClickPos.x >= -rectHalfScale.x && toClickPos.x <= rectHalfScale.x &&
 		toClickPos.y >= -rectHalfScale.y && toClickPos.y <= rectHalfScale.y;
