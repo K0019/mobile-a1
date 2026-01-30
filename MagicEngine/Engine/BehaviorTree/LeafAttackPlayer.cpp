@@ -64,7 +64,7 @@ NODE_STATUS L_AttackPlayer::OnUpdate(ecs::EntityHandle entity)
         {
             attackHit = true;
 
-            characterComp->Attack();
+            characterComp->LightAttack();
         }
         attackTimer += GameTime::Dt();
         if (attackTimer >= attackCooldown)

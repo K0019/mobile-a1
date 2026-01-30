@@ -72,6 +72,14 @@ public:
 
 	/*****************************************************************//*!
 	\brief
+		Gets the number of seconds elapsed since the start of the first frame.
+	\return
+		The number of seconds elapsed since the start of the first frame.
+	*//******************************************************************/
+	static float TimeSinceStart();
+
+	/*****************************************************************//*!
+	\brief
 		Checks whether fixed dt is actually fixed, or if we're in variable
 		fixed dt mode.
 	\return
@@ -133,6 +141,9 @@ private:
 
 private:
 	GameTime() = delete;
+
+	//! Track time since first frame
+	static std::chrono::time_point<std::chrono::steady_clock> firstFrameTimepoint;
 
 	//! The target realtime fps to run at
 	static float targetRealFps;

@@ -216,15 +216,21 @@ void CharacterMovementComponent::GrabItem(ecs::CompHandle<GrabbableItemComponent
 	ST<AudioManager>::Get()->PlaySound3D("weapon pickup "+std::to_string(randomRange<int>(1,4)), false, ecs::GetEntity(this)->GetTransform().GetWorldPosition(), AudioType::END, std::pair<float, float>{2.0f, 50.0f}, 0.6f);
 }
 
-void CharacterMovementComponent::Attack()
+void CharacterMovementComponent::LightAttack()
 {
 	// Defer to animation fsm
-	ecs::GetEntity(this)->GetComp<AnimatorComponent>()->GetStateMachine()->blackboard["inputAttack"] = true;
+	ecs::GetEntity(this)->GetComp<AnimatorComponent>()->GetStateMachine()->blackboard["inputLightAttack"] = true;
+}
+
+void CharacterMovementComponent::HeavyAttack()
+{
+	ecs::GetEntity(this)->GetComp<AnimatorComponent>()->GetStateMachine()->blackboard["inputHeavyAttack"] = true;
 }
 
 bool CharacterMovementComponent::IsAttacking() const
 {
-	return ecs::GetEntity(this)->GetComp<AnimatorComponent>()->GetStateMachine()->GetBlackboardVal<bool>("inputAttack");
+	auto animFSM{ ecs::GetEntity(this)->GetComp<AnimatorComponent>()->GetStateMachine() };
+	return animFSM->GetBlackboardVal<bool>("inputLightAttack") || animFSM->GetBlackboardVal<bool>("inputHeavyAttack");
 }
 
 bool CharacterMovementComponent::IsParrying()
@@ -462,9 +468,6 @@ void CharacterMovementComponentSystem::UpdateCharacterMovementComponent(Characte
 	{
 		comp.currentStunTime -= GameTime::Dt();
 
-		// Can only come out of stun when on the ground
-		//if (math::Abs(currVel.y) > 0.01f && comp.currentStunTime < 0.0f)
-			//comp.currentStunTime = GameTime::Dt();
 		animatorComp->GetStateMachine()->blackboard["inputHurt"] = true;
 
 		//if (animComp->animHandleA.GetHash() != comp.animations[HURT].GetHash())
@@ -590,13 +593,11 @@ void CharacterMovementComponentSystem::ApplyAttack(size_t moveIndex, const Trans
 
 	const auto& weaponMove{ weaponInfo->moves[moveIndex] };
 
-	// TODO: Relook at this math to make sure we're using the move's parameters correctly
-	
-	// Hard-code a simple start point etc for now
-	Vec3 rotation = transform.GetWorldRotation();
-	Vec3 direction(sin(math::ToRadians(rotation.y)), 0, cos(math::ToRadians(rotation.y)));
-	Vec3 startPoint = transform.GetWorldPosition() + direction * 0.5f * weaponMove.hitboxExtents.z;
-	startPoint.y += 0.8f;
+	// Calculate the hitbox position based on current player's position and rotation
+	float yRot{ math::ToRadians(transform.GetWorldRotation().y) };
+	Vec3 rotatedOffset{ glm::rotateY(weaponMove.hitboxOffset, yRot) };
+	Vec3 hitboxOrigin{ transform.GetWorldPosition() + rotatedOffset };
+	hitboxOrigin.y += 0.8f; // Add a bit of moving of the hitbox up from the floor automatically, if not needed can compensate in moves struct
 
 	/*auto hitDebugObject = thisComp->hitDebugObject;
 	if (hitDebugObject != nullptr)
@@ -606,8 +607,7 @@ void CharacterMovementComponentSystem::ApplyAttack(size_t moveIndex, const Trans
 		hitDebugObject->GetTransform().SetWorldScale(attackItem->GetComp<GrabbableItemComponent>()->attackBox);
 	}*/
 
-	// TODO: Refactor this function to use the WeaponMoveInfo's hitbox
-	charComp.GetHeldItem()->Attack(startPoint, direction);
+	charComp.GetHeldItem()->Attack(hitboxOrigin, weaponMove.hitboxExtents);
 }
 
 bool CharacterMovementComponentSystem::PreRun()

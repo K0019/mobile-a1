@@ -42,7 +42,8 @@ NODE_STATUS L_Boss_Prefect_LashOut::OnUpdate([[maybe_unused]] ecs::EntityHandle 
                 auto animComp = entity->GetComp<AnimationComponent>();
                 if (animComp)
                 {
-                    entity->GetComp<GrabbableItemComponent>()->Attack(entity->GetTransform().GetWorldPosition(), Vec3{ dir.x, 0.0f, dir.y});
+                    // TODO: Fix boss extents to correct values instead of hardcoding
+                    entity->GetComp<GrabbableItemComponent>()->Attack(entity->GetTransform().GetWorldPosition(), Vec3{ 1.0f, 1.0f, 1.0f });
                     animComp->TransitionTo(5858584981951944119, 0.1f);
                     animComp->timeA = 0.0f;
                 }

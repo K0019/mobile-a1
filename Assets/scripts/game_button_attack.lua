@@ -1,3 +1,3 @@
 function OnButtonClicked(entity)
-	Magic.PlayerActions.Attack();
+	Magic.PlayerActions.LightAttack();
 end
