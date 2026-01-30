@@ -1,4 +1,4 @@
-local musicVolume = 0.1
+local musicVolume = 0.2
 local ambienceVolume = 0.15
 
 local musicHandle
