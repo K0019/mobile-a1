@@ -109,7 +109,7 @@ void PlayerMovementComponent::Attack()
 	// Get enemy to face
 	GetEnemyTarget();
 
-	characterComp->Attack();
+	characterComp->LightAttack();
 }
 
 void PlayerMovementComponent::UltimateAttack()

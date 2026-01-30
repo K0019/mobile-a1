@@ -26,7 +26,7 @@ All rights reserved.
 
 void AndroidMaterialSwapperComp::OnStart()
 {
-#ifdef __ANDROID__
+#if 1//def __ANDROID__
     if (ecs::CompHandle<MaterialSwapperComponent> matComp{ ecs::GetEntity(this)->GetComp<MaterialSwapperComponent>() })
     {
         matComp->ToggleMaterialSwap(true);
