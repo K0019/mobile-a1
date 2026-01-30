@@ -2,6 +2,100 @@ plugins {
     id 'com.android.application'
 }
 
+// ---------------------------------------------------------------------------
+// Asset pipeline helpers
+// ---------------------------------------------------------------------------
+
+// Find a Python interpreter on the system
+def findPython() {
+    for (candidate in ['python', 'py', 'python3']) {
+        try {
+            def proc = [candidate, '--version'].execute()
+            proc.waitFor()
+            if (proc.exitValue() == 0) return candidate
+        } catch (ignored) {}
+    }
+    return null
+}
+
+def assetsRoot = file('../../Assets')
+def manifestFile = file('../../Assets/asset_manifest.txt')
+def manifestGenerator = file('../../generate_android_assets_manifest.py')
+def astcScript = file('../../scripts/rebuild_android_astc_textures.py')
+def assetCompiler = file('../../Tools/Release/AssetCompiler.exe')
+
+// Task: regenerate asset_manifest.txt before every build
+tasks.register('generateAssetManifest', Exec) {
+    description = 'Regenerate asset_manifest.txt for Android case-insensitive VFS lookup'
+    workingDir file('../..')
+    def py = findPython()
+    if (py != null) {
+        commandLine py, manifestGenerator.absolutePath
+    } else {
+        // Will fail at execution time with a clear message
+        commandLine 'echo', 'ERROR: Python not found – cannot regenerate asset manifest'
+    }
+    // Re-run when any asset file changes
+    inputs.dir(assetsRoot).exclude('asset_manifest.txt')
+    outputs.file(manifestFile)
+}
+
+// Task: recompress textures to ASTC (only when AssetCompiler exists)
+tasks.register('recompressAstcTextures', Exec) {
+    description = 'Recompress KTX2 textures to ASTC for Android'
+    workingDir file('../..')
+    enabled = assetCompiler.exists()
+    def py = findPython()
+    if (py != null) {
+        commandLine py, astcScript.absolutePath,
+            '--assetcompiler', assetCompiler.absolutePath,
+            '--assets-root', assetsRoot.absolutePath,
+            '--include-non-textures'
+    } else {
+        commandLine 'echo', 'ERROR: Python not found – cannot recompress textures'
+    }
+    // Re-run when source compiled assets change
+    inputs.dir(file('../../Assets/CompiledAssets')).exclude('android/**')
+    outputs.dir(file('../../Assets/CompiledAssets/android'))
+    // Manifest must exist first
+    dependsOn 'generateAssetManifest'
+}
+
+// Task: validate manifest is not stale (warns if manifest is older than newest asset)
+tasks.register('checkManifestFreshness') {
+    description = 'Warn if asset_manifest.txt appears stale'
+    doLast {
+        if (!manifestFile.exists()) {
+            throw new GradleException("asset_manifest.txt missing – run generateAssetManifest first")
+        }
+        def manifestTime = manifestFile.lastModified()
+        def newerFiles = []
+        assetsRoot.eachFileRecurse { f ->
+            if (f.name == 'asset_manifest.txt') return
+            if (f.lastModified() > manifestTime) {
+                newerFiles << f.name
+            }
+        }
+        if (!newerFiles.isEmpty()) {
+            logger.warn("WARNING: ${newerFiles.size()} asset(s) are newer than asset_manifest.txt (e.g. ${newerFiles.take(3).join(', ')})")
+            logger.warn("Consider running: ./gradlew generateAssetManifest")
+        }
+    }
+}
+
+// Wire into build: manifest regen → ASTC recompress → staleness check → preBuild
+afterEvaluate {
+    tasks.named('preBuild').configure {
+        dependsOn 'generateAssetManifest'
+        if (assetCompiler.exists()) {
+            dependsOn 'recompressAstcTextures'
+        }
+        dependsOn 'checkManifestFreshness'
+    }
+}
+
+// ---------------------------------------------------------------------------
+
 android {
     namespace 'com.magicengine.kurorekishi'
     compileSdk 34
@@ -12,7 +106,7 @@ android {
         targetSdk 34
         versionCode 1
         versionName "1.0"
-        
+
         ndk {
             abiFilters 'arm64-v8a', 'x86_64'
         }
@@ -27,7 +121,7 @@ android {
     }
 
     aaptOptions {
-        noCompress 'png', 'ktx', 'data', 'gltf', 'bin', 'lua'
+        noCompress 'png', 'ktx', 'ktx2', 'data', 'gltf', 'bin', 'lua', 'json'
     }
 
     buildTypes {
@@ -44,9 +138,9 @@ android {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
-    
+
     ndkVersion "29.0.14206865"
-    
+
     externalNativeBuild {
         cmake {
             path file('./src/main/cpp/CMakeLists.txt')
