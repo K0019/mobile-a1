@@ -27,7 +27,8 @@ property_begin(WeaponMoveInfo)
 	property_var(anim),
 	property_var(hitboxOffset),
 	property_var(hitboxExtents),
-	property_var(hitDelay)
+	property_var(hitDelay),
+	property_var(audio)
 }
 property_vend_h(WeaponMoveInfo)
 

@@ -147,7 +147,7 @@
                     "resourceType": 16184316770661419113,
                     "resourceEntries": [
                         {
-                            "hash": 17373613765303530952,
+                            "hash": 17373613765303530953,
                             "name": "enemy female hurt 20"
                         }
                     ]
@@ -231,7 +231,7 @@
                     "resourceType": 16184316770661419113,
                     "resourceEntries": [
                         {
-                            "hash": 16532544753884404884,
+                            "hash": 16532544753884404885,
                             "name": "mc hurt 20"
                         }
                     ]
@@ -539,7 +539,7 @@
                     "resourceType": 16184316770661419113,
                     "resourceEntries": [
                         {
-                            "hash": 7668526940953868880,
+                            "hash": 7668526940953868881,
                             "name": "enemy female death 10"
                         }
                     ]
@@ -665,7 +665,7 @@
                     "resourceType": 16184316770661419113,
                     "resourceEntries": [
                         {
-                            "hash": 6527070467179029464,
+                            "hash": 6527070467179029465,
                             "name": "enemy male death 20"
                         }
                     ]
@@ -679,7 +679,7 @@
                     "resourceType": 16184316770661419113,
                     "resourceEntries": [
                         {
-                            "hash": 9178910015484083634,
+                            "hash": 9178910015484083635,
                             "name": "jump 10"
                         }
                     ]
@@ -737,20 +737,6 @@
                         {
                             "hash": 5687374528832772711,
                             "name": "_090"
-                        }
-                    ]
-                }
-            ]
-        },
-        {
-            "filepath": "Game/Weapons\\playerweapondefault.weapon",
-            "resources": [
-                {
-                    "resourceType": 9579558926714450681,
-                    "resourceEntries": [
-                        {
-                            "hash": 8956332549044158285,
-                            "name": "playerweapondefault0"
                         }
                     ]
                 }
@@ -987,7 +973,7 @@
                     "resourceType": 16184316770661419113,
                     "resourceEntries": [
                         {
-                            "hash": 16372099457333151010,
+                            "hash": 16372099457333151011,
                             "name": "ultimate activation0"
                         }
                     ]
@@ -1435,7 +1421,7 @@
                     "resourceType": 16184316770661419113,
                     "resourceEntries": [
                         {
-                            "hash": 12213360597064178288,
+                            "hash": 12213360597064178289,
                             "name": "mc death 50"
                         }
                     ]
@@ -1729,7 +1715,7 @@
                     "resourceType": 16184316770661419113,
                     "resourceEntries": [
                         {
-                            "hash": 17373620362373300218,
+                            "hash": 17373620362373300219,
                             "name": "enemy female hurt 40"
                         }
                     ]
@@ -1771,7 +1757,7 @@
                     "resourceType": 16184316770661419113,
                     "resourceEntries": [
                         {
-                            "hash": 11530556919415111548,
+                            "hash": 11530556919415111549,
                             "name": "outdoor footsteps 40"
                         }
                     ]
@@ -1925,7 +1911,7 @@
                     "resourceType": 16184316770661419113,
                     "resourceEntries": [
                         {
-                            "hash": 17043940725683276898,
+                            "hash": 17043940725683276899,
                             "name": "enemy male hurt 10"
                         }
                     ]
@@ -2093,7 +2079,7 @@
                     "resourceType": 16184316770661419113,
                     "resourceEntries": [
                         {
-                            "hash": 9178907816460827212,
+                            "hash": 9178907816460827213,
                             "name": "jump 30"
                         }
                     ]
@@ -2149,7 +2135,7 @@
                     "resourceType": 16184316770661419113,
                     "resourceEntries": [
                         {
-                            "hash": 11530554720391855126,
+                            "hash": 11530554720391855127,
                             "name": "outdoor footsteps 20"
                         }
                     ]
@@ -2163,7 +2149,7 @@
                     "resourceType": 16184316770661419113,
                     "resourceEntries": [
                         {
-                            "hash": 9178907816460827212,
+                            "hash": 9178907816460827213,
                             "name": "jump 30"
                         }
                     ]
@@ -2177,7 +2163,7 @@
                     "resourceType": 16184316770661419113,
                     "resourceEntries": [
                         {
-                            "hash": 17086297134921855444,
+                            "hash": 17086297134921855445,
                             "name": "indoor footsteps 30"
                         }
                     ]
@@ -2317,7 +2303,7 @@
                     "resourceType": 16184316770661419113,
                     "resourceEntries": [
                         {
-                            "hash": 8243582158516976652,
+                            "hash": 8243582158516976653,
                             "name": "enemy female throwing 10"
                         }
                     ]
@@ -2401,7 +2387,7 @@
                     "resourceType": 16184316770661419113,
                     "resourceEntries": [
                         {
-                            "hash": 4836861497999165782,
+                            "hash": 4836861497999165783,
                             "name": "weapon pickup 30"
                         }
                     ]
@@ -2765,7 +2751,7 @@
                     "resourceType": 16184316770661419113,
                     "resourceEntries": [
                         {
-                            "hash": 12213367194133947554,
+                            "hash": 12213367194133947555,
                             "name": "mc death 30"
                         }
                     ]
@@ -2779,7 +2765,7 @@
                     "resourceType": 16184316770661419113,
                     "resourceEntries": [
                         {
-                            "hash": 16072559812771621264,
+                            "hash": 16072559812771621265,
                             "name": "sword 20"
                         }
                     ]
@@ -3115,7 +3101,7 @@
                     "resourceType": 16184316770661419113,
                     "resourceEntries": [
                         {
-                            "hash": 4836861497999165782,
+                            "hash": 4836861497999165783,
                             "name": "weapon pickup 30"
                         }
                     ]
@@ -3157,7 +3143,7 @@
                     "resourceType": 16184316770661419113,
                     "resourceEntries": [
                         {
-                            "hash": 16072566409841390530,
+                            "hash": 16072566409841390531,
                             "name": "sword 40"
                         }
                     ]
@@ -3451,7 +3437,7 @@
                     "resourceType": 16184316770661419113,
                     "resourceEntries": [
                         {
-                            "hash": 17043938526660020476,
+                            "hash": 17043938526660020477,
                             "name": "enemy male hurt 30"
                         }
                     ]
@@ -3675,7 +3661,7 @@
                     "resourceType": 16184316770661419113,
                     "resourceEntries": [
                         {
-                            "hash": 17086294935898599022,
+                            "hash": 17086294935898599023,
                             "name": "indoor footsteps 50"
                         }
                     ]
@@ -4221,7 +4207,7 @@
                     "resourceType": 16184316770661419113,
                     "resourceEntries": [
                         {
-                            "hash": 6527077064248798730,
+                            "hash": 6527077064248798731,
                             "name": "enemy male death 40"
                         }
                     ]
@@ -4305,7 +4291,7 @@
                     "resourceType": 16184316770661419113,
                     "resourceEntries": [
                         {
-                            "hash": 1378614374749885946,
+                            "hash": 1378614374749885947,
                             "name": "light attack #1 30"
                         }
                     ]
@@ -4417,7 +4403,7 @@
                     "resourceType": 16184316770661419113,
                     "resourceEntries": [
                         {
-                            "hash": 9754932960982798798,
+                            "hash": 9754932960982798799,
                             "name": "enemy male attack 20"
                         }
                     ]
@@ -4433,6 +4419,20 @@
                         {
                             "hash": 5104984110303142211,
                             "name": "n00_000_00_facebrow_00_face (instance)0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "Game/Weapons\\playerweapondefault.weapon",
+            "resources": [
+                {
+                    "resourceType": 9579558926714450681,
+                    "resourceEntries": [
+                        {
+                            "hash": 8956332549044158285,
+                            "name": "playerweapondefault0"
                         }
                     ]
                 }
@@ -4487,7 +4487,7 @@
                     "resourceType": 16184316770661419113,
                     "resourceEntries": [
                         {
-                            "hash": 11063357851235697126,
+                            "hash": 11063357851235697127,
                             "name": "dodge 20"
                         }
                     ]
@@ -4543,7 +4543,7 @@
                     "resourceType": 16184316770661419113,
                     "resourceEntries": [
                         {
-                            "hash": 7363086786779162002,
+                            "hash": 7363086786779162003,
                             "name": "school ambience heavy voices_loop0"
                         }
                     ]
@@ -4949,7 +4949,7 @@
                     "resourceType": 16184316770661419113,
                     "resourceEntries": [
                         {
-                            "hash": 16532542554861148462,
+                            "hash": 16532542554861148463,
                             "name": "mc hurt 40"
                         }
                     ]
@@ -4963,7 +4963,7 @@
                     "resourceType": 16184316770661419113,
                     "resourceEntries": [
                         {
-                            "hash": 2504707804203663536,
+                            "hash": 2504707804203663537,
                             "name": "boss throw 40"
                         }
                     ]
@@ -5117,7 +5117,7 @@
                     "resourceType": 16184316770661419113,
                     "resourceEntries": [
                         {
-                            "hash": 3053084653373316790,
+                            "hash": 3053084653373316791,
                             "name": "katar #1 20"
                         }
                     ]
@@ -5243,7 +5243,7 @@
                     "resourceType": 16184316770661419113,
                     "resourceEntries": [
                         {
-                            "hash": 7668529139977125302,
+                            "hash": 7668529139977125303,
                             "name": "enemy female death 30"
                         }
                     ]
@@ -5551,7 +5551,7 @@
                     "resourceType": 16184316770661419113,
                     "resourceEntries": [
                         {
-                            "hash": 12213364995110691132,
+                            "hash": 12213364995110691133,
                             "name": "mc death 10"
                         }
                     ]
@@ -5733,7 +5733,7 @@
                     "resourceType": 16184316770661419113,
                     "resourceEntries": [
                         {
-                            "hash": 4836859298975909360,
+                            "hash": 4836859298975909361,
                             "name": "weapon pickup 10"
                         }
                     ]
@@ -5831,7 +5831,7 @@
                     "resourceType": 16184316770661419113,
                     "resourceEntries": [
                         {
-                            "hash": 4925469392839028504,
+                            "hash": 4925469392839028505,
                             "name": "katar #2 30"
                         }
                     ]
@@ -6027,7 +6027,7 @@
                     "resourceType": 16184316770661419113,
                     "resourceEntries": [
                         {
-                            "hash": 4925471591862284926,
+                            "hash": 4925471591862284927,
                             "name": "katar #2 10"
                         }
                     ]
@@ -6489,7 +6489,7 @@
                     "resourceType": 16184316770661419113,
                     "resourceEntries": [
                         {
-                            "hash": 17086299333945111866,
+                            "hash": 17086299333945111867,
                             "name": "indoor footsteps 10"
                         }
                     ]
@@ -6587,7 +6587,7 @@
                     "resourceType": 16184316770661419113,
                     "resourceEntries": [
                         {
-                            "hash": 10936996725434159340,
+                            "hash": 10936996725434159341,
                             "name": "lunge0"
                         }
                     ]
@@ -6643,7 +6643,7 @@
                     "resourceType": 16184316770661419113,
                     "resourceEntries": [
                         {
-                            "hash": 8243584357540233074,
+                            "hash": 8243584357540233075,
                             "name": "enemy female throwing 30"
                         }
                     ]
@@ -6685,7 +6685,7 @@
                     "resourceType": 16184316770661419113,
                     "resourceEntries": [
                         {
-                            "hash": 2002811523967157740,
+                            "hash": 2002811523967157741,
                             "name": "light attack #2 20"
                         }
                     ]
@@ -6713,7 +6713,7 @@
                     "resourceType": 16184316770661419113,
                     "resourceEntries": [
                         {
-                            "hash": 9178910015484083634,
+                            "hash": 9178910015484083635,
                             "name": "jump 10"
                         }
                     ]
@@ -6811,7 +6811,7 @@
                     "resourceType": 16184316770661419113,
                     "resourceEntries": [
                         {
-                            "hash": 2504714401273432802,
+                            "hash": 2504714401273432803,
                             "name": "boss throw 20"
                         }
                     ]
@@ -7833,7 +7833,7 @@
                     "resourceType": 16184316770661419113,
                     "resourceEntries": [
                         {
-                            "hash": 4717122707485103194,
+                            "hash": 4717122707485103195,
                             "name": "boss slap0"
                         }
                     ]
@@ -8141,7 +8141,7 @@
                     "resourceType": 16184316770661419113,
                     "resourceEntries": [
                         {
-                            "hash": 16372099457333151010,
+                            "hash": 16372099457333151011,
                             "name": "ultimate activation0"
                         }
                     ]
@@ -8295,7 +8295,7 @@
                     "resourceType": 16184316770661419113,
                     "resourceEntries": [
                         {
-                            "hash": 4836859298975909360,
+                            "hash": 4836859298975909361,
                             "name": "weapon pickup 10"
                         }
                     ]
@@ -8479,6 +8479,20 @@
                         {
                             "hash": 261858590089004121,
                             "name": "_180"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "soundgroups/player_attack.sg",
+            "resources": [
+                {
+                    "resourceType": 16299459342782396896,
+                    "resourceEntries": [
+                        {
+                            "hash": 101066010564374863,
+                            "name": "player_attack0"
                         }
                     ]
                 }
@@ -8799,7 +8813,7 @@
                     "resourceType": 16184316770661419113,
                     "resourceEntries": [
                         {
-                            "hash": 1378612175726629524,
+                            "hash": 1378612175726629525,
                             "name": "light attack #1 10"
                         }
                     ]
@@ -9093,7 +9107,7 @@
                     "resourceType": 16184316770661419113,
                     "resourceEntries": [
                         {
-                            "hash": 14074269616086420740,
+                            "hash": 14074269616086420741,
                             "name": "cut&pastemenumusic0"
                         }
                     ]

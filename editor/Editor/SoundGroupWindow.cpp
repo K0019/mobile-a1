@@ -42,7 +42,7 @@ namespace editor {
 					return UserResourceHandle<ResourceAudio>{ hash };
 				});
 			}
-			gui::PayloadSource{ "SOUND_GROUP_HASH", soundGroup.first };
+			gui::PayloadSource{ "SOUND_GROUP_HASH", soundGroup.first.get() };
 		}
 	}
 
@@ -61,7 +61,7 @@ namespace editor {
 
 		if (gui::Button{ "Create/Modify" })
 		{
-			std::string filepath{ VFS::JoinPath(Filepaths::soundGroupFolder, groupFilename.GetBuffer()) };
+			std::string filepath{ VFS::JoinPath(Filepaths::soundGroupFolder, groupFilename.GetBuffer() + ".sg")};
 			Serializer writer{ VFS::ConvertVirtualToPhysical(filepath) };
 
 			writer.StartArray("sounds");

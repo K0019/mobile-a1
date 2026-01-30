@@ -43,5 +43,5 @@ const ResourceAudio* ResourceAudioGroup::PickRandomAudio() const
 {
 	if (audio.empty())
 		return nullptr;
-	return UserResourceHandle<ResourceAudio>{ audio[util::RandomRange(0, audio.size() - 1)] }.GetResource();
+	return UserResourceHandle<ResourceAudio>{ audio[util::RandomRange(0, audio.size())] }.GetResource();
 }
