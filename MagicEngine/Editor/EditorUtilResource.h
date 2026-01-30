@@ -21,6 +21,7 @@ namespace editor {
 	template <> void EditorUtil_DrawResourceHandle(const char* label, UserResourceHandle<ResourceMaterial>& resourceHandle);
 	template <> void EditorUtil_DrawResourceHandle(const char* label, UserResourceHandle<ResourceAnimation>& resourceHandle);
 	template <> void EditorUtil_DrawResourceHandle(const char* label, UserResourceHandle<ResourceAudio>& resourceHandle);
+	template <> void EditorUtil_DrawResourceHandle(const char* label, UserResourceHandle<ResourceAudioGroup>& resourceHandle);
 	template <> void EditorUtil_DrawResourceHandle(const char* label, UserResourceHandle<WeaponInfo>& resourceHandle);
 
 }

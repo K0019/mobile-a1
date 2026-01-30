@@ -1,6 +1,7 @@
 ﻿#pragma once
 #include "Engine/Resources/ResourcesHeader.h"
 #include "Engine/Resources/Types/ResourceTypesGraphics.h"
+#include "Engine/Resources/Types/ResourceTypesAudio.h"
 
 // Describes each attack/parry/whatever that the weapon provides
 struct WeaponMoveInfo : public ISerializeable
@@ -14,6 +15,8 @@ struct WeaponMoveInfo : public ISerializeable
 	// When does the move "hit"
 	float hitDelay = 0.1f;
 	// note: if certain moves should do more/less damage than others, can add an override value here while leaving the ints in WeaponInfo as the default
+	// Sound of animation (only supported in specific states), will pick a single sound to play
+	UserResourceHandle<ResourceAudioGroup> audio;
 
 	void EditorDraw();
 

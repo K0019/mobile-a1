@@ -19,6 +19,7 @@ All rights reserved.
 /******************************************************************************/
 
 #include "Engine/Resources/Types/ResourceTypesAudio.h"
+#include "Engine/Resources/ResourcesHeader.h"
 #include "Managers/AudioManager.h"
 
 bool ResourceAudio::IsLoaded()
@@ -36,4 +37,11 @@ ResourceAudio::~ResourceAudio()
 bool ResourceAudioGroup::IsLoaded()
 {
 	return !audio.empty();
+}
+
+const ResourceAudio* ResourceAudioGroup::PickRandomAudio() const
+{
+	if (audio.empty())
+		return nullptr;
+	return UserResourceHandle<ResourceAudio>{ audio[util::RandomRange(0, audio.size() - 1)] }.GetResource();
 }

@@ -42,6 +42,7 @@ namespace editor {
 					return UserResourceHandle<ResourceAudio>{ hash };
 				});
 			}
+			gui::PayloadSource{ "SOUND_GROUP_HASH", soundGroup.first };
 		}
 	}
 
