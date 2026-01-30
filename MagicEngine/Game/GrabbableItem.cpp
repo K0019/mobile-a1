@@ -51,9 +51,8 @@ void GrabbableItemComponent::Attack(Vec3 origin, Vec3 extents)
 		}
 	}
 
-	Vec3 rot{owner->GetTransform().GetWorldRotation()};
 	std::vector<ecs::EntityHandle> entities;
-	physics::OverlapBox(entities, origin, extents, rot);
+	physics::OverlapBox(entities, origin, extents);
 
 	for (auto hitEntity : entities)
 	{
