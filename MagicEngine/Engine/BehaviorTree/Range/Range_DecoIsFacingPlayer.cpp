@@ -4,7 +4,7 @@
 
 void D_Range_IsFacingPlayer::OnInitialize()
 {
-	fieldOfViewAngle = 5;
+	fieldOfViewAngle = 8;
 }
 
 NODE_STATUS D_Range_IsFacingPlayer::OnUpdate(ecs::EntityHandle entity)
