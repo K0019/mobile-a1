@@ -404,7 +404,7 @@ namespace sm {
 
 	HurtState::HurtState() : sm::State(
 		{ new HurtActivity() },
-		{ new NoOpWhileAnimatingTransition{}, new ToAttackTransition<AttackState>{ ANIM_INPUT_TYPE::LIGHT_ATTACK }, new ToIdleTransition() } // Recover to Idle after being hurt
+		{ new NoOpWhileAnimatingTransition{}, new ToAttackTransition<AttackState>{ ANIM_INPUT_TYPE::LIGHT_ATTACK }, new ToIdleTransition(), new ToWalkTransition{} } // Recover to Idle after being hurt
 	) {
 	}
 
