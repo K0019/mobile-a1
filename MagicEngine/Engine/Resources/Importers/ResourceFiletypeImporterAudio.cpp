@@ -21,6 +21,7 @@ All rights reserved.
 #include "Engine/Resources/Importers/ResourceFiletypeImporterAudio.h"
 #include "Engine/Resources/Types/ResourceTypesAudio.h"
 #include "Managers/AudioManager.h"
+#include "Utilities/Serializer.h"
 
 bool ResourceFiletypeImporterAudio::Import(const std::string& assetRelativeFilepath)
 {
@@ -54,5 +55,21 @@ bool ResourceFiletypeImporterAudio::Import(const std::string& assetRelativeFilep
 	resource->sound = sound;
 	// Note: Currently no metadata is set for sounds. Perhaps we can read a file associated with the audio here to load its metadata, similar to unity's metadata file method.
 
+	return true;
+}
+
+bool ResourceFiletypeImporterAudioGroup::Import(const std::string& assetRelativeFilepath)
+{
+	std::vector<size_t> audioFilepaths;
+	Deserializer reader{ assetRelativeFilepath };
+	if (!reader.IsValid())
+	{
+		CONSOLE_LOG(LEVEL_ERROR) << "Unable to read audio group file: " << assetRelativeFilepath;
+		return false;
+	}
+	reader.DeserializeVar("sounds", &audioFilepaths);
+
+	const auto fileEntry{ GenerateFileEntryForResources<ResourceAudioGroup>(assetRelativeFilepath, 1) };
+	ST<MagicResourceManager>::Get()->INTERNAL_GetContainer<ResourceAudioGroup>().INTERNAL_GetResource(fileEntry->associatedResources[0].hashes[0], true)->audio = std::move(audioFilepaths);
 	return true;
 }
