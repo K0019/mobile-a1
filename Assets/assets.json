@@ -743,20 +743,6 @@
             ]
         },
         {
-            "filepath": "Game/Weapons\\playerweapondefault.weapon",
-            "resources": [
-                {
-                    "resourceType": 9579558926714450681,
-                    "resourceEntries": [
-                        {
-                            "hash": 8956332549044158285,
-                            "name": "playerweapondefault0"
-                        }
-                    ]
-                }
-            ]
-        },
-        {
             "filepath": "compiledassets/models/glb/aji/player_idle_mixamo/n00_000_00_facemouth_00_face__instance_.material",
             "resources": [
                 {
@@ -4433,6 +4419,20 @@
                         {
                             "hash": 5104984110303142211,
                             "name": "n00_000_00_facebrow_00_face (instance)0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "Game/Weapons\\playerweapondefault.weapon",
+            "resources": [
+                {
+                    "resourceType": 9579558926714450681,
+                    "resourceEntries": [
+                        {
+                            "hash": 8956332549044158285,
+                            "name": "playerweapondefault0"
                         }
                     ]
                 }
