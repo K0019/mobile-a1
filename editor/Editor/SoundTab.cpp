@@ -3,6 +3,7 @@
 #include "Engine/Resources/Types/ResourceTypesAudio.h"
 #include "Editor/Containers/GUICollection.h"
 #include "Managers/AudioManager.h"
+#include "Editor/SoundGroupWindow.h"
 
 namespace editor {
 
@@ -64,6 +65,10 @@ namespace editor {
         }
 
         ImGui::NextColumn();
+
+        if (gui::Button{ "Sound Groups" })
+            editor::CreateGuiWindow<SoundGroupWindow>();
+        gui::Separator();
 
         // Right column for audio controls
         static float previewVolume = 1.f;

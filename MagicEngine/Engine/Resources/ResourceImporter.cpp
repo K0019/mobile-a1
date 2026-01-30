@@ -36,6 +36,7 @@ std::unordered_map<std::string, ResourceImporter::ImportFn> ResourceImporter::im
     { std::string{ ".bmp" },      &ResourceImporters::ImportImage },
     { std::string{ ".mp3" },      &ResourceImporters::ImportAudio },
     { std::string{ ".wav" },      &ResourceImporters::ImportAudio },
+    { std::string{ ".sg" },       &ResourceImporters::ImportAudioGroup },   //load
 	{ std::string{".weapon"},    &ResourceImporters::ImportGameWeapon },
 };
 

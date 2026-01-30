@@ -16,6 +16,7 @@ like Idle, Walk, Run, and Jump.
 #include "Engine/Input.h"
 #include "Game/Character.h"
 #include "Game/Delusion.h"
+#include "Managers/AudioManager.h"
 
 static constexpr float ANIM_TRANSITION_DURATION_IDLE = 0.15f;
 static constexpr float ANIM_TRANSITION_DURATION_ATTACK = 0.1f;
@@ -152,6 +153,10 @@ namespace sm {
 
 		////if (randomRange(0, 2) == 0)
 		//ST<AudioManager>::Get()->PlaySound3D(tmpName, false, ecs::GetEntity(this)->GetTransform().GetWorldPosition(), AudioType::END, std::pair<float, float>{2.0f, 50.0f}, 0.6f);
+
+		if (auto audioGroup{ GetWeaponInfo(animSM)->moves[moveIndex].audio.GetResource() })
+			if (auto audio{ audioGroup->PickRandomAudio() })
+				ST<AudioManager>::Get()->PlaySound3D(audio->hash, false, animSM->GetEntity()->GetTransform().GetWorldPosition(), AudioType::END, { 2.0f, 50.0f }, 0.6f);
 	}
 	void AttackActivity::OnUpdate(sm::StateMachine* sm)
 	{
@@ -404,7 +409,7 @@ namespace sm {
 
 	HurtState::HurtState() : sm::State(
 		{ new HurtActivity() },
-		{ new NoOpWhileAnimatingTransition{}, new ToAttackTransition<AttackState>{ ANIM_INPUT_TYPE::LIGHT_ATTACK }, new ToIdleTransition() } // Recover to Idle after being hurt
+		{ new NoOpWhileAnimatingTransition{}, new ToAttackTransition<AttackState>{ ANIM_INPUT_TYPE::LIGHT_ATTACK }, new ToIdleTransition(), new ToWalkTransition{} } // Recover to Idle after being hurt
 	) {
 	}
 
