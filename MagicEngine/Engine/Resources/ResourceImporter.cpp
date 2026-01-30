@@ -47,6 +47,7 @@ std::unordered_map<std::string, SPtr<ResourceFiletypeImporterBase>> ResourceImpo
     { std::string{ ".bmp" }, std::make_shared<ResourceFiletypeImporterImage>() },   //compile
     { std::string{ ".mp3" }, std::make_shared<ResourceFiletypeImporterAudio>() },   //load
     { std::string{ ".wav" }, std::make_shared<ResourceFiletypeImporterAudio>() },   //load
+    { std::string{ ".sg" }, std::make_shared<ResourceFiletypeImporterAudioGroup>() },   //load
     { std::string{ ".weapon" }, std::make_shared<ResourceFiletypeImporterGameWeapon>() }, //load
 };
 
