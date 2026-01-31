@@ -41,6 +41,7 @@ All rights reserved.
 #include "Managers/AudioManager.h"
 #include "Engine/Input.h"
 #include "UI/SpriteComponent.h"
+#include "UI/SliderComponent.h"
 #include "Engine/SceneManagement.h"
 #include "Utilities/Scheduler.h"
 #include "Scripting/ScriptComponent.h"
@@ -249,6 +250,11 @@ SCRIPT_GENERATE_COMP_WRAPPER_BEGIN(SpriteComponent)
 	SCRIPT_GENERATE_PROPERTY_FUNCS(Vec4, GetColor, SetColor)
 SCRIPT_GENERATE_COMP_WRAPPER_END()
 
+// SliderComponent
+SCRIPT_GENERATE_COMP_WRAPPER_BEGIN(SliderComponent)
+	SCRIPT_GENERATE_PROPERTY_FUNCS(float, GetDragAmount, SetDragAmount)
+SCRIPT_GENERATE_COMP_WRAPPER_END()
+
 // ScriptComponent
 SCRIPT_GENERATE_COMP_WRAPPER_BEGIN(ScriptComponent)
 void CallScriptFunction(std::string funcName)
@@ -303,22 +309,26 @@ Vec2 Get2DAxis(std::string name)
 		return Vec2{};
 }
 
-uint32_t Lua_PlayAudio(std::string name,bool looping)
+uint32_t Lua_PlayAudio(std::string name,bool looping, int category)
 {
-	return ST<AudioManager>::Get()->PlaySound(util::GenHash(name), looping);
+	return ST<AudioManager>::Get()->PlaySound(util::GenHash(name), looping, static_cast<AudioType>(category));
 }
-uint32_t Lua_PlayAudio3D(std::string name, bool looping, Vec3 position)
+uint32_t Lua_PlayAudio3D(std::string name, bool looping, Vec3 position, int category)
 {
-	return ST<AudioManager>::Get()->PlaySound3D(util::GenHash(name), looping, position);
+	return ST<AudioManager>::Get()->PlaySound3D(util::GenHash(name), looping, position, static_cast<AudioType>(category));
 }
 
-uint32_t Lua_PlayAudioWithVolume(std::string name,bool looping, float volume )
+uint32_t Lua_PlayAudioWithVolume(std::string name,bool looping, int category, float volume )
 {
-	return ST<AudioManager>::Get()->PlaySound(util::GenHash(name), looping,AudioType::END,volume);
+	return ST<AudioManager>::Get()->PlaySound(util::GenHash(name), looping, static_cast<AudioType>(category), volume);
 }
-uint32_t Lua_PlayAudio3DWithVolume(std::string name, bool looping, Vec3 position, float volume )
+uint32_t Lua_PlayAudio3DWithVolume(std::string name, bool looping, Vec3 position, int category, float volume )
 {
-	return ST<AudioManager>::Get()->PlaySound3D(util::GenHash(name), looping, position, AudioType::END, std::pair<float, float>{2.0f,50.0f},volume);
+	return ST<AudioManager>::Get()->PlaySound3D(util::GenHash(name), looping, position, static_cast<AudioType>(category), std::pair<float, float>{2.0f,50.0f},volume);
+}
+void Lua_SetCategoryVolume(int type, float volume)
+{
+	ST<AudioManager>::Get()->SetGroupVolume(static_cast<AudioType>(type), volume);
 }
 void Lua_StopAudio(uint32_t handle)
 {
@@ -437,6 +447,7 @@ void RegisterCppStuffToLua(luabridge::Namespace baseTable)
 		SCRIPT_REGISTER_COMP_GETTER(EntityLayerComponent)
 		SCRIPT_REGISTER_COMP_GETTER(EntityReferenceHolderComponent)
 		SCRIPT_REGISTER_COMP_GETTER(SpriteComponent)
+		SCRIPT_REGISTER_COMP_GETTER(SliderComponent)
 		SCRIPT_REGISTER_COMP_GETTER(ScriptComponent)
 		SCRIPT_REGISTER_COMP_GETTER(RenderComponent)
 		//=========================================== END REGISTER GETTER ================================================================================
@@ -593,6 +604,10 @@ void RegisterCppStuffToLua(luabridge::Namespace baseTable)
 		SCRIPT_REGISTER_COMP_BEGIN(SpriteComponent)
 			SCRIPT_REGISTER_COMP_PROPERTY(SpriteComponent, "color", GetColor, SetColor)
 		SCRIPT_REGISTER_COMP_END()
+		// SpriteComponent
+		SCRIPT_REGISTER_COMP_BEGIN(SliderComponent)
+			SCRIPT_REGISTER_COMP_PROPERTY(SliderComponent, "progress", GetDragAmount, SetDragAmount)
+		SCRIPT_REGISTER_COMP_END()
 		// ScriptComponent
 		SCRIPT_REGISTER_COMP_BEGIN(ScriptComponent)
 			.addFunction("CallScriptFunction", &LuaWrapperComp_ScriptComponent::CallScriptFunction)
@@ -623,6 +638,7 @@ void RegisterCppStuffToLua(luabridge::Namespace baseTable)
 			.addFunction("PlaySound3D", Lua_PlayAudio3D)
 			.addFunction("PlaySoundWithVolume", Lua_PlayAudioWithVolume)
 			.addFunction("PlaySound3DWithVolume", Lua_PlayAudio3DWithVolume)
+			.addFunction("SetCategoryVolume", Lua_SetCategoryVolume)
 		.endNamespace()
 
 		.beginNamespace("PrefabManager")

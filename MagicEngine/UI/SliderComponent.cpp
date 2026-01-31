@@ -112,7 +112,7 @@ void SliderComponent::OnSliderPressed()
 void SliderComponent::OnSliderReleased()
 {
 	isDragging = false;
-	auto entityEventsComp{ backgroundEntity->GetComp<EntityEventsComponent>() };
+	auto entityEventsComp{ ecs::GetEntity(this)->GetComp<EntityEventsComponent>() };
 	entityEventsComp->BroadcastAll("OnSliderValueFinalized", dragAmount);
 	entityEventsComp->BroadcastAll("CallScriptFunc", std::string{ "OnSliderValueFinalized" });
 }
