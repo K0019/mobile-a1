@@ -4,7 +4,7 @@
 
 void L_Melee_Dodge::OnInitialize()
 {
-	probability = 35;
+	probability = 100;
 	dodged = false;
 }
 

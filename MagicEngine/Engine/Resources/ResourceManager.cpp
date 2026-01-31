@@ -35,6 +35,7 @@ void MagicResourceManager::Init()
 
     // Unfortunately since we don't have automatic type information when we deserialize, we need to register our types manually..
     INTERNAL_GetContainer<ResourceAudio>();
+    INTERNAL_GetContainer<ResourceAudioGroup>();
     INTERNAL_GetContainer<ResourceMesh>();
     INTERNAL_GetContainer<ResourceMaterial>();
     INTERNAL_GetContainer<ResourceTexture>();

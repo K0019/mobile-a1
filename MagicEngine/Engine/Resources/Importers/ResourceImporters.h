@@ -28,6 +28,9 @@ namespace ResourceImporters {
     // Import an audio file (mp3, wav)
     bool ImportAudio(const std::string& assetRelativeFilepath);
 
+    // Import an audio group
+    bool ImportAudioGroup(const std::string& assetRelativeFilepath);
+
     // Import a compiled .mesh file
     bool ImportMeshAsset(const std::string& assetRelativeFilepath);
 

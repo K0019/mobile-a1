@@ -1,0 +1,45 @@
+{
+    "name": "rangeenemy",
+    "nodes": [
+        {
+            "nodeType": "Sequence",
+            "nodeLevel": 0
+        },
+        {
+            "nodeType": "L_Range_CheckAttack",
+            "nodeLevel": 1
+        },
+        {
+            "nodeType": "D_Range_HasWeapon",
+            "nodeLevel": 1
+        },
+        {
+            "nodeType": "L_Range_MoveToWeapon",
+            "nodeLevel": 2
+        },
+        {
+            "nodeType": "Sequence",
+            "nodeLevel": 1
+        },
+        {
+            "nodeType": "D_Range_IsFacingPlayer",
+            "nodeLevel": 2
+        },
+        {
+            "nodeType": "L_RotateTowardsTarget",
+            "nodeLevel": 3
+        },
+        {
+            "nodeType": "D_Range_EnemyInFront",
+            "nodeLevel": 2
+        },
+        {
+            "nodeType": "L_Range_ShiftLeft",
+            "nodeLevel": 3
+        },
+        {
+            "nodeType": "L_Range_Throw",
+            "nodeLevel": 1
+        }
+    ]
+}
