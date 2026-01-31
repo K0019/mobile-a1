@@ -13,7 +13,7 @@ float L_Boss_Prefect_LashOut::attackDistance = 2.0f * 2.0f;
 float L_Boss_Prefect_LashOut::speedMultiplier = 3.0f;
 int L_Boss_Prefect_LashOut::attackCount = 4;
 
-#define SPEEDUP 1.3f // Speed up so we can land the hits
+#define SPEEDUP 4.f // Speed up so we can land the hits
 
 void L_Boss_Prefect_LashOut::OnInitialize()
 {
@@ -66,12 +66,11 @@ NODE_STATUS L_Boss_Prefect_LashOut::OnUpdate([[maybe_unused]] ecs::EntityHandle 
             currentAttackCooldown = attackCooldown;
 
             // Stop moving, it gives the player *some* time to get in a hit / ESCAPE
-            //characterComp->SetMovementVector(Vec2{ 0.0f });
         }
         else
         {
             currentAttackDelay = attackDelay;
-            Boss_Prefect_Util::MoveInDirection(entity, Vec3{ dir.x * SPEEDUP, 0.0f, dir.y * SPEEDUP }*3);
+            Boss_Prefect_Util::MoveInDirection(entity, Vec3{ dir.x , 0.0f, dir.y }*SPEEDUP);
             Boss_Prefect_Util::RotateTowards(entity, dir);
         }
 

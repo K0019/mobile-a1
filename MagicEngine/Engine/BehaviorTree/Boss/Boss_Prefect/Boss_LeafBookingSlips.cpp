@@ -46,7 +46,7 @@ NODE_STATUS L_Boss_Prefect_BookingSlips::OnUpdate([[maybe_unused]] ecs::EntityHa
             currentBurstDelay = burstDelay;
 
             auto animComp = entity->GetComp<AnimationComponent>();
-            if (animComp)
+            if (animComp && animComp->animHandleA.GetResource())
             {
                 animComp->TransitionTo(5142979933624197533, 0.1f);
                 animComp->timeA = 0.0f;
