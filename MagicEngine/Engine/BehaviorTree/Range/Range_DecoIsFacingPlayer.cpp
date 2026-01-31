@@ -20,7 +20,8 @@ NODE_STATUS D_Range_IsFacingPlayer::OnUpdate(ecs::EntityHandle entity)
 	Vec3 rotation{ entity->GetTransform().GetWorldRotation() };
 	Vec3 diff{ enemyComp->playerReference->GetTransform().GetWorldPosition() - entity->GetTransform().GetWorldPosition() };
 	diff = diff.Normalized();
-	Vec3 forward{ std::sin(rotation.y), 0.f, std::cos(rotation.y) };
+	diff.y = 0.f;
+	Vec3 forward{ std::sin(math::ToRadians(rotation.y)), 0.f, std::cos(math::ToRadians(rotation.y)) };
 
 	float dotProduct{ forward.Dot(diff) };
 	float halfAngleRadian{ math::ToRadians(fieldOfViewAngle / 2.f) };

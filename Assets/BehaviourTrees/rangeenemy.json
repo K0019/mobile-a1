@@ -14,8 +14,16 @@
             "nodeLevel": 1
         },
         {
-            "nodeType": "L_Range_MoveToWeapon",
+            "nodeType": "Selector",
             "nodeLevel": 2
+        },
+        {
+            "nodeType": "L_Range_MoveToWeapon",
+            "nodeLevel": 3
+        },
+        {
+            "nodeType": "L_Range_ShiftLeft",
+            "nodeLevel": 3
         },
         {
             "nodeType": "Sequence",

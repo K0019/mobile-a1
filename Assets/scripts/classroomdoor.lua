@@ -14,7 +14,7 @@ function open()
     opening = true
     moving = true
     if not isOpen then
-        Magic.AudioManager.PlaySound3DWithVolume("door open",false,thisEntity.transform.worldPosition,1)
+        Magic.AudioManager.PlaySound3DWithVolume("door open", false, thisEntity.transform.worldPosition, Magic.AudioType.SFX, 1)
     end
 
 end
@@ -23,14 +23,14 @@ function close()
     opening = false
     moving = true
     if not isClosed then
-        Magic.AudioManager.PlaySound3DWithVolume("door open",false,thisEntity.transform.worldPosition,1)
+        Magic.AudioManager.PlaySound3DWithVolume("door open", false, thisEntity.transform.worldPosition, Magic.AudioType.SFX, 1)
     end
 end
 
 function toggle()
     opening = not opening
     moving = true
-    Magic.AudioManager.PlaySound3DWithVolume("door open",false,thisEntity.transform.worldPosition,1)
+    Magic.AudioManager.PlaySound3DWithVolume("door open", false, thisEntity.transform.worldPosition, Magic.AudioType.SFX, 1)
 end
 
 function start(entity)
