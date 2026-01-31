@@ -20,7 +20,8 @@ NODE_STATUS L_Range_ShiftLeft::OnUpdate(ecs::EntityHandle entity)
 
 	float angle{ math::ToDegrees(std::atan2(diff.x, diff.z)) };
 	angle += 3;
-	Vec3 vec{ std::sin(angle), 0.f, std::cos(angle) };
+	Vec3 vec{ std::sin(math::ToRadians(angle)), 0.f, std::cos(math::ToRadians(angle)) };
+	vec *= diff.Length();
 
 	agentComp->SetActive(true);
 	agentComp->SetTargetPos(playerPos + vec);
