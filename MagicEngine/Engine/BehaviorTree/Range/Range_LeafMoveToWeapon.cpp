@@ -7,7 +7,7 @@
 void L_Range_MoveToWeapon::OnInitialize()
 {
     //reset pos;
-    collectRange = 1.f;
+    collectRange = 1.3f;
 }
 
 NODE_STATUS L_Range_MoveToWeapon::OnUpdate([[maybe_unused]] ecs::EntityHandle entity)
@@ -20,6 +20,7 @@ NODE_STATUS L_Range_MoveToWeapon::OnUpdate([[maybe_unused]] ecs::EntityHandle en
 
     if (!weapon || weapon->GetComp<GrabbableItemComponent>()->isHeld == true)
     {
+        weapon = nullptr;
 		for (auto itemComp = ecs::GetCompsBegin<GrabbableItemComponent>(); itemComp != ecs::GetCompsEnd<GrabbableItemComponent>(); ++itemComp)
 		{
             //Check if it's a valid weapon.

@@ -12,7 +12,17 @@ NODE_STATUS L_Range_Throw::OnUpdate(ecs::EntityHandle entity)
 	if (waitTimer != 1.f)
 	{
 		waitTimer -= GameTime::Dt();
-		return waitTimer <= 0.f ? NODE_STATUS::SUCCESS : NODE_STATUS::RUNNING;
+		if (waitTimer <= 0.f)
+		{
+			std::vector<ecs::EntityHandle> enemyList{};
+			BehaviorTree::globalBlackBoard.GetValue("RangeEnemyList", enemyList);
+			if (enemyList.empty())
+				return NODE_STATUS::SUCCESS;
+			BehaviorTree::globalBlackBoard.SetValue("RangeAttacking", enemyList[std::rand() % enemyList.size()]);
+			return NODE_STATUS::SUCCESS;
+		}
+			
+		return NODE_STATUS::RUNNING;
 	}
 
 	auto charComp{ entity->GetComp<CharacterMovementComponent>() };
