@@ -36,6 +36,7 @@ All rights reserved.
 #include "UI/TextComponent.h"
 #include "UI/SpriteComponent.h"
 #include "UI/ButtonComponent.h"
+#include "UI/SliderComponent.h"
 #include "3DUI/BillboardComponent.h"
 
 #include "Graphics/CameraSystem.h"
@@ -93,6 +94,7 @@ void GameState_Game::OnEnter()
 
     ecs::AddSystem(ECS_LAYER::INPUT_0, AndroidInputSystem{});
     ecs::AddSystem(ECS_LAYER::INPUT_1, ButtonInputSystem{});
+    ecs::AddSystem(ECS_LAYER::INPUT_2, SliderSystem{});
 
     ecs::AddSystem(ECS_LAYER::POST_PHYSICS_0, GameCameraControllerSystem{});
     ecs::AddSystem(ECS_LAYER::INPUT_1, PlayerMovementComponentSystem{});

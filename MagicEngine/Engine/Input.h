@@ -463,6 +463,9 @@ public: // Frame management
 	*//******************************************************************/
 	bool IsFinalIterationThisFrame() const;
 
+	// Hack
+	static Vec2 GetMousePos();
+
 public:
 	void Serialize(Serializer& writer) const final;
 	void Deserialize(Deserializer& reader) final;
