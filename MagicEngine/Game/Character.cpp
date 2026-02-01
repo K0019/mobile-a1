@@ -219,17 +219,28 @@ void CharacterMovementComponent::GrabItem(ecs::CompHandle<GrabbableItemComponent
 void CharacterMovementComponent::LightAttack()
 {
 	// Defer to animation fsm
-	ecs::GetEntity(this)->GetComp<AnimatorComponent>()->GetStateMachine()->blackboard["inputLightAttack"] = true;
+	auto animComp{ ecs::GetEntity(this)->GetComp<AnimatorComponent>() };
+	if (!animComp) return;
+	auto animFSM{ animComp->GetStateMachine() };
+	if (!animFSM) return;
+	animFSM->blackboard["inputLightAttack"] = true;
 }
 
 void CharacterMovementComponent::HeavyAttack()
 {
-	ecs::GetEntity(this)->GetComp<AnimatorComponent>()->GetStateMachine()->blackboard["inputHeavyAttack"] = true;
+	auto animComp{ ecs::GetEntity(this)->GetComp<AnimatorComponent>() };
+	if (!animComp) return;
+	auto animFSM{ animComp->GetStateMachine() };
+	if (!animFSM) return;
+	animFSM->blackboard["inputHeavyAttack"] = true;
 }
 
 bool CharacterMovementComponent::IsAttacking() const
 {
-	auto animFSM{ ecs::GetEntity(this)->GetComp<AnimatorComponent>()->GetStateMachine() };
+	auto animComp{ ecs::GetEntity(this)->GetComp<AnimatorComponent>() };
+	if (!animComp) return false;
+	auto animFSM{ animComp->GetStateMachine() };
+	if (!animFSM) return false;
 	return animFSM->GetBlackboardVal<bool>("inputLightAttack") || animFSM->GetBlackboardVal<bool>("inputHeavyAttack");
 }
 

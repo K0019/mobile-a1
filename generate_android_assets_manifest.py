@@ -9,13 +9,21 @@ import sys
 #
 # This script must write the actual on-disk path (case-preserving) for each file.
 
-ASSETS_ROOT = "Assets"
+_SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+ASSETS_ROOT = os.path.join(_SCRIPT_DIR, "Assets")
 OUTPUT_FILE = os.path.join(ASSETS_ROOT, "asset_manifest.txt")
+
+# Windows reserved device names — os.path.relpath() fails on these.
+_WIN_RESERVED = frozenset({
+    "con", "prn", "aux", "nul",
+    *(f"com{i}" for i in range(1, 10)),
+    *(f"lpt{i}" for i in range(1, 10)),
+})
 
 
 def main() -> int:
     if not os.path.isdir(ASSETS_ROOT):
-        print(f"Error: Assets root '{ASSETS_ROOT}' does not exist. cwd={os.getcwd()}")
+        print(f"Error: Assets root '{ASSETS_ROOT}' does not exist.")
         return 1
 
     try:
@@ -25,6 +33,10 @@ def main() -> int:
                 files.sort()
                 for name in files:
                     if name == "asset_manifest.txt":
+                        continue
+                    # Skip Windows reserved device names (e.g. "nul") which break os.path.relpath.
+                    stem = name.split(".")[0].lower()
+                    if stem in _WIN_RESERVED:
                         continue
                     full_path = os.path.join(root, name)
                     rel = os.path.relpath(full_path, ASSETS_ROOT).replace("\\", "/")

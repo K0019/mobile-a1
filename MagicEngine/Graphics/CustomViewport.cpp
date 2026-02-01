@@ -32,6 +32,7 @@ All rights reserved.
 #include "Engine/Events/EventsTypeBasic.h"
 #include "Editor/EditorCameraBridge.h"
 #include "ImGuizmo.h"
+#include <cstring>
 
 CustomViewport::CustomViewport(unsigned int width, unsigned int height)
 	: WindowBase{ "Viewport", { 1366, 768 }, gui::FLAG_WINDOW::NO_SCROLL_BAR | gui::FLAG_WINDOW::NO_SCROLL_WITH_MOUSE }
@@ -387,6 +388,43 @@ void CustomViewport::DrawPlayControls() {
 	ImGui::PopStyleColor(5);
 
 	ImGui::PopStyleVar(3); // Frame padding, rounding, border
+
+	// Right-aligned "Features" dropdown
+	{
+		const float dropdownWidth = 70.0f;
+		ImGui::SameLine(ImGui::GetWindowWidth() - dropdownWidth - 4.0f);
+		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.2f, 0.2f, 0.2f, 1.0f));
+		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.3f, 0.3f, 0.3f, 1.0f));
+		ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.8f, 0.8f, 0.8f, 1.0f));
+		if (ImGui::Button(ICON_FA_EYE " Features", ImVec2(dropdownWidth, BUTTON_HEIGHT))) {
+			ImGui::OpenPopup("##FeatureMaskPopup");
+		}
+		ImGui::PopStyleColor(3);
+
+		if (ImGui::BeginPopup("##FeatureMaskPopup")) {
+			auto* graphics = ST<GraphicsMain>::Get();
+			auto* renderer = graphics ? graphics->GetRenderer() : nullptr;
+
+			if (graphics && renderer) {
+				FeatureMask& mask = graphics->GetSceneViewFeatureMask();
+				auto features = renderer->getRegisteredFeatures();
+				for (const auto& feat : features) {
+					if (feat.mask == 0) continue;
+					// ImGui is a system feature that operates on the swapchain, not a per-view feature
+					if (std::strcmp(feat.name, "ImGuiRenderFeature") == 0) continue;
+					bool enabled = (mask & feat.mask) != 0;
+					if (ImGui::Checkbox(feat.name, &enabled)) {
+						if (enabled)
+							mask |= feat.mask;
+						else
+							mask &= ~feat.mask;
+					}
+				}
+			}
+			ImGui::EndPopup();
+		}
+	}
+
 	ImGui::EndChild();
 	ImGui::PopStyleColor(); // Toolbar background
 

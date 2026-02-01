@@ -1766,6 +1766,30 @@ FeatureMask RenderGraph::RegisterFeature(IRenderFeature* feature)
   return FeatureBit(id);
 }
 
+FeatureMask RenderGraph::RegisterFeatureWithId(IRenderFeature* feature, RenderFeatureId explicitId)
+{
+  if (!feature) return 0;
+
+  // Check if already registered
+  auto it = m_featureIdMap.find(feature);
+  if (it != m_featureIdMap.end())
+  {
+    return FeatureBit(it->second);
+  }
+
+  m_featureIdMap[feature] = explicitId;
+  feature->SetFeatureId(explicitId);
+  // Ensure auto-assigned IDs don't collide with this explicit ID
+  if (m_nextFeatureId <= explicitId)
+  {
+    m_nextFeatureId = explicitId + 1;
+  }
+
+  LOG_INFO("Registered feature '{}' with explicit ID {} (mask: 0x{:X})", feature->GetName(), explicitId, FeatureBit(explicitId));
+
+  return FeatureBit(explicitId);
+}
+
 void RenderGraph::UnregisterFeature(IRenderFeature* feature)
 {
   if (!feature) return;

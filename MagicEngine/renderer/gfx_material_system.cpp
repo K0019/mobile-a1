@@ -182,7 +182,7 @@ void GfxMaterialSystem::freeTextureEntry(uint16_t index) {
         // The staging command buffer is shared across all textures - destroying
         // any texture with pending commands invalidates the entire batch
         hina_ticket ticket = hina_flush_uploads();
-        hina_wait_ticket(ticket);
+        if (ticket) hina_wait_ticket(ticket);
         hina_destroy_texture(entry.texture);
     }
 

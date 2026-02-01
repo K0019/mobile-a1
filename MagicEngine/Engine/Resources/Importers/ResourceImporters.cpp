@@ -70,15 +70,18 @@ namespace {
         // This is hardcoded to make android work for now. For this, we're only supporting ktx2.
         assert(VFS::GetExtension(filepath) == ".ktx2");
 
+        // Resolve platform-specific path (e.g. compiledassets/android/... on Android)
+        std::string resolvedPath = VFS::ResolveCompiledAssetPath(filepath);
+
         Resource::ProcessedTexture texture{};
         texture.source = FilePathSource{ filepath };
         texture.name = VFS::GetFilename(filepath);
         ktxTexture2* ktxTex = nullptr;
 
         std::vector<uint8_t> fileData;
-        if (!VFS::ReadFile(filepath, fileData))
+        if (!VFS::ReadFile(resolvedPath, fileData))
         {
-            CONSOLE_LOG(LEVEL_ERROR) << "VFS: Read texture file failed: " << filepath;
+            CONSOLE_LOG(LEVEL_ERROR) << "VFS: Read texture file failed: " << resolvedPath;
             return texture;
         }
 

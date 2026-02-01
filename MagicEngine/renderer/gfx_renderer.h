@@ -369,6 +369,19 @@ public:
     // ========================================================================
 
     /**
+     * @brief Info about a registered render feature (for UI enumeration).
+     */
+    struct RegisteredFeatureInfo {
+        const char* name;
+        FeatureMask mask;
+    };
+
+    /**
+     * @brief Get all registered features and their masks.
+     */
+    std::vector<RegisteredFeatureInfo> getRegisteredFeatures() const;
+
+    /**
      * @brief Register a render feature with the renderer.
      * Features will have their passes executed during the render loop.
      */

@@ -6,18 +6,6 @@ plugins {
 // Asset pipeline helpers
 // ---------------------------------------------------------------------------
 
-// Find a Python interpreter on the system
-def findPython() {
-    for (candidate in ['python', 'py', 'python3']) {
-        try {
-            def proc = [candidate, '--version'].execute()
-            proc.waitFor()
-            if (proc.exitValue() == 0) return candidate
-        } catch (ignored) {}
-    }
-    return null
-}
-
 def assetsRoot = file('../../Assets')
 def manifestFile = file('../../Assets/asset_manifest.txt')
 def manifestGenerator = file('../../generate_android_assets_manifest.py')
@@ -25,72 +13,103 @@ def astcScript = file('../../scripts/rebuild_android_astc_textures.py')
 def assetCompiler = file('../../Tools/Release/AssetCompiler.exe')
 
 // Task: regenerate asset_manifest.txt before every build
-tasks.register('generateAssetManifest', Exec) {
+tasks.register('generateAssetManifest') {
     description = 'Regenerate asset_manifest.txt for Android case-insensitive VFS lookup'
-    workingDir file('../..')
-    def py = findPython()
-    if (py != null) {
-        commandLine py, manifestGenerator.absolutePath
-    } else {
-        // Will fail at execution time with a clear message
-        commandLine 'echo', 'ERROR: Python not found – cannot regenerate asset manifest'
-    }
-    // Re-run when any asset file changes
-    inputs.dir(assetsRoot).exclude('asset_manifest.txt')
     outputs.file(manifestFile)
+    doLast {
+        def py = null
+        for (candidate in ['python', 'py', 'python3']) {
+            try {
+                def proc = [candidate, '--version'].execute()
+                proc.waitFor()
+                if (proc.exitValue() == 0) { py = candidate; break }
+            } catch (ignored) {}
+        }
+        if (py == null) {
+            throw new GradleException('Python not found on PATH. Cannot regenerate asset_manifest.txt.')
+        }
+        def repoRoot = project.file('../..')
+        logger.lifecycle("generateAssetManifest: running ${py} in ${repoRoot}")
+        def pb = new ProcessBuilder(py, manifestGenerator.absolutePath)
+        pb.directory(repoRoot)
+        pb.redirectErrorStream(true)
+        def proc = pb.start()
+        def output = proc.inputStream.text
+        proc.waitFor()
+        if (output) logger.lifecycle(output.trim())
+        if (proc.exitValue() != 0) {
+            throw new GradleException("Manifest generation failed (exit=${proc.exitValue()})")
+        }
+    }
 }
 
 // Task: recompress textures to ASTC (only when AssetCompiler exists)
-tasks.register('recompressAstcTextures', Exec) {
+tasks.register('recompressAstcTextures') {
     description = 'Recompress KTX2 textures to ASTC for Android'
-    workingDir file('../..')
-    enabled = assetCompiler.exists()
-    def py = findPython()
-    if (py != null) {
-        commandLine py, astcScript.absolutePath,
+    dependsOn 'generateAssetManifest'
+    // Skip if AssetCompiler hasn't been built yet
+    onlyIf { assetCompiler.exists() }
+    doLast {
+        def py = null
+        for (candidate in ['python', 'py', 'python3']) {
+            try {
+                def proc = [candidate, '--version'].execute()
+                proc.waitFor()
+                if (proc.exitValue() == 0) { py = candidate; break }
+            } catch (ignored) {}
+        }
+        if (py == null) {
+            throw new GradleException('Python not found on PATH. Cannot recompress textures.')
+        }
+        def repoRoot = project.file('../..')
+        def cmd = [py, astcScript.absolutePath,
             '--assetcompiler', assetCompiler.absolutePath,
             '--assets-root', assetsRoot.absolutePath,
-            '--include-non-textures'
-    } else {
-        commandLine 'echo', 'ERROR: Python not found – cannot recompress textures'
+            '--include-non-textures']
+        logger.lifecycle("recompressAstcTextures: running ${cmd.join(' ')}")
+        def pb = new ProcessBuilder(cmd)
+        pb.directory(repoRoot)
+        pb.redirectErrorStream(true)
+        def proc = pb.start()
+        def output = proc.inputStream.text
+        proc.waitFor()
+        if (output) logger.lifecycle(output.trim())
+        if (proc.exitValue() != 0) {
+            logger.warn("WARNING: ASTC recompression had failures (exit=${proc.exitValue()}). Check output above.")
+        }
     }
-    // Re-run when source compiled assets change
-    inputs.dir(file('../../Assets/CompiledAssets')).exclude('android/**')
-    outputs.dir(file('../../Assets/CompiledAssets/android'))
-    // Manifest must exist first
-    dependsOn 'generateAssetManifest'
 }
 
-// Task: validate manifest is not stale (warns if manifest is older than newest asset)
+// Task: validate manifest is not stale (runs after manifest generation)
 tasks.register('checkManifestFreshness') {
     description = 'Warn if asset_manifest.txt appears stale'
+    mustRunAfter 'generateAssetManifest'
     doLast {
         if (!manifestFile.exists()) {
             throw new GradleException("asset_manifest.txt missing – run generateAssetManifest first")
         }
         def manifestTime = manifestFile.lastModified()
-        def newerFiles = []
+        def newerCount = 0
+        def examples = []
         assetsRoot.eachFileRecurse { f ->
             if (f.name == 'asset_manifest.txt') return
             if (f.lastModified() > manifestTime) {
-                newerFiles << f.name
+                newerCount++
+                if (examples.size() < 3) examples << f.name
             }
         }
-        if (!newerFiles.isEmpty()) {
-            logger.warn("WARNING: ${newerFiles.size()} asset(s) are newer than asset_manifest.txt (e.g. ${newerFiles.take(3).join(', ')})")
+        if (newerCount > 0) {
+            logger.warn("WARNING: ${newerCount} asset(s) are newer than asset_manifest.txt (e.g. ${examples.join(', ')})")
             logger.warn("Consider running: ./gradlew generateAssetManifest")
         }
     }
 }
 
-// Wire into build: manifest regen → ASTC recompress → staleness check → preBuild
+// Wire into build
 afterEvaluate {
     tasks.named('preBuild').configure {
-        dependsOn 'generateAssetManifest'
-        if (assetCompiler.exists()) {
-            dependsOn 'recompressAstcTextures'
-        }
-        dependsOn 'checkManifestFreshness'
+        dependsOn 'generateAssetManifest', 'checkManifestFreshness'
+        dependsOn 'recompressAstcTextures'
     }
 }
 
@@ -156,6 +175,14 @@ android {
         main {
             jniLibs.srcDirs = ['src/main/jniLibs']
             assets.srcDirs = ['../../Assets'] // Use only main project assets
+            // Exclude desktop-format compiled assets — Android uses CompiledAssets/android/ instead.
+            // Without this the APK exceeds the ~2GB ZIP limit.
+            assets.getFilter().exclude { element ->
+                def path = element.relativePath.toString().replace('\\', '/')
+                // Exclude everything under CompiledAssets/ except the android/ subfolder
+                path.startsWith('CompiledAssets/') &&
+                    !path.startsWith('CompiledAssets/android/')
+            }
         }
     }
 }

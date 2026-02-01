@@ -28,12 +28,50 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
-$RepoRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
-# If script is at scripts/build_android.ps1, repo root is one level up from scripts/
+# Script is at scripts/build_android.ps1, so repo root is one level up from scripts/
 $RepoRoot = Split-Path -Parent $PSScriptRoot
 Push-Location $RepoRoot
 
 try {
+    # --- Auto-detect JAVA_HOME ---
+    if (-not $env:JAVA_HOME) {
+        $jbrCandidates = @(
+            "$env:ProgramFiles\Android\Android Studio\jbr",
+            "${env:ProgramFiles(x86)}\Android\Android Studio\jbr",
+            "$env:LOCALAPPDATA\Programs\Android Studio\jbr"
+        )
+        foreach ($jbr in $jbrCandidates) {
+            if (Test-Path "$jbr\bin\java.exe") {
+                $env:JAVA_HOME = $jbr
+                Write-Host "Auto-detected JAVA_HOME: $jbr" -ForegroundColor DarkGray
+                break
+            }
+        }
+        if (-not $env:JAVA_HOME) {
+            Write-Error "JAVA_HOME not set and Android Studio JBR not found. Set JAVA_HOME or install Android Studio."
+            exit 1
+        }
+    }
+
+    # --- Auto-generate local.properties if missing ---
+    $localProps = Join-Path $RepoRoot "android\local.properties"
+    if (-not (Test-Path $localProps)) {
+        $sdkDir = $null
+        foreach ($candidate in @($env:ANDROID_HOME, $env:ANDROID_SDK_ROOT, "$env:LOCALAPPDATA\Android\Sdk")) {
+            if ($candidate -and (Test-Path $candidate)) {
+                $sdkDir = $candidate
+                break
+            }
+        }
+        if ($sdkDir) {
+            $escaped = $sdkDir.Replace('\', '\\').Replace(':', '\:')
+            Set-Content -Path $localProps -Value "sdk.dir=$escaped"
+            Write-Host "Generated local.properties (sdk.dir=$sdkDir)" -ForegroundColor DarkGray
+        } else {
+            Write-Warning "Could not auto-detect Android SDK. Create android/local.properties manually."
+        }
+    }
+
     # --- Find Python ---
     $python = $null
     foreach ($candidate in @("python", "py", "python3")) {

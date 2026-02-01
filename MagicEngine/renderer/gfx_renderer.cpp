@@ -1058,23 +1058,15 @@ void GfxRenderer::onResize(uint32_t width, uint32_t height) {
 
     LOG_INFO("[GfxRenderer] Resizing from {}x{} to {}x{}", m_width, m_height, width, height);
 
-    // Destroy old render targets before recreating
-    // Note: hina_destroy_texture uses deferred destruction - safe while GPU may still be using them
-    if (hina_texture_is_valid(m_gbuffer.albedo)) hina_destroy_texture(m_gbuffer.albedo);
-    if (hina_texture_is_valid(m_gbuffer.normal)) hina_destroy_texture(m_gbuffer.normal);
-    if (hina_texture_is_valid(m_gbuffer.materialData)) hina_destroy_texture(m_gbuffer.materialData);
-    if (hina_texture_is_valid(m_gbuffer.depth)) hina_destroy_texture(m_gbuffer.depth);
-    if (hina_texture_is_valid(m_gbuffer.visibilityID)) hina_destroy_texture(m_gbuffer.visibilityID);
-    if (hina_texture_is_valid(m_wboit.accumulation)) hina_destroy_texture(m_wboit.accumulation);
-    if (hina_texture_is_valid(m_wboit.reveal)) hina_destroy_texture(m_wboit.reveal);
-    if (hina_texture_is_valid(m_hdrTarget)) hina_destroy_texture(m_hdrTarget);
-    if (hina_texture_is_valid(m_shadowAtlas)) hina_destroy_texture(m_shadowAtlas);
-    if (hina_texture_is_valid(m_ambientOctMap)) hina_destroy_texture(m_ambientOctMap);
-
     m_width = width;
     m_height = height;
 
-    createRenderTargets();
+    // GBuffer, HDR, WBOIT, shadow atlas, and ambient oct map all use fixed internal
+    // resolution (INTERNAL_WIDTH x INTERNAL_HEIGHT) — no need to recreate on window resize.
+    // Only ViewOutputs need resizing since they match window dimensions for final blit.
+    for (size_t i = 0; i < static_cast<size_t>(ViewId::Count); ++i) {
+        resizeViewOutput(static_cast<ViewId>(i), width, height);
+    }
 }
 
 void GfxRenderer::updateFrameConstants(const FrameData& frameData) {
@@ -2252,6 +2244,16 @@ void GfxRenderer::unregisterFeature(IRenderFeature* feature) {
 FeatureMask GfxRenderer::getFeatureMask(IRenderFeature* feature) const {
     if (!feature || !m_renderGraph) return 0;
     return m_renderGraph->GetFeatureMask(feature);
+}
+
+std::vector<GfxRenderer::RegisteredFeatureInfo> GfxRenderer::getRegisteredFeatures() const {
+    std::vector<RegisteredFeatureInfo> result;
+    result.reserve(m_registeredFeatures.size());
+    for (auto* feature : m_registeredFeatures) {
+        FeatureMask mask = m_renderGraph ? m_renderGraph->GetFeatureMask(feature) : 0;
+        result.push_back({feature->GetName(), mask});
+    }
+    return result;
 }
 
 // ============================================================================
