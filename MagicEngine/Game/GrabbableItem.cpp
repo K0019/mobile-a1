@@ -31,6 +31,7 @@ All rights reserved.
 #include "Game/PlayerCharacter.h"
 #include "Game/EnemyCharacter.h"
 #include "Game/Delusion.h"
+#include "Graphics/AnimatorComponent.h"
 #include "Managers\AudioManager.h"
 
 #include "Engine/Events/EventsQueue.h"
@@ -88,6 +89,7 @@ void GrabbableItemComponent::Attack(Vec3 origin, Vec3 extents)
 				knockbackDirection = knockbackDirection.Normalized();
 				healthComp->TakeDamage(attackDamage, knockbackDirection);
 			}
+
 			//damage taken tied to delusion for now
 			//if owner is enemy
 			if (owner->GetComp<EnemyComponent>())
@@ -106,6 +108,12 @@ void GrabbableItemComponent::Attack(Vec3 origin, Vec3 extents)
 				{
 					delusionComp->AddDelusion(attackDamage * 0.2f);
 				}
+
+				// Apply hitstop to both player and enemy
+				if (auto animComp{ owner->GetComp<AnimatorComponent>() })
+					animComp->GetStateMachine()->blackboard["inputHitstop"] = true;
+				if (auto animComp{ hitEntity->GetComp<AnimatorComponent>() })
+					animComp->GetStateMachine()->blackboard["inputHitstop"] = true;
 			}
 
 		}
