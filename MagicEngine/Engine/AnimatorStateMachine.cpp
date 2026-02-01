@@ -321,7 +321,7 @@ namespace sm {
 		SetNextState = [prevState = sm->GetState()](State** outState) {
 			*outState = new HitstopState{ prevState };
 		};
-		animSM->blackboard["hitstopEndTime"] = GameTime::TimeSinceStart() + 0.50f; // Hitstop length
+		animSM->blackboard["hitstopEndTime"] = GameTime::TimeSinceStart() + 0.15f; // Hitstop length
 		animSM->GetEntity()->GetComp<AnimationComponent>()->isPlaying = false;
 		// If we are an enemy, stop the behavior tree from running until hitstop ends
 		if (auto behaviorComp{ animSM->GetEntity()->GetComp<BehaviorTree>() })
