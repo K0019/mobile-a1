@@ -108,6 +108,14 @@ namespace util {
 	using ReturnType_t = decltype(internal::FunctionTypeSplitter(Func));
 
 	/*****************************************************************//*!
+	\concept EnumType
+	\brief
+		Limits variable type scope to enums.
+	*//******************************************************************/
+	template <typename T>
+	concept EnumType = std::is_enum_v<T>;
+
+	/*****************************************************************//*!
 	\struct IsPair
 	\brief
 		Type trait that identifies whether a type is a pair.

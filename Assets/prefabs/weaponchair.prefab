@@ -1,0 +1,136 @@
+{
+    "entities": [
+        {
+            "parentIndex": -1,
+            "position": {
+                "x": 6.99919319152832,
+                "y": 1.2015676498413086,
+                "z": -2.4824020862579346
+            },
+            "rotation": {
+                "x": 0.0,
+                "y": 82.0,
+                "z": 0.0008305715746246278
+            },
+            "scale": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0
+            },
+            "components": {
+                "137465014557233347": {
+                    "_active": true,
+                    "weaponInfo": {
+                        "hash": 1
+                    },
+                    "damage": 1.0,
+                    "attackBox": {
+                        "x": 0.0,
+                        "y": 0.0,
+                        "z": 0.0
+                    },
+                    "attackDelay": 0.0,
+                    "audioName": "",
+                    "audioStartIndex": 236915600,
+                    "audioEndIndex": 493,
+                    "lightAttackAnimation": {
+                        "hash": 1
+                    },
+                    "heavyAttackAnimation": {
+                        "hash": 1
+                    },
+                    "ultimAttackAnimation": {
+                        "hash": 1
+                    },
+                    "parryAnimation": {
+                        "hash": 1
+                    },
+                    "pickupUI": {
+                        "hash": 1
+                    }
+                },
+                "5352011725353660904": {
+                    "_active": true,
+                    "meshHandle": {
+                        "hash": 161358829201315781
+                    },
+                    "materials": [
+                        {
+                            "hash": 155322510364825539
+                        },
+                        {
+                            "hash": 157414880993324893
+                        }
+                    ],
+                    "castShadowOverride": -1
+                },
+                "6766054303456732338": {
+                    "_active": true,
+                    "layer": 0
+                },
+                "7205334411763290517": {
+                    "_active": true,
+                    "name": "WeaponChair"
+                },
+                "9315785795257285655": {
+                    "_active": true,
+                    "uid": 4173251358977231678
+                },
+                "9501525575059265452": {
+                    "_active": true,
+                    "flags": {
+                        "_majorityTrue": false,
+                        "_except": [
+                            "Use Gravity",
+                            "Enabled"
+                        ]
+                    }
+                },
+                "16607109609690958986": {
+                    "_active": true,
+                    "targetEntity": {
+                        "entityUid": 0
+                    },
+                    "boneName": "",
+                    "localOffset": {
+                        "x": 0.0,
+                        "y": 0.0,
+                        "z": 0.0
+                    },
+                    "localRotation": {
+                        "x": 0.0,
+                        "y": 0.0,
+                        "z": 0.0
+                    }
+                },
+                "18236831197208900764": {
+                    "_active": true,
+                    "center": {
+                        "x": 0.0,
+                        "y": 0.0,
+                        "z": 0.0
+                    },
+                    "size": {
+                        "x": 0.5,
+                        "y": 0.699999988079071,
+                        "z": 0.4000000059604645
+                    },
+                    "flags": {
+                        "_majorityTrue": true,
+                        "_except": [
+                            "Is Trigger"
+                        ]
+                    }
+                },
+                "18288371625365795113": {
+                    "_active": true,
+                    "scripts": [
+                        {
+                            "scriptName": "throwweapon.lua"
+                        }
+                    ]
+                }
+            }
+        }
+    ]
+}

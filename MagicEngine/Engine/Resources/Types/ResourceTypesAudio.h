@@ -49,3 +49,12 @@ struct ResourceAudio : public ResourceBase
 	virtual bool IsLoaded() final;
 	~ResourceAudio();
 };
+
+struct ResourceAudioGroup : public ResourceBase
+{
+	std::vector<size_t> audio;
+
+	virtual bool IsLoaded() final;
+
+	const ResourceAudio* PickRandomAudio() const;
+};

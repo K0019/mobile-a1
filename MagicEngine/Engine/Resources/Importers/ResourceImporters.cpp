@@ -266,6 +266,26 @@ bool ResourceImporters::ImportAudio(const std::string& assetRelativeFilepath)
 }
 
 // ============================================================================
+// Audio Group Importer
+// ============================================================================
+
+bool ResourceImporters::ImportAudioGroup(const std::string& assetRelativeFilepath)
+{
+    std::vector<size_t> audioFilepaths;
+    Deserializer reader{ assetRelativeFilepath };
+    if (!reader.IsValid())
+    {
+        CONSOLE_LOG(LEVEL_ERROR) << "Unable to read audio group file: " << assetRelativeFilepath;
+        return false;
+    }
+    reader.DeserializeVar("sounds", &audioFilepaths);
+
+    const auto fileEntry{ GenerateFileEntryForResources<ResourceAudioGroup>(assetRelativeFilepath, 1) };
+    ST<MagicResourceManager>::Get()->INTERNAL_GetContainer<ResourceAudioGroup>().INTERNAL_GetResource(fileEntry->associatedResources[0].hashes[0], true)->audio = std::move(audioFilepaths);
+    return true;
+}
+
+// ============================================================================
 // Mesh Asset Importer
 // ============================================================================
 

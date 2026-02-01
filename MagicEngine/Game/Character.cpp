@@ -159,6 +159,7 @@ void CharacterMovementComponent::DropItem()
 	{
 		physicsComp->SetFlag(physics::PHYSICS_COMP_FLAG::ENABLED, true);
 		physicsComp->SetFlag(physics::PHYSICS_COMP_FLAG::USE_GRAVITY, true);
+		physicsComp->SetFlag(physics::PHYSICS_COMP_FLAG::IS_KINEMATIC, false);
 	}
 	if (auto colliderComp{ heldItem->GetComp<physics::BoxColliderComp>() })
 	{
@@ -356,43 +357,8 @@ void CharacterMovementComponent::SetCenter(const Vec3& vec)
 
 void CharacterMovementComponent::EditorDraw()
 {
-
-	// TODO: This is copied from Transform.cpp. Should unify both implementations in GUICollection in the future.
-// Helper function for drawing the controls
-	const auto DrawVec3Control = [](const char* label, Vec3* values, float columnWidth, float speed, const char* format) -> bool {
-		bool modified = false;
-		if (gui::Table table{ label, 4, true, gui::FLAG_TABLE::HIDE_HEADER })
-		{
-			table.AddColumnHeader("##", gui::FLAG_TABLE_COLUMN::WIDTH_FIXED, columnWidth); // Set first column as fixed width. The rest will be stretch columns.
-			table.SubmitColumnHeaders();
-
-			gui::TextUnformatted(label);
-			table.NextColumn();
-
-			const auto DrawFloatComponent{ [&modified, speed, format](const char* text, const char* label, float* value, const gui::Vec4& textColor) -> void {
-				{
-					gui::SetStyleColor styleColText{ gui::FLAG_STYLE_COLOR::TEXT, textColor };
-					gui::TextUnformatted(text);
-				}
-				gui::SameLine();
-				gui::SetNextItemWidth(gui::GetAvailableContentRegion().x);
-				modified |= gui::VarDrag(label, value, speed, 0.0f, 0.0f, format);
-			} };
-
-			DrawFloatComponent("X", "##X", &values->x, gui::Vec4{ 1.0f, 0.4f, 0.4f, 1.0f });
-			table.NextColumn();
-			DrawFloatComponent("Y", "##Y", &values->y, gui::Vec4{ 0.4f, 1.0f, 0.4f, 1.0f });
-			table.NextColumn();
-			DrawFloatComponent("Z", "##Z", &values->z, gui::Vec4{ 0.4f, 0.4f, 1.0f, 1.0f });
-		}
-		return modified;
-		};
-
-	if (DrawVec3Control("Center", &center, 60.f, 1.f, "%.1f"))
-	{
-		JPH::Vec3 joltOffset{ center.x, center.y, center.z };
-		joltCharRef->SetShapeOffset(joltOffset);
-	}
+	if (gui::VarDrag("Center", &center, 1.0f, Vec3{}, Vec3{}, "%.1f"))
+		joltCharRef->SetShapeOffset(JPH::Vec3{ center.x, center.y, center.z });
 
 	if (gui::VarInput("Radius", &radius))
 		ST<physics::JoltPhysics>::Get()->SetCharacterRadius(joltCharRef, radius);
@@ -588,7 +554,6 @@ void CharacterMovementComponentSystem::UpdateCharacterMovementComponent(Characte
 		animatorComp->GetStateMachine()->blackboard["outputApplyHitMove"] = -1;
 	}
 
-	// Reset movement input
 	comp.SetMovementVector(Vec2{ 0.f, 0.f });
 }
 

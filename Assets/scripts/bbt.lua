@@ -23,7 +23,7 @@ function OnCollisionEnter(entity)
             end
 
             -- Play the healing sound "Globally" since the player is the one healing here :)
-            Magic.AudioManager.PlaySoundWithVolume("heal",false,0.6)
+            Magic.AudioManager.PlaySoundWithVolume("heal", false, Magic.AudioType.SFX, 0.6)
 
             -- Delete self
             thisEntity:Destroy()

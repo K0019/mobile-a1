@@ -105,6 +105,7 @@ void ResourceSerialization::Deserialize(Deserializer& reader, ResourceFilepaths*
 			{
 				size_t hash{};
 				reader.DeserializeVar("hash", &hash);
+				hash |= 1; // Legacy fix for non-odd hashes
 				newResource.hashes.push_back(hash);
 				resourceLoadedCallback(newResource.resourceTypeHash, hash);
 

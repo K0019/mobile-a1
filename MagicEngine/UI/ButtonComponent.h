@@ -62,7 +62,6 @@ public:
 	bool PreRun() override;
 
 private:
-	Vec2 RetrieveMousePos();
 	void CheckButtonInput(ButtonComponent& buttonComp, SpriteComponent& spriteComp, RectTransformComponent& rectTransform);
 
 private:

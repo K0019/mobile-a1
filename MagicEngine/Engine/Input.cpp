@@ -31,6 +31,8 @@ All rights reserved.
 //};
 
 #include "Engine/Platform/Android/AndroidInputBridge.h"
+#include "Engine/Events/EventsQueue.h"
+#include "Engine/Events/EventsTypeBasic.h"
 
 // If you haven't already, define an axis enum somewhere shared:
 enum class AJAxis : int {
@@ -490,6 +492,18 @@ decltype(util::ToSortedVectorOfRefs(MagicInput::inputSets)) MagicInput::Editor_G
 WPtr<InputSet> MagicInput::Editor_GetCurrentInputSet()
 {
 	return currentInputSet;
+}
+
+Vec2 MagicInput::GetMousePos()
+{
+#ifdef __ANDROID__
+	return Vec2{ AndroidInputBridge::State().x, AndroidInputBridge::State().y };
+#else
+	if (auto eventHandlerMousePos{ ST<EventsQueue>::Get()->RequestValueFromEventHandlers<Vec2>(Getters::MousePosViewport{}) })
+		return eventHandlerMousePos.value();
+	else
+		return ST<KeyboardMouseInput>::Get()->GetMousePos();
+#endif
 }
 
 
