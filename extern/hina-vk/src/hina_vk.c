@@ -8925,7 +8925,11 @@ bool hina_init(const hina_desc* desc)
   dev->surface.swapchain_desc = (hina_swapchain_desc){.present_mode = HINA_PRESENT_MODE_FIFO};
   dev->config.terminate_on_validation_error = (desc->flags & HINA_INIT_TERMINATE_ON_ERROR_BIT) != 0;
   dev->config.enable_validation = (desc->flags & HINA_INIT_VALIDATION_BIT) != 0;
+#if defined(__ANDROID__)
+  dev->config.enable_debug_names = false; // Android drivers crash in vkSetDebugUtilsObjectNameEXT
+#else
   dev->config.enable_debug_names = (desc->flags & HINA_DEBUG_NAMES_BIT) != 0 || dev->config.enable_validation;
+#endif
   dev->config.force_legacy_renderpass = (desc->flags & HINA_DEBUG_FORCE_LEGACY_RENDERPASS_BIT) != 0;
   dev->config.disable_timeline_semaphore = (desc->flags & HINA_DEBUG_NO_TIMELINE_SEMAPHORE_BIT) != 0;
   dev->config.force_single_queue = (desc->flags & HINA_DEBUG_FORCE_SINGLE_QUEUE_BIT) != 0;

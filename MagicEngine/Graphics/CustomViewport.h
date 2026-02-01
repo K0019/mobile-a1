@@ -103,6 +103,7 @@ private:
     gui::Vec2 viewportRenderSize; /**< The render size of the viewport. */
     editor::Gizmo m_gizmo;
     CameraPositioner_FirstPerson camera;
+    float m_editorFarPlane = 1000.0f;
 
     EventHandlerHandle eventHandle_viewportMousePos;
 

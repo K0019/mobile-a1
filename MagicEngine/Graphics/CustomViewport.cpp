@@ -88,7 +88,11 @@ void CustomViewport::DrawWindow()
 	// Camera movement (should be moved to an input update section)
 	UpdateCameraControl();
 	// Camera upload (should also be moved...)
-	ST<GraphicsMain>::Get()->SetViewCamera(GetViewportCamera());
+	Camera viewCam = GetViewportCamera();
+	if (aspect_ratio > 0.0f) {
+		viewCam.setProjMatrix(glm::perspective(glm::radians(45.0f), aspect_ratio, 0.1f, m_editorFarPlane));
+	}
+	ST<GraphicsMain>::Get()->SetViewCamera(viewCam);
 
 	const float playControlsHeight = 22.0f; // Height of play controls bar
 	DrawPlayControls();
@@ -389,10 +393,22 @@ void CustomViewport::DrawPlayControls() {
 
 	ImGui::PopStyleVar(3); // Frame padding, rounding, border
 
-	// Right-aligned "Features" dropdown
+	// Right-aligned render distance + features dropdown
 	{
 		const float dropdownWidth = 70.0f;
-		ImGui::SameLine(ImGui::GetWindowWidth() - dropdownWidth - 4.0f);
+		const float sliderWidth = 120.0f;
+		const float totalRightWidth = sliderWidth + 8.0f + dropdownWidth + 4.0f;
+		ImGui::SameLine(ImGui::GetWindowWidth() - totalRightWidth);
+
+		ImGui::PushItemWidth(sliderWidth);
+		ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0.15f, 0.15f, 0.15f, 1.0f));
+		ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.8f, 0.8f, 0.8f, 1.0f));
+		ImGui::DragFloat("##RenderDist", &m_editorFarPlane, 10.0f, 100.0f, 50000.0f, "Far: %.0f");
+		ImGui::PopStyleColor(2);
+		ImGui::PopItemWidth();
+
+		ImGui::SameLine();
+
 		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.2f, 0.2f, 0.2f, 1.0f));
 		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.3f, 0.3f, 0.3f, 1.0f));
 		ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.8f, 0.8f, 0.8f, 1.0f));

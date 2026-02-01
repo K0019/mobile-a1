@@ -221,12 +221,19 @@ struct WBOITTargets {
  */
 class CPUCuller {
 public:
+    enum class FrustumResult { Outside, Intersecting, FullyInside };
+
     void setFrustum(const glm::mat4& viewProj);
 
     /**
      * @brief Test if an AABB is visible
      */
     bool isVisible(const glm::vec3& aabbMin, const glm::vec3& aabbMax) const;
+
+    /**
+     * @brief Classify AABB against frustum (outside/intersecting/fully inside)
+     */
+    FrustumResult classifyAABB(const glm::vec3& aabbMin, const glm::vec3& aabbMax) const;
 
 private:
     glm::vec4 m_frustumPlanes[6];
@@ -444,6 +451,9 @@ public:
     void setFrustum(const glm::mat4& viewProj) { m_culler.setFrustum(viewProj); }
     bool isVisibleInFrustum(const glm::vec3& aabbMin, const glm::vec3& aabbMax) const {
         return m_culler.isVisible(aabbMin, aabbMax);
+    }
+    CPUCuller::FrustumResult classifyInFrustum(const glm::vec3& aabbMin, const glm::vec3& aabbMax) const {
+        return m_culler.classifyAABB(aabbMin, aabbMax);
     }
 
     // Material bind group layout (Set 1: constants UBO + textures) - for features that need to create compatible pipelines

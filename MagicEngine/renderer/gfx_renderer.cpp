@@ -67,6 +67,35 @@ bool CPUCuller::isVisible(const glm::vec3& aabbMin, const glm::vec3& aabbMax) co
     return true;
 }
 
+CPUCuller::FrustumResult CPUCuller::classifyAABB(const glm::vec3& aabbMin, const glm::vec3& aabbMax) const {
+    bool allInside = true;
+    for (int i = 0; i < 6; ++i) {
+        glm::vec3 normal(m_frustumPlanes[i]);
+        float d = m_frustumPlanes[i].w;
+
+        // Positive vertex (furthest along normal)
+        glm::vec3 pVertex;
+        pVertex.x = (normal.x >= 0) ? aabbMax.x : aabbMin.x;
+        pVertex.y = (normal.y >= 0) ? aabbMax.y : aabbMin.y;
+        pVertex.z = (normal.z >= 0) ? aabbMax.z : aabbMin.z;
+
+        if (glm::dot(normal, pVertex) + d < 0) {
+            return FrustumResult::Outside;
+        }
+
+        // Negative vertex (closest along normal)
+        glm::vec3 nVertex;
+        nVertex.x = (normal.x >= 0) ? aabbMin.x : aabbMax.x;
+        nVertex.y = (normal.y >= 0) ? aabbMin.y : aabbMax.y;
+        nVertex.z = (normal.z >= 0) ? aabbMin.z : aabbMax.z;
+
+        if (glm::dot(normal, nVertex) + d < 0) {
+            allInside = false;
+        }
+    }
+    return allInside ? FrustumResult::FullyInside : FrustumResult::Intersecting;
+}
+
 // ============================================================================
 // hina-vk logging callback
 // ============================================================================
@@ -103,7 +132,7 @@ bool GfxRenderer::initialize(void* nativeWindow, uint32_t width, uint32_t height
     // Initialize hina-vk
     hina_desc desc = hina_desc_default();
     desc.native_window = nativeWindow;
-    desc.flags = HINA_INIT_VALIDATION_BIT;
+    desc.flags = 0;
     desc.log_fn = hinaLogCallback;
     // Note: Window size is determined by native_window, not by desc fields
 

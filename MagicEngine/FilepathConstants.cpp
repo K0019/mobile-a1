@@ -39,24 +39,16 @@ const std::string Filepaths::soundFolder		= "sounds";
 const std::string Filepaths::soundGroupFolder	= "soundgroups";
 const std::string Filepaths::gameWeaponSave		= "Game/Weapons";
 
-// Editor use only
-const std::string Filepaths::compilerExe		= Filepaths::workingDir + "/Tools/Debug/AssetCompiler.exe";
-const std::string Filepaths::compileManifest	= Filepaths::workingDir + "/Tools/Debug/CompileResult.json";
+// Editor use only — AssetCompiler outputs to Tools/ directly (no Debug/Release subdir)
+const std::string Filepaths::compilerExe		= Filepaths::workingDir + "/Tools/AssetCompiler.exe";
+const std::string Filepaths::compileManifest	= Filepaths::workingDir + "/Tools/CompileResult.json";
 const std::string Filepaths::compiledAssets		= Filepaths::assets + "/CompiledAssets";
 const std::string Filepaths::compiledAssetsWindows = Filepaths::compiledAssets + "/windows";
 const std::string Filepaths::compiledAssetsAndroid = Filepaths::compiledAssets + "/android";
 
 std::filesystem::path Filepaths::GetAssetCompilerPath()
 {
-#ifdef _DEBUG
-	return std::filesystem::path(workingDir) / "Tools" / "Debug" / "AssetCompiler.exe";
-#else
-	// Try Release first, fall back to Debug
-	std::filesystem::path releasePath = std::filesystem::path(workingDir) / "Tools" / "Release" / "AssetCompiler.exe";
-	if (std::filesystem::exists(releasePath))
-		return releasePath;
-	return std::filesystem::path(workingDir) / "Tools" / "Debug" / "AssetCompiler.exe";
-#endif
+	return std::filesystem::path(workingDir) / "Tools" / "AssetCompiler.exe";
 }
 
 const std::string& Filepaths::GetCompiledAssetsPath()
