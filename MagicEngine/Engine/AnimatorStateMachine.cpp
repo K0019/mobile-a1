@@ -308,6 +308,55 @@ namespace sm {
 		return CastSM(sm)->GetBlackboardVal<bool>("inputThrow");
 	}
 
+	ToHitstopTransition::ToHitstopTransition() {}
+
+	bool ToHitstopTransition::Decide(sm::StateMachine* sm)
+	{
+		if (!static_cast<sm::AnimStateMachine*>(sm)->GetBlackboardVal<bool>("inputHitstop"))
+			return false;
+
+		sm->SetDontDeletePrevState();
+		SetNextState = [prevState = sm->GetState()](State** outState) {
+			*outState = new HitstopState{ prevState };
+		};
+		static_cast<sm::AnimStateMachine*>(sm)->blackboard["hitstopEndTime"] = GameTime::TimeSinceStart() + 0.15f; // Hitstop length
+		static_cast<sm::AnimStateMachine*>(sm)->GetEntity()->GetComp<AnimationComponent>()->isPlaying = false;
+		return true;
+	}
+
+	ToPrevStateTransition::ToPrevStateTransition(State* inPrevState)
+		: prevState{ inPrevState }
+	{
+		SetNextState = [prevState = &prevState](State** outState) {
+			*outState = *prevState;
+			*prevState = nullptr;
+		};
+	}
+
+	ToPrevStateTransition::~ToPrevStateTransition()
+	{
+		delete prevState;
+	}
+
+	bool ToPrevStateTransition::Decide(sm::StateMachine* sm)
+	{
+		if (GameTime::TimeSinceStart() >= static_cast<sm::AnimStateMachine*>(sm)->GetBlackboardVal<float>("hitstopEndTime"))
+		{
+			static_cast<sm::AnimStateMachine*>(sm)->blackboard["inputHitstop"] = false;
+			static_cast<sm::AnimStateMachine*>(sm)->GetEntity()->GetComp<AnimationComponent>()->isPlaying = true;
+			sm->SetDontStartNextState();
+			return true;
+		}
+		return false;
+	}
+
+	TransitionBase* ToPrevStateTransition::Clone()
+	{
+		// Hopefully we won't need to clone an entity while it's hitstopped
+		CONSOLE_LOG(LEVEL_ERROR) << "ToPrevStateTransition::Clone() - Unimplemented";
+		return nullptr;
+	}
+
 	bool ToSkillAttackTransition::Decide(sm::StateMachine* sm)
 	{
 		if (ToAttackTransition::Decide(sm))
@@ -403,7 +452,7 @@ namespace sm {
 
 	AttackState::AttackState() : sm::State(
 		{ new AttackActivity{ 2, ANIM_INPUT_TYPE::LIGHT_ATTACK } },
-		{ new ToHurtTransition{}, new NoOpBeforeAttackDamageTransition{}, new ToAttackTransition<AttackState>{ ANIM_INPUT_TYPE::LIGHT_ATTACK }, new NoOpWhileAnimatingTransition{}, new ToIdleTransition(), new ToWalkTransition() }
+		{ new ToHitstopTransition{}, new ToHurtTransition{}, new NoOpBeforeAttackDamageTransition{}, new ToAttackTransition<AttackState>{ ANIM_INPUT_TYPE::LIGHT_ATTACK }, new NoOpWhileAnimatingTransition{}, new ToIdleTransition(), new ToWalkTransition() }
 	) {
 	}
 
@@ -429,6 +478,12 @@ namespace sm {
 		{ new ThrowActivity() },
 		{ new NoOpWhileAnimatingTransition{}, new ToIdleTransition(), new ToWalkTransition() }
 	) {
+	}
+
+	HitstopState::HitstopState(State* prevState) : sm::State{
+		{ },
+		{ new ToPrevStateTransition{ prevState } }
+	} {
 	}
 
 	DelusionIdleState::DelusionIdleState() : sm::State(
