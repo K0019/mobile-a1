@@ -9,8 +9,10 @@ public:
 
 private:
     static float burstDelay;
+    static float attackDistance;  // Distance check before starting burst sequence
     static int burstCount;
 
     float currentBurstDelay;
     int currentBurstCount;
+    bool hasStartedBurst;  // Track if burst sequence has begun (distance check only applies before this)
 };
