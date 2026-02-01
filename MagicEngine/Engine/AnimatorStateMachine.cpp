@@ -15,6 +15,7 @@ like Idle, Walk, Run, and Jump.
 #include "Graphics/AnimationComponent.h"
 #include "Engine/Input.h"
 #include "Game/Character.h"
+#include "Engine/BehaviorTree/BehaviourTree.h"
 #include "Game/Delusion.h"
 #include "Managers/AudioManager.h"
 
@@ -312,15 +313,19 @@ namespace sm {
 
 	bool ToHitstopTransition::Decide(sm::StateMachine* sm)
 	{
-		if (!static_cast<sm::AnimStateMachine*>(sm)->GetBlackboardVal<bool>("inputHitstop"))
+		sm::AnimStateMachine* animSM{ static_cast<sm::AnimStateMachine*>(sm) };
+		if (!animSM->GetBlackboardVal<bool>("inputHitstop"))
 			return false;
 
 		sm->SetDontDeletePrevState();
 		SetNextState = [prevState = sm->GetState()](State** outState) {
 			*outState = new HitstopState{ prevState };
 		};
-		static_cast<sm::AnimStateMachine*>(sm)->blackboard["hitstopEndTime"] = GameTime::TimeSinceStart() + 0.15f; // Hitstop length
-		static_cast<sm::AnimStateMachine*>(sm)->GetEntity()->GetComp<AnimationComponent>()->isPlaying = false;
+		animSM->blackboard["hitstopEndTime"] = GameTime::TimeSinceStart() + 0.50f; // Hitstop length
+		animSM->GetEntity()->GetComp<AnimationComponent>()->isPlaying = false;
+		// If we are an enemy, stop the behavior tree from running until hitstop ends
+		if (auto behaviorComp{ animSM->GetEntity()->GetComp<BehaviorTree>() })
+			ecs::SetCompActive(behaviorComp, false);
 		return true;
 	}
 
@@ -342,9 +347,12 @@ namespace sm {
 	{
 		if (GameTime::TimeSinceStart() >= static_cast<sm::AnimStateMachine*>(sm)->GetBlackboardVal<float>("hitstopEndTime"))
 		{
-			static_cast<sm::AnimStateMachine*>(sm)->blackboard["inputHitstop"] = false;
-			static_cast<sm::AnimStateMachine*>(sm)->GetEntity()->GetComp<AnimationComponent>()->isPlaying = true;
+			sm::AnimStateMachine* animSM{ static_cast<sm::AnimStateMachine*>(sm) };
+			animSM->blackboard["inputHitstop"] = false;
+			animSM->GetEntity()->GetComp<AnimationComponent>()->isPlaying = true;
 			sm->SetDontStartNextState();
+			if (auto behaviorComp{ animSM->GetEntity()->GetComp<BehaviorTree>() })
+				ecs::SetCompActive(behaviorComp, true);
 			return true;
 		}
 		return false;
@@ -440,13 +448,13 @@ namespace sm {
 
 	IdleState::IdleState() : sm::State(
 		{ new IdleActivity() },
-		{ new ToWalkTransition(), new ToAttackTransition<AttackState>{ ANIM_INPUT_TYPE::LIGHT_ATTACK }, new ToHurtTransition(), new ToDodgeTransition(), new ToParryTransition(), new ToThrowTransition() }
+		{ new ToHitstopTransition{}, new ToWalkTransition(), new ToAttackTransition<AttackState>{ ANIM_INPUT_TYPE::LIGHT_ATTACK }, new ToHurtTransition(), new ToDodgeTransition(), new ToParryTransition(), new ToThrowTransition() }
 	) {
 	}
 
 	WalkState::WalkState() : sm::State(
 		{ new WalkActivity() },
-		{ new ToIdleTransition(), new ToAttackTransition<AttackState>{ ANIM_INPUT_TYPE::LIGHT_ATTACK }, new ToHurtTransition(), new ToDodgeTransition(), new ToParryTransition(), new ToThrowTransition() }
+		{ new ToHitstopTransition{}, new ToIdleTransition(), new ToAttackTransition<AttackState>{ ANIM_INPUT_TYPE::LIGHT_ATTACK }, new ToHurtTransition(), new ToDodgeTransition(), new ToParryTransition(), new ToThrowTransition() }
 	) {
 	}
 
@@ -458,25 +466,25 @@ namespace sm {
 
 	HurtState::HurtState() : sm::State(
 		{ new HurtActivity() },
-		{ new NoOpWhileAnimatingTransition{}, new ToAttackTransition<AttackState>{ ANIM_INPUT_TYPE::LIGHT_ATTACK }, new ToIdleTransition(), new ToWalkTransition{} } // Recover to Idle after being hurt
+		{ new ToHitstopTransition{}, new NoOpWhileAnimatingTransition{}, new ToAttackTransition<AttackState>{ ANIM_INPUT_TYPE::LIGHT_ATTACK }, new ToIdleTransition(), new ToWalkTransition{} } // Recover to Idle after being hurt
 	) {
 	}
 
 	DodgeState::DodgeState() : sm::State(
 		{ new DodgeActivity() },
-		{ new NoOpWhileAnimatingTransition{}, new ToIdleTransition(), new ToWalkTransition() }
+		{ new ToHitstopTransition{}, new NoOpWhileAnimatingTransition{}, new ToIdleTransition(), new ToWalkTransition() }
 	) {
 	}
 
 	ParryState::ParryState() : sm::State(
 		{ new ParryActivity() },
-		{ new NoOpWhileAnimatingTransition{}, new ToIdleTransition(), new ToAttackTransition<AttackState>{ ANIM_INPUT_TYPE::LIGHT_ATTACK } } // Can counter-attack from parry
+		{ new ToHitstopTransition{}, new NoOpWhileAnimatingTransition{}, new ToIdleTransition(), new ToAttackTransition<AttackState>{ ANIM_INPUT_TYPE::LIGHT_ATTACK } } // Can counter-attack from parry
 	) {
 	}
 
 	ThrowState::ThrowState() : sm::State(
 		{ new ThrowActivity() },
-		{ new NoOpWhileAnimatingTransition{}, new ToIdleTransition(), new ToWalkTransition() }
+		{ new ToHitstopTransition{}, new NoOpWhileAnimatingTransition{}, new ToIdleTransition(), new ToWalkTransition() }
 	) {
 	}
 
