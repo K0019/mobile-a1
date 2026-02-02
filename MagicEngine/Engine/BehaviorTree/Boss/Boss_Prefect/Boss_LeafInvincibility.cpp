@@ -25,10 +25,13 @@ NODE_STATUS L_Boss_Prefect_Invincibility::OnUpdate([[maybe_unused]] ecs::EntityH
     if (auto healthComp{ entity->GetComp<HealthComponent>() })
     {
         auto enemyComp{ entity->GetComp<EnemyComponent>() };
-        Vec2 dir = Boss_Prefect_Util::GetMovementDirection(entity->GetTransform().GetWorldPosition(), enemyComp->playerReference->GetTransform().GetWorldPosition());
+        /*Vec2 dir = Boss_Prefect_Util::GetMovementDirection(entity->GetTransform().GetWorldPosition(), enemyComp->playerReference->GetTransform().GetWorldPosition());
         Vec3 movementDir3D{ dir.x, 0.0f, dir.y };
-		Boss_Prefect_Util::MoveInDirection(entity, movementDir3D);
-        Boss_Prefect_Util::RotateTowards(entity, dir);
+		Boss_Prefect_Util::MoveInDirection(entity, movementDir3D);*/
+        
+        // Use direct direction to player for rotation so boss faces the player
+        Vec2 dirToPlayer = Boss_Prefect_Util::GetMovementTowards(entity->GetTransform().GetWorldPosition(), enemyComp->playerReference->GetTransform().GetWorldPosition());
+        Boss_Prefect_Util::RotateTowards(entity, dirToPlayer);
         auto animComp = entity->GetComp<AnimationComponent>();
         if (animComp)
         {

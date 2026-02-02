@@ -429,6 +429,9 @@ void CharacterMovementComponentSystem::UpdateCharacterMovementComponent(Characte
 		}
 	}
 
+	// Update animation FSM
+	animatorComp->GetStateMachine()->Update(characterEntity);
+
 	// Perform stun check
 	ecs::CompHandle<physics::PhysicsComp> physicsComp = characterEntity->GetComp<physics::PhysicsComp>();
 	Vec3 currVel{};
@@ -542,9 +545,6 @@ void CharacterMovementComponentSystem::UpdateCharacterMovementComponent(Characte
 		comp.currParryTime -= GameTime::Dt();
 	if (comp.currParryCoolDown > 0.f)
 		comp.currParryCoolDown -= GameTime::Dt();
-
-	// Update animation FSM
-	animatorComp->GetStateMachine()->Update(characterEntity);
 
 	// Check whether to apply an attack this frame
 	int attackMoveIndex{ animatorComp->GetStateMachine()->GetBlackboardVal<int>("outputApplyHitMove") };

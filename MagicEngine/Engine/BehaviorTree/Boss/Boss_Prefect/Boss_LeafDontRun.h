@@ -7,11 +7,11 @@ public:
     void OnInitialize() override;
     NODE_STATUS OnUpdate(ecs::EntityHandle entity) override;
 private:
-    static float attackDistance;
-    static float attackCooldown;
-    static float dodgeDistance;
-    static int attackCount;
+    static float attackDistance;      // Distance to start attack
+    static float followThroughTime;   // Delay after attack completes
 
-    float currentAttackCooldown;
-    int currentAttackCount;
+    float currentFollowThroughTime;
+    bool hasStartedAttack;      // Has the attack sequence begun (animation played)
+    bool hasSpawnedProjectile;  // Has the projectile been spawned
+    bool isFollowingThrough;    // Is in post-attack delay
 };
