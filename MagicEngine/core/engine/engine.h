@@ -180,6 +180,7 @@ bool Engine<AppType>::ExecuteFrame()
           m_application.Update(context, m_currentFrameData);
         PROFILER_ZONE_END()
       }
+      m_assetSystem.pollAsyncUploads();
       {
         PROFILER_ZONE("Render", PROFILER_COLOR_CMD_DRAW);
           m_renderer.render(m_currentFrameData);
@@ -225,6 +226,7 @@ void Engine<AppType>::InitializeCoreSystems()
   // On desktop, initialize() is called in OnSurfaceCreated()
   // On Android, initialize() is called in handleSurfaceCreated()
   context.renderer = &m_renderer;
+  m_renderer.setResourceManager(&m_assetSystem);
   m_assetSystem.postRendererInitialize();
   LOG_INFO("Core systems initialized (headless)");
 }
@@ -232,8 +234,10 @@ void Engine<AppType>::InitializeCoreSystems()
 template <App AppType>
 void Engine<AppType>::CleanupCoreSystems()
 {
-  m_renderer.shutdown();
+  // Stop upload thread first — it references the renderer and mesh storage
   m_assetSystem.shutdown();
+  m_renderer.setResourceManager(nullptr);
+  m_renderer.shutdown();
   context.renderer = nullptr;
   context.resourceMngr = nullptr;
   LOG_INFO("Core systems cleaned up");
@@ -260,6 +264,8 @@ void Engine<AppType>::OnSurfaceCreated()
       LOG_ERROR("Failed to initialize GfxRenderer");
       return;
     }
+    // Start async upload thread now that hina-vk is initialized
+    m_assetSystem.startUploadThread();
   } else {
     // Recreate surface after lifecycle event (Android)
     m_renderer.handleSurfaceCreated(nativeWindow);

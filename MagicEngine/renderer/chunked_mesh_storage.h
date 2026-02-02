@@ -21,6 +21,7 @@
 #include <vector>
 #include <cstdint>
 #include <memory>
+#include <mutex>
 
 // Forward declarations
 class RenderGraph;
@@ -439,6 +440,10 @@ private:
     size_t m_indexChunkSize = DEFAULT_INDEX_CHUNK_SIZE;
 
     bool m_initialized = false;
+
+    // Thread safety for async mesh uploads
+    mutable std::mutex m_allocationMutex;  // Protects chunks, entries, freeList
+    std::mutex m_pendingCopiesMutex;       // Protects m_pendingCopies
 
     // ========================================================================
     // Upload Batching

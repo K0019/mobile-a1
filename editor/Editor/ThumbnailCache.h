@@ -7,6 +7,7 @@
 #include <optional>
 #include <memory>
 #include "renderer/gfx_material_system.h"
+#include "resource/resource_types.h"
 #include "Utilities/AsyncProcessRunner.h"
 
 // Forward declarations
@@ -76,7 +77,7 @@ namespace editor
         ThumbnailCache& operator=(const ThumbnailCache&) = delete;
 
         struct CacheEntry {
-            gfx::TextureHandle textureHandle;
+            ::TextureHandle textureHandle;
             uint64_t imguiId = 0;
             bool ready = false;
             bool loadAttempted = false;  // Avoid repeated failed loads

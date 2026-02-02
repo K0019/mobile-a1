@@ -5,12 +5,11 @@
 #include <limits>
 #include <glm/gtc/epsilon.hpp>
 #include "resource/resource_manager.h"
-#include "resource/resource_manager.h"
 #include "resource/resource_types.h"
 
 namespace
 {
-  constexpr uint32_t kInvalidTexture = std::numeric_limits<uint32_t>::max();
+  constexpr uint64_t kInvalidTexture = 0;
   constexpr float kTwoPi = 6.28318530718f;
 
   uint32_t decodeUtf8(std::string_view text, size_t& index)
@@ -63,7 +62,7 @@ namespace
     return glm::all(glm::epsilonEqual(a, b, kEpsilon));
   }
 
-  ui::PrimitiveDrawCommand& AcquireOrMergeCommand(ui::PrimitiveDrawList& list, uint32_t textureId,
+  ui::PrimitiveDrawCommand& AcquireOrMergeCommand(ui::PrimitiveDrawList& list, uint64_t textureId,
                                                   uint32_t samplerIndex, const vec4& clipRect, uint16_t layer,
                                                   uint32_t indexOffset, int32_t vertexOffset)
   {
@@ -229,7 +228,7 @@ namespace ui
     if (!font.isValid()) return false;
     const auto* fontHot = resources.getFont(font);
     if (!fontHot) return false;
-    list.setSolidFillFallback(fontHot->uiTextureId, fontHot->cpuData.whitePixelUV);
+    list.setSolidFillFallback(fontHot->atlasTexture.getOpaqueValue(), fontHot->cpuData.whitePixelUV);
     return true;
   }
 
@@ -386,7 +385,7 @@ namespace ui
                 SamplerMode samplerMode, uint16_t layer)
   {
     if (!texture.isValid()) return false;
-    const uint32_t texId = resources.getTextureUIId(texture);
+    const uint64_t texId = texture.getOpaqueValue();
     const int32_t baseVertex = static_cast<int32_t>(list.vertices.size());
     const uint32_t baseIndex = static_cast<uint32_t>(list.indices.size());
     const uint32_t samplerIndex = SamplerModeToIndex(samplerMode);
@@ -409,11 +408,11 @@ namespace ui
     return true;
   }
 
-  bool AddImage([[maybe_unused]] Resource::ResourceManager& resources, PrimitiveDrawList& list, uint32_t textureId, const vec2& min,
+  bool AddImage([[maybe_unused]] Resource::ResourceManager& resources, PrimitiveDrawList& list, uint64_t textureId, const vec2& min,
                 const vec2& max, const vec2& uvMin, const vec2& uvMax, uint32_t color, const vec4& clipRect,
                 SamplerMode samplerMode, uint16_t layer)
   {
-    const uint32_t texId = textureId;
+    const uint64_t texId = textureId;
     const int32_t baseVertex = static_cast<int32_t>(list.vertices.size());
     const uint32_t baseIndex = static_cast<uint32_t>(list.indices.size());
     const uint32_t samplerIndex = SamplerModeToIndex(samplerMode);
@@ -464,7 +463,7 @@ namespace ui
       return true;
     });
     if (!emittedGlyph) return false;
-    PrimitiveDrawCommand& cmd = AcquireOrMergeCommand(list, fontHot->uiTextureId,
+    PrimitiveDrawCommand& cmd = AcquireOrMergeCommand(list, fontHot->atlasTexture.getOpaqueValue(),
                                                       SamplerModeToIndex(SamplerMode::Font), layout.clipRect, layer,
                                                       baseIndex, baseVertex);
     cmd.indexCount = static_cast<uint32_t>(list.indices.size()) - cmd.indexOffset;

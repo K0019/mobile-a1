@@ -302,6 +302,27 @@ TextureHandle GfxMaterialSystem::createTexture(const TextureCreateInfo& info) {
     return handle;
 }
 
+TextureHandle GfxMaterialSystem::registerPreCreatedTexture(Texture tex, TextureView view, uint32_t w, uint32_t h, hina_format fmt, bool sRGB) {
+    if (!hina_texture_is_valid(tex)) {
+        LOG_ERROR("[GfxMaterialSystem] registerPreCreatedTexture: invalid texture");
+        return TextureHandle{};
+    }
+
+    TextureHandle handle = allocateTextureEntry();
+    if (!handle.isValid()) return handle;
+
+    TextureEntry& entry = m_textures[handle.index];
+    entry.texture = tex;
+    entry.view = view;
+    entry.width = w;
+    entry.height = h;
+    entry.format = fmt;
+    entry.isSRGB = sRGB;
+
+    LOG_DEBUG("[GfxMaterialSystem] Registered pre-created texture {}x{}", w, h);
+    return handle;
+}
+
 TextureHandle GfxMaterialSystem::loadTexture(const std::string& path, bool sRGB) {
 #ifdef GFX_USE_STB_IMAGE
     int width, height, channels;

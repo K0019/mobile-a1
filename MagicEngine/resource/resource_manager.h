@@ -1,10 +1,14 @@
 #pragma once
 #include <array>
+#include <atomic>
+#include <condition_variable>
 #include <filesystem>
+#include <functional>
 #include <future>
 #include <mutex>
 #include <optional>
 #include <shared_mutex>
+#include <thread>
 #include <unordered_map>
 #include <vector>
 #include "animation_clip.h"
@@ -29,6 +33,8 @@ namespace Resource
       ~ResourceManager();
 
       void shutdown();
+      void startUploadThread();
+      void pollAsyncUploads();
       // Single asset creation
       MeshHandle createMesh(const ProcessedMesh& mesh);
 
@@ -63,8 +69,6 @@ namespace Resource
 
     const ResourceTraits<MeshAsset>::ColdData* getMeshMetadata(MeshHandle handle) const;
 
-    uint32_t getTextureUIId(TextureHandle handle) const;
-
     const ResourceTraits<TextureAsset>::HotData* getTextureHotData(TextureHandle handle) const;
 
     const Material* getMaterialCPU(MaterialHandle handle) const;
@@ -77,9 +81,14 @@ namespace Resource
 
     const FontGlyph* getFontGlyph(FontHandle handle, uint32_t codepoint) const;
 
-    uint32_t getFontTextureUIId(FontHandle handle) const;
-
     FontHandle getDefaultUIFont() const;
+
+    // Load a texture from a file path (stb_image) and return an engine handle.
+    // The GPU upload is async — resolveTextureView returns default white until ready.
+    TextureHandle loadTextureFromFile(const std::string& path, bool sRGB = true);
+
+    // Transparent texture resolution — consumers use these instead of checking upload state
+    gfx::TextureView resolveTextureView(TextureHandle handle) const;
 
     void setDefaultUIFont(FontHandle handle);
 
@@ -142,5 +151,55 @@ namespace Resource
     std::vector<uint32_t> m_freeClipSlots;    // Free slot indices for reuse
     std::vector<Resource::Skeleton> m_skeletons;
     std::vector<Resource::MorphSet> m_morphSets;
+
+    // ========================================================================
+    // Upload thread — single background thread for all async GPU uploads
+    // ========================================================================
+    void uploadThreadFunc();
+
+    // Upload job queue (type-erased via std::function, executed on upload thread)
+    using UploadJob = std::function<void(void* /*hina_context**/)>;
+    std::mutex m_uploadQueueMutex;
+    std::condition_variable m_uploadQueueCV;
+    std::vector<UploadJob> m_uploadQueue;
+    std::thread m_uploadThread;
+    std::atomic<bool> m_uploadThreadStop{false};
+    std::atomic<bool> m_uploadThreadRunning{false};
+
+    // Async result tracking — futures fulfilled by upload thread via promises
+    struct MeshUploadResult {
+        uint16_t gfxMeshIndex = 0;
+        uint16_t gfxMeshGeneration = 0;
+        uint32_t vertexCount = 0;
+        uint32_t indexCount = 0;
+        uint32_t totalBytes = 0;
+        bool hasSkinning = false;
+        bool valid = false;
+    };
+    struct PendingMeshUpload {
+        std::future<MeshUploadResult> future;
+        MeshHandle handle;
+        std::string meshName;
+    };
+    std::mutex m_pendingUploadsMutex;
+    std::vector<PendingMeshUpload> m_pendingMeshUploads;
+
+    struct TextureUploadResult {
+        uint32_t textureId = 0;
+        uint32_t viewId = 0;
+        uint32_t width = 0;
+        uint32_t height = 0;
+        uint32_t hinaFormat = 0;
+        bool isSRGB = false;
+        bool valid = false;
+    };
+    struct PendingTextureUpload {
+        std::future<TextureUploadResult> future;
+        TextureHandle handle;
+        std::string textureName;
+        std::string cacheKey;
+    };
+    std::vector<PendingTextureUpload> m_pendingTextureUploads;
+
   };
 } // namespace AssetLoading
