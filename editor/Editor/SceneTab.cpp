@@ -24,33 +24,20 @@ namespace editor {
 
     void SceneTab::Render(const gui::TextBoxWithFilter& filter)
     {
-        const float THUMBNAIL_SIZE = AssetBrowser::THUMBNAIL_SIZE;
-        const float panelWidth = gui::GetAvailableContentRegion().x;
-        gui::GridHelper grid{ panelWidth, THUMBNAIL_SIZE + 10 };
-
-        gui::SetStyleVar itemSpacing{ gui::FLAG_STYLE_VAR::ITEM_SPACING, gui::Vec2{ 5, 5 } };
-        gui::SetStyleVar framePadding{ gui::FLAG_STYLE_VAR::FRAME_PADDING, gui::Vec2{ 2, 2 } };
+        gui::NewGridHelper grid{ AssetBrowser::THUMBNAIL_SIZE };
 
         int count{};
-        for (const auto& entry : VFS::ListDirectory(Filepaths::scenesSave))
+        for (const auto& filename : VFS::ListDirectory(Filepaths::scenesSave))
         {
-            if (!filter.PassFilter(entry))
+            if (!filter.PassFilter(filename))
                 continue;
-            if (VFS::GetExtension(entry) != ".scene")
+            if (VFS::GetExtension(filename) != ".scene")
                 continue;
 
-            {
-                gui::SetID id{ count++ };
-                gui::Group group;
+            gui::GridItem entry{ grid.Item(filename) };
 
-                if (gui::Button{ "##scene", gui::Vec2{ THUMBNAIL_SIZE, THUMBNAIL_SIZE } })
-                    ST<SceneManager>::Get()->LoadScene(VFS::JoinPath(Filepaths::scenesSave, entry));
-
-                // Name label
-                gui::ThumbnailLabel(entry, THUMBNAIL_SIZE);
-            }
-
-            grid.NextItem();
+            if (gui::Button{ "##scene", gui::Vec2{ AssetBrowser::THUMBNAIL_SIZE, AssetBrowser::THUMBNAIL_SIZE } })
+                ST<SceneManager>::Get()->LoadScene(VFS::JoinPath(Filepaths::scenesSave, filename));
         }
     }
 

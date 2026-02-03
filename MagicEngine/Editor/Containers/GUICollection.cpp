@@ -790,6 +790,14 @@ namespace gui {
 #endif
 	}
 
+	bool Menu::Item(const char* label, bool* p_selected)
+	{
+		return MenuItem(label, p_selected);
+	}
+	bool ItemContextMenu::Item(const char* label, bool* p_selected)
+	{
+		return MenuItem(label, p_selected);
+	}
 	bool MenuItem([[maybe_unused]] const char* label, [[maybe_unused]] bool* p_selected)
 	{
 #ifdef IMGUI_ENABLED

@@ -1488,6 +1488,9 @@ namespace gui {
 	public:
 		//! ImGui::BeginMenu()
 		Menu(const char* label);
+
+		//! ImGui::MenuItem()
+		bool Item(const char* label, bool* p_selected = nullptr);
 	};
 
 	/*****************************************************************//*!
@@ -1502,6 +1505,9 @@ namespace gui {
 	public:
 		//! ImGui::BeginPopupContextItem()
 		ItemContextMenu(const char* label, FLAG_POPUP flags = FLAG_POPUP::MOUSE_RIGHT);
+
+		//! ImGui::MenuItem()
+		bool Item(const char* label, bool* p_selected = nullptr);
 	};
 
 	//! ImGui::MenuItem()

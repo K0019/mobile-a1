@@ -215,10 +215,7 @@ namespace editor {
         gui::Separator();
 
         // Grid list
-        constexpr float THUMBNAIL_SIZE = AssetBrowser::THUMBNAIL_SIZE;
-        gui::GridHelper grid{ gui::GetAvailableContentRegion().x, THUMBNAIL_SIZE };
-        gui::SetStyleVar itemSpacing{ gui::FLAG_STYLE_VAR::ITEM_SPACING, gui::Vec2{ 5, 5 } };
-        gui::SetStyleVar framePadding{ gui::FLAG_STYLE_VAR::FRAME_PADDING, gui::Vec2{ 2, 2 } };
+        gui::NewGridHelper grid{ AssetBrowser::THUMBNAIL_SIZE };
 
         int count{};
         for (const auto& filename : VFS::ListDirectory(Filepaths::scriptsSave))
@@ -228,22 +225,14 @@ namespace editor {
             if (!filter.PassFilter(filename))
                 continue;
 
-            {
-                gui::SetID id{ count++ };
-                gui::Group group{};
+            gui::GridItem item{ grid.Item(filename) };
 
-                if (gui::Button button{ ICON_FA_CODE"##script", gui::Vec2{ THUMBNAIL_SIZE, THUMBNAIL_SIZE } })
+            if (gui::Button button{ ICON_FA_CODE"##script", gui::Vec2{ AssetBrowser::THUMBNAIL_SIZE, AssetBrowser::THUMBNAIL_SIZE } })
 #ifdef GLFW
-                    ShellExecute(0, 0, VFS::ConvertVirtualToPhysical(VFS::JoinPath(Filepaths::scriptsSave, filename)).c_str(), 0, 0, SW_SHOW);
+                ShellExecute(0, 0, VFS::ConvertVirtualToPhysical(VFS::JoinPath(Filepaths::scriptsSave, filename)).c_str(), 0, 0, SW_SHOW);
 #else
-                    (void)0;
+                (void)0;
 #endif
-
-                // Name label
-                gui::ThumbnailLabel(VFS::GetStem(filename), THUMBNAIL_SIZE);
-            }
-
-            grid.NextItem();
         }
     }
 
