@@ -25,6 +25,7 @@ private:
 	uint64_t sceneFeatureHandle_ = 0;
 	uint64_t gridFeatureHandle_ = 0;
 	uint64_t ui2dFeatureHandle_ = 0;
+	uint64_t im3dFeatureHandle_ = 0;
 	uint64_t imguiFeatureHandle_ = 0;  // ImGui render feature handle
 
 	// Background asset compilation state

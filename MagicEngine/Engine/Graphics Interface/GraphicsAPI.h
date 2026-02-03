@@ -124,8 +124,18 @@ private:
     TextureHandle defaultSkyboxHandle;
 
 public:
+    // Renderer access
+    GfxRenderer* GetRenderer() const { return context.renderer; }
+
     // Skybox texture access
     TextureHandle GetDefaultSkyboxHandle() const { return defaultSkyboxHandle; }
+
+    // Scene view feature mask (toggled via viewport UI)
+    FeatureMask& GetSceneViewFeatureMask() { return sceneViewFeatureMask; }
+    const FeatureMask& GetSceneViewFeatureMask() const { return sceneViewFeatureMask; }
+
+private:
+    FeatureMask sceneViewFeatureMask = ~FeatureMask(0); // all features on by default
 
 };
 

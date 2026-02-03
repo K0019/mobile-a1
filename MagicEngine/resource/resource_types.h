@@ -159,18 +159,12 @@ struct ResourceTraits<TextureAsset>
 {
   struct HotData
   {
-    uint32_t uiTextureId{0}; // UI/ImGui texture ID for bind group lookup
-
     // GfxRenderer integration
     bool hasGfxTexture = false;
     uint32_t gfxTextureIndex = 0;
     uint32_t gfxTextureGeneration = 0;
 
     HotData() = default;
-
-    explicit HotData(uint32_t index) : uiTextureId(index)
-    {
-    }
   };
 
   struct ColdData
@@ -207,7 +201,6 @@ struct ResourceTraits<FontAsset>
   struct HotData
   {
     TextureHandle atlasTexture;
-    uint32_t uiTextureId = 0;
     float ascent = 0.0f;
     float descent = 0.0f;
     float lineGap = 0.0f;

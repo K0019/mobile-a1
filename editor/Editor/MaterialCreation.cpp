@@ -1,8 +1,8 @@
 #include "Editor/MaterialCreation.h"
-#include "Engine/Resources/MaterialSerialization.h"
-#include "Engine/Resources/ResourceManager.h"
-#include "Engine/Resources/Types/ResourceTypesGraphics.h"
-#include "Engine/Resources/ResourceImporter.h"
+#include "Assets/MaterialSerialization.h"
+#include "Assets/AssetManager.h"
+#include "Assets/Types/AssetTypes.h"
+#include "Assets/AssetImporter.h"
 #include "Engine/Events/EventsQueue.h"
 #include "Engine/Events/EventsTypeEditor.h"
 #include "resource/resource_types.h"
@@ -82,7 +82,7 @@ namespace editor {
 	void MaterialCreationWindow::AttemptCreateMaterial()
 	{
 		bool valid = false;
-		auto texturesGetter{ MagicResourceManager::GetContainer<ResourceTexture>() };
+		auto texturesGetter{ AssetManager::GetContainer<ResourceTexture>() };
 		for (size_t resourceHash : textures)
 		{
 			if (resourceHash == 0) continue;
@@ -132,7 +132,7 @@ namespace editor {
 			ST<EventsQueue>::Get()->AddEventForNextFrame(Events::PopupOpenRequest{ "Success!", "Material created at: " + assetPath.string() });
 			CONSOLE_LOG(LEVEL_INFO) << "Material asset created: " << assetPath;
 
-			ResourceImporter::Import(assetPath.string());
+			AssetImporter::Import(assetPath.string());
 		}
 		else
 		{
@@ -148,7 +148,7 @@ namespace editor {
 		WindowBase{ "Edit Material", gui::Vec2{ 800, 400 } }
 	{
 		// Load the information of the material to be edited
-		auto& fpManager = ST<MagicResourceManager>::Get()->INTERNAL_GetFilepathsManager();
+		auto& fpManager = ST<AssetManager>::Get()->INTERNAL_GetFilepathsManager();
 		auto materialEntry = fpManager.GetFileEntry(materialHash);
 
 		assert(materialEntry);
@@ -263,7 +263,7 @@ namespace editor {
 	void MaterialEditWindow::AttemptCreateMaterial()
 	{
 		bool valid = false;
-		auto texturesGetter{ MagicResourceManager::GetContainer<ResourceTexture>() };
+		auto texturesGetter{ AssetManager::GetContainer<ResourceTexture>() };
 		for (size_t resourceHash : textures)
 		{
 			if (resourceHash == 0) continue;
@@ -313,7 +313,7 @@ namespace editor {
 			ST<EventsQueue>::Get()->AddEventForNextFrame(Events::PopupOpenRequest{ "Success!", "Material created at: " + assetPath.string() });
 			CONSOLE_LOG(LEVEL_INFO) << "Material asset created: " << assetPath;
 
-			ResourceImporter::Import(assetPath.string());
+			AssetImporter::Import(assetPath.string());
 		}
 		else
 		{

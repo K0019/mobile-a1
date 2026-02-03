@@ -2,6 +2,7 @@
 #include "gfx_renderer.h"
 #include <glm/gtc/type_ptr.hpp>
 #include <im3d.h>
+#include <cstring>
 
 namespace Im3dHelper
 {
@@ -24,69 +25,46 @@ namespace Im3dHelper
     const uint32_t count = Im3d::GetDrawListCount();
     auto* p = static_cast<Im3dRenderFeature::Parameters*>(renderer.GetFeatureParameterBlockPtr(featureHandle));
     if (!p) return;
-    // First pass: counts
-    uint32_t np = 0, nl = 0, nt = 0;
+
+    // Count vertices per primitive type
+    uint32_t totalPointVerts = 0, totalLineVerts = 0, totalTriVerts = 0;
     for (uint32_t i = 0; i < count; ++i)
     {
       const auto& dl = lists[i];
-      if (dl.m_primType == Im3d::DrawPrimitive_Points) np += dl.m_vertexCount;
-      else if (dl.m_primType == Im3d::DrawPrimitive_Lines) nl += dl.m_vertexCount / 2; // pairs
-      else if (dl.m_primType == Im3d::DrawPrimitive_Triangles) nt += dl.m_vertexCount / 3;
+      switch (dl.m_primType)
+      {
+      case Im3d::DrawPrimitive_Points:    totalPointVerts += dl.m_vertexCount; break;
+      case Im3d::DrawPrimitive_Lines:     totalLineVerts  += dl.m_vertexCount; break;
+      case Im3d::DrawPrimitive_Triangles: totalTriVerts   += dl.m_vertexCount; break;
+      default: break;
+      }
     }
-    const size_t bytesP = size_t(np) * sizeof(PointGPU);
-    const size_t bytesL = size_t(nl) * sizeof(LineGPU);
-    const size_t bytesT = size_t(nt) * sizeof(TriGPU);
-    p->offPoints = 0;
-    p->numPoints = np;
-    p->offLines = (uint32_t)bytesP;
-    p->numLines = nl;
-    p->offTris = (uint32_t)(bytesP + bytesL);
-    p->numTris = nt;
-    const size_t total = bytesP + bytesL + bytesT;
-    p->packed.resize(total);
-    // Second pass: fill
-    auto* outP = reinterpret_cast<PointGPU*>(p->packed.data() + p->offPoints);
-    auto* outL = reinterpret_cast<LineGPU*>(p->packed.data() + p->offLines);
-    auto* outT = reinterpret_cast<TriGPU*>(p->packed.data() + p->offTris);
+
+    // Resize packed buffers
+    const size_t vertSize = sizeof(Im3d::VertexData);
+    p->pointVertices.resize(totalPointVerts);
+    p->lineVertices.resize(totalLineVerts);
+    p->triVertices.resize(totalTriVerts);
+
+    // Copy vertex data
     uint32_t ip = 0, il = 0, it = 0;
     for (uint32_t i = 0; i < count; ++i)
     {
       const auto& dl = lists[i];
-      const auto* v = dl.m_vertexData;
       const uint32_t n = dl.m_vertexCount;
       switch (dl.m_primType)
       {
       case Im3d::DrawPrimitive_Points:
-        for (uint32_t k = 0; k < n; ++k)
-        {
-          const auto& a = v[k];
-          outP[ip++] = {
-            {a.m_positionSize.x, a.m_positionSize.y, a.m_positionSize.z}, a.m_positionSize.w, a.m_color.v, 0, 0, 0
-          };
-        }
+        std::memcpy(&p->pointVertices[ip], dl.m_vertexData, n * vertSize);
+        ip += n;
         break;
       case Im3d::DrawPrimitive_Lines:
-        for (uint32_t k = 0; k + 1 < n; k += 2)
-        {
-          const auto& a = v[k + 0];
-          const auto& b = v[k + 1];
-          outL[il++] = {
-            {a.m_positionSize.x, a.m_positionSize.y, a.m_positionSize.z},
-            0.5f * (a.m_positionSize.w + b.m_positionSize.w), // average width of both endpoints (world units)
-            {b.m_positionSize.x, b.m_positionSize.y, b.m_positionSize.z}, a.m_color.v
-          };
-        }
+        std::memcpy(&p->lineVertices[il], dl.m_vertexData, n * vertSize);
+        il += n;
         break;
       case Im3d::DrawPrimitive_Triangles:
-        for (uint32_t k = 0; k + 2 < n; k += 3)
-        {
-          const auto &a = v[k + 0], b = v[k + 1], c = v[k + 2];
-          outT[it++] = {
-            {a.m_positionSize.x, a.m_positionSize.y, a.m_positionSize.z}, a.m_color.v,
-            {b.m_positionSize.x, b.m_positionSize.y, b.m_positionSize.z}, b.m_color.v,
-            {c.m_positionSize.x, c.m_positionSize.y, c.m_positionSize.z}, c.m_color.v
-          };
-        }
+        std::memcpy(&p->triVertices[it], dl.m_vertexData, n * vertSize);
+        it += n;
         break;
       default: break;
       }

@@ -23,7 +23,7 @@ All rights reserved.
 */
 /******************************************************************************/
 #include "Editor/Hierarchy.h"
-#include "Engine/Resources/ResourceManager.h"
+#include "Assets/AssetManager.h"
 #include "Engine/SceneManagement.h"
 #include "Tween/TweenManager.h"
 #include "Components/NameComponent.h"

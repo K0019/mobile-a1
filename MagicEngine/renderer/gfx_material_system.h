@@ -133,6 +133,11 @@ public:
     TextureHandle createTexture(const TextureCreateInfo& info);
 
     /**
+     * @brief Register a pre-created texture (from async upload).
+     */
+    TextureHandle registerPreCreatedTexture(Texture tex, TextureView view, uint32_t w, uint32_t h, hina_format fmt, bool sRGB);
+
+    /**
      * @brief Load a texture from file (PNG, JPG, etc).
      * @param path File path to the texture
      * @param sRGB Whether to treat as sRGB color space

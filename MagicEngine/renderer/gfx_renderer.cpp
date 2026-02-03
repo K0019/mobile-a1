@@ -12,14 +12,12 @@
 #include "resource/processed_assets.h"
 #include "resource/resource_manager.h"
 #include "resource/resource_registry.h"
-#include "renderer/ui/ui_primitives.h"
 #include <hina_vk.h>  // For hina_recreate_surface
 // EnTT integration disabled - using internal ECS
 // #include "ecs/Components/Core.h"
 // #include <entt/entt.hpp>
 #include <algorithm>
 #include <cstring>
-#include <imgui.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
@@ -67,6 +65,35 @@ bool CPUCuller::isVisible(const glm::vec3& aabbMin, const glm::vec3& aabbMax) co
     return true;
 }
 
+CPUCuller::FrustumResult CPUCuller::classifyAABB(const glm::vec3& aabbMin, const glm::vec3& aabbMax) const {
+    bool allInside = true;
+    for (int i = 0; i < 6; ++i) {
+        glm::vec3 normal(m_frustumPlanes[i]);
+        float d = m_frustumPlanes[i].w;
+
+        // Positive vertex (furthest along normal)
+        glm::vec3 pVertex;
+        pVertex.x = (normal.x >= 0) ? aabbMax.x : aabbMin.x;
+        pVertex.y = (normal.y >= 0) ? aabbMax.y : aabbMin.y;
+        pVertex.z = (normal.z >= 0) ? aabbMax.z : aabbMin.z;
+
+        if (glm::dot(normal, pVertex) + d < 0) {
+            return FrustumResult::Outside;
+        }
+
+        // Negative vertex (closest along normal)
+        glm::vec3 nVertex;
+        nVertex.x = (normal.x >= 0) ? aabbMin.x : aabbMax.x;
+        nVertex.y = (normal.y >= 0) ? aabbMin.y : aabbMax.y;
+        nVertex.z = (normal.z >= 0) ? aabbMin.z : aabbMax.z;
+
+        if (glm::dot(normal, nVertex) + d < 0) {
+            allInside = false;
+        }
+    }
+    return allInside ? FrustumResult::FullyInside : FrustumResult::Intersecting;
+}
+
 // ============================================================================
 // hina-vk logging callback
 // ============================================================================
@@ -103,7 +130,7 @@ bool GfxRenderer::initialize(void* nativeWindow, uint32_t width, uint32_t height
     // Initialize hina-vk
     hina_desc desc = hina_desc_default();
     desc.native_window = nativeWindow;
-    desc.flags = HINA_INIT_VALIDATION_BIT;
+    desc.flags = 0;
     desc.log_fn = hinaLogCallback;
     // Note: Window size is determined by native_window, not by desc fields
 
@@ -152,12 +179,6 @@ bool GfxRenderer::initialize(void* nativeWindow, uint32_t width, uint32_t height
         return false;
     }
 
-    // Create rendering pipelines
-    if (!createPipelines()) {
-        LOG_ERROR("[GfxRenderer] Failed to create pipelines");
-        return false;
-    }
-
     // Initialize HinaContext for vk::IContext interface (used by RenderGraph/features)
     m_hinaContext = std::make_unique<HinaContext>();
     if (!m_hinaContext->initialize(nativeWindow, width, height)) {
@@ -181,10 +202,6 @@ void GfxRenderer::shutdown() {
 
     if (!m_initialized) return;
 
-    // Shutdown UI systems first
-    shutdownImGui();
-    shutdownUI2D();
-
     // Note: hina_shutdown() handles GPU wait internally
 
     // Shutdown RenderGraph (before HinaContext)
@@ -207,27 +224,6 @@ void GfxRenderer::shutdown() {
         if (hina_buffer_is_valid(frame.objectDataRingUBO)) {
             hina_destroy_buffer(frame.objectDataRingUBO);
         }
-    }
-
-    // Destroy fullscreen quad (used by grid)
-    if (hina_buffer_is_valid(m_fullscreenQuadVB)) {
-        hina_destroy_buffer(m_fullscreenQuadVB);
-    }
-
-    // Destroy pipelines (scene rendering moved to SceneRenderFeature)
-    if (hina_pipeline_is_valid(m_gridPipeline)) {
-        hina_destroy_pipeline(m_gridPipeline);
-    }
-
-    // Destroy grid resources
-    if (hina_bind_group_is_valid(m_gridBindGroup)) {
-        hina_destroy_bind_group(m_gridBindGroup);
-    }
-    if (hina_bind_group_layout_is_valid(m_gridLayout)) {
-        hina_destroy_bind_group_layout(m_gridLayout);
-    }
-    if (hina_buffer_is_valid(m_gridUBO)) {
-        hina_destroy_buffer(m_gridUBO);
     }
 
     // Destroy default resources
@@ -264,17 +260,6 @@ void GfxRenderer::shutdown() {
     }
     if (hina_texture_is_valid(m_wboit.reveal)) {
         hina_destroy_texture(m_wboit.reveal);
-    }
-
-    // Destroy render targets - HDR and shadow
-    if (hina_texture_is_valid(m_hdrTarget)) {
-        hina_destroy_texture(m_hdrTarget);
-    }
-    if (hina_texture_is_valid(m_shadowAtlas)) {
-        hina_destroy_texture(m_shadowAtlas);
-    }
-    if (hina_texture_is_valid(m_ambientOctMap)) {
-        hina_destroy_texture(m_ambientOctMap);
     }
 
     // Destroy bind group layouts
@@ -482,24 +467,6 @@ bool GfxRenderer::createRenderTargets() {
         LOG_DEBUG("[GfxRenderer] Created GBuffer_VisibilityID (R32_UINT)");
     }
 
-    // HDR Target (R16G16B16A16_SFLOAT = 64 bits)
-    // Needs TRANSFER_SRC for blitting to swapchain in non-ImGui apps
-    {
-        hina_texture_desc desc = {};
-        desc.width = gbufferWidth;
-        desc.height = gbufferHeight;
-        desc.format = HINA_FORMAT_R16G16B16A16_SFLOAT;
-        desc.usage = static_cast<hina_texture_usage_flags>(rtUsage | HINA_TEXTURE_TRANSFER_SRC_BIT);
-
-        m_hdrTarget = hina_make_texture(&desc);
-        if (!hina_texture_is_valid(m_hdrTarget)) {
-            LOG_ERROR("[GfxRenderer] Failed to create HDR target");
-            return false;
-        }
-        m_hdrTargetView = hina_texture_get_default_view(m_hdrTarget);
-        LOG_DEBUG("[GfxRenderer] Created HDR_Target (R16G16B16A16_SFLOAT)");
-    }
-
     // WBOIT Accumulation (RGBA16F)
     {
         hina_texture_desc desc = {};
@@ -532,23 +499,6 @@ bool GfxRenderer::createRenderTargets() {
         }
         m_wboit.revealView = hina_texture_get_default_view(m_wboit.reveal);
         LOG_DEBUG("[GfxRenderer] Created WBOIT_Reveal (R8_UNORM)");
-    }
-
-    // Shadow Atlas (D16, 2048x2048)
-    {
-        hina_texture_desc desc = {};
-        desc.width = 2048;
-        desc.height = 2048;
-        desc.format = HINA_FORMAT_D16_UNORM;
-        desc.usage = rtUsage;
-
-        m_shadowAtlas = hina_make_texture(&desc);
-        if (!hina_texture_is_valid(m_shadowAtlas)) {
-            LOG_ERROR("[GfxRenderer] Failed to create shadow atlas");
-            return false;
-        }
-        m_shadowAtlasView = hina_texture_get_default_view(m_shadowAtlas);
-        LOG_DEBUG("[GfxRenderer] Created ShadowAtlas (D16_UNORM, 2048x2048)");
     }
 
     // Create view output textures (Game, Scene, Preview)
@@ -798,104 +748,6 @@ bool GfxRenderer::beginFrame() {
     return true;
 }
 
-void GfxRenderer::render(FrameData& frameData) {
-    if (!m_initialized) {
-        return;
-    }
-
-    // Flush any pending mesh uploads before rendering
-    // This batches buffer copies: maps each buffer once, copies all data, unmaps once
-    flushPendingUploads();
-
-    // Store frame data pointer for use in render passes
-    m_currentFrameData = &frameData;
-
-    auto& frame = m_frames[m_currentFrame];
-
-    // Update frame constants
-    updateFrameConstants(frameData);
-
-    // Begin command recording
-    frame.cmd = hina_cmd_begin();
-    if (!frame.cmd) {
-        LOG_ERROR("[GfxRenderer] hina_cmd_begin() returned null!");
-        return;
-    }
-
-    // Set the frame data in HinaContext for feature access
-    if (m_hinaContext) {
-        m_hinaContext->setFrameData(frame.cmd, frame.swapchainImage.texture);
-    }
-
-    // Execute RenderGraph if features are registered
-    if (m_renderGraph && !m_registeredFeatures.empty()) {
-        // Import swapchain texture into render graph
-        gfx::TextureDesc swapchainDesc{
-            .type = HINA_TEX_TYPE_2D,
-            .format = HINA_FORMAT_B8G8R8A8_UNORM,
-            .width = m_width,
-            .height = m_height,
-            .depth = 1,
-            .layers = 1,
-            .mip_levels = 1,
-            .usage = static_cast<hina_texture_usage_flags>(gfx::TextureUsage::RenderTarget)
-        };
-        gfx::Texture swapchainTexture = m_hinaContext->getCurrentSwapchainHinaTexture();
-
-        m_renderGraph->ImportExternalTexture(
-            RenderResources::SWAPCHAIN_IMAGE,
-            swapchainTexture,
-            swapchainDesc
-        );
-
-        // NOTE: SCENE_COLOR and SCENE_DEPTH are TRANSIENT resources managed by the RenderGraph.
-        // They are registered in RegisterBuiltInResources() during compilation.
-        // Do NOT import them as external - that would overwrite the correctly allocated transient textures.
-
-        // Import active mesh chunks for RenderGraph resource tracking
-        m_meshStorage.importChunksToRenderGraph(*m_renderGraph);
-
-        // Begin new frame for RenderGraph (must be called once per frame, before Execute)
-        m_renderGraph->BeginFrame();
-
-        // Pass the active ViewOutput to the RenderGraph so it can copy SCENE_COLOR to it
-        // When ImGui is not initialized, resolve directly to swapchain instead of intermediate texture
-        const auto& activeViewOutput = m_viewOutputs[static_cast<size_t>(m_activeViewId)];
-        ViewOutputConfig outputConfig{
-            .resolvedColor = (m_imguiInitialized && activeViewOutput.valid)
-                ? activeViewOutput.texture
-                : frame.swapchainImage.texture,
-            .swapchainImage = frame.swapchainImage.texture
-        };
-
-        // Execute all registered features through RenderGraph
-        // RenderGraph will copy SCENE_COLOR to VIEW_OUTPUT for ImGui viewports
-        m_renderGraph->Execute(m_hinaContext->getCommandBuffer().getHinaCmd(), frameData, outputConfig);
-
-        // Transition swapchain to PRESENT layout after all rendering is complete
-        hina_cmd_transition_texture(frame.cmd, frame.swapchainImage.texture, HINA_TEXSTATE_PRESENT);
-    }
-
-    // Update any dirty material bind groups before rendering
-    m_materialSystem.updateDirtyMaterials();
-
-    // All rendering is now handled by the RenderGraph:
-    // - SceneRenderFeature: G-buffer pass (ExecuteGBufferPass) + Composite pass to SCENE_COLOR
-    // - GridFeature: Grid overlay on SCENE_COLOR
-    // - UI2DRenderFeature: 2D UI overlay on SCENE_COLOR
-    // - RenderGraph: ResolveViewOutput (SCENE_COLOR -> VIEW_OUTPUT), FinalBlit (SCENE_COLOR -> swapchain)
-    // - ImGuiRenderFeature: ImGui overlay on swapchain (samples VIEW_OUTPUT for viewport)
-
-    // Initialize UI2D if needed (deferred until first frame)
-    // Note: ImGui initialization is now Application-controlled via ImGuiContext
-    if (!m_ui2dInitialized) {
-        initUI2D();
-    }
-
-    // Submit
-    hina_frame_submit(frame.cmd);
-}
-
 void GfxRenderer::render(RenderFrameData& frameData) {
     if (!m_initialized) {
         return;
@@ -994,12 +846,6 @@ void GfxRenderer::render(RenderFrameData& frameData) {
     // Update any dirty material bind groups before rendering
     m_materialSystem.updateDirtyMaterials();
 
-    // Initialize UI2D if needed (deferred until first frame)
-    // Note: ImGui initialization is now Application-controlled via ImGuiContext
-    if (!m_ui2dInitialized) {
-        initUI2D();
-    }
-
     // Submit
     hina_frame_submit(frame.cmd);
 }
@@ -1058,23 +904,15 @@ void GfxRenderer::onResize(uint32_t width, uint32_t height) {
 
     LOG_INFO("[GfxRenderer] Resizing from {}x{} to {}x{}", m_width, m_height, width, height);
 
-    // Destroy old render targets before recreating
-    // Note: hina_destroy_texture uses deferred destruction - safe while GPU may still be using them
-    if (hina_texture_is_valid(m_gbuffer.albedo)) hina_destroy_texture(m_gbuffer.albedo);
-    if (hina_texture_is_valid(m_gbuffer.normal)) hina_destroy_texture(m_gbuffer.normal);
-    if (hina_texture_is_valid(m_gbuffer.materialData)) hina_destroy_texture(m_gbuffer.materialData);
-    if (hina_texture_is_valid(m_gbuffer.depth)) hina_destroy_texture(m_gbuffer.depth);
-    if (hina_texture_is_valid(m_gbuffer.visibilityID)) hina_destroy_texture(m_gbuffer.visibilityID);
-    if (hina_texture_is_valid(m_wboit.accumulation)) hina_destroy_texture(m_wboit.accumulation);
-    if (hina_texture_is_valid(m_wboit.reveal)) hina_destroy_texture(m_wboit.reveal);
-    if (hina_texture_is_valid(m_hdrTarget)) hina_destroy_texture(m_hdrTarget);
-    if (hina_texture_is_valid(m_shadowAtlas)) hina_destroy_texture(m_shadowAtlas);
-    if (hina_texture_is_valid(m_ambientOctMap)) hina_destroy_texture(m_ambientOctMap);
-
     m_width = width;
     m_height = height;
 
-    createRenderTargets();
+    // GBuffer, HDR, WBOIT, shadow atlas, and ambient oct map all use fixed internal
+    // resolution (INTERNAL_WIDTH x INTERNAL_HEIGHT) — no need to recreate on window resize.
+    // Only ViewOutputs need resizing since they match window dimensions for final blit.
+    for (size_t i = 0; i < static_cast<size_t>(ViewId::Count); ++i) {
+        resizeViewOutput(static_cast<ViewId>(i), width, height);
+    }
 }
 
 void GfxRenderer::updateFrameConstants(const FrameData& frameData) {
@@ -1105,307 +943,6 @@ void GfxRenderer::updateFrameConstants(const FrameData& frameData) {
         LOG_WARNING("[GfxRenderer] Failed to map frame constants buffer");
     }
 }
-
-bool GfxRenderer::createPipelines() {
-    LOG_INFO("[GfxRenderer] Creating pipelines...");
-
-    // Create fullscreen quad vertex buffer (shared by grid and other fullscreen passes)
-    // Format: pos(2) + uv(2) = 4 floats per vertex
-    static const float quadVertices[] = {
-        // pos.x, pos.y, uv.x, uv.y
-        -1.0f, -1.0f,  0.0f, 1.0f,  // bottom-left
-         1.0f, -1.0f,  1.0f, 1.0f,  // bottom-right
-         1.0f,  1.0f,  1.0f, 0.0f,  // top-right
-        -1.0f, -1.0f,  0.0f, 1.0f,  // bottom-left
-         1.0f,  1.0f,  1.0f, 0.0f,  // top-right
-        -1.0f,  1.0f,  0.0f, 0.0f,  // top-left
-    };
-
-    hina_buffer_desc quad_vb_desc = {};
-    quad_vb_desc.size = sizeof(quadVertices);
-    quad_vb_desc.memory = HINA_BUFFER_CPU;
-    quad_vb_desc.usage = HINA_BUFFER_VERTEX;
-    m_fullscreenQuadVB = hina_make_buffer(&quad_vb_desc);
-    if (!hina_buffer_is_valid(m_fullscreenQuadVB)) {
-        LOG_ERROR("[GfxRenderer] Failed to create fullscreen quad vertex buffer");
-        return false;
-    }
-
-    void* quadData = hina_mapped_buffer_ptr(m_fullscreenQuadVB);
-    std::memcpy(quadData, quadVertices, sizeof(quadVertices));
-    LOG_INFO("[GfxRenderer] Fullscreen quad created");
-
-    // ========================================================================
-    // Grid Pipeline (infinite grid for editor)
-    // Scene rendering (G-buffer, composite) moved to SceneRenderFeature
-    // ========================================================================
-    // NOTE: G-buffer and composite pipeline code was removed.
-    // Scene rendering is now handled by SceneRenderFeature which owns its own
-    // G-buffer pipeline, composite pipeline, and draw list.
-
-    // ========================================================================
-    // Grid Pipeline (infinite grid for editor)
-    // ========================================================================
-    const char* grid_shader = R"(
-#hina
-group Grid = 0;
-
-bindings(Grid, start=0) {
-  uniform(std140) GridUBO {
-    mat4 view;
-    mat4 proj;
-    mat4 invViewProj;
-    vec4 cameraPos;
-  } grid;
-}
-
-struct VertexIn {
-  vec2 a_position;
-  vec2 a_uv;
-};
-
-struct Varyings {
-  vec3 nearPoint;
-  vec3 farPoint;
-};
-
-struct FragOut {
-  vec4 color;
-};
-#hina_end
-
-#hina_stage vertex entry VSMain
-Varyings VSMain(VertexIn vin) {
-    Varyings out;
-    vec4 clipNear = vec4(vin.a_position, 0.0, 1.0);
-    vec4 clipFar = vec4(vin.a_position, 1.0, 1.0);
-    vec4 nearWorld = grid.invViewProj * clipNear;
-    vec4 farWorld = grid.invViewProj * clipFar;
-    out.nearPoint = nearWorld.xyz / nearWorld.w;
-    out.farPoint = farWorld.xyz / farWorld.w;
-    gl_Position = vec4(vin.a_position, 0.0, 1.0);
-    return out;
-}
-#hina_end
-
-#hina_stage fragment entry FSMain
-float getGrid(vec2 coord, float gridSize) {
-    vec2 derivative = fwidth(coord);
-    vec2 g = abs(fract(coord / gridSize - 0.5) - 0.5) / derivative * gridSize;
-    float line = min(g.x, g.y);
-    return 1.0 - min(line, 1.0);
-}
-
-FragOut FSMain(Varyings in) {
-    FragOut out;
-    // Calculate ray-plane intersection with y=0 (ground plane)
-    float denom = in.farPoint.y - in.nearPoint.y;
-    if (abs(denom) < 0.0001) { discard; }  // Ray parallel to ground
-    float t = -in.nearPoint.y / denom;
-    if (t < 0.0 || t > 1.0) { discard; }  // Behind camera or beyond far plane
-    vec3 fragPos3D = in.nearPoint + t * (in.farPoint - in.nearPoint);
-
-    // Compute depth and clamp to valid range
-    vec4 clipPos = grid.proj * grid.view * vec4(fragPos3D, 1.0);
-    float depth = clipPos.z / clipPos.w;
-    gl_FragDepth = clamp(depth, 0.0, 1.0);
-
-    float gridScale = grid.cameraPos.w;
-    float minorGrid = getGrid(fragPos3D.xz, gridScale);
-    float majorGrid = getGrid(fragPos3D.xz, gridScale * 10.0);
-    float axisWidth = 0.02 * gridScale;
-    float xAxis = 1.0 - smoothstep(0.0, axisWidth, abs(fragPos3D.z));
-    float zAxis = 1.0 - smoothstep(0.0, axisWidth, abs(fragPos3D.x));
-    float dist = length(fragPos3D.xz - grid.cameraPos.xz);
-    float fade = 1.0 - smoothstep(gridScale * 20.0, gridScale * 50.0, dist);
-    vec3 color = vec3(0.4);
-    float alpha = max(minorGrid * 0.3, majorGrid * 0.5) * fade;
-    if (xAxis > 0.0) { color = vec3(0.8, 0.2, 0.2); alpha = max(alpha, xAxis * fade); }
-    if (zAxis > 0.0) { color = vec3(0.2, 0.2, 0.8); alpha = max(alpha, zAxis * fade); }
-    out.color = vec4(color, alpha);
-    return out;
-}
-#hina_end
-)";
-
-    // Compile grid shader
-    char* grid_error = nullptr;
-    hina_hsl_module* grid_module = hslc_compile_hsl_source(grid_shader, "grid_shader", &grid_error);
-    if (!grid_module) {
-        LOG_ERROR("[GfxRenderer] Grid shader compilation failed: {}", grid_error ? grid_error : "Unknown");
-        if (grid_error) hslc_free_log(grid_error);
-        // Grid is optional - continue without it
-        LOG_WARNING("[GfxRenderer] Continuing without grid shader");
-    } else {
-        // Create explicit bind group layout for grid (set 0: UBO at binding 0)
-        hina_bind_group_layout_entry grid_layout_entries[1] = {};
-        grid_layout_entries[0].binding = 0;
-        grid_layout_entries[0].type = HINA_DESC_TYPE_UNIFORM_BUFFER;
-        grid_layout_entries[0].count = 1;
-        grid_layout_entries[0].stage_flags = HINA_STAGE_VERTEX | HINA_STAGE_FRAGMENT;
-        grid_layout_entries[0].flags = HINA_BINDING_FLAG_NONE;
-
-        hina_bind_group_layout_desc grid_layout_desc = {};
-        grid_layout_desc.entries = grid_layout_entries;
-        grid_layout_desc.entry_count = 1;
-        grid_layout_desc.label = "grid_layout";
-
-        m_gridLayout = hina_create_bind_group_layout(&grid_layout_desc);
-        if (!hina_bind_group_layout_is_valid(m_gridLayout)) {
-            LOG_ERROR("[GfxRenderer] Failed to create grid bind group layout");
-            hslc_hsl_module_free(grid_module);
-        } else {
-            // Vertex layout for grid pass (fullscreen quad: pos(2) + uv(2) = 16 bytes)
-            hina_vertex_layout grid_vertex_layout = {};
-            grid_vertex_layout.buffer_count = 1;
-            grid_vertex_layout.buffer_strides[0] = sizeof(float) * 4; // pos(2) + uv(2)
-            grid_vertex_layout.input_rates[0] = HINA_VERTEX_INPUT_RATE_VERTEX;
-            grid_vertex_layout.attr_count = 2;
-            grid_vertex_layout.attrs[0] = { HINA_FORMAT_R32G32_SFLOAT, 0, 0, 0 };  // position (vec2)
-            grid_vertex_layout.attrs[1] = { HINA_FORMAT_R32G32_SFLOAT, sizeof(float) * 2, 1, 0 };  // uv (vec2)
-
-            hina_hsl_pipeline_desc grid_pip_desc = hina_hsl_pipeline_desc_default();
-            grid_pip_desc.layout = grid_vertex_layout;
-            grid_pip_desc.cull_mode = HINA_CULL_MODE_NONE;
-            grid_pip_desc.depth.depth_test = true;
-            grid_pip_desc.depth.depth_write = true;
-            grid_pip_desc.depth.depth_compare = HINA_COMPARE_OP_LESS_OR_EQUAL;
-            grid_pip_desc.depth_format = HINA_FORMAT_D32_SFLOAT;
-            grid_pip_desc.color_formats[0] = HINA_FORMAT_B8G8R8A8_UNORM;  // Match ViewOutput format (manual gamma)
-            grid_pip_desc.blend[0].enable = true;
-            grid_pip_desc.blend[0].src_color = HINA_BLEND_FACTOR_SRC_ALPHA;
-            grid_pip_desc.blend[0].dst_color = HINA_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
-            grid_pip_desc.blend[0].color_op = HINA_BLEND_OP_ADD;
-            grid_pip_desc.blend[0].src_alpha = HINA_BLEND_FACTOR_ONE;
-            grid_pip_desc.blend[0].dst_alpha = HINA_BLEND_FACTOR_ZERO;
-            grid_pip_desc.blend[0].alpha_op = HINA_BLEND_OP_ADD;
-            grid_pip_desc.bind_group_layouts[0] = m_gridLayout;
-
-            m_gridPipeline = hina_make_pipeline_from_module(grid_module, &grid_pip_desc, nullptr);
-            hslc_hsl_module_free(grid_module);
-
-            if (!hina_pipeline_is_valid(m_gridPipeline)) {
-                LOG_ERROR("[GfxRenderer] Grid pipeline creation failed");
-            } else {
-                LOG_INFO("[GfxRenderer] Grid pipeline created successfully");
-
-                // Create grid UBO
-                hina_buffer_desc grid_ubo_desc = {};
-                grid_ubo_desc.size = sizeof(glm::mat4) * 3 + sizeof(glm::vec4);  // view, proj, invViewProj, cameraPos
-                grid_ubo_desc.memory = HINA_BUFFER_CPU;
-                grid_ubo_desc.usage = HINA_BUFFER_UNIFORM;
-                m_gridUBO = hina_make_buffer(&grid_ubo_desc);
-                m_gridUBOMapped = hina_mapped_buffer_ptr(m_gridUBO);
-
-                // Create grid bind group
-                hina_bind_group_entry grid_entry = {};
-                grid_entry.binding = 0;
-                grid_entry.type = HINA_DESC_TYPE_UNIFORM_BUFFER;
-                grid_entry.buffer.buffer = m_gridUBO;
-                grid_entry.buffer.offset = 0;
-                grid_entry.buffer.size = grid_ubo_desc.size;
-
-                hina_bind_group_desc grid_bg_desc = {};
-                grid_bg_desc.layout = m_gridLayout;
-                grid_bg_desc.entries = &grid_entry;
-                grid_bg_desc.entry_count = 1;
-
-                m_gridBindGroup = hina_create_bind_group(&grid_bg_desc);
-                if (!hina_bind_group_is_valid(m_gridBindGroup)) {
-                    LOG_ERROR("[GfxRenderer] Failed to create grid bind group");
-                } else {
-                    LOG_INFO("[GfxRenderer] Grid bind group created");
-                }
-            }
-        }
-    }
-
-    LOG_INFO("[GfxRenderer] All pipelines created successfully");
-    return true;
-}
-
-// NOTE: Scene rendering functions removed - now handled by SceneRenderFeature:
-// - executeGBufferPass(), renderGBuffer()
-// - executeCompositePass(), renderComposite()
-// - renderShadows(), renderLighting(), renderTransparency(), renderPostProcess()
-// - executeWBOITAccumulationPass(), executeWBOITResolvePass()
-
-void GfxRenderer::executeGridPass(gfx::Cmd* cmd) {
-    auto& viewOutput = m_viewOutputs[static_cast<size_t>(m_activeViewId)];
-
-    if (!cmd || !hina_pipeline_is_valid(m_gridPipeline) || !viewOutput.valid) {
-        return;
-    }
-    if (!hina_bind_group_is_valid(m_gridBindGroup)) {
-        return;
-    }
-
-    // Update grid UBO with camera data
-    struct GridUBO {
-        glm::mat4 view;
-        glm::mat4 proj;
-        glm::mat4 invViewProj;
-        glm::vec4 cameraPos;  // xyz = position, w = grid scale
-    } gridData;
-
-    gridData.view = m_viewMatrix;
-    gridData.proj = m_projMatrix;
-    gridData.invViewProj = glm::inverse(m_projMatrix * m_viewMatrix);
-
-    // Extract camera position from view matrix inverse
-    glm::mat4 invView = glm::inverse(m_viewMatrix);
-    gridData.cameraPos = glm::vec4(invView[3].x, invView[3].y, invView[3].z, 1.0f);  // Grid scale = 1.0
-
-    if (m_gridUBOMapped) {
-        std::memcpy(m_gridUBOMapped, &gridData, sizeof(gridData));
-    }
-
-    // Transition view output to color attachment state
-    hina_cmd_transition_texture(cmd, viewOutput.texture, HINA_TEXSTATE_COLOR_ATTACHMENT);
-
-    // Begin render pass - render to view output with depth from G-buffer
-    hina_pass_action pass = {};
-    pass.colors[0].image = viewOutput.view;
-    pass.colors[0].load_op = HINA_LOAD_OP_LOAD;  // Keep existing scene content
-    pass.colors[0].store_op = HINA_STORE_OP_STORE;
-    pass.depth.image = m_gbuffer.depthView;
-    pass.depth.load_op = HINA_LOAD_OP_LOAD;  // Use existing depth
-    pass.depth.store_op = HINA_STORE_OP_STORE;
-
-    hina_cmd_begin_pass(cmd, &pass);
-
-    // Set viewport and scissor to match view output dimensions
-    hina_viewport viewport = {};
-    viewport.width = static_cast<float>(viewOutput.width);
-    viewport.height = static_cast<float>(viewOutput.height);
-    viewport.min_depth = 0.0f;
-    viewport.max_depth = 1.0f;
-    hina_cmd_set_viewport(cmd, &viewport);
-
-    hina_scissor scissor = {};
-    scissor.width = viewOutput.width;
-    scissor.height = viewOutput.height;
-    hina_cmd_set_scissor(cmd, &scissor);
-
-    // Bind pipeline and resources
-    hina_cmd_bind_pipeline(cmd, m_gridPipeline);
-    hina_cmd_bind_group(cmd, 0, m_gridBindGroup);
-
-    // Use the same fullscreen quad as composite pass
-    hina_vertex_input vertInput = {};
-    vertInput.vertex_buffers[0] = m_fullscreenQuadVB;
-    vertInput.vertex_offsets[0] = 0;
-    hina_cmd_apply_vertex_input(cmd, &vertInput);
-    hina_cmd_draw(cmd, 6, 1, 0, 0);
-
-    hina_cmd_end_pass(cmd);
-}
-
-void GfxRenderer::renderGrid() {
-    executeGridPass(m_frames[m_currentFrame].cmd);
-}
-
-// NOTE: blitToSwapchain() removed - presentation handled by RenderGraph
 
 bool GfxRenderer::createDefaultResources() {
     LOG_INFO("[GfxRenderer] Creating default resources...");
@@ -1498,716 +1035,6 @@ bool GfxRenderer::createDefaultResources() {
     return true;
 }
 
-// NOTE: renderClear() removed - not needed with RenderGraph-based rendering
-
-// ============================================================================
-// ImGui Integration
-// ============================================================================
-
-bool GfxRenderer::initImGui() {
-    if (m_imguiInitialized) return true;
-
-    LOG_INFO("[GfxRenderer] Initializing ImGui...");
-
-    // Build font atlas (ImGui context should already be created by ImGuiContext)
-    ImGuiIO& io = ImGui::GetIO();
-    unsigned char* pixels;
-    int width, height;
-    io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
-
-    // Create font texture
-    hina_texture_desc tex_desc = hina_texture_desc_default();
-    tex_desc.format = HINA_FORMAT_R8G8B8A8_UNORM;
-    tex_desc.width = static_cast<uint32_t>(width);
-    tex_desc.height = static_cast<uint32_t>(height);
-    tex_desc.initial_data = pixels;
-    tex_desc.usage = HINA_TEXTURE_SAMPLED_BIT;
-
-    m_imguiFontTexture = hina_make_texture(&tex_desc);
-    if (!hina_texture_is_valid(m_imguiFontTexture)) {
-        LOG_ERROR("[GfxRenderer] Failed to create ImGui font texture");
-        return false;
-    }
-
-    // Create sampler
-    hina_sampler_desc sampler_desc = hina_sampler_desc_default();
-    sampler_desc.min_filter = HINA_FILTER_LINEAR;
-    sampler_desc.mag_filter = HINA_FILTER_LINEAR;
-    sampler_desc.address_u = HINA_ADDRESS_CLAMP_TO_EDGE;
-    sampler_desc.address_v = HINA_ADDRESS_CLAMP_TO_EDGE;
-    m_imguiFontSampler = hina_make_sampler(&sampler_desc);
-    if (!hina_sampler_is_valid(m_imguiFontSampler)) {
-        LOG_ERROR("[GfxRenderer] Failed to create ImGui sampler");
-        return false;
-    }
-
-    // Store font texture view for use with transient bind groups
-    m_imguiFontView = hina_texture_get_default_view(m_imguiFontTexture);
-
-    // Set ImGui font texture ID to 0 (special marker for font texture)
-    io.Fonts->SetTexID((ImTextureID)(uintptr_t)(IMGUI_FONT_TEXTURE_ID));
-
-    // Create pipeline with embedded HSL shader
-    const char* shader_source = R"(
-#hina
-group ImGui = 0;
-
-bindings(ImGui, start=0) {
-  texture sampler2D u_texture;
-}
-
-push_constant PushConstants {
-  vec2 scale;
-  vec2 translate;
-} pc;
-
-struct VertexIn {
-  vec2 a_position;
-  vec2 a_uv;
-  vec4 a_color;
-};
-
-struct Varyings {
-  vec2 uv;
-  vec4 color;
-};
-
-struct FragOut {
-  vec4 color;
-};
-#hina_end
-
-#hina_stage vertex entry VSMain
-Varyings VSMain(VertexIn in) {
-    Varyings out;
-    out.uv = in.a_uv;
-    out.color = in.a_color;
-    gl_Position = vec4(in.a_position * pc.scale + pc.translate, 0.0, 1.0);
-    return out;
-}
-#hina_end
-
-#hina_stage fragment entry FSMain
-FragOut FSMain(Varyings in) {
-    FragOut out;
-    out.color = in.color * texture(u_texture, in.uv);
-    return out;
-}
-#hina_end
-)";
-
-    char* error = nullptr;
-    hina_hsl_module* module = hslc_compile_hsl_source(shader_source, "imgui_shader", &error);
-    if (!module) {
-        LOG_ERROR("[GfxRenderer] ImGui shader compilation failed: {}", error ? error : "Unknown");
-        if (error) hslc_free_log(error);
-        return false;
-    }
-
-    hina_vertex_layout vertex_layout = {};
-    vertex_layout.buffer_count = 1;
-    vertex_layout.buffer_strides[0] = sizeof(ImDrawVert);
-    vertex_layout.input_rates[0] = HINA_VERTEX_INPUT_RATE_VERTEX;
-    vertex_layout.attr_count = 3;
-    vertex_layout.attrs[0] = { HINA_FORMAT_R32G32_SFLOAT, offsetof(ImDrawVert, pos), 0, 0 };
-    vertex_layout.attrs[1] = { HINA_FORMAT_R32G32_SFLOAT, offsetof(ImDrawVert, uv), 1, 0 };
-    vertex_layout.attrs[2] = { HINA_FORMAT_R8G8B8A8_UNORM, offsetof(ImDrawVert, col), 2, 0 };
-
-    hina_hsl_pipeline_desc pip_desc = hina_hsl_pipeline_desc_default();
-    pip_desc.layout = vertex_layout;
-    pip_desc.cull_mode = HINA_CULL_MODE_NONE;
-    pip_desc.depth.depth_test = false;
-    pip_desc.depth.depth_write = false;
-    pip_desc.blend[0].enable = true;
-    pip_desc.blend[0].src_color = HINA_BLEND_FACTOR_SRC_ALPHA;
-    pip_desc.blend[0].dst_color = HINA_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
-    pip_desc.blend[0].color_op = HINA_BLEND_OP_ADD;
-    pip_desc.blend[0].src_alpha = HINA_BLEND_FACTOR_ONE;
-    pip_desc.blend[0].dst_alpha = HINA_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
-    pip_desc.blend[0].alpha_op = HINA_BLEND_OP_ADD;
-    pip_desc.depth_format = HINA_FORMAT_UNDEFINED;
-
-    // Use the shared UI bind group layout - same layout for pipeline AND transient bind groups
-    if (hina_bind_group_layout_is_valid(m_uiBindGroupLayout)) {
-        pip_desc.bind_group_layouts[0] = m_uiBindGroupLayout;
-    }
-
-    m_imguiPipeline = hina_make_pipeline_from_module(module, &pip_desc, nullptr);
-    hslc_hsl_module_free(module);
-
-    if (!hina_pipeline_is_valid(m_imguiPipeline)) {
-        LOG_ERROR("[GfxRenderer] ImGui pipeline creation failed");
-        return false;
-    }
-
-    // Create per-frame buffers
-    for (uint32_t i = 0; i < GFX_MAX_FRAMES; ++i) {
-        hina_buffer_desc vb_desc = {};
-        vb_desc.size = IMGUI_MAX_VERTEX_COUNT * sizeof(ImDrawVert);
-        vb_desc.memory = HINA_BUFFER_CPU;
-        vb_desc.usage = HINA_BUFFER_VERTEX;
-        m_imguiFrames[i].vertexBuffer = hina_make_buffer(&vb_desc);
-        m_imguiFrames[i].vertexMapped = hina_mapped_buffer_ptr(m_imguiFrames[i].vertexBuffer);
-
-        hina_buffer_desc ib_desc = {};
-        ib_desc.size = IMGUI_MAX_INDEX_COUNT * sizeof(ImDrawIdx);
-        ib_desc.memory = HINA_BUFFER_CPU;
-        ib_desc.usage = HINA_BUFFER_INDEX;
-        m_imguiFrames[i].indexBuffer = hina_make_buffer(&ib_desc);
-        m_imguiFrames[i].indexMapped = hina_mapped_buffer_ptr(m_imguiFrames[i].indexBuffer);
-
-        if (!m_imguiFrames[i].vertexMapped || !m_imguiFrames[i].indexMapped) {
-            LOG_ERROR("[GfxRenderer] Failed to create/map ImGui frame buffers for frame {}", i);
-            return false;
-        }
-    }
-
-    m_imguiInitialized = true;
-
-    LOG_INFO("[GfxRenderer] ImGui initialized successfully");
-    return true;
-}
-
-void GfxRenderer::shutdownImGui() {
-    if (!m_imguiInitialized) return;
-
-    LOG_INFO("[GfxRenderer] Shutting down ImGui...");
-
-    // Destroy per-frame buffers
-    for (uint32_t i = 0; i < GFX_MAX_FRAMES; ++i) {
-        if (hina_buffer_is_valid(m_imguiFrames[i].vertexBuffer))
-            hina_destroy_buffer(m_imguiFrames[i].vertexBuffer);
-        if (hina_buffer_is_valid(m_imguiFrames[i].indexBuffer))
-            hina_destroy_buffer(m_imguiFrames[i].indexBuffer);
-    }
-
-    if (hina_pipeline_is_valid(m_imguiPipeline))
-        hina_destroy_pipeline(m_imguiPipeline);
-    if (hina_sampler_is_valid(m_imguiFontSampler))
-        hina_destroy_sampler(m_imguiFontSampler);
-    if (hina_texture_is_valid(m_imguiFontTexture))
-        hina_destroy_texture(m_imguiFontTexture);
-
-    m_imguiFontView = {};
-
-    m_imguiInitialized = false;
-    LOG_INFO("[GfxRenderer] ImGui shutdown complete");
-}
-
-void GfxRenderer::renderImGui(ImDrawData* drawData) {
-    if (!m_imguiInitialized || !drawData) return;
-    if (drawData->TotalVtxCount == 0 || drawData->TotalIdxCount == 0) return;
-
-    auto& frame = m_frames[m_currentFrame];
-    auto& imguiFrame = m_imguiFrames[m_currentFrame];
-
-    // Check buffer sizes
-    if (drawData->TotalVtxCount > static_cast<int>(IMGUI_MAX_VERTEX_COUNT) ||
-        drawData->TotalIdxCount > static_cast<int>(IMGUI_MAX_INDEX_COUNT)) {
-        LOG_WARNING("[GfxRenderer] ImGui draw data exceeds buffer size");
-        return;
-    }
-
-    // Upload vertex/index data
-    ImDrawVert* vtx = static_cast<ImDrawVert*>(imguiFrame.vertexMapped);
-    ImDrawIdx* idx = static_cast<ImDrawIdx*>(imguiFrame.indexMapped);
-    for (int n = 0; n < drawData->CmdListsCount; n++) {
-        const ImDrawList* cmdList = drawData->CmdLists[n];
-        std::memcpy(vtx, cmdList->VtxBuffer.Data, cmdList->VtxBuffer.Size * sizeof(ImDrawVert));
-        std::memcpy(idx, cmdList->IdxBuffer.Data, cmdList->IdxBuffer.Size * sizeof(ImDrawIdx));
-        vtx += cmdList->VtxBuffer.Size;
-        idx += cmdList->IdxBuffer.Size;
-    }
-
-    // Transition swapchain to color attachment before rendering
-    hina_cmd_transition_texture(frame.cmd, frame.swapchainImage.texture, HINA_TEXSTATE_COLOR_ATTACHMENT);
-
-    // Begin ImGui pass - clear swapchain to dark gray (editor background)
-    hina_pass_action pass = {};
-    pass.width = m_width;
-    pass.height = m_height;
-    pass.colors[0].image = frame.swapchainView;
-    pass.colors[0].load_op = HINA_LOAD_OP_CLEAR;  // Clear before drawing UI
-    pass.colors[0].store_op = HINA_STORE_OP_STORE;
-    pass.colors[0].clear_color[0] = 0.118f;  // Dark gray (30/255)
-    pass.colors[0].clear_color[1] = 0.118f;
-    pass.colors[0].clear_color[2] = 0.118f;
-    pass.colors[0].clear_color[3] = 1.0f;
-
-    hina_cmd_begin_pass(frame.cmd, &pass);
-
-    // Set viewport
-    hina_viewport viewport = {};
-    viewport.width = static_cast<float>(m_width);
-    viewport.height = static_cast<float>(m_height);
-    viewport.min_depth = 0.0f;
-    viewport.max_depth = 1.0f;
-    hina_cmd_set_viewport(frame.cmd, &viewport);
-
-    // Bind pipeline
-    hina_cmd_bind_pipeline(frame.cmd, m_imguiPipeline);
-
-    // Bind vertex and index buffers
-    hina_vertex_input vertInput = {};
-    vertInput.vertex_buffers[0] = imguiFrame.vertexBuffer;
-    vertInput.vertex_offsets[0] = 0;
-    vertInput.index_buffer = imguiFrame.indexBuffer;
-    vertInput.index_type = HINA_INDEX_UINT16;
-    hina_cmd_apply_vertex_input(frame.cmd, &vertInput);
-
-    // Push constants for projection
-    struct {
-        float scale[2];
-        float translate[2];
-    } pushConstants;
-    pushConstants.scale[0] = 2.0f / drawData->DisplaySize.x;
-    pushConstants.scale[1] = 2.0f / drawData->DisplaySize.y;
-    pushConstants.translate[0] = -1.0f - drawData->DisplayPos.x * pushConstants.scale[0];
-    pushConstants.translate[1] = -1.0f - drawData->DisplayPos.y * pushConstants.scale[1];
-    hina_cmd_push_constants(frame.cmd, 0, sizeof(pushConstants), &pushConstants);
-
-    // Draw commands
-    uint32_t idxOffset = 0;
-    uint32_t vtxOffset = 0;
-    ImVec2 clipOff = drawData->DisplayPos;
-    ImVec2 clipScale = drawData->FramebufferScale;
-
-    for (int n = 0; n < drawData->CmdListsCount; n++) {
-        const ImDrawList* cmdList = drawData->CmdLists[n];
-        for (int cmdIdx = 0; cmdIdx < cmdList->CmdBuffer.Size; cmdIdx++) {
-            const ImDrawCmd& drawCmd = cmdList->CmdBuffer[cmdIdx];
-            if (drawCmd.UserCallback) continue;
-
-            // Clip rect
-            float clipMinX = (drawCmd.ClipRect.x - clipOff.x) * clipScale.x;
-            float clipMinY = (drawCmd.ClipRect.y - clipOff.y) * clipScale.y;
-            float clipMaxX = (drawCmd.ClipRect.z - clipOff.x) * clipScale.x;
-            float clipMaxY = (drawCmd.ClipRect.w - clipOff.y) * clipScale.y;
-            clipMinX = std::max(clipMinX, 0.0f);
-            clipMinY = std::max(clipMinY, 0.0f);
-            clipMaxX = std::min(clipMaxX, static_cast<float>(m_width));
-            clipMaxY = std::min(clipMaxY, static_cast<float>(m_height));
-            if (clipMaxX <= clipMinX || clipMaxY <= clipMinY) continue;
-
-            hina_scissor scissor = {};
-            scissor.x = static_cast<int32_t>(clipMinX);
-            scissor.y = static_cast<int32_t>(clipMinY);
-            scissor.width = static_cast<uint32_t>(clipMaxX - clipMinX);
-            scissor.height = static_cast<uint32_t>(clipMaxY - clipMinY);
-            hina_cmd_set_scissor(frame.cmd, &scissor);
-
-            // Determine texture view and sampler based on texture ID encoding
-            uint64_t texId = (uintptr_t)(drawCmd.TextureId);
-            gfx::TextureView texView = {};
-            gfx::Sampler sampler = m_imguiFontSampler;
-
-            if (texId == IMGUI_FONT_TEXTURE_ID) {
-                // Font texture (ImGui default ID 0)
-                texView = m_imguiFontView;
-            } else if (texId & IMGUI_VIEWOUTPUT_BIT) {
-                // ViewOutput pointer (high bit set)
-                const ViewOutput* vo = reinterpret_cast<const ViewOutput*>(texId & ~IMGUI_VIEWOUTPUT_BIT);
-                if (vo && vo->valid) {
-                    texView = vo->view;
-                    sampler = vo->sampler;
-                }
-            } else {
-                // Encoded TextureHandle from material system
-                gfx::TextureHandle h;
-                h.index = static_cast<uint16_t>(texId & 0xFFFF);
-                h.generation = static_cast<uint16_t>((texId >> 16) & 0xFFFF);
-                texView = m_materialSystem.getTextureView(h);
-            }
-
-            // Fallback to default white texture if invalid
-            if (!hina_texture_view_is_valid(texView)) {
-                texView = m_defaultWhiteTextureView;
-            }
-
-            // Create transient bind group using the shared UI layout
-            hina_transient_bind_group tbg = hina_alloc_transient_bind_group(m_uiBindGroupLayout);
-            hina_transient_write_combined_image(&tbg, 0, texView, sampler);
-            hina_cmd_bind_transient_group(frame.cmd, 0, tbg);
-
-            // Draw
-            hina_cmd_draw_indexed(frame.cmd, drawCmd.ElemCount, 1,
-                                  idxOffset + drawCmd.IdxOffset,
-                                  static_cast<int32_t>(vtxOffset + drawCmd.VtxOffset), 0);
-        }
-        idxOffset += cmdList->IdxBuffer.Size;
-        vtxOffset += cmdList->VtxBuffer.Size;
-    }
-
-    hina_cmd_end_pass(frame.cmd);
-
-    // Transition swapchain to present state
-    hina_cmd_transition_texture(frame.cmd, frame.swapchainImage.texture, HINA_TEXSTATE_PRESENT);
-}
-
-uint32_t GfxRenderer::registerUITexture(gfx::TextureHandle texHandle) {
-    // Simply encode the TextureHandle as a uint32_t
-    // The texture view will be retrieved at render time using transient bind groups
-    if (!m_materialSystem.isTextureValid(texHandle)) return 0;
-
-    // Encode: index in low 16 bits, generation in high 16 bits
-    return static_cast<uint32_t>(texHandle.index) | (static_cast<uint32_t>(texHandle.generation) << 16);
-}
-
-// ============================================================================
-// 2D UI Rendering (Game Overlay)
-// ============================================================================
-
-bool GfxRenderer::initUI2D() {
-    if (m_ui2dInitialized) return true;
-
-    LOG_INFO("[GfxRenderer] Initializing 2D UI...");
-
-    // Create samplers
-    hina_sampler_desc sampler_desc = hina_sampler_desc_default();
-    sampler_desc.min_filter = HINA_FILTER_LINEAR;
-    sampler_desc.mag_filter = HINA_FILTER_LINEAR;
-    sampler_desc.address_u = HINA_ADDRESS_CLAMP_TO_EDGE;
-    sampler_desc.address_v = HINA_ADDRESS_CLAMP_TO_EDGE;
-    m_ui2dLinearSampler = hina_make_sampler(&sampler_desc);
-
-    sampler_desc.min_filter = HINA_FILTER_NEAREST;
-    sampler_desc.mag_filter = HINA_FILTER_NEAREST;
-    m_ui2dNearestSampler = hina_make_sampler(&sampler_desc);
-
-    sampler_desc.min_filter = HINA_FILTER_LINEAR;
-    sampler_desc.mag_filter = HINA_FILTER_LINEAR;
-    m_ui2dFontSampler = hina_make_sampler(&sampler_desc);
-
-    // Create per-frame vertex/index buffers
-    for (uint32_t i = 0; i < GFX_MAX_FRAMES; ++i) {
-        auto& frame = m_ui2dFrames[i];
-
-        hina_buffer_desc vb_desc = {};
-        vb_desc.size = UI2D_MAX_VERTEX_COUNT * sizeof(ui::PrimitiveVertex);
-        vb_desc.memory = HINA_BUFFER_CPU;
-        vb_desc.usage = HINA_BUFFER_VERTEX;
-
-        frame.vertexBuffer = hina_make_buffer(&vb_desc);
-        if (!hina_buffer_is_valid(frame.vertexBuffer)) {
-            LOG_ERROR("[GfxRenderer] Failed to create UI2D vertex buffer");
-            return false;
-        }
-        frame.vertexMapped = hina_mapped_buffer_ptr(frame.vertexBuffer);
-
-        hina_buffer_desc ib_desc = {};
-        ib_desc.size = UI2D_MAX_INDEX_COUNT * sizeof(uint32_t);
-        ib_desc.memory = HINA_BUFFER_CPU;
-        ib_desc.usage = HINA_BUFFER_INDEX;
-
-        frame.indexBuffer = hina_make_buffer(&ib_desc);
-        if (!hina_buffer_is_valid(frame.indexBuffer)) {
-            LOG_ERROR("[GfxRenderer] Failed to create UI2D index buffer");
-            return false;
-        }
-        frame.indexMapped = hina_mapped_buffer_ptr(frame.indexBuffer);
-    }
-
-    // Create pipeline with embedded HSL shader
-    const char* shader_source = R"(
-#hina
-group UI2D = 0;
-
-bindings(UI2D, start=0) {
-  texture sampler2D u_texture;
-}
-
-push_constant PushConstants {
-  vec4 LRTB;  // left, right, top, bottom
-  uint textureId;
-  uint samplerId;
-} pc;
-
-struct VertexIn {
-  vec2 a_pos;
-  vec2 a_uv;
-  uint a_color;
-};
-
-struct Varyings {
-  vec2 uv;
-  vec4 color;
-};
-
-struct FragOut {
-  vec4 color;
-};
-#hina_end
-
-#hina_stage vertex entry VSMain
-Varyings VSMain(VertexIn in) {
-    Varyings out;
-
-    float L = pc.LRTB.x;
-    float R = pc.LRTB.y;
-    float T = pc.LRTB.z;
-    float B = pc.LRTB.w;
-
-    mat4 proj = mat4(
-        2.0 / (R - L), 0.0, 0.0, 0.0,
-        0.0, 2.0 / (B - T), 0.0, 0.0,
-        0.0, 0.0, -1.0, 0.0,
-        (R + L) / (L - R), (T + B) / (T - B), 0.0, 1.0
-    );
-
-    out.color = unpackUnorm4x8(in.a_color);
-    out.uv = in.a_uv;
-    gl_Position = proj * vec4(in.a_pos, 0.0, 1.0);
-    return out;
-}
-#hina_end
-
-#hina_stage fragment entry FSMain
-FragOut FSMain(Varyings in) {
-    FragOut out;
-    out.color = in.color * texture(u_texture, in.uv);
-    return out;
-}
-#hina_end
-)";
-
-    char* error = nullptr;
-    hina_hsl_module* module = hslc_compile_hsl_source(shader_source, "ui2d_shader", &error);
-    if (!module) {
-        LOG_ERROR("[GfxRenderer] UI2D shader compilation failed: {}", error ? error : "Unknown");
-        if (error) hslc_free_log(error);
-        return false;
-    }
-
-    // Vertex layout for PrimitiveVertex
-    hina_vertex_layout vertex_layout = {};
-    vertex_layout.buffer_count = 1;
-    vertex_layout.buffer_strides[0] = sizeof(ui::PrimitiveVertex);
-    vertex_layout.input_rates[0] = HINA_VERTEX_INPUT_RATE_VERTEX;
-    vertex_layout.attr_count = 3;
-    vertex_layout.attrs[0] = { HINA_FORMAT_R32G32_SFLOAT, offsetof(ui::PrimitiveVertex, x), 0, 0 };
-    vertex_layout.attrs[1] = { HINA_FORMAT_R32G32_SFLOAT, offsetof(ui::PrimitiveVertex, u), 1, 0 };
-    vertex_layout.attrs[2] = { HINA_FORMAT_R32_UINT, offsetof(ui::PrimitiveVertex, color), 2, 0 };
-
-    // Create pipeline
-    hina_hsl_pipeline_desc pip_desc = hina_hsl_pipeline_desc_default();
-    pip_desc.layout = vertex_layout;
-    pip_desc.cull_mode = HINA_CULL_MODE_NONE;
-    pip_desc.depth.depth_test = false;
-    pip_desc.depth.depth_write = false;
-    pip_desc.blend[0].enable = true;
-    pip_desc.blend[0].src_color = HINA_BLEND_FACTOR_SRC_ALPHA;
-    pip_desc.blend[0].dst_color = HINA_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
-    pip_desc.blend[0].color_op = HINA_BLEND_OP_ADD;
-    pip_desc.blend[0].src_alpha = HINA_BLEND_FACTOR_ONE;
-    pip_desc.blend[0].dst_alpha = HINA_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
-    pip_desc.blend[0].alpha_op = HINA_BLEND_OP_ADD;
-    pip_desc.color_formats[0] = hina_get_surface_format();  // Swapchain format for UI overlay
-    pip_desc.depth_format = HINA_FORMAT_UNDEFINED;
-
-    // Use the shared UI bind group layout - same layout for pipeline AND transient bind groups
-    if (hina_bind_group_layout_is_valid(m_uiBindGroupLayout)) {
-        pip_desc.bind_group_layouts[0] = m_uiBindGroupLayout;
-    }
-
-    m_ui2dPipeline = hina_make_pipeline_from_module(module, &pip_desc, nullptr);
-    hslc_hsl_module_free(module);
-
-    if (!hina_pipeline_is_valid(m_ui2dPipeline)) {
-        LOG_ERROR("[GfxRenderer] Failed to create UI2D pipeline");
-        return false;
-    }
-
-    m_ui2dInitialized = true;
-    LOG_INFO("[GfxRenderer] 2D UI initialized successfully");
-    return true;
-}
-
-void GfxRenderer::shutdownUI2D() {
-    if (!m_ui2dInitialized) return;
-
-    for (auto& frame : m_ui2dFrames) {
-        if (hina_buffer_is_valid(frame.vertexBuffer)) {
-            hina_destroy_buffer(frame.vertexBuffer);
-        }
-        if (hina_buffer_is_valid(frame.indexBuffer)) {
-            hina_destroy_buffer(frame.indexBuffer);
-        }
-        frame = {};
-    }
-
-    if (hina_pipeline_is_valid(m_ui2dPipeline)) {
-        hina_destroy_pipeline(m_ui2dPipeline);
-    }
-    if (hina_sampler_is_valid(m_ui2dLinearSampler)) {
-        hina_destroy_sampler(m_ui2dLinearSampler);
-    }
-    if (hina_sampler_is_valid(m_ui2dNearestSampler)) {
-        hina_destroy_sampler(m_ui2dNearestSampler);
-    }
-    if (hina_sampler_is_valid(m_ui2dFontSampler)) {
-        hina_destroy_sampler(m_ui2dFontSampler);
-    }
-
-    m_ui2dInitialized = false;
-    LOG_INFO("[GfxRenderer] 2D UI shutdown complete");
-}
-
-void GfxRenderer::queueUI2D(const ui::PrimitiveDrawList& drawList, float viewportWidth, float viewportHeight) {
-    // Copy the draw list to be rendered later when command buffer is recording
-    m_queuedUI2DDrawList = drawList;
-    m_queuedUI2DViewportWidth = viewportWidth;
-    m_queuedUI2DViewportHeight = viewportHeight;
-    m_hasQueuedUI2D = !drawList.commands.empty();
-}
-
-void GfxRenderer::renderUI2D() {
-    if (!m_ui2dInitialized || !m_hasQueuedUI2D) return;
-
-    const ui::PrimitiveDrawList& drawList = m_queuedUI2DDrawList;
-    float viewportWidth = m_queuedUI2DViewportWidth;
-    float viewportHeight = m_queuedUI2DViewportHeight;
-
-    // Clear queued flag
-    m_hasQueuedUI2D = false;
-
-    if (drawList.commands.empty()) return;
-
-    auto& frame = m_frames[m_currentFrame];
-    auto& uiFrame = m_ui2dFrames[m_currentFrame];
-
-    if (!frame.cmd) return;
-
-    const size_t vertexCount = drawList.vertices.size();
-    const size_t indexCount = drawList.indices.size();
-    if (vertexCount == 0 || indexCount == 0) return;
-
-    // Check capacity
-    if (vertexCount > UI2D_MAX_VERTEX_COUNT || indexCount > UI2D_MAX_INDEX_COUNT) {
-        LOG_WARNING("[GfxRenderer] UI2D draw list too large: {} vertices, {} indices",
-                    vertexCount, indexCount);
-        return;
-    }
-
-    // Upload vertex/index data
-    std::memcpy(uiFrame.vertexMapped, drawList.vertices.data(), vertexCount * sizeof(ui::PrimitiveVertex));
-    std::memcpy(uiFrame.indexMapped, drawList.indices.data(), indexCount * sizeof(uint32_t));
-
-    // Get view output for rendering
-    auto& viewOutput = m_viewOutputs[static_cast<size_t>(m_activeViewId)];
-    if (!viewOutput.valid) return;
-
-    // Transition view output to color attachment state before rendering to it
-    hina_cmd_transition_texture(frame.cmd, viewOutput.texture, HINA_TEXSTATE_COLOR_ATTACHMENT);
-
-    // Begin render pass - render to view output
-    hina_pass_action pass = {};
-    pass.colors[0].image = viewOutput.view;
-    pass.colors[0].load_op = HINA_LOAD_OP_LOAD;  // Load existing content
-    pass.colors[0].store_op = HINA_STORE_OP_STORE;
-
-    hina_cmd_begin_pass(frame.cmd, &pass);
-
-    // Set viewport and scissor
-    hina_viewport viewport = {};
-    viewport.width = viewportWidth;
-    viewport.height = viewportHeight;
-    viewport.min_depth = 0.0f;
-    viewport.max_depth = 1.0f;
-    hina_cmd_set_viewport(frame.cmd, &viewport);
-
-    // Bind pipeline
-    hina_cmd_bind_pipeline(frame.cmd, m_ui2dPipeline);
-
-    // Bind vertex/index buffers
-    hina_vertex_input vertInput = {};
-    vertInput.vertex_buffers[0] = uiFrame.vertexBuffer;
-    vertInput.vertex_offsets[0] = 0;
-    vertInput.index_buffer = uiFrame.indexBuffer;
-    vertInput.index_type = HINA_INDEX_UINT32;
-    hina_cmd_apply_vertex_input(frame.cmd, &vertInput);
-
-    // Set frame-level push constants (projection)
-    struct {
-        float LRTB[4];
-        uint32_t textureId;
-        uint32_t samplerId;
-    } pushConstants;
-    pushConstants.LRTB[0] = 0.0f;           // Left
-    pushConstants.LRTB[1] = viewportWidth;  // Right
-    pushConstants.LRTB[2] = 0.0f;           // Top
-    pushConstants.LRTB[3] = viewportHeight; // Bottom
-    pushConstants.textureId = 0;
-    pushConstants.samplerId = 0;
-
-    // Sort commands by layer, then by sortOrder
-    std::vector<const ui::PrimitiveDrawCommand*> sortedCommands;
-    sortedCommands.reserve(drawList.commands.size());
-    for (const auto& cmd : drawList.commands) {
-        sortedCommands.push_back(&cmd);
-    }
-    std::sort(sortedCommands.begin(), sortedCommands.end(),
-        [](const ui::PrimitiveDrawCommand* a, const ui::PrimitiveDrawCommand* b) {
-            if (a->layer != b->layer) return a->layer < b->layer;
-            return a->sortOrder < b->sortOrder;
-        });
-
-    // Draw each command
-    for (const ui::PrimitiveDrawCommand* cmdPtr : sortedCommands) {
-        const ui::PrimitiveDrawCommand& drawCmd = *cmdPtr;
-
-        // Decode texture handle and get texture view
-        uint32_t texId = static_cast<uint32_t>(drawCmd.textureId);
-        gfx::TextureView texView = m_defaultWhiteTextureView;
-
-        if (texId != 0) {
-            // Decode TextureHandle from ID
-            gfx::TextureHandle h;
-            h.index = static_cast<uint16_t>(texId & 0xFFFF);
-            h.generation = static_cast<uint16_t>((texId >> 16) & 0xFFFF);
-            gfx::TextureView decoded = m_materialSystem.getTextureView(h);
-            if (hina_texture_view_is_valid(decoded)) {
-                texView = decoded;
-            }
-        }
-
-        // Select sampler based on mode
-        gfx::Sampler sampler = m_ui2dLinearSampler;
-        if (drawCmd.samplerIndex == static_cast<uint32_t>(ui::SamplerMode::Nearest)) {
-            sampler = m_ui2dNearestSampler;
-        } else if (drawCmd.samplerIndex == static_cast<uint32_t>(ui::SamplerMode::Font)) {
-            sampler = m_ui2dFontSampler;
-        }
-
-        // Create transient bind group
-        hina_transient_bind_group tbg = hina_alloc_transient_bind_group(m_uiBindGroupLayout);
-        hina_transient_write_combined_image(&tbg, 0, texView, sampler);
-        hina_cmd_bind_transient_group(frame.cmd, 0, tbg);
-
-        // Push constants
-        hina_cmd_push_constants(frame.cmd, 0, sizeof(pushConstants), &pushConstants);
-
-        // Set scissor rect
-        float clipMinX = std::clamp(drawCmd.clipRect.x, 0.0f, viewportWidth);
-        float clipMinY = std::clamp(drawCmd.clipRect.y, 0.0f, viewportHeight);
-        float clipMaxX = std::clamp(drawCmd.clipRect.z, 0.0f, viewportWidth);
-        float clipMaxY = std::clamp(drawCmd.clipRect.w, 0.0f, viewportHeight);
-
-        if (clipMaxX <= clipMinX || clipMaxY <= clipMinY) continue;
-
-        hina_scissor scissor = {};
-        scissor.x = static_cast<uint32_t>(clipMinX);
-        scissor.y = static_cast<uint32_t>(clipMinY);
-        scissor.width = static_cast<uint32_t>(clipMaxX - clipMinX);
-        scissor.height = static_cast<uint32_t>(clipMaxY - clipMinY);
-        hina_cmd_set_scissor(frame.cmd, &scissor);
-
-        // Draw
-        hina_cmd_draw_indexed(frame.cmd, drawCmd.indexCount, 1, drawCmd.indexOffset, 0, 0);
-    }
-
-    hina_cmd_end_pass(frame.cmd);
-}
-
 // ============================================================================
 // Feature Registration
 // ============================================================================
@@ -2252,6 +1079,16 @@ void GfxRenderer::unregisterFeature(IRenderFeature* feature) {
 FeatureMask GfxRenderer::getFeatureMask(IRenderFeature* feature) const {
     if (!feature || !m_renderGraph) return 0;
     return m_renderGraph->GetFeatureMask(feature);
+}
+
+std::vector<GfxRenderer::RegisteredFeatureInfo> GfxRenderer::getRegisteredFeatures() const {
+    std::vector<RegisteredFeatureInfo> result;
+    result.reserve(m_registeredFeatures.size());
+    for (auto* feature : m_registeredFeatures) {
+        FeatureMask mask = m_renderGraph ? m_renderGraph->GetFeatureMask(feature) : 0;
+        result.push_back({feature->GetName(), mask});
+    }
+    return result;
 }
 
 // ============================================================================

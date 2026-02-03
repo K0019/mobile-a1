@@ -252,8 +252,10 @@ void GridFeature::EnsurePipelineCreated(const internal::ExecutionContext& contex
   pip_desc.cull_mode = HINA_CULL_MODE_NONE;
   pip_desc.depth.depth_test = true;
   pip_desc.depth.depth_write = false;
-  pip_desc.depth.depth_compare = HINA_COMPARE_OP_LESS;
+  pip_desc.depth.depth_compare = HINA_COMPARE_OP_LESS_OR_EQUAL;
   pip_desc.depth_format = depthFormat;
+  pip_desc.depth_bias.constant = -1.0f;  // Push grid behind coplanar geometry
+  pip_desc.depth_bias.slope = -1.0f;
   pip_desc.samples = static_cast<hina_sample_count>(params_.pipelineSamples);
 
   // Color attachment with alpha blending

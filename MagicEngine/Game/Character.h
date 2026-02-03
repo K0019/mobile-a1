@@ -23,8 +23,8 @@ All rights reserved.
 #include "ECS/EntityUID.h"
 #include "ECS/IEditorComponent.h"
 #include "Game/GrabbableItem.h"
-#include "Engine/Resources/ResourcesHeader.h"
-#include "Engine/Resources/Types/ResourceTypesGraphics.h"
+#include "Assets/AssetHandle.h"
+#include "Assets/Types/AssetTypes.h"
 #include "Engine/AnimatorStateMachine.h"
 
 
@@ -44,7 +44,7 @@ class CharacterMovementComponent
 private:
 	Vec2 movementVector;
 public:
-	UserResourceHandle<ResourceAnimation> animations[ANIMATION_TYPES::ANIM_TOTAL];
+	AssetHandle<ResourceAnimation> animations[ANIMATION_TYPES::ANIM_TOTAL];
 
 	CharacterRef joltCharRef;
 	EntityReference hitDebugObject;

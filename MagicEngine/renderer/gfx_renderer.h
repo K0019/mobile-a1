@@ -20,7 +20,6 @@
 #include "i_renderer.h"
 #include "frame_data.h"
 #include "linear_color.h"
-#include "renderer/ui/ui_primitives.h"
 #include <memory>
 #include <vector>
 #include <array>
@@ -30,22 +29,14 @@
 
 // Forward declarations
 struct FrameData;
-struct ImDrawData;
 class RenderGraph;
 class HinaContext;
 class IRenderFeature;
-
-// EnTT integration disabled - using internal ECS
-// #include <entt/entity/fwd.hpp>
 
 namespace Resource {
     struct Scene;
     class ResourceManager;
     class ResourceRegistry;
-}
-
-namespace ui {
-    struct PrimitiveDrawList;
 }
 
 // ============================================================================
@@ -221,12 +212,19 @@ struct WBOITTargets {
  */
 class CPUCuller {
 public:
+    enum class FrustumResult { Outside, Intersecting, FullyInside };
+
     void setFrustum(const glm::mat4& viewProj);
 
     /**
      * @brief Test if an AABB is visible
      */
     bool isVisible(const glm::vec3& aabbMin, const glm::vec3& aabbMax) const;
+
+    /**
+     * @brief Classify AABB against frustum (outside/intersecting/fully inside)
+     */
+    FrustumResult classifyAABB(const glm::vec3& aabbMin, const glm::vec3& aabbMax) const;
 
 private:
     glm::vec4 m_frustumPlanes[6];
@@ -251,8 +249,7 @@ public:
 
     // Frame loop
     bool beginFrame();
-    void render(FrameData& frameData);  // Single view (legacy)
-    void render(RenderFrameData& frameData);  // Multi-view (preferred)
+    void render(RenderFrameData& frameData);
     void endFrame();
 
     // Surface lifecycle management (for Android)
@@ -279,22 +276,6 @@ public:
     }
     const glm::mat4& getViewMatrix() const { return m_viewMatrix; }
     const glm::mat4& getProjMatrix() const { return m_projMatrix; }
-
-    // ImGui integration
-    bool initImGui();
-    void shutdownImGui();
-    void renderImGui(ImDrawData* drawData);
-    bool isImGuiInitialized() const { return m_imguiInitialized; }
-
-    // 2D UI rendering (game UI overlay)
-    bool initUI2D();
-    void shutdownUI2D();
-    void queueUI2D(const ui::PrimitiveDrawList& drawList, float viewportWidth, float viewportHeight);
-    bool isUI2DInitialized() const { return m_ui2dInitialized; }
-
-    // Register a texture for UI use, returns encoded texture ID
-    // The ID encodes the TextureHandle for use with transient bind groups at render time
-    uint32_t registerUITexture(gfx::TextureHandle texHandle);
 
     // Get the UI bind group layout (for external use, e.g., custom UI rendering)
     gfx::BindGroupLayout getUIBindGroupLayout() const { return m_uiBindGroupLayout; }
@@ -369,6 +350,19 @@ public:
     // ========================================================================
 
     /**
+     * @brief Info about a registered render feature (for UI enumeration).
+     */
+    struct RegisteredFeatureInfo {
+        const char* name;
+        FeatureMask mask;
+    };
+
+    /**
+     * @brief Get all registered features and their masks.
+     */
+    std::vector<RegisteredFeatureInfo> getRegisteredFeatures() const;
+
+    /**
      * @brief Register a render feature with the renderer.
      * Features will have their passes executed during the render loop.
      */
@@ -395,6 +389,8 @@ public:
     const gfx::GfxMeshStorage& getMeshStorage() const { return m_meshStorage; }
     gfx::GfxMaterialSystem& getMaterialSystem() { return m_materialSystem; }
     const gfx::GfxMaterialSystem& getMaterialSystem() const { return m_materialSystem; }
+    Resource::ResourceManager* getResourceManager() const { return m_resourceManager; }
+    void setResourceManager(Resource::ResourceManager* mgr) { m_resourceManager = mgr; }
 
     // ========================================================================
     // Upload Batching (Phase 3: Group same-frame uploads for efficiency)
@@ -432,6 +428,9 @@ public:
     bool isVisibleInFrustum(const glm::vec3& aabbMin, const glm::vec3& aabbMax) const {
         return m_culler.isVisible(aabbMin, aabbMax);
     }
+    CPUCuller::FrustumResult classifyInFrustum(const glm::vec3& aabbMin, const glm::vec3& aabbMax) const {
+        return m_culler.classifyAABB(aabbMin, aabbMax);
+    }
 
     // Material bind group layout (Set 1: constants UBO + textures) - for features that need to create compatible pipelines
     gfx::BindGroupLayout getMaterialLayout() const { return m_materialLayout; }
@@ -449,21 +448,6 @@ public:
     }
     gfx::Texture getSkyboxTexture() const { return m_skyboxTexture; }
     gfx::TextureView getSkyboxTextureView() const { return m_skyboxTextureView; }
-
-    // Get ImGui font texture view for external rendering (e.g., ImGuiRenderFeature)
-    gfx::TextureView getImGuiFontView() const { return m_imguiFontView; }
-
-    // ========================================================================
-    // Feature-invokable Render Passes
-    // These methods can be called by IRenderFeature implementations
-    // ========================================================================
-
-    /**
-     * @brief Execute grid pass.
-     * Renders infinite grid for editor orientation.
-     * @param cmd Command buffer to record into
-     */
-    void executeGridPass(gfx::Cmd* cmd);
 
     /**
      * @brief Get current frame resources.
@@ -493,13 +477,11 @@ private:
     bool createBindGroupLayouts();
     bool createRenderTargets();
     bool createDefaultResources();
-    bool createPipelines();
     bool createFrameResources();
     bool createViewOutput(ViewId viewId, uint32_t width, uint32_t height);
 
     // Per-frame helpers
     void updateFrameConstants(const FrameData& frameData);
-    void renderGrid();   // Infinite grid for editor orientation
 
     // Core state
     bool m_initialized = false;
@@ -524,11 +506,6 @@ private:
     // Render targets
     GBuffer m_gbuffer;
     WBOITTargets m_wboit;
-    gfx::Texture m_hdrTarget;
-    gfx::TextureView m_hdrTargetView;
-    gfx::Texture m_shadowAtlas;
-    gfx::TextureView m_shadowAtlasView;
-    gfx::Texture m_ambientOctMap;
 
     // View output textures (multiple views: game, scene, preview)
     std::array<ViewOutput, static_cast<size_t>(ViewId::Count)> m_viewOutputs;
@@ -537,16 +514,6 @@ private:
 
     // CPU systems
     CPUCuller m_culler;
-
-    // Pipelines (created at startup) - most scene rendering moved to SceneRenderFeature
-    gfx::Pipeline m_gridPipeline;            // Infinite grid for editor
-
-    // Grid rendering resources
-    gfx::BindGroupLayout m_gridLayout;
-    gfx::BindGroup m_gridBindGroup;
-    gfx::Buffer m_gridUBO;
-    void* m_gridUBOMapped = nullptr;
-    gfx::Buffer m_fullscreenQuadVB;  // Shared fullscreen quad for grid and other fullscreen passes
 
     // Default resources
     gfx::Sampler m_defaultSampler;
@@ -573,60 +540,14 @@ private:
     UploadStats m_uploadStats;
 
     // ========================================================================
-    // ImGui Resources
-    // ========================================================================
-    static constexpr uint32_t IMGUI_MAX_VERTEX_COUNT = 65536 * 4;
-    static constexpr uint32_t IMGUI_MAX_INDEX_COUNT = 65536 * 6;
-
-    struct ImGuiFrameResources {
-        gfx::Buffer vertexBuffer;
-        gfx::Buffer indexBuffer;
-        void* vertexMapped = nullptr;
-        void* indexMapped = nullptr;
-    };
-
-    bool m_imguiInitialized = false;
-    gfx::Pipeline m_imguiPipeline;
-    gfx::Texture m_imguiFontTexture;
-    gfx::TextureView m_imguiFontView;  // Font texture view for transient bind group
-    gfx::Sampler m_imguiFontSampler;
-    std::array<ImGuiFrameResources, GFX_MAX_FRAMES> m_imguiFrames;
-
     // ImTextureID encoding constants
-    static constexpr uint64_t IMGUI_FONT_TEXTURE_ID = 0;  // Font texture uses ID 0 (ImGui default)
+    // ========================================================================
     static constexpr uint64_t IMGUI_VIEWOUTPUT_BIT = 1ULL << 63;  // High bit = ViewOutput pointer
-
-    // ========================================================================
-    // 2D UI Resources (game overlay)
-    // ========================================================================
-    static constexpr uint32_t UI2D_MAX_VERTEX_COUNT = 65536 * 4;
-    static constexpr uint32_t UI2D_MAX_INDEX_COUNT = 65536 * 6;
-
-    struct UI2DFrameResources {
-        gfx::Buffer vertexBuffer;
-        gfx::Buffer indexBuffer;
-        void* vertexMapped = nullptr;
-        void* indexMapped = nullptr;
-    };
-
-    bool m_ui2dInitialized = false;
-    gfx::Pipeline m_ui2dPipeline;
-    gfx::Sampler m_ui2dLinearSampler;
-    gfx::Sampler m_ui2dNearestSampler;
-    gfx::Sampler m_ui2dFontSampler;
-    std::array<UI2DFrameResources, GFX_MAX_FRAMES> m_ui2dFrames;
-
-    // Queued UI2D draw list (set during update, rendered during render phase)
-    ui::PrimitiveDrawList m_queuedUI2DDrawList;
-    float m_queuedUI2DViewportWidth = 0.0f;
-    float m_queuedUI2DViewportHeight = 0.0f;
-    bool m_hasQueuedUI2D = false;
-
-    void renderUI2D();  // Called internally during render phase
 
     // ========================================================================
     // RenderGraph Integration
     // ========================================================================
+    Resource::ResourceManager* m_resourceManager = nullptr;
     std::unique_ptr<HinaContext> m_hinaContext;
     std::unique_ptr<RenderGraph> m_renderGraph;
     std::vector<IRenderFeature*> m_registeredFeatures;

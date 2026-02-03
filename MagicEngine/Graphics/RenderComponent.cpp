@@ -20,8 +20,8 @@ All rights reserved.
 /******************************************************************************/
 #include "VFS/VFS.h"
 #include "Graphics/RenderComponent.h"
-#include "Engine/Resources/ResourceManager.h"
-#include "Engine/Resources/Types/ResourceTypesGraphics.h"
+#include "Assets/AssetManager.h"
+#include "Assets/Types/AssetTypes.h"
 #include "Editor/Containers/GUICollection.h"
 #include "Engine/Graphics Interface/GraphicsAPI.h"
 #include <ImGui/ImguiHeader.h>
@@ -31,19 +31,19 @@ const ResourceMesh* RenderComponent::GetMesh() const
     return meshHandle.GetResource();
 }
 
-const std::vector<UserResourceHandle<ResourceMaterial>>& RenderComponent::GetMaterialsList() const
+const std::vector<AssetHandle<ResourceMaterial>>& RenderComponent::GetMaterialsList() const
 {
     return materials;
 }
 
-std::vector<UserResourceHandle<ResourceMaterial>>& RenderComponent::GetMaterialsList() 
+std::vector<AssetHandle<ResourceMaterial>>& RenderComponent::GetMaterialsList() 
 {
     return materials;
 }
 
 void RenderComponent::EditorDraw()
 {
-    const std::string* meshText{ ST<MagicResourceManager>::Get()->Editor_GetName(meshHandle.GetHash()) };
+    const std::string* meshText{ ST<AssetManager>::Get()->Editor_GetName(meshHandle.GetHash()) };
 
     gui::TextUnformatted("Mesh");
     gui::SameLine();
@@ -53,6 +53,7 @@ void RenderComponent::EditorDraw()
 
         //now based on this new mesh, update the default materials
         auto newMesh{ meshHandle.GetResource() };
+        if (!newMesh) return;
         size_t meshCount = newMesh->handles.size();
         materials.resize(meshCount);
         for (int i = 0; i < meshCount; i++)
@@ -286,7 +287,7 @@ void RenderComponent::EditorDraw()
                     ImGui::Indent(10.0f);
 
                     // Material assignment row
-                    const std::string* materialText{ ST<MagicResourceManager>::Get()->Editor_GetName(materials[i].GetHash()) };
+                    const std::string* materialText{ ST<AssetManager>::Get()->Editor_GetName(materials[i].GetHash()) };
                     std::string displayMaterial = materialText ? *materialText : "(none)";
 
                     // Truncate long material names

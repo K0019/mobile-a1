@@ -1,6 +1,6 @@
 #pragma once
 #include "Editor/AssetBrowserCategories.h"
-#include "Engine/Resources/Types/ResourceTypesAudio.h"
+#include "Assets/Types/AssetTypesAudio.h"
 
 namespace editor {
 

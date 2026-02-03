@@ -268,6 +268,9 @@ void SetupCLIArguments(Parser& parser)
     // Thumbnail-only mode (for generating thumbnails of existing compiled assets)
     parser.AddOption("thumbnail-only", "Generate thumbnail only, input is a compiled asset (ktx2, material)", false, 0);
 
+    // Recompression mode (for producing platform variants from existing compiled KTX2)
+    parser.AddOption("recompress-ktx2", "Recompress an existing compiled .ktx2 into the target platform format (e.g. BC7 -> ASTC for Android)", false, 0);
+
     // Mesh Options - but if you dont wanna optimise it, then what's the point of doing this even?
     parser.AddOption("no-opt", "Disable mesh optimization", false, 0);
     parser.AddOption("no-tangents", "Skip tangent generation", false, 0);
@@ -294,8 +297,8 @@ int main(int argc, char* argv[])
         return 1; // Error code
     }
 
-    // Check for thumbnail-only mode first (doesn't need --root)
-    bool thumbnailOnly = parser.HasOption("thumbnail-only");
+    // Check for special modes first (thumbnail-only doesn't need --root)
+    const bool thumbnailOnly = parser.HasOption("thumbnail-only");
     if (thumbnailOnly)
     {
         std::string inputRaw = parser.GetOption<std::string>("input").value();
@@ -384,6 +387,10 @@ int main(int argc, char* argv[])
         return thumbResult.success ? 0 : 1;
     }
 
+    // Recompress compiled KTX2 to a platform-specific GPU format.
+    // This is intended for generating Android ASTC variants from existing Windows BCn compiled assets.
+    const bool recompressKtx2 = parser.HasOption("recompress-ktx2");
+
 #pragma region Parsing Options
     // Regular compilation mode - requires --root
     std::string rootRaw = parser.GetOption<std::string>("root").value_or("");
@@ -457,7 +464,6 @@ int main(int argc, char* argv[])
     }
 #pragma endregion
 
-
     // Time to Compile
     std::filesystem::path path = options.general.inputPath;
     if (!std::filesystem::exists(path))
@@ -479,6 +485,27 @@ int main(int argc, char* argv[])
 
     CompilationResult finalResult;
     finalResult.success = false;
+
+    if (recompressKtx2)
+    {
+        // Input should be a compiled .ktx2
+        if (ext != ".ktx2")
+        {
+            std::cerr << "[ERROR] --recompress-ktx2 requires a .ktx2 input. Got: " << ext << std::endl;
+            ProgressReporter::ReportComplete(false, "Invalid input for recompress mode");
+            return 1;
+        }
+
+        ProgressReporter::ReportProgress(0.1f, "Recompressing KTX2", path.filename().string());
+        TextureCompiler textureCompiler;
+        finalResult = textureCompiler.RecompressKTX2(options);
+        WriteManifest(finalResult);
+
+        WriteManifest(finalResult, false);
+        ProgressReporter::ReportComplete(finalResult.success,
+            finalResult.success ? "Recompress successful" : "Recompress failed");
+        return finalResult.success ? 0 : 1;
+    }
 
     if (ext == ".fbx" || ext == ".glb")
     {

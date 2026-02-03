@@ -4,6 +4,7 @@
 #include "Engine/Graphics Interface/GraphicsAPI.h"
 #include "renderer/features/scene_feature.h"
 #include "renderer/features/ui2d_render_feature.h"
+#include "renderer/features/im3d_feature.h"
 #include "renderer/gfx_renderer.h"
 #include "Utilities/Logging.h"
 #include "Game/GameSystems.h"
@@ -28,11 +29,13 @@ void GameApplication::InitializeFeatures(Context& context)
 {
     // Game creates only essential features - NO grid, NO object picking, NO ImGui
     sceneFeatureHandle_ = context.renderer->CreateFeature<SceneRenderFeature>(false);  // no object picking
+    im3dFeatureHandle_ = context.renderer->CreateFeature<Im3dRenderFeature>();
     ui2dFeatureHandle_ = context.renderer->CreateFeature<Ui2DRenderFeature>();
 
     // Pass handles to GraphicsMain for compatibility with existing code
     auto* graphics = ST<GraphicsMain>::Get();
     graphics->SetSceneFeatureHandle(sceneFeatureHandle_);
+    graphics->SetIm3DFeatureHandle(im3dFeatureHandle_);
     graphics->SetUI2DFeatureHandle(ui2dFeatureHandle_);
     graphics->InitializeUI2DOverlay();
     // Note: No grid handle set - game doesn't have grid
@@ -45,10 +48,13 @@ void GameApplication::DestroyFeatures(Context& context)
     {
         if (ui2dFeatureHandle_ != 0)
             context.renderer->DestroyFeature(ui2dFeatureHandle_);
+        if (im3dFeatureHandle_ != 0)
+            context.renderer->DestroyFeature(im3dFeatureHandle_);
         if (sceneFeatureHandle_ != 0)
             context.renderer->DestroyFeature(sceneFeatureHandle_);
     }
     ui2dFeatureHandle_ = 0;
+    im3dFeatureHandle_ = 0;
     sceneFeatureHandle_ = 0;
 }
 

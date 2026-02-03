@@ -35,7 +35,7 @@ void MaterialSwapperComponent::ToggleMaterialSwap(bool swapped)
 
 void MaterialSwapperComponent::EditorDraw()
 {
-    const std::string* materialText{ ST<MagicResourceManager>::Get()->Editor_GetName(swapMaterial.GetHash()) };
+    const std::string* materialText{ ST<AssetManager>::Get()->Editor_GetName(swapMaterial.GetHash()) };
     gui::TextUnformatted("Material");
     gui::TextBoxReadOnly("##", materialText ? materialText->c_str() : "");
     gui::PayloadTarget<size_t>("MATERIAL_HASH", [&](size_t hash) -> void {

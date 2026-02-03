@@ -10,6 +10,8 @@
 #include <algorithm>
 #include <cctype>
 
+#define MAGICENGINE_ASSET_LOG_TAG "MagicEngineAssets"
+
 AndroidVFSImpl::AndroidVFSImpl(AAssetManager* assetManager) : m_AssetManager(assetManager) {}
 
 // Convert string to lowercase for case-insensitive comparison
@@ -26,18 +28,75 @@ void AndroidVFSImpl::BuildPathLookup() const
 {
     if (m_PathLookupBuilt) return;
 
-    // Read manifest directly from asset manager to avoid recursion
-    AAsset* manifestAsset = AAssetManager_open(m_AssetManager, "asset_manifest.txt", AASSET_MODE_BUFFER);
-    if (!manifestAsset)
+    if (!m_AssetManager)
     {
+        __android_log_print(ANDROID_LOG_ERROR, MAGICENGINE_ASSET_LOG_TAG,
+                            "BuildPathLookup: AssetManager is NULL (cannot load asset_manifest.txt)");
         m_PathLookupBuilt = true;
         return;
     }
 
-    const char* data = static_cast<const char*>(AAsset_getBuffer(manifestAsset));
-    off_t size = AAsset_getLength(manifestAsset);
-    std::string manifestContent(data, size);
+    // Read manifest directly from asset manager to avoid recursion
+    AAsset* manifestAsset = AAssetManager_open(m_AssetManager, "asset_manifest.txt", AASSET_MODE_BUFFER);
+    if (!manifestAsset)
+    {
+        __android_log_print(ANDROID_LOG_ERROR, MAGICENGINE_ASSET_LOG_TAG,
+                            "BuildPathLookup: Failed to open asset_manifest.txt from APK assets");
+        m_PathLookupBuilt = true;
+        return;
+    }
+
+    const off_t size = AAsset_getLength(manifestAsset);
+    if (size <= 0)
+    {
+        __android_log_print(ANDROID_LOG_ERROR, MAGICENGINE_ASSET_LOG_TAG,
+                            "BuildPathLookup: asset_manifest.txt has invalid size=%ld", (long)size);
+        AAsset_close(manifestAsset);
+        m_PathLookupBuilt = true;
+        return;
+    }
+
+    // Note: AAsset_getBuffer may return NULL for compressed assets.
+    // Always support both paths.
+    const void* buffer = AAsset_getBuffer(manifestAsset);
+    std::string manifestContent;
+    if (buffer)
+    {
+        manifestContent.assign(static_cast<const char*>(buffer), static_cast<size_t>(size));
+    }
+    else
+    {
+        manifestContent.resize(static_cast<size_t>(size));
+        size_t totalRead = 0;
+        while (totalRead < static_cast<size_t>(size))
+        {
+            const int bytesRead = AAsset_read(manifestAsset,
+                                              manifestContent.data() + totalRead,
+                                              static_cast<size_t>(size) - totalRead);
+            if (bytesRead <= 0)
+            {
+                break;
+            }
+            totalRead += static_cast<size_t>(bytesRead);
+        }
+
+        if (totalRead != static_cast<size_t>(size))
+        {
+            __android_log_print(ANDROID_LOG_ERROR, MAGICENGINE_ASSET_LOG_TAG,
+                                "BuildPathLookup: Short read of asset_manifest.txt (read=%zu expected=%ld)",
+                                totalRead, (long)size);
+            manifestContent.resize(totalRead);
+        }
+    }
     AAsset_close(manifestAsset);
+
+    if (manifestContent.empty())
+    {
+        __android_log_print(ANDROID_LOG_ERROR, MAGICENGINE_ASSET_LOG_TAG,
+                            "BuildPathLookup: asset_manifest.txt content is empty after read");
+        m_PathLookupBuilt = true;
+        return;
+    }
 
     std::stringstream ss(manifestContent);
     std::string line;
@@ -52,7 +111,9 @@ void AndroidVFSImpl::BuildPathLookup() const
     }
 
     m_PathLookupBuilt = true;
-    __android_log_print(ANDROID_LOG_INFO, "MagicEngine", "Built path lookup with %zu entries", m_PathLookup.size());
+    __android_log_print(ANDROID_LOG_INFO, MAGICENGINE_ASSET_LOG_TAG,
+                        "Built path lookup with %zu entries (manifest bytes=%zu)",
+                        m_PathLookup.size(), manifestContent.size());
 }
 
 // Resolve a path case-insensitively
@@ -93,6 +154,13 @@ std::unique_ptr<IFileStream> AndroidVFSImpl::OpenFile(const std::string& path, F
     AAsset* assetHandle = AAssetManager_open(m_AssetManager, resolvedPath.c_str(), AASSET_MODE_RANDOM);
     if (!assetHandle)
     {
+        static int s_FailedOpenCount = 0;
+        if (s_FailedOpenCount < 25)
+        {
+            __android_log_print(ANDROID_LOG_ERROR, MAGICENGINE_ASSET_LOG_TAG,
+                                "OpenFile failed: requested='%s' resolved='%s'", path.c_str(), resolvedPath.c_str());
+            ++s_FailedOpenCount;
+        }
         return nullptr;
     }
     return std::make_unique<AndroidFileStream>(assetHandle);

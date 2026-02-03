@@ -14,6 +14,7 @@ using glm::vec2;
 using glm::vec3;
 using glm::vec4;
 
+
 namespace Math
 {
   static constexpr float PI = glm::pi<float>();

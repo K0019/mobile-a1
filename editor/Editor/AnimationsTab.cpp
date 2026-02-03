@@ -1,7 +1,7 @@
 #include "Editor/AnimationsTab.h"
 #include "Editor/AssetBrowser.h"
 #include "Editor/EditorGuiUtils.h"
-#include "Engine/Resources/Types/ResourceTypesGraphics.h"
+#include "Assets/Types/AssetTypes.h"
 
 namespace editor
 {
@@ -46,9 +46,9 @@ namespace editor
         ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
 
         int count{};
-        for (const auto& [hash, animRef] : ST<MagicResourceManager>::Get()->Editor_GetContainer<ResourceAnimation>().Editor_GetAllResources())
+        for (const auto& [hash, animRef] : ST<AssetManager>::Get()->Editor_GetContainer<ResourceAnimation>().Editor_GetAllResources())
         {
-            const std::string& animName{ *ST<MagicResourceManager>::Get()->Editor_GetName(hash) };
+            const std::string& animName{ *ST<AssetManager>::Get()->Editor_GetName(hash) };
             if (!filter.PassFilter(animName))
                 continue;
 
@@ -98,7 +98,7 @@ namespace editor
         ImGui::BeginChild("AnimationDetails", ImVec2(0, 0), true);
 
         size_t hash = selectedAnimationHash.value();
-        const std::string* animName = ST<MagicResourceManager>::Get()->Editor_GetName(hash);
+        const std::string* animName = ST<AssetManager>::Get()->Editor_GetName(hash);
 
         if (!animName)
         {
@@ -147,9 +147,9 @@ namespace editor
         int relatedCount = 0;
         if (!animFolder.empty())
         {
-            for (const auto& [meshHash, meshRef] : ST<MagicResourceManager>::Get()->INTERNAL_GetContainer<ResourceMesh>().Editor_GetAllResources())
+            for (const auto& [meshHash, meshRef] : ST<AssetManager>::Get()->INTERNAL_GetContainer<ResourceMesh>().Editor_GetAllResources())
             {
-                const std::string* meshName = ST<MagicResourceManager>::Get()->Editor_GetName(meshHash);
+                const std::string* meshName = ST<AssetManager>::Get()->Editor_GetName(meshHash);
                 if (meshName && meshName->find(animFolder) != std::string::npos)
                 {
                     ImGui::Selectable(meshName->c_str(), false);
