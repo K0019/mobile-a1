@@ -220,8 +220,11 @@ namespace gui {
 			SetID id{ static_cast<int>(i) };
 			TextFormatted("%d", i);
 			SameLine();
-			if (elemDrawFunc(v->at(i)))
-				modified = true;
+			if constexpr (std::is_same_v<decltype(elemDrawFunc(v->at(i))), void>)
+				elemDrawFunc(v->at(i));
+			else
+				if (elemDrawFunc(v->at(i)))
+					modified = true;
 		}
 
 		return modified;

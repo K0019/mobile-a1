@@ -52,7 +52,7 @@ namespace editor {
             if (!filter.PassFilter(weaponName))
                 continue;
 
-            gui::GridItem entry{ grid.Item() };
+            gui::GridItem entry{ grid.Item(weaponName) };
 
             gui::Button{ "Weapon", gui::Vec2{ AssetBrowser::THUMBNAIL_SIZE, AssetBrowser::THUMBNAIL_SIZE } };
             gui::PayloadSource{ "GAME_WEAPON_HASH", hash.get() };
@@ -61,9 +61,6 @@ namespace editor {
                 if (gui::MenuItem("Edit"))
                     editor::CreateGuiWindow<editor::WeaponCreationWindow>(weaponName.substr(0, weaponName.size() - 1), UserResourceHandle<WeaponInfo>{ hash }.GetResource());
             }
-
-            gui::ShowSimpleHoverTooltip(weaponName);
-            gui::ThumbnailLabel(weaponName, AssetBrowser::THUMBNAIL_SIZE);
         }
     }
 

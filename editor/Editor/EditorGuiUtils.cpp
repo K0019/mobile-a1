@@ -18,15 +18,23 @@ namespace gui
 		}
 	}
 
-	GridItem::GridItem(int id, bool doSameLine)
+	GridItem::GridItem(int id, bool doSameLine, float thumbnailSize, const std::string* name)
 		: varsMem{ 0 }
 		, doSameLine{ doSameLine }
+		, thumbnailSize{ thumbnailSize }
+		, name{ name }
 	{
 		// Initialize id and group
 		new (&varsMem[0]) PerItemVars{ id };
 	}
 	GridItem::~GridItem()
 	{
+		if (name)
+		{
+			gui::ShowSimpleHoverTooltip(*name);
+			gui::ThumbnailLabel(*name, thumbnailSize);
+		}
+
 		// Free id and group
 		reinterpret_cast<PerItemVars*>(&varsMem[0])->~PerItemVars();
 
@@ -35,7 +43,8 @@ namespace gui
 	}
 
 	NewGridHelper::NewGridHelper(float thumbnailSize)
-		: itemCount{}
+		: thumbnailSize{ thumbnailSize }
+		, itemCount{}
 		, columnsCount{ std::max(static_cast<int>(gui::GetAvailableContentRegion().x / thumbnailSize), 1) }
 		, itemSpacing{ gui::FLAG_STYLE_VAR::ITEM_SPACING, gui::Vec2{ 5.0f, 5.0f } }
 		, framePadding{ gui::FLAG_STYLE_VAR::FRAME_PADDING, gui::Vec2{ 2.0f, 2.0f } }
@@ -44,7 +53,7 @@ namespace gui
 
 	std::string TruncateText(const std::string& text, [[maybe_unused]] float maxWidth)
 	{
-		std::string displayName = text;
+		std::string displayName{ text };
 #ifdef IMGUI_ENABLED
 		ImVec2 textSize = ImGui::CalcTextSize(displayName.c_str());
 		if (textSize.x > maxWidth)

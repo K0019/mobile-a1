@@ -15,7 +15,7 @@ namespace gui
 	class GridItem
 	{
 	public:
-		GridItem(int id, bool doSameLine);
+		GridItem(int id, bool doSameLine, float thumbnailSize, const std::string* name);
 		GridItem(const GridItem&) = delete;
 		~GridItem();
 
@@ -28,13 +28,17 @@ namespace gui
 		};
 		std::array<std::uint8_t, sizeof(PerItemVars)> varsMem;
 		bool doSameLine;
+		float thumbnailSize;
+		const std::string* name;
 	};
 
 	class NewGridHelper
 	{
 	private:
+		float thumbnailSize;
 		int itemCount;
 		int columnsCount;
+		std::string itemName;
 
 		gui::SetStyleVar itemSpacing;
 		gui::SetStyleVar framePadding;
@@ -45,7 +49,13 @@ namespace gui
 		[[nodiscard]] inline GridItem Item()
 		{
 			++itemCount;
-			return GridItem{ itemCount, itemCount % columnsCount != 0 };
+			return GridItem{ itemCount, itemCount % columnsCount != 0, thumbnailSize, nullptr };
+		}
+		[[nodiscard]] inline GridItem Item(const std::string& name)
+		{
+			itemName = name;
+			++itemCount;
+			return GridItem{ itemCount, itemCount % columnsCount != 0, thumbnailSize, &itemName };
 		}
 
 	};
