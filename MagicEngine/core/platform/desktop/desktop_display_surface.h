@@ -58,6 +58,7 @@ namespace Core {
 			m_userData.displaySurface = this;
 			glfwSetWindowUserPointer(m_window, &m_userData);
 			glfwSetFramebufferSizeCallback(m_window, FramebufferResizeCallback);
+			glfwSetWindowContentScaleCallback(m_window, ContentScaleCallback);
 
 			return true;
 		}
@@ -120,6 +121,14 @@ namespace Core {
 		bool IsValid() const { return m_isValid; }
 		GLFWwindow* GetBackendHandle() const { return m_window; }
 
+		// Get the DPI content scale factor for high-DPI displays
+		float GetContentScale() const {
+			if (!m_window) return 1.0f;
+			float xscale = 1.0f, yscale = 1.0f;
+			glfwGetWindowContentScale(m_window, &xscale, &yscale);
+			return xscale; // Use x scale (typically same as y on most platforms)
+		}
+
 		// Add actual platform-specific handle extraction
 		void* GetVulkanWindowHandle() const {
 			if (!m_window) return nullptr;
@@ -150,6 +159,7 @@ namespace Core {
 		}
 
 		std::function<void(int, int)> onResize;
+		std::function<void(float)> onContentScaleChange;
 
 	private:
 		GLFWwindow* m_window = nullptr;
@@ -170,6 +180,16 @@ namespace Core {
 
 				if (surface->onResize) {
 					surface->onResize(width, height);
+				}
+			}
+		}
+
+		static void ContentScaleCallback(GLFWwindow* window, float xscale, [[maybe_unused]] float yscale) {
+			auto* userData = static_cast<GlfwWindowUserData*>(glfwGetWindowUserPointer(window));
+			if (userData && userData->displaySurface) {
+				auto* surface = userData->displaySurface;
+				if (surface->onContentScaleChange) {
+					surface->onContentScaleChange(xscale);
 				}
 			}
 		}

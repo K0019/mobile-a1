@@ -84,7 +84,7 @@ public:
 
 private:
     void InitImGui(const std::string& fontfile);
-    void SetImGuiStyle();
+    void SetImGuiStyle(float dpiScale = 1.0f);
     void InitFont(const std::string& fontfile);
     void UploadToPipeline(FrameData* outFrameData);
 

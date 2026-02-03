@@ -391,8 +391,20 @@ bool GraphicsMain::GetIsPendingShutdown() const
 
 void GraphicsMain::InitImGui(const std::string& fontfile)
 {
-	imguiContext = std::make_unique<editor::ImGuiContext>(context);
-	SetImGuiStyle();
+	// Get DPI scale factor for high-DPI displays
+	// This is used to render fonts at higher resolution for crisp text,
+	// while keeping the UI at the same logical size as 1920x1080
+#ifndef __ANDROID__
+	const float dpiScale = Core::Display().GetContentScale();
+#else
+	const float dpiScale = 1.0f;
+#endif
+
+	// Create ImGui context - displayScale=1.0 keeps UI at reference size
+	ImGuiConfig imguiConfig;
+	imguiConfig.displayScale = 1.0f;  // Don't scale the logical UI size
+	imguiContext = std::make_unique<editor::ImGuiContext>(context, imguiConfig);
+	SetImGuiStyle();  // Use original unscaled style values
 
 	ImGuiIO& io = ImGui::GetIO();
 #ifdef __ANDROID__
@@ -402,8 +414,12 @@ void GraphicsMain::InitImGui(const std::string& fontfile)
 #endif
 	//io.Fonts->AddFontDefault();
 	io.Fonts->Clear(); // Clear existing fonts
-	constexpr float baseFontSize = 13.0f; // 13.0f is the size of the default font. Change to the font size you use.
-	constexpr float iconFontSize = baseFontSize * 2.5f / 3.0f; // FontAwesome fonts need to have their sizes reduced by 2.0f/3.0f in order to align correctly
+
+	// Load fonts at higher resolution for crisp rendering on high-DPI displays,
+	// then scale down via FontGlobalScale to maintain consistent logical size
+	constexpr float baseFontSizeUnscaled = 20.0f; // 13.0f is the size of the default font
+	const float baseFontSize = baseFontSizeUnscaled * dpiScale;  // Render at higher res
+	const float iconFontSize = baseFontSize * 2.5f / 3.0f; // FontAwesome fonts need to have their sizes reduced by 2.0f/3.0f in order to align correctly
 	const ImWchar icons_ranges[] = { ICON_MIN_FA, ICON_MAX_FA, 0 };
 	ImFontConfig icons_config;
 	icons_config.MergeMode = true; // Merge icon font to the previous font if you want to have both icons and text
@@ -434,13 +450,17 @@ void GraphicsMain::InitImGui(const std::string& fontfile)
 
 	io.Fonts->AddFontFromMemoryCompressedTTF(FA_compressed_data, FA_compressed_size, iconFontSize, &icons_config, icons_ranges);
 
+	// Scale fonts back down so they appear at the original logical size
+	// but are rendered with higher-resolution glyphs for crispness
+	io.FontGlobalScale = 1.0f / dpiScale;
+
 	imguiContext->rebuildFontAtlas();
 	//If you want change between icons size you will need to create a new font
 	//io.Fonts->AddFontFromMemoryCompressedTTF(FA_compressed_data, FA_compressed_size, 12.0f, &icons_config, icons_ranges);
 	//io.Fonts->AddFontFromMemoryCompressedTTF(FA_compressed_data, FA_compressed_size, 20.0f, &icons_config, icons_ranges);
 }
 
-void GraphicsMain::SetImGuiStyle()
+void GraphicsMain::SetImGuiStyle(float /*dpiScale*/)
 {
 	ImGuiStyle& style = ImGui::GetStyle();
 	ImVec4* colors = ImGui::GetStyle().Colors;
@@ -502,6 +522,7 @@ void GraphicsMain::SetImGuiStyle()
 
 	style.Alpha = 1.0f;
 	style.DisabledAlpha = 0.300000011920929f;
+	// Original style values - same logical size as 1920x1080
 	style.WindowPadding = ImVec2(10.10000038146973f, 10.10000038146973f);
 	style.WindowRounding = 10.30000019073486f;
 	style.WindowBorderSize = 1.0f;
