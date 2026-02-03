@@ -373,7 +373,7 @@ namespace gui {
 #endif
 	}
 
-	Vec2 CalculateTextSize(internal::TextType text)
+	Vec2 CalcTextSize(internal::TextType text)
 	{
 #ifdef IMGUI_ENABLED
 		return ImGui::CalcTextSize(text);
@@ -389,28 +389,19 @@ namespace gui {
 #endif
 	}
 
-	void TextUnformatted([[maybe_unused]] const char* text)
+	void TextUnformatted([[maybe_unused]] internal::TextType text)
 	{
 #ifdef IMGUI_ENABLED
 		ImGui::TextUnformatted(text);
 #endif
 	}
-	void TextUnformatted(const std::string& text)
-	{
-		TextUnformatted(text.c_str());
-	}
 
-	void TextCenteredUnformatted([[maybe_unused]] const char* text)
+	void TextCenteredUnformatted([[maybe_unused]] internal::TextType text)
 	{
 #ifdef IMGUI_ENABLED
 		ImGui::SetCursorPosX((ImGui::GetWindowWidth() - ImGui::CalcTextSize(text).x) * 0.5f);
 		TextUnformatted(text);
 #endif
-	}
-
-	void TextCenteredUnformatted(const std::string& text)
-	{
-		TextCenteredUnformatted(text.c_str());
 	}
 
 	void TextBoxReadOnly([[maybe_unused]] const char* label, [[maybe_unused]] const char* text, [[maybe_unused]] size_t size)
@@ -456,7 +447,7 @@ namespace gui {
 #endif
 	}
 
-	bool TextBoxWithFilter::PassFilter([[maybe_unused]] const char* text) const
+	bool TextBoxWithFilter::PassFilter([[maybe_unused]] internal::TextType text) const
 	{
 #ifdef IMGUI_ENABLED
 		// Whether to use ImGui's in-built filter
@@ -469,16 +460,11 @@ namespace gui {
 			return false;
 
 		// This checks up to the number of characters within the filter
-		return std::equal(InputBuf, InputBuf + filterLength, text, text + filterLength,
+		return std::equal(InputBuf, InputBuf + filterLength, text.text, text.text + filterLength,
 			[](char a, char b) -> bool { return std::tolower(a) == std::tolower(b); });
 #else
 		return false;
 #endif
-	}
-
-	bool gui::TextBoxWithFilter::PassFilter(const std::string& text) const
-	{
-		return PassFilter(text.c_str());
 	}
 
 	void TextBoxWithFilter::Clear()

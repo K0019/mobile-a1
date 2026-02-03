@@ -1028,21 +1028,19 @@ namespace gui {
 
 	//! ImGui::Text()
 	template <typename ...Args>
-	void TextFormatted(const char* fmt, const Args&... args);
+	void TextFormatted(internal::TextType fmt, const Args&... args);
 	//! ImGui::TextUnformatted()
-	void TextUnformatted(const char* text);
-	void TextUnformatted(const std::string& text);
-	void TextCenteredUnformatted(const char* text);
-	void TextCenteredUnformatted(const std::string& text);
+	void TextUnformatted(internal::TextType text);
+	void TextCenteredUnformatted(internal::TextType text);
 	//! ImGui::TextColored
 	template <typename ...Args>
-	void TextColored(const Vec4& color, const char* fmt, const Args&... args);
+	void TextColored(const Vec4& color, internal::TextType fmt, const Args&... args);
 	//! ImGui::TextWrapped()
 	template <typename ...Args>
-	void TextWrapped(const char* fmt, const Args&... args);
+	void TextWrapped(internal::TextType fmt, const Args&... args);
 	//! ImGui::TextDisabled()
 	template <typename ...Args>
-	void TextDisabled(const char* format, const Args&... args);
+	void TextDisabled(internal::TextType format, const Args&... args);
 
 	//! ImGui::InputText() (displays read-only text within a text box)
 	// TODO: See if can find a way to unify this and perhaps a base TextBox class.
@@ -1160,8 +1158,7 @@ namespace gui {
 		\param text
 			The text to test whether it passes the filter or not.
 		*//******************************************************************/
-		bool PassFilter(const char* text) const;
-		bool PassFilter(const std::string& text) const;
+		bool PassFilter(internal::TextType text) const;
 
 		/*****************************************************************//*!
 		\brief

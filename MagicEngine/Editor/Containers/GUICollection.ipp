@@ -116,7 +116,7 @@ namespace gui {
 	}
 
 	template<typename ...Args>
-	void TextFormatted([[maybe_unused]] const char* fmt, [[maybe_unused]] const Args&... args)
+	void TextFormatted([[maybe_unused]] internal::TextType fmt, [[maybe_unused]] const Args&... args)
 	{
 #ifdef IMGUI_ENABLED
 		if constexpr (sizeof...(args) == 0)
@@ -127,7 +127,7 @@ namespace gui {
 	}
 
 	template<typename ...Args>
-	void TextColored([[maybe_unused]] const Vec4& color, [[maybe_unused]] const char* fmt, [[maybe_unused]] const Args&... args)
+	void TextColored([[maybe_unused]] const Vec4& color, [[maybe_unused]] internal::TextType fmt, [[maybe_unused]] const Args&... args)
 	{
 #ifdef IMGUI_ENABLED
 		if constexpr (sizeof...(args) == 0)
@@ -138,7 +138,7 @@ namespace gui {
 	}
 
 	template<typename ...Args>
-	void TextWrapped([[maybe_unused]] const char* fmt, [[maybe_unused]] const Args&... args)
+	void TextWrapped([[maybe_unused]] internal::TextType fmt, [[maybe_unused]] const Args&... args)
 	{
 #ifdef IMGUI_ENABLED
 		if constexpr (sizeof...(args) == 0)
@@ -149,7 +149,7 @@ namespace gui {
 	}
 
 	template<typename ...Args>
-	void TextDisabled([[maybe_unused]] const char* format, [[maybe_unused]] const Args&... args)
+	void TextDisabled([[maybe_unused]] internal::TextType format, [[maybe_unused]] const Args&... args)
 	{
 #ifdef IMGUI_ENABLED
 		if constexpr (sizeof...(args) == 0)
