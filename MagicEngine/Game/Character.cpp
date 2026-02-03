@@ -439,6 +439,8 @@ void CharacterMovementComponentSystem::UpdateCharacterMovementComponent(Characte
 	{
 		JPH::Vec3 joltCurrVel = comp.joltCharRef->GetLinearVelocity();
 		currVel = Vec3{ joltCurrVel.GetX(), joltCurrVel.GetY(), joltCurrVel.GetZ() };
+		currVel = util::WalkTo(currVel, Vec3{}, Vec3{ 4.0f * GameTime::Dt() }); // Apply friction
+		comp.joltCharRef->SetLinearVelocity(JPH::Vec3{ currVel.x, currVel.y, currVel.z });
 	}
 	else
 		currVel = physicsComp->GetLinearVelocity();
@@ -465,7 +467,7 @@ void CharacterMovementComponentSystem::UpdateCharacterMovementComponent(Characte
 		{
 			Vec3 currPos{ characterTransform.GetWorldPosition() };
 			comp.joltCharRef->SetPosition(JPH::Vec3{ currPos.x, currPos.y, currPos.z });
-			ST<physics::JoltPhysics>::Get()->UpdateCharacterBody(comp.joltCharRef, Vec3{currVel.x, 0.f, currVel.y});
+			ST<physics::JoltPhysics>::Get()->UpdateCharacterBody(comp.joltCharRef, Vec3{currVel.x, 0.f, currVel.z});
 			JPH::Vec3 joltPos{ comp.joltCharRef->GetPosition() };
 			characterTransform.SetWorldPosition(Vec3(joltPos.GetX(), joltPos.GetY(), joltPos.GetZ()));
 		}

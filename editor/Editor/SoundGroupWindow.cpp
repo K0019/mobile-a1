@@ -56,9 +56,8 @@ namespace editor {
 		gui::Separator();
 
 		groupFilename.Draw();
-		gui::VarContainer("Sounds", &sounds, [](AssetHandle<ResourceAudio>& soundHandle) -> bool {
+		gui::VarContainer("Sounds", &sounds, [](AssetHandle<ResourceAudio>& soundHandle) -> void {
 			editor::EditorUtil_DrawResourceHandle("Sound", soundHandle);
-			return false;
 		});
 
 		if (gui::Button{ "Create/Modify" })
