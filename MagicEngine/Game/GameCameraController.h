@@ -24,8 +24,8 @@ All rights reserved.
 #pragma once
 #include "ECS/EntityUID.h"
 #include "ECS/IEditorComponent.h"
-#include "Engine/Resources/ResourcesHeader.h"
-#include "Engine/Resources/Types/ResourceTypesGraphics.h"
+#include "Assets/AssetHandle.h"
+#include "Assets/Types/AssetTypes.h"
 
 /*****************************************************************//*!
 \class GameCameraControllerComponent
@@ -53,7 +53,7 @@ public:
 	float cameraSensitivity;
 
 	// Serialized
-	UserResourceHandle<ResourceMaterial> translucentMaterial;
+	AssetHandle<ResourceMaterial> translucentMaterial;
 
 	std::vector<ecs::EntityHandle> currentColliders;
 

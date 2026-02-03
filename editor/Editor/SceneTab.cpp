@@ -1,5 +1,5 @@
 #include "Editor/SceneTab.h"
-#include "Engine/Resources/ResourceManager.h"
+#include "Assets/AssetManager.h"
 #include "Editor/EditorGuiUtils.h"
 #include "Engine/SceneManagement.h"
 #include "Editor/AssetBrowser.h"

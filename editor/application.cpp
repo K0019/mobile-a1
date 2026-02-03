@@ -7,6 +7,7 @@
 #include "renderer/features/scene_feature.h"
 #include "renderer/features/grid_feature.h"
 #include "renderer/features/ui2d_render_feature.h"
+#include "renderer/features/im3d_feature.h"
 #include "renderer/gfx_renderer.h"
 //#include "Editor/EditorAssetReloadManager.h"
 
@@ -101,11 +102,13 @@ void Application::InitializeFeatures(Context& context)
     // Editor creates all features including grid
     sceneFeatureHandle_ = context.renderer->CreateFeature<SceneRenderFeature>(true);  // with object picking
     gridFeatureHandle_ = context.renderer->CreateFeature<GridFeature>();
+    im3dFeatureHandle_ = context.renderer->CreateFeature<Im3dRenderFeature>();
     ui2dFeatureHandle_ = context.renderer->CreateFeature<Ui2DRenderFeature>();
 
     // Pass handles to GraphicsMain for compatibility with existing code
     graphics->SetSceneFeatureHandle(sceneFeatureHandle_);
     graphics->SetGridFeatureHandle(gridFeatureHandle_);
+    graphics->SetIm3DFeatureHandle(im3dFeatureHandle_);
     graphics->SetUI2DFeatureHandle(ui2dFeatureHandle_);
     graphics->InitializeUI2DOverlay();
 
@@ -119,12 +122,15 @@ void Application::DestroyFeatures(Context& context)
     {
         if (ui2dFeatureHandle_ != 0)
             context.renderer->DestroyFeature(ui2dFeatureHandle_);
+        if (im3dFeatureHandle_ != 0)
+            context.renderer->DestroyFeature(im3dFeatureHandle_);
         if (gridFeatureHandle_ != 0)
             context.renderer->DestroyFeature(gridFeatureHandle_);
         if (sceneFeatureHandle_ != 0)
             context.renderer->DestroyFeature(sceneFeatureHandle_);
     }
     ui2dFeatureHandle_ = 0;
+    im3dFeatureHandle_ = 0;
     gridFeatureHandle_ = 0;
     sceneFeatureHandle_ = 0;
 }
@@ -167,17 +173,24 @@ void Application::updateViews(Context& context, RenderFrameData& frame, int widt
 
     // Game view: scene + UI only (no editor overlays)
     gameView.featureMask = sceneMask | uiMask;
+    gameView.screenWidth = static_cast<uint32_t>(width);
+    gameView.screenHeight = static_cast<uint32_t>(height);
     gameView.viewportWidth = static_cast<float>(width);
     gameView.viewportHeight = static_cast<float>(height);
 
-    // Scene view: full feature set (editor overlays)
-    sceneView.featureMask = sceneMask | gridMask | uiMask;
+    // Scene view: user-togglable feature mask (stored on GraphicsMain singleton)
+    // Strip ImGui bit - ImGui is an editor-only feature that only runs in the editor view
+    sceneView.featureMask = ST<GraphicsMain>::Get()->GetSceneViewFeatureMask() & ~imguiMask;
+    sceneView.screenWidth = static_cast<uint32_t>(width);
+    sceneView.screenHeight = static_cast<uint32_t>(height);
     sceneView.viewportWidth = static_cast<float>(width);
     sceneView.viewportHeight = static_cast<float>(height);
 
     // Editor view: ImGui composition + presentation target
     // ImGui renders to VIEW_OUTPUT, then FinalBlit copies to swapchain
     editorView.featureMask = imguiMask;
+    editorView.screenWidth = static_cast<uint32_t>(width);
+    editorView.screenHeight = static_cast<uint32_t>(height);
     editorView.viewportWidth = static_cast<float>(width);
     editorView.viewportHeight = static_cast<float>(height);
 

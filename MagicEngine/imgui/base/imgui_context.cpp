@@ -272,7 +272,7 @@ namespace editor
     atlas->ConfigData.push_back(resourceConfig);
     ImFontConfig* sourceEntry = atlas->ConfigData.empty() ? nullptr : &atlas->ConfigData.back();
     if (!sourceEntry) return false;
-    atlas->TexID = (ImTextureID)(uintptr_t)(hot->uiTextureId);
+    atlas->TexID = (ImTextureID)(uintptr_t)hot->atlasTexture.getOpaqueValue();
     atlas->TexWidth = cpuData.atlasWidth;
     atlas->TexHeight = cpuData.atlasHeight;
     if (atlas->TexWidth > 0 && atlas->TexHeight > 0)
@@ -344,7 +344,7 @@ namespace editor
                       atlas->TexUvWhitePixel.y);
     }
     io.FontDefault = font;
-    io.Fonts->TexID = (ImTextureID)(uintptr_t)(hot->uiTextureId);
+    io.Fonts->TexID = (ImTextureID)(uintptr_t)hot->atlasTexture.getOpaqueValue();
     fontTextureHandle_ = {};
     ownsFontTexture_ = false;
     return true;
@@ -363,7 +363,11 @@ namespace editor
     {
       ownsFontTexture_ = false;
       fontTextureHandle_ = {};
-      io.Fonts->TexID = context_.resourceMngr->getFontTextureUIId(sharedFontHandle_);
+      const auto* fontHot = context_.resourceMngr->getFont(sharedFontHandle_);
+      if (fontHot)
+      {
+        io.Fonts->TexID = (ImTextureID)(uintptr_t)fontHot->atlasTexture.getOpaqueValue();
+      }
       return;
     }
     // Generate font atlas
@@ -391,13 +395,12 @@ namespace editor
     texture.data = std::vector(pixels, pixels + (width * height * 4));
     fontTextureHandle_ = context_.resourceMngr->createTexture(texture);
     ownsFontTexture_ = fontTextureHandle_.isValid();
-    io.Fonts->TexID = context_.resourceMngr->getTextureUIId(fontTextureHandle_);
+    io.Fonts->TexID = (ImTextureID)(uintptr_t)fontTextureHandle_.getOpaqueValue();
   }
 
   void ImGuiContext::beginFrame() const
   {
     assert(initialized_ && "ImGuiContext not initialized");
-    ImGuiIO& io = ImGui::GetIO();
 #if defined(__ANDROID__)
     // Android doesn't need manual display size setup in the same way
     // The android backend handles display metrics internally
@@ -406,6 +409,7 @@ namespace editor
     // GLFW backend requires manual display size setup
     int width = Core::Display().GetWidth();
     int height = Core::Display().GetHeight();
+    ImGuiIO& io = ImGui::GetIO();
     io.DisplaySize = ImVec2(width / config_.displayScale, height / config_.displayScale);
     io.DisplayFramebufferScale = ImVec2(config_.displayScale, config_.displayScale);
     ImGui_ImplGlfw_NewFrame();

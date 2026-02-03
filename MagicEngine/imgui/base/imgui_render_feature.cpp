@@ -1,6 +1,7 @@
 #include "imgui_render_feature.h"
 #include "renderer/gfx_renderer.h"
 #include "renderer/hina_context.h"
+#include "resource/resource_manager.h"
 #include "logging/log.h"
 #include <imgui.h>
 #include <cassert>
@@ -266,8 +267,6 @@ FragOut FSMain(Varyings in) {
 
     GfxRenderer* gfxRenderer = context.GetGfxRenderer();
 
-    // Font texture: ID 0 (ImGui default)
-    constexpr uint64_t IMGUI_FONT_TEXTURE_ID = 0;
     constexpr uint64_t IMGUI_VIEWOUTPUT_BIT = 1ULL << 63;
 
     // Render commands
@@ -287,15 +286,11 @@ FragOut FSMain(Varyings in) {
         if (clipMax.x <= clipMin.x || clipMax.y <= clipMin.y) continue;
 
         // Bind the texture for this draw call using transient bind groups
-        uint64_t textureId = static_cast<uint64_t>(reinterpret_cast<uintptr_t>((void*)drawCmd.TextureId));
+        uint64_t textureId = static_cast<uint64_t>(drawCmd.TextureId);
         gfx::TextureView texView = {};
         gfx::Sampler sampler = fontSampler_.get();
 
-        if (textureId == IMGUI_FONT_TEXTURE_ID) {
-          texView = gfxRenderer->getImGuiFontView();
-        }
-        // ViewOutput pointer: high bit set
-        else if (textureId & IMGUI_VIEWOUTPUT_BIT) {
+        if (textureId & IMGUI_VIEWOUTPUT_BIT) {
           const ViewOutput* vo = reinterpret_cast<const ViewOutput*>(textureId & ~IMGUI_VIEWOUTPUT_BIT);
           if (vo && vo->valid) {
             // Ensure the ViewOutput texture is in SHADER_READ layout before sampling
@@ -305,16 +300,19 @@ FragOut FSMain(Varyings in) {
             sampler = vo->sampler;
           }
         }
-        // Asset texture: encoded TextureHandle (index in low 16 bits, generation in high 16 bits)
+        // Asset texture: encoded engine TextureHandle (all callers go through ResourceManager)
         else {
-          gfx::TextureHandle h;
-          h.index = static_cast<uint16_t>(textureId & 0xFFFF);
-          h.generation = static_cast<uint16_t>((textureId >> 16) & 0xFFFF);
-          // getTextureView automatically waits for texture upload to complete
-          texView = gfxRenderer->getMaterialSystem().getTextureView(h);
+          Resource::ResourceManager* resourceMngr = gfxRenderer->getResourceManager();
+          if (resourceMngr) {
+            ::TextureHandle engineHandle = ::TextureHandle::fromOpaqueValue(textureId);
+            texView = resourceMngr->resolveTextureView(engineHandle);
+          } else {
+            texView = gfxRenderer->getMaterialSystem().getTextureView(
+                gfxRenderer->getMaterialSystem().getDefaultWhiteTexture());
+          }
         }
 
-        // Fallback to default white texture if invalid
+        // Extra safety check
         if (!hina_texture_view_is_valid(texView)) {
           texView = gfxRenderer->getMaterialSystem().getTextureView(
               gfxRenderer->getMaterialSystem().getDefaultWhiteTexture());

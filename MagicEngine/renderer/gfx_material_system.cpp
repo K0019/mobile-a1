@@ -182,7 +182,7 @@ void GfxMaterialSystem::freeTextureEntry(uint16_t index) {
         // The staging command buffer is shared across all textures - destroying
         // any texture with pending commands invalidates the entire batch
         hina_ticket ticket = hina_flush_uploads();
-        hina_wait_ticket(ticket);
+        if (ticket) hina_wait_ticket(ticket);
         hina_destroy_texture(entry.texture);
     }
 
@@ -299,6 +299,27 @@ TextureHandle GfxMaterialSystem::createTexture(const TextureCreateInfo& info) {
     entry.isSRGB = info.isSRGB;
 
     LOG_DEBUG("[GfxMaterialSystem] Created texture {}x{}", info.width, info.height);
+    return handle;
+}
+
+TextureHandle GfxMaterialSystem::registerPreCreatedTexture(Texture tex, TextureView view, uint32_t w, uint32_t h, hina_format fmt, bool sRGB) {
+    if (!hina_texture_is_valid(tex)) {
+        LOG_ERROR("[GfxMaterialSystem] registerPreCreatedTexture: invalid texture");
+        return TextureHandle{};
+    }
+
+    TextureHandle handle = allocateTextureEntry();
+    if (!handle.isValid()) return handle;
+
+    TextureEntry& entry = m_textures[handle.index];
+    entry.texture = tex;
+    entry.view = view;
+    entry.width = w;
+    entry.height = h;
+    entry.format = fmt;
+    entry.isSRGB = sRGB;
+
+    LOG_DEBUG("[GfxMaterialSystem] Registered pre-created texture {}x{}", w, h);
     return handle;
 }
 

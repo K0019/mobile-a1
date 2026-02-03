@@ -1,4 +1,5 @@
 #pragma once
+#include <algorithm>
 #include <array>
 #include <limits>
 #include "math/utils_math.h"
@@ -284,12 +285,17 @@ namespace Resource
         }
         else if constexpr (std::is_same_v<T, FilePathSource>)
         {
-            //return std::filesystem::canonical(src.path).string(); // Canonical path
-            return src.path; // because of vfs, should already be canonical.
+            // Normalize to lowercase so cache lookups are case-insensitive
+            // (Android VFS is case-insensitive but cache keys were not)
+            std::string key = src.path;
+            std::transform(key.begin(), key.end(), key.begin(), ::tolower);
+            return key;
         }
         else if constexpr (std::is_same_v<T, EmbeddedMemorySource>)
         {
-          return src.scenePath + "|" + src.identifier;
+          std::string key = src.scenePath + "|" + src.identifier;
+          std::transform(key.begin(), key.end(), key.begin(), ::tolower);
+          return key;
         }
       }, source);
     }

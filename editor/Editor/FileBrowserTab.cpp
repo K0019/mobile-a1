@@ -1,7 +1,7 @@
 #include "Editor/FileBrowserTab.h"
 #include "Editor/AssetBrowser.h"
 #include "Editor/AssetCompilerWindow.h"
-#include "Engine/Resources/ResourceImporter.h"
+#include "Assets/AssetImporter.h"
 #include "VFS/VFS.h"
 #include "Editor/Import.h"
 #include "Editor/Containers/GUICollection.h"
@@ -327,9 +327,9 @@ namespace editor {
             if (ImGui::MenuItem(ICON_FA_FILE_IMPORT" Import as KTX2"))
             {
                 //std::string virtualPath = std::filesystem::relative(entry.fullPath, Filepaths::assets).generic_string();
-                //ResourceImporter::Import(entry.fullPath.string().c_str());
+                //AssetImporter::Import(entry.fullPath.string().c_str());
                 std::string virtualPath = VFS::ConvertPhysicalToVirtual(entry.fullPath.string());
-                ResourceImporter::Import(virtualPath);
+                AssetImporter::Import(virtualPath);
             }
             ImGui::Separator();
         }
@@ -338,9 +338,9 @@ namespace editor {
             if (gui::MenuItem(ICON_FA_FILE_IMPORT" Import"))
             {
                 //std::string virtualPath = std::filesystem::relative(entry.fullPath, Filepaths::assets).generic_string();
-                //ResourceImporter::Import(entry.fullPath.string().c_str());
+                //AssetImporter::Import(entry.fullPath.string().c_str());
                 std::string virtualPath = VFS::ConvertPhysicalToVirtual(entry.fullPath.string());
-                ResourceImporter::Import(virtualPath);
+                AssetImporter::Import(virtualPath);
             }
         }
 

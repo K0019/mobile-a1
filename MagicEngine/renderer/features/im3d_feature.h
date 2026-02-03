@@ -10,12 +10,10 @@ namespace render_feature_internal
   {
     bool enabled = true;
     uint32_t pipelineSamples = 1;
-    // CPU-built packed buffer (single upload)
-    std::vector<uint8_t> packed;
-    // Offsets are byte offsets into 'packed'; counts are element counts
-    uint32_t offPoints = 0, numPoints = 0; // PointGPU elements
-    uint32_t offLines = 0, numLines = 0; // LineGPU elements
-    uint32_t offTris = 0, numTris = 0; // TriGPU elements
+    // Raw Im3d vertex data per primitive type (filled by Im3dHelper::EndFrame)
+    std::vector<Im3d::VertexData> pointVertices;
+    std::vector<Im3d::VertexData> lineVertices;
+    std::vector<Im3d::VertexData> triVertices;
   };
 }
 
@@ -36,14 +34,7 @@ private:
   void ExecuteDrawPass(const internal::ExecutionContext& context);
 
   uint32_t cachedSamples_ = 1;
-  // Shader modules
-  gfx::Holder<gfx::Shader> pointVS_;
-  gfx::Holder<gfx::Shader> pointFS_;
-  gfx::Holder<gfx::Shader> lineVS_;
-  gfx::Holder<gfx::Shader> lineFS_;
-  gfx::Holder<gfx::Shader> triVS_;
-  gfx::Holder<gfx::Shader> triFS_;
-  // Pipelines (fixed topology)
+  // Pipelines
   gfx::Holder<gfx::Pipeline> pointPipeline_;
   gfx::Holder<gfx::Pipeline> linePipeline_;
   gfx::Holder<gfx::Pipeline> trianglePipeline_;

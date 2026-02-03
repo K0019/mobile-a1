@@ -25,8 +25,8 @@ All rights reserved.
 
 #pragma once
 #include "Engine/StateMachine.h"
-#include "Engine/Resources/ResourcesHeader.h"
-#include "Engine/Resources/Types/ResourceTypesGraphics.h"
+#include "Assets/AssetHandle.h"
+#include "Assets/Types/AssetTypes.h"
 
 #define ANIMATIONS \
 X(IDLE,     "Idle")\

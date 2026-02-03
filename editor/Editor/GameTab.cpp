@@ -45,9 +45,9 @@ namespace editor {
 
         gui::NewGridHelper grid{ AssetBrowser::THUMBNAIL_SIZE };
 
-        for (const auto& [hash, weapon] : ST<MagicResourceManager>::Get()->Editor_GetContainer<WeaponInfo>().Editor_GetAllResources())
+        for (const auto& [hash, weapon] : ST<AssetManager>::Get()->Editor_GetContainer<WeaponInfo>().Editor_GetAllResources())
         {
-            const std::string& weaponName{ *ST<MagicResourceManager>::Get()->Editor_GetName(hash) };
+            const std::string& weaponName{ *ST<AssetManager>::Get()->Editor_GetName(hash) };
             if (!filter.PassFilter(weaponName))
                 continue;
 
@@ -58,7 +58,10 @@ namespace editor {
             if (gui::ItemContextMenu contextMenu{ "WeaponMenu" })
             {
                 if (gui::MenuItem("Edit"))
-                    editor::CreateGuiWindow<editor::WeaponCreationWindow>(weaponName.substr(0, weaponName.size() - 1), UserResourceHandle<WeaponInfo>{ hash }.GetResource());
+                {
+                    if (auto* weapon = AssetHandle<WeaponInfo>{ hash }.GetResource())
+                        editor::CreateGuiWindow<editor::WeaponCreationWindow>(weaponName.substr(0, weaponName.size() - 1), weapon);
+                }
             }
         }
     }

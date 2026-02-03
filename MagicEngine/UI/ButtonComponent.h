@@ -21,8 +21,8 @@ All rights reserved.
 #include "UI/SpriteComponent.h"
 #include "ECS/IRegisteredComponent.h"
 #include "ECS/IEditorComponent.h"
-#include "Engine/Resources/ResourcesHeader.h"
-#include "Engine/Resources/Types/ResourceTypesGraphics.h"
+#include "Assets/AssetHandle.h"
+#include "Assets/Types/AssetTypes.h"
 
 class ButtonComponent
 	: public IRegisteredComponent<ButtonComponent>

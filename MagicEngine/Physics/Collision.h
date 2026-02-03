@@ -123,7 +123,9 @@ X(IS_TRIGGER, "Is Trigger")
 
 		virtual JPH::BroadPhaseLayer GetBroadPhaseLayer(JPH::ObjectLayer inLayer) const override;
 
+#if defined(JPH_EXTERNAL_PROFILE) || defined(JPH_PROFILE_ENABLED)
 		virtual const char* GetBroadPhaseLayerName(JPH::BroadPhaseLayer inLayer) const override;
+#endif
 
 	private:
 		JPH::BroadPhaseLayer mObjectToBroadPhase[+Layers::NUM_LAYERS];

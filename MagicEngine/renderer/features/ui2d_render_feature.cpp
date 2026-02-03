@@ -2,10 +2,10 @@
 #include "renderer/hina_context.h"
 #include "renderer/gfx_renderer.h"
 #include "renderer/linear_color.h"
+#include "resource/resource_manager.h"
 #include <algorithm>
 #include <cstddef>
 #include <cstring>
-#include <limits>
 #include <iostream>
 
 namespace
@@ -248,25 +248,26 @@ void Ui2DRenderFeature::RenderUi(const internal::ExecutionContext& context)
   for (const ui::PrimitiveDrawCommand* drawCmdPtr : sortedCommands)
   {
     const ui::PrimitiveDrawCommand& drawCmd = *drawCmdPtr;
-    uint32_t textureId = drawCmd.textureId;
-    if (textureId == std::numeric_limits<uint32_t>::max() && params.drawList.hasSolidFillFallback())
+    uint64_t textureId = drawCmd.textureId;
+    if (textureId == 0 && params.drawList.hasSolidFillFallback())
     {
       textureId = params.drawList.solidFillTextureId;
     }
-    if (textureId == std::numeric_limits<uint32_t>::max()) continue;
+    if (textureId == 0) continue;
 
-    // Decode texture handle and create transient bind group
+    // Resolve engine TextureHandle to gfx::TextureView via ResourceManager
     gfx::TextureView texView = {};
     gfx::Sampler sampler = gfxRenderer->getDefaultSampler();
 
-    // Decode TextureHandle from ID (index in low 16 bits, generation in high 16 bits)
-    gfx::TextureHandle h;
-    h.index = static_cast<uint16_t>(textureId & 0xFFFF);
-    h.generation = static_cast<uint16_t>((textureId >> 16) & 0xFFFF);
-    // getTextureView automatically waits for texture upload to complete
-    texView = gfxRenderer->getMaterialSystem().getTextureView(h);
+    Resource::ResourceManager* resourceMngr = gfxRenderer->getResourceManager();
+    if (resourceMngr) {
+      ::TextureHandle engineHandle = ::TextureHandle::fromOpaqueValue(textureId);
+      texView = resourceMngr->resolveTextureView(engineHandle);
+    } else {
+      texView = gfxRenderer->getMaterialSystem().getTextureView(
+          gfxRenderer->getMaterialSystem().getDefaultWhiteTexture());
+    }
 
-    // Fallback to default white texture if invalid
     if (!hina_texture_view_is_valid(texView)) {
       texView = gfxRenderer->getMaterialSystem().getTextureView(
           gfxRenderer->getMaterialSystem().getDefaultWhiteTexture());

@@ -2,7 +2,7 @@
 #include "Editor/AssetBrowser.h"
 #include "Editor/EditorGuiUtils.h"
 #include "Editor/ThumbnailCache.h"
-#include "Engine/Resources/Types/ResourceTypesGraphics.h"
+#include "Assets/Types/AssetTypes.h"
 
 #include "Editor/MaterialCreation.h"
 
@@ -60,9 +60,9 @@ namespace editor {
         ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
 
         int count{};
-        for (const auto& [hash, material] : ST<MagicResourceManager>::Get()->Editor_GetContainer<ResourceMaterial>().Editor_GetAllResources())
+        for (const auto& [hash, material] : ST<AssetManager>::Get()->Editor_GetContainer<ResourceMaterial>().Editor_GetAllResources())
         {
-            const std::string& materialName{ *ST<MagicResourceManager>::Get()->Editor_GetName(hash) };
+            const std::string& materialName{ *ST<AssetManager>::Get()->Editor_GetName(hash) };
             if (!filter.PassFilter(materialName))
                 continue;
 
@@ -142,7 +142,7 @@ namespace editor {
         ImGui::BeginChild("MaterialDetails", ImVec2(0, 0), true);
 
         size_t hash = selectedMaterialHash.value();
-        const std::string* matName = ST<MagicResourceManager>::Get()->Editor_GetName(hash);
+        const std::string* matName = ST<AssetManager>::Get()->Editor_GetName(hash);
 
         if (!matName)
         {
@@ -171,7 +171,7 @@ namespace editor {
         ImGui::BeginChild("MeshUsageList", ImVec2(0, 80), true);
 
         int usageCount = 0;
-        for (const auto& [meshHash, meshRef] : ST<MagicResourceManager>::Get()->INTERNAL_GetContainer<ResourceMesh>().Editor_GetAllResources())
+        for (const auto& [meshHash, meshRef] : ST<AssetManager>::Get()->INTERNAL_GetContainer<ResourceMesh>().Editor_GetAllResources())
         {
             // Check if this mesh uses the selected material
             const ResourceMesh& mesh = meshRef.get();
@@ -187,7 +187,7 @@ namespace editor {
 
             if (usesMaterial)
             {
-                const std::string* meshName = ST<MagicResourceManager>::Get()->Editor_GetName(meshHash);
+                const std::string* meshName = ST<AssetManager>::Get()->Editor_GetName(meshHash);
                 if (meshName)
                 {
                     ImGui::Selectable(meshName->c_str(), false);

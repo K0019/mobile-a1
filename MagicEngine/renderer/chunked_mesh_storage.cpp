@@ -98,6 +98,7 @@ ChunkedMeshHandle ChunkedMeshStorage::uploadPacked(
     const uint32_t* indices, uint32_t indexCount,
     const MeshBounds& bounds)
 {
+    std::lock_guard<std::mutex> lock(m_allocationMutex);
     if (!m_initialized) {
         initialize();
     }
@@ -194,6 +195,7 @@ ChunkedMeshHandle ChunkedMeshStorage::uploadPackedSkinned(
     const uint32_t* indices, uint32_t indexCount,
     const MeshBounds& bounds)
 {
+    std::lock_guard<std::mutex> lock(m_allocationMutex);
     if (!m_initialized) {
         initialize();
     }
@@ -335,6 +337,7 @@ ChunkedMeshHandle ChunkedMeshStorage::uploadPackedSkinnedWithMorphs(
     uint32_t morphTargetCount,
     const MeshBounds& bounds)
 {
+    std::lock_guard<std::mutex> lock(m_allocationMutex);
     if (!m_initialized) {
         initialize();
     }
@@ -545,6 +548,7 @@ ChunkedMeshHandle ChunkedMeshStorage::uploadPackedSkinnedWithMorphs(
 }
 
 void ChunkedMeshStorage::destroy(ChunkedMeshHandle handle) {
+    std::lock_guard<std::mutex> lock(m_allocationMutex);
     if (!isValid(handle)) return;
 
     auto& entry = m_entries[handle.index];
@@ -658,6 +662,7 @@ ChunkedMeshStorage::Stats ChunkedMeshStorage::getStats() const {
 void ChunkedMeshStorage::queueBufferCopy(Buffer buffer, uint32_t offset, const void* data, size_t size) {
     if (!hina_buffer_is_valid(buffer) || !data || size == 0) return;
 
+    std::lock_guard<std::mutex> lock(m_pendingCopiesMutex);
     PendingBufferCopy copy;
     copy.buffer = buffer;
     copy.offset = offset;
@@ -667,6 +672,7 @@ void ChunkedMeshStorage::queueBufferCopy(Buffer buffer, uint32_t offset, const v
 }
 
 uint32_t ChunkedMeshStorage::flushPendingCopies() {
+    std::lock_guard<std::mutex> lock(m_pendingCopiesMutex);
     if (m_pendingCopies.empty()) return 0;
 
     uint32_t copyCount = static_cast<uint32_t>(m_pendingCopies.size());

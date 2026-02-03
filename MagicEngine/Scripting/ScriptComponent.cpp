@@ -33,7 +33,7 @@ All rights reserved.
 #include "Engine/Events/EventsQueue.h"
 #include "Engine/Events/EventsTypeBasic.h"
 
-#include "Engine/Resources/ResourceManager.h"
+#include "Assets/AssetManager.h"
 #include "ECS/EntityUID.h"
 #include "Components/NameComponent.h"
 #include "Engine/PrefabManager.h"

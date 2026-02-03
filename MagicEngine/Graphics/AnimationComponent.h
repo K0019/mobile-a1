@@ -1,8 +1,8 @@
 #pragma once
 #include "ECS/IRegisteredComponent.h"
 #include "ECS/IEditorComponent.h"
-#include "Engine/Resources/ResourcesHeader.h"
-#include "Engine/Resources/Types/ResourceTypesGraphics.h"
+#include "Assets/AssetHandle.h"
+#include "Assets/Types/AssetTypes.h"
 #include "resource/processed_assets.h"
 #include "resource/skeleton.h"
 
@@ -23,8 +23,8 @@ public:
 
 
 public:
-    UserResourceHandle<ResourceAnimation> animHandleA;
-    UserResourceHandle<ResourceAnimation> animHandleB;  // Used during transitions
+    AssetHandle<ResourceAnimation> animHandleA;
+    AssetHandle<ResourceAnimation> animHandleB;  // Used during transitions
 
     //The below can be thought of as the equivalent of the animBinding representation used by ryan
     bool isPlaying = false;

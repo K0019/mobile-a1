@@ -508,6 +508,7 @@ public:
 
   // Feature mask system - assigns unique IDs to features and enables filtering
   FeatureMask RegisterFeature(IRenderFeature* feature);
+  FeatureMask RegisterFeatureWithId(IRenderFeature* feature, RenderFeatureId explicitId);
   void UnregisterFeature(IRenderFeature* feature);
   FeatureMask GetFeatureMask(IRenderFeature* feature) const;
   FeatureMask GetActiveFeatureMask() const { return m_activeFeatureMask; }

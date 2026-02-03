@@ -14,9 +14,18 @@ add_executable(AssetCompiler)
 file(GLOB_RECURSE ASSET_COMPILER_IMPLEMENTATION_FILES CONFIGURE_DEPENDS "*.cpp")
 file(GLOB_RECURSE ASSET_COMPILER_HEADER_FILES CONFIGURE_DEPENDS "*.h")
 
+# ufbx - single-file FBX loader (C source)
+set(UFBX_SOURCE "${CMAKE_SOURCE_DIR}/extern/include/ufbx/ufbx.c")
+
 target_sources(AssetCompiler PRIVATE
     ${ASSET_COMPILER_IMPLEMENTATION_FILES}
     ${ASSET_COMPILER_HEADER_FILES}
+    ${UFBX_SOURCE}
+)
+
+# ufbx include directory
+target_include_directories(AssetCompiler PRIVATE
+    ${CMAKE_SOURCE_DIR}/extern/include/ufbx
 )
 
 #target_precompile_headers(AssetCompiler PRIVATE asset_compiler/pch.h)
@@ -43,8 +52,12 @@ install(TARGETS AssetCompiler
     RUNTIME DESTINATION bin
 )
 
-set_target_properties(AssetCompiler PROPERTIES 
+set_target_properties(AssetCompiler PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/Tools"
+    RUNTIME_OUTPUT_DIRECTORY_DEBUG "${CMAKE_SOURCE_DIR}/Tools"
+    RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_SOURCE_DIR}/Tools"
+    RUNTIME_OUTPUT_DIRECTORY_RELWITHDEBINFO "${CMAKE_SOURCE_DIR}/Tools"
+    RUNTIME_OUTPUT_DIRECTORY_MINSIZEREL "${CMAKE_SOURCE_DIR}/Tools"
 )
 
 engine_set_source_groups(AssetCompiler)

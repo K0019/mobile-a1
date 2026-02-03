@@ -147,7 +147,7 @@ void Primitive2DImage::EditorDraw()
 {
 	std::string textureName{ "None" };
 	if (const auto textureResource{ texture.GetResource() })
-		if (const auto resourceName{ ST<MagicResourceManager>::Get()->Editor_GetName(texture.GetHash()) })
+		if (const auto resourceName{ ST<AssetManager>::Get()->Editor_GetName(texture.GetHash()) })
 			textureName = *resourceName;
 	gui::TextBoxReadOnly("Image", textureName);
 	gui::PayloadTarget<size_t>("TEXTURE_HASH", [this](size_t hash) -> void {

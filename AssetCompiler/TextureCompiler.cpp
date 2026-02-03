@@ -42,6 +42,83 @@ All rights reserved.
 
 namespace
 {
+    template <typename F>
+    class ScopeExit
+    {
+    public:
+        explicit ScopeExit(F&& func) : m_Func(std::forward<F>(func)) {}
+        ScopeExit(const ScopeExit&) = delete;
+        ScopeExit& operator=(const ScopeExit&) = delete;
+        ScopeExit(ScopeExit&& other) noexcept : m_Func(std::move(other.m_Func)), m_Active(other.m_Active)
+        {
+            other.m_Active = false;
+        }
+        ~ScopeExit()
+        {
+            if (m_Active)
+                m_Func();
+        }
+    private:
+        F m_Func;
+        bool m_Active = true;
+    };
+
+    template <typename F>
+    ScopeExit<F> MakeScopeExit(F&& func)
+    {
+        return ScopeExit<F>(std::forward<F>(func));
+    }
+
+    bool IsSrgbVkFormat(VkFormat fmt)
+    {
+        switch (fmt)
+        {
+        case VK_FORMAT_BC1_RGB_SRGB_BLOCK:
+        case VK_FORMAT_BC3_SRGB_BLOCK:
+        case VK_FORMAT_BC7_SRGB_BLOCK:
+        case VK_FORMAT_ASTC_4x4_SRGB_BLOCK:
+        case VK_FORMAT_ETC2_R8G8B8A8_SRGB_BLOCK:
+            return true;
+        default:
+            return false;
+        }
+    }
+
+    CMP_FORMAT MapCMPFormatFromVkFormat(VkFormat fmt)
+    {
+        switch (fmt)
+        {
+        case VK_FORMAT_R8G8B8A8_UNORM:
+        case VK_FORMAT_R8G8B8A8_SRGB:
+            return CMP_FORMAT_RGBA_8888;
+
+        case VK_FORMAT_BC1_RGB_UNORM_BLOCK:
+        case VK_FORMAT_BC1_RGB_SRGB_BLOCK:
+            return CMP_FORMAT_BC1;
+
+        case VK_FORMAT_BC3_UNORM_BLOCK:
+        case VK_FORMAT_BC3_SRGB_BLOCK:
+            return CMP_FORMAT_BC3;
+
+        case VK_FORMAT_BC4_UNORM_BLOCK:
+            return CMP_FORMAT_BC4;
+
+        case VK_FORMAT_BC5_UNORM_BLOCK:
+            return CMP_FORMAT_BC5;
+
+        case VK_FORMAT_BC7_UNORM_BLOCK:
+        case VK_FORMAT_BC7_SRGB_BLOCK:
+            return CMP_FORMAT_BC7;
+
+        // Note: We don't decode ASTC here; if input is already ASTC we just skip.
+        default:
+            return CMP_FORMAT_Unknown;
+        }
+    }
+}
+
+namespace
+{
     CMP_FORMAT MapCMPFormat(compiler::TextureChannelFormat fmt)
     {
         switch (fmt)
@@ -211,6 +288,175 @@ namespace compiler
 
         stbi_image_free(srcTexture.pData);
         free(destTexture.pData);
+
+        return result;
+    }
+
+    CompilationResult TextureCompiler::RecompressKTX2(const CompilerOptions& compileOptions)
+    {
+        CompilationResult result;
+        options = compileOptions;
+
+        // Assumptions:
+        // - Input is a KTX2 containing a GPU block-compressed vkFormat (typically BCn from Windows).
+        // - We will decode to RGBA8 and re-encode to ASTC 4x4 (LDR) for Android.
+        // - We only handle base mip level (engine runtime currently uploads mip0 only for KTX2).
+
+        if (options.texture.compressionFormat != TextureCompressionFormat::ASTC)
+        {
+            result.success = false;
+            result.errors.push_back("RecompressKTX2: target compressionFormat must be ASTC");
+            return result;
+        }
+
+        ktxTexture2* ktxTex = nullptr;
+        const ktx_error_code_e ktxResult = ktxTexture2_CreateFromNamedFile(
+            options.general.inputPath.string().c_str(),
+            KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT,
+            &ktxTex);
+
+        if (ktxResult != KTX_SUCCESS || !ktxTex)
+        {
+            result.success = false;
+            result.errors.push_back("RecompressKTX2: Failed to load input KTX2: " + options.general.inputPath.string());
+            return result;
+        }
+
+        auto ktxDestroy = MakeScopeExit([&]() { ktxTexture_Destroy(ktxTexture(ktxTex)); });
+
+        const VkFormat inputVkFormat = static_cast<VkFormat>(ktxTex->vkFormat);
+        if (inputVkFormat == VK_FORMAT_ASTC_4x4_UNORM_BLOCK || inputVkFormat == VK_FORMAT_ASTC_4x4_SRGB_BLOCK)
+        {
+            // Already ASTC 4x4 - nothing to do.
+            return result;
+        }
+
+        const bool inputIsSrgb = IsSrgbVkFormat(inputVkFormat);
+        options.texture.isSRGB = inputIsSrgb;
+
+        // Extract mip0 image payload.
+        ktx_size_t offset = 0;
+        const ktx_error_code_e offRes = ktxTexture_GetImageOffset(ktxTexture(ktxTex), 0, 0, 0, &offset);
+        if (offRes != KTX_SUCCESS)
+        {
+            result.success = false;
+            result.errors.push_back("RecompressKTX2: Failed to get mip0 offset for: " + options.general.inputPath.string());
+            return result;
+        }
+
+        const ktx_size_t imageSize = ktxTexture_GetImageSize(ktxTexture(ktxTex), 0);
+        if (imageSize == 0 || !ktxTex->pData)
+        {
+            result.success = false;
+            result.errors.push_back("RecompressKTX2: Input KTX2 has no image data: " + options.general.inputPath.string());
+            return result;
+        }
+
+        const uint32_t width = ktxTex->baseWidth;
+        const uint32_t height = ktxTex->baseHeight;
+
+        const CMP_FORMAT srcFmt = MapCMPFormatFromVkFormat(inputVkFormat);
+        if (srcFmt == CMP_FORMAT_Unknown)
+        {
+            result.success = false;
+            result.errors.push_back("RecompressKTX2: Unsupported input vkFormat for recompress: " + std::to_string(static_cast<int>(inputVkFormat)));
+            return result;
+        }
+
+        // Decode to RGBA8 if needed.
+        CMP_Texture srcTexture{};
+        srcTexture.dwSize = sizeof(srcTexture);
+        srcTexture.dwWidth = width;
+        srcTexture.dwHeight = height;
+        srcTexture.format = srcFmt;
+        srcTexture.dwDataSize = static_cast<CMP_DWORD>(imageSize);
+        srcTexture.pData = (CMP_BYTE*)malloc(imageSize);
+        if (!srcTexture.pData)
+        {
+            result.success = false;
+            result.errors.push_back("RecompressKTX2: Out of memory allocating src buffer");
+            return result;
+        }
+        auto freeSrc = MakeScopeExit([&]() { free(srcTexture.pData); });
+
+        memcpy(srcTexture.pData, ktxTex->pData + offset, imageSize);
+
+        CMP_Texture rgbaTexture{};
+        rgbaTexture.dwSize = sizeof(rgbaTexture);
+        rgbaTexture.dwWidth = width;
+        rgbaTexture.dwHeight = height;
+        rgbaTexture.format = CMP_FORMAT_RGBA_8888;
+        rgbaTexture.dwPitch = width * 4;
+        rgbaTexture.dwDataSize = width * height * 4;
+        rgbaTexture.pData = (CMP_BYTE*)malloc(rgbaTexture.dwDataSize);
+        if (!rgbaTexture.pData)
+        {
+            result.success = false;
+            result.errors.push_back("RecompressKTX2: Out of memory allocating RGBA buffer");
+            return result;
+        }
+        auto freeRgba = MakeScopeExit([&]() { free(rgbaTexture.pData); });
+
+        bool alreadyRgba = (inputVkFormat == VK_FORMAT_R8G8B8A8_UNORM || inputVkFormat == VK_FORMAT_R8G8B8A8_SRGB);
+        if (alreadyRgba)
+        {
+            const size_t copyBytes = std::min<size_t>(rgbaTexture.dwDataSize, static_cast<size_t>(imageSize));
+            memcpy(rgbaTexture.pData, srcTexture.pData, copyBytes);
+        }
+        else
+        {
+            CMP_CompressOptions opts{};
+            opts.dwSize = sizeof(opts);
+            opts.SourceFormat = srcTexture.format;
+            opts.DestFormat = rgbaTexture.format;
+
+            const CMP_ERROR status = CMP_ConvertTexture(&srcTexture, &rgbaTexture, &opts, nullptr);
+            if (status != CMP_OK)
+            {
+                result.success = false;
+                result.errors.push_back("RecompressKTX2: Failed to decode input texture to RGBA8: " + options.general.inputPath.string());
+                return result;
+            }
+        }
+
+        // Encode to ASTC (LDR) using existing ASTC path.
+        CMP_Texture astcTexture{};
+        if (!CompressTextureASTC(rgbaTexture, astcTexture))
+        {
+            result.success = false;
+            result.errors.push_back("RecompressKTX2: Failed to encode ASTC: " + options.general.inputPath.string());
+            return result;
+        }
+        auto freeAstc = MakeScopeExit([&]() { free(astcTexture.pData); });
+
+        // Preserve source metadata if present on the input.
+        Resource::AssetMetadata srcMeta;
+        const std::filesystem::path inputMetaPath = Resource::AssetMetadata::getMetaPath(options.general.inputPath);
+        const bool hasSrcMeta = std::filesystem::exists(inputMetaPath) && srcMeta.loadFromFile(inputMetaPath);
+
+        // Save output KTX2. Output filename is derived from input stem.
+        if (!SaveAsKTX2(astcTexture, result))
+        {
+            result.success = false;
+            result.errors.push_back("RecompressKTX2: Failed to save ASTC KTX2: " + options.general.inputPath.string());
+            return result;
+        }
+
+        // Override the just-written meta with preserved fields (so the asset browser keeps source linkage).
+        if (hasSrcMeta && !result.createdTextureFiles.empty())
+        {
+            const std::filesystem::path outPath = result.createdTextureFiles.back();
+            Resource::AssetMetadata outMeta;
+            outMeta.assetType = AssetFormat::AssetType::Texture;
+            outMeta.sourcePath = srcMeta.sourcePath;
+            outMeta.sourceTimestamp = srcMeta.sourceTimestamp;
+            outMeta.resourceHash = srcMeta.resourceHash;
+            outMeta.thumbnailPath = srcMeta.thumbnailPath;
+            outMeta.platform = GetPlatformName(options.general.platform);
+            outMeta.compiledTimestamp = static_cast<uint64_t>(std::chrono::system_clock::now().time_since_epoch().count());
+            outMeta.formatVersion = 2;
+            outMeta.saveToFile(Resource::AssetMetadata::getMetaPath(outPath));
+        }
 
         return result;
     }

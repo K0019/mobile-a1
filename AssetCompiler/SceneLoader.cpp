@@ -19,6 +19,7 @@ All rights reserved.
 /******************************************************************************/
 
 #include "SceneLoader.h"
+#include "FbxLoader.h"
 
 #include <assimp/material.h>
 #include <assimp/Importer.hpp>
@@ -32,6 +33,8 @@ All rights reserved.
 namespace compiler
 {
     // ----- Winding Order Detection and Fix ----- //
+    // These functions have external linkage so FbxLoader.cpp can reuse them.
+
     // Analyzes mesh winding order by comparing geometric face normals with vertex normals
     // CCW convention: cross(edge1, edge2) where edge1 = v1-v0, edge2 = v2-v0
     // Returns: 1 = CCW (correct), -1 = CW (inverted), 0 = mixed/unknown
@@ -921,11 +924,22 @@ namespace compiler
     // ----- Scene ----- //
     SceneLoadData SceneLoader::loadScene(const std::filesystem::path& path, const MeshOptions& meshOptions)
     {
+        // Route .fbx files to ufbx-based FbxLoader
+        {
+            auto ext = path.extension().string();
+            std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
+            if (ext == ".fbx")
+            {
+                FbxLoader fbxLoader;
+                return fbxLoader.loadScene(path, meshOptions);
+            }
+        }
+
         SceneLoadData returnData;
 
         try
         {
-            // Import scene file from disk using Assimp.
+            // Import scene file from disk using Assimp (for glTF, OBJ, and other formats).
             auto assimpScenePtr = importScene(path);
             if (!assimpScenePtr)
             {

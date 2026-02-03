@@ -1,7 +1,7 @@
 #pragma once
 #include "Editor/Containers/GUIAsECS.h"
-#include "Resources/ResourcesHeader.h"
-#include "Resources/Types/ResourceTypesAudio.h"
+#include "Assets/AssetHandle.h"
+#include "Assets/Types/AssetTypesAudio.h"
 
 namespace editor {
 
@@ -18,7 +18,7 @@ namespace editor {
 
 	private:
 		gui::TextBoxWithBuffer<64> groupFilename;
-		std::vector<UserResourceHandle<ResourceAudio>> sounds;
+		std::vector<AssetHandle<ResourceAudio>> sounds;
 
 	};
 

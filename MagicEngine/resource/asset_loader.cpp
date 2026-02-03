@@ -25,16 +25,19 @@ namespace Resource {
 
 ProcessedTexture AssetLoader::LoadTexture(const std::string& vfsPath)
 {
-    if (!VFS::FileExists(vfsPath))
+    // Resolve platform-specific compiled asset path (e.g. compiledassets/android/... on Android)
+    std::string resolvedPath = VFS::ResolveCompiledAssetPath(vfsPath);
+
+    if (!VFS::FileExists(resolvedPath))
     {
-        LOG_WARNING("Texture file not found: {}", vfsPath);
+        LOG_WARNING("Texture file not found: {}", resolvedPath);
         return ProcessedTexture{};
     }
 
     std::vector<uint8_t> fileData;
-    if (!VFS::ReadFile(vfsPath, fileData))
+    if (!VFS::ReadFile(resolvedPath, fileData))
     {
-        LOG_WARNING("VFS: Read texture file failed: {}", vfsPath);
+        LOG_WARNING("VFS: Read texture file failed: {}", resolvedPath);
         return ProcessedTexture{};
     }
 
@@ -107,16 +110,19 @@ ProcessedTexture AssetLoader::ParseKTX2(const std::vector<uint8_t>& fileData, co
 
 ProcessedMesh AssetLoader::LoadMesh(const std::string& vfsPath)
 {
-    if (!VFS::FileExists(vfsPath))
+    // Resolve platform-specific compiled asset path (e.g. compiledassets/android/... on Android)
+    std::string resolvedPath = VFS::ResolveCompiledAssetPath(vfsPath);
+
+    if (!VFS::FileExists(resolvedPath))
     {
-        LOG_WARNING("Mesh file not found: {}", vfsPath);
+        LOG_WARNING("Mesh file not found: {}", resolvedPath);
         return ProcessedMesh{};
     }
 
     std::vector<uint8_t> fileData;
-    if (!VFS::ReadFile(vfsPath, fileData))
+    if (!VFS::ReadFile(resolvedPath, fileData))
     {
-        LOG_WARNING("VFS: Read mesh file failed: {}", vfsPath);
+        LOG_WARNING("VFS: Read mesh file failed: {}", resolvedPath);
         return ProcessedMesh{};
     }
 
@@ -515,16 +521,19 @@ MeshFileInfo AssetLoader::QueryMeshFileInfo(const std::string& vfsPath)
 
 ProcessedMaterial AssetLoader::LoadMaterial(const std::string& vfsPath)
 {
-    if (!VFS::FileExists(vfsPath))
+    // Resolve platform-specific compiled asset path (e.g. compiledassets/android/... on Android)
+    std::string resolvedPath = VFS::ResolveCompiledAssetPath(vfsPath);
+
+    if (!VFS::FileExists(resolvedPath))
     {
-        LOG_WARNING("Material file not found: {}", vfsPath);
+        LOG_WARNING("Material file not found: {}", resolvedPath);
         return ProcessedMaterial{};
     }
 
     std::vector<uint8_t> fileData;
-    if (!VFS::ReadFile(vfsPath, fileData))
+    if (!VFS::ReadFile(resolvedPath, fileData))
     {
-        LOG_WARNING("VFS: Read material file failed: {}", vfsPath);
+        LOG_WARNING("VFS: Read material file failed: {}", resolvedPath);
         return ProcessedMaterial{};
     }
 

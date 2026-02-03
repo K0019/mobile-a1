@@ -37,7 +37,7 @@ struct CompileResult
  *   CompileResult result = AssetCompilerInterface::CompileAsset("assets/models/character.glb");
  *   if (result.success) {
  *       for (const auto& mesh : result.meshFiles) {
- *           ResourceImporter::Import(mesh);
+ *           AssetImporter::Import(mesh);
  *       }
  *   }
  */

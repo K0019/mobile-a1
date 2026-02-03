@@ -43,7 +43,7 @@ namespace ui
     uint32_t sortOrder = 0;
     uint16_t layer = 0;
     vec4 clipRect{0.0f, 0.0f, std::numeric_limits<float>::max(), std::numeric_limits<float>::max()};
-    uint32_t textureId = std::numeric_limits<uint32_t>::max();
+    uint64_t textureId = 0;
     uint32_t samplerIndex = 0;
   };
 
@@ -52,7 +52,7 @@ namespace ui
     std::vector<PrimitiveVertex> vertices;
     std::vector<uint32_t> indices;
     std::vector<PrimitiveDrawCommand> commands;
-    uint32_t solidFillTextureId = std::numeric_limits<uint32_t>::max();
+    uint64_t solidFillTextureId = 0;
     vec2 whitePixelUV{0.0f};
     uint32_t commandOrderCounter = 0;
 
@@ -69,7 +69,7 @@ namespace ui
       return commands.empty();
     }
 
-    void setSolidFillFallback(uint32_t textureId, const vec2& uv)
+    void setSolidFillFallback(uint64_t textureId, const vec2& uv)
     {
       solidFillTextureId = textureId;
       whitePixelUV = uv;
@@ -77,7 +77,7 @@ namespace ui
 
     bool hasSolidFillFallback() const
     {
-      return solidFillTextureId != std::numeric_limits<uint32_t>::max();
+      return solidFillTextureId != 0;
     }
   };
 
@@ -134,7 +134,7 @@ namespace ui
                                             std::numeric_limits<float>::max()),
                 SamplerMode samplerMode = SamplerMode::Linear, uint16_t layer = 0);
 
-  bool AddImage(Resource::ResourceManager& resources, PrimitiveDrawList& list, uint32_t texture, const vec2& min,
+  bool AddImage(Resource::ResourceManager& resources, PrimitiveDrawList& list, uint64_t texture, const vec2& min,
                 const vec2& max, const vec2& uvMin = vec2(0.0f), const vec2& uvMax = vec2(1.0f),
                 uint32_t color = 0xFFFFFFFFu,
                 const vec4& clipRect = vec4(0.0f, 0.0f, std::numeric_limits<float>::max(),

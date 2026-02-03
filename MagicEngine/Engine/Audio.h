@@ -26,7 +26,7 @@ All rights reserved.
 */
 /******************************************************************************/
 #pragma once
-#include "Engine/Resources/Types/ResourceTypesAudio.h"
+#include "Assets/Types/AssetTypesAudio.h"
 #include "ECS/IRegisteredComponent.h"
 #include "ECS/IEditorComponent.h"
 

@@ -22,8 +22,8 @@ All rights reserved.
 #pragma once
 #include "ECS/IRegisteredComponent.h"
 #include "ECS/IEditorComponent.h"
-#include "Engine/Resources/ResourcesHeader.h"
-#include "Engine/Resources/Types/ResourceTypesGraphics.h"
+#include "Assets/AssetHandle.h"
+#include "Assets/Types/AssetTypes.h"
 
 class RenderComponent
     : public IRegisteredComponent<RenderComponent>
@@ -31,8 +31,8 @@ class RenderComponent
 {
 public:
     const ResourceMesh* GetMesh() const;
-    const std::vector<UserResourceHandle<ResourceMaterial>>& GetMaterialsList() const;
-    std::vector<UserResourceHandle<ResourceMaterial>>& GetMaterialsList();
+    const std::vector<AssetHandle<ResourceMaterial>>& GetMaterialsList() const;
+    std::vector<AssetHandle<ResourceMaterial>>& GetMaterialsList();
 
     void EditorDraw() override;
 
@@ -40,8 +40,8 @@ public:
     int castShadowOverride = -1;
 
 private:
-    UserResourceHandle<ResourceMesh> meshHandle;
-    std::vector<UserResourceHandle<ResourceMaterial>> materials;
+    AssetHandle<ResourceMesh> meshHandle;
+    std::vector<AssetHandle<ResourceMaterial>> materials;
 
 public:
     property_vtable()

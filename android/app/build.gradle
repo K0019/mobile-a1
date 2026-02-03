@@ -2,6 +2,172 @@ plugins {
     id 'com.android.application'
 }
 
+// ---------------------------------------------------------------------------
+// Asset pipeline helpers
+// ---------------------------------------------------------------------------
+
+def assetsRoot = file('../../Assets')
+def manifestFile = file('../../Assets/asset_manifest.txt')
+def manifestGenerator = file('../../generate_android_assets_manifest.py')
+def astcScript = file('../../scripts/rebuild_android_astc_textures.py')
+def assetCompiler = file('../../Tools/AssetCompiler.exe')
+
+// Task 1: Generate initial manifest (needed by ASTC script to find textures)
+tasks.register('generateInitialManifest') {
+    description = 'Generate initial asset_manifest.txt (before ASTC conversion)'
+    outputs.upToDateWhen { false }
+    doLast {
+        def repoRoot = project.file('../..')
+        logger.lifecycle("generateInitialManifest: creating initial manifest...")
+        exec {
+            workingDir repoRoot
+            commandLine 'py', manifestGenerator.absolutePath
+        }
+    }
+}
+
+// Task 2: Recompress textures to ASTC (only when AssetCompiler exists)
+tasks.register('recompressAstcTextures') {
+    description = 'Recompress KTX2 textures to ASTC for Android'
+    dependsOn 'generateInitialManifest'
+    onlyIf { assetCompiler.exists() }
+    doLast {
+        def repoRoot = project.file('../..')
+        logger.lifecycle("recompressAstcTextures: converting textures to ASTC...")
+        exec {
+            workingDir repoRoot
+            commandLine 'py', astcScript.absolutePath,
+                '--assetcompiler', assetCompiler.absolutePath,
+                '--assets-root', assetsRoot.absolutePath
+        }
+    }
+}
+
+// Task 3: Regenerate manifest to include android textures
+tasks.register('generateAssetManifest') {
+    description = 'Regenerate asset_manifest.txt with android textures included'
+    dependsOn 'recompressAstcTextures'
+    outputs.upToDateWhen { false }
+    doLast {
+        def repoRoot = project.file('../..')
+        logger.lifecycle("generateAssetManifest: updating manifest with android textures...")
+        exec {
+            workingDir repoRoot
+            commandLine 'py', manifestGenerator.absolutePath, '--force'
+        }
+    }
+}
+
+// Task: validate manifest is not stale (runs after manifest generation)
+tasks.register('checkManifestFreshness') {
+    description = 'Warn if asset_manifest.txt appears stale'
+    mustRunAfter 'generateAssetManifest'
+    doLast {
+        if (!manifestFile.exists()) {
+            throw new GradleException("asset_manifest.txt missing – run generateAssetManifest first")
+        }
+        def manifestTime = manifestFile.lastModified()
+        def newerCount = 0
+        def examples = []
+        assetsRoot.eachFileRecurse { f ->
+            if (f.name == 'asset_manifest.txt') return
+            if (f.lastModified() > manifestTime) {
+                newerCount++
+                if (examples.size() < 3) examples << f.name
+            }
+        }
+        if (newerCount > 0) {
+            logger.warn("WARNING: ${newerCount} asset(s) are newer than asset_manifest.txt (e.g. ${examples.join(', ')})")
+            logger.warn("Consider running: ./gradlew generateAssetManifest")
+        }
+    }
+}
+
+// Wire into build: ASTC conversion → manifest generation → preBuild
+afterEvaluate {
+    tasks.named('preBuild').configure {
+        dependsOn 'generateAssetManifest', 'checkManifestFreshness'
+    }
+
+    // Clean up and flatten assets after merge
+    android.applicationVariants.configureEach { variant ->
+        def mergeTask = tasks.named("merge${variant.name.capitalize()}Assets")
+        mergeTask.configure {
+            doLast {
+                def mergedDir = outputDir.get().asFile
+
+                // Remove raw source folders (not needed at runtime)
+                // Note: 'images' kept - contains runtime assets like skybox
+                ['models', 'fbxcars', 'build', 'compiledassets_android'].each { folder ->
+                    def dir = new File(mergedDir, folder)
+                    if (dir.exists()) {
+                        logger.lifecycle("Removing source folder: ${folder}/")
+                        delete dir
+                    }
+                }
+
+                def compiledDir = new File(mergedDir, 'compiledassets')
+                def androidDir = new File(compiledDir, 'android')
+
+                if (compiledDir.exists()) {
+                    // Step 1: Delete desktop BC7 textures from root compiledassets/
+                    compiledDir.eachFileRecurse { f ->
+                        if (f.isFile() && f.name.endsWith('.ktx2')) {
+                            def rel = f.absolutePath.replace(compiledDir.absolutePath, '').replace('\\', '/')
+                            // Skip android subfolder (we'll flatten it next)
+                            if (!rel.startsWith('/android/')) {
+                                delete f
+                            }
+                        }
+                    }
+
+                    // Step 2: Flatten android/ subfolder - move ASTC textures to root compiledassets/
+                    if (androidDir.exists()) {
+                        logger.lifecycle("Flattening compiledassets/android/ to compiledassets/")
+                        androidDir.eachFileRecurse { f ->
+                            if (f.isFile()) {
+                                // Get relative path within android/ folder
+                                def relPath = f.absolutePath.replace(androidDir.absolutePath, '').replace('\\', '/')
+                                if (relPath.startsWith('/')) relPath = relPath.substring(1)
+
+                                // Target path in root compiledassets/
+                                def targetFile = new File(compiledDir, relPath)
+                                targetFile.parentFile.mkdirs()
+
+                                // Move file (overwrite if exists)
+                                if (targetFile.exists()) targetFile.delete()
+                                f.renameTo(targetFile)
+                            }
+                        }
+                        // Remove now-empty android/ folder
+                        delete androidDir
+                    }
+
+                    // Step 3: Copy compiled images from compiledassets/images/ to images/ folder
+                    // This allows code referencing images/*.ktx2 to find the ASTC versions
+                    def compiledImagesDir = new File(compiledDir, 'images')
+                    def imagesDir = new File(mergedDir, 'images')
+                    if (compiledImagesDir.exists()) {
+                        logger.lifecycle("Copying compiled images to images/ folder")
+                        compiledImagesDir.eachFileRecurse { f ->
+                            if (f.isFile() && f.name.endsWith('.ktx2')) {
+                                def relPath = f.absolutePath.replace(compiledImagesDir.absolutePath, '').replace('\\', '/')
+                                if (relPath.startsWith('/')) relPath = relPath.substring(1)
+                                def targetFile = new File(imagesDir, relPath)
+                                targetFile.parentFile.mkdirs()
+                                // Copy (don't move - keep in compiledassets too)
+                                java.nio.file.Files.copy(f.toPath(), targetFile.toPath(), java.nio.file.StandardCopyOption.REPLACE_EXISTING)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
+
 android {
     namespace 'com.magicengine.kurorekishi'
     compileSdk 34
@@ -12,7 +178,7 @@ android {
         targetSdk 34
         versionCode 1
         versionName "1.0"
-        
+
         ndk {
             abiFilters 'arm64-v8a', 'x86_64'
         }
@@ -27,7 +193,9 @@ android {
     }
 
     aaptOptions {
-        noCompress 'png', 'ktx', 'data', 'gltf', 'bin', 'lua'
+        noCompress 'png', 'ktx', 'ktx2', 'data', 'gltf', 'bin', 'lua', 'json', 'meta'
+        // Exclude logs and C# project files (keep .meta for hash resolution)
+        ignoreAssetsPattern '*.log:*.csproj'
     }
 
     buildTypes {
@@ -44,13 +212,13 @@ android {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
-    
+
     ndkVersion "29.0.14206865"
-    
+
     externalNativeBuild {
         cmake {
             path file('./src/main/cpp/CMakeLists.txt')
-            version '3.22.1'
+            // Note: cmake.dir in local.properties specifies system CMake for SPIRV-Tools compatibility
         }
     }
 
@@ -61,7 +229,9 @@ android {
     sourceSets {
         main {
             jniLibs.srcDirs = ['src/main/jniLibs']
-            assets.srcDirs = ['../../Assets'] // Use only main project assets
+            assets.srcDirs = ['../../Assets']
+            // Note: Folder-level asset filtering is done in afterEvaluate block below
+            // (source set filters don't work for Android asset merging)
         }
     }
 }
