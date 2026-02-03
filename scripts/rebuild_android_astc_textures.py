@@ -58,6 +58,20 @@ def _iter_compiled_ktx2_paths_from_manifest(lines: list[str]) -> list[str]:
     return out
 
 
+def _iter_raw_image_paths_from_manifest(lines: list[str]) -> list[str]:
+    """Find raw image files (PNG, JPG) in images/ folder that need compilation."""
+    out: list[str] = []
+    image_extensions = (".png", ".jpg", ".jpeg")
+    for p in lines:
+        p_lower = p.lower()
+        if not p_lower.startswith("images/"):
+            continue
+        if not any(p_lower.endswith(ext) for ext in image_extensions):
+            continue
+        out.append(p)
+    return out
+
+
 def _iter_compiled_paths_from_manifest(lines: list[str]) -> list[str]:
     out: list[str] = []
     for p in lines:
@@ -86,6 +100,32 @@ def _run_assetcompiler(assetcompiler: str, assets_root: str, input_ktx2: str, ou
         "--format",
         "ASTC",
         "--recompress-ktx2",
+    ]
+
+    if dry_run:
+        print("DRY RUN:", " ".join([f'"{c}"' if " " in c else c for c in cmd]))
+        return 0
+
+    proc = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+    if proc.returncode != 0:
+        sys.stdout.write(proc.stdout)
+    return proc.returncode
+
+
+def _run_assetcompiler_compile_image(assetcompiler: str, assets_root: str, input_image: str, output_dir: str, dry_run: bool) -> int:
+    """Compile a raw image (PNG, JPG) to ASTC KTX2 format."""
+    cmd = [
+        assetcompiler,
+        "--root",
+        assets_root,
+        "--input",
+        input_image,
+        "--output",
+        output_dir,
+        "--platform",
+        "android",
+        "--format",
+        "ASTC",
     ]
 
     if dry_run:
@@ -240,6 +280,79 @@ def main() -> int:
             in_meta = _find_case_insensitive(in_meta)
             if in_meta and os.path.isfile(in_meta):
                 shutil.copy2(in_meta, out_meta)
+
+    # -------------------------------------------------------------------------
+    # Phase 2: Compile raw images from images/ folder to ASTC KTX2
+    # -------------------------------------------------------------------------
+    raw_images = _iter_raw_image_paths_from_manifest(lines)
+    if args.limit and args.limit > 0:
+        remaining = max(0, args.limit - processed)
+        raw_images = raw_images[:remaining]
+
+    for rel in raw_images:
+        # rel is like: images/skybox.png
+        in_path = os.path.join(assets_root, *rel.split("/"))
+        in_path = _find_case_insensitive(in_path)
+        if not in_path:
+            print(f"WARN: missing input image: {rel}")
+            failures += 1
+            continue
+
+        # Output goes to compiledassets/android/images/ with .ktx2 extension
+        # e.g., images/skybox.png -> compiledassets/android/images/skybox.ktx2
+        base_name = os.path.splitext(os.path.basename(rel))[0]
+        rel_dir = os.path.dirname(rel)  # "images" or "images/subfolder"
+        out_dir = os.path.join(assets_root, "compiledassets", "android", *rel_dir.split("/"))
+        os.makedirs(out_dir, exist_ok=True)
+
+        desired_out_path = os.path.join(out_dir, base_name + ".ktx2")
+
+        # Timestamp-based caching: skip if output exists and is newer than input
+        if not args.force and os.path.isfile(desired_out_path):
+            in_mtime = os.path.getmtime(in_path)
+            out_mtime = os.path.getmtime(desired_out_path)
+            if out_mtime >= in_mtime:
+                skipped += 1
+                continue
+
+        try:
+            rc = _run_assetcompiler_compile_image(assetcompiler, assets_root, in_path, out_dir, args.dry_run)
+            processed += 1
+            if rc != 0:
+                print(f"ERROR: AssetCompiler failed for {rel} (exit={rc})")
+                failures += 1
+                continue
+
+            if args.dry_run:
+                continue
+
+            # AssetCompiler writes using input stem. Locate and rename if needed.
+            original_produced_path = os.path.join(out_dir, base_name + ".ktx2")
+            original_produced_path = _find_case_insensitive(original_produced_path)
+            if not original_produced_path or not os.path.isfile(original_produced_path):
+                print(f"ERROR: could not locate produced output for {rel} in {out_dir}")
+                failures += 1
+                continue
+
+            # Rename to canonical lowercase path if needed
+            if os.path.abspath(original_produced_path) != os.path.abspath(desired_out_path):
+                if os.path.exists(desired_out_path):
+                    os.remove(desired_out_path)
+                os.replace(original_produced_path, desired_out_path)
+
+            # Handle .meta file
+            original_produced_meta = _find_case_insensitive(original_produced_path + ".meta")
+            desired_meta = desired_out_path + ".meta"
+            if original_produced_meta and os.path.isfile(original_produced_meta):
+                if os.path.abspath(original_produced_meta) != os.path.abspath(desired_meta):
+                    if os.path.exists(desired_meta):
+                        os.remove(desired_meta)
+                    os.replace(original_produced_meta, desired_meta)
+
+        except Exception as e:
+            print(f"ERROR: exception processing {rel}: {e}")
+            failures += 1
+            continue
 
     print(f"Done. processed={processed} skipped={skipped} failures={failures}")
     return 0 if failures == 0 else 1

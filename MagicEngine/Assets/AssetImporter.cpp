@@ -22,6 +22,8 @@ All rights reserved.
 #include "Assets/AssetImporter.h"
 #include "Assets/Importers/AssetImporters.h"
 
+#include <unordered_set>
+
 std::unordered_map<std::string, AssetImporter::ImportFn> AssetImporter::importers{
     { std::string{ ".fbx" },      &AssetImporters::ImportFBX },
     { std::string{ ".glb" },      &AssetImporters::ImportFBX },
@@ -42,15 +44,35 @@ std::unordered_map<std::string, AssetImporter::ImportFn> AssetImporter::importer
 
 bool AssetImporter::Import(const std::string& filepath)
 {
-    // Check file exists
-    if (!VFS::FileExists(filepath))
+    std::string resolvedPath = filepath;
+    std::string filetype{ util::ToLowerStr(VFS::GetExtension(filepath)) };
+
+#ifdef __ANDROID__
+    // On Android, raw images (PNG, JPG, etc.) are pre-compiled to KTX2 ASTC format.
+    // Check for the compiled version first.
+    static const std::unordered_set<std::string> rawImageExtensions = {
+        ".png", ".jpg", ".jpeg", ".bmp"
+    };
+    if (rawImageExtensions.count(filetype))
     {
-        CONSOLE_LOG(LEVEL_ERROR) << "File does not exist: " << filepath;
+        // Try .ktx2 version: replace extension
+        std::string ktx2Path = filepath.substr(0, filepath.rfind('.')) + ".ktx2";
+        if (VFS::FileExists(ktx2Path))
+        {
+            resolvedPath = ktx2Path;
+            filetype = ".ktx2";
+        }
+    }
+#endif
+
+    // Check file exists
+    if (!VFS::FileExists(resolvedPath))
+    {
+        CONSOLE_LOG(LEVEL_ERROR) << "File does not exist: " << resolvedPath;
         return false;
     }
 
     // Get the importer for this filetype
-    std::string filetype{ util::ToLowerStr(VFS::GetExtension(filepath)) };
     auto filetypeImporterIter{ importers.find(filetype) };
     if (filetypeImporterIter == importers.end())
     {
@@ -59,7 +81,7 @@ bool AssetImporter::Import(const std::string& filepath)
     }
 
     // Import the file via the function pointer
-    return filetypeImporterIter->second(filepath);
+    return filetypeImporterIter->second(resolvedPath);
 }
 
 bool AssetImporter::FiletypeSupported(const std::string& extension)

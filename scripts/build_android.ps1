@@ -14,6 +14,10 @@
 .PARAMETER InstallOnly
     Only run Gradle installDebug/installRelease (skip all asset steps).
 
+.PARAMETER PrepareOnly
+    Only prepare assets (ASTC recompression + manifest). Skip Gradle build.
+    Use this before opening Android Studio manually.
+
 .PARAMETER AssetCompilerPath
     Path to AssetCompiler.exe. Defaults to Tools/Release/AssetCompiler.exe.
 #>
@@ -24,6 +28,7 @@ param(
     [switch]$SkipAssetCompile,
     [switch]$SkipManifest,
     [switch]$InstallOnly,
+    [switch]$PrepareOnly,
     [string]$AssetCompilerPath = "Tools\Release\AssetCompiler.exe"
 )
 
@@ -124,20 +129,27 @@ try {
     }
 
     # --- Step 3: Gradle build + install ---
-    $gradleTask = if ($BuildType -eq "Release") { "installRelease" } else { "installDebug" }
-    Write-Host "[4/4] Running Gradle :app:$gradleTask..." -ForegroundColor Cyan
-    Push-Location android
-    try {
-        & ./gradlew ":app:$gradleTask"
-        if ($LASTEXITCODE -ne 0) {
-            Write-Error "Gradle build failed (exit=$LASTEXITCODE)"
-            exit $LASTEXITCODE
+    if ($PrepareOnly) {
+        Write-Host "[4/4] Skipping Gradle build (--PrepareOnly)" -ForegroundColor Yellow
+        Write-Host ""
+        Write-Host "Assets prepared! You can now open Android Studio:" -ForegroundColor Green
+        Write-Host "  android/" -ForegroundColor Cyan
+        Write-Host ""
+    } else {
+        $gradleTask = if ($BuildType -eq "Release") { "installRelease" } else { "installDebug" }
+        Write-Host "[4/4] Running Gradle :app:$gradleTask..." -ForegroundColor Cyan
+        Push-Location android
+        try {
+            & ./gradlew ":app:$gradleTask"
+            if ($LASTEXITCODE -ne 0) {
+                Write-Error "Gradle build failed (exit=$LASTEXITCODE)"
+                exit $LASTEXITCODE
+            }
+        } finally {
+            Pop-Location
         }
-    } finally {
-        Pop-Location
+        Write-Host "Android build complete!" -ForegroundColor Green
     }
-
-    Write-Host "Android build complete!" -ForegroundColor Green
 } finally {
     Pop-Location
 }

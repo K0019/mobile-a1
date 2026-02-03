@@ -22,7 +22,7 @@ if /i "%~1"=="windows" (
     goto :parse_args
 )
 if /i "%~1"=="android" (
-    set "TARGET=android"
+    set "TARGET=android-prepare"
     shift
     goto :parse_args
 )
@@ -80,8 +80,8 @@ if errorlevel 1 (
     exit /b 1
 )
 
-if /i "%TARGET%"=="android" (
-    call :build_android
+if /i "%TARGET%"=="android-prepare" (
+    call :prepare_android
     if errorlevel 1 (
         if "%SHOW_MENU%"=="true" pause
         exit /b 1
@@ -108,13 +108,11 @@ echo Select build target:
 echo   1) Windows (Desktop) - Debug
 echo   2) Windows (Desktop) - Release
 echo   3) Windows (Desktop) - RelWithDebInfo
-echo   4) Android - Debug
-echo   5) Android - Release
-echo   6) Android - RelWithDebInfo
-echo   8) School PC Lmao (Windows Debug - No Asset Compiler)
-echo   7) Exit
+echo   4) Android - Prepare Assets (then open Android Studio)
+echo   5) School PC Lmao (Windows Debug - No Asset Compiler)
+echo   6) Exit
 echo.
-set /p "choice=Enter choice (1-7): "
+set /p "choice=Enter choice (1-6): "
 
 if "%choice%"=="1" (
     set "TARGET=windows"
@@ -132,31 +130,20 @@ if "%choice%"=="3" (
     goto :eof
 )
 if "%choice%"=="4" (
-    set "TARGET=android"
-    set "BUILD_TYPE=Debug"
+    set "TARGET=android-prepare"
     goto :eof
 )
 if "%choice%"=="5" (
-    set "TARGET=android"
-    set "BUILD_TYPE=Release"
-    goto :eof
-)
-if "%choice%"=="6" (
-    set "TARGET=android"
-    set "BUILD_TYPE=RelWithDebInfo"
-    goto :eof
-)
-if "%choice%"=="7" (
-    echo Exiting...
-    exit /b 0
-)
-if "%choice%"=="8" (
     set "TARGET=windows"
     set "BUILD_TYPE=Debug"
     set "COMPILE_ASSETS=OFF"
     goto :eof
 )
-echo Invalid choice. Please enter 1-7.
+if "%choice%"=="6" (
+    echo Exiting...
+    exit /b 0
+)
+echo Invalid choice. Please enter 1-6.
 goto :show_menu
 
 :check_requirements
@@ -206,20 +193,16 @@ echo [INFO] Windows build complete. You can now open the solution in build/ or r
 exit /b 0
 
 
-:build_android
-echo [INFO] Building engine for Android (%BUILD_TYPE%)...
+:prepare_android
+echo [INFO] Preparing Android assets (ASTC textures + manifest)...
 
-REM Map BUILD_TYPE to what scripts\build_android.ps1 accepts (Debug or Release)
-set "PS_BUILD_TYPE=%BUILD_TYPE%"
-if /i "%BUILD_TYPE%"=="RelWithDebInfo" set "PS_BUILD_TYPE=Release"
-
-powershell -NoProfile -ExecutionPolicy Bypass -File scripts\build_android.ps1 -BuildType %PS_BUILD_TYPE%
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts\build_android.ps1 -PrepareOnly
 if errorlevel 1 (
-    echo [ERROR] Android build failed.
+    echo [ERROR] Android asset preparation failed.
     exit /b 1
 )
 
-echo [INFO] Android build complete (%BUILD_TYPE%).
+echo [INFO] Android assets prepared. Open android/ folder in Android Studio.
 exit /b 0
 
 :show_help
@@ -227,7 +210,7 @@ echo Usage: %0 [target] [build-type] [options]
 echo.
 echo Targets:
 echo   windows         Build for Windows desktop
-echo   android         Build for Android
+echo   android         Prepare Android assets (then open Android Studio)
 echo.
 echo Build Types:
 echo   debug           Debug build (no optimization, full symbols, no inlining)
@@ -244,8 +227,7 @@ echo.
 echo Examples:
 echo   %0                              ^# Interactive menu
 echo   %0 windows debug                ^# Build Windows in Debug
-echo   %0 android debug --no-menu      ^# Build Android Debug without menu
-echo   %0 android relwithdebinfo       ^# Build Android with symbols and optimization
+echo   %0 android                      ^# Prepare assets, then open Android Studio
 echo   set BUILD_TYPE=Debug ^&^& %0 windows
 if "%SHOW_MENU%"=="true" pause
 exit /b 0

@@ -88,6 +88,82 @@ afterEvaluate {
     tasks.named('preBuild').configure {
         dependsOn 'generateAssetManifest', 'checkManifestFreshness'
     }
+
+    // Clean up and flatten assets after merge
+    android.applicationVariants.configureEach { variant ->
+        def mergeTask = tasks.named("merge${variant.name.capitalize()}Assets")
+        mergeTask.configure {
+            doLast {
+                def mergedDir = outputDir.get().asFile
+
+                // Remove raw source folders (not needed at runtime)
+                // Note: 'images' kept - contains runtime assets like skybox
+                ['models', 'fbxcars', 'build', 'compiledassets_android'].each { folder ->
+                    def dir = new File(mergedDir, folder)
+                    if (dir.exists()) {
+                        logger.lifecycle("Removing source folder: ${folder}/")
+                        delete dir
+                    }
+                }
+
+                def compiledDir = new File(mergedDir, 'compiledassets')
+                def androidDir = new File(compiledDir, 'android')
+
+                if (compiledDir.exists()) {
+                    // Step 1: Delete desktop BC7 textures from root compiledassets/
+                    compiledDir.eachFileRecurse { f ->
+                        if (f.isFile() && f.name.endsWith('.ktx2')) {
+                            def rel = f.absolutePath.replace(compiledDir.absolutePath, '').replace('\\', '/')
+                            // Skip android subfolder (we'll flatten it next)
+                            if (!rel.startsWith('/android/')) {
+                                delete f
+                            }
+                        }
+                    }
+
+                    // Step 2: Flatten android/ subfolder - move ASTC textures to root compiledassets/
+                    if (androidDir.exists()) {
+                        logger.lifecycle("Flattening compiledassets/android/ to compiledassets/")
+                        androidDir.eachFileRecurse { f ->
+                            if (f.isFile()) {
+                                // Get relative path within android/ folder
+                                def relPath = f.absolutePath.replace(androidDir.absolutePath, '').replace('\\', '/')
+                                if (relPath.startsWith('/')) relPath = relPath.substring(1)
+
+                                // Target path in root compiledassets/
+                                def targetFile = new File(compiledDir, relPath)
+                                targetFile.parentFile.mkdirs()
+
+                                // Move file (overwrite if exists)
+                                if (targetFile.exists()) targetFile.delete()
+                                f.renameTo(targetFile)
+                            }
+                        }
+                        // Remove now-empty android/ folder
+                        delete androidDir
+                    }
+
+                    // Step 3: Copy compiled images from compiledassets/images/ to images/ folder
+                    // This allows code referencing images/*.ktx2 to find the ASTC versions
+                    def compiledImagesDir = new File(compiledDir, 'images')
+                    def imagesDir = new File(mergedDir, 'images')
+                    if (compiledImagesDir.exists()) {
+                        logger.lifecycle("Copying compiled images to images/ folder")
+                        compiledImagesDir.eachFileRecurse { f ->
+                            if (f.isFile() && f.name.endsWith('.ktx2')) {
+                                def relPath = f.absolutePath.replace(compiledImagesDir.absolutePath, '').replace('\\', '/')
+                                if (relPath.startsWith('/')) relPath = relPath.substring(1)
+                                def targetFile = new File(imagesDir, relPath)
+                                targetFile.parentFile.mkdirs()
+                                // Copy (don't move - keep in compiledassets too)
+                                java.nio.file.Files.copy(f.toPath(), targetFile.toPath(), java.nio.file.StandardCopyOption.REPLACE_EXISTING)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
 
 // ---------------------------------------------------------------------------
@@ -117,7 +193,9 @@ android {
     }
 
     aaptOptions {
-        noCompress 'png', 'ktx', 'ktx2', 'data', 'gltf', 'bin', 'lua', 'json'
+        noCompress 'png', 'ktx', 'ktx2', 'data', 'gltf', 'bin', 'lua', 'json', 'meta'
+        // Exclude logs and C# project files (keep .meta for hash resolution)
+        ignoreAssetsPattern '*.log:*.csproj'
     }
 
     buildTypes {
@@ -151,21 +229,9 @@ android {
     sourceSets {
         main {
             jniLibs.srcDirs = ['src/main/jniLibs']
-            assets.srcDirs = ['../../Assets'] // Use only main project assets
-            // Exclude desktop-format textures — Android uses ASTC from CompiledAssets/android/ instead.
-            // Meshes and other non-texture assets are platform-agnostic and used from root CompiledAssets/.
-            assets.getFilter().exclude { element ->
-                def path = element.relativePath.toString().replace('\\', '/')
-                // Exclude .ktx2 textures from root CompiledAssets (BC7 format, not supported on mobile)
-                // but keep meshes, materials, etc. from root CompiledAssets
-                if (path.startsWith('CompiledAssets/android/')) {
-                    return false // Always include android subfolder (ASTC textures)
-                }
-                if (path.startsWith('CompiledAssets/') && path.endsWith('.ktx2')) {
-                    return true // Exclude desktop textures
-                }
-                return false // Include everything else (meshes, materials, etc.)
-            }
+            assets.srcDirs = ['../../Assets']
+            // Note: Folder-level asset filtering is done in afterEvaluate block below
+            // (source set filters don't work for Android asset merging)
         }
     }
 }
