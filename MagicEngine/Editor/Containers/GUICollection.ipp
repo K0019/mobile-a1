@@ -234,9 +234,9 @@ namespace gui {
 	}
 
 	template<typename DataType>
-	PayloadSource<DataType>::PayloadSource([[maybe_unused]] const char* identifier, [[maybe_unused]] const DataType& data, [[maybe_unused]] const char* dragLabel)
+	PayloadSource<DataType>::PayloadSource([[maybe_unused]] const char* identifier, [[maybe_unused]] const DataType& data, [[maybe_unused]] const char* dragLabel, [[maybe_unused]] FLAG_PAYLOAD_SOURCE flags)
 #ifdef IMGUI_ENABLED
-		: internal::BeginEndBound_PayloadSource{ 0 } // No flags
+		: internal::BeginEndBound_PayloadSource{ +flags }
 #endif
 	{
 #ifdef IMGUI_ENABLED
@@ -264,12 +264,12 @@ namespace gui {
 		template <typename DataType, typename FunctionType>
 		struct PayloadTargetClass
 		{
-			static void Invoke([[maybe_unused]] const char* identifier, [[maybe_unused]] FunctionType onReceive)
+			static void Invoke([[maybe_unused]] const char* identifier, [[maybe_unused]] FunctionType onReceive, [[maybe_unused]] FLAG_PAYLOAD_TARGET flags)
 			{
 #ifdef IMGUI_ENABLED
 				if (ImGui::BeginDragDropTarget())
 				{
-					if (const ImGuiPayload* payload{ ImGui::AcceptDragDropPayload(identifier) })
+					if (const ImGuiPayload* payload{ ImGui::AcceptDragDropPayload(identifier, +flags) })
 						onReceive(*reinterpret_cast<const DataType*>(payload->Data));
 
 					ImGui::EndDragDropTarget();
@@ -280,12 +280,12 @@ namespace gui {
 		template <typename FunctionType>
 		struct PayloadTargetClass<std::string, FunctionType>
 		{
-			static void Invoke([[maybe_unused]] const char* identifier, [[maybe_unused]] FunctionType onReceive)
+			static void Invoke([[maybe_unused]] const char* identifier, [[maybe_unused]] FunctionType onReceive, [[maybe_unused]] FLAG_PAYLOAD_TARGET flags)
 			{
 #ifdef IMGUI_ENABLED
 				if (ImGui::BeginDragDropTarget())
 				{
-					if (const ImGuiPayload* payload{ ImGui::AcceptDragDropPayload(identifier) })
+					if (const ImGuiPayload* payload{ ImGui::AcceptDragDropPayload(identifier, +flags) })
 						onReceive(reinterpret_cast<const char*>(payload->Data));
 
 					ImGui::EndDragDropTarget();
@@ -296,9 +296,9 @@ namespace gui {
 	}
 	template<typename DataType, typename FunctionType>
 		requires std::invocable<FunctionType, const DataType&>
-	void PayloadTarget([[maybe_unused]] const char* identifier, [[maybe_unused]] FunctionType onReceive)
+	void PayloadTarget(const char* identifier, FunctionType onReceive, FLAG_PAYLOAD_TARGET flags)
 	{
-		internal::PayloadTargetClass<DataType, FunctionType>::Invoke(identifier, onReceive);
+		internal::PayloadTargetClass<DataType, FunctionType>::Invoke(identifier, onReceive, flags);
 	}
 
 	template<typename ContType>

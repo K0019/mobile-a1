@@ -166,6 +166,21 @@ namespace gui {
 	X(ANY_POPUP_LEVEL, ImGuiPopupFlags_AnyPopupLevel) \
 	X(ANY_POPUP, ImGuiPopupFlags_AnyPopup)
 
+	//! ImGuiDragDropFlags
+#define GUICOLLECTION_FLAG_PAYLOAD_SOURCE \
+	X(NONE, ImGuiDragDropFlags_None) \
+	X(NO_PREVIEW_TOOLTIP, ImGuiDragDropFlags_SourceNoPreviewTooltip) \
+	X(NO_DISABLE_HOVER, ImGuiDragDropFlags_SourceNoDisableHover) \
+	X(NO_HOLD_TO_OPEN_OTHERS, ImGuiDragDropFlags_SourceNoHoldToOpenOthers) \
+	X(ALLOW_NULL_ID, ImGuiDragDropFlags_SourceAllowNullID) \
+	X(EXTERNAL_SOURCE, ImGuiDragDropFlags_SourceExtern)
+#define GUICOLLECTION_FLAG_PAYLOAD_TARGET \
+	X(NONE, ImGuiDragDropFlags_None) \
+	X(SUCCESS_BEFORE_DELIVERY, ImGuiDragDropFlags_AcceptBeforeDelivery) \
+	X(NO_DRAW_DEFAULT_RECT, ImGuiDragDropFlags_AcceptNoDrawDefaultRect) \
+	X(NO_PREVIEW_TOOLTIP, ImGuiDragDropFlags_AcceptNoPreviewTooltip) \
+	X(PEEK_ONLY, ImGuiDragDropFlags_AcceptPeekOnly)
+
 	//! ImGuiComboFlags
 #define GUICOLLECTION_FLAG_COMBO \
 	X(NONE, ImGuiComboFlags_None) \
@@ -471,6 +486,20 @@ namespace gui {
 	GENERATE_ENUM_CLASS_BITWISE_OPERATORS(FLAG_COMBO)
 
 	/*****************************************************************//*!
+	\enum class FLAG_PAYLOAD_SOURCE
+	\brief
+		ImGuiDragDropFlags
+	*//******************************************************************/
+	enum class FLAG_PAYLOAD_SOURCE : int {
+		GUICOLLECTION_FLAG_PAYLOAD_SOURCE
+	};
+	GENERATE_ENUM_CLASS_BITWISE_OPERATORS(FLAG_PAYLOAD_SOURCE)
+	enum class FLAG_PAYLOAD_TARGET : int {
+		GUICOLLECTION_FLAG_PAYLOAD_TARGET
+	};
+	GENERATE_ENUM_CLASS_BITWISE_OPERATORS(FLAG_PAYLOAD_TARGET)
+
+	/*****************************************************************//*!
 	\enum class FLAG_STYLE_COLOR
 	\brief
 		ImGuiCol
@@ -653,6 +682,7 @@ namespace gui {
 		using BeginEndBound_PayloadSource = BeginEndBound<ImGui::BeginDragDropSource, ImGui::EndDragDropSource>;
 
 		using BeginEndBound_Button = BeginEndBound<ImGui::Button>;
+		using BeginEndBound_SmallButton = BeginEndBound<ImGui::SmallButton>;
 
 		using BeginEndBound_MainMenuBar = BeginEndBound<ImGui::BeginMainMenuBar, ImGui::EndMainMenuBar>;
 		using BeginEndBound_MenuBar = BeginEndBound<ImGui::BeginMenuBar, ImGui::EndMenuBar>;
@@ -679,6 +709,7 @@ namespace gui {
 		using BeginEndBound_PayloadSource = std::false_type;
 
 		using BeginEndBound_Button = std::false_type;
+		using BeginEndBound_SmallButton = std::false_type;
 
 		using BeginEndBound_MainMenuBar = std::false_type;
 		using BeginEndBound_MenuBar = std::false_type;
@@ -1298,7 +1329,7 @@ namespace gui {
 	class PayloadSource : public internal::BeginEndBound_PayloadSource
 	{
 	public:
-		PayloadSource(const char* identifier, const DataType& data, const char* dragLabel = nullptr);
+		PayloadSource(const char* identifier, const DataType& data, const char* dragLabel = nullptr, FLAG_PAYLOAD_SOURCE flags = FLAG_PAYLOAD_SOURCE::NONE);
 
 	private:
 		void SetPayloadTarget(const char* identifier, const DataType& data);
@@ -1321,7 +1352,7 @@ namespace gui {
 	*//******************************************************************/
 	template <typename DataType, typename FunctionType>
 		requires std::invocable<FunctionType, const DataType&>
-	void PayloadTarget(const char* identifier, FunctionType onReceive);
+	void PayloadTarget(const char* identifier, FunctionType onReceive, FLAG_PAYLOAD_TARGET flags = FLAG_PAYLOAD_TARGET::NONE);
 
 #pragma endregion // Payload
 
@@ -1337,6 +1368,18 @@ namespace gui {
 	public:
 		//! ImGui::Button()
 		Button(const char* label, const Vec2& size = Vec2{});
+	};
+
+	/*****************************************************************//*!
+	\class SmallButton
+	\brief
+		Wraps ImGui::SmallButton()
+	*//******************************************************************/
+	class SmallButton : public internal::BeginEndBound_SmallButton
+	{
+	public:
+		//! ImGui::SmallButton()
+		SmallButton(const char* label);
 	};
 
 #pragma endregion // Button

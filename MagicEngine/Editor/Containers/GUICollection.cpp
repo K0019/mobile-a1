@@ -287,6 +287,13 @@ namespace gui {
 	{
 	}
 
+	SmallButton::SmallButton([[maybe_unused]] const char* label)
+#ifdef IMGUI_ENABLED
+		: internal::BeginEndBound_SmallButton{ label }
+#endif
+	{
+	}
+
 	Menu::Menu([[maybe_unused]] const char* label)
 #ifdef IMGUI_ENABLED
 		: internal::BeginEndBound_Menu{ label, true }
