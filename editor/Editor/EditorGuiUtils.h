@@ -46,11 +46,13 @@ namespace gui
 	public:
 		NewGridHelper(float thumbnailSize);
 
+		// Simply keeps elements at the same y level until it should wrap to the next row
 		[[nodiscard]] inline GridItem Item()
 		{
 			++itemCount;
 			return GridItem{ itemCount, itemCount % columnsCount != 0, thumbnailSize, nullptr };
 		}
+		// In addition to above, adds a rendering of a text at the bottom and while hovering
 		[[nodiscard]] inline GridItem Item(const std::string& name)
 		{
 			itemName = name;

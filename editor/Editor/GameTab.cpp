@@ -45,7 +45,6 @@ namespace editor {
 
         gui::NewGridHelper grid{ AssetBrowser::THUMBNAIL_SIZE };
 
-        int count{};
         for (const auto& [hash, weapon] : ST<MagicResourceManager>::Get()->Editor_GetContainer<WeaponInfo>().Editor_GetAllResources())
         {
             const std::string& weaponName{ *ST<MagicResourceManager>::Get()->Editor_GetName(hash) };

@@ -8,6 +8,7 @@
 
 #include "Engine/Events/EventsQueue.h"
 #include "Engine/Events/EventsTypeBasic.h"
+#include "Engine/Events/EventsTypeEditor.h"
 
 #ifdef GLFW
 #include <Windows.h>
@@ -31,60 +32,32 @@ namespace editor {
 
     void PrefabTab::Render(const gui::TextBoxWithFilter& filter)
     {
-#ifdef IMGUI_ENABLED
-        float THUMBNAIL_SIZE = AssetBrowser::THUMBNAIL_SIZE;
-        float panelWidth = ImGui::GetContentRegionAvail().x; // random offset
-        gui::GridHelper grid(panelWidth, THUMBNAIL_SIZE + 10);
+        gui::NewGridHelper grid{ AssetBrowser::THUMBNAIL_SIZE };
 
-        gui::SetStyleVar itemSpacing(gui::FLAG_STYLE_VAR::ITEM_SPACING, ImVec2(5, 5));
-        gui::SetStyleVar framePadding(gui::FLAG_STYLE_VAR::FRAME_PADDING, ImVec2(2, 2));
-
-        std::string prefabName = "";
-        for (size_t i = 0; i < PrefabManager::AllPrefabs().size(); ++i)
+        for (size_t i{}; i < PrefabManager::AllPrefabs().size(); ++i)
         {
-            prefabName = PrefabManager::AllPrefabs()[i];
+            const std::string& prefabName{ PrefabManager::AllPrefabs()[i] };
             if (!filter.PassFilter(prefabName))
-            {
                 continue;
+
+            gui::GridItem item{ grid.Item(prefabName) };
+
+            if (gui::Button{ ICON_FA_CUBE, gui::Vec2{ AssetBrowser::THUMBNAIL_SIZE, AssetBrowser::THUMBNAIL_SIZE } })
+            {
+                ecs::EntityHandle prefabEntity{ PrefabManager::LoadPrefab(prefabName) };
+                ST<History>::Get()->OneEvent(HistoryEvent_EntityCreate{ prefabEntity });
+                ST<EventsQueue>::Get()->AddEventForNextFrame(Events::EditorSelectEntity{ prefabEntity });
             }
 
-            {
-                gui::SetID setid(static_cast<int>(i));
-                gui::Group group;
+            gui::PayloadSource{ "PREFAB", prefabName, std::string{ ICON_FA_CUBE + prefabName }.c_str() };
 
-                bool clicked = ImGui::Button(ICON_FA_CUBE,
-                    ImVec2(THUMBNAIL_SIZE, THUMBNAIL_SIZE + 10));
-
-                gui::ShowSimpleHoverTooltip(prefabName);
-                gui::PayloadSource<std::string>{ "PREFAB", prefabName.c_str(), std::string{ ICON_FA_CUBE + prefabName }.c_str() };
-
-                if (clicked)
+            if (gui::ItemContextMenu contextMenu{ prefabName.c_str() })
+                if (gui::MenuItem(ICON_FA_TRASH" Delete"))
                 {
-                    ecs::EntityHandle prefabEntity{ PrefabManager::LoadPrefab(prefabName) };
-                    ST<History>::Get()->OneEvent(HistoryEvent_EntityCreate{ prefabEntity });
-                }
-
-                // Name label
-                gui::ThumbnailLabel(prefabName, THUMBNAIL_SIZE);
-            }
-
-            if (ImGui::BeginPopupContextItem(prefabName.c_str()))
-            {
-                if (ImGui::MenuItem(ICON_FA_TRASH" Delete"))
-                {
-                    CONSOLE_LOG_EXPLICIT("DELETE " + prefabName, LogLevel::LEVEL_DEBUG);
+                    CONSOLE_LOG(LEVEL_DEBUG) << "DELETE " << prefabName;
                     PrefabManager::DeletePrefab(prefabName);
                 }
-                if (ImGui::MenuItem(ICON_FA_CLONE" Duplicate"))
-                {
-                    CONSOLE_LOG_EXPLICIT("CLONE " + prefabName, LogLevel::LEVEL_DEBUG);
-                }
-                ImGui::EndPopup();
-            }
-
-            grid.NextItem();
         }
-#endif
     }
 
     ///////////////
@@ -129,14 +102,6 @@ namespace editor {
 
     void ShaderTab::Render([[maybe_unused]] const gui::TextBoxWithFilter& filter)
     {
-#ifdef IMGUI_ENABLED
-        float THUMBNAIL_SIZE = AssetBrowser::THUMBNAIL_SIZE;
-        float panelWidth = ImGui::GetContentRegionAvail().x;
-        gui::GridHelper grid(panelWidth, THUMBNAIL_SIZE + 10);
-
-        gui::SetStyleVar itemSpacing(gui::FLAG_STYLE_VAR::ITEM_SPACING, ImVec2(5, 5));
-        gui::SetStyleVar framePadding(gui::FLAG_STYLE_VAR::FRAME_PADDING, ImVec2(2, 2));
-
         if (shaderNames.empty())
         {
             const std::unordered_set<std::string> allowedExtensions{ ".vert", ".frag", ".comp" };
@@ -145,22 +110,14 @@ namespace editor {
                     shaderNames.push_back(entry.path().filename().string());
         }
 
-        int count{};
+        gui::NewGridHelper grid{ AssetBrowser::THUMBNAIL_SIZE };
+
         for (const auto& shaderName : shaderNames)
         {
-            {
-                gui::SetID id{ count++ };
-                gui::Group group;
+            gui::GridItem item{ grid.Item(shaderName) };
 
-                gui::Button button("##shader", gui::Vec2{ THUMBNAIL_SIZE, THUMBNAIL_SIZE });
-
-                // Name label
-                gui::ThumbnailLabel(shaderName, THUMBNAIL_SIZE);
-            }
-
-            grid.NextItem();
+            gui::Button{ "##shader", gui::Vec2{ AssetBrowser::THUMBNAIL_SIZE, AssetBrowser::THUMBNAIL_SIZE } };
         }
-#endif
     }
 
 

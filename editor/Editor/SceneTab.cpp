@@ -26,7 +26,6 @@ namespace editor {
     {
         gui::NewGridHelper grid{ AssetBrowser::THUMBNAIL_SIZE };
 
-        int count{};
         for (const auto& filename : VFS::ListDirectory(Filepaths::scenesSave))
         {
             if (!filter.PassFilter(filename))
