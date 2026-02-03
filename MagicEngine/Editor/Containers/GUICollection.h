@@ -757,6 +757,20 @@ namespace gui {
 
 		};
 
+		/*****************************************************************//*!
+		\class TextType
+		\brief
+			Helper type to combine const char* and std::string to deduplicate
+			functions that need to support both.
+		*//******************************************************************/
+		struct TextType
+		{
+			TextType(const char* text);
+			TextType(const std::string& text);
+			operator const char* ();
+			const char* text;
+		};
+
 	}
 }
 
@@ -994,6 +1008,8 @@ namespace gui {
 
 	//! ImGui::GetFontSize()
 	float GetFontSize();
+	//! ImGui::CalcTextSize()
+	gui::Vec2 CalcTextSize(internal::TextType text);
 
 	/*****************************************************************//*!
 	\class SetTextWrapPos

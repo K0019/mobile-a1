@@ -60,7 +60,7 @@ namespace gui
 
 	};
 
-	std::string TruncateText(const std::string& text, float maxWidth);
+	std::string TruncateText(std::string text, float maxWidth);
 	void ThumbnailLabel(const std::string& text, float thumbnailWidth);
 
 	void ShowSimpleHoverTooltip(const std::string& text);

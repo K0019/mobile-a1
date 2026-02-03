@@ -77,6 +77,20 @@ namespace gui {
 #endif
 		}
 
+		TextType::TextType(const char* text)
+			: text{ text }
+		{
+		}
+		TextType::TextType(const std::string& text)
+			: text{ text.c_str() }
+		{
+		}
+
+		TextType::operator const char* ()
+		{
+			return text;
+		}
+
 	}
 
 	Window::Window(const std::string& title, const Vec2& initDimensions, FLAG_WINDOW windowFlags)
@@ -356,6 +370,15 @@ namespace gui {
 		return ImGui::GetFontSize();
 #else
 		return 1.0f;
+#endif
+	}
+
+	Vec2 CalculateTextSize(internal::TextType text)
+	{
+#ifdef IMGUI_ENABLED
+		return ImGui::CalcTextSize(text);
+#else
+		return Vec2{};
 #endif
 	}
 
