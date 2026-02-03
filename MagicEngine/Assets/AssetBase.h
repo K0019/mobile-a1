@@ -20,6 +20,9 @@ All rights reserved.
 /******************************************************************************/
 
 #pragma once
+#include <unordered_map>
+#include <unordered_set>
+#include <memory>
 
 struct ResourceBase
 {
@@ -50,8 +53,22 @@ public:
     void INTERNAL_CreateResource(size_t hash) override;
     ResourceType* INTERNAL_GetResource(size_t hash, bool createIfMissing);
 
+    // Reference counting (tracked per-hash)
+    void IncrementRef(size_t hash) { ++refCounts[hash]; }
+    void DecrementRef(size_t hash) {
+        auto it = refCounts.find(hash);
+        if (it != refCounts.end() && --it->second == 0)
+            refCounts.erase(it);
+    }
+    uint32_t GetRefCount(size_t hash) const {
+        auto it = refCounts.find(hash);
+        return it != refCounts.end() ? it->second : 0;
+    }
+
 private:
-    std::unordered_map<size_t, ResourceType> resources;
+    std::unordered_map<size_t, std::unique_ptr<ResourceType>> resources;
+    std::unordered_map<size_t, uint32_t> refCounts;
+    std::unordered_set<size_t> m_deferredRequested;  // suppress repeat broadcasts
 
 public:
     auto Editor_GetAllResources() const;
@@ -70,4 +87,4 @@ private:
 
 };
 
-#include "ResourceTypes.ipp"
+#include "AssetBase.ipp"

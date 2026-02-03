@@ -18,7 +18,7 @@ All rights reserved.
 */
 /******************************************************************************/
 
-#include "Engine/Resources/Types/ResourceTypesGraphics.h"
+#include "Assets/Types/AssetTypes.h"
 
 bool ResourceMesh::IsLoaded()
 {

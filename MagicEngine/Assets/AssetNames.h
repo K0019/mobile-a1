@@ -1,6 +1,6 @@
 ﻿/******************************************************************************/
 /*!
-\file   ResourceNames.h
+\file   AssetNames.h
 \par    Project: Kuro Mahou
 \par    Course: CSD3401
 \par    Software Engineering Project 5
@@ -20,7 +20,7 @@ All rights reserved.
 
 #pragma once
 
-class ResourceNames
+class AssetNames
 {
 public:
     const std::string* GetName(size_t hash) const;

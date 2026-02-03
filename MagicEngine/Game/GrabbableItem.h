@@ -21,8 +21,8 @@ All rights reserved.
 #pragma once
 #include "ECS/EntityUID.h"
 #include "ECS/IEditorComponent.h"
-#include "Engine/Resources/ResourcesHeader.h"
-#include "Engine/Resources/Types/ResourceTypesGraphics.h"
+#include "Assets/AssetHandle.h"
+#include "Assets/Types/AssetTypes.h"
 #include "Game/Weapon.h"
 
 /*****************************************************************//*!
@@ -35,14 +35,14 @@ class GrabbableItemComponent
 	, public IEditorComponent<GrabbableItemComponent>
 {
 public:
-	UserResourceHandle<WeaponInfo> weaponInfo;
+	AssetHandle<WeaponInfo> weaponInfo;
 	// TODO: Replace bottom with above weapon info handle...
-	UserResourceHandle<ResourceAnimation> lightAttackAnimation;
-	UserResourceHandle<ResourceAnimation> heavyAttackAnimation;
-	UserResourceHandle<ResourceAnimation> ultimAttackAnimation;
-	UserResourceHandle<ResourceAnimation> parryAnimation;
+	AssetHandle<ResourceAnimation> lightAttackAnimation;
+	AssetHandle<ResourceAnimation> heavyAttackAnimation;
+	AssetHandle<ResourceAnimation> ultimAttackAnimation;
+	AssetHandle<ResourceAnimation> parryAnimation;
 
-	UserResourceHandle<ResourceMaterial> pickupUI;
+	AssetHandle<ResourceMaterial> pickupUI;
 
 
 	void Attack(Vec3 origin, Vec3 extents);
@@ -132,7 +132,7 @@ private:
 	void UpdateItemCompUI(GrabbableItemComponent& itemComp);
 
 	void HideUI(ecs::EntityHandle itemEntity);
-	void ShowUI(ecs::EntityHandle itemEntity, UserResourceHandle<ResourceMaterial> uiMaterial);
+	void ShowUI(ecs::EntityHandle itemEntity, AssetHandle<ResourceMaterial> uiMaterial);
 	ecs::EntityHandle GetInactiveUIEntity();
 
 private:

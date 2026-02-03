@@ -1,6 +1,6 @@
 /******************************************************************************/
 /*!
-\file   ResourceImporter.h
+\file   AssetImporter.h
 \par    Project: Kuro Mahou
 \par    Course: CSD3401
 \par    Software Engineering Project 5
@@ -22,7 +22,7 @@ All rights reserved.
 #include <string>
 #include <unordered_map>
 
-class ResourceImporter
+class AssetImporter
 {
 public:
     // Function pointer type for import functions

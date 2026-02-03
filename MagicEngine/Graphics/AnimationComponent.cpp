@@ -1,6 +1,6 @@
 #include "VFS/VFS.h"
 #include "Graphics/RenderComponent.h"
-#include "Engine/Resources/ResourceManager.h"
+#include "Assets/AssetManager.h"
 #include "Editor/Containers/GUICollection.h"
 #include "Graphics/AnimatorComponent.h"
 #include "Graphics/AnimationComponent.h"
@@ -221,7 +221,7 @@ void AnimationComponent::TransitionTo(size_t newAnimHash, float duration)
 void AnimationComponent::EditorDraw()
 {
     // Animation clip input
-    const std::string* clip1Name{ ST<MagicResourceManager>::Get()->Editor_GetName(animHandleA.GetHash()) };
+    const std::string* clip1Name{ ST<AssetManager>::Get()->Editor_GetName(animHandleA.GetHash()) };
     gui::TextUnformatted("Animation");
     gui::SameLine();
     gui::TextBoxReadOnly("##AnimClip", clip1Name ? clip1Name->c_str() : "");

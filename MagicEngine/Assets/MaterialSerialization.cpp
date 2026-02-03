@@ -1,7 +1,7 @@
 #include "VFS/VFS.h"
 
-#include "Engine/Resources/MaterialSerialization.h"
-#include "Engine/Resources/ResourceManager.h"
+#include "Assets/MaterialSerialization.h"
+#include "Assets/AssetManager.h"
 #include "FilepathConstants.h"
 
 #include <variant>
@@ -12,7 +12,7 @@ namespace
 {
     std::string getPathFromHandle(size_t handle)
     {
-        auto& filepathManager = ST<MagicResourceManager>::Get()->INTERNAL_GetFilepathsManager();
+        auto& filepathManager = ST<AssetManager>::Get()->INTERNAL_GetFilepathsManager();
         if (handle == 0)
         {
             return ""; // return an empty string for invalid handles

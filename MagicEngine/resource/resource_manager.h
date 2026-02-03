@@ -42,7 +42,7 @@ namespace Resource
 
     void postRendererInitialize();
 
-    TextureHandle createTexture(const ProcessedTexture& texture);
+    TextureHandle createTexture(ProcessedTexture texture);
 
     FontHandle createFont(const ProcessedFont& font);
 
@@ -51,7 +51,7 @@ namespace Resource
 
     std::vector<MaterialHandle> createMaterialBatch(const std::vector<ProcessedMaterial>& materials);
 
-    std::vector<TextureHandle> createTextureBatch(const std::vector<ProcessedTexture>& textures);
+    std::vector<TextureHandle> createTextureBatch(std::vector<ProcessedTexture> textures);
 
     // Animation assets
     ClipId createClip(const ProcessedAnimationClip& clip);
@@ -83,6 +83,12 @@ namespace Resource
 
     FontHandle getDefaultUIFont() const;
 
+    // Default/placeholder resources for missing or unloaded assets.
+    // These are visually obvious (magenta) so missing assets are easy to spot.
+    MeshHandle getDefaultMesh() const;
+    TextureHandle getDefaultTexture() const;
+    MaterialHandle getDefaultMaterial() const;
+
     // Load a texture from a file path (stb_image) and return an engine handle.
     // The GPU upload is async — resolveTextureView returns default white until ready.
     TextureHandle loadTextureFromFile(const std::string& path, bool sRGB = true);
@@ -108,7 +114,13 @@ namespace Resource
     Context* m_context;
     FontHandle m_defaultUIFont;
 
+    // Placeholder resources (created in postRendererInitialize)
+    MeshHandle m_defaultMesh;
+    TextureHandle m_defaultTexture;  // magenta checkerboard
+    MaterialHandle m_defaultMaterial;
+
     void loadDefaultUIFont();
+    void createDefaultResources();
 
     // Asset storage
     ResourcePool<MeshAsset> m_meshPool;

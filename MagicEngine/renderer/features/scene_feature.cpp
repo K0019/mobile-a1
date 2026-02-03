@@ -684,7 +684,7 @@ void SceneRenderFeature::UpdateScene(uint64_t renderFeatureID,
         material = materialList[i].GetResource();
       }
       if (!material) {
-        material = MagicResourceManager::GetContainer<ResourceMaterial>().GetResource(
+        material = AssetManager::GetContainer<ResourceMaterial>().GetResource(
             mesh->defaultMaterialHashes[i]);
       }
 

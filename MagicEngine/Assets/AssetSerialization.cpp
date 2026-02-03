@@ -1,6 +1,6 @@
 ﻿/******************************************************************************/
 /*!
-\file   ResourceSerialization.cpp
+\file   AssetSerialization.cpp
 \par    Project: Kuro Mahou
 \par    Course: CSD3401
 \par    Software Engineering Project 5
@@ -19,12 +19,12 @@ All rights reserved.
 */
 /******************************************************************************/
 
-#include "Engine/Resources/ResourceSerialization.h"
+#include "Assets/AssetSerialization.h"
 #include "resource/asset_metadata.h"
 #include "VFS/VFS.h"
 #include <filesystem>
 
-void ResourceSerialization::Serialize(Serializer& writer, const ResourceFilepaths& filepaths, const ResourceNames& names)
+void AssetSerialization::Serialize(Serializer& writer, const AssetFilepaths& filepaths, const AssetNames& names)
 {
 	writer.StartArray("files");
 	for (const auto fileEntry : filepaths.GetFileEntries())
@@ -71,7 +71,7 @@ void ResourceSerialization::Serialize(Serializer& writer, const ResourceFilepath
 	writer.EndArray();
 }
 
-void ResourceSerialization::Deserialize(Deserializer& reader, ResourceFilepaths* filepaths, ResourceNames* names, LoadedResourceCallbackType resourceLoadedCallback)
+void AssetSerialization::Deserialize(Deserializer& reader, AssetFilepaths* filepaths, AssetNames* names, LoadedResourceCallbackType resourceLoadedCallback)
 {
 	reader.PushAccess("files");
 	for (size_t fileIndex{}; reader.PushArrayElementAccess(fileIndex); ++fileIndex)

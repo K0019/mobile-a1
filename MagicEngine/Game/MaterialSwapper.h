@@ -2,8 +2,8 @@
 #include "ECS/IRegisteredComponent.h"
 #include "ECS/IEditorComponent.h"
 #include "Game/IGameComponentCallbacks.h"
-#include "Engine/Resources/ResourcesHeader.h"
-#include "Engine/Resources/Types/ResourceTypesGraphics.h"
+#include "Assets/AssetHandle.h"
+#include "Assets/Types/AssetTypes.h"
 
 /*****************************************************************//*!
 \class MaterialSwapperComponent
@@ -25,10 +25,10 @@ public:
 	void ToggleMaterialSwap(bool swapped);
 
 	// Serialized
-	UserResourceHandle<ResourceMaterial> swapMaterial;
+	AssetHandle<ResourceMaterial> swapMaterial;
 
 	// Not serialized
-	std::vector<UserResourceHandle<ResourceMaterial>> defaultMaterials;
+	std::vector<AssetHandle<ResourceMaterial>> defaultMaterials;
 
 	bool inited;
 

@@ -16,8 +16,8 @@ All rights reserved.
 
 #pragma once
 #include "VFS/VFS.h"
-#include "Engine/Resources/ResourceFilepaths.h"
-#include "Engine/Resources/ResourceManager.h"
+#include "Assets/AssetFilepaths.h"
+#include "Assets/AssetManager.h"
 #include "resource/asset_metadata.h"
 #include <tuple>
 
@@ -44,7 +44,7 @@ namespace ResourceImportHelpers {
     void GenerateHashesForResourceType(AssociatedResourceHashes* resource, size_t numHashes);
 
     template <typename ...ResourceTypes, typename ...ResourceCountType>
-    const ResourceFilepaths::FileEntry* GenerateFileEntryForResources(const std::string& assetRelativeFilepath, ResourceCountType... numResources);
+    const AssetFilepaths::FileEntry* GenerateFileEntryForResources(const std::string& assetRelativeFilepath, ResourceCountType... numResources);
 
     // Implementation details
     namespace detail {
@@ -69,9 +69,9 @@ void ResourceImportHelpers::GenerateHashesForResourceType(AssociatedResourceHash
 }
 
 template<typename ...ResourceTypes, typename ...ResourceCountType>
-const ResourceFilepaths::FileEntry* ResourceImportHelpers::GenerateFileEntryForResources(const std::string& assetRelativeFilepath, ResourceCountType ...numResources)
+const AssetFilepaths::FileEntry* ResourceImportHelpers::GenerateFileEntryForResources(const std::string& assetRelativeFilepath, ResourceCountType ...numResources)
 {
-    if (const ResourceFilepaths::FileEntry* existingFileEntry{ ST<MagicResourceManager>::Get()->INTERNAL_GetFilepathsManager().GetFileEntry(assetRelativeFilepath)})
+    if (const AssetFilepaths::FileEntry* existingFileEntry{ ST<AssetManager>::Get()->INTERNAL_GetFilepathsManager().GetFileEntry(assetRelativeFilepath)})
         return existingFileEntry;
 
     // For single-resource files (common case: .mesh, .ktx2, .material, .anim),
@@ -96,7 +96,7 @@ const ResourceFilepaths::FileEntry* ResourceImportHelpers::GenerateFileEntryForR
     }
 
     GenerateNamesForResources(resourceHashes, assetRelativeFilepath);
-    return ST<MagicResourceManager>::Get()->INTERNAL_GetFilepathsManager().SetFilepath(assetRelativeFilepath, std::move(resourceHashes));
+    return ST<AssetManager>::Get()->INTERNAL_GetFilepathsManager().SetFilepath(assetRelativeFilepath, std::move(resourceHashes));
 }
 
 template<typename ResourceType, typename ...RemainingResourceTypes, typename ...ResourceCountType>

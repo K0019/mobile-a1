@@ -22,8 +22,8 @@ All rights reserved.
 #include "ECS/IEditorComponent.h"
 #include "UI/IUIComponent.h"
 #include "UI/RectTransform.h"
-#include "Engine/Resources/ResourcesHeader.h"
-#include "Engine/Resources/Types/ResourceTypesGraphics.h"
+#include "Assets/AssetHandle.h"
+#include "Assets/Types/AssetTypes.h"
 
 class Primitive2DBase : public ISerializeable
 {
@@ -83,7 +83,7 @@ public:
 	void EditorDraw() override;
 
 private:
-	UserResourceHandle<ResourceTexture> texture;
+	AssetHandle<ResourceTexture> texture;
 	Vec2 uvMin, uvMax;
 
 public:

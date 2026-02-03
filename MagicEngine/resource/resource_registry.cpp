@@ -56,7 +56,7 @@ size_t ResourceRegistry::ImportTexture(const std::string& vfsPath)
     processedTexture.source = FilePathSource{vfsPath};
 
     // Upload to GPU
-    TextureHandle handle = m_resourceManager->createTexture(processedTexture);
+    TextureHandle handle = m_resourceManager->createTexture(std::move(processedTexture));
     if (!handle.isValid())
     {
         LOG_ERROR("Failed to create GPU texture for: {}", vfsPath);

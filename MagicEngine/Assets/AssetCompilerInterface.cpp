@@ -1,6 +1,6 @@
 #include "FilepathConstants.h"
-#include "ResourceFilepaths.h"
-#include "Engine/Resources/ResourceImporter.h"
+#include "AssetFilepaths.h"
+#include "Assets/AssetImporter.h"
 #include "AssetCompilerInterface.h"
 #include "Utilities/ProcessRunner.h"
 #include "VFS/VFS.h"
@@ -106,7 +106,7 @@ bool CompileAndImportAsset(const std::string& assetRelativeFilepath)
         {
             std::filesystem::path absPath = path;
             std::string toImport = VFS::ConvertPhysicalToVirtual(absPath.string());
-            ResourceImporter::Import(toImport);
+            AssetImporter::Import(toImport);
         }
     };
 

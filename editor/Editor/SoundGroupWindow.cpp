@@ -3,7 +3,7 @@
 #include "Events/EventsQueue.h"
 #include "Events/EventsTypeEditor.h"
 #include "FilepathConstants.h"
-#include "Engine/Resources/ResourceImporter.h"
+#include "Assets/AssetImporter.h"
 #include "Editor/EditorUtilResource.h"
 
 namespace editor {
@@ -28,18 +28,20 @@ namespace editor {
 		gui::TextCenteredUnformatted("Sound Groups");
 		gui::Separator();
 
-		for (const auto& soundGroup : ST<MagicResourceManager>::Get()->Editor_GetContainer<ResourceAudioGroup>().Editor_GetAllResources())
+		for (const auto& soundGroup : ST<AssetManager>::Get()->Editor_GetContainer<ResourceAudioGroup>().Editor_GetAllResources())
 		{
-			const std::string* soundGroupName{ ST<MagicResourceManager>::Get()->Editor_GetName(soundGroup.first) };
+			const std::string* soundGroupName{ ST<AssetManager>::Get()->Editor_GetName(soundGroup.first) };
 			if (gui::Selectable(soundGroupName->c_str()))
 			{
-				UserResourceHandle<ResourceAudioGroup> soundGroupResource{ soundGroup.first };
+				AssetHandle<ResourceAudioGroup> soundGroupResource{ soundGroup.first };
 				groupFilename.SetBuffer(soundGroupName->substr(0, soundGroupName->size() - 1));
 
-				const auto& loadedSoundGroupSounds{ soundGroupResource.GetResource()->audio };
+				const auto* loadedGroup = soundGroupResource.GetResource();
+				if (!loadedGroup) continue;
+				const auto& loadedSoundGroupSounds{ loadedGroup->audio };
 				sounds.clear();
-				std::transform(loadedSoundGroupSounds.begin(), loadedSoundGroupSounds.end(), std::back_inserter(sounds), [](size_t hash) -> UserResourceHandle<ResourceAudio> {
-					return UserResourceHandle<ResourceAudio>{ hash };
+				std::transform(loadedSoundGroupSounds.begin(), loadedSoundGroupSounds.end(), std::back_inserter(sounds), [](size_t hash) -> AssetHandle<ResourceAudio> {
+					return AssetHandle<ResourceAudio>{ hash };
 				});
 			}
 			gui::PayloadSource{ "SOUND_GROUP_HASH", soundGroup.first.get() };
@@ -54,7 +56,7 @@ namespace editor {
 		gui::Separator();
 
 		groupFilename.Draw();
-		gui::VarContainer("Sounds", &sounds, [](UserResourceHandle<ResourceAudio>& soundHandle) -> bool {
+		gui::VarContainer("Sounds", &sounds, [](AssetHandle<ResourceAudio>& soundHandle) -> bool {
 			editor::EditorUtil_DrawResourceHandle("Sound", soundHandle);
 			return false;
 		});
@@ -75,7 +77,7 @@ namespace editor {
 				return;
 			}
 
-			ResourceImporter::Import(filepath);
+			AssetImporter::Import(filepath);
 		}
 	}
 }

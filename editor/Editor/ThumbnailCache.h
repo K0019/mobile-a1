@@ -12,7 +12,7 @@
 
 // Forward declarations
 class GfxRenderer;
-class MagicResourceManager;
+class AssetManager;
 
 namespace editor
 {

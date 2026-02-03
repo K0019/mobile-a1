@@ -19,7 +19,7 @@ All rights reserved.
 /******************************************************************************/
 
 #pragma once
-#include "Engine/Resources/Types/ResourceTypes.h"
+#include "Assets/AssetBase.h"
 #include "resource/resource_types.h"
 #include "resource/animation_ids.h"
 

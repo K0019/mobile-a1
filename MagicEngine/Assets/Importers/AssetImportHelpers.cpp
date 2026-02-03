@@ -13,8 +13,8 @@ All rights reserved.
 */
 /******************************************************************************/
 
-#include "Engine/Resources/Importers/ResourceImportHelpers.h"
-#include "Engine/Resources/ResourceManager.h"
+#include "Assets/Importers/AssetImportHelpers.h"
+#include "Assets/AssetManager.h"
 #include "FilepathConstants.h"
 #include <filesystem>
 
@@ -23,7 +23,7 @@ namespace ResourceImportHelpers {
     size_t GenerateNewHash()
     {
         size_t hash{ util::Rand_UID() | 1 }; // Fill first bit so hash caching can use it to check for validity
-        while (ST<MagicResourceManager>::Get()->INTERNAL_GetNamesManager().GetName(hash))
+        while (ST<AssetManager>::Get()->INTERNAL_GetNamesManager().GetName(hash))
             hash = util::Rand_UID() | 1;
         CONSOLE_LOG(LEVEL_INFO) << "Generated new hash: " << hash;
         return hash;
@@ -79,7 +79,7 @@ namespace ResourceImportHelpers {
 
     void GenerateNamesForResources(std::vector<AssociatedResourceHashes>& resources, const std::string& relativeFilepath)
     {
-        auto& namesManager{ ST<MagicResourceManager>::Get()->INTERNAL_GetNamesManager() };
+        auto& namesManager{ ST<AssetManager>::Get()->INTERNAL_GetNamesManager() };
         std::string filename{ VFS::GetStem(relativeFilepath)};
 
         for (const auto& resource : resources)

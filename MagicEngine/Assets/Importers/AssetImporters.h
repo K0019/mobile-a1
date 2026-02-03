@@ -1,6 +1,6 @@
 /******************************************************************************/
 /*!
-\file   ResourceImporters.h
+\file   AssetImporters.h
 \par    Project: Kuro Mahou
 \par    Course: CSD3401
 \par    Software Engineering Project 5
@@ -17,7 +17,7 @@ All rights reserved.
 #pragma once
 #include <string>
 
-namespace ResourceImporters {
+namespace AssetImporters {
 
     // Import a KTX/KTX2 texture file
     bool ImportKTX(const std::string& assetRelativeFilepath);
@@ -46,4 +46,4 @@ namespace ResourceImporters {
     // Import a game weapon file (.weapon)
     bool ImportGameWeapon(const std::string& assetRelativeFilepath);
 
-} // namespace ResourceImporters
+} // namespace AssetImporters

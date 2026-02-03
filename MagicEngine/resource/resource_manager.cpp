@@ -221,7 +221,86 @@ namespace Resource
   void ResourceManager::postRendererInitialize()
   {
     //loadDefaultUIFont();
+    createDefaultResources();
   }
+
+  void ResourceManager::createDefaultResources()
+  {
+    // --- Default magenta checkerboard texture (2x2, visually obvious for missing textures) ---
+    {
+      ProcessedTexture tex;
+      tex.name = "__default_magenta";
+      tex.source = FilePathSource{"__builtin/default_magenta"};
+      tex.width = 2;
+      tex.height = 2;
+      tex.channels = 4;
+      tex.sRGB = true;
+      tex.textureDesc.format = gfx::Format::RGBA8_UNorm;
+      tex.textureDesc.dimensions = {2, 2, 1};
+      // Magenta/black checkerboard pattern
+      tex.data = {
+        0xFF, 0x00, 0xFF, 0xFF,   0x00, 0x00, 0x00, 0xFF,  // magenta, black
+        0x00, 0x00, 0x00, 0xFF,   0xFF, 0x00, 0xFF, 0xFF,  // black, magenta
+      };
+      m_defaultTexture = createTexture(std::move(tex));
+      LOG_INFO("[ResourceManager] Created default magenta texture: id={}", m_defaultTexture.getId());
+    }
+
+    // --- Default material (solid magenta via baseColorFactor, no texture binding) ---
+    {
+      ProcessedMaterial mat;
+      mat.name = "__default_material";
+      mat.baseColorFactor = {1.0f, 0.0f, 1.0f, 1.0f}; // magenta
+      mat.metallicFactor = 0.0f;
+      mat.roughnessFactor = 1.0f;
+      mat.alphaMode = AlphaMode::Opaque;
+      m_defaultMaterial = createMaterial(mat);
+      LOG_INFO("[ResourceManager] Created default material: id={}", m_defaultMaterial.getId());
+    }
+
+    // --- Default unit cube mesh ---
+    {
+      ProcessedMesh cube;
+      cube.name = "__default_cube";
+      cube.materialIndex = 0;
+      cube.bounds = {0.0f, 0.0f, 0.0f, 0.866f}; // sqrt(3)/2
+
+      // 24 vertices (4 per face, unique normals)
+      const vec3 n[6] = {
+        { 0, 0, 1}, { 0, 0,-1}, { 1, 0, 0}, {-1, 0, 0}, { 0, 1, 0}, { 0,-1, 0}
+      };
+      const vec3 p[8] = {
+        {-0.5f,-0.5f, 0.5f}, { 0.5f,-0.5f, 0.5f}, { 0.5f, 0.5f, 0.5f}, {-0.5f, 0.5f, 0.5f},
+        {-0.5f,-0.5f,-0.5f}, { 0.5f,-0.5f,-0.5f}, { 0.5f, 0.5f,-0.5f}, {-0.5f, 0.5f,-0.5f}
+      };
+      const vec2 uv[4] = {{0,0},{1,0},{1,1},{0,1}};
+
+      // Front, back, right, left, top, bottom
+      const int faces[6][4] = {
+        {0,1,2,3}, {5,4,7,6}, {1,5,6,2}, {4,0,3,7}, {3,2,6,7}, {4,5,1,0}
+      };
+
+      for (int f = 0; f < 6; ++f) {
+        for (int v = 0; v < 4; ++v) {
+          cube.vertices.push_back(Vertex{p[faces[f][v]], n[f], uv[v]});
+        }
+        uint32_t base = static_cast<uint32_t>(f * 4);
+        cube.indices.push_back(base + 0);
+        cube.indices.push_back(base + 1);
+        cube.indices.push_back(base + 2);
+        cube.indices.push_back(base + 0);
+        cube.indices.push_back(base + 2);
+        cube.indices.push_back(base + 3);
+      }
+
+      m_defaultMesh = createMesh(cube);
+      LOG_INFO("[ResourceManager] Created default cube mesh: id={}", m_defaultMesh.getId());
+    }
+  }
+
+  MeshHandle ResourceManager::getDefaultMesh() const { return m_defaultMesh; }
+  TextureHandle ResourceManager::getDefaultTexture() const { return m_defaultTexture; }
+  MaterialHandle ResourceManager::getDefaultMaterial() const { return m_defaultMaterial; }
 
   void ResourceManager::loadDefaultUIFont()
   {
@@ -645,7 +724,7 @@ namespace Resource
     return handle;
   }
 
-  TextureHandle ResourceManager::createTexture(const ProcessedTexture& texture)
+  TextureHandle ResourceManager::createTexture(ProcessedTexture texture)
   {
     const std::string cacheKey = generateTextureCacheKey(texture);
 
@@ -695,7 +774,7 @@ namespace Resource
           texture.name, static_cast<int>(hinaFormat),
           texture.width, texture.height, texture.data.size(), texture.sRGB);
 
-      auto pixelData = texture.data;
+      auto pixelData = std::move(texture.data);
       uint32_t width = texture.width;
       uint32_t height = texture.height;
       bool isSRGB = texture.sRGB;
@@ -740,6 +819,37 @@ namespace Resource
         result.valid = true;
         promise->set_value(result);
       };
+
+      // Backpressure: if too many uploads are in-flight, drain completed ones
+      // to bound peak memory (each pending upload holds a full texture copy).
+      // Non-blocking: only drain if ready, don't stall the main thread.
+      constexpr size_t MAX_PENDING_TEXTURE_UPLOADS = 4;
+      while (m_pendingTextureUploads.size() >= MAX_PENDING_TEXTURE_UPLOADS) {
+        auto& oldest = m_pendingTextureUploads.front();
+        // Non-blocking check: if not ready, allow temporarily exceeding limit
+        if (oldest.future.wait_for(std::chrono::seconds(0)) != std::future_status::ready)
+          break;
+        TextureUploadResult result = oldest.future.get();
+        if (result.valid) {
+          if (m_context && m_context->renderer) {
+            auto& materialSystem = m_context->renderer->getMaterialSystem();
+            gfx::TextureHandle gfxTexture = materialSystem.registerPreCreatedTexture(
+              {result.textureId}, {result.viewId}, result.width, result.height,
+              static_cast<hina_format>(result.hinaFormat), result.isSRGB);
+            if (auto* hot = m_texturePool.getHotData(oldest.handle)) {
+              if (gfxTexture.isValid()) {
+                hot->hasGfxTexture = true;
+                hot->gfxTextureIndex = gfxTexture.index;
+                hot->gfxTextureGeneration = gfxTexture.generation;
+                LOG_INFO("Backpressure drain: texture '{}' uploaded: gfx={}:{}",
+                         oldest.textureName, gfxTexture.index, gfxTexture.generation);
+              }
+            }
+          }
+          resolveWaitingMaterials_nolock(oldest.cacheKey);
+        }
+        m_pendingTextureUploads.erase(m_pendingTextureUploads.begin());
+      }
 
       m_pendingTextureUploads.push_back({std::move(future), handle, textureName, cacheKey});
       {
@@ -941,14 +1051,14 @@ namespace Resource
     return handles;
   }
 
-  std::vector<TextureHandle> ResourceManager::createTextureBatch(const std::vector<ProcessedTexture>& textures)
+  std::vector<TextureHandle> ResourceManager::createTextureBatch(std::vector<ProcessedTexture> textures)
   {
     std::vector<TextureHandle> handles;
     handles.reserve(textures.size());
 
-    for(const auto& texture : textures)
+    for(auto& texture : textures)
     {
-      handles.push_back(createTexture(texture));
+      handles.push_back(createTexture(std::move(texture)));
     }
 
     return handles;
@@ -984,8 +1094,19 @@ namespace Resource
         return view;
       }
     }
-    // Fallback: default white texture
+    // Fallback: use default magenta texture if available, otherwise white
     auto& matSys = m_context->renderer->getMaterialSystem();
+    if (m_defaultTexture.isValid()) {
+      const auto* defHot = m_texturePool.getHotData(m_defaultTexture);
+      if (defHot && defHot->hasGfxTexture) {
+        gfx::TextureHandle gfxDef;
+        gfxDef.index = static_cast<uint16_t>(defHot->gfxTextureIndex);
+        gfxDef.generation = static_cast<uint16_t>(defHot->gfxTextureGeneration);
+        gfx::TextureView view = matSys.getTextureView(gfxDef);
+        if (hina_texture_view_is_valid(view))
+          return view;
+      }
+    }
     return matSys.getTextureView(matSys.getDefaultWhiteTexture());
   }
 

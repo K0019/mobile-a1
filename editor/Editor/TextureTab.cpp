@@ -2,7 +2,7 @@
 #include "Editor/AssetBrowser.h"
 #include "Editor/EditorGuiUtils.h"
 #include "Editor/ThumbnailCache.h"
-#include "Engine/Resources/Types/ResourceTypesGraphics.h"
+#include "Assets/Types/AssetTypes.h"
 
 namespace editor {
 
@@ -47,9 +47,9 @@ namespace editor {
         ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
 
         int count{};
-        for (const auto& [hash, textureRef] : ST<MagicResourceManager>::Get()->Editor_GetContainer<ResourceTexture>().Editor_GetAllResources())
+        for (const auto& [hash, textureRef] : ST<AssetManager>::Get()->Editor_GetContainer<ResourceTexture>().Editor_GetAllResources())
         {
-            const std::string& textureName{ *ST<MagicResourceManager>::Get()->Editor_GetName(hash) };
+            const std::string& textureName{ *ST<AssetManager>::Get()->Editor_GetName(hash) };
             if (!filter.PassFilter(textureName))
                 continue;
 
@@ -120,7 +120,7 @@ namespace editor {
         ImGui::BeginChild("TextureDetails", ImVec2(0, 0), true);
 
         size_t hash = selectedTextureHash.value();
-        const std::string* texName = ST<MagicResourceManager>::Get()->Editor_GetName(hash);
+        const std::string* texName = ST<AssetManager>::Get()->Editor_GetName(hash);
 
         if (!texName)
         {

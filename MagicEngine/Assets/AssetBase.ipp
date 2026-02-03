@@ -20,25 +20,31 @@ All rights reserved.
 /******************************************************************************/
 
 #pragma once
-#include "Engine/Resources/Types/ResourceTypes.h"
+#include "Assets/AssetBase.h"
+#include <cassert>
 
 template<std::derived_from<ResourceBase> ResourceType>
 const void* ResourceContainerBase<ResourceType>::GetResource(size_t hash)
 {
 	auto resourceIter{ resources.find(hash) };
-	if (resourceIter == resources.end())
+	if (resourceIter == resources.end() || !resourceIter->second)
 		return nullptr;
 
-	// If the resource isn't loaded, try to ask the importer to load it
-	if (!resourceIter->second.IsLoaded())
+	// If the resource isn't loaded, queue it for deferred loading.
+	// Return nullptr so callers use their fallback/placeholder path.
+	// The resource will be imported by AssetManager::ProcessPendingLoads()
+	// on the main thread between frames, avoiding ANR on Android.
+	if (!resourceIter->second->IsLoaded())
 	{
-		Messaging::BroadcastAll("NeedResourceLoaded", hash);
-		// If it's still not loaded, don't return anything to ensure downstream doesn't use an invalid resource.
-		if (!resourceIter->second.IsLoaded())
-			return nullptr;
+		// Only broadcast once per hash to avoid spamming hot loops
+		if (m_deferredRequested.insert(hash).second)
+			Messaging::BroadcastAll("NeedResourceLoadDeferred", hash);
+		return nullptr;
 	}
 
-	return &resourceIter->second;
+	// Resource is loaded — clear deferred flag so future unloads can re-request
+	m_deferredRequested.erase(hash);
+	return resourceIter->second.get();
 }
 
 template<std::derived_from<ResourceBase> ResourceType>
@@ -51,13 +57,18 @@ void ResourceContainerBase<ResourceType>::DeleteResource(size_t hash)
 	static const size_t typeHash = util::ConsistentHash<ResourceType>();  // Cache hash per type
 	Messaging::BroadcastAll("ResourceDeleted", hash, typeHash);
 	resources.erase(resourceIter);
+	refCounts.erase(hash);
+	m_deferredRequested.erase(hash);
 }
 
 template<std::derived_from<ResourceBase> ResourceType>
 void ResourceContainerBase<ResourceType>::INTERNAL_CreateResource(size_t hash)
 {
-	auto* resource{ &resources[hash] };
-	resource->hash = hash;
+	assert((hash & 1) && "Asset hash must have bit 0 set (odd) for pointer-tagging to work");
+	auto& ptr = resources[hash];
+	if (!ptr)
+		ptr = std::make_unique<ResourceType>();
+	ptr->hash = hash;
 }
 
 template<std::derived_from<ResourceBase> ResourceType>
@@ -65,19 +76,28 @@ ResourceType* ResourceContainerBase<ResourceType>::INTERNAL_GetResource(size_t h
 {
 	if (createIfMissing)
 	{
-		auto* resource{ &resources[hash] };
-		resource->hash = hash;
-		return resource;
+		assert((hash & 1) && "Asset hash must have bit 0 set (odd) for pointer-tagging to work");
+		auto& ptr = resources[hash];
+		if (!ptr)
+			ptr = std::make_unique<ResourceType>();
+		ptr->hash = hash;
+		return ptr.get();
 	}
 
 	auto resourceIter{ resources.find(hash) };
-	return (resourceIter != resources.end() ? &resourceIter->second : nullptr);
+	return (resourceIter != resources.end() ? resourceIter->second.get() : nullptr);
 }
 
 template<std::derived_from<ResourceBase> ResourceType>
 auto ResourceContainerBase<ResourceType>::Editor_GetAllResources() const
 {
-	return util::ToSortedVectorOfRefs(resources);
+	std::vector<std::pair<std::reference_wrapper<const size_t>, std::reference_wrapper<const ResourceType>>> vec;
+	vec.reserve(resources.size());
+	for (const auto& [key, ptr] : resources)
+		if (ptr)
+			vec.emplace_back(std::cref(key), std::cref(*ptr));
+	std::sort(vec.begin(), vec.end(), [](const auto& a, const auto& b) { return a.first.get() < b.first.get(); });
+	return vec;
 }
 
 

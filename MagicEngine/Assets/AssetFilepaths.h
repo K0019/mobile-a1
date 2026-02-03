@@ -1,6 +1,6 @@
 ﻿/******************************************************************************/
 /*!
-\file   ResourceFilepaths.h
+\file   AssetFilepaths.h
 \par    Project: Kuro Mahou
 \par    Course: CSD3401
 \par    Software Engineering Project 5
@@ -33,7 +33,7 @@ struct AssociatedResourceHashes
     std::vector<size_t> hashes;
 };
 
-class ResourceFilepaths
+class AssetFilepaths
 {
 public:
     struct FileEntry

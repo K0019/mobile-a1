@@ -19,7 +19,7 @@ All rights reserved.
 /******************************************************************************/
 
 #pragma once
-#include "Engine/Resources/Types/ResourceTypes.h"
+#include "Assets/AssetBase.h"
 
 // Forward declaration
 namespace FMOD {

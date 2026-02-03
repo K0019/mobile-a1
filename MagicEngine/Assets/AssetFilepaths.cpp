@@ -1,6 +1,6 @@
 ﻿/******************************************************************************/
 /*!
-\file   ResourceFilepaths.cpp
+\file   AssetFilepaths.cpp
 \par    Project: Kuro Mahou
 \par    Course: CSD3401
 \par    Software Engineering Project 5
@@ -19,13 +19,13 @@ All rights reserved.
 */
 /******************************************************************************/
 
-#include "Engine/Resources/ResourceFilepaths.h"
+#include "Assets/AssetFilepaths.h"
 #include "resource/asset_metadata.h"
 #include "VFS/VFS.h"
 #include <algorithm>
 #include <filesystem>
 
-const ResourceFilepaths::FileEntry* ResourceFilepaths::SetFilepath(const std::string& filepath, std::vector<AssociatedResourceHashes>&& associatedHashes)
+const AssetFilepaths::FileEntry* AssetFilepaths::SetFilepath(const std::string& filepath, std::vector<AssociatedResourceHashes>&& associatedHashes)
 {
     FileEntry* fileEntry{};
 
@@ -85,19 +85,19 @@ const ResourceFilepaths::FileEntry* ResourceFilepaths::SetFilepath(const std::st
     return fileEntry;
 }
 
-const ResourceFilepaths::FileEntry* ResourceFilepaths::GetFileEntry(size_t hash)
+const AssetFilepaths::FileEntry* AssetFilepaths::GetFileEntry(size_t hash)
 {
     auto fileEntryIter{ hashToFileEntry.find(hash) };
     return (fileEntryIter != hashToFileEntry.end() ? fileEntryIter->second : nullptr);
 }
 
-const ResourceFilepaths::FileEntry* ResourceFilepaths::GetFileEntry(const std::string& filepath) const
+const AssetFilepaths::FileEntry* AssetFilepaths::GetFileEntry(const std::string& filepath) const
 {
     auto fileEntryLookupIter{ fileEntries.find(util::GenHash(filepath)) };
     return (fileEntryLookupIter != fileEntries.end() ? &fileEntryLookupIter->second : nullptr);
 }
 
-std::vector<const ResourceFilepaths::FileEntry*> ResourceFilepaths::GetFileEntries() const
+std::vector<const AssetFilepaths::FileEntry*> AssetFilepaths::GetFileEntries() const
 {
     // This is only called when saving so it's ok to be a bit slow here
     auto sortedFileEntries{ util::ToSortedVectorOfRefs(fileEntries) };
@@ -108,7 +108,7 @@ std::vector<const ResourceFilepaths::FileEntry*> ResourceFilepaths::GetFileEntri
     return toReturn;
 }
 
-void ResourceFilepaths::DisassociateResourceHash(size_t resourceHash, size_t resourceType)
+void AssetFilepaths::DisassociateResourceHash(size_t resourceHash, size_t resourceType)
 {
     auto fileEntryIter{ hashToFileEntry.find(resourceHash) };
     if (fileEntryIter == hashToFileEntry.end())
@@ -155,7 +155,7 @@ void ResourceFilepaths::DisassociateResourceHash(size_t resourceHash, size_t res
 // Extended Query Methods
 // ============================================================================
 
-std::vector<const ResourceFilepaths::FileEntry*> ResourceFilepaths::GetFileEntriesByType(AssetFormat::AssetType type) const
+std::vector<const AssetFilepaths::FileEntry*> AssetFilepaths::GetFileEntriesByType(AssetFormat::AssetType type) const
 {
     std::vector<const FileEntry*> result;
     for (const auto& [hash, entry] : fileEntries)
@@ -166,7 +166,7 @@ std::vector<const ResourceFilepaths::FileEntry*> ResourceFilepaths::GetFileEntri
     return result;
 }
 
-const ResourceFilepaths::FileEntry* ResourceFilepaths::GetFileEntryBySourcePath(const std::string& sourcePath) const
+const AssetFilepaths::FileEntry* AssetFilepaths::GetFileEntryBySourcePath(const std::string& sourcePath) const
 {
     size_t sourceHash = util::GenHash(sourcePath);
     auto it = sourceToFileEntries.find(sourceHash);
@@ -175,7 +175,7 @@ const ResourceFilepaths::FileEntry* ResourceFilepaths::GetFileEntryBySourcePath(
     return nullptr;
 }
 
-std::vector<const ResourceFilepaths::FileEntry*> ResourceFilepaths::GetFileEntriesFromSource(const std::string& sourcePath) const
+std::vector<const AssetFilepaths::FileEntry*> AssetFilepaths::GetFileEntriesFromSource(const std::string& sourcePath) const
 {
     std::vector<const FileEntry*> result;
     size_t sourceHash = util::GenHash(sourcePath);
@@ -191,7 +191,7 @@ std::vector<const ResourceFilepaths::FileEntry*> ResourceFilepaths::GetFileEntri
 // Metadata Management
 // ============================================================================
 
-void ResourceFilepaths::LoadMetadataForEntry(FileEntry& entry)
+void AssetFilepaths::LoadMetadataForEntry(FileEntry& entry)
 {
     // Try to load .meta sidecar file
     std::filesystem::path metaPath = Resource::AssetMetadata::getMetaPath(
@@ -208,7 +208,7 @@ void ResourceFilepaths::LoadMetadataForEntry(FileEntry& entry)
     }
 }
 
-void ResourceFilepaths::RefreshAllMetadata()
+void AssetFilepaths::RefreshAllMetadata()
 {
     // Clear source mappings - will be rebuilt
     sourceToFileEntries.clear();
@@ -230,7 +230,7 @@ void ResourceFilepaths::RefreshAllMetadata()
     }
 }
 
-void ResourceFilepaths::UpdateEntryMetadata(const std::string& filepath, AssetFormat::AssetType type,
+void AssetFilepaths::UpdateEntryMetadata(const std::string& filepath, AssetFormat::AssetType type,
                                             const std::string& sourcePath, uint64_t sourceTs,
                                             uint64_t compiledTs, uint32_t version)
 {
@@ -274,7 +274,7 @@ void ResourceFilepaths::UpdateEntryMetadata(const std::string& filepath, AssetFo
 // Helper Methods
 // ============================================================================
 
-AssetFormat::AssetType ResourceFilepaths::InferAssetType(const std::string& filepath)
+AssetFormat::AssetType AssetFilepaths::InferAssetType(const std::string& filepath)
 {
     std::string ext = VFS::GetExtension(filepath);
     std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);

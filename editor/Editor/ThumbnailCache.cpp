@@ -1,7 +1,7 @@
 #include "Editor/ThumbnailCache.h"
 #include "renderer/gfx_renderer.h"
 #include "logging/log.h"
-#include "Engine/Resources/ResourceManager.h"
+#include "Assets/AssetManager.h"
 #include "resource/resource_manager.h"
 #include "Utilities/Singleton.h"
 #include "FilepathConstants.h"
@@ -315,7 +315,7 @@ namespace editor
 
     std::filesystem::path ThumbnailCache::GetAssetFilePath(size_t hash) const
     {
-        auto* resourceManager = ST<MagicResourceManager>::Get();
+        auto* resourceManager = ST<AssetManager>::Get();
         if (!resourceManager)
         {
             return {};

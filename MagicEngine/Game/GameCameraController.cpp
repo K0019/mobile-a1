@@ -96,7 +96,7 @@ void GameCameraControllerComponent::EditorDraw()
 
 	gui::VarDrag("Sensitivity", &cameraSensitivity, 0.05f, 0.05f, 1.0f);
 
-    const std::string* materialText{ ST<MagicResourceManager>::Get()->Editor_GetName(translucentMaterial.GetHash()) };
+    const std::string* materialText{ ST<AssetManager>::Get()->Editor_GetName(translucentMaterial.GetHash()) };
     gui::TextUnformatted("Material");
     gui::TextBoxReadOnly("##", materialText ? materialText->c_str() : "");
     gui::PayloadTarget<size_t>("MATERIAL_HASH", [&](size_t hash) -> void {

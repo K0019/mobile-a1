@@ -25,7 +25,7 @@ All rights reserved.
 #pragma once
 #include "Editor/Containers/GUIAsECS.h"
 #include "Editor/AssetBrowserCategories.h"
-#include "Engine/Resources/ResourceManager.h"
+#include "Assets/AssetManager.h"
 #include "Managers/Filesystem.h"
 
 namespace editor {

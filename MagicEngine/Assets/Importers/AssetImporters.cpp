@@ -1,6 +1,6 @@
 /******************************************************************************/
 /*!
-\file   ResourceImporters.cpp
+\file   AssetImporters.cpp
 \par    Project: Kuro Mahou
 \par    Course: CSD3401
 \par    Software Engineering Project 5
@@ -13,12 +13,12 @@ All rights reserved.
 */
 /******************************************************************************/
 
-#include "Engine/Resources/Importers/ResourceImporters.h"
-#include "Engine/Resources/Importers/ResourceImportHelpers.h"
-#include "Engine/Resources/Types/ResourceTypesGraphics.h"
-#include "Engine/Resources/Types/ResourceTypesAudio.h"
-#include "Engine/Resources/ResourceManager.h"
-#include "Engine/Resources/ResourceImporter.h"
+#include "Assets/Importers/AssetImporters.h"
+#include "Assets/Importers/AssetImportHelpers.h"
+#include "Assets/Types/AssetTypes.h"
+#include "Assets/Types/AssetTypesAudio.h"
+#include "Assets/AssetManager.h"
+#include "Assets/AssetImporter.h"
 #include "Engine/Graphics Interface/GraphicsAPI.h"
 #include "Managers/AudioManager.h"
 #include "resource/resource_types.h"
@@ -49,12 +49,12 @@ using Resource::AnimationFile_MorphKey;
 #include "tools/assets/io/texture_loader.h"
 #include "tools/assets/io/material_loader.h"
 #include "tools/assets/io/mesh_loader.h"
-#include "Engine/Resources/AssetCompilerInterface.h"
+#include "Assets/AssetCompilerInterface.h"
 #else
 #include "ktx.h"
 #endif
 
-#include "Engine/Resources/MaterialSerialization.h"
+#include "Assets/MaterialSerialization.h"
 #include "Game/Weapon.h"
 
 using namespace ResourceImportHelpers;
@@ -130,7 +130,7 @@ namespace {
 }
 #endif
 
-bool ResourceImporters::ImportKTX(const std::string& assetRelativeFilepath)
+bool AssetImporters::ImportKTX(const std::string& assetRelativeFilepath)
 {
 #ifdef GLFW
     // Load the file
@@ -146,13 +146,13 @@ bool ResourceImporters::ImportKTX(const std::string& assetRelativeFilepath)
 
     // Create texture handle
     auto& graphicsAssetSystem{ ST<GraphicsMain>::Get()->GetAssetSystem() };
-    TextureHandle textureHandle{ graphicsAssetSystem.createTexture(processedTexture) };
+    TextureHandle textureHandle{ graphicsAssetSystem.createTexture(std::move(processedTexture)) };
 
     // Create resource entry
     const auto* fileEntry{ GenerateFileEntryForResources<ResourceTexture>(assetRelativeFilepath, 1) };
 
     // Assign resource to texture handle
-    ST<MagicResourceManager>::Get()->INTERNAL_GetContainer<ResourceTexture>().INTERNAL_GetResource(fileEntry->associatedResources[0].hashes[0], true)->handle = textureHandle;
+    ST<AssetManager>::Get()->INTERNAL_GetContainer<ResourceTexture>().INTERNAL_GetResource(fileEntry->associatedResources[0].hashes[0], true)->handle = textureHandle;
 
     return true;
 }
@@ -182,7 +182,7 @@ namespace {
     }
 }
 
-bool ResourceImporters::ImportMaterial(const std::string& relativeFilepath)
+bool AssetImporters::ImportMaterial(const std::string& relativeFilepath)
 {
     // Load the file
     std::string fileData;
@@ -209,7 +209,7 @@ bool ResourceImporters::ImportMaterial(const std::string& relativeFilepath)
         {
             std::string virtualPath = filePath->path;
             std::transform(virtualPath.begin(), virtualPath.end(), virtualPath.begin(), ::tolower);
-            ResourceImporter::Import(virtualPath);
+            AssetImporter::Import(virtualPath);
         }
     }
 
@@ -221,7 +221,7 @@ bool ResourceImporters::ImportMaterial(const std::string& relativeFilepath)
     const auto* fileEntry{ GenerateFileEntryForResources<ResourceMaterial>(relativeFilepath, 1) };
 
     // Assign resource to material handle
-    ST<MagicResourceManager>::Get()->INTERNAL_GetContainer<ResourceMaterial>().INTERNAL_GetResource(fileEntry->associatedResources[0].hashes[0], true)->handle = materialHandle;
+    ST<AssetManager>::Get()->INTERNAL_GetContainer<ResourceMaterial>().INTERNAL_GetResource(fileEntry->associatedResources[0].hashes[0], true)->handle = materialHandle;
 
     return true;
 }
@@ -230,7 +230,7 @@ bool ResourceImporters::ImportMaterial(const std::string& relativeFilepath)
 // Audio Importer
 // ============================================================================
 
-bool ResourceImporters::ImportAudio(const std::string& assetRelativeFilepath)
+bool AssetImporters::ImportAudio(const std::string& assetRelativeFilepath)
 {
     // Load the file into FMOD
     std::vector<uint8_t> fileData;
@@ -245,7 +245,7 @@ bool ResourceImporters::ImportAudio(const std::string& assetRelativeFilepath)
         return false;
 
     // Create fileentry
-    const ResourceFilepaths::FileEntry* fileentry{ ST<MagicResourceManager>::Get()->INTERNAL_GetFilepathsManager().GetFileEntry(assetRelativeFilepath) };
+    const AssetFilepaths::FileEntry* fileentry{ ST<AssetManager>::Get()->INTERNAL_GetFilepathsManager().GetFileEntry(assetRelativeFilepath) };
     if (!fileentry)
     {
         static const size_t audioTypeHash = util::ConsistentHash<ResourceAudio>();  // Cache hash
@@ -253,12 +253,12 @@ bool ResourceImporters::ImportAudio(const std::string& assetRelativeFilepath)
         resourceHashes[0].resourceTypeHash = audioTypeHash;
         resourceHashes[0].hashes.push_back(util::GenHash(VFS::GetStem(VFS::NormalizePath(assetRelativeFilepath))));
         GenerateNamesForResources(resourceHashes, assetRelativeFilepath);
-        fileentry = ST<MagicResourceManager>::Get()->INTERNAL_GetFilepathsManager().SetFilepath(assetRelativeFilepath, std::move(resourceHashes));
+        fileentry = ST<AssetManager>::Get()->INTERNAL_GetFilepathsManager().SetFilepath(assetRelativeFilepath, std::move(resourceHashes));
     }
 
     // Set the resource to the FMOD sound
     size_t hash{ fileentry->associatedResources[0].hashes[0] };
-    auto* resource{ ST<MagicResourceManager>::Get()->INTERNAL_GetContainer<ResourceAudio>().INTERNAL_GetResource(hash, true) };
+    auto* resource{ ST<AssetManager>::Get()->INTERNAL_GetContainer<ResourceAudio>().INTERNAL_GetResource(hash, true) };
     resource->sound = sound;
     // Note: Currently no metadata is set for sounds. Perhaps we can read a file associated with the audio here to load its metadata, similar to unity's metadata file method.
 
@@ -269,7 +269,7 @@ bool ResourceImporters::ImportAudio(const std::string& assetRelativeFilepath)
 // Audio Group Importer
 // ============================================================================
 
-bool ResourceImporters::ImportAudioGroup(const std::string& assetRelativeFilepath)
+bool AssetImporters::ImportAudioGroup(const std::string& assetRelativeFilepath)
 {
     std::vector<size_t> audioFilepaths;
     Deserializer reader{ assetRelativeFilepath };
@@ -281,7 +281,7 @@ bool ResourceImporters::ImportAudioGroup(const std::string& assetRelativeFilepat
     reader.DeserializeVar("sounds", &audioFilepaths);
 
     const auto fileEntry{ GenerateFileEntryForResources<ResourceAudioGroup>(assetRelativeFilepath, 1) };
-    ST<MagicResourceManager>::Get()->INTERNAL_GetContainer<ResourceAudioGroup>().INTERNAL_GetResource(fileEntry->associatedResources[0].hashes[0], true)->audio = std::move(audioFilepaths);
+    ST<AssetManager>::Get()->INTERNAL_GetContainer<ResourceAudioGroup>().INTERNAL_GetResource(fileEntry->associatedResources[0].hashes[0], true)->audio = std::move(audioFilepaths);
     return true;
 }
 
@@ -456,7 +456,7 @@ namespace {
 
             std::string constructedPathToMaterial = VFS::JoinPath(VFS::GetParentPath(filepath), materialname + ".material");
             size_t materialHash{ 0 };
-            const auto& fpManager = ST<MagicResourceManager>::Get()->INTERNAL_GetFilepathsManager();
+            const auto& fpManager = ST<AssetManager>::Get()->INTERNAL_GetFilepathsManager();
             auto materialEntry = fpManager.GetFileEntry(constructedPathToMaterial);
             if (!materialEntry)
             {
@@ -570,7 +570,7 @@ namespace {
     void SetResourceHandlesMesh(const std::vector<AssociatedResourceHashes>& resourceHashes,
         const std::vector<MeshHandle>& meshHandles, const std::vector<std::pair<uint32_t, Mat4>> meshTransforms, const std::vector<size_t>& materialHashes)
     {
-        auto& meshes{ ST<MagicResourceManager>::Get()->INTERNAL_GetContainer<ResourceMesh>() };
+        auto& meshes{ ST<AssetManager>::Get()->INTERNAL_GetContainer<ResourceMesh>() };
         const auto& meshHashes{ resourceHashes[0].hashes };
 
         ResourceMesh* mesh{ meshes.INTERNAL_GetResource(meshHashes[0], true) };
@@ -584,7 +584,7 @@ namespace {
     }
 }
 
-bool ResourceImporters::ImportMeshAsset(const std::string& assetRelativeFilepath)
+bool AssetImporters::ImportMeshAsset(const std::string& assetRelativeFilepath)
 {
     // Load the meshes within the file
     std::vector<MeshHandle> meshHandles;
@@ -717,7 +717,7 @@ namespace {
 
     void SetResourceHandlesAnimation(const std::vector<AssociatedResourceHashes>& resourceHashes, Resource::ClipId clipId)
     {
-        auto& anims{ ST<MagicResourceManager>::Get()->INTERNAL_GetContainer<ResourceAnimation>() };
+        auto& anims{ ST<AssetManager>::Get()->INTERNAL_GetContainer<ResourceAnimation>() };
         const auto& animHashes{ resourceHashes[0].hashes };
 
         ResourceAnimation* anim = { anims.INTERNAL_GetResource(animHashes[0], true) };
@@ -725,7 +725,7 @@ namespace {
     }
 }
 
-bool ResourceImporters::ImportAnimationAsset(const std::string& assetRelativeFilepath)
+bool AssetImporters::ImportAnimationAsset(const std::string& assetRelativeFilepath)
 {
     Resource::ProcessedAnimationClip clipToLoad;
 
@@ -753,7 +753,7 @@ bool ResourceImporters::ImportAnimationAsset(const std::string& assetRelativeFil
 // FBX Importer (compilation delegate)
 // ============================================================================
 
-bool ResourceImporters::ImportFBX([[maybe_unused]] const std::string& assetRelativeFilepath)
+bool AssetImporters::ImportFBX([[maybe_unused]] const std::string& assetRelativeFilepath)
 {
 #ifdef GLFW
     CompileAndImportAsset(assetRelativeFilepath);
@@ -768,7 +768,7 @@ bool ResourceImporters::ImportFBX([[maybe_unused]] const std::string& assetRelat
 // Image Importer (compilation delegate)
 // ============================================================================
 
-bool ResourceImporters::ImportImage([[maybe_unused]] const std::string& assetRelativeFilepath)
+bool AssetImporters::ImportImage([[maybe_unused]] const std::string& assetRelativeFilepath)
 {
 #ifdef GLFW
     CompileAndImportAsset(assetRelativeFilepath);
@@ -783,7 +783,7 @@ bool ResourceImporters::ImportImage([[maybe_unused]] const std::string& assetRel
 // Game Weapon Importer
 // ============================================================================
 
-bool ResourceImporters::ImportGameWeapon(const std::string& assetRelativeFilepath)
+bool AssetImporters::ImportGameWeapon(const std::string& assetRelativeFilepath)
 {
     WeaponInfo weaponInfo{};
     Deserializer reader{ assetRelativeFilepath };
@@ -796,6 +796,6 @@ bool ResourceImporters::ImportGameWeapon(const std::string& assetRelativeFilepat
 
     const auto fileEntry{ GenerateFileEntryForResources<WeaponInfo>(assetRelativeFilepath, 1) };
     weaponInfo.hash = fileEntry->associatedResources[0].hashes[0];
-    *ST<MagicResourceManager>::Get()->INTERNAL_GetContainer<WeaponInfo>().INTERNAL_GetResource(weaponInfo.hash, true) = std::move(weaponInfo);
+    *ST<AssetManager>::Get()->INTERNAL_GetContainer<WeaponInfo>().INTERNAL_GetResource(weaponInfo.hash, true) = std::move(weaponInfo);
     return true;
 }

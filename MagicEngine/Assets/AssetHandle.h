@@ -20,23 +20,24 @@ All rights reserved.
 /******************************************************************************/
 
 #pragma once
-#include "Engine/Resources/ResourceManager.h"
+#include "Assets/AssetManager.h"
 #include "Utilities/Serializer.h"
 
 template <typename ResourceType>
-class UserResourceHandle : public ISerializeable
+class AssetHandle : public ISerializeable
 {
 public:
-    UserResourceHandle(size_t hash = 1);
-    UserResourceHandle(const UserResourceHandle&) = default;
-    UserResourceHandle(UserResourceHandle&&) = default;
-    UserResourceHandle<ResourceType>& operator=(const UserResourceHandle&) = default;
-    UserResourceHandle<ResourceType>& operator=(UserResourceHandle&&) = default;
+    AssetHandle(size_t hash = 1);
+    ~AssetHandle();
+    AssetHandle(const AssetHandle& other);
+    AssetHandle(AssetHandle&& other) noexcept;
+    AssetHandle<ResourceType>& operator=(const AssetHandle& other);
+    AssetHandle<ResourceType>& operator=(AssetHandle&& other) noexcept;
 
     size_t GetHash() const;
     const ResourceType* GetResource() const;
 
-    UserResourceHandle<ResourceType>& operator=(size_t hash);
+    AssetHandle<ResourceType>& operator=(size_t hash);
 
 public:
     void Serialize(Serializer& writer) const override;
@@ -45,6 +46,10 @@ public:
 private:
     mutable size_t hashOrPtr;
 
+    // Reference counting helpers
+    static void AddRef(size_t hash);
+    static void ReleaseRef(size_t hash);
+
 };
 
-#include "ResourcesHeader.ipp"
+#include "AssetHandle.ipp"

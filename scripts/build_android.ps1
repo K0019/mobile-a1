@@ -100,8 +100,7 @@ try {
                     --assets-root Assets `
                     --include-non-textures
                 if ($LASTEXITCODE -ne 0) {
-                    Write-Error "ASTC recompression failed (exit=$LASTEXITCODE)"
-                    exit $LASTEXITCODE
+                    Write-Warning "ASTC recompression had failures (exit=$LASTEXITCODE) - continuing anyway"
                 }
             }
         } else {

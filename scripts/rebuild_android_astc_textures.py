@@ -117,6 +117,11 @@ def main() -> int:
         action="store_true",
         help="Also copy non-texture compiledassets (materials/meshes/etc) into compiledassets/android",
     )
+    parser.add_argument(
+        "--force",
+        action="store_true",
+        help="Force recompression even if output is newer than input (skip timestamp check)",
+    )
     args = parser.parse_args()
 
     assets_root = os.path.abspath(args.assets_root)
@@ -141,6 +146,7 @@ def main() -> int:
 
     failures = 0
     processed = 0
+    skipped = 0
 
     for rel in work_list:
         # rel is like: compiledassets/textures/image_0.ktx2
@@ -157,6 +163,14 @@ def main() -> int:
 
         # Ensure output filename matches manifest path (usually lowercase) to avoid Android case-sensitivity issues.
         desired_out_path = os.path.join(assets_root, "compiledassets", "android", *rel_after_prefix.split("/"))
+
+        # Timestamp-based caching: skip if output exists and is newer than input
+        if not args.force and os.path.isfile(desired_out_path):
+            in_mtime = os.path.getmtime(in_path)
+            out_mtime = os.path.getmtime(desired_out_path)
+            if out_mtime >= in_mtime:
+                skipped += 1
+                continue
 
         if rel.lower().endswith(".ktx2"):
             try:
@@ -221,7 +235,7 @@ def main() -> int:
             if in_meta and os.path.isfile(in_meta):
                 shutil.copy2(in_meta, out_meta)
 
-    print(f"Done. processed={processed} failures={failures}")
+    print(f"Done. processed={processed} skipped={skipped} failures={failures}")
     return 0 if failures == 0 else 1
 
 

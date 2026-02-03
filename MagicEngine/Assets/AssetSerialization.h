@@ -1,6 +1,6 @@
 ﻿/******************************************************************************/
 /*!
-\file   ResourceSerialization.h
+\file   AssetSerialization.h
 \par    Project: Kuro Mahou
 \par    Course: CSD3401
 \par    Software Engineering Project 5
@@ -19,16 +19,16 @@ All rights reserved.
 /******************************************************************************/
 
 #pragma once
-#include "Engine/Resources/ResourceFilepaths.h"
-#include "Engine/Resources/ResourceNames.h"
+#include "Assets/AssetFilepaths.h"
+#include "Assets/AssetNames.h"
 #include "Utilities/Serializer.h"
 
-class ResourceSerialization
+class AssetSerialization
 {
 public:
-	static void Serialize(Serializer& writer, const ResourceFilepaths& filepaths, const ResourceNames& names);
+	static void Serialize(Serializer& writer, const AssetFilepaths& filepaths, const AssetNames& names);
 
 	using LoadedResourceCallbackType = void(*)(size_t resourceTypeHash, size_t resourceHash);
-	static void Deserialize(Deserializer& reader, ResourceFilepaths* filepaths, ResourceNames* names, LoadedResourceCallbackType resourceLoadedCallback);
+	static void Deserialize(Deserializer& reader, AssetFilepaths* filepaths, AssetNames* names, LoadedResourceCallbackType resourceLoadedCallback);
 };
 

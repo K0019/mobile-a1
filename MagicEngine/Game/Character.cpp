@@ -385,7 +385,7 @@ void CharacterMovementComponent::EditorDraw()
 	// Animation input
 	for(uint32_t animIndex = 0;animIndex< ANIM_TOTAL;++animIndex)
 	{
-		const std::string* clip1Name{ ST<MagicResourceManager>::Get()->Editor_GetName(animations[animIndex].GetHash()) };
+		const std::string* clip1Name{ ST<AssetManager>::Get()->Editor_GetName(animations[animIndex].GetHash()) };
 		gui::TextUnformatted(std::string(animNames[animIndex]));
 		gui::SameLine();
 		gui::TextBoxReadOnly(std::string("##AnimClip"+std::to_string(animIndex)).c_str(), clip1Name ? clip1Name->c_str() : "");

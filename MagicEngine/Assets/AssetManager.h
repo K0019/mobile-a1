@@ -19,15 +19,27 @@ All rights reserved.
 /******************************************************************************/
 
 #pragma once
-#include "Engine/Resources/Types/ResourceTypes.h"
-#include "Engine/Resources/ResourceFilepaths.h"
-#include "Engine/Resources/ResourceNames.h"
+#include "Assets/AssetBase.h"
+#include "Assets/AssetFilepaths.h"
+#include "Assets/AssetNames.h"
+#include <deque>
+#include <unordered_set>
 
-class MagicResourceManager
+class AssetManager
 {
 public:
     void Init();
     void Shutdown();
+
+    // Load an asset immediately (synchronous). Looks up filepath by hash, imports the file.
+    void LoadAssetImmediate(size_t hash);
+
+    // Queue an asset for deferred loading. Will be processed by ProcessPendingLoads().
+    void QueueDeferredLoad(size_t hash);
+
+    // Process pending resource loads, bounded by both count and time budget.
+    // Always processes at least 1 to guarantee forward progress.
+    void ProcessPendingLoads(int maxCount = 4, float budgetMs = 8.0f);
 
     template <typename ResourceType>
     static UserResourceGetter<ResourceType> GetContainer();
@@ -36,7 +48,9 @@ public:
     void LoadFromFile();
 
 private:
+    // Messaging callbacks (forward to public methods)
     static void OnResourceRequestedLoad(size_t hash);
+    static void OnResourceLoadDeferred(size_t hash);
     static void OnResourceDeleted(size_t hash, size_t resourceType);
 
 public:
@@ -44,9 +58,14 @@ public:
     const ResourceContainerBase<ResourceType>& Editor_GetContainer();
     const std::string* Editor_GetName(size_t hash);
 
+    // Get reference count for a specific asset (for editor debugging)
+    template <typename ResourceType>
+    uint32_t Editor_GetRefCount(size_t hash);
+
+
 public:
-    ResourceFilepaths& INTERNAL_GetFilepathsManager();
-    ResourceNames& INTERNAL_GetNamesManager();
+    AssetFilepaths& INTERNAL_GetFilepathsManager();
+    AssetNames& INTERNAL_GetNamesManager();
 
     template <typename ResourceType>
     ResourceContainerBase<ResourceType>& INTERNAL_GetContainer();
@@ -54,31 +73,42 @@ public:
     void INTERNAL_CreateEmptyResource(size_t resourceTypeHash, size_t resourceHash);
 
 private:
-    ResourceFilepaths filepathsManager;
-    ResourceNames namesManager;
+    AssetFilepaths filepathsManager;
+    AssetNames namesManager;
 
     std::unordered_map<size_t, UPtr<IResourceContainer>> resourceContainers;
+
+    // Deferred resource loading queue — hashes are queued by GetResource()
+    // and processed in batches each frame by ProcessPendingLoads()
+    std::deque<size_t> m_pendingLoadQueue;
+    std::unordered_set<size_t> m_pendingLoadSet;  // dedup
 
 };
 
 template<typename ResourceType>
-UserResourceGetter<ResourceType> MagicResourceManager::GetContainer()
+UserResourceGetter<ResourceType> AssetManager::GetContainer()
 {
-    return UserResourceGetter<ResourceType>{ &ST<MagicResourceManager>::Get()->INTERNAL_GetContainer<ResourceType>() };
+    return UserResourceGetter<ResourceType>{ &ST<AssetManager>::Get()->INTERNAL_GetContainer<ResourceType>() };
 }
 
 template<typename ResourceType>
-const ResourceContainerBase<ResourceType>& MagicResourceManager::Editor_GetContainer()
+const ResourceContainerBase<ResourceType>& AssetManager::Editor_GetContainer()
 {
     return INTERNAL_GetContainer<ResourceType>();
 }
 
 template<typename ResourceType>
-ResourceContainerBase<ResourceType>& MagicResourceManager::INTERNAL_GetContainer()
+ResourceContainerBase<ResourceType>& AssetManager::INTERNAL_GetContainer()
 {
     static const size_t hash = util::ConsistentHash<ResourceType>();  // Cache hash per type
     auto containerIter{ resourceContainers.find(hash) };
     if (containerIter != resourceContainers.end())
         return static_cast<ResourceContainerBase<ResourceType>&>(*containerIter->second);
     return static_cast<ResourceContainerBase<ResourceType>&>(*resourceContainers.try_emplace(hash, std::make_unique<ResourceContainerBase<ResourceType>>()).first->second);
+}
+
+template<typename ResourceType>
+uint32_t AssetManager::Editor_GetRefCount(size_t hash)
+{
+    return INTERNAL_GetContainer<ResourceType>().GetRefCount(hash);
 }

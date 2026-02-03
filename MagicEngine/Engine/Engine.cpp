@@ -27,7 +27,7 @@ All rights reserved.
 #include "Engine/Engine.h"
 #include "renderer/frame_data.h"
 #include "Game/GameSystems.h"
-#include "Engine/Resources/ResourceManager.h"
+#include "Assets/AssetManager.h"
 
 // Permanent systems (engine-side components)
 #include "Editor/Gizmo.h"
@@ -111,8 +111,8 @@ void MagicEngine::Init(Context& context, bool startInGameMode)
 	ST<BTFactory>::Get()->SetAllFilePath();
 
 	// load resources
-	ST<MagicResourceManager>::Get()->Init();
-	ST<MagicResourceManager>::Get()->LoadFromFile();
+	ST<AssetManager>::Get()->Init();
+	ST<AssetManager>::Get()->LoadFromFile();
 	// Load fonts manually for now
 	const std::array<std::string, 3> fontsToLoad{
 		Filepaths::fontsSave + "/Arial.ttf",
@@ -159,6 +159,9 @@ void MagicEngine::Init(Context& context, bool startInGameMode)
 
 void MagicEngine::ExecuteFrame(RenderFrameData& frameData)
 {
+	// Process deferred resource loads (spread across frames to avoid ANR on Android)
+	ST<AssetManager>::Get()->ProcessPendingLoads(4);
+
 	// Update tracking of framerate and frametime
 	GameTime::WaitUntilNextFrame();
 
@@ -241,7 +244,7 @@ void MagicEngine::ExecuteFrame(RenderFrameData& frameData)
 void MagicEngine::shutdown()
 {
 	ST<GameSettings>::Get()->Save();
-	ST<MagicResourceManager>::Get()->SaveToFile();
+	ST<AssetManager>::Get()->SaveToFile();
 
 	// Clean up your subsystems
 	ST<GameSystemsManager>::Get()->Exit();
@@ -249,7 +252,6 @@ void MagicEngine::shutdown()
 	ST<GameComponentCallbacksHandler>::Destroy();
 	ST<EntitySpawnEvents>::Destroy();
 	ST<SceneManager>::Destroy();
-	ST<MagicResourceManager>::Destroy();
 	// Singletons
 	ST<TweenManager>::Destroy();
 
@@ -263,14 +265,17 @@ void MagicEngine::shutdown()
 	ecs::Shutdown();
 
 	ST<LuaScripting>::Destroy();
-	ST<AudioManager>::Destroy();
 	ST<physics::JoltPhysics>::Destroy();
 
 	ST<GameSettings>::Destroy();
 	ST<ecs::RegisteredSystemsOperatingByLayer>::Destroy();
 
-	ST<MagicResourceManager>::Get()->Shutdown();
-	ST<MagicResourceManager>::Destroy();
+	ST<AssetManager>::Get()->Shutdown();
+	ST<AssetManager>::Destroy();
+
+	// AudioManager must be destroyed AFTER AssetManager because ResourceAudio
+	// destructors call AudioManager::FreeSound()
+	ST<AudioManager>::Destroy();
 
 	ST<GraphicsMain>::Destroy();
 	ST<EventsQueue>::Destroy();

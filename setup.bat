@@ -8,8 +8,6 @@ echo VCPKG_ROOT is set to: %VCPKG_ROOT%
 
 REM Configuration - set defaults
 if "%BUILD_TYPE%"=="" set BUILD_TYPE=Release
-if "%ANDROID_PLATFORM%"=="" set ANDROID_PLATFORM=30
-if "%ANDROID_ABIS%"=="" set ANDROID_ABIS=arm64-v8a,x86_64
 set "COMPILE_ASSETS=ON"
 
 REM Parse command line arguments
@@ -74,7 +72,6 @@ echo  engine Build Script
 echo ===============================================
 echo Target: %TARGET%
 echo Build Type: %BUILD_TYPE%
-if /i "%TARGET%"=="android" echo Android ABIs: %ANDROID_ABIS%
 echo ===============================================
 
 call :check_requirements
@@ -84,11 +81,6 @@ if errorlevel 1 (
 )
 
 if /i "%TARGET%"=="android" (
-    call :setup_android_ndk
-    if errorlevel 1 (
-        if "%SHOW_MENU%"=="true" pause
-        exit /b 1
-    )
     call :build_android
     if errorlevel 1 (
         if "%SHOW_MENU%"=="true" pause
@@ -184,20 +176,9 @@ if errorlevel 1 (
 )
 
 if /i "%TARGET%"=="android" (
-    REM Need Ninja for Android build
-    call :check_ninja
+    powershell -NoProfile -Command "Get-Command powershell" >nul 2>&1
     if errorlevel 1 (
-        if "%SHOW_MENU%"=="true" pause
-        exit /b 1
-    )
-    if "%VCPKG_ROOT%"=="" (
-        echo [ERROR] VCPKG_ROOT environment variable is not set
-        echo [ERROR] Please set it to your vcpkg installation directory
-        if "%SHOW_MENU%"=="true" pause
-        exit /b 1
-    )
-    if not exist "%VCPKG_ROOT%" (
-        echo [ERROR] VCPKG_ROOT directory does not exist: %VCPKG_ROOT%
+        echo [ERROR] PowerShell is required for Android builds
         if "%SHOW_MENU%"=="true" pause
         exit /b 1
     )
@@ -224,183 +205,21 @@ cd ..
 echo [INFO] Windows build complete. You can now open the solution in build/ or run the Editor.
 exit /b 0
 
-:setup_android_ndk
-echo [INFO] Setting up Android NDK...
-
-if not "%ANDROID_NDK_HOME%"=="" (
-    if exist "%ANDROID_NDK_HOME%\build\cmake\android.toolchain.cmake" (
-        echo [INFO] Using existing ANDROID_NDK_HOME: %ANDROID_NDK_HOME%
-        exit /b 0
-    )
-)
-
-echo [INFO] Searching for Android NDK installations...
-set BASE_PATHS[0]=%USERPROFILE%\AppData\Local\Android\Sdk\ndk
-set BASE_PATHS[1]=%ANDROID_HOME%\ndk
-set BASE_PATHS[2]=%ANDROID_SDK_ROOT%\ndk
-
-for /l %%i in (0,1,2) do (
-    call set "base_path=%%BASE_PATHS[%%i]%%"
-    if exist "!base_path!" (
-        for /d %%d in ("!base_path!\*") do (
-            if exist "%%d\build\cmake\android.toolchain.cmake" (
-                set ANDROID_NDK_HOME=%%d
-                echo [INFO] Found Android NDK at: !ANDROID_NDK_HOME!
-                exit /b 0
-            )
-        )
-    )
-)
-
-echo [ERROR] Android NDK not found. Please set ANDROID_NDK_HOME manually.
-if "%SHOW_MENU%"=="true" pause
-exit /b 1
-
-:abi_to_triplet
-set "input_abi=%~1"
-if "%input_abi%"=="arm64-v8a" (
-    set "vcpkg_triplet=arm64-android"
-) else if "%input_abi%"=="armeabi-v7a" (
-    set "vcpkg_triplet=arm-neon-android"
-) else if "%input_abi%"=="x86_64" (
-    set "vcpkg_triplet=x64-android"
-) else if "%input_abi%"=="x86" (
-    set "vcpkg_triplet=x86-android"
-) else (
-    echo [ERROR] Unsupported ABI: %input_abi%
-    if "%SHOW_MENU%"=="true" pause
-    exit /b 1
-)
-exit /b 0
 
 :build_android
 echo [INFO] Building engine for Android (%BUILD_TYPE%)...
 
-echo [INFO] Running Rocky's python script
+REM Map BUILD_TYPE to what scripts\build_android.ps1 accepts (Debug or Release)
+set "PS_BUILD_TYPE=%BUILD_TYPE%"
+if /i "%BUILD_TYPE%"=="RelWithDebInfo" set "PS_BUILD_TYPE=Release"
 
-python --version >nul 2>&1
-if not errorlevel 1 (
-    python generate_android_assets_manifest.py
-    if errorlevel 1 (
-        echo [ERROR] Failed to generate Android assets manifest.
-        if "%SHOW_MENU%"=="true" pause
-        exit /b 1
-    )
-    goto :done
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts\build_android.ps1 -BuildType %PS_BUILD_TYPE%
+if errorlevel 1 (
+    echo [ERROR] Android build failed.
+    exit /b 1
 )
 
-py --version >nul 2>&1
-if not errorlevel 1 (
-    py generate_android_assets_manifest.py
-    if errorlevel 1 (
-        echo [ERROR] Failed to generate Android assets manifest.
-        if "%SHOW_MENU%"=="true" pause
-        exit /b 1
-    )
-    goto :done
-)
-
-echo [ERROR] Python is not installed or not on PATH.
-if "%SHOW_MENU%"=="true" pause
-exit /b 1
-
-:done
-if exist "android\install" rmdir /s /q android\install
-if exist "build-android" rmdir /s /q build-android
-mkdir android\install
-
-set "abi_list=%ANDROID_ABIS%"
-set "abi_count=0"
-
-:parse_abis
-for /f "tokens=1* delims=," %%a in ("%abi_list%") do (
-    set "current_abi=%%a"
-    set "abi_list=%%b"
-    
-    for /f "tokens=* delims= " %%c in ("!current_abi!") do set "current_abi=%%c"
-    
-    echo [INFO] Building for ABI: !current_abi! [%BUILD_TYPE%]
-    
-    call :abi_to_triplet "!current_abi!"
-    if errorlevel 1 (
-        if "%SHOW_MENU%"=="true" pause
-        exit /b 1
-    )
-    
-    set "build_dir=build-android-!current_abi!"
-    mkdir "!build_dir!"
-    cd "!build_dir!"
-    
-    REM Set compiler flags based on build type
-    set "EXTRA_CXX_FLAGS="
-    if /i "%BUILD_TYPE%"=="Debug" (
-        REM Debug: Full symbols, no optimization, no inlining
-        set "EXTRA_CXX_FLAGS=-g3 -O0 -fno-inline -fno-omit-frame-pointer -DDEBUG -D_DEBUG"
-    ) else if /i "%BUILD_TYPE%"=="RelWithDebInfo" (
-        REM RelWithDebInfo: Symbols + some optimization, allow inlining but keep frame pointers
-        set "EXTRA_CXX_FLAGS=-g -O2 -fno-omit-frame-pointer -DNDEBUG"
-    ) else (
-        REM Release: Full optimization
-        set "EXTRA_CXX_FLAGS=-O3 -DNDEBUG"
-    )
-    
-    cmake .. ^
-        -G "Ninja" ^
-        -DCMAKE_BUILD_TYPE=%BUILD_TYPE% ^
-        -DCMAKE_INSTALL_PREFIX=../android/install/!current_abi! ^
-        -DCMAKE_TOOLCHAIN_FILE=%VCPKG_ROOT%/scripts/buildsystems/vcpkg.cmake ^
-        -DVCPKG_TARGET_TRIPLET=!vcpkg_triplet! ^
-        -DVCPKG_CHAINLOAD_TOOLCHAIN_FILE=%ANDROID_NDK_HOME%/build/cmake/android.toolchain.cmake ^
-        -DANDROID_ABI=!current_abi! ^
-        -DANDROID_PLATFORM=%ANDROID_PLATFORM% ^
-        -DANDROID=ON ^
-        -DCMAKE_CXX_FLAGS="!EXTRA_CXX_FLAGS! -Wno-error" ^
-        -DCMAKE_C_FLAGS="!EXTRA_CXX_FLAGS! -Wno-error"
-    
-    if errorlevel 1 (
-        echo [ERROR] CMake configuration failed for !current_abi!
-        cd ..
-        if "%SHOW_MENU%"=="true" pause
-        exit /b 1
-    )
-    
-    cmake --build . --target install
-    if errorlevel 1 (
-        echo [ERROR] Build failed for !current_abi!
-        cd ..
-        if "%SHOW_MENU%"=="true" pause
-        exit /b 1
-    )
-    
-    REM Copy vcpkg dependencies
-    set "vcpkg_install_dir=.\vcpkg_installed\!vcpkg_triplet!"
-    set "abi_install_dir=..\android\install\!current_abi!"
-    
-    if exist "!vcpkg_install_dir!" (
-        REM Copy debug libraries
-        if exist "!vcpkg_install_dir!\debug\lib\" (
-            xcopy /E /I /Y "!vcpkg_install_dir!\debug\lib\*" "!abi_install_dir!\debug\lib\" >nul
-        )
-        REM Copy release libraries  
-        if exist "!vcpkg_install_dir!\lib\" (
-            xcopy /E /I /Y "!vcpkg_install_dir!\lib\*" "!abi_install_dir!\lib\" >nul
-        )
-        REM Copy includes and share
-        if exist "!vcpkg_install_dir!\include\" (
-            xcopy /E /I /Y "!vcpkg_install_dir!\include\*" "!abi_install_dir!\include\" >nul
-        )
-        if exist "!vcpkg_install_dir!\share\" (
-            xcopy /E /I /Y "!vcpkg_install_dir!\share\*" "!abi_install_dir!\share\" >nul
-        )
-    )
-    
-    cd ..
-    set /a abi_count+=1
-)
-
-if not "%abi_list%"=="" goto :parse_abis
-
-echo [INFO] Android build complete (%BUILD_TYPE%). Libraries installed to android/install/
+echo [INFO] Android build complete (%BUILD_TYPE%).
 exit /b 0
 
 :show_help
@@ -421,9 +240,6 @@ echo   --help          Show this help
 echo.
 echo Environment Variables:
 echo   BUILD_TYPE      Debug, Release, or RelWithDebInfo (default: Release)
-echo   ANDROID_ABIS    Android ABIs to build (default: arm64-v8a,x86_64)
-echo   ANDROID_PLATFORM Android API level (default: 30)
-echo   VCPKG_ROOT      Path to vcpkg (required for Android)
 echo.
 echo Examples:
 echo   %0                              ^# Interactive menu
@@ -434,47 +250,3 @@ echo   set BUILD_TYPE=Debug ^&^& %0 windows
 if "%SHOW_MENU%"=="true" pause
 exit /b 0
 
-:check_ninja
-REM Check if already installed in our custom location
-set "NINJA_DIR=%USERPROFILE%\.ninja"
-set "NINJA_EXE=%NINJA_DIR%\ninja.exe"
-
-if exist "%NINJA_EXE%" (
-    echo [INFO] Ninja found at %NINJA_EXE%
-    set "PATH=%NINJA_DIR%;%PATH%"
-    exit /b 0
-)
-
-REM Check if ninja is in system PATH
-where ninja >nul 2>&1
-if %errorlevel%==0 (
-    echo [INFO] Ninja already installed in PATH
-    exit /b 0
-)
-
-echo [INFO] Ninja not found, installing...
-if not exist "%NINJA_DIR%" mkdir "%NINJA_DIR%"
-
-curl.exe -L -o "%NINJA_DIR%\ninja.zip" https://github.com/ninja-build/ninja/releases/latest/download/ninja-win.zip
-if errorlevel 1 (
-    echo [ERROR] Failed to download Ninja
-    exit /b 1
-)
-
-tar -xf "%NINJA_DIR%\ninja.zip" -C "%NINJA_DIR%"
-if errorlevel 1 (
-    echo [ERROR] Failed to extract Ninja
-    exit /b 1
-)
-
-del "%NINJA_DIR%\ninja.zip"
-
-set "PATH=%NINJA_DIR%;%PATH%"
-
-if not exist "%NINJA_EXE%" (
-    echo [ERROR] Ninja installation failed
-    exit /b 1
-)
-
-echo [INFO] Ninja installed to %NINJA_DIR%
-exit /b 0

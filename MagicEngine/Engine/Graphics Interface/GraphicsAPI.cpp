@@ -27,7 +27,7 @@ All rights reserved.
 #include "Graphics/RenderComponent.h"
 #include "Graphics/AnimationComponent.h"
 #include "Graphics/LightComponent.h"
-#include "Engine/Resources/ResourceManager.h"
+#include "Assets/AssetManager.h"
 
 #include <algorithm>
 #include <iostream>

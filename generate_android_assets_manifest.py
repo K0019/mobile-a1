@@ -1,3 +1,4 @@
+import argparse
 import os
 import sys
 
@@ -21,27 +22,64 @@ _WIN_RESERVED = frozenset({
 })
 
 
+def _collect_asset_paths(assets_root: str) -> list[str]:
+    """Walk assets directory and collect all relative paths."""
+    paths: list[str] = []
+    for root, _dirs, files in os.walk(assets_root):
+        files.sort()
+        for name in files:
+            if name == "asset_manifest.txt":
+                continue
+            # Skip Windows reserved device names (e.g. "nul") which break os.path.relpath.
+            stem = name.split(".")[0].lower()
+            if stem in _WIN_RESERVED:
+                continue
+            full_path = os.path.join(root, name)
+            rel = os.path.relpath(full_path, assets_root).replace("\\", "/")
+            paths.append(rel)
+    return paths
+
+
+def _read_existing_manifest(path: str) -> list[str] | None:
+    """Read existing manifest, return None if doesn't exist."""
+    if not os.path.isfile(path):
+        return None
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            return [line.rstrip("\n") for line in f if line.strip()]
+    except Exception:
+        return None
+
+
 def main() -> int:
+    parser = argparse.ArgumentParser(description="Generate Android asset manifest")
+    parser.add_argument(
+        "--force",
+        action="store_true",
+        help="Force regeneration even if manifest is up-to-date",
+    )
+    args = parser.parse_args()
+
     if not os.path.isdir(ASSETS_ROOT):
         print(f"Error: Assets root '{ASSETS_ROOT}' does not exist.")
         return 1
 
     try:
-        file_count = 0
+        # Collect current asset paths
+        current_paths = _collect_asset_paths(ASSETS_ROOT)
+        file_count = len(current_paths)
+
+        # Check if manifest needs updating
+        if not args.force:
+            existing_paths = _read_existing_manifest(OUTPUT_FILE)
+            if existing_paths is not None and existing_paths == current_paths:
+                print(f"Manifest unchanged ({file_count} files). Skipped write.")
+                return 0
+
+        # Write new manifest
         with open(OUTPUT_FILE, "w", encoding="utf-8") as f:
-            for root, _dirs, files in os.walk(ASSETS_ROOT):
-                files.sort()
-                for name in files:
-                    if name == "asset_manifest.txt":
-                        continue
-                    # Skip Windows reserved device names (e.g. "nul") which break os.path.relpath.
-                    stem = name.split(".")[0].lower()
-                    if stem in _WIN_RESERVED:
-                        continue
-                    full_path = os.path.join(root, name)
-                    rel = os.path.relpath(full_path, ASSETS_ROOT).replace("\\", "/")
-                    f.write(rel + "\n")
-                    file_count += 1
+            for rel in current_paths:
+                f.write(rel + "\n")
 
         print(f"Generated asset manifest at: {OUTPUT_FILE}")
         print(f"Total files indexed: {file_count}")

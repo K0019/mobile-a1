@@ -1,6 +1,6 @@
 ﻿/******************************************************************************/
 /*!
-\file   ResourceNames.h
+\file   AssetNames.h
 \par    Project: Kuro Mahou
 \par    Course: CSD3401
 \par    Software Engineering Project 5
@@ -18,20 +18,20 @@ All rights reserved.
 */
 /******************************************************************************/
 
-#include "Engine/Resources/ResourceNames.h"
+#include "Assets/AssetNames.h"
 
-const std::string* ResourceNames::GetName(size_t hash) const
+const std::string* AssetNames::GetName(size_t hash) const
 {
     auto nameIter{ names.find(hash) };
     return (nameIter != names.end() ? &nameIter->second : nullptr);
 }
 
-void ResourceNames::SetName(size_t hash, const std::string& name)
+void AssetNames::SetName(size_t hash, const std::string& name)
 {
     names[hash] = name;
 }
 
-void ResourceNames::RemoveName(size_t hash)
+void AssetNames::RemoveName(size_t hash)
 {
     names.erase(hash);
 }
