@@ -29,7 +29,7 @@ param(
     [switch]$SkipManifest,
     [switch]$InstallOnly,
     [switch]$PrepareOnly,
-    [string]$AssetCompilerPath = "Tools\Release\AssetCompiler.exe"
+    [string]$AssetCompilerPath = "Tools\AssetCompiler.exe"
 )
 
 $ErrorActionPreference = "Stop"
@@ -93,13 +93,23 @@ try {
     Write-Host "[1/4] Using Python: $python" -ForegroundColor Cyan
 
     if (-not $InstallOnly) {
-        # --- Step 1: ASTC texture recompression ---
+        # --- Step 1: Generate initial manifest (needed by ASTC script) ---
+        if (-not $SkipManifest) {
+            Write-Host "[2/4] Generating initial asset_manifest.txt..." -ForegroundColor Cyan
+            & $python generate_android_assets_manifest.py
+            if ($LASTEXITCODE -ne 0) {
+                Write-Error "Initial manifest generation failed (exit=$LASTEXITCODE)"
+                exit $LASTEXITCODE
+            }
+        }
+
+        # --- Step 2: ASTC texture recompression ---
         if (-not $SkipAssetCompile) {
             if (-not (Test-Path $AssetCompilerPath)) {
                 Write-Warning "AssetCompiler not found at '$AssetCompilerPath'. Skipping ASTC recompression."
                 Write-Warning "Build it first: cmake --build build --target AssetCompiler --config Release"
             } else {
-                Write-Host "[2/4] Recompressing textures to ASTC for Android..." -ForegroundColor Cyan
+                Write-Host "[3/4] Recompressing textures to ASTC for Android..." -ForegroundColor Cyan
                 & $python scripts/rebuild_android_astc_textures.py `
                     --assetcompiler $AssetCompilerPath `
                     --assets-root Assets `
@@ -107,21 +117,15 @@ try {
                 if ($LASTEXITCODE -ne 0) {
                     Write-Warning "ASTC recompression had failures (exit=$LASTEXITCODE) - continuing anyway"
                 }
-            }
-        } else {
-            Write-Host "[2/4] Skipping ASTC recompression (--SkipAssetCompile)" -ForegroundColor Yellow
-        }
 
-        # --- Step 2: Regenerate asset manifest ---
-        if (-not $SkipManifest) {
-            Write-Host "[3/4] Regenerating asset_manifest.txt..." -ForegroundColor Cyan
-            & $python generate_android_assets_manifest.py
-            if ($LASTEXITCODE -ne 0) {
-                Write-Error "Manifest generation failed (exit=$LASTEXITCODE)"
-                exit $LASTEXITCODE
+                # Regenerate manifest to include android textures
+                if (-not $SkipManifest) {
+                    Write-Host "[3/4] Updating manifest with android textures..." -ForegroundColor Cyan
+                    & $python generate_android_assets_manifest.py --force
+                }
             }
         } else {
-            Write-Host "[3/4] Skipping manifest generation (--SkipManifest)" -ForegroundColor Yellow
+            Write-Host "[3/4] Skipping ASTC recompression (--SkipAssetCompile)" -ForegroundColor Yellow
         }
     } else {
         Write-Host "[2/4] Skipping asset steps (--InstallOnly)" -ForegroundColor Yellow

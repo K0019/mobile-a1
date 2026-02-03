@@ -108,7 +108,7 @@ echo Select build target:
 echo   1) Windows (Desktop) - Debug
 echo   2) Windows (Desktop) - Release
 echo   3) Windows (Desktop) - RelWithDebInfo
-echo   4) Android - Prepare Assets (then open Android Studio)
+echo   4) Android - Show build instructions
 echo   5) School PC Lmao (Windows Debug - No Asset Compiler)
 echo   6) Exit
 echo.
@@ -194,15 +194,56 @@ exit /b 0
 
 
 :prepare_android
-echo [INFO] Preparing Android assets (ASTC textures + manifest)...
+echo [INFO] Preparing for Android build...
 
-powershell -NoProfile -ExecutionPolicy Bypass -File scripts\build_android.ps1 -PrepareOnly
-if errorlevel 1 (
-    echo [ERROR] Android asset preparation failed.
-    exit /b 1
+REM Build AssetCompiler first if it doesn't exist
+if not exist "Tools\AssetCompiler.exe" (
+    echo [INFO] AssetCompiler not found. Building it first...
+
+    REM Initialize all submodules if needed
+    if not exist "extern\vcpkg\bootstrap-vcpkg.bat" (
+        echo [INFO] Initializing git submodules...
+        git submodule update --init --recursive
+        if errorlevel 1 (
+            echo [ERROR] Failed to initialize submodules
+            exit /b 1
+        )
+    )
+
+    REM Bootstrap vcpkg if needed
+    if not exist "extern\vcpkg\vcpkg.exe" (
+        echo [INFO] Bootstrapping vcpkg...
+        call extern\vcpkg\bootstrap-vcpkg.bat -disableMetrics
+        if errorlevel 1 (
+            echo [ERROR] Failed to bootstrap vcpkg
+            exit /b 1
+        )
+    )
+
+    if not exist "build" mkdir build
+    cd build
+
+    cmake .. -DCMAKE_BUILD_TYPE=Release -DBUILD_ASSET_COMPILER=ON -DCMAKE_TOOLCHAIN_FILE="../extern/vcpkg/scripts/buildsystems/vcpkg.cmake"
+    if errorlevel 1 (
+        echo [ERROR] CMake configuration failed
+        cd ..
+        exit /b 1
+    )
+
+    cmake --build . --target AssetCompiler --config Release
+    if errorlevel 1 (
+        echo [ERROR] AssetCompiler build failed
+        cd ..
+        exit /b 1
+    )
+
+    cd ..
+    echo [INFO] AssetCompiler built successfully.
 )
 
-echo [INFO] Android assets prepared. Open android/ folder in Android Studio.
+echo.
+echo [INFO] Ready! Open the android/ folder in Android Studio.
+echo.
 exit /b 0
 
 :show_help
