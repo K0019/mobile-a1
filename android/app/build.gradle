@@ -10,72 +10,50 @@ def assetsRoot = file('../../Assets')
 def manifestFile = file('../../Assets/asset_manifest.txt')
 def manifestGenerator = file('../../generate_android_assets_manifest.py')
 def astcScript = file('../../scripts/rebuild_android_astc_textures.py')
-def assetCompiler = file('../../Tools/Release/AssetCompiler.exe')
+def assetCompiler = file('../../Tools/AssetCompiler.exe')
 
-// Task: regenerate asset_manifest.txt before every build
-tasks.register('generateAssetManifest') {
-    description = 'Regenerate asset_manifest.txt for Android case-insensitive VFS lookup'
-    outputs.file(manifestFile)
+// Task 1: Generate initial manifest (needed by ASTC script to find textures)
+tasks.register('generateInitialManifest') {
+    description = 'Generate initial asset_manifest.txt (before ASTC conversion)'
+    outputs.upToDateWhen { false }
     doLast {
-        def py = null
-        for (candidate in ['python', 'py', 'python3']) {
-            try {
-                def proc = [candidate, '--version'].execute()
-                proc.waitFor()
-                if (proc.exitValue() == 0) { py = candidate; break }
-            } catch (ignored) {}
-        }
-        if (py == null) {
-            throw new GradleException('Python not found on PATH. Cannot regenerate asset_manifest.txt.')
-        }
         def repoRoot = project.file('../..')
-        logger.lifecycle("generateAssetManifest: running ${py} in ${repoRoot}")
-        def pb = new ProcessBuilder(py, manifestGenerator.absolutePath)
-        pb.directory(repoRoot)
-        pb.redirectErrorStream(true)
-        def proc = pb.start()
-        def output = proc.inputStream.text
-        proc.waitFor()
-        if (output) logger.lifecycle(output.trim())
-        if (proc.exitValue() != 0) {
-            throw new GradleException("Manifest generation failed (exit=${proc.exitValue()})")
+        logger.lifecycle("generateInitialManifest: creating initial manifest...")
+        exec {
+            workingDir repoRoot
+            commandLine 'py', manifestGenerator.absolutePath
         }
     }
 }
 
-// Task: recompress textures to ASTC (only when AssetCompiler exists)
+// Task 2: Recompress textures to ASTC (only when AssetCompiler exists)
 tasks.register('recompressAstcTextures') {
     description = 'Recompress KTX2 textures to ASTC for Android'
-    dependsOn 'generateAssetManifest'
-    // Skip if AssetCompiler hasn't been built yet
+    dependsOn 'generateInitialManifest'
     onlyIf { assetCompiler.exists() }
     doLast {
-        def py = null
-        for (candidate in ['python', 'py', 'python3']) {
-            try {
-                def proc = [candidate, '--version'].execute()
-                proc.waitFor()
-                if (proc.exitValue() == 0) { py = candidate; break }
-            } catch (ignored) {}
-        }
-        if (py == null) {
-            throw new GradleException('Python not found on PATH. Cannot recompress textures.')
-        }
         def repoRoot = project.file('../..')
-        def cmd = [py, astcScript.absolutePath,
-            '--assetcompiler', assetCompiler.absolutePath,
-            '--assets-root', assetsRoot.absolutePath,
-            '--include-non-textures']
-        logger.lifecycle("recompressAstcTextures: running ${cmd.join(' ')}")
-        def pb = new ProcessBuilder(cmd)
-        pb.directory(repoRoot)
-        pb.redirectErrorStream(true)
-        def proc = pb.start()
-        def output = proc.inputStream.text
-        proc.waitFor()
-        if (output) logger.lifecycle(output.trim())
-        if (proc.exitValue() != 0) {
-            logger.warn("WARNING: ASTC recompression had failures (exit=${proc.exitValue()}). Check output above.")
+        logger.lifecycle("recompressAstcTextures: converting textures to ASTC...")
+        exec {
+            workingDir repoRoot
+            commandLine 'py', astcScript.absolutePath,
+                '--assetcompiler', assetCompiler.absolutePath,
+                '--assets-root', assetsRoot.absolutePath
+        }
+    }
+}
+
+// Task 3: Regenerate manifest to include android textures
+tasks.register('generateAssetManifest') {
+    description = 'Regenerate asset_manifest.txt with android textures included'
+    dependsOn 'recompressAstcTextures'
+    outputs.upToDateWhen { false }
+    doLast {
+        def repoRoot = project.file('../..')
+        logger.lifecycle("generateAssetManifest: updating manifest with android textures...")
+        exec {
+            workingDir repoRoot
+            commandLine 'py', manifestGenerator.absolutePath, '--force'
         }
     }
 }
@@ -105,11 +83,10 @@ tasks.register('checkManifestFreshness') {
     }
 }
 
-// Wire into build
+// Wire into build: ASTC conversion → manifest generation → preBuild
 afterEvaluate {
     tasks.named('preBuild').configure {
         dependsOn 'generateAssetManifest', 'checkManifestFreshness'
-        dependsOn 'recompressAstcTextures'
     }
 }
 
@@ -163,7 +140,7 @@ android {
     externalNativeBuild {
         cmake {
             path file('./src/main/cpp/CMakeLists.txt')
-            version '3.22.1'
+            // Note: cmake.dir in local.properties specifies system CMake for SPIRV-Tools compatibility
         }
     }
 
@@ -175,13 +152,19 @@ android {
         main {
             jniLibs.srcDirs = ['src/main/jniLibs']
             assets.srcDirs = ['../../Assets'] // Use only main project assets
-            // Exclude desktop-format compiled assets — Android uses CompiledAssets/android/ instead.
-            // Without this the APK exceeds the ~2GB ZIP limit.
+            // Exclude desktop-format textures — Android uses ASTC from CompiledAssets/android/ instead.
+            // Meshes and other non-texture assets are platform-agnostic and used from root CompiledAssets/.
             assets.getFilter().exclude { element ->
                 def path = element.relativePath.toString().replace('\\', '/')
-                // Exclude everything under CompiledAssets/ except the android/ subfolder
-                path.startsWith('CompiledAssets/') &&
-                    !path.startsWith('CompiledAssets/android/')
+                // Exclude .ktx2 textures from root CompiledAssets (BC7 format, not supported on mobile)
+                // but keep meshes, materials, etc. from root CompiledAssets
+                if (path.startsWith('CompiledAssets/android/')) {
+                    return false // Always include android subfolder (ASTC textures)
+                }
+                if (path.startsWith('CompiledAssets/') && path.endsWith('.ktx2')) {
+                    return true // Exclude desktop textures
+                }
+                return false // Include everything else (meshes, materials, etc.)
             }
         }
     }

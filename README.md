@@ -42,16 +42,52 @@ setup.bat
 
 ## Quick Start (Android)
 
+### Prerequisites
+
+Android builds require a **desktop build first** to create the AssetCompiler tool,
+which converts textures to mobile-compatible ASTC format.
+
+### From Fresh Clone
+
+```bat
+:: 1. Clone with submodules
+git clone --recursive <repo-url>
+cd gam300-magic
+
+:: 2. Build AssetCompiler (desktop CMake build)
+mkdir build && cd build
+cmake .. -DCMAKE_BUILD_TYPE=Release -DBUILD_ASSET_COMPILER=ON ^
+  -DCMAKE_TOOLCHAIN_FILE="../extern/vcpkg/scripts/buildsystems/vcpkg.cmake"
+cmake --build . --target AssetCompiler --config Release
+cd ..
+
+:: 3. Build Android (Gradle handles ASTC conversion + manifest automatically)
+cd android
+gradlew assembleDebug
+```
+
+### Using Android Studio
+
+Once AssetCompiler is built, you can open `android/` in Android Studio and build
+directly. Gradle automatically runs:
+1. **generateInitialManifest** - Creates asset manifest
+2. **recompressAstcTextures** - Converts textures to ASTC (if AssetCompiler exists)
+3. **generateAssetManifest** - Updates manifest with android textures
+
+If AssetCompiler doesn't exist, ASTC conversion is skipped and textures will fail
+to load on mobile GPUs (they use BC7 format which isn't supported).
+
+### Command-Line Build
+
 ```powershell
-# From repo root — one command does everything:
+# One command does everything (after AssetCompiler is built):
 powershell -ExecutionPolicy Bypass -File scripts\build_android.ps1
 ```
 
 This auto-detects Java and the Android SDK, generates `local.properties` if
-missing, runs the asset pipeline (manifest + ASTC texture recompression), builds
-the APK, and installs it on a connected device.
+missing, runs the asset pipeline, builds the APK, and installs it on a connected device.
 
-### Build options
+### Build Options
 
 ```powershell
 # Skip asset steps (code-only change):
@@ -64,7 +100,7 @@ scripts\build_android.ps1 -SkipAssetCompile
 scripts\build_android.ps1 -BuildType Release
 ```
 
-### Interactive build menu
+### Interactive Build Menu
 
 `setup.bat` also has an interactive menu for both Windows and Android targets:
 ```bat

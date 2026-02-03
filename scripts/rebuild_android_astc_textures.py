@@ -45,13 +45,14 @@ def _find_case_insensitive(path: str) -> str | None:
 def _iter_compiled_ktx2_paths_from_manifest(lines: list[str]) -> list[str]:
     out: list[str] = []
     for p in lines:
-        # Manifest uses forward slashes.
-        if not p.startswith("compiledassets/"):
+        # Manifest uses forward slashes. Check case-insensitively.
+        p_lower = p.lower()
+        if not p_lower.startswith("compiledassets/"):
             continue
-        if not p.endswith(".ktx2"):
+        if not p_lower.endswith(".ktx2"):
             continue
         # Skip already-platform-specific outputs.
-        if p.startswith("compiledassets/android/"):
+        if p_lower.startswith("compiledassets/android/"):
             continue
         out.append(p)
     return out
@@ -60,10 +61,12 @@ def _iter_compiled_ktx2_paths_from_manifest(lines: list[str]) -> list[str]:
 def _iter_compiled_paths_from_manifest(lines: list[str]) -> list[str]:
     out: list[str] = []
     for p in lines:
-        if not p.startswith("compiledassets/"):
+        # Check case-insensitively.
+        p_lower = p.lower()
+        if not p_lower.startswith("compiledassets/"):
             continue
         # Skip already-platform-specific outputs.
-        if p.startswith("compiledassets/android/"):
+        if p_lower.startswith("compiledassets/android/"):
             continue
         out.append(p)
     return out
@@ -127,8 +130,10 @@ def main() -> int:
     assets_root = os.path.abspath(args.assets_root)
     manifest_path = os.path.abspath(args.manifest) if args.manifest else os.path.join(assets_root, "asset_manifest.txt")
 
-    if not os.path.isfile(args.assetcompiler):
-        print(f"ERROR: AssetCompiler not found: {args.assetcompiler}")
+    # Convert to absolute path - subprocess.run on Windows requires this for forward-slash paths
+    assetcompiler = os.path.abspath(args.assetcompiler)
+    if not os.path.isfile(assetcompiler):
+        print(f"ERROR: AssetCompiler not found: {assetcompiler}")
         return 2
 
     if not os.path.isfile(manifest_path):
@@ -157,7 +162,8 @@ def main() -> int:
             failures += 1
             continue
 
-        rel_after_prefix = rel[len("compiledassets/") :]
+        # Strip the "compiledassets/" prefix (case-insensitive)
+        rel_after_prefix = rel[len("compiledassets/") :] if rel.lower().startswith("compiledassets/") else rel
         out_dir = os.path.join(assets_root, "compiledassets", "android", *os.path.dirname(rel_after_prefix).split("/"))
         os.makedirs(out_dir, exist_ok=True)
 
@@ -175,7 +181,7 @@ def main() -> int:
         if rel.lower().endswith(".ktx2"):
             try:
                 # Recompress texture to ASTC.
-                rc = _run_assetcompiler(args.assetcompiler, assets_root, in_path, out_dir, args.dry_run)
+                rc = _run_assetcompiler(assetcompiler, assets_root, in_path, out_dir, args.dry_run)
                 processed += 1
                 if rc != 0:
                     print(f"ERROR: AssetCompiler failed for {rel} (exit={rc})")
