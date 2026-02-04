@@ -73,6 +73,68 @@
         {
             "parentIndex": -1,
             "position": {
+                "x": 1790.0,
+                "y": 100.0,
+                "z": 0.0
+            },
+            "rotation": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "scale": {
+                "x": 230.0,
+                "y": 230.0,
+                "z": 1.0
+            },
+            "components": {
+                "6766054303456732338": {
+                    "_active": true,
+                    "layer": 0
+                },
+                "7205334411763290517": {
+                    "_active": true,
+                    "name": "Settings Button"
+                },
+                "9315785795257285655": {
+                    "_active": true,
+                    "uid": 4288939773269861882
+                },
+                "13050946774019011867": {
+                    "_active": true,
+                    "type": 2,
+                    "primitive": {
+                        "texture": {
+                            "hash": 721237846388967921
+                        },
+                        "uvMin": {
+                            "x": 0.0,
+                            "y": 0.0
+                        },
+                        "uvMax": {
+                            "x": 1.0,
+                            "y": 1.0
+                        }
+                    },
+                    "color": {
+                        "x": 1.0,
+                        "y": 1.0,
+                        "z": 1.0,
+                        "w": 1.0
+                    }
+                },
+                "13828584133079072524": {
+                    "_active": true,
+                    "hasPrimitive": false
+                },
+                "15400580746116341700": {
+                    "_active": true
+                }
+            }
+        },
+        {
+            "parentIndex": -1,
+            "position": {
                 "x": 1318.0,
                 "y": 920.0,
                 "z": 0.0
@@ -253,6 +315,14 @@
                 },
                 "15400580746116341700": {
                     "_active": true
+                },
+                "18288371625365795113": {
+                    "_active": true,
+                    "scripts": [
+                        {
+                            "scriptName": "game_button_parry.lua"
+                        }
+                    ]
                 }
             }
         },

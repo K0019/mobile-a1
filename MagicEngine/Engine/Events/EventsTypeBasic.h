@@ -43,6 +43,7 @@ namespace Events {
 	struct GameActionLightAttack {};
 	struct GameActionHeavyAttack {};
 	struct GameActionDodge {};
+	struct GameActionParry {};
 
 }
 
