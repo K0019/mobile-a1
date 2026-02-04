@@ -20,15 +20,15 @@
     "textures": [
         {
             "key": "baseColor",
-            "value": "CompiledAssets\\models\\GLB\\Baseball_Field\\lights\\Image_0.ktx2"
+            "value": "CompiledAssets/models/glb/baseball_field/lights/lights12285059771941119493.ktx2"
         },
         {
             "key": "metallicRoughness",
-            "value": "CompiledAssets\\models\\GLB\\Baseball_Field\\lights\\Image_1.ktx2"
+            "value": "CompiledAssets/models/glb/baseball_field/lights/lights12285059771941119493.ktx2"
         },
         {
             "key": "normal",
-            "value": "CompiledAssets\\models\\GLB\\Baseball_Field\\lights\\Image_2.ktx2"
+            "value": "CompiledAssets/models/glb/baseball_field/lights/lights12285059771941119493.ktx2"
         },
         {
             "key": "emissive",

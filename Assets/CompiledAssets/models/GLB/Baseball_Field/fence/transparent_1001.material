@@ -20,15 +20,15 @@
     "textures": [
         {
             "key": "baseColor",
-            "value": "CompiledAssets\\models\\GLB\\Baseball_Field\\fence\\Image_3.ktx2"
+            "value": "CompiledAssets/models/glb/baseball_field/fence/fence15541555455230997551.ktx2"
         },
         {
             "key": "metallicRoughness",
-            "value": "CompiledAssets\\models\\GLB\\Baseball_Field\\fence\\Image_4.ktx2"
+            "value": "CompiledAssets/models/glb/baseball_field/fence/fence15541555455230997551.ktx2"
         },
         {
             "key": "normal",
-            "value": "CompiledAssets\\models\\GLB\\Baseball_Field\\fence\\Image_5.ktx2"
+            "value": "CompiledAssets/models/glb/baseball_field/fence/fence15541555455230997551.ktx2"
         },
         {
             "key": "emissive",
