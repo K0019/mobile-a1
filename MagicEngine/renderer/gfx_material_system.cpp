@@ -531,10 +531,10 @@ void GfxMaterialSystem::createMaterialBindGroup(MaterialEntry& entry) {
     // Get texture views (use defaults if not set)
     auto getView = [this](TextureHandle h, TextureHandle def) -> TextureView {
         if (isTextureValid(h)) {
-            return m_textures[h.index].view;
+            return getTextureView(h);
         }
         if (isTextureValid(def)) {
-            return m_textures[def.index].view;
+            return getTextureView(def);
         }
         return {};
     };
