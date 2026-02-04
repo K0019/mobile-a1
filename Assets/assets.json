@@ -1,6 +1,21 @@
 {
     "files": [
         {
+            "filepath": "compiledassets/pause_settings_thumb.ktx2",
+            "assetType": "Texture",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 144100895119618291,
+                            "name": "pause_settings_thumb0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/textures/_01.ktx2",
             "assetType": "Texture",
             "resources": [
@@ -2525,6 +2540,21 @@
             ]
         },
         {
+            "filepath": "compiledassets/pause_continue_thumb.ktx2",
+            "assetType": "Texture",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 106549274496120489,
+                            "name": "pause_continue_thumb0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/player_idle_mixamo.mesh",
             "assetType": "Mesh",
             "resources": [
@@ -3680,6 +3710,25 @@
             ]
         },
         {
+            "filepath": "compiledassets/pause_restart.ktx2",
+            "assetType": "Texture",
+            "sourcePath": "images/menu/pause/pause_restart.png",
+            "sourceTimestamp": 134146666864074029,
+            "compiledTimestamp": 17701937194524338,
+            "formatVersion": 2,
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 135491719074129763,
+                            "name": "pause_restart0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/textures/_05.ktx2",
             "assetType": "Texture",
             "resources": [
@@ -4743,6 +4792,25 @@
                         {
                             "hash": 4552239823666550469,
                             "name": "n00_000_00_facebrow_00_face__instance_0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/pause_settings.ktx2",
+            "assetType": "Texture",
+            "sourcePath": "images/menu/pause/pause_settings.png",
+            "sourceTimestamp": 134146666891661188,
+            "compiledTimestamp": 17701937219130990,
+            "formatVersion": 2,
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 144992599049744637,
+                            "name": "pause_settings0"
                         }
                     ]
                 }
@@ -6542,6 +6610,25 @@
             ]
         },
         {
+            "filepath": "compiledassets/pause_exit.ktx2",
+            "assetType": "Texture",
+            "sourcePath": "images/menu/pause/pause_exit.png",
+            "sourceTimestamp": 134146666807460749,
+            "compiledTimestamp": 17701936613426697,
+            "formatVersion": 2,
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 119647756517819481,
+                            "name": "pause_exit0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/materials/n00_000_00_eyehighlight_00_eye__instance_.001.material",
             "assetType": "Material",
             "resources": [
@@ -6791,6 +6878,21 @@
                         {
                             "hash": 12175155038782328561,
                             "name": "bookingslip_10010"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/pause_bg_thumb.ktx2",
+            "assetType": "Texture",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 95606934776462005,
+                            "name": "pause_bg_thumb0"
                         }
                     ]
                 }
@@ -7630,6 +7732,21 @@
             ]
         },
         {
+            "filepath": "compiledassets/pause_howtoplay_thumb.ktx2",
+            "assetType": "Texture",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 124738495354478047,
+                            "name": "pause_howtoplay_thumb0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/models/glb/mc_animated/n00_000_hair_00_nml_02.ktx2",
             "assetType": "Texture",
             "resources": [
@@ -7789,6 +7906,25 @@
                         {
                             "hash": 2184270008890445695,
                             "name": "player_idle_mixamoplayer_jump_miaxmo0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/pause_howtoplay.ktx2",
+            "assetType": "Texture",
+            "sourcePath": "images/menu/pause/pause_howtoplay.png",
+            "sourceTimestamp": 134146666844617118,
+            "compiledTimestamp": 17701937170225802,
+            "formatVersion": 2,
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 129198114516737511,
+                            "name": "pause_howtoplay0"
                         }
                     ]
                 }
@@ -8033,6 +8169,21 @@
                         {
                             "hash": 5836776168814975891,
                             "name": "enemy_female_animatedthrow0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/pause_exit_thumb.ktx2",
+            "assetType": "Texture",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 115062793029993553,
+                            "name": "pause_exit_thumb0"
                         }
                     ]
                 }
@@ -9093,6 +9244,21 @@
             ]
         },
         {
+            "filepath": "compiledassets/pause_restart_thumb.ktx2",
+            "assetType": "Texture",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 133261909493000027,
+                            "name": "pause_restart_thumb0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/models/glb/baseball_field/field/image_2.ktx2",
             "assetType": "Texture",
             "resources": [
@@ -9832,6 +9998,25 @@
             ]
         },
         {
+            "filepath": "compiledassets/pause_continue.ktx2",
+            "assetType": "Texture",
+            "sourcePath": "images/menu/pause/pause_continue.png",
+            "sourceTimestamp": 134146666785818500,
+            "compiledTimestamp": 17701936578407271,
+            "formatVersion": 2,
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 109812625007359717,
+                            "name": "pause_continue0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/models/glb/enemy_male_animated/n00_010_01_onepiece_00_cloth_01 (instance).material",
             "assetType": "Material",
             "resources": [
@@ -10006,6 +10191,25 @@
                         {
                             "hash": 16532543654372776673,
                             "name": "mc hurt 50"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/pause_bg.ktx2",
+            "assetType": "Texture",
+            "sourcePath": "images/menu/pause/pause_bg.png",
+            "sourceTimestamp": 134146666447444459,
+            "compiledTimestamp": 17701936260957364,
+            "formatVersion": 2,
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 102357936171006655,
+                            "name": "pause_bg0"
                         }
                     ]
                 }

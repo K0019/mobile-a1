@@ -3,8 +3,8 @@
         {
             "parentIndex": -1,
             "position": {
-                "x": 1460.0,
-                "y": 746.0,
+                "x": 331.0,
+                "y": 597.0,
                 "z": 2.5
             },
             "rotation": {
@@ -13,8 +13,8 @@
                 "z": 0.0
             },
             "scale": {
-                "x": 400.0,
-                "y": 200.0,
+                "x": 518.7000122070313,
+                "y": 219.0,
                 "z": 1.0
             },
             "components": {
@@ -24,7 +24,7 @@
                 },
                 "7205334411763290517": {
                     "_active": true,
-                    "name": "Exit Button"
+                    "name": "Settings Button"
                 },
                 "9315785795257285655": {
                     "_active": true,
@@ -35,7 +35,7 @@
                     "type": 2,
                     "primitive": {
                         "texture": {
-                            "hash": 95062675841825407
+                            "hash": 144992599049744637
                         },
                         "uvMin": {
                             "x": 0.0,
@@ -73,8 +73,8 @@
         {
             "parentIndex": -1,
             "position": {
-                "x": 960.0,
-                "y": 746.0,
+                "x": 330.0,
+                "y": 397.0,
                 "z": 2.5
             },
             "rotation": {
@@ -83,8 +83,8 @@
                 "z": 0.0
             },
             "scale": {
-                "x": 400.0,
-                "y": 200.0,
+                "x": 493.5,
+                "y": 150.0,
                 "z": 1.0
             },
             "components": {
@@ -94,7 +94,7 @@
                 },
                 "7205334411763290517": {
                     "_active": true,
-                    "name": "Main Menu Button"
+                    "name": "Restart Button"
                 },
                 "9315785795257285655": {
                     "_active": true,
@@ -105,7 +105,7 @@
                     "type": 2,
                     "primitive": {
                         "texture": {
-                            "hash": 102675694352547705
+                            "hash": 135491719074129763
                         },
                         "uvMin": {
                             "x": 0.0,
@@ -143,8 +143,8 @@
         {
             "parentIndex": -1,
             "position": {
-                "x": 460.0,
-                "y": 746.0,
+                "x": 327.0,
+                "y": 200.0,
                 "z": 2.5
             },
             "rotation": {
@@ -153,8 +153,8 @@
                 "z": 0.0
             },
             "scale": {
-                "x": 400.0,
-                "y": 200.0,
+                "x": 554.0,
+                "y": 150.0,
                 "z": 1.0
             },
             "components": {
@@ -164,7 +164,7 @@
                 },
                 "7205334411763290517": {
                     "_active": true,
-                    "name": "Next Level Button"
+                    "name": "Resume Button"
                 },
                 "9315785795257285655": {
                     "_active": true,
@@ -175,7 +175,7 @@
                     "type": 2,
                     "primitive": {
                         "texture": {
-                            "hash": 105142998445278217
+                            "hash": 109812625007359717
                         },
                         "uvMin": {
                             "x": 0.0,
@@ -205,6 +205,146 @@
                     "scripts": [
                         {
                             "scriptName": "menu_button_closepause.lua"
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "parentIndex": -1,
+            "position": {
+                "x": 310.0,
+                "y": 819.0,
+                "z": 2.5
+            },
+            "rotation": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "scale": {
+                "x": 604.0,
+                "y": 331.0,
+                "z": 1.0
+            },
+            "components": {
+                "6766054303456732338": {
+                    "_active": true,
+                    "layer": 0
+                },
+                "7205334411763290517": {
+                    "_active": true,
+                    "name": "How to Play Button"
+                },
+                "9315785795257285655": {
+                    "_active": true,
+                    "uid": 4548333258642242936
+                },
+                "13050946774019011867": {
+                    "_active": true,
+                    "type": 2,
+                    "primitive": {
+                        "texture": {
+                            "hash": 129198114516737511
+                        },
+                        "uvMin": {
+                            "x": 0.0,
+                            "y": 0.0
+                        },
+                        "uvMax": {
+                            "x": 1.0,
+                            "y": 1.0
+                        }
+                    },
+                    "color": {
+                        "x": 1.0,
+                        "y": 1.0,
+                        "z": 1.0,
+                        "w": 1.0
+                    }
+                },
+                "13828584133079072524": {
+                    "_active": true,
+                    "hasPrimitive": false
+                },
+                "15400580746116341700": {
+                    "_active": true
+                },
+                "18288371625365795113": {
+                    "_active": true,
+                    "scripts": [
+                        {
+                            "scriptName": "mainmenu_button_quit.lua"
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "parentIndex": -1,
+            "position": {
+                "x": 527.0,
+                "y": 934.0,
+                "z": 2.5
+            },
+            "rotation": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "scale": {
+                "x": 266.0,
+                "y": 198.0,
+                "z": 1.0
+            },
+            "components": {
+                "6766054303456732338": {
+                    "_active": true,
+                    "layer": 0
+                },
+                "7205334411763290517": {
+                    "_active": true,
+                    "name": "Exit Button"
+                },
+                "9315785795257285655": {
+                    "_active": true,
+                    "uid": 4622630557866163000
+                },
+                "13050946774019011867": {
+                    "_active": true,
+                    "type": 2,
+                    "primitive": {
+                        "texture": {
+                            "hash": 119647756517819481
+                        },
+                        "uvMin": {
+                            "x": 0.0,
+                            "y": 0.0
+                        },
+                        "uvMax": {
+                            "x": 1.0,
+                            "y": 1.0
+                        }
+                    },
+                    "color": {
+                        "x": 1.0,
+                        "y": 1.0,
+                        "z": 1.0,
+                        "w": 1.0
+                    }
+                },
+                "13828584133079072524": {
+                    "_active": true,
+                    "hasPrimitive": false
+                },
+                "15400580746116341700": {
+                    "_active": true
+                },
+                "18288371625365795113": {
+                    "_active": true,
+                    "scripts": [
+                        {
+                            "scriptName": "mainmenu_button_quit.lua"
                         }
                     ]
                 }
@@ -245,7 +385,7 @@
                     "type": 2,
                     "primitive": {
                         "texture": {
-                            "hash": 6539792907445282495
+                            "hash": 102357936171006655
                         },
                         "uvMin": {
                             "x": 0.0,
