@@ -18,8 +18,26 @@
                 "z": 1.0
             },
             "components": {
+                "2042496555980785": {
+                    "_active": true,
+                    "agentData": {
+                        "param": {
+                            "radius": 0.30000001192092896,
+                            "height": 1.600000023841858,
+                            "climb": 0.05000000074505806,
+                            "angle": 10.0
+                        },
+                        "speed": 1.7999999523162842,
+                        "acceleration": 0.0,
+                        "baseOffset": 0.0,
+                        "active": false
+                    }
+                },
                 "137465014557233347": {
                     "_active": true,
+                    "weaponInfo": {
+                        "hash": 4768811728382449817
+                    },
                     "damage": 1.0,
                     "attackBox": {
                         "x": 1.0,
@@ -124,7 +142,7 @@
                     "_active": true,
                     "maxHealth": 200.0,
                     "currHealth": 200.0,
-                    "isInvincible": false
+                    "invincibleState": 0
                 },
                 "9315785795257285655": {
                     "_active": true,
@@ -145,6 +163,9 @@
                     "flashMaterial": {
                         "hash": 1903056716174195867
                     }
+                },
+                "12349219328363051475": {
+                    "_active": true
                 },
                 "15371168105777251288": {
                     "_active": true,
@@ -174,14 +195,15 @@
                     "_active": true,
                     "center": {
                         "x": 0.0,
-                        "y": 0.800000011920929,
+                        "y": 0.0,
                         "z": 0.0
                     },
-                    "radius": 0.30000001192092896,
-                    "height": 1.2000000476837158,
+                    "radius": 1.0,
+                    "height": 1.0,
                     "moveSpeed": 3.0,
                     "rotateSpeed": 14400.0,
                     "throwPower": 0.0,
+                    "attackingMoveSpeedMultiplier": 2.4943112664981744e-43,
                     "parryCoolDownTime": 0.0,
                     "parryTime": 0.0,
                     "parryDelusion": 0.0,
@@ -224,6 +246,23 @@
                             "hash": 1
                         }
                     ]
+                },
+                "18236831197208900764": {
+                    "_active": true,
+                    "center": {
+                        "x": 0.0,
+                        "y": 0.800000011920929,
+                        "z": 0.0
+                    },
+                    "size": {
+                        "x": 0.25,
+                        "y": 1.600000023841858,
+                        "z": 0.25
+                    },
+                    "flags": {
+                        "_majorityTrue": true,
+                        "_except": []
+                    }
                 },
                 "18288371625365795113": {
                     "_active": true,
