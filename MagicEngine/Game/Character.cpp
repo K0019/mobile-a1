@@ -110,10 +110,7 @@ bool CharacterMovementComponent::Dodge(Vec2 vector)
 		vector = Vec2(sin(math::ToRadians(rotation.y)), cos(math::ToRadians(rotation.y)));
 	}
 
-	/// jk
-	//// Don't dodge nowhere
-	//if (vector.LengthSqr() == 0.0f)
-	//	return false;
+
 
 	SetMovementVector(vector.Normalized());
 	currentDodgeTime = dodgeDuration;
@@ -375,6 +372,8 @@ void CharacterMovementComponent::EditorDraw()
 	gui::VarInput("Dodge Speed", &dodgeSpeed);
 	gui::VarInput("Throw Power", &throwPower);
 
+	gui::VarInput("Attacking Move Speed Multiplier", &attackingMoveSpeedMultiplier);
+
 	gui::VarInput("Parry Time Period", &parryTime);
 	gui::VarInput("Parry Cool Down time", &parryCoolDownTime);
 	gui::VarInput("Parry Delusion", &parryDelusion);
@@ -435,7 +434,7 @@ void CharacterMovementComponentSystem::UpdateCharacterMovementComponent(Characte
 	// Perform stun check
 	ecs::CompHandle<physics::PhysicsComp> physicsComp = characterEntity->GetComp<physics::PhysicsComp>();
 	Vec3 currVel{};
-	if (physicsComp->GetIsKinematic())
+	if (physicsComp && physicsComp->GetIsKinematic())
 	{
 		JPH::Vec3 joltCurrVel = comp.joltCharRef->GetLinearVelocity();
 		currVel = Vec3{ joltCurrVel.GetX(), joltCurrVel.GetY(), joltCurrVel.GetZ() };
@@ -511,14 +510,14 @@ void CharacterMovementComponentSystem::UpdateCharacterMovementComponent(Characte
 	//}
 
 	// Apply input movement
-	Vec3 moveDir = Vec3{ movement.x , (physicsComp->GetIsKinematic() ? 0.f : currVel.y), movement.y };
+	Vec3 moveDir = Vec3{ movement.x , (physicsComp && physicsComp->GetIsKinematic() ? 0.f : currVel.y), movement.y };
 
 	// If dodging, move faster
 	if (comp.currentDodgeTime > 0.0f)
 	{
 		comp.currentDodgeTime -= GameTime::Dt();
 		moveDir *= comp.dodgeSpeed;
-
+		
 		animatorComp->GetStateMachine()->blackboard["inputDodge"] = true;
 	}
 	else
@@ -526,7 +525,7 @@ void CharacterMovementComponentSystem::UpdateCharacterMovementComponent(Characte
 		moveDir *= comp.moveSpeed * comp.speedMultiplier;
 	}
 
-	if (!physicsComp->GetIsKinematic())
+	if (physicsComp && !physicsComp->GetIsKinematic())
 		physicsComp->SetLinearVelocity(Vec3{ moveDir.x, currVel.y, moveDir.z });
 	else
 	{

@@ -26,6 +26,7 @@ All rights reserved.
 #pragma once
 #include "ECS/EntityUID.h"
 #include "ECS/IEditorComponent.h"
+#include "Game/IGameComponentCallbacks.h"
 
 /*****************************************************************//*!
 \class HealthComponent
@@ -34,10 +35,13 @@ All rights reserved.
 *//******************************************************************/
 class HealthComponent 
 	: public IRegisteredComponent<HealthComponent>
-	, public  IEditorComponent<HealthComponent>
+	, public IEditorComponent<HealthComponent>
+	, public IGameComponentCallbacks<HealthComponent>
 {
 public:
 	using HealthType = float;
+
+	void OnStart() override;
 
 	/*****************************************************************//*!
 	\brief
@@ -111,8 +115,15 @@ public:
 
 	float GetHealthFraction();
 
-	bool GetIsInvincible() const;
-	void SetIsInvincible(bool invincible);
+	enum INVINCIBLE_STATE:int
+	{
+		I_NONE,				// Normal behaviour
+		I_INVINCIBLE,		// Cannot take damage
+		I_BUDDHA,			// Can take damage until 1hp
+	};
+
+	INVINCIBLE_STATE GetInvincibleState() const;
+	void SetInvincibleState(INVINCIBLE_STATE invincible);
 private:
 	/*****************************************************************//*!
 	\brief
@@ -125,7 +136,7 @@ private:
 private:
 	HealthType maxHealth;
 	HealthType currHealth;
-	bool isInvincible;
+	int invincibleState;
 
 	static constexpr HealthType defaultMax{ 100 };
 	property_vtable()
@@ -134,6 +145,6 @@ property_begin(HealthComponent)
 {
 	property_var(maxHealth),
 	property_var(currHealth),
-	property_var(isInvincible),
+	property_var(invincibleState),
 }
 property_vend_h(HealthComponent)

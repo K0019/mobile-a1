@@ -95,6 +95,9 @@ void GameCameraControllerComponent::EditorDraw()
 	gui::VarInput("Min Pitch", &minPitch);
 
 	gui::VarDrag("Sensitivity", &cameraSensitivity, 0.05f, 0.05f, 1.0f);
+	gui::VarDrag("Camera Distance", &currentCameraDistance, 0.05f, 0.05f, 4.0f);
+
+    gui::VarDefault("Target Offset", &offsetPosition);
 
     const std::string* materialText{ ST<AssetManager>::Get()->Editor_GetName(translucentMaterial.GetHash()) };
     gui::TextUnformatted("Material");
@@ -160,7 +163,7 @@ void GameCameraControllerSystem::UpdateGameCameraController(GameCameraController
 
     // Follow player at current distance
     Vec3 forward = comp.currentCameraDistance * math::EulerAnglesToVector(eulerAngles.x, eulerAngles.y);
-    Vec3 playerPos = comp.playerEntity->GetTransform().GetWorldPosition();
+    Vec3 playerPos = comp.playerEntity->GetTransform().GetWorldPosition() + comp.offsetPosition;
     Vec3 cameraPos = playerPos - forward;
 
     Vec3 direction(sin(math::ToRadians(yaw + 90)), 0, cos(math::ToRadians(yaw + 90)));

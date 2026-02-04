@@ -1,0 +1,43 @@
+{
+    "name": "ui_kickme",
+    "alphaMode": "Blend",
+    "alphaCutoff": 0.5,
+    "metallicFactor": 1.0,
+    "roughnessFactor": 1.0,
+    "normalScale": 1.0,
+    "occlusionStrength": 1.0,
+    "baseColorFactor": [
+        1.0,
+        1.0,
+        1.0,
+        1.0
+    ],
+    "emissiveFactor": [
+        0.0,
+        0.0,
+        0.0
+    ],
+    "textures": [
+        {
+            "key": "baseColor",
+            "value": "compiledassets/kickme.ktx2"
+        },
+        {
+            "key": "emissive",
+            "value": ""
+        },
+        {
+            "key": "metallicRoughness",
+            "value": ""
+        },
+        {
+            "key": "normal",
+            "value": ""
+        },
+        {
+            "key": "occlusion",
+            "value": ""
+        }
+    ],
+    "flags": 12
+}

@@ -38,12 +38,12 @@ NODE_STATUS L_Boss_Prefect_Invincibility::OnUpdate([[maybe_unused]] ecs::EntityH
             animComp->TransitionTo(5847024716697507243, 0.1f);
             animComp->timeA = 0.0f;
         }
-        healthComp->SetIsInvincible(true);
+        healthComp->SetInvincibleState(HealthComponent::I_INVINCIBLE);
         currentInvincibilityTime -= GameTime::Dt();
 
         if (currentInvincibilityTime <= 0.0f)
         {
-            healthComp->SetIsInvincible(false);
+            healthComp->SetInvincibleState(HealthComponent::I_NONE);
             return NODE_STATUS::SUCCESS;
         }
     }

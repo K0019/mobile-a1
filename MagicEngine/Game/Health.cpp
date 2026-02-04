@@ -40,9 +40,17 @@ All rights reserved.
 HealthComponent::HealthType cheatState = 0;
 bool cheatActive = false; ///THis is so the healthbar colour wont keep updating
 
+void HealthComponent::OnStart()
+{
+	// Send this to force any attached objects to update
+	ST<Scheduler>::Get()->Add([thisComp = this] {	ecs::GetEntity(thisComp)->GetComp<EntityEventsComponent>()->BroadcastAll("OnHealthChanged", thisComp->GetHealthFraction());
+		});
+}
+
 HealthComponent::HealthComponent()
 	: maxHealth(defaultMax)
 	, currHealth(maxHealth)
+	, invincibleState{0}
 {
 }
 
@@ -85,8 +93,8 @@ void HealthComponent::TakeDamage(HealthComponent::HealthType amount, Vec3 direct
 	if (IsDead())
 		return;
 
-	// If the healthComp is already invincible, we can't do anything to the health
-	if (isInvincible)
+	// If the healthComp is invincible, we can't do anything to the health
+	if (invincibleState == I_INVINCIBLE)
 		return;
 
 	auto thisEntity = ecs::GetEntity(this);
@@ -94,6 +102,15 @@ void HealthComponent::TakeDamage(HealthComponent::HealthType amount, Vec3 direct
 	if (currHealth > maxHealth)
 		currHealth = maxHealth;
 	currHealth -= amount;
+
+	// Buddha state does not allow health to drop below 1. ie can get hurt but not die
+	if (invincibleState == I_BUDDHA)
+	{
+		if (currHealth < 1.0f)
+		{
+			currHealth = 1.0f;
+		}
+	}
 
 	thisEntity->GetComp<EntityEventsComponent>()->BroadcastAll("OnHealthChanged", GetHealthFraction());
 
@@ -172,19 +189,19 @@ float HealthComponent::GetHealthFraction()
 	return (float)currHealth/(float)maxHealth;
 }
 
-bool HealthComponent::GetIsInvincible() const
+HealthComponent::INVINCIBLE_STATE HealthComponent::GetInvincibleState() const
 {
-	return isInvincible;
+	return static_cast<HealthComponent::INVINCIBLE_STATE>(invincibleState);
 }
 
-void HealthComponent::SetIsInvincible(bool invincible)
+void HealthComponent::SetInvincibleState(INVINCIBLE_STATE invincible)
 {
-	isInvincible = invincible;
+	invincibleState = invincible;
 }
 
 void HealthComponent::EditorDraw()
 {
 	gui::VarInput("Curr Health", &currHealth);
 	gui::VarInput("Max Health", &maxHealth);
-	gui::VarDefault("Is Invincible", &isInvincible);
+	gui::VarDefault("Invincible State", &invincibleState);
 }

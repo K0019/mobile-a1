@@ -1471,6 +1471,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/health.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 7806641408964174589,
+                            "name": "health0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/models/glb/enemy_female_animated/_10.ktx2",
             "assetType": "Texture",
             "resources": [
@@ -1634,6 +1648,20 @@
                         {
                             "hash": 4654142561328830193,
                             "name": "player_idle_mixamoplayer_weapon atk 2_mixamo0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/delusion.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 17312723174093266303,
+                            "name": "delusion0"
                         }
                     ]
                 }
@@ -2420,6 +2448,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/materials/t_PickDroppc.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2978933241526736149,
+                            "name": "t_pickdroppc0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/delusion meter fill.ktx2",
             "assetType": "Texture",
             "resources": [
@@ -2570,6 +2612,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/baseball_field/lights/image_2.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 9392194351141618821,
+                            "name": "image_20"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "sounds/sfx/weapon pickup/weapon pickup 3.wav",
             "assetType": "Audio",
             "resources": [
@@ -2624,6 +2680,20 @@
                         {
                             "hash": 4364700523363309157,
                             "name": "_070"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/baseball_field/fence/image_3.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 4200570924644749469,
+                            "name": "image_30"
                         }
                     ]
                 }
@@ -2864,6 +2934,20 @@
                         {
                             "hash": 4470408670769321611,
                             "name": "n00_000_00_body_00_skin__instance_0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/baseball_field/fence/material_1.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 4267561969102124921,
+                            "name": "material_10"
                         }
                     ]
                 }
@@ -3215,6 +3299,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/materials/t_Dodgepc.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2921651984248910669,
+                            "name": "t_dodgepc0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/rankd.ktx2",
             "assetType": "Texture",
             "resources": [
@@ -3284,6 +3382,20 @@
                         {
                             "hash": 849956573515060627,
                             "name": "outdoor bleachers31312866833861550780"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/pickdrop_pc.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 2972316380550716175,
+                            "name": "pickdrop_pc0"
                         }
                     ]
                 }
@@ -3569,6 +3681,34 @@
                         {
                             "hash": 5740127997221837449,
                             "name": "shader_nonenormal0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/baseball_field/fence/image_1.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 4204621525481476257,
+                            "name": "image_10"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/materials/t_Health.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 7813359425009912891,
+                            "name": "t_health0"
                         }
                     ]
                 }
@@ -4119,6 +4259,34 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/baseball_field/fence/image_0.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 4196407074110361755,
+                            "name": "image_00"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/materials/t_Dodgemobile.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2923458481853355753,
+                            "name": "t_dodgemobile0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/models/glb/enemy_female_animated/n00_000_00_body_00_skin (instance).material",
             "assetType": "Material",
             "resources": [
@@ -4188,6 +4356,20 @@
                         {
                             "hash": 2116413648782249829,
                             "name": "n00_002_03_tops_01_cloth_04__instance_0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/materials/t_Delusion.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 17328525355207731103,
+                            "name": "t_delusion0"
                         }
                     ]
                 }
@@ -4479,6 +4661,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/baseball_field/lights/image_1.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 9387292728304993411,
+                            "name": "image_10"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/textures/lights14179648975753951601.ktx2",
             "assetType": "Texture",
             "resources": [
@@ -4554,6 +4750,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/baseball_field/fence/standardsurface1_1001.001.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 4231776164152660157,
+                            "name": "standardsurface1_1001.0010"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/models/glb/mc_animated/_15.ktx2",
             "assetType": "Texture",
             "resources": [
@@ -4563,6 +4773,20 @@
                         {
                             "hash": 2319005263958288885,
                             "name": "_150"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/move_pc.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 2046716705952225145,
+                            "name": "move_pc0"
                         }
                     ]
                 }
@@ -4674,6 +4898,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/materials/t_PickDropmobile.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2982464872875163677,
+                            "name": "t_pickdropmobile0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/models/glb/enemy_female_animated/enemy_female_animatedwalk.anim",
             "assetType": "Animation",
             "resources": [
@@ -4743,6 +4981,20 @@
                         {
                             "hash": 4552239823666550469,
                             "name": "n00_000_00_facebrow_00_face__instance_0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/move_mobile.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 2041364283348111881,
+                            "name": "move_mobile0"
                         }
                     ]
                 }
@@ -4914,6 +5166,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/lookaround_mobile.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 449029553677404281,
+                            "name": "lookaround_mobile0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/materials/standardsurface1_1011.material",
             "assetType": "Material",
             "resources": [
@@ -5049,6 +5315,34 @@
             ]
         },
         {
+            "filepath": "compiledassets/dodge_pc.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 2909675004087517773,
+                            "name": "dodge_pc0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/baseball_field/fence/standardsurface1_1001.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 4223519931339690159,
+                            "name": "standardsurface1_10010"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/boss_top.ktx2",
             "assetType": "Texture",
             "resources": [
@@ -5103,6 +5397,20 @@
                         {
                             "hash": 6527073765713914097,
                             "name": "enemy male death 10"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/materials/t_Arrow.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 12747482725847220551,
+                            "name": "t_arrow0"
                         }
                     ]
                 }
@@ -5379,6 +5687,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/baseball_field/fence/transparent_1001.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 4224436924037255349,
+                            "name": "transparent_10010"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "sounds/sfx/mc/parry- block/parry.wav",
             "assetType": "Audio",
             "resources": [
@@ -5469,6 +5791,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/pickdrop_mobile.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 2964697864481854647,
+                            "name": "pickdrop_mobile0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "sounds/sfx/mc/dodge/dodge 1.wav",
             "assetType": "Audio",
             "resources": [
@@ -5544,6 +5880,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/baseball_field/fence/image_2.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 4214090519619883173,
+                            "name": "image_20"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/models/glb/enemy_male_animated/enemy_male_animated.mesh",
             "assetType": "Mesh",
             "resources": [
@@ -5583,6 +5933,20 @@
                         {
                             "hash": 4980094982550577417,
                             "name": "_090"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/baseball_field/lights/standardsurface1_1001.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 9396347206559728779,
+                            "name": "standardsurface1_10010"
                         }
                     ]
                 }
@@ -6058,6 +6422,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/lookaround_pc.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 442856895399067291,
+                            "name": "lookaround_pc0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/models/glb/mc_animated/_14.ktx2",
             "assetType": "Texture",
             "resources": [
@@ -6238,6 +6616,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/baseball_field/lights/lights.mesh",
+            "resources": [
+                {
+                    "resourceType": 6209910166724260588,
+                    "resourceEntries": [
+                        {
+                            "hash": 9403579794047239313,
+                            "name": "lights0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "sounds/sfx/enemy/female/attack/enemy female throwing 2.wav",
             "assetType": "Audio",
             "resources": [
@@ -6386,6 +6778,20 @@
                         {
                             "hash": 789826481615239203,
                             "name": "field4137545773274183170"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/materials/t_lookaroundmobile.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 3548139416006224513,
+                            "name": "t_lookaroundmobile0"
                         }
                     ]
                 }
@@ -6611,6 +7017,20 @@
                         {
                             "hash": 4476396611094189719,
                             "name": "n00_007_01_tops_01_cloth_01__instance_0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/baseball_field/fence/material_3.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 4237050521431101631,
+                            "name": "material_30"
                         }
                     ]
                 }
@@ -7191,6 +7611,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/materials/t_lookaroundpc.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 488107296440303187,
+                            "name": "t_lookaroundpc0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/models/glb/aji/player_idle_mixamo/_23.ktx2",
             "assetType": "Texture",
             "resources": [
@@ -7215,6 +7649,20 @@
                         {
                             "hash": 8243584357540233075,
                             "name": "enemy female throwing 30"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/dodge_mobile.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 2908373182320229337,
+                            "name": "dodge_mobile0"
                         }
                     ]
                 }
@@ -7534,6 +7982,20 @@
                         {
                             "hash": 4179585647542043651,
                             "name": "storage room0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/kickme.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 3060798479178107079,
+                            "name": "kickme0"
                         }
                     ]
                 }
@@ -8339,6 +8801,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/materials/t_Movemobile.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2065146719857063461,
+                            "name": "t_movemobile0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/models/glb/items/sword/jewel_lambert.material",
             "assetType": "Material",
             "resources": [
@@ -8363,6 +8839,20 @@
                         {
                             "hash": 5755743261359512223,
                             "name": "n00_001_03_bottoms_01_cloth (instance)0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/materials/t_Movepc.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2059560101276323823,
+                            "name": "t_movepc0"
                         }
                     ]
                 }
@@ -8718,6 +9208,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/baseball_field/fence/image_4.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 4209061353434435747,
+                            "name": "image_40"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/models/glb/mc_animated/mc_animatedsword atk 2.anim",
             "assetType": "Animation",
             "resources": [
@@ -8808,6 +9312,34 @@
             ]
         },
         {
+            "filepath": "compiledassets/arrow.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 12743537678126716043,
+                            "name": "arrow0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/baseball_field/lights/image_0.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 9382619803886945409,
+                            "name": "image_00"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/models/glb/mc_animated/_19.ktx2",
             "assetType": "Texture",
             "resources": [
@@ -8862,6 +9394,20 @@
                         {
                             "hash": 2554652595235372107,
                             "name": "material_00"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/materials/ui_kickme.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 6745750127019234173,
+                            "name": "ui_kickme0"
                         }
                     ]
                 }
@@ -9042,6 +9588,20 @@
                         {
                             "hash": 4836859298975909361,
                             "name": "weapon pickup 10"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/baseball_field/fence/fence.mesh",
+            "resources": [
+                {
+                    "resourceType": 6209910166724260588,
+                    "resourceEntries": [
+                        {
+                            "hash": 4240728387826012351,
+                            "name": "fence0"
                         }
                     ]
                 }
@@ -9487,6 +10047,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/baseball_field/lights/material_1.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 9402020686559052941,
+                            "name": "material_10"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/models/glb/enemy_male_animated/enemy_male_animatedrange multi attack.anim",
             "assetType": "Animation",
             "resources": [
@@ -9631,6 +10205,20 @@
                         {
                             "hash": 2264719076018723067,
                             "name": "paper0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/materials/kickme.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 3646119096178176623,
+                            "name": "kickme0"
                         }
                     ]
                 }
@@ -9967,6 +10555,20 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/baseball_field/fence/material_2.material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 4273540013822621697,
+                            "name": "material_20"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/stairs_left.mesh",
             "assetType": "Mesh",
             "resources": [
@@ -9991,6 +10593,20 @@
                         {
                             "hash": 2414836498411989531,
                             "name": "_050"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/baseball_field/fence/image_5.ktx2",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 4216465464735879337,
+                            "name": "image_50"
                         }
                     ]
                 }

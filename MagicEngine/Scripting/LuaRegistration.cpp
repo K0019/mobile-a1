@@ -426,6 +426,7 @@ void RegisterCppStuffToLua(luabridge::Namespace baseTable)
 		.beginClass<ecs::Entity>("Entity")
 		.addProperty("transform", [](ecs::EntityHandle entity) -> Transform* { return &entity->GetTransform(); })
 		.addFunction("Destroy", [](ecs::EntityHandle entity) -> void { ecs::DeleteEntity(entity); })
+		.addFunction("IsValid", [](ecs::EntityHandle entity) -> bool { return ecs::IsEntityHandleValid(entity); })
 		
 		//=========================================== START REGISTER GETTER ================================================================================
 
