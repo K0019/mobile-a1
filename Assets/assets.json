@@ -2735,6 +2735,25 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/fbx/environment/theater/theater.mesh",
+            "assetType": "Mesh",
+            "sourcePath": "models/fbx/environment/theater.fbx",
+            "sourceTimestamp": 134146621177278278,
+            "compiledTimestamp": 17701886781676695,
+            "formatVersion": 1296388936,
+            "resources": [
+                {
+                    "resourceType": 6209910166724260588,
+                    "resourceEntries": [
+                        {
+                            "hash": 2903518838464448935,
+                            "name": "theater0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/meshanimations/cesiummananim_0.anim",
             "assetType": "Animation",
             "resources": [
@@ -4064,6 +4083,25 @@
                         {
                             "hash": 4634011602935879407,
                             "name": "player_idle_mixamoplayer_running_mixamo0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/fbx/environment/theater/standardsurface1.material",
+            "assetType": "Material",
+            "sourcePath": "models/fbx/environment/theater.fbx",
+            "sourceTimestamp": 134146621177278278,
+            "compiledTimestamp": 17701886794291078,
+            "formatVersion": 1,
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2896496257697843529,
+                            "name": "standardsurface10"
                         }
                     ]
                 }
