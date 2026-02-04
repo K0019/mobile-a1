@@ -214,6 +214,15 @@ float GetHealthFractionLua() const
 {
 	return GetHandle()->GetHealthFraction();
 }
+
+int GetInvincibleStateLua() const
+{
+	return static_cast<int>(GetHandle()->GetInvincibleState());
+}
+void SetInvincibleStateLua(int state)
+{
+	GetHandle()->SetInvincibleState(static_cast<HealthComponent::INVINCIBLE_STATE>(state));
+}
 SCRIPT_GENERATE_COMP_WRAPPER_END()
 
 // EntityLayerComponent
@@ -582,6 +591,7 @@ void RegisterCppStuffToLua(luabridge::Namespace baseTable)
 		SCRIPT_REGISTER_COMP_BEGIN(HealthComponent)
 		SCRIPT_REGISTER_COMP_PROPERTY(HealthComponent,"health", GetCurrHealth, SetHealth)
 		SCRIPT_REGISTER_COMP_PROPERTY(HealthComponent,"maxHealth", GetMaxHealth, SetMaxHealth)
+		SCRIPT_REGISTER_COMP_PROPERTY(HealthComponent,"invincibleState", GetInvincibleStateLua, SetInvincibleStateLua)
 		SCRIPT_REGISTER_COMP_FUNCTION(HealthComponent,"AddHealth", AddHealthLua)
 		SCRIPT_REGISTER_COMP_FUNCTION(HealthComponent,"TakeDamage", TakeDamageLua)
 		SCRIPT_REGISTER_COMP_FUNCTION(HealthComponent,"IsDead", IsDead)

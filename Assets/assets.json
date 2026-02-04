@@ -61,6 +61,21 @@
             ]
         },
         {
+            "filepath": "compiledassets/parry_mobile_thumb.ktx2",
+            "assetType": "Texture",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 1937432946727147397,
+                            "name": "parry_mobile_thumb0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/models/glb/items/bbt/lambert3.material",
             "assetType": "Material",
             "resources": [
@@ -450,6 +465,25 @@
                         {
                             "hash": 1277611620847629043,
                             "name": "fantasy_floor.0950"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/attack_pc.ktx2",
+            "assetType": "Texture",
+            "sourcePath": "images/game/tutorial/attack_pc.png",
+            "sourceTimestamp": 134146696530175719,
+            "compiledTimestamp": 17701962411242363,
+            "formatVersion": 2,
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 3197235777646324481,
+                            "name": "attack_pc0"
                         }
                     ]
                 }
@@ -896,6 +930,21 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/baseball_field/fence/fence15541555455230997551.ktx2",
+            "assetType": "Texture",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 18128300217637854341,
+                            "name": "fence155415554552309975510"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "sounds/sfx/enemy/male/death/enemy male death 2.wav",
             "assetType": "Audio",
             "resources": [
@@ -1063,6 +1112,21 @@
                         {
                             "hash": 2337507845630503437,
                             "name": "_210"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/health_thumb.ktx2",
+            "assetType": "Texture",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 3206062656994119233,
+                            "name": "health_thumb0"
                         }
                     ]
                 }
@@ -1317,6 +1381,25 @@
             ]
         },
         {
+            "filepath": "compiledassets/attack_mobile.ktx2",
+            "assetType": "Texture",
+            "sourcePath": "images/game/tutorial/attack_mobile.png",
+            "sourceTimestamp": 134146697288705437,
+            "compiledTimestamp": 17701962385527115,
+            "formatVersion": 2,
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 3188139517949731051,
+                            "name": "attack_mobile0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/models/glb/items/sword/spike_lambert.material",
             "assetType": "Material",
             "resources": [
@@ -1450,6 +1533,21 @@
                         {
                             "hash": 175224770401649733,
                             "name": "n00_000_00_hairback_00_nml0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/baseball_field/lights/lights12285059771941119493.ktx2",
+            "assetType": "Texture",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 5383215526760767491,
+                            "name": "lights122850597719411194930"
                         }
                     ]
                 }
@@ -2179,6 +2277,25 @@
             ]
         },
         {
+            "filepath": "compiledassets/parry_pc.ktx2",
+            "assetType": "Texture",
+            "sourcePath": "images/game/tutorial/parry_pc.png",
+            "sourceTimestamp": 134146702581228005,
+            "compiledTimestamp": 17701967629848755,
+            "formatVersion": 2,
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 1951695811562660223,
+                            "name": "parry_pc0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/models/glb/aji/player_idle_mixamo/player_idle_mixamo.mesh",
             "assetType": "Mesh",
             "resources": [
@@ -2352,6 +2469,21 @@
             ]
         },
         {
+            "filepath": "compiledassets/dodge_pc_thumb.ktx2",
+            "assetType": "Texture",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 1935540687215729345,
+                            "name": "dodge_pc_thumb0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/models/glb/enemy_female_animated/n00_001_02_accessory_tie_01_cloth (instance).material",
             "assetType": "Material",
             "resources": [
@@ -2410,6 +2542,21 @@
                         {
                             "hash": 119112293755005063,
                             "name": "controls button0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/lookaround_mobile_thumb.ktx2",
+            "assetType": "Texture",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 3207795487319497419,
+                            "name": "lookaround_mobile_thumb0"
                         }
                     ]
                 }
@@ -3149,6 +3296,21 @@
             ]
         },
         {
+            "filepath": "compiledassets/materials/t_attackmobile.material",
+            "assetType": "Material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 10987796828952476845,
+                            "name": "t_attackmobile0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/delusion meter fill.ktx2",
             "assetType": "Texture",
             "resources": [
@@ -3158,6 +3320,21 @@
                         {
                             "hash": 82850400431107463,
                             "name": "delusion meter fill0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/materials/t_skillpc.material",
+            "assetType": "Material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 5759813652435057647,
+                            "name": "t_skillpc0"
                         }
                     ]
                 }
@@ -3331,6 +3508,25 @@
                         {
                             "hash": 3026146271871584017,
                             "name": "debuff bg icon0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/pause_pc.ktx2",
+            "assetType": "Texture",
+            "sourcePath": "images/game/tutorial/pause_pc.png",
+            "sourceTimestamp": 134146702931086767,
+            "compiledTimestamp": 17701967681713158,
+            "formatVersion": 2,
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 1968541429211821495,
+                            "name": "pause_pc0"
                         }
                     ]
                 }
@@ -3589,6 +3785,21 @@
             ]
         },
         {
+            "filepath": "compiledassets/materials/t_attackpc.material",
+            "assetType": "Material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 10983023848976285261,
+                            "name": "t_attackpc0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/models/glb/mc_animated/_22.ktx2",
             "assetType": "Texture",
             "resources": [
@@ -3662,6 +3873,21 @@
                         {
                             "hash": 5824722222839667575,
                             "name": "enemy_female_animated0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/delusion_thumb.ktx2",
+            "assetType": "Texture",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 1929216296332756487,
+                            "name": "delusion_thumb0"
                         }
                     ]
                 }
@@ -3929,6 +4155,21 @@
                         {
                             "hash": 16072559812771621265,
                             "name": "sword 20"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/kickme_thumb.ktx2",
+            "assetType": "Texture",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 2001401433719548453,
+                            "name": "kickme_thumb0"
                         }
                     ]
                 }
@@ -5618,6 +5859,21 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/floortest/final fantasy_set 1_normal_raw.1001_thumb.ktx2",
+            "assetType": "Texture",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 3595551456998754635,
+                            "name": "final fantasy_set 1_normal_raw.1001_thumb0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/models/glb/baseball_field/fence/image_0.ktx2",
             "assetType": "Texture",
             "resources": [
@@ -5695,6 +5951,25 @@
                         {
                             "hash": 5753005477406349975,
                             "name": "n00_000_00_body_00_skin (instance)0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/skill_mobile.ktx2",
+            "assetType": "Texture",
+            "sourcePath": "images/game/tutorial/skill_mobile.png",
+            "sourceTimestamp": 134146697418212860,
+            "compiledTimestamp": 17701967768158225,
+            "formatVersion": 2,
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 1988025874767648637,
+                            "name": "skill_mobile0"
                         }
                     ]
                 }
@@ -5785,6 +6060,21 @@
                         {
                             "hash": 1380181762511534957,
                             "name": "corridor0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/materials/t_skillmobile.material",
+            "assetType": "Material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 5764122638504331707,
+                            "name": "t_skillmobile0"
                         }
                     ]
                 }
@@ -7005,6 +7295,25 @@
             ]
         },
         {
+            "filepath": "compiledassets/parry_mobile.ktx2",
+            "assetType": "Texture",
+            "sourcePath": "images/game/tutorial/parry_mobile.png",
+            "sourceTimestamp": 134146702506983219,
+            "compiledTimestamp": 17701967604586711,
+            "formatVersion": 2,
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 1941104216052291475,
+                            "name": "parry_mobile0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "sounds/sfx/enemy/male/death/enemy male death 1.wav",
             "assetType": "Audio",
             "resources": [
@@ -7044,6 +7353,21 @@
                         {
                             "hash": 8224691455082620087,
                             "name": "door open0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/floortest/final fantasy_set 1_basecolor_srgb.1001_thumb.ktx2",
+            "assetType": "Texture",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 3591743848231766333,
+                            "name": "final fantasy_set 1_basecolor_srgb.1001_thumb0"
                         }
                     ]
                 }
@@ -7314,6 +7638,21 @@
                         {
                             "hash": 4224436924037255349,
                             "name": "transparent_10010"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/pickdrop_mobile_thumb.ktx2",
+            "assetType": "Texture",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 1973858667443749429,
+                            "name": "pickdrop_mobile_thumb0"
                         }
                     ]
                 }
@@ -7985,6 +8324,25 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/floortest/uvset_1.material",
+            "assetType": "Material",
+            "sourcePath": "models/glb/floortest.glb",
+            "sourceTimestamp": 134146743474298509,
+            "compiledTimestamp": 17702007708175357,
+            "formatVersion": 1,
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 3602190308207266137,
+                            "name": "uvset_10"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/meshanimations/player_idle_mixamoplayer_punching_mixamo.anim",
             "assetType": "Animation",
             "resources": [
@@ -7994,6 +8352,25 @@
                         {
                             "hash": 2220080003095482243,
                             "name": "player_idle_mixamoplayer_punching_mixamo0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/pause_mobile.ktx2",
+            "assetType": "Texture",
+            "sourcePath": "images/game/tutorial/pause_mobile.png",
+            "sourceTimestamp": 134146702869250889,
+            "compiledTimestamp": 17701967660656901,
+            "formatVersion": 2,
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 1960864639026687353,
+                            "name": "pause_mobile0"
                         }
                     ]
                 }
@@ -8094,6 +8471,21 @@
             ]
         },
         {
+            "filepath": "compiledassets/pause_pc_thumb.ktx2",
+            "assetType": "Texture",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 1965736575049364901,
+                            "name": "pause_pc_thumb0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/delusion decay icon.ktx2",
             "assetType": "Texture",
             "resources": [
@@ -8133,6 +8525,21 @@
                         {
                             "hash": 2107168955015909217,
                             "name": "n00_002_03_tops_01_cloth_02__instance_0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/pause_mobile_thumb.ktx2",
+            "assetType": "Texture",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 1955155974655274347,
+                            "name": "pause_mobile_thumb0"
                         }
                     ]
                 }
@@ -8492,6 +8899,25 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/floortest/material_1.material",
+            "assetType": "Material",
+            "sourcePath": "models/glb/floortest.glb",
+            "sourceTimestamp": 134146743474298509,
+            "compiledTimestamp": 17702007708220756,
+            "formatVersion": 1,
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 3603144684300175719,
+                            "name": "material_10"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/models/glb/baseball_field/outdoor bleachers/outdoor bleachers.mesh",
             "assetType": "Mesh",
             "sourcePath": "C:\\Users\\ryang\\Documents\\GitHub\\gam300-magic\\Assets\\models\\glb\\baseball_field\\outdoor bleachers.glb",
@@ -8599,6 +9025,21 @@
                         {
                             "hash": 5860832383719118265,
                             "name": "enemy_male_animatedlunge0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/pickdrop_pc_thumb.ktx2",
+            "assetType": "Texture",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 1980120386163936287,
+                            "name": "pickdrop_pc_thumb0"
                         }
                     ]
                 }
@@ -8922,6 +9363,21 @@
                         {
                             "hash": 1129286402749018415,
                             "name": "fantasy_floor.0620"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/skill_pc_thumb.ktx2",
+            "assetType": "Texture",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 1992098465836933263,
+                            "name": "skill_pc_thumb0"
                         }
                     ]
                 }
@@ -9320,6 +9776,21 @@
                         {
                             "hash": 2088955544901799765,
                             "name": "n00_010_01_onepiece_00_cloth_01__instance_0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/arrow_thumb.ktx2",
+            "assetType": "Texture",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 3177279641602184093,
+                            "name": "arrow_thumb0"
                         }
                     ]
                 }
@@ -10120,6 +10591,25 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/floortest/floortest.mesh",
+            "assetType": "Mesh",
+            "sourcePath": "models/glb/floortest.glb",
+            "sourceTimestamp": 134146743474298509,
+            "compiledTimestamp": 17702007657333003,
+            "formatVersion": 1296388936,
+            "resources": [
+                {
+                    "resourceType": 6209910166724260588,
+                    "resourceEntries": [
+                        {
+                            "hash": 3609212888973871477,
+                            "name": "floortest0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/models/glb/mc_animated/n00_000_hair_00_nml_02.ktx2",
             "assetType": "Texture",
             "resources": [
@@ -10129,6 +10619,40 @@
                         {
                             "hash": 2392230539344914967,
                             "name": "n00_000_hair_00_nml_020"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/skill_pc.ktx2",
+            "assetType": "Texture",
+            "sourcePath": "images/game/tutorial/skill_pc.png",
+            "sourceTimestamp": 134146697843758377,
+            "compiledTimestamp": 17701967791468412,
+            "formatVersion": 2,
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 1996233729068998815,
+                            "name": "skill_pc0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/move_mobile_thumb.ktx2",
+            "assetType": "Texture",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 3218445356946145215,
+                            "name": "move_mobile_thumb0"
                         }
                     ]
                 }
@@ -10430,6 +10954,21 @@
                         {
                             "hash": 714541820922388835,
                             "name": "floor_tex0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/skill_mobile_thumb.ktx2",
+            "assetType": "Texture",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 1985090178721486695,
+                            "name": "skill_mobile_thumb0"
                         }
                     ]
                 }
@@ -11229,6 +11768,21 @@
             ]
         },
         {
+            "filepath": "compiledassets/dodge_mobile_thumb.ktx2",
+            "assetType": "Texture",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 3201430414506293797,
+                            "name": "dodge_mobile_thumb0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "sounds/sfx/boss/boss slap.wav",
             "assetType": "Audio",
             "resources": [
@@ -11426,6 +11980,21 @@
                         {
                             "hash": 2353504640303016463,
                             "name": "_270"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/parry_pc_thumb.ktx2",
+            "assetType": "Texture",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 1948068522702627183,
+                            "name": "parry_pc_thumb0"
                         }
                     ]
                 }
@@ -12071,6 +12640,21 @@
             ]
         },
         {
+            "filepath": "compiledassets/lookaround_pc_thumb.ktx2",
+            "assetType": "Texture",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 3211389790830701307,
+                            "name": "lookaround_pc_thumb0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/materials/material_3.material",
             "assetType": "Material",
             "resources": [
@@ -12391,6 +12975,21 @@
             ]
         },
         {
+            "filepath": "compiledassets/move_pc_thumb.ktx2",
+            "assetType": "Texture",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 3224122135480355605,
+                            "name": "move_pc_thumb0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/models/glb/mc_animated/mc_animatedt-pose.anim",
             "assetType": "Animation",
             "resources": [
@@ -12504,6 +13103,21 @@
             ]
         },
         {
+            "filepath": "compiledassets/attack_pc_thumb.ktx2",
+            "assetType": "Texture",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 3192286875809704685,
+                            "name": "attack_pc_thumb0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/models/glb/items/bbt/material_4.material",
             "assetType": "Material",
             "resources": [
@@ -12543,6 +13157,21 @@
                         {
                             "hash": 5142979933624197533,
                             "name": "enemy_male_animatedrange multi attack0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/attack_mobile_thumb.ktx2",
+            "assetType": "Texture",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 3181688683229569239,
+                            "name": "attack_mobile_thumb0"
                         }
                     ]
                 }
