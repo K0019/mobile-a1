@@ -22,8 +22,8 @@ All rights reserved.
 #include "ECS/EntityUID.h"
 #include "ECS/IEditorComponent.h"
 #include "ECS/ECS.h"
-#include "Engine/Resources/ResourcesHeader.h"
-#include "Engine/Resources/Types/ResourceTypesGraphics.h"
+#include "Assets/AssetHandle.h"
+#include "Assets/Types/AssetTypes.h"
 
 /*****************************************************************//*!
 \class FlashComponent
@@ -49,7 +49,7 @@ public:
 
 	// Serialized
 	float flashTime;
-	UserResourceHandle<ResourceMaterial> flashMaterial;
+	AssetHandle<ResourceMaterial> flashMaterial;
 
 	property_vtable()
 

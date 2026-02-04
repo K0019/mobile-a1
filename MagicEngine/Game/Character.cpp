@@ -159,6 +159,7 @@ void CharacterMovementComponent::DropItem()
 	{
 		physicsComp->SetFlag(physics::PHYSICS_COMP_FLAG::ENABLED, true);
 		physicsComp->SetFlag(physics::PHYSICS_COMP_FLAG::USE_GRAVITY, true);
+		physicsComp->SetFlag(physics::PHYSICS_COMP_FLAG::IS_KINEMATIC, false);
 	}
 	if (auto colliderComp{ heldItem->GetComp<physics::BoxColliderComp>() })
 	{
@@ -219,17 +220,28 @@ void CharacterMovementComponent::GrabItem(ecs::CompHandle<GrabbableItemComponent
 void CharacterMovementComponent::LightAttack()
 {
 	// Defer to animation fsm
-	ecs::GetEntity(this)->GetComp<AnimatorComponent>()->GetStateMachine()->blackboard["inputLightAttack"] = true;
+	auto animComp{ ecs::GetEntity(this)->GetComp<AnimatorComponent>() };
+	if (!animComp) return;
+	auto animFSM{ animComp->GetStateMachine() };
+	if (!animFSM) return;
+	animFSM->blackboard["inputLightAttack"] = true;
 }
 
 void CharacterMovementComponent::HeavyAttack()
 {
-	ecs::GetEntity(this)->GetComp<AnimatorComponent>()->GetStateMachine()->blackboard["inputHeavyAttack"] = true;
+	auto animComp{ ecs::GetEntity(this)->GetComp<AnimatorComponent>() };
+	if (!animComp) return;
+	auto animFSM{ animComp->GetStateMachine() };
+	if (!animFSM) return;
+	animFSM->blackboard["inputHeavyAttack"] = true;
 }
 
 bool CharacterMovementComponent::IsAttacking() const
 {
-	auto animFSM{ ecs::GetEntity(this)->GetComp<AnimatorComponent>()->GetStateMachine() };
+	auto animComp{ ecs::GetEntity(this)->GetComp<AnimatorComponent>() };
+	if (!animComp) return false;
+	auto animFSM{ animComp->GetStateMachine() };
+	if (!animFSM) return false;
 	return animFSM->GetBlackboardVal<bool>("inputLightAttack") || animFSM->GetBlackboardVal<bool>("inputHeavyAttack");
 }
 
@@ -345,43 +357,8 @@ void CharacterMovementComponent::SetCenter(const Vec3& vec)
 
 void CharacterMovementComponent::EditorDraw()
 {
-
-	// TODO: This is copied from Transform.cpp. Should unify both implementations in GUICollection in the future.
-// Helper function for drawing the controls
-	const auto DrawVec3Control = [](const char* label, Vec3* values, float columnWidth, float speed, const char* format) -> bool {
-		bool modified = false;
-		if (gui::Table table{ label, 4, true, gui::FLAG_TABLE::HIDE_HEADER })
-		{
-			table.AddColumnHeader("##", gui::FLAG_TABLE_COLUMN::WIDTH_FIXED, columnWidth); // Set first column as fixed width. The rest will be stretch columns.
-			table.SubmitColumnHeaders();
-
-			gui::TextUnformatted(label);
-			table.NextColumn();
-
-			const auto DrawFloatComponent{ [&modified, speed, format](const char* text, const char* label, float* value, const gui::Vec4& textColor) -> void {
-				{
-					gui::SetStyleColor styleColText{ gui::FLAG_STYLE_COLOR::TEXT, textColor };
-					gui::TextUnformatted(text);
-				}
-				gui::SameLine();
-				gui::SetNextItemWidth(gui::GetAvailableContentRegion().x);
-				modified |= gui::VarDrag(label, value, speed, 0.0f, 0.0f, format);
-			} };
-
-			DrawFloatComponent("X", "##X", &values->x, gui::Vec4{ 1.0f, 0.4f, 0.4f, 1.0f });
-			table.NextColumn();
-			DrawFloatComponent("Y", "##Y", &values->y, gui::Vec4{ 0.4f, 1.0f, 0.4f, 1.0f });
-			table.NextColumn();
-			DrawFloatComponent("Z", "##Z", &values->z, gui::Vec4{ 0.4f, 0.4f, 1.0f, 1.0f });
-		}
-		return modified;
-		};
-
-	if (DrawVec3Control("Center", &center, 60.f, 1.f, "%.1f"))
-	{
-		JPH::Vec3 joltOffset{ center.x, center.y, center.z };
-		joltCharRef->SetShapeOffset(joltOffset);
-	}
+	if (gui::VarDrag("Center", &center, 1.0f, Vec3{}, Vec3{}, "%.1f"))
+		joltCharRef->SetShapeOffset(JPH::Vec3{ center.x, center.y, center.z });
 
 	if (gui::VarInput("Radius", &radius))
 		ST<physics::JoltPhysics>::Get()->SetCharacterRadius(joltCharRef, radius);
@@ -408,7 +385,7 @@ void CharacterMovementComponent::EditorDraw()
 	// Animation input
 	for(uint32_t animIndex = 0;animIndex< ANIM_TOTAL;++animIndex)
 	{
-		const std::string* clip1Name{ ST<MagicResourceManager>::Get()->Editor_GetName(animations[animIndex].GetHash()) };
+		const std::string* clip1Name{ ST<AssetManager>::Get()->Editor_GetName(animations[animIndex].GetHash()) };
 		gui::TextUnformatted(std::string(animNames[animIndex]));
 		gui::SameLine();
 		gui::TextBoxReadOnly(std::string("##AnimClip"+std::to_string(animIndex)).c_str(), clip1Name ? clip1Name->c_str() : "");
@@ -452,6 +429,9 @@ void CharacterMovementComponentSystem::UpdateCharacterMovementComponent(Characte
 		}
 	}
 
+	// Update animation FSM
+	animatorComp->GetStateMachine()->Update(characterEntity);
+
 	// Perform stun check
 	ecs::CompHandle<physics::PhysicsComp> physicsComp = characterEntity->GetComp<physics::PhysicsComp>();
 	Vec3 currVel{};
@@ -459,6 +439,8 @@ void CharacterMovementComponentSystem::UpdateCharacterMovementComponent(Characte
 	{
 		JPH::Vec3 joltCurrVel = comp.joltCharRef->GetLinearVelocity();
 		currVel = Vec3{ joltCurrVel.GetX(), joltCurrVel.GetY(), joltCurrVel.GetZ() };
+		currVel = util::WalkTo(currVel, Vec3{}, Vec3{ 4.0f * GameTime::Dt() }); // Apply friction
+		comp.joltCharRef->SetLinearVelocity(JPH::Vec3{ currVel.x, currVel.y, currVel.z });
 	}
 	else
 		currVel = physicsComp->GetLinearVelocity();
@@ -485,7 +467,7 @@ void CharacterMovementComponentSystem::UpdateCharacterMovementComponent(Characte
 		{
 			Vec3 currPos{ characterTransform.GetWorldPosition() };
 			comp.joltCharRef->SetPosition(JPH::Vec3{ currPos.x, currPos.y, currPos.z });
-			ST<physics::JoltPhysics>::Get()->UpdateCharacterBody(comp.joltCharRef, Vec3{currVel.x, 0.f, currVel.y});
+			ST<physics::JoltPhysics>::Get()->UpdateCharacterBody(comp.joltCharRef, Vec3{currVel.x, 0.f, currVel.z});
 			JPH::Vec3 joltPos{ comp.joltCharRef->GetPosition() };
 			characterTransform.SetWorldPosition(Vec3(joltPos.GetX(), joltPos.GetY(), joltPos.GetZ()));
 		}
@@ -566,9 +548,6 @@ void CharacterMovementComponentSystem::UpdateCharacterMovementComponent(Characte
 	if (comp.currParryCoolDown > 0.f)
 		comp.currParryCoolDown -= GameTime::Dt();
 
-	// Update animation FSM
-	animatorComp->GetStateMachine()->Update(characterEntity);
-
 	// Check whether to apply an attack this frame
 	int attackMoveIndex{ animatorComp->GetStateMachine()->GetBlackboardVal<int>("outputApplyHitMove") };
 	if (attackMoveIndex >= 0)
@@ -577,7 +556,6 @@ void CharacterMovementComponentSystem::UpdateCharacterMovementComponent(Characte
 		animatorComp->GetStateMachine()->blackboard["outputApplyHitMove"] = -1;
 	}
 
-	// Reset movement input
 	comp.SetMovementVector(Vec2{ 0.f, 0.f });
 }
 

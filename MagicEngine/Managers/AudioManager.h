@@ -31,7 +31,7 @@ All rights reserved.
 #include <FMOD/fmod.hpp>
 #include <FMOD/fmod_studio.hpp>
 #endif
-#include "Engine/Resources/Types/ResourceTypesAudio.h"
+#include "Assets/Types/AssetTypesAudio.h"
 
 class AudioManager
 {

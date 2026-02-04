@@ -1,0 +1,54 @@
+﻿/******************************************************************************/
+/*!
+\file   ResourceTypesGraphics.h
+\par    Project: Kuro Mahou
+\par    Course: CSD3401
+\par    Software Engineering Project 5
+\date   09/25/2025
+
+\author Kendrick Sim Hean Guan (100%)
+\par    email: kendrickheanguan.s\@digipen.edu
+\par    DigiPen login: kendrickheanguan.s
+
+\brief
+Defines resources for graphics.
+
+All content © 2025 DigiPen Institute of Technology Singapore.
+All rights reserved.
+*/
+/******************************************************************************/
+
+#pragma once
+#include "Assets/AssetBase.h"
+#include "resource/resource_types.h"
+#include "resource/animation_ids.h"
+
+struct ResourceMesh : public ResourceBase
+{
+    std::vector<MeshHandle> handles;
+    std::vector<Mat4> transforms;
+    std::vector<size_t> defaultMaterialHashes;
+
+    virtual bool IsLoaded() final;
+};
+
+struct ResourceMaterial : public ResourceBase
+{
+    MaterialHandle handle;
+
+    virtual bool IsLoaded() final;
+};
+
+struct ResourceTexture : public ResourceBase
+{
+    TextureHandle handle;
+
+    virtual bool IsLoaded() final;
+};
+
+struct ResourceAnimation : public ResourceBase
+{
+    Resource::ClipId handle;
+
+    virtual bool IsLoaded() final;
+};

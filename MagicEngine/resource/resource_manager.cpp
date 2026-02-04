@@ -7,6 +7,7 @@
 #include <numeric>
 #include <span>
 #include <stdexcept>
+#include <stb_image.h>
 
 #include "core/engine/engine.h"
 #include "resource/animation_clip.h"
@@ -161,14 +162,145 @@ namespace Resource
   void ResourceManager::initialize(Context* context)
   {
     this->m_context = context;
-    LOG_INFO("Resource Manager initialized - {}M vertices, {}M indices, {}K materials", ResourceLimits::MAX_VERTICES / 1'000'000, ResourceLimits::MAX_INDICES / 1'000'000, ResourceLimits::MAX_MATERIALS / 1000);
 
+    LOG_INFO("Resource Manager initialized - {}M vertices, {}M indices, {}K materials", ResourceLimits::MAX_VERTICES / 1'000'000, ResourceLimits::MAX_INDICES / 1'000'000, ResourceLimits::MAX_MATERIALS / 1000);
+  }
+
+  void ResourceManager::startUploadThread()
+  {
+    if (m_uploadThreadRunning.load()) return;
+
+    m_uploadThreadStop.store(false);
+    m_uploadThread = std::thread(&ResourceManager::uploadThreadFunc, this);
+    m_uploadThreadRunning.store(true);
+    LOG_INFO("Upload thread started");
+  }
+
+  void ResourceManager::uploadThreadFunc()
+  {
+    // Create thread-local hina context for GPU uploads
+    hina_context* threadCtx = hina_create_thread_context();
+    if (!threadCtx) {
+      LOG_ERROR("Failed to create upload thread context — async uploads disabled");
+      return;
+    }
+    LOG_INFO("Upload thread context created");
+
+    while (!m_uploadThreadStop.load()) {
+      UploadJob job;
+      {
+        std::unique_lock<std::mutex> lock(m_uploadQueueMutex);
+        m_uploadQueueCV.wait(lock, [this] {
+          return m_uploadThreadStop.load() || !m_uploadQueue.empty();
+        });
+
+        if (m_uploadThreadStop.load() && m_uploadQueue.empty())
+          break;
+
+        job = std::move(m_uploadQueue.front());
+        m_uploadQueue.erase(m_uploadQueue.begin());
+      }
+
+      // Execute the job with our thread context
+      job(threadCtx);
+    }
+
+    // Drain remaining jobs before exit
+    {
+      std::lock_guard<std::mutex> lock(m_uploadQueueMutex);
+      for (auto& job : m_uploadQueue) {
+        job(threadCtx);
+      }
+      m_uploadQueue.clear();
+    }
+
+    hina_destroy_thread_context(threadCtx);
+    LOG_INFO("Upload thread exiting");
   }
 
   void ResourceManager::postRendererInitialize()
   {
     //loadDefaultUIFont();
+    createDefaultResources();
   }
+
+  void ResourceManager::createDefaultResources()
+  {
+    // --- Default magenta checkerboard texture (2x2, visually obvious for missing textures) ---
+    {
+      ProcessedTexture tex;
+      tex.name = "__default_magenta";
+      tex.source = FilePathSource{"__builtin/default_magenta"};
+      tex.width = 2;
+      tex.height = 2;
+      tex.channels = 4;
+      tex.sRGB = true;
+      tex.textureDesc.format = gfx::Format::RGBA8_UNorm;
+      tex.textureDesc.dimensions = {2, 2, 1};
+      // Magenta/black checkerboard pattern
+      tex.data = {
+        0xFF, 0x00, 0xFF, 0xFF,   0x00, 0x00, 0x00, 0xFF,  // magenta, black
+        0x00, 0x00, 0x00, 0xFF,   0xFF, 0x00, 0xFF, 0xFF,  // black, magenta
+      };
+      m_defaultTexture = createTexture(std::move(tex));
+      LOG_INFO("[ResourceManager] Created default magenta texture: id={}", m_defaultTexture.getId());
+    }
+
+    // --- Default material (solid magenta via baseColorFactor, no texture binding) ---
+    {
+      ProcessedMaterial mat;
+      mat.name = "__default_material";
+      mat.baseColorFactor = {1.0f, 0.0f, 1.0f, 1.0f}; // magenta
+      mat.metallicFactor = 0.0f;
+      mat.roughnessFactor = 1.0f;
+      mat.alphaMode = AlphaMode::Opaque;
+      m_defaultMaterial = createMaterial(mat);
+      LOG_INFO("[ResourceManager] Created default material: id={}", m_defaultMaterial.getId());
+    }
+
+    // --- Default unit cube mesh ---
+    {
+      ProcessedMesh cube;
+      cube.name = "__default_cube";
+      cube.materialIndex = 0;
+      cube.bounds = {0.0f, 0.0f, 0.0f, 0.866f}; // sqrt(3)/2
+
+      // 24 vertices (4 per face, unique normals)
+      const vec3 n[6] = {
+        { 0, 0, 1}, { 0, 0,-1}, { 1, 0, 0}, {-1, 0, 0}, { 0, 1, 0}, { 0,-1, 0}
+      };
+      const vec3 p[8] = {
+        {-0.5f,-0.5f, 0.5f}, { 0.5f,-0.5f, 0.5f}, { 0.5f, 0.5f, 0.5f}, {-0.5f, 0.5f, 0.5f},
+        {-0.5f,-0.5f,-0.5f}, { 0.5f,-0.5f,-0.5f}, { 0.5f, 0.5f,-0.5f}, {-0.5f, 0.5f,-0.5f}
+      };
+      const vec2 uv[4] = {{0,0},{1,0},{1,1},{0,1}};
+
+      // Front, back, right, left, top, bottom
+      const int faces[6][4] = {
+        {0,1,2,3}, {5,4,7,6}, {1,5,6,2}, {4,0,3,7}, {3,2,6,7}, {4,5,1,0}
+      };
+
+      for (int f = 0; f < 6; ++f) {
+        for (int v = 0; v < 4; ++v) {
+          cube.vertices.push_back(Vertex{p[faces[f][v]], n[f], uv[v]});
+        }
+        uint32_t base = static_cast<uint32_t>(f * 4);
+        cube.indices.push_back(base + 0);
+        cube.indices.push_back(base + 1);
+        cube.indices.push_back(base + 2);
+        cube.indices.push_back(base + 0);
+        cube.indices.push_back(base + 2);
+        cube.indices.push_back(base + 3);
+      }
+
+      m_defaultMesh = createMesh(cube);
+      LOG_INFO("[ResourceManager] Created default cube mesh: id={}", m_defaultMesh.getId());
+    }
+  }
+
+  MeshHandle ResourceManager::getDefaultMesh() const { return m_defaultMesh; }
+  TextureHandle ResourceManager::getDefaultTexture() const { return m_defaultTexture; }
+  MaterialHandle ResourceManager::getDefaultMaterial() const { return m_defaultMaterial; }
 
   void ResourceManager::loadDefaultUIFont()
   {
@@ -212,11 +344,105 @@ namespace Resource
 
   void ResourceManager::shutdown()
   {
+    // Stop upload thread (drains remaining jobs, destroys hina_context)
+    if (m_uploadThreadRunning.load()) {
+      m_uploadThreadStop.store(true);
+      m_uploadQueueCV.notify_one();
+      if (m_uploadThread.joinable()) {
+        m_uploadThread.join();
+      }
+      m_uploadThreadRunning.store(false);
+    }
+
+    // Wait for all pending results to be consumed
+    {
+      std::lock_guard<std::mutex> lock(m_pendingUploadsMutex);
+      for (auto& pending : m_pendingMeshUploads) {
+        if (pending.future.valid()) pending.future.wait();
+      }
+      m_pendingMeshUploads.clear();
+    }
+    for (auto& pending : m_pendingTextureUploads) {
+      if (pending.future.valid()) pending.future.wait();
+    }
+    m_pendingTextureUploads.clear();
+
     m_meshPool.clear();
     m_texturePool.clear();
     m_materialPool.clear();
+    m_fontPool.clear();
     m_defaultUIFont = {};
     LOG_INFO("Resource Manager shutdown complete");
+  }
+
+  void ResourceManager::pollAsyncUploads()
+  {
+    // --- Meshes ---
+    {
+      std::lock_guard<std::mutex> lock(m_pendingUploadsMutex);
+      auto it = m_pendingMeshUploads.begin();
+      while (it != m_pendingMeshUploads.end()) {
+        if (it->future.wait_for(std::chrono::seconds(0)) == std::future_status::ready) {
+          MeshUploadResult result = it->future.get();
+          if (result.valid) {
+            if (auto* hot = m_meshPool.getHotData(it->handle)) {
+              hot->gfxMeshIndex = result.gfxMeshIndex;
+              hot->gfxMeshGeneration = result.gfxMeshGeneration;
+              hot->hasGfxMesh = true;
+              LOG_INFO("Async mesh upload completed '{}': index={} gen={} skinned={}",
+                       it->meshName, result.gfxMeshIndex, result.gfxMeshGeneration, result.hasSkinning);
+            }
+            if (m_context && m_context->renderer) {
+              m_context->renderer->recordMeshUpload(result.vertexCount, result.indexCount, result.totalBytes);
+            }
+          } else {
+            LOG_WARNING("Async mesh upload failed for '{}'", it->meshName);
+          }
+          it = m_pendingMeshUploads.erase(it);
+        } else {
+          ++it;
+        }
+      }
+    }
+
+    // --- Textures ---
+    {
+      auto it = m_pendingTextureUploads.begin();
+      while (it != m_pendingTextureUploads.end()) {
+        if (it->future.wait_for(std::chrono::seconds(0)) == std::future_status::ready) {
+          TextureUploadResult result = it->future.get();
+          if (result.valid) {
+            if (m_context && m_context->renderer) {
+              auto* gfxRenderer = m_context->renderer;
+              auto& materialSystem = gfxRenderer->getMaterialSystem();
+
+              gfx::TextureHandle gfxTexture = materialSystem.registerPreCreatedTexture(
+                {result.textureId}, {result.viewId}, result.width, result.height,
+                static_cast<hina_format>(result.hinaFormat), result.isSRGB);
+
+              if (auto* hot = m_texturePool.getHotData(it->handle)) {
+                if (gfxTexture.isValid()) {
+                  hot->hasGfxTexture = true;
+                  hot->gfxTextureIndex = gfxTexture.index;
+                  hot->gfxTextureGeneration = gfxTexture.generation;
+                  LOG_INFO("Async texture upload completed '{}': gfx={}:{}",
+                           it->textureName, gfxTexture.index, gfxTexture.generation);
+                } else {
+                  LOG_WARNING("Failed to register async texture '{}' in GfxMaterialSystem", it->textureName);
+                }
+              }
+            }
+            resolveWaitingMaterials_nolock(it->cacheKey);
+          } else {
+            LOG_WARNING("Async texture upload failed for '{}'", it->textureName);
+          }
+          it = m_pendingTextureUploads.erase(it);
+        } else {
+          ++it;
+        }
+      }
+    }
+
   }
 
   MeshHandle ResourceManager::createMesh(const ProcessedMesh& mesh)
@@ -239,7 +465,7 @@ namespace Resource
       return it->second;
     }
 
-    // Prepare animation GPU payloads
+    // Prepare animation GPU payloads on main thread (small data)
     std::vector<GPUSkinningData> gpuSkinning = buildSkinningBuffer(mesh.skinning);
     std::vector<GPUMorphDelta> gpuMorphDeltas;
     std::vector<uint32_t> morphVertexStarts;
@@ -255,9 +481,7 @@ namespace Resource
       morphVertexCounts.clear();
     }
 
-    // Create handle and populate data
-    // Note: Vertex/index/skinning data is managed by GfxMeshStorage (chunked allocation)
-    // Morph data will be added to chunks in Phase 2
+    // Create handle and populate cold + partial hot data (main thread)
     MeshHandle handle = m_meshPool.create();
     if(auto* cold = m_meshPool.getColdData(handle))
     {
@@ -278,109 +502,101 @@ namespace Resource
 
       auto& anim = hot->animation;
       anim.jointCount = static_cast<uint32_t>(mesh.skeleton.parentIndices.size());
-      // Skinning/morph data offsets are managed by GfxMeshStorage chunks, not ResourceManager allocators
-      // These legacy offsets are set to invalid; actual offsets come from GpuMesh
       anim.skinningByteOffset = UINT32_MAX;
       anim.morphDeltaByteOffset = UINT32_MAX;
       anim.morphDeltaCount = static_cast<uint32_t>(gpuMorphDeltas.size());
       anim.morphVertexBaseOffset = UINT32_MAX;
       anim.morphVertexCountOffset = UINT32_MAX;
       anim.morphTargetCount = static_cast<uint32_t>(mesh.morphTargets.size());
-
-      // Upload to GfxMeshStorage directly (hina-vk path)
-      if (m_context && m_context->renderer) {
-        if (auto* gfxRenderer = m_context->renderer) {
-          auto& meshStorage = gfxRenderer->getMeshStorage();
-
-          // Convert Vertex to gfx::FullVertex (they have matching layout)
-          static_assert(sizeof(Vertex) == sizeof(gfx::FullVertex), "Vertex layouts must match");
-          const auto* gfxVertices = reinterpret_cast<const gfx::FullVertex*>(mesh.vertices.data());
-
-          gfx::MeshHandle gfxMesh;
-
-          // Check if mesh has skinning data for skeletal animation
-          if (!gpuSkinning.empty()) {
-            // Convert to compact skinning format (8 bytes vs 32 bytes)
-            auto compactSkinning = buildCompactSkinningBuffer(gpuSkinning);
-
-            // Pack vertices into position/attribute streams
-            std::vector<gfx::VertexPosition> positions;
-            std::vector<gfx::VertexAttributes> attributes;
-            gfx::MeshBounds bounds;
-
-            positions.resize(mesh.vertices.size());
-            attributes.resize(mesh.vertices.size());
-            glm::vec3 minPos(std::numeric_limits<float>::max());
-            glm::vec3 maxPos(std::numeric_limits<float>::lowest());
-
-            for (size_t i = 0; i < mesh.vertices.size(); ++i) {
-              const auto& v = gfxVertices[i];
-              positions[i] = gfx::VertexPosition(v.position);
-              float bitangentSign = v.tangent.w;
-              glm::vec3 tangent = glm::vec3(v.tangent);
-              attributes[i].pack(v.normal, tangent, bitangentSign, v.getUV(), 0);
-              minPos = glm::min(minPos, v.position);
-              maxPos = glm::max(maxPos, v.position);
-            }
-
-            bounds.aabbMin = minPos;
-            bounds.aabbMax = maxPos;
-            bounds.center = (minPos + maxPos) * 0.5f;
-            bounds.radius = glm::length(maxPos - bounds.center);
-
-            LOG_INFO("Uploading skinned mesh '{}' to GfxMeshStorage ({} verts, {} indices, {} joints)",
-                     mesh.name, mesh.vertices.size(), mesh.indices.size(), hot->animation.jointCount);
-
-            gfxMesh = meshStorage.uploadPackedSkinned(
-              positions.data(),
-              attributes.data(),
-              compactSkinning.data(),
-              static_cast<uint32_t>(mesh.vertices.size()),
-              mesh.indices.data(),
-              static_cast<uint32_t>(mesh.indices.size()),
-              bounds
-            );
-          } else {
-            // Static mesh - use standard upload
-            LOG_INFO("Uploading static mesh '{}' to GfxMeshStorage ({} verts, {} indices)",
-                     mesh.name, mesh.vertices.size(), mesh.indices.size());
-
-            gfxMesh = meshStorage.upload(
-              gfxVertices,
-              static_cast<uint32_t>(mesh.vertices.size()),
-              mesh.indices.data(),
-              static_cast<uint32_t>(mesh.indices.size())
-            );
-          }
-
-          if (gfxMesh.isValid()) {
-            hot->hasGfxMesh = true;
-            hot->gfxMeshIndex = gfxMesh.index;
-            hot->gfxMeshGeneration = gfxMesh.generation;
-            LOG_INFO("Uploaded mesh '{}' to GfxMeshStorage: index={} gen={} skinned={}",
-                      mesh.name, gfxMesh.index, gfxMesh.generation, !gpuSkinning.empty());
-
-            // Record upload statistics for batching optimization
-            uint32_t vertexCount = static_cast<uint32_t>(mesh.vertices.size());
-            uint32_t indexCount = static_cast<uint32_t>(mesh.indices.size());
-            uint32_t totalBytes = vertexCount * (sizeof(gfx::VertexPosition) + sizeof(gfx::VertexAttributes));
-            totalBytes += indexCount * sizeof(uint32_t);
-            if (!gpuSkinning.empty()) {
-              totalBytes += vertexCount * sizeof(gfx::VertexSkinning);
-            }
-            gfxRenderer->recordMeshUpload(vertexCount, indexCount, totalBytes);
-          } else {
-            LOG_WARNING("Failed to upload mesh '{}' to GfxMeshStorage", mesh.name);
-          }
-        } else {
-          LOG_WARNING("GfxRenderer not available - mesh '{}' not uploaded to GPU", mesh.name);
-        }
-      } else {
-        LOG_WARNING("Renderer context not available - mesh '{}' not uploaded to GPU", mesh.name);
-      }
+      // hasGfxMesh stays false until async upload completes
     }
 
     m_meshCache[cacheKey] = handle;
+    cacheLock.unlock();
+
+    // Queue async upload (heavy CPU + GPU work on upload thread)
+    if (m_context && m_context->renderer && m_uploadThreadRunning.load()) {
+      auto vertices = mesh.vertices;
+      auto indices = mesh.indices;
+      std::string meshName = mesh.name;
+
+      std::promise<MeshUploadResult> promise;
+      auto future = promise.get_future();
+
+      auto job = [
+        this,
+        vertices = std::move(vertices),
+        indices = std::move(indices),
+        gpuSkinning = std::move(gpuSkinning),
+        promise = std::make_shared<std::promise<MeshUploadResult>>(std::move(promise))
+      ](void* /*ctx*/) mutable {
+        auto* gfxRenderer = m_context->renderer;
+        auto& meshStorage = gfxRenderer->getMeshStorage();
+
+        static_assert(sizeof(Vertex) == sizeof(gfx::FullVertex), "Vertex layouts must match");
+        const auto* gfxVertices = reinterpret_cast<const gfx::FullVertex*>(vertices.data());
+
+        gfx::MeshHandle gfxMesh;
+        uint32_t vertexCount = static_cast<uint32_t>(vertices.size());
+        uint32_t indexCount = static_cast<uint32_t>(indices.size());
+        bool hasSkinning = !gpuSkinning.empty();
+
+        if (hasSkinning) {
+          auto compactSkinning = buildCompactSkinningBuffer(gpuSkinning);
+          std::vector<gfx::VertexPosition> positions(vertexCount);
+          std::vector<gfx::VertexAttributes> attributes(vertexCount);
+          glm::vec3 minPos(std::numeric_limits<float>::max());
+          glm::vec3 maxPos(std::numeric_limits<float>::lowest());
+
+          for (size_t i = 0; i < vertices.size(); ++i) {
+            const auto& v = gfxVertices[i];
+            positions[i] = gfx::VertexPosition(v.position);
+            float bitangentSign = v.tangent.w;
+            glm::vec3 tangent = glm::vec3(v.tangent);
+            attributes[i].pack(v.normal, tangent, bitangentSign, v.getUV(), 0);
+            minPos = glm::min(minPos, v.position);
+            maxPos = glm::max(maxPos, v.position);
+          }
+
+          gfx::MeshBounds bounds;
+          bounds.aabbMin = minPos;
+          bounds.aabbMax = maxPos;
+          bounds.center = (minPos + maxPos) * 0.5f;
+          bounds.radius = glm::length(maxPos - bounds.center);
+
+          gfxMesh = meshStorage.uploadPackedSkinned(
+            positions.data(), attributes.data(), compactSkinning.data(),
+            vertexCount, indices.data(), indexCount, bounds);
+        } else {
+          gfxMesh = meshStorage.upload(gfxVertices, vertexCount, indices.data(), indexCount);
+        }
+
+        uint32_t totalBytes = vertexCount * (sizeof(gfx::VertexPosition) + sizeof(gfx::VertexAttributes));
+        totalBytes += indexCount * sizeof(uint32_t);
+        if (hasSkinning) totalBytes += vertexCount * sizeof(gfx::VertexSkinning);
+
+        MeshUploadResult result;
+        result.gfxMeshIndex = gfxMesh.index;
+        result.gfxMeshGeneration = gfxMesh.generation;
+        result.vertexCount = vertexCount;
+        result.indexCount = indexCount;
+        result.totalBytes = totalBytes;
+        result.hasSkinning = hasSkinning;
+        result.valid = gfxMesh.isValid();
+        promise->set_value(result);
+      };
+
+      {
+        std::lock_guard<std::mutex> lock(m_pendingUploadsMutex);
+        m_pendingMeshUploads.push_back({std::move(future), handle, meshName});
+      }
+      {
+        std::lock_guard<std::mutex> lock(m_uploadQueueMutex);
+        m_uploadQueue.push_back(std::move(job));
+      }
+      m_uploadQueueCV.notify_one();
+    }
+
     return handle;
   }
 
@@ -508,7 +724,7 @@ namespace Resource
     return handle;
   }
 
-  TextureHandle ResourceManager::createTexture(const ProcessedTexture& texture)
+  TextureHandle ResourceManager::createTexture(ProcessedTexture texture)
   {
     const std::string cacheKey = generateTextureCacheKey(texture);
 
@@ -528,7 +744,7 @@ namespace Resource
       return it->second;
     }
 
-    // Create handle and populate data
+    // Create handle and populate cold data (main thread)
     TextureHandle handle = m_texturePool.create();
     if(auto* cold = m_texturePool.getColdData(handle))
     {
@@ -538,73 +754,111 @@ namespace Resource
       cold->isSRGB = texture.sRGB;
     }
 
-    // Upload to GfxMaterialSystem directly (hina-vk path)
-    if (m_context && m_context->renderer && !texture.data.empty()) {
-      if (auto* gfxRenderer = m_context->renderer) {
-        auto& materialSystem = gfxRenderer->getMaterialSystem();
+    m_textureCache[cacheKey] = handle;
+    cacheLock.unlock();
 
-        // Use actual format from texture descriptor (captured from KTX2 file)
-        // Convert to sRGB format if needed (color textures like albedo/emissive need sRGB)
-        gfx::Format gfxFormat = texture.textureDesc.format;
-        if (texture.sRGB && !gfx::isFormatSRGB(gfxFormat)) {
-          gfx::Format srgbFormat = gfx::convertFormatSRGB(gfxFormat, true);
-          if (srgbFormat != gfxFormat) {
-            LOG_DEBUG("Texture '{}': Converting format {} -> {} (sRGB requested)",
-                texture.name, static_cast<int>(gfxFormat), static_cast<int>(srgbFormat));
-            gfxFormat = srgbFormat;
-          }
-        }
-        hina_format format = gfxFormatToHinaFormat(gfxFormat);
-
-        LOG_INFO("Texture '{}' upload: gfxFmt={}, hinaFmt={}, size={}x{}, dataSize={}, sRGB={}",
-            texture.name, static_cast<int>(gfxFormat), static_cast<int>(format),
-            texture.width, texture.height, texture.data.size(), texture.sRGB);
-
-        gfx::TextureCreateInfo createInfo;
-        createInfo.data = texture.data.data();
-        createInfo.width = texture.width;
-        createInfo.height = texture.height;
-        createInfo.format = format;
-        // TODO: Implement mip generation for uncompressed textures without pre-baked mips.
-        // Currently disabled because:
-        // - KTX2 textures already have mips baked in (texture.textureDesc.numMipLevels)
-        // - Compressed formats (BC/ASTC) cannot have mips generated at runtime
-        // - hina-vk mip generation (HINA_MIP_LEVELS_AUTO) requires uncompressed source data
-        // Future: Check texture.textureDesc.numMipLevels > 1 and format is uncompressed
-        createInfo.generateMips = false;
-        createInfo.isSRGB = texture.sRGB;
-        createInfo.label = texture.name.c_str();  // Debug label for RenderDoc
-
-        gfx::TextureHandle gfxTexture = materialSystem.createTexture(createInfo);
-
-        if (auto* hotData = m_texturePool.getHotData(handle)) {
-          if (gfxTexture.isValid()) {
-            hotData->hasGfxTexture = true;
-            hotData->gfxTextureIndex = gfxTexture.index;
-            hotData->gfxTextureGeneration = gfxTexture.generation;
-
-            // Register texture for UI/ImGui use - now works early since UI support
-            // is initialized before ImGui, and bind groups come from material system
-            uint64_t uiTexId = gfxRenderer->registerUITexture(gfxTexture);
-            hotData->uiTextureId = static_cast<uint32_t>(uiTexId);
-
-            LOG_DEBUG("Uploaded texture '{}' to GfxMaterialSystem: {}:{} ({}x{}, fmt={}, {}) uiId={}",
-                      texture.name, gfxTexture.index, gfxTexture.generation,
-                      texture.width, texture.height, static_cast<int>(format), texture.sRGB ? "sRGB" : "linear",
-                      hotData->uiTextureId);
-          } else {
-            LOG_WARNING("Failed to upload texture '{}' to GfxMaterialSystem", texture.name);
-          }
+    // Queue async GPU upload on the upload thread
+    if (m_context && m_context->renderer && !texture.data.empty() && m_uploadThreadRunning.load()) {
+      gfx::Format gfxFormat = texture.textureDesc.format;
+      if (texture.sRGB && !gfx::isFormatSRGB(gfxFormat)) {
+        gfx::Format srgbFormat = gfx::convertFormatSRGB(gfxFormat, true);
+        if (srgbFormat != gfxFormat) {
+          LOG_DEBUG("Texture '{}': Converting format {} -> {} (sRGB requested)",
+              texture.name, static_cast<int>(gfxFormat), static_cast<int>(srgbFormat));
+          gfxFormat = srgbFormat;
         }
       }
+      hina_format hinaFormat = gfxFormatToHinaFormat(gfxFormat);
+
+      LOG_INFO("Texture '{}' async upload queued: hinaFmt={}, size={}x{}, dataSize={}, sRGB={}",
+          texture.name, static_cast<int>(hinaFormat),
+          texture.width, texture.height, texture.data.size(), texture.sRGB);
+
+      auto pixelData = std::move(texture.data);
+      uint32_t width = texture.width;
+      uint32_t height = texture.height;
+      bool isSRGB = texture.sRGB;
+      std::string textureName = texture.name;
+
+      auto promise = std::make_shared<std::promise<TextureUploadResult>>();
+      auto future = promise->get_future();
+
+      auto job = [
+        pixelData = std::move(pixelData),
+        width, height, hinaFormat, isSRGB, textureName,
+        promise
+      ](void* ctx) mutable {
+        auto* threadCtx = static_cast<hina_context*>(ctx);
+        TextureUploadResult result;
+
+        hina_texture_desc desc = hina_texture_desc_default();
+        desc.width = width;
+        desc.height = height;
+        desc.format = hinaFormat;
+        desc.mip_levels = 1;
+        desc.usage = HINA_TEXTURE_SAMPLED_BIT;
+        desc.initial_data = pixelData.data();
+        desc.label = textureName.c_str();
+
+        hina_texture tex = hina_ctx_make_texture(threadCtx, &desc);
+        if (!hina_texture_is_valid(tex)) {
+          LOG_WARNING("Async texture upload failed for '{}'", textureName);
+          promise->set_value(result);
+          return;
+        }
+
+        hina_ctx_flush_uploads(threadCtx);
+        hina_texture_view view = hina_texture_get_default_view(tex);
+
+        result.textureId = tex.id;
+        result.viewId = view.id;
+        result.width = width;
+        result.height = height;
+        result.hinaFormat = static_cast<uint32_t>(hinaFormat);
+        result.isSRGB = isSRGB;
+        result.valid = true;
+        promise->set_value(result);
+      };
+
+      // Backpressure: if too many uploads are in-flight, drain completed ones
+      // to bound peak memory (each pending upload holds a full texture copy).
+      // Non-blocking: only drain if ready, don't stall the main thread.
+      constexpr size_t MAX_PENDING_TEXTURE_UPLOADS = 4;
+      while (m_pendingTextureUploads.size() >= MAX_PENDING_TEXTURE_UPLOADS) {
+        auto& oldest = m_pendingTextureUploads.front();
+        // Non-blocking check: if not ready, allow temporarily exceeding limit
+        if (oldest.future.wait_for(std::chrono::seconds(0)) != std::future_status::ready)
+          break;
+        TextureUploadResult result = oldest.future.get();
+        if (result.valid) {
+          if (m_context && m_context->renderer) {
+            auto& materialSystem = m_context->renderer->getMaterialSystem();
+            gfx::TextureHandle gfxTexture = materialSystem.registerPreCreatedTexture(
+              {result.textureId}, {result.viewId}, result.width, result.height,
+              static_cast<hina_format>(result.hinaFormat), result.isSRGB);
+            if (auto* hot = m_texturePool.getHotData(oldest.handle)) {
+              if (gfxTexture.isValid()) {
+                hot->hasGfxTexture = true;
+                hot->gfxTextureIndex = gfxTexture.index;
+                hot->gfxTextureGeneration = gfxTexture.generation;
+                LOG_INFO("Backpressure drain: texture '{}' uploaded: gfx={}:{}",
+                         oldest.textureName, gfxTexture.index, gfxTexture.generation);
+              }
+            }
+          }
+          resolveWaitingMaterials_nolock(oldest.cacheKey);
+        }
+        m_pendingTextureUploads.erase(m_pendingTextureUploads.begin());
+      }
+
+      m_pendingTextureUploads.push_back({std::move(future), handle, textureName, cacheKey});
+      {
+        std::lock_guard<std::mutex> lock(m_uploadQueueMutex);
+        m_uploadQueue.push_back(std::move(job));
+      }
+      m_uploadQueueCV.notify_one();
     }
 
-    m_textureCache[cacheKey] = handle;
-
-    // Resolve materials waiting for this texture
-    resolveWaitingMaterials_nolock(cacheKey);
-
-    LOG_INFO("Texture '{}' created successfully ({}x{})", texture.name, texture.width, texture.height);
     return handle;
   }
 
@@ -626,6 +880,7 @@ namespace Resource
       }
     }
 
+    // CPU rasterization (main thread — this is fast, GPU upload is what we want async)
     Resource::FontCPUData cpuData = ui::FontSystem::BuildFontCPUData(font.fontFileData, font.buildSettings,
                                                                      font.mergeSources, font.name);
     if(cpuData.atlasPixelsRGBA.empty() || cpuData.atlasWidth == 0 || cpuData.atlasHeight == 0)
@@ -634,6 +889,7 @@ namespace Resource
       return {};
     }
 
+    // Create atlas texture (GPU upload is async via createTexture -> upload thread)
     ProcessedTexture atlasTexture;
     atlasTexture.name = font.name + "_FontAtlas";
     atlasTexture.textureDesc.type = gfx::TextureType::Tex2D;
@@ -643,7 +899,7 @@ namespace Resource
     atlasTexture.textureDesc.dimensions.depth = 1u;
     atlasTexture.textureDesc.numMipLevels = 1;
     atlasTexture.textureDesc.usage = gfx::TextureUsage::Sampled;
-    atlasTexture.data = cpuData.atlasPixelsRGBA;
+    atlasTexture.data = std::move(cpuData.atlasPixelsRGBA);
     atlasTexture.width = cpuData.atlasWidth;
     atlasTexture.height = cpuData.atlasHeight;
     atlasTexture.channels = 4;
@@ -657,13 +913,13 @@ namespace Resource
     TextureHandle textureHandle = createTexture(atlasTexture);
     if(!textureHandle.isValid())
     {
-      LOG_ERROR("ResourceManager: Failed to upload font atlas '{}'", font.name);
+      LOG_ERROR("ResourceManager: Failed to create font atlas texture '{}'", font.name);
       return {};
     }
 
+    // Populate font data immediately
     ResourceTraits<FontAsset>::HotData hot{
       .atlasTexture = textureHandle,
-      .uiTextureId = getTextureUIId(textureHandle),
       .ascent = cpuData.ascent,
       .descent = cpuData.descent,
       .lineGap = cpuData.lineGap,
@@ -795,14 +1051,14 @@ namespace Resource
     return handles;
   }
 
-  std::vector<TextureHandle> ResourceManager::createTextureBatch(const std::vector<ProcessedTexture>& textures)
+  std::vector<TextureHandle> ResourceManager::createTextureBatch(std::vector<ProcessedTexture> textures)
   {
     std::vector<TextureHandle> handles;
     handles.reserve(textures.size());
 
-    for(const auto& texture : textures)
+    for(auto& texture : textures)
     {
-      handles.push_back(createTexture(texture));
+      handles.push_back(createTexture(std::move(texture)));
     }
 
     return handles;
@@ -819,15 +1075,70 @@ namespace Resource
     return m_meshPool.getColdData(handle);
   }
 
-  uint32_t ResourceManager::getTextureUIId(TextureHandle handle) const
-  {
-    const auto* hot = m_texturePool.getHotData(handle);
-    return hot ? hot->uiTextureId : 0;
-  }
-
   const ResourceTraits<TextureAsset>::HotData* ResourceManager::getTextureHotData(TextureHandle handle) const
   {
     return m_texturePool.getHotData(handle);
+  }
+
+  gfx::TextureView ResourceManager::resolveTextureView(TextureHandle handle) const
+  {
+    const auto* hot = m_texturePool.getHotData(handle);
+    if (hot && hot->hasGfxTexture)
+    {
+      gfx::TextureHandle gfxHandle;
+      gfxHandle.index = static_cast<uint16_t>(hot->gfxTextureIndex);
+      gfxHandle.generation = static_cast<uint16_t>(hot->gfxTextureGeneration);
+      gfx::TextureView view = m_context->renderer->getMaterialSystem().getTextureView(gfxHandle);
+      if (hina_texture_view_is_valid(view))
+      {
+        return view;
+      }
+    }
+    // Fallback: use default magenta texture if available, otherwise white
+    auto& matSys = m_context->renderer->getMaterialSystem();
+    if (m_defaultTexture.isValid()) {
+      const auto* defHot = m_texturePool.getHotData(m_defaultTexture);
+      if (defHot && defHot->hasGfxTexture) {
+        gfx::TextureHandle gfxDef;
+        gfxDef.index = static_cast<uint16_t>(defHot->gfxTextureIndex);
+        gfxDef.generation = static_cast<uint16_t>(defHot->gfxTextureGeneration);
+        gfx::TextureView view = matSys.getTextureView(gfxDef);
+        if (hina_texture_view_is_valid(view))
+          return view;
+      }
+    }
+    return matSys.getTextureView(matSys.getDefaultWhiteTexture());
+  }
+
+  TextureHandle ResourceManager::loadTextureFromFile(const std::string& path, bool sRGB)
+  {
+    // Check cache first
+    {
+      std::shared_lock lock(m_cacheMutex);
+      if (auto it = m_textureCache.find(path); it != m_textureCache.end())
+        return it->second;
+    }
+
+    int width, height, channels;
+    unsigned char* data = stbi_load(path.c_str(), &width, &height, &channels, 4);
+    if (!data) {
+      LOG_WARNING("[ResourceManager] Failed to load texture from file: {}", path);
+      return TextureHandle{};
+    }
+
+    ProcessedTexture processed;
+    processed.name = path;
+    processed.source = FilePathSource{path};
+    processed.width = static_cast<uint32_t>(width);
+    processed.height = static_cast<uint32_t>(height);
+    processed.channels = 4;
+    processed.sRGB = sRGB;
+    processed.data.assign(data, data + width * height * 4);
+    processed.textureDesc.format = gfx::Format::RGBA8_UNorm;
+    processed.textureDesc.dimensions = {processed.width, processed.height, 1};
+    stbi_image_free(data);
+
+    return createTexture(processed);
   }
 
   const ResourceTraits<FontAsset>::HotData* ResourceManager::getFont(FontHandle handle) const
@@ -846,12 +1157,6 @@ namespace Resource
     if(!hot)
       return nullptr;
     return hot->cpuData.findGlyph(codepoint);
-  }
-
-  uint32_t ResourceManager::getFontTextureUIId(FontHandle handle) const
-  {
-    const auto* hot = getFont(handle);
-    return hot ? hot->uiTextureId : 0;
   }
 
   FontHandle ResourceManager::getDefaultUIFont() const
@@ -1068,7 +1373,7 @@ namespace Resource
     std::string cacheKey = TextureCacheKeyGenerator::generateKey(matTex.source);
     if(auto it = m_textureCache.find(cacheKey); it != m_textureCache.end())
     {
-      return getTextureUIId(it->second);
+      return it->second.getId();
     }
     return 0;
   }
@@ -1084,15 +1389,23 @@ namespace Resource
     }
     std::erase_if(m_unresolvedTextureToMaterials, [](const auto& pair) { return pair.second.empty(); });
 
-    // Add dependencies for unresolved textures
+    // Add dependencies for textures that haven't finished GPU upload yet
     auto addDependencyIfUnresolved = [&](const MaterialTexture& matTex)
     {
       if(!matTex.hasTexture())
         return;
 
       std::string textureCacheKey = TextureCacheKeyGenerator::generateKey(matTex.source);
-      if(m_textureCache.find(textureCacheKey) == m_textureCache.end())
-      {
+      // Check if the texture has actually completed its GPU upload, not just whether
+      // a cache entry exists (cache entries are created immediately, before async upload)
+      bool textureReady = false;
+      auto it = m_textureCache.find(textureCacheKey);
+      if (it != m_textureCache.end()) {
+        if (const auto* hot = m_texturePool.getHotData(it->second)) {
+          textureReady = hot->hasGfxTexture;
+        }
+      }
+      if (!textureReady) {
         m_unresolvedTextureToMaterials[textureCacheKey].push_back(materialHandle);
       }
     };

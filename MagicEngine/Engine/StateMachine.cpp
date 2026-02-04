@@ -137,18 +137,24 @@ namespace sm {
 	StateMachine::StateMachine(State* startingState)
 		: currState{ startingState }
 		, isFirstUpdate{ true }
+		, deletePrevState{ true }
+		, startNextState{ true }
 	{
 	}
 
 	StateMachine::StateMachine(const StateMachine& other)
 		: currState{ new State{ *other.currState } }
 		, isFirstUpdate{ true }
+		, deletePrevState{ other.deletePrevState }
+		, startNextState{ other.startNextState }
 	{
 	}
 
 	StateMachine::StateMachine(StateMachine&& other) noexcept
-		: currState{ other.currState }
+		: currState{ std::move(other.currState) }
 		, isFirstUpdate{ other.isFirstUpdate }
+		, deletePrevState{ other.deletePrevState }
+		, startNextState{ other.startNextState }
 	{
 		other.currState = nullptr;
 	}
@@ -172,11 +178,32 @@ namespace sm {
 		{
 			currState->OnExit(this);
 			State* nextState{ currState->ExtractNextState() };
-			delete currState;
+			if (deletePrevState)
+				delete currState;
+			else
+				deletePrevState = true;
 			currState = nextState;
-			currState->OnEnter(this);
+			if (startNextState)
+				currState->OnEnter(this);
+			else
+				startNextState = true;
 			OnStateChanged();
 		}
+	}
+
+	void StateMachine::SetDontDeletePrevState()
+	{
+		deletePrevState = false;
+	}
+
+	void StateMachine::SetDontStartNextState()
+	{
+		startNextState = false;
+	}
+
+	State* StateMachine::GetState()
+	{
+		return currState;
 	}
 
 #pragma endregion // Full

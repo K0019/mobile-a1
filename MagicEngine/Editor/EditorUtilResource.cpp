@@ -5,11 +5,11 @@ namespace editor {
 
 	namespace internal {
 		template <typename ResourceType>
-		void DrawResourceHandle(const char* label, UserResourceHandle<ResourceType>& resourceHandle, const char* payloadIdentifier)
+		void DrawResourceHandle(const char* label, AssetHandle<ResourceType>& resourceHandle, const char* payloadIdentifier)
 		{
 			std::string resourceName{ "None" };
 			if (const auto textureResource{ resourceHandle.GetResource() })
-				if (const auto registeredResourceName{ ST<MagicResourceManager>::Get()->Editor_GetName(resourceHandle.GetHash()) })
+				if (const auto registeredResourceName{ ST<AssetManager>::Get()->Editor_GetName(resourceHandle.GetHash()) })
 					resourceName = *registeredResourceName;
 			gui::TextBoxReadOnly(label, resourceName);
 			gui::PayloadTarget<size_t>(payloadIdentifier, [&resourceHandle](size_t hash) -> void {
@@ -19,22 +19,32 @@ namespace editor {
 	}
 
 	template<>
-	void EditorUtil_DrawResourceHandle(const char* label, UserResourceHandle<ResourceTexture>& resourceHandle)
+	void EditorUtil_DrawResourceHandle(const char* label, AssetHandle<ResourceTexture>& resourceHandle)
 	{
 		internal::DrawResourceHandle(label, resourceHandle, "TEXTURE_HASH");
 	}
 	template<>
-	void EditorUtil_DrawResourceHandle(const char* label, UserResourceHandle<ResourceMaterial>& resourceHandle)
+	void EditorUtil_DrawResourceHandle(const char* label, AssetHandle<ResourceMaterial>& resourceHandle)
 	{
 		internal::DrawResourceHandle(label, resourceHandle, "MATERIAL_HASH");
 	}
 	template<>
-	void EditorUtil_DrawResourceHandle(const char* label, UserResourceHandle<ResourceAnimation>& resourceHandle)
+	void EditorUtil_DrawResourceHandle(const char* label, AssetHandle<ResourceAnimation>& resourceHandle)
 	{
 		internal::DrawResourceHandle(label, resourceHandle, "ANIMATION_HASH");
 	}
 	template<>
-	void EditorUtil_DrawResourceHandle(const char* label, UserResourceHandle<WeaponInfo>& resourceHandle)
+	void EditorUtil_DrawResourceHandle(const char* label, AssetHandle<ResourceAudio>& resourceHandle)
+	{
+		internal::DrawResourceHandle(label, resourceHandle, "SOUND_HASH");
+	}
+	template<>
+	void EditorUtil_DrawResourceHandle(const char* label, AssetHandle<ResourceAudioGroup>& resourceHandle)
+	{
+		internal::DrawResourceHandle(label, resourceHandle, "SOUND_GROUP_HASH");
+	}
+	template<>
+	void EditorUtil_DrawResourceHandle(const char* label, AssetHandle<WeaponInfo>& resourceHandle)
 	{
 		internal::DrawResourceHandle(label, resourceHandle, "GAME_WEAPON_HASH");
 	}

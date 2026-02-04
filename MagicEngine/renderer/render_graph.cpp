@@ -1293,7 +1293,9 @@ struct FragOut {
 Varyings VSMain() {
   Varyings out;
   out.uv = vec2((gl_VertexIndex << 1) & 2, gl_VertexIndex & 2);
-  gl_Position = vec4(out.uv * vec2(2, -2) + vec2(-1, 1), 0.0, 1.0);
+  // Vulkan NDC (with a normal, positive-height viewport): y = -1 is top, y = +1 is bottom.
+  // Generate a fullscreen triangle that matches that convention (no implicit vertical flip).
+  gl_Position = vec4(out.uv * vec2(2, 2) + vec2(-1, -1), 0.0, 1.0);
   return out;
 }
 #hina_end
@@ -1762,6 +1764,30 @@ FeatureMask RenderGraph::RegisterFeature(IRenderFeature* feature)
   LOG_INFO("Registered feature '{}' with ID {} (mask: 0x{:X})", feature->GetName(), id, FeatureBit(id));
 
   return FeatureBit(id);
+}
+
+FeatureMask RenderGraph::RegisterFeatureWithId(IRenderFeature* feature, RenderFeatureId explicitId)
+{
+  if (!feature) return 0;
+
+  // Check if already registered
+  auto it = m_featureIdMap.find(feature);
+  if (it != m_featureIdMap.end())
+  {
+    return FeatureBit(it->second);
+  }
+
+  m_featureIdMap[feature] = explicitId;
+  feature->SetFeatureId(explicitId);
+  // Ensure auto-assigned IDs don't collide with this explicit ID
+  if (m_nextFeatureId <= explicitId)
+  {
+    m_nextFeatureId = explicitId + 1;
+  }
+
+  LOG_INFO("Registered feature '{}' with explicit ID {} (mask: 0x{:X})", feature->GetName(), explicitId, FeatureBit(explicitId));
+
+  return FeatureBit(explicitId);
 }
 
 void RenderGraph::UnregisterFeature(IRenderFeature* feature)

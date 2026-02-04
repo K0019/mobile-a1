@@ -15,7 +15,9 @@ like Idle, Walk, Run, and Jump.
 #include "Graphics/AnimationComponent.h"
 #include "Engine/Input.h"
 #include "Game/Character.h"
+#include "Engine/BehaviorTree/BehaviourTree.h"
 #include "Game/Delusion.h"
+#include "Managers/AudioManager.h"
 
 static constexpr float ANIM_TRANSITION_DURATION_IDLE = 0.15f;
 static constexpr float ANIM_TRANSITION_DURATION_ATTACK = 0.1f;
@@ -152,6 +154,10 @@ namespace sm {
 
 		////if (randomRange(0, 2) == 0)
 		//ST<AudioManager>::Get()->PlaySound3D(tmpName, false, ecs::GetEntity(this)->GetTransform().GetWorldPosition(), AudioType::END, std::pair<float, float>{2.0f, 50.0f}, 0.6f);
+
+		if (auto audioGroup{ GetWeaponInfo(animSM)->moves[moveIndex].audio.GetResource() })
+			if (auto audio{ audioGroup->PickRandomAudio() })
+				ST<AudioManager>::Get()->PlaySound3D(audio->hash, false, animSM->GetEntity()->GetTransform().GetWorldPosition(), AudioType::END, { 2.0f, 50.0f }, 0.6f);
 	}
 	void AttackActivity::OnUpdate(sm::StateMachine* sm)
 	{
@@ -303,6 +309,62 @@ namespace sm {
 		return CastSM(sm)->GetBlackboardVal<bool>("inputThrow");
 	}
 
+	ToHitstopTransition::ToHitstopTransition() {}
+
+	bool ToHitstopTransition::Decide(sm::StateMachine* sm)
+	{
+		sm::AnimStateMachine* animSM{ static_cast<sm::AnimStateMachine*>(sm) };
+		if (!animSM->GetBlackboardVal<bool>("inputHitstop"))
+			return false;
+
+		sm->SetDontDeletePrevState();
+		SetNextState = [prevState = sm->GetState()](State** outState) {
+			*outState = new HitstopState{ prevState };
+		};
+		animSM->blackboard["hitstopEndTime"] = GameTime::TimeSinceStart() + 0.15f; // Hitstop length
+		animSM->GetEntity()->GetComp<AnimationComponent>()->isPlaying = false;
+		// If we are an enemy, stop the behavior tree from running until hitstop ends
+		if (auto behaviorComp{ animSM->GetEntity()->GetComp<BehaviorTree>() })
+			ecs::SetCompActive(behaviorComp, false);
+		return true;
+	}
+
+	ToPrevStateTransition::ToPrevStateTransition(State* inPrevState)
+		: prevState{ inPrevState }
+	{
+		SetNextState = [prevState = &prevState](State** outState) {
+			*outState = *prevState;
+			*prevState = nullptr;
+		};
+	}
+
+	ToPrevStateTransition::~ToPrevStateTransition()
+	{
+		delete prevState;
+	}
+
+	bool ToPrevStateTransition::Decide(sm::StateMachine* sm)
+	{
+		if (GameTime::TimeSinceStart() >= static_cast<sm::AnimStateMachine*>(sm)->GetBlackboardVal<float>("hitstopEndTime"))
+		{
+			sm::AnimStateMachine* animSM{ static_cast<sm::AnimStateMachine*>(sm) };
+			animSM->blackboard["inputHitstop"] = false;
+			animSM->GetEntity()->GetComp<AnimationComponent>()->isPlaying = true;
+			sm->SetDontStartNextState();
+			if (auto behaviorComp{ animSM->GetEntity()->GetComp<BehaviorTree>() })
+				ecs::SetCompActive(behaviorComp, true);
+			return true;
+		}
+		return false;
+	}
+
+	TransitionBase* ToPrevStateTransition::Clone()
+	{
+		// Hopefully we won't need to clone an entity while it's hitstopped
+		CONSOLE_LOG(LEVEL_ERROR) << "ToPrevStateTransition::Clone() - Unimplemented";
+		return nullptr;
+	}
+
 	bool ToSkillAttackTransition::Decide(sm::StateMachine* sm)
 	{
 		if (ToAttackTransition::Decide(sm))
@@ -386,44 +448,50 @@ namespace sm {
 
 	IdleState::IdleState() : sm::State(
 		{ new IdleActivity() },
-		{ new ToWalkTransition(), new ToAttackTransition<AttackState>{ ANIM_INPUT_TYPE::LIGHT_ATTACK }, new ToHurtTransition(), new ToDodgeTransition(), new ToParryTransition(), new ToThrowTransition() }
+		{ new ToHitstopTransition{}, new ToWalkTransition(), new ToAttackTransition<AttackState>{ ANIM_INPUT_TYPE::LIGHT_ATTACK }, new ToHurtTransition(), new ToDodgeTransition(), new ToParryTransition(), new ToThrowTransition() }
 	) {
 	}
 
 	WalkState::WalkState() : sm::State(
 		{ new WalkActivity() },
-		{ new ToIdleTransition(), new ToAttackTransition<AttackState>{ ANIM_INPUT_TYPE::LIGHT_ATTACK }, new ToHurtTransition(), new ToDodgeTransition(), new ToParryTransition(), new ToThrowTransition() }
+		{ new ToHitstopTransition{}, new ToIdleTransition(), new ToAttackTransition<AttackState>{ ANIM_INPUT_TYPE::LIGHT_ATTACK }, new ToHurtTransition(), new ToDodgeTransition(), new ToParryTransition(), new ToThrowTransition() }
 	) {
 	}
 
 	AttackState::AttackState() : sm::State(
 		{ new AttackActivity{ 2, ANIM_INPUT_TYPE::LIGHT_ATTACK } },
-		{ new ToHurtTransition{}, new NoOpBeforeAttackDamageTransition{}, new ToAttackTransition<AttackState>{ ANIM_INPUT_TYPE::LIGHT_ATTACK }, new NoOpWhileAnimatingTransition{}, new ToIdleTransition(), new ToWalkTransition() }
+		{ new ToHitstopTransition{}, new ToHurtTransition{}, new NoOpBeforeAttackDamageTransition{}, new ToAttackTransition<AttackState>{ ANIM_INPUT_TYPE::LIGHT_ATTACK }, new NoOpWhileAnimatingTransition{}, new ToIdleTransition(), new ToWalkTransition() }
 	) {
 	}
 
 	HurtState::HurtState() : sm::State(
 		{ new HurtActivity() },
-		{ new NoOpWhileAnimatingTransition{}, new ToAttackTransition<AttackState>{ ANIM_INPUT_TYPE::LIGHT_ATTACK }, new ToIdleTransition() } // Recover to Idle after being hurt
+		{ new ToHitstopTransition{}, new NoOpWhileAnimatingTransition{}, new ToAttackTransition<AttackState>{ ANIM_INPUT_TYPE::LIGHT_ATTACK }, new ToIdleTransition(), new ToWalkTransition{} } // Recover to Idle after being hurt
 	) {
 	}
 
 	DodgeState::DodgeState() : sm::State(
 		{ new DodgeActivity() },
-		{ new NoOpWhileAnimatingTransition{}, new ToIdleTransition(), new ToWalkTransition() }
+		{ new ToHitstopTransition{}, new NoOpWhileAnimatingTransition{}, new ToIdleTransition(), new ToWalkTransition() }
 	) {
 	}
 
 	ParryState::ParryState() : sm::State(
 		{ new ParryActivity() },
-		{ new NoOpWhileAnimatingTransition{}, new ToIdleTransition(), new ToAttackTransition<AttackState>{ ANIM_INPUT_TYPE::LIGHT_ATTACK } } // Can counter-attack from parry
+		{ new ToHitstopTransition{}, new NoOpWhileAnimatingTransition{}, new ToIdleTransition(), new ToAttackTransition<AttackState>{ ANIM_INPUT_TYPE::LIGHT_ATTACK } } // Can counter-attack from parry
 	) {
 	}
 
 	ThrowState::ThrowState() : sm::State(
 		{ new ThrowActivity() },
-		{ new NoOpWhileAnimatingTransition{}, new ToIdleTransition(), new ToWalkTransition() }
+		{ new ToHitstopTransition{}, new NoOpWhileAnimatingTransition{}, new ToIdleTransition(), new ToWalkTransition() }
 	) {
+	}
+
+	HitstopState::HitstopState(State* prevState) : sm::State{
+		{ },
+		{ new ToPrevStateTransition{ prevState } }
+	} {
 	}
 
 	DelusionIdleState::DelusionIdleState() : sm::State(

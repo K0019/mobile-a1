@@ -46,6 +46,15 @@ All rights reserved.
 #include "Melee/Melee_DecoIsInAttackRange.h"
 #include "Melee/Melee_DecoIsNotCurrentAttack.h"
 
+#include "Range/Range_LeafCheckAttack.h"
+#include "Range/Range_LeafThrow.h"
+#include "Range/Range_LeafRotateTowardsPlayer.h"
+#include "Range/Range_LeafShiftLeft.h"
+#include "Range/Range_DecoHasWeapon.h"
+#include "Range/Range_LeafMoveToWeapon.h"
+#include "Range/Range_DecoIsFacingPlayer.h"
+#include "Range/Range_DecoEnemyInFront.h"
+
 #include "Boss/Boss_Prefect/Boss_LeafDetention.h"
 #include "Boss/Boss_Prefect/Boss_LeafBookingSlips.h"
 #include "Boss/Boss_Prefect/Boss_LeafInvincibility.h"
@@ -54,6 +63,7 @@ All rights reserved.
 #include "Boss/Boss_Prefect/Boss_LeafDisciplinaryAction.h"
 
 #include "Boss/Common/Selector_BossHealthPhases.h"
+#include "Boss/Common/Selector_BossFSMPhases.h"
  
 
 BT_REGISTER_NODE(Sequence, "Sequence")
@@ -85,6 +95,14 @@ BT_REGISTER_NODE(D_Melee_IsInCombatRange, "D_Melee_IsInCombatRange")
 BT_REGISTER_NODE(D_Melee_IsNotCurrentAttack, "D_Melee_IsNotCurrentAttack")
 BT_REGISTER_NODE(D_Melee_IsInAttackRange, "D_Melee_IsInAttackRange")
 
+BT_REGISTER_NODE(L_Range_CheckAttack, "L_Range_CheckAttack")
+BT_REGISTER_NODE(L_Range_Throw, "L_Range_Throw")
+BT_REGISTER_NODE(L_Range_MoveToWeapon, "L_Range_MoveToWeapon")
+BT_REGISTER_NODE(D_Range_HasWeapon, "D_Range_HasWeapon")
+BT_REGISTER_NODE(D_Range_IsFacingPlayer, "D_Range_IsFacingPlayer")
+BT_REGISTER_NODE(D_Range_EnemyInFront, "D_Range_EnemyInFront")
+BT_REGISTER_NODE(L_Range_ShiftLeft, "L_Range_ShiftLeft")
+
 BT_REGISTER_NODE(L_Boss_Prefect_Detention, "L_Boss_Prefect_Detention")
 BT_REGISTER_NODE(L_Boss_Prefect_BookingSlips, "L_Boss_Prefect_BookingSlips")
 BT_REGISTER_NODE(L_Boss_Prefect_Invincibility, "L_Boss_Prefect_Invincibility")
@@ -92,6 +110,7 @@ BT_REGISTER_NODE(L_Boss_Prefect_LashOut, "L_Boss_Prefect_LashOut")
 BT_REGISTER_NODE(L_Boss_Prefect_DontRun, "L_Boss_Prefect_DontRun")
 BT_REGISTER_NODE(L_Boss_Prefect_DisciplinaryAction, "L_Boss_Prefect_DisciplinaryAction")
 BT_REGISTER_NODE(S_Boss_HealthPhases, "S_Boss_HealthPhases")
+BT_REGISTER_NODE(S_Boss_FSMPhases, "S_Boss_FSMPhases")
 
 
 BehaviorNode::BehaviorNode()
@@ -159,6 +178,10 @@ void BehaviorNode::RemoveChildren()
 {
 }
 
+void BehaviorNode::EditorDraw()
+{
+}
+
 CompositeNode::CompositeNode()
     : BehaviorNode{}
     , childrenPtr{}
@@ -190,6 +213,12 @@ void CompositeNode::RemoveChildren()
         delete child;
     }
     childrenPtr.clear();
+}
+
+void CompositeNode::CallChildrenEditorDraw()
+{
+    for (BehaviorNode* child : childrenPtr)
+        child->EditorDraw();
 }
 
 Decorator::Decorator()

@@ -210,6 +210,9 @@ namespace sm {
 		*//******************************************************************/
 		template <typename StateType>
 		TransitionBase(const NextStateTypeStruct<StateType>&);
+	protected:
+		TransitionBase() = default;
+	public:
 
 		/*****************************************************************//*!
 		\brief
@@ -233,7 +236,7 @@ namespace sm {
 		\param outNextState
 			A pointer to the pointer that points to the next state.
 		*//******************************************************************/
-		void (*const SetNextState)(State** outNextState);
+		std::function<void(State**)> SetNextState;
 	};
 
 	/*****************************************************************//*!
@@ -258,6 +261,9 @@ namespace sm {
 		*//******************************************************************/
 		template <typename StateType>
 		TransitionBaseTemplate(const NextStateTypeStruct<StateType>& dummy);
+	protected:
+		TransitionBaseTemplate() = default;
+	public:
 
 		/*****************************************************************//*!
 		\brief
@@ -405,6 +411,27 @@ namespace sm {
 		*//******************************************************************/
 		void Update();
 
+		/*****************************************************************//*!
+		\brief
+			Tells the state machine to not free the memory of the previous state
+			when switching states.
+		*//******************************************************************/
+		void SetDontDeletePrevState();
+
+		/*****************************************************************//*!
+		\brief
+			Tells the state machine to start the next state. For special circumstances
+			such as using a previously initialized state.
+		*//******************************************************************/
+		void SetDontStartNextState();
+
+		/*****************************************************************//*!
+		\brief
+			Kind of a hack so transitions are able to get the current state
+			to do their thing. Should not be used by external classes.
+		*//******************************************************************/
+		State* GetState();
+
 	protected:
 		/*****************************************************************//*!
 		\brief
@@ -418,6 +445,10 @@ namespace sm {
 		State* currState;
 		//! Whether it is the first time updating.
 		bool isFirstUpdate;
+		//! Whether to free the memory of the previous state when switching states
+		bool deletePrevState;
+		//! Whether to start the next state
+		bool startNextState;
 
 	};
 

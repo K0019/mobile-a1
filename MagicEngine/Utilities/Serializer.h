@@ -287,6 +287,17 @@ public:
 
     /*****************************************************************//*!
     \brief
+        Serializes the enum.
+    \param key
+        The key to associate the variable with.
+    \param enumVal
+        The enum.
+    *//******************************************************************/
+    template <util::EnumType T>
+    void Serialize(const std::string& key, const T& enumVal);
+
+    /*****************************************************************//*!
+    \brief
         Serializes an array container.
     \param key
         The key to associate this container with.

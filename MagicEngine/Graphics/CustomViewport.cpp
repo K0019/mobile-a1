@@ -32,6 +32,7 @@ All rights reserved.
 #include "Engine/Events/EventsTypeBasic.h"
 #include "Editor/EditorCameraBridge.h"
 #include "ImGuizmo.h"
+#include <cstring>
 
 CustomViewport::CustomViewport(unsigned int width, unsigned int height)
 	: WindowBase{ "Viewport", { 1366, 768 }, gui::FLAG_WINDOW::NO_SCROLL_BAR | gui::FLAG_WINDOW::NO_SCROLL_WITH_MOUSE }
@@ -87,7 +88,11 @@ void CustomViewport::DrawWindow()
 	// Camera movement (should be moved to an input update section)
 	UpdateCameraControl();
 	// Camera upload (should also be moved...)
-	ST<GraphicsMain>::Get()->SetViewCamera(GetViewportCamera());
+	Camera viewCam = GetViewportCamera();
+	if (aspect_ratio > 0.0f) {
+		viewCam.setProjMatrix(glm::perspective(glm::radians(45.0f), aspect_ratio, 0.1f, m_editorFarPlane));
+	}
+	ST<GraphicsMain>::Get()->SetViewCamera(viewCam);
 
 	const float playControlsHeight = 22.0f; // Height of play controls bar
 	DrawPlayControls();
@@ -137,8 +142,8 @@ void CustomViewport::DrawWindow()
 	uint64_t sceneTextureId = ST<GraphicsMain>::Get()->GetSceneViewTextureId();
 	if (sceneTextureId != 0)
 	{
-		// UV flipped vertically: scene rendered with Vulkan Y-flip, so flip V to display right-side up
-		ImGui::Image(static_cast<ImTextureID>(sceneTextureId), renderSize, ImVec2(0, 1), ImVec2(1, 0));
+		// Scene output is already oriented correctly for Vulkan; don't flip UVs here.
+		ImGui::Image(static_cast<ImTextureID>(sceneTextureId), renderSize);
 	}
 
 	// Draw and update gizmo
@@ -273,8 +278,8 @@ void CustomViewport::UpdateCameraControl()
 		// Reset keys
 		camera.movement_ = CameraPositioner_FirstPerson::Movement{};
 
-
-	camera.update(GameTime::Dt(), mouse_delta, ST<KeyboardMouseInput>::Get()->GetIsDown(KEY::M_RIGHT));
+	// Use RealDt() so editor camera works even when game time is paused
+	camera.update(GameTime::RealDt(), mouse_delta, ST<KeyboardMouseInput>::Get()->GetIsDown(KEY::M_RIGHT));
 }
 
 void CustomViewport::DrawPlayControls() {
@@ -387,6 +392,55 @@ void CustomViewport::DrawPlayControls() {
 	ImGui::PopStyleColor(5);
 
 	ImGui::PopStyleVar(3); // Frame padding, rounding, border
+
+	// Right-aligned render distance + features dropdown
+	{
+		const float dropdownWidth = 70.0f;
+		const float sliderWidth = 120.0f;
+		const float totalRightWidth = sliderWidth + 8.0f + dropdownWidth + 4.0f;
+		ImGui::SameLine(ImGui::GetWindowWidth() - totalRightWidth);
+
+		ImGui::PushItemWidth(sliderWidth);
+		ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0.15f, 0.15f, 0.15f, 1.0f));
+		ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.8f, 0.8f, 0.8f, 1.0f));
+		ImGui::DragFloat("##RenderDist", &m_editorFarPlane, 10.0f, 100.0f, 50000.0f, "Far: %.0f");
+		ImGui::PopStyleColor(2);
+		ImGui::PopItemWidth();
+
+		ImGui::SameLine();
+
+		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.2f, 0.2f, 0.2f, 1.0f));
+		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.3f, 0.3f, 0.3f, 1.0f));
+		ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.8f, 0.8f, 0.8f, 1.0f));
+		if (ImGui::Button(ICON_FA_EYE " Features", ImVec2(dropdownWidth, BUTTON_HEIGHT))) {
+			ImGui::OpenPopup("##FeatureMaskPopup");
+		}
+		ImGui::PopStyleColor(3);
+
+		if (ImGui::BeginPopup("##FeatureMaskPopup")) {
+			auto* graphics = ST<GraphicsMain>::Get();
+			auto* renderer = graphics ? graphics->GetRenderer() : nullptr;
+
+			if (graphics && renderer) {
+				FeatureMask& mask = graphics->GetSceneViewFeatureMask();
+				auto features = renderer->getRegisteredFeatures();
+				for (const auto& feat : features) {
+					if (feat.mask == 0) continue;
+					// ImGui is a system feature that operates on the swapchain, not a per-view feature
+					if (std::strcmp(feat.name, "ImGuiRenderFeature") == 0) continue;
+					bool enabled = (mask & feat.mask) != 0;
+					if (ImGui::Checkbox(feat.name, &enabled)) {
+						if (enabled)
+							mask |= feat.mask;
+						else
+							mask &= ~feat.mask;
+					}
+				}
+			}
+			ImGui::EndPopup();
+		}
+	}
+
 	ImGui::EndChild();
 	ImGui::PopStyleColor(); // Toolbar background
 

@@ -1,8 +1,9 @@
 #include "Editor/SoundTab.h"
-#include "Engine/Resources/ResourceManager.h"
-#include "Engine/Resources/Types/ResourceTypesAudio.h"
+#include "Assets/AssetManager.h"
+#include "Assets/Types/AssetTypesAudio.h"
 #include "Editor/Containers/GUICollection.h"
 #include "Managers/AudioManager.h"
+#include "Editor/SoundGroupWindow.h"
 
 namespace editor {
 
@@ -21,7 +22,7 @@ namespace editor {
         gui::Child child{ "SoundTable", gui::Vec2{ 0.0f, -FLT_MIN }, gui::FLAG_CHILD::BORDERS };
 
 #ifdef IMGUI_ENABLED
-        auto soundResources{ ST<MagicResourceManager>::Get()->Editor_GetContainer<ResourceAudio>().Editor_GetAllResources() };
+        auto soundResources{ ST<AssetManager>::Get()->Editor_GetContainer<ResourceAudio>().Editor_GetAllResources() };
 
         ImGui::Columns(2, nullptr, true);
 
@@ -30,7 +31,7 @@ namespace editor {
 
         for (const auto& [hash, resource] : soundResources)
         {
-            const std::string& name{ *ST<MagicResourceManager>::Get()->Editor_GetName(hash) };
+            const std::string& name{ *ST<AssetManager>::Get()->Editor_GetName(hash) };
 
             // Create Button
             if (ImGui::Selectable(name.c_str()))
@@ -65,6 +66,10 @@ namespace editor {
 
         ImGui::NextColumn();
 
+        if (gui::Button{ "Sound Groups" })
+            editor::CreateGuiWindow<SoundGroupWindow>();
+        gui::Separator();
+
         // Right column for audio controls
         static float previewVolume = 1.f;
         static Vec3 pos = Vec3{ 0.f, 0.f, 0.f };
@@ -82,7 +87,7 @@ namespace editor {
 
         if (ST<AudioManager>::Get()->IsPlaying(currentPreviewSound))
         {
-            if (const std::string* previewSoundName{ ST<MagicResourceManager>::Get()->Editor_GetName(lastPreviewAudioHash) })
+            if (const std::string* previewSoundName{ ST<AssetManager>::Get()->Editor_GetName(lastPreviewAudioHash) })
                 playingName = *previewSoundName;
             FMOD::Sound* currentSound = ST<AudioManager>::Get()->GetSound(currentPreviewSound);
 
@@ -190,7 +195,7 @@ namespace editor {
         if (gui::ItemContextMenu contextMenu{ ("Delete##" + name).c_str() })
             if (gui::MenuItem("Delete"))
                 // Note: The deletion of the resource calls AudioManager::FreeSound(), which stops all sounds, even sounds that are not this sound being deleted
-                ST<MagicResourceManager>::Get()->INTERNAL_GetContainer<ResourceAudio>().DeleteResource(hash);
+                ST<AssetManager>::Get()->INTERNAL_GetContainer<ResourceAudio>().DeleteResource(hash);
     }
 
 }

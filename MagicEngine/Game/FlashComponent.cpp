@@ -42,7 +42,7 @@ void FlashComponent::EditorDraw()
 {
 	gui::VarInput("Flash Time", &flashTime);
 
-	const std::string* materialText{ ST<MagicResourceManager>::Get()->Editor_GetName(flashMaterial.GetHash()) };
+	const std::string* materialText{ ST<AssetManager>::Get()->Editor_GetName(flashMaterial.GetHash()) };
 
 	gui::TextUnformatted("Material");
 	gui::TextBoxReadOnly("##", materialText ? materialText->c_str() : "");

@@ -1,19 +1,22 @@
 ﻿#pragma once
-#include "Engine/Resources/ResourcesHeader.h"
-#include "Engine/Resources/Types/ResourceTypesGraphics.h"
+#include "Assets/AssetHandle.h"
+#include "Assets/Types/AssetTypes.h"
+#include "Assets/Types/AssetTypesAudio.h"
 
 // Describes each attack/parry/whatever that the weapon provides
 struct WeaponMoveInfo : public ISerializeable
 {
 	// Animation associated with this move
 	// For now if the same weapon is used by player and enemy, duplicate the WeaponInfo i guess
-	UserResourceHandle<ResourceAnimation> anim = 0;
+	AssetHandle<ResourceAnimation> anim = 0;
 	// Hitbox details
 	Vec3 hitboxOffset; // Position offset from where the entity is located
 	Vec3 hitboxExtents;
 	// When does the move "hit"
 	float hitDelay = 0.1f;
 	// note: if certain moves should do more/less damage than others, can add an override value here while leaving the ints in WeaponInfo as the default
+	// Sound of animation (only supported in specific states), will pick a single sound to play
+	AssetHandle<ResourceAudioGroup> audio;
 
 	void EditorDraw();
 
@@ -24,7 +27,8 @@ property_begin(WeaponMoveInfo)
 	property_var(anim),
 	property_var(hitboxOffset),
 	property_var(hitboxExtents),
-	property_var(hitDelay)
+	property_var(hitDelay),
+	property_var(audio)
 }
 property_vend_h(WeaponMoveInfo)
 

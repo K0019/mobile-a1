@@ -1,14 +1,15 @@
 #pragma once
 #define EDITOR_UTIL_RESOURCE
-#include "Engine/Resources/ResourcesHeader.h"
-#include "Engine/Resources/Types/ResourceTypesGraphics.h"
+#include "Assets/AssetHandle.h"
+#include "Assets/Types/AssetTypes.h"
+#include "Assets/Types/AssetTypesAudio.h"
 #include "Game/Weapon.h"
 
 namespace editor {
 
 	// Specializations implemented in CPP. As long as the ResourceType is listed below, this will work.
 	template <typename ResourceType>
-	void EditorUtil_DrawResourceHandle(const char* label, UserResourceHandle<ResourceType>& resourceHandle)
+	void EditorUtil_DrawResourceHandle(const char* label, AssetHandle<ResourceType>& resourceHandle)
 	{
 		static_assert(always_false<ResourceType>::value, "EditorUtil_DrawResourceHandle not implemented for this type");
 	  // note, always_false is defined in properties.h, it's not an actual cpp type
@@ -16,9 +17,11 @@ namespace editor {
 	  // previously it would be evaluated at compile time, even without a function instantiation. Putting a template forces it to only be evaluated when instantiated.
 	}
 
-	template <> void EditorUtil_DrawResourceHandle(const char* label, UserResourceHandle<ResourceTexture>& resourceHandle);
-	template <> void EditorUtil_DrawResourceHandle(const char* label, UserResourceHandle<ResourceMaterial>& resourceHandle);
-	template <> void EditorUtil_DrawResourceHandle(const char* label, UserResourceHandle<ResourceAnimation>& resourceHandle);
-	template <> void EditorUtil_DrawResourceHandle(const char* label, UserResourceHandle<WeaponInfo>& resourceHandle);
+	template <> void EditorUtil_DrawResourceHandle(const char* label, AssetHandle<ResourceTexture>& resourceHandle);
+	template <> void EditorUtil_DrawResourceHandle(const char* label, AssetHandle<ResourceMaterial>& resourceHandle);
+	template <> void EditorUtil_DrawResourceHandle(const char* label, AssetHandle<ResourceAnimation>& resourceHandle);
+	template <> void EditorUtil_DrawResourceHandle(const char* label, AssetHandle<ResourceAudio>& resourceHandle);
+	template <> void EditorUtil_DrawResourceHandle(const char* label, AssetHandle<ResourceAudioGroup>& resourceHandle);
+	template <> void EditorUtil_DrawResourceHandle(const char* label, AssetHandle<WeaponInfo>& resourceHandle);
 
 }

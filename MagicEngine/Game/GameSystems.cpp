@@ -23,6 +23,7 @@ All rights reserved.
 #include "Game/GameSystems.h"
 #include "ECS/ECSSysLayers.h"
 #include "Utilities/Messaging.h"
+#include "Utilities/GameTime.h"
 #include "Engine/SceneManagement.h"
 #include "Managers/AudioManager.h"
 
@@ -35,6 +36,7 @@ All rights reserved.
 #include "UI/TextComponent.h"
 #include "UI/SpriteComponent.h"
 #include "UI/ButtonComponent.h"
+#include "UI/SliderComponent.h"
 #include "3DUI/BillboardComponent.h"
 
 #include "Graphics/CameraSystem.h"
@@ -92,6 +94,7 @@ void GameState_Game::OnEnter()
 
     ecs::AddSystem(ECS_LAYER::INPUT_0, AndroidInputSystem{});
     ecs::AddSystem(ECS_LAYER::INPUT_1, ButtonInputSystem{});
+    ecs::AddSystem(ECS_LAYER::INPUT_2, SliderSystem{});
 
     ecs::AddSystem(ECS_LAYER::POST_PHYSICS_0, GameCameraControllerSystem{});
     ecs::AddSystem(ECS_LAYER::INPUT_1, PlayerMovementComponentSystem{});
@@ -172,6 +175,7 @@ void GameSystemsManager::UpdateState()
     case GAMESTATE::EDITOR:
         SwitchToState<GameState_Editor>();
         ST<SceneManager>::Get()->ResetAndLoadPrevOpenScenes();
+        GameTime::SetTimeScale(0.0f);  // Freeze animations in editor
         break;
     case GAMESTATE::IN_GAME:
         // Don't save scenes if we're resuming from pause mode.
@@ -182,9 +186,11 @@ void GameSystemsManager::UpdateState()
             Messaging::BroadcastAll("OnEngineSimulationStart");
         }
         SwitchToState<GameState_Game>();
+        GameTime::SetTimeScale(1.0f);  // Resume animations in play mode
         break;
     case GAMESTATE::PAUSE:
         SwitchToState<GameState_Pause>();
+        GameTime::SetTimeScale(0.0f);  // Freeze animations when paused
         break;
     default:
         CONSOLE_LOG(LEVEL_ERROR) << "Unimplemented game state " << +state << '!';

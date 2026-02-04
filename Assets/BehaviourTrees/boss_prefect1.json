@@ -2,7 +2,7 @@
     "name": "boss_prefect1",
     "nodes": [
         {
-            "nodeType": "S_Boss_HealthPhases",
+            "nodeType": "S_Boss_FSMPhases",
             "nodeLevel": 0
         },
         {

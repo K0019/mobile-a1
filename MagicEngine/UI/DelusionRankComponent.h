@@ -23,8 +23,8 @@ All rights reserved.
 #include "Game/IGameComponentCallbacks.h"
 #include "Game/Delusion.h"
 #include "ECS/EntityUID.h"
-#include "Engine/Resources/ResourcesHeader.h"
-#include "Engine/Resources/Types/ResourceTypesGraphics.h"
+#include "Assets/AssetHandle.h"
+#include "Assets/Types/AssetTypes.h"
 
 class DelusionRankComponent
 	: public IRegisteredComponent<DelusionRankComponent>
@@ -42,7 +42,7 @@ private:
 
 private:
 	EntityReference entWithDelusion;
-	std::array<UserResourceHandle<ResourceTexture>, +DELUSION_TIER::TOTAL> rankTextures;
+	std::array<AssetHandle<ResourceTexture>, +DELUSION_TIER::TOTAL> rankTextures;
 
 public:
 	property_vtable()

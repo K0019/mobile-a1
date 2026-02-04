@@ -1,99 +1,93 @@
+import argparse
 import os
 import sys
 
-# The root directory of your assets, relative to where the script is run
-android_asset_dir = 'android/app/src/main/assets'
-output_file = os.path.join(android_asset_dir, 'asset_manifest.txt')
-working_asset_dir = 'assets'
+# Generates a case-preserving manifest for Android APK asset lookup.
+#
+# Android APK assets are case-sensitive. Our engine often requests asset paths in
+# mixed/lowercase. The runtime VFS builds a lookup table using:
+#   lowercase(requested_path) -> actual_on_disk_path
+#
+# This script must write the actual on-disk path (case-preserving) for each file.
+
+_SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+ASSETS_ROOT = os.path.join(_SCRIPT_DIR, "Assets")
+OUTPUT_FILE = os.path.join(ASSETS_ROOT, "asset_manifest.txt")
+
+# Windows reserved device names — os.path.relpath() fails on these.
+_WIN_RESERVED = frozenset({
+    "con", "prn", "aux", "nul",
+    *(f"com{i}" for i in range(1, 10)),
+    *(f"lpt{i}" for i in range(1, 10)),
+})
 
 
-
-def rename_to_lowercase(directory):
-    """Recursively rename all files and directories to lowercase."""
-    renamed_count = 0
-    
-    # Walk bottom-up to handle nested directories properly
-    for root, dirs, files in os.walk(directory, topdown=False):
-        # Rename files first
+def _collect_asset_paths(assets_root: str) -> list[str]:
+    """Walk assets directory and collect all relative paths."""
+    paths: list[str] = []
+    for root, _dirs, files in os.walk(assets_root):
+        files.sort()
         for name in files:
-            if name == 'asset_manifest.txt':
+            if name == "asset_manifest.txt":
                 continue
-                
-            lowercase_name = name.lower()
-            if name != lowercase_name:
-                old_path = os.path.join(root, name)
-                new_path = os.path.join(root, lowercase_name)
-                
-                # Handle case where target file already exists (and is not the same file)
-                if os.path.exists(new_path) and os.path.normcase(old_path) != os.path.normcase(new_path):
-                    print(f"Warning: Cannot rename '{name}' to '{lowercase_name}' - target already exists")
-                else:
-                    os.rename(old_path, new_path)
-                    print(f"Renamed: {name} -> {lowercase_name}")
-                    renamed_count += 1
-        
-        # Rename directories
-        for name in dirs:
-            lowercase_name = name.lower()
-            if name != lowercase_name:
-                old_path = os.path.join(root, name)
-                new_path = os.path.join(root, lowercase_name)
-                
-                if os.path.exists(new_path) and os.path.normcase(old_path) != os.path.normcase(new_path):
-                    print(f"Warning: Cannot rename directory '{name}' to '{lowercase_name}' - target already exists")
-                else:
-                    os.rename(old_path, new_path)
-                    print(f"Renamed directory: {name} -> {lowercase_name}")
-                    renamed_count += 1
-    
-    return renamed_count
+            # Skip Windows reserved device names (e.g. "nul") which break os.path.relpath.
+            stem = name.split(".")[0].lower()
+            if stem in _WIN_RESERVED:
+                continue
+            full_path = os.path.join(root, name)
+            rel = os.path.relpath(full_path, assets_root).replace("\\", "/")
+            paths.append(rel)
+    return paths
 
 
+def _read_existing_manifest(path: str) -> list[str] | None:
+    """Read existing manifest, return None if doesn't exist."""
+    if not os.path.isfile(path):
+        return None
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            return [line.rstrip("\n") for line in f if line.strip()]
+    except Exception:
+        return None
 
 
+def main() -> int:
+    parser = argparse.ArgumentParser(description="Generate Android asset manifest")
+    parser.add_argument(
+        "--force",
+        action="store_true",
+        help="Force regeneration even if manifest is up-to-date",
+    )
+    args = parser.parse_args()
 
-# Rename all assets to lowercase
-print("Renaming assets to lowercase...")
-renamed_count = rename_to_lowercase(working_asset_dir)
-print(f"Renamed {renamed_count} files/directories to lowercase\n")
+    if not os.path.isdir(ASSETS_ROOT):
+        print(f"Error: Assets root '{ASSETS_ROOT}' does not exist.")
+        return 1
+
+    try:
+        # Collect current asset paths
+        current_paths = _collect_asset_paths(ASSETS_ROOT)
+        file_count = len(current_paths)
+
+        # Check if manifest needs updating
+        if not args.force:
+            existing_paths = _read_existing_manifest(OUTPUT_FILE)
+            if existing_paths is not None and existing_paths == current_paths:
+                print(f"Manifest unchanged ({file_count} files). Skipped write.")
+                return 0
+
+        # Write new manifest
+        with open(OUTPUT_FILE, "w", encoding="utf-8") as f:
+            for rel in current_paths:
+                f.write(rel + "\n")
+
+        print(f"Generated asset manifest at: {OUTPUT_FILE}")
+        print(f"Total files indexed: {file_count}")
+        return 0
+    except Exception as e:
+        print(f"Error writing manifest: {e}")
+        return 1
 
 
-
-
-# Check if the asset directory exists
-if not os.path.exists(android_asset_dir):
-    print(f"Error: Asset directory '{android_asset_dir}' does not exist.")
-    print(f"Current working directory: {os.getcwd()}")
-    sys.exit(1)
-
-# Ensure the output directory exists
-os.makedirs(android_asset_dir, exist_ok=True)
-
-
-# Building the asset manifest
-try:
-    with open(output_file, 'w', encoding='utf-8') as f:
-        file_count = 0
-        
-        # Recursively walk through the asset directory
-        for root, dirs, files in os.walk(working_asset_dir):
-            # Sort for consistent output
-            files.sort()
-            
-            for name in files:
-                # Skip the manifest file itself
-                if name == 'asset_manifest.txt':
-                    continue
-                
-                full_path = os.path.join(root, name)
-                # Get the path relative to the asset_dir and normalize slashes to forward slashes
-                relative_path = os.path.relpath(full_path, working_asset_dir).replace('\\', '/').lower()
-                f.write(relative_path + '\n')
-                file_count += 1
-        
-    print(f"Generated asset manifest at: {output_file}")
-    print(f"Total files indexed: {file_count}")
-    
-except Exception as e:
-    print(f"Error writing manifest: {e}")
-    sys.exit(1)
+if __name__ == "__main__":
+    raise SystemExit(main())

@@ -65,6 +65,7 @@ public:
 
 	// Sound
 	static const std::string soundFolder;
+	static const std::string soundGroupFolder;
 
 	// Scripting
 	static const std::string scriptsWorkingDir;

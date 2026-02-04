@@ -8,6 +8,7 @@ void WeaponMoveInfo::EditorDraw()
 	gui::VarDefault("Hitbox Offset", &hitboxOffset);
 	gui::VarDefault("Hitbox Extent", &hitboxExtents);
 	gui::VarDefault("Hit Delay", &hitDelay);
+	editor::EditorUtil_DrawResourceHandle("Sound Group", audio);
 }
 
 bool WeaponInfo::IsLoaded()

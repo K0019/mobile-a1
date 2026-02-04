@@ -1,7 +1,7 @@
 #include "Editor/MeshTab.h"
 #include "Editor/AssetBrowser.h"
 #include "Editor/EditorGuiUtils.h"
-#include "Engine/Resources/Types/ResourceTypesGraphics.h"
+#include "Assets/Types/AssetTypes.h"
 
 namespace editor {
 
@@ -48,9 +48,9 @@ namespace editor {
         ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
 
         int count{};
-        for (const auto& [hash, mesh] : ST<MagicResourceManager>::Get()->INTERNAL_GetContainer<ResourceMesh>().Editor_GetAllResources())
+        for (const auto& [hash, mesh] : ST<AssetManager>::Get()->INTERNAL_GetContainer<ResourceMesh>().Editor_GetAllResources())
         {
-            const std::string& meshName{ *ST<MagicResourceManager>::Get()->Editor_GetName(hash) };
+            const std::string& meshName{ *ST<AssetManager>::Get()->Editor_GetName(hash) };
             if (!filter.PassFilter(meshName))
                 continue;
 
@@ -102,7 +102,7 @@ namespace editor {
         ImGui::BeginChild("MeshDetails", ImVec2(0, 0), true);
 
         size_t hash = selectedMeshHash.value();
-        const std::string* meshName = ST<MagicResourceManager>::Get()->Editor_GetName(hash);
+        const std::string* meshName = ST<AssetManager>::Get()->Editor_GetName(hash);
 
         if (!meshName)
         {
@@ -124,7 +124,7 @@ namespace editor {
         ImGui::Separator();
 
         // Check if mesh is loaded (without triggering a load)
-        auto& container = ST<MagicResourceManager>::Get()->INTERNAL_GetContainer<ResourceMesh>();
+        auto& container = ST<AssetManager>::Get()->INTERNAL_GetContainer<ResourceMesh>();
         ResourceMesh* mesh = const_cast<ResourceMesh*>(static_cast<const ResourceMesh*>(container.GetResource(hash)));
 
         if (!mesh || !mesh->IsLoaded())
@@ -161,7 +161,7 @@ namespace editor {
         for (size_t i = 0; i < mesh->defaultMaterialHashes.size(); ++i)
         {
             size_t matHash = mesh->defaultMaterialHashes[i];
-            const std::string* matName = ST<MagicResourceManager>::Get()->Editor_GetName(matHash);
+            const std::string* matName = ST<AssetManager>::Get()->Editor_GetName(matHash);
 
             ImGui::PushID(static_cast<int>(i));
             if (matName)

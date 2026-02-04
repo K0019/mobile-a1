@@ -1,6 +1,6 @@
 #include "Engine/Audio.h"
 #include "Managers/AudioManager.h"
-#include "Engine/Resources/ResourceManager.h"
+#include "Assets/AssetManager.h"
 #include "Editor/Containers/GUICollection.h"
 
 AudioSourceComponent::AudioSourceComponent()
@@ -41,7 +41,7 @@ void AudioSourceComponent::EditorDraw()
 
 	if (audioFile != 0) {
 
-		gui::TextBoxReadOnly("Audio File", *ST<MagicResourceManager>::Get()->Editor_GetName(audioFile));
+		gui::TextBoxReadOnly("Audio File", *ST<AssetManager>::Get()->Editor_GetName(audioFile));
 		gui::PayloadTarget<size_t>("SOUND_HASH", [this](size_t hash) -> void {
 			audioFile = hash;
 			});

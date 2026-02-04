@@ -31,6 +31,7 @@ All rights reserved.
 #include "Game/PlayerCharacter.h"
 #include "Game/EnemyCharacter.h"
 #include "Game/Delusion.h"
+#include "Graphics/AnimatorComponent.h"
 #include "Managers\AudioManager.h"
 
 #include "Engine/Events/EventsQueue.h"
@@ -88,6 +89,7 @@ void GrabbableItemComponent::Attack(Vec3 origin, Vec3 extents)
 				knockbackDirection = knockbackDirection.Normalized();
 				healthComp->TakeDamage(attackDamage, knockbackDirection);
 			}
+
 			//damage taken tied to delusion for now
 			//if owner is enemy
 			if (owner->GetComp<EnemyComponent>())
@@ -106,6 +108,12 @@ void GrabbableItemComponent::Attack(Vec3 origin, Vec3 extents)
 				{
 					delusionComp->AddDelusion(attackDamage * 0.2f);
 				}
+
+				// Apply hitstop to both player and enemy
+				if (auto animComp{ owner->GetComp<AnimatorComponent>() })
+					animComp->GetStateMachine()->blackboard["inputHitstop"] = true;
+				if (auto animComp{ hitEntity->GetComp<AnimatorComponent>() })
+					animComp->GetStateMachine()->blackboard["inputHitstop"] = true;
 			}
 
 		}
@@ -135,28 +143,28 @@ void GrabbableItemComponent::EditorDraw()
 	gui::TextUnformatted("Light Attack");
 	gui::SameLine();
 	std::string blankName = "";
-	gui::TextBoxReadOnly("##AnimClipLight", ST<MagicResourceManager>::Get()->Editor_GetName(lightAttackAnimation.GetHash()) ? (*ST<MagicResourceManager>::Get()->Editor_GetName(lightAttackAnimation.GetHash())) : blankName);
+	gui::TextBoxReadOnly("##AnimClipLight", ST<AssetManager>::Get()->Editor_GetName(lightAttackAnimation.GetHash()) ? (*ST<AssetManager>::Get()->Editor_GetName(lightAttackAnimation.GetHash())) : blankName);
 	gui::PayloadTarget<size_t>("ANIMATION_HASH", [&](size_t hash) -> void {
 		lightAttackAnimation = hash;
 		});
 
 	gui::TextUnformatted("Heavy Attack");
 	gui::SameLine();
-	gui::TextBoxReadOnly("##AnimClipHeavy", ST<MagicResourceManager>::Get()->Editor_GetName(heavyAttackAnimation.GetHash()) ? (*ST<MagicResourceManager>::Get()->Editor_GetName(heavyAttackAnimation.GetHash())) : blankName);
+	gui::TextBoxReadOnly("##AnimClipHeavy", ST<AssetManager>::Get()->Editor_GetName(heavyAttackAnimation.GetHash()) ? (*ST<AssetManager>::Get()->Editor_GetName(heavyAttackAnimation.GetHash())) : blankName);
 	gui::PayloadTarget<size_t>("ANIMATION_HASH", [&](size_t hash) -> void {
 		heavyAttackAnimation = hash;
 		});
 
 	gui::TextUnformatted("Ultimate");
 	gui::SameLine();
-	gui::TextBoxReadOnly("##AnimClipUltim", ST<MagicResourceManager>::Get()->Editor_GetName(ultimAttackAnimation.GetHash()) ? (*ST<MagicResourceManager>::Get()->Editor_GetName(ultimAttackAnimation.GetHash())) : blankName);
+	gui::TextBoxReadOnly("##AnimClipUltim", ST<AssetManager>::Get()->Editor_GetName(ultimAttackAnimation.GetHash()) ? (*ST<AssetManager>::Get()->Editor_GetName(ultimAttackAnimation.GetHash())) : blankName);
 	gui::PayloadTarget<size_t>("ANIMATION_HASH", [&](size_t hash) -> void {
 		ultimAttackAnimation = hash;
 		});
 
 	gui::TextUnformatted("Parry");
 	gui::SameLine();
-	gui::TextBoxReadOnly("##AnimClipParry", ST<MagicResourceManager>::Get()->Editor_GetName(parryAnimation.GetHash()) ? (*ST<MagicResourceManager>::Get()->Editor_GetName(parryAnimation.GetHash())) : blankName);
+	gui::TextBoxReadOnly("##AnimClipParry", ST<AssetManager>::Get()->Editor_GetName(parryAnimation.GetHash()) ? (*ST<AssetManager>::Get()->Editor_GetName(parryAnimation.GetHash())) : blankName);
 	gui::PayloadTarget<size_t>("ANIMATION_HASH", [&](size_t hash) -> void {
 		parryAnimation = hash;
 		});
@@ -261,7 +269,7 @@ void GrabbableItemPickupUISystem::HideUI(ecs::EntityHandle itemEntity)
 	activeUIEntities.erase(uiEntityIter);
 }
 
-void GrabbableItemPickupUISystem::ShowUI(ecs::EntityHandle itemEntity, UserResourceHandle<ResourceMaterial> uiMaterial)
+void GrabbableItemPickupUISystem::ShowUI(ecs::EntityHandle itemEntity, AssetHandle<ResourceMaterial> uiMaterial)
 {
 	Transform& itemTransform{ itemEntity->GetTransform() };
 

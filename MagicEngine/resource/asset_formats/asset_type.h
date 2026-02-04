@@ -16,6 +16,7 @@ namespace AssetFormat
         Material,
         Texture,
         Audio,
+        AudioGroup,
         Scene,
         Prefab,
         Script,
@@ -40,6 +41,7 @@ namespace AssetFormat
             case AssetType::Material:  return "Material";
             case AssetType::Texture:   return "Texture";
             case AssetType::Audio:     return "Audio";
+            case AssetType::AudioGroup:return "AudioGroup";
             case AssetType::Scene:     return "Scene";
             case AssetType::Prefab:    return "Prefab";
             case AssetType::Script:    return "Script";
@@ -85,6 +87,10 @@ namespace AssetFormat
         if (extension == "mp3" || extension == "wav" || extension == "ogg" ||
             extension == "flac")
             return AssetType::Audio;
+
+        // Audio group
+        if (extension == "sg")
+            return AssetType::AudioGroup;
 
         // Scene formats
         if (extension == "scene")
@@ -143,6 +149,7 @@ namespace AssetFormat
         if (name == "Material")  return AssetType::Material;
         if (name == "Texture")   return AssetType::Texture;
         if (name == "Audio")     return AssetType::Audio;
+        if (name == "AudioGroup")return AssetType::AudioGroup;
         if (name == "Scene")     return AssetType::Scene;
         if (name == "Prefab")    return AssetType::Prefab;
         if (name == "Script")    return AssetType::Script;

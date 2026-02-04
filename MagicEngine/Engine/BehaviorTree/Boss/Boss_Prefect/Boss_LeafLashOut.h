@@ -8,11 +8,12 @@ public:
     NODE_STATUS OnUpdate(ecs::EntityHandle entity) override;
 
 private:
-    float currentAttackCooldown;
-    float currentAttackDelay;
-    int currentAttackCount;
+float currentAttackCooldown;
+float currentAttackDelay;
+int currentAttackCount;
 
-    bool impendingAttack;
+bool impendingAttack;
+bool waitingForAnimation;
 
     static float speedMultiplier;
     static float attackCooldown;

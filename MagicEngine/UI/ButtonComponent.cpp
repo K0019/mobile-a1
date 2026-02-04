@@ -29,6 +29,7 @@ All rights reserved.
 #include <cstdio>
 
 #include "core/platform/platform.h"
+#include "SliderComponent.h"
 
 namespace internal {
 
@@ -50,6 +51,8 @@ void ButtonComponent::OnPressed()
 {
 	isPressed = true;
 	SwapPrimitive();
+
+	ecs::GetEntity(this)->GetComp<EntityEventsComponent>()->BroadcastAll("OnButtonPressed");
 }
 
 bool ButtonComponent::GetIsPressed() const
@@ -64,6 +67,8 @@ void ButtonComponent::ResetPressState()
 
 	isPressed = false;
 	SwapPrimitive();
+
+	ecs::GetEntity(this)->GetComp<EntityEventsComponent>()->BroadcastAll("OnButtonReleased");
 }
 
 void ButtonComponent::OnClicked()
@@ -161,7 +166,7 @@ bool ButtonInputSystem::PreRun()
 
 	if (!(pressed || released))
 		return false;
-	pos = RetrieveMousePos();
+	pos = MagicInput::GetMousePos();
 	// pos returns window position. Compensate for wrong aspect ratios to fix click area not aligning with button rendering
 	pos.x = pos.x / static_cast<float>(Core::Display().GetWidth()) * 1920.0f;
 	pos.y = pos.y / static_cast<float>(Core::Display().GetHeight()) * 1080.0f;
@@ -170,18 +175,6 @@ bool ButtonInputSystem::PreRun()
 	fflush(stdout);
 
 	return true;
-}
-
-Vec2 ButtonInputSystem::RetrieveMousePos()
-{
-#ifdef __ANDROID__
-	return Vec2{ AndroidInputBridge::State().x, AndroidInputBridge::State().y };
-#else
-	if (auto eventHandlerMousePos{ ST<EventsQueue>::Get()->RequestValueFromEventHandlers<Vec2>(Getters::MousePosViewport{}) })
-		return eventHandlerMousePos.value();
-	else
-		return ST<KeyboardMouseInput>::Get()->GetMousePos();
-#endif
 }
 
 void ButtonInputSystem::CheckButtonInput(ButtonComponent& buttonComp, SpriteComponent& spriteComp, RectTransformComponent& rectTransform)

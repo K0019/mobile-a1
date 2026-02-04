@@ -1,6 +1,6 @@
 #include "Managers/AudioManager.h"
 #include <FMOD/fmod_errors.h>
-#include "Engine/Resources/ResourceManager.h"
+#include "Assets/AssetManager.h"
 #include "VFS/VFS.h"
 #include "VFS/IFileStream.h"
 #include "Engine/Audio.h"
@@ -135,7 +135,7 @@ uint32_t AudioManager::PlaySound(const std::string& filename, bool loop, AudioTy
 
 uint32_t AudioManager::PlaySound(size_t audioResourceHash, bool loop, AudioType category, float volumeModifier)
 {
-	const auto* resource{ ST<MagicResourceManager>::Get()->GetContainer<ResourceAudio>().GetResource(audioResourceHash)};
+	const auto* resource{ ST<AssetManager>::Get()->GetContainer<ResourceAudio>().GetResource(audioResourceHash)};
 	if (!resource)
 		return 0;
 
@@ -169,7 +169,7 @@ uint32_t AudioManager::PlaySound3D(const std::string& filename, bool loop, Vec3 
 
 uint32_t AudioManager::PlaySound3D(size_t audioResourceHash, bool loop, Vec3 position, AudioType category, std::pair<float, float> rolloff, float volumeModifier)
 {
-	const auto* resource{ ST<MagicResourceManager>::Get()->GetContainer<ResourceAudio>().GetResource(audioResourceHash) };
+	const auto* resource{ ST<AssetManager>::Get()->GetContainer<ResourceAudio>().GetResource(audioResourceHash) };
 	if (!resource)
 		return 0;
 

@@ -2,7 +2,7 @@
 #include "VFS/VFS.h"
 #include "Events/EventsQueue.h"
 #include "Events/EventsTypeEditor.h"
-#include "Resources/ResourceImporter.h"
+#include "Assets/AssetImporter.h"
 #include "FilepathConstants.h"
 
 namespace editor {
@@ -32,7 +32,7 @@ namespace editor {
 				return;
 			}
 
-			ResourceImporter::Import(filepath);
+			AssetImporter::Import(filepath);
 			SetIsOpen(false);
 		}
 	}

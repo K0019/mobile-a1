@@ -6,242 +6,212 @@
 #include <glm/glm.hpp>
 #include <iostream>
 // ============================================================================
-// Shaders (separate VS/FS per primitive; unified push constants)
+// Shaders (HSL format, compiled via hslc_compile_hsl_source)
 // ============================================================================
-// Common push constants layout for all three shaders
-// - Keep identical across VS/FS and across pipelines
-// - Unused fields are harmless in specific shaders
-// layout(push_constant) uniform Push { ... } PC;
-static const char* kPointVS = R"(
-#version 460
-#extension GL_EXT_buffer_reference : require
-#extension GL_EXT_buffer_reference_uvec2 : require
 
-struct PointGPU { vec3 p; float sizeWorld; uint abgr; uint pad0; uint pad1; uint pad2; };
-layout(buffer_reference, std430) readonly buffer PBuf { PointGPU pts[]; };
-
-layout(push_constant) uniform Push {
-  mat4  viewProj;
-  vec2  viewportSize;  // needed for world-to-pixel conversion
-  uvec2 baseAddr;
-  uint  offPoints;
-  uint  offLines;
-  uint  offTris;
-  uint  mode;
+// --- Point shader ---
+static const char* kPointShaderHSL = R"(#hina
+push_constant Push {
+  mat4 viewProj;
+  vec2 viewportSize;
 } PC;
 
-layout(location=0) out vec4 vColor;
+struct VertexIn {
+  vec4 aPositionSize;
+  uint aColor;
+};
 
-vec4 unpackRGBA(uint c){  // <-- FIXED
+struct Varyings {
+  vec4 vColor;
+};
+
+struct FragOut {
+  vec4 color;
+};
+#hina_end
+
+#hina_stage vertex entry VSMain
+vec4 unpackColor(uint c) {
   return vec4(
-    float((c>>24)&0xFFu)/255.0,
-    float((c>>16)&0xFFu)/255.0,
-    float((c>> 8)&0xFFu)/255.0,
-    float((c>> 0)&0xFFu)/255.0 );
+    float((c >> 24u) & 0xFFu) / 255.0,
+    float((c >> 16u) & 0xFFu) / 255.0,
+    float((c >>  8u) & 0xFFu) / 255.0,
+    float((c       ) & 0xFFu) / 255.0);
 }
 
-uvec2 addBytes(uvec2 a, uint off){ uint lo=a.x+off; return uvec2(lo, a.y + uint(lo<a.x)); }
-
-void main() {
-  PBuf B = PBuf(addBytes(PC.baseAddr, PC.offPoints));
-  PointGPU p = B.pts[gl_VertexIndex];
-
-  vec4 clipPos = PC.viewProj * vec4(p.p, 1.0);
+Varyings VSMain(VertexIn in) {
+  Varyings out;
+  vec4 clipPos = PC.viewProj * vec4(in.aPositionSize.xyz, 1.0);
   gl_Position = clipPos;
 
-  // Convert world-space size to screen-space pixels
-  // The viewProj[1][1] element gives us the vertical projection scale
-  // For perspective: screenSize = (worldSize * projScale * viewportHeight) / (2 * clipW)
   float projScale = abs(PC.viewProj[1][1]);
-  gl_PointSize = (p.sizeWorld * projScale * PC.viewportSize.y * 0.5) / clipPos.w;
+  gl_PointSize = max(1.0, (in.aPositionSize.w * projScale * PC.viewportSize.y * 0.5) / clipPos.w);
 
-  vColor = unpackRGBA(p.abgr);
+  out.vColor = unpackColor(in.aColor);
+  return out;
 }
-)";
-static const char* kPointFS = R"(
-#version 460
-layout(location=0) in  vec4 vColor;
-layout(location=0) out vec4 outColor;
+#hina_end
 
-void main() {
+#hina_stage fragment entry FSMain
+FragOut FSMain(Varyings in) {
+  FragOut out;
   vec2 uv = gl_PointCoord * 2.0 - 1.0;
   float d = length(uv);
   if (d > 1.0) discard;
   float alpha = 1.0 - smoothstep(0.9, 1.0, d);
-  outColor = vec4(vColor.rgb, vColor.a * alpha);
+  out.color = vec4(in.vColor.rgb, in.vColor.a * alpha);
+  return out;
 }
+#hina_end
 )";
-static const char* kLineVS = R"(
-#version 460
-#extension GL_EXT_buffer_reference : require
-#extension GL_EXT_buffer_reference_uvec2 : require
 
-struct LineGPU { vec3 p0; float sizeWorld; vec3 p1; uint abgr; };
-layout(buffer_reference, std430) readonly buffer LBuf { LineGPU lns[]; };
-
-layout(push_constant) uniform Push {
-  mat4  viewProj;
-  vec2  viewportSize; 
-  uvec2 baseAddr;
-  uint  offPoints;
-  uint  offLines;
-  uint  offTris;
-  uint  mode;
+// --- Line shader ---
+// Instance-rate: each instance = 2 vertices (line segment endpoints)
+// gl_VertexIndex 0-5 expands each segment into a screen-space quad
+static const char* kLineShaderHSL = R"(#hina
+push_constant Push {
+  mat4 viewProj;
+  vec2 viewportSize;
 } PC;
 
-layout(location=0) out vec4 vColor;
+struct VertexIn {
+  vec4 aP0Size;
+  uint aC0;
+  vec4 aP1Size;
+  uint aC1;
+};
 
-vec4 unpackRGBA(uint c){
+struct Varyings {
+  vec4 vColor;
+};
+
+struct FragOut {
+  vec4 color;
+};
+#hina_end
+
+#hina_stage vertex entry VSMain
+vec4 unpackColor(uint c) {
   return vec4(
-    float((c>>24)&0xFFu)/255.0,
-    float((c>>16)&0xFFu)/255.0,
-    float((c>> 8)&0xFFu)/255.0,
-    float((c>> 0)&0xFFu)/255.0 );
+    float((c >> 24u) & 0xFFu) / 255.0,
+    float((c >> 16u) & 0xFFu) / 255.0,
+    float((c >>  8u) & 0xFFu) / 255.0,
+    float((c       ) & 0xFFu) / 255.0);
 }
 
-uvec2 addBytes(uvec2 a, uint off){ uint lo=a.x+off; return uvec2(lo, a.y + uint(lo<a.x)); }
+Varyings VSMain(VertexIn in) {
+  Varyings out;
+  float sizeWorld = 0.5 * (in.aP0Size.w + in.aP1Size.w);
 
-void main() {
-  LBuf B = LBuf(addBytes(PC.baseAddr, PC.offLines));
-  LineGPU s = B.lns[gl_InstanceIndex];
+  vec4 p0 = PC.viewProj * vec4(in.aP0Size.xyz, 1.0);
+  vec4 p1 = PC.viewProj * vec4(in.aP1Size.xyz, 1.0);
 
-  // 1. Transform to Clip Space
-  vec4 p0 = PC.viewProj * vec4(s.p0, 1.0);
-  vec4 p1 = PC.viewProj * vec4(s.p1, 1.0);
-
-  // 2. Manual Near-Plane Clipping
-  // If points are behind the camera (w < epsilon), we must clip them.
-  // Otherwise, the perspective divide (xyz / w) will invert coordinates 
-  // or explode, causing the massive stretching artifacts.
   const float kNearW = 0.001;
-  
-  // If both are behind, discard the primitive
   if (p0.w < kNearW && p1.w < kNearW) {
-    gl_Position = vec4(0,0,0,0); // Degenerate
-    return;
+    gl_Position = vec4(0, 0, 0, 0);
+    out.vColor = vec4(0);
+    return out;
   }
-
-  // Clip p0 against Near Plane
   if (p0.w < kNearW) {
     float t = (kNearW - p0.w) / (p1.w - p0.w);
     p0 = mix(p0, p1, t);
   }
-  // Clip p1 against Near Plane
   if (p1.w < kNearW) {
     float t = (kNearW - p1.w) / (p0.w - p1.w);
     p1 = mix(p1, p0, t);
   }
 
-  // 3. Screen Space Direction
   vec2 p0_ndc = p0.xy / p0.w;
   vec2 p1_ndc = p1.xy / p1.w;
-  
   vec2 dir_s = p1_ndc - p0_ndc;
-  
-  // Handle zero-length after clipping
   if (dot(dir_s, dir_s) < 0.0000001) {
-     gl_Position = vec4(0,0,0,0);
-     return;
+    gl_Position = vec4(0, 0, 0, 0);
+    out.vColor = vec4(0);
+    return out;
   }
-  
   dir_s = normalize(dir_s);
   vec2 perp_s = vec2(-dir_s.y, dir_s.x);
 
-  // 4. Calculate Offset
-  // We want 'sizeWorld' thickness.
-  // In NDC, visual width = offset / w. 
-  // Therefore, we need a Constant offset in Clip Space to achieve 1/w scaling in NDC.
-  
-  // Correct for aspect ratio so lines look uniform width
   float aspect = PC.viewportSize.x / PC.viewportSize.y;
-  
-  // Projection scale (usually 1.0 / tan(fov/2))
-  float projScaleY = abs(PC.viewProj[1][1]); 
-  
-  // Calculate expansion vector in Clip Space
-  vec2 normal_clip = perp_s * s.sizeWorld * projScaleY * 0.5;
-  normal_clip.x /= aspect; // Correct X for aspect ratio
+  float projScaleY = abs(PC.viewProj[1][1]);
+  vec2 normal_clip = perp_s * sizeWorld * projScaleY * 0.5;
+  normal_clip.x /= aspect;
 
-  // 5. Expand Quad
-  uint vid = gl_VertexIndex % 6;
-  vec4 pos = (vid < 3) ? p0 : p1; // 0,1,2 -> p0; 3,4,5 -> p1
-  
-  // Expansion direction pattern for a strip-like quad 
-  // (0: -1, 1: +1, 2: +1) for p0 logic, effectively
-  float sign = (vid == 0 || vid == 3 || vid == 5) ? -1.0 : 1.0;
-  
+  uint vid = uint(gl_VertexIndex) % 6u;
+  vec4 pos;
   vec2 expansion;
-  if      (vid == 0) { pos = p0; expansion = -normal_clip; }
-  else if (vid == 1) { pos = p0; expansion =  normal_clip; }
-  else if (vid == 2) { pos = p1; expansion =  normal_clip; }
-  else if (vid == 3) { pos = p0; expansion = -normal_clip; }
-  else if (vid == 4) { pos = p1; expansion =  normal_clip; }
-  else               { pos = p1; expansion = -normal_clip; }
+  if      (vid == 0u) { pos = p0; expansion = -normal_clip; }
+  else if (vid == 1u) { pos = p0; expansion =  normal_clip; }
+  else if (vid == 2u) { pos = p1; expansion =  normal_clip; }
+  else if (vid == 3u) { pos = p0; expansion = -normal_clip; }
+  else if (vid == 4u) { pos = p1; expansion =  normal_clip; }
+  else                { pos = p1; expansion = -normal_clip; }
 
-  // Apply offset directly to Clip Position.
-  // When hardware divides by W later, the visual width becomes (expansion / pos.w).
-  // This creates the desired world-space size effect.
   gl_Position = pos + vec4(expansion, 0.0, 0.0);
-  
-  vColor = unpackRGBA(s.abgr);
+
+  vec4 c0 = unpackColor(in.aC0);
+  vec4 c1 = unpackColor(in.aC1);
+  out.vColor = (vid <= 1u || vid == 3u) ? c0 : c1;
+  return out;
 }
+#hina_end
+
+#hina_stage fragment entry FSMain
+FragOut FSMain(Varyings in) {
+  FragOut out;
+  out.color = in.vColor;
+  return out;
+}
+#hina_end
 )";
-static const char* kLineFS = R"(
-#version 460
-layout(location=0) in  vec4 vColor;
-layout(location=0) out vec4 outColor;
-void main(){ outColor = vColor; }
-)";
-static const char* kTriVS = R"(
 
-#version 460
-#extension GL_EXT_buffer_reference : require
-#extension GL_EXT_buffer_reference_uvec2 : require
-
-struct TriGPU { vec3 p0; uint c0; vec3 p1; uint c1; vec3 p2; uint c2; };
-layout(buffer_reference, std430) readonly buffer TBuf { TriGPU trs[]; };
-
-layout(push_constant) uniform Push {
-  mat4  viewProj;
-  vec2  viewportSize;  // unused
-  uvec2 baseAddr;
-  uint  offPoints;
-  uint  offLines;
-  uint  offTris;       // byte offset to TriGPU[]
-  uint  mode;
+// --- Triangle shader ---
+static const char* kTriShaderHSL = R"(#hina
+push_constant Push {
+  mat4 viewProj;
+  vec2 viewportSize;
 } PC;
 
-layout(location=0) out vec4 vColor;
+struct VertexIn {
+  vec4 aPositionSize;
+  uint aColor;
+};
 
-vec4 unpackRGBA(uint c){  // <-- FIXED
+struct Varyings {
+  vec4 vColor;
+};
+
+struct FragOut {
+  vec4 color;
+};
+#hina_end
+
+#hina_stage vertex entry VSMain
+vec4 unpackColor(uint c) {
   return vec4(
-    float((c>>24)&0xFFu)/255.0,
-    float((c>>16)&0xFFu)/255.0,
-    float((c>> 8)&0xFFu)/255.0,
-    float((c>> 0)&0xFFu)/255.0 );
+    float((c >> 24u) & 0xFFu) / 255.0,
+    float((c >> 16u) & 0xFFu) / 255.0,
+    float((c >>  8u) & 0xFFu) / 255.0,
+    float((c       ) & 0xFFu) / 255.0);
 }
 
-uvec2 addBytes(uvec2 a, uint off){ uint lo=a.x+off; return uvec2(lo, a.y + uint(lo<a.x)); }
-
-void main() {
-  TBuf B = TBuf(addBytes(PC.baseAddr, PC.offTris));
-  uint tri = uint(gl_VertexIndex) / 3u;
-  uint vid = uint(gl_VertexIndex) % 3u;
-
-  TriGPU t = B.trs[tri];
-  vec3 P = (vid==0u)? t.p0 : (vid==1u)? t.p1 : t.p2;
-  uint C = (vid==0u)? t.c0 : (vid==1u)? t.c1 : t.c2;
-
-  gl_Position = PC.viewProj * vec4(P, 1.0);
-  vColor = unpackRGBA(C);
+Varyings VSMain(VertexIn in) {
+  Varyings out;
+  gl_Position = PC.viewProj * vec4(in.aPositionSize.xyz, 1.0);
+  out.vColor = unpackColor(in.aColor);
+  return out;
 }
+#hina_end
+
+#hina_stage fragment entry FSMain
+FragOut FSMain(Varyings in) {
+  FragOut out;
+  out.color = in.vColor;
+  return out;
+}
+#hina_end
 )";
-static const char* kTriFS = R"(
-#version 460
-layout(location=0) in  vec4 vColor;
-layout(location=0) out vec4 outColor;
-void main(){ outColor = vColor; }
-)";
+
 // ============================================================================
 // Implementation
 // ============================================================================
@@ -259,17 +229,17 @@ void Im3dRenderFeature::SetupPasses(internal::RenderPassBuilder& passBuilder)
   passInfo.depthAttachment = {
     .textureName = RenderResources::SCENE_DEPTH, .loadOp = gfx::LoadOp::Load, .storeOp = gfx::StoreOp::Store
   };
-  // Single SSBO for all primitives
-  gfx::BufferDesc ssboDesc{
+  // Single CPU-mapped vertex buffer for all primitives
+  gfx::BufferDesc vbDesc{
     .size = 256 * 1024,
     .memory = gfx::BufferMemory::CPU,
-    .usage = gfx::BufferUsage::Storage
+    .usage = gfx::BufferUsage::Vertex
   };
-  passBuilder.CreatePass().DeclareTransientResource("Im3dSSBO", ssboDesc).UseResource("Im3dSSBO", AccessType::Read).
+  passBuilder.CreatePass().DeclareTransientResource("Im3dVB", vbDesc).UseResource("Im3dVB", AccessType::ReadWrite).
               UseResource(RenderResources::SCENE_COLOR, AccessType::ReadWrite).
               UseResource(RenderResources::SCENE_DEPTH, AccessType::ReadWrite).
               SetPriority(internal::RenderPassBuilder::PassPriority::Transparent).
-              ExecuteAfter("SceneComposite").  // Im3d must run AFTER composite populates SCENE_COLOR
+              ExecuteAfter("SceneComposite").
               AddGraphicsPass(
                 "Im3dDraw", passInfo, [this](const internal::ExecutionContext& ctx) { ExecuteDrawPass(ctx); });
 }
@@ -280,7 +250,6 @@ void Im3dRenderFeature::EnsurePipelinesCreated(const internal::ExecutionContext&
   HinaContext* hinaCtx = context.GetHinaContext();
   if (!hinaCtx) return;
 
-  auto colorHandle = context.GetTexture(RenderResources::SCENE_COLOR);
   auto depthHandle = context.GetTexture(RenderResources::SCENE_DEPTH);
 
   bool pointValid = gfx::isValid(pointPipeline_.get());
@@ -291,44 +260,16 @@ void Im3dRenderFeature::EnsurePipelinesCreated(const internal::ExecutionContext&
   if (pointValid && lineValid && triValid && samplesMatch)
     return;
 
-  std::cout << "[Im3D] Pipeline recreation triggered: point=" << pointValid
-            << " line=" << lineValid << " tri=" << triValid
-            << " samples=" << samplesMatch << std::endl;
-
-  // Helper to compile GLSL to shader
-  auto compileShader = [](const char* glsl, hina_shader_stage stage, const char* name) -> gfx::Shader {
-    uint32_t* spirvWords = nullptr;
-    size_t wordCount = 0;
-    gfx::Shader result = {};
-    if (hslc_compile_glsl(glsl, strlen(glsl), stage, "main", &spirvWords, &wordCount)) {
-      result = hina_make_shader(spirvWords, wordCount * sizeof(uint32_t));
-      hslc_free_spirv_words(spirvWords);
-      std::cout << "[Im3D] Shader " << name << " compiled OK" << std::endl;
-    } else {
-      std::cout << "[Im3D] Shader " << name << " FAILED to compile" << std::endl;
-    }
-    return result;
-  };
-
-  // Compile shaders
-  pointVS_.reset(compileShader(kPointVS, HINA_SHADER_STAGE_VERTEX, "pointVS"));
-  pointFS_.reset(compileShader(kPointFS, HINA_SHADER_STAGE_FRAGMENT, "pointFS"));
-  lineVS_.reset(compileShader(kLineVS, HINA_SHADER_STAGE_VERTEX, "lineVS"));
-  lineFS_.reset(compileShader(kLineFS, HINA_SHADER_STAGE_FRAGMENT, "lineFS"));
-  triVS_.reset(compileShader(kTriVS, HINA_SHADER_STAGE_VERTEX, "triVS"));
-  triFS_.reset(compileShader(kTriFS, HINA_SHADER_STAGE_FRAGMENT, "triFS"));
-
-  // Get formats - use HDR scene format since SCENE_COLOR uses linear workflow
+  // Formats
   hina_format colorFormat = LinearColor::HDR_SCENE_FORMAT;
   hina_format depthFormat = gfx::isValid(depthHandle) ? HINA_FORMAT_D32_SFLOAT : HINA_FORMAT_UNDEFINED;
 
-  // Helper to create pipeline with given topology and shaders
-  auto makePipeline = [&](hina_primitive_topology topo, gfx::Shader vs, gfx::Shader fs) -> gfx::Pipeline {
-    hina_pipeline_desc pipDesc = hina_pipeline_desc_default();
-    pipDesc.vs = vs;
-    pipDesc.fs = fs;
+  // sizeof(Im3d::VertexData) = 20 bytes: Vec4(16) + Color(4)
+  constexpr uint32_t kVertexStride = 20; // sizeof(Im3d::VertexData)
+
+  // Common pipeline state setup
+  auto setupCommonState = [&](hina_hsl_pipeline_desc& pipDesc) {
     pipDesc.cull_mode = HINA_CULL_MODE_NONE;
-    pipDesc.primitive_topology = topo;
     pipDesc.polygon_mode = HINA_POLYGON_MODE_FILL;
     pipDesc.samples = static_cast<hina_sample_count>(params.pipelineSamples);
 
@@ -342,28 +283,89 @@ void Im3dRenderFeature::EnsurePipelinesCreated(const internal::ExecutionContext&
     pipDesc.blend[0].color_op = HINA_BLEND_OP_ADD;
     pipDesc.blend[0].alpha_op = HINA_BLEND_OP_ADD;
 
-    // Depth (always pass, no write - for debug drawing)
+    // Depth (always pass, no write - for debug overlay)
     pipDesc.depth_format = depthFormat;
     pipDesc.depth.depth_test = (depthFormat != HINA_FORMAT_UNDEFINED);
     pipDesc.depth.depth_write = false;
     pipDesc.depth.depth_compare = HINA_COMPARE_OP_ALWAYS;
-
-    hina_pipeline_desc_any anyDesc = {};
-    anyDesc.kind = HINA_PIPELINE_KIND_GRAPHICS;
-    anyDesc.desc.graphics = pipDesc;
-
-    auto result = hina_make_pipeline_ex(&anyDesc);
-    return result;
   };
 
-  pointPipeline_.reset(makePipeline(HINA_PRIMITIVE_TOPOLOGY_POINT_LIST, pointVS_.get(), pointFS_.get()));
-  linePipeline_.reset(makePipeline(HINA_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST, lineVS_.get(), lineFS_.get()));
-  trianglePipeline_.reset(makePipeline(HINA_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST, triVS_.get(), triFS_.get()));
-  cachedSamples_ = params.pipelineSamples;
+  // Helper to compile HSL and create pipeline
+  auto compileHSL = [](const char* hsl, const char* name) -> hina_hsl_module* {
+    char* error = nullptr;
+    hina_hsl_module* module = hslc_compile_hsl_source(hsl, name, &error);
+    if (!module) {
+      std::cout << "[Im3D] HSL compile failed for " << name;
+      if (error) { std::cout << ": " << error; hslc_free_log(error); }
+      std::cout << std::endl;
+    }
+    return module;
+  };
 
-  std::cout << "[Im3D] Pipeline creation result: point=" << gfx::isValid(pointPipeline_.get())
-            << " line=" << gfx::isValid(linePipeline_.get())
-            << " tri=" << gfx::isValid(trianglePipeline_.get()) << std::endl;
+  // --- Point pipeline ---
+  {
+    hina_hsl_module* module = compileHSL(kPointShaderHSL, "im3d_point");
+    if (module) {
+      hina_hsl_pipeline_desc pipDesc = hina_hsl_pipeline_desc_default();
+      pipDesc.primitive_topology = HINA_PRIMITIVE_TOPOLOGY_POINT_LIST;
+      setupCommonState(pipDesc);
+
+      pipDesc.layout.buffer_count = 1;
+      pipDesc.layout.buffer_strides[0] = kVertexStride;
+      pipDesc.layout.input_rates[0] = HINA_VERTEX_INPUT_RATE_VERTEX;
+      pipDesc.layout.attr_count = 2;
+      pipDesc.layout.attrs[0] = { HINA_FORMAT_R32G32B32A32_SFLOAT, 0, 0, 0 };
+      pipDesc.layout.attrs[1] = { HINA_FORMAT_R32_UINT, 16, 1, 0 };
+
+      pointPipeline_.reset(hina_make_pipeline_from_module(module, &pipDesc, nullptr));
+      hslc_hsl_module_free(module);
+    }
+  }
+
+  // --- Line pipeline ---
+  {
+    hina_hsl_module* module = compileHSL(kLineShaderHSL, "im3d_line");
+    if (module) {
+      hina_hsl_pipeline_desc pipDesc = hina_hsl_pipeline_desc_default();
+      pipDesc.primitive_topology = HINA_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+      setupCommonState(pipDesc);
+
+      // Instance-rate: each instance = a line segment (2 vertices, stride=40)
+      pipDesc.layout.buffer_count = 1;
+      pipDesc.layout.buffer_strides[0] = kVertexStride * 2;
+      pipDesc.layout.input_rates[0] = HINA_VERTEX_INPUT_RATE_INSTANCE;
+      pipDesc.layout.attr_count = 4;
+      pipDesc.layout.attrs[0] = { HINA_FORMAT_R32G32B32A32_SFLOAT, 0, 0, 0 };
+      pipDesc.layout.attrs[1] = { HINA_FORMAT_R32_UINT, 16, 1, 0 };
+      pipDesc.layout.attrs[2] = { HINA_FORMAT_R32G32B32A32_SFLOAT, 20, 2, 0 };
+      pipDesc.layout.attrs[3] = { HINA_FORMAT_R32_UINT, 36, 3, 0 };
+
+      linePipeline_.reset(hina_make_pipeline_from_module(module, &pipDesc, nullptr));
+      hslc_hsl_module_free(module);
+    }
+  }
+
+  // --- Triangle pipeline ---
+  {
+    hina_hsl_module* module = compileHSL(kTriShaderHSL, "im3d_tri");
+    if (module) {
+      hina_hsl_pipeline_desc pipDesc = hina_hsl_pipeline_desc_default();
+      pipDesc.primitive_topology = HINA_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+      setupCommonState(pipDesc);
+
+      pipDesc.layout.buffer_count = 1;
+      pipDesc.layout.buffer_strides[0] = kVertexStride;
+      pipDesc.layout.input_rates[0] = HINA_VERTEX_INPUT_RATE_VERTEX;
+      pipDesc.layout.attr_count = 2;
+      pipDesc.layout.attrs[0] = { HINA_FORMAT_R32G32B32A32_SFLOAT, 0, 0, 0 };
+      pipDesc.layout.attrs[1] = { HINA_FORMAT_R32_UINT, 16, 1, 0 };
+
+      trianglePipeline_.reset(hina_make_pipeline_from_module(module, &pipDesc, nullptr));
+      hslc_hsl_module_free(module);
+    }
+  }
+
+  cachedSamples_ = params.pipelineSamples;
 }
 
 void Im3dRenderFeature::ExecuteDrawPass(const internal::ExecutionContext& context)
@@ -374,68 +376,90 @@ void Im3dRenderFeature::ExecuteDrawPass(const internal::ExecutionContext& contex
   if (!gfx::isValid(pointPipeline_.get()) || !gfx::isValid(linePipeline_.get()) ||
       !gfx::isValid(trianglePipeline_.get()))
     return;
-  if (params.packed.empty()) return;
-  auto& cmd = context.GetCommandBuffer();
-  // Ensure SSBO capacity (grow x2 policy)
-  const size_t total = params.packed.size();
-  size_t current = context.GetBufferSize("Im3dSSBO");
-  if (total > current)
+
+  const uint32_t numPoints = (uint32_t)params.pointVertices.size();
+  const uint32_t numLineVerts = (uint32_t)params.lineVertices.size();
+  const uint32_t numTriVerts = (uint32_t)params.triVertices.size();
+
+  if (numPoints == 0 && numLineVerts == 0 && numTriVerts == 0) return;
+
+  constexpr size_t vertSize = sizeof(Im3d::VertexData); // 20 bytes
+
+  // Calculate buffer layout: [points | lines | triangles]
+  const size_t bytesPoints = numPoints * vertSize;
+  const size_t bytesLines = numLineVerts * vertSize;
+  const size_t bytesTris = numTriVerts * vertSize;
+  const size_t totalBytes = bytesPoints + bytesLines + bytesTris;
+
+  // Ensure vertex buffer capacity (grow x2 policy)
+  size_t currentSize = context.GetBufferSize("Im3dVB");
+  if (totalBytes > currentSize)
   {
-    size_t newSize = current ? std::max(total, current * 2) : std::max<size_t>(total, 256 * 1024);
-    context.ResizeBuffer("Im3dSSBO", newSize);
+    size_t newSize = currentSize ? std::max(totalBytes, currentSize * 2) : std::max<size_t>(totalBytes, 256 * 1024);
+    context.ResizeBuffer("Im3dVB", newSize);
   }
-  auto ssbo = context.GetBuffer("Im3dSSBO");
-  HinaContext* hinaCtx = context.GetHinaContext();
-  if (!hinaCtx) return;
-  // Single mapped write + flush
-  auto* dst = hinaCtx->getMappedPtr(ssbo);
-  std::memcpy(dst, params.packed.data(), total);
-  hinaCtx->flushMappedMemory(ssbo, 0, total);
-  // TODO: refactor - gpuAddress removed
-  const uint64_t baseAddr64 = 0;
-  glm::uvec2 baseAddrSplit;
-  std::memcpy(&baseAddrSplit, &baseAddr64, sizeof(baseAddrSplit));
-  // Common push constants
+
+  auto vb = context.GetBuffer("Im3dVB");
+
+  // Build a contiguous upload buffer, then upload in one shot
+  std::vector<uint8_t> uploadBuf(totalBytes);
+  size_t off = 0;
+  if (bytesPoints > 0) { std::memcpy(uploadBuf.data() + off, params.pointVertices.data(), bytesPoints); off += bytesPoints; }
+  if (bytesLines > 0) { std::memcpy(uploadBuf.data() + off, params.lineVertices.data(), bytesLines); off += bytesLines; }
+  if (bytesTris > 0) { std::memcpy(uploadBuf.data() + off, params.triVertices.data(), bytesTris); off += bytesTris; }
+  hina_upload_buffer(vb, uploadBuf.data(), totalBytes);
+
+  // Push constants
   struct Push
   {
     glm::mat4 viewProj;
-    glm::vec2 viewportSize; // not used by these paths
-    glm::uvec2 baseAddr;
-    uint32_t offPoints;
-    uint32_t offLines;
-    uint32_t offTris;
-    uint32_t mode; // unused
+    glm::vec2 viewportSize;
   } pc{};
   const auto& fd = context.GetFrameData();
-  pc.viewProj = fd.projMatrix * fd.viewMatrix; // correct order
-  pc.viewportSize = {float(fd.screenWidth), float(fd.screenHeight)};
-  pc.baseAddr = baseAddrSplit;
-  pc.offPoints = params.offPoints;
-  pc.offLines = params.offLines;
-  pc.offTris = params.offTris;
-  // Common state
+  pc.viewProj = fd.projMatrix * fd.viewMatrix;
+  pc.viewportSize = { float(fd.screenWidth), float(fd.screenHeight) };
+
+
+  auto& cmd = context.GetCommandBuffer();
   const float w = float(fd.screenWidth), h = float(fd.screenHeight);
-  cmd.setViewport({.x = 0.f, .y = 0.f, .width = w, .height = h});
-  cmd.setScissor({.x = 0, .y = 0, .width = (uint32_t)w, .height = (uint32_t)h});
-  // Note: depth state is baked into pipelines (compare=Always, write=false)
+  cmd.setViewport({ .x = 0.f, .y = 0.f, .width = w, .height = h });
+  cmd.setScissor({ .x = 0, .y = 0, .width = (uint32_t)w, .height = (uint32_t)h });
+
+
   // Points
-  if (params.numPoints)
+  if (numPoints > 0)
   {
     cmd.bindPipeline(pointPipeline_.get());
     cmd.pushConstants(pc);
-    cmd.draw(params.numPoints);
+    hina_vertex_input vertInput = {};
+    vertInput.vertex_buffers[0] = vb;
+    vertInput.vertex_offsets[0] = 0; // points start at offset 0
+    cmd.applyVertexInput(vertInput);
+    cmd.draw(numPoints);
   }
-  if (params.numLines)
+
+  // Lines (instanced: 6 vertices per instance, each instance = 2 consecutive VertexData)
+  if (numLineVerts > 0)
   {
-    cmd.bindPipeline(linePipeline_.get()); // TriangleList pipeline
+    const uint32_t numLines = numLineVerts / 2;
+    cmd.bindPipeline(linePipeline_.get());
     cmd.pushConstants(pc);
-    cmd.draw(/*vertexCount=*/6, /*instanceCount=*/params.numLines);
+    hina_vertex_input vertInput = {};
+    vertInput.vertex_buffers[0] = vb;
+    vertInput.vertex_offsets[0] = bytesPoints; // lines start after points
+    cmd.applyVertexInput(vertInput);
+    cmd.draw(/*vertexCount=*/6, /*instanceCount=*/numLines);
   }
+
   // Triangles
-  if (params.numTris)
+  if (numTriVerts > 0)
   {
     cmd.bindPipeline(trianglePipeline_.get());
     cmd.pushConstants(pc);
-    cmd.draw(params.numTris * 3);
+    hina_vertex_input vertInput = {};
+    vertInput.vertex_buffers[0] = vb;
+    vertInput.vertex_offsets[0] = bytesPoints + bytesLines; // tris start after lines
+    cmd.applyVertexInput(vertInput);
+    cmd.draw(numTriVerts);
   }
 }

@@ -108,6 +108,14 @@ namespace util {
 	using ReturnType_t = decltype(internal::FunctionTypeSplitter(Func));
 
 	/*****************************************************************//*!
+	\concept EnumType
+	\brief
+		Limits variable type scope to enums.
+	*//******************************************************************/
+	template <typename T>
+	concept EnumType = std::is_enum_v<T>;
+
+	/*****************************************************************//*!
 	\struct IsPair
 	\brief
 		Type trait that identifies whether a type is a pair.
@@ -317,6 +325,23 @@ namespace util {
 	*//******************************************************************/
 	template <typename T>
 	T Lerp(T from, T to, float lerpFactor, float dt);
+
+	/*****************************************************************//*!
+	\brief
+		Linearly progresses to a value, clamping progress by an amount.
+	\tparam T
+		The type of value to linearly progress.
+	\param from
+		The starting value.
+	\param to
+		The target value.
+	\param amount
+		The maximum amount of progress this call.
+	\return
+		The result.
+	*//******************************************************************/
+	template <typename T>
+	T WalkTo(T from, T to, T amount);
 
 	/*****************************************************************//*!
 	\brief
@@ -573,6 +598,21 @@ namespace util {
 	T Lerp(T from, T to, float lerpFactor, float dt)
 	{
 		return Lerp(from, to, 1.0f - std::powf(2.718281828459045f, -lerpFactor * dt));
+	}
+
+	template<typename T>
+	T WalkTo(T from, T to, T amount)
+	{
+		return from + std::clamp(to - from, -amount, amount);
+	}
+	template <>
+	inline Vec3 WalkTo(Vec3 from, Vec3 to, Vec3 amount)
+	{
+		return Vec3{
+			WalkTo(from.x, to.x, amount.x),
+			WalkTo(from.y, to.y, amount.y),
+			WalkTo(from.z, to.z, amount.z)
+		};
 	}
 
 	template<typename T, typename U, typename SortPred, typename SelectPred>

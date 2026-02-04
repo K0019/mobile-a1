@@ -173,11 +173,13 @@ FragOut FSMain(Varyings in) {
     vec3 B = normalize(cross(N, T) * in.bitangentSign);
 
     vec3 normalSample = texture(u_normal, in.uv).rgb;
-    bool hasNormalMap = abs(normalSample.z - 1.0) > 0.01 || abs(normalSample.x - 0.5) > 0.01 || abs(normalSample.y - 0.5) > 0.01;
+    bool hasNormalMap = abs(normalSample.x - 0.5) > 0.01 || abs(normalSample.y - 0.5) > 0.01;
 
     if (hasNormalMap) {
         mat3 TBN = mat3(T, B, N);
-        vec3 normalMap = normalSample * 2.0 - 1.0;
+        vec2 normalRG = normalSample.xy * 2.0 - 1.0;
+        float nz = sqrt(max(0.0, 1.0 - dot(normalRG, normalRG)));
+        vec3 normalMap = normalize(vec3(normalRG, nz));
         N = normalize(TBN * normalMap);
     }
     // Normal now consistent with gbuffer (no negation needed after adjoint fix)

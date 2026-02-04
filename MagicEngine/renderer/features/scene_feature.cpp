@@ -592,6 +592,40 @@ void SceneRenderFeature::UpdateScene(uint64_t renderFeatureID,
     const auto& materialList = comp.GetMaterialsList();
     const size_t materialCount = materialList.size();
 
+    // Two-level frustum culling: test model-level AABB first when multiple submeshes
+    bool skipPerSubmeshCull = false;
+    if (mesh->handles.size() > 1) {
+      BoundingBox modelBounds(vec3(FLT_MAX), vec3(-FLT_MAX));
+      bool hasAnyValid = false;
+      for (size_t i = 0; i < mesh->handles.size(); ++i) {
+        const MeshHandle& mh = mesh->handles[i];
+        if (!mh.isValid()) continue;
+        const MeshGPUData* md = resourceMngr.getMesh(mh);
+        if (!md || !md->hasGfxMesh) continue;
+        const gfx::GpuMesh* gm = renderer.getMeshStorage().get(
+            gfx::MeshHandle{static_cast<uint16_t>(md->gfxMeshIndex),
+                            static_cast<uint16_t>(md->gfxMeshGeneration)});
+        if (!gm || !gm->valid) continue;
+        BoundingBox submeshBounds(gm->bounds.aabbMin, gm->bounds.aabbMax);
+        submeshBounds.transform(entityWorldMatrix * mesh->transforms[i]);
+        modelBounds.combinePoint(submeshBounds.min_);
+        modelBounds.combinePoint(submeshBounds.max_);
+        hasAnyValid = true;
+      }
+      if (hasAnyValid) {
+        if (hasValidSkinning) {
+          vec3 center = modelBounds.getCenter();
+          vec3 halfSize = modelBounds.getSize() * 0.5f * 1.5f;
+          modelBounds.min_ = center - halfSize;
+          modelBounds.max_ = center + halfSize;
+        }
+        vec3 bMin = modelBounds.min_, bMax = modelBounds.max_;
+        auto result = renderer.classifyInFrustum(bMin, bMax);
+        if (result == CPUCuller::FrustumResult::Outside) continue;
+        if (result == CPUCuller::FrustumResult::FullyInside) skipPerSubmeshCull = true;
+      }
+    }
+
     for (size_t i = 0; i < mesh->handles.size(); ++i)
     {
       const MeshHandle& meshHandle = mesh->handles[i];
@@ -604,7 +638,7 @@ void SceneRenderFeature::UpdateScene(uint64_t renderFeatureID,
       const gfx::GpuMesh* gpuMesh = renderer.getMeshStorage().get(
           gfx::MeshHandle{static_cast<uint16_t>(meshData->gfxMeshIndex),
                           static_cast<uint16_t>(meshData->gfxMeshGeneration)});
-      if (gpuMesh && gpuMesh->valid) {
+      if (!skipPerSubmeshCull && gpuMesh && gpuMesh->valid) {
         // Transform AABB to world space
         glm::mat4 worldTransform = entityWorldMatrix * mesh->transforms[i];
         BoundingBox worldBounds(gpuMesh->bounds.aabbMin, gpuMesh->bounds.aabbMax);
@@ -650,7 +684,7 @@ void SceneRenderFeature::UpdateScene(uint64_t renderFeatureID,
         material = materialList[i].GetResource();
       }
       if (!material) {
-        material = MagicResourceManager::GetContainer<ResourceMaterial>().GetResource(
+        material = AssetManager::GetContainer<ResourceMaterial>().GetResource(
             mesh->defaultMaterialHashes[i]);
       }
 

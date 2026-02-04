@@ -25,8 +25,8 @@ All rights reserved.
 
 #pragma once
 #include "Engine/StateMachine.h"
-#include "Engine/Resources/ResourcesHeader.h"
-#include "Engine/Resources/Types/ResourceTypesGraphics.h"
+#include "Assets/AssetHandle.h"
+#include "Assets/Types/AssetTypes.h"
 
 #define ANIMATIONS \
 X(IDLE,     "Idle")\
@@ -365,7 +365,7 @@ namespace sm {
 
 		bool Decide(sm::StateMachine* sm) override
 		{
-			return ToAttackTransition<ToState>::CastSM(sm)->GetBlackboardVal<bool>(AnimInputTypeToKey(attackType));
+			return ToAttackTransition<ToState>::CastSM(sm)->template GetBlackboardVal<bool>(AnimInputTypeToKey(attackType));
 		}
 	};
 
@@ -399,6 +399,24 @@ namespace sm {
 	public:
 		ToThrowTransition();
 		bool Decide(sm::StateMachine* sm) override;
+	};
+
+	class ToHitstopTransition : public sm::TransitionBaseTemplate<ToHitstopTransition>
+	{
+	public:
+		ToHitstopTransition();
+		bool Decide(sm::StateMachine* sm) override;
+	};
+
+	class ToPrevStateTransition : public sm::TransitionBase
+	{
+	public:
+		ToPrevStateTransition(State* inPrevState);
+		~ToPrevStateTransition();
+		bool Decide(sm::StateMachine* sm) override;
+		TransitionBase* Clone() override;
+	private:
+		State* prevState;
 	};
 
 	// Side effect: Sets "enhanced" to false if transition is taken
@@ -441,7 +459,7 @@ namespace sm {
 
 		bool Decide(sm::StateMachine* sm) override
 		{
-			return ToDelusionAttackTransition<ToState>::CastSM(sm)->GetBlackboardVal<bool>(AnimInputTypeToKey(attackType));
+			return ToDelusionAttackTransition<ToState>::CastSM(sm)->template GetBlackboardVal<bool>(AnimInputTypeToKey(attackType));
 		}
 	};
 
@@ -487,18 +505,14 @@ namespace sm {
 
 	class DodgeState : public sm::State { public: DodgeState(); };
 
+	class ParryState : public sm::State { public: ParryState(); };
 
+	class ThrowState : public sm::State { public: ThrowState(); };
 
-	class ParryState : public sm::State
+	class HitstopState : public sm::State
 	{
 	public:
-		ParryState();
-	};
-
-	class ThrowState : public sm::State
-	{
-	public:
-		ThrowState();
+		HitstopState(State* prevState);
 	};
 
 

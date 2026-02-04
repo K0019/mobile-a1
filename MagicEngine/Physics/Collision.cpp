@@ -67,7 +67,7 @@ namespace physics {
 		return mObjectToBroadPhase[inLayer];
 	}
 
-
+#if defined(JPH_EXTERNAL_PROFILE) || defined(JPH_PROFILE_ENABLED)
 	const char* BPLayerInterfaceImpl::GetBroadPhaseLayerName(JPH::BroadPhaseLayer inLayer) const
 	{
 		if (inLayer == BroadPhaseLayers::NON_MOVING)
@@ -78,6 +78,7 @@ namespace physics {
 			return "NON_COLLIDABLE";
 		return "UNKNOWN";
 	}
+#endif
 
 	bool ObjectVsBroadPhaseLayerFilterImpl::ShouldCollide(JPH::ObjectLayer inLayer1, JPH::BroadPhaseLayer inLayer2) const
 	{
@@ -365,6 +366,7 @@ namespace physics {
 			else
 				layer = Layers::NON_MOVING;
 			ecs::GetEntity(this)->GetComp<JoltBodyComp>()->SetCollisionLayer(layer);
+			ecs::GetEntity(this)->GetComp<JoltBodyComp>()->SetIsTrigger(IsTrigger());
 			break;
 		case COLLIDER_COMP_FLAG::IS_TRIGGER:
 			ecs::GetEntity(this)->GetComp<JoltBodyComp>()->SetIsTrigger(val);

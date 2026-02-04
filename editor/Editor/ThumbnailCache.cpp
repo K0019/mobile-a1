@@ -1,7 +1,8 @@
 #include "Editor/ThumbnailCache.h"
 #include "renderer/gfx_renderer.h"
 #include "logging/log.h"
-#include "Engine/Resources/ResourceManager.h"
+#include "Assets/AssetManager.h"
+#include "resource/resource_manager.h"
 #include "Utilities/Singleton.h"
 #include "FilepathConstants.h"
 #include <fstream>
@@ -37,15 +38,17 @@ namespace editor
             m_currentGeneration = nullptr;
         }
 
-        // Destroy all loaded textures
+        // Free all loaded textures through the resource manager
         if (m_renderer)
         {
-            auto& matSystem = m_renderer->getMaterialSystem();
-            for (auto& [hash, entry] : m_cache)
-            {
-                if (matSystem.isTextureValid(entry.textureHandle))
+            Resource::ResourceManager* resourceMngr = m_renderer->getResourceManager();
+            if (resourceMngr) {
+                for (auto& [hash, entry] : m_cache)
                 {
-                    matSystem.destroyTexture(entry.textureHandle);
+                    if (entry.textureHandle.isValid())
+                    {
+                        resourceMngr->freeTexture(entry.textureHandle);
+                    }
                 }
             }
         }
@@ -189,13 +192,13 @@ namespace editor
         auto it = m_cache.find(assetHash);
         if (it != m_cache.end())
         {
-            // Destroy the texture
+            // Free the texture through resource manager
             if (m_renderer)
             {
-                auto& matSystem = m_renderer->getMaterialSystem();
-                if (matSystem.isTextureValid(it->second.textureHandle))
+                Resource::ResourceManager* resourceMngr = m_renderer->getResourceManager();
+                if (resourceMngr && it->second.textureHandle.isValid())
                 {
-                    matSystem.destroyTexture(it->second.textureHandle);
+                    resourceMngr->freeTexture(it->second.textureHandle);
                 }
             }
             m_cache.erase(it);
@@ -216,12 +219,14 @@ namespace editor
 
         if (m_renderer)
         {
-            auto& matSystem = m_renderer->getMaterialSystem();
-            for (auto& [hash, entry] : m_cache)
-            {
-                if (matSystem.isTextureValid(entry.textureHandle))
+            Resource::ResourceManager* resourceMngr = m_renderer->getResourceManager();
+            if (resourceMngr) {
+                for (auto& [hash, entry] : m_cache)
                 {
-                    matSystem.destroyTexture(entry.textureHandle);
+                    if (entry.textureHandle.isValid())
+                    {
+                        resourceMngr->freeTexture(entry.textureHandle);
+                    }
                 }
             }
         }
@@ -282,18 +287,22 @@ namespace editor
             return false;
         }
 
-        // Load the thumbnail texture via material system
-        auto& matSystem = m_renderer->getMaterialSystem();
-        gfx::TextureHandle texHandle = matSystem.loadTexture(thumbPath.string(), true);
-
-        if (!matSystem.isTextureValid(texHandle))
+        // Load the thumbnail texture through the resource manager (unified path)
+        Resource::ResourceManager* resourceMngr = m_renderer->getResourceManager();
+        if (!resourceMngr)
+        {
+            LOG_WARNING("[ThumbnailCache] No resource manager available");
+            return false;
+        }
+        ::TextureHandle texHandle = resourceMngr->loadTextureFromFile(thumbPath.string(), true);
+        if (!texHandle.isValid())
         {
             LOG_WARNING("[ThumbnailCache] Failed to load thumbnail texture: {}", thumbPath.string());
             return false;
         }
 
-        // Register for ImGui use
-        uint64_t imguiId = m_renderer->registerUITexture(texHandle);
+        // Encode engine handle for ImGui use
+        uint64_t imguiId = texHandle.getOpaqueValue();
 
         // Update cache entry
         entry.textureHandle = texHandle;
@@ -306,7 +315,7 @@ namespace editor
 
     std::filesystem::path ThumbnailCache::GetAssetFilePath(size_t hash) const
     {
-        auto* resourceManager = ST<MagicResourceManager>::Get();
+        auto* resourceManager = ST<AssetManager>::Get();
         if (!resourceManager)
         {
             return {};

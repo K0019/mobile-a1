@@ -185,7 +185,12 @@ struct VertexAttributes {
         glm::vec3 t = glm::normalize(tangent);
 
         // Store |nx| with nz_sign in sign bit (matches main branch)
+        // If |nx| quantizes to 0, nz_sign is lost. Clamp to a tiny value to preserve sign.
         float nx_magnitude = std::abs(n.x);
+        const float min_nx = 1.0f / 32767.0f;
+        if (nx_magnitude < min_nx) {
+            nx_magnitude = min_nx;
+        }
         float nx_sign = (n.x < 0.0f) ? -1.0f : 1.0f;
         float nz_sign = (n.z < 0.0f) ? -1.0f : 1.0f;
         float nx_with_nz_sign = nx_magnitude * nz_sign;
