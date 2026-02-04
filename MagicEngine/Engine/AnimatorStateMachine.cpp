@@ -144,20 +144,11 @@ namespace sm {
 		// Use this to track whether we've already attacked while we're in the AttackActivity
 		animSM->blackboard["attacked"] = false;
 
-		// TODO: Play sound
-		//std::string tmpName;
-		//auto grabbableComp = attackItem->GetComp<GrabbableItemComponent>();
-		//if (grabbableComp->audioStartIndex > grabbableComp->audioEndIndex + 1)
-		//	tmpName = grabbableComp->audioName + std::to_string(randomRange(grabbableComp->audioEndIndex + 1, grabbableComp->audioStartIndex));
-		//else
-		//	tmpName = grabbableComp->audioName + std::to_string(randomRange(grabbableComp->audioStartIndex, grabbableComp->audioEndIndex + 1));
-
-		////if (randomRange(0, 2) == 0)
-		//ST<AudioManager>::Get()->PlaySound3D(tmpName, false, ecs::GetEntity(this)->GetTransform().GetWorldPosition(), AudioType::END, std::pair<float, float>{2.0f, 50.0f}, 0.6f);
-
-		if (auto audioGroup{ GetWeaponInfo(animSM)->moves[moveIndex].audio.GetResource() })
-			if (auto audio{ audioGroup->PickRandomAudio() })
-				ST<AudioManager>::Get()->PlaySound3D(audio->hash, false, animSM->GetEntity()->GetTransform().GetWorldPosition(), AudioType::END, { 2.0f, 50.0f }, 0.6f);
+		if (auto weaponInfo{ GetWeaponInfo(animSM) })
+			if (moveIndex < weaponInfo->moves.size())
+				if (auto audioGroup{ weaponInfo->moves[moveIndex].audio.GetResource() })
+					if (auto audio{ audioGroup->PickRandomAudio() })
+						ST<AudioManager>::Get()->PlaySound3D(audio->hash, false, animSM->GetEntity()->GetTransform().GetWorldPosition(), AudioType::END, { 2.0f, 50.0f }, 0.6f);
 	}
 	void AttackActivity::OnUpdate(sm::StateMachine* sm)
 	{
@@ -212,6 +203,12 @@ namespace sm {
 		auto animSM{ CastSM(sm) };
 		TransitionChracterIntoAnimation(animSM, 4, ANIM_TRANSITION_DURATION_DODGE, false);
 		animSM->blackboard["inputDodge"] = false;
+		animSM->blackboard["dodging"] = true;
+	}
+
+	void DodgeActivity::OnExit(sm::StateMachine* sm)
+	{
+		CastSM(sm)->blackboard["dodging"] = false;
 	}
 
 	void ParryActivity::OnEnter(sm::StateMachine* sm)

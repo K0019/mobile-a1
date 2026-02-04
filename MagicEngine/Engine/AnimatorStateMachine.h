@@ -295,6 +295,7 @@ namespace sm {
 	{
 	public:
 		void OnEnter(sm::StateMachine* sm) override;
+		void OnExit(sm::StateMachine* sm) override;
 	};
 
 	class ParryActivity : public sm::AnimActivityBase<ParryActivity>

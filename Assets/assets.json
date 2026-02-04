@@ -421,6 +421,21 @@
             ]
         },
         {
+            "filepath": "compiledassets/settings pop up (bg)_thumb.ktx2",
+            "assetType": "Texture",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 244845847786333551,
+                            "name": "settings pop up (bg)_thumb0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/models/glb/items/sword/material_6.material",
             "assetType": "Material",
             "resources": [
@@ -1336,6 +1351,25 @@
             ]
         },
         {
+            "filepath": "compiledassets/volume (title).ktx2",
+            "assetType": "Texture",
+            "sourcePath": "images/menu/setting/volume (title).png",
+            "sourceTimestamp": 134146622664646701,
+            "compiledTimestamp": 17701892633678409,
+            "formatVersion": 2,
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 110939625173932703,
+                            "name": "volume (title)0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/materials/n00_000_00_facemouth_00_face__instance_.material",
             "assetType": "Material",
             "resources": [
@@ -1555,6 +1589,25 @@
                         {
                             "hash": 4988512843572830475,
                             "name": "_120"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/slider (fill).ktx2",
+            "assetType": "Texture",
+            "sourcePath": "images/menu/setting/slider (fill).png",
+            "sourceTimestamp": 134146650891324992,
+            "compiledTimestamp": 17701915065684667,
+            "formatVersion": 2,
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 747166531030619427,
+                            "name": "slider (fill)0"
                         }
                     ]
                 }
@@ -2690,6 +2743,25 @@
             ]
         },
         {
+            "filepath": "compiledassets/bar ui (bg).ktx2",
+            "assetType": "Texture",
+            "sourcePath": "images/menu/setting/bar ui (bg).png",
+            "sourceTimestamp": 134146622664425826,
+            "compiledTimestamp": 17701917580026806,
+            "formatVersion": 2,
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 773079821074295629,
+                            "name": "bar ui (bg)0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/meshanimations/cesiummananim_0.anim",
             "assetType": "Animation",
             "resources": [
@@ -2840,6 +2912,21 @@
             ]
         },
         {
+            "filepath": "compiledassets/close icon_thumb.ktx2",
+            "assetType": "Texture",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 454805289697501625,
+                            "name": "close icon_thumb0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/materials/transparent_1001.material",
             "assetType": "Material",
             "resources": [
@@ -2969,6 +3056,21 @@
                         {
                             "hash": 5767169386195360441,
                             "name": "n00_007_02_tops_01_cloth (instance)0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/brightness (title)_thumb.ktx2",
+            "assetType": "Texture",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 220048562044928939,
+                            "name": "brightness (title)_thumb0"
                         }
                     ]
                 }
@@ -3455,6 +3557,21 @@
             ]
         },
         {
+            "filepath": "compiledassets/fullscreen (title)_thumb.ktx2",
+            "assetType": "Texture",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 229187702700756699,
+                            "name": "fullscreen (title)_thumb0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/models/glb/mc_animated/mc_animatedlight atk 1.anim",
             "assetType": "Animation",
             "resources": [
@@ -3515,6 +3632,21 @@
             ]
         },
         {
+            "filepath": "compiledassets/bar ui (bg)_thumb.ktx2",
+            "assetType": "Texture",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 767224921656388421,
+                            "name": "bar ui (bg)_thumb0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/textures/dugout14377039275265999768.ktx2",
             "assetType": "Texture",
             "resources": [
@@ -3524,6 +3656,25 @@
                         {
                             "hash": 737136784900578285,
                             "name": "dugout143770392752659997680"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/settings pop up (ref).ktx2",
+            "assetType": "Texture",
+            "sourcePath": "images/menu/setting/settings pop up (ref).png",
+            "sourceTimestamp": 134146648490475486,
+            "compiledTimestamp": 17701913041242911,
+            "formatVersion": 2,
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 738129644961726045,
+                            "name": "settings pop up (ref)0"
                         }
                     ]
                 }
@@ -5147,6 +5298,21 @@
             ]
         },
         {
+            "filepath": "compiledassets/minus icon_thumb.ktx2",
+            "assetType": "Texture",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 208501490935271495,
+                            "name": "minus icon_thumb0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/materials/n00_000_00_face_00_skin__instance_.001.material",
             "assetType": "Material",
             "resources": [
@@ -5171,6 +5337,21 @@
                         {
                             "hash": 6527073765713914097,
                             "name": "enemy male death 10"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/bar ui (fill)_thumb.ktx2",
+            "assetType": "Texture",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 94141286526004843,
+                            "name": "bar ui (fill)_thumb0"
                         }
                     ]
                 }
@@ -5567,6 +5748,25 @@
             ]
         },
         {
+            "filepath": "compiledassets/plus icon.ktx2",
+            "assetType": "Texture",
+            "sourcePath": "images/menu/setting/plus icon.png",
+            "sourceTimestamp": 134146667731027878,
+            "compiledTimestamp": 17701947851703332,
+            "formatVersion": 2,
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 224135446770621481,
+                            "name": "plus icon0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/materials/n00_010_01_onepiece_00_cloth_02__instance_.001.material",
             "assetType": "Material",
             "resources": [
@@ -5651,6 +5851,21 @@
                         {
                             "hash": 4980094982550577417,
                             "name": "_090"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/slider (bg)_thumb.ktx2",
+            "assetType": "Texture",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 714268043615385947,
+                            "name": "slider (bg)_thumb0"
                         }
                     ]
                 }
@@ -6535,6 +6750,25 @@
             ]
         },
         {
+            "filepath": "compiledassets/bar ui (fill).ktx2",
+            "assetType": "Texture",
+            "sourcePath": "images/menu/setting/bar ui (fill).png",
+            "sourceTimestamp": 134146622664586638,
+            "compiledTimestamp": 17701904972476814,
+            "formatVersion": 2,
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 98165499083665013,
+                            "name": "bar ui (fill)0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/health regen icon.ktx2",
             "assetType": "Texture",
             "resources": [
@@ -6839,6 +7073,21 @@
             ]
         },
         {
+            "filepath": "compiledassets/plus icon_thumb.ktx2",
+            "assetType": "Texture",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 216292630329695263,
+                            "name": "plus icon_thumb0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/models/glb/enemy_female_animated/n00_000_00_eyewhite_00_eye (instance).material",
             "assetType": "Material",
             "resources": [
@@ -7128,6 +7377,25 @@
             ]
         },
         {
+            "filepath": "compiledassets/close icon.ktx2",
+            "assetType": "Texture",
+            "sourcePath": "images/menu/setting/close icon.png",
+            "sourceTimestamp": 134146667730795541,
+            "compiledTimestamp": 17701975237550181,
+            "formatVersion": 2,
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 276330363255514555,
+                            "name": "close icon0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/materials/transparent_1002.material",
             "assetType": "Material",
             "resources": [
@@ -7167,6 +7435,21 @@
                         {
                             "hash": 2088955544901799765,
                             "name": "n00_010_01_onepiece_00_cloth_01__instance_0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/settings pop up (ref)_thumb.ktx2",
+            "assetType": "Texture",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 731220313892781649,
+                            "name": "settings pop up (ref)_thumb0"
                         }
                     ]
                 }
@@ -7702,6 +7985,25 @@
             ]
         },
         {
+            "filepath": "compiledassets/minus icon.ktx2",
+            "assetType": "Texture",
+            "sourcePath": "images/menu/setting/minus icon.png",
+            "sourceTimestamp": 134146667730961202,
+            "compiledTimestamp": 17701947821380019,
+            "formatVersion": 2,
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 211902280399982675,
+                            "name": "minus icon0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/models/glb/mc_animated/_09.ktx2",
             "assetType": "Texture",
             "resources": [
@@ -7732,15 +8034,19 @@
             ]
         },
         {
-            "filepath": "compiledassets/pause_howtoplay_thumb.ktx2",
+            "filepath": "compiledassets/fullscreen (title).ktx2",
             "assetType": "Texture",
+            "sourcePath": "images/menu/setting/fullscreen (title).png",
+            "sourceTimestamp": 134146667730885933,
+            "compiledTimestamp": 17701952896792697,
+            "formatVersion": 2,
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
                     "resourceEntries": [
                         {
-                            "hash": 124738495354478047,
-                            "name": "pause_howtoplay_thumb0"
+                            "hash": 233103063607267045,
+                            "name": "fullscreen (title)0"
                         }
                     ]
                 }
@@ -7861,6 +8167,21 @@
                         {
                             "hash": 2280285961226467817,
                             "name": "image_20"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/volume (title)_thumb.ktx2",
+            "assetType": "Texture",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 105928051174529687,
+                            "name": "volume (title)_thumb0"
                         }
                     ]
                 }
@@ -7989,6 +8310,25 @@
                         {
                             "hash": 2276635583381940701,
                             "name": "_040"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/brightness (title).ktx2",
+            "assetType": "Texture",
+            "sourcePath": "images/menu/setting/brightness (title).png",
+            "sourceTimestamp": 134146622664386029,
+            "compiledTimestamp": 17701895360278706,
+            "formatVersion": 2,
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 221501016905221045,
+                            "name": "brightness (title)0"
                         }
                     ]
                 }
@@ -8505,6 +8845,21 @@
             ]
         },
         {
+            "filepath": "compiledassets/slider (fill)_thumb.ktx2",
+            "assetType": "Texture",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 739770116310570265,
+                            "name": "slider (fill)_thumb0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/models/glb/enemy_female_animated/n00_001_03_bottoms_01_cloth (instance).material",
             "assetType": "Material",
             "resources": [
@@ -8893,6 +9248,25 @@
                         {
                             "hash": 2455669061732706901,
                             "name": "n00_010_01_onepiece_00_cloth (instance)0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/settings pop up (bg).ktx2",
+            "assetType": "Texture",
+            "sourcePath": "images/menu/setting/settings pop up (bg).png",
+            "sourceTimestamp": 134146621608357005,
+            "compiledTimestamp": 17701897085151574,
+            "formatVersion": 2,
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 251320871762306425,
+                            "name": "settings pop up (bg)0"
                         }
                     ]
                 }
@@ -9632,6 +10006,25 @@
                         {
                             "hash": 5060485775215419689,
                             "name": "n00_001_01_tops_01_cloth (instance)0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/slider (bg).ktx2",
+            "assetType": "Texture",
+            "sourcePath": "images/menu/setting/slider (bg).png",
+            "sourceTimestamp": 134146645279154850,
+            "compiledTimestamp": 17701909587913649,
+            "formatVersion": 2,
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 717962402684713315,
+                            "name": "slider (bg)0"
                         }
                     ]
                 }

@@ -55,7 +55,6 @@ CharacterMovementComponent::CharacterMovementComponent()
 	, currentDodgeCooldown{ 0.0f }
 	, heldItem{ nullptr }
 	, currentStunTime{ 0.0f }
-	, currentDodgeTime{ 0.0f }
 	, speedMultiplier{ 1.0f }
 	, throwPower{0.0f}
 	, parryTime{}
@@ -115,8 +114,10 @@ bool CharacterMovementComponent::Dodge(Vec2 vector)
 	//	return false;
 
 	SetMovementVector(vector.Normalized());
-	currentDodgeTime = dodgeDuration;
 	currentDodgeCooldown = dodgeCooldown;
+	if (auto animComp{ ecs::GetEntity(this)->GetComp<AnimatorComponent>() })
+		if (auto animFSM{ animComp->GetStateMachine() })
+			animFSM->blackboard["inputDodge"] = true;
 
 	// Play Audio
 	ST<AudioManager>::Get()->PlaySound3D("dodge " + std::to_string(randomRange<int>(1, 3)), false, ecs::GetEntity(this)->GetTransform().GetWorldPosition(),AudioType::END,std::pair<float,float>{2.0f,50.0f}, 0.6f);
@@ -127,7 +128,7 @@ bool CharacterMovementComponent::Dodge(Vec2 vector)
 void CharacterMovementComponent::SetMovementVector(Vec2 vector)
 {
 	// Can't change movement direction if dodging
-	if (currentDodgeTime > 0.0f)
+	if (IsDodging())
 		return;
 
 	movementVector = vector;
@@ -271,7 +272,10 @@ void CharacterMovementComponent::Parry()
 
 bool CharacterMovementComponent::IsDodging()
 {
-	return currentDodgeTime > 0.0f;
+	if (auto animComp{ ecs::GetEntity(this)->GetComp<AnimatorComponent>() })
+		if (auto animFSM{ animComp->GetStateMachine() })
+			return animFSM->GetBlackboardVal<bool>("dodging");
+	return false;
 }
 
 ecs::CompHandle<GrabbableItemComponent> CharacterMovementComponent::GetHeldItem()
@@ -463,7 +467,6 @@ void CharacterMovementComponentSystem::UpdateCharacterMovementComponent(Characte
 		//	//comp.animations[]
 		//}
 		//animComp->timeA = comp.currentStunTime / comp.stunTimePerHit;
-		comp.currentDodgeTime = 0.0f;
 
 		if (!physicsComp->GetIsKinematic())
 			physicsComp->SetLinearVelocity(Vec3{ currVel.x, currVel.y, currVel.y });
@@ -504,17 +507,10 @@ void CharacterMovementComponentSystem::UpdateCharacterMovementComponent(Characte
 	Vec3 moveDir = Vec3{ movement.x , (physicsComp->GetIsKinematic() ? 0.f : currVel.y), movement.y };
 
 	// If dodging, move faster
-	if (comp.currentDodgeTime > 0.0f)
-	{
-		comp.currentDodgeTime -= GameTime::Dt();
-		moveDir *= comp.dodgeSpeed;
-
-		animatorComp->GetStateMachine()->blackboard["inputDodge"] = true;
-	}
+	if (comp.IsDodging())
+		moveDir *= comp.dodgeSpeed * comp.speedMultiplier;
 	else
-	{
 		moveDir *= comp.moveSpeed * comp.speedMultiplier;
-	}
 
 	if (!physicsComp->GetIsKinematic())
 		physicsComp->SetLinearVelocity(Vec3{ moveDir.x, currVel.y, moveDir.z });
