@@ -62,7 +62,6 @@ CharacterMovementComponent::CharacterMovementComponent()
 	, parryCoolDownTime{}
 	, parryDelusion{}
 	, currParryCoolDown{}
-	, currParryTime{}
 
 {
 }
@@ -247,7 +246,10 @@ bool CharacterMovementComponent::IsAttacking() const
 
 bool CharacterMovementComponent::IsParrying()
 {
-	return currParryTime > 0.f;
+	if (auto animComp{ ecs::GetEntity(this)->GetComp<AnimatorComponent>() })
+		if (auto animFSM{ animComp->GetStateMachine() })
+			return animFSM->GetBlackboardVal<bool>("parrying");
+	return false;
 }
 void CharacterMovementComponent::OnParrySuccess()
 {
@@ -258,10 +260,12 @@ void CharacterMovementComponent::OnParrySuccess()
 }
 void CharacterMovementComponent::Parry()
 {
-	if(currParryCoolDown <= 0.f)
+	if (currParryCoolDown <= 0.f)
 	{
-		currParryTime = parryTime;
 		currParryCoolDown = parryCoolDownTime;
+		if (auto animComp{ ecs::GetEntity(this)->GetComp<AnimatorComponent>() })
+			if (auto animFSM{ animComp->GetStateMachine() })
+				animFSM->blackboard["inputParry"] = true;
 	}
 }
 
@@ -475,21 +479,7 @@ void CharacterMovementComponentSystem::UpdateCharacterMovementComponent(Characte
 	}
 
 	if (comp.IsParrying())
-	{
-		animatorComp->GetStateMachine()->blackboard["inputParry"] = true;
-
-		//if (auto clip{ animComp->GetAnimationClipA() })
-		//{
-		//	float duration = animComp->GetClipDuration(clip);
-		//	animComp->timeA = duration * (1.0f - (comp.currParryTime / comp.parryTime));
-		//}
-		//else
-		//{
-		//	animComp->timeA = 0.0f;
-		//}
-		//comp.currParryTime -= GameTime::Dt();
 		return;
-	}
 	comp.currParryCoolDown -= GameTime::Dt();
 
 	// Get inputs
@@ -541,12 +531,6 @@ void CharacterMovementComponentSystem::UpdateCharacterMovementComponent(Characte
 
 	if (movement.LengthSqr() > 0.0f)
 		comp.RotateTowards(movement);
-
-	// Handle parry time/cooldown
-	if (comp.currParryTime > 0.f)
-		comp.currParryTime -= GameTime::Dt();
-	if (comp.currParryCoolDown > 0.f)
-		comp.currParryCoolDown -= GameTime::Dt();
 
 	// Check whether to apply an attack this frame
 	int attackMoveIndex{ animatorComp->GetStateMachine()->GetBlackboardVal<int>("outputApplyHitMove") };

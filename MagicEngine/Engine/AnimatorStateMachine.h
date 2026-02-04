@@ -301,6 +301,7 @@ namespace sm {
 	{
 	public:
 		void OnEnter(sm::StateMachine* sm) override;
+		void OnExit(sm::StateMachine* sm) override;
 	};
 
 	class ThrowActivity : public sm::AnimActivityBase<ThrowActivity>
