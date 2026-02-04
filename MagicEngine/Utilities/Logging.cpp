@@ -179,4 +179,11 @@ namespace internal {
 		return oss.str();
 	}
 
+	template <>
+	LoggedMessagesBuffer::Logger& LoggedMessagesBuffer::Logger::operator<<(const Vec3& value) {
+		if (buffer)
+			messageBuffer << '(' << value.x << ", " << value.y << ", " << value.z << ')';
+		return *this;
+	}
+
 }

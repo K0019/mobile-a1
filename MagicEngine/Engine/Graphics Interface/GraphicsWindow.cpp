@@ -73,6 +73,13 @@ bool GraphicsWindowGeneric::GetIsWindowMinimized() const
 	return false;
 }
 
+bool GraphicsWindowGeneric::GetIsFullscreen() const
+{
+#if PLATFORM_DESKTOP
+	return Core::Display().isFullscreen();
+#endif
+}
+
 bool GraphicsWindowGeneric::SetWindowIcon([[maybe_unused]] const std::string& filepath)
 {
 	return false;

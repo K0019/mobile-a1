@@ -35,18 +35,22 @@
                                     "hardwareLink": [
                                         {
                                             "deviceType": 2,
+                                            "readType": 2,
                                             "keyIdentifier": 0
                                         },
                                         {
                                             "deviceType": 2,
+                                            "readType": 2,
                                             "keyIdentifier": 1
                                         },
                                         {
                                             "deviceType": 2,
+                                            "readType": 2,
                                             "keyIdentifier": 2
                                         },
                                         {
                                             "deviceType": 2,
+                                            "readType": 2,
                                             "keyIdentifier": 3
                                         }
                                     ]
@@ -62,6 +66,7 @@
                                 {
                                     "hardwareLink": {
                                         "deviceType": 0,
+                                        "readType": 2,
                                         "keyIdentifier": 32
                                     }
                                 }
@@ -76,6 +81,7 @@
                                 {
                                     "hardwareLink": {
                                         "deviceType": 0,
+                                        "readType": 2,
                                         "keyIdentifier": -1001
                                     }
                                 }
@@ -90,6 +96,7 @@
                                 {
                                     "hardwareLink": {
                                         "deviceType": 0,
+                                        "readType": 0,
                                         "keyIdentifier": 256
                                     }
                                 }
@@ -105,18 +112,22 @@
                                     "hardwareLink": [
                                         {
                                             "deviceType": -1,
+                                            "readType": 2,
                                             "keyIdentifier": -1
                                         },
                                         {
                                             "deviceType": -1,
+                                            "readType": 2,
                                             "keyIdentifier": -1
                                         },
                                         {
                                             "deviceType": -1,
+                                            "readType": 2,
                                             "keyIdentifier": -1
                                         },
                                         {
                                             "deviceType": -1,
+                                            "readType": 2,
                                             "keyIdentifier": -1
                                         }
                                     ]
@@ -125,18 +136,22 @@
                                     "hardwareLink": [
                                         {
                                             "deviceType": 0,
+                                            "readType": 2,
                                             "keyIdentifier": 67
                                         },
                                         {
                                             "deviceType": -1,
+                                            "readType": 2,
                                             "keyIdentifier": -1
                                         },
                                         {
                                             "deviceType": -1,
+                                            "readType": 2,
                                             "keyIdentifier": -1
                                         },
                                         {
                                             "deviceType": -1,
+                                            "readType": 2,
                                             "keyIdentifier": -1
                                         }
                                     ]
@@ -145,18 +160,22 @@
                                     "hardwareLink": [
                                         {
                                             "deviceType": -1,
+                                            "readType": 2,
                                             "keyIdentifier": -1
                                         },
                                         {
                                             "deviceType": -1,
+                                            "readType": 2,
                                             "keyIdentifier": -1
                                         },
                                         {
                                             "deviceType": -1,
+                                            "readType": 2,
                                             "keyIdentifier": -1
                                         },
                                         {
                                             "deviceType": -1,
+                                            "readType": 2,
                                             "keyIdentifier": -1
                                         }
                                     ]
@@ -173,18 +192,22 @@
                                     "hardwareLink": [
                                         {
                                             "deviceType": 0,
+                                            "readType": 2,
                                             "keyIdentifier": 65
                                         },
                                         {
                                             "deviceType": 0,
+                                            "readType": 2,
                                             "keyIdentifier": 68
                                         },
                                         {
                                             "deviceType": 0,
+                                            "readType": 2,
                                             "keyIdentifier": 87
                                         },
                                         {
                                             "deviceType": 0,
+                                            "readType": 2,
                                             "keyIdentifier": 83
                                         }
                                     ]
@@ -207,6 +230,7 @@
                                 {
                                     "hardwareLink": {
                                         "deviceType": 0,
+                                        "readType": 2,
                                         "keyIdentifier": -1001
                                     }
                                 }

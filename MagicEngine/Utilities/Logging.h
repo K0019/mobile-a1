@@ -25,6 +25,8 @@ All rights reserved.
 #pragma once
 #include "Utilities/Singleton.h"
 
+struct Vec3;
+
 enum LogLevel
 {
     LEVEL_DEBUG,
@@ -170,6 +172,8 @@ namespace internal {
             messageBuffer << value;
         return *this;
     }
+    template <>
+    LoggedMessagesBuffer::Logger& LoggedMessagesBuffer::Logger::operator<<(const Vec3& value);
 
 }
 
