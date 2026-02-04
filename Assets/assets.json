@@ -2882,6 +2882,21 @@
             ]
         },
         {
+            "filepath": "compiledassets/close icon_thumb.ktx2",
+            "assetType": "Texture",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 454805289697501625,
+                            "name": "close icon_thumb0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/materials/transparent_1001.material",
             "assetType": "Material",
             "resources": [
@@ -7254,6 +7269,25 @@
                         {
                             "hash": 2373913775137794579,
                             "name": "_260"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/close icon.ktx2",
+            "assetType": "Texture",
+            "sourcePath": "images/menu/setting/close icon.png",
+            "sourceTimestamp": 134146667730795541,
+            "compiledTimestamp": 17701975237550181,
+            "formatVersion": 2,
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 276330363255514555,
+                            "name": "close icon0"
                         }
                     ]
                 }
