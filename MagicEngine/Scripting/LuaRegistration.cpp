@@ -618,10 +618,20 @@ void RegisterCppStuffToLua(luabridge::Namespace baseTable)
 		.addFunction("Log", Lua_Log)
 		.addFunction("EngineShutdown", []() -> void { Core::Platform::Get().GetLifecycle().RequestExit(); })
 		.addFunction("DeltaTime", []() -> float { return GameTime::Dt(); })
+		.addProperty("TimeScale", GameTime::GetTimeScale, GameTime::SetTimeScale)
 		.addFunction("LoadScene", [](const std::string& scenePath) {
 			ST<Scheduler>::Get()->Add([scenePath]() -> void {
 				// Load new scene
 				ST<SceneManager>::Get()->UnloadAllScenes(scenePath);
+			});
+		})
+		.addFunction("LoadSceneAdditive", [](const std::string& scenePath) {
+			ST<SceneManager>::Get()->LoadScene(scenePath);
+		})
+		.addFunction("UnloadScene", [](const std::string& scenePath) {
+			ST<Scheduler>::Get()->Add([scenePath]() -> void {
+				if (auto scene{ ST<SceneManager>::Get()->GetSceneWithName(scenePath) })
+					ST<SceneManager>::Get()->UnloadScene(scene->GetIndex());
 			});
 		})
 		.addFunction("TransitionScene", [](const std::string& scenePath) {
