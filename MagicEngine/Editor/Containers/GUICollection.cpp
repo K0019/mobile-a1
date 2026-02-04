@@ -77,6 +77,20 @@ namespace gui {
 #endif
 		}
 
+		TextType::TextType(const char* text)
+			: text{ text }
+		{
+		}
+		TextType::TextType(const std::string& text)
+			: text{ text.c_str() }
+		{
+		}
+
+		TextType::operator const char* ()
+		{
+			return text;
+		}
+
 	}
 
 	Window::Window(const std::string& title, const Vec2& initDimensions, FLAG_WINDOW windowFlags)
@@ -273,6 +287,20 @@ namespace gui {
 	{
 	}
 
+	SmallButton::SmallButton([[maybe_unused]] const char* label)
+#ifdef IMGUI_ENABLED
+		: internal::BeginEndBound_SmallButton{ label }
+#endif
+	{
+	}
+
+	ImageButton::ImageButton([[maybe_unused]] const char* label, [[maybe_unused]] TextureID textureID, [[maybe_unused]] Vec2 size)
+#ifdef IMGUI_ENABLED
+		: internal::BeginEndBound_ImageButton{ label, textureID, size, Vec2{}, Vec2{1.0f,1.0f}, Vec4{}, Vec4{1.0f,1.0f,1.0f,1.0f} }
+#endif
+	{
+	}
+
 	Menu::Menu([[maybe_unused]] const char* label)
 #ifdef IMGUI_ENABLED
 		: internal::BeginEndBound_Menu{ label, true }
@@ -359,6 +387,15 @@ namespace gui {
 #endif
 	}
 
+	Vec2 CalcTextSize(internal::TextType text)
+	{
+#ifdef IMGUI_ENABLED
+		return ImGui::CalcTextSize(text);
+#else
+		return Vec2{};
+#endif
+	}
+
 	void AlignTextToFramePadding()
 	{
 #ifdef IMGUI_ENABLED
@@ -366,28 +403,19 @@ namespace gui {
 #endif
 	}
 
-	void TextUnformatted([[maybe_unused]] const char* text)
+	void TextUnformatted([[maybe_unused]] internal::TextType text)
 	{
 #ifdef IMGUI_ENABLED
 		ImGui::TextUnformatted(text);
 #endif
 	}
-	void TextUnformatted(const std::string& text)
-	{
-		TextUnformatted(text.c_str());
-	}
 
-	void TextCenteredUnformatted([[maybe_unused]] const char* text)
+	void TextCenteredUnformatted([[maybe_unused]] internal::TextType text)
 	{
 #ifdef IMGUI_ENABLED
 		ImGui::SetCursorPosX((ImGui::GetWindowWidth() - ImGui::CalcTextSize(text).x) * 0.5f);
 		TextUnformatted(text);
 #endif
-	}
-
-	void TextCenteredUnformatted(const std::string& text)
-	{
-		TextCenteredUnformatted(text.c_str());
 	}
 
 	void TextBoxReadOnly([[maybe_unused]] const char* label, [[maybe_unused]] const char* text, [[maybe_unused]] size_t size)
@@ -433,7 +461,7 @@ namespace gui {
 #endif
 	}
 
-	bool TextBoxWithFilter::PassFilter([[maybe_unused]] const char* text) const
+	bool TextBoxWithFilter::PassFilter([[maybe_unused]] internal::TextType text) const
 	{
 #ifdef IMGUI_ENABLED
 		// Whether to use ImGui's in-built filter
@@ -446,16 +474,11 @@ namespace gui {
 			return false;
 
 		// This checks up to the number of characters within the filter
-		return std::equal(InputBuf, InputBuf + filterLength, text, text + filterLength,
+		return std::equal(InputBuf, InputBuf + filterLength, text.text, text.text + filterLength,
 			[](char a, char b) -> bool { return std::tolower(a) == std::tolower(b); });
 #else
 		return false;
 #endif
-	}
-
-	bool gui::TextBoxWithFilter::PassFilter(const std::string& text) const
-	{
-		return PassFilter(text.c_str());
 	}
 
 	void TextBoxWithFilter::Clear()
@@ -781,6 +804,14 @@ namespace gui {
 #endif
 	}
 
+	bool Menu::Item(const char* label, bool* p_selected)
+	{
+		return MenuItem(label, p_selected);
+	}
+	bool ItemContextMenu::Item(const char* label, bool* p_selected)
+	{
+		return MenuItem(label, p_selected);
+	}
 	bool MenuItem([[maybe_unused]] const char* label, [[maybe_unused]] bool* p_selected)
 	{
 #ifdef IMGUI_ENABLED

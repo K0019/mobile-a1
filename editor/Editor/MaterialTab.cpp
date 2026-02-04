@@ -20,17 +20,15 @@ namespace editor {
 
     void MaterialTab::Render(const gui::TextBoxWithFilter& filter)
     {
-#ifdef IMGUI_ENABLED
         if (gui::Button{ "Create Material" })
             editor::CreateGuiWindow<editor::MaterialCreationWindow>();
         gui::SameLine();
         gui::TextDisabled("(?)");
-        if (ImGui::IsItemHovered())
-            ImGui::SetTooltip("Click a material to see which meshes use it");
+        gui::ShowSimpleHoverTooltip("Click a material to see which meshes use it");
 
         gui::Separator();
 
-        float availableHeight = ImGui::GetContentRegionAvail().y;
+        float availableHeight = gui::GetAvailableContentRegion().y;
         float detailPanelHeight = selectedMaterialHash.has_value() ? 150.0f : 0.0f;
         float gridHeight = availableHeight - detailPanelHeight;
 
@@ -40,99 +38,65 @@ namespace editor {
         // Detail panel (bottom section)
         if (selectedMaterialHash.has_value())
         {
-            ImGui::Separator();
+            gui::Separator();
             RenderDetailPanel();
         }
-#endif
     }
 
     void MaterialTab::RenderGridView(const gui::TextBoxWithFilter& filter, float height)
     {
-#ifdef IMGUI_ENABLED
-        ImGui::BeginChild("MaterialGrid", ImVec2(0, height), false);
+        gui::Child gridChild{ "MaterialGrid", gui::Vec2{ 0.0f, height } };
 
-        float THUMBNAIL_SIZE = AssetBrowser::THUMBNAIL_SIZE;
-        gui::Vec2 thumbnailSizeVec2{ THUMBNAIL_SIZE, THUMBNAIL_SIZE };
-        float panelWidth = ImGui::GetContentRegionAvail().x;
-        gui::GridHelper grid(panelWidth, THUMBNAIL_SIZE + 10);
+        gui::NewGridHelper grid{ AssetBrowser::THUMBNAIL_SIZE };
 
-        ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(5, 5));
-        ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
-
-        int count{};
         for (const auto& [hash, material] : ST<AssetManager>::Get()->Editor_GetContainer<ResourceMaterial>().Editor_GetAllResources())
         {
             const std::string& materialName{ *ST<AssetManager>::Get()->Editor_GetName(hash) };
             if (!filter.PassFilter(materialName))
                 continue;
 
+            gui::GridItem item{ grid.Item(materialName) };
+
+            bool isSelected{ selectedMaterialHash.has_value() && selectedMaterialHash.value() == hash.get() };
+            gui::SetStyleColor buttonColor{ gui::FLAG_STYLE_COLOR::BUTTON, gui::Vec4{ 0.26f, 0.59f, 0.98f, 0.6f }, isSelected };
+
+            // Try to get thumbnail from cache (uses material's baseColor texture)
+            uint64_t thumbId = ThumbnailCache::Get().GetThumbnail(
+                hash.get(), ThumbnailCache::AssetType::Material, materialName);
+
+            bool clicked = false;
+            if (thumbId != 0)
             {
-                gui::SetID id{ count++ };
-                gui::Group group;
-
-                bool isSelected = selectedMaterialHash.has_value() && selectedMaterialHash.value() == hash.get();
-                if (isSelected)
-                {
-                    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.26f, 0.59f, 0.98f, 0.6f));
-                }
-
-                // Try to get thumbnail from cache (uses material's baseColor texture)
-                uint64_t thumbId = ThumbnailCache::Get().GetThumbnail(
-                    hash.get(), ThumbnailCache::AssetType::Material, materialName);
-
-                bool clicked = false;
-                if (thumbId != 0)
-                {
-                    // Display actual thumbnail (ImTextureID is ImU64)
-                    // UV coordinates flipped vertically: uv0=(0,1), uv1=(1,0)
-                    clicked = ImGui::ImageButton(
-                        ("##mat" + std::to_string(count)).c_str(),
-                        static_cast<ImTextureID>(thumbId),
-                        ImVec2(THUMBNAIL_SIZE, THUMBNAIL_SIZE),
-                        ImVec2(0, 1), ImVec2(1, 0));
-                }
-                else
-                {
-                    // Fall back to icon
-                    clicked = ImGui::Button(
-                        (std::string(ICON_FA_PALETTE) + "##" + std::to_string(count)).c_str(),
-                        ImVec2(THUMBNAIL_SIZE, THUMBNAIL_SIZE));
-                }
-
-                if (clicked)
-                {
-                    if (isSelected)
-                        selectedMaterialHash.reset();
-                    else
-                        selectedMaterialHash = hash.get();
-                }
-
-                if (isSelected)
-                {
-                    ImGui::PopStyleColor();
-                }
-
-                // Context menu for edit
-                if (ImGui::BeginPopupContextItem(materialName.c_str()))
-                {
-                    if (ImGui::MenuItem(ICON_FA_FILE_IMPORT" Edit Material"))
-                    {
-                        editor::CreateGuiWindow<editor::MaterialEditWindow>(hash);
-                    }
-                    ImGui::EndPopup();
-                }
-                gui::PayloadSource payloadSource{ "MATERIAL_HASH", hash.get() };
-
-                gui::ShowSimpleHoverTooltip(materialName);
-                gui::ThumbnailLabel(materialName, THUMBNAIL_SIZE);
+                // Display actual thumbnail (ImTextureID is ImU64)
+                clicked = gui::ImageButton{
+                    ("##mat" + std::to_string(grid.GetItemCount())).c_str(),
+                    thumbId,
+                    gui::Vec2{ AssetBrowser::THUMBNAIL_SIZE, AssetBrowser::THUMBNAIL_SIZE }
+                };
+            }
+            else
+            {
+                // Fall back to icon
+                clicked = gui::Button{
+                    (std::string{ ICON_FA_PALETTE"##" } + std::to_string(grid.GetItemCount())).c_str(),
+                    gui::Vec2{ AssetBrowser::THUMBNAIL_SIZE, AssetBrowser::THUMBNAIL_SIZE }
+                };
             }
 
-            grid.NextItem();
-        }
+            if (clicked)
+            {
+                if (isSelected)
+                    selectedMaterialHash.reset();
+                else
+                    selectedMaterialHash = hash.get();
+            }
 
-        ImGui::PopStyleVar(2);
-        ImGui::EndChild();
-#endif
+            // Context menu for edit
+            if (gui::ItemContextMenu{ materialName.c_str() })
+                if (gui::MenuItem(ICON_FA_FILE_IMPORT" Edit Material"))
+                    editor::CreateGuiWindow<editor::MaterialEditWindow>(hash);
+            gui::PayloadSource payloadSource{ "MATERIAL_HASH", hash.get() };
+        }
     }
 
     void MaterialTab::RenderDetailPanel()

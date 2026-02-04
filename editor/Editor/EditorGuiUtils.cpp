@@ -51,21 +51,20 @@ namespace gui
 	{
 	}
 
-	std::string TruncateText(const std::string& text, [[maybe_unused]] float maxWidth)
+	int NewGridHelper::GetItemCount() const
 	{
-		std::string displayName{ text };
-#ifdef IMGUI_ENABLED
-		ImVec2 textSize = ImGui::CalcTextSize(displayName.c_str());
-		if (textSize.x > maxWidth)
+		return itemCount;
+	}
+
+	std::string TruncateText(std::string text, float maxWidth)
+	{
+		float textSize = gui::CalcTextSize(text).x;
+		while (textSize > maxWidth && text.length() > 3)
 		{
-			while (textSize.x > maxWidth && displayName.length() > 3)
-			{
-				displayName = displayName.substr(0, displayName.length() - 4) + "...";
-				textSize = ImGui::CalcTextSize(displayName.c_str());
-			}
+			text = text.substr(0, text.length() - 4) + "...";
+			textSize = gui::CalcTextSize(text).x;
 		}
-#endif
-		return displayName;
+		return text;
 	}
 
 	void ThumbnailLabel([[maybe_unused]] const std::string& text, [[maybe_unused]] float thumbnailWidth)

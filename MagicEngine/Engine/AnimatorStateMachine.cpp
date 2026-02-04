@@ -219,6 +219,12 @@ namespace sm {
 		auto animSM{ CastSM(sm) };
 		TransitionChracterIntoAnimation(animSM, 5, ANIM_TRANSITION_DURATION_PARRY, false);
 		animSM->blackboard["inputParry"] = false;
+		animSM->blackboard["parrying"] = true;
+	}
+
+	void ParryActivity::OnExit(sm::StateMachine* sm)
+	{
+		CastSM(sm)->blackboard["parrying"] = false;
 	}
 
 	void ThrowActivity::OnEnter(sm::StateMachine* sm)
@@ -478,7 +484,7 @@ namespace sm {
 
 	ParryState::ParryState() : sm::State(
 		{ new ParryActivity() },
-		{ new ToHitstopTransition{}, new NoOpWhileAnimatingTransition{}, new ToIdleTransition(), new ToAttackTransition<AttackState>{ ANIM_INPUT_TYPE::LIGHT_ATTACK } } // Can counter-attack from parry
+		{ new ToHitstopTransition{}, new NoOpWhileAnimatingTransition{}, new ToAttackTransition<AttackState>{ ANIM_INPUT_TYPE::LIGHT_ATTACK }, new ToIdleTransition(), new ToWalkTransition() } // Can counter-attack from parry
 	) {
 	}
 

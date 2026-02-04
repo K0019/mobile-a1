@@ -17,8 +17,7 @@ namespace editor
 
     void AnimationsTab::Render(const gui::TextBoxWithFilter& filter)
     {
-#ifdef IMGUI_ENABLED
-        float availableHeight = ImGui::GetContentRegionAvail().y;
+        float availableHeight = gui::GetAvailableContentRegion().y;
         float detailPanelHeight = selectedAnimationHash.has_value() ? 150.0f : 0.0f;
         float gridHeight = availableHeight - detailPanelHeight;
 
@@ -26,169 +25,111 @@ namespace editor
 
         if (selectedAnimationHash.has_value())
         {
-            ImGui::Separator();
+            gui::Separator();
             RenderDetailPanel();
         }
-#endif
     }
 
     void AnimationsTab::RenderGridView(const gui::TextBoxWithFilter& filter, float height)
     {
-#ifdef IMGUI_ENABLED
-        ImGui::BeginChild("AnimationGrid", ImVec2(0, height), false);
+        gui::Child gridChild{ "AnimationGrid", gui::Vec2{ 0.0f, height } };
 
-        float THUMBNAIL_SIZE = AssetBrowser::THUMBNAIL_SIZE;
-        gui::Vec2 thumbnailSizeVec2{ THUMBNAIL_SIZE, THUMBNAIL_SIZE };
-        float panelWidth = ImGui::GetContentRegionAvail().x;
-        gui::GridHelper grid(panelWidth, THUMBNAIL_SIZE + 10);
+        gui::NewGridHelper grid{ AssetBrowser::THUMBNAIL_SIZE };
 
-        ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(5, 5));
-        ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
-
-        int count{};
         for (const auto& [hash, animRef] : ST<AssetManager>::Get()->Editor_GetContainer<ResourceAnimation>().Editor_GetAllResources())
         {
             const std::string& animName{ *ST<AssetManager>::Get()->Editor_GetName(hash) };
             if (!filter.PassFilter(animName))
                 continue;
 
-            {
-                gui::SetID id{ count++ };
-                gui::Group group;
+            gui::GridItem item{ grid.Item(animName) };
 
-                bool isSelected = selectedAnimationHash.has_value() && selectedAnimationHash.value() == hash.get();
+            bool isSelected{ selectedAnimationHash.has_value() && selectedAnimationHash.value() == hash.get() };
+            gui::SetStyleColor buttonColor{ gui::FLAG_STYLE_COLOR::BUTTON, gui::Vec4{ 0.26f, 0.59f, 0.98f, 0.6f }, isSelected };
+
+            if (gui::Button{ ICON_FA_PERSON_RUNNING, gui::Vec2{ AssetBrowser::THUMBNAIL_SIZE, AssetBrowser::THUMBNAIL_SIZE} })
                 if (isSelected)
-                {
-                    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.26f, 0.59f, 0.98f, 0.6f));
-                }
+                    selectedAnimationHash.reset();
+                else
+                    selectedAnimationHash = hash.get();
 
-                if (gui::Button button{ ICON_FA_PERSON_RUNNING, thumbnailSizeVec2 })
-                {
-                    if (isSelected)
-                        selectedAnimationHash.reset();
-                    else
-                        selectedAnimationHash = hash.get();
-                }
-
-                if (isSelected)
-                {
-                    ImGui::PopStyleColor();
-                }
-
-                gui::PayloadSource{ "ANIMATION_HASH", hash.get() };
-
-                gui::ShowSimpleHoverTooltip(animName);
-                gui::ThumbnailLabel(animName, THUMBNAIL_SIZE);
-            }
-
-            grid.NextItem();
+            gui::PayloadSource{ "ANIMATION_HASH", hash.get() };
         }
-
-        ImGui::PopStyleVar(2);
-        ImGui::EndChild();
-#endif
     }
 
     void AnimationsTab::RenderDetailPanel()
     {
-#ifdef IMGUI_ENABLED
         if (!selectedAnimationHash.has_value())
             return;
 
-        ImGui::BeginChild("AnimationDetails", ImVec2(0, 0), true);
+        gui::Child detailsChild{ "AnimationDetails", gui::Vec2{}, gui::FLAG_CHILD::BORDERS };
 
-        size_t hash = selectedAnimationHash.value();
-        const std::string* animName = ST<AssetManager>::Get()->Editor_GetName(hash);
-
+        size_t hash{ selectedAnimationHash.value() };
+        const std::string* animName{ ST<AssetManager>::Get()->Editor_GetName(hash) };
         if (!animName)
         {
-            ImGui::TextColored(ImVec4(1, 0.4f, 0.4f, 1), "Animation not found");
-            ImGui::EndChild();
+            gui::TextColored(gui::Vec4{ 1.0f, 0.4f, 0.4f, 1.0f }, "Animation not found!");
             return;
         }
 
         // Header with close button
-        ImGui::Text(ICON_FA_PERSON_RUNNING " %s", animName->c_str());
-        ImGui::SameLine(ImGui::GetContentRegionAvail().x - 20);
-        if (ImGui::SmallButton(ICON_FA_XMARK))
+        gui::TextFormatted(ICON_FA_PERSON_RUNNING " %s", animName->c_str());
+        gui::SameLine(gui::GetAvailableContentRegion().x - 20.0f);
+        if (gui::SmallButton{ ICON_FA_XMARK })
         {
             selectedAnimationHash.reset();
-            ImGui::EndChild();
             return;
         }
 
-        ImGui::Separator();
+        gui::Separator();
 
-        ImGui::Columns(2, nullptr, false);
-        ImGui::SetColumnWidth(0, 300);
+        gui::Table table{ "AnimationDetailsTable", 2, true, gui::FLAG_TABLE::NO_BORDERS_IN_BODY };
+        table.AddColumnHeader(ICON_FA_CUBE " Related meshes:", gui::FLAG_TABLE_COLUMN::WIDTH_FIXED, 300.0f);
+        table.AddColumnHeader("Actions:");
+        table.SubmitColumnHeaders();
 
-        // Find meshes with similar folder path (likely compatible)
-        ImGui::Text(ICON_FA_CUBE " Related meshes:");
-        ImGui::BeginChild("RelatedMeshList", ImVec2(0, 80), true);
-
-        // Extract folder hint from animation name
-        std::string animFolder;
-        if (animName)
         {
-            // Try to find a common prefix pattern
-            // e.g., "mc_animatedIdle" -> look for "mc_animated" meshes
-            std::string name = *animName;
-            // Find where the animation action name starts (usually uppercase or after known prefixes)
-            for (size_t i = 3; i < name.length(); ++i)
-            {
-                if (std::isupper(name[i]) || name[i] == '_')
-                {
-                    animFolder = name.substr(0, i);
-                    break;
-                }
-            }
-        }
+            // Find meshes with similar folder path (likely compatible)
+            gui::Child relatedMeshListChild{ "RelatedMeshList", gui::Vec2{ 0.0f, 80.0f }, gui::FLAG_CHILD::BORDERS };
 
-        int relatedCount = 0;
-        if (!animFolder.empty())
-        {
-            for (const auto& [meshHash, meshRef] : ST<AssetManager>::Get()->INTERNAL_GetContainer<ResourceMesh>().Editor_GetAllResources())
+            // Extract folder hint from animation name
+            std::string animFolder;
+            if (animName)
             {
-                const std::string* meshName = ST<AssetManager>::Get()->Editor_GetName(meshHash);
-                if (meshName && meshName->find(animFolder) != std::string::npos)
+                // Try to find a common prefix pattern
+                // e.g., "mc_animatedIdle" -> look for "mc_animated" meshes
+                const std::string& name = *animName;
+                // Find where the animation action name starts (usually uppercase or after known prefixes)
+                for (size_t i = 3; i < name.length(); ++i)
                 {
-                    ImGui::Selectable(meshName->c_str(), false);
-                    if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceAllowNullID))
+                    if (std::isupper(name[i]) || name[i] == '_')
                     {
-                        size_t dragHash = meshHash.get();
-                        ImGui::SetDragDropPayload("MESH_HASH", &dragHash, sizeof(size_t));
-                        ImGui::Text("Mesh: %s", meshName->c_str());
-                        ImGui::EndDragDropSource();
+                        animFolder = name.substr(0, i);
+                        break;
                     }
-                    relatedCount++;
                 }
             }
+
+            int relatedCount = 0;
+            if (!animFolder.empty())
+                for (const auto& [meshHash, meshRef] : ST<AssetManager>::Get()->INTERNAL_GetContainer<ResourceMesh>().Editor_GetAllResources())
+                {
+                    const std::string* meshName{ ST<AssetManager>::Get()->Editor_GetName(meshHash) };
+                    if (meshName && meshName->find(animFolder) != std::string::npos)
+                    {
+                        gui::Selectable(meshName->c_str(), false);
+                        gui::PayloadSource{ "MESH_HASH", meshHash.get(), std::string{"Mesh: " + *meshName}.c_str(), gui::FLAG_PAYLOAD_SOURCE::ALLOW_NULL_ID};
+                        ++relatedCount;
+                    }
+                }
+            if (relatedCount == 0)
+                gui::TextDisabled("No related meshes found");
         }
+        table.NextColumn();
 
-        if (relatedCount == 0)
-        {
-            ImGui::TextDisabled("No related meshes found");
-        }
+        gui::Spacing();
 
-        ImGui::EndChild();
-
-        ImGui::NextColumn();
-
-        // Right column - Actions
-        ImGui::Text("Actions:");
-        ImGui::Spacing();
-
-        ImGui::Button(ICON_FA_HAND " Drag to assign", ImVec2(-1, 0));
-        if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceAllowNullID))
-        {
-            ImGui::SetDragDropPayload("ANIMATION_HASH", &hash, sizeof(size_t));
-            ImGui::Text("Animation: %s", animName->c_str());
-            ImGui::EndDragDropSource();
-        }
-
-        ImGui::Columns(1);
-
-        ImGui::EndChild();
-#endif
+        gui::Button{ ICON_FA_HAND " Drag to assign", gui::Vec2{ -1.0f, 0.0f } };
+        gui::PayloadSource{ "ANIMATION_HASH", hash, std::string{"Animation: " + *animName}.c_str(), gui::FLAG_PAYLOAD_SOURCE::ALLOW_NULL_ID };
     }
 }

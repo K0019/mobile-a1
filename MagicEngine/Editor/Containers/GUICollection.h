@@ -166,6 +166,21 @@ namespace gui {
 	X(ANY_POPUP_LEVEL, ImGuiPopupFlags_AnyPopupLevel) \
 	X(ANY_POPUP, ImGuiPopupFlags_AnyPopup)
 
+	//! ImGuiDragDropFlags
+#define GUICOLLECTION_FLAG_PAYLOAD_SOURCE \
+	X(NONE, ImGuiDragDropFlags_None) \
+	X(NO_PREVIEW_TOOLTIP, ImGuiDragDropFlags_SourceNoPreviewTooltip) \
+	X(NO_DISABLE_HOVER, ImGuiDragDropFlags_SourceNoDisableHover) \
+	X(NO_HOLD_TO_OPEN_OTHERS, ImGuiDragDropFlags_SourceNoHoldToOpenOthers) \
+	X(ALLOW_NULL_ID, ImGuiDragDropFlags_SourceAllowNullID) \
+	X(EXTERNAL_SOURCE, ImGuiDragDropFlags_SourceExtern)
+#define GUICOLLECTION_FLAG_PAYLOAD_TARGET \
+	X(NONE, ImGuiDragDropFlags_None) \
+	X(SUCCESS_BEFORE_DELIVERY, ImGuiDragDropFlags_AcceptBeforeDelivery) \
+	X(NO_DRAW_DEFAULT_RECT, ImGuiDragDropFlags_AcceptNoDrawDefaultRect) \
+	X(NO_PREVIEW_TOOLTIP, ImGuiDragDropFlags_AcceptNoPreviewTooltip) \
+	X(PEEK_ONLY, ImGuiDragDropFlags_AcceptPeekOnly)
+
 	//! ImGuiComboFlags
 #define GUICOLLECTION_FLAG_COMBO \
 	X(NONE, ImGuiComboFlags_None) \
@@ -471,6 +486,20 @@ namespace gui {
 	GENERATE_ENUM_CLASS_BITWISE_OPERATORS(FLAG_COMBO)
 
 	/*****************************************************************//*!
+	\enum class FLAG_PAYLOAD_SOURCE
+	\brief
+		ImGuiDragDropFlags
+	*//******************************************************************/
+	enum class FLAG_PAYLOAD_SOURCE : int {
+		GUICOLLECTION_FLAG_PAYLOAD_SOURCE
+	};
+	GENERATE_ENUM_CLASS_BITWISE_OPERATORS(FLAG_PAYLOAD_SOURCE)
+	enum class FLAG_PAYLOAD_TARGET : int {
+		GUICOLLECTION_FLAG_PAYLOAD_TARGET
+	};
+	GENERATE_ENUM_CLASS_BITWISE_OPERATORS(FLAG_PAYLOAD_TARGET)
+
+	/*****************************************************************//*!
 	\enum class FLAG_STYLE_COLOR
 	\brief
 		ImGuiCol
@@ -653,6 +682,8 @@ namespace gui {
 		using BeginEndBound_PayloadSource = BeginEndBound<ImGui::BeginDragDropSource, ImGui::EndDragDropSource>;
 
 		using BeginEndBound_Button = BeginEndBound<ImGui::Button>;
+		using BeginEndBound_SmallButton = BeginEndBound<ImGui::SmallButton>;
+		using BeginEndBound_ImageButton = BeginEndBound<ImGui::ImageButton>;
 
 		using BeginEndBound_MainMenuBar = BeginEndBound<ImGui::BeginMainMenuBar, ImGui::EndMainMenuBar>;
 		using BeginEndBound_MenuBar = BeginEndBound<ImGui::BeginMenuBar, ImGui::EndMenuBar>;
@@ -679,6 +710,8 @@ namespace gui {
 		using BeginEndBound_PayloadSource = std::false_type;
 
 		using BeginEndBound_Button = std::false_type;
+		using BeginEndBound_SmallButton = std::false_type;
+		using BeginEndBound_ImageButton = std::false_type;
 
 		using BeginEndBound_MainMenuBar = std::false_type;
 		using BeginEndBound_MenuBar = std::false_type;
@@ -755,6 +788,20 @@ namespace gui {
 			//! The conditions that are passed to the ImGui function setting the container's dimensions.
 			FLAG_COND windowSizeCondFlags;
 
+		};
+
+		/*****************************************************************//*!
+		\class TextType
+		\brief
+			Helper type to combine const char* and std::string to deduplicate
+			functions that need to support both.
+		*//******************************************************************/
+		struct TextType
+		{
+			TextType(const char* text);
+			TextType(const std::string& text);
+			operator const char* ();
+			const char* text;
 		};
 
 	}
@@ -994,6 +1041,8 @@ namespace gui {
 
 	//! ImGui::GetFontSize()
 	float GetFontSize();
+	//! ImGui::CalcTextSize()
+	gui::Vec2 CalcTextSize(internal::TextType text);
 
 	/*****************************************************************//*!
 	\class SetTextWrapPos
@@ -1012,21 +1061,19 @@ namespace gui {
 
 	//! ImGui::Text()
 	template <typename ...Args>
-	void TextFormatted(const char* fmt, const Args&... args);
+	void TextFormatted(internal::TextType fmt, const Args&... args);
 	//! ImGui::TextUnformatted()
-	void TextUnformatted(const char* text);
-	void TextUnformatted(const std::string& text);
-	void TextCenteredUnformatted(const char* text);
-	void TextCenteredUnformatted(const std::string& text);
+	void TextUnformatted(internal::TextType text);
+	void TextCenteredUnformatted(internal::TextType text);
 	//! ImGui::TextColored
 	template <typename ...Args>
-	void TextColored(const Vec4& color, const char* fmt, const Args&... args);
+	void TextColored(const Vec4& color, internal::TextType fmt, const Args&... args);
 	//! ImGui::TextWrapped()
 	template <typename ...Args>
-	void TextWrapped(const char* fmt, const Args&... args);
+	void TextWrapped(internal::TextType fmt, const Args&... args);
 	//! ImGui::TextDisabled()
 	template <typename ...Args>
-	void TextDisabled(const char* format, const Args&... args);
+	void TextDisabled(internal::TextType format, const Args&... args);
 
 	//! ImGui::InputText() (displays read-only text within a text box)
 	// TODO: See if can find a way to unify this and perhaps a base TextBox class.
@@ -1144,8 +1191,7 @@ namespace gui {
 		\param text
 			The text to test whether it passes the filter or not.
 		*//******************************************************************/
-		bool PassFilter(const char* text) const;
-		bool PassFilter(const std::string& text) const;
+		bool PassFilter(internal::TextType text) const;
 
 		/*****************************************************************//*!
 		\brief
@@ -1285,7 +1331,7 @@ namespace gui {
 	class PayloadSource : public internal::BeginEndBound_PayloadSource
 	{
 	public:
-		PayloadSource(const char* identifier, const DataType& data, const char* dragLabel = nullptr);
+		PayloadSource(const char* identifier, const DataType& data, const char* dragLabel = nullptr, FLAG_PAYLOAD_SOURCE flags = FLAG_PAYLOAD_SOURCE::NONE);
 
 	private:
 		void SetPayloadTarget(const char* identifier, const DataType& data);
@@ -1308,7 +1354,7 @@ namespace gui {
 	*//******************************************************************/
 	template <typename DataType, typename FunctionType>
 		requires std::invocable<FunctionType, const DataType&>
-	void PayloadTarget(const char* identifier, FunctionType onReceive);
+	void PayloadTarget(const char* identifier, FunctionType onReceive, FLAG_PAYLOAD_TARGET flags = FLAG_PAYLOAD_TARGET::NONE);
 
 #pragma endregion // Payload
 
@@ -1324,6 +1370,30 @@ namespace gui {
 	public:
 		//! ImGui::Button()
 		Button(const char* label, const Vec2& size = Vec2{});
+	};
+
+	/*****************************************************************//*!
+	\class SmallButton
+	\brief
+		Wraps ImGui::SmallButton()
+	*//******************************************************************/
+	class SmallButton : public internal::BeginEndBound_SmallButton
+	{
+	public:
+		//! ImGui::SmallButton()
+		SmallButton(const char* label);
+	};
+
+	/*****************************************************************//*!
+	\class ImageButton
+	\brief
+		Wraps ImGui::ImageButton()
+	*//******************************************************************/
+	class ImageButton : public internal::BeginEndBound_ImageButton
+	{
+	public:
+		//! ImGui::ImageButton()
+		ImageButton(const char* label, TextureID textureID, Vec2 size);
 	};
 
 #pragma endregion // Button
@@ -1475,6 +1545,9 @@ namespace gui {
 	public:
 		//! ImGui::BeginMenu()
 		Menu(const char* label);
+
+		//! ImGui::MenuItem()
+		bool Item(const char* label, bool* p_selected = nullptr);
 	};
 
 	/*****************************************************************//*!
@@ -1489,6 +1562,9 @@ namespace gui {
 	public:
 		//! ImGui::BeginPopupContextItem()
 		ItemContextMenu(const char* label, FLAG_POPUP flags = FLAG_POPUP::MOUSE_RIGHT);
+
+		//! ImGui::MenuItem()
+		bool Item(const char* label, bool* p_selected = nullptr);
 	};
 
 	//! ImGui::MenuItem()
