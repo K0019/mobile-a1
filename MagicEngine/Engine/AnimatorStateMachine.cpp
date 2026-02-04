@@ -203,6 +203,12 @@ namespace sm {
 		auto animSM{ CastSM(sm) };
 		TransitionChracterIntoAnimation(animSM, 4, ANIM_TRANSITION_DURATION_DODGE, false);
 		animSM->blackboard["inputDodge"] = false;
+		animSM->blackboard["dodging"] = true;
+	}
+
+	void DodgeActivity::OnExit(sm::StateMachine* sm)
+	{
+		CastSM(sm)->blackboard["dodging"] = false;
 	}
 
 	void ParryActivity::OnEnter(sm::StateMachine* sm)

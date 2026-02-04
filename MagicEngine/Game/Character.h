@@ -71,7 +71,6 @@ public:
 
 	// Not serialized
 	float currentStunTime;
-	float currentDodgeTime;
 	float currentDodgeCooldown;
 	float speedMultiplier;
 
@@ -139,9 +138,6 @@ public:
 
 	float GetCurrentStunTime() const { return currentStunTime; }
 	void  SetCurrentStunTime(float v) { currentStunTime = v; }
-
-	float GetCurrentDodgeTime() const { return currentDodgeTime; }
-	void  SetCurrentDodgeTime(float v) { currentDodgeTime = v; }
 
 	float GetCurrentDodgeCooldown() const { return currentDodgeCooldown; }
 	void  SetCurrentDodgeCooldown(float v) { currentDodgeCooldown = v; }
