@@ -1472,6 +1472,7 @@
         },
         {
             "filepath": "compiledassets/health.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -1655,6 +1656,7 @@
         },
         {
             "filepath": "compiledassets/delusion.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -2449,6 +2451,7 @@
         },
         {
             "filepath": "compiledassets/materials/t_PickDroppc.material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -2613,6 +2616,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/baseball_field/lights/image_2.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -2687,6 +2691,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/baseball_field/fence/image_3.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -2941,6 +2946,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/baseball_field/fence/material_1.material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -3300,6 +3306,7 @@
         },
         {
             "filepath": "compiledassets/materials/t_Dodgepc.material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -3389,6 +3396,7 @@
         },
         {
             "filepath": "compiledassets/pickdrop_pc.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -3688,6 +3696,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/baseball_field/fence/image_1.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -3702,6 +3711,7 @@
         },
         {
             "filepath": "compiledassets/materials/t_Health.material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -4260,6 +4270,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/baseball_field/fence/image_0.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -4274,6 +4285,7 @@
         },
         {
             "filepath": "compiledassets/materials/t_Dodgemobile.material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -4363,6 +4375,7 @@
         },
         {
             "filepath": "compiledassets/materials/t_Delusion.material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -4662,6 +4675,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/baseball_field/lights/image_1.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -4751,6 +4765,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/baseball_field/fence/standardsurface1_1001.001.material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -4780,6 +4795,7 @@
         },
         {
             "filepath": "compiledassets/move_pc.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -4899,6 +4915,7 @@
         },
         {
             "filepath": "compiledassets/materials/t_PickDropmobile.material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -4988,6 +5005,7 @@
         },
         {
             "filepath": "compiledassets/move_mobile.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -5167,6 +5185,7 @@
         },
         {
             "filepath": "compiledassets/lookaround_mobile.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -5316,6 +5335,7 @@
         },
         {
             "filepath": "compiledassets/dodge_pc.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -5330,6 +5350,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/baseball_field/fence/standardsurface1_1001.material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -5404,6 +5425,7 @@
         },
         {
             "filepath": "compiledassets/materials/t_Arrow.material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -5688,6 +5710,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/baseball_field/fence/transparent_1001.material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -5792,6 +5815,7 @@
         },
         {
             "filepath": "compiledassets/pickdrop_mobile.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -5881,6 +5905,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/baseball_field/fence/image_2.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -5940,6 +5965,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/baseball_field/lights/standardsurface1_1001.material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -6423,6 +6449,7 @@
         },
         {
             "filepath": "compiledassets/lookaround_pc.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -6617,6 +6644,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/baseball_field/lights/lights.mesh",
+            "assetType": "Mesh",
             "resources": [
                 {
                     "resourceType": 6209910166724260588,
@@ -6785,6 +6813,7 @@
         },
         {
             "filepath": "compiledassets/materials/t_lookaroundmobile.material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -7024,6 +7053,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/baseball_field/fence/material_3.material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -7612,6 +7642,7 @@
         },
         {
             "filepath": "compiledassets/materials/t_lookaroundpc.material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -7656,6 +7687,7 @@
         },
         {
             "filepath": "compiledassets/dodge_mobile.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -7969,6 +8001,21 @@
             ]
         },
         {
+            "filepath": "compiledassets/kickme.ktx2",
+            "assetType": "Texture",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 3060798479178107079,
+                            "name": "kickme0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/models/glb/baseball_field/storage room/storage room.mesh",
             "assetType": "Mesh",
             "sourcePath": "C:\\Users\\ryang\\Documents\\GitHub\\gam300-magic\\Assets\\models\\glb\\baseball_field\\storage room.glb",
@@ -7982,20 +8029,6 @@
                         {
                             "hash": 4179585647542043651,
                             "name": "storage room0"
-                        }
-                    ]
-                }
-            ]
-        },
-        {
-            "filepath": "compiledassets/kickme.ktx2",
-            "resources": [
-                {
-                    "resourceType": 16443744738808614340,
-                    "resourceEntries": [
-                        {
-                            "hash": 3060798479178107079,
-                            "name": "kickme0"
                         }
                     ]
                 }
@@ -8802,6 +8835,7 @@
         },
         {
             "filepath": "compiledassets/materials/t_Movemobile.material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -8846,6 +8880,7 @@
         },
         {
             "filepath": "compiledassets/materials/t_Movepc.material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -9209,6 +9244,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/baseball_field/fence/image_4.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -9313,6 +9349,7 @@
         },
         {
             "filepath": "compiledassets/arrow.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -9327,6 +9364,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/baseball_field/lights/image_0.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
@@ -9401,6 +9439,7 @@
         },
         {
             "filepath": "compiledassets/materials/ui_kickme.material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -9595,6 +9634,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/baseball_field/fence/fence.mesh",
+            "assetType": "Mesh",
             "resources": [
                 {
                     "resourceType": 6209910166724260588,
@@ -10048,6 +10088,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/baseball_field/lights/material_1.material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -10212,6 +10253,7 @@
         },
         {
             "filepath": "compiledassets/materials/kickme.material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -10556,6 +10598,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/baseball_field/fence/material_2.material",
+            "assetType": "Material",
             "resources": [
                 {
                     "resourceType": 645030769166885040,
@@ -10600,6 +10643,7 @@
         },
         {
             "filepath": "compiledassets/models/glb/baseball_field/fence/image_5.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
