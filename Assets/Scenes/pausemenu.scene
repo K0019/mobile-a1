@@ -64,7 +64,7 @@
                     "_active": true,
                     "scripts": [
                         {
-                            "scriptName": "mainmenu_button_quit.lua"
+                            "scriptName": "menu_button_tosettings_frompause.lua"
                         }
                     ]
                 }
