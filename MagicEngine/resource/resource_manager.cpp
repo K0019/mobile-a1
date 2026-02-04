@@ -807,7 +807,12 @@ namespace Resource
           return;
         }
 
-        hina_ctx_flush_uploads(threadCtx);
+        // Flush and WAIT for upload to complete before getting the view
+        // Without waiting, the texture may still be in UNDEFINED layout when used
+        hina_ticket ticket = hina_ctx_flush_uploads(threadCtx);
+        if (ticket) {
+          hina_wait_ticket(ticket);
+        }
         hina_texture_view view = hina_texture_get_default_view(tex);
 
         result.textureId = tex.id;
