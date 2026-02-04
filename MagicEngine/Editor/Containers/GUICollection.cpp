@@ -294,6 +294,13 @@ namespace gui {
 	{
 	}
 
+	ImageButton::ImageButton([[maybe_unused]] const char* label, [[maybe_unused]] TextureID textureID, [[maybe_unused]] Vec2 size)
+#ifdef IMGUI_ENABLED
+		: internal::BeginEndBound_ImageButton{ label, textureID, size, Vec2{}, Vec2{1.0f,1.0f}, Vec4{}, Vec4{1.0f,1.0f,1.0f,1.0f} }
+#endif
+	{
+	}
+
 	Menu::Menu([[maybe_unused]] const char* label)
 #ifdef IMGUI_ENABLED
 		: internal::BeginEndBound_Menu{ label, true }

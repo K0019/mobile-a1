@@ -683,6 +683,7 @@ namespace gui {
 
 		using BeginEndBound_Button = BeginEndBound<ImGui::Button>;
 		using BeginEndBound_SmallButton = BeginEndBound<ImGui::SmallButton>;
+		using BeginEndBound_ImageButton = BeginEndBound<ImGui::ImageButton>;
 
 		using BeginEndBound_MainMenuBar = BeginEndBound<ImGui::BeginMainMenuBar, ImGui::EndMainMenuBar>;
 		using BeginEndBound_MenuBar = BeginEndBound<ImGui::BeginMenuBar, ImGui::EndMenuBar>;
@@ -710,6 +711,7 @@ namespace gui {
 
 		using BeginEndBound_Button = std::false_type;
 		using BeginEndBound_SmallButton = std::false_type;
+		using BeginEndBound_ImageButton = std::false_type;
 
 		using BeginEndBound_MainMenuBar = std::false_type;
 		using BeginEndBound_MenuBar = std::false_type;
@@ -1380,6 +1382,18 @@ namespace gui {
 	public:
 		//! ImGui::SmallButton()
 		SmallButton(const char* label);
+	};
+
+	/*****************************************************************//*!
+	\class ImageButton
+	\brief
+		Wraps ImGui::ImageButton()
+	*//******************************************************************/
+	class ImageButton : public internal::BeginEndBound_ImageButton
+	{
+	public:
+		//! ImGui::ImageButton()
+		ImageButton(const char* label, TextureID textureID, Vec2 size);
 	};
 
 #pragma endregion // Button

@@ -51,6 +51,11 @@ namespace gui
 	{
 	}
 
+	int NewGridHelper::GetItemCount() const
+	{
+		return itemCount;
+	}
+
 	std::string TruncateText(std::string text, float maxWidth)
 	{
 		float textSize = gui::CalcTextSize(text).x;

@@ -60,6 +60,8 @@ namespace gui
 			return GridItem{ itemCount, itemCount % columnsCount != 0, thumbnailSize, &itemName };
 		}
 
+		int GetItemCount() const;
+
 	};
 
 	std::string TruncateText(std::string text, float maxWidth);
