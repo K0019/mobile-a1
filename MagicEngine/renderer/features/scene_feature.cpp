@@ -986,8 +986,8 @@ void SceneRenderFeature::ExecuteGBufferPass(internal::ExecutionContext& ctx)
       // Check transform ring buffer overflow
       if (frame.transformRingOffset >= TRANSFORM_UBO_SIZE) {
         if (!m_transformOverflowWarned) {
-          LOG_WARN("[SceneRenderFeature] Transform ring buffer overflow! Some objects will not be rendered. "
-                   "Consider reducing draw count or increasing MAX_TRANSFORMS (current: {})", MAX_TRANSFORMS);
+        //  LOG_WARN("[SceneRenderFeature] Transform ring buffer overflow! Some objects will not be rendered. "
+       //            "Consider reducing draw count or increasing MAX_TRANSFORMS (current: {})", MAX_TRANSFORMS);
           m_transformOverflowWarned = true;
         }
         ++m_droppedDrawsThisFrame;
@@ -1062,8 +1062,8 @@ void SceneRenderFeature::ExecuteGBufferPass(internal::ExecutionContext& ctx)
           // Check buffer overflow
           if (frame.transformRingOffset >= TRANSFORM_UBO_SIZE) {
             if (!m_transformOverflowWarned) {
-              LOG_WARN("[SceneRenderFeature] Transform ring buffer overflow (skinned)! "
-                       "Some objects will not be rendered.");
+              //LOG_WARN("[SceneRenderFeature] Transform ring buffer overflow (skinned)! "
+              //         "Some objects will not be rendered.");
               m_transformOverflowWarned = true;
             }
             ++m_droppedDrawsThisFrame;
@@ -1071,8 +1071,8 @@ void SceneRenderFeature::ExecuteGBufferPass(internal::ExecutionContext& ctx)
           }
           if (frame.boneMatrixRingOffset >= BONE_MATRIX_UBO_SIZE) {
             if (!m_boneOverflowWarned) {
-              LOG_WARN("[SceneRenderFeature] Bone matrix ring buffer overflow! "
-                       "Some skinned objects will not be rendered.");
+              //LOG_WARN("[SceneRenderFeature] Bone matrix ring buffer overflow! "
+              //         "Some skinned objects will not be rendered.");
               m_boneOverflowWarned = true;
             }
             ++m_droppedDrawsThisFrame;
@@ -1097,9 +1097,9 @@ void SceneRenderFeature::ExecuteGBufferPass(internal::ExecutionContext& ctx)
           if (draw.jointCount > gfx::MAX_BONES_PER_MESH) {
             static bool warnedOnce = false;
             if (!warnedOnce) {
-              LOG_WARNING("[SceneRenderFeature] Mesh has {} bones but MAX_BONES_PER_MESH is {}. "
-                          "Bones beyond limit will use identity matrices. Consider bone remapping.",
-                          draw.jointCount, gfx::MAX_BONES_PER_MESH);
+              //LOG_WARNING("[SceneRenderFeature] Mesh has {} bones but MAX_BONES_PER_MESH is {}. "
+              //            "Bones beyond limit will use identity matrices. Consider bone remapping.",
+                //          draw.jointCount, gfx::MAX_BONES_PER_MESH);
               warnedOnce = true;
             }
           }
@@ -1180,8 +1180,8 @@ void SceneRenderFeature::ExecuteGBufferPass(internal::ExecutionContext& ctx)
           // Check buffer overflow
           if (frame.transformRingOffset >= TRANSFORM_UBO_SIZE) {
             if (!m_transformOverflowWarned) {
-              LOG_WARN("[SceneRenderFeature] Transform ring buffer overflow (morphed)! "
-                       "Some objects will not be rendered.");
+              //LOG_WARN("[SceneRenderFeature] Transform ring buffer overflow (morphed)! "
+              //         "Some objects will not be rendered.");
               m_transformOverflowWarned = true;
             }
             ++m_droppedDrawsThisFrame;
@@ -1189,8 +1189,8 @@ void SceneRenderFeature::ExecuteGBufferPass(internal::ExecutionContext& ctx)
           }
           if (frame.boneMatrixRingOffset >= BONE_MATRIX_UBO_SIZE) {
             if (!m_boneOverflowWarned) {
-              LOG_WARN("[SceneRenderFeature] Bone matrix ring buffer overflow (morphed)! "
-                       "Some objects will not be rendered.");
+              //LOG_WARN("[SceneRenderFeature] Bone matrix ring buffer overflow (morphed)! "
+              //         "Some objects will not be rendered.");
               m_boneOverflowWarned = true;
             }
             ++m_droppedDrawsThisFrame;
@@ -1412,9 +1412,9 @@ void SceneRenderFeature::ExecuteWBOITAccumulation(internal::ExecutionContext& ct
     // Note: Must break (not continue) to keep m_wboitDrawOffsets in sync for TransparentPicking
     if (frame.transformRingOffset >= TRANSFORM_UBO_SIZE) {
       if (!m_transformOverflowWarned) {
-        LOG_WARN("[SceneRenderFeature] Transform ring buffer overflow (WBOIT)! "
-                 "Some transparent objects will not be rendered or pickable. "
-                 "Drew {}/{} transparent objects.", m_wboitDrawOffsets.size(), m_transparentDrawList.size());
+        //LOG_WARN("[SceneRenderFeature] Transform ring buffer overflow (WBOIT)! "
+        //         "Some transparent objects will not be rendered or pickable. "
+        //         "Drew {}/{} transparent objects.", m_wboitDrawOffsets.size(), m_transparentDrawList.size());
         m_transformOverflowWarned = true;
       }
       break;
