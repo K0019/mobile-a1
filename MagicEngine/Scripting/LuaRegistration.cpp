@@ -51,6 +51,7 @@ All rights reserved.
 #include "Engine/Events/EventsTypeBasic.h"
 
 #include "core/platform/platform.h"
+#include "Engine/Graphics Interface/GraphicsWindow.h"
 // Thanks microsoft
 #ifdef CreateDirectory
 #undef CreateDirectory
@@ -618,6 +619,7 @@ void RegisterCppStuffToLua(luabridge::Namespace baseTable)
 		// ----- GLOBAL FUNCTIONS -----
 		.addFunction("Log", Lua_Log)
 		.addFunction("EngineShutdown", []() -> void { Core::Platform::Get().GetLifecycle().RequestExit(); })
+		.addProperty("EngineIsFullscreen", []() -> bool { return ST<GraphicsWindow>::Get()->GetIsFullscreen(); }, [](bool isFullscreen) -> void { ST<GraphicsWindow>::Get()->SetFullscreen(isFullscreen); })
 		.addFunction("DeltaTime", []() -> float { return GameTime::Dt(); })
 		.addProperty("TimeScale", GameTime::GetTimeScale, GameTime::SetTimeScale)
 		.addFunction("LoadScene", [](const std::string& scenePath) {

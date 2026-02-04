@@ -145,11 +145,13 @@ void InputHardwareValueLink::SetKeyIdentifier(int newKeyIdentifier)
 void InputHardwareValueLink::Serialize(Serializer& writer) const
 {
 	writer.Serialize("deviceType", +deviceType);
+	writer.Serialize("readType", +readType);
 	writer.Serialize("keyIdentifier", +keyIdentifier);
 }
 void InputHardwareValueLink::Deserialize(Deserializer& reader)
 {
 	reader.DeserializeVar("deviceType", &deviceType);
+	reader.DeserializeVar("readType", &readType);
 	reader.DeserializeVar("keyIdentifier", &keyIdentifier);
 }
 

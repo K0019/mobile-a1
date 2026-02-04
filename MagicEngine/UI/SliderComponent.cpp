@@ -143,6 +143,7 @@ void SliderSystem::UpdateSliderComp(SliderComponent& comp)
 
 	RectTransformComponent* backgroundTransform{ comp.GetBackgroundEntityTransform() }, *sliderTransform{ comp.GetSliderEntityTransform() };
 	Vec2 backgroundPos{ backgroundTransform->GetWorldPosition() }, backgroundScale{ backgroundTransform->GetWorldScale() };
+	Vec2 SliderPos{ sliderTransform->GetWorldPosition() }, SliderScale{sliderTransform->GetWorldScale()};
 	float xMin{ backgroundPos.x - backgroundScale.x * 0.5f }, xMax{ backgroundPos.x + backgroundScale.x * 0.5f };
 	switch (comp.GetSliderType())
 	{
@@ -165,7 +166,7 @@ void SliderSystem::UpdateSliderComp(SliderComponent& comp)
 		sliderTransform->SetWorldPosition(Vec2{ mouseXClamped, sliderTransform->GetWorldPosition().y });
 		break;
 	case UI_SLIDER_TYPE::BAR:
-		sliderTransform->SetWorldScale(Vec2{ comp.GetDragAmount() * backgroundScale.x, backgroundScale.y });
+		sliderTransform->SetWorldScale(Vec2{ comp.GetDragAmount() * backgroundScale.x , SliderScale.y});
 		sliderTransform->SetWorldPosition(Vec2{ xMin + length * comp.GetDragAmount() * 0.5f, sliderTransform->GetWorldPosition().y });
 		break;
 	}

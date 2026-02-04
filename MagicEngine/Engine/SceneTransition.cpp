@@ -114,7 +114,19 @@ void SceneTransitionSystem::UpdateTransition(SceneTransitionComponent& transitio
 		{
 			isTransitioningToBlack = false;
 			transitionedLastFrame = true;
-			ST<SceneManager>::Get()->UnloadScene(ST<SceneManager>::Get()->GetActiveScene()->GetIndex());
+
+			// Unload all other scenes
+			for (auto sceneIter{ ST<SceneManager>::Get()->GetScenesBegin() }; sceneIter != ST<SceneManager>::Get()->GetScenesEnd();)
+			{
+				if (sceneIter->GetIndex() == transitionSceneIndex)
+				{
+					++sceneIter;
+					continue;
+				}
+				ST<SceneManager>::Get()->UnloadScene(sceneIter->GetIndex());
+				sceneIter = ST<SceneManager>::Get()->GetScenesBegin(); // Avoid crash due to invalid iterator
+			}
+			// Load the target scene
 			ST<SceneManager>::Get()->LoadScene(toScenePath);
 		}
 	}
