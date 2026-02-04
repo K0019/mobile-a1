@@ -143,7 +143,7 @@ namespace physics {
 		void SetCharacterRadius(JPH::Ref<JPH::CharacterVirtual> character, float radius);
 		void SetCharacterHeight(JPH::Ref<JPH::CharacterVirtual> character, float height);
 		JPH::Ref<JPH::CharacterVirtual> CreateCharacterBody(ecs::EntityHash entityHash);
-		void UpdateCharacterBody(JPH::Ref<JPH::CharacterVirtual> character, const Vec3& velocity);
+		void UpdateCharacterBody(ecs::EntityHandle entity, JPH::Ref<JPH::CharacterVirtual> character, const Vec3& velocity);
 
 		JPH::AABox CollectAllTriangles(std::vector<float>& outVertices, std::vector<int>& outTriIndex);
 

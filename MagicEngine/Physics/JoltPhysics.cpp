@@ -168,7 +168,7 @@ namespace physics {
 		JPH::CharacterVirtualSettings settings;
 		settings.mShape = shape; // Reuse the same shape
 		settings.mInnerBodyShape = shape; // Reuse the same shape
-		settings.mMaxSlopeAngle = JPH::DegreesToRadians(45.0f); // Auto-slide on steep slopes
+		settings.mMaxSlopeAngle = JPH::DegreesToRadians(80.0f); // Auto-slide on steep slopes
 		settings.mMaxStrength = 1000.f; // Pushing force against other dynamic bodies
 		settings.mCharacterPadding = 0.02f; // Slight buffer to prevent stuck-in-wall issues
 		settings.mPenetrationRecoverySpeed = 1.f;
@@ -185,19 +185,41 @@ namespace physics {
 		return myCharacter;
 	}
 
-	void JoltPhysics::UpdateCharacterBody(JPH::Ref<JPH::CharacterVirtual> character, const Vec3& velocity)
+	void JoltPhysics::UpdateCharacterBody(ecs::EntityHandle entity, JPH::Ref<JPH::CharacterVirtual> character, const Vec3& velocity)
 	{
-		character->UpdateGroundVelocity();
-		JPH::Vec3 currVel{ character->GetLinearVelocity() };
-		JPH::Vec3 vel{ velocity.x, currVel.GetY() , velocity.z};
-		vel += GRAVITY * GameTime::Dt();
-		character->SetLinearVelocity(vel);
-		character->Update(GameTime::Dt(), GRAVITY,
-			physicsSystem.GetDefaultBroadPhaseLayerFilter(+Layers::MOVING),
-			physicsSystem.GetDefaultLayerFilter(+Layers::MOVING),
-			{ }, // Body filter (ignore nothing specific)
-			{ }, // Shape filter
-			tempAllocator);
+		auto physicsComp{ entity->GetComp<PhysicsComp>() };
+		auto bodyComp{ entity->GetComp<JoltBodyComp>() };
+		if (!physicsComp || !bodyComp)
+			return;
+
+		//Ignore it's own body.
+		JPH::IgnoreSingleBodyFilter ignoreSelfFilter(bodyComp->GetBodyID());
+
+		if (physicsComp->GetIsKinematic())
+		{
+			Vec3 currPos{ entity->GetTransform().GetWorldPosition() };
+			character->SetPosition(JPH::Vec3{ currPos.x, currPos.y, currPos.z });
+			character->UpdateGroundVelocity();
+			JPH::Vec3 currVel{ character->GetLinearVelocity() };
+			JPH::Vec3 vel{ velocity.x, currVel.GetY() , velocity.z };
+			vel += GRAVITY * GameTime::Dt();
+			character->SetLinearVelocity(vel);
+			character->Update(GameTime::Dt(), GRAVITY,
+				physicsSystem.GetDefaultBroadPhaseLayerFilter(+Layers::MOVING),
+				physicsSystem.GetDefaultLayerFilter(+Layers::MOVING),
+				{ ignoreSelfFilter }, // Body filter
+				{ }, // Shape filter
+				tempAllocator);
+			JPH::Vec3 joltPos{ character->GetPosition() };
+			entity->GetTransform().SetWorldPosition(Vec3(joltPos.GetX(), joltPos.GetY(), joltPos.GetZ()));
+		}
+		else
+		{
+			Vec3 currPos{ bodyComp->GetPosition() };
+			character->SetPosition(JPH::Vec3{ currPos.x, currPos.y, currPos.z });
+			physicsComp->SetLinearVelocity(velocity);
+			CONSOLE_LOG(LEVEL_INFO) << velocity;
+		}
 	}
 
 	JPH::AABox JoltPhysics::CollectAllTriangles(std::vector<float>& outVertices, std::vector<int>& outTriIndex)

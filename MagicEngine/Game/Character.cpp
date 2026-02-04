@@ -466,7 +466,7 @@ void CharacterMovementComponentSystem::UpdateCharacterMovementComponent(Characte
 		{
 			Vec3 currPos{ characterTransform.GetWorldPosition() };
 			comp.joltCharRef->SetPosition(JPH::Vec3{ currPos.x, currPos.y, currPos.z });
-			ST<physics::JoltPhysics>::Get()->UpdateCharacterBody(comp.joltCharRef, Vec3{currVel.x, 0.f, currVel.z});
+			ST<physics::JoltPhysics>::Get()->UpdateCharacterBody(characterEntity, comp.joltCharRef, Vec3{currVel.x, 0.f, currVel.z});
 			JPH::Vec3 joltPos{ comp.joltCharRef->GetPosition() };
 			characterTransform.SetWorldPosition(Vec3(joltPos.GetX(), joltPos.GetY(), joltPos.GetZ()));
 		}
@@ -525,16 +525,7 @@ void CharacterMovementComponentSystem::UpdateCharacterMovementComponent(Characte
 		moveDir *= comp.moveSpeed * comp.speedMultiplier;
 	}
 
-	if (physicsComp && !physicsComp->GetIsKinematic())
-		physicsComp->SetLinearVelocity(Vec3{ moveDir.x, currVel.y, moveDir.z });
-	else
-	{
-		Vec3 currPos{ characterTransform.GetWorldPosition() };
-		comp.joltCharRef->SetPosition(JPH::Vec3{ currPos.x, currPos.y, currPos.z });
-		ST<physics::JoltPhysics>::Get()->UpdateCharacterBody(comp.joltCharRef, moveDir);
-		JPH::Vec3 joltPos{ comp.joltCharRef->GetPosition() };
-		characterTransform.SetWorldPosition(Vec3(joltPos.GetX(), joltPos.GetY(), joltPos.GetZ()));
-	}
+	ST<physics::JoltPhysics>::Get()->UpdateCharacterBody(characterEntity, comp.joltCharRef, Vec3{ moveDir.x, currVel.y, moveDir.z });
 
 	comp.currentDodgeCooldown -= GameTime::Dt();
 
