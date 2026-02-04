@@ -83,6 +83,20 @@
                         }
                     },
                     {
+                        "key": "Pause",
+                        "value": {
+                            "compositeType": 0,
+                            "bindings": [
+                                {
+                                    "hardwareLink": {
+                                        "deviceType": 0,
+                                        "keyIdentifier": 256
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    {
                         "key": "ReverseDir",
                         "value": {
                             "compositeType": 2,

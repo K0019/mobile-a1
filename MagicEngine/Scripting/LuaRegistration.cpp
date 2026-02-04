@@ -166,7 +166,6 @@ SCRIPT_GENERATE_PROPERTY_FUNCS(float, GetDodgeCooldown, SetDodgeCooldown)
 SCRIPT_GENERATE_PROPERTY_FUNCS(float, GetDodgeDuration, SetDodgeDuration)
 SCRIPT_GENERATE_PROPERTY_FUNCS(float, GetDodgeSpeed, SetDodgeSpeed)
 SCRIPT_GENERATE_PROPERTY_FUNCS(float, GetCurrentStunTime, SetCurrentStunTime)
-SCRIPT_GENERATE_PROPERTY_FUNCS(float, GetCurrentDodgeTime, SetCurrentDodgeTime)
 SCRIPT_GENERATE_PROPERTY_FUNCS(float, GetCurrentDodgeCooldown, SetCurrentDodgeCooldown)
 
 //functions
@@ -554,7 +553,6 @@ void RegisterCppStuffToLua(luabridge::Namespace baseTable)
 		SCRIPT_REGISTER_COMP_PROPERTY(CharacterMovementComponent, "dodgeDuration", GetDodgeDuration, SetDodgeDuration)
 		SCRIPT_REGISTER_COMP_PROPERTY(CharacterMovementComponent, "dodgeSpeed", GetDodgeSpeed, SetDodgeSpeed)
 		SCRIPT_REGISTER_COMP_PROPERTY(CharacterMovementComponent, "currentStunTime", GetCurrentStunTime, SetCurrentStunTime)
-		SCRIPT_REGISTER_COMP_PROPERTY(CharacterMovementComponent, "currentDodgeTime", GetCurrentDodgeTime, SetCurrentDodgeTime)
 		SCRIPT_REGISTER_COMP_PROPERTY(CharacterMovementComponent, "currentDodgeCooldown", GetCurrentDodgeCooldown, SetCurrentDodgeCooldown)
 		// functions
 		SCRIPT_REGISTER_COMP_FUNCTION(CharacterMovementComponent, "Dodge", Dodge)
@@ -620,10 +618,20 @@ void RegisterCppStuffToLua(luabridge::Namespace baseTable)
 		.addFunction("Log", Lua_Log)
 		.addFunction("EngineShutdown", []() -> void { Core::Platform::Get().GetLifecycle().RequestExit(); })
 		.addFunction("DeltaTime", []() -> float { return GameTime::Dt(); })
+		.addProperty("TimeScale", GameTime::GetTimeScale, GameTime::SetTimeScale)
 		.addFunction("LoadScene", [](const std::string& scenePath) {
 			ST<Scheduler>::Get()->Add([scenePath]() -> void {
 				// Load new scene
 				ST<SceneManager>::Get()->UnloadAllScenes(scenePath);
+			});
+		})
+		.addFunction("LoadSceneAdditive", [](const std::string& scenePath) {
+			ST<SceneManager>::Get()->LoadScene(scenePath);
+		})
+		.addFunction("UnloadScene", [](const std::string& scenePath) {
+			ST<Scheduler>::Get()->Add([scenePath]() -> void {
+				if (auto scene{ ST<SceneManager>::Get()->GetSceneWithName(scenePath) })
+					ST<SceneManager>::Get()->UnloadScene(scene->GetIndex());
 			});
 		})
 		.addFunction("TransitionScene", [](const std::string& scenePath) {
