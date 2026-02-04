@@ -3,6 +3,52 @@
         {
             "parentIndex": -1,
             "position": {
+                "x": 960.0,
+                "y": 540.0,
+                "z": 0.0
+            },
+            "rotation": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "scale": {
+                "x": 1920.0,
+                "y": 1080.0,
+                "z": 1.0
+            },
+            "components": {
+                "6766054303456732338": {
+                    "_active": true,
+                    "layer": 0
+                },
+                "7205334411763290517": {
+                    "_active": true,
+                    "name": "Dim"
+                },
+                "9315785795257285655": {
+                    "_active": true,
+                    "uid": 779010586051941786
+                },
+                "13050946774019011867": {
+                    "_active": true,
+                    "type": 1,
+                    "primitive": {},
+                    "color": {
+                        "x": 0.0,
+                        "y": 0.0,
+                        "z": 0.0,
+                        "w": 0.48627451062202454
+                    }
+                },
+                "15400580746116341700": {
+                    "_active": true
+                }
+            }
+        },
+        {
+            "parentIndex": -1,
+            "position": {
                 "x": 768.0,
                 "y": 595.0,
                 "z": 2.5
@@ -53,90 +99,8 @@
                         "w": 1.0
                     }
                 },
-                "13828584133079072524": {
-                    "_active": true,
-                    "hasPrimitive": false
-                },
                 "15400580746116341700": {
                     "_active": true
-                },
-                "18288371625365795113": {
-                    "_active": true,
-                    "scripts": [
-                        {
-                            "scriptName": "menu_button_tosettings_frompause.lua"
-                        }
-                    ]
-                }
-            }
-        },
-        {
-            "parentIndex": -1,
-            "position": {
-                "x": 760.0,
-                "y": 458.0,
-                "z": 2.5
-            },
-            "rotation": {
-                "x": 0.0,
-                "y": 0.0,
-                "z": 0.0
-            },
-            "scale": {
-                "x": 352.0,
-                "y": 107.0,
-                "z": 1.0
-            },
-            "components": {
-                "6766054303456732338": {
-                    "_active": true,
-                    "layer": 0
-                },
-                "7205334411763290517": {
-                    "_active": true,
-                    "name": "Restart Button"
-                },
-                "9315785795257285655": {
-                    "_active": true,
-                    "uid": 3236610383467939725
-                },
-                "13050946774019011867": {
-                    "_active": true,
-                    "type": 2,
-                    "primitive": {
-                        "texture": {
-                            "hash": 135491719074129763
-                        },
-                        "uvMin": {
-                            "x": 0.0,
-                            "y": 0.0
-                        },
-                        "uvMax": {
-                            "x": 1.0,
-                            "y": 1.0
-                        }
-                    },
-                    "color": {
-                        "x": 1.0,
-                        "y": 1.0,
-                        "z": 1.0,
-                        "w": 1.0
-                    }
-                },
-                "13828584133079072524": {
-                    "_active": true,
-                    "hasPrimitive": false
-                },
-                "15400580746116341700": {
-                    "_active": true
-                },
-                "18288371625365795113": {
-                    "_active": true,
-                    "scripts": [
-                        {
-                            "scriptName": "mainmenu_button_start.lua"
-                        }
-                    ]
                 }
             }
         },
@@ -193,20 +157,66 @@
                         "w": 1.0
                     }
                 },
-                "13828584133079072524": {
+                "15400580746116341700": {
+                    "_active": true
+                }
+            }
+        },
+        {
+            "parentIndex": -1,
+            "position": {
+                "x": 760.0,
+                "y": 458.0,
+                "z": 2.5
+            },
+            "rotation": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "scale": {
+                "x": 352.0,
+                "y": 107.0,
+                "z": 1.0
+            },
+            "components": {
+                "6766054303456732338": {
                     "_active": true,
-                    "hasPrimitive": false
+                    "layer": 0
+                },
+                "7205334411763290517": {
+                    "_active": true,
+                    "name": "Restart Button"
+                },
+                "9315785795257285655": {
+                    "_active": true,
+                    "uid": 4502453936956589136
+                },
+                "13050946774019011867": {
+                    "_active": true,
+                    "type": 2,
+                    "primitive": {
+                        "texture": {
+                            "hash": 135491719074129763
+                        },
+                        "uvMin": {
+                            "x": 0.0,
+                            "y": 0.0
+                        },
+                        "uvMax": {
+                            "x": 1.0,
+                            "y": 1.0
+                        }
+                    },
+                    "color": {
+                        "x": 1.0,
+                        "y": 1.0,
+                        "z": 1.0,
+                        "w": 1.0
+                    }
                 },
                 "15400580746116341700": {
                     "_active": true
-                },
-                "18288371625365795113": {
-                    "_active": true,
-                    "scripts": [
-                        {
-                            "scriptName": "menu_button_closepause.lua"
-                        }
-                    ]
                 }
             }
         },
@@ -263,20 +273,8 @@
                         "w": 1.0
                     }
                 },
-                "13828584133079072524": {
-                    "_active": true,
-                    "hasPrimitive": false
-                },
                 "15400580746116341700": {
                     "_active": true
-                },
-                "18288371625365795113": {
-                    "_active": true,
-                    "scripts": [
-                        {
-                            "scriptName": "mainmenu_button_quit.lua"
-                        }
-                    ]
                 }
             }
         },
@@ -333,20 +331,8 @@
                         "w": 1.0
                     }
                 },
-                "13828584133079072524": {
-                    "_active": true,
-                    "hasPrimitive": false
-                },
                 "15400580746116341700": {
                     "_active": true
-                },
-                "18288371625365795113": {
-                    "_active": true,
-                    "scripts": [
-                        {
-                            "scriptName": "menu_button_tomainmenu.lua"
-                        }
-                    ]
                 }
             }
         },
@@ -355,7 +341,7 @@
             "position": {
                 "x": 960.0,
                 "y": 540.0,
-                "z": 0.0
+                "z": 1.5
             },
             "rotation": {
                 "x": 0.0,
@@ -411,6 +397,296 @@
                     "scripts": [
                         {
                             "scriptName": "menu_keylisten_closepause.lua"
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "parentIndex": 2,
+            "position": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "rotation": {
+                "x": 2.299999952316284,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "scale": {
+                "x": 1.0506329536437988,
+                "y": 0.9223300814628601,
+                "z": 1.0
+            },
+            "components": {
+                "6766054303456732338": {
+                    "_active": true,
+                    "layer": 0
+                },
+                "7205334411763290517": {
+                    "_active": true,
+                    "name": "Hitbox"
+                },
+                "9315785795257285655": {
+                    "_active": true,
+                    "uid": 129204711593692149
+                },
+                "13050946774019011867": {
+                    "_active": true,
+                    "type": 1,
+                    "primitive": {},
+                    "color": {
+                        "x": 1.0,
+                        "y": 1.0,
+                        "z": 1.0,
+                        "w": 0.0
+                    }
+                },
+                "13828584133079072524": {
+                    "_active": true,
+                    "hasPrimitive": false
+                },
+                "15400580746116341700": {
+                    "_active": true
+                },
+                "18288371625365795113": {
+                    "_active": true,
+                    "scripts": [
+                        {
+                            "scriptName": "menu_button_closepause.lua"
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "parentIndex": 4,
+            "position": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "rotation": {
+                "x": -20.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "scale": {
+                "x": 1.0788862705230713,
+                "y": 0.4279279410839081,
+                "z": 1.0
+            },
+            "components": {
+                "6766054303456732338": {
+                    "_active": true,
+                    "layer": 0
+                },
+                "7205334411763290517": {
+                    "_active": true,
+                    "name": "Hitbox"
+                },
+                "9315785795257285655": {
+                    "_active": true,
+                    "uid": 170153823147358857
+                },
+                "13050946774019011867": {
+                    "_active": true,
+                    "type": 1,
+                    "primitive": {},
+                    "color": {
+                        "x": 1.0,
+                        "y": 1.0,
+                        "z": 1.0,
+                        "w": 0.0
+                    }
+                },
+                "13828584133079072524": {
+                    "_active": true,
+                    "hasPrimitive": false
+                },
+                "15400580746116341700": {
+                    "_active": true
+                },
+                "18288371625365795113": {
+                    "_active": true,
+                    "scripts": [
+                        {
+                            "scriptName": "mainmenu_button_quit.lua"
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "parentIndex": 5,
+            "position": {
+                "x": 4.76837158203125e-7,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "rotation": {
+                "x": -27.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "scale": {
+                "x": 1.0,
+                "y": 0.673758864402771,
+                "z": 1.0
+            },
+            "components": {
+                "6766054303456732338": {
+                    "_active": true,
+                    "layer": 0
+                },
+                "7205334411763290517": {
+                    "_active": true,
+                    "name": "Hitbox"
+                },
+                "9315785795257285655": {
+                    "_active": true,
+                    "uid": 184369408982926748
+                },
+                "13050946774019011867": {
+                    "_active": true,
+                    "type": 1,
+                    "primitive": {},
+                    "color": {
+                        "x": 1.0,
+                        "y": 1.0,
+                        "z": 1.0,
+                        "w": 0.0
+                    }
+                },
+                "13828584133079072524": {
+                    "_active": true,
+                    "hasPrimitive": false
+                },
+                "15400580746116341700": {
+                    "_active": true
+                },
+                "18288371625365795113": {
+                    "_active": true,
+                    "scripts": [
+                        {
+                            "scriptName": "menu_button_tomainmenu.lua"
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "parentIndex": 3,
+            "position": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": -2.384185791015625e-7
+            },
+            "rotation": {
+                "x": -4.5,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "scale": {
+                "x": 1.0909091234207153,
+                "y": 0.8878504633903503,
+                "z": 1.0
+            },
+            "components": {
+                "6766054303456732338": {
+                    "_active": true,
+                    "layer": 0
+                },
+                "7205334411763290517": {
+                    "_active": true,
+                    "name": "Hitbox"
+                },
+                "9315785795257285655": {
+                    "_active": true,
+                    "uid": 3236610383467939725
+                },
+                "13050946774019011867": {
+                    "_active": true,
+                    "type": 1,
+                    "primitive": {},
+                    "color": {
+                        "x": 1.0,
+                        "y": 1.0,
+                        "z": 1.0,
+                        "w": 0.0
+                    }
+                },
+                "13828584133079072524": {
+                    "_active": true,
+                    "hasPrimitive": false
+                },
+                "15400580746116341700": {
+                    "_active": true
+                },
+                "18288371625365795113": {
+                    "_active": true,
+                    "scripts": [
+                        {
+                            "scriptName": "mainmenu_button_start.lua"
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "parentIndex": 1,
+            "position": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "rotation": {
+                "x": -15.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "scale": {
+                "x": 1.0459460020065308,
+                "y": 0.6089743375778198,
+                "z": 1.0
+            },
+            "components": {
+                "6766054303456732338": {
+                    "_active": true,
+                    "layer": 0
+                },
+                "7205334411763290517": {
+                    "_active": true,
+                    "name": "Hitbox"
+                },
+                "9315785795257285655": {
+                    "_active": true,
+                    "uid": 4818901080011968869
+                },
+                "13050946774019011867": {
+                    "_active": true,
+                    "type": 1,
+                    "primitive": {},
+                    "color": {
+                        "x": 1.0,
+                        "y": 1.0,
+                        "z": 1.0,
+                        "w": 0.0
+                    }
+                },
+                "13828584133079072524": {
+                    "_active": true,
+                    "hasPrimitive": false
+                },
+                "15400580746116341700": {
+                    "_active": true
+                },
+                "18288371625365795113": {
+                    "_active": true,
+                    "scripts": [
+                        {
+                            "scriptName": "menu_button_tosettings_frompause.lua"
                         }
                     ]
                 }
