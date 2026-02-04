@@ -7,14 +7,45 @@
 
 namespace editor {
 
-	// Specializations implemented in CPP. As long as the ResourceType is listed below, this will work.
+	// ============================================================================
+	// Payload identifier traits - maps resource types to drag-drop payload names
+	// ============================================================================
+	template <typename ResourceType>
+	struct AssetPayloadTraits {
+		static constexpr const char* PayloadId = nullptr;
+	};
+
+	template <> struct AssetPayloadTraits<ResourceTexture>    { static constexpr const char* PayloadId = "TEXTURE_HASH"; };
+	template <> struct AssetPayloadTraits<ResourceMaterial>   { static constexpr const char* PayloadId = "MATERIAL_HASH"; };
+	template <> struct AssetPayloadTraits<ResourceMesh>       { static constexpr const char* PayloadId = "MESH_HASH"; };
+	template <> struct AssetPayloadTraits<ResourceAnimation>  { static constexpr const char* PayloadId = "ANIMATION_HASH"; };
+	template <> struct AssetPayloadTraits<ResourceAudio>      { static constexpr const char* PayloadId = "SOUND_HASH"; };
+	template <> struct AssetPayloadTraits<ResourceAudioGroup> { static constexpr const char* PayloadId = "SOUND_GROUP_HASH"; };
+	template <> struct AssetPayloadTraits<WeaponInfo>         { static constexpr const char* PayloadId = "GAME_WEAPON_HASH"; };
+
+	// ============================================================================
+	// Unified asset slot drawing - works with raw hashes (size_t)
+	// Displays "None" for 0, asset name if found, or "<Invalid>" if hash doesn't resolve
+	// ============================================================================
+	template <typename ResourceType>
+	void EditorUtil_DrawAssetSlot(const char* label, size_t& hash);
+
+	// Explicit instantiations declared here, defined in .cpp
+	extern template void EditorUtil_DrawAssetSlot<ResourceTexture>(const char* label, size_t& hash);
+	extern template void EditorUtil_DrawAssetSlot<ResourceMaterial>(const char* label, size_t& hash);
+	extern template void EditorUtil_DrawAssetSlot<ResourceMesh>(const char* label, size_t& hash);
+	extern template void EditorUtil_DrawAssetSlot<ResourceAnimation>(const char* label, size_t& hash);
+	extern template void EditorUtil_DrawAssetSlot<ResourceAudio>(const char* label, size_t& hash);
+	extern template void EditorUtil_DrawAssetSlot<ResourceAudioGroup>(const char* label, size_t& hash);
+	extern template void EditorUtil_DrawAssetSlot<WeaponInfo>(const char* label, size_t& hash);
+
+	// ============================================================================
+	// AssetHandle-based drawing (existing API, now uses unified internals)
+	// ============================================================================
 	template <typename ResourceType>
 	void EditorUtil_DrawResourceHandle(const char* label, AssetHandle<ResourceType>& resourceHandle)
 	{
 		static_assert(always_false<ResourceType>::value, "EditorUtil_DrawResourceHandle not implemented for this type");
-	  // note, always_false is defined in properties.h, it's not an actual cpp type
-	  // the bug comes from different versions of the compiler evaluating static_assert at different times
-	  // previously it would be evaluated at compile time, even without a function instantiation. Putting a template forces it to only be evaluated when instantiated.
 	}
 
 	template <> void EditorUtil_DrawResourceHandle(const char* label, AssetHandle<ResourceTexture>& resourceHandle);

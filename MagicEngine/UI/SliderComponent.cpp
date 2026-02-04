@@ -22,6 +22,8 @@ All rights reserved.
 #include "Engine/EntityEvents.h"
 #include "Editor/Containers/GUICollection.h"
 #include "Engine/Input.h"
+#include "Engine/Graphics Interface/GraphicsAPI.h"
+#include "core/platform/platform.h"
 
 SliderComponent::SliderComponent()
 	: type{ UI_SLIDER_TYPE::KNOB }
@@ -124,7 +126,13 @@ SliderSystem::SliderSystem()
 
 bool SliderSystem::PreRun()
 {
-	mousePos = MagicInput::GetMousePos();
+	// Convert window position to UI space, accounting for letterboxing
+	Vec2 rawPos = MagicInput::GetMousePos();
+	float uiX, uiY;
+	if (ST<GraphicsMain>::Get()->WindowToUIPosition(rawPos.x, rawPos.y, uiX, uiY)) {
+		mousePos = Vec2{ uiX, uiY };
+	}
+	// If in letterbox area, keep last valid mousePos (slider continues dragging)
 	return true;
 }
 

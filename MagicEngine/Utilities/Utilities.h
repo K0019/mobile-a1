@@ -32,10 +32,9 @@ All rights reserved.
 #include <vector>
 #include <algorithm>
 #include <variant>
-
+#include <MagicMath.h>
 // Forward declares
-struct Vec2;
-struct Vec3;
+
 class Transform;
 
 // Convenience

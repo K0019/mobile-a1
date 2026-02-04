@@ -100,6 +100,9 @@ namespace Resource
 
     bool isMaterialTransparent(MaterialHandle handle) const;
 
+    // Update material properties at runtime (including alpha mode and render queue)
+    void updateMaterial(MaterialHandle handle, const ProcessedMaterial& material);
+
     // Asset management
     void freeMesh(MeshHandle handle);
 
@@ -142,6 +145,9 @@ namespace Resource
     uint32_t resolveTextureIndex_nolock(const MaterialTexture& matTex);
 
     void updateMaterialTextureDependencies_nolock(MaterialHandle materialHandle, const ProcessedMaterial& material);
+
+    // Unified material update - all material creation/updates go through this
+    void syncMaterialToGpu(MaterialHandle handle, const Material& mat, bool isCreate);
 
     void resolveWaitingMaterials_nolock(const std::string& textureCacheKey);
 

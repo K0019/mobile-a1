@@ -27,7 +27,7 @@
 #include <cassert>
 
 // =============================================================================
-// Shader Loading Helper
+// Shader Loading Helper with VFS Include Support
 // =============================================================================
 
 static bool LoadShaderSource(const char* vfsPath, std::string& outSource)
@@ -39,6 +39,45 @@ static bool LoadShaderSource(const char* vfsPath, std::string& outSource)
   return true;
 }
 
+// VFS-based include loader callback for HSL compiler
+// Returns heap-allocated string that HinaVK will free
+static char* VFSIncludeLoader(const char* includePath, const char* includingFile, void* /*userData*/)
+{
+  // Resolve include path relative to the including file's directory
+  std::string baseDir = VFS::GetParentPath(includingFile);
+  std::string fullPath = VFS::JoinPath(baseDir, includePath);
+
+  std::string content;
+  if (!VFS::ReadFile(fullPath, content)) {
+    LOG_ERROR("[SceneRenderFeature] Failed to load include: {} (from {})", fullPath, includingFile);
+    return nullptr;
+  }
+
+  // Return heap-allocated copy (HinaVK will free it)
+  char* result = static_cast<char*>(malloc(content.size() + 1));
+  if (result) {
+    memcpy(result, content.c_str(), content.size() + 1);
+  }
+  return result;
+}
+
+// Compile HSL shader with VFS include support
+static hina_hsl_module* CompileHSLWithIncludes(const char* vfsPath, const char* moduleName, char** outError)
+{
+  std::string source;
+  if (!LoadShaderSource(vfsPath, source)) {
+    return nullptr;
+  }
+
+  hslc_hsl_module_desc desc = {};
+  desc.source = source.c_str();
+  desc.source_name = vfsPath;
+  desc.load_include_fn = VFSIncludeLoader;
+  desc.user_data = nullptr;
+
+  return hslc_compile_hsl_module_ex(&desc, outError);
+}
+
 // Shader file paths (relative to VFS mount point, which maps "" -> "./Assets")
 static const char* kGBufferShaderPath = "shaders/gbuffer.hina_sl";
 static const char* kGBufferSkinnedShaderPath = "shaders/gbuffer_skinned.hina_sl";
@@ -47,6 +86,8 @@ static const char* kCompositeTileShaderPath = "shaders/composite_tile.hina_sl";
 static const char* kWBOITAccumShaderPath = "shaders/wboit_accum.hina_sl";
 static const char* kWBOITAccumSkinnedShaderPath = "shaders/wboit_accum_skinned.hina_sl";
 static const char* kWBOITResolveShaderPath = "shaders/wboit_resolve.hina_sl";
+static const char* kWBOITPickShaderPath = "shaders/wboit_pick.hina_sl";
+static const char* kWBOITPickSkinnedShaderPath = "shaders/wboit_pick_skinned.hina_sl";
 
 // =============================================================================
 // Tile Pass Layout for Deferred Rendering
@@ -218,14 +259,9 @@ bool SceneRenderFeature::EnsurePipelineCreated(GfxRenderer* gfxRenderer)
 
   // Pipeline creation (one-time)
 
-  // Load shader source from file
-  std::string shaderSource;
-  if (!LoadShaderSource(kGBufferShaderPath, shaderSource)) {
-    return false;
-  }
-
+  // Compile shader with VFS include support
   char* error = nullptr;
-  hina_hsl_module* module = hslc_compile_hsl_source(shaderSource.c_str(), "scene_gbuffer", &error);
+  hina_hsl_module* module = CompileHSLWithIncludes(kGBufferShaderPath, "scene_gbuffer", &error);
   if (!module) {
     LOG_ERROR("[SceneRenderFeature] Shader compilation failed: {}", error ? error : "unknown");
     if (error) hslc_free_log(error);
@@ -370,14 +406,9 @@ bool SceneRenderFeature::EnsureSkinnedPipelineCreated(GfxRenderer* gfxRenderer)
     }
   }
 
-  // Load shader source from file
-  std::string shaderSource;
-  if (!LoadShaderSource(kGBufferSkinnedShaderPath, shaderSource)) {
-    return false;
-  }
-
+  // Compile shader with VFS include support
   char* error = nullptr;
-  hina_hsl_module* module = hslc_compile_hsl_source(shaderSource.c_str(), "scene_gbuffer_skinned", &error);
+  hina_hsl_module* module = CompileHSLWithIncludes(kGBufferSkinnedShaderPath, "scene_gbuffer_skinned", &error);
   if (!module) {
     LOG_ERROR("[SceneRenderFeature] Skinned shader compilation failed: {}", error ? error : "unknown");
     if (error) hslc_free_log(error);
@@ -463,17 +494,9 @@ bool SceneRenderFeature::EnsureMorphedPipelineCreated(GfxRenderer* gfxRenderer)
     }
   }
 
-  // Load shader source from file
-  std::string shaderSource;
-  if (!LoadShaderSource(kGBufferMorphedShaderPath, shaderSource)) {
-    LOG_WARNING("[SceneRenderFeature] Morphed shader not found, morphed meshes will use skinned pipeline");
-    // Fall back to skinned pipeline for morphed meshes
-    m_morphedPipelineCreated = true;  // Mark as "created" to avoid repeated attempts
-    return true;
-  }
-
+  // Compile shader with VFS include support
   char* error = nullptr;
-  hina_hsl_module* module = hslc_compile_hsl_source(shaderSource.c_str(), "scene_gbuffer_morphed", &error);
+  hina_hsl_module* module = CompileHSLWithIncludes(kGBufferMorphedShaderPath, "scene_gbuffer_morphed", &error);
   if (!module) {
     LOG_WARNING("[SceneRenderFeature] Morphed shader compilation failed: {}, falling back to skinned",
              error ? error : "unknown");
@@ -568,6 +591,11 @@ void SceneRenderFeature::UpdateScene(uint64_t renderFeatureID,
   feature->m_drawList.clear();
   feature->m_transparentDrawList.clear();
   feature->m_entityHandles.clear();
+
+  // Reset overflow tracking for the new frame
+  feature->m_transformOverflowWarned = false;
+  feature->m_boneOverflowWarned = false;
+  feature->m_droppedDrawsThisFrame = 0;
 
   for (auto compIter = ecs::GetCompsActiveBegin<RenderComponent>();
        compIter != ecs::GetCompsEnd<RenderComponent>();
@@ -781,14 +809,6 @@ void SceneRenderFeature::SetupPasses(internal::RenderPassBuilder& passBuilder)
       ExecuteDeferredTilePass(ctx);
     });
 
-  // Object picking pass - reads visibility buffer after tile pass is complete
-  passBuilder.CreatePass()
-    .SetPriority(static_cast<internal::RenderPassBuilder::PassPriority>(110))
-    .ExecuteAfter("SceneDeferredTilePass")
-    .AddGenericPass("ObjectPicking", [this](internal::ExecutionContext& ctx) {
-      ProcessPendingPick(ctx);
-    });
-
   // =========================================================================
   // WBOIT Passes (Order-Independent Transparency)
   // =========================================================================
@@ -812,6 +832,27 @@ void SceneRenderFeature::SetupPasses(internal::RenderPassBuilder& passBuilder)
     .ExecuteAfter("WBOITAccumulation")
     .AddGenericPass("WBOITResolve", [this](internal::ExecutionContext& ctx) {
       ExecuteWBOITResolve(ctx);
+    });
+
+  // =========================================================================
+  // Object Picking (Transparent Support)
+  // =========================================================================
+  // When a pick is requested, re-render transparents into VisibilityID with depth writes enabled
+  // so the front-most transparent surface wins.
+  passBuilder.CreatePass()
+    .UseResource(RenderResources::SCENE_DEPTH, AccessType::ReadWrite)
+    .SetPriority(static_cast<internal::RenderPassBuilder::PassPriority>(530))
+    .ExecuteAfter("WBOITResolve")
+    .AddGenericPass("TransparentPicking", [this](internal::ExecutionContext& ctx) {
+      ExecuteTransparentPicking(ctx);
+    });
+
+  // Object picking readback pass - must run after TransparentPicking writes VisibilityID.
+  passBuilder.CreatePass()
+    .SetPriority(static_cast<internal::RenderPassBuilder::PassPriority>(540))
+    .ExecuteAfter("TransparentPicking")
+    .AddGenericPass("ObjectPicking", [this](internal::ExecutionContext& ctx) {
+      ProcessPendingPick(ctx);
     });
 }
 
@@ -944,7 +985,13 @@ void SceneRenderFeature::ExecuteGBufferPass(internal::ExecutionContext& ctx)
 
       // Check transform ring buffer overflow
       if (frame.transformRingOffset >= TRANSFORM_UBO_SIZE) {
-        break;
+        if (!m_transformOverflowWarned) {
+          LOG_WARN("[SceneRenderFeature] Transform ring buffer overflow! Some objects will not be rendered. "
+                   "Consider reducing draw count or increasing MAX_TRANSFORMS (current: {})", MAX_TRANSFORMS);
+          m_transformOverflowWarned = true;
+        }
+        ++m_droppedDrawsThisFrame;
+        continue;  // Skip this draw but continue checking others (for counting)
       }
 
       // Write transform, objectId, and flags to ring buffer at current offset
@@ -1013,9 +1060,23 @@ void SceneRenderFeature::ExecuteGBufferPass(internal::ExecutionContext& ctx)
           if (!gpuMesh || !gpuMesh->valid) continue;
 
           // Check buffer overflow
-          if (frame.transformRingOffset >= TRANSFORM_UBO_SIZE ||
-              frame.boneMatrixRingOffset >= BONE_MATRIX_UBO_SIZE) {
-            break;
+          if (frame.transformRingOffset >= TRANSFORM_UBO_SIZE) {
+            if (!m_transformOverflowWarned) {
+              LOG_WARN("[SceneRenderFeature] Transform ring buffer overflow (skinned)! "
+                       "Some objects will not be rendered.");
+              m_transformOverflowWarned = true;
+            }
+            ++m_droppedDrawsThisFrame;
+            continue;
+          }
+          if (frame.boneMatrixRingOffset >= BONE_MATRIX_UBO_SIZE) {
+            if (!m_boneOverflowWarned) {
+              LOG_WARN("[SceneRenderFeature] Bone matrix ring buffer overflow! "
+                       "Some skinned objects will not be rendered.");
+              m_boneOverflowWarned = true;
+            }
+            ++m_droppedDrawsThisFrame;
+            continue;
           }
 
           // Write transform, objectId, and flags to ring buffer
@@ -1117,9 +1178,23 @@ void SceneRenderFeature::ExecuteGBufferPass(internal::ExecutionContext& ctx)
           if (!gpuMesh || !gpuMesh->valid) continue;
 
           // Check buffer overflow
-          if (frame.transformRingOffset >= TRANSFORM_UBO_SIZE ||
-              frame.boneMatrixRingOffset >= BONE_MATRIX_UBO_SIZE) {
-            break;
+          if (frame.transformRingOffset >= TRANSFORM_UBO_SIZE) {
+            if (!m_transformOverflowWarned) {
+              LOG_WARN("[SceneRenderFeature] Transform ring buffer overflow (morphed)! "
+                       "Some objects will not be rendered.");
+              m_transformOverflowWarned = true;
+            }
+            ++m_droppedDrawsThisFrame;
+            continue;
+          }
+          if (frame.boneMatrixRingOffset >= BONE_MATRIX_UBO_SIZE) {
+            if (!m_boneOverflowWarned) {
+              LOG_WARN("[SceneRenderFeature] Bone matrix ring buffer overflow (morphed)! "
+                       "Some objects will not be rendered.");
+              m_boneOverflowWarned = true;
+            }
+            ++m_droppedDrawsThisFrame;
+            continue;
           }
 
           // Write transform, objectId, and flags to ring buffer
@@ -1324,13 +1399,24 @@ void SceneRenderFeature::ExecuteWBOITAccumulation(internal::ExecutionContext& ct
   bool pipelineBound = false;
   gfx::BindGroup lastMaterialBG = {};
 
+  // Clear and prepare to store offsets for TransparentPicking to reuse
+  m_wboitDrawOffsets.clear();
+  m_wboitDrawOffsets.reserve(m_transparentDrawList.size());
+
   // Render each transparent draw
   for (const DrawData& draw : m_transparentDrawList) {
     const gfx::GpuMesh* gpuMesh = meshStorage.get(draw.gfxMesh);
     if (!gpuMesh || !gpuMesh->valid) continue;
 
     // Check transform ring buffer overflow
+    // Note: Must break (not continue) to keep m_wboitDrawOffsets in sync for TransparentPicking
     if (frame.transformRingOffset >= TRANSFORM_UBO_SIZE) {
+      if (!m_transformOverflowWarned) {
+        LOG_WARN("[SceneRenderFeature] Transform ring buffer overflow (WBOIT)! "
+                 "Some transparent objects will not be rendered or pickable. "
+                 "Drew {}/{} transparent objects.", m_wboitDrawOffsets.size(), m_transparentDrawList.size());
+        m_transformOverflowWarned = true;
+      }
       break;
     }
 
@@ -1417,6 +1503,9 @@ void SceneRenderFeature::ExecuteWBOITAccumulation(internal::ExecutionContext& ct
     uint32_t dynamicOffsets[2] = { frame.transformRingOffset, boneOffset };
     hina_cmd_bind_group_with_offsets(cmd, 2, frame.dynamicBindGroup, dynamicOffsets, 2);
 
+    // Store offsets for TransparentPicking to reuse
+    m_wboitDrawOffsets.push_back({ frame.transformRingOffset, boneOffset });
+
     // Advance transform ring offset
     frame.transformRingOffset += TRANSFORM_ALIGNMENT;
 
@@ -1426,6 +1515,7 @@ void SceneRenderFeature::ExecuteWBOITAccumulation(internal::ExecutionContext& ct
 
   hina_cmd_end_pass(cmd);
 }
+
 void SceneRenderFeature::ExecuteWBOITResolve(internal::ExecutionContext& ctx)
 {
   // Skip if no transparent draws or pipeline not created
@@ -1516,6 +1606,179 @@ void SceneRenderFeature::ExecuteWBOITResolve(internal::ExecutionContext& ctx)
 
   hina_cmd_end_pass(cmd);
 }
+
+void SceneRenderFeature::ExecuteTransparentPicking(internal::ExecutionContext& ctx)
+{
+  if (!m_enableObjectPicking) {
+    return;
+  }
+
+  // Only run this pass when a pick is actually requested (avoids extra work and depth writes).
+  {
+    std::lock_guard<std::mutex> lock(m_pickResultMutex);
+    if (!m_pickRequest.pending) {
+      return;
+    }
+  }
+
+  // Skip if no transparent draws
+  if (m_transparentDrawList.empty()) {
+    LOG_DEBUG("[SceneRenderFeature] TransparentPicking: no transparent objects to pick");
+    return;
+  }
+
+  GfxRenderer* gfxRenderer = ctx.GetGfxRenderer();
+  if (!gfxRenderer) {
+    return;
+  }
+
+  auto& frame = gfxRenderer->getCurrentFrameResources();
+  LOG_DEBUG("[SceneRenderFeature] TransparentPicking: {} transparent objects, ringOffset={}/{}",
+            m_transparentDrawList.size(), frame.transformRingOffset, TRANSFORM_UBO_SIZE);
+
+  // Ensure WBOIT (and picking) pipelines are created
+  EnsureWBOITPipelines(ctx);
+  if (!m_wboitPipelinesCreated) {
+    return;
+  }
+  if (!hina_pipeline_is_valid(m_wboitPickPipeline.get()) || !hina_pipeline_is_valid(m_wboitPickSkinnedPipeline.get())) {
+    return;
+  }
+
+  // Verify we have stored offsets from WBOIT accumulation
+  // (m_wboitDrawOffsets is filled during ExecuteWBOIT, same order as m_transparentDrawList)
+  if (m_wboitDrawOffsets.empty()) {
+    LOG_DEBUG("[SceneRenderFeature] TransparentPicking: no stored offsets from accumulation");
+    return;
+  }
+
+  // NOTE: Don't re-sort! Use same order as WBOIT accumulation so we can reuse stored offsets.
+
+  const FrameData& frameData = ctx.GetFrameData();
+  gfx::Cmd* cmd = ctx.GetCmd();
+  const auto& meshStorage = gfxRenderer->getMeshStorage();
+  const auto& materialSystem = gfxRenderer->getMaterialSystem();
+  const auto& gbuffer = gfxRenderer->getGBuffer();
+
+  if (!hina_texture_view_is_valid(gbuffer.visibilityIDView)) {
+    return;
+  }
+
+  // Get scene depth for depth testing (opaque depth already written).
+  gfx::Texture sceneDepth = ctx.GetTexture(RenderResources::SCENE_DEPTH);
+  gfx::TextureView sceneDepthView = hina_texture_get_default_view(sceneDepth);
+
+  // Begin transparent picking pass:
+  // - Load VisibilityID so opaque IDs remain where no transparent fragments are in front.
+  // - Load depth so only transparents in front of opaque pass.
+  // - Depth write enabled in pipeline so the nearest transparent fragment wins.
+  hina_pass_action pass = {};
+  pass.colors[0].image = gbuffer.visibilityIDView;
+  pass.colors[0].load_op = HINA_LOAD_OP_LOAD;
+  pass.colors[0].store_op = HINA_STORE_OP_STORE;
+
+  pass.depth.image = sceneDepthView;
+  pass.depth.load_op = HINA_LOAD_OP_LOAD;
+  pass.depth.store_op = HINA_STORE_OP_STORE;
+
+  hina_cmd_begin_pass(cmd, &pass);
+
+  // Update WBOIT frame UBO (viewProj + cameraPos). CameraPos is unused by pick shaders but kept for layout.
+  if (m_wboitFrameUBOMapped) {
+    glm::mat4 viewProj = frameData.projMatrix * frameData.viewMatrix;
+    glm::vec4 cameraPos(frameData.cameraPos, 0.0f);
+
+    std::memcpy(m_wboitFrameUBOMapped, &viewProj, sizeof(glm::mat4));
+    std::memcpy(static_cast<uint8_t*>(m_wboitFrameUBOMapped) + sizeof(glm::mat4), &cameraPos, sizeof(glm::vec4));
+  }
+
+  uint32_t width = RenderResources::INTERNAL_WIDTH;
+  uint32_t height = RenderResources::INTERNAL_HEIGHT;
+
+  hina_viewport viewport = {};
+  viewport.width = static_cast<float>(width);
+  viewport.height = static_cast<float>(height);
+  viewport.min_depth = 0.0f;
+  viewport.max_depth = 1.0f;
+  hina_cmd_set_viewport(cmd, &viewport);
+
+  hina_scissor scissor = {};
+  scissor.width = width;
+  scissor.height = height;
+  hina_cmd_set_scissor(cmd, &scissor);
+
+  bool lastWasSkinned = false;
+  bool pipelineBound = false;
+  gfx::BindGroup lastMaterialBG = {};
+
+  // Iterate using index to match m_wboitDrawOffsets (which was filled in same order)
+  size_t offsetIndex = 0;
+  for (const DrawData& draw : m_transparentDrawList) {
+    const gfx::GpuMesh* gpuMesh = meshStorage.get(draw.gfxMesh);
+    if (!gpuMesh || !gpuMesh->valid) continue;
+
+    // Safety check - must have a stored offset for this draw
+    if (offsetIndex >= m_wboitDrawOffsets.size()) {
+      LOG_DEBUG("[SceneRenderFeature] TransparentPicking: ran out of stored offsets at draw {}", offsetIndex);
+      break;
+    }
+
+    if (!pipelineBound || draw.isSkinned != lastWasSkinned) {
+      if (draw.isSkinned) {
+        hina_cmd_bind_pipeline(cmd, m_wboitPickSkinnedPipeline.get());
+      } else {
+        hina_cmd_bind_pipeline(cmd, m_wboitPickPipeline.get());
+      }
+      lastWasSkinned = draw.isSkinned;
+      pipelineBound = true;
+
+      // Bind frame bind group (Set 0) after pipeline switch.
+      hina_cmd_bind_group(cmd, 0, m_wboitFrameBindGroup);
+      lastMaterialBG = {};
+    }
+
+    // Bind vertex streams
+    hina_vertex_input meshInput = {};
+    meshInput.vertex_buffers[0] = gpuMesh->vertexBuffer;
+    meshInput.vertex_offsets[0] = gpuMesh->vertexOffset;
+    meshInput.vertex_buffers[1] = gpuMesh->attributeBuffer;
+    meshInput.vertex_offsets[1] = gpuMesh->attributeOffset;
+    meshInput.index_buffer = gpuMesh->indexBuffer;
+    meshInput.index_type = HINA_INDEX_UINT32;
+
+    if (draw.isSkinned && gpuMesh->hasSkinning) {
+      meshInput.vertex_buffers[2] = gpuMesh->skinningBuffer;
+      meshInput.vertex_offsets[2] = gpuMesh->skinningOffset;
+    }
+
+    hina_cmd_apply_vertex_input(cmd, &meshInput);
+
+    // Bind material at Set 1 (skip if same as last)
+    gfx::BindGroup materialBG;
+    if (draw.hasMaterial && materialSystem.isMaterialValid(draw.gfxMaterial)) {
+      materialBG = materialSystem.getMaterialBindGroup(draw.gfxMaterial);
+    } else {
+      materialBG = materialSystem.getMaterialBindGroup(materialSystem.getDefaultMaterial());
+    }
+    if (materialBG.id != lastMaterialBG.id) {
+      hina_cmd_bind_group(cmd, 1, materialBG);
+      lastMaterialBG = materialBG;
+    }
+
+    // Reuse offsets from WBOIT accumulation (already written to ring buffer)
+    const auto& storedOffsets = m_wboitDrawOffsets[offsetIndex];
+    uint32_t dynamicOffsets[2] = { storedOffsets.transformOffset, storedOffsets.boneOffset };
+    hina_cmd_bind_group_with_offsets(cmd, 2, frame.dynamicBindGroup, dynamicOffsets, 2);
+
+    ++offsetIndex;
+
+    hina_cmd_draw_indexed(cmd, gpuMesh->indexCount, 1, gpuMesh->indexOffset / sizeof(uint32_t), 0, 0);
+  }
+
+  LOG_DEBUG("[SceneRenderFeature] TransparentPicking: drew {} transparent objects", offsetIndex);
+  hina_cmd_end_pass(cmd);
+}
+
 void SceneRenderFeature::ProcessPendingPick(internal::ExecutionContext& ctx)
 {
   // Check if there's a pending pick request
@@ -1576,6 +1839,9 @@ void SceneRenderFeature::ProcessPendingPick(internal::ExecutionContext& ctx)
   uint32_t pixelIndex = pickY * width + pickX;
   uint32_t visibilityValue = visibilityData[pixelIndex];
 
+  LOG_DEBUG("[SceneRenderFeature] Pick at ({}, {}): visibilityValue={}, transparentCount={}",
+            pickX, pickY, visibilityValue, m_transparentDrawList.size());
+
   // Update pick result
   std::lock_guard<std::mutex> lock(m_pickResultMutex);
   if (visibilityValue == 0) {
@@ -1616,15 +1882,9 @@ void SceneRenderFeature::EnsureWBOITPipelines(internal::ExecutionContext& ctx)
   // Create WBOIT Accumulation Pipeline
   // =========================================================================
 
-  // Load accumulation shader
-  std::string accumShaderSource;
-  if (!LoadShaderSource(kWBOITAccumShaderPath, accumShaderSource)) {
-    LOG_ERROR("[SceneRenderFeature] Failed to load WBOIT accumulation shader");
-    return;
-  }
-
+  // Compile shader with VFS include support
   char* error = nullptr;
-  hina_hsl_module* accumModule = hslc_compile_hsl_source(accumShaderSource.c_str(), "wboit_accum", &error);
+  hina_hsl_module* accumModule = CompileHSLWithIncludes(kWBOITAccumShaderPath, "wboit_accum", &error);
   if (!accumModule) {
     LOG_ERROR("[SceneRenderFeature] WBOIT accumulation shader compilation failed: {}", error ? error : "unknown");
     if (error) hslc_free_log(error);
@@ -1741,13 +2001,7 @@ void SceneRenderFeature::EnsureWBOITPipelines(internal::ExecutionContext& ctx)
   // =========================================================================
   // Create WBOIT Skinned Accumulation Pipeline
   // =========================================================================
-  std::string accumSkinnedShaderSource;
-  if (!LoadShaderSource(kWBOITAccumSkinnedShaderPath, accumSkinnedShaderSource)) {
-    LOG_ERROR("[SceneRenderFeature] Failed to load WBOIT skinned accumulation shader");
-    return;
-  }
-
-  hina_hsl_module* accumSkinnedModule = hslc_compile_hsl_source(accumSkinnedShaderSource.c_str(), "wboit_accum_skinned", &error);
+  hina_hsl_module* accumSkinnedModule = CompileHSLWithIncludes(kWBOITAccumSkinnedShaderPath, "wboit_accum_skinned", &error);
   if (!accumSkinnedModule) {
     LOG_ERROR("[SceneRenderFeature] WBOIT skinned accumulation shader compilation failed: {}", error ? error : "unknown");
     if (error) hslc_free_log(error);
@@ -1816,13 +2070,7 @@ void SceneRenderFeature::EnsureWBOITPipelines(internal::ExecutionContext& ctx)
   // Create WBOIT Resolve Pipeline
   // =========================================================================
 
-  std::string resolveShaderSource;
-  if (!LoadShaderSource(kWBOITResolveShaderPath, resolveShaderSource)) {
-    LOG_ERROR("[SceneRenderFeature] Failed to load WBOIT resolve shader");
-    return;
-  }
-
-  hina_hsl_module* resolveModule = hslc_compile_hsl_source(resolveShaderSource.c_str(), "wboit_resolve", &error);
+  hina_hsl_module* resolveModule = CompileHSLWithIncludes(kWBOITResolveShaderPath, "wboit_resolve", &error);
   if (!resolveModule) {
     LOG_ERROR("[SceneRenderFeature] WBOIT resolve shader compilation failed: {}", error ? error : "unknown");
     if (error) hslc_free_log(error);
@@ -1897,6 +2145,66 @@ void SceneRenderFeature::EnsureWBOITPipelines(internal::ExecutionContext& ctx)
     return;
   }
 
+  // =========================================================================
+  // Create WBOIT Transparent Picking Pipelines (VisibilityID)
+  // =========================================================================
+
+  hina_hsl_module* pickModule = CompileHSLWithIncludes(kWBOITPickShaderPath, "wboit_pick", &error);
+  if (!pickModule) {
+    LOG_ERROR("[SceneRenderFeature] WBOIT pick shader compilation failed: {}", error ? error : "unknown");
+    if (error) hslc_free_log(error);
+    return;
+  }
+
+  hina_hsl_pipeline_desc pick_pip_desc = hina_hsl_pipeline_desc_default();
+  pick_pip_desc.layout = vertex_layout;  // same as gbuffer / wboit_accum (2-buffer split streams)
+  pick_pip_desc.cull_mode = HINA_CULL_MODE_NONE;
+  pick_pip_desc.front_face = HINA_FRONT_FACE_COUNTER_CLOCKWISE;
+  pick_pip_desc.depth.depth_test = true;
+  pick_pip_desc.depth.depth_write = true;  // critical: makes front-most transparent win
+  pick_pip_desc.depth.depth_compare = HINA_COMPARE_OP_LESS;
+  pick_pip_desc.depth_format = HINA_FORMAT_D32_SFLOAT;
+  pick_pip_desc.color_formats[0] = HINA_FORMAT_R32_UINT;  // VisibilityID target
+  pick_pip_desc.bind_group_layouts[0] = m_wboitFrameLayout.get();
+  pick_pip_desc.bind_group_layouts[1] = materialLayout;
+  pick_pip_desc.bind_group_layouts[2] = dynamicLayout;
+
+  m_wboitPickPipeline.reset(hina_make_pipeline_from_module(pickModule, &pick_pip_desc, nullptr));
+  hslc_hsl_module_free(pickModule);
+
+  if (!hina_pipeline_is_valid(m_wboitPickPipeline.get())) {
+    LOG_ERROR("[SceneRenderFeature] WBOIT pick pipeline creation failed");
+    return;
+  }
+
+  hina_hsl_module* pickSkinnedModule = CompileHSLWithIncludes(kWBOITPickSkinnedShaderPath, "wboit_pick_skinned", &error);
+  if (!pickSkinnedModule) {
+    LOG_ERROR("[SceneRenderFeature] WBOIT skinned pick shader compilation failed: {}", error ? error : "unknown");
+    if (error) hslc_free_log(error);
+    return;
+  }
+
+  hina_hsl_pipeline_desc pick_skinned_pip_desc = hina_hsl_pipeline_desc_default();
+  pick_skinned_pip_desc.layout = skinned_vertex_layout;  // 3-buffer split streams (with skinning)
+  pick_skinned_pip_desc.cull_mode = HINA_CULL_MODE_NONE;
+  pick_skinned_pip_desc.front_face = HINA_FRONT_FACE_COUNTER_CLOCKWISE;
+  pick_skinned_pip_desc.depth.depth_test = true;
+  pick_skinned_pip_desc.depth.depth_write = true;
+  pick_skinned_pip_desc.depth.depth_compare = HINA_COMPARE_OP_LESS;
+  pick_skinned_pip_desc.depth_format = HINA_FORMAT_D32_SFLOAT;
+  pick_skinned_pip_desc.color_formats[0] = HINA_FORMAT_R32_UINT;
+  pick_skinned_pip_desc.bind_group_layouts[0] = m_wboitFrameLayout.get();
+  pick_skinned_pip_desc.bind_group_layouts[1] = materialLayout;
+  pick_skinned_pip_desc.bind_group_layouts[2] = dynamicLayout;
+
+  m_wboitPickSkinnedPipeline.reset(hina_make_pipeline_from_module(pickSkinnedModule, &pick_skinned_pip_desc, nullptr));
+  hslc_hsl_module_free(pickSkinnedModule);
+
+  if (!hina_pipeline_is_valid(m_wboitPickSkinnedPipeline.get())) {
+    LOG_ERROR("[SceneRenderFeature] WBOIT skinned pick pipeline creation failed");
+    return;
+  }
+
   m_wboitPipelinesCreated = true;
   LOG_DEBUG("[SceneRenderFeature] WBOIT pipelines created successfully");
 }
@@ -1952,15 +2260,9 @@ bool SceneRenderFeature::EnsureCompositePipelineCreated(GfxRenderer* gfxRenderer
     std::memcpy(mapped, quadVerts, sizeof(quadVerts));
   }
 
-  // Load and compile composite tile shader
-  std::string shaderSource;
-  if (!LoadShaderSource(kCompositeTileShaderPath, shaderSource)) {
-    LOG_ERROR("[SceneRenderFeature] Failed to load composite tile shader");
-    return false;
-  }
-
+  // Compile composite shader with VFS include support
   char* error = nullptr;
-  hina_hsl_module* module = hslc_compile_hsl_source(shaderSource.c_str(), "scene_composite", &error);
+  hina_hsl_module* module = CompileHSLWithIncludes(kCompositeTileShaderPath, "scene_composite", &error);
   if (!module) {
     LOG_ERROR("[SceneRenderFeature] Composite shader compilation failed: {}", error ? error : "unknown");
     if (error) hslc_free_log(error);
@@ -1997,8 +2299,8 @@ bool SceneRenderFeature::EnsureCompositePipelineCreated(GfxRenderer* gfxRenderer
 
   // =========================================================================
   // Set 1: Light UBO
-  // Layout: vec4 ambient, vec4 cameraPos, mat4 invViewProj, ivec4 lightCounts, vec4[128] lights
-  // Total: 16 + 16 + 64 + 16 + 2048 = 2160 bytes
+  // Layout: vec4 ambient, vec4 cameraPos, mat4 invViewProj, ivec4 lightCounts, vec4 screenInfo, vec4[128] lights
+  // Total: 16 + 16 + 64 + 16 + 16 + 2048 = 2176 bytes
   // =========================================================================
   hina_bind_group_layout_entry light_entries[1] = {};
   light_entries[0].binding = 0;
@@ -2019,8 +2321,8 @@ bool SceneRenderFeature::EnsureCompositePipelineCreated(GfxRenderer* gfxRenderer
     return false;
   }
 
-  // Create light UBO buffer (2160 bytes, host visible for per-frame updates)
-  constexpr size_t kLightUBOSize = 16 + 16 + 64 + 16 + (128 * 16);  // 2160 bytes
+  // Create light UBO buffer (2176 bytes, host visible for per-frame updates)
+  constexpr size_t kLightUBOSize = 16 + 16 + 64 + 16 + 16 + (128 * 16);  // 2176 bytes (added screenInfo)
   hina_buffer_desc ubo_desc = {};
   ubo_desc.size = kLightUBOSize;
   ubo_desc.memory = HINA_BUFFER_CPU;
@@ -2319,7 +2621,8 @@ void SceneRenderFeature::ExecuteCompositePass(internal::ExecutionContext& ctx)
   //   vec4 cameraPos       (16 bytes, offset 16)
   //   mat4 invViewProj     (64 bytes, offset 32)
   //   ivec4 lightCounts    (16 bytes, offset 96)
-  //   vec4 lights[128]     (2048 bytes, offset 112)
+  //   vec4 screenInfo      (16 bytes, offset 112) - xy = screenSize, zw = 1/screenSize
+  //   vec4 lights[128]     (2048 bytes, offset 128)
   // Each light uses 4 vec4s:
   //   [0]: type, position.xyz
   //   [1]: direction.xyz, intensity
@@ -2352,7 +2655,16 @@ void SceneRenderFeature::ExecuteCompositePass(internal::ExecutionContext& ctx)
     std::memcpy(uboData + offset, &lightCounts, sizeof(glm::ivec4));
     offset += 16;
 
-    // lights array (offset 112)
+    // screenInfo (offset 112) - for mobile tile-based rendering position reconstruction
+    // Using gl_FragCoord * invScreenSize instead of interpolated UV avoids precision
+    // issues at tile boundaries on mobile GPUs
+    float screenWidth = static_cast<float>(RenderResources::INTERNAL_WIDTH);
+    float screenHeight = static_cast<float>(RenderResources::INTERNAL_HEIGHT);
+    glm::vec4 screenInfo(screenWidth, screenHeight, 1.0f / screenWidth, 1.0f / screenHeight);
+    std::memcpy(uboData + offset, &screenInfo, sizeof(glm::vec4));
+    offset += 16;
+
+    // lights array (offset 128)
     // Each light is 4 vec4s = 64 bytes
     for (int i = 0; i < numLights; ++i) {
       const CollectedLight& light = m_lightList[i];
@@ -2755,6 +3067,13 @@ void SceneRenderFeature::ExecuteDeferredTilePass(internal::ExecutionContext& ctx
     std::memcpy(uboData + offset, &lightCounts, sizeof(glm::ivec4));
     offset += 16;
 
+    // screenInfo - for mobile tile-based rendering position reconstruction
+    float screenWidth = static_cast<float>(RenderResources::INTERNAL_WIDTH);
+    float screenHeight = static_cast<float>(RenderResources::INTERNAL_HEIGHT);
+    glm::vec4 screenInfo(screenWidth, screenHeight, 1.0f / screenWidth, 1.0f / screenHeight);
+    std::memcpy(uboData + offset, &screenInfo, sizeof(glm::vec4));
+    offset += 16;
+
     for (int i = 0; i < numLights; ++i) {
       const CollectedLight& light = m_lightList[i];
 
@@ -2807,4 +3126,3 @@ void SceneRenderFeature::ExecuteDeferredTilePass(internal::ExecutionContext& ctx
   // =========================================================================
   hina_end_tile_pass(cmd);
 }
-

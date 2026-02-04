@@ -288,6 +288,8 @@ namespace editor
         }
 
         // Load the thumbnail texture through the resource manager (unified path)
+        // Note: sRGB=true is correct for PNG/JPEG thumbnails displayed on sRGB framebuffers.
+        // The GPU does sRGB->linear on sample, shader operates in linear, framebuffer does linear->sRGB.
         Resource::ResourceManager* resourceMngr = m_renderer->getResourceManager();
         if (!resourceMngr)
         {

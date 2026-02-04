@@ -37,6 +37,29 @@ namespace RenderResources
   constexpr uint32_t INTERNAL_HEIGHT = 1080;
   constexpr gfx::Dimensions INTERNAL_RESOLUTION = {INTERNAL_WIDTH, INTERNAL_HEIGHT, 1};
 
+  // UI viewport constants - UI is authored at 1920x1080 (16:9 reference)
+  // At different aspect ratios, height stays 1080, width scales proportionally
+  // This prevents stretching while maintaining consistent vertical scale
+  constexpr float UI_REFERENCE_WIDTH = 1920.0f;
+  constexpr float UI_REFERENCE_HEIGHT = 1080.0f;
+  constexpr float UI_REFERENCE_ASPECT = UI_REFERENCE_WIDTH / UI_REFERENCE_HEIGHT;  // 16:9
+
+  // Calculate UI viewport width for a given window aspect ratio
+  // At 16:9: returns 1920 (reference)
+  // At 21:9: returns ~2520 (wider)
+  // At 4:3:  returns 1440 (narrower)
+  inline float GetUIViewportWidth(float windowAspect) {
+    return UI_REFERENCE_HEIGHT * windowAspect;
+  }
+
+  // Calculate horizontal offset for centered UI elements
+  // At 16:9: returns 0 (no offset needed)
+  // At 21:9: returns 300 (extra space on each side)
+  // At 4:3:  returns -240 (less space, elements shift inward)
+  inline float GetUICenterOffset(float windowAspect) {
+    return (GetUIViewportWidth(windowAspect) - UI_REFERENCE_WIDTH) / 2.0f;
+  }
+
   constexpr const char* SWAPCHAIN_IMAGE = "SwapchainImage";
   constexpr const char* SCENE_COLOR = "SceneColor";
   constexpr const char* SCENE_DEPTH = "SceneDepth";

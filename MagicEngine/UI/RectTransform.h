@@ -21,6 +21,16 @@ All rights reserved.
 #include "ECS/IRegisteredComponent.h"
 #include "ECS/IHiddenComponent.h"
 
+// Horizontal anchor for UI elements at different aspect ratios
+// At 16:9 (reference), all anchors produce the same position
+// At wider ratios, Left stays left, Right stays right, Center shifts with extra space
+enum class UIAnchorX : uint8_t
+{
+	Left,    // Distance from left edge is preserved
+	Center,  // Element shifts with center (default - maintains current behavior)
+	Right    // Distance from right edge is preserved
+};
+
 class RectTransformComponent
 	: public IRegisteredComponent<RectTransformComponent>
 	, public IHiddenComponent<RectTransformComponent>
@@ -40,8 +50,14 @@ public:
 	void SetLocalScale(Vec2 newScale);
 	void SetWorldScale(Vec2 newScale);
 
+	// Horizontal anchor - determines how element shifts at different aspect ratios
+	UIAnchorX GetAnchorX() const { return anchorX; }
+	void SetAnchorX(UIAnchorX anchor) { anchorX = anchor; }
+
 	void EditorDraw();
 
 	void OnAttached() override;
 
+private:
+	UIAnchorX anchorX = UIAnchorX::Center;  // Default: center (maintains current behavior at 16:9)
 };

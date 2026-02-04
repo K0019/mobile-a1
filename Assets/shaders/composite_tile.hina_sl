@@ -1,9 +1,7 @@
 // Composite Tile Shader - Deferred lighting pass (tile/subpass version)
 // Uses tile_input for reading G-buffer in same render pass
-// Set 0: G-buffer inputs (INPUT_ATTACHMENT)
-// Set 1: Light UBO with all scene lights
-// Set 2: Skybox cubemap
-#hina
+#include "shader_snippets.glsl"
+
 group GBuffer = 0;
 group Lights = 1;
 group Skybox = 2;
@@ -19,25 +17,23 @@ bindings(Skybox, start=0) {
   texture samplerCube u_skybox;
 }
 
-// No vertex input - fullscreen triangle uses gl_VertexIndex
-// (omit VertexIn struct entirely per HSL documentation)
-
 // Light UBO - each light is 4 vec4s:
 //   [0]: type, position.xyz (type: 0=dir, 1=point, 2=spot)
 //   [1]: direction.xyz, intensity
 //   [2]: color.rgb, radius
 //   [3]: attenuation.xyz, unused
-// Max 32 lights = 512 bytes for lights + 80 bytes header = 592 bytes
 bindings(Lights, start=0) {
   uniform(std140) LightUBO {
-    vec4 ambientColor;   // rgb = ambient, a = unused
-    vec4 cameraPos;      // xyz = camera position, w = unused
-    mat4 invViewProj;    // For world position reconstruction
-    ivec4 lightCounts;   // x = numLights, yzw = unused
-    vec4 lights[128];    // 32 lights * 4 vec4s each
+    vec4 ambientColor;
+    vec4 cameraPos;
+    mat4 invViewProj;
+    ivec4 lightCounts;
+    vec4 screenInfo;      // xy = screen dimensions, zw = 1.0/screen dimensions
+    vec4 lights[128];     // 32 lights * 4 vec4s
   } ubo;
 }
 
+// No vertex input - fullscreen triangle uses gl_VertexIndex
 struct Varyings {
   vec2 uv;
 };
@@ -45,13 +41,11 @@ struct Varyings {
 struct FragOut {
   vec4 color;
 };
-#hina_end
 
 #hina_stage vertex entry VSMain
 Varyings VSMain() {
     Varyings out;
     // Full-screen triangle from vertex ID (0, 1, 2)
-    // Covers [-1,-1] to [3,3] - the excess is clipped
     vec2 positions[3] = vec2[](
         vec2(-1.0, -1.0),
         vec2( 3.0, -1.0),
@@ -64,45 +58,40 @@ Varyings VSMain() {
 }
 #hina_end
 
-#hina_stage fragment entry FSMain
+#hina_stage fragment entry FSMain use NormalEncoding, ForwardLighting
 FragOut FSMain(Varyings in) {
     FragOut out;
 
-    // Sample G-buffer using tile_load (no UV needed for input attachments)
+    // Sample G-buffer using tile_load
     vec4 albedoSample = tile_load(u_albedo);
     vec3 normalSample = tile_load(u_normal).xyz;
     vec4 matData = tile_load(u_materialData);
     float depth = tile_load(u_depth).r;
 
-    // Early out for sky/background - sample skybox cubemap
+    // Use gl_FragCoord for precise NDC (avoids tile boundary precision issues on mobile)
+    vec2 pixelCoord = gl_FragCoord.xy;
+    vec2 ndc = pixelCoord * ubo.screenInfo.zw * 2.0 - 1.0;
+
+    // Early out for sky/background - sample skybox
     if (depth >= 1.0) {
-        // Calculate world-space view direction for skybox sampling
-        vec2 ndc = in.uv * 2.0 - 1.0;
-        vec4 clipPos = vec4(ndc, 1.0, 1.0);  // Use far plane depth
+        vec4 clipPos = vec4(ndc, 1.0, 1.0);
         vec4 worldPos4 = ubo.invViewProj * clipPos;
         vec3 worldPos = worldPos4.xyz / worldPos4.w;
         vec3 viewDir = normalize(worldPos - ubo.cameraPos.xyz);
-
-        // Sample skybox with view direction
-        vec3 skyColor = texture(u_skybox, viewDir).rgb;
-        out.color = vec4(skyColor, 1.0);
+        out.color = vec4(texture(u_skybox, viewDir).rgb, 1.0);
         return out;
     }
 
-    // Decode normal from octahedral encoding (RG16F stores [-1,1] directly)
-    vec2 f = normalSample.xy;
-    vec3 normal = vec3(f.x, f.y, 1.0 - abs(f.x) - abs(f.y));
-    // Unfold lower hemisphere
-    float t = max(-normal.z, 0.0);
-    normal.x += (normal.x >= 0.0) ? -t : t;
-    normal.y += (normal.y >= 0.0) ? -t : t;
-    normal = normalize(normal);
+    // Decode octahedral normal
+    vec3 normal = decodeNormalOctahedral(normalSample.xy);
 
-    // Material properties
+    // Material properties from G-buffer
     float roughness = matData.r;
+    float metallic = matData.g;
+    float ao = matData.b;
+    float emissive = matData.a;
 
     // Reconstruct world position from depth
-    vec2 ndc = in.uv * 2.0 - 1.0;
     vec4 clipPos = vec4(ndc, depth, 1.0);
     vec4 worldPos4 = ubo.invViewProj * clipPos;
     vec3 worldPos = worldPos4.xyz / worldPos4.w;
@@ -111,16 +100,16 @@ FragOut FSMain(Varyings in) {
     vec3 baseColor = albedoSample.rgb;
     float specPower = mix(8.0, 128.0, 1.0 - roughness);
 
-    // Start with ambient
+    // Lighting calculation
     vec3 totalDiffuse = vec3(0.0);
     vec3 totalSpecular = vec3(0.0);
 
     int numLights = ubo.lightCounts.x;
     for (int i = 0; i < numLights && i < 32; ++i) {
         int base = i * 4;
-        vec4 data0 = ubo.lights[base + 0];  // type, position.xyz
-        vec4 data1 = ubo.lights[base + 1];  // direction.xyz, intensity
-        vec4 data2 = ubo.lights[base + 2];  // color.rgb, radius
+        vec4 data0 = ubo.lights[base + 0];
+        vec4 data1 = ubo.lights[base + 1];
+        vec4 data2 = ubo.lights[base + 2];
 
         int lightType = int(data0.x);
         vec3 lightPos = data0.yzw;
@@ -129,42 +118,15 @@ FragOut FSMain(Varyings in) {
         vec3 lightColor = data2.rgb;
         float radius = data2.a;
 
-        vec3 L;
-        float attenuation = 1.0;
-
-        if (lightType == 0) {
-            // Directional light - negate direction (lightDir points FROM light, L should point TO light)
-            L = -normalize(lightDir);
-        } else {
-            // Point light (type == 1) or spot light (type == 2)
-            vec3 toLight = lightPos - worldPos;
-            float dist = length(toLight);
-            L = toLight / max(dist, 0.001);
-
-            // Distance attenuation with smooth falloff
-            if (radius > 0.0) {
-                attenuation = 1.0 - smoothstep(0.0, radius, dist);
-                attenuation *= attenuation;
-            } else {
-                // Fallback inverse square
-                attenuation = 1.0 / (1.0 + dist * dist * 0.01);
-            }
-        }
-
-        // Standard one-sided diffuse (Lambert)
-        float NdotL = max(dot(normal, L), 0.0);
-        totalDiffuse += lightColor * NdotL * intensity * attenuation;
-
-        // Standard specular (Blinn-Phong)
-        vec3 halfVec = normalize(L + viewDir);
-        float NdotH = max(dot(normal, halfVec), 0.0);
-        float spec = pow(NdotH, specPower) * (1.0 - roughness) * 0.5;
-        totalSpecular += lightColor * spec * intensity * attenuation;
+        calculateLight(lightType, lightPos, lightDir, intensity, lightColor, radius,
+                       worldPos, normal, viewDir, specPower, roughness,
+                       totalDiffuse, totalSpecular);
     }
 
-    // Final color
-    vec3 ambient = ubo.ambientColor.rgb;
+    // Final color with ambient occlusion and emissive
+    vec3 ambient = ubo.ambientColor.rgb * ao;
     vec3 finalColor = baseColor * (ambient + totalDiffuse) + totalSpecular;
+    finalColor += baseColor * emissive;
 
     out.color = vec4(finalColor, 1.0);
     return out;

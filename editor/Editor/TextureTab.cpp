@@ -71,10 +71,12 @@ namespace editor {
                 if (thumbId != 0)
                 {
                     // Display actual thumbnail (ImTextureID is ImU64)
+                    // UV coordinates flipped vertically: uv0=(0,1), uv1=(1,0)
                     clicked = ImGui::ImageButton(
                         ("##tex" + std::to_string(count)).c_str(),
                         static_cast<ImTextureID>(thumbId),
-                        ImVec2(THUMBNAIL_SIZE, THUMBNAIL_SIZE));
+                        ImVec2(THUMBNAIL_SIZE, THUMBNAIL_SIZE),
+                        ImVec2(0, 1), ImVec2(1, 0));
                 }
                 else
                 {

@@ -51,6 +51,12 @@ namespace Events {
 	// Consumed by: Popup
 	struct PopupCloseRequest {};
 
+	// Consumed by: Editor (MaterialTab or similar)
+	struct OpenMaterialEditor
+	{
+		size_t materialHash;
+	};
+
 }
 
 namespace Getters {

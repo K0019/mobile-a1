@@ -625,100 +625,16 @@ namespace Resource
     Material mat = convertToStoredMaterial(material);
     MaterialHandle handle = m_materialPool.create();
 
-    uint32_t alphaMode = material.flags & MaterialFlags::ALPHA_MODE_MASK;
-
-    if(auto* cold = m_materialPool.getColdData(handle))
-    {
+    if (auto* cold = m_materialPool.getColdData(handle)) {
       cold->material = mat;
     }
-    if(auto* hot = m_materialPool.getHotData(handle))
-    {
-      hot->renderQueue = (alphaMode == ALPHA_MODE_BLEND)
-        ? RenderQueue::Transparent
-        : RenderQueue::Opaque;
-    }
+
     // Generate GPU data and handle dependencies
     MaterialData gpuData = generateMaterialDataWithTextures_nolock(mat);
     updateMaterialTextureDependencies_nolock(handle, material);
 
-    // Upload to GfxMaterialSystem directly (hina-vk path)
-    if (m_context && m_context->renderer) {
-      if (auto* gfxRenderer = m_context->renderer) {
-        auto& materialSystem = gfxRenderer->getMaterialSystem();
-
-        // Convert Material to gfx::GfxMaterial
-        gfx::GfxMaterial gfxMat;
-        gfxMat.baseColor = mat.baseColorFactor;
-        gfxMat.roughness = mat.roughnessFactor;
-        gfxMat.metallic = mat.metallicFactor;
-        gfxMat.emissive = glm::length(mat.emissiveFactor) > 0.0f ? 1.0f : 0.0f;
-        gfxMat.ao = mat.occlusionStrength;
-        gfxMat.rim = 0.0f;
-
-        // Set alpha mode
-        switch (mat.alphaMode) {
-          case AlphaMode::Opaque:
-            gfxMat.alphaMode = gfx::GfxMaterial::AlphaMode::Opaque;
-            break;
-          case AlphaMode::Mask:
-            gfxMat.alphaMode = gfx::GfxMaterial::AlphaMode::Mask;
-            break;
-          case AlphaMode::Blend:
-            gfxMat.alphaMode = gfx::GfxMaterial::AlphaMode::Blend;
-            break;
-        }
-        gfxMat.alphaCutoff = mat.alphaCutoff;
-        gfxMat.doubleSided = (mat.flags & DOUBLE_SIDED) != 0;
-
-        // Helper to resolve gfx::TextureHandle from MaterialTexture
-        auto resolveGfxTexture = [this, &material](const MaterialTexture& matTex, const char* texType) -> gfx::TextureHandle {
-          if (!matTex.hasTexture()) return {};
-          std::string cacheKey = TextureCacheKeyGenerator::generateKey(matTex.source);
-          auto it = m_textureCache.find(cacheKey);
-          if (it != m_textureCache.end()) {
-            if (const auto* hot = m_texturePool.getHotData(it->second)) {
-              if (hot->hasGfxTexture) {
-                gfx::TextureHandle gfxTex;
-                gfxTex.index = hot->gfxTextureIndex;
-                gfxTex.generation = hot->gfxTextureGeneration;
-                return gfxTex;
-              } else {
-                LOG_WARNING("Material '{}' {} texture not in GfxMaterialSystem (key='{}')", material.name, texType, cacheKey);
-              }
-            }
-          } else {
-            LOG_WARNING("Material '{}' {} texture not in cache (key='{}')", material.name, texType, cacheKey);
-          }
-          return {};
-        };
-
-        // Look up texture handles
-        gfxMat.albedoTexture = resolveGfxTexture(mat.baseColorTexture, "albedo");
-        gfxMat.normalTexture = resolveGfxTexture(mat.normalTexture, "normal");
-        gfxMat.metallicRoughnessTexture = resolveGfxTexture(mat.metallicRoughnessTexture, "metallicRoughness");
-        gfxMat.emissiveTexture = resolveGfxTexture(mat.emissiveTexture, "emissive");
-        gfxMat.occlusionTexture = resolveGfxTexture(mat.occlusionTexture, "occlusion");
-
-        LOG_DEBUG("Material '{}' baseColor=({:.2f},{:.2f},{:.2f},{:.2f}), albedo={}:{}, normal={}:{}",
-            material.name, gfxMat.baseColor.r, gfxMat.baseColor.g, gfxMat.baseColor.b, gfxMat.baseColor.a,
-            gfxMat.albedoTexture.index, gfxMat.albedoTexture.generation,
-            gfxMat.normalTexture.index, gfxMat.normalTexture.generation);
-
-        gfx::MaterialHandle gfxMaterial = materialSystem.createMaterial(gfxMat);
-
-        if (auto* hotData = m_materialPool.getHotData(handle)) {
-          if (gfxMaterial.isValid()) {
-            hotData->hasGfxMaterial = true;
-            hotData->gfxMaterialIndex = gfxMaterial.index;
-            hotData->gfxMaterialGeneration = gfxMaterial.generation;
-            LOG_DEBUG("Uploaded material '{}' to GfxMaterialSystem: {}:{}",
-                      material.name, gfxMaterial.index, gfxMaterial.generation);
-          } else {
-            LOG_WARNING("Failed to upload material '{}' to GfxMaterialSystem", material.name);
-          }
-        }
-      }
-    }
+    // Sync entire material to GPU (handles render queue + GPU data)
+    syncMaterialToGpu(handle, mat, true /* isCreate */);
 
     m_materialCache[cacheKey] = handle;
     return handle;
@@ -1186,6 +1102,25 @@ namespace Resource
     return hot ? hot->renderQueue == RenderQueue::Transparent : false;
   }
 
+  void ResourceManager::updateMaterial(MaterialHandle handle, const ProcessedMaterial& material)
+  {
+    if (!m_materialPool.isValid(handle)) {
+      LOG_WARNING("[ResourceManager] updateMaterial: Invalid handle");
+      return;
+    }
+
+    // Update cold data (stored material)
+    Material mat = convertToStoredMaterial(material);
+    if (auto* cold = m_materialPool.getColdData(handle)) {
+      cold->material = mat;
+    }
+
+    // Sync entire material to GPU (handles render queue + GPU data)
+    syncMaterialToGpu(handle, mat, false /* isUpdate */);
+
+    LOG_DEBUG("[ResourceManager] Updated material (handle {})", handle.getId());
+  }
+
   // Asset management methods
   void ResourceManager::freeMesh(MeshHandle handle)
   {
@@ -1435,70 +1370,98 @@ namespace Resource
 
     LOG_INFO("Resolving {} waiting materials for texture '{}'", waitingMaterials.size(), textureCacheKey);
 
-    // Update GfxMaterialSystem bind groups (hina-vk path)
-    if (m_context && m_context->renderer) {
-      if (auto* gfxRenderer = m_context->renderer) {
-        auto& materialSystem = gfxRenderer->getMaterialSystem();
+    // Re-sync each waiting material to GPU (unified helper rebuilds bind group with resolved textures)
+    for(MaterialHandle materialHandle : waitingMaterials)
+    {
+      auto* cold = m_materialPool.getColdData(materialHandle);
+      auto* hot = m_materialPool.getHotData(materialHandle);
+      if (!cold || !hot || !hot->hasGfxMaterial) continue;
 
-        // Helper to resolve gfx::TextureHandle from MaterialTexture
-        auto resolveGfxTexture = [this](const MaterialTexture& matTex) -> gfx::TextureHandle {
-          if (!matTex.hasTexture()) return {};
-          std::string cacheKey = TextureCacheKeyGenerator::generateKey(matTex.source);
-          auto it = m_textureCache.find(cacheKey);
-          if (it != m_textureCache.end()) {
-            if (const auto* hot = m_texturePool.getHotData(it->second)) {
-              if (hot->hasGfxTexture) {
-                gfx::TextureHandle gfxTex;
-                gfxTex.index = hot->gfxTextureIndex;
-                gfxTex.generation = hot->gfxTextureGeneration;
-                return gfxTex;
-              }
-            }
+      syncMaterialToGpu(materialHandle, cold->material, false /* isUpdate */);
+      LOG_DEBUG("Resolved material {} with texture '{}'", materialHandle.getId(), textureCacheKey);
+    }
+  }
+
+  // ============================================================================
+  // Unified Material Helper
+  // All material creation/updates go through this to ensure consistency
+  // ============================================================================
+
+  void ResourceManager::syncMaterialToGpu(MaterialHandle handle, const Material& mat, bool isCreate)
+  {
+    if (!m_context || !m_context->renderer) return;
+
+    auto* gfxRenderer = m_context->renderer;
+    auto& materialSystem = gfxRenderer->getMaterialSystem();
+    auto* hot = m_materialPool.getHotData(handle);
+    if (!hot) return;
+
+    // Update render queue based on alpha mode
+    uint32_t alphaMode = mat.flags & MaterialFlags::ALPHA_MODE_MASK;
+    hot->renderQueue = (alphaMode == ALPHA_MODE_BLEND)
+      ? RenderQueue::Transparent
+      : RenderQueue::Opaque;
+
+    // Build gfx::GfxMaterial from Material
+    gfx::GfxMaterial gfxMat;
+    gfxMat.baseColor = mat.baseColorFactor;
+    gfxMat.roughness = mat.roughnessFactor;
+    gfxMat.metallic = mat.metallicFactor;
+    gfxMat.emissive = glm::length(mat.emissiveFactor) > 0.0f ? 1.0f : 0.0f;
+    gfxMat.ao = mat.occlusionStrength;
+    gfxMat.rim = 0.0f;
+
+    switch (mat.alphaMode) {
+      case AlphaMode::Opaque: gfxMat.alphaMode = gfx::GfxMaterial::AlphaMode::Opaque; break;
+      case AlphaMode::Mask:   gfxMat.alphaMode = gfx::GfxMaterial::AlphaMode::Mask; break;
+      case AlphaMode::Blend:  gfxMat.alphaMode = gfx::GfxMaterial::AlphaMode::Blend; break;
+    }
+    gfxMat.alphaCutoff = mat.alphaCutoff;
+    gfxMat.doubleSided = (mat.flags & DOUBLE_SIDED) != 0;
+
+    // Resolve texture handles from cache
+    auto resolveGfxTexture = [this](const MaterialTexture& matTex) -> gfx::TextureHandle {
+      if (!matTex.hasTexture()) return {};
+      std::string cacheKey = TextureCacheKeyGenerator::generateKey(matTex.source);
+      auto it = m_textureCache.find(cacheKey);
+      if (it != m_textureCache.end()) {
+        if (const auto* texHot = m_texturePool.getHotData(it->second)) {
+          if (texHot->hasGfxTexture) {
+            gfx::TextureHandle gfxTex;
+            gfxTex.index = texHot->gfxTextureIndex;
+            gfxTex.generation = texHot->gfxTextureGeneration;
+            return gfxTex;
           }
-          return {};
-        };
-
-        for(MaterialHandle materialHandle : waitingMaterials)
-        {
-          auto* cold = m_materialPool.getColdData(materialHandle);
-          auto* hot = m_materialPool.getHotData(materialHandle);
-          if (!cold || !hot || !hot->hasGfxMaterial) continue;
-
-          const Material& mat = cold->material;
-
-          // Rebuild gfx::GfxMaterial with updated texture handles
-          gfx::GfxMaterial gfxMat;
-          gfxMat.baseColor = mat.baseColorFactor;
-          gfxMat.roughness = mat.roughnessFactor;
-          gfxMat.metallic = mat.metallicFactor;
-          gfxMat.emissive = glm::length(mat.emissiveFactor) > 0.0f ? 1.0f : 0.0f;
-          gfxMat.ao = mat.occlusionStrength;
-          gfxMat.rim = 0.0f;
-
-          switch (mat.alphaMode) {
-            case AlphaMode::Opaque: gfxMat.alphaMode = gfx::GfxMaterial::AlphaMode::Opaque; break;
-            case AlphaMode::Mask:   gfxMat.alphaMode = gfx::GfxMaterial::AlphaMode::Mask; break;
-            case AlphaMode::Blend:  gfxMat.alphaMode = gfx::GfxMaterial::AlphaMode::Blend; break;
-          }
-          gfxMat.alphaCutoff = mat.alphaCutoff;
-          gfxMat.doubleSided = (mat.flags & DOUBLE_SIDED) != 0;
-
-          // Re-resolve all texture handles (now includes newly loaded texture)
-          gfxMat.albedoTexture = resolveGfxTexture(mat.baseColorTexture);
-          gfxMat.normalTexture = resolveGfxTexture(mat.normalTexture);
-          gfxMat.metallicRoughnessTexture = resolveGfxTexture(mat.metallicRoughnessTexture);
-          gfxMat.emissiveTexture = resolveGfxTexture(mat.emissiveTexture);
-          gfxMat.occlusionTexture = resolveGfxTexture(mat.occlusionTexture);
-
-          // Update the material (this rebuilds the bind group)
-          gfx::MaterialHandle gfxHandle;
-          gfxHandle.index = hot->gfxMaterialIndex;
-          gfxHandle.generation = hot->gfxMaterialGeneration;
-          materialSystem.updateMaterial(gfxHandle, gfxMat);
-
-          LOG_DEBUG("Updated GfxMaterial {}:{} with resolved texture '{}'",
-                    gfxHandle.index, gfxHandle.generation, textureCacheKey);
         }
+      }
+      return {};
+    };
+
+    gfxMat.albedoTexture = resolveGfxTexture(mat.baseColorTexture);
+    gfxMat.normalTexture = resolveGfxTexture(mat.normalTexture);
+    gfxMat.metallicRoughnessTexture = resolveGfxTexture(mat.metallicRoughnessTexture);
+    gfxMat.emissiveTexture = resolveGfxTexture(mat.emissiveTexture);
+    gfxMat.occlusionTexture = resolveGfxTexture(mat.occlusionTexture);
+
+    if (isCreate) {
+      // Creating a new GPU material
+      gfx::MaterialHandle gfxHandle = materialSystem.createMaterial(gfxMat);
+      if (gfxHandle.isValid()) {
+        hot->hasGfxMaterial = true;
+        hot->gfxMaterialIndex = gfxHandle.index;
+        hot->gfxMaterialGeneration = gfxHandle.generation;
+        LOG_DEBUG("Created GfxMaterial {}:{}", gfxHandle.index, gfxHandle.generation);
+      } else {
+        LOG_WARNING("Failed to create GfxMaterial");
+      }
+    } else {
+      // Updating an existing GPU material
+      if (hot->hasGfxMaterial) {
+        gfx::MaterialHandle gfxHandle;
+        gfxHandle.index = hot->gfxMaterialIndex;
+        gfxHandle.generation = hot->gfxMaterialGeneration;
+        materialSystem.updateMaterial(gfxHandle, gfxMat);
+        LOG_DEBUG("Updated GfxMaterial {}:{}", gfxHandle.index, gfxHandle.generation);
       }
     }
   }
