@@ -95,7 +95,8 @@ void Engine<AppType>::Initialize()
   };
   Core::Display().onResize = [this](int width, int height)
   {
-    if (m_surfaceValid.load())
+    // Skip resize when window is minimized (width/height = 0)
+    if (width > 0 && height > 0 && m_surfaceValid.load())
     {
       m_renderer.onResize(static_cast<uint32_t>(width), static_cast<uint32_t>(height));
     }
@@ -155,7 +156,11 @@ bool Engine<AppType>::ExecuteFrame()
     int height = Core::Platform::Get().GetDisplay().GetHeight();
     if (width > 0 && height > 0 && m_surfaceValid.load())
     {
-      m_renderer.beginFrame();
+      if (!m_renderer.beginFrame())
+      {
+        // Swapchain acquisition failed (e.g., window minimized) - skip this frame
+        return true;
+      }
 
       // Update RenderFrameData with current frame info
       m_currentFrameData.frameInfo.frameNumber = m_frameCounter;
