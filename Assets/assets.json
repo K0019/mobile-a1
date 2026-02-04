@@ -5731,6 +5731,25 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/enemy/boss_prefect_groundslam/boss_prefect_groundslam.mesh",
+            "assetType": "Mesh",
+            "sourcePath": "models/glb/enemy/boss_prefect_groundslam.glb",
+            "sourceTimestamp": 134146952408968135,
+            "compiledTimestamp": 17702222451725812,
+            "formatVersion": 1296388936,
+            "resources": [
+                {
+                    "resourceType": 6209910166724260588,
+                    "resourceEntries": [
+                        {
+                            "hash": 2671472406991358081,
+                            "name": "boss_prefect_groundslam0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/models/glb/enemy_female_animated/n00_000_00_eyehighlight_00_eye (instance).material",
             "assetType": "Material",
             "resources": [
@@ -12373,6 +12392,25 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/enemy/boss_prefect_groundslam/material_1.material",
+            "assetType": "Material",
+            "sourcePath": "models/glb/enemy/boss_prefect_groundslam.glb",
+            "sourceTimestamp": 134146952408968135,
+            "compiledTimestamp": 17702222459004907,
+            "formatVersion": 1,
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2669276682270689399,
+                            "name": "material_10"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/models/glb/aji/player_idle_mixamo/n00_000_00_face_00_skin__instance_.material",
             "assetType": "Material",
             "resources": [
@@ -13142,6 +13180,25 @@
                         {
                             "hash": 9402020686559052941,
                             "name": "material_10"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/enemy/boss_prefect_groundslam/openpbr_shader1.material",
+            "assetType": "Material",
+            "sourcePath": "models/glb/enemy/boss_prefect_groundslam.glb",
+            "sourceTimestamp": 134146952408968135,
+            "compiledTimestamp": 17702222458978766,
+            "formatVersion": 1,
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2664995183992129647,
+                            "name": "openpbr_shader10"
                         }
                     ]
                 }
