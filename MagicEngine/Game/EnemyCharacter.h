@@ -21,6 +21,7 @@ All rights reserved.
 #pragma once
 #include "ECS/EntityUID.h"
 #include "ECS/IEditorComponent.h"
+#include "Game/IGameComponentCallbacks.h"
 
 /*****************************************************************//*!
 \class EnemyComponent
@@ -30,6 +31,7 @@ All rights reserved.
 class EnemyComponent
 	: public IRegisteredComponent<EnemyComponent>
 	, public IEditorComponent<EnemyComponent>
+	, public IGameComponentCallbacks<EnemyComponent>
 {
 public:
 	/*****************************************************************//*!
@@ -38,11 +40,7 @@ public:
 	*//******************************************************************/
 	EnemyComponent();
 
-	/*****************************************************************//*!
-	\brief
-		Default destructor.
-	*//******************************************************************/
-	//~EnemyComponent();
+	void OnStart() override;
 
 	EntityReference playerReference;
 	EntityReference attackCollider;

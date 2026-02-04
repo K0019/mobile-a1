@@ -20,6 +20,7 @@ All rights reserved.
 /******************************************************************************/
 #include "Game/EnemyCharacter.h"
 #include "Game/Character.h"
+#include "Game/PlayerCharacter.h"
 #include "Game/GameCameraController.h"
 #include "Physics/Physics.h"
 #include "Engine/Input.h"
@@ -61,4 +62,11 @@ void EnemyComponent::EditorDraw()
 	gui::VarDefault("Follow Through Time", &followThroughTime);
 	playerReference.EditorDraw("Player");
 	attackCollider.EditorDraw("Attack Collider");
+}
+
+void EnemyComponent::OnStart()
+{
+	auto playerCompIter = ecs::GetCompsBegin<PlayerMovementComponent>();
+	if (playerCompIter != ecs::GetCompsEnd<PlayerMovementComponent>())
+		playerReference = playerCompIter.GetEntity();
 }
