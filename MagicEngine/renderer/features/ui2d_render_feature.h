@@ -7,6 +7,10 @@ struct Ui2DRenderParams
 {
   bool enabled = false;
   ui::PrimitiveDrawList drawList;
+  // UI viewport dimensions - dynamic based on window aspect ratio
+  // Height is always 1080 (reference), width scales with aspect ratio
+  float viewportWidth = 1920.0f;
+  float viewportHeight = 1080.0f;
 };
 
 class Ui2DRenderFeature final : public RenderFeatureBase<Ui2DRenderParams>

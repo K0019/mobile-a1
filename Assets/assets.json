@@ -256,6 +256,21 @@
             ]
         },
         {
+            "filepath": "compiledassets/skill icon (mobile)_thumb.ktx2",
+            "assetType": "Texture",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 151424741386746687,
+                            "name": "skill icon (mobile)_thumb0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "sounds/sfx/mc/hurt/mc hurt 2.wav",
             "assetType": "Audio",
             "resources": [
@@ -1882,6 +1897,25 @@
                         {
                             "hash": 5722461044386732677,
                             "name": "shader_noneblack0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/basic attack icon (mobile).ktx2",
+            "assetType": "Texture",
+            "sourcePath": "images/buff/basic attack icon (mobile).png",
+            "sourceTimestamp": 134146707259076141,
+            "compiledTimestamp": 17701977342075712,
+            "formatVersion": 2,
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 122919902436536857,
+                            "name": "basic attack icon (mobile)0"
                         }
                     ]
                 }
@@ -4319,6 +4353,21 @@
             ]
         },
         {
+            "filepath": "compiledassets/parry icon (mobile)_thumb.ktx2",
+            "assetType": "Texture",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 130929844644994573,
+                            "name": "parry icon (mobile)_thumb0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/models/glb/enemy_female_animated/n00_000_00_body_00_skin (instance).material",
             "assetType": "Material",
             "resources": [
@@ -5343,15 +5392,19 @@
             ]
         },
         {
-            "filepath": "compiledassets/bar ui (fill)_thumb.ktx2",
+            "filepath": "compiledassets/heavy attack icon (mobile).ktx2",
             "assetType": "Texture",
+            "sourcePath": "images/buff/heavy attack icon (mobile).png",
+            "sourceTimestamp": 134146707293810630,
+            "compiledTimestamp": 17701980788815861,
+            "formatVersion": 2,
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
                     "resourceEntries": [
                         {
-                            "hash": 94141286526004843,
-                            "name": "bar ui (fill)_thumb0"
+                            "hash": 713603937157215345,
+                            "name": "heavy attack icon (mobile)0"
                         }
                     ]
                 }
@@ -6470,6 +6523,25 @@
                         {
                             "hash": 2482058440310958695,
                             "name": "n00_000_00_facebrow_00_face (instance)0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/parry icon (mobile).ktx2",
+            "assetType": "Texture",
+            "sourcePath": "images/buff/parry icon (mobile).png",
+            "sourceTimestamp": 134146707320686103,
+            "compiledTimestamp": 17701981794624158,
+            "formatVersion": 2,
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 716862889622043979,
+                            "name": "parry icon (mobile)0"
                         }
                     ]
                 }
@@ -7606,6 +7678,25 @@
             ]
         },
         {
+            "filepath": "compiledassets/skill icon (mobile).ktx2",
+            "assetType": "Texture",
+            "sourcePath": "images/buff/skill icon (mobile).png",
+            "sourceTimestamp": 134146707351056963,
+            "compiledTimestamp": 17701981846016687,
+            "formatVersion": 2,
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 728550698225307999,
+                            "name": "skill icon (mobile)0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/materials/n00_002_03_tops_01_cloth_04__instance_.001.material",
             "assetType": "Material",
             "resources": [
@@ -7919,6 +8010,21 @@
                         {
                             "hash": 4179585647542043651,
                             "name": "storage room0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/heavy attack icon (mobile)_thumb.ktx2",
+            "assetType": "Texture",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 122058984832094715,
+                            "name": "heavy attack icon (mobile)_thumb0"
                         }
                     ]
                 }
@@ -8950,6 +9056,21 @@
             ]
         },
         {
+            "filepath": "compiledassets/dodge icon (mobile)_thumb.ktx2",
+            "assetType": "Texture",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 113328862507549465,
+                            "name": "dodge icon (mobile)_thumb0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/models/glb/enemy_male_animated/n00_000_00_face_00_skin (instance).material",
             "assetType": "Material",
             "resources": [
@@ -9393,6 +9514,25 @@
             ]
         },
         {
+            "filepath": "compiledassets/settings icon (mobile).ktx2",
+            "assetType": "Texture",
+            "sourcePath": "images/buff/settings icon (mobile).png",
+            "sourceTimestamp": 134146707333075956,
+            "compiledTimestamp": 17701981826989937,
+            "formatVersion": 2,
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 721237846388967921,
+                            "name": "settings icon (mobile)0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "sounds/sfx/ultimate activation.wav",
             "assetType": "Audio",
             "resources": [
@@ -9558,6 +9698,25 @@
             ]
         },
         {
+            "filepath": "compiledassets/dodge icon (mobile).ktx2",
+            "assetType": "Texture",
+            "sourcePath": "images/buff/dodge icon (mobile).png",
+            "sourceTimestamp": 134146707268575540,
+            "compiledTimestamp": 17701979408933824,
+            "formatVersion": 2,
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 114013858251757931,
+                            "name": "dodge icon (mobile)0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "sounds/sfx/weapon pickup/weapon pickup 1.wav",
             "assetType": "Audio",
             "resources": [
@@ -9702,6 +9861,21 @@
                         {
                             "hash": 380003313458538325,
                             "name": "material_30"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/settings icon (mobile)_thumb.ktx2",
+            "assetType": "Texture",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 142761689271497657,
+                            "name": "settings icon (mobile)_thumb0"
                         }
                     ]
                 }

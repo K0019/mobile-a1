@@ -1,0 +1,522 @@
+{
+    "entities": [
+        {
+            "parentIndex": -1,
+            "position": {
+                "x": 1430.0,
+                "y": 670.0,
+                "z": 0.0
+            },
+            "rotation": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "scale": {
+                "x": 160.0,
+                "y": 160.0,
+                "z": 1.0
+            },
+            "components": {
+                "6766054303456732338": {
+                    "_active": true,
+                    "layer": 0
+                },
+                "7205334411763290517": {
+                    "_active": true,
+                    "name": "Dodge Button"
+                },
+                "9315785795257285655": {
+                    "_active": true,
+                    "uid": 4225168098848621879
+                },
+                "13050946774019011867": {
+                    "_active": true,
+                    "type": 2,
+                    "primitive": {
+                        "texture": {
+                            "hash": 114013858251757931
+                        },
+                        "uvMin": {
+                            "x": 0.0,
+                            "y": 0.0
+                        },
+                        "uvMax": {
+                            "x": 1.0,
+                            "y": 1.0
+                        }
+                    },
+                    "color": {
+                        "x": 1.0,
+                        "y": 1.0,
+                        "z": 1.0,
+                        "w": 1.0
+                    }
+                },
+                "13828584133079072524": {
+                    "_active": true,
+                    "hasPrimitive": false
+                },
+                "15400580746116341700": {
+                    "_active": true
+                },
+                "18288371625365795113": {
+                    "_active": true,
+                    "scripts": [
+                        {
+                            "scriptName": "game_button_dodge.lua"
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "parentIndex": -1,
+            "position": {
+                "x": 1790.0,
+                "y": 100.0,
+                "z": 0.0
+            },
+            "rotation": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "scale": {
+                "x": 230.0,
+                "y": 230.0,
+                "z": 1.0
+            },
+            "components": {
+                "6766054303456732338": {
+                    "_active": true,
+                    "layer": 0
+                },
+                "7205334411763290517": {
+                    "_active": true,
+                    "name": "Settings Button"
+                },
+                "9315785795257285655": {
+                    "_active": true,
+                    "uid": 4288939773269861882
+                },
+                "13050946774019011867": {
+                    "_active": true,
+                    "type": 2,
+                    "primitive": {
+                        "texture": {
+                            "hash": 721237846388967921
+                        },
+                        "uvMin": {
+                            "x": 0.0,
+                            "y": 0.0
+                        },
+                        "uvMax": {
+                            "x": 1.0,
+                            "y": 1.0
+                        }
+                    },
+                    "color": {
+                        "x": 1.0,
+                        "y": 1.0,
+                        "z": 1.0,
+                        "w": 1.0
+                    }
+                },
+                "13828584133079072524": {
+                    "_active": true,
+                    "hasPrimitive": false
+                },
+                "15400580746116341700": {
+                    "_active": true
+                }
+            }
+        },
+        {
+            "parentIndex": -1,
+            "position": {
+                "x": 1318.0,
+                "y": 920.0,
+                "z": 0.0
+            },
+            "rotation": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "scale": {
+                "x": 180.0,
+                "y": 180.0,
+                "z": 1.0
+            },
+            "components": {
+                "6766054303456732338": {
+                    "_active": true,
+                    "layer": 0
+                },
+                "7205334411763290517": {
+                    "_active": true,
+                    "name": "Heavy Attack Button"
+                },
+                "9315785795257285655": {
+                    "_active": true,
+                    "uid": 4938369614747465090
+                },
+                "13050946774019011867": {
+                    "_active": true,
+                    "type": 2,
+                    "primitive": {
+                        "texture": {
+                            "hash": 713603937157215345
+                        },
+                        "uvMin": {
+                            "x": 0.0,
+                            "y": 0.0
+                        },
+                        "uvMax": {
+                            "x": 1.0,
+                            "y": 1.0
+                        }
+                    },
+                    "color": {
+                        "x": 1.0,
+                        "y": 1.0,
+                        "z": 1.0,
+                        "w": 1.0
+                    }
+                },
+                "13828584133079072524": {
+                    "_active": true,
+                    "hasPrimitive": false
+                },
+                "15400580746116341700": {
+                    "_active": true
+                }
+            }
+        },
+        {
+            "parentIndex": -1,
+            "position": {
+                "x": 1750.0,
+                "y": 645.0,
+                "z": 0.0
+            },
+            "rotation": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "scale": {
+                "x": 160.0,
+                "y": 160.0,
+                "z": 1.0
+            },
+            "components": {
+                "6766054303456732338": {
+                    "_active": true,
+                    "layer": 0
+                },
+                "7205334411763290517": {
+                    "_active": true,
+                    "name": "Skill Button"
+                },
+                "9315785795257285655": {
+                    "_active": true,
+                    "uid": 4947705567979084492
+                },
+                "13050946774019011867": {
+                    "_active": true,
+                    "type": 2,
+                    "primitive": {
+                        "texture": {
+                            "hash": 728550698225307999
+                        },
+                        "uvMin": {
+                            "x": 0.0,
+                            "y": 0.0
+                        },
+                        "uvMax": {
+                            "x": 1.0,
+                            "y": 1.0
+                        }
+                    },
+                    "color": {
+                        "x": 1.0,
+                        "y": 1.0,
+                        "z": 1.0,
+                        "w": 1.0
+                    }
+                },
+                "13828584133079072524": {
+                    "_active": true,
+                    "hasPrimitive": false
+                },
+                "15400580746116341700": {
+                    "_active": true
+                }
+            }
+        },
+        {
+            "parentIndex": -1,
+            "position": {
+                "x": 1750.0,
+                "y": 415.0,
+                "z": 0.0
+            },
+            "rotation": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "scale": {
+                "x": 160.0,
+                "y": 160.0,
+                "z": 1.0
+            },
+            "components": {
+                "6766054303456732338": {
+                    "_active": true,
+                    "layer": 0
+                },
+                "7205334411763290517": {
+                    "_active": true,
+                    "name": "Parry Button"
+                },
+                "9315785795257285655": {
+                    "_active": true,
+                    "uid": 4958212501094250995
+                },
+                "13050946774019011867": {
+                    "_active": true,
+                    "type": 2,
+                    "primitive": {
+                        "texture": {
+                            "hash": 716862889622043979
+                        },
+                        "uvMin": {
+                            "x": 0.0,
+                            "y": 0.0
+                        },
+                        "uvMax": {
+                            "x": 1.0,
+                            "y": 1.0
+                        }
+                    },
+                    "color": {
+                        "x": 1.0,
+                        "y": 1.0,
+                        "z": 1.0,
+                        "w": 1.0
+                    }
+                },
+                "13828584133079072524": {
+                    "_active": true,
+                    "hasPrimitive": false
+                },
+                "15400580746116341700": {
+                    "_active": true
+                },
+                "18288371625365795113": {
+                    "_active": true,
+                    "scripts": [
+                        {
+                            "scriptName": "game_button_parry.lua"
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "parentIndex": -1,
+            "position": {
+                "x": 1625.0,
+                "y": 850.0,
+                "z": 0.0
+            },
+            "rotation": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "scale": {
+                "x": 340.0,
+                "y": 340.0,
+                "z": 1.0
+            },
+            "components": {
+                "6766054303456732338": {
+                    "_active": true,
+                    "layer": 0
+                },
+                "7205334411763290517": {
+                    "_active": true,
+                    "name": "Attack Button"
+                },
+                "9315785795257285655": {
+                    "_active": true,
+                    "uid": 8425556504139418506
+                },
+                "13050946774019011867": {
+                    "_active": true,
+                    "type": 2,
+                    "primitive": {
+                        "texture": {
+                            "hash": 122919902436536857
+                        },
+                        "uvMin": {
+                            "x": 0.0,
+                            "y": 0.0
+                        },
+                        "uvMax": {
+                            "x": 1.0,
+                            "y": 1.0
+                        }
+                    },
+                    "color": {
+                        "x": 1.0,
+                        "y": 1.0,
+                        "z": 1.0,
+                        "w": 1.0
+                    }
+                },
+                "13828584133079072524": {
+                    "_active": true,
+                    "hasPrimitive": false
+                },
+                "15400580746116341700": {
+                    "_active": true
+                },
+                "18288371625365795113": {
+                    "_active": true,
+                    "scripts": [
+                        {
+                            "scriptName": "game_button_attack.lua"
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "parentIndex": -1,
+            "position": {
+                "x": 230.0,
+                "y": 850.0,
+                "z": 0.0
+            },
+            "rotation": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "scale": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0
+            },
+            "components": {
+                "6766054303456732338": {
+                    "_active": true,
+                    "layer": 0
+                },
+                "7205334411763290517": {
+                    "_active": true,
+                    "name": "AndroidJoyStickOuter"
+                },
+                "9315785795257285655": {
+                    "_active": true,
+                    "uid": 12634333083638227788
+                },
+                "13050946774019011867": {
+                    "_active": true,
+                    "type": 0,
+                    "primitive": {
+                        "radius": 120.0,
+                        "numSegments": 28
+                    },
+                    "color": {
+                        "x": 0.9686274528503418,
+                        "y": 0.9686274528503418,
+                        "z": 0.9686274528503418,
+                        "w": 0.47058823704719543
+                    }
+                },
+                "15400580746116341700": {
+                    "_active": true
+                }
+            }
+        },
+        {
+            "parentIndex": -1,
+            "position": {
+                "x": 230.0,
+                "y": 850.0,
+                "z": 0.0
+            },
+            "rotation": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "scale": {
+                "x": 0.009999999776482582,
+                "y": 0.009999999776482582,
+                "z": 1.0
+            },
+            "components": {
+                "5352011725353660904": {
+                    "_active": true,
+                    "meshHandle": {
+                        "hash": 165955887379318537
+                    },
+                    "materials": [
+                        {
+                            "hash": 161694180310058757
+                        }
+                    ],
+                    "castShadowOverride": -1
+                },
+                "5725819782531291880": {
+                    "_active": true,
+                    "behaviorTree": {
+                        "btName": "testm2androidmove"
+                    }
+                },
+                "6766054303456732338": {
+                    "_active": true,
+                    "layer": 0
+                },
+                "7205334411763290517": {
+                    "_active": true,
+                    "name": "AndroidJoyStick"
+                },
+                "9315785795257285655": {
+                    "_active": true,
+                    "uid": 12646211107753341379
+                },
+                "13050946774019011867": {
+                    "_active": true,
+                    "type": 0,
+                    "primitive": {
+                        "radius": 90.0,
+                        "numSegments": 24
+                    },
+                    "color": {
+                        "x": 1.0,
+                        "y": 1.0,
+                        "z": 1.0,
+                        "w": 1.0
+                    }
+                },
+                "15400580746116341700": {
+                    "_active": true
+                },
+                "16331509531237472119": {
+                    "_active": true,
+                    "entOuterAndroidJoystick": {
+                        "entityUid": 0
+                    }
+                }
+            }
+        }
+    ]
+}

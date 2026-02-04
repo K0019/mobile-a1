@@ -216,6 +216,7 @@ private:
   void ExecuteDeferredLighting(internal::ExecutionContext& ctx);
   void ExecuteWBOITAccumulation(internal::ExecutionContext& ctx);
   void ExecuteWBOITResolve(internal::ExecutionContext& ctx);
+  void ExecuteTransparentPicking(internal::ExecutionContext& ctx);
   void ExecuteSkyboxPass(internal::ExecutionContext& ctx);
   void ProcessPendingPick(internal::ExecutionContext& ctx);
 
@@ -294,6 +295,8 @@ private:
   gfx::Holder<gfx::Pipeline> m_wboitAccumPipeline;        // Accumulation pass pipeline (static meshes)
   gfx::Holder<gfx::Pipeline> m_wboitAccumSkinnedPipeline; // Accumulation pass pipeline (skinned meshes)
   gfx::Holder<gfx::Pipeline> m_wboitResolvePipeline;      // Resolve pass pipeline
+  gfx::Holder<gfx::Pipeline> m_wboitPickPipeline;         // Visibility picking pass pipeline (static meshes)
+  gfx::Holder<gfx::Pipeline> m_wboitPickSkinnedPipeline;  // Visibility picking pass pipeline (skinned meshes)
   gfx::Holder<gfx::BindGroupLayout> m_wboitFrameLayout;   // Set 0: Frame UBO with camera pos
   gfx::Holder<gfx::BindGroupLayout> m_wboitResolveLayout; // Set 0: Accumulation texture
   gfx::Holder<gfx::Sampler> m_wboitSampler;           // Linear sampler for resolve
@@ -303,6 +306,18 @@ private:
   gfx::BindGroup m_wboitResolveBindGroup = {};        // Set 0 for resolve pass
   bool m_wboitPipelinesCreated = false;
   gfx::Texture m_lastWboitAccum = {};                 // Track for rebind
+
+  // Per-draw offsets stored during WBOIT accumulation for reuse in TransparentPicking
+  struct WBOITDrawOffsets {
+    uint32_t transformOffset;
+    uint32_t boneOffset;
+  };
+  std::vector<WBOITDrawOffsets> m_wboitDrawOffsets;
+
+  // Ring buffer overflow tracking (warns once per frame)
+  bool m_transformOverflowWarned = false;
+  bool m_boneOverflowWarned = false;
+  uint32_t m_droppedDrawsThisFrame = 0;
 
   // ========================================================================
   // Object Picking Resources

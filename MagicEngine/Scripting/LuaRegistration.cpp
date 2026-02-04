@@ -176,6 +176,7 @@ void SetMovementVectorLua(const Vec2 v) { GetHandle()->SetMovementVector(v); }
 void DropItem() { GetHandle()->DropItem(); }
 void Throw(const Vec3 dir) { GetHandle()->Throw(dir); }
 void Attack() { GetHandle()->LightAttack(); }
+void Parry() { GetHandle()->Parry(); }
 SCRIPT_GENERATE_COMP_WRAPPER_END()
 
 // PlayerMovementComponent
@@ -667,6 +668,7 @@ void RegisterCppStuffToLua(luabridge::Namespace baseTable)
 			.addFunction("ThrowItem", Lua_SimpleQueueEventNextFrame<Events::GameActionThrowItem>)
 			.addFunction("LightAttack", Lua_SimpleQueueEventNextFrame<Events::GameActionLightAttack>)
 			.addFunction("HeavyAttack", Lua_SimpleQueueEventNextFrame<Events::GameActionHeavyAttack>)
+			.addFunction("Parry", Lua_SimpleQueueEventNextFrame<Events::GameActionParry>)
 			.addFunction("Dodge", Lua_SimpleQueueEventNextFrame<Events::GameActionDodge>)
 		.endNamespace()
 

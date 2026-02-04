@@ -213,8 +213,25 @@ bool AssetImporters::ImportMaterial(const std::string& relativeFilepath)
         }
     }
 
-    // Create material handle
     auto& graphicsAssetSystem{ ST<GraphicsMain>::Get()->GetAssetSystem() };
+
+    // Check if this material file was already imported (re-import case)
+    // If so, update the existing material in place to preserve handle identity
+    const auto* existingFileEntry = ST<AssetManager>::Get()->INTERNAL_GetFilepathsManager().GetFileEntry(relativeFilepath);
+    if (existingFileEntry && !existingFileEntry->associatedResources.empty() && !existingFileEntry->associatedResources[0].hashes.empty())
+    {
+        size_t resourceHash = existingFileEntry->associatedResources[0].hashes[0];
+        auto* existingResource = ST<AssetManager>::Get()->INTERNAL_GetContainer<ResourceMaterial>().INTERNAL_GetResource(resourceHash, false);
+        if (existingResource && existingResource->handle.isValid())
+        {
+            // Re-import: update existing material in place (preserves handle identity)
+            graphicsAssetSystem.updateMaterial(existingResource->handle, material);
+            CONSOLE_LOG(LEVEL_INFO) << "Updated existing material: " << relativeFilepath;
+            return true;
+        }
+    }
+
+    // Fresh import: create new material
     MaterialHandle materialHandle{ graphicsAssetSystem.createMaterial(material) };
 
     // Create resource entry
@@ -223,6 +240,7 @@ bool AssetImporters::ImportMaterial(const std::string& relativeFilepath)
     // Assign resource to material handle
     ST<AssetManager>::Get()->INTERNAL_GetContainer<ResourceMaterial>().INTERNAL_GetResource(fileEntry->associatedResources[0].hashes[0], true)->handle = materialHandle;
 
+    CONSOLE_LOG(LEVEL_INFO) << "Imported new material: " << relativeFilepath;
     return true;
 }
 

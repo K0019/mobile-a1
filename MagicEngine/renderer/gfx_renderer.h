@@ -304,6 +304,13 @@ public:
     // Window ready state (after minimum frames rendered)
     bool isWindowReadyForShow() const { return m_windowReadyForShow; }
 
+    // Fixed internal resolution mode - controls VIEW_OUTPUT sizing behavior
+    // When true: VIEW_OUTPUT stays at fixed 1920x1080, ExecuteFinalBlit letterboxes to swapchain
+    // When false: VIEW_OUTPUT resizes with window, ExecuteFinalBlit does straight copy
+    // Default is true (game mode). Editor should set this to false for crisp UI.
+    void setUseFixedInternalResolution(bool use);
+    bool getUseFixedInternalResolution() const { return m_useFixedInternalResolution; }
+
     // Tone mapping settings
     const ToneMappingSettings& GetToneMappingSettings() const;
     void UpdateToneMappingSettings(const ToneMappingSettings& newSettings);
@@ -511,6 +518,10 @@ private:
     std::array<ViewOutput, static_cast<size_t>(ViewId::Count)> m_viewOutputs;
     ViewId m_activeViewId = ViewId::Scene;  // Which view is currently being rendered
     uint64_t m_featureMask = ~0ULL;         // All features enabled by default
+
+    // When true, VIEW_OUTPUT stays at fixed internal resolution (1920x1080) and
+    // ExecuteFinalBlit applies letterboxing. When false, VIEW_OUTPUT matches window size.
+    bool m_useFixedInternalResolution = true;
 
     // CPU systems
     CPUCuller m_culler;

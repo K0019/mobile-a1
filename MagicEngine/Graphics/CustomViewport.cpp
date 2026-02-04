@@ -177,7 +177,9 @@ void CustomViewport::DrawWindow()
 		// - Gizmo is currently being used (shouldn't happen on release frame, but safety check)
 		// - Gizmo was being used last frame (user just released after dragging)
 		// - Gizmo is being hovered (user clicked on gizmo)
-		bool blockPicking = gizmoInUse || wasUsingGizmo || gizmoHovered;
+		// - ImGui wants to capture the mouse (popup/window on top of viewport)
+		bool imguiWantsMouse = ImGui::GetIO().WantCaptureMouse && !ImGui::IsWindowHovered(ImGuiHoveredFlags_AllowWhenBlockedByPopup);
+		bool blockPicking = gizmoInUse || wasUsingGizmo || gizmoHovered || imguiWantsMouse;
 
 		if (leftClickJustPressed && !Input::GetMouseButton(MouseButton::Right) && !blockPicking)
 		{

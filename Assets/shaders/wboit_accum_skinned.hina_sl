@@ -1,98 +1,28 @@
-// WBOIT Accumulation Shader - Skinned meshes (skeletal animation)
-// Same as wboit_accum.hina_sl but with skinning support
-// Set 0: Frame UBO, Set 1: Material, Set 2: Dynamic transform + Bones, Set 3: Lights
-#hina
-group Frame = 0;
-group Material = 1;
-group Dynamic = 2;
-group Lights = 3;
+// WBOIT Accumulation Shader - Skinned meshes
+// Forward shading for transparent objects with skeletal animation
+#include "wboit_common.glsl"
 
-bindings(Frame, start=0) {
-  uniform(std140) FrameUBO {
-    mat4 viewProj;
-    vec4 cameraPos;  // xyz = camera position, w = unused
-  } frame;
-}
-
-// Material bind group: binding 0 = packed constants, bindings 1-5 = textures
-bindings(Material, start=0) {
-  uniform(std140) MaterialConstants {
-    uvec4 packed;  // [0]: baseColor.rg (half2), [1]: baseColor.ba (half2), [2]: roughness,metallic (half2), [3]: emissive,alphaCutoff (half2)
-  } material;
-  texture sampler2D u_albedo;
-  texture sampler2D u_normal;
-  texture sampler2D u_metallicRoughness;
-  texture sampler2D u_emissive;
-  texture sampler2D u_occlusion;
-}
-
-// Dynamic bind group: per-draw transform + bone matrices (must match gbuffer layout)
-bindings(Dynamic, start=0) {
-  uniform(std140) TransformUBO {
-    mat4 model;
-    uint objectId;  // For object picking (unused in WBOIT but needed for layout compatibility)
-    uint flags;     // Bit 0: negative determinant (for mirrored transforms)
-    uint _pad1;
-    uint _pad2;
-  } transform;
-  uniform(std140) BoneMatricesUBO {
-    mat4 bones[256];
-  } skin;
-}
-
-// Adjoint matrix helper - computes the transpose of the cofactor matrix
-// Correctly transforms normals for ANY determinant (including negative/mirrored)
-// Faster than transpose(inverse()) - just 3 cross products
-snippet MathUtils {
-    mat3 adjoint(mat4 m) {
-        return mat3(
-            cross(m[1].xyz, m[2].xyz),
-            cross(m[2].xyz, m[0].xyz),
-            cross(m[0].xyz, m[1].xyz)
-        );
-    }
-}
-
-// Light UBO - each light is 4 vec4s (same as composite shader)
-bindings(Lights, start=0) {
-  uniform(std140) LightUBO {
-    vec4 ambientColor;
-    vec4 cameraPos;      // xyz = camera position, w = unused
-    mat4 invViewProj;
-    ivec4 lightCounts;   // x = numLights, yzw = unused
-    vec4 lights[128];    // 32 lights * 4 vec4s each
-  } ubo;
-}
-
-// Skinned vertex layout (same as gbuffer_skinned)
+// =============================================================================
+// Vertex Input - Skinned mesh (same as gbuffer_skinned)
+// =============================================================================
 struct VertexIn {
-  vec3 a_position;    // location 0, buffer 0: position
-  uint a_normalX;     // location 1, buffer 1: lower 16 bits = SNORM16 |nx| * nz_sign
-  uint a_packed;      // location 2, buffer 1: RGB10A2 [ny, tx, ty, (nx_sign<<1)|handedness]
-  uint a_uv;          // location 3, buffer 1: RG16_UNORM UV
-  uvec4 a_boneIndices; // location 4, buffer 2: R8G8B8A8_UINT bone indices
-  vec4 a_boneWeights;  // location 5, buffer 2: R8G8B8A8_UNORM bone weights
+  vec3 a_position;
+  uint a_normalX;
+  uint a_packed;
+  uint a_uv;
+  uvec4 a_boneIndices;
+  vec4 a_boneWeights;
 };
 
-struct Varyings {
-  vec3 worldPos;
-  vec3 normal;
-  vec3 tangent;
-  float bitangentSign;
-  vec2 uv;
-};
-
-// WBOIT outputs: accumulation (RGBA16F) only
 struct FragOut {
-  vec4 accumulation;  // location 0: premultiplied color * weight, alpha * weight
+  vec4 accumulation;
 };
-#hina_end
 
-#hina_stage vertex entry VSMain use MathUtils
+#hina_stage vertex entry VSMain use MathUtils, VertexDecode
 Varyings VSMain(VertexIn in) {
     Varyings out;
 
-    // Apply bone skinning to local position
+    // Apply bone skinning
     mat4 skinMatrix =
         skin.bones[in.a_boneIndices.x] * in.a_boneWeights.x +
         skin.bones[in.a_boneIndices.y] * in.a_boneWeights.y +
@@ -100,41 +30,21 @@ Varyings VSMain(VertexIn in) {
         skin.bones[in.a_boneIndices.w] * in.a_boneWeights.w;
 
     vec3 skinnedPosition = (skinMatrix * vec4(in.a_position, 1.0)).xyz;
-    // Use adjoint for skinning normals - correctly handles non-uniform bone scale
     mat3 skinNormalMatrix = adjoint(skinMatrix);
 
-    // Transform skinned position to world space
     vec4 worldPos = transform.model * vec4(skinnedPosition, 1.0);
     out.worldPos = worldPos.xyz;
 
-    // Decode normal (same as gbuffer_skinned shader)
-    int normal_x_snorm = int(in.a_normalX & 0xFFFFu);
-    if (normal_x_snorm > 32767) normal_x_snorm -= 65536;
-    float normal_x_float = float(normal_x_snorm) / 32767.0;
+    // Decode compressed vertex attributes
+    vec3 localNormal, localTangent;
+    float handedness;
+    decodeNormalTangent(in.a_normalX, in.a_packed, localNormal, localTangent, handedness);
 
-    float nx_magnitude = abs(normal_x_float);
-    float nz_sign = normal_x_float < 0.0 ? -1.0 : 1.0;
-
-    float ny = float(in.a_packed & 0x3FFu) / 1023.0 * 2.0 - 1.0;
-    float tx = float((in.a_packed >> 10u) & 0x3FFu) / 1023.0 * 2.0 - 1.0;
-    float ty = float((in.a_packed >> 20u) & 0x3FFu) / 1023.0 * 2.0 - 1.0;
-    uint alpha = (in.a_packed >> 30u) & 0x3u;
-
-    float nx_sign = ((alpha >> 1u) & 1u) != 0u ? -1.0 : 1.0;
-    float handedness = (alpha & 1u) != 0u ? -1.0 : 1.0;
-
-    float nx = nx_magnitude * nx_sign;
-    float nz = sqrt(max(0.001, 1.0 - nx * nx - ny * ny)) * nz_sign;
-    vec3 localNormal = normalize(vec3(nx, ny, nz));
-
-    float tz = sqrt(max(0.001, 1.0 - tx * tx - ty * ty));
-    vec3 localTangent = normalize(vec3(tx, ty, tz));
-
-    // Apply skinning to normal and tangent using adjoint matrix
+    // Apply skinning to normal and tangent
     vec3 skinnedNormal = normalize(skinNormalMatrix * localNormal);
     vec3 skinnedTangent = normalize(mat3(skinMatrix) * localTangent);
 
-    // Transform to world space - use adjoint for normals, regular matrix for tangents
+    // Transform to world space
     mat3 normalMatrix = adjoint(transform.model);
     mat3 modelMatrix3 = mat3(transform.model);
     out.normal = normalize(normalMatrix * skinnedNormal);
@@ -148,107 +58,16 @@ Varyings VSMain(VertexIn in) {
 }
 #hina_end
 
-#hina_stage fragment entry FSMain
+#hina_stage fragment entry FSMain use MaterialUnpack, NormalMapping, ForwardLighting, WBOITWeight, WBOITFragment
 FragOut FSMain(Varyings in) {
     FragOut out;
 
-    // Unpack base color from material constants
-    vec2 rg = unpackHalf2x16(material.packed.x);
-    vec2 ba = unpackHalf2x16(material.packed.y);
-    vec4 baseColor = vec4(rg.x, rg.y, ba.x, ba.y);
+    // Compute world-space normal with normal mapping
+    vec3 N = applyNormalMap(normalize(in.normal), normalize(in.tangent),
+                            in.bitangentSign, in.uv, u_normal);
 
-    // Sample albedo texture
-    vec4 albedo = texture(u_albedo, in.uv) * baseColor;
-    float alpha = albedo.a;
-
-    // Early out for fully opaque fragments (shouldn't happen for transparent objects)
-    if (alpha >= 0.99) {
-        out.accumulation = vec4(albedo.rgb, 1.0);
-        return out;
-    }
-
-    // Build TBN for normal mapping
-    vec3 N = normalize(in.normal);
-    vec3 T = normalize(in.tangent);
-    vec3 B = normalize(cross(N, T) * in.bitangentSign);
-
-    vec3 normalSample = texture(u_normal, in.uv).rgb;
-    bool hasNormalMap = abs(normalSample.x - 0.5) > 0.01 || abs(normalSample.y - 0.5) > 0.01;
-
-    if (hasNormalMap) {
-        mat3 TBN = mat3(T, B, N);
-        vec2 normalRG = normalSample.xy * 2.0 - 1.0;
-        float nz = sqrt(max(0.0, 1.0 - dot(normalRG, normalRG)));
-        vec3 normalMap = normalize(vec3(normalRG, nz));
-        N = normalize(TBN * normalMap);
-    }
-    // Normal now consistent with gbuffer (no negation needed after adjoint fix)
-
-    // Material properties
-    vec2 mr = texture(u_metallicRoughness, in.uv).bg;
-    float roughness = mr.y;
-    float specPower = mix(8.0, 128.0, 1.0 - roughness);
-
-    // Lighting calculation (forward shading)
-    vec3 viewDir = normalize(ubo.cameraPos.xyz - in.worldPos);
-    vec3 totalDiffuse = vec3(0.0);
-    vec3 totalSpecular = vec3(0.0);
-
-    int numLights = ubo.lightCounts.x;
-    for (int i = 0; i < numLights && i < 32; ++i) {
-        int base = i * 4;
-        vec4 data0 = ubo.lights[base + 0];
-        vec4 data1 = ubo.lights[base + 1];
-        vec4 data2 = ubo.lights[base + 2];
-
-        int lightType = int(data0.x);
-        vec3 lightPos = data0.yzw;
-        vec3 lightDir = data1.xyz;
-        float intensity = data1.w;
-        vec3 lightColor = data2.rgb;
-        float radius = data2.a;
-
-        vec3 L;
-        float attenuation = 1.0;
-
-        if (lightType == 0) {
-            L = -normalize(lightDir);
-        } else {
-            vec3 toLight = lightPos - in.worldPos;
-            float dist = length(toLight);
-            L = toLight / max(dist, 0.001);
-
-            if (radius > 0.0) {
-                attenuation = 1.0 - smoothstep(0.0, radius, dist);
-                attenuation *= attenuation;
-            } else {
-                attenuation = 1.0 / (1.0 + dist * dist * 0.01);
-            }
-        }
-
-        float NdotL = max(dot(N, L), 0.0);
-        totalDiffuse += lightColor * NdotL * intensity * attenuation;
-
-        vec3 halfVec = normalize(L + viewDir);
-        float NdotH = max(dot(N, halfVec), 0.0);
-        float spec = pow(NdotH, specPower) * (1.0 - roughness) * 0.5;
-        totalSpecular += lightColor * spec * intensity * attenuation;
-    }
-
-    // Final lit color
-    vec3 ambient = ubo.ambientColor.rgb;
-    vec3 litColor = albedo.rgb * (ambient + totalDiffuse) + totalSpecular;
-
-    // WBOIT weight function
-    float z = gl_FragCoord.z;
-    float weight = clamp(
-        pow(min(1.0, alpha * 10.0) + 0.01, 3.0) * 1e8 *
-        pow(1.0 - z * 0.9, 3.0),
-        1e-2, 3e3
-    );
-
-    // Output weighted accumulation
-    out.accumulation = vec4(litColor * alpha * weight, alpha * weight);
+    // Write WBOIT output
+    writeWBOIT(in.worldPos, N, in.uv, out.accumulation);
 
     return out;
 }

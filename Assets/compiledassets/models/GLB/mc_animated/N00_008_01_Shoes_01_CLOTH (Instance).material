@@ -1,6 +1,6 @@
 {
     "name": "N00_008_01_Shoes_01_CLOTH (Instance)",
-    "alphaMode": "Blend",
+    "alphaMode": "Opaque",
     "alphaCutoff": 0.5,
     "metallicFactor": 0.0,
     "roughnessFactor": 0.5,
@@ -20,7 +20,11 @@
     "textures": [
         {
             "key": "baseColor",
-            "value": "CompiledAssets\\models\\GLB\\mc_animated\\_15.ktx2"
+            "value": "compiledassets/models/glb/mc_animated/_15.ktx2"
+        },
+        {
+            "key": "emissive",
+            "value": "compiledassets/models/glb/mc_animated/shader_noneblack.ktx2"
         },
         {
             "key": "metallicRoughness",
@@ -28,16 +32,12 @@
         },
         {
             "key": "normal",
-            "value": "CompiledAssets\\models\\GLB\\mc_animated\\Shader_NoneNormal.ktx2"
-        },
-        {
-            "key": "emissive",
-            "value": "CompiledAssets\\models\\GLB\\mc_animated\\Shader_NoneBlack.ktx2"
+            "value": "compiledassets/models/glb/mc_animated/shader_nonenormal.ktx2"
         },
         {
             "key": "occlusion",
             "value": ""
         }
     ],
-    "flags": 4
+    "flags": 60
 }

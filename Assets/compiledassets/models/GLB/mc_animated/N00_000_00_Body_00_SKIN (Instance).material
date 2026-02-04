@@ -20,7 +20,11 @@
     "textures": [
         {
             "key": "baseColor",
-            "value": "CompiledAssets\\models\\GLB\\mc_animated\\_10.ktx2"
+            "value": "compiledassets/models/glb/mc_animated/_10.ktx2"
+        },
+        {
+            "key": "emissive",
+            "value": "compiledassets/models/glb/mc_animated/shader_noneblack.ktx2"
         },
         {
             "key": "metallicRoughness",
@@ -28,16 +32,12 @@
         },
         {
             "key": "normal",
-            "value": "CompiledAssets\\models\\GLB\\mc_animated\\_11.ktx2"
-        },
-        {
-            "key": "emissive",
-            "value": "CompiledAssets\\models\\GLB\\mc_animated\\Shader_NoneBlack.ktx2"
+            "value": "compiledassets/models/glb/mc_animated/_11.ktx2"
         },
         {
             "key": "occlusion",
             "value": ""
         }
     ],
-    "flags": 0
+    "flags": 48
 }

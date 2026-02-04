@@ -41,6 +41,12 @@ namespace ui
   void ImmediateGui::setViewport(float width, float height)
   {
     frameClipRect_ = vec4(0.0f, 0.0f, width, height);
+    // Store viewport dimensions in params for the render feature
+    if (params_)
+    {
+      params_->viewportWidth = width;
+      params_->viewportHeight = height;
+    }
   }
 
   void ImmediateGui::setClipRect(const vec4& clipRect)

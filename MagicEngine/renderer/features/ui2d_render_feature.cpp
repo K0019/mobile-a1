@@ -210,10 +210,16 @@ void Ui2DRenderFeature::RenderUi(const internal::ExecutionContext& context)
   HinaContext* hinaCtx = context.GetHinaContext();
   GfxRenderer* gfxRenderer = context.GetGfxRenderer();
 
+  // Framebuffer dimensions (SCENE_COLOR is always internal resolution)
   gfx::Texture sceneColor = context.GetTexture(RenderResources::SCENE_COLOR);
   gfx::Dimensions dims = hinaCtx->getDimensions(sceneColor);
   const float fbWidth = static_cast<float>(dims.width);
   const float fbHeight = static_cast<float>(dims.height);
+
+  // UI viewport dimensions (dynamic based on window aspect ratio)
+  // Height matches framebuffer, width scales with aspect ratio
+  const float uiWidth = params.viewportWidth;
+  const float uiHeight = params.viewportHeight;
 
   cmd.setViewport({.x = 0.0f, .y = 0.0f, .width = fbWidth, .height = fbHeight});
   cmd.bindPipeline(pipeline_.get());
@@ -238,11 +244,13 @@ void Ui2DRenderFeature::RenderUi(const internal::ExecutionContext& context)
       return a->sortOrder < b->sortOrder;
     });
 
+  // Ortho projection uses UI viewport dimensions (dynamic based on aspect ratio)
+  // This ensures UI coordinates map correctly to NDC space
   struct Ui2DPushConstants
   {
     float LRTB[4];
   } pushData = {
-    .LRTB = {0.0f, fbWidth, 0.0f, fbHeight},
+    .LRTB = {0.0f, uiWidth, 0.0f, uiHeight},
   };
 
   for (const ui::PrimitiveDrawCommand* drawCmdPtr : sortedCommands)
@@ -281,10 +289,15 @@ void Ui2DRenderFeature::RenderUi(const internal::ExecutionContext& context)
 
     cmd.pushConstants(pushData);
 
-    const float clipMinX = std::clamp(drawCmd.clipRect.x, 0.0f, fbWidth);
-    const float clipMinY = std::clamp(drawCmd.clipRect.y, 0.0f, fbHeight);
-    const float clipMaxX = std::clamp(drawCmd.clipRect.z, 0.0f, fbWidth);
-    const float clipMaxY = std::clamp(drawCmd.clipRect.w, 0.0f, fbHeight);
+    // Clip rects are in UI coordinate space, convert to framebuffer pixel space
+    // Scale factor: framebuffer / UI viewport
+    const float scaleX = fbWidth / uiWidth;
+    const float scaleY = fbHeight / uiHeight;
+
+    const float clipMinX = std::clamp(drawCmd.clipRect.x * scaleX, 0.0f, fbWidth);
+    const float clipMinY = std::clamp(drawCmd.clipRect.y * scaleY, 0.0f, fbHeight);
+    const float clipMaxX = std::clamp(drawCmd.clipRect.z * scaleX, 0.0f, fbWidth);
+    const float clipMaxY = std::clamp(drawCmd.clipRect.w * scaleY, 0.0f, fbHeight);
     if (clipMaxX <= clipMinX || clipMaxY <= clipMinY) continue;
 
     cmd.setScissor({

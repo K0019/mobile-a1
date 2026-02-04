@@ -94,7 +94,11 @@
  * - **Frame Lifecycle**: `hina_frame_begin`, `hina_frame_end`, `hina_frame_submit`
  * - **Command Recording**: `hina_cmd_begin`, all `hina_cmd_*` functions
  * - **Resource Destruction**: `hina_destroy_buffer`, `hina_destroy_texture`, etc.
- *   (uses per-frame deferred destruction queues)
+ *   (uses deferred destruction: slot is invalidated immediately, but Vulkan object
+ *   destruction is deferred until in-flight GPU work completes. Callers must not
+ *   destroy resources that will be referenced by future descriptor updates or
+ *   command recordings. For resize workflows, create replacements first, then
+ *   destroy old resources after the frame completes.)
  * - **Immediate Submission**: `hina_submit_immediate`, `hina_wait_ticket`
  * - **Staging/Upload**: `hina_flush_uploads`, `hina_generate_mips`, `hina_download_texture`
  * - **Bind Groups**: `hina_create_bind_group`, `hina_destroy_bind_group`,
@@ -162,9 +166,7 @@ extern "C" {
 #include <stddef.h>
 #include <stdint.h>
 #include <string.h>
-// ===========================================================================
 //  Symbol Visibility
-// ===========================================================================
 #ifndef HINA_API
 #if defined(HINA_VK_SHARED_EXPORTS)
 #if defined(_WIN32)
@@ -184,9 +186,7 @@ extern "C" {
 #define HINA_API
 #endif
 #endif
-// ===========================================================================
 //  Configuration & Constants
-// ===========================================================================
 #define HINA_INVALID_HANDLE ((uint32_t)0)
 // Flag bit helper - makes bit positions explicit and auditable
 #define HINA_FLAG_BIT(n) (1u << (n))
@@ -209,9 +209,7 @@ extern "C" {
 #define HINA_STAGE_ALL_GRAPHICS (HINA_STAGE_VERTEX | HINA_STAGE_TESS_CONTROL | HINA_STAGE_TESS_EVAL | \
                                  HINA_STAGE_GEOMETRY | HINA_STAGE_FRAGMENT)
 #define HINA_STAGE_ALL (HINA_STAGE_ALL_GRAPHICS | HINA_STAGE_COMPUTE)
-// ===========================================================================
 //  Logging
-// ===========================================================================
 /**
  * @brief Log levels used by HinaVK and the shader module.
  */
@@ -222,9 +220,7 @@ typedef enum hina_log_level
   HINA_LOG_ERROR = 2
 } hina_log_level;
 
-// ===========================================================================
 //  Handle Definitions
-// ===========================================================================
 /**
  * @brief Opaque resource handles.
  * HinaVK uses 32-bit IDs/Handles instead of pointers for resources.
@@ -406,9 +402,7 @@ typedef struct hina_swapchain_image
   uint32_t sem_index; // Internal semaphore index for sync
 } hina_swapchain_image;
 
-// ===========================================================================
 //  Enums (Vulkan Abstractions)
-// ===========================================================================
 typedef enum
 {
   HINA_INDEX_UINT16 = 0,
@@ -675,9 +669,7 @@ typedef enum
   HINA_SAMPLE_COUNT_64_BIT = HINA_FLAG_BIT(6)
 } hina_sample_count;
 
-// ===========================================================================
 //  Initialization & Lifecycle
-// ===========================================================================
 // Logging & Allocator Callbacks
 typedef void (*hina_log_fn)(const char* msg);
 
@@ -804,9 +796,7 @@ HINA_API hina_context* hina_create_thread_context(void);
 
 HINA_API void hina_destroy_thread_context(hina_context* ctx);
 
-// ===========================================================================
 //  Platform & Window Management
-// ===========================================================================
 typedef struct hina_vulkan_handles
 {
   // 8-byte pointers
@@ -956,9 +946,7 @@ HINA_API bool hina_set_native_window(void* window, void* display);
  */
 HINA_API void hina_surface_lost(void);
 
-// ===========================================================================
 //  Frame Submission
-// ===========================================================================
 //
 // The frame is the submission builder. Record anywhere, submit on the main thread.
 //
@@ -1115,9 +1103,7 @@ HINA_API void hina_wait_ticket(hina_ticket ticket);
 
 HINA_API void hina_ctx_wait_ticket(hina_context* ctx, hina_ticket ticket);
 
-// ===========================================================================
 //  Swapchain & Presentation
-// ===========================================================================
 typedef enum
 {
   HINA_PRESENT_MODE_FIFO = 0, // Vsync, always available (default)
@@ -1263,9 +1249,7 @@ HINA_API bool hina_is_surface_lost(void);
  */
 HINA_API bool hina_recreate_surface(void* native_window, void* native_display);
 
-// ===========================================================================
 //  Frame Index Queries
-// ===========================================================================
 /**
  * @brief Get the current frame index (monotonically increasing).
  *
@@ -1288,9 +1272,7 @@ HINA_API uint64_t hina_get_frame_index(void);
  */
 HINA_API uint64_t hina_get_completed_frame_index(void);
 
-// ===========================================================================
 //  Buffers
-// ===========================================================================
 
 // Memory placement - where the buffer lives (enum, not combinable)
 typedef enum
@@ -1370,9 +1352,7 @@ HINA_API void hina_ctx_destroy_buffer(hina_context* ctx, hina_buffer buf);
 
 HINA_API hina_ticket hina_ctx_flush_staging(hina_context* ctx);
 
-// ===========================================================================
 //  Textures & Views
-// ===========================================================================
 typedef enum
 {
   HINA_TEX_TYPE_2D,
@@ -1560,9 +1540,7 @@ HINA_API void hina_ctx_download_texture_3d(hina_context* ctx, hina_texture src, 
  */
 HINA_API size_t hina_texture_mip_size(hina_texture tex, uint32_t mip);
 
-// ===========================================================================
 //  Samplers
-// ===========================================================================
 typedef enum
 {
   HINA_FILTER_NEAREST,
@@ -1618,9 +1596,7 @@ HINA_API void hina_destroy_sampler(hina_sampler samp);
 
 HINA_API void hina_ctx_destroy_sampler(hina_context* ctx, hina_sampler samp);
 
-// ===========================================================================
 //  Pass Layout
-// ===========================================================================
 // ---------------------------------------------------------------------------
 /**
  * @brief Create a pass layout from attachment formats.
@@ -1654,9 +1630,7 @@ HINA_API uint32_t hina_pass_layout_samples(hina_pass_layout layout);
  */
 HINA_API uint32_t hina_pass_layout_color_count(hina_pass_layout layout);
 
-// ===========================================================================
 //  Bind Groups (WebGPU-style descriptor management)
-// ===========================================================================
 //
 // Bind groups provide explicit, immutable descriptor sets following WebGPU conventions.
 // This is the recommended production API for resource binding.
@@ -2056,9 +2030,7 @@ HINA_API void hina_transient_write_input_attachment(hina_transient_bind_group* t
  */
 HINA_API void hina_cmd_bind_transient_group(hina_cmd* cmd, uint32_t set, hina_transient_bind_group tbg);
 
-// ===========================================================================
 //  HSL Compiler Module (hslc)
-// ===========================================================================
 //
 // The shader module is a standalone compilation library that can be used
 // independently of the Vulkan rendering module. It handles:
@@ -2255,8 +2227,7 @@ HINA_API void hina_destroy_hsl_cache(hina_hsl_cache* cache);
 /**
  * @brief Compile HSL source file into a reusable module.
  *
- * Compiles both descriptor-indexing and fallback SPIR-V variants,
- * and reflects all shader metadata for validation.
+ * Compiles HSL to SPIR-V and reflects shader metadata for validation.
  *
  * @param filepath Path to .hina_sl file
  * @param out_error Optional error message (free with hslc_free_log)
@@ -2409,6 +2380,33 @@ typedef struct hslc_compile_desc
   hslc_load_include_fn load_include_fn; // May be NULL for default file loading
   void* user_data; // User data for load_include_fn
 } hslc_compile_desc;
+
+/**
+ * @brief Module compilation descriptor for extended control.
+ *
+ * Use with hslc_compile_hsl_module_ex() when you need custom include loading
+ * (e.g., from asset archives, virtual filesystems, or memory).
+ */
+typedef struct hslc_hsl_module_desc
+{
+  const char* source;                   // HSL source code (required)
+  const char* source_name;              // Optional name for diagnostics (e.g., "shader.hina_sl"); NULL => "<inline>"
+  hslc_load_include_fn load_include_fn; // Custom include loader, or NULL for default file loading
+  void* user_data;                      // User data passed to load_include_fn
+} hslc_hsl_module_desc;
+
+/**
+ * @brief Compile HSL source with extended options.
+ *
+ * Unlike hslc_compile_hsl_source(), this function allows custom include loading
+ * for use cases where includes can't be resolved from the filesystem
+ * (virtual filesystems, asset archives, in-memory shaders).
+ *
+ * @param desc Module compilation descriptor
+ * @param out_error Optional error message (free with hslc_free_log)
+ * @return Module pointer on success, NULL on failure
+ */
+HINA_API hina_hsl_module* hslc_compile_hsl_module_ex(const hslc_hsl_module_desc* desc, char** out_error);
 
 /**
  * @brief Compiled shader output from hslc_compile.
@@ -2578,6 +2576,17 @@ typedef struct hina_depth_bias_state
   uint8_t pad_[3]; // 3B
 } hina_depth_bias_state;
 
+typedef struct hina_stencil_face_state
+{
+  hina_stencil_op fail_op;
+  hina_stencil_op pass_op;
+  hina_stencil_op depth_fail_op;
+  hina_compare_op compare_op;
+  uint32_t compare_mask;
+  uint32_t write_mask;
+  uint32_t reference;
+} hina_stencil_face_state;
+
 typedef struct hina_push_constant_range
 {
   uint8_t stage_flags;
@@ -2643,16 +2652,7 @@ typedef struct hina_pipeline_desc
   hina_polygon_mode polygon_mode;
   hina_cull_mode cull_mode;
   hina_front_face front_face;
-  struct
-  {
-    hina_stencil_op fail_op;
-    hina_stencil_op pass_op;
-    hina_stencil_op depth_fail_op;
-    hina_compare_op compare_op;
-    uint32_t compare_mask;
-    uint32_t write_mask;
-    uint32_t reference;
-  } stencil_front, stencil_back;
+  hina_stencil_face_state stencil_front, stencil_back;
 
   /**
    * Render target formats for dynamic rendering.
@@ -2681,7 +2681,7 @@ typedef struct hina_pipeline_desc
   uint32_t gs_specialization_count;
   const hina_specialization_constant* fs_specializations;
   uint32_t fs_specialization_count;
-  
+
   /**
    * Explicit bind group layouts (optional, production path).
    * Count derived from array - first invalid handle terminates (zero-init = use reflection).
@@ -2779,17 +2779,7 @@ typedef struct hina_hsl_pipeline_desc
   hina_polygon_mode polygon_mode;
   hina_cull_mode cull_mode;
   hina_front_face front_face;
-
-  struct
-  {
-    hina_stencil_op fail_op;
-    hina_stencil_op pass_op;
-    hina_stencil_op depth_fail_op;
-    hina_compare_op compare_op;
-    uint32_t compare_mask;
-    uint32_t write_mask;
-    uint32_t reference;
-  } stencil_front, stencil_back;
+  hina_stencil_face_state stencil_front, stencil_back;
 
   /**
    * Render target formats for dynamic rendering.
@@ -2887,9 +2877,7 @@ HINA_API bool hina_get_pipeline_cache_data(void** out_data, size_t* out_size);
 
 HINA_API void hina_free_pipeline_cache_data(void* data);
 
-// ===========================================================================
 //  Command Recording
-// ===========================================================================
 // Begin/End Recording (convenience - defaults to GRAPHICS queue)
 HINA_API hina_cmd* hina_cmd_begin(void);
 
@@ -3293,9 +3281,7 @@ HINA_API void hina_cmd_acquire_texture(hina_cmd* cmd, hina_texture tex, hina_que
 
 HINA_API void hina_cmd_acquire_buffer(hina_cmd* cmd, hina_buffer buf, hina_queue src_queue);
 
-// ===========================================================================
 //  Query Pools & Profiling
-// ===========================================================================
 typedef enum
 {
   HINA_QUERY_TYPE_OCCLUSION,
@@ -3328,9 +3314,7 @@ HINA_API bool hina_get_query_results(hina_query_pool pool, uint32_t first_query,
 
 double hina_timestamp_to_ns(uint64_t timestamp_delta);
 
-// ===========================================================================
 //  Diagnostics
-// ===========================================================================
 typedef struct hina_gpu_memory_stats
 {
   uint64_t total_bytes;
@@ -3344,9 +3328,7 @@ typedef struct hina_gpu_memory_stats
  */
 HINA_API bool hina_get_gpu_memory_stats(hina_gpu_memory_stats* out_stats);
 
-// ===========================================================================
 //  Debug Utilities
-// ===========================================================================
 // Note: Use the 'label' field in resource descriptors (hina_buffer_desc, hina_texture_desc,
 // hina_sampler_desc, hina_pipeline_desc) to set debug names at creation time.
 // Texture Query
