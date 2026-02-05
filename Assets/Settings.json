@@ -74,6 +74,21 @@
                         }
                     },
                     {
+                        "key": "Light Attack",
+                        "value": {
+                            "compositeType": 0,
+                            "bindings": [
+                                {
+                                    "hardwareLink": {
+                                        "deviceType": 0,
+                                        "readType": 0,
+                                        "keyIdentifier": 0
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    {
                         "key": "Look",
                         "value": {
                             "compositeType": 0,

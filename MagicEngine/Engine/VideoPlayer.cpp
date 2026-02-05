@@ -172,6 +172,41 @@ void VideoPlayerComponent::SetVideoFile(size_t assetHash)
     }
 }
 
+void VideoPlayerComponent::OnAttached()
+{
+    IUIComponent::OnAttached();
+    IGameComponentCallbacks::OnAttached();
+}
+
+void VideoPlayerComponent::OnStart()
+{
+    VideoManager* mgr = ST<VideoManager>::Get();
+    if (!mgr)
+    {
+        CONSOLE_LOG(LEVEL_ERROR) << "Video manager not available???";
+        return;
+    }
+
+    // Lazy decoder creation
+    if (GetVideoFile() != 0)
+    {
+        uint32_t handle = GetDecoderHandle();
+        if (handle == 0 || !mgr->IsValidHandle(handle))
+        {
+            handle = mgr->CreateDecoder(GetVideoFile());
+            SetDecoderHandle(handle);
+            if (handle != 0)
+                mgr->DecodeFirstFrame(handle);
+        }
+    }
+
+    if (GetAutoPlay())
+    {
+        Stop();
+        Play();
+    }
+}
+
 void VideoPlayerComponent::EditorDraw()
 {
 #ifdef IMGUI_ENABLED
@@ -974,46 +1009,17 @@ void VideoManager::ConvertPendingFrames(gfx::CommandBuffer& cmd)
 // VideoPlayerSystem (Thin ECS wrapper)
 // ============================================================================
 
-bool VideoPlayerSystem::PreRun()
+VideoPlayerSystem::VideoPlayerSystem()
+    : System_Internal{ &VideoPlayerSystem::UpdateComp }
+{
+}
+
+void VideoPlayerSystem::UpdateComp(VideoPlayerComponent& comp)
 {
     VideoManager* mgr = ST<VideoManager>::Get();
-    if (!mgr) return true;
+    if (!mgr)
+        return;
 
-    float dt = 1.0f / 60.0f;
-
-    GAMESTATE currentState = ST<GameSystemsManager>::Get()->GetState();
-    bool enteredGameMode = (currentState == GAMESTATE::IN_GAME && m_prevGameState != static_cast<int>(GAMESTATE::IN_GAME));
-    m_prevGameState = static_cast<int>(currentState);
-
-    for (auto it = ecs::GetCompsActiveBegin<VideoPlayerComponent>();
-         it != ecs::GetCompsEnd<VideoPlayerComponent>(); ++it)
-    {
-        VideoPlayerComponent& player = *it;
-
-        // Lazy decoder creation for loaded components
-        if (player.GetVideoFile() != 0)
-        {
-            uint32_t handle = player.GetDecoderHandle();
-            if (handle == 0 || !mgr->IsValidHandle(handle))
-            {
-                handle = mgr->CreateDecoder(player.GetVideoFile());
-                player.SetDecoderHandle(handle);
-                if (handle != 0)
-                    mgr->DecodeFirstFrame(handle);
-            }
-        }
-
-        // AutoPlay on game mode entry
-        if (enteredGameMode && player.GetAutoPlay())
-        {
-            player.Stop();
-            player.Play();
-        }
-
-        // Update playing components
-        if (player.IsPlaying() && !player.IsPaused())
-            mgr->UpdateComponent(player, dt);
-    }
-
-    return true;
+    if (comp.IsPlaying() && !comp.IsPaused())
+        mgr->UpdateComponent(comp, GameTime::Dt());
 }

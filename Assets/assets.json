@@ -3021,6 +3021,21 @@
             ]
         },
         {
+            "filepath": "videos/opening_cutscene.mp4",
+            "assetType": "Video",
+            "resources": [
+                {
+                    "resourceType": 5346129851170506652,
+                    "resourceEntries": [
+                        {
+                            "hash": 125735753437819627,
+                            "name": "opening_cutscene0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/models/glb/enemy_male_animated/_03.ktx2",
             "assetType": "Texture",
             "resources": [

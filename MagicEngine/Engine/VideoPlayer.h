@@ -16,6 +16,7 @@
 #include "ECS/IRegisteredComponent.h"
 #include "ECS/IEditorComponent.h"
 #include "UI/IUIComponent.h"
+#include "Game/IGameComponentCallbacks.h"
 #include "renderer/gfx_interface.h"
 #include <algorithm>
 #include <memory>
@@ -37,6 +38,7 @@ class VideoPlayerComponent
     : public IRegisteredComponent<VideoPlayerComponent>
     , public IEditorComponent<VideoPlayerComponent>
     , public IUIComponent<VideoPlayerComponent>
+    , public virtual IGameComponentCallbacks<VideoPlayerComponent>
 {
 public:
     VideoPlayerComponent();
@@ -82,6 +84,10 @@ public:
     void SetPlayingState(bool playing, bool paused) { m_isPlaying = playing; m_isPaused = paused; }
     float GetSeekTarget() const { return m_seekTarget; }
     void ClearSeekTarget() { m_seekTarget = -1.0f; }
+
+public:
+    void OnAttached() override;
+    void OnStart() override;
 
 private:
     virtual void EditorDraw() override;
@@ -178,12 +184,12 @@ private:
  *
  * Calls into VideoManager singleton for actual work.
  */
-class VideoPlayerSystem : public ecs::System<VideoPlayerSystem>
+class VideoPlayerSystem : public ecs::System<VideoPlayerSystem, VideoPlayerComponent>
 {
 public:
-    VideoPlayerSystem() = default;
-    bool PreRun() override;
+    VideoPlayerSystem();
 
 private:
-    int m_prevGameState = -1;  // Track previous game state for autoplay transition detection
+    void UpdateComp(VideoPlayerComponent& comp);
+
 };
