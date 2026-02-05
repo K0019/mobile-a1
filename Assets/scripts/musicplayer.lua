@@ -1,5 +1,6 @@
 local musicVolume = 0.2
 local ambienceVolume = 0.15
+local bossMusicVolume = 0.1
 
 local musicHandle
 local ambienceHandle
@@ -36,7 +37,7 @@ function update(entity)
     if switchingMusic then
         musicSwitchCountdown = musicSwitchCountdown - Magic.DeltaTime()
         if musicSwitchCountdown <= 0.0 then
-            musicHandle = Magic.AudioManager.PlaySoundWithVolume("cut&pastemenumusic", true, Magic.AudioType.BGM, musicVolume)
+            musicHandle = Magic.AudioManager.PlaySoundWithVolume("cut&pastemenumusic", true, Magic.AudioType.BGM, bossMusicVolume)
             switchedMusic = true
         end
     end
