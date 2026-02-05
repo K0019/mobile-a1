@@ -5,7 +5,7 @@ local bossMusicVolume = 0.1
 local musicHandle
 local ambienceHandle
 
-local musicSwitchCountdown = 3.0
+local musicSwitchCountdown = 0.0
 local switchingMusic = false
 local switchedMusic = false
 function start(entity)
