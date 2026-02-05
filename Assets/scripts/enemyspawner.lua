@@ -1,4 +1,6 @@
 local thisEntity
+local weaponList = {}
+local weaponListSize = 0
 
 EnemySpawner = {
     aliveEnemies = 0
@@ -20,6 +22,15 @@ function start(entity)
 end
 
 function proceed()
+    if weaponListSize > 0 then
+        for index, value in ipairs(weaponList) do
+            Magic.Log(Magic.LogLevel.info, index)
+            value:Destroy()
+        end
+    end
+    weaponList = {}
+    weaponListSize = 0
+
     local entityContainer = thisEntity:GetEntityReferenceHolderComponent()
 
     if entityContainer:Exists() then
@@ -98,6 +109,9 @@ function wavespawn()
             if charComp:Exists() then
                 EnemySpawner.aliveEnemies = EnemySpawner.aliveEnemies + 1;
                 Magic.Log(Magic.LogLevel.info, "Enemy spawned. Remaining = "..EnemySpawner.aliveEnemies)
+            else 
+                weaponListSize = weaponListSize + 1
+                weaponList[weaponListSize] = newEnemy
             end
 
             local selfref = newEnemy:GetEntityReferenceHolderComponent()
