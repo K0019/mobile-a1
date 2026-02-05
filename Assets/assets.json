@@ -12308,6 +12308,21 @@
             ]
         },
         {
+            "filepath": "soundgroups/femalethrow.sg",
+            "assetType": "AudioGroup",
+            "resources": [
+                {
+                    "resourceType": 16299459342782396896,
+                    "resourceEntries": [
+                        {
+                            "hash": 4251914819023484781,
+                            "name": "femalethrow0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/meshanimations/player_idle_mixamoplayer_weapon atk 2_mixamo.anim",
             "assetType": "Animation",
             "resources": [

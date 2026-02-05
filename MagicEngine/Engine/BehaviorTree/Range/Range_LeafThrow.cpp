@@ -2,6 +2,8 @@
 #include "Game/Character.h"
 #include "Game/EnemyCharacter.h"
 #include "Scripting/ScriptComponent.h"
+#include "Managers/AudioManager.h"
+
 void L_Range_Throw::OnInitialize()
 {
 	waitTimer = 1.f;
@@ -14,6 +16,8 @@ NODE_STATUS L_Range_Throw::OnUpdate(ecs::EntityHandle entity)
 		waitTimer -= GameTime::Dt();
 		if (waitTimer <= 0.f)
 		{
+			ST<AudioManager>::Get()->PlaySound3D("enemy female throwing 1", false, entity->GetTransform().GetWorldPosition(), AudioType::SFX, std::pair<float, float>{2.0f, 50.0f}, 0.6f);
+
 			std::vector<ecs::EntityHandle> enemyList{};
 			BehaviorTree::globalBlackBoard.GetValue("RangeEnemyList", enemyList);
 			if (enemyList.empty())

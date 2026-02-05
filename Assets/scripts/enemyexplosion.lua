@@ -16,6 +16,7 @@ end
 
 function start(entity)
     thisEntity = entity
+     Magic.AudioManager.PlaySoundWithVolume("explosion", false, Magic.AudioType.SFX, 0.6)
 end
 
 function update(entity)
