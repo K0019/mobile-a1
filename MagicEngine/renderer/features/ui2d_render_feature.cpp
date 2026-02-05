@@ -338,7 +338,8 @@ void Ui2DRenderFeature::RenderUi(const internal::ExecutionContext& context)
       }
 
       // Create quad vertices (4 vertices per video)
-      uint32_t baseVertex = static_cast<uint32_t>(videoVertices.size());
+      // baseVertex must account for UI vertices already in the buffer (indices are absolute)
+      uint32_t baseVertex = static_cast<uint32_t>(vertexCount + videoVertices.size());
       uint32_t white = 0xFFFFFFFF;
 
       videoVertices.push_back({minX, minY, 0.0f, 0.0f, white});  // top-left
