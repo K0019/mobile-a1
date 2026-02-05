@@ -61,7 +61,7 @@ NODE_STATUS L_Boss_Prefect_BookingSlips::OnUpdate([[maybe_unused]] ecs::EntityHa
                 spawnedSlip->GetTransform().SetWorldScale(Vec3{ 0.4f });
             });
 
-            ST<AudioManager>::Get()->PlaySound3D("boss throw " + std::to_string(currentBurstCount), false, entity->GetTransform().GetWorldPosition(), AudioType::END, std::pair<float, float>{2.0f, 50.0f}, 0.6f);
+            ST<AudioManager>::Get()->PlaySound3D("boss throw " + std::to_string(currentBurstCount), false, entity->GetTransform().GetWorldPosition(), AudioType::SFX, std::pair<float, float>{2.0f, 50.0f}, 0.6f);
 
             if (currentBurstCount >= burstCount)
                 return NODE_STATUS::SUCCESS;

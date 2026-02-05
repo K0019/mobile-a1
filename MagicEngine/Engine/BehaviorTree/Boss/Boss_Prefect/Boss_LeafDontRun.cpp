@@ -56,6 +56,7 @@ NODE_STATUS L_Boss_Prefect_DontRun::OnUpdate([[maybe_unused]] ecs::EntityHandle 
                 {
                     animComp->TransitionTo(5852846630766581163, 0.1f);
                     animComp->timeA = 0.0f;
+                    ST<AudioManager>::Get()->PlaySound3D("boss ground strike", false, entity->GetTransform().GetWorldPosition(), AudioType::SFX, std::pair<float, float>{2.0f, 50.0f}, 0.6f);
                 }
             }
         }

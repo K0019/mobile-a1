@@ -1,3 +1,4 @@
 function OnButtonClicked(entity)
-    Magic.LoadScene("scenes/ControlsMenu.scene");
+    Magic.AudioManager.PlaySoundWithVolume("ui button", false, Magic.AudioType.SFX, 0.6)
+    Magic.TransitionScene("scenes/ControlsMenu.scene");
 end

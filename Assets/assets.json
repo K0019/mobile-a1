@@ -2831,6 +2831,25 @@
             ]
         },
         {
+            "filepath": "compiledassets/main menu altogether.ktx2",
+            "assetType": "Texture",
+            "sourcePath": "images/menu/main/main menu altogether.png",
+            "sourceTimestamp": 134147803215825693,
+            "compiledTimestamp": 17703069953846022,
+            "formatVersion": 2,
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 109130928885556495,
+                            "name": "main menu altogether0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "sounds/sfx/mc/footsteps/outdoor/outdoor footsteps 4.wav",
             "assetType": "Audio",
             "resources": [
