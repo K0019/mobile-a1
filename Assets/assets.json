@@ -1937,6 +1937,25 @@
             ]
         },
         {
+            "filepath": "compiledassets/basic attack title.ktx2",
+            "assetType": "Texture",
+            "sourcePath": "images/menu/how to play/basic attack title.png",
+            "sourceTimestamp": 134147470655057105,
+            "compiledTimestamp": 17702737671639117,
+            "formatVersion": 2,
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 114845089070718961,
+                            "name": "basic attack title0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/models/glb/aji/player_idle_mixamo/n00_000_hair_00_hair__instance_.material",
             "assetType": "Material",
             "resources": [
@@ -5765,6 +5784,21 @@
                         {
                             "hash": 5652855361278745181,
                             "name": "_010"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/basic attack title_thumb.ktx2",
+            "assetType": "Texture",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 108195242745929703,
+                            "name": "basic attack title_thumb0"
                         }
                     ]
                 }
