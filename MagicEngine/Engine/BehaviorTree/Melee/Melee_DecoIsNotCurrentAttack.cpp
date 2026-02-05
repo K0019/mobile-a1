@@ -4,8 +4,8 @@
 
 void D_Melee_IsNotCurrentAttack::OnInitialize()
 {
-	runSpeed = 3.f;
-	walkSpeed = 0.4f;
+	runSpeed = 2.f;
+	walkSpeed = 0.2f;
 }
 
 NODE_STATUS D_Melee_IsNotCurrentAttack::OnUpdate(ecs::EntityHandle entity)

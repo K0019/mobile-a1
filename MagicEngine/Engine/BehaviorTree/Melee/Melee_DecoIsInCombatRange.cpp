@@ -4,7 +4,7 @@
 
 void D_Melee_IsInCombatRange::OnInitialize()
 {
-	runSpeed = 3.f;
+	runSpeed = 2.f;
 }
 
 NODE_STATUS D_Melee_IsInCombatRange::OnUpdate(ecs::EntityHandle entity)
