@@ -3,81 +3,8 @@
         {
             "parentIndex": -1,
             "position": {
-                "x": 1720.0,
-                "y": 690.0,
-                "z": 0.0
-            },
-            "rotation": {
-                "x": 0.0,
-                "y": 0.0,
-                "z": 0.0
-            },
-            "scale": {
-                "x": 180.0,
-                "y": 180.0,
-                "z": 1.0
-            },
-            "components": {
-                "6766054303456732338": {
-                    "_active": true,
-                    "layer": 0
-                },
-                "7205334411763290517": {
-                    "_active": true,
-                    "name": "Dodge Button"
-                },
-                "8200877348596784542": {
-                    "_active": true
-                },
-                "9315785795257285655": {
-                    "_active": true,
-                    "uid": 4225168098848621879
-                },
-                "13050946774019011867": {
-                    "_active": true,
-                    "type": 2,
-                    "primitive": {
-                        "texture": {
-                            "hash": 114013858251757931
-                        },
-                        "uvMin": {
-                            "x": 0.0,
-                            "y": 0.0
-                        },
-                        "uvMax": {
-                            "x": 1.0,
-                            "y": 1.0
-                        }
-                    },
-                    "color": {
-                        "x": 1.0,
-                        "y": 1.0,
-                        "z": 1.0,
-                        "w": 1.0
-                    }
-                },
-                "13828584133079072524": {
-                    "_active": true,
-                    "hasPrimitive": false
-                },
-                "15400580746116341700": {
-                    "_active": true
-                },
-                "18288371625365795113": {
-                    "_active": true,
-                    "scripts": [
-                        {
-                            "scriptName": "game_button_dodge.lua"
-                        }
-                    ]
-                }
-            }
-        },
-        {
-            "parentIndex": -1,
-            "position": {
-                "x": 1792.5592041015625,
-                "y": 98.72037506103516,
+                "x": 1798.9573974609375,
+                "y": 75.68721771240234,
                 "z": 0.0
             },
             "rotation": {
@@ -135,6 +62,14 @@
                 },
                 "15400580746116341700": {
                     "_active": true
+                },
+                "18288371625365795113": {
+                    "_active": true,
+                    "scripts": [
+                        {
+                            "scriptName": "menu_button_topause_fromgame_android.lua"
+                        }
+                    ]
                 }
             }
         },
@@ -142,7 +77,7 @@
             "parentIndex": -1,
             "position": {
                 "x": 1430.0,
-                "y": 756.2796020507813,
+                "y": 750.0,
                 "z": 0.0
             },
             "rotation": {
@@ -215,7 +150,7 @@
             "parentIndex": -1,
             "position": {
                 "x": 1690.0,
-                "y": 901.2796020507813,
+                "y": 906.3980712890625,
                 "z": 0.0
             },
             "rotation": {
@@ -407,8 +342,81 @@
                 "16331509531237472119": {
                     "_active": true,
                     "entOuterAndroidJoystick": {
-                        "entityUid": 0
+                        "entityUid": 12634333083638227788
                     }
+                }
+            }
+        },
+        {
+            "parentIndex": 2,
+            "position": {
+                "x": 0.02941131591796875,
+                "y": -0.6070535182952881,
+                "z": 0.0
+            },
+            "rotation": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "scale": {
+                "x": 0.529411792755127,
+                "y": 0.529411792755127,
+                "z": 1.0
+            },
+            "components": {
+                "6766054303456732338": {
+                    "_active": true,
+                    "layer": 0
+                },
+                "7205334411763290517": {
+                    "_active": true,
+                    "name": "Dodge Button"
+                },
+                "8200877348596784542": {
+                    "_active": true
+                },
+                "9315785795257285655": {
+                    "_active": true,
+                    "uid": 4225168098848621879
+                },
+                "13050946774019011867": {
+                    "_active": true,
+                    "type": 2,
+                    "primitive": {
+                        "texture": {
+                            "hash": 114013858251757931
+                        },
+                        "uvMin": {
+                            "x": 0.0,
+                            "y": 0.0
+                        },
+                        "uvMax": {
+                            "x": 1.0,
+                            "y": 1.0
+                        }
+                    },
+                    "color": {
+                        "x": 1.0,
+                        "y": 1.0,
+                        "z": 1.0,
+                        "w": 1.0
+                    }
+                },
+                "13828584133079072524": {
+                    "_active": true,
+                    "hasPrimitive": false
+                },
+                "15400580746116341700": {
+                    "_active": true
+                },
+                "18288371625365795113": {
+                    "_active": true,
+                    "scripts": [
+                        {
+                            "scriptName": "game_button_dodge.lua"
+                        }
+                    ]
                 }
             }
         }
