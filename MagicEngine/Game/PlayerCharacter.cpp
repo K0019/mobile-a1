@@ -263,14 +263,14 @@ void PlayerMovementComponentSystem::UpdatePlayerMovementComponent(PlayerMovement
 		comp.UltimateAttack();
 
 	characterComp->SetMovementVector(movement);
-	if (characterComp)
-	{
-		float offset{ 3.f };
-		Vec3 center{ characterComp->center };
-		center = Vec3(0.f, center.y, 0.f);
-		center += Vec3(movement.x, 0.f, movement.y) / offset;
-		characterComp->SetCenter(center);
-	}
+	//if (characterComp)
+	//{
+	//	float offset{ 3.f };
+	//	Vec3 center{ characterComp->center };
+	//	center = Vec3(0.f, center.y, 0.f);
+	//	center += Vec3(movement.x, 0.f, movement.y) / offset;
+	//	characterComp->SetCenter(center);
+	//}
 
 	if (inputInstance->GetIsDown(KEY::SPACE) || EventsReader<Events::GameActionDodge>{}.ExtractEvent())
 		characterComp->Dodge(movement);
