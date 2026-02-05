@@ -1,57 +1,45 @@
 #include "Editor/SceneTab.h"
-#include "Assets/AssetManager.h"
 #include "Editor/EditorGuiUtils.h"
 #include "Engine/SceneManagement.h"
-#include "Editor/AssetBrowser.h"
 #include "FilepathConstants.h"
-
 #include "VFS/VFS.h"
 
 namespace editor {
 
-    ///////////////
-    ///  Scene  ///
-    ///////////////
-    const char* SceneTab::GetName() const
-    {
-        return "Scenes";
-    }
+	const AssetTabConfig SceneTab::config = {
+		.name = "Scenes",
+		.identifier = ICON_FA_DIAMOND " Scenes",
+		.icon = ICON_FA_DIAMOND,
+		.payloadType = nullptr,  // No drag-drop for scenes
+		.iconColor = {0.3f, 0.8f, 0.9f, 1.0f},  // Cyan
+		.thumbnailType = ThumbnailCache::AssetType::Texture,
+		.hasThumbnails = false
+	};
 
-    const char* SceneTab::GetIdentifier() const
-    {
-        return ICON_FA_DIAMOND" Scenes";
-    }
+	const AssetTabConfig& SceneTab::GetConfig() const
+	{
+		return config;
+	}
 
-    void SceneTab::Render(const gui::TextBoxWithFilter& filter)
-    {
-        const float THUMBNAIL_SIZE = AssetBrowser::THUMBNAIL_SIZE;
-        const float panelWidth = gui::GetAvailableContentRegion().x;
-        gui::GridHelper grid{ panelWidth, THUMBNAIL_SIZE + 10 };
+	std::vector<std::string> SceneTab::GetItemList() const
+	{
+		std::vector<std::string> scenes;
+		for (const auto& entry : VFS::ListDirectory(Filepaths::scenesSave))
+		{
+			if (VFS::GetExtension(entry) == ".scene")
+				scenes.push_back(entry);
+		}
+		return scenes;
+	}
 
-        gui::SetStyleVar itemSpacing{ gui::FLAG_STYLE_VAR::ITEM_SPACING, gui::Vec2{ 5, 5 } };
-        gui::SetStyleVar framePadding{ gui::FLAG_STYLE_VAR::FRAME_PADDING, gui::Vec2{ 2, 2 } };
+	std::string SceneTab::GetDisplayName(const std::string& item) const
+	{
+		return VFS::GetStem(item);
+	}
 
-        int count{};
-        for (const auto& entry : VFS::ListDirectory(Filepaths::scenesSave))
-        {
-            if (!filter.PassFilter(entry))
-                continue;
-            if (VFS::GetExtension(entry) != ".scene")
-                continue;
-
-            {
-                gui::SetID id{ count++ };
-                gui::Group group;
-
-                if (gui::Button{ "##scene", gui::Vec2{ THUMBNAIL_SIZE, THUMBNAIL_SIZE } })
-                    ST<SceneManager>::Get()->LoadScene(VFS::JoinPath(Filepaths::scenesSave, entry));
-
-                // Name label
-                gui::ThumbnailLabel(entry, THUMBNAIL_SIZE);
-            }
-
-            grid.NextItem();
-        }
-    }
+	void SceneTab::OnItemClicked(const std::string& item)
+	{
+		ST<SceneManager>::Get()->LoadScene(VFS::JoinPath(Filepaths::scenesSave, item));
+	}
 
 }

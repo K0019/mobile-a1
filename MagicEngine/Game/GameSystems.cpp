@@ -56,6 +56,7 @@ All rights reserved.
 #include "Engine/BehaviorTree/LeafLookForPlayer.h"
 #include "Engine/BehaviorTree/LeafMoveTowardsPlayer.h"
 #include "Engine/Platform/Android/AndroidInputManager.h"
+#include "Engine/VideoPlayer.h"
 #include "Demo.h"
 
 void GameStateBase::OnExit()
@@ -70,6 +71,7 @@ void GameState_Common::OnEnter()
     ecs::AddSystem(ECS_LAYER::RENDER_0, AnimationSystem{});
     ecs::AddSystem(ECS_LAYER::RENDER_1, BoneAttachmentSystem{});
     ecs::AddSystem(ECS_LAYER::AUDIO, AudioSystem{});
+    ecs::AddSystem(ECS_LAYER::AUDIO, VideoPlayerSystem{});
 
     ecs::AddSystem(ECS_LAYER::RENDER_UI_0, TextSystem{});
     ecs::AddSystem(ECS_LAYER::RENDER_UI_0, SpriteRenderSystem{});

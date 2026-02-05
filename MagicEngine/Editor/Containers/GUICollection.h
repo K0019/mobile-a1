@@ -1196,11 +1196,11 @@ namespace gui {
 	//! ImGui::DragInt, etc.
 	bool VarDrag(const char* label, int* v, float speed = 1.0f, int min = 0, int max = 0);
 	bool VarDrag(const char* label, unsigned int* v, float speed = 1.0f, unsigned int min = 0, unsigned int max = std::numeric_limits<int>::max());
-	bool VarDrag(const char* label, float* v, float speed = 1.0f, float min = 0.0f, float max = 0.0f, const char* format = "%.2f");
-	bool VarDrag(const char* label, double* v, double speed = 1.0f, double min = 0.0f, double max = 0.0f, const char* format = "%.2f");
-	bool VarDrag(const char* label, ::Vec2* v, float speed = 1.0f, ::Vec2 min = {}, ::Vec2 max = {}, const char* format = "%.2f");
-	bool VarDrag(const char* label, ::Vec3* v, float speed = 1.0f, ::Vec3 min = {}, ::Vec3 max = {}, const char* format = "%.2f");
-	bool VarDrag(const char* label, ::Vec4* v, float speed = 1.0f, ::Vec4 min = {}, ::Vec4 max = {}, const char* format = "%.1f");
+	bool VarDrag(const char* label, float* v, float speed = 1.0f, float min = 0.0f, float max = 0.0f, const char* format = "%.3f");
+	bool VarDrag(const char* label, double* v, double speed = 1.0f, double min = 0.0f, double max = 0.0f, const char* format = "%.3f");
+	bool VarDrag(const char* label, ::Vec2* v, float speed = 1.0f, ::Vec2 min = {}, ::Vec2 max = {}, const char* format = "%.3f");
+	bool VarDrag(const char* label, ::Vec3* v, float speed = 1.0f, ::Vec3 min = {}, ::Vec3 max = {}, const char* format = "%.3f");
+	bool VarDrag(const char* label, ::Vec4* v, float speed = 1.0f, ::Vec4 min = {}, ::Vec4 max = {}, const char* format = "%.3f");
 
 	//! ImGui::InputInt, etc.
 	bool VarInput(const char* label, int* v, int step = 1);

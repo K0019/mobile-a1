@@ -302,25 +302,44 @@ struct VertexSkinning {
 static_assert(sizeof(VertexSkinning) == 8, "VertexSkinning must be 8 bytes");
 
 // ============================================================================
-// Packed Material Data (16 bytes = 8x fp16)
+// Packed Material Data (32 bytes = 8x uint32)
 // ============================================================================
+
+// Material flags for GPU-side material properties
+enum MaterialGPUFlags : uint32_t {
+    MAT_FLAG_NONE = 0,
+    MAT_FLAG_UNLIT = 1 << 0,
+    MAT_FLAG_DOUBLE_SIDED = 1 << 1,
+    // Reserved for future: CAST_SHADOW, RECEIVE_SHADOW
+};
 
 /**
  * @brief Packed material data using fp16 for mobile efficiency.
  *
- * Single indexed load on GPU (16 bytes = 1x uint4).
+ * Expanded from 16 to 32 bytes to support additional PBR properties.
  * Layout:
  *   [0]: baseColor.r, baseColor.g  (half2)
  *   [1]: baseColor.b, baseColor.a  (half2) - alpha for transparency
  *   [2]: roughness, metallic       (half2)
- *   [3]: emissive, alphaCutoff     (half2) - alphaCutoff for alpha testing
+ *   [3]: emissive, alphaCutoff     (half2) - scalar emissive intensity, alpha cutoff
+ *   [4]: normalScale, occlusionStrength (half2)
+ *   [5]: emissiveColor.r, emissiveColor.g (half2)
+ *   [6]: emissiveColor.b, padding  (half2)
+ *   [7]: flags (uint32) - UNLIT, DOUBLE_SIDED, etc.
  */
 struct PackedMaterial {
-    uint32_t data[4];
+    uint32_t data[8];
 
-    PackedMaterial() { data[0] = data[1] = data[2] = data[3] = 0; }
+    PackedMaterial() {
+        for (int i = 0; i < 8; ++i) data[i] = 0;
+        // Default normalScale=1, occlusionStrength=1
+        data[4] = glm::packHalf2x16(glm::vec2(1.0f, 1.0f));
+    }
 
-    void pack(const glm::vec4& baseColor, float roughness, float metallic, float emissive, float alphaCutoff) {
+    void pack(const glm::vec4& baseColor, float roughness, float metallic,
+              float emissive, float alphaCutoff,
+              float normalScale, float occlusionStrength,
+              const glm::vec3& emissiveColor, uint32_t flags) {
         // Clamp roughness to minimum 0.089 for fp16 precision (Filament recommendation)
         roughness = glm::max(roughness, 0.089f);
 
@@ -328,22 +347,36 @@ struct PackedMaterial {
         data[1] = glm::packHalf2x16(glm::vec2(baseColor.b, baseColor.a));
         data[2] = glm::packHalf2x16(glm::vec2(roughness, metallic));
         data[3] = glm::packHalf2x16(glm::vec2(emissive, alphaCutoff));
+        data[4] = glm::packHalf2x16(glm::vec2(normalScale, occlusionStrength));
+        data[5] = glm::packHalf2x16(glm::vec2(emissiveColor.r, emissiveColor.g));
+        data[6] = glm::packHalf2x16(glm::vec2(emissiveColor.b, 0.0f));
+        data[7] = flags;
     }
 
-    void unpack(glm::vec4& baseColor, float& roughness, float& metallic, float& emissive, float& alphaCutoff) const {
+    void unpack(glm::vec4& baseColor, float& roughness, float& metallic,
+                float& emissive, float& alphaCutoff,
+                float& normalScale, float& occlusionStrength,
+                glm::vec3& emissiveColor, uint32_t& flags) const {
         glm::vec2 rg = glm::unpackHalf2x16(data[0]);
         glm::vec2 ba = glm::unpackHalf2x16(data[1]);
         glm::vec2 rm = glm::unpackHalf2x16(data[2]);
         glm::vec2 ec = glm::unpackHalf2x16(data[3]);
+        glm::vec2 no = glm::unpackHalf2x16(data[4]);
+        glm::vec2 emRG = glm::unpackHalf2x16(data[5]);
+        glm::vec2 emB_ = glm::unpackHalf2x16(data[6]);
 
         baseColor = glm::vec4(rg.x, rg.y, ba.x, ba.y);
         roughness = rm.x;
         metallic = rm.y;
         emissive = ec.x;
         alphaCutoff = ec.y;
+        normalScale = no.x;
+        occlusionStrength = no.y;
+        emissiveColor = glm::vec3(emRG.x, emRG.y, emB_.x);
+        flags = data[7];
     }
 };
-static_assert(sizeof(PackedMaterial) == 16, "PackedMaterial must be 16 bytes");
+static_assert(sizeof(PackedMaterial) == 32, "PackedMaterial must be 32 bytes");
 
 // ============================================================================
 // Packed Instance Data (96 bytes = 6x float4)

@@ -18,7 +18,7 @@ bindings(Frame, start=0) {
 
 bindings(Material, start=0) {
   uniform(std140) MaterialConstants {
-    uvec4 packed;
+    uvec4 packed[2];  // 32 bytes of packed material data
   } material;
   texture sampler2D u_albedo;
   texture sampler2D u_normal;
@@ -69,18 +69,12 @@ Varyings VSMain(VertexIn in) {
 }
 #hina_end
 
-#hina_stage fragment entry FSMain use MaterialUnpack
+#hina_stage fragment entry FSMain use MaterialUnpack, TransparentPickFragment
 FragOut FSMain(Varyings in) {
     FragOut out;
-
-    vec4 baseColor = unpackBaseColor(material.packed);
-    vec4 albedo = texture(u_albedo, in.uv) * baseColor;
-
-    if (albedo.a < 0.01) {
+    if (!processTransparentPick(in.uv, material.packed[0], u_albedo, transform.objectId, out.visibility)) {
         discard;
     }
-
-    out.visibility = transform.objectId + 1u;  // 0 reserved for background
     return out;
 }
 #hina_end

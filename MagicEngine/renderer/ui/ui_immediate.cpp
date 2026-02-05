@@ -1,6 +1,7 @@
 #include "renderer/ui/ui_immediate.h"
 #include "renderer/gfx_renderer.h"
 #include "resource/resource_manager.h"
+#include <algorithm>
 
 namespace ui
 {
@@ -143,6 +144,14 @@ namespace ui
     if (!valid_ || !drawList_) return false;
     return AddImage(resourceMngr_, *drawList_, textureHandle, min, max, uvMin, uvMax, PackColor(color),
                     resolveClipRect(options), samplerMode, resolveLayer(options));
+  }
+
+  bool ImmediateGui::addImageDirect(gfx::TextureView view, const vec2& min, const vec2& max, const vec2& uvMin,
+                                    const vec2& uvMax, const vec4& color, SamplerMode samplerMode, const DrawOptions& options)
+  {
+    if (!valid_ || !drawList_) return false;
+    return AddImageDirect(*drawList_, view, min, max, uvMin, uvMax, PackColor(color),
+                          resolveClipRect(options), samplerMode, resolveLayer(options));
   }
 
   bool ImmediateGui::addText(std::string_view text, TextLayoutDesc layout, const vec4& color,

@@ -40,6 +40,12 @@ std::unordered_map<std::string, AssetImporter::ImportFn> AssetImporter::importer
     { std::string{ ".wav" },      &AssetImporters::ImportAudio },
     { std::string{ ".sg" },       &AssetImporters::ImportAudioGroup },   //load
 	{ std::string{".weapon"},    &AssetImporters::ImportGameWeapon },
+    // Video formats
+    { std::string{ ".mp4" },      &AssetImporters::ImportVideo },
+    { std::string{ ".webm" },     &AssetImporters::ImportVideo },
+    { std::string{ ".mkv" },      &AssetImporters::ImportVideo },
+    { std::string{ ".mov" },      &AssetImporters::ImportVideo },
+    { std::string{ ".avi" },      &AssetImporters::ImportVideo },
 };
 
 bool AssetImporter::Import(const std::string& filepath)

@@ -16,235 +16,182 @@
 
 namespace editor {
 
-    ///////////////
-    /// Prefabs ///
-    ///////////////
-    const char* PrefabTab::GetName() const
-    {
-        return "Prefabs";
-    }
+	///////////////
+	/// Prefabs ///
+	///////////////
+	const AssetTabConfig PrefabTab::config = {
+		.name = "Prefabs",
+		.identifier = ICON_FA_CUBE " Prefabs",
+		.icon = ICON_FA_CUBE,
+		.payloadType = "PREFAB",
+		.iconColor = {0.6f, 0.8f, 1.0f, 1.0f},  // Light blue
+		.thumbnailType = ThumbnailCache::AssetType::Texture,
+		.hasThumbnails = false
+	};
 
-    const char* PrefabTab::GetIdentifier() const
-    {
-        return ICON_FA_CUBE" Prefabs";
-    }
+	const AssetTabConfig& PrefabTab::GetConfig() const
+	{
+		return config;
+	}
 
-    void PrefabTab::Render(const gui::TextBoxWithFilter& filter)
-    {
+	std::vector<std::string> PrefabTab::GetItemList() const
+	{
+		return PrefabManager::AllPrefabs();
+	}
+
+	void PrefabTab::OnItemClicked(const std::string& item)
+	{
+		// Don't spawn on click - user can drag or use detail panel
+	}
+
+	void PrefabTab::RenderContextMenuItems(const std::string& item)
+	{
 #ifdef IMGUI_ENABLED
-        float THUMBNAIL_SIZE = AssetBrowser::THUMBNAIL_SIZE;
-        float panelWidth = ImGui::GetContentRegionAvail().x; // random offset
-        gui::GridHelper grid(panelWidth, THUMBNAIL_SIZE + 10);
-
-        gui::SetStyleVar itemSpacing(gui::FLAG_STYLE_VAR::ITEM_SPACING, ImVec2(5, 5));
-        gui::SetStyleVar framePadding(gui::FLAG_STYLE_VAR::FRAME_PADDING, ImVec2(2, 2));
-
-        std::string prefabName = "";
-        for (size_t i = 0; i < PrefabManager::AllPrefabs().size(); ++i)
-        {
-            prefabName = PrefabManager::AllPrefabs()[i];
-            if (!filter.PassFilter(prefabName))
-            {
-                continue;
-            }
-
-            {
-                gui::SetID setid(static_cast<int>(i));
-                gui::Group group;
-
-                bool clicked = ImGui::Button(ICON_FA_CUBE,
-                    ImVec2(THUMBNAIL_SIZE, THUMBNAIL_SIZE + 10));
-
-                gui::ShowSimpleHoverTooltip(prefabName);
-                gui::PayloadSource<std::string>{ "PREFAB", prefabName.c_str(), std::string{ ICON_FA_CUBE + prefabName }.c_str() };
-
-                if (clicked)
-                {
-                    ecs::EntityHandle prefabEntity{ PrefabManager::LoadPrefab(prefabName) };
-                    ST<History>::Get()->OneEvent(HistoryEvent_EntityCreate{ prefabEntity });
-                }
-
-                // Name label
-                gui::ThumbnailLabel(prefabName, THUMBNAIL_SIZE);
-            }
-
-            if (ImGui::BeginPopupContextItem(prefabName.c_str()))
-            {
-                if (ImGui::MenuItem(ICON_FA_TRASH" Delete"))
-                {
-                    CONSOLE_LOG_EXPLICIT("DELETE " + prefabName, LogLevel::LEVEL_DEBUG);
-                    PrefabManager::DeletePrefab(prefabName);
-                }
-                if (ImGui::MenuItem(ICON_FA_CLONE" Duplicate"))
-                {
-                    CONSOLE_LOG_EXPLICIT("CLONE " + prefabName, LogLevel::LEVEL_DEBUG);
-                }
-                ImGui::EndPopup();
-            }
-
-            grid.NextItem();
-        }
+		if (ImGui::MenuItem(ICON_FA_PLUS " Spawn"))
+		{
+			ecs::EntityHandle prefabEntity{ PrefabManager::LoadPrefab(item) };
+			ST<History>::Get()->OneEvent(HistoryEvent_EntityCreate{ prefabEntity });
+		}
+		if (ImGui::MenuItem(ICON_FA_TRASH " Delete"))
+			PrefabManager::DeletePrefab(item);
 #endif
-    }
+	}
 
-    ///////////////
-    ///  Fonts  ///
-    ///////////////
-    const char* FontTab::GetName() const
-    {
-        return "Fonts";
-    }
-
-    const char* FontTab::GetIdentifier() const
-    {
-        return ICON_FA_FONT" Fonts";
-    }
-
-    void FontTab::Render([[maybe_unused]] const gui::TextBoxWithFilter& filter)
-    {
-        /*const auto& fontAtlases = VulkanManager::Get().VkTextureManager().getFontAtlases();
-
-        gui::Child child("FontTable", ImVec2(0.0f, 0.0f));
-        gui::TextFormatted("Loaded Fonts");
-        gui::Separator();
-
-        for (const auto& [atlasName, atlas] : fontAtlases)
-        {
-            gui::TextFormatted("%s", atlasName.c_str());
-        }*/
-    }
-
-    ///////////////
-    /// Shaders ///
-    ///////////////
-    const char* ShaderTab::GetName() const
-    {
-        return "Shaders";
-    }
-
-    const char* ShaderTab::GetIdentifier() const
-    {
-        return ICON_FA_FILE_CODE" Shaders";
-    }
-
-    void ShaderTab::Render([[maybe_unused]] const gui::TextBoxWithFilter& filter)
-    {
+	void PrefabTab::RenderDetailPanelContent(const std::string& item)
+	{
 #ifdef IMGUI_ENABLED
-        float THUMBNAIL_SIZE = AssetBrowser::THUMBNAIL_SIZE;
-        float panelWidth = ImGui::GetContentRegionAvail().x;
-        gui::GridHelper grid(panelWidth, THUMBNAIL_SIZE + 10);
-
-        gui::SetStyleVar itemSpacing(gui::FLAG_STYLE_VAR::ITEM_SPACING, ImVec2(5, 5));
-        gui::SetStyleVar framePadding(gui::FLAG_STYLE_VAR::FRAME_PADDING, ImVec2(2, 2));
-
-        if (shaderNames.empty())
-        {
-            const std::unordered_set<std::string> allowedExtensions{ ".vert", ".frag", ".comp" };
-            for (const auto& entry : std::filesystem::directory_iterator{ VFS::ConvertVirtualToPhysical(Filepaths::shadersSave) })
-                if (allowedExtensions.find(entry.path().extension().string()) != allowedExtensions.end())
-                    shaderNames.push_back(entry.path().filename().string());
-        }
-
-        int count{};
-        for (const auto& shaderName : shaderNames)
-        {
-            {
-                gui::SetID id{ count++ };
-                gui::Group group;
-
-                gui::Button button("##shader", gui::Vec2{ THUMBNAIL_SIZE, THUMBNAIL_SIZE });
-
-                // Name label
-                gui::ThumbnailLabel(shaderName, THUMBNAIL_SIZE);
-            }
-
-            grid.NextItem();
-        }
+		if (ImGui::Button(ICON_FA_PLUS " Spawn Prefab", ImVec2(-1, 0)))
+		{
+			ecs::EntityHandle prefabEntity{ PrefabManager::LoadPrefab(item) };
+			ST<History>::Get()->OneEvent(HistoryEvent_EntityCreate{ prefabEntity });
+		}
 #endif
-    }
+	}
 
+	///////////////
+	///  Fonts  ///
+	///////////////
+	const char* FontTab::GetName() const
+	{
+		return "Fonts";
+	}
 
-    ///////////////
-    /// Scripts ///
-    ///////////////
-    ScriptTab::ScriptTab()
-        : newScriptName{ "New Script Name" }
-    {
-    }
+	const char* FontTab::GetIdentifier() const
+	{
+		return ICON_FA_FONT " Fonts";
+	}
 
-    const char* ScriptTab::GetName() const
-    {
-        return "Scripts";
-    }
+	void FontTab::Render([[maybe_unused]] const gui::TextBoxWithFilter& filter)
+	{
+		// Font rendering not implemented
+	}
 
-    const char* ScriptTab::GetIdentifier() const
-    {
-        return ICON_FA_CODE" Scripts";
-    }
+	///////////////
+	/// Shaders ///
+	///////////////
+	const AssetTabConfig ShaderTab::config = {
+		.name = "Shaders",
+		.identifier = ICON_FA_FILE_CODE " Shaders",
+		.icon = ICON_FA_FILE_CODE,
+		.payloadType = nullptr,  // No drag-drop for shaders
+		.iconColor = {0.8f, 0.5f, 0.8f, 1.0f},  // Purple
+		.thumbnailType = ThumbnailCache::AssetType::Texture,
+		.hasThumbnails = false
+	};
 
-    void ScriptTab::Render(const gui::TextBoxWithFilter& filter)
-    {
-        // Create new script text box & button
-        newScriptName.Draw();
-        {
-            gui::Disabled buttonDisable{ *newScriptName.GetBufferPtr() == '\0' };
-            if (gui::Button scriptButton{ "Create Script" })
-            {
-                const std::string scriptFilepath{ VFS::JoinPath(Filepaths::scriptsSave, newScriptName.GetBuffer() + ".lua") };
-                if (!VFS::FileExists(scriptFilepath))
-                {
-                    // Create the file
-                    if (!VFS::WriteFile(scriptFilepath, "function update(entity)\n\t\nend"))
-                        CONSOLE_LOG(LEVEL_ERROR) << "Failed to generate new script file";
+	const AssetTabConfig& ShaderTab::GetConfig() const
+	{
+		return config;
+	}
+
+	std::vector<std::string> ShaderTab::GetItemList() const
+	{
+		if (cachedShaderNames.empty())
+		{
+			const std::unordered_set<std::string> allowedExtensions{ ".vert", ".frag", ".comp" };
+			for (const auto& entry : std::filesystem::directory_iterator{ VFS::ConvertVirtualToPhysical(Filepaths::shadersSave) })
+				if (allowedExtensions.find(entry.path().extension().string()) != allowedExtensions.end())
+					cachedShaderNames.push_back(entry.path().filename().string());
+		}
+		return cachedShaderNames;
+	}
+
+	///////////////
+	/// Scripts ///
+	///////////////
+	const AssetTabConfig ScriptTab::config = {
+		.name = "Scripts",
+		.identifier = ICON_FA_CODE " Scripts",
+		.icon = ICON_FA_CODE,
+		.payloadType = nullptr,  // No drag-drop for scripts
+		.iconColor = {0.4f, 0.9f, 0.4f, 1.0f},  // Green
+		.thumbnailType = ThumbnailCache::AssetType::Texture,
+		.hasThumbnails = false
+	};
+
+	ScriptTab::ScriptTab()
+		: newScriptName{ "New Script Name" }
+	{
+	}
+
+	const AssetTabConfig& ScriptTab::GetConfig() const
+	{
+		return config;
+	}
+
+	std::vector<std::string> ScriptTab::GetItemList() const
+	{
+		std::vector<std::string> scripts;
+		for (const auto& filename : VFS::ListDirectory(Filepaths::scriptsSave))
+		{
+			if (VFS::GetExtension(filename) == ".lua")
+				scripts.push_back(filename);
+		}
+		return scripts;
+	}
+
+	std::string ScriptTab::GetDisplayName(const std::string& item) const
+	{
+		return VFS::GetStem(item);
+	}
+
+	void ScriptTab::OnItemClicked(const std::string& item)
+	{
 #ifdef GLFW
-                    // Then open the file
-                    else
-                    {
-                        ShellExecute(0, 0, VFS::ConvertVirtualToPhysical(scriptFilepath).c_str(), 0, 0, SW_SHOW);
-                        CONSOLE_LOG(LEVEL_INFO) << "Created new script file " << newScriptName.GetBuffer();
-                    }
+		ShellExecute(0, 0, VFS::ConvertVirtualToPhysical(VFS::JoinPath(Filepaths::scriptsSave, item)).c_str(), 0, 0, SW_SHOW);
 #endif
-                }
-            }
-        }
+	}
 
-        // Reload scripts button
-        gui::SameLine();
-        if (gui::Button reloadButton{ "Reload" })
-            ST<EventsQueue>::Get()->AddEventForThisFrame(Events::RequestReloadLuaScripts{});
-        gui::Separator();
-
-        // Grid list
-        constexpr float THUMBNAIL_SIZE = AssetBrowser::THUMBNAIL_SIZE;
-        gui::GridHelper grid{ gui::GetAvailableContentRegion().x, THUMBNAIL_SIZE };
-        gui::SetStyleVar itemSpacing{ gui::FLAG_STYLE_VAR::ITEM_SPACING, gui::Vec2{ 5, 5 } };
-        gui::SetStyleVar framePadding{ gui::FLAG_STYLE_VAR::FRAME_PADDING, gui::Vec2{ 2, 2 } };
-
-        int count{};
-        for (const auto& filename : VFS::ListDirectory(Filepaths::scriptsSave))
-        {
-            if (VFS::GetExtension(filename) != ".lua")
-                continue;
-            if (!filter.PassFilter(filename))
-                continue;
-
-            {
-                gui::SetID id{ count++ };
-                gui::Group group{};
-
-                if (gui::Button button{ ICON_FA_CODE"##script", gui::Vec2{ THUMBNAIL_SIZE, THUMBNAIL_SIZE } })
+	void ScriptTab::RenderToolbar()
+	{
+#ifdef IMGUI_ENABLED
+		// Create new script text box & button
+		newScriptName.Draw();
+		{
+			gui::Disabled buttonDisable{ *newScriptName.GetBufferPtr() == '\0' };
+			if (gui::Button scriptButton{ "Create Script" })
+			{
+				const std::string scriptFilepath{ VFS::JoinPath(Filepaths::scriptsSave, newScriptName.GetBuffer() + ".lua") };
+				if (!VFS::FileExists(scriptFilepath))
+				{
+					if (!VFS::WriteFile(scriptFilepath, "function update(entity)\n\t\nend"))
+						CONSOLE_LOG(LEVEL_ERROR) << "Failed to generate new script file";
 #ifdef GLFW
-                    ShellExecute(0, 0, VFS::ConvertVirtualToPhysical(VFS::JoinPath(Filepaths::scriptsSave, filename)).c_str(), 0, 0, SW_SHOW);
-#else
-                    (void)0;
+					else
+					{
+						ShellExecute(0, 0, VFS::ConvertVirtualToPhysical(scriptFilepath).c_str(), 0, 0, SW_SHOW);
+						CONSOLE_LOG(LEVEL_INFO) << "Created new script file " << newScriptName.GetBuffer();
+					}
 #endif
+				}
+			}
+		}
 
-                // Name label
-                gui::ThumbnailLabel(VFS::GetStem(filename), THUMBNAIL_SIZE);
-            }
-
-            grid.NextItem();
-        }
-    }
+		gui::SameLine();
+		if (gui::Button reloadButton{ "Reload" })
+			ST<EventsQueue>::Get()->AddEventForThisFrame(Events::RequestReloadLuaScripts{});
+		gui::Separator();
+#endif
+	}
 
 }

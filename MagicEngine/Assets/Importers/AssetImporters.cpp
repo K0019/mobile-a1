@@ -17,6 +17,7 @@ All rights reserved.
 #include "Assets/Importers/AssetImportHelpers.h"
 #include "Assets/Types/AssetTypes.h"
 #include "Assets/Types/AssetTypesAudio.h"
+#include "Assets/Types/AssetTypesVideo.h"
 #include "Assets/AssetManager.h"
 #include "Assets/AssetImporter.h"
 #include "Engine/Graphics Interface/GraphicsAPI.h"
@@ -56,6 +57,7 @@ using Resource::AnimationFile_MorphKey;
 
 #include "Assets/MaterialSerialization.h"
 #include "Game/Weapon.h"
+#include "video/video_decoder.h"
 
 using namespace ResourceImportHelpers;
 
@@ -262,14 +264,14 @@ bool AssetImporters::ImportAudio(const std::string& assetRelativeFilepath)
     if (!sound)
         return false;
 
-    // Create fileentry
+    // Create fileentry - uses GenHash for compatibility with string-based lookup (Lua scripts)
     const AssetFilepaths::FileEntry* fileentry{ ST<AssetManager>::Get()->INTERNAL_GetFilepathsManager().GetFileEntry(assetRelativeFilepath) };
     if (!fileentry)
     {
-        static const size_t audioTypeHash = util::ConsistentHash<ResourceAudio>();  // Cache hash
+        static const size_t audioTypeHash = util::ConsistentHash<ResourceAudio>();
         std::vector<AssociatedResourceHashes> resourceHashes{ 1 };
         resourceHashes[0].resourceTypeHash = audioTypeHash;
-        resourceHashes[0].hashes.push_back(util::GenHash(VFS::GetStem(VFS::NormalizePath(assetRelativeFilepath))));
+        resourceHashes[0].hashes.push_back(util::GenHash(VFS::GetStem(VFS::NormalizePath(assetRelativeFilepath))) | 1);
         GenerateNamesForResources(resourceHashes, assetRelativeFilepath);
         fileentry = ST<AssetManager>::Get()->INTERNAL_GetFilepathsManager().SetFilepath(assetRelativeFilepath, std::move(resourceHashes));
     }
@@ -816,4 +818,51 @@ bool AssetImporters::ImportGameWeapon(const std::string& assetRelativeFilepath)
     weaponInfo.hash = fileEntry->associatedResources[0].hashes[0];
     *ST<AssetManager>::Get()->INTERNAL_GetContainer<WeaponInfo>().INTERNAL_GetResource(weaponInfo.hash, true) = std::move(weaponInfo);
     return true;
+}
+
+// ============================================================================
+// Video Importer
+// ============================================================================
+
+bool AssetImporters::ImportVideo(const std::string& assetRelativeFilepath)
+{
+#ifdef MAGIC_HAS_VIDEO
+    // Resolve the full path for the video file
+    std::string fullPath = VFS::ConvertVirtualToPhysical(assetRelativeFilepath);
+
+    // Create a temporary decoder to extract video metadata
+    video::VideoDecoder decoder;
+    if (!decoder.open(fullPath))
+    {
+        CONSOLE_LOG(LEVEL_ERROR) << "Failed to open video file: " << assetRelativeFilepath
+            << " - " << decoder.getLastError();
+        return false;
+    }
+
+    // Get video info
+    video::VideoInfo info = decoder.getInfo();
+
+    // Create file entry (uses .meta file for persistent hash)
+    const auto fileentry{ GenerateFileEntryForResources<ResourceVideo>(assetRelativeFilepath, 1) };
+
+    // Set video metadata to the resource
+    size_t hash{ fileentry->associatedResources[0].hashes[0] };
+    auto* resource{ ST<AssetManager>::Get()->INTERNAL_GetContainer<ResourceVideo>().INTERNAL_GetResource(hash, true) };
+    resource->data.name = VFS::GetStem(assetRelativeFilepath);
+    resource->data.width = info.width;
+    resource->data.height = info.height;
+    resource->data.duration = static_cast<float>(info.duration);
+    resource->data.frameRate = static_cast<float>(info.frameRate);
+    resource->data.hasAudio = info.hasAudio;
+    resource->data.codec = info.codec;
+
+    CONSOLE_LOG(LEVEL_INFO) << "Imported video: " << assetRelativeFilepath
+        << " (" << info.width << "x" << info.height << ", "
+        << info.duration << "s, " << info.codec << ")";
+
+    return true;
+#else
+    CONSOLE_LOG(LEVEL_ERROR) << "Video import not available - video support not compiled";
+    return false;
+#endif
 }

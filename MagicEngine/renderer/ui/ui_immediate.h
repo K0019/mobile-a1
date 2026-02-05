@@ -61,6 +61,16 @@ namespace ui
                     const vec4& color = vec4(1.0f),
                     SamplerMode samplerMode = SamplerMode::Linear,
                     const DrawOptions& options = DrawOptions{});
+      // Direct TextureView overload for runtime textures (video frames, procedural, etc.)
+      // Bypasses texture ID resolution - the view is used directly in rendering
+      bool addImageDirect(gfx::TextureView view,
+                          const vec2& min,
+                          const vec2& max,
+                          const vec2& uvMin = vec2(0.0f),
+                          const vec2& uvMax = vec2(1.0f),
+                          const vec4& color = vec4(1.0f),
+                          SamplerMode samplerMode = SamplerMode::Linear,
+                          const DrawOptions& options = DrawOptions{});
       bool addText(std::string_view text, TextLayoutDesc layout, const vec4& color, const DrawOptions& options = DrawOptions{});
       template <typename FirstArg, typename... Args, typename = std::enable_if_t<!std::is_same_v<std::decay_t<FirstArg>, DrawOptions>>>
       bool addText(std::string_view fmtStr,

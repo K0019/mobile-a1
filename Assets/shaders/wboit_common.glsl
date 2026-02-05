@@ -22,11 +22,11 @@ bindings(Frame, start=0) {
 }
 
 // =============================================================================
-// Material Bind Group (Set 1) - Same layout as gbuffer
+// Material Bind Group (Set 1) - Same layout as gbuffer (32 bytes)
 // =============================================================================
 bindings(Material, start=0) {
   uniform(std140) MaterialConstants {
-    uvec4 packed;
+    uvec4 packed[2];  // 32 bytes of packed material data
   } material;
   texture sampler2D u_albedo;
   texture sampler2D u_normal;
@@ -98,8 +98,8 @@ snippet WBOITFragment {
     // Process WBOIT fragment with forward lighting and output weighted accumulation
     void writeWBOIT(vec3 worldPos, vec3 N, vec2 uv,
                     out vec4 outAccumulation) {
-        // Unpack material
-        vec4 baseColor = unpackBaseColor(material.packed);
+        // Unpack material (use packed[0] for base color from 32-byte format)
+        vec4 baseColor = unpackBaseColor(material.packed[0]);
         vec4 albedo = texture(u_albedo, uv) * baseColor;
         float alpha = albedo.a;
 
@@ -157,19 +157,4 @@ snippet WBOITFragment {
     }
 }
 
-// =============================================================================
-// Transparent Pick Fragment Snippet
-// =============================================================================
-snippet TransparentPickFragment {
-    // Simple pick pass for transparent objects
-    void writeTransparentPick(vec2 uv, uint objectId, out uint outVisibility) {
-        vec4 baseColor = unpackBaseColor(material.packed);
-        vec4 albedo = texture(u_albedo, uv) * baseColor;
-
-        if (albedo.a < 0.01) {
-            discard;
-        }
-
-        outVisibility = objectId + 1u;  // 0 reserved for background
-    }
-}
+// Note: TransparentPickFragment snippet is now in shader_snippets.glsl

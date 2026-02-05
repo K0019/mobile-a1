@@ -58,32 +58,37 @@ Varyings VSMain() {
 }
 #hina_end
 
-#hina_stage fragment entry FSMain use NormalEncoding, ForwardLighting
+#hina_stage fragment entry FSMain use NormalEncoding, ForwardLighting, MaterialUnpack
 FragOut FSMain(Varyings in) {
     FragOut out;
 
     // Sample G-buffer using tile_load
     vec4 albedoSample = tile_load(u_albedo);
-    vec3 normalSample = tile_load(u_normal).xyz;
+    vec4 normalSample = tile_load(u_normal);
     vec4 matData = tile_load(u_materialData);
     float depth = tile_load(u_depth).r;
 
-    // Use gl_FragCoord for precise NDC (avoids tile boundary precision issues on mobile)
+    // MOBILE FIX: Use division instead of multiplication by inverse for better precision.
+    // On tile-based mobile GPUs, multiplying small inverse dimensions (1/1920) with large
+    // pixel coords causes precision loss at tile boundaries, leading to non-uniform lighting.
+    // Division preserves more precision: (pixel / screen) is more accurate than (pixel * invScreen)
     vec2 pixelCoord = gl_FragCoord.xy;
-    vec2 ndc = pixelCoord * ubo.screenInfo.zw * 2.0 - 1.0;
+    precise vec2 ndc = (pixelCoord / ubo.screenInfo.xy) * 2.0 - 1.0;
 
     // Early out for sky/background - sample skybox
     if (depth >= 1.0) {
-        vec4 clipPos = vec4(ndc, 1.0, 1.0);
-        vec4 worldPos4 = ubo.invViewProj * clipPos;
-        vec3 worldPos = worldPos4.xyz / worldPos4.w;
+        precise vec4 clipPos = vec4(ndc, 1.0, 1.0);
+        precise vec4 worldPos4 = ubo.invViewProj * clipPos;
+        precise vec3 worldPos = worldPos4.xyz / worldPos4.w;
         vec3 viewDir = normalize(worldPos - ubo.cameraPos.xyz);
         out.color = vec4(texture(u_skybox, viewDir).rgb, 1.0);
         return out;
     }
 
-    // Decode octahedral normal
+    // Decode octahedral normal and material flags
     vec3 normal = decodeNormalOctahedral(normalSample.xy);
+    uint flags = uint(normalSample.z * 255.0 + 0.5);
+    bool isUnlit = (flags & MAT_FLAG_UNLIT) != 0u;
 
     // Material properties from G-buffer
     float roughness = matData.r;
@@ -91,13 +96,24 @@ FragOut FSMain(Varyings in) {
     float ao = matData.b;
     float emissive = matData.a;
 
+    vec3 baseColor = albedoSample.rgb;
+
+    // Early out for UNLIT materials - skip lighting entirely
+    if (isUnlit) {
+        // UNLIT: baseColor + emissive contribution (industry standard)
+        vec3 finalColor = baseColor + emissive;
+        out.color = vec4(finalColor, 1.0);
+        return out;
+    }
+
     // Reconstruct world position from depth
-    vec4 clipPos = vec4(ndc, depth, 1.0);
-    vec4 worldPos4 = ubo.invViewProj * clipPos;
-    vec3 worldPos = worldPos4.xyz / worldPos4.w;
+    // MOBILE FIX: Use 'precise' to prevent driver optimizations that could
+    // cause per-tile variations in the matrix multiplication and division
+    precise vec4 clipPos = vec4(ndc, depth, 1.0);
+    precise vec4 worldPos4 = ubo.invViewProj * clipPos;
+    precise vec3 worldPos = worldPos4.xyz / worldPos4.w;
 
     vec3 viewDir = normalize(ubo.cameraPos.xyz - worldPos);
-    vec3 baseColor = albedoSample.rgb;
     float specPower = mix(8.0, 128.0, 1.0 - roughness);
 
     // Lighting calculation
@@ -126,7 +142,8 @@ FragOut FSMain(Varyings in) {
     // Final color with ambient occlusion and emissive
     vec3 ambient = ubo.ambientColor.rgb * ao;
     vec3 finalColor = baseColor * (ambient + totalDiffuse) + totalSpecular;
-    finalColor += baseColor * emissive;
+    // Industry standard: emissive is independent of baseColor (emissiveFactor * emissiveTexture)
+    finalColor += emissive;
 
     out.color = vec4(finalColor, 1.0);
     return out;

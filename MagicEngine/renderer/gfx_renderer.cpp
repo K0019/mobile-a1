@@ -130,6 +130,7 @@ bool GfxRenderer::initialize(void* nativeWindow, uint32_t width, uint32_t height
     // Initialize hina-vk
     hina_desc desc = hina_desc_default();
     desc.native_window = nativeWindow;
+    //desc.flags = HINA_INIT_VALIDATION_BIT;
     desc.flags = 0;
     desc.log_fn = hinaLogCallback;
     // Note: Window size is determined by native_window, not by desc fields

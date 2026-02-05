@@ -579,6 +579,242 @@ bool SceneRenderFeature::EnsureMorphedPipelineCreated(GfxRenderer* gfxRenderer)
   return true;
 }
 
+// =============================================================================
+// Double-sided pipeline variants (no back-face culling)
+// =============================================================================
+
+bool SceneRenderFeature::EnsureDoubleSidedPipelineCreated(GfxRenderer* gfxRenderer)
+{
+  if (m_doubleSidedPipelineCreated) {
+    return true;
+  }
+
+  // Static pipeline must be created first (we reuse some resources)
+  if (!m_pipelineCreated) {
+    if (!EnsurePipelineCreated(gfxRenderer)) {
+      return false;
+    }
+  }
+
+  // Compile shader with VFS include support
+  char* error = nullptr;
+  hina_hsl_module* module = CompileHSLWithIncludes(kGBufferShaderPath, "scene_gbuffer_doublesided", &error);
+  if (!module) {
+    LOG_ERROR("[SceneRenderFeature] Double-sided shader compilation failed: {}", error ? error : "unknown");
+    if (error) hslc_free_log(error);
+    return false;
+  }
+
+  // Material layout from GfxRenderer (Set 1: constants UBO + textures)
+  gfx::BindGroupLayout materialLayout = gfxRenderer->getMaterialLayout();
+  // Dynamic layout from GfxRenderer (Set 2: transform UBO with dynamic offset)
+  gfx::BindGroupLayout dynamicLayout = gfxRenderer->getDynamicLayout();
+
+  // Vertex layout for split streams (same as static)
+  hina_vertex_layout vertex_layout = {};
+  vertex_layout.buffer_count = 2;
+  vertex_layout.buffer_strides[0] = sizeof(gfx::VertexPosition);
+  vertex_layout.input_rates[0] = HINA_VERTEX_INPUT_RATE_VERTEX;
+  vertex_layout.buffer_strides[1] = sizeof(gfx::VertexAttributes);
+  vertex_layout.input_rates[1] = HINA_VERTEX_INPUT_RATE_VERTEX;
+  vertex_layout.attr_count = 4;
+  vertex_layout.attrs[0] = { HINA_FORMAT_R32G32B32_SFLOAT, 0, 0, 0 };
+  vertex_layout.attrs[1] = { HINA_FORMAT_R32_UINT, 0, 1, 1 };
+  vertex_layout.attrs[2] = { HINA_FORMAT_R32_UINT, 4, 2, 1 };
+  vertex_layout.attrs[3] = { HINA_FORMAT_R32_UINT, 8, 3, 1 };
+
+  // Get tile pass layout for subpass 0 (G-buffer)
+  hina_tile_pass_layout tileLayout = GetDeferredTilePassLayout();
+
+  hina_hsl_pipeline_desc pip_desc = hina_hsl_pipeline_desc_default();
+  pip_desc.layout = vertex_layout;
+  pip_desc.cull_mode = HINA_CULL_MODE_NONE;  // NO culling for double-sided materials
+  pip_desc.front_face = HINA_FRONT_FACE_COUNTER_CLOCKWISE;
+  pip_desc.depth.depth_test = true;
+  pip_desc.depth.depth_write = true;
+  pip_desc.depth.depth_compare = HINA_COMPARE_OP_LESS;
+  pip_desc.depth_format = HINA_FORMAT_D32_SFLOAT;
+  pip_desc.color_formats[0] = HINA_FORMAT_R8G8B8A8_SRGB;
+  pip_desc.color_formats[1] = HINA_FORMAT_R16G16_SFLOAT;
+  pip_desc.color_formats[2] = HINA_FORMAT_R8G8B8A8_UNORM;
+  pip_desc.color_formats[3] = HINA_FORMAT_R32_UINT;
+  pip_desc.bind_group_layouts[0] = m_sceneLayout.get();
+  pip_desc.bind_group_layouts[1] = materialLayout;
+  pip_desc.bind_group_layouts[2] = dynamicLayout;
+  pip_desc.tile_layout = &tileLayout;
+  pip_desc.subpass_index = 0;
+
+  m_gbufferDoubleSidedPipeline.reset(hina_make_pipeline_from_module(module, &pip_desc, nullptr));
+  hslc_hsl_module_free(module);
+
+  if (!hina_pipeline_is_valid(m_gbufferDoubleSidedPipeline.get())) {
+    LOG_ERROR("[SceneRenderFeature] Double-sided pipeline creation failed");
+    return false;
+  }
+
+  LOG_INFO("[SceneRenderFeature] Double-sided static pipeline created successfully");
+  m_doubleSidedPipelineCreated = true;
+  return true;
+}
+
+bool SceneRenderFeature::EnsureSkinnedDoubleSidedPipelineCreated(GfxRenderer* gfxRenderer)
+{
+  if (m_skinnedDoubleSidedPipelineCreated) {
+    return true;
+  }
+
+  // Skinned pipeline must be created first (we reuse some resources)
+  if (!m_skinnedPipelineCreated) {
+    if (!EnsureSkinnedPipelineCreated(gfxRenderer)) {
+      return false;
+    }
+  }
+
+  // Compile shader with VFS include support
+  char* error = nullptr;
+  hina_hsl_module* module = CompileHSLWithIncludes(kGBufferSkinnedShaderPath, "scene_gbuffer_skinned_doublesided", &error);
+  if (!module) {
+    LOG_ERROR("[SceneRenderFeature] Skinned double-sided shader compilation failed: {}", error ? error : "unknown");
+    if (error) hslc_free_log(error);
+    return false;
+  }
+
+  // Material layout from GfxRenderer
+  gfx::BindGroupLayout materialLayout = gfxRenderer->getMaterialLayout();
+  gfx::BindGroupLayout dynamicLayout = gfxRenderer->getDynamicLayout();
+
+  // Vertex layout for split streams (3 buffers for skinned meshes)
+  hina_vertex_layout vertex_layout = {};
+  vertex_layout.buffer_count = 3;
+  vertex_layout.buffer_strides[0] = sizeof(gfx::VertexPosition);
+  vertex_layout.input_rates[0] = HINA_VERTEX_INPUT_RATE_VERTEX;
+  vertex_layout.buffer_strides[1] = sizeof(gfx::VertexAttributes);
+  vertex_layout.input_rates[1] = HINA_VERTEX_INPUT_RATE_VERTEX;
+  vertex_layout.buffer_strides[2] = sizeof(gfx::VertexSkinning);
+  vertex_layout.input_rates[2] = HINA_VERTEX_INPUT_RATE_VERTEX;
+  vertex_layout.attr_count = 6;
+  vertex_layout.attrs[0] = { HINA_FORMAT_R32G32B32_SFLOAT, 0, 0, 0 };
+  vertex_layout.attrs[1] = { HINA_FORMAT_R32_UINT, 0, 1, 1 };
+  vertex_layout.attrs[2] = { HINA_FORMAT_R32_UINT, 4, 2, 1 };
+  vertex_layout.attrs[3] = { HINA_FORMAT_R32_UINT, 8, 3, 1 };
+  vertex_layout.attrs[4] = { HINA_FORMAT_R8G8B8A8_UINT, 0, 4, 2 };
+  vertex_layout.attrs[5] = { HINA_FORMAT_R8G8B8A8_UNORM, 4, 5, 2 };
+
+  hina_tile_pass_layout tileLayout = GetDeferredTilePassLayout();
+
+  hina_hsl_pipeline_desc pip_desc = hina_hsl_pipeline_desc_default();
+  pip_desc.layout = vertex_layout;
+  pip_desc.cull_mode = HINA_CULL_MODE_NONE;  // NO culling for double-sided materials
+  pip_desc.front_face = HINA_FRONT_FACE_COUNTER_CLOCKWISE;
+  pip_desc.depth.depth_test = true;
+  pip_desc.depth.depth_write = true;
+  pip_desc.depth.depth_compare = HINA_COMPARE_OP_LESS;
+  pip_desc.depth_format = HINA_FORMAT_D32_SFLOAT;
+  pip_desc.color_formats[0] = HINA_FORMAT_R8G8B8A8_SRGB;
+  pip_desc.color_formats[1] = HINA_FORMAT_R16G16_SFLOAT;
+  pip_desc.color_formats[2] = HINA_FORMAT_R8G8B8A8_UNORM;
+  pip_desc.color_formats[3] = HINA_FORMAT_R32_UINT;
+  pip_desc.bind_group_layouts[0] = m_sceneLayout.get();
+  pip_desc.bind_group_layouts[1] = materialLayout;
+  pip_desc.bind_group_layouts[2] = dynamicLayout;
+  pip_desc.tile_layout = &tileLayout;
+  pip_desc.subpass_index = 0;
+
+  m_gbufferSkinnedDoubleSidedPipeline.reset(hina_make_pipeline_from_module(module, &pip_desc, nullptr));
+  hslc_hsl_module_free(module);
+
+  if (!hina_pipeline_is_valid(m_gbufferSkinnedDoubleSidedPipeline.get())) {
+    LOG_ERROR("[SceneRenderFeature] Skinned double-sided pipeline creation failed");
+    return false;
+  }
+
+  LOG_INFO("[SceneRenderFeature] Double-sided skinned pipeline created successfully");
+  m_skinnedDoubleSidedPipelineCreated = true;
+  return true;
+}
+
+bool SceneRenderFeature::EnsureMorphedDoubleSidedPipelineCreated(GfxRenderer* gfxRenderer)
+{
+  if (m_morphedDoubleSidedPipelineCreated) {
+    return true;
+  }
+
+  // Skinned double-sided pipeline must be created first
+  if (!m_skinnedDoubleSidedPipelineCreated) {
+    if (!EnsureSkinnedDoubleSidedPipelineCreated(gfxRenderer)) {
+      return false;
+    }
+  }
+
+  // Compile shader with VFS include support
+  char* error = nullptr;
+  hina_hsl_module* module = CompileHSLWithIncludes(kGBufferMorphedShaderPath, "scene_gbuffer_morphed_doublesided", &error);
+  if (!module) {
+    LOG_WARNING("[SceneRenderFeature] Morphed double-sided shader compilation failed: {}, falling back to skinned",
+             error ? error : "unknown");
+    if (error) hslc_free_log(error);
+    m_morphedDoubleSidedPipelineCreated = true;  // Mark as "created" to avoid repeated attempts
+    return true;
+  }
+
+  // Material layout from GfxRenderer
+  gfx::BindGroupLayout materialLayout = gfxRenderer->getMaterialLayout();
+  gfx::BindGroupLayout dynamicLayout = gfxRenderer->getDynamicLayout();
+
+  // Vertex layout for split streams (4 buffers for morphed meshes)
+  hina_vertex_layout vertex_layout = {};
+  vertex_layout.buffer_count = 4;
+  vertex_layout.buffer_strides[0] = sizeof(gfx::VertexPosition);
+  vertex_layout.input_rates[0] = HINA_VERTEX_INPUT_RATE_VERTEX;
+  vertex_layout.buffer_strides[1] = sizeof(gfx::VertexAttributes);
+  vertex_layout.input_rates[1] = HINA_VERTEX_INPUT_RATE_VERTEX;
+  vertex_layout.buffer_strides[2] = sizeof(gfx::VertexSkinning);
+  vertex_layout.input_rates[2] = HINA_VERTEX_INPUT_RATE_VERTEX;
+  vertex_layout.buffer_strides[3] = 12;  // sizeof(vec3)
+  vertex_layout.input_rates[3] = HINA_VERTEX_INPUT_RATE_VERTEX;
+  vertex_layout.attr_count = 7;
+  vertex_layout.attrs[0] = { HINA_FORMAT_R32G32B32_SFLOAT, 0, 0, 0 };
+  vertex_layout.attrs[1] = { HINA_FORMAT_R32_UINT, 0, 1, 1 };
+  vertex_layout.attrs[2] = { HINA_FORMAT_R32_UINT, 4, 2, 1 };
+  vertex_layout.attrs[3] = { HINA_FORMAT_R32_UINT, 8, 3, 1 };
+  vertex_layout.attrs[4] = { HINA_FORMAT_R8G8B8A8_UINT, 0, 4, 2 };
+  vertex_layout.attrs[5] = { HINA_FORMAT_R8G8B8A8_UNORM, 4, 5, 2 };
+  vertex_layout.attrs[6] = { HINA_FORMAT_R32G32B32_SFLOAT, 0, 6, 3 };
+
+  hina_tile_pass_layout tileLayout = GetDeferredTilePassLayout();
+
+  hina_hsl_pipeline_desc pip_desc = hina_hsl_pipeline_desc_default();
+  pip_desc.layout = vertex_layout;
+  pip_desc.cull_mode = HINA_CULL_MODE_NONE;  // NO culling for double-sided materials
+  pip_desc.front_face = HINA_FRONT_FACE_COUNTER_CLOCKWISE;
+  pip_desc.depth.depth_test = true;
+  pip_desc.depth.depth_write = true;
+  pip_desc.depth.depth_compare = HINA_COMPARE_OP_LESS;
+  pip_desc.depth_format = HINA_FORMAT_D32_SFLOAT;
+  pip_desc.color_formats[0] = HINA_FORMAT_R8G8B8A8_SRGB;
+  pip_desc.color_formats[1] = HINA_FORMAT_R16G16_SFLOAT;
+  pip_desc.color_formats[2] = HINA_FORMAT_R8G8B8A8_UNORM;
+  pip_desc.color_formats[3] = HINA_FORMAT_R32_UINT;
+  pip_desc.bind_group_layouts[0] = m_sceneLayout.get();
+  pip_desc.bind_group_layouts[1] = materialLayout;
+  pip_desc.bind_group_layouts[2] = dynamicLayout;
+  pip_desc.tile_layout = &tileLayout;
+  pip_desc.subpass_index = 0;
+
+  m_gbufferMorphedDoubleSidedPipeline.reset(hina_make_pipeline_from_module(module, &pip_desc, nullptr));
+  hslc_hsl_module_free(module);
+
+  if (!hina_pipeline_is_valid(m_gbufferMorphedDoubleSidedPipeline.get())) {
+    LOG_WARNING("[SceneRenderFeature] Morphed double-sided pipeline creation failed, falling back to skinned");
+    m_morphedDoubleSidedPipelineCreated = true;  // Mark as "created" to avoid repeated attempts
+    return true;
+  }
+
+  LOG_INFO("[SceneRenderFeature] Double-sided morphed pipeline created successfully");
+  m_morphedDoubleSidedPipelineCreated = true;
+  return true;
+}
+
 void SceneRenderFeature::UpdateScene(uint64_t renderFeatureID,
                                       const Resource::ResourceManager& resourceMngr,
                                       GfxRenderer& renderer)
@@ -716,7 +952,7 @@ void SceneRenderFeature::UpdateScene(uint64_t renderFeatureID,
             mesh->defaultMaterialHashes[i]);
       }
 
-      // Check material and determine if transparent
+      // Check material and determine if transparent / double-sided
       bool isTransparent = false;
       if (material && material->handle.isValid()) {
         const auto* matHotData = resourceMngr.getMaterialHotData(material->handle);
@@ -728,6 +964,12 @@ void SceneRenderFeature::UpdateScene(uint64_t renderFeatureID,
           // Check render queue for transparency routing
           if (matHotData->renderQueue == RenderQueue::Transparent) {
             isTransparent = true;
+          }
+
+          // Check material for double-sided flag
+          const auto* matEntry = renderer.getMaterialSystem().getMaterial(draw.gfxMaterial);
+          if (matEntry) {
+            draw.doubleSided = matEntry->material.doubleSided;
           }
         }
       }
@@ -986,7 +1228,7 @@ void SceneRenderFeature::ExecuteGBufferPass(internal::ExecutionContext& ctx)
       // Check transform ring buffer overflow
       if (frame.transformRingOffset >= TRANSFORM_UBO_SIZE) {
         if (!m_transformOverflowWarned) {
-          LOG_WARN("[SceneRenderFeature] Transform ring buffer overflow! Some objects will not be rendered. "
+          LOG_WARNING("[SceneRenderFeature] Transform ring buffer overflow! Some objects will not be rendered. "
                    "Consider reducing draw count or increasing MAX_TRANSFORMS (current: {})", MAX_TRANSFORMS);
           m_transformOverflowWarned = true;
         }
@@ -1062,7 +1304,7 @@ void SceneRenderFeature::ExecuteGBufferPass(internal::ExecutionContext& ctx)
           // Check buffer overflow
           if (frame.transformRingOffset >= TRANSFORM_UBO_SIZE) {
             if (!m_transformOverflowWarned) {
-              LOG_WARN("[SceneRenderFeature] Transform ring buffer overflow (skinned)! "
+              LOG_WARNING("[SceneRenderFeature] Transform ring buffer overflow (skinned)! "
                        "Some objects will not be rendered.");
               m_transformOverflowWarned = true;
             }
@@ -1071,7 +1313,7 @@ void SceneRenderFeature::ExecuteGBufferPass(internal::ExecutionContext& ctx)
           }
           if (frame.boneMatrixRingOffset >= BONE_MATRIX_UBO_SIZE) {
             if (!m_boneOverflowWarned) {
-              LOG_WARN("[SceneRenderFeature] Bone matrix ring buffer overflow! "
+              LOG_WARNING("[SceneRenderFeature] Bone matrix ring buffer overflow! "
                        "Some skinned objects will not be rendered.");
               m_boneOverflowWarned = true;
             }
@@ -1180,7 +1422,7 @@ void SceneRenderFeature::ExecuteGBufferPass(internal::ExecutionContext& ctx)
           // Check buffer overflow
           if (frame.transformRingOffset >= TRANSFORM_UBO_SIZE) {
             if (!m_transformOverflowWarned) {
-              LOG_WARN("[SceneRenderFeature] Transform ring buffer overflow (morphed)! "
+              LOG_WARNING("[SceneRenderFeature] Transform ring buffer overflow (morphed)! "
                        "Some objects will not be rendered.");
               m_transformOverflowWarned = true;
             }
@@ -1189,7 +1431,7 @@ void SceneRenderFeature::ExecuteGBufferPass(internal::ExecutionContext& ctx)
           }
           if (frame.boneMatrixRingOffset >= BONE_MATRIX_UBO_SIZE) {
             if (!m_boneOverflowWarned) {
-              LOG_WARN("[SceneRenderFeature] Bone matrix ring buffer overflow (morphed)! "
+              LOG_WARNING("[SceneRenderFeature] Bone matrix ring buffer overflow (morphed)! "
                        "Some objects will not be rendered.");
               m_boneOverflowWarned = true;
             }
@@ -1412,7 +1654,7 @@ void SceneRenderFeature::ExecuteWBOITAccumulation(internal::ExecutionContext& ct
     // Note: Must break (not continue) to keep m_wboitDrawOffsets in sync for TransparentPicking
     if (frame.transformRingOffset >= TRANSFORM_UBO_SIZE) {
       if (!m_transformOverflowWarned) {
-        LOG_WARN("[SceneRenderFeature] Transform ring buffer overflow (WBOIT)! "
+        LOG_WARNING("[SceneRenderFeature] Transform ring buffer overflow (WBOIT)! "
                  "Some transparent objects will not be rendered or pickable. "
                  "Drew {}/{} transparent objects.", m_wboitDrawOffsets.size(), m_transparentDrawList.size());
         m_transformOverflowWarned = true;
@@ -1454,19 +1696,26 @@ void SceneRenderFeature::ExecuteWBOITAccumulation(internal::ExecutionContext& ct
     // Handle bone matrices for skinned meshes
     uint32_t boneOffset = 0;
     if (draw.isSkinned && draw.skinMatrices && draw.jointCount > 0) {
-      // Check bone ring buffer overflow
-      size_t boneDataSize = draw.jointCount * sizeof(glm::mat4);
-      size_t alignedBoneSize = (boneDataSize + 255) & ~255;  // 256-byte alignment
-
-      if (frame.boneMatrixRingOffset + alignedBoneSize <= BONE_MATRIX_UBO_SIZE) {
+      // Always use full bone matrix size for consistency with G-Buffer pass
+      if (frame.boneMatrixRingOffset + gfx::BONE_MATRICES_SIZE <= BONE_MATRIX_UBO_SIZE) {
         boneOffset = frame.boneMatrixRingOffset;
 
         // Upload bone matrices to ring buffer
         glm::mat4* boneDst = reinterpret_cast<glm::mat4*>(
             static_cast<uint8_t*>(frame.boneMatrixRingMapped) + frame.boneMatrixRingOffset);
-        std::memcpy(boneDst, draw.skinMatrices, boneDataSize);
 
-        frame.boneMatrixRingOffset += static_cast<uint32_t>(alignedBoneSize);
+        // Initialize ALL 256 slots with identity first (prevents garbage in unused slots)
+        // This matches G-Buffer pass behavior and prevents 0 * NaN = NaN artifacts
+        static const glm::mat4 identity(1.0f);
+        for (uint32_t i = 0; i < gfx::MAX_BONES_PER_MESH; ++i) {
+          boneDst[i] = identity;
+        }
+        // Copy actual bone matrices
+        uint32_t numBones = std::min(draw.jointCount, gfx::MAX_BONES_PER_MESH);
+        std::memcpy(boneDst, draw.skinMatrices, numBones * sizeof(glm::mat4));
+
+        // Always advance by full size for consistency
+        frame.boneMatrixRingOffset += gfx::BONE_MATRICES_SIZE;
       }
     }
 
@@ -2162,7 +2411,7 @@ void SceneRenderFeature::EnsureWBOITPipelines(internal::ExecutionContext& ctx)
   pick_pip_desc.front_face = HINA_FRONT_FACE_COUNTER_CLOCKWISE;
   pick_pip_desc.depth.depth_test = true;
   pick_pip_desc.depth.depth_write = true;  // critical: makes front-most transparent win
-  pick_pip_desc.depth.depth_compare = HINA_COMPARE_OP_LESS;
+  pick_pip_desc.depth.depth_compare = HINA_COMPARE_OP_LESS_OR_EQUAL;  // LESS_OR_EQUAL so co-planar transparents can be picked
   pick_pip_desc.depth_format = HINA_FORMAT_D32_SFLOAT;
   pick_pip_desc.color_formats[0] = HINA_FORMAT_R32_UINT;  // VisibilityID target
   pick_pip_desc.bind_group_layouts[0] = m_wboitFrameLayout.get();
@@ -2190,7 +2439,7 @@ void SceneRenderFeature::EnsureWBOITPipelines(internal::ExecutionContext& ctx)
   pick_skinned_pip_desc.front_face = HINA_FRONT_FACE_COUNTER_CLOCKWISE;
   pick_skinned_pip_desc.depth.depth_test = true;
   pick_skinned_pip_desc.depth.depth_write = true;
-  pick_skinned_pip_desc.depth.depth_compare = HINA_COMPARE_OP_LESS;
+  pick_skinned_pip_desc.depth.depth_compare = HINA_COMPARE_OP_LESS_OR_EQUAL;  // LESS_OR_EQUAL so co-planar transparents can be picked
   pick_skinned_pip_desc.depth_format = HINA_FORMAT_D32_SFLOAT;
   pick_skinned_pip_desc.color_formats[0] = HINA_FORMAT_R32_UINT;
   pick_skinned_pip_desc.bind_group_layouts[0] = m_wboitFrameLayout.get();
@@ -2834,13 +3083,19 @@ void SceneRenderFeature::ExecuteDeferredTilePass(internal::ExecutionContext& ctx
       return;
     }
 
-    // Separate draws into static, skinned, and morphed
+    // Separate draws into static, skinned, and morphed (regular and double-sided variants)
     std::vector<const DrawData*> staticDraws;
+    std::vector<const DrawData*> staticDrawsDS;  // double-sided
     std::vector<const DrawData*> skinnedDraws;
+    std::vector<const DrawData*> skinnedDrawsDS;  // double-sided
     std::vector<const DrawData*> morphedDraws;
+    std::vector<const DrawData*> morphedDrawsDS;  // double-sided
     staticDraws.reserve(m_drawList.size());
+    staticDrawsDS.reserve(16);
     skinnedDraws.reserve(32);
+    skinnedDrawsDS.reserve(16);
     morphedDraws.reserve(16);
+    morphedDrawsDS.reserve(8);
 
     for (const auto& draw : m_drawList) {
       const gfx::GpuMesh* gpuMesh = meshStorage.get(draw.gfxMesh);
@@ -2849,12 +3104,24 @@ void SceneRenderFeature::ExecuteDeferredTilePass(internal::ExecutionContext& ctx
 
       if (draw.isSkinned && draw.skinMatrices && meshHasSkinning) {
         if (draw.hasMorphs && draw.morphWeights && meshHasMorphs) {
-          morphedDraws.push_back(&draw);
+          if (draw.doubleSided) {
+            morphedDrawsDS.push_back(&draw);
+          } else {
+            morphedDraws.push_back(&draw);
+          }
         } else {
-          skinnedDraws.push_back(&draw);
+          if (draw.doubleSided) {
+            skinnedDrawsDS.push_back(&draw);
+          } else {
+            skinnedDraws.push_back(&draw);
+          }
         }
       } else {
-        staticDraws.push_back(&draw);
+        if (draw.doubleSided) {
+          staticDrawsDS.push_back(&draw);
+        } else {
+          staticDraws.push_back(&draw);
+        }
       }
     }
 
@@ -2865,8 +3132,11 @@ void SceneRenderFeature::ExecuteDeferredTilePass(internal::ExecutionContext& ctx
       return a->gfxMaterial.generation < b->gfxMaterial.generation;
     };
     std::sort(staticDraws.begin(), staticDraws.end(), sortByMaterial);
+    std::sort(staticDrawsDS.begin(), staticDrawsDS.end(), sortByMaterial);
     std::sort(skinnedDraws.begin(), skinnedDraws.end(), sortByMaterial);
+    std::sort(skinnedDrawsDS.begin(), skinnedDrawsDS.end(), sortByMaterial);
     std::sort(morphedDraws.begin(), morphedDraws.end(), sortByMaterial);
+    std::sort(morphedDrawsDS.begin(), morphedDrawsDS.end(), sortByMaterial);
 
     // Draw static meshes
     gfx::BindGroup lastMaterialBG = {};
@@ -2911,6 +3181,55 @@ void SceneRenderFeature::ExecuteDeferredTilePass(internal::ExecutionContext& ctx
       frame.transformRingOffset += TRANSFORM_ALIGNMENT;
 
       hina_cmd_draw_indexed(cmd, gpuMesh->indexCount, 1, gpuMesh->indexOffset / sizeof(uint32_t), 0, 0);
+    }
+
+    // Draw double-sided static meshes
+    if (!staticDrawsDS.empty() && EnsureDoubleSidedPipelineCreated(gfxRenderer)) {
+      lastMaterialBG = {};
+      hina_cmd_bind_pipeline(cmd, m_gbufferDoubleSidedPipeline.get());
+      hina_cmd_bind_group(cmd, 0, m_sceneBindGroup);
+
+      for (const DrawData* drawPtr : staticDrawsDS) {
+        const DrawData& draw = *drawPtr;
+        const gfx::GpuMesh* gpuMesh = meshStorage.get(draw.gfxMesh);
+        if (!gpuMesh || !gpuMesh->valid) continue;
+        if (frame.transformRingOffset >= TRANSFORM_UBO_SIZE) break;
+
+        uint8_t* slotPtr = static_cast<uint8_t*>(frame.transformRingMapped) + frame.transformRingOffset;
+        glm::mat4* transformDst = reinterpret_cast<glm::mat4*>(slotPtr);
+        *transformDst = draw.transform;
+        uint32_t* objectIdDst = reinterpret_cast<uint32_t*>(slotPtr + sizeof(glm::mat4));
+        *objectIdDst = draw.objectId;
+        uint32_t* flagsDst = reinterpret_cast<uint32_t*>(slotPtr + sizeof(glm::mat4) + sizeof(uint32_t));
+        float det = glm::determinant(draw.transform);
+        *flagsDst = (det < 0.0f) ? 1u : 0u;
+
+        hina_vertex_input meshInput = {};
+        meshInput.vertex_buffers[0] = gpuMesh->vertexBuffer;
+        meshInput.vertex_offsets[0] = gpuMesh->vertexOffset;
+        meshInput.vertex_buffers[1] = gpuMesh->attributeBuffer;
+        meshInput.vertex_offsets[1] = gpuMesh->attributeOffset;
+        meshInput.index_buffer = gpuMesh->indexBuffer;
+        meshInput.index_type = HINA_INDEX_UINT32;
+        hina_cmd_apply_vertex_input(cmd, &meshInput);
+
+        gfx::BindGroup materialBG;
+        if (draw.hasMaterial && materialSystem.isMaterialValid(draw.gfxMaterial)) {
+          materialBG = materialSystem.getMaterialBindGroup(draw.gfxMaterial);
+        } else {
+          materialBG = materialSystem.getMaterialBindGroup(materialSystem.getDefaultMaterial());
+        }
+        if (materialBG.id != lastMaterialBG.id) {
+          hina_cmd_bind_group(cmd, 1, materialBG);
+          lastMaterialBG = materialBG;
+        }
+
+        uint32_t dynamicOffsets[2] = { frame.transformRingOffset, 0 };
+        hina_cmd_bind_group_with_offsets(cmd, 2, frame.dynamicBindGroup, dynamicOffsets, 2);
+        frame.transformRingOffset += TRANSFORM_ALIGNMENT;
+
+        hina_cmd_draw_indexed(cmd, gpuMesh->indexCount, 1, gpuMesh->indexOffset / sizeof(uint32_t), 0, 0);
+      }
     }
 
     // Draw skinned meshes
@@ -2973,6 +3292,65 @@ void SceneRenderFeature::ExecuteDeferredTilePass(internal::ExecutionContext& ctx
       }
     }
 
+    // Draw double-sided skinned meshes
+    if (!skinnedDrawsDS.empty() && EnsureSkinnedDoubleSidedPipelineCreated(gfxRenderer) && frame.boneMatrixRingMapped) {
+      lastMaterialBG = {};
+      hina_cmd_bind_pipeline(cmd, m_gbufferSkinnedDoubleSidedPipeline.get());
+      hina_cmd_bind_group(cmd, 0, m_sceneBindGroup);
+
+      for (const DrawData* drawPtr : skinnedDrawsDS) {
+        const DrawData& draw = *drawPtr;
+        const gfx::GpuMesh* gpuMesh = meshStorage.get(draw.gfxMesh);
+        if (!gpuMesh || !gpuMesh->valid) continue;
+        if (frame.transformRingOffset >= TRANSFORM_UBO_SIZE || frame.boneMatrixRingOffset >= BONE_MATRIX_UBO_SIZE) break;
+
+        uint8_t* slotPtr = static_cast<uint8_t*>(frame.transformRingMapped) + frame.transformRingOffset;
+        glm::mat4* transformDst = reinterpret_cast<glm::mat4*>(slotPtr);
+        *transformDst = draw.transform;
+        uint32_t* objectIdDst = reinterpret_cast<uint32_t*>(slotPtr + sizeof(glm::mat4));
+        *objectIdDst = draw.objectId;
+        uint32_t* flagsDst = reinterpret_cast<uint32_t*>(slotPtr + sizeof(glm::mat4) + sizeof(uint32_t));
+        float det = glm::determinant(draw.transform);
+        *flagsDst = (det < 0.0f) ? 1u : 0u;
+
+        uint32_t numBones = std::min(draw.jointCount, gfx::MAX_BONES_PER_MESH);
+        glm::mat4* bonesDst = reinterpret_cast<glm::mat4*>(
+            static_cast<uint8_t*>(frame.boneMatrixRingMapped) + frame.boneMatrixRingOffset);
+        static const glm::mat4 identity(1.0f);
+        for (uint32_t i = 0; i < gfx::MAX_BONES_PER_MESH; ++i) bonesDst[i] = identity;
+        std::memcpy(bonesDst, draw.skinMatrices, numBones * sizeof(glm::mat4));
+
+        hina_vertex_input meshInput = {};
+        meshInput.vertex_buffers[0] = gpuMesh->vertexBuffer;
+        meshInput.vertex_offsets[0] = gpuMesh->vertexOffset;
+        meshInput.vertex_buffers[1] = gpuMesh->attributeBuffer;
+        meshInput.vertex_offsets[1] = gpuMesh->attributeOffset;
+        meshInput.vertex_buffers[2] = gpuMesh->skinningBuffer;
+        meshInput.vertex_offsets[2] = gpuMesh->skinningOffset;
+        meshInput.index_buffer = gpuMesh->indexBuffer;
+        meshInput.index_type = HINA_INDEX_UINT32;
+        hina_cmd_apply_vertex_input(cmd, &meshInput);
+
+        gfx::BindGroup materialBG;
+        if (draw.hasMaterial && materialSystem.isMaterialValid(draw.gfxMaterial)) {
+          materialBG = materialSystem.getMaterialBindGroup(draw.gfxMaterial);
+        } else {
+          materialBG = materialSystem.getMaterialBindGroup(materialSystem.getDefaultMaterial());
+        }
+        if (materialBG.id != lastMaterialBG.id) {
+          hina_cmd_bind_group(cmd, 1, materialBG);
+          lastMaterialBG = materialBG;
+        }
+
+        uint32_t dynamicOffsets[2] = { frame.transformRingOffset, frame.boneMatrixRingOffset };
+        hina_cmd_bind_group_with_offsets(cmd, 2, frame.dynamicBindGroup, dynamicOffsets, 2);
+        frame.transformRingOffset += TRANSFORM_ALIGNMENT;
+        frame.boneMatrixRingOffset += gfx::BONE_MATRICES_SIZE;
+
+        hina_cmd_draw_indexed(cmd, gpuMesh->indexCount, 1, gpuMesh->indexOffset / sizeof(uint32_t), 0, 0);
+      }
+    }
+
     // Draw morphed meshes (using skinned pipeline for now)
     if (!morphedDraws.empty() && EnsureSkinnedPipelineCreated(gfxRenderer) && frame.boneMatrixRingMapped) {
       lastMaterialBG = {};
@@ -2991,6 +3369,65 @@ void SceneRenderFeature::ExecuteDeferredTilePass(internal::ExecutionContext& ctx
         uint32_t* objectIdDst = reinterpret_cast<uint32_t*>(slotPtr + sizeof(glm::mat4));
         *objectIdDst = draw.objectId;
         // Write flags at offset 68 - bit 0 = negative determinant
+        uint32_t* flagsDst = reinterpret_cast<uint32_t*>(slotPtr + sizeof(glm::mat4) + sizeof(uint32_t));
+        float det = glm::determinant(draw.transform);
+        *flagsDst = (det < 0.0f) ? 1u : 0u;
+
+        uint32_t numBones = std::min(draw.jointCount, gfx::MAX_BONES_PER_MESH);
+        glm::mat4* bonesDst = reinterpret_cast<glm::mat4*>(
+            static_cast<uint8_t*>(frame.boneMatrixRingMapped) + frame.boneMatrixRingOffset);
+        static const glm::mat4 identity(1.0f);
+        for (uint32_t i = 0; i < gfx::MAX_BONES_PER_MESH; ++i) bonesDst[i] = identity;
+        std::memcpy(bonesDst, draw.skinMatrices, numBones * sizeof(glm::mat4));
+
+        hina_vertex_input meshInput = {};
+        meshInput.vertex_buffers[0] = gpuMesh->vertexBuffer;
+        meshInput.vertex_offsets[0] = gpuMesh->vertexOffset;
+        meshInput.vertex_buffers[1] = gpuMesh->attributeBuffer;
+        meshInput.vertex_offsets[1] = gpuMesh->attributeOffset;
+        meshInput.vertex_buffers[2] = gpuMesh->skinningBuffer;
+        meshInput.vertex_offsets[2] = gpuMesh->skinningOffset;
+        meshInput.index_buffer = gpuMesh->indexBuffer;
+        meshInput.index_type = HINA_INDEX_UINT32;
+        hina_cmd_apply_vertex_input(cmd, &meshInput);
+
+        gfx::BindGroup materialBG;
+        if (draw.hasMaterial && materialSystem.isMaterialValid(draw.gfxMaterial)) {
+          materialBG = materialSystem.getMaterialBindGroup(draw.gfxMaterial);
+        } else {
+          materialBG = materialSystem.getMaterialBindGroup(materialSystem.getDefaultMaterial());
+        }
+        if (materialBG.id != lastMaterialBG.id) {
+          hina_cmd_bind_group(cmd, 1, materialBG);
+          lastMaterialBG = materialBG;
+        }
+
+        uint32_t dynamicOffsets[2] = { frame.transformRingOffset, frame.boneMatrixRingOffset };
+        hina_cmd_bind_group_with_offsets(cmd, 2, frame.dynamicBindGroup, dynamicOffsets, 2);
+        frame.transformRingOffset += TRANSFORM_ALIGNMENT;
+        frame.boneMatrixRingOffset += gfx::BONE_MATRICES_SIZE;
+
+        hina_cmd_draw_indexed(cmd, gpuMesh->indexCount, 1, gpuMesh->indexOffset / sizeof(uint32_t), 0, 0);
+      }
+    }
+
+    // Draw double-sided morphed meshes (using skinned double-sided pipeline for now)
+    if (!morphedDrawsDS.empty() && EnsureSkinnedDoubleSidedPipelineCreated(gfxRenderer) && frame.boneMatrixRingMapped) {
+      lastMaterialBG = {};
+      hina_cmd_bind_pipeline(cmd, m_gbufferSkinnedDoubleSidedPipeline.get());
+      hina_cmd_bind_group(cmd, 0, m_sceneBindGroup);
+
+      for (const DrawData* drawPtr : morphedDrawsDS) {
+        const DrawData& draw = *drawPtr;
+        const gfx::GpuMesh* gpuMesh = meshStorage.get(draw.gfxMesh);
+        if (!gpuMesh || !gpuMesh->valid) continue;
+        if (frame.transformRingOffset >= TRANSFORM_UBO_SIZE || frame.boneMatrixRingOffset >= BONE_MATRIX_UBO_SIZE) break;
+
+        uint8_t* slotPtr = static_cast<uint8_t*>(frame.transformRingMapped) + frame.transformRingOffset;
+        glm::mat4* transformDst = reinterpret_cast<glm::mat4*>(slotPtr);
+        *transformDst = draw.transform;
+        uint32_t* objectIdDst = reinterpret_cast<uint32_t*>(slotPtr + sizeof(glm::mat4));
+        *objectIdDst = draw.objectId;
         uint32_t* flagsDst = reinterpret_cast<uint32_t*>(slotPtr + sizeof(glm::mat4) + sizeof(uint32_t));
         float det = glm::determinant(draw.transform);
         *flagsDst = (det < 0.0f) ? 1u : 0u;

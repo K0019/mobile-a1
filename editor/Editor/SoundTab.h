@@ -10,6 +10,9 @@ namespace editor {
 		const char* GetIdentifier() const override;
 		void Render(const gui::TextBoxWithFilter& filter) override;
 
+		// Enable global search but disable view toggle and thumbnail slider (custom 2-column layout)
+		ToolbarCapabilities GetToolbarCapabilities() const override { return { false, false, true }; }
+
 	private:
 		void RenderSoundContextMenu(size_t hash, const std::string& name);
 

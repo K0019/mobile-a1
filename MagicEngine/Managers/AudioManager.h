@@ -104,6 +104,9 @@ public:
 	static FMOD_RESULT F_CALLBACK FileSeekCallback(void* handle, unsigned int pos, void* userdata);
 #endif
 
+	// Internal access for video audio playback
+	FMOD::System* INTERNAL_GetSystem() { return system; }
+
 private:
 	FMOD::System* system;
 	FMOD::Studio::System* fmod_studio;
