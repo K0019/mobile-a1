@@ -203,6 +203,8 @@ namespace physics {
 			JPH::Vec3 currVel{ character->GetLinearVelocity() };
 			JPH::Vec3 vel{ velocity.x, currVel.GetY() , velocity.z };
 			vel += GRAVITY * GameTime::Dt();
+			if (character->GetGroundState() == JPH::CharacterBase::EGroundState::OnGround)
+				vel.SetY(-0.1f);
 			character->SetLinearVelocity(vel);
 			character->Update(GameTime::Dt(), GRAVITY,
 				physicsSystem.GetDefaultBroadPhaseLayerFilter(+Layers::MOVING),

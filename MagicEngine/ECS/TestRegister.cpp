@@ -36,6 +36,7 @@
 #include "UI/HealthBarComponent.h"
 #include "UI/DelusionBarComponent.h"
 #include "UI/DelusionRankComponent.h"
+#include "Engine/VideoPlayer.h"
 #include "Engine/Platform/Android/AndroidUIDeleter.h"
 #include "Engine/Platform/Android/AndroidMaterialSwapper.h"
 #include "Engine/Platform/Desktop/DesktopUIDeleter.h"
@@ -81,6 +82,7 @@ void RegisterShit()
 	IRegisteredComponent<SliderComponent>::RegisterComponent();
 	IRegisteredComponent<TextComponent>::RegisterComponent();
 	IRegisteredComponent<BarComponent>::RegisterComponent();
+	IRegisteredComponent<VideoPlayerComponent>::RegisterComponent();
 	IRegisteredComponent<HealthBarComponent>::RegisterComponent();
 	IRegisteredComponent<DelusionBarComponent>::RegisterComponent();
 	IRegisteredComponent<DelusionRankComponent>::RegisterComponent();
@@ -93,4 +95,10 @@ void RegisterShit()
 	IRegisteredComponent<DelusionComponent>::RegisterComponent();
 	IRegisteredComponent<BoneAttachment>::RegisterComponent();
 	IRegisteredComponent<AnimatorComponent>::RegisterComponent();
+}
+
+void PreloadShit()
+{
+	// Need WeaponInfo because characters will read from it immediately on first frame
+	ST<AssetManager>::Get()->GetContainer<WeaponInfo>().RequestLoadAll();
 }
