@@ -805,6 +805,7 @@ void VideoManager::UpdateComponent(VideoPlayerComponent& player, float dt)
                     }
                     instance.audioStarted = false;
                     player.SetPlayingState(false, false);
+                    player.SetCurrentTime(player.GetVideoDuration());
                     break;
                 }
             }

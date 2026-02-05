@@ -81,6 +81,7 @@ public:
     UserResourceGetter(ResourceContainerBase<ResourceType>* container);
 
     const ResourceType* GetResource(size_t hash) const;
+    void RequestLoadAll();
 
 private:
     ResourceContainerBase<ResourceType>* container;

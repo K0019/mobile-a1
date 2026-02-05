@@ -10,6 +10,7 @@
 #include "EntityUID.h"
 #include "Engine/SceneTransition.h"
 #include "Engine/Audio.h"
+#include "Assets/Types/AssetTypesAudio.h"
 #include "Engine/BehaviorTree/BehaviourTree.h"
 #include "Engine/Platform/Android/AndroidInputManager.h"
 #include "Engine/EntityLayers.h"
@@ -36,7 +37,9 @@
 #include "UI/HealthBarComponent.h"
 #include "UI/DelusionBarComponent.h"
 #include "UI/DelusionRankComponent.h"
+#include "Engine/VideoPlayer.h"
 #include "Engine/Platform/Android/AndroidUIDeleter.h"
+#include "Engine/Platform/Android/AndroidMaterialSwapper.h"
 #include "Engine/Platform/Desktop/DesktopUIDeleter.h"
 #include "Game/FlashComponent.h"
 #include "Game/MaterialSwapper.h"
@@ -80,6 +83,7 @@ void RegisterShit()
 	IRegisteredComponent<SliderComponent>::RegisterComponent();
 	IRegisteredComponent<TextComponent>::RegisterComponent();
 	IRegisteredComponent<BarComponent>::RegisterComponent();
+	IRegisteredComponent<VideoPlayerComponent>::RegisterComponent();
 	IRegisteredComponent<HealthBarComponent>::RegisterComponent();
 	IRegisteredComponent<DelusionBarComponent>::RegisterComponent();
 	IRegisteredComponent<DelusionRankComponent>::RegisterComponent();
@@ -92,4 +96,13 @@ void RegisterShit()
 	IRegisteredComponent<DelusionComponent>::RegisterComponent();
 	IRegisteredComponent<BoneAttachment>::RegisterComponent();
 	IRegisteredComponent<AnimatorComponent>::RegisterComponent();
+}
+
+void PreloadShit()
+{
+	// Need WeaponInfo because characters will read from it immediately on first frame
+	ST<AssetManager>::Get()->GetContainer<WeaponInfo>().RequestLoadAll();
+	// Sounds don't play on first try
+	ST<AssetManager>::Get()->GetContainer<ResourceAudio>().RequestLoadAll();
+	ST<AssetManager>::Get()->GetContainer<ResourceAudioGroup>().RequestLoadAll();
 }

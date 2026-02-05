@@ -6,7 +6,7 @@
             "nodeLevel": 0
         },
         {
-            "nodeType": "Sequence",
+            "nodeType": "S_Boss_TransitionPhases",
             "nodeLevel": 1
         },
         {
@@ -22,7 +22,7 @@
             "nodeLevel": 2
         },
         {
-            "nodeType": "Sequence",
+            "nodeType": "S_Boss_TransitionPhases",
             "nodeLevel": 1
         },
         {

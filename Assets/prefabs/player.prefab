@@ -3,9 +3,9 @@
         {
             "parentIndex": -1,
             "position": {
-                "x": -10.0,
-                "y": 0.99993896484375,
-                "z": -20.0
+                "x": 0.8656575679779053,
+                "y": 1.0002456903457642,
+                "z": -18.208656311035156
             },
             "rotation": {
                 "x": 0.0,
@@ -20,151 +20,125 @@
             "components": {
                 "137465014557233347": {
                     "_active": true,
-                    "damage": 20.0
+                    "weaponInfo": {
+                        "hash": 8956332549044158285
+                    },
+                    "damage": 20.0,
+                    "attackBox": {
+                        "x": 0.20000000298023224,
+                        "y": 0.20000000298023224,
+                        "z": 1.0
+                    },
+                    "attackDelay": 0.3499999940395355,
+                    "audioName": "light attack #1 ",
+                    "audioStartIndex": 1,
+                    "audioEndIndex": 3,
+                    "lightAttackAnimation": {
+                        "hash": 2571380565928225517
+                    },
+                    "heavyAttackAnimation": {
+                        "hash": 5872848946299131223
+                    },
+                    "ultimAttackAnimation": {
+                        "hash": 1
+                    },
+                    "parryAnimation": {
+                        "hash": 2531389129002756825
+                    },
+                    "pickupUI": {
+                        "hash": 1
+                    }
                 },
                 "2263953158229251792": {
                     "_active": true,
+                    "grabDistance": 1.5,
+                    "ultimateAttackDamage": 1000.0,
+                    "enemyTargetRange": 2.0,
                     "cameraReference": {
                         "entityUid": 51380178370257494
                     },
                     "testReference": {
                         "entityUid": 3837990472816120687
                     },
-                    "grabDistance": 10.0
+                    "grabDistance": 1.5
+                },
+                "2481176255561649761": {
+                    "_active": true,
+                    "swapMaterial": {
+                        "hash": 1903056716174195867
+                    }
                 },
                 "5352011725353660904": {
                     "_active": true,
                     "meshHandle": {
-                        "hash": 2367158375008220311
+                        "hash": 2524908607468645077
                     },
                     "materials": [
                         {
-                            "hash": 2066018632834764617
+                            "hash": 2423412689108642351
                         },
                         {
-                            "hash": 2071445822229466957
+                            "hash": 2430346209433397811
                         },
                         {
-                            "hash": 2074502464554684239
+                            "hash": 2435522710176967221
                         },
                         {
-                            "hash": 2079186384089010001
+                            "hash": 2436473787734993467
                         },
                         {
-                            "hash": 2081450278530600787
+                            "hash": 2444372679268936255
                         },
                         {
-                            "hash": 2088955544901799765
+                            "hash": 2449725101872949829
                         },
                         {
-                            "hash": 2093651559064031065
+                            "hash": 2453365584872516173
                         },
                         {
-                            "hash": 2094548760552296283
+                            "hash": 2455669061732706901
                         },
                         {
-                            "hash": 2101693387109584733
+                            "hash": 2462240842731924055
                         },
                         {
-                            "hash": 2107168955015909217
+                            "hash": 2466697163359300185
                         },
                         {
-                            "hash": 2111818789689773923
+                            "hash": 2469611968684534365
                         },
                         {
-                            "hash": 2116413648782249829
+                            "hash": 2474677418753698401
                         },
                         {
-                            "hash": 2118799589014523753
+                            "hash": 2480574099613461093
                         },
                         {
-                            "hash": 2123432931013971819
+                            "hash": 2482058440310958695
                         },
                         {
-                            "hash": 2126338940246183789
+                            "hash": 2487066715775478377
                         },
                         {
-                            "hash": 2134131179152232303
+                            "hash": 2490923802565716587
                         },
                         {
-                            "hash": 2138932746430730097
+                            "hash": 2498559910820620911
                         },
                         {
-                            "hash": 2139455014453923699
+                            "hash": 2500813909657561713
                         },
                         {
-                            "hash": 2146192821708935029
+                            "hash": 2504851316354755187
                         },
                         {
-                            "hash": 2150961403638599543
+                            "hash": 2511684781121383031
                         },
                         {
-                            "hash": 2152916335312785273
-                        },
-                        {
-                            "hash": 2257266585858520109
-                        },
-                        {
-                            "hash": 2261277604276646959
-                        },
-                        {
-                            "hash": 2268040700299097137
-                        },
-                        {
-                            "hash": 2272210048391623733
-                        },
-                        {
-                            "hash": 2276289236530672695
-                        },
-                        {
-                            "hash": 2281171068157998137
-                        },
-                        {
-                            "hash": 2284659818552931389
-                        },
-                        {
-                            "hash": 2292213463435752511
-                        },
-                        {
-                            "hash": 2294598304156398661
-                        },
-                        {
-                            "hash": 2297669240132777031
-                        },
-                        {
-                            "hash": 2305206392341181515
-                        },
-                        {
-                            "hash": 2309738579270874191
-                        },
-                        {
-                            "hash": 2312452173968225363
-                        },
-                        {
-                            "hash": 2316311459781719125
-                        },
-                        {
-                            "hash": 2322310395222864983
-                        },
-                        {
-                            "hash": 2323958563152901209
-                        },
-                        {
-                            "hash": 2331936619524043867
-                        },
-                        {
-                            "hash": 2335676058570110045
-                        },
-                        {
-                            "hash": 2341418807801984097
-                        },
-                        {
-                            "hash": 2346254459940942947
-                        },
-                        {
-                            "hash": 2347659635801240677
+                            "hash": 2517394545004423801
                         }
-                    ]
+                    ],
+                    "castShadowOverride": -1
                 },
                 "6766054303456732338": {
                     "_active": true,
@@ -177,8 +151,8 @@
                 "7930599578754533802": {
                     "_active": true,
                     "maxHealth": 200.0,
-                    "currHealth": 100.0,
-                    "isInvincible": true
+                    "currHealth": 150.0,
+                    "invincibleState": 2
                 },
                 "9315785795257285655": {
                     "_active": true,
@@ -188,9 +162,7 @@
                     "_active": true,
                     "flags": {
                         "_majorityTrue": true,
-                        "_except": [
-                            "Is Kinematic"
-                        ]
+                        "_except": []
                     }
                 },
                 "10866432406532598116": {
@@ -200,71 +172,105 @@
                         "hash": 1903056716174195867
                     }
                 },
+                "12349219328363051475": {
+                    "_active": true
+                },
                 "15371168105777251288": {
                     "_active": true,
                     "animHandleA": {
-                        "hash": 2163277033381318523
-                    },
-                    "animHandleB": {
-                        "hash": 1
+                        "hash": 2559702652929616615
                     },
                     "isPlaying": true,
                     "loop": true,
-                    "crossfade": true,
-                    "blend": 0.0,
-                    "speed": 1.0
+                    "speed": 1.0,
+                    "transitionDuration": 0.20000000298023224
+                },
+                "16735904824485644755": {
+                    "_active": true,
+                    "maxDelusion": 100.0,
+                    "gainRate": 1.0,
+                    "lossRate": 1.0,
+                    "ultValue": 90.0,
+                    "currDelusion": 0.0,
+                    "delusionBuff1": {
+                        "entityUid": 3594836775503165829
+                    },
+                    "delusionBuff2": {
+                        "entityUid": 3660442435309304197
+                    },
+                    "delusionBuff3": {
+                        "entityUid": 3612425663012698501
+                    },
+                    "delusionBuff4": {
+                        "entityUid": 3631892516382472581
+                    }
                 },
                 "17579205194823809952": {
-                    "_active": true,
-                    "moveSpeed": 2.0,
-                    "rotateSpeed": 1440.0,
-                    "stunTimePerHit": 0.25,
-                    "groundFriction": 0.5,
-                    "dodgeCooldown": 1.0,
-                    "dodgeDuration": 0.20000000298023224,
-                    "dodgeSpeed": 6.0,
-                    "hitDebugObject": {
-                        "entityUid": 349141121578451334
-                    },
-                    "heldItem": {
-                        "entityUid": 0
-                    },
-                    "animations": [
-                        {
-                            "hash": 2180183124170002303
-                        },
-                        {
-                            "hash": 2370177633938117279
-                        },
-                        {
-                            "hash": 2233174087070666629
-                        },
-                        {
-                            "hash": 2163277033381318523
-                        },
-                        {
-                            "hash": 2179418963588697981
-                        }
-                    ]
-                },
-                "18236831197208900764": {
                     "_active": true,
                     "center": {
                         "x": 0.0,
                         "y": 0.800000011920929,
                         "z": 0.0
                     },
-                    "size": {
-                        "x": 0.20000000298023224,
-                        "y": 1.600000023841858,
-                        "z": 0.20000000298023224
+                    "radius": 0.20000000298023224,
+                    "height": 1.2000000476837158,
+                    "moveSpeed": 4.0,
+                    "rotateSpeed": 1440.0,
+                    "throwPower": 60.0,
+                    "attackingMoveSpeedMultiplier": 0.5,
+                    "parryCoolDownTime": 0.10000000149011612,
+                    "parryTime": 0.5,
+                    "parryDelusion": 10.0,
+                    "dodgeSound": "",
+                    "attackSound": "",
+                    "hurtSound": "",
+                    "moveSpeed": 4.0,
+                    "rotateSpeed": 1440.0,
+                    "stunTimePerHit": 0.05000000074505806,
+                    "groundFriction": 0.5,
+                    "dodgeCooldown": 1.0,
+                    "dodgeDuration": 0.20000000298023224,
+                    "dodgeSpeed": 6.0,
+                    "hitDebugObject": {
+                        "entityUid": 11098519849874783897
                     },
-                    "flags": {
-                        "_majorityTrue": true,
-                        "_except": [
-                            "Is Trigger"
-                        ]
-                    }
+                    "heldItem": {
+                        "entityUid": 0
+                    },
+                    "animations": [
+                        {
+                            "hash": 2548081914535652063
+                        },
+                        {
+                            "hash": 2579901781043489521
+                        },
+                        {
+                            "hash": 2571380565928225517
+                        },
+                        {
+                            "hash": 2540099460117998301
+                        },
+                        {
+                            "hash": 2535997182234766043
+                        },
+                        {
+                            "hash": 2531389129002756825
+                        },
+                        {
+                            "hash": 1
+                        }
+                    ]
+                },
+                "18288371625365795113": {
+                    "_active": true,
+                    "scripts": [
+                        {
+                            "scriptName": "footstepssoundhandler.lua"
+                        },
+                        {
+                            "scriptName": "playerdamagehandler.lua"
+                        }
+                    ]
                 }
             }
         }

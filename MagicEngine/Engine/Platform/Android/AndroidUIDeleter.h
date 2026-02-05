@@ -1,20 +1,20 @@
 /******************************************************************************/
 /*!
-\file   AndroidInputManager.h
+\file   AndroidUIDeleter.h
 \par    Project: KuroMahou
 \par    Course: CSD3401
 \par    Software Engineering Project 5
 \date   26/09/2025
 
-\author Hong Tze Keat (100%)
-\par    email: h.tzekeat\@digipen.edu
-\par    DigiPen login: h.tzekeat
+\author Matthew Chan Shao Jie (100%)
+\par    email: m.chan\@digipen.edu
+\par    DigiPen login: m.chan
 
 \brief
-      This is the header file that contains the declaration of the androidInputManager.
-      Currently it only handles a virtual joystick control.
+      This is the header file that contains the declaration of the AndroidUIDeleter.
+      Its sole purpose is to delete the entity it is attached to if NOT on android.
 
-All content  2025 DigiPen Institute of Technology Singapore.
+All content © 2025 DigiPen Institute of Technology Singapore.
 All rights reserved.
 */
 /******************************************************************************/

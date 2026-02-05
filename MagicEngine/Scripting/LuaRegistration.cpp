@@ -234,6 +234,15 @@ float GetHealthFractionLua() const
 {
 	return GetHandle()->GetHealthFraction();
 }
+
+int GetInvincibleStateLua() const
+{
+	return static_cast<int>(GetHandle()->GetInvincibleState());
+}
+void SetInvincibleStateLua(int state)
+{
+	GetHandle()->SetInvincibleState(static_cast<HealthComponent::INVINCIBLE_STATE>(state));
+}
 SCRIPT_GENERATE_COMP_WRAPPER_END()
 
 // EntityLayerComponent
@@ -358,6 +367,10 @@ void Lua_FadeOutAudio(uint32_t handle, float duration)
 {
 	ST<AudioManager>::Get()->FadeoutAudio(handle, duration);
 }
+void Lua_StopAllAudio()
+{
+	ST<AudioManager>::Get()->StopAllSounds();
+}
 ecs::EntityHandle Lua_LoadPrefab(std::string name)
 {
 	return ST<PrefabManager>::Get()->LoadPrefab(name);
@@ -387,6 +400,15 @@ template <typename EventType>
 void Lua_SimpleQueueEventNextFrame()
 {
 	ST<EventsQueue>::Get()->AddEventForNextFrame(EventType{});
+}
+
+bool Lua_IsAndroid()
+{
+#ifdef __ANDROID__
+	return true;
+#else
+	return false;
+#endif
 }
 
 void RegisterCppStuffToLua(luabridge::Namespace baseTable)
@@ -446,6 +468,7 @@ void RegisterCppStuffToLua(luabridge::Namespace baseTable)
 		.beginClass<ecs::Entity>("Entity")
 		.addProperty("transform", [](ecs::EntityHandle entity) -> Transform* { return &entity->GetTransform(); })
 		.addFunction("Destroy", [](ecs::EntityHandle entity) -> void { ecs::DeleteEntity(entity); })
+		.addFunction("IsValid", [](ecs::EntityHandle entity) -> bool { return ecs::IsEntityHandleValid(entity); })
 		
 		//=========================================== START REGISTER GETTER ================================================================================
 
@@ -619,6 +642,7 @@ void RegisterCppStuffToLua(luabridge::Namespace baseTable)
 		SCRIPT_REGISTER_COMP_BEGIN(HealthComponent)
 		SCRIPT_REGISTER_COMP_PROPERTY(HealthComponent,"health", GetCurrHealth, SetHealth)
 		SCRIPT_REGISTER_COMP_PROPERTY(HealthComponent,"maxHealth", GetMaxHealth, SetMaxHealth)
+		SCRIPT_REGISTER_COMP_PROPERTY(HealthComponent,"invincibleState", GetInvincibleStateLua, SetInvincibleStateLua)
 		SCRIPT_REGISTER_COMP_FUNCTION(HealthComponent,"AddHealth", AddHealthLua)
 		SCRIPT_REGISTER_COMP_FUNCTION(HealthComponent,"TakeDamage", TakeDamageLua)
 		SCRIPT_REGISTER_COMP_FUNCTION(HealthComponent,"IsDead", IsDead)
@@ -656,9 +680,17 @@ void RegisterCppStuffToLua(luabridge::Namespace baseTable)
 
 		// ----- GLOBAL FUNCTIONS -----
 		.addFunction("Log", Lua_Log)
+		.addFunction("IsAndroid", Lua_IsAndroid)
 		.addFunction("EngineShutdown", []() -> void { Core::Platform::Get().GetLifecycle().RequestExit(); })
 		.addProperty("EngineIsFullscreen", []() -> bool { return ST<GraphicsWindow>::Get()->GetIsFullscreen(); }, [](bool isFullscreen) -> void { ST<GraphicsWindow>::Get()->SetFullscreen(isFullscreen); })
 		.addFunction("DeltaTime", []() -> float { return GameTime::Dt(); })
+		.addFunction("GetIsAndroid", []() -> bool { 
+#ifdef __ANDROID__
+			return true;
+#else
+			return false;
+#endif
+			})
 		.addProperty("TimeScale", GameTime::GetTimeScale, GameTime::SetTimeScale)
 		.addFunction("LoadScene", [](const std::string& scenePath) {
 			ST<Scheduler>::Get()->Add([scenePath]() -> void {
@@ -688,6 +720,7 @@ void RegisterCppStuffToLua(luabridge::Namespace baseTable)
 			.addFunction("PlaySoundWithVolume", Lua_PlayAudioWithVolume)
 			.addFunction("PlaySound3DWithVolume", Lua_PlayAudio3DWithVolume)
 			.addFunction("SetCategoryVolume", Lua_SetCategoryVolume)
+			.addFunction("StopAllSounds", Lua_StopAllAudio)
 		.endNamespace()
 
 		.beginNamespace("PrefabManager")

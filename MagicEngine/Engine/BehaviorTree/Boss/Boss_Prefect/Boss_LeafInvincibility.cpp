@@ -5,6 +5,7 @@
 #include "Game/Character.h"
 #include "Game/Health.h"
 #include "Graphics/AnimationComponent.h"
+#include "Managers/AudioManager.h"
 
 // Set boss invinc time here, based on Canva values rn so change as balancing requires
 float L_Boss_Prefect_Invincibility::invincibilityTime = 1.5f;
@@ -16,6 +17,14 @@ void L_Boss_Prefect_Invincibility::OnInitialize()
 
 NODE_STATUS L_Boss_Prefect_Invincibility::OnUpdate([[maybe_unused]] ecs::EntityHandle entity)
 {
+    if (!inited)
+    {
+        ST<AudioManager>::Get()->PlaySound3D("defence stance", false, entity->GetTransform().GetWorldPosition(), AudioType::SFX, std::pair<float, float>{2.0f, 50.0f}, 0.6f);
+        if (auto animComp{ entity->GetComp<AnimationComponent>() })
+            animComp->TransitionTo(5847024716697507243, 0.1f);
+        inited = true;
+    }
+
     if (auto characterComp{ entity->GetComp<CharacterMovementComponent>() })
     {
         // Don't move here
@@ -32,20 +41,19 @@ NODE_STATUS L_Boss_Prefect_Invincibility::OnUpdate([[maybe_unused]] ecs::EntityH
         // Use direct direction to player for rotation so boss faces the player
         Vec2 dirToPlayer = Boss_Prefect_Util::GetMovementTowards(entity->GetTransform().GetWorldPosition(), enemyComp->playerReference->GetTransform().GetWorldPosition());
         Boss_Prefect_Util::RotateTowards(entity, dirToPlayer);
-        auto animComp = entity->GetComp<AnimationComponent>();
-        if (animComp)
-        {
-            animComp->TransitionTo(5847024716697507243, 0.1f);
-            animComp->timeA = 0.0f;
-        }
-        healthComp->SetIsInvincible(true);
+        healthComp->SetInvincibleState(HealthComponent::I_INVINCIBLE);
         currentInvincibilityTime -= GameTime::Dt();
 
         if (currentInvincibilityTime <= 0.0f)
         {
-            healthComp->SetIsInvincible(false);
+            healthComp->SetInvincibleState(HealthComponent::I_NONE);
             return NODE_STATUS::SUCCESS;
         }
     }
     return NODE_STATUS::RUNNING;
+}
+
+void L_Boss_Prefect_Invincibility::OnTerminate(NODE_STATUS)
+{
+    inited = false;
 }

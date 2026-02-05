@@ -22,6 +22,7 @@ All rights reserved.
 */
 /******************************************************************************/
 #include "Game/PlayerCharacter.h"
+#include "Game/EnemyCharacter.h"
 #include "Game/Character.h"
 #include "Game/GameCameraController.h"
 #include "Physics/Physics.h"
@@ -38,6 +39,8 @@ PlayerMovementComponent::PlayerMovementComponent()
 	, cameraReference{nullptr}
 	, ultimateAttackDamage{}
 	, isUltimateAttack{false}
+	, enemyTargetRange(1.0f)
+	, currentRotateTime(0.0f)
 {
 }
 
@@ -63,6 +66,7 @@ void PlayerMovementComponent::EditorDraw()
 	testReference.EditorDraw("Test");
 	gui::VarInput("Grab Distance", &grabDistance);
 	gui::VarInput("Ultimate Attack Damage", &ultimateAttackDamage);
+	gui::VarInput("Enemy Target Range", &enemyTargetRange);
 }
 
 void PlayerMovementComponent::Parry()
@@ -71,6 +75,42 @@ void PlayerMovementComponent::Parry()
 	characterComp->Parry();
 }
 
+void PlayerMovementComponent::GetEnemyTarget()
+{
+	// Find the nearest enemy
+	targetEntity = nullptr;
+		float lowestDistSqr = enemyTargetRange * enemyTargetRange;
+	for (ecs::CompIterator<EnemyComponent> enemy = ecs::GetCompsActiveBegin<EnemyComponent>(); enemy != ecs::GetCompsEnd<EnemyComponent>(); ++enemy)
+	{
+		ecs::EntityHandle enemyEntity = enemy.GetEntity();
+		float dist{ (enemyEntity->GetTransform().GetWorldPosition() - ecs::GetEntity(this)->GetTransform().GetWorldPosition()).LengthSqr() };
+		if (dist < lowestDistSqr)
+		{
+			lowestDistSqr = dist;
+			targetEntity = enemyEntity;
+		}
+	}
+
+	if(targetEntity)
+	{
+		ecs::CompHandle<CharacterMovementComponent> characterComp = ecs::GetEntity(this)->GetComp<CharacterMovementComponent>();
+		currentRotateTime = 360.0f / characterComp->rotateSpeed;
+	}
+	else
+	{
+		currentRotateTime = 0.0f;
+	}
+}
+
+void PlayerMovementComponent::Attack()
+{
+	auto characterComp{ ecs::GetEntity(this)->GetComp<CharacterMovementComponent>() };
+
+	// Get enemy to face
+	GetEnemyTarget();
+
+	characterComp->LightAttack();
+}
 
 void PlayerMovementComponent::UltimateAttack()
 {
@@ -79,11 +119,16 @@ void PlayerMovementComponent::UltimateAttack()
 	if (!delutionComp || !characterComp ||delutionComp->GetCurrDelusionTier() != DELUSION_TIER::APLUS)
 		return;
 
+	// Get enemy to face
+	GetEnemyTarget();
+
 	isUltimateAttack = true;
 	characterComp->LightAttack();
 	delutionComp->SetDelusion(0.f);
 	CONSOLE_LOG(LEVEL_INFO) << "Ultimate Attack.";
 }
+
+
 
 PlayerMovementComponentSystem::PlayerMovementComponentSystem()
 	: System_Internal{ &PlayerMovementComponentSystem::UpdatePlayerMovementComponent }
@@ -106,17 +151,14 @@ void PlayerMovementComponentSystem::UpdatePlayerMovementComponent(PlayerMovement
 	Vec2 camForward = Vec2{ cos(yawRad),sin(yawRad) };
 	Vec2 camRight = Vec2{ -sin(yawRad),cos(yawRad) };
 
-	if (!characterComp->IsAttacking())
-	{
-		if (inputInstance->GetIsDown(KEY::W))
-			movement = movement + camForward;
-		if (inputInstance->GetIsDown(KEY::S))
-			movement = movement - camForward;
-		if (inputInstance->GetIsDown(KEY::D))
-			movement = movement + camRight;
-		if (inputInstance->GetIsDown(KEY::A))
-			movement = movement - camRight;
-	}
+	if (inputInstance->GetIsDown(KEY::W))
+		movement = movement + camForward;
+	if (inputInstance->GetIsDown(KEY::S))
+		movement = movement - camForward;
+	if (inputInstance->GetIsDown(KEY::D))
+		movement = movement + camRight;
+	if (inputInstance->GetIsDown(KEY::A))
+		movement = movement - camRight;
 
 #ifdef __ANDROID__
 
@@ -135,8 +177,28 @@ void PlayerMovementComponentSystem::UpdatePlayerMovementComponent(PlayerMovement
 	if (movement.LengthSqr() > 0.0f)
 		movement = movement.Normalized();
 
+	float speedMult = 1.0f;
+	// If attacking, we apply the speed multiplier
+	auto animatorComp{ playerEntity->GetComp<AnimatorComponent>() };
+	if (animatorComp->GetStateMachine()->GetBlackboardVal<bool>("attacking"))
+	{
+		speedMult = characterComp->attackingMoveSpeedMultiplier;
+	}
+	movement = movement * speedMult;
+
+	if (comp.currentRotateTime > 0.0f)
+	{
+		comp.currentRotateTime -= GameTime::Dt();
+		if (ecs::IsEntityHandleValid(comp.targetEntity))
+		{
+			Vec3 direction3d = comp.targetEntity->GetTransform().GetWorldPosition() - ecs::GetEntity(&comp)->GetTransform().GetWorldPosition();
+			Vec2 direction{ direction3d.x,direction3d.z };
+			characterComp->RotateTowards(direction);
+		}
+	}
+
 	// Grabbing items
-	if (inputInstance->GetIsPressed(KEY::E) || EventsReader<Events::GameActionGrabItem>{}.ExtractEvent())
+	if (false && (inputInstance->GetIsPressed(KEY::E) || EventsReader<Events::GameActionGrabItem>{}.ExtractEvent()))
 	{
 		float closestDistance = comp.grabDistance * comp.grabDistance;
 		ecs::CompHandle< GrabbableItemComponent> closestItem = nullptr;
@@ -177,7 +239,7 @@ void PlayerMovementComponentSystem::UpdatePlayerMovementComponent(PlayerMovement
 	}
 
 	// Throw item
-	if (inputInstance->GetIsPressed(KEY::Q) || EventsReader<Events::GameActionThrowItem>{}.ExtractEvent())
+	if (false && (inputInstance->GetIsPressed(KEY::Q) || EventsReader<Events::GameActionThrowItem>{}.ExtractEvent()))
 	{
 		// Look for the nearest enemy
 		Vec3 throwDirection{ camForward.x,0.f,camForward.y  };
@@ -186,28 +248,34 @@ void PlayerMovementComponentSystem::UpdatePlayerMovementComponent(PlayerMovement
 	}
 
 	if (inputInstance->GetIsPressed(KEY::M1) || EventsReader<Events::GameActionLightAttack>{}.ExtractEvent())
+	{
+		comp.GetEnemyTarget();
 		characterComp->LightAttack();
+	}
 	if (inputInstance->GetIsPressed(KEY::M2) || EventsReader<Events::GameActionHeavyAttack>{}.ExtractEvent())
+	{
+		comp.GetEnemyTarget();
 		characterComp->HeavyAttack();
+	}
 
 
-	if (inputInstance->GetIsPressed(KEY::R))
+	if (inputInstance->GetIsPressed(KEY::E))
 		comp.UltimateAttack();
 
 	characterComp->SetMovementVector(movement);
-	if (auto colliderComp{ playerEntity->GetComp<physics::BoxColliderComp>() })
-	{
-		float offset{ 3.f };
-		Vec3 center{ colliderComp->GetCenter() };
-		center = Vec3(0.f, center.y, 0.f);
-		center += Vec3(movement.x, 0.f, movement.y) / offset;
-		colliderComp->SetCenter(center);
-	}
+	//if (characterComp)
+	//{
+	//	float offset{ 3.f };
+	//	Vec3 center{ characterComp->center };
+	//	center = Vec3(0.f, center.y, 0.f);
+	//	center += Vec3(movement.x, 0.f, movement.y) / offset;
+	//	characterComp->SetCenter(center);
+	//}
 
-	if (inputInstance->GetIsDown(KEY::LSHIFT) || EventsReader<Events::GameActionDodge>{}.ExtractEvent())
+	if (inputInstance->GetIsDown(KEY::SPACE) || EventsReader<Events::GameActionDodge>{}.ExtractEvent())
 		characterComp->Dodge(movement);
 
 
-	if (inputInstance->GetIsPressed(KEY::LCTRL) || EventsReader<Events::GameActionParry>{}.ExtractEvent() )
+	if (inputInstance->GetIsPressed(KEY::Q) || EventsReader<Events::GameActionParry>{}.ExtractEvent() )
 		comp.Parry();
 }

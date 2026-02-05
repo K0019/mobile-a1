@@ -112,3 +112,10 @@ const ResourceType* UserResourceGetter<ResourceType>::GetResource(size_t hash) c
 {
 	return reinterpret_cast<const ResourceType*>(container->GetResource(hash));
 }
+
+template<std::derived_from<ResourceBase> ResourceType>
+void UserResourceGetter<ResourceType>::RequestLoadAll()
+{
+	for (auto& [hash, resource] : container->Editor_GetAllResources())
+		container->GetResource(hash);
+}
