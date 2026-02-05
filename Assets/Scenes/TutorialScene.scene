@@ -69,9 +69,9 @@
         {
             "parentIndex": -1,
             "position": {
-                "x": 5.250826835632324,
-                "y": 0.2037685662508011,
-                "z": -18.4935302734375
+                "x": 5.254802227020264,
+                "y": 0.20379890501499176,
+                "z": -17.64204978942871
             },
             "rotation": {
                 "x": 0.0,
@@ -1902,7 +1902,7 @@
             "parentIndex": -1,
             "position": {
                 "x": -67.46175384521484,
-                "y": 7.2896504402160645,
+                "y": 1.872514247894287,
                 "z": -39.06824493408203
             },
             "rotation": {
@@ -1917,7 +1917,7 @@
             },
             "components": {
                 "5352011725353660904": {
-                    "_active": false,
+                    "_active": true,
                     "meshHandle": {
                         "hash": 4206793062771362401
                     },
@@ -1925,19 +1925,19 @@
                     "castShadowOverride": -1
                 },
                 "6766054303456732338": {
-                    "_active": false,
+                    "_active": true,
                     "layer": 0
                 },
                 "7205334411763290517": {
-                    "_active": false,
+                    "_active": true,
                     "name": "BossTrigger"
                 },
                 "9315785795257285655": {
-                    "_active": false,
+                    "_active": true,
                     "uid": 5847988987430482734
                 },
                 "18236831197208900764": {
-                    "_active": false,
+                    "_active": true,
                     "center": {
                         "x": 0.0,
                         "y": 0.0,
@@ -1954,7 +1954,7 @@
                     }
                 },
                 "18288371625365795113": {
-                    "_active": false,
+                    "_active": true,
                     "scripts": [
                         {
                             "scriptName": "sceneloadtrigger.lua"

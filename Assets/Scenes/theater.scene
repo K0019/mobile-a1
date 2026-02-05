@@ -2611,14 +2611,14 @@
                     "_active": true,
                     "cameraAutoZoomSpeed": 5.0,
                     "targetCameraDistance": -107374176.0,
-                    "currentCameraDistance": 2.5,
+                    "currentCameraDistance": 3.5,
                     "offsetPosition": {
-                        "x": 0.5,
+                        "x": 0.0,
                         "y": 1.2000000476837158,
                         "z": 0.0
                     },
-                    "minPitch": 0.0,
-                    "maxPitch": 0.0,
+                    "minPitch": -50.0,
+                    "maxPitch": 5.0,
                     "cameraSensitivity": 1.0,
                     "cameraEntity": {
                         "entityUid": 3538034904553934489
@@ -2626,8 +2626,8 @@
                     "playerEntity": {
                         "entityUid": 3530233869554849647
                     },
-                    "maxPitch": 0.0,
-                    "minPitch": 0.0,
+                    "maxPitch": 5.0,
+                    "minPitch": -50.0,
                     "cameraSensitivity": 1.0,
                     "translucentMaterial": {
                         "hash": 1
@@ -2676,6 +2676,132 @@
                         "climb": 0.5,
                         "angle": 50.0
                     }
+                }
+            }
+        },
+        {
+            "parentIndex": -1,
+            "position": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "rotation": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "scale": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0
+            },
+            "components": {
+                "6766054303456732338": {
+                    "_active": true,
+                    "layer": 0
+                },
+                "7205334411763290517": {
+                    "_active": true,
+                    "name": "Music Manager"
+                },
+                "9315785795257285655": {
+                    "_active": true,
+                    "uid": 6210731067471644811
+                },
+                "18288371625365795113": {
+                    "_active": true,
+                    "scripts": [
+                        {
+                            "scriptName": "musicplayer.lua"
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "parentIndex": -1,
+            "position": {
+                "x": 16.786514282226563,
+                "y": 0.6698431968688965,
+                "z": -6.572879791259766
+            },
+            "rotation": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "scale": {
+                "x": 2.3145453929901123,
+                "y": 1.0,
+                "z": 3.187333106994629
+            },
+            "components": {
+                "5352011725353660904": {
+                    "_active": true,
+                    "meshHandle": {
+                        "hash": 394651007363811311
+                    },
+                    "materials": [
+                        {
+                            "hash": 388567409527326701
+                        }
+                    ],
+                    "castShadowOverride": -1
+                },
+                "6766054303456732338": {
+                    "_active": true,
+                    "layer": 0
+                },
+                "7205334411763290517": {
+                    "_active": true,
+                    "name": "Collider"
+                },
+                "8426725214831635516": {
+                    "_active": true,
+                    "entityReferences": [
+                        {
+                            "entityUid": 6210731067471644811
+                        },
+                        {
+                            "entityUid": 6210731067471644811
+                        },
+                        {
+                            "entityUid": 6210731067471644811
+                        }
+                    ]
+                },
+                "9315785795257285655": {
+                    "_active": true,
+                    "uid": 7746125388381812453
+                },
+                "18236831197208900764": {
+                    "_active": true,
+                    "center": {
+                        "x": 0.0,
+                        "y": 0.0,
+                        "z": 0.0
+                    },
+                    "size": {
+                        "x": 1.0,
+                        "y": 1.0,
+                        "z": 1.0
+                    },
+                    "flags": {
+                        "_majorityTrue": true,
+                        "_except": []
+                    }
+                },
+                "18288371625365795113": {
+                    "_active": true,
+                    "scripts": [
+                        {
+                            "scriptName": "bossmusictrigger.lua"
+                        },
+                        {
+                            "scriptName": "roomdoortrigger.lua"
+                        }
+                    ]
                 }
             }
         },
@@ -4640,7 +4766,7 @@
             }
         },
         {
-            "parentIndex": 23,
+            "parentIndex": 25,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -4698,7 +4824,7 @@
             }
         },
         {
-            "parentIndex": 24,
+            "parentIndex": 26,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -4756,7 +4882,7 @@
             }
         },
         {
-            "parentIndex": 25,
+            "parentIndex": 27,
             "position": {
                 "x": 9.5367431640625e-7,
                 "y": 0.0,
@@ -4814,7 +4940,7 @@
             }
         },
         {
-            "parentIndex": 26,
+            "parentIndex": 28,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -4872,7 +4998,7 @@
             }
         },
         {
-            "parentIndex": 28,
+            "parentIndex": 30,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -4930,7 +5056,7 @@
             }
         },
         {
-            "parentIndex": 28,
+            "parentIndex": 30,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -4992,7 +5118,7 @@
             }
         },
         {
-            "parentIndex": 29,
+            "parentIndex": 31,
             "position": {
                 "x": 0.0,
                 "y": 0.0,
@@ -5054,7 +5180,7 @@
             }
         },
         {
-            "parentIndex": 29,
+            "parentIndex": 31,
             "position": {
                 "x": 5.960464477539063e-8,
                 "y": 0.0,
