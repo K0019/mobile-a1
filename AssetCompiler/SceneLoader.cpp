@@ -530,12 +530,17 @@ namespace compiler
             // Check if embedded data is compressed
             if (aiTex->mHeight == 0) // Yes it is
             {
-                embeddedTex.compressedData = (const uint8_t*)aiTex->pcData;
-                embeddedTex.compressedSize = aiTex->mWidth; // Assimp stores size in mWidth
+                // Copy the compressed data to avoid dangling pointer when Assimp scene is freed
+                const uint8_t* srcData = (const uint8_t*)aiTex->pcData;
+                size_t srcSize = aiTex->mWidth; // Assimp stores size in mWidth
+                embeddedTex.compressedData.assign(srcData, srcData + srcSize);
             }
             else
             {
-                embeddedTex.rawData = (const uint8_t*)aiTex->pcData;
+                // Copy the raw RGBA data to avoid dangling pointer when Assimp scene is freed
+                const uint8_t* srcData = (const uint8_t*)aiTex->pcData;
+                size_t srcSize = static_cast<size_t>(aiTex->mWidth) * aiTex->mHeight * 4;
+                embeddedTex.rawData.assign(srcData, srcData + srcSize);
                 embeddedTex.width = aiTex->mWidth;
                 embeddedTex.height = aiTex->mHeight;
             }

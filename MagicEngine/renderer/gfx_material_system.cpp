@@ -446,13 +446,21 @@ MaterialHandle GfxMaterialSystem::createMaterial(const GfxMaterial& material) {
     entry.material = material;
     entry.dirty = true;
 
-    // Pack GPU data (baseColor includes alpha, alphaCutoff for alpha testing)
+    // Pack GPU data with all material properties
+    uint32_t flags = 0;
+    if (material.unlit) flags |= MAT_FLAG_UNLIT;
+    if (material.doubleSided) flags |= MAT_FLAG_DOUBLE_SIDED;
+
     entry.gpuData.pack(
         material.baseColor,
         material.roughness,
         material.metallic,
         material.emissive,
-        material.alphaCutoff
+        material.alphaCutoff,
+        material.normalScale,
+        material.occlusionStrength,
+        material.emissiveColor,
+        flags
     );
 
     // Create bind group if we have a valid layout
@@ -481,13 +489,21 @@ void GfxMaterialSystem::updateMaterial(MaterialHandle handle, const GfxMaterial&
     MaterialEntry& entry = m_materials[handle.index];
     entry.material = material;
 
-    // Update packed GPU data (baseColor includes alpha, alphaCutoff for alpha testing)
+    // Pack GPU data with all material properties
+    uint32_t flags = 0;
+    if (material.unlit) flags |= MAT_FLAG_UNLIT;
+    if (material.doubleSided) flags |= MAT_FLAG_DOUBLE_SIDED;
+
     entry.gpuData.pack(
         material.baseColor,
         material.roughness,
         material.metallic,
         material.emissive,
-        material.alphaCutoff
+        material.alphaCutoff,
+        material.normalScale,
+        material.occlusionStrength,
+        material.emissiveColor,
+        flags
     );
 
     // Immediately rebuild bind group since texture references may have changed
@@ -508,10 +524,10 @@ void GfxMaterialSystem::createMaterialBindGroup(MaterialEntry& entry) {
         hina_destroy_bind_group(entry.bindGroup);
     }
 
-    // Create or update material constants UBO (16 bytes)
+    // Create or update material constants UBO (32 bytes)
     if (!hina_buffer_is_valid(entry.constantsUBO)) {
         hina_buffer_desc ubo_desc = {};
-        ubo_desc.size = sizeof(PackedMaterial);  // 16 bytes
+        ubo_desc.size = sizeof(PackedMaterial);  // 32 bytes
         ubo_desc.memory = HINA_BUFFER_CPU;
         ubo_desc.usage = HINA_BUFFER_UNIFORM;
         entry.constantsUBO = hina_make_buffer(&ubo_desc);
@@ -529,12 +545,21 @@ void GfxMaterialSystem::createMaterialBindGroup(MaterialEntry& entry) {
     }
 
     // Get texture views (use defaults if not set)
+    // Must wait for upload completion to avoid sampling from UNDEFINED layout
     auto getView = [this](TextureHandle h, TextureHandle def) -> TextureView {
         if (isTextureValid(h)) {
-            return getTextureView(h);
+            const TextureEntry& entry = m_textures[h.index];
+            if (hina_texture_is_valid(entry.texture)) {
+                hina_wait_texture(entry.texture);
+            }
+            return entry.view;
         }
         if (isTextureValid(def)) {
-            return getTextureView(def);
+            const TextureEntry& defEntry = m_textures[def.index];
+            if (hina_texture_is_valid(defEntry.texture)) {
+                hina_wait_texture(defEntry.texture);
+            }
+            return defEntry.view;
         }
         return {};
     };
@@ -546,7 +571,7 @@ void GfxMaterialSystem::createMaterialBindGroup(MaterialEntry& entry) {
     TextureView occlusionView = getView(entry.material.occlusionTexture, m_defaultWhiteHandle);
 
     // Create bind group entries
-    // Binding 0: Material constants UBO (16 bytes packed material)
+    // Binding 0: Material constants UBO (32 bytes packed material)
     // Bindings 1-5: Textures
     hina_bind_group_entry entries[6] = {};
 

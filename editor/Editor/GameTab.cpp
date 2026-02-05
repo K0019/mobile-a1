@@ -1,5 +1,5 @@
 #include "Editor/GameTab.h"
-#include "Editor/AssetBrowser.h"
+#include "Editor/AssetBrowserSettings.h"
 #include "Editor/EditorGuiUtils.h"
 #include "Editor/WeaponCreationWindow.h"
 
@@ -39,31 +39,79 @@ namespace editor {
 
     void GameTab::RenderWeapons(const gui::TextBoxWithFilter& filter)
     {
+#ifdef IMGUI_ENABLED
         if (gui::Button{ "Create New Weapon" })
             editor::CreateGuiWindow<editor::WeaponCreationWindow>("", nullptr);
         gui::Separator();
 
-        gui::NewGridHelper grid{ AssetBrowser::THUMBNAIL_SIZE };
+        const bool listMode = (AssetBrowserSettings::viewMode == AssetBrowserSettings::ViewMode::List);
+        const float thumbnailSize = AssetBrowserSettings::thumbnailSize;
+        const float panelWidth = gui::GetAvailableContentRegion().x;
+        gui::GridHelper grid{ panelWidth, thumbnailSize + 10 };
 
+        gui::SetStyleVar itemSpacing{ gui::FLAG_STYLE_VAR::ITEM_SPACING, gui::Vec2{ 5, 5 } };
+        gui::SetStyleVar framePadding{ gui::FLAG_STYLE_VAR::FRAME_PADDING, gui::Vec2{ 2, 2 } };
+
+        const ImVec4 weaponColor = ImVec4(0.9f, 0.3f, 0.3f, 1.0f);  // Red
+
+        int count{};
         for (const auto& [hash, weapon] : ST<AssetManager>::Get()->Editor_GetContainer<WeaponInfo>().Editor_GetAllResources())
         {
             const std::string& weaponName{ *ST<AssetManager>::Get()->Editor_GetName(hash) };
             if (!filter.PassFilter(weaponName))
                 continue;
 
-            gui::GridItem entry{ grid.Item(weaponName) };
+            gui::SetID id{ count++ };
 
-            gui::Button{ "Weapon", gui::Vec2{ AssetBrowser::THUMBNAIL_SIZE, AssetBrowser::THUMBNAIL_SIZE } };
-            gui::PayloadSource{ "GAME_WEAPON_HASH", hash.get() };
-            if (gui::ItemContextMenu contextMenu{ "WeaponMenu" })
+            if (listMode)
             {
-                if (gui::MenuItem("Edit"))
+                if (ImGui::Selectable(("##sel" + weaponName).c_str(), false, ImGuiSelectableFlags_AllowDoubleClick, ImVec2(0, 20)))
                 {
-                    if (auto* weapon = AssetHandle<WeaponInfo>{ hash }.GetResource())
-                        editor::CreateGuiWindow<editor::WeaponCreationWindow>(weaponName.substr(0, weaponName.size() - 1), weapon);
+                    if (auto* weaponPtr = AssetHandle<WeaponInfo>{ hash }.GetResource())
+                        editor::CreateGuiWindow<editor::WeaponCreationWindow>(weaponName.substr(0, weaponName.size() - 1), weaponPtr);
                 }
+
+                gui::PayloadSource{ "GAME_WEAPON_HASH", hash.get() };
+
+                if (gui::ItemContextMenu contextMenu{ "WeaponMenu" })
+                {
+                    if (gui::MenuItem("Edit"))
+                    {
+                        if (auto* weaponPtr = AssetHandle<WeaponInfo>{ hash }.GetResource())
+                            editor::CreateGuiWindow<editor::WeaponCreationWindow>(weaponName.substr(0, weaponName.size() - 1), weaponPtr);
+                    }
+                }
+
+                ImGui::SameLine(0, 0);
+                ImGui::SetCursorPosX(8);
+                ImGui::TextColored(weaponColor, ICON_FA_GUN);
+                ImGui::SameLine();
+                ImGui::Text("%s", weaponName.c_str());
+            }
+            else
+            {
+                gui::Group group;
+
+                ImGui::PushStyleColor(ImGuiCol_Text, weaponColor);
+                gui::Button{ ICON_FA_GUN "##weapon", gui::Vec2{ thumbnailSize, thumbnailSize } };
+                ImGui::PopStyleColor();
+
+                gui::PayloadSource{ "GAME_WEAPON_HASH", hash.get() };
+
+                if (gui::ItemContextMenu contextMenu{ "WeaponMenu" })
+                {
+                    if (gui::MenuItem("Edit"))
+                    {
+                        if (auto* weaponPtr = AssetHandle<WeaponInfo>{ hash }.GetResource())
+                            editor::CreateGuiWindow<editor::WeaponCreationWindow>(weaponName.substr(0, weaponName.size() - 1), weaponPtr);
+                    }
+                }
+
+                gui::ThumbnailLabel(weaponName, thumbnailSize);
+                grid.NextItem();
             }
         }
+#endif
     }
 
     void GameTab::RenderSidebar()

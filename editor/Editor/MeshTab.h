@@ -1,21 +1,18 @@
 #pragma once
 #include "Editor/AssetBrowserCategories.h"
-#include <optional>
+#include "Assets/Types/AssetTypes.h"
 
 namespace editor {
 
-	class MeshTab : public BaseAssetCategory
+	class MeshTab : public GenericAssetTab<ResourceMesh>
 	{
-	public:
-		const char* GetName() const final;
-		const char* GetIdentifier() const final;
-		void Render(const gui::TextBoxWithFilter& filter) final;
+	protected:
+		const AssetTabConfig& GetConfig() const override;
+		void RenderDetailPanelContent(size_t hash, const std::string& name) override;
+		bool ShouldShowDetailPanel(size_t hash) override;
 
 	private:
-		void RenderGridView(const gui::TextBoxWithFilter& filter, float height);
-		void RenderDetailPanel();
-
-		std::optional<size_t> selectedMeshHash;
+		static const AssetTabConfig config;
 	};
 
 }

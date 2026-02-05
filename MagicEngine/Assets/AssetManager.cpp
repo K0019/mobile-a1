@@ -24,6 +24,7 @@ All rights reserved.
 #include <chrono>
 
 #include "Assets/Types/AssetTypesAudio.h"
+#include "Assets/Types/AssetTypesVideo.h"
 #include "Assets/Types/AssetTypes.h"
 #include "Game/Weapon.h"
 #include "FilepathConstants.h"
@@ -42,6 +43,7 @@ void AssetManager::Init()
     INTERNAL_GetContainer<ResourceMaterial>();
     INTERNAL_GetContainer<ResourceTexture>();
     INTERNAL_GetContainer<ResourceAnimation>();
+    INTERNAL_GetContainer<ResourceVideo>();
     INTERNAL_GetContainer<WeaponInfo>();
 }
 void AssetManager::Shutdown()

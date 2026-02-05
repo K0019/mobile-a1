@@ -17,7 +17,7 @@ namespace editor {
         return ICON_FA_MICROPHONE" Sounds";
     }
 
-    void SoundTab::Render([[maybe_unused]] const gui::TextBoxWithFilter& filter)
+    void SoundTab::Render(const gui::TextBoxWithFilter& filter)
     {
         gui::Child child{ "SoundTable", gui::Vec2{ 0.0f, -FLT_MIN }, gui::FLAG_CHILD::BORDERS };
 
@@ -32,6 +32,10 @@ namespace editor {
         for (const auto& [hash, resource] : soundResources)
         {
             const std::string& name{ *ST<AssetManager>::Get()->Editor_GetName(hash) };
+
+            // Apply filter
+            if (!filter.PassFilter(name))
+                continue;
 
             // Create Button
             if (ImGui::Selectable(name.c_str()))

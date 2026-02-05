@@ -30,6 +30,7 @@ All rights reserved.
 #include "Editor/Hierarchy.h"
 #include "Editor/BehaviourTreeWindow.h"
 #include "Editor/AssetCompilerWindow.h"
+#include "Graphics/CustomViewport.h"
 
 #include "Engine/Graphics Interface/GraphicsAPI.h"
 #include "resource/asset_compiler_interface.h"
@@ -119,6 +120,10 @@ namespace editor {
 
 			if (gui::Menu toolsMenu{ "Tools" })
 			{
+				if (gui::MenuItem("Viewport"))
+				{
+					editor::CreateGuiWindow<CustomViewport>(1920u, 1080u);
+				}
 				if (gui::MenuItem("Console"))
 				{
 					editor::CreateGuiWindow<editor::Console>();

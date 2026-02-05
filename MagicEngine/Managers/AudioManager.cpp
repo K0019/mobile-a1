@@ -130,7 +130,7 @@ void AudioManager::FreeSound(FMOD::Sound* sound)
 
 uint32_t AudioManager::PlaySound(const std::string& filename, bool loop, AudioType category, float volumeModifier)
 {
-	return PlaySound(util::GenHash(filename), loop, category, volumeModifier);
+	return PlaySound(util::GenHash(filename) | 1, loop, category, volumeModifier);
 }
 
 uint32_t AudioManager::PlaySound(size_t audioResourceHash, bool loop, AudioType category, float volumeModifier)
@@ -164,7 +164,7 @@ uint32_t AudioManager::PlaySound(size_t audioResourceHash, bool loop, AudioType 
 }
 uint32_t AudioManager::PlaySound3D(const std::string& filename, bool loop, Vec3 position, AudioType category, std::pair<float, float> rolloff, float volumeModifier)
 {
-	return PlaySound3D(util::GenHash(filename), loop, position, category, rolloff, volumeModifier);
+	return PlaySound3D(util::GenHash(filename) | 1, loop, position, category, rolloff, volumeModifier);
 }
 
 uint32_t AudioManager::PlaySound3D(size_t audioResourceHash, bool loop, Vec3 position, AudioType category, std::pair<float, float> rolloff, float volumeModifier)

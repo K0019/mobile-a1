@@ -22405,12 +22405,21 @@ static hina_swapchain_image hina_ctx_acquire_swapchain_image(hina_context* ctx)
                                      ctx->core.device->surface.swapchain.resources.acquire_semaphores[sem_index],
                                      VK_NULL_HANDLE, &idx);
   // Cold path: Swapchain out of date (window resize) - recreate and retry
+  // On desktop, VK_SUBOPTIMAL_KHR also triggers recreation because different GPU drivers
+  // return SUBOPTIMAL vs OUT_OF_DATE inconsistently on resize, causing stale swapchain dimensions.
+  // On Android, SUBOPTIMAL is expected for pre-rotation and should not trigger recreation.
+#ifdef __ANDROID__
   if (r == VK_ERROR_OUT_OF_DATE_KHR)
+#else
+  if (r == VK_ERROR_OUT_OF_DATE_KHR || r == VK_SUBOPTIMAL_KHR)
+#endif
   {
     r = hina_acquire_handle_out_of_date(ctx, &idx, &sem_index);
     if (r == VK_ERROR_OUT_OF_DATE_KHR) return result; // Recreation failed
   }
-  if (r == VK_SUBOPTIMAL_KHR) r = VK_SUCCESS;
+#ifdef __ANDROID__
+  if (r == VK_SUBOPTIMAL_KHR) r = VK_SUCCESS; // Android: allow suboptimal for pre-rotation
+#endif
   if (r == VK_ERROR_SURFACE_LOST_KHR || (r < 0 && r != VK_ERROR_OUT_OF_DATE_KHR))
   {
     HINA_LOGW(ctx, "Surface lost (VkResult=%d), marking for recreation", (int)r);
@@ -22461,7 +22470,12 @@ static void hina_ctx_present(hina_context* ctx, hina_swapchain_image image)
     .pSwapchains = &ctx->core.device->surface.swapchain.vk.swapchain, .pImageIndices = &img_index
   };
   VkResult r = hina_queue_lane_present(ctx->core.device, ctx->core.device->queue.lanes.indices.present_idx, &pi);
+  // On desktop, recreate on SUBOPTIMAL (see acquire path comment for rationale)
+#ifdef __ANDROID__
   if (r == VK_ERROR_OUT_OF_DATE_KHR)
+#else
+  if (r == VK_ERROR_OUT_OF_DATE_KHR || r == VK_SUBOPTIMAL_KHR)
+#endif
   {
     const hina_swapchain_desc* sd = &ctx->core.device->surface.swapchain_desc;
     hina_create_swapchain(ctx, sd);
@@ -22471,7 +22485,11 @@ static void hina_ctx_present(hina_context* ctx, hina_swapchain_image image)
     HINA_LOGW(ctx, "Surface lost during present (VkResult=%d), marking for recreation", (int)r);
     hina_atomic_store32(&ctx->core.device->surface.surface_lost, 1);
   }
+#ifdef __ANDROID__
   else if (r != VK_SUCCESS && r != VK_SUBOPTIMAL_KHR)
+#else
+  else if (r != VK_SUCCESS)
+#endif
   {
     HINA_VK_CHECK(ctx, r);
   }

@@ -20,6 +20,10 @@ All rights reserved.
 */
 /******************************************************************************/
 
+#include "ImGui/ImguiHeader.h"
+
+class RectTransformComponent;
+
 namespace editor {
 
     /*****************************************************************//*!
@@ -27,6 +31,7 @@ namespace editor {
     \brief
         Thin wrapper around ImGuizmo that can attach to a
         Transform and draw a manipulator in the viewport�s draw list.
+        For UI entities (with RectTransformComponent), draws 2D gizmo instead.
     *//******************************************************************/
     class Gizmo
     {
@@ -38,6 +43,31 @@ namespace editor {
             True if the user is dragging on the gizmos. False otherwise.
         *//******************************************************************/
         bool Draw(ecs::EntityHandle selectedEntity);
+
+    private:
+        /*****************************************************************//*!
+        \brief
+             Draw 2D gizmo for UI entities with RectTransformComponent
+        \param selectedEntity
+             The entity to draw the 2D gizmo for
+        \param rectTransform
+             The RectTransformComponent to manipulate
+        \param imgMin
+             Top-left corner of the viewport image in screen coordinates
+        \param imgSize
+             Size of the viewport image in screen coordinates
+        \return
+            True if the user is dragging. False otherwise.
+        *//******************************************************************/
+        bool Draw2DGizmo(ecs::EntityHandle selectedEntity, RectTransformComponent* rectTransform,
+                        ImVec2 imgMin, ImVec2 imgSize);
+
+        // 2D gizmo interaction state
+        enum class DragMode { None, Move, ScaleTopLeft, ScaleTopRight, ScaleBottomLeft, ScaleBottomRight };
+        DragMode dragMode_ = DragMode::None;
+        ImVec2 dragStartMouse_;
+        ImVec2 dragStartPos_;
+        ImVec2 dragStartScale_;
     };
 
 }

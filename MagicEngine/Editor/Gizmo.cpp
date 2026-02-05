@@ -30,18 +30,25 @@ All rights reserved.
 #include "Engine/Events/EventsQueue.h"
 #include "Engine/Events/EventsTypeEditor.h"
 #include "Components/NameComponent.h"
+#include "UI/RectTransform.h"
+#include "renderer/render_graph.h"
 
 namespace editor {
 
     bool Gizmo::Draw(ecs::EntityHandle selectedEntity)
     {
+        // Check if gizmos are globally enabled
+        if (!EditorGizmo_Enabled())
+        {
+            ImGuizmo::Enable(false);
+            return false;
+        }
+
         // Only enable drawing of the gizmos if there is a selected entity
         ImGuizmo::Enable(selectedEntity);
 
         if (!selectedEntity)
             return false;
-
-        Transform& transform{ selectedEntity->GetTransform() };
 
         //MUST PUT to allow gizmo to overlap the Image
         ImGui::SetItemAllowOverlap();
@@ -49,6 +56,16 @@ namespace editor {
         //Compute the rect of the just-drawn Image
         ImVec2 imgMin = ImGui::GetItemRectMin();
         ImVec2 imgSize = ImGui::GetItemRectSize();
+
+        // Check if entity has RectTransformComponent (UI entity)
+        // If so, use 2D gizmo instead of 3D ImGuizmo
+        if (RectTransformComponent* rectTransform = selectedEntity->GetComp<RectTransformComponent>())
+        {
+            ImGuizmo::Enable(false);  // Disable 3D gizmo
+            return Draw2DGizmo(selectedEntity, rectTransform, imgMin, imgSize);
+        }
+
+        Transform& transform{ selectedEntity->GetTransform() };
 
         //One BeginFrame per Dear ImGui frame + enable
         ImGuizmo::SetImGuiContext(ImGui::GetCurrentContext());
@@ -156,6 +173,205 @@ namespace editor {
 
         if (ImGuizmo::IsOver())
             ImGui::SetTooltip("Gizmo: hover");
+
+        return isUsing;
+    }
+
+    bool Gizmo::Draw2DGizmo(ecs::EntityHandle selectedEntity, RectTransformComponent* rectTransform,
+                           ImVec2 imgMin, ImVec2 imgSize)
+    {
+        // UI coordinate system: height = 1080, width scales with aspect ratio
+        const float viewportAspect = imgSize.x / imgSize.y;
+        const float uiWidth = RenderResources::GetUIViewportWidth(viewportAspect);
+        const float uiHeight = RenderResources::UI_REFERENCE_HEIGHT;
+
+        // Scale factors: convert UI coords to viewport/screen coords
+        const float scaleX = imgSize.x / uiWidth;
+        const float scaleY = imgSize.y / uiHeight;
+
+        // Get current position and scale from RectTransform
+        Vec2 uiPos = rectTransform->GetWorldPosition();
+        Vec2 uiScale = rectTransform->GetWorldScale();
+
+        // Default size for UI elements (can be overridden later with component-specific sizes)
+        const float defaultWidth = 100.0f;
+        const float defaultHeight = 100.0f;
+        float rectWidth = defaultWidth * uiScale.x;
+        float rectHeight = defaultHeight * uiScale.y;
+
+        // Convert UI position to screen coordinates
+        // UI Y=0 is top, screen Y=0 is also top for ImGui
+        float screenX = imgMin.x + uiPos.x * scaleX;
+        float screenY = imgMin.y + uiPos.y * scaleY;
+
+        // Rectangle bounds (centered on position)
+        float halfW = rectWidth * scaleX * 0.5f;
+        float halfH = rectHeight * scaleY * 0.5f;
+
+        ImVec2 rectMin(screenX - halfW, screenY - halfH);
+        ImVec2 rectMax(screenX + halfW, screenY + halfH);
+
+        // Handle size for corner scale handles
+        const float handleRadius = 6.0f;
+        const float handleHitRadius = 10.0f;
+
+        // Colors
+        const ImU32 outlineColor = IM_COL32(255, 165, 0, 255);           // Orange
+        const ImU32 outlineHoverColor = IM_COL32(255, 200, 100, 255);    // Light orange (hover)
+        const ImU32 fillHoverColor = IM_COL32(255, 165, 0, 40);          // Semi-transparent orange fill
+        const ImU32 fillDragColor = IM_COL32(255, 165, 0, 60);           // Slightly more opaque when dragging
+        const ImU32 handleColor = IM_COL32(255, 255, 255, 255);          // White
+        const ImU32 handleHoverColor = IM_COL32(255, 200, 100, 255);     // Light orange
+
+        ImDrawList* drawList = ImGui::GetWindowDrawList();
+        ImGuiIO& io = ImGui::GetIO();
+
+        // Mouse position
+        ImVec2 mousePos = io.MousePos;
+
+        // Handle positions (corners)
+        ImVec2 handles[4] = {
+            ImVec2(rectMin.x, rectMin.y),  // Top-left
+            ImVec2(rectMax.x, rectMin.y),  // Top-right
+            ImVec2(rectMin.x, rectMax.y),  // Bottom-left
+            ImVec2(rectMax.x, rectMax.y)   // Bottom-right
+        };
+
+        DragMode handleModes[4] = {
+            DragMode::ScaleTopLeft,
+            DragMode::ScaleTopRight,
+            DragMode::ScaleBottomLeft,
+            DragMode::ScaleBottomRight
+        };
+
+        // Check hover states for visual feedback
+        bool hoveringHandle = false;
+        int hoveredHandleIndex = -1;
+        for (int i = 0; i < 4; ++i)
+        {
+            float dx = mousePos.x - handles[i].x;
+            float dy = mousePos.y - handles[i].y;
+            if (dx * dx + dy * dy <= handleHitRadius * handleHitRadius)
+            {
+                hoveringHandle = true;
+                hoveredHandleIndex = i;
+                break;
+            }
+        }
+
+        bool hoveringRect = !hoveringHandle &&
+            mousePos.x >= rectMin.x && mousePos.x <= rectMax.x &&
+            mousePos.y >= rectMin.y && mousePos.y <= rectMax.y;
+
+        bool isUsing = false;
+
+        // Check for interaction start (no viewport restriction - gizmo can be anywhere)
+        if (io.MouseClicked[0] && dragMode_ == DragMode::None)
+        {
+            // Check corner handles first (scale)
+            if (hoveringHandle && hoveredHandleIndex >= 0)
+            {
+                dragMode_ = handleModes[hoveredHandleIndex];
+                dragStartMouse_ = mousePos;
+                dragStartPos_ = ImVec2(uiPos.x, uiPos.y);
+                dragStartScale_ = ImVec2(uiScale.x, uiScale.y);
+                ST<History>::Get()->IntermediateEvent(HistoryEvent_Scale{ selectedEntity, ecs::GetEntityTransform(rectTransform).GetLocalScale() });
+            }
+            // Check rect interior (move)
+            else if (hoveringRect)
+            {
+                dragMode_ = DragMode::Move;
+                dragStartMouse_ = mousePos;
+                dragStartPos_ = ImVec2(uiPos.x, uiPos.y);
+                dragStartScale_ = ImVec2(uiScale.x, uiScale.y);
+                ST<History>::Get()->IntermediateEvent(HistoryEvent_Translation{ selectedEntity, ecs::GetEntityTransform(rectTransform).GetLocalPosition() });
+            }
+        }
+
+        // Process drag (continues even when mouse is outside viewport)
+        if (dragMode_ != DragMode::None)
+        {
+            isUsing = true;
+
+            if (io.MouseDown[0])
+            {
+                float deltaX = (mousePos.x - dragStartMouse_.x) / scaleX;
+                float deltaY = (mousePos.y - dragStartMouse_.y) / scaleY;
+
+                if (dragMode_ == DragMode::Move)
+                {
+                    // Move: update position
+                    rectTransform->SetWorldPosition(Vec2{ dragStartPos_.x + deltaX, dragStartPos_.y + deltaY });
+                }
+                else
+                {
+                    // Scale: adjust scale based on which corner is being dragged
+                    // Calculate scale change relative to center
+                    float scaleChangeX = 0.0f;
+                    float scaleChangeY = 0.0f;
+
+                    switch (dragMode_)
+                    {
+                    case DragMode::ScaleTopLeft:
+                        scaleChangeX = -deltaX / (defaultWidth * 0.5f);
+                        scaleChangeY = -deltaY / (defaultHeight * 0.5f);
+                        break;
+                    case DragMode::ScaleTopRight:
+                        scaleChangeX = deltaX / (defaultWidth * 0.5f);
+                        scaleChangeY = -deltaY / (defaultHeight * 0.5f);
+                        break;
+                    case DragMode::ScaleBottomLeft:
+                        scaleChangeX = -deltaX / (defaultWidth * 0.5f);
+                        scaleChangeY = deltaY / (defaultHeight * 0.5f);
+                        break;
+                    case DragMode::ScaleBottomRight:
+                        scaleChangeX = deltaX / (defaultWidth * 0.5f);
+                        scaleChangeY = deltaY / (defaultHeight * 0.5f);
+                        break;
+                    default:
+                        break;
+                    }
+
+                    float newScaleX = std::max(0.1f, dragStartScale_.x + scaleChangeX);
+                    float newScaleY = std::max(0.1f, dragStartScale_.y + scaleChangeY);
+                    rectTransform->SetWorldScale(Vec2{ newScaleX, newScaleY });
+                }
+            }
+            else
+            {
+                // Mouse released, end drag
+                dragMode_ = DragMode::None;
+            }
+        }
+
+        // Draw filled rectangle when hovering or dragging (visual feedback)
+        if (dragMode_ == DragMode::Move)
+        {
+            drawList->AddRectFilled(rectMin, rectMax, fillDragColor);
+        }
+        else if (hoveringRect)
+        {
+            drawList->AddRectFilled(rectMin, rectMax, fillHoverColor);
+        }
+
+        // Draw rectangle outline (brighter when hovering)
+        ImU32 currentOutlineColor = (hoveringRect || dragMode_ == DragMode::Move) ? outlineHoverColor : outlineColor;
+        drawList->AddRect(rectMin, rectMax, currentOutlineColor, 0.0f, 0, 2.0f);
+
+        // Draw corner handles
+        for (int i = 0; i < 4; ++i)
+        {
+            bool handleHovered = (i == hoveredHandleIndex) ||
+                                 (dragMode_ == handleModes[i]);  // Also highlight if currently dragging this handle
+
+            ImU32 color = handleHovered ? handleHoverColor : handleColor;
+            drawList->AddCircleFilled(handles[i], handleRadius, color);
+            drawList->AddCircle(handles[i], handleRadius, handleHovered ? outlineHoverColor : outlineColor, 0, 2.0f);
+        }
+
+        // Draw center crosshair
+        drawList->AddLine(ImVec2(screenX - 10, screenY), ImVec2(screenX + 10, screenY), currentOutlineColor, 1.0f);
+        drawList->AddLine(ImVec2(screenX, screenY - 10), ImVec2(screenX, screenY + 10), currentOutlineColor, 1.0f);
 
         return isUsing;
     }

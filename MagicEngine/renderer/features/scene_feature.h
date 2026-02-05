@@ -60,6 +60,7 @@ struct DrawData
   // Skinning data (for skeletal animation)
   bool isSkinned = false;
   bool isTransparent = false;  // For WBOIT routing (future)
+  bool doubleSided = false;    // No back-face culling
   uint32_t jointCount = 0;     // Number of active bones (max 256)
   const glm::mat4* skinMatrices = nullptr;  // Pointer to AnimationComponent::skinMatrices
 
@@ -235,6 +236,10 @@ private:
   gfx::Holder<gfx::Pipeline> m_gbufferPipeline;         // Static mesh pipeline
   gfx::Holder<gfx::Pipeline> m_gbufferSkinnedPipeline;  // Skinned mesh pipeline
   gfx::Holder<gfx::Pipeline> m_gbufferMorphedPipeline;  // Skinned + morph target pipeline
+  // Double-sided pipeline variants (no back-face culling)
+  gfx::Holder<gfx::Pipeline> m_gbufferDoubleSidedPipeline;
+  gfx::Holder<gfx::Pipeline> m_gbufferSkinnedDoubleSidedPipeline;
+  gfx::Holder<gfx::Pipeline> m_gbufferMorphedDoubleSidedPipeline;
   gfx::Holder<gfx::BindGroupLayout> m_sceneLayout;  // Set 0: Frame UBO
   gfx::Buffer m_frameUBO = {};                       // Persistently mapped frame UBO
   void* m_frameUBOMapped = nullptr;                  // Mapped pointer for fast updates
@@ -242,6 +247,9 @@ private:
   bool m_pipelineCreated = false;
   bool m_skinnedPipelineCreated = false;
   bool m_morphedPipelineCreated = false;
+  bool m_doubleSidedPipelineCreated = false;
+  bool m_skinnedDoubleSidedPipelineCreated = false;
+  bool m_morphedDoubleSidedPipelineCreated = false;
 
   // ========================================================================
   // Composite Pipeline Resources (owned by this feature)
@@ -330,6 +338,9 @@ private:
   bool EnsurePipelineCreated(GfxRenderer* gfxRenderer);
   bool EnsureSkinnedPipelineCreated(GfxRenderer* gfxRenderer);
   bool EnsureMorphedPipelineCreated(GfxRenderer* gfxRenderer);
+  bool EnsureDoubleSidedPipelineCreated(GfxRenderer* gfxRenderer);
+  bool EnsureSkinnedDoubleSidedPipelineCreated(GfxRenderer* gfxRenderer);
+  bool EnsureMorphedDoubleSidedPipelineCreated(GfxRenderer* gfxRenderer);
   bool EnsureCompositePipelineCreated(GfxRenderer* gfxRenderer);
   bool EnsureCompositeBindGroup(GfxRenderer* gfxRenderer, gfx::Texture sceneDepth, gfx::TextureView sceneDepthView);
   bool EnsureSkyboxBindGroup(GfxRenderer* gfxRenderer);

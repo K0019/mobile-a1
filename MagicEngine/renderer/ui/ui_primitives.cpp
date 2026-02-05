@@ -435,6 +435,47 @@ namespace ui
     return true;
   }
 
+  bool AddImageDirect(PrimitiveDrawList& list, gfx::TextureView view, const vec2& min, const vec2& max,
+                      const vec2& uvMin, const vec2& uvMax, uint32_t color, const vec4& clipRect,
+                      SamplerMode samplerMode, uint16_t layer)
+  {
+    if (!hina_texture_view_is_valid(view)) return false;
+
+    const int32_t baseVertex = static_cast<int32_t>(list.vertices.size());
+    const uint32_t baseIndex = static_cast<uint32_t>(list.indices.size());
+    const uint32_t samplerIndex = SamplerModeToIndex(samplerMode);
+
+    // Create a new command (no merging for direct views - each is unique)
+    PrimitiveDrawCommand cmd;
+    cmd.indexOffset = baseIndex;
+    cmd.vertexOffset = baseVertex;
+    cmd.clipRect = clipRect;
+    cmd.textureId = 0;  // textureId is 0 when using directView
+    cmd.directView = view;
+    cmd.samplerIndex = samplerIndex;
+    cmd.layer = layer;
+    cmd.sortOrder = list.commandOrderCounter++;
+
+    list.vertices.reserve(list.vertices.size() + 4);
+    list.vertices.push_back({min.x, min.y, uvMin.x, uvMin.y, color});
+    list.vertices.push_back({max.x, min.y, uvMax.x, uvMin.y, color});
+    list.vertices.push_back({max.x, max.y, uvMax.x, uvMax.y, color});
+    list.vertices.push_back({min.x, max.y, uvMin.x, uvMax.y, color});
+
+    const uint32_t base = static_cast<uint32_t>(baseVertex);
+    list.indices.reserve(list.indices.size() + 6);
+    list.indices.push_back(base + 0);
+    list.indices.push_back(base + 1);
+    list.indices.push_back(base + 2);
+    list.indices.push_back(base + 0);
+    list.indices.push_back(base + 2);
+    list.indices.push_back(base + 3);
+
+    cmd.indexCount = static_cast<uint32_t>(list.indices.size()) - cmd.indexOffset;
+    list.commands.push_back(cmd);
+    return true;
+  }
+
   bool AddText(Resource::ResourceManager& resources, PrimitiveDrawList& list, FontHandle font, std::string_view text,
                const TextLayoutDesc& layout, uint32_t color, uint16_t layer)
   {

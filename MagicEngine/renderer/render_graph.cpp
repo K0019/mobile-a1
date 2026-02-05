@@ -1499,6 +1499,13 @@ void RenderGraph::ExecuteFinalBlit(const internal::ExecutionContext& ctx)
   gfx::Dimensions viewDims = hinaCtx->getDimensions(viewOutput);
   gfx::Dimensions swapchainDims = hinaCtx->getDimensions(swapchainImage);
 
+  // Get actual window dimensions for correct aspect ratio calculation.
+  // This handles VK_SUBOPTIMAL_KHR where swapchain dimensions may be stale
+  // (some drivers return SUBOPTIMAL instead of OUT_OF_DATE on window resize).
+  // The window dimensions represent the actual presentation target.
+  uint32_t windowWidth = m_gfxRenderer ? m_gfxRenderer->getWidth() : swapchainDims.width;
+  uint32_t windowHeight = m_gfxRenderer ? m_gfxRenderer->getHeight() : swapchainDims.height;
+
   // Get pre-transform for Android
   uint32_t preTransformValue = 0; // 0 = Identity
 #if defined(__ANDROID__)
@@ -1520,27 +1527,39 @@ void RenderGraph::ExecuteFinalBlit(const internal::ExecutionContext& ctx)
   }
 #endif
 
-  // Calculate letterbox/pillarbox viewport to maintain aspect ratio
-  // This prevents UI stretching on non-16:9 displays
+  // Calculate letterbox/pillarbox viewport to maintain aspect ratio.
+  // Use WINDOW aspect ratio (actual presentation target) rather than swapchain dimensions,
+  // since swapchain may be suboptimal with stale dimensions on some drivers.
   const float srcAspect = static_cast<float>(viewDims.width) / static_cast<float>(viewDims.height);
-  const float dstAspect = static_cast<float>(swapchainDims.width) / static_cast<float>(swapchainDims.height);
+  const float dstAspect = static_cast<float>(windowWidth) / static_cast<float>(windowHeight);
 
-  float letterboxX = 0.0f, letterboxY = 0.0f;
-  float letterboxW = static_cast<float>(swapchainDims.width);
-  float letterboxH = static_cast<float>(swapchainDims.height);
+  // Calculate letterbox in normalized [0,1] coordinates first
+  float normLetterboxX = 0.0f, normLetterboxY = 0.0f;
+  float normLetterboxW = 1.0f, normLetterboxH = 1.0f;
 
   if (srcAspect > dstAspect) {
     // Source is wider than destination - pillarbox (black bars on top/bottom)
-    letterboxH = letterboxW / srcAspect;
-    letterboxY = (static_cast<float>(swapchainDims.height) - letterboxH) * 0.5f;
+    normLetterboxH = dstAspect / srcAspect;
+    normLetterboxY = (1.0f - normLetterboxH) * 0.5f;
   } else if (srcAspect < dstAspect) {
     // Source is taller than destination - letterbox (black bars on left/right)
-    letterboxW = letterboxH * srcAspect;
-    letterboxX = (static_cast<float>(swapchainDims.width) - letterboxW) * 0.5f;
+    normLetterboxW = srcAspect / dstAspect;
+    normLetterboxX = (1.0f - normLetterboxW) * 0.5f;
   }
 
-  // Fast blit path: for matching dimensions and no pre-transform (no letterboxing needed)
-  if (preTransformValue == 0 && viewDims.width == swapchainDims.width && viewDims.height == swapchainDims.height)
+  // Scale normalized letterbox to swapchain dimensions.
+  // When compositor stretches a suboptimal swapchain to the window, the letterbox
+  // proportions are preserved because they were calculated for the window aspect ratio.
+  float letterboxX = normLetterboxX * static_cast<float>(swapchainDims.width);
+  float letterboxY = normLetterboxY * static_cast<float>(swapchainDims.height);
+  float letterboxW = normLetterboxW * static_cast<float>(swapchainDims.width);
+  float letterboxH = normLetterboxH * static_cast<float>(swapchainDims.height);
+
+  // Fast blit path: only valid when ALL dimensions match (view, swapchain, AND window).
+  // This avoids incorrect stretching when swapchain is suboptimal (stale dimensions).
+  bool dimensionsMatch = (viewDims.width == swapchainDims.width && viewDims.height == swapchainDims.height &&
+                          swapchainDims.width == windowWidth && swapchainDims.height == windowHeight);
+  if (preTransformValue == 0 && dimensionsMatch)
   {
     // Use hina blit for copy to swapchain
     hina_cmd_blit_texture(ctx.GetCmd(), viewOutput, swapchainImage, 0, 0, HINA_FILTER_NEAREST);

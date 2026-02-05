@@ -1,20 +1,17 @@
 #pragma once
 #include "Editor/AssetBrowserCategories.h"
-#include <optional>
+#include "Assets/Types/AssetTypes.h"
 
-namespace editor
-{
-	class AnimationsTab : public editor::BaseAssetCategory
+namespace editor {
+
+	class AnimationsTab : public GenericAssetTab<ResourceAnimation>
 	{
-	public:
-		const char* GetName() const final;
-		const char* GetIdentifier() const final;
-		void Render(const gui::TextBoxWithFilter& filter) final;
+	protected:
+		const AssetTabConfig& GetConfig() const override;
+		void RenderDetailPanelContent(size_t hash, const std::string& name) override;
 
 	private:
-		void RenderGridView(const gui::TextBoxWithFilter& filter, float height);
-		void RenderDetailPanel();
-
-		std::optional<size_t> selectedAnimationHash;
+		static const AssetTabConfig config;
 	};
+
 }

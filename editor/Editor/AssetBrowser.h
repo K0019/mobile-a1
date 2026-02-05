@@ -75,10 +75,7 @@ namespace editor {
         gui::TextBoxWithFilter searchBuffer;
 
     public:
-        // Constants
-        static constexpr float THUMBNAIL_SIZE = 50.0f; /**< Size of thumbnails */
         static constexpr float SIDEBAR_WIDTH = 150.0f; /**< Width of the sidebar */
-
     };
 
 }
