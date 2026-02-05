@@ -222,6 +222,8 @@ void CharacterMovementComponent::LightAttack()
 	auto animFSM{ animComp->GetStateMachine() };
 	if (!animFSM) return;
 	animFSM->blackboard["inputLightAttack"] = true;
+
+	
 }
 
 void CharacterMovementComponent::HeavyAttack()

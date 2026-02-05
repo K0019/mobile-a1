@@ -52,11 +52,14 @@ function update(entity)
             -- Call relevant functions on enemy wave spawner etc here!
                 if entityContainer:GetSize() >= 2 then
                     local spawnerEntity = entityContainer:GetEntityReference(1)
-                    local spawnerScriptComp = spawnerEntity:GetScriptComponent()
-
-                    if spawnerScriptComp:Exists() then
-                        --Magic.Log(Magic.LogLevel.info, "It's spawnin time")
-                        spawnerScriptComp:CallScriptFunction("wavespawn")
+                    if(spawnerEntity ~= nil) then
+                        
+                        local spawnerScriptComp = spawnerEntity:GetScriptComponent()
+                        
+                        if spawnerScriptComp:Exists() then
+                            --Magic.Log(Magic.LogLevel.info, "It's spawnin time")
+                            spawnerScriptComp:CallScriptFunction("wavespawn")
+                        end
                     end
                 end
             end

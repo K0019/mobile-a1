@@ -248,9 +248,15 @@ void PlayerMovementComponentSystem::UpdatePlayerMovementComponent(PlayerMovement
 	}
 
 	if (inputInstance->GetIsPressed(KEY::M1) || EventsReader<Events::GameActionLightAttack>{}.ExtractEvent())
+	{
+		comp.GetEnemyTarget();
 		characterComp->LightAttack();
+	}
 	if (inputInstance->GetIsPressed(KEY::M2) || EventsReader<Events::GameActionHeavyAttack>{}.ExtractEvent())
+	{
+		comp.GetEnemyTarget();
 		characterComp->HeavyAttack();
+	}
 
 
 	if (inputInstance->GetIsPressed(KEY::E))
