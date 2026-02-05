@@ -64,7 +64,6 @@ public:
 	float parryCoolDownTime;
 	float parryDelusion;
 	float attackingMoveSpeedMultiplier;
-	float currParryCoolDown;
 
 	std::string dodgeSound;
 	std::string attackSound;
