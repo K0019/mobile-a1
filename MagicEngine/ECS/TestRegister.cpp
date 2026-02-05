@@ -10,6 +10,7 @@
 #include "EntityUID.h"
 #include "Engine/SceneTransition.h"
 #include "Engine/Audio.h"
+#include "Assets/Types/AssetTypesAudio.h"
 #include "Engine/BehaviorTree/BehaviourTree.h"
 #include "Engine/Platform/Android/AndroidInputManager.h"
 #include "Engine/EntityLayers.h"
@@ -101,4 +102,6 @@ void PreloadShit()
 {
 	// Need WeaponInfo because characters will read from it immediately on first frame
 	ST<AssetManager>::Get()->GetContainer<WeaponInfo>().RequestLoadAll();
+	// Sounds don't play on first try
+	ST<AssetManager>::Get()->GetContainer<ResourceAudio>().RequestLoadAll();
 }
