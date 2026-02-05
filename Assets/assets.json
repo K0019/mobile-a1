@@ -76,6 +76,21 @@
             ]
         },
         {
+            "filepath": "compiledassets/parry_mobile_thumb.ktx2",
+            "assetType": "Texture",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 1937432946727147397,
+                            "name": "parry_mobile_thumb0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/models/glb/items/bbt/lambert3.material",
             "assetType": "Material",
             "resources": [
@@ -166,6 +181,25 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/level1_ground/fantasy_floor.079.material",
+            "assetType": "Material",
+            "sourcePath": "models/glb/level1_ground.glb",
+            "sourceTimestamp": 134146656459767784,
+            "compiledTimestamp": 17701921290367281,
+            "formatVersion": 1,
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 1204090576833131035,
+                            "name": "fantasy_floor.0790"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "sounds/sfx/enemy/female/hurt/enemy female hurt 2.wav",
             "assetType": "Audio",
             "resources": [
@@ -241,6 +275,25 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/level1_ground/fantasy_floor.008.material",
+            "assetType": "Material",
+            "sourcePath": "models/glb/level1_ground.glb",
+            "sourceTimestamp": 134146656459767784,
+            "compiledTimestamp": 17701921285475438,
+            "formatVersion": 1,
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 884373486196796965,
+                            "name": "fantasy_floor.0080"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/models/glb/mc_animated/mc_animatedblock.anim",
             "assetType": "Animation",
             "resources": [
@@ -256,15 +309,19 @@
             ]
         },
         {
-            "filepath": "compiledassets/skill icon (mobile)_thumb.ktx2",
-            "assetType": "Texture",
+            "filepath": "compiledassets/models/glb/level1_ground/fantasy_floor.031.material",
+            "assetType": "Material",
+            "sourcePath": "models/glb/level1_ground.glb",
+            "sourceTimestamp": 134146656459767784,
+            "compiledTimestamp": 17701921286998666,
+            "formatVersion": 1,
             "resources": [
                 {
-                    "resourceType": 16443744738808614340,
+                    "resourceType": 645030769166885040,
                     "resourceEntries": [
                         {
-                            "hash": 151424741386746687,
-                            "name": "skill icon (mobile)_thumb0"
+                            "hash": 990279545695809409,
+                            "name": "fantasy_floor.0310"
                         }
                     ]
                 }
@@ -295,6 +352,25 @@
                         {
                             "hash": 4409682643567253113,
                             "name": "_190"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/level1_ground/fantasy_floor.024.material",
+            "assetType": "Material",
+            "sourcePath": "models/glb/level1_ground.glb",
+            "sourceTimestamp": 134146656459767784,
+            "compiledTimestamp": 17701921286501178,
+            "formatVersion": 1,
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 956309034444042005,
+                            "name": "fantasy_floor.0240"
                         }
                     ]
                 }
@@ -391,6 +467,63 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/level1_ground/fantasy_floor.095.material",
+            "assetType": "Material",
+            "sourcePath": "models/glb/level1_ground.glb",
+            "sourceTimestamp": 134146656459767784,
+            "compiledTimestamp": 17701921291462194,
+            "formatVersion": 1,
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 1277611620847629043,
+                            "name": "fantasy_floor.0950"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/attack_pc.ktx2",
+            "assetType": "Texture",
+            "sourcePath": "images/game/tutorial/attack_pc.png",
+            "sourceTimestamp": 134146696530175719,
+            "compiledTimestamp": 17701962411242363,
+            "formatVersion": 2,
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 3197235777646324481,
+                            "name": "attack_pc0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/level1_ground/fantasy_floor.029.material",
+            "assetType": "Material",
+            "sourcePath": "models/glb/level1_ground.glb",
+            "sourceTimestamp": 134146656459767784,
+            "compiledTimestamp": 17701921286850837,
+            "formatVersion": 1,
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 981549423371267931,
+                            "name": "fantasy_floor.0290"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/materials/wall_1011.material",
             "assetType": "Material",
             "resources": [
@@ -481,6 +614,25 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/level1_ground/fantasy_floor.038.material",
+            "assetType": "Material",
+            "sourcePath": "models/glb/level1_ground.glb",
+            "sourceTimestamp": 134146656459767784,
+            "compiledTimestamp": 17701921287496128,
+            "formatVersion": 1,
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 1018231330297130979,
+                            "name": "fantasy_floor.0380"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/models/glb/aji/player_idle_mixamo/player_idle_mixamoplayer_blocking_mixamo.anim",
             "assetType": "Animation",
             "resources": [
@@ -505,25 +657,6 @@
                         {
                             "hash": 747541463434222579,
                             "name": "standardsurface1_10010"
-                        }
-                    ]
-                }
-            ]
-        },
-        {
-            "filepath": "compiledassets/models/fbx/environment/bossarena 1/ceiling2.material",
-            "assetType": "Material",
-            "sourcePath": "models/fbx/environment/bossarena 1.fbx",
-            "sourceTimestamp": 134146859409792681,
-            "compiledTimestamp": 17702707374490909,
-            "formatVersion": 1,
-            "resources": [
-                {
-                    "resourceType": 645030769166885040,
-                    "resourceEntries": [
-                        {
-                            "hash": 811075643447711729,
-                            "name": "ceiling20"
                         }
                     ]
                 }
@@ -620,25 +753,6 @@
             ]
         },
         {
-            "filepath": "compiledassets/models/fbx/environment/bossarena 1/set_1.material",
-            "assetType": "Material",
-            "sourcePath": "models/fbx/environment/bossarena 1.fbx",
-            "sourceTimestamp": 134146859409792681,
-            "compiledTimestamp": 17702707374554335,
-            "formatVersion": 1,
-            "resources": [
-                {
-                    "resourceType": 645030769166885040,
-                    "resourceEntries": [
-                        {
-                            "hash": 819805765772253173,
-                            "name": "set_10"
-                        }
-                    ]
-                }
-            ]
-        },
-        {
             "filepath": "compiledassets/models/glb/enemy_male_animated/enemy_male_animatedhurt.anim",
             "assetType": "Animation",
             "resources": [
@@ -729,6 +843,44 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/level1_ground/fantasy_floor.034.material",
+            "assetType": "Material",
+            "sourcePath": "models/glb/level1_ground.glb",
+            "sourceTimestamp": 134146656459767784,
+            "compiledTimestamp": 17701921287228730,
+            "formatVersion": 1,
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 1003559447136087977,
+                            "name": "fantasy_floor.0340"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/level1_ground/fantasy_floor.003.material",
+            "assetType": "Material",
+            "sourcePath": "models/glb/level1_ground.glb",
+            "sourceTimestamp": 134146656459767784,
+            "compiledTimestamp": 17701921285156211,
+            "formatVersion": 1,
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 860379943455469017,
+                            "name": "fantasy_floor.0030"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "sounds/sfx/enemy/male/attack/enemy male attack 1.wav",
             "assetType": "Audio",
             "resources": [
@@ -759,6 +911,25 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/level1_ground/fantasy_floor.088.material",
+            "assetType": "Material",
+            "sourcePath": "models/glb/level1_ground.glb",
+            "sourceTimestamp": 134146656459767784,
+            "compiledTimestamp": 17701921290994392,
+            "formatVersion": 1,
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 1243883002153972373,
+                            "name": "fantasy_floor.0880"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/light attack icon.ktx2",
             "assetType": "Texture",
             "resources": [
@@ -783,6 +954,21 @@
                         {
                             "hash": 4372854501594895973,
                             "name": "_090"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/baseball_field/fence/fence15541555455230997551.ktx2",
+            "assetType": "Texture",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 18128300217637854341,
+                            "name": "fence155415554552309975510"
                         }
                     ]
                 }
@@ -828,6 +1014,25 @@
                         {
                             "hash": 2066018632834764617,
                             "name": "n00_000_00_body_00_skin__instance_0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/level1_ground/fantasy_floor.040.material",
+            "assetType": "Material",
+            "sourcePath": "models/glb/level1_ground.glb",
+            "sourceTimestamp": 134146656459767784,
+            "compiledTimestamp": 17701921287622727,
+            "formatVersion": 1,
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 1027088995970494463,
+                            "name": "fantasy_floor.0400"
                         }
                     ]
                 }
@@ -909,6 +1114,25 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/level1_ground/fantasy_floor.039.material",
+            "assetType": "Material",
+            "sourcePath": "models/glb/level1_ground.glb",
+            "sourceTimestamp": 134146656459767784,
+            "compiledTimestamp": 17701921287562236,
+            "formatVersion": 1,
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 1026568926970556401,
+                            "name": "fantasy_floor.0390"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/models/glb/mc_animated/_21.ktx2",
             "assetType": "Texture",
             "resources": [
@@ -918,6 +1142,40 @@
                         {
                             "hash": 2337507845630503437,
                             "name": "_210"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/health_thumb.ktx2",
+            "assetType": "Texture",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 3206062656994119233,
+                            "name": "health_thumb0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/level1_ground/fantasy_floor.076.material",
+            "assetType": "Material",
+            "sourcePath": "models/glb/level1_ground.glb",
+            "sourceTimestamp": 134146656459767784,
+            "compiledTimestamp": 17701921290150956,
+            "formatVersion": 1,
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 1189285652765127155,
+                            "name": "fantasy_floor.0760"
                         }
                     ]
                 }
@@ -1059,6 +1317,25 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/level1_ground/fantasy_floor.049.material",
+            "assetType": "Material",
+            "sourcePath": "models/glb/level1_ground.glb",
+            "sourceTimestamp": 134146656459767784,
+            "compiledTimestamp": 17701921288265879,
+            "formatVersion": 1,
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 1071000191848984699,
+                            "name": "fantasy_floor.0490"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/models/glb/aji/player_idle_mixamo/_13.ktx2",
             "assetType": "Texture",
             "resources": [
@@ -1083,25 +1360,6 @@
                         {
                             "hash": 5117238167394705739,
                             "name": "material_150"
-                        }
-                    ]
-                }
-            ]
-        },
-        {
-            "filepath": "compiledassets/models/fbx/environment/bossarena 1/set_2.material",
-            "assetType": "Material",
-            "sourcePath": "models/fbx/environment/bossarena 1.fbx",
-            "sourceTimestamp": 134146859409792681,
-            "compiledTimestamp": 17702707374582910,
-            "formatVersion": 1,
-            "resources": [
-                {
-                    "resourceType": 645030769166885040,
-                    "resourceEntries": [
-                        {
-                            "hash": 827849792841062391,
-                            "name": "set_20"
                         }
                     ]
                 }
@@ -1153,6 +1411,25 @@
             ]
         },
         {
+            "filepath": "compiledassets/attack_mobile.ktx2",
+            "assetType": "Texture",
+            "sourcePath": "images/game/tutorial/attack_mobile.png",
+            "sourceTimestamp": 134146697288705437,
+            "compiledTimestamp": 17701962385527115,
+            "formatVersion": 2,
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 3188139517949731051,
+                            "name": "attack_mobile0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/models/glb/items/sword/spike_lambert.material",
             "assetType": "Material",
             "resources": [
@@ -1192,6 +1469,25 @@
                         {
                             "hash": 97470606385473683,
                             "name": "main menu bg0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/combinedclassroom/fantasy_walls1.material",
+            "assetType": "Material",
+            "sourcePath": "models/glb/combinedclassroom.glb",
+            "sourceTimestamp": 134146640623868093,
+            "compiledTimestamp": 17701905714758465,
+            "formatVersion": 1,
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2929958794579470477,
+                            "name": "fantasy_walls10"
                         }
                     ]
                 }
@@ -1273,6 +1569,21 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/baseball_field/lights/lights12285059771941119493.ktx2",
+            "assetType": "Texture",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 5383215526760767491,
+                            "name": "lights122850597719411194930"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/models/glb/aji/player_idle_mixamo/n00_007_01_tops_01_cloth_02__instance_.material",
             "assetType": "Material",
             "resources": [
@@ -1318,6 +1629,25 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/level1_ground/fantasy_floor.045.material",
+            "assetType": "Material",
+            "sourcePath": "models/glb/level1_ground.glb",
+            "sourceTimestamp": 134146656459767784,
+            "compiledTimestamp": 17701921287978475,
+            "formatVersion": 1,
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 1049823597898018885,
+                            "name": "fantasy_floor.0450"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/materials/n00_007_01_tops_01_cloth_01 (instance).material",
             "assetType": "Material",
             "resources": [
@@ -1327,6 +1657,25 @@
                         {
                             "hash": 302277737037677677,
                             "name": "n00_007_01_tops_01_cloth_01 (instance)0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/level1_ground/fantasy_floor.050.material",
+            "assetType": "Material",
+            "sourcePath": "models/glb/level1_ground.glb",
+            "sourceTimestamp": 134146656459767784,
+            "compiledTimestamp": 17701921288329536,
+            "formatVersion": 1,
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 1072131589313966217,
+                            "name": "fantasy_floor.0500"
                         }
                     ]
                 }
@@ -1393,6 +1742,25 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/level1_ground/fantasy_floor.098.material",
+            "assetType": "Material",
+            "sourcePath": "models/glb/level1_ground.glb",
+            "sourceTimestamp": 134146656459767784,
+            "compiledTimestamp": 17701921291666723,
+            "formatVersion": 1,
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 1289262046055543579,
+                            "name": "fantasy_floor.0980"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/meshanimations/player_idle_mixamoplayer_martellokick_mixamo.anim",
             "assetType": "Animation",
             "resources": [
@@ -1402,6 +1770,25 @@
                         {
                             "hash": 2207963384957390721,
                             "name": "player_idle_mixamoplayer_martellokick_mixamo0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/level1_ground/fantasy_floor.065.material",
+            "assetType": "Material",
+            "sourcePath": "models/glb/level1_ground.glb",
+            "sourceTimestamp": 134146656459767784,
+            "compiledTimestamp": 17701921289397516,
+            "formatVersion": 1,
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 1143565760258945367,
+                            "name": "fantasy_floor.0650"
                         }
                     ]
                 }
@@ -1457,6 +1844,44 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/level1_ground/fantasy_floor.093.material",
+            "assetType": "Material",
+            "sourcePath": "models/glb/level1_ground.glb",
+            "sourceTimestamp": 134146656459767784,
+            "compiledTimestamp": 17701921291326274,
+            "formatVersion": 1,
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 1267004632174473945,
+                            "name": "fantasy_floor.0930"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/level1_ground/fantasy_floor.033.material",
+            "assetType": "Material",
+            "sourcePath": "models/glb/level1_ground.glb",
+            "sourceTimestamp": 134146656459767784,
+            "compiledTimestamp": 17701921287154458,
+            "formatVersion": 1,
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 995760611160272795,
+                            "name": "fantasy_floor.0330"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/models/glb/mc_animated/mc_animatedlight atk 4.anim",
             "assetType": "Animation",
             "resources": [
@@ -1466,6 +1891,25 @@
                         {
                             "hash": 5872848946299131223,
                             "name": "mc_animatedlight atk 40"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/level1_ground/fantasy_floor.069.material",
+            "assetType": "Material",
+            "sourcePath": "models/glb/level1_ground.glb",
+            "sourceTimestamp": 134146656459767784,
+            "compiledTimestamp": 17701921289677040,
+            "formatVersion": 1,
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 1160568608070873489,
+                            "name": "fantasy_floor.0690"
                         }
                     ]
                 }
@@ -1532,6 +1976,25 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/level1_ground/fantasy_floor.048.material",
+            "assetType": "Material",
+            "sourcePath": "models/glb/level1_ground.glb",
+            "sourceTimestamp": 134146656459767784,
+            "compiledTimestamp": 17701921288202130,
+            "formatVersion": 1,
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 1063335496291758191,
+                            "name": "fantasy_floor.0480"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/models/glb/enemy_male_animated/n00_000_00_hairback_00_hair (instance).material",
             "assetType": "Material",
             "resources": [
@@ -1562,6 +2025,25 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/level1_ground/fantasy_floor.074.material",
+            "assetType": "Material",
+            "sourcePath": "models/glb/level1_ground.glb",
+            "sourceTimestamp": 134146656459767784,
+            "compiledTimestamp": 17701921290011170,
+            "formatVersion": 1,
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 1181990393114833365,
+                            "name": "fantasy_floor.0740"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/materials/n00_008_01_shoes_01_cloth_02 (instance).material",
             "assetType": "Material",
             "resources": [
@@ -1586,6 +2068,40 @@
                         {
                             "hash": 556717921788425205,
                             "name": "darkmetal0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/level1_ground/fantasy_floor.087.material",
+            "assetType": "Material",
+            "sourcePath": "models/glb/level1_ground.glb",
+            "sourceTimestamp": 134146656459767784,
+            "compiledTimestamp": 17701921290914900,
+            "formatVersion": 1,
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 1241498161433326215,
+                            "name": "fantasy_floor.0870"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/health.ktx2",
+            "assetType": "Texture",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 7806641408964174589,
+                            "name": "health0"
                         }
                     ]
                 }
@@ -1780,6 +2296,21 @@
             ]
         },
         {
+            "filepath": "compiledassets/delusion.ktx2",
+            "assetType": "Texture",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 17312723174093266303,
+                            "name": "delusion0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/attack speed icon.ktx2",
             "assetType": "Texture",
             "resources": [
@@ -1789,6 +2320,44 @@
                         {
                             "hash": 2997218120944789645,
                             "name": "attack speed icon0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/level1_ground/fantasy_floor.064.material",
+            "assetType": "Material",
+            "sourcePath": "models/glb/level1_ground.glb",
+            "sourceTimestamp": 134146656459767784,
+            "compiledTimestamp": 17701921289323489,
+            "formatVersion": 1,
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 1139319446352474441,
+                            "name": "fantasy_floor.0640"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/parry_pc.ktx2",
+            "assetType": "Texture",
+            "sourcePath": "images/game/tutorial/parry_pc.png",
+            "sourceTimestamp": 134146702581228005,
+            "compiledTimestamp": 17701967629848755,
+            "formatVersion": 2,
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 1951695811562660223,
+                            "name": "parry_pc0"
                         }
                     ]
                 }
@@ -1900,6 +2469,25 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/level1_ground/fantasy_floor.014.material",
+            "assetType": "Material",
+            "sourcePath": "models/glb/level1_ground.glb",
+            "sourceTimestamp": 134146656459767784,
+            "compiledTimestamp": 17701921285836849,
+            "formatVersion": 1,
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 912762876425973371,
+                            "name": "fantasy_floor.0140"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/materials/n00_002_03_tops_01_cloth_05__instance_.001.material",
             "assetType": "Material",
             "resources": [
@@ -1915,6 +2503,25 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/level1_ground/fantasy_floor.096.material",
+            "assetType": "Material",
+            "sourcePath": "models/glb/level1_ground.glb",
+            "sourceTimestamp": 134146656459767784,
+            "compiledTimestamp": 17701921291533367,
+            "formatVersion": 1,
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 1282851893265609473,
+                            "name": "fantasy_floor.0960"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/unitbox.mesh",
             "assetType": "Mesh",
             "resources": [
@@ -1924,6 +2531,21 @@
                         {
                             "hash": 394651007363811311,
                             "name": "unitbox0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/dodge_pc_thumb.ktx2",
+            "assetType": "Texture",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 1935540687215729345,
+                            "name": "dodge_pc_thumb0"
                         }
                     ]
                 }
@@ -1979,6 +2601,25 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/level1_ground/fantasy_floor.042.material",
+            "assetType": "Material",
+            "sourcePath": "models/glb/level1_ground.glb",
+            "sourceTimestamp": 134146656459767784,
+            "compiledTimestamp": 17701921287752305,
+            "formatVersion": 1,
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 1037434300876238875,
+                            "name": "fantasy_floor.0420"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/controls button.ktx2",
             "assetType": "Texture",
             "resources": [
@@ -1988,6 +2629,21 @@
                         {
                             "hash": 119112293755005063,
                             "name": "controls button0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/lookaround_mobile_thumb.ktx2",
+            "assetType": "Texture",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 3207795487319497419,
+                            "name": "lookaround_mobile_thumb0"
                         }
                     ]
                 }
@@ -2039,6 +2695,25 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/level1_ground/fantasy_floor.085.material",
+            "assetType": "Material",
+            "sourcePath": "models/glb/level1_ground.glb",
+            "sourceTimestamp": 134146656459767784,
+            "compiledTimestamp": 17701921290785076,
+            "formatVersion": 1,
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 1233643250364494447,
+                            "name": "fantasy_floor.0850"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/rankf.ktx2",
             "assetType": "Texture",
             "resources": [
@@ -2084,6 +2759,25 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/combinedclassroom/fantasy_walls.material",
+            "assetType": "Material",
+            "sourcePath": "models/glb/combinedclassroom.glb",
+            "sourceTimestamp": 134146640623868093,
+            "compiledTimestamp": 17701905714584872,
+            "formatVersion": 1,
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2915471629371893857,
+                            "name": "fantasy_walls0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/models/glb/aji/player_idle_mixamo/_20.ktx2",
             "assetType": "Texture",
             "resources": [
@@ -2108,6 +2802,25 @@
                         {
                             "hash": 2342298417792723469,
                             "name": "_230"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/level1_ground/fantasy_floor.005.material",
+            "assetType": "Material",
+            "sourcePath": "models/glb/level1_ground.glb",
+            "sourceTimestamp": 134146656459767784,
+            "compiledTimestamp": 17701921285294675,
+            "formatVersion": 1,
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 870524037733330425,
+                            "name": "fantasy_floor.0050"
                         }
                     ]
                 }
@@ -2189,6 +2902,25 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/level1_ground/fantasy_floor.016.material",
+            "assetType": "Material",
+            "sourcePath": "models/glb/level1_ground.glb",
+            "sourceTimestamp": 134146656459767784,
+            "compiledTimestamp": 17701921285953479,
+            "formatVersion": 1,
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 922123018913230491,
+                            "name": "fantasy_floor.0160"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/player health fill.ktx2",
             "assetType": "Texture",
             "resources": [
@@ -2198,6 +2930,25 @@
                         {
                             "hash": 5546447923662549515,
                             "name": "player health fill0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/level1_ground/fantasy_floor.053.material",
+            "assetType": "Material",
+            "sourcePath": "models/glb/level1_ground.glb",
+            "sourceTimestamp": 134146656459767784,
+            "compiledTimestamp": 17701921288537188,
+            "formatVersion": 1,
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 1089024485963116723,
+                            "name": "fantasy_floor.0530"
                         }
                     ]
                 }
@@ -2474,6 +3225,25 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/level1_ground/fantasy_floor.091.material",
+            "assetType": "Material",
+            "sourcePath": "models/glb/level1_ground.glb",
+            "sourceTimestamp": 134146656459767784,
+            "compiledTimestamp": 17701921291187385,
+            "formatVersion": 1,
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 1257297044012839613,
+                            "name": "fantasy_floor.0910"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "sounds/sfx/mc/jump/jump 3.wav",
             "assetType": "Audio",
             "resources": [
@@ -2549,6 +3319,25 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/combinedclassroom/default_material1.material",
+            "assetType": "Material",
+            "sourcePath": "models/glb/combinedclassroom.glb",
+            "sourceTimestamp": 134146640623868093,
+            "compiledTimestamp": 17701905714530204,
+            "formatVersion": 1,
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2911319873465411665,
+                            "name": "default_material10"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/models/glb/items/sword/lambert2.material",
             "assetType": "Material",
             "resources": [
@@ -2579,6 +3368,36 @@
             ]
         },
         {
+            "filepath": "compiledassets/materials/t_PickDroppc.material",
+            "assetType": "Material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2978933241526736149,
+                            "name": "t_pickdroppc0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/materials/t_attackmobile.material",
+            "assetType": "Material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 10987796828952476845,
+                            "name": "t_attackmobile0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/delusion meter fill.ktx2",
             "assetType": "Texture",
             "resources": [
@@ -2588,6 +3407,21 @@
                         {
                             "hash": 82850400431107463,
                             "name": "delusion meter fill0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/materials/t_skillpc.material",
+            "assetType": "Material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 5759813652435057647,
+                            "name": "t_skillpc0"
                         }
                     ]
                 }
@@ -2654,6 +3488,25 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/level1_ground/fantasy_floor.056.material",
+            "assetType": "Material",
+            "sourcePath": "models/glb/level1_ground.glb",
+            "sourceTimestamp": 134146656459767784,
+            "compiledTimestamp": 17701921288752084,
+            "formatVersion": 1,
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 1098969568636350685,
+                            "name": "fantasy_floor.0560"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/models/glb/aji/player_idle_mixamo/player_idle_mixamoplayer_punch 2_mixamo.anim",
             "assetType": "Animation",
             "resources": [
@@ -2684,15 +3537,19 @@
             ]
         },
         {
-            "filepath": "compiledassets/pause_continue_thumb.ktx2",
-            "assetType": "Texture",
+            "filepath": "compiledassets/models/fbx/environment/combinedclassroom/fantasy_floor.material",
+            "assetType": "Material",
+            "sourcePath": "models/fbx/environment/combinedclassroom.fbx",
+            "sourceTimestamp": 134146630587764895,
+            "compiledTimestamp": 17701902309350299,
+            "formatVersion": 1,
             "resources": [
                 {
-                    "resourceType": 16443744738808614340,
+                    "resourceType": 645030769166885040,
                     "resourceEntries": [
                         {
-                            "hash": 106549274496120489,
-                            "name": "pause_continue_thumb0"
+                            "hash": 2923660791975228989,
+                            "name": "fantasy_floor0"
                         }
                     ]
                 }
@@ -2744,6 +3601,40 @@
             ]
         },
         {
+            "filepath": "compiledassets/pause_pc.ktx2",
+            "assetType": "Texture",
+            "sourcePath": "images/game/tutorial/pause_pc.png",
+            "sourceTimestamp": 134146702931086767,
+            "compiledTimestamp": 17701967681713158,
+            "formatVersion": 2,
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 1968541429211821495,
+                            "name": "pause_pc0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/baseball_field/lights/image_2.ktx2",
+            "assetType": "Texture",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 9392194351141618821,
+                            "name": "image_20"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "sounds/sfx/weapon pickup/weapon pickup 3.wav",
             "assetType": "Audio",
             "resources": [
@@ -2753,6 +3644,25 @@
                         {
                             "hash": 4836861497999165783,
                             "name": "weapon pickup 30"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/level1_ground/fantasy_floor.070.material",
+            "assetType": "Material",
+            "sourcePath": "models/glb/level1_ground.glb",
+            "sourceTimestamp": 134146656459767784,
+            "compiledTimestamp": 17701921289740648,
+            "formatVersion": 1,
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 1165579082558648735,
+                            "name": "fantasy_floor.0700"
                         }
                     ]
                 }
@@ -2804,6 +3714,21 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/baseball_field/fence/image_3.ktx2",
+            "assetType": "Texture",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 4200570924644749469,
+                            "name": "image_30"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/materials/material_21.material",
             "assetType": "Material",
             "resources": [
@@ -2837,15 +3762,15 @@
             "filepath": "compiledassets/models/fbx/environment/theater/theater.mesh",
             "assetType": "Mesh",
             "sourcePath": "models/fbx/environment/theater.fbx",
-            "sourceTimestamp": 134147349884429943,
-            "compiledTimestamp": 17702700400987750,
+            "sourceTimestamp": 134146621177278278,
+            "compiledTimestamp": 17701886781676695,
             "formatVersion": 1296388936,
             "resources": [
                 {
                     "resourceType": 6209910166724260588,
                     "resourceEntries": [
                         {
-                            "hash": 777869292776552167,
+                            "hash": 2903518838464448935,
                             "name": "theater0"
                         }
                     ]
@@ -2881,6 +3806,25 @@
                         {
                             "hash": 177963654405000807,
                             "name": "cesiummananim_00"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/level1_ground/fantasy_floor.015.material",
+            "assetType": "Material",
+            "sourcePath": "models/glb/level1_ground.glb",
+            "sourceTimestamp": 134146656459767784,
+            "compiledTimestamp": 17701921285895640,
+            "formatVersion": 1,
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 918727727006658187,
+                            "name": "fantasy_floor.0150"
                         }
                     ]
                 }
@@ -2947,6 +3891,21 @@
             ]
         },
         {
+            "filepath": "compiledassets/materials/t_attackpc.material",
+            "assetType": "Material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 10983023848976285261,
+                            "name": "t_attackpc0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/models/glb/mc_animated/_22.ktx2",
             "assetType": "Texture",
             "resources": [
@@ -2956,6 +3915,25 @@
                         {
                             "hash": 2368719682208180755,
                             "name": "_220"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/level1_ground/fantasy_floor.067.material",
+            "assetType": "Material",
+            "sourcePath": "models/glb/level1_ground.glb",
+            "sourceTimestamp": 134146656459767784,
+            "compiledTimestamp": 17701921289525043,
+            "formatVersion": 1,
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 1150041883746546037,
+                            "name": "fantasy_floor.0670"
                         }
                     ]
                 }
@@ -3007,6 +3985,21 @@
             ]
         },
         {
+            "filepath": "compiledassets/delusion_thumb.ktx2",
+            "assetType": "Texture",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 1929216296332756487,
+                            "name": "delusion_thumb0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/health icon.ktx2",
             "assetType": "Texture",
             "resources": [
@@ -3022,15 +4015,19 @@
             ]
         },
         {
-            "filepath": "compiledassets/close icon_thumb.ktx2",
-            "assetType": "Texture",
+            "filepath": "compiledassets/models/glb/level1_ground/fantasy_floor.030.material",
+            "assetType": "Material",
+            "sourcePath": "models/glb/level1_ground.glb",
+            "sourceTimestamp": 134146656459767784,
+            "compiledTimestamp": 17701921286923812,
+            "formatVersion": 1,
             "resources": [
                 {
-                    "resourceType": 16443744738808614340,
+                    "resourceType": 645030769166885040,
                     "resourceEntries": [
                         {
-                            "hash": 454805289697501625,
-                            "name": "close icon_thumb0"
+                            "hash": 982062895301439347,
+                            "name": "fantasy_floor.0300"
                         }
                     ]
                 }
@@ -3097,6 +4094,21 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/baseball_field/fence/material_1.material",
+            "assetType": "Material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 4267561969102124921,
+                            "name": "material_10"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "videos/opening_cutscene.mp4",
             "assetType": "Video",
             "resources": [
@@ -3106,6 +4118,44 @@
                         {
                             "hash": 125735753437819627,
                             "name": "opening_cutscene0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/fbx/environment/combinedclassroom/combinedclassroom.mesh",
+            "assetType": "Mesh",
+            "sourcePath": "models/fbx/environment/combinedclassroom.fbx",
+            "sourceTimestamp": 134146630587764895,
+            "compiledTimestamp": 17701902293177785,
+            "formatVersion": 1296388936,
+            "resources": [
+                {
+                    "resourceType": 6209910166724260588,
+                    "resourceEntries": [
+                        {
+                            "hash": 2933617969276368495,
+                            "name": "combinedclassroom0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/level1_ground/fantasy_floor.035.material",
+            "assetType": "Material",
+            "sourcePath": "models/glb/level1_ground.glb",
+            "sourceTimestamp": 134146656459767784,
+            "compiledTimestamp": 17701921287292528,
+            "formatVersion": 1,
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 1004363190135992247,
+                            "name": "fantasy_floor.0350"
                         }
                     ]
                 }
@@ -3247,6 +4297,40 @@
             ]
         },
         {
+            "filepath": "compiledassets/kickme_thumb.ktx2",
+            "assetType": "Texture",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 2001401433719548453,
+                            "name": "kickme_thumb0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/level1_ground/fantasy_floor.081.material",
+            "assetType": "Material",
+            "sourcePath": "models/glb/level1_ground.glb",
+            "sourceTimestamp": 134146656459767784,
+            "compiledTimestamp": 17701921290497162,
+            "formatVersion": 1,
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 1211914701576385077,
+                            "name": "fantasy_floor.0810"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/models/glb/aji/player_idle_mixamo/player_idle_mixamoplayer_katar atk 2.anim",
             "assetType": "Animation",
             "resources": [
@@ -3316,6 +4400,25 @@
                         {
                             "hash": 2548081914535652063,
                             "name": "mc_animatedidle0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/level1_ground/fantasy_floor.007.material",
+            "assetType": "Material",
+            "sourcePath": "models/glb/level1_ground.glb",
+            "sourceTimestamp": 134146656459767784,
+            "compiledTimestamp": 17701921285420193,
+            "formatVersion": 1,
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 878609846243995159,
+                            "name": "fantasy_floor.0070"
                         }
                     ]
                 }
@@ -3412,6 +4515,25 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/level1_ground/uv_set_14.material",
+            "assetType": "Material",
+            "sourcePath": "models/glb/level1_ground.glb",
+            "sourceTimestamp": 134146656459767784,
+            "compiledTimestamp": 17701921284902920,
+            "formatVersion": 1,
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 840059869062540681,
+                            "name": "uv_set_140"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "sounds/music (bgm)/classroom (main gameplay)/purrfectputt-music-gameplayloop1.wav",
             "assetType": "Audio",
             "resources": [
@@ -3472,19 +4594,15 @@
             ]
         },
         {
-            "filepath": "compiledassets/models/fbx/environment/bossarena 1/set_4.material",
+            "filepath": "compiledassets/materials/t_Dodgepc.material",
             "assetType": "Material",
-            "sourcePath": "models/fbx/environment/bossarena 1.fbx",
-            "sourceTimestamp": 134146859409792681,
-            "compiledTimestamp": 17702707374642287,
-            "formatVersion": 1,
             "resources": [
                 {
                     "resourceType": 645030769166885040,
                     "resourceEntries": [
                         {
-                            "hash": 835882824793593851,
-                            "name": "set_40"
+                            "hash": 2921651984248910669,
+                            "name": "t_dodgepc0"
                         }
                     ]
                 }
@@ -3566,6 +4684,78 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/combinedclassroom/uv_set_14.001.material",
+            "assetType": "Material",
+            "sourcePath": "models/glb/combinedclassroom.glb",
+            "sourceTimestamp": 134146682306730658,
+            "compiledTimestamp": 17701946501096137,
+            "formatVersion": 1,
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 17600022263882523817,
+                            "name": "uv_set_14.0010"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/pickdrop_pc.ktx2",
+            "assetType": "Texture",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 2972316380550716175,
+                            "name": "pickdrop_pc0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/level1_ground/fantasy_floor.004.material",
+            "assetType": "Material",
+            "sourcePath": "models/glb/level1_ground.glb",
+            "sourceTimestamp": 134146656459767784,
+            "compiledTimestamp": 17701921285224585,
+            "formatVersion": 1,
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 865508065687416297,
+                            "name": "fantasy_floor.0040"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/level1_ground/fantasy_floor.041.material",
+            "assetType": "Material",
+            "sourcePath": "models/glb/level1_ground.glb",
+            "sourceTimestamp": 134146656459767784,
+            "compiledTimestamp": 17701921287688647,
+            "formatVersion": 1,
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 1032858133481435149,
+                            "name": "fantasy_floor.0410"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/models/glb/enemy_female_animated/_08.ktx2",
             "assetType": "Texture",
             "resources": [
@@ -3611,6 +4801,25 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/level1_ground/fantasy_floor.001.material",
+            "assetType": "Material",
+            "sourcePath": "models/glb/level1_ground.glb",
+            "sourceTimestamp": 134146656459767784,
+            "compiledTimestamp": 17701921285048132,
+            "formatVersion": 1,
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 853092380386569659,
+                            "name": "fantasy_floor.0010"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "sounds/sfx/mc/weapon pickup/weapon pickup 3.wav",
             "assetType": "Audio",
             "resources": [
@@ -3620,6 +4829,25 @@
                         {
                             "hash": 4836861497999165783,
                             "name": "weapon pickup 30"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/level1_ground/fantasy_floor.044.material",
+            "assetType": "Material",
+            "sourcePath": "models/glb/level1_ground.glb",
+            "sourceTimestamp": 134146656459767784,
+            "compiledTimestamp": 17701921287902926,
+            "formatVersion": 1,
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 1048227107014488119,
+                            "name": "fantasy_floor.0440"
                         }
                     ]
                 }
@@ -3701,15 +4929,19 @@
             ]
         },
         {
-            "filepath": "compiledassets/fullscreen (title)_thumb.ktx2",
-            "assetType": "Texture",
+            "filepath": "compiledassets/models/glb/combinedclassroom/default_material1.001.material",
+            "assetType": "Material",
+            "sourcePath": "models/glb/combinedclassroom.glb",
+            "sourceTimestamp": 134146682306730658,
+            "compiledTimestamp": 17701946500982535,
+            "formatVersion": 1,
             "resources": [
                 {
-                    "resourceType": 16443744738808614340,
+                    "resourceType": 645030769166885040,
                     "resourceEntries": [
                         {
-                            "hash": 229187702700756699,
-                            "name": "fullscreen (title)_thumb0"
+                            "hash": 17587375681139844237,
+                            "name": "default_material1.0010"
                         }
                     ]
                 }
@@ -3761,6 +4993,25 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/level1_ground/fantasy_floor.077.material",
+            "assetType": "Material",
+            "sourcePath": "models/glb/level1_ground.glb",
+            "sourceTimestamp": 134146656459767784,
+            "compiledTimestamp": 17701921290223035,
+            "formatVersion": 1,
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 1197172449671164417,
+                            "name": "fantasy_floor.0770"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/models/glb/aji/player_idle_mixamo/shader_nonenormal.normal.ktx2",
             "assetType": "Texture",
             "resources": [
@@ -3776,32 +5027,19 @@
             ]
         },
         {
-            "filepath": "compiledassets/bar ui (bg)_thumb.ktx2",
-            "assetType": "Texture",
+            "filepath": "compiledassets/models/fbx/environment/combinedclassroom/default_material1.material",
+            "assetType": "Material",
+            "sourcePath": "models/fbx/environment/combinedclassroom.fbx",
+            "sourceTimestamp": 134146630587764895,
+            "compiledTimestamp": 17701902309150412,
+            "formatVersion": 1,
             "resources": [
                 {
-                    "resourceType": 16443744738808614340,
+                    "resourceType": 645030769166885040,
                     "resourceEntries": [
                         {
-                            "hash": 767224921656388421,
-                            "name": "bar ui (bg)_thumb0"
-                        }
-                    ]
-                }
-            ]
-        },
-        {
-            "filepath": "compiledassets/models/fbx/environment/bossarena 1/file13.ktx2",
-            "assetType": "Texture",
-            "compiledTimestamp": 17702707296696088,
-            "formatVersion": 2,
-            "resources": [
-                {
-                    "resourceType": 16443744738808614340,
-                    "resourceEntries": [
-                        {
-                            "hash": 780386074893228005,
-                            "name": "file130"
+                            "hash": 2909450703697851917,
+                            "name": "default_material10"
                         }
                     ]
                 }
@@ -3872,6 +5110,44 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/level1_ground/fantasy_floor.054.material",
+            "assetType": "Material",
+            "sourcePath": "models/glb/level1_ground.glb",
+            "sourceTimestamp": 134146656459767784,
+            "compiledTimestamp": 17701921288615278,
+            "formatVersion": 1,
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 1092469255892938945,
+                            "name": "fantasy_floor.0540"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/level1_ground/fantasy_floor.011.material",
+            "assetType": "Material",
+            "sourcePath": "models/glb/level1_ground.glb",
+            "sourceTimestamp": 134146656459767784,
+            "compiledTimestamp": 17701921285658130,
+            "formatVersion": 1,
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 897652288125447761,
+                            "name": "fantasy_floor.0110"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/textures/fence14709142800244381938.ktx2",
             "assetType": "Texture",
             "resources": [
@@ -3917,6 +5193,36 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/baseball_field/fence/image_1.ktx2",
+            "assetType": "Texture",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 4204621525481476257,
+                            "name": "image_10"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/materials/t_Health.material",
+            "assetType": "Material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 7813359425009912891,
+                            "name": "t_health0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/winlose_exit.ktx2",
             "assetType": "Texture",
             "resources": [
@@ -3956,6 +5262,25 @@
                         {
                             "hash": 17086298234433483655,
                             "name": "indoor footsteps 20"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/level1_ground/classroomcolumn.material",
+            "assetType": "Material",
+            "sourcePath": "models/glb/level1_ground.glb",
+            "sourceTimestamp": 134146656459767784,
+            "compiledTimestamp": 17701921284572858,
+            "formatVersion": 1,
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 822921781320396103,
+                            "name": "classroomcolumn0"
                         }
                     ]
                 }
@@ -4086,6 +5411,44 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/level1_ground/fantasy_floor.057.material",
+            "assetType": "Material",
+            "sourcePath": "models/glb/level1_ground.glb",
+            "sourceTimestamp": 134146656459767784,
+            "compiledTimestamp": 17701921288817913,
+            "formatVersion": 1,
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 1106229643914555627,
+                            "name": "fantasy_floor.0570"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/level1_ground/fantasy_floor.092.material",
+            "assetType": "Material",
+            "sourcePath": "models/glb/level1_ground.glb",
+            "sourceTimestamp": 134146656459767784,
+            "compiledTimestamp": 17701921291256883,
+            "formatVersion": 1,
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 1261146434221683403,
+                            "name": "fantasy_floor.0920"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/meshanimations/player_idle_mixamoplayer_blocking_mixamo.anim",
             "assetType": "Animation",
             "resources": [
@@ -4161,6 +5524,44 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/level1_ground/fantasy_floor.010.material",
+            "assetType": "Material",
+            "sourcePath": "models/glb/level1_ground.glb",
+            "sourceTimestamp": 134146656459767784,
+            "compiledTimestamp": 17701921285582028,
+            "formatVersion": 1,
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 892486782498156099,
+                            "name": "fantasy_floor.0100"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/level1_ground/fantasy_floor.052.material",
+            "assetType": "Material",
+            "sourcePath": "models/glb/level1_ground.glb",
+            "sourceTimestamp": 134146656459767784,
+            "compiledTimestamp": 17701921288471154,
+            "formatVersion": 1,
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 1083090421708009639,
+                            "name": "fantasy_floor.0520"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/winlose_restart.ktx2",
             "assetType": "Texture",
             "resources": [
@@ -4215,6 +5616,25 @@
                         {
                             "hash": 2593603894948834043,
                             "name": "mc_animatedsword idle0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/level1_ground/fantasy_floor.097.material",
+            "assetType": "Material",
+            "sourcePath": "models/glb/level1_ground.glb",
+            "sourceTimestamp": 134146656459767784,
+            "compiledTimestamp": 17701921291599898,
+            "formatVersion": 1,
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 1284249372544512781,
+                            "name": "fantasy_floor.0970"
                         }
                     ]
                 }
@@ -4281,19 +5701,57 @@
             ]
         },
         {
-            "filepath": "compiledassets/models/fbx/environment/theater/standardsurface1.material",
+            "filepath": "compiledassets/models/glb/level1_ground/fantasy_floor.086.material",
             "assetType": "Material",
-            "sourcePath": "models/fbx/environment/theater.fbx",
-            "sourceTimestamp": 134147349884429943,
-            "compiledTimestamp": 17702700408643935,
+            "sourcePath": "models/glb/level1_ground.glb",
+            "sourceTimestamp": 134146656459767784,
+            "compiledTimestamp": 17701921290850610,
             "formatVersion": 1,
             "resources": [
                 {
                     "resourceType": 645030769166885040,
                     "resourceEntries": [
                         {
-                            "hash": 772634517916710565,
+                            "hash": 1235944528201429627,
+                            "name": "fantasy_floor.0860"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/fbx/environment/theater/standardsurface1.material",
+            "assetType": "Material",
+            "sourcePath": "models/fbx/environment/theater.fbx",
+            "sourceTimestamp": 134146621177278278,
+            "compiledTimestamp": 17701886794291078,
+            "formatVersion": 1,
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2896496257697843529,
                             "name": "standardsurface10"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/level1_ground/fantasy_floor.099.material",
+            "assetType": "Material",
+            "sourcePath": "models/glb/level1_ground.glb",
+            "sourceTimestamp": 134146656459767784,
+            "compiledTimestamp": 17701921291723157,
+            "formatVersion": 1,
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 1294024030915441447,
+                            "name": "fantasy_floor.0990"
                         }
                     ]
                 }
@@ -4364,6 +5822,25 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/level1_ground/fantasy_floor.002.material",
+            "assetType": "Material",
+            "sourcePath": "models/glb/level1_ground.glb",
+            "sourceTimestamp": 134146656459767784,
+            "compiledTimestamp": 17701921285099828,
+            "formatVersion": 1,
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 858135840223178187,
+                            "name": "fantasy_floor.0020"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/models/glb/enemy_male_animated/enemy_male_animatedidle.anim",
             "assetType": "Animation",
             "resources": [
@@ -4373,6 +5850,25 @@
                         {
                             "hash": 5134835850997260701,
                             "name": "enemy_male_animatedidle0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/level1_ground/fantasy_floor.material",
+            "assetType": "Material",
+            "sourcePath": "models/glb/level1_ground.glb",
+            "sourceTimestamp": 134146656459767784,
+            "compiledTimestamp": 17701921284949579,
+            "formatVersion": 1,
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 842940589527313819,
+                            "name": "fantasy_floor0"
                         }
                     ]
                 }
@@ -4409,6 +5905,25 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/enemy/boss_prefect_groundslam/boss_prefect_groundslam.mesh",
+            "assetType": "Mesh",
+            "sourcePath": "models/glb/enemy/boss_prefect_groundslam.glb",
+            "sourceTimestamp": 134146952408968135,
+            "compiledTimestamp": 17702222451725812,
+            "formatVersion": 1296388936,
+            "resources": [
+                {
+                    "resourceType": 6209910166724260588,
+                    "resourceEntries": [
+                        {
+                            "hash": 2671472406991358081,
+                            "name": "boss_prefect_groundslam0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/models/glb/enemy_female_animated/n00_000_00_eyehighlight_00_eye (instance).material",
             "assetType": "Material",
             "resources": [
@@ -4433,6 +5948,44 @@
                         {
                             "hash": 2466697163359300185,
                             "name": "n00_000_00_eyeiris_00_eye (instance)0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/fbx/environment/combinedclassroom/fantasy_ceiling.material",
+            "assetType": "Material",
+            "sourcePath": "models/fbx/environment/combinedclassroom.fbx",
+            "sourceTimestamp": 134146630587764895,
+            "compiledTimestamp": 17701902309094169,
+            "formatVersion": 1,
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2905339629721597437,
+                            "name": "fantasy_ceiling0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/level1_ground/fantasy_floor.018.material",
+            "assetType": "Material",
+            "sourcePath": "models/glb/level1_ground.glb",
+            "sourceTimestamp": 134146656459767784,
+            "compiledTimestamp": 17701921286102897,
+            "formatVersion": 1,
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 931375409260965559,
+                            "name": "fantasy_floor.0180"
                         }
                     ]
                 }
@@ -4499,15 +6052,83 @@
             ]
         },
         {
-            "filepath": "compiledassets/parry icon (mobile)_thumb.ktx2",
+            "filepath": "compiledassets/models/glb/floortest/final fantasy_set 1_normal_raw.1001_thumb.ktx2",
             "assetType": "Texture",
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
                     "resourceEntries": [
                         {
-                            "hash": 130929844644994573,
-                            "name": "parry icon (mobile)_thumb0"
+                            "hash": 3595551456998754635,
+                            "name": "final fantasy_set 1_normal_raw.1001_thumb0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/baseball_field/fence/image_0.ktx2",
+            "assetType": "Texture",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 4196407074110361755,
+                            "name": "image_00"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/materials/t_Dodgemobile.material",
+            "assetType": "Material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2923458481853355753,
+                            "name": "t_dodgemobile0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/level1_ground/fantasy_floor.012.material",
+            "assetType": "Material",
+            "sourcePath": "models/glb/level1_ground.glb",
+            "sourceTimestamp": 134146656459767784,
+            "compiledTimestamp": 17701921285715276,
+            "formatVersion": 1,
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 900906842543664735,
+                            "name": "fantasy_floor.0120"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/level1_ground/material_100.material",
+            "assetType": "Material",
+            "sourcePath": "models/glb/level1_ground.glb",
+            "sourceTimestamp": 134146658070780456,
+            "compiledTimestamp": 17701922135517017,
+            "formatVersion": 1,
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 1332111113701684921,
+                            "name": "material_1000"
                         }
                     ]
                 }
@@ -4523,6 +6144,25 @@
                         {
                             "hash": 5753005477406349975,
                             "name": "n00_000_00_body_00_skin (instance)0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/skill_mobile.ktx2",
+            "assetType": "Texture",
+            "sourcePath": "images/game/tutorial/skill_mobile.png",
+            "sourceTimestamp": 134146697418212860,
+            "compiledTimestamp": 17701967768158225,
+            "formatVersion": 2,
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 1988025874767648637,
+                            "name": "skill_mobile0"
                         }
                     ]
                 }
@@ -4589,6 +6229,21 @@
             ]
         },
         {
+            "filepath": "compiledassets/materials/t_Delusion.material",
+            "assetType": "Material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 17328525355207731103,
+                            "name": "t_delusion0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/corridor.mesh",
             "assetType": "Mesh",
             "resources": [
@@ -4598,6 +6253,21 @@
                         {
                             "hash": 1380181762511534957,
                             "name": "corridor0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/materials/t_skillmobile.material",
+            "assetType": "Material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 5764122638504331707,
+                            "name": "t_skillmobile0"
                         }
                     ]
                 }
@@ -4784,6 +6454,25 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/level1_ground/fantasy_floor.058.material",
+            "assetType": "Material",
+            "sourcePath": "models/glb/level1_ground.glb",
+            "sourceTimestamp": 134146656459767784,
+            "compiledTimestamp": 17701921288887650,
+            "formatVersion": 1,
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 1110974036588409081,
+                            "name": "fantasy_floor.0580"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/textures/dugout7057225690629401265.ktx2",
             "assetType": "Texture",
             "resources": [
@@ -4823,6 +6512,25 @@
                         {
                             "hash": 226147551930467407,
                             "name": "_100"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/level1_ground/fantasy_floor.051.material",
+            "assetType": "Material",
+            "sourcePath": "models/glb/level1_ground.glb",
+            "sourceTimestamp": 134146656459767784,
+            "compiledTimestamp": 17701921288395720,
+            "formatVersion": 1,
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 1080718775126896791,
+                            "name": "fantasy_floor.0510"
                         }
                     ]
                 }
@@ -4874,6 +6582,21 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/baseball_field/lights/image_1.ktx2",
+            "assetType": "Texture",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 9387292728304993411,
+                            "name": "image_10"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/textures/lights14179648975753951601.ktx2",
             "assetType": "Texture",
             "resources": [
@@ -4898,40 +6621,6 @@
                         {
                             "hash": 183637134404324973,
                             "name": "cesiumman0"
-                        }
-                    ]
-                }
-            ]
-        },
-        {
-            "filepath": "compiledassets/models/fbx/environment/bossarena 1/file15.ktx2",
-            "assetType": "Texture",
-            "compiledTimestamp": 17702707305705116,
-            "formatVersion": 2,
-            "resources": [
-                {
-                    "resourceType": 16443744738808614340,
-                    "resourceEntries": [
-                        {
-                            "hash": 786242073822762981,
-                            "name": "file150"
-                        }
-                    ]
-                }
-            ]
-        },
-        {
-            "filepath": "compiledassets/models/fbx/environment/bossarena 1/file5.ktx2",
-            "assetType": "Texture",
-            "compiledTimestamp": 17702707345569529,
-            "formatVersion": 2,
-            "resources": [
-                {
-                    "resourceType": 16443744738808614340,
-                    "resourceEntries": [
-                        {
-                            "hash": 800089323262973931,
-                            "name": "file50"
                         }
                     ]
                 }
@@ -4983,6 +6672,40 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/baseball_field/fence/standardsurface1_1001.001.material",
+            "assetType": "Material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 4231776164152660157,
+                            "name": "standardsurface1_1001.0010"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/level1_ground/fantasy_floor.059.material",
+            "assetType": "Material",
+            "sourcePath": "models/glb/level1_ground.glb",
+            "sourceTimestamp": 134146656459767784,
+            "compiledTimestamp": 17701921288955482,
+            "formatVersion": 1,
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 1116359444541255941,
+                            "name": "fantasy_floor.0590"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/models/glb/mc_animated/_15.ktx2",
             "assetType": "Texture",
             "resources": [
@@ -4992,6 +6715,21 @@
                         {
                             "hash": 2319005263958288885,
                             "name": "_150"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/move_pc.ktx2",
+            "assetType": "Texture",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 2046716705952225145,
+                            "name": "move_pc0"
                         }
                     ]
                 }
@@ -5022,6 +6760,25 @@
                         {
                             "hash": 102675694352547705,
                             "name": "winlose_mainmenu0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/level1_ground/fantasy_floor.060.material",
+            "assetType": "Material",
+            "sourcePath": "models/glb/level1_ground.glb",
+            "sourceTimestamp": 134146656459767784,
+            "compiledTimestamp": 17701921289042679,
+            "formatVersion": 1,
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 1120621151610515733,
+                            "name": "fantasy_floor.0600"
                         }
                     ]
                 }
@@ -5073,6 +6830,25 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/level1_ground/fantasy_floor.026.material",
+            "assetType": "Material",
+            "sourcePath": "models/glb/level1_ground.glb",
+            "sourceTimestamp": 134146656459767784,
+            "compiledTimestamp": 17701921286632110,
+            "formatVersion": 1,
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 967409703838068529,
+                            "name": "fantasy_floor.0260"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/desktextured.mesh",
             "assetType": "Mesh",
             "resources": [
@@ -5097,6 +6873,21 @@
                         {
                             "hash": 827939952680473993,
                             "name": "outdoor bleachers153354712771831817080"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/materials/t_PickDropmobile.material",
+            "assetType": "Material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2982464872875163677,
+                            "name": "t_pickdropmobile0"
                         }
                     ]
                 }
@@ -5197,6 +6988,21 @@
             ]
         },
         {
+            "filepath": "compiledassets/move_mobile.ktx2",
+            "assetType": "Texture",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 2041364283348111881,
+                            "name": "move_mobile0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "sounds/sfx/enemy/male/attack/enemy male attack 2.wav",
             "assetType": "Audio",
             "resources": [
@@ -5206,6 +7012,25 @@
                         {
                             "hash": 9754932960982798799,
                             "name": "enemy male attack 20"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/level1_ground/fantasy_floor.020.material",
+            "assetType": "Material",
+            "sourcePath": "models/glb/level1_ground.glb",
+            "sourceTimestamp": 134146656459767784,
+            "compiledTimestamp": 17701921286226903,
+            "formatVersion": 1,
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 937084073632378581,
+                            "name": "fantasy_floor.0200"
                         }
                     ]
                 }
@@ -5257,6 +7082,25 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/level1_ground/windows.material",
+            "assetType": "Material",
+            "sourcePath": "models/glb/level1_ground.glb",
+            "sourceTimestamp": 134146656459767784,
+            "compiledTimestamp": 17701921284528177,
+            "formatVersion": 1,
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 819635341064973623,
+                            "name": "windows0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/models/glb/mc_animated/mc_animatedidle.001.anim",
             "assetType": "Animation",
             "resources": [
@@ -5266,6 +7110,25 @@
                         {
                             "hash": 2553307893302471395,
                             "name": "mc_animatedidle.0010"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/level1_ground/fantasy_walls.material",
+            "assetType": "Material",
+            "sourcePath": "models/glb/level1_ground.glb",
+            "sourceTimestamp": 134146656459767784,
+            "compiledTimestamp": 17701921284744506,
+            "formatVersion": 1,
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 833222006249401721,
+                            "name": "fantasy_walls0"
                         }
                     ]
                 }
@@ -5317,6 +7180,25 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/level1_ground/fantasy_floor.068.material",
+            "assetType": "Material",
+            "sourcePath": "models/glb/level1_ground.glb",
+            "sourceTimestamp": 134146656459767784,
+            "compiledTimestamp": 17701921289611325,
+            "formatVersion": 1,
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 1153260154281046403,
+                            "name": "fantasy_floor.0680"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/models/glb/enemy_female_animated/_02.ktx2",
             "assetType": "Texture",
             "resources": [
@@ -5356,6 +7238,40 @@
                         {
                             "hash": 7363086786779162003,
                             "name": "school ambience heavy voices_loop0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/fbx/environment/combinedclassroom/fantasy_walls.material",
+            "assetType": "Material",
+            "sourcePath": "models/fbx/environment/combinedclassroom.fbx",
+            "sourceTimestamp": 134146630587764895,
+            "compiledTimestamp": 17701902309215568,
+            "formatVersion": 1,
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2918022496347993629,
+                            "name": "fantasy_walls0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/lookaround_mobile.ktx2",
+            "assetType": "Texture",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 449029553677404281,
+                            "name": "lookaround_mobile0"
                         }
                     ]
                 }
@@ -5482,6 +7398,25 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/combinedclassroom/material_8.material",
+            "assetType": "Material",
+            "sourcePath": "models/glb/combinedclassroom.glb",
+            "sourceTimestamp": 134146640623868093,
+            "compiledTimestamp": 17701905714814817,
+            "formatVersion": 1,
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2935393680555567261,
+                            "name": "material_80"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/models/glb/enemy_female_animated/material_15.material",
             "assetType": "Material",
             "resources": [
@@ -5491,6 +7426,36 @@
                         {
                             "hash": 5820117468142541565,
                             "name": "material_150"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/dodge_pc.ktx2",
+            "assetType": "Texture",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 2909675004087517773,
+                            "name": "dodge_pc0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/baseball_field/fence/standardsurface1_1001.material",
+            "assetType": "Material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 4223519931339690159,
+                            "name": "standardsurface1_10010"
                         }
                     ]
                 }
@@ -5557,6 +7522,25 @@
             ]
         },
         {
+            "filepath": "compiledassets/parry_mobile.ktx2",
+            "assetType": "Texture",
+            "sourcePath": "images/game/tutorial/parry_mobile.png",
+            "sourceTimestamp": 134146702506983219,
+            "compiledTimestamp": 17701967604586711,
+            "formatVersion": 2,
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 1941104216052291475,
+                            "name": "parry_mobile0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "sounds/sfx/enemy/male/death/enemy male death 1.wav",
             "assetType": "Audio",
             "resources": [
@@ -5591,6 +7575,21 @@
             ]
         },
         {
+            "filepath": "compiledassets/materials/t_Arrow.material",
+            "assetType": "Material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 12747482725847220551,
+                            "name": "t_arrow0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "sounds/sfx/environment/door open.wav",
             "assetType": "Audio",
             "resources": [
@@ -5600,6 +7599,21 @@
                         {
                             "hash": 8224691455082620087,
                             "name": "door open0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/floortest/final fantasy_set 1_basecolor_srgb.1001_thumb.ktx2",
+            "assetType": "Texture",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 3591743848231766333,
+                            "name": "final fantasy_set 1_basecolor_srgb.1001_thumb0"
                         }
                     ]
                 }
@@ -5861,17 +7875,30 @@
             ]
         },
         {
-            "filepath": "compiledassets/models/fbx/environment/bossarena 1/file11.ktx2",
+            "filepath": "compiledassets/models/glb/baseball_field/fence/transparent_1001.material",
+            "assetType": "Material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 4224436924037255349,
+                            "name": "transparent_10010"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/pickdrop_mobile_thumb.ktx2",
             "assetType": "Texture",
-            "compiledTimestamp": 17702707287972630,
-            "formatVersion": 2,
             "resources": [
                 {
                     "resourceType": 16443744738808614340,
                     "resourceEntries": [
                         {
-                            "hash": 776140860498384867,
-                            "name": "file110"
+                            "hash": 1973858667443749429,
+                            "name": "pickdrop_mobile_thumb0"
                         }
                     ]
                 }
@@ -5953,6 +7980,44 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/combinedclassroom/classroomcolumn.material",
+            "assetType": "Material",
+            "sourcePath": "models/glb/combinedclassroom.glb",
+            "sourceTimestamp": 134146640623868093,
+            "compiledTimestamp": 17701905714425429,
+            "formatVersion": 1,
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2901243948908472373,
+                            "name": "classroomcolumn0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/combinedclassroom/windows.material",
+            "assetType": "Material",
+            "sourcePath": "models/glb/combinedclassroom.glb",
+            "sourceTimestamp": 134146640623868093,
+            "compiledTimestamp": 17701905714371739,
+            "formatVersion": 1,
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2898888795001776165,
+                            "name": "windows0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "sounds/sfx/enemy/male/attack/enemy male attack 3.wav",
             "assetType": "Audio",
             "resources": [
@@ -5962,6 +8027,21 @@
                         {
                             "hash": 9754934060494427009,
                             "name": "enemy male attack 30"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/pickdrop_mobile.ktx2",
+            "assetType": "Texture",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 2964697864481854647,
+                            "name": "pickdrop_mobile0"
                         }
                     ]
                 }
@@ -6032,6 +8112,25 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/level1_ground/fantasy_floor.075.material",
+            "assetType": "Material",
+            "sourcePath": "models/glb/level1_ground.glb",
+            "sourceTimestamp": 134146656459767784,
+            "compiledTimestamp": 17701921290084923,
+            "formatVersion": 1,
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 1188555577044283877,
+                            "name": "fantasy_floor.0750"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "sounds/sfx/mc/katar/katar #1/katar #1 2.wav",
             "assetType": "Audio",
             "resources": [
@@ -6056,6 +8155,21 @@
                         {
                             "hash": 2518541774979186521,
                             "name": "ultimate ready0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/baseball_field/fence/image_2.ktx2",
+            "assetType": "Texture",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 4214090519619883173,
+                            "name": "image_20"
                         }
                     ]
                 }
@@ -6107,15 +8221,15 @@
             ]
         },
         {
-            "filepath": "compiledassets/slider (bg)_thumb.ktx2",
-            "assetType": "Texture",
+            "filepath": "compiledassets/models/glb/baseball_field/lights/standardsurface1_1001.material",
+            "assetType": "Material",
             "resources": [
                 {
-                    "resourceType": 16443744738808614340,
+                    "resourceType": 645030769166885040,
                     "resourceEntries": [
                         {
-                            "hash": 714268043615385947,
-                            "name": "slider (bg)_thumb0"
+                            "hash": 9396347206559728779,
+                            "name": "standardsurface1_10010"
                         }
                     ]
                 }
@@ -6351,6 +8465,25 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/fbx/environment/combinedclassroom/uv_set_14.material",
+            "assetType": "Material",
+            "sourcePath": "models/fbx/environment/combinedclassroom.fbx",
+            "sourceTimestamp": 134146630587764895,
+            "compiledTimestamp": 17701902309279510,
+            "formatVersion": 1,
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2921169298626688557,
+                            "name": "uv_set_140"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/models/glb/items/bookingslip/image_2.ktx2",
             "assetType": "Texture",
             "resources": [
@@ -6456,6 +8589,25 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/floortest/uvset_1.material",
+            "assetType": "Material",
+            "sourcePath": "models/glb/floortest.glb",
+            "sourceTimestamp": 134146743474298509,
+            "compiledTimestamp": 17702007708175357,
+            "formatVersion": 1,
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 3602190308207266137,
+                            "name": "uvset_10"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/meshanimations/player_idle_mixamoplayer_punching_mixamo.anim",
             "assetType": "Animation",
             "resources": [
@@ -6465,6 +8617,25 @@
                         {
                             "hash": 2220080003095482243,
                             "name": "player_idle_mixamoplayer_punching_mixamo0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/pause_mobile.ktx2",
+            "assetType": "Texture",
+            "sourcePath": "images/game/tutorial/pause_mobile.png",
+            "sourceTimestamp": 134146702869250889,
+            "compiledTimestamp": 17701967660656901,
+            "formatVersion": 2,
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 1960864639026687353,
+                            "name": "pause_mobile0"
                         }
                     ]
                 }
@@ -6495,6 +8666,25 @@
                         {
                             "hash": 2273508571552856543,
                             "name": "image_00"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/level1_ground/fantasy_floor.071.material",
+            "assetType": "Material",
+            "sourcePath": "models/glb/level1_ground.glb",
+            "sourceTimestamp": 134146656459767784,
+            "compiledTimestamp": 17701921289798829,
+            "formatVersion": 1,
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 1170320176697618861,
+                            "name": "fantasy_floor.0710"
                         }
                     ]
                 }
@@ -6546,6 +8736,21 @@
             ]
         },
         {
+            "filepath": "compiledassets/pause_pc_thumb.ktx2",
+            "assetType": "Texture",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 1965736575049364901,
+                            "name": "pause_pc_thumb0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/delusion decay icon.ktx2",
             "assetType": "Texture",
             "resources": [
@@ -6585,6 +8790,74 @@
                         {
                             "hash": 2107168955015909217,
                             "name": "n00_002_03_tops_01_cloth_02__instance_0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/pause_mobile_thumb.ktx2",
+            "assetType": "Texture",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 1955155974655274347,
+                            "name": "pause_mobile_thumb0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/level1_ground/fantasy_floor.100.material",
+            "assetType": "Material",
+            "sourcePath": "models/glb/level1_ground.glb",
+            "sourceTimestamp": 134146656459767784,
+            "compiledTimestamp": 17701921291787569,
+            "formatVersion": 1,
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 1297102663473214261,
+                            "name": "fantasy_floor.1000"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/level1_ground/fantasy_floor.084.material",
+            "assetType": "Material",
+            "sourcePath": "models/glb/level1_ground.glb",
+            "sourceTimestamp": 134146656459767784,
+            "compiledTimestamp": 17701921290719039,
+            "formatVersion": 1,
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 1227236396109443681,
+                            "name": "fantasy_floor.0840"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/lookaround_pc.ktx2",
+            "assetType": "Texture",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 442856895399067291,
+                            "name": "lookaround_pc0"
                         }
                     ]
                 }
@@ -6790,17 +9063,15 @@
             ]
         },
         {
-            "filepath": "compiledassets/models/fbx/environment/bossarena 1/file9.ktx2",
-            "assetType": "Texture",
-            "compiledTimestamp": 17702707366509858,
-            "formatVersion": 2,
+            "filepath": "compiledassets/models/glb/baseball_field/lights/lights.mesh",
+            "assetType": "Mesh",
             "resources": [
                 {
-                    "resourceType": 16443744738808614340,
+                    "resourceType": 6209910166724260588,
                     "resourceEntries": [
                         {
-                            "hash": 806439002913380335,
-                            "name": "file90"
+                            "hash": 9403579794047239313,
+                            "name": "lights0"
                         }
                     ]
                 }
@@ -6912,17 +9183,19 @@
             ]
         },
         {
-            "filepath": "compiledassets/models/fbx/environment/bossarena 1/file3.ktx2",
-            "assetType": "Texture",
-            "compiledTimestamp": 17702707334876350,
-            "formatVersion": 2,
+            "filepath": "compiledassets/models/glb/floortest/material_1.material",
+            "assetType": "Material",
+            "sourcePath": "models/glb/floortest.glb",
+            "sourceTimestamp": 134146743474298509,
+            "compiledTimestamp": 17702007708220756,
+            "formatVersion": 1,
             "resources": [
                 {
-                    "resourceType": 16443744738808614340,
+                    "resourceType": 645030769166885040,
                     "resourceEntries": [
                         {
-                            "hash": 794491709565966313,
-                            "name": "file30"
+                            "hash": 3603144684300175719,
+                            "name": "material_10"
                         }
                     ]
                 }
@@ -6978,6 +9251,21 @@
             ]
         },
         {
+            "filepath": "compiledassets/materials/t_lookaroundmobile.material",
+            "assetType": "Material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 3548139416006224513,
+                            "name": "t_lookaroundmobile0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/door_classroom_tex.mesh",
             "assetType": "Mesh",
             "resources": [
@@ -6993,6 +9281,25 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/level1_ground/fantasy_floor.080.material",
+            "assetType": "Material",
+            "sourcePath": "models/glb/level1_ground.glb",
+            "sourceTimestamp": 134146656459767784,
+            "compiledTimestamp": 17701921290429921,
+            "formatVersion": 1,
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 1207547441390858793,
+                            "name": "fantasy_floor.0800"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/models/glb/enemy_male_animated/enemy_male_animatedlunge.anim",
             "assetType": "Animation",
             "resources": [
@@ -7002,6 +9309,21 @@
                         {
                             "hash": 5860832383719118265,
                             "name": "enemy_male_animatedlunge0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/pickdrop_pc_thumb.ktx2",
+            "assetType": "Texture",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 1980120386163936287,
+                            "name": "pickdrop_pc_thumb0"
                         }
                     ]
                 }
@@ -7241,6 +9563,21 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/baseball_field/fence/material_3.material",
+            "assetType": "Material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 4237050521431101631,
+                            "name": "material_30"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/textures/lights5590563140978458161.ktx2",
             "assetType": "Texture",
             "resources": [
@@ -7265,6 +9602,25 @@
                         {
                             "hash": 1903056716174195867,
                             "name": "red0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/level1_ground/fantasy_floor.028.material",
+            "assetType": "Material",
+            "sourcePath": "models/glb/level1_ground.glb",
+            "sourceTimestamp": 134146656459767784,
+            "compiledTimestamp": 17701921286781776,
+            "formatVersion": 1,
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 974733550790684493,
+                            "name": "fantasy_floor.0280"
                         }
                     ]
                 }
@@ -7316,6 +9672,40 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/level1_ground/fantasy_floor.062.material",
+            "assetType": "Material",
+            "sourcePath": "models/glb/level1_ground.glb",
+            "sourceTimestamp": 134146656459767784,
+            "compiledTimestamp": 17701921289177969,
+            "formatVersion": 1,
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 1129286402749018415,
+                            "name": "fantasy_floor.0620"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/skill_pc_thumb.ktx2",
+            "assetType": "Texture",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 1992098465836933263,
+                            "name": "skill_pc_thumb0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/materials/colormap.material",
             "assetType": "Material",
             "resources": [
@@ -7325,25 +9715,6 @@
                         {
                             "hash": 161694180310058757,
                             "name": "colormap0"
-                        }
-                    ]
-                }
-            ]
-        },
-        {
-            "filepath": "compiledassets/models/fbx/environment/bossarena 1/arenawalls.material",
-            "assetType": "Material",
-            "sourcePath": "models/fbx/environment/bossarena 1.fbx",
-            "sourceTimestamp": 134146859409792681,
-            "compiledTimestamp": 17702707374521387,
-            "formatVersion": 1,
-            "resources": [
-                {
-                    "resourceType": 645030769166885040,
-                    "resourceEntries": [
-                        {
-                            "hash": 818986629609560051,
-                            "name": "arenawalls0"
                         }
                     ]
                 }
@@ -7524,6 +9895,25 @@
                         {
                             "hash": 671988521822281831,
                             "name": "concrete.0010"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/level1_ground/fantasy_floor.061.material",
+            "assetType": "Material",
+            "sourcePath": "models/glb/level1_ground.glb",
+            "sourceTimestamp": 134146656459767784,
+            "compiledTimestamp": 17701921289107967,
+            "formatVersion": 1,
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 1122938922121867553,
+                            "name": "fantasy_floor.0610"
                         }
                     ]
                 }
@@ -7793,6 +10183,44 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/level1_ground/fantasy_floor.036.material",
+            "assetType": "Material",
+            "sourcePath": "models/glb/level1_ground.glb",
+            "sourceTimestamp": 134146656459767784,
+            "compiledTimestamp": 17701921287360944,
+            "formatVersion": 1,
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 1010044366716710853,
+                            "name": "fantasy_floor.0360"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/level1_ground/fantasy_walls1.material",
+            "assetType": "Material",
+            "sourcePath": "models/glb/level1_ground.glb",
+            "sourceTimestamp": 134146656459767784,
+            "compiledTimestamp": 17701921284998681,
+            "formatVersion": 1,
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 846905428457074091,
+                            "name": "fantasy_walls10"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/models/glb/mc_animated/_06.ktx2",
             "assetType": "Texture",
             "resources": [
@@ -7838,6 +10266,25 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/level1_ground/fantasy_floor.032.material",
+            "assetType": "Material",
+            "sourcePath": "models/glb/level1_ground.glb",
+            "sourceTimestamp": 134146656459767784,
+            "compiledTimestamp": 17701921287056883,
+            "formatVersion": 1,
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 991647338160762767,
+                            "name": "fantasy_floor.0320"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/wall_window_tex.mesh",
             "assetType": "Mesh",
             "resources": [
@@ -7868,6 +10315,25 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/combinedclassroom/fantasy_walls.001.material",
+            "assetType": "Material",
+            "sourcePath": "models/glb/combinedclassroom.glb",
+            "sourceTimestamp": 134146682306730658,
+            "compiledTimestamp": 17701946501036337,
+            "formatVersion": 1,
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 17592499405325280409,
+                            "name": "fantasy_walls.0010"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/models/glb/mc_animated/n00_000_00_eyehighlight_00_eye (instance).material",
             "assetType": "Material",
             "resources": [
@@ -7892,6 +10358,78 @@
                         {
                             "hash": 2435522710176967221,
                             "name": "n00_001_03_bottoms_01_cloth (instance)0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/fbx/environment/combinedclassroom/fantasy_walls1.material",
+            "assetType": "Material",
+            "sourcePath": "models/fbx/environment/combinedclassroom.fbx",
+            "sourceTimestamp": 134146630587764895,
+            "compiledTimestamp": 17701902309404482,
+            "formatVersion": 1,
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2931395856276633165,
+                            "name": "fantasy_walls10"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/fbx/environment/combinedclassroom/windows.material",
+            "assetType": "Material",
+            "sourcePath": "models/fbx/environment/combinedclassroom.fbx",
+            "sourceTimestamp": 134146630587764895,
+            "compiledTimestamp": 17701902308974836,
+            "formatVersion": 1,
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2898721669234013659,
+                            "name": "windows0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/level1_ground/fantasy_floor.025.material",
+            "assetType": "Material",
+            "sourcePath": "models/glb/level1_ground.glb",
+            "sourceTimestamp": 134146656459767784,
+            "compiledTimestamp": 17701921286560004,
+            "formatVersion": 1,
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 962435513234009891,
+                            "name": "fantasy_floor.0250"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/materials/t_lookaroundpc.material",
+            "assetType": "Material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 488107296440303187,
+                            "name": "t_lookaroundpc0"
                         }
                     ]
                 }
@@ -7941,6 +10479,21 @@
                         {
                             "hash": 728550698225307999,
                             "name": "skill icon (mobile)0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/dodge_mobile.ktx2",
+            "assetType": "Texture",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 2908373182320229337,
+                            "name": "dodge_mobile0"
                         }
                     ]
                 }
@@ -8031,6 +10584,25 @@
                         {
                             "hash": 4392509371453019763,
                             "name": "_150"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/combinedclassroom/fantasy_ceiling.001.material",
+            "assetType": "Material",
+            "sourcePath": "models/glb/combinedclassroom.glb",
+            "sourceTimestamp": 134146682306730658,
+            "compiledTimestamp": 17701946500918434,
+            "formatVersion": 1,
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 17586458688442279037,
+                            "name": "fantasy_ceiling.0010"
                         }
                     ]
                 }
@@ -8217,23 +10789,6 @@
             ]
         },
         {
-            "filepath": "compiledassets/models/fbx/environment/bossarena 1/file7.ktx2",
-            "assetType": "Texture",
-            "compiledTimestamp": 17702707356014733,
-            "formatVersion": 2,
-            "resources": [
-                {
-                    "resourceType": 16443744738808614340,
-                    "resourceEntries": [
-                        {
-                            "hash": 805711126215792621,
-                            "name": "file70"
-                        }
-                    ]
-                }
-            ]
-        },
-        {
             "filepath": "compiledassets/models/glb/mc_animated/material_21.material",
             "assetType": "Material",
             "resources": [
@@ -8258,6 +10813,21 @@
                         {
                             "hash": 82355620140082399,
                             "name": "dodge icon0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/kickme.ktx2",
+            "assetType": "Texture",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 3060798479178107079,
+                            "name": "kickme0"
                         }
                     ]
                 }
@@ -8313,6 +10883,25 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/level1_ground/fantasy_floor.047.material",
+            "assetType": "Material",
+            "sourcePath": "models/glb/level1_ground.glb",
+            "sourceTimestamp": 134146656459767784,
+            "compiledTimestamp": 17701921288120806,
+            "formatVersion": 1,
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 1058719746478354529,
+                            "name": "fantasy_floor.0470"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/textures/dugout14709142800244381938.ktx2",
             "assetType": "Texture",
             "resources": [
@@ -8322,6 +10911,25 @@
                         {
                             "hash": 720762857739738087,
                             "name": "dugout147091428002443819380"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/level1_ground/fantasy_floor.043.material",
+            "assetType": "Material",
+            "sourcePath": "models/glb/level1_ground.glb",
+            "sourceTimestamp": 134146656459767784,
+            "compiledTimestamp": 17701921287830411,
+            "formatVersion": 1,
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 1041141854085099561,
+                            "name": "fantasy_floor.0430"
                         }
                     ]
                 }
@@ -8407,6 +11015,25 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/floortest/floortest.mesh",
+            "assetType": "Mesh",
+            "sourcePath": "models/glb/floortest.glb",
+            "sourceTimestamp": 134146743474298509,
+            "compiledTimestamp": 17702007657333003,
+            "formatVersion": 1296388936,
+            "resources": [
+                {
+                    "resourceType": 6209910166724260588,
+                    "resourceEntries": [
+                        {
+                            "hash": 3609212888973871477,
+                            "name": "floortest0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/fullscreen (title).ktx2",
             "assetType": "Texture",
             "sourcePath": "images/menu/setting/fullscreen (title).png",
@@ -8441,19 +11068,34 @@
             ]
         },
         {
-            "filepath": "compiledassets/models/fbx/environment/bossarena 1/set_9.material",
-            "assetType": "Material",
-            "sourcePath": "models/fbx/environment/bossarena 1.fbx",
-            "sourceTimestamp": 134146859409792681,
-            "compiledTimestamp": 17702707374710338,
-            "formatVersion": 1,
+            "filepath": "compiledassets/skill_pc.ktx2",
+            "assetType": "Texture",
+            "sourcePath": "images/game/tutorial/skill_pc.png",
+            "sourceTimestamp": 134146697843758377,
+            "compiledTimestamp": 17701967791468412,
+            "formatVersion": 2,
             "resources": [
                 {
-                    "resourceType": 645030769166885040,
+                    "resourceType": 16443744738808614340,
                     "resourceEntries": [
                         {
-                            "hash": 844108271280986111,
-                            "name": "set_90"
+                            "hash": 1996233729068998815,
+                            "name": "skill_pc0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/move_mobile_thumb.ktx2",
+            "assetType": "Texture",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 3218445356946145215,
+                            "name": "move_mobile_thumb0"
                         }
                     ]
                 }
@@ -8484,61 +11126,6 @@
                         {
                             "hash": 2386178827345635861,
                             "name": "n00_000_00_hairback_00_nml0"
-                        }
-                    ]
-                }
-            ]
-        },
-        {
-            "filepath": "compiledassets/models/fbx/environment/bossarena 1/uv_set_8.material",
-            "assetType": "Material",
-            "sourcePath": "models/fbx/environment/bossarena 1.fbx",
-            "sourceTimestamp": 134146859409792681,
-            "compiledTimestamp": 17702707374673985,
-            "formatVersion": 1,
-            "resources": [
-                {
-                    "resourceType": 645030769166885040,
-                    "resourceEntries": [
-                        {
-                            "hash": 840103849932625917,
-                            "name": "uv_set_80"
-                        }
-                    ]
-                }
-            ]
-        },
-        {
-            "filepath": "compiledassets/models/fbx/environment/bossarena 1/uv10.material",
-            "assetType": "Material",
-            "sourcePath": "models/fbx/environment/bossarena 1.fbx",
-            "sourceTimestamp": 134146859409792681,
-            "compiledTimestamp": 17702707374743267,
-            "formatVersion": 1,
-            "resources": [
-                {
-                    "resourceType": 645030769166885040,
-                    "resourceEntries": [
-                        {
-                            "hash": 848596477745567745,
-                            "name": "uv100"
-                        }
-                    ]
-                }
-            ]
-        },
-        {
-            "filepath": "compiledassets/models/fbx/environment/bossarena 1/file1.ktx2",
-            "assetType": "Texture",
-            "compiledTimestamp": 17702707276215237,
-            "formatVersion": 2,
-            "resources": [
-                {
-                    "resourceType": 16443744738808614340,
-                    "resourceEntries": [
-                        {
-                            "hash": 773237050289428449,
-                            "name": "file10"
                         }
                     ]
                 }
@@ -8605,6 +11192,25 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/level1_ground/fantasy_floor.066.material",
+            "assetType": "Material",
+            "sourcePath": "models/glb/level1_ground.glb",
+            "sourceTimestamp": 134146656459767784,
+            "compiledTimestamp": 17701921289463929,
+            "formatVersion": 1,
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 1146714761560895847,
+                            "name": "fantasy_floor.0660"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/textures/image_2.ktx2",
             "assetType": "Texture",
             "resources": [
@@ -8629,6 +11235,25 @@
                         {
                             "hash": 105928051174529687,
                             "name": "volume (title)_thumb0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/level1_ground/fantasy_floor.019.material",
+            "assetType": "Material",
+            "sourcePath": "models/glb/level1_ground.glb",
+            "sourceTimestamp": 134146656459767784,
+            "compiledTimestamp": 17701921286169194,
+            "formatVersion": 1,
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 934744312888471239,
+                            "name": "fantasy_floor.0190"
                         }
                     ]
                 }
@@ -8797,6 +11422,25 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/level1_ground/fantasy_floor.009.material",
+            "assetType": "Material",
+            "sourcePath": "models/glb/level1_ground.glb",
+            "sourceTimestamp": 134146656459767784,
+            "compiledTimestamp": 17701921285528789,
+            "formatVersion": 1,
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 889878740917071411,
+                            "name": "fantasy_floor.0090"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/floor_tex.mesh",
             "assetType": "Mesh",
             "resources": [
@@ -8806,6 +11450,21 @@
                         {
                             "hash": 714541820922388835,
                             "name": "floor_tex0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/skill_mobile_thumb.ktx2",
+            "assetType": "Texture",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 1985090178721486695,
+                            "name": "skill_mobile_thumb0"
                         }
                     ]
                 }
@@ -8932,6 +11591,44 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/fbx/environment/combinedclassroom/classroomcolumn.material",
+            "assetType": "Material",
+            "sourcePath": "models/fbx/environment/combinedclassroom.fbx",
+            "sourceTimestamp": 134146630587764895,
+            "compiledTimestamp": 17701902309034284,
+            "formatVersion": 1,
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2901144992861631981,
+                            "name": "classroomcolumn0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/level1_ground/fantasy_floor.023.material",
+            "assetType": "Material",
+            "sourcePath": "models/glb/level1_ground.glb",
+            "sourceTimestamp": 134146656459767784,
+            "compiledTimestamp": 17701921286428982,
+            "formatVersion": 1,
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 953047882956058375,
+                            "name": "fantasy_floor.0230"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/textures/dugout6647418950732403459.ktx2",
             "assetType": "Texture",
             "resources": [
@@ -8986,6 +11683,25 @@
                         {
                             "hash": 5087828430374953273,
                             "name": "n00_000_00_eyeiris_00_eye (instance)0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/level1_ground/fantasy_floor.094.material",
+            "assetType": "Material",
+            "sourcePath": "models/glb/level1_ground.glb",
+            "sourceTimestamp": 134146656459767784,
+            "compiledTimestamp": 17701921291399621,
+            "formatVersion": 1,
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 1272185530964554471,
+                            "name": "fantasy_floor.0940"
                         }
                     ]
                 }
@@ -9061,6 +11777,25 @@
                         {
                             "hash": 772851121594002931,
                             "name": "fence77325511409881987680"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/level1_ground/fantasy_floor.090.material",
+            "assetType": "Material",
+            "sourcePath": "models/glb/level1_ground.glb",
+            "sourceTimestamp": 134146656459767784,
+            "compiledTimestamp": 17701921291123747,
+            "formatVersion": 1,
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 1254405328431788719,
+                            "name": "fantasy_floor.0900"
                         }
                     ]
                 }
@@ -9217,6 +11952,25 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/level1_ground/fantasy_floor.072.material",
+            "assetType": "Material",
+            "sourcePath": "models/glb/level1_ground.glb",
+            "sourceTimestamp": 134146656459767784,
+            "compiledTimestamp": 17701921289864879,
+            "formatVersion": 1,
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 1171386702976561595,
+                            "name": "fantasy_floor.0720"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/textures/storage room3351040909626443882.ktx2",
             "assetType": "Texture",
             "resources": [
@@ -9277,6 +12031,21 @@
             ]
         },
         {
+            "filepath": "compiledassets/materials/t_Movemobile.material",
+            "assetType": "Material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2065146719857063461,
+                            "name": "t_movemobile0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/models/glb/items/sword/jewel_lambert.material",
             "assetType": "Material",
             "resources": [
@@ -9316,6 +12085,21 @@
                         {
                             "hash": 5755743261359512223,
                             "name": "n00_001_03_bottoms_01_cloth (instance)0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/materials/t_Movepc.material",
+            "assetType": "Material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2059560101276323823,
+                            "name": "t_movepc0"
                         }
                     ]
                 }
@@ -9376,6 +12160,25 @@
                         {
                             "hash": 9178908915972455423,
                             "name": "jump 20"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/combinedclassroom/fantasy_ceiling.material",
+            "assetType": "Material",
+            "sourcePath": "models/glb/combinedclassroom.glb",
+            "sourceTimestamp": 134146640623868093,
+            "compiledTimestamp": 17701905714483827,
+            "formatVersion": 1,
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2909323160349370435,
+                            "name": "fantasy_ceiling0"
                         }
                     ]
                 }
@@ -9506,6 +12309,21 @@
             ]
         },
         {
+            "filepath": "compiledassets/dodge_mobile_thumb.ktx2",
+            "assetType": "Texture",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 3201430414506293797,
+                            "name": "dodge_mobile_thumb0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "sounds/sfx/boss/boss slap.wav",
             "assetType": "Audio",
             "resources": [
@@ -9611,6 +12429,25 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/level1_ground/fantasy_floor.006.material",
+            "assetType": "Material",
+            "sourcePath": "models/glb/level1_ground.glb",
+            "sourceTimestamp": 134146656459767784,
+            "compiledTimestamp": 17701921285350593,
+            "formatVersion": 1,
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 874282168477068807,
+                            "name": "fantasy_floor.0060"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/models/glb/enemy_male_animated/_02.ktx2",
             "assetType": "Texture",
             "resources": [
@@ -9626,19 +12463,19 @@
             ]
         },
         {
-            "filepath": "compiledassets/models/fbx/environment/bossarena 1/bossarena 1.mesh",
-            "assetType": "Mesh",
-            "sourcePath": "models/fbx/environment/bossarena 1.fbx",
-            "sourceTimestamp": 134146859409792681,
-            "compiledTimestamp": 17702707257492411,
-            "formatVersion": 1296388936,
+            "filepath": "compiledassets/models/glb/level1_ground/fantasy_floor.013.material",
+            "assetType": "Material",
+            "sourcePath": "models/glb/level1_ground.glb",
+            "sourceTimestamp": 134146656459767784,
+            "compiledTimestamp": 17701921285778925,
+            "formatVersion": 1,
             "resources": [
                 {
-                    "resourceType": 6209910166724260588,
+                    "resourceType": 645030769166885040,
                     "resourceEntries": [
                         {
-                            "hash": 853295790442682431,
-                            "name": "bossarena 10"
+                            "hash": 909680945333317229,
+                            "name": "fantasy_floor.0130"
                         }
                     ]
                 }
@@ -9690,6 +12527,21 @@
             ]
         },
         {
+            "filepath": "compiledassets/parry_pc_thumb.ktx2",
+            "assetType": "Texture",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 1948068522702627183,
+                            "name": "parry_pc_thumb0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/textures/image_7.ktx2",
             "assetType": "Texture",
             "resources": [
@@ -9699,6 +12551,40 @@
                         {
                             "hash": 715987678712985681,
                             "name": "image_70"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/baseball_field/fence/image_4.ktx2",
+            "assetType": "Texture",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 4209061353434435747,
+                            "name": "image_40"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/combinedclassroom/windows.001.material",
+            "assetType": "Material",
+            "sourcePath": "models/glb/combinedclassroom.glb",
+            "sourceTimestamp": 134146682306730658,
+            "compiledTimestamp": 17701946500809858,
+            "formatVersion": 1,
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 17576229931769078881,
+                            "name": "windows.0010"
                         }
                     ]
                 }
@@ -9729,6 +12615,25 @@
                         {
                             "hash": 2455669061732706901,
                             "name": "n00_010_01_onepiece_00_cloth (instance)0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/level1_ground/default_material1.material",
+            "assetType": "Material",
+            "sourcePath": "models/glb/level1_ground.glb",
+            "sourceTimestamp": 134146656459767784,
+            "compiledTimestamp": 17701921284693723,
+            "formatVersion": 1,
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 830763498249694567,
+                            "name": "default_material10"
                         }
                     ]
                 }
@@ -9814,6 +12719,55 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/level1_ground/fantasy_floor.083.material",
+            "assetType": "Material",
+            "sourcePath": "models/glb/level1_ground.glb",
+            "sourceTimestamp": 134146656459767784,
+            "compiledTimestamp": 17701921290639999,
+            "formatVersion": 1,
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 1221584906342675027,
+                            "name": "fantasy_floor.0830"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/arrow.ktx2",
+            "assetType": "Texture",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 12743537678126716043,
+                            "name": "arrow0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/baseball_field/lights/image_0.ktx2",
+            "assetType": "Texture",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 9382619803886945409,
+                            "name": "image_00"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/models/glb/mc_animated/_19.ktx2",
             "assetType": "Texture",
             "resources": [
@@ -9887,6 +12841,21 @@
                         {
                             "hash": 721237846388967921,
                             "name": "settings icon (mobile)0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/materials/ui_kickme.material",
+            "assetType": "Material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 6745750127019234173,
+                            "name": "ui_kickme0"
                         }
                     ]
                 }
@@ -9983,6 +12952,25 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/enemy/boss_prefect_groundslam/material_1.material",
+            "assetType": "Material",
+            "sourcePath": "models/glb/enemy/boss_prefect_groundslam.glb",
+            "sourceTimestamp": 134146952408968135,
+            "compiledTimestamp": 17702222459004907,
+            "formatVersion": 1,
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2669276682270689399,
+                            "name": "material_10"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/models/glb/aji/player_idle_mixamo/n00_000_00_face_00_skin__instance_.material",
             "assetType": "Material",
             "resources": [
@@ -9992,6 +12980,25 @@
                         {
                             "hash": 4542401393621210817,
                             "name": "n00_000_00_face_00_skin__instance_0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/level1_ground/fantasy_floor.078.material",
+            "assetType": "Material",
+            "sourcePath": "models/glb/level1_ground.glb",
+            "sourceTimestamp": 134146656459767784,
+            "compiledTimestamp": 17701921290297519,
+            "formatVersion": 1,
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 1200721673205625359,
+                            "name": "fantasy_floor.0780"
                         }
                     ]
                 }
@@ -10092,6 +13099,40 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/level1_ground/fantasy_floor.055.material",
+            "assetType": "Material",
+            "sourcePath": "models/glb/level1_ground.glb",
+            "sourceTimestamp": 134146656459767784,
+            "compiledTimestamp": 17701921288683284,
+            "formatVersion": 1,
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 1095395056334450895,
+                            "name": "fantasy_floor.0550"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/baseball_field/fence/fence.mesh",
+            "assetType": "Mesh",
+            "resources": [
+                {
+                    "resourceType": 6209910166724260588,
+                    "resourceEntries": [
+                        {
+                            "hash": 4240728387826012351,
+                            "name": "fence0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/controls.ktx2",
             "assetType": "Texture",
             "resources": [
@@ -10131,6 +13172,25 @@
                         {
                             "hash": 4348591578504762977,
                             "name": "_020"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/level1_ground/fantasy_floor.022.material",
+            "assetType": "Material",
+            "sourcePath": "models/glb/level1_ground.glb",
+            "sourceTimestamp": 134146656459767784,
+            "compiledTimestamp": 17701921286360207,
+            "formatVersion": 1,
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 950169361514540791,
+                            "name": "fantasy_floor.0220"
                         }
                     ]
                 }
@@ -10212,19 +13272,15 @@
             ]
         },
         {
-            "filepath": "compiledassets/models/fbx/environment/bossarena 1/set_3.material",
-            "assetType": "Material",
-            "sourcePath": "models/fbx/environment/bossarena 1.fbx",
-            "sourceTimestamp": 134146859409792681,
-            "compiledTimestamp": 17702707374613196,
-            "formatVersion": 1,
+            "filepath": "compiledassets/lookaround_pc_thumb.ktx2",
+            "assetType": "Texture",
             "resources": [
                 {
-                    "resourceType": 645030769166885040,
+                    "resourceType": 16443744738808614340,
                     "resourceEntries": [
                         {
-                            "hash": 832776704445126649,
-                            "name": "set_30"
+                            "hash": 3211389790830701307,
+                            "name": "lookaround_pc_thumb0"
                         }
                     ]
                 }
@@ -10325,17 +13381,57 @@
             ]
         },
         {
-            "filepath": "compiledassets/models/fbx/environment/bossarena 1/file17.ktx2",
-            "assetType": "Texture",
-            "compiledTimestamp": 17702707317227895,
-            "formatVersion": 2,
+            "filepath": "compiledassets/models/glb/level1_ground/fantasy_floor.017.material",
+            "assetType": "Material",
+            "sourcePath": "models/glb/level1_ground.glb",
+            "sourceTimestamp": 134146656459767784,
+            "compiledTimestamp": 17701921286028979,
+            "formatVersion": 1,
             "resources": [
                 {
-                    "resourceType": 16443744738808614340,
+                    "resourceType": 645030769166885040,
                     "resourceEntries": [
                         {
-                            "hash": 791034845008238567,
-                            "name": "file170"
+                            "hash": 924760747308265129,
+                            "name": "fantasy_floor.0170"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/level1_ground/fantasy_floor.063.material",
+            "assetType": "Material",
+            "sourcePath": "models/glb/level1_ground.glb",
+            "sourceTimestamp": 134146656459767784,
+            "compiledTimestamp": 17701921289254627,
+            "formatVersion": 1,
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 1133108305167167805,
+                            "name": "fantasy_floor.0630"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/level1_ground/fantasy_floor.073.material",
+            "assetType": "Material",
+            "sourcePath": "models/glb/level1_ground.glb",
+            "sourceTimestamp": 134146656459767784,
+            "compiledTimestamp": 17701921289931386,
+            "formatVersion": 1,
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 1176349898464342473,
+                            "name": "fantasy_floor.0730"
                         }
                     ]
                 }
@@ -10396,6 +13492,25 @@
                         {
                             "hash": 5676835709880539745,
                             "name": "_070"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/combinedclassroom/fantasy_floor.material",
+            "assetType": "Material",
+            "sourcePath": "models/glb/combinedclassroom.glb",
+            "sourceTimestamp": 134146640623868093,
+            "compiledTimestamp": 17701905714697524,
+            "formatVersion": 1,
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2926786703533336701,
+                            "name": "fantasy_floor0"
                         }
                     ]
                 }
@@ -10507,6 +13622,21 @@
             ]
         },
         {
+            "filepath": "compiledassets/move_pc_thumb.ktx2",
+            "assetType": "Texture",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 3224122135480355605,
+                            "name": "move_pc_thumb0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/models/glb/mc_animated/mc_animatedt-pose.anim",
             "assetType": "Animation",
             "resources": [
@@ -10567,6 +13697,25 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/level1_ground/fantasy_floor.037.material",
+            "assetType": "Material",
+            "sourcePath": "models/glb/level1_ground.glb",
+            "sourceTimestamp": 134146656459767784,
+            "compiledTimestamp": 17701921287427577,
+            "formatVersion": 1,
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 1016799766157766613,
+                            "name": "fantasy_floor.0370"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/models/glb/enemy_male_animated/n00_001_01_tops_01_cloth (instance).material",
             "assetType": "Material",
             "resources": [
@@ -10576,6 +13725,25 @@
                         {
                             "hash": 5060485775215419689,
                             "name": "n00_001_01_tops_01_cloth (instance)0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/level1_ground/fantasy_floor.089.material",
+            "assetType": "Material",
+            "sourcePath": "models/glb/level1_ground.glb",
+            "sourceTimestamp": 134146656459767784,
+            "compiledTimestamp": 17701921291062073,
+            "formatVersion": 1,
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 1251966611641381537,
+                            "name": "fantasy_floor.0890"
                         }
                     ]
                 }
@@ -10601,6 +13769,21 @@
             ]
         },
         {
+            "filepath": "compiledassets/attack_pc_thumb.ktx2",
+            "assetType": "Texture",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 3192286875809704685,
+                            "name": "attack_pc_thumb0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/models/glb/items/bbt/material_4.material",
             "assetType": "Material",
             "resources": [
@@ -10610,6 +13793,40 @@
                         {
                             "hash": 1997508063774029543,
                             "name": "material_40"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/baseball_field/lights/material_1.material",
+            "assetType": "Material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 9402020686559052941,
+                            "name": "material_10"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/enemy/boss_prefect_groundslam/openpbr_shader1.material",
+            "assetType": "Material",
+            "sourcePath": "models/glb/enemy/boss_prefect_groundslam.glb",
+            "sourceTimestamp": 134146952408968135,
+            "compiledTimestamp": 17702222458978766,
+            "formatVersion": 1,
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2664995183992129647,
+                            "name": "openpbr_shader10"
                         }
                     ]
                 }
@@ -10631,6 +13848,21 @@
             ]
         },
         {
+            "filepath": "compiledassets/attack_mobile_thumb.ktx2",
+            "assetType": "Texture",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 3181688683229569239,
+                            "name": "attack_mobile_thumb0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/materials/lambert4_1001.material",
             "assetType": "Material",
             "resources": [
@@ -10640,6 +13872,44 @@
                         {
                             "hash": 855045113328407961,
                             "name": "lambert4_10010"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/combinedclassroom/fantasy_walls1.001.material",
+            "assetType": "Material",
+            "sourcePath": "models/glb/combinedclassroom.glb",
+            "sourceTimestamp": 134146682306730658,
+            "compiledTimestamp": 17701946501203950,
+            "formatVersion": 1,
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 17605615479533020357,
+                            "name": "fantasy_walls1.0010"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/level1_ground/fantasy_floor.021.material",
+            "assetType": "Material",
+            "sourcePath": "models/glb/level1_ground.glb",
+            "sourceTimestamp": 134146656459767784,
+            "compiledTimestamp": 17701921286302896,
+            "formatVersion": 1,
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 942995048143302373,
+                            "name": "fantasy_floor.0210"
                         }
                     ]
                 }
@@ -10676,6 +13946,25 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/level1_ground/fantasy_floor.027.material",
+            "assetType": "Material",
+            "sourcePath": "models/glb/level1_ground.glb",
+            "sourceTimestamp": 134146656459767784,
+            "compiledTimestamp": 17701921286688921,
+            "formatVersion": 1,
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 970033138581942079,
+                            "name": "fantasy_floor.0270"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/models/glb/enemy_male_animated/_18.ktx2",
             "assetType": "Texture",
             "resources": [
@@ -10685,6 +13974,44 @@
                         {
                             "hash": 5012622934546702613,
                             "name": "_180"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/level1_ground/fantasy_ceiling.material",
+            "assetType": "Material",
+            "sourcePath": "models/glb/level1_ground.glb",
+            "sourceTimestamp": 134146656459767784,
+            "compiledTimestamp": 17701921284635031,
+            "formatVersion": 1,
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 826899814389689687,
+                            "name": "fantasy_ceiling0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/combinedclassroom/combinedclassroom.mesh",
+            "assetType": "Mesh",
+            "sourcePath": "models/glb/combinedclassroom.glb",
+            "sourceTimestamp": 134146640623868093,
+            "compiledTimestamp": 17701905701428895,
+            "formatVersion": 1296388936,
+            "resources": [
+                {
+                    "resourceType": 6209910166724260588,
+                    "resourceEntries": [
+                        {
+                            "hash": 2937989627508746431,
+                            "name": "combinedclassroom0"
                         }
                     ]
                 }
@@ -10766,6 +14093,21 @@
             ]
         },
         {
+            "filepath": "compiledassets/materials/kickme.material",
+            "assetType": "Material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 3646119096178176623,
+                            "name": "kickme0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/textures/fence13707767880246738486.ktx2",
             "assetType": "Texture",
             "resources": [
@@ -10796,6 +14138,25 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/level1_ground/level1_ground.mesh",
+            "assetType": "Mesh",
+            "sourcePath": "models/glb/level1_ground.glb",
+            "sourceTimestamp": 134146656459767784,
+            "compiledTimestamp": 17701921272155429,
+            "formatVersion": 1296388936,
+            "resources": [
+                {
+                    "resourceType": 6209910166724260588,
+                    "resourceEntries": [
+                        {
+                            "hash": 1309001578309006181,
+                            "name": "level1_ground0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/materials/n00_008_01_shoes_01_cloth_01__instance_.001.material",
             "assetType": "Material",
             "resources": [
@@ -10811,6 +14172,25 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/level1_ground/material_108.material",
+            "assetType": "Material",
+            "sourcePath": "models/glb/level1_ground.glb",
+            "sourceTimestamp": 134146656459767784,
+            "compiledTimestamp": 17701921291851521,
+            "formatVersion": 1,
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 1303622767425925953,
+                            "name": "material_1080"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/models/glb/mc_animated/n00_000_hair_00_hair_03 (instance).material",
             "assetType": "Material",
             "resources": [
@@ -10820,6 +14200,25 @@
                         {
                             "hash": 2504851316354755187,
                             "name": "n00_000_hair_00_hair_03 (instance)0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/level1_ground/fantasy_floor.082.material",
+            "assetType": "Material",
+            "sourcePath": "models/glb/level1_ground.glb",
+            "sourceTimestamp": 134146656459767784,
+            "compiledTimestamp": 17701921290562888,
+            "formatVersion": 1,
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 1219231951459234371,
+                            "name": "fantasy_floor.0820"
                         }
                     ]
                 }
@@ -11010,6 +14409,25 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/level1_ground/fantasy_floor.046.material",
+            "assetType": "Material",
+            "sourcePath": "models/glb/level1_ground.glb",
+            "sourceTimestamp": 134146656459767784,
+            "compiledTimestamp": 17701921288047462,
+            "formatVersion": 1,
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 1054119389827739731,
+                            "name": "fantasy_floor.0460"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/materials/n00_000_00_faceeyeline_00_face__instance_.material",
             "assetType": "Material",
             "resources": [
@@ -11019,6 +14437,25 @@
                         {
                             "hash": 2150961403638599543,
                             "name": "n00_000_00_faceeyeline_00_face__instance_0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/combinedclassroom/fantasy_floor.101.material",
+            "assetType": "Material",
+            "sourcePath": "models/glb/combinedclassroom.glb",
+            "sourceTimestamp": 134146682306730658,
+            "compiledTimestamp": 17701946501150719,
+            "formatVersion": 1,
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 17603623164463490231,
+                            "name": "fantasy_floor.1010"
                         }
                     ]
                 }
@@ -11115,6 +14552,59 @@
             ]
         },
         {
+            "filepath": "compiledassets/models/glb/combinedclassroom/classroomcolumn.001.material",
+            "assetType": "Material",
+            "sourcePath": "models/glb/combinedclassroom.glb",
+            "sourceTimestamp": 134146682306730658,
+            "compiledTimestamp": 17701946500862507,
+            "formatVersion": 1,
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 17580165083884889199,
+                            "name": "classroomcolumn.0010"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/combinedclassroom/uv_set_14.material",
+            "assetType": "Material",
+            "sourcePath": "models/glb/combinedclassroom.glb",
+            "sourceTimestamp": 134146640623868093,
+            "compiledTimestamp": 17701905714638177,
+            "formatVersion": 1,
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 2921377106324678767,
+                            "name": "uv_set_140"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/baseball_field/fence/material_2.material",
+            "assetType": "Material",
+            "resources": [
+                {
+                    "resourceType": 645030769166885040,
+                    "resourceEntries": [
+                        {
+                            "hash": 4273540013822621697,
+                            "name": "material_20"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "filepath": "compiledassets/stairs_left.mesh",
             "assetType": "Mesh",
             "resources": [
@@ -11139,6 +14629,21 @@
                         {
                             "hash": 2414836498411989531,
                             "name": "_050"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filepath": "compiledassets/models/glb/baseball_field/fence/image_5.ktx2",
+            "assetType": "Texture",
+            "resources": [
+                {
+                    "resourceType": 16443744738808614340,
+                    "resourceEntries": [
+                        {
+                            "hash": 4216465464735879337,
+                            "name": "image_50"
                         }
                     ]
                 }
