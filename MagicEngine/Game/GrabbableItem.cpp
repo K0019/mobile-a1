@@ -138,6 +138,7 @@ void GrabbableItemComponent::EditorDraw()
 	gui::VarInput("Damage", &damage);
 	gui::VarInput("Attack Box", &attackBox);
 	gui::VarInput("Attack Delay", &attackDelay);
+	gui::VarDefault("Is Held", &isHeld);
 
 	// Animations
 	gui::TextUnformatted("Light Attack");
